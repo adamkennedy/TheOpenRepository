@@ -1,4 +1,7 @@
 
+#ifndef __FORWARD_SCAN_H__
+#define __FORWARD_SCAN_H__
+
 bool inline is_digit(char c) {
 	return ( ( c >= '0' ) && ( c <= '9' ) );
 }
@@ -151,8 +154,8 @@ public:
 		}
 		if ( *position >= ( line_lenght - len + 1 ) )
 			return false;
-		ulong pos = *position;
-		for (ulong ix = 0; ix < len; ix++) {
+		unsigned long pos = *position;
+		for (unsigned long ix = 0; ix < len; ix++) {
 			if ( text[pos + ix] != str[ix] ) {
 				return false;
 			}
@@ -208,3 +211,5 @@ public:
 private:
 	A1 inner;
 };
+
+#endif

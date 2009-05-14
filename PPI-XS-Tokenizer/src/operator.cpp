@@ -61,8 +61,8 @@ CharTokenizeResults OperatorToken::tokenize(Tokenizer *t, Token *token, unsigned
 CharTokenizeResults HereDocToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	// we are one the first char after the "<<"
 	// /^( \s* (?: "[^"]*" | '[^']*' | `[^`]*` | \\?\w+ ) )/x 
-	ulong pos = t->line_pos;
-	ulong start_key = pos, stop_key = pos;
+	unsigned long pos = t->line_pos;
+	unsigned long start_key = pos, stop_key = pos;
 	bool found = false;
 	PredicateOneOrMore< PredicateFunc< is_word > > regex1;
 	if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
@@ -119,7 +119,7 @@ CharTokenizeResults HereDocToken::tokenize(Tokenizer *t, Token *token, unsigned 
 	t->_finalize_token();
 	t->_new_token( Token_HereDoc_Body );
 	ExtendedToken *exToken = (ExtendedToken *)t->c_token;
-	for ( ulong ix = start_key; ix < stop_key; ix++ ) {
+	for ( unsigned long ix = start_key; ix < stop_key; ix++ ) {
 		exToken->text[ exToken->length++ ] = t->c_line[ ix ];
 	}
 	exToken->sections[0].position = 0;
@@ -139,7 +139,7 @@ CharTokenizeResults HereDocBodyToken::tokenize(Tokenizer *t, Token *token, unsig
 	ExtendedToken::section &key = self->sections[ 0 ];
 	ExtendedToken::section &value = self->sections[ 1 ];
 	PredicateZeroOrMore< PredicateFunc< is_newline > > regex1;
-	ulong pos = t->line_pos + key.size;
+	unsigned long pos = t->line_pos + key.size;
 
 	// copy this line anyway
 	while ( t->line_length > t->line_pos ) {

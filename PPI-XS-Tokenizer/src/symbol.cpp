@@ -144,9 +144,9 @@ bool inline is_word_colon_tag( char c ) {
 
 CharTokenizeResults ArrayIndexToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	PredicateOneOrMore< PredicateFunc< is_word_colon_tag > > regex;
-	ulong pos = t->line_pos;
+	unsigned long pos = t->line_pos;
 	if ( regex.test( t->c_line, &pos, t->line_length ) ) {
-		for ( ulong ix = t->line_pos; ix < pos; ix++ ) {
+		for ( unsigned long ix = t->line_pos; ix < pos; ix++ ) {
 			token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
 		}
 	}
@@ -158,8 +158,8 @@ CharTokenizeResults ArrayIndexToken::tokenize(Tokenizer *t, Token *token, unsign
 CharTokenizeResults MagicToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	token->text[ token->length ] = c_char;
 	if ( token->text[0] == '$' ) {
-		ulong pos = 1;
-		ulong nlen = token->length + 1;
+		unsigned long pos = 1;
+		unsigned long nlen = token->length + 1;
 		// /^\$\'[\w]/ 
 		PredicateAnd<
 			PredicateIsChar< '\'' >,

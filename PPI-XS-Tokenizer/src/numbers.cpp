@@ -11,7 +11,7 @@ CharTokenizeResults NumberToken::tokenize(Tokenizer *t, Token *token, unsigned c
 		PredicateIsChar< '0' >,
 		PredicateZeroOrMore< PredicateIsChar< '_' > >
 	> regex;
-	ulong pos = t->line_pos - token->length;
+	unsigned long pos = t->line_pos - token->length;
 	if ( regex.test( t->c_line, &pos, t->line_length ) ) {
 		if ( t->c_line[ pos ] == 'x' ) {
 			t->changeTokenType( Token_Number_Hex );
@@ -27,7 +27,7 @@ CharTokenizeResults NumberToken::tokenize(Tokenizer *t, Token *token, unsigned c
 		}
 	}
 	while ( t->line_length > t->line_pos ) {
-		uchar c = t->c_line[ t->line_pos ];
+		unsigned char c = t->c_line[ t->line_pos ];
 		if ( !( is_digit( c ) || ( c == '_' ) ) ) {
 			if (c == '.') {
 				t->changeTokenType( Token_Number_Float );
@@ -57,7 +57,7 @@ bool AbstractNumberSubclassToken::isa( TokenTypeNames is_type ) const {
 
 CharTokenizeResults FloatNumberToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	while ( t->line_length > t->line_pos ) {
-		uchar c = t->c_line[ t->line_pos ];
+		unsigned char c = t->c_line[ t->line_pos ];
 		if ( is_digit( c ) || ( c== '_' ) ) {
 			token->text[ token->length++ ] = c;
 			t->line_pos++;
@@ -80,7 +80,7 @@ CharTokenizeResults FloatNumberToken::tokenize(Tokenizer *t, Token *token, unsig
 				t->_new_token( Token_Operator );
 				return done_it_myself;
 			}
-			for ( ulong ix = 0; ix < token->length; ix++ ) {
+			for ( unsigned long ix = 0; ix < token->length; ix++ ) {
 				if ( token->text[ix] == '_' ) {
 					// not a version string
 					TokenTypeNames zone = t->_finalize_token();
@@ -113,7 +113,7 @@ static inline bool is_hex_char( char c ) {
 
 CharTokenizeResults HexNumberToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	while ( t->line_length > t->line_pos ) {
-		uchar c = t->c_line[ t->line_pos ];
+		unsigned char c = t->c_line[ t->line_pos ];
 		if (!is_hex_char( c ) ) {
 			TokenTypeNames zone = t->_finalize_token();
 			t->_new_token(zone);
@@ -129,7 +129,7 @@ CharTokenizeResults HexNumberToken::tokenize(Tokenizer *t, Token *token, unsigne
 
 CharTokenizeResults BinaryNumberToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	while ( t->line_length > t->line_pos ) {
-		uchar c = t->c_line[ t->line_pos ];
+		unsigned char c = t->c_line[ t->line_pos ];
 		if (!is_word( c ) ) {
 			TokenTypeNames zone = t->_finalize_token();
 			t->_new_token(zone);
@@ -145,7 +145,7 @@ CharTokenizeResults BinaryNumberToken::tokenize(Tokenizer *t, Token *token, unsi
 
 CharTokenizeResults OctalNumberToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	while ( t->line_length > t->line_pos ) {
-		uchar c = t->c_line[ t->line_pos ];
+		unsigned char c = t->c_line[ t->line_pos ];
 		if (! ( is_digit( c ) || ( c == '_' ) ) ) {
 			TokenTypeNames zone = t->_finalize_token();
 			t->_new_token(zone);
@@ -175,9 +175,9 @@ CharTokenizeResults ExpNumberToken::tokenize(Tokenizer *t, Token *token, unsigne
 		PredicateOneOrMore< PredicateFunc< is_digit > >
 	> regex;
 
-	ulong pos = t->line_pos;
+	unsigned long pos = t->line_pos;
 	if ( regex.test( t->c_line, &pos, t->line_length ) ) {
-		for ( ulong ix = t->line_pos; ix < pos; ix++ ) {
+		for ( unsigned long ix = t->line_pos; ix < pos; ix++ ) {
 			token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
 		}
 	} else {
@@ -199,7 +199,7 @@ CharTokenizeResults ExpNumberToken::tokenize(Tokenizer *t, Token *token, unsigne
 
 CharTokenizeResults VersionNumberToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	while ( t->line_length > t->line_pos ) {
-		uchar c = t->c_line[ t->line_pos ];
+		unsigned char c = t->c_line[ t->line_pos ];
 		if ( is_digit( c ) ) {
 			token->text[ token->length++ ] = c;
 			t->line_pos++;

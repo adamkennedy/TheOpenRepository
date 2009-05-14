@@ -11,7 +11,7 @@ enum ExtendedTokenState {
 	in_section_not_braced,
 };
 
-static uchar GetClosingSeperator( uchar opening ) {
+static unsigned char GetClosingSeperator( unsigned char opening ) {
 	switch (opening) {
 		case '<': return '>';
 		case '{': return '}';
@@ -38,11 +38,11 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeModifiers(Tokenizer 
 
 CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *t, ExtendedToken *token) {
 	token->state = in_section_braced;
-	uchar c_section_num = token->current_section;
+	unsigned char c_section_num = token->current_section;
 	ExtendedToken::section &cs = token->sections[ c_section_num ];
 	bool slashed = false;
 	while ( t->line_length > t->line_pos ) {
-		uchar my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
+		unsigned char my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
 		if ( !slashed ) {
 			if ( my_char == cs.close_char ) {
 				if ( token->brace_counter == 0 ) {
@@ -71,11 +71,11 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *
 
 CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer *t, ExtendedToken *token) {
 	token->state = in_section_not_braced;
-	uchar c_section_num = token->current_section;
+	unsigned char c_section_num = token->current_section;
 	ExtendedToken::section &cs = token->sections[ c_section_num ];
 	bool slashed = false;
 	while ( t->line_length > t->line_pos ) {
-		uchar my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
+		unsigned char my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
 		if ( ( !slashed ) && ( my_char == cs.close_char ) ) {
 			token->current_section++;
 
@@ -100,14 +100,14 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer
 
 // Assumation - the charecter we are on is the beginning seperator
 CharTokenizeResults AbstractQuoteTokenType::StateFuncBootstrapSection(Tokenizer *t, ExtendedToken *token) {
-	uchar my_char = t->c_line[ t->line_pos ];
-	uchar c_section_num = token->current_section;
+	unsigned char my_char = t->c_line[ t->line_pos ];
+	unsigned char c_section_num = token->current_section;
 	token->text[token->length++] = t->c_line[ t->line_pos++ ];
 	ExtendedToken::section &cs = token->sections[ c_section_num ];
 	cs.position = token->length;
 	cs.size = 0;
 	cs.open_char = my_char;
-	uchar close_char = GetClosingSeperator( my_char );
+	unsigned char close_char = GetClosingSeperator( my_char );
 	if ( close_char == 0 ) {
 		cs.close_char = my_char;
 		return StateFuncInSectionUnBraced( t, token );
@@ -122,7 +122,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncBootstrapSection(Tokenizer 
 CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeWhitespaces(Tokenizer *t, ExtendedToken *token) {
 	token->state = consume_whitespaces;
 	while ( t->line_length > t->line_pos ) {
-		uchar my_char = t->c_line[ t->line_pos ];
+		unsigned char my_char = t->c_line[ t->line_pos ];
 		if ( is_whitespace( my_char ) ) {
 			token->text[token->length++] = t->c_line[ t->line_pos++ ];
 			continue;
@@ -145,7 +145,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncExamineFirstChar(Tokenizer 
 		// the end of the line
 		return StateFuncConsumeWhitespaces( t, token );
 	}
-	uchar my_char = t->c_line[ t->line_pos ];
+	unsigned char my_char = t->c_line[ t->line_pos ];
 	if ( is_whitespace( my_char ) ) {
 		return StateFuncConsumeWhitespaces( t, token );
 	}
@@ -194,7 +194,7 @@ CharTokenizeResults AbstractSimpleQuote::tokenize(Tokenizer *t, Token *token, un
 
 	bool is_slash = false;
 	while ( t->line_length > t->line_pos ) {
-		uchar my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
+		unsigned char my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
 		if ( ( !is_slash ) && ( my_char == seperator ) ) {
 			TokenTypeNames zone = t->_finalize_token();
 			t->_new_token(zone);

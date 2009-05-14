@@ -8,9 +8,6 @@
 
 namespace PPITokenizer {
 
-typedef unsigned long ulong;
-typedef unsigned char uchar;
-
 enum TokenTypeNames {
     Token_NoType = 0, // for signaling that there is no current token
     Token_WhiteSpace, // done
@@ -118,7 +115,7 @@ public:
 	 */
 	virtual CharTokenizeResults commit(Tokenizer *t);
 	virtual bool isa( TokenTypeNames is_type ) const;
-	Token *GetNewToken( Tokenizer *t, TokensCacheMany *tc, ulong line_length );
+	Token *GetNewToken( Tokenizer *t, TokensCacheMany *tc, unsigned long line_length );
 	virtual void FreeToken( TokensCacheMany *tc, Token *token );
 	AbstractTokenType( TokenTypeNames my_type,  bool sign ) : type(my_type), significant(sign) {}
 	virtual ~AbstractTokenType() {}
@@ -130,13 +127,13 @@ protected:
 
 class ExtendedToken : public Token {
 public:
-	uchar seperator;
-	uchar state;
-	uchar current_section;
-	ulong brace_counter;
+	unsigned char seperator;
+	unsigned char state;
+	unsigned char current_section;
+	unsigned long brace_counter;
 	struct section {
-		uchar open_char, close_char;
-		ulong position, size;
+		unsigned char open_char, close_char;
+		unsigned long position, size;
 	} sections[2], modifiers;
 };
 
@@ -146,7 +143,7 @@ public:
 	AbstractExtendedTokenType( 
 		TokenTypeNames my_type,  
 		bool sign, 
-		uchar num_sections, 
+		unsigned char num_sections, 
 		bool accept_modifiers ) 
 		: 
 		AbstractTokenType( my_type, sign ), 
@@ -154,7 +151,7 @@ public:
 		m_acceptModifiers(accept_modifiers) {}
 	virtual bool isa( TokenTypeNames is_type ) const;
 	virtual void FreeToken( TokensCacheMany *tc, Token *token );
-	uchar m_numSections;
+	unsigned char m_numSections;
 	bool m_acceptModifiers;
 protected: 
 	virtual Token *_get_from_cache(TokensCacheMany* tc);
@@ -199,14 +196,14 @@ public:
 	void freeToken(Token *t);
 	/* tokenizeLine - Tokenize one line
 	 */
-	LineTokenizeResults tokenizeLine(char *line, ulong line_length);
+	LineTokenizeResults tokenizeLine(char *line, unsigned long line_length);
 	void Reset();
 	// --------- End Of Public Interface -------- 
 public:
 	Token *c_token;
 	char *c_line;
-	ulong line_length;
-	ulong line_pos;
+	unsigned long line_length;
+	unsigned long line_pos;
 	char local_newline;
 	TokenTypeNames zone;
 	AbstractTokenType *TokenTypeNames_pool[Token_LastTokenType];

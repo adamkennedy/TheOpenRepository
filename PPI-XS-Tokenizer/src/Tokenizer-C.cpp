@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tokenizer.h"
+#include "forward_scan.h"
 
 using namespace PPITokenizer;
 
@@ -58,7 +59,7 @@ void checkExtendedTokenModifiers(
 			printf("expected not to find modifiers\n");
 		}
 		printf("got size %d and section |", qtoken->modifiers.size);
-		for (ulong ix = 0; ix < qtoken->modifiers.size; ix++) {
+		for (unsigned long ix = 0; ix < qtoken->modifiers.size; ix++) {
 			printf("%c", qtoken->text[ qtoken->modifiers.position + ix ]);
 		}
 		printf("| (line %d)\n", line);
@@ -67,7 +68,7 @@ void checkExtendedTokenModifiers(
 
 void checkExtendedTokenSection(
 					     ExtendedToken *qtoken,
-					     uchar section_to_check,
+					     unsigned char section_to_check,
 						 const char *section, 
 						 int line) {
 	bool hasError = false;
@@ -90,7 +91,7 @@ void checkExtendedTokenSection(
 		printf("checkExtendedToken: Got incorrect section %d:\n", section_to_check);
 		printf("expected size %d, got size %d (line %d)\n", strlen( section ), qtoken->sections[section_to_check].size, line);
 		printf("expected section |%s|, got section |", section );
-		for (ulong ix = 0; ix < qtoken->sections[section_to_check].size; ix++) {
+		for (unsigned long ix = 0; ix < qtoken->sections[section_to_check].size; ix++) {
 			printf("%c", qtoken->text[ qtoken->sections[section_to_check].position + ix ]);
 		}
 		printf("|\n");
@@ -133,7 +134,7 @@ void checkExtendedToken( Tokenizer *tk,
 }
 #define CheckToken( tk, text, type ) checkToken(tk, text, type, __LINE__);
 #define CheckExtendedToken( tk, text, section1, section2, modifiers, type ) checkExtendedToken(tk, text, section1, section2, modifiers, type, __LINE__);
-#define Tokenize( line ) tk.tokenizeLine( line , (ulong)strlen(line) );
+#define Tokenize( line ) tk.tokenizeLine( line , (unsigned long)strlen(line) );
 
 void VerifyInheritence( AbstractTokenType **type_pool );
 
@@ -426,6 +427,37 @@ int main(int argc, char* argv[])
 		tk.freeToken(tkn);
 	}
 	return 0;
+}
+
+static void is_true( bool check, int line ) {
+	if (!check)
+		printf("Forward_scan_UI: %d: Is not correct (false)\n", line);
+}
+
+static void is_false( bool check, int line ) {
+	if (check)
+		printf("Forward_scan_UI: %d: Is not correct (true)\n", line);
+}
+#define BE_TRUE( check ) is_true( (check), __LINE__ );
+#define BE_FALSE( check ) is_false( (check), __LINE__ );
+
+extern const char l_test[] = "yz";
+
+void forward_scan2_unittest() {
+	PredicateIsChar< 'x' > regex1;
+	unsigned long pos = 0;
+	BE_TRUE( regex1.test( "xyz", &pos, 3 ) );
+	BE_TRUE( pos == 1 );
+	BE_FALSE( regex1.test( "xyz", &pos, 3 ) );
+	BE_TRUE( pos == 1 );
+	
+	PredicateLiteral< 2, l_test > regex2;
+	pos = 0;
+	BE_FALSE( regex2.test( "xyz", &pos, 3 ) );
+	BE_TRUE( pos == 0 );
+	pos = 1;
+	BE_TRUE( regex2.test( "xyz", &pos, 3 ) );
+	BE_TRUE( pos == 3 );
 }
 
 void checkISA( AbstractTokenType *tested, TokenTypeNames type, TokenTypeNames should, int line ) {

@@ -9,7 +9,7 @@ public:
 	AbstractQuoteTokenType( 
 		TokenTypeNames my_type,  
 		bool sign, 
-		uchar num_sections, 
+		unsigned char num_sections, 
 		bool accept_modifiers ) 
 		: 
 		AbstractExtendedTokenType( my_type, sign, num_sections, accept_modifiers) {}
@@ -29,7 +29,7 @@ public:
 	AbstractBareQuoteTokenType( 
 		TokenTypeNames my_type,  
 		bool sign, 
-		uchar num_sections, 
+		unsigned char num_sections, 
 		bool accept_modifiers ) 
 		: 
 	AbstractQuoteTokenType( my_type, sign, num_sections, accept_modifiers ) {} 
@@ -40,11 +40,11 @@ protected:
 // Quote type simple - normal quoted string '' or "" or ``
 class AbstractSimpleQuote : public AbstractTokenType {
 public:
-	AbstractSimpleQuote(TokenTypeNames my_type,  bool sign, uchar sep) : AbstractTokenType( my_type, sign ), seperator(sep) {}
+	AbstractSimpleQuote(TokenTypeNames my_type,  bool sign, unsigned char sep) : AbstractTokenType( my_type, sign ), seperator(sep) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 	virtual bool isa( TokenTypeNames is_type ) const;
 private:
-	uchar seperator;
+	unsigned char seperator;
 };
 
 class ParameterizedAttributeToken : public AbstractBareQuoteTokenType {

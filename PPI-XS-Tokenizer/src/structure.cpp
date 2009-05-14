@@ -51,7 +51,7 @@ CharTokenizeResults BOMToken::tokenize(Tokenizer *t, Token *token, unsigned char
 		PredicateBinaryLiteral< 2, l_utf16_be >,
 		PredicateBinaryLiteral< 2, l_utf16_le >
 	> regex1;
-	ulong pos = 0;
+	unsigned long pos = 0;
 	if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
 		// does not support anything but pure ascii
 		return error_fail; 
@@ -59,7 +59,7 @@ CharTokenizeResults BOMToken::tokenize(Tokenizer *t, Token *token, unsigned char
 	PredicateBinaryLiteral< 3, l_utf8 > regex2;
 	if ( regex2.test( t->c_line, &pos, t->line_length ) ) {
 		// well, if it's a utf8 maybe we will manage
-		for (ulong ix = 0; ix < pos; ix++ ) {
+		for (unsigned long ix = 0; ix < pos; ix++ ) {
 			token->text[ ix ] = t->c_line[ ix ];
 		}
 		// move the beginning of the line to after the BOM

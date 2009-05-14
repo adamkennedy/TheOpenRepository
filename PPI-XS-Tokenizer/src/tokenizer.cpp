@@ -71,7 +71,7 @@ bool AbstractTokenType::isa( TokenTypeNames is_type ) const {
 	return ( is_type == type );
 }
 
-Token *AbstractTokenType::GetNewToken( Tokenizer *t, TokensCacheMany *tc, ulong line_length ) {
+Token *AbstractTokenType::GetNewToken( Tokenizer *t, TokensCacheMany *tc, unsigned long line_length ) {
 	unsigned long needed_size = line_length - t->line_pos;
 	if ( needed_size < 200 ) needed_size = 200;
 
@@ -224,7 +224,7 @@ TokenTypeNames Tokenizer::_finalize_token() {
 
 
 using namespace std;
-typedef pair <const char *, uchar> uPair;
+typedef pair <const char *, unsigned char> uPair;
 //std::map <string, char> Tokenizer::operators;
 
 bool Tokenizer::is_operator(const char *str) {
@@ -272,7 +272,7 @@ static void fill_maps( std::map <string, char> &omap, std::map <string, char> &m
 		"?" ,":" ,"=" ,"+=" ,"-=" ,"*=" ,".=" ,"/=" ,"//=",
 		"=>" ,"<>" ,",",
 		"and" ,"or" ,"xor" ,"not" };
-	for ( ulong ix = 0; ix < OPERATORS_COUNT; ix++ )
+	for ( unsigned long ix = 0; ix < OPERATORS_COUNT; ix++ )
 		omap.insert( uPair ( o_list[ix], 1 ) );
 
 	const char m_list[MAGIC_COUNT][5] = {
@@ -286,7 +286,7 @@ static void fill_maps( std::map <string, char> &omap, std::map <string, char> &m
 		 "$^T", "$^V", "$^W", "$^X", "%^H",
 		 "$::|", "$}", "$,", "$#", "$#+", "$#-"
 	};
-	for ( ulong ix = 0; ix < MAGIC_COUNT; ix++ )
+	for ( unsigned long ix = 0; ix < MAGIC_COUNT; ix++ )
 		mmap.insert( uPair ( m_list[ix], 1 ) );
 }
 
@@ -414,7 +414,7 @@ OperatorOperandContext Tokenizer::_opcontext() {
 	if ( t0->length != 1 )
 		return ooc_Unknown;
 
-	uchar c_char = t0->text[0];
+	unsigned char c_char = t0->text[0];
 	if ( ( c_char == '(' ) || ( c_char == '{' ) || ( c_char == '[' ) ||  ( c_char == ';' ) ) {
 		return ooc_Operand;
 	}
@@ -443,7 +443,7 @@ LineTokenizeResults Tokenizer::_tokenize_the_rest_of_the_line() {
     return reached_eol;
 }
 
-LineTokenizeResults Tokenizer::tokenizeLine(char *line, ulong line_length) {
+LineTokenizeResults Tokenizer::tokenizeLine(char *line, unsigned long line_length) {
 	line_pos = 0;
 	c_line = line;
 	this->line_length = line_length;
@@ -466,7 +466,7 @@ void Tokenizer::changeTokenType(TokenTypeNames new_type) {
 		newToken->length = c_token->length;
 		c_token->length = 0;
 
-		ulong aSize = c_token->allocated_size;
+		unsigned long aSize = c_token->allocated_size;
 		c_token->allocated_size = newToken->allocated_size;
 		newToken->allocated_size = aSize;
 
