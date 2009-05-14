@@ -9,23 +9,16 @@ extern "C" {
 }
 #endif
 
-#include "src/Tokenizer.cpp"
+#include "src/tokenizer.cpp"
 #include "src/forward_scan.cpp"
-#include "src/Token.cpp"
-#include "src/AbstractQuoteTokenType.cpp"
-#include "src/AbstractBareQuoteTokenType.cpp"
-#include "src/AbstractSimpleQuote.cpp"
-#include "src/simpleTokens.cpp"
-#include "src/StructureToken.cpp"
-#include "src/WhiteSpaceToken.cpp"
-#include "src/SymbolToken.cpp"
-#include "src/MagicToken.cpp"
-#include "src/CommentToken.cpp"
-#include "src/OperatorToken.cpp"
 #include "src/numbers.cpp"
+#include "src/operator.cpp"
+#include "src/quotes.cpp"
+#include "src/structure.cpp"
+#include "src/symbol.cpp"
 #include "src/unknown.cpp"
+#include "src/whitespace.cpp"
 #include "src/word.cpp"
-#include "src/TokenCache.cpp"
 
 #include "const-c.inc"
 
