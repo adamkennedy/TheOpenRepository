@@ -19,6 +19,10 @@ typedef  unsigned int  ub4;
 typedef  unsigned long  ub4;
 #endif
 
+#ifndef UINT32_MAX
+#define UINT32_MAX (4294967295U)
+#endif
+
 /* Some miscellaneous bit operation macros */
 #define bis(target,mask)  ((target) |=  (mask))
 #define bic(target,mask)  ((target) &= ~(mask))
