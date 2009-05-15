@@ -597,10 +597,15 @@ sub to_finish {
 	my $self = shift;
 	my $dbh  = $self->to_dbh;
 
-	# Tidy up the database
+	# Tidy up the database settings
 	$dbh->do('PRAGMA synchronous  = NORMAL');
 	$dbh->do('PRAGMA temp_store   = 0');
 	$dbh->do('PRAGMA locking_mode = NORMAL');
+
+	# Precache index optimisation hints
+	if ( $self->index ) {
+		$dbh->do('ANALYZE');
+	}
 
 	return 1;
 }
