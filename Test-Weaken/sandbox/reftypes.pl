@@ -16,7 +16,7 @@ sub try_dumper {
     my $probe_ref = shift;
 
     my @warnings = ();
-    $SIG{__WARN__} = sub { push @warnings, $_[0]; };
+    local $SIG{__WARN__} = sub { push @warnings, $_[0]; };
     printf {*STDERR} 'Dumper: %s', Data::Dumper::Dumper( ${$probe_ref} )
         or Carp::croak("Cannot print to STDERR: $ERRNO");
     for my $warning (@warnings) {
@@ -155,14 +155,17 @@ for my $data_name (qw( glob autoviv )) {
 
 REF:
 while ( my ( $name, $ref ) = each %data ) {
-    my $ref_value = ref $ref;
+    my $ref_value     = ref $ref;
     my $reftype_value = reftype $ref;
     printf "==== scalar ref test of $name, $ref_value, $reftype_value ====\n"
         or Carp::croak("Cannot print to STDERR: $ERRNO");
     my $eval_result = eval { my $deref = ${$ref}; 1 };
-    if (defined $eval_result) {
-       print "scalar deref of $reftype_value ok\n";
-    } else {
-       print "scalar deref of $reftype_value failed: $EVAL_ERROR";
+    if ( defined $eval_result ) {
+        print "scalar deref of $reftype_value ok\n"
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
     }
-}
+    else {
+        print "scalar deref of $reftype_value failed: $EVAL_ERROR"
+            or Carp::croak("Cannot print to STDOUT: $ERRNO");
+    }
+} ## end while ( my ( $name, $ref ) = each %data )
