@@ -56,8 +56,8 @@ package main;
 
 sub myobject_contents_func {
     my ($probe) = @_;
-    print STDERR Data::Dumper::Dumper($probe);
     return unless Scalar::Util::blessed(${$probe});
+    print STDERR Data::Dumper::Dumper($probe);
     my $obj = ${$probe};
     return unless $obj->isa('MyObject');
     return (${$probe}->data, ${$probe}->moredata);
@@ -74,29 +74,29 @@ sub myobject_contents_func {
 
 ## no Marpa::Test::Display
 
+# Leaky Data Detection
 {
     my $leak;
-    my $test = Test::Weaken::leaks(
+    my $tester = Test::Weaken::leaks(
         {   constructor => sub {
                 my $obj = return MyObject->new;
                 $leak = $obj->data;
                 return $obj;
             },
             contents => \&myobject_contents_func,
-            test     => 0,
         }
     );
-    my $test_name = 'leaky "data" detection';
-    if (not $test) {
+    my $test_name = 'leaky data detection';
+    if (not $tester) {
         Test::More::fail( $test_name );
     } else {
-        # Test::Weaken::Test::is( $test && $test->unfreed_count, 1, 'one object leaked' );
-        Test::Weaken::Test::is(
-            Data::Dumper::Dumper( $test->unfreed_proberefs ),
-            q{}, $test_name );
+        Test::More::is_deeply(
+            $leak, MyObject->new->data,
+            $test_name );
     }
 }
 
+# More Leaky Data Detection
 {
     my $leak;
     my $test = Test::Weaken::leaks(
@@ -106,20 +106,15 @@ sub myobject_contents_func {
                 return $obj;
             },
             contents => \&myobject_contents_func,
-            test     => 0,
         }
     );
-    # 
-    # Test::More::ok( $test, 'leaky "moredata" detection' );
-    # Test::Weaken::Test::is( $test && $test->unfreed_count, 2, 'one object leaked' );
-    my $test_name = q{leaky "moredata" detection};
+    my $test_name = q{leaky moredata detection};
     if (not $test) {
         Test::More::fail( $test_name );
     } else {
-        # Test::Weaken::Test::is( $test && $test->unfreed_count, 1, 'one object leaked' );
-        Test::Weaken::Test::is(
-            Data::Dumper::Dumper( $test->unfreed_proberefs ),
-            q{}, $test_name );
+        Test::More::is_deeply(
+            $leak, MyObject->new->moredata,
+            $test_name );
     }
 }
 
