@@ -10,7 +10,6 @@ extern "C" {
 #endif
 
 #include "src/tokenizer.cpp"
-#include "src/forward_scan.cpp"
 #include "src/numbers.cpp"
 #include "src/operator.cpp"
 #include "src/quotes.cpp"
