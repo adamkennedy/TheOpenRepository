@@ -88,7 +88,7 @@ REF:
 for my $data_name (qw(scalar vstring regexp ref )) {
     my $ref = $data{$data_name};
     printf {*STDERR} "=== Deref test $data_name, %s, %s ===\n", ( ref $ref ),
-        ( ref $ref )
+        ( reftype $ref )
         or Carp::croak("Cannot print to STDERR: $ERRNO");
     my $old_probe = \$ref;
     try_dumper($old_probe);
@@ -143,7 +143,7 @@ REF:
 for my $data_name (qw( glob autoviv )) {
     my $ref = $data{$data_name};
     printf {*STDERR} "=== Deref test $data_name, %s, %s ===\n", ( ref $ref ),
-        ( ref $ref )
+        ( reftype $ref )
         or Carp::croak("Cannot print to STDERR: $ERRNO");
     my $old_probe = \$ref;
     try_dumper($old_probe);
@@ -151,4 +151,18 @@ for my $data_name (qw( glob autoviv )) {
     print { ${$new_probe} } "Printing via $data_name ref\n"
         or Carp::croak("Cannot print via $data_name ref: $ERRNO");
     try_dumper($new_probe);
+}
+
+REF:
+while ( my ( $name, $ref ) = each %data ) {
+    my $ref_value = ref $ref;
+    my $reftype_value = reftype $ref;
+    printf "==== scalar ref test of $name, $ref_value, $reftype_value ====\n"
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
+    my $eval_result = eval { my $deref = ${$ref}; 1 };
+    if (defined $eval_result) {
+       print "scalar deref of $reftype_value ok\n";
+    } else {
+       print "scalar deref of $reftype_value failed: $EVAL_ERROR";
+    }
 }

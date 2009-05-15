@@ -47,7 +47,7 @@ sub data {
 
 sub moredata {
     my ($self) = @_;
-    return $data{ $self + 0 };
+    return $moredata{ $self + 0 };
 }
 
 package main;
@@ -57,9 +57,10 @@ package main;
 sub myobject_contents_func {
     my ($probe) = @_;
     print STDERR Data::Dumper::Dumper($probe);
-    return unless ref $probe;
-    return unless Scalar::Util::blessed($probe) && $probe->isa('MyObject');
-    return ${$probe}->data, ${$probe}->moredata;
+    return unless Scalar::Util::blessed(${$probe});
+    my $obj = ${$probe};
+    return unless $obj->isa('MyObject');
+    return (${$probe}->data, ${$probe}->moredata);
 } ## end sub myobject_contents_func
 
 {

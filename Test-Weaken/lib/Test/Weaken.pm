@@ -71,20 +71,27 @@ sub follow {
 
         if ( $object_type eq 'ARRAY' ) {
             push @follow_probes, map { \$_ } grep { ref $_ } @{$follow_probe};
-            next FOLLOW_OBJECT;
         }
 
         if ( $object_type eq 'HASH' ) {
             push @follow_probes,
                 map { \$_ } grep { ref $_ } values %{$follow_probe};
-            next FOLLOW_OBJECT;
         }
 
-        if ( defined $contents ) {
+        # Check against a list of object types to make sure they
+        # don't produce the 'Not a SCALAR reference' error
+        if (defined $contents
+            and (  $object_type eq 'GLOB'
+                or $object_type eq 'LVALUE'
+                or $object_type eq 'REF'
+                or $object_type eq 'SCALAR'
+                or $object_type eq 'VSTRING' )
+            )
+        {
             my $safe_copy = $follow_probe;
             push @follow_probes,
                 map { \$_ } grep { ref $_ } ( $contents->($safe_copy) );
-        }
+        } ## end if ( defined $contents and ( $object_type eq 'GLOB' ...
 
         # ignore any IO, FORMAT, LVALUE object or object of a type not listed
         next FOLLOW_OBJECT if $object_type ne 'REF';
@@ -114,7 +121,7 @@ sub follow {
         if (   $ref_type eq 'SCALAR'
             or $ref_type eq 'VSTRING' )
         {
-            $new_tracking_probe = \${ ${$follow_probe} };
+            $new_follow_probe = $new_tracking_probe = \${ ${$follow_probe} };
         }
 
         if ( $ref_type eq 'CODE' ) {
