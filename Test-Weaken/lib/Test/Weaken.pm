@@ -1002,6 +1002,7 @@ is_file($_, 't/contents.t', 'contents sub snippet')
 
     sub contents {
         my ($probe) = @_;
+        return unless ref $probe eq 'REF';
         return unless Scalar::Util::blessed( ${$probe} );
         my $obj = ${$probe};
         return unless $obj->isa('MyObject');
