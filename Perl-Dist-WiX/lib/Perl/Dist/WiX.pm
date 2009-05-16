@@ -1318,6 +1318,11 @@ sub install_perl_toolchain {
 		}
 		if ( $dist =~ /Scalar-List-Util/msx ) {
 
+			# 1.20 will NOT install on Win32 without help.
+			if ($dist =~ /1\.20/msx) {
+				$dist = 'GBARR/Scalar-List-Utils-1.19.tar.gz';
+			}
+			
 			# Does something weird with tainting
 			$force = 1;
 		}
