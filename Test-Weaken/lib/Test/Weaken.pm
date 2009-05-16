@@ -78,20 +78,11 @@ sub follow {
                 map { \$_ } grep { ref $_ } values %{$follow_probe};
         }
 
-        # Check against a list of object types to make sure they
-        # don't produce the 'Not a SCALAR reference' error
-        if (defined $contents
-            and (  $object_type eq 'GLOB'
-                or $object_type eq 'LVALUE'
-                or $object_type eq 'REF'
-                or $object_type eq 'SCALAR'
-                or $object_type eq 'VSTRING' )
-            )
-        {
+        if ( defined $contents ) {
             my $safe_copy = $follow_probe;
             push @follow_probes,
                 map { \$_ } grep { ref $_ } ( $contents->($safe_copy) );
-        } ## end if ( defined $contents and ( $object_type eq 'GLOB' ...
+        }
 
         # ignore any IO, FORMAT, LVALUE object or object of a type not listed
         next FOLLOW_OBJECT if $object_type ne 'REF';
@@ -1005,7 +996,29 @@ See L<below|/"Debugging Ignore Subroutines">.
 
 ## start display
 ## next 2 displays
-is_file($_, 't/contents.t', 'contents snippet')
+is_file($_, 't/contents.t', 'contents sub snippet')
+
+=end Marpa::Test::Display:
+
+    sub contents {
+        my ($probe) = @_;
+        return unless Scalar::Util::blessed( ${$probe} );
+        my $obj = ${$probe};
+        return unless $obj->isa('MyObject');
+        return ( ${$probe}->data, ${$probe}->moredata );
+    } ## end sub MyObject::contents
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
+=begin Marpa::Test::Display:
+
+## start display
+## next 2 displays
+is_file($_, 't/contents.t', 'contents named arg snippet')
 
 =end Marpa::Test::Display:
 

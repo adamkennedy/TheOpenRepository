@@ -59,19 +59,24 @@ sub moredata {
     return $moredata{ $self + 0 };
 }
 
+## use Marpa::Test::Display contents sub snippet
+
 sub contents {
     my ($probe) = @_;
+    return unless ref $probe eq 'REF';
     return unless Scalar::Util::blessed( ${$probe} );
     my $obj = ${$probe};
     return unless $obj->isa('MyObject');
     return ( ${$probe}->data, ${$probe}->moredata );
 } ## end sub MyObject::contents
 
+## no Marpa::Test::Display
+
 package main;
 
 {
 
-## use Marpa::Test::Display contents snippet
+## use Marpa::Test::Display contents named arg snippet
 
     my $tester = Test::Weaken::leaks(
         {   constructor => sub { return MyObject->new },
