@@ -20,6 +20,7 @@ t/00-load.t
 t/array.t
 t/circular.t
 t/bug42903.t
+t/contents.t
 t/faux_gtk.t
 t/ignore.t
 t/poof.t

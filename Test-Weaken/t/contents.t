@@ -26,11 +26,19 @@ use Test::Weaken::Test;
 my %data;
 my %moredata;
 
+sub construct_data {
+    return ['extra data'];
+}
+
+sub construct_more_data {
+    return [ 'more extra data', ['with a sub-array too'] ];
+}
+
 sub new {
     my ($class) = @_;
     my $self = [];
-    $data{ $self + 0 } = ['extra data'];
-    $moredata{ $self + 0 } = [ 'more extra data', ['with a sub-array too'] ];
+    $data{ $self + 0 } = construct_data;
+    $moredata{ $self + 0 } = construct_more_data;
     return bless $self, $class;
 } ## end sub new
 
@@ -50,23 +58,22 @@ sub moredata {
     return $moredata{ $self + 0 };
 }
 
+sub contents {
+    my ($probe) = @_;
+    return unless Scalar::Util::blessed( ${$probe} );
+    my $obj = ${$probe};
+    return unless $obj->isa('MyObject');
+    return ( ${$probe}->data, ${$probe}->moredata );
+} ## end sub MyObject::contents
+
 package main;
 
 ## use Marpa::Test::Display contents snippet
 
-sub myobject_contents_func {
-    my ($probe) = @_;
-    return unless Scalar::Util::blessed(${$probe});
-    print STDERR Data::Dumper::Dumper($probe);
-    my $obj = ${$probe};
-    return unless $obj->isa('MyObject');
-    return (${$probe}->data, ${$probe}->moredata);
-} ## end sub myobject_contents_func
-
 {
     my $test = Test::Weaken::leaks(
         {   constructor => sub { return MyObject->new },
-            contents    => \&myobject_contents_func
+            contents    => \&MyObject::contents
         }
     );
     Test::More::is( $test, undef, 'good weaken of MyObject' );
@@ -77,13 +84,15 @@ sub myobject_contents_func {
 # Leaky Data Detection
 {
     my $leak;
+    my $self_index;
     my $tester = Test::Weaken::leaks(
         {   constructor => sub {
-                my $obj = return MyObject->new;
+                my $obj = MyObject->new;
+                $self_index = $obj + 0;
                 $leak = $obj->data;
                 return $obj;
             },
-            contents => \&myobject_contents_func,
+            contents => \&MyObject::contents
         }
     );
     my $test_name = 'leaky data detection';
@@ -91,7 +100,7 @@ sub myobject_contents_func {
         Test::More::fail( $test_name );
     } else {
         Test::More::is_deeply(
-            $leak, MyObject->new->data,
+            $leak, MyObject->construct_data,
             $test_name );
     }
 }
@@ -99,21 +108,23 @@ sub myobject_contents_func {
 # More Leaky Data Detection
 {
     my $leak;
-    my $test = Test::Weaken::leaks(
+    my $self_index;
+    my $tester = Test::Weaken::leaks(
         {   constructor => sub {
-                my $obj = return MyObject->new;
+                my $obj = MyObject->new;
+                $self_index = $obj + 0;
                 $leak = $obj->moredata;
                 return $obj;
             },
-            contents => \&myobject_contents_func,
+            contents => \&MyObject::contents
         }
     );
-    my $test_name = q{leaky moredata detection};
-    if (not $test) {
+    my $test_name = q{more leaky data detection};
+    if ( not $tester ) {
         Test::More::fail( $test_name );
     } else {
         Test::More::is_deeply(
-            $leak, MyObject->new->moredata,
+            $leak, MyObject->construct_more_data,
             $test_name );
     }
 }
