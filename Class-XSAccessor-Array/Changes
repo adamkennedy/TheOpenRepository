@@ -1,5 +1,8 @@
 Revision history for Perl extension Class-XSAccessor-Array.
 
+1.00  Sat May 16 13:55 2009
+  - Fix threading issue, use recycled array position association.
+
 0.14  Tue Dec  9 21:14 2008
   - Fix for nmake (Petar Shangov)
 

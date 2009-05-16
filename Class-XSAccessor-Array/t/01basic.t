@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 26;
 BEGIN { use_ok('Class::XSAccessor::Array') };
 
 package Foo;
@@ -58,4 +58,38 @@ my $x = 1;
 $foo->set_foo($x);
 $x++;
 is( $foo->get_foo(), 1, 'scalar copied properly' );
+
+
+# test that multiple methods can point to the same attr.
+package Foo;
+use Class::XSAccessor::Array
+  getters => {
+    get_FOO => 0,
+    get_BAR => 10000,
+  },
+  setters => {
+    set_FOO => 0,
+  };
+
+package main;
+BEGIN{pass()}
+
+ok( Foo->can('get_foo') );
+ok( Foo->can('get_bar') );
+
+my $FOO = bless  ['a', 'c'] => 'Foo';
+$FOO->[10000] = 'wow';
+
+ok( Foo->can('get_FOO') );
+ok( Foo->can('set_FOO') );
+
+ok($FOO->get_FOO() eq 'a');
+ok($FOO->get_foo() eq 'a');
+$FOO->set_FOO('b');
+ok($FOO->get_FOO() eq 'b');
+ok($FOO->get_foo() eq 'b');
+
+ok($FOO->get_bar() eq 'c');
+
+ok($FOO->get_BAR() eq 'wow');
 

@@ -161,7 +161,7 @@ newxs_getter(name, index)
   unsigned int index;
   PPCODE:
     char* file = __FILE__;
-    const unsigned int functionIndex = get_next_arrayindex();
+    const unsigned int functionIndex = get_internal_array_index( (I32)index );
     {
       CV * cv;
       /* This code is very similar to what you get from using the ALIAS XS syntax.
@@ -182,7 +182,7 @@ newxs_setter(name, index, chained)
   bool chained;
   PPCODE:
     char* file = __FILE__;
-    const unsigned int functionIndex = get_next_arrayindex();
+    const unsigned int functionIndex = get_internal_array_index( (I32)index );
     {
       CV * cv;
       /* This code is very similar to what you get from using the ALIAS XS syntax.
@@ -206,7 +206,7 @@ newxs_accessor(name, index, chained)
   bool chained;
   PPCODE:
     char* file = __FILE__;
-    const unsigned int functionIndex = get_next_arrayindex();
+    const unsigned int functionIndex = get_internal_array_index( (I32)index );
     {
       CV * cv;
       /* This code is very similar to what you get from using the ALIAS XS syntax.
@@ -229,7 +229,7 @@ newxs_predicate(name, index)
   unsigned int index;
   PPCODE:
     char* file = __FILE__;
-    const unsigned int functionIndex = get_next_arrayindex();
+    const unsigned int functionIndex = get_internal_array_index( (I32)index );
     {
       CV * cv;
       /* This code is very similar to what you get from using the ALIAS XS syntax.
