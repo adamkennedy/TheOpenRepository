@@ -1,5 +1,9 @@
 Revision history for Perl extension AutoXS-Header.
 
+0.06  Sat May 16 13:40 2009
+        * Incompatible API change! *
+        - Add reverse association containers.
+
 0.05  Tue Dec  9 21:16 2008
         - Fix documentation to advise a Win32-nmake compatible Makefile.PL
 
@@ -13,5 +17,5 @@ Revision history for Perl extension AutoXS-Header.
         - integer storage for Class::XSAccessor::Array.
 
 0.01  Mon Mar 31 23:34 2008
-	- original version as uploaded to CPAN
+        - original version as uploaded to CPAN
 
