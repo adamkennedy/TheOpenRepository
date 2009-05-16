@@ -37,7 +37,7 @@ sub construct_more_data {
 sub new {
     my ($class) = @_;
     my $self = [];
-    $data{ $self + 0 } = construct_data;
+    $data{ $self + 0 }     = construct_data;
     $moredata{ $self + 0 } = construct_more_data;
     return bless $self, $class;
 } ## end sub new
@@ -46,6 +46,7 @@ sub DESTROY {
     my ($self) = @_;
     delete $data{ $self + 0 };
     delete $moredata{ $self + 0 };
+    return;
 } ## end sub DESTROY
 
 sub data {
@@ -68,18 +69,20 @@ sub contents {
 
 package main;
 
+{
+
 ## use Marpa::Test::Display contents snippet
 
-{
-    my $test = Test::Weaken::leaks(
+    my $tester = Test::Weaken::leaks(
         {   constructor => sub { return MyObject->new },
             contents    => \&MyObject::contents
         }
     );
-    Test::More::is( $test, undef, 'good weaken of MyObject' );
-}
 
 ## no Marpa::Test::Display
+
+    Test::More::is( $tester, undef, 'good weaken of MyObject' );
+}
 
 # Leaky Data Detection
 {
@@ -89,19 +92,18 @@ package main;
         {   constructor => sub {
                 my $obj = MyObject->new;
                 $self_index = $obj + 0;
-                $leak = $obj->data;
+                $leak       = $obj->data;
                 return $obj;
             },
             contents => \&MyObject::contents
         }
     );
     my $test_name = 'leaky data detection';
-    if (not $tester) {
-        Test::More::fail( $test_name );
-    } else {
-        Test::More::is_deeply(
-            $leak, MyObject->construct_data,
-            $test_name );
+    if ( not $tester ) {
+        Test::More::fail($test_name);
+    }
+    else {
+        Test::More::is_deeply( $leak, MyObject->construct_data, $test_name );
     }
 }
 
@@ -113,7 +115,7 @@ package main;
         {   constructor => sub {
                 my $obj = MyObject->new;
                 $self_index = $obj + 0;
-                $leak = $obj->moredata;
+                $leak       = $obj->moredata;
                 return $obj;
             },
             contents => \&MyObject::contents
@@ -121,10 +123,10 @@ package main;
     );
     my $test_name = q{more leaky data detection};
     if ( not $tester ) {
-        Test::More::fail( $test_name );
-    } else {
-        Test::More::is_deeply(
-            $leak, MyObject->construct_more_data,
+        Test::More::fail($test_name);
+    }
+    else {
+        Test::More::is_deeply( $leak, MyObject->construct_more_data,
             $test_name );
     }
 }

@@ -1005,26 +1005,15 @@ See L<below|/"Debugging Ignore Subroutines">.
 
 ## start display
 ## next 2 displays
-is_file($_, 'sandbox/contents.t', 'contents snippet')
+is_file($_, 't/contents.t', 'contents snippet')
 
 =end Marpa::Test::Display:
 
-    sub myobject_contents_func {
-        my ($probe) = @_;
-        print STDERR Data::Dumper::Dumper($probe);
-        return unless ref $probe;
-        return unless Scalar::Util::blessed($probe) && $probe->isa('MyObject');
-        return ${$probe}->data, ${$probe}->moredata;
-    } ## end sub myobject_contents_func
-
-    {
-        my $test = Test::Weaken::leaks(
-            {   constructor => sub { return MyObject->new },
-                contents    => \&myobject_contents_func
-            }
-        );
-        Test::More::is( $test, undef, 'good weaken of MyObject' );
-    }
+    my $tester = Test::Weaken::leaks(
+        {   constructor => sub { return MyObject->new },
+            contents    => \&MyObject::contents
+        }
+    );
 
 =begin Marpa::Test::Display:
 
