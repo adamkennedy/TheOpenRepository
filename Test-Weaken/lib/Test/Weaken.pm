@@ -78,7 +78,7 @@ sub follow {
                 map { \$_ } grep { ref $_ } values %{$follow_probe};
         }
 
-        if ( defined $contents ) {
+        if ( defined $contents and $object_type eq 'REF' ) {
             my $safe_copy = $follow_probe;
             push @follow_probes,
                 map { \$_ } grep { ref $_ } ( $contents->($safe_copy) );
@@ -110,31 +110,22 @@ sub follow {
                 last SET_UP_PROBES;
             }
 
-            # Not tracked, primarily because Data::Dumper is clueless about these
-            if ( $ref_type eq 'IO' ) {
-                $new_follow_probe = \*{ ${$follow_probe} };
-                last SET_UP_PROBES;
-            }
-
             if ( $ref_type eq 'CODE' ) {
-                $new_follow_probe = $new_tracking_probe =
-                    \&{ ${$follow_probe} };
+                $new_tracking_probe = \&{ ${$follow_probe} };
                 last SET_UP_PROBES;
             }
 
-            # Not tracked, primarily because Data::Dumper is clueless about these
-            if ( $ref_type eq 'LVALUE' ) {
-                $new_follow_probe = \${ ${$follow_probe} };
+            if ( $ref_type eq 'REF' ) {
+                $new_follow_probe = $new_tracking_probe =
+                    \${ ${$follow_probe} };
             }
 
-            if (   $ref_type eq 'REF'
-                or $ref_type eq 'SCALAR'
+            if (   $ref_type eq 'SCALAR'
                 or $ref_type eq 'GLOB'
                 or $ref_type eq 'VSTRING' )
             {
-                $new_follow_probe = $new_tracking_probe =
-                    \${ ${$follow_probe} };
-            } ## end if ( $ref_type eq 'REF' or $ref_type eq 'SCALAR' or ...
+                $new_tracking_probe = \${ ${$follow_probe} };
+            } ## end if ( $ref_type eq 'SCALAR' or $ref_type eq 'GLOB' or...
 
             # FORMAT is not tracked or followed
             # Not tracked, because Data::Dumper is clueless about these
