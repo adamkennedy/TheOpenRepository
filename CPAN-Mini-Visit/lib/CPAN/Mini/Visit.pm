@@ -66,10 +66,10 @@ use File::Spec       0.80 ();
 use File::Temp       0.21 ();
 use File::pushd      1.00 ();
 use File::Find::Rule 0.27 ();
-use Params::Util     0.36 qw{_STRING _CODELIKE};
+use Params::Util     0.36 qw{_STRING _ARRAYLIKE _CODELIKE _REGEX};
 use Archive::Extract 0.30 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -77,6 +77,7 @@ use Object::Tiny 1.06 qw{
 	callback
 	acme
 	author
+	ignore
 };
 
 =pod
@@ -116,13 +117,18 @@ sub new {
 	unless ( _CODELIKE($self->callback) ) {
 		croak("Missing or invalid 'callback' param");
 	}
+	unless ( defined $self->ignore ) {
+		$self->{ignore} = [];
+	}
+	unless ( _ARRAYLIKE($self->ignore) ) {
+		croak("Invalid 'ignore' param");
+	}
 
 	# Derive the authors directory
 	$self->{authors} = File::Spec->catdir( $self->minicpan, 'authors', 'id' );
 	unless ( -d $self->authors ) {
 		croak("Authors directory '$self->{authors}' does not exist");
 	}
-
 
 	return $self;
 }
@@ -148,6 +154,18 @@ sub run {
 	unless ( $self->acme ) {
 		@files = grep { ! /\bAcme\b/ } @files;
 	}
+	foreach my $filter ( @{$self->ignore} ) {
+		if ( defined _STRING($filter) ) {
+			$filter = quotemeta $filter;
+		}
+		if ( _CODELIKE($filter) ) {
+			@files = grep { ! $filter->($_) } @files;
+		} elsif ( _REGEX($filter) ) {
+			@files = grep { ! /$filter/ } @files;
+		} else {
+			die("Missing or invalid filter");
+		}
+	}
 
 	# Extract the archive
 	foreach my $file ( @files ) {
@@ -164,6 +182,10 @@ sub run {
 		}
 
 		# Extract the archive
+		if ( (stat($path))[7] > 3 * 1024 * 1024 ) {
+			warn("Archive '$path' is above the 3meg limit");
+			next;
+		}
 		my $archive = Archive::Extract->new( archive => $path );
 		my $tmpdir  = File::Temp->newdir;
 		unless ( $archive->extract( to => $tmpdir ) ) {
