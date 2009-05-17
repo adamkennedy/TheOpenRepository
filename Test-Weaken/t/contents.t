@@ -36,7 +36,8 @@ sub construct_more_data {
 
 sub new {
     my ($class) = @_;
-    my $self = [];
+    my $scalar  = 42;
+    my $self    = \$scalar;
     $data{ $self + 0 }     = construct_data;
     $moredata{ $self + 0 } = construct_more_data;
     return bless $self, $class;
