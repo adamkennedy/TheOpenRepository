@@ -1,5 +1,8 @@
 Revision history for Perl extension AutoXS-Header.
 
+1.00  Sun May 17 11:16 2009
+        - Fix prototype issue in previous release.
+
 0.06  Sat May 16 13:40 2009
         * Incompatible API change! *
         - Add reverse association containers.

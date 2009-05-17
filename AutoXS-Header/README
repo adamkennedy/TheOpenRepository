@@ -3,11 +3,11 @@ NAME
 
 SYNOPSIS
       # potentially in your Makefile.PL
-      sub MY::post_initialize{
+      sub MY::post_constants {
         # Write header as AutoXS.h in current directory
         return <<'MAKE_FRAG';
       linkext ::
-              $(PERL) -MAutoXS::Header -e 'AutoXS::Header::WriteAutoXSHeader()'
+              $(PERL) -MAutoXS::Header -e AutoXS::Header::WriteAutoXSHeader
       # note the tab character in the previous line!
 
       MAKE_FRAG
@@ -24,7 +24,7 @@ AUTHOR
     Steffen Mueller, <smueller@cpan.org>
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2008 by Steffen Mueller
+    Copyright (C) 2008-2009 by Steffen Mueller
 
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself, either Perl version 5.8 or, at your
