@@ -1,5 +1,34 @@
 package CPANDB::Generator;
 
+=pod
+
+=head1 NAME
+
+CPANDB::Generator - Generator module for the CPAN Index Database
+
+=head1 SYNOPSIS
+
+  # Simplicity itself
+  CPANDB::Generator->new->run;
+
+=head1 DESCRIPTION
+
+This is a module used to generate a unified index database, pulling in
+data from various other sources to produce a single schema that contains
+the essential elements from all of them.
+
+It is uploaded to the CPAN for the purpose of full disclosure, or in case
+the author gets hit by a bus. Generating the index database involves
+downloading a number of relatively large SQLite datasets, the consumption
+of several gigabytes of disk, and a fairly large amount of CPU time.
+
+If you are interested in using the index database, you should
+instead see the L<CPANDB> distribution.
+
+=head1 METHODS
+
+=cut
+
 use 5.008005;
 use strict;
 use warnings;
@@ -23,12 +52,38 @@ use Object::Tiny 1.06 qw{
 	dbh
 };
 
+use CPANDB::Generator::GetIndex ();
+
 
 
 
 
 #####################################################################
 # Constructor
+
+=pod
+
+=head2 new
+
+  my $cpandb = CPANDB::Generator->new(
+      cpan   => '/root/.cpan',
+      sqlite => '/root/CPANDB.sqlite',
+  );
+
+Creates a new generation object.
+
+The optional C<cpan> param identifies the path to your
+cpan operating directory. By default, a fresh one will be
+generated in a temporary directory, and deleted at the end of
+the generation run.
+
+The optional C<sqlite> param specifies where the SQLite database
+should be written to. By default, this will be to a standard
+location in your home directory.
+
+Returns a new B<CPANDB::Generator> object.
+
+=cut
 
 sub new {
 	my $self = shift->SUPER::new(@_);
@@ -52,13 +107,45 @@ sub new {
 	return $self;
 }
 
+=pod
+
+=head2 dir
+
+The C<dir> method returns the directory that the SQLite
+database will be written into.
+
+=cut
+
 sub dir {
 	File::Basename::dirname($_[0]->sqlite);
 }
 
+=pod
+
+=head2 dsn
+
+The C<dsn> method returns the L<DBI> DSN that is used to connect
+to the generated database.
+
+=cut
+
 sub dsn {
 	"DBI:SQLite:" . $_[0]->sqlite
 }
+
+=pod
+
+=head2 cpandb_sql
+
+Once it has been fetched or updated from your CPAN mirror, the
+C<cpandb_sql> method returns the location of the L<CPAN::SQLite>
+database used by the CPAN client.
+
+This database is used as the source of the information that forms
+the core of the unified index database, and that the rest of the
+data will be decorated around.
+
+=cut
 
 sub cpandb_sql {
 	File::Spec->catfile($_[0]->cpan, 'cpandb.sql');
@@ -70,6 +157,15 @@ sub cpandb_sql {
 
 #####################################################################
 # Main Methods
+
+=pod
+
+=head2 run
+
+The C<run> method executes the process that will produce and fill the
+final database.
+
+=cut
 
 sub run {
 	my $self = shift;
@@ -94,12 +190,11 @@ sub run {
 	}
 
 	# Refresh the CPAN index database
-	SCOPE: {
-		local $SIG{__WARN__} = sub { };
-		CPAN::SQLite->new(
-			CPAN   => $self->cpan,
-			db_dir => $self->cpan,
-		)->index( setup => 1 );
+	my $update = CPANDB::Generator::GetIndex->new(
+		cpan => $self->cpan,
+	)->delegate;
+	unless ( -f $self->cpandb_sql ) {
+		Carp::croak("Failed to fetch CPAN index");
 	}
 
 	# Load the CPAN Uploads database
@@ -109,6 +204,36 @@ sub run {
 	# Attach the various databases
 	$self->do( "ATTACH DATABASE ? AS cpandb", {}, $self->cpandb_sql );
 	$self->do( "ATTACH DATABASE ? AS upload", {}, ORDB::CPANUploads->sqlite );
+
+	# Pre-process the cpandb data to produce cleaner intermediate
+	# temp tables that produce better joins later on.
+	$self->do(<<'END_SQL');
+CREATE TEMPORARY TABLE t_distribution AS
+SELECT
+	d.dist_name as dist,
+	d.dist_vers as version,
+	a.cpanid as author,
+	a.cpanid || '/' || d.dist_file as release
+FROM
+	auths a,
+	dists d
+WHERE
+	a.auth_id = d.auth_id
+END_SQL
+
+	# Pre-process the uploads data to produce a cleaner intermediate
+	# temp table that won't break the joins we'll need to do later on.
+	$self->do(<<'END_SQL');
+CREATE TEMPORARY TABLE t_uploaded AS
+SELECT
+	author || '/' || filename as release,
+	DATE(released, 'unixepoch') AS uploaded
+FROM upload.uploads
+END_SQL
+
+	# Index the temporary tables so our joins don't take forever
+	$self->do('CREATE INDEX t_uploaded__release ON t_uploaded ( release )');
+	$self->do('CREATE INDEX t_distribution__release ON t_distribution ( release )');
 
 	# Create the author table
 	$self->do(<<'END_SQL');
@@ -124,39 +249,35 @@ INSERT INTO author
 SELECT
 	cpanid AS author,
 	fullname AS name
-FROM auths
+FROM cpandb.auths
 END_SQL
 
 	# Create the distribution table
 	$self->do(<<'END_SQL');
-CREATE TABLE dist (
-	id INTEGER NOT NULL PRIMARY KEY,
-	dist TEXT NOT NULL,
+CREATE TABLE distribution (
+	distribution TEXT NOT NULL PRIMARY KEY,
 	version TEXT NULL,
 	author TEXT NOT NULL,
-	file TEXT NOT NULL,
-	released TEXT NOT NULL,
+	release TEXT NOT NULL,
+	uploaded TEXT NOT NULL,
 	FOREIGN KEY ( author ) REFERENCES author ( author )
 )
 END_SQL
 
 	# Fill the distribution table
 	$self->do(<<'END_SQL');
-INSERT INTO dist
+INSERT INTO distribution
 SELECT
-	d.dist_name as dist,
-	d.dist_vers as version,
-	a.cpanid author,
-	d.dist_file as file,
-	date(u.released, 'unixepoch') as released
+	d.dist as distribution,
+	d.version as version,
+	d.author as author,
+	d.release as release,
+	u.uploaded as uploaded
 FROM
-	auths a,
-	dists d,
-	upload.uploads u
+	t_distribution d,
+	t_uploaded u
 WHERE
-	a.auth_id = d.auth_id
-	and
-	d.dist_file = u.filename
+	d.release = u.release
 END_SQL
 
 	# Create the module table
@@ -164,8 +285,8 @@ END_SQL
 CREATE TABLE module (
 	module TEXT NOT NULL PRIMARY KEY,
 	version TEXT NULL,
-	dist TEXT NOT NULL,
-	FOREIGN KEY ( dist ) REFERENCES dist ( dist )
+	distribution TEXT NOT NULL,
+	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution )
 )
 END_SQL
 
@@ -175,7 +296,7 @@ INSERT INTO module
 SELECT
 	m.mod_name as module,
 	m.mod_vers as version,
-	d.dist_name as dist
+	d.dist_name as distribution
 FROM
 	mods m,
 	dists d
