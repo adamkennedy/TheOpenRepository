@@ -40,7 +40,7 @@ use File::pushd   1.00 ();
 use File::Remove  1.42 ();
 use File::HomeDir 0.86 ();
 use File::Basename     ();
-use DBI          1.608 ();
+use DBI          1.607 ();
 use DBD::SQLite   1.25 ();
 use CPAN::SQLite 0.197 ();
 
