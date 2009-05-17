@@ -49,7 +49,10 @@ $_
 my $format_ref = *fmt{FORMAT};
 my $glob_ref   = *STDOUT{GLOB};
 my $io_ref     = *STDOUT{IO};
-my $fh_ref     = *STDOUT{FILEHANDLE};
+my $fh_ref     = do {
+    no warnings qw(deprecated);
+    *STDOUT{FILEHANDLE};
+};
 ## use critic
 
 ## no critic (InputOutput::RequireBriefOpen)
@@ -129,6 +132,17 @@ REF: for my $ref ($io_ref) {
         or Carp::croak("Cannot print via IO ref: $ERRNO");
 }
 
+REF: for my $ref ($fh_ref) {
+    my $probe = \$ref;
+    print {*STDERR} 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ),
+        "\n"
+        or Carp::croak("Cannot print to STDERR: $ERRNO");
+    try_dumper($probe);
+    my $new_probe = \*{ ${$probe} };
+    print { ${$new_probe} } "Printing via FH ref\n"
+        or Carp::croak("Cannot print via FH ref: $ERRNO");
+}
+
 REF: for my $ref ($glob_ref) {
     my $probe = \$ref;
     print 'Trying to deref ', ( ref $probe ), q{ }, ( ref $ref ), "\n"
@@ -157,7 +171,8 @@ REF:
 while ( my ( $name, $ref ) = each %data ) {
     my $ref_value     = ref $ref;
     my $reftype_value = reftype $ref;
-    printf "==== scalar ref test of $name, $ref_value, $reftype_value ====\n"
+    printf
+        "==== scalar ref test of $name, ref=$ref_value, reftype=$reftype_value\n"
         or Carp::croak("Cannot print to STDERR: $ERRNO");
     my $eval_result = eval { my $deref = ${$ref}; 1 };
     if ( defined $eval_result ) {

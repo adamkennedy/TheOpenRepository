@@ -97,27 +97,51 @@ sub follow {
         my $new_tracking_probe;
         my $new_follow_probe;
 
-        if ( $ref_type eq 'HASH' ) {
-            $new_follow_probe = $new_tracking_probe = \%{ ${$follow_probe} };
-        }
+        SET_UP_PROBES: {
+            if ( $ref_type eq 'HASH' ) {
+                $new_follow_probe = $new_tracking_probe =
+                    \%{ ${$follow_probe} };
+                last SET_UP_PROBES;
+            }
 
-        if ( $ref_type eq 'ARRAY' ) {
-            $new_follow_probe = $new_tracking_probe = \@{ ${$follow_probe} };
-        }
+            if ( $ref_type eq 'ARRAY' ) {
+                $new_follow_probe = $new_tracking_probe =
+                    \@{ ${$follow_probe} };
+                last SET_UP_PROBES;
+            }
 
-        if ( $ref_type eq 'REF' ) {
-            $new_follow_probe = $new_tracking_probe = \${ ${$follow_probe} };
-        }
+            # Not tracked, primarily because Data::Dumper is clueless about these
+            if ( $ref_type eq 'IO' ) {
+                $new_follow_probe = \*{ ${$follow_probe} };
+                last SET_UP_PROBES;
+            }
 
-        if (   $ref_type eq 'SCALAR'
-            or $ref_type eq 'VSTRING' )
-        {
-            $new_follow_probe = $new_tracking_probe = \${ ${$follow_probe} };
-        }
+            if ( $ref_type eq 'CODE' ) {
+                $new_follow_probe = $new_tracking_probe =
+                    \&{ ${$follow_probe} };
+                last SET_UP_PROBES;
+            }
 
-        if ( $ref_type eq 'CODE' ) {
-            $new_tracking_probe = \&{ ${$follow_probe} };
-        }
+            # Not tracked, primarily because Data::Dumper is clueless about these
+            if ( $ref_type eq 'LVALUE' ) {
+                $new_follow_probe = \${ ${$follow_probe} };
+            }
+
+            if (   $ref_type eq 'REF'
+                or $ref_type eq 'SCALAR'
+                or $ref_type eq 'GLOB'
+                or $ref_type eq 'VSTRING' )
+            {
+                $new_follow_probe = $new_tracking_probe =
+                    \${ ${$follow_probe} };
+            } ## end if ( $ref_type eq 'REF' or $ref_type eq 'SCALAR' or ...
+
+            # FORMAT is not tracked or followed
+            # Not tracked, because Data::Dumper is clueless about these
+            # Not followed, because I can't figure out how to dereference
+            # them.
+
+        } ## end SET_UP_PROBES:
 
         push @follow_probes, $new_follow_probe if defined $new_follow_probe;
 
