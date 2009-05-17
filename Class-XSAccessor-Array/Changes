@@ -1,5 +1,8 @@
 Revision history for Perl extension Class-XSAccessor-Array.
 
+1.02  Sun May 17 11:22 2009
+  - Use fixed AutoXS.h (prototyping issue)
+
 1.01  Sat May 16 16:17 2009
   - Boolean constants
 
