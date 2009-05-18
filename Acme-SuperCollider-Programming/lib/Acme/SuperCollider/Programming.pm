@@ -1,5 +1,6 @@
 package Acme::SuperCollider::Programming;
 
+use 5.005;
 use strict;
 
 use vars qw{$VERSION};
