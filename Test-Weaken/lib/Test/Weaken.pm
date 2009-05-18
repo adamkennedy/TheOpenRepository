@@ -98,6 +98,19 @@ sub follow {
         my $new_follow_probe;
 
         SET_UP_PROBES: {
+
+            if ( $ref_type eq 'REF' ) {
+                $new_follow_probe = $new_tracking_probe =
+                    \${ ${$follow_probe} };
+                last SET_UP_PROBES;
+            }
+
+            if (   $ref_type eq 'SCALAR'
+                or $ref_type eq 'VSTRING' )
+            {
+                $new_tracking_probe = \${ ${$follow_probe} };
+            }
+
             if ( $ref_type eq 'HASH' ) {
                 $new_follow_probe = $new_tracking_probe =
                     \%{ ${$follow_probe} };
@@ -115,22 +128,7 @@ sub follow {
                 last SET_UP_PROBES;
             }
 
-            if ( $ref_type eq 'REF' ) {
-                $new_follow_probe = $new_tracking_probe =
-                    \${ ${$follow_probe} };
-            }
-
-            if (   $ref_type eq 'SCALAR'
-                or $ref_type eq 'GLOB'
-                or $ref_type eq 'VSTRING' )
-            {
-                $new_tracking_probe = \${ ${$follow_probe} };
-            } ## end if ( $ref_type eq 'SCALAR' or $ref_type eq 'GLOB' or...
-
-            # FORMAT is not tracked or followed
-            # Not tracked, because Data::Dumper is clueless about these
-            # Not followed, because I can't figure out how to dereference
-            # them.
+            # FORMAT, LVALUE, GLOB, IO are not tracked or followed
 
         } ## end SET_UP_PROBES:
 
@@ -648,17 +646,27 @@ object, then it is called an B<external object>.
 Since the question is one of I<expected> lifetime,
 this difference is ultimately subjective.
 
-Objects found recursively
-from the test object reference will usually be internal objects.
-This may not always be the case, however.
-Some objects found by C<Test::Weaken> might be external to the
-test object.
-If external objects are found and they are persistent,
-they complicate matters.
+By default,
+C<Test::Weaken> assumes that "descent equals lifetime" --
+that all the B<descendents> of the test object
+are internal
+objects and that all non-descendant objects are external.
+The descendants of the test object are found by following references,
+and looking inside hashes and arrays.
 
-An external object is called a B<persistent object>
-if is expected that the lifetime of the external object might
-extend beyond that of the test object.
+Assuming that "descent equals lifetime" works in many cases,
+but not all.
+It can fail if an internal object is not a descendant,
+and it can fail if a descendant is an external object.
+
+=head2 External Descendants
+
+As a practical matter, external descendants are only a
+problem is their lifetime extends beyond that of the test
+object.
+An descendant which stays around after
+the test object is called a B<persistent object>.
+
 Persistent objects are not memory leaks.
 With a persistent object,
 it is not expected that
@@ -671,9 +679,14 @@ to be freed along with it,
 and this expectation was disappointed.
 
 To determine which of the unfreed objects are memory leaks,
-the user must separate out the persistent objects
+the user must separate the persistent objects
 from the other results.
-Ways to do this are outlined
+It's usually easiest to do this after the test by
+examining the return value of L</unfreed_proberefs>.
+But a closure passed as the value of L</ignore> named argument
+can also be used to separate out persistent objects on the fly.
+Methods for separating out the persistent objects are
+described in detail
 L<below|/"ADVANCED TECHNIQUES">.
 
 =head2 Builtin Types
