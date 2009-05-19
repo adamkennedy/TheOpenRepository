@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.85;
+use inc::Module::Install::DSL 0.88;
 
 all_from      lib/ORDB/CPANTS.pm
 requires_from lib/ORDB/CPANTS.pm
