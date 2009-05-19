@@ -1,11 +1,11 @@
 package Aspect::Library::Profiler;
 
-use 5.006;
+use 5.008002;
 use strict;
 use warnings;
 use Carp;
-use Aspect          0.15;
-use Aspect::Modular 0.15;
+use Aspect          0.16;
+use Aspect::Modular 0.16;
 
 our $VERSION = '0.16';
 our @ISA     = 'Aspect::Modular';
@@ -21,7 +21,9 @@ sub get_advice {
 
 package Aspect::Benchmark::Timer::ReportOnDestroy;
 
-use base qw(Benchmark::Timer);
+use Benchmark::Timer 0.7101;
+
+our @ISA = 'Benchmark::Timer';
 
 sub DESTROY {
 	print scalar $_[0]->reports;
@@ -103,13 +105,17 @@ site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
 
 =head1 AUTHORS
 
-Marcel GrE<uuml>nauer, C<< <marcel@cpan.org> >>
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-Ran Eilam C<< <eilara@cpan.org> >>
+Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
+
+Ran Eilam E<lt>eilara@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2001 by Marcel GrE<uuml>nauer
+Copyright 2001 by Marcel GrE<uuml>nauer.
+
+Some parts copyright 2009 Adam Kennedy.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
