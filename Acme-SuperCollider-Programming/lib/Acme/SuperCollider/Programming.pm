@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 sub supercollider_programming {
@@ -23,7 +23,7 @@ Acme::SuperCollider::Programming - Representing the Community for SuperCollider 
 =head1 DESCRIPTION
 
 In a cruel under-representation of the true scale and awesomeness of the
-<a href="http://www.audiosynth.com/">SuperCollider Programming</a> community, one
+L<SuperCollider Programming|http://www.audiosynth.com/> community, one
 popular ranking index has ranked SuperCollider as the 96th most popular language.
 
 Clearly, this is not a realistic ranking of the SuperCollider Programming
@@ -35,7 +35,7 @@ Programming collective, we say NO! NO MORE!
 By leveraging the 3-4,000 pages that will be created for this distribution,
 mentioning B<Acme::SuperCollider::Programming>,
 or C<Acme-SuperCollider-Programming>, all of which can be happily found with
-a search for +"SuperCollider Programming", this distribution will help to
+a search for C<+"SuperCollider Programming">, this distribution will help to
 restore the ranking of the SuperCollider Programming language to a more
 accurate and realistic position.
 
