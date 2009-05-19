@@ -143,6 +143,9 @@ locate the completed SQLite database file.
 sub run {
 	my $self = ref($_[0]) ? shift : shift->new;
 
+	# Run import if we haven't already
+	ref($self)->import;
+
 	# Skip if the output database is newer than the input database
 	# (but is not a new database)
 	my $input_t  = (stat(ORDB::CPANTS->sqlite  ))[9];
