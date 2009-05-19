@@ -1,6 +1,6 @@
 use inc::Module::Install::DSL 0.88;
 
 all_from      lib/Aspect.pm
-requires      Devel::Symdump 2.07
+requires      Devel::Symdump 2.04
 test_requires Test::Class    0.28
 test_requires Test::More     0.70
