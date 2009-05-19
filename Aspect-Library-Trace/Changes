@@ -1,7 +1,9 @@
 Changes for Perl extension Aspect-Library-Trace
 
-0.03 Tue 19 May 2009
+0.16 Tue 19 May 2009
+	- Updating to Module::Install::DSL 0.88
 	- Updating to Aspect 0.16
+	- Synchronise version with Aspect
 
 0.02 Tue 28 Apr 2009
 	- Adding support for an import-based usage

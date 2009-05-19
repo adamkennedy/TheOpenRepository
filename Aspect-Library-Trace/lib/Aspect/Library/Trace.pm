@@ -8,7 +8,7 @@ use Aspect::Modular 0.16 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.16';
 	@ISA     = 'Aspect::Modular';
 }
 
