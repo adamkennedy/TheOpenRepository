@@ -1,9 +1,5 @@
-use inc::Module::Install;
+use inc::Module::Install::DSL 0.88;
 
-name          'Devel-Dumpvar';
-all_from      'lib/Devel/Dumpvar.pm',
-requires      'Scalar::Util' => '1.17';
-test_requires 'File::Spec'   => '0.80';
-test_requires 'Test::More'   => '0.42';
-
-WriteAll;
+all_from      lib/Devel/Dumpvar.pm
+test_requires File::Spec 0.80
+test_requires Test::More 0.42

@@ -6,14 +6,13 @@ package Devel::Dumpvar;
 # but is designed to be easier to use, more accessible, and more
 # upgradable without upgrading perl itself.
 
-use 5.005;
+use 5.006;
 use strict;
-use UNIVERSAL    ();
-use Scalar::Util ();
+use Scalar::Util 1.18 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '1.05';
 }
 
 
@@ -24,7 +23,7 @@ BEGIN {
 # Constructor and Accessors
 
 sub new {
-	my $class = ref $_[0] ? shift : shift;
+	my $class   = shift;
 	my %options = @_;
 
 	# Create the basic object
@@ -53,7 +52,7 @@ sub to {
 	}
 
 	# Is it something we can print to
-	if ( ref $to and UNIVERSAL::can( $to, 'print' ) ) {
+	if ( Scalar::Util::blessed($to) and $to->can('print') ) {
 		$self->{to} = $to;
 		return 1;
 	}
@@ -100,8 +99,7 @@ sub dump {
 
 sub _dump_scalar {
 	my $self  = shift;
-	my $value = UNIVERSAL::isa( $_[0], 'SCALAR' ) ? shift
-		: die "Bad argument to _dump_scalar";
+	my $value = shift;
 
 	# Print the printable form of the scalar
 	$self->_print( "$self->{indent}-> " . $self->_scalar($$value) );
@@ -109,8 +107,7 @@ sub _dump_scalar {
 
 sub _dump_ref {
 	my $self  = shift;
-	my $value = UNIVERSAL::isa( $_[0], 'REF' ) ? ${shift()}
-		: die "Bad argument to _dump_array";
+	my $value = ${shift()};
 
 	# Print the current line
 	$self->_print( "$self->{indent}-> " . $self->_refstring($value) );
@@ -121,8 +118,7 @@ sub _dump_ref {
 
 sub _dump_array {
 	my $self      = shift;
-	my $array_ref = UNIVERSAL::isa( $_[0], 'ARRAY' ) ? shift
-		: die "Bad argument to _dump_array";
+	my $array_ref = shift;
 
 	# Handle the null array
 	unless ( @$array_ref ) {
@@ -149,8 +145,7 @@ sub _dump_array {
 
 sub _dump_hash {
 	my $self     = shift;
-	my $hash_ref = UNIVERSAL::isa( $_[0], 'HASH' ) ? shift
-		: die "Bad argument to _dump_hash";
+	my $hash_ref = shift;
 
 	foreach my $key ( sort keys %$hash_ref ) {
 		my $value = $hash_ref->{$key};
@@ -172,9 +167,6 @@ sub _dump_hash {
 
 sub _dump_code {
 	my $self  = shift;
-	my $value = UNIVERSAL::isa( $_[0], 'CODE' ) ? shift
-		: die "Bad argument to _dump_code";
-
 	$self->_print( "$self->{indent}-> Sub detail listing unsupported" );
 }
 
@@ -323,7 +315,7 @@ sub _print {
 		# Handle the "return data" case
 		$self->{return} .= $line;
 
-	} elsif ( UNIVERSAL::can( $self->{to}, 'print' ) ) {
+	} elsif ( Scalar::Util::blessed($self->{to}) and $self->{to}->can('print') ) {
 		# If we have a we something we can print to, do so
 		$self->{to}->print( $line );
 

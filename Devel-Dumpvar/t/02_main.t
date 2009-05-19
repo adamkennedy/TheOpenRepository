@@ -1,13 +1,16 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Formal testing for Devel::Dumpvar
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 10;
 use File::Spec::Functions qw{:ALL};
-use lib catdir( updir(), updir(), 'modules' ), # Development testing
-        catdir( updir(), 'lib' );              # Installation testing
-use UNIVERSAL 'isa';
-use Test::More tests => 12;
+use Devel::Dumpvar ();
 
 my $RE_MEMORY_HEX = qr/(?<=\()0x[0-9a-f]+(?=\))/i;
 
@@ -24,25 +27,9 @@ sub dump_is {
 	is( $got, $expected, @_ ? shift : () );
 }
 
-
-
-
-
-#####################################################################
-# Environment and Load Tests
-
-# Check their perl version
-BEGIN {
-	$| = 1;
-	ok( $] >= 5.005, "Your perl is new enough" );
-}
-
-# Does the module load
-use_ok( 'Devel::Dumpvar' );
-
 # Create a dumper for testing
-my $Dump = Devel::Dumpvar->new( to => 'return' );
-isa_ok( $Dump, 'Devel::Dumpvar' );
+my $dump = Devel::Dumpvar->new( to => 'return' );
+isa_ok( $dump, 'Devel::Dumpvar' );
 
 
 
@@ -61,7 +48,7 @@ my @tests = (
 while ( @tests ) {
 	my $test = shift @tests;
 	my $expected  = shift @tests;
-	is( $Dump->dump( @$test ), $expected, "Simple dump matches expected" );
+	is( $dump->dump( @$test ), $expected, "Simple dump matches expected" );
 }
 
 
@@ -71,10 +58,8 @@ while ( @tests ) {
 #####################################################################
 # Detailed Tests
 
-
-
 # Basic nested arrays
-dump_is( $Dump->dump( [ [ [] ] ] ), <<'END_DUMP', 'Array in array in array works' );
+dump_is( $dump->dump( [ [ [] ] ] ), <<'END_DUMP', 'Array in array in array works' );
 0  ARRAY(0x8301124)
    0  ARRAY(0x82ed9e4)
       0  ARRAY(0x804c1b4)
@@ -84,7 +69,7 @@ END_DUMP
 
 
 # Dump a new dumper as a single class and hash test
-dump_is( $Dump->dump( Devel::Dumpvar->new( to => 'return' ) ), <<'END_DUMP', 'Dumping a dumper' );
+dump_is( $dump->dump( Devel::Dumpvar->new( to => 'return' ) ), <<'END_DUMP', 'Dumping a dumper' );
 0  Devel::Dumpvar=HASH(0x83b440c)
    to => 'return'
 END_DUMP
@@ -93,7 +78,7 @@ END_DUMP
 
 
 # A basic REF dump checker
-dump_is( $Dump->dump( \\"foo" ), <<'END_DUMP', 'Testing REF and read-only scalar' );
+dump_is( $dump->dump( \\"foo" ), <<'END_DUMP', 'Testing REF and read-only scalar' );
 0  REF(0x8300f98)
    -> SCALAR(0x8300fa4)
       -> 'foo'
@@ -119,7 +104,7 @@ my $User = bless( {
 		35, 42, 17, 18, 10, 103, 2, 321, 1, 1069137755, 1
 		], 'Foo::Time' ))}, 'Foo::Data::DateTime' )
 	}, 'Foo::Entity::User' );
-dump_is( $Dump->dump( $User ), <<'END_DUMP', "More complex dump worked" );
+dump_is( $dump->dump( $User ), <<'END_DUMP', "More complex dump worked" );
 0  Foo::Entity::User=HASH(0x9e82358)
    Created => Foo::Data::DateTime=REF(0x9e8a0d4)
       -> Foo::Time=ARRAY(0x9ee62c4)
@@ -173,7 +158,7 @@ my $c = [ 'foo', 'bar' ];
 my $d = { 'a' => 1, 'b' => 'c' };
 $c->[2] = $d;
 $d->{d} = $c;
-dump_is( $Dump->dump( $c ), <<'END_DUMP', 'Circular references work' );
+dump_is( $dump->dump( $c ), <<'END_DUMP', 'Circular references work' );
 0  ARRAY(0x82ed9cc)
    0  'foo'
    1  'bar'
@@ -183,7 +168,7 @@ dump_is( $Dump->dump( $c ), <<'END_DUMP', 'Circular references work' );
       d => ARRAY(0x82ed9cc)
          -> REUSED_ADDRESS
 END_DUMP
-dump_is( $Dump->dump( $d ), <<'END_DUMP', 'Circular references work' );
+dump_is( $dump->dump( $d ), <<'END_DUMP', 'Circular references work' );
 0  HASH(0x804c1b4)
    a => 1
    b => 'c'
@@ -193,5 +178,3 @@ dump_is( $Dump->dump( $d ), <<'END_DUMP', 'Circular references work' );
       2  HASH(0x804c1b4)
          -> REUSED_ADDRESS
 END_DUMP
-
-1;
