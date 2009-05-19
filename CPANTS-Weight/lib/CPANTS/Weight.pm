@@ -71,17 +71,17 @@ sub import {
 
 	# Download/inflate the CPANTS database
 	ORDB::CPANTS->import( {
-		maxage => $params{maxage},
+		maxage => $params->{maxage},
 	} );
 
 	# Download/inflate the CPAN PAUSE uploads database
 	ORDB::CPANTUploads->import( {
-		maxage => $params{maxage},
+		maxage => $params->{maxage},
 	} );
 
 	# Download/inflate the (huge) CPAN Testers database
 	ORDB::CPANTesters->import( {
-		maxage => $params{maxage},
+		maxage => $params->{maxage},
 	} );
 
 	return 1;
