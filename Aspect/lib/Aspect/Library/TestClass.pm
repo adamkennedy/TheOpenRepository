@@ -6,7 +6,7 @@ use Carp;
 use Test::Class;
 use Aspect;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 use base 'Aspect::Modular';
 

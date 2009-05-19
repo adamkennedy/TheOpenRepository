@@ -6,9 +6,7 @@ use Carp;
 use Aspect::AdviceContext;
 use Aspect::Weaver;
 
-
-our $VERSION = '0.15';
-
+our $VERSION = '0.16';
 
 sub new {
 	my ($class, $type, $code, $pointcut) = @_;
@@ -31,13 +29,15 @@ sub install {
 	my $type     = $self->type;
 	my $pointcut = $self->pointcut;
 	my $code     = $self->code;
-	# find all pointcuts that are statically matched
+
+	# Find all pointcuts that are statically matched
 	# wrap the method with advice code and install the wrapper
-	for my $sub_name ($weaver->get_sub_names) {
+	foreach my $sub_name ($weaver->get_sub_names) {
 		next unless $pointcut->match_define($sub_name);
 		my $wrapped_code = $self->wrap_code($type, $code, $pointcut, $sub_name);
-		$self->add_hooks
-			($weaver->install($type, $sub_name, $wrapped_code));
+		$self->add_hooks(
+			$weaver->install($type, $sub_name, $wrapped_code)
+		);
 	}
 }
 
@@ -48,12 +48,12 @@ sub wrap_code {
 	my ($self, $type, $code, $pointcut, $sub_name) = @_;
 
 	return sub {
-		# hacked Hook::LexWrap calls hooks with 3 params
+		# Hacked Hook::LexWrap calls hooks with 3 params
 		my ($params, $original, $return_value) = @_;
 		my $runtime_context = {};
 		return unless $pointcut->match_run($sub_name, $runtime_context);
 
-		# create context for advice code
+		# Create context for advice code
 		my $advice_context = Aspect::AdviceContext->new(
 			sub_name       => $sub_name,
 			type           => $type,
@@ -64,7 +64,7 @@ sub wrap_code {
 			%$runtime_context,
 		);
 		
-		# execute advice code with its context
+		# Execute advice code with its context
 		if (wantarray)
 			{ () = &$code($advice_context) }
 		elsif (defined wantarray)
@@ -72,7 +72,7 @@ sub wrap_code {
 		else
 			{ &$code($advice_context) }
 
-		# if proceeding to original, modify params, else modify return value
+		# If proceeding to original, modify params, else modify return value
 		if ($type eq 'before' && $advice_context->proceed)
 			{ @$params = $advice_context->params }
 		else
@@ -80,12 +80,25 @@ sub wrap_code {
 	};
 }
 
-sub add_hooks { push @{shift->{hooks}}, shift }
+sub add_hooks {
+	push @{shift->{hooks}}, shift;
+}
 
-sub weaver   { shift->{weaver}   }
-sub type     { shift->{type}     }
-sub code     { shift->{code}     }
-sub pointcut { shift->{pointcut} }
+sub weaver {
+	$_[0]->{weaver};
+}
+
+sub type {
+	$_[0]->{type};
+}
+
+sub code {
+	$_[0]->{code};
+}
+
+sub pointcut {
+	$_[0]->{pointcut};
+}
 
 1;
 

@@ -9,7 +9,7 @@ use Aspect::Advice          ();
 use Aspect::Pointcut::Call  ();
 use Aspect::Pointcut::Cflow ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw(aspect before after call cflow);
 
@@ -22,8 +22,10 @@ sub aspect {
 	$name = "Aspect::Library::$name";
 	runtime_use($name);
 	my $aspect = $name->new(@params);
-	# if called in void context, aspect is for life
+
+	# If called in void context, aspect is for life
 	push @Aspect_Store, $aspect unless defined wantarray;
+
 	return $aspect;
 }
 
@@ -45,7 +47,8 @@ sub after (&$) {
 
 sub advice {
 	my $advice = Aspect::Advice->new(@_);
-	# if called in void context, advice is for life
+
+	# If called in void context, advice is for life
 	push @Advice_Store, $advice unless defined wantarray;
 	return $advice;
 }

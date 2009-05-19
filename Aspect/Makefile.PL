@@ -1,7 +1,6 @@
-use inc::Module::Install::DSL 0.83;
+use inc::Module::Install::DSL 0.88;
 
 all_from      lib/Aspect.pm
-requires      Benchmark::Timer 0.7100
-requires      Devel::Symdump   2.07
-test_requires Test::Class      0.28
-test_requires Test::More       0.70
+requires      Devel::Symdump 2.07
+test_requires Test::Class    0.28
+test_requires Test::More     0.70

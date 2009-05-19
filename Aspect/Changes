@@ -1,5 +1,8 @@
 Revision history for Perl extension Aspect
 
+0.16  Tue 19 May 2009
+     - Moved out Aspect::Library::Profiler into a standalone distribution
+
 0.15  Thu Jul 24 23:02:11 CEST 2008 (Marcel Gruenauer <marcel@cpan.org>)
      - fixed version in all modules. *sigh*
 
