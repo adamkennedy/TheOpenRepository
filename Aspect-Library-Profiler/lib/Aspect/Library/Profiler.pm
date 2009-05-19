@@ -4,8 +4,9 @@ use 5.008002;
 use strict;
 use warnings;
 use Carp;
-use Aspect          0.16;
-use Aspect::Modular 0.16;
+use Aspect           0.16;
+use Aspect::Modular  0.16;
+use Benchmark::Timer 0.7101;
 
 our $VERSION = '0.16';
 our @ISA     = 'Aspect::Modular';
@@ -20,8 +21,6 @@ sub get_advice {
 }
 
 package Aspect::Benchmark::Timer::ReportOnDestroy;
-
-use Benchmark::Timer 0.7101;
 
 our @ISA = 'Benchmark::Timer';
 
