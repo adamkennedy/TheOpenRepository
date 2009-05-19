@@ -34,7 +34,7 @@ use ORDB::CPANTS                       0.05 ();
 use ORDB::CPANUploads                  0.04 ();
 use ORDB::CPANTesters                  0.09 ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 our $DEBUG;
 
