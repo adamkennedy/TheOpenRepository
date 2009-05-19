@@ -1,5 +1,11 @@
 Changes for Perl extension CPAN-WWW-Top100-Generator
 
+0.05 Tue 19 May 2009
+	- Upgrading to Module::Install::DSL 0.88
+	- Upgrading to CPANTS::Weight 0.14
+	- Set a custom maxage of one day
+	  (so we don't publish week-old numbers)
+
 0.04 Mon  4 May 2009
 	- Upgrading to Module::Install::DSL 0.86
 	- Updating to CPANTS::Weight 0.10
