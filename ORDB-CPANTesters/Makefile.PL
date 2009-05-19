@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.86;
+use inc::Module::Install::DSL 0.88;
 
 all_from      lib/ORDB/CPANTesters.pm
 requires_from lib/ORDB/CPANTesters.pm
