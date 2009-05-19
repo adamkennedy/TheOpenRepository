@@ -9,7 +9,7 @@ BEGIN {
 }
 
 use Test::More tests => 5;
-use CPANTS::Weight 0.02 ();
+use CPANTS::Weight 0.02;
 
 my $cpants = CPANTS::Weight->new;
 isa_ok( $cpants, 'CPANTS::Weight' );

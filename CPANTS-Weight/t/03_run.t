@@ -7,6 +7,6 @@ BEGIN {
 }
 
 use Test::More tests => 1;
-use CPANTS::Weight ();
+use CPANTS::Weight;
 
 ok( CPANTS::Weight->run, '->run ok' );
