@@ -8,8 +8,11 @@ use Aspect           0.16;
 use Aspect::Modular  0.16;
 use Benchmark::Timer 0.7101;
 
-our $VERSION = '0.16';
-our @ISA     = 'Aspect::Modular';
+use vars qw{$VERSION @ISA};
+BEGIN {
+	$VERSION = '0.16';
+	@ISA     = 'Aspect::Modular';
+}
 
 my $Timer = Aspect::Benchmark::Timer::ReportOnDestroy->new;
 
@@ -22,7 +25,10 @@ sub get_advice {
 
 package Aspect::Benchmark::Timer::ReportOnDestroy;
 
-our @ISA = 'Benchmark::Timer';
+use vars qw{@ISA};
+BEGIN {
+	@ISA = 'Benchmark::Timer';
+}
 
 sub DESTROY {
 	print scalar $_[0]->reports;
