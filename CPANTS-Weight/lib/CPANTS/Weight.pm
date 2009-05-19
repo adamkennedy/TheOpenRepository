@@ -23,12 +23,16 @@ use warnings;
 use File::Spec                       3.2701 ();
 use File::HomeDir                      0.82 ();
 use File::ShareDir                     1.00 ();
+use Params::Util                       0.38 ();
 use DateTime                         0.4501 ();
 use CPAN::Version                       5.5 ();
 use Algorithm::Dependency             1.108 ();
 use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
+use ORDB::CPANTS                       0.05 ();
+use ORDB::CPANUploads                  0.04 ();
+use ORDB::CPANTesters                  0.09 ();
 
 our $VERSION = '0.13';
 
@@ -59,12 +63,29 @@ use ORLite::Migrate 0.03 {
 	user_version => 3,
 };
 
-# Download and load the CPAN Upload database
-use ORDB::CPANUploads 0.01;
-use ORDB::CPANTesters 0.08;
+# Delay download/inflate for the ORDB:: modules until import,
+# so we can pass them a common maxage param.
+sub import {
+	my $class  = shift;
+	my $params = Params::Util::_HASH(shift) || {};
 
-# Download and load the CPANTS database
-use ORDB::CPANTS 0.03;
+	# Download/inflate the CPANTS database
+	ORDB::CPANTS->import( {
+		maxage => $params{maxage},
+	} );
+
+	# Download/inflate the CPAN PAUSE uploads database
+	ORDB::CPANTUploads->import( {
+		maxage => $params{maxage},
+	} );
+
+	# Download/inflate the (huge) CPAN Testers database
+	ORDB::CPANTesters->import( {
+		maxage => $params{maxage},
+	} );
+
+	return 1;
+}
 
 # Common string fragments
 my $SELECT_IDS = <<'END_SQL';
@@ -207,7 +228,7 @@ sub run {
 			dist             => $dist->dist,
 			author           => $dist->author,
 			weight           => $weight->{$id},
-			volatility       => $volatility->{$id},
+			volatility       => $volatility->{$id} - 1,
 			enemy_downstream => $enemy_downstream,
 			debian_candidate => $debian_candidate,
 			meta1            => $meta1,

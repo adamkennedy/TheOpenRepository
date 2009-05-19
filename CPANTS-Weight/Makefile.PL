@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.87;
+use inc::Module::Install::DSL 0.88;
 
 all_from       lib/CPANTS/Weight.pm
 requires_from  lib/CPANTS/Weight.pm
