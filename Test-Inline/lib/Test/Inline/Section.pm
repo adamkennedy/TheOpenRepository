@@ -96,13 +96,14 @@ order of appearance.
 =cut
 
 use strict;
-use base 'Algorithm::Dependency::Item';
-use List::Util   ();
-use Params::Util qw{_ARRAY};
+use List::Util                  ();
+use Params::Util                qw{_ARRAY};
+use Algorithm::Dependency::Item ();
 
-use vars qw{$VERSION $errstr};
+use vars qw{$VERSION @ISA $errstr};
 BEGIN {
-	$VERSION = '2.209';
+	$VERSION = '2.210';
+	@ISA     = 'Algorithm::Dependency::Item';
 	$errstr  = '';
 }
 

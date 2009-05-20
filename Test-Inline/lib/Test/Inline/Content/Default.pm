@@ -16,12 +16,13 @@ This module contains no user servicable parts.
 =cut
 
 use strict;
-use base 'Test::Inline::Content';
 use Params::Util qw{_INSTANCE};
+use Test::Inline::Content ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '2.209';
+	$VERSION = '2.210';
+	@ISA = 'Test::Inline::Content';
 }
 
 sub process {

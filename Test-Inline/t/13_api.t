@@ -14,7 +14,7 @@ use Test::Inline;
 
 # Execute the API test
 use File::Spec::Functions ':ALL';
-use Test::More 'tests' => 102;
+use Test::More 'tests' => 103;
 use Test::ClassAPI;
 Test::ClassAPI->execute('complete', 'collisions');
 
@@ -28,6 +28,7 @@ Algorithm::Dependency::Item=interface
 [Test::Inline]
 Algorithm::Dependency::Source=isa
 new=method
+exception=method
 InputHandler=method
 ExtractHandler=method
 OutputHandler=method

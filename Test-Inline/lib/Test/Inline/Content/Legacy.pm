@@ -51,12 +51,13 @@ The synopsis above pretty much says all you need to know.
 =cut
 
 use strict;
-use base 'Test::Inline::Content';
-use Params::Util qw{_CODE _INSTANCE};
+use Params::Util          qw{_CODE _INSTANCE};
+use Test::Inline::Content ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '2.209';
+	$VERSION = '2.210';
+	@ISA     = 'Test::Inline::Content';
 }
 
 =pod

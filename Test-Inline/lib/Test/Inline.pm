@@ -26,8 +26,6 @@ following.
   
   =end testing
   
-  
-  
   =begin testing label
   
   # Test generation of the <label> HTML tag
@@ -128,10 +126,13 @@ will be run after the numbered tests.
 
 use 5.006;
 use strict;
-use File::Spec                     ();
 use IO::Handle                     ();
-use Params::Util                   ();
-use Algorithm::Dependency          ();
+use List::Util                1.19 ();
+use File::Spec                0.80 ();
+use File::Slurp            9999.04 ();
+use Params::Util              0.21 ();
+use Algorithm::Dependency     1.02 ();
+use Algorithm::Dependency::Source  ();
 use Test::Inline::Util             ();
 use Test::Inline::Section          ();
 use Test::Inline::Script           ();
@@ -139,15 +140,13 @@ use Test::Inline::Content          ();
 use Test::Inline::Content::Legacy  ();
 use Test::Inline::Content::Default ();
 use Test::Inline::Content::Simple  ();
-use Class::Autouse 'Test::Inline::Extract';
-use Class::Autouse 'Test::Inline::IO::File';
+use Test::Inline::Extract          ();
+use Test::Inline::IO::File         ();
 
-# We need to act as a dependency source
-use base 'Algorithm::Dependency::Source';
-
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '2.209';
+	$VERSION = '2.210';
+	@ISA     = 'Algorithm::Dependency::Source';
 }
 
 
@@ -162,11 +161,11 @@ BEGIN {
 =head2 new
 
   my $Tests = Test::Inline->new(
-          verbose  => 1,
-          readonly => 1,
-          output   => 'auto',
-          manifest => 'auto/manifest',
-          );
+      verbose  => 1,
+      readonly => 1,
+      output   => 'auto',
+      manifest => 'auto/manifest',
+  );
 
 The C<new> constructor creates a new test generation framework. Once the
 constructor has been used to create the generator, the C<add_class> method
@@ -238,6 +237,9 @@ sub new {
 
 	# Create the object
 	my $self = bless {
+		# Return errors via exceptions?
+		exception      => !! $params{exception},
+
 		# Extensibility provided through the use of Handler classes
 		InputHandler   => $params{InputHandler},
 		ExtractHandler => $params{ExtractHandler},
@@ -269,7 +271,9 @@ sub new {
 	# Support the legacy file_content param
 	if ( $params{file_content} ) {
 		Params::Util::_CODE($params{file_content}) or return undef;
-		$self->{ContentHandler} = Test::Inline::Content::Legacy->new( $params{file_content} ) or return undef;
+		$self->{ContentHandler} = Test::Inline::Content::Legacy->new(
+			$params{file_content}
+		) or return undef;
 	}
 
 	# Set the default Handlers
@@ -289,6 +293,19 @@ sub new {
 
 =pod
 
+=head2 exception
+
+The C<exception> method returns a flag which indicates whether error will
+be returned via exceptions.
+
+=cut
+
+sub exception {
+	$_[0]->{exception};
+}
+
+=pod
+
 =head2 InputHandler
 
 The C<InputHandler> method returns the file handler object that will be
@@ -296,7 +313,9 @@ used to find and load the source code.
 
 =cut
 
-sub InputHandler { $_[0]->{InputHandler} }
+sub InputHandler {
+	$_[0]->{InputHandler};
+}
 
 =pod
 
@@ -307,7 +326,9 @@ to extract the test sections from the source code.
 
 =cut
 
-sub ExtractHandler { $_[0]->{ExtractHandler} }
+sub ExtractHandler {
+	$_[0]->{ExtractHandler};
+}
 
 =pod
 
@@ -317,7 +338,9 @@ The C<ContentHandler> accessor return the script content generation handler.
 
 =cut
 
-sub ContentHandler { $_[0]->{ContentHandler} }
+sub ContentHandler {
+	$_[0]->{ContentHandler};
+}
 
 =pod
 
@@ -328,7 +351,9 @@ generated test scripts will be written to.
 
 =cut
 
-sub OutputHandler { $_[0]->{OutputHandler} }
+sub OutputHandler {
+	$_[0]->{OutputHandler};
+}
 
 
 
@@ -424,7 +449,12 @@ C<undef> on error.
 =cut
 
 sub add_all {
-	shift->_add_directory('.');
+	my $self = shift;
+	my $rv = eval {
+		$self->_add_directory('.');
+	};
+	return $self->_error($@) if $@;
+	return $rv;
 }
 
 # Recursively add an entire directory of files
@@ -771,6 +801,9 @@ sub _verbose {
 # Warn and return
 sub _error {
 	my $self = shift;
+	if ( $self->exception ) {
+		Carp::croak("Error: $_[0]");
+	}
 	$self->_verbose(map { "Error: $_" } @_);
 	undef;
 }

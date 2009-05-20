@@ -18,17 +18,22 @@ and then merge them into a test file.
 =cut
 
 use strict;
-use List::Util   ();
-use Params::Util qw{_ARRAY _INSTANCE};
-use Algorithm::Dependency::Ordered;
-use base 'Algorithm::Dependency::Source',
-         'Algorithm::Dependency::Item';
+use List::Util                     ();
+use Params::Util                   qw{_ARRAY _INSTANCE};
+use Algorithm::Dependency::Item    ();
+use Algorithm::Dependency::Source  ();
+use Algorithm::Dependency::Ordered ();
+
 use overload 'bool' => sub () { 1 },
              '""'   => 'filename';
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '2.209';
+	$VERSION = '2.210';
+	@ISA     = qw{
+		Algorithm::Dependency::Source
+		Algorithm::Dependency::Item
+	};
 }
 
 # Special case, for when doing unit tests ONLY.

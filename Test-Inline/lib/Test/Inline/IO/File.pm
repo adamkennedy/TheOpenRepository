@@ -38,12 +38,10 @@ use strict;
 use File::Spec   ();
 use File::chmod  ();
 use File::Remove ();
-use Class::Autouse 'File::Flat',
-                   'File::Find::Rule';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.209';
+	$VERSION = '2.210';
 }
 
 
@@ -161,6 +159,7 @@ Returns a SCALAR reference, or C<undef> on error.
 sub read {
 	my $self    = shift;
 	my $file    = $self->_path(shift) or return undef;
+	require File::Flat;
 	my $content = File::Flat->slurp($file) or return undef;
 	$$content =~ s/\015{1,2}\012|\015|\012/\n/g;
 	$content;
@@ -180,7 +179,9 @@ sub write {
 	my $file = $self->_path(shift) or return undef;
 	if ( -f $file and ! -w $file ) {
 		File::Remove::remove($file) or return undef;
+
 	}
+	require File::Flat;
 	my $rv = File::Flat->write( $file, @_ );
 	if ( $rv and $self->readonly ) {
 		File::chmod::symchmod('a-w', $file);
@@ -227,6 +228,7 @@ sub find {
 	my $dir   = $self->exists_dir($_[0]) ? shift : return undef;
 
 	# Search within the path
+	require File::Find::Rule;
 	my @files = File::Find::Rule->file
 	                            ->name('*.pm')
 	                            ->relative

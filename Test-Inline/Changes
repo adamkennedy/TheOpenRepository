@@ -1,6 +1,12 @@
 Revision history for Perl extension Test-Inline
 
-2.209 Sub 19 Apr 2009
+2.210 Sun 17 May 2009
+	- Updating to Module::Install 0.88
+	- Adding support for error-via-exceptions
+	- Removing the use of Class::Autouse
+	- Removing the use of base.pm
+
+2.209 Sun 19 Apr 2009
 	- Updating to Module::Install 0.83
 	- Perl depedency corrected to 5.006
 
