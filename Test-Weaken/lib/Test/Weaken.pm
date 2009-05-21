@@ -636,35 +636,41 @@ References are not independent objects when
 they are elements of arrays and hashes,
 but they are followed.
 
-An object inside the test object is called an B<internal object>.
+An object inside the test object is called an B<internal object> or
+an B<in-object>.
 In the C<Test::Weaken> context, the relevant criterion for deciding
-"inside" versus "outside" is the lifetime of an object.
+in-object versus out-object is the lifetime of an object.
 If an object's lifetime is expected to be the same as that of the test
-object, it is called an B<internal object>.
+object, it is an B<in-object>.
 If an object's lifetime might be different from the lifetime of the test
-object, then it is called an B<external object>.
+object, then it is called an B<out-object>.
 Since the question is one of I<expected> lifetime,
 this difference is ultimately subjective.
 
 By default,
-C<Test::Weaken> assumes that "descent equals lifetime" --
-that all the B<descendents> of the test object
-are internal
-objects and that all non-descendant objects are external.
-The descendants of the test object are found by following references,
-and looking inside hashes and arrays.
+C<Test::Weaken> assumes that child objects share their parents
+lifetime.
+Elements are known to share the lifetime of the hash or 
+array that they are in.
+Referents are assumed to share the lifetime of the reference.
+It is assumed that all children of an in-object are
+also in-objects and that all objects which are not children
+of an in-object are out-objects.
 
-Assuming that "descent equals lifetime" works in many cases,
+Assuming that child objects share the parent's lifetime
+works in many cases,
 but not all.
-It can fail if an internal object is not a descendant,
-and it can fail if a descendant is an external object.
+The two problems are persistent objects,
+and outside in-objects.
+These are dealt with in the next two sections.
 
-=head2 External Descendants
+=head2 Out-object Children of In-objects
 
-As a practical matter, external descendants are only a
-problem is their lifetime extends beyond that of the test
+As a practical matter, out-objects as children of in-objects
+are only a
+problem if their lifetime extends beyond that of the test
 object.
-An descendant which stays around after
+An out-object which stays around after
 the test object is called a B<persistent object>.
 
 Persistent objects are not memory leaks.
@@ -688,6 +694,14 @@ can also be used to separate out persistent objects on the fly.
 Methods for separating out the persistent objects are
 described in detail
 L<below|/"ADVANCED TECHNIQUES">.
+
+=head2 Outside In-objects
+
+Some in-objects are not the child of any other in-object.
+These are B<outside in-objects>.
+Many of them arise (appropriately enough)
+when an OO technique call
+"inside-out objects" is used.
 
 =head2 Builtin Types
 
