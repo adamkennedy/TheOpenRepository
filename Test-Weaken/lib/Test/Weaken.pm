@@ -1078,6 +1078,65 @@ is_file($_, 't/contents.t', 'contents named arg snippet')
 =end Marpa::Test::Display:
 
 The B<contents> argument is optional.
+It can be used to tell C<Test::Weaken> about additional
+in-objects which need to be followed.
+Use of the C<contents> argument should be avoided
+when possible.
+Instead of using the C<contents> argument, it is
+often possible to have the constructor
+create a reference to a test "meta-object".
+The meta-object is an array containing not only the
+original test object, but as many of the outside in-objects
+as are needed to guarantee that all in-objects in the lab rat object
+are children of objects in the meta-object.
+
+The C<contents> argument is for situations where the "meta-object"
+technique is not practical.
+If, for example,
+creating the meta-object would involve a difficult recursive
+descent through the lab rat object,
+using the C<contents> argument may be easiest.
+
+When specified, the value of the C<contents> argument must be a
+reference to a callback subroutine.
+The subroutine will be called once
+for every reference when it is about
+to be followed.
+The C<contents> callback is called with
+a probe reference to the object which is about to be
+followed as its only argument.
+Everything that is referred to, directly or indirectly,
+by this
+probe reference
+should be left unchanged by the C<contents>
+callback.
+The result of modifying the probe referents might be
+an exception, an abend, an infinite loop, or erroneous results.
+
+The callback subroutine will be evaluated in array context.
+It should return a list of all the additional objects
+which are to be followed.
+This list may be empty.
+
+For safety, C<Test::Weaken> does not pass its internal
+probe reference
+to the C<contents> callback.
+The C<contents> callback is passed a copy of the internal
+probe reference.
+This prevents the user
+altering
+the probe reference itself.
+However,
+the object referred to by the probe reference is not copied.
+The probe referent is the original object and if it
+is altered, all bets are off.
+
+C<contents> callbacks are best avoided.
+When practical, have the test object constructor
+return a reference to a "meta-object" which is the
+parent of all in-objects.
+C<contents> callbacks 
+can also be a significant overhead.
 
 =back
 
