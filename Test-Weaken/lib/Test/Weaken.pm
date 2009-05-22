@@ -36,13 +36,17 @@ of them, even implicitly.
 
 package Test::Weaken::Internal;
 
+use English qw( -no_match_vars );
 use Carp;
 use Scalar::Util qw(refaddr reftype isweak weaken);
 
 sub follow {
-    my $base_probe = shift;
-    my $ignore     = shift;
-    my $contents   = shift;
+    my ( $self, $base_probe ) = @_;
+    my $ignore          = $self->{ignore};
+    my $contents        = $self->{contents};
+    my $trace_maxdepth  = $self->{trace_maxdepth};
+    my $trace_following = $self->{trace_following};
+    my $trace_tracking  = $self->{trace_tracking};
 
     # Initialize the results with a reference to the dereferenced
     # base reference.
@@ -67,6 +71,12 @@ sub follow {
         if ( defined $ignore ) {
             my $safe_copy = $follow_probe;
             next FOLLOW_OBJECT if $ignore->($safe_copy);
+        }
+
+        if ($trace_following) {
+            print 'Following: ', Data::Dumper->new( [$follow_probe], [qw(tracking)] )
+                ->Terse(1)->MaxDepth($trace_maxdepth)->Dump
+                or Carp::croak("Cannot print to STDOUT: $ERRNO");
         }
 
         if ( $object_type eq 'ARRAY' ) {
@@ -143,6 +153,11 @@ sub follow {
             next FOLLOW_OBJECT if $ignore->($safe_copy);
         }
 
+        if ($trace_tracking) {
+            print STDERR 'Tracking: ', Data::Dumper->new( [$new_tracking_probe], [qw(tracking)] )
+                ->Terse(1)->MaxDepth($trace_maxdepth)->Dump
+                or Carp::croak("Cannot print to STDOUT: $ERRNO");
+        }
         push @tracking_probes, $new_tracking_probe;
 
     }    # FOLLOW_OBJECT
@@ -186,6 +201,21 @@ sub Test::Weaken::new {
         if ( defined $arg1->{ignore} ) {
             $self->{ignore} = $arg1->{ignore};
             delete $arg1->{ignore};
+        }
+
+        if ( defined $arg1->{trace_maxdepth} ) {
+            $self->{contents} = $arg1->{trace_maxdepth};
+            delete $arg1->{trace_maxdepth};
+        }
+
+        if ( defined $arg1->{trace_following} ) {
+            $self->{contents} = $arg1->{trace_following};
+            delete $arg1->{trace_following};
+        }
+
+        if ( defined $arg1->{trace_tracking} ) {
+            $self->{contents} = $arg1->{trace_tracking};
+            delete $arg1->{trace_tracking};
         }
 
         if ( defined $arg1->{contents} ) {
@@ -255,8 +285,7 @@ sub Test::Weaken::test {
             'Test::Weaken test object constructor did not return a reference'
         );
     }
-    my $probes = Test::Weaken::Internal::follow( $test_object_probe, $ignore,
-        $contents );
+    my $probes = Test::Weaken::Internal::follow( $self, $test_object_probe );
 
     $self->{probe_count} = @{$probes};
     $self->{weak_probe_count} =
@@ -1044,7 +1073,6 @@ is_file($_, 't/contents.t', 'contents sub snippet')
 
     sub contents {
         my ($probe) = @_;
-        return unless ref $probe eq 'REF';
         return unless Scalar::Util::blessed( ${$probe} );
         my $obj = ${$probe};
         return unless $obj->isa('MyObject');
