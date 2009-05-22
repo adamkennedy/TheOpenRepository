@@ -377,35 +377,56 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, " \n", Token_WhiteSpace);
 	CheckToken(&tk, "print", Token_Word);
 	CheckToken(&tk, " ", Token_WhiteSpace);
-	CheckToken(&tk, "<<XYZ", Token_HereDoc);
+	//CheckToken(&tk, "<<XYZ", Token_HereDoc);
+	CheckExtendedToken( &tk, "<<XYZasds vghtjty\npoiuyt treewq\nXYZ\n", 
+		"<<XYZ", "asds vghtjty\npoiuyt treewq\nXYZ\n", "XYZ", Token_HereDoc );
 	CheckToken(&tk, ";", Token_Structure);
-	CheckToken(&tk, "\n", Token_WhiteSpace);
-	CheckExtendedToken( &tk, "XYZasds vghtjty\npoiuyt treewq\nXYZ\n", 
-		"XYZ", "asds vghtjty\npoiuyt treewq\nXYZ\n", NULL, Token_HereDoc_Body );
+	//CheckExtendedToken( &tk, "XYZasds vghtjty\npoiuyt treewq\nXYZ\n", 
+	//	"XYZ", "asds vghtjty\npoiuyt treewq\nXYZ\n", NULL, Token_HereDoc );
 
 	Tokenize("print << 'XYZ';\n");
 	Tokenize("asds vghtjty\n");
 	Tokenize("poiuyt treewq\n");
 	Tokenize("XYZ\n");
+	CheckToken(&tk, "\n", Token_WhiteSpace);
 	CheckToken(&tk, "print", Token_Word);
 	CheckToken(&tk, " ", Token_WhiteSpace);
-	CheckToken(&tk, "<< 'XYZ'", Token_HereDoc);
+	CheckExtendedToken( &tk, "<< 'XYZ'asds vghtjty\npoiuyt treewq\nXYZ\n", 
+		"<< 'XYZ'", "asds vghtjty\npoiuyt treewq\nXYZ\n", "XYZ", Token_HereDoc );
 	CheckToken(&tk, ";", Token_Structure);
+
+	Tokenize("print <<XYZ . <<ABC;\n");
+	Tokenize("asds vghtjty\n");
+	Tokenize("poiuyt treewq\n");
+	Tokenize("XYZ\n");
+	Tokenize("kjgkfdfkk  kkslkjf\n");
+	Tokenize("kjslk remnrea\n");
+	Tokenize("ABC\n");
 	CheckToken(&tk, "\n", Token_WhiteSpace);
-	CheckExtendedToken( &tk, "XYZasds vghtjty\npoiuyt treewq\nXYZ\n", 
-		"XYZ", "asds vghtjty\npoiuyt treewq\nXYZ\n", NULL, Token_HereDoc_Body );
+	CheckToken(&tk, "print", Token_Word);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "<<XYZasds vghtjty\npoiuyt treewq\nXYZ\n", 
+		"<<XYZ", "asds vghtjty\npoiuyt treewq\nXYZ\n", "XYZ", Token_HereDoc );
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckToken(&tk, ".", Token_Operator);
+	CheckToken(&tk, " ", Token_WhiteSpace);
+	CheckExtendedToken( &tk, "<<ABCkjgkfdfkk  kkslkjf\nkjslk remnrea\nABC\n", 
+		"<<ABC", "kjgkfdfkk  kkslkjf\nkjslk remnrea\nABC\n", "ABC", Token_HereDoc );
+	CheckToken(&tk, ";", Token_Structure);
+
 
 	Tokenize("__END__\n");
+	CheckToken(&tk, "\n", Token_WhiteSpace);
 	Tokenize("FDGDF hfghhgfhg gfh\n");
 	Tokenize("=start\n");
 	Tokenize("aaad dkfjs dfsd\n");
 	Tokenize("=cut\n");
 	Tokenize("hjkil jkhjk hjh\n");
+	tk.EndOfDocument();
 	CheckToken(&tk, "__END__", Token_Separator);
 	CheckToken(&tk, "\n", Token_WhiteSpace);
 	CheckToken(&tk, "FDGDF hfghhgfhg gfh\n", Token_End);
 	CheckToken(&tk, "=start\naaad dkfjs dfsd\n=cut\n", Token_Pod);
-	tk._finalize_token();
 	CheckToken(&tk, "hjkil jkhjk hjh\n", Token_End);
 
 	tk.Reset();
@@ -413,7 +434,7 @@ int main(int argc, char* argv[])
 	Tokenize("__DATA__\n");
 	Tokenize("FDGDF hfghhgfhg gfh\n");
 	Tokenize("=start\n");
-	tk._finalize_token();
+	tk.EndOfDocument();
 	CheckToken(&tk, "$symbol", Token_Symbol);
 	CheckToken(&tk, ";", Token_Structure);
 	CheckToken(&tk, "\n", Token_WhiteSpace);

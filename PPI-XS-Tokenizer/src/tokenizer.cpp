@@ -197,6 +197,15 @@ void Tokenizer::keep_significant_token(Token *t) {
 	m_LastSignificant[oldest] = t;
 	m_nLastSignificantPos = oldest;
 }
+static inline void chain_token(Token *tkn, Token * &head, Token * &tail) {
+	tkn->next = NULL;
+	if ( NULL == tail ) {
+		head = tkn;
+	} else {
+		tail->next = tkn;
+	}
+	tail = tkn;
+}
 
 TokenTypeNames Tokenizer::_finalize_token() {
 	if (c_token == NULL)
@@ -204,13 +213,11 @@ TokenTypeNames Tokenizer::_finalize_token() {
 
 	if (c_token->length != 0) {
 		c_token->text[c_token->length] = '\0';
-		c_token->next = NULL;
-		if ( NULL == tokens_found_tail ) {
-			tokens_found_head = c_token;
+		if ( NULL == tokens_posponded_head ) {
+			chain_token(c_token, tokens_found_head, tokens_found_tail);
 		} else {
-			tokens_found_tail->next = c_token;
+			chain_token(c_token, tokens_posponded_head, tokens_posponded_tail);
 		}
-		tokens_found_tail = c_token;
 		if (c_token->type->significant) {
 			keep_significant_token(c_token);
 		}
@@ -222,6 +229,11 @@ TokenTypeNames Tokenizer::_finalize_token() {
 	return zone;
 }
 
+TokenTypeNames Tokenizer::_pospond_token() {
+	chain_token(c_token, tokens_posponded_head, tokens_posponded_tail);
+	c_token = NULL;
+	return zone;
+}
 
 using namespace std;
 typedef pair <const char *, unsigned char> uPair;
@@ -299,6 +311,8 @@ Tokenizer::Tokenizer()
 	local_newline('\n'),
 	tokens_found_head(NULL), 
 	tokens_found_tail(NULL),
+	tokens_posponded_head(NULL),
+	tokens_posponded_tail(NULL),
 	zone(Token_WhiteSpace),
 	m_nLastSignificantPos(0)
 {
@@ -349,7 +363,7 @@ Tokenizer::Tokenizer()
 	TokenTypeNames_pool[Token_End] = new EndToken;
 	TokenTypeNames_pool[Token_Data] = new DataToken;
 	TokenTypeNames_pool[Token_HereDoc] = new HereDocToken;
-	TokenTypeNames_pool[Token_HereDoc_Body] = new HereDocBodyToken;
+	//TokenTypeNames_pool[Token_HereDoc_Body] = new HereDocBodyToken;
 	
 
 	for (int ix = 0; ix < NUM_SIGNIFICANT_KEPT; ix++) {
@@ -371,8 +385,7 @@ Tokenizer::~Tokenizer() {
 
 void Tokenizer::Reset() {
 	Token *t;
-	if ( c_token != NULL )
-		_finalize_token();
+	EndOfDocument();
 
 	while ( ( t = pop_one_token() ) != NULL ) {
 		freeToken( t );
@@ -389,6 +402,17 @@ void Tokenizer::Reset() {
 	line_length = 0;
 	zone = Token_WhiteSpace;
 	m_nLastSignificantPos = 0;
+}
+
+void Tokenizer::EndOfDocument() {
+	if ( c_token != NULL )
+		_finalize_token();
+	while ( NULL != tokens_posponded_head ) {
+		Token *tkn = tokens_posponded_head;
+		tokens_posponded_head = tkn->next;
+		chain_token(tkn, tokens_found_head, tokens_found_tail);
+	}
+	tokens_posponded_tail = NULL;
 }
 
 Token *Tokenizer::_last_significant_token(unsigned int n) {
@@ -449,6 +473,29 @@ LineTokenizeResults Tokenizer::tokenizeLine(char *line, unsigned long line_lengt
 	this->line_length = line_length;
 	if (c_token == NULL)
 		_new_token(Token_BOM);
+	while ( NULL != tokens_posponded_head ) {
+		if ( tokens_posponded_head->type->isa( Token_HereDoc ) ) {
+			ExtendedToken *tkn = (ExtendedToken *)tokens_posponded_head;
+			if ( heredocbody_ended == ((HereDocToken*)(tokens_posponded_head->type))->Unpospone( this, tkn, line, line_length ) ) {
+				// release all posponded tokens, as long as they are not an another heredoc token
+				Token *tkn = tokens_posponded_head;
+				tokens_posponded_head = tkn->next;
+				chain_token(tkn, tokens_found_head, tokens_found_tail);
+				while ( ( NULL != tokens_posponded_head ) && ( ! tokens_posponded_head->type->isa( Token_HereDoc ) ) ) {
+					Token *tkn = tokens_posponded_head;
+					tokens_posponded_head = tkn->next;
+					chain_token(tkn, tokens_found_head, tokens_found_tail);
+				}
+				if ( NULL == tokens_posponded_head )
+					tokens_posponded_tail = NULL;
+			}
+			return reached_eol;
+		}
+		Token *tkn = tokens_posponded_head;
+		tokens_posponded_head = tkn->next;
+		chain_token(tkn, tokens_found_head, tokens_found_tail);
+	}
+	tokens_posponded_tail = NULL;
 	return _tokenize_the_rest_of_the_line();
 
 }

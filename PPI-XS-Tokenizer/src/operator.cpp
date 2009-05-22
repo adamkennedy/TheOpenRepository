@@ -112,20 +112,17 @@ CharTokenizeResults HereDocToken::tokenize(Tokenizer *t, Token *token, unsigned 
 	while ( t->line_pos < pos ) {
 		token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
 	}
-	TokenTypeNames zone = t->_finalize_token();
-	t->_new_token(zone);
-	t->_tokenize_the_rest_of_the_line();
-	// preparing the HereDoc_Body token
-	t->_finalize_token();
-	t->_new_token( Token_HereDoc_Body );
-	ExtendedToken *exToken = (ExtendedToken *)t->c_token;
-	for ( unsigned long ix = start_key; ix < stop_key; ix++ ) {
-		exToken->text[ exToken->length++ ] = t->c_line[ ix ];
-	}
+
+	ExtendedToken *exToken = (ExtendedToken *)token;
+	exToken->current_section = 1;
 	exToken->sections[0].position = 0;
 	exToken->sections[0].size = exToken->length;
+	exToken->modifiers.position = start_key - (t->line_pos - exToken->length);
+	exToken->modifiers.size = stop_key - start_key;
 	exToken->sections[1].position = exToken->length;
 	exToken->sections[1].size = 0;
+	TokenTypeNames zone = t->_pospond_token();
+	t->_new_token( zone );
 	return done_it_myself;
 }
 
@@ -133,29 +130,29 @@ bool inline is_newline( char c ) {
 	return ( (  c == 10 ) || (  c == 13 ) );
 }
 
-CharTokenizeResults HereDocBodyToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
+HeredocBodyStates HereDocToken::Unpospone( Tokenizer *t, ExtendedToken *self, const char *line, unsigned long length) {
 	// will reach here only in the beginning of a line
-	ExtendedToken *self = (ExtendedToken *)token;
-	ExtendedToken::section &key = self->sections[ 0 ];
+	ExtendedToken::section &key = self->modifiers;
 	ExtendedToken::section &value = self->sections[ 1 ];
 	PredicateZeroOrMore< PredicateFunc< is_newline > > regex1;
-	unsigned long pos = t->line_pos + key.size;
+	unsigned long pos = key.size;
+	self->current_section = 2;
 
 	// copy this line anyway
-	while ( t->line_length > t->line_pos ) {
-		self->text[self->length++] = t->c_line[ t->line_pos++ ];
+	unsigned long ix = 0;
+	while ( length > ix ) {
+		self->text[self->length++] = line[ ix++ ];
 	}
-	value.size += t->line_length;
+	value.size += length;
 
-	if ( ( t->line_length > key.size ) && 
-		 ( !strncmp( t->c_line, self->text, key.size  ) ) &&
-		 regex1.test( t->c_line, &pos, t->line_length ) && 
-		 ( pos == t->line_length ) ) {
+	if ( ( length > key.size ) && 
+		 ( !strncmp( line, &self->text[ key.position ], key.size  ) ) &&
+		 regex1.test( line, &pos, length ) && 
+		 ( pos == length ) ) {
 		// found end line
 		self->state = 1;
-		TokenTypeNames zone = t->_finalize_token();
-		t->_new_token(zone);
+		self->text[self->length] = '\0';
+		return heredocbody_ended;
 	}
-	return done_it_myself;
+	return heredocbody_still_in_effect;
 }
-

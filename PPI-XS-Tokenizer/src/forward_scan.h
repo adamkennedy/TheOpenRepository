@@ -27,7 +27,7 @@ typedef bool (*predicate_function)(char c);
 template <predicate_function func> 
 class PredicateFunc {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		if ( *position >= line_lenght )
 			return false;
 		if ( func ( text[*position] ) ) {
@@ -40,7 +40,7 @@ public:
 
 class PredicateTrue {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		(void)text;
 		(void)position;
 		(void)line_lenght;
@@ -50,7 +50,7 @@ public:
 
 class PredicateFalse {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		(void)text;
 		(void)position;
 		(void)line_lenght;
@@ -61,7 +61,7 @@ public:
 template <class A1, class A2, class A3 = PredicateTrue, class A4 = PredicateTrue, class A5 = PredicateTrue>
 class PredicateAnd {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		unsigned long pos = *position;
 		if ( a1.test(text, &pos, line_lenght) &&
 			 a2.test(text, &pos, line_lenght) &&
@@ -84,7 +84,7 @@ private:
 template <class A1, class A2, class A3 = PredicateFalse, class A4 = PredicateFalse>
 class PredicateOr {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		unsigned long pos = *position;
 		if ( a1.test(text, &pos, line_lenght) ||
 			 a2.test(text, &pos, line_lenght) ||
@@ -107,7 +107,7 @@ private:
 template <class A1>
 class PredicateNot {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		unsigned long pos = *position;
 		return (!inner.test( text, &pos, line_lenght ));
 	}
@@ -118,7 +118,7 @@ private:
 template <unsigned char c>
 class PredicateIsChar {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		if ( *position >= line_lenght )
 			return false;
 		if ( text[*position] == c ) {
@@ -132,7 +132,7 @@ public:
 template <unsigned char c>
 class PredicateIsNotChar {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		if ( *position >= line_lenght )
 			return false;
 		if ( text[*position] != c ) {
@@ -147,7 +147,7 @@ public:
 template <unsigned long len, const char *str>
 class PredicateLiteral {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		if ( str[len] != '\0' ) {
 			printf("PredicateLiteral failure: last char is not zero (%s)", str);
 			return false;
@@ -170,7 +170,7 @@ public:
 template <unsigned long len, const char *str>
 class PredicateBinaryLiteral {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		return inner.test( text, position, line_lenght );
 	}
 private:
@@ -180,7 +180,7 @@ private:
 template <class A1>
 class PredicateZeroOrMore {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		while (inner.test( text, position, line_lenght ) ) {}
 		return true;
 	}
@@ -191,7 +191,7 @@ private:
 template <class A1>
 class PredicateOneOrMore {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		if (!inner.test( text, position, line_lenght ) )
 			return false;
 		while (inner.test( text, position, line_lenght ) ) {}
@@ -204,7 +204,7 @@ private:
 template <class A1>
 class PredicateZeroOrOne {
 public:
-	bool inline test( char *text, unsigned long *position, unsigned long line_lenght ) {
+	bool inline test( const char *text, unsigned long *position, unsigned long line_lenght ) {
 		inner.test( text, position, line_lenght );
 		return true;
 	}

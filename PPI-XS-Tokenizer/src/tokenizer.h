@@ -44,7 +44,6 @@ enum TokenTypeNames {
 	Token_Prototype, // done
 	Token_ArrayIndex, // done
 	Token_HereDoc, // done
-	Token_HereDoc_Body, // done
 	Token_Attribute, // done
 	Token_Attribute_Parameterized, // done
 	Token_Label, // done
@@ -177,15 +176,6 @@ enum OperatorOperandContext {
 class Tokenizer {
 public:
 	// --------- Start Of Public Interface -------- 
-	/* _finalize_token - close the current token
-	 * If exists token, close it
-	 * if there is an empty token - return it to the free tokens poll
-	 *
-	 * Call this method also after the last line, to finalize the last token
-	 *
-	 * Returns: the type of the current zone. (usually whitespace)
-	 */
-	TokenTypeNames _finalize_token();
 	/* After a line (or more) was tokenize - pop the resulted tokens
 	 * - Will not pop the token under work
 	 * - After poping a token, call freeToken on it to return it to the free tokens poll
@@ -198,6 +188,10 @@ public:
 	 */
 	LineTokenizeResults tokenizeLine(char *line, unsigned long line_length);
 	void Reset();
+	/* EndOfDocument - signel the tokenizer that the document ended, and it should
+	   finalize any pending tokens
+	*/
+	void EndOfDocument();
 	// --------- End Of Public Interface -------- 
 public:
 	Token *c_token;
@@ -215,6 +209,15 @@ public:
 	 * creates a new token with the requested type
 	 */
 	void _new_token(TokenTypeNames new_type);
+	/* _finalize_token - close the current token
+	 * If exists token, close it
+	 * if there is an empty token - return it to the free tokens poll
+	 *
+	 * Call this method also after the last line, to finalize the last token
+	 *
+	 * Returns: the type of the current zone. (usually whitespace)
+	 */
+	TokenTypeNames _finalize_token();
 	/* Change the current token's type */
 	void changeTokenType(TokenTypeNames new_type);
 	/* _last_significant_token - return the n-th last significant token
@@ -230,6 +233,7 @@ public:
 	/* tokenizeLine - Tokenize part of one line
 	 */
 	LineTokenizeResults _tokenize_the_rest_of_the_line();
+	TokenTypeNames _pospond_token();
 
 	/* Utility functions */
 	bool is_operator(const char *str);
@@ -238,6 +242,8 @@ private:
 	TokensCacheMany *m_TokensCache;
 	Token *tokens_found_head;
 	Token *tokens_found_tail;
+	Token *tokens_posponded_head;
+	Token *tokens_posponded_tail;
 	Token *allocateToken();
 
 	void keep_significant_token(Token *t);
