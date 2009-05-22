@@ -9,6 +9,7 @@ Changes for Perl extension ADAMK-Repository
 	- Moved ADAMK::LogEntry to ADAMK::SVN::Log
 	- Added integration with ORDB::CPANTesters
 	- Added ADAMK::Version
+	- Added MYMETA support
 
 0.10 Mon 20 Apr 2009
 	- Added function  ADAMK::Util::ljoin
