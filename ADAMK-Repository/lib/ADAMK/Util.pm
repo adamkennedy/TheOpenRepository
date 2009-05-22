@@ -17,7 +17,7 @@ BEGIN {
 	$VERSION     = '0.11';
 	@ISA         = ( 'Exporter' );
 	$VERBOSE     = 0 unless defined $VERBOSE;
-	@EXPORT_OK   = qw{ shell chdir copy move remove which };
+	@EXPORT_OK   = qw{ slurp shell chdir copy move remove which };
 	%EXPORT_TAGS = (
 		ALL => [ @EXPORT_OK ],
 	);
@@ -29,6 +29,16 @@ BEGIN {
 
 #####################################################################
 # Exportable Functions
+
+sub slurp {
+	my $file = shift;
+	local $/ = undef;
+	open( FILE, " $file" ) or die "open($file) failed: $!";
+	# binmode(FILE); # disable perl's BOM interpretation
+	my $source = <FILE>;
+	close( FILE ) or die "close($file) failed: $!";
+	$source;
+}
 
 sub which {
 	my $program  = shift;
@@ -46,7 +56,7 @@ sub which {
 sub shell {
 	my $command = shift;
 	print "> $command\n" if $VERBOSE;
-	my $rv = ! IPC::Run3::run3( $command, undef, undef );
+	my $rv = IPC::Run3::run3( $command, undef, undef );
 	if ( $rv or ! @_ ) {
 		return $rv;
 	}

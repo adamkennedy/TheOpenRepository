@@ -11,7 +11,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-		plan( tests => 7 );
+		plan( tests => 15 );
 	} else {
 		plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 	}
@@ -28,12 +28,12 @@ isa_ok( $repository, 'ADAMK::Repository' );
 
 
 #####################################################################
-# Make Tests
+# Module::Install Detection
 
 my @versions = (
 	'Config-Tiny'      => undef,
 	'Class-Default'    => 0,
-	'ADAMK-Repository' => '0.83',
+	'ADAMK-Repository' => '0.90',
 );
 while ( @versions ) {
 	my $name     = shift @versions;
@@ -42,4 +42,30 @@ while ( @versions ) {
 	isa_ok( $distribution, 'ADAMK::Distribution' );
 	my $version = $distribution->module_install;
 	is( $version, $expected, "Version for $name matches expected value" );
+}
+
+
+
+
+
+#####################################################################
+# Makefile.PL Support
+
+SCOPE: {
+	my $distribution = $repository->distribution('Devel-Dumpvar');
+	isa_ok( $distribution, 'ADAMK::Distribution' );
+
+	# Configure a module
+	my $meta = $distribution->run_makefile_pl;
+	is( ref($meta), 'HASH', '->run_makefile_pl returns a MYMETA hash' );
+	is( $meta->{version}, '0.04', '->{version} ok' );
+	is( $meta->{license}, 'perl', '->{license} ok' );
+	is( $meta->{name}, 'Devel-Dumpvar', '->{name} ok' );
+
+	# Build the module
+	ok( $distribution->run_make, '->run_make' );
+	ok( -d 'blib', 'make ok' );
+
+	# Test the module
+	ok( $distribution->run_make_test, '->run_make_test' );
 }

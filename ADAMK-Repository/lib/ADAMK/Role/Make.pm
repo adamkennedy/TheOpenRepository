@@ -3,6 +3,7 @@ package ADAMK::Role::Make;
 use 5.008;
 use strict;
 use warnings;
+use JSON              ();
 use ADAMK::Util       ();
 use ADAMK::Repository ();
 
@@ -146,9 +147,20 @@ sub auto_install {
 sub run_makefile_pl {
 	my $self  = shift;
 	my $pushd = File::pushd::pushd($self->path);
+
+	# Execute the Makefile.PL
+	local $ENV{X_MYMETA} = 'JSON';
 	ADAMK::Util::shell(
 		[ 'perl', 'Makefile.PL', @_ ],
 		"Configuring $pushd",
+	);
+	unless ( -f 'MYMETA.json' ) {
+		return 1;
+	}
+
+	# Attempt to load the resulting JSON
+	JSON::from_json(
+		ADAMK::Util::slurp('MYMETA.json')
 	);
 }
 
