@@ -58,7 +58,7 @@ SCOPE: {
 	# Configure a module
 	my $meta = $distribution->run_makefile_pl;
 	is( ref($meta), 'HASH', '->run_makefile_pl returns a MYMETA hash' );
-	is( $meta->{version}, '0.04', '->{version} ok' );
+	is( $meta->{version}, '1.05', '->{version} ok' );
 	is( $meta->{license}, 'perl', '->{license} ok' );
 	is( $meta->{name}, 'Devel-Dumpvar', '->{name} ok' );
 
