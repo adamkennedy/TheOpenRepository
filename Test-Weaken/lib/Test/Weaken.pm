@@ -48,6 +48,8 @@ sub follow {
     my $trace_following = $self->{trace_following};
     my $trace_tracking  = $self->{trace_tracking};
 
+    defined $trace_maxdepth or $trace_maxdepth = 0;
+
     # Initialize the results with a reference to the dereferenced
     # base reference.
 
@@ -74,9 +76,12 @@ sub follow {
         }
 
         if ($trace_following) {
-            print 'Following: ', Data::Dumper->new( [$follow_probe], [qw(tracking)] )
-                ->Terse(1)->MaxDepth($trace_maxdepth)->Dump
+            ## no critic (ValuesAndExpressions::ProhibitLongChainsOfMethodCalls)
+            print {*STDERR} 'Following: ',
+                Data::Dumper->new( [$follow_probe], [qw(tracking)] )->Terse(1)
+                ->Maxdepth($trace_maxdepth)->Dump
                 or Carp::croak("Cannot print to STDOUT: $ERRNO");
+            ## use critic
         }
 
         if ( $object_type eq 'ARRAY' ) {
@@ -154,9 +159,12 @@ sub follow {
         }
 
         if ($trace_tracking) {
-            print STDERR 'Tracking: ', Data::Dumper->new( [$new_tracking_probe], [qw(tracking)] )
-                ->Terse(1)->MaxDepth($trace_maxdepth)->Dump
+            ## no critic (ValuesAndExpressions::ProhibitLongChainsOfMethodCalls)
+            print {*STDERR} 'Tracking: ',
+                Data::Dumper->new( [$new_tracking_probe], [qw(tracking)] )
+                ->Terse(1)->Maxdepth($trace_maxdepth)->Dump
                 or Carp::croak("Cannot print to STDOUT: $ERRNO");
+            ## use critic
         }
         push @tracking_probes, $new_tracking_probe;
 
@@ -204,17 +212,17 @@ sub Test::Weaken::new {
         }
 
         if ( defined $arg1->{trace_maxdepth} ) {
-            $self->{contents} = $arg1->{trace_maxdepth};
+            $self->{trace_maxdepth} = $arg1->{trace_maxdepth};
             delete $arg1->{trace_maxdepth};
         }
 
         if ( defined $arg1->{trace_following} ) {
-            $self->{contents} = $arg1->{trace_following};
+            $self->{trace_following} = $arg1->{trace_following};
             delete $arg1->{trace_following};
         }
 
         if ( defined $arg1->{trace_tracking} ) {
-            $self->{contents} = $arg1->{trace_tracking};
+            $self->{trace_tracking} = $arg1->{trace_tracking};
             delete $arg1->{trace_tracking};
         }
 
