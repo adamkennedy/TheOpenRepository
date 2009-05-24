@@ -250,6 +250,7 @@ sub run {
 	$sth->execute('Text-Tabs+Wrap');
 	$sth->execute('FreeWRL');
 	$sth->execute('Apache-LoggedAuthDBI');
+	$sth->execute('Win32-File-Summary'); #contains Archive::Tar, IO::Zlib
 	$sth->finish;
 
 	return 1;
