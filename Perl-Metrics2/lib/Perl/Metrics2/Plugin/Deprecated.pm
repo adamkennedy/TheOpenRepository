@@ -1,4 +1,4 @@
-package Perl::Metrics2::Plugin::Core;
+package Perl::Metrics2::Plugin::Deprecated;
 
 =pod
 
