@@ -10,7 +10,7 @@ unless ( $ARGV[0] and -d $ARGV[0] ) {
 }
 
 my $metrics = Perl::Metrics2->new(
-	cache => 'F:\\cache\\PPI-Cache',
+	cache => $ARGV[0],
 	study => 1,
 );
 
