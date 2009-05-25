@@ -178,6 +178,7 @@ sub process_document {
 	unless ( $document ) {
 		Carp::croak("Did not provide a PPI::Document object");
 	}
+	my $hintsafe = !! shift;
 
 	# Shortcut if already processed
 	my $md5 = $document->hex_id;
@@ -192,22 +193,36 @@ sub process_document {
 	}
 
 	# Flush out the old records and write the new metrics
-	my $version = $class->VERSION,
-	# Perl::Metrics2->begin;
-	Perl::Metrics2::FileMetric->delete(
-		'where md5 = ? and package = ?',
-		$md5, $class,
-	);
-	foreach my $name ( sort keys %metric ) {
-		Perl::Metrics2::FileMetric->create(
-			md5     => $md5,
-			package => $class,
-			version => $version,
-			name    => $name,
-			value   => $metric{$name},
+	unless ( $hintsafe ) {
+		# This can be an expensive call.
+		# The hintsafe optional param lets the parent
+		# indicate that this check is not required.
+		Perl::Metrics2::FileMetric->delete(
+			'where md5 = ? and package = ?',
+			$md5, $class,
 		);
 	}
-	# Perl::Metrics2->commit;
+
+	# Temporary accelerate version
+	SCOPE: {
+		my $dbh = Perl::Metrics2->dbh;
+		my $sth = $dbh->prepare(
+			'INSERT INTO file_metric ( md5, package, version, name, value ) VALUES ( ?, ?, ?, ?, ? )'
+		);
+		foreach my $name ( sort keys %metric ) {
+			$sth->execute( $md5, $class, $class->VERSION, $name, $metric{$name} );
+		}
+		$sth->finish;
+	}
+	#foreach my $name ( sort keys %metric ) {
+		#Perl::Metrics2::FileMetric->create(
+			#md5     => $md5,
+			#package => $class,
+			#version => $class->VERSION,
+			#name    => $name,
+			#value   => $metric{$name},
+		#);
+	#}
 
 	# Remember that we have processed this document
 	$self->{seen}->{$md5} = 1;

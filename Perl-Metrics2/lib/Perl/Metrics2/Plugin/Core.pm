@@ -4,7 +4,7 @@ package Perl::Metrics2::Plugin::Core;
 
 =head1 NAME
 
-Perl::Metrics::Plugin::Core - The Core Perl Metrics Package
+Perl::Metrics2::Plugin::Core - The Core Perl Metrics Package
 
 =head1 DESCRIPTION
 

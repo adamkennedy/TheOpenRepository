@@ -7,32 +7,40 @@
 use 5.008;
 use strict;
 use warnings;
+use PPI::Cache path => 'G:\\cache\\PPI-Cache';
 use Perl::Metrics2    ();
 use CPAN::Mini::Visit ();
+
+# Ensure we have a newer than normal ORLite
+use ORLite 1.21 ();
 
 # Boost the hell out of the SQLite cache
 Perl::Metrics2->do('PRAGMA cache_size = 200000');
 
 our $VERSION = '0.02';
 
-my $author = $ARGV[0] or die "Did not provide an author id";
+my $author  = $ARGV[0] or die "Did not provide an author id";
 
 my $metrics = Perl::Metrics2->new( study => 1 );
 my $counter = 0;
 
+Perl::Metrics2->begin;		
 CPAN::Mini::Visit->new(
-	root     => 'D:\\minicpan',
+	minicpan => 'D:\\minicpan',
 	acme     => 0,
-	author   => $author,
+	# author   => $author,
+	ignore   => [ qr/PDF-API/ ],
 	callback => sub {
+		my $the = shift;
 		$counter++;
-		print STDERR "# $counter - $_[0]\n";
-		Perl::Metrics2->begin;		
+		unless ( $counter % 100 ) {
+			Perl::Metrics2->commit_begin;
+		}
+		print STDERR "# $counter - $the->{dist}\n";
 		eval { # Ignore errors
-			$metrics->process_distribution($_[2]);
-			Perl::Metrics2->index_distribution(
-			Perl::Metrics2->process_distribution($_[2]);
+			$metrics->index_distribution($the->{dist}, $the->{tempdir});
+			$metrics->process_distribution($the->{tempdir});
 		};
-		Perl::Metrics2->commit;
 	},
 )->run;
+Perl::Metrics2->commit;

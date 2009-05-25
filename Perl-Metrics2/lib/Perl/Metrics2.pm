@@ -64,6 +64,8 @@ use 5.008005;
 use strict;
 use Carp                   ();
 use DBI                    ();
+use Time::HiRes            ();
+use Time::Elapsed          ();
 use File::Spec             ();
 use File::HomeDir          ();
 use File::ShareDir         ();
@@ -73,6 +75,7 @@ use File::Find::Rule::Perl ();
 use Params::Util           ();
 use PPI::Util              ();
 use PPI::Document          ();
+use PPI::Cache             ();
 use Module::Pluggable;
 
 our $VERSION = '0.03';
@@ -89,7 +92,7 @@ use constant ORLITE_TIMELINE => File::Spec->catdir(
 	'timeline',
 );
 
-use ORLite          1.20 ();
+use ORLite          1.21 ();
 use ORLite::Migrate 0.03 {
 	file         => ORLITE_FILE,
 	create       => 1,
@@ -118,11 +121,20 @@ sub new {
 		$self->{plugins}->{$plugin}->study if $self->study;
 	}
 
+	# Initialise the PPI cache if available
+	if ( $self->cache ) {
+		PPI::Cache->import( path => $self->cache );
+	}
+
 	return $self;
 }
 
 sub study {
 	$_[0]->{study};
+}
+
+sub cache {
+	$_[0]->{cache};
 }
 
 sub seen {
@@ -141,6 +153,94 @@ sub seen {
 
 #####################################################################
 # Main Methods
+
+sub process_cache {
+	my $self = shift;
+	unless ( $self->cache ) {
+		Carp::croak("No cache provided, cannot process_cache");
+	}
+	unless ( $self->study ) {
+		Carp::croak("Must have study true to process_cache");
+	}
+
+	# Find all the files in the cache
+	$self->trace("Scanning cache directory " . $self->cache . "...");
+	my @files = File::Find::Rule->name(qr/\.ppi\z/)->in($self->cache);
+	$self->trace("Found " . scalar(@files) . " documents");
+
+	# Filter and sort the documents
+	$self->trace("Cleaning, filtering and sorting documents...");
+	@files = map {
+		# Remove the schwartian
+		$_->[1]
+	} sort {
+		# Smallest files first (for lowest parser stress)
+		$a->[2] <=> $b->[2]
+	} grep {
+		# Filter out things we've done already
+		not $self->seen($_->[1])
+	} map {
+		# Set up for the Schwartzian transform
+		/([a-f0-9]+).ppi\z/ ? [ $_, "$1", (stat($_))[7] ] : ()
+	} @files;
+	$self->trace("Filtered to " . scalar(@files) . " documents");
+
+	# Shortcut if there's nothing to do
+	unless ( @files ) {
+		return 1;
+	}
+
+	# Remove indexes to speed up inserts
+	$self->trace("Removing indexes for faster inserts...");
+	foreach my $col ( qw{ md5 name package value version } ) {
+		my $sql = "DROP INDEX IF EXISTS file_metric__$col";
+		$self->trace($sql);
+		Perl::Metrics2->do($sql);
+	}
+
+	my $last  = 0;
+	my $count = 0;
+	my $total = scalar(@files);
+	my $time  = Time::HiRes::time();
+	my $rate  = 0;
+	my $left  = 0;
+	$self->begin;
+	foreach my $md5 ( @files ) {
+		$self->trace(
+			sprintf(
+				"%s - %d of %d @ %.1f/sec (%s remaining)",
+				$md5, ++$count, $total, $rate,
+				Time::Elapsed::elapsed($left),
+			)
+		);
+
+		# Fetch the document from the cache and process it
+		my $document = PPI::Document->get_cache->get_document($md5);
+		unless ( $document ) {
+			warn("Failed to retrieve $md5 from the cache");
+			next;
+		}
+
+		$self->process_document($document, 'safe');
+		$rate = ($count - $last) / (Time::HiRes::time() - $time);
+		$left = ($total - $count + 1) / $rate;
+		next if $count % 1000;
+		$last = $count;
+		$time = Time::HiRes::time();
+		$self->commit_begin;
+	}
+	$self->commit;
+
+	# Add the indexes back to the database
+	$self->trace("Restoring indexes...");
+	foreach my $col ( qw{ md5 name package value version } ) {
+		my $sql = "CREATE INDEX IF NOT EXISTS file_metric__$col ON file_metric ( $col )";
+		$self->trace($sql);
+		Perl::Metrics2->do($sql);
+	}
+
+	return 1;
+}
 
 sub process_distribution {
 	my $self = shift;
@@ -198,18 +298,26 @@ sub process_file {
 		 next;
 	}
 
+	$self->process_document($document);
+}
+
+# Forcefully process a docucment
+sub process_document {
+	my $self     = shift;
+	my $document = shift;
+
 	# Create the plugin objects
 	foreach my $name ( sort keys %{$self->{plugins}} ) {
-		$self->{plugins}->{$name}->process_document($document);
+		$self->{plugins}->{$name}->process_document($document, @_);
 	}
 
 	return 1;
 }
 
 sub index_distribution {
-	my $class = shift;
-	my $dist  = shift;
-	my $path  = shift;
+	my $self = shift;
+	my $dist = shift;
+	my $path = shift;
 
 	# Find the documents
 	my @files = File::Find::Rule->ignore_svn
@@ -226,7 +334,6 @@ sub index_distribution {
 	} @files;
 
 	# Flush and push the files into the database
-	Perl::Metrics2->begin;
 	Perl::Metrics2::CpanFile->delete(
 		'where dist = ?', $dist,
 	);
@@ -237,7 +344,6 @@ sub index_distribution {
 			md5  => $md5{$file},
 		);
 	}
-	Perl::Metrics2->commit;
 
 	return 1;
 }

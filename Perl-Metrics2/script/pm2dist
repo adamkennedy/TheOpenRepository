@@ -5,7 +5,7 @@ use File::Spec;
 use Perl::Metrics2;
 
 unless ( defined $ARGV[0] and -d $ARGV[0] ) {
-	die("Missing or invalid director");
+	die("Missing or invalid directory");
 }
 
 my $directory = File::Spec->rel2abs($ARGV[0]);
