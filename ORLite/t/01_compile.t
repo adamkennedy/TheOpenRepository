@@ -7,8 +7,13 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 4;
+use Test::More tests => 3;
 
 require_ok( 'ORLite' );
 require_ok( 't::lib::Test' );
-is( $ORLite::VERSION, $t::lib::Test::VERSION, '$VERSION match' );
+
+is(
+	$ORLite::VERSION,
+	$t::lib::Test::VERSION,
+	'$VERSION match'
+);
