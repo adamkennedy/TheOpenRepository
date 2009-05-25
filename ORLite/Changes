@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.21 Sun 24 May 2009
+	- Added commit_begin and rollback_begin to allow persisting
+	  of the connection between successive transactions.
+
 1.20 Thu 12 Feb 2009
 	- Auto-create parent directory for ORLite files
 	- Add root method ->sqlite which returns the path to the

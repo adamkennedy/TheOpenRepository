@@ -11,16 +11,11 @@ use File::Path     ();
 use File::Basename ();
 use Params::Util   qw{ _STRING _CLASS _HASHLIKE _CODELIKE };
 use DBI            ();
+use DBD::SQLite    ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.20';
-
-	# DBD::SQLite has a bug that generates a spurious warning
-	# at compile time, so we need to temporarily disable them.
-	# Remove this hack once DBD::SQLite fixes the bug.
-	local $^W = 0;
-	require DBD::SQLite;
+	$VERSION = '1.21';
 }
 
 
@@ -112,6 +107,7 @@ sub import {
 package $pkg;
 
 use strict;
+use Carp ();
 
 my \$DBH = undef;
 
@@ -187,11 +183,31 @@ sub commit {
 	return 1;
 }
 
+sub commit_begin {
+	if ( \$DBH ) {
+		\$DBH->commit;
+		\$DBH->begin_work;
+	} else {
+		\$_[0]->begin;
+	}
+	return 1;
+}
+
 sub rollback {
 	\$DBH or return 1;
 	\$DBH->rollback;
 	\$DBH->disconnect;
 	undef \$DBH;
+	return 1;
+}
+
+sub rollback_begin {
+	if ( \$DBH ) {
+		\$DBH->rollback;
+		\$DBH->begin_work;
+	} else {
+		\$_[0]->begin;
+	}
 	return 1;
 }
 
@@ -201,8 +217,8 @@ END_PERL
 	if ( $params{tables} ) {
 		# Capture the raw schema information
 		my $tables = $dbh->selectall_arrayref(
-			'select * from sqlite_master where type = ?',
-			{ Slice => {} }, 'table',
+			'select * from sqlite_master where name not like ? and type = ?',
+			{ Slice => {} }, 'sqlite_%', 'table',
 		);
 		foreach my $table ( @$tables ) {
 			$table->{columns} = $dbh->selectall_arrayref(
