@@ -224,7 +224,7 @@ sub process_cache {
 		$self->process_document($document, 'safe');
 		$rate = ($count - $last) / (Time::HiRes::time() - $time);
 		$left = ($total - $count + 1) / $rate;
-		next if $count % 1000;
+		next if $count % 100;
 		$last = $count;
 		$time = Time::HiRes::time();
 		$self->commit_begin;
@@ -377,7 +377,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2009 Adam Kennedy.
+Copyright 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

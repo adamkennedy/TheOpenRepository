@@ -66,8 +66,7 @@ wish.
 use strict;
 use Carp             ();
 use Class::Inspector ();
-use Params::Util     '_IDENTIFIER',
-                     '_INSTANCE';
+use Params::Util     qw{ _IDENTIFIER _INSTANCE };
 use Perl::Metrics2   ();
 
 use vars qw{$VERSION};
@@ -96,7 +95,7 @@ sub new {
 	my $self  = bless {
 		seen => {},
 	}, $class;
-	$self;
+	return $self;
 }
 
 =pod
@@ -238,7 +237,7 @@ sub process_document {
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Metrics>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Metrics2>
 
 For other issues, contact the author.
 
@@ -252,7 +251,7 @@ L<Perl::Metrics>, L<PPI>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2008 Adam Kennedy.
+Copyright 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
