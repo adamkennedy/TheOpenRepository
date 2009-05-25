@@ -4,14 +4,14 @@ package ORLite;
 
 use 5.006;
 use strict;
-use Carp           ();
-use File::Spec     ();
-use File::Temp     ();
-use File::Path     ();
-use File::Basename ();
-use Params::Util   qw{ _STRING _CLASS _HASHLIKE _CODELIKE };
-use DBI            ();
-use DBD::SQLite    ();
+use Carp                 ();
+use File::Spec      0.80 ();
+use File::Temp      0.20 ();
+use File::Path      2.04 ();
+use File::Basename     0 ();
+use Params::Util    0.33 qw{ _STRING _CLASS _HASHLIKE _CODELIKE };
+use DBI            1.607 ();
+use DBD::SQLite     1.25 ();
 
 use vars qw{$VERSION};
 BEGIN {
