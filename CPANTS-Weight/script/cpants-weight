@@ -7,7 +7,7 @@ use CPANTS::Weight ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.14';
+	$VERSION = '0.15';
 }
 
 print STDERR "# Running CPANTS::Weight->run\n";

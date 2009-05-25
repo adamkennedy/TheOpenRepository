@@ -1,6 +1,7 @@
 Changes for Perl extension CPANTS-Weight
 
-        - add Win32-File-Summary to bogus dists (CHORNY)
+0.15 Mon 25 May 2009
+        - Add Win32-File-Summary to bogus dists (CHORNY)
 
 0.14 Tue 19 May 2009
 	- Upgrading to Module::Install::DSL 0.88
