@@ -629,6 +629,25 @@ sub parent {
     return $self->{parent};
 }
 
+=head2 root
+
+ $node->root
+
+Find the root node for the tree holding this node - this may be the
+original node if it has no parent.
+
+=cut
+
+sub root {
+    my $n = shift;
+    
+    while(defined $n->parent) {
+        $n = $n->parent;
+    }
+    
+    return $n;
+}
+
 =head2 children
 
  my @children = $node->children;

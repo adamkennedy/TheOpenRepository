@@ -3,6 +3,9 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+
+use UNIVERSAL qw(isa can);
+
 $Data::Dumper::Indent = 1;
 
 our $VERSION = '0.16';
@@ -28,6 +31,7 @@ use constant REGEXP    => 18; # {<pattern>}
 use constant NOP       => 19; # .
 use constant PREV      => 20; # <<
 use constant NEXT      => 21; # >>
+use constant ROOT      => 22; # ^
 
 =pod
 
@@ -38,15 +42,24 @@ document tree.
 
 =head1 SYNOPSIS
 
- /head1(1)/head2          # All head2 elements under the 2nd head1 element
+ /head1(1)/head2          # All head2 elements under 
+                          # the 2nd head1 element
  //item                   # All items anywhere
  //item[@label =~ {^\*$}] # All items with '*' labels.
- //head2[/hilight]        # All head2 elements containing "hilight" elements
+ //head2[/hilight]        # All head2 elements containing
+                          # "hilight" elements
 
  # Top level head1s containing head2s that have headings matching
  # "NAME", and also have at least one list somewhere in their
  # contents.
  /head1[/head2[@heading =~ {NAME}]][//over]
+ 
+ # Top level headings having the same title as the following heading.
+ /head1[@heading = >>@heading]
+ 
+ # Top level headings containing at least one subheading with the same
+ # name.
+ /head1[@heading = ./head2@heading]
 
 =head1 DESCRIPTION
 
@@ -117,12 +130,48 @@ match the regular expression between the braces on the right hand
 side. The above example will match anything with a heading containing
 "FOO".
 
+Optionally, the right hand closing brace may have the C<i> modifier to
+cause case-insensitive matching. i.e C<[@heading =~ {foo}i]> will
+match C<foo> or C<fOO>.
+
 =item complement: C<[! /head2 ]>
 
 Reverses the remainder of the expression. The above example will match
 anything B<without> a child head2 node.
 
+=item equality: C<[ /node1 = /node2 ]>
+
+Matches nodes that have at least one equality match. The right hand
+expression can be a constant string (single quoted: C<'string'>, or a
+second expression. If two expressions are used, they are matched
+combinationally - i.e, all result nodes on the left are matched
+against all result nodes on the right. Both sides may contain nested
+expressions.
+
 =back
+
+=head1 PERFORMANCE
+
+Pod::Abstract::Path is not designed to be fast. It is designed to be
+expressive and useful, but it involves sucessive
+expand/de-duplicate/linear search operations and doing this with large
+documents containing many nodes is not suitable for high performance
+systems.
+
+Simple expressions can be fast enough, but there is nothing to stop
+you from writing "//[<condition>]" and linear-searching all 10,000
+nodes of your Pod document. Use with caution in interactive systems.
+
+=head1 INTERFACE
+
+It is recommended you use the C<<Pod::Abstract::Node->select>> method
+to evaluate Path expressions.
+
+If you wish to generate paths for use in other modules, use
+C<parse_path> to generate a parse tree, pass that as an argument to
+C<new>, then use C<process> to evaluate the expression against a list
+of nodes. You can re-use the same parse tree to process multiple lists
+of nodes in this fashion.
 
 =cut
 
@@ -176,9 +225,10 @@ sub lex {
         } elsif($expression =~ m/^\(([0-9]+)\)/) {
             push @l, [ INDEX, $1 ];
             substr($expression, 0, length( $1 ) + 2) = '';
-        } elsif($expression =~ m/^\{(([^\}]|\\\})+)\}/) {
-            push @l, [ REGEXP, $1 ];
-            substr($expression, 0, length( $1 ) + 2) = '';
+        } elsif($expression =~ m/^\{(([^\}]|\\\})+)\}([i]?)/) {
+            my $case = $3 eq 'i' ? 0 : 1;
+            push @l, [ REGEXP, $1, $case ];
+            substr($expression, 0, length( $1 ) + 2 + length($3)) = '';
         } elsif($expression =~ m/^'(([^']|\\')+)'/) {
             push @l, [ STRING, $1 ];
             substr($expression, 0, length( $1 ) + 2) = '';
@@ -187,7 +237,10 @@ sub lex {
             substr($expression, 0, 2) = '';
         } elsif($expression =~ m/^\.\./) {
             push @l, [ PARENT, undef ];
-            substr($expression, 0, 2) = '';            
+            substr($expression, 0, 2) = '';
+        } elsif($expression =~ m/^\^/) {
+            push @l, [ ROOT, undef ];
+            substr($expression, 0, 1) = '';
         } elsif($expression =~ m/^\./) {
             push @l, [ NOP, undef ];
             substr($expression, 0, 1) = '';
@@ -200,6 +253,12 @@ sub lex {
         } elsif($expression =~ m/^\>\>/) {
             push @l, [ NEXT, undef ];
             substr($expression, 0, 2) = '';
+        } elsif($expression =~ m/^=/) {
+            push @l, [ EQUAL, undef ];
+            substr($expression, 0, 1) = '';
+        } elsif($expression =~ m/^'([\^']*)'/) {
+            push @l, [ STRING, $1 ];
+            substr($expression, 0, length( $1 ) + 2) = '';
         } elsif($expression =~ m/([ \n\t]+)/) {
             # Discard uncaptured whitespace
             substr($expression, 0, length($1)) = '';
@@ -208,6 +267,32 @@ sub lex {
         }
     }
     return @l;
+}
+
+=head1 filter_unique
+
+It is possible during processing - especially using ^ or .. operators
+- to generate many duplicate matches of the same nodes. Each pass
+around the loop, we filter to unique nodes so that duplicates cannot
+inflate more than one time.
+
+This effectively means that C<//^> (however awful that is) will match
+one node only - just really inefficiently.
+
+=cut
+
+sub filter_unique {
+    my $self = shift;
+    my $ilist = shift;
+    my $nlist = [ ];
+    
+    my %seen = ( );
+    foreach my $node (@$ilist) {
+        push @$nlist, $node unless $seen{$node->serial};
+        $seen{$node->serial} = 1;
+    }
+    
+    return $nlist;
 }
 
 # Rec descent process of expression.
@@ -226,6 +311,7 @@ sub process {
         }
         if($self->can($action)) {
             $ilist = $self->$action($ilist, @args);
+            $ilist = $self->filter_unique($ilist);
         } else {
             warn "discarding '$action', can't do that";
         }
@@ -286,7 +372,15 @@ sub match_expression {
     my $nlist = [ ];
     foreach my $n(@$ilist) {
         my @t_list = $exp->process($n);
-        my $t_result = $self->$test_action(\@t_list, $r_exp);
+        my $t_result;
+        # Allow for r_exp to be another expression - generate both
+        # node lists if required.
+        if(can($r_exp, 'process')) {
+            my @r_list = $r_exp->process($n);
+            $t_result = $self->$test_action(\@t_list, \@r_list);
+        } else {
+            $t_result = $self->$test_action(\@t_list, $r_exp);
+        }
         $t_result = !$t_result if $invert;
         if($t_result) {
             push @$nlist, $n;
@@ -295,12 +389,50 @@ sub match_expression {
     return $nlist;
 }
 
+sub test_equal {
+    my $self = shift;
+    my $l_list = shift;
+    my $r_exp = shift;
+    
+    if(scalar(@$r_exp) == 0 || isa($r_exp->[0],'Pod::Abstract::Node')) {
+        # combination test
+        my $match = 0;
+        foreach my $l (@$l_list) {
+            my $lb = $l->body;
+            $lb = $l->pod unless $lb;
+            foreach my $r (@$r_exp) {
+                my $rb = $r->body;
+                $rb = $r->pod unless $rb;
+                $match ++ if $lb eq $rb;
+            }
+        }
+        return $match;
+    } elsif($r_exp->[0] == STRING) {
+        # simple string test
+        my $str = $r_exp->[1];
+        my $match = 0;
+        foreach my $l (@$l_list) {
+            my $lb = $l->body;
+            $lb = $l->pod unless $lb;
+            $match ++ if $lb eq $str;
+        }
+        return $match;
+    } else {
+        die "Don't know what to do with ", Dumper([$r_exp]);
+    }
+}
+
 sub test_regexp {
     my $self = shift;
     my $t_list = shift;
-    my $regexp = shift;
-    $regexp = qr/$regexp/;
-    my $nlist = [ ];
+    my $regexp_set = shift;
+    my $regexp = $regexp_set->[0];
+    my $case = $regexp_set->[1];
+    if($case) {
+        $regexp = qr/$regexp/;
+    } else {
+        $regexp = qr/$regexp/i;
+    }
 
     my $match = 0;
     foreach my $t_n (@$t_list) {
@@ -376,6 +508,18 @@ sub select_parents {
     return $nlist;
 }
 
+sub select_root {
+    my $self = shift;
+    my $ilist = shift;
+    my $nlist = [ ];
+    foreach my $n (@$ilist) {
+        push @$nlist, $n->root; # almost certainly all the same - not
+                                # efficient but consistent.
+    }
+    
+    return $nlist;
+}
+
 sub select_current {
     my $self = shift;
     my $ilist = shift;
@@ -429,7 +573,7 @@ sub parse_path {
         return {
             'action' => 'end_select',
         };
-    } elsif($tok == MATCHES or $tok == R_SELECT ) {
+    } elsif($tok == MATCHES or $tok == R_SELECT or $tok == EQUAL ) {
         unshift @$l, $next;
         return {
             'action' => 'end_select',
@@ -457,6 +601,11 @@ sub parse_path {
     } elsif($tok == PARENT) {
         return {
             'action' => 'select_parents',
+            'next' => $self->parse_path($l),
+        };
+    } elsif($tok == ROOT) {
+        return {
+            'action' => 'select_root',
             'next' => $self->parse_path($l),
         };
     } elsif($tok == NOP) {
@@ -516,7 +665,6 @@ sub parse_expression {
         $exp->{arguments}[1] = !$exp->{arguments}[1];
         return $exp;
     }
-        
     
     my $l_exp = $self->parse_path($l);
     $l_exp = $class->new("select expression",$l_exp);
@@ -528,15 +676,35 @@ sub parse_expression {
         my $re = shift @$l;
         my $re_tok = $re->[0];
         my $re_str = $re->[1];
+        my $case_sensitive = $re->[2];
         
         if($re_tok == REGEXP) {
             $exp = {
                 'action' => 'match_expression',
-                'arguments' => [ 'test_regexp', 0, $l_exp, $re_str ],
+                'arguments' => [ 'test_regexp', 0, 
+                                 $l_exp, 
+                                 [ $re_str, $case_sensitive ] ],
             }
         } else {
             die "Expected REGEXP, got ", Dumper([$re_tok]);
         }
+    } elsif($op_tok == EQUAL) {
+        my $rh = shift @$l;
+        my $rh_tok = $rh->[0];
+        my $r_exp = undef;
+        
+        if($rh_tok == STRING) { # simple string equality
+            $r_exp = $rh;
+        } else {
+            unshift @$l, $rh;
+            $r_exp = $self->parse_path($l);
+            $r_exp = $class->new("select expression",$r_exp);
+        }
+        $exp = {
+            action => 'match_expression',
+            arguments => [ 'test_equal', 0,
+                           $l_exp, $r_exp ],
+        };
     } elsif($op_tok == R_SELECT) {
         # simple expression
         unshift @$l, $op;
