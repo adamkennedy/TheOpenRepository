@@ -32,6 +32,8 @@ use constant NOP       => 19; # .
 use constant PREV      => 20; # <<
 use constant NEXT      => 21; # >>
 use constant ROOT      => 22; # ^
+use constant UNION     => 23; # |
+use constant INTERSECT => 24; # &
 
 =pod
 
@@ -94,12 +96,34 @@ expressions.
 Selects the parrent node. If there are multiple nodes selected, all of
 their parents will be included.
 
+=item ^
+
+Selects the root node of the tree for the current node. This allows
+you to escape from a nested expression. Note that this is the ROOT
+node, not the node that you started from.
+
+If you want to evaluate an expression from a node as though it were
+the root node, the easiest ways are to detach or dup it - otherwise
+the root operator will find the original root node.
+
 =item name, #cut, :text, :verbatim, :paragraph
 
 Any element name, or symbolic type name, will restrict the selection
 to only elements matching that type. e.g, "C<//:paragraph>" will
 select all descendants, anywhere, but then restrict that set to only
 C<:paragraph> type nodes.
+
+Names together separated by spaces will match all of those names -
+e.g: C<//head1 over> will match all lists and all head1s.
+
+=item &, | (union and intersection)
+
+Union will take expressions on either side, and return all nodes that
+are members of either set. Intersection returns nodes that are members
+of BOTH sets. These can be used to extend expressions, and within [
+expressions ] where a path is supported (left side of a match, left or
+right side of an = sign). These are NOT logical and/or, though a
+similar effect can be induced through these operators.
 
 =item @attrname
 
@@ -147,6 +171,8 @@ second expression. If two expressions are used, they are matched
 combinationally - i.e, all result nodes on the left are matched
 against all result nodes on the right. Both sides may contain nested
 expressions.
+
+=back
 
 =back
 
@@ -210,6 +236,12 @@ sub lex {
         } elsif($expression =~ m/^\//) {
             substr($expression,0,1) = '';
             push @l, [ CHILDREN, undef ];
+        } elsif($expression =~ m/^\|/) {
+            substr($expression,0,1) = '';
+            push @l, [ UNION, undef ];
+        } elsif($expression =~ m/^\&/) {
+            substr($expression,0,1) = '';
+            push @l, [ INTERSECT, undef ];
         } elsif($expression =~ m/^\[/) {
             substr($expression,0,1) = '';
             push @l, [ L_SELECT, undef ];
@@ -269,7 +301,9 @@ sub lex {
     return @l;
 }
 
-=head1 filter_unique
+=head1 METHODS
+
+=head2 filter_unique
 
 It is possible during processing - especially using ^ or .. operators
 - to generate many duplicate matches of the same nodes. Each pass
@@ -323,14 +357,59 @@ sub process {
 sub select_name {
     my $self = shift;
     my $ilist = shift;
-    my $name = shift;
+    my @names = @_;
     my $nlist = [ ];
     
+    my %names = map { $_ => 1 } @names;
+    
     for(my $i = 0; $i < @$ilist; $i ++) {
-        if($ilist->[$i]->type eq $name) {
+        if($names{$ilist->[$i]->type}) {
             push @$nlist, $ilist->[$i];
         };
     }
+    return $nlist;
+}
+
+sub select_union {
+    my $self = shift;
+    my $class = ref $self;
+
+    my $ilist = shift;
+    my $left = shift;
+    my $right = shift;
+    
+    my $l_path = $class->new('union left', $left);
+    my $r_path = $class->new('union right', $right);
+    
+    my @l_result = $l_path->process(@$ilist);
+    my @r_result = $r_path->process(@$ilist);
+    
+    return [ @l_result, @r_result ];
+}
+
+sub select_intersect {
+    my $self = shift;
+    my $class = ref $self;
+    
+    my $ilist = shift;
+    my $left = shift;
+    my $right = shift;
+    
+    my $l_path = $class->new("intersect left", $left);
+    my $r_path = $class->new("intersect right", $right);
+    
+    my @l_result = $l_path->process(@$ilist);
+    my @r_result = $r_path->process(@$ilist);
+    
+    my %seen = ( );
+    my $nlist = [ ];
+    foreach my $a (@l_result) {
+        $seen{$a->serial} = 1;
+    }
+    foreach my $b (@r_result) {
+        push @$nlist, $b if $seen{$b->serial};
+    }
+    
     return $nlist;
 }
 
@@ -552,7 +631,7 @@ sub expand_all {
     return @r;
 }
 
-=head1 parse_path
+=head2 parse_path
 
 Parse a list of lexemes and generate a driver tree for the process
 method. This is a simple recursive descent parser with one element of
@@ -561,6 +640,36 @@ lookahead.
 =cut
 
 sub parse_path {
+    my $self = shift;
+    my $l = shift;
+    
+    my $left = $self->parse_l_path($l);
+    
+    # Handle UNION or INTERSECT operators
+    my $next = shift @$l;
+    if($next) {
+        my $tok = $next->[0];
+        if($tok == UNION) {
+            return {
+                action => "select_union",
+                arguments => [ $left, $self->parse_path($l) ],
+            };
+        } elsif($tok == INTERSECT) {
+            return {
+                action => "select_intersect",
+                arguments => [ $left, $self->parse_path($l) ],
+            }
+        } else {
+            unshift @$l, $next;
+            return $left;
+        }
+    } else {
+        return $left;
+    }
+}
+
+
+sub parse_l_path {
     my $self = shift;
     my $l = shift;
     
@@ -573,7 +682,8 @@ sub parse_path {
         return {
             'action' => 'end_select',
         };
-    } elsif($tok == MATCHES or $tok == R_SELECT or $tok == EQUAL ) {
+    } elsif(grep { $tok == $_ } 
+            (MATCHES, R_SELECT, EQUAL, UNION, INTERSECT)) {
         unshift @$l, $next;
         return {
             'action' => 'end_select',
@@ -581,70 +691,86 @@ sub parse_path {
     } elsif($tok == CHILDREN) {
         return { 
             'action' => 'select_children',
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == ALL) {
         return {
             'action' => 'select_all',
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == NEXT) {
         return {
             'action' => 'select_next',
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == PREV) {
         return {
             'action' => 'select_prev',
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == PARENT) {
         return {
             'action' => 'select_parents',
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == ROOT) {
         return {
             'action' => 'select_root',
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == NOP) {
         return {
             'action' => 'select_current',
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == NAME) {
+        my @extra_names = $self->parse_names($l);
         return {
             'action' => 'select_name',
-            'arguments' => [ $val ],
-            'next' => $self->parse_path($l),
+            'arguments' => [ $val, @extra_names ],
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == ATTR) {
         return {
             'action' => 'select_attr',
             'arguments' => [ $val ],
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == INDEX) {
         return {
             'action' => 'select_index',
             'arguments' => [ $val ],
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         };
     } elsif($tok == L_SELECT) {
         unshift @$l, $next;
         my $exp = $self->parse_expression($l);
-        $exp->{'next'} = $self->parse_path($l);
+        $exp->{'next'} = $self->parse_l_path($l);
         return $exp;
     } elsif($tok == ATTR) {
         return {
             'action' => 'select_attribute',
             'arguments' => [ $val ],
-            'next' => $self->parse_path($l),
+            'next' => $self->parse_l_path($l),
         }
     } else {
         die "Unexpected token, ", Dumper([$next]);
     }
+}
+
+sub parse_names {
+    my $self = shift;
+    my $l = shift;
+    my @r = ( );
+    
+    # Collect a list of names until there are no more.
+    while(@$l && $l->[0][0] == NAME) {
+        my $next = shift @$l;
+        my $val = $next->[1];
+        push @r, $val;
+    }
+    
+    return @r;
 }
 
 sub parse_expression {

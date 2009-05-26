@@ -5,6 +5,8 @@ use warnings;
 use Pod::Abstract::Tree;
 use Pod::Abstract::Serial;
 
+use Scalar::Util qw(weaken);
+
 our $VERSION = '0.16';
 
 =head1 NAME
@@ -624,6 +626,10 @@ sub parent {
             warn "Implicit detach when reparenting";
         }
         $self->{parent} = $new_parent;
+        
+        # Parent nodes have to be weak - otherwise we leak.
+        weaken $self->{parent} 
+           if defined $self->{parent};
     }
     
     return $self->{parent};

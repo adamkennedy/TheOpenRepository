@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 14;
 use Pod::Abstract;
 use Pod::Abstract::BuildNode qw(node nodes);
 
@@ -11,6 +11,7 @@ my @h2 = ( );
 foreach my $t (qw(test TEST foo foo Test)) {
     my $h1 = node->head1($t);
     push @h, $h1;
+    $h1->push(node->paragraph("test"));
     foreach my $t (qw(TEST biscuit test cheese)) {
         $h1->push(node->head2($t));
     }
@@ -31,10 +32,30 @@ my @ec_s = # equality - complex - successor
 my @root = # Only one root node for all:
     $root->select('//^'); # Horribly ineffient NOP. This catches the
                           # filter_unique behaviour.
+my @union = $root->select('/head1(0) | /head1(1) | /head1(2) | /head1(0)');
+my @intersect = # Union/Intersect evaluate right to left
+    $root->select(
+        '//[@heading =~ {test}i] & //head2(0) | //head1(4) | head1(3)'
+    );
+
+# Really serious now: head2s or paragraphs of the first head1 but only
+# those head2s having heading matching 'test', but case insensitive.
+my @union_select =
+    $root->select(
+        '/head1(0)/head2 :paragraph[ :paragraph | head2[@heading =~ {^test$}i]]'
+    );
+
+# head2s of the first head1 matching "test" (insensitive), but only
+# those that also have a preceding paragraph.
+my @intersect_select =
+    $root->select(
+        '/head1(0)/head2[ head2[<<:paragraph] & head2[@heading =~ {^test$}i]]'
+   );
 
 # Match head2 nodes which match top level head1 nodes -
 # expands/restricts a lot of nodes.
 my @tt = $root->select('//head2[@heading = ^/head1@heading]');
+my @h2_para = $root->select('/head1(0)/:paragraph head2');
 
 ok(@cs == 1, "Case sensitive match 1");
 ok(@ci == 3, "Case insensitive match 3");
@@ -49,6 +70,12 @@ my @ec_p = # equality - complex - preceding
 ok(@ec_p == 0, "Complex Preceding match 0");
 ok(@root == 1, "One root node only");
 ok(@tt == 10, "Match 10 head2 nodes");
+ok(@h2_para == 5, "Match 5 head2 or para under first head1");
+ok(@union == 3, "Union match three nodes");
+ok(@intersect == 2, "Intersect match two nodes");
+
+ok(@union_select == 3, "Union in select match three nodes");
+ok(@intersect_select == 1, "Intersect in select matches one node only");
 
 1;
 

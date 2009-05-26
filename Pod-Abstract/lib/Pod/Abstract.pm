@@ -58,6 +58,11 @@ structured tree, and providing consistent traversal, searching,
 manpulation and re-serialisation. Pod related utilities are easy to
 write using Pod::Abstract.
 
+The design goal of Pod::Abstract is to do the hard work for the
+programmer - the library should work for you, and as such it should be
+significantly easier than string mashing what you want out of a Pod
+document.
+
 =head2 PROCESSING MODEL
 
 The intent with POD::Abstract is to provide a means to decorate a
@@ -149,7 +154,20 @@ See L<Pod::Abstract::Node>
 =item *
 
 L<Pod::Abstract::Path>, the node selection expression language. This
-is generally called by doing C<<$node->select(PATH_EXP)>>.
+is generally called by doing
+C<<$node->select(PATH_EXP)>>. Pod::Abstract::Path is the most complex
+and powerful component of this module, and if you're not using it you
+should be. ;)
+
+This allows you to ask questions like:
+
+"In the first head1 that starts with "A", find me the head2 matching
+'foo' with bold text somewhere in the preceding paragraph or heading"
+
+ /head1[@heading=~{^A}](0)/head2[@heading=~{foo}i]<<head2 :paragraph[//:B]
+
+You probably don't need anything that complex, but it's there if you
+do.
 
 =item *
 
