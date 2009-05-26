@@ -8,7 +8,7 @@ use UNIVERSAL qw(isa can);
 
 $Data::Dumper::Indent = 1;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use constant CHILDREN  => 1;  # /
 use constant ALL       => 2;  # //

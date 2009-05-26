@@ -1,7 +1,7 @@
 package Pod::Abstract::Tree;
 use strict;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 =head1 NAME
 

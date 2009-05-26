@@ -5,7 +5,7 @@ use warnings;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract::BuildNode qw(node);
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 =head1 NAME
 

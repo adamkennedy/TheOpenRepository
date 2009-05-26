@@ -7,7 +7,7 @@ use Pod::Abstract::Serial;
 
 use Scalar::Util qw(weaken);
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 =head1 NAME
 

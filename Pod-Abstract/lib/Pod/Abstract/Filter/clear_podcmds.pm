@@ -3,7 +3,7 @@ use strict;
 
 use base qw(Pod::Abstract::Filter);
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 sub filter {
     my $self = shift;

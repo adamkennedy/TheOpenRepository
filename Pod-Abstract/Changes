@@ -1,5 +1,12 @@
 Revision history for Pod-Abstract
 
+0.17    26/05/2009
+		Added Union and Intersection operators to paths (conjunction of
+        multiple simple paths). Support for multi-name selectors in paths.
+        Fix for memory leak. Testing of pPath expressions. Added "="
+        operator with support for combinational matching (any node on left
+        expression = any node on right expression)
+
 0.16    11/05/2009
         Changed constant declarations to allow older Perl 5.6 constants.
         Removed body components from heading and label attributes in
