@@ -591,24 +591,32 @@ is_file($_, 't/synopsis.t', 'synopsis')
 
 =head1 DESCRIPTION
 
-A memory leak occurs when an object is destroyed
-but the memory that
-the object uses is not completely deallocated.
+A memory leak occurs when a Perl data structure is destroyed
+but some of the contents of that structure
+are not freed.
 Leaked memory is a useless overhead.
 Leaks can significantly impact system performance.
 They can also cause an application to abend due to lack of memory.
+
+In this document,
+a Perl B<data structure> (often just called a B<structure>)
+is any group of Perl thingies which are
+B<co-mortal> -- expected to be destroyed at the same time.
+Perl structures can be blessed objects,
+hashes, arrays, scalars, references or any combination of these
+with other Perl data types.
 
 In Perl,
 circular references
 are
 a common cause of memory leaks.
 Circular references are allowed in Perl,
-but objects containing circular references will leak memory
+but data structures containing circular references will leak memory
 unless the programmer takes specific measures to prevent leaks.
 Preventive measures include
 weakening the references
 and arranging to break the reference cycle just before
-the object is destroyed.
+the structure is destroyed.
 
 It is easy to misdesign or misimplement a scheme for
 preventing memory leaks.
@@ -616,123 +624,142 @@ Mistakes of this kind
 have been hard to detect
 in a test suite.
 
-C<Test::Weaken> allows easy detection of unfreed memory objects.
-C<Test::Weaken> allows you to examine the unfreed objects,
-even objects which are usually inaccessible.
-It performs this magic by creating a set of weakened B<probe references>, as explained L<below|/"IMPLEMENTATION">.
+C<Test::Weaken> allows easy detection of unfreed Perl data.
+C<Test::Weaken> allows you to examine the unfreed data,
+even data which would usually have been made inaccessible.
+It performs this magic by creating a set of
+weakened B<probe references>, as detailed L<below|/"IMPLEMENTATION">.
 
-C<Test::Weaken> gets its test object from a closure.
+C<Test::Weaken> gets its B<test data structure>,
+or B<test structure>,
+from a closure.
 The closure should return
-a reference to the B<test object>.
-This reference is called the B<test object reference>.
+a reference to the B<test structure>.
+This reference is called the B<test structure reference>.
 
-C<Test::Weaken> frees the test object,
-then looks to see if any memory that can be accessed
-from the test object reference was not actually deallocated.
-To determine which memory can be accessed from the
-test object reference,
-C<Test::Weaken> follows
-arrays, hashes, weak references, and strong references.
-It follows these recursively and to unlimited depth.
+C<Test::Weaken> frees the test structure,
+then looks to see if any of the contents of the structure
+were not actually deallocated.
+By default, C<Test::Weaken> determines the B<contents>
+of a data structure, by recursively following the elements
+of arrays and hashes, as well as references.
+The recursion is pursued to unlimited depth.
 
 C<Test::Weaken> deals gracefully with circular references.
 That's important,
 because a major purpose of C<Test::Weaken> is to test schemes for
 circular references.
 To avoid infinite loops,
-C<Test::Weaken> records all the memory objects it visits,
-and will not visit the same memory object twice.
+C<Test::Weaken> records all the Perl data that it visits,
+and will not visit the same Perl data object twice.
 
-=head2 Tracked Objects
+=head2 Referenceables and Tracked Data
 
-An object is called a B<independent memory object>
-if it has independently allocated memory.
-For brevity, this document often refers to independent memory objects
-as B<independent objects>.
+A B<referenceable> is any Perl data object which can be
+the B<referent> of a B<reference>.
+Of the three basic Perl data types,
+hashes and arrays are always referenceables,
+while scalars may or may not be referenceable.
+A scalar is referenceable if and only if it is not
+an element of an array or hash.
 
-Arrays, hashes, closures, and variables are independent memory objects.
-References and constants which are not elements of arrays or hashes are
-also independent memory objects.
-Elements of arrays and hashes are never independent memory objects, because their
-memory is not independent --
-it is always deallocated when the array or hash
-to which the elements belong
-is destroyed.
+The difference between referenceable is important
+to C<Test::Weaken> because only referenceables hold
+memory independently.
+The memory used by non-referenceables (elements of
+arrays and hashes)
+is always freed when the array or hash is freed.
 
-A independent object is called a B<tracked object>
-if C<Test::Weaken> tracks it with a probe reference.
-Tracked objects are always independent objects.
+A B<tracked thingy> is any Perl data object
+that C<Test::Weaken> tracks to see if it is freed
+or not.
+Since only referenceables hold memory independently,
+only referenceables are tracked.
 
-=head2 Followed Objects
+=head2 Followed Thingies and Elements
 
-An object is called a B<followed object>
-if C<Test::Weaken> examines it during its recursive search for
-objects to track.
-Followed objects are not always independent objects.
-References are not independent objects when
-they are elements of arrays and hashes,
-but they are followed.
+A Perl data object is a B<followed object>
+if C<Test::Weaken> examines it during its search for
+referenceables to track.
+Only referenceables are tracked,
+but both referenceables and elements may be followed.
+References which
+are elements of arrays and hashes are not themselves
+referenceable,
+but B<Test::Weaken> follows them in its
+search for other
+referenceables.
 
-An object inside the test object is called an B<internal object> or
-an B<in-object>.
-In the C<Test::Weaken> context, the relevant criterion for deciding
-in-object versus out-object is the lifetime of an object.
-If an object's lifetime is expected to be the same as that of the test
-object, it is an B<in-object>.
-If an object's lifetime might be different from the lifetime of the test
-object, then it is called an B<out-object>.
+The referenceables that are B<co-mortal>
+with a test data structure
+are called the B<contents> of that data structure.
+Saying that
+a referenceable is co-mortal with a data structure is another
+way of saying that its lifetime is
+expected to end at the same time as the data structure.
 Since the question is one of I<expected> lifetime,
-this difference is ultimately subjective.
+whether a data structure contains a referenceable
+is in the last analysis subjective.
 
+Elements are known to share the lifetime of the array or hash
+that contains them.
 By default,
-C<Test::Weaken> assumes that child objects share their parents
+C<Test::Weaken> assumes that referents share the reference's
 lifetime.
-Elements are known to share the lifetime of the hash or 
-array that they are in.
-Referents are assumed to share the lifetime of the reference.
-It is assumed that all children of an in-object are
-also in-objects and that all objects which are not children
-of an in-object are out-objects.
 
-Assuming that child objects share the parent's lifetime
-works in many cases,
-but not all.
-The two problems are persistent objects,
-and outside in-objects.
-These are dealt with in the next two sections.
+A test structure's B<descendants> are those objects
+which can be reached by
+recursively following references
+and examining array and hash elements
+starting from the test structure reference.
+By default,
+C<Test::Weaken> also assumes that a test structure's
+descendants are its contents,
+and vice versa.
 
-=head2 Out-object Children of In-objects
+The assumption that descent and containment are the same
+works in many cases, but not all.
+The assumption fails, as one example, when globals are
+referenced from a data structure.
+The assumption also fails for inside-out objects.
 
-As a practical matter, out-objects as children of in-objects
-are only a
-problem if their lifetime extends beyond that of the test
-object.
-An out-object which stays around after
+B<Test::Weaken> has ways to deal with globals and
+other uncontained descendants.
+These are dealt with in the next section.
+B<Test::Weaken> also has ways to deal with inside-out
+objects and other
+contained non-descendants.
+These are dealt with in section after that.
+
+=head2 Persistent Objects
+
+As a practical matter, a descendant which is not
+part of a test structure is only a problem
+if its lifetime extends beyond that of the test
+structure.
+An descendant which stays around after
 the test object is called a B<persistent object>.
 
-Persistent objects are not memory leaks.
-With a persistent object,
-it is not expected that
-freeing the test object will always
-free the persistent object.
-With a memory leak,
-when the test object was freed,
-the leaked object was expected
-to be freed along with it,
-and this expectation was disappointed.
+A persistent object is not a memory leak.
+That's the problem.
+C<Test::Weaken> is trying to find memory leaks
+and it looks for any contents which remain
+after the test structure is freed.
+But a persistent object is not expected to
+disappear when the test structure goes away.
 
-To determine which of the unfreed objects are memory leaks,
-the user must separate the persistent objects
-from the other results.
+We need to
+determine which of the unfreed referencables are memory leaks,
+and which are persistent referenceables.
 It's usually easiest to do this after the test by
 examining the return value of L</unfreed_proberefs>.
-But a closure passed as the value of L</ignore> named argument
-can also be used to separate out persistent objects on the fly.
-Methods for separating out the persistent objects are
-described in detail
+The L</ignore> named argument can also be used
+to pass C<Test::Weaken> a closure
+that separates out persistent referenceables "on the fly".
+These methods are described in detail
 L<below|/"ADVANCED TECHNIQUES">.
 
-=head2 Outside In-objects
+=head2 Finding Contents when they are not Descendants
 
 Some in-objects are not the child of any other in-object.
 These are B<outside in-objects>.
