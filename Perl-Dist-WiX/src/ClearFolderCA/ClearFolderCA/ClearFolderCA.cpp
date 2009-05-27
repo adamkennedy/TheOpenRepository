@@ -132,9 +132,11 @@ UINT LogString(
 	uiAnswer = ::MsiProcessMessage(hModule, INSTALLMESSAGE(INSTALLMESSAGE_INFO), hRecord);
 
 	// Corrects return value for use with MSI_OK.
-	if (uiAnswer == IDOK) {
+	switch (uiAnswer) {
+	case IDOK:
+	case 0: // Means no action was taken...
 		return ERROR_SUCCESS;
-	} else {
+	default:
 		return ERROR_INSTALL_FAILURE;
 	}
 }
@@ -472,10 +474,11 @@ UINT AddDirectoryRecord(
 // The main routine
 
 UINT AddDirectory(
-	MSIHANDLE hModule,      // Handle of MSI being installed. [in]
-	LPCTSTR sCurrentDir,    // Directory being searched. [in]
-	LPCTSTR sCurrentDirID,  // ID of directory being searched. [in]
-	bool bCurrentIDExisted) // Did current ID exist in the MSI originally? [in]
+	MSIHANDLE hModule,         // Handle of MSI being installed. [in]
+	LPCTSTR sCurrentDir,       // Directory being searched. [in]
+	LPCTSTR sCurrentDirID,     // ID of directory being searched. [in]
+	bool bCurrentIDExisted,    // Did current ID exist in the MSI originally? [in]
+	bool& bDeleteEntryCreated) // Was a delete-directory entry created by this call? [out]
 {
 	// Set up the wildcard for the files to find.
 	TCHAR sFind[MAX_PATH + 1];
@@ -486,6 +489,7 @@ UINT AddDirectory(
 	TCHAR sSubDir[MAX_PATH + 1];
 	WIN32_FIND_DATA found;
 	TCHAR* sSubDirID = NULL;
+	bool bDeleteEntryCreatedBelow = false;
 
 	HANDLE hFindHandle;
 
@@ -532,7 +536,8 @@ UINT AddDirectory(
 
 			if (bCurrentIDExisted && (sSubDirID != NULL)) {
 				// We have an existing directory ID.
-				uiAnswer = AddDirectory(hModule, sSubDir, sSubDirID, true);
+				uiAnswer = AddDirectory(
+					hModule, sSubDir, sSubDirID, true, bDeleteEntryCreatedBelow);
 				MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sSubDirID)
 			} else {
 				// We need to get a directory ID, add the property, then go down 
@@ -548,7 +553,8 @@ UINT AddDirectory(
 				uiAnswer = LogString(hModule);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 				
-				uiAnswer = AddDirectory(hModule, sSubDir, sID, false);
+				uiAnswer = AddDirectory(
+					hModule, sSubDir, sID, false, bDeleteEntryCreatedBelow);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 			}
 		} else {
@@ -592,8 +598,9 @@ UINT AddDirectory(
 	::FindClose(hFindHandle);
 	
 	// If we are an extra directory, add an entry to delete ourselves.
-	if (!bCurrentIDExisted) {
+	if ((!bCurrentIDExisted) || (bDeleteEntryCreatedBelow)){
 		uiAnswer = AddRemoveDirectoryRecord(hModule, sCurrentDirID);
+		bDeleteEntryCreated = true;
 		MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 
 		StartLogString(TEXT("ARDR: Added remove directory entry with ID string: "));
@@ -701,7 +708,9 @@ UINT __stdcall ClearFolder(
 	MSI_OK(uiAnswer)
 	
 	// Start getting files to delete (recursive)
-	uiAnswer = AddDirectory(hModule, sInstallDirectory, TEXT("INSTALLDIR"), true);	
+	bool bDeleteEntryCreated = false;
+	uiAnswer = AddDirectory(
+		hModule, sInstallDirectory, TEXT("INSTALLDIR"), true, bDeleteEntryCreated);	
 	
     return uiAnswer;
 }
