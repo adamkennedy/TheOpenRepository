@@ -11,8 +11,13 @@ use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use CPAN::Mini::Visit ();
 
-my $minicpan = catdir('t', 'minicpan');
-ok( -d $minicpan, "Found root minicpan '$minicpan'" );
+my $minicpan = {
+	local        => catdir('t', 'minicpan'),
+	remote       => 'http://cpan.strawberryperl.com/',
+	offline      => 1,
+	skip_cleanup => 1,
+};
+ok( -d $minicpan->{local}, "Found root minicpan '$minicpan->{local}'" );
 
 my @data  = ();
 my $visit = new_ok( 'CPAN::Mini::Visit' => [

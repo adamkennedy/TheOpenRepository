@@ -1,5 +1,8 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+0.03 Wed 27 May 2009
+	- Adding integration with CPAN::Mini
+
 0.02 Sun 17 May 2009
 	- Adding customisable filters
 	- Adding maximum 3 meg archive size limit

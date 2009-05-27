@@ -71,7 +71,7 @@ my $visit = CPAN::Mini::Visit->new(
 				module  => $_,
 				version => $build->{$_},
 			} } sort keys %$build;
-			
+
 			my $configure = $yaml[0]->{configure_requires} || {};
 			$configure = { $configure => 0 } unless ref $configure;
 			push @deps, map { +{

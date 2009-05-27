@@ -61,15 +61,18 @@ provided to the constructor.
 use 5.008;
 use strict;
 use warnings;
-use Carp                  'croak';
-use File::Spec       0.80 ();
-use File::Temp       0.21 ();
-use File::pushd      1.00 ();
-use File::Find::Rule 0.27 ();
-use Params::Util     0.36 qw{_STRING _ARRAYLIKE _CODELIKE _REGEX};
-use Archive::Extract 0.30 ();
+use Carp                   'croak';
+use File::Spec        0.80 ();
+use File::Temp        0.21 ();
+use File::pushd       1.00 ();
+use File::Find::Rule  0.27 ();
+use Params::Util      0.36 qw{
+	_HASH _STRING _ARRAYLIKE _CODELIKE _REGEX
+};
+use Archive::Extract  0.30 ();
+use CPAN::Mini       0.576 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -111,7 +114,14 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Check params
-	unless ( defined _STRING($self->minicpan) and -d $self->minicpan ) {
+	unless (
+		_HASH($self->minicpan)
+		or (
+			defined _STRING($self->minicpan)
+			and
+			-d $self->minicpan
+		)
+	) {
 		croak("Missing or invalid 'minicpan' param");
 	}
 	unless ( _CODELIKE($self->callback) ) {
@@ -125,7 +135,7 @@ sub new {
 	}
 
 	# Derive the authors directory
-	$self->{authors} = File::Spec->catdir( $self->minicpan, 'authors', 'id' );
+	$self->{authors} = File::Spec->catdir( $self->_minicpan, 'authors', 'id' );
 	unless ( -d $self->authors ) {
 		croak("Authors directory '$self->{authors}' does not exist");
 	}
@@ -148,6 +158,12 @@ method multiple times for a single visit object with no ill effects.
 sub run {
 	my $self = shift;
 
+	# If we've been passed a HASH minicpan param,
+	# do an update_mirror first, before the regular run.
+	if ( _HASH($self->minicpan) ) {
+		CPAN::Mini->update_mirror(%{$self->minicpan});
+	}
+
 	# Search for the files
 	my $find  = File::Find::Rule->name('*.tar.gz')->file->relative;
 	my @files = sort $find->in( $self->authors );
@@ -158,10 +174,10 @@ sub run {
 		if ( defined _STRING($filter) ) {
 			$filter = quotemeta $filter;
 		}
-		if ( _CODELIKE($filter) ) {
-			@files = grep { ! $filter->($_) } @files;
-		} elsif ( _REGEX($filter) ) {
+		if ( _REGEX($filter) ) {
 			@files = grep { ! /$filter/ } @files;
+		} elsif ( _CODELIKE($filter) ) {
+			@files = grep { ! $filter->($_) } @files;
 		} else {
 			die("Missing or invalid filter");
 		}
@@ -207,6 +223,20 @@ sub run {
 	}
 
 	return 1;
+}
+
+
+
+
+
+######################################################################
+# Support Methods
+
+sub _minicpan {
+	my $self = shift;
+	return _HASH($self->minicpan)
+		? $self->minicpan->{local}
+		: $self->minicpan;
 }
 
 1;
