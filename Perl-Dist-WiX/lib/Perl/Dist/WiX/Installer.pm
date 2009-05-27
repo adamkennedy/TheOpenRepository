@@ -8,7 +8,7 @@ Perl::Dist::WiX::Installer - WiX-specific routines.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Installer version 0.180.
+This document describes Perl::Dist::WiX::Installer version 0.181_002.
 
 =head1 DESCRIPTION
 
@@ -43,7 +43,7 @@ require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::CreateFolder;
 require Perl::Dist::WiX::RemoveFolder;
 
-use version; $VERSION = version->new('0.181')->numify;
+use version; $VERSION = version->new('0.181_002')->numify;
 #>>>
 
 =head2 Accessors

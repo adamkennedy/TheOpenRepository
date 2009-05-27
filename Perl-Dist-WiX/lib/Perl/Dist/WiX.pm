@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 0.181_001
+Perl-Dist-WiX version 0.181_002
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 0.181_001.
+This document describes Perl::Dist::WiX version 0.181_002.
 
 =for readme continue
 
@@ -107,7 +107,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.181_001')->numify;
+use version; $VERSION = version->new('0.181_002')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1318,11 +1318,6 @@ sub install_perl_toolchain {
 		}
 		if ( $dist =~ /Scalar-List-Util/msx ) {
 
-			# 1.20 will NOT install on Win32 without help.
-			if ($dist =~ /1\.20/msx) {
-				$dist = 'GBARR/Scalar-List-Utils-1.19.tar.gz';
-			}
-			
 			# Does something weird with tainting
 			$force = 1;
 		}
