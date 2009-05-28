@@ -7,8 +7,14 @@ use File::Path ();
 use File::Temp ();
 use DBM::Deep;
 use IPC::Cmd ();
+use File::Spec;
 
-my $dualLivedDiffCmd = 'dualLivedDiff';
+my @dualLivedDiffCmd = (
+  $^X,
+  "-I".File::Spec->catdir('..', 'lib'),
+  File::Spec->catfile('..', 'script', 'dualLivedDiff')
+);
+
 
 sub usage {
   my $msg = shift;
@@ -72,7 +78,7 @@ foreach my $conf (sort @confDirs) {
 
   my $outBuffer;
   my @cmd = (
-    $dualLivedDiffCmd,
+    @dualLivedDiffCmd,
     ($reverse ? ('-r') : ()),
     '-b', $bleadPath,
     '-o', $tmpOutFile,
