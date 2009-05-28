@@ -16,7 +16,7 @@ use Object::InsideOut     qw( Perl::Dist::WiX::Base::Entry Storable );
 use Params::Util          qw( _IDENTIFIER _STRING                   );
 use File::Spec::Functions qw( splitpath                             );
 
-use version; $VERSION = version->new('0.180')->numify;
+use version; $VERSION = version->new('0.182')->numify;
 #>>>
 #####################################################################
 # Accessors:

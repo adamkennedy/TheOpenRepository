@@ -1,4 +1,4 @@
-use inc::Module::Install 0.83;
+use inc::Module::Install 0.91;
 
 die "OS unsupported\n" unless win32;
 

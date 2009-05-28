@@ -19,7 +19,7 @@ use     Object::InsideOut qw(
 use     Params::Util      qw( _STRING  );
 require Perl::Dist::WiX::Files::Entry;
 
-use version; $VERSION = version->new('0.180')->numify;
+use version; $VERSION = version->new('0.182')->numify;
 #>>>
 #####################################################################
 # Accessors:

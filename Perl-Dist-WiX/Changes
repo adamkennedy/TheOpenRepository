@@ -1,11 +1,12 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.182   Not yet released.
+0.182   Thu 28 May 2009
 	1. Used to make Strawberry Perl July 2009 
 	   Beta 2.
 	2. Automatically generates its README file 
 	   using Pod::Readme
 	3. Fix bugs in install_distribution_from_file.
+	4. Updated to Module::Install 0.91.
 
 0.180   Tue 28 Apr 2009
 	1. If the .packlist is missing, attempt to use

@@ -21,7 +21,7 @@ use Object::InsideOut qw(
 use Readonly          qw( Readonly );
 use Params::Util      qw( _STRING  );
 
-use version; $VERSION = version->new('0.180')->numify;
+use version; $VERSION = version->new('0.182')->numify;
 
 # Defining at this level so it does not need recreated every time.
 Readonly my @ON_OPTIONS => qw(install uninstall both);
