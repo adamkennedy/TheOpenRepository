@@ -7,12 +7,16 @@ WriteMakefile(
     VERSION_FROM      => 'lib/App/DualLivedDiff.pm', # finds $VERSION
     PREREQ_PM         => {
       'Archive::Extract' => '0',
+      'DBM::Deep' => 0,
       'File::Find' => '0',
       'Getopt::Long' => '0',
       'Parse::CPAN::Meta' => '0.04',
       'LWP::Simple' => '0',
       'File::Temp' => '0',
+      'File::Path' => '0',
+      'IPC::Cmd' => '0',
       'File::Spec' => '0',
+      'Digest::MD5' => '0',
     }, # e.g., Module::Name => 1.1
     LICENSE => 'perl',
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
