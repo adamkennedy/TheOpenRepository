@@ -121,7 +121,7 @@ foreach my $conf (sort @confDirs) {
   #$db->commit;
 
   warn " - " . uc($db->{$dist}{status}) . "\n";
-
+  unlink $tmpOutFile;
 }
 
 
