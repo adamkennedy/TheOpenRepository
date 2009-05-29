@@ -1,0 +1,20 @@
+#!/usr/bin/perl
+
+use 5.008;
+use strict;
+use Params::Util qw{ _STRING };
+use ORDB::CPANMeta::Generator ();
+
+our $VERSION = '0.01';
+
+my $minicpan = shift @ARGV;
+unless ( _STRING($minicpan) and -d $minicpan ) {
+	die('Missing or non-existant minicpan directory');
+}
+
+my $generator = ORDB::CPANMeta::Generator->new(
+	minicpan => $minicpan,
+	trace    => 1,
+);
+
+$generator->run;
