@@ -1,5 +1,12 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.183   Thu 28 May 2009
+    1. Perl::Dist::WiX::Installer used a regex 
+	   metacharacter that was only in 5.10.
+	2. Perl requirement increased to 5.8.1, since
+	   recent releases of modules used require 
+	   that version of Perl.
+
 0.182   Thu 28 May 2009
 	1. Used to make Strawberry Perl July 2009 
 	   Beta 2.

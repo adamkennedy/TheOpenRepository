@@ -9,7 +9,7 @@ package Perl::Dist::WiX::Filelist;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use 5.006;
+use 5.008001;
 use strict;
 use warnings;
 use vars                   qw( $VERSION                          );
@@ -19,7 +19,7 @@ use Params::Util           qw( _INSTANCE _STRING _NONNEGINT      );
 use IO::Dir                qw();
 use IO::File               qw();
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 
 my %sortcache; # Defined at this level so that the cache does not
 			   # get reset each time _sorter is called.

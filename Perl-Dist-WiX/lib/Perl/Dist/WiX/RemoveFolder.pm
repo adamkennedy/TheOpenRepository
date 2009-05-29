@@ -9,7 +9,7 @@ package Perl::Dist::WiX::RemoveFolder;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use 5.006;
+use 5.008001;
 use strict;
 use warnings;
 use vars              qw( $VERSION );
@@ -21,7 +21,7 @@ use Object::InsideOut qw(
 use Readonly          qw( Readonly );
 use Params::Util      qw( _STRING  );
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 
 # Defining at this level so it does not need recreated every time.
 Readonly my @ON_OPTIONS => qw(install uninstall both);

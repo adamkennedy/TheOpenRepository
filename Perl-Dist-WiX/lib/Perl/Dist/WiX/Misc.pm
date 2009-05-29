@@ -12,7 +12,7 @@ package Perl::Dist::WiX::Misc;
 # class directly.
 
 #<<<
-use     5.006;
+use     5.008001;
 use     strict;
 use     warnings;
 use     vars                  qw( $VERSION                    );
@@ -23,7 +23,7 @@ use     List::MoreUtils       qw( any                         );
 use     Data::UUID            qw( NameSpace_DNS               );
 require Devel::StackTrace;
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 
 #>>>
 

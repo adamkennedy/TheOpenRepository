@@ -8,14 +8,14 @@ package Perl::Dist::WiX::EnvironmentEntry;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use 5.006;
+use 5.008001;
 use strict;
 use warnings;
 use vars              qw( $VERSION                              );
 use Object::InsideOut qw( Perl::Dist::WiX::Base::Entry Storable );
 use Params::Util      qw( _IDENTIFIER _STRING                   );
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 #>>>
 #####################################################################
 # Accessors:

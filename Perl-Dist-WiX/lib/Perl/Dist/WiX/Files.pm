@@ -9,7 +9,7 @@ package Perl::Dist::WiX::Files;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
+use     5.008001;
 use     strict;
 use     warnings;
 use     vars                  qw( $VERSION                 );
@@ -24,7 +24,7 @@ use     Readonly              qw( Readonly                 );
 require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::Files::DirectoryRef;
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 #>>>
 
 Readonly my $TREE_CLASS => 'Perl::Dist::WiX::DirectoryTree';

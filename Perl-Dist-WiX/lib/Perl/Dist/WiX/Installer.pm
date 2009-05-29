@@ -8,7 +8,7 @@ Perl::Dist::WiX::Installer - WiX-specific routines.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Installer version 0.182.
+This document describes Perl::Dist::WiX::Installer version 0.183.
 
 =head1 DESCRIPTION
 
@@ -23,7 +23,7 @@ superclass of that class.
 =cut
 
 #<<<
-use     5.006;
+use     5.008001;
 use     strict;
 use     warnings;
 use     vars                     qw( $VERSION                      );
@@ -43,7 +43,7 @@ require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::CreateFolder;
 require Perl::Dist::WiX::RemoveFolder;
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 #>>>
 
 =head2 Accessors
@@ -611,6 +611,7 @@ sub write_msi {
 		                               # feature for Win9X)
 		'-sice:ICE48',                 # Gets rid of ICE48 warning.
 		                               # (Hard-coded installation location)
+
 #		'-v',                          # Verbose for the moment.
 		'-out', $output_msi,
 		'-ext', wix_lib_wixui(),
@@ -830,9 +831,12 @@ sub as_string {
 		info    => $tt->error() );
 #<<<
 	# Delete empty lines.
-	$answer =~ s{\R         # Replace a linebreak,
+	$answer =~ s{(?>\x0D\x0A?|[\x0A-\x0C\x85\x{2028}\x{2029}])
+                            # Replace a linebreak, 
+							# (within parentheses is = to \R for 5.8)
 				 \s*?       # any whitespace we may be able to catch,
-				 \R}        # and a second linebreak
+				 (?>\x0D\x0A?|[\x0A-\x0C\x85\x{2028}\x{2029}])}        
+				            # and a second linebreak
 				{\r\n}msgx; # With one Windows linebreak.
 #>>>
 

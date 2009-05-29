@@ -18,7 +18,7 @@ exclude_functions = print
 add_packages = Module::CoreList
 
 [Modules::PerlMinimumVersion]
-version = 5.006
+version = 5.008001
 
 # Exclusions
 [-ValuesAndExpressions::ProhibitMagicNumbers]

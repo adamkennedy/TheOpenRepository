@@ -9,7 +9,7 @@ package Perl::Dist::WiX::StartMenu;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use 5.006;
+use 5.008001;
 use strict;
 use warnings;
 use Object::InsideOut qw( 
@@ -19,7 +19,7 @@ use Object::InsideOut qw(
 use Params::Util      qw( _IDENTIFIER _STRING             );
 use vars              qw( $VERSION                        );
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 
 #>>>
 #####################################################################

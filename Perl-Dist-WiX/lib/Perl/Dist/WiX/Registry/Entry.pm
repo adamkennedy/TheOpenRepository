@@ -8,7 +8,7 @@ package Perl::Dist::WiX::Registry::Entry;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use 5.006;
+use 5.008001;
 use strict;
 use warnings;
 use vars              qw( $VERSION            );
@@ -19,7 +19,7 @@ use Object::InsideOut qw(
 use Readonly          qw( Readonly            );
 use Params::Util      qw( _IDENTIFIER _STRING );
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 #>>>
 
 # Defining at this level so they do not need recreated every time.

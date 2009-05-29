@@ -9,7 +9,7 @@ package Perl::Dist::WiX::Registry;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
+use     5.008001;
 use     strict;
 use     warnings;
 use     vars              qw( $VERSION                                 );
@@ -19,7 +19,7 @@ use     Params::Util      qw( _IDENTIFIER _STRING                      );
 require Perl::Dist::WiX::Registry::Key;
 require Perl::Dist::WiX::Registry::Entry;
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 
 #>>>
 #####################################################################

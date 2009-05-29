@@ -8,14 +8,14 @@ package Perl::Dist::WiX::Feature;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use 5.006;
+use 5.008001;
 use strict;
 use warnings;
 use vars              qw( $VERSION                       );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable );
 use Params::Util      qw( _INSTANCE _STRING _NONNEGINT   );
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 #>>>
 #####################################################################
 # Accessors:

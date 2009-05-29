@@ -8,7 +8,7 @@ package Perl::Dist::WiX::Directory;
 # License is the same as perl. See Wix.pm for details.
 #
 #<<<
-use     5.006;
+use     5.008001;
 use     strict;
 use     warnings 'all' => 'FATAL';
 use     vars                   qw( $VERSION           );
@@ -23,7 +23,7 @@ use     Scalar::Util           qw( blessed            );
 use     File::Spec::Functions  qw( catdir splitdir    );
 require Perl::Dist::WiX::Files::Component;
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 #>>>
 #####################################################################
 # Accessors:

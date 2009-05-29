@@ -11,7 +11,7 @@ package Perl::Dist::WiX::Base::Fragment;
 # Use as virtual base class and for "isa" tests only.
 #
 #<<<
-use 5.006;
+use 5.008001;
 use strict;
 use warnings;
 use vars              qw( $VERSION                               );
@@ -19,7 +19,7 @@ use Readonly          qw( Readonly                               );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc :Public Storable );
 use Params::Util      qw( _INSTANCE _STRING                      );
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 
 Readonly my $COMPONENT_CLASS => 'Perl::Dist::WiX::Base::Component';
 

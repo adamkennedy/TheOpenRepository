@@ -10,14 +10,14 @@ package Perl::Dist::WiX::Base::Component;
 # WARNING: Class not meant to be created directly.
 # Use as virtual base class and for "isa" tests only.
 #<<<
-use 5.006;
+use 5.008001;
 use strict;
 use warnings;
 use vars              qw( $VERSION                               );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable :Public );
 use Params::Util      qw( _INSTANCE _STRING _NONNEGINT           );
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 #>>>
 
 #####################################################################

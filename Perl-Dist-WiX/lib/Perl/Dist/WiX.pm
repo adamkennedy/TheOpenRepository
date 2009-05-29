@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 0.182
+Perl-Dist-WiX version 0.183
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 0.182.
+This document describes Perl::Dist::WiX version 0.183.
 
 =for readme continue
 
@@ -73,7 +73,7 @@ To install this module, run the following commands:
 =cut
 
 #<<<
-use     5.006;
+use     5.008001;
 use     strict;
 use     warnings;
 use     vars                  qw( $VERSION                   );
@@ -107,7 +107,7 @@ use     Win32                 qw();
 require Perl::Dist::WiX::Filelist;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.182')->numify;
+use version; $VERSION = version->new('0.183')->numify;
 
 use Object::Tiny qw(
   perl_version
