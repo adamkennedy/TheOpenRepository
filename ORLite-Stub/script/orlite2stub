@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+
+=pod
+
+=head1 NAME
+
+orlite2stub - Stub database generator
+
+=head1 SYNOPSIS
+
+  orlite2stub Class::Name
+
+=head1 DESCRIPTION
+
+F<orlite2stub> is the command line front-end for L<ORLite::Stub>.
+
+You should run this in the root directory of a distribution,
+and provide it with the class in your distribution that is the
+root of an L<ORLite::Mirror> ORM.
+
+=cut
+
+use 5.006;
+use strict;
+use ORLite::Stub ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.01';
+}
+
+unless ( -d 'lib' ) {
+	die("Failed to find lib directory");
+}
+unshift @INC, 'lib';
+
+my $class = shift;
+eval "use $class;";
+die $@ if $@;
+
+print "Creating ORLite::Stub instance...\n";
+my %params = (
+	from => $class,
+);
+my $stub = ORLite::Stub->new( %params );
+
+print "Starting stub.db generation run...\n";
+$stub->run;
+
+exit(0);
+
+=pod
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORLite-Stub>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2009 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
