@@ -618,7 +618,8 @@ weakening the references
 and arranging to break the reference cycle just before
 the structure is destroyed.
 
-It is easy to misdesign or misimplement a scheme for
+When using circular references,
+it is easy to misdesign or misimplement a scheme for
 preventing memory leaks.
 Mistakes of this kind
 have been hard to detect
@@ -637,31 +638,28 @@ The closure should return
 a reference to the B<test structure>.
 This reference is called the B<test structure reference>.
 
-C<Test::Weaken> frees the test structure,
-then looks to see if any of the contents of the structure
-were not actually deallocated.
-By default, C<Test::Weaken> determines the B<contents>
-of a data structure, by recursively following the elements
-of arrays and hashes, as well as references.
-The recursion is pursued to unlimited depth.
+C<Test::Weaken> frees the test structure, then looks to see if any of the
+contents of the structure were not actually deallocated.  By default,
+C<Test::Weaken> determines the B<contents> of a data structure,
+by following references.  C<Test::Weaken> does this recursively to
+unlimited depth.
 
-C<Test::Weaken> deals gracefully with circular references.
+C<Test::Weaken> can deal with circular references without going
+into infinite loops.
 That's important,
 because a major purpose of C<Test::Weaken> is to test schemes for
 circular references.
-To avoid infinite loops,
-C<Test::Weaken> records all the Perl data that it visits,
-and will not visit the same Perl data object twice.
+C<Test::Weaken> and will not visit the same Perl data object twice.
 
 =head2 Referenceables and Tracked Data
 
 A B<referenceable> is any Perl data object which can be
 the B<referent> of a B<reference>.
-Of the three basic Perl data types,
-hashes and arrays are always referenceables,
-while scalars may or may not be referenceable.
-A scalar is referenceable if and only if it is not
-an element of an array or hash.
+Two of the three basic Perl data types, 
+hashes and arrays, are always referenceable.
+Data objects of Perl's third basic type,
+scalars, are referenceable if and only if they are not
+elements of an array or hash.
 
 The difference between referenceable is important
 to C<Test::Weaken> because only referenceables hold
@@ -678,9 +676,9 @@ only referenceables are tracked.
 
 =head2 Followed Thingies and Elements
 
-A Perl data object is a B<followed object>
+A Perl data object is B<followed object>
 if C<Test::Weaken> examines it during its search for
-referenceables to track.
+objects to track.
 Only referenceables are tracked,
 but both referenceables and elements may be followed.
 References which
@@ -707,29 +705,35 @@ By default,
 C<Test::Weaken> assumes that referents share the reference's
 lifetime.
 
-A test structure's B<descendants> are those objects
-which can be reached by
-recursively following references
-and examining array and hash elements
-starting from the test structure reference.
+The B<child> of a reference is its referent.
+The B<children> of an array are the referents of those
+of its elements which are references.
+The B<children> of a hash are the referents of those
+of its elements which are references.
+The descendants of a Perl data object are itself,
+its children, and any children of one of its descendants.
+As a special case,
 By default,
 C<Test::Weaken> also assumes that a test structure's
 descendants are its contents,
 and vice versa.
 
-The assumption that descent and containment are the same
-works in many cases, but not all.
-The assumption fails, as one example, when globals are
+This assumption, that the contents of a data structure are the same as
+it set of descendants, works
+for many cases,
+but not for all.
+As one example,
+the assumption is false when globals are
 referenced from a data structure.
-The assumption also fails for inside-out objects.
+The assumption is also false for inside-out objects.
 
 B<Test::Weaken> has ways to deal with globals and
-other uncontained descendants.
+other descendants that are not contents.
 These are dealt with in the next section.
 B<Test::Weaken> also has ways to deal with inside-out
 objects and other
-contained non-descendants.
-These are dealt with in section after that.
+contents which are not descendants.
+These are dealt with in the section after that.
 
 =head2 Persistent Objects
 
@@ -737,7 +741,7 @@ As a practical matter, a descendant which is not
 part of a test structure is only a problem
 if its lifetime extends beyond that of the test
 structure.
-An descendant which stays around after
+A descendant which stays around after
 the test object is called a B<persistent object>.
 
 A persistent object is not a memory leak.
@@ -749,7 +753,7 @@ But a persistent object is not expected to
 disappear when the test structure goes away.
 
 We need to
-determine which of the unfreed referencables are memory leaks,
+determine which of the unfreed data objects are memory leaks,
 and which are persistent referenceables.
 It's usually easiest to do this after the test by
 examining the return value of L</unfreed_proberefs>.
@@ -759,13 +763,41 @@ that separates out persistent referenceables "on the fly".
 These methods are described in detail
 L<below|/"ADVANCED TECHNIQUES">.
 
-=head2 Finding Contents when they are not Descendants
+=head2 Contents That are not Descendants
 
-Some in-objects are not the child of any other in-object.
-These are B<outside in-objects>.
-Many of them arise (appropriately enough)
+Sometimes Perl data objects which
+are not descendants of a data structure 
+are, nonetheless, part of its contents.
+These cases often arise
 when an OO technique call
 "inside-out objects" is used.
+
+In C<Test::Weaken>,
+the easiest way to deal with non-descendant contents is to put a
+reference to the data structure you want to test (call it the B<lab rat>)
+in a B<wrapper structure>.
+In this scheme,
+your test structure constructor will return the wrapper structure,
+instead of the lab rat.
+
+Usually, the wrapper structure is usually an array.
+The constructor should add Perl data objects to the wrapper
+until the contents of the lab rat are
+exactly the descendants of the wrapper.
+At that point the contents of the lab rat,
+the contents of the wrapper structure,
+and the descendants of the wrapper structure
+will all be the same.
+
+But it is not always easy to find the contents of
+the lab rat in the test structure constructor.
+In particular, finding the contents of the lab rat may
+amount to doing a recursive scan of its descendants,
+something C<Test::Weaken> already does.
+So it is also possible to have C<Test::Weaken> add
+contents "on the fly", while it is scanning the lab rat.
+This can be done using the C<contents> named argument,
+which takes a closure as its value.
 
 =head2 Builtin Types
 
