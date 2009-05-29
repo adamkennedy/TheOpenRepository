@@ -1,4 +1,4 @@
-use inc::Module::Install 0.86;
+use inc::Module::Install 0.91;
 
 unless ( winlike or $ENV{ADAMK_RELEASE} ) {
 	print "This module is only useful on Windows\n";

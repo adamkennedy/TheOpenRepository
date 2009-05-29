@@ -16,6 +16,9 @@ of the F<lzma.exe> command line utility for use in situations where
 the memory-only compression and decompression provided by the current
 generation of modules is not sufficient.
 
+The version of lzma.exe provided by this module is taken from the LZMA
+SDK 4.65 at L<http://downloads.sourceforge.net/sevenzip/lzma465.tar.bz2>.
+
 =head1 FUNCTIONS
 
 =cut
@@ -25,10 +28,10 @@ use strict;
 use warnings;
 use Carp                ();
 use Exporter            ();
-use File::ShareDir 1.00 ();
 use IPC::Run3     0.042 ();
+use File::ShareDir 1.00 ();
 
-our $VERSION = '4.65';
+our $VERSION = '4.66';
 our @ISA     = 'Exporter';
 
 =pod
@@ -158,5 +161,8 @@ it and/or modify it under the same terms as Perl itself.
 
 The full text of the license can be found in the
 LICENSE file included with this module.
+
+The LZMA SDK is written and placed in the public domain by
+Igor Pavlov.
 
 =cut
