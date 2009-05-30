@@ -7,7 +7,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 44;
+use Test::More tests => 48;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
@@ -16,11 +16,15 @@ use Xtract::Publish;
 my $input = catfile( 't', 'data', 'Foo-Bar.sqlite' );
 ok( -f $input, "Test file '$input' exists" );
 my $output = catfile( 't', 'output.db' );
-clear( $output, "$output.gz", "$output.bz2", "$output.lz" );
-ok( ! -f $output,       "Output file '$output'     is cleared" );
-ok( ! -f "$output.gz",  "Output file '$output.gz'  is cleared" );
-ok( ! -f "$output.bz2", "Output file '$output.bz2' is cleared" );
-ok( ! -f "$output.lz",  "Output file '$output.lz'  is cleared" );
+my @outputs = map {
+	$_, "$_.tmp"
+} map {
+	$_, "$_.gz", "$_.bz2", "$_.lz"
+} ( $output );
+clear( @outputs );
+foreach ( @outputs ) {
+	ok( ! -f $_, "Output file '$_' is cleared" );
+}
 
 
 
