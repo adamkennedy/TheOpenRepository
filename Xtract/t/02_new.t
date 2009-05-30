@@ -6,7 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 13;
+use Test::More tests => 12;
+use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
 use Xtract;
@@ -44,13 +45,5 @@ SCOPE: {
 	is( $object->index, 1,    '->index ok' );
 	is( $object->sqlite_cache, undef, '->sqlite_cache ok' );
 	is( ref($object->argv), 'ARRAY', '->argv ok' );
-
-	# Other accessors
-	is( $object->to_gz,  "$to.gz",  '->to_gz ok'  );
-	is( $object->to_bz2, "$to.bz2", '->to_bz2 ok' );
-	if ( defined $object->to_lz ) {
-		is( $object->to_lz, "$to.lz", '->to_lz ok' );
-	} else {
-		ok( 1, 'LZMA is not available' );
-	}
+	is( $object->publish, undef, '->publish begins undefined' );
 }

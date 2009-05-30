@@ -17,15 +17,12 @@ BEGIN {
 		plan( skip_all => 'DBI driver ODBC is not available' );
 	}
 	plan( skip_all => 'Skipping ODBC driver test' );
-	#if ( grep { $_ eq 'ODBC' } DBI->available_drivers ) {
-		#plan( tests => 10 );
-	#} else {
-		#plan( skip_all => 'Skipping ODBC driver test' );
-	#}
+	# plan( tests => 10 );
 }
+use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use File::Remove          'clear';
-use DBIx::Publish         ();
+use Xtract                ();
 
 # Command row data
 my @data = (
@@ -48,33 +45,28 @@ my $source = DBI->connect("DBI:ODBC:Book1", undef, undef, {
 isa_ok( $source, 'DBI::db' );
 
 # Create the Publish object
-my $publish = DBIx::Publish->new(
-	file   => $output,
-	source => $source,
-);
-isa_ok( $publish, 'DBIx::Publish' );
-is( $publish->file, $output, '->file ok' );
-ok( $publish->source, '->source ok' );
-isa_ok( $publish->dbh, 'DBI::db', '->sqlite ok' );
-
-# Prepare the SQLite database
-ok( $publish->prepare, '->prepare' );
+my $xtract = new_ok( 'Xtract' => [
+	to   => $output,
+	from => "DBI:ODBC:Book1",
+] );
+is( $xtract->to, $output, '->to ok' );
+ok( $xtract->from, '->from ok' );
+isa_ok( $xtract->from_dbh, 'DBI::db', '->sqlite ok' );
 
 # Find the available tables
-my @tables = grep { /table1/ } $source->tables;
+my @tables = grep { /table1/ } $xtract->from_tables;
 is( scalar(@tables), 1, 'Found 1 table' );
 
 # Clone a table completely
 ok(
-	$publish->table( 'simple3', $tables[0] ),
+	$xtract->table( 'simple3', $tables[0] ),
 	'Created simple3 table',
 );
 
 # Clean up
-ok( $publish->finish, '->finish ok' );
-
+ok( $xtract->to_finish, '->finish ok' );
 is_deeply(
-	$publish->dbh->selectall_arrayref('select * from simple3'),
+	$xtract->dbh->selectall_arrayref('select * from simple3'),
 	\@data,
 	'simple3 data ok',
 );

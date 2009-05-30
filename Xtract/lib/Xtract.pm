@@ -32,15 +32,12 @@ use Time::HiRes          1.9709 ();
 use Time::Elapsed          0.24 ();
 use DBI                    1.57 ':sql_types';
 use DBD::SQLite            1.25 ();
-use IO::Compress::Gzip    2.008 ();
-use IO::Compress::Bzip2   2.008 ();
+use Xtract::Publish             ();
+use Xtract::Scan                ();
+use Xtract::Scan::SQLite        ();
+use Xtract::Scan::mysql         ();
 
-use Xtract::LZMA         ();
-use Xtract::Scan         ();
-use Xtract::Scan::SQLite ();
-use Xtract::Scan::mysql  ();
-
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use Moose 0.73;
 use MooseX::Types::Common::Numeric 0.001 'PositiveInt';
@@ -53,8 +50,7 @@ has index        => ( is => 'ro', isa => 'Bool' );
 has trace        => ( is => 'ro', isa => 'Bool' );
 has sqlite_cache => ( is => 'ro', isa => PositiveInt );
 has argv         => ( is => 'ro', isa => 'ArrayRef[Str]' );
-
-no Moose;
+has publish      => ( is => 'rw', isa => 'Xtract::Publish' );
 
 
 
@@ -107,6 +103,7 @@ sub main {
 
 
 
+
 #####################################################################
 # Main Execution
 
@@ -114,18 +111,10 @@ sub run {
 	my $self  = shift;
 	my $start = Time::HiRes::time();
 
-	# Clear any existing output files
-	my @files = (
-		$self->to,
-		$self->to_gz,
-		$self->to_bz2,
-		$self->to_lz,
-	);
-	foreach my $file ( @files ) {
-		if ( defined $file and -e $file ) {
-			$self->say("Deleting $file");
-			File::Remove::remove($file);
-		}
+	# Clear the existing output sqlite file
+	if ( defined $self->to and -e $self->to ) {
+		$self->say("Deleting '" . $self->to . "'");
+		File::Remove::remove($self->to);
 	}
 
 	# Check the command
@@ -166,30 +155,34 @@ sub run {
 	$self->to_finish;
 	$self->disconnect;
 
-	# Generate the archive forms
-	if ( $self->to_gz ) {
-		$self->say("Creating gzip archive");
-		IO::Compress::Gzip::gzip( $self->to => $self->to_gz )
-			or die 'Failed to gzip SQLite file';
-	}
-	if ( $self->to_bz2 ) {
-		$self->say("Creating bzip2 archive");
-		IO::Compress::Bzip2::bzip2( $self->to => $self->to_bz2 )
-			or die 'Failed to bzip2 SQLite file';
-	}
-	if ( $self->to_lz ) {
-		$self->say("Creating lzma archive");
-		Xtract::LZMA->compress( $self->to, $self->to_lz );
-	}
+	# Spawn the publisher to prepare the files for the public
+	$self->publish(
+		Xtract::Publish->new(
+			sqlite => $self->to,
+			trace  => $self->trace,
+			gz     => 1,
+			bz2    => 1,
+			lz     => Xtract::LZMA->available,
+		)
+	);
+	$self->publish->run;
 
 	# Summarise the run
 	my $elapsed = int(Time::HiRes::time() - $start);
 	my $human   = Time::Elapsed::elapsed($elapsed);
 	$self->say( "Extraction completed in $elapsed" );
-	$self->say( "Created " . $self->to    );
-	$self->say( "Created " . $self->to_gz ) if $self->to_gz;
-	$self->say( "Created " . $self->to_bz2) if $self->to_bz2;
-	$self->say( "Created " . $self->to_lz ) if $self->to_lz;
+	if ( -f $self->publish->sqlite ) {
+		$self->say( "Created " . $self->publish->sqlite );
+	}
+	if ( -f $self->publish->sqlite_gz ) {
+		$self->say( "Created " . $self->publish->sqlite_gz );
+	}
+	if ( -f $self->publish->sqlite_bz2 ) {
+		$self->say( "Created " . $self->publish->sqlite_bz2 );
+	}
+	if ( -f $self->publish->sqlite_lz ) {
+		$self->say( "Created " . $self->publish->sqlite_lz );
+	}
 
 	return 1;
 }
@@ -526,22 +519,6 @@ sub from_tables {
 
 #####################################################################
 # Destination Methods
-
-sub to_gz {
-	$_[0]->to . '.gz';
-}
-
-sub to_bz2 {
-	$_[0]->to . '.bz2';
-}
-
-sub to_lz {
-	if ( Xtract::LZMA->available ) {
-		return $_[0]->to . '.lz';
-	} else {
-		return;
-	}
-}
 
 sub to_dsn {
 	"DBI:SQLite:" . $_[0]->to

@@ -6,7 +6,7 @@ use warnings;
 use Carp         'croak';
 use Params::Util '_DRIVER';
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use Moose 0.73;
 

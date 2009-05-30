@@ -3,6 +3,7 @@ Changes for Perl extension Xtract
 0.10 to be released
 	- If we are building indexes (because the consumer cares about speed)
 	  then we now also run ANALYZE during the database cleanup.
+	- Separated publish logic into a standalone module.
 
 0.09 Sun  3 May 2009
 	- Fleshing out some of the tests a bit more
