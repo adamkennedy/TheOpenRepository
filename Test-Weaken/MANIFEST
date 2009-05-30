@@ -16,6 +16,7 @@ MANIFEST
 META.yml # Will be created by "make dist"
 README
 sandbox/reftypes.pl
+sandbox/elements.pl
 t/00-load.t
 t/array.t
 t/circular.t
