@@ -13,6 +13,14 @@ This is the module that is used to generate the "CPAN Meta" database.
 For more information, and to access this database as a consumer, see
 the L<ORDB::CPANMeta> module.
 
+The bulk of the work done in this module is actually achieved with:
+
+L<CPAN::Mini> - Fetching the index and dist tarballs
+
+L<CPAN::Mini::Visit> - Expanding and processing the tarballs
+
+L<Xtract> - Preparing the SQLite database for distribution
+
 =head1 METHODS
 
 =cut
