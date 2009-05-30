@@ -39,6 +39,9 @@ my $generator = ORDB::CPANMeta::Generator->new(
 );
 isa_ok( $generator, 'ORDB::CPANMeta::Generator' );
 
+# Remove the operating files that anyone made before us
+clear( $generator->dir );
+
 # Run the generator
 ok( $generator->run, '->run ok' );
 
