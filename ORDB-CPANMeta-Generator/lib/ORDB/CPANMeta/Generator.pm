@@ -17,7 +17,7 @@ the L<ORDB::CPANMeta> module.
 
 =cut
 
-use 5.008;
+use 5.008005;
 use strict;
 use Carp                    ();
 use File::Spec         3.29 ();
@@ -30,6 +30,7 @@ use Params::Util       0.38 qw{_HASH};
 use DBI               1.608 ();
 use CPAN::Mini        0.576 ();
 use CPAN::Mini::Visit  0.03 ();
+use Xtract::Publish    0.10 ();
 
 our $VERSION = '0.01';
 
@@ -160,7 +161,7 @@ CREATE TABLE meta_dependency (
 )
 END_SQL
 
-	# Run the visitor
+	# Run the visitor to generate the database
 	$dbh->begin_work;
 	my $counter   = 0;
 	my @meta_dist = ();
@@ -168,7 +169,7 @@ END_SQL
 	my $visitor   = CPAN::Mini::Visit->new(
 		minicpan => $self->minicpan,
 		callback => sub {
-			print STDERR "$_[0]->{dist}\n";
+			print STDERR "$_[0]->{dist}\n" if $self->trace;
 			my $the  = shift;
 			my @deps = ();
 			my $dist = {
@@ -243,6 +244,18 @@ END_SQL
 	);
 	$visitor->run;
 	$dbh->commit;
+
+	# Publish the database to the current directory
+	print STDERR "Publishing the generated database...\n" if $self->trace;
+	Xtract::Publish->new(
+		from   => $self->sqlite,
+		sqlite => 'cpanmeta.sqlite',
+		trace  => 1,
+		raw    => 0,
+		gz     => 1,
+		bz2    => 1,
+		lz     => 1,
+	)->run;
 
 	return 1;
 }

@@ -18,3 +18,5 @@ my $generator = ORDB::CPANMeta::Generator->new(
 );
 
 $generator->run;
+
+print "Completed generation of " . $generator->sqlite . "\n";
