@@ -79,5 +79,4 @@ SCOPE: {
 		}
 		ok( -f $publish->sqlite_lz, "Created '" . $publish->sqlite_lz . "'"  );
 	}
-
 }

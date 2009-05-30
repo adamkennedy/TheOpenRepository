@@ -171,7 +171,7 @@ sub write_gz {
 	my $self = shift;
 	if ( $self->gz ) {
 		if ( $self->atomic ) {
-			return $self->sqlite_gz . '.tmp';
+			return $self->sqlite . '.tmp.gz';
 		} else {
 			return $self->sqlite_gz;
 		}
@@ -183,7 +183,7 @@ sub write_bz2 {
 	my $self = shift;
 	if ( $self->bz2 ) {
 		if ( $self->atomic ) {
-			return $self->sqlite_bz2 . '.tmp';
+			return $self->sqlite . '.tmp.bz2';
 		} else {
 			return $self->sqlite_bz2;
 		}
@@ -195,7 +195,7 @@ sub write_lz {
 	my $self = shift;
 	if ( $self->lz ) {
 		if ( $self->atomic ) {
-			return $self->sqlite_lz . '.tmp';
+			return $self->sqlite . '.tmp.lz';
 		} else {
 			return $self->sqlite_lz;
 		}

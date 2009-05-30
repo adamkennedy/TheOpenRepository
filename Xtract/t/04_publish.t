@@ -16,11 +16,11 @@ use Xtract::Publish;
 my $input = catfile( 't', 'data', 'Foo-Bar.sqlite' );
 ok( -f $input, "Test file '$input' exists" );
 my $output = catfile( 't', 'output.db' );
-my @outputs = map {
-	$_, "$_.tmp"
-} map {
+my @outputs =  map {
 	$_, "$_.gz", "$_.bz2", "$_.lz"
-} ( $output );
+} map {
+	$_, "$_.tmp"
+}( $output );
 clear( @outputs );
 foreach ( @outputs ) {
 	ok( ! -f $_, "Output file '$_' is cleared" );
