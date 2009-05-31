@@ -1,0 +1,8 @@
+#!/usr/bin/perl
+
+use strict;
+use PPI::Cache::Archive ();
+
+our $VERSION = '0.01';
+
+PPI::Cache::Archive::create( @ARGV );
