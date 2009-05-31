@@ -1,5 +1,9 @@
 Revision history for Perl extension Class-XSAccessor-Array.
 
+1.03  Sun May 31 18:47 2009
+  - Upgrade to AutoXS::Header 1.01:
+    Make it C89!
+
 1.02  Sun May 17 11:22 2009
   - Use fixed AutoXS.h (prototyping issue)
 
