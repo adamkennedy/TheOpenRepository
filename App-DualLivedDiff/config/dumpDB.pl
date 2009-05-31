@@ -80,9 +80,8 @@ included in the list. It would help if you include a YAML file mapping file such
 as those accessible below under the <i>cfg</i> links.
 </p>
 <p>
-Data generated with <a href="http://search.cpan.org/dist/App-DualLivedDiff">App::DualLivedDiff</a>. It is not
-currently updated automatically. If you want to help and have a server with access to git and the ability to add a cron job, feel
-free to get in touch.
+Data generated with <a href="http://search.cpan.org/dist/App-DualLivedDiff">App::DualLivedDiff</a>. It is 
+currently updated daily thanks to <a href="http://search.cpan.org/~jhelwig">Jacob Helwig</a>.
 </p>
 <p>
 Additional notes:
