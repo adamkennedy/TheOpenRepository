@@ -36,7 +36,7 @@ eval <<"END_PERL"; die $@ if $@;
 package Foo::Bar;
 
 use strict;
-use ORLite '$file', -DEBUG;
+use ORLite '$file';
 
 1;
 END_PERL

@@ -4,18 +4,18 @@ package ORLite;
 
 use 5.006;
 use strict;
-use Carp                 ();
-use File::Spec      0.80 ();
-use File::Temp      0.20 ();
-use File::Path      2.04 ();
-use File::Basename     0 ();
-use Params::Util    0.33 qw{ _STRING _CLASS _HASHLIKE _CODELIKE };
-use DBI            1.607 ();
-use DBD::SQLite     1.25 ();
+use Carp              ();
+use File::Spec   0.80 ();
+use File::Temp   0.20 ();
+use File::Path   2.04 ();
+use File::Basename  0 ();
+use Params::Util 0.33 qw{ _STRING _CLASS _HASHLIKE _CODELIKE };
+use DBI         1.607 ();
+use DBD::SQLite  1.25 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.21';
+	$VERSION = '1.22';
 }
 
 
@@ -103,7 +103,7 @@ sub import {
 	}
 
 	# Generate the support package code
-	my $code  = <<"END_PERL";
+	my $code = <<"END_PERL";
 package $pkg;
 
 use strict;
@@ -366,29 +366,41 @@ END_ACCESSOR
 	}
 	$dbh->disconnect;
 
+	# Add any custom code to the end
+	if ( defined $params{append} ) {
+		$code .= "\npackage $pkg;\n" if $params{tables};
+		$code .= "\n$params{append}";
+	}
+
 	# Load the code
 	if ( $DEBUG ) {
-		# Compile the combined code via a temp file
-		my ($fh, $filename) = File::Temp::tempfile();
-		$fh->print("$code\n\n1;\n");
-		close $fh;
-		require $filename;
-		unlink $filename;
-
-		# Print the debugging output
-		my @trace = map {
-			s/\s*[{;]$//;
-			s/^s/  s/;
-			s/^p/\np/;
-			"$_\n"
-		} grep {
-			/^(?:package|sub)\b/
-		} split /\n/, $code;
-		print STDERR @trace, "\n$pkg code saved as $filename\n\n";
+		dval("$code\n\n1;\n");
 	} else {
 		eval("$code\n\n1;\n");
 		die $@ if $@;
 	}
+
+	return 1;
+}
+
+sub dval {
+	# Write the code to the temp file
+	my ($fh, $filename) = File::Temp::tempfile();
+	$fh->print($_[0]);
+	close $fh;
+	require $filename;
+	unlink $filename;
+
+	# Print the debugging output
+	my @trace = map {
+		s/\s*[{;]$//;
+		s/^s/  s/;
+		s/^p/\np/;
+		"$_\n"
+	} grep {
+		/^(?:package|sub)\b/
+	} split /\n/, $_[0];
+	print STDERR @trace, "\nCode saved as $filename\n\n";
 
 	return 1;
 }

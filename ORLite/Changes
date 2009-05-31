@@ -1,5 +1,12 @@
 Changes for Perl extension ORLite
 
+1.22 Mon  1 Jun 2009
+	- Updated to Module::Install::DSL 0.91
+	- Split out debug/eval as (undocument) dval function
+	- App support for a (currently undocumented) 'append'
+	  param to allow sub-classes like ORLite::Mirror to merge
+	  in additional code to the generated class.
+
 1.21 Sun 24 May 2009
 	- Updated to Module::Install::DSL 0.88
 	- Added commit_begin and rollback_begin to allow persisting

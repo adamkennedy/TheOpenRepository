@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 19;
+use Test::More tests => 20;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -33,7 +33,8 @@ use ORLite {
 	file   => '$file',
 	create => 1,
 	tables => 0,
-};
+	append => 'sub append { 2 }',
+}, -DEBUG;
 
 1;
 END_PERL
@@ -50,6 +51,9 @@ END_PERL
 	# Test that the schema_version is updated as expected
 	ok( My::Test1->do('create table foo ( bar int )'), 'Created test table' );
 	is( My::Test1->pragma('schema_version' ), 1, 'schema_version is zero' );
+
+	# Test the appending of additional code
+	is( My::Test1->append, 2, 'append params works as expected' );
 }
 
 
@@ -75,8 +79,8 @@ use ORLite {
 
 		# Set up the test database
 		\$dbh->do( 'create table foo ( bar int not null primary key )' );
-		\$dbh->do( 'pragma user_version = 2'      );
-		\$dbh->do( 'insert into foo values ( 5 )'        );
+		\$dbh->do( 'pragma user_version = 2' );
+		\$dbh->do( 'insert into foo values ( 5 )' );
 		\$dbh->do( 'insert into foo values ( ? )', {}, 7 );
 
 		return 1;
