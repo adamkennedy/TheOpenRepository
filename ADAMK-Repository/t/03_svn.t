@@ -9,15 +9,17 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-		plan( tests => 115 );
+		plan( tests => 114 );
 	} else {
 		plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 	}
 }
 use File::Spec::Functions ':ALL';
+use LWP::Online;
 use ADAMK::Repository;
 
-my $uuid = '88f4d9cd-8a04-0410-9d60-8f63309c3137';
+my $uuid   = '88f4d9cd-8a04-0410-9d60-8f63309c3137';
+my $online = LWP::Online::online();
 
 
 
@@ -95,13 +97,12 @@ SCOPE: {
 	}
 
 	# Checkout a distribution
-	SCOPE: {
+	SKIP: {
+		skip("Internet connection required", 10) unless $online;
 		my $checkout = $first->checkout;
 		isa_ok( $checkout, 'ADAMK::Distribution::Checkout' );
 		isa_ok( $checkout->distribution, 'ADAMK::Distribution' );
 		isa_ok( $checkout->repository,   'ADAMK::Repository'   );
-		my @releases = $first->releases;
-		isa_ok( $releases[0], 'ADAMK::Release' );
 		my $name = $checkout->name;
 		my $path = $checkout->path;
 		ok( -d $path, "->export directory '$path' for distribution '$name' exists" );
@@ -126,7 +127,8 @@ SCOPE: {
 	}
 
 	# Export a distribution
-	SCOPE: {
+	SKIP: {
+		skip("Internet connection required", 5) unless $online;		
 		my $export = $first->export( $revision );
 		isa_ok( $export, 'ADAMK::Distribution::Export' );
 		isa_ok( $export->distribution, 'ADAMK::Distribution' );
@@ -168,7 +170,8 @@ SCOPE: {
 	like( $revision, qr/^\d+$/, '->revision ok ok' );
 
 	# Export a release
-	SCOPE: {
+	SKIP: {
+		skip("Internet connection required", 3) unless $online;
 		my $export = $first->export;
 		isa_ok( $export, 'ADAMK::Distribution::Export' );
 		ok( -d $export->path, '->path directory exists' );

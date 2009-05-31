@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use JSON              ();
+use File::Remove      ();
 use ADAMK::Util       ();
 use ADAMK::Repository ();
 
@@ -147,6 +148,11 @@ sub auto_install {
 sub run_makefile_pl {
 	my $self  = shift;
 	my $pushd = File::pushd::pushd($self->path);
+
+	# Delete any previous files that we care about
+	foreach ( qw{ Makefile MYMETA.yml MYMETA.json pm_to_blib blib } ) {
+		File::Remove::remove( \1, $_ );
+	}
 
 	# Execute the Makefile.PL
 	local $ENV{X_MYMETA} = 'JSON';

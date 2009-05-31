@@ -11,11 +11,12 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $ENV{ADAMK_CHECKOUT} and -d $ENV{ADAMK_CHECKOUT} ) {
-		plan( tests => 15 );
+		plan( tests => 17 );
 	} else {
 		plan( skip_all => '$ENV{ADAMK_CHECKOUT} is not defined or does not exist' );
 	}
 }
+use File::Spec::Functions ':ALL';
 use ADAMK::Repository ();
 
 my $repository = ADAMK::Repository->new(
@@ -57,6 +58,8 @@ SCOPE: {
 
 	# Configure a module
 	my $meta = $distribution->run_makefile_pl;
+	ok( -f catfile($distribution->path, 'Makefile'),    'Created Makefile'    );
+	ok( -f catfile($distribution->path, 'MYMETA.json'), 'Created MYMETA.json' );
 	is( ref($meta), 'HASH', '->run_makefile_pl returns a MYMETA hash' );
 	is( $meta->{version}, '1.05', '->{version} ok' );
 	is( $meta->{license}, 'perl', '->{license} ok' );
