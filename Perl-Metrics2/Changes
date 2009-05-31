@@ -2,6 +2,12 @@ Changes for Perl extension Perl-Metrics2
 
 0.03 Sun 10 May 2009
 	- Adding source lines of code metric to the core
+	- Adding integration with PPI::Cache
+	- Added process_cache to do metric rescanning directly from the cache
+	- Added manual index drop and restore
+	- Streamlined metric insert statements within a single prepare
+	- Added pm2minicpan to index and cache a local minicpan
+	- Added pm2db for access to minor database cleaning operations
 
 0.02 Sun 10 May 2009
 	- Adding the CpanFile table

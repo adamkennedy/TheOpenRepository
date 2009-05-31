@@ -315,9 +315,10 @@ sub process_document {
 }
 
 sub index_distribution {
-	my $self = shift;
-	my $dist = shift;
-	my $path = shift;
+	my $self     = shift;
+	my $dist     = shift;
+	my $path     = shift;
+	my $hintsafe = !! shift;
 
 	# Find the documents
 	my @files = File::Find::Rule->ignore_svn
@@ -334,15 +335,61 @@ sub index_distribution {
 	} @files;
 
 	# Flush and push the files into the database
-	Perl::Metrics2::CpanFile->delete(
-		'where dist = ?', $dist,
-	);
+	unless ( $hintsafe ) {
+		Perl::Metrics2::CpanFile->delete(
+			'where dist = ?', $dist,
+		);
+	}
 	foreach my $file ( @files ) {
 		Perl::Metrics2::CpanFile->create(
 			dist => $dist,
 			file => $file,
 			md5  => $md5{$file},
 		);
+	}
+
+	return 1;
+}
+
+
+
+
+
+#####################################################################
+# Index Optimisation Methods
+
+my @INDEX = (
+	[ 'file_metric', 'md5'     ],
+	[ 'file_metric', 'name'    ],
+	[ 'file_metric', 'package' ],
+	[ 'file_metric', 'value'   ],
+	[ 'file_metric', 'version' ],
+	[ 'cpan_file',   'dist'    ],
+	[ 'cpan_file',   'file'    ],
+	[ 'cpan_file',   'md5'     ],
+);
+
+sub index_remove {
+	my $self = shift;
+
+	$self->trace("Removing indexes...");
+	foreach ( @INDEX ) {
+		my $sql = "DROP INDEX IF EXISTS $_->[0]__$_->[1]";
+		$self->trace($sql);
+		Perl::Metrics2->do($sql);
+	}
+
+	return 1;
+}
+
+sub index_restore {
+	my $self = shift;
+
+	$self->trace("Restoring indexes...");
+	foreach ( @INDEX ) {
+		my $sql = "CREATE INDEX IF NOT EXISTS $_->[0]__$_->[1] ON $_->[0] ( $_->[1] )";
+		$self->trace($sql);
+		Perl::Metrics2->do($sql);
 	}
 
 	return 1;
