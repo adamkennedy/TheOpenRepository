@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.88;
+use inc::Module::Install::DSL 0.91;
 
 all_from      lib/ORLite/Mirror.pm
 requires_from lib/ORLite/Mirror.pm
@@ -7,3 +7,5 @@ test_requires URI                 1.35
 test_requires Test::More          0.47
 test_requires IO::Compress::Gzip  2.008
 test_requires IO::Compress::Bzip2 2.008
+
+install_share module ORLite::Mirror::Test5 share/ORLite-Mirror-Test5

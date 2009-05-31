@@ -5,13 +5,14 @@ use Exporter       ();
 use ORLite::Mirror ();
 use Test::More     ();
 use File::Remove   ();
+use File::HomeDir  ();
 use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	$VERSION = '1.14';
-	@ISA     = qw{ Exporter };
-	@EXPORT  = qw{ test_db connect_ok create_ok };
+	@ISA     = 'Exporter';
+	@EXPORT  = qw{ test_db mirror_db connect_ok create_ok };
 }
 
 
@@ -25,6 +26,17 @@ sub test_db {
 	my $file = catfile( @_ ? @_ : 't', 'sqlite.db' );
 	File::Remove::clear($file);
 	return $file;
+}
+
+sub mirror_db {
+	my $dir = catdir(
+		File::HomeDir->my_data,
+		($^O eq 'MSWin32' ? 'Perl' : '.perl'),
+		'ORLite-Mirror',
+	);
+	my $file = shift;
+	$file =~ s/::/-/g;
+	return catfile( $dir, "$file.sqlite" );
 }
 
 sub connect_ok {

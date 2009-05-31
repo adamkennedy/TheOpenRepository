@@ -6,7 +6,7 @@ use Carp                          ();
 use File::Copy                    ();
 use File::Spec               0.80 ();
 use File::Path               2.04 ();
-use File::Remove             1.40 ();
+use File::Remove             1.42 ();
 use File::HomeDir            0.69 ();
 use File::ShareDir           1.00 ();
 use Params::Util             0.33 qw{ _STRING _NONNEGINT _HASH };
@@ -14,12 +14,12 @@ use IO::Uncompress::Gunzip  2.008 ();
 use IO::Uncompress::Bunzip2 2.008 ();
 use LWP::UserAgent          5.806 ();
 use LWP::Online              1.07 ();
-use ORLite                   1.20 ();
+use ORLite                   1.22 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '1.14';
-	@ISA     = qw{ ORLite };
+	@ISA     = 'ORLite';
 }
 
 
@@ -81,7 +81,9 @@ sub import {
 	# Find the stub database
 	my $stub = delete $params{stub};
 	if ( $stub ) {
-		$stub = File::ShareDir::module_file( $class => 'stub.db' );
+		$stub = File::ShareDir::module_file(
+			$params{package} => 'stub.db'
+		);
 		unless ( -f $stub ) {
 			Carp::croak("Stub database '$stub' does not exist");
 		}
@@ -140,7 +142,7 @@ sub import {
 	# Don't update if the file is newer than the maxage
 	my $mtime = (stat($path))[9] || 0;
 	my $old   = (time - $mtime) > $maxage;
-	if ( -f $path ? ($old and $online) : 1 ) {
+	if ( not $STUBBED and -f $path ? ($old and $online) : 1 ) {
 		# Create the default useragent
 		my $useragent = delete $params{useragent};
 		unless ( $useragent ) {
@@ -195,87 +197,118 @@ sub import {
 	$params{file}     = $db;
 	$params{readonly} = 1;
 
-	# Hand off to the main ORLite class.
-	my $rv = $class->SUPER::import(
-		\%params,
-		$DEBUG ? '-DEBUG' : ()
-	);
-
 	# If and only if they update at connect-time, replace the
 	# original dbh method with one that syncs the database.
 	if ( $update eq 'connect' ) {
+		# Generate the user_version checking fragment
+		my $check_version = '';
+		if ( $params{user_version} ) {
+			$check_version = <<"END_PERL";
+	unless ( \$class->pragma('user_version') == $params{user_version} ) {
+
+	}
+
+END_PERL
+		}
+
+		# Generate the archive decompression fragment
 		my $decompress = '';
 		if ( $path =~ /\.gz$/ ) {
 			$decompress = <<"END_PERL";
 	unless ( \$response->code == 304 and -f \$PATH ) {
+		my \$sqlite = \$class->sqlite;
+		require File::Remove;
+		unless ( File::Remove::remove(\$sqlite) ) {
+			Carp::croak("Error: Failed to flush '\$sqlite'");
+		}
+
 		require IO::Uncompress::Gunzip;
 		IO::Uncompress::Gunzip::gunzip(
-			\$PATH      => \$DB,
+			\$PATH => \$sqlite,
 			BinModeOut => 1,
-		) or Carp::croak("gunzip(\$PATH) failed");
+		) or Carp::croak("Error: gunzip(\$PATH) failed");
 	}
 
 END_PERL
 		} elsif ( $path =~ /\.bz2$/ ) {
 			$decompress = <<"END_PERL";
-	unless ( $response->code == 304 and -f \$PATH ) {
+	unless ( \$response->code == 304 and -f \$PATH ) {
+		my \$sqlite = \$class->sqlite;
+		require File::Remove;
+		unless ( File::Remove::remove(\$sqlite) ) {
+			Carp::croak("Error: Failed to flush '\$sqlite'");
+		}
+
 		require IO::Uncompress::Bunzip2;
 		IO::Uncompress::Bunzip2::bunzip2(
-			\$PATH      => \$DB,
+			\$PATH => \$sqlite,
 			BinModeOut => 1,
-		) or Carp::croak("bunzip2(\$PATH) failed");
+		) or Carp::croak("Error: bunzip2(\$PATH) failed");
 	}
+
 END_PERL
 		}
 
-		my $code = <<"END_PERL";
-package $params{package};
+		# Combine to get the final merged append code
+		$params{append} = <<"END_PERL";
+use Carp ();
 
-use Carp           ();
-use LWP::UserAgent ();
-
-use vars qw{ \$REFRESH };
+use vars qw{ \$REFRESHED };
 BEGIN {
-	\$REFRESH = 0;
+	\$REFRESHED = 0;
 	delete \$$params{package}::{DBH};
 }
 
-my \$DB   = '$db';
 my \$URL  = '$url';
 my \$PATH = '$path';
-
-sub connect {
-	my \$class = shift;
-	unless ( \$REFRESH ) {
-		\$class->refresh(
-			show_progress => $show_progress,
-		);
-	}
-}
 
 sub refresh {
 	my \$class     = shift;
 	my \%param     = \@_;
+	require LWP::UserAgent;
 	my \$useragent = LWP::UserAgent->new(
 		agent         => '$agent',
 		timeout       => 30,
 		show_progress => !! \$param{show_progress},
 	);
 
+	# Flush the existing database
+	require File::Remove;
+	if ( -f \$PATH and not File::Remove::remove(\$PATH) ) {
+		Carp::croak("Error: Failed to flush '\$PATH'");
+	}
+
 	# Fetch the archive
 	my \$response = \$useragent->mirror( \$URL => \$PATH );
 	unless ( \$response->is_success or \$response->code == 304 ) {
-		Carp::croak("Error: Failed to fetch \$URL");
+		Carp::croak("Error: Failed to fetch '\$URL'");
 	}
 
 $decompress
+	\$REFRESHED = 1;
+
+$check_version
 	return 1;
 }
 
+no warnings 'redefine';
+sub connect {
+	my \$class = shift;
+	unless ( \$REFRESHED ) {
+		\$class->refresh(
+			show_progress => $show_progress,
+		);
+	}
+	DBI->connect(\$class->dsn);
+}
 END_PERL
 	}
 
-	return $rv;
+	# Hand off to the main ORLite class.
+	$class->SUPER::import(
+		\%params,
+		$DEBUG ? '-DEBUG' : ()
+	);
 }
 
 1;

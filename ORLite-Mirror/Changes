@@ -1,12 +1,12 @@
 Changes for Perl extension ORLite-Mirror
 
-1.14 to be released
-	- Upgrading to Module::Install::DSL 0.88
+1.14 Mon  1 Jun 2009
+	- Upgrading to Module::Install::DSL 0.91
 	- Adding support for show_progress pass-through to LWP
-
-1.13 Sun 27 Apr 2009
-	- Upgrading to Module::Install 0.85
 	- Add support for generating additional indexes
+	- Fixing the warning when we don't have an existing file
+
+1.13 skipped
 
 1.12 Sat 21 Feb 2009
 	- Adding offline support to the mirror logic

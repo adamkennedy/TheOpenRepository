@@ -12,4 +12,8 @@ use Test::More tests => 3;
 require_ok( 'ORLite::Mirror' );
 require_ok( 't::lib::Test'   );
 
-is( $ORLite::Mirror::VERSION, $t::lib::Test::VERSION, '$VERSION matches' );
+is(
+	$ORLite::Mirror::VERSION,
+	$t::lib::Test::VERSION,
+	'$VERSION matches'
+);
