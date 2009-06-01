@@ -598,14 +598,6 @@ Leaked memory is a useless overhead.
 Leaks can significantly impact system performance.
 They can also cause an application to abend due to lack of memory.
 
-In this document,
-a Perl B<data structure> (often just called a B<structure>)
-is any group of Perl thingies which are
-B<co-mortal> -- expected to be destroyed at the same time.
-Perl structures can be blessed objects,
-hashes, arrays, scalars, references or any combination of these
-with other Perl data types.
-
 In Perl,
 circular references
 are
@@ -628,8 +620,46 @@ in a test suite.
 C<Test::Weaken> allows easy detection of unfreed Perl data.
 C<Test::Weaken> allows you to examine the unfreed data,
 even data which would usually have been made inaccessible.
-It performs this magic by creating a set of
-weakened B<probe references>, as detailed L<below|/"IMPLEMENTATION">.
+
+C<Test::Weaken> frees the test structure, then looks to see if any of the
+contents of the structure were not actually deallocated.  By default,
+C<Test::Weaken> determines the B<contents> of a data structure
+by following references.  C<Test::Weaken> does this recursively to
+unlimited depth.
+
+C<Test::Weaken> can deal with circular references without going
+into infinite loops.
+C<Test::Weaken> will not visit the same Perl data object twice.
+
+=head2 Data Objects, Blessed Objects and Structures
+
+B<Object> is a heavily overloaded term in the Perl world.
+This document will use the term B<Perl data object>
+to refer to a Perl datum of one of the Perl's
+three basic data types (scalar, array and hash).
+An B<object> which has been blessed using the Perl
+C<bless> builtin, will be called a B<blessed object>.
+
+In this document,
+a Perl B<data structure> (often just called a B<structure>)
+is any group of Perl objects which are
+B<co-mortal> -- expected to be destroyed at the same time.
+Since the question is one of I<expected> lifetime,
+whether an object is part of a data structure
+is, in the last analysis, a subjective judgement.
+Perl data structures can be any set of
+hashes, arrays, scalars.
+
+=head2 The Contents of a Data Structure
+
+A B<data structure> almost always has one object
+which is considered the B<top object>.
+The objects
+in the data structure, including the top object,
+are the B<contents> of that data structure.
+The contents of a data structure,
+less the top object,
+are the B<proper contents> of the data structure.
 
 C<Test::Weaken> gets its B<test data structure>,
 or B<test structure>,
@@ -638,88 +668,36 @@ The closure should return
 a reference to the B<test structure>.
 This reference is called the B<test structure reference>.
 
-C<Test::Weaken> frees the test structure, then looks to see if any of the
-contents of the structure were not actually deallocated.  By default,
-C<Test::Weaken> determines the B<contents> of a data structure,
-by following references.  C<Test::Weaken> does this recursively to
-unlimited depth.
+=head2 Followed Objects and Descendants
 
-C<Test::Weaken> can deal with circular references without going
-into infinite loops.
-That's important,
-because a major purpose of C<Test::Weaken> is to test schemes for
-circular references.
-C<Test::Weaken> and will not visit the same Perl data object twice.
-
-=head2 Referenceables and Tracked Data
-
-A B<referenceable> is any Perl data object which can be
-the B<referent> of a B<reference>.
-Two of the three basic Perl data types, 
-hashes and arrays, are always referenceable.
-Data objects of Perl's third basic type,
-scalars, are referenceable if and only if they are not
-elements of an array or hash.
-
-The difference between referenceable is important
-to C<Test::Weaken> because only referenceables hold
-memory independently.
-The memory used by non-referenceables (elements of
-arrays and hashes)
-is always freed when the array or hash is freed.
-
-A B<tracked thingy> is any Perl data object
-that C<Test::Weaken> tracks to see if it is freed
-or not.
-Since only referenceables hold memory independently,
-only referenceables are tracked.
-
-=head2 Followed Thingies and Elements
-
-A Perl data object is B<followed object>
+A Perl data object is called a B<followed object>
 if C<Test::Weaken> examines it during its search for
 objects to track.
-Only referenceables are tracked,
-but both referenceables and elements may be followed.
-References which
-are elements of arrays and hashes are not themselves
-referenceable,
-but B<Test::Weaken> follows them in its
-search for other
-referenceables.
 
-The referenceables that are B<co-mortal>
-with a test data structure
-are called the B<contents> of that data structure.
-Saying that
-a referenceable is co-mortal with a data structure is another
-way of saying that its lifetime is
-expected to end at the same time as the data structure.
-Since the question is one of I<expected> lifetime,
-whether a data structure contains a referenceable
-is in the last analysis subjective.
-
-Elements are known to share the lifetime of the array or hash
-that contains them.
+Elements share the lifetime of their hash or array.
 By default,
-C<Test::Weaken> assumes that referents share the reference's
+C<Test::Weaken> assumes that
+referents share the reference's
 lifetime.
 
 The B<child> of a reference is its referent.
-The B<children> of an array are the referents of those
-of its elements which are references.
-The B<children> of a hash are the referents of those
-of its elements which are references.
+The B<children> of an array are
+its elements.
+The B<children> of a hash are its values.
+
 The descendants of a Perl data object are itself,
 its children, and any children of one of its descendants.
-As a special case,
+Any object, when a second object is its descendant, is
+an B<ancestor> of that second object.
+A data object is considered to be a descendant of itself,
+and also to be one its own ancestors.
+
 By default,
 C<Test::Weaken> also assumes that a test structure's
 descendants are its contents,
 and vice versa.
-
 This assumption, that the contents of a data structure are the same as
-it set of descendants, works
+its set of descendants, works
 for many cases,
 but not for all.
 As one example,
@@ -727,13 +705,13 @@ the assumption is false when globals are
 referenced from a data structure.
 The assumption is also false for inside-out objects.
 
-B<Test::Weaken> has ways to deal with globals and
-other descendants that are not contents.
-These are dealt with in the next section.
-B<Test::Weaken> also has ways to deal with inside-out
+Ways to deal with globals and
+other descendants that are not contents
+These are dealt with in L<the section on persistent objects|"Persistent Objects">.
+Ways to deal with inside-out
 objects and other
-contents which are not descendants.
-These are dealt with in the section after that.
+contents which are not descendants are deal with in
+L<the second on nieces|"Nieces">.
 
 =head2 Persistent Objects
 
@@ -763,40 +741,56 @@ that separates out persistent referenceables "on the fly".
 These methods are described in detail
 L<below|/"ADVANCED TECHNIQUES">.
 
-=head2 Contents That are not Descendants
+=head2 Nieces
 
-Sometimes Perl data objects which
-are not descendants of a data structure 
-are, nonetheless, part of its contents.
-These cases often arise
-when an OO technique call
-"inside-out objects" is used.
+A B<niece data object> (also a B<niece object> or just a B<niece>)
+is a data object that is part of the contents of a data 
+structure,
+but that is not a descendant of the top object of that
+data structure.
+When an OO technique call
+"inside-out objects" is used,
+most of the attributes of the blessed object will be
+nieces.
 
 In C<Test::Weaken>,
-the easiest way to deal with non-descendant contents is to put a
-reference to the data structure you want to test (call it the B<lab rat>)
-in a B<wrapper structure>.
+usually the easiest way to deal with non-descendant contents
+is to make the
+data structure you are trying to test
+the B<lab rat> in a B<wrapper structure>.
 In this scheme,
-your test structure constructor will return the wrapper structure,
-instead of the lab rat.
+your test structure constructor will return a reference
+to the top object of the wrapper structure,
+instead of to the top object of the lab rat.
 
-Usually, the wrapper structure is usually an array.
-The constructor should add Perl data objects to the wrapper
-until the contents of the lab rat are
-exactly the descendants of the wrapper.
-At that point the contents of the lab rat,
+The top object of the wrapper structure will be a B<wrapper array>.
+The wrapper array will contain the top object of the lab rat,
+along with other objects.
+The other objects need to be
+chosen so that the contents of the 
+lab rat and the descendants of the wrapper array
+are identical.
+
+To fill the wrapper array, you need to find ancestor objects
+for any contents of the lab rat that are not descendants of
+the lab rat top object.
+Once you do this, the contents of the lab rat,
 the contents of the wrapper structure,
 and the descendants of the wrapper structure
 will all be the same.
 
-But it is not always easy to find the contents of
-the lab rat in the test structure constructor.
-In particular, finding the contents of the lab rat may
-amount to doing a recursive scan of its descendants,
+But
+it is not always easy to find the right objects to put into the wrapper array.
+In particular, determining the contents of the lab rat may
+require what
+amounts to doing a recursive scan of the descendants of the lab rat's
+top object,
 something C<Test::Weaken> already does.
-So it is also possible to have C<Test::Weaken> add
+
+As an alternative to using a wrapper,
+it is possible to have C<Test::Weaken> add
 contents "on the fly", while it is scanning the lab rat.
-This can be done using the C<contents> named argument,
+This can be done using L<the C<contents> named argument|"contents">,
 which takes a closure as its value.
 
 =head2 Builtin Types
@@ -814,9 +808,9 @@ Objects of builtin type ARRAY and HASH are always both tracked and followed.
 
 =head2 REF Objects
 
-Independent memory objects of builtin type REF are always both tracked and followed.
-Objects of type REF which are elements of an array or a hash
+Objects of builtin type REF which are elements of an array or a hash
 are followed, but are not tracked.
+Other objects of type REF are both tracked and followed.
 
 =head2 CODE Objects
 
@@ -827,18 +821,20 @@ Future versions of C<Test::Weaken> may follow CODE objects.
 
 =head2 SCALAR and VSTRING Objects
 
-Independent objects of builtin types SCALAR and VSTRING are tracked.
-Objects of type SCALAR and VSTRING are independent if and only if they
+Independent objects of builtin types SCALAR and VSTRING are tracked
+if and only if they
 are not array or hash elements.
-SCALAR and VSTRING objects are not followed because there is
-nothing to follow
--- they do not hold references to other objects.
+SCALAR and VSTRING objects are followed.
+Since they do not hold references to other objects, this
+is vacuously true unless the C<contents> named argument is being used.
+In other words, SCALAR and VSTRING objects are followed, but there
+will be nothing to follow if
+the C<contents> named argument is not being used.
 
 =head2 Array and Hash Elements
 
-Elements of arrays and hashes are never tracked,
-because they are not independent memory objects.
-If they are REF objects, they are followed.
+Elements of arrays and hashes are not tracked.
+The are followed if and only if they are REF objects.
 
 =head2 Objects That are Ignored
 
@@ -848,16 +844,24 @@ All objects of builtin types GLOB, IO, FORMAT and LVALUE are ignored.
 All array and hash elements which are not of builtin type REF
 are ignored.
 
-Ignoring GLOB, IO and FORMAT objects
-saves trouble.
-These objects will almost always
-be external.
+There are other good reasons to ignore
+FORMAT, IO and LVALUE references,
+but the main one is 
+C<Data::Dumper>.
+C<Data::Dumper> does not deal with
+FORMAT, IO and LVALUE references gracefully.
+It issues a cryptic warning whenever it encounters one.
+
+GLOB and IO objects
+will almost always be persistent.
 GLOB objects refer to an
 entry in the Perl symbol table,
-which is external.
+which is, of course, persistent.
 Objects of builtin type IO
 are typically associated with GLOB objects.
-FORMAT objects are always global.
+
+FORMAT objects are always global, and therefore
+can be expected to be persistent.
 Use of FORMAT objects is officially deprecated.
 
 An LVALUE object could only be present in the test object
@@ -872,19 +876,6 @@ Here's what one looks like:
 =end Marpa::Test::Display:
 
     \pos($string)
-
-I have not seen LVALUE reference programming deprecated
-anywhere.
-Possibly nobody has found worth his breath to do so.
-
-There is
-another reason that the user might be just as happy not to have
-FORMAT, IO and LVALUE references reported in the results.
-C<Data::Dumper> does not handle them
-gracefully.
-C<Data::Dumper>
-issues a cryptic warning when it encounters a reference to
-FORMAT, IO and LVALUE objects.
 
 Future implementations of Perl may define builtin types
 not known as of this writing.
@@ -933,15 +924,13 @@ The closure-local strategy is safe.
 It is almost always right thing to do.
 C<Test::Weaken> makes it the easy thing to do.
 
-Nothing prevents a user from using a test object constructor
-that refers to data in global or other scopes.
-Nothing prevents a
-test object constructor
-from returning a reference to a test object
+Nothing prevents a user from
+subverting the closure-local strategy.
+A test object constructor
+can refer to data in global or other scopes.
+And a test object constructor
+can return a reference to a test object
 created from data in any scope the user desires.
-Subverting the closure-local strategy takes little effort,
-certainly by comparison to the great amount of trouble
-that the user is exposing herself to.
 
 =head2 Returns and Exceptions
 
@@ -979,8 +968,8 @@ is_file($_, 't/snippet.t', 'leaks snippet')
 =end Marpa::Test::Display:
 
 Returns a
-Perl false if no unfreed memory objects were detected.
-If unfreed memory objects were detected,
+Perl false if no unfreed data objects were detected.
+If unfreed data objects were detected,
 returns an evaluated C<Test::Weaken> class instance.
 
 Instances of the C<Test::Weaken> class, for brevity, are called B<testers>.
