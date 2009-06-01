@@ -18,7 +18,7 @@ use     Params::Util          qw( _IDENTIFIER _STRING            );
 use     File::Spec::Functions qw( catdir                         );
 require Perl::Dist::WiX::Directory;
 
-use version; $VERSION = version->new('0.183')->numify;
+use version; $VERSION = version->new('0.184')->numify;
 #>>>
 #####################################################################
 # Accessors:
@@ -184,6 +184,7 @@ sub initialize_tree {
 		  perl\lib\Devel
 		  perl\lib\Digest
 		  perl\lib\ExtUtils
+		  perl\lib\ExtUtils\MakeMaker
 		  perl\lib\File
 		  perl\lib\Filter
 		  perl\lib\Filter\Util
