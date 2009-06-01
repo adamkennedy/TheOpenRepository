@@ -34,7 +34,7 @@ use ORLite {
 	create => 1,
 	tables => 0,
 	append => 'sub append { 2 }',
-}, -DEBUG;
+};
 
 1;
 END_PERL
