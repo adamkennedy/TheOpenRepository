@@ -158,7 +158,7 @@ and certificates.
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mirror-YAML>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mirror-URI>
 
 For other issues, or commercial enhancement or support, contact the author.
 
@@ -168,11 +168,11 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<YAML::Tiny>
+L<Mirror::JSON>, L<Mirror::CPAN>, L<YAML::Tiny>
 
 =head1 COPYRIGHT
 
-Copyright 2007 - 2008 Adam Kennedy.
+Copyright 2007 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
