@@ -21,7 +21,7 @@ use constant THIRTY_DAYS => 2592000;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04_01';
+	$VERSION = '0.04_02';
 }
 
 
@@ -51,6 +51,9 @@ sub new {
 			}
 			$self->{timestamp} = Time::Local::timegm( $6, $5, $4, $3, $2 - 1, $1 );
 		}
+		if ( $self->{filename} and $self->{filename} ne $self->filename ) {
+			Carp::croak("Invalid or unsupported offset '$self->{filename}'");
+		}
 		my $mirrors = $self->{mirrors};
 		unless ( _ARRAY0($mirrors) ) {
 			croak("Invalid mirror list");
@@ -62,6 +65,11 @@ sub new {
 	}
 
 	return $self;
+}
+
+sub filename {
+	my $class = ref($_[0]) || $_[0];
+	die("$class does not implement filename");
 }
 
 sub class {
@@ -169,7 +177,7 @@ sub get {
 
 	# Find the file within the root path
 	my %self = (
-		uri => URI->new( $class->filename )->abs($base)->canonical,
+		uri => URI->new($class->filename)->abs($base)->canonical,
 	);
 
 	# Pull the file and time it
@@ -186,8 +194,7 @@ sub get {
 		return $class->new( %self, valid => 0 );
 	}
 
-	# Create the object
-	return $class->new( %$hash, %self, valid => 1 );
+	$class->new( %$hash, %self, valid => 1 );
 }
 
 
@@ -247,8 +254,8 @@ sub update {
 
 	# Overwrite the current version with the master
 	foreach ( qw{
-		version uri name master timestamp
-		mirrors valid lastget lag
+		version uri name lastget timestamp
+		mirrors lag valid master
 	} ) {
 		$self->{$_} = delete $master->{$_};
 	}
@@ -264,14 +271,6 @@ sub get_mirrors {
 		$self->get_mirror($_);
 	}
 	return 1;
-}
-
-sub select_mirrors {
-	my $self  = shift;
-	my %param = @_;
-
-	# Check params
-	my $want = 
 }
 
 1;

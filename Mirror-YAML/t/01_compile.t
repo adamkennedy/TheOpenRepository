@@ -2,15 +2,16 @@
 
 # Compile testing for Mirror::URI
 
+use 5.00503;
 use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
 
-use Test::More tests => 3;
-
-ok( $] >= 5.005, "Your perl is new enough" );
+use Test::More tests => 4;
 
 use_ok( 'Mirror::URI'  );
 use_ok( 'Mirror::YAML' );
+use_ok( 'Mirror::JSON' );
+use_ok( 'Mirror::CPAN' );
