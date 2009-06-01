@@ -1,6 +1,6 @@
 package Mirror::JSON;
 
-use 5.00503;
+use 5.006;
 use strict;
 use Mirror::URI ();
 use JSON        ();

@@ -1,6 +1,6 @@
 package Mirror::CPAN;
 
-use 5.00505;
+use 5.006;
 use strict;
 use Mirror::JSON;
 

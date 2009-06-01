@@ -2,7 +2,7 @@
 
 # Compile testing for Mirror::URI
 
-use 5.00503;
+use 5.006;
 use strict;
 BEGIN {
 	$|  = 1;

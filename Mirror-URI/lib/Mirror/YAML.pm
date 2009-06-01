@@ -1,6 +1,6 @@
 package Mirror::YAML;
 
-use 5.00503;
+use 5.006;
 use strict;
 use Mirror::URI       ();
 use Parse::CPAN::Meta ();
