@@ -1,7 +1,12 @@
-Revision history for Perl extension Mirror-YAML
+Revision history for Perl extension Mirror-URI
 
-0.04_02 Tue  2 Jun 2009
+0.90 Tue  2 Jun 2009
+	- Renamed from Mirror-YAML to Mirror-URI
+	- Updated to Module::Install 0.91
 	- Added tests for the file offsets
+	- Merged in and completed Mirror::JSON
+	- Merged in and completed Mirror::CPAN now Andreas is ready
+	  (although it still needs documentation)
 
 0.04_01 Mon  8 Sep 2008
 	- Completely refactored the code

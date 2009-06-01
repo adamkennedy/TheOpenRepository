@@ -21,7 +21,7 @@ use constant THIRTY_DAYS => 2592000;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04_02';
+	$VERSION = '0.90';
 }
 
 

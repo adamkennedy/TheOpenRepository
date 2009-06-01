@@ -7,7 +7,7 @@ use JSON        ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.04_02';
+	$VERSION = '0.90';
 	@ISA     = 'Mirror::URI';
 }
 
