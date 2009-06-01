@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Mirror
 
+1.15 Mon  1 Jun 2009
+	- Add support for using file:// URLs while offline
+
 1.14 Mon  1 Jun 2009
 	- Upgrading to Module::Install::DSL 0.91
 	- Adding support for show_progress pass-through to LWP

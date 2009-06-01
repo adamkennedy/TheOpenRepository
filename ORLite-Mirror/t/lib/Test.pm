@@ -10,7 +10,7 @@ use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.14';
+	$VERSION = '1.15';
 	@ISA     = 'Exporter';
 	@EXPORT  = qw{ test_db mirror_db connect_ok create_ok };
 }
@@ -36,7 +36,8 @@ sub mirror_db {
 	);
 	my $file = shift;
 	$file =~ s/::/-/g;
-	return catfile( $dir, "$file.sqlite" );
+	my $sqlite = catfile( $dir, "$file.sqlite" );
+	return ( $sqlite, "$sqlite.gz", "$sqlite.bz2", "$sqlite.lz" );
 }
 
 sub connect_ok {

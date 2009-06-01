@@ -17,10 +17,7 @@ use URI::file           ();
 use t::lib::Test;
 
 # Flush any existing mirror database file
-clear(
-	mirror_db('ORLite::Mirror::Test4'),
-	mirror_db('ORLite::Mirror::Test4') . '.bz2',
-);
+clear(mirror_db('ORLite::Mirror::Test'));
 
 # Set up the file
 my $file = test_db();
@@ -38,7 +35,7 @@ my $uri = URI::file->new_abs($archive)->as_string;
 
 # Create the test package
 eval <<"END_PERL"; die $@ if $@;
-package ORLite::Mirror::Test4;
+package ORLite::Mirror::Test;
 
 use strict;
 use vars qw{\$VERSION};
@@ -51,20 +48,20 @@ use ORLite::Mirror '$uri';
 
 END_PERL
 
-ok( ORLite::Mirror::Test4->can('dbh'), 'Created database methods' );
-ok( ! ORLite::Mirror::Test4->can('begin'), 'Did not create transaction methods' );
+ok( ORLite::Mirror::Test->can('dbh'), 'Created database methods' );
+ok( ! ORLite::Mirror::Test->can('begin'), 'Did not create transaction methods' );
 
 # Check the ->count method
-is( ORLite::Mirror::Test4::TableOne->count, 3, 'Found 3 rows' );
-is( ORLite::Mirror::Test4::TableOne->count('where col2 = ?', 'bar'), 2, 'Condition count works' );
+is( ORLite::Mirror::Test::TableOne->count, 3, 'Found 3 rows' );
+is( ORLite::Mirror::Test::TableOne->count('where col2 = ?', 'bar'), 2, 'Condition count works' );
 
 # Fetch the rows (list context)
 SCOPE: {
-	my @ones = ORLite::Mirror::Test4::TableOne->select('order by col1');
+	my @ones = ORLite::Mirror::Test::TableOne->select('order by col1');
 	is( scalar(@ones), 3, 'Got 3 objects' );
-	isa_ok( $ones[0], 'ORLite::Mirror::Test4::TableOne' );
-	isa_ok( $ones[1], 'ORLite::Mirror::Test4::TableOne' );
-	isa_ok( $ones[2], 'ORLite::Mirror::Test4::TableOne' );
+	isa_ok( $ones[0], 'ORLite::Mirror::Test::TableOne' );
+	isa_ok( $ones[1], 'ORLite::Mirror::Test::TableOne' );
+	isa_ok( $ones[2], 'ORLite::Mirror::Test::TableOne' );
 	is( $ones[0]->col1, 1,     '->col1 ok' );
 	is( $ones[1]->col1, 2,     '->col1 ok' );
 	is( $ones[2]->col1, 3,     '->col1 ok' );
@@ -75,11 +72,11 @@ SCOPE: {
 
 # Fetch the rows (scalar context)
 SCOPE: {
-	my $ones = ORLite::Mirror::Test4::TableOne->select('order by col1');
+	my $ones = ORLite::Mirror::Test::TableOne->select('order by col1');
 	is( scalar(@$ones), 3, 'Got 3 objects' );
-	isa_ok( $ones->[0], 'ORLite::Mirror::Test4::TableOne' );
-	isa_ok( $ones->[1], 'ORLite::Mirror::Test4::TableOne' );
-	isa_ok( $ones->[2], 'ORLite::Mirror::Test4::TableOne' );
+	isa_ok( $ones->[0], 'ORLite::Mirror::Test::TableOne' );
+	isa_ok( $ones->[1], 'ORLite::Mirror::Test::TableOne' );
+	isa_ok( $ones->[2], 'ORLite::Mirror::Test::TableOne' );
 	is( $ones->[0]->col1, 1,     '->col1 ok' );
 	is( $ones->[1]->col1, 2,     '->col1 ok' );
 	is( $ones->[2]->col1, 3,     '->col1 ok' );
@@ -87,5 +84,5 @@ SCOPE: {
 	is( $ones->[1]->col2, 'bar', '->col2 ok' );
 	is( $ones->[2]->col2, 'bar', '->col2 ok' );
 
-	ok( ! ORLite::Mirror::Test4::TableOne->can('delete'), 'Did not add data manipulation methods' );
+	ok( ! ORLite::Mirror::Test::TableOne->can('delete'), 'Did not add data manipulation methods' );
 }

@@ -18,7 +18,7 @@ use ORLite                   1.22 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.14';
+	$VERSION = '1.15';
 	@ISA     = 'ORLite';
 }
 
@@ -119,11 +119,11 @@ sub import {
 	my $url  = delete $params{url};
 	my $path = ($url =~ /(\.gz|\.bz2)$/) ? "$db$1" : $db;
 
-	# Are we online
-	my $online = LWP::Online::online();
+	# Are we online (fake to true if the URL is local)
+	my $online = !! ( $url =~ /^file:/ or LWP::Online::online() );
 	unless ( $online or -f $path or $stub ) {
 		# Don't have the file and can't get it
-		Carp::croak("Cannot fetch database while offline");
+		Carp::croak("Cannot fetch database without an internet connection");
 	}
 
 	# If the file doesn't exist, sync at compile time.
