@@ -1,8 +1,8 @@
-use inc::Module::Install::DSL 0.90;
+use inc::Module::Install::DSL 0.91;
 
 all_from              lib/ADAMK/Repository.pm
 requires_from         lib/ADAMK/Repository.pm
-requires              Module::Install   0.90
+requires              Module::Install   0.91
 requires              ORDB::CPANUploads 0.01
 requires              ORDB::CPANTesters 0.08
 test_requires         Test::More        0.86
