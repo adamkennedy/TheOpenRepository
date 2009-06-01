@@ -1,7 +1,5 @@
 package Mirror::URI;
 
-# Abstract base module to allow easy extension to other file formats.
-
 use 5.006;
 use strict;
 use Carp         ();
@@ -275,11 +273,45 @@ sub get_mirrors {
 
 1;
 
-# Copyright 2007 - 2009 Adam Kennedy.
-#
-# This program is free software; you can redistribute
-# it and/or modify it under the same terms as Perl itself.
-#
-# The full text of the license can be found in the
-# LICENSE file included with this module.
+__END__
 
+=pod
+
+=head1 NAME
+
+Mirror::URI - Mirror Configuration and Auto-Discovery
+
+=head1 DESCRIPTION
+
+B<Mirror::URI> is an abstract base class for the mirror
+auto-discovery modules L<Mirror::YAML> and L<Mirror::JSON>.
+
+See their documentation for more details.
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Mirror-URI>
+
+For other issues, or commercial enhancement or support, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Mirror::YAML>, L<Mirror::JSON>, L<Mirror::CPAN>
+
+=head1 COPYRIGHT
+
+Copyright 2007 - 2009 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

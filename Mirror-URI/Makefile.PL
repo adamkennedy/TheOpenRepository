@@ -1,6 +1,6 @@
 use inc::Module::Install 0.91;
 
-all_from      'lib/Mirror/YAML.pm';
+all_from      'lib/Mirror/URI.pm';
 requires      'Params::Util'      => '1.00';
 requires      'Parse::CPAN::Meta' => '1.39';
 requires      'JSON'              => '2.13';
