@@ -98,7 +98,7 @@ sub follow {
             }
 
             if ( $object_type eq 'REF' ) {
-                @child_probes = (${$follow_probe});
+                @child_probes = ( ${$follow_probe} );
                 if ( defined $contents ) {
                     my $safe_copy = $follow_probe;
                     push @child_probes,
@@ -122,31 +122,31 @@ sub follow {
 
                 if ( $child_type eq 'REF' ) {
                     $new_follow_probe = $new_tracking_probe =
-                        \${ $child_probe };
+                        \${$child_probe};
                     last DECIDE_TRACK_OR_FOLLOW;
                 }
 
                 if (   $child_type eq 'SCALAR'
                     or $child_type eq 'VSTRING' )
                 {
-                    $new_tracking_probe = \${ $child_probe };
+                    $new_tracking_probe = \${$child_probe};
                     last DECIDE_TRACK_OR_FOLLOW;
                 }
 
                 if ( $child_type eq 'HASH' ) {
                     $new_follow_probe = $new_tracking_probe =
-                        \%{ $child_probe };
+                        \%{$child_probe};
                     last DECIDE_TRACK_OR_FOLLOW;
                 }
 
                 if ( $child_type eq 'ARRAY' ) {
                     $new_follow_probe = $new_tracking_probe =
-                        \@{ $child_probe };
+                        \@{$child_probe};
                     last DECIDE_TRACK_OR_FOLLOW;
                 }
 
                 if ( $child_type eq 'CODE' ) {
-                    $new_tracking_probe = \&{ $child_probe };
+                    $new_tracking_probe = \&{$child_probe};
                     last DECIDE_TRACK_OR_FOLLOW;
                 }
 
@@ -587,8 +587,9 @@ is_file($_, 't/synopsis.t', 'synopsis')
             or Carp::croak("Cannot print to STDOUT: $ERRNO");
         print "These are the probe references to the unfreed objects:\n"
             or Carp::croak("Cannot print to STDOUT: $ERRNO");
-        for my $proberef ( @{$unfreed_proberefs} ) {
-            print Data::Dumper->Dump( [$proberef], ['unfreed'] )
+        for my $ix ( 0 .. $#{$unfreed_proberefs} ) {
+            print Data::Dumper->Dump( [ $unfreed_proberefs->[$ix] ],
+                ["unfreed_$ix"] )
                 or Carp::croak("Cannot print to STDOUT: $ERRNO");
         }
     }
@@ -1256,8 +1257,9 @@ is_file($_, 't/snippet.t', 'unfreed_proberefs snippet')
             or Carp::croak("Cannot print to STDOUT: $ERRNO");
         print "These are the probe references to the unfreed objects:\n"
             or Carp::croak("Cannot print to STDOUT: $ERRNO");
-        for my $proberef ( @{$unfreed_proberefs} ) {
-            print Data::Dumper->Dump( [$proberef], ['unfreed'] )
+        for my $ix ( 0 .. $#{$unfreed_proberefs} ) {
+            print Data::Dumper->Dump( [ $unfreed_proberefs->[$ix] ],
+                ["unfreed_$ix"] )
                 or Carp::croak("Cannot print to STDOUT: $ERRNO");
         }
     }

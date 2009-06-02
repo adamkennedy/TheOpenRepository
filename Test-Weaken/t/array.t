@@ -38,7 +38,8 @@ my $text = "Checking $probe_count objects\n"
 # on the specific hex value of locations
 
 for my $ix ( 0 .. $#{$unfreed_proberefs} ) {
-    $text .= Data::Dumper->Dump( [ $unfreed_proberefs->[$ix] ], ["unfreed_$ix"] );
+    $text .= Data::Dumper->Dump( [ $unfreed_proberefs->[$ix] ],
+        ["unfreed_$ix"] );
 }
 
 Test::Weaken::Test::is( $text, <<'EOS', 'Dump of unfreed arrays' );

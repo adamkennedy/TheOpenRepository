@@ -101,8 +101,9 @@ $test_output = do {
             or Carp::croak("Cannot print to STDOUT: $ERRNO");
         print "These are the probe references to the unfreed objects:\n"
             or Carp::croak("Cannot print to STDOUT: $ERRNO");
-        for my $proberef ( @{$unfreed_proberefs} ) {
-            print Data::Dumper->Dump( [$proberef], ['unfreed'] )
+        for my $ix ( 0 .. $#{$unfreed_proberefs} ) {
+            print Data::Dumper->Dump( [ $unfreed_proberefs->[$ix] ],
+                ["unfreed_$ix"] )
                 or Carp::croak("Cannot print to STDOUT: $ERRNO");
         }
     }
@@ -117,27 +118,27 @@ $test_output = do {
 Test::Weaken::Test::is( $test_output, <<'EOS', 'unfreed_proberefs snippet' );
 3 of 4 references were not freed
 These are the probe references to the unfreed objects:
-$unfreed = [
-             42,
-             711,
-             $unfreed,
-             \$unfreed,
-             \$unfreed
-           ];
-$unfreed = \[
+$unfreed_0 = [
                42,
                711,
-               ${$unfreed},
-               \${$unfreed},
-               $unfreed
+               $unfreed_0,
+               \$unfreed_0,
+               \$unfreed_0
              ];
-$unfreed = \[
-               42,
-               711,
-               ${$unfreed},
-               $unfreed,
-               \${$unfreed}
-             ];
+$unfreed_1 = \[
+                 42,
+                 711,
+                 ${$unfreed_1},
+                 \${$unfreed_1},
+                 $unfreed
+               ];
+$unfreed_2 = \[
+                 42,
+                 711,
+                 ${$unfreed_2},
+                 $unfreed_2,
+                 \${$unfreed_2}
+               ];
 EOS
 
 package Test::Weaken::Test::Snippet::unfreed_count;

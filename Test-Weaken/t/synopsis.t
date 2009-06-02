@@ -63,8 +63,9 @@ if ($tester) {
         or Carp::croak("Cannot print to STDOUT: $ERRNO");
     print "These are the probe references to the unfreed objects:\n"
         or Carp::croak("Cannot print to STDOUT: $ERRNO");
-    for my $proberef ( @{$unfreed_proberefs} ) {
-        print Data::Dumper->Dump( [$proberef], ['unfreed'] )
+    for my $ix ( 0 .. $#{$unfreed_proberefs} ) {
+        print Data::Dumper->Dump( [ $unfreed_proberefs->[$ix] ],
+            ["unfreed_$ix"] )
             or Carp::croak("Cannot print to STDOUT: $ERRNO");
     }
 }
@@ -75,11 +76,18 @@ open STDOUT, q{>&}, $save_stdout;
 
 Test::Weaken::Test::is( $code_output, <<'EOS', 'synopsis output' );
 No leaks in test 1
-Test 2: 1 of 2 original references were not freed
+Test 2: 4 of 5 original references were not freed
 These are the probe references to the unfreed objects:
-$unfreed = [
-             42,
-             711,
-             $unfreed
-           ];
+$unfreed_0 = [
+               42,
+               711,
+               $unfreed_0
+             ];
+$unfreed_1 = \42;
+$unfreed_2 = \711;
+$unfreed_3 = \[
+                 42,
+                 711,
+                 ${$unfreed_3}
+               ];
 EOS

@@ -28,15 +28,17 @@ my $result = q{};
         }
     );
     my $unfreed_proberefs = $test ? $test->unfreed_proberefs() : [];
-    for my $proberef ( @{$unfreed_proberefs} ) {
-        $result .= Data::Dumper->Dump( [$proberef], ['unfreed'] );
+    for my $ix ( 0 .. $#{$unfreed_proberefs} ) {
+        $result .= Data::Dumper->Dump( [ $unfreed_proberefs->[$ix] ],
+            ["unfreed_$ix"] );
     }
     $result .= Data::Dumper->Dump( [$leak], ['leak'] );
 }
 Test::Weaken::Test::is( $result, <<'EOS', 'CPAN Bug ID 42903, example 1' );
-$unfreed = [
-             'abc'
-           ];
+$unfreed_0 = [
+               'abc'
+             ];
+$unfreed_1 = \'abc';
 $leak = [
           'abc'
         ];
@@ -54,21 +56,27 @@ $result = q{};
         }
     );
     my $unfreed_proberefs = $test ? $test->unfreed_proberefs() : [];
-    for my $proberef ( @{$unfreed_proberefs} ) {
-        $result .= Data::Dumper->Dump( [$proberef], ['unfreed'] );
+    for my $ix ( 0 .. $#{$unfreed_proberefs} ) {
+        $result .= Data::Dumper->Dump( [ $unfreed_proberefs->[$ix] ],
+            ["unfreed_$ix"] );
     }
     $result .= Data::Dumper->Dump( [$leak], ['leak'] );
 }
 Test::Weaken::Test::is( $result, <<'EOS', 'CPAN Bug ID 42903, example 2' );
-$unfreed = [
-             'def',
-             [
+$unfreed_0 = [
+               'def',
+               [
+                 'ghi'
+               ]
+             ];
+$unfreed_1 = \'def';
+$unfreed_2 = \[
+                 'ghi'
+               ];
+$unfreed_3 = [
                'ghi'
-             ]
-           ];
-$unfreed = [
-             'ghi'
-           ];
+             ];
+$unfreed_4 = \'ghi';
 $leak = [
           'def',
           [
