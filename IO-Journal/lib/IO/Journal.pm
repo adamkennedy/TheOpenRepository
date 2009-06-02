@@ -5,9 +5,9 @@
 #
 # By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
 #
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
+# This package and its contents are released by the author into the Public
+# Domain, to the full extent permissible by law. For additional information,
+# please see the included `LICENSE' file.
 
 package IO::Journal;
 
@@ -31,41 +31,67 @@ IO::Journal - Perl interface for journalled file operations
 
 =head1 VERSION
 
-Version 0.2 ($Id$)
+Version 0.101 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('0.2');
+use version; our $VERSION = qv('0.101');
+
+=head1 COMPATIBILITY
+
+This module was tested under Perl 5.10.0, using Debian Linux i686. It provides
+some convenience methods similar to C<IO::Handle>, but most of the work is
+based on libjio, which must be installed before this module will compile.
+
+Unfortunately, that may require root access on your system. In the future, an
+C<Alien::> (a la SVN) or C<::Amalgamation> (a la DBD::SQLite) package may help
+streamline this process.
+
+If you encounter any problems on a different version or architecture, please
+contact the maintainer.
 
 =head1 DESCRIPTION
 
 To ensure reliability, some file systems and databases provide support for
 something known as journalling. The idea is to ensure data consistency by
 creating a log of actions to be taken (called a Write Ahead Log) before
-committing them to disk. That way, if a transaction were to fail, the
-write ahead log could be used to finish writing the data.
+committing them to disk. That way, if a transaction were to fail due to a
+system crash or other unexpected event, the write ahead log could be used to
+finish writing the data.
 
-While this functionality is often available with full-fledged databases,
-often it is not completely necessary, yet reliability can be desirable.
-Other times, the filesystem does not provide support for journalling,
-but it can still be desirable. Thankfully, Alberto Bertogli published a
-userspace C library called libjio that can provide these features in a
-small (less than 1500 lines of code) library with no external dependencies.
+While this functionality is often available with networked databases, it can
+be a rather memory- and processor-intensive solution, even where reliable
+writes are important. In other cases, the filesystem does not provide native
+journalling support, so other tricks may be used to ensure data integrity,
+such as writing to a separate temporary file and then overwriting the file
+instead of modifying it in-place. Unfortunately, this method cannot handle
+threaded operations appropriately.
 
-This package has been published as a stub for the actual module and as
-a bit of a land grab. Expect a working version in a few weeks.
+Thankfully, Alberto Bertogli published a userspace C library called libjio
+that can provide these features in a small (less than 1500 lines of code)
+library with no external dependencies.
+
+=head1 NOTICE
+
+This module is currently a B<preview release>. Please, please, PLEASE don't
+use it for production use yet, until all the kinks have been found and
+sorted out.
 
 =head1 SYNOPSIS
 
   use IO::Journal;
 
-  # This is my current idea of what the interface will look like. It
-  # may change prior to the actual release.
-  my $file = IO::Journal->new('filename.txt');
-  $file->print('...');
-  # or
-  print $file ('...');
-  $file->commit;
+  my $journal = IO::Journal->open('>', 'filename.txt');
+
+  # Start a new transaction
+  my $trans = $journal->begin_transaction();
+  $trans->syswrite("Hello");
+  $trans->syswrite("World\n");
+  $trans->commit;
+  # File now contains "Hello World\n"
+
+  $trans->rollback;
+  # File is now blank
 
 =cut
 
@@ -74,12 +100,6 @@ a bit of a land grab. Expect a working version in a few weeks.
 # memory efficient than DynaLoader.
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
-
-sub new {
-  Carp::croak('This package does not have a ->new method. Use open or ' .
-    'sysopen instead.');
-  return;
-}
 
 # In order to mimic the Perl open function, we must map the following Perl
 # flags to their fopen counterparts:
@@ -97,10 +117,10 @@ my %FLAGMAP = (
   # Mode   Unix-style flags
   '<'   => O_RDONLY,
   '+<'  => O_RDWR,
-  '>>'  => O_RDWR | O_CREAT,
-  '+>>' => O_RDWR | O_CREAT,
   '>'   => O_RDWR | O_CREAT | O_TRUNC,
   '+>'  => O_RDWR | O_CREAT | O_TRUNC,
+  '>>'  => O_RDWR | O_CREAT | O_APPEND,
+  '+>>' => O_RDWR | O_CREAT | O_APPEND,
 );
 
 sub open {
@@ -134,6 +154,8 @@ Your name here ;-)
 
 Special thanks to Alberto Bertogli E<lt>albertito@blitiri.com.arE<gt> for
 developing this useful library and for releasing it into the public domain.
+He was very patient while developing this library, and was always open to
+new ideas.
 
 =back
 

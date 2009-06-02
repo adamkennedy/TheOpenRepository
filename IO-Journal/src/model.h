@@ -28,6 +28,7 @@ struct transaction
 {
   journal *journal;
   struct jtrans jtrans;
+  int complete;
 };
 typedef  struct transaction  transaction;
 typedef  transaction  * IO__Journal__Transaction;

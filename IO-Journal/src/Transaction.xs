@@ -32,6 +32,7 @@ new(class, journal)
   INIT:
     Newx(self, 1, transaction); /* allocate 1 transaction instance */
   CODE:
+    self->complete = 0; /* becomes true after a commit or rollback */
     self->journal = journal;
     jtrans_init(&(journal->jfs), &(self->jtrans));
     RETVAL = self;
@@ -57,6 +58,14 @@ syswrite(self, text, ...)
     if (ret > 0) /* If success, advance file pointer */
       jlseek(&(self->journal->jfs), count, SEEK_CUR);
 
+int
+finished(self)
+  IO::Journal::Transaction self
+  CODE:
+    RETVAL = self->complete;
+  OUTPUT:
+    RETVAL
+
 void
 commit(self)
   IO::Journal::Transaction self
@@ -66,6 +75,7 @@ commit(self)
     r = jtrans_commit(&(self->jtrans));
     if (r < 0)
       croak("Error during commit. Data may be lost.");
+    self->complete = 1;
 
 void
 rollback(self)
@@ -76,6 +86,7 @@ rollback(self)
     r = jtrans_rollback(&(self->jtrans));
     if (r < 0)
       croak("Error encountered while rolling back");
+    self->complete = 1;
 
 void
 DESTROY(self)

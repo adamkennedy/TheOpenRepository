@@ -45,13 +45,13 @@ sysopen(class, filename, flags, perms = 0666)
     if (ret < 0)
       croak("Error opening file: %s", filename);
 
+    /* Save the fd for future use */
+    self->fd = ret;
+
     if (flags & O_APPEND)
       jlseek(&(self->jfs), 0, SEEK_END); /* point to end of file */
     else
       jlseek(&(self->jfs), 0, SEEK_SET); /* point to beginning */
-
-    /* Save the fd for future use */
-    self->fd = ret;
 
     RETVAL = self;
   OUTPUT:
@@ -62,22 +62,20 @@ sysread(self, ...)
   IO::Journal self
   PREINIT:
     char *buf;
-    size_t count;
-    off_t offset;
+    size_t count = 1024;
     size_t ret;
   INIT:
-    /* Check if parameters are undefined or not numeric */
-    if (!SvIOK(ST(1))) /* count */
-      count = 1024;
-    else
-      count = SvIV(ST(1));
+    /* count */
+    if (SvIOK(ST(1)))
+      count = (size_t) SvIV(ST(1));
 
     Newx(buf, count, char);
   CODE:
-    if (SvIOK(ST(2))) /* offset */    
-      ret = jread(&(self->jfs), buf, count);
+    /* offset */
+    if (SvIOK(ST(2)))
+      ret = jpread(&(sel->jfs), buf, count, (off_t) SvIV(ST(2)));
     else
-      ret = jpread(&(sel->jfs), buf, count, offset);
+      ret = jread(&(self->jfs), buf, count);
 
     RETVAL = newSVpvn(buf, ret);
   OUTPUT:
