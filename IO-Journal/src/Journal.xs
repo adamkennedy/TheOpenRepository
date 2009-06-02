@@ -73,7 +73,7 @@ sysread(self, ...)
   CODE:
     /* offset */
     if (SvIOK(ST(2)))
-      ret = jpread(&(sel->jfs), buf, count, (off_t) SvIV(ST(2)));
+      ret = jpread(&(self->jfs), buf, count, (off_t) SvIV(ST(2)));
     else
       ret = jread(&(self->jfs), buf, count);
 
