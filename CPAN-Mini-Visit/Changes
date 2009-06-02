@@ -1,5 +1,8 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+0.04 Tue  2 Jun 2009
+	- Including .tgz files
+
 0.03 Wed 27 May 2009
 	- Adding integration with CPAN::Mini
 

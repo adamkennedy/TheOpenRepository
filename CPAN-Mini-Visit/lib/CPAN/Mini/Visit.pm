@@ -72,7 +72,7 @@ use Params::Util      0.36 qw{
 use Archive::Extract  0.30 ();
 use CPAN::Mini       0.576 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -165,7 +165,7 @@ sub run {
 	}
 
 	# Search for the files
-	my $find  = File::Find::Rule->name('*.tar.gz')->file->relative;
+	my $find  = File::Find::Rule->name('*.tar.gz', '*.tgz')->file->relative;
 	my @files = sort $find->in( $self->authors );
 	unless ( $self->acme ) {
 		@files = grep { ! /\bAcme\b/ } @files;
