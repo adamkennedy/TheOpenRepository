@@ -1,4 +1,7 @@
 Changes for Perl extension ORDB-CPANMeta-Generator
 
+0.02 Tue  2 Jun 2009
+	- Adding tgz files and Acme:: namespace to the scan
+
 0.01 Wed 27 May 2009
 	- Creating the initial implementation

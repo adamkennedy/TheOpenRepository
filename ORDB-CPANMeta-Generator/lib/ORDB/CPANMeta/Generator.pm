@@ -37,10 +37,10 @@ use Parse::CPAN::Meta  1.39 ();
 use Params::Util       0.38 qw{_HASH};
 use DBI               1.608 ();
 use CPAN::Mini        0.576 ();
-use CPAN::Mini::Visit  0.03 ();
+use CPAN::Mini::Visit  0.04 ();
 use Xtract::Publish    0.10 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -175,6 +175,7 @@ END_SQL
 	my @meta_dist = ();
 	my @meta_deps = ();
 	my $visitor   = CPAN::Mini::Visit->new(
+		acme     => 1,
 		minicpan => $self->minicpan,
 		callback => sub {
 			print STDERR "$_[0]->{dist}\n" if $self->trace;
