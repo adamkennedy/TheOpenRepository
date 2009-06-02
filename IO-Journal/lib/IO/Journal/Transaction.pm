@@ -21,11 +21,11 @@ IO::Journal::Transaction - Perl interface to IO::Journal transactions
 
 =head1 VERSION
 
-Version 0.2 ($Id$)
+Version 0.101 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('0.2');
+use version; our $VERSION = qv('0.101');
 
 =head1 DESCRIPTION
 
