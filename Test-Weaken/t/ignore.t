@@ -117,14 +117,20 @@ $VAR1 = [
                               ],
                    'name' => 'ereskigal'
                  }, 'MyGlobal' ),
+          \$VAR1->[0]{'array'},
+          \$VAR1->[0]{'name'},
           $VAR1->[0]{'array'},
+          \$VAR1->[0]{'array'}[0],
           bless( {
                    'array' => [
                                 'something for ishtar'
                               ],
                    'name' => 'ishtar'
                  }, 'MyGlobal' ),
-          $VAR1->[2]{'array'}
+          \$VAR1->[5]{'array'},
+          \$VAR1->[5]{'name'},
+          $VAR1->[5]{'array'},
+          \$VAR1->[5]{'array'}[0]
         ];
 EOS
 

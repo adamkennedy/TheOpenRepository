@@ -37,65 +37,103 @@ my $text = "Checking $probe_count objects\n"
 # names for the references, so checking the dump does not depend
 # on the specific hex value of locations
 
-for my $proberef ( @{$unfreed_proberefs} ) {
-    $text .= Data::Dumper->Dump( [$proberef], [qw(unfreed)] );
+for my $ix ( 0 .. $#{$unfreed_proberefs} ) {
+    $text .= Data::Dumper->Dump( [ $unfreed_proberefs->[$ix] ], ["unfreed_$ix"] );
 }
 
 Test::Weaken::Test::is( $text, <<'EOS', 'Dump of unfreed arrays' );
-Checking 7 objects
-6 objects were not freed:
-$unfreed = [
-             \[
-                 \$unfreed,
-                 42,
-                 \$unfreed->[0]
-               ],
-             711,
-             \${$unfreed->[0]}->[0]
-           ];
-$unfreed = \\[
-                 \[
-                     ${$unfreed},
-                     42,
-                     \${${$unfreed}}->[0]
-                   ],
-                 711,
-                 $unfreed
-               ];
-$unfreed = \[
+Checking 13 objects
+12 objects were not freed:
+$unfreed_0 = [
                \[
-                   $unfreed,
+                   \$unfreed_0,
                    42,
-                   \${$unfreed}->[0]
+                   \$unfreed_0->[0]
                  ],
                711,
-               \$unfreed
+               \${$unfreed_0->[0]}->[0]
              ];
-$unfreed = \[
-               \[
-                   $unfreed,
-                   711,
-                   \${$unfreed}->[0]
-                 ],
-               42,
-               \$unfreed
-             ];
-$unfreed = [
-             \[
-                 \$unfreed,
-                 711,
-                 \$unfreed->[0]
-               ],
-             42,
-             \${$unfreed->[0]}->[0]
-           ];
-$unfreed = \\[
-                 \[
-                     ${$unfreed},
+$unfreed_1 = \\[
+                   \[
+                       ${$unfreed_1},
+                       711,
+                       \${${$unfreed_1}}->[0]
+                     ],
+                   42,
+                   \${$unfreed_1}
+                 ];
+$unfreed_2 = \711;
+$unfreed_3 = \\\[
+                     \[
+                         ${${$unfreed_3}},
+                         42,
+                         \${${${$unfreed_3}}}->[0]
+                       ],
                      711,
-                     \${${$unfreed}}->[0]
+                     ${$unfreed_3}
+                   ];
+$unfreed_4 = \\[
+                   \[
+                       ${$unfreed_4},
+                       42,
+                       \${${$unfreed_4}}->[0]
+                     ],
+                   711,
+                   $unfreed_4
+                 ];
+$unfreed_5 = \[
+                 \[
+                     $unfreed_5,
+                     42,
+                     \${$unfreed_5}->[0]
+                   ],
+                 711,
+                 \$unfreed_5
+               ];
+$unfreed_6 = \[
+                 \[
+                     $unfreed_6,
+                     711,
+                     \${$unfreed_6}->[0]
                    ],
                  42,
-                 $unfreed
+                 \$unfreed_6
                ];
+$unfreed_7 = [
+               \[
+                   \$unfreed_7,
+                   711,
+                   \$unfreed_7->[0]
+                 ],
+               42,
+               \${$unfreed_7->[0]}->[0]
+             ];
+$unfreed_8 = \\[
+                   \[
+                       ${$unfreed_8},
+                       42,
+                       \${${$unfreed_8}}->[0]
+                     ],
+                   711,
+                   \${$unfreed_8}
+                 ];
+$unfreed_9 = \42;
+$unfreed_10 = \\\[
+                      \[
+                          ${${$unfreed_10}},
+                          711,
+                          \${${${$unfreed_10}}}->[0]
+                        ],
+                      42,
+                      ${$unfreed_10}
+                    ];
+$unfreed_11 = \\[
+                    \[
+                        ${$unfreed_11},
+                        711,
+                        \${${$unfreed_11}}->[0]
+                      ],
+                    42,
+                    $unfreed_11
+                  ];
 EOS

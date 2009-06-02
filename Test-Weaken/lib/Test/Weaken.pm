@@ -84,89 +84,99 @@ sub follow {
             ## use critic
         }
 
-        if ( $object_type eq 'ARRAY' ) {
-            push @follow_probes, map { \$_ } grep { ref $_ } @{$follow_probe};
-        }
+        my @child_probes = ();
 
-        if ( $object_type eq 'HASH' ) {
-            push @follow_probes,
-                map { \$_ } grep { ref $_ } values %{$follow_probe};
-        }
-
-        if ( defined $contents and $object_type eq 'REF' ) {
-            my $safe_copy = $follow_probe;
-            push @follow_probes,
-                map { \$_ } grep { ref $_ } ( $contents->($safe_copy) );
-        }
-
-        # ignore any IO, FORMAT, LVALUE object or object of a type not listed
-        next FOLLOW_OBJECT if $object_type ne 'REF';
-
-        # if we reach here, $object_type eq 'REF'
-
-        # now figure what kind of object it points to, and put a new probe
-        # in the follow probes, depending on the type
-
-        my $ref_type = Scalar::Util::reftype ${$follow_probe};
-
-        my $new_tracking_probe;
-        my $new_follow_probe;
-
-        SET_UP_PROBES: {
-
-            if ( $ref_type eq 'REF' ) {
-                $new_follow_probe = $new_tracking_probe =
-                    \${ ${$follow_probe} };
-                last SET_UP_PROBES;
+        FIND_CHILDREN: {
+            if ( $object_type eq 'ARRAY' ) {
+                @child_probes = map { \$_ } @{$follow_probe};
+                last FIND_CHILDREN;
             }
 
-            if (   $ref_type eq 'SCALAR'
-                or $ref_type eq 'VSTRING' )
-            {
-                $new_tracking_probe = \${ ${$follow_probe} };
+            if ( $object_type eq 'HASH' ) {
+                @child_probes = map { \$_ } values %{$follow_probe};
+                last FIND_CHILDREN;
             }
 
-            if ( $ref_type eq 'HASH' ) {
-                $new_follow_probe = $new_tracking_probe =
-                    \%{ ${$follow_probe} };
-                last SET_UP_PROBES;
+            if ( $object_type eq 'REF' ) {
+                @child_probes = (${$follow_probe});
+                if ( defined $contents ) {
+                    my $safe_copy = $follow_probe;
+                    push @child_probes,
+                        map { \$_ } ( $contents->($safe_copy) );
+                }
+                last FIND_CHILDREN;
+            } ## end if ( $object_type eq 'REF' )
+
+        } ## end FIND_CHILDREN:
+
+        next FOLLOW_OBJECT if not scalar @child_probes;
+
+        CHILD_PROBE: for my $child_probe (@child_probes) {
+
+            my $child_type = Scalar::Util::reftype $child_probe;
+
+            my $new_tracking_probe;
+            my $new_follow_probe;
+
+            DECIDE_TRACK_OR_FOLLOW: {
+
+                if ( $child_type eq 'REF' ) {
+                    $new_follow_probe = $new_tracking_probe =
+                        \${ $child_probe };
+                    last DECIDE_TRACK_OR_FOLLOW;
+                }
+
+                if (   $child_type eq 'SCALAR'
+                    or $child_type eq 'VSTRING' )
+                {
+                    $new_tracking_probe = \${ $child_probe };
+                    last DECIDE_TRACK_OR_FOLLOW;
+                }
+
+                if ( $child_type eq 'HASH' ) {
+                    $new_follow_probe = $new_tracking_probe =
+                        \%{ $child_probe };
+                    last DECIDE_TRACK_OR_FOLLOW;
+                }
+
+                if ( $child_type eq 'ARRAY' ) {
+                    $new_follow_probe = $new_tracking_probe =
+                        \@{ $child_probe };
+                    last DECIDE_TRACK_OR_FOLLOW;
+                }
+
+                if ( $child_type eq 'CODE' ) {
+                    $new_tracking_probe = \&{ $child_probe };
+                    last DECIDE_TRACK_OR_FOLLOW;
+                }
+
+                # FORMAT, LVALUE, GLOB, IO are not tracked or followed
+
+            } ## end DECIDE_TRACK_OR_FOLLOW:
+
+            push @follow_probes, $new_follow_probe
+                if defined $new_follow_probe;
+
+            next CHILD_PROBE unless defined $new_tracking_probe;
+
+            next CHILD_PROBE if $already_tracked{ $new_tracking_probe + 0 }++;
+
+            if ( defined $ignore ) {
+                my $safe_copy = $new_tracking_probe;
+                next CHILD_PROBE if $ignore->($safe_copy);
             }
 
-            if ( $ref_type eq 'ARRAY' ) {
-                $new_follow_probe = $new_tracking_probe =
-                    \@{ ${$follow_probe} };
-                last SET_UP_PROBES;
-            }
+            if ($trace_tracking) {
+                ## no critic (ValuesAndExpressions::ProhibitLongChainsOfMethodCalls)
+                print {*STDERR} 'Tracking: ',
+                    Data::Dumper->new( [$new_tracking_probe], [qw(tracking)] )
+                    ->Terse(1)->Maxdepth($trace_maxdepth)->Dump
+                    or Carp::croak("Cannot print to STDOUT: $ERRNO");
+                ## use critic
+            } ## end if ($trace_tracking)
+            push @tracking_probes, $new_tracking_probe;
 
-            if ( $ref_type eq 'CODE' ) {
-                $new_tracking_probe = \&{ ${$follow_probe} };
-                last SET_UP_PROBES;
-            }
-
-            # FORMAT, LVALUE, GLOB, IO are not tracked or followed
-
-        } ## end SET_UP_PROBES:
-
-        push @follow_probes, $new_follow_probe if defined $new_follow_probe;
-
-        next FOLLOW_OBJECT unless defined $new_tracking_probe;
-
-        next FOLLOW_OBJECT if $already_tracked{ $new_tracking_probe + 0 }++;
-
-        if ( defined $ignore ) {
-            my $safe_copy = $new_tracking_probe;
-            next FOLLOW_OBJECT if $ignore->($safe_copy);
-        }
-
-        if ($trace_tracking) {
-            ## no critic (ValuesAndExpressions::ProhibitLongChainsOfMethodCalls)
-            print {*STDERR} 'Tracking: ',
-                Data::Dumper->new( [$new_tracking_probe], [qw(tracking)] )
-                ->Terse(1)->Maxdepth($trace_maxdepth)->Dump
-                or Carp::croak("Cannot print to STDOUT: $ERRNO");
-            ## use critic
-        }
-        push @tracking_probes, $new_tracking_probe;
+        } ## end for my $child_probe (@child_probes)
 
     }    # FOLLOW_OBJECT
 
