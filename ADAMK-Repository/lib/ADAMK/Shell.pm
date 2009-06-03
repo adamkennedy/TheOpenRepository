@@ -53,6 +53,7 @@ sub usage {
 	print ADAMK::Util::table(
 		[ 'Command',                         'Params' ],
 		[ 'usage',                                    ],
+		[ 'report_new_modules'                        ],
 		[ 'report_changed_versions'                   ],
 		[ 'report_module_install_versions',           ],
 		[ 'module',                          'MODULE' ],
@@ -138,6 +139,38 @@ sub compare_export_stable {
 
 #####################################################################
 # Reports
+
+sub report_new_modules {
+	my $self = shift;
+
+	my @rows = ();
+	my $repo = $self->repository;
+	$self->trace("Scanning unreleased distributions...\n");
+	foreach my $dist ( $repo->distributions_unreleased ) {
+		# Get the changes value
+		my $changes = undef;
+		if ( $dist->changes_file and -f $dist->changes_file ) {
+			$changes = eval {
+				$dist->changes->current->version
+			};
+			if ( $@ ) {
+				$changes = 'BAD';
+			}
+		}
+
+		push @rows, [
+			$dist->name,
+			$changes,
+			$dist->info->author,
+		];
+	}
+
+	# Generate the table
+	print ADAMK::Util::table(
+		[ 'Name', 'Changes', 'Last Commit By' ],
+		@rows,
+	);
+}
 
 sub report_changed_versions {
 	my $self = shift;
