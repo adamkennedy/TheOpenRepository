@@ -1,7 +1,6 @@
-use inc::Module::Install 0.77;
+use inc::Module::Install 0.91;
 
-all_from      'lib/Debug/Eval.pm';
-requires      'File::Temp' => '0.20';
+all_from      'lib/Devel/Eval.pm';
 test_requires 'Test::More' => '0.42';
 
 WriteAll;

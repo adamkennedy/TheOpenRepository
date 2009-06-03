@@ -1,10 +1,12 @@
 #!/usr/bin/perl
 
+use 5.006;
+use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 1;
 
-ok( $] >= 5.006, 'Perl version is new enough' );
+use_ok( 'Devel::Eval' );
