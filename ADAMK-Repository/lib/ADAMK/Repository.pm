@@ -172,6 +172,19 @@ sub distributions_released {
 	}
 }
 
+sub distributions_unreleased {
+	my $self = shift;
+	if ( @_ ) {
+		return grep {
+			not scalar $_->releases
+		} $self->distributions_like(@_);
+	} else {
+		return grep {
+			not scalar $_->releases
+		} $self->distributions;
+	}
+}
+
 
 
 
