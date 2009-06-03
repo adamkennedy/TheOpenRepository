@@ -6,7 +6,7 @@ use Time::Elapsed     ();
 use CPANDB::Generator ();
 use Xtract::Publish   ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 my $start = time;
 my $cpandb = CPANDB::Generator->new;

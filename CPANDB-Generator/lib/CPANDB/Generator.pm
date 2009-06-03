@@ -44,7 +44,7 @@ use DBI            1.608 ();
 use DBD::SQLite     1.25 ();
 use CPAN::SQLite   0.197 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Object::Tiny 1.06 qw{
 	cpan
