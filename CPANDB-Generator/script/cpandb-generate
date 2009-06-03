@@ -14,7 +14,7 @@ $cpandb->run;
 
 # Publish the database to the current directory
 Xtract::Publish->new(
-	from   => $self->sqlite,
+	from   => $cpandb->sqlite,
 	sqlite => 'cpandb.sqlite',
 	trace  => 1,
 	raw    => 0,
