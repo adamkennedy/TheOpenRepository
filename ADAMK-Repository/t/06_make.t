@@ -34,7 +34,7 @@ isa_ok( $repository, 'ADAMK::Repository' );
 my @versions = (
 	'Config-Tiny'      => undef,
 	'Class-Default'    => 0,
-	'ADAMK-Repository' => '0.90',
+	'ADAMK-Repository' => '0.91',
 );
 while ( @versions ) {
 	my $name     = shift @versions;
