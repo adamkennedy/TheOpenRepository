@@ -48,4 +48,4 @@ Test::More::ok( ( !$test ), 'good destructor' );
 @INSTANCES = ();
 $test = Test::Weaken::leaks( sub { return MyObject->new }, sub { } );
 my $unfreed_count = $test ? $test->unfreed_count() : 0;
-Test::Weaken::Test::is( $unfreed_count, 2, 'no-op destructor' );
+Test::Weaken::Test::is( $unfreed_count, 4, 'no-op destructor' );

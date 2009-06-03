@@ -195,7 +195,7 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'unfreed_count snippet' );
-3 objects were not freed
+8 objects were not freed
 EOS
 
 package Test::Weaken::Test::Snippet::probe_count;
@@ -236,7 +236,7 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'probe_count snippet' );
-3 of 4 objects were not freed
+8 of 9 objects were not freed
 EOS
 
 package Test::Weaken::Test::Snippet::weak_probe_count;
@@ -323,8 +323,8 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'strong_probe_count snippet' );
-2 of 3 strong objects were not freed
-1 of the unfreed strong objects were references
+7 of 8 strong objects were not freed
+4 of the unfreed strong objects were references
 EOS
 
 package Test::Weaken::Test::Snippet::new;
@@ -360,7 +360,7 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'new snippet' );
-0 of 7 objects freed
+0 of 18 objects freed
 EOS
 
 package Test::Weaken::Test::Snippet::test;

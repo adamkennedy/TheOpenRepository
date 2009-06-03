@@ -45,4 +45,4 @@ Test::Weaken::Test::is( $unfreed_count, 0, 'good destructor' );
 
 $test = Test::Weaken::leaks( sub { MyCircular->new }, sub { } );
 $unfreed_count = $test ? $test->unfreed_count() : 0;
-Test::Weaken::Test::is( $unfreed_count, 2, 'null destructor' );
+Test::Weaken::Test::is( $unfreed_count, 5, 'null destructor' );
