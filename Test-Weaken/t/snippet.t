@@ -116,7 +116,7 @@ $test_output = do {
 };
 
 Test::Weaken::Test::is( $test_output, <<'EOS', 'unfreed_proberefs snippet' );
-3 of 4 references were not freed
+8 of 9 references were not freed
 These are the probe references to the unfreed objects:
 $unfreed_0 = [
                42,
@@ -125,19 +125,42 @@ $unfreed_0 = [
                \$unfreed_0,
                \$unfreed_0
              ];
-$unfreed_1 = \[
+$unfreed_1 = \42;
+$unfreed_2 = \711;
+$unfreed_3 = \[
                  42,
                  711,
-                 ${$unfreed_1},
-                 \${$unfreed_1},
-                 $unfreed
+                 ${$unfreed_3},
+                 \${$unfreed_3},
+                 \${$unfreed_3}
                ];
-$unfreed_2 = \[
+$unfreed_4 = \\[
+                   42,
+                   711,
+                   ${${$unfreed_4}},
+                   ${$unfreed_4},
+                   \${${$unfreed_4}}
+                 ];
+$unfreed_5 = \\[
+                   42,
+                   711,
+                   ${${$unfreed_5}},
+                   \${${$unfreed_5}},
+                   ${$unfreed_5}
+                 ];
+$unfreed_6 = \[
                  42,
                  711,
-                 ${$unfreed_2},
-                 $unfreed_2,
-                 \${$unfreed_2}
+                 ${$unfreed_6},
+                 \${$unfreed_6},
+                 $unfreed_6
+               ];
+$unfreed_7 = \[
+                 42,
+                 711,
+                 ${$unfreed_7},
+                 $unfreed_7,
+                 \${$unfreed_7}
                ];
 EOS
 

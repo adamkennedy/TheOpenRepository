@@ -48,8 +48,8 @@ for my $weak_unfreed ( @{$weak_unfreed_array} ) {
 }
 
 Test::Weaken::Test::is( $text, <<'EOS', 'Dump of unfreed arrays' );
-Starting counts: w=2  s=5
-Unfreed counts: w=2  s=4
+Starting counts: w=2  s=11
+Unfreed counts: w=2  s=10
 $strong = [
             \[
                 \$strong,
@@ -59,6 +59,25 @@ $strong = [
             711,
             \${$strong->[0]}->[0]
           ];
+$strong = \\[
+                \[
+                    ${$strong},
+                    711,
+                    \${${$strong}}->[0]
+                  ],
+                42,
+                \${$strong}
+              ];
+$strong = \711;
+$strong = \\\[
+                  \[
+                      ${${$strong}},
+                      42,
+                      \${${${$strong}}}->[0]
+                    ],
+                  711,
+                  ${$strong}
+                ];
 $strong = \[
               \[
                   $strong,
@@ -86,6 +105,25 @@ $strong = [
             42,
             \${$strong->[0]}->[0]
           ];
+$strong = \\[
+                \[
+                    ${$strong},
+                    42,
+                    \${${$strong}}->[0]
+                  ],
+                711,
+                \${$strong}
+              ];
+$strong = \42;
+$strong = \\\[
+                  \[
+                      ${${$strong}},
+                      711,
+                      \${${${$strong}}}->[0]
+                    ],
+                  42,
+                  ${$strong}
+                ];
 $weak = \\[
               \[
                   ${$weak},
