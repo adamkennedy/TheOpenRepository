@@ -49,14 +49,23 @@ sub cpan {
 	$_[0]->{cpan};
 }
 
+sub urllist {
+	$_[0]->{urllist};
+}
+
 sub run {
 	my $self = shift;
 
 	local $SIG{__WARN__} = sub { };
-	CPAN::SQLite->new(
-		CPAN   => $self->cpan,
-		db_dir => $self->cpan,
-	)->index( setup => 1 );
+	my $sqlite = CPAN::SQLite->new(
+		CPAN    => $self->cpan,
+		db_dir  => $self->cpan,
+	);
+	if ( $self->urllist ) {
+		$sqlite->{urllist} = $self->urllist;
+	}
+
+	$sqlite->index( setup => 1 );
 
 	return 1;
 }

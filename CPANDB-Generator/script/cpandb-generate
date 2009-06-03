@@ -2,16 +2,28 @@
 
 use 5.008005;
 use strict;
-use Time::Elapsed 0.26;
-use CPANDB::Generator;
+use Time::Elapsed     ();
+use CPANDB::Generator ();
+use Xtract::Publish   ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 my $start = time;
 my $cpandb = CPANDB::Generator->new;
 $cpandb->run;
+
+# Publish the database to the current directory
+Xtract::Publish->new(
+	from   => $self->sqlite,
+	sqlite => 'cpandb.sqlite',
+	trace  => 1,
+	raw    => 0,
+	gz     => 1,
+	bz2    => 1,
+	lz     => 1,
+)->run;
+
 my $elapsed = Time::Elapsed::elapsed(time - $start);
 print "Run completed in $elapsed\n";
-print "Created " . $cpandb->sqlite . "\n";
 
 exit(0);

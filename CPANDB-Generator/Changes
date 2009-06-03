@@ -1,4 +1,8 @@
 Changes for Perl extension CPANDB-Generator
 
+0.02 Wed  3 Jun 2009
+	- Added Xtract::Publish functionality
+	- Started to integrate ORDB::CPANMeta
+
 0.01 Thu 14 May 2009
 	- Creating initial implementation

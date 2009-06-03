@@ -32,22 +32,23 @@ instead see the L<CPANDB> distribution.
 use 5.008005;
 use strict;
 use warnings;
-use Carp               ();
-use File::Spec    3.30 ();
-use File::Temp    0.21 ();
-use File::Path    2.07 ();
-use File::pushd   1.00 ();
-use File::Remove  1.42 ();
-use File::HomeDir 0.86 ();
-use File::Basename     ();
-use DBI          1.608 ();
-use DBD::SQLite   1.25 ();
-use CPAN::SQLite 0.197 ();
+use Carp                 ();
+use File::Spec      3.30 ();
+use File::Temp      0.21 ();
+use File::Path      2.07 ();
+use File::pushd     1.00 ();
+use File::Remove    1.42 ();
+use File::HomeDir   0.86 ();
+use File::Basename       ();
+use DBI            1.608 ();
+use DBD::SQLite     1.25 ();
+use CPAN::SQLite   0.197 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Object::Tiny 1.06 qw{
 	cpan
+	urllist
 	sqlite
 	dbh
 };
@@ -191,7 +192,8 @@ sub run {
 
 	# Refresh the CPAN index database
 	my $update = CPANDB::Generator::GetIndex->new(
-		cpan => $self->cpan,
+		cpan    => $self->cpan,
+		urllist => $self->urllist,
 	)->delegate;
 	unless ( -f $self->cpandb_sql ) {
 		Carp::croak("Failed to fetch CPAN index");
@@ -201,9 +203,14 @@ sub run {
 	require ORDB::CPANUploads;
 	ORDB::CPANUploads->import;
 
+	# Load the CPAN META.yml database
+	require ORDB::CPANMeta;
+	ORDB::CPANMeta->import;
+
 	# Attach the various databases
-	$self->do( "ATTACH DATABASE ? AS cpandb", {}, $self->cpandb_sql );
+	$self->do( "ATTACH DATABASE ? AS cpandb", {}, $self->cpandb_sql         );
 	$self->do( "ATTACH DATABASE ? AS upload", {}, ORDB::CPANUploads->sqlite );
+	$self->do( "ATTACH DATABASE ? AS meta",   {}, ORDB::CPANMeta->sqlite    );
 
 	# Pre-process the cpandb data to produce cleaner intermediate
 	# temp tables that produce better joins later on.
@@ -303,8 +310,6 @@ FROM
 WHERE
 	d.dist_id = m.dist_id
 END_SQL
-
-	# Load
 
 	return 1;
 }
