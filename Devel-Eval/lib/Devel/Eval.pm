@@ -43,8 +43,8 @@ BEGIN {
 	$VERSION = '1.00';
 	@ISA     = 'Exporter';
 	@EXPORT  = 'dval';
-	$TRACE   = 'STDERR' unless defined $TRACE;
-	$UNLINK  = 1        unless defined $UNLINK;
+	$TRACE   = '' unless defined $TRACE;
+	$UNLINK  = 1  unless defined $UNLINK;
 }
 
 =pod
