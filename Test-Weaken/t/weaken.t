@@ -76,11 +76,12 @@ Test::Weaken::Test::is(
                 my $y = [ \$x ];
                 my $z = { k1 => \$y };
                 $x = \$z;
-                [ $x, $y, $z ];
+                my $result = [ $x, $y, $z ];
+                $result;
             }
         )
     ),
-    'total: weak=0; strong=7; unfreed: weak=0; strong=5',
+    'total: weak=0; strong=12; unfreed: weak=0; strong=7',
     'Bad Complicated Cycle'
 );
 
@@ -92,11 +93,12 @@ Test::Weaken::Test::is(
                 my $y = [ \$x ];
                 my $z = { k1 => \$y };
                 weaken( $x = \$z );
-                [ $x, $y, $z ];
+                my $result = [ $x, $y, $z ];
+                $result;
             }
         )
     ),
-    'total: weak=1; strong=6; unfreed: weak=0; strong=0',
+    'total: weak=1; strong=11; unfreed: weak=0; strong=0',
     'Fixed Complicated Cycle'
 );
 
