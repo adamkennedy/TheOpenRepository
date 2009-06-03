@@ -1,0 +1,108 @@
+=head1 NAME
+
+CPANDB::Module - CPANDB class for the module table
+
+=head1 SYNOPSIS
+
+  TO BE COMPLETED
+
+=head1 DESCRIPTION
+
+TO BE COMPLETED
+
+=head1 METHODS
+
+=head2 select
+
+  # Get all objects in list context
+  my @list = CPANDB::Module->select;
+  
+  # Get a subset of objects in scalar context
+  my $array_ref = CPANDB::Module->select(
+      'where module > ? order by module',
+      1000,
+  );
+
+The C<select> method executes a typical SQL C<SELECT> query on the
+module table.
+
+It takes an optional argument of a SQL phrase to be added after the
+C<FROM module> section of the query, followed by variables
+to be bound to the placeholders in the SQL phrase. Any SQL that is
+compatible with SQLite can be used in the parameter.
+
+Returns a list of B<CPANDB::Module> objects when called in list context, or a
+reference to an ARRAY of B<CPANDB::Module> objects when called in scalar context.
+
+Throws an exception on error, typically directly from the L<DBI> layer.
+
+=head2 count
+
+  # How many objects are in the table
+  my $rows = CPANDB::Module->count;
+  
+  # How many objects 
+  my $small = CPANDB::Module->count(
+      'where module > ?',
+      1000,
+  );
+
+The C<count> method executes a C<SELECT COUNT(*)> query on the
+module table.
+
+It takes an optional argument of a SQL phrase to be added after the
+C<FROM module> section of the query, followed by variables
+to be bound to the placeholders in the SQL phrase. Any SQL that is
+compatible with SQLite can be used in the parameter.
+
+Returns the number of objects that match the condition.
+
+Throws an exception on error, typically directly from the L<DBI> layer.
+
+=head1 ACCESSORS
+
+=head2 module
+
+  if ( $object->module ) {
+      print "Object has been inserted\n";
+  } else {
+      print "Object has not been inserted\n";
+  }
+
+Returns true, or throws an exception on error.
+
+
+REMAINING ACCESSORS TO BE COMPLETED
+
+=head1 SQL
+
+The module table was originally created with the
+following SQL command.
+
+  CREATE TABLE module (
+  	module TEXT NOT NULL PRIMARY KEY,
+  	version TEXT NULL,
+  	distribution TEXT NOT NULL,
+  	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution )
+  )
+
+=head1 SUPPORT
+
+CPANDB::Module is part of the L<CPANDB> API.
+
+See the documentation for L<CPANDB> for more information.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2009 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
