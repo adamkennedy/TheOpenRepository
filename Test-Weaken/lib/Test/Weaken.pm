@@ -1411,6 +1411,23 @@ the count returned by C<unfreed_count>.
 
 =head2 Tracing Leaks
 
+=head3 Avoidance
+
+C<Test::Weaken> makes tracing leaks easier, but avoidance is
+still by far the best way,
+and C<Test::Weaken> help with that.
+You should be using test-driven development, L<Test::More>
+modular tests in a C<t/> subdirectory,
+and revision control.
+
+Make C<Test::Weaken> part of your testing and test frequently.
+If you test often, when a leak occurs, you'll know the changes
+you just made.
+Memory, perhaps aided by desk-checking,
+will often tell you where you introduced the leak.
+
+=head3 Adding Tags
+
 The C<unfreed_proberefs> method returns an array containing
 probes to
 the unfreed
@@ -1420,6 +1437,8 @@ to find the source of leaks.
 If circumstances allow it,
 you might find it useful to add "tag" elements to arrays and hashes
 to aid in identifying the source of a leak.
+
+=head3 Identifying Data Objects using Referent Addresses
 
 You can quasi-uniquely identify data objects using
 the referent addresses of the probe references.
@@ -1439,27 +1458,28 @@ It is the referent address that interests us here and,
 happily, it is
 the referent address that both zero addition and C<refaddr> return.
 
+=head3 Other Techniques
 Sometimes, when you are interested in why an object is not being freed,
 you want to seek out the reference
 that keeps the object's refcount above zero.
 Kevin Ryde reports that L<Devel::FindRef>
 can be useful for this.
 
-=head2 Quasi-unique Addresses and Indiscernable Objects
+=head2 More about Quasi-unique Addresses: Indiscernable Objects
 
 I call referent addresses "quasi-unique", because they are only
 unique at a
 specific point in time.
 Once an object is freed, its address can be reused.
 Absent other evidence,
-an object with a given referent address
+a data object with a given referent address
 is not 100% certain to be
 the same object
 as the object that had the same address earlier.
 This can bite you
 if you're not careful.
 
-To be sure an earlier object and a later object with the same address
+To be sure an earlier data object and a later object with the same address
 are actually the same object,
 you need to know that the earlier object will be persistent,
 or to compare the two objects.
@@ -1469,10 +1489,11 @@ It is possible that two indiscernable
 (that is, completely identical)
 objects with the same referent address are different in the following
 sense:
-the first object might have been destroyed and a second, identical,
+the first data object might have been destroyed
+and a second, identical,
 object created at the same address.
 But for most practical programming purposes,
-two indiscernable objects can be regarded as the same object.
+two indiscernable data objects can be regarded as the same object.
 
 =head2 Debugging Ignore Subroutines
 
@@ -1624,8 +1645,6 @@ By default, C<Test::Weaken> exports nothing.  Optionally, C<leaks> may be export
 
 =head1 IMPLEMENTATION
 
-=head2 Overview
-
 C<Test::Weaken> first recurses through the test structure.
 Starting from the test structure reference,
 it follows and tracks objects recursively,
@@ -1701,7 +1720,8 @@ L<http://search.cpan.org/dist/Test-Weaken>
 =head1 SEE ALSO
 
 Potential users will want to compare L<Test::Memory::Cycle> and
-L<Devel::Cycle>, which examine existing structures non-destructively.
+L<Devel::Cycle>, which examine
+existing data structures non-destructively.
 L<Devel::Leak> also covers similar ground, although it requires
 Perl to be compiled with C<-DDEBUGGING> in order to work.  L<Devel::Cycle>
 looks inside closures if PadWalker is present, a feature C<Test::Weaken>
@@ -1716,7 +1736,8 @@ test cases and other ideas.
 After the first release of C<Test::Weaken>,
 Kevin Ryde made several important suggestions
 and provided test cases.
-These provided the impetus for version 2.000000.
+These provided the impetus
+for version 2.000000 and 4.000000.
 
 =head1 LICENSE AND COPYRIGHT
 
