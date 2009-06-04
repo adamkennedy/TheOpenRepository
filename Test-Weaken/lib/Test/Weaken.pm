@@ -630,7 +630,7 @@ in a test suite.
 
 C<Test::Weaken> allows easy detection of unfreed Perl data.
 C<Test::Weaken> allows you to examine the unfreed data,
-even data which would usually have been made inaccessible.
+even data that would usually have been made inaccessible.
 
 C<Test::Weaken> frees the test structure, then looks to see if any of the
 contents of the structure were not actually deallocated.  By default,
@@ -646,25 +646,26 @@ C<Test::Weaken> will not visit the same Perl data object twice.
 
 B<Object> is a heavily overloaded term in the Perl world.
 This document will use the term B<Perl data object>
+or B<data object>
 to refer to a Perl datum of one of the Perl's
 three basic data types (scalar, array and hash).
-An B<object> which has been blessed using the Perl
+An B<object> that has been blessed using the Perl
 C<bless> builtin, will be called a B<blessed object>.
 
 In this document,
 a Perl B<data structure> (often just called a B<structure>)
-is any group of Perl objects which are
+is any group of Perl objects that are
 B<co-mortal> -- expected to be destroyed at the same time.
 Since the question is one of I<expected> lifetime,
 whether an object is part of a data structure
-is, in the last analysis, a subjective judgement.
+is, in the last analysis, subjective.
 Perl data structures can be any set of
-hashes, arrays, scalars.
+Perl data objects.
 
 =head2 The Contents of a Data Structure
 
 A B<data structure> almost always has one object
-which is considered the B<top object>.
+that is considered the B<top object>.
 The objects
 in the data structure, including the top object,
 are the B<contents> of that data structure.
@@ -682,61 +683,56 @@ This reference is called the B<test structure reference>.
 =head2 Followed Objects and Descendants
 
 A Perl data object is called a B<followed object>
-if C<Test::Weaken> examines it during its search for
-objects to track.
+if C<Test::Weaken> examines it while it is looking for
+the contents of the test data structure.
+By default, C<Test::Weaken> determines the contents by recursing
+through the
+descendants of the top object of the test data structure.
 
-Elements share the lifetime of their hash or array.
-By default,
-C<Test::Weaken> assumes that
-referents share the reference's
-lifetime.
-
+The B<descendants> of a Perl data object are itself,
+its children, and any children of one of its descendants.
 The B<child> of a reference is its referent.
 The B<children> of an array are
 its elements.
 The B<children> of a hash are its values.
 
-The descendants of a Perl data object are itself,
-its children, and any children of one of its descendants.
-Any object, when a second object is its descendant, is
-an B<ancestor> of that second object.
+If one data object is the descendant of a second object,
+then the second data object is an B<ancestor> of the first object,
+and vice versa.
 A data object is considered to be a descendant of itself,
 and also to be one its own ancestors.
 
-By default,
-C<Test::Weaken> also assumes that a test structure's
-descendants are its contents,
-and vice versa.
-This assumption, that the contents of a data structure are the same as
-its set of descendants, works
+C<Test::Weaken>'s default assumption,
+that the contents of a data structure are the same as
+its descendants, works
 for many cases,
 but not for all.
 As one example,
-the assumption is false when globals are
+the default assumption is false when globals are
 referenced from a data structure.
-The assumption is also false for inside-out objects.
+The default assumption is also false for inside-out objects.
 
-Ways to deal with globals and
-other descendants that are not contents
-These are dealt with in L<the section on persistent objects|"Persistent Objects">.
+Ways to deal with globals, and
+other descendants that are not contents,
+are dealt with in L<the section on persistent objects|"Persistent Objects">.
 Ways to deal with inside-out
-objects and other
-contents which are not descendants are deal with in
-L<the second on nieces|"Nieces">.
+objects, and other
+contents that are not descendants, are deal with in
+L<the section on nieces|"Nieces">.
 
 =head2 Persistent Objects
 
-As a practical matter, a descendant which is not
+As a practical matter, a descendant that is not
 part of a test structure is only a problem
 if its lifetime extends beyond that of the test
 structure.
-A descendant which stays around after
-the test object is called a B<persistent object>.
+A descendant that stays around after
+the test structure is called a B<persistent object>.
 
 A persistent object is not a memory leak.
 That's the problem.
 C<Test::Weaken> is trying to find memory leaks
-and it looks for any contents which remain
+and it looks for any contents that remain
 after the test structure is freed.
 But a persistent object is not expected to
 disappear when the test structure goes away.
@@ -790,17 +786,16 @@ the contents of the wrapper structure,
 and the descendants of the wrapper structure
 will all be the same.
 
-But
-it is not always easy to find the right objects to put into the wrapper array.
+It is not always easy to find the right objects to put into the wrapper array.
 In particular, determining the contents of the lab rat may
 require what
-amounts to doing a recursive scan of the descendants of the lab rat's
+amounts to a recursive scan of the descendants of the lab rat's
 top object,
 something C<Test::Weaken> already does.
 
 As an alternative to using a wrapper,
 it is possible to have C<Test::Weaken> add
-contents "on the fly", while it is scanning the lab rat.
+contents "on the fly," while it is scanning the lab rat.
 This can be done using L<the C<contents> named argument|"contents">,
 which takes a closure as its value.
 
@@ -813,123 +808,108 @@ C<Scalar::Util::reftype> differs from Perl's C<ref> function.
 If an object was blessed into a package, C<ref> returns the package name,
 while C<reftype> returns the original builtin type of the object.
 
-=head2 ARRAY and HASH Objects
+=head2 ARRAY, HASH, and REF Objects
 
-Objects of builtin type ARRAY and HASH are always both tracked and followed.
+Objects of builtin type
+ARRAY, HASH, REF, SCALAR and VSTRING
+are always both tracked and followed.
 
-=head2 REF Objects
+=head2 SCALAR and VSTRING Objects
 
-Objects of builtin type REF which are elements of an array or a hash
-are followed, but are not tracked.
-Other objects of type REF are both tracked and followed.
+Objects of builtin type SCALAR and VSTRING 
+are tracked.
+Internally, they do not hold references
+to other Perl data objects,
+so they are not followed.
 
 =head2 CODE Objects
 
 Objects of type CODE are tracked but are not followed.
 This can be seen as a limitation, because
-closures hold references to memory objects.
+closures hold references to data objects.
 Future versions of C<Test::Weaken> may follow CODE objects.
-
-=head2 SCALAR and VSTRING Objects
-
-Independent objects of builtin types SCALAR and VSTRING are tracked
-if and only if they
-are not array or hash elements.
-SCALAR and VSTRING objects are followed.
-Since they do not hold references to other objects, this
-is vacuously true unless the C<contents> named argument is being used.
-In other words, SCALAR and VSTRING objects are followed, but there
-will be nothing to follow if
-the C<contents> named argument is not being used.
-
-=head2 Array and Hash Elements
-
-Elements of arrays and hashes are not tracked.
-The are followed if and only if they are REF objects.
 
 =head2 Objects That are Ignored
 
 An object is said to be B<ignored> if it is neither
 tracked or followed.
 All objects of builtin types GLOB, IO, FORMAT and LVALUE are ignored.
-All array and hash elements which are not of builtin type REF
-are ignored.
 
-There are other good reasons to ignore
-FORMAT, IO and LVALUE references,
-but the main one is 
-C<Data::Dumper>.
+There are several good reasons to ignore
+FORMAT, IO and LVALUE objects.
+The main one is that
 C<Data::Dumper> does not deal with
-FORMAT, IO and LVALUE references gracefully.
-It issues a cryptic warning whenever it encounters one.
+them gracefully.
+C<Data::Dumper>
+issues a cryptic warning whenever it encounters a
+FORMAT, IO or LVALUE object.
+Since C<Data::Dumper> is a Perl code module
+in extremely wide use, this suggest these three
+objects types are, to put it mildly, unusual in
+data structures.
 
-GLOB and IO objects
-will almost always be persistent.
-GLOB objects refer to an
-entry in the Perl symbol table,
-which is, of course, persistent.
+GLOB objects are ignored
+because they refer
+to an entry in the Perl symbol table.
+The Perl symbol table is, of course, persistent.
+GLOB objects will typically be persistent also.
 Objects of builtin type IO
-are typically associated with GLOB objects.
+are typically associated with GLOB objects,
+and this is a second reason to ignore IO objects.
 
-FORMAT objects are always global, and therefore
+There are a couple other reasons to ignore FORMAT
+objects.
+They are always global, and therefore
 can be expected to be persistent.
-Use of FORMAT objects is officially deprecated.
+And use of FORMAT objects is officially deprecated.
 
-An LVALUE object could only be present in the test object
-through a reference.
-LVALUE references are rare.
-Here's what one looks like:
+Objects
+in future implementations of Perl
+may have builtin types
+not described above.
+They will also be ignored.
 
-=begin Marpa::Test::Display:
+=head2 Why the Test Structure is Passed via a Closure
 
-## skip display
-
-=end Marpa::Test::Display:
-
-    \pos($string)
-
-Future implementations of Perl may define builtin types
-not known as of this writing.
-Objects which do not fall into any of the types described above
-will not be tracked or followed.
-
-=head2 Why the Test Object is Passed via a Closure
-
-C<Test::Weaken> gets its test object
+C<Test::Weaken> gets its test structure
 indirectly,
 as the return value from a
-B<test object constructor>.
+B<test structure constructor>.
 Why so roundabout?
 
 Because the indirect way is the easiest.
 When you
-create the test object
+create the test structure
 in C<Test::Weaken>'s calling environment,
 it takes a lot of craft to avoid
 leaving
-unintended references to the test object in that calling environment.
+unintended references to the test structure in that calling environment.
 It is easy to get this wrong.
 
-When the calling environment retains a reference to an object inside the test object,
+When the calling environment retains a reference
+to a data object inside the test structure,
 the result usually appears as a memory leak.
 In other words,
-mistakes in setting up the test object
-create memory leaks which are artifacts of the test environment.
+mistakes in setting up the test structure
+create memory leaks that are artifacts of the test environment.
 These artifacts are very difficult to sort out from the real thing.
 
-The easiest way to avoid leaving unintended references to memory inside
-the test object is to work entirely within a closure,
-using
-only objects local to that closure.
-Memory objects local to a closure will be destroyed when the
+The B<closure-local strategy> is the easiest way
+to avoid leaving unintended references to the
+contents of Perl data objects.
+Using the closure-local strategy means working
+entirely within a closure,
+using only data objects local to that closure.
+Data objects local to a closure will be destroyed when the
 closure returns, and any references they held will be released.
 The closure-local strategy makes
 it relatively easy to be sure that nothing is left behind
-that will hold an unintended reference to memory inside the test
-object.
+that will hold an unintended reference
+to any of the contents
+of the test structure.
 
 To help the user to follow the closure-local strategy,
-C<Test::Weaken> requires that its test object reference
+C<Test::Weaken> requires that its test structure reference
 be the return value of a closure.
 The closure-local strategy is safe.
 It is almost always right thing to do.
@@ -937,11 +917,11 @@ C<Test::Weaken> makes it the easy thing to do.
 
 Nothing prevents a user from
 subverting the closure-local strategy.
-A test object constructor
+A test structure constructor
 can refer to data in global or other scopes.
-And a test object constructor
-can return a reference to a test object
-created from data in any scope the user desires.
+And a test structure constructor
+can return a reference to a test structure
+created from Perl data objects in any scope the user desires.
 
 =head2 Returns and Exceptions
 
@@ -988,7 +968,7 @@ An B<evaluated> tester is one on which the
 tests have been run,
 and for which results are available.
 
-Users who only want to know if there were unfreed objects can
+Users who only want to know if there were unfreed data objects can
 test the return value of C<leaks> for Perl true or false.
 Arguments to the C<leaks> static method may be passed as a reference to
 a hash of named arguments,
@@ -998,41 +978,41 @@ or directly as code references.
 
 =item constructor
 
-The B<test object constructor> is a required argument.
+The B<test structure constructor> is a required argument.
 It must be a code reference.
 When the arguments are passed directly as code references,
-the test object constructor must be the first argument to C<leaks>.
+the test structure constructor must be the first argument to C<leaks>.
 When named arguments are used,
-the test object constructor must be the value of the C<constructor> named argument.
+the test structure constructor must be the value of the C<constructor> named argument.
 
-The test object constructor
-should build the test object
+The test structure constructor
+should build the test structure
 and return a reference to it.
 It is best to follow strictly the closure-local strategy,
 as described above.
 
 =item destructor
 
-The B<test object destructor> is an optional argument.
+The B<test structure destructor> is an optional argument.
 If specified, it must be a code reference.
 When the arguments are passed directly as code references,
-the test object destructor is the second, optional, argument to C<leaks>.
+the test structure destructor is the second, optional, argument to C<leaks>.
 When named arguments are used,
-the test object destructor must be the value of the C<destructor> named argument.
+the test structure destructor must be the value of the C<destructor> named argument.
 
 If specified,
-the test object destructor is called
-just before the test object reference is undefined.
+the test structure destructor is called
+just before the test structure reference is undefined.
 It will be passed one argument,
-the test object reference.
-The return value of the test object destructor is ignored.
+the test structure reference.
+The return value of the test structure destructor is ignored.
 
-Some test objects require
+Some test structures require
 a destructor to be called when
 they are freed.
 The primary purpose for
-the test object destructor is to enable
-C<Test::Weaken> to work with these objects.
+the test structure destructor is to enable
+C<Test::Weaken> to work with these data structures.
 
 =item ignore
 
@@ -1082,12 +1062,12 @@ large or complicated sub-objects need to be filtered out of the results.
 When specified, the value of the C<ignore> argument must be a
 reference to a callback subroutine.
 The subroutine will be called once
-for every independent memory object when it is about
+for every Perl data object when it is about
 to be tracked,
-and once for every object when it is about to be
+and once for every data object when it is about to be
 followed.
 The C<ignore> callback is called with
-a probe reference to the object which is about to be
+a probe reference to the Perl data object that is about to be
 tracked or followed as
 its only argument.
 Everything that is referred to, directly or indirectly,
@@ -1098,10 +1078,10 @@ callback.
 The result of modifying the probe referents might be
 an exception, an abend, an infinite loop, or erroneous results.
 
-The callback subroutine should return Perl true if the probe reference is
+The callback subroutine should return a Perl true value if the probe reference is
 to an object that should be ignored --
 that is, neither followed or tracked.
-Otherwise the callback subroutine should return a Perl false.
+Otherwise the callback subroutine should return a Perl false value.
 
 For safety, C<Test::Weaken> does not pass its internal
 probe reference
@@ -1112,8 +1092,8 @@ This prevents the user
 altering
 the probe reference itself.
 However,
-the object referred to by the probe reference is not copied.
-The probe referent is the original object and if it
+the data object referred to by the probe reference is not copied.
+The probe referent is the original data object and if it
 is altered, all bets are off.
 
 C<ignore> callbacks are best kept simple.
@@ -1174,32 +1154,28 @@ is_file($_, 't/contents.t', 'contents named arg snippet')
 
 The B<contents> argument is optional.
 It can be used to tell C<Test::Weaken> about additional
-in-objects which need to be followed.
+Perl data objects that need to be followed in order to find
+all of the contents of the test data structure.
 Use of the C<contents> argument should be avoided
 when possible.
 Instead of using the C<contents> argument, it is
 often possible to have the constructor
-create a reference to a test "meta-object".
-The meta-object is an array containing not only the
-original test object, but as many of the outside in-objects
-as are needed to guarantee that all in-objects in the lab rat object
-are children of objects in the meta-object.
+create a reference to a "wrapper structure",
+L<as described above in the section on nieces|Nieces>.
 
-The C<contents> argument is for situations where the "meta-object"
+The C<contents> argument is for situations where the "wrapper structure"
 technique is not practical.
 If, for example,
-creating the meta-object would involve a difficult recursive
+creating the wrapper structure would involve a recursive
 descent through the lab rat object,
 using the C<contents> argument may be easiest.
 
 When specified, the value of the C<contents> argument must be a
 reference to a callback subroutine.
-The subroutine will be called once
-for every reference when it is about
-to be followed.
-The C<contents> callback is called with
-a probe reference to the object which is about to be
-followed as its only argument.
+The C<contents> callback is called with one argument.
+This argument is a probe reference to an object
+that is about to be
+followed.
 Everything that is referred to, directly or indirectly,
 by this
 probe reference
@@ -1209,8 +1185,8 @@ The result of modifying the probe referents might be
 an exception, an abend, an infinite loop, or erroneous results.
 
 The callback subroutine will be evaluated in array context.
-It should return a list of all the additional objects
-which are to be followed.
+It should return a list of additional Perl data objects
+to be followed.
 This list may be empty.
 
 For safety, C<Test::Weaken> does not pass its internal
@@ -1222,16 +1198,14 @@ This prevents the user
 altering
 the probe reference itself.
 However,
-the object referred to by the probe reference is not copied.
-The probe referent is the original object and if it
+the data object referred to by the probe reference is not copied.
+The probe referent is the original data object and if it
 is altered, all bets are off.
 
-C<contents> callbacks are best avoided.
-When practical, have the test object constructor
-return a reference to a "meta-object" which is the
-parent of all in-objects.
-C<contents> callbacks 
-can also be a significant overhead.
+The C<contents> callbacks is
+called once for every reference that it is about
+to be followed.
+This can be a significant overhead.
 
 =back
 
@@ -1270,29 +1244,14 @@ is_file($_, 't/snippet.t', 'unfreed_proberefs snippet')
 
 =end Marpa::Test::Display:
 
-Returns a reference to an array of probe references to the unfreed objects.
+Returns a reference to an array of probe references to the unfreed data objects.
 Throws an exception if there is a problem,
 for example if the tester has not yet been evaluated.
 
-Often, this data is examined
+Often, the return value is examined
 to pinpoint the source of a leak.
-A user may also analyze this data to produce her own statistics about unfreed objects.
-
-The array is returned as a reference because in some applications it can be quite long.
-The array contains the probe references to the unfreed independent memory objects.
-
-The array contains probe references rather than the objects themselves,
-because it is not always possible to copy
-the independent
-objects directly into the array.
-Arrays and hashes cannot be copied into individual
-array elements --
-references to them are the best that can be done.
-
-Even when copying is possible, it destroys important information.
-The original address of the copied object may be important for identifying it,
-and the copy will have a different address.
-And weak references are strengthened when they are copied.
+A user may also analyze the return value
+to produce her own statistics about unfreed data objects.
 
 =head2 unfreed_count
 
@@ -1354,12 +1313,12 @@ is_file($_, 't/snippet.t', 'probe_count snippet')
 =end Marpa::Test::Display:
 
 Returns the total number of probe references in the test,
-including references to freed objects.
+including references to freed data objects.
 This is the count of probe references
-after C<Test::Weaken> was finished following the test object reference
+after C<Test::Weaken> was finished following the test structure reference
 recursively,
-but before C<Test::Weaken> called the test object destructor and undefined the
-test object reference.
+but before C<Test::Weaken> called the test structure destructor or reset the
+test structure reference to C<undef>.
 Throws an exception if there is a problem,
 for example if the tester has not yet been evaluated.
 
@@ -1368,7 +1327,7 @@ for example if the tester has not yet been evaluated.
 Most users can skip this section.
 The plumbing methods exist to satisfy object-oriented purists,
 and to accommodate the rare user who wants to access the probe counts
-even when the test did find any unfreed objects.
+even when the test did find any unfreed data objects.
 
 =head2 new
 
@@ -1404,7 +1363,7 @@ been run and for which results are not yet available.
 If there are any problems, the C<new>
 method throws an exception.
 
-The C<test> method is the only method which can be called successfully on
+The C<test> method is the only method that can be called successfully on
 an unevaluated tester.
 Calling any other method on an unevaluated tester causes an exception to be thrown.
 
@@ -1437,7 +1396,7 @@ and recording the results.
 Throws an exception if there is a problem,
 for example if the tester had already been evaluated.
 
-The C<test> method returns the count of unfreed objects.
+The C<test> method returns the count of unfreed data objects.
 This will be identical to the length of the array
 returned by C<unfreed_proberefs> and
 the count returned by C<unfreed_count>.
@@ -1455,14 +1414,14 @@ the count returned by C<unfreed_count>.
 The C<unfreed_proberefs> method returns an array containing
 probes to
 the unfreed
-independent memory objects.
+data objects.
 This can be used
 to find the source of leaks.
 If circumstances allow it,
 you might find it useful to add "tag" elements to arrays and hashes
 to aid in identifying the source of a leak.
 
-You can quasi-uniquely identify memory objects using
+You can quasi-uniquely identify data objects using
 the referent addresses of the probe references.
 A referent address
 can be determined by using the
@@ -1475,7 +1434,7 @@ Note that in other Perl documentation, the term "reference address" is often
 used when a referent address is meant.
 Any given reference has both a reference address and a referent address.
 The reference address is the reference's own location in memory.
-The referent address is the address of the memory object to which the reference refers.
+The referent address is the address of the Perl data object to which the reference refers.
 It is the referent address that interests us here and,
 happily, it is
 the referent address that both zero addition and C<refaddr> return.
@@ -1496,7 +1455,7 @@ Absent other evidence,
 an object with a given referent address
 is not 100% certain to be
 the same object
-as the object which had the same address earlier.
+as the object that had the same address earlier.
 This can bite you
 if you're not careful.
 
@@ -1520,7 +1479,7 @@ two indiscernable objects can be regarded as the same object.
 It can be hard to determine if
 C<ignore> callback subroutines
 are inadvertently
-modifying the test object.
+modifying the test structure.
 The C<Test::Weaken::check_ignore> static method is
 provided to make this task easier.
 
@@ -1566,11 +1525,11 @@ is_file($_, 't/ignore.t', 'check_ignore 4 arg snippet')
 
 =end Marpa::Test::Display:
 
-C<Test::Weaken::check_ignore> is a static method which constructs
+C<Test::Weaken::check_ignore> is a static method that constructs
 a debugging wrapper from
 four arguments, three of which are optional.
 The first argument must be the ignore callback
-which you are trying to debug.
+that you are trying to debug.
 This callback is called the test subject, or
 B<lab rat>.
 
@@ -1617,12 +1576,12 @@ except that the wrapper is slower.
 To discover when and if the lab rat callback is
 altering its arguments,
 C<Test::Weaken::check_ignore>
-compares the test object
+compares the test structure
 before the lab rat is called,
-to the test object after the lab rat returns.
+to the test structure after the lab rat returns.
 C<Test::Weaken::check_ignore>
-compares the before and after test objects in two ways.
-First, it dumps the contents of each test object using
+compares the before and after test structures in two ways.
+First, it dumps the contents of each test structure using
 C<Data::Dumper>.
 For comparison purposes,
 the dump using C<Data::Dumper> is performed with C<Maxdepth>
@@ -1641,17 +1600,17 @@ messages already reported and the setting of the
 maximum error count.
 If the reporting depth is a non-negative number, the error
 message includes a dump from C<Data::Dumper> of the
-test object.
+test structure.
 C<Data::Dumper>'s C<Maxdepth>
 for reporting purposes is the reporting depth as described above.
 
 A user who wants other features, such as deep checking
-of the test object
+of the test structure
 for strengthened references,
 can easily modify
 C<Test::Weaken::check_ignore>.
 C<Test::Weaken::check_ignore> is a static method
-which does not use any C<Test::Weaken>
+that does not use any C<Test::Weaken>
 package resources.
 It is easy to copy it from the C<Test::Weaken> source
 and hack it up.
@@ -1665,31 +1624,33 @@ By default, C<Test::Weaken> exports nothing.  Optionally, C<leaks> may be export
 
 =head1 IMPLEMENTATION
 
-C<Test::Weaken> first recurses through the test object.
-Starting from the test object reference,
+=head2 Overview
+
+C<Test::Weaken> first recurses through the test structure.
+Starting from the test structure reference,
 it follows and tracks objects recursively,
 as described above.
-The test object is explored to unlimited depth,
-looking for independent memory objects to track.
-Independent objects visited during the recursion are recorded,
+The test structure is explored to unlimited depth,
+looking for data objects to track.
+Perl data objects visited during the recursion are recorded,
 and no object is visited twice.
-For each independent memory object, a
+For each data object, a
 probe reference is created.
 
-Once recursion through the test object is complete,
+Once recursion through the test structure is complete,
 the probe references are weakened.
 This prevents the probe references from interfering
 with the normal deallocation of memory.
-Next, the test object destructor is called,
+Next, the test structure destructor is called,
 if there is one.
 
-Finally, the test object reference is undefined.
-This should trigger the deallocation of all memory held by the test object.
+Finally, the test structure reference is set to C<undef>.
+This should trigger the deallocation of the entire contents of the test structure.
 To check that this happened, C<Test::Weaken> dereferences the probe references.
 If the referent of a probe reference was deallocated,
 the value of that probe reference will be C<undef>.
 If a probe reference is still defined at this point,
-it refers to an unfreed independent object.
+it refers to an unfreed Perl data object.
 
 =head1 AUTHOR
 
