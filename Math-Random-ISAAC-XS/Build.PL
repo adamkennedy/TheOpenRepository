@@ -68,7 +68,7 @@ my $builder = Module::Build->new(
     'src/ISAAC.xs' => 'lib/Math/Random/ISAAC/XS.xs',
   },
 
-  extra_compiler_flags => join(' ', @flags),
+  extra_compiler_flags => \@flags,
 
   requires => {
     'perl'                  => 5.006,
