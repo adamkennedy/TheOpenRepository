@@ -12,7 +12,7 @@ File::List::Object version 0.185
 
 =head1 NAME
 
-File::List::Object - Object containing a list of files.
+File::List::Object - Object containing a list of files (filelist, packlist).
 
 =head1 VERSION
 
