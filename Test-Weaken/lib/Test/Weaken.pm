@@ -649,7 +649,7 @@ B<Object> is a heavily overloaded term in the Perl world.
 This document will use the term B<Perl data object>
 or B<data object> to refer to any referenceable Perl datum,
 including
-scalars, arrays, hashes, references themselves and code objects.
+scalars, arrays, hashes, references themselves, and code objects.
 The full list of types of referenceable Perl data objects
 is given in the documentation of the Perl
 C<ref> builtin in the L<perlfunc man page|perlfunc>.
@@ -1415,7 +1415,7 @@ the count returned by C<unfreed_count>.
 C<Test::Weaken> makes tracing leaks easier, but avoidance is
 still by far the best way,
 and C<Test::Weaken> helps with that.
-You need to use test-driven development, L<Test::More>
+You need to use test-driven development, L<Test::More>,
 modular tests in a C<t/> subdirectory,
 and revision control.
 These are all very good ideas for many other reasons.
