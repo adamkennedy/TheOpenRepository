@@ -635,7 +635,8 @@ even data that would usually have been made inaccessible.
 C<Test::Weaken> frees the test structure, then looks to see if any of the
 contents of the structure were not actually deallocated.  By default,
 C<Test::Weaken> determines the B<contents> of a data structure
-by following references.  C<Test::Weaken> does this recursively to
+by examining arrays and hashes and following references.
+C<Test::Weaken> does this recursively to
 unlimited depth.
 
 C<Test::Weaken> can deal with circular references without going
@@ -646,9 +647,12 @@ C<Test::Weaken> will not visit the same Perl data object twice.
 
 B<Object> is a heavily overloaded term in the Perl world.
 This document will use the term B<Perl data object>
-or B<data object>
-to refer to a Perl datum of one of the Perl's
-three basic data types (scalar, array and hash).
+or B<data object> to refer to any referenceable Perl datum,
+including
+scalars, arrays, hashes, references themselves and code objects.
+The full list of types of referenceable Perl data objects
+is given in the documentation of the Perl
+C<ref> builtin in the L<perlfunc man page|perlfunc>.
 An B<object> that has been blessed using the Perl
 C<bless> builtin, will be called a B<blessed object>.
 
@@ -664,14 +668,13 @@ Perl data objects.
 
 =head2 The Contents of a Data Structure
 
-A B<data structure> almost always has one object
-that is considered the B<top object>.
+A B<data structure> must have one object
+that is designated as its B<top object>.
+In most data structures, it is obvious which
+data object should be designated as the top object.
 The objects
 in the data structure, including the top object,
 are the B<contents> of that data structure.
-The contents of a data structure,
-less the top object,
-are the B<proper contents> of the data structure.
 
 C<Test::Weaken> gets its B<test data structure>,
 or B<test structure>,
@@ -697,27 +700,23 @@ its elements.
 The B<children> of a hash are its values.
 
 If one data object is the descendant of a second object,
-then the second data object is an B<ancestor> of the first object,
-and vice versa.
+then the second data object is an B<ancestor> of the first object.
 A data object is considered to be a descendant of itself,
-and also to be one its own ancestors.
+and also to be one of its own ancestors.
 
 C<Test::Weaken>'s default assumption,
 that the contents of a data structure are the same as
 its descendants, works
 for many cases,
 but not for all.
-As one example,
-the default assumption is false when globals are
-referenced from a data structure.
-The default assumption is also false for inside-out objects.
-
-Ways to deal with globals, and
-other descendants that are not contents,
+Ways to deal with
+descendants that are not contents,
+such as globals, and
 are dealt with in L<the section on persistent objects|"Persistent Objects">.
-Ways to deal with inside-out
-objects, and other
-contents that are not descendants, are deal with in
+Ways to deal with
+contents that are not descendants,
+such as inside-out objects,
+are deal with in
 L<the section on nieces|"Nieces">.
 
 =head2 Persistent Objects
@@ -732,19 +731,19 @@ the test structure is called a B<persistent object>.
 A persistent object is not a memory leak.
 That's the problem.
 C<Test::Weaken> is trying to find memory leaks
-and it looks for any contents that remain
+and it looks for data objects that remain
 after the test structure is freed.
 But a persistent object is not expected to
 disappear when the test structure goes away.
 
 We need to
 determine which of the unfreed data objects are memory leaks,
-and which are persistent referenceables.
+and which are persistent data objects.
 It's usually easiest to do this after the test by
 examining the return value of L</unfreed_proberefs>.
 The L</ignore> named argument can also be used
 to pass C<Test::Weaken> a closure
-that separates out persistent referenceables "on the fly".
+that separates out persistent data objects "on the fly".
 These methods are described in detail
 L<below|/"ADVANCED TECHNIQUES">.
 
@@ -799,7 +798,7 @@ contents "on the fly," while it is scanning the lab rat.
 This can be done using L<the C<contents> named argument|"contents">,
 which takes a closure as its value.
 
-=head2 Builtin Types
+=head2 How Data Objects are Handled, by Builtin Type
 
 B<Builtin types> are
 the type names returned by L<Scalar::Util>'s
@@ -811,22 +810,22 @@ while C<reftype> returns the original builtin type of the object.
 =head2 ARRAY, HASH, and REF Objects
 
 Objects of builtin type
-ARRAY, HASH, REF, SCALAR and VSTRING
+ARRAY, HASH, and REF
 are always both tracked and followed.
 
 =head2 SCALAR and VSTRING Objects
 
 Objects of builtin type SCALAR and VSTRING 
 are tracked.
-Internally, they do not hold references
+They do not hold internal references
 to other Perl data objects,
-so they are not followed.
+so following them is meaningless.
 
 =head2 CODE Objects
 
 Objects of type CODE are tracked but are not followed.
 This can be seen as a limitation, because
-closures hold references to data objects.
+closures hold internal references to data objects.
 Future versions of C<Test::Weaken> may follow CODE objects.
 
 =head2 Objects That are Ignored
@@ -843,16 +842,16 @@ them gracefully.
 C<Data::Dumper>
 issues a cryptic warning whenever it encounters a
 FORMAT, IO or LVALUE object.
-Since C<Data::Dumper> is a Perl code module
-in extremely wide use, this suggest these three
-objects types are, to put it mildly, unusual in
-data structures.
+Since C<Data::Dumper> is a Perl core module
+in extremely wide use, this suggests that these three
+objects types are, to put it mildly,
+not commonly encountered as the contents of data structures.
 
 GLOB objects are ignored
 because they refer
 to an entry in the Perl symbol table.
 The Perl symbol table is, of course, persistent.
-GLOB objects will typically be persistent also.
+GLOB objects will usually be persistent also.
 Objects of builtin type IO
 are typically associated with GLOB objects,
 and this is a second reason to ignore IO objects.
@@ -871,7 +870,7 @@ They will also be ignored.
 
 =head2 Why the Test Structure is Passed via a Closure
 
-C<Test::Weaken> gets its test structure
+C<Test::Weaken> gets its test structure reference
 indirectly,
 as the return value from a
 B<test structure constructor>.
@@ -1002,7 +1001,7 @@ the test structure destructor must be the value of the C<destructor> named argum
 
 If specified,
 the test structure destructor is called
-just before the test structure reference is undefined.
+just before the test structure reference is set to C<undef>.
 It will be passed one argument,
 the test structure reference.
 The return value of the test structure destructor is ignored.
@@ -1043,7 +1042,7 @@ is_file($_, 't/ignore.t', 'ignore snippet')
 
 The B<ignore> argument is optional.
 It can be used to prevent C<Test::Weaken> from following
-and tracking selected probe references, as chosen by
+and tracking individual probe references, selected by
 the user.
 Use of the C<ignore> argument should be avoided
 when possible.
@@ -1079,7 +1078,7 @@ The result of modifying the probe referents might be
 an exception, an abend, an infinite loop, or erroneous results.
 
 The callback subroutine should return a Perl true value if the probe reference is
-to an object that should be ignored --
+to a data object that should be ignored --
 that is, neither followed or tracked.
 Otherwise the callback subroutine should return a Perl false value.
 
@@ -1248,7 +1247,7 @@ Returns a reference to an array of probe references to the unfreed data objects.
 Throws an exception if there is a problem,
 for example if the tester has not yet been evaluated.
 
-Often, the return value is examined
+The return value can be examined
 to pinpoint the source of a leak.
 A user may also analyze the return value
 to produce her own statistics about unfreed data objects.
@@ -1277,7 +1276,7 @@ is_file($_, 't/snippet.t', 'unfreed_count snippet')
 
 =end Marpa::Test::Display:
 
-Returns the count of unfreed objects.
+Returns the count of unfreed data objects.
 This count will be exactly the length of the array referred to by
 the return value of the C<unfreed_proberefs> method.
 Throws an exception if there is a problem,
@@ -1415,16 +1414,18 @@ the count returned by C<unfreed_count>.
 
 C<Test::Weaken> makes tracing leaks easier, but avoidance is
 still by far the best way,
-and C<Test::Weaken> help with that.
-You should be using test-driven development, L<Test::More>
+and C<Test::Weaken> helps with that.
+You need to use test-driven development, L<Test::More>
 modular tests in a C<t/> subdirectory,
 and revision control.
+These are all very good ideas for many other reasons.
 
-Make C<Test::Weaken> part of your testing and test frequently.
-If you test often, when a leak occurs, you'll know the changes
-you just made.
-Memory, perhaps aided by desk-checking,
-will often tell you where you introduced the leak.
+Make C<Test::Weaken> part of your test suite.
+Test frequently, so that when a leak occurs,
+you'll have a good idea of what changes were made since
+the last successful test.
+Examining these changes is often enough to
+tell where the leak was introduced.
 
 =head3 Adding Tags
 
@@ -1438,7 +1439,7 @@ If circumstances allow it,
 you might find it useful to add "tag" elements to arrays and hashes
 to aid in identifying the source of a leak.
 
-=head3 Identifying Data Objects using Referent Addresses
+=head3 Using Referent Addresses
 
 You can quasi-uniquely identify data objects using
 the referent addresses of the probe references.
@@ -1452,13 +1453,14 @@ to the reference.
 Note that in other Perl documentation, the term "reference address" is often
 used when a referent address is meant.
 Any given reference has both a reference address and a referent address.
-The reference address is the reference's own location in memory.
-The referent address is the address of the Perl data object to which the reference refers.
+The B<reference address> is the reference's own location in memory.
+The B<referent address> is the address of the Perl data object to which the reference refers.
 It is the referent address that interests us here and,
 happily, it is
 the referent address that both zero addition and C<refaddr> return.
 
 =head3 Other Techniques
+
 Sometimes, when you are interested in why an object is not being freed,
 you want to seek out the reference
 that keeps the object's refcount above zero.
@@ -1474,7 +1476,7 @@ Once an object is freed, its address can be reused.
 Absent other evidence,
 a data object with a given referent address
 is not 100% certain to be
-the same object
+the same data object
 as the object that had the same address earlier.
 This can bite you
 if you're not careful.
