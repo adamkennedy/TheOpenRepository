@@ -1,0 +1,3 @@
+C:\Documents and Settings\Curtis\Desktop\Blueberry Perl\Work\File-List-Object\t\test02\file1.txt
+C:\Documents and Settings\Curtis\Desktop\Blueberry Perl\Work\File-List-Object\t\test02\file3.txt
+C:\Documents and Settings\Curtis\Desktop\Blueberry Perl\Work\File-List-Object\t\test02\file2.txt

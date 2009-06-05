@@ -1,0 +1,6 @@
+do{ my $x = {
+       'File-List-Object-0.185' => 1,
+       'blib' => 1,
+       'File-List-Object-*' => 1
+     };
+$x; }

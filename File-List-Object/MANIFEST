@@ -1,0 +1,26 @@
+Build.PL
+Changes
+lib/File/List/Object.pm
+LICENSE
+Makefile.PL
+MANIFEST			This list of files
+META.yml
+README
+t/01_load.t
+t/02_filelist.t
+t/03_exceptions.t
+t/80_pod.t
+t/81_perlcritic.t
+t/82_pod-coverage.t
+t/83_minimumversion.t
+t/84_version.t
+t/85_meta.t
+t/86_manifest.t
+t/settings/perlcritic.txt
+t/settings/perltidy.txt
+t/test02/dir3/file3.txt
+t/test02/excluded/file1.txt
+t/test02/excluded/file2.txt
+t/test02/file1.txt
+t/test02/file2.txt
+t/test02/file3.txt

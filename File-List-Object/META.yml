@@ -1,0 +1,26 @@
+---
+name: File-List-Object
+version: 0.185
+author:
+  - 'Curtis Jewell <csjewell@cpan.org>'
+abstract: Object containing a list of files.
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
+requires:
+  Exception::Class: 1.29
+  Moose: 0.79
+  MooseX::AttributeHelpers: 0.17
+  Params::Util: 0.35
+  perl: 5.008001
+  version: 0.76
+build_requires:
+  Test::More: 0.61
+provides:
+  File::List::Object:
+    file: lib/File/List/Object.pm
+    version: 0.185
+generated_by: Module::Build version 0.33
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4

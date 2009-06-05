@@ -1,0 +1,38 @@
+File::List::Object version 0.185
+
+DESCRIPTION
+    This package provides for creating a list of files (from different
+    sources) and performing arithmetic and other applicable operations on
+    said lists.
+
+INSTALLATION
+    To install this module, run the following commands:
+
+            perl Makefile.PL
+            make
+            make test
+            make install
+
+    This method of installation will install a current version of
+    Module::Build if it is not already installed.
+
+    Alternatively, to install with Module::Build, you can use the following
+    commands:
+
+            perl Build.PL
+            ./Build
+            ./Build test
+            ./Build install
+
+DEPENDENCIES
+    Dependencies of this module that are non-core in perl 5.8.1 include
+    Moose version 0.79, Exception::Class version 1.29, Params::Util version
+    0.35, MooseX::AttributeHelpers version 0.17, and version.pm version
+    0.76.
+
+LICENCE AND COPYRIGHT
+    Copyright (c) 2009, Curtis Jewell `<csjewell@cpan.org>'.
+
+    This module is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself. See perlartistic.
+
