@@ -4,7 +4,7 @@ package File::List::Object;
 
 =begin readme text
 
-File::List::Object version 0.185
+File::List::Object version 0.187
 
 =end readme
 
@@ -16,7 +16,7 @@ File::List::Object - Object containing a list of files (filelist, packlist).
 
 =head1 VERSION
 
-This document describes File::List::Object version 0.185.
+This document describes File::List::Object version 0.187.
 
 =for readme continue
 
@@ -135,7 +135,7 @@ use Exception::Class (
 	},
 );
 
-use version; $VERSION = version->new('0.185')->numify;
+use version; $VERSION = version->new('0.187')->numify;
 
 my %sortcache; # Defined at this level so that the cache does not
 			   # get reset each time _sorter is called.
@@ -145,22 +145,22 @@ my %sortcache; # Defined at this level so that the cache does not
 
 has '_files' => (
 	metaclass => 'Collection::Hash',
-    is  => 'rw',
-    isa => 'HashRef[Str]',
-	provides => {
-		set => '_add_file',
-		clear => '_clear',
-		count => 'count',
-		get => '_get_file',
+	is        => 'rw',
+	isa       => 'HashRef[Str]',
+	provides  => {
+		set    => '_add_file',
+		clear  => '_clear',
+		count  => 'count',
+		get    => '_get_file',
 		exists => '_is_file',
 		delete => '_delete_files',
-		keys => '_get_files_array',
-		kv => '_get_files_kv',
+		keys   => '_get_files_array',
+		kv     => '_get_files_kv',
 	},
-	reader => '_get_files_hashref',
-	writer => '_set_files_hashref',
+	reader   => '_get_files_hashref',
+	writer   => '_set_files_hashref',
 	init_arg => undef,
-	default => sub { return {}; },
+	default  => sub { return {}; },
 );
 
 #####################################################################
@@ -184,11 +184,11 @@ is.
 =cut
 
 sub clone {
-	my $self      = shift->new();
-	my $source    = shift;
+	my $self   = shift->new();
+	my $source = shift;
 
 	# Check parameters
-	if (not _INSTANCE( $source, 'File::List::Object' ) ) {
+	if ( not _INSTANCE( $source, 'File::List::Object' ) ) {
 		File::List::Object::Exception::Parameter->throw(
 			parameter => 'source',
 			where     => '->clone'
@@ -196,7 +196,7 @@ sub clone {
 	}
 
 	# Add filelist passed in.
-	$self->_set_files_hashref({ $source->_get_files_kv() });
+	$self->_set_files_hashref( { $source->_get_files_kv() } );
 
 	return $self;
 } ## end sub clone
@@ -259,7 +259,8 @@ sub _sorter {
 #####################################################################
 # Exception output methods.
 
-sub File::List::Object::Exception::full_message { ## no critic 'Capitalization'
+sub File::List::Object::Exception::full_message
+{ ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -273,7 +274,8 @@ sub File::List::Object::Exception::full_message { ## no critic 'Capitalization'
 	return $string;
 } ## end sub File::List::Object::Exception::full_message
 
-sub File::List::Object::Exception::Parameter::full_message { ## no critic 'Capitalization'
+sub File::List::Object::Exception::Parameter::full_message
+{ ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -349,7 +351,7 @@ sub readdir { ## no critic 'ProhibitBuiltinHomonyms'
 			where     => '->readdir'
 		);
 	}
-	if (not -d $dir ) {
+	if ( not -d $dir ) {
 		File::List::Object::Exception::Parameter->throw(
 			parameter => "dir: $dir is not a directory",
 			where     => '->readdir'
@@ -359,7 +361,8 @@ sub readdir { ## no critic 'ProhibitBuiltinHomonyms'
 	# Open directory.
 	my $dir_object = IO::Dir->new($dir);
 	if ( !defined $dir_object ) {
-		File::List::Object::Exception->throw("Error reading directory $dir: $!");
+		File::List::Object::Exception->throw(
+			"Error reading directory $dir: $!");
 	}
 
 	# Read a file from the directory.
@@ -379,9 +382,9 @@ sub readdir { ## no critic 'ProhibitBuiltinHomonyms'
 			} else {
 
 				# Add the file!
-				$self->_add_file($filespec, 1);
+				$self->_add_file( $filespec, 1 );
 			}
-		} ## end if ( ( $file ne q{.} )...
+		} ## end if ( ( $file ne curdir...
 
 		# Next one, please?
 		$file = $dir_object->read();
@@ -404,13 +407,13 @@ sub load_file {
 	my ( $self, $packlist ) = @_;
 
 	# Check parameters.
-	if (not _STRING($packlist) ) {
+	if ( not _STRING($packlist) ) {
 		File::List::Object::Exception::Parameter->throw(
 			parameter => 'packlist',
 			where     => '->load_file'
 		);
 	}
-	if (not -r $packlist ) {
+	if ( not -r $packlist ) {
 		File::List::Object::Exception::Parameter->throw(
 			parameter => "packlist: $packlist cannot be read",
 			where     => '->load_file'
@@ -420,7 +423,8 @@ sub load_file {
 	# Read .packlist file.
 	my $fh = IO::File->new( $packlist, 'r' );
 	if ( not defined $fh ) {
-		File::List::Object::Exception->throw("Error reading packlist file $packlist: $!");
+		File::List::Object::Exception->throw(
+			"Error reading packlist file $packlist: $!");
 	}
 	my @files_list = <$fh>;
 	$fh->close;
@@ -433,17 +437,21 @@ sub load_file {
 		$file;
 	} @files_list;
 	foreach my $file_to_add (@files) {
-		$self->_add_file($file_to_add, 1);
+		$self->_add_file( $file_to_add, 1 );
 	}
 
 	return $self;
 } ## end sub load_file
 
 =head2 load_array
+=head2 add_files
 
 	$filelist = $filelist->load_array(@files_list);
+	$filelist = $filelist->add_files(@files_list);
 
 Adds the files listed in the array passed in to the filelist.
+
+C<add_files> is an alias for C<load_array>.
 
 =cut
 
@@ -454,17 +462,21 @@ sub load_array {
   FILE:
 	foreach my $file (@files_list) {
 		next FILE if not -f $file;
-		$self->_add_file($file, 1);
+		$self->_add_file( $file, 1 );
 	}
 
 	return $self;
 } ## end sub load_array
 
+sub add_files {
+	goto &load_array;
+}
+
 =head2 add_file
 
 	$filelist = $filelist->add_file('C:\readme.txt');
 
-Adds the files listed in the array passed in to the filelist.
+Adds the file passed in to the filelist.
 
 The file being added must exist.
 
@@ -488,10 +500,36 @@ sub add_file {
 		);
 	}
 
-	$self->_add_file($file, 1);
+	$self->_add_file( $file, 1 );
 
 	return $self;
 } ## end sub add_file
+
+=head2 remove_files
+=head2 remove_file
+
+	$filelist = $filelist->remove_file('C:\readme.txt');
+	$filelist = $filelist->remove_files('C:\readme.txt', 'C:\LICENSE');
+	$filelist = $filelist->remove_files(@files);
+
+Removes the file(s) passed in to the filelist.
+
+C<remove_file> is an alias for C<remove_files>.
+
+=cut
+
+sub remove_files { ## no critic(RequireArgUnpacking)
+	my $self  = shift;
+	my @files = @_;
+
+	$self->_delete_files(@files);
+
+	return $self;
+}
+
+sub remove_file {
+	goto &remove_files;
+}
 
 =head2 subtract
 
@@ -538,8 +576,10 @@ sub add {
 	}
 
 	# Add the two hashes together.
-	my %files = ( %{ $self->_get_files_hashref() }, %{ $term->_get_files_hashref() } );
-	$self->_set_files_hashref(\%files);
+	my %files =
+	  ( %{ $self->_get_files_hashref() },
+		%{ $term->_get_files_hashref() } );
+	$self->_set_files_hashref( \%files );
 
 	return $self;
 } ## end sub add
@@ -564,7 +604,7 @@ sub move {
 			where     => '::Filelist->move'
 		);
 	}
-	if (not _STRING($to) ) {
+	if ( not _STRING($to) ) {
 		File::List::Object::Exception::Parameter->throw(
 			parameter => 'to',
 			where     => '::Filelist->move'
@@ -574,7 +614,7 @@ sub move {
 	# Move the file if it exists.
 	if ( $self->_is_file($from) ) {
 		$self->_delete_files($from);
-		$self->_add_file($to, 1);
+		$self->_add_file( $to, 1 );
 	}
 
 	return $self;
@@ -593,10 +633,10 @@ in it need not exist yet.
 =cut
 
 sub _move_dir_grep {
-	my $in = catfile(shift, q{});
-	my $from = catfile(shift, q{});
+	my $in   = catfile( shift, q{} );
+	my $from = catfile( shift, q{} );
 
-	return ($in =~ m{\A\Q$from\E}msx) ? 1 : 0;
+	return ( $in =~ m{\A\Q$from\E}msx ) ? 1 : 0;
 }
 
 sub move_dir {
@@ -618,8 +658,7 @@ sub move_dir {
 
 	# Find which files need moved.
 	my @files_to_move =
-	  grep { _move_dir_grep($_, $from) }
-	  $self->_get_files_array();
+	  grep { _move_dir_grep( $_, $from ) } $self->_get_files_array();
 	my $to_file;
 	foreach my $file_to_move (@files_to_move) {
 
@@ -629,7 +668,7 @@ sub move_dir {
 
 		# "move" the file.
 		$self->_delete_files($file_to_move);
-		$self->_add_file($to_file, 1);
+		$self->_add_file( $to_file, 1 );
 	}
 
 	return $self;
@@ -677,7 +716,7 @@ sub as_string {
 	return join "\n", @files_list;
 }
 
-1; # Magic true value required at end of module
+1;                                     # Magic true value required at end of module
 __END__
   
 =head1 DIAGNOSTICS
@@ -693,6 +732,10 @@ An invalid parameter was passed in. More information about why it was
 invalid may be returned.
 
 (Returned as a C<< File::List::Object::Exception::Parameter >>> object)
+
+=item Error reading directory %s: %s
+
+For some reason, the directory exists, but it could not be read.
 
 =back
 

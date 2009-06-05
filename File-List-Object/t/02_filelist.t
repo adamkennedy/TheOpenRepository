@@ -1,14 +1,14 @@
 #!/usr/bin/perl
 
 use strict;
+use Test::More tests => 13;
+use File::Spec::Functions qw(catfile curdir catdir rel2abs);
+use File::List::Object;
+
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
-
-use Test::More;
-use File::Spec::Functions qw(catfile curdir catdir rel2abs);
-use File::List::Object;
 
 my @file = (
     catfile( rel2abs(curdir()), qw(t test02 file1.txt)),
@@ -20,10 +20,6 @@ my @file = (
     catfile( rel2abs(curdir()), qw(t test02 dir2 file2.txt)),    
     catfile( rel2abs(curdir()), qw(t test02 dir3 file3.txt)),    
 );
-
-BEGIN {
-	plan tests => 12;
-}
 
 is( File::List::Object->new->add_file($file[0])->as_string, 
     $file[0],
@@ -37,6 +33,10 @@ is( File::List::Object->new->load_array(@file[1, 2, 5])->as_string,
     "$file[1]\n$file[2]",
     'adding array with missing files' );
     
+is( File::List::Object->new->add_files($file[0], $file[1])->remove_file($file[0])->as_string, 
+    $file[1],
+    'removing file' );
+	
 my $add1 = File::List::Object->new->add_file($file[0]);
 my $add2 = File::List::Object->new->add_file($file[1]);
 

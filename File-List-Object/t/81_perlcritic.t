@@ -11,6 +11,7 @@ BEGIN {
 }
 
 my @MODULES = (
+	'Perl::Tidy',
 	'Perl::Critic::More',
 	'Test::Perl::Critic',
 );
@@ -32,6 +33,8 @@ foreach my $MODULE ( @MODULES ) {
 }
 
 use File::Spec::Functions qw(catfile);
+
+local $ENV{PERLTIDY} = catfile( 't', 'settings', 'perltidy.txt' );
 
 my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
 Test::Perl::Critic->import( -profile => $rcfile, -severity => 1 );
