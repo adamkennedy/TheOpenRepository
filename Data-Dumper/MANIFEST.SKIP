@@ -1,3 +1,7 @@
+Dumper\.bs$
+Dumper\.c$
+\.o$
+
 # Default section:
 # Avoid version control files.
 \bRCS\b
