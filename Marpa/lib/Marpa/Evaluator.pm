@@ -835,10 +835,17 @@ sub Marpa::Evaluator::new {
     for my $parent_or_node ( @{$or_nodes} ) {
         my $parent_or_node_id =
             $parent_or_node->[Marpa::Internal::Or_Node::ID];
-        my $child_and_node_ids =
-            $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
-        for my $choice ( 0 .. $#{$child_and_node_ids} ) {
-            my $and_node_id = $child_and_node_ids->[$choice];
+        my @child_and_node_ids =
+            map  { $_->[0] }
+            sort { $b->[1] <=> $a->[1] }
+            map {
+            [   $_,
+                $and_nodes->[$_]->[Marpa::Internal::And_Node::RULE]
+                    ->[Marpa::Internal::Rule::INTERNAL_PRIORITY] // 0
+            ]
+            } @{ $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
+        for my $choice ( 0 .. $#child_and_node_ids ) {
+            my $and_node_id = $child_and_node_ids[$choice];
             my $and_node    = $and_nodes->[$and_node_id];
 
             FIELD:
@@ -857,6 +864,47 @@ sub Marpa::Evaluator::new {
             } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
 
         } ## end for my $choice ( 0 .. $#{$child_and_node_ids} )
+    } ## end for my $parent_or_node ( @{$or_nodes} )
+
+    # There can be duplicate and-nodes.  Prune these.
+    my @short_and_signatures;
+    $#short_and_signatures = @{$and_nodes};
+    OR_NODE: for my $parent_or_node ( @{$or_nodes} ) {
+        my $parent_or_node_id =
+            $parent_or_node->[Marpa::Internal::Or_Node::ID];
+        my $child_and_node_ids =
+            $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+        next OR_NODE if scalar @{$child_and_node_ids} < 2;
+        my %short_signature;
+        for my $child_and_node_id (@{$child_and_node_ids}) {
+            my $and_node            = $and_nodes->[$child_and_node_id];
+            my $short_and_signature = join ',',
+                $and_node->[Marpa::Internal::And_Node::RULE] + 0,
+                $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
+                $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
+                (
+                defined $and_node->[Marpa::Internal::And_Node::PREDECESSOR]
+                ? 1
+                : 0
+                ),
+                (
+                defined $and_node->[Marpa::Internal::And_Node::CAUSE] ? 1
+                : 0
+                ),
+                ($and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0) + 0,
+                ;
+            $short_and_signatures[$child_and_node_id] = $short_and_signature;
+            push @{ $short_signature{$short_and_signature} }, $child_and_node_id;
+        } ## end for my $child_and_node_id (@child_and_node_ids)
+        SHORT_SIGNATURE:
+        while ( my ( $short_signature, $child_ids ) = each %short_signature )
+        {
+            next SHORT_SIGNATURE if scalar @{$child_ids} < 2;
+            if ($trace_iterations) {
+                say {$trace_fh} 'Possible duplicate and nodes: ', join ' ',
+                    @{$child_ids};
+            }
+        } ## end while ( my ( $short_signature, $child_ids ) = each ...
     } ## end for my $parent_or_node ( @{$or_nodes} )
 
     return $self;
