@@ -6,4 +6,5 @@ files:
 dirs-flat:
   t/: lib/Parse/CPAN/Meta/t
   t/data/: lib/Parse/CPAN/Meta/t/data
-
+exclude-regexes:
+  - ^t/9\w*\.t$
