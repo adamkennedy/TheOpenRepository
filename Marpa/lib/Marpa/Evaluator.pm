@@ -873,6 +873,9 @@ sub Marpa::Evaluator::new {
     # There can be duplicate and-nodes.  Prune these.
     my @short_and_signatures;
     $#short_and_signatures = @{$and_nodes};
+    my @or_node_id_work_list  = ();
+    my @and_node_id_work_list = ();
+
     OR_NODE: for my $parent_or_node ( @{$or_nodes} ) {
         my $parent_or_node_id =
             $parent_or_node->[Marpa::Internal::Or_Node::ID];
@@ -902,6 +905,7 @@ sub Marpa::Evaluator::new {
             push @{ $short_signature{$short_and_signature} },
                 $child_and_node_id;
         } ## end for my $child_and_node_id ( @{$child_and_node_ids} )
+
         SHORT_SIGNATURE:
         while ( my ( $short_signature, $child_ids ) = each %short_signature )
         {
@@ -912,8 +916,58 @@ sub Marpa::Evaluator::new {
                     $and_nodes->[$_]->[Marpa::Internal::And_Node::NAME]
                     } @{$child_ids};
             } ## end if ($trace_iterations)
+
+            # Look for the ids which we will want will want to test
+            # for identity, so we can set up equivalence classes.
+            FIELD:
+            for my $field (
+                Marpa::Internal::And_Node::PREDECESSOR,
+                Marpa::Internal::And_Node::CAUSE,
+                )
+            {
+                my @or_nodes = grep { defined $_ }
+                    map { $and_nodes->[$_]->[$field] } @{$child_ids};
+                next FIELD if scalar @or_nodes < 2;
+                my @or_node_ids =
+                    map { $_->[Marpa::Internal::Or_Node::ID] } @or_nodes;
+                my $first = $or_node_ids[0];
+                my $first_different =
+                    List::Util::first { $_ != $first }
+                @or_node_ids[ 1 .. $#or_node_ids ];
+                next FIELD if not defined $first_different;
+                push @or_node_id_work_list, @or_node_ids;
+            } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
+
         } ## end while ( my ( $short_signature, $child_ids ) = each ...
+
     } ## end for my $parent_or_node ( @{$or_nodes} )
+
+    # Determine the or-nodes and and-nodes which are of interest for
+    # finding duplicate and-nodes.
+    my @or_nodes_of_interest;
+    $#or_nodes_of_interest = $#{$or_nodes};
+    my @and_nodes_of_interest;
+    $#and_nodes_of_interest = $#{$and_nodes};
+
+    while (@or_node_id_work_list) {
+        OR_NODE: while ( my $or_node_id = pop @or_node_id_work_list ) {
+            next OR_NODE if defined $or_nodes_of_interest[$or_node_id];
+            $or_nodes_of_interest[$or_node_id] = 1;
+            push @and_node_id_work_list,
+                @{ $or_nodes->[$or_node_id]
+                    ->[Marpa::Internal::Or_Node::CHILD_IDS] };
+        } ## end while ( my $or_node_id = pop @or_node_id_work_list )
+        AND_NODE: while ( my $and_node_id = pop @and_node_id_work_list ) {
+            next AND_NODE if defined $and_nodes_of_interest[$and_node_id];
+            $and_nodes_of_interest[$and_node_id] = 1;
+            push @or_node_id_work_list,
+                map  { $_->[Marpa::Internal::Or_Node::ID] }
+                grep { defined $_ } @{ $and_nodes->[$and_node_id] }[
+                Marpa::Internal::And_Node::PREDECESSOR,
+                Marpa::Internal::And_Node::CAUSE
+                ];
+        } ## end while ( my $and_node_id = pop @and_node_id_work_list )
+    } ## end while (@or_node_id_work_list)
 
     return $self;
 
