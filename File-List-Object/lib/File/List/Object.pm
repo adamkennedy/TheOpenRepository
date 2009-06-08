@@ -4,7 +4,7 @@ package File::List::Object;
 
 =begin readme text
 
-File::List::Object version 0.187
+File::List::Object version 0.188
 
 =end readme
 
@@ -16,7 +16,7 @@ File::List::Object - Object containing a list of files (filelist, packlist).
 
 =head1 VERSION
 
-This document describes File::List::Object version 0.187.
+This document describes File::List::Object version 0.188.
 
 =for readme continue
 
@@ -92,7 +92,7 @@ Alternatively, to install with Module::Build, you can use the following commands
 	$filelist->move_dir('\test1', '\test2');
 
 	# Loads the filelist from a file with filenames in it.
-    $filelist->load_file($packlist_file);
+	$filelist->load_file($packlist_file);
 
 	# Returns the list of files, sorted.
 	# Useful for debugging purposes.
@@ -135,7 +135,7 @@ use Exception::Class (
 	},
 );
 
-use version; $VERSION = version->new('0.187')->numify;
+use version; $VERSION = version->new('0.188')->numify;
 
 my %sortcache; # Defined at this level so that the cache does not
 			   # get reset each time _sorter is called.
@@ -444,6 +444,7 @@ sub load_file {
 } ## end sub load_file
 
 =head2 load_array
+
 =head2 add_files
 
 	$filelist = $filelist->load_array(@files_list);
@@ -506,6 +507,7 @@ sub add_file {
 } ## end sub add_file
 
 =head2 remove_files
+
 =head2 remove_file
 
 	$filelist = $filelist->remove_file('C:\readme.txt');
@@ -747,7 +749,8 @@ File::List::Object requires no configuration files or environment variables.
 
 =head1 DEPENDENCIES
 
-Dependencies of this module that are non-core in perl 5.8.1 include 
+Dependencies of this module that are non-core in perl 5.8.1 (which is the 
+minimum version of Perl required) include 
 L<Moose|Moose> version 0.79, L<Exception::Class|Exception::Class> version 
 1.29, L<Params::Util|Params::Util> version 0.35, 
 L<MooseX::AttributeHelpers|MooseX::AttributeHelpers> version 0.17, and 
