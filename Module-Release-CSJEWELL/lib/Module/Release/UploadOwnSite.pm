@@ -59,8 +59,6 @@ sub ownsite_password {
 		{
 		$self->config->set( 'ownsite_ftp_pass', $pass ); 
 		}
-		
-	$self->_print( "FTP site pass is $pass\n" );
 
 }
 

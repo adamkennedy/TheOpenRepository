@@ -42,8 +42,8 @@ sub twit_upload {
 	my $twit_user = $self->config->twit_user();
 	my $twit_password = $self->config->twit_pass();
 
-	$self->_print("Twitter: User: $twit_user Password: $twit_password\n");
-	$self->_print("Net::Twitter: Version: $Net::Twitter::VERSION\n");
+	$self->_debug("Twitter: User: $twit_user Password: $twit_password\n");
+	$self->_debug("Net::Twitter: Version: $Net::Twitter::VERSION\n");
 	
 	my $twit = Net::Twitter->new(
 		traits    => [qw(API::REST)],
@@ -66,8 +66,6 @@ sub twit_password {
 		$self->config->set( 'twit_pass', $pass ); 
 		}
 		
-	$self->_print( "Twitter pass is $pass\n" );
-
 }
 
 

@@ -31,8 +31,6 @@ Looks in local_name to get the name and version of the distribution file.
 sub open_upload {
 	my $self = shift;
 
-	$self->_print( "Checking state of Subversion..." );
-
 	my $local_file = $self->local_file;
 	my $remote_file = "http://svn.ali.as/cpan/releases/$local_file";
 	my $bot_name = $self->config->upload_bot_name || 'Module::Release::OpenRepository';
