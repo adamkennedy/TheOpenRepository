@@ -875,6 +875,8 @@ sub Marpa::Evaluator::new {
     $#short_and_signatures = @{$and_nodes};
     my @or_node_id_work_list  = ();
     my @and_node_id_work_list = ();
+    my @prune_candidate_or_nodes = ();
+    my @prune_candidate_and_node_ids = ();
 
     OR_NODE: for my $parent_or_node ( @{$or_nodes} ) {
         my $parent_or_node_id =
@@ -906,10 +908,14 @@ sub Marpa::Evaluator::new {
                 $child_and_node_id;
         } ## end for my $child_and_node_id ( @{$child_and_node_ids} )
 
+        my $prune_candidate = 0;
+
         SHORT_SIGNATURE:
         while ( my ( $short_signature, $child_ids ) = each %short_signature )
         {
             next SHORT_SIGNATURE if scalar @{$child_ids} < 2;
+            $prune_candidate = 1;
+            push @prune_candidate_and_node_ids, @{$child_ids};
             if ($trace_iterations) {
                 say {$trace_fh} 'Possible duplicate and nodes: ', join q{ },
                     map {
@@ -940,6 +946,10 @@ sub Marpa::Evaluator::new {
 
         } ## end while ( my ( $short_signature, $child_ids ) = each ...
 
+        if ($prune_candidate) {
+            push @prune_candidate_or_nodes, $parent_or_node;
+        }
+
     } ## end for my $parent_or_node ( @{$or_nodes} )
 
     # Determine the or-nodes and and-nodes which are of interest for
@@ -968,6 +978,10 @@ sub Marpa::Evaluator::new {
                 ];
         } ## end while ( my $and_node_id = pop @and_node_id_work_list )
     } ## end while (@or_node_id_work_list)
+
+    for my $and_node_id (@prune_candidate_and_node_ids) {
+        $and_nodes_of_interest[$and_node_id] = 1;
+    }
 
     return $self;
 
