@@ -12,20 +12,22 @@ $VERSION = '0.01';
 
 =head1 NAME
 
-Module::Release::VersionPmFix - Fixes the 'v' that version.pm adds.
+Module::Release::PermissionFix - Fixes the 'v' that version.pm adds.
 
 =head1 SYNOPSIS
 
-The release2 script will automatically load this module if it thinks that you
-want to announce your module on Twitter.
+The release-csjewell script will automatically load this module in order 
+to make sure that the permissions on the file uploaded are correct and 
+PAUSE will be able to index it.
 
 =head1 DESCRIPTION
 
 =over 4
 
-=item fix_version
+=item fix_permission
 
-Fixes local_name and renames the distribution file.
+Fixes the permissions on the distribution file (0444 becomes 0664, and 
+0555 becomes 0755).
 
 =cut
 
@@ -34,7 +36,7 @@ sub fix_permission {
 
 	local $Archive::Tar::DO_NOT_USE_PREFIX = 1;
 
-	my $dist    = $self->local_file;
+	my $dist = $self->local_file;
 
     my $fixes;
     my $tar = Archive::Tar->new;
@@ -80,7 +82,9 @@ L<Module::Release>
 
 =head1 SOURCE AVAILABILITY
 
-None as of yet.
+This source is on the Open Repository:
+
+	L<http://svn.ali.as/cpan/trunk/Module-Release-CSJEWELL/>
 
 =head1 AUTHOR
 
@@ -88,7 +92,7 @@ Curtis Jewell, C<< <csjewell@cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2009 Curtis Jewell.
+Copyright (c) 2009, Curtis Jewell.
 
 You may redistribute this under the same terms as Perl itself.
 

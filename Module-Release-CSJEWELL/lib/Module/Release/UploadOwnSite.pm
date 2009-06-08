@@ -71,17 +71,17 @@ L<Module::Release>
 
 =head1 SOURCE AVAILABILITY
 
-This source is in Github:
+This source is on the Open Repository:
 
-	git://github.com/briandfoy/module-release.git
+	L<http://svn.ali.as/cpan/trunk/Module-Release-CSJEWELL/>
 
 =head1 AUTHOR
 
-brian d foy, C<< <bdfoy@cpan.org> >>
+Curtis Jewell, C<< <csjewell@cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2007-2009, brian d foy, All Rights Reserved.
+Copyright (c) 2009, Curtis Jewell.
 
 You may redistribute this under the same terms as Perl itself.
 

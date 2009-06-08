@@ -17,8 +17,8 @@ Module::Release::Twitter - Twitter the module upload
 
 =head1 SYNOPSIS
 
-The release2 script will automatically load this module if it thinks that you
-want to announce your module on Twitter.
+The release-csjewell script will automatically load this module if it 
+thinks that you want to announce your module on Twitter.
 
 =head1 DESCRIPTION
 
@@ -26,7 +26,7 @@ want to announce your module on Twitter.
 
 =item twit_upload
 
-Looks in local_name to get the name and version of the distribution file.
+Announces your upload to the Twitter account of your choice.
 
 =cut
 
@@ -34,13 +34,14 @@ sub twit_upload {
 	my $self = shift;
 
 	my $local_file = $self->local_file;
+	my $twit_user = $self->config->twit_user();
+	return unless $user;
+	
+	my $twit_password = $self->config->twit_pass();
 
 	my $string = "Uploaded $local_file to CPAN - find it on your local mirror in a few hours! #Perl";
 
 	$self->_print( "Twitter: $string\n" );
-
-	my $twit_user = $self->config->twit_user();
-	my $twit_password = $self->config->twit_pass();
 
 	$self->_debug("Twitter: User: $twit_user Password: $twit_password\n");
 	$self->_debug("Net::Twitter: Version: $Net::Twitter::VERSION\n");
@@ -56,6 +57,12 @@ sub twit_upload {
         $self->_print( "Could not Twitter because: $@\n" );
     }	
 }
+
+=item twit_upload
+
+Retrieves the password for your Twitter account.
+
+=cut
 
 sub twit_password {
 	my $self = shift;
@@ -77,17 +84,17 @@ L<Module::Release>
 
 =head1 SOURCE AVAILABILITY
 
-This source is in Github:
+This source is on the Open Repository:
 
-	git://github.com/briandfoy/module-release.git
+	L<http://svn.ali.as/cpan/trunk/Module-Release-CSJEWELL/>
 
 =head1 AUTHOR
 
-brian d foy, C<< <bdfoy@cpan.org> >>
+Curtis Jewell, C<< <csjewell@cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2007-2009, brian d foy, All Rights Reserved.
+Copyright (c) 2009, Curtis Jewell.
 
 You may redistribute this under the same terms as Perl itself.
 
