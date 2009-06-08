@@ -1024,7 +1024,9 @@ is_file($_, 't/ignore.t', 'ignore snippet')
 =end Marpa::Test::Display:
 
     sub ignore_my_global {
-        my ($thing) = @_;
+        my ($probe) = @_;
+        return unless Scalar::Util::reftype $probe eq 'REF';
+        my $thing = ${$probe};
         return ( Scalar::Util::blessed($thing) && $thing->isa('MyGlobal') );
     }
 
@@ -1032,7 +1034,7 @@ is_file($_, 't/ignore.t', 'ignore snippet')
         {   constructor => sub { MyObject->new() },
             ignore      => \&ignore_my_global,
         }
-    );
+);
 
 =begin Marpa::Test::Display:
 
