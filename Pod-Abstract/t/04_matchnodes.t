@@ -24,11 +24,11 @@ my @ci =  # case insensitive
 my @cs =  # case sensitive
     $root->select('/head1[@heading =~ {TEST}]');
 my @eq =  # equality - simple
-    $root->select('/head1[@heading = \'Test\']');
+    $root->select('/head1[@heading eq \'Test\']');
 my @ec =  # equality - complex
-    $root->select('/head1[@heading = /head2@heading]');
+    $root->select('/head1[@heading eq /head2@heading]');
 my @ec_s = # equality - complex - successor
-    $root->select('/head1[>>@heading = @heading]');
+    $root->select('/head1[>>@heading eq @heading]');
 my @root = # Only one root node for all:
     $root->select('//^'); # Horribly ineffient NOP. This catches the
                           # filter_unique behaviour.
@@ -54,7 +54,7 @@ my @intersect_select =
 
 # Match head2 nodes which match top level head1 nodes -
 # expands/restricts a lot of nodes.
-my @tt = $root->select('//head2[@heading = ^/head1@heading]');
+my @tt = $root->select('//head2[@heading eq ^/head1@heading]');
 my @h2_para = $root->select('/head1(0)/:paragraph head2');
 
 ok(@cs == 1, "Case sensitive match 1");
@@ -65,7 +65,7 @@ ok(@ec_s == 1, "Complex Successor match 1");
 ok($_->detach, "Detach matched node") foreach @ec_s;
 
 my @ec_p = # equality - complex - preceding
-    $root->select('/head1[<<@heading = @heading]');
+    $root->select('/head1[<<@heading eq @heading]');
 
 ok(@ec_p == 0, "Complex Preceding match 0");
 ok(@root == 1, "One root node only");

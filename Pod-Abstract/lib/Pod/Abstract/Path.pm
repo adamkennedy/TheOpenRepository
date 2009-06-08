@@ -5,6 +5,7 @@ use warnings;
 use Data::Dumper;
 
 use UNIVERSAL qw(isa can);
+use Pod::Abstract::BuildNode qw(node);
 
 $Data::Dumper::Indent = 1;
 
@@ -16,14 +17,10 @@ use constant NAME      => 3;  # head1
 use constant INDEX     => 4;  # (3)
 use constant L_SELECT  => 5;  # [
 use constant ATTR      => 6;  # @label
-use constant EQUAL     => 7;  # =
+use constant N_CMP     => 7;  # == != < <= > >=
 use constant STRING    => 8;  # 'foobar'
 use constant R_SELECT  => 9;  # ]
-use constant NOT_EQ    => 10; # <>
-use constant LESS_THAN => 11; # <
-use constant LESS_EQ   => 12; # <=
-use constant GT_THAN   => 13; # >
-use constant GT_EQ     => 14; # >=
+use constant NUM_OF    => 10; # #
 use constant NOT       => 15; # !
 use constant PARENT    => 16; # ..
 use constant MATCHES   => 17; # =~
@@ -34,6 +31,7 @@ use constant NEXT      => 21; # >>
 use constant ROOT      => 22; # ^
 use constant UNION     => 23; # |
 use constant INTERSECT => 24; # &
+use constant S_CMP     => 25; # eq lt gt le ge ne
 
 =pod
 
@@ -163,14 +161,20 @@ match C<foo> or C<fOO>.
 Reverses the remainder of the expression. The above example will match
 anything B<without> a child head2 node.
 
-=item equality: C<[ /node1 = /node2 ]>
+=item compare operators: eg. C<[ /node1 eq /node2 ]>
 
-Matches nodes that have at least one equality match. The right hand
-expression can be a constant string (single quoted: C<'string'>, or a
-second expression. If two expressions are used, they are matched
-combinationally - i.e, all result nodes on the left are matched
-against all result nodes on the right. Both sides may contain nested
-expressions.
+Matches nodes where the operator is satistied for at least one pair of
+nodes. The right hand expression can be a constant string (single
+quoted: C<'string'>, or a second expression. If two expressions are
+used, they are matched combinationally - i.e, all result nodes on the
+left are matched against all result nodes on the right. Both sides may
+contain nested expressions.
+
+The following Perl compatible operators are supported:
+
+String: C< eq gt lt le ge ne >
+
+Numeric: C<<< == < > <= >= != >>>
 
 =back
 
@@ -248,6 +252,9 @@ sub lex {
         } elsif($expression =~ m/^\]/) {
             substr($expression,0,1) = '';
             push @l, [ R_SELECT, undef ];
+        } elsif($expression =~ m/^(eq|lt|gt|le|ge|ne)/) {
+            push @l, [ S_CMP, $1 ];
+            substr($expression,0,2) = '';
         } elsif($expression =~ m/^([#_\:a-zA-Z0-9]+)/) {
             push @l, [ NAME, $1 ];
             substr($expression, 0, length $1) = '';
@@ -276,22 +283,28 @@ sub lex {
         } elsif($expression =~ m/^\./) {
             push @l, [ NOP, undef ];
             substr($expression, 0, 1) = '';
-        } elsif($expression =~ m/^\!/) {
-            push @l, [ NOT, undef ];
-            substr($expression, 0, 1) = '';
         } elsif($expression =~ m/^\<\</) {
             push @l, [ PREV, undef ];
             substr($expression, 0, 2) = '';
         } elsif($expression =~ m/^\>\>/) {
             push @l, [ NEXT, undef ];
             substr($expression, 0, 2) = '';
-        } elsif($expression =~ m/^=/) {
-            push @l, [ EQUAL, undef ];
+        } elsif($expression =~ m/^(==|!=|<=|>=)/) {
+            push @l, [ N_CMP, $1 ];
+            substr($expression,0,2) = '';
+        } elsif($expression =~ m/^(<|>)/) {
+            push @l, [ N_CMP, $1 ];
+            substr($expression,0,1) = '';
+        } elsif($expression =~ m/^\!/) {
+            push @l, [ NOT, undef ];
+            substr($expression, 0, 1) = '';
+        } elsif($expression =~ m/^\%/) {
+            push @l, [ NUM_OF, undef ];
             substr($expression, 0, 1) = '';
         } elsif($expression =~ m/^'([\^']*)'/) {
             push @l, [ STRING, $1 ];
             substr($expression, 0, length( $1 ) + 2) = '';
-        } elsif($expression =~ m/([ \n\t]+)/) {
+        } elsif($expression =~ m/(\s+)/) {
             # Discard uncaptured whitespace
             substr($expression, 0, length($1)) = '';
         } else {
@@ -448,6 +461,8 @@ sub match_expression {
     my $exp = shift;
     my $r_exp = shift;
     
+    my $op = shift; # Only for some operators
+    
     my $nlist = [ ];
     foreach my $n(@$ilist) {
         my @t_list = $exp->process($n);
@@ -456,9 +471,9 @@ sub match_expression {
         # node lists if required.
         if(can($r_exp, 'process')) {
             my @r_list = $r_exp->process($n);
-            $t_result = $self->$test_action(\@t_list, \@r_list);
+            $t_result = $self->$test_action(\@t_list, \@r_list, $op);
         } else {
-            $t_result = $self->$test_action(\@t_list, $r_exp);
+            $t_result = $self->$test_action(\@t_list, $r_exp, $op);
         }
         $t_result = !$t_result if $invert;
         if($t_result) {
@@ -468,10 +483,11 @@ sub match_expression {
     return $nlist;
 }
 
-sub test_equal {
+sub test_cmp_op {
     my $self = shift;
     my $l_list = shift;
     my $r_exp = shift;
+    my $op = shift;
     
     if(scalar(@$r_exp) == 0 || isa($r_exp->[0],'Pod::Abstract::Node')) {
         # combination test
@@ -482,7 +498,8 @@ sub test_equal {
             foreach my $r (@$r_exp) {
                 my $rb = $r->body;
                 $rb = $r->pod unless $rb;
-                $match ++ if $lb eq $rb;
+                eval "\$match++ if \$lb $op \$rb";
+                die $@ if $@;
             }
         }
         return $match;
@@ -493,7 +510,8 @@ sub test_equal {
         foreach my $l (@$l_list) {
             my $lb = $l->body;
             $lb = $l->pod unless $lb;
-            $match ++ if $lb eq $str;
+            eval "\$match++ if \$lb $op \$str";
+            die $@ if $@;
         }
         return $match;
     } else {
@@ -683,7 +701,7 @@ sub parse_l_path {
             'action' => 'end_select',
         };
     } elsif(grep { $tok == $_ } 
-            (MATCHES, R_SELECT, EQUAL, UNION, INTERSECT)) {
+            (MATCHES, R_SELECT, S_CMP, N_CMP, UNION, INTERSECT)) {
         unshift @$l, $next;
         return {
             'action' => 'end_select',
@@ -796,6 +814,7 @@ sub parse_expression {
     $l_exp = $class->new("select expression",$l_exp);
     my $op = shift @$l;
     my $op_tok = $op->[0];
+    my $op_val = $op->[1];
     my $exp = undef;
     
     if($op_tok == MATCHES) {
@@ -814,7 +833,7 @@ sub parse_expression {
         } else {
             die "Expected REGEXP, got ", Dumper([$re_tok]);
         }
-    } elsif($op_tok == EQUAL) {
+    } elsif($op_tok == S_CMP || $op_tok == N_CMP) {
         my $rh = shift @$l;
         my $rh_tok = $rh->[0];
         my $r_exp = undef;
@@ -828,8 +847,8 @@ sub parse_expression {
         }
         $exp = {
             action => 'match_expression',
-            arguments => [ 'test_equal', 0,
-                           $l_exp, $r_exp ],
+            arguments => [ 'test_cmp_op', 0,
+                           $l_exp, $r_exp, $op_val ],
         };
     } elsif($op_tok == R_SELECT) {
         # simple expression
