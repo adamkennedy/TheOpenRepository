@@ -40,7 +40,7 @@ sub open_upload {
 	$release =~ s/-/::/g;
     my $message = "[$bot_name] Importing upload file for $release $version"; 
 	
-	$self->_print("Committing release file to OpenRepository.\n")
+	$self->_print("Committing release file to OpenRepository.\n");
 	$self->_debug("Commit Message: $message\n");
 	$self->run(qq(svn import $local_file $remote_file -m "$message" 2>&1));
 
