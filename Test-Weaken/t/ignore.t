@@ -84,7 +84,9 @@ use Test::Weaken::Test;
 ## use Marpa::Test::Display ignore snippet
 
 sub ignore_my_global {
-    my ($thing) = @_;
+    my ($probe) = @_;
+    return unless Scalar::Util::reftype $probe eq 'REF';
+    my $thing = ${$probe};
     return ( Scalar::Util::blessed($thing) && $thing->isa('MyGlobal') );
 }
 
@@ -201,7 +203,7 @@ sub buggy_ignore {
         my $temp = ${ $_[0] };
         $_[0] = \$temp;
     }
-    return 0;
+    return;
 }
 ## use critic
 
