@@ -1,5 +1,11 @@
 Revision history for Pod-Abstract
 
+0.18    08/06/2009
+        Replaced "=" operator with "eq", added the full set of Perl
+        compatible binary comparison operators (eq and friends, == and
+        friends). This will break your code if you used the "=" operator
+        in 0.17, you will need to change it to "eq".
+
 0.17    26/05/2009
 		Added Union and Intersection operators to paths (conjunction of
         multiple simple paths). Support for multi-name selectors in paths.

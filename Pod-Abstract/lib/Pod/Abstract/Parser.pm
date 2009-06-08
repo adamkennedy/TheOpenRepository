@@ -6,7 +6,7 @@ use Pod::Abstract::Node;
 use Data::Dumper;
 use base qw(Pod::Parser);
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =head1 new
 
