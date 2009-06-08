@@ -28,7 +28,7 @@ ok($tree, '->new returns true');
 
 # Test 2.
               
-my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
+my $string_test = '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
       <Directory Id=\'INSTALLDIR\'>
         <Directory Id=\'D_Perl\' Name=\'perl\'>
           <Directory Id=\'D_F717B51E_5E57_329A_83A3_527819908145\' Name=\'bin\' />
@@ -46,7 +46,9 @@ my $string_test ='    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
             </Directory>
             <Directory Id=\'D_152F3CF8_314D_3F98_A249_392EE0A5C9DC\' Name=\'Devel\' />
             <Directory Id=\'D_EB3DFBB1_E121_3F57_936E_2781FB7977D5\' Name=\'Digest\' />
-            <Directory Id=\'D_96781A12_24D3_3B0A_8731_39F011F3CEA1\' Name=\'ExtUtils\' />
+            <Directory Id=\'D_96781A12_24D3_3B0A_8731_39F011F3CEA1\' Name=\'ExtUtils\'>
+              <Directory Id=\'D_687AEFED_0040_359A_BA22_F9A58E228A8D\' Name=\'MakeMaker\' />
+            </Directory>
             <Directory Id=\'D_32453E8B_BBCD_3F54_B2C1_813C273C0847\' Name=\'File\' />
             <Directory Id=\'D_6B79F1E7_1095_34B6_AF8E_20A2F9FB6136\' Name=\'Filter\'>
               <Directory Id=\'D_5F8D8371_677A_3299_816F_2ABB7197FF55\' Name=\'Util\' />
