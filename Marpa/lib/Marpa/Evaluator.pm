@@ -983,6 +983,21 @@ sub Marpa::Evaluator::new {
         $and_nodes_of_interest[$and_node_id] = 1;
     }
 
+    my @equivalence_work_list = ();
+
+    # Initialize the equivalence work list with terminal and nodes
+    AND_NODE: for my $and_node_id ( grep { $and_nodes_of_interest[$_] }
+        ( 0 .. $#and_nodes_of_interest ) )
+    {
+        my @or_children =
+            grep { defined $_ } @{ $and_nodes->[$and_node_id] }[
+            Marpa::Internal::And_Node::PREDECESSOR,
+            Marpa::Internal::And_Node::CAUSE
+            ];
+        next AND_NODE if @or_children;
+        push @equivalence_work_list, [ 1, $and_node_id ];
+    } ## end for my $and_node_id ( grep { $and_nodes_of_interest[$_...
+
     return $self;
 
 }    # sub new
