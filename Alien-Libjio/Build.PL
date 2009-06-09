@@ -14,12 +14,6 @@ use warnings;
 
 use Module::Build;
 
-# Use Alien::Libjio to see if it's already installed
-use lib 'lib';
-use Alien::Libjio;
-
-my $jio = Alien::Libjio->new();
-
 my $builder = Module::Build->new(
   module_name           => 'Alien::Libjio',
   license               => 'unrestricted',
@@ -44,8 +38,8 @@ my $builder = Module::Build->new(
     'strict'            => 0,
 
     # Utilities to find compile information
-    'ExtUtils::Liblist'       => 0,
-    'ExtUtils::PkgConfig'     => 0,
+    'ExtUtils::Liblist'       => 0, # a fallback
+    'ExtUtils::PkgConfig'     => 0, # the preferred method
   },
   build_requires => {
     # User tests for good functionality
@@ -86,5 +80,32 @@ my $builder = Module::Build->new(
     },
   },
 );
+
+# Use Alien::Libjio to see if it's already installed
+use lib 'lib';
+use Alien::Libjio;
+
+my $jio = Alien::Libjio->new();
+
+unless ($jio->installed) {
+  # Ask the user if they'd like to install this; if not, then exit
+  $builder->y_n('libjio is not installed on your system. Install it now?',
+    'y') or exit;
+
+  # Ask the user what 'make' program to invoke
+  my $make;
+  if ($ENV{MAKE}) {
+    $make = $ENV{MAKE};
+  }
+  else {
+    use Config;
+    $make = $Config{make};
+  }
+  $make = $builder->prompt('What is your system "make" command?', $make);
+
+  # Okay, install it now
+  use File::Spec ();
+  system($make, '-C', File::Spec->catfile('libjio', 'libjio'));
+}
 
 $builder->create_build_script();

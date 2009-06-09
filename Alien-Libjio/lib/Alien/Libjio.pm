@@ -228,6 +228,8 @@ sub cflags {
 sub _try_pkg_config {
   my ($self) = @_;
 
+  use ExtUtils::PkgConfig ();
+
   my %pkginfo;
   eval {
     %pkginfo = ExtUtils::PkgConfig->find('libjio');
