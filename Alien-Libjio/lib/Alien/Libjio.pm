@@ -114,9 +114,9 @@ sub new {
 
   bless($self, $class);
 
-  $self->_try_pkg_config()
-    or $self->_try_liblist()
-    ;
+  $self->_try_pkg_config()      or
+    $self->_try_liblist()       or
+    Carp::croak('Failed to find libjio. Is pkg-config installed?');
 
   return $self;
 }
@@ -157,6 +157,74 @@ sub version {
   return $self->{version};
 }
 
+=head2 $jio->ldflags
+=head2 $jio->linker_flags
+
+This returns the flags required to link C code with the local installation of
+libjio (typically in the LDFLAGS variable). It is particularly useful for
+building and installing Perl XS modules such as L<IO::Journal>.
+
+In scalar context, it returns an array reference suitable for passing to
+other build systems, particularly L<Module::Build>. In list context, it gives
+a normal array so that C<join> and friends will work as expected.
+
+Example code:
+
+  my $ldflags = $jio->ldflags;
+  my @ldflags = @{ $jio->ldflags };
+  my $ldstring = join(' ', $jio->ldflags);
+  # or:
+  # my $ldflags = $jio->linker_flags;
+
+=cut
+
+sub ldflags {
+  my ($self) = @_;
+
+  # Return early if called in void context
+  return unless defined wantarray;
+
+  # If calling in array context, dereference and return
+  return @{ $self->{ldflags} } if wantarray;
+
+  return $self->{ldflags};
+}
+
+# Glob to create an alias to ldflags
+*linker_flags = &ldflags;
+
+=head2 $jio->cflags
+=head2 $jio->compiler_flags
+
+This method returns the compiler option flags to compile C code which uses
+the libjio library (typically in the CFLAGS variable). It is particularly
+useful for building and installing Perl XS modules such as L<IO::Journal>.
+
+Example code:
+
+  my $cflags = $jio->cflags;
+  my @cflags = @{ $jio->cflags };
+  my $ccstring = join(' ', $jio->cflags);
+  # or:
+  # my $cflags = $jio->compiler_flags;
+
+=cut
+
+sub cflags {
+  my ($self) = @_;
+
+  # Return early if called in void context
+  return unless defined wantarray;
+
+  # If calling in array context, dereference and return
+  return @{ $self->{cflags} } if wantarray;
+
+  return $self->{cflags};
+}
+*compiler_flags = &cflags;
+
+# Private methods to find & fill out information
+
 sub _try_pkg_config {
   my ($self) = @_;
 
@@ -164,27 +232,49 @@ sub _try_pkg_config {
   return unless (defined($flags) && length($flags));
 
   $self->{installed} = 1;
-  $self->{cflags} = $flags;
-  $self->{ldflags} = `pkg-config --libs libjio`;
-  $self->{version} = `pkg-config --modversion libjio`;
+
+  # pkg-config returns things with a newline, so remember to remove it
+  chomp($flags);
+  $self->{cflags} = \@{ split(' ', $flags) };
+
+  $flags = `pkg-config --libs libjio`;
+  chomp($flags);
+  $self->{ldflags} = \@{ split(' ', $flags) };
+
+  $flags = `pkg-config --modversion libjio`;
+  chomp($flags);
+  $self->{version} = $flags;
+
   return 1;
 }
 
 sub _try_liblist {
   my ($self) = @_;
 
-  use Cwd ();
   use ExtUtils::Liblist ();
   my (undef, undef, $ldflags, $ldpath) = ExtUtils::Liblist->ext('-ljio');
   return unless (defined($ldflags));
 
   $self->{installed} = 1;
 
+  # Used for resolving the include path, relative to lib
+  use Cwd ();
+  use File::Spec ();
+
   my $flags = `getconf LFS_CFLAGS`;
   $flags ||= '-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64';
-  $flags .= ' -I' . Cwd::realpath($ldpath . '/../include');
-  $self->{cflags} = $flags;
-  $self->{ldflags} = '-L' . $ldpath . ' ' . $ldflags;
+  $flags .= ' -I' . Cwd::realpath(File::Spec->catfile(
+    $ldpath,
+    File::Spec->updir(),
+    'include'
+  ));
+  $self->{cflags} = \@{ split(' ', $flags) };
+
+  push(@{ $self->{ldflags} },
+    '-L' . $ldpath,
+    $ldflags,
+  );
+
   return 1;
 }
 

@@ -18,6 +18,8 @@ use Module::Build;
 use lib 'lib';
 use Alien::Libjio;
 
+my $jio = Alien::Libjio->new();
+
 my $builder = Module::Build->new(
   module_name           => 'IO::Journal',
   license               => 'unrestricted',
