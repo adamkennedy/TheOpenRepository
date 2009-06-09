@@ -230,18 +230,16 @@ use IPC::Open3 ('open3');
 sub _get_pc {
   my ($key) = @_;
 
-  my $pid;
-  my ($reader, $err);
-
-  $pid = open3(undef, $reader, $err, 'pkg-config', 'libjio', '--' . $key);
+  my $read;
+  my $pid = open3(undef, $read, undef, 'pkg-config', 'libjio', '--' . $key);
   waitpid($pid, 0);
 
   # Check the exit status; 0 = success - nonzero = failure
   if (($? >> 8) == 0) {
-    return (<$reader>, <$err>) if wantarray;
-    return <$reader>;
+    # The value we got back
+    return <$read>;
   }
-  return (undef, <$err>) if wantarray;
+  return (undef, <$read>) if wantarray;
   return undef;
 }
 
@@ -278,15 +276,18 @@ sub _try_liblist {
   # Empty out cflags; initialize it
   $self->{cflags} = [];
 
-  my ($reader, $err);
-  open3(undef, $reader, $err, 'getconf', 'LFS_CFLAGS');
-  unless (my $flags = <$reader>) {
+  my $read;
+  my $pid = open3(undef, $read, undef, 'getconf', 'LFS_CFLAGS');
+  waitpid($pid, 0);
+
+  # Check the status code
+  if (($? >> 8) == 0) {
     # This only takes the first line
     ## no critic(ProhibitEmptyQuotes)
-    push(@{ $self->{cflags} }, split(' ', $flags));
+    push(@{ $self->{cflags} }, split(' ', <$read>));
   }
   else {
-    warn 'Problem using getconf: ', <$err>, "\n";
+    warn 'Problem using getconf: ', <$read>, "\n";
     push(@{ $self->{cflags} },
       '-D_LARGEFILE_SOURCE',
       '-D_FILE_OFFSET_BITS=64',
