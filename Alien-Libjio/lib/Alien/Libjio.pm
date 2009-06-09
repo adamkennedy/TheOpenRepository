@@ -191,7 +191,7 @@ sub ldflags {
 }
 
 # Glob to create an alias to ldflags
-*linker_flags = &ldflags;
+*linker_flags = *ldflags;
 
 =head2 $jio->cflags
 =head2 $jio->compiler_flags
@@ -221,7 +221,7 @@ sub cflags {
 
   return $self->{cflags};
 }
-*compiler_flags = &cflags;
+*compiler_flags = *cflags;
 
 # Private methods to find & fill out information
 
@@ -235,11 +235,11 @@ sub _try_pkg_config {
 
   # pkg-config returns things with a newline, so remember to remove it
   chomp($flags);
-  $self->{cflags} = \@{ split(' ', $flags) };
+  $self->{cflags} = [ split(' ', $flags) ];
 
   $flags = `pkg-config --libs libjio`;
   chomp($flags);
-  $self->{ldflags} = \@{ split(' ', $flags) };
+  $self->{ldflags} = [ split(' ', $flags) ];
 
   $flags = `pkg-config --modversion libjio`;
   chomp($flags);
@@ -263,12 +263,15 @@ sub _try_liblist {
 
   my $flags = `getconf LFS_CFLAGS`;
   $flags ||= '-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64';
-  $flags .= ' -I' . Cwd::realpath(File::Spec->catfile(
-    $ldpath,
-    File::Spec->updir(),
-    'include'
-  ));
-  $self->{cflags} = \@{ split(' ', $flags) };
+
+  $self->{cflags} = [
+    split(' ', $flags),
+    '-I' . Cwd::realpath(File::Spec->catfile(
+      $ldpath,
+      File::Spec->updir(),
+      'include'
+    )),
+  ];
 
   push(@{ $self->{ldflags} },
     '-L' . $ldpath,
