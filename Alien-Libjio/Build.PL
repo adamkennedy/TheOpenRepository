@@ -43,11 +43,13 @@ my $builder = Module::Build->new(
     'warnings'          => 0,
     'strict'            => 0,
 
-    # The tests are based on Test::More
-    'Test::More'        => 0.62,
+    # Utilities to find compile information
+    'ExtUtils::Liblist'       => 0,
+    'ExtUtils::PkgConfig'     => 0,
   },
   build_requires => {
     # User tests for good functionality
+    'Test::More'              => 0.62,
     'Test::NoWarnings'        => 0.084,
 
     # For the C compiling process

@@ -228,22 +228,21 @@ sub cflags {
 sub _try_pkg_config {
   my ($self) = @_;
 
-  my $flags = `pkg-config --cflags libjio`;
-  return unless (defined($flags) && length($flags));
+  my %pkginfo;
+  eval {
+    %pkginfo = ExtUtils::PkgConfig->find('libjio');
+  };
+  if ($@) {
+    printf {*STDERR} "warning: %s; using ExtUtils::Liblist instead\n", $@;
+    return;
+  }
 
   $self->{installed} = 1;
 
   # pkg-config returns things with a newline, so remember to remove it
-  chomp($flags);
-  $self->{cflags} = [ split(' ', $flags) ];
-
-  $flags = `pkg-config --libs libjio`;
-  chomp($flags);
-  $self->{ldflags} = [ split(' ', $flags) ];
-
-  $flags = `pkg-config --modversion libjio`;
-  chomp($flags);
-  $self->{version} = $flags;
+  $self->{cflags} = [ split(' ', $pkginfo{cflags}) ];
+  $self->{ldflags} = [ split(' ', $pkginfo{libs}) ];
+  $self->{version} = [ split(' ', $pkginfo{modversion}) ];
 
   return 1;
 }
