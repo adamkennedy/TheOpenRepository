@@ -271,7 +271,7 @@ sub _try_liblist {
   local $SIG{__WARN__} = sub { }; # mask warnings
 
   my (undef, undef, $ldflags, $ldpath) = ExtUtils::Liblist->ext('-ljio');
-  return unless (defined($ldflags));
+  return unless (defined($ldflags) && length($ldflags));
 
   $self->{installed} = 1;
 
