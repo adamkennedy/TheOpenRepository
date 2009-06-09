@@ -233,13 +233,15 @@ sub _try_pkg_config {
     %pkginfo = ExtUtils::PkgConfig->find('libjio');
   };
   if ($@) {
-    printf {*STDERR} "warning: %s; using ExtUtils::Liblist instead\n", $@;
+    #printf {*STDERR} "warning: %s; using ExtUtils::Liblist instead\n", $@;
     return;
   }
 
   $self->{installed} = 1;
 
   # pkg-config returns things with a newline, so remember to remove it
+  # I don't see anything wrong with the ' ' (pure whitespace quotes)
+  ## no critic(ProhibitEmptyQuotes)
   $self->{cflags} = [ split(' ', $pkginfo{cflags}) ];
   $self->{ldflags} = [ split(' ', $pkginfo{libs}) ];
   $self->{version} = [ split(' ', $pkginfo{modversion}) ];
@@ -256,21 +258,38 @@ sub _try_liblist {
 
   $self->{installed} = 1;
 
+  use IPC::Open3 'open3';
+
+  # Empty out cflags; initialize it
+  $self->{cflags} = [];
+
+  my ($reader, $err);
+  open3(undef, $reader, $err, 'getconf', 'LFS_CFLAGS');
+  unless (my $flags = <$reader>) {
+    # This only takes the first line
+    ## no critic(ProhibitEmptyQuotes)
+    push(@{ $self->{cflags} }, split(' ', $flags));
+  }
+  else {
+    #printf {*STDERR} 'warning: error with getconf - %s; using sane ' .
+    #  "defaults instead\n", <$err>;
+    push(@{ $self->{cflags} },
+      '-D_LARGEFILE_SOURCE',
+      '-D_FILE_OFFSET_BITS=64',
+    );
+  }
+
   # Used for resolving the include path, relative to lib
   use Cwd ();
   use File::Spec ();
-
-  my $flags = `getconf LFS_CFLAGS`;
-  $flags ||= '-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64';
-
-  $self->{cflags} = [
-    split(' ', $flags),
+  push(@{ $self->{cflags} },
+    # The include path is taken as: $libpath/../include
     '-I' . Cwd::realpath(File::Spec->catfile(
       $ldpath,
       File::Spec->updir(),
       'include'
-    )),
-  ];
+    ))
+  );
 
   push(@{ $self->{ldflags} },
     '-L' . $ldpath,
