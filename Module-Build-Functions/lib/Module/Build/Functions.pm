@@ -6,26 +6,25 @@ use     5.005;
 use     vars                  
   qw( $VERSION @EXPORT $AUTOLOAD %args @install_types );
 use     Carp                  qw( croak carp                       );
-use     English               qw( -no_match_vars                   );
 use     Exporter              qw( import                           );
 use     File::Spec::Functions qw( catdir catfile                   );
 use     Config;
 use     AutoLoader;
 require Module::Build;
-#>>>
 
 # The equivalent of "use warnings" pre-5.006.
-local $WARNING = 1;
-my $object         = undef;
-my $class          = undef;
-my $mb_required    = 0;
-my $autoload       = 1;
-my $object_created = 0;
-my $sharemod_used  = 1;
-my (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
+local $^W             = 1;
+my    $object         = undef;
+my    $class          = undef;
+my    $mb_required    = 0;
+my    $autoload       = 1;
+my    $object_created = 0;
+my    $sharemod_used  = 1;
+my    (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
+#>>>
 
 BEGIN {
-	$VERSION = '0.001_008';
+	$VERSION = '0.001_009';
 
 	# Module implementation here
 
@@ -246,13 +245,13 @@ sub _slurp_file {
 		require Symbol;
 		$file_handle = Symbol::gensym();
 		open $file_handle, "<$name" ## no critic(RequireBriefOpen)
-		  or croak $OS_ERROR;
+		  or croak $!;
 	} else {
 		open $file_handle, '<', $name ## no critic(RequireBriefOpen)
-		  or croak $OS_ERROR;
+		  or croak $!;
 	}
 
-	local $INPUT_RECORD_SEPARATOR = undef;   # enable localized slurp mode
+	local $/ = undef;   # enable localized slurp mode
 	my $content = <$file_handle>;
 
 	close $file_handle;
@@ -404,7 +403,16 @@ sub perl_version_from {
 }
 
 sub install_script {
-	croak 'install_script not supported yet';
+	my @scripts = @_;
+    foreach my $script ( @scripts ) {
+		if ( -f $script ) {
+			script_files($_);
+		} elsif ( -d 'script' and -f "script/$script" ) {
+			script_files("script/$script");
+		} else {
+			croak "Cannot find script '$script'";
+		}
+	}
 }
 
 sub install_as_core {
@@ -455,37 +463,85 @@ sub auto_bundle_deps {
 # Module::Install::Can
 
 sub can_use {
-	croak 'can_use is not supported yet';
+	my ($mod, $ver) = @_;
+	
+	my $file = $mod;
+	$file =~ s{::|\\}{/}g;
+	$file .= '.pm' unless $file =~ /\.pm$/i;
+
+	local $@;
+	return eval { require $file; $mod->VERSION($ver || 0); 1 };
 }
 
 sub can_run {
-	croak 'can_run is not supported yet';
+	my $cmd = shift;
+	require ExtUtils::MakeMaker;
+	if ($^O == 'cygwin') {
+		# MM->maybe_command is fixed in 6.51_01 for Cygwin.
+		ExtUtils::MakeMaker->import(6.51);
+	}
+	
+	my $_cmd = $cmd;
+	return $_cmd if (-x $_cmd or $_cmd = MM->maybe_command($_cmd));
+
+	for my $dir ((split /$Config::Config{path_sep}/, $ENV{PATH}), '.') {
+		next if $dir eq '';
+		my $abs = File::Spec->catfile($dir, $cmd);
+		return $abs if (-x $abs or $abs = MM->maybe_command($abs));
+	}
+
+	return;
 }
 
 sub can_cc {
-	croak 'can_cc is not supported yet';
+	return eval { require ExtUtils::CBuilder; ExtUtils::CBuilder->new()->have_compiler(); };
 }
 
 # Module::Install::External
 
 sub requires_external_bin {
-	croak 'requires_external_bin is not supported yet';
+	my ($bin, $version) = @_;
+	if ( $version ) {
+		croak "requires_external_bin does not support versions yet";
+	}
+
+	# Locate the bin
+	print "Locating required external dependency bin: $bin...";
+	my $found_bin = can_run( $bin );
+	if ( $found_bin ) {
+		print " found at $found_bin.\n";
+	} else {
+		print " missing.\n";
+		print "Unresolvable missing external dependency.\n";
+		print "Please install '$bin' seperately and try again.\n";
+		print { *STDERR } "NA: Unable to build distribution on this platform.\n";
+		exit(0);
+	}
+
+	return 1;
 }
 
 sub requires_external_cc {
-	croak 'requires_external_cc is not supported yet';
+	unless ( can_cc() ) {
+		print "Unresolvable missing external dependency.\n";
+		print "This package requires a C compiler.\n";
+		print { *STDERR } "NA: Unable to build distribution on this platform.\n";
+		exit(0);
+	}
+	
+	return 1;
 }
 
 # Module::Install::Fetch
 
 sub get_file {
-	croak 'get_file is not supported yet';
+	croak 'get_file is not supported - replace by code in a Module::Build subclass.';
 }
 
 # Module::Install::Win32
 
 sub check_nmake {
-	croak 'check_nmake is not supported yet';
+	croak 'check_nmake is not supported - replace by code in a Module::Build subclass.';
 }
 
 # Module::Install::With
@@ -545,11 +601,11 @@ sub interactive {
 }
 
 sub win32 {
-	return !!( $OSNAME eq 'MSWin32' );
+	return !!( $^O eq 'MSWin32' );
 }
 
 sub winlike {
-	return !!( $OSNAME eq 'MSWin32' or $OSNAME eq 'cygwin' );
+	return !!( $^O eq 'MSWin32' or $^O eq 'cygwin' );
 }
 
 sub author_context {
@@ -578,7 +634,7 @@ sub _scan_dir {
 	} 
 		
 	opendir $dir_handle, $srcdir ## no critic(RequireBriefOpen)
-	  or croak $OS_ERROR;
+	  or croak $!;
 
   FILE:
 	foreach my $direntry (readdir $dir_handle) {
@@ -841,6 +897,14 @@ sub get_builder {
 #	require Data::Dumper;
 #	my $d = Data::Dumper->new([\%args], [qw(*args)]);
 #	print $d->Indent(1)->Dump();
+
+	if ($mb_requires < 0.07) { $mb_requires = 0.07;}
+	build_requires('Module::Build', $mb_requires);
+
+	if ($mb_requires > 0.2999) {
+		configure_requires('Module::Build', $mb_requires);
+	}
+
 	unless ( defined $object ) {
 		if ( defined $class ) {
 			$object = $class->new(%args);
