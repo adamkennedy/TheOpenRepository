@@ -89,8 +89,8 @@ my $jio = Alien::Libjio->new();
 
 unless ($jio->installed) {
   # Ask the user if they'd like to install this; if not, then exit
-  $builder->y_n('libjio is not installed on your system. Install it now?',
-    'y') or exit;
+  $builder->y_n('libjio was not found on your system. Install it now?', 'y')
+    or exit;
 
   $builder->notes(build_libjio => 1);
 

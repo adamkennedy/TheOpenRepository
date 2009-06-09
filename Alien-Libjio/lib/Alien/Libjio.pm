@@ -110,6 +110,7 @@ sub new {
   Carp::croak('You must call this as a class method') if ref($class);
 
   my $self = {
+    installed => 0,
   };
 
   bless($self, $class);
@@ -248,7 +249,7 @@ sub _try_pkg_config {
 
   my ($value, $err) = _get_pc('cflags');
   if (defined $err && length $err) {
-    warn "Problem with pkg-config; using ExtUtils::Liblist instead\n";
+    #warn "Problem with pkg-config; using ExtUtils::Liblist instead\n";
     return;
   }
 
@@ -269,6 +270,7 @@ sub _try_liblist {
 
   use ExtUtils::Liblist ();
   local $SIG{__WARN__} = sub { }; # mask warnings
+
   my (undef, undef, $ldflags, $ldpath) = ExtUtils::Liblist->ext('-ljio');
   return unless (defined($ldflags));
 
