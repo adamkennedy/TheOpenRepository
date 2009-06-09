@@ -2561,12 +2561,13 @@ sub install_libiconv {
 	$fl = $self->install_binary( name => 'libiconv-bin', );
 	$filelist->add($fl);
 
-	# The dll is installed with an unexpected name,
-	# so we correct it post-install.
+	# The dll is installed with a different name than what our
+	# prebuilt libxml2.dll expects, so we copy it to the
+	# expected name post-install.
 	my $from = catfile( $self->image_dir, 'c', 'bin', 'libiconv2.dll' );
 	my $to   = catfile( $self->image_dir, 'c', 'bin', 'iconv.dll' );
-	$self->_move( $from, $to );
-	$filelist->move( $from, $to );
+	$self->_copy( $from, $to );
+	$filelist->add_file( $to );
 
 	$self->insert_fragment( 'libiconv', $filelist->files );
 
