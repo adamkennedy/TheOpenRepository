@@ -230,11 +230,19 @@ use IPC::Open3 ('open3');
 sub _get_pc {
   my ($key) = @_;
 
+  my $pid;
   my ($reader, $err);
-  open3(undef, $reader, $err, 'pkg-config', 'libjio', '--' . $key);
 
-  return (<$reader>, <$err>) if wantarray;
-  return <$reader>;
+  $pid = open3(undef, $reader, $err, 'pkg-config', 'libjio', '--' . $key);
+  waitpid($pid, 0);
+
+  # Check the exit status; 0 = success - nonzero = failure
+  if (($? >> 8) == 0) {
+    return (<$reader>, <$err>) if wantarray;
+    return <$reader>;
+  }
+  return (undef, <$err>) if wantarray;
+  return undef;
 }
 
 sub _try_pkg_config {
