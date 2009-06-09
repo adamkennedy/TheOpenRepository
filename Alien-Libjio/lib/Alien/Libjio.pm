@@ -115,10 +115,9 @@ sub new {
 
   bless($self, $class);
 
-  $self->_try_pkg_config()      or
-    $self->_try_liblist()       or
-    Carp::croak('Failed to find libjio. Is pkg-config installed?');
-
+  $self->_try_pkg_config()
+    or $self->_try_liblist()
+    ;
   return $self;
 }
 
