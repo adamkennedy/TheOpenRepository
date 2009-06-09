@@ -225,17 +225,24 @@ sub cflags {
 
 # Private methods to find & fill out information
 
+use IPC::Open3 ('open3');
+
+sub _get_pc {
+  my ($key) = @_;
+
+  my ($reader, $err);
+  open3(undef, $reader, $err, 'pkg-config', 'libjio', '--' . $key);
+
+  return (<$reader>, <$err>) if wantarray;
+  return <$reader>;
+}
+
 sub _try_pkg_config {
   my ($self) = @_;
 
-  use ExtUtils::PkgConfig ();
-
-  my %pkginfo;
-  eval {
-    %pkginfo = ExtUtils::PkgConfig->find('libjio');
-  };
-  if ($@) {
-    #printf {*STDERR} "warning: %s; using ExtUtils::Liblist instead\n", $@;
+  my ($value, $err) = _get_pc('cflags');
+  if (defined $err && length $err) {
+    warn "Problem with pkg-config; using ExtUtils::Liblist instead\n";
     return;
   }
 
@@ -244,9 +251,9 @@ sub _try_pkg_config {
   # pkg-config returns things with a newline, so remember to remove it
   # I don't see anything wrong with the ' ' (pure whitespace quotes)
   ## no critic(ProhibitEmptyQuotes)
-  $self->{cflags} = [ split(' ', $pkginfo{cflags}) ];
-  $self->{ldflags} = [ split(' ', $pkginfo{libs}) ];
-  $self->{version} = [ split(' ', $pkginfo{modversion}) ];
+  $self->{cflags} = [ split(' ', $value) ];
+  $self->{ldflags} = [ split(' ', _get_pc('libs')) ];
+  $self->{version} = _get_pc('modversion');
 
   return 1;
 }
@@ -260,8 +267,6 @@ sub _try_liblist {
 
   $self->{installed} = 1;
 
-  use IPC::Open3 'open3';
-
   # Empty out cflags; initialize it
   $self->{cflags} = [];
 
@@ -273,8 +278,7 @@ sub _try_liblist {
     push(@{ $self->{cflags} }, split(' ', $flags));
   }
   else {
-    #printf {*STDERR} 'warning: error with getconf - %s; using sane ' .
-    #  "defaults instead\n", <$err>;
+    warn 'Problem using getconf: ', <$err>, "\n";
     push(@{ $self->{cflags} },
       '-D_LARGEFILE_SOURCE',
       '-D_FILE_OFFSET_BITS=64',

@@ -39,8 +39,7 @@ my $builder = My::Builder->new(
     'strict'            => 0,
 
     # Utilities to find compile information
-    'ExtUtils::Liblist'       => 0, # a fallback
-    'ExtUtils::PkgConfig'     => 0, # the preferred method
+    'ExtUtils::Liblist'       => 0,
   },
   build_requires => {
     # User tests for good functionality
