@@ -56,6 +56,8 @@ README
 SIGNATURE
 t/00signature.t
 t/01compile.t
+t/01critic.rc
+t/01critic.t
 t/01kwalitee.t
 t/01manifest.t
 t/01meta.t

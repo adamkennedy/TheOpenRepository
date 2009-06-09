@@ -21,7 +21,7 @@ use Alien::Libjio;
 my $jio = Alien::Libjio->new();
 
 my $builder = Module::Build->new(
-  module_name           => 'IO::Journal',
+  module_name           => 'Alien::Libjio',
   license               => 'unrestricted',
   dist_author           => 'Jonathan Yu <frequency@cpan.org>',
   dist_version_from     => 'lib/Alien/Libjio.pm',
@@ -55,18 +55,16 @@ my $builder = Module::Build->new(
   },
   recommends => {
     # Author tests
-    #'Test::Perl::Critic'            => 1.01,
-    #'Perl::Critic'                  => 1.096,
-    #'Test::YAML::Meta'              => 0.11,
-    #'Test::Kwalitee'                => 1.01,
-    #'Test::Signature'               => 1.10,
-    #'Test::Pod'                     => 1.14,
-    #'Test::Pod::Coverage'           => 1.04,
-    #'Test::Portability::Files'      => 0.05,
-    #'Test::MinimumVersion'          => 0.008,
-    #'Test::LeakTrace'               => 0.07,
-    #'Test::Without::Module'         => 0.17,
-    #'Test::DistManifest'            => 1.001002,
+    'Test::Perl::Critic'            => 1.01,
+    'Perl::Critic'                  => 1.096,
+    'Test::YAML::Meta'              => 0.11,
+    'Test::Kwalitee'                => 1.01,
+    'Test::Signature'               => 1.10,
+    'Test::Pod'                     => 1.14,
+    'Test::Pod::Coverage'           => 1.04,
+    'Test::Portability::Files'      => 0.05,
+    'Test::MinimumVersion'          => 0.008,
+    'Test::DistManifest'            => 1.001002,
   },
   conflicts => {
   },
