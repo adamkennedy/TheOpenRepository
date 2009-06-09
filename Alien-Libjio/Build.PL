@@ -12,7 +12,7 @@
 use strict;
 use warnings;
 
-use 'inc';
+use lib 'inc';
 use My::Builder;
 
 my $builder = My::Builder->new(

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Module::Build;
-use @ISA = ('Module::Build');
+our @ISA = ('Module::Build');
 
 use Config '%Config';
 
