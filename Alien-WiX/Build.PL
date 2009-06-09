@@ -1,9 +1,11 @@
+use warnings;
 use English '-no_match_vars';
-use inc::Module::Build::Functions;
+use Module::Build 0.21;
 	
 die "OS unsupported" if ('MSWin32' ne $OSNAME);
 
-subclass
+my $class = Module::Build->subclass(
+
 	class => 'ModuleBuildAlienWiX',
 	code => q{
 		sub ACTION_code {
@@ -11,21 +13,38 @@ subclass
             my $install_dotnet = $self->notes('install_dotnet');
             my $install_wix = $self->notes('install_wix');
             my $WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5301.0/Wix3.msi';
+            my $WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5405.0/Wix3.msi';
             my $NET20_URL = 'http://download.microsoft.com/download/0/8/c/08c19fa4-4c4f-4ffb-9d6c-150906578c9e/NetFx20SP1_x86.exe';
+			require Win32;
+            my $NET20_FILE = Win32::GetShortPathName($ENV{TEMP}) . '\NetFx20SP1_x86.exe';
             my $ok;
             
             if ($install_dotnet) {
                 print "Downloading and installing Microsoft .NET Framework 2.0 SP1.\n";
                 $ok = $self->do_system("msiexec /i $NET20_URL /qb!");
                 unless ($ok) {
+				require LWP::UserAgent;
+				my $ua = LWP::UserAgent->new;
+				$ua->agent('Alien-WiX/0.305405 ');
+				my $r = $ua->mirror( $NET20_URL, $NET20_FILE );
+				if ( $r->is_error ) {
+					print "Error getting $NET20_URL: " . $r->as_string . "\n";
                     die q{Couldn't install .NET Framework 2.0 SP1, stopped};
                 } else {
                     $self->notes('install_dotnet' => 0);
                 }
+				} else {
+					$ok = $self->do_system("$NET20_FILE");
+					unless ($ok) {
+						die q{Couldn't install .NET Framework 2.0 SP1, stopped};
+					} else {
+						$self->notes('install_dotnet' => 0);
+					}
+				}
             }
 
             if ($install_wix) {
-                print "Downloading and installing Windows Installer XML 3.0.5301.0.\n";
+                print "Downloading and installing Windows Installer XML 3.0.5405.0.\n";
                 $ok = $self->do_system("msiexec /i $WIX_URL /qb!");
                 unless ($ok) {
                     die q{Couldn't install WiX, stopped};
@@ -36,26 +55,43 @@ subclass
             
             $self->SUPER::ACTION_code();
         }
-    };
-	
-module_name         'Alien::WiX';
-license             'perl';
-dist_author         'Curtis Jewell <csjewell@cpan.org>';
-dist_version_from   'lib/Alien/WiX.pm';
-dynamic_config      1;
-configure_requires  'Win32API::Registry'  => '0.30';
-configure_requires  'Module::Build'       => '0.21';
-build_requires		'Module::Build'       => '0.21';
-requires            'perl'                => '5.006';
-requires			'Test::More'          => '0';
-requires            'Readonly'            => '1.03';
-requires			'version'             => '0.76';
-requires            'Win32API::Registry'  => '0.30';
-requires           	'Win32::TieRegistry'  => '0.26';
-recommends          'Readonly::XS'        => '1.05';
-add_to_cleanup      'Alien-WiX-*';
-create_makefile_pl  'passthrough';
-my $builder = get_builder;
+    }
+);
+
+
+my $builder = $class->new(
+    module_name         => 'Alien::WiX',
+    license             => 'perl',
+    dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
+    dist_version_from   => 'lib/Alien/WiX.pm',
+    configure_requires  => {
+		'Win32API::Registry'
+		                => '0.30',
+		'Module::Build'
+		                => '0.21',
+	},
+    build_requires  => {
+		'Module::Build'
+		                => '0.21',
+		'LWP::UserAgent'
+						=> '5.819',
+	},
+	requires            => {
+		'perl'          => '5.006',
+        'Test::More'    => '0',
+		'Readonly'      => '1.03',
+        'version'       => '0.76',
+		'Win32API::Registry'
+		                => '0.30',
+		'Win32::TieRegistry'
+		                => '0.26',
+    },
+	recommends          => {
+		'Readonly::XS'  => '1.05',
+	},
+	create_makefile_pl  => 'passthrough',
+    add_to_cleanup      => [ 'Alien-WiX-*' ],
+);
 
 eval { require Win32API::Registry; }
     or die q{I can't check whether WiX is installed without Win32API::Registry};
@@ -68,7 +104,7 @@ $builder->notes('install_wix' => 0);
 my ($default, $answer, $installed, $key, $type, $data, $int_data, $version);
 my $WIX30_REGISTRY_KEY = 'SOFTWARE\\Microsoft\\Windows Installer XML\\3.0';
 my $NET20_REGISTRY_KEY = 'SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v2.0.50727';
-my $WIX_VERSION = 5301;
+my $WIX_VERSION = 5405;
 
 $key = 1;
 $installed = 0;
@@ -119,9 +155,8 @@ if (RegOpenKeyEx( regConstant('HKEY_LOCAL_MACHINE'), $WIX30_REGISTRY_KEY, 0, reg
     RegCloseKey( $key );
 }
 
-
 unless ($installed) {
-	$answer = $builder->y_n('Install Windows Installer XML version 3.0.5301?', $default);
+	$answer = $builder->y_n('Install Windows Installer XML version 3.0.5405?', $default);
 
 	if ($answer) {
         $builder->notes('install_wix' => 1);
@@ -130,4 +165,5 @@ unless ($installed) {
 	}
 }
 
-create_build_script;
+$builder->create_build_script();
+

@@ -1,4 +1,4 @@
-Alien-WiX version 0.305301
+Alien-WiX version 0.305405
 
 Alien::WiX is provided in order to be able to specify a dependency on Windows
 Installer XML (otherwise known as WiX), which is used to create Windows 
@@ -35,7 +35,7 @@ Alternatively, to install with Module::Build, you can use the following commands
 DEPENDENCIES
 
 Dependencies for installation include perl 5.6.0, Win32API::Registry 0.30, 
-and Module::Build 0.21.
+Module::Build 0.21, and LWP::UserAgent 5.819.
 
 Non-core perl modules required to run this module are Win32::TieRegistry 0.25, 
 version.pm 0.76, and Readonly 1.03.  Readonly::XS 1.05 is recommended.

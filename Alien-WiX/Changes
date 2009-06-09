@@ -1,7 +1,11 @@
 Revision history for Alien-WiX
 
+0.305405  Sat Jun 08 2009
+       Updated to download WiX 3.0.5405.
+	   Corrected downloading of .NET Framework.
+
 0.305301  Sat May 02 2009
-       Updated to download WiX 3.0.5224.
+       Updated to download WiX 3.0.5301.
 
 0.305224  Mon Apr 27 2009
        Updated to download WiX 3.0.5224.
