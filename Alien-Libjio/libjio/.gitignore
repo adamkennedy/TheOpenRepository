@@ -1,0 +1,16 @@
+*.o
+*.a
+*.so
+jiofsck
+libjio.pc
+samples/full
+samples/jio1
+samples/jio2
+samples/jio3
+tests/performance/performance
+tests/performance/random
+*.pyc
+*.pyo
+libjio/doxygen/doc.internal
+libjio/doxygen/doc.public
+
