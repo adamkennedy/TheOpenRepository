@@ -12,9 +12,10 @@
 use strict;
 use warnings;
 
-use Module::Build;
+use 'inc';
+use My::Builder;
 
-my $builder = Module::Build->new(
+my $builder = My::Builder->new(
   module_name           => 'Alien::Libjio',
   license               => 'unrestricted',
   dist_author           => 'Jonathan Yu <frequency@cpan.org>',
@@ -92,20 +93,20 @@ unless ($jio->installed) {
   $builder->y_n('libjio is not installed on your system. Install it now?',
     'y') or exit;
 
+  $builder->notes(build_libjio => 1);
+
   # Ask the user what 'make' program to invoke
   my $make;
   if ($ENV{MAKE}) {
     $make = $ENV{MAKE};
   }
   else {
-    use Config;
+    use Config '%Config';
     $make = $Config{make};
   }
   $make = $builder->prompt('What is your system "make" command?', $make);
 
-  # Okay, install it now
-  use File::Spec ();
-  system($make, '-C', File::Spec->catfile('libjio', 'libjio'));
+  $builder->notes(make => $make);
 }
 
 $builder->create_build_script();
