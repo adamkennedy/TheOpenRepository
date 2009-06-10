@@ -875,7 +875,6 @@ sub Marpa::Evaluator::new {
     $#short_and_signatures = @{$and_nodes};
     my @or_node_id_work_list  = ();
     my @and_node_id_work_list = ();
-    my @prune_candidate_or_nodes = ();
     my @prune_candidate_and_node_ids = ();
 
     OR_NODE: for my $parent_or_node ( @{$or_nodes} ) {
@@ -908,14 +907,12 @@ sub Marpa::Evaluator::new {
                 $child_and_node_id;
         } ## end for my $child_and_node_id ( @{$child_and_node_ids} )
 
-        my $prune_candidate = 0;
 
         SHORT_SIGNATURE:
         while ( my ( $short_signature, $child_ids ) = each %short_signature )
         {
             next SHORT_SIGNATURE if scalar @{$child_ids} < 2;
-            $prune_candidate = 1;
-            push @prune_candidate_and_node_ids, @{$child_ids};
+            push @prune_candidate_and_node_ids, $child_ids;
             if ($trace_iterations) {
                 say {$trace_fh} 'Possible duplicate and nodes: ', join q{ },
                     map {
@@ -946,10 +943,6 @@ sub Marpa::Evaluator::new {
 
         } ## end while ( my ( $short_signature, $child_ids ) = each ...
 
-        if ($prune_candidate) {
-            push @prune_candidate_or_nodes, $parent_or_node;
-        }
-
     } ## end for my $parent_or_node ( @{$or_nodes} )
 
     # Determine the or-nodes and and-nodes which are of interest for
@@ -979,7 +972,7 @@ sub Marpa::Evaluator::new {
         } ## end while ( my $and_node_id = pop @and_node_id_work_list )
     } ## end while (@or_node_id_work_list)
 
-    for my $and_node_id (@prune_candidate_and_node_ids) {
+    for my $and_node_id (map { @{$_} } @prune_candidate_and_node_ids) {
         $and_nodes_of_interest[$and_node_id] = 1;
     }
 
@@ -997,6 +990,55 @@ sub Marpa::Evaluator::new {
         next AND_NODE if @or_children;
         push @equivalence_work_list, [ 1, $and_node_id ];
     } ## end for my $and_node_id ( grep { $and_nodes_of_interest[$_...
+
+    my @and_node_equivalence_class;
+    my %and_node_equivalence_class;
+    my @or_node_equivalence_class;
+    my %or_node_equivalence_class;
+    EQUIVALENCE_WORK_ITEM:
+    while ( my $equivalence_work_item = pop @equivalence_work_list )
+    {
+        my $is_and_node = shift @{$equivalence_work_item};
+        if ($is_and_node) {
+            my $and_node_id    = shift @{$equivalence_work_item};
+            my $and_node       = $and_nodes->[$and_node_id];
+            my $child_or_nodes = @{$and_node}[
+                Marpa::Internal::And_Node::PREDECESSOR,
+                Marpa::Internal::And_Node::CAUSE
+            ];
+            my @child_or_node_ids =
+                map {
+                defined $_
+                    ? $_->[Marpa::Internal::Or_Node::ID]
+                    : undef
+                } @{$child_or_nodes};
+            my @child_equivalence_classes =
+                map { defined $_ ? $or_node_equivalence_class[$_] : 'undef' }
+                @child_or_node_ids;
+            next EQUIVALENCE_WORK_ITEM
+                if grep { not defined $_ } @child_equivalence_classes;
+            my $signature = join q{,},
+                $and_node->[Marpa::Internal::And_Node::RULE] + 0,
+                $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
+                $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
+                @child_equivalence_classes,
+                ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 )
+                + 0,
+                ;
+            my $equivalence_class = $and_node_equivalence_class{$signature};
+
+            if ( not defined $equivalence_class ) {
+                $equivalence_class = $and_node_equivalence_class{$signature} =
+                    $and_node->[Marpa::Internal::And_Node::NAME];
+            }
+            $and_node_equivalence_class[$and_node_id] = $equivalence_class;
+            push @equivalence_work_list,
+                map { [ 0, $_ ] } grep { defined $_ } @child_or_node_ids;
+        } ## end if ($is_and_node)
+        else {
+            my $or_node_id = shift @{$equivalence_work_item};
+        }
+    } ## end while ( my $equivalence_work_item = pop @equivalence_work_list)
 
     return $self;
 
