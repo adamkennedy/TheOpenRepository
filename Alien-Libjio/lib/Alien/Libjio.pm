@@ -1,7 +1,7 @@
 # Alien::Libjio
 #  A Perl package to install libjio, a library for Journalled I/O.
 #
-# $Id: ISAAC.pm 7057 2009-05-12 22:51:01Z FREQUENCY@cpan.org $
+# $Id$
 #
 # By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
 #
@@ -21,7 +21,7 @@ Alien::Libjio - Perl package to install libjio (Journalled I/O library)
 
 =head1 VERSION
 
-Version 1.0 ($Id: ISAAC.pm 7057 2009-05-12 22:51:01Z FREQUENCY@cpan.org $)
+Version 1.0.1 ($Id$)
 
 =cut
 
@@ -148,6 +148,7 @@ sub version {
 }
 
 =head2 $jio->ldflags
+
 =head2 $jio->linker_flags
 
 This returns the flags required to link C code with the local installation of
@@ -186,6 +187,7 @@ sub ldflags {
 *linker_flags = *ldflags;
 
 =head2 $jio->cflags
+
 =head2 $jio->compiler_flags
 
 This method returns the compiler option flags to compile C code which uses

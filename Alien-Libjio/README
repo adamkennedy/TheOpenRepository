@@ -1,1 +1,147 @@
-This is a stub. The actual module will have something better :-)
+NAME
+    Alien::Libjio - Perl package to install libjio (Journalled I/O library)
+
+VERSION
+    Version 1.0 ($Id: ISAAC.pm 7057 2009-05-12 22:51:01Z FREQUENCY@cpan.org
+    $)
+
+DESCRIPTION
+    To ensure reliability, some file systems and databases provide support
+    for something known as journalling. The idea is to ensure data
+    consistency by creating a log of actions to be taken (called a Write
+    Ahead Log) before committing them to disk. That way, if a transaction
+    were to fail due to a system crash or other unexpected event, the write
+    ahead log could be used to finish writing the data.
+
+    While this functionality is often available with networked databases, it
+    can be a rather memory- and processor-intensive solution, even where
+    reliable writes are important. In other cases, the filesystem does not
+    provide native journalling support, so other tricks may be used to
+    ensure data integrity, such as writing to a separate temporary file and
+    then overwriting the file instead of modifying it in-place.
+    Unfortunately, this method cannot handle threaded operations
+    appropriately.
+
+    Thankfully, Alberto Bertogli published a userspace C library called
+    libjio that can provide these features in a small (less than 1500 lines
+    of code) library with no external dependencies.
+
+    This package is designed to install it, and provide a way to get the
+    flags necessary to compile programs using it. It is particularly useful
+    for Perl XS programs that use it, such as IO::Journal.
+
+COMPATIBILITY
+    This module was tested under Perl 5.10.0, using Debian Linux. However,
+    because it's Pure Perl and doesn't do anything too obscure, it should be
+    compatible with any version of Perl that supports its prerequisite
+    modules.
+
+    By default, this library is installed wherever the main system libraries
+    are usually installed. As a result, "Alien::Libjio" will only work if
+    installed with root permissions.
+
+    If you encounter any problems on a different version or architecture,
+    please contact the maintainer.
+
+AUTHOR
+    Jonathan Yu <frequency@cpan.org>
+
+  CONTRIBUTORS
+    Your name here ;-)
+
+ACKNOWLEDGEMENTS
+    *   Special thanks to Alberto Bertogli <albertito@blitiri.com.ar> for
+        developing this useful library and for releasing it into the public
+        domain.
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+        perldoc Alien::Libjio
+
+    You can also look for information at:
+
+    *   AnnoCPAN: Annotated CPAN documentation
+
+        <http://annocpan.org/dist/Alien-Libjio>
+
+    *   CPAN Ratings
+
+        <http://cpanratings.perl.org/d/Alien-Libjio>
+
+    *   Search CPAN
+
+        <http://search.cpan.org/dist/Alien-Libjio>
+
+    *   CPAN Request Tracker
+
+        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=Alien-Libjio>
+
+    *   CPAN Testing Service (Kwalitee Tests)
+
+        <http://cpants.perl.org/dist/overview/Alien-Libjio>
+
+    *   CPAN Testers Platform Compatibility Matrix
+
+        <http://cpantesters.org/show/Alien-Libjio.html>
+
+REPOSITORY
+    You can access the most recent development version of this module at:
+
+    <http://svn.ali.as/cpan/trunk/Alien-Libjio>
+
+    If you are a CPAN developer and would like to make modifications to the
+    code base, please contact Adam Kennedy <adamk@cpan.org>, the repository
+    administrator. I only ask that you contact me first to discuss the
+    changes you wish to make to the distribution.
+
+FEEDBACK
+    Please send relevant comments, rotten tomatoes and suggestions directly
+    to the maintainer noted above.
+
+    If you have a bug report or feature request, please file them on the
+    CPAN Request Tracker at <http://rt.cpan.org>. If you are able to submit
+    your bug report in the form of failing unit tests, you are strongly
+    encouraged to do so.
+
+SEE ALSO
+    IO::Journal, a Perl module that provides an interface to libjio.
+
+    App::Info::Lib::Jio, a package that gets information about libjio.
+
+    <http://blitiri.com.ar/p/libjio/>, Alberto Bertogli's page about libjio,
+    which explains the purpose and featuers of libjio.
+
+CAVEATS
+  KNOWN BUGS
+    There are no known bugs as of this release.
+
+  LIMITATIONS
+    *   This module can only search known/common paths for libjio
+        installations. It does try to use pkg-config and ExtUtils::Liblist
+        to find a libjio installation on your system, but it cannot predict
+        where files might have been installed. As a result, this package
+        might install a duplicate copy of libjio.
+
+LICENSE
+    Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
+
+    I, the copyright holder of this package, hereby release the entire
+    contents therein into the public domain. This applies worldwide, to the
+    extent that it is permissible by law.
+
+    In case this is not legally possible, I grant any entity the right to
+    use this work for any purpose, without any conditions, unless such
+    conditions are required by law.
+
+    The full details of this can be found in the LICENSE file included in
+    this package.
+
+DISCLAIMER OF WARRANTY
+    The software is provided "AS IS", without warranty of any kind, express
+    or implied, including but not limited to the warranties of
+    merchantability, fitness for a particular purpose and noninfringement.
+    In no event shall the authors or copyright holders be liable for any
+    claim, damages or other liability, whether in an action of contract,
+    tort or otherwise, arising from, out of or in connection with the
+    software or the use or other dealings in the software.

@@ -3,7 +3,7 @@
 # t/02core.t
 #  Tests core functionality
 #
-# $Id: 03core.t 7088 2009-05-15 02:51:39Z FREQUENCY@cpan.org $
+# $Id$
 #
 # This package and its contents are released by the author into the Public
 # Domain, to the full extent permissible by law. For additional information,

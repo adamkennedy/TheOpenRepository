@@ -1,7 +1,7 @@
 # My::Builder
 #  A local Module::Build subclass for installing libjio
 #
-# $Id: ISAAC.pm 7057 2009-05-12 22:51:01Z FREQUENCY@cpan.org $
+# $Id$
 #
 # By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
 #

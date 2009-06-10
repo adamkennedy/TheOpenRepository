@@ -3,7 +3,7 @@
 # Build.PL
 #  Script to build and install this distribution
 #
-# $Id: Build.PL 7351 2009-06-02 14:20:21Z FREQUENCY@cpan.org $
+# $Id$
 #
 # This package and its contents are released by the author into the Public
 # Domain, to the full extent permissible by law. For additional information,
