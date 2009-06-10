@@ -12,10 +12,16 @@
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 9;
 use Test::NoWarnings;
 
+use Alien::Libjio;
+
 my $obj = Alien::Libjio->new;
+
+isa_ok($obj, 'Alien::Libjio', 'Create an Alien::Libjio instance');
+
+ok(defined $obj->version, 'Extract some sort of version information');
 
 # These sets of tests depend on whether libjio is installed
 SKIP: {
@@ -29,8 +35,10 @@ SKIP: {
   ok(ref $obj->ldflags eq 'ARRAY', '->ldflags returns an ARRAY ref');
 
   # Returns an array if calling in list context
-  ok(scalar(@{$obj->cflags}) != 0, '->cflags returns a LIST');
-  ok(scalar(@{$obj->ldflags}) != 0, '->ldflags returns a LIST');
+  my @a = $obj->cflags;
+  ok(scalar(@a) > 0, '->cflags returns a LIST');
+  @a = $obj->ldflags;
+  ok(scalar(@b) > 0, '->ldflags returns a LIST');
 };
 
 # Make sure the returned values are false
@@ -38,5 +46,5 @@ SKIP: {
   skip 'tests for when libjio is not installed', 2 if $obj->installed;
 
   ok(!$obj->cflags, '->cflags is false');
-  ok(!$obj->ldflags, '->cflags is false');
+  ok(!$obj->ldflags, '->ldflags is false');
 }
