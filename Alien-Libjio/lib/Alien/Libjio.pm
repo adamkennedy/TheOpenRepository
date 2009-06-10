@@ -231,7 +231,11 @@ sub _get_pc {
   my ($key) = @_;
 
   my $read;
+  # This string doesn't look all *too* noisy for me
+  ## no critic(ProhibitNoisyQuotes)
   my $pid = open3(undef, $read, undef, 'pkg-config', 'libjio', '--' . $key);
+  # We're using blocking wait, so the return value doesn't matter
+  ## no critic(RequireCheckedSyscalls)
   waitpid($pid, 0);
 
   # Check the exit status; 0 = success - nonzero = failure
@@ -240,7 +244,7 @@ sub _get_pc {
     return <$read>;
   }
   return (undef, <$read>) if wantarray;
-  return undef;
+  return;
 }
 
 sub _try_pkg_config {
@@ -280,6 +284,9 @@ sub _try_liblist {
 
   my $read;
   my $pid = open3(undef, $read, undef, 'getconf', 'LFS_CFLAGS');
+
+  # We're using blocking wait, so the return value doesn't matter
+  ## no critic(RequireCheckedSyscalls)
   waitpid($pid, 0);
 
   # Check the status code
