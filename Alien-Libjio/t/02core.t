@@ -20,8 +20,7 @@ use Alien::Libjio;
 my $obj = Alien::Libjio->new;
 
 isa_ok($obj, 'Alien::Libjio', 'Create an Alien::Libjio instance');
-
-ok(defined $obj->version, 'Extract some sort of version information');
+can_ok($obj, 'version');
 
 # These sets of tests depend on whether libjio is installed
 SKIP: {
