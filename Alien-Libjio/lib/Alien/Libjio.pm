@@ -17,7 +17,7 @@ use Carp ();
 
 =head1 NAME
 
-Alien::Libjio - Perl package to install libjio (Journalled I/O library)
+Alien::Libjio - Installing and finding libjio (Journalled I/O library)
 
 =head1 VERSION
 
