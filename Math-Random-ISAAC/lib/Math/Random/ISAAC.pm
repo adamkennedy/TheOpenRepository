@@ -1,14 +1,14 @@
 # Math::Random::ISAAC
-#  An interface that automagically selects the XS or Pure Perl
-#  port of the ISAAC Pseudo-Random Number Generator
+#  An interface that automagically selects the XS or Pure Perl port of the
+#  ISAAC Pseudo-Random Number Generator
 #
 # $Id$
 #
 # By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
 #
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
+# This package and its contents are released by the author into the Public
+# Domain, to the full extent permissible by law. For additional information,
+# please see the included `LICENSE' file.
 
 package Math::Random::ISAAC;
 
