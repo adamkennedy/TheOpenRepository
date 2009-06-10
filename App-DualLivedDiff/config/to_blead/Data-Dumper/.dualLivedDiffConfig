@@ -2,6 +2,8 @@
 dirs-recursive:
   .: ext/Data-Dumper
 exclude-regexes:
-  - '^(?:\.?/)?MANIFEST$'
+  - '^(?:\.?/)?MANIFEST[\w.]*$'
   - '^(?:\.?/)?ppport\.h$'
+  - '^(?:\.?/)?Makefile\.PL$'
+  - '^(?:\.?/)?META\.yml$'
 
