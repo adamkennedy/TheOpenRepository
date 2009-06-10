@@ -1,4 +1,3 @@
-# Math::Random::ISAAC
 # Alien::Libjio
 #  A Perl package to install libjio, a library for Journalled I/O.
 #
@@ -69,23 +68,10 @@ with any version of Perl that supports its prerequisite modules.
 
 By default, this library is installed wherever the main system libraries are
 usually installed. As a result, C<Alien::Libjio> will only work if installed
-with root permissions, or if appropriate flags are passed to Build.PL (see
-the INSTALLING section).
+with root permissions.
 
 If you encounter any problems on a different version or architecture, please
 contact the maintainer.
-
-=head1 INSTALLING
-
-When installing this package, this package will default to C</usr/local> for
-putting system-installed binaries. If this is not where you would like them
-to be installed, there are some options to Build.PL provided.
-
-By default, only the C bindings are installed, which are the bare minimum
-required for L<IO::Journal> to function. If you'd like the full package
-installed (including Python and Ruby bindings), then use:
-
-    perl Build.PL --full-install
 
 =head1 METHODS
 

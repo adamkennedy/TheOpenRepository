@@ -8,14 +8,17 @@ license: unrestricted
 requires:
   Carp: 1.04
   ExtUtils::Liblist: 0
-  ExtUtils::PkgConfig: 0
   perl: 5.006
   strict: 0
   version: 0.76
   warnings: 0
+  IPC::Open3: 0
+  Cwd: 0
+  File::Spec: 0
 build_requires:
   Test::More: 0.62
   Test::NoWarnings: 0.084
+  ExtUtils::CBuilder: 0
 recommends:
   Perl::Critic: 1.096
   Test::DistManifest: 1.001002

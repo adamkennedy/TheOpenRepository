@@ -40,6 +40,9 @@ my $builder = My::Builder->new(
 
     # Utilities to find compile information
     'ExtUtils::Liblist'       => 0,
+    'IPC::Open3'              => 0,
+    'Cwd'                     => 0,
+    'File::Spec'              => 0,
   },
   build_requires => {
     # User tests for good functionality
@@ -47,7 +50,7 @@ my $builder = My::Builder->new(
     'Test::NoWarnings'        => 0.084,
 
     # For the C compiling process
-    #'ExtUtils::CBuilder'      => 0,
+    'ExtUtils::CBuilder'      => 0,
   },
   recommends => {
     # Author tests
@@ -106,6 +109,11 @@ unless ($jio->installed) {
   $make = $builder->prompt('What is your system "make" command?', $make);
 
   $builder->notes(make => $make);
+
+  # Figure out if we should do a full install
+  my $extra = $builder->y_n('libjio includes other files including Python ' .
+    'and Ruby bindings. Install them too?', 'n');
+  $builder->notes(extra => $extra);
 }
 
 $builder->create_build_script();
