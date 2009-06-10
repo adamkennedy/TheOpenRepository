@@ -24,16 +24,17 @@ use Class::Autouse sub {
 			my $self = bless({proxy => $proxy},$class);
 			return $self;
 		};
-                # If you're on a recent enough version of Perl, you should use Class::AutolaodCAN below
-                # and just return the delegator. 
+
+		# If you're on a recent enough version of Perl, you should use Class::AutolaodCAN below
+		# and just return the delegator. 
 		## *{$class . '::CAN' } = sub {
 		*{$class . '::AUTOLOAD' } = sub {
 			##my ($obj,$method) = @_;
 			my $obj = shift;
-                        use vars '$AUTOLOAD';
-                        my ($method) = ($AUTOLOAD =~ /^.*::(\w+)$/);
+			use vars '$AUTOLOAD';
+			my ($method) = ($AUTOLOAD =~ /^.*::(\w+)$/);
 			
-                        my $delegate = $wrapped_class->can($method);
+			my $delegate = $wrapped_class->can($method);
 			return unless $delegate;
 			my $delegator = sub {
 				my $self = shift;
@@ -41,12 +42,12 @@ use Class::Autouse sub {
 					return $self->{proxy}->$method(@_);
 				}
 				else {
-					return $wrapped_class->$method(@_);	
+					return $wrapped_class->$method(@_);
 				}
 			};
-			*{ $class . '::' . $method } = $delegator;	
+			*{ $class . '::' . $method } = $delegator;
 			
-                        ##return $delegator;	
+			##return $delegator;	
 			$delegator->($obj,@_);
 		};
 		
@@ -80,6 +81,3 @@ isa_ok($x,"Foo::Wrapper");
 is($x->some_property,111);
 is($x->instance_method(5),555);
 is($x->class_method,123);
-
-
-

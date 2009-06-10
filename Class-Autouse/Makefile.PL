@@ -1,13 +1,11 @@
-use inc::Module::Install;
+use inc::Module::Install 0.91;
 
 name          'Class-Autouse';
 all_from      'lib/Class/Autouse.pm';
-requires      'lib'        => 0;
-requires      'constant'   => 0;
+requires_from 'lib/Class/Autouse.pm';
 requires      'File::Spec' => '0.80';
 requires      'List::Util' => '1.19';
-test_requires 'base'       => 0;
 test_requires 'Test::More' => '0.47';
-test_requires 'File::Temp' => 0;
+test_requires 'File::Temp' => '0.17';
 
 WriteAll;

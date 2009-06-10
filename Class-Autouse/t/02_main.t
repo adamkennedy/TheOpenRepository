@@ -13,6 +13,7 @@ use lib catdir('t', 'lib');
 BEGIN {
 	$|  = 1;
 	$^W = 1;
+        $Class::Autouse::DEBUG = 1;
 }
 
 use Test::More tests => 29;

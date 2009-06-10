@@ -12,13 +12,13 @@ use Class::Autouse \&my_loader;
 
 my %tried;
 sub my_loader {
-    my ($class) = @_;
-    if ($tried{$class}) {
-        print "throwing exception\n";
-        die "recursion\n"
-    }
-    $tried{$class}++;
-    return;
+	my ($class) = @_;
+	if ($tried{$class}) {
+		print "throwing exception\n";
+		die "recursion\n"
+	}
+	$tried{$class}++;
+	return;
 }
 
 eval { Guppie->isa("Fish") };
@@ -30,15 +30,15 @@ ok(!$@, "isa() still works on a nonsense class w/o recursion when there are dyna
 is($tried{"Guppie"}, 1, "still tried to dynamically load the class just one time");
 
 Class::Autouse->autouse(
-    sub {
-        my $class = shift;
-        if ($class eq 'Guppie') {
-            eval "package Fish; sub swim { 123 }; package Guppie; use vars '\@ISA'; \@ISA=('Fish');";
-            die if $@;
-            return 1;
-        }
-        return;
-    }
+	sub {
+		my $class = shift;
+		if ($class eq 'Guppie') {
+			eval "package Fish; sub swim { 123 }; package Guppie; use vars '\@ISA'; \@ISA=('Fish');";
+			die if $@;
+			return 1;
+		}
+		return;
+	}
 );
 
 %tried = ();

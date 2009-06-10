@@ -17,36 +17,36 @@ plan tests => 8;
 my %already_loaded;
 
 sub foo_loader {
-    my $class = shift;
-    return if $already_loaded{$class};
-    return unless ( $class =~ /^Foo/ );
-    eval qq(
-        package $class;
+	my $class = shift;
+	return if $already_loaded{$class};
+	return unless ( $class =~ /^Foo/ );
+	eval qq(
+		package $class;
 
-        sub foo {
-            return "foo in package $class";
-        }
-    );
-    die $@ if $@;
-    $already_loaded{$class} = 1;
-    return 1;
+		sub foo {
+			return "foo in package $class";
+		}
+	);
+	die $@ if $@;
+	$already_loaded{$class} = 1;
+	return 1;
 }
 
 sub bar_loader {
-    my $class = shift;
-    return if $already_loaded{$class};
-    return unless ( $class =~ /^Bar/ );
-    eval qq(
-        package $class;
+	my $class = shift;
+	return if $already_loaded{$class};
+	return unless ( $class =~ /^Bar/ );
+	eval qq(
+		package $class;
 
-        sub bar {
-            return "bar in package $class";
-        }
-        
-    );
-    die $@ if $@;
-    $already_loaded{$class} = 1;
-    return 1;
+		sub bar {
+			return "bar in package $class";
+		}
+		
+	);
+	die $@ if $@;
+	$already_loaded{$class} = 1;
+	return 1;
 }
 
 use Class::Autouse \&foo_loader;

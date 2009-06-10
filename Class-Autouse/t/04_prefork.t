@@ -26,8 +26,6 @@ BEGIN {
 use Test::More @test_plan;
 use Class::Autouse 'C';
 
-
-
 ok( ! $Class::Autouse::DEVEL, '$Class::Autouse::DEVEL is false' );
 is( $INC{"C.pm"}, 'Class::Autouse', 'C.pm is autoused' );
 
