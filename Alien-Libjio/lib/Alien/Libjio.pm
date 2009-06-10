@@ -135,6 +135,8 @@ Example code:
 sub installed {
   my ($self) = @_;
 
+  Carp::croak('You must call this method as an object') unless ref($self);
+
   return $self->{installed};
 }
 
@@ -153,6 +155,8 @@ Example code:
 
 sub version {
   my ($self) = @_;
+
+  Carp::croak('You must call this method as an object') unless ref($self);
 
   return $self->{version};
 }
@@ -180,6 +184,8 @@ Example code:
 
 sub ldflags {
   my ($self) = @_;
+
+  Carp::croak('You must call this method as an object') unless ref($self);
 
   # Return early if called in void context
   return unless defined wantarray;
@@ -212,6 +218,8 @@ Example code:
 
 sub cflags {
   my ($self) = @_;
+
+  Carp::croak('You must call this method as an object') unless ref($self);
 
   # Return early if called in void context
   return unless defined wantarray;
