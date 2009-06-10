@@ -38,7 +38,7 @@ SKIP: {
   my @a = $obj->cflags;
   ok(scalar(@a) > 0, '->cflags returns a LIST');
   @a = $obj->ldflags;
-  ok(scalar(@b) > 0, '->ldflags returns a LIST');
+  ok(scalar(@a) > 0, '->ldflags returns a LIST');
 };
 
 # Make sure the returned values are false
