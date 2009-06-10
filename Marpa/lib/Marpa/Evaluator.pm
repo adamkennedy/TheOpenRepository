@@ -47,6 +47,7 @@ use Marpa::Offset qw(
     ARGC RULE POSITION
     PARENT_ID
     PARENT_CHOICE
+    PRUNED
 
     { delete this } RANK
 
@@ -136,6 +137,10 @@ use Marpa::Offset qw(
 );
 
 package Marpa::Internal::Evaluator;
+
+use Smart::Comments;
+
+### Using smart comments <where>...
 
 use Scalar::Util qw(weaken);
 use List::Util qw(min);
@@ -1002,7 +1007,7 @@ sub Marpa::Evaluator::new {
         if ($is_and_node) {
             my $and_node_id    = shift @{$equivalence_work_item};
             my $and_node       = $and_nodes->[$and_node_id];
-            my $child_or_nodes = @{$and_node}[
+            my @child_or_nodes = @{$and_node}[
                 Marpa::Internal::And_Node::PREDECESSOR,
                 Marpa::Internal::And_Node::CAUSE
             ];
@@ -1011,7 +1016,7 @@ sub Marpa::Evaluator::new {
                 defined $_
                     ? $_->[Marpa::Internal::Or_Node::ID]
                     : undef
-                } @{$child_or_nodes};
+                } @child_or_nodes;
             my @child_equivalence_classes =
                 map { defined $_ ? $or_node_equivalence_class[$_] : 'undef' }
                 @child_or_node_ids;
@@ -1033,12 +1038,52 @@ sub Marpa::Evaluator::new {
             }
             $and_node_equivalence_class[$and_node_id] = $equivalence_class;
             push @equivalence_work_list,
-                map { [ 0, $_ ] } grep { defined $_ } @child_or_node_ids;
+                [ 0, Marpa::Internal::And_Node::PARENT_ID ]
+                if $and_nodes_of_interest[Marpa::Internal::And_Node::PARENT_ID ]
+                and not defined $and_node_equivalence_class[Marpa::Internal::And_Node::PARENT_ID ];
         } ## end if ($is_and_node)
         else {
             my $or_node_id = shift @{$equivalence_work_item};
-        }
+            my $or_node    = $or_nodes->[$or_node_id];
+            my @child_and_node_ids =
+                @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
+            my @child_equivalence_classes =
+                map { defined $_ ? $and_node_equivalence_class[$_] : 'undef' }
+                @child_and_node_ids;
+            next EQUIVALENCE_WORK_ITEM
+                if grep { not defined $_ } @child_equivalence_classes;
+            my $signature = join q{,}, @child_equivalence_classes;
+            my $equivalence_class = $or_node_equivalence_class{$signature};
+
+            if ( not defined $equivalence_class ) {
+                $equivalence_class = $or_node_equivalence_class{$signature} =
+                    $or_node->[Marpa::Internal::And_Node::NAME];
+            }
+            $or_node_equivalence_class[$or_node_id] = $equivalence_class;
+            push @equivalence_work_list, map { [ 1, $_ ] }
+                grep {
+                $or_nodes_of_interest[$_]
+                    and not defined $or_node_equivalence_class[$_]
+                } @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] };
+        } ## end else
     } ## end while ( my $equivalence_work_item = pop @equivalence_work_list)
+
+    for my $prune_candidate_set (@prune_candidate_and_node_ids) {
+        my %seen;
+        AND_NODE_ID: for my $and_node_id ( @{$prune_candidate_set} ) {
+            my $equivalence_class = $and_node_equivalence_class[$and_node_id];
+            next AND_NODE_ID if not defined $equivalence_class;
+            if ( $seen{$equivalence_class} ) {
+                $and_nodes->[$and_node_id]
+                    ->[Marpa::Internal::And_Node::PRUNED] = 1;
+                if ($trace_iterations) {
+                    say {$trace_fh} 'Pruning duplicate and node: ',
+                        $and_nodes->[$_]->[Marpa::Internal::And_Node::NAME];
+                }
+            }
+            $seen{$equivalence_class}++;
+        } ## end for my $and_node_id ( @{$prune_candidate_set} )
+    } ## end for my $prune_candidate_set (@prune_candidate_and_node_ids)
 
     return $self;
 
