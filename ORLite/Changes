@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+1.23 Thu 11 Jun 2009 
+	- Fixed a bug in method ->delete which deleted more than the actual
+	  object in case the primary key consist of more than one column.
+	  Added basic support for such primary keys with more than one column.
+
 1.22 Mon  1 Jun 2009
 	- Updated to Module::Install::DSL 0.91
 	- Split out debug/eval as (undocument) dval function

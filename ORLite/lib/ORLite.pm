@@ -15,7 +15,7 @@ use DBD::SQLite  1.25 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.22';
+	$VERSION = '1.23';
 }
 
 
@@ -235,8 +235,7 @@ END_PERL
 			$table->{cindex} = map { $_->{name} => $_ } @columns;
 
 			# Discover the primary key
-			$table->{pk}     = List::Util::first { $_->{pk} } @columns;
-			$table->{pk}     = $table->{pk}->{name} if $table->{pk};
+			@{$table->{pk}}  = map($_->{name}, grep { $_->{pk} } @columns);
 
 			# What will be the class for this table
 			$table->{class}  = ucfirst lc $table->{name};
@@ -306,6 +305,11 @@ END_PERL
 			if ( defined $table->{pk} and ! $readonly ) {
 				my $nattr = join "\n", map { "\t\t$_ => \$attr{$_}," } @names;
 				my $iattr = join "\n", map { "\t\t\$self->{$_},"       } @names;
+				my $fill_pk = scalar @{$table->{pk}} == 1 
+					    ? "\t\$self->{$table->{pk}->[0]} = \$dbh->func('last_insert_rowid') unless \$self->{$table->{pk}->[0]};"
+					    : q{};
+				my $where_pk      = join(' and ', map("$_ = ?", @{$table->{pk}}));
+				my $where_pk_attr = join("\n", map("\t\t\$self->{$_},", @{$table->{pk}}));				
 				$code .= <<"END_PERL";
 
 sub new {
@@ -326,15 +330,16 @@ sub insert {
 	\$dbh->do('$sql->{insert}', {},
 $iattr
 	);
-	\$self->{$table->{pk}} = \$dbh->func('last_insert_rowid') unless \$self->{$table->{pk}};
+$fill_pk	
 	return \$self;
 }
 
 sub delete {
 	my \$self = shift;
 	return $pkg->do(
-		'delete from $table->{name} where $table->{pk} = ?',
-		{}, \$self->{$table->{pk}},
+		'delete from $table->{name} where $where_pk',
+		{}, 
+$where_pk_attr		
 	) if ref \$self;
 	Carp::croak("Must use truncate to delete all rows") unless \@_;
 	return $pkg->do(
@@ -354,7 +359,7 @@ END_PERL
 		# Generate the accessors
 		$code .= join "\n\n", map { $_->{fk} ? <<"END_DIRECT" : <<"END_ACCESSOR" } @columns;
 sub $_->{name} {
-	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk} = ?', \$_[0]->{$_->{name}}))[0];
+	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk}->[0] = ?', \$_[0]->{$_->{name}}))[0];
 }
 END_DIRECT
 sub $_->{name} {
