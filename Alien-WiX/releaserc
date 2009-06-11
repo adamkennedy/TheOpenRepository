@@ -4,3 +4,4 @@ skip_kwalitee 1
 twit_user CSJewellPerl
 makefile_PL Build.PL
 makefile Build
+interactive 1
