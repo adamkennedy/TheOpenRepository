@@ -12,7 +12,6 @@ my $class = Module::Build->subclass(
             my $self = shift;
             my $install_dotnet = $self->notes('install_dotnet');
             my $install_wix = $self->notes('install_wix');
-            my $WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5301.0/Wix3.msi';
             my $WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5405.0/Wix3.msi';
             my $NET20_URL = 'http://download.microsoft.com/download/0/8/c/08c19fa4-4c4f-4ffb-9d6c-150906578c9e/NetFx20SP1_x86.exe';
 			require Win32;
@@ -21,25 +20,32 @@ my $class = Module::Build->subclass(
             
             if ($install_dotnet) {
                 print "Downloading and installing Microsoft .NET Framework 2.0 SP1.\n";
-                $ok = $self->do_system("msiexec /i $NET20_URL /qb!");
-                unless ($ok) {
+
+				# Need to get the file manually - it's not an MSI.
 				require LWP::UserAgent;
 				my $ua = LWP::UserAgent->new;
 				$ua->agent('Alien-WiX/0.305405 ');
 				my $r = $ua->mirror( $NET20_URL, $NET20_FILE );
 				if ( $r->is_error ) {
 					print "Error getting $NET20_URL: " . $r->as_string . "\n";
-                    die q{Couldn't install .NET Framework 2.0 SP1, stopped};
-                } else {
-                    $self->notes('install_dotnet' => 0);
-                }
+					unlink $NET20_FILE if -f $NET20_FILE;
+					die q{Couldn't install .NET Framework 2.0 SP1, stopped};
+				} elsif ( 24_758_792 != -s $NET20_FILE ) {
+					print "Error getting $NET20_URL: File downloaded not correct size.\n";
+					unlink $NET20_FILE if -f $NET20_FILE;
+					die q{Couldn't install .NET Framework 2.0 SP1, stopped};				
 				} else {
-					$ok = $self->do_system("$NET20_FILE");
-					unless ($ok) {
-						die q{Couldn't install .NET Framework 2.0 SP1, stopped};
-					} else {
-						$self->notes('install_dotnet' => 0);
-					}
+					$self->notes('install_dotnet' => 0);
+				}
+					
+				# Now run it in passive mode.  It's only polite to show some UI.
+				$ok = $self->do_system("$NET20_FILE /passive");
+				unless ($ok) {
+					unlink $NET20_FILE;
+					die q{Couldn't install .NET Framework 2.0 SP1, stopped};
+				} else {
+					$self->notes('install_dotnet' => 0);
+					unlink $NET20_FILE;
 				}
             }
 
