@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 sub WriteAutoXSHeader {
   my $filename = shift;
@@ -130,7 +130,7 @@ I32 _new_internal_arrayindex() {
 I32 get_internal_array_index(I32 object_ary_idx) {
   I32 new_index;
 
-  if (AutoXS_reverse_arrayindices_length <= object_ary_idx)
+  if (AutoXS_reverse_arrayindices_length <= (unsigned int)object_ary_idx)
     _resize_array_init( &AutoXS_reverse_arrayindices,
                         &AutoXS_reverse_arrayindices_length,
                         object_ary_idx+1, -1 );
