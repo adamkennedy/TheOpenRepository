@@ -20,7 +20,7 @@ getter(self)
     const I32 index = AutoXS_arrayindices[ix];
     SV** elem;
   PPCODE:
-    if (elem = av_fetch((AV *)SvRV(self), index, 1))
+    if ((elem = av_fetch((AV *)SvRV(self), index, 1)))
       XPUSHs(elem[0]);
     else
       XSRETURN_UNDEF;
@@ -77,7 +77,7 @@ accessor(self, ...)
       XPUSHs(newvalue);
     }
     else {
-      if (elem = av_fetch((AV *)SvRV(self), index, 1))
+      if ((elem = av_fetch((AV *)SvRV(self), index, 1)))
         XPUSHs(elem[0]);
       else
         XSRETURN_UNDEF;
@@ -102,7 +102,7 @@ chained_accessor(self, ...)
       XPUSHs(self);
     }
     else {
-      if (elem = av_fetch((AV *)SvRV(self), index, 1))
+      if ((elem = av_fetch((AV *)SvRV(self), index, 1)))
         XPUSHs(elem[0]);
       else
         XSRETURN_UNDEF;
