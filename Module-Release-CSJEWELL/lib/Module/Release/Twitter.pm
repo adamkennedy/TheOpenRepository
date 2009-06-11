@@ -35,7 +35,7 @@ sub twit_upload {
 
 	my $local_file = $self->local_file;
 	my $twit_user = $self->config->twit_user();
-	return unless $user;
+	return unless $twit_user;
 	
 	my $twit_password = $self->config->twit_pass();
 

@@ -355,6 +355,11 @@ foreach my $vcs ( @vcs )
 
 }
 
+if( $release->config->interactive ) # not a dry run
+	{
+	local $ENV{'PERL_MM_USE_DEFAULT'} = 1;
+	}
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Will we upload to PAUSE?
 if( $release->config->cpan_user ) # not a dry run
