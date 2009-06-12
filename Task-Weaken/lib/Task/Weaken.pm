@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.02';
+	$VERSION = '1.03';
 }
 
 1;
@@ -75,7 +75,7 @@ L<Task>, L<Scalar::Util>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2007 Adam Kennedy.
+Copyright 2006 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

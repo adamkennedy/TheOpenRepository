@@ -2,7 +2,7 @@
 #
 # Hi there!
 #
-# Before we begin, I'm really really sorry for what you are about
+# Before we begin, I'm really really sorry for what you are about to
 # encounter a bit lower down in this file.
 #
 # Trust me, I didn't want to WRITE it just as much as you are probably
@@ -12,12 +12,12 @@
 # So lets try to shortcut the whole confusion thing and save us both
 # some time.
 #
-# Some distributions have this problem where the core Scalar::Util version
-# in the Perl core gets built WITHOUT the compiler. When this happens,
+# Some distributions have this problem where the Scalar::Util version
+# in the Perl core gets built WITHOUT a C compiler available. When this happens,
 # most of the functions in Scalar::Util that need the compiler are replaced
-# with a Pure-Perl version that works almost identically...
+# with a Pure-Perl version that works identically...
 #
-# ...except for two relating to "weak references", which is a reference
+# ...except for two function relating to "weak references", a reference
 # that is intentionally not counted for the purposes of garbage collection.
 #
 # It's used to implement certain specific data structures, like circular
@@ -40,12 +40,11 @@
 # Adam K
 
 use strict;
-use inc::Module::Install;
+use inc::Module::Install 0.91;
 
-name           'Task-Weaken';
-all_from       'lib/Task/Weaken.pm';
-test_requires 'Test::More'   => '0.42';
-test_requires 'File::Spec'   => '0.80';
+all_from      'lib/Task/Weaken.pm';
+test_requires 'Test::More' => '0.42';
+test_requires 'File::Spec' => '0.80';
 
 check_scalar_util();
 

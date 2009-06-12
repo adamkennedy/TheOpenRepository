@@ -1,8 +1,12 @@
 Revision history for Perl extension Task::CVSMonitor
 
+1.03 Fri 12 Jun 2009
+	- Updating to flush out some old CPAN Testers results
+
 1.02 Wed 14 Nov 2007
 	- Updating to newer AUTOMATED_TESTING tests
 	- Updating to fixed META.yml
+
 1.01 Mon 22 Oct 2007
 	- Updating to newer AUTOMATED_TESTING tests
 
