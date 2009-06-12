@@ -20,5 +20,9 @@ use Test::NoWarnings;
 use Module::Build;
 my $builder = Module::Build->current;
 
-ok($builder->notes('build_result'), 'The build completed successfully ' .
-  '(according to make)');
+SKIP: {
+  skip('tests if libjio is built', 1) unless $builder->notes('build_libjio');
+
+  ok($builder->notes('build_result'), 'The build completed successfully ' .
+    '(according to make)');
+}
