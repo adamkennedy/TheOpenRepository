@@ -402,7 +402,7 @@ L<IO::Journal>, a Perl module that provides an interface to libjio.
 L<App::Info::Lib::Jio>, a package that gets information about libjio.
 
 L<http://blitiri.com.ar/p/libjio/>, Alberto Bertogli's page about libjio,
-which explains the purpose and featuers of libjio.
+which explains the purpose and features of libjio.
 
 =head1 CAVEATS
 

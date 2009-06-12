@@ -50,6 +50,7 @@ sub ACTION_code {
 
     # Run the make system to do the rest
     $rc = (system($self->notes('make')) == 0) ? 1 : 0;
+    $self->notes(build_result => $rc);
     _chdir_back();
   }
 

@@ -1,5 +1,5 @@
 NAME
-    Alien::Libjio - Perl package to install libjio (Journalled I/O library)
+    Alien::Libjio - Installing and finding libjio (Journalled I/O library)
 
 VERSION
     Version 1.0 ($Id: ISAAC.pm 7057 2009-05-12 22:51:01Z FREQUENCY@cpan.org
