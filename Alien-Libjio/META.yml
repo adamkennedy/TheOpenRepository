@@ -10,7 +10,7 @@ requires:
   ExtUtils::Liblist: 0
   perl: 5.006
   strict: 0
-  version: 0.76
+  version: 0.74
   warnings: 0
   IPC::Open3: 0
   Cwd: 0
