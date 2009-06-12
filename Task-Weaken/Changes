@@ -1,4 +1,6 @@
-Revision history for Perl extension Task::CVSMonitor
+Revision history for Perl extension Task::Weaken
+
+        - simple refactoring of Makefile.PL (CHORNY)
 
 1.03 Fri 12 Jun 2009
 	- Updating to flush out some old CPAN Testers results

@@ -79,6 +79,10 @@ sub check_scalar_util {
 		return;
 	}
 
+	my $latest_scalar_util=1.21;
+	$latest_scalar_util=1.19 if $]<5.006;
+	#will not work of course - CPAN automatically installs only latest version
+        
 	# Broken Scalar::Util
 	# That is, it does NOT contain the weaken function
 	# which means it was built without a compiler.
@@ -91,17 +95,17 @@ sub check_scalar_util {
 		# with a solution at some point in the
 		# future.
 		message1();
-		requires 'Scalar::Util' => '1.19';
+		requires 'Scalar::Util' => $latest_scalar_util;
 		return;
 	}
 
 	# User should be capable of installing an
 	# upgraded version.
 	# Can we be certain they WILL do the upgrade?
-	if ( $module_version < 1.19 ) {
+	if ( $module_version < $latest_scalar_util ) {
 		# We should be able to do a straight
 		# forward upgrade of the module
-		requires 'Scalar::Util' => '1.19';
+		requires 'Scalar::Util' => $latest_scalar_util;
 		return;
 	}
 
@@ -110,7 +114,7 @@ sub check_scalar_util {
 	# message to the user, and then add a high dependency in the
 	# vague hope it does something.
 	message2();
-	requires 'Scalar::Util' => '1.19';
+	requires 'Scalar::Util' => $latest_scalar_util;
 	return;
 }
 
