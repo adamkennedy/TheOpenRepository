@@ -1,3 +1,37 @@
+package Politics::AU::Geo::Electorates;
+
+use strict;
+use Politics::AU::Geo::Polygons;
+
+our $VERSION = '0.01';
+
+sub house_id {
+	my $self = shift;
+	join( '.', $self->state, $self->level, $self->house );
+}
+
+sub point_in_polygon {
+	my $self      = shift;
+	my $latitude  = shift;
+	my $longitude = shift;
+
+	# Load the polygon
+	my @polygon = Politics::AU::Geo::Polygons->select(
+		'where eid = ?', $self->eid,
+	);
+	unless ( @polygon ) {
+		die("Failed to find polygon for electorate");
+	}
+
+	$polygon[0]->point_in_polygon( $latitude, $longitude );
+}
+
+1;
+
+__END__
+
+=pod
+
 =head1 NAME
 
 Politics::AU::Geo::Electorates - Politics::AU::Geo class for the electorates table
@@ -100,11 +134,13 @@ See the documentation for L<Politics::AU::Geo> for more information.
 
 =head1 AUTHOR
 
-The Author
+Jeffery Candiloro E<lt>jeffery@cpan.orgE<gt>
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2009 The Author.
+Copyright 2009 Jeffery Candiloro.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
@@ -112,3 +148,4 @@ it and/or modify it under the same terms as Perl itself.
 The full text of the license can be found in the
 LICENSE file included with this module.
 
+=cut

@@ -1,3 +1,37 @@
+package Politics::AU::Geo::Polygons;
+
+use strict;
+use Storable      ();
+use Params::Util  qw{_INSTANCE};
+use Math::Polygon ();
+
+our $VERSION = '0.01';
+
+sub point_in_polygon {
+	my $self      = shift;
+	my $latitude  = shift;
+	my $longitude = shift;
+
+	# Inflate
+	my $polygon = Storable::thaw($self->points);
+	unless ( _INSTANCE($polygon, 'Math::Polygon') ) {
+		die("Failed to deserialize the Math::Polygon object");
+	}
+
+	# Check
+	if ( $polygon->contains([ $longitude, $latitude ]) ) {
+		return 1;
+	} else {
+		return '';
+	}
+}
+
+1;
+
+__END__
+
+=pod
+
 =head1 NAME
 
 Politics::AU::Geo::Polygons - Politics::AU::Geo class for the polygons table
@@ -95,11 +129,13 @@ See the documentation for L<Politics::AU::Geo> for more information.
 
 =head1 AUTHOR
 
-The Author
+Jeffery Candiloro E<lt>jeffery@cpan.orgE<gt>
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2009 The Author.
+Copyright 2009 Jeffery Candiloro.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
@@ -107,3 +143,4 @@ it and/or modify it under the same terms as Perl itself.
 The full text of the license can be found in the
 LICENSE file included with this module.
 
+=cut

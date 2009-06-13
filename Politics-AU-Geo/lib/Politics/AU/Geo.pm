@@ -1,12 +1,35 @@
 package Politics::AU::Geo;
 
+=pod
+
+=head1 NAME
+
+Politics::AU::Geo - An ORLite-based ORM Database API
+
+=head1 SYNOPSIS
+
+  TO BE COMPLETED
+
+=head1 DESCRIPTION
+
+TO BE COMPLETED
+
+=head1 METHODS
+
+=cut
+
 use 5.006;
 use strict;
 use warnings;
+use Storable       2.20 ();
+use Math::Polygon  1.01 ();
 use Params::Util   0.38 ();
 use ORLite::Mirror 1.15 ();
 
 our $VERSION = '0.01';
+
+use Politics::AU::Geo::Electorates;
+use Politics::AU::Geo::Polygons;
 
 # Set up the ORLite::Mirror integration for the dataset
 sub import {
@@ -31,7 +54,21 @@ sub import {
 ######################################################################
 # Custom Methods
 
-sub geo2members {
+=pod
+
+=head2 geo2electorates
+
+  my @electorates = Politics::AU::Geo->geo2electorates( -33.895922, 151.110022 );
+
+The C<geo2electorates> method takes a latitude and longitude and resolves the
+set of electorates that the point is within.
+
+Returns a list of L<Politics::AU::Geo::Electorates> objects, or throws an
+exception on error.
+
+=cut
+
+sub geo2electorates {
 	my $class     = shift;
 	my $latitude  = shift;
 	my $longitude = shift;
@@ -46,7 +83,20 @@ sub geo2members {
 		$longitude,
 	);
 
-	1;
+	# Count the number of electorates per house
+	my %filter = ();
+	foreach ( @electorates ) {
+		$filter{$_->house_id}++;
+	}
+
+	# Polygon filter any electorates where we have more than one for the house
+	@electorates = grep {
+		$filter{$_->house_id} == 1
+		or
+		$_->point_in_polygon( $latitude, $longitude )
+	} @electorates;
+
+	return @electorates;
 }
 
 1;
@@ -54,20 +104,6 @@ sub geo2members {
 __END__
 
 =pod
-
-=head1 NAME
-
-Politics::AU::Geo - An ORLite-based ORM Database API
-
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
-
-=head1 DESCRIPTION
-
-TO BE COMPLETED
-
-=head1 METHODS
 
 =head2 dsn
 
@@ -199,11 +235,13 @@ project documentation.
 
 =head1 AUTHOR
 
-The Author
+Jeffery Candiloro E<lt>jeffery@cpan.orgE<gt>
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2009 The Author.
+Copyright 2009 Jeffery Candiloro.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
