@@ -24,7 +24,7 @@ can_ok($obj, 'version');
 
 # These sets of tests depend on whether libjio is installed
 SKIP: {
-  skip('tests for when libjio is installed', 4) unless $obj->installed;
+  skip('tests for when libjio is installed', 5) unless $obj->installed;
 
   # We have to make sure to test the ExtUtils::Liblist method
   # Since there are currently only two methods used, and this one is the last,
