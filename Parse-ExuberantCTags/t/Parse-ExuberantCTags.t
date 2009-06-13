@@ -5,6 +5,8 @@ use Test::More tests => 21;
 use Data::Dumper;
 
 BEGIN { use_ok('Parse::ExuberantCTags') };
+chdir('t') if -d 't';
+use File::Spec;
 
 SCOPE: {
   my $notptags = Parse::ExuberantCTags->new( 'perltagsdoesntexist' );
@@ -12,7 +14,7 @@ SCOPE: {
 }
 
 SCOPE: {
-  my $ptags = Parse::ExuberantCTags->new( 'perltags' );
+  my $ptags = Parse::ExuberantCTags->new( File::Spec->catfile("data", "testtags") );
   isa_ok($ptags, 'Parse::ExuberantCTags');
 
   my $entry = $ptags->firstTag();
