@@ -1,104 +1,66 @@
 package Parse::ExuberantCTags;
 
-use 5.006000;
+use 5.006001;
 use strict;
 use warnings;
 
-require Exporter;
-
-our @ISA = qw(Exporter);
-
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-
-# This allows declaration	use Parse::ExuberantCTags ':all';
-# If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
-# will save memory.
-our %EXPORT_TAGS = ( 'all' => [ qw(
-	tagsClose
-	tagsField
-	tagsFind
-	tagsFindNext
-	tagsFirst
-	tagsNext
-	tagsOpen
-	tagsSetSortType
-) ] );
-
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
-our @EXPORT = qw(
-	
-);
-
-our $VERSION = '0.01';
+our $VERSION = '1.00';
 
 require XSLoader;
 XSLoader::load('Parse::ExuberantCTags', $VERSION);
 
-# Preloaded methods go here.
 
 1;
 __END__
-# Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
 
-Parse::ExuberantCTags - Perl extension for blah blah blah
+Parse::ExuberantCTags - Efficiently parse exuberant ctags files
 
 =head1 SYNOPSIS
 
   use Parse::ExuberantCTags;
-  blah blah blah
+  my $parser = Parse::ExuberantCTags->new( 'tags_filename' );
+  
+  # find a given tag that starts with 'foo' and do not ignore case
+  my $tag = $parser->findTag("foo", ignore_case => 0, partial => 1);
+  if (defined $tag) {
+    print $tag->{name}, "\n";
+  }
+  $tag = $parser->findNextTag();
+  # ...
+  
+  # iterator interface (use find instead, it's a binary search)
+  $tag = $parser->firstTag;
+  while (defined($tag = $parser->nextTag)) {
+    # use the tag structure
+  }
 
 =head1 DESCRIPTION
 
-Stub documentation for Parse::ExuberantCTags, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
-
-=head2 EXPORT
-
-None by default.
-
-=head2 Exportable functions
-
-  tagResult tagsClose (tagFile *const file)
-  const char *tagsField (const tagEntry *const entry, const char *const key)
-  tagResult tagsFind (tagFile *const file, tagEntry *const entry, const char *const name, const int options)
-  tagResult tagsFindNext (tagFile *const file, tagEntry *const entry)
-  tagResult tagsFirst (tagFile *const file, tagEntry *const entry)
-  tagResult tagsNext (tagFile *const file, tagEntry *const entry)
-  tagFile *tagsOpen (const char *const filePath, tagFileInfo *const info)
-  tagResult tagsSetSortType (tagFile *const file, const sortType type)
-
-
-
 =head1 SEE ALSO
-
-Mention other useful documentation such as the documentation of
-related modules or operating system documentation (such as man pages
-in UNIX), or any relevant external documentation such as RFCs or
-standards.
-
-If you have a mailing list set up for your module, mention it here.
-
-If you have a web site set up for your module, mention it here.
 
 =head1 AUTHOR
 
-Steffen Mueller, E<lt>tsee@E<gt>
+Steffen Mueller, E<lt>smueller@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
+
+This Perl module is a wrapper around the F<readtags> library
+that is shipped as part of the exuberant ctags program.
+A copy of F<readtags> is included with this module.
+F<readtags> was put in the public domain by its author. The full
+copyright/license information from the code is:
+
+  Copyright (c) 1996-2003, Darren Hiebert
+  This source code is released into the public domain.
+
+The XS wrapper and this document are:
 
 Copyright (C) 2009 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.10.0 or,
+it under the same terms as Perl itself, either Perl version 5.6 or,
 at your option, any later version of Perl 5 you may have available.
-
 
 =cut
