@@ -95,6 +95,39 @@ Refer to the ctags reference for details.
 Given the name of a file to read the tags from, opens that file and returns
 a C<Parse::ExuberantCTags> object on success, false otherwise.
 
+=head2 findTag
+
+Takes the name of the tag to be sought as first argument.
+
+Following the tag name, two optional arguments (key/value pairs)
+are supported:
+
+Setting C<<partial => 1>> makes the tag name match if it's the
+start of a tag. Setting C<<ignore_case => 1>> makes the search ignore
+the case of the tag. Note that setting C<<ignore_case>> to true
+results in a slower linear instead of a binary search!
+
+Returns a tag structure or undef if none matched.
+
+=head2 findNextTag
+
+Returns the next tag that matches the previous search (see C<findTag>).
+
+Returns undef if no more tags match.
+
+=head2 firstTag
+
+Returns the first tag in the file. Returns undef if the file is emtpy.
+
+=head2 nextTag
+
+Returns the next tag or undef if the end of the file is reached.
+
+=head1 CAVEATS
+
+The SetSortType call is currently not supported. Let me know if you
+need it and I'll add a wrapper.
+
 =head1 SEE ALSO
 
 Exuberant ctags homepage: L<http://ctags.sourceforge.net/>
