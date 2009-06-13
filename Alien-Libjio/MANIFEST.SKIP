@@ -37,5 +37,10 @@
 # Test::Kwalitee cache files.
 ^Debian_CPANTS\.txt
 
+# Compiled files: libjio
+\.(o|a|so|lib|dll)$
+^libjio/libjio/libjio.pc$
+^libjio/libjio/jiofsck$
+
 # Debian package control files
 ^debian/
