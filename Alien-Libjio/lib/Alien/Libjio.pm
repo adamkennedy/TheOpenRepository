@@ -288,6 +288,14 @@ sub _try_pkg_config {
     return;
   }
 
+  # Clean up %ENV so that this will work under taintmode
+  local $ENV{IFS} = '';
+  local $ENV{CDPATH} = '';
+  local $ENV{ENV} = '';
+  local $ENV{BASH_ENV} = '';
+  # This looks like it'd break on Win32...
+  local $ENV{PATH} = '/usr/local/bin:/usr/bin';
+
   $self->{installed} = 1;
   $self->{method} = 'pkg-config';
 

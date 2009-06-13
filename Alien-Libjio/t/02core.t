@@ -26,11 +26,9 @@ can_ok($obj, 'version');
 SKIP: {
   skip('tests for when libjio is installed', 5) unless $obj->installed;
 
-  # We have to make sure to test the ExtUtils::Liblist method
-  # Since there are currently only two methods used, and this one is the last,
-  # then we can be sure everything is tested if we force ExtUtils::Liblist
-  # here.
-  $obj->_try_liblist();
+  # If we got our config from pkg-config, do it again with ExtUtils::Liblist
+  # so we can test that method too.
+  $obj->_try_liblist() if $obj->how eq 'ExtUtils::Liblist';
 
   # Now that we've done liblist, our method should be 'ExtUtils::Liblist'
   is($obj->method, 'ExtUtils::Liblist', 'Detection method is correct');
