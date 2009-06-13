@@ -48,10 +48,14 @@ sub ACTION_code {
       _chdir_or_die(File::Spec->catfile('libjio', 'libjio'));
     }
 
-    # Run the make system to do the rest
-    $rc = (system($self->notes('make')) == 0) ? 1 : 0;
-    $self->notes(build_result => $rc);
+    # Run the make system to do the rest, but save the return code
+    system($self->notes('make'));
+    $rc = $? >> 8;
+
+    # Make sure we change the directory back before adding notes, or they
+    # won't persist (in _build state)
     _chdir_back();
+    $self->notes(build_result => $rc);
   }
 
   return $rc;
