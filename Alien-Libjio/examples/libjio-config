@@ -20,9 +20,9 @@ if ($jio->installed) {
   print  "libjio is installed on your system.\n";
   printf "  Detection mechanism:  %s\n", $jio->how;
   printf "  Compiler flags:       %s\n",
-    length $jio->cflags ? $jio->cflags : '(null)';
+    ref scalar $jio->cflags ? join(' ', $jio->cflags) : '(null)';
   printf "  Linker flags:         %s\n",
-    length $jio->ldflags ? $jio->ldflags : '(null)';
+    ref scalar $jio->ldflags ? join(' ', $jio->ldflags) : '(null)';
   printf "  Module version:       %s\n", $jio->version
     if $jio->method eq 'pkg-config';
 }
