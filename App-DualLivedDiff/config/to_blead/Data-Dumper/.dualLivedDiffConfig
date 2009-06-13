@@ -4,6 +4,6 @@ dirs-recursive:
 exclude-regexes:
   - '^(?:\.?/)?MANIFEST[\w.]*$'
   - '^(?:\.?/)?ppport\.h$'
-  - '^(?:\.?/)?Makefile\.PL$'
+  - '^(?:\.?/)?Makefile.*$'
   - '^(?:\.?/)?META\.yml$'
 
