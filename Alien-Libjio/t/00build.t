@@ -23,7 +23,7 @@ my $builder = Module::Build->current;
 use File::Spec;
 
 SKIP: {
-  skip('tests if libjio is built', 1) unless $builder->notes('build_libjio');
+  skip('tests if libjio is built', 3) unless $builder->notes('build_libjio');
 
   is($builder->notes('build_result'), 0, 'Return code from make is zero ' .
     '(ie, build completed successfully)');
