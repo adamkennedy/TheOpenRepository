@@ -30,7 +30,7 @@ Parse::ExuberantCTags - Efficiently parse exuberant ctags files
   $tag = $parser->findNextTag();
   # ...
   
-  # iterator interface (use find instead, it's a binary search)
+  # iterator interface (use findTag instead, it does a binary search)
   $tag = $parser->firstTag;
   while (defined($tag = $parser->nextTag)) {
     # use the tag structure
@@ -38,7 +38,72 @@ Parse::ExuberantCTags - Efficiently parse exuberant ctags files
 
 =head1 DESCRIPTION
 
+This Perl module parses I<ctags> files and handles both traditional
+ctags as well as extended ctags files such as produced with I<Exuberant
+ctags>. To the best of my knowledge, it does not handle emacs-style "I<etags>"
+files.
+
+The module is implemented as a wrapper around the F<readtags> library that normally
+ships with I<Exuberant ctags>. If you do not know what that is, you are
+encouraged to have a look at L<http://ctags.sourceforge.net/>. In order to use
+this module, you do not need I<Exuberant ctags> on your system. The module
+ships a copy of F<readtags>. Quoting the F<readtags> documentation:
+
+  The functions defined in this interface are intended to provide tag file
+  support to a software tool. The tag lookups provided are sufficiently fast
+  enough to permit opening a sorted tag file, searching for a matching tag,
+  then closing the tag file each time a tag is looked up (search times are
+  on the order of hundreths of a second, even for huge tag files). This is
+  the recommended use of this library for most tool applications. Adhering
+  to this approach permits a user to regenerate a tag file at will without
+  the tool needing to detect and resynchronize with changes to the tag file.
+  Even for an unsorted 24MB tag file, tag searches take about one second.
+
+Take away from this that tag files should be sorted by the generating program.
+
+=head1 TAG FORMAT
+
+The methods that return a tag entry all return tags in the same format.
+Examples count for a billion words:
+
+  {
+    name              => 'IO::File',
+    file              => '/usr/lib/perl/5.10/IO/File.pm',
+    fileScope         => 0,
+    kind              => 'p',
+    addressPattern    => '/package IO::File;/',
+    addressLineNumber => 3,
+    extension         => {
+      class => 'IO::File',
+    },
+  }
+
+The structure has the name of the tag (C<name>), the file it was found in
+(C<file>), a flag indicating whether the tag is scoped to the file only,
+the type of the tag entry (C<kind>), the C<ex> search pattern for locating
+the definition (C<addressPattern>), the line number (C<addressLineNumber>),
+and then key/value pairs from the extension section of the tag.
+
+Not all of the fields are guaranteed to be available. Particularly the C<extension>
+section will be empty if the tags file doesn't make use of the extended format.
+Refer to the ctags reference for details.
+
+=head1 METHODS
+
+=head2 new
+
+Given the name of a file to read the tags from, opens that file and returns
+a C<Parse::ExuberantCTags> object on success, false otherwise.
+
 =head1 SEE ALSO
+
+Exuberant ctags homepage: L<http://ctags.sourceforge.net/>
+
+Wikipedia on ctags: L<http://en.wikipedia.org/wiki/Ctags>
+
+Module that can produce ctags files from Perl code: L<Perl::Tags>
+
+L<File::PackageIndexer>
 
 =head1 AUTHOR
 
