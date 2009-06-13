@@ -103,7 +103,7 @@ sub new {
 
   $self->_try_pkg_config()
     or $self->_try_liblist()
-    ;
+    or delete($self->{method});
   return $self;
 }
 
@@ -219,6 +219,42 @@ sub cflags {
 }
 *compiler_flags = *cflags;
 
+=head2 $jio->method
+
+=head2 $jio->how
+
+This method returns the method the module used to find information about
+libjio. The following methods are currently used (in priority order):
+
+=over
+
+=item *
+
+pkg-config: the de-facto package information tool
+
+=item *
+
+ExtUtils::Liblist: a utility module used by ExtUtils::MakeMaker
+
+=back
+
+Example code:
+
+  if ($jio->installed) {
+    print 'I found this information using: ', $jio->how, "\n";
+  }
+
+=cut
+
+sub method {
+  my ($self) = @_;
+
+  Carp::croak('You must call this method as an object') unless ref($self);
+
+  return $self->{method};
+}
+*how = *method;
+
 # Private methods to find & fill out information
 
 use IPC::Open3 ('open3');
@@ -253,6 +289,7 @@ sub _try_pkg_config {
   }
 
   $self->{installed} = 1;
+  $self->{method} = 'pkg-config';
 
   # pkg-config returns things with a newline, so remember to remove it
   # I don't see anything wrong with the ' ' (pure whitespace quotes)
@@ -274,6 +311,7 @@ sub _try_liblist {
   return unless (defined($ldflags) && length($ldflags));
 
   $self->{installed} = 1;
+  $self->{method} = 'ExtUtils::Liblist';
 
   # Empty out cflags; initialize it
   $self->{cflags} = [];

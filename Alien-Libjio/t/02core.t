@@ -12,7 +12,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 9;
+use Test::More tests => 10;
 use Test::NoWarnings;
 
 use Alien::Libjio;
@@ -27,11 +27,17 @@ SKIP: {
   skip('tests for when libjio is installed', 4) unless $obj->installed;
 
   # We have to make sure to test the ExtUtils::Liblist method
+  # Since there are currently only two methods used, and this one is the last,
+  # then we can be sure everything is tested if we force ExtUtils::Liblist
+  # here.
   $obj->_try_liblist();
 
+  # Now that we've done liblist, our method should be 'ExtUtils::Liblist'
+  is($obj->method, 'ExtUtils::Liblist', 'Detection method is correct');
+
   # Everything should still be defined
-  ok(ref $obj->cflags eq 'ARRAY', '->cflags returns an ARRAY ref');
-  ok(ref $obj->ldflags eq 'ARRAY', '->ldflags returns an ARRAY ref');
+  is(ref $obj->cflags,  'ARRAY', '->cflags returns an ARRAY ref');
+  is(ref $obj->ldflags, 'ARRAY', '->ldflags returns an ARRAY ref');
 
   # Returns an array if calling in list context
   my @a = $obj->cflags;

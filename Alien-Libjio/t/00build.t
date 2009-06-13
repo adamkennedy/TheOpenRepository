@@ -5,7 +5,7 @@
 #
 # By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
 #
-# $Id: 00signature.t 7455 2009-06-10 13:25:37Z FREQUENCY@cpan.org $
+# $Id$
 #
 # This package and its contents are released by the author into the Public
 # Domain, to the full extent permissible by law. For additional information,

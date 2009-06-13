@@ -1,5 +1,6 @@
 Build.PL
 Changes
+examples/libjio-config
 inc/My/Builder.pm
 lib/Alien/Libjio.pm
 libjio/bindings/preload/libjio_preload.c

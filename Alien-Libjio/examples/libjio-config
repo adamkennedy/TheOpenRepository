@@ -1,0 +1,31 @@
+#!/usr/bin/perl -T
+
+# examples/libjio-config
+#  Shows some information about libjio
+#
+# $Id$
+#
+# All rights to this test script are hereby disclaimed and its contents
+# released into the public domain by the author. Where this is not possible,
+# you may use this file under the same terms as Perl itself.
+
+use strict;
+use warnings;
+
+use Alien::Libjio;
+
+my $jio = Alien::Libjio->new();
+
+if ($jio->installed) {
+  print  "libjio is installed on your system.\n";
+  printf "  Detection mechanism:  %s\n", $jio->how;
+  printf "  Compiler flags:       %s\n",
+    length $jio->cflags ? $jio->cflags : '(null)';
+  printf "  Linker flags:         %s\n",
+    length $jio->ldflags ? $jio->ldflags : '(null)';
+  printf "  Module version:       %s\n", $jio->version
+    if $jio->method eq 'pkg-config';
+}
+else {
+  print {*STDERR} "libjio is not installed on your system\n";
+}
