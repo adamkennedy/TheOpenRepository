@@ -14,8 +14,7 @@ package My::Builder;
 use strict;
 use warnings;
 
-use Module::Build;
-our @ISA = ('Module::Build');
+use base 'Module::Build';
 
 use Config '%Config';
 

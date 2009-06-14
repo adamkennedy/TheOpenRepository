@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/05exceptions.t
+# t/03exceptions.t
 #  Tests fast errors produced with obvious mistakes
 #
 # By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.

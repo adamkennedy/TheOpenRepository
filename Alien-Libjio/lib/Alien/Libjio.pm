@@ -104,6 +104,7 @@ sub new {
   $self->_try_pkg_config()
     or $self->_try_liblist()
     or delete($self->{method});
+
   return $self;
 }
 
@@ -467,6 +468,20 @@ It does try to use B<pkg-config> and B<ExtUtils::Liblist> to find a libjio
 installation on your system, but it cannot predict where files might have
 been installed. As a result, this package might install a duplicate copy
 of libjio.
+
+=item  *
+
+There is currently no way to save a custom library installation path for
+libjio. This is likely to change in the future.
+
+=item *
+
+B<pkg-config> may fail if you have an insecure $ENV{PATH} variable. Due to
+the way IPC::Open3 works, taintedness exceptions are suppressed and pkg-config
+seems to fail for no reason. The recommended fix for this is to use a module
+like L<Env::Sanctify::Auto> or to otherwise clean up the calling environment.
+Another workaround is to disable taint checking, but that's not recommended.
+(See: L<http://rt.perl.org/rt3/Ticket/Display.html?id=66572>)
 
 =back
 
