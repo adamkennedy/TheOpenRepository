@@ -1,0 +1,162 @@
+$Id$
+
+NAME
+    Env::Sanctify::Auto - Automatically clean up your %ENV
+
+DESCRIPTION
+    Environment variables such as PATH (command search path) and IFS (input
+    field separator) can have severe security ramifications. Luckily,
+    enabling Perl's taint mode will provide some extra checking whenever
+    there can be potentially unsafe calls to functions like system or open.
+
+    However, there has been no simple way to load a module which
+    automatically cleans up your environment. Various methods are used to
+    temporarily clean up the environment for you or forked children, such
+    as:
+
+      local $ENV{PATH} = '/usr/bin:/usr/local/bin';
+
+    While this works for most purposes, it has some potential issues such as
+    what to do when the paths are different under different architectures.
+    Obviously such a command is not portable to environments with different
+    path conventions so this would break your program's compatibility with
+    Win32, among others.
+
+    This simple module subclasses Env::Sanctify to take care of this for
+    you. Among other things, this means you get the nice bonus of lexically
+    scoped environments (see Env::Sanctify for details).
+
+ENVIRONMENT VARIABLES
+    This module knows about the following environment variables:
+
+  PATH
+    PATH provides a list of paths to search for executables, which
+    influences which commands are invoked by unqualified calls to system()
+    and others. This variable is particularly dangerous because even if you
+    use a fully qualified call to the executable, like "/usr/bin/echo ..."
+    -- there is still a security hole, since echo could be executing
+    unqualified code itself.
+
+    The safest way to handle this, and the strategy used by this module, is
+    to remove everything except "/usr/bin" and "/usr/local/bin" (or
+    equivalent, depending on your operating system).
+
+  CDPATH
+    CDPATH provides additional paths for cd to search on the system when it
+    is called. This is dangerous because you could be attempting to change
+    into a known safe directory, but the CDPATH may divert you to another
+    directory. The variable is generally of limited usefulness, and so is
+    removed completely during %ENV scrubbing.
+
+  IFS
+    IFS is the Internal Field Separator, which tells the operating system
+    what characters should be considered whitespace separating command line
+    arguments. Combined with controlling PATH, this exposes a very dangerous
+    vulnerability: if the IFS is set to '/', then "system('/bin/more')" is
+    essentially the same as <system('bin more')>. As a result, the 'bin'
+    command is executed instead of '/bin/more' as expected.
+
+  ENV and BASH_ENV
+    ENV and BASH_ENV list files that are executed whenever a new shell is
+    started, which includes whenever a shell script (.sh) is run.
+
+AUTHOR
+    Jonathan Yu <frequency@cpan.org>
+
+  CONTRIBUTORS
+    Your name here ;-)
+
+ACKNOWLEDGEMENTS
+    *   Thanks to Chris "BinGOs" Williams <chris@bingosnet.co.uk> for making
+        Env::Sanctify, a pretty neat module that inspired this one.
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+        perldoc Env::Sanctify::Auto
+
+    You can also look for information at:
+
+    *   AnnoCPAN: Annotated CPAN documentation
+
+        <http://annocpan.org/dist/Env-Sanctify-Auto>
+
+    *   CPAN Ratings
+
+        <http://cpanratings.perl.org/d/Env-Sanctify-Auto>
+
+    *   Search CPAN
+
+        <http://search.cpan.org/dist/Env-Sanctify-Auto>
+
+    *   CPAN Request Tracker
+
+        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=Env-Sanctify-Auto>
+
+    *   CPAN Testing Service (Kwalitee Tests)
+
+        <http://cpants.perl.org/dist/overview/Env-Sanctify-Auto>
+
+REPOSITORY
+    You can access the most recent development version of this module at:
+
+    <http://svn.ali.as/cpan/trunk/Env-Sanctify-Auto>
+
+    If you are a CPAN developer and would like to make modifications to the
+    code base, please contact Adam Kennedy <adamk@cpan.org>, the repository
+    administrator. I only ask that you contact me first to discuss the
+    changes you wish to make to the distribution.
+
+FEEDBACK
+    Please send relevant comments, rotten tomatoes and suggestions directly
+    to the maintainer noted above.
+
+    If you have a bug report or feature request, please file them on the
+    CPAN Request Tracker at <http://rt.cpan.org>. If you are able to submit
+    your bug report in the form of failing unit tests, you are strongly
+    encouraged to do so.
+
+SEE ALSO
+    Env::Sanctify, the module upon which this one is based.
+
+    <http://www.perlmonks.org/?node_id=131746>, a Perl Monks thread
+    discussing why IFS, CDPATH, ENV and BASH_ENV are considered dangerous
+
+    perlsec, a document explaining security considerations for Perl
+    programs.
+
+CAVEATS
+  KNOWN BUGS
+    There are no known bugs as of this release.
+
+  LIMITATIONS
+    *   There are lots of variables that can do dangerous things,
+        particularly when executing files via "system()" or others. This
+        module tries to fix the most common ones, but is by no means a
+        complete way to sanctify your namespace, and is not a substitute for
+        performing your own security audit.
+
+    *   I'm not a security expert, so more than likely I've missed
+        something. Please do file bug reports so that I can fix the module.
+
+LICENSE
+    Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
+
+    This package is distributed under the same terms as Perl itself. Please
+    see the LICENSE file included in this distribution for full details of
+    these terms.
+
+DISCLAIMER OF WARRANTY
+    This software is provided by the copyright holders and contributors "AS
+    IS" and ANY EXPRESS OR IMPLIED WARRANTIES, including, but not limited
+    to, the IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+    PARTICULAR PURPOSE ARE DISCLAIMED.
+
+    In no event shall the copyright owner or contributors be liable for any
+    direct, indirect, incidental, special, exemplary or consequential
+    damages (including, but not limited to, procurement of substitute goods
+    or services; loss of use, data or profits; or business interruption)
+    however caused and on any theory of liability, whether in contract,
+    strict liability or tort (including negligence or otherwise) arising in
+    any way out of the use of this software, even if advised of the
+    possibility of such damage.

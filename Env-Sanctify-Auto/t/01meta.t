@@ -3,7 +3,7 @@
 # t/01meta.t
 #  Tests that the META.yml meets the specification
 #
-# $Id: 01meta.t 5633 2009-03-14 20:00:03Z FREQUENCY@cpan.org $
+# $Id$
 #
 # All rights to this test script are hereby disclaimed and its contents
 # released into the public domain by the author. Where this is not possible,

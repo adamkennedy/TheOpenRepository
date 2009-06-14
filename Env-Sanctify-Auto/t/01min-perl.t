@@ -3,7 +3,7 @@
 # t/01min-perl.t
 #  Tests that the minimum required Perl version matches META.yml
 #
-# $Id: 01min-perl.t 5666 2009-03-16 17:06:48Z FREQUENCY@cpan.org $
+# $Id$
 #
 # All rights to this test script are hereby disclaimed and its contents
 # released into the public domain by the author. Where this is not possible,

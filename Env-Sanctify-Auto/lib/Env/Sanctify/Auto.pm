@@ -1,7 +1,7 @@
 # Env::Sanctify::Auto
 #  Automatically cleans up your environment to prevent security issues.
 #
-# $Id: DistManifest.pm 7102 2009-05-15 15:09:32Z FREQUENCY@cpan.org $
+# $Id$
 #
 # Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
 #
@@ -22,7 +22,7 @@ Env::Sanctify::Auto - Automatically clean up your %ENV
 
 =head1 VERSION
 
-Version 1.0 ($Id)
+Version 1.0 ($Id$)
 
 =cut
 

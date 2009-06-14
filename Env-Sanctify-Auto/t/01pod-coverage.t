@@ -3,7 +3,7 @@
 # t/01pod-coverage.t
 #  Ensures all subroutines are documented with POD
 #
-# $Id: 01pod-coverage.t 5633 2009-03-14 20:00:03Z FREQUENCY@cpan.org $
+# $Id$
 #
 # All rights to this test script are hereby disclaimed and its contents
 # released into the public domain by the author. Where this is not possible,

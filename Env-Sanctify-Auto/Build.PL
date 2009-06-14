@@ -3,7 +3,7 @@
 # Build.PL
 #  Script to build and install this distribution
 #
-# $Id: Build.PL 7100 2009-05-15 14:25:59Z FREQUENCY@cpan.org $
+# $Id$
 #
 # All rights to this helper script are hereby disclaimed and its contents
 # released into the public domain by the author. Where this is not possible,
