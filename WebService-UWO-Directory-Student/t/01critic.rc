@@ -54,8 +54,13 @@ allow_leading_tabs = 0
 # appropriately (unless, of course, they are obvious)
 [-ValuesAndExpressions::ProhibitMagicNumbers]
 
-# I don't see the benefit of q{} over '', even for one-character strings
+# Most detected quotes don't look all that noisy, and I'm trusting myself to
+# change to q{} if it is clearer.
 [-ValuesAndExpressions::ProhibitNoisyQuotes]
+
+# I often use empty quotes and don't want to litter my namespace with new
+# symbols (like $SPACE) for little to no gain.
+[-ValuesAndExpressions::ProhibitEmptyQuotes]
 
 ###################################################
 ############### DOCUMENTATION
