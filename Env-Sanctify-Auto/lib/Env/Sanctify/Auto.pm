@@ -274,6 +274,12 @@ and is not a substitute for performing your own security audit.
 I'm not a security expert, so more than likely I've missed something. Please
 do file bug reports so that I can fix the module.
 
+=item *
+
+I don't have access to a VMS machine, nor do I know how they work, so there
+is currently nothing here to deal with that. If you have a OpenVMS machine
+or know how they work, feel free to send me an e-mail or patch.
+
 =back
 
 =head1 LICENSE
