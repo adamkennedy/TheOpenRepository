@@ -264,8 +264,6 @@ sub _get_pc {
   my ($key) = @_;
 
   my $read;
-  # This string doesn't look all *too* noisy for me
-  ## no critic(ProhibitNoisyQuotes)
   my $pid = open3(undef, $read, undef, 'pkg-config', 'libjio', '--' . $key);
   # We're using blocking wait, so the return value doesn't matter
   ## no critic(RequireCheckedSyscalls)
@@ -289,20 +287,10 @@ sub _try_pkg_config {
     return;
   }
 
-  # Clean up %ENV so that this will work under taintmode
-  local $ENV{IFS} = '';
-  local $ENV{CDPATH} = '';
-  local $ENV{ENV} = '';
-  local $ENV{BASH_ENV} = '';
-  # This looks like it'd break on Win32...
-  local $ENV{PATH} = '/usr/local/bin:/usr/bin';
-
   $self->{installed} = 1;
   $self->{method} = 'pkg-config';
 
   # pkg-config returns things with a newline, so remember to remove it
-  # I don't see anything wrong with the ' ' (pure whitespace quotes)
-  ## no critic(ProhibitEmptyQuotes)
   $self->{cflags} = [ split(' ', $value) ];
   $self->{ldflags} = [ split(' ', _get_pc('libs')) ];
   $self->{version} = _get_pc('modversion');
@@ -335,7 +323,6 @@ sub _try_liblist {
   # Check the status code
   if (($? >> 8) == 0) {
     # This only takes the first line
-    ## no critic(ProhibitEmptyQuotes)
     push(@{ $self->{cflags} }, split(' ', <$read>));
   }
   else {
