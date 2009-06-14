@@ -14,8 +14,7 @@ use strict;
 use warnings;
 use Carp ();
 
-use Env::Sanctify ();
-our @ISA = ('Env::Sanctify');
+use base 'Env::Sanctify';
 
 =head1 NAME
 
@@ -145,6 +144,7 @@ sub new {
     $path = _secure_path();
   }
 
+  # Construct the Env::Sanctify (superclass) base
   my $self = Env::Sanctify->sanctify(
     env => {
       PATH => $path,
@@ -156,6 +156,9 @@ sub new {
       'BASH_ENV',
     ]
   );
+
+  # Re-bless this into our package
+  return bless($self, $class);
 }
 *sanctify = *new;
 
@@ -169,6 +172,14 @@ sub _secure_path {
   # Assume everything else is Unix-like
   return '/usr/bin:/usr/bin/local';
 }
+
+=head1 AUTHOR
+
+Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+
+=head2 CONTRIBUTORS
+
+Your name here ;-)
 
 =head1 ACKNOWLEDGEMENTS
 
