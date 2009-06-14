@@ -6,6 +6,8 @@ LICENSE
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
+META.yml
+README
 SIGNATURE
 t/00signature.t
 t/01compile.t
