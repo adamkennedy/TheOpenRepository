@@ -28,5 +28,6 @@ t/poof.t
 t/snippet.t
 t/stein.t
 t/synopsis.t
+t/unfilled-array.t
 t/weaken.t
 t/lib/Test/Weaken/Test.pm

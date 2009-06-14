@@ -88,7 +88,8 @@ sub follow {
 
         FIND_CHILDREN: {
             if ( $object_type eq 'ARRAY' ) {
-                @child_probes = map { \$_ } @{$follow_probe};
+                @child_probes =
+                    map { \$_ } grep { defined $_ } @{$follow_probe};
                 last FIND_CHILDREN;
             }
 
@@ -847,16 +848,20 @@ in extremely wide use, this suggests that these three
 objects types are, to put it mildly,
 not commonly encountered as the contents of data structures.
 
-GLOB objects are ignored
-because they refer
-to an entry in the Perl symbol table.
-The Perl symbol table is, of course, persistent.
-GLOB objects will usually be persistent also.
-Objects of builtin type IO
-are typically associated with GLOB objects,
-and this is a second reason to ignore IO objects.
+GLOB objects
+usually refer
+either to an entry in the Perl symbol table
+or are associated with a filehandle.
+Either way, the assumption they will share
+the lifetime of their parent data object
+is thrown into doubt.
+The trouble saved by ignoring GLOB objects seems 
+to outweigh any advantage that would come from tracking
+them.
+IO objects, which are ignored because of C<Data::Dumper> issues,
+are often associated with GLOB objects.
 
-There are a couple other reasons to ignore FORMAT
+There are other reasons to ignore FORMAT
 objects.
 They are always global, and therefore
 can be expected to be persistent.
