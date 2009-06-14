@@ -145,7 +145,7 @@ sub new {
   }
 
   # Construct the Env::Sanctify (superclass) base
-  my $self = Env::Sanctify->sanctify(
+  my $self = $class->SUPER::sanctify(
     env => {
       PATH => $path,
     },
