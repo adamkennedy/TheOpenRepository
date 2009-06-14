@@ -165,7 +165,7 @@ sub new {
 # Private utility functions
 sub _secure_path {
   # Return a PATH specific to the platform we're running on
-  if ($^O eq 'Win32') {
+  if ($^O eq 'MSWin32') {
     return '%SystemRoot%\system32;%SystemRoot%;%SystemRoot%\System32\Wbem';
   }
 
