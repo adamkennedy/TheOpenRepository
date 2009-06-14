@@ -30,6 +30,7 @@ my $builder = Module::Build->new(
 
   requires => {
     'perl'              => 5.006,
+    'Env::Sanctify'     => 0,
 
     # Pragmatic and special modules
     'Carp'              => 1.04,

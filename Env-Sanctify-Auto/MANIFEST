@@ -1,6 +1,7 @@
 Build.PL
 Changes
 CIRCULAR.SKIP
+examples/list.pl
 lib/Env/Sanctify/Auto.pm
 LICENSE
 Makefile.PL

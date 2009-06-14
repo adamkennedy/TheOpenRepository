@@ -16,6 +16,7 @@ requires:
   strict: 0
   version: 0.74
   warnings: 0
+  Env::Sanctify: 0
 build_requires:
   Test::More: 0
   Test::NoWarnings: 0.084
