@@ -136,6 +136,8 @@ UINT LogString(
 	case IDOK:
 	case 0: // Means no action was taken...
 		return ERROR_SUCCESS;
+	case IDCANCEL:
+		return ERROR_INSTALL_USEREXIT;
 	default:
 		return ERROR_INSTALL_FAILURE;
 	}
