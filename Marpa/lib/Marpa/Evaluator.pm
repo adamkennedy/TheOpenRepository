@@ -875,6 +875,59 @@ sub Marpa::Evaluator::new {
         } ## end for my $choice ( 0 .. $#child_and_node_ids )
     } ## end for my $parent_or_node ( @{$or_nodes} )
 
+    # Rewrite to eliminate cycles.
+    my %or_nodes_by_span;
+    for my $or_node ( @{$or_nodes} ) {
+        push @{
+            $or_nodes_by_span{
+                join q{,},
+                @{$or_node}[
+                    Marpa::Internal::Or_Node::START_EARLEME,
+                Marpa::Internal::Or_Node::END_EARLEME
+                ]
+                }
+            },
+            $or_node;
+    } ## end for my $or_node ( @{$or_nodes} )
+
+    for my $span_set ( grep { @{$_} >= 2 } values %or_nodes_by_span ) {
+        my @in_span_set = ();
+        for my $or_node_ix ( 0 .. $#{$span_set} ) {
+            $in_span_set[ $span_set->[$or_node_ix]
+                ->[Marpa::Internal::Or_Node::ID] ] = $or_node_ix;
+        }
+        my @transition;
+        for my $or_parent_ix ( 0 .. $#{$span_set} ) {
+            my @or_child_ixes =
+                grep { defined $_ }
+                map  { $in_span_set[ $_->[Marpa::Internal::Or_Node::ID] ] }
+                grep { defined $_ }
+                map {
+                @{$_}[
+                    Marpa::Internal::And_Node::CAUSE,
+                    Marpa::Internal::And_Node::PREDECESSOR
+                    ]
+                } @{$and_nodes}[
+                @{ $span_set->[$or_parent_ix]
+                        ->[Marpa::Internal::Or_Node::CHILD_IDS] }
+                ];
+            my @work_list;
+            for my $or_child_ix (@or_child_ixes) {
+                $transition[$or_parent_ix][$or_child_ix]++;
+                push @work_list, [ $or_parent_ix, $or_child_ix ];
+            }
+            while ( my $work_item = pop @work_list ) {
+                my ( $parent_ix, $child_ix ) = @{$work_item};
+                GRAND_CHILD: for my $grandchild_ix ( 0 .. $#{$span_set} ) {
+                    my $transition_row = $transition[$parent_ix];
+                    next GRAND_CHILD if $transition_row->[$grandchild_ix];
+                    $transition_row->[$grandchild_ix]++;
+                    push @work_list, [ $parent_ix, $grandchild_ix ];
+                } ## end for my $grandchild_ix ( 0 .. $#{$span_set} )
+            } ## end while ( my $work_item = pop @work_list )
+        } ## end for my $or_parent_ix ( 0 .. $#{$span_set} )
+    } ## end for my $span_set ( grep { @{$_} >= 2 } values %or_nodes_by_span)
+
     # There can be duplicate and-nodes.  Prune these.
     my @short_and_signatures;
     $#short_and_signatures = @{$and_nodes};
