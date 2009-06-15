@@ -104,7 +104,6 @@ use Object::Tiny qw{
   app_publisher_url
   default_group_name
   output_dir
-  source_dir
   fragment_dir
   directories
   fragments
