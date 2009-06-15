@@ -97,7 +97,7 @@ B<IFS> is the Internal Field Separator, which tells the operating system
 what characters should be considered whitespace separating command line
 arguments. Combined with controlling B<PATH>, this exposes a very dangerous
 vulnerability: if the IFS is set to '/', then C<system('/bin/more')> is
-essentially the same as <system('bin more')>. As a result, the 'bin' command
+essentially the same as C<system('bin more')>. As a result, the 'bin' command
 is executed instead of '/bin/more' as expected.
 
 =head2 ENV and BASH_ENV
