@@ -57,7 +57,7 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Or_Node
 
-    NAME ID CHILD_IDS
+    TAG ID CHILD_IDS
 
     { Delete this ... }
     AND_NODES
@@ -587,7 +587,7 @@ sub Marpa::Evaluator::new {
         my $or_node  = [];
         my $and_node = [];
 
-        my $or_node_name = $or_node->[Marpa::Internal::Or_Node::NAME] =
+        my $or_node_name = $or_node->[Marpa::Internal::Or_Node::TAG] =
             $start_item->[Marpa::Internal::Earley_Item::NAME];
         $or_node->[Marpa::Internal::Or_Node::AND_NODES]     = [$and_node];
         $or_node->[Marpa::Internal::Or_Node::CHILD_IDS]     = [0];
@@ -814,7 +814,7 @@ sub Marpa::Evaluator::new {
         my $or_node    = [];
         my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID] =
             @{$or_nodes};
-        $or_node->[Marpa::Internal::Or_Node::NAME]      = $sapling_name;
+        $or_node->[Marpa::Internal::Or_Node::TAG]       = $sapling_name;
         $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@child_and_nodes;
         $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] =
             [ map { $_->[Marpa::Internal::And_Node::ID] } @child_and_nodes ];
@@ -1162,11 +1162,11 @@ sub Marpa::show_and_node {
     my @rhs = ();
 
     if ($predecessor) {
-        push @rhs, $predecessor->[Marpa::Internal::Or_Node::NAME];
+        push @rhs, $predecessor->[Marpa::Internal::Or_Node::TAG];
     }    # predecessor
 
     if ($cause) {
-        push @rhs, $cause->[Marpa::Internal::Or_Node::NAME];
+        push @rhs, $cause->[Marpa::Internal::Or_Node::TAG];
     }    # cause
 
     if ( defined $value_ref ) {
@@ -1237,16 +1237,16 @@ sub Marpa::Evaluator::show_bocage {
 
     for my $or_node ( @{ $evaler->[OR_NODES] } ) {
 
-        my $or_node_name = $or_node->[Marpa::Internal::Or_Node::NAME];
+        my $or_node_tag  = $or_node->[Marpa::Internal::Or_Node::TAG];
         my $and_node_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
 
         for my $index ( 0 .. $#{$and_node_ids} ) {
             my $and_node_id = $and_node_ids->[$index];
             my $and_node    = $and_nodes->[$and_node_id];
 
-            my $and_node_name = $or_node_name . '[' . $index . ']';
+            my $and_node_tag = $or_node_tag . '[' . $index . ']';
             if ( $verbose >= 2 ) {
-                $text .= "$or_node_name ::= $and_node_name\n";
+                $text .= "$or_node_tag ::= $and_node_tag\n";
             }
 
             $text .= Marpa::show_and_node( $and_node, $verbose );
@@ -1288,7 +1288,7 @@ sub Marpa::Evaluator::show_tree {
 
         $text
             .= "Tree Node #$tree_position: "
-            . $or_node->[Marpa::Internal::Or_Node::NAME]
+            . $or_node->[Marpa::Internal::Or_Node::TAG]
             . "[$choice]";
         if ( defined $parent ) {
             $text .= "; Parent = $parent";
@@ -1301,13 +1301,13 @@ sub Marpa::Evaluator::show_tree {
             $text
                 .= '    Kernel: '
                 . $predecessor->[Marpa::Internal::Tree_Node::OR_NODE]
-                ->[Marpa::Internal::Or_Node::NAME] . "\n";
+                ->[Marpa::Internal::Or_Node::TAG] . "\n";
         } ## end if ( defined $predecessor )
         if ( defined $cause ) {
             $text
                 .= '    Closure: '
                 . $cause->[Marpa::Internal::Tree_Node::OR_NODE]
-                ->[Marpa::Internal::Or_Node::NAME] . "\n";
+                ->[Marpa::Internal::Or_Node::TAG] . "\n";
         } ## end if ( defined $cause )
         if ($verbose) {
             $text .= '    Perl Closure: ' . ( defined $closure ? 'Y' : 'N' );
@@ -1560,23 +1560,19 @@ sub Marpa::Evaluator::new_value {
                     ];
 
                 if ($trace_journal) {
-                    my $and_node_id = $choices->[$current_choice];
-                    my $and_node    = $and_nodes->[$and_node_id];
-                    my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Journal: Accepted instance, rank $rank, choice $current_choice\n"
                         or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_journal)
+                }
 
                 if ($trace_iterations) {
                     my $and_node_id = $choices->[$current_choice];
                     my $and_node    = $and_nodes->[$and_node_id];
-                    my $and_node_name =
+                    my $and_node_tag =
                         $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Iteration: Accepted instance; rank $rank; ",
-                        "choice $current_choice; and-node $and_node_name\n"
+                        "choice $current_choice; and-node $and_node_tag\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_iterations)
 
@@ -1591,14 +1587,10 @@ sub Marpa::Evaluator::new_value {
             else {
 
                 if ($trace_iterations) {
-                    my $and_node_id = $choices->[$current_choice];
-                    my $and_node    = $and_nodes->[$and_node_id];
-                    my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Iteration: Rejected instance, rank $rank\n"
                         or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_iterations)
+                }
 
                 @tasks = (
                     [ Marpa::Internal::Task::ITERATE_INSTANCE, $rank + 1, 0 ],
@@ -1646,10 +1638,10 @@ sub Marpa::Evaluator::new_value {
 
                 my $and_node = $and_nodes->[$and_node_id];
                 if ($trace_journal) {
-                    my $and_node_name =
+                    my $and_node_tag =
                         $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
-                        "Journal: Accepted $and_node_name, rank $rank\n"
+                        "Journal: Accepted $and_node_tag, rank $rank\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_journal)
 
@@ -1708,11 +1700,11 @@ sub Marpa::Evaluator::new_value {
                 my $parent_node = $and_nodes->[$parent_id];
 
                 if ($trace_iterations) {
-                    my $parent_node_name =
+                    my $parent_node_tag =
                         $parent_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Iteration: Choosing upward fork $fork_choice, ",
-                        "to $parent_node_name, rank $rank\n"
+                        "to $parent_node_tag, rank $rank\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_iterations)
 
@@ -1726,11 +1718,11 @@ sub Marpa::Evaluator::new_value {
                         ];
 
                     if ($trace_journal) {
-                        my $parent_node_name =
+                        my $parent_node_tag =
                             $parent_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
                             "Journal: Choosing upward fork $fork_choice, ",
-                            "to and-node $parent_node_name, rank $rank\n"
+                            "to and-node $parent_node_tag, rank $rank\n"
                             or
                             Marpa::exception('print to trace handle failed');
                     } ## end if ($trace_journal)
@@ -1760,11 +1752,11 @@ sub Marpa::Evaluator::new_value {
                         ? 'attempt to accept rejected node'
                         : 'cycle';
                     my $and_node = $and_nodes->[$and_node_id];
-                    my $and_node_name =
+                    my $and_node_tag =
                         $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Iteration: Backtracking due to $problem at ",
-                        "$and_node_name\n"
+                        "$and_node_tag\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_iterations)
 
@@ -1787,10 +1779,10 @@ sub Marpa::Evaluator::new_value {
                 ];
 
             if ($trace_journal) {
-                my $and_node_name =
+                my $and_node_tag =
                     $and_node->[Marpa::Internal::And_Node::TAG];
                 print {$trace_fh}
-                    "Journal: Re-accepted $and_node_name; rank $rank\n"
+                    "Journal: Re-accepted $and_node_tag; rank $rank\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_journal)
 
@@ -1859,10 +1851,10 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                     if ($trace_journal) {
                         my $decision = $decisions->[$and_node_id];
                         my $and_node = $and_nodes->[$and_node_id];
-                        my $and_node_name =
+                        my $and_node_tag =
                             $and_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
-                            "Journal: Changing $and_node_name decision from ",
+                            "Journal: Changing $and_node_tag decision from ",
                             Marpa::show_decision($decision),
                             ' back to ',
                             Marpa::show_decision($previous_value), "\n"
@@ -1914,10 +1906,10 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                             ];
 
                         if ($trace_journal) {
-                            my $parent_node_name = $parent_node
+                            my $parent_node_tag = $parent_node
                                 ->[Marpa::Internal::And_Node::TAG];
                             print {$trace_fh}
-                                "Journal: Choosing upward fork $fork_choice, to and-node $parent_node_name,",
+                                "Journal: Choosing upward fork $fork_choice, to and-node $parent_node_tag,",
                                 " rank $rank\n"
                                 or Marpa::exception(
                                 'print to trace handle failed');
@@ -1931,10 +1923,10 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                     } ## end if ( $fork_choice < $#{$forks} )
 
                     if ($trace_iterations) {
-                        my $parent_node_name =
+                        my $parent_node_tag =
                             $parent_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
-                            "Iteration: Choosing upward fork $fork_choice, to and-node $parent_node_name,",
+                            "Iteration: Choosing upward fork $fork_choice, to and-node $parent_node_tag,",
                             " rank $rank\n"
                             or
                             Marpa::exception('print to trace handle failed');
@@ -2041,10 +2033,10 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
             my $and_node = $and_nodes->[$and_node_id];
 
             if ($trace_tasks) {
-                my $and_node_name =
+                my $and_node_tag =
                     $and_node->[Marpa::Internal::And_Node::TAG];
                 print {$trace_fh}
-                    "Task: REJECT_NODE, rank $rank; node $and_node_name; ",
+                    "Task: REJECT_NODE, rank $rank; node $and_node_tag; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
@@ -2059,10 +2051,10 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 if ( $decision == REJECTED ) {
 
                     if ( $trace_iterations >= 3 ) {
-                        my $and_node_name =
+                        my $and_node_tag =
                             $and_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
-                            "Iteration: Already rejected and-node $and_node_name, rank $rank\n"
+                            "Iteration: Already rejected and-node $and_node_tag, rank $rank\n"
                             or
                             Marpa::exception('print to trace handle failed');
                     } ## end if ( $trace_iterations >= 3 )
@@ -2074,10 +2066,10 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 # been made.  This can't happen and we need to
                 # backtrack.
                 if ( $trace_iterations >= 3 ) {
-                    my $and_node_name =
+                    my $and_node_tag =
                         $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
-                        "Iteration: Attempted to reject an accepted node: $and_node_name; ",
+                        "Iteration: Attempted to reject an accepted node: $and_node_tag; ",
                         "need to backtrack\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ( $trace_iterations >= 3 )
@@ -2092,9 +2084,9 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 [ Marpa::Internal::Journal_Tag::NODE, $and_node_id ];
 
             if ($trace_journal) {
-                my $and_node_name =
+                my $and_node_tag =
                     $and_node->[Marpa::Internal::And_Node::TAG];
-                print {$trace_fh} "Journal: Rejecting $and_node_name, ",
+                print {$trace_fh} "Journal: Rejecting $and_node_tag, ",
                     "rank $rank\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_journal)
@@ -2512,7 +2504,7 @@ sub Marpa::Evaluator::value {
                     $choice,
                     ' tree node #',
                     $tree_position, q{ },
-                    $or_node->[Marpa::Internal::Or_Node::NAME],
+                    $or_node->[Marpa::Internal::Or_Node::TAG],
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_iterations)
 
@@ -2552,6 +2544,8 @@ sub Marpa::Evaluator::value {
             my $or_node_is_closure =
                 $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED];
 
+            my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID];
+
             AND_NODE: while (1) {
 
                 my $and_node = $and_nodes->[$choice];
@@ -2561,6 +2555,7 @@ sub Marpa::Evaluator::value {
                 # we find one which can be iterated.
                 next TREE_NODE if not defined $and_node;
 
+                my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
                 (   $predecessor_or_node, $cause_or_node, $closure, $argc,
                     $value_ref, $rule, $rule_position,
                     )
@@ -2583,15 +2578,12 @@ sub Marpa::Evaluator::value {
                 # and this is a closure or-node
                 # check to see if we have cycled
 
-                my $or_node_name = $or_node->[Marpa::Internal::Or_Node::NAME];
-                my $and_node_name = $or_node_name . "[$choice]";
-
                 my $cycles = $evaler->[Marpa::Internal::Evaluator::CYCLES];
 
                 # if by an initial highball estimate
                 # we have yet to cycle more than a limit (now hard coded
                 # to 1), then we can use this and node
-                last AND_NODE if $cycles->{$and_node_name}++ < 1;
+                last AND_NODE if $cycles->{$and_node_id}++ < 1;
 
                 # compute actual cycles count
                 my $parent =
@@ -2607,9 +2599,9 @@ sub Marpa::Evaluator::value {
                         Marpa::Internal::Tree_Node::PARENT,
                         Marpa::Internal::Tree_Node::CHOICE,
                         ];
-                    my $parent_or_node_name =
-                        $tree_or_node->[Marpa::Internal::Or_Node::NAME];
-                    if (    $or_node_name eq $parent_or_node_name
+                    my $parent_or_node_id =
+                        $tree_or_node->[Marpa::Internal::Or_Node::ID];
+                    if (    $or_node_id eq $parent_or_node_id
                         and $choice == $parent_choice )
                     {
                         $cycles_count++;
@@ -2617,10 +2609,10 @@ sub Marpa::Evaluator::value {
                 } ## end while ( defined $parent )
 
                 # replace highball estimate with actual count
-                $cycles->{$and_node_name} = $cycles_count;
+                $cycles->{$and_node_id} = $cycles_count;
 
                 # repeat the test
-                last AND_NODE if $cycles->{$and_node_name}++ < 1;
+                last AND_NODE if $cycles->{$and_node_id}++ < 1;
 
                 # this and-node was rejected -- try the next
                 $choice++;
@@ -2671,7 +2663,7 @@ sub Marpa::Evaluator::value {
                 print {$trace_fh}
                     'Pushing tree node #',
                     ( scalar @{$tree} ), q{ },
-                    $or_node->[Marpa::Internal::Or_Node::NAME],
+                    $or_node->[Marpa::Internal::Or_Node::TAG],
                     "[$choice]: ",
                     Marpa::show_dotted_rule( $rule, $rule_position + 1 ),
                     $value_description
@@ -2747,7 +2739,7 @@ sub Marpa::Evaluator::value {
                     @{$node}[ Marpa::Internal::Tree_Node::OR_NODE, ];
                 print {$trace_fh}
                     'Pushed value from ',
-                    $or_node->[Marpa::Internal::Or_Node::NAME],
+                    $or_node->[Marpa::Internal::Or_Node::TAG],
                     ': ',
                     Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)->Dump
                     or Marpa::exception('print to trace handle failed');
@@ -2766,7 +2758,7 @@ sub Marpa::Evaluator::value {
                 'Popping ',
                 $argc,
                 ' values to evaluate ',
-                $or_node->[Marpa::Internal::Or_Node::NAME],
+                $or_node->[Marpa::Internal::Or_Node::TAG],
                 ', rule: ',
                 Marpa::brief_rule($rule);
         } ## end if ($trace_values)
