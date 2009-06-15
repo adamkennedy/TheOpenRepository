@@ -41,7 +41,7 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::And_Node
 
-    NAME ID
+    TAG ID
     PREDECESSOR CAUSE
     VALUE_REF PERL_CLOSURE END_EARLEME
     ARGC RULE POSITION
@@ -595,7 +595,7 @@ sub Marpa::Evaluator::new {
         $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = 0;
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED]  = 1;
 
-        $and_node->[Marpa::Internal::And_Node::NAME] = $or_node_name . '[0]';
+        $and_node->[Marpa::Internal::And_Node::TAG] = $or_node_name . '[0]';
         $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
             \$start_null_value;
         $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE] = $closure;
@@ -800,7 +800,7 @@ sub Marpa::Evaluator::new {
                     $sapling_position;
                 $and_node->[Marpa::Internal::And_Node::END_EARLEME] =
                     $end_earleme;
-                $and_node->[Marpa::Internal::And_Node::NAME] = (
+                $and_node->[Marpa::Internal::And_Node::TAG] = (
                     $sapling_name . '[' . ( scalar @child_and_nodes ) . ']' );
                 $and_node->[Marpa::Internal::And_Node::ID] = @{$and_nodes};
                 push @{$and_nodes}, $and_node;
@@ -919,10 +919,9 @@ sub Marpa::Evaluator::new {
             push @prune_candidate_and_node_ids, $child_ids;
             if ($trace_iterations) {
                 say {$trace_fh} 'Possible duplicate and nodes: ', join q{ },
-                    map {
-                    $and_nodes->[$_]->[Marpa::Internal::And_Node::NAME]
-                    } @{$child_ids};
-            } ## end if ($trace_iterations)
+                    map { $and_nodes->[$_]->[Marpa::Internal::And_Node::TAG] }
+                    @{$child_ids};
+            }
 
             # Look for the ids which we will want will want to test
             # for identity, so we can set up equivalence classes.
@@ -1030,7 +1029,7 @@ sub Marpa::Evaluator::new {
 
             if ( not defined $equivalence_class ) {
                 $equivalence_class = $and_node_equivalence_class{$signature} =
-                    $and_node->[Marpa::Internal::And_Node::NAME];
+                    $and_node->[Marpa::Internal::And_Node::TAG];
             }
             $and_node_equivalence_class[$and_node_id] = $equivalence_class;
             if ( $or_nodes_of_interest[Marpa::Internal::And_Node::PARENT_ID]
@@ -1057,7 +1056,7 @@ sub Marpa::Evaluator::new {
 
             if ( not defined $equivalence_class ) {
                 $equivalence_class = $or_node_equivalence_class{$signature} =
-                    $or_node->[Marpa::Internal::And_Node::NAME];
+                    $or_node->[Marpa::Internal::And_Node::TAG];
             }
             $or_node_equivalence_class[$or_node_id] = $equivalence_class;
             push @equivalence_work_list, map { [ 1, $_ ] }
@@ -1078,7 +1077,7 @@ sub Marpa::Evaluator::new {
                     ->[Marpa::Internal::And_Node::PRUNED] = 1;
                 if ($trace_iterations) {
                     say {$trace_fh} 'Pruning duplicate and node: ',
-                        $and_nodes->[$_]->[Marpa::Internal::And_Node::NAME];
+                        $and_nodes->[$_]->[Marpa::Internal::And_Node::TAG];
                 }
             } ## end if ( $seen{$equivalence_class} )
             $seen{$equivalence_class}++;
@@ -1097,7 +1096,7 @@ sub Marpa::show_and_node {
     my ( $name, $predecessor, $cause, $value_ref, $closure, $argc, $rule,
         $position, )
         = @{$and_node}[
-        Marpa::Internal::And_Node::NAME,
+        Marpa::Internal::And_Node::TAG,
         Marpa::Internal::And_Node::PREDECESSOR,
         Marpa::Internal::And_Node::CAUSE,
         Marpa::Internal::And_Node::VALUE_REF,
@@ -1511,7 +1510,7 @@ sub Marpa::Evaluator::new_value {
                     my $and_node_id = $choices->[$current_choice];
                     my $and_node    = $and_nodes->[$and_node_id];
                     my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::NAME];
+                        $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Journal: Accepted instance, rank $rank, choice $current_choice\n"
                         or Marpa::exception('print to trace handle failed');
@@ -1521,7 +1520,7 @@ sub Marpa::Evaluator::new_value {
                     my $and_node_id = $choices->[$current_choice];
                     my $and_node    = $and_nodes->[$and_node_id];
                     my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::NAME];
+                        $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Iteration: Accepted instance; rank $rank; ",
                         "choice $current_choice; and-node $and_node_name\n"
@@ -1542,7 +1541,7 @@ sub Marpa::Evaluator::new_value {
                     my $and_node_id = $choices->[$current_choice];
                     my $and_node    = $and_nodes->[$and_node_id];
                     my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::NAME];
+                        $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Iteration: Rejected instance, rank $rank\n"
                         or Marpa::exception('print to trace handle failed');
@@ -1595,7 +1594,7 @@ sub Marpa::Evaluator::new_value {
                 my $and_node = $and_nodes->[$and_node_id];
                 if ($trace_journal) {
                     my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::NAME];
+                        $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Journal: Accepted $and_node_name, rank $rank\n"
                         or Marpa::exception('print to trace handle failed');
@@ -1657,7 +1656,7 @@ sub Marpa::Evaluator::new_value {
 
                 if ($trace_iterations) {
                     my $parent_node_name =
-                        $parent_node->[Marpa::Internal::And_Node::NAME];
+                        $parent_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Iteration: Choosing upward fork $fork_choice, ",
                         "to $parent_node_name, rank $rank\n"
@@ -1675,7 +1674,7 @@ sub Marpa::Evaluator::new_value {
 
                     if ($trace_journal) {
                         my $parent_node_name =
-                            $parent_node->[Marpa::Internal::And_Node::NAME];
+                            $parent_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
                             "Journal: Choosing upward fork $fork_choice, ",
                             "to and-node $parent_node_name, rank $rank\n"
@@ -1709,7 +1708,7 @@ sub Marpa::Evaluator::new_value {
                         : 'cycle';
                     my $and_node = $and_nodes->[$and_node_id];
                     my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::NAME];
+                        $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Iteration: Backtracking due to $problem at ",
                         "$and_node_name\n"
@@ -1736,7 +1735,7 @@ sub Marpa::Evaluator::new_value {
 
             if ($trace_journal) {
                 my $and_node_name =
-                    $and_node->[Marpa::Internal::And_Node::NAME];
+                    $and_node->[Marpa::Internal::And_Node::TAG];
                 print {$trace_fh}
                     "Journal: Re-accepted $and_node_name; rank $rank\n"
                     or Marpa::exception('print to trace handle failed');
@@ -1808,7 +1807,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                         my $decision = $decisions->[$and_node_id];
                         my $and_node = $and_nodes->[$and_node_id];
                         my $and_node_name =
-                            $and_node->[Marpa::Internal::And_Node::NAME];
+                            $and_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
                             "Journal: Changing $and_node_name decision from ",
                             Marpa::show_decision($decision),
@@ -1863,7 +1862,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
                         if ($trace_journal) {
                             my $parent_node_name = $parent_node
-                                ->[Marpa::Internal::And_Node::NAME];
+                                ->[Marpa::Internal::And_Node::TAG];
                             print {$trace_fh}
                                 "Journal: Choosing upward fork $fork_choice, to and-node $parent_node_name,",
                                 " rank $rank\n"
@@ -1880,7 +1879,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
                     if ($trace_iterations) {
                         my $parent_node_name =
-                            $parent_node->[Marpa::Internal::And_Node::NAME];
+                            $parent_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
                             "Iteration: Choosing upward fork $fork_choice, to and-node $parent_node_name,",
                             " rank $rank\n"
@@ -1990,7 +1989,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
             if ($trace_tasks) {
                 my $and_node_name =
-                    $and_node->[Marpa::Internal::And_Node::NAME];
+                    $and_node->[Marpa::Internal::And_Node::TAG];
                 print {$trace_fh}
                     "Task: REJECT_NODE, rank $rank; node $and_node_name; ",
                     ( scalar @tasks ), " tasks pending\n"
@@ -2008,7 +2007,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
                     if ( $trace_iterations >= 3 ) {
                         my $and_node_name =
-                            $and_node->[Marpa::Internal::And_Node::NAME];
+                            $and_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
                             "Iteration: Already rejected and-node $and_node_name, rank $rank\n"
                             or
@@ -2023,7 +2022,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 # backtrack.
                 if ( $trace_iterations >= 3 ) {
                     my $and_node_name =
-                        $and_node->[Marpa::Internal::And_Node::NAME];
+                        $and_node->[Marpa::Internal::And_Node::TAG];
                     print {$trace_fh}
                         "Iteration: Attempted to reject an accepted node: $and_node_name; ",
                         "need to backtrack\n"
@@ -2041,7 +2040,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
             if ($trace_journal) {
                 my $and_node_name =
-                    $and_node->[Marpa::Internal::And_Node::NAME];
+                    $and_node->[Marpa::Internal::And_Node::TAG];
                 print {$trace_fh} "Journal: Rejecting $and_node_name, ",
                     "rank $rank\n"
                     or Marpa::exception('print to trace handle failed');
@@ -2246,7 +2245,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                     if ($trace_values) {
                         print {$trace_fh}
                             'Pushed value from ',
-                            $and_node->[Marpa::Internal::And_Node::NAME],
+                            $and_node->[Marpa::Internal::And_Node::TAG],
                             ': ',
                             Data::Dumper->new( [ ${$value_ref} ] )->Terse(1)
                             ->Dump
@@ -2264,7 +2263,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                         'Popping ',
                         $argc,
                         ' values to evaluate ',
-                        $and_node->[Marpa::Internal::And_Node::NAME],
+                        $and_node->[Marpa::Internal::And_Node::TAG],
                         ', rule: ', Marpa::brief_rule($rule)
                         or Marpa::exception('Could not print to trace file');
                 } ## end if ($trace_values)
