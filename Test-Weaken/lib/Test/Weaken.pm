@@ -88,10 +88,13 @@ sub follow {
 
         FIND_CHILDREN: {
             if ( $object_type eq 'ARRAY' ) {
-                @child_probes =
-                    map { \$_ } grep { defined $_ } @{$follow_probe};
+                foreach my $i ( 0 .. $#{$follow_probe} ) {
+                    if ( exists $follow_probe->[$i] ) {
+                        push @child_probes, \( $follow_probe->[$i] );
+                    }
+                }
                 last FIND_CHILDREN;
-            }
+            } ## end if ( $object_type eq 'ARRAY' )
 
             if ( $object_type eq 'HASH' ) {
                 @child_probes = map { \$_ } values %{$follow_probe};
@@ -1067,15 +1070,17 @@ large or complicated sub-objects need to be filtered out of the results.
 
 When specified, the value of the C<ignore> argument must be a
 reference to a callback subroutine.
-The subroutine will be called once
+If the reference to the callback subroutine
+is C<$ignore>, C<Test::Weaken>'s call to it will be the equivalent
+of C<< $ignore->($safe_copy) >>,
+where C<$safe_copy> is a copy of 
+a probe reference to a Perl data object.
+
+The C<ignore> callback will be make once
 for every Perl data object when it is about
 to be tracked,
 and once for every data object when it is about to be
 followed.
-The C<ignore> callback is called with
-a probe reference to the Perl data object that is about to be
-tracked or followed as
-its only argument.
 Everything that is referred to, directly or indirectly,
 by this
 probe reference
@@ -1178,10 +1183,18 @@ using the C<contents> argument may be easiest.
 
 When specified, the value of the C<contents> argument must be a
 reference to a callback subroutine.
-The C<contents> callback is called with one argument.
-This argument is a probe reference to an object
-that is about to be
-followed.
+If the reference is C<$contents>,
+C<Test::Weaken>'s call to it will be the equivalent
+of C<< $contents->($safe_copy) >>,
+where C<$safe_copy> is a copy of the probe reference to
+another Perl reference.
+
+The C<contents> callback is make once
+for every reference which is about
+about to be followed.
+The C<contents> callback is not made for
+Perl data objects other than references.
+
 Everything that is referred to, directly or indirectly,
 by this
 probe reference
