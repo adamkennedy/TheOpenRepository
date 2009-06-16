@@ -473,32 +473,6 @@ UINT AddDirectoryRecord(
 	return uiAnswer;	
 }
 
-UINT UpdateActionData(
-	MSIHANDLE hModule,  // Database Handle of MSI being installed. [in]
-	LPCTSTR sDir)       // Directory to print. [in]
-{
-	UINT uiAnswer;
-
-	PMSIHANDLE phRecord = ::MsiCreateRecord(1);
-	HANDLE_OK(phRecord)
-
-	uiAnswer = ::MsiRecordSetString(phRecord, 1, sDir);
-	MSI_OK(uiAnswer)
-
-	uiAnswer = ::MsiProcessMessage(hModule, INSTALLMESSAGE_ACTIONDATA, phRecord);
-
-	// Corrects return value for use with MSI_OK.
-	switch (uiAnswer) {
-	case IDOK:
-	case 0: // Means no action was taken...
-		return ERROR_SUCCESS;
-	case IDCANCEL:
-		return ERROR_INSTALL_USEREXIT;
-	default:
-		return ERROR_INSTALL_FAILURE;
-	}
-}
-
 // The main routine
 
 UINT AddDirectory(
@@ -508,12 +482,6 @@ UINT AddDirectory(
 	bool bCurrentIDExisted,    // Did current ID exist in the MSI originally? [in]
 	bool& bDeleteEntryCreated) // Was a delete-directory entry created by this call? [out]
 {
-	UINT uiAnswer = ERROR_SUCCESS;
-
-	// Update the information 
-	uiAnswer = UpdateActionData(hModule, sCurrentDir);
-	MSI_OK(uiAnswer)
-
 	// Set up the wildcard for the files to find.
 	TCHAR sFind[MAX_PATH + 1];
 	_tcscpy_s(sFind, MAX_PATH, sCurrentDir);
@@ -528,6 +496,7 @@ UINT AddDirectory(
 	HANDLE hFindHandle;
 
 	BOOL bFileFound = FALSE;
+	UINT uiAnswer = ERROR_SUCCESS;
 	bool bDirectoryFound = false;
 	bool bInstalled = false;
 
@@ -724,37 +693,6 @@ UINT GetComponent(
 	return uiAnswer; 
 }
 
-UINT InitializeActionData(
-	MSIHANDLE hModule ) // Database Handle of MSI being installed. [in]
-{
-	UINT uiAnswer;
-
-	PMSIHANDLE phRecord = ::MsiCreateRecord(3);
-	HANDLE_OK(phRecord)
-
-	uiAnswer = ::MsiRecordSetString(phRecord, 1, TEXT("CA_ClearFolder"));
-	MSI_OK(uiAnswer)
-
-	uiAnswer = ::MsiRecordSetString(phRecord, 2, TEXT("Searching for additional files to delete"));
-	MSI_OK(uiAnswer)
-
-	uiAnswer = ::MsiRecordSetString(phRecord, 3, TEXT("Directory: [1]"));
-	MSI_OK(uiAnswer)
-
-	uiAnswer = ::MsiProcessMessage(hModule, INSTALLMESSAGE_ACTIONSTART, phRecord);
-
-	// Corrects return value for use with MSI_OK.
-	switch (uiAnswer) {
-	case IDOK:
-	case 0: // Means no action was taken...
-		return ERROR_SUCCESS;
-	case IDCANCEL:
-		return ERROR_INSTALL_USEREXIT;
-	default:
-		return ERROR_INSTALL_FAILURE;
-	}
-}
-
 UINT __stdcall ClearFolder(
 	MSIHANDLE hModule) // Handle of MSI being installed. [in]
 	                   // Passed to most other routines.
@@ -762,9 +700,6 @@ UINT __stdcall ClearFolder(
 	TCHAR sInstallDirectory[MAX_PATH + 1];
 	UINT uiAnswer;
 	DWORD dwPropLength = MAX_PATH; 
-
-	uiAnswer = InitializeActionData(hModule);
-	MSI_OK(uiAnswer)
 
 	// Get directory to search.
 	uiAnswer = ::MsiGetProperty(hModule, TEXT("INSTALLDIR"), sInstallDirectory, &dwPropLength); 
