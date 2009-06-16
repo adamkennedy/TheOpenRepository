@@ -53,8 +53,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,181,0,0
- PRODUCTVERSION 0,181,0,0
+ FILEVERSION 0,184,0,0
+ PRODUCTVERSION 0,184,0,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -70,13 +70,13 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "ClearFolder CustomAction DLL"
-            VALUE "FileVersion", "0.181"
+            VALUE "FileVersion", "0.184"
             VALUE "InternalName", "ClearFolder CA"
             VALUE "LegalCopyright", "Copyright (C) 2009 Curtis Jewell"
-            VALUE "LegalTrademarks", "This DLL is free software; you can redistribute it and/or modify it under the same terms as Perl itself."
+            VALUE "LegalTrademarks", "This DLL is free software; you can redistribute it and/or modify its source code under the same terms as Perl itself."
             VALUE "OriginalFilename", "ClearFolderCA.dll"
             VALUE "ProductName", "Perl::Dist::WiX"
-            VALUE "ProductVersion", "0.181"
+            VALUE "ProductVersion", "0.184"
         END
     END
     BLOCK "VarFileInfo"
