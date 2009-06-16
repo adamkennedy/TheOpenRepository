@@ -138,7 +138,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Evaluator;
 
-# use Smart::Comments;
+# use Smart::Comments '###';
 
 ### Using smart comments <where>...
 
@@ -890,13 +890,17 @@ sub Marpa::Evaluator::new {
             $or_node;
     } ## end for my $or_node ( @{$or_nodes} )
 
-    for my $span_set ( grep { @{$_} >= 2 } values %or_nodes_by_span ) {
+    my @span_sets = values %or_nodes_by_span;
+    SPAN_SET: while ( my $span_set = pop @span_sets ) {
+        next SPAN_SET if @{$span_set} <= 1;
         my @in_span_set = ();
         for my $or_node_ix ( 0 .. $#{$span_set} ) {
             $in_span_set[ $span_set->[$or_node_ix]
                 ->[Marpa::Internal::Or_Node::ID] ] = $or_node_ix;
         }
+
         my @transition;
+        my @work_list;
         for my $or_parent_ix ( 0 .. $#{$span_set} ) {
             my @or_child_ixes =
                 grep { defined $_ }
@@ -911,22 +915,69 @@ sub Marpa::Evaluator::new {
                 @{ $span_set->[$or_parent_ix]
                         ->[Marpa::Internal::Or_Node::CHILD_IDS] }
                 ];
-            my @work_list;
             for my $or_child_ix (@or_child_ixes) {
+                #### initial transition: $or_parent_ix, $or_child_ix
                 $transition[$or_parent_ix][$or_child_ix]++;
                 push @work_list, [ $or_parent_ix, $or_child_ix ];
             }
-            while ( my $work_item = pop @work_list ) {
-                my ( $parent_ix, $child_ix ) = @{$work_item};
-                GRAND_CHILD: for my $grandchild_ix ( 0 .. $#{$span_set} ) {
-                    my $transition_row = $transition[$parent_ix];
-                    next GRAND_CHILD if $transition_row->[$grandchild_ix];
-                    $transition_row->[$grandchild_ix]++;
-                    push @work_list, [ $parent_ix, $grandchild_ix ];
-                } ## end for my $grandchild_ix ( 0 .. $#{$span_set} )
-            } ## end while ( my $work_item = pop @work_list )
         } ## end for my $or_parent_ix ( 0 .. $#{$span_set} )
-    } ## end for my $span_set ( grep { @{$_} >= 2 } values %or_nodes_by_span)
+
+        while ( my $work_item = pop @work_list ) {
+            my ( $parent_ix, $child_ix ) = @{$work_item};
+            GRAND_CHILD:
+            for my $grandchild_ix ( grep { $transition[$child_ix][$_] }
+                ( 0 .. $#{$span_set} ) )
+            {
+                my $transition_row = $transition[$parent_ix];
+                next GRAND_CHILD if $transition_row->[$grandchild_ix];
+                $transition_row->[$grandchild_ix]++;
+                #### transition: $parent_ix, $grandchild_ix
+                push @work_list, [ $parent_ix, $grandchild_ix ];
+            } ## end for my $grandchild_ix ( grep { $transition[$child_ix]...
+        } ## end while ( my $work_item = pop @work_list )
+
+        # Use the transitions to find the cycles in the span set
+        my @cycles;
+        my @seen;
+        IX: for my $ix ( 0 .. $#{$span_set} ) {
+
+            # Is the node part of a cycle we have not deal with?
+            next IX if $seen[$ix] or not $transition[$ix][$ix];
+
+            # Initialize this cycle with this first or-node
+            my @cycle = ( $span_set->[$ix] );
+
+            # Add the other nodes in this cycle to it.
+            IX2: for my $ix2 ( $ix + 1 .. $#{$span_set} ) {
+
+                # A second node is in the cycle if it was not in a
+                # previous cycle, if there is a transition to
+                # the first node from the second, and if there is
+                # a transition to the second
+                # from the first.
+                next IX2
+                    if $seen[$ix2]
+                        or not $transition[$ix][$ix2]
+                        or not $transition[$ix2][$ix];
+
+                # Mark this node seen
+                $seen[$ix2]++;
+
+                push @cycle, $span_set->[$ix2];
+
+            } ## end for my $ix2 ( $ix + 1 .. $#{$span_set} )
+
+            ### Found cycle...
+
+            #### @transition
+
+            ### assert: 0
+
+            push @cycles, \@cycle;
+
+        } ## end for my $ix ( 0 .. $#{$span_set} )
+
+    } ## end while ( my $span_set = pop @span_sets )
 
     # There can be duplicate and-nodes.  Prune these.
     my @short_and_signatures;
