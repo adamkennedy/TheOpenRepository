@@ -142,6 +142,9 @@ use Object::Tiny qw(
   build_number
   beta_number
   trace
+  build_start_time
+  perl_config_cf_email
+  perl_config_cf_by
 );
 
 use Perl::Dist::Asset               1.12 ();
@@ -414,6 +417,19 @@ If upon running the distribution module, you see LGHT0091 or LGHT0130
 errors at the end that refer to directories, add the applicable 
 directories to this parameter.
 
+=item * perl_config_cf_email
+
+The optional C<perl_config_cf_email> parameter specifies the e-mail
+of the person building the perl distribution defined by this object.
+
+It is compiled into the perl binary as the C<cf_email> option accessible
+through C<perl -V:cf_email>.
+
+The username (the part before the at sign) of this parameter also sets the
+C<cf_by> option.
+
+If not defined, this is set to anonymous@unknown.builder.invalid.
+
 =back
 
 The C<new> constructor returns a B<Perl::Dist::WiX> object, which you
@@ -431,11 +447,18 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 
 	# Announce that we're staring.
-	my $time = localtime;
+	my $params{build_start_time} = localtime;
+	my $time = $params{build_start_time}; 
+	if ( $params{trace} >= 100 ) { print '# '; }
 	if ( $params{trace} > 1 ) { print '[0] '; }
 	print "Starting build at $time.\n";
 
 	# Apply more defaults
+	unless (( defined $params{perl_config_cf_email} ) || 
+		    ( not $params{perl_config_cf_email} =~ m/\a.*@.*\Z/msx )) {
+		$params{perl_config_cf_email} = 'anonymous@unknown.builder.invalid';
+	}
+	($params{perl_config_cf_by}) = $params{perl_config_cf_email} =~ m/\a(.*)@.*\Z/msx;
 	unless ( defined $params{binary_root} ) {
 		$params{binary_root} = 'http://strawberryperl.com/package';
 	}
@@ -1576,7 +1599,8 @@ sub install_perl_modules {
 
 	# Upgrade anything out of date,
 	# but don't install anything extra.
-	$self->install_cpan_upgrades;
+	# TODO: Uncomment (getting testing done quick.)
+	# $self->install_cpan_upgrades;
 
 	return 1;
 }
@@ -1961,6 +1985,8 @@ sub install_perl_589 {
 		install_to => 'perl',
 		patch      => [ qw{
 			  lib/CPAN/Config.pm
+			  win32/config.gc
+			  win32/config_sh.PL
 			  }
 		],
 		license => {
@@ -2115,6 +2141,8 @@ sub install_perl_5100 {
 		patch      => [ qw{
 			  lib/ExtUtils/Command.pm
 			  lib/CPAN/Config.pm
+			  win32/config.gc
+			  win32/config_sh.PL
 			  }
 		],
 		license => {
@@ -3874,7 +3902,7 @@ sub get_env_path {
 # By default only use the default (as a default...)
 sub patch_include_path {
 	my $self  = shift;
-	my $share = File::ShareDir::dist_dir('Perl-Dist');
+	my $share = File::ShareDir::dist_dir('Perl-Dist-WiX');
 	my $path  = catdir( $share, 'default', );
 	unless ( -d $path ) {
 		PDWiX->throw("Directory $path does not exist");
