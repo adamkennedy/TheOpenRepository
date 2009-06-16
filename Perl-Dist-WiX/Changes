@@ -1,12 +1,14 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.184   To be released
+0.184   Tue 16 Jun 2009
     1. Allow e-mail of builder and build and beta numbers 
-	   to be stored in perl configuration.
-	2. Text::Iconv will build correctly, as the DLL
-	   file is copied as opposed to moved where libxml
-	   needs it.
-	3. Update to uninstall custom action - be more vocal.
+       to be stored in perl configuration.
+    2. Text::Iconv will build correctly, as the DLL
+       file is copied as opposed to moved where libxml
+       needs it.
+    3. Perl::Dist::WiX::Filelist has been removed
+       (actually moved to File::List::Object, so
+       that has been added as a dependency.)
 
 0.183   Thu 28 May 2009
     1. Perl::Dist::WiX::Installer used a regex 

@@ -15,7 +15,7 @@ use vars              qw( $VERSION                       );
 use Object::InsideOut qw( Perl::Dist::WiX::Misc Storable );
 use Params::Util      qw( _INSTANCE _STRING _NONNEGINT   );
 
-use version; $VERSION = version->new('0.183')->numify;
+use version; $VERSION = version->new('0.184')->numify;
 #>>>
 #####################################################################
 # Accessors:

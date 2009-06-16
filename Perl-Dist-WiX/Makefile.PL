@@ -9,7 +9,6 @@ if (author_context) {
 }
 
 all_from       'lib/Perl/Dist/WiX.pm';
-# perl_version   '5.006';
 requires       'version'              => '0.76';
 requires       'Alien::WiX'           => '0.300000';
 requires       'Data::Dump::Streamer' => '2.08';
@@ -17,6 +16,7 @@ requires       'Data::UUID'           => '1.149';
 requires       'Devel::StackTrace'    => '1.20';
 requires       'Exception::Class'     => '1.22';
 requires       'File::ShareDir'       => '1.00';
+requires       'File::List::Object'   => '0.188';
 requires       'IO::String'           => '1.08';
 requires       'List::MoreUtils'      => '0.07';
 requires       'Module::CoreList'     => '2.17';
@@ -24,8 +24,6 @@ requires       'Object::InsideOut'    => '3.53';
 requires       'Perl::Dist'           => '1.14';
 requires       'Process'              => '0.26';
 requires       'Readonly'             => '1.03';
-requires       'Scalar::Util'         => '1.19'; # Remove when 5.008 is minimum perl version.
-requires       'Storable'             => '2.15'; # Remove when 5.008 is minimum perl version.
 requires       'URI'                  => '1.35';
 recommends     'Readonly::XS'         => '1.05';
 test_requires  'Test::More'           => '0.61';

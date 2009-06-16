@@ -23,7 +23,7 @@ use     Scalar::Util           qw( blessed            );
 use     File::Spec::Functions  qw( catdir splitdir    );
 require Perl::Dist::WiX::Files::Component;
 
-use version; $VERSION = version->new('0.183')->numify;
+use version; $VERSION = version->new('0.184')->numify;
 #>>>
 #####################################################################
 # Accessors:
