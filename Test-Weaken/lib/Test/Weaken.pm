@@ -758,7 +758,7 @@ is a data object that is part of the contents of a data
 structure,
 but that is not a descendant of the top object of that
 data structure.
-When an OO technique call
+When the OO technique called
 "inside-out objects" is used,
 most of the attributes of the blessed object will be
 nieces.
@@ -801,80 +801,6 @@ it is possible to have C<Test::Weaken> add
 contents "on the fly," while it is scanning the lab rat.
 This can be done using L<the C<contents> named argument|"contents">,
 which takes a closure as its value.
-
-=head2 How Data Objects are Handled, by Builtin Type
-
-B<Builtin types> are
-the type names returned by L<Scalar::Util>'s
-C<reftype> subroutine.
-C<Scalar::Util::reftype> differs from Perl's C<ref> function.
-If an object was blessed into a package, C<ref> returns the package name,
-while C<reftype> returns the original builtin type of the object.
-
-=head2 ARRAY, HASH, and REF Objects
-
-Objects of builtin type
-ARRAY, HASH, and REF
-are always both tracked and followed.
-
-=head2 SCALAR and VSTRING Objects
-
-Objects of builtin type SCALAR and VSTRING 
-are tracked.
-They do not hold internal references
-to other Perl data objects,
-so following them is meaningless.
-
-=head2 CODE Objects
-
-Objects of type CODE are tracked but are not followed.
-This can be seen as a limitation, because
-closures hold internal references to data objects.
-Future versions of C<Test::Weaken> may follow CODE objects.
-
-=head2 Objects That are Ignored
-
-An object is said to be B<ignored> if it is neither
-tracked or followed.
-All objects of builtin types GLOB, IO, FORMAT and LVALUE are ignored.
-
-There are several good reasons to ignore
-FORMAT, IO and LVALUE objects.
-The main one is that
-C<Data::Dumper> does not deal with
-them gracefully.
-C<Data::Dumper>
-issues a cryptic warning whenever it encounters a
-FORMAT, IO or LVALUE object.
-Since C<Data::Dumper> is a Perl core module
-in extremely wide use, this suggests that these three
-objects types are, to put it mildly,
-not commonly encountered as the contents of data structures.
-
-GLOB objects
-usually refer
-either to an entry in the Perl symbol table
-or are associated with a filehandle.
-Either way, the assumption they will share
-the lifetime of their parent data object
-is thrown into doubt.
-The trouble saved by ignoring GLOB objects seems 
-to outweigh any advantage that would come from tracking
-them.
-IO objects, which are ignored because of C<Data::Dumper> issues,
-are often associated with GLOB objects.
-
-There are other reasons to ignore FORMAT
-objects.
-They are always global, and therefore
-can be expected to be persistent.
-And use of FORMAT objects is officially deprecated.
-
-Objects
-in future implementations of Perl
-may have builtin types
-not described above.
-They will also be ignored.
 
 =head2 Why the Test Structure is Passed via a Closure
 
@@ -970,7 +896,7 @@ Perl false if no unfreed data objects were detected.
 If unfreed data objects were detected,
 returns an evaluated C<Test::Weaken> class instance.
 
-Instances of the C<Test::Weaken> class, for brevity, are called B<testers>.
+Instances of the C<Test::Weaken> class are called B<testers>.
 An B<evaluated> tester is one on which the
 tests have been run,
 and for which results are available.
@@ -1076,19 +1002,11 @@ of C<< $ignore->($safe_copy) >>,
 where C<$safe_copy> is a copy of 
 a probe reference to a Perl data object.
 
-The C<ignore> callback will be make once
+The C<ignore> callback will be made once
 for every Perl data object when it is about
 to be tracked,
 and once for every data object when it is about to be
 followed.
-Everything that is referred to, directly or indirectly,
-by this
-probe reference
-should be left unchanged by the C<ignore>
-callback.
-The result of modifying the probe referents might be
-an exception, an abend, an infinite loop, or erroneous results.
-
 The callback subroutine should return a Perl true value if the probe reference is
 to a data object that should be ignored --
 that is, neither followed or tracked.
@@ -1104,8 +1022,13 @@ altering
 the probe reference itself.
 However,
 the data object referred to by the probe reference is not copied.
-The probe referent is the original data object and if it
-is altered, all bets are off.
+Everything that is referred to, directly or indirectly,
+by this
+probe reference
+should be left unchanged by the C<ignore>
+callback.
+The result of modifying the probe referents might be
+an exception, an abend, an infinite loop, or erroneous results.
 
 C<ignore> callbacks are best kept simple.
 Defer as much of the analysis as you can
@@ -1189,19 +1112,11 @@ of C<< $contents->($safe_copy) >>,
 where C<$safe_copy> is a copy of the probe reference to
 another Perl reference.
 
-The C<contents> callback is make once
-for every reference which is about
+The C<contents> callback is made once
+for every reference which is
 about to be followed.
 The C<contents> callback is not made for
 Perl data objects other than references.
-
-Everything that is referred to, directly or indirectly,
-by this
-probe reference
-should be left unchanged by the C<contents>
-callback.
-The result of modifying the probe referents might be
-an exception, an abend, an infinite loop, or erroneous results.
 
 The callback subroutine will be evaluated in array context.
 It should return a list of additional Perl data objects
@@ -1218,8 +1133,13 @@ altering
 the probe reference itself.
 However,
 the data object referred to by the probe reference is not copied.
-The probe referent is the original data object and if it
-is altered, all bets are off.
+Everything that is referred to, directly or indirectly,
+by this
+probe reference
+should be left unchanged by the C<contents>
+callback.
+The result of modifying the probe referents might be
+an exception, an abend, an infinite loop, or erroneous results.
 
 The C<contents> callbacks is
 called once for every reference that it is about
@@ -1444,7 +1364,7 @@ Make C<Test::Weaken> part of your test suite.
 Test frequently, so that when a leak occurs,
 you'll have a good idea of what changes were made since
 the last successful test.
-Examining these changes is often enough to
+Often, examining these changes is enough to
 tell where the leak was introduced.
 
 =head3 Adding Tags
@@ -1487,7 +1407,7 @@ that keeps the object's refcount above zero.
 Kevin Ryde reports that L<Devel::FindRef>
 can be useful for this.
 
-=head2 More about Quasi-unique Addresses: Indiscernable Objects
+=head2 More about Quasi-unique Addresses
 
 I call referent addresses "quasi-unique", because they are only
 unique at a
@@ -1514,17 +1434,10 @@ sense:
 the first data object might have been destroyed
 and a second, identical,
 object created at the same address.
-But for most practical programming purposes,
+For most practical programming purposes,
 two indiscernable data objects can be regarded as the same object.
 
 =head2 Debugging Ignore Subroutines
-
-It can be hard to determine if
-C<ignore> callback subroutines
-are inadvertently
-modifying the test structure.
-The C<Test::Weaken::check_ignore> static method is
-provided to make this task easier.
 
 =begin Marpa::Test::Display:
 
@@ -1568,7 +1481,14 @@ is_file($_, 't/ignore.t', 'check_ignore 4 arg snippet')
 
 =end Marpa::Test::Display:
 
-C<Test::Weaken::check_ignore> is a static method that constructs
+
+It can be hard to determine if
+C<ignore> callback subroutines
+are inadvertently
+modifying the test structure.
+The C<Test::Weaken::check_ignore> static method is
+provided to make this task easier.
+C<Test::Weaken::check_ignore> constructs
 a debugging wrapper from
 four arguments, three of which are optional.
 The first argument must be the ignore callback
@@ -1665,7 +1585,9 @@ be part of the C<Test::Weaken> package.
 
 By default, C<Test::Weaken> exports nothing.  Optionally, C<leaks> may be exported.
 
-=head1 IMPLEMENTATION
+=head1 IMPLEMENTATION DETAILS
+
+=head2 Overview
 
 C<Test::Weaken> first recurses through the test structure.
 Starting from the test structure reference,
@@ -1692,6 +1614,80 @@ If the referent of a probe reference was deallocated,
 the value of that probe reference will be C<undef>.
 If a probe reference is still defined at this point,
 it refers to an unfreed Perl data object.
+
+=head2 Data Objects by Type
+
+B<Builtin types> are
+the type names returned by L<Scalar::Util>'s
+C<reftype> subroutine.
+C<Scalar::Util::reftype> differs from Perl's C<ref> function.
+If an object was blessed into a package, C<ref> returns the package name,
+while C<reftype> returns the original builtin type of the object.
+
+=head3 ARRAY, HASH, and REF Objects
+
+Objects of builtin type
+ARRAY, HASH, and REF
+are always both tracked and followed.
+
+=head3 SCALAR and VSTRING Objects
+
+Objects of builtin type SCALAR and VSTRING 
+are tracked.
+They do not hold internal references
+to other Perl data objects,
+so following them is meaningless.
+
+=head3 CODE Objects
+
+Objects of type CODE are tracked but are not followed.
+This can be seen as a limitation, because
+closures hold internal references to data objects.
+Future versions of C<Test::Weaken> may follow CODE objects.
+
+=head3 Objects That are Ignored
+
+An object is said to be B<ignored> if it is neither
+tracked or followed.
+All objects of builtin types GLOB, IO, FORMAT and LVALUE are ignored.
+
+The main reason
+to ignore
+FORMAT, IO and LVALUE objects is that
+C<Data::Dumper> does not deal with
+these objects gracefully.
+C<Data::Dumper>
+issues a cryptic warning whenever it encounters a
+FORMAT, IO or LVALUE object.
+Since C<Data::Dumper> is a Perl core module
+in extremely wide use, this suggests that these three
+objects types are, to put it mildly,
+not commonly encountered as the contents of data structures.
+
+GLOB objects
+usually either refer
+to an entry in the Perl symbol table,
+or are associated with a filehandle.
+Either way, the assumption they will share
+the lifetime of their parent data object
+is thrown into doubt.
+The trouble saved by ignoring GLOB objects seems 
+to outweigh any advantage that would come from tracking
+them.
+IO objects, which are ignored because of C<Data::Dumper> issues,
+are often associated with GLOB objects.
+
+There are other reasons to ignore FORMAT
+objects.
+They are always global, and therefore
+can be expected to be persistent.
+Use of FORMAT objects is officially deprecated.
+
+Objects
+in future implementations of Perl
+may have builtin types
+not described above.
+They will also be ignored.
 
 =head1 AUTHOR
 
