@@ -447,7 +447,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 
 	# Announce that we're staring.
-	my $params{build_start_time} = localtime;
+	$params{build_start_time} = localtime;
 	my $time = $params{build_start_time}; 
 	if ( $params{trace} >= 100 ) { print '# '; }
 	if ( $params{trace} > 1 ) { print '[0] '; }
