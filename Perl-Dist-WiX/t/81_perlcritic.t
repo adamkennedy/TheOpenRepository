@@ -31,8 +31,14 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-use File::Spec::Functions qw(catfile);
+use File::Spec::Functions qw(catfile catdir);
 
 my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
 Test::Perl::Critic->import( -profile => $rcfile, -severity => 1 );
-all_critic_ok();
+
+# I only want to criticize my own modules, not the module patches to the differing perls...
+if (-d catdir('blib', 'lib')) {
+    all_critic_ok(catdir('blib', 'lib', 'Perl'));
+} else {
+    all_critic_ok();
+}

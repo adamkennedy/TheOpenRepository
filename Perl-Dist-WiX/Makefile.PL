@@ -30,6 +30,7 @@ test_requires  'Test::More'           => '0.61';
 test_requires  'Test::Output'         => '0.11';
 test_requires  'Test::UseAllModules'  => '0.09';
 requires       'Win32'                => '0.35';
+requires       'Win32API::File'       => '0.1001';
 resources      'repository'           => 'http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/';
 resources      'bugtracker'           => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX';
 resources      'homepage'             => 'http://csjewell.comyr.com/perl/';

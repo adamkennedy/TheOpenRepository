@@ -77,7 +77,7 @@ my @modules_skip = (
        'Test::Prereq',
 );
 
-prereq_ok(5.006, 'Check prerequisites', \@modules_skip);
+prereq_ok(5.008001, 'Check prerequisites', \@modules_skip);
 
 use File::Copy qw();
 use File::Remove qw();

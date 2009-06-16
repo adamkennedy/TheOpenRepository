@@ -422,13 +422,14 @@ sub perl_config_myuname {
 	my $self = shift;
 
 	my $version = $self->perl_version_human . q{.} . $self->build_number;
-	if ( $self->beta_number > 0 ){
+	if ( $self->beta_number > 0 ) {
 		$version .= '.beta_' . $self->beta_number;
 	}
 
-	return join q{ }, 'Win32', $self->app_id, $version, '#1',  $self->build_start_time, 'i386';
+	return join q{ }, 'Win32', $self->app_id, $version, '#1',
+	  $self->build_start_time, 'i386';
 
-} ## end sub msi_perl_version
+} ## end sub perl_config_myuname
 
 =item * get_component_array
 

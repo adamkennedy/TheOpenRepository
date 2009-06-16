@@ -448,17 +448,19 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 	# Announce that we're staring.
 	$params{build_start_time} = localtime;
-	my $time = $params{build_start_time}; 
+	my $time = $params{build_start_time};
 	if ( $params{trace} >= 100 ) { print '# '; }
-	if ( $params{trace} > 1 ) { print '[0] '; }
+	if ( $params{trace} > 1 )    { print '[0] '; }
 	print "Starting build at $time.\n";
 
 	# Apply more defaults
-	unless (( defined $params{perl_config_cf_email} ) && 
-		    ( $params{perl_config_cf_email} =~ m/\A.*@.*\z/msx )) {
+	unless ( ( defined $params{perl_config_cf_email} )
+		&& ( $params{perl_config_cf_email} =~ m/\A.*@.*\z/msx ) )
+	{
 		$params{perl_config_cf_email} = 'anonymous@unknown.builder.invalid';
 	}
-	($params{perl_config_cf_by}) = $params{perl_config_cf_email} =~ m/\A(.*)@.*\z/msx;
+	( $params{perl_config_cf_by} ) =
+	  $params{perl_config_cf_email} =~ m/\A(.*)@.*\z/msx;
 	unless ( defined $params{binary_root} ) {
 		$params{binary_root} = 'http://strawberryperl.com/package';
 	}
@@ -2594,7 +2596,7 @@ sub install_libiconv {
 	my $from = catfile( $self->image_dir, 'c', 'bin', 'libiconv2.dll' );
 	my $to   = catfile( $self->image_dir, 'c', 'bin', 'iconv.dll' );
 	$self->_copy( $from, $to );
-	$filelist->add_file( $to );
+	$filelist->add_file($to);
 
 	$self->insert_fragment( 'libiconv', $filelist->files );
 
@@ -2782,8 +2784,7 @@ sub install_binary {
 	}
 
 	my $filelist =
-	  File::List::Object->new->load_array(@files)
-	  ->filter( $self->filters );
+	  File::List::Object->new->load_array(@files)->filter( $self->filters );
 
 	return $filelist;
 } ## end sub install_binary
@@ -3289,11 +3290,9 @@ EOF
 	my $fl;
 
 	if ( -r $perl ) {
-		$fl =
-		  File::List::Object->new->load_file($perl)->add_file($perl);
+		$fl = File::List::Object->new->load_file($perl)->add_file($perl);
 	} elsif ( -r $site ) {
-		$fl =
-		  File::List::Object->new->load_file($site)->add_file($site);
+		$fl = File::List::Object->new->load_file($site)->add_file($site);
 	} else {
 
 		# Trying to use the output to make an array.
@@ -3661,8 +3660,7 @@ sub install_file {
 	File::Remove::remove( \1, $tgz );
 
 	my $filelist =
-	  File::List::Object->new->load_array(@files)
-	  ->filter( $self->filters );
+	  File::List::Object->new->load_array(@files)->filter( $self->filters );
 
 	return $filelist;
 } ## end sub install_file
