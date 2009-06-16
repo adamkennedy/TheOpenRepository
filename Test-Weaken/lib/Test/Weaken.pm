@@ -1481,7 +1481,6 @@ is_file($_, 't/ignore.t', 'check_ignore 4 arg snippet')
 
 =end Marpa::Test::Display:
 
-
 It can be hard to determine if
 C<ignore> callback subroutines
 are inadvertently
