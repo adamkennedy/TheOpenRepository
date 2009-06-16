@@ -82,11 +82,11 @@
 <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
 
 <InstallExecuteSequence>
-  <Custom Action='CA_ClearFolder' After='InstallInitialize'>REMOVE="ALL"</Custom>
+  <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL"</Custom>
 </InstallExecuteSequence>
 
 <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\ClearFolderCA.dll' />
-<!-- UI><ProgressText Action="CA_ClearFolder">Scanning for added files to delete... (please wait a minute)</ProgressText></UI -->
+<UI><ProgressText Action="CA_ClearFolder">Scanning for added files to delete... (please wait a minute)</ProgressText></UI>
 
 [% IF dist.msi_feature_tree.defined %]
     <Property Id='ARPNOMODIFY'>1</Property>
