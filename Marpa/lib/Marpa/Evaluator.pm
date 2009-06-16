@@ -47,7 +47,7 @@ use Marpa::Offset qw(
     ARGC RULE POSITION
     PARENT_ID
     PARENT_CHOICE
-    PRUNED
+    DELETED
 
     { delete this } RANK
 
@@ -66,6 +66,7 @@ use Marpa::Offset qw(
 
     START_EARLEME END_EARLEME
     PARENT_IDS
+    DELETED
 );
 
 use Marpa::Offset qw(
@@ -587,15 +588,12 @@ sub Marpa::Evaluator::new {
         my $or_node  = [];
         my $and_node = [];
 
-        my $or_node_name = $or_node->[Marpa::Internal::Or_Node::TAG] =
-            $start_item->[Marpa::Internal::Earley_Item::NAME];
         $or_node->[Marpa::Internal::Or_Node::AND_NODES]     = [$and_node];
         $or_node->[Marpa::Internal::Or_Node::CHILD_IDS]     = [0];
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = 0;
         $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = 0;
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED]  = 1;
 
-        $and_node->[Marpa::Internal::And_Node::TAG] = $or_node_name . '[0]';
         $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
             \$start_null_value;
         $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE] = $closure;
@@ -604,7 +602,10 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::RULE]        = $start_rule;
         $and_node->[Marpa::Internal::And_Node::POSITION]    = 0;
         $and_node->[Marpa::Internal::And_Node::END_EARLEME] = 0;
-        $and_node->[Marpa::Internal::And_Node::ID]          = 0;
+        my $id = $and_node->[Marpa::Internal::And_Node::ID] = 0;
+        my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
+            $start_item->[Marpa::Internal::Earley_Item::NAME] . q{#} . $id;
+        $and_node->[Marpa::Internal::And_Node::TAG] = $or_node_tag . '[0]#0';
 
         push @{$or_nodes},  $or_node;
         push @{$and_nodes}, $and_node;
@@ -800,9 +801,8 @@ sub Marpa::Evaluator::new {
                     $sapling_position;
                 $and_node->[Marpa::Internal::And_Node::END_EARLEME] =
                     $end_earleme;
-                $and_node->[Marpa::Internal::And_Node::TAG] = (
-                    $sapling_name . '[' . ( scalar @child_and_nodes ) . ']' );
-                $and_node->[Marpa::Internal::And_Node::ID] = @{$and_nodes};
+                my $id = $and_node->[Marpa::Internal::And_Node::ID] =
+                    @{$and_nodes};
                 push @{$and_nodes}, $and_node;
 
                 push @child_and_nodes, $and_node;
@@ -814,16 +814,22 @@ sub Marpa::Evaluator::new {
         my $or_node    = [];
         my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID] =
             @{$or_nodes};
-        $or_node->[Marpa::Internal::Or_Node::TAG]       = $sapling_name;
+        my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
+            $sapling_name . q{#} . $or_node_id;
         $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@child_and_nodes;
         $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] =
             [ map { $_->[Marpa::Internal::And_Node::ID] } @child_and_nodes ];
-        for my $and_node_choice ( 0 .. scalar @child_and_nodes ) {
-            my $and_node = $child_and_nodes[$and_node_choice];
+        for my $and_node_choice ( 0 .. $#child_and_nodes ) {
+            my $and_node    = $child_and_nodes[$and_node_choice];
+            my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
+            $and_node->[Marpa::Internal::And_Node::TAG] =
+                  $or_node_tag . '['
+                . $and_node_choice . ']' . q{#}
+                . $and_node_id;
             $and_node->[Marpa::Internal::And_Node::PARENT_ID] = $or_node_id;
             $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
                 $and_node_choice;
-        } ## end for my $and_node_choice ( 0 .. scalar @child_and_nodes)
+        } ## end for my $and_node_choice ( 0 .. $#child_and_nodes )
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED] =
             not $is_kernel_or_node;
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = $start_earleme;
@@ -1178,7 +1184,7 @@ sub Marpa::Evaluator::new {
             next AND_NODE_ID if not defined $equivalence_class;
             if ( $seen{$equivalence_class} ) {
                 $and_nodes->[$and_node_id]
-                    ->[Marpa::Internal::And_Node::PRUNED] = 1;
+                    ->[Marpa::Internal::And_Node::DELETED] = 1;
                 if ($trace_iterations) {
                     say {$trace_fh} 'Pruning duplicate and node: ',
                         $and_nodes->[$_]->[Marpa::Internal::And_Node::TAG];
