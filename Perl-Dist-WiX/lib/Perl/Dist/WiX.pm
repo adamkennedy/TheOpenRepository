@@ -107,7 +107,7 @@ use     Win32                 qw();
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.183_001')->numify;
+use version; $VERSION = version->new('0.183_002')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -454,11 +454,11 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	print "Starting build at $time.\n";
 
 	# Apply more defaults
-	unless (( defined $params{perl_config_cf_email} ) || 
-		    ( not $params{perl_config_cf_email} =~ m/\a.*@.*\Z/msx )) {
+	unless (( defined $params{perl_config_cf_email} ) && 
+		    ( $params{perl_config_cf_email} =~ m/\A.*@.*\z/msx )) {
 		$params{perl_config_cf_email} = 'anonymous@unknown.builder.invalid';
 	}
-	($params{perl_config_cf_by}) = $params{perl_config_cf_email} =~ m/\a(.*)@.*\Z/msx;
+	($params{perl_config_cf_by}) = $params{perl_config_cf_email} =~ m/\A(.*)@.*\z/msx;
 	unless ( defined $params{binary_root} ) {
 		$params{binary_root} = 'http://strawberryperl.com/package';
 	}

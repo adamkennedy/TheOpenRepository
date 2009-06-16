@@ -282,7 +282,7 @@ EXTRALIBDIRS	*=
 # set this to your email address (perl will guess a value from
 # from your loginname and your hostname, which may not be right)
 #
-#EMAIL		*=
+EMAIL		*= [% self.perl_config_cf_email %]
 
 ##
 ## Build configuration ends.
