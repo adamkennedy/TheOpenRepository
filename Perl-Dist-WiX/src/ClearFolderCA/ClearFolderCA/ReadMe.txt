@@ -5,3 +5,5 @@ required for installations of perl.
 libraries required to compile a custom action. So Visual Studio it is.)
 
 The compiled version will be in Perl-Dist-WiX-x.xxx.tar.gz/share/ClearFolderCA.dll.
+
+[Note for csjewell@cpan.org: Reapply r7563 on ClearFolderCA.cpp once we make our own dialog for uninstall progress.]
