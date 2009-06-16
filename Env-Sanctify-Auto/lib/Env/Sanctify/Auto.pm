@@ -282,6 +282,15 @@ or know how they work, feel free to send me an e-mail or patch.
 
 =back
 
+=head1 QUALITY ASSURANCE METRICS
+
+=head2 TEST COVERAGE
+
+  ------------------------- ------ ------ ------ ------ ------ ------
+  File                      stmt   bran   cond    sub    pod   total
+  ------------------------- ------ ------ ------ ------ ------ ------
+  Env/Sanctify/Auto.pm      100.0  100.0  100.0  100.0  100.0  100.0
+
 =head1 LICENSE
 
 Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
