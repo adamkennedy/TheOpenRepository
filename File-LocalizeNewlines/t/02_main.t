@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 46;
+use Test::More tests => 50;
 use FileHandle             ();
 use File::Spec::Functions  ':ALL';
 use File::Slurp            ();
@@ -23,13 +23,15 @@ my $local_file = catfile( 't', 'data', 'local.txt' );
 my $simple_dir = catfile( 't', 'data', 'simple' );
 my $not_file   = catfile( 't', 'data', 'simple', 'both.txt' );
 my $not_file2  = catfile( 't', 'data', 'simple', 'both.pm' );
-clear( $local_file, $not_file, $not_file2 );
+my $not_file3  = catfile( 't', 'data', 'file', 'file.txt' );
+clear( $local_file, $not_file, $not_file2, $not_file3 );
 File::Slurp::write_file( $local_file, "foo\nbar\n" );
 File::Slurp::write_file( $not_file,   "foo\015\012bar\015baz" );
 File::Slurp::write_file( $not_file2,  "foo\015\012bar\015baz" );
+File::Slurp::write_file( $not_file3,  "foo\015\012bar\015baz" );
 is( length(File::Slurp::read_file( $not_file )),  12, 'both.txt is the right length' );
 is( length(File::Slurp::read_file( $not_file2 )), 12, 'both.pm is the right length' );
-
+is( length(File::Slurp::read_file( $not_file3 )), 12, 'file.txt is the right length' );
 
 
 
@@ -170,6 +172,16 @@ SCOPE: {
 	my $content2 = File::Slurp::read_file($not_file2);
 	ok( ($length1 == 11 or $length1 == 13), 'length for both.txt is as expected' );
 	is( $content2, 'foofoobarfoobaz', 'Content of both.pm modified as expected' );
+	
+}
+
+SCOPE: {
+	my $Object = FLN->new();
+	isa_ok( $Object, FLN );
+
+	is( $Object->localize( $not_file3 ), 1, '->localize returns one file' );
+	my $length = length(File::Slurp::read_file($not_file3));
+	ok( ($length == 11 or $length == 13), 'length for file.txt is as expected' );
 }
 
 exit(0);

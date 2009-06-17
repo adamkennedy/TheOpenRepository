@@ -37,7 +37,7 @@ use Params::Util     '_INSTANCE';
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.10';
+	$VERSION = '1.11';
 	@ISA     = 'Class::Default';
 }
 
@@ -265,7 +265,7 @@ sub _localize_file {
 	return 0 if $content eq $localized;
 
 	# Save the localised version
-	File::Slurp::write_file( $file, $content ) or return undef;
+	File::Slurp::write_file( $file, $localized ) or return undef;
 	$self->_message( "Localized $file\n" ) unless ref $file;
 
 	1;

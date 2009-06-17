@@ -1,5 +1,8 @@
 Revision history for Perl extension File::LocalizeNewlines
 
+1.11 Thu 18 Jul 2009
+        - Fixed Bug 45176. Individual files can now be localized 
+
 1.10 Thu 10 Jul 2008
 	- No functional changes
 	- Actually use the File::Remove::clear function
