@@ -14,7 +14,7 @@ Module::Build::Functions - Module::Install style syntax for Module::Build
 
 =head1 VERSION
 
-This document describes Module::Build::Functions version 0.001_007.
+This document describes Module::Build::Functions version 0.001_009.
 
 =head1 SYNOPSIS
 

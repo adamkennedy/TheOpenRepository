@@ -10,7 +10,6 @@ use     Exporter              qw( import                           );
 use     File::Spec::Functions qw( catdir catfile                   );
 use     Config;
 use     AutoLoader;
-require Module::Build;
 
 # The equivalent of "use warnings" pre-5.006.
 local $^W             = 1;
@@ -26,6 +25,7 @@ my    (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
 BEGIN {
 	$VERSION = '0.001_009';
 
+	require Module::Build;
 	# Module implementation here
 
 	# Set defaults.
@@ -898,11 +898,11 @@ sub get_builder {
 #	my $d = Data::Dumper->new([\%args], [qw(*args)]);
 #	print $d->Indent(1)->Dump();
 
-	if ($mb_requires < 0.07) { $mb_requires = 0.07;}
-	build_requires('Module::Build', $mb_requires);
+	if ($mb_required < 0.07) { $mb_required = 0.07;}
+	build_requires('Module::Build', $mb_required);
 
-	if ($mb_requires > 0.2999) {
-		configure_requires('Module::Build', $mb_requires);
+	if ($mb_required > 0.2999) {
+		configure_requires('Module::Build', $mb_required);
 	}
 
 	unless ( defined $object ) {
