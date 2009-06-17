@@ -1,5 +1,10 @@
 Revision history for Module-Build-Functions
 
+0.001_010  To be released
+    1. Fixing documentation (I never can get POD 
+       right on the first pass!)
+    2. Adding tests.
+
 0.001_009  Tue Jun 16 2009
        Initial release.
 

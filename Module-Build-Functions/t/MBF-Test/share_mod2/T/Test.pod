@@ -2,7 +2,7 @@
 
 =begin readme text
 
-Module-Build-Functions version 0.001_007
+Module-Build-Functions version 0.001_005
 
 =end readme
 
@@ -14,7 +14,7 @@ Module::Build::Functions - Module::Install style syntax for Module::Build
 
 =head1 VERSION
 
-This document describes Module::Build::Functions version 0.001_009.
+This document describes Module::Build::Functions version 0.001_005.
 
 =head1 SYNOPSIS
 
@@ -169,7 +169,6 @@ See L<Module::Build's documentation on c_source()|Module::Build#c_source>
 for more information.
 
 =head4 include_dirs
-
 =head4 include_dir (Module::Build::Functions synonym)
 
 	include_dir 'include';
@@ -197,7 +196,6 @@ it looks for the first line matching \s+-\s+(.+), and uses the captured text
 as the abstract.
 
 =head4 dist_author
-
 =head4 author (Module::Install synonym)
 
 	dist_author 'John Doe <jdoe@example.com>';
@@ -219,15 +217,13 @@ contents of this section.
 Specifies the name for this distribution. Most authors won't need to set this directly, they can use L<#module_name> to set C<dist_name> to a reasonable default. However, some agglomerative distributions like C<libwww-perl> or C<bioperl> have names that don't correspond directly to a module name, so C<dist_name> can be set independently.
 
 =head4 dist_version
-
 =head4 version (Module::Install synonym)
 
 	dist_version '0.001_001';
 
-Specifies a version number for the distribution. See L<module_name|#module_name> or L<dist_version_from|#dist_version_from> for ways to have this set automatically from a C<$VERSION> variable in a module. One way or another, a version number needs to be set.
+Specifies a version number for the distribution. See L<#module_name> or L<#dist_version_from> for ways to have this set automatically from a C<$VERSION> variable in a module. One way or another, a version number needs to be set.
 
 =head4 dist_version_from
-
 =head4 version_from (Module::Install synonym)
 
 	dist_version_from 'lib/Module/Build/Functions.pm';
@@ -361,7 +357,6 @@ L<#build_requires>, but are not neccessarily installed when Build.PL
 will be executed.
 
 =head4 extra_compiler_flags
-
 =head4 extra_linker_flags
 
 These parameters can contain strings (which are split on whitespace and accumulate into an array reference in the order added) or array references to pass through to the compiler and linker phases when compiling/linking C code.
@@ -377,7 +372,6 @@ To link your XS code against glib you might write something like:
 =head3 Supported Module::Install syntax
 	
 =head4 install_as_core
-
 =head4 install_as_cpan
 
 Alias for C<installdirs 'core';>. See L<#installdirs>.
@@ -416,41 +410,19 @@ Hang on, support will be coming soon!
 
 The author has deliberately chosen to drop support for auto_install.
 (he happens to be irritated at pre-0.86 Module::Installs that stop 
-CPAN upgrades to make him answer an unneeded question.  Of COURSE, I
-want prerequisites installed. Why would I not?)
+CPAN upgrades to make him answer an unneeded question.)
 
 Patches, however, would be welcomed to implement an auto_install that 
 is not annoying.
 
-=item C<< bundle is deprecated >>
-
-=item C<< auto_bundle is deprecated >>
-
-=item C<< bundle_deps is deprecated >>
-
-=item C<< auto_bundle_deps is deprecated >>
-
-The author has deliberately chosen to drop support for bundling at 
-this point.
-
-Patches, however, would be welcomed.
-
 =item C<< Invalid install type >>
-
 =item C<< Illegal or invalid share dir type '%s' >>
-
 =item C<< Illegal or missing directory install_share param >>
-
 =item C<< Missing or invalid module name '%s' >>
-
 =item C<< Too many parameters to install_share  >>
-
 =item C<< cannot add directory %s to a list of script_files >>
-
 =item C<< attempt to overwrite string script_files with %s failed  >>
-
 =item C<< cannot add a glob to a list of test_files  >>
-
 =item C<< attempt to overwrite string test_files failed  >>
 
 Will be documented soon.
