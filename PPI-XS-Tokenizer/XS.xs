@@ -24,7 +24,7 @@ extern "C" {
 
 MODULE = PPI::XS::Tokenizer		PACKAGE = PPI::XS::Tokenizer
 
-INCLUDE: XS/Tokenizer.xs
+INCLUDE: xspp --typemap=typemap.xsp XS/Tokenizer.xsp |
 INCLUDE: XS/Token.xs
 
 
