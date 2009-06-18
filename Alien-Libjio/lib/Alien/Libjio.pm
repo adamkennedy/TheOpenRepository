@@ -25,7 +25,7 @@ Version 1.0.1 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0');
+use version; our $VERSION = qv('1.0.1');
 
 =head1 DESCRIPTION
 
