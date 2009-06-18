@@ -107,7 +107,7 @@ BEGIN {
 	  author_context install_share auto_features extra_compiler_flags
 	  extra_linker_flags module_name no_index PL_files script_files test_files
 	  tap_harness_args subclass create_build_script get_builder
-	  functions_self_bundler bundler
+	  functions_self_bundler bundler debug_print
 	);
 	@EXPORT = ( @DEFINED, @AUTOLOADED );
 
@@ -974,6 +974,12 @@ END_OF_CODE
 
 	return;
 } ## end sub functions_self_bundler
+
+sub debug_print {
+	require Data::Dumper;
+	my $d = Data::Dumper->new([\%args, \@install_types], [qw(*args *install_types)]);
+	print $d->Indent(1)->Dump();
+}
 
 1;
 

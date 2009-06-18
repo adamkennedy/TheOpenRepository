@@ -1,3 +1,33 @@
+# %ARRAY checked.
+# %HASH checked. (3 left to document)
+# %FLAGS checked.
+# %ALIASES - deal with last.
+
+# Coverage for Module::Build::Functions is 47.7%, with 23 naked subroutines:
+#       PL_files
+#       WriteAll
+#       all_from
+#       author_context
+#       author_from
+#       automated_testing
+#       can_cc
+#       can_run
+#       can_use
+#       check_nmake
+#       create_build_script
+#       get_builder
+#       get_file
+#       install_script
+#       interactive
+#       license_from
+#       module_name
+#       no_index
+#       release_testing
+#       requires_external_bin
+#       requires_external_cc
+#       subclass
+#       tap_harness_args
+
 =pod
 
 =begin readme text
@@ -29,7 +59,7 @@ This document describes Module::Build::Functions version 0.001_010.
 	dist_author         'Curtis Jewell <csjewell@cpan.org>';
 	dist_version_from   'lib/Module/Build/Functions.pm';
 	autosplit           'lib/Module/Build/Functions.pm';
-	requires 		    'File::Slurp';
+	requires            'File::Slurp';
 	test_requires       'Test::More';
 	test_requires       'Test::Compile';
 	test_requires       'Capture::Tiny' => 0.06;
@@ -82,10 +112,12 @@ if it is not already installed.
 Alternatively, to install with Module::Build, you can use the following commands:
 
 	perl Build.PL
-	./Build
-	./Build test
-	./Build install
+	Build
+	Build test
+	Build install
 
+(Use ./Build instead of Build if the current directory is not in your path.)
+	
 =end readme
 
 =for readme stop
@@ -147,6 +179,15 @@ list, the version is assumed to be 0.
 Modules listed using this function are required for using the module(s) 
 being installed.
 
+=head4 recommends
+
+	recommends 'Module::CoreList' => 2.17;
+	recommends 'Acme::24';
+	recommends 'Acme' => '!1.11111';
+
+Modules listed using this function are recommended, but not required,
+for using the module(s) being installed.
+
 =head4 configure_requires
 
 	configure_requires 'Module::CoreList' => 2.17;
@@ -192,7 +233,7 @@ are already installed.
 This function specifies a directory which contains C source files that the 
 rest of the build may depend on. 
 
-See L<Module::Build's documentation on c_source()|Module::Build#c_source> 
+See L<Module::Build's documentation on c_source()|Module::Build/c_source> 
 for more information.
 
 =head4 include_dirs
@@ -204,9 +245,32 @@ for more information.
 	
 Specifies any additional directories in which to search for C header files. May be given as a string indicating a single directory, or as a list reference indicating multiple directories.
 
+=head4 install_path
+
+	install_path 'lib' '/foo/lib';
+	install_path 'man' File::Spec->catdir(File::Spec->rootdir(), 'foo', 'man');
+
+To set specific locations for different types of installable elements, 
+call C<install_path> with the type of installable element and the location 
+where it should be installed.
+
+I<Recommendation>: Don't use this unless you are either deliberately 
+installing outside the default perl library directories, or installing a 
+new type, defined by L</install_path>.
+	
+=head3 Files
+
+=head4 pm_files
+
+=head4 pod_files
+
+=head4 xs_files
+
+Will be documented soon.
+
 =head3 Metadata
 
-Functions in this section are used when generating metadata for I<META.yml> and PPD files. 
+Functions in this section are used when generating metadata for C<META.yml> and PPD files. 
 
 =head4 dist_abstract
  
@@ -288,6 +352,24 @@ Specifies a file to look for the minimum perl version in.
 Specifies a file to look for the distribution version in. Most authors 
 won't need to set this directly, they can use C<module_name|#module_name> 
 to set it to a reasonable default.
+
+=head4 meta_add
+
+=head4 meta_merge
+
+	meta_add 'provides' { 'Module::Build::Functions' => { file => 'lib\Module\Build\Functions.pm', version => '0.001_010'} };
+	meta_merge 'resources' { bugtracker => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Build-Functions' };
+
+B<May be buggy. Needs tested.>
+	
+meta_add and meta_merge adds their parameters to the C<META.yml> file.
+
+The first parameter is the key to add or merge to, and the second parameter 
+is the value of that key (which may be a string, an arrayref, or a hashref.)
+
+The one difference is that meta_add overwrites anything else in that key, 
+while meta_merge will merge an arrayref or hashref into the current 
+contents of the key. 
 
 =head3 Flags
 
@@ -373,6 +455,29 @@ default is site. See L<Module::Build#INSTALL PATHS>
 Specifies the licensing terms of your distribution. Valid licenses are listed in 
 L<Module::Build::API>.
 
+=head4 recursive_test_files
+
+	recursive_test_files 1;
+
+If this is set to 1, Module::Build will search recursively under C</t> for 
+C<*.t> files to use when testing.  Defaults to 0.
+
+=head4 sign
+
+	sign 1;
+
+If this is set to 1, Module::Build will use L<Module::Signature> to create 
+a signature file for your distribution during the C<distdir> action.
+
+=head4 use_tap_harness
+
+	use_tap_harness 1;
+	use_tap_harness 0;
+	
+This indicates whether or not to use L<TAP::Harness> for testing rather than L<Test::Harness>. Defaults to false. If set to true, you must add TAP::Harness as a requirement for your module in L</build_requires>. 
+
+This will be set to a true value if tap_harness_args is specified.
+
 =head3 Other functions
 
 =head4 add_to_cleanup
@@ -413,7 +518,7 @@ have L<Autosplit::autosplit()|Autosplit#autosplit> ran on them
 Sets the name of a subclass of Module::Build that the Build script uses.
 
 This is used if the subclass has requirements that are satisfied by 
-L<#build_requires>, but are not neccessarily installed when Build.PL 
+L</build_requires>, but are not neccessarily installed when Build.PL 
 will be executed.
 
 =head4 extra_compiler_flags
@@ -430,6 +535,19 @@ To link your XS code against glib you might write something like:
 	extra_compiler_flags scalar `glib-config --cflags`;
 	extra_linker_flags   scalar `glib-config --libs`;
 
+=head4 get_options
+
+	get_options loud => { store => \$loud };
+	get_options dbd => { type => '=s' };
+	get_options quantity => { type => '+' };
+
+Adds a command line parameter (or a hashref of command line parameters) that 
+the C<Build.PL> or C<Build> script is to process according to the specifications
+given (the specification hashrefs are documented in the 
+L<Module::Build::API documentation|Module::Build::API#get_options>.)
+
+Command line arguments 
+	
 =head3 Supported Module::Install syntax
 	
 =head4 install_as_core

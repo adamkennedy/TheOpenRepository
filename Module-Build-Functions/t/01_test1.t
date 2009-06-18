@@ -4,14 +4,16 @@ use Module::Build::Functions;
 use Module::Build;
 use Cwd;
 use Capture::Tiny qw(capture);
+diag( "Using Module::Build $Module::Build::VERSION" );
 
 my $original_dir = cwd();
 
-chdir(catdir(qw(t MBF-test)));
+chdir(catdir(qw(t MBF-Test)));
 (undef, undef) = capture { bundler(); };
 ok(-e catfile(qw(inc Module Build Functions.pm)), 'bundler() works correctly');
 
-(undef, undef) = capture { system($^X, 'Build.PL'); };
+#(undef, undef) = capture { system($^X, 'Build.PL'); };
+system($^X, 'Build.PL');
 
 ok(-e '_build', 'Build.PL appeared to execute correctly');
 ok(-e catfile(qw(_build lib ModuleBuildFunctions SelfBundler.pm)), 'Build.PL appeared to create the self-bundler');
@@ -70,13 +72,13 @@ is($build->create_makefile_pl(), 'passthrough', 'create_makefile_pl is correct')
 fail('install_share does not work quite correctly yet. I need to find out why.');
 
 # Cleanup
-(undef, undef) = capture { $build->dispatch('realclean'); };
+#(undef, undef) = capture { $build->dispatch('realclean'); };
 unlink(catfile(qw(inc Module Build Functions.pm)));
 rmdir(catdir(qw(inc Module Build)));
 rmdir(catdir(qw(inc Module)));
 rmdir(catdir(qw(inc .author)));
 rmdir('inc');
-unlink('Build.bat') if -e 'Build.bat';
-unlink('Build.com') if -e 'Build.com';
+#unlink('Build.bat') if -e 'Build.bat';
+#unlink('Build.com') if -e 'Build.com';
 
 chdir($original_dir);
