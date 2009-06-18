@@ -281,6 +281,13 @@ Will be documented soon.
 
 Functions in this section are used when generating metadata for C<META.yml> and PPD files. 
 
+=head4 all_from
+
+	all_from 'lib\Module\Build\Functions.pm';
+
+Specifies the file to look for the abstract, the author, the version, the 
+license, and the perl version required in.
+
 =head4 dist_abstract
  
 =head4 abstract (Module::Install synonym)
@@ -374,15 +381,26 @@ Specifies a file to look for the distribution version in. Most authors
 won't need to set this directly, they can use C<module_name|#module_name> 
 to set it to a reasonable default.
 
+=head4 license
+
+	license 'perl';
+
+Specifies the licensing terms of your distribution. Valid licenses are listed in 
+L<Module::Build::API>.
+
+=head4 license_from
+
+	license_from 'lib\Module\Build\Functions.pm';
+
+Specifies a file to look for the choice of license in. 
+
 =head4 meta_add
 
 =head4 meta_merge
 
 	meta_add 'provides' { 'Module::Build::Functions' => { file => 'lib\Module\Build\Functions.pm', version => '0.001_010'} };
-	meta_merge 'resources' { bugtracker => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Build-Functions' };
+	meta_merge 'resources' 'bugtracker' 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Build-Functions';
 
-B<May be buggy. Needs tested.>
-	
 meta_add and meta_merge adds their parameters to the C<META.yml> file.
 
 The first parameter is the key to add or merge to, and the second parameter 
@@ -391,6 +409,8 @@ is the value of that key (which may be a string, an arrayref, or a hashref.)
 The one difference is that meta_add overwrites anything else in that key, 
 while meta_merge will merge an arrayref or hashref into the current 
 contents of the key. 
+
+Also, meta_merge allows a hashref to be ommitted if it contains only one value.
 
 =head3 Flags
 
@@ -468,13 +488,6 @@ potentially bring lots of security, packaging, and convenience improvements.
 Determines where files are installed within the normal perl hierarchy as 
 determined by Config.pm. Valid values are: core, site, vendor. The 
 default is site. See L<Module::Build#INSTALL PATHS>
-
-=head4 license
-
-	license 'perl';
-
-Specifies the licensing terms of your distribution. Valid licenses are listed in 
-L<Module::Build::API>.
 
 =head4 recursive_test_files
 

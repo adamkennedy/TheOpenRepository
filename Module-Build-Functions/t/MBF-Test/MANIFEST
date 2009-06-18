@@ -1,6 +1,5 @@
 Build.PL
 Changes
-inc/Module/Build/Functions.pm
 lib/MBF/Test.pm
 MANIFEST			This list of files
 share/T/Test.pod

@@ -1,4 +1,7 @@
-use Test::More tests => 13;
+BEGIN {
+	$| = 1;
+}
+use Test::More tests => 14;
 use File::Spec::Functions qw(catdir catfile);
 use Module::Build::Functions;
 use Module::Build;
@@ -6,13 +9,16 @@ use Cwd;
 use Capture::Tiny qw(capture);
 diag( "Using Module::Build $Module::Build::VERSION" );
 
+my $debug = 0;
+
 my $original_dir = cwd();
 
 chdir(catdir(qw(t MBF-Test)));
 (undef, undef) = capture { bundler(); };
 ok(-e catfile(qw(inc Module Build Functions.pm)), 'bundler() works correctly');
 
-(undef, undef) = capture { system($^X, 'Build.PL'); };
+(undef, undef) = capture { system($^X, 'Build.PL'); } unless $debug;
+system($^X, 'Build.PL') if $debug;
 ok(-e '_build', 'Build.PL appeared to execute correctly');
 ok(-e catfile(qw(_build lib ModuleBuildFunctions SelfBundler.pm)), 'Build.PL appeared to create the self-bundler');
 
@@ -67,16 +73,36 @@ is($build->license(), 'perl', 'license is correct');
 
 is($build->create_makefile_pl(), 'passthrough', 'create_makefile_pl is correct');
 
-fail('install_share does not work quite correctly yet. I need to find out why.');
+# Grabbing our file lists out...
+Module::Build->add_property('share_files', default => sub { return {} });
+Module::Build->add_property('share_d2_files', default => sub { return {} });
+
+# Note that part of these two tests is that cover_db is NOT picked up.
+
+my $test7 = {
+	catfile(qw(share Test.pod)) => catfile(qw(share Test.pod)),
+	catfile(qw(share T Test.pod)) => catfile(qw(share T Test.pod))
+};
+
+is_deeply($build->share_files(), $test7, 'Correct files are shared (dist)');
+
+my $test8 = {
+	catfile(qw(share_mod2 Test.pod)) => catfile(qw(share_d2 Test.pod)),
+	catfile(qw(share_mod2 T Test.pod)) => catfile(qw(share_d2 T Test.pod))
+};
+
+is_deeply($build->share_d2_files(), $test8, 'Correct files are shared (module)');
 
 # Cleanup
-#(undef, undef) = capture { $build->dispatch('realclean'); };
+if (not $debug) {
+	(undef, undef) = capture { $build->dispatch('realclean'); };
+	unlink('Build.bat') if -e 'Build.bat';
+	unlink('Build.com') if -e 'Build.com';
+}
 unlink(catfile(qw(inc Module Build Functions.pm)));
 rmdir(catdir(qw(inc Module Build)));
 rmdir(catdir(qw(inc Module)));
 rmdir(catdir(qw(inc .author)));
 rmdir('inc');
-#unlink('Build.bat') if -e 'Build.bat';
-#unlink('Build.com') if -e 'Build.com';
 
 chdir($original_dir);

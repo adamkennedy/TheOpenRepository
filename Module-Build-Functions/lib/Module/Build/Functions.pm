@@ -88,7 +88,6 @@ BEGIN {
 		'requires'           => [ '0.07', 1 ],
 		'get_options'        => [ '0.26', 0 ],
 		'meta_add'           => [ '0.28', 0 ],
-		'meta_merge'         => [ '0.28', 0 ],
 		'pm_files'           => [ '0.19', 0 ],
 		'pod_files'          => [ '0.19', 0 ],
 		'xs_files'           => [ '0.19', 0 ],
@@ -372,7 +371,7 @@ sub license_from {
 			'BSD'                                             => 'bsd',         1,
 			'Artistic'                                        => 'artistic',    1,
 			'MIT'                                             => 'mit',         1,
-			'proprietary'                                     => 'proprietary', 0,
+			'proprietary'                                     => 'restrictive', 0,
 		);
 #>>>
 		while ( my ( $pattern, $license, $osi ) = splice @phrases, 0, 3 ) {
@@ -652,7 +651,7 @@ sub author_context {
 
 sub _scan_dir {
 	my ( $srcdir, $destdir, $unixdir, $type, $files ) = @_;
-
+	
 	my $type_files = $type . '_files';
 
 	$ARGS{$type_files} = {} unless exists $ARGS{"$type_files"};
@@ -668,7 +667,7 @@ sub _scan_dir {
 
   FILE:
 	foreach my $direntry ( readdir $dir_handle ) {
-		if ( -d $direntry ) {
+		if ( -d catdir( $srcdir, $direntry) ) {
 			next FILE if ( $direntry eq q{.} );
 			next FILE if ( $direntry eq q{..} );
 			_scan_dir(
@@ -738,10 +737,19 @@ sub install_share {
 		$sharemod_used++;
 	} ## end else [ if ( $type eq 'dist' )
 
+	# Set the path to install to.
 	install_path( $sharecode, $installation_path );
-
+	
+	# This helps for testing purposes...
+	if ($Module::Build::VERSION >= 0.31) {
+		Module::Build->add_property($sharecode . '_files', default => sub { return {} });
+	}
+	
 	# 99% of the time we don't want to index a shared dir
 	no_index($dir);
+	
+	# This construction requires 0.26.
+	_mb_required('0.26');
 	return;
 } ## end sub install_share
 
@@ -856,9 +864,54 @@ sub PL_files { ## no critic(Capitalization)
 
 	_create_hashref('PL_files');
 	$ARGS{PL_files}{$pl_file} = $pm_file;
-	_mb_required(0.06);
+	_mb_required('0.06');
 	return;
 } ## end sub PL_files
+
+sub meta_merge {
+	my $key = shift;
+	my $value = shift;
+	if ( 'HASH' eq ref $key ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$key} ) {
+			meta_merge( $k, $v );
+		}
+		return;
+	}
+	
+	# Allow ommitting hashrefs.
+	if (@_ == 1) {
+		meta_merge( $key, { $value => shift } );
+	}
+
+	if ((exists $ARGS{meta_merge}{$key}) and ( ref $value ne ref $ARGS{meta_merge}{$key} )) {
+		croak 'Mismatch between value to merge into meta information and value already there';
+	}
+	
+	if ( 'HASH' eq ref $ARGS{meta_merge}{$key} ) {
+	} elsif ( 'ARRAY' eq ref $ARGS{meta_merge}{$key} ) {
+		$ARGS{meta_merge}{$key} = \( @{$ARGS{meta_merge}{$key}}, @{$value})
+	
+	} else {
+		$ARGS{meta_merge}{$key} = $value;
+	}
+	
+	_mb_required('0.28');
+	return;
+}
+
+
+sub repository {
+	my $url = shift;
+	meta_merge('resources', 'repository' => $url );
+	return;
+}
+
+sub bugtracker {
+	my $url = shift;
+	meta_merge('resources', 'bugtracker' => $url );
+	return;
+}
 
 sub script_files {
 	my $file = shift;
@@ -884,7 +937,7 @@ sub script_files {
 		_create_arrayref('script_files');
 		push @{ $ARGS{'script_files'} }, $file;
 	}
-	_mb_required(0.18);
+	_mb_required('0.18');
 	return;
 } ## end sub script_files
 
@@ -910,7 +963,7 @@ sub test_files {
 		_create_arrayref('test_files');
 		push @{ $ARGS{'test_files'} }, $file;
 	}
-	_mb_required(0.23);
+	_mb_required('0.23');
 	return;
 } ## end sub test_files
 
@@ -935,7 +988,7 @@ sub create_build_script {
 # Required to get a builder for later use.
 sub get_builder {
 
-	if ( $mb_required < 0.07 ) { $mb_required = 0.07; }
+	if ( $mb_required < 0.07 ) { $mb_required = '0.07'; }
 	build_requires( 'Module::Build', $mb_required );
 
 	if ( $mb_required > 0.2999 ) {
