@@ -18,5 +18,4 @@ install_share		'module', 'MBF', 'share_mod1';
 install_share		'module', 'MBF::Test', 'share_mod2';
 create_license      1;
 functions_self_bundler;
-debug_print;
 create_build_script;

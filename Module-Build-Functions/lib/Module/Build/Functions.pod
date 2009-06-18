@@ -4,29 +4,16 @@
 # %ALIASES - deal with last.
 
 # Coverage for Module::Build::Functions is 47.7%, with 23 naked subroutines:
-#       PL_files
-#       WriteAll
 #       all_from
-#       author_context
-#       author_from
-#       automated_testing
-#       can_cc
-#       can_run
 #       can_use
 #       check_nmake
-#       create_build_script
-#       get_builder
 #       get_file
 #       install_script
 #       interactive
 #       license_from
 #       module_name
 #       no_index
-#       release_testing
-#       requires_external_bin
-#       requires_external_cc
 #       subclass
-#       tap_harness_args
 
 =pod
 
@@ -156,6 +143,18 @@ your subclass:
 		$self->SUPER::ACTION_distmeta();
 	}
 
+=head3 cygwin
+
+	some_code if cygwin;
+
+Returns true if $^O equals cygwin. 
+
+=head3 get_builder
+
+	my $mb_object = get_builder();
+	
+Creates the L<Module::Build> object (or returns it if already created) 
+defined by the functions previously executed in this module.
 
 =head2 Module::Build->new parameters (with synonyms noted)
 
@@ -260,11 +259,21 @@ new type, defined by L</install_path>.
 	
 =head3 Files
 
+=head4 PL_files
+
+=head4 pl_file
+
 =head4 pm_files
+
+=head4 pm_file
 
 =head4 pod_files
 
+=head4 pod_file
+
 =head4 xs_files
+
+=head4 xs_file
 
 Will be documented soon.
 
@@ -305,10 +314,22 @@ This should be something like "John Doe <jdoe@example.com>", or if there are
 multiple authors, this routine can be called multiple times, or an anonymous 
 array of strings may be specified. 
 	
-If either this function, L<author_from>, or L<#all_from> is not used, then 
+If either this function, L</author_from>, or L</all_from> is not used, then 
 Module::Build looks at the module from which it gets the distribution's 
 version. If it finds a POD section marked "=head1 AUTHOR", then it uses the 
 contents of this section.
+
+=head4 author_from (Module::Install synonym)
+
+	author_from 'lib\Module\Build\Functions.pm';
+	
+Specifies a file to look for the author in, using the contents of a 
+POD section marked "=head1 AUTHOR" or "=head1 AUTHORS".
+
+If either this function, L</author>, L</dist_author>,or L</all_from> is 
+not used, then Module::Build looks at the module from which it gets the 
+distribution's version. If it finds a POD section marked "=head1 AUTHOR", 
+then it uses the contents of this section.
 
 =head4 dist_name
 
@@ -478,6 +499,18 @@ This indicates whether or not to use L<TAP::Harness> for testing rather than L<T
 
 This will be set to a true value if tap_harness_args is specified.
 
+=head4 tap_harness_args
+
+	use_tap_harness { verbosity => 1, lib => [ 'lib', 'blib/lib', 'blib/arch' ] };
+	
+This indicates the options to use when L<TAP::Harness> is used for testing,
+and is given as a hash reference.
+ 
+If set, you must add TAP::Harness as a requirement for your module in 
+L</build_requires>. 
+
+B<WARNING>: May change to a accumulative function in future versions.
+
 =head3 Other functions
 
 =head4 add_to_cleanup
@@ -546,9 +579,14 @@ the C<Build.PL> or C<Build> script is to process according to the specifications
 given (the specification hashrefs are documented in the 
 L<Module::Build::API documentation|Module::Build::API#get_options>.)
 
-Command line arguments 
-	
-=head3 Supported Module::Install syntax
+=head4 create_build_script
+
+=head4 WriteAll (Module::Install synonym)
+
+Creates the I<Build.PL> to be run in future steps, and returns the 
+L<Module::Build> object created.
+
+=head3 Supported Module::Install syntax not mentioned above
 	
 =head4 install_as_core
 
@@ -566,13 +604,79 @@ Alias for C<installdirs 'vendor';>. See L<installdirs|#installdirs>.
 
 =head4 win32
 
+	requires 'Win32' 0.30 if win32;
+
 Returns true if $^O eq 'MSWin32'.
 
 =head4 winlike
 
+	requires 'Win32' 0.28 if winlike;
+
 Returns true if $^O eq 'cygwin' or $^O eq 'MSWin32'.
 
+=head4 release_testing
 
+=head4 automated_testing
+
+Returns true if the appropriate environment variable is set to something 
+that is true.
+
+=head4 requires_external_bin
+
+	configure_requires 'ExtUtils::MakeMaker' 6.52 if cygwin;
+	requires_external_bin 'svn';
+
+This routine checks that a particular command is available on the host 
+system.
+
+The I<Build.PL> file will abort with an I<NA> result if the command is not
+available.
+
+The example code shows the one limitation on this routine - because of a
+bug in ExtUtils::MakeMaker, this routine does not find some commands on 
+Cygwin systems until pre-release versions of ExtUtils::MakeMaker 6.52.
+
+=head4 requires_external_cc
+
+	requires_external_cc;
+
+This routine checks that there is a compiler and linker on the system, and 
+that they actually work, by calling 
+L<ExtUtils::CBuilder::have_compiler|ExtUtils::CBuilder/have_compiler>.
+
+The I<Build.PL> file will abort with an I<NA> result if the command is not
+available.
+
+=head4 can_run
+
+	configure_requires 'ExtUtils::MakeMaker' 6.52 if cygwin;
+	my $has_svn = can_run 'svn';
+
+This routine returns whether a particular command is available on the system.
+	
+The example code shows the one limitation on this routine - because of a
+bug in ExtUtils::MakeMaker, this routine does not find some commands on 
+Cygwin systems until pre-release versions of ExtUtils::MakeMaker 6.52.
+
+=head4 can_cc
+
+	my $has_compiler = can_cc;
+
+This routine returns whether there is a compiler and linker on the system, and 
+that they actually work, by calling 
+L<ExtUtils::CBuilder::have_compiler|ExtUtils::CBuilder/have_compiler> to 
+verify that fact.
+
+=head4 author_context;
+
+	my $is_author = author_context;
+	if (author_context) { ... }
+
+Returns true if being run by the author.
+
+This is determined by looking for the C<inc/.author> directory, trying 
+to detect a version control system, and looking for the I<MANIFEST.SKIP>
+file, in that order.
 
 =head1 DIAGNOSTICS
 

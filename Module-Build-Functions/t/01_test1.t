@@ -12,9 +12,7 @@ chdir(catdir(qw(t MBF-Test)));
 (undef, undef) = capture { bundler(); };
 ok(-e catfile(qw(inc Module Build Functions.pm)), 'bundler() works correctly');
 
-#(undef, undef) = capture { system($^X, 'Build.PL'); };
-system($^X, 'Build.PL');
-
+(undef, undef) = capture { system($^X, 'Build.PL'); };
 ok(-e '_build', 'Build.PL appeared to execute correctly');
 ok(-e catfile(qw(_build lib ModuleBuildFunctions SelfBundler.pm)), 'Build.PL appeared to create the self-bundler');
 

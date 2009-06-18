@@ -3,10 +3,10 @@ package Module::Build::Functions;
 #<<<
 use     strict;
 use     5.005;
-use     vars                  qw( $VERSION @EXPORT $AUTOLOAD );
-use     Carp                  qw( croak carp                 );
-use     Exporter              qw( import                     );
-use     File::Spec::Functions qw( catdir catfile             );
+use     vars                  qw( $VERSION @EXPORT $AUTOLOAD %ARGS);
+use     Carp                  qw( croak carp                      );
+use     Exporter              qw( import                          );
+use     File::Spec::Functions qw( catdir catfile                  );
 use     Config;
 use     AutoLoader;
 
@@ -19,12 +19,11 @@ my    $autoload       = 1;
 my    $object_created = 0;
 my    $sharemod_used  = 1;
 my    (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
-my    %args;
 my    @install_types;
 #>>>
 
 BEGIN {
-	$VERSION = '0.001_009';
+	$VERSION = '0.001_010';
 
 	require Module::Build;
 
@@ -32,26 +31,26 @@ BEGIN {
 
 	# Set defaults.
 	if ( $Module::Build::VERSION >= 0.28 ) {
-		$args{create_packlist} = 1;
-		$mb_required = 0.28;
+		$ARGS{create_packlist} = 1;
+		$mb_required = '0.28';
 	}
 
 	%FLAGS = (
-		'build_class'          => [ 0.28, 0 ],
-		'create_makefile_pl'   => [ 0.19, 0 ],
-		'dist_abstract'        => [ 0.20, 0 ],
-		'dist_name'            => [ 0.11, 0 ],
-		'dist_version'         => [ 0.11, 0 ],
-		'dist_version_from'    => [ 0.11, 0 ],
-		'installdirs'          => [ 0.19, 0 ],
-		'license'              => [ 0.11, 0 ],
-		'create_packlist'      => [ 0.28, 1 ],
-		'create_readme'        => [ 0.22, 1 ],
-		'create_license'       => [ 0.31, 1 ],
-		'dynamic_config'       => [ 0.07, 1 ],
-		'use_tap_harness'      => [ 0.30, 1 ],
-		'sign'                 => [ 0.16, 1 ],
-		'recursive_test_files' => [ 0.28, 1 ],
+		'build_class'          => [ '0.28', 0 ],
+		'create_makefile_pl'   => [ '0.19', 0 ],
+		'dist_abstract'        => [ '0.20', 0 ],
+		'dist_name'            => [ '0.11', 0 ],
+		'dist_version'         => [ '0.11', 0 ],
+		'dist_version_from'    => [ '0.11', 0 ],
+		'installdirs'          => [ '0.19', 0 ],
+		'license'              => [ '0.11', 0 ],
+		'create_packlist'      => [ '0.28', 1 ],
+		'create_readme'        => [ '0.22', 1 ],
+		'create_license'       => [ '0.31', 1 ],
+		'dynamic_config'       => [ '0.07', 1 ],
+		'use_tap_harness'      => [ '0.30', 1 ],
+		'sign'                 => [ '0.16', 1 ],
+		'recursive_test_files' => [ '0.28', 1 ],
 	);
 
 	%ALIASES = (
@@ -75,25 +74,25 @@ BEGIN {
 	);
 
 	%ARRAY = (
-		'autosplit'      => 0.04,
-		'add_to_cleanup' => 0.19,
-		'include_dirs'   => 0.24,
-		'dist_author'    => 0.20,
+		'autosplit'      => '0.04',
+		'add_to_cleanup' => '0.19',
+		'include_dirs'   => '0.24',
+		'dist_author'    => '0.20',
 	);
 
 	%HASH = (
-		'configure_requires' => [ 0.30, 1 ],
-		'build_requires'     => [ 0.07, 1 ],
-		'conflicts'          => [ 0.07, 1 ],
-		'recommends'         => [ 0.08, 1 ],
-		'requires'           => [ 0.07, 1 ],
-		'get_options'        => [ 0.26, 0 ],
-		'meta_add'           => [ 0.28, 0 ],
-		'meta_merge'         => [ 0.28, 0 ],
-		'pm_files'           => [ 0.19, 0 ],
-		'pod_files'          => [ 0.19, 0 ],
-		'xs_files'           => [ 0.19, 0 ],
-		'install_path'       => [ 0.19, 0 ],
+		'configure_requires' => [ '0.30', 1 ],
+		'build_requires'     => [ '0.07', 1 ],
+		'conflicts'          => [ '0.07', 1 ],
+		'recommends'         => [ '0.08', 1 ],
+		'requires'           => [ '0.07', 1 ],
+		'get_options'        => [ '0.26', 0 ],
+		'meta_add'           => [ '0.28', 0 ],
+		'meta_merge'         => [ '0.28', 0 ],
+		'pm_files'           => [ '0.19', 0 ],
+		'pod_files'          => [ '0.19', 0 ],
+		'xs_files'           => [ '0.19', 0 ],
+		'install_path'       => [ '0.19', 0 ],
 	);
 
 	@AUTOLOADED = ( keys %HASH, keys %ARRAY, keys %ALIASES, keys %FLAGS );
@@ -107,7 +106,7 @@ BEGIN {
 	  author_context install_share auto_features extra_compiler_flags
 	  extra_linker_flags module_name no_index PL_files script_files test_files
 	  tap_harness_args subclass create_build_script get_builder
-	  functions_self_bundler bundler debug_print
+	  functions_self_bundler bundler
 	);
 	@EXPORT = ( @DEFINED, @AUTOLOADED );
 
@@ -131,14 +130,14 @@ END_OF_CODE
 	}
 
 	if ( exists $FLAGS{$sub} ) {
-		my $version  = $FLAGS{$sub}[0];
-		my $boolean1 = $FLAGS{$sub}[1] ? '|| 1' : q{};
-		my $boolean2 = $FLAGS{$sub}[1] ? q{!!} : q{};
+		my $boolean_version  = $FLAGS{$sub}[0];
+		my $boolean_default = $FLAGS{$sub}[1] ? ' || 1' : q{};
+		my $boolean_normal = $FLAGS{$sub}[1] ? q{!!} : q{};
 		eval <<"END_OF_CODE";
 sub $full_sub {	
-	my \$argument = shift $boolean1;
-	\$args{$sub} = $boolean2 \$argument;
-	_mb_required($version);
+	my \$argument = shift$boolean_default;
+	\$ARGS{$sub} = $boolean_normal \$argument;
+	_mb_required('$boolean_version');
 	return;
 }
 END_OF_CODE
@@ -148,7 +147,8 @@ END_OF_CODE
 	if ( exists $ARRAY{$sub} ) {
 
 #		_create_arrayref($sub);
-		my $code = <<"END_OF_CODE";
+		my $array_version = $ARRAY{$sub};
+		my $code_array = <<"END_OF_CODE";
 sub $full_sub {
 	my \$argument = shift;
 	if ( 'ARRAY' eq ref \$argument ) {
@@ -159,27 +159,27 @@ sub $full_sub {
 	}
 	
 	my \@array;
-	if (exists \$args{$sub}) {
-		\$args{$sub} = [ \@{ \$args{$sub} }, \$argument ];
+	if (exists \$ARGS{$sub}) {
+		\$ARGS{$sub} = [ \@{ \$ARGS{$sub} }, \$argument ];
 	} else {
-		\$args{$sub} = [ \$argument ];
+		\$ARGS{$sub} = [ \$argument ];
 	}
-	_mb_required(\$ARRAY{$sub});
+	_mb_required('$array_version');
 	return;
 }
 END_OF_CODE
-		eval $code;
+		eval $code_array;
 		goto &{$full_sub};
 	} ## end if ( exists $ARRAY{$sub...
 
 	if ( exists $HASH{$sub} ) {
 		_create_hashref($sub);
-		my $version = $HASH{$sub}[0];
-		my $default = $HASH{$sub}[1] ? '|| 0' : q{};
-		eval <<"END_OF_CODE";
+		my $hash_version = $HASH{$sub}[0];
+		my $hash_default = $HASH{$sub}[1] ? ' || 0' : q{};
+		my $code_hash = <<"END_OF_CODE";
 sub $full_sub {
 	my \$argument1 = shift;
-	my \$argument2 = shift $default;
+	my \$argument2 = shift$hash_default;
 	if ( 'HASH' eq ref \$argument1 ) {
 		my ( \$k, \$v );
 		while ( ( \$k, \$v ) = each \%{\$argument1} ) {
@@ -188,11 +188,12 @@ sub $full_sub {
 		return;
 	}
 
-	\$args{$sub}{\$argument1} = \$argument2;
-	_mb_required($version);
+	\$ARGS{$sub}{\$argument1} = \$argument2;
+	_mb_required('$hash_version');
 	return;
 }
 END_OF_CODE
+		eval $code_hash;
 		goto &{$full_sub};
 	} ## end if ( exists $HASH{$sub...
 
@@ -213,17 +214,17 @@ sub _mb_required {
 }
 
 sub _installdir {
-	return $Config{'sitelibexp'} unless ( defined $args{install_type} );
-	return $Config{'sitelibexp'}   if ( 'site'   eq $args{install_type} );
-	return $Config{'privlibexp'}   if ( 'perl'   eq $args{install_type} );
-	return $Config{'vendorlibexp'} if ( 'vendor' eq $args{install_type} );
+	return $Config{'sitelibexp'} unless ( defined $ARGS{install_type} );
+	return $Config{'sitelibexp'}   if ( 'site'   eq $ARGS{install_type} );
+	return $Config{'privlibexp'}   if ( 'perl'   eq $ARGS{install_type} );
+	return $Config{'vendorlibexp'} if ( 'vendor' eq $ARGS{install_type} );
 	croak 'Invalid install type';
 }
 
 sub _create_hashref {
 	my $name = shift;
-	unless ( exists $args{$name} ) {
-		$args{$name} = {};
+	unless ( exists $ARGS{$name} ) {
+		$ARGS{$name} = {};
 	}
 	return;
 }
@@ -231,8 +232,8 @@ sub _create_hashref {
 sub _create_hashref_arrayref {
 	my $name1 = shift;
 	my $name2 = shift;
-	unless ( exists $args{$name1}{$name2} ) {
-		$args{$name1}{$name2} = [];
+	unless ( exists $ARGS{$name1}{$name2} ) {
+		$ARGS{$name1}{$name2} = [];
 	}
 	return;
 }
@@ -276,7 +277,7 @@ sub abstract_from {
 
 	require ExtUtils::MM_Unix;
 	abstract(
-		bless( { DISTNAME => $args{module_name} }, 'ExtUtils::MM_Unix' )
+		bless( { DISTNAME => $ARGS{module_name} }, 'ExtUtils::MM_Unix' )
 		  ->parse_abstract($file) );
 
 	return;
@@ -630,6 +631,10 @@ sub win32 {
 	return !!( $^O eq 'MSWin32' );
 }
 
+sub cygwin {
+	return !!( $^O eq 'cygwin' );
+}
+
 sub winlike {
 	return !!( $^O eq 'MSWin32' or $^O eq 'cygwin' );
 }
@@ -650,7 +655,7 @@ sub _scan_dir {
 
 	my $type_files = $type . '_files';
 
-	$args{$type_files} = {} unless exists $args{"$type_files"};
+	$ARGS{$type_files} = {} unless exists $ARGS{"$type_files"};
 
 	my $dir_handle;
 
@@ -677,7 +682,7 @@ sub _scan_dir {
 			my $sourcefile = catfile( $srcdir, $direntry );
 			my $unixfile = File::Spec::Unix->catfile( $unixdir, $direntry );
 			if ( exists $files->{$unixfile} ) {
-				$args{$type_files}{$sourcefile} =
+				$ARGS{$type_files}{$sourcefile} =
 				  catfile( $destdir, $direntry );
 			}
 		}
@@ -710,7 +715,7 @@ sub install_share {
 	if ( $type eq 'dist' ) {
 		croak 'Too many parameters to install_share' if @_;
 
-		my $dist = $args{'dist_name'};
+		my $dist = $ARGS{'dist_name'};
 
 		$installation_path =
 		  catdir( _installdir(), qw(auto share dist), $dist );
@@ -744,12 +749,12 @@ sub install_share {
 
 sub _af_hashref {
 	my $feature = shift;
-	unless ( exists $args{auto_features} ) {
-		$args{auto_features} = {};
+	unless ( exists $ARGS{auto_features} ) {
+		$ARGS{auto_features} = {};
 	}
-	unless ( exists $args{auto_features}{$feature} ) {
-		$args{auto_features}{$feature} = {};
-		$args{auto_features}{$feature}{requires} = {};
+	unless ( exists $ARGS{auto_features}{$feature} ) {
+		$ARGS{auto_features}{$feature} = {};
+		$ARGS{auto_features}{$feature}{requires} = {};
 	}
 	return;
 }
@@ -762,13 +767,13 @@ sub auto_features {
 	_af_hashref($type);
 
 	if ( 'description' eq $type ) {
-		$args{auto_features}{$feature}{description} = $param1;
+		$ARGS{auto_features}{$feature}{description} = $param1;
 	} elsif ( 'requires' eq $type ) {
-		$args{auto_features}{$feature}{requires}{$param1} = $param2;
+		$ARGS{auto_features}{$feature}{requires}{$param1} = $param2;
 	} else {
 		croak "Invalid type $type for auto_features";
 	}
-	_mb_required(0.26);
+	_mb_required('0.26');
 	return;
 } ## end sub auto_features
 
@@ -787,9 +792,9 @@ sub extra_compiler_flags {
 		}
 	} else {
 		_create_arrayref('extra_compiler_flags');
-		push @{ $args{'extra_compiler_flags'} }, $flag;
+		push @{ $ARGS{'extra_compiler_flags'} }, $flag;
 	}
-	_mb_required(0.19);
+	_mb_required('0.19');
 	return;
 } ## end sub extra_compiler_flags
 
@@ -808,21 +813,21 @@ sub extra_linker_flags {
 		}
 	} else {
 		_create_arrayref('extra_linker_flags');
-		push @{ $args{'extra_linker_flags'} }, $flag;
+		push @{ $ARGS{'extra_linker_flags'} }, $flag;
 	}
-	_mb_required(0.19);
+	_mb_required('0.19');
 	return;
 } ## end sub extra_linker_flags
 
 sub module_name {
 	my ($name) = shift;
-	$args{'module_name'} = $name;
-	unless ( exists $args{'dist_name'} ) {
+	$ARGS{'module_name'} = $name;
+	unless ( exists $ARGS{'dist_name'} ) {
 		my $dist_name = $name;
 		$dist_name =~ s/::/-/g;
 		dist_name($dist_name);
 	}
-	_mb_required(0.03);
+	_mb_required('0.03');
 	return;
 }
 
@@ -834,8 +839,8 @@ sub no_index {
 
 	_create_hashref('no_index');
 	_create_hashref_arrayref( 'no_index', $type );
-	push @{ $args{'no_index'}{$type} }, $name;
-	_mb_required(0.28);
+	push @{ $ARGS{'no_index'}{$type} }, $name;
+	_mb_required('0.28');
 	return;
 } ## end sub no_index
 
@@ -850,7 +855,7 @@ sub PL_files { ## no critic(Capitalization)
 	}
 
 	_create_hashref('PL_files');
-	$args{PL_files}{$pl_file} = $pm_file;
+	$ARGS{PL_files}{$pl_file} = $pm_file;
 	_mb_required(0.06);
 	return;
 } ## end sub PL_files
@@ -864,8 +869,8 @@ sub script_files {
 	}
 
 	if ( -d $file ) {
-		if ( exists $args{'script_files'} ) {
-			if ( 'ARRAY' eq ref $args{'script_files'} ) {
+		if ( exists $ARGS{'script_files'} ) {
+			if ( 'ARRAY' eq ref $ARGS{'script_files'} ) {
 				croak
 				  "cannot add directory $file to a list of script_files";
 			} else {
@@ -873,11 +878,11 @@ sub script_files {
 "attempt to overwrite string script_files with $file failed";
 			}
 		} else {
-			$args{'script_files'} = $file;
+			$ARGS{'script_files'} = $file;
 		}
 	} else {
 		_create_arrayref('script_files');
-		push @{ $args{'script_files'} }, $file;
+		push @{ $ARGS{'script_files'} }, $file;
 	}
 	_mb_required(0.18);
 	return;
@@ -892,18 +897,18 @@ sub test_files {
 	}
 
 	if ( $file =~ /[*?]/ ) {
-		if ( exists $args{'test_files'} ) {
-			if ( 'ARRAY' eq ref $args{'test_files'} ) {
+		if ( exists $ARGS{'test_files'} ) {
+			if ( 'ARRAY' eq ref $ARGS{'test_files'} ) {
 				croak 'cannot add a glob to a list of test_files';
 			} else {
 				croak 'attempt to overwrite string test_files failed';
 			}
 		} else {
-			$args{'test_files'} = $file;
+			$ARGS{'test_files'} = $file;
 		}
 	} else {
 		_create_arrayref('test_files');
-		push @{ $args{'test_files'} }, $file;
+		push @{ $ARGS{'test_files'} }, $file;
 	}
 	_mb_required(0.23);
 	return;
@@ -911,7 +916,7 @@ sub test_files {
 
 sub tap_harness_args {
 	my ($thargs) = shift;
-	$args{'tap_harness_args'} = $thargs;
+	$ARGS{'tap_harness_args'} = $thargs;
 	use_tap_harness(1);
 	return;
 }
@@ -930,10 +935,6 @@ sub create_build_script {
 # Required to get a builder for later use.
 sub get_builder {
 
-#	require Data::Dumper;
-#	my $d = Data::Dumper->new([\%args], [qw(*args)]);
-#	print $d->Indent(1)->Dump();
-
 	if ( $mb_required < 0.07 ) { $mb_required = 0.07; }
 	build_requires( 'Module::Build', $mb_required );
 
@@ -943,9 +944,9 @@ sub get_builder {
 
 	unless ( defined $object ) {
 		if ( defined $class ) {
-			$object = $class->new(%args);
+			$object = $class->new(%ARGS);
 		} else {
-			$object = Module::Build->new(%args);
+			$object = Module::Build->new(%ARGS);
 		}
 		$object_created = 1;
 	}
@@ -975,10 +976,11 @@ END_OF_CODE
 	return;
 } ## end sub functions_self_bundler
 
-sub debug_print {
+sub _debug_print {
 	require Data::Dumper;
-	my $d = Data::Dumper->new([\%args, \@install_types], [qw(*args *install_types)]);
+	my $d = Data::Dumper->new([\%ARGS, \$mb_required], [qw(*ARGS *mb_required)]);
 	print $d->Indent(1)->Dump();
+	return;
 }
 
 1;
