@@ -27,6 +27,7 @@ BEGIN {
 	$VERSION = '0.001_009';
 
 	require Module::Build;
+
 	# Module implementation here
 
 	# Set defaults.
@@ -109,8 +110,9 @@ BEGIN {
 	  functions_self_bundler bundler
 	);
 	@EXPORT = ( @DEFINED, @AUTOLOADED );
+
 	# print join ' ', 'Exported:', @EXPORT, "\n";
-}
+} ## end BEGIN
 
 # The autoload handles 4 types of "similar" routines, for 45 names.
 sub AUTOLOAD {
@@ -144,6 +146,7 @@ END_OF_CODE
 	} ## end if ( exists $FLAGS{$sub...
 
 	if ( exists $ARRAY{$sub} ) {
+
 #		_create_arrayref($sub);
 		my $code = <<"END_OF_CODE";
 sub $full_sub {
@@ -210,10 +213,10 @@ sub _mb_required {
 }
 
 sub _installdir {
-	return $Config{'sitelibexp'}   unless ( defined     $args{install_type} );
-	return $Config{'sitelibexp'}   if     ( 'site'   eq $args{install_type} );
-	return $Config{'privlibexp'}   if     ( 'perl'   eq $args{install_type} );
-	return $Config{'vendorlibexp'} if     ( 'vendor' eq $args{install_type} );
+	return $Config{'sitelibexp'} unless ( defined $args{install_type} );
+	return $Config{'sitelibexp'}   if ( 'site'   eq $args{install_type} );
+	return $Config{'privlibexp'}   if ( 'perl'   eq $args{install_type} );
+	return $Config{'vendorlibexp'} if ( 'vendor' eq $args{install_type} );
 	croak 'Invalid install type';
 }
 
@@ -248,7 +251,7 @@ sub _slurp_file {
 		  or croak $!;
 	}
 
-	local $/ = undef;   # enable localized slurp mode
+	local $/ = undef;                  # enable localized slurp mode
 	my $content = <$file_handle>;
 
 	close $file_handle;
@@ -289,35 +292,43 @@ sub author_from {
 		=head \d \s+ (?:authors?)\b \s*
 		(.*?)
 		=head \d
-	}ixms) {
+	}ixms
+	  )
+	{
+
 		# Grab all author lines.
 		my $authors = $1;
 
 		# Now break up each line.
-		while ($authors =~ m{\G([^\n]+) \s*}gcixms) {
+		while ( $authors =~ m{\G([^\n]+) \s*}gcixms ) {
 			$author = $1;
+
 			# Convert E<lt> and E<gt> into the right characters.
 			$author =~ s{E<lt>}{<}g;
 			$author =~ s{E<gt>}{>}g;
 
-			# Remove new-style C<< >> markers. 
-			if ($author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx) {
+			# Remove new-style C<< >> markers.
+			if ( $author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx ) {
 				$author = "$1 $2";
 			}
 			dist_author($author);
-		}
-	} elsif ($content =~ m{
+		} ## end while ( $authors =~ m{\G([^\n]+) \s*}gcixms)
+	} elsif (
+		$content =~ m{
 		=head \d \s+ (?:licen[cs]e|licensing|copyright|legal)\b \s*
 		.*? copyright .*? \d\d\d[\d.]+ \s* (?:\bby\b)? \s*
 		([^\n]*)
-	}ixms) {
+	}ixms
+	  )
+	{
 		$author = $1;
+
 		# Convert E<lt> and E<gt> into the right characters.
 		$author =~ s{E<lt>}{<}g;
 		$author =~ s{E<gt>}{>}g;
 
-		# Remove new-style C<< >> markers. 
-		if ($author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx) {
+		# Remove new-style C<< >> markers.
+		if ( $author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx ) {
 			$author = "$1 $2";
 		}
 		dist_author($author);
@@ -326,11 +337,11 @@ sub author_from {
 	}
 
 	return;
-}
+} ## end sub author_from
 
 # Borrowed from Module::Install::Metadata->license_from
 sub license_from {
-	my $file = shift;
+	my $file    = shift;
 	my $content = _slurp_file($file);
 	if ($content =~ m{
 		(
@@ -340,8 +351,11 @@ sub license_from {
 		)
 		(=head\\d.*|=cut.*|)
 		\z
-	}ixms ) {
+	}ixms
+	  )
+	{
 		my $license_text = $1;
+#<<<
 		my @phrases      = (
 			'under the same (?:terms|license) as perl itself' => 'perl',        1,
 			'GNU general public license'                      => 'gpl',         1,
@@ -359,19 +373,20 @@ sub license_from {
 			'MIT'                                             => 'mit',         1,
 			'proprietary'                                     => 'proprietary', 0,
 		);
-		while ( my ($pattern, $license, $osi) = splice @phrases, 0, 3 ) {
+#>>>
+		while ( my ( $pattern, $license, $osi ) = splice @phrases, 0, 3 ) {
 			$pattern =~ s{\s+}{\\s+}g;
 			if ( $license_text =~ /\b$pattern\b/ix ) {
 				license($license);
 				return;
 			}
 		}
-	}
+	} ## end if ( $content =~ m{ 	}ixms)
 
 	carp "Cannot determine license info from $file";
 	license('unknown');
 	return;
-}
+} ## end sub license_from
 
 sub perl_version {
 	requires( 'perl', @_ );
@@ -380,17 +395,17 @@ sub perl_version {
 
 # Borrowed from Module::Install::Metadata->license_from
 sub perl_version_from {
-	my $file = shift;
+	my $file    = shift;
 	my $content = _slurp_file($file);
-	if (
-		$content =~ m{
+	if ($content =~ m{
 		^  # Start of LINE, not start of STRING.
 		(?:use|require) \s*
 		v?
 		([\d_\.]+)
 		\s* ;
 		}ixms
-	) {
+	  )
+	{
 		my $perl_version = $1;
 		$perl_version =~ s{_}{}g;
 		perl_version($perl_version);
@@ -399,11 +414,11 @@ sub perl_version_from {
 	}
 
 	return;
-}
+} ## end sub perl_version_from
 
 sub install_script {
 	my @scripts = @_;
-    foreach my $script ( @scripts ) {
+	foreach my $script (@scripts) {
 		if ( -f $script ) {
 			script_files($_);
 		} elsif ( -d 'script' and -f "script/$script" ) {
@@ -414,7 +429,7 @@ sub install_script {
 	}
 
 	return;
-}
+} ## end sub install_script
 
 sub install_as_core {
 	return installdirs('perl');
@@ -464,69 +479,76 @@ sub auto_bundle_deps {
 # Module::Install::Can
 
 sub can_use {
-	my ($mod, $ver) = @_;
+	my ( $mod, $ver ) = @_;
 
 	my $file = $mod;
 	$file =~ s{::|\\}{/}g;
 	$file .= '.pm' unless $file =~ /\.pm$/i;
 
 	local $@ = undef;
-	return eval { require $file; $mod->VERSION($ver || 0); 1 };
+	return eval { require $file; $mod->VERSION( $ver || 0 ); 1 };
 }
 
 sub can_run {
 	my $cmd = shift;
 	require ExtUtils::MakeMaker;
-	if ($^O eq 'cygwin') {
+	if ( $^O eq 'cygwin' ) {
+
 		# MM->maybe_command is fixed in 6.51_01 for Cygwin.
 		ExtUtils::MakeMaker->import(6.52);
 	}
 
 	my $_cmd = $cmd;
-	return $_cmd if (-x $_cmd or $_cmd = MM->maybe_command($_cmd));
+	return $_cmd if ( -x $_cmd or $_cmd = MM->maybe_command($_cmd) );
 
-	for my $dir ((split /$Config::Config{path_sep}/x, $ENV{PATH}), q{.}) {
+	for my $dir ( ( split /$Config::Config{path_sep}/x, $ENV{PATH} ), q{.} )
+	{
 		next if $dir eq q{};
-		my $abs = File::Spec->catfile($dir, $cmd);
-		return $abs if (-x $abs or $abs = MM->maybe_command($abs));
+		my $abs = File::Spec->catfile( $dir, $cmd );
+		return $abs if ( -x $abs or $abs = MM->maybe_command($abs) );
 	}
 
 	return;
-}
+} ## end sub can_run
 
 sub can_cc {
-	return eval { require ExtUtils::CBuilder; ExtUtils::CBuilder->new()->have_compiler(); };
+	return eval {
+		require ExtUtils::CBuilder;
+		ExtUtils::CBuilder->new()->have_compiler();
+	};
 }
 
 # Module::Install::External
 
 sub requires_external_bin {
-	my ($bin, $version) = @_;
-	if ( $version ) {
+	my ( $bin, $version ) = @_;
+	if ($version) {
 		croak 'requires_external_bin does not support versions yet';
 	}
 
 	# Locate the bin
 	print "Locating required external dependency bin: $bin...";
-	my $found_bin = can_run( $bin );
-	if ( $found_bin ) {
+	my $found_bin = can_run($bin);
+	if ($found_bin) {
 		print " found at $found_bin.\n";
 	} else {
 		print " missing.\n";
 		print "Unresolvable missing external dependency.\n";
 		print "Please install '$bin' seperately and try again.\n";
-		print { *STDERR } "NA: Unable to build distribution on this platform.\n";
+		print {*STDERR}
+		  "NA: Unable to build distribution on this platform.\n";
 		exit 0;
 	}
 
 	return 1;
-}
+} ## end sub requires_external_bin
 
 sub requires_external_cc {
 	unless ( can_cc() ) {
 		print "Unresolvable missing external dependency.\n";
 		print "This package requires a C compiler.\n";
-		print { *STDERR } "NA: Unable to build distribution on this platform.\n";
+		print {*STDERR}
+		  "NA: Unable to build distribution on this platform.\n";
 		exit 0;
 	}
 
@@ -536,13 +558,15 @@ sub requires_external_cc {
 # Module::Install::Fetch
 
 sub get_file {
-	croak 'get_file is not supported - replace by code in a Module::Build subclass.';
+	croak
+'get_file is not supported - replace by code in a Module::Build subclass.';
 }
 
 # Module::Install::Win32
 
 sub check_nmake {
-	croak 'check_nmake is not supported - replace by code in a Module::Build subclass.';
+	croak
+'check_nmake is not supported - replace by code in a Module::Build subclass.';
 }
 
 # Module::Install::With
@@ -555,51 +579,52 @@ sub automated_testing {
 	return !!$ENV{AUTOMATED_TESTING};
 }
 
-# Mostly borrowed from Scalar::Util::openhandle, since I should 
+# Mostly borrowed from Scalar::Util::openhandle, since I should
 # not use modules that were non-core in 5.005.
 sub _openhandle {
-  my $fh = shift;
-  my $rt = reftype($fh) || q{};
+	my $fh = shift;
+	my $rt = reftype($fh) || q{};
 
-  return ((defined fileno $fh) ? $fh : undef)
-    if $rt eq 'IO';
+	return ( ( defined fileno $fh ) ? $fh : undef )
+	  if $rt eq 'IO';
 
-  if ($rt ne 'GLOB') {
-    return;
-  }
+	if ( $rt ne 'GLOB' ) {
+		return;
+	}
 
-  return (tied *{$fh} or defined fileno $fh)
-    ? $fh : undef;
-}
+	return ( tied *{$fh} or defined fileno $fh ) ? $fh : undef;
+} ## end sub _openhandle
 
-# Mostly borrowed from IO::Interactive::is_interactive, since I should 
+# Mostly borrowed from IO::Interactive::is_interactive, since I should
 # not use modules that were non-core in 5.005.
 sub interactive {
+
 	# If we're doing automated testing, we assume that we don't have
 	# a terminal, even if we otherwise would.
 	return 0 if automated_testing();
 
-    # Not interactive if output is not to terminal...
-    return 0 if not -t *STDOUT;
+	# Not interactive if output is not to terminal...
+	return 0 if not -t *STDOUT;
 
-    # If *ARGV is opened, we're interactive if...
-    if (_openhandle(*ARGV)) {
-        # ...it's currently opened to the magic '-' file
-        return -t *STDIN if defined $ARGV && $ARGV eq q{-};
+	# If *ARGV is opened, we're interactive if...
+	if ( _openhandle(*ARGV) ) {
 
-        # ...it's at end-of-file and the next file is the magic '-' file
-        return @ARGV > 0 && $ARGV[0] eq q{-} && -t *STDIN if eof *ARGV;
+		# ...it's currently opened to the magic '-' file
+		return -t *STDIN if defined $ARGV && $ARGV eq q{-};
 
-        # ...it's directly attached to the terminal 
-        return -t *ARGV;
-    }
+		# ...it's at end-of-file and the next file is the magic '-' file
+		return @ARGV > 0 && $ARGV[0] eq q{-} && -t *STDIN if eof *ARGV;
 
-    # If *ARGV isn't opened, it will be interactive if *STDIN is attached 
-    # to a terminal.
-    else {
-        return -t *STDIN;
-    }
-}
+		# ...it's directly attached to the terminal
+		return -t *ARGV;
+	}
+
+	# If *ARGV isn't opened, it will be interactive if *STDIN is attached
+	# to a terminal.
+	else {
+		return -t *STDIN;
+	}
+} ## end sub interactive
 
 sub win32 {
 	return !!( $^O eq 'MSWin32' );
@@ -621,7 +646,7 @@ sub author_context {
 # Module::Install::Share
 
 sub _scan_dir {
-	my ($srcdir, $destdir, $unixdir, $type, $files) = @_;
+	my ( $srcdir, $destdir, $unixdir, $type, $files ) = @_;
 
 	my $type_files = $type . '_files';
 
@@ -637,31 +662,39 @@ sub _scan_dir {
 	opendir $dir_handle, $srcdir or croak $!;
 
   FILE:
-	foreach my $direntry (readdir $dir_handle) {
-		if (-d $direntry) {
-			next FILE if ($direntry eq q{.});
-			next FILE if ($direntry eq q{..});
-			_scan_dir( catdir($srcdir, $direntry), catdir($destdir, $direntry),
-			  File::Spec::Unix->catdir($unixdir, $direntry), $type, $files);
+	foreach my $direntry ( readdir $dir_handle ) {
+		if ( -d $direntry ) {
+			next FILE if ( $direntry eq q{.} );
+			next FILE if ( $direntry eq q{..} );
+			_scan_dir(
+				catdir( $srcdir,  $direntry ),
+				catdir( $destdir, $direntry ),
+				File::Spec::Unix->catdir( $unixdir, $direntry ),
+				$type,
+				$files
+			);
 		} else {
-			my $sourcefile = catfile($srcdir, $direntry);
-			my $unixfile = File::Spec::Unix->catfile($unixdir, $direntry);
-			if ( exists $files->{$unixfile}) {
-				$args{$type_files}{$sourcefile} = catfile($destdir, $direntry);
+			my $sourcefile = catfile( $srcdir, $direntry );
+			my $unixfile = File::Spec::Unix->catfile( $unixdir, $direntry );
+			if ( exists $files->{$unixfile} ) {
+				$args{$type_files}{$sourcefile} =
+				  catfile( $destdir, $direntry );
 			}
 		}
-	}
+	} ## end foreach my $direntry ( readdir...
 
 	closedir $dir_handle;
 
 	return;
-}
+} ## end sub _scan_dir
 
 sub install_share {
 	my $dir  = @_ ? pop   : 'share';
 	my $type = @_ ? shift : 'dist';
 
-	unless ( defined $type and ( ($type eq 'module') or ($type eq 'dist') ) ) {
+	unless ( defined $type
+		and ( ( $type eq 'module' ) or ( $type eq 'dist' ) ) )
+	{
 		croak "Illegal or invalid share dir type '$type'";
 	}
 	unless ( defined $dir and -d $dir ) {
@@ -681,7 +714,7 @@ sub install_share {
 
 		$installation_path =
 		  catdir( _installdir(), qw(auto share dist), $dist );
-		_scan_dir($dir, 'share', $dir, 'share', $files);
+		_scan_dir( $dir, 'share', $dir, 'share', $files );
 		push @install_types, 'share';
 		$sharecode = 'share';
 	} else {
@@ -695,10 +728,10 @@ sub install_share {
 		$installation_path =
 		  catdir( _installdir(), qw(auto share module), $module );
 		$sharecode = 'share_d' . $sharemod_used;
-		_scan_dir($dir, $sharecode, $dir, $sharecode, $files);
+		_scan_dir( $dir, $sharecode, $dir, $sharecode, $files );
 		push @install_types, $sharecode;
 		$sharemod_used++;
-	}
+	} ## end else [ if ( $type eq 'dist' )
 
 	install_path( $sharecode, $installation_path );
 
@@ -896,15 +929,16 @@ sub create_build_script {
 
 # Required to get a builder for later use.
 sub get_builder {
+
 #	require Data::Dumper;
 #	my $d = Data::Dumper->new([\%args], [qw(*args)]);
 #	print $d->Indent(1)->Dump();
 
-	if ($mb_required < 0.07) { $mb_required = 0.07;}
-	build_requires('Module::Build', $mb_required);
+	if ( $mb_required < 0.07 ) { $mb_required = 0.07; }
+	build_requires( 'Module::Build', $mb_required );
 
-	if ($mb_required > 0.2999) {
-		configure_requires('Module::Build', $mb_required);
+	if ( $mb_required > 0.2999 ) {
+		configure_requires( 'Module::Build', $mb_required );
 	}
 
 	unless ( defined $object ) {
@@ -921,7 +955,7 @@ sub get_builder {
 	}
 
 	return $object;
-}
+} ## end sub get_builder
 
 sub functions_self_bundler {
 	my $code = <<'END_OF_CODE';
@@ -963,7 +997,8 @@ sub bundler {
 			$text = read_file($file);
 			$text =~ s/package [ ] Module/package inc::Module/msx;
 			$text =~ s/use [ ]* AutoLoader;//msx;
-			$text =~ s/my [ ] \$autoload [ ]* = [ ] 1/my \$autoload =       0/msx;
+			$text =~
+			  s/my [ ] \$autoload [ ]* = [ ] 1/my \$autoload =       0/msx;
 			$text =~ s/__END__.*/\n/ms;
 			$text =~ s/__END__.*/\n/msx;
 			$fulldir = File::Spec->catdir(qw(inc Module Build));
