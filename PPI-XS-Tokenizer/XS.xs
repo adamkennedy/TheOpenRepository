@@ -21,6 +21,8 @@ extern "C" {
 
 #include "const-c.inc"
 
+#include "XS/CPPTokenizerWrapper.cpp"
+
 
 MODULE = PPI::XS::Tokenizer		PACKAGE = PPI::XS::Tokenizer
 
