@@ -1,15 +1,15 @@
 
-// This will be used to generate the XS MODULE line
 %module{PPI::XS::Tokenizer};
 
 // Associate a perl class with a C++ class
-%name{PPI::XS::Tokenizer} class Tokenizer
+%name{PPI::XS::Tokenizer} class CPPTokenizerWrapper
 {
-  %name{new} Tokenizer();
-  ~Tokenizer();
+  %name{InternalNew} CPPTokenizerWrapper( SV* source );
+  
+  ~CPPTokenizerWrapper();
 
-  LineTokenizeResults
-  tokenizeLine(char* line, unsigned long length(line));
+  //LineTokenizeResults
+  //tokenizeLine(char* line, unsigned long length(line));
 };
 
 
