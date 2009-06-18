@@ -85,9 +85,7 @@ use Test::Weaken::Test;
 
 sub ignore_my_global {
     my ($probe) = @_;
-    return unless Scalar::Util::reftype $probe eq 'REF';
-    my $thing = ${$probe};
-    return ( Scalar::Util::blessed($thing) && $thing->isa('MyGlobal') );
+    return ( Scalar::Util::blessed($probe) && $probe->isa('MyGlobal') );
 }
 
 my $tester = Test::Weaken::leaks(

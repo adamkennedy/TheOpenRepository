@@ -64,10 +64,11 @@ sub moredata {
 
 sub contents {
     my ($probe) = @_;
-    return unless Scalar::Util::blessed( ${$probe} );
-    my $obj = ${$probe};
-    return unless $obj->isa('MyObject');
-    return ( ${$probe}->data, ${$probe}->moredata );
+    return unless Scalar::Util::reftype $probe eq 'REF';
+    my $thing = ${$probe};
+    return unless Scalar::Util::blessed($thing);
+    return unless $thing->isa('MyObject');
+    return ( $thing->data, $thing->moredata );
 } ## end sub MyObject::contents
 
 ## no Marpa::Test::Display

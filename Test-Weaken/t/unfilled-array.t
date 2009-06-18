@@ -1,6 +1,7 @@
 #!perl
 
-package main;
+# These test cases were created by Kevin Ryde.
+
 use strict;
 use warnings;
 use Test::Weaken;

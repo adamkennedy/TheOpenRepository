@@ -93,11 +93,21 @@ sub follow {
                         push @child_probes, \( $follow_probe->[$i] );
                     }
                 }
+                if ( defined $contents ) {
+                    my $safe_copy = $follow_probe;
+                    push @child_probes,
+                        map { \$_ } ( $contents->($safe_copy) );
+                }
                 last FIND_CHILDREN;
             } ## end if ( $object_type eq 'ARRAY' )
 
             if ( $object_type eq 'HASH' ) {
                 @child_probes = map { \$_ } values %{$follow_probe};
+                if ( defined $contents ) {
+                    my $safe_copy = $follow_probe;
+                    push @child_probes,
+                        map { \$_ } ( $contents->($safe_copy) );
+                }
                 last FIND_CHILDREN;
             }
 
@@ -959,9 +969,7 @@ is_file($_, 't/ignore.t', 'ignore snippet')
 
     sub ignore_my_global {
         my ($probe) = @_;
-        return unless Scalar::Util::reftype $probe eq 'REF';
-        my $thing = ${$probe};
-        return ( Scalar::Util::blessed($thing) && $thing->isa('MyGlobal') );
+        return ( Scalar::Util::blessed($probe) && $probe->isa('MyGlobal') );
     }
 
     my $tester = Test::Weaken::leaks(
@@ -1054,10 +1062,11 @@ is_file($_, 't/contents.t', 'contents sub snippet')
 
     sub contents {
         my ($probe) = @_;
-        return unless Scalar::Util::blessed( ${$probe} );
-        my $obj = ${$probe};
-        return unless $obj->isa('MyObject');
-        return ( ${$probe}->data, ${$probe}->moredata );
+        return unless Scalar::Util::reftype $probe eq 'REF';
+        my $thing = ${$probe};
+        return unless Scalar::Util::blessed($thing);
+        return unless $thing->isa('MyObject');
+        return ( $thing->data, $thing->moredata );
     } ## end sub MyObject::contents
 
 =begin Marpa::Test::Display:
@@ -1404,8 +1413,7 @@ the referent address that both zero addition and C<refaddr> return.
 Sometimes, when you are interested in why an object is not being freed,
 you want to seek out the reference
 that keeps the object's refcount above zero.
-Kevin Ryde reports that L<Devel::FindRef>
-can be useful for this.
+L<Devel::FindRef> can be useful for this.
 
 =head2 More about Quasi-unique Addresses
 
@@ -1749,12 +1757,12 @@ does not have at present.
 Thanks to jettero, Juerd and perrin of Perlmonks for their advice.
 Thanks to Lincoln Stein (developer of L<Devel::Cycle>) for
 test cases and other ideas.
-
-After the first release of C<Test::Weaken>,
 Kevin Ryde made several important suggestions
-and provided test cases.
-These provided the impetus
-for version 2.000000 and 4.000000.
+and provided the test cases which
+provided the impetus
+for version 2.000000.
+He played the same role for version 4.000000,
+and in addition he provided patches.
 
 =head1 LICENSE AND COPYRIGHT
 
