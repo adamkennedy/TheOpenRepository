@@ -4,7 +4,7 @@ use inc::Module::Build::Functions;
 
 module_name         'Module::Build::Functions';
 license             'perl';
-perl_version        '5.005';
+perl_version        '5.00503';
 dist_author         'Curtis Jewell <csjewell@cpan.org>';
 dist_version_from   'lib/Module/Build/Functions.pm';
 autosplit           'lib/Module/Build/Functions.pm';

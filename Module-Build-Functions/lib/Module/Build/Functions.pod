@@ -3,18 +3,6 @@
 # %FLAGS checked.
 # %ALIASES - deal with last.
 
-# Coverage for Module::Build::Functions is 47.7%, with 23 naked subroutines:
-#       all_from
-#       can_use
-#       check_nmake
-#       get_file
-#       install_script
-#       interactive
-#       license_from
-#       module_name
-#       no_index
-#       subclass
-
 =pod
 
 =begin readme text
@@ -343,10 +331,17 @@ then it uses the contents of this section.
 	dist_name 'Module-Build-Functions';
 
 Specifies the name for this distribution. Most authors won't need to set 
-this directly, they can use L<module_name|#module_name> to set C<dist_name> 
+this directly, they can use L<module_name|/module_name> to set C<dist_name> 
 to a reasonable default. However, some agglomerative distributions like 
-C<libwww-perl> or C<bioperl> have names that don't correspond directly to 
+I<libwww-perl> or I<bioperl> have names that don't correspond directly to 
 a module name, so C<dist_name> can be set independently.
+
+=head4 module_name
+
+	module_name 'Module::Build::Functions';
+	
+Specifies the name of the main module for this distribution.  This will set 
+the distribution's name and version.
 
 =head4 dist_version
 
@@ -411,6 +406,10 @@ while meta_merge will merge an arrayref or hashref into the current
 contents of the key. 
 
 Also, meta_merge allows a hashref to be ommitted if it contains only one value.
+
+=head4 no_index
+
+To be documented soon.
 
 =head3 Flags
 
@@ -592,6 +591,12 @@ the C<Build.PL> or C<Build> script is to process according to the specifications
 given (the specification hashrefs are documented in the 
 L<Module::Build::API documentation|Module::Build::API#get_options>.)
 
+=head4 subclass
+
+To be documented soon.
+
+
+
 =head4 create_build_script
 
 =head4 WriteAll (Module::Install synonym)
@@ -680,6 +685,15 @@ that they actually work, by calling
 L<ExtUtils::CBuilder::have_compiler|ExtUtils::CBuilder/have_compiler> to 
 verify that fact.
 
+=head4 can_use
+
+	my $has_perl_svn = can_use 'SVN::Core';
+	my $has_real_alien_wix = can_use 'Alien::WiX', 0.300001;
+
+The can_use function tests the ability to load a specific named module. Currently it will load the module in the process, although this may change in the future.
+
+Takes an optional second param of a version number. The currently installed version of the module will be tested to make sure it is equal to or greater than the specified version.
+
 =head4 author_context;
 
 	my $is_author = author_context;
@@ -691,6 +705,38 @@ This is determined by looking for the C<inc/.author> directory, trying
 to detect a version control system, and looking for the I<MANIFEST.SKIP>
 file, in that order.
 
+=head4 repository
+
+	repository 'http://svn.ali.as/cpan/trunk/Module-Build-Functions/';
+	
+Alias for C<< meta_merge 'resources', 'repository' => $url >>. 
+L<http://search.cpan.org/> will use this to display the repository on the 
+distribution's main page.
+
+=head4 bugtracker
+
+	bugtracker 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Build-Functions';
+
+Alias for C<< meta_merge 'resources', 'bugtracker' => $url >>. 
+L<http://search.cpan.org/> will use this instead of its usual link to 
+rt.cpan.org to report bugs from the repository's main page.
+
+=head4 install_script
+
+	# The following are equivalent
+	install_script 'foo';
+	install_script 'script/foo';
+
+The install_script command provides support for the installation of scripts that will become available at the console on both Unix and Windows (in the later case by wrapping it up as a .bat file).
+
+To support less typing, if a script is located in the C</script> directory, you need refer to it by name only.
+
+=head4 interactive
+
+	print "A question I need a user to see.\n" if interactive;
+
+Returns true if in an interactive environment, or false otherwise.
+	
 =head1 DIAGNOSTICS
 
 =for author to fill in:

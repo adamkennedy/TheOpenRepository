@@ -31,4 +31,6 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-all_minimum_version_from_metayml_ok();
+all_minimum_version_from_metayml_ok({
+	paths => [qw(lib Build.PL Makefile.PL)]
+});

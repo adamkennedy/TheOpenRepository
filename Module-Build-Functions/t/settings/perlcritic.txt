@@ -15,7 +15,7 @@ functions = :builtins
 exclude_functions = print close closedir readdir
 
 [Modules::PerlMinimumVersion]
-version = 5.005
+version = 5.00503
 
 # Exclusions
 

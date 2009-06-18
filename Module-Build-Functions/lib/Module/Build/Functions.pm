@@ -2,9 +2,9 @@ package Module::Build::Functions;
 
 #<<<
 use     strict;
-use     5.005;
+use     5.00503;
 use     vars                  qw( $VERSION @EXPORT $AUTOLOAD %ARGS);
-use     Carp                  qw( croak carp                      );
+use     Carp                  qw( croak carp confess              );
 use     Exporter              qw( import                          );
 use     File::Spec::Functions qw( catdir catfile                  );
 use     Config;
@@ -105,7 +105,7 @@ BEGIN {
 	  author_context install_share auto_features extra_compiler_flags
 	  extra_linker_flags module_name no_index PL_files script_files test_files
 	  tap_harness_args subclass create_build_script get_builder
-	  functions_self_bundler bundler
+	  functions_self_bundler bundler repository bugtracker meta_merge
 	);
 	@EXPORT = ( @DEFINED, @AUTOLOADED );
 
@@ -129,9 +129,9 @@ END_OF_CODE
 	}
 
 	if ( exists $FLAGS{$sub} ) {
-		my $boolean_version  = $FLAGS{$sub}[0];
+		my $boolean_version = $FLAGS{$sub}[0];
 		my $boolean_default = $FLAGS{$sub}[1] ? ' || 1' : q{};
-		my $boolean_normal = $FLAGS{$sub}[1] ? q{!!} : q{};
+		my $boolean_normal  = $FLAGS{$sub}[1] ? q{!!} : q{};
 		eval <<"END_OF_CODE";
 sub $full_sub {	
 	my \$argument = shift$boolean_default;
@@ -147,7 +147,7 @@ END_OF_CODE
 
 #		_create_arrayref($sub);
 		my $array_version = $ARRAY{$sub};
-		my $code_array = <<"END_OF_CODE";
+		my $code_array    = <<"END_OF_CODE";
 sub $full_sub {
 	my \$argument = shift;
 	if ( 'ARRAY' eq ref \$argument ) {
@@ -175,7 +175,7 @@ END_OF_CODE
 		_create_hashref($sub);
 		my $hash_version = $HASH{$sub}[0];
 		my $hash_default = $HASH{$sub}[1] ? ' || 0' : q{};
-		my $code_hash = <<"END_OF_CODE";
+		my $code_hash    = <<"END_OF_CODE";
 sub $full_sub {
 	my \$argument1 = shift;
 	my \$argument2 = shift$hash_default;
@@ -651,7 +651,7 @@ sub author_context {
 
 sub _scan_dir {
 	my ( $srcdir, $destdir, $unixdir, $type, $files ) = @_;
-	
+
 	my $type_files = $type . '_files';
 
 	$ARGS{$type_files} = {} unless exists $ARGS{"$type_files"};
@@ -667,7 +667,7 @@ sub _scan_dir {
 
   FILE:
 	foreach my $direntry ( readdir $dir_handle ) {
-		if ( -d catdir( $srcdir, $direntry) ) {
+		if ( -d catdir( $srcdir, $direntry ) ) {
 			next FILE if ( $direntry eq q{.} );
 			next FILE if ( $direntry eq q{..} );
 			_scan_dir(
@@ -739,15 +739,16 @@ sub install_share {
 
 	# Set the path to install to.
 	install_path( $sharecode, $installation_path );
-	
+
 	# This helps for testing purposes...
-	if ($Module::Build::VERSION >= 0.31) {
-		Module::Build->add_property($sharecode . '_files', default => sub { return {} });
+	if ( $Module::Build::VERSION >= 0.31 ) {
+		Module::Build->add_property( $sharecode . '_files',
+			default => sub { return {} } );
 	}
-	
+
 	# 99% of the time we don't want to index a shared dir
 	no_index($dir);
-	
+
 	# This construction requires 0.26.
 	_mb_required('0.26');
 	return;
@@ -869,7 +870,7 @@ sub PL_files { ## no critic(Capitalization)
 } ## end sub PL_files
 
 sub meta_merge {
-	my $key = shift;
+	my $key   = shift;
 	my $value = shift;
 	if ( 'HASH' eq ref $key ) {
 		my ( $k, $v );
@@ -878,38 +879,46 @@ sub meta_merge {
 		}
 		return;
 	}
-	
-	# Allow ommitting hashrefs.
-	if (@_ == 1) {
+
+	# Allow omitting hashrefs, if there's one more parameter.
+	if ( 1 == scalar @_ ) {
 		meta_merge( $key, { $value => shift } );
+		return;
+	} elsif ( 0 != scalar @_ ) {
+		confess 'Too many parameters to meta_merge';
 	}
 
-	if ((exists $ARGS{meta_merge}{$key}) and ( ref $value ne ref $ARGS{meta_merge}{$key} )) {
-		croak 'Mismatch between value to merge into meta information and value already there';
+	if (    ( defined $ARGS{meta_merge}{$key} )
+		and ( ref $value ne ref $ARGS{meta_merge}{$key} ) )
+	{
+		confess
+'Mismatch between value to merge into meta information and value already there';
 	}
-	
+
 	if ( 'HASH' eq ref $ARGS{meta_merge}{$key} ) {
+		$ARGS{meta_merge}{$key} =
+		  { ( %{ $ARGS{meta_merge}{$key} } ), ( %{$value} ) };
 	} elsif ( 'ARRAY' eq ref $ARGS{meta_merge}{$key} ) {
-		$ARGS{meta_merge}{$key} = \( @{$ARGS{meta_merge}{$key}}, @{$value})
-	
+		$ARGS{meta_merge}{$key} =
+		  \( @{ $ARGS{meta_merge}{$key} }, @{$value} );
 	} else {
 		$ARGS{meta_merge}{$key} = $value;
 	}
-	
+
 	_mb_required('0.28');
 	return;
-}
+} ## end sub meta_merge
 
 
 sub repository {
 	my $url = shift;
-	meta_merge('resources', 'repository' => $url );
+	meta_merge( 'resources', 'repository' => $url );
 	return;
 }
 
 sub bugtracker {
 	my $url = shift;
-	meta_merge('resources', 'bugtracker' => $url );
+	meta_merge( 'resources', 'bugtracker' => $url );
 	return;
 }
 
@@ -1031,7 +1040,8 @@ END_OF_CODE
 
 sub _debug_print {
 	require Data::Dumper;
-	my $d = Data::Dumper->new([\%ARGS, \$mb_required], [qw(*ARGS *mb_required)]);
+	my $d = Data::Dumper->new( [ \%ARGS, \$mb_required ],
+		[qw(*ARGS *mb_required)] );
 	print $d->Indent(1)->Dump();
 	return;
 }

@@ -33,6 +33,8 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-# plan( skip_all => "Does not pass yet." );
 
-all_pod_coverage_ok();
+
+all_pod_coverage_ok({ 
+	trustme => [ qr/^(?:check_nmake|get_file)$/ ], 
+});

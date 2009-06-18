@@ -5,10 +5,17 @@ use Module::Build;
 use Cwd;
 use Capture::Tiny qw(capture);
 
+my $debug = 0;
+
 my $original_dir = cwd();
 
-chdir(catdir(qw(t MBF-Test3)));
-(undef, undef) = capture { bundler(); system($^X, 'Build.PL'); };
+chdir(catdir(qw(t MBF-Test2)));
+if ($debug) {
+	bundler(); 
+	system($^X, 'Build.PL');
+} else {
+	(undef, undef) = capture { bundler(); system($^X, 'Build.PL'); };
+}
 
 my $build = Module::Build->current();
 
@@ -31,7 +38,7 @@ my $test3 = {
 is_deeply($build->requires(), $test3, 'perl_version_from is correct');
 
 my $test4 = {
-	'Module::Build' => '0.2' # Meaning 0.20 is required.
+	'Module::Build' => '0.20',
 };
 
 is_deeply($build->build_requires(), $test4, 'build_requires list is correct');
@@ -49,19 +56,21 @@ my $got7 = ['MBF-Test2-*'];
 
 is_deeply(\@test7, $got7, 'add_to_cleanup is correct');
 
-is($build->license(), 'proprietary', 'license is correct (meaning no license)');
+is($build->license(), 'restrictive', 'license is correct (meaning no license)');
 
 is($build->dist_abstract(), 'Second test module for Module::Build::Functions', 'abstract_from is correct');
 
 
 # Cleanup
-(undef, undef) = capture { $build->dispatch('realclean'); };
+if (not $debug) {
+	(undef, undef) = capture { $build->dispatch('realclean'); };
+	unlink('Build.bat') if -e 'Build.bat';
+	unlink('Build.com') if -e 'Build.com';
+}
 unlink(catfile(qw(inc Module Build Functions.pm)));
 rmdir(catdir(qw(inc Module Build)));
 rmdir(catdir(qw(inc Module)));
 rmdir(catdir(qw(inc .author)));
 rmdir('inc');
-unlink('Build.bat') if -e 'Build.bat';
-unlink('Build.com') if -e 'Build.com';
 
 chdir($original_dir);
