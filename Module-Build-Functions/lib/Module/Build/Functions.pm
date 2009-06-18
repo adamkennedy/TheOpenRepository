@@ -3,11 +3,10 @@ package Module::Build::Functions;
 #<<<
 use     strict;
 use     5.005;
-use     vars                  
-  qw( $VERSION @EXPORT $AUTOLOAD %args @install_types );
-use     Carp                  qw( croak carp                       );
-use     Exporter              qw( import                           );
-use     File::Spec::Functions qw( catdir catfile                   );
+use     vars                  qw( $VERSION @EXPORT $AUTOLOAD );
+use     Carp                  qw( croak carp                 );
+use     Exporter              qw( import                     );
+use     File::Spec::Functions qw( catdir catfile             );
 use     Config;
 use     AutoLoader;
 
@@ -20,6 +19,8 @@ my    $autoload       = 1;
 my    $object_created = 0;
 my    $sharemod_used  = 1;
 my    (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
+my    %args;
+my    @install_types;
 #>>>
 
 BEGIN {
@@ -114,7 +115,7 @@ BEGIN {
 # The autoload handles 4 types of "similar" routines, for 45 names.
 sub AUTOLOAD {
 	my $full_sub = $AUTOLOAD;
-	my ($sub) = $AUTOLOAD =~ m{\A.*::([^:]*)\z};
+	my ($sub) = $AUTOLOAD =~ m{\A.*::([^:]*)\z}x;
 
 	if ( exists $ALIASES{$sub} ) {
 		my $alias = $ALIASES{$sub};
@@ -124,7 +125,7 @@ sub $full_sub {
 	return;
 }
 END_OF_CODE
-		goto &$full_sub;
+		goto &{$full_sub};
 	}
 
 	if ( exists $FLAGS{$sub} ) {
@@ -139,7 +140,7 @@ sub $full_sub {
 	return;
 }
 END_OF_CODE
-		goto &$full_sub;
+		goto &{$full_sub};
 	} ## end if ( exists $FLAGS{$sub...
 
 	if ( exists $ARRAY{$sub} ) {
@@ -165,11 +166,7 @@ sub $full_sub {
 }
 END_OF_CODE
 		eval $code;
-#		if ($EVAL_ERROR) {
-#			print "$@\n";
-#			exit;
-#		} 
-		goto &$full_sub;
+		goto &{$full_sub};
 	} ## end if ( exists $ARRAY{$sub...
 
 	if ( exists $HASH{$sub} ) {
@@ -193,7 +190,7 @@ sub $full_sub {
 	return;
 }
 END_OF_CODE
-		goto &$full_sub;
+		goto &{$full_sub};
 	} ## end if ( exists $HASH{$sub...
 
 	if ( $autoload == 1 ) {
@@ -241,13 +238,13 @@ sub _slurp_file {
 	my $name = shift;
 	my $file_handle;
 
-	if ( $] < 5.006 ) { ## no critic(ProhibitPunctuationVars)
+	if ( $] < 5.006 ) {
 		require Symbol;
 		$file_handle = Symbol::gensym();
-		open $file_handle, "<$name" ## no critic(RequireBriefOpen)
+		open $file_handle, "<$name"
 		  or croak $!;
 	} else {
-		open $file_handle, '<', $name ## no critic(RequireBriefOpen)
+		open $file_handle, '<', $name
 		  or croak $!;
 	}
 
@@ -287,7 +284,7 @@ sub author_from {
 	my $file    = shift;
 	my $content = _slurp_file($file);
 	my $author;
-		
+
 	if ($content =~ m{
 		=head \d \s+ (?:authors?)\b \s*
 		(.*?)
@@ -295,20 +292,20 @@ sub author_from {
 	}ixms) {
 		# Grab all author lines.
 		my $authors = $1;
-		
+
 		# Now break up each line.
 		while ($authors =~ m{\G([^\n]+) \s*}gcixms) {
 			$author = $1;
 			# Convert E<lt> and E<gt> into the right characters.
 			$author =~ s{E<lt>}{<}g;
 			$author =~ s{E<gt>}{>}g;
-			
+
 			# Remove new-style C<< >> markers. 
 			if ($author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx) {
 				$author = "$1 $2";
 			}
 			dist_author($author);
-		}		
+		}
 	} elsif ($content =~ m{
 		=head \d \s+ (?:licen[cs]e|licensing|copyright|legal)\b \s*
 		.*? copyright .*? \d\d\d[\d.]+ \s* (?:\bby\b)? \s*
@@ -318,7 +315,7 @@ sub author_from {
 		# Convert E<lt> and E<gt> into the right characters.
 		$author =~ s{E<lt>}{<}g;
 		$author =~ s{E<gt>}{>}g;
-		
+
 		# Remove new-style C<< >> markers. 
 		if ($author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx) {
 			$author = "$1 $2";
@@ -327,6 +324,8 @@ sub author_from {
 	} else {
 		carp "Cannot determine author info from $file";
 	}
+
+	return;
 }
 
 # Borrowed from Module::Install::Metadata->license_from
@@ -360,9 +359,9 @@ sub license_from {
 			'MIT'                                             => 'mit',         1,
 			'proprietary'                                     => 'proprietary', 0,
 		);
-		while ( my ($pattern, $license, $osi) = splice(@phrases, 0, 3) ) {
+		while ( my ($pattern, $license, $osi) = splice @phrases, 0, 3 ) {
 			$pattern =~ s{\s+}{\\s+}g;
-			if ( $license_text =~ /\b$pattern\b/i ) {
+			if ( $license_text =~ /\b$pattern\b/ix ) {
 				license($license);
 				return;
 			}
@@ -413,6 +412,8 @@ sub install_script {
 			croak "Cannot find script '$script'";
 		}
 	}
+
+	return;
 }
 
 sub install_as_core {
@@ -464,28 +465,28 @@ sub auto_bundle_deps {
 
 sub can_use {
 	my ($mod, $ver) = @_;
-	
+
 	my $file = $mod;
 	$file =~ s{::|\\}{/}g;
 	$file .= '.pm' unless $file =~ /\.pm$/i;
 
-	local $@;
+	local $@ = undef;
 	return eval { require $file; $mod->VERSION($ver || 0); 1 };
 }
 
 sub can_run {
 	my $cmd = shift;
 	require ExtUtils::MakeMaker;
-	if ($^O == 'cygwin') {
+	if ($^O eq 'cygwin') {
 		# MM->maybe_command is fixed in 6.51_01 for Cygwin.
-		ExtUtils::MakeMaker->import(6.51);
+		ExtUtils::MakeMaker->import(6.52);
 	}
-	
+
 	my $_cmd = $cmd;
 	return $_cmd if (-x $_cmd or $_cmd = MM->maybe_command($_cmd));
 
-	for my $dir ((split /$Config::Config{path_sep}/, $ENV{PATH}), '.') {
-		next if $dir eq '';
+	for my $dir ((split /$Config::Config{path_sep}/x, $ENV{PATH}), q{.}) {
+		next if $dir eq q{};
 		my $abs = File::Spec->catfile($dir, $cmd);
 		return $abs if (-x $abs or $abs = MM->maybe_command($abs));
 	}
@@ -502,7 +503,7 @@ sub can_cc {
 sub requires_external_bin {
 	my ($bin, $version) = @_;
 	if ( $version ) {
-		croak "requires_external_bin does not support versions yet";
+		croak 'requires_external_bin does not support versions yet';
 	}
 
 	# Locate the bin
@@ -515,7 +516,7 @@ sub requires_external_bin {
 		print "Unresolvable missing external dependency.\n";
 		print "Please install '$bin' seperately and try again.\n";
 		print { *STDERR } "NA: Unable to build distribution on this platform.\n";
-		exit(0);
+		exit 0;
 	}
 
 	return 1;
@@ -526,9 +527,9 @@ sub requires_external_cc {
 		print "Unresolvable missing external dependency.\n";
 		print "This package requires a C compiler.\n";
 		print { *STDERR } "NA: Unable to build distribution on this platform.\n";
-		exit(0);
+		exit 0;
 	}
-	
+
 	return 1;
 }
 
@@ -558,16 +559,16 @@ sub automated_testing {
 # not use modules that were non-core in 5.005.
 sub _openhandle {
   my $fh = shift;
-  my $rt = reftype($fh) || '';
+  my $rt = reftype($fh) || q{};
 
-  return defined(fileno($fh)) ? $fh : undef
+  return ((defined fileno $fh) ? $fh : undef)
     if $rt eq 'IO';
 
   if ($rt ne 'GLOB') {
-    return undef;
+    return;
   }
 
-  (tied(*$fh) or defined(fileno($fh)))
+  return (tied *{$fh} or defined fileno $fh)
     ? $fh : undef;
 }
 
@@ -584,10 +585,10 @@ sub interactive {
     # If *ARGV is opened, we're interactive if...
     if (_openhandle(*ARGV)) {
         # ...it's currently opened to the magic '-' file
-        return -t *STDIN if defined $ARGV && $ARGV eq '-';
+        return -t *STDIN if defined $ARGV && $ARGV eq q{-};
 
         # ...it's at end-of-file and the next file is the magic '-' file
-        return @ARGV > 0 && $ARGV[0] eq '-' && -t *STDIN if eof *ARGV;
+        return @ARGV > 0 && $ARGV[0] eq q{-} && -t *STDIN if eof *ARGV;
 
         # ...it's directly attached to the terminal 
         return -t *ARGV;
@@ -623,25 +624,24 @@ sub _scan_dir {
 	my ($srcdir, $destdir, $unixdir, $type, $files) = @_;
 
 	my $type_files = $type . '_files';
-	
+
 	$args{$type_files} = {} unless exists $args{"$type_files"};
-	
+
 	my $dir_handle;
-	
-	if ( $] < 5.006 ) { ## no critic(ProhibitPunctuationVars)
+
+	if ( $] < 5.006 ) {
 		require Symbol;
 		$dir_handle = Symbol::gensym();
-	} 
-		
-	opendir $dir_handle, $srcdir ## no critic(RequireBriefOpen)
-	  or croak $!;
+	}
+
+	opendir $dir_handle, $srcdir or croak $!;
 
   FILE:
 	foreach my $direntry (readdir $dir_handle) {
 		if (-d $direntry) {
-			next FILE if ($direntry eq '.');
-			next FILE if ($direntry eq '..');
-			_scan_dir( catdir($srcdir, $direntry), catdir($destdir, $direntry), 
+			next FILE if ($direntry eq q{.});
+			next FILE if ($direntry eq q{..});
+			_scan_dir( catdir($srcdir, $direntry), catdir($destdir, $direntry),
 			  File::Spec::Unix->catdir($unixdir, $direntry), $type, $files);
 		} else {
 			my $sourcefile = catfile($srcdir, $direntry);
@@ -653,6 +653,8 @@ sub _scan_dir {
 	}
 
 	closedir $dir_handle;
+
+	return;
 }
 
 sub install_share {
@@ -671,7 +673,7 @@ sub install_share {
 	my $files = ExtUtils::Manifest::maniread();
 	my $installation_path;
 	my $sharecode;
-	
+
 	if ( $type eq 'dist' ) {
 		croak 'Too many parameters to install_share' if @_;
 
@@ -679,7 +681,7 @@ sub install_share {
 
 		$installation_path =
 		  catdir( _installdir(), qw(auto share dist), $dist );
-		_scan_dir($dir, 'share', $dir, 'share', $files); 
+		_scan_dir($dir, 'share', $dir, 'share', $files);
 		push @install_types, 'share';
 		$sharecode = 'share';
 	} else {
@@ -693,13 +695,13 @@ sub install_share {
 		$installation_path =
 		  catdir( _installdir(), qw(auto share module), $module );
 		$sharecode = 'share_d' . $sharemod_used;
-		_scan_dir($dir, $sharecode, $dir, $sharecode, $files); 
+		_scan_dir($dir, $sharecode, $dir, $sharecode, $files);
 		push @install_types, $sharecode;
 		$sharemod_used++;
 	}
 
 	install_path( $sharecode, $installation_path );
-	
+
 	# 99% of the time we don't want to index a shared dir
 	no_index($dir);
 	return;
@@ -913,11 +915,11 @@ sub get_builder {
 		}
 		$object_created = 1;
 	}
-	
+
 	foreach my $type (@install_types) {
 		$object->add_build_element($type);
 	}
-	
+
 	return $object;
 }
 
@@ -938,6 +940,8 @@ END_OF_CODE
 
 	return;
 } ## end sub functions_self_bundler
+
+1;
 
 __END__
 
