@@ -1,5 +1,6 @@
-// Map the type of our custom class
+// Map the type of our custom classes
 %typemap{Tokenizer*}{simple};
+%typemap{Token*}{simple};
 %typemap{LineTokenizeResults}{simple};
 
 // Map simple types
