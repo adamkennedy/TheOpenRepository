@@ -2,7 +2,7 @@ package MBF::Test2;
 
 #<<<
 use     strict;
-use     5.005;
+use     5.007;
 use     vars        qw( $VERSION );
 #>>>
 
@@ -12,6 +12,10 @@ local $WARNING = 1;
 $VERSION = '0.000_001';
 
 =pod
+
+=head1 NAME
+
+MBF::Test2 - Second test module for Module::Build::Functions
 
 =head1 AUTHORS
 

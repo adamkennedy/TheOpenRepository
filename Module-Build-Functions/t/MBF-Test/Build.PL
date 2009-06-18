@@ -10,7 +10,7 @@ dist_author         'Curtis Jewell <perl@csjewell.fastmail.us>';
 dist_version_from   'lib/MBF/Test.pm';
 requires 		    'File::Slurp';
 test_requires       'Test::More';
-test_requires       'Test::Compile';
+build_requires      'Test::Compile';
 add_to_cleanup      'MBF-Test-*';
 create_makefile_pl  'passthrough';
 install_share;

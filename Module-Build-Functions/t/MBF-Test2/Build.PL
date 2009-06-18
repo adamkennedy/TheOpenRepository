@@ -4,10 +4,6 @@ use inc::Module::Build::Functions;
 
 module_name         'MBF-Test2';
 all_from            'lib/MBF/Test2.pm';
-#author_from         'lib/MBF/Test2.pm';
-#license_from        'lib/MBF/Test2.pm';
-#dist_version_from   'lib/MBF/Test2.pm';
-#perl_version_from   'lib/MBF/Test2.pm';
 add_to_cleanup      'MBF-Test2-*';
 functions_self_bundler;
 create_build_script;

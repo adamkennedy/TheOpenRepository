@@ -11,6 +11,7 @@ autosplit           'lib/Module/Build/Functions.pm';
 requires 		    'File::Slurp';
 test_requires       'Test::More';
 test_requires       'Test::Compile';
+test_requires       'Capture::Tiny' => 0.06;
 add_to_cleanup      'Module-Build-Functions-*';
 create_makefile_pl  'passthrough';
 create_readme       1;

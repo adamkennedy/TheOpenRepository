@@ -2,7 +2,7 @@
 
 =begin readme text
 
-Module-Build-Functions version 0.001_007
+Module-Build-Functions version 0.001_010
 
 =end readme
 
@@ -14,7 +14,7 @@ Module::Build::Functions - Module::Install style syntax for Module::Build
 
 =head1 VERSION
 
-This document describes Module::Build::Functions version 0.001_009.
+This document describes Module::Build::Functions version 0.001_010.
 
 =head1 SYNOPSIS
 
@@ -32,6 +32,7 @@ This document describes Module::Build::Functions version 0.001_009.
 	requires 		    'File::Slurp';
 	test_requires       'Test::More';
 	test_requires       'Test::Compile';
+	test_requires       'Capture::Tiny' => 0.06;
 	add_to_cleanup      'Module-Build-Functions-*';
 	create_makefile_pl  'passthrough';
 	functions_self_bundler;
@@ -126,7 +127,7 @@ your subclass:
 
 =head2 Module::Build->new parameters (with synonyms noted)
 
-=head3 lists of modules
+=head3 Lists of modules
 
 All lists of modules take a module name (with an optional version) or a 
 hashref that contains a list of modules and versions.
@@ -137,6 +138,28 @@ specifies them.
 If the version parameter is omitted when one module is being added to the 
 list, the version is assumed to be 0.
 
+=head4 requires
+
+	requires 'Module::CoreList' => 2.17;
+	requires 'Acme::24';
+	requires 'Acme' => '!1.11111';
+
+Modules listed using this function are required for using the module(s) 
+being installed.
+
+=head4 configure_requires
+
+	configure_requires 'Module::CoreList' => 2.17;
+	configure_requires 'Acme::24';
+	configure_requires 'Acme' => '!1.11111';
+
+Modules listed using this function are required for running the 
+distribution's C<Build.PL>.
+
+B<Note:> Module::Build does not need to be added to this list, as
+Module::Build::Functions will determine the version of Module::Build
+required for the functions used.
+
 =head4 build_requires
 
 	build_requires 'Module::CoreList' => 2.17;
@@ -146,9 +169,13 @@ list, the version is assumed to be 0.
 Modules listed using this function are only required for running C<./Build> 
 itself, not C<Build.PL>, nor the module(s) being installed.
 
+B<Note:> Module::Build does not need to be added to this list, as
+Module::Build::Functions will determine the version of Module::Build
+required for the functions used.
+
 =head4 conflicts
 
-    conflicts 'Acme' => '1.11111';
+	conflicts 'Acme' => '1.11111';
 	conflicts 'Perl::Dist' => '<1.14';
 
 Modules listed using this function conflict in some serious way with the 
@@ -160,7 +187,7 @@ are already installed.
 =head4 c_source
 
 	# Not accumulative - only the last c_source is used. 
-    c_source 'src';
+	c_source 'src';
 
 This function specifies a directory which contains C source files that the 
 rest of the build may depend on. 
@@ -181,7 +208,8 @@ Specifies any additional directories in which to search for C header files. May 
 
 Functions in this section are used when generating metadata for I<META.yml> and PPD files. 
 
-=head4 dist_abstract 
+=head4 dist_abstract
+ 
 =head4 abstract (Module::Install synonym)
 
 	# Not accumulative - only the last dist_abstract or abstract is used. 
@@ -190,11 +218,17 @@ Functions in this section are used when generating metadata for I<META.yml> and 
 
 This should be a short description of the distribution. 
 	
-If either this function, L<#abstract_from>, or L<#all_from> is not given, 
-then Module::Build looks in the POD of the module from which it gets the 
-distribution's version. If it finds a POD section marked "=head1 NAME", then 
-it looks for the first line matching \s+-\s+(.+), and uses the captured text 
-as the abstract.
+If either this function, L<abstract_from|#abstract_from>, or 
+L<all_from|#all_from> is not given, then Module::Build looks in the POD of 
+the module from which it gets the distribution's version. If it finds a POD 
+section marked "=head1 NAME", then it looks for the first line matching 
+\s+-\s+(.+), and uses the captured text as the abstract.
+
+=head4 abstract_from
+
+	abstract_from 'lib\Module\Build\Functions.pm';
+
+Specifies a file to look for the abstract in.
 
 =head4 dist_author
 
@@ -216,7 +250,11 @@ contents of this section.
 
 	dist_name 'Module-Build-Functions';
 
-Specifies the name for this distribution. Most authors won't need to set this directly, they can use L<#module_name> to set C<dist_name> to a reasonable default. However, some agglomerative distributions like C<libwww-perl> or C<bioperl> have names that don't correspond directly to a module name, so C<dist_name> can be set independently.
+Specifies the name for this distribution. Most authors won't need to set 
+this directly, they can use L<module_name|#module_name> to set C<dist_name> 
+to a reasonable default. However, some agglomerative distributions like 
+C<libwww-perl> or C<bioperl> have names that don't correspond directly to 
+a module name, so C<dist_name> can be set independently.
 
 =head4 dist_version
 
@@ -224,7 +262,22 @@ Specifies the name for this distribution. Most authors won't need to set this di
 
 	dist_version '0.001_001';
 
-Specifies a version number for the distribution. See L<module_name|#module_name> or L<dist_version_from|#dist_version_from> for ways to have this set automatically from a C<$VERSION> variable in a module. One way or another, a version number needs to be set.
+Specifies a version number for the distribution. See 
+L<module_name|#module_name> or L<dist_version_from|#dist_version_from> 
+for ways to have this set automatically from a C<$VERSION> variable in a 
+module. One way or another, a version number needs to be set.
+
+=head4 perl_version
+
+	perl_version '5.006001';
+
+Specifies a minimum version of perl that this distribution requires.
+
+=head4 perl_version_from
+
+	perl_version_from 'lib\Module\Build\Functions.pm';
+
+Specifies a file to look for the minimum perl version in.
 
 =head4 dist_version_from
 
@@ -232,8 +285,9 @@ Specifies a version number for the distribution. See L<module_name|#module_name>
 
 	dist_version_from 'lib/Module/Build/Functions.pm';
 
-Specifies a file to look for the distribution version in. Most authors won't need to set this directly, they can use C<module_name> to set it to a reasonable default.
-
+Specifies a file to look for the distribution version in. Most authors 
+won't need to set this directly, they can use C<module_name|#module_name> 
+to set it to a reasonable default.
 
 =head3 Flags
 
@@ -243,15 +297,16 @@ been set to will apply.
 =head4 create_packlist
 
 	create_packlist 1;
+	create_packlist 0; # Not recommended.
 	
 If this flag is set (and it is set by default), Module::Build will create a .packlist 
 file duting the L<install> action.
 
 =head4 create_makefile_pl
 
-    create_makefile_pl 'small';
-    create_makefile_pl 'passthrough';
-    create_makefile_pl 'traditional';
+	create_makefile_pl 'small';
+	create_makefile_pl 'passthrough';
+	create_makefile_pl 'traditional';
 
 This function lets you use Module::Build::Compat during the C<distdir> (or 
 C<dist>) action to automatically create a C<Makefile.PL> for compatibility 
@@ -260,7 +315,7 @@ named in the L<Module::Build::Compat|Module::Build::Compat> documentation.
 
 =head4 create_readme
 
-    create_readme 1;
+	create_readme 1;
 
 This function tells Module::Build whether to automatically create a README 
 file at the top level of your distribution or not. Currently it will simply 
@@ -274,7 +329,7 @@ separate INSTALL file if that information isn't in the generated README.
 
 =head4 create_license
 
-    create_license 1;
+	create_license 1;
 
 This function tells Module::Build whether to automatically create a LICENSE 
 file at the top level of your distribution or not. If set to 1, it creates 
@@ -285,6 +340,7 @@ This requires L<Software::License> to be installed.
 =head4 dynamic_config
 
 	dynamic_config 1;
+	dynamic_config 0;
 
 This function indicates whether the Build.PL file must be executed, or 
 whether this module can be built, tested and installed solely from 
@@ -329,17 +385,17 @@ list of files to cleanup when the C<clean> action is performed.
 
 =head4 auto_features
 
-    auto_features 'pg_support',    'description' => 'Interface with Postgres databases';
-    auto_features 'pg_support',    'requires'    => 'DBD::Pg'                 => '23.3';
-    auto_features 'pg_support',    'requires'    => 'DateTime::Format::Pg'    => 0;
-    auto_features 'mysql_support', 'description' => 'Interface with MySQL databases';
-    auto_features 'mysql_support', 'requires'    => 'DBD::mysql'              => '17.9';
-    auto_features 'mysql_support', 'requires'    => 'DateTime::Format::MySQL' => 0;
+	auto_features 'pg_support',    'description' => 'Interface with Postgres databases';
+	auto_features 'pg_support',    'requires'    => 'DBD::Pg'                 => '23.3';
+	auto_features 'pg_support',    'requires'    => 'DateTime::Format::Pg'    => 0;
+	auto_features 'mysql_support', 'description' => 'Interface with MySQL databases';
+	auto_features 'mysql_support', 'requires'    => 'DBD::mysql'              => '17.9';
+	auto_features 'mysql_support', 'requires'    => 'DateTime::Format::MySQL' => 0;
 
 This parameter supports the setting of features (see L<"Module::Build|feature($name)">) 
 automatically based on a set of prerequisites.
 
-*WARNING* The syntax for this may change before 1.000!
+B<*WARNING*> The syntax for this may change before 1.000!
 	
 =head4 autosplit
 
@@ -367,12 +423,12 @@ will be executed.
 These parameters can contain strings (which are split on whitespace and accumulate into an array reference in the order added) or array references to pass through to the compiler and linker phases when compiling/linking C code.
 For example, to tell the compiler that your code is C++, you might do:
 
-    extra_compiler_flags '-x c++';
+	extra_compiler_flags '-x c++';
 
 To link your XS code against glib you might write something like:
 
-    extra_compiler_flags scalar `glib-config --cflags`;
-    extra_linker_flags   scalar `glib-config --libs`;
+	extra_compiler_flags scalar `glib-config --cflags`;
+	extra_linker_flags   scalar `glib-config --libs`;
 
 =head3 Supported Module::Install syntax
 	
@@ -380,17 +436,26 @@ To link your XS code against glib you might write something like:
 
 =head4 install_as_cpan
 
-Alias for C<installdirs 'core';>. See L<#installdirs>.
+Aliases for C<installdirs 'core';>. See L<installdirs|#installdirs>.
 
 =head4 install_as_site
 
-Alias for C<installdirs 'site';>. See L<#installdirs>.
+Alias for C<installdirs 'site';>. See L<installdirs|#installdirs>.
 
 =head4 install_as_vendor
 
-Alias for C<installdirs 'vendor';>. See L<#installdirs>.
+Alias for C<installdirs 'vendor';>. See L<installdirs|#installdirs>.
 
-	 
+=head4 win32
+
+Returns true if $^O eq 'MSWin32'.
+
+=head4 winlike
+
+Returns true if $^O eq 'cygwin' or $^O eq 'MSWin32'.
+
+
+
 =head1 DIAGNOSTICS
 
 =for author to fill in:
@@ -467,8 +532,10 @@ or environment variables.
 
 =head1 DEPENDENCIES
 
-File::Slurp and Module::Build are required on the system of an author 
+L<File::Slurp> and L<Module::Build> are required on the system of an author 
 using this module in his Build.PL.
+
+L<Capture::Tiny> version 0.06 or greater is used during testing only.
 
 On the system of the person installing a module using 
 Module::Build::Functions, only Module::Build is required.  The version of 
@@ -491,13 +558,9 @@ None reported.
 
 No bugs have been reported.
 
-Please report any bugs or feature requests to the author at the e-mail
-address below for the moment.
-
-=for author to correct:
-	Please report any bugs or feature requests to
-	C<bug-Module-Build-Functions@rt.cpan.org>, or through the web interface at
-	L<http://rt.cpan.org>.
+Please report any bugs or feature requests to
+C<bug-Module-Build-Functions@rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org>.
 
 =head1 AUTHOR
 

@@ -12,7 +12,7 @@ minimum_regex_length_to_complain_about = 7
 
 [InputOutput::RequireCheckedSyscalls]
 functions = :builtins
-exclude_functions = print close
+exclude_functions = print close closedir readdir
 
 [Modules::PerlMinimumVersion]
 version = 5.005
@@ -63,7 +63,19 @@ version = 5.005
 [-ErrorHandling::RequireCheckingReturnValueOfEval]
 
 # Since AUTOLOAD uses string eval's, I turn this off.
-[-References::ProhibitDoubleSigils]
+#[-References::ProhibitDoubleSigils]
 
 # check close on a READ???
 [-InputOutput::RequireCheckedClose]
+
+# Can't use English well before 5.8.1.
+[-Variables::ProhibitPunctuationVars]
+
+# Can't use IO::Interactive because of use of module.
+[-InputOutput::ProhibitInteractiveTest]
+
+# RequireBriefOpen doesn't work because I have to have the option of 2 or 3-arg open.
+[-InputOutput::RequireBriefOpen]
+
+#
+#[-Variables::ProhibitPackageVars]

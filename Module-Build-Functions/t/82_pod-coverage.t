@@ -1,4 +1,4 @@
-#!perl -T
+#!perl
 
 #!/usr/bin/perl
 
@@ -33,6 +33,6 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-plan( skip_all => "Does not pass yet." );
+# plan( skip_all => "Does not pass yet." );
 
 all_pod_coverage_ok();

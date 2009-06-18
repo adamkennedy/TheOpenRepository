@@ -381,7 +381,7 @@ sub license_from {
 				return;
 			}
 		}
-	} ## end if ( $content =~ m{ 	}ixms)
+	} ## end if ( $content =~ m{ )
 
 	carp "Cannot determine license info from $file";
 	license('unknown');

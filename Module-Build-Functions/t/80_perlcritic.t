@@ -31,9 +31,9 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-plan( skip_all => "Does not pass yet." );
-
 use File::Spec::Functions qw(catfile);
+
+local $ENV{PERLTIDY} = catfile( 't', 'settings', 'perltidy.txt' );
 
 my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
 Test::Perl::Critic->import( -profile => $rcfile, -severity => 1 );
