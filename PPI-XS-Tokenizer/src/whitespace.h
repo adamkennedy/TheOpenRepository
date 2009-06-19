@@ -5,7 +5,7 @@ namespace PPITokenizer {
 
 class WhiteSpaceToken : public AbstractTokenType {
 public:
-	WhiteSpaceToken() : AbstractTokenType( Token_WhiteSpace, false ) {}
+	WhiteSpaceToken() : AbstractTokenType( Token_Whitespace, false ) {}
 	CharTokenizeResults tokenize(Tokenizer *t, Token *token, unsigned char c_char);
 };
 

@@ -313,7 +313,7 @@ Tokenizer::Tokenizer()
 	tokens_found_tail(NULL),
 	tokens_posponded_head(NULL),
 	tokens_posponded_tail(NULL),
-	zone(Token_WhiteSpace),
+	zone(Token_Whitespace),
 	m_nLastSignificantPos(0)
 {
 	m_TokensCache = new TokensCacheMany();
@@ -321,7 +321,7 @@ Tokenizer::Tokenizer()
 		TokenTypeNames_pool[Token_NoType] = NULL;
 	}
 	TokenTypeNames_pool[Token_NoType] = NULL;
-	TokenTypeNames_pool[Token_WhiteSpace] = new WhiteSpaceToken;
+	TokenTypeNames_pool[Token_Whitespace] = new WhiteSpaceToken;
 	TokenTypeNames_pool[Token_Comment] = new CommentToken;
 	TokenTypeNames_pool[Token_Structure] = new StructureToken;
 	TokenTypeNames_pool[Token_Magic] = new MagicToken;
@@ -400,7 +400,7 @@ void Tokenizer::Reset() {
 	c_line = NULL;
 	line_pos = 0;
 	line_length = 0;
-	zone = Token_WhiteSpace;
+	zone = Token_Whitespace;
 	m_nLastSignificantPos = 0;
 }
 

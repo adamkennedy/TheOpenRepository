@@ -10,7 +10,7 @@ namespace PPITokenizer {
 
 enum TokenTypeNames {
     Token_NoType = 0, // for signaling that there is no current token
-    Token_WhiteSpace, // done
+    Token_Whitespace, // done
     Token_Symbol, // done
     Token_Comment, // done
     Token_Word, // done

@@ -11,13 +11,13 @@ using namespace PPITokenizer;
 TokenTypeNames commit_map[128] = {
 	Token_NoType, /* 0 */ Token_NoType, /* 1 */ Token_NoType, /* 2 */ Token_NoType, /* 3 */ 
 	Token_NoType, /* 4 */ Token_NoType, /* 5 */ Token_NoType, /* 6 */ Token_NoType, /* 7 */ 
-	Token_NoType, /* 8 */ Token_WhiteSpace, /* '9' */ Token_WhiteSpace, /* '10' */ Token_NoType, /* 11 */ 
-	Token_NoType, /* 12 */ Token_WhiteSpace, /* '13' */ Token_NoType, /* 14 */ Token_NoType, /* 15 */ 
+	Token_NoType, /* 8 */ Token_Whitespace, /* '9' */ Token_Whitespace, /* '10' */ Token_NoType, /* 11 */ 
+	Token_NoType, /* 12 */ Token_Whitespace, /* '13' */ Token_NoType, /* 14 */ Token_NoType, /* 15 */ 
 	Token_NoType, /* 16 */ Token_NoType, /* 17 */ Token_NoType, /* 18 */ Token_NoType, /* 19 */ 
 	Token_NoType, /* 20 */ Token_NoType, /* 21 */ Token_NoType, /* 22 */ Token_NoType, /* 23 */ 
 	Token_NoType, /* 24 */ Token_NoType, /* 25 */ Token_NoType, /* 26 */ Token_NoType, /* 27 */ 
 	Token_NoType, /* 28 */ Token_NoType, /* 29 */ Token_NoType, /* 30 */ Token_NoType, /* 31 */ 
-	Token_WhiteSpace, /* '32' */ Token_Operator, /* '!' */ Token_Quote_Double, /* '"' */ Token_Comment, /* '#' */ 
+	Token_Whitespace, /* '32' */ Token_Operator, /* '!' */ Token_Quote_Double, /* '"' */ Token_Comment, /* '#' */ 
 	Token_Unknown, /* '$' */ Token_Unknown, /* '%' */ Token_Unknown, /* '&' */ Token_Quote_Single, /* ''' */ 
 	Token_NoType, /* 40 */ Token_Structure, /* ')' */ Token_Unknown, /* '*' */ Token_Operator, /* '+' */ 
 	Token_Operator, /* ',' */ Token_NoType, /* 45 */ Token_Operator, /* '.' */ Token_NoType, /* 47 */ 
@@ -75,7 +75,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 	}
 
     if ( c_char < 128 ) {
-        if ( commit_map[c_char] == Token_WhiteSpace ) {
+        if ( commit_map[c_char] == Token_Whitespace ) {
 			return my_char;
 		}
         if ( commit_map[c_char] != Token_NoType ) {
@@ -266,7 +266,7 @@ CharTokenizeResults CommentToken::commit(Tokenizer *t) {
 	c_token->length = len;
 	t->_finalize_token();
 	if ( t->c_line[t->line_pos] == t->local_newline ) {
-		t->_new_token(Token_WhiteSpace);
+		t->_new_token(Token_Whitespace);
 	}
 
     return done_it_myself;
@@ -275,7 +275,7 @@ CharTokenizeResults CommentToken::commit(Tokenizer *t) {
 CharTokenizeResults CommentToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	if (c_char == t->local_newline ) {
 		t->_finalize_token();
-		t->_new_token(Token_WhiteSpace);
+		t->_new_token(Token_Whitespace);
 		return t->c_token->type->tokenize(t, t->c_token, c_char);
 	}
 	return my_char;
