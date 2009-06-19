@@ -896,9 +896,11 @@ sub Marpa::Evaluator::new {
             $or_node;
     } ## end for my $or_node ( @{$or_nodes} )
 
-    my @span_sets = values %or_nodes_by_span;
+    my @span_sets = grep { @{$_} >= 2 } values %or_nodes_by_span;
     SPAN_SET: while ( my $span_set = pop @span_sets ) {
-        next SPAN_SET if @{$span_set} <= 1;
+        @{$span_set} =
+            grep { not $_->[Marpa::Internal::Or_Node::DELETED] } @{$span_set};
+        next SPAN_SET if @{$span_set} < 2;
         my @in_span_set = ();
         for my $or_node_ix ( 0 .. $#{$span_set} ) {
             $in_span_set[ $span_set->[$or_node_ix]
@@ -982,6 +984,52 @@ sub Marpa::Evaluator::new {
             push @cycles, \@cycle;
 
         } ## end for my $ix ( 0 .. $#{$span_set} )
+
+        # dummy while to make partial code compile OK
+        my $cycle_set = [];
+
+        # determine which in the original span set are
+        # internal and-nodes
+        my @internal_and_nodes;
+        for my $or_node ( @{$cycle_set} ) {
+            for my $and_node (
+                grep { defined $_ } @{$or_node}[
+                Marpa::Internal::And_Node::CAUSE,
+                Marpa::Internal::And_Node::PREDECESSOR
+                ]
+                )
+            {
+                $internal_and_nodes[ $and_node
+                    ->[Marpa::Internal::And_Node::ID] ] = 1;
+            } ## end for my $and_node ( grep { defined $_ } @{$or_node}[ ...
+        } ## end for my $or_node ( @{$cycle_set} )
+
+        # determine which in the original span set are the
+        # root or-nodes
+        my @root_or_nodes = grep {
+            List::Util::first { not $internal_and_nodes[$_] }
+            @{ $_->[Marpa::Internal::Or_Node::PARENT_IDS] }
+        } @{$cycle_set};
+
+        ## now make the copies
+
+        ## deletion-consistent at this point
+
+        ## DROP non-root external links when copying
+        ## DUP root external links on copies
+        ## TRANSLATE root and non-root internal links on copies
+
+        ## none of the above should affect deletion-consistency
+        ## deletion-consistent at this point
+
+        ## then ...
+
+        ## deletion-consistent after each deletion
+        ## DELETE root internal link on copy
+        ## DELETE non-root external link on original
+        ## DELETE root internal links on original
+
+        ## push every copy made onto span_sets
 
     } ## end while ( my $span_set = pop @span_sets )
 
