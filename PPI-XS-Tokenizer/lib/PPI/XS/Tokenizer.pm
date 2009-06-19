@@ -30,7 +30,7 @@ sub new {
     Carp::croak('Need $source, \$source, or \@source');
   }
 
-  return InternalNew($source);
+  return $class->InternalNew($lines);
 }
 
 
