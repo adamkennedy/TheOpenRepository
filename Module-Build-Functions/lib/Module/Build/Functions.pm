@@ -38,6 +38,7 @@ BEGIN {
 	%FLAGS = (
 		'build_class'          => [ '0.28', 0 ],
 		'create_makefile_pl'   => [ '0.19', 0 ],
+		'c_source'             => [ '0.04', 0 ],
 		'dist_abstract'        => [ '0.20', 0 ],
 		'dist_name'            => [ '0.11', 0 ],
 		'dist_version'         => [ '0.11', 0 ],
@@ -106,6 +107,7 @@ BEGIN {
 	  extra_linker_flags module_name no_index PL_files script_files test_files
 	  tap_harness_args subclass create_build_script get_builder
 	  functions_self_bundler bundler repository bugtracker meta_merge
+	  cygwin
 	);
 	@EXPORT = ( @DEFINED, @AUTOLOADED );
 
@@ -708,6 +710,9 @@ sub install_share {
 	require File::Spec::Unix;
 	require ExtUtils::Manifest;
 	my $files = ExtUtils::Manifest::maniread();
+	if (0 == scalar (%files)) {
+		croak 'Empty or no MANIFEST file';
+	}
 	my $installation_path;
 	my $sharecode;
 

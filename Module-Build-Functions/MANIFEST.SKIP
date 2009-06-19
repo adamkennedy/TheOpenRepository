@@ -12,6 +12,7 @@
 \bpm_to_blib$
 \bblibdirs$
 ^MANIFEST\.SKIP$
+^TODO\.csv$
 
 # Avoid VMS specific Makmaker generated files
 \bDescrip.MMS$

@@ -220,7 +220,7 @@ are already installed.
 This function specifies a directory which contains C source files that the 
 rest of the build may depend on. 
 
-See L<Module::Build's documentation on c_source()|Module::Build/c_source> 
+See L<Module::Build's documentation on c_source()|Module::Build::API/c_source> 
 for more information.
 
 =head4 include_dirs
@@ -566,14 +566,16 @@ This is used if the subclass has requirements that are satisfied by
 L</build_requires>, but are not neccessarily installed when Build.PL 
 will be executed.
 
-=head4 extra_compiler_flags
+=head4 extra_compiler_flags 
 
 =head4 extra_linker_flags
+
+I<Aliases>: C<extra_compiler_flag>, C<extra_linker_flag>
 
 These parameters can contain strings (which are split on whitespace and accumulate into an array reference in the order added) or array references to pass through to the compiler and linker phases when compiling/linking C code.
 For example, to tell the compiler that your code is C++, you might do:
 
-	extra_compiler_flags '-x c++';
+	extra_compiler_flag '-x c++';
 
 To link your XS code against glib you might write something like:
 
@@ -736,7 +738,50 @@ To support less typing, if a script is located in the C</script> directory, you 
 	print "A question I need a user to see.\n" if interactive;
 
 Returns true if in an interactive environment, or false otherwise.
+
+=head4 install_share
+
+	# These are the same - they put files in the 'share' directory
+    # where File::ShareDir::dist_dir or dist_file can access them 
+	# when your module is used.	
+	install_share;
+	install_share 'dist', 'share';
+
+	# If you want to call the directory within your distribution
+	# something different, you can.
+	install_share 'dist', 'data';
 	
+	# This installs a share directory for a module, where
+    # File::ShareDir::module_dir or module_file can find the files 
+	# when your module is used.
+	install_share 'module' => 'Perl::Dist::WiX', File::Spec->catdir('data', 'WiX');
+	install_share 'module' => 'Perl::Dist::Inno', File::Spec->catdir('data', 'Inno');
+	install_share 'module' => 'Acme::Angels', 'data';
+
+This command provides a way for modules or distributions to install 
+read-only data in a way that is easily findable after installation, 
+and is not operating system dependent.
+
+The first parameter is either C<'dist'> or C<'module'>, and specifies the 
+type of directory this is - whether it applies to the whole distribution, 
+or only a single module (and it's subclasses, see 
+L<File::ShareDir::class_file()|File::ShareDir/class_file>). If installing
+files for a module, the module name is required, as well. This defaults to 
+C<'dist'> if not given.
+
+The last parameter is the directory in your distribution that contains the
+files to install, and defaults to C<'share'> for a distribution, although if a 
+type is given, a directory must be, as well. The directory is given in
+local file system format, so you may wish to use L<File::Spec> to stitch two
+or more directories together, as shown above.
+
+Unlike L<Module::Install|Module::Install>'s C<install_share>, this 
+will NOT install a file that is not in the I<MANIFEST>, so you may need
+to alter your I<MANIFEST> or I<MANIFEST.SKIP> files to let certain files 
+through if they would ordinarily be skipped. If the C<MANIFEST> file cannot
+be read, then no files are copied, and the C<Build.PL> script stops.  You 
+have been warned.
+
 =head1 DIAGNOSTICS
 
 =for author to fill in:

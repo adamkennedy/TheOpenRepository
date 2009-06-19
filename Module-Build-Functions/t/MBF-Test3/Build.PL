@@ -2,7 +2,8 @@ use strict;
 $^W = 1; # Can't use "use warnings", see perl_version below.
 use inc::Module::Build::Functions;
 
-module_name         'MBF::Test3';
+dist_name           'MBF-Test3';
+dist_version        0.001_001;
 author              'Curtis Jewell <csjewell@cpan.org>';
 abstract_from       'lib/MBF/Test3.pm';
 perl_version        5.008001;
