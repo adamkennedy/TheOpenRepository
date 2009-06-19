@@ -107,7 +107,7 @@ use     Win32                 qw();
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.184')->numify;
+use version; $VERSION = version->new('0.184_001')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -145,6 +145,7 @@ use Object::Tiny qw(
   build_start_time
   perl_config_cf_email
   perl_config_cf_by
+  distributions_installed
 );
 
 use Perl::Dist::Asset               1.12 ();
@@ -717,6 +718,9 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 	$self->add_env( 'TERM',        'dumb' );
 	$self->add_env( 'FTP_PASSIVE', '1' );
+
+	# Get installation list started.
+	$self->{distributions_installed} = [];
 
 	return $self;
 } ## end sub new
@@ -2962,6 +2966,7 @@ sub install_distribution { ## no critic 'ProhibitExcessComplexity'
 	$dist_path =~ s{\.zip}{}msx;
 	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
 	my $unpack_to = catdir( $self->build_dir, $dist_path );
+	$self->_add_to_distributions_installed($dist_path);
 
 	# Extract the tarball
 	if ( -d $unpack_to ) {
@@ -3147,8 +3152,8 @@ sub install_distribution_from_file {
 	my $dist_path = $filename;
 	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
 	$dist_path =~ s{\.zip}{}msx;
+	$self->_add_to_distributions_installed($dist_path);
 
-#	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
 	my $unpack_to = catdir( $self->build_dir, $dist_path );
 
 	# Extract the tarball
@@ -3448,6 +3453,8 @@ END_PERL
 	}
 	my $dist_info = <$fh>;
 	$fh->close;
+	$self->trace_line("Dist info:\n$dist_info\n-----\n");
+	PDWiX->throw('Stopping to get dist_info.');
 
 	# Making final filelist.
 	my $filelist;
@@ -3575,6 +3582,13 @@ sub install_par {
 	$io->close;
 	$self->trace_line( 2, $output );
 
+	# Get distribution name to add to what's installed.
+	my ($dist_info) = {@_}->{url} =~ m{.*/([^/]*)\z}msx;
+	$dist_info =~ s{\.par}{}msx; # Take off .par extension.
+	my ($name, $ver) = $dist_info =~ m{\A(.*)-([0-9._]*)-.*\z}msx;
+	$dist_info = "$name-$ver";
+	$self->_add_to_distributions_installed($dist_info);	
+	
 	# Read in the .packlist and return it.
 	my $filelist =
 	  File::List::Object->new->load_file($packlist)
@@ -4447,6 +4461,16 @@ sub remake_path {
 		PDWiX->throw("Failed to remake_path for $dir");
 	}
 	return $dir;
+}
+
+sub _add_to_distributions_installed {
+	my $self = shift;
+	my $dist = shift;
+	$self->{distributions_installed} = [ @{$self->{distributions_installed}}, $dist ];
+	$self->trace_line(0, "Dist added: $dist\n");
+	$self->trace_line(0, 'Dist list: ' . join '\n   ',  @{$self->{distributions_installed}});
+	
+	return;
 }
 
 1;
