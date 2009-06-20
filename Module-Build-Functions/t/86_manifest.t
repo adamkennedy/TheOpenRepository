@@ -19,6 +19,9 @@ use Test::More;
 unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
 	plan( skip_all => "Author tests not required for installation" );
 }
+unless ( -e 'MANIFEST.SKIP' ) {
+	plan( skip_all => "MANIFEST.SKIP does not exist, so cannot test this." );
+}
 
 # Load the testing modules
 foreach my $MODULE ( @MODULES ) {
