@@ -452,6 +452,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	my $time = $params{build_start_time};
 	if ( $params{trace} >= 100 ) { print '# '; }
 	if ( $params{trace} > 1 )    { print '[0] '; }
+	if ( ($params{trace} % 100) > 4 )    { print '[WiX.pm 455] '; }
 	print "Starting build at $time.\n";
 
 	# Apply more defaults
@@ -498,14 +499,16 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 	if ( defined $params{image_dir} ) {
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();
+		if ( $params{trace} >= 100 ) { print '# '; }
 		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[WiX.pm 450] [3] '
+			print '[3] [WiX.pm 504] '
 			  . "Currently executing perl: $perl_location\n";
 		}
 		my $our_perl_location =
 		  lc catfile( $params{image_dir}, qw(perl bin perl.exe) );
+		if ( $params{trace} >= 100 ) { print '# '; }
 		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[WiX.pm 456] [3] '
+			print '[3] [WiX.pm 511] '
 			  . "Our perl to create:       $our_perl_location\n";
 		}
 
@@ -684,6 +687,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	for my $d (
 		$self->download_dir, $self->image_dir,
 		$self->modules_dir,  $self->license_dir,
+		catdir($self->image_dir, 'cpan'),
 	  )
 	{
 		next if -d $d;
@@ -1727,6 +1731,9 @@ sub remove_waste {
 	$self->remove_dir(qw{ cpan sources  });
 	$self->remove_dir(qw{ cpan build    });
 
+	# Readding the cpan directory.
+	$self->remake_path('cpan');
+	
 	return 1;
 } ## end sub remove_waste
 
