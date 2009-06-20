@@ -23,7 +23,7 @@ use     List::MoreUtils       qw( any                         );
 use     Data::UUID            qw( NameSpace_DNS               );
 require Devel::StackTrace;
 
-use version; $VERSION = version->new('0.184')->numify;
+use version; $VERSION = version->new('0.185')->numify;
 
 #>>>
 
@@ -295,10 +295,14 @@ sub trace_line {
 	$no_display = 0 unless defined $no_display;
 
 	my $stack = Devel::StackTrace->new();
-
+	my $index = 1;
+	my $frame = $stack->frame(1);
+	while ($frame->subroutine() =~ m/trace_line/) {
+		$frame = $stack->frame(++$index);
+	}
 	my $string =
 	  $self->_trace_line( $tracelevel, $text, $no_display,
-		$tracestate_status, $stack->frame(1) );
+		$tracestate_status, $frame );
 
 	if ($tracestate_test) {
 		Test::More::diag("$string");
@@ -383,12 +387,11 @@ sub generate_guid {
 		$sitename_guid =
 		  $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
 			$sitename );
+		$self->trace_line( 5,
+				'Generated site GUID: '
+			  . $guidgen->to_string($sitename_guid)
+			  . "\n" );
 	}
-
-	$self->trace_line( 5,
-		    'Generated site GUID: '
-		  . $guidgen->to_string($sitename_guid)
-		  . "\n" );
 
 	#... then use it to create a GUID out of the filename.
 	return uc $guidgen->create_from_name_str( $sitename_guid, $id );

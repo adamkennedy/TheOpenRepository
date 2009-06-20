@@ -1625,10 +1625,9 @@ sub _module_fix {
 sub install_perl_modules {
 	my $self = shift;
 
-	# TODO: Uncomment this.
 	# Upgrade anything out of date,
 	# but don't install anything extra.
-#	$self->install_cpan_upgrades;
+	$self->install_cpan_upgrades;
 
 	return 1;
 }
@@ -3476,7 +3475,7 @@ END_PERL
 	}
 	my $dist_info = <$fh>;
 	$fh->close;
-	$self->trace_line("Dist info:\n$dist_info\n-----\n");
+	$self->trace_line( 0, "Dist info:\n$dist_info\n-----\n");
 	PDWiX->throw('Stopping to get dist_info.');
 
 	# Making final filelist.
@@ -4493,8 +4492,8 @@ sub _add_to_distributions_installed {
 	my $self = shift;
 	my $dist = shift;
 	$self->{distributions_installed} = [ @{$self->{distributions_installed}}, $dist ];
-	$self->trace_line(0, "Dist added: $dist\n");
-	$self->trace_line(0, "Dist list:\n  " . join "\n   ",  @{$self->{distributions_installed}});
+	my $dist_list = join "\n   ",  @{$self->{distributions_installed}};
+	$self->trace_line( 1, "Dist list:\n   $dist_list\n"  );
 	
 	return;
 }
@@ -4528,6 +4527,8 @@ sub create_distribution_list {
 	my $dist_file = catfile( $self->image_dir, q{DISTRIBUTIONS.txt} );
 	my $fh = IO::File->new( $dist_file, 'w' );
 
+	$self->trace_line(2, "Creating distribution list at $dist_file\n");
+	
 	if ( not defined $fh ) {
 		PDWiX->throw(
 			"Could not open file $dist_file for writing [$!] [$^E]");

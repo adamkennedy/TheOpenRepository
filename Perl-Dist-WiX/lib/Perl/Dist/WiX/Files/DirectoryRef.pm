@@ -22,7 +22,7 @@ use Params::Util
 use Readonly          qw( Readonly );
 use Scalar::Util      qw( blessed  );
 
-use version; $VERSION = version->new('0.184')->numify;
+use version; $VERSION = version->new('0.185')->numify;
 #>>>
 
 Readonly my $DIRECTORY_CLASS => 'Perl::Dist::WiX::Directory';
@@ -478,8 +478,12 @@ sub as_string {
 
 	# Get our own Id and print it.
 	my $id = $directory_object[$object_id]->get_component_id;
-	$answer = "<DirectoryRef Id='D_$id'>\n";
-
+	if ($id ne 'INSTALLDIR') {
+		$answer = "<DirectoryRef Id='D_$id'>\n";
+	} else {
+		$answer = "<DirectoryRef Id='INSTALLDIR'>\n";
+	}
+	
 	# Stringify the WiX::Directory objects we own.
 	$count = scalar @{ $directories[$object_id] };
 	foreach my $i ( 0 .. $count - 1 ) {
