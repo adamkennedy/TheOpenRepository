@@ -3482,8 +3482,10 @@ END_PERL
 	}
 	my $dist_info = <$fh>;
 	$fh->close;
-	$self->trace_line( 0, "Dist info:\n$dist_info\n-----\n");
-	PDWiX->throw('Stopping to get dist_info.');
+	$dist_info =~ s{\.tar\.gz}{}msx;   # Take off extensions.
+	$dist_info =~ s{\.zip}{}msx;
+	$dist_info =~ s{.+\/}{}msx;        # Take off directories.
+	$self->_add_to_distributions_installed($dist_info);
 
 	# Making final filelist.
 	my $filelist;
