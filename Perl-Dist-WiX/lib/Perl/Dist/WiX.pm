@@ -4501,10 +4501,10 @@ sub _add_to_distributions_installed {
 
 sub create_distribution_list {
 	my $self = shift;
-	my $dist_list; = ' ' x 4;
+	my $dist_list;
 	my ($name, $ver);
 	
-	foreach my $dist (@{$self->{distributions_installed}})
+	foreach my $dist (@{$self->{distributions_installed}}) {
 		($name, $ver) = $dist =~ m{(.*)-(?:v?)([0-9\._]*)}msx;
 		$dist_list .= "    $name $ver\n";
 	}
