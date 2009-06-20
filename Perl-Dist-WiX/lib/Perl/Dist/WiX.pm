@@ -3616,7 +3616,7 @@ sub install_par {
 	# Get distribution name to add to what's installed.
 	my ($dist_info) = {@_}->{url} =~ m{.*/([^/]*)\z}msx;
 	$dist_info =~ s{\.par}{}msx; # Take off .par extension.
-	my ($name, $ver) = $dist_info =~ m{\A(.*)-([0-9._]*)-.*\z}msx;
+	my ($name, $ver) = $dist_info =~ m{\A(.*)-([0-9._]*)(?:-.*)?\z}msx;
 	$dist_info = "$name-$ver";
 	$self->_add_to_distributions_installed($dist_info);	
 	
