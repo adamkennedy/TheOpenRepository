@@ -145,8 +145,8 @@ use Object::Tiny qw(
   build_start_time
   perl_config_cf_email
   perl_config_cf_by
-  distributions_installed
 );
+#  Don't need to put distributions_installed in here.
 
 use Perl::Dist::Asset               1.12 ();
 use Perl::Dist::Asset::Binary       1.12 ();
@@ -1130,6 +1130,22 @@ sub perl_version_human {
 	  || 0;
 }
 
+=pod
+
+=head3 distribution_version_human
+
+The C<distribution_version_human> method returns the "marketing" form
+of the distribution version.
+
+=cut
+
+sub distribution_version_human {
+	return  $_[0]->perl_version_human
+		. '.' . $_[0]->build_number
+		. ($_[0]->portable ? ' Portable' : '')
+		. ($_[0]->beta_number ? ' Beta ' . $_[0]->beta_number : '');
+}
+
 #####################################################################
 # Top Level Process Methods
 
@@ -1574,6 +1590,12 @@ sub _skip_upgrade {
 	# If the ID is CGI::Carp, there's a bug in the index.
 	return 1 if $module->id eq 'CGI::Carp';
 
+	# If the ID is ExtUtils::MakeMaker, we've already installed it.
+	# There were some files gotten rid of after 6.50, so
+	# install_cpan_upgrades thinks that it needs to upgrade
+	# those files using it.
+	return 1 if $module->cpan_file =~ m{/ExtUtils-MakeMaker-6\.50}msx;
+
 	return 0;
 } ## end sub _skip_upgrade
 
@@ -1603,9 +1625,10 @@ sub _module_fix {
 sub install_perl_modules {
 	my $self = shift;
 
+	# TODO: Uncomment this.
 	# Upgrade anything out of date,
 	# but don't install anything extra.
-	$self->install_cpan_upgrades;
+#	$self->install_cpan_upgrades;
 
 	return 1;
 }
@@ -3805,6 +3828,9 @@ sub install_website {
 sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	my $self = shift;
 	$self->{output_file} ||= [];
+
+	$self->create_distribution_list;
+
 	if ( $self->zip ) {
 		push @{ $self->{output_file} }, $self->write_zip;
 	}
@@ -4468,7 +4494,48 @@ sub _add_to_distributions_installed {
 	my $dist = shift;
 	$self->{distributions_installed} = [ @{$self->{distributions_installed}}, $dist ];
 	$self->trace_line(0, "Dist added: $dist\n");
-	$self->trace_line(0, 'Dist list: ' . join '\n   ',  @{$self->{distributions_installed}});
+	$self->trace_line(0, "Dist list:\n  " . join "\n   ",  @{$self->{distributions_installed}});
+	
+	return;
+}
+
+sub create_distribution_list {
+	my $self = shift;
+	my $dist_list; = ' ' x 4;
+	my ($name, $ver);
+	
+	foreach my $dist (@{$self->{distributions_installed}})
+		($name, $ver) = $dist =~ m{(.*)-(?:v?)([0-9\._]*)}msx;
+		$dist_list .= "    $name $ver\n";
+	}
+	
+	my $dist_txt;
+	my $vars = { dist => $self, dist_list => $dist_list };
+	
+	my $tt = Template->new(
+		INCLUDE_PATH => [ $self->dist_dir, $self->wix_dist_dir, ],
+		ABSOLUTE     => 1,
+	) || PDWiX::Caught->throw(
+		message => 'Template error',
+		info    => Template->error(),
+	  );
+
+	$tt->process( 'DISTRIBUTIONS.txt.tt', $vars, \$dist_txt )
+	  || PDWiX::Caught->throw(
+		message => 'Template error',
+		info    => $tt->error(), );
+
+	my $dist_file = catfile( $self->image_dir, q{DISTRIBUTIONS.txt} );
+	my $fh = IO::File->new( $dist_file, 'w' );
+
+	if ( not defined $fh ) {
+		PDWiX->throw(
+			"Could not open file $dist_file for writing [$!] [$^E]");
+	}
+	$fh->print($dist_txt);
+	$fh->close;
+
+	$self->add_to_fragment('perl', [ $dist_file ] );
 	
 	return;
 }
