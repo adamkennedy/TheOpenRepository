@@ -1383,6 +1383,11 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
+		if ( $dist =~ /TermReadLine-2.30/msx ) {
+
+			# Upgrading to this version, instead...
+			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
+		}
 
 		$module_id = $self->_name_to_module($dist);
 		$core =
@@ -1535,9 +1540,20 @@ END_PERL
 			$self->_install_cpan_module( $module, $force );
 			next;
 		}
+		if (    ( $module->cpan_file =~ m{/CPANPLUS-\d}msx )
+			and ( $module->cpan_version == 0.8601 ) )
+		{
+			# Upgrading to this version, instead...
+			$self->install_distribution( 
+				name => 'KANE/CPANPLUS-0.87_02.tar.gz', 
+				mod_name => 'CPANPLUS',
+				makefilepl_param => ['INSTALLDIRS=perl'],
+				buildpl_param => ['--installdirs', 'core'],
+				force => $force );
+			next;
+		}
 
 		if ( $self->_delay_upgrade($module) ) {
-
 			# Delay these module until last.
 			unshift @delayed_modules, $module;
 			next;
@@ -3408,7 +3424,7 @@ sub install_module {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
-	my $dist_file = catfile( $self->build_dir, 'cpan_distro.txt' );
+	my $dist_file = catfile( $self->output_dir, 'cpan_distro.txt' );
 
 	# Generate the CPAN installation script
 	my $cpan_string = <<"END_PERL";
@@ -3616,9 +3632,21 @@ sub install_par {
 	# Get distribution name to add to what's installed.
 	my ($dist_info) = {@_}->{url} =~ m{.*/([^/]*)\z}msx;
 	$dist_info =~ s{\.par}{}msx; # Take off .par extension.
-	my ($name, $ver) = $dist_info =~ m{\A(.*)-([0-9._]*)(?:-.*)?\z}msx;
-	$dist_info = "$name-$ver";
-	$self->_add_to_distributions_installed($dist_info);	
+	my ($name, $ver) = $dist_info =~ 
+	  m{\A(.*?)     # Grab anything that could be the name non-greedily, ...
+	    -           # break at a dash,
+	    ([0-9._]*)  # then try to grab a version,
+		(?:-.*)?    # then discard anything else.
+		\z}msx;
+	if (defined $ver) {
+		$dist_info = "$name-$ver";
+		$self->_add_to_distributions_installed($dist_info);	
+	} else {
+		$self->trace_line(1, <<"EOF");
+Could not parse name of .par to determine name and version.
+Source: $dist_info
+EOF
+	}
 	
 	# Read in the .packlist and return it.
 	my $filelist =
