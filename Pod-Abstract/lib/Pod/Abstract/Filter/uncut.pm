@@ -5,11 +5,19 @@ use warnings;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract::BuildNode qw(node);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
-Pod::Abstract::Filter::uncut - turn source code into verbatim nodes.
+Pod::Abstract::Filter::uncut - paf command to turn source code into
+verbatim nodes.
+
+=head1 DESCRIPTION
+
+Takes all cut blocks from the source document, after the first Pod block
+starts, and converts them into inline verbatim Pod blocks. The effect of
+this is to allow viewing of source code inline with the formatted Pod
+documentation describing it.
 
 =cut
 

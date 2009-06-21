@@ -1,6 +1,6 @@
 package Pod::Abstract::Serial;
 use strict;
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 my $serial_number = 0;
 

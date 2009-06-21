@@ -5,11 +5,12 @@ use warnings;
 use base qw( Pod::Abstract::Filter );
 use Pod::Abstract::BuildNode qw(node);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
-Pod::Abstract::Filter::number_sections - Basic multipart section numbering.
+Pod::Abstract::Filter::number_sections - paf command for basic multipart
+section numbering.
 
 =cut
 

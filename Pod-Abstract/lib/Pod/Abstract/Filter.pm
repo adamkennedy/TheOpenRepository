@@ -5,7 +5,7 @@ use warnings;
 use Pod::Abstract;
 use UNIVERSAL qw(isa);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
@@ -28,6 +28,10 @@ Takes a Pod::Abstract::Node tree, and returns either another tree, or
 a string. If a string is returned, it will be re-parsed to be input to
 any following filter, or output directly if it is the last filter in
 the list.
+
+It is recommended your filter method produce a Node tree if you are able
+to, as this will improve interoperability with other C<Pod::Abstract>
+based software.
 
 =item require_params
 

@@ -12,7 +12,7 @@ use File::Temp qw(tempfile tempdir);
 
 =head1 NAME
 
-paf -- Pod Abstract Filter
+paf - Pod Abstract Filter. Transform Pod documents from the command line.
 
 =head1 SYNOPSIS
 

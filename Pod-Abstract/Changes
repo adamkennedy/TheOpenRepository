@@ -1,5 +1,10 @@
 Revision history for Pod-Abstract
 
+0.19    21/06/2009
+        Added =head1 NAME blocks to those modules missing them. Added some
+        additional Pod. Added "Task::Weaken" dependancy to ensure that the
+        target platform has a working "weaken" in their Scalar::Util
+
 0.18    08/06/2009
         Replaced "=" operator with "eq", added the full set of Perl
         compatible binary comparison operators (eq and friends, == and

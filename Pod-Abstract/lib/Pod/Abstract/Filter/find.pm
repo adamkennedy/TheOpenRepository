@@ -5,27 +5,30 @@ use warnings;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract::BuildNode qw(node);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
-Pod::Abstract::Filter::find - find specific nodes that contain a string.
+Pod::Abstract::Filter::find - paf command to find specific nodes that
+contain a string.
 
 =head1 DESCRIPTION
 
-The intention of this filter is to allow a reduction of large Pod documents to
-find a specific function or method. You call C<paf find -f=function YourModule>,
-and you get a small subset of nodes matching "function".
+The intention of this filter is to allow a reduction of large Pod
+documents to find a specific function or method. You call C<paf find
+-f=function YourModule>, and you get a small subset of nodes matching
+"function".
 
-For this to work, there has to be some assumptions about Pod structure. I am
-presuming that find is not useful if it returns anything higher than a head2,
-so as long as your module wraps function doco in a head2, head3, head4 or list
-item, we're fine. If you use head1 then it won't be useful.
+For this to work, there has to be some assumptions about Pod structure. I
+am presuming that find is not useful if it returns anything higher than a
+head2, so as long as your module wraps function doco in a head2, head3,
+head4 or list item, we're fine. If you use head1 then it won't be useful.
 
 In order to be useful as an end user tool, head1 nodes (...) are added
 between the found nodes. This stops perldoc from dying with no
 documentation. These can be easily stripped using:
-C<<$pa->select('/head1/')>>, then clear and re-nest.
+C<<$pa->select('/head1')>>, then hoist and detach, or reparent to other
+Node types.
 
 A good example of this working as intended is:
 

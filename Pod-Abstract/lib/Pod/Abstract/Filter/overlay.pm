@@ -6,7 +6,12 @@ use base qw(Pod::Abstract::Filter);
 use Pod::Abstract;
 use Pod::Abstract::BuildNode qw(node);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
+
+=head1 NAME
+
+Pod::Abstract::Filter::overlay - paf command to perform a method
+documentation overlay on a Pod document.
 
 =begin :overlay
 

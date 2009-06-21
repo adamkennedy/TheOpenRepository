@@ -6,7 +6,14 @@ use Data::Dumper;
 
 use base qw(Pod::Abstract::Filter);
 
-our $VERSION = '0.18';
+=head1 NAME
+
+Pod::Abstract::Filter::sort - paf command to alphabetically sort
+sub-sections within a Pod section
+
+=cut
+
+our $VERSION = '0.19';
 
 sub filter {
     my $self = shift;

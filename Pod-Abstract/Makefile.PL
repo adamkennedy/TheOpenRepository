@@ -18,6 +18,7 @@ WriteMakefile(
         'IO::String' => 0,
         'File::Temp' => 0,
         'Scalar::Util' => 0,
+        'Task::Weaken' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Pod-Abstract-*' },

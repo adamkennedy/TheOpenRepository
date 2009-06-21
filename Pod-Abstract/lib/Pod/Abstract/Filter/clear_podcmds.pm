@@ -3,7 +3,14 @@ use strict;
 
 use base qw(Pod::Abstract::Filter);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
+
+=head1 NAME
+
+Pod::Abstract::Filter::clear_podcmds - paf command to remove =pod commands
+from the begining of Pod blocks.
+
+=cut
 
 sub filter {
     my $self = shift;

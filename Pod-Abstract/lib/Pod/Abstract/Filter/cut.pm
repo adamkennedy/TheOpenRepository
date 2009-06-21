@@ -4,7 +4,14 @@ use warnings;
 
 use base qw(Pod::Abstract::Filter);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
+
+=head1 NAME
+
+Pod::Abstract::Filter::cut - paf command to remove non-processed (cut)
+portions of a Pod document.
+
+=cut
 
 sub filter {
     my $self = shift;

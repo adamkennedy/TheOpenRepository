@@ -6,9 +6,22 @@ use Pod::Abstract::Node;
 use Data::Dumper;
 use base qw(Pod::Parser);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
-=head1 new
+=head1 NAME
+
+Pod::Abstract::Parser - Internal Parser class of Pod::Abstract.
+
+=head1 DESCRIPTION
+
+This is a C<Pod::Parser> subclass, used by C<Pod::Abstract> to convert Pod
+text into a Node tree. You do not need to use this class yourself, the
+C<Pod::Abstract> class will do the work of creating the parser and running
+it for you.
+
+=head1 METHODS
+
+=head2 new
 
  Pod::Abstract::Parser->new( $pod_abstract );
 

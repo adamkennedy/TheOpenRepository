@@ -4,7 +4,12 @@ use strict;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract::BuildNode qw(node);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
+
+=head1 NAME
+
+Pod::Abstract::Filter::add_podcmds - paf command to insert explict =pod
+commands before each Pod block in a document.
 
 =head1 METHODS
 

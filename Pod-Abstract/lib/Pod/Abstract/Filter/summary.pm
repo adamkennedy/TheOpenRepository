@@ -4,12 +4,12 @@ use strict;
 use base qw(Pod::Abstract::Filter);
 use Pod::Abstract::BuildNode qw(node);
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
-Pod::Abstract::Filter::summary - show document outline, with short
-examples.
+Pod::Abstract::Filter::summary - paf command to show document outline,
+with short examples.
 
 =cut
 
