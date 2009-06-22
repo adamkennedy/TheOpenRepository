@@ -107,7 +107,7 @@ use     Win32                 qw();
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.184_001')->numify;
+use version; $VERSION = version->new('0.184_002')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1388,7 +1388,12 @@ sub install_perl_toolchain {
 			# Upgrading to this version, instead...
 			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
 		}
+		if ( $dist =~ /Archive-Zip-1.28/msx ) {
 
+			# 1.28 makes some things fail tests...
+			$dist = 'ADAMK/Archive-Zip-1.26.tar.gz'; 
+		}
+		
 		$module_id = $self->_name_to_module($dist);
 		$core =
 		  exists $Module::CoreList::version{ $self->perl_version_literal }
@@ -1540,6 +1545,7 @@ END_PERL
 			$self->_install_cpan_module( $module, $force );
 			next;
 		}
+
 		if (    ( $module->cpan_file =~ m{/CPANPLUS-\d}msx )
 			and ( $module->cpan_version == 0.8601 ) )
 		{
