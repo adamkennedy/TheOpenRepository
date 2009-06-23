@@ -13,7 +13,7 @@ use Process              ();
 
 use vars qw{$VERSION @ISA @DELEGATE};
 BEGIN {
-	$VERSION  = '1.14';
+	$VERSION  = '1.14_01';
 	@ISA      = qw{
 		Process::Delegatable
 		Process::Storable
@@ -104,6 +104,9 @@ sub new {
 	unless ( defined $self->perl_version ) {
 		Carp::croak("Did not provide a perl_version param");
 	}
+	unless ( defined $self->{cpan} ) {
+		Carp::croak("Did not provide a cpan param");
+	}
 	unless ( $MODULES{$self->perl_version} ) {
 		Carp::croak("Perl version '" . $self->perl_version . "' is not supported in $class");
 	}
@@ -167,6 +170,8 @@ sub prepare {
 	# Load the latest index
 	eval {
 		local $SIG{__WARN__} = sub { 1 };
+		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
+		$CPAN::Config->{'urllist'} = [ $self->{cpan} ];
 		CPAN::Index->reload;
 	};
 
@@ -185,6 +190,12 @@ sub run {
 	
 	# Find the module
 	my $core = delete $self->{corelist};
+	
+	$stdout->start;		$stderr->start;
+	CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
+	$CPAN::Config->{'urllist'} = [ $self->{cpan} ];
+	$stdout->stop;		$stderr->stop;
+
 	foreach my $name ( @{$self->{modules}} ) {
 		# Shortcut if forced
 		if ( $self->{force}->{$name} ) {
