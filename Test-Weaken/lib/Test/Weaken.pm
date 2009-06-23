@@ -70,6 +70,13 @@ sub follow {
 
         my $object_type = reftype $follow_probe;
 
+        my @child_probes = ();
+
+        if ( defined $contents ) {
+            my $safe_copy = $follow_probe;
+            push @child_probes, map { \$_ } ( $contents->($safe_copy) );
+        }
+
         if ( defined $ignore ) {
             my $safe_copy = $follow_probe;
             next FOLLOW_OBJECT if $ignore->($safe_copy);
@@ -84,8 +91,6 @@ sub follow {
             ## use critic
         }
 
-        my @child_probes = ();
-
         FIND_CHILDREN: {
             if ( $object_type eq 'ARRAY' ) {
                 foreach my $i ( 0 .. $#{$follow_probe} ) {
@@ -93,31 +98,16 @@ sub follow {
                         push @child_probes, \( $follow_probe->[$i] );
                     }
                 }
-                if ( defined $contents ) {
-                    my $safe_copy = $follow_probe;
-                    push @child_probes,
-                        map { \$_ } ( $contents->($safe_copy) );
-                }
                 last FIND_CHILDREN;
             } ## end if ( $object_type eq 'ARRAY' )
 
             if ( $object_type eq 'HASH' ) {
-                @child_probes = map { \$_ } values %{$follow_probe};
-                if ( defined $contents ) {
-                    my $safe_copy = $follow_probe;
-                    push @child_probes,
-                        map { \$_ } ( $contents->($safe_copy) );
-                }
+                push @child_probes, map { \$_ } values %{$follow_probe};
                 last FIND_CHILDREN;
             }
 
             if ( $object_type eq 'REF' ) {
-                @child_probes = ( ${$follow_probe} );
-                if ( defined $contents ) {
-                    my $safe_copy = $follow_probe;
-                    push @child_probes,
-                        map { \$_ } ( $contents->($safe_copy) );
-                }
+                push @child_probes, ${$follow_probe};
                 last FIND_CHILDREN;
             } ## end if ( $object_type eq 'REF' )
 
@@ -129,23 +119,23 @@ sub follow {
 
             my $child_type = Scalar::Util::reftype $child_probe;
 
+            # I don't know how to dereference a format, and failing
+            # that there's nothing I can do with it.
+            next CHILD_PROBE if $child_type eq 'FORMAT';
+
             my $new_tracking_probe;
             my $new_follow_probe;
 
             DECIDE_TRACK_OR_FOLLOW: {
 
-                if ( $child_type eq 'REF' ) {
+                if (   $child_type eq 'REF'
+                    or $child_type eq 'SCALAR'
+                    or $child_type eq 'VSTRING' )
+                {
                     $new_follow_probe = $new_tracking_probe =
                         \${$child_probe};
                     last DECIDE_TRACK_OR_FOLLOW;
-                }
-
-                if (   $child_type eq 'SCALAR'
-                    or $child_type eq 'VSTRING' )
-                {
-                    $new_tracking_probe = \${$child_probe};
-                    last DECIDE_TRACK_OR_FOLLOW;
-                }
+                } ## end if ( $child_type eq 'REF' or $child_type eq 'SCALAR'...
 
                 if ( $child_type eq 'HASH' ) {
                     $new_follow_probe = $new_tracking_probe =
@@ -160,11 +150,22 @@ sub follow {
                 }
 
                 if ( $child_type eq 'CODE' ) {
-                    $new_tracking_probe = \&{$child_probe};
+                    $new_follow_probe = $new_tracking_probe =
+                        \&{$child_probe};
                     last DECIDE_TRACK_OR_FOLLOW;
                 }
 
-                # FORMAT, LVALUE, GLOB, IO are not tracked or followed
+                if ( $child_type eq 'LVALUE' ) {
+                    $new_follow_probe = \${$child_probe};
+                    last DECIDE_TRACK_OR_FOLLOW;
+                }
+
+                if (   $child_type eq 'GLOB'
+                    or $child_type eq 'IO' )
+                {
+                    $new_follow_probe = \*{$child_probe};
+                    last DECIDE_TRACK_OR_FOLLOW;
+                } ## end if ( $child_type eq 'GLOB' or $child_type eq 'IO' )
 
             } ## end DECIDE_TRACK_OR_FOLLOW:
 
