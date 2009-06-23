@@ -72,16 +72,6 @@ sub follow {
 
         my @child_probes = ();
 
-        if ( defined $contents ) {
-            my $safe_copy = $follow_probe;
-            push @child_probes, map { \$_ } ( $contents->($safe_copy) );
-        }
-
-        if ( defined $ignore ) {
-            my $safe_copy = $follow_probe;
-            next FOLLOW_OBJECT if $ignore->($safe_copy);
-        }
-
         if ($trace_following) {
             ## no critic (ValuesAndExpressions::ProhibitLongChainsOfMethodCalls)
             print {*STDERR} 'Following: ',
@@ -91,7 +81,18 @@ sub follow {
             ## use critic
         }
 
+        if ( defined $contents ) {
+            my $safe_copy = $follow_probe;
+            push @child_probes, map { \$_ } ( $contents->($safe_copy) );
+        }
+
         FIND_CHILDREN: {
+
+            if ( defined $ignore ) {
+                my $safe_copy = $follow_probe;
+                last FIND_CHILDREN if $ignore->($safe_copy);
+            }
+
             if ( $object_type eq 'ARRAY' ) {
                 foreach my $i ( 0 .. $#{$follow_probe} ) {
                     if ( exists $follow_probe->[$i] ) {
