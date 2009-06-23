@@ -165,7 +165,7 @@ sub run {
 	}
 
 	# Search for the files
-	my $find  = File::Find::Rule->name('*.tar.gz', '*.tgz')->file->relative;
+	my $find  = File::Find::Rule->name('*.tar.gz', '*.tgz', '*.zip', '*.bz2')->file->relative;
 	my @files = sort $find->in( $self->authors );
 	unless ( $self->acme ) {
 		@files = grep { ! /\bAcme\b/ } @files;
@@ -184,6 +184,7 @@ sub run {
 	}
 
 	# Extract the archive
+	my $counter = 0;
 	foreach my $file ( @files ) {
 		# Derive the main file properties
 		my $path = File::Spec->catfile( $self->authors, $file );
@@ -197,14 +198,19 @@ sub run {
 			next;
 		}
 
+		# Explicitly ignore some damaging distributions
+		next if $path =~ /Text-SenseClusters/;
+		next if $path =~ /Bio-Affymetrix/;
+		next if $path =~ /Alien-MeCab/;
+
 		# Extract the archive
-		if ( (stat($path))[7] > 3 * 1024 * 1024 ) {
-			warn("Archive '$path' is above the 3meg limit");
-			next;
-		}
-		my $archive = Archive::Extract->new( archive => $path );
-		my $tmpdir  = File::Temp->newdir;
-		unless ( $archive->extract( to => $tmpdir ) ) {
+		# local $Archive::Tar::WARN = 0;
+		my $archive   = Archive::Extract->new( archive => $path );
+		my $tmpdir    = File::Temp->newdir;
+		my $extracted = eval {
+			$archive->extract( to => $tmpdir );
+		};
+		if ( $@ or not $extracted ) {
 			warn("Failed to extract '$path'");
 			next;
 		}
@@ -219,6 +225,7 @@ sub run {
 			archive => $path,
 			dist    => $dist,
 			author  => $author,
+			counter => ++$counter,
 		} );
 	}
 
