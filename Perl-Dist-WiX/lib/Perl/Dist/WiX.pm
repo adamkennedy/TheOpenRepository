@@ -1391,7 +1391,7 @@ sub install_perl_toolchain {
 		if ( $dist =~ /Archive-Zip-1.28/msx ) {
 
 			# 1.28 makes some things fail tests...
-			$dist = 'ADAMK/Archive-Zip-1.26.tar.gz'; 
+			$dist = 'CSJEWELL/Archive-Zip-1.29_0001.tar.gz'; 
 		}
 		
 		$module_id = $self->_name_to_module($dist);
