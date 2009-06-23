@@ -1778,9 +1778,12 @@ sub remove_waste {
 		"  Removing CPAN build directories and download caches\n" );
 	$self->remove_dir(qw{ cpan sources  });
 	$self->remove_dir(qw{ cpan build    });
+	$self->remove_file(qw{ cpan cpandb.sql });
+	$self->remove_file(qw{ cpan FTPstats.yml });
+	$self->remove_file(qw{ cpan cpan_sqlite_log.* });
 
 	# Readding the cpan directory.
-	$self->remake_path('cpan');
+	$self->remake_path(catdir($self->build_dir, 'cpan'));
 	
 	return 1;
 } ## end sub remove_waste
@@ -3677,8 +3680,8 @@ sub install_par {
 			-           # break at a dash,
 			([0-9._]*)  # then try to grab a version,
 			(?:-.*)?    # then discard anything else.
-			\z}msx )
-			my ($name, $ver) == ($1, $2);
+			\z}msx ) {
+			my ($name, $ver) = ($1, $2);
 			$dist_info = "$name-$ver";
 			$self->_add_to_distributions_installed($dist_info);	
 		} else {
