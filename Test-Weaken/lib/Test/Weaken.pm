@@ -40,6 +40,8 @@ use English qw( -no_match_vars );
 use Carp;
 use Scalar::Util qw(refaddr reftype isweak weaken);
 
+my %TRACKED_TYPE = map { ( $_, 1 ) } qw(REF SCALAR VSTRING HASH ARRAY CODE);
+
 sub follow {
     my ( $self, $base_probe ) = @_;
     my $ignore          = $self->{ignore};
@@ -114,66 +116,15 @@ sub follow {
 
         } ## end FIND_CHILDREN:
 
-        next FOLLOW_OBJECT if not scalar @child_probes;
+        push @follow_probes, @child_probes;
 
         CHILD_PROBE: for my $child_probe (@child_probes) {
 
             my $child_type = Scalar::Util::reftype $child_probe;
 
-            # I don't know how to dereference a format, and failing
-            # that there's nothing I can do with it.
-            next CHILD_PROBE if $child_type eq 'FORMAT';
+            next CHILD_PROBE unless $TRACKED_TYPE{$child_type};
 
-            my $new_tracking_probe;
-            my $new_follow_probe;
-
-            DECIDE_TRACK_OR_FOLLOW: {
-
-                if (   $child_type eq 'REF'
-                    or $child_type eq 'SCALAR'
-                    or $child_type eq 'VSTRING' )
-                {
-                    $new_follow_probe = $new_tracking_probe =
-                        \${$child_probe};
-                    last DECIDE_TRACK_OR_FOLLOW;
-                } ## end if ( $child_type eq 'REF' or $child_type eq 'SCALAR'...
-
-                if ( $child_type eq 'HASH' ) {
-                    $new_follow_probe = $new_tracking_probe =
-                        \%{$child_probe};
-                    last DECIDE_TRACK_OR_FOLLOW;
-                }
-
-                if ( $child_type eq 'ARRAY' ) {
-                    $new_follow_probe = $new_tracking_probe =
-                        \@{$child_probe};
-                    last DECIDE_TRACK_OR_FOLLOW;
-                }
-
-                if ( $child_type eq 'CODE' ) {
-                    $new_follow_probe = $new_tracking_probe =
-                        \&{$child_probe};
-                    last DECIDE_TRACK_OR_FOLLOW;
-                }
-
-                if ( $child_type eq 'LVALUE' ) {
-                    $new_follow_probe = \${$child_probe};
-                    last DECIDE_TRACK_OR_FOLLOW;
-                }
-
-                if (   $child_type eq 'GLOB'
-                    or $child_type eq 'IO' )
-                {
-                    $new_follow_probe = \*{$child_probe};
-                    last DECIDE_TRACK_OR_FOLLOW;
-                } ## end if ( $child_type eq 'GLOB' or $child_type eq 'IO' )
-
-            } ## end DECIDE_TRACK_OR_FOLLOW:
-
-            push @follow_probes, $new_follow_probe
-                if defined $new_follow_probe;
-
-            next CHILD_PROBE unless defined $new_tracking_probe;
+            my $new_tracking_probe = $child_probe;
 
             next CHILD_PROBE if $already_tracked{ $new_tracking_probe + 0 }++;
 
@@ -1132,7 +1083,7 @@ where C<$safe_copy> is a copy of the probe reference to
 another Perl reference.
 
 The C<contents> callback is made once
-for every Perl data object (except format objects)
+for every Perl data object
 when that Perl data object is
 about to be examined for children.
 
@@ -1645,29 +1596,6 @@ C<Scalar::Util::reftype> differs from Perl's C<ref> function.
 If an object was blessed into a package, C<ref> returns the package name,
 while C<reftype> returns the original builtin type of the object.
 
-=head3 Objects that are Totally Ignored
-
-FORMAT Objects are 
-not tracked, examined for children, or
-passed as arguments to the C<contents> callback.
-C<Test::Weaken> must be able to reference and dereference any object
-it tracks, and FORMAT references cannot be dereferenced.
-The need to ignore FORMAT objects will not be a cause
-of widespread regret.
-FORMAT objects are always global, and therefore
-can be expected to be persistent.
-Use of FORMAT objects is officially deprecated.
-C<Data::Dumper> does not deal with
-FORMAT objects gracefully,
-issuing a cryptic warning whenever it encounters one.
-
-This version of C<Test::Weaken> might someday be run
-in a future version of Perl
-and encounter builtin types it does not know about.
-Those new builtin types will not be
-tracked, examined for children, or
-passed as arguments to the C<contents> callback.
-
 =head3 Tracked and Untracked Objects
 
 ARRAY, HASH, REF,
@@ -1696,6 +1624,18 @@ them.
 IO objects, which are ignored because of C<Data::Dumper> issues,
 are often associated with GLOB objects.
 
+FORMAT objects are always global, and therefore
+can be expected to be persistent.
+Use of FORMAT objects is officially deprecated.
+C<Data::Dumper> does not deal with
+FORMAT objects gracefully,
+issuing a cryptic warning whenever it encounters one.
+
+This version of C<Test::Weaken> might someday be run
+in a future version of Perl
+and encounter builtin types it does not know about.
+Those new builtin types will not be tracked.
+
 =head3 Children, by type of object
 
 Objects of builtin type
@@ -1708,14 +1648,23 @@ to other Perl data objects,
 and so, by default, are not considered to have
 children.
 
+The object types
+which are not tracked are not examined for children.
 Objects of type CODE are
 also not examined for children.
-This can be seen as a limitation, because
+Not examining CODE objects for children
+can be seen as a limitation, because
 closures do hold internal references to data objects.
 Future versions of C<Test::Weaken> may examine CODE objects.
-All objects, except FORMAT objects and objects of a builtin type
-not known as of this version of Perl, are passed as arguments
-to the C<contents> callback.
+
+The C<ignore> callback can be used to force an object
+not to be examined for children.
+The C<contents> callback can be used to add new data objects
+based on a data object already part of the contents.
+By combining
+these two callbacks, a user can completely override
+C<Test::Weaken>'s default method for finding children
+as a way of determining the contents of a data structure.
 
 =head1 AUTHOR
 
@@ -1775,7 +1724,7 @@ does not have at present.
 
 =head1 ACKNOWLEDGEMENTS
 
-Thanks to jettero, Juerd and perrin of Perlmonks for their advice.
+Thanks to jettero, Juerd, morgon and perrin of Perlmonks for their advice.
 Thanks to Lincoln Stein (developer of L<Devel::Cycle>) for
 test cases and other ideas.
 Kevin Ryde made several important suggestions
