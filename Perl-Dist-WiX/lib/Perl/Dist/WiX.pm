@@ -159,7 +159,7 @@ use Perl::Dist::Asset::File         1.14   ();
 use Perl::Dist::Asset::Website      1.14   ();
 use Perl::Dist::Asset::Launcher     1.14   ();
 # Copy this version from http://svn.ali.as/cpan/trunk/Perl-Dist/lib/...
-use Perl::Dist::Util::Toolchain     1.14_01 ();
+use Perl::Dist::Util::Toolchain     1.14001 ();
 #>>>
 
 Readonly my %MODULE_FIX => (
