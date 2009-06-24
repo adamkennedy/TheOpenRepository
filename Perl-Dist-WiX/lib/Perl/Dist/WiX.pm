@@ -148,17 +148,18 @@ use Object::Tiny qw(
 );
 #  Don't need to put distributions_installed in here.
 
-use Perl::Dist::Asset               1.12 ();
-use Perl::Dist::Asset::Binary       1.12 ();
-use Perl::Dist::Asset::Library      1.12 ();
-use Perl::Dist::Asset::Perl         1.12 ();
-use Perl::Dist::Asset::Distribution 1.12 ();
-use Perl::Dist::Asset::Module       1.12 ();
-use Perl::Dist::Asset::PAR          1.12 ();
-use Perl::Dist::Asset::File         1.12 ();
-use Perl::Dist::Asset::Website      1.12 ();
-use Perl::Dist::Asset::Launcher     1.12 ();
-use Perl::Dist::Util::Toolchain     1.12 ();
+use Perl::Dist::Asset               1.14   ();
+use Perl::Dist::Asset::Binary       1.14   ();
+use Perl::Dist::Asset::Library      1.14   ();
+use Perl::Dist::Asset::Perl         1.14   ();
+use Perl::Dist::Asset::Distribution 1.14   ();
+use Perl::Dist::Asset::Module       1.14   ();
+use Perl::Dist::Asset::PAR          1.14   ();
+use Perl::Dist::Asset::File         1.14   ();
+use Perl::Dist::Asset::Website      1.14   ();
+use Perl::Dist::Asset::Launcher     1.14   ();
+# Copy this version from http://svn.ali.as/cpan/trunk/Perl-Dist/lib/...
+use Perl::Dist::Util::Toolchain     1.14_01 ();
 #>>>
 
 Readonly my %MODULE_FIX => (
@@ -1395,15 +1396,21 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
-		if ( $dist =~ /TermReadLine-2.30/msx ) {
+		if ( $dist =~ /TermReadKey-2\.30/msx ) {
 
 			# Upgrading to this version, instead...
 			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
 		}
-		if ( $dist =~ /Archive-Zip-1.28/msx ) {
+		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
 
 			# 1.28 makes some things fail tests...
-			$dist = 'CSJEWELL/Archive-Zip-1.29_0001.tar.gz'; 
+			$dist = 'ADAMK/Archive-Zip-1.26.tar.gz';
+			PDWiX->throw(<<'EOF') unless ($self->cpan->as_string =~ m{\Afile:}msx);
+Cannot build using Archive::Zip 1.28 unless working off 
+a minicpan so that it does not get installed.
+(It makes other modules fail tests - a minicpan can cheat 
+and copy 1.26 in its place.)
+EOF
 		}
 		
 		$module_id = $self->_name_to_module($dist);
@@ -1864,7 +1871,7 @@ sub install_perl_588 {
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain =
 	  Perl::Dist::Util::Toolchain->new(
-		perl_version => $self->perl_version_literal, )
+		perl_version => $self->perl_version_literal, cpan => $self->cpan->as_string )
 	  or PDWiX->throw('Failed to resolve toolchain modules');
 	unless ( eval { $toolchain->delegate; 1; } ) {
 		PDWiX::Caught->throw(
@@ -2042,7 +2049,7 @@ sub install_perl_589 {
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain =
 	  Perl::Dist::Util::Toolchain->new(
-		perl_version => $self->perl_version_literal, )
+		perl_version => $self->perl_version_literal, cpan => $self->cpan->as_string )
 	  or PDWiX->throw('Failed to resolve toolchain modules');
 	unless ( eval { $toolchain->delegate; 1; } ) {
 		PDWiX::Caught->throw(
