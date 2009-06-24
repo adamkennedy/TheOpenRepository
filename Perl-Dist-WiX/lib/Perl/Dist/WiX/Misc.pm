@@ -286,6 +286,7 @@ sub trace_line {
 	if ( $tracestate_status >= 100 ) {
 		$tracestate_status -= 100;
 		$tracestate_test = 1;
+
 #		require Test::More;
 	}
 
@@ -297,8 +298,8 @@ sub trace_line {
 	my $stack = Devel::StackTrace->new();
 	my $index = 1;
 	my $frame = $stack->frame(1);
-	while ($frame->subroutine() =~ m/trace_line/) {
-		$frame = $stack->frame(++$index);
+	while ( $frame->subroutine() =~ m/trace_line/sm ) {
+		$frame = $stack->frame( ++$index );
 	}
 	my $string =
 	  $self->_trace_line( $tracelevel, $text, $no_display,
@@ -387,7 +388,7 @@ sub generate_guid {
 		  $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
 			$sitename );
 		$self->trace_line( 5,
-				'Generated site GUID: '
+			    'Generated site GUID: '
 			  . $guidgen->to_string($sitename_guid)
 			  . "\n" );
 	}
