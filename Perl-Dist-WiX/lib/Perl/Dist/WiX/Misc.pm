@@ -286,7 +286,7 @@ sub trace_line {
 	if ( $tracestate_status >= 100 ) {
 		$tracestate_status -= 100;
 		$tracestate_test = 1;
-		require Test::More;
+#		require Test::More;
 	}
 
 	# Short-circuit.
@@ -305,10 +305,9 @@ sub trace_line {
 		$tracestate_status, $frame );
 
 	if ($tracestate_test) {
-		Test::More::diag("$string");
+		print "$string";
 	} elsif ( $tracelevel == 0 ) {
-		## no critic 'RequireBracedFileHandleWithPrint'
-		print STDERR "$string";
+		print {*STDERR} "$string";
 	} else {
 		print "$string";
 	}
