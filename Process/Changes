@@ -1,5 +1,9 @@
 Revision history for Perl extension Process
 
+0.27 Thu 25 Jun 2009
+	- Updating to Module::Install::DSL 0.91
+	- Explicitly close the temporary filehandles in ->delegate (they leak)
+
 0.26 Tue 14 Apr 2009
 	- Updating to Module::Install::DSL 0.83
 

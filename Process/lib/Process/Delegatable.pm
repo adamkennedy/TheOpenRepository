@@ -10,7 +10,7 @@ use Process::Storable ();
 
 use vars qw{$VERSION @ISA @PERLCMD};
 BEGIN {
-	$VERSION = '0.26';
+	$VERSION = '0.27';
 	@ISA     = 'Process::Storable';
 
 	# Contains the command to use to launch perl
@@ -52,7 +52,15 @@ sub delegate {
 		# Looks good, deserialize the data
 		my $complete = $class->deserialize( $stdout );
 		%$self = %$complete;
+
+		# Clean up and return
+		close( $stdin  );
+		close( $stdout );
 		return 1;
+	} else {
+		# Just clean up
+		close( $stdin  );
+		close( $stdout );
 	}
 
 	# Is it an error?
