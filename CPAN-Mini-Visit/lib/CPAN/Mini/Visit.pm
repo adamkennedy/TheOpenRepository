@@ -12,6 +12,8 @@ CPAN::Mini::Visit - A generalised API version of David Golden's visitcpan
       minicpan => '/minicpan',
       acme     => 0,
       author   => 'ADAMK',
+      warnings => 1,
+      random   => 1,
       callback => sub {
           print "# counter: $_[0]->{counter}\n";
           print "# archive: $_[0]->{archive}\n";
@@ -74,7 +76,7 @@ use Params::Util      1.00 qw{
 use Archive::Extract  0.32 ();
 use CPAN::Mini       0.576 ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -83,6 +85,7 @@ use Object::Tiny 1.06 qw{
 	acme
 	author
 	ignore
+	random
 	warnings
 };
 
@@ -108,6 +111,12 @@ any of the joke modules.
 The C<author> param can be provided to limit the visit to only the modules
 owned by a specific author.
 
+The C<warnings> param will turn on L<Archive::Extract> warnings if enabled,
+or disable warnings otherwise.
+
+The C<random> param will cause the archives to be processed in random order
+if enabled. If not, the archives will be processed in alphabetical order.
+
 Returns a B<CPAN::Mini::Visit> object, or throws an exception on error.
 
 =cut
@@ -118,6 +127,7 @@ sub new {
 
 	# Normalise
 	$self->{warnings} = $self->warnings ? 1 : 0;
+	$self->{random}   = $self->random   ? 1 : 0;
 
 	# Check params
 	unless (
@@ -179,6 +189,7 @@ sub run {
 	foreach my $filter ( @{$self->ignore} ) {
 		if ( defined _STRING($filter) ) {
 			$filter = quotemeta $filter;
+			$filter = qr/$filter/;
 		}
 		if ( _REGEX($filter) ) {
 			@files = grep { ! /$filter/ } @files;
@@ -187,6 +198,11 @@ sub run {
 		} else {
 			die("Missing or invalid filter");
 		}
+	}
+
+	# Randomise if needed
+	if ( $self->random ) {
+		@files = sort { rand() <=> rand() } @files;
 	}
 
 	# Extract the archive

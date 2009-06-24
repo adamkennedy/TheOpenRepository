@@ -56,6 +56,7 @@ is( scalar(@data), 7, 'Acme triggered four visits' );
 my $author = new_ok( 'CPAN::Mini::Visit' => [
 	minicpan => $minicpan,
 	author   => 'ADAMK',
+	random   => 1,
 	callback => sub {
 		push @data, { %{ $_[0] } };
 	},
