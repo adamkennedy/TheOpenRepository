@@ -17,7 +17,7 @@ use     Params::Util             qw( _IDENTIFIER _CLASSISA          );
 use     Scalar::Util             qw( weaken                         );
 require Perl::Dist::WiX::Feature;
 
-use version; $VERSION = version->new('0.184')->numify;
+use version; $VERSION = version->new('0.185')->numify;
 #>>>
 #####################################################################
 # Accessors:

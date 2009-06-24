@@ -16,7 +16,7 @@ use Params::Util           qw( _STRING   );
 use File::Spec::Functions  qw( splitpath );
 use vars                   qw( $VERSION  );
 
-use version; $VERSION = version->new('0.184')->numify;
+use version; $VERSION = version->new('0.185')->numify;
 #>>>
 #####################################################################
 # Attributes

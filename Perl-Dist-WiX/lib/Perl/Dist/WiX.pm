@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 0.184
+Perl-Dist-WiX version 0.185
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 0.184.
+This document describes Perl::Dist::WiX version 0.185.
 
 =for readme continue
 
@@ -107,7 +107,7 @@ use     Win32                 qw();
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.184_002')->numify;
+use version; $VERSION = version->new('0.185')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1155,10 +1155,10 @@ of the distribution version.
 
 sub distribution_version_human {
 	return
-	    $_[0]->perl_version_human . '.'
+	    $_[0]->perl_version_human . q{.}
 	  . $_[0]->build_number
-	  . ( $_[0]->portable ? ' Portable' : '' )
-	  . ( $_[0]->beta_number ? ' Beta ' . $_[0]->beta_number : '' );
+	  . ( $_[0]->portable ? ' Portable' : q{} )
+	  . ( $_[0]->beta_number ? ' Beta ' . $_[0]->beta_number : q{} );
 }
 
 #####################################################################
@@ -3552,9 +3552,9 @@ END_PERL
 		$dist_info =~ s{.+\/}{}msx;    # Take off directories.
 		$self->_add_to_distributions_installed($dist_info);
 	} else {
-		my $name = $module->name;
+		my $module_name = $module->name;
 		$self->trace_line( 0,
-			"Distribution for module $name was up-to-date\n" );
+			"Distribution for module $module_name was up-to-date\n" );
 	}
 
 	# Making final filelist.

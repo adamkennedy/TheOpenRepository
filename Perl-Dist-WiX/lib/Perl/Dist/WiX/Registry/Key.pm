@@ -20,7 +20,7 @@ use     Readonly           qw( Readonly                         );
 use     Params::Util       qw( _IDENTIFIER _STRING              );
 require Perl::Dist::WiX::Registry::Entry;
 
-use version; $VERSION = version->new('0.184')->numify;
+use version; $VERSION = version->new('0.185')->numify;
 
 # Defining at this level so it does not need recreated every time.
 Readonly my @ROOT_OPTIONS => qw(HKMU HKCR HKCU HKLM HKU);

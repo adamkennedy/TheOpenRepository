@@ -1,5 +1,20 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.185   Tue 23 Jun 2009
+    1. Will be used to make Strawberry Perl July 2009 
+       Beta 3.
+    2. Force install of Archive::Zip version 1.26 (1.28 
+       has a bug in it.)
+    3. Builds a list of CPAN distributions that were 
+       installed as DISTRIBUTIONS.txt in the root directory
+       of the install.
+    4. A few more files are removed.
+    5. Checks of CPAN use the CPAN passed in, not the 
+       CPAN of the host perl or cpan.strawberryperl.com.
+    6. Required version of Perl::Dist increased to 1.14 
+       (except for Perl::Dist::Util::Toolchain, which has
+	   to be gotten from SVN for now.)
+
 0.184   Tue 16 Jun 2009
     1. Allow e-mail of builder and build and beta numbers 
        to be stored in perl configuration.
