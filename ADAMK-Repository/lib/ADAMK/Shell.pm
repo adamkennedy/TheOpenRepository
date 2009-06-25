@@ -147,6 +147,10 @@ sub report_new_modules {
 	my $repo = $self->repository;
 	$self->trace("Scanning unreleased distributions...\n");
 	foreach my $dist ( $repo->distributions_unreleased ) {
+		# Limit to my new modules
+		my $author = $dist->info->author;
+		next unless $author eq 'adamk@cpan.org';
+
 		# Get the changes value
 		my $changes = undef;
 		if ( $dist->changes_file and -f $dist->changes_file ) {

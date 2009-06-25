@@ -95,6 +95,24 @@ sub svn_subdir {
 # Extracts the actual tarball into a temporary directory
 sub extract {
 	my $self = shift;
+	if ( @_ ) {
+		# Extra param means a one-time extract with
+		# no cleanup and no caching.
+		my $temp = File::Temp::tempdir( @_ );
+		my $ae   = Archive::Extract->new(
+			archive => $self->path,
+		);
+		# $self->trace("Extracting " . $self->file . "...\n");
+		my $ok = $ae->extract( to => $temp );
+		Carp::croak(
+			"Failed to extract " . $self->path
+			. ": " . $ae->error
+		) unless $ok;
+		return ADAMK::Release::Extract->new(
+			path    => $ae->extract_path,
+			release => $self,
+		);
+	}
 	unless ( $self->{extract_path} ) {
 		my $temp = File::Temp::tempdir( CLEANUP => 1 );
 		my $ae   = Archive::Extract->new(

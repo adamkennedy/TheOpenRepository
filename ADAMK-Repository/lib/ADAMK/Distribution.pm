@@ -51,9 +51,10 @@ sub trace {
 # SVN Integration
 
 sub checkout {
-	my $self = shift;
-	my $path = File::Temp::tempdir( CLEANUP => 1 );
-	my $url  = $self->info->url;
+	my $self   = shift;
+	my @params = @_ ? @_ : ( CLEANUP => 1 );
+	my $path   = File::Temp::tempdir( @params );
+	my $url    = $self->info->url;
 	$self->repository->svn_checkout( $url, $path );
 
 	# Create and return an ADAMK::Distribution::Checkout object
@@ -67,7 +68,8 @@ sub checkout {
 sub export {
 	my $self     = shift;
 	my $revision = shift;
-	my $path     = File::Temp::tempdir( CLEANUP => 1 );
+	my @params   = @_ ? @_ : ( CLEANUP => 1 );
+	my $path     = File::Temp::tempdir( @params );
 	my $url      = $self->info->url;
 	$self->repository->svn_export( $url, $path, $revision );
 

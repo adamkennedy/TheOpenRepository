@@ -18,17 +18,19 @@ BEGIN {
 #####################################################################
 # Main Script
 
-my $root = List::Util::first {
+my $path = List::Util::first {
 	defined $_ and -d $_
 } (
 	$ENV{ADAMK_CHECKOUT},
+	'F:\cpan',
+	'G:\cpan',
 	'D:\cpan',
 	'/home/adam/cpan',
 ) or die "Failed to guess repository root";
 
 # Connect to the repository
 my $shell = ADAMK::Shell->new(
-	path  => 'D:\cpan',
+	path  => $path,
 	trace => 1,
 ) or die 'Failed to locate repository checkout';
 

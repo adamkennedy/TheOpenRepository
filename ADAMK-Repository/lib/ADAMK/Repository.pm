@@ -13,7 +13,7 @@ use strict;
 use warnings;
 use Carp                          ();
 use List::Util               1.18 ();
-use Params::Util             0.35 ();
+use Params::Util             0.35 qw{ _REGEX _INSTANCE };
 use File::Spec               3.29 ();
 use File::Temp               0.21 ();
 use File::Flat               1.04 ();
@@ -151,9 +151,7 @@ sub distributions_like {
 	unless ( defined $_[0] ) {
 		die "Did not provide a like condition";
 	}
-	my $like = Params::Util::_REGEX($_[0])
-		? $_[0]
-		: quotemeta($_[0]);
+	my $like = _REGEX($_[0]) ? $_[0] : quotemeta($_[0]);
 	return grep {
 		$_->name =~ /$like/
 	} $self->distributions;	
@@ -280,11 +278,11 @@ sub araxis_compare {
 	my $self  = shift;
 	my $left  = shift;
 	my $right = shift;
-	unless ( -d $left ) {
-		Carp::croak("Left directory does not exist");
+	if ( _INSTANCE($left, 'ADAMK::Role::File') ) {
+		$left = $left->directory;
 	}
-	unless ( -d $right ) {
-		Carp::croak("Right directory does not exist");
+	if ( _INSTANCE($right, 'ADAMK::Role::File') ) {
+		$right = $right->directory;
 	}
 	IPC::Run3::run3( [
 		$self->araxis_compare_bin,
@@ -306,7 +304,7 @@ sub compare_tarball_latest {
 
 	# Launch the comparison
 	$self->araxis_compare(
-		$release->extract,
+		$release->extract( CLEANUP => 0 ),
 		$distribution->path,
 	);
 }
@@ -324,7 +322,7 @@ sub compare_tarball_stable {
 
 	# Launch the comparison
 	$self->araxis_compare(
-		$release->extract,
+		$release->extract( CLEANUP => 0 ),
 		$distribution->path,
 	);
 }
@@ -342,7 +340,7 @@ sub compare_export_latest {
 
 	# Launch the comparison
 	$self->araxis_compare(
-		$release->export,
+		$release->export( CLEANUP => 0 ),
 		$distribution->path,
 	);
 }
@@ -360,7 +358,7 @@ sub compare_export_stable {
 
 	# Launch the comparison
 	$self->araxis_compare(
-		$release->export,
+		$release->export( CLEANUP => 0 ),
 		$distribution->path,
 	);
 }
