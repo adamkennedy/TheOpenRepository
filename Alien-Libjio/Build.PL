@@ -105,6 +105,22 @@ unless ($jio->installed) {
   else {
     use Config '%Config';
     $make = $Config{make};
+
+    # Fix issues building with BSD Make on bsd-like machines
+    if ($make eq 'make' && $^O =~ /bsd$/) {
+      print "Looks like a BSD Unix system, trying to find GNU Make\n";
+      system('which', 'gmake');
+      if (($? >> 8) == 0)
+      {
+        print "gmake found! Good.\n";
+        $make = 'gmake';
+      }
+      else
+      {
+        print {*STDERR} "GNU Make not installed or not detected. Build " .
+          "is very likely fail without it.\n";
+      }
+    }
   }
   $make = $builder->prompt('What is your system "make" command?', $make);
 
