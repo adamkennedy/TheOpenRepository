@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
-use Test::More tests => 13;
+use Test::More tests => 14;
 use File::Spec::Functions qw(catfile curdir catdir rel2abs);
 use File::List::Object;
 
@@ -25,9 +25,15 @@ is( File::List::Object->new->add_file($file[0])->as_string,
     $file[0],
     'adding single file' );
 
-is( File::List::Object->new->load_array(@file[1, 2])->as_string, 
+my $fl_clonetest = File::List::Object->new->load_array(@file[1, 2]);
+
+is( $fl_clonetest->as_string, 
     "$file[1]\n$file[2]",
     'adding array' );
+	
+is( File::List::Object->clone($fl_clonetest)->as_string, 
+    "$file[1]\n$file[2]",
+    'cloning' );
 
 is( File::List::Object->new->load_array(@file[1, 2, 5])->as_string, 
     "$file[1]\n$file[2]",

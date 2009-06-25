@@ -135,7 +135,7 @@ use Exception::Class (
 	},
 );
 
-use version; $VERSION = version->new('0.188')->numify;
+use version; $VERSION = version->new('0.189')->numify;
 
 my %sortcache; # Defined at this level so that the cache does not
 			   # get reset each time _sorter is called.
@@ -146,7 +146,7 @@ my %sortcache; # Defined at this level so that the cache does not
 has '_files' => (
 	metaclass => 'Collection::Hash',
 	is        => 'rw',
-	isa       => 'HashRef[Str]',
+	isa       => 'HashRef',
 	provides  => {
 		set    => '_add_file',
 		clear  => '_clear',
@@ -155,7 +155,6 @@ has '_files' => (
 		exists => '_is_file',
 		delete => '_delete_files',
 		keys   => '_get_files_array',
-		kv     => '_get_files_kv',
 	},
 	reader   => '_get_files_hashref',
 	writer   => '_set_files_hashref',
@@ -196,7 +195,7 @@ sub clone {
 	}
 
 	# Add filelist passed in.
-	$self->_set_files_hashref( { $source->_get_files_kv() } );
+	$self->_set_files_hashref( { map { $_ => 1 } $source->_get_files_array() } );
 
 	return $self;
 } ## end sub clone
