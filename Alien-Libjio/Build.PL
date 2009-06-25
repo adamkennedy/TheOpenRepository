@@ -106,19 +106,17 @@ unless ($jio->installed) {
     use Config '%Config';
     $make = $Config{make};
 
-    # Fix issues building with BSD Make on bsd-like machines
-    if ($make eq 'make' && $^O =~ /bsd$/) {
-      print "Looks like a BSD Unix system, trying to find GNU Make\n";
-      system('which', 'gmake');
-      if (($? >> 8) == 0)
-      {
-        print "gmake found! Good.\n";
+    # Probe for GNU Make (useful on BSD/Unix variants)
+    if ($make eq 'make') {
+      `which gmake`;
+
+      # Check the return status is okay
+      if (!($? & 127) && ($? >> 8) == 0) {
         $make = 'gmake';
       }
-      else
-      {
-        print {*STDERR} "GNU Make not installed or not detected. Build " .
-          "is very likely fail without it.\n";
+      elsif ($^O =~ /bsd$/) {
+        print {*STDERR} "warning: your system is a BSD variant but gmake " .
+          "wasn't found.\n";
       }
     }
   }
