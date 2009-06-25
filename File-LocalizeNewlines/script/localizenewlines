@@ -4,8 +4,8 @@
 
 use 5.005;
 use strict;
-use File::Spec;
 use Getopt::Long;
+use File::Spec;
 use File::Find::Rule;
 use File::LocalizeNewlines;
 
