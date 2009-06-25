@@ -18,7 +18,7 @@ our $VERSION = '0.01';
 my $counter = 0;
 
 CPAN::Mini::Visit->new(
-	minicpan => 'D:\\minicpan',
+	minicpan => 'G:\\minicpan',
 	acme     => 0,
 	# author   => $author,
 	ignore   => [ qr/PDF-API/ ],

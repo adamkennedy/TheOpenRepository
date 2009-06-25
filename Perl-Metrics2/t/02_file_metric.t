@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 use File::Spec::Functions ':ALL';
 use Perl::Metrics2;
 
@@ -29,11 +29,11 @@ ok(
 	'->process_file ok',
 );
 is(
-	Perl::Metrics2::FileMetric->count, 5,
+	Perl::Metrics2::FileMetric->count, 6,
 	'->count returns correctly',
 );
 my @rows = Perl::Metrics2::FileMetric->select;
-is( scalar(@rows), 5, 'Returned three rows' );
+is( scalar(@rows), 6, 'Returned three rows' );
 foreach ( @rows ) {
 	isa_ok( $_, 'Perl::Metrics2::FileMetric' );
 }

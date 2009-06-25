@@ -22,20 +22,22 @@ unless ( $ARGV[1] and -d $ARGV[1] ) {
 	die("Missing or invalid PPI::Cache directory");
 }
 
+my $flush = !! ( $ARGV[2] and $ARGV[2] eq 'flush' );
+
 # Initialise the metrics instance
 my $metrics = Perl::Metrics2->new(
 	cache => $ARGV[1],
-	# study => 1,
+	study => $flush ? 0 : 1,
 );
 
-if ( 1 ) {
+if ( 0 ) {
 	# Drop indexes for speed
 	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__dist');
 	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__file');
 	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__md5' );
 
 	# Flush all entries if we get a flush option
-	if ( $ARGV[2] and $ARGV[2] eq 'flush' ) {
+	if ( $flush ) {
 		print STDERR "# Flushing all cpan_file entries...\n";
 		Perl::Metrics2->do('DELETE FROM cpan_file');
 	}
@@ -56,7 +58,7 @@ if ( 1 ) {
 				$the->{tempdir},
 				'safe',
 			);
-			return 1 unless $counter % 100;
+			return 1 if $counter % 100;
 			Perl::Metrics2->commit_begin;
 		} },
 	)->run;
@@ -79,7 +81,7 @@ if ( 1 ) {
 			my $the = shift;
 			$counter++;
 			print STDERR "# $counter - $the->{dist}\n";
-			my @files = File::Find::Rule->ignore_svn->perl_files->in($the->{tempdir});
+			my @files = File::Find::Rule->ignore_svn->perl_file->in($the->{tempdir});
 			foreach my $file ( @files ) {
 				print "# $file\n";
 				eval {

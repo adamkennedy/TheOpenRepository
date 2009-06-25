@@ -8,6 +8,8 @@ Changes for Perl extension Perl-Metrics2
 	- Streamlined metric insert statements within a single prepare
 	- Added pm2minicpan to index and cache a local minicpan
 	- Added pm2db for access to minor database cleaning operations
+	- Added pm2precache and pm2preparse
+	- Added Perl::Metrics2::Parse to move the PPI parsing into a subprocess
 
 0.02 Sun 10 May 2009
 	- Adding the CpanFile table
