@@ -107,7 +107,7 @@ use     Win32                 qw();
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.185')->numify;
+use version; $VERSION = version->new('0.185_001')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1403,7 +1403,7 @@ sub install_perl_toolchain {
 		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
 
 			# 1.28 makes some things fail tests...
-			$dist = 'ADAMK/Archive-Zip-1.26.tar.gz';
+			$dist = 'CSJEWELL/Archive-Zip-1.28_0001.tar.gz';
 			PDWiX->throw(
 				<<'EOF') unless ( $self->cpan->as_string =~ m{\Afile:}msx );
 Cannot build using Archive::Zip 1.28 unless working off 
@@ -3479,6 +3479,7 @@ print "Loading CPAN...\\n";
 use CPAN;
 CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'urllist'} = [ '$url' ];
+\$CPAN::Config->{'use_sqlite'} = q[0];
 print "Installing $name from CPAN...\\n";
 my \$module = CPAN::Shell->expandany( "$name" ) 
 	or die "CPAN.pm couldn't locate $name";
@@ -3520,6 +3521,7 @@ END_PERL
 
 	# Dump the CPAN script to a temp file and execute
 	$self->trace_line( 1, "Running install of $name\n" );
+	$self->trace_line( 2, '  at ' . localtime . "\n" );
 	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
   SCOPE: {
 		my $CPAN_FILE;
@@ -4588,8 +4590,8 @@ sub _add_to_distributions_installed {
 	my $dist = shift;
 	$self->{distributions_installed} =
 	  [ @{ $self->{distributions_installed} }, $dist ];
-	my $dist_list = join "\n   ", @{ $self->{distributions_installed} };
-	$self->trace_line( 1, "Dist list:\n   $dist_list\n" );
+	my $dist_list = join "\n   ", @{ $self->{distributions_installed} }[-3, -2, -1];
+	$self->trace_line( 2, "Last 3 on dist list:\n   $dist_list\n" );
 
 	return;
 }
