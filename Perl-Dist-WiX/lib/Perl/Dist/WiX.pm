@@ -1404,9 +1404,9 @@ sub install_perl_toolchain {
 		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
 
 			# 1.28 makes some things fail tests...
-			$dist = 'CSJEWELL/Archive-Zip-1.28_0001.tar.gz';
+			$dist = 'CSJEWELL/Archive-Zip-1.28_0001.tar.gz' unless $self->force;
 			PDWiX->throw(
-				<<'EOF') unless ( $self->cpan->as_string =~ m{\Afile:}msx );
+				<<'EOF') unless ( $self->force or $self->cpan->as_string =~ m{\Afile:}msx );
 Cannot build using Archive::Zip 1.28 unless working off 
 a minicpan so that it does not get installed.
 (It makes other modules fail tests - a minicpan can cheat 
@@ -3693,16 +3693,18 @@ sub install_par {
 	$self->trace_line( 2, $output );
 
 	# Get distribution name to add to what's installed.
-	if ( {@_}->{url} =~ m{.*/([^/]*)\z}msx ) {
+	if (( defined {@_}->{url} ) and ( {@_}->{url} =~ m{.*/([^/]*)\z}msx )) {
 		my $dist_info = $1;
 		$dist_info =~ s{\.par}{}msx;   # Take off .par extension.
+#<<<
 		if ($dist_info =~
-m{\A(.*?)     # Grab anything that could be the name non-greedily, ...
+            m{\A(.*?)   # Grab anything that could be the name non-greedily, ...
 			-           # break at a dash,
 			([0-9._]*)  # then try to grab a version,
 			(?:-.*)?    # then discard anything else.
 			\z}msx
 		  )
+#>>>
 		{
 			my ( $name, $ver ) = ( $1, $2 );
 			$dist_info = "$name-$ver";
