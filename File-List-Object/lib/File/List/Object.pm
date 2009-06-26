@@ -195,7 +195,9 @@ sub clone {
 	}
 
 	# Add filelist passed in.
-	$self->_set_files_hashref( { map { $_ => 1 } $source->_get_files_array() } );
+	## no critic(ProhibitVoidMap)
+	$self->_set_files_hashref(
+		{ map { $_ => 1 } $source->_get_files_array() } );
 
 	return $self;
 } ## end sub clone
@@ -383,7 +385,7 @@ sub readdir { ## no critic 'ProhibitBuiltinHomonyms'
 				# Add the file!
 				$self->_add_file( $filespec, 1 );
 			}
-		} ## end if ( ( $file ne curdir...
+		} ## end if ( ( $file ne curdir...))
 
 		# Next one, please?
 		$file = $dir_object->read();
