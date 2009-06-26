@@ -1,5 +1,8 @@
 Changes for Perl extension ORDB-CPANMeta-Generator
 
+0.05 Sat 27 Jun 2009
+	- Adding a separate 'publish' path param
+
 0.04 Fri 26 Jun 2009
 	- Added prefer_bin pass-through to CPAN::Mini::Visit
 

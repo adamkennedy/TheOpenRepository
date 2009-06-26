@@ -38,14 +38,15 @@ use Params::Util       1.00 qw{_HASH};
 use Getopt::Long       2.34 ();
 use DBI               1.609 ();
 use CPAN::Mini        0.576 ();
-use CPAN::Mini::Visit  0.07 ();
+use CPAN::Mini::Visit  0.08 ();
 use Xtract::Publish    0.10 ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Object::Tiny 1.06 qw{
 	minicpan
 	sqlite
+	publish
 	visit
 	trace
 	delta
@@ -79,6 +80,11 @@ sub new {
 			'ORDB-CPANMeta-Generator',
 			'metadb.sqlite',
 		);
+	}
+
+	# Set the default path to the publishing location
+	unless ( defined $self->publish ) {
+		$self->{publish} = 'cpanmeta';
 	}
 
 	return $self;
@@ -316,7 +322,7 @@ END_SQL
 	print STDERR "Publishing the generated database...\n" if $self->trace;
 	Xtract::Publish->new(
 		from   => $self->sqlite,
-		sqlite => 'cpanmeta.sqlite',
+		sqlite => $self->publish,
 		trace  => 1,
 		raw    => 0,
 		gz     => 1,
