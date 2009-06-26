@@ -139,7 +139,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Evaluator;
 
-# use Smart::Comments '###';
+# use Smart::Comments '###', '####';
 
 ### Using smart comments <where>...
 
@@ -531,12 +531,15 @@ sub Marpa::Evaluator::new {
     my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
     my $trace_fh;
     my $trace_iterations;
+    my $trace_evaluation;
 
     if ($tracing) {
         $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_evaluation =
+            $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
-    }
+    } ## end if ($tracing)
 
     $self->[Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
     my $or_nodes  = $self->[Marpa::Internal::Evaluator::OR_NODES]  = [];
@@ -900,12 +903,15 @@ sub Marpa::Evaluator::new {
     SPAN_SET: while ( my $span_set = pop @span_sets ) {
         @{$span_set} =
             grep { not $_->[Marpa::Internal::Or_Node::DELETED] } @{$span_set};
-        next SPAN_SET if @{$span_set} < 2;
+        next SPAN_SET if not @{$span_set};
         my @in_span_set = ();
+        #### creating spanset ....
         for my $or_node_ix ( 0 .. $#{$span_set} ) {
-            $in_span_set[ $span_set->[$or_node_ix]
-                ->[Marpa::Internal::Or_Node::ID] ] = $or_node_ix;
-        }
+            my $or_node_id =
+                $span_set->[$or_node_ix]->[Marpa::Internal::Or_Node::ID];
+            #### initial transition, or-node ix, id: $or_node_ix, $or_node_id
+            $in_span_set[$or_node_id] = $or_node_ix;
+        } ## end for my $or_node_ix ( 0 .. $#{$span_set} )
 
         my @transition;
         my @work_list;
@@ -947,10 +953,18 @@ sub Marpa::Evaluator::new {
         # Use the transitions to find the cycles in the span set
         my @cycles;
         my @seen;
+        ### Span set size: $#{$span_set}
+
         IX: for my $ix ( 0 .. $#{$span_set} ) {
+
+            ### Finding cycles, ix: $ix
 
             # Is the node part of a cycle we have not deal with?
             next IX if $seen[$ix] or not $transition[$ix][$ix];
+
+            ### Finding cycles, step 2, ix: $ix
+
+            ### Cycle: $span_set->[$ix]->[1]
 
             # Initialize this cycle with this first or-node
             my @cycle = ( $span_set->[$ix] );
@@ -971,17 +985,23 @@ sub Marpa::Evaluator::new {
                 # Mark this node seen
                 $seen[$ix2]++;
 
+                ### Also in cycle: $span_set->[$ix2]->[1]
+
                 push @cycle, $span_set->[$ix2];
 
             } ## end for my $ix2 ( $ix + 1 .. $#{$span_set} )
 
-            ### Found cycle...
-
-            #### @transition
-
-            ### assert: 0
-
             push @cycles, \@cycle;
+
+            if ($trace_evaluation) {
+                say {$trace_fh} 'Found cycle of length ', ( scalar @cycle );
+                for my $ix ( 0 .. $#cycle ) {
+                    my $or_node = $cycle[$ix];
+                    print {$trace_fh} "Node $ix in cycle: ",
+                        Marpa::Evaluator::show_or_node( $self, $or_node,
+                        $trace_evaluation );
+                } ## end for my $ix ( 0 .. $#cycle )
+            } ## end if ($trace_evaluation)
 
         } ## end for my $ix ( 0 .. $#{$span_set} )
 
@@ -1328,6 +1348,34 @@ sub Marpa::Evaluator::show_decisions {
 
 } ## end sub Marpa::Evaluator::show_decisions
 
+sub Marpa::Evaluator::show_or_node {
+    my ( $evaler, $or_node, $verbose ) = @_;
+    $verbose //= 0;
+
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+
+    my $text = q{};
+
+    my $or_node_tag  = $or_node->[Marpa::Internal::Or_Node::TAG];
+    my $and_node_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+
+    for my $index ( 0 .. $#{$and_node_ids} ) {
+        my $and_node_id = $and_node_ids->[$index];
+        my $and_node    = $and_nodes->[$and_node_id];
+
+        my $and_node_tag = $or_node_tag . '[' . $index . ']';
+        if ( $verbose >= 2 ) {
+            $text .= "$or_node_tag ::= $and_node_tag\n";
+        }
+
+        $text .= Marpa::show_and_node( $and_node, $verbose );
+
+    } ## end for my $index ( 0 .. $#{$and_node_ids} )
+
+    return $text;
+
+} ## end sub Marpa::Evaluator::show_or_node
+
 sub Marpa::Evaluator::show_bocage {
     my ( $evaler, $verbose ) = @_;
     $verbose //= 0;
@@ -1335,30 +1383,16 @@ sub Marpa::Evaluator::show_bocage {
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT];
     my $or_nodes    = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $package     = $evaler->[Marpa::Internal::Evaluator::PACKAGE];
-    my $and_nodes   = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
     my $text =
         'package: ' . $package . '; parse count: ' . $parse_count . "\n";
 
-    for my $or_node ( @{ $evaler->[OR_NODES] } ) {
+    for my $or_node ( @{$or_nodes} ) {
 
-        my $or_node_tag  = $or_node->[Marpa::Internal::Or_Node::TAG];
-        my $and_node_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+        $text
+            .= Marpa::Evaluator::show_or_node( $evaler, $or_node, $verbose );
 
-        for my $index ( 0 .. $#{$and_node_ids} ) {
-            my $and_node_id = $and_node_ids->[$index];
-            my $and_node    = $and_nodes->[$and_node_id];
-
-            my $and_node_tag = $or_node_tag . '[' . $index . ']';
-            if ( $verbose >= 2 ) {
-                $text .= "$or_node_tag ::= $and_node_tag\n";
-            }
-
-            $text .= Marpa::show_and_node( $and_node, $verbose );
-
-        } ## end for my $index ( 0 .. $#{$and_node_ids} )
-
-    } ## end for my $or_node ( @{ $evaler->[OR_NODES] } )
+    } ## end for my $or_node ( @{$or_nodes} )
 
     return $text;
 } ## end sub Marpa::Evaluator::show_bocage

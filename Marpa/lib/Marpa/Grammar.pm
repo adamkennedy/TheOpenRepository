@@ -192,7 +192,9 @@ use Marpa::Offset qw(
     DEFAULT_NULL_VALUE
     CYCLE_ACTION
     TRACE_ITERATIONS
-    TRACE_ACTIONS TRACE_VALUES
+    TRACE_EVALUATION { General evaluation trace }
+    TRACE_ACTIONS
+    TRACE_VALUES
     TRACE_JOURNAL { Trace the evaluator journal }
 
     MAX_PARSES
@@ -1052,6 +1054,17 @@ sub Marpa::Grammar::set {
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 }
             } ## end when ('trace_iterations')
+            when ('trace_evaluation') {
+                Marpa::exception(
+                    'trace_evaluation must be set to a number >= 0')
+                    if $value !~ /\A\d+\z/xms;
+                $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION] =
+                    $value + 0;
+                if ($value) {
+                    say {$trace_fh} "Setting $option option to $value";
+                    $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
+                }
+            } ## end when ('trace_evaluation')
             when ('trace_completions') {
                 $grammar->[Marpa::Internal::Grammar::TRACE_COMPLETIONS] =
                     $value;
