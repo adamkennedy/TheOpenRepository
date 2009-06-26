@@ -38,10 +38,10 @@ use Params::Util       1.00 qw{_HASH};
 use Getopt::Long       2.34 ();
 use DBI               1.609 ();
 use CPAN::Mini        0.576 ();
-use CPAN::Mini::Visit  0.06 ();
+use CPAN::Mini::Visit  0.07 ();
 use Xtract::Publish    0.10 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -49,6 +49,7 @@ use Object::Tiny 1.06 qw{
 	visit
 	trace
 	delta
+	prefer_bin
 	dbh
 };
 
@@ -118,6 +119,9 @@ sub dsn {
 
 sub run {
 	my $self = shift;
+
+	# Normalise
+	$self->{prefer_bin} = $self->prefer_bin ? 1 : 0;
 
 	# Create the output directory
 	File::Path::make_path($self->dir);
@@ -220,11 +224,12 @@ END_SQL
 	my @meta_dist = ();
 	my @meta_deps = ();
 	my $visitor   = CPAN::Mini::Visit->new(
-		acme     => 1,
-		minicpan => $self->minicpan,
+		acme       => 1,
+		minicpan   => $self->minicpan,
 		# This does nothing now but will later
-		ignore   => $ignore,
-		callback => sub {
+		ignore     => $ignore,
+		prefer_bin => $self->prefer_bin,
+		callback   => sub {
 			print STDERR "$_[0]->{dist}\n" if $self->trace;
 			my $the  = shift;
 			my @deps = ();

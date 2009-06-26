@@ -1,5 +1,8 @@
 Changes for Perl extension ORDB-CPANMeta-Generator
 
+0.04 Fri 26 Jun 2009
+	- Added prefer_bin pass-through to CPAN::Mini::Visit
+
 0.03 Thu 25 Jun 2009
 	- Implementing delta processing of new distributions
 	- Updated dependencies so we now support all the minicpan
