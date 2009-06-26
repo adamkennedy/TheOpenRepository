@@ -123,6 +123,7 @@ use vars           qw( $VERSION                          );
 use Params::Util   qw( _INSTANCE _STRING _NONNEGINT      );
 use IO::Dir        qw();
 use IO::File       qw();
+use English qw(-no_match_vars);
 use Exception::Class (
 	'File::List::Object::Exception' => {
 		'description' => 'File::List::Object error',
@@ -135,7 +136,9 @@ use Exception::Class (
 	},
 );
 
-use version; $VERSION = version->new('0.190')->numify;
+use version; $VERSION = version->new('0.200')->numify;
+
+#
 
 my %sortcache; # Defined at this level so that the cache does not
 			   # get reset each time _sorter is called.
@@ -260,8 +263,7 @@ sub _sorter {
 #####################################################################
 # Exception output methods.
 
-sub File::List::Object::Exception::full_message
-{ ## no critic 'Capitalization'
+sub File::List::Object::Exception::full_message {
 	my $self = shift;
 
 	my $string =
@@ -275,8 +277,7 @@ sub File::List::Object::Exception::full_message
 	return $string;
 } ## end sub File::List::Object::Exception::full_message
 
-sub File::List::Object::Exception::Parameter::full_message
-{ ## no critic 'Capitalization'
+sub File::List::Object::Exception::Parameter::full_message {
 	my $self = shift;
 
 	my $string =
@@ -363,7 +364,7 @@ sub readdir { ## no critic 'ProhibitBuiltinHomonyms'
 	my $dir_object = IO::Dir->new($dir);
 	if ( !defined $dir_object ) {
 		File::List::Object::Exception->throw(
-			"Error reading directory $dir: $!");
+			"Error reading directory $dir: $OS_ERROR");
 	}
 
 	# Read a file from the directory.
@@ -425,7 +426,7 @@ sub load_file {
 	my $fh = IO::File->new( $packlist, 'r' );
 	if ( not defined $fh ) {
 		File::List::Object::Exception->throw(
-			"Error reading packlist file $packlist: $!");
+			"Error reading packlist file $packlist: $OS_ERROR");
 	}
 	my @files_list = <$fh>;
 	$fh->close;

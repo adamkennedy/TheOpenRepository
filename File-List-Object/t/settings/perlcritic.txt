@@ -14,9 +14,6 @@ minimum_regex_length_to_complain_about = 7
 functions = :builtins
 exclude_functions = print
 
-[Variables::ProhibitPackageVars]
-add_packages = Module::CoreList
-
 [Modules::PerlMinimumVersion]
 version = 5.008001
 
@@ -24,8 +21,15 @@ version = 5.008001
 allowed_values = -1 0 1 2
 
 # Exclusions
-[-CodeLayout::ProhibitHardTabs]
+# I use svn - don't need the keywords.
 [-Miscellanea::RequireRcsKeywords]
+
+# I like to set up my own pod.
 [-Documentation::RequirePodAtEnd]
 [-Documentation::RequirePodSections]
+
+# No Emacs!
 [-Editor::RequireEmacsFileVariables]
+
+# I like use version, but not the results of using qv!
+[-ValuesAndExpressions::RequireConstantVersion]
