@@ -76,7 +76,7 @@ use Params::Util      1.00 qw{
 use Archive::Extract  0.32 ();
 use CPAN::Mini       0.576 ();
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -87,6 +87,7 @@ use Object::Tiny 1.06 qw{
 	ignore
 	random
 	warnings
+	prefer_bin
 };
 
 =pod
@@ -111,11 +112,15 @@ any of the joke modules.
 The C<author> param can be provided to limit the visit to only the modules
 owned by a specific author.
 
+The C<random> param will cause the archives to be processed in random order
+if enabled. If not, the archives will be processed in alphabetical order.
+
 The C<warnings> param will turn on L<Archive::Extract> warnings if enabled,
 or disable warnings otherwise.
 
-The C<random> param will cause the archives to be processed in random order
-if enabled. If not, the archives will be processed in alphabetical order.
+The C<prefer_bin> param will tell L<Archive::Extract> to use binary extract
+instead of CPAN module extract wherever possible. By default, it will use
+module-based extract.
 
 Returns a B<CPAN::Mini::Visit> object, or throws an exception on error.
 
@@ -126,8 +131,9 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Normalise
-	$self->{warnings} = $self->warnings ? 1 : 0;
-	$self->{random}   = $self->random   ? 1 : 0;
+	$self->{random}     = $self->random   ? 1 : 0;
+	$self->{warnings}   = $self->warnings ? 1 : 0;
+	$self->{prefer_bin} = $self->prefer_bin ? 1 : 0;
 
 	# Check params
 	unless (
@@ -226,7 +232,8 @@ sub run {
 		next if $path =~ /Alien-MeCab/;
 
 		# Extract the archive
-		local $Archive::Tar::WARN = $self->warnings;
+		local $Archive::Extract::WARN       = $self->warnings;
+		local $Archive::Extract::PREFER_BIN = $self->prefer_bin;
 		my $archive   = Archive::Extract->new( archive => $path );
 		my $tmpdir    = File::Temp->newdir;
 		my $extracted = eval {

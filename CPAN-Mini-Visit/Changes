@@ -1,5 +1,9 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+0.07 Fri 26 Jun 2009
+	- Fix the warnings flag
+	- Add a 'prefer_bin' param to set $Archive::Extract::PREFER_BIN
+
 0.06 Wed 24 Jun 2009
 	- Fixing text filters
 	- Adding support for the 'random' constructor param
