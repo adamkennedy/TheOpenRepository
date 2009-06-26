@@ -13,9 +13,9 @@ use File::Remove              'clear';
 use ORDB::CPANMeta::Generator ();
 
 my @archives = qw{
-	cpanmeta.sqlite.gz
-	cpanmeta.sqlite.bz2
-	cpanmeta.sqlite.lz
+	cpanmeta.gz
+	cpanmeta.bz2
+	cpanmeta.lz
 };
 clear( @archives );
 foreach my $file ( @archives ) {
@@ -47,9 +47,9 @@ ok( $generator->run, '->run ok' );
 
 # Validate the result
 foreach my $file ( qw{
-	cpanmeta.sqlite.gz
-	cpanmeta.sqlite.bz2
-	cpanmeta.sqlite.lz
+	cpanmeta.gz
+	cpanmeta.bz2
+	cpanmeta.lz
 } ) {
 	ok( -f $file, "File '$file' exists" );
 }
