@@ -7,6 +7,7 @@ BEGIN {
 }
 
 use Test::More 0.86 tests => 61;
+use LWP::Online ':skip_all';
 use File::Spec::Functions ':ALL';
 use Perl::Dist::Util::Toolchain ();
 use Probe::Perl ();

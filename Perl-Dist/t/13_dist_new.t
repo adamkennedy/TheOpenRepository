@@ -7,6 +7,7 @@ BEGIN {
 }
 
 use Test::More;
+use LWP::Online ':skip_all';
 BEGIN {
 	unless ( $^O eq 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
