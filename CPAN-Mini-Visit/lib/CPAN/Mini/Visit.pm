@@ -263,7 +263,7 @@ sub run {
 
 		# Invoke the callback
 		$self->callback->( {
-			tempdir => $tempdir,
+			tempdir => $extract,
 			archive => $path,
 			dist    => $dist,
 			author  => $author,
