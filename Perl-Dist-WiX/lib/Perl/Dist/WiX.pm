@@ -1438,7 +1438,7 @@ EOF
 	$self->patch_file(
 		'perl-5.10.0/lib/CPANPLUS/Config.pm' => catdir($self->image_dir, 'perl'), 
 		{ dist     => $self, }
-	) if $self->perl_version >= 5100;
+	) if $self->perl_version eq '5100';
 
 	
 	return 1;
