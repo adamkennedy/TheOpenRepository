@@ -176,6 +176,7 @@ Readonly my %MODULE_FIX => (
 	'Scalar::List::Utils'  => 'List::Util',
 	'libnet'               => 'Net',
 	'encoding'             => 'Encode',
+	'IO::Scalar'           => 'IO::Stringy',
 );
 
 Readonly my @MODULE_DELAY => qw(
@@ -3521,7 +3522,7 @@ END_PERL
 
 	# Dump the CPAN script to a temp file and execute
 	$self->trace_line( 1, "Running install of $name\n" );
-	$self->trace_line( 2, '  at ' . localtime . "\n" );
+	$self->trace_line( 2, '  at ' . localtime() . "\n" );
 	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
   SCOPE: {
 		my $CPAN_FILE;
@@ -4590,7 +4591,7 @@ sub _add_to_distributions_installed {
 	my $dist = shift;
 	$self->{distributions_installed} =
 	  [ @{ $self->{distributions_installed} }, $dist ];
-	my $dist_list = join "\n   ", @{ $self->{distributions_installed} }[-3, -2, -1];
+	my $dist_list = join "\n   ", ('', '', @{ $self->{distributions_installed} })[-3, -2, -1];
 	$self->trace_line( 2, "Last 3 on dist list:\n   $dist_list\n" );
 
 	return;
