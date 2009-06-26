@@ -691,8 +691,9 @@ part of the contents of a
 test structure is only a problem
 if its lifetime extends beyond that of the test
 structure.
-A descendant that stays around after
-the test structure is called a B<persistent object>.
+A descendant that is expected to say around after
+the test structure is destroyed
+is called a B<persistent object>.
 
 A persistent object is not a memory leak.
 That's the problem.
@@ -780,10 +781,10 @@ it takes a lot of craft to avoid
 leaving
 unintended references to the test structure in that calling environment.
 It is easy to get this wrong.
-In other words,
-mistakes in setting up the test structure
+Those unintended references will
 create memory leaks that are artifacts of the test environment.
-These artifacts are very difficult to sort out from the real thing.
+Leaks that are artifacts of the test environment
+are very difficult to sort out from the real thing.
 
 The B<closure-local strategy> is the easiest way
 to avoid leaving unintended references to the
@@ -798,13 +799,6 @@ it relatively easy to be sure that nothing is left behind
 that will hold an unintended reference
 to any of the contents
 of the test structure.
-
-To help the user to follow the closure-local strategy,
-C<Test::Weaken> requires that its test structure reference
-be the return value of a closure.
-The closure-local strategy is safe.
-It is almost always right thing to do.
-C<Test::Weaken> makes it the easy thing to do.
 
 Nothing prevents a user from
 subverting the closure-local strategy.
@@ -933,20 +927,20 @@ is_file($_, 't/ignore.t', 'ignore snippet')
 The B<ignore> argument is optional.
 It can be used to make a specific decision,
 for each Perl data object,
-on whether its and its children are tracked or ignored.
-Use of the C<ignore> argument should be avoided
-when possible.
+on whether that object and its children are tracked or ignored.
+Use of the C<ignore> argument should be avoided.
 Filtering the probe references that are
 returned by
 L<unfreed_proberefs>
 is easier, safer and
 faster.
-The C<ignore> argument is provided for situations
-where filtering after the fact
-is not practical.
-One such
-situation is when
-large or complicated sub-objects need to be filtered out of the results.
+But
+filtering after the fact
+is not always practical.
+For example, if large or complicated sub-objects
+need to be filtered out,
+it may be easiest to do so
+before they end up in the results.
 
 When specified, the value of the C<ignore> argument must be a
 reference to a callback subroutine.
@@ -964,7 +958,7 @@ examined for children.
 The callback subroutine should return a Perl true value if the probe reference is
 to a data object which should be ignored, along with its children.
 If the data object and its children should be tracked,
-the callback subroutine should return a Perl false value.
+the callback subroutine should return a Perl false.
 
 For safety, C<Test::Weaken> does not pass its internal
 probe reference
@@ -990,7 +984,7 @@ In this a blessed object is ignored, I<but not>
 the references to it.
 This is typically what is wanted when you know certain
 objects are outside the contents of your test structure,
-but you keep references to those objects that are part of
+but you have references to those objects that I<are> part of
 the contents of your test structure.
 In that case, you want to know if the references are leaking,
 but you do not want to see reports 
@@ -1081,7 +1075,6 @@ C<Test::Weaken>'s call to it will be the equivalent
 of C<< $contents->($safe_copy) >>,
 where C<$safe_copy> is a copy of the probe reference to
 another Perl reference.
-
 The C<contents> callback is made once
 for every Perl data object
 when that Perl data object is
@@ -1100,6 +1093,19 @@ The callback subroutine will be evaluated in array context.
 It should return a list of additional Perl data objects
 to be tracked and examined for children.
 This list may be empty.
+
+The C<contents> and C<ignore> callbacks can be used together.
+If, for an argument Perl data object, the C<ignore> callback returns
+true, the objects returned by the C<contents> callback, and their
+children, will be used B<instead> of the default children for the argument data object.
+If, for an argument Perl data object, the C<ignore> callback returns
+false, the objects returned by the C<contents> callback, and their
+children, will be used B<in addition> to the default children for the argument data object.
+Together,
+the C<contents> and C<ignore> callbacks can be used
+to completely customize
+C<Test::Weaken>'s default behaviors
+for determining the contents of a data structure.
 
 For safety, C<Test::Weaken> does not pass its internal
 probe reference
@@ -1587,7 +1593,7 @@ the value of that probe reference will be C<undef>.
 If a probe reference is still defined at this point,
 it refers to an unfreed Perl data object.
 
-=head2 Data Objects by Type
+=head2 Builtin Types
 
 B<Builtin types> are
 the type names returned by L<Scalar::Util>'s
@@ -1596,16 +1602,18 @@ C<Scalar::Util::reftype> differs from Perl's C<ref> function.
 If an object was blessed into a package, C<ref> returns the package name,
 while C<reftype> returns the original builtin type of the object.
 
-=head3 Tracked and Untracked Objects
+=head2 Tracked Objects
 
-ARRAY, HASH, REF,
-SCALAR, VSTRING, and CODE objects are tracked.
-Objects of builtin types GLOB, IO, FORMAT and LVALUE are not tracked.
+By default,
+objects of builtin types ARRAY, HASH, REF,
+SCALAR, VSTRING, and CODE are tracked.
+By default,
+GLOB, IO, FORMAT and LVALUE objects are not tracked.
 
 C<Data::Dumper> does not deal with
 IO and LVALUE objects
 gracefully,
-issuing a cryptic warning whenever it encounters one.
+issuing a cryptic warning whenever it encounters them.
 Since C<Data::Dumper> is a Perl core module
 in extremely wide use, this suggests that these IO and LVALUE
 objects are, to put it mildly,
@@ -1636,7 +1644,7 @@ in a future version of Perl
 and encounter builtin types it does not know about.
 Those new builtin types will not be tracked.
 
-=head3 Children, by type of object
+=head2 Examining Objects for Children
 
 Objects of builtin type
 ARRAY, HASH, and REF
@@ -1647,24 +1655,23 @@ do not hold internal references
 to other Perl data objects,
 and so, by default, are not considered to have
 children.
-
-The object types
+By default,
+the object types
 which are not tracked are not examined for children.
-Objects of type CODE are
+
+By default, objects of type CODE are
 also not examined for children.
 Not examining CODE objects for children
 can be seen as a limitation, because
 closures do hold internal references to data objects.
 Future versions of C<Test::Weaken> may examine CODE objects.
 
+The default method of recursing through a test structure
+to find its contents can be customized.
 The C<ignore> callback can be used to force an object
 not to be examined for children.
-The C<contents> callback can be used to add new data objects
-based on a data object already part of the contents.
-By combining
-these two callbacks, a user can completely override
-C<Test::Weaken>'s default method for finding children
-as a way of determining the contents of a data structure.
+The C<contents> callback can be used to add user-determined
+contents to the test structure.
 
 =head1 AUTHOR
 
