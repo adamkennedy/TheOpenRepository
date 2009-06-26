@@ -259,7 +259,7 @@ sub run {
 		}
 
 		# Change into the directory
-		my $pushd = File::pushd::pushd( $tempdir );
+		my $pushd = File::pushd::pushd( $extract );
 
 		# Invoke the callback
 		$self->callback->( {
