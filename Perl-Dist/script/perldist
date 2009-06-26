@@ -10,7 +10,7 @@ use URI;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.14';
+	$VERSION = '1.14_01';
 }
 
 # Show usage
@@ -60,8 +60,8 @@ eval "require $class;";
 if ( $@ ) {
         die "Failed to load $class: $@";
 }
-unless ( $class->isa('Perl::Dist') ) {
-	die "$class is not a Perl::Dist subclass";
+unless ( $class->isa('Perl::Dist::WiX') or $class->isa('Perl::Dist') ) {
+	die "$class is not a Perl::Dist or Perl::Dist::WiX subclass";
 }
 
 
