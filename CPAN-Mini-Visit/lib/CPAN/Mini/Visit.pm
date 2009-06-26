@@ -238,19 +238,19 @@ sub run {
 		# Extract the archive
 		local $Archive::Extract::WARN       = $self->warnings;
 		local $Archive::Extract::PREFER_BIN = $self->prefer_bin;
-		my $archive   = Archive::Extract->new( archive => $path );
-		my $tmpdir    = File::Temp->newdir;
-		my $extracted = eval {
+		my $archive = Archive::Extract->new( archive => $path );
+		my $tmpdir  = File::Temp->newdir;
+		my $ok      = eval {
 			$archive->extract( to => $tmpdir );
 		};
-		if ( $@ or not $extracted ) {
+		if ( $@ or not $ok ) {
 			warn("Failed to extract '$path'");
 			next;
 		}
 
 		# If using bin tools, do an additional check for
 		# damaged tarballs with non-executable directories (on unix)
-		my $extract = $archive->extract;
+		my $extract = $archive->extract_path;
 		unless ( -r $extract and -x $extract ) {
 			# Handle special case where we have screwed up
 			# permissions on the extract directory.
