@@ -1,5 +1,9 @@
 Changes for Perl extension ORDB-CPANMeta-Generator
 
+0.03 Thu 25 Jun 2009
+	- Implementing delta processing of new distributions
+	- Updated dependencies so we now support all the minicpan
+
 0.02 Tue  2 Jun 2009
 	- Adding tgz files and Acme:: namespace to the scan
 

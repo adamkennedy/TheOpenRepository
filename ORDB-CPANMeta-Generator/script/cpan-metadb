@@ -2,21 +2,35 @@
 
 use 5.008;
 use strict;
-use Params::Util qw{ _STRING };
+use Params::Util              qw{ _STRING };
+use Getopt::Long              ();
 use ORDB::CPANMeta::Generator ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
+# Check params
+my $DELTA = 0;
+my $QUIET = 0;
+Getopt::Long::GetOptions(
+	'delta' => \$DELTA,
+	'quiet' => \$QUIET,
+) or die("Failed to parse options");
+
+# Check the minicpan location
 my $minicpan = shift @ARGV;
 unless ( _STRING($minicpan) and -d $minicpan ) {
 	die('Missing or non-existant minicpan directory');
 }
 
+# Prepare the run
 my $generator = ORDB::CPANMeta::Generator->new(
 	minicpan => $minicpan,
-	trace    => 1,
+	delta    => $DELTA,
+	trace    => ! $QUIET,
 );
 
+# Fire away
 $generator->run;
 
+# Summarise
 print "Completed generation of " . $generator->sqlite . "\n";

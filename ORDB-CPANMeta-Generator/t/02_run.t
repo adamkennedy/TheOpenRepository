@@ -8,8 +8,8 @@ BEGIN {
 }
 
 use Test::More tests => 9;
-use File::Spec::Functions ':ALL';
-use File::Remove 'clear';
+use File::Spec::Functions     ':ALL';
+use File::Remove              'clear';
 use ORDB::CPANMeta::Generator ();
 
 my @archives = qw{

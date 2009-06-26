@@ -34,19 +34,21 @@ use File::Remove       1.42 ();
 use File::HomeDir      0.86 ();
 use File::Basename        0 ();
 use Parse::CPAN::Meta  1.39 ();
-use Params::Util       0.38 qw{_HASH};
-use DBI               1.608 ();
+use Params::Util       1.00 qw{_HASH};
+use Getopt::Long       2.34 ();
+use DBI               1.609 ();
 use CPAN::Mini        0.576 ();
-use CPAN::Mini::Visit  0.04 ();
+use CPAN::Mini::Visit  0.06 ();
 use Xtract::Publish    0.10 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Object::Tiny 1.06 qw{
 	minicpan
 	sqlite
 	visit
 	trace
+	delta
 	dbh
 };
 
@@ -124,11 +126,13 @@ sub run {
 	}
 
 	# Clear the database if it already exists
-	if ( -f $self->sqlite ) {
-		File::Remove::remove($self->sqlite);
-	}
-	if ( -f $self->sqlite ) {
-		Carp::croak("Failed to clear " . $self->sqlite);
+	unless ( $self->delta ) {
+		if ( -f $self->sqlite ) {
+			File::Remove::remove($self->sqlite);
+		}
+		if ( -f $self->sqlite ) {
+			Carp::croak("Failed to clear " . $self->sqlite);
+		}
 	}
 
 	# Update the minicpan if needed
@@ -149,7 +153,7 @@ sub run {
 
 	# Create the tables
 	$dbh->do(<<'END_SQL');
-CREATE TABLE meta_distribution (
+CREATE TABLE IF NOT EXISTS meta_distribution (
 	release TEXT NOT NULL,
 	meta_name TEXT,
 	meta_version TEXT,
@@ -161,7 +165,7 @@ CREATE TABLE meta_distribution (
 END_SQL
 
 	$dbh->do(<<'END_SQL');
-CREATE TABLE meta_dependency (
+CREATE TABLE IF NOT EXISTS meta_dependency (
 	release TEXT NOT NULL,
 	phase TEXT NOT NULL,
 	module TEXT NOT NULL,
@@ -169,20 +173,63 @@ CREATE TABLE meta_dependency (
 )
 END_SQL
 
+	### NOTE: This does nothing right now but will later.
+	# Build the index of seen archives.
+	# While building the index, remove entries
+	# that are no longer in the minicpan.
+	my $ignore = undef;
+	if ( $self->delta ) {
+		$dbh->begin_work;
+		my %seen  = ();
+		my $dists = $dbh->selectcol_arrayref(
+			'SELECT DISTINCT release FROM meta_distribution'
+		);
+		foreach my $dist ( @$dists ) {
+			my $one  = substr($dist, 0, 1);
+			my $two  = substr($dist, 0, 2);
+			my $path = File::Spec->catfile(
+				$self->minicpan,
+				'authors', 'id',
+				$one, $two,
+				split /\//, $dist,
+			);
+			if ( -f $path ) {
+				# Add to the ignore list
+				$seen{"$one/$two/$dist"} = 1;
+				next;
+			}
+
+			# Clear the release from the database
+			$dbh->do(
+				'DELETE FROM meta_distribution WHERE release = ?',
+				{}, $dist,
+			);
+		}
+		$dbh->do(
+			'DELETE FROM meta_dependency WHERE release NOT IN '
+			. '( SELECT release FROM meta_distribution )',
+		);
+		$dbh->commit;
+
+		# NOW we need to start ignoring something
+		$ignore = [ sub { $seen{$_[0]} } ];
+	}
+
 	# Run the visitor to generate the database
 	$dbh->begin_work;
-	my $counter   = 0;
 	my @meta_dist = ();
 	my @meta_deps = ();
 	my $visitor   = CPAN::Mini::Visit->new(
 		acme     => 1,
 		minicpan => $self->minicpan,
+		# This does nothing now but will later
+		ignore   => $ignore,
 		callback => sub {
 			print STDERR "$_[0]->{dist}\n" if $self->trace;
 			my $the  = shift;
 			my @deps = ();
 			my $dist = {
-				release => $the->{dist}
+				release => $the->{dist},
 			};
 			my @yaml = eval {
 				Parse::CPAN::Meta::LoadFile(
@@ -200,7 +247,9 @@ END_SQL
 				$dist->{meta_license}   = $yaml[0]->{license},
 
 				my $requires = $yaml[0]->{requires} || {};
-				$requires = { $requires => 0 } unless ref $requires;
+				$requires = {
+					$requires => 0,
+				} unless ref $requires;
 				push @deps, map { +{
 					release => $the->{dist},
 					phase   => 'runtime',
@@ -209,7 +258,9 @@ END_SQL
 				} } sort keys %$requires;
 
 				my $build = $yaml[0]->{build_requires} || {};
-				$build = { $build => 0 } unless ref $build;
+				$build = {
+					$build => 0,
+				} unless ref $build;
 				push @deps, map { +{
 					release => $the->{dist},
 					phase   => 'build',
@@ -218,7 +269,9 @@ END_SQL
 				} } sort keys %$build;
 
 				my $configure = $yaml[0]->{configure_requires} || {};
-				$configure = { $configure => 0 } unless ref $configure;
+				$configure = {
+					$configure => 0,
+				} unless ref $configure;
 				push @deps, map { +{
 					release => $the->{dist},
 					phase   => 'configure',
@@ -245,7 +298,7 @@ END_SQL
 					$_->{version},
 				);
 			}
-			unless ( ++$counter % 100 ) {
+			unless ( $the->{counter} % 100 ) {
 				$dbh->commit;
 				$dbh->begin_work;
 			}
