@@ -1435,6 +1435,12 @@ EOF
 #>>>
 	} ## end foreach my $dist ( @{ $toolchain...
 
+	$self->patch_file(
+		'perl-5.10.0/lib/CPANPLUS/Config.pm' => catdir($self->image_dir, 'perl'), 
+		{ dist     => $self, }
+	) if $self->perl_version >= 5100;
+
+	
 	return 1;
 } ## end sub install_perl_toolchain
 
@@ -4102,6 +4108,11 @@ sub patch_file {
 
 	return 1;
 } ## end sub patch_file
+
+sub image_drive {
+	my $self = shift;
+	return substr rel2abs($self->image_dir), 0, 2;
+}
 
 sub image_dir_url {
 	my $self = shift;
