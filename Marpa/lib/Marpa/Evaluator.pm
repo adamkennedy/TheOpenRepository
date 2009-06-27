@@ -51,6 +51,8 @@ use Marpa::Offset qw(
 
     { delete this } RANK
 
+    =LAST_FIELD
+
 );
 
 use Marpa::Offset qw(
@@ -67,6 +69,8 @@ use Marpa::Offset qw(
     START_EARLEME END_EARLEME
     PARENT_IDS
     DELETED
+
+    =LAST_FIELD
 );
 
 use Marpa::Offset qw(
@@ -999,7 +1003,8 @@ sub Marpa::Evaluator::new {
                     my $or_node = $cycle[$ix];
                     print {$trace_fh} "Node $ix in cycle: ",
                         Marpa::Evaluator::show_or_node( $self, $or_node,
-                        $trace_evaluation );
+                        $trace_evaluation )
+                        or Marpa::exception('print to trace handle failed');
                 } ## end for my $ix ( 0 .. $#cycle )
             } ## end if ($trace_evaluation)
 
@@ -1031,9 +1036,42 @@ sub Marpa::Evaluator::new {
             @{ $_->[Marpa::Internal::Or_Node::PARENT_IDS] }
         } @{$cycle_set};
 
-        ## now make the copies
-
         ## deletion-consistent at this point
+
+        ## now make the copies
+        for my $copy ( 1 .. $#root_or_nodes ) {
+
+            # Make translation tables
+            my @translate_or_node;
+            my @translate_and_node;
+
+            for my $or_node ( @{$cycle_set} ) {
+                next OR_NODE if $or_node->[Marpa::Internal::Or_Node::DELETED];
+                my @new_or_node;
+                $#new_or_node = Marpa::Internal::Or_Node::LAST_FIELD;
+                my $new_or_node_id = @{$or_nodes};
+                $new_or_node[Marpa::Internal::Or_Node::ID] = $new_or_node_id;
+                push @{$or_nodes}, \@new_or_node;
+                $translate_or_node[ $or_node->[Marpa::Internal::Or_Node::ID] ]
+                    = \@new_or_node;
+
+                for my $and_node_id (
+                    @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
+                {
+                    my $and_node = $and_nodes->[$and_node_id];
+                    my @new_and_node;
+                    $#new_and_node = Marpa::Internal::And_Node::LAST_FIELD;
+                    my $new_and_node_id = @{$and_nodes};
+                    $new_and_node[Marpa::Internal::And_Node::ID] =
+                        $new_and_node_id;
+                    push @{$and_nodes}, \@new_and_node;
+                    $translate_and_node[ $and_node
+                        ->[Marpa::Internal::And_Node::ID] ] = \@new_and_node;
+                } ## end for my $and_node_id ( @{ $or_node->[...
+
+            } ## end for my $or_node ( @{$cycle_set} )
+
+        } ## end for my $copy ( 1 .. $#root_or_nodes )
 
         ## DROP non-root external links when copying
         ## DUP root external links on copies
