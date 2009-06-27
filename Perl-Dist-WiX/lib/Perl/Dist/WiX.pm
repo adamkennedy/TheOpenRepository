@@ -1436,11 +1436,10 @@ EOF
 	} ## end foreach my $dist ( @{ $toolchain...
 
 	$self->patch_file(
-		'perl-5.10.0/lib/CPANPLUS/Config.pm' => catdir($self->image_dir, 'perl'), 
+		'perl/lib/CPANPLUS/Config.pm' => $self->image_dir, 
 		{ dist     => $self, }
 	) if $self->perl_version eq '5100';
 
-	
 	return 1;
 } ## end sub install_perl_toolchain
 
