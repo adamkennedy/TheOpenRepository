@@ -104,6 +104,7 @@ use     Probe::Perl           qw();
 use     SelectSaver           qw();
 use     Template              qw();
 use     Win32                 qw();
+#require Win32::File::Object;
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
@@ -1435,11 +1436,6 @@ EOF
 #>>>
 	} ## end foreach my $dist ( @{ $toolchain...
 
-	$self->patch_file(
-		'perl/lib/CPANPLUS/Config.pm' => $self->image_dir, 
-		{ dist     => $self, }
-	) if $self->perl_version eq '5100';
-
 	return 1;
 } ## end sub install_perl_toolchain
 
@@ -1604,6 +1600,21 @@ END_PERL
 		$self->_install_cpan_module( $module, $force );
 	}
 
+	my $cpanp_config_location = catfile($self->image_dir, qw(perl lib CPANPLUS Config.pm) );
+	
+	if (-e $cpanp_config_location) {
+		$self->trace_line(1, "Getting CPANPLUS config file ready for patching\n");
+	
+#		my $config_file = Win32::File::Object->new($cpanp_config_location, 1);		
+#		$config_file->readonly(0);
+		
+		$self->patch_file(
+			'perl/lib/CPANPLUS/Config.pm' => $self->image_dir, 
+			{ dist     => $self, }
+		) ;
+	}
+
+	
 	return 1;
 } ## end sub install_cpan_upgrades
 
