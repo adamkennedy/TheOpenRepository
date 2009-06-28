@@ -1041,33 +1041,100 @@ sub Marpa::Evaluator::new {
         ## now make the copies
         for my $copy ( 1 .. $#root_or_nodes ) {
 
+            my $root_node_id =
+                $root_or_nodes[$copy]->[Marpa::Internal::Or_Node::ID];
+
             # Make translation tables
-            my @translate_or_node;
-            my @translate_and_node;
+            my %translate_or_node;
+            my %translate_and_node;
 
             for my $or_node ( @{$cycle_set} ) {
-                next OR_NODE if $or_node->[Marpa::Internal::Or_Node::DELETED];
-                my @new_or_node;
-                $#new_or_node = Marpa::Internal::Or_Node::LAST_FIELD;
+                my $new_or_node;
+                $#{$new_or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
                 my $new_or_node_id = @{$or_nodes};
-                $new_or_node[Marpa::Internal::Or_Node::ID] = $new_or_node_id;
-                push @{$or_nodes}, \@new_or_node;
-                $translate_or_node[ $or_node->[Marpa::Internal::Or_Node::ID] ]
-                    = \@new_or_node;
+                $new_or_node->[Marpa::Internal::Or_Node::ID] =
+                    $new_or_node_id;
+                push @{$or_nodes}, $new_or_node;
+                $translate_or_node{ $or_node->[Marpa::Internal::Or_Node::ID] }
+                    = $new_or_node;
 
-                for my $and_node_id (
-                    @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
-                {
-                    my $and_node = $and_nodes->[$and_node_id];
-                    my @new_and_node;
-                    $#new_and_node = Marpa::Internal::And_Node::LAST_FIELD;
+                my $child_ids =
+                    $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+                for my $choice ( 0 .. @{$child_ids} ) {
+                    my $and_node_id = $child_ids->[$choice];
+                    my $and_node    = $and_nodes->[$and_node_id];
+                    my $new_and_node;
+                    $#{$new_and_node} = Marpa::Internal::And_Node::LAST_FIELD;
                     my $new_and_node_id = @{$and_nodes};
-                    $new_and_node[Marpa::Internal::And_Node::ID] =
+                    $new_and_node->[Marpa::Internal::And_Node::ID] =
                         $new_and_node_id;
-                    push @{$and_nodes}, \@new_and_node;
-                    $translate_and_node[ $and_node
-                        ->[Marpa::Internal::And_Node::ID] ] = \@new_and_node;
-                } ## end for my $and_node_id ( @{ $or_node->[...
+                    push @{$and_nodes}, $new_and_node;
+                    $translate_and_node{$and_node_id} = $new_and_node;
+                    $new_or_node->[Marpa::Internal::Or_Node::AND_NODES]
+                        ->[$choice] = $new_and_node;
+                    $new_or_node->[Marpa::Internal::Or_Node::CHILD_IDS]
+                        ->[$choice] = $new_and_node_id;
+                    $new_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
+                        $new_or_node_id;
+                    $new_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE]
+                        = $choice;
+                } ## end for my $choice ( 0 .. @{$child_ids} )
+
+            } ## end for my $or_node ( @{$cycle_set} )
+
+            # Now that we have the translation tables -- do the actual copying
+
+            for my $or_node ( @{$cycle_set} ) {
+                my $or_node_id  = $or_node->[Marpa::Internal::Or_Node::ID];
+                my $new_or_node = $translate_or_node{$or_node_id};
+                my $new_or_node_id =
+                    $new_or_node->[Marpa::Internal::Or_Node::ID];
+                for my $field (
+                    Marpa::Internal::Or_Node::IS_COMPLETED,
+                    Marpa::Internal::Or_Node::START_EARLEME,
+                    Marpa::Internal::Or_Node::END_EARLEME,
+                    Marpa::Internal::Or_Node::TAG,
+                    )
+                {
+                    $new_or_node->[$field] = $or_node->[$field];
+                } ## end for my $field ( ...
+
+                $new_or_node->[Marpa::Internal::Or_Node::TAG] =~ s{
+                        [#] \d* \z
+                    }{#$new_or_node_id}xms;
+
+                my $or_node_is_copy_root = $root_node_id == $or_node_id;
+
+                my @new_parent_ids = ();
+                PARENT_ID:
+                for my $parent_id (
+                    @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] } )
+                {
+                    if (defined(
+                            my $new_parent = $translate_and_node{$parent_id}
+                        )
+                        )
+                    {
+                        push @new_parent_ids,
+                            $new_parent->[Marpa::Internal::And_Node::ID];
+                        next PARENT_ID;
+                    } ## end if ( defined( my $new_parent = $translate_and_node{...
+
+                    # if we are here
+                    # the parent id is for an and-node external to the cycle
+
+                    # Unless we are copying the root or-node
+                    # for this copy, just skip all the external parents
+                    next PARENT_ID if not $or_node_is_copy_root;
+
+                    # if we are here
+                    # the parent id is for an and-node external to the cycle
+                    # and we are copying the root or-node -- the only one
+                    # allowed to have incoming links
+
+                    # Duplicate the incoming link
+
+                } ## end for my $parent_id ( @{ $or_node->[...
 
             } ## end for my $or_node ( @{$cycle_set} )
 
