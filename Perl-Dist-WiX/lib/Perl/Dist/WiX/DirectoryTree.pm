@@ -40,9 +40,10 @@ sub _init : Init {
 	my $object_id = ${$self};
 
 	$root[$object_id] = Perl::Dist::WiX::Directory->new(
-		id      => 'TARGETDIR',
-		name    => 'SourceDir',
-		special => 1,
+		id        => 'TARGETDIR',
+		name      => 'SourceDir',
+		special   => 1,
+		image_dir => $self->app_dir,
 	);
 
 	return $self;
