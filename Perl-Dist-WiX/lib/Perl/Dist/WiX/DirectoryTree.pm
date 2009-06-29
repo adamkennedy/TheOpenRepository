@@ -103,7 +103,7 @@ sub search_dir {
 #   C:\strawberry\perl\share.)
 
 sub initialize_tree {
-	my ( $self, @dirs ) = @_;
+	my ( $self, $ver, @dirs ) = @_;
 
 	$self->trace_line( 2, "Initializing directory tree.\n" );
 
@@ -130,6 +130,9 @@ sub initialize_tree {
 		'Cpan',      'cpan',
 		'Win32',     'win32',
 	);
+	$branch->add_directories_id(
+		'Cpanplus',  'cpanplus',
+	) if ('5100' eq $ver);
 #>>>
 	$branch->add_directories_init( qw(
 		  c\bin
