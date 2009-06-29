@@ -478,6 +478,75 @@ sub set_actions {
 
 }    # set_actions
 
+# Internal routine to duplicate an and-node
+sub duplicate_and_node {
+    my ( $evaler, $and_node, $translate_or_node ) = @_;
+    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $new_and_node;
+    $#{$new_and_node} = Marpa::Internal::And_Node::LAST_FIELD;
+    my $new_and_node_id = $new_and_node->[Marpa::Internal::And_Node::ID] =
+        scalar @{$and_nodes};
+    push @{$and_nodes}, $new_and_node;
+
+    for my $field (
+        Marpa::Internal::And_Node::TAG,
+        Marpa::Internal::And_Node::VALUE_REF,
+        Marpa::Internal::And_Node::PERL_CLOSURE,
+        Marpa::Internal::And_Node::END_EARLEME,
+        Marpa::Internal::And_Node::ARGC,
+        Marpa::Internal::And_Node::RULE,
+        Marpa::Internal::And_Node::POSITION,
+        Marpa::Internal::And_Node::RANK,
+        )
+    {
+        $new_and_node->[$field] = $and_node->[$field];
+    } ## end for my $field ( Marpa::Internal::And_Node::TAG, ...
+    $new_and_node->[Marpa::Internal::And_Node::TAG] =~ s{
+        [#] \d* \z
+    }{#$new_and_node_id}xms;
+
+    my $parent_id      = $and_node->[Marpa::Internal::And_Node::PARENT_ID];
+    my $new_parent_id  = $translate_or_node->{$parent_id} // $parent_id;
+    my $parent_or_node = $or_nodes->[$parent_id];
+    my $new_parent_or_node = $or_nodes->[$new_parent_id];
+    my $and_children_of_parent =
+        $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES];
+    my $new_parent_choice = scalar @{$and_children_of_parent};
+    push @{ $new_parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] },
+        $new_and_node_id;
+    push @{ $new_parent_or_node->[Marpa::Internal::Or_Node::AND_NODES] },
+        $new_and_node;
+    $new_and_node->[Marpa::Internal::And_Node::PARENT_ID] = $new_parent_id;
+    $new_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
+        $new_parent_choice;
+
+    FIELD:
+    for my $field (
+        Marpa::Internal::And_Node::CAUSE,
+        Marpa::Internal::And_Node::PREDECESSOR,
+        )
+    {
+        my $or_child = $and_node->[$field];
+        next FIELD if not defined $or_child;
+        my $or_child_id     = $or_child->[Marpa::Internal::Or_Node::ID];
+        my $new_or_child_id = $translate_or_node->{$or_child_id};
+        my $new_or_child;
+        if ( defined $new_or_child_id ) {
+            $new_or_child = $or_nodes->[$new_or_child_id];
+            $new_and_node->[$field] = $new_or_child;
+        }
+        else {
+            $new_or_child    = $or_child;
+            $new_or_child_id = $or_child_id;
+        }
+        push @{ $new_or_child->[Marpa::Internal::Or_Node::PARENT_IDS] },
+            $new_and_node_id;
+    }    # FIELD
+
+    return $new_and_node;
+} ## end sub duplicate_and_node
+
 # Returns false if no parse
 sub Marpa::Evaluator::new {
     my $class = shift;
