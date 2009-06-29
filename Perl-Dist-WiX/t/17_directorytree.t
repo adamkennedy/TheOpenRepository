@@ -256,7 +256,7 @@ is($string, q{}, 'Stringifies correctly when uninitialized');
 
 # Test 3
 
-$tree->initialize_tree; $string = $tree->as_string;
+$tree->initialize_tree('588'); $string = $tree->as_string;
 
 # This is here for data collection when the tree contents change.
 # require Data::Dumper;

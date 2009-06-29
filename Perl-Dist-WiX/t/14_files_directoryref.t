@@ -27,17 +27,18 @@ require Perl::Dist::WiX::Directory;
 my $path = rel2abs( catdir( curdir(), 't' ) );
 my $path_up = rel2abs( curdir() );
 
+my $dir_up = Perl::Dist::WiX::Directory->new( 
+    trace => 100,
+    path => $path_up,
+	image_dir => $path_up,
+    name => (splitdir($path_up))[-1],
+    sitename => 'www.test.site.invalid',
+);
+
 my $dir = Perl::Dist::WiX::Directory->new( 
     trace => 100,
     path => $path,
     name => (splitdir($path))[-1],
-    sitename => 'www.test.site.invalid',
-);
-
-my $dir_up = Perl::Dist::WiX::Directory->new( 
-    trace => 100,
-    path => $path_up,
-    name => (splitdir($path_up))[-1],
     sitename => 'www.test.site.invalid',
 );
 
