@@ -1404,13 +1404,9 @@ sub install_perl_toolchain {
 		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
 
 			# 1.28 makes some things fail tests...
-			$dist = 'CSJEWELL/Archive-Zip-1.28_0001.tar.gz' unless $self->force;
-			PDWiX->throw(
-				<<'EOF') unless ( $self->force or $self->cpan->as_string =~ m{\Afile:}msx );
-Cannot build using Archive::Zip 1.28 unless working off 
-a minicpan so that it does not get installed.
-(It makes other modules fail tests - a minicpan can cheat 
-and copy 1.26 in its place.)
+			PDWiX->throw(<<'EOF');
+Cannot build using Archive::Zip 1.28.
+It makes other modules fail tests.
 EOF
 		} ## end if ( $dist =~ /Archive-Zip-1\.28/msx)
 
@@ -1576,7 +1572,7 @@ END_PERL
 
 			# Upgrading to this version, instead...
 			$self->install_distribution(
-				name             => 'KANE/CPANPLUS-0.87_02.tar.gz',
+				name             => 'KANE/CPANPLUS-0.87_03.tar.gz',
 				mod_name         => 'CPANPLUS',
 				makefilepl_param => ['INSTALLDIRS=perl'],
 				buildpl_param    => [ '--installdirs', 'core' ],
@@ -4609,8 +4605,6 @@ sub _add_to_distributions_installed {
 	my $dist = shift;
 	$self->{distributions_installed} =
 	  [ @{ $self->{distributions_installed} }, $dist ];
-	my $dist_list = join "\n   ", ('', '', @{ $self->{distributions_installed} })[-3, -2, -1];
-	$self->trace_line( 2, "Last 3 on dist list:\n   $dist_list\n" );
 
 	return;
 }

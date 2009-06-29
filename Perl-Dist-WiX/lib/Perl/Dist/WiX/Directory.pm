@@ -98,7 +98,7 @@ sub _init : Init {
 
 		if (defined $id) {
 			if (exists $directory_cache{$id}) {
-				$self->trace_line(0, "WARNING: Please add the path $rel_path to the \n    msi_directory_tree_additions parameter to ->new.\n");
+				$self->trace_line(2, "You may need to add the path $rel_path to the \n    msi_directory_tree_additions parameter to ->new.\n");
 				if ($directory_cache{$id} ne $rel_path) {
 					PDWiX->throw(<<"EOF");
 Directory GUID collision - PLEASE report as a bug.
