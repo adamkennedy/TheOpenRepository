@@ -478,75 +478,6 @@ sub set_actions {
 
 }    # set_actions
 
-# Internal routine to duplicate an and-node
-sub duplicate_and_node {
-    my ( $evaler, $and_node, $translate_or_node ) = @_;
-    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
-    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $new_and_node;
-    $#{$new_and_node} = Marpa::Internal::And_Node::LAST_FIELD;
-    my $new_and_node_id = $new_and_node->[Marpa::Internal::And_Node::ID] =
-        scalar @{$and_nodes};
-    push @{$and_nodes}, $new_and_node;
-
-    for my $field (
-        Marpa::Internal::And_Node::TAG,
-        Marpa::Internal::And_Node::VALUE_REF,
-        Marpa::Internal::And_Node::PERL_CLOSURE,
-        Marpa::Internal::And_Node::END_EARLEME,
-        Marpa::Internal::And_Node::ARGC,
-        Marpa::Internal::And_Node::RULE,
-        Marpa::Internal::And_Node::POSITION,
-        Marpa::Internal::And_Node::RANK,
-        )
-    {
-        $new_and_node->[$field] = $and_node->[$field];
-    } ## end for my $field ( Marpa::Internal::And_Node::TAG, ...
-    $new_and_node->[Marpa::Internal::And_Node::TAG] =~ s{
-        [#] \d* \z
-    }{#$new_and_node_id}xms;
-
-    my $parent_id      = $and_node->[Marpa::Internal::And_Node::PARENT_ID];
-    my $new_parent_id  = $translate_or_node->{$parent_id} // $parent_id;
-    my $parent_or_node = $or_nodes->[$parent_id];
-    my $new_parent_or_node = $or_nodes->[$new_parent_id];
-    my $and_children_of_parent =
-        $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES];
-    my $new_parent_choice = scalar @{$and_children_of_parent};
-    push @{ $new_parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] },
-        $new_and_node_id;
-    push @{ $new_parent_or_node->[Marpa::Internal::Or_Node::AND_NODES] },
-        $new_and_node;
-    $new_and_node->[Marpa::Internal::And_Node::PARENT_ID] = $new_parent_id;
-    $new_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
-        $new_parent_choice;
-
-    FIELD:
-    for my $field (
-        Marpa::Internal::And_Node::CAUSE,
-        Marpa::Internal::And_Node::PREDECESSOR,
-        )
-    {
-        my $or_child = $and_node->[$field];
-        next FIELD if not defined $or_child;
-        my $or_child_id     = $or_child->[Marpa::Internal::Or_Node::ID];
-        my $new_or_child_id = $translate_or_node->{$or_child_id};
-        my $new_or_child;
-        if ( defined $new_or_child_id ) {
-            $new_or_child = $or_nodes->[$new_or_child_id];
-            $new_and_node->[$field] = $new_or_child;
-        }
-        else {
-            $new_or_child    = $or_child;
-            $new_or_child_id = $or_child_id;
-        }
-        push @{ $new_or_child->[Marpa::Internal::Or_Node::PARENT_IDS] },
-            $new_and_node_id;
-    }    # FIELD
-
-    return $new_and_node;
-} ## end sub duplicate_and_node
-
 # Internal routine to clone an and-node
 sub clone_and_node {
     my ( $evaler, $and_node ) = @_;
@@ -1142,8 +1073,9 @@ sub Marpa::Evaluator::new {
         ## now make the copies
         for my $copy ( 1 .. $#root_or_nodes ) {
 
-            my $root_node_id =
-                $root_or_nodes[$copy]->[Marpa::Internal::Or_Node::ID];
+            my $root_or_node = $root_or_nodes[$copy];
+            my $root_or_node_id =
+                $root_or_node->[Marpa::Internal::Or_Node::ID];
 
             # Copy non-link dependent fields
             # Make translation tables
@@ -1247,7 +1179,100 @@ sub Marpa::Evaluator::new {
                 # It remains now to duplicate the external links into the cycle.
                 # These are allowed only into the root node of the cycle.
 
-                # TO DO
+                my $new_root_or_node_id =
+                    $translate_or_node_id{ $root_or_node
+                        ->[Marpa::Internal::Or_Node::ID] };
+                my $new_root_or_node = $or_nodes->[$new_root_or_node_id];
+
+                for my $parent_and_node_id (
+                    @{ $root_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] }
+                    )
+                {
+
+                    # Internal nodes have already been dealt with
+                    next PARENT_ID
+                        if defined $translate_or_node_id{$parent_and_node_id};
+
+                    # Clone the external parent node
+                    my $parent_and_node = $and_nodes->[$parent_and_node_id];
+                    my $new_parent_and_node =
+                        clone_and_node( $self, $parent_and_node );
+                    my $new_parent_and_node_id =
+                        $new_parent_and_node->[Marpa::Internal::And_Node::ID];
+
+                    # Tell the new root or-node, that the cloned and-node is one of
+                    # its parents.
+                    push @{ $new_root_or_node
+                            ->[Marpa::Internal::Or_Node::PARENT_IDS] },
+                        $new_parent_and_node_id;
+
+                    # Now tell the cloned and-node about its children, one
+                    # of which is the new root or-node
+                    FIELD:
+                    for my $field (
+                        Marpa::Internal::And_Node::CAUSE,
+                        Marpa::Internal::And_Node::PREDECESSOR
+                        )
+                    {
+                        my $root_or_node_sibling = $parent_and_node->[$field];
+                        next FIELD if not defined $root_or_node_sibling;
+
+                        # If this field was the root or node in the old
+                        # parent and-node, make it the case that the
+                        # new root or-node is this same field in the
+                        # new parent and-node.
+                        # Uses a referent address comparison.
+                        if ( $root_or_node_sibling == $root_or_node ) {
+                            $new_parent_and_node->[$field] =
+                                $new_root_or_node;
+                            next FIELD;
+                        }
+
+                        # If we are here the field is defined, but not
+                        # the root or-node, so we need to duplicate the
+                        # link.  We can rely on this sibling being external
+                        # to the cycle, because
+                        #   1. All or-nodes in a cycle must have the same
+                        #      span.
+                        #   2. For both children of an and-node to have
+                        #      the same span, both must have a zero-width
+                        #      span.
+                        #   3. If more than one zero-width span occurred
+                        #      in an and-node,
+                        #      the parent or-node and and-node would have
+                        #      zero-width as well.
+                        #   4. Zero-width and-nodes do not have children,
+                        #      because of Marpa's assignment of constant
+                        #      "null values" to null symbols.
+                        push @{ $root_or_node_sibling
+                                ->[Marpa::Internal::Or_Node::PARENT_IDS] },
+                            $new_parent_and_node_id;
+                    } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...
+
+                    # Tell the parent of the newly cloned and-node
+                    # about its new child
+                    my $grandparent_or_node_id = $parent_and_node
+                        ->[Marpa::Internal::And_Node::PARENT_ID];
+                    my $grandparent_or_node =
+                        $or_nodes->[$grandparent_or_node_id];
+                    my $child_ids_of_grandparent = $grandparent_or_node
+                        ->[Marpa::Internal::Or_Node::CHILD_IDS];
+                    my $choice = @{$child_ids_of_grandparent};
+                    push @{$child_ids_of_grandparent},
+                        $new_parent_and_node_id;
+                    push @{ $grandparent_or_node
+                            ->[Marpa::Internal::Or_Node::AND_NODES] },
+                        $new_parent_and_node;
+
+                    # Tell the new cloned and-node about its parent
+                    $new_parent_and_node
+                        ->[Marpa::Internal::And_Node::PARENT_ID] =
+                        $grandparent_or_node_id;
+                    $new_parent_and_node
+                        ->[Marpa::Internal::And_Node::PARENT_CHOICE] =
+                        $choice;
+
+                } ## end for my $parent_and_node_id ( @{ $root_or_node->[...
 
             } ## end for my $or_node ( @{$cycle_set} )
 
