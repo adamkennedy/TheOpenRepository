@@ -7,7 +7,7 @@ BEGIN {
 	$| = 1;
 }
 
-use Test::More tests => 9;
+use Test::More tests => 10;
 use File::Spec::Functions     ':ALL';
 use File::Remove              'clear';
 use ORDB::CPANMeta::Generator ();
@@ -24,6 +24,10 @@ foreach my $file ( @archives ) {
 
 my $minicpan = catdir( 't', 'minicpan' );
 ok( -d $minicpan, 'Found minicpan directory' );
+
+my $sqlite = catdir( 't', 'sqlite.db' );
+clear( $sqlite );
+ok( ! -f $sqlite, "Database '$sqlite' does not exist" );
 
 
 
