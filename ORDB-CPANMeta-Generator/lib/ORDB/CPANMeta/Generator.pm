@@ -41,7 +41,7 @@ use CPAN::Mini        0.576 ();
 use CPAN::Mini::Visit  0.08 ();
 use Xtract::Publish    0.10 ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Object::Tiny 1.06 qw{
 	minicpan
