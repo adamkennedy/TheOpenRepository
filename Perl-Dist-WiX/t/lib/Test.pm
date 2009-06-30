@@ -13,10 +13,11 @@ use t::lib::Test588      ();
 use t::lib::Test5100     ();
 use t::lib::TestPortable ();
 use t::lib::Test589      ();
+use URI                  ();
 
 use vars qw{$VERSION};
 BEGIN {
-    use version; $VERSION = qv('0.170');
+    use version; $VERSION = qv('0.190');
 }
 
 
@@ -45,10 +46,10 @@ sub paths {
 	my $class        = shift;
 	my $subpath      = shift || '';
 
-        # Create base and download directory so we can do a GetShortPathName on it.
-        my $basedir  = rel2abs( catdir( 't', "tmp$subpath" ) );
+	# Create base and download directory so we can do a GetShortPathName on it.
+	my $basedir  = rel2abs( catdir( 't', "tmp$subpath" ) );
 	my $download = rel2abs( catdir( 't', 'download' ) );
-        File::Path::mkpath( $basedir )  unless -d $basedir;
+    File::Path::mkpath( $basedir )  unless -d $basedir;
 	File::Path::mkpath( $download ) unless -d $download;
 	$basedir  = Win32::GetShortPathName( $basedir );
 	$download = Win32::GetShortPathName( $download );
@@ -67,6 +68,15 @@ sub paths {
 	);
 }
 
+sub cpan_release {
+	my $class = shift;
+	if ( defined $ENV{RELEASE_TEST_PERLDIST_CPAN} ) {
+		return ( cpan => URI->new($ENV{RELEASE_TEST_PERLDIST_CPAN}) );
+	} else {
+		return ();
+	}
+}
+
 sub cpan {
 	if ( $ENV{TEST_PERLDIST_CPAN} ) {
 		return URI->new($ENV{TEST_PERLDIST_CPAN});
@@ -80,25 +90,25 @@ sub cpan {
 sub new1 {
 	my $class = shift;
 	return t::lib::TestQuick->new(
-		cpan => $class->cpan,
 		$class->paths(@_),
+		cpan => $class->cpan,
 	);
 }
 
 sub new2 {
-	return t::lib::Test588->new( shift->paths(@_) );
+	return t::lib::Test588->new( shift->paths(@_), shift->cpan_release );
 }
 
 sub new3 {
-	return t::lib::Test5100->new( shift->paths(@_) );
+	return t::lib::Test5100->new( shift->paths(@_), shift->cpan_release );
 }
 
 sub new4 {
-	return t::lib::TestPortable->new( shift->paths(@_) );
+	return t::lib::TestPortable->new( shift->paths(@_), shift->cpan_release );
 }
 
 sub new5 {
-	return t::lib::Test589->new( shift->paths(@_) );
+	return t::lib::Test589->new( shift->paths(@_), shift->cpan_release );
 }
 
 1;
