@@ -1,5 +1,9 @@
 Changes for Perl extension ORDB-CPANMeta
 
+0.03 Tue 30 Jun 2009
+	- Correcting the module name in 01_compilt.
+	- 
+
 0.02 Sat 27 Jun 2009
 	- Updated to new data source url
 

@@ -9,4 +9,4 @@ BEGIN {
 
 use Test::More tests => 1;
 
-require_ok( 'ORDB::CPANTesters' );
+require_ok( 'ORDB::CPANMeta' );
