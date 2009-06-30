@@ -225,6 +225,9 @@ END_SQL
 		$ignore = [ sub { $seen{$_[0]} } ];
 	}
 
+	# Clear indexes for speed
+	$self->drop_indexes( $dbh );
+
 	# Run the visitor to generate the database
 	$dbh->begin_work;
 	my @meta_dist = ();
@@ -318,6 +321,9 @@ END_SQL
 	$visitor->run;
 	$dbh->commit;
 
+	# Generate the indexes
+	$self->create_indexes( $dbh );
+
 	# Publish the database to the current directory
 	print STDERR "Publishing the generated database...\n" if $self->trace;
 	Xtract::Publish->new(
@@ -330,6 +336,47 @@ END_SQL
 		lz     => 1,
 	)->run;
 
+	return 1;
+}
+
+
+
+
+
+######################################################################
+# Index Management
+
+my @INDEX = (
+	[ 'meta_distribution', 'release' ],
+	[ 'meta_dependency',   'release' ],
+	[ 'meta_dependency',   'phase'   ],
+	[ 'meta_dependency',   'module'  ],
+);
+
+sub drop_indexes {
+	my $self = shift;
+	my $dbh  = shift;
+	foreach my $i ( @INDEX ) {
+		$dbh->do("DROP INDEX IF EXISTS $i->[0]__$i->[1]");
+	}
+	return 1;
+}
+
+sub create_indexes {
+	my $self = shift;
+	my $dbh  = shift;
+	foreach my $i ( @INDEX ) {
+		$self->create_index( $dbh, @$i );
+	}
+	return 1;
+}
+
+sub create_index {
+	my $self = shift;
+	my $dbh  = shift;
+	my $t    = shift;
+	my $c    = shift;
+	$dbh->do("CREATE INDEX IF NOT EXISTS ${t}__${c} on $t ( $c )");
 	return 1;
 }
 
