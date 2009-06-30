@@ -534,7 +534,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		) if ( $params{image_dir} =~ m{\\\\}ms );
 
 		$class->remake_path( $params{image_dir} );
-	} ## end if ( defined $params{image_dir...
+	} ## end if ( defined $params{image_dir...})
 	unless ( defined $params{perl_version} ) {
 		$params{perl_version} = '5100';
 	}
@@ -1408,7 +1408,7 @@ sub install_perl_toolchain {
 Cannot build using Archive::Zip 1.28.
 It makes other modules fail tests.
 EOF
-		} ## end if ( $dist =~ /Archive-Zip-1\.28/msx)
+		}
 
 		$module_id = $self->_name_to_module($dist);
 		$core =
@@ -1429,7 +1429,7 @@ EOF
 			  : (),
 		);
 #>>>
-	} ## end foreach my $dist ( @{ $toolchain...
+	} ## end foreach my $dist ( @{ $toolchain...})
 
 	return 1;
 } ## end sub install_perl_toolchain
@@ -1579,7 +1579,7 @@ END_PERL
 				force            => $force
 			);
 			next;
-		} ## end if ( ( $module->cpan_file...
+		} ## end if ( ( $module->cpan_file...))
 
 		if ( $self->_delay_upgrade($module) ) {
 
@@ -1589,21 +1589,22 @@ END_PERL
 		}
 
 		$self->_install_cpan_module( $module, $force );
-	} ## end for my $module ( @{$module_info...
+	} ## end for my $module ( @{$module_info...})
 
 	for my $module (@delayed_modules) {
 		$self->_install_cpan_module( $module, $force );
 	}
 
-	my $cpanp_config_location = catfile($self->image_dir, qw(perl lib CPANPLUS Config.pm) );
-	
-	if (-e $cpanp_config_location) {
-		$self->trace_line(1, "Getting CPANPLUS config file ready for patching\n");
-			
+	my $cpanp_config_location =
+	  catfile( $self->image_dir, qw(perl lib CPANPLUS Config.pm) );
+
+	if ( -e $cpanp_config_location ) {
+		$self->trace_line( 1,
+			"Getting CPANPLUS config file ready for patching\n" );
+
 		$self->patch_file(
-			'perl/lib/CPANPLUS/Config.pm' => $self->image_dir, 
-			{ dist     => $self, }
-		) ;
+			'perl/lib/CPANPLUS/Config.pm' => $self->image_dir,
+			{ dist => $self, } );
 	}
 
 	return 1;
@@ -2357,7 +2358,7 @@ sub install_perl_5100_bin {
 * -- csjewell\@cpan.org
 ***********************************************************
 EOF
-		} ## end if ( ( not $perl->force...
+		} ## end if ( ( not $perl->force...))
 
 		unless ( ( $perl->force ) or ( $long_build =~ /\s/ms ) ) {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
@@ -2942,7 +2943,7 @@ sub install_library {
 			def => catfile( $unpack_to, $library->build_a->{def} ),
 			a   => catfile( $unpack_to, $library->build_a->{a} ),
 		  );
-	} ## end if ( _HASH( $library->build_a...
+	} ## end if ( _HASH( $library->build_a...))
 
 	# Copy in the files
 	my $install_to = $library->install_to;
@@ -3424,7 +3425,7 @@ EOF
 			$self->trace_line( 4, q{ } . join "\n ", @files_list );
 			$fl = File::List::Object->new->load_array(@files_list);
 		}
-	} ## end else [ if ( -r $perl )
+	} ## end else [ if ( -r $perl ) ]
 
 	return $fl->filter( $self->filters );
 } ## end sub search_packlist
@@ -3694,7 +3695,8 @@ sub install_par {
 	$self->trace_line( 2, $output );
 
 	# Get distribution name to add to what's installed.
-	if (( defined {@_}->{url} ) and ( {@_}->{url} =~ m{.*/([^/]*)\z}msx )) {
+	if ( ( defined {@_}->{url} ) and ( {@_}->{url} =~ m{.*/([^/]*)\z}msx ) )
+	{
 		my $dist_info = $1;
 		$dist_info =~ s{\.par}{}msx;   # Take off .par extension.
 #<<<
@@ -3716,7 +3718,7 @@ Could not parse name of .par to determine name and version.
 Source: $dist_info
 EOF
 		}
-	} ## end if ( {@_}->{url} =~ m{.*/([^/]*)\z}msx)
+	} ## end if ( ( defined {@_}->{...}))
 
 	# Read in the .packlist and return it.
 	my $filelist =
@@ -4114,7 +4116,7 @@ sub patch_file {
 
 sub image_drive {
 	my $self = shift;
-	return substr rel2abs($self->image_dir), 0, 2;
+	return substr rel2abs( $self->image_dir ), 0, 2;
 }
 
 sub image_dir_url {
@@ -4167,7 +4169,7 @@ sub user_agent {
 				show_progress => 1,
 			);
 		}
-	} ## end unless ( $self->{user_agent...
+	} ## end unless ( $self->{user_agent...})
 	return $self->{user_agent};
 } ## end sub user_agent
 
@@ -4244,7 +4246,7 @@ sub _mirror {
 			$self->trace_line( 2, "(already up to date)\n",
 				$no_display_trace );
 		}
-	} ## end else [ if ( $url =~ m{\Afile://}msx)
+	} ## end else [ if ( $url =~ m{\Afile://}msx)]
 
 	return $target;
 } ## end sub _mirror
@@ -4447,7 +4449,7 @@ sub _extract_filemap {
 				}
 				push @files, $filename;
 			} ## end foreach my $member (@members)
-		} ## end while ( my ( $f, $t ) = each...
+		} ## end while ( my ( $f, $t ) = each...)
 
 	} elsif ( $archive =~ m{\.tar\.gz | \.tgz}msx ) {
 		local $Archive::Tar::CHMOD = 0;
@@ -4477,7 +4479,7 @@ sub _extract_filemap {
 				$self->trace_line( 2, "Extracting $f to $full_t\n" );
 				$tar->extract_file( $f, $full_t );
 				push @files, $full_t;
-			} ## end for my $tgt ( keys %{$filemap...
+			} ## end for my $tgt ( keys %{$filemap...})
 		} ## end for my $file ( $tar->get_files)
 
 	} else {

@@ -1,9 +1,6 @@
 verbose = %f:%l:%c:\n %p: %m\n
 theme = (core || more)
 
-[CodeLayout::RequireTidyCode]
-perltidyrc = t\settings\perltidy.txt
-
 [ControlStructures::ProhibitPostfixControls]
 allow = if unless
 

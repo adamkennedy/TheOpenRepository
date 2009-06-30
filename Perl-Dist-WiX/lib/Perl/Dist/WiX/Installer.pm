@@ -228,7 +228,9 @@ sub new {
 	$self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
 		app_dir  => $self->image_dir,
 		app_name => $self->app_name,
-	)->initialize_tree( $self->perl_version, @{ $self->{msi_directory_tree_additions} } );
+	  )
+	  ->initialize_tree( $self->perl_version,
+		@{ $self->{msi_directory_tree_additions} } );
 	$self->{fragments} = {};
 	$self->{fragments}->{Icons} =
 	  Perl::Dist::WiX::StartMenu->new( directory => 'D_App_Menu', );
@@ -245,7 +247,7 @@ sub new {
 	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::CreateFolder->new(
 		directory => 'Cpanplus',
 		id        => 'CPANPLUSFolder',
-	) if ('5100' eq $self->perl_version);
+	) if ( '5100' eq $self->perl_version );
 
 	$self->{icons} = Perl::Dist::WiX::Icons->new( trace => $self->{trace} );
 
@@ -576,7 +578,7 @@ sub write_msi {
 		}
 
 		push @files, $filename_out;
-	} ## end foreach my $key ( keys %{ $self...
+	} ## end foreach my $key ( keys %{ $self...})
 
 	# Generate feature tree.
 	$self->{feature_tree_obj} =

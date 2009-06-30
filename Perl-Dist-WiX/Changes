@@ -1,17 +1,29 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.185   Tue 23 Jun 2009
-    1. Will be used to make Strawberry Perl July 2009 
+0.190   Tue 30 Jun 2009
+    1. Was used to make Strawberry Perl July 2009 
        Beta 3.
-    2. Force install of Archive::Zip version 1.26 (1.28 
+    2. Throw an exception if Archive::Zip version 1.28 
+       will be installed instead. (Forcing 1.26 did not work.)
+    3. A CPANPLUS::Config has been created that does similar
+       things to the CPAN::Config that is installed.
+    4. Building completely offline can now be successfully done.
+       Because of this, CPAN::SQLite is disabled when actually
+       installing modules during distribution building.
+    5. Will attempt to tell you which directories need to be 
+       added to the msi_directory_tree_additions parameter to 
+	   Perl::Dist::WiX->new when trace is 2 or greater.
+
+0.185   Tue 23 Jun 2009
+    1. Force install of Archive::Zip version 1.26 (1.28 
        has a bug in it.)
-    3. Builds a list of CPAN distributions that were 
+    2. Builds a list of CPAN distributions that were 
        installed as DISTRIBUTIONS.txt in the root directory
        of the install.
-    4. A few more files are removed.
-    5. Checks of CPAN use the CPAN passed in, not the 
+    3. A few more files are removed.
+    4. Checks of CPAN use the CPAN passed in, not the 
        CPAN of the host perl or cpan.strawberryperl.com.
-    6. Required version of Perl::Dist increased to 1.14 
+    5. Required version of Perl::Dist increased to 1.14 
        (except for Perl::Dist::Util::Toolchain, which has
 	   to be gotten from SVN for now.)
 

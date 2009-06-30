@@ -11,6 +11,9 @@ BEGIN {
 }
 
 my @MODULES = (
+    'Perl::Tidy',
+	'Perl::Critic',
+	'Perl::Critic::Utils::Constants',
 	'Perl::Critic::More',
 	'Test::Perl::Critic',
 );
@@ -31,10 +34,26 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
+if ( 0.199_001 > eval { $Perl::Critic::VERSION } ) {
+	plan( skip_all => "Perl::Critic needs updated to 0.199_001" );
+}
+
+if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {
+	plan( skip_all => "Perl::Tidy needs updated to 20090616" );
+}
+
 use File::Spec::Functions qw(catfile catdir);
+Perl::Critic::Utils::Constants->import(':profile_strictness');
+my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
+
+local $ENV{PERLTIDY} = catfile( 't', 'settings', 'perltidy.txt' );
 
 my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
-Test::Perl::Critic->import( -profile => $rcfile, -severity => 1 );
+Test::Perl::Critic->import( 
+	-profile            => $rcfile, 
+	-severity           => 1, 
+	-profile-strictness => $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET
+);
 
 # I only want to criticize my own modules, not the module patches to the differing perls...
 if (-d catdir('blib', 'lib')) {

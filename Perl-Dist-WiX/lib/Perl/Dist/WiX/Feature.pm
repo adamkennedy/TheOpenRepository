@@ -287,7 +287,7 @@ sub as_string {
 		$string .= qq{\n};
 
 		$string .= qq{</Feature>\n};
-	} ## end else [ if ( ( $c_count == 0 )...
+	} ## end else [ if ( ( $c_count == 0 )...)]
 
 	return $string;
 

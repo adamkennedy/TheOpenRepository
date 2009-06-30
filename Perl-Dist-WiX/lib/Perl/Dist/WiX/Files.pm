@@ -197,7 +197,7 @@ sub add_file {
 				$use = $directory_obj->is_child_of($directory_ref_obj);
 			}
 		}
-	} ## end else [ if ( not defined $directory_obj)
+	} ## end else [ if ( not defined $directory_obj)]
 
 	# Now use the one that's "lower" in the directory tree.
 	if ( $use == 0 ) {
@@ -388,7 +388,7 @@ sub check_duplicates {
 				  . "\n" );
 			$object->delete_filenum($index);
 		}
-	} ## end foreach my $pathname ( @{$files_ref...
+	} ## end foreach my $pathname ( @{$files_ref...})
 
 	return $self;
 } ## end sub check_duplicates
