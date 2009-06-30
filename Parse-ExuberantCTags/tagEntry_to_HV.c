@@ -4,7 +4,7 @@ extern "C" {
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
-
+#include "ppport.h"
 #include "readtags.h"
 #include "tagEntry_to_HV.h"
 #ifdef __cplusplus
