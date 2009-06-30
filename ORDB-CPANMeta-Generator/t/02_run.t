@@ -7,7 +7,7 @@ BEGIN {
 	$| = 1;
 }
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 use File::Spec::Functions     ':ALL';
 use File::Remove              'clear';
 use ORDB::CPANMeta::Generator ();
@@ -25,12 +25,12 @@ foreach my $file ( @archives ) {
 my $minicpan = catdir( 't', 'minicpan' );
 ok( -d $minicpan, 'Found minicpan directory' );
 
-my $sqlite = catdir( 't', 'sqlite.db' );
+my $sqlite = catfile( 't', 'sqlite.db' );
 clear( $sqlite );
 ok( ! -f $sqlite, "Database '$sqlite' does not exist" );
 
 
-
+ 
 
 
 #####################################################################
@@ -39,17 +39,16 @@ ok( ! -f $sqlite, "Database '$sqlite' does not exist" );
 # Create the generator
 my $generator = ORDB::CPANMeta::Generator->new(
 	minicpan => $minicpan,
+	sqlite   => $sqlite,
 	trace    => 0,
 );
 isa_ok( $generator, 'ORDB::CPANMeta::Generator' );
-
-# Remove the operating files that anyone made before us
-clear( $generator->dir );
 
 # Run the generator
 ok( $generator->run, '->run ok' );
 
 # Validate the result
+ok( -f $sqlite, "Created database '$sqlite'" );
 foreach my $file ( qw{
 	cpanmeta.gz
 	cpanmeta.bz2
