@@ -96,19 +96,23 @@ sub new1 {
 }
 
 sub new2 {
-	return t::lib::Test588->new( shift->paths(@_), shift->cpan_release );
+	my $self = shift;
+	return t::lib::Test588->new( $self->paths(@_), $self->cpan_release );
 }
 
 sub new3 {
-	return t::lib::Test5100->new( shift->paths(@_), shift->cpan_release );
+	my $self = shift;
+	return t::lib::Test5100->new( $self->paths(@_), $self->cpan_release );
 }
 
 sub new4 {
-	return t::lib::TestPortable->new( shift->paths(@_), shift->cpan_release );
+	my $self = shift;
+	return t::lib::TestPortable->new( $self->paths(@_), $self->cpan_release );
 }
 
 sub new5 {
-	return t::lib::Test589->new( shift->paths(@_), shift->cpan_release );
+	my $self = shift;
+	return t::lib::Test589->new( $self->paths(@_), $self->cpan_release );
 }
 
 1;
