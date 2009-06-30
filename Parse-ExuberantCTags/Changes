@@ -1,5 +1,8 @@
 Revision history for Perl extension Parse::ExuberantCTags.
 
-0.01  Fri Jun 12 16:25 2009
+1.01  Tue Jun 30 16:25 2009
+  - band-aid fix for perls older than 5.10 (include ppport.h in extra cc file)
+
+1.00  Fri Jun 12 16:25 2009
   - original version
 
