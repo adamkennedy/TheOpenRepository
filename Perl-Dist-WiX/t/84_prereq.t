@@ -31,6 +31,13 @@ foreach my $MODULE ( @MODULES ) {
 }
 
 diag('Takes a few minutes...');
+
+use File::Remove qw();
+
+foreach my $dir ( 't\tmp50', 't\tmp90', 't\tmp91', 't\tmp92', 't\tmp93' ) {
+	File::Remove::remove( \1, $dir ) if -d $dir;
+}
+
 my @modules_skip = (
 # Perl::Dist prerequisites - 
 #   since we have Perl::Dist as a prereq, I'm not
@@ -80,7 +87,6 @@ my @modules_skip = (
 prereq_ok(5.008001, 'Check prerequisites', \@modules_skip);
 
 use File::Copy qw();
-use File::Remove qw();
 
 File::Copy::move( 't\inc\Module\Install.pm', 'inc\Module\Install.pm' );
 File::Remove::remove( \1, 't\inc' );

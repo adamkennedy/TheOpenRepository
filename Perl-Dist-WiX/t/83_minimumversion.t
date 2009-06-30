@@ -31,4 +31,17 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-all_minimum_version_from_metayml_ok();
+# Terminate leftovers with prejudice aforethought.
+require File::Remove;
+foreach my $dir ( 't\tmp50', 't\tmp90', 't\tmp91', 't\tmp92', 't\tmp93' ) {
+	File::Remove::remove( \1, $dir ) if -d $dir;
+}
+
+use File::Spec::Functions qw(catdir);
+# I only want to test my own modules, not the module patches to the differing perls...
+# Nor do I want 5k+ tests after a RELEASE_TESTING build!
+if (-d catdir('blib', 'lib')) {
+    all_minimum_version_from_metayml_ok({ paths => [ catdir('blib', 'lib', 'Perl'), 't' ]});
+} else {
+    all_minimum_version_from_metayml_ok({ paths => [ catdir('lib', 'Perl'), 't' ]});
+}
