@@ -126,7 +126,7 @@ unless ($jio->installed) {
 
   # Figure out if we should do a full install
   my $extra = $builder->y_n('libjio includes other files including Python ' .
-    'and Ruby bindings. Install them too?', 'n');
+    'bindings. Install them too?', 'n');
   $builder->notes(extra => $extra);
 }
 
