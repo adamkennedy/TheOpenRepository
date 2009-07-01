@@ -257,7 +257,7 @@ END_SQL
 	$self->create_index( t_distribution => 'release' );
 
 	# Create the author table
-	$self->say("Generating table author...\n" if $self->trace;
+	$self->say("Generating table author...");
 	$self->do(<<'END_SQL');
 CREATE TABLE author (
 	author TEXT NOT NULL PRIMARY KEY,
