@@ -14,7 +14,7 @@ use CPAN::SQLite        0.197 ();
 
 use vars qw{$VERSION @ISA @DELEGATE};
 BEGIN {
-	$VERSION  = '0.04';
+	$VERSION  = '0.05';
 	@ISA      = qw{
 		Process::Delegatable
 		Process::Storable

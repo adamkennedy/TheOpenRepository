@@ -45,7 +45,7 @@ use DBD::SQLite     1.25 ();
 use CPAN::SQLite   0.197 ();
 use Xtract::Publish 0.10 ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Object::Tiny 1.06 qw{
 	cpan

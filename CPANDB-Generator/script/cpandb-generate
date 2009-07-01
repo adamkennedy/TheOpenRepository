@@ -6,7 +6,7 @@ use Getopt::Long      ();
 use Time::Elapsed     ();
 use CPANDB::Generator ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 # Check params
 my $QUIET = 0;

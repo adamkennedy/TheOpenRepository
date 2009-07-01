@@ -27,7 +27,7 @@ unless ( @minicpan ) {
 }
 
 # We can (finally) be sure that we can run the test
-plan( tests => 2 );
+plan( tests => 10 );
 
 # Define the archives we'll be making
 my @archives = qw{

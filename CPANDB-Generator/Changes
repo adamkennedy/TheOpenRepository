@@ -1,5 +1,8 @@
 Changes for Perl extension CPANDB-Generator
 
+0.05 Wed  1 Jul 2009
+	- Fixing a bug in the test count
+
 0.04 Wed  1 Jul 2009
 	- Integrating dependency information
 	- Adding indexes
