@@ -37,4 +37,20 @@ resources      'homepage'             => 'http://csjewell.comyr.com/perl/';
 license        'perl';
 install_share;
 
+my $answer;
+YN: 
+	while ($answer = prompt 'Do you want to install the minimal minicpan script?', 'n') {
+		last if $answer =~ /^y/i;
+		last if $answer =~ /^n/i;
+		local $| = 1;
+		print "Please answer 'y' or 'n'.\n";
+}
+
+if ($answer =~ /^y/i) {
+	require File::Spec;
+	install_script File::Spec->catfile('script', 'minicpan_pdwix');
+	requires       'CPAN::Mini'        => 0;
+	requires       'CPAN::Mini::Devel' => 0;
+}
+
 WriteAll;
