@@ -6,11 +6,11 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More 0.86 tests => 61;
-use LWP::Online ':skip_all';
-use File::Spec::Functions ':ALL';
+use Test::More             0.86 tests => 61;
+use LWP::Online                 ':skip_all';
+use File::Spec::Functions       ':ALL';
 use Perl::Dist::Util::Toolchain ();
-use Probe::Perl ();
+use Probe::Perl                 ();
 
 my $perl = Probe::Perl->find_perl_interpreter;
 @Perl::Dist::Util::Toolchain::DELEGATE = (
@@ -45,13 +45,21 @@ SCOPE: {
 		modules      => [ 'File::Spec' ],
 	] );
 	my $p = $toolchain->prepare;
-	if ( ! $p and $@ =~ /Permission denied/ ) {
-		foreach ( 2 .. 43 ) {
-			ok( 1, 'No permissions to test, skipping' );
+	unless ( $p ) {
+		my $message = '';
+		if ( $@ =~ /Permission denied/ ) {
+			$message = "No permissions to test, skipping";
+		} elsif ( $@ =~ /Transfer truncated/ ) {
+			$message = "Bad internet connection, skipping";
 		}
-		exit(0);
+		if ( $message ) {
+			foreach ( 2 .. 43 ) {
+				ok( 1, 'No permissions to test, skipping' );
+			}
+			exit(0);
+		}
 	}
-	ok( $toolchain->prepare, '->prepare ok' );
+	ok( $p, '->prepare ok' );
 	ok( $toolchain->run,     '->run ok'     );
 	check_simple_object( $toolchain );
 }
@@ -79,10 +87,7 @@ SCOPE: {
 		cpan         => 'http://cpan.strawberryperl.com/',
 		modules      => [ 'File::Spec' ],
 	] );
-	isa_ok(
-		$toolchain,
-		'Perl::Dist::Util::Toolchain'
-	);
+	isa_ok( $toolchain, 'Perl::Dist::Util::Toolchain' );
 	ok( $toolchain->delegate, '->prepare ok' );
 	check_simple_object( $toolchain );
 }
