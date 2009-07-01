@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl
 
 # t/02core.t
 #  Tests core functionality
@@ -15,10 +15,7 @@ use warnings;
 use Test::More tests => 10;
 use Test::NoWarnings;
 
-use Env::Sanctify::Auto;
 use Alien::Libjio;
-
-my $sanctify = Env::Sanctify::Auto->new;
 
 my $obj = Alien::Libjio->new;
 
