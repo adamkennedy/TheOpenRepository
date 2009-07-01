@@ -5003,12 +5003,12 @@ L<Object::InsideOut> 3.53, L<Perl::Dist> 1.14, L<Process> 0.26, L<Readonly>
 =item 1.
 
 Create a distribution for handling the XML-generating parts 
-of Perl::Dist::WiX and depend on it (0.190)
+of Perl::Dist::WiX and depend on it (0.200)
 
 =item 2.
 
 Have an option to have WiX installed non-core modules install in a 
-'vendor path' (0.190? 0.200?)
+'vendor path' (0.200? 0.210?)
    
 =back
 
@@ -5035,7 +5035,7 @@ L<Perl::Dist>, L<Perl::Dist::Inno>, L<http://ali.as/>
 
 =for readme continue
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
 
 Copyright 2009 Curtis Jewell.
 

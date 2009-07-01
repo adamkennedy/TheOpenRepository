@@ -259,3 +259,51 @@ sub filters {
 	
 	return 1;
 }
+
+__END__
+
+=head1 NAME
+
+minicpan_pdwix - minicpan script for Perl::Dist::WiX
+
+=head1 SYNOPSIS
+
+    minicpan_pdwix
+
+=head1 DESCRIPTION
+
+This creates a minicpan for L<Perl::Dist::WiX> to use that contains the 
+minimum files required to make a perl distribution.
+
+=head1 CONFIGURATION
+
+No environment variables or configuration files are used during the
+execution of this script that the modules used do not already use.
+
+=head1 DEPENDENCIES
+
+Perl 5.10.0 is the mimimum version of perl that this script will run on.
+
+Other modules that this module depends on are L<IO::Handle>, L<File::Copy>, 
+L<File::Spec::Functions>, L<File::HomeDir>, L<CPAN::Mini> 0.576, and 
+L<CPAN::Mini::Devel> 0.03.
+ 
+=head1 SUPPORT
+
+No support is provided for this script.
+
+=head1 AUTHOR
+
+Curtis Jewell, E<lt>csjewell@cpan.orgE<gt>
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2009 Curtis Jewell.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

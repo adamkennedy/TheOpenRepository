@@ -34,6 +34,7 @@ requires       'Win32API::File'       => '0.1001';
 resources      'repository'           => 'http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/';
 resources      'bugtracker'           => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX';
 resources      'homepage'             => 'http://csjewell.comyr.com/perl/';
+resources      'IRC'                  => 'irc://irc.perl.org/#win32';
 license        'perl';
 install_share;
 
@@ -49,8 +50,8 @@ YN:
 if ($answer =~ /^y/i) {
 	require File::Spec;
 	install_script File::Spec->catfile('script', 'minicpan_pdwix');
-	requires       'CPAN::Mini'        => 0;
-	requires       'CPAN::Mini::Devel' => 0;
+	requires       'CPAN::Mini'        => '0.576';
+	requires       'CPAN::Mini::Devel' => '0.03';
 }
 
 WriteAll;
