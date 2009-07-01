@@ -53,7 +53,7 @@ SCOPE: {
 			$message = "Bad internet connection, skipping";
 		}
 		if ( $message ) {
-			foreach ( 2 .. 43 ) {
+			foreach ( 2 .. 61 ) {
 				ok( 1, 'No permissions to test, skipping' );
 			}
 			exit(0);
