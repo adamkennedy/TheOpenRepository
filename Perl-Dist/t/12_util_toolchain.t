@@ -41,6 +41,7 @@ sub check_simple_object {
 SCOPE: {
 	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
+		cpan         => 'http://cpan.strawberryperl.com/',
 		modules      => [ 'File::Spec' ],
 	] );
 	my $p = $toolchain->prepare;
@@ -59,6 +60,7 @@ SCOPE: {
 SCOPE: {
 	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
+		cpan         => 'http://cpan.strawberryperl.com/',
 		modules      => [ 'File::Spec' ],
 		force        => {
 			'File::Spec' => 'PathTools-forced',
@@ -74,6 +76,7 @@ SCOPE: {
 SCOPE: {
 	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
+		cpan         => 'http://cpan.strawberryperl.com/',
 		modules      => [ 'File::Spec' ],
 	] );
 	isa_ok(
@@ -88,6 +91,7 @@ SCOPE: {
 SCOPE: {
 	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
+		cpan         => 'http://cpan.strawberryperl.com/',
 	] );
 	is( $toolchain->perl_version, '5.008008', '->perl_version ok' );
 	ok( $toolchain->prepare, '->prepare ok' );
@@ -101,6 +105,7 @@ SCOPE: {
 SCOPE: {
 	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008009',
+		cpan         => 'http://cpan.strawberryperl.com/',
 	] );
 	is( $toolchain->perl_version, '5.008009', '->perl_version ok' );
 	ok( $toolchain->prepare, '->prepare ok' );
@@ -114,19 +119,21 @@ SCOPE: {
 SCOPE: {
 	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.010000',
+		cpan         => 'http://cpan.strawberryperl.com/',
 	] );
 	is( $toolchain->perl_version, '5.010000', '->perl_version ok' );
 	ok( $toolchain->prepare, '->prepare ok' );
 	ok( $toolchain->run,     '->run ok'     );
 	is( $toolchain->errstr, undef, '->errstr is undef' );
 	my @dists = $toolchain->dists;
-	ok( scalar(@dists) > 5, 'Got at least 3 distributions' );
+	ok( scalar(@dists) > 5, 'Got at least 5 distributions' );
 }
 
 # Test a full set for Perl 5.008008 via delegation
 SCOPE: {
 	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.008008',
+		cpan         => 'http://cpan.strawberryperl.com/',
 	] );
 	is( $toolchain->perl_version, '5.008008', '->perl_version ok' );
 	ok( $toolchain->prepare,  '->prepare ok' );
@@ -140,11 +147,12 @@ SCOPE: {
 SCOPE: {
 	my $toolchain = new_ok( 'Perl::Dist::Util::Toolchain', [
 		perl_version => '5.010000',
+		cpan         => 'http://cpan.strawberryperl.com/',
 	] );
 	is( $toolchain->perl_version, '5.010000', '->perl_version ok' );
 	ok( $toolchain->prepare,  '->prepare ok' );
 	ok( $toolchain->delegate, '->run ok'     );
 	is( $toolchain->errstr, undef, '->errstr is undef' );
 	my @dists = $toolchain->dists;
-	ok( scalar(@dists) > 5, 'Got at least 3 distributions' );
+	ok( scalar(@dists) > 5, 'Got at least 5 distributions' );
 }
