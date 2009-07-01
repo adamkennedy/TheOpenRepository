@@ -1401,6 +1401,11 @@ sub install_perl_toolchain {
 			# Upgrading to this version, instead...
 			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
 		}
+		if ( $dist =~ /CPAN-1\.9402/msx ) {
+
+			# 1.9402 fails its tests...
+			$dist = 'ANDK/CPAN-1.94.tar.gz';
+		}
 		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
 
 			# 1.28 makes some things fail tests...
@@ -3483,12 +3488,14 @@ sub install_module {
 
 	# Generate the CPAN installation script
 	my $url         = $self->cpan()->as_string();
+	my $dp_dir      = catdir($self->wix_dist_dir, 'distroprefs');
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
 CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'urllist'} = [ '$url' ];
 \$CPAN::Config->{'use_sqlite'} = q[0];
+\$CPAN::Config->{'prefs_dir'} = q[$dp_dir];
 print "Installing $name from CPAN...\\n";
 my \$module = CPAN::Shell->expandany( "$name" ) 
 	or die "CPAN.pm couldn't locate $name";

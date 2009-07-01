@@ -30,6 +30,9 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
+plan( skip_all => 'Test is buggy at the moment' );
+exit(0);
+
 diag('Takes a few minutes...');
 
 # Terminate leftovers with prejudice aforethought.
