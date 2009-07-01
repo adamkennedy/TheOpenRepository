@@ -1662,6 +1662,10 @@ sub _skip_upgrade {
 	# those files using it.
 	return 1 if $module->cpan_file =~ m{/ExtUtils-MakeMaker-6\.50}msx;
 
+	# If the ID is CPAN 1.9402, don't install it, please.
+	# It was skipped in the previous stage for a reason.	
+	return 1 if $module->cpan_file =~ m{/CPAN-1\.9402}msx;
+
 	return 0;
 } ## end sub _skip_upgrade
 
