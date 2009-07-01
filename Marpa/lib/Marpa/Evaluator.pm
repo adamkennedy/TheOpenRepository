@@ -513,7 +513,7 @@ use Marpa::Offset qw(DELETE_AND_NODE PRUNE_OR_NODE);
 sub delete_nodes {
     my ( $evaler, $delete_work_list ) = @_;
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     while ( my $delete_work_item = pop @{$delete_work_list} ) {
         my ( $action, $node_id ) = @{$delete_work_item};
         if ( $action == DELETE_AND_NODE ) {
@@ -527,23 +527,21 @@ sub delete_nodes {
                 $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
 
             my $parent_or_node = $or_nodes->[$parent_id];
-            splice(
-                @{  $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
-                    },
+            splice @{ $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
+                },
                 $parent_choice,
-                1
-            );
-            splice(
-                @{  $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS]
-                    },
+                1;
+            splice @{ $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS]
+                },
                 $parent_choice,
-                1
-            );
+                1;
 
-            FIELD: for my $field (
+            FIELD:
+            for my $field (
                 Marpa::Internal::And_Node::PREDECESSOR,
                 Marpa::Internal::And_Node::CAUSE,
-            ) {
+                )
+            {
                 my $child_or_node = $and_node->[$field];
                 next FIELD if not defined $child_or_node;
                 my $id = $child_or_node->[Marpa::Internal::Or_Node::ID];
@@ -552,17 +550,19 @@ sub delete_nodes {
                     grep { $_ != $node_id }
                     @{ $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS]
                     };
-            } # FIELD
+            }    # FIELD
 
-            FIELD: for my $field (
+            FIELD:
+            for my $field (
                 Marpa::Internal::And_Node::PARENT_ID,
                 Marpa::Internal::And_Node::PARENT_CHOICE,
                 Marpa::Internal::And_Node::CAUSE,
                 Marpa::Internal::And_Node::PREDECESSOR,
                 Marpa::Internal::And_Node::VALUE_REF,
-            ) {
+                )
+            {
                 $and_node->[$field] = undef;
-            }
+            } ## end for my $field ( Marpa::Internal::And_Node::PARENT_ID,...
 
             next DELETE_WORK_ITEM;
         } ## end if ( $action == DELETE_AND_NODE )
@@ -572,7 +572,8 @@ sub delete_nodes {
             next DELETE_WORK_ITEM
                 if $or_node->[Marpa::Internal::Or_Node::DELETED];
             my $parent_ids = $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
-            my $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+            my $child_ids  = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+
             # Do not delete unless no children, or no parents and not the
             # start or-node.
             # Start or-node is always ID 0.
@@ -592,10 +593,11 @@ sub delete_nodes {
                 $or_node->[$field] = [];
             } ## end for my $field ( Marpa::Internal::Or_Node::PARENT_IDS,...
             next DELETE_WORK_ITEM;
-        }
+        } ## end if ( $action == PRUNE_OR_NODE )
 
         Marpa::exception("Unknown delete-work-list action: $action");
     } ## end while ( my $delete_work_item = pop @{$delete_work_list})
+    return;
 } ## end sub delete_nodes
 
 ## no critic (ControlStructures::ProhibitDeepNests)
@@ -1285,7 +1287,7 @@ sub Marpa::Evaluator::new {
                 {
                     push @delete_work_list,
                         [ DELETE_AND_NODE, $new_parent_and_node_id ];
-                } ## end if ( defined( my $parent_and_node_id = ...
+                } ## end if ( defined( my $new_parent_and_node_id = ...
 
                 # Clone the external parent node
                 my $parent_and_node = $and_nodes->[$parent_and_node_id];
@@ -1375,8 +1377,7 @@ sub Marpa::Evaluator::new {
                 @{ $original_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] }
                 )
             {
-                if ($is_root xor $internal_and_nodes[$parent_and_node_id] )
-                {
+                if ( $is_root xor $internal_and_nodes[$parent_and_node_id] ) {
                     push @delete_work_list, $parent_and_node_id;
                 }
             } ## end for my $parent_and_node_id ( @{ $original_or_node->[...
@@ -1385,7 +1386,7 @@ sub Marpa::Evaluator::new {
         # we should be deletion-consistent at this point
 
         # Now actually do the deletions
-        delete_nodes($self, \@delete_work_list);
+        delete_nodes( $self, \@delete_work_list );
 
         ## push every copy made onto span_sets
 
