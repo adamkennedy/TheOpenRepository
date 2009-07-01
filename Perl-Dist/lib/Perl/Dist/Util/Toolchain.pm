@@ -13,7 +13,7 @@ use Process              ();
 
 use vars qw{$VERSION @ISA @DELEGATE};
 BEGIN {
-	$VERSION  = '1.14_01';
+	$VERSION  = '1.14_02';
 	@ISA      = qw{
 		Process::Delegatable
 		Process::Storable
@@ -172,6 +172,7 @@ sub prepare {
 		local $SIG{__WARN__} = sub { 1 };
 		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
 		$CPAN::Config->{'urllist'} = [ $self->{cpan} ];
+		$CPAN::Config->{'use_sqlite'} = q[0];
 		CPAN::Index->reload;
 	};
 
@@ -194,6 +195,7 @@ sub run {
 	$stdout->start;		$stderr->start;
 	CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
 	$CPAN::Config->{'urllist'} = [ $self->{cpan} ];
+	$CPAN::Config->{'use_sqlite'} = q[0];
 	$stdout->stop;		$stderr->stop;
 
 	foreach my $name ( @{$self->{modules}} ) {
