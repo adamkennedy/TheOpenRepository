@@ -148,18 +148,17 @@ use Object::Tiny qw(
 );
 #  Don't need to put distributions_installed in here.
 
-use Perl::Dist::Asset               1.14   ();
-use Perl::Dist::Asset::Binary       1.14   ();
-use Perl::Dist::Asset::Library      1.14   ();
-use Perl::Dist::Asset::Perl         1.14   ();
-use Perl::Dist::Asset::Distribution 1.14   ();
-use Perl::Dist::Asset::Module       1.14   ();
-use Perl::Dist::Asset::PAR          1.14   ();
-use Perl::Dist::Asset::File         1.14   ();
-use Perl::Dist::Asset::Website      1.14   ();
-use Perl::Dist::Asset::Launcher     1.14   ();
-# Copy this version from http://svn.ali.as/cpan/trunk/Perl-Dist/lib/...
-use Perl::Dist::Util::Toolchain     1.14001 ();
+use Perl::Dist::Asset               1.15 ();
+use Perl::Dist::Asset::Binary       1.15 ();
+use Perl::Dist::Asset::Library      1.15 ();
+use Perl::Dist::Asset::Perl         1.15 ();
+use Perl::Dist::Asset::Distribution 1.15 ();
+use Perl::Dist::Asset::Module       1.15 ();
+use Perl::Dist::Asset::PAR          1.15 ();
+use Perl::Dist::Asset::File         1.15 ();
+use Perl::Dist::Asset::Website      1.15 ();
+use Perl::Dist::Asset::Launcher     1.15 ();
+use Perl::Dist::Util::Toolchain     1.15 ();
 #>>>
 
 Readonly my %MODULE_FIX => (
