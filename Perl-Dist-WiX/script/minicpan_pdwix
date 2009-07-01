@@ -219,7 +219,7 @@ sub filters {
 	return 0 if $mod =~ m{/ANDYA/Test-Harness-};
 	return 0 if $mod =~ m{/MSCHWERN/Test-Simple-};
 	return 0 if $mod =~ m{/(?:KWILLIAMS|DAGOLDEN)/ExtUtils-CBuilder-};
-	return 0 if $mod =~ m{/KWILLIAMS/ExtUtils-ParseXS-};
+	return 0 if $mod =~ m{/(?:KWILLIAMS|DAGOLDEN)/ExtUtils-ParseXS-};
 	return 0 if $mod =~ m{/JPEACOCK/version-};
 	return 0 if $mod =~ m{/GBARR/Scalar-List-Utils-};
 	return 0 if $mod =~ m{/PMQS/Compress-Raw-Zlib-};
