@@ -96,7 +96,7 @@ See the documentation for L<CPANDB> for more information.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+Adam Kennedy
 
 =head1 COPYRIGHT
 

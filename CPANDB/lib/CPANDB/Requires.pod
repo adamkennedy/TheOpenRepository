@@ -1,6 +1,6 @@
 =head1 NAME
 
-CPANDB::Module - CPANDB class for the module table
+CPANDB::Requires - CPANDB class for the requires table
 
 =head1 SYNOPSIS
 
@@ -15,43 +15,43 @@ TO BE COMPLETED
 =head2 select
 
   # Get all objects in list context
-  my @list = CPANDB::Module->select;
+  my @list = CPANDB::Requires->select;
   
   # Get a subset of objects in scalar context
-  my $array_ref = CPANDB::Module->select(
-      'where module > ? order by module',
+  my $array_ref = CPANDB::Requires->select(
+      'where distribution > ? order by distribution',
       1000,
   );
 
 The C<select> method executes a typical SQL C<SELECT> query on the
-module table.
+requires table.
 
 It takes an optional argument of a SQL phrase to be added after the
-C<FROM module> section of the query, followed by variables
+C<FROM requires> section of the query, followed by variables
 to be bound to the placeholders in the SQL phrase. Any SQL that is
 compatible with SQLite can be used in the parameter.
 
-Returns a list of B<CPANDB::Module> objects when called in list context, or a
-reference to an ARRAY of B<CPANDB::Module> objects when called in scalar context.
+Returns a list of B<CPANDB::Requires> objects when called in list context, or a
+reference to an ARRAY of B<CPANDB::Requires> objects when called in scalar context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
 
 =head2 count
 
   # How many objects are in the table
-  my $rows = CPANDB::Module->count;
+  my $rows = CPANDB::Requires->count;
   
   # How many objects 
-  my $small = CPANDB::Module->count(
-      'where module > ?',
+  my $small = CPANDB::Requires->count(
+      'where distribution > ?',
       1000,
   );
 
 The C<count> method executes a C<SELECT COUNT(*)> query on the
-module table.
+requires table.
 
 It takes an optional argument of a SQL phrase to be added after the
-C<FROM module> section of the query, followed by variables
+C<FROM requires> section of the query, followed by variables
 to be bound to the placeholders in the SQL phrase. Any SQL that is
 compatible with SQLite can be used in the parameter.
 
@@ -61,9 +61,9 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 
 =head1 ACCESSORS
 
-=head2 module
+=head2 distribution
 
-  if ( $object->module ) {
+  if ( $object->distribution ) {
       print "Object has been inserted\n";
   } else {
       print "Object has not been inserted\n";
@@ -76,19 +76,22 @@ REMAINING ACCESSORS TO BE COMPLETED
 
 =head1 SQL
 
-The module table was originally created with the
+The requires table was originally created with the
 following SQL command.
 
-  CREATE TABLE module (
-  	module TEXT NOT NULL PRIMARY KEY,
-  	version TEXT NULL,
+  CREATE TABLE requires (
   	distribution TEXT NOT NULL,
-  	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution )
+  	module TEXT NOT NULL,
+  	version TEXT NULL,
+  	phase TEXT NOT NULL,
+  	PRIMARY KEY ( distribution, module, phase ),
+  	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution ),
+  	FOREIGN KEY ( module ) REFERENCES module ( module )
   )
 
 =head1 SUPPORT
 
-CPANDB::Module is part of the L<CPANDB> API.
+CPANDB::Requires is part of the L<CPANDB> API.
 
 See the documentation for L<CPANDB> for more information.
 

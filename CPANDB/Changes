@@ -1,4 +1,8 @@
 Changes for Perl extension CPANDB
 
+0.02 Thu  1 Jul 2009
+	- Updated to new URL.
+	- Generated a new version of the POD
+
 0.01 Wed  3 Jun 2009
 	- Created the initial implementation
