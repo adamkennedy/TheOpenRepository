@@ -49,7 +49,8 @@ YN:
 
 if ($answer =~ /^y/i) {
 	require File::Spec;
-	install_script File::Spec->catfile('script', 'minicpan_pdwix');
+	my $script_file = File::Spec->catfile('script', 'minicpan_pdwix'); 
+	install_script  $script_file;
 	requires       'CPAN::Mini'        => '0.576';
 	requires       'CPAN::Mini::Devel' => '0.03';
 }
