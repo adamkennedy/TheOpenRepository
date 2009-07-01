@@ -40,12 +40,13 @@ use File::pushd     1.00 ();
 use File::Remove    1.42 ();
 use File::HomeDir   0.86 ();
 use File::Basename       ();
+use Params::Util    1.00 ();
 use DBI            1.608 ();
 use DBD::SQLite     1.25 ();
 use CPAN::SQLite   0.197 ();
 use Xtract::Publish 0.10 ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -199,7 +200,7 @@ sub run {
 	}
 
 	# Refresh the CPAN index database
-	print STDERR "Fetching CPAN Index...\n" if $self->trace;
+	$self->say("Fetching CPAN Index...");
 	my $update = CPANDB::Generator::GetIndex->new(
 		cpan    => $self->cpan,
 		urllist => $self->urllist,
@@ -209,12 +210,12 @@ sub run {
 	}
 
 	# Load the CPAN Uploads database
-	print STDERR "Fetching CPAN Uploads...\n" if $self->trace;
+	$self->say("Fetching CPAN Uploads...");
 	require ORDB::CPANUploads;
 	ORDB::CPANUploads->import;
 
 	# Load the CPAN META.yml database
-	print STDERR "Fetching META.yml Data...\n" if $self->trace;
+	$self->say("Fetching META.yml Data...");
 	require ORDB::CPANMeta;
 	ORDB::CPANMeta->import;
 
@@ -225,7 +226,7 @@ sub run {
 
 	# Pre-process the cpandb data to produce cleaner intermediate
 	# temp tables that produce better joins later on.
-	print STDERR "Cleaning CPAN Index...\n" if $self->trace;
+	$self->say("Cleaning CPAN Index...");
 	$self->do(<<'END_SQL');
 CREATE TEMPORARY TABLE t_distribution AS
 SELECT
@@ -242,7 +243,7 @@ END_SQL
 
 	# Pre-process the uploads data to produce a cleaner intermediate
 	# temp table that won't break the joins we'll need to do later on.
-	print STDERR "Cleaning CPAN Uploads...\n" if $self->trace;
+	$self->say("Cleaning CPAN Uploads...");
 	$self->do(<<'END_SQL');
 CREATE TEMPORARY TABLE t_uploaded AS
 SELECT
@@ -256,7 +257,7 @@ END_SQL
 	$self->create_index( t_distribution => 'release' );
 
 	# Create the author table
-	print STDERR "Generating table author...\n" if $self->trace;
+	$self->say("Generating table author...\n" if $self->trace;
 	$self->do(<<'END_SQL');
 CREATE TABLE author (
 	author TEXT NOT NULL PRIMARY KEY,
@@ -277,7 +278,7 @@ END_SQL
 	$self->create_index( author => 'author', 'name' );
 
 	# Create the distribution table
-	print STDERR "Generating table distribution...\n" if $self->trace;
+	$self->say("Generating table distribution...");
 	$self->do(<<'END_SQL');
 CREATE TABLE distribution (
 	distribution TEXT NOT NULL PRIMARY KEY,
@@ -315,7 +316,7 @@ END_SQL
 	} );
 
 	# Create the module table
-	print STDERR "Generating table module...\n" if $self->trace;
+	$self->say("Generating table module...");
 	$self->do(<<'END_SQL');
 CREATE TABLE module (
 	module TEXT NOT NULL PRIMARY KEY,
@@ -347,7 +348,7 @@ END_SQL
 	} );
 
 	# Create the module dependency table
-	print STDERR "Generating table requires...\n" if $self->trace;
+	$self->say("Generating table requires...");
 	$self->do(<<'END_SQL');
 CREATE TABLE requires (
 	distribution TEXT NOT NULL,
@@ -384,7 +385,7 @@ END_SQL
 	} );
 
 	# Create the distribution dependency table
-	print STDERR "Generating table dependency...\n" if $self->trace;
+	$self->say("Generating table dependency...");
 	$self->do(<<'END_SQL');
 CREATE TABLE dependency (
 	distribution TEXT NOT NULL,
@@ -425,7 +426,7 @@ END_SQL
 
 
 	# Publish the database to the current directory
-	print STDERR "Publishing the generated database...\n" if $self->trace;
+	$self->say("Publishing the generated database...");
 	Xtract::Publish->new(
 		from   => $self->sqlite,
 		sqlite => $self->publish,
@@ -435,6 +436,8 @@ END_SQL
 		bz2    => 1,
 		lz     => 1,
 	)->run;
+
+	return 1;
 }
 
 sub create_index {
@@ -453,6 +456,16 @@ sub do {
 		Carp::croak("Database Error: " . $dbh->errstr);
 	}
 	return 1;
+}
+
+sub say {
+	my $self = shift;
+	if ( Params::Util::_CODE($self->trace) ) {
+		$self->trace->say( @_ );
+	} elsif ( $self->trace ) {
+		my $t = scalar localtime time;
+		print map { "[$t] $_\n" } @_;
+	}
 }
 
 1;
