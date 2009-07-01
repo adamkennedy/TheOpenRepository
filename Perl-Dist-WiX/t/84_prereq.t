@@ -32,8 +32,8 @@ foreach my $MODULE ( @MODULES ) {
 
 diag('Takes a few minutes...');
 
-use File::Remove qw();
-
+# Terminate leftovers with prejudice aforethought.
+require File::Remove;
 foreach my $dir ( 't\tmp50', 't\tmp90', 't\tmp91', 't\tmp92', 't\tmp93' ) {
 	File::Remove::remove( \1, $dir ) if -d $dir;
 }
