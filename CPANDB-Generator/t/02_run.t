@@ -29,12 +29,47 @@ unless ( @minicpan ) {
 # We can (finally) be sure that we can run the test
 plan( tests => 2 );
 
+# Define the archives we'll be making
+my @archives = qw{
+	cpandb.gz
+	cpandb.bz2
+	cpandb.lz
+};
+clear( @archives );
+foreach my $file ( @archives ) {
+	ok( ! -f $file, "File '$file' does not exist" );
+}
+
+# Where should we generate the sqlite database
+my $sqlite = catfile( 't', 'sqlite.db' );
+clear( $sqlite );
+ok( ! -f $sqlite, "Database '$sqlite' does not exist" );
+
+
+
+
+
+######################################################################
+# Main Tests
+
 # Create the generator
 my $url    = URI::file->new($minicpan[0])->as_string;
 my $cpandb = new_ok( 'CPANDB::Generator' => [
         urllist => [ "$url/" ],
+	sqlite  => $sqlite,
+	trace   => 0,
 ] );
 clear($cpandb->sqlite);
 
 # Generate the database
 ok( $cpandb->run, '->run' );
+
+# Validate the result
+ok( -f $sqlite, "Created database '$sqlite'" );
+foreach my $file ( qw{
+	cpandb.gz
+	cpandb.bz2
+	cpandb.lz
+} ) {
+	ok( -f $file, "File '$file' exists" );
+}

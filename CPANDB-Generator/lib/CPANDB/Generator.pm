@@ -43,13 +43,16 @@ use File::Basename       ();
 use DBI            1.608 ();
 use DBD::SQLite     1.25 ();
 use CPAN::SQLite   0.197 ();
+use Xtract::Publish 0.10 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Object::Tiny 1.06 qw{
 	cpan
 	urllist
 	sqlite
+	publish
+	trace
 	dbh
 };
 
@@ -101,8 +104,13 @@ sub new {
 			File::HomeDir->my_data,
 			($^O eq 'MSWin32' ? 'Perl' : '.perl'),
 			'CPANDB-Generator',
-			'CPANDB-Generator.sqlite',
+			'cpan.db',
 		);
+	}
+
+	# Set the default path to the publishing location
+	unless ( defined $self->publish ) {
+		$self->{publish} = 'cpandb';
 	}
 
 	return $self;
@@ -191,6 +199,7 @@ sub run {
 	}
 
 	# Refresh the CPAN index database
+	print STDERR "Fetching CPAN Index...\n" if $self->trace;
 	my $update = CPANDB::Generator::GetIndex->new(
 		cpan    => $self->cpan,
 		urllist => $self->urllist,
@@ -200,10 +209,12 @@ sub run {
 	}
 
 	# Load the CPAN Uploads database
+	print STDERR "Fetching CPAN Uploads...\n" if $self->trace;
 	require ORDB::CPANUploads;
 	ORDB::CPANUploads->import;
 
 	# Load the CPAN META.yml database
+	print STDERR "Fetching META.yml Data...\n" if $self->trace;
 	require ORDB::CPANMeta;
 	ORDB::CPANMeta->import;
 
@@ -214,6 +225,7 @@ sub run {
 
 	# Pre-process the cpandb data to produce cleaner intermediate
 	# temp tables that produce better joins later on.
+	print STDERR "Cleaning CPAN Index...\n" if $self->trace;
 	$self->do(<<'END_SQL');
 CREATE TEMPORARY TABLE t_distribution AS
 SELECT
@@ -230,6 +242,7 @@ END_SQL
 
 	# Pre-process the uploads data to produce a cleaner intermediate
 	# temp table that won't break the joins we'll need to do later on.
+	print STDERR "Cleaning CPAN Uploads...\n" if $self->trace;
 	$self->do(<<'END_SQL');
 CREATE TEMPORARY TABLE t_uploaded AS
 SELECT
@@ -239,10 +252,11 @@ FROM upload.uploads
 END_SQL
 
 	# Index the temporary tables so our joins don't take forever
-	$self->do('CREATE INDEX t_uploaded__release ON t_uploaded ( release )');
-	$self->do('CREATE INDEX t_distribution__release ON t_distribution ( release )');
+	$self->create_index( t_uploaded     => 'release' );
+	$self->create_index( t_distribution => 'release' );
 
 	# Create the author table
+	print STDERR "Generating table author...\n" if $self->trace;
 	$self->do(<<'END_SQL');
 CREATE TABLE author (
 	author TEXT NOT NULL PRIMARY KEY,
@@ -259,7 +273,11 @@ SELECT
 FROM cpandb.auths
 END_SQL
 
+	# Index the author table
+	$self->create_index( author => 'author', 'name' );
+
 	# Create the distribution table
+	print STDERR "Generating table distribution...\n" if $self->trace;
 	$self->do(<<'END_SQL');
 CREATE TABLE distribution (
 	distribution TEXT NOT NULL PRIMARY KEY,
@@ -287,7 +305,17 @@ WHERE
 	d.release = u.release
 END_SQL
 
+	# Index the distribution table
+	$self->create_index( distribution => qw{
+		distribution
+		version
+		author
+		release
+		uploaded
+	} );
+
 	# Create the module table
+	print STDERR "Generating table module...\n" if $self->trace;
 	$self->do(<<'END_SQL');
 CREATE TABLE module (
 	module TEXT NOT NULL PRIMARY KEY,
@@ -311,6 +339,110 @@ WHERE
 	d.dist_id = m.dist_id
 END_SQL
 
+	# Index the module table
+	$self->create_index( module => qw{
+		module
+		version
+		distribution
+	} );
+
+	# Create the module dependency table
+	print STDERR "Generating table requires...\n" if $self->trace;
+	$self->do(<<'END_SQL');
+CREATE TABLE requires (
+	distribution TEXT NOT NULL,
+	module TEXT NOT NULL,
+	version TEXT NULL,
+	phase TEXT NOT NULL,
+	PRIMARY KEY ( distribution, module, phase ),
+	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution ),
+	FOREIGN KEY ( module ) REFERENCES module ( module )
+)
+END_SQL
+
+	# Fill the module dependency table
+	$self->do(<<'END_SQL');
+INSERT INTO requires
+SELECT
+	d.distribution as distribution,
+	m.module as module,
+	m.version as version,
+	m.phase as phase
+FROM
+	distribution d,
+	meta.meta_dependency m
+WHERE
+	d.release = m.release
+END_SQL
+
+	# Index the module dependency table
+	$self->create_index( requires => qw{
+		distribution
+		module
+		version
+		phase
+	} );
+
+	# Create the distribution dependency table
+	print STDERR "Generating table dependency...\n" if $self->trace;
+	$self->do(<<'END_SQL');
+CREATE TABLE dependency (
+	distribution TEXT NOT NULL,
+	dependency TEXT NOT NULL,
+	phase TEXT NOT NULL,
+	PRIMARY KEY ( distribution, dependency, phase ),
+	FOREIGN KEY ( distribution ) REFERENCES distribition ( distribution ),
+	FOREIGN KEY ( dependency ) REFERENCES distribution ( distribution )
+)
+END_SQL
+
+	# Fill the distribution dependency table
+	$self->do(<<'END_SQL');
+INSERT INTO dependency
+SELECT DISTINCT
+	distribution,
+	dependency,
+	phase
+FROM (
+	SELECT	
+		r.distribution as distribution,
+		m.distribution as dependency,
+		r.phase as phase
+	FROM
+		module m,
+		requires r
+	WHERE
+		m.module == r.module
+)
+END_SQL
+
+	# Index the distribution dependency table
+	$self->create_index( dependency => qw{
+		distribution
+		dependency
+		phase
+	} );
+
+
+	# Publish the database to the current directory
+	print STDERR "Publishing the generated database...\n" if $self->trace;
+	Xtract::Publish->new(
+		from   => $self->sqlite,
+		sqlite => $self->publish,
+		trace  => $self->trace,
+		raw    => 0,
+		gz     => 1,
+		bz2    => 1,
+		lz     => 1,
+	)->run;
+}
+
+sub create_index {
+	my $self  = shift;
+	my $table = shift;
+	foreach my $column ( @_ ) {
+		$self->do("CREATE INDEX ${table}__${column} ON ${table} ( ${column} )");
+	}
 	return 1;
 }
 

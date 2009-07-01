@@ -2,26 +2,23 @@
 
 use 5.008005;
 use strict;
+use Getopt::Long      ();
 use Time::Elapsed     ();
 use CPANDB::Generator ();
-use Xtract::Publish   ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
-my $start = time;
-my $cpandb = CPANDB::Generator->new;
+# Check params
+my $QUIET = 0;
+Getopt::Long::GetOptions(
+	'quiet' => \$QUIET,
+) or die("Failed to parse options");
+
+my $start  = time;
+my $cpandb = CPANDB::Generator->new(
+	trace => ! $QUIET,
+);
 $cpandb->run;
-
-# Publish the database to the current directory
-Xtract::Publish->new(
-	from   => $cpandb->sqlite,
-	sqlite => 'cpandb.sqlite',
-	trace  => 1,
-	raw    => 0,
-	gz     => 1,
-	bz2    => 1,
-	lz     => 1,
-)->run;
 
 my $elapsed = Time::Elapsed::elapsed(time - $start);
 print "Run completed in $elapsed\n";

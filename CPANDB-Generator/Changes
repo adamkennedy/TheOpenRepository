@@ -1,5 +1,11 @@
 Changes for Perl extension CPANDB-Generator
 
+0.04 Wed  1 Jul 2009
+	- Integrating dependency information
+	- Adding indexes
+	- Adding trace support
+	- Adding control of the location of the intermediate SQLite database
+
 0.03 Wed  3 Jun 2009
 	- Added missing install_script entry
 
