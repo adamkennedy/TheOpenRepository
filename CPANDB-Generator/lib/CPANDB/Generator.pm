@@ -32,21 +32,25 @@ instead see the L<CPANDB> distribution.
 use 5.008005;
 use strict;
 use warnings;
-use Carp                 ();
-use File::Spec      3.30 ();
-use File::Temp      0.21 ();
-use File::Path      2.07 ();
-use File::pushd     1.00 ();
-use File::Remove    1.42 ();
-use File::HomeDir   0.86 ();
-use File::Basename       ();
-use Params::Util    1.00 ();
-use DBI            1.608 ();
-use DBD::SQLite     1.25 ();
-use CPAN::SQLite   0.197 ();
-use Xtract::Publish 0.10 ();
+use Carp                                    ();
+use File::Spec                         3.30 ();
+use File::Temp                         0.21 ();
+use File::Path                         2.07 ();
+use File::pushd                        1.00 ();
+use File::Remove                       1.42 ();
+use File::HomeDir                      0.86 ();
+use File::Basename                          ();
+use Params::Util                       1.00 ();
+use DBI                               1.608 ();
+use DBD::SQLite                        1.25 ();
+use CPAN::SQLite                      0.197 ();
+use Xtract::Publish                    0.10 ();
+use Algorithm::Dependency             1.108 ();
+use Algorithm::Dependency::Weight           ();
+use Algorithm::Dependency::Source::DBI 0.05 ();
+use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -271,7 +275,10 @@ INSERT INTO author
 SELECT
 	cpanid AS author,
 	fullname AS name
-FROM cpandb.auths
+FROM
+	cpandb.auths
+ORDER BY
+	author
 END_SQL
 
 	# Index the author table
@@ -286,6 +293,8 @@ CREATE TABLE distribution (
 	author TEXT NOT NULL,
 	release TEXT NOT NULL,
 	uploaded TEXT NOT NULL,
+	weight INTEGER NOT NULL,
+	volatility INTEGER NOT NULL,
 	FOREIGN KEY ( author ) REFERENCES author ( author )
 )
 END_SQL
@@ -298,12 +307,16 @@ SELECT
 	d.version as version,
 	d.author as author,
 	d.release as release,
-	u.uploaded as uploaded
+	u.uploaded as uploaded,
+	0 as weight,
+	0 as volatility
 FROM
 	t_distribution d,
 	t_uploaded u
 WHERE
 	d.release = u.release
+ORDER BY
+	distribution
 END_SQL
 
 	# Index the distribution table
@@ -337,6 +350,8 @@ FROM
 	dists d
 WHERE
 	d.dist_id = m.dist_id
+ORDER BY
+	module
 END_SQL
 
 	# Index the module table
@@ -372,6 +387,10 @@ FROM
 	meta.meta_dependency m
 WHERE
 	d.release = m.release
+ORDER BY
+	distribution,
+	phase,
+	module
 END_SQL
 
 	# Index the module dependency table
@@ -413,6 +432,10 @@ FROM (
 	WHERE
 		m.module == r.module
 )
+ORDER BY
+	distribution,
+	phase,
+	dependency
 END_SQL
 
 	# Index the distribution dependency table
@@ -422,9 +445,29 @@ END_SQL
 		phase
 	} );
 
+	# Derive the distribution weights
+	$self->say('Generating weight...');
+	my $weight = $self->weight->weight_all;
+	$self->say('Populating weight...');
+	foreach my $distribution ( sort keys %$weight ) {
+		$self->do(
+			'UPDATE distribution SET weight = ? WHERE distribution = ?',
+			{}, $weight->{$distribution}, $distribution,
+		);
+	}
+
+	$self->say('Generating volatility...');
+	my $volatility = $self->volatility->weight_all;
+	$self->say('Populating volatility...');
+	foreach my $distribution ( sort keys %$volatility ) {
+		$self->do(
+			'UPDATE distribution SET volatility = ? WHERE distribution = ?',
+			{}, $volatility->{$distribution}, $distribution,
+		);
+	}
 
 	# Publish the database to the current directory
-	$self->say("Publishing the generated database...");
+	$self->say('Publishing the generated database...');
 	Xtract::Publish->new(
 		from   => $self->sqlite,
 		sqlite => $self->publish,
@@ -450,6 +493,50 @@ sub create_index {
 
 	return 1;
 }
+
+
+
+
+
+######################################################################
+# Weight and Volatility Math
+
+sub weight {
+	$_[0]->{weight} or
+	$_[0]->{weight} = Algorithm::Dependency::Weight->new(
+		source => $_[0]->weight_source,
+	);
+}
+
+sub weight_source {
+	$_[0]->{weight_source} or
+	$_[0]->{weight_source} = Algorithm::Dependency::Source::DBI->new(
+		dbh            => $_[0]->dbh,
+		select_ids     => 'SELECT distribution FROM distribution',
+		select_depends => 'SELECT DISTINCT distribution, dependency FROM dependency',
+	);
+}
+
+sub volatility {
+	$_[0]->{volatility} or
+	$_[0]->{volatility} = Algorithm::Dependency::Weight->new(
+		source => $_[0]->volatility_source,
+	);
+}
+
+sub volatility_source {
+	$_[0]->{volatility_source} or
+	$_[0]->{volatility_source} = Algorithm::Dependency::Source::Invert->new(
+		$_[0]->weight_source,
+	);
+}
+
+
+
+
+
+######################################################################
+# Support Methods
 
 sub do {
 	my $self = shift;
