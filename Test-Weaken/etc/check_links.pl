@@ -9,23 +9,45 @@ use HTML::LinkExtor;
 use English qw( -no_match_vars );
 use Carp;
 use IO::Handle;
-use Fatal qw(open);
+use Fatal qw(open close);
 
-open(my $fh, q{<}, 'lib/Test/Weaken.pm');
-LINE: while (my $line = <$fh>) {
-    if ($line =~ /([\$*])(([\w\:\']*)\bVERSION)\b.*\=/) {
+my $fh;
+open $fh, q{<}, 'lib/Test/Weaken.pm';
+LINE: while ( my $line = <$fh> ) {
+    if ($line =~ m{
+            ([\$*])
+            (
+                ([\w\:\']*)
+                \b
+                VERSION
+            ) \b .* \=
+            }xms
+        )
+    {
         {
+
             package Test::Weaken;
-            eval $line;
+            ## no critic (BuiltinFunctions::ProhibitStringyEval)
+            my $retval = eval $line;
+            ## use critic
+            if ( not defined $retval ) {
+                Carp::croak("eval of $line failed");
+            }
             last LINE;
         }
-    }
-}
+    } ## end if ( $line =~ /             /xms )
+} ## end while ( my $line = <$fh> )
+close $fh;
 
-my $cpan_base      = 'http://search.cpan.org';
-my $doc_base = $cpan_base . '/~jkegl/Test-Weaken-' . $Test::Weaken::VERSION . '/lib/Test/';
+my $cpan_base = 'http://search.cpan.org';
+my $doc_base =
+      $cpan_base
+    . '/~jkegl/Test-Weaken-'
+    . $Test::Weaken::VERSION
+    . '/lib/Test/';
 
-print "$doc_base\n";
+print "Starting at $doc_base\n"
+    or Carp::croak("Cannot print: $ERRNO");
 
 my @url = qw(
     Weaken.pm

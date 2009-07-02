@@ -754,7 +754,7 @@ something L<Test::Weaken|/"NAME"> already does.
 As an alternative to using a wrapper,
 it is possible to have L<Test::Weaken|/"NAME"> add
 contents "on the fly," while it is scanning the lab rat.
-This can be done using L<the C<contents> named argument|contents>,
+This can be done using L<the C<contents> named argument|/contents>,
 which takes a closure as its value.
 
 =head2 Why the Test Structure is Passed via a Closure
