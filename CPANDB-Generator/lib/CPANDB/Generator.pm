@@ -46,7 +46,7 @@ use DBD::SQLite     1.25 ();
 use CPAN::SQLite   0.197 ();
 use Xtract::Publish 0.10 ();
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -275,7 +275,7 @@ FROM cpandb.auths
 END_SQL
 
 	# Index the author table
-	$self->create_index( author => 'author', 'name' );
+	$self->create_index( author => 'name' );
 
 	# Create the distribution table
 	$self->say("Generating table distribution...");
@@ -308,7 +308,6 @@ END_SQL
 
 	# Index the distribution table
 	$self->create_index( distribution => qw{
-		distribution
 		version
 		author
 		release
@@ -342,7 +341,6 @@ END_SQL
 
 	# Index the module table
 	$self->create_index( module => qw{
-		module
 		version
 		distribution
 	} );
@@ -446,6 +444,10 @@ sub create_index {
 	foreach my $column ( @_ ) {
 		$self->do("CREATE INDEX ${table}__${column} ON ${table} ( ${column} )");
 	}
+
+	# Scan the indexes to make the plans faster
+	$self->do("ANALYZE ${table}");
+
 	return 1;
 }
 

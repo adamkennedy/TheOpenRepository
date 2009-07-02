@@ -1,5 +1,10 @@
 Changes for Perl extension CPANDB-Generator
 
+0.07 Thu  2 Jul 2009
+	- Removing a few superfluous indexes
+	- Run ANALYZE whenever we build indexes to make it easier
+	  for plan optimizer to do it's job.
+
 0.06 Wed  1 Jul 2009
 	- Better tracing
 
