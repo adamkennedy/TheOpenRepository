@@ -1585,6 +1585,21 @@ END_PERL
 			next;
 		} ## end if ( ( $module->cpan_file...))
 
+		if (    ( $module->cpan_file =~ m{/autodie-\d}msx )
+			and ( $module->cpan_version > 1.999 ) )
+		{
+
+			# Upgrading to this version, instead...
+			$self->install_distribution(
+				name             => 'PJF/autodie-1.999.tar.gz',
+				mod_name         => 'autodie',
+				makefilepl_param => ['INSTALLDIRS=perl'],
+				buildpl_param    => [ '--installdirs', 'core' ],
+				force            => $force
+			);
+			next;
+		} ## end if ( ( $module->cpan_file...))
+
 		if ( $self->_delay_upgrade($module) ) {
 
 			# Delay these module until last.
