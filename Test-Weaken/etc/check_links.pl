@@ -9,9 +9,23 @@ use HTML::LinkExtor;
 use English qw( -no_match_vars );
 use Carp;
 use IO::Handle;
+use Fatal qw(open);
+
+open(my $fh, q{<}, 'lib/Test/Weaken.pm');
+LINE: while (my $line = <$fh>) {
+    if ($line =~ /([\$*])(([\w\:\']*)\bVERSION)\b.*\=/) {
+        {
+            package Test::Weaken;
+            eval $line;
+            last LINE;
+        }
+    }
+}
 
 my $cpan_base      = 'http://search.cpan.org';
-my $marpa_doc_base = $cpan_base . '/~jkegl/Test-Weaken-1.001_000/lib/Test/';
+my $doc_base = $cpan_base . '/~jkegl/Test-Weaken-' . $Test::Weaken::VERSION . '/lib/Test/';
+
+print "$doc_base\n";
 
 my @url = qw(
     Weaken.pm
@@ -32,7 +46,7 @@ my %link_ok;
 $OUTPUT_AUTOFLUSH = 1;
 
 PAGE: for my $url (@url) {
-    $url = $marpa_doc_base . $url;
+    $url = $doc_base . $url;
 
     my $p  = HTML::LinkExtor->new( \&cb );
     my $ua = LWP::UserAgent->new;

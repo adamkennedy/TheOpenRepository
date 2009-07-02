@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '2.003_005';
+our $VERSION   = '2.003_006';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -595,20 +595,20 @@ Mistakes of this kind
 have been hard to detect
 in a test suite.
 
-C<Test::Weaken> allows easy detection of unfreed Perl data.
-C<Test::Weaken> allows you to examine the unfreed data,
+L<Test::Weaken|/"NAME"> allows easy detection of unfreed Perl data.
+L<Test::Weaken|/"NAME"> allows you to examine the unfreed data,
 even data that would usually have been made inaccessible.
 
-C<Test::Weaken> frees the test structure, then looks to see if any of the
+L<Test::Weaken|/"NAME"> frees the test structure, then looks to see if any of the
 contents of the structure were not actually deallocated.  By default,
-C<Test::Weaken> determines the B<contents> of a data structure
+L<Test::Weaken|/"NAME"> determines the B<contents> of a data structure
 by examining arrays and hashes and following references.
-C<Test::Weaken> does this recursively to
+L<Test::Weaken|/"NAME"> does this recursively to
 unlimited depth.
 
-C<Test::Weaken> can deal with circular references without going
+L<Test::Weaken|/"NAME"> can deal with circular references without going
 into infinite loops.
-C<Test::Weaken> will not visit the same Perl data object twice.
+L<Test::Weaken|/"NAME"> will not visit the same Perl data object twice.
 
 =head2 Data Objects, Blessed Objects and Structures
 
@@ -618,10 +618,10 @@ or B<data object> to refer to any referenceable Perl datum,
 including
 scalars, arrays, hashes, references themselves, and code objects.
 The full list of types of referenceable Perl data objects
-is given in the documentation of the Perl
-C<ref> builtin in the L<perlfunc man page|perlfunc>.
+is given in
+L<description of the ref builtin in the Perl documentation|perlfunc/"ref">.
 An B<object> that has been blessed using the Perl
-C<bless> builtin, will be called a B<blessed object>.
+L<bless builtin|perlfunc/"bless">, will be called a B<blessed object>.
 
 In this document,
 a Perl B<data structure> (often just called a B<structure>)
@@ -643,7 +643,7 @@ The objects
 in the data structure, including the top object,
 are the B<contents> of that data structure.
 
-C<Test::Weaken> gets its B<test data structure>,
+L<Test::Weaken|/"NAME"> gets its B<test data structure>,
 or B<test structure>,
 from a closure.
 The closure should return
@@ -652,7 +652,7 @@ This reference is called the B<test structure reference>.
 
 =head2 Children and Descendants
 
-By default, C<Test::Weaken> determines the contents of a data structure
+By default, L<Test::Weaken|/"NAME"> determines the contents of a data structure
 by recursing through the
 descendants
 of the top object of the test data structure.
@@ -669,7 +669,7 @@ then the second data object is an B<ancestor> of the first object.
 A data object is considered to be a descendant of itself,
 and also to be one of its own ancestors.
 
-C<Test::Weaken>'s default assumption,
+L<Test::Weaken|/"NAME">'s default assumption,
 that the contents of a data structure are the same as
 its descendants, works
 for many cases,
@@ -677,12 +677,12 @@ but not for all.
 Ways to deal with
 descendants that are not contents,
 such as globals,
-are dealt with in L<the section on persistent objects|"Persistent Objects">.
+are dealt with in L<the section on persistent objects|/"Persistent Objects">.
 Ways to deal with
 contents that are not descendants,
 such as inside-out objects,
-are deal with in
-L<the section on nieces|"Nieces">.
+are dealt with in
+L<the section on nieces|/"Nieces">.
 
 =head2 Persistent Objects
 
@@ -691,13 +691,13 @@ part of the contents of a
 test structure is only a problem
 if its lifetime extends beyond that of the test
 structure.
-A descendant that is expected to say around after
+A descendant that is expected to stay around after
 the test structure is destroyed
 is called a B<persistent object>.
 
 A persistent object is not a memory leak.
 That's the problem.
-C<Test::Weaken> is trying to find memory leaks
+L<Test::Weaken|/"NAME"> is trying to find memory leaks
 and it looks for data objects that remain
 after the test structure is freed.
 But a persistent object is not expected to
@@ -707,9 +707,9 @@ We need to
 separate the unfreed data objects which are memory leaks,
 from those which are persistent data objects.
 It's usually easiest to do this after the test by
-examining the return value of L</unfreed_proberefs>.
+examining the return value of L</"unfreed_proberefs">.
 The L</ignore> named argument can also be used
-to pass C<Test::Weaken> a closure
+to pass L<Test::Weaken|/"NAME"> a closure
 that separates out persistent data objects "on the fly".
 These methods are described in detail
 L<below|/"ADVANCED TECHNIQUES">.
@@ -726,7 +726,7 @@ When the OO technique called
 most of the attributes of the blessed object will be
 nieces.
 
-In C<Test::Weaken>,
+In L<Test::Weaken|/"NAME">,
 usually the easiest way to deal with non-descendant contents
 is to make the
 data structure you are trying to test
@@ -744,30 +744,22 @@ chosen so that the contents of the
 lab rat and the descendants of the wrapper array
 are identical.
 
-To fill the wrapper array, you need to find ancestor objects
-for any contents of the lab rat that are not descendants of
-the lab rat top object.
-Once you do this, the contents of the lab rat,
-the contents of the wrapper structure,
-and the descendants of the wrapper structure
-will all be the same.
-
 It is not always easy to find the right objects to put into the wrapper array.
 In particular, determining the contents of the lab rat may
 require what
 amounts to a recursive scan of the descendants of the lab rat's
 top object,
-something C<Test::Weaken> already does.
+something L<Test::Weaken|/"NAME"> already does.
 
 As an alternative to using a wrapper,
-it is possible to have C<Test::Weaken> add
+it is possible to have L<Test::Weaken|/"NAME"> add
 contents "on the fly," while it is scanning the lab rat.
-This can be done using L<the C<contents> named argument|"contents">,
+This can be done using L<the C<contents> named argument|contents>,
 which takes a closure as its value.
 
 =head2 Why the Test Structure is Passed via a Closure
 
-C<Test::Weaken> gets its test structure reference
+L<Test::Weaken|/"NAME"> gets its test structure reference
 indirectly,
 as the return value from a
 B<test structure constructor>.
@@ -776,7 +768,7 @@ Why so roundabout?
 Because the indirect way is the easiest.
 When you
 create the test structure
-in C<Test::Weaken>'s calling environment,
+in L<Test::Weaken|/"NAME">'s calling environment,
 it takes a lot of craft to avoid
 leaving
 unintended references to the test structure in that calling environment.
@@ -808,7 +800,7 @@ created from Perl data objects in any scope the user desires.
 
 =head2 Returns and Exceptions
 
-The methods of C<Test::Weaken> do not return errors.
+The methods of L<Test::Weaken|/"NAME"> do not return errors.
 Errors are always thrown as exceptions.
 
 =head1 PORCELAIN METHODS
@@ -844,16 +836,16 @@ is_file($_, 't/snippet.t', 'leaks snippet')
 Returns a
 Perl false if no unfreed data objects were detected.
 If unfreed data objects were detected,
-returns an evaluated C<Test::Weaken> class instance.
+returns an evaluated L<Test::Weaken|/"NAME"> class instance.
 
-Instances of the C<Test::Weaken> class are called B<testers>.
+Instances of the L<Test::Weaken|/"NAME"> class are called B<testers>.
 An B<evaluated> tester is one on which the
 tests have been run,
 and for which results are available.
 
 Users who only want to know if there were unfreed data objects can
-test the return value of C<leaks> for Perl true or false.
-Arguments to the C<leaks> static method may be passed as a reference to
+test the return value of L</"leaks"> for Perl true or false.
+Arguments to the L</"leaks"> static method may be passed as a reference to
 a hash of named arguments,
 or directly as code references.
 
@@ -864,9 +856,9 @@ or directly as code references.
 The B<test structure constructor> is a required argument.
 It must be a code reference.
 When the arguments are passed directly as code references,
-the test structure constructor must be the first argument to C<leaks>.
+the test structure constructor must be the first argument to L</"leaks">.
 When named arguments are used,
-the test structure constructor must be the value of the C<constructor> named argument.
+the test structure constructor must be the value of the L</"constructor"> named argument.
 
 The test structure constructor
 should build the test structure
@@ -879,13 +871,15 @@ as described above.
 The B<test structure destructor> is an optional argument.
 If specified, it must be a code reference.
 When the arguments are passed directly as code references,
-the test structure destructor is the second, optional, argument to C<leaks>.
+the test structure destructor is the second, optional, argument to L</"leaks">.
 When named arguments are used,
-the test structure destructor must be the value of the C<destructor> named argument.
+the test structure destructor is the value of the L</"destructor"> named argument.
 
 If specified,
 the test structure destructor is called
-just before the test structure reference is set to C<undef>.
+just before L<Test::Weaken|/"NAME"> tries
+to free the test structure
+by setting the test structure reference to C<undef>.
 It will be passed one argument,
 the test structure reference.
 The return value of the test structure destructor is ignored.
@@ -895,7 +889,7 @@ a destructor to be called when
 they are freed.
 The primary purpose for
 the test structure destructor is to enable
-C<Test::Weaken> to work with these data structures.
+L<Test::Weaken|/"NAME"> to work with these data structures.
 
 =item ignore
 
@@ -925,13 +919,14 @@ is_file($_, 't/ignore.t', 'ignore snippet')
 =end Marpa::Test::Display:
 
 The B<ignore> argument is optional.
-It can be used to make a specific decision,
-for each Perl data object,
+It can be used to make a decision,
+specific to each Perl data object,
 on whether that object and its children are tracked or ignored.
-Use of the C<ignore> argument should be avoided.
+
+Use of the L</ignore> argument should be avoided.
 Filtering the probe references that are
 returned by
-L<unfreed_proberefs>
+L</"unfreed_proberefs">
 is easier, safer and
 faster.
 But
@@ -942,15 +937,15 @@ need to be filtered out,
 it may be easiest to do so
 before they end up in the results.
 
-When specified, the value of the C<ignore> argument must be a
+When specified, the value of the L</ignore> argument must be a
 reference to a callback subroutine.
 If the reference to the callback subroutine
-is C<$ignore>, C<Test::Weaken>'s call to it will be the equivalent
+is C<$ignore>, L<Test::Weaken|/"NAME">'s call to it will be the equivalent
 of C<< $ignore->($safe_copy) >>,
 where C<$safe_copy> is a copy of 
 a probe reference to a Perl data object.
 
-The C<ignore> callback will be made once
+The L</ignore> callback will be made once
 for every Perl data object when it is about
 to be tracked,
 and once for every data object when it is about to be
@@ -960,10 +955,8 @@ to a data object which should be ignored, along with its children.
 If the data object and its children should be tracked,
 the callback subroutine should return a Perl false.
 
-For safety, C<Test::Weaken> does not pass its internal
-probe reference
-to the C<ignore> callback.
-The C<ignore> callback is passed a copy of the internal
+For safety, L<Test::Weaken|/"NAME"> passes
+the L</ignore> callback a copy of the internal
 probe reference.
 This prevents the user
 altering
@@ -973,12 +966,12 @@ the data object referred to by the probe reference is not copied.
 Everything that is referred to, directly or indirectly,
 by this
 probe reference
-should be left unchanged by the C<ignore>
+should be left unchanged by the L</ignore>
 callback.
 The result of modifying the probe referents might be
 an exception, an abend, an infinite loop, or erroneous results.
 
-The example above shows a common use of the C<ignore>
+The example above shows a common use of the L</ignore>
 callback.
 In this a blessed object is ignored, I<but not>
 the references to it.
@@ -989,18 +982,18 @@ the contents of your test structure.
 In that case, you want to know if the references are leaking,
 but you do not want to see reports 
 when the outside objects themselves are persistent.
-Compare this with the example for the C<contents> callback below.
+Compare this with the example for the L</contents> callback below.
 
-C<ignore> callbacks are best kept simple.
+L</ignore> callbacks are best kept simple.
 Defer as much of the analysis as you can
 until after the test is completed.
-C<ignore> callbacks 
+L</ignore> callbacks 
 can also be a significant overhead.
-The C<ignore> callback is
+The L</ignore> callback is
 invoked once per probe reference.
 
-C<Test::Weaken> offers some help in debugging
-C<ignore> callback subroutines.
+L<Test::Weaken|/"NAME"> offers some help in debugging
+L</ignore> callback subroutines.
 See L<below|/"Debugging Ignore Subroutines">.
 
 =item contents
@@ -1049,40 +1042,41 @@ is_file($_, 't/contents.t', 'contents named arg snippet')
 =end Marpa::Test::Display:
 
 The B<contents> argument is optional.
-It can be used to tell C<Test::Weaken> about additional
+It can be used to tell L<Test::Weaken|/"NAME"> about additional
 Perl data objects that need to be included,
 along with their children,
 in order to find all of the contents of the test data structure.
-Use of the C<contents> argument should be avoided
+
+Use of the L</contents> argument should be avoided
 when possible.
-Instead of using the C<contents> argument, it is
+Instead of using the L</contents> argument, it is
 often possible to have the constructor
 create a reference to a "wrapper structure",
-L<as described above in the section on nieces|Nieces>.
-
-The C<contents> argument is for situations where the "wrapper structure"
+L<as described above in the section on nieces|/"Nieces">.
+The L</contents> argument is
+for situations where the "wrapper structure"
 technique is not practical.
 If, for example,
 creating the wrapper structure would involve a recursive
 descent through the lab rat object,
-using the C<contents> argument may be easiest.
-Using the C<contents> callback can impose a significant overhead.
+using the L</contents> argument may be easiest.
 
-When specified, the value of the C<contents> argument must be a
+When specified, the value of the L</contents> argument must be a
 reference to a callback subroutine.
 If the reference is C<$contents>,
-C<Test::Weaken>'s call to it will be the equivalent
+L<Test::Weaken|/"NAME">'s call to it will be the equivalent
 of C<< $contents->($safe_copy) >>,
 where C<$safe_copy> is a copy of the probe reference to
 another Perl reference.
-The C<contents> callback is made once
+The L</contents> callback is made once
 for every Perl data object
 when that Perl data object is
 about to be examined for children.
+This can impose a significant overhead.
 
-The example of a C<contents> above adds data objects whenever it
+The example of a L</contents> callback above adds data objects whenever it
 encounters a I<reference> to a blessed object.
-Compare this with the example for the C<ignore> callback above.
+Compare this with the example for the L</ignore> callback above.
 Checking for references to blessed objects will not produce the same
 behavior as checking for the blessed objects themselves --
 there may be many references to a single
@@ -1094,23 +1088,21 @@ It should return a list of additional Perl data objects
 to be tracked and examined for children.
 This list may be empty.
 
-The C<contents> and C<ignore> callbacks can be used together.
-If, for an argument Perl data object, the C<ignore> callback returns
-true, the objects returned by the C<contents> callback, and their
+The L</contents> and L</ignore> callbacks can be used together.
+If, for an argument Perl data object, the L</ignore> callback returns
+true, the objects returned by the L</contents> callback, and their
 children, will be used B<instead> of the default children for the argument data object.
-If, for an argument Perl data object, the C<ignore> callback returns
-false, the objects returned by the C<contents> callback, and their
+If, for an argument Perl data object, the L</ignore> callback returns
+false, the objects returned by the L</contents> callback, and their
 children, will be used B<in addition> to the default children for the argument data object.
 Together,
-the C<contents> and C<ignore> callbacks can be used
+the L</contents> and L</ignore> callbacks can be used
 to completely customize
-C<Test::Weaken>'s default behaviors
+L<Test::Weaken|/"NAME">'s default behaviors
 for determining the contents of a data structure.
 
-For safety, C<Test::Weaken> does not pass its internal
-probe reference
-to the C<contents> callback.
-The C<contents> callback is passed a copy of the internal
+For safety, L<Test::Weaken|/"NAME"> passes
+the L</contents> callback a copy of the internal
 probe reference.
 This prevents the user
 altering
@@ -1120,7 +1112,7 @@ the data object referred to by the probe reference is not copied.
 Everything that is referred to, directly or indirectly,
 by this
 probe reference
-should be left unchanged by the C<contents>
+should be left unchanged by the L</contents>
 callback.
 The result of modifying the probe referents might be
 an exception, an abend, an infinite loop, or erroneous results.
@@ -1197,7 +1189,7 @@ is_file($_, 't/snippet.t', 'unfreed_count snippet')
 
 Returns the count of unfreed data objects.
 This count will be exactly the length of the array referred to by
-the return value of the C<unfreed_proberefs> method.
+the return value of the L</"unfreed_proberefs"> method.
 Throws an exception if there is a problem,
 for example if the tester has not yet been evaluated.
 
@@ -1233,9 +1225,9 @@ is_file($_, 't/snippet.t', 'probe_count snippet')
 Returns the total number of probe references in the test,
 including references to freed data objects.
 This is the count of probe references
-after C<Test::Weaken> was finished finding the descendants of
+after L<Test::Weaken|/"NAME"> was finished finding the descendants of
 the test structure reference,
-but before C<Test::Weaken> called the test structure destructor or reset the
+but before L<Test::Weaken|/"NAME"> called the test structure destructor or reset the
 test structure reference to C<undef>.
 Throws an exception if there is a problem,
 for example if the tester has not yet been evaluated.
@@ -1274,14 +1266,14 @@ is_file($_, 't/snippet.t', 'new snippet')
 
 =end Marpa::Test::Display:
 
-The C<new> method takes the same arguments as the C<leaks> method, described above.
-Unlike the C<leaks> method, it always returns an B<unevaluated> tester.
+The L</"new"> method takes the same arguments as the L</"leaks"> method, described above.
+Unlike the L</"leaks"> method, it always returns an B<unevaluated> tester.
 An B<unevaluated> tester is one on which the test has not yet
 been run and for which results are not yet available.
-If there are any problems, the C<new>
+If there are any problems, the L</"new">
 method throws an exception.
 
-The C<test> method is the only method that can be called successfully on
+The L</"test"> method is the only method that can be called successfully on
 an unevaluated tester.
 Calling any other method on an unevaluated tester causes an exception to be thrown.
 
@@ -1309,15 +1301,15 @@ is_file($_, 't/snippet.t', 'test snippet')
 Converts an unevaluated tester into an evaluated tester.
 It does this by performing the test
 specified
-by the arguments to the C<new> constructor
+by the arguments to the L</"new"> constructor
 and recording the results.
 Throws an exception if there is a problem,
 for example if the tester had already been evaluated.
 
-The C<test> method returns the count of unfreed data objects.
+The L</"test"> method returns the count of unfreed data objects.
 This will be identical to the length of the array
-returned by C<unfreed_proberefs> and
-the count returned by C<unfreed_count>.
+returned by L</"unfreed_proberefs"> and
+the count returned by L</"unfreed_count">.
 
 =begin Marpa::Test::Display:
 
@@ -1331,15 +1323,15 @@ the count returned by C<unfreed_count>.
 
 =head3 Avoidance
 
-C<Test::Weaken> makes tracing leaks easier, but avoidance is
+L<Test::Weaken|/"NAME"> makes tracing leaks easier, but avoidance is
 still by far the best way,
-and C<Test::Weaken> helps with that.
+and L<Test::Weaken|/"NAME"> helps with that.
 You need to use test-driven development, L<Test::More>,
 modular tests in a C<t/> subdirectory,
 and revision control.
 These are all very good ideas for many other reasons.
 
-Make C<Test::Weaken> part of your test suite.
+Make L<Test::Weaken|/"NAME"> part of your test suite.
 Test frequently, so that when a leak occurs,
 you'll have a good idea of what changes were made since
 the last successful test.
@@ -1348,7 +1340,7 @@ tell where the leak was introduced.
 
 =head3 Adding Tags
 
-The C<unfreed_proberefs> method returns an array containing
+The L</"unfreed_proberefs"> method returns an array containing
 probes to
 the unfreed
 data objects.
@@ -1363,10 +1355,9 @@ to aid in identifying the source of a leak.
 You can quasi-uniquely identify data objects using
 the referent addresses of the probe references.
 A referent address
-can be determined by using the
-C<refaddr> method of
-L<Scalar::Util>.
-You can also obtain the referent address of a reference by adding zero
+can be determined by using 
+L<Scalar::Util/refaddr>.
+You can also obtain the referent address of a reference by adding 0
 to the reference.
 
 Note that in other Perl documentation, the term "reference address" is often
@@ -1376,7 +1367,8 @@ The B<reference address> is the reference's own location in memory.
 The B<referent address> is the address of the Perl data object to which the reference refers.
 It is the referent address that interests us here and,
 happily, it is
-the referent address that both zero addition and C<refaddr> return.
+the referent address that both zero addition
+and L<refaddr|Scalar::Util/refaddr> return.
 
 =head3 Other Techniques
 
@@ -1412,10 +1404,12 @@ sense:
 the first data object might have been destroyed
 and a second, identical,
 object created at the same address.
-For most practical programming purposes,
+But for most practical programming purposes,
 two indiscernable data objects can be regarded as the same object.
 
 =head2 Debugging Ignore Subroutines
+
+=head3 check_ignore
 
 =begin Marpa::Test::Display:
 
@@ -1460,12 +1454,15 @@ is_file($_, 't/ignore.t', 'check_ignore 4 arg snippet')
 =end Marpa::Test::Display:
 
 It can be hard to determine if
-C<ignore> callback subroutines
+L</ignore> callback subroutines
 are inadvertently
 modifying the test structure.
-The C<Test::Weaken::check_ignore> static method is
+The
+L<Test::Weaken::check_ignore|/"check_ignore">
+static method is
 provided to make this task easier.
-C<Test::Weaken::check_ignore> constructs
+L<Test::Weaken::check_ignore|/"check_ignore">
+constructs
 a debugging wrapper from
 four arguments, three of which are optional.
 The first argument must be the ignore callback
@@ -1474,9 +1471,9 @@ This callback is called the test subject, or
 B<lab rat>.
 
 The second, optional argument, is the maximum error count.
-Below this count, errors are reported as warnings using C<Carp::carp>.
+Below this count, errors are reported as warnings using L<Carp::carp|Carp>.
 When the maximum error count is reached, an
-exception is thrown using C<Carp::croak>.
+exception is thrown using L<Carp::croak|Carp>.
 The maximum error count, if defined,
 must be an number greater than or equal to 0.
 By default the maximum error count is 1,
@@ -1494,20 +1491,22 @@ want to do.
 The third, optional, argument is the B<compare depth>.
 It is the depth to which the probe referents will be checked,
 as described below.
-It must be a number greater than or equal to zero.
-If the compare depth is zero, the probe referent is checked
+It must be a number greater than or equal to 0.
+If the compare depth is 0, the probe referent is checked
 to unlimited depth.
 By default the compare depth is 0.
 
 This fourth, optional, argument is the B<reporting depth>.
 It is the depth to which the probe referents are dumped
-in C<check_ignore>'s error messages.
+in
+L<check_ignore's|/"check_ignore">
+error messages.
 It must be a number greater than or equal to -1.
-If the reporting depth is zero, the object is dumped to unlimited depth.
+If the reporting depth is 0, the object is dumped to unlimited depth.
 If the reporting depth is -1, there is no dump in the error message.
 By default, the reporting depth is -1.
 
-C<Test::Weaken::check_ignore>
+L<Test::Weaken::check_ignore|/"check_ignore">
 returns a reference to the wrapper callback.
 If no problems are detected,
 the wrapper callback behaves exactly like the lab rat callback,
@@ -1515,58 +1514,61 @@ except that the wrapper is slower.
 
 To discover when and if the lab rat callback is
 altering its arguments,
-C<Test::Weaken::check_ignore>
+L<Test::Weaken::check_ignore|/"check_ignore">
 compares the test structure
 before the lab rat is called,
 to the test structure after the lab rat returns.
-C<Test::Weaken::check_ignore>
+L<Test::Weaken::check_ignore|/"check_ignore">
 compares the before and after test structures in two ways.
 First, it dumps the contents of each test structure using
-C<Data::Dumper>.
+L<Data::Dumper>.
 For comparison purposes,
-the dump using C<Data::Dumper> is performed with C<Maxdepth>
+the dump using L<Data::Dumper> is performed with C<Maxdepth>
 set to the compare depth as described above.
 Second, if the immediate probe referent has builtin type REF,
-C<Test::Weaken::check_ignore>
+L<Test::Weaken::check_ignore|/"check_ignore">
 determines whether the immediate probe referent
 is a weak reference or a strong one.
 
 If either comparison shows a difference,
 the wrapper treats it as a problem, and
 produces an error message.
-This error message is either a C<Carp::carp> warning or a
-C<Carp::croak> exception, depending on the number of error
+This error message is either a L<Carp::carp|Carp> warning or a
+L<Carp::croak|Carp> exception, depending on the number of error
 messages already reported and the setting of the
 maximum error count.
 If the reporting depth is a non-negative number, the error
-message includes a dump from C<Data::Dumper> of the
+message includes a dump from L<Data::Dumper> of the
 test structure.
-C<Data::Dumper>'s C<Maxdepth>
+L<Data::Dumper's|Data::Dumper> C<Maxdepth>
 for reporting purposes is the reporting depth as described above.
 
 A user who wants other features, such as deep checking
 of the test structure
 for strengthened references,
-can easily modify
-C<Test::Weaken::check_ignore>.
-C<Test::Weaken::check_ignore> is a static method
-that does not use any C<Test::Weaken>
-package resources.
-It is easy to copy it from the C<Test::Weaken> source
+can easily 
+copy
+L<Test::Weaken::check_ignore|/"check_ignore">
+from the L<Test::Weaken|/"NAME"> source
 and hack it up.
+L<check_ignore|/"check_ignore">
+is a static method
+that does not use any L<Test::Weaken|/"NAME">
+package resources.
 The hacked version can reside anywhere,
 and does not need to
-be part of the C<Test::Weaken> package.
+be part of the L<Test::Weaken|/"NAME"> package.
 
 =head1 EXPORTS
 
-By default, C<Test::Weaken> exports nothing.  Optionally, C<leaks> may be exported.
+By default, L<Test::Weaken|/"NAME"> exports nothing.
+Optionally, L</"leaks"> may be exported.
 
 =head1 IMPLEMENTATION DETAILS
 
 =head2 Overview
 
-C<Test::Weaken> first recurses through the test structure.
+L<Test::Weaken|/"NAME"> first recurses through the test structure.
 Starting from the test structure reference,
 it examines data objects for children recursively,
 until it has found the complete contents of the test structure.
@@ -1587,7 +1589,7 @@ if there is one.
 
 Finally, the test structure reference is set to C<undef>.
 This should trigger the deallocation of the entire contents of the test structure.
-To check that this happened, C<Test::Weaken> dereferences the probe references.
+To check that this happened, L<Test::Weaken|/"NAME"> dereferences the probe references.
 If the referent of a probe reference was deallocated,
 the value of that probe reference will be C<undef>.
 If a probe reference is still defined at this point,
@@ -1596,11 +1598,16 @@ it refers to an unfreed Perl data object.
 =head2 Builtin Types
 
 B<Builtin types> are
-the type names returned by L<Scalar::Util>'s
-C<reftype> subroutine.
-C<Scalar::Util::reftype> differs from Perl's C<ref> function.
-If an object was blessed into a package, C<ref> returns the package name,
-while C<reftype> returns the original builtin type of the object.
+the type names returned by
+L<Scalar::Util/reftype>.
+L<reftype|Scalar::Util/reftype> differs from Perl's
+L<ref function|perlfunc/"ref">.
+If an object was blessed into a package,
+L<ref|perlfunc/"ref">
+returns the package name,
+while
+L<Scalar::Util/reftype>
+returns the original builtin type of the object.
 
 =head2 Tracked Objects
 
@@ -1610,11 +1617,11 @@ SCALAR, VSTRING, and CODE are tracked.
 By default,
 GLOB, IO, FORMAT and LVALUE objects are not tracked.
 
-C<Data::Dumper> does not deal with
+L<Data::Dumper> does not deal with
 IO and LVALUE objects
 gracefully,
 issuing a cryptic warning whenever it encounters them.
-Since C<Data::Dumper> is a Perl core module
+Since L<Data::Dumper> is a Perl core module
 in extremely wide use, this suggests that these IO and LVALUE
 objects are, to put it mildly,
 not commonly encountered as the contents of data structures.
@@ -1629,17 +1636,17 @@ is thrown into doubt.
 The trouble saved by ignoring GLOB objects seems 
 to outweigh any advantage that would come from tracking
 them.
-IO objects, which are ignored because of C<Data::Dumper> issues,
+IO objects, which are ignored because of L<Data::Dumper> issues,
 are often associated with GLOB objects.
 
 FORMAT objects are always global, and therefore
 can be expected to be persistent.
 Use of FORMAT objects is officially deprecated.
-C<Data::Dumper> does not deal with
+L<Data::Dumper> does not deal with
 FORMAT objects gracefully,
 issuing a cryptic warning whenever it encounters one.
 
-This version of C<Test::Weaken> might someday be run
+This version of L<Test::Weaken|/"NAME"> might someday be run
 in a future version of Perl
 and encounter builtin types it does not know about.
 Those new builtin types will not be tracked.
@@ -1664,13 +1671,13 @@ also not examined for children.
 Not examining CODE objects for children
 can be seen as a limitation, because
 closures do hold internal references to data objects.
-Future versions of C<Test::Weaken> may examine CODE objects.
+Future versions of L<Test::Weaken|/"NAME"> may examine CODE objects.
 
 The default method of recursing through a test structure
 to find its contents can be customized.
-The C<ignore> callback can be used to force an object
+The L</ignore> callback can be used to force an object
 not to be examined for children.
-The C<contents> callback can be used to add user-determined
+The L</contents> callback can be used to add user-determined
 contents to the test structure.
 
 =head1 AUTHOR
@@ -1726,7 +1733,7 @@ L<Devel::Cycle>, which examine
 existing data structures non-destructively.
 L<Devel::Leak> also covers similar ground, although it requires
 Perl to be compiled with C<-DDEBUGGING> in order to work.  L<Devel::Cycle>
-looks inside closures if PadWalker is present, a feature C<Test::Weaken>
+looks inside closures if PadWalker is present, a feature L<Test::Weaken|/"NAME">
 does not have at present.
 
 =head1 ACKNOWLEDGEMENTS
@@ -1734,12 +1741,11 @@ does not have at present.
 Thanks to jettero, Juerd, morgon and perrin of Perlmonks for their advice.
 Thanks to Lincoln Stein (developer of L<Devel::Cycle>) for
 test cases and other ideas.
-Kevin Ryde made several important suggestions
+Kevin Ryde made many important suggestions
 and provided the test cases which
 provided the impetus
-for version 2.000000.
-Kevin played the same role for version 4.000000, and provided several
-important patches as well.
+for the versions 2.000000 and after.
+For version 3.000000, Kevin also provided patches.
 
 =head1 LICENSE AND COPYRIGHT
 
