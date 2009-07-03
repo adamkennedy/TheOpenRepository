@@ -150,6 +150,7 @@ sub filters {
     return 0 if $mod =~ m{/APEIRON/local-lib-};
 
 	# Perl::Dist::WiX upgrades
+	return 0 if $mod =~ m{/SBURKE/Pod-Escapes-};
     return 0 if $mod =~ m{/KANE/Archive-Extract-};
 	return 0 if $mod =~ m{/SMUELLER/Attribute-Handlers-};
 	return 0 if $mod =~ m{/SMUELLER/AutoLoader-};
