@@ -34,3 +34,5 @@ $generator->run;
 
 # Summarise
 print "Completed generation of " . $generator->sqlite . "\n";
+
+exit(0);

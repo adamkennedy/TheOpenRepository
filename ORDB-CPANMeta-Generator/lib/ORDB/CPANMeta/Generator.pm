@@ -123,6 +123,15 @@ sub dsn {
 ######################################################################
 # Main Methods
 
+=pod
+
+=head2 run
+
+The C<run> method executes the process that will produce and fill the
+final database.
+
+=cut
+
 sub run {
 	my $self = shift;
 
@@ -329,7 +338,7 @@ END_SQL
 	Xtract::Publish->new(
 		from   => $self->sqlite,
 		sqlite => $self->publish,
-		trace  => 1,
+		trace  => $self->trace,
 		raw    => 0,
 		gz     => 1,
 		bz2    => 1,

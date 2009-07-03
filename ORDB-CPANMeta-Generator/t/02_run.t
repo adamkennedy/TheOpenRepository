@@ -37,15 +37,15 @@ ok( ! -f $sqlite, "Database '$sqlite' does not exist" );
 # Main Tests
 
 # Create the generator
-my $generator = ORDB::CPANMeta::Generator->new(
+my $cpandb = new_ok( 'ORDB::CPANMeta::Generator' => [
 	minicpan => $minicpan,
 	sqlite   => $sqlite,
 	trace    => 0,
-);
-isa_ok( $generator, 'ORDB::CPANMeta::Generator' );
+] );
+clear($cpandb->sqlite);
 
 # Run the generator
-ok( $generator->run, '->run ok' );
+ok( $cpandb->run, '->run ok' );
 
 # Validate the result
 ok( -f $sqlite, "Created database '$sqlite'" );
