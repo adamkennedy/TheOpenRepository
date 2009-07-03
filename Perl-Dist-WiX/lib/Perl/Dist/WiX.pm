@@ -107,7 +107,7 @@ use     Win32                 qw();
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.190')->numify;
+use version; $VERSION = version->new('0.190_001')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -503,7 +503,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 	unless ( defined $params{fragment_dir} ) {
 		$params{fragment_dir} =        # To store the WiX fragments in.
-		  catdir( $params{output_dir}, 'fragments' );
+		  catdir( $params{temp_dir}, 'fragments' );
 		$class->remake_path( $params{fragment_dir} );
 	}
 	if ( defined $params{image_dir} ) {
@@ -1405,12 +1405,6 @@ sub install_perl_toolchain {
 			# 1.9402 fails its tests...
 			$dist = 'ANDK/CPAN-1.94.tar.gz';
 		}
-		if ( $dist =~ /Pod-Simple-/msx ) {
-
-			# Prerequisite that needs installing if only on 5.8.9...
-			$self->install_modules('Pod::Escapes')
-			  if $self->perl_version eq '589';
-		}
 		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
 
 			# 1.28 makes some things fail tests...
@@ -1571,7 +1565,7 @@ END_PERL
 			and ( $module->cpan_version > 2.00 )
 			and ( $self->perl_version < 5100 ) )
 		{
-			$self->install_modules(qw( Pod::Simple ));
+			$self->install_modules(qw( Pod::Escapes Pod::Simple ));
 			$self->_install_cpan_module( $module, $force );
 			next;
 		}
@@ -1732,7 +1726,7 @@ sub install_portable {
 	my $self = shift;
 
 	# Install the regular parts of Portability
-	$self->install_module( name => 'Portable', );
+	$self->install_modules(qw(Class::Inspector CPAN::Mini Portable));
 
 	# Create the portability object
 	$self->trace_line( 1, "Creating Portable::Dist\n" );
