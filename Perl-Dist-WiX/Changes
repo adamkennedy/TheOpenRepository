@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-WiX
 
-0.190   Tue 30 Jun 2009
+0.190   Thu 02 Jul 2009
     1. Was used to make Strawberry Perl July 2009 
        Beta 3.
     2. Throw an exception if Archive::Zip version 1.28 
@@ -13,6 +13,9 @@ Changes for Perl extension Perl-Dist-WiX
     5. Will attempt to tell you which directories need to be 
        added to the msi_directory_tree_additions parameter to 
 	   Perl::Dist::WiX->new when trace is 2 or greater.
+    6. Added a distropref so that certain modules will not
+       be installed when building a distribution. (It is not 
+       installed with the created distribution.)
 
 0.185   Tue 23 Jun 2009
     1. Force install of Archive::Zip version 1.26 (1.28 
