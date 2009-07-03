@@ -13,6 +13,11 @@ unless ( $ENV{RELEASE_TESTING} ) {
 	exit(0);
 }
 
-plan( tests => 1 );
+plan( tests => 2 );
 
+# Download and load the database
 use_ok( 'CPANDB' );
+
+# Test graph generation
+my $graph = CPANDB->graph;
+isa_ok( $graph, 'Graph::Directed' );

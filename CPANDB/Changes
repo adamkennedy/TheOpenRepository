@@ -1,6 +1,13 @@
 Changes for Perl extension CPANDB
 
-0.02 Thu  1 Jul 2009
+0.04 Fri  3 Jul 2009
+	- Adding support for producing a Graph object for dependencies
+
+0.03 Thu  2 Jul 2009
+	- Removing superfluous indexes
+	- Prerun index stats for end user speed
+
+0.02 Thu  2 Jul 2009
 	- Updated to new URL.
 	- Generated a new version of the POD
 
