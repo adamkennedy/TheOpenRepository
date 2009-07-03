@@ -500,7 +500,7 @@ sub clone_and_node {
         )
     {
         $new_and_node->[$field] = $and_node->[$field];
-    } ## end for my $field ( Marpa::Internal::And_Node::TAG, ...
+    } ## end for my $field ( Marpa::Internal::And_Node::TAG, ...)
     $new_and_node->[Marpa::Internal::And_Node::TAG] =~ s{
         [#] \d* \z
     }{#$new_and_node_id}xms;
@@ -562,7 +562,7 @@ sub delete_nodes {
                 )
             {
                 $and_node->[$field] = undef;
-            } ## end for my $field ( Marpa::Internal::And_Node::PARENT_ID,...
+            } ## end for my $field ( Marpa::Internal::And_Node::PARENT_ID,...)
 
             next DELETE_WORK_ITEM;
         } ## end if ( $action == DELETE_AND_NODE )
@@ -591,7 +591,7 @@ sub delete_nodes {
                 )
             {
                 $or_node->[$field] = [];
-            } ## end for my $field ( Marpa::Internal::Or_Node::PARENT_IDS,...
+            } ## end for my $field ( Marpa::Internal::Or_Node::PARENT_IDS,...)
             next DELETE_WORK_ITEM;
         } ## end if ( $action == PRUNE_OR_NODE )
 
@@ -853,7 +853,7 @@ sub Marpa::Evaluator::new {
                             @{ $item->[Marpa::Internal::Earley_Item::LINKS] }
                     )
                 );
-            } ## end else [ if ( $symbol->[Marpa::Internal::Symbol::NULLING] )
+            } ## end else [ if ( $symbol->[Marpa::Internal::Symbol::NULLING] ) ]
 
             for my $or_bud (@or_bud_list) {
 
@@ -1007,7 +1007,7 @@ sub Marpa::Evaluator::new {
                 push @{ $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS]
                     },
                     $and_node_id;
-            } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
+            } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...)
 
         } ## end for my $choice ( 0 .. $#child_and_node_ids )
     } ## end for my $parent_or_node ( @{$or_nodes} )
@@ -1032,6 +1032,9 @@ sub Marpa::Evaluator::new {
         @{$span_set} =
             grep { not $_->[Marpa::Internal::Or_Node::DELETED] } @{$span_set};
         next SPAN_SET if not @{$span_set};
+
+        push @span_sets, $span_set;
+
         my @in_span_set = ();
         #### creating spanset ....
         for my $or_node_ix ( 0 .. $#{$span_set} ) {
@@ -1075,7 +1078,7 @@ sub Marpa::Evaluator::new {
                 $transition_row->[$grandchild_ix]++;
                 #### transition: $parent_ix, $grandchild_ix
                 push @work_list, [ $parent_ix, $grandchild_ix ];
-            } ## end for my $grandchild_ix ( grep { $transition[$child_ix]...
+            } ## end for my $grandchild_ix ( grep { $transition[$child_ix]...})
         } ## end while ( my $work_item = pop @work_list )
 
         # Use the transitions to find the cycles in the span set
@@ -1134,10 +1137,10 @@ sub Marpa::Evaluator::new {
 
         } ## end for my $ix ( 0 .. $#{$span_set} )
 
-        # dummy while to make partial code compile OK
-        my $cycle_set = [];
+        my $cycle_set = pop @cycles;
+        next SPAN_SET unless defined $cycle_set;
 
-        # determine which in the original span set are
+        # determine which in the original cycle set are
         # internal and-nodes
         my @internal_and_nodes;
         for my $or_node ( @{$cycle_set} ) {
@@ -1171,6 +1174,10 @@ sub Marpa::Evaluator::new {
             my %translate_or_node_id;
             my %translate_and_node_id;
 
+            # store our new cycle set here, so we can add it
+            # to the span set work list
+            my @copied_cycle_set;
+
             for my $or_node ( @{$cycle_set} ) {
                 my $new_or_node;
                 $#{$new_or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
@@ -1183,7 +1190,7 @@ sub Marpa::Evaluator::new {
                     )
                 {
                     $new_or_node->[$field] = $or_node->[$field];
-                } ## end for my $field ( ...
+                } ## end for my $field ( ...)
 
                 $new_or_node->[Marpa::Internal::Or_Node::TAG] =~ s{
                         [#] \d* \z
@@ -1192,6 +1199,7 @@ sub Marpa::Evaluator::new {
                 $new_or_node->[Marpa::Internal::Or_Node::ID] =
                     $new_or_node_id;
                 push @{$or_nodes}, $new_or_node;
+                push @copied_cycle_set, $new_or_node;
                 $translate_or_node_id{ $or_node
                         ->[Marpa::Internal::Or_Node::ID] } = $new_or_node_id;
 
@@ -1261,8 +1269,8 @@ sub Marpa::Evaluator::new {
                         push @{ $or_child
                                 ->[Marpa::Internal::Or_Node::PARENT_IDS] },
                             $and_node_id;
-                    } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...
-                } ## end for my $and_node_id ( @{ $or_node->[...
+                    } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...)
+                } ## end for my $and_node_id ( @{ $or_node->[...]})
 
             } ## end for my $or_node ( @{$cycle_set} )
 
@@ -1287,7 +1295,7 @@ sub Marpa::Evaluator::new {
                 {
                     push @delete_work_list,
                         [ DELETE_AND_NODE, $new_parent_and_node_id ];
-                } ## end if ( defined( my $new_parent_and_node_id = ...
+                } ## end if ( defined( my $new_parent_and_node_id = ...))
 
                 # Clone the external parent node
                 my $parent_and_node = $and_nodes->[$parent_and_node_id];
@@ -1342,7 +1350,7 @@ sub Marpa::Evaluator::new {
                     push @{ $root_or_node_sibling
                             ->[Marpa::Internal::Or_Node::PARENT_IDS] },
                         $new_parent_and_node_id;
-                } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...
+                } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...)
 
                 # Tell the parent of the newly cloned and-node
                 # about its new child
@@ -1364,7 +1372,9 @@ sub Marpa::Evaluator::new {
                 $new_parent_and_node
                     ->[Marpa::Internal::And_Node::PARENT_CHOICE] = $choice;
 
-            } ## end for my $parent_and_node_id ( @{ $root_or_node->[...
+            } ## end for my $parent_and_node_id ( @{ $root_or_node->[...]})
+
+            push @span_sets, \@copied_cycle_set;
 
         } ## end for my $copy ( 1 .. $#root_or_nodes )
 
@@ -1380,15 +1390,13 @@ sub Marpa::Evaluator::new {
                 if ( $is_root xor $internal_and_nodes[$parent_and_node_id] ) {
                     push @delete_work_list, $parent_and_node_id;
                 }
-            } ## end for my $parent_and_node_id ( @{ $original_or_node->[...
+            } ## end for my $parent_and_node_id ( @{ $original_or_node->[...]})
         } ## end for my $original_or_node ( @{$cycle_set} )
 
         # we should be deletion-consistent at this point
 
         # Now actually do the deletions
         delete_nodes( $self, \@delete_work_list );
-
-        ## push every copy made onto span_sets
 
     } ## end while ( my $span_set = pop @span_sets )
 
@@ -1459,9 +1467,9 @@ sub Marpa::Evaluator::new {
                 @or_node_ids[ 1 .. $#or_node_ids ];
                 next FIELD if not defined $first_different;
                 push @or_node_id_work_list, @or_node_ids;
-            } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...
+            } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...)
 
-        } ## end while ( my ( $short_signature, $child_ids ) = each ...
+        } ## end while ( my ( $short_signature, $child_ids ) = each ...)
 
     } ## end for my $parent_or_node ( @{$or_nodes} )
 
@@ -1506,7 +1514,7 @@ sub Marpa::Evaluator::new {
             ];
         next AND_NODE if @or_children;
         push @equivalence_work_list, [ 1, $and_node_id ];
-    } ## end for my $and_node_id ( grep { $and_nodes_of_interest[$_...
+    } ## end for my $and_node_id ( grep { $and_nodes_of_interest[$_...]})
 
     my @and_node_equivalence_class;
     my %and_node_equivalence_class;
@@ -1555,7 +1563,7 @@ sub Marpa::Evaluator::new {
             {
                 push @equivalence_work_list,
                     [ 0, Marpa::Internal::And_Node::PARENT_ID ];
-            } ## end if ( $or_nodes_of_interest[...
+            } ## end if ( $or_nodes_of_interest[...])
         } ## end if ($is_and_node)
         else {
             my $or_node_id = shift @{$equivalence_work_item};
@@ -1581,7 +1589,7 @@ sub Marpa::Evaluator::new {
                 $and_nodes_of_interest[$_]
                     and not defined $and_node_equivalence_class[$_]
                 } @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] };
-        } ## end else [ if ($is_and_node)
+        } ## end else [ if ($is_and_node) ]
     } ## end while ( my $equivalence_work_item = pop @equivalence_work_list)
 
     for my $prune_candidate_set (@prune_candidate_and_node_ids) {
@@ -2076,7 +2084,7 @@ sub Marpa::Evaluator::new_value {
                     [ Marpa::Internal::Task::ITERATE_INSTANCE, $rank + 1, 0 ],
                 );
 
-            } ## end else [ if ( $current_choice >= 0 )
+            } ## end else [ if ( $current_choice >= 0 ) ]
 
             REJECT_TASK_CHOICE:
             for my $rejection_choice ( 0 .. $#{$choices} ) {
@@ -2344,7 +2352,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
                     $decisions->[$and_node_id] = $previous_value;
                     next ENTRY;
-                } ## end if ( $entry_type == ...
+                } ## end if ( $entry_type == ...)
 
                 # Iterate the choice at a fork in the upward path
                 # while following up on a decision to accept
@@ -2418,7 +2426,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                         $parent_id,
                         ];
                     next TASK;
-                } ## end if ( $entry_type == ...
+                } ## end if ( $entry_type == ...)
 
                 # "Ratchet" instance acceptances, that is, only iterate an
                 # accepted instance by rejecting it.
@@ -2431,7 +2439,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                     # There are left over from previous parses, and do no harm.
                     $instance_acceptances_ratcheted = 1;
                     next ENTRY;
-                } ## end if ( $entry_type == ...
+                } ## end if ( $entry_type == ...)
 
                 # This entry records a decision to accept an instance.
                 # Iterate this instance.
@@ -2485,7 +2493,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
                     next TASK;
 
-                } ## end if ( $entry_type == ...
+                } ## end if ( $entry_type == ...)
 
                 Marpa::exception(
                     'Internal error: unknown evaluator journal entry');
@@ -2504,7 +2512,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
             # There are no (or no more) parses.
             return;
 
-        } ## end if ( $task == Marpa::Internal::Task::BACKTRACK_TO_FORK...
+        } ## end if ( $task == Marpa::Internal::Task::BACKTRACK_TO_FORK...)
 
         if ( $task == Marpa::Internal::Task::REJECT_NODE ) {
 
@@ -2658,7 +2666,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                         ];
 
                 } ## end for my $child_and_node_id ( @{$child_and_nodes} )
-            } ## end for my $child_field ( Marpa::Internal::And_Node::CAUSE...
+            } ## end for my $child_field ( Marpa::Internal::And_Node::CAUSE...)
 
             next TASK;
 
@@ -2931,7 +2939,7 @@ sub Marpa::Evaluator::value {
         # returning failure.
         return if @{$tree} == 0;
 
-    } ## end else [ if ( not defined $tree )
+    } ## end else [ if ( not defined $tree ) ]
 
     my @old_tree = @{$tree};
     my @last_position_by_depth;
