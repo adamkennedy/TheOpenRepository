@@ -43,7 +43,8 @@ sub filters {
     return 0 if $mod =~ m{/DROLSKY/Class-MOP-};
     return 0 if $mod =~ m{/DROLSKY/Moose-};
 	return 0 if $mod =~ m{/SARTAK/MooseX-AttributeHelpers-};
-	return 0 if $mod =~ m{/CSJEWELL/};
+	return 0 if $mod =~ m{/CSJEWELL/Perl-Dist-WiX-};
+	return 0 if $mod =~ m{/CSJEWELL/File-List-Object-};
     return 0 if $mod =~ m{/ADAMK/Module-Install-};
 	return 0 if $mod =~ m{/ROODE/Readonly};
 	return 0 if $mod =~ m{/DMUEY/File-Copy-Recursive-};
@@ -58,8 +59,6 @@ sub filters {
 	return 0 if $mod =~ m{/ADAMK/Process-};
 	return 0 if $mod =~ m{/MJD/Tie-File-};
 	return 0 if $mod =~ m{/MSCHWERN/Test-Simple-};
-	return 0 if $mod =~ m{/ADAMK/Win32-File-Object-};
-	return 0 if $mod =~ m{/ADAMK/Portable-};
 	return 0 if $mod =~ m{/ABW/Template-Toolkit-2};
 	return 0 if $mod =~ m{/REYNOLDS/IO-Capture-};
 	return 0 if $mod =~ m{/ADAMK/Perl-Dist-};
@@ -88,7 +87,6 @@ sub filters {
 	return 0 if $mod =~ m{/JDHEDDEN/Object-InsideOut-};
 	return 0 if $mod =~ m{/SHLOMIF/Error-};
 	return 0 if $mod =~ m{/JSWARTZ/Cache-Cache-};
-	return 0 if $mod =~ m{/ADAMK/Class-Inspector-};
 	return 0 if $mod =~ m{/TMTM/Class-Data-Inheritable-};
 	return 0 if $mod =~ m{/ADAMK/File-IgnoreReadonly-};
 	return 0 if $mod =~ m{/ADAMK/LWP-Online-};
@@ -96,6 +94,11 @@ sub filters {
 	return 0 if $mod =~ m{/ABIGAIL/Regexp-Common-};
 	return 0 if $mod =~ m{/MLEHMANN/JSON-XS-};
 	return 0 if $mod =~ m{/MAKAMAKA/JSON-};
+
+	# Perl::Dist::Strawberry (Portable) and Bootstrap.
+	return 0 if $mod =~ m{/ADAMK/Portable-};
+	return 0 if $mod =~ m{/RJBS/CPAN-Mini-};
+	return 0 if $mod =~ m{/ADAMK/Class-Inspector-};
 
 	# Perl::Dist::Strawberry
 	return 0 if $mod =~ m{/JDB/Win32-File-\d};
