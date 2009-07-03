@@ -143,7 +143,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Evaluator;
 
-# use Smart::Comments '###', '####';
+# use Smart::Comments '###';
 
 ### Using smart comments <where>...
 
@@ -1033,8 +1033,6 @@ sub Marpa::Evaluator::new {
             grep { not $_->[Marpa::Internal::Or_Node::DELETED] } @{$span_set};
         next SPAN_SET if not @{$span_set};
 
-        push @span_sets, $span_set;
-
         my @in_span_set = ();
         #### creating spanset ....
         for my $or_node_ix ( 0 .. $#{$span_set} ) {
@@ -1069,6 +1067,7 @@ sub Marpa::Evaluator::new {
 
         while ( my $work_item = pop @work_list ) {
             my ( $parent_ix, $child_ix ) = @{$work_item};
+            ### work item: $parent_ix, $child_ix
             GRAND_CHILD:
             for my $grandchild_ix ( grep { $transition[$child_ix][$_] }
                 ( 0 .. $#{$span_set} ) )
@@ -1139,6 +1138,10 @@ sub Marpa::Evaluator::new {
 
         my $cycle_set = pop @cycles;
         next SPAN_SET unless defined $cycle_set;
+
+        # If we found any cycles in the span set, put it back
+        # on the work list for another pass
+        push @span_sets, $span_set;
 
         # determine which in the original cycle set are
         # internal and-nodes
