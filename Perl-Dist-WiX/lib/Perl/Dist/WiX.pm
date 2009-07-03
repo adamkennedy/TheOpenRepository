@@ -1405,6 +1405,11 @@ sub install_perl_toolchain {
 			# 1.9402 fails its tests...
 			$dist = 'ANDK/CPAN-1.94.tar.gz';
 		}
+		if ( $dist =~ /Pod-Simple-/msx ) {
+
+			# Prerequisite that needs installing if only on 5.8.9...
+			$self->install_modules('Pod::Escapes') if $self->perl_version eq '589';
+		}
 		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
 
 			# 1.28 makes some things fail tests...
@@ -1677,8 +1682,13 @@ sub _skip_upgrade {
 	return 1 if $module->cpan_file =~ m{/ExtUtils-MakeMaker-6\.50}msx;
 
 	# If the ID is CPAN 1.9402, don't install it, please.
-	# It was skipped in the previous stage for a reason.	
+	# It was skipped in the previous stage for a reason.
 	return 1 if $module->cpan_file =~ m{/CPAN-1\.9402}msx;
+
+	# Safe is being skipped because it is not passing tests
+	# inside the VM - but it passes tests outside.
+	# Weird.
+	return 1 if $module->cpan_file =~ m{/Safe-2\.1}msx;
 
 	return 0;
 } ## end sub _skip_upgrade
@@ -2031,7 +2041,7 @@ sub install_perl_588_bin {
 				INST_TOP => $INST_TOP,
 			} );
 
-		$self->trace_line( 1, "Building perl...\n" );
+		$self->trace_line( 1, "Building perl 5.8.8...\n" );
 		$self->_make;
 
 		unless ( $perl->force ) {
@@ -2201,7 +2211,7 @@ sub install_perl_589_bin {
 				INST_TOP => $INST_TOP,
 			} );
 
-		$self->trace_line( 1, "Building perl...\n" );
+		$self->trace_line( 1, "Building perl 5.8.9...\n" );
 		$self->_make;
 
 		unless ( $perl->force ) {
@@ -2356,7 +2366,7 @@ sub install_perl_5100_bin {
 				INST_TOP => $INST_TOP,
 			} );
 
-		$self->trace_line( 1, "Building perl...\n" );
+		$self->trace_line( 1, "Building perl 5.10.0...\n" );
 		$self->_make;
 
 		my $long_build =
