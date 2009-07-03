@@ -15,8 +15,9 @@ use vars                  qw( $VERSION                              );
 use Object::InsideOut     qw( Perl::Dist::WiX::Base::Entry Storable );
 use Params::Util          qw( _IDENTIFIER _STRING                   );
 use File::Spec::Functions qw( splitpath                             );
+use Win32::Exe            qw();
 
-use version; $VERSION = version->new('0.190')->numify;
+use version; $VERSION = version->new('0.190_001')->numify;
 #>>>
 #####################################################################
 # Accessors:
@@ -79,6 +80,28 @@ sub as_string {
 		$answer =
 			q{<File Id='F_} . $id[$object_id]
 		  . q{' Source='}   . $filename . q{' />};
+#>>>
+	} elsif (( $name[$object_id] =~ m{\.dll\z}sm ) or 
+	         ( $name[$object_id] =~ m{\.exe\z}sm )) {
+
+		# If the file is a .dll or .exe file, check for a version.
+
+		my $language;
+		my $exe = Win32::Exe->new( $name[$object_id] );
+		my $vi = $exe->version_info();
+		if (defined $vi) {
+			$vi->get('OriginalFilename'); # To load the variable used below.
+			$language = hex substr $vi->{'cur_trans'}, 0, 4;
+		}
+	
+#<<<
+		$answer =
+			q{<File Id='F_} . $id[$object_id]
+		  . q{' Source='}   . $name[$object_id];
+		if (defined $language) {
+			$answer .=  q{' DefaultLanguage='} . $language;
+		}
+		$answer .= q{' />};
 #>>>
 	} else {
 
