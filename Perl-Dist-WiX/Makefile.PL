@@ -2,10 +2,19 @@ use inc::Module::Install 0.91;
 
 die "OS unsupported\n" unless win32;
 
+# Create README file.
 if (author_context) {
+	print "Creating README file\n";
 	require Pod::Readme;
 	my $readme = Pod::Readme->new();
 	$readme->parse_from_file('lib/Perl/Dist/WiX.pm', 'README');
+}
+
+# Cheat to make sure that the module that
+# includes install_script is always
+# copied into the distribution.
+if (is_admin) {
+	admin()->load('install_script', 1);
 }
 
 all_from       'lib/Perl/Dist/WiX.pm';

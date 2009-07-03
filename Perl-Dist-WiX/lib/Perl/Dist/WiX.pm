@@ -1408,7 +1408,8 @@ sub install_perl_toolchain {
 		if ( $dist =~ /Pod-Simple-/msx ) {
 
 			# Prerequisite that needs installing if only on 5.8.9...
-			$self->install_modules('Pod::Escapes') if $self->perl_version eq '589';
+			$self->install_modules('Pod::Escapes')
+			  if $self->perl_version eq '589';
 		}
 		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
 
@@ -1443,7 +1444,7 @@ EOF
 	return 1;
 } ## end sub install_perl_toolchain
 
-sub install_cpan_upgrades {
+sub install_cpan_upgrades { ## no critic 'ProhibitExcessComplexity'
 	my $self = shift;
 	unless ( $self->bin_perl ) {
 		PDWiX->throw(
@@ -3516,7 +3517,7 @@ sub install_module {
 
 	# Generate the CPAN installation script
 	my $url         = $self->cpan()->as_string();
-	my $dp_dir      = catdir($self->wix_dist_dir, 'distroprefs');
+	my $dp_dir      = catdir( $self->wix_dist_dir, 'distroprefs' );
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
