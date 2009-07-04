@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '2.003_006';
+our $VERSION   = '2.003_007';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -601,7 +601,7 @@ even data that would usually have been made inaccessible.
 
 L<Test::Weaken|/"NAME"> frees the test structure, then looks to see if any of the
 contents of the structure were not actually deallocated.  By default,
-L<Test::Weaken|/"NAME"> determines the B<contents> of a data structure
+L<Test::Weaken|/"NAME"> determines the contents of a data structure
 by examining arrays and hashes and following references.
 L<Test::Weaken|/"NAME"> does this recursively to
 unlimited depth.
@@ -741,15 +741,15 @@ The wrapper array will contain the top object of the lab rat,
 along with other objects.
 The other objects need to be
 chosen so that the contents of the 
-lab rat and the descendants of the wrapper array
-are identical.
+wrapper array are exactly
+the wrapper array itself, plus the contents
+of the lab rat.
 
 It is not always easy to find the right objects to put into the wrapper array.
 In particular, determining the contents of the lab rat may
 require what
 amounts to a recursive scan of the descendants of the lab rat's
-top object,
-something L<Test::Weaken|/"NAME"> already does.
+top object.
 
 As an alternative to using a wrapper,
 it is possible to have L<Test::Weaken|/"NAME"> add
@@ -845,42 +845,38 @@ and for which results are available.
 
 Users who only want to know if there were unfreed data objects can
 test the return value of L</"leaks"> for Perl true or false.
-Arguments to the L</"leaks"> static method may be passed as a reference to
-a hash of named arguments,
-or directly as code references.
+Arguments to the L</"leaks"> static method are passed as a reference to
+a hash of named arguments.
+L</leaks> can also be called in a special "short form",
+where the test structure constructor and test structure destructor
+are passed directly as code references.
 
 =over 4
 
 =item constructor
 
-The B<test structure constructor> is a required argument.
-It must be a code reference.
-When the arguments are passed directly as code references,
-the test structure constructor must be the first argument to L</"leaks">.
-When named arguments are used,
-the test structure constructor must be the value of the L</"constructor"> named argument.
-
+The B<constructor> argument is required.
+Its value must be a code reference to
+the B<test structure constructor>.
 The test structure constructor
-should build the test structure
-and return a reference to it.
+should return a reference to the test structure.
 It is best to follow strictly the closure-local strategy,
 as described above.
 
+When L</"leaks"> is called using the "short form",
+the code reference to test structure constructor must be the first argument to L</"leaks">.
+
 =item destructor
 
-The B<test structure destructor> is an optional argument.
-If specified, it must be a code reference.
-When the arguments are passed directly as code references,
-the test structure destructor is the second, optional, argument to L</"leaks">.
-When named arguments are used,
-the test structure destructor is the value of the L</"destructor"> named argument.
-
+The B<destructor> argument is optional.
+If specified, its value must be a code reference
+to the B<test structure destructor>.
 If specified,
 the test structure destructor is called
 just before L<Test::Weaken|/"NAME"> tries
 to free the test structure
 by setting the test structure reference to C<undef>.
-It will be passed one argument,
+The test structure destructor will be passed one argument,
 the test structure reference.
 The return value of the test structure destructor is ignored.
 
@@ -890,6 +886,9 @@ they are freed.
 The primary purpose for
 the test structure destructor is to enable
 L<Test::Weaken|/"NAME"> to work with these data structures.
+
+When L</"leaks"> is called using the "short form",
+a code reference to the test structure destructor is the optional, second argument to L</"leaks">.
 
 =item ignore
 
@@ -975,7 +974,8 @@ The example above shows a common use of the L</ignore>
 callback.
 In this a blessed object is ignored, I<but not>
 the references to it.
-This is typically what is wanted when you know certain
+This is typically what is wanted.
+Often you know certain
 objects are outside the contents of your test structure,
 but you have references to those objects that I<are> part of
 the contents of your test structure.
@@ -988,7 +988,7 @@ L</ignore> callbacks are best kept simple.
 Defer as much of the analysis as you can
 until after the test is completed.
 L</ignore> callbacks 
-can also be a significant overhead.
+can be a significant overhead.
 The L</ignore> callback is
 invoked once per probe reference.
 
@@ -1081,7 +1081,6 @@ Checking for references to blessed objects will not produce the same
 behavior as checking for the blessed objects themselves --
 there may be many references to a single
 object.
-Users need to be clear about the behavior they expect before implementing.
 
 The callback subroutine will be evaluated in array context.
 It should return a list of additional Perl data objects
@@ -1097,9 +1096,9 @@ false, the objects returned by the L</contents> callback, and their
 children, will be used B<in addition> to the default children for the argument data object.
 Together,
 the L</contents> and L</ignore> callbacks can be used
-to completely customize
-L<Test::Weaken|/"NAME">'s default behaviors
-for determining the contents of a data structure.
+to completely customize the way in which
+L<Test::Weaken|/"NAME">
+determines the contents of a data structure.
 
 For safety, L<Test::Weaken|/"NAME"> passes
 the L</contents> callback a copy of the internal
