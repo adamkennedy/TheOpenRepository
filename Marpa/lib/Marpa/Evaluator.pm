@@ -599,6 +599,9 @@ sub delete_nodes {
     DELETE_WORK_ITEM: while ( my $delete_work_item = pop @{$delete_work_list} ) {
         my ( $action, $node_id ) = @{$delete_work_item};
         if ( $action == DELETE_AND_NODE ) {
+
+            ### Deleting and node: $node_id
+
             my $and_node = $and_nodes->[$node_id];
             next DELETE_WORK_ITEM
                 if $and_node->[Marpa::Internal::And_Node::DELETED];
@@ -608,7 +611,12 @@ sub delete_nodes {
             my $parent_choice =
                 $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
 
+            ### Splicing out parent's child, id, choice: $parent_id, $parent_choice
+
             my $parent_or_node = $or_nodes->[$parent_id];
+
+            ### Parent: $parent_or_node
+
             splice @{ $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
                 },
                 $parent_choice,
@@ -660,10 +668,14 @@ sub delete_nodes {
             # Do not delete unless no children, or no parents and not the
             # start or-node.
             # Start or-node is always ID 0.
+
             ### Pruning or node: $node_id, $parent_ids, $child_ids
+
             next DELETE_WORK_ITEM
                 if ( scalar @{$parent_ids} or $node_id == 0 )
                 and scalar @{$child_ids};
+
+            ### Deleting or node: $node_id
 
             $or_node->[Marpa::Internal::Or_Node::DELETED] = 1;
             push @{$delete_work_list},
@@ -692,6 +704,8 @@ sub Marpa::Evaluator::new {
     my $args  = shift;
 
     my $self = bless [], $class;
+
+    ### Constructing new evaluator
 
     my $recce;
     RECCE_ARG_NAME: for my $recce_arg_name (qw(recognizer recce)) {
@@ -740,7 +754,11 @@ sub Marpa::Evaluator::new {
     $grammar->[Marpa::Internal::Grammar::PHASE] =
         Marpa::Internal::Phase::EVALUATING;
 
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
+    my $warn_on_cycle =
+        $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] ne 'quiet';
+    my $tracing = $warn_on_cycle
+        || $grammar->[Marpa::Internal::Grammar::TRACING];
+
     my $trace_fh;
     my $trace_iterations;
     my $trace_evaluation;
@@ -1117,12 +1135,15 @@ sub Marpa::Evaluator::new {
             grep { not $_->[Marpa::Internal::Or_Node::DELETED] } @{$span_set};
         next SPAN_SET if not @{$span_set};
 
+        ### Processing Span Set
+
         my @in_span_set = ();
-        #### creating spanset ....
         for my $or_node_ix ( 0 .. $#{$span_set} ) {
             my $or_node_id =
                 $span_set->[$or_node_ix]->[Marpa::Internal::Or_Node::ID];
-            #### initial transition, or-node ix, id: $or_node_ix, $or_node_id
+
+            ### Span set or-node ix, id: $or_node_ix, $or_node_id
+
             $in_span_set[$or_node_id] = $or_node_ix;
         } ## end for my $or_node_ix ( 0 .. $#{$span_set} )
 
@@ -1167,7 +1188,6 @@ sub Marpa::Evaluator::new {
         # Use the transitions to find the cycles in the span set
         my @cycles;
         my @seen;
-        ### Span set size: $#{$span_set}
 
         IX: for my $ix ( 0 .. $#{$span_set} ) {
 
@@ -1490,6 +1510,15 @@ sub Marpa::Evaluator::new {
 
         # Now actually do the deletions
         delete_nodes( $self, \@delete_work_list );
+
+        # Have we deleted the top or-node?
+        # If so, there will be no parses.
+        if ($or_nodes->[0]->[Marpa::Internal::Or_Node::DELETED]) {
+            if ($warn_on_cycle) {
+                print {$trace_fh} "Cycles found, but no parses\n";
+            }
+            return;
+        }
 
     } ## end while ( my $span_set = pop @span_sets )
 
