@@ -478,6 +478,88 @@ sub set_actions {
 
 }    # set_actions
 
+sub audit_or_node {
+    my ( $evaler, $or_node ) = @_;
+    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+
+    my $id = $or_node->[Marpa::Internal::Or_Node::ID];
+
+    ### auditing or node: $id
+
+    if ( not defined $id ) {
+        Marpa::exception("ID not defined in or-node");
+    }
+    my $or_nodes_entry = $or_nodes->[$id];
+    if ( $or_node != $or_nodes_entry ) {
+        Marpa::exception("or_node #$id does not match its or-nodes entry");
+    }
+    if ( scalar @{$or_node} != Marpa::Internal::Or_Node::LAST_FIELD ) {
+        Marpa::exception(
+            "Bad field count in or-node #$id: want ",
+            Marpa::Internal::Or_Node::LAST_FIELD,
+            ', got ', ( scalar @{$or_node} )
+        );
+    } ## end if ( scalar @{$or_node} != Marpa::Internal::Or_Node::LAST_FIELD)
+
+    my $deleted = $or_node->[Marpa::Internal::Or_Node::DELETED];
+
+    my $parent_ids = $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
+
+    # No parents for top or-node, or-node 0
+    if ($id != 0 ) {
+        my $has_parents = defined $parent_ids and scalar @{$parent_ids};
+        if (not $deleted and not $has_parents) {
+            Marpa::exception("or-node #$id has no parents");
+        }
+        if ($deleted and $has_parents) {
+            Marpa::exception("Deleted or-node #$id has parents");
+        }
+    }
+    for my $parent_id ( @{$parent_ids} ) {
+        my $parent      = $and_nodes->[$parent_id];
+        my $cause       = $parent->[Marpa::Internal::And_Node::CAUSE];
+        my $predecessor = $parent->[Marpa::Internal::And_Node::PREDECESSOR];
+        if ( $or_node != $cause and $or_node != $predecessor ) {
+            Marpa::exception(
+                "or_node #$id is not the cause or predecessor of parent and-node #$parent_id"
+            );
+        }
+    } ## end for my $parent_id ( @{$parent_ids} )
+
+    my $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+    my $has_children = defined $child_ids and scalar @{$child_ids};
+    if ( not $deleted and not $has_children ) {
+        Marpa::exception("or-node #$id has no children");
+    }
+    if ( $deleted and $has_children ) {
+        Marpa::exception("Deleted or-node #$id has children");
+    }
+    for my $child_id ( @{$child_ids} ) {
+        my $child        = $and_nodes->[$child_id];
+        my $child_parent = $child->[Marpa::Internal::And_Node::PARENT_ID];
+        if ( $id != $child_parent ) {
+            Marpa::exception(
+                "or_node #$id is not the parent of child and-node #$child_id"
+            );
+        }
+    } ## end for my $child_id ( @{$child_ids} )
+
+    my $child_and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+    for my $child_ix ( 0 .. $#{$child_and_nodes} ) {
+        my $child_and_node = $child_and_nodes->[$child_ix];
+        my $child_and_node_id =
+            $child_and_node->[Marpa::Internal::And_Node::ID];
+        if ( $child_and_node_id != $child_ids->[$child_ix] ) {
+            Marpa::exception(
+                "or_node #$id, child $child_ix: AND_NODES child does not match CHILD_IDS"
+            );
+        }
+    } ## end for my $child_ix ( 0 .. $#{$child_and_nodes} )
+
+    return;
+} ## end sub audit_or_node
+
 # Internal routine to clone an and-node
 sub clone_and_node {
     my ( $evaler, $and_node ) = @_;
@@ -514,7 +596,7 @@ sub delete_nodes {
     my ( $evaler, $delete_work_list ) = @_;
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
-    while ( my $delete_work_item = pop @{$delete_work_list} ) {
+    DELETE_WORK_ITEM: while ( my $delete_work_item = pop @{$delete_work_list} ) {
         my ( $action, $node_id ) = @{$delete_work_item};
         if ( $action == DELETE_AND_NODE ) {
             my $and_node = $and_nodes->[$node_id];
@@ -546,10 +628,11 @@ sub delete_nodes {
                 next FIELD if not defined $child_or_node;
                 my $id = $child_or_node->[Marpa::Internal::Or_Node::ID];
                 push @{$delete_work_list}, [ PRUNE_OR_NODE, $id ];
-                $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] =
-                    grep { $_ != $node_id }
-                    @{ $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS]
-                    };
+                $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] = [
+                    grep { $_ != $node_id } @{
+                        $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS]
+                        }
+                    ];
             }    # FIELD
 
             FIELD:
@@ -577,6 +660,7 @@ sub delete_nodes {
             # Do not delete unless no children, or no parents and not the
             # start or-node.
             # Start or-node is always ID 0.
+            ### Pruning or node: $node_id, $parent_ids, $child_ids
             next DELETE_WORK_ITEM
                 if ( scalar @{$parent_ids} or $node_id == 0 )
                 and scalar @{$child_ids};
@@ -1067,7 +1151,7 @@ sub Marpa::Evaluator::new {
 
         while ( my $work_item = pop @work_list ) {
             my ( $parent_ix, $child_ix ) = @{$work_item};
-            ### work item: $parent_ix, $child_ix
+            #### work item: $parent_ix, $child_ix
             GRAND_CHILD:
             for my $grandchild_ix ( grep { $transition[$child_ix][$_] }
                 ( 0 .. $#{$span_set} ) )
@@ -1086,8 +1170,6 @@ sub Marpa::Evaluator::new {
         ### Span set size: $#{$span_set}
 
         IX: for my $ix ( 0 .. $#{$span_set} ) {
-
-            ### Finding cycles, ix: $ix
 
             # Is the node part of a cycle we have not deal with?
             next IX if $seen[$ix] or not $transition[$ix][$ix];
@@ -1160,6 +1242,14 @@ sub Marpa::Evaluator::new {
             List::Util::first { not $internal_and_nodes[$_] }
             @{ $_->[Marpa::Internal::Or_Node::PARENT_IDS] }
         } @{$cycle_set};
+
+        ### cycle set size: scalar @{$cycle_set}
+
+        ### number of root or-nodes: scalar @root_or_nodes
+
+        ### assert: map { audit_or_node($self, $_) } @{$cycle_set} or 1
+
+        ### assert: scalar @root_or_nodes
 
         ## deletion-consistent at this point
         my @delete_work_list = ();
@@ -1391,7 +1481,7 @@ sub Marpa::Evaluator::new {
                 )
             {
                 if ( $is_root xor $internal_and_nodes[$parent_and_node_id] ) {
-                    push @delete_work_list, $parent_and_node_id;
+                    push @delete_work_list, [ DELETE_AND_NODE, $parent_and_node_id ];
                 }
             } ## end for my $parent_and_node_id ( @{ $original_or_node->[...]})
         } ## end for my $original_or_node ( @{$cycle_set} )
