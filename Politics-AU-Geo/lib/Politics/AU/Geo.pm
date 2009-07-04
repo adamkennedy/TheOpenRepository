@@ -38,7 +38,7 @@ sub import {
 
 	# Pass through any params from above
 	$params->{url}    ||= 'http://myrepresentatives.org/db.gz';
-	$params->{maxage} ||= 30 * 24 * 60 * 60; # One week
+	$params->{maxage} ||= 30 * 24 * 60 * 60; # One month
 
 	# Prevent double-initialisation
 	$class->can('orlite') or
