@@ -50,7 +50,7 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -114,7 +114,7 @@ sub new {
 	}
 
 	# Set the default path to the publishing location
-	unless ( defined $self->publish ) {
+	unless ( exists $self->publish ) {
 		$self->{publish} = 'cpandb';
 	}
 
@@ -467,16 +467,18 @@ END_SQL
 	}
 
 	# Publish the database to the current directory
-	$self->say('Publishing the generated database...');
-	Xtract::Publish->new(
-		from   => $self->sqlite,
-		sqlite => $self->publish,
-		trace  => $self->trace,
-		raw    => 0,
-		gz     => 1,
-		bz2    => 1,
-		lz     => 1,
-	)->run;
+	unless ( defined $self->publish ) {
+		$self->say('Publishing the generated database...');
+		Xtract::Publish->new(
+			from   => $self->sqlite,
+			sqlite => $self->publish,
+			trace  => $self->trace,
+			raw    => 0,
+			gz     => 1,
+			bz2    => 1,
+			lz     => 1,
+		)->run;
+	}
 
 	return 1;
 }
