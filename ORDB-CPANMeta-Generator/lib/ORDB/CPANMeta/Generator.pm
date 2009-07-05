@@ -334,7 +334,7 @@ END_SQL
 	$self->create_indexes( $dbh );
 
 	# Publish the database to the current directory
-	unless ( defined $self->publish ) {
+	if ( defined $self->publish ) {
 		print STDERR "Publishing the generated database...\n" if $self->trace;
 		Xtract::Publish->new(
 			from   => $self->sqlite,
