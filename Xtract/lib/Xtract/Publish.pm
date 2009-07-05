@@ -31,7 +31,7 @@ sub flag ($$) {
 	has $_[0] => (
 		is       => 'ro',
 		isa      => 'Bool',
-		requires => 1,
+		required => 1,
 		default  => $_[1],
 	);
 }
