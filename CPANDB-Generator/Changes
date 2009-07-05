@@ -1,5 +1,8 @@
 Changes for Perl extension CPANDB-Generator
 
+0.10 Mon  6 Jul 2009
+	- Typo correction
+
 0.09 Mon  6 Jul 2009
 	- Added support for an explicit publish => undef to allow for
 	  doing generation runs for immediate use, not producing a

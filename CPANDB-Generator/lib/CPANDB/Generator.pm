@@ -50,7 +50,7 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -467,7 +467,7 @@ END_SQL
 	}
 
 	# Publish the database to the current directory
-	unless ( defined $self->publish ) {
+	if ( defined $self->publish ) {
 		$self->say('Publishing the generated database...');
 		Xtract::Publish->new(
 			from   => $self->sqlite,
