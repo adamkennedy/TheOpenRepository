@@ -1,5 +1,13 @@
 Changes for Perl extension CPANDB-Generator
 
+0.12 Mon  6 Jul 2009
+	- The CPAN index database is now generated from the same
+	  minicpan as the META.yml data is drawn from (which should
+	  syncronise the index data to the META data).
+
+0.11 Mon  6 Jul 2009
+	- Added an option to generate our own CPANMeta database
+
 0.10 Mon  6 Jul 2009
 	- Typo correction
 

@@ -41,6 +41,8 @@ use File::Remove                       1.42 ();
 use File::HomeDir                      0.86 ();
 use File::Basename                          ();
 use Params::Util                       1.00 ();
+use URI                                1.37 ();
+use URI::file                               ();
 use DBI                               1.608 ();
 use DBD::SQLite                        1.25 ();
 use CPAN::SQLite                      0.197 ();
@@ -50,7 +52,7 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.12';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -59,6 +61,8 @@ use Object::Tiny 1.06 qw{
 	publish
 	trace
 	dbh
+	cpanmeta
+	minicpan
 };
 
 use CPANDB::Generator::GetIndex ();
@@ -116,6 +120,13 @@ sub new {
 	# Set the default path to the publishing location
 	unless ( exists $self->{publish} ) {
 		$self->{publish} = 'cpandb';
+	}
+
+	# If we have a minicpan and no urllist,
+	# derive the latter from the former.
+	if ( $self->minicpan and not $self->urllist ) {
+		my $uri = URI::file->new($self->minicpan . '\\', undef);
+		$self->{urllist} = [ $uri->as_string ];
 	}
 
 	return $self;
@@ -219,14 +230,31 @@ sub run {
 	ORDB::CPANUploads->import;
 
 	# Load the CPAN META.yml database
-	$self->say("Fetching META.yml Data...");
-	require ORDB::CPANMeta;
-	ORDB::CPANMeta->import;
+	my $cpanmeta;
+	if ( $self->cpanmeta ) {
+		# Generate out own CPANMeta database
+		$self->say("Generating META.yml Data...");
+		require ORDB::CPANMeta::Generator;
+		$cpanmeta = ORDB::CPANMeta::Generator->new(
+			minicpan => $self->minicpan,
+			trace    => $self->trace,
+			publish  => undef,
+			delta    => 1,
+		);
+		$cpanmeta->run;
+	} else {
+		$self->say("Fetching META.yml Data...");
+		require ORDB::CPANMeta;
+		ORDB::CPANMeta->import;
+	}
 
 	# Attach the various databases
 	$self->do( "ATTACH DATABASE ? AS cpandb", {}, $self->cpandb_sql         );
 	$self->do( "ATTACH DATABASE ? AS upload", {}, ORDB::CPANUploads->sqlite );
-	$self->do( "ATTACH DATABASE ? AS meta",   {}, ORDB::CPANMeta->sqlite    );
+	$self->do(
+		"ATTACH DATABASE ? AS meta", {},
+		$cpanmeta ? $cpanmeta->sqlite : ORDB::CPANMeta->sqlite,
+	);
 
 	# Pre-process the cpandb data to produce cleaner intermediate
 	# temp tables that produce better joins later on.
@@ -447,24 +475,38 @@ END_SQL
 
 	# Derive the distribution weights
 	$self->say('Generating weight...');
-	my $weight = $self->weight->weight_all;
+	my $counter = 0;
+	my $weight  = $self->weight->weight_all;
 	$self->say('Populating weight...');
+	$self->dbh->begin_work;
 	foreach my $distribution ( sort keys %$weight ) {
 		$self->do(
 			'UPDATE distribution SET weight = ? WHERE distribution = ?',
 			{}, $weight->{$distribution}, $distribution,
 		);
+		next if ++$counter % 100;
+		$self->dbh->commit;
+		$self->dbh->begin_work;
 	}
+	$self->dbh->commit;
 
 	$self->say('Generating volatility...');
 	my $volatility = $self->volatility->weight_all;
 	$self->say('Populating volatility...');
+	$self->dbh->begin_work;
 	foreach my $distribution ( sort keys %$volatility ) {
 		$self->do(
 			'UPDATE distribution SET volatility = ? WHERE distribution = ?',
-			{}, $volatility->{$distribution}, $distribution,
+			{}, $volatility->{$distribution} - 1, $distribution,
 		);
+		next if ++$counter % 100;
+		$self->dbh->commit;
+		$self->dbh->begin_work;
 	}
+	$self->dbh->commit;
+
+	# Rerun the index analysis
+	$self->do("ANALYZE distribution");
 
 	# Publish the database to the current directory
 	if ( defined $self->publish ) {
