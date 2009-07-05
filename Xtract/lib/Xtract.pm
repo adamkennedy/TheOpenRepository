@@ -37,7 +37,7 @@ use Xtract::Scan                ();
 use Xtract::Scan::SQLite        ();
 use Xtract::Scan::mysql         ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 use Moose 0.73;
 use MooseX::Types::Common::Numeric 0.001 'PositiveInt';
