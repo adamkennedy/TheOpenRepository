@@ -41,7 +41,7 @@ use CPAN::Mini        0.576 ();
 use CPAN::Mini::Visit  0.08 ();
 use Xtract::Publish    0.10 ();
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -83,7 +83,7 @@ sub new {
 	}
 
 	# Set the default path to the publishing location
-	unless ( defined $self->publish ) {
+	unless ( exists $self->{publish} ) {
 		$self->{publish} = 'cpanmeta';
 	}
 
@@ -334,16 +334,18 @@ END_SQL
 	$self->create_indexes( $dbh );
 
 	# Publish the database to the current directory
-	print STDERR "Publishing the generated database...\n" if $self->trace;
-	Xtract::Publish->new(
-		from   => $self->sqlite,
-		sqlite => $self->publish,
-		trace  => $self->trace,
-		raw    => 0,
-		gz     => 1,
-		bz2    => 1,
-		lz     => 1,
-	)->run;
+	unless ( defined $self->publish ) {
+		print STDERR "Publishing the generated database...\n" if $self->trace;
+		Xtract::Publish->new(
+			from   => $self->sqlite,
+			sqlite => $self->publish,
+			trace  => $self->trace,
+			raw    => 0,
+			gz     => 1,
+			bz2    => 1,
+			lz     => 1,
+		)->run;
+	}
 
 	return 1;
 }

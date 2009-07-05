@@ -1,5 +1,8 @@
 Changes for Perl extension ORDB-CPANMeta-Generator
 
+0.07 Mon  6 Jul 2009
+	- Support explicit publish => undef
+
 0.06 Tue 30 Jun 2009
 	- Adding index generation
 	- Don't destroy the database when installing a new release
