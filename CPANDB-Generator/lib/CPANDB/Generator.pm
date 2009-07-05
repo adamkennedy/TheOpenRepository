@@ -114,7 +114,7 @@ sub new {
 	}
 
 	# Set the default path to the publishing location
-	unless ( exists $self->publish ) {
+	unless ( exists $self->{publish} ) {
 		$self->{publish} = 'cpandb';
 	}
 
