@@ -97,7 +97,7 @@ EOS
 
 my $cycle8_test = [
     \$cycle8_mdl,
-    \('1'),
+    \('123456'),
     '1 2 3 4 5 6',
     <<'EOS'
 Cycle found involving rule: 3: c -> w d x
