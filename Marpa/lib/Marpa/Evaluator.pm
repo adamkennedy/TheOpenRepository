@@ -795,56 +795,31 @@ sub rewrite_cycles {
         } ## end while ( my $work_item = pop @work_list )
 
         # Use the transitions to find the cycles in the span set
-        my @cycles;
-        my @seen;
+        my @cycle;
+        {
+            my $span_set_index =
+                List::Util::first { $transition[$_][$_] }
+            ( 0 .. $#{$span_set} );
+            next SPAN_SET unless defined $span_set_index;
+            @cycle = map { $span_set->[$_] } (
+                $span_set_index,
+                grep {
+                            $transition[$span_set_index][$_]
+                        and $transition[$_][$span_set_index]
+                    } ( $span_set_index + 1 .. $#{$span_set} )
+            );
+        }
 
-        IX: for my $ix ( 0 .. $#{$span_set} ) {
-
-            # Is the node part of a cycle we have not deal with?
-            next IX if $seen[$ix] or not $transition[$ix][$ix];
-
-            # Initialize this cycle with this first or-node
-            my @cycle = ( $span_set->[$ix] );
-
-            # Add the other nodes in this cycle to it.
-            IX2: for my $ix2 ( $ix + 1 .. $#{$span_set} ) {
-
-                # A second node is in the cycle if it was not in a
-                # previous cycle, if there is a transition to
-                # the first node from the second, and if there is
-                # a transition to the second
-                # from the first.
-                next IX2
-                    if $seen[$ix2]
-                        or not $transition[$ix][$ix2]
-                        or not $transition[$ix2][$ix];
-
-                # Mark this node seen
-                $seen[$ix2]++;
-
-                ### Also in cycle: $span_set->[$ix2]->[1]
-
-                push @cycle, $span_set->[$ix2];
-
-            } ## end for my $ix2 ( $ix + 1 .. $#{$span_set} )
-
-            push @cycles, \@cycle;
-
-            if ($trace_evaluation) {
-                say {$trace_fh} 'Found cycle of length ', ( scalar @cycle );
-                for my $ix ( 0 .. $#cycle ) {
-                    my $or_node = $cycle[$ix];
-                    print {$trace_fh} "Node $ix in cycle: ",
-                        Marpa::Evaluator::show_or_node( $evaler, $or_node,
-                        $trace_evaluation )
-                        or Marpa::exception('print to trace handle failed');
-                } ## end for my $ix ( 0 .. $#cycle )
-            } ## end if ($trace_evaluation)
-
-        } ## end for my $ix ( 0 .. $#{$span_set} )
-
-        my $cycle_set = pop @cycles;
-        next SPAN_SET unless defined $cycle_set;
+        if ($trace_evaluation) {
+            say {$trace_fh} 'Found cycle of length ', ( scalar @cycle );
+            for my $ix ( 0 .. $#cycle ) {
+                my $or_node = $cycle[$ix];
+                print {$trace_fh} "Node $ix in cycle: ",
+                    Marpa::Evaluator::show_or_node( $evaler, $or_node,
+                    $trace_evaluation )
+                    or Marpa::exception('print to trace handle failed');
+            } ## end for my $ix ( 0 .. $#cycle )
+        } ## end if ($trace_evaluation)
 
         # If we found any cycles in the span set, put the
         # whole span set back
@@ -854,28 +829,32 @@ sub rewrite_cycles {
         # determine which in the original cycle set are
         # internal and-nodes
         my %internal_and_nodes = ();
-        for my $or_node ( @{$cycle_set} ) {
+        for my $or_node (@cycle) {
             for my $and_node_id (
                 @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
             {
                 $internal_and_nodes{$and_node_id} = 1;
             }
-        } ## end for my $or_node ( @{$cycle_set} )
+        } ## end for my $or_node (@cycle)
 
         # determine which in the original span set are the
         # root or-nodes
         my @root_or_nodes = grep {
-            List::Util::first { not $internal_and_nodes{$_} }
+            defined List::Util::first { not defined $internal_and_nodes{$_} }
             @{ $_->[Marpa::Internal::Or_Node::PARENT_IDS] }
-        } @{$cycle_set};
+        } @cycle;
 
-        ### cycle set size: scalar @{$cycle_set}
+        ### cycle set size: scalar @cycle
 
-        ### cycle set ids: join(';', map { $_->[Marpa'Internal'Or_Node'ID] } @{$cycle_set} )
+        ### cycle set ids: join(';', map { $_->[Marpa'Internal'Or_Node'ID] } @cycle )
+
+        ### Or-node 1 PARENT_IDS: join(';', @{ $or_nodes->[1]->[Marpa'Internal'Or_Node'PARENT_IDS] })
+
+        ### internal and-node ids: join('; ', keys %internal_and_nodes )
 
         ### number of root or-nodes: scalar @root_or_nodes
 
-        ### assert: map { audit_or_node($evaler, $_) } @{$cycle_set} or 1
+        ### assert: map { audit_or_node($evaler, $_) } @cycle or 1
 
         ### assert: scalar @root_or_nodes
 
@@ -901,7 +880,7 @@ sub rewrite_cycles {
             # to the span set work list
             my @copied_cycle_set;
 
-            for my $or_node ( @{$cycle_set} ) {
+            for my $or_node (@cycle) {
                 my $new_or_node;
                 $#{$new_or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
                 my $new_or_node_id = @{$or_nodes};
@@ -946,13 +925,13 @@ sub rewrite_cycles {
                         = $choice;
                 } ## end for my $choice ( 0 .. @{$child_ids} )
 
-            } ## end for my $or_node ( @{$cycle_set} )
+            } ## end for my $or_node (@cycle)
 
             # Translate the cycle-internal links
             # and duplicate the outgoing external links (which
             # will be from the and-nodes)
 
-            for my $or_node ( @{$cycle_set} ) {
+            for my $or_node (@cycle) {
                 my $or_node_id     = $or_node->[Marpa::Internal::Or_Node::ID];
                 my $new_or_node_id = $translate_or_node_id{$or_node_id};
                 my $new_or_node    = $or_nodes->[$new_or_node_id];
@@ -995,7 +974,7 @@ sub rewrite_cycles {
                     } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...)
                 } ## end for my $and_node_id ( @{ $or_node->[...]})
 
-            } ## end for my $or_node ( @{$cycle_set} )
+            } ## end for my $or_node (@cycle)
 
             # It remains now to duplicate the external links into the cycle.
             # These are allowed only into the root node of the cycle.
@@ -1104,17 +1083,19 @@ sub rewrite_cycles {
         ## DELETE non-root external link on original
         ## DELETE root internal links on original
         my $original_root_or_node = $root_or_nodes[0];
-        for my $original_or_node ( @{$cycle_set} ) {
+        for my $original_or_node (@cycle) {
             my $is_root = $original_or_node == $original_root_or_node;
-            for my $parent_and_node_id (
+            PARENT_AND_NODE: for my $parent_and_node_id (
                 @{ $original_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] }
                 )
             {
-                if ( $is_root xor $internal_and_nodes{$parent_and_node_id} ) {
-                    push @delete_work_list, [ DELETE_AND_NODE, $parent_and_node_id ];
-                }
+                ### Is root node?: $is_root
+                ### And-node to delete: $parent_and_node_id
+
+                next PARENT_AND_NODE if $is_root xor $internal_and_nodes{$parent_and_node_id};
+                push @delete_work_list, [ DELETE_AND_NODE, $parent_and_node_id ];
             } ## end for my $parent_and_node_id ( @{ $original_or_node->[...]})
-        } ## end for my $original_or_node ( @{$cycle_set} )
+        } ## end for my $original_or_node (@cycle)
 
         # we should be deletion-consistent at this point
 
