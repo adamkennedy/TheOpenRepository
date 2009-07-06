@@ -52,7 +52,7 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -125,8 +125,11 @@ sub new {
 	# If we have a minicpan and no urllist,
 	# derive the latter from the former.
 	if ( $self->minicpan and not $self->urllist ) {
-		my $uri = URI::file->new($self->minicpan . '\\', undef);
-		$self->{urllist} = [ $uri->as_string ];
+		my $uri = URI::file->new( $self->minicpan, undef )->as_string;
+		unless ( $uri =~ m/\/\z/ ) {
+			$uri .= '/';
+		}	
+		$self->{urllist} = [ $uri ];
 	}
 
 	return $self;
@@ -235,11 +238,13 @@ sub run {
 		# Generate out own CPANMeta database
 		$self->say("Generating META.yml Data...");
 		require ORDB::CPANMeta::Generator;
+		my $prefer_bin = $^O eq 'MSWin32' ? 0 : 1;
 		$cpanmeta = ORDB::CPANMeta::Generator->new(
-			minicpan => $self->minicpan,
-			trace    => $self->trace,
-			publish  => undef,
-			delta    => 1,
+			minicpan   => $self->minicpan,
+			trace      => $self->trace,
+			prefer_bin => $prefer_bin,
+			publish    => undef,
+			delta      => 1,
 		);
 		$cpanmeta->run;
 	} else {

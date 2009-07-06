@@ -1,5 +1,9 @@
 Changes for Perl extension CPANDB-Generator
 
+0.13 Mon  6 Jul 2009
+	- Pass prefer_bin to the META.yml generator when not on Win32
+	- Better minicpan file: URL normalisation (cross platform now)
+
 0.12 Mon  6 Jul 2009
 	- The CPAN index database is now generated from the same
 	  minicpan as the META.yml data is drawn from (which should
