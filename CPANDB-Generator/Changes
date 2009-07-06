@@ -1,5 +1,8 @@
 Changes for Perl extension CPANDB-Generator
 
+0.14 Tue  7 Jul 2009
+	- Integrating the CPAN Ratings database
+
 0.13 Mon  6 Jul 2009
 	- Pass prefer_bin to the META.yml generator when not on Win32
 	- Better minicpan file: URL normalisation (cross platform now)

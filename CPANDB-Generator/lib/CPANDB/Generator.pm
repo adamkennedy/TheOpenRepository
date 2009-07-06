@@ -46,13 +46,15 @@ use URI::file                               ();
 use DBI                               1.608 ();
 use DBD::SQLite                        1.25 ();
 use CPAN::SQLite                      0.197 ();
+use LWP::UserAgent                    5.819 ();
 use Xtract::Publish                    0.10 ();
+use Parse::CPAN::Ratings               0.33 ();
 use Algorithm::Dependency             1.108 ();
 use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -328,6 +330,8 @@ CREATE TABLE distribution (
 	uploaded TEXT NOT NULL,
 	weight INTEGER NOT NULL,
 	volatility INTEGER NOT NULL,
+	rating TEXT NULL,
+	ratings INTEGER NOT NULL,
 	FOREIGN KEY ( author ) REFERENCES author ( author )
 )
 END_SQL
@@ -342,7 +346,9 @@ SELECT
 	d.release as release,
 	u.uploaded as uploaded,
 	0 as weight,
-	0 as volatility
+	0 as volatility,
+	NULL as rating,
+	0 as ratings
 FROM
 	t_distribution d,
 	t_uploaded u
@@ -352,12 +358,44 @@ ORDER BY
 	distribution
 END_SQL
 
+	# Fetch the popular ratings for the distributions
+	$self->say('Fetching CPAN Ratings...');
+	my $counter      = 0;
+	my $ratings_url  = 'http://cpanratings.perl.org/csv/all_ratings.csv';
+	my $ratings_dir  = File::Temp::tempdir( CLEANUP => 1 );
+	my $ratings_file = File::Spec->catfile( $ratings_dir, 'all_ratings.csv' );
+	my $response     = LWP::UserAgent->new(
+		agent   => "CPANDB::Generator/$VERSION",
+		timeout => 10,
+	)->mirror( $ratings_url => $ratings_file );
+	unless ( $response->is_success or $response->code == 304 ) {
+		Carp::croak("Error: Failed to fetch $ratings_url");
+	}
+	my $ratings = Parse::CPAN::Ratings->new(
+		filename => $ratings_file,
+	) or Carp::croak("Error: Failed to parse $ratings_url");
+	$self->say('Populating CPAN Ratings...');
+	$self->dbh->begin_work;
+	foreach my $rating ( $ratings->ratings ) {
+		$self->do(
+			'UPDATE distribution SET rating = ?, ratings = ? WHERE distribution = ?',
+			{}, $rating->rating, $rating->review_count, $rating->distribution,
+		);
+		next if ++$counter % 100;
+		$self->dbh->commit;
+		$self->dbh->begin_work;
+	}
+	$self->dbh->commit;
+
+
 	# Index the distribution table
 	$self->create_index( distribution => qw{
 		version
 		author
 		release
 		uploaded
+		rating
+		ratings
 	} );
 
 	# Create the module table
@@ -480,7 +518,6 @@ END_SQL
 
 	# Derive the distribution weights
 	$self->say('Generating weight...');
-	my $counter = 0;
 	my $weight  = $self->weight->weight_all;
 	$self->say('Populating weight...');
 	$self->dbh->begin_work;
@@ -495,6 +532,7 @@ END_SQL
 	}
 	$self->dbh->commit;
 
+	# Derive the distribution volatility
 	$self->say('Generating volatility...');
 	my $volatility = $self->volatility->weight_all;
 	$self->say('Populating volatility...');
@@ -510,8 +548,11 @@ END_SQL
 	}
 	$self->dbh->commit;
 
-	# Rerun the index analysis
-	$self->do("ANALYZE distribution");
+	# Index the remaining distribution table columns
+	$self->create_index( distribution => qw{
+		weight
+		volatility
+	} );
 
 	# Publish the database to the current directory
 	if ( defined $self->publish ) {
