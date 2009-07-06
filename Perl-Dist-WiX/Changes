@@ -1,5 +1,15 @@
 Changes for Perl extension Perl-Dist-WiX
 
+0.191   Mon 06 Jul 2009
+    1. Was used to make Padre Standalone beta 1.
+    2. Tries to get a DefaultLanguage code for files 
+       that require it.
+    3. Moving the default fragments directory location under 
+       temp_dir rather than output_dir.
+    4. Stop CPAN.pm from following prerequisites during
+       install_module.
+    5. Updated CPANPLUS::Config template.   
+
 0.190   Thu 02 Jul 2009
     1. Was used to make Strawberry Perl July 2009 
        Beta 3.
