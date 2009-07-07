@@ -3,7 +3,7 @@ use inc::Module::Install 0.91;
 check_innosetup() if winlike;
 
 all_from       'lib/Perl/Dist.pm';
-requires_from  'lib/Perl/Dist.pm';
+requires_from  'lib/Perl/Dist/Inno.pm';
 requires       'CPAN'                => '1.9301';
 requires       'Win32::File::Object' => '0.01' if winlike;
 test_requires  'Test::More'          => '0.86';

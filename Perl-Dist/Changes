@@ -1,6 +1,9 @@
 Revision history for Perl module Perl-Dist
 
-1.15 To be released.
+1.16 Wed  8 Jul 2009
+	- Fix the requires_from to pull from Inno.pm
+
+1.15 Wed  1 Jul 2009
 	- Really use requested CPAN site to find the toolchain
 	  modules to install.
 	- Updated perldist script to allow Perl::Dist::WiX and

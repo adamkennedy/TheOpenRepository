@@ -6,7 +6,7 @@ use Perl::Dist::Inno ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-        $VERSION = '1.15';
+        $VERSION = '1.16';
 	@ISA     = 'Perl::Dist::Inno';
 }
 
