@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Mirror
 
+1.16 Tue  7 Jul 2009
+	- Bug fix to the show_progress param
+
 1.15 Mon  1 Jun 2009
 	- Add support for using file:// URLs while offline
 

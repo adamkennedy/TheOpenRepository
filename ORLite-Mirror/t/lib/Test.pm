@@ -10,7 +10,7 @@ use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.15';
+	$VERSION = '1.16';
 	@ISA     = 'Exporter';
 	@EXPORT  = qw{ test_db mirror_db connect_ok create_ok };
 }

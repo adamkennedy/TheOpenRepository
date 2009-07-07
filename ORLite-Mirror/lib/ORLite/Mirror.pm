@@ -18,7 +18,7 @@ use ORLite                   1.22 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.15';
+	$VERSION = '1.16';
 	@ISA     = 'ORLite';
 }
 
@@ -64,7 +64,7 @@ sub import {
 		$params{package} = scalar caller;
 	}
 	my $pversion = $params{package}->VERSION;
-	my $agent    = "$params{package}/$pversion",
+	my $agent    = "$params{package}/$pversion";
 
 	# Normalise boolean settings
 	my $show_progress = $params{show_progress} ? 1 : 0;
