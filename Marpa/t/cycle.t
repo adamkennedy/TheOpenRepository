@@ -130,11 +130,11 @@ for my $test_data (@test_data) {
     }
 
     $recce->end_input();
-    my $evaler = Marpa::Evaluator->new(
-        { recce => $recce, clone => 0, trace_evaluation => 1 } );
+    my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     say $evaler->show_bocage(3);
     my $result = $evaler->value();
     close $MEMORY;
+
     Marpa::Test::is( ${$result}, $expected );
     Marpa::Test::is( $trace,    $expected_trace );
 } ## end for my $test_data ( [ \$cycle1_mdl, \('1'), '1', <<'EOS'...
