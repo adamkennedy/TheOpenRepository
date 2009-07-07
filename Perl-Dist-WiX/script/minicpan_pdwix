@@ -205,6 +205,7 @@ sub filters {
 	return 0 if $mod =~ m{/JDHEDDEN/threads-shared-};
 	return 0 if $mod =~ m{/LDS/CGI.pm-};
 	return 0 if $mod =~ m{/PJF/autodie-};
+	return 0 if $mod =~ m{/PJF/IPC-System-Simple-}
 	return 0 if $mod =~ m{/PMQS/Filter-};
 	return 0 if $mod =~ m{/RRA/podlators-};
 	return 0 if $mod =~ m{/RRA/ANSIColor-};
