@@ -1,5 +1,8 @@
 Revision history for Perl extension File-LocalizeNewlines
 
+1.12 Wed  8 Jul 2009
+	- Fixing the Makefile.PL (adding the missing requires_from)
+
 1.11 Thu 18 Jul 2009
         - Fixed Bug 45176. Individual files can now be localized 
 	- Upgrading to Module::Install::DSL 0.91

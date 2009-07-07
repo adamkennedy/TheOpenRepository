@@ -38,7 +38,7 @@ use Params::Util     0.10 '_INSTANCE';
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.11';
+	$VERSION = '1.12';
 	@ISA     = 'Class::Default';
 }
 

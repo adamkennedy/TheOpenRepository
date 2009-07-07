@@ -11,7 +11,7 @@ use File::LocalizeNewlines;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.10';
+	$VERSION = '1.12';
 }
 
 # Create the filter
