@@ -1548,17 +1548,18 @@ END_PERL
 
 	require CPAN;
 	my @delayed_modules;
+  MODULE:
 	for my $module ( @{$module_info} ) {
 		$force = 0;
 
-		next if $self->_skip_upgrade($module);
+		next MODULE if $self->_skip_upgrade($module);
 
 		if (    ( $module->cpan_file =~ m{/Module-Install-\d}msx )
 			and ( $module->cpan_version > 0.79 ) )
 		{
 			$self->install_modules(qw( File::Remove YAML::Tiny ));
 			$self->_install_cpan_module( $module, $force );
-			next;
+			next MODULE;
 		}
 
 		if (    ( $module->cpan_file =~ m{/podlators-\d}msx )
@@ -1567,11 +1568,11 @@ END_PERL
 		{
 			$self->install_modules(qw( Pod::Escapes Pod::Simple ));
 			$self->_install_cpan_module( $module, $force );
-			next;
+			next MODULE;
 		}
 
 		if (    ( $module->cpan_file =~ m{/CPANPLUS-\d}msx )
-			and ( $module->cpan_version == 0.8601 ) )
+			and ( $module->cpan_version < 0.88 ) )
 		{
 
 			# Upgrading to this version, instead...
@@ -1582,29 +1583,34 @@ END_PERL
 				buildpl_param    => [ '--installdirs', 'core' ],
 				force            => $force
 			);
-			next;
+			next MODULE;
 		} ## end if ( ( $module->cpan_file...))
 
 		if (    ( $module->cpan_file =~ m{/autodie-\d}msx )
-			and ( $module->cpan_version > 1.999 ) )
 		{
+			$self->install_modules(qw( IPC::System::Simple ));
 
-			# Upgrading to this version, instead...
-			$self->install_distribution(
-				name             => 'PJF/autodie-1.999.tar.gz',
-				mod_name         => 'autodie',
-				makefilepl_param => ['INSTALLDIRS=perl'],
-				buildpl_param    => [ '--installdirs', 'core' ],
-				force            => $force
-			);
-			next;
+			if (    ( $module->cpan_version > 1.999 )
+				and ( $module->cpan_version < 2.04  ) )
+			{
+
+				# Upgrading to this version, instead...
+				$self->install_distribution(
+					name             => 'PJF/autodie-1.999.tar.gz',
+					mod_name         => 'autodie',
+					makefilepl_param => ['INSTALLDIRS=perl'],
+					buildpl_param    => [ '--installdirs', 'core' ],
+					force            => $force
+				);
+				next MODULE;
+			}
 		} ## end if ( ( $module->cpan_file...))
 
 		if ( $self->_delay_upgrade($module) ) {
 
 			# Delay these module until last.
 			unshift @delayed_modules, $module;
-			next;
+			next MODULE;
 		}
 
 		$self->_install_cpan_module( $module, $force );

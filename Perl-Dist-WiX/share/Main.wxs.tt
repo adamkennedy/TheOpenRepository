@@ -63,8 +63,8 @@
       <![CDATA[VersionNT]]>
     </Condition>
     
-    <Condition Message="Cannot install on Windows NT 4.0 systems.">
-      <![CDATA[VersionNT > 400]]>
+    <Condition Message="Cannot install on Windows NT 4.0 or Windows 2000 systems.">
+      <![CDATA[VersionNT > 500]]>
     </Condition>
 
 	<UIRef Id="WixUI_[% dist.msi_ui_type %]" />
