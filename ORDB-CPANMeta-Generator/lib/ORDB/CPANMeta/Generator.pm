@@ -41,7 +41,7 @@ use CPAN::Mini        0.576 ();
 use CPAN::Mini::Visit  0.08 ();
 use Xtract::Publish    0.10 ();
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -51,6 +51,7 @@ use Object::Tiny 1.06 qw{
 	trace
 	delta
 	prefer_bin
+	warnings
 	dbh
 };
 
@@ -243,6 +244,7 @@ END_SQL
 	my @meta_deps = ();
 	my $visitor   = CPAN::Mini::Visit->new(
 		acme       => 1,
+		warnings   => $self->warnings,
 		minicpan   => $self->minicpan,
 		# This does nothing now but will later
 		ignore     => $ignore,

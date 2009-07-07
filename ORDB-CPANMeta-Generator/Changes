@@ -1,5 +1,8 @@
 Changes for Perl extension ORDB-CPANMeta-Generator
 
+0.08 Wed  8 Jul 2009
+	- Pass through a warnings param to CPAN::Mini::Visit
+
 0.07 Mon  6 Jul 2009
 	- Support explicit publish => undef
 
