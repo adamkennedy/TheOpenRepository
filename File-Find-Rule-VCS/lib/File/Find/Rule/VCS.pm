@@ -63,7 +63,7 @@ use File::Find::Rule 0.20 ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 	@ISA     = 'File::Find::Rule';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
@@ -124,7 +124,7 @@ sub File::Find::Rule::ignore_vcs {
 		# Logically combine all the ignores. This will be much
 		# faster than just calling them all one after the other.
 		return $find->or(
-			FFR->name(@svn, '.bzr', 'CVS')->directory->prune->discard,
+			FFR->name(@svn, '.bzr', '.git', 'CVS')->directory->prune->discard,
 			FFR->name(qr/^\.\#/)->file->discard,
 			FFR->new,
 			);
@@ -144,7 +144,7 @@ sub File::Find::Rule::ignore_vcs {
 	return $find->ignore_svn if $vcs eq 'subversion';
 	return $find->ignore_bzr if $vcs eq 'bzr';
 	return $find->ignore_bzr if $vcs eq 'bazaar';
-
+	return $find->ignore_git if $vcs eq 'git';
 	Carp::croak("->ignore_vcs: '$vcs' is not supported");
 }
 
@@ -199,6 +199,23 @@ sub File::Find::Rule::ignore_bzr {
 	my $find = $_[0]->_force_object;
 	return $find->or(
 		FFR->name('.bzr')->directory->prune->discard,
+		FFR->new,
+		);
+}
+
+=pod
+
+=head2 ignore_git
+
+The C<ignore_git> method excluding all Git (C<.git>) directories
+from your L<File::Find::Rule> search.
+
+=cut
+
+sub File::Find::Rule::ignore_git {
+	my $find = $_[0]->_force_object;
+	return $find->or(
+		FFR->name('.git')->directory->prune->discard,
 		FFR->new,
 		);
 }
