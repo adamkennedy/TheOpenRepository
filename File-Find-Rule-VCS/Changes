@@ -1,5 +1,10 @@
 Revision history for Perl extension File::Find::Rule::VCS
 
+1.06 Wed  8 Jul 2009
+	- Updated to Module::Install::DSL 0.91
+	- Added explicit dependency on Text::Glob.
+	  Some CPAN Testers machines seem to blow up without it.
+
 1.05 Mon 29 Sep 2008
 	- Updated to Module::Install 0.77
 	- Updated tests to new style

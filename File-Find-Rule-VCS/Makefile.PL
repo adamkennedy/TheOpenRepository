@@ -1,8 +1,6 @@
-use inc::Module::Install 0.77;
+use inc::Module::Install::DSL 0.91;
 
-all_from      'lib/File/Find/Rule/VCS.pm';
-requires      'File::Find::Rule' => '0.20';
-test_requires 'File::Spec'       => '0.82';
-test_requires 'Test::More'       => '0.47';
-
-WriteAll;
+all_from      lib/File/Find/Rule/VCS.pm
+requires_from lib/File/Find/Rule/VCS.pm
+test_requires File::Spec 0.82
+test_requires Test::More 0.47

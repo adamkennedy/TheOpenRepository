@@ -57,15 +57,18 @@ ignore methods
 use 5.00503;
 use strict;
 use UNIVERSAL;
-use Carp ();
-use base 'File::Find::Rule';
-use constant FFR => 'File::Find::Rule';
+use Carp                  ();
+use Text::Glob       0.08 ();
+use File::Find::Rule 0.20 ();
 
-use vars qw{$VERSION @EXPORT};
+use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
+	@ISA     = 'File::Find::Rule';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
+
+use constant FFR => 'File::Find::Rule';
 
 # In some Windows SVN implementations, it uses _svn instead of
 # .svn, so use both on Win32.
@@ -84,7 +87,7 @@ my @svn = ($^O eq 'MSWin32') ? ('.svn', '_svn') : ('.svn');
 
   # Ignore all common version control systems
   $find->ignore_vcs;
-
+  
   # Ignore a specific named version control systems
   $find->ignore_vcs($name);
   
