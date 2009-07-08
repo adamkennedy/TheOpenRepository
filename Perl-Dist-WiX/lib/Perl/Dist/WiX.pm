@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 0.191
+Perl-Dist-WiX version 0.192
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 0.191.
+This document describes Perl::Dist::WiX version 0.192.
 
 =for readme continue
 
@@ -107,7 +107,7 @@ use     Win32                 qw();
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.191')->numify;
+use version; $VERSION = version->new('0.192')->numify;
 
 use Object::Tiny qw(
   perl_version
