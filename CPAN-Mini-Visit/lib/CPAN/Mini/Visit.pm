@@ -77,7 +77,7 @@ use Params::Util      1.00 qw{
 	_HASH _STRING _ARRAYLIKE _CODELIKE _REGEX
 };
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -133,8 +133,8 @@ sub new {
 
 	# Normalise
 	$self->{random}     = $self->random     ? 1 : 0;
-	$self->{warnings}   = $self->warnings   ? 1 : 0;
 	$self->{prefer_bin} = $self->prefer_bin ? 1 : 0;
+	$self->{warnings} = 0 unless $self->{warnings};
 
 	# Check params
 	unless (
@@ -236,15 +236,23 @@ sub run {
 		}
 
 		# Extract the archive
-		local $Archive::Extract::WARN       = $self->warnings;
+		local $Archive::Extract::WARN       = !! ($self->warnings > 1);
 		local $Archive::Extract::PREFER_BIN = $self->prefer_bin;
 		my $archive = Archive::Extract->new( archive => $path );
 		my $tmpdir  = File::Temp->newdir;
-		my $ok      = eval {
-			$archive->extract( to => $tmpdir );
-		};
+		my $ok      = 0;
+		SCOPE: {
+			my $pushd1 = File::pushd::pushd( File::Spec->curdir );
+			$ok = eval {
+				$archive->extract( to => $tmpdir );
+			};
+		}
 		if ( $@ or not $ok ) {
-			warn("Failed to extract '$path'") if $self->warnings;
+			if ( $self->warnings > 1 ) {
+				warn("Failed to extract '$path': $@");
+			} elsif ( $self->warnings ) {
+				print "  Failed: $dist\n";
+			}
 			next;
 		}
 
@@ -259,7 +267,7 @@ sub run {
 		}
 
 		# Change into the directory
-		my $pushd = File::pushd::pushd( $extract );
+		my $pushd2 = File::pushd::pushd( $extract );
 
 		# Invoke the callback
 		$self->callback->( {

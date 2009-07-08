@@ -1,5 +1,9 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+0.10 Wed  8 Jul 2009
+	- Squelch errors resulting from the bad handling of other errors
+	- Add support for two levels of warnings
+
 0.09 Wed  8 Jul 2009
 	- Try harder to squelch warnings and errors
 
