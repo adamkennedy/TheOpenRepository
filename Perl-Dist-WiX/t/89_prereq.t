@@ -30,8 +30,10 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-plan( skip_all => 'Test is buggy at the moment' );
-exit(0);
+#plan( skip_all => 'Test is buggy at the moment' );
+#exit(0);
+
+local $ENV{PERL_MM_USE_DEFAULT} = 1;
 
 diag('Takes a few minutes...');
 

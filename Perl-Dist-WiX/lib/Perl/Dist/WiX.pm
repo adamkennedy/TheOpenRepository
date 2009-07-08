@@ -687,6 +687,14 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 			'No previous ' . $self->image_dir . " found\n" );
 	}
 
+	# Clear the par cache, just to be safe.
+	# Sometimes, if not cleared, PAR fails tests.
+	my $par_temp = catdir( $ENV{TEMP}, 'par-' . Win32::LoginName() );
+	if ( -d $par_temp ) {
+		$self->trace_line( 1, 'Removing ' . $par_temp . "\n" );
+		File::Remove::remove( \1, $par_temp );
+	}
+
 	# Initialize the build
 	for my $d ( $self->download_dir, $self->image_dir, $self->modules_dir,
 		$self->license_dir, catdir( $self->image_dir, 'cpan' ),
@@ -1586,12 +1594,11 @@ END_PERL
 			next MODULE;
 		} ## end if ( ( $module->cpan_file...))
 
-		if (    ( $module->cpan_file =~ m{/autodie-\d}msx )
-		{
+		if ( $module->cpan_file =~ m{/autodie-\d}msx ) {
 			$self->install_modules(qw( IPC::System::Simple ));
 
 			if (    ( $module->cpan_version > 1.999 )
-				and ( $module->cpan_version < 2.04  ) )
+				and ( $module->cpan_version < 2.04 ) )
 			{
 
 				# Upgrading to this version, instead...
@@ -1603,8 +1610,8 @@ END_PERL
 					force            => $force
 				);
 				next MODULE;
-			}
-		} ## end if ( ( $module->cpan_file...))
+			} ## end if ( ( $module->cpan_version...))
+		} ## end if ( $module->cpan_file...)
 
 		if ( $self->_delay_upgrade($module) ) {
 
