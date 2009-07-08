@@ -46,6 +46,7 @@ use URI::file                               ();
 use DBI                               1.608 ();
 use DBD::SQLite                        1.25 ();
 use CPAN::SQLite                      0.197 ();
+use CPAN::Mini::Visit                  0.10 ();
 use LWP::UserAgent                    5.819 ();
 use Xtract::Publish                    0.10 ();
 use Parse::CPAN::Ratings               0.33 ();
@@ -219,6 +220,9 @@ sub run {
 		Carp::croak("connect: \$DBI::errstr");
 	}
 
+	# Allocate a lot more memory to cut down file churn
+	$self->do('PRAGMA cache_size = 200000');
+
 	# Refresh the CPAN index database
 	$self->say("Fetching CPAN Index...");
 	my $update = CPANDB::Generator::GetIndex->new(
@@ -232,7 +236,16 @@ sub run {
 	# Load the CPAN Uploads database
 	$self->say("Fetching CPAN Uploads...");
 	require ORDB::CPANUploads;
-	ORDB::CPANUploads->import;
+	ORDB::CPANUploads->import( {
+		show_progress => 1,
+	} );
+
+	# Load the CPAN Testers database
+	$self->say("Fetching CPAN Testers... (This may take a while)");
+	require ORDB::CPANTesters;
+	ORDB::CPANTesters->import( {
+		show_progress => 1,
+	} );
 
 	# Load the CPAN META.yml database
 	my $cpanmeta;
@@ -246,6 +259,7 @@ sub run {
 			trace      => $self->trace,
 			prefer_bin => $prefer_bin,
 			publish    => undef,
+			warnings   => 1,
 			delta      => 1,
 		);
 		$cpanmeta->run;
@@ -256,21 +270,21 @@ sub run {
 	}
 
 	# Attach the various databases
-	$self->do( "ATTACH DATABASE ? AS cpandb", {}, $self->cpandb_sql         );
-	$self->do( "ATTACH DATABASE ? AS upload", {}, ORDB::CPANUploads->sqlite );
-	$self->do(
-		"ATTACH DATABASE ? AS meta", {},
-		$cpanmeta ? $cpanmeta->sqlite : ORDB::CPANMeta->sqlite,
-	);
+	my $cpanmeta_sqlite = $cpanmeta ? $cpanmeta->sqlite : ORDB::CPANMeta->sqlite;
+	$self->do( "ATTACH DATABASE ? AS meta",    {}, $cpanmeta_sqlite          );
+	$self->do( "ATTACH DATABASE ? AS cpandb",  {}, $self->cpandb_sql         );
+	$self->do( "ATTACH DATABASE ? AS upload",  {}, ORDB::CPANUploads->sqlite );
+	$self->do( "ATTACH DATABASE ? AS testers", {}, ORDB::CPANTesters->sqlite );
 
 	# Pre-process the cpandb data to produce cleaner intermediate
 	# temp tables that produce better joins later on.
 	$self->say("Cleaning CPAN Index...");
 	$self->do(<<'END_SQL');
-CREATE TEMPORARY TABLE t_distribution AS
+CREATE TABLE t_distribution AS
 SELECT
 	d.dist_name as dist,
 	d.dist_vers as version,
+	d.dist_name || ' ' || d.dist_vers as dist_version,
 	a.cpanid as author,
 	a.cpanid || '/' || d.dist_file as release
 FROM
@@ -280,11 +294,20 @@ WHERE
 	a.auth_id = d.auth_id
 END_SQL
 
+	# Index the cleaned dist table
+	$self->create_index( t_distribution => qw{
+		dist
+		version
+		dist_version
+		author
+		release
+	} );
+
 	# Pre-process the uploads data to produce a cleaner intermediate
 	# temp table that won't break the joins we'll need to do later on.
 	$self->say("Cleaning CPAN Uploads...");
 	$self->do(<<'END_SQL');
-CREATE TEMPORARY TABLE t_uploaded AS
+CREATE TABLE t_uploaded AS
 SELECT
 	author || '/' || filename as release,
 	DATE(released, 'unixepoch') AS uploaded
@@ -292,8 +315,54 @@ FROM upload.uploads
 END_SQL
 
 	# Index the temporary tables so our joins don't take forever
-	$self->create_index( t_uploaded     => 'release' );
-	$self->create_index( t_distribution => 'release' );
+	$self->create_index( t_uploaded => 'release' );
+
+	# Pre-process the CPAN Testers results to produce a smaller
+	# database that provides sub-totals for each dist/version/result.
+	$self->say("Cleaning CPAN Testers (pass 1)...");
+	$self->do(<<'END_SQL');
+CREATE TABLE t_cpanstats AS
+SELECT
+	dist AS dist,
+	dist || ' ' || version AS dist_version,
+	state AS state
+FROM testers.cpanstats
+WHERE
+	state IN ( 'pass', 'fail', 'unknown', 'na' )
+	AND perl NOT LIKE '%patch%'
+	AND perl NOT LIKE '%RC%'
+	AND (
+		perl LIKE '5.4%'
+		OR perl LIKE '5.5%'
+		OR perl LIKE '5.6%'
+		OR perl LIKE '5.8%'
+		OR perl LIKE '5.10%'
+	)
+	AND dist_version in (
+		select dist_version from t_distribution
+	)
+END_SQL
+
+	# Step two, group into the smaller totals table
+	$self->say("Cleaning CPAN Testers (pass 2)...");
+	$self->do(<<'END_SQL');
+CREATE TABLE t_testers AS
+SELECT
+	dist AS dist,
+	state AS state,
+	COUNT(*) AS total
+FROM
+	t_cpanstats
+GROUP BY
+	dist_version, state
+END_SQL
+
+	# Index the totals table
+	$self->say("Cleaning CPAN Testers (indexing)...");
+	$self->create_index( t_testers => qw{
+		dist
+		state
+	} );
 
 	# Create the author table
 	$self->say("Generating table author...");
@@ -328,10 +397,14 @@ CREATE TABLE distribution (
 	author TEXT NOT NULL,
 	release TEXT NOT NULL,
 	uploaded TEXT NOT NULL,
-	weight INTEGER NOT NULL,
-	volatility INTEGER NOT NULL,
+	pass INTEGER NOT NULL,
+	fail INTEGER NOT NULL,
+	unknown INTEGER NOT NULL,
+	na INTEGER NOT NULL,
 	rating TEXT NULL,
 	ratings INTEGER NOT NULL,
+	weight INTEGER NOT NULL,
+	volatility INTEGER NOT NULL,
 	FOREIGN KEY ( author ) REFERENCES author ( author )
 )
 END_SQL
@@ -340,15 +413,19 @@ END_SQL
 	$self->do(<<'END_SQL');
 INSERT INTO distribution
 SELECT
-	d.dist as distribution,
-	d.version as version,
-	d.author as author,
-	d.release as release,
-	u.uploaded as uploaded,
-	0 as weight,
-	0 as volatility,
-	NULL as rating,
-	0 as ratings
+	d.dist AS distribution,
+	d.version AS version,
+	d.author AS author,
+	d.release AS release,
+	u.uploaded AS uploaded,
+	0 AS pass,
+	0 AS fail,
+	0 AS unknown,
+	0 AS na,
+	NULL AS rating,
+	0 AS ratings,
+	0 AS weight,
+	0 AS volatility
 FROM
 	t_distribution d,
 	t_uploaded u
@@ -386,17 +463,6 @@ END_SQL
 		$self->dbh->begin_work;
 	}
 	$self->dbh->commit;
-
-
-	# Index the distribution table
-	$self->create_index( distribution => qw{
-		version
-		author
-		release
-		uploaded
-		rating
-		ratings
-	} );
 
 	# Create the module table
 	$self->say("Generating table module...");
@@ -446,6 +512,7 @@ CREATE TABLE requires (
 END_SQL
 
 	# Fill the module dependency table
+	$self->create_index( distribution => 'release' );
 	$self->do(<<'END_SQL');
 INSERT INTO requires
 SELECT
@@ -516,6 +583,23 @@ END_SQL
 		phase
 	} );
 
+	# Fill the CPAN Testers totals
+	$self->say("Populating CPAN Testers columns...");
+	my $testers = $self->dbh->selectall_arrayref(
+		'SELECT * FROM t_testers', {}
+	);
+	$self->dbh->begin_work;
+	foreach my $t ( @$testers ) {
+		$self->do(
+			"UPDATE distribution SET $t->[1] = ? WHERE distribution = ?",
+			{}, $t->[2], $t->[0],
+		);
+		next if ++$counter % 100;
+		$self->dbh->commit;
+		$self->dbh->begin_work;
+	}
+	$self->dbh->commit;
+
 	# Derive the distribution weights
 	$self->say('Generating weight...');
 	my $weight  = $self->weight->weight_all;
@@ -548,11 +632,41 @@ END_SQL
 	}
 	$self->dbh->commit;
 
-	# Index the remaining distribution table columns
+	# Index the rest of the distribution table
 	$self->create_index( distribution => qw{
+		author
+		pass
+		fail
+		unknown
+		na
+		uploaded
+		rating
+		ratings
 		weight
 		volatility
 	} );
+
+	# Clean up tables
+	$self->say("Dropping excess tables...");
+	$self->do( "DROP TABLE t_distribution" );
+	$self->do( "DROP TABLE t_uploaded"     );
+	$self->do( "DROP TABLE t_cpanstats"    );
+	$self->do( "DROP TABLE t_testers"      );
+
+	# Clean up attached databases
+	$self->say("Dropping attached databases...");
+	$self->do( "DETACH DATABASE cpandb"  );
+	$self->do( "DETACH DATABASE upload"  );
+	$self->do( "DETACH DATABASE meta"    );
+	$self->do( "DETACH DATABASE testers" );
+
+	# Shrink the main database file
+	$self->say("Freeing excess space...");
+	$self->do( "VACUUM" );
+
+	# Optimise the indexes
+	$self->say("Optimising indexes...");
+	$self->do( "ANALYZE main" );
 
 	# Publish the database to the current directory
 	if ( defined $self->publish ) {
@@ -577,10 +691,6 @@ sub create_index {
 	foreach my $column ( @_ ) {
 		$self->do("CREATE INDEX ${table}__${column} ON ${table} ( ${column} )");
 	}
-
-	# Scan the indexes to make the plans faster
-	$self->do("ANALYZE ${table}");
-
 	return 1;
 }
 
