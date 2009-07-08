@@ -55,7 +55,7 @@ use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
 use Algorithm::Dependency::Source::Invert   ();
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 use Object::Tiny 1.06 qw{
 	cpan
