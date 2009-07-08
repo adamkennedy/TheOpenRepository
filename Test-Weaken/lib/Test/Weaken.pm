@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '2.003_007';
+our $VERSION   = '3.000000';
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
@@ -602,7 +602,7 @@ even data that would usually have been made inaccessible.
 L<Test::Weaken|/"NAME"> frees the test structure, then looks to see if any of the
 contents of the structure were not actually deallocated.  By default,
 L<Test::Weaken|/"NAME"> determines the contents of a data structure
-by examining arrays and hashes and following references.
+by examining arrays and hashes, and by following references.
 L<Test::Weaken|/"NAME"> does this recursively to
 unlimited depth.
 
@@ -619,7 +619,7 @@ including
 scalars, arrays, hashes, references themselves, and code objects.
 The full list of types of referenceable Perl data objects
 is given in
-L<description of the ref builtin in the Perl documentation|perlfunc/"ref">.
+L<the description of the ref builtin in the Perl documentation|perlfunc/"ref">.
 An B<object> that has been blessed using the Perl
 L<bless builtin|perlfunc/"bless">, will be called a B<blessed object>.
 
@@ -647,7 +647,7 @@ L<Test::Weaken|/"NAME"> gets its B<test data structure>,
 or B<test structure>,
 from a closure.
 The closure should return
-a reference to the B<test structure>.
+a reference to the test structure.
 This reference is called the B<test structure reference>.
 
 =head2 Children and Descendants
@@ -989,8 +989,6 @@ Defer as much of the analysis as you can
 until after the test is completed.
 L</ignore> callbacks 
 can be a significant overhead.
-The L</ignore> callback is
-invoked once per probe reference.
 
 L<Test::Weaken|/"NAME"> offers some help in debugging
 L</ignore> callback subroutines.
@@ -1373,7 +1371,7 @@ and L<refaddr|Scalar::Util/refaddr> return.
 
 Sometimes, when you are interested in why an object is not being freed,
 you want to seek out the reference
-that keeps the object's refcount above zero.
+that keeps the object's refcount above 0.
 L<Devel::FindRef> can be useful for this.
 
 =head2 More about Quasi-unique Addresses
@@ -1572,9 +1570,9 @@ Starting from the test structure reference,
 it examines data objects for children recursively,
 until it has found the complete contents of the test structure.
 The test structure is explored to unlimited depth.
-For each data object, a
+For each tracked Perl data object, a
 probe reference is created.
-Data objects to be tracked are recorded.
+Tracked data objects are recorded.
 In the recursion, no object is visited twice,
 and infinite loops will not occur,
 even in the presence of cycles.
