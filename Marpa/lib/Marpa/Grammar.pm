@@ -415,7 +415,7 @@ sub Marpa::Internal::code_problems {
             if ( $code_lines > $code_length ) {
                 $max_line = $code_length;
             }
-        } ## end else [ if ( $max_problem_line >= 0 )
+        } ## end else [ if ( $max_problem_line >= 0 ) ]
 
         # now create an array of the lines to print
         my @lines_to_print = do {
@@ -800,7 +800,7 @@ sub parse_source_grammar {
                 // 'no eval error';
             Marpa::exception( "No stringified source grammar:\n",
                 $eval_error );
-        } ## end else [ if ($allow_raw_source)
+        } ## end else [ if ($allow_raw_source) ]
     } ## end if ( not defined $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR)
 
     $source_options //= {};
@@ -1474,7 +1474,7 @@ sub Marpa::show_symbol {
         my $value = $symbol->[$offset];
         if ($reverse) { $value = !$value }
         if ($value) { $text .= " $comment" }
-    } ## end for my $comment_element ( ( [ 1, 'unproductive', ...
+    } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
 
     return $text .= "\n";
 
@@ -1534,7 +1534,7 @@ sub Marpa::Grammar::inaccessible_symbols {
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     return [
         sort map { $_->[Marpa::Internal::Symbol::NAME] }
-            grep { !$_->[Marpa::Internal::Symbol::ACCESSIBLE] } @{$symbols}
+        grep     { !$_->[Marpa::Internal::Symbol::ACCESSIBLE] } @{$symbols}
     ];
 } ## end sub Marpa::Grammar::inaccessible_symbols
 
@@ -1543,7 +1543,7 @@ sub Marpa::Grammar::unproductive_symbols {
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     return [
         sort map { $_->[Marpa::Internal::Symbol::NAME] }
-            grep { !$_->[Marpa::Internal::Symbol::PRODUCTIVE] } @{$symbols}
+        grep     { !$_->[Marpa::Internal::Symbol::PRODUCTIVE] } @{$symbols}
     ];
 } ## end sub Marpa::Grammar::unproductive_symbols
 
@@ -1644,7 +1644,7 @@ sub Marpa::show_rule {
         if ($reverse) { $value = !$value }
         next ELEMENT if not $value;
         push @comment, $comment;
-    } ## end for my $comment_element ( ( [ 1, 'unproductive', ...
+    } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
 
     my $user_priority     = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
     my $internal_priority = $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY];
@@ -1703,7 +1703,7 @@ sub Marpa::show_item {
             Marpa::Internal::LR0_item::POSITION
             ]
         );
-    } ## end else [ if ( not defined $item )
+    } ## end else [ if ( not defined $item ) ]
     return $text;
 } ## end sub Marpa::show_item
 
@@ -1776,7 +1776,7 @@ sub Marpa::show_QDFA_state {
             my $item = $NFA_state->[Marpa::Internal::NFA::ITEM];
             $text .= Marpa::show_item($item) . "\n";
         }
-    } ## end if ( exists $state->[Marpa::Internal::QDFA::NFA_STATES...
+    } ## end if ( exists $state->[Marpa::Internal::QDFA::NFA_STATES...])
 
     if ($stripped) { $text .= "stripped\n" }
 
@@ -1793,7 +1793,7 @@ sub Marpa::show_QDFA_state {
             $text .= join '; ', sort @qdfa_labels;
             $text .= "\n";
         } ## end for my $symbol_name ( sort keys %{$transition} )
-    } ## end if ( exists $state->[Marpa::Internal::QDFA::TRANSITION...
+    } ## end if ( exists $state->[Marpa::Internal::QDFA::TRANSITION...])
 
     return $text;
 } ## end sub Marpa::show_QDFA_state
@@ -2077,7 +2077,7 @@ sub add_rule {
                 "\n"
             #>>>
         );
-    } ## end if ( $internal_priority & ...
+    } ## end if ( $internal_priority & ...)
 
     my $rule_count = @{$rules};
     my $new_rule   = [];
@@ -2113,7 +2113,7 @@ sub add_rule {
             weaken( $rhs_rules->[ scalar @{$rhs_rules} ] = $new_rule );
             $last_symbol = $symbol;
         } ## end for my $symbol ( sort @{$rhs} )
-    } ## end else [ if ($nulling)
+    } ## end else [ if ($nulling) ]
     if ($trace_rules) {
         print {$trace_fh} 'Added rule #', $#{$rules}, ': ',
             $lhs->[Marpa::Internal::Symbol::NAME], ' -> ',
@@ -2371,7 +2371,7 @@ EO_CODE
             ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
             $rule_action = q{ unshift(@_, []); } . "\n" . q{ \@_ } . "\n";
             ## use critic
-        } ## end else [ if ( defined $separator and not $keep_separation )
+        } ## end else [ if ( defined $separator and not $keep_separation ) ]
     } ## end if ($left_associative)
     else {
         Marpa::exception('Only left associative sequences available');
@@ -2590,13 +2590,13 @@ sub productive {
         )
     {
         $symbol_work_set->[$symbol_id] = 1;
-    } ## end for my $symbol_id ( grep { defined $symbols->[$_]->[...
+    } ## end for my $symbol_id ( grep { defined $symbols->[$_]->[...]})
     for my $rule_id (
         grep { defined $rules->[$_]->[Marpa::Internal::Rule::PRODUCTIVE] }
         ( 0 .. $#{$rules} ) )
     {
         $rule_work_set->[$rule_id] = 1;
-    } ## end for my $rule_id ( grep { defined $rules->[$_]->[...
+    } ## end for my $rule_id ( grep { defined $rules->[$_]->[...]})
     my $work_to_do = 1;
 
     while ($work_to_do) {
@@ -2641,7 +2641,7 @@ sub productive {
                         $rule_productive = 0;
                         last RHS_SYMBOL;
                     }
-                } ## end for my $rhs_symbol ( @{ $rule->[...
+                } ## end for my $rhs_symbol ( @{ $rule->[...]})
 
                 # if this pass found the rule productive or unproductive, mark the rule
                 if ( defined $rule_productive ) {
@@ -2688,7 +2688,7 @@ sub productive {
                     $symbol_productive = 1;
                     last LHS_RULE;
                 }
-            } ## end for my $rule ( @{ $lhs_symbol->[...
+            } ## end for my $rule ( @{ $lhs_symbol->[...]})
 
             # if this pass found the symbol productive or unproductive, mark the symbol
             if ( defined $symbol_productive ) {
@@ -2759,7 +2759,7 @@ sub nulling {
         )
     {
         $rule_work_set->[$rule_id] = 1;
-    } ## end for my $rule_id ( map { $_->[Marpa::Internal::Rule::ID...
+    } ## end for my $rule_id ( map { $_->[Marpa::Internal::Rule::ID...]})
 
     for my $symbol_id (
         map  { $_->[Marpa::Internal::Symbol::ID] }
@@ -2767,7 +2767,7 @@ sub nulling {
         )
     {
         $symbol_work_set->[$symbol_id] = 1;
-    } ## end for my $symbol_id ( map { $_->[Marpa::Internal::Symbol::ID...
+    } ## end for my $symbol_id ( map { $_->[Marpa::Internal::Symbol::ID...]})
 
     my $work_to_do = 1;
 
@@ -2809,7 +2809,7 @@ sub nulling {
                     $symbol_nulling = 0;
                     last LHS_RULE;
                 }
-            } ## end for my $rule ( @{ $lhs_symbol->[...
+            } ## end for my $rule ( @{ $lhs_symbol->[...]})
 
             # if this pass found the symbol nulling or non-nulling
             #  mark the symbol
@@ -2863,7 +2863,7 @@ sub nulling {
                         $rule_nulling = 0;
                         last RHS_SYMBOL;
                     }
-                } ## end for my $rhs_symbol ( @{ $rule->[...
+                } ## end for my $rhs_symbol ( @{ $rule->[...]})
 
                 # if this pass found the rule nulling or non-nulling, mark the rule
                 if ( defined $rule_nulling ) {
@@ -2913,14 +2913,14 @@ sub nullable {
         )
     {
         $symbol_work_set->[$symbol_id] = 1;
-    } ## end for my $symbol_id ( map { $_->[Marpa::Internal::Symbol::ID...
+    } ## end for my $symbol_id ( map { $_->[Marpa::Internal::Symbol::ID...]})
     for my $rule_id (
         map  { $_->[Marpa::Internal::Rule::ID] }
         grep { defined $_->[Marpa::Internal::Rule::NULLABLE] } @{$rules}
         )
     {
         $rule_work_set->[$rule_id] = 1;
-    } ## end for my $rule_id ( map { $_->[Marpa::Internal::Rule::ID...
+    } ## end for my $rule_id ( map { $_->[Marpa::Internal::Rule::ID...]})
 
     while ($work_to_do) {
         $work_to_do = 0;
@@ -2963,7 +2963,7 @@ sub nullable {
                         $rule_nullable = 0;
                         last RHS_SYMBOL;
                     }
-                } ## end for my $rhs_symbol ( @{ $rule->[...
+                } ## end for my $rhs_symbol ( @{ $rule->[...]})
 
                 # if this pass found the rule nullable or not, so mark the rule
                 if ( defined $rule_nullable ) {
@@ -3009,7 +3009,7 @@ sub nullable {
                     $symbol_nullable = 1;
                     last LHS_RULE;
                 }
-            } ## end for my $rule ( @{ $lhs_symbol->[...
+            } ## end for my $rule ( @{ $lhs_symbol->[...]})
 
             # if this pass found the symbol nullable or not, mark the symbol
             if ( defined $symbol_nullable ) {
@@ -3091,7 +3091,7 @@ sub detect_cycle {
                 next RULE if defined $non_nullable_symbol;
 
                 $non_nullable_symbol = $rhs_symbol;
-            } ## end if ( not $rhs_symbol->[Marpa::Internal::Symbol::NULLABLE...
+            } ## end if ( not $rhs_symbol->[Marpa::Internal::Symbol::NULLABLE...])
         }    # for $rhs_symbol
 
         # Above we've eliminated all rules with two or more non-nullables
@@ -3169,7 +3169,7 @@ sub detect_cycle {
                     Marpa::brief_rule($warning_rule), "\n"
                     or Marpa::exception('Could not print to trace file');
             } ## end if ( $warn_on_cycle and defined $warning_rule )
-        } ## end if ( $start_symbol_id == $derived_symbol_id || ...
+        } ## end if ( $start_symbol_id == $derived_symbol_id || ...)
     } ## end while ( my $unit_rule_data = pop @unit_rules )
 
     Marpa::exception('Cycle in grammar, fatal error')
@@ -3299,7 +3299,7 @@ sub create_NFA {
                 Marpa::Internal::Rule::USEFUL ];
             next RULE if not $useful;
             push @{ $transition->{q{}} }, $NFA_by_item[$predicted_rule_id][0];
-        } ## end for my $predicted_rule ( @{ $next_symbol->[...
+        } ## end for my $predicted_rule ( @{ $next_symbol->[...]})
     } ## end for my $state ( @{$NFA} )
 
     return 1;
@@ -3984,7 +3984,7 @@ The MDL parser itself uses a stringified MDL file.
 
 =head2 Precomputation
 
-Marpa needs to do extensive precompution on grammars
+Marpa needs to do extensive precomputation on grammars
 before they can be passed on to a recognizer or an evaluator.
 The user usually does not need to perform this precomputation explicitly.
 By default, in any method call that adds rules or terminal to a grammar,

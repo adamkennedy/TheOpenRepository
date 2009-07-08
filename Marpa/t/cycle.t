@@ -136,8 +136,8 @@ for my $test_data (@test_data) {
     close $MEMORY;
 
     Marpa::Test::is( ${$result}, $expected );
-    Marpa::Test::is( $trace,    $expected_trace );
-} ## end for my $test_data ( [ \$cycle1_mdl, \('1'), '1', <<'EOS'...
+    Marpa::Test::is( $trace,     $expected_trace );
+} ## end for my $test_data (@test_data)
 
 # Local Variables:
 #   mode: cperl

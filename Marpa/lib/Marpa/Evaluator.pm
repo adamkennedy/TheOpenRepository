@@ -488,7 +488,7 @@ sub audit_or_node {
     ### Auditing or node: $id
 
     if ( not defined $id ) {
-        Marpa::exception("ID not defined in or-node");
+        Marpa::exception('ID not defined in or-node');
     }
     my $or_nodes_entry = $or_nodes->[$id];
     if ( $or_node != $or_nodes_entry ) {
@@ -507,15 +507,15 @@ sub audit_or_node {
     my $parent_ids = $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
 
     # No parents for top or-node, or-node 0
-    if ($id != 0 ) {
+    if ( $id != 0 ) {
         my $has_parents = defined $parent_ids and scalar @{$parent_ids};
-        if (not $deleted and not $has_parents) {
+        if ( not $deleted and not $has_parents ) {
             Marpa::exception("or-node #$id has no parents");
         }
-        if ($deleted and $has_parents) {
+        if ( $deleted and $has_parents ) {
             Marpa::exception("Deleted or-node #$id has parents");
         }
-    }
+    } ## end if ( $id != 0 )
 
     PARENT_ID: for my $parent_id ( @{$parent_ids} ) {
         my $parent = $and_nodes->[$parent_id];
@@ -600,20 +600,22 @@ sub delete_nodes {
     my ( $evaler, $delete_work_list ) = @_;
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
-    DELETE_WORK_ITEM: while ( my $delete_work_item = pop @{$delete_work_list} ) {
+    DELETE_WORK_ITEM:
+    while ( my $delete_work_item = pop @{$delete_work_list} ) {
         my ( $action, $delete_node_id ) = @{$delete_work_item};
         if ( $action == DELETE_AND_NODE ) {
 
             ### Deleting and node: $delete_node_id
 
-            my $and_node = $and_nodes->[$delete_node_id];
+            my $delete_and_node = $and_nodes->[$delete_node_id];
             next DELETE_WORK_ITEM
-                if $and_node->[Marpa::Internal::And_Node::DELETED];
-            $and_node->[Marpa::Internal::And_Node::DELETED] = 1;
-            my $parent_id = $and_node->[Marpa::Internal::And_Node::PARENT_ID];
+                if $delete_and_node->[Marpa::Internal::And_Node::DELETED];
+            $delete_and_node->[Marpa::Internal::And_Node::DELETED] = 1;
+            my $parent_id =
+                $delete_and_node->[Marpa::Internal::And_Node::PARENT_ID];
             push @{$delete_work_list}, [ PRUNE_OR_NODE, $parent_id ];
             my $parent_choice =
-                $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
+                $delete_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
 
             ### Splicing out parent's child, id, choice: $parent_id, $parent_choice
 
@@ -634,17 +636,28 @@ sub delete_nodes {
                 Marpa::Internal::And_Node::CAUSE,
                 )
             {
-                my $child_or_node = $and_node->[$field];
+                my $child_or_node = $delete_and_node->[$field];
                 next FIELD if not defined $child_or_node;
                 my $id = $child_or_node->[Marpa::Internal::Or_Node::ID];
+
+                ### <where> child or-node id: $id
+
                 push @{$delete_work_list}, [ PRUNE_OR_NODE, $id ];
 
                 # Splice out the reference to this or-node in the PARENT_IDS
                 # field of the or-node child
-                my $parent_ids = $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
-                my $delete_node_index = List::Util::first 
-                    { $parent_ids->[$_] == $delete_node_id } ( 0 .. $#{$parent_ids} );
-                # I don't think the condition in this next line should 
+                my $parent_ids =
+                    $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
+
+                ### child deleted?: $child_or_node->[Marpa'Internal'Or_Node'DELETED]
+
+                ### <where> parent ids: $parent_ids
+
+                my $delete_node_index =
+                    List::Util::first { $parent_ids->[$_] == $delete_node_id }
+                ( 0 .. $#{$parent_ids} );
+
+                # I don't think the condition in this next line should
                 # ever occur.
                 next FIELD if not defined $delete_node_index;
                 splice @{$parent_ids}, $delete_node_index, 1;
@@ -659,7 +672,7 @@ sub delete_nodes {
                 Marpa::Internal::And_Node::VALUE_REF,
                 )
             {
-                $and_node->[$field] = undef;
+                $delete_and_node->[$field] = undef;
             } ## end for my $field ( Marpa::Internal::And_Node::PARENT_ID,...)
 
             next DELETE_WORK_ITEM;
@@ -725,7 +738,7 @@ sub rewrite_cycles {
         $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         $trace_evaluation =
             $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
-    } ## end if ($tracing)
+    }
 
     # Grour or-nodes by span.  Only or-nodes with the same
     # span can be in a cycle.
@@ -809,7 +822,7 @@ sub rewrite_cycles {
             my $span_set_index =
                 List::Util::first { $transition[$_][$_] }
             ( 0 .. $#{$span_set} );
-            next SPAN_SET unless defined $span_set_index;
+            next SPAN_SET if not defined $span_set_index;
             @cycle = map { $span_set->[$_] } (
                 $span_set_index,
                 grep {
@@ -905,6 +918,9 @@ sub rewrite_cycles {
                 } ## end for my $field ( ...)
 
                 my $new_or_node_id = @{$or_nodes};
+
+                ### Creating new or-node: $new_or_node_id
+
                 $new_or_node->[Marpa::Internal::Or_Node::TAG] =~ s{
                         [#] \d* \z
                     }{#$new_or_node_id}xms;
@@ -934,7 +950,7 @@ sub rewrite_cycles {
                         $new_or_node_id;
                     $new_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE]
                         = $choice;
-                } ## end for my $choice ( 0 .. @{$child_ids} )
+                } ## end for my $choice ( 0 .. $#{$child_ids} )
 
             } ## end for my $or_node (@cycle)
 
@@ -1100,15 +1116,18 @@ sub rewrite_cycles {
         my $original_root_or_node = $root_or_nodes[0];
         for my $original_or_node (@cycle) {
             my $is_root = $original_or_node == $original_root_or_node;
-            PARENT_AND_NODE: for my $parent_and_node_id (
+            PARENT_AND_NODE:
+            for my $parent_and_node_id (
                 @{ $original_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] }
                 )
             {
                 ### Is root node?: $is_root
                 ### And-node to delete: $parent_and_node_id
 
-                next PARENT_AND_NODE if $is_root xor $internal_and_nodes{$parent_and_node_id};
-                push @delete_work_list, [ DELETE_AND_NODE, $parent_and_node_id ];
+                next PARENT_AND_NODE
+                    if $is_root xor $internal_and_nodes{$parent_and_node_id};
+                push @delete_work_list,
+                    [ DELETE_AND_NODE, $parent_and_node_id ];
             } ## end for my $parent_and_node_id ( @{ $original_or_node->[...]})
         } ## end for my $original_or_node (@cycle)
 
@@ -1119,17 +1138,18 @@ sub rewrite_cycles {
 
         # Have we deleted the top or-node?
         # If so, there will be no parses.
-        if ($or_nodes->[0]->[Marpa::Internal::Or_Node::DELETED]) {
+        if ( $or_nodes->[0]->[Marpa::Internal::Or_Node::DELETED] ) {
             if ($warn_on_cycle) {
-                print {$trace_fh} "Cycles found, but no parses\n";
+                print {$trace_fh} "Cycles found, but no parses\n"
+                    or Marpa::exception('print to trace handle failed');
             }
             return;
-        }
+        } ## end if ( $or_nodes->[0]->[Marpa::Internal::Or_Node::DELETED...])
 
     } ## end while ( my $span_set = pop @span_sets )
 
     return;
-}
+} ## end sub rewrite_cycles
 
 # Returns false if no parse
 sub Marpa::Evaluator::new {
@@ -3870,7 +3890,7 @@ is_file($_, 'author.t/misc.t', 'evaler set snippet')
 
 The C<set> method takes as its one, required, argument a reference to a hash of named arguments.
 It allows Marpa options
-to be specified for an evaler object.
+to be specified for an evaluator object.
 Relatively few Marpa options are not available at
 evaluation time.
 The options which are available
