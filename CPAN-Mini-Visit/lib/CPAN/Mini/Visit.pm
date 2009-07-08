@@ -71,13 +71,13 @@ use File::Temp        0.21 ();
 use File::pushd       1.00 ();
 use File::chmod       0.31 ();
 use File::Find::Rule  0.27 ();
+use Archive::Extract  0.32 ();
+use CPAN::Mini       0.576 ();
 use Params::Util      1.00 qw{
 	_HASH _STRING _ARRAYLIKE _CODELIKE _REGEX
 };
-use Archive::Extract  0.32 ();
-use CPAN::Mini       0.576 ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -132,8 +132,8 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Normalise
-	$self->{random}     = $self->random   ? 1 : 0;
-	$self->{warnings}   = $self->warnings ? 1 : 0;
+	$self->{random}     = $self->random     ? 1 : 0;
+	$self->{warnings}   = $self->warnings   ? 1 : 0;
 	$self->{prefer_bin} = $self->prefer_bin ? 1 : 0;
 
 	# Check params
@@ -244,7 +244,7 @@ sub run {
 			$archive->extract( to => $tmpdir );
 		};
 		if ( $@ or not $ok ) {
-			warn("Failed to extract '$path'");
+			warn("Failed to extract '$path'") if $self->warnings;
 			next;
 		}
 

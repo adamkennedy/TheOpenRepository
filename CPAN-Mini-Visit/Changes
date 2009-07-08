@@ -1,5 +1,8 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+0.09 Wed  8 Jul 2009
+	- Try harder to squelch warnings and errors
+
 0.08 Fri 26 Jun 2009
 	- Attempt to repair directories with broken permissions
 
