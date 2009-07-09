@@ -1,4 +1,5 @@
 use inc::Module::Install::DSL 0.91;
 
-all_from      lib/Geo/MapInfo/MIF.pm
-test_requires Test::More  0.42
+all_from      	lib/Geo/MapInfo/MIF.pm
+requires		Text::CSV 1.12;
+test_requires 	Test::More  0.42
