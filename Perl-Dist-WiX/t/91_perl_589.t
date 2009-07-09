@@ -39,8 +39,11 @@ my $dist = t::lib::Test->new5(91);
 isa_ok( $dist, 't::lib::Test589' );
 
 # Run the dist object, and ensure everything we expect was created
-diag( "Building test dist, may take several hours... (sorry)" );
-ok( $dist->run, '->run ok' );
+my $time = scalar localtime();
+diag( "Building test dist @ $time, may take several hours... (sorry)" );
+ok( eval { $dist->run; 1; }, '->run ok' );
+$time = scalar localtime();
+diag( "Test dist finished @ $time." );
 
 # C toolchain files
 ok(
