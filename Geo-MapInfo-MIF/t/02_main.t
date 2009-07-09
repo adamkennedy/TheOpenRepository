@@ -20,7 +20,7 @@ use File::Spec;
 # Basic Query
 
 SCOPE: {
-	my $mif_file = File::Spec->rel2abs("t/data/act.mif");
+	my $mif_file = File::Spec->catfile("t", "data", "act.mif");
 	my @file_contents = Geo::MapInfo::MIF::read_files($mif_file);
 	my %mif_info = Geo::MapInfo::MIF::get_mif_info(@{$file_contents[0]});
 	my %regions = Geo::MapInfo::MIF::process_regions(1, $file_contents[0], $file_contents[1]);
