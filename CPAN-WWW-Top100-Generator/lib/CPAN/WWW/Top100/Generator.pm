@@ -19,11 +19,11 @@ use strict;
 use warnings;
 use File::Spec          0.80 ();
 use HTML::Spry::DataSet 0.01 ();
-use CPANTS::Weight      0.14 {
+use CPANDB 0.02 {
 	maxage => 24 * 3600 * 3600
 };
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 
 
@@ -40,9 +40,6 @@ sub run {
 	unless ( -d $dir ) {
 		die "Missing or invalid directory";
 	}
-
-	# Create or update the weighting database
-	CPANTS::Weight->run;
 
 	# Prepare the dataset object
 	my $dataset = HTML::Spry::DataSet->new;
@@ -67,7 +64,7 @@ sub run {
 	$dataset->add( 'ds3',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		$class->report(
-			sql_score => 'd.volatility * d.debian_candidate',
+			sql_score => 'd.volatility * 0',
 		)
 	);
 
@@ -75,7 +72,7 @@ sub run {
 	$dataset->add( 'ds4',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		$class->report(
-			sql_score => 'd.volatility * d.enemy_downstream',
+			sql_score => 'd.volatility * 0',
 		),
 	);
 
@@ -83,7 +80,7 @@ sub run {
 	$dataset->add( 'ds5',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		$class->report(
-			sql_score => 'd.volatility * d.meta1',
+			sql_score => 'd.volatility * 0',
 		),
 	);
 
@@ -91,7 +88,7 @@ sub run {
 	$dataset->add( 'ds6',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		$class->report(
-			sql_score => 'd.volatility * d.meta2',
+			sql_score => 'd.volatility * 0',
 		),
 	);
 
@@ -99,7 +96,7 @@ sub run {
 	$dataset->add( 'ds7',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		$class->report(
-			sql_score => 'd.volatility * d.meta3',
+			sql_score => 'd.volatility * 0',
 		),
 	);
 
@@ -107,7 +104,7 @@ sub run {
 	$dataset->add( 'ds8',
 		[ 'Rank', 'Score', 'Author', 'Distribution' ],
 		$class->report(
-			sql_score => 'd.volatility * d.fails',
+			sql_score => 'd.volatility * (d.fail + d.unknown)',
 		),
 	);
 
@@ -122,11 +119,11 @@ sub run {
 sub report {
 	my $class  = shift;
 	my %param = @_;
-	my $list  = CPANTS::Weight->selectall_arrayref(
+	my $list  = CPANDB->selectall_arrayref(
 		$class->_distsql( %param ),
 	);
 	unless ( $list ) {
-		die("Report SQL failed in " . CPANTS::Weight->dsn);
+		die("Report SQL failed in " . CPANDB->dsn);
 	}
 	$class->_rank( $list );
 	return @$list;
@@ -178,17 +175,14 @@ sub _distsql {
 	return <<"END_SQL";
 select
 	$param{sql_score} as score,
-	a.pauseid,
-	d.dist
+	d.author as author,
+	d.distribution as distribution
 from
-	dist_weight d,
-	author_weight a
-where
-	d.author = a.id
+	distribution d
 order by
 	score desc,
-	a.pauseid asc,
-	d.dist asc
+	author asc,
+	distribution asc
 limit
 	$param{sql_limit}
 END_SQL

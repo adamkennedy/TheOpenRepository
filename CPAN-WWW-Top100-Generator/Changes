@@ -1,5 +1,9 @@
 Changes for Perl extension CPAN-WWW-Top100-Generator
 
+0.06 Thu  9 Jul 2009
+	- Upgrading to Module::Install::DSL 0.91
+	- Changing from CPANTS::Weight to shiny new CPANDB
+
 0.05 Tue 19 May 2009
 	- Upgrading to Module::Install::DSL 0.88
 	- Upgrading to CPANTS::Weight 0.14
