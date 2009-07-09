@@ -169,7 +169,7 @@ This returns a hash containing the MIF file header.
 
 Returns a hash of arrays of arrays in the following format:
 
-%hash{region_name} = [[$long0, $lat0], [$long1, $lat1], [$long2, $lat2], ...]
+%hash{region_name} = ([$long0, $lat0], [$long1, $lat1], [$long2, $lat2], ...)
 
 $column is the index of the field of the column array returned by get_mif_info that contains the name of the region.
 
