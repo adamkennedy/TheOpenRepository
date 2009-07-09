@@ -608,6 +608,9 @@ sub delete_nodes {
             ### Deleting and node: $delete_node_id
 
             my $delete_and_node = $and_nodes->[$delete_node_id];
+
+            ### assert: defined $delete_and_node
+
             next DELETE_WORK_ITEM
                 if $delete_and_node->[Marpa::Internal::And_Node::DELETED];
             $delete_and_node->[Marpa::Internal::And_Node::DELETED] = 1;
@@ -698,6 +701,10 @@ sub delete_nodes {
             ### Deleting or node: $delete_node_id
 
             $or_node->[Marpa::Internal::Or_Node::DELETED] = 1;
+
+            ### Adding parent ids to delete work list: $parent_ids
+            ### Adding child ids to delete work list: $child_ids
+
             push @{$delete_work_list},
                 map { [ DELETE_AND_NODE, $_ ] } @{$parent_ids}, @{$child_ids};
             for my $field (
@@ -900,7 +907,7 @@ sub rewrite_cycles {
 
             # store our new cycle set here, so we can add it
             # to the span set work list
-            my @copied_cycle_set;
+            my @copied_cycle;
 
             # Copy the or- and and-nodes and build the translation
             # tables.
@@ -928,7 +935,7 @@ sub rewrite_cycles {
                 $new_or_node->[Marpa::Internal::Or_Node::ID] =
                     $new_or_node_id;
                 push @{$or_nodes}, $new_or_node;
-                push @copied_cycle_set, $new_or_node;
+                push @copied_cycle, $new_or_node;
                 $translate_or_node_id{ $or_node
                         ->[Marpa::Internal::Or_Node::ID] } = $new_or_node_id;
 
@@ -987,10 +994,10 @@ sub rewrite_cycles {
                         my $or_child_id =
                             $or_child->[Marpa::Internal::Or_Node::ID];
                         my $new_or_child_id =
-                            $translate_and_node_id{$or_node_id};
+                            $translate_or_node_id{$or_node_id};
                         if ( defined $new_or_child_id ) {
                             $and_node->[$field] =
-                                $and_nodes->[$new_or_child_id];
+                                $or_nodes->[$new_or_child_id];
                             next FIELD;
                         }
 
@@ -1004,8 +1011,9 @@ sub rewrite_cycles {
 
             } ## end for my $or_node (@cycle)
 
-            # It remains now to duplicate the external links into the cycle.
-            # These are allowed only into the root node of the cycle.
+            # It remains now to duplicate the external links to the cycle
+            # and to mark internal links to the root node for deletion.
+            # These are allowed only to the root node of the cycle.
 
             my $new_root_or_node_id =
                 $translate_or_node_id{ $root_or_node
@@ -1026,6 +1034,7 @@ sub rewrite_cycles {
                     )
                     )
                 {
+                    ### Adding to delete work list: $new_parent_and_node_id
                     push @delete_work_list,
                         [ DELETE_AND_NODE, $new_parent_and_node_id ];
                 } ## end if ( defined( my $new_parent_and_node_id = ...))
@@ -1107,7 +1116,7 @@ sub rewrite_cycles {
 
             } ## end for my $parent_and_node_id ( @{ $root_or_node->[...]})
 
-            push @span_sets, \@copied_cycle_set;
+            push @span_sets, \@copied_cycle;
 
         } ## end for my $copy ( 1 .. $#root_or_nodes )
 
@@ -1126,6 +1135,9 @@ sub rewrite_cycles {
 
                 next PARENT_AND_NODE
                     if $is_root xor $internal_and_nodes{$parent_and_node_id};
+
+                ### Adding to delete work list: $parent_and_node_id
+
                 push @delete_work_list,
                     [ DELETE_AND_NODE, $parent_and_node_id ];
             } ## end for my $parent_and_node_id ( @{ $original_or_node->[...]})
