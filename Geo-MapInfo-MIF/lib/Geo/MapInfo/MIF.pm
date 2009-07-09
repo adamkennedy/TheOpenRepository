@@ -1,5 +1,6 @@
 package Geo::MapInfo::MIF;
 
+use 5.006;
 use strict;
 use File::Slurp;
 use Text::CSV;
