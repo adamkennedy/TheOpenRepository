@@ -5,3 +5,4 @@ requires        Text::CSV 1.12
 requires        File::Slurp 9999.13
 requires        Params::Util 1.00
 test_requires 	Test::More  0.42
+test_requires   File::Spec 0.80
