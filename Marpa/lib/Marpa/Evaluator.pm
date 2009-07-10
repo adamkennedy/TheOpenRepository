@@ -616,22 +616,39 @@ sub delete_nodes {
             $delete_and_node->[Marpa::Internal::And_Node::DELETED] = 1;
             my $parent_id =
                 $delete_and_node->[Marpa::Internal::And_Node::PARENT_ID];
-            push @{$delete_work_list}, [ PRUNE_OR_NODE, $parent_id ];
-            my $parent_choice =
-                $delete_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
-
-            ### Splicing out parent's child, id, choice: $parent_id, $parent_choice
-
             my $parent_or_node = $or_nodes->[$parent_id];
 
-            splice @{ $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
-                },
-                $parent_choice,
-                1;
-            splice @{ $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS]
-                },
-                $parent_choice,
-                1;
+            if ( not $delete_and_node->[Marpa::Internal::And_Node::DELETED] )
+            {
+
+                push @{$delete_work_list}, [ PRUNE_OR_NODE, $parent_id ];
+                my $parent_choice = $delete_and_node
+                    ->[Marpa::Internal::And_Node::PARENT_CHOICE];
+
+                ### Splicing out parent's child, id, choice: $parent_id, $parent_choice
+
+                splice
+                    @{ $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
+                    },
+                    $parent_choice,
+                    1;
+                my $parent_child_ids =
+                    $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+                splice @{$parent_child_ids}, $parent_choice, 1;
+
+                # Eliminating one of the choices means all subsequent ones
+                # are renumbered -- adjust accordingly.
+                for my $choice ( $parent_choice .. $#{$parent_child_ids} ) {
+                    my $sibling_and_node_id = $parent_child_ids->[$choice];
+                    my $sibling_and_node = $and_nodes->[$sibling_and_node_id];
+                    $sibling_and_node
+                        ->[Marpa::Internal::And_Node::PARENT_CHOICE] =
+                        $choice;
+
+                    ### Renumbering choice in and-node, id, choice: $sibling_and_node_id, $choice
+                } ## end for my $choice ( $parent_choice .. $#{...})
+
+            } ## end if ( not $delete_and_node->[...])
 
             FIELD:
             for my $field (
@@ -641,6 +658,8 @@ sub delete_nodes {
             {
                 my $child_or_node = $delete_and_node->[$field];
                 next FIELD if not defined $child_or_node;
+                next FIELD
+                    if $child_or_node->[Marpa::Internal::Or_Node::DELETED];
                 my $id = $child_or_node->[Marpa::Internal::Or_Node::ID];
 
                 ### <where> child or-node id: $id
@@ -652,17 +671,16 @@ sub delete_nodes {
                 my $parent_ids =
                     $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
 
-                ### child deleted?: $child_or_node->[Marpa'Internal'Or_Node'DELETED]
-
                 ### <where> parent ids: $parent_ids
 
                 my $delete_node_index =
                     List::Util::first { $parent_ids->[$_] == $delete_node_id }
                 ( 0 .. $#{$parent_ids} );
 
-                # I don't think the condition in this next line should
-                # ever occur.
-                next FIELD if not defined $delete_node_index;
+                ### delete_node_index: $delete_node_index;
+
+                ### assert: defined $delete_node_index;
+
                 splice @{$parent_ids}, $delete_node_index, 1;
             }    # FIELD
 
