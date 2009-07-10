@@ -1602,7 +1602,7 @@ END_PERL
 		} ## end if ( ( $module->cpan_file...))
 
 		if ( $module->cpan_file =~ m{/autodie-\d}msx ) {
-			$self->install_modules(qw( IPC::System::Simple ));
+			$self->install_modules(qw( Win32::Process IPC::System::Simple ));
 
 			if (    ( $module->cpan_version > 1.999 )
 				and ( $module->cpan_version < 2.04 ) )
