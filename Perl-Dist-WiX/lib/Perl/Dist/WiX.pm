@@ -1570,7 +1570,7 @@ END_PERL
 			next MODULE;
 		}
 
-		if ( $module->cpan_file =~ m{/Encode-2.34\d}msx )
+		if ( $module->cpan_file =~ m{/Encode-2.34}msx )
 		{
 			# Force this module.
 			$self->_install_cpan_module( $module, 1 );
