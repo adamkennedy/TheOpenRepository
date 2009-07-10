@@ -1558,7 +1558,7 @@ END_PERL
 	my @delayed_modules;
   MODULE:
 	for my $module ( @{$module_info} ) {
-		$force = 0;
+		$force = $self->force;
 
 		next MODULE if $self->_skip_upgrade($module);
 
@@ -1567,6 +1567,13 @@ END_PERL
 		{
 			$self->install_modules(qw( File::Remove YAML::Tiny ));
 			$self->_install_cpan_module( $module, $force );
+			next MODULE;
+		}
+
+		if ( $module->cpan_file =~ m{/Encode-2.34\d}msx )
+		{
+			# Force this module.
+			$self->_install_cpan_module( $module, 1 );
 			next MODULE;
 		}
 
