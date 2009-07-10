@@ -1683,9 +1683,9 @@ sub _skip_upgrade {
 	# DON'T try to install Perl.
 	return 1 if $module->cpan_file =~ m{/perl-5\.}msx;
 
-	# DON'T try to install Net::Ping, it seems to require
-	# a web server available on 127.0.0.1 to pass tests.
-	return 1 if $module->id eq 'Module::Maketext::Simple';
+	# DON'T try to install Locale::Maketext::Simple, it 
+	# does not pass tests.
+	return 1 if $module->id eq 'Locale::Maketext::Simple';
 
 	# DON'T try to install Net::Ping, it seems to require
 	# a web server available on 127.0.0.1 to pass tests.
