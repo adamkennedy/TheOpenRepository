@@ -1685,6 +1685,10 @@ sub _skip_upgrade {
 
 	# DON'T try to install Net::Ping, it seems to require
 	# a web server available on 127.0.0.1 to pass tests.
+	return 1 if $module->id eq 'Module::Maketext::Simple';
+
+	# DON'T try to install Net::Ping, it seems to require
+	# a web server available on 127.0.0.1 to pass tests.
 	return 1 if $module->id eq 'Net::Ping';
 
 	# If the ID is CGI::Carp, there's a bug in the index.
