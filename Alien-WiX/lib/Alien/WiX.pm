@@ -9,7 +9,9 @@ use base                qw( Exporter );
 use vars                qw( $VERSION @EXPORT_OK %EXPORT_TAGS);
 use version; $VERSION = version->new('1.305419')->numify();
 
+eval { require Alien::WiX::v35; 1; } or
 eval { require Alien::WiX::v30; Alien::WiX::v30->VERSION(5419); 1; } or
+die @_;
 
 # http://wix.sourceforge.net/releases/3.0.5419.0/Wix3.msi
 
@@ -22,7 +24,14 @@ eval { require Alien::WiX::v30; Alien::WiX::v30->VERSION(5419); 1; } or
 my $_wix_registry;
 
 sub import {
-    _wix_registry(); # So we die quick if WiX is not installed.
+	my @import = @_;
+	shift @import;
+
+	if (defined $Alien::WiX::v35::VERSION) {
+		Alien::WiX::v35->import(@import);
+	} else {
+		Alien::WiX::v30->import(@import);
+	}
     Alien::WiX->export_to_level(1, @_);
 }
 
@@ -37,7 +46,7 @@ Alien::WiX - Installing and finding Windows Installer XML (WiX)
 
 =head1 VERSION
 
-This document describes Alien::WiX version 0.305405.
+This document describes Alien::WiX version 0.305419.
 
 Note that the first digit will change if the API changes 
 in an incompatible manner, while the other digits change 

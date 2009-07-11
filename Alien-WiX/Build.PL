@@ -66,7 +66,7 @@ my $class = Module::Build->subclass(
 
 
 my $builder = $class->new(
-    module_name         => 'Alien::WiX',
+    module_name         => 'Alien::WiX::v30',
     license             => 'perl',
     dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
     dist_version_from   => 'lib/Alien/WiX.pm',
