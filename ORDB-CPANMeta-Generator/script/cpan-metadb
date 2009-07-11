@@ -6,7 +6,7 @@ use Params::Util                   qw{ _STRING };
 use Getopt::Long                   ();
 use ORDB::CPANMeta::Generator 0.05 ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 # Check params
 my $DELTA = 0;

@@ -41,7 +41,7 @@ use CPAN::Mini        0.576 ();
 use CPAN::Mini::Visit  0.08 ();
 use Xtract::Publish    0.10 ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -254,7 +254,8 @@ END_SQL
 			my $the  = shift;
 			my @deps = ();
 			my $dist = {
-				release => $the->{dist},
+				release     => $the->{dist},
+				meta_exists => 0,
 			};
 			my @yaml = eval {
 				Parse::CPAN::Meta::LoadFile(
@@ -264,6 +265,7 @@ END_SQL
 				);
 			};
 			unless ( $@ ) {
+				$dist->{meta_exists}    = 1;
 				$dist->{meta_name}      = $yaml[0]->{name};
 				$dist->{meta_version}   = $yaml[0]->{version};
 				$dist->{meta_abstract}  = $yaml[0]->{abstract};
