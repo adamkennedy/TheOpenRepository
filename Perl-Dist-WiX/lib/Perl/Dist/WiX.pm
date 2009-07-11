@@ -1746,7 +1746,18 @@ sub install_portable {
 	my $self = shift;
 
 	# Install the regular parts of Portability
-	$self->install_modules(qw(Class::Inspector CPAN::Mini Portable));
+	$self->install_modules(qw(
+		Sub::Uplevel
+		Test::Exception
+		Test::Tester
+		Test::NoWarnings
+		LWP::Online
+	)) unless $self->isa('Perl::Dist::Strawberry');	
+	$self->install_modules(qw(
+		Class::Inspector
+		CPAN::Mini
+		Portable
+	)) unless $self->isa('Perl::Dist::Bootstrap');
 
 	# Create the portability object
 	$self->trace_line( 1, "Creating Portable::Dist\n" );

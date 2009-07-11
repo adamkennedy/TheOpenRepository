@@ -52,7 +52,6 @@ sub filters {
 	return 0 if $mod =~ m{/DAGOLDEN/File-pushd-};
 	return 0 if $mod =~ m{/ADAMK/File-};
 	return 0 if $mod =~ m{/TJENNESS/File-Temp-};
-	return 0 if $mod =~ m{/ADAMK/LWP-Online-};
 	return 0 if $mod =~ m{/ADAMK/Object-Tiny-};
 	return 0 if $mod =~ m{/ADAMK/YAML-Tiny-};
 	return 0 if $mod =~ m{/ADAMK/Params-Util-};
@@ -95,7 +94,7 @@ sub filters {
 	return 0 if $mod =~ m{/MLEHMANN/JSON-XS-};
 	return 0 if $mod =~ m{/MAKAMAKA/JSON-};
 
-	# Perl::Dist::Strawberry (Portable) and Bootstrap.
+	# Portability and Perl::Dist::Bootstrap.
 	return 0 if $mod =~ m{/ADAMK/Portable-};
 	return 0 if $mod =~ m{/RJBS/CPAN-Mini-};
 	return 0 if $mod =~ m{/ADAMK/Class-Inspector-};
@@ -110,8 +109,6 @@ sub filters {
 	return 0 if $mod =~ m{/PAJAS/XML-LibXML-};
 	return 0 if $mod =~ m{/GAAS/libwww-perl-};
 	return 0 if $mod =~ m{/SMUELLER/PAR-Dist-InstallPPD-};
-    return 0 if $mod =~ m{/DAGOLDEN/Sub-Uplevel-};
-	return 0 if $mod =~ m{/ADIE/Test-Exception-};
 	return 0 if $mod =~ m{/DSKOLL/IO-stringy-};
     return 0 if $mod =~ m{/DAVECROSS/Array-Compare-};
     return 0 if $mod =~ m{/COGENT/Tree-DAG_Node-};
@@ -130,7 +127,6 @@ sub filters {
     return 0 if $mod =~ m{/GBARR/CPAN-DistnameInfo-};
 	return 0 if $mod =~ m{/RKOBES/CPAN-SQLite-};
 	return 0 if $mod =~ m{/MJEVANS/DBD-ODBC-};
-    return 0 if $mod =~ m{/FDALY/Test-Tester-};
     return 0 if $mod =~ m{/GRANTM/XML-SAX-};
     return 0 if $mod =~ m{/ANDK/CPAN-Checksums-};
     return 0 if $mod =~ m{/ADAMK/CPAN-Inject-};
@@ -147,10 +143,16 @@ sub filters {
     return 0 if $mod =~ m{/AUDREYT/Parse-Binary-};
     return 0 if $mod =~ m{/PHISH/XML-LibXML-Common-};
     return 0 if $mod =~ m{/(?:RBERJON|PERIGRIN)/XML-NamespaceSupport-};
-    return 0 if $mod =~ m{/FDALY/Test-NoWarnings-};
     return 0 if $mod =~ m{/ADAMK/Test-Script-};
     return 0 if $mod =~ m{/(?:RSCHUPP|RJBS)/IPC-Run3-};
     return 0 if $mod =~ m{/APEIRON/local-lib-};
+
+	# Portability and Perl::Dist::Strawberry
+	return 0 if $mod =~ m{/DAGOLDEN/Sub-Uplevel-};
+	return 0 if $mod =~ m{/ADIE/Test-Exception-};
+    return 0 if $mod =~ m{/FDALY/Test-NoWarnings-};
+    return 0 if $mod =~ m{/FDALY/Test-Tester-};
+	return 0 if $mod =~ m{/ADAMK/LWP-Online-};
 
 	# Perl::Dist::WiX upgrades
 	return 0 if $mod =~ m{/SBURKE/Pod-Escapes-};
