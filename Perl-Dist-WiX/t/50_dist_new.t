@@ -41,7 +41,7 @@ isa_ok( $ua, 'LWP::UserAgent' );
 # Run the dist object, and ensure everything we expect was created
 ok( eval { $dist->run; 1; }, '->run ok' );
 if ( defined $@ ) {
-	if ( blessed( $@ ) && $@->isa("Exception::Class::Base") {
+	if ( blessed( $@ ) && $@->isa("Exception::Class::Base") ) {
 		diag($@->as_string);
 	} else {
 		diag($@);
