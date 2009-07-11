@@ -7,6 +7,7 @@ BEGIN {
 }
 
 use Test::More;
+use Scalar::Util 'blessed';
 use File::Spec::Functions ':ALL';
 BEGIN {
 	unless ( $^O eq 'MSWin32' ) {
@@ -17,7 +18,7 @@ BEGIN {
 		plan( skip_all => 'Cannot be tested in a directory with an extension.' );
 		exit(0);
 	}
-	plan( tests => 11 );
+	plan( tests => 12 );
 }
 
 use t::lib::Test;
@@ -38,6 +39,13 @@ my $ua = $dist->user_agent;
 isa_ok( $ua, 'LWP::UserAgent' );
 
 # Run the dist object, and ensure everything we expect was created
-ok( $dist->run, '->run ok' );
+ok( eval { $dist->run; 1; }, '->run ok' );
+if ( defined $@ ) {
+	if ( blessed( $@ ) && $@->isa("Exception::Class::Base") {
+		diag($@->as_string);
+	} else {
+		diag($@);
+	}
+}
 ok( -f catfile( qw{ t tmp50 image c bin dmake.exe } ), 'Found dmake.exe' );
 ok( -f catfile( qw{ t tmp50 image c bin startup Makefile.in } ), 'Found startup' );

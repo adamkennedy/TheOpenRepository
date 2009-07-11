@@ -17,7 +17,7 @@ use URI                  ();
 
 use vars qw{$VERSION};
 BEGIN {
-    use version; $VERSION = qv('0.190');
+    use version; $VERSION = qv('0.192');
 }
 
 
@@ -56,15 +56,17 @@ sub paths {
 	Test::More::diag($basedir);
 
 	# Make or remake the subpaths
-	my $output_dir   = remake_path( catdir( $basedir, 'output'   ) );
-	my $image_dir    = remake_path( catdir( $basedir, 'image'    ) );
-	my $download_dir =   make_path( $download );
-	my $build_dir    = remake_path( catdir( $basedir, 'build'    ) );
+	my $output_dir   = remake_path( catdir( $basedir, 'output'    ) );
+	my $image_dir    = remake_path( catdir( $basedir, 'image'     ) );
+	my $download_dir =   make_path( $download                       );
+	my $fragment_dir = remake_path( catdir( $basedir, 'fragments' ) );
+	my $build_dir    = remake_path( catdir( $basedir, 'build'     ) );
 	return (
 		output_dir   => $output_dir,
 		image_dir    => $image_dir,
 		download_dir => $download_dir,
 		build_dir    => $build_dir,
+		fragment_dir => $fragment_dir,
 	);
 }
 

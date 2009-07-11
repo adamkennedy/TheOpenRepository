@@ -8,6 +8,7 @@ BEGIN {
 }
 
 use Test::More;
+use Scalar::Util 'blessed';
 use LWP::Online ':skip_all';
 use File::Spec::Functions ':ALL';
 BEGIN {
@@ -27,7 +28,7 @@ BEGIN {
 		plan( skip_all => 'Cannot test successfully in a test directory with spaces' );
 		exit(0);
 	}
-	plan( tests => 13 );
+	plan( tests => 14 );
 }
 
 use t::lib::Test;
@@ -50,6 +51,13 @@ $SIG{__WARN__} = sub {
 my $time = scalar localtime();
 diag( "Building test dist @ $time, may take several hours... (sorry)" );
 ok( eval { $dist->run; 1; }, '->run ok' );
+if ( defined $@ ) {
+	if ( blessed( $@ ) && $@->isa("Exception::Class::Base") {
+		diag($@->as_string);
+	} else {
+		diag($@);
+	}
+}
 $time = scalar localtime();
 diag( "Test dist finished @ $time." );
 

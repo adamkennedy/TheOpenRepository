@@ -7,6 +7,7 @@ BEGIN {
 }
 
 use Test::More;
+use Scalar::Util 'blessed';
 use LWP::Online ':skip_all';
 use File::Spec::Functions ':ALL';
 BEGIN {
@@ -22,7 +23,7 @@ BEGIN {
 		plan( skip_all => 'Cannot be tested in a directory with an extension.' );
 		exit(0);
 	}
-	plan( tests => 10 );
+	plan( tests => 11 );
 }
 
 use File::Spec::Functions ':ALL';
@@ -43,6 +44,13 @@ isa_ok( $dist, 't::lib::TestPortable' );
 my $time = scalar localtime();
 diag( "Building test dist @ $time, may take several hours... (sorry)" );
 ok( eval { $dist->run; 1; }, '->run ok' );
+if ( defined $@ ) {
+	if ( blessed( $@ ) && $@->isa("Exception::Class::Base") {
+		diag($@->as_string);
+	} else {
+		diag($@);
+	}
+}
 $time = scalar localtime();
 diag( "Test dist finished @ $time." );
 
