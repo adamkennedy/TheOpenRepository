@@ -1570,8 +1570,8 @@ END_PERL
 			next MODULE;
 		}
 
-		if ( $module->cpan_file =~ m{/Encode-2.34}msx )
-		{
+		if ( $module->cpan_file =~ m{/Encode-2.34}msx ) {
+
 			# Force this module.
 			$self->_install_cpan_module( $module, 1 );
 			next MODULE;
@@ -1602,7 +1602,8 @@ END_PERL
 		} ## end if ( ( $module->cpan_file...))
 
 		if ( $module->cpan_file =~ m{/autodie-\d}msx ) {
-			$self->install_modules(qw( Win32::Process IPC::System::Simple ));
+			$self->install_modules(
+				qw( Win32::Process IPC::System::Simple ));
 
 			if (    ( $module->cpan_version > 1.999 )
 				and ( $module->cpan_version < 2.04 ) )
@@ -1683,7 +1684,7 @@ sub _skip_upgrade {
 	# DON'T try to install Perl.
 	return 1 if $module->cpan_file =~ m{/perl-5\.}msx;
 
-	# DON'T try to install Locale::Maketext::Simple, it 
+	# DON'T try to install Locale::Maketext::Simple, it
 	# does not pass tests.
 	return 1 if $module->id eq 'Locale::Maketext::Simple';
 
@@ -1746,18 +1747,18 @@ sub install_portable {
 	my $self = shift;
 
 	# Install the regular parts of Portability
-	$self->install_modules(qw(
-		Sub::Uplevel
-		Test::Exception
-		Test::Tester
-		Test::NoWarnings
-		LWP::Online
-	)) unless $self->isa('Perl::Dist::Strawberry');	
-	$self->install_modules(qw(
-		Class::Inspector
-		CPAN::Mini
-		Portable
-	)) unless $self->isa('Perl::Dist::Bootstrap');
+	$self->install_modules( qw(
+		  Sub::Uplevel
+		  Test::Exception
+		  Test::Tester
+		  Test::NoWarnings
+		  LWP::Online
+		  ) ) unless $self->isa('Perl::Dist::Strawberry');
+	$self->install_modules( qw(
+		  Class::Inspector
+		  CPAN::Mini
+		  Portable
+		  ) ) unless $self->isa('Perl::Dist::Bootstrap');
 
 	# Create the portability object
 	$self->trace_line( 1, "Creating Portable::Dist\n" );

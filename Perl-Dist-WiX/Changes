@@ -4,8 +4,10 @@ Changes for Perl extension Perl-Dist-WiX
     1. Will be used to make Strawberry Perl July 2009.
     2. Windows XP is now the minimum supported Windows 
        version.
-    3. Install IPC::System::Simple if autodie is installed.
+    3. Installs Win32::Process and IPC::System::Simple 
+       if autodie is installed.
     4. Clears PAR temporary directory.
+    5. Installs requirements for portability individually.
 
 0.191   Mon 06 Jul 2009
     1. Was used to make Padre Standalone beta 1.

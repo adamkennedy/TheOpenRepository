@@ -1,4 +1,4 @@
-#! perl
+#! perl ## no critic (PerlMinimumVersion)
 
 use warnings;
 use strict;
@@ -8,29 +8,32 @@ use File::Copy;
 use File::HomeDir;
 use File::Spec::Functions qw(catdir catfile);
 
+use version; our $VERSION = qv(0.192);
+
 STDOUT->autoflush(1);
 STDERR->autoflush(1);
 
-say "Updated: ", scalar localtime;
+say 'Updated: ', scalar localtime;
 
 require CPAN::Mini::Devel;
 
 CPAN::Mini::Devel->update_mirror(
-  remote => 'http://cpan.hexten.net/',
-  local  => 'C:\minicpan',
-  trace  => 1,
-  path_filters => [
-    sub { filters($_[0]); }
-  ]
-);
+	remote       => 'http://cpan.hexten.net/',
+	local        => 'C:\minicpan',
+	trace        => 1,
+	path_filters => [ sub { filters( $_[0] ); } ] );
 
-say "Finished: ", scalar localtime;
+say 'Finished: ', scalar localtime;
 
 exit 0;
 
-sub filters {
+sub filters { ## no critic (ProhibitExcessComplexity)
 	my $mod = shift;
-	
+
+	## no critic (RequireExtendedFormatting)
+	## no critic (RequireDotMatchAnything)
+	## no critic (RequireLineBoundaryMatching)
+
 	# Perl::Dist::Bootstrap stuff;
 	return 0 if $mod =~ m{/JUERD/DBIx-Simple-};
 	return 0 if $mod =~ m{/FLORA/Algorithm-C3-};
@@ -207,7 +210,7 @@ sub filters {
 	return 0 if $mod =~ m{/JDHEDDEN/threads-shared-};
 	return 0 if $mod =~ m{/LDS/CGI.pm-};
 	return 0 if $mod =~ m{/PJF/autodie-};
-	return 0 if $mod =~ m{/PJF/IPC-System-Simple-}
+	return 0 if $mod =~ m{/PJF/IPC-System-Simple-};
 	return 0 if $mod =~ m{/PMQS/Filter-};
 	return 0 if $mod =~ m{/RRA/podlators-};
 	return 0 if $mod =~ m{/RRA/ANSIColor-};
@@ -263,9 +266,9 @@ sub filters {
 	return 0 if $mod =~ m{/PETDANCE/HTML-Tagset-};
 	return 0 if $mod =~ m{/GAAS/HTML-Parser-};
 	return 0 if $mod =~ m{/GAAS/libwww-perl-};
-	
+
 	return 1;
-}
+} ## end sub filters
 
 __END__
 

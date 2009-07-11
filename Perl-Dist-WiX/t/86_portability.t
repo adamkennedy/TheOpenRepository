@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Test that our MANIFEST describes the distribution
+# Test that our files are portable across systems.
 
 use strict;
 
