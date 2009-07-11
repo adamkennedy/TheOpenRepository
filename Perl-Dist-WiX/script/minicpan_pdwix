@@ -32,20 +32,20 @@ sub filters {
 	my $mod = shift;
 	
 	# Perl::Dist::Bootstrap stuff;
-    return 0 if $mod =~ m{/JUERD/DBIx-Simple-};
-    return 0 if $mod =~ m{/FLORA/Algorithm-C3-};
-    return 0 if $mod =~ m{/FLORA/Class-C3-};
+	return 0 if $mod =~ m{/JUERD/DBIx-Simple-};
+	return 0 if $mod =~ m{/FLORA/Algorithm-C3-};
+	return 0 if $mod =~ m{/FLORA/Class-C3-};
 	return 0 if $mod =~ m{/FLORA/MRO-Compat-};
 	return 0 if $mod =~ m{/ADAMK/Task-Weaken-};
 	return 0 if $mod =~ m{/CHOCOLATE/Scope-Guard-};
 	return 0 if $mod =~ m{/NUFFIN/Devel-GlobalDestruction-};
 	return 0 if $mod =~ m{/XMATH/Sub-Name-};
-    return 0 if $mod =~ m{/DROLSKY/Class-MOP-};
-    return 0 if $mod =~ m{/DROLSKY/Moose-};
+	return 0 if $mod =~ m{/DROLSKY/Class-MOP-};
+	return 0 if $mod =~ m{/DROLSKY/Moose-};
 	return 0 if $mod =~ m{/SARTAK/MooseX-AttributeHelpers-};
 	return 0 if $mod =~ m{/CSJEWELL/Perl-Dist-WiX-};
 	return 0 if $mod =~ m{/CSJEWELL/File-List-Object-};
-    return 0 if $mod =~ m{/ADAMK/Module-Install-};
+	return 0 if $mod =~ m{/ADAMK/Module-Install-};
 	return 0 if $mod =~ m{/ROODE/Readonly};
 	return 0 if $mod =~ m{/DMUEY/File-Copy-Recursive-};
 	return 0 if $mod =~ m{/RCLAMP/File-Find-Rule-};
@@ -110,8 +110,8 @@ sub filters {
 	return 0 if $mod =~ m{/GAAS/libwww-perl-};
 	return 0 if $mod =~ m{/SMUELLER/PAR-Dist-InstallPPD-};
 	return 0 if $mod =~ m{/DSKOLL/IO-stringy-};
-    return 0 if $mod =~ m{/DAVECROSS/Array-Compare-};
-    return 0 if $mod =~ m{/COGENT/Tree-DAG_Node-};
+	return 0 if $mod =~ m{/DAVECROSS/Array-Compare-};
+	return 0 if $mod =~ m{/COGENT/Tree-DAG_Node-};
 	return 0 if $mod =~ m{/CHORNY/Test-Warn-};
 	return 0 if $mod =~ m{/FDALY/Test-Deep-};
 	return 0 if $mod =~ m{/RKINYON/DBM-Deep-};
@@ -124,39 +124,39 @@ sub filters {
 	return 0 if $mod =~ m{/ADAMK/pip-};
 	return 0 if $mod =~ m{/TIMB/DBI-};
 	return 0 if $mod =~ m{/ADAMK/DBD-SQLite-};
-    return 0 if $mod =~ m{/GBARR/CPAN-DistnameInfo-};
+	return 0 if $mod =~ m{/GBARR/CPAN-DistnameInfo-};
 	return 0 if $mod =~ m{/RKOBES/CPAN-SQLite-};
 	return 0 if $mod =~ m{/MJEVANS/DBD-ODBC-};
-    return 0 if $mod =~ m{/GRANTM/XML-SAX-};
-    return 0 if $mod =~ m{/ANDK/CPAN-Checksums-};
-    return 0 if $mod =~ m{/ADAMK/CPAN-Inject-};
-    return 0 if $mod =~ m{/DCANTRELL/Data-Compare-};
-    return 0 if $mod =~ m{/RCLAMP/Number-Compare-};
-    return 0 if $mod =~ m{/PINYAN/File-chmod-};
-    return 0 if $mod =~ m{/DAGOLDEN/File-pushd-};
-    return 0 if $mod =~ m{/RCLAMP/File-Find-Rule-};
-    return 0 if $mod =~ m{/ADAMK/File-Remove-};
-    return 0 if $mod =~ m{/SMUELLER/PAR-Dist-};
-    return 0 if $mod =~ m{/SMUELLER/PAR-Dist-FromPPD-};
-    return 0 if $mod =~ m{/ADAMK/Params-Util-};
-    return 0 if $mod =~ m{/KWILLIAMS/Probe-Perl-};
-    return 0 if $mod =~ m{/AUDREYT/Parse-Binary-};
-    return 0 if $mod =~ m{/PHISH/XML-LibXML-Common-};
-    return 0 if $mod =~ m{/(?:RBERJON|PERIGRIN)/XML-NamespaceSupport-};
-    return 0 if $mod =~ m{/ADAMK/Test-Script-};
-    return 0 if $mod =~ m{/(?:RSCHUPP|RJBS)/IPC-Run3-};
-    return 0 if $mod =~ m{/APEIRON/local-lib-};
+	return 0 if $mod =~ m{/GRANTM/XML-SAX-};
+	return 0 if $mod =~ m{/ANDK/CPAN-Checksums-};
+	return 0 if $mod =~ m{/ADAMK/CPAN-Inject-};
+	return 0 if $mod =~ m{/DCANTRELL/Data-Compare-};
+	return 0 if $mod =~ m{/RCLAMP/Number-Compare-};
+	return 0 if $mod =~ m{/PINYAN/File-chmod-};
+	return 0 if $mod =~ m{/DAGOLDEN/File-pushd-};
+	return 0 if $mod =~ m{/RCLAMP/File-Find-Rule-};
+	return 0 if $mod =~ m{/ADAMK/File-Remove-};
+	return 0 if $mod =~ m{/SMUELLER/PAR-Dist-};
+	return 0 if $mod =~ m{/SMUELLER/PAR-Dist-FromPPD-};
+	return 0 if $mod =~ m{/ADAMK/Params-Util-};
+	return 0 if $mod =~ m{/KWILLIAMS/Probe-Perl-};
+	return 0 if $mod =~ m{/AUDREYT/Parse-Binary-};
+	return 0 if $mod =~ m{/PHISH/XML-LibXML-Common-};
+	return 0 if $mod =~ m{/(?:RBERJON|PERIGRIN)/XML-NamespaceSupport-};
+	return 0 if $mod =~ m{/ADAMK/Test-Script-};
+	return 0 if $mod =~ m{/(?:RSCHUPP|RJBS)/IPC-Run3-};
+	return 0 if $mod =~ m{/APEIRON/local-lib-};
 
 	# Portability and Perl::Dist::Strawberry
 	return 0 if $mod =~ m{/DAGOLDEN/Sub-Uplevel-};
 	return 0 if $mod =~ m{/ADIE/Test-Exception-};
-    return 0 if $mod =~ m{/FDALY/Test-NoWarnings-};
-    return 0 if $mod =~ m{/FDALY/Test-Tester-};
+	return 0 if $mod =~ m{/FDALY/Test-NoWarnings-};
+	return 0 if $mod =~ m{/FDALY/Test-Tester-};
 	return 0 if $mod =~ m{/ADAMK/LWP-Online-};
 
 	# Perl::Dist::WiX upgrades
 	return 0 if $mod =~ m{/SBURKE/Pod-Escapes-};
-    return 0 if $mod =~ m{/KANE/Archive-Extract-};
+	return 0 if $mod =~ m{/KANE/Archive-Extract-};
 	return 0 if $mod =~ m{/SMUELLER/Attribute-Handlers-};
 	return 0 if $mod =~ m{/SMUELLER/AutoLoader-};
 	return 0 if $mod =~ m{/RURBAN/B-Debug-};
@@ -291,7 +291,7 @@ execution of this script that the modules used do not already use.
 
 Perl 5.10.0 is the mimimum version of perl that this script will run on.
 
-Other modules that this module depends on are L<IO::Handle>, L<File::Copy>, 
+Other modules that this script depends on are L<IO::Handle>, L<File::Copy>, 
 L<File::Spec::Functions>, L<File::HomeDir>, L<CPAN::Mini> 0.576, and 
 L<CPAN::Mini::Devel> 0.03.
  
