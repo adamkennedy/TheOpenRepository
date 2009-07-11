@@ -7,13 +7,12 @@ use Carp;
 use File::Spec;
 use base                qw( Exporter );
 use vars                qw( $VERSION @EXPORT_OK %EXPORT_TAGS);
-use Readonly            qw( Readonly );
-use Win32::TieRegistry  qw( KEY_READ ); 
-use version; $VERSION = version->new('0.305405')->numify();
+use version; $VERSION = version->new('1.305419')->numify();
 
-# http://wix.sourceforge.net/releases/3.0.5405.0/Wix3.msi
+eval { require Alien::WiX::v30; Alien::WiX::v30->VERSION(5419); 1; } or
 
-Readonly my $WIX_REGISTRY_KEY => 'HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows Installer XML/3.0';
+# http://wix.sourceforge.net/releases/3.0.5419.0/Wix3.msi
+
 @EXPORT_OK = qw(wix_binary wix_library wix_version wix_version_number wix_bin_candle wix_bin_light wix_lib_wixui);
 %EXPORT_TAGS = (
     GENERAL => [qw(wix_binary wix_library wix_version wix_version_number)], 
@@ -27,59 +26,6 @@ sub import {
     Alien::WiX->export_to_level(1, @_);
 }
 
-sub _wix_registry {
-	$_wix_registry ||= Win32::TieRegistry->new( $WIX_REGISTRY_KEY => {
-		Access    => KEY_READ(),
-		Delimiter => '/',
-	} );
-	
-	unless (defined $_wix_registry) {
-		croak 'Windows Installer XML not installed, cannot continue';
-	}
-	
-	return $_wix_registry;
-}
-
-sub _wix_root {
-	return _wix_registry->TiedRef->{'InstallRoot'};
-}
-
-sub wix_version {
-	return _wix_registry->TiedRef->{'ProductVersion'};
-}
-
-sub wix_version_number {
-	my $version = wix_version();
-    if ($version =~ m/3.0.(\d+).0/) {
-        return $1;
-    } 
-    
-    return;
-}
-
-sub wix_binary {
-	my $file = File::Spec->catfile( _wix_root(), "$_[0].exe" );
-    croak "Cannot execute $file" unless (-x $file);
-    return $file;
-}
-
-sub wix_library {
-	my $file = File::Spec->catfile( _wix_root(), "$_[0]Extension.dll" );
-    croak "Cannot find $file" unless (-f $file);
-    return $file;
-}
-
-sub wix_bin_candle {
-	return wix_binary('candle');
-}
-
-sub wix_bin_light {
-	return wix_binary('light');
-}
-
-sub wix_lib_wixui {
-	return wix_library('WixUI')
-}
 
 1;
 
@@ -98,12 +44,14 @@ in an incompatible manner, while the other digits change
 when the version of WiX that is installed by this module 
 changes.
 
+There is no incompatibility between 0.x and 1.x versions, however.
+
 =head1 SYNOPSIS
 
     use Alien::WiX qw(:GENERAL);
 
     print wix_version();
-    # Prints 3.0.5405.0, usually.
+    # Prints 3.0.5419.0, usually.
     
     $version_number = wix_version_number();
     die 'WiX beta-exit build or better required, stopping' 
@@ -112,7 +60,7 @@ changes.
     print wix_binary('candle'), " exists\n";
     print wix_library('WixFirewall'), " exists\n";
     
-    use Alien::WiX 0.305405 qw(:ALL);
+    use Alien::WiX 0.305419 qw(:ALL);
     
     print wix_bin_candle(), " exists\n";
     print wix_bin_light(), " exists\n";
@@ -121,7 +69,7 @@ changes.
 =head1 DESCRIPTION
 
 Installing this module will also install Windows Installer XML (otherwise 
-known as WiX) version 3.0.5405.0, if it (or a later version) has not 
+known as WiX) version 3.0.5419.0, if it (or a later version) has not 
 already been installed.
 
 This module provides utility subroutines that would be useful for programs
@@ -134,12 +82,12 @@ C<use>ing the module will also croak if WiX is not installed.
 
 =head2 wix_version
 
-Returns the version of Windows Installer XML (i.e. 3.0.5021.0) as a string.
+Returns the version of Windows Installer XML (i.e. 3.0.5419.0) as a string.
 
 =head2 wix_version_number
 
 Returns the third portion of the version of Windows Installer XML 
-(i.e. if wix_version returns 3.0.5021.0, this returns 5021) as a number.
+(i.e. if wix_version returns 3.0.5419.0, this returns 5419) as a number.
 
 =head2 wix_binary
 
@@ -200,7 +148,7 @@ Makefile.PL or Build.PL successfully), L<Module::Build>
 L<Win32::TieRegistry>, L<version>, and L<Readonly>.
 
 Installation of Alien::WiX will install Microsoft .NET Framework 2.0 SP1 
-and Windows Installer XML 3.0.5405.0 by downloading them from the 
+and Windows Installer XML 3.0.5419.0 by downloading them from the 
 appropriate sites unless otherwise specified.
 
 =head1 INCOMPATIBILITIES

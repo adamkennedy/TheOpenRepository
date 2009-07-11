@@ -1,6 +1,6 @@
 use warnings;
 use English '-no_match_vars';
-use Module::Build 0.21;
+use Module::Build 0.280802;
 	
 die "OS unsupported" if ('MSWin32' ne $OSNAME);
 
@@ -12,7 +12,7 @@ my $class = Module::Build->subclass(
             my $self = shift;
             my $install_dotnet = $self->notes('install_dotnet');
             my $install_wix = $self->notes('install_wix');
-            my $WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5405.0/Wix3.msi';
+            my $WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5419.0/Wix3.msi';
             my $NET20_URL = 'http://download.microsoft.com/download/0/8/c/08c19fa4-4c4f-4ffb-9d6c-150906578c9e/NetFx20SP1_x86.exe';
 			require Win32;
             my $NET20_FILE = Win32::GetShortPathName($ENV{TEMP}) . '\NetFx20SP1_x86.exe';
@@ -24,7 +24,7 @@ my $class = Module::Build->subclass(
 				# Need to get the file manually - it's not an MSI.
 				require LWP::UserAgent;
 				my $ua = LWP::UserAgent->new;
-				$ua->agent('Alien-WiX/0.305405 ');
+				$ua->agent('Alien-WiX/0.305419 ');
 				my $r = $ua->mirror( $NET20_URL, $NET20_FILE );
 				if ( $r->is_error ) {
 					print "Error getting $NET20_URL: " . $r->as_string . "\n";
@@ -50,7 +50,7 @@ my $class = Module::Build->subclass(
             }
 
             if ($install_wix) {
-                print "Downloading and installing Windows Installer XML 3.0.5405.0.\n";
+                print "Downloading and installing Windows Installer XML 3.0.5419.0.\n";
                 $ok = $self->do_system("msiexec /i $WIX_URL /qb!");
                 unless ($ok) {
                     die q{Couldn't install WiX, stopped};
@@ -74,11 +74,11 @@ my $builder = $class->new(
 		'Win32API::Registry'
 		                => '0.30',
 		'Module::Build'
-		                => '0.21',
+		                => '0.280802',
 	},
     build_requires  => {
 		'Module::Build'
-		                => '0.21',
+		                => '0.280802',
 		'LWP::UserAgent'
 						=> '5.819',
 	},
@@ -110,7 +110,7 @@ $builder->notes('install_wix' => 0);
 my ($default, $answer, $installed, $key, $type, $data, $int_data, $version);
 my $WIX30_REGISTRY_KEY = 'SOFTWARE\\Microsoft\\Windows Installer XML\\3.0';
 my $NET20_REGISTRY_KEY = 'SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v2.0.50727';
-my $WIX_VERSION = 5405;
+my $WIX_VERSION = 5419;
 
 $key = 1;
 $installed = 0;
@@ -162,7 +162,7 @@ if (RegOpenKeyEx( regConstant('HKEY_LOCAL_MACHINE'), $WIX30_REGISTRY_KEY, 0, reg
 }
 
 unless ($installed) {
-	$answer = $builder->y_n('Install Windows Installer XML version 3.0.5405?', $default);
+	$answer = $builder->y_n('Install Windows Installer XML version 3.0.5419?', $default);
 
 	if ($answer) {
         $builder->notes('install_wix' => 1);
