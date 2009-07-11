@@ -175,6 +175,7 @@ sub run {
 	$dbh->do(<<'END_SQL');
 CREATE TABLE IF NOT EXISTS meta_distribution (
 	release TEXT NOT NULL,
+	meta INTEGER,
 	meta_name TEXT,
 	meta_version TEXT,
 	meta_abstract TEXT,
@@ -254,8 +255,8 @@ END_SQL
 			my $the  = shift;
 			my @deps = ();
 			my $dist = {
-				release     => $the->{dist},
-				meta_exists => 0,
+				release => $the->{dist},
+				meta    => 0,
 			};
 			my @yaml = eval {
 				Parse::CPAN::Meta::LoadFile(
@@ -265,7 +266,7 @@ END_SQL
 				);
 			};
 			unless ( $@ ) {
-				$dist->{meta_exists}    = 1;
+				$dist->{meta}           = 1;
 				$dist->{meta_name}      = $yaml[0]->{name};
 				$dist->{meta_version}   = $yaml[0]->{version};
 				$dist->{meta_abstract}  = $yaml[0]->{abstract};
@@ -307,8 +308,9 @@ END_SQL
 				} } sort keys %$configure;
 			}
 			$dbh->do(
-				'INSERT INTO meta_distribution VALUES ( ?, ?, ?, ?, ?, ?, ? )', {},
+				'INSERT INTO meta_distribution VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )', {},
 				$dist->{release},
+				$dist->{meta},
 				$dist->{meta_name},
 				$dist->{meta_version},
 				$dist->{meta_abstract},

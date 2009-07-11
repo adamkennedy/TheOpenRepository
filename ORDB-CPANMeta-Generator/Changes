@@ -1,7 +1,7 @@
 Changes for Perl extension ORDB-CPANMeta-Generator
 
 0.09 Sun 12 Jul 2009
-	- Adding the meta_exists column to distinguish distributions
+	- Adding the meta column to distinguish distributions
 	  which have no META.yml at all from those that do.
 
 0.08 Wed  8 Jul 2009
