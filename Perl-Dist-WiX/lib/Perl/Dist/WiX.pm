@@ -12,7 +12,7 @@ Perl-Dist-WiX version 0.192
 
 =head1 NAME
 
-Perl::Dist::WiX - Experimental 4th generation Win32 Perl distribution builder
+Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
@@ -22,8 +22,8 @@ This document describes Perl::Dist::WiX version 0.192.
 
 =head1 DESCRIPTION
 
-This package is the experimental upgrade to Perl::Dist based on Windows 
-Install XML technology, instead of Inno Setup.
+This package is the upgrade to Perl::Dist based on Windows Installer XML 
+technology, instead of Inno Setup.
 
 Perl distributions built with this module have the option of being created
 as Windows Installer databases (otherwise known as .msi files)
@@ -148,17 +148,17 @@ use Object::Tiny qw(
 );
 #  Don't need to put distributions_installed in here.
 
-use Perl::Dist::Asset               1.15 ();
-use Perl::Dist::Asset::Binary       1.15 ();
-use Perl::Dist::Asset::Library      1.15 ();
-use Perl::Dist::Asset::Perl         1.15 ();
-use Perl::Dist::Asset::Distribution 1.15 ();
-use Perl::Dist::Asset::Module       1.15 ();
-use Perl::Dist::Asset::PAR          1.15 ();
-use Perl::Dist::Asset::File         1.15 ();
-use Perl::Dist::Asset::Website      1.15 ();
-use Perl::Dist::Asset::Launcher     1.15 ();
-use Perl::Dist::Util::Toolchain     1.15 ();
+use Perl::Dist::Asset               1.16 ();
+use Perl::Dist::Asset::Binary       1.16 ();
+use Perl::Dist::Asset::Library      1.16 ();
+use Perl::Dist::Asset::Perl         1.16 ();
+use Perl::Dist::Asset::Distribution 1.16 ();
+use Perl::Dist::Asset::Module       1.16 ();
+use Perl::Dist::Asset::PAR          1.16 ();
+use Perl::Dist::Asset::File         1.16 ();
+use Perl::Dist::Asset::Website      1.16 ();
+use Perl::Dist::Asset::Launcher     1.16 ();
+use Perl::Dist::Util::Toolchain     1.16 ();
 #>>>
 
 Readonly my %MODULE_FIX => (
