@@ -1,5 +1,9 @@
 Revision history for Perl extension prefork
 
+1.04 Sun 12 Jul 2009
+	- Upgrading to Module::Install::DSL 0.91
+	- Sometimes there is no Config_heavy.pl
+
 1.03 Mon 21 Apr 2008
 	- Upgrading to Module::Install 0.83
 	- Preload all of Config.pm

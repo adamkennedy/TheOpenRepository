@@ -176,13 +176,13 @@ prefork provides, you can also do the following.
 
 use 5.005;
 use strict;
-use Carp         ();
-use List::Util   ();
-use Scalar::Util ();
+use Carp
+use List::Util   0.10 ();
+use Scalar::Util 0.10 ();
 
 use vars qw{$VERSION $FORKING %MODULES @NOTIFY};
 BEGIN {
-	$VERSION = '1.03';
+	$VERSION = '1.04';
 
 	# The main state variable for this package.
 	# Are we in preforking mode.
@@ -197,7 +197,10 @@ BEGIN {
 			# Do a hash copy of Config to get everything
 			# inside of it preloaded.
 			require Config;
-			require 'Config_heavy.pl';
+			eval {
+				# Sometimes there is no Config_heavy.pl
+				require 'Config_heavy.pl';
+			};
 			my $copy = { %Config::Config };
 			return 1;
 		},
