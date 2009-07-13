@@ -695,11 +695,15 @@ prior if used many times over a process' life time.
 
 =head1 AUTHOR
 
-Barrie Slaymaker <barries@slaysys.com>.
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-=head1 COPYRIGHT & LICENSE
+Barrie Slaymaker E<lt>barries@slaysys.comE<gt>
 
-Copyright 2001, Barrie Slaymaker.  All Rights Reserved.
+=head1 COPYRIGHT
+
+Some parts copyright 2009 Adam Kennedy.
+
+Copyright 2001 Barrie Slaymaker.  All Rights Reserved.
 
 You may use this under the terms of either the Artistic License or GNU Public
 License v 2.0 or greater.
