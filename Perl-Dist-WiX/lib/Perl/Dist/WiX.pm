@@ -4295,9 +4295,8 @@ sub _mirror {
 		return $target;
 	}
 	if ( $self->offline and not $url =~ m{\Afile://}msx ) {
-		$self->trace_line( 0,
-			"Error: Currently offline, cannot download.\n" );
-		exit 0;
+		PDWiX->throw(
+			"Currently offline, cannot download $url.\n" );
 	}
 	File::Path::mkpath($dir);
 
