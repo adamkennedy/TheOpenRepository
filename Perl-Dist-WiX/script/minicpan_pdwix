@@ -212,6 +212,7 @@ sub filters { ## no critic (ProhibitExcessComplexity)
 	return 0 if $mod =~ m{/PJF/autodie-};
 	return 0 if $mod =~ m{/PJF/IPC-System-Simple-};
 	return 0 if $mod =~ m{/PMQS/Filter-};
+	return 0 if $mod =~ m{/RGARCIA/base-};
 	return 0 if $mod =~ m{/RRA/podlators-};
 	return 0 if $mod =~ m{/RRA/ANSIColor-};
 	return 0 if $mod =~ m{/MUIR/modules/Text-Tabs\+Wrap-};
