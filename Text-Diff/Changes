@@ -1,42 +1,46 @@
-Changes file for Text::Diff
+Changes for Perl extension Text-Diff
+
+1.36 Mon 13 Jul 2009
+	- Cleaning this up to pass tests
+	- Adding author tests
 
 0.35 Tue Aug 27 13:53:23 EDT 2002
-    - Escape whitespace if a blank line is inserted or removed.  This
-      puts a "\n" in the column containing the blank line, for instance.
+	- Escape whitespace if a blank line is inserted or removed.  This
+	  puts a "\n" in the column containing the blank line, for instance.
 
 0.34 Sun Jul 14 07:02:51 EDT 2002
-    - Improved Table format's escaping
-        - that "\t" and "\\t" are displayed differently
+	- Improved Table format's escaping
+	- that "\t" and "\\t" are displayed differently
 	- the entire line is escaped consistently if it is escaped
 	  at all.
 
 0.33 Mon Jul  8 16:29:01 EDT 2002
-    - Make diff() return "" instead of 0 when comparing two empty
-      things.  Patch from Rolf Grossmann <grossman@progtech.net>.
+	- Make diff() return "" instead of 0 when comparing two empty
+	  things.  Patch from Rolf Grossmann <grossman@progtech.net>.
 
 0.32 Thu Mar 14 13:37:51 EST 2002
-    - Fix escaping of all-whitespace strings.
+	- Fix escaping of all-whitespace strings.
 
 0.31 Wed Feb  6 05:36:47 EST 2002
-    - Remove stray $SIG{__DIE__} that was confessing on every die.
+	- Remove stray $SIG{__DIE__} that was confessing on every die.
 
 0.3 Undocumented (sorry)
 
 0.11 Mon Dec 10 06:23:00 EST 2001
-    - Remove hardcoded date string from t/general.t's test data, because
-      localtime is used to generate this in Diff.pm and the local machine's
-      timezone (and locale?) can cause the localtime for a given mtime to be
-      quite different.  Reported by  Andreas Marcel Riechert
-      <riechert@pobox.com> of cpan-testers.
-    - Start this Changes file.
-    - Added hunk_header() and hunk_footer() for symmetry in overloading.
-    - Added t/ext_format.t
+	- Remove hardcoded date string from t/general.t's test data, because
+	  localtime is used to generate this in Diff.pm and the local machine's
+	  timezone (and locale?) can cause the localtime for a given mtime to be
+	  quite different.  Reported by  Andreas Marcel Riechert
+	  <riechert@pobox.com> of cpan-testers.
+	- Start this Changes file.
+	- Added hunk_header() and hunk_footer() for symmetry in overloading.
+	- Added t/ext_format.t
 
 0.1
-    - Initial public release.
-    - Added filename, filehandle, and string I/O options
-    - API resembles Algorithm::Diff's a bit more
-    - Reimplement output formats as classes so that external (user-supplied)
-      can be specified as class names (My::Diff::Format) and so that they may
-      be inherited from.  Should probably break out hunk_header() from hunk().
-    - Add footer() to all formats
+	- Initial public release.
+	- Added filename, filehandle, and string I/O options
+	- API resembles Algorithm::Diff's a bit more
+	- Reimplement output formats as classes so that external (user-supplied)
+	  can be specified as class names (My::Diff::Format) and so that they may
+	  be inherited from.  Should probably break out hunk_header() from hunk().
+	- Add footer() to all formats

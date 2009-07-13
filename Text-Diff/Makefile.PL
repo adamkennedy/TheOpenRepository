@@ -1,20 +1,26 @@
+use strict;
+BEGIN {
+	require 5.005_03;
+}
 use ExtUtils::MakeMaker;
 
-use strict ;
-
 WriteMakefile(
-    'NAME'          => 'Text::Diff',
-    'VERSION_FROM'  => 'lib/Text/Diff.pm',
-    'PREREQ_PM'     => {
-        'Algorithm::Diff'  => 0,
-    },
+	NAME         => 'Text::Diff',
+	ABSTRACT     => 'Perform diffs on files and record sets',
+	VERSION_FROM => 'lib/Text/Diff.pm',
+	PREREQ_PM    => {
+		'Exporter'        => 0,
+		'Algorithm::Diff' => '1.19',
+	},
+	($] >= 5.005 ? (
+		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>',
+	) : ()),
+	($ExtUtils::MakeMaker::VERSION ge '6.30_00' ? (
+		LICENSE => 'perl',
+	) : ()),
+	($ExtUtils::MakeMaker::VERSION ge '6.46' ? (
+		META_MERGE => {
+			build_requires => { Test => 0 }
+		}
+	) : ()),
 );
-
-sub MY::libscan {
-   package MY ;
-   my $self = shift ;
-   my ( $path ) = @_ ;
-   return '' if /\.sw[a-z]$/ ;
-   return '' unless length $self->SUPER::libscan( $path ) ;
-   return $path ;
-}
