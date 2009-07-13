@@ -1603,16 +1603,21 @@ END_PERL
 
 		if ( $module->cpan_file =~ m{/autodie-\d}msx ) {
 
-			# This module will not install using install_module(s)
-			# with Strawberry's CPAN::Config. (RT #44770)
-			$self->install_distribution(
-				name             => 'JDB/Win32-Process-0.14.tar.gz',
-				mod_name         => 'Win32::Process',
-				force            => $force
-			);
+			# TODO: Win32::Process does not install at all on 5.8.9
+			# on Strawberry.
+			# Will fix for October 2009 release.
+			if ($module->perl_version eq '5100') {
+				# This module will not install using install_module(s)
+				# with Strawberry's CPAN::Config. (RT #44770)
+				$self->install_distribution(
+					name             => 'JDB/Win32-Process-0.14.tar.gz',
+					mod_name         => 'Win32::Process',
+					force            => $force
+				);
 
-			$self->install_modules(
-				qw( IPC::System::Simple ));
+				$self->install_modules(
+					qw( IPC::System::Simple ));
+			}
 
 			if (    ( $module->cpan_version > 1.999 )
 				and ( $module->cpan_version < 2.04 ) )
