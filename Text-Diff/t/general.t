@@ -126,8 +126,8 @@ for ( @tests ) {
         warn "# diff options: $diff_opts\n" ;
         warn "# my options: $Diff_opts\n" ;
         ## Merge the outputs using A::D
-        my @E = split /^/g, $expect ;
-        my @G = split /^/g, $output ;
+        my @E = split /^/, $expect ;
+        my @G = split /^/, $output ;
         my $w = length "Expected" ;
         for ( @E, @G ) {
             s/\n/\\n/g ;
