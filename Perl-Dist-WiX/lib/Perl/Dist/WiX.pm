@@ -1455,6 +1455,9 @@ sub install_cpan_upgrades { ## no critic 'ProhibitExcessComplexity'
 
 	# Generate the CPAN installation script
 	my $url         = $self->cpan()->as_string();
+	
+	$url =~ s{file:///C:/}{file:///C|/}msx;
+	
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
