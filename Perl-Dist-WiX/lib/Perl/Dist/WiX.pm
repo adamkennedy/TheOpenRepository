@@ -1606,7 +1606,7 @@ END_PERL
 			# TODO: Win32::Process does not install at all on 5.8.9
 			# on Strawberry.
 			# Will fix for October 2009 release.
-			if ($module->perl_version eq '5100') {
+			if ($self->perl_version eq '5100') {
 				# This module will not install using install_module(s)
 				# with Strawberry's CPAN::Config. (RT #44770)
 				$self->install_distribution(
