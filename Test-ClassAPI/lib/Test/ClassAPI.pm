@@ -3,16 +3,17 @@ package Test::ClassAPI;
 # Allows us to test class APIs in a simplified manner.
 # Implemented as a wrapper around Test::More, Class::Inspector and Config::Tiny.
 
-use 5.005;
+use 5.006;
 use strict;
-use Test::More       ();
-use Config::Tiny     ();
-use Class::Inspector ();
-use Params::Util     '_INSTANCE';
+use File::Spec       0.83 ();
+use Test::More       0.47 ();
+use Config::Tiny     2.00 ();
+use Class::Inspector 1.12 ();
+use Params::Util     1.00 '_INSTANCE';
 
 use vars qw{$VERSION $CONFIG $SCHEDULE $EXECUTED %IGNORE *DATA};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 
 	# Config starts empty
 	$CONFIG   = undef;
