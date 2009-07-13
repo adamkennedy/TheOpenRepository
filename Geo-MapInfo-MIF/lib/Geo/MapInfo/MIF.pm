@@ -5,6 +5,7 @@ use strict;
 use File::Slurp;
 use Text::CSV;
 use Params::Util  qw{_INSTANCE};
+use File::Basename;
 
 our $VERSION = '0.01';
 
@@ -24,24 +25,26 @@ sub read_files	{
 	my $mif_file = "";
 	my $mid_file = "";
 	#check which file is which
-	if (((split (/\./, $_[0]))[1]) =~ /mif/i)	{
+	#fileparse("/foo/bar/baz.txt", qr/\.[^.]*/);
+	my($filename, $directories, $suffix) = fileparse($_[0], qr/\.[^.]*/);
+	if ($suffix =~ /mif/i)	{
 		$mif_file = $_[0];
-		if (-e ((split (/\./, $_[0]))[0]).".mid")	{
-			$mid_file = ((split (/\./, $_[0]))[0]).".mid";
+		if (-e $directories.$filename.".mid")	{
+			$mid_file = $directories.$filename.".mid";
 		}
-		elsif (-e ((split (/\./, $_[0]))[0]).".MID")	{
-			$mid_file = ((split (/\./, $_[0]))[0]).".MID";
+		elsif (-e $directories.$filename.".MID")	{
+			$mid_file = $directories.$filename.".MID";
 		}
 		else	{
-			die "Cannot find the mid file,\n";
+			die "Cannot find the mid file.\n$filename\n$suffix\n$directories\n";
 		}
 	}
 	else	{
-		if (-e ((split (/\./, $_[0]))[0]).".mif")	{
-			$mid_file = ((split (/\./, $_[0]))[0]).".mif";
+		if (-e $directories.$filename.".mif")	{
+			$mid_file = $directories.$filename.".mif";
 		}
-		elsif (-e ((split (/\./, $_[0]))[0]).".MIF")	{
-			$mid_file = ((split (/\./, $_[0]))[0]).".MIF";
+		elsif (-e $directories.$filename.".MIF")	{
+			$mid_file = $directories.$filename.".MIF";
 		}
 		else	{
 			die "Cannot find the mif file,\n";
