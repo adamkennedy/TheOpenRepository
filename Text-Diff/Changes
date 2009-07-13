@@ -1,6 +1,6 @@
 Changes for Perl extension Text-Diff
 
-1.36 Mon 13 Jul 2009
+1.36_01 Mon 13 Jul 2009
 	- Cleaning this up to pass tests
 	- Adding author tests
 
