@@ -2308,7 +2308,7 @@ sub install_perl_5100 {
 			info    => $toolchain->{errstr} );
 	}
 
-	# Make the perl directory if it hasn't been made alreafy.
+	# Make the perl directory if it hasn't been made already.
 	$self->make_path( catdir( $self->image_dir, 'perl' ) );
 
 	my $fl2 = File::List::Object->new->readdir(
