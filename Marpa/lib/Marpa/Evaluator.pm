@@ -1120,7 +1120,6 @@ sub rewrite_cycles {
 
             for my $original_or_node (@cycle) {
 
-
                 my $original_or_node_id =
                     $original_or_node->[Marpa::Internal::Or_Node::ID];
                 my $new_or_node_id =
@@ -1135,11 +1134,14 @@ sub rewrite_cycles {
                 # root node.
                 $new_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] = [
                     grep    { defined $_ }
-                        map { $translate_or_node_id{$_} } @{
+                        map { $translate_and_node_id{$_} } @{
                         $original_or_node
                             ->[Marpa::Internal::Or_Node::PARENT_IDS]
                         }
                 ];
+
+                ### PARENT_IDS for original or-node: $original_or_node_id, $original_or_node->[Marpa'Internal'Or_Node'PARENT_IDS]
+                ### New PARENT_IDS for new or-node: $new_or_node_id, $new_or_node->[Marpa'Internal'Or_Node'PARENT_IDS]
 
                 for my $original_and_node_id (
                     @{  $original_or_node
@@ -1168,19 +1170,23 @@ sub rewrite_cycles {
                             ->[Marpa::Internal::Or_Node::ID];
                         my $new_or_child_id =
                             $translate_or_node_id{$original_or_child_id};
+
+                        my $new_or_child;
                         if ( defined $new_or_child_id ) {
+
+                            $new_or_child = $or_nodes->[$new_or_child_id];
+                            $new_and_node->[$field] = $new_or_child;
 
                             ### Changing field, and-node, field: $original_and_node_id, $field
                             ### From or-node, to or-node: $original_or_child_id, $new_or_child_id
 
-                            $new_and_node->[$field] =
-                                $or_nodes->[$new_or_child_id];
-                            next FIELD;
-                        } ## end if ( defined $new_or_child_id )
+                        } else {
+                            $new_or_child = $new_and_node->[$field] = $original_or_child;
+                        }
 
                         # If here, the or-child is external, and we need to duplicate
                         # the link
-                        push @{ $original_or_child
+                        push @{ $new_or_child
                                 ->[Marpa::Internal::Or_Node::PARENT_IDS] },
                             $new_and_node_id;
 
