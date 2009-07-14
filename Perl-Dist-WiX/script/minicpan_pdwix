@@ -201,6 +201,7 @@ sub filters { ## no critic (ProhibitExcessComplexity)
 	return 0 if $mod =~ m{/NUFFIN/Tie-RefHash-};
 	return 0 if $mod =~ m{/JHI/Time-HiRes-};
 	return 0 if $mod =~ m{/DROLSKY/Time-Local-};
+	return 0 if $mod =~ m{/DCONWAY/Text-Balanced-};
 	return 0 if $mod =~ m{/MSERGEANT/Time-Piece-};
 	return 0 if $mod =~ m{/JDB/Win32-\d};
 	return 0 if $mod =~ m{/SAPER/XSLoader-};
