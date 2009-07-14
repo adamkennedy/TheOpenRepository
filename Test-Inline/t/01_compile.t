@@ -16,7 +16,6 @@ use File::Spec::Functions ':ALL';
 ok( $] >= 5.006, "Your perl is new enough" );
 
 # Does the module load
-use Class::Autouse ':devel';
 use_ok('Test::Inline::Content'          );
 use_ok('Test::Inline::Content::Legacy'  );
 use_ok('Test::Inline::Content::Default' );

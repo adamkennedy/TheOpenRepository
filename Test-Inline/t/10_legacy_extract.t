@@ -8,7 +8,6 @@ BEGIN {
 	$^W = 1;
 }
 
-use Class::Autouse ':devel';
 use File::Slurp ();
 use File::Spec::Functions ':ALL';
 use Test::More tests => 7;
