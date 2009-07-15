@@ -874,6 +874,8 @@ sub Marpa::Grammar::set {
                 Marpa::exception(
                     "$option option not allowed after grammar is precomputed")
                     if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
+                Marpa::exception("$option value must be reference to array")
+                    if ref $value ne 'ARRAY';
                 add_user_rules( $grammar, $value );
                 $phase = $grammar->[Marpa::Internal::Grammar::PHASE] =
                     Marpa::Internal::Phase::RULES;
