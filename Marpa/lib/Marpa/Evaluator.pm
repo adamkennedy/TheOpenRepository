@@ -581,7 +581,9 @@ sub audit_and_node {
     }
     my $and_nodes_entry = $and_nodes->[$audit_and_node_id];
     if ( $audit_and_node != $and_nodes_entry ) {
-        Marpa::exception("and_node #$audit_and_node_id does not match its and-nodes entry");
+        Marpa::exception(
+            "and_node #$audit_and_node_id does not match its and-nodes entry"
+        );
     }
     if ( $#{$audit_and_node} != Marpa::Internal::And_Node::LAST_FIELD ) {
         Marpa::exception(
@@ -589,34 +591,44 @@ sub audit_and_node {
             Marpa::Internal::And_Node::LAST_FIELD,
             ', got ', $#{$audit_and_node}
         );
-    } ## end if ( $#{$audit_and_node} != Marpa::Internal::And_Node::LAST_FIELD)
+    } ## end if ( $#{$audit_and_node} != ...)
 
     my $deleted = $audit_and_node->[Marpa::Internal::And_Node::DELETED];
 
     my $parent_id = $audit_and_node->[Marpa::Internal::And_Node::PARENT_ID];
-    my $parent_choice = $audit_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
-    if (not $deleted) {
+    my $parent_choice =
+        $audit_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
+    if ( not $deleted ) {
         my $parent_or_node = $or_nodes->[$parent_id];
         my $parent_idea_of_child_id =
             $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS]
             ->[$parent_choice];
-        if ($audit_and_node_id != $parent_idea_of_child_id) {
-            Marpa::exception("and_node #$audit_and_node_id does not match its CHILD_IDS entry in its parent");
+        if ( $audit_and_node_id != $parent_idea_of_child_id ) {
+            Marpa::exception(
+                "and_node #$audit_and_node_id does not match its CHILD_IDS entry in its parent"
+            );
         }
         my $parent_idea_of_child =
             $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
             ->[$parent_choice];
-        if ($audit_and_node != $parent_idea_of_child) {
-            Marpa::exception("and_node #$audit_and_node_id does not match its AND_NODES entry in its parent");
+        if ( $audit_and_node != $parent_idea_of_child ) {
+            Marpa::exception(
+                "and_node #$audit_and_node_id does not match its AND_NODES entry in its parent"
+            );
         }
-    } else {
-        if (defined $parent_id) {
-            Marpa::exception("deleted and_node $audit_and_node_id has defined PARENT_ID: #$parent_id");
+    } ## end if ( not $deleted )
+    else {
+        if ( defined $parent_id ) {
+            Marpa::exception(
+                "deleted and_node $audit_and_node_id has defined PARENT_ID: #$parent_id"
+            );
         }
-        if (defined $parent_choice) {
-            Marpa::exception("deleted and_node $audit_and_node_id has defined PARENT_CHOICE: #$parent_choice");
+        if ( defined $parent_choice ) {
+            Marpa::exception(
+                "deleted and_node $audit_and_node_id has defined PARENT_CHOICE: #$parent_choice"
+            );
         }
-    }
+    } ## end else [ if ( not $deleted ) ]
 
     FIELD:
     for my $field (
@@ -627,20 +639,23 @@ sub audit_and_node {
         my $child_or_node = $audit_and_node->[$field];
         next FIELD if not defined $child_or_node;
         my $child_or_node_id = $child_or_node->[Marpa::Internal::Or_Node::ID];
-        if ($deleted and defined $child_or_node_id) {
-            Marpa::exception("deleted and-node $audit_and_node_id has defined child: #$parent_id");
+        if ( $deleted and defined $child_or_node_id ) {
+            Marpa::exception(
+                "deleted and-node $audit_and_node_id has defined child: #$parent_id"
+            );
         }
         my $child_idea_of_parent_ids =
             $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
         if ( $deleted and scalar @{$child_idea_of_parent_ids} ) {
             Marpa::exception(
                 "deleted and-node $audit_and_node_id has parents: ",
-                join( ", ", @{$child_idea_of_parent_ids} )
+                ( join q{, }, @{$child_idea_of_parent_ids} )
             );
-        } ## end if ( $deleted and scalar @{$parent_ids} )
+        } ## end if ( $deleted and scalar @{$child_idea_of_parent_ids...})
         next FIELD if $deleted;
-        my $audit_and_node_index =
-            List::Util::first { $child_idea_of_parent_ids->[$_] == $audit_and_node_id }
+        my $audit_and_node_index = List::Util::first {
+            $child_idea_of_parent_ids->[$_] == $audit_and_node_id;
+        }
         ( 0 .. $#{$child_idea_of_parent_ids} );
         if ( not defined $audit_and_node_index ) {
             Marpa::exception(
@@ -1180,8 +1195,10 @@ sub rewrite_cycles {
                             ### Changing field, and-node, field: $original_and_node_id, $field
                             ### From or-node, to or-node: $original_or_child_id, $new_or_child_id
 
-                        } else {
-                            $new_or_child = $new_and_node->[$field] = $original_or_child;
+                        } ## end if ( defined $new_or_child_id )
+                        else {
+                            $new_or_child = $new_and_node->[$field] =
+                                $original_or_child;
                         }
 
                         # If here, the or-child is external, and we need to duplicate
@@ -1209,13 +1226,17 @@ sub rewrite_cycles {
             my $new_root_or_node = $or_nodes->[$new_root_or_node_id];
 
             for my $original_parent_and_node_id (
-                @{ $original_root_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] } )
+                @{  $original_root_or_node
+                        ->[Marpa::Internal::Or_Node::PARENT_IDS]
+                }
+                )
             {
 
                 # Internal nodes need to be put on the list to be deleted
                 if (defined(
                         my $new_parent_and_node_id =
-                            $translate_or_node_id{$original_parent_and_node_id}
+                            $translate_or_node_id{$original_parent_and_node_id
+                            }
                     )
                     )
                 {
@@ -1225,7 +1246,8 @@ sub rewrite_cycles {
                 } ## end if ( defined( my $new_parent_and_node_id = ...))
 
                 # Clone the external parent node
-                my $original_parent_and_node = $and_nodes->[$original_parent_and_node_id];
+                my $original_parent_and_node =
+                    $and_nodes->[$original_parent_and_node_id];
                 my $new_parent_and_node =
                     clone_and_node( $evaler, $original_parent_and_node );
                 my $new_parent_and_node_id =
@@ -1248,7 +1270,8 @@ sub rewrite_cycles {
                     Marpa::Internal::And_Node::PREDECESSOR
                     )
                 {
-                    my $original_root_or_node_sibling = $original_parent_and_node->[$field];
+                    my $original_root_or_node_sibling =
+                        $original_parent_and_node->[$field];
                     next FIELD if not defined $original_root_or_node_sibling;
 
                     # If this field was the root or node in the old
@@ -1294,8 +1317,8 @@ sub rewrite_cycles {
 
                 # Tell the parent of the newly cloned and-node
                 # about its new child
-                my $grandparent_or_node_id =
-                    $original_parent_and_node->[Marpa::Internal::And_Node::PARENT_ID];
+                my $grandparent_or_node_id = $original_parent_and_node
+                    ->[Marpa::Internal::And_Node::PARENT_ID];
                 my $grandparent_or_node =
                     $or_nodes->[$grandparent_or_node_id];
                 my $child_ids_of_grandparent = $grandparent_or_node
@@ -1312,7 +1335,7 @@ sub rewrite_cycles {
                 $new_parent_and_node
                     ->[Marpa::Internal::And_Node::PARENT_CHOICE] = $choice;
 
-            } ## end for my $original_parent_and_node_id ( @{ $original_root_or_node->[...]})
+            } ## end for my $original_parent_and_node_id ( @{ ...})
 
             push @span_sets, \@copied_cycle;
 
@@ -1335,13 +1358,14 @@ sub rewrite_cycles {
                 ### And-node to delete: $original_parent_and_node_id
 
                 next PARENT_AND_NODE
-                    if $is_root xor $internal_and_nodes{$original_parent_and_node_id};
+                    if $is_root
+                        xor $internal_and_nodes{$original_parent_and_node_id};
 
                 ### Adding to delete work list: $original_parent_and_node_id
 
                 push @delete_work_list,
                     [ DELETE_AND_NODE, $original_parent_and_node_id ];
-            } ## end for my $parent_and_node_id ( @{ $original_or_node->[...]})
+            } ## end for my $original_parent_and_node_id ( @{ ...})
         } ## end for my $original_or_node (@cycle)
 
         # we should be deletion-consistent at this point
@@ -2109,7 +2133,7 @@ sub Marpa::Evaluator::show_or_node {
         my $and_node_id = $and_node_ids->[$index];
         my $and_node    = $and_nodes->[$and_node_id];
 
-        my $and_node_tag = $or_node_tag . '[' . $index . ']#'. $and_node_id;
+        my $and_node_tag = $or_node_tag . '[' . $index . ']#' . $and_node_id;
         if ( $verbose >= 2 ) {
             $text .= "$or_node_tag ::= $and_node_tag\n";
         }
