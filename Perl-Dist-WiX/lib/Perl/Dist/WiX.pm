@@ -1457,7 +1457,7 @@ sub install_cpan_upgrades { ## no critic 'ProhibitExcessComplexity'
 	# Generate the CPAN installation script
 	my $url         = $self->cpan()->as_string();
 	
-	$url =~ s{file:///C:/}{file:///C|/}msx;
+	$url =~ s{file:///C:/}{file://C:/}msx;
 	
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
@@ -3586,6 +3586,8 @@ sub install_module {
 
 	# Generate the CPAN installation script
 	my $url         = $self->cpan()->as_string();
+	$url =~ s{file:///C:/}{file://C:/}msx;
+
 	my $dp_dir      = catdir( $self->wix_dist_dir, 'distroprefs' );
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
