@@ -131,7 +131,6 @@ for my $test_data (@test_data) {
 
     $recce->end_input();
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
-    say $evaler->show_bocage(3);
     my $result = $evaler->value();
     close $MEMORY;
 

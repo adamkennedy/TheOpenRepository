@@ -750,13 +750,14 @@ sub delete_nodes {
                     $delete_and_node->[Marpa::Internal::And_Node::PARENT_ID];
                 my $parent_or_node = $or_nodes->[$parent_id];
 
+                ### Adding or-node to delete work list: $parent_id
                 push @{$delete_work_list}, [ PRUNE_OR_NODE, $parent_id ];
                 my $parent_choice = $delete_and_node
                     ->[Marpa::Internal::And_Node::PARENT_CHOICE];
 
                 ### Splicing out parent's child, id, choice: $parent_id, $parent_choice
 
-                #### Before splice: $parent_or_node->[Marpa'Internal'Or_Node'AND_NODES]
+                ### Before splice: $parent_or_node->[Marpa'Internal'Or_Node'CHILD_IDS]
 
                 splice
                     @{ $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
@@ -764,7 +765,7 @@ sub delete_nodes {
                     $parent_choice,
                     1;
 
-                #### After splice: $parent_or_node->[Marpa'Internal'Or_Node'AND_NODES]
+                ### After splice: $parent_or_node->[Marpa'Internal'Or_Node'CHILD_IDS]
 
                 my $parent_child_ids =
                     $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
@@ -798,6 +799,7 @@ sub delete_nodes {
 
                 ### <where> child or-node id: $id
 
+                ### Adding or-node to delete work list: $id
                 push @{$delete_work_list}, [ PRUNE_OR_NODE, $id ];
 
                 # Splice out the reference to this or-node in the PARENT_IDS
@@ -813,7 +815,7 @@ sub delete_nodes {
 
                 ### delete_node_index: $delete_node_index;
 
-                #### assert: defined $delete_node_index;
+                ### assert: defined $delete_node_index;
 
                 splice @{$parent_ids}, $delete_node_index, 1;
             }    # FIELD
@@ -860,8 +862,8 @@ sub delete_nodes {
 
             $or_node->[Marpa::Internal::Or_Node::DELETED] = 1;
 
-            ### Adding parent ids to delete work list: $parent_ids
-            ### Adding child ids to delete work list: $child_ids
+            ### Adding parent ids (and-nodes) to delete work list: $parent_ids
+            ### Adding child ids (and-nodes) to delete work list: $child_ids
 
             push @{$delete_work_list},
                 map { [ DELETE_AND_NODE, $_ ] } @{$parent_ids}, @{$child_ids};
@@ -1235,12 +1237,12 @@ sub rewrite_cycles {
                 # Internal nodes need to be put on the list to be deleted
                 if (defined(
                         my $new_parent_and_node_id =
-                            $translate_or_node_id{$original_parent_and_node_id
-                            }
+                            $translate_and_node_id{
+                            $original_parent_and_node_id}
                     )
                     )
                 {
-                    ### Adding to delete work list: $new_parent_and_node_id
+                    ### Adding and-node to delete work list: $new_parent_and_node_id
                     push @delete_work_list,
                         [ DELETE_AND_NODE, $new_parent_and_node_id ];
                 } ## end if ( defined( my $new_parent_and_node_id = ...))
@@ -1361,7 +1363,7 @@ sub rewrite_cycles {
                     if $is_root
                         xor $internal_and_nodes{$original_parent_and_node_id};
 
-                ### Adding to delete work list: $original_parent_and_node_id
+                ### Adding and-node to delete work list: $original_parent_and_node_id
 
                 push @delete_work_list,
                     [ DELETE_AND_NODE, $original_parent_and_node_id ];
