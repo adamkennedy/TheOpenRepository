@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 20;
+use Test::More tests => 22;
 use File::Spec::Functions ':ALL';
 use File::Find::Rule       ();
 use File::Find::Rule::Perl ();
@@ -41,6 +41,8 @@ SCOPE: {
 		};
 		my @files = sort grep {
 			! /\.svn\b/
+      and
+			! /\.sw[op]\b/
 			and
 			! /\bblib\b/
 			and
@@ -56,6 +58,41 @@ SCOPE: {
 	}
 }
 
+###################################################################
+# Several variations of absolute path and relative path , both 
+# in no_index and in search prefix.
+
+SCOPE: {
+  my @params = (
+    {
+      name => 'Relative Path',
+      path => 'lib/File/Find/Rule/Perl.pm',
+      dir  => curdir(),
+      check => qr{Rule/Perl\.pm},
+    },
+    {
+      name => 'Absolute path, Absolute Dir',
+      path => rel2abs(curdir()) .'/lib/File/Find/Rule/Perl.pm',
+      dir => rel2abs(curdir()),
+      check => qr{Rule/Perl\.pm},
+    },
+  );
+
+  foreach my $p (@params) {
+    my $rule = FFR->relative->no_index({ file => [ $p->{path} ] })->file;
+
+    my @files = sort grep { $_ !~ m/\bblib\b/ && $_ =~ $p->{check}} $rule->in( $p->{dir} );
+
+    if( @files ){ 
+        ok( 0, 'No_index + filename ' . $p->{name} );
+        for( @files ){
+            diag( "File Found: $_ \n , no_index file was <$p->{path}>");
+        }
+    } else { 
+        ok( 1, 'No_index + filename ' . $p->{name} );
+    }
+  }
+}
 
 
 
