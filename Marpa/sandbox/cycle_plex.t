@@ -39,7 +39,7 @@ sub make_plex_rules {
 my $cycle1_test = [
     'cycle plex test 1',
     [ start => 'S0', rules => make_plex_rules(1) ],
-    [],
+    ['S0(t)'],
     <<'EOS'
 Cycle found involving rule: 0: S0 -> S0
 EOS
@@ -60,13 +60,19 @@ for my $test_data (@test_data) {
     my $grammar = Marpa::Grammar->new( \%args );
     my $t = $grammar->get_symbol('t');
 
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    close $MEMORY;
+    Marpa::Test::is( $trace, $expected_trace );
+
+    my $recce = Marpa::Recognizer->new(
+        { grammar => $grammar, trace_file_handle => \*STDERR } );
     $recce->earleme( [ $t, 't', 1 ] ) or Marpa::exception('Parsing exhausted');
     $recce->end_input();
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     if (not defined $evaler) {
         Marpa::exception("Input not recognized");
     }
+    $evaler->audit();
+    say $evaler->show_bocage(3);
     my $parse_count = 0;
 
     while ( my $value = $evaler->old_value() ) {
@@ -76,11 +82,9 @@ for my $test_data (@test_data) {
             $expected_value,
             "$test_name, value $parse_count"
         );
-        Marpa::Test::is( $trace, $expected_trace );
         $parse_count++;
     } ## end while ( my $value = $evaler->old_value() )
 
-    close $MEMORY;
 
 } ## end for my $test_data (@test_data)
 

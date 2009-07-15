@@ -668,7 +668,7 @@ sub audit_and_node {
     return;
 } ## end sub audit_and_node
 
-sub audit_bocage {
+sub Marpa::Evaluator::audit {
     my ($evaler) = @_;
     my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     for my $or_node ( @{$or_nodes} ) {
@@ -682,7 +682,7 @@ sub audit_bocage {
     ### Bocage passed audit ...
 
     return;
-} ## end sub audit_bocage
+} ## end sub Marpa::Evaluator::audit
 
 # Internal routine to clone an and-node
 sub clone_and_node {
@@ -727,7 +727,7 @@ sub delete_nodes {
     ### Executing delete_nodes ...
 
     # Should be deletion-consistent at this point
-    ### assert: audit_bocage($evaler) or 1
+    ### assert: Marpa'Evaluator'audit($evaler) or 1
 
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
@@ -964,7 +964,7 @@ sub rewrite_cycles {
                         ->[Marpa::Internal::Or_Node::CHILD_IDS] }
                 ];
             for my $or_child_ix (@or_child_ixes) {
-                #### initial transition: $or_parent_ix, $or_child_ix
+                ### initial transition: $or_parent_ix, $or_child_ix
                 $transition[$or_parent_ix][$or_child_ix]++;
                 push @work_list, [ $or_parent_ix, $or_child_ix ];
             }
@@ -973,7 +973,7 @@ sub rewrite_cycles {
         # Compute transitive closure of matrix of or-node transitions.
         while ( my $work_item = pop @work_list ) {
             my ( $parent_ix, $child_ix ) = @{$work_item};
-            #### work item: $parent_ix, $child_ix
+            ### work item: $parent_ix, $child_ix
             GRAND_CHILD:
             for my $grandchild_ix ( grep { $transition[$child_ix][$_] }
                 ( 0 .. $#{$span_set} ) )
@@ -981,7 +981,7 @@ sub rewrite_cycles {
                 my $transition_row = $transition[$parent_ix];
                 next GRAND_CHILD if $transition_row->[$grandchild_ix];
                 $transition_row->[$grandchild_ix]++;
-                #### transition: $parent_ix, $grandchild_ix
+                ### transition: $parent_ix, $grandchild_ix
                 push @work_list, [ $parent_ix, $grandchild_ix ];
             } ## end for my $grandchild_ix ( grep { $transition[$child_ix]...})
         } ## end while ( my $work_item = pop @work_list )
@@ -1049,7 +1049,7 @@ sub rewrite_cycles {
         ### assert: scalar @root_or_nodes
 
         ## deletion-consistent at this point
-        ### assert: audit_bocage($evaler) or 1
+        ### assert: Marpa'Evaluator'audit($evaler) or 1
 
         my @delete_work_list = ();
 
@@ -1342,7 +1342,7 @@ sub rewrite_cycles {
             push @span_sets, \@copied_cycle;
 
             # Should be deletion-consistent at this point
-            ### assert: audit_bocage($evaler) or 1
+            ### assert: Marpa'Evaluator'audit($evaler) or 1
 
         } ## end for my $copy ( 1 .. $#root_or_nodes )
 
@@ -1378,7 +1378,7 @@ sub rewrite_cycles {
         ### <where> After call to delete nodes ...
 
         # Should be deletion-consistent at this point
-        ### assert: audit_bocage($evaler) or 1
+        ### assert: Marpa'Evaluator'audit($evaler) or 1
 
         # Have we deleted the top or-node?
         # If so, there will be no parses.
@@ -1394,7 +1394,7 @@ sub rewrite_cycles {
 
     ### Bocage: &Marpa'Evaluator'show_bocage($evaler, 3) or 1
 
-    ### assert: audit_bocage($evaler) or 1
+    ### assert: Marpa'Evaluator'audit($evaler) or 1
 
     return;
 } ## end sub rewrite_cycles
@@ -2041,6 +2041,9 @@ sub Marpa::Evaluator::new {
 sub Marpa::show_and_node {
     my ( $and_node, $verbose ) = @_;
     $verbose //= 0;
+
+    return q{} if $and_node->[Marpa::Internal::And_Node::DELETED];
+
     my $return_value = q{};
 
     my ( $name, $predecessor, $cause, $value_ref, $closure, $argc, $rule,
@@ -2123,6 +2126,8 @@ sub Marpa::Evaluator::show_decisions {
 sub Marpa::Evaluator::show_or_node {
     my ( $evaler, $or_node, $verbose ) = @_;
     $verbose //= 0;
+
+    return q{} if $or_node->[Marpa::Internal::Or_Node::DELETED];
 
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
