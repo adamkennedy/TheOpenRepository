@@ -158,6 +158,7 @@ sub filters { ## no critic (ProhibitExcessComplexity)
 	return 0 if $mod =~ m{/ADAMK/LWP-Online-};
 
 	# Perl::Dist::WiX upgrades
+	return 0 if $mod =~ m{/JDB/Win32-Process-};
 	return 0 if $mod =~ m{/SBURKE/Pod-Escapes-};
 	return 0 if $mod =~ m{/KANE/Archive-Extract-};
 	return 0 if $mod =~ m{/SMUELLER/Attribute-Handlers-};
