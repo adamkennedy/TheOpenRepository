@@ -1,5 +1,6 @@
 Revision history for Perl extension File-Find-Rule-Perl
 
+1.07 Wed 15 Jul 2009
   - Fix no_index regression with absolute paths
 
 1.06 Mon 13 Apr 2009
