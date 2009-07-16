@@ -40,8 +40,10 @@ SCOPE: {
 			pm_to_blib
 		};
 		my @files = sort grep {
+			! /^debian\b/
+			and
 			! /\.svn\b/
-      and
+			and
 			! /\.sw[op]\b/
 			and
 			! /\bblib\b/

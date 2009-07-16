@@ -47,7 +47,7 @@ use Parse::CPAN::Meta ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.07';
+	$VERSION = '1.08';
 	@ISA     = 'File::Find::Rule';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
