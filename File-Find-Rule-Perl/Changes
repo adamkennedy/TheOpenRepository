@@ -4,7 +4,7 @@ Revision history for Perl extension File-Find-Rule-Perl
   - Added the debian/ directory to the list of skipped paths (RT#47921)
 
 1.07 Wed 15 Jul 2009
-  - Fix no_index regression with absolute paths
+  - Fix no_index regression with absolute paths (RT#47633)
 
 1.06 Mon 13 Apr 2009
 	- Upgraded to Module::Install 0.82 (ADAMK)
