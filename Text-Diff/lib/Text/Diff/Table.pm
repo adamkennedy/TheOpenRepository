@@ -5,7 +5,7 @@ use strict;
 use Carp;
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION   = '1.36_01';
+	$VERSION   = '1.37';
 	@ISA       = qw( Text::Diff::Base Exporter );
 	@EXPORT_OK = qw( expand_tabs );
 }
