@@ -13,11 +13,83 @@ unless ( $ENV{RELEASE_TESTING} ) {
 	exit(0);
 }
 
-plan( tests => 2 );
+plan( tests => 6 );
 
 # Download and load the database
 use_ok( 'CPANDB' );
 
-# Test graph generation
-my $graph = CPANDB->graph;
-isa_ok( $graph, 'Graph::Directed' );
+
+
+
+
+######################################################################
+# CPANDB shortcuts
+
+my $cpandb = CPANDB->distribution('CPANDB');
+isa_ok( $cpandb, 'CPANDB::Distribution' );
+
+
+
+
+
+######################################################################
+# Graph.pm Integration
+
+eval {
+	require Graph;
+};
+SKIP: {
+	skip("No Graph support available", 2) if $@;
+
+	# Graph generation for the entire grap
+	SCOPE: {
+		my $graph = CPANDB->graph;
+		isa_ok( $graph, 'Graph::Directed' );
+	}
+
+	# Graph generation for a single distribution
+	SCOPE: {
+		my $graph = $cpandb->dependency_graph;
+		isa_ok( $graph, 'Graph::Directed' );
+	}
+}
+
+
+
+
+
+######################################################################
+# Graph::Easy Integration
+
+eval {
+	require Graph::Easy;
+};
+SKIP: {
+	skip("No Graph::Easy support available", 1) if $@;
+
+	# Graph::Easy generation for a single distribution
+	SCOPE: {
+		my $graph = $cpandb->dependency_easy;
+		isa_ok( $graph, 'Graph::Easy' );
+	}
+}
+
+
+
+
+
+######################################################################
+# GraphViz Integration
+
+eval {
+	require GraphViz;
+};
+SKIP: {
+	skip("No GraphViz support available", 1) if $@;
+
+	# GraphViz generation for a single distribution
+	SCOPE: {
+		my $graph = $cpandb->dependency_graphviz;
+		isa_ok( $graph, 'GraphViz' );
+	}
+}
