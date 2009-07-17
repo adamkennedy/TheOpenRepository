@@ -18,7 +18,7 @@ package main;
 use strict;
 use warnings;
 use Test::Weaken;
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 {
     my $leak;
@@ -34,6 +34,24 @@ use Test::More tests => 2;
     );
     Test::More::ok( $test, 'leaky file handle detection' );
     Test::More::is( $test && $test->unfreed_count, 1, 'one object leaked' );
+}
+
+{
+
+## use Marpa::Test::Display tracked_types snippet
+
+    my $test = Test::Weaken::leaks(
+        {   constructor => sub {
+                my $obj = MyObject->new;
+                return $obj;
+            },
+            tracked_types => ['GLOB'],
+        }
+    );
+
+## no Marpa::Test::Display
+
+    Test::More::ok( (not defined $test), 'file handle detection' );
 }
 
 exit 0;

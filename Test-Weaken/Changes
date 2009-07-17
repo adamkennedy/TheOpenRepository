@@ -1,5 +1,8 @@
 Revision history for Test-Weaken
 
+3.001_000 Thu Jul 16 18:07:37 2009
+        New series of developer's releases.
+
 3.000000 Tue Jul  7
         Added 'contents' option.
         New major release because, in there are leaks,

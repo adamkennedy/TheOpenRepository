@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '3.000000';
+our $VERSION   = '3.001_000';
 
 # use Smart::Comments;
 
@@ -650,7 +650,8 @@ even data that would usually have been made inaccessible.
 L<Test::Weaken|/"NAME"> frees the test structure, then looks to see if any of the
 contents of the structure were not actually deallocated.  By default,
 L<Test::Weaken|/"NAME"> determines the contents of a data structure
-by examining arrays and hashes, and by following references.
+by examining arrays and hashes, by following references, and by following
+tied variables to their underlying object.
 L<Test::Weaken|/"NAME"> does this recursively to
 unlimited depth.
 
@@ -700,17 +701,18 @@ This reference is called the B<test structure reference>.
 
 =head2 Children and Descendants
 
+The elements of an array are B<children> of the array.
+The values of a hash are B<children> of the hash.
+A referent is a B<child> of its reference.
+The underlying object of a tied variable is a B<child> of the
+tied variable.
+
+The B<descendants> of a Perl data object are itself,
+its children, and any children of one of its descendants.
 By default, L<Test::Weaken|/"NAME"> determines the contents of a data structure
 by recursing through the
 descendants
 of the top object of the test data structure.
-The B<descendants> of a Perl data object are itself,
-its children, and any children of one of its descendants.
-
-The B<child> of a reference is its referent.
-The B<children> of an array are
-its elements.
-The B<children> of a hash are its values.
 
 If one data object is the descendant of a second object,
 then the second data object is an B<ancestor> of the first object.
@@ -731,6 +733,22 @@ contents that are not descendants,
 such as inside-out objects,
 are dealt with in
 L<the section on nieces|/"Nieces">.
+
+=head2 Builtin Types
+
+This document will refer to the builtin type of objects.
+Perl's B<builtin types> are the types Perl originally gives objects,
+as opposed to B<blessed types>, the types assigned objects by
+the L<bless function|perlfunc/"bless">.
+The builtin types are listed in
+L<the description of the ref builtin in the Perl documentation|perlfunc/"ref">.
+
+Perl's L<ref function|perlfunc/"ref"> returns the blessed type of its
+argument, if the argument has been blessed into a package.
+Otherwise the 
+L<ref function|perlfunc/"ref"> returns the builtin type.
+The L<Scalar::Util/reftype function> always returns the builtin type,
+even for blessed objects.
 
 =head2 Persistent Objects
 
@@ -912,21 +930,14 @@ It is best to follow strictly the closure-local strategy,
 as described above.
 
 When L</"leaks"> is called using the "short form",
-the code reference to test structure constructor must be the first argument to L</"leaks">.
+the code reference to the test structure constructor
+must be the first argument to L</"leaks">.
 
 =item destructor
 
 The B<destructor> argument is optional.
 If specified, its value must be a code reference
 to the B<test structure destructor>.
-If specified,
-the test structure destructor is called
-just before L<Test::Weaken|/"NAME"> tries
-to free the test structure
-by setting the test structure reference to C<undef>.
-The test structure destructor will be passed one argument,
-the test structure reference.
-The return value of the test structure destructor is ignored.
 
 Some test structures require
 a destructor to be called when
@@ -934,6 +945,13 @@ they are freed.
 The primary purpose for
 the test structure destructor is to enable
 L<Test::Weaken|/"NAME"> to work with these data structures.
+The test structure destructor is called
+just before L<Test::Weaken|/"NAME"> tries
+to free the test structure
+by setting the test structure reference to C<undef>.
+The test structure destructor will be passed one argument,
+the test structure reference.
+The return value of the test structure destructor is ignored.
 
 When L</"leaks"> is called using the "short form",
 a code reference to the test structure destructor is the optional, second argument to L</"leaks">.
@@ -1113,7 +1131,7 @@ If the reference is C<$contents>,
 L<Test::Weaken|/"NAME">'s call to it will be the equivalent
 of C<< $contents->($safe_copy) >>,
 where C<$safe_copy> is a copy of the probe reference to
-another Perl reference.
+a Perl data object.
 The L</contents> callback is made once
 for every Perl data object
 when that Perl data object is
@@ -1161,6 +1179,48 @@ should be left unchanged by the L</contents>
 callback.
 The result of modifying the probe referents might be
 an exception, an abend, an infinite loop, or erroneous results.
+
+=item tracked_types
+
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+is_file($_, 't/filehandle.t', 'tracked_types snippet')
+
+=end Marpa::Test::Display:
+
+    my $test = Test::Weaken::leaks(
+        {   constructor => sub {
+                my $obj = MyObject->new;
+                return $obj;
+            },
+            tracked_types => ['GLOB'],
+        }
+    );
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
+The B<tracked_types> argument is optional.
+It can be used to add addition builtin types to the list of those
+that are tracked.
+If specified, the value of the
+B<tracked_types> argument must be a reference to an array
+of the names of the additional builtin types to track.
+
+Objects of builtin types ARRAY, HASH, REF,
+SCALAR, VSTRING, and CODE are tracked
+by default.
+The builtin types that are not tracked,
+and which you may wish to add,
+are GLOB, IO, FORMAT and LVALUE.
+They are tracked by default because,
+for L<reasons given below|/"Tracked Objects">,
+tracking them usually causes more trouble than it saves.
 
 =back
 
@@ -1640,20 +1700,6 @@ the value of that probe reference will be C<undef>.
 If a probe reference is still defined at this point,
 it refers to an unfreed Perl data object.
 
-=head2 Builtin Types
-
-B<Builtin types> are
-the type names returned by
-L<Scalar::Util/reftype>.
-L<reftype|Scalar::Util/reftype> differs from Perl's
-L<ref function|perlfunc/"ref">.
-If an object was blessed into a package,
-L<ref|perlfunc/"ref">
-returns the package name,
-while
-L<Scalar::Util/reftype>
-returns the original builtin type of the object.
-
 =head2 Tracked Objects
 
 By default,
@@ -1694,7 +1740,10 @@ issuing a cryptic warning whenever it encounters one.
 This version of L<Test::Weaken|/"NAME"> might someday be run
 in a future version of Perl
 and encounter builtin types it does not know about.
-Those new builtin types will not be tracked.
+By default, those new builtin types will not be tracked.
+Any builtin type may be added to the list of builtin types to be
+tracked with the
+L<tracked_types named argument|/"tracked_types">.
 
 =head2 Examining Objects for Children
 
