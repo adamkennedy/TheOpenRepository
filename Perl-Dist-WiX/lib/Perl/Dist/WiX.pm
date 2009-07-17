@@ -1455,10 +1455,10 @@ sub install_cpan_upgrades { ## no critic 'ProhibitExcessComplexity'
 	}
 
 	# Generate the CPAN installation script
-	my $url         = $self->cpan()->as_string();
-	
+	my $url = $self->cpan()->as_string();
+
 	$url =~ s{file:///C:/}{file://C:/}msx;
-	
+
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -1610,18 +1610,18 @@ END_PERL
 			# TODO: Win32::Process does not install at all on 5.8.9
 			# on Strawberry.
 			# Will fix for October 2009 release.
-			if ($self->perl_version eq '5100') {
+			if ( $self->perl_version eq '5100' ) {
+
 				# This module will not install using install_module(s)
 				# with Strawberry's CPAN::Config. (RT #44770)
 				$self->install_distribution(
-					name             => 'JDB/Win32-Process-0.14.tar.gz',
-					mod_name         => 'Win32::Process',
-					force            => $force
+					name     => 'JDB/Win32-Process-0.14.tar.gz',
+					mod_name => 'Win32::Process',
+					force    => $force
 				);
 
-				$self->install_modules(
-					qw( IPC::System::Simple ));
-			}
+				$self->install_modules(qw( IPC::System::Simple ));
+			} ## end if ( $self->perl_version...)
 
 			if (    ( $module->cpan_version > 1.999 )
 				and ( $module->cpan_version < 2.04 ) )
@@ -3585,10 +3585,10 @@ sub install_module {
 	my $dist_file = catfile( $self->output_dir, 'cpan_distro.txt' );
 
 	# Generate the CPAN installation script
-	my $url         = $self->cpan()->as_string();
+	my $url = $self->cpan()->as_string();
 	$url =~ s{file:///C:/}{file://C:/}msx;
 
-	my $dp_dir      = catdir( $self->wix_dist_dir, 'distroprefs' );
+	my $dp_dir = catdir( $self->wix_dist_dir, 'distroprefs' );
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -4323,8 +4323,7 @@ sub _mirror {
 		return $target;
 	}
 	if ( $self->offline and not $url =~ m{\Afile://}msx ) {
-		PDWiX->throw(
-			"Currently offline, cannot download $url.\n" );
+		PDWiX->throw("Currently offline, cannot download $url.\n");
 	}
 	File::Path::mkpath($dir);
 

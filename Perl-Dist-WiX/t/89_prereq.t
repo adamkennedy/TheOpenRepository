@@ -87,6 +87,9 @@ my @modules_skip = (
        'Test::MinimumVersion',
        'Test::Perl::Critic',
        'Test::Prereq',
+# Needed only for the optional script
+	   'CPAN::Mini::Devel',
+	   'feature'
 );
 
 prereq_ok(5.008001, 'Check prerequisites', \@modules_skip);
