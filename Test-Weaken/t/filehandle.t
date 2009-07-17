@@ -51,7 +51,7 @@ use Test::More tests => 3;
 
 ## no Marpa::Test::Display
 
-    Test::More::ok( (not defined $test), 'file handle detection' );
+    Test::More::ok( ( not defined $test ), 'file handle detection' );
 }
 
 exit 0;
