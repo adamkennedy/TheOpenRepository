@@ -9,6 +9,10 @@ use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
 our $VERSION   = '3.000000';
 
+# use Smart::Comments;
+
+### <where> Using Smart Comments ...
+
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 $VERSION = eval $VERSION;
 ## use critic
@@ -40,15 +44,23 @@ use English qw( -no_match_vars );
 use Carp;
 use Scalar::Util qw(refaddr reftype isweak weaken);
 
-my %TRACKED_TYPE = map { ( $_, 1 ) } qw(REF SCALAR VSTRING HASH ARRAY CODE);
+my @default_tracked_types = qw(REF SCALAR VSTRING HASH ARRAY CODE);
 
 sub follow {
     my ( $self, $base_probe ) = @_;
-    my $ignore          = $self->{ignore};
-    my $contents        = $self->{contents};
-    my $trace_maxdepth  = $self->{trace_maxdepth};
-    my $trace_following = $self->{trace_following};
-    my $trace_tracking  = $self->{trace_tracking};
+
+    my $ignore             = $self->{ignore};
+    my $contents           = $self->{contents};
+    my $trace_maxdepth     = $self->{trace_maxdepth};
+    my $trace_following    = $self->{trace_following};
+    my $trace_tracking     = $self->{trace_tracking};
+    my $user_tracked_types = $self->{tracked_types};
+
+    my @tracked_types = @default_tracked_types;
+    if ( defined $user_tracked_types ) {
+        push @tracked_types, @{$user_tracked_types};
+    }
+    my %tracked_type = map { ( $_, 1 ) } @tracked_types;
 
     defined $trace_maxdepth or $trace_maxdepth = 0;
 
@@ -96,6 +108,9 @@ sub follow {
             }
 
             if ( $object_type eq 'ARRAY' ) {
+                if ( my $tied_var = tied @{$follow_probe} ) {
+                    push @child_probes, \($tied_var);
+                }
                 foreach my $i ( 0 .. $#{$follow_probe} ) {
                     if ( exists $follow_probe->[$i] ) {
                         push @child_probes, \( $follow_probe->[$i] );
@@ -105,7 +120,17 @@ sub follow {
             } ## end if ( $object_type eq 'ARRAY' )
 
             if ( $object_type eq 'HASH' ) {
+                if ( my $tied_var = tied %{$follow_probe} ) {
+                    push @child_probes, \($tied_var);
+                }
                 push @child_probes, map { \$_ } values %{$follow_probe};
+                last FIND_CHILDREN;
+            }
+
+            if ( $object_type eq 'SCALAR' ) {
+                if ( my $tied_var = tied ${$follow_probe} ) {
+                    push @child_probes, \($tied_var);
+                }
                 last FIND_CHILDREN;
             }
 
@@ -122,7 +147,7 @@ sub follow {
 
             my $child_type = Scalar::Util::reftype $child_probe;
 
-            next CHILD_PROBE unless $TRACKED_TYPE{$child_type};
+            next CHILD_PROBE unless $tracked_type{$child_type};
 
             my $new_tracking_probe = $child_probe;
 
@@ -213,6 +238,11 @@ sub Test::Weaken::new {
             delete $arg1->{test};
         }
 
+        if ( defined $arg1->{tracked_types} ) {
+            $self->{tracked_types} = $arg1->{tracked_types};
+            delete $arg1->{tracked_types};
+        }
+
         my @unknown_named_args = keys %{$arg1};
 
         if (@unknown_named_args) {
@@ -244,6 +274,11 @@ sub Test::Weaken::new {
     if ( my $ref_type = ref $self->{contents} ) {
         Carp::croak('Test::Weaken: contents must be CODE ref')
             unless ref $self->{contents} eq 'CODE';
+    }
+
+    if ( my $ref_type = ref $self->{tracked_types} ) {
+        Carp::croak('Test::Weaken: tracked_types must be ARRAY ref')
+            unless ref $self->{tracked_types} eq 'ARRAY';
     }
 
     return $self;
@@ -418,6 +453,8 @@ sub Test::Weaken::check_ignore {
     return sub {
         my ($probe_ref) = @_;
 
+        my $array_context = wantarray;
+
         my $before_weak =
             ( ref $probe_ref eq 'REF' and isweak( ${$probe_ref} ) );
         my $before_dump =
@@ -436,7 +473,14 @@ sub Test::Weaken::check_ignore {
             #>>>
         }
 
-        my $return_value = $ignore->($probe_ref);
+        my $scalar_return_value;
+        my @array_return_value;
+        if ($array_context) {
+            @array_return_value = $ignore->($probe_ref);
+        }
+        else {
+            $scalar_return_value = $ignore->($probe_ref);
+        }
 
         my $after_weak =
             ( ref $probe_ref eq 'REF' and isweak( ${$probe_ref} ) );
@@ -471,25 +515,29 @@ sub Test::Weaken::check_ignore {
             $include_after  = defined $after_reporting_dump;
         }
 
-        return $return_value if not $problems;
+        if ($problems) {
 
-        $error_count++;
+            $error_count++;
 
-        my $message .= q{};
-        $message .= $before_reporting_dump
-            if $include_before;
-        $message .= $after_reporting_dump
-            if $include_after;
-        $message .= $problems;
+            my $message .= q{};
+            $message .= $before_reporting_dump
+                if $include_before;
+            $message .= $after_reporting_dump
+                if $include_after;
+            $message .= $problems;
 
-        if ( $max_errors > 0 and $error_count >= $max_errors ) {
-            $message
-                .= "Terminating ignore callbacks after finding $error_count error(s)";
-            Carp::croak($message);
+            if ( $max_errors > 0 and $error_count >= $max_errors ) {
+                $message
+                    .= "Terminating ignore callbacks after finding $error_count error(s)";
+                Carp::croak($message);
+            }
+
+            Carp::carp( $message . 'Above errors reported' );
+
         }
 
-        Carp::carp( $message . 'Above errors reported' );
-        return $return_value;
+        return $array_context ? @array_return_value : $scalar_return_value;
+
     };
 }
 

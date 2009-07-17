@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/perl
 
 # These test cases were created by Kevin Ryde.
 
