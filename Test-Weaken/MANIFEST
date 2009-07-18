@@ -19,6 +19,7 @@ META.yml # Will be created by "make dist"
 README
 sandbox/elements.pl
 sandbox/reftypes.pl
+sandbox/tied.pl
 t/00-load.t
 t/array.t
 t/bug42903.t

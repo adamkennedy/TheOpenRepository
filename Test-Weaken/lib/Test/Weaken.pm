@@ -127,23 +127,23 @@ sub follow {
                 last FIND_CHILDREN;
             }
 
-            # GLOB is not tracked by default, but if it is
-            # we follow ties
-            if ( $object_type eq 'GLOB' ) {
+            # GLOB and LVALUE are not tracked by default,
+            # but we follow ties
+            if (   $object_type eq 'SCALAR'
+                or $object_type eq 'GLOB'
+                or $object_type eq 'VSTRING'
+                or $object_type eq 'LVALUE' )
+            {
                 if ( my $tied_var = tied ${$follow_probe} ) {
                     push @child_probes, \($tied_var);
                 }
                 last FIND_CHILDREN;
-            }
-
-            if ( $object_type eq 'SCALAR' ) {
-                if ( my $tied_var = tied ${$follow_probe} ) {
-                    push @child_probes, \($tied_var);
-                }
-                last FIND_CHILDREN;
-            }
+            } ## end if ( $object_type eq 'SCALAR' or $object_type eq 'GLOB'...)
 
             if ( $object_type eq 'REF' ) {
+                if ( my $tied_var = tied ${$follow_probe} ) {
+                    push @child_probes, \($tied_var);
+                }
                 push @child_probes, ${$follow_probe};
                 last FIND_CHILDREN;
             } ## end if ( $object_type eq 'REF' )
@@ -995,7 +995,8 @@ is_file($_, 't/ignore.t', 'ignore snippet')
 The B<ignore> argument is optional.
 It can be used to make a decision,
 specific to each Perl data object,
-on whether that object and its children are tracked or ignored.
+on whether that object is
+ignored, or tracked and examined for children.
 
 Use of the L</ignore> argument should be avoided.
 Filtering the probe references that are
@@ -1025,8 +1026,8 @@ to be tracked,
 and once for every data object when it is about to be
 examined for children.
 The callback subroutine should return a Perl true value if the probe reference is
-to a data object which should be ignored, along with its children.
-If the data object and its children should be tracked,
+to a data object which should be ignored.
+If the data object should be tracked and examined for children,
 the callback subroutine should return a Perl false.
 
 For safety, L<Test::Weaken|/"NAME"> passes
@@ -1162,11 +1163,11 @@ This list may be empty.
 
 The L</contents> and L</ignore> callbacks can be used together.
 If, for an argument Perl data object, the L</ignore> callback returns
-true, the objects returned by the L</contents> callback, and their
-children, will be used B<instead> of the default children for the argument data object.
+true, the objects returned by the L</contents> callback
+will be used B<instead> of the children for the argument data object.
 If, for an argument Perl data object, the L</ignore> callback returns
-false, the objects returned by the L</contents> callback, and their
-children, will be used B<in addition> to the default children for the argument data object.
+false, the objects returned by the L</contents> callback
+will be used B<in addition> to the children for the argument data object.
 Together,
 the L</contents> and L</ignore> callbacks can be used
 to completely customize the way in which
@@ -1215,8 +1216,6 @@ is_file($_, 't/filehandle.t', 'tracked_types snippet')
 =end Marpa::Test::Display:
 
 The B<tracked_types> argument is optional.
-It can be used to add addition builtin types to the list of those
-that are tracked.
 If specified, the value of the
 B<tracked_types> argument must be a reference to an array
 of the names of the additional builtin types to track.
@@ -1227,7 +1226,7 @@ by default.
 The builtin types that are not tracked,
 and which you may wish to add,
 are GLOB, IO, FORMAT and LVALUE.
-They are tracked by default because,
+They are not tracked by default because,
 for L<reasons given below|/"Tracked Objects">,
 tracking them usually causes more trouble than it saves.
 
@@ -1757,20 +1756,15 @@ L<tracked_types named argument|/"tracked_types">.
 =head2 Examining Objects for Children
 
 Objects of builtin type
-ARRAY, HASH, and REF
-are, by default, examined for children,
+ARRAY, HASH, REF are examined for children,
 as described above.
-Objects of builtin type SCALAR and VSTRING 
-do not hold internal references
-to other Perl data objects,
-and so, by default, are not considered to have
-children.
-By default,
-the object types
-which are not tracked are not examined for children.
+Those objects and objects of builtin types
+SCALAR, VSTRING, GLOB and LVALUE may also
+tied to underlying variables.
+All of these objects are examined for children.
 
-By default, objects of type CODE are
-also not examined for children.
+Objects of type CODE are
+not examined for children.
 Not examining CODE objects for children
 can be seen as a limitation, because
 closures do hold internal references to data objects.

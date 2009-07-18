@@ -114,7 +114,6 @@ package main;
                 }
                 return $fh;
             },
-            tracked_types => ['GLOB'],
         }
     );
     my $unfreed_count = $test ? $test->unfreed_count() : 0;
@@ -123,12 +122,9 @@ package main;
         my $unfreed = $test->unfreed_proberefs;
         $unfreed_reftypes = ( join q{ }, sort map { ref $_ } @{$unfreed} );
     }
-    Test::More::is( $unfreed_count, 2, 'caught unfreed tied file handle' );
-    Test::More::is(
-        $unfreed_reftypes,
-        'GLOB MyTiedFileHandle',
-        'matched unfreed refs from tied file handle'
-    );
+    Test::More::is( $unfreed_count, 1, 'caught unfreed tied file handle' );
+    Test::More::is( $unfreed_reftypes, 'MyTiedFileHandle',
+        'matched unfreed refs from tied file handle' );
 }
 
 exit 0;
