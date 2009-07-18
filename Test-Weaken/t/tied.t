@@ -3,9 +3,35 @@
 use strict;
 use warnings;
 use Test::Weaken;
-use Test::More tests => 4;
+use Test::More tests => 5;
+use Fatal qw(open read);
+use Symbol;
 
 ## no critic (Miscellanea::ProhibitTies)
+
+package MyTiedFileHandle;
+
+my $leaky_file_handle;
+
+sub TIEHANDLE {
+    my ($class) = @_;
+    my $i;
+    my $tied_object = bless \$i, $class;
+    $leaky_file_handle = $tied_object;
+    return $tied_object;
+} ## end sub TIEHANDLE
+
+## no critic (Subroutines::RequireArgUnpacking)
+sub READ {
+    my $bufref = \$_[1];
+
+## use critic
+
+    my ( $self, undef, $len, $offset ) = @_;
+    defined $offset or $offset = 0;
+    ${$bufref} .= 'a';
+    return 1;
+} ## end sub READ
 
 package MyTie;
 
@@ -79,14 +105,30 @@ package main;
 {
     my $test = Test::Weaken::leaks(
         {   constructor => sub {
-                tie *MYFILEHANDLE, 'MyTie';
-                return \*MYFILEHANDLE;
+                our $FILEHANDLE;
+                my $fh = *FILEHANDLE{'GLOB'};
+                tie ${$fh}, 'MyTiedFileHandle';
+                read $fh, my $read, 1;
+                if ( $read ne 'a' ) {
+                    Carp::croak('Problem with tied file handle');
+                }
+                return $fh;
             },
             tracked_types => ['GLOB'],
         }
     );
     my $unfreed_count = $test ? $test->unfreed_count() : 0;
-    Test::More::is( $unfreed_count, 1, 'caught unfreed tied file handle' );
+    my $unfreed_reftypes = q{};
+    if ($test) {
+        my $unfreed = $test->unfreed_proberefs;
+        $unfreed_reftypes = ( join q{ }, sort map { ref $_ } @{$unfreed} );
+    }
+    Test::More::is( $unfreed_count, 2, 'caught unfreed tied file handle' );
+    Test::More::is(
+        $unfreed_reftypes,
+        'GLOB MyTiedFileHandle',
+        'matched unfreed refs from tied file handle'
+    );
 }
 
 exit 0;

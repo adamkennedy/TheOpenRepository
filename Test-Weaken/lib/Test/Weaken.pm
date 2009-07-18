@@ -127,6 +127,15 @@ sub follow {
                 last FIND_CHILDREN;
             }
 
+            # GLOB is not tracked by default, but if it is
+            # we follow ties
+            if ( $object_type eq 'GLOB' ) {
+                if ( my $tied_var = tied ${$follow_probe} ) {
+                    push @child_probes, \($tied_var);
+                }
+                last FIND_CHILDREN;
+            }
+
             if ( $object_type eq 'SCALAR' ) {
                 if ( my $tied_var = tied ${$follow_probe} ) {
                     push @child_probes, \($tied_var);
