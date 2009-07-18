@@ -1218,7 +1218,7 @@ is_file($_, 't/filehandle.t', 'tracked_types snippet')
 The B<tracked_types> argument is optional.
 If specified, the value of the
 B<tracked_types> argument must be a reference to an array
-of the names of the additional builtin types to track.
+of the names of additional builtin types to track.
 
 Objects of builtin types ARRAY, HASH, REF,
 SCALAR, VSTRING, and CODE are tracked
@@ -1756,12 +1756,15 @@ L<tracked_types named argument|/"tracked_types">.
 =head2 Examining Objects for Children
 
 Objects of builtin type
-ARRAY, HASH, REF are examined for children,
-as described above.
-Those objects and objects of builtin types
-SCALAR, VSTRING, GLOB and LVALUE may also
-tied to underlying variables.
-All of these objects are examined for children.
+ARRAY, HASH, REF,
+SCALAR, VSTRING, GLOB, and LVALUE
+are examined for children.
+Specifically,
+elements of ARRAY objects,
+values of HASH objects,
+and referents of REF objects
+are children.
+Underlying tied variables are also children.
 
 Objects of type CODE are
 not examined for children.
