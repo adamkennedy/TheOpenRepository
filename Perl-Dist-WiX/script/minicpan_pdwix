@@ -3,303 +3,263 @@
 use warnings;
 use strict;
 use 5.010;
-use IO::Handle;
-use File::Copy;
-use File::HomeDir;
-use File::Spec::Functions qw(catdir catfile);
+use IO::Handle             qw(                );
+use List::Util             qw( first          );
+use List::MoreUtils        qw( indexes uniq   );
+use File::Slurp            qw( read_file      );
+use File::ShareDir    1.00 qw( module_file    );
+use Getopt::Long           qw( GetOptions     );
+use Pod::Usage             qw( pod2usage      );
+use English                qw( -no_match_vars );
+use CPAN::Mini::Devel 0.03 qw(                );
 
-use version; our $VERSION = qv(0.192);
+use version 0.76; our $VERSION = version->new("1.000");
+
+sub filters;
+sub usage;
+sub version;
 
 STDOUT->autoflush(1);
 STDERR->autoflush(1);
 
+my (@dists, @modules, @files);
+my $verbose = 1;
+my $cpan = 'http://cpan.hexten.net/';
+my $minicpan = 'C:\minicpan';
+
+my $result = GetOptions(
+            "cpan=s"     => \$cpan,
+            "minicpan=s" => \$minicpan,
+            "dist=s"     => \@dists,      
+            "module=s"   => \@modules,      
+            "file=s"     => \@files,      
+            "verbose!"   => \$verbose,
+			"help|?"     => sub { pod2usage(-exitstatus => 1, -verbose => 0); },
+			"man"        => sub { pod2usage(-exitstatus => 1, -verbose => 2); },
+			"usage"      => sub { usage(); },
+			"version"    => sub { version(); }
+		);
+		
+$result or usage();
+
+my @input;
+
+foreach my $dist (@dists) {
+	my @regex_file = read_file( dist_file( $dist, 'minicpan_filters.txt' ) );
+	push @input, @regex_file;
+}
+
+foreach my $module (@modules) {
+	my @regex_file = read_file( module_file( $module, 'minicpan_filters.txt' ) );
+	push @input, @regex_file;
+}
+
+foreach my $file (@files) {
+	my @regex_file = read_file( $file );
+	push @input, @regex_file;
+}
+
+# Delete comments
+chomp @input;
+my @regex_list = uniq grep { $_ !~ m{\A\s*\z|\A\s*#} } @input;
+
+if ($#regex_list < 0) {
+	usage(<<'EOF');
+No files to download.
+One or more of --file, --dist, or --module must be used.
+EOF
+}
+
 say 'Updated: ', scalar localtime;
 
-require CPAN::Mini::Devel;
-
 CPAN::Mini::Devel->update_mirror(
-	remote       => 'http://cpan.hexten.net/',
-	local        => 'C:\minicpan',
-	trace        => 1,
+	remote       => $cpan,
+	local        => $minicpan,
+	trace        => $verbose,
 	path_filters => [ sub { filters( $_[0] ); } ] );
 
 say 'Finished: ', scalar localtime;
 
 exit 0;
 
-sub filters { ## no critic (ProhibitExcessComplexity)
-	my $mod = shift;
+sub filters {
+	my $dist = shift;
 
-	## no critic (RequireExtendedFormatting)
-	## no critic (RequireDotMatchAnything)
-	## no critic (RequireLineBoundaryMatching)
+	my $result = first { $dist =~ m{$_} } @regex_list;
+	
+	return ( defined $result ? 0 : 1 );
+}
 
-	# Perl::Dist::Bootstrap stuff;
-	return 0 if $mod =~ m{/JUERD/DBIx-Simple-};
-	return 0 if $mod =~ m{/FLORA/Algorithm-C3-};
-	return 0 if $mod =~ m{/FLORA/Class-C3-};
-	return 0 if $mod =~ m{/FLORA/MRO-Compat-};
-	return 0 if $mod =~ m{/ADAMK/Task-Weaken-};
-	return 0 if $mod =~ m{/CHOCOLATE/Scope-Guard-};
-	return 0 if $mod =~ m{/NUFFIN/Devel-GlobalDestruction-};
-	return 0 if $mod =~ m{/XMATH/Sub-Name-};
-	return 0 if $mod =~ m{/DROLSKY/Class-MOP-};
-	return 0 if $mod =~ m{/DROLSKY/Moose-};
-	return 0 if $mod =~ m{/SARTAK/MooseX-AttributeHelpers-};
-	return 0 if $mod =~ m{/CSJEWELL/Perl-Dist-WiX-};
-	return 0 if $mod =~ m{/CSJEWELL/File-List-Object-};
-	return 0 if $mod =~ m{/ADAMK/Module-Install-};
-	return 0 if $mod =~ m{/ROODE/Readonly};
-	return 0 if $mod =~ m{/DMUEY/File-Copy-Recursive-};
-	return 0 if $mod =~ m{/RCLAMP/File-Find-Rule-};
-	return 0 if $mod =~ m{/DAGOLDEN/File-pushd-};
-	return 0 if $mod =~ m{/ADAMK/File-};
-	return 0 if $mod =~ m{/TJENNESS/File-Temp-};
-	return 0 if $mod =~ m{/ADAMK/Object-Tiny-};
-	return 0 if $mod =~ m{/ADAMK/YAML-Tiny-};
-	return 0 if $mod =~ m{/ADAMK/Params-Util-};
-	return 0 if $mod =~ m{/ADAMK/Process-};
-	return 0 if $mod =~ m{/MJD/Tie-File-};
-	return 0 if $mod =~ m{/MSCHWERN/Test-Simple-};
-	return 0 if $mod =~ m{/ABW/Template-Toolkit-2};
-	return 0 if $mod =~ m{/REYNOLDS/IO-Capture-};
-	return 0 if $mod =~ m{/ADAMK/Perl-Dist-};
-	return 0 if $mod =~ m{/RJBS/Data-UUID-};
-	return 0 if $mod =~ m{/RJBS/Data-OptList-};
-	return 0 if $mod =~ m{/RJBS/Sub-Install-};
-	return 0 if $mod =~ m{/RJBS/Sub-Exporter-};
-	return 0 if $mod =~ m{/RGARCIA/Module-CoreList-};
-	return 0 if $mod =~ m{/SMUELLER/PAR-Dist-};
-	return 0 if $mod =~ m{/SMUELLER/Module-ScanDeps-};
-	return 0 if $mod =~ m{/VPARSEVAL/List-MoreUtils-};
-	return 0 if $mod =~ m{/ABW/AppConfig-};
-	return 0 if $mod =~ m{/DROLSKY/Exception-Class-};
-	return 0 if $mod =~ m{/DROLSKY/File-Slurp-};
-	return 0 if $mod =~ m{/DROLSKY/Devel-StackTrace-};
-	return 0 if $mod =~ m{/SEKIMURA/LWP-UserAgent-WithCache-};
-	return 0 if $mod =~ m{/BDFOY/Test-Output-};
-	return 0 if $mod =~ m{/KWILLIAMS/Probe-Perl-};
-	return 0 if $mod =~ m{/RGARCIA/Test-LongString-};
-	return 0 if $mod =~ m{/ISHIGAKI/Tie-Slurp-};
-	return 0 if $mod =~ m{/ISHIGAKI/Test-UseAllModules-};
-	return 0 if $mod =~ m{/JJORE/B-Utils-};
-	return 0 if $mod =~ m{/YVES/Data-Dump-Streamer-};
-	return 0 if $mod =~ m{/ADAMK/Test-Script-};
-	return 0 if $mod =~ m{/ROBIN/PadWalker-};
-	return 0 if $mod =~ m{/JDHEDDEN/Object-InsideOut-};
-	return 0 if $mod =~ m{/SHLOMIF/Error-};
-	return 0 if $mod =~ m{/JSWARTZ/Cache-Cache-};
-	return 0 if $mod =~ m{/TMTM/Class-Data-Inheritable-};
-	return 0 if $mod =~ m{/ADAMK/File-IgnoreReadonly-};
-	return 0 if $mod =~ m{/ADAMK/LWP-Online-};
-	return 0 if $mod =~ m{/RRWO/Pod-Readme-};
-	return 0 if $mod =~ m{/ABIGAIL/Regexp-Common-};
-	return 0 if $mod =~ m{/MLEHMANN/JSON-XS-};
-	return 0 if $mod =~ m{/MAKAMAKA/JSON-};
+sub version {
+	my $version = $VERSION->stringify();
 
-	# Portability and Perl::Dist::Bootstrap.
-	return 0 if $mod =~ m{/ADAMK/Portable-};
-	return 0 if $mod =~ m{/RJBS/CPAN-Mini-};
-	return 0 if $mod =~ m{/ADAMK/Class-Inspector-};
+	print <<"EOF";
+This is $PROGRAM_NAME, version $VERSION, a minicpan script 
+for Perl::Dist::WiX and subclasses.
 
-	# Perl::Dist::Strawberry
-	return 0 if $mod =~ m{/JDB/Win32-File-\d};
-	return 0 if $mod =~ m{/ADAMK/Win32-File-Object-};
-	return 0 if $mod =~ m{/COSIMO/Win32-API-};
-	return 0 if $mod =~ m{/SMUELLER/Win32-Exe-};
-	return 0 if $mod =~ m{/TELS/math/Math-BigInt-GMP-};
-	return 0 if $mod =~ m{/MSERGEANT/XML-Parser-};
-	return 0 if $mod =~ m{/PAJAS/XML-LibXML-};
-	return 0 if $mod =~ m{/GAAS/libwww-perl-};
-	return 0 if $mod =~ m{/SMUELLER/PAR-Dist-InstallPPD-};
-	return 0 if $mod =~ m{/DSKOLL/IO-stringy-};
-	return 0 if $mod =~ m{/DAVECROSS/Array-Compare-};
-	return 0 if $mod =~ m{/COGENT/Tree-DAG_Node-};
-	return 0 if $mod =~ m{/CHORNY/Test-Warn-};
-	return 0 if $mod =~ m{/FDALY/Test-Deep-};
-	return 0 if $mod =~ m{/RKINYON/DBM-Deep-};
-	return 0 if $mod =~ m{/ADAMK/YAML-Tiny-};
-	return 0 if $mod =~ m{/SMUELLER/AutoLoader-};
-	return 0 if $mod =~ m{/SMUELLER/PAR-};
-	return 0 if $mod =~ m{/SMUELLER/PAR-Repository-Query-};
-	return 0 if $mod =~ m{/SMUELLER/PAR-Repository-Client-};
-	return 0 if $mod =~ m{/ADAMK/pler-};
-	return 0 if $mod =~ m{/ADAMK/pip-};
-	return 0 if $mod =~ m{/TIMB/DBI-};
-	return 0 if $mod =~ m{/ADAMK/DBD-SQLite-};
-	return 0 if $mod =~ m{/GBARR/CPAN-DistnameInfo-};
-	return 0 if $mod =~ m{/RKOBES/CPAN-SQLite-};
-	return 0 if $mod =~ m{/MJEVANS/DBD-ODBC-};
-	return 0 if $mod =~ m{/GRANTM/XML-SAX-};
-	return 0 if $mod =~ m{/ANDK/CPAN-Checksums-};
-	return 0 if $mod =~ m{/ADAMK/CPAN-Inject-};
-	return 0 if $mod =~ m{/DCANTRELL/Data-Compare-};
-	return 0 if $mod =~ m{/RCLAMP/Number-Compare-};
-	return 0 if $mod =~ m{/PINYAN/File-chmod-};
-	return 0 if $mod =~ m{/DAGOLDEN/File-pushd-};
-	return 0 if $mod =~ m{/RCLAMP/File-Find-Rule-};
-	return 0 if $mod =~ m{/ADAMK/File-Remove-};
-	return 0 if $mod =~ m{/SMUELLER/PAR-Dist-};
-	return 0 if $mod =~ m{/SMUELLER/PAR-Dist-FromPPD-};
-	return 0 if $mod =~ m{/ADAMK/Params-Util-};
-	return 0 if $mod =~ m{/KWILLIAMS/Probe-Perl-};
-	return 0 if $mod =~ m{/AUDREYT/Parse-Binary-};
-	return 0 if $mod =~ m{/PHISH/XML-LibXML-Common-};
-	return 0 if $mod =~ m{/(?:RBERJON|PERIGRIN)/XML-NamespaceSupport-};
-	return 0 if $mod =~ m{/ADAMK/Test-Script-};
-	return 0 if $mod =~ m{/(?:RSCHUPP|RJBS)/IPC-Run3-};
-	return 0 if $mod =~ m{/APEIRON/local-lib-};
+Copyright 2009 Curtis Jewell.
 
-	# Portability and Perl::Dist::Strawberry
-	return 0 if $mod =~ m{/DAGOLDEN/Sub-Uplevel-};
-	return 0 if $mod =~ m{/ADIE/Test-Exception-};
-	return 0 if $mod =~ m{/FDALY/Test-NoWarnings-};
-	return 0 if $mod =~ m{/FDALY/Test-Tester-};
-	return 0 if $mod =~ m{/ADAMK/LWP-Online-};
+This script may be copied only under the terms of either the Artistic License
+or the GNU General Public License, which may be found in the Perl 5 
+distribution or the distribution containing this script.
+EOF
 
-	# Perl::Dist::WiX upgrades
-	return 0 if $mod =~ m{/JDB/Win32-Process-};
-	return 0 if $mod =~ m{/SBURKE/Pod-Escapes-};
-	return 0 if $mod =~ m{/KANE/Archive-Extract-};
-	return 0 if $mod =~ m{/SMUELLER/Attribute-Handlers-};
-	return 0 if $mod =~ m{/SMUELLER/AutoLoader-};
-	return 0 if $mod =~ m{/RURBAN/B-Debug-};
-	return 0 if $mod =~ m{/JJORE/B-Lint-};
-	return 0 if $mod =~ m{/KANE/CPANPLUS-};
-	return 0 if $mod =~ m{/MHX/Devel-PPPort-};
-	return 0 if $mod =~ m{/GAAS/Digest-};
-	return 0 if $mod =~ m{/DANKOGAI/Encode-\d};
-	return 0 if $mod =~ m{/FERREIRA/Exporter-};
-	return 0 if $mod =~ m{/SMUELLER/Filter-Simple-};
-	return 0 if $mod =~ m{/JV/Getopt-Long-};
-	return 0 if $mod =~ m{/GBARR/IO-};
-	return 0 if $mod =~ m{/KANE/IPC-Cmd-};
-	return 0 if $mod =~ m{/FERREIRA/Locale-Maketext-};
-	return 0 if $mod =~ m{/KANE/Log-Message-};
-	return 0 if $mod =~ m{/GAAS/MIME-Base64-};
-	return 0 if $mod =~ m{/TELS/math/Math-BigInt-};
-	return 0 if $mod =~ m{/TELS/math/Math-BigInt-FastCalc-};
-	return 0 if $mod =~ m{/TELS/math/Math-BigRat-};
-	return 0 if $mod =~ m{/JHI/Math-Complex-};
-	return 0 if $mod =~ m{/RGARCIA/Module-CoreList-};
-	return 0 if $mod =~ m{/KANE/Module-Load-};
-	return 0 if $mod =~ m{/KANE/Module-Load-Conditional-};
-	return 0 if $mod =~ m{/KANE/Module-Loaded-};
-	return 0 if $mod =~ m{/SIMONW/Module-Pluggable-};
-	return 0 if $mod =~ m{/FLORA/NEXT-};
-	return 0 if $mod =~ m{/KANE/Object-Accessor-};
-	return 0 if $mod =~ m{/MAREKR/Pod-Parser-};
-	return 0 if $mod =~ m{/FERREIRA/Pod-Perldoc-};
-	return 0 if $mod =~ m{/ARANDAL/Pod-Simple-};
-	return 0 if $mod =~ m{/RGARCIA/Safe-};
-	return 0 if $mod =~ m{/SMUELLER/SelfLoader-};
-	return 0 if $mod =~ m{/AMS/Storable-};
-	return 0 if $mod =~ m{/RGARCIA/Switch-};
-	return 0 if $mod =~ m{/KANE/Term-UI-};
-	return 0 if $mod =~ m{/MSCHWERN/Test-Harness-Straps-};
-	return 0 if $mod =~ m{/CHORNY/Text-ParseWords-};
-	return 0 if $mod =~ m{/JDHEDDEN/Thread-Semaphore-};
-	return 0 if $mod =~ m{/NUFFIN/Tie-RefHash-};
-	return 0 if $mod =~ m{/JHI/Time-HiRes-};
-	return 0 if $mod =~ m{/DROLSKY/Time-Local-};
-	return 0 if $mod =~ m{/DCONWAY/Text-Balanced-};
-	return 0 if $mod =~ m{/MSERGEANT/Time-Piece-};
-	return 0 if $mod =~ m{/JDB/Win32-\d};
-	return 0 if $mod =~ m{/SAPER/XSLoader-};
-	return 0 if $mod =~ m{/TELS/math/bignum-};
-	return 0 if $mod =~ m{/SAPER/constant-};
-	return 0 if $mod =~ m{/JDHEDDEN/threads-};
-	return 0 if $mod =~ m{/JDHEDDEN/threads-shared-};
-	return 0 if $mod =~ m{/LDS/CGI.pm-};
-	return 0 if $mod =~ m{/PJF/autodie-};
-	return 0 if $mod =~ m{/PJF/IPC-System-Simple-};
-	return 0 if $mod =~ m{/PMQS/Filter-};
-	return 0 if $mod =~ m{/RGARCIA/base-};
-	return 0 if $mod =~ m{/RRA/podlators-};
-	return 0 if $mod =~ m{/RRA/ANSIColor-};
-	return 0 if $mod =~ m{/MUIR/modules/Text-Tabs\+Wrap-};
-	return 0 if $mod =~ m{/JDHEDDEN/Thread-Queue-};
-	return 0 if $mod =~ m{/KANE/File-Fetch-};
-	return 0 if $mod =~ m{/BINGOS/CPANPLUS-Dist-Build-};
+	exit(1);
+	
+}
 
-	# Toolchain
-	return 0 if $mod =~ m{/MSCHWERN/ExtUtils-MakeMaker-};
-	return 0 if $mod =~ m{/DLAND/File-Path-};
-	return 0 if $mod =~ m{/RKOBES/ExtUtils-Command-};
-	return 0 if $mod =~ m{/CHORNY/Win32API-File-};
-	return 0 if $mod =~ m{/YVES/ExtUtils-Install-};
-	return 0 if $mod =~ m{/RKOBES/ExtUtils-Manifest-};
-	return 0 if $mod =~ m{/ANDYA/Test-Harness-};
-	return 0 if $mod =~ m{/MSCHWERN/Test-Simple-};
-	return 0 if $mod =~ m{/(?:KWILLIAMS|DAGOLDEN)/ExtUtils-CBuilder-};
-	return 0 if $mod =~ m{/(?:KWILLIAMS|DAGOLDEN)/ExtUtils-ParseXS-};
-	return 0 if $mod =~ m{/JPEACOCK/version-};
-	return 0 if $mod =~ m{/GBARR/Scalar-List-Utils-};
-	return 0 if $mod =~ m{/PMQS/Compress-Raw-Zlib-};
-	return 0 if $mod =~ m{/PMQS/Compress-Raw-Bzip2-};
-	return 0 if $mod =~ m{/PMQS/IO-Compress-};
-	return 0 if $mod =~ m{/ARJAY/Compress-Bzip2-};
-	return 0 if $mod =~ m{/TOMHUGHES/IO-Zlib-};
-	return 0 if $mod =~ m{/SMUELLER/PathTools-};
-	return 0 if $mod =~ m{/TJENNESS/File-Temp-};
-	return 0 if $mod =~ m{/JDB/Win32-WinError-};
-	return 0 if $mod =~ m{/BLM/Win32API-Registry-};
-	return 0 if $mod =~ m{/ADAMK/Win32-TieRegistry-};
-	return 0 if $mod =~ m{/ADAMK/File-HomeDir-};
-	return 0 if $mod =~ m{/PEREINAR/File-Which-};
-	return 0 if $mod =~ m{/ADAMK/Archive-Zip-};
-	return 0 if $mod =~ m{/KANE/Package-Constants-};
-	return 0 if $mod =~ m{/GAAS/IO-String-};
-	return 0 if $mod =~ m{/KANE/Archive-Tar-};
-	return 0 if $mod =~ m{/FERREIRA/Compress-unLZMA-};
-	return 0 if $mod =~ m{/(?:SMUELLER|ADAMK)/Parse-CPAN-Meta-};
-	return 0 if $mod =~ m{/INGY/YAML-};
-	return 0 if $mod =~ m{/GBARR/libnet-};
-	return 0 if $mod =~ m{/GAAS/Digest-MD5-};
-	return 0 if $mod =~ m{/GAAS/Digest-SHA1-};
-	return 0 if $mod =~ m{/MSHELOR/Digest-SHA-};
-	return 0 if $mod =~ m{/(?:EWILHELM|KWILLIAMS|DAGOLDEN)/Module-Build-};
-	return 0 if $mod =~ m{/JSTOWE/Term-Cap-};
-	return 0 if $mod =~ m{/ANDK/CPAN-};
-	return 0 if $mod =~ m{/JSTOWE/TermReadKey-};
-	return 0 if $mod =~ m{/ILYAZ/modules/Term-ReadLine-Perl-};
-	return 0 if $mod =~ m{/RCLAMP/Text-Glob-};
-	return 0 if $mod =~ m{/(?:SMUELLER|ILYAM)/Data-Dumper-};
-	return 0 if $mod =~ m{/GAAS/URI-};
-	return 0 if $mod =~ m{/PETDANCE/HTML-Tagset-};
-	return 0 if $mod =~ m{/GAAS/HTML-Parser-};
-	return 0 if $mod =~ m{/GAAS/libwww-perl-};
+sub usage {
+	my $error = shift;
 
-	return 1;
-} ## end sub filters
+	print "Error: $error\n\n" if (defined $error);
+
+	print <<"EOF";
+This is $PROGRAM_NAME, version $VERSION, a minicpan script 
+for Perl::Dist::WiX and subclasses.
+
+Usage: $PROGRAM_NAME [ --dist <distribution> ] [ --module <module> ]
+                     [ --file <file> ] [ --cpan <URL> ] 
+                     [ --minicpan <filespec> ] [ --[no]verbose ]
+                     [ --help ] [ --usage ] [ --man ] [ --version ] [ -? ]
+
+For more assistance, run $PROGRAM_NAME --help.
+EOF
+
+	exit(1);	
+}
 
 __END__
 
 =head1 NAME
 
-minicpan_pdwix - minicpan script for Perl::Dist::WiX
+minicpan_pdwix - a minicpan script for Perl::Dist::WiX and subclasses.
 
-=head1 SYNOPSIS
+=head1 VERSION
 
-    minicpan_pdwix
+This document describes minicpan_pdwix version 1.000.
 
 =head1 DESCRIPTION
 
-This creates a minicpan for L<Perl::Dist::WiX> to use that contains the 
-minimum files required to make a perl distribution.
+This creates a minicpan for L<Perl::Dist::WiX> and subclasses to 
+use that contains the minimum files required to make a perl 
+distribution.
+
+=head1 SYNOPSIS
+
+  minicpan_pdwix [ --dist <distribution> ] [ --module <module> ]
+                 [ --file <file> ] [ --cpan <URL> ] 
+                 [ --minicpan <dir> ] [ --[no]verbose ]
+                 [ --help ] [ --usage ] [ --man ] [ --version ] [ -?]
+				 
+  Options:
+    --dist <dist>     Loads a list to download from the named distribution.
+    --module <module> Loads a list to download from the named module.
+    --file <file>     Loads a list to download from the named file.	
+    --cpan <URL>      Specifies the CPAN mirror to download to.
+                      Defaults to http://cpan.hexten.net/.
+    --minicpan <dir>  Specifies the directory to download to.
+                      Defaults to C:\minicpan\.
+
+    --verbose         Lists the files as they are downloaded. (default)
+    --noverbose       Does not list the files as they are downloaded.
+	
+    --usage           Gives a minimum amount of aid and comfort.
+    --help            Gives aid and comfort.
+    -?                Gives aid and comfort.
+    --man             Gives maximum aid and comfort.	
+	
+    --version         Gives the name, version and copyright of the script.
+	
+=head1 OPTIONS
+
+=over
+
+=item B<--dist>
+
+Loads a list of regular expressions that specify which files to download 
+from the file minicpan_filters.txt in the directory File::ShareDir uses 
+for the named distribution.
+
+=item B<--module>
+
+Loads a list of regular expressions that specify which files to download 
+from the file minicpan_filters.txt in the directory File::ShareDir uses 
+for the named module.
+
+=item B<--file>
+
+Loads a list of regular expressions that specify which files to download 
+from the named file.
+
+=item B<--cpan>
+
+Specifies the CPAN mirror to use.
+
+Defaults to L<http://cpan.hexten.net/>.
+
+=item B<--minicpan>
+
+Specifies the location to download the minicpan.
+
+Defaults to C<C:\minicpan\>.
+
+=item B<--verbose>/B<--noverbose>
+
+Specifies whether the list of files downloaded should be printed or not.
+
+Defaults to B<--verbose>.
+
+=item B<--usage>
+
+Print a brief usage message and exits.
+
+=item B<--help> or B<-?>
+
+Print a short help message and exits.
+
+=item B<--man>
+
+Prints the POD documentation contained in the script and exits.
+
+=item B<--version>
+
+Prints the script name, version, and copyright and exits.
+
+=back
 
 =head1 CONFIGURATION
 
-No environment variables or configuration files are used during the
-execution of this script that the modules used do not already use.
+No environment variables are used during the execution of this script 
+that the modules used do not already use.
+
+The --dist and --module options use File::ShareDir to get a file named
+minicpan_filters.txt from the root directory of the named options.
+
+The --file option names a file to load.
+
+The files loaded by the options mentioned above contain a list of regular 
+expressions that define files to download, as shown in the example file 
+below:
+
+	# Downloads 4 files.
+	
+	/MBARBON/Wx-\d
+	/MDOOTSON/Wx-Perl-ProcessStream-
+	/(?:GARU|SZABGAB)/Padre-\d
+	/AZAWAWI/Padre-Plugin-Perl6-
+
+There are no options given by default, and lines containing only whitespace, 
+or that are empty, or whose first non-whitespace character is a C<#> are 
+disregarded. 
 
 =head1 DEPENDENCIES
 
 Perl 5.10.0 is the mimimum version of perl that this script will run on.
 
-Other modules that this script depends on are L<IO::Handle>, L<File::Copy>, 
-L<File::Spec::Functions>, L<File::HomeDir>, L<CPAN::Mini> 0.576, and 
-L<CPAN::Mini::Devel> 0.03.
+Other modules that this script depends on are L<IO::Handle>, L<List::Util>, 
+L<List::MoreUtils>, L<File::ShareDir> 1.00, L<File::Slurp>, L<Getopt::Long>,
+L<Pod::Usage>, L<English>, L<CPAN::Mini> 0.576, and L<CPAN::Mini::Devel> 
+0.03.
  
 =head1 SUPPORT
 
@@ -317,6 +277,6 @@ This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
 The full text of the license can be found in the
-LICENSE file included with this module.
+LICENSE file included with this distribution.
 
 =cut
