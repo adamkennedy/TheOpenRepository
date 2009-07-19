@@ -558,8 +558,7 @@ sub audit_or_node {
         my %child_id_seen;
         CHILD_ID: for my $child_id ( @{$child_ids} ) {
             next CHILD_ID if not $child_id_seen{$child_id}++;
-            Marpa::exception(
-                "or-node #$id has duplicate child, #$child_id");
+            Marpa::exception("or-node #$id has duplicate child, #$child_id");
         }
     }
 
@@ -1218,7 +1217,7 @@ sub rewrite_cycles {
 
                             next FIELD;
 
-                        }
+                        } ## end if ( defined $new_or_child_id )
 
                         # If here, the or-child is external.
 
@@ -1253,6 +1252,7 @@ sub rewrite_cycles {
 
             my $new_root_or_node = $or_nodes->[$new_root_or_node_id];
 
+            PARENT_AND_NODE:
             for my $original_parent_and_node_id (
                 @{  $original_root_or_node
                         ->[Marpa::Internal::Or_Node::PARENT_IDS]
@@ -1268,9 +1268,12 @@ sub rewrite_cycles {
                     )
                     )
                 {
+
                     ### Adding and-node to delete work list: $new_parent_and_node_id
                     push @delete_work_list,
                         [ DELETE_AND_NODE, $new_parent_and_node_id ];
+                    next PARENT_AND_NODE;
+
                 } ## end if ( defined( my $new_parent_and_node_id = ...))
 
                 # Clone the external parent node
@@ -1310,21 +1313,29 @@ sub rewrite_cycles {
                     # new root or-node is this same field in the
                     # new parent and-node.
                     # Uses a referent address comparison.
+                    my $new_root_or_node_sibling;
                     if ( $original_root_or_node_sibling
                         == $original_root_or_node )
                     {
-                        $new_parent_and_node->[$field] = $new_root_or_node;
+                        $new_root_or_node_sibling =
+                            $new_parent_and_node->[$field] =
+                            $new_root_or_node;
 
                         ### Field from or-node: $original_root_or_node_sibling->[Marpa'Internal'Or_Node'ID]
                         ### Field to or-node: $new_root_or_node->[Marpa'Internal'Or_Node'ID]
 
                     } ## end if ( $original_root_or_node_sibling == ...)
                     else {
-                        $new_parent_and_node->[$field] =
+                        $new_root_or_node_sibling =
+                            $new_parent_and_node->[$field] =
                             $original_root_or_node_sibling;
                     }
 
-                    push @{ $new_parent_and_node->[$field]
+                    ### Pushing additional parent id, or-node: $new_parent_and_node_id, $new_root_or_node_sibling->[Marpa'Internal'Or_Node'ID]
+
+                    ### assert: not grep { $_ == $new_parent_and_node_id } @{ $new_root_or_node_sibling->[Marpa'Internal'Or_Node'PARENT_IDS] }
+
+                    push @{ $new_root_or_node_sibling
                             ->[Marpa::Internal::Or_Node::PARENT_IDS] },
                         $new_parent_and_node_id;
 

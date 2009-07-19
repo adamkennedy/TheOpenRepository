@@ -8,8 +8,6 @@ use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
 use Test::More tests => 7;
-use lib 'lib';
-use lib 't/lib';
 use Marpa::Test;
 
 BEGIN {
@@ -39,7 +37,7 @@ sub make_plex_rules {
 my $plex1_test = [
     '1-plex test',
     [ start => 'S0', rules => make_plex_rules(1) ],
-    ['S0(t)'],
+    [ 'S0:t(t)', 'S0:S0(S0:t(t))' ],
     <<'EOS'
 Cycle found involving rule: 0: S0 -> S0
 EOS
@@ -48,12 +46,12 @@ EOS
 my $plex2_test = [
     '2-plex test',
     [ start => 'S0', rules => make_plex_rules(2) ],
-    [ 'S0(t)', 'S0(S1(t))' ],
+    [ 'S0:t(t)', 'S0:S0(S1:t(t))' ],
     <<'EOS'
-Cycle found involving rule: 0: S0 -> S0
-Cycle found involving rule: 4: S1 -> S1               
-Cycle found involving rule: 3: S1 -> S0               
+Cycle found involving rule: 4: S1 -> S1
+Cycle found involving rule: 3: S1 -> S0
 Cycle found involving rule: 1: S0 -> S1
+Cycle found involving rule: 0: S0 -> S0
 EOS
 ];
 
