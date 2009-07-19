@@ -1276,6 +1276,8 @@ sub rewrite_cycles {
 
                 } ## end if ( defined( my $new_parent_and_node_id = ...))
 
+                # If we are here, the parent node is cycle-external.
+
                 # Clone the external parent node
                 my $original_parent_and_node =
                     $and_nodes->[$original_parent_and_node_id];
@@ -1284,17 +1286,8 @@ sub rewrite_cycles {
                 my $new_parent_and_node_id =
                     $new_parent_and_node->[Marpa::Internal::And_Node::ID];
 
-                ### Cloning root parent and-node, old: $original_parent_and_node_id
-                ### Cloning root parent and-node, new: $new_parent_and_node_id
-
-                ### Pushing additional parent id, or-node: $new_parent_and_node_id, $new_root_or_node_id
-
-                ### assert: not grep { $_ == $new_parent_and_node_id } @{ $new_root_or_node->[Marpa'Internal'Or_Node'PARENT_IDS] }
-                # Tell the new root or-node, that the cloned and-node is one of
-                # its parents.
-                push @{ $new_root_or_node
-                        ->[Marpa::Internal::Or_Node::PARENT_IDS] },
-                    $new_parent_and_node_id;
+                ### Cloned root parent and-node, old: $original_parent_and_node_id
+                ### Cloned root parent and-node, new: $new_parent_and_node_id
 
                 # Now tell the cloned and-node about its children, one
                 # of which is the new root or-node
