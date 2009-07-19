@@ -518,6 +518,15 @@ sub audit_or_node {
         } ## end if ( $deleted and $has_parents )
     } ## end if ( $id != 0 )
 
+    {
+        my %parent_id_seen;
+        PARENT_ID: for my $parent_id ( @{$parent_ids} ) {
+            next PARENT_ID if not $parent_id_seen{$parent_id}++;
+            Marpa::exception(
+                "or-node #$id has duplicate parent, #$parent_id");
+        }
+    }
+
     PARENT_ID: for my $parent_id ( @{$parent_ids} ) {
         my $parent = $and_nodes->[$parent_id];
         my $cause  = $parent->[Marpa::Internal::And_Node::CAUSE];
@@ -544,6 +553,16 @@ sub audit_or_node {
     if ( $deleted and $has_children ) {
         Marpa::exception("Deleted or-node #$id has children");
     }
+
+    {
+        my %child_id_seen;
+        CHILD_ID: for my $child_id ( @{$child_ids} ) {
+            next CHILD_ID if not $child_id_seen{$child_id}++;
+            Marpa::exception(
+                "or-node #$id has duplicate child, #$child_id");
+        }
+    }
+
     for my $child_id ( @{$child_ids} ) {
         my $child        = $and_nodes->[$child_id];
         my $child_parent = $child->[Marpa::Internal::And_Node::PARENT_ID];
@@ -1158,7 +1177,7 @@ sub rewrite_cycles {
                 ];
 
                 ### PARENT_IDS for original or-node: $original_or_node_id, $original_or_node->[Marpa'Internal'Or_Node'PARENT_IDS]
-                ### New PARENT_IDS for new or-node: $new_or_node_id, $new_or_node->[Marpa'Internal'Or_Node'PARENT_IDS]
+                ### PARENT_IDS for new or-node: $new_or_node_id, $new_or_node->[Marpa'Internal'Or_Node'PARENT_IDS]
 
                 for my $original_and_node_id (
                     @{  $original_or_node
@@ -1197,14 +1216,21 @@ sub rewrite_cycles {
                             ### Changing field, and-node, field: $original_and_node_id, $field
                             ### From or-node, to or-node: $original_or_child_id, $new_or_child_id
 
-                        } ## end if ( defined $new_or_child_id )
-                        else {
-                            $new_or_child = $new_and_node->[$field] =
-                                $original_or_child;
+                            next FIELD;
+
                         }
 
-                        # If here, the or-child is external, and we need to duplicate
-                        # the link
+                        # If here, the or-child is external.
+
+                        $new_or_child = $new_and_node->[$field] =
+                            $original_or_child;
+
+                        ### Pushing additional parent id, or-node: $new_and_node_id, $new_or_child_id
+
+                        ### assert: not grep { $_ == $new_and_node_id } @{ $new_or_child ->[Marpa'Internal'Or_Node'PARENT_IDS] }
+
+                        # Since the or-child is external,
+                        # we need to duplicate the link.
                         push @{ $new_or_child
                                 ->[Marpa::Internal::Or_Node::PARENT_IDS] },
                             $new_and_node_id;
@@ -1216,7 +1242,7 @@ sub rewrite_cycles {
 
             # It remains now to duplicate the external links to the cycle
             # and to mark internal links to the root node for deletion.
-            # These are allowed only to the root node of the cycle.
+            # External links are allowed only to the root node of the cycle.
 
             my $new_root_or_node_id =
                 $translate_or_node_id{ $original_root_or_node
@@ -1258,6 +1284,9 @@ sub rewrite_cycles {
                 ### Cloning root parent and-node, old: $original_parent_and_node_id
                 ### Cloning root parent and-node, new: $new_parent_and_node_id
 
+                ### Pushing additional parent id, or-node: $new_parent_and_node_id, $new_root_or_node_id
+
+                ### assert: not grep { $_ == $new_parent_and_node_id } @{ $new_root_or_node->[Marpa'Internal'Or_Node'PARENT_IDS] }
                 # Tell the new root or-node, that the cloned and-node is one of
                 # its parents.
                 push @{ $new_root_or_node

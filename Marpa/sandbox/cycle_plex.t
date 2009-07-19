@@ -18,8 +18,8 @@ BEGIN {
 
 sub make_rule {
     my ( $lhs_symbol_name, $rhs_symbol_name ) = @_;
-    my $action = q{ '<<LHS>>(' . $_[0] . ')' };
-    $action =~ s/<<LHS>>/$lhs_symbol_name/xms;
+    my $action = q{ '<<RULE>>(' . $_[0] . ')' };
+    $action =~ s/<<RULE>>/$lhs_symbol_name:$rhs_symbol_name/xms;
     return [ $lhs_symbol_name, [$rhs_symbol_name], $action ];
 } ## end sub make_rule
 
@@ -36,8 +36,8 @@ sub make_plex_rules {
     return \@rules;
 }
 
-my $cycle1_test = [
-    'cycle plex test 1',
+my $plex1_test = [
+    '1-plex test',
     [ start => 'S0', rules => make_plex_rules(1) ],
     ['S0(t)'],
     <<'EOS'
@@ -45,8 +45,19 @@ Cycle found involving rule: 0: S0 -> S0
 EOS
 ];
 
-my @test_data = ( $cycle1_test, );
+my $plex2_test = [
+    '2-plex test',
+    [ start => 'S0', rules => make_plex_rules(2) ],
+    [ 'S0(t)', 'S0(S1(t))' ],
+    <<'EOS'
+Cycle found involving rule: 0: S0 -> S0
+Cycle found involving rule: 4: S1 -> S1               
+Cycle found involving rule: 3: S1 -> S0               
+Cycle found involving rule: 1: S0 -> S1
+EOS
+];
 
+my @test_data = ( $plex1_test, $plex2_test );
 
 for my $test_data (@test_data) {
     my ( $test_name, $rules, $expected_values, $expected_trace ) = @{$test_data};

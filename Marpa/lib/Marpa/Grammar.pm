@@ -3582,8 +3582,6 @@ sub rewrite_as_CHAF {
     my $rules            = $grammar->[Marpa::Internal::Grammar::RULES];
     my $symbols          = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my $old_start_symbol = $grammar->[Marpa::Internal::Grammar::START];
-    my $cycle_action     = $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION];
-    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     # add null aliases to symbols which need them
     my $symbol_count = @{$symbols};
@@ -3644,25 +3642,6 @@ sub rewrite_as_CHAF {
         my $rhs           = $rule->[Marpa::Internal::Rule::RHS];
         my $nullable      = $rule->[Marpa::Internal::Rule::NULLABLE];
         my $user_priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
-
-        # rules that are direct, simple cycles (that is, A ::= A)
-        # are useless
-        if ( @{$rhs} == 1 and $lhs == $rhs->[0] ) {
-            my $fatal = $cycle_action eq 'fatal';
-            my $warn  = $cycle_action eq 'warn';
-            my $message;
-            if ( $warn or $fatal ) {
-                my $name = $lhs->[Marpa::Internal::Symbol::NAME];
-                $message =
-                    "Cycle found involving rule: $rule_id: $name -> $name";
-            }
-            if ($warn) {
-                print {$trace_fh} "$message\n"
-                    or Marpa::exception('Could not print to trace file');
-            }
-            Marpa::exception($message) if $fatal;
-            next RULE;
-        } ## end if ( @{$rhs} == 1 and $lhs == $rhs->[0] )
 
         # Keep track of whether the lhs side of any new rules we create should
         # be nullable.  If any symbol in a production is not nullable, the lhs
