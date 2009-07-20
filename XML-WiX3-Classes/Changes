@@ -1,5 +1,8 @@
-Revision history for XML-WiX3-Classes
+Revision history for WiX3
+
+0.004  Mon Jul 20 2009
+       Rearranging from XML-WiX3-Classes to WiX3.
 
 0.003  Fri May 8 2009
-       Initial release.
+       Initial release of XML-WiX3-Classes.
 

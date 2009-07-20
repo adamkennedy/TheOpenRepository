@@ -3,10 +3,10 @@ use warnings;
 use Module::Build;
 
 my $builder = Module::Build->new(
-    module_name         => 'XML::WiX3::Classes',
+    module_name         => 'WiX3',
     license             => 'perl',
     dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
-    dist_version_from   => 'lib/XML/WiX3/Classes.pm',
+    dist_version_from   => 'lib/WiX3.pm',
 	create_makefile_pl  => 'passthrough',
 	create_readme       => 1,
     requires => {

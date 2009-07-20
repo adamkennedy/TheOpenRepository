@@ -1,16 +1,16 @@
-package XML::WiX3::Classes;
+package WiX3;
 
 use warnings;
 use strict;
 use vars qw( $VERSION );
-use version; $VERSION = version->new('0.003')->numify;
+use version; $VERSION = version->new('0.004')->numify;
 
 1; # Magic true value required at end of module
 __END__
 
 =begin readme text
 
-XML-WiX3-Classes version 0.003
+WiX3 version 0.004
 
 =end readme
 
@@ -18,11 +18,11 @@ XML-WiX3-Classes version 0.003
 
 =head1 NAME
 
-XML::WiX3::Classes - Objects useful for generating Windows Installer XML files.
+WiX3 - Objects useful for generating Windows Installer XML files.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Objects version 0.003
+This document describes WiX3 version 0.004
 
 =for readme continue
 
@@ -65,7 +65,7 @@ Alternatively, to install with Module::Build, you can use the following commands
 
 =head1 SYNOPSIS
 
-    # use XML::WiX3::Classes;
+    # use WiX3;
 
 This is a documentation-only module. Instead of this module, you'll be using 
 specific classes in this distribution.
@@ -108,7 +108,7 @@ Things that apply to all classes are here.
 
 =head1 CONFIGURATION AND ENVIRONMENT
   
-XML::WiX3::Classes requires no configuration files or environment variables.
+WiX3 requires no configuration files or environment variables.
 
 =for readme continue
 
@@ -127,7 +127,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-objects@rt.cpan.org>, or through the web interface at
+C<bug-wix3@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 SEE ALSO

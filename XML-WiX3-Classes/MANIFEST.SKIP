@@ -44,4 +44,4 @@
 #   Mac OSX SMB mount metadata files
 \B\._
 # Avoid archives of this distribution
-\bXML-WiX3-Classes-[\d\.\_]+
+\bWiX3-[\d\.\_]+
