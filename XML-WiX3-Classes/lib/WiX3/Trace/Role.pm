@@ -1,9 +1,9 @@
 package # Hide from PAUSE.
-	XML::WiX3::Classes::Trace::Role;
+	WiX3::Trace::Role;
 
 use 5.008001;
 use Moose::Role;
-use XML::WiX3::Classes::Types qw(Tracelevel);
+use WiX3::Types qw(Tracelevel);
 
 use version; our $VERSION = version->new('0.003')->numify;
 

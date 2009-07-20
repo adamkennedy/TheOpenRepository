@@ -1,16 +1,16 @@
 package # Hide from PAUSE.
-	XML::WiX3::Classes::Trace::Object;
+	WiX3::Trace::Object;
 
 use 5.008001;
 use MooseX::Singleton;
-use XML::WiX3::Classes::Trace::Config;
+use WiX3::Trace::Config;
 
 use version; our $VERSION = version->new('0.003')->numify;
 
 use Readonly qw( Readonly );
 Readonly my @LEVELS => ('error', 'notice', 'warning', 'info', 'info', 'debug');
 
-with 'XML::WiX3::Classes::Trace::Role';
+with 'WiX3::Trace::Role';
 with 'MooseX::LogDispatch';
 
 has log_dispatch_conf => (
@@ -19,7 +19,7 @@ has log_dispatch_conf => (
 	required => 1,
 	default => sub {
 		my $self = shift;
-		return XML::WiX3::Classes::Trace::Config->new(
+		return WiX3::Trace::Config->new(
 			tracelevel => $self->get_tracelevel(),
 			testing => $self->_get_testing(),
 			email_from => $self->_get_email_from(),
