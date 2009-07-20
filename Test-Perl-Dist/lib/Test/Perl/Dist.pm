@@ -1,16 +1,17 @@
 package Test::Perl::Dist;
 
 use strict;
-use File::Spec::Functions ':ALL';
-use Test::More    ();
-use File::Path    ();
-use File::Remove  ();
-use Win32         ();
-use URI           ();
-use Scalar::Util  'blessed';
-use LWP::Online   ':skip_all';
+use 5.008001;
+use Test::More 0.61;
+use File::Spec::Functions qw( :ALL      );
+use File::Path            qw(           );
+use File::Remove          qw(           );
+use Win32                 qw(           );
+use URI                   qw(           );
+use Scalar::Util          qw( blessed   );
+use LWP::Online           qw( :skip_all );
+use vars                  qw( $VERSION  );
 
-use vars qw{$VERSION};
 BEGIN {
     use version; $VERSION = qv('0.192');
 
@@ -112,8 +113,11 @@ sub new1 {
 
 sub new_test_class_medium {
 	my $self = shift;
-	my $test_class = $self->create_test_class(@_);
-	my $test_object = eval { $test_class->new( $self->paths(@_), $self->cpan_release ) };
+	my $test_number = shift;
+	my $test_version = shift;
+	my $class_to_test = shift;
+	my $test_class = $self->create_test_class_medium($test_number, $test_version, $class_to_test);
+	my $test_object = eval { $test_class->new( $self->paths($test_number), $self->cpan_release, @_ ) };
 	if ( defined $@ ) {
 		if ( blessed( $@ ) && $@->isa("Exception::Class::Base") ) {
 			diag($@->as_string);
@@ -123,6 +127,33 @@ sub new_test_class_medium {
 		# Time to get out.
 		BAIL_OUT('Could not create test object.');
 	}
+
+	isa_ok( $dist, $class_to_test );
+	$tests_completed++;
+
+	return $test_object;
+}
+
+sub new_test_class_long {
+	my $self = shift;
+	my $test_number = shift;
+	my $test_version = shift;
+	my $class_to_test = shift;
+	my $test_class = $self->create_test_class_long($test_number, $test_version, $class_to_test);
+	my $test_object = eval { $test_class->new( $self->paths($test_number), $self->cpan_release, @_ ) };
+	if ( defined $@ ) {
+		if ( blessed( $@ ) && $@->isa("Exception::Class::Base") ) {
+			diag($@->as_string);
+		} else {
+			diag($@);
+		}
+		# Time to get out.
+		BAIL_OUT('Could not create test object.');
+	}
+
+	isa_ok( $dist, $class_to_test );
+	$tests_completed++;
+
 	return $test_object;
 }
 
@@ -149,6 +180,31 @@ sub test_run_dist {
 	return;
 }
 
+sub test_add {
+	$tests_completed++;
+
+	return;
+}
+
+sub test_verify_files_short {
+	my $test_number = shift;
+	my $test_dir = catdir('t', "tmp$test_number", qw{ image c bin }); 
+
+	ok( 
+		-f catfile( $test_dir, qw{ dmake.exe } ), 
+		'Found dmake.exe'
+	);
+
+	ok( 
+		-f catfile( $test_dir, qw{ startup Makefile.in } ), 
+		'Found startup'
+	);
+
+	$tests_completed += 2;
+
+	return;
+}
+	
 sub test_verify_files_medium {
 	my $test_number = shift;
 	my $dll_version = shift;
@@ -194,23 +250,61 @@ sub test_verify_files_medium {
 		'Found Perl DLL',
 	);
 	
-	$tests_completed += 8;
+	$tests_completed += 7;
 
+	return;
 }
 
-sub new3 {
+sub create_test_class_short {
 	my $self = shift;
-	return t::lib::Test5100->new( $self->paths(@_), $self->cpan_release );
-}
+	my $test_number = shift;
+	my $test_version = shift;
+	my $test_class = shift;
+	my $answer = "Test::Perl::Dist::Short$test_number";
 
-sub new4 {
-	my $self = shift;
-	return t::lib::TestPortable->new( $self->paths(@_), $self->cpan_release );
-}
+	eval {
 
-sub new5 {
-	my $self = shift;
-	return t::lib::Test589->new( $self->paths(@_), $self->cpan_release );
+		package $answer;
+
+		use strict;
+		require $test_class;
+
+		use base $test_class;
+
+		###############################################################
+		# Configuration
+
+		sub app_name             { 'Test Perl'               }
+		sub app_ver_name         { 'Test Perl 1 alpha 1'     }
+		sub app_publisher        { 'Vanilla Perl Project'    }
+		sub app_publisher_url    { 'http://vanillaperl.org'  }
+		sub app_id               { 'testperl'                }
+		sub output_base_filename { 'test-perl-5.x.x-alpha-1' }
+
+		###############################################################
+		# Main Methods
+
+		sub new {
+			return shift->SUPER::new(
+				perl_version => $test_version,
+				trace => 101,
+				build_number => 1,
+				@_,
+			);
+		}
+
+		sub run {
+			my $self = shift;
+
+			# Just install a single binary
+			$self->checkpoint_task( install_dmake => 1 );
+
+			return 1;
+		}
+
+	};
+
+	return $answer;
 }
 
 sub create_test_class_medium {
@@ -274,8 +368,124 @@ sub create_test_class_medium {
 	};
 
 	return $answer;
-
 }
 
+sub create_test_class_long {
+	my $self = shift;
+	my $test_number = shift;
+	my $test_version = shift;
+	my $test_class = shift;
+	my $answer = "Test::Perl::Dist::Long$test_number";
+
+	eval {
+
+		package $answer;
+
+		use strict;
+		require $test_class;
+
+		use base $test_class;
+
+		###############################################################
+		# Configuration
+
+		sub app_name             { 'Test Perl'               }
+		sub app_ver_name         { 'Test Perl 1 alpha 1'     }
+		sub app_publisher        { 'Vanilla Perl Project'    }
+		sub app_publisher_url    { 'http://vanillaperl.org'  }
+		sub app_id               { 'testperl'                }
+		sub output_base_filename { 'test-perl-5.x.x-alpha-1' }
+
+		###############################################################
+		# Main Methods
+
+		sub new {
+			return shift->SUPER::new(
+				perl_version => $test_version,
+				trace => 101,
+				build_number => 1,
+				@_,
+			);
+		}
+	};
+
+	return $answer;
+}
+
+sub test_verify_files_long {
+	my $test_number = shift;
+	my $dll_version = shift;
+
+	my $dll_file = "perl${dll_version}.dll";
+	my $test_dir = catdir('t', "tmp$test_number", 'image'); 
+	
+	# C toolchain files
+	ok(
+		-f catfile( $test_dir, qw{ c bin dmake.exe } ),
+		'Found dmake.exe',
+	);
+	ok(
+		-f catfile( $test_dir, qw{ c bin startup Makefile.in } ),
+		'Found startup',
+	);
+	ok(
+		-f catfile( $test_dir, qw{ c bin pexports.exe } ),
+		'Found pexports',
+	);
+
+	# Perl core files
+	ok(
+		-f catfile( $test_dir, qw{ perl bin perl.exe } ),
+		'Found perl.exe',
+	);
+
+	# Toolchain files
+	ok(
+		-f catfile( $test_dir, qw{ perl site lib LWP.pm } ),
+		'Found LWP.pm',
+	);
+
+	# Custom installed file
+	ok(
+		-f catfile( $test_dir, qw{ perl site lib Config Tiny.pm } ),
+		'Found Config::Tiny',
+	);
+
+	# Did we build Perl correctly?
+	ok(
+		-f catfile( $test_dir, qw{ perl bin }, $dll_file ),
+		'Found Perl DLL',
+	);
+	
+	$tests_completed += 8;
+
+	return;
+}
+
+sub test_verify_portability {
+	my $test_number = shift;
+
+	my $test_dir = catdir('t', "tmp$test_number"); 
+	
+	# Did we build the zip file?
+	ok(
+		-f catfile( $test_dir, qw{ output test-perl-5.x.x-alpha-1.zip } ),
+		'Found zip file',
+	);
+
+	# Did we build it portable?
+	ok(
+		-f catfile( $test_dir, qw{ image portable.perl } ),
+		'Found portable file',
+	);
+	ok(
+		-f catfile( $test_dir, qw{ image perl site lib Portable.pm } ),
+		'Found Portable.pm',
+	);
+
+	$test_completed += 3;
+
+	return;
+}
 
 1;

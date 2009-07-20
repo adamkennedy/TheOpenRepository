@@ -12,8 +12,9 @@ use Test::Perl::Dist;
 # Complete Generation Run
 
 # Create the dist object
-my $dist = Test::Perl::Dist->new_test_class_medium(91, '589', 'Perl::Dist::WiX');
+my $dist = Test::Perl::Dist->new_test_long(92, '5100', 'Perl::Dist::WiX');
+isa_ok( $dist, 'Perl::Dist::WiX' );
 
 test_run_dist( $dist );
 
-test_verify_files_medium(91, '58');
+test_verify_files_long(92, '510');
