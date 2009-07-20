@@ -1,4 +1,4 @@
-package XML::WiX3::Classes::CreateFolder;
+package WiX3::XML::CreateFolder;
 
 #<<<
 use 5.006;
@@ -6,10 +6,10 @@ use Moose;
 use vars              qw( $VERSION );
 use Params::Util      qw( _STRING  );
 
-use version; $VERSION = version->new('0.003')->numify;
+use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'XML::WiX3::Classes::Role::Tag';
+with 'WiX3::XML::Role::Tag';
 ## Allows Permission, PermissionEx, Shortcut as children.
 
 #####################################################################
@@ -59,50 +59,21 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::CreateFolder - Exceptions used in XML::WiX3::Objects.
+WiX3::XML::CreateFolder - Defines a CreateFolder tag.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::CreateFolder version 0.003
+This document describes WiX3::XML::CreateFolder version 0.004
 
 =head1 SYNOPSIS
 
-    eval { new XML::WiX3::Classes::RegistryKey() };
-	if ( my $e = XWC::Exception::Parameter->caught() ) {
-
-		my $parameter = $e->parameter;
-		die "Bad Parameter $e passed in.";
-	
-	}
+TODO
   
 =head1 DESCRIPTION
 
-This module defines the exceptions used by XML::WiX3::Classes.  All 
-exceptions used are L<Exception::Class> objects.
-
-Note that uncaught exceptions will try to print out an understandable
-error message, and if a high enough tracelevel is available, will print
-out a stack trace, as well.
+TODO
 
 =head1 INTERFACE 
-
-=head2 ::Parameter
-
-Parameter exceptions will always print a stack trace.
-
-=head3 $e->parameter()
-
-The name of the parameter with the error.
-
-=head3 $e->info()
-
-Information about how the parameter was bad.
-
-=head3 $e->where()
-
-Information about what routine had the bad parameter.
-
-=back
 
 =for author to fill in:
     Write a separate section listing the public components of the modules
@@ -113,16 +84,7 @@ Information about what routine had the bad parameter.
 
 =head1 DIAGNOSTICS
 
-This module provides the error diagnostics for the XML::WiX3::Objects 
-distribution.  It has no diagnostics of its own.
-
-=head1 CONFIGURATION AND ENVIRONMENT
-  
-XML::WiX3::Classes::Exceptions requires no configuration files or environment variables.
-
-=head1 DEPENDENCIES
-
-L<Exception::Class> version 1.22 or later.
+TODO
 
 =head1 INCOMPATIBILITIES
 
@@ -133,7 +95,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-classes@rt.cpan.org>, or through the web interface at
+C<bug-wix3@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR

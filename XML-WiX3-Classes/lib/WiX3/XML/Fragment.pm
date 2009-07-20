@@ -1,15 +1,15 @@
-package XML::WiX3::Classes::Fragment;
+package WiX3::XML::Fragment;
 
 #<<<
 use 5.006;
 use Moose;
 use vars              qw( $VERSION );
 
-use version; $VERSION = version->new('0.003')->numify;
+use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'XML::WiX3::Classes::Role::Fragment';
-with 'XML::WiX3::Classes::Role::Tag';
+with 'WiX3::XML::Role::Fragment';
+with 'WiX3::XML::Role::Tag';
 
 #####################################################################
 # Main Methods
@@ -25,7 +25,7 @@ sub BUILDARGS {
 			$_[0]->{id} = 'Fr_' . $_[0]->{'id'};
 			return $_[0];
 		} else {
-			XWC::Exception::Parameter::Missing->throw('id');
+			WiX3::Exception::Parameter::Missing->throw('id');
 		}
 	} else {
 		my %hash = @_;
@@ -33,7 +33,7 @@ sub BUILDARGS {
 			$hash{id} = 'Fr_' . $hash{'id'};
 			return \%hash;
 		} else {
-			XWC::Exception::Parameter::Missing->throw('id');
+			WiX3::Exception::Parameter::Missing->throw('id');
 		}		
 	}
 }
@@ -71,29 +71,25 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::CreateFolderFragment - "Shortcut Fragment" containing only a CreateFolder entry.
+WiX3::XML::Fragment - Default fragment code.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::CreateFolderFragment version 0.003
+This document describes WiX3::XML::Fragment version 0.004
 
 =head1 SYNOPSIS
 
-	my $fragment = XML::WiX3::Classes::CreateFolderFragment(
+	my $fragment = WiX3::XML::Fragment(
 		id => $id,
-		directory_id = $directory_id
 	);
   
 =head1 DESCRIPTION
 
-This module defines a fragment that contains only a CreateFolder tag and 
-the parent tags required to implement it.
+This module defines a default fragment.
 
 =head1 INTERFACE 
 
 =head2 new()
-
-
 
 Parameter exceptions will always print a stack trace.
 
@@ -123,14 +119,6 @@ Information about what routine had the bad parameter.
 This module provides the error diagnostics for the XML::WiX3::Objects 
 distribution.  It has no diagnostics of its own.
 
-=head1 CONFIGURATION AND ENVIRONMENT
-  
-XML::WiX3::Classes::Exceptions requires no configuration files or environment variables.
-
-=head1 DEPENDENCIES
-
-L<Exception::Class> version 1.22 or later.
-
 =head1 INCOMPATIBILITIES
 
 None reported.
@@ -140,7 +128,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-classes@rt.cpan.org>, or through the web interface at
+C<bug-wix3@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR

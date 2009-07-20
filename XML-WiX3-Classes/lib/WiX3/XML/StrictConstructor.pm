@@ -1,17 +1,14 @@
 package # Hide from PAUSE.
-	XML::WiX3::Classes::StrictConstructor;
+	WiX3::Util::StrictConstructor;
 
 use strict;
 use warnings;
 
-#our $VERSION = '0.08';
-#$VERSION = eval $VERSION;
-
 use Moose 0.74 ();
 use Moose::Exporter;
 use Moose::Util::MetaRole;
-use XML::WiX3::Classes::Role::StrictConstructor;
-use XML::WiX3::Classes::Role::StrictConstructorMeta;
+use WiX3::Role::Util::StrictConstructor;
+use WiX3::Role::Util::StrictConstructorMeta;
 
 Moose::Exporter->setup_import_methods();
 
@@ -27,13 +24,13 @@ sub init_meta
     Moose::Util::MetaRole::apply_metaclass_roles( 
 	  for_class => $caller,
       constructor_class_roles =>
-        ['XML::WiX3::Classes::Role::StrictConstructorMeta'],
+        ['WiX3::Role::StrictConstructorMeta'],
     );
 
     Moose::Util::MetaRole::apply_base_class_roles( 
 	  for_class => $caller,
       roles =>
-        [ 'XML::WiX3::Classes::Role::StrictConstructor' ],
+        [ 'WiX3::Role::StrictConstructor' ],
 	);
 
     return $caller->meta();

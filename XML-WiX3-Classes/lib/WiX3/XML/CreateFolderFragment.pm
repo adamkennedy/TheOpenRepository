@@ -9,11 +9,11 @@ use Params::Util      qw( _IDENTIFIER  );
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
-with 'XML::WiX3::Classes::Role::Fragment';
+with 'WiX3::XML::Role::Fragment';
 
 has _tag => (
 	is => 'ro',
-	isa => 'XML::WiX3::Classes::Fragment',
+	isa => 'WiX3::XML::Fragment',
 	reader => '_get_tag',
 	handles => [qw(search_file check_duplicates get_directory_id)],
 );
@@ -42,29 +42,29 @@ sub BUILDARGS {
 		$id = $args{'id'};
 		$directory_id = $args{'directory_id'};		
 	} else {
-		XWC::Exception::Parameter::Odd->throw();
+		WiX3::Exception::Parameter::Odd->throw();
 	}
 	
 	unless (defined $id) {
-		XWC::Exception::Parameter::Missing->throw('id');
+		WiX3::Exception::Parameter::Missing->throw('id');
 	}
 	
 	unless (defined $directory_id) {
-		XWC::Exception::Parameter::Missing->throw('directory_id');
+		WiX3::Exception::Parameter::Missing->throw('directory_id');
 	}
 
 	unless (defined _IDENTIFIER($id)) {
-		XWC::Exception::Parameter::Invalid->throw('id');
+		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
 	
 	unless (defined _IDENTIFIER($directory_id)) {
-		XWC::Exception::Parameter::Invalid->throw('directory_id');
+		WiX3::Exception::Parameter::Invalid->throw('directory_id');
 	}
 
-	my $tag1 = XML::WiX3::Classes::Fragment->new(id => "Create$id" );
-	my $tag2 = XML::WiX3::Classes::DirectoryRef->new(id => $directory_id );
-	my $tag3 = XML::WiX3::Classes::Component->new(id => "Create$id" );
-	my $tag4 = XML::WiX3::Classes::CreateFolder->new();
+	my $tag1 = WiX3::XML::Fragment->new(id => "Create$id" );
+	my $tag2 = WiX3::XML::DirectoryRef->new(id => $directory_id );
+	my $tag3 = WiX3::XML::Component->new(id => "Create$id" );
+	my $tag4 = WiX3::XML::CreateFolder->new();
 	
 	$tag3->add_tag($tag4);
 	$tag2->add_tag($tag3);
@@ -101,25 +101,25 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::CreateFolderFragment - "Shortcut Fragment" containing only a CreateFolder entry.
+WiX3::XML::CreateFolderFragment - "Shortcut Fragment" containing only a CreateFolder entry.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::CreateFolderFragment version 0.003
+This document describes WiX3::XML::CreateFolderFragment version 0.003
 
 =head1 SYNOPSIS
 
-	my $fragment1 = XML::WiX3::Classes::CreateFolderFragment->new(
+	my $fragment1 = WiX3::XML::CreateFolderFragment->new(
 		id => $id1,
 		directory_id = $directory_id1,
 	);
 
-	my $fragment2 = XML::WiX3::Classes::CreateFolderFragment->new({
+	my $fragment2 = WiX3::XML::CreateFolderFragment->new({
 		id => $id2,
 		directory_id = $directory_id2,
 	});
 
-	my $fragment3 = XML::WiX3::Classes::CreateFolderFragment->new(
+	my $fragment3 = WiX3::XML::CreateFolderFragment->new(
 		$id3, $directory_id3);
 	
 =head1 DESCRIPTION
@@ -130,7 +130,7 @@ the parent tags required to implement it.
 =head1 INTERFACE 
 
 All callable routines other than new() are provided by 
-L<XML::WiX3::Classes::Fragment>, and are documented there.
+L<WiX3::XML::Fragment>, and are documented there.
 
 =head2 new()
 
@@ -142,16 +142,16 @@ directory_id parameter) or via hash or hashref, as shown in the L<SYNOPSIS|#SYNO
 
 =head1 DIAGNOSTICS
 
-This module throws XWC::Exception::Parameter,  
-XWC::Exception::Parameter::Missing, and XWC::Exception::Parameter::Invalid 
-objects, which are documented in L<XML::WiX3::Classes::Exceptions>.
+This module throws WiX3::Exception::Parameter,  
+WiX3::Exception::Parameter::Missing, and WiX3::Exception::Parameter::Invalid 
+objects, which are documented in L<WiX3::Exceptions>.
 
 =head1 BUGS AND LIMITATIONS
 
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-classes@rt.cpan.org>, or through the web interface at
+C<bug-wix3@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR

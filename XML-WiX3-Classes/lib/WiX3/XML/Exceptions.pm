@@ -1,48 +1,48 @@
-package XML::WiX3::Classes::Exceptions;
+package WiX3::Exceptions;
 
 #<<<
 use 5.006;
 use strict;
 use warnings;
 use vars     qw( $VERSION );
-use XML::WiX3::Classes::Traceable;
-use version; $VERSION = version->new('0.003')->numify;
+use WiX3::Traceable;
+use version; $VERSION = version->new('0.004')->numify;
 
 #>>>
 
 use Exception::Class 1.22 (
-	'XWC::Exception'            => { 
+	'WiX3::Exception'            => { 
 		'description' => 'XML::WiX3::Classes error', 
 	},
-	'XWC::Exception::Parameter' => {
+	'WiX3::Exception::Parameter' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing or invalid',
 		'isa'    => 'XWC::Exception',
 	},
-	'XWC::Exception::Caught' => {
+	'WiX3::Exception::Caught' => {
 		'description' =>
 		  'Error caught by XML::WiX3::Classes from other module',
 		'isa'    => 'XWC::Exception',
 		'fields' => [ 'message', 'info' ],
 	},
-	'XWC::Exception::Parameter::Missing' => {
+	'WiX3::Exception::Parameter::Missing' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing',
 		'isa'    => 'XWC::Exception::Parameter',
 	},
-	'XWC::Exception::Parameter::Invalid' => {
+	'WiX3::Exception::Parameter::Invalid' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter invalid',
 		'isa'    => 'XWC::Exception::Parameter',
 	},
-	'XWC::Exception::Parameter::Odd' => {
+	'WiX3::Exception::Parameter::Odd' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing or invalid',
 		'isa'    => 'XWC::Exception::Parameter',
 	},
 );
 
-sub XWC::Exception::full_message { ## no critic 'Capitalization'
+sub WiX3::Exception::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -63,7 +63,7 @@ sub XWC::Exception::full_message { ## no critic 'Capitalization'
 	return q{};
 } ## end sub PDWiX::full_message
 
-sub XWC::Exception::Parameter::full_message { ## no critic 'Capitalization'
+sub WiX3::Exception::Parameter::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -82,7 +82,7 @@ sub XWC::Exception::Parameter::full_message { ## no critic 'Capitalization'
 	return q{};
 } ## end sub PDWiX::Parameter::full_message
 
-sub XWC::Exception::Caught::full_message { ## no critic 'Capitalization'
+sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -109,16 +109,16 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::Exceptions - Exceptions used in XML::WiX3::Objects.
+WiX3::Exceptions - Exceptions used in the WiX3 distribution.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::Exceptions version 0.003
+This document describes WiX3::Exceptions version 0.004
 
 =head1 SYNOPSIS
 
-    eval { new XML::WiX3::Classes::RegistryKey() };
-	if ( my $e = XWC::Exception::Parameter->caught() ) {
+    eval { new WiX3::XML::RegistryKey() };
+	if ( my $e = WiX3::Exception::Parameter->caught() ) {
 
 		my $parameter = $e->parameter;
 		die "Bad Parameter $e passed in.";
@@ -127,7 +127,7 @@ This document describes XML::WiX3::Classes::Exceptions version 0.003
   
 =head1 DESCRIPTION
 
-This module defines the exceptions used by XML::WiX3::Classes.  All 
+This module defines the exceptions used by the WiX3 distribution.  All 
 exceptions used are L<Exception::Class> objects.
 
 Note that uncaught exceptions will try to print out an understandable
@@ -183,7 +183,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-classes@rt.cpan.org>, or through the web interface at
+C<bug-wix3@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR

@@ -1,14 +1,14 @@
-package XML::WiX3::Classes::Traceable;
+package WiX3::Traceable;
 
 #<<<
 use 5.006;
 use Moose;
 use vars              qw( $VERSION );
 
-use version; $VERSION = version->new('0.003')->numify;
+use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'XML::WiX3::Classes::Role::Traceable';
+with 'WiX3::Role::Traceable';
 
 1;
 
@@ -16,45 +16,21 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::Traceable - "Cheat Class" in order to get a Traceable object.
+WiX3::Traceable - "Cheat Class" in order to get a Traceable object.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::Traceable version 0.003
+This document describes WiX3::Traceable version 0.003
 
 =head1 SYNOPSIS
 
-	my $fragment = XML::WiX3::Classes::CreateFolderFragment(
-		id => $id,
-		directory_id = $directory_id
-	);
+TODO
   
 =head1 DESCRIPTION
 
-This module defines a fragment that contains only a CreateFolder tag and 
-the parent tags required to implement it.
+TODO
 
 =head1 INTERFACE 
-
-=head2 new()
-
-
-
-Parameter exceptions will always print a stack trace.
-
-=head3 $fragment->parameter()
-
-The name of the parameter with the error.
-
-=head3 $e->info()
-
-Information about how the parameter was bad.
-
-=head3 $e->where()
-
-Information about what routine had the bad parameter.
-
-=back
 
 =for author to fill in:
     Write a separate section listing the public components of the modules
@@ -65,16 +41,7 @@ Information about what routine had the bad parameter.
 
 =head1 DIAGNOSTICS
 
-This module provides the error diagnostics for the XML::WiX3::Objects 
-distribution.  It has no diagnostics of its own.
-
-=head1 CONFIGURATION AND ENVIRONMENT
-  
-XML::WiX3::Classes::Exceptions requires no configuration files or environment variables.
-
-=head1 DEPENDENCIES
-
-L<Exception::Class> version 1.22 or later.
+TODO
 
 =head1 INCOMPATIBILITIES
 
@@ -85,7 +52,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-classes@rt.cpan.org>, or through the web interface at
+C<bug-wix3@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR

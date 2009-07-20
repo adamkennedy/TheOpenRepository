@@ -6,13 +6,13 @@ use Moose;
 use vars              qw( $VERSION );
 # use Params::Util      qw( _STRING  );
 
-use version; $VERSION = version->new('0.003')->numify;
+use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'XML::WiX3::Classes::Role::Tag';
+with 'WiX3::XML::Role::Tag';
 ## Allows Component, Directory, Merge, and SymbolPath as children.
 
-with 'XML::WiX3::Classes::Role::GeneratesGUID';
+with 'WiX3::XML::Role::GeneratesGUID';
 
 #####################################################################
 # Accessors:
@@ -103,7 +103,7 @@ sub BUILDARGS {
 	elsif (@_ % 2 == 0) {
 		%args = { @_ };
 	} else {
-		XWC::Exception::Parameter::Odd->throw();
+		WiX3::Exception::Parameter::Odd->throw();
 	}
 
 	unless (exists $args{'id'}) {
@@ -113,7 +113,7 @@ sub BUILDARGS {
 	}
 	
 	unless (defined _IDENTIFIER($args{'id'})) {
-		XWC::Exception::Parameter::Invalid->throw('id');
+		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
 }
 
@@ -162,15 +162,15 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::Directory - Class representing a Directory tag.
+WiX3::XML::Directory - Class representing a Directory tag.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::Directory version 0.003
+This document describes WiX3::XML::Directory version 0.004
 
 =head1 SYNOPSIS
 
-    my $tag = XML::WiX3::Classes::Directory->new(
+    my $tag = WiX3::XML::Directory->new(
 	  name => 'Test';
 	  path => 'ProgramFilesDir\Test';
 	);
@@ -188,8 +188,6 @@ All attributes are lowercased when passed as a parameter.
 =head1 INTERFACE 
 
 This class implementes all methods of the L<XML::WiX3::Classes::Role::Tag> role.
-
-
 
 =head2 Other parameters to new
 
@@ -221,7 +219,7 @@ Returns the ID of the directory as it will be printed out in the XML file.
 
 =head1 DIAGNOSTICS
 
-This module throws an XWC::Exception::Parameter::Odd object upon build if 
+This module throws an WiX3::Exception::Parameter::Odd object upon build if 
 the parameter count is incorrect.
 
 =head1 BUGS AND LIMITATIONS
@@ -229,7 +227,7 @@ the parameter count is incorrect.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-classes@rt.cpan.org>, or through the web interface at
+C<bug-wix3@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR

@@ -3,14 +3,14 @@ package XML::WiX3::Classes::Files;
 #<<<
 use 5.006;
 use Moose;
-use vars                      qw( $VERSION                             );
-use XML::WiX3::Classes::Types qw( YesNoType PositiveInt NonNegativeInt );
-use MooseX::Types::Moose      qw( Str Maybe Int                        );
+use vars                 qw( $VERSION                             );
+use WiX3::Types          qw( YesNoType PositiveInt NonNegativeInt );
+use MooseX::Types::Moose qw( Str Maybe Int                        );
 
-use version; $VERSION = version->new('0.003')->numify;
+use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'XML::WiX3::Classes::Role::Tag';
+with 'WiX3::XML::Role::Tag';
 
 #####################################################################
 # Attributes:
@@ -278,7 +278,7 @@ sub add_file {
 
 	# Check parameters.
 	unless ( _STRING($file) ) {
-		PDWiX::Parameter->throw(
+		WiX3::Exception::Parameter->throw(
 			parameter => 'file',
 			where     => '::Files->new'
 		);
@@ -640,50 +640,21 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::Exceptions - Exceptions used in XML::WiX3::Objects.
+WiX3::XML::Files - Exceptions used in XML::WiX3::Objects.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::Exceptions version 0.003
+This document describes WiX3::XML::Exceptions version 0.003
 
 =head1 SYNOPSIS
 
-    eval { new XML::WiX3::Classes::RegistryKey() };
-	if ( my $e = XWC::Exception::Parameter->caught() ) {
-
-		my $parameter = $e->parameter;
-		die "Bad Parameter $e passed in.";
-	
-	}
+TODO.
   
 =head1 DESCRIPTION
 
-This module defines the exceptions used by XML::WiX3::Classes.  All 
-exceptions used are L<Exception::Class> objects.
-
-Note that uncaught exceptions will try to print out an understandable
-error message, and if a high enough tracelevel is available, will print
-out a stack trace, as well.
+TODO.
 
 =head1 INTERFACE 
-
-=head2 ::Parameter
-
-Parameter exceptions will always print a stack trace.
-
-=head3 $e->parameter()
-
-The name of the parameter with the error.
-
-=head3 $e->info()
-
-Information about how the parameter was bad.
-
-=head3 $e->where()
-
-Information about what routine had the bad parameter.
-
-=back
 
 =for author to fill in:
     Write a separate section listing the public components of the modules
@@ -694,16 +665,7 @@ Information about what routine had the bad parameter.
 
 =head1 DIAGNOSTICS
 
-This module provides the error diagnostics for the XML::WiX3::Objects 
-distribution.  It has no diagnostics of its own.
-
-=head1 CONFIGURATION AND ENVIRONMENT
-  
-XML::WiX3::Classes::Exceptions requires no configuration files or environment variables.
-
-=head1 DEPENDENCIES
-
-L<Exception::Class> version 1.22 or later.
+TODO.
 
 =head1 INCOMPATIBILITIES
 
@@ -714,7 +676,7 @@ None reported.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-C<bug-xml-wix3-classes@rt.cpan.org>, or through the web interface at
+C<bug-wix3@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 AUTHOR
