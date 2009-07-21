@@ -1,5 +1,9 @@
 Revision history for Perl distribution PITA-Image
 
+0.42 Wed 22 Jul 2009
+	- Upgrading to Module::Install 0.91
+	- Switching over to GUIDs
+
 0.41 Tue  2 Sep 2008
 	- Incremental release to fix some Kwalitee issues
 	- Upgrading to Module::Install 0.77
