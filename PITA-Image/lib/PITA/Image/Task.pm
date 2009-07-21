@@ -6,7 +6,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.42';
 }
 
 sub new { die "CODE INCOMPLETE" }

@@ -7,7 +7,7 @@ use PITA::Image::Task ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.42';
 	@ISA     = 'PITA::Image::Task';
 }
 
