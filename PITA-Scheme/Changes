@@ -1,5 +1,9 @@
 Revision history for Perl extension PITA::Scheme
 
+0.42 Wed 22 Jul 2009
+	- Updating to Module::Install 0.91
+	- Request id should now be a GUID
+
 0.41 Tue  2 Sep 2008
 	- No functional changes
 	- Incremental release to fix some Kwalitee issues

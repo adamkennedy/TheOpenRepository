@@ -10,9 +10,9 @@ PITA::Scheme - PITA Testing Schemes
 
   # Have the scheme load up from the provided config
   my $scheme = PITA::Scheme->new(
-	injector => $injector,
-	workarea => $workarea,
-	);
+      injector => $injector,
+      workarea => $workarea,
+  );
   
   # Prepare to run the tests
   $scheme->prepare_all;
@@ -66,16 +66,13 @@ use strict;
 use Carp         ();
 use IPC::Run3    ();
 use File::Spec   ();
-use Params::Util '_INSTANCE',
-                 '_POSINT',
-                 '_STRING',
-                 '_ARRAY',
-                 '_CLASS';
+use Data::GUID   ();
+use Params::Util qw{ _INSTANCE _POSINT _STRING _ARRAY _CLASS };
 use PITA::XML    ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.42';
 }
 
 
@@ -109,8 +106,10 @@ sub new {
 		$self->{request} = PITA::XML::Request->read( $self->request_xml );
 	}
 	unless ( _INSTANCE($self->request, 'PITA::XML::Request') ) {
-		Carp::croak("Bad report Request or failed to load one from "
-			. $self->request_xml );
+		Carp::croak(
+			"Bad report Request or failed to load one from "
+			. $self->request_xml
+		);
 	}
 	unless ( $self->request->scheme eq $self->scheme ) {
 		Carp::croak("Test scheme in image.conf does not match Request scheme");
@@ -300,6 +299,13 @@ sub _DRIVER {
 	}
 
 	$driver;
+}
+
+sub _GUID {
+	my $guid = eval {
+		Data::GUID->from_any_string(shift);
+	};
+	$@ ? undef : $guid;
 }
 
 1;

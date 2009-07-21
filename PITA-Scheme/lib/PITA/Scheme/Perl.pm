@@ -14,7 +14,7 @@ use Archive::Extract ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.42';
 }
 
 
