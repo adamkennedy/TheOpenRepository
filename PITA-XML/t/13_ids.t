@@ -50,7 +50,7 @@ is( $dist->authpath,  '', '->authpath returns "" as expected'             );
 # Create a request with an id
 my $id = $uuid->to_string( $uuid->create );
 my $distid = PITA::XML::Request->new(
-	id       => $uuid->create,
+	id       => $id,
 	scheme   => 'perl5',
 	distname => 'Foo-Bar',
 	file     => PITA::XML::File->new(
