@@ -16,13 +16,13 @@ In a module that normally delays module loading with require
   use prefork 'This::That';
   
   sub do_something {
-  	my $arg = shift;
+      my $arg = shift;
   
-  	# Load the module at run-time as normal
-  	if ( $special_case ) {
-  		require This::That;
-  		This::That::blah(@_);
-  	}
+      # Load the module at run-time as normal
+      if ( $special_case ) {
+          require This::That;
+          This::That::blah(@_);
+      }
   }
   
   # Register a module to be loaded before forking directly
@@ -157,7 +157,7 @@ prefork provides, you can also do the following.
 
   use prefork;
   if ( $prefork::FORKING ) {
-  	# Complete some preparation task
+      # Complete some preparation task
   }
 
 =head2 Modules that are prefork-aware
@@ -176,9 +176,9 @@ prefork provides, you can also do the following.
 
 use 5.005;
 use strict;
-use Carp
-use List::Util   0.10 ();
-use Scalar::Util 0.10 ();
+use Carp              ();
+use List::Util   0.18 ();
+use Scalar::Util 0.18 ();
 
 use vars qw{$VERSION $FORKING %MODULES @NOTIFY};
 BEGIN {
