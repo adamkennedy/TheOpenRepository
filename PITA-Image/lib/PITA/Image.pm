@@ -22,15 +22,15 @@ A typical startup script
       my $manager = PITA::Image->new(
           injector => '/mnt/hbd1',
           workarea => '/tmp',
-          );
+      );
       $manager->add_platform(
           scheme => 'perl5',
           path   => '', # Default system Perl
-          );
+      );
       $manager->add_platform(
           scheme => 'perl5',
           path   => '/opt/perl5-6-1/bin/perl'
-          );
+      );
   
       # Run the tasks
       $manager->run;
@@ -86,8 +86,8 @@ And it should do the rest.
 
 use 5.006;
 use strict;
-use base 'Process';
 use Carp                  ();
+use Process               ();
 use File::Spec            ();
 use File::Which           ();
 use File::Remove          ();
@@ -100,9 +100,10 @@ use PITA::Image::Task     ();
 use PITA::Image::Discover ();
 use PITA::Image::Test     ();
 
-use vars qw{$VERSION $NOSERVER};
+use vars qw{$VERSION @ISA $NOSERVER};
 BEGIN {
 	$VERSION = '0.41';
+	@ISA     = 'Process';
 }
 
 
@@ -117,9 +118,9 @@ BEGIN {
 =head2 new
 
   my $manager = PITA::Image->new(
-  	injector => '/mnt/hdb1',
-  	workarea => '/tmp',
-  	);
+      injector => '/mnt/hdb1',
+      workarea => '/tmp',
+  );
 
 The C<new> creates a new image manager. It takes two named parameters.
 
@@ -187,7 +188,7 @@ sub new {
 	unless ( $self->image_conf ) {
 		$self->{image_conf} = File::Spec->catfile(
 			$self->injector, 'image.conf',
-			);
+		);
 	}
 	unless ( $self->image_conf ) {
 		Carp::croak("Did not get an image.conf location");
@@ -293,7 +294,7 @@ sub prepare {
 	if ( $config->{perl5lib} ) {
 		$self->{perl5lib} = File::Spec->catdir(
 			$self->injector, split( /\//, $config->{perl5lib} ),
-			);
+		);
 		unless ( -d $self->perl5lib ) {
 			Carp::croak("Injector lib directory does not exist");
 		}
@@ -340,8 +341,8 @@ sub prepare {
 			PITA::Image::Discover->new(
 				%{$self->config->{task}},
 				platforms => [ $self->platforms ],
-				),
-			);
+			),
+		);
 
 	} elsif ( $taskname eq 'Test' ) {
 		# Add the testing task
@@ -350,8 +351,8 @@ sub prepare {
 				%{$self->config->{task}},
 				injector => $self->injector,
 				workarea => $self->workarea,
-				),
-			);
+			),
+		);
 
 	} else {
 		Carp::croak("Unknown task.task value in image.conf");
@@ -494,7 +495,7 @@ L<PITA>, L<PITA::XML>, L<PITA::Scheme>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2008 Adam Kennedy.
+Copyright 2005 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
