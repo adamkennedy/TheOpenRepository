@@ -48,7 +48,7 @@ is( $dist->authority, '', '->authority returns "" as expected'            );
 is( $dist->authpath,  '', '->authpath returns "" as expected'             );
 
 # Create a request with an id
-my $id = $uuid->create;
+my $id = $uuid->to_string( $uuid->create );
 my $distid = PITA::XML::Request->new(
 	id       => $uuid->create,
 	scheme   => 'perl5',
