@@ -149,7 +149,7 @@ sub test {
 		scheme     => $request->scheme,
 		path       => $platform->path,
 		request    => $request,
-		request_id => Data::Guid->new->as_string,
+		request_id => Data::GUID->new->as_string,
 	);
 
 	# Execute the testing scheme
