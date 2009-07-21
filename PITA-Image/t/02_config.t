@@ -190,5 +190,3 @@ SCOPE: {
 # This time, it should be deleted
 sleep 1;
 ok( ! -d $tempdir, '->workarea is correctly deleted' );
-
-exit(0);

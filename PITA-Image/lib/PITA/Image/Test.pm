@@ -1,14 +1,14 @@
 package PITA::Image::Test;
 
 use strict;
-use base 'PITA::Image::Task';
-use Params::Util '_POSINT',
-                 '_CLASS',
-                 '_HASH0';
+use Data::GUID        ();
+use Params::Util      qw{ _POSINT _CLASS _HASH0 };
+use PITA::Image::Task ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.41';
+	@ISA     = 'PITA::Image::Task';
 }
 
 sub new {
@@ -49,7 +49,7 @@ sub new {
 	}
 
 	# Did we get a job_id?
-	unless ( _POSINT($self->job_id) ) {
+	unless ( _GUID($self->job_id) ) {
 		Carp::croak("Missing option task.job_id in image.conf");
 	}
 
@@ -62,7 +62,7 @@ sub new {
 		path        => $self->path,
 		request_xml => $self->config,
 		request_id  => $self->job_id,
-		);
+	);
 
 	$self;
 }
@@ -126,6 +126,13 @@ sub install {
 
 #####################################################################
 # Support Methods
+
+sub _GUID {
+	my $guid = eval {
+		Data::GUID->from_any_string(shift);
+	};
+	$@ ? undef : $guid;
+}
 
 #sub DESTROY {
 #	# Clean up our driver early
