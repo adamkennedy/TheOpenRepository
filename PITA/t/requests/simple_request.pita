@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<request xmlns='http://ali.as/xml/schema/pita-xml/0.40' id='1234'>
+<request xmlns='http://ali.as/xml/schema/pita-xml/0.40' id='D7F50D84-7618-11DE-BE94-5E75E19EDF37'>
     <scheme>perl5</scheme>
     <distname>PITA-Test-Dummy-Perl5-Make</distname>
     <file>
