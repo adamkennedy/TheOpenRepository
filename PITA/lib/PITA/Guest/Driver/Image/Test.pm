@@ -1,6 +1,6 @@
 package PITA::Guest::Driver::Image::Test;
 
-use 5.005;
+use 5.006;
 use strict;
 use base 'PITA::Guest::Driver::Image';
 use PITA::Image ();

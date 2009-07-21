@@ -12,19 +12,20 @@ The author is an idiot
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
-use base 'PITA::Guest::Driver';
-use version      ();
-use Carp         ();
-use File::Spec   ();
-use File::Copy   ();
-use File::Temp   ();
-use File::Which  ();
-use Storable     ();
-use Params::Util '_INSTANCE';
-use PITA::XML    ();
-use PITA::Scheme ();
+use version             ();
+use Carp                ();
+use File::Spec          ();
+use File::Copy          ();
+use File::Temp          ();
+use File::Which         ();
+use Data::GUID          ();
+use Storable            ();
+use Params::Util        '_INSTANCE';
+use PITA::XML           ();
+use PITA::Scheme        ();
+use PITA::Guest::Driver ();
 
 use vars qw{$VERSION};
 BEGIN {
@@ -113,7 +114,7 @@ sub discover {
 	$self->guest->discovered and return 1;
 	$self->guest->add_platform(
 		PITA::XML::Platform->autodetect_perl5,
-		);
+	);
 }
 
 # Execute a test
@@ -130,7 +131,7 @@ sub test {
 	my $tarball_from = $file->filename;
 	my $tarball_to   = File::Spec->catfile(
 		$self->injector_dir, $filename,
-		);
+	);
 	$request = Storable::dclone( $request );
 	$request->file->{filename} = $filename;
 
@@ -148,7 +149,7 @@ sub test {
 		path       => $platform->path,
 		request    => $request,
 		request_id => 1234,
-		);
+	);
 
 	# Execute the testing scheme
 	$scheme->prepare_all;

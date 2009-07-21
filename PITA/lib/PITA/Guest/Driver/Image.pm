@@ -3,7 +3,7 @@ package PITA::Guest::Driver::Image;
 # Provides a base class for PITA Guests that are system images.
 # For example, Qemu, VMWare, etc
 
-use 5.005;
+use 5.006;
 use strict;
 use base 'PITA::Guest::Driver';
 use Carp             ();

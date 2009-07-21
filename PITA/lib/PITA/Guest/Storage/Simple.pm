@@ -21,7 +21,7 @@ Guest image location and searching is done the long way, with no indexing.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use Carp             ();
 use File::Spec       ();

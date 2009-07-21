@@ -2,7 +2,7 @@ package PITA::Guest;
 
 # A complete abstraction of a Guest
 
-use 5.005;
+use 5.006;
 use strict;
 use base 'Process::YAML', 'Process';
 use PITA::XML ();

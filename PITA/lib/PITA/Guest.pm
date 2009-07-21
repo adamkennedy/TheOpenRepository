@@ -17,7 +17,7 @@ This class implements the Guest abstraction.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use base 'Process'; # Process::YAML
 use File::Spec     ();

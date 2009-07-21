@@ -18,7 +18,7 @@ image data that is typically stored in a Guest image library.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use Carp         ();
 use Data::GUID   ();

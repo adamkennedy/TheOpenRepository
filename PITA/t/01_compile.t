@@ -12,7 +12,7 @@ use Test::More tests => 22;
 use Test::Script;
 
 BEGIN {
-	ok( $] > 5.005, 'Perl version is 5.005 or newer' );
+	ok( $] > 5.006, 'Perl version is 5.006 or newer' );
 
 	# Only three use statements should be enough
 	# to load all of the classes (for now).
@@ -48,5 +48,3 @@ my $workarea = File::Spec->tmpdir;
 ok( -d $workarea, 'Workarea directory exists'       );
 ok( -r $workarea, 'Workarea directory is readable'  );
 ok( -w $workarea, 'Workarea directory is writeable' );
-
-exit(0);
