@@ -19,6 +19,7 @@ requires      'XML::Validator::Schema'  => '1.08';
 test_requires 'File::Spec'              => '0.80';
 test_requires 'Test::More'              => '0.47';
 test_requires 'Test::LongString'        => 0;
+test_requires 'Data::UUID'              => '1.202';
 install_share;
 
 WriteAll;

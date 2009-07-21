@@ -2,6 +2,7 @@ Revision history for Perl extension PITA::XML
 
 0.41 Wed 22 Jul 2009
 	- Updated to Module::Install 0.91
+	- Generate proper request ids
 
 0.40 Sun  1 Jul 2007
 	- Updated for the 0.40 release (minor tweaks only)
