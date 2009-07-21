@@ -1,6 +1,5 @@
-use inc::Module::Install;
+use inc::Module::Install 0.91;
 
-name          'PITA-XML';
 all_from      'lib/PITA/XML.pm';
 requires      'Carp'                    => 0;
 requires      'IO::Handle'              => 0;

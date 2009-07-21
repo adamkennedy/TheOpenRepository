@@ -2,7 +2,7 @@ package PITA::XML;
 
 # See POD at end for docs.
 
-use 5.005;
+use 5.006;
 use strict;
 use Carp                    ();
 use Params::Util            ':ALL';
@@ -24,7 +24,7 @@ use XML::Validator::Schema  ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.40';
+	$VERSION = '0.41';
 }
 
 # The XML Schema File
@@ -46,7 +46,7 @@ BEGIN {
 		'perl5.make'  => 1,
 		'perl5.build' => 1,
 		'perl6'       => 1,
-		);
+	);
 }
 
 # Load the various classes
