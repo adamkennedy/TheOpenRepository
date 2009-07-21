@@ -3,15 +3,15 @@
 use warnings;
 use strict;
 use 5.010;
-use IO::Handle             qw(                );
-use List::Util             qw( first          );
-use List::MoreUtils        qw( indexes uniq   );
-use File::Slurp            qw( read_file      );
-use File::ShareDir    1.00 qw( module_file    );
-use Getopt::Long           qw( GetOptions     );
-use Pod::Usage             qw( pod2usage      );
-use English                qw( -no_match_vars );
-use CPAN::Mini::Devel 0.03 qw(                );
+use IO::Handle             qw(                       );
+use List::Util             qw( first                 );
+use List::MoreUtils        qw( indexes uniq          );
+use File::Slurp            qw( read_file             );
+use File::ShareDir    1.00 qw( module_file dist_file );
+use Getopt::Long           qw( GetOptions            );
+use Pod::Usage             qw( pod2usage             );
+use English                qw( -no_match_vars        );
+use CPAN::Mini::Devel 0.03 qw(                       );
 
 use version 0.76; our $VERSION = version->new("1.000");
 
