@@ -116,7 +116,7 @@ sub new {
 	}
 
 	# Check the request identifier
-	unless ( _POSINT($self->request_id) ) {
+	unless ( _GUID($self->request_id) ) {
 		Carp::croak("Missing or bad request_id for this test instance");
 	}
 
