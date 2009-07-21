@@ -43,13 +43,14 @@ ok( -d $workarea, 'Test workarea exists' );
 #####################################################################
 # Prepare
 
+my $id = Data::GUID->new->as_string;
 my $scheme = PITA::Scheme::Perl5::Build->new(
 	injector    => $injector,
 	workarea    => $workarea,
 	scheme      => 'perl5.build',
 	path        => '',
 	request_xml => 'request.pita',
-	request_id  => 1234,
+	request_id  => $id,
 	);
 isa_ok( $scheme, 'PITA::Scheme' );
 
@@ -64,7 +65,7 @@ ok( -f $scheme->workarea_file('Build.PL'),
 	'Build.PL exists in the extract package' );
 ok( -f 'Build.PL', 'Changed to package directory, found Build.PL' );
 isa_ok( $scheme->request, 'PITA::XML::Request'   );
-is( $scheme->request_id, 1234, 'Got expected ->request_id value' );
+is( $scheme->request_id, $id, 'Got expected ->request_id value' );
 isa_ok( $scheme->platform, 'PITA::XML::Platform' );
 isa_ok( $scheme->install, 'PITA::XML::Install'   );
 isa_ok( $scheme->report, 'PITA::XML::Report'     );
@@ -98,5 +99,3 @@ ok( -f $scheme->workarea_file('Build'),
 	'Build actually got created' );
 ok( -d $scheme->workarea_file('blib'),
 	'blib directory actually got created' );
-
-exit(0);

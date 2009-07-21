@@ -10,6 +10,7 @@ BEGIN {
 
 use Test::More tests => 28;
 use Cwd;
+use Data::GUID;
 use File::Remove;
 use File::Spec::Functions ':ALL';
 use PITA::Scheme::Perl5::Make ();
@@ -36,13 +37,14 @@ ok( -d $workarea, 'Test workarea exists' );
 #####################################################################
 # Main Testing
 
+my $id = Data::GUID->new->as_string;
 my $scheme = PITA::Scheme::Perl5::Make->new(
 	injector    => $injector,
 	workarea    => $workarea,
 	scheme      => 'perl5.make',
 	path        => '',
 	request_xml => 'request.pita',
-	request_id  => 1234,
+	request_id  => $id,
 	);
 isa_ok( $scheme, 'PITA::Scheme'              );
 isa_ok( $scheme, 'PITA::Scheme::Perl5::Make' );
@@ -53,7 +55,7 @@ is( $scheme->workarea, $workarea, '->workarea matches original'  );
 ok( $scheme->request_xml, '->request_xml returns true'           );
 ok( -f $scheme->request_xml, '->request_xml file exists'         );
 isa_ok( $scheme->request, 'PITA::XML::Request'                );
-is( $scheme->request_id, 1234, 'Got expected ->request_id value' );
+is( $scheme->request_id, $id, 'Got expected ->request_id value' );
 ok( $scheme->archive, '->archive returns true'                   );
 ok( -f $scheme->archive, '->archive file exists'                 );
 is( $scheme->extract_path, undef, 'No ->extract_path value yet'  );
@@ -79,5 +81,3 @@ isa_ok( $scheme->platform, 'PITA::XML::Platform' );
 ok( $scheme->prepare_report, '->prepare_report runs ok' );
 isa_ok( $scheme->install, 'PITA::XML::Install' );
 isa_ok( $scheme->report, 'PITA::XML::Report'   );
-
-exit(0);

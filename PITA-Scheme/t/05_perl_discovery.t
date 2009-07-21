@@ -89,7 +89,6 @@ ok( $discover->delegate(
 	'-I' . catdir('blib', 'lib'),
 	'-I' . catdir('blib', 'arch'),
 	'-I' . 'lib' ),
-	'->delegate returns true' );
+	'->delegate returns true',
+);
 isa_ok( $discover->platform, 'PITA::XML::Platform' );
-
-exit(0);

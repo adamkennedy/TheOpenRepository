@@ -49,13 +49,14 @@ ok( ! -f $write_report, "Report doesn't exist" );
 #####################################################################
 # Prepare
 
+my $id = Data::GUID->new->as_string;
 my $scheme = PITA::Scheme::Perl5::Make->new(
 	injector    => $injector,
 	workarea    => $workarea,
 	scheme      => 'perl5.make',
 	path        => '',
 	request_xml => 'request.pita',
-	request_id  => 1234,
+	request_id  => $id,
 	);
 isa_ok( $scheme, 'PITA::Scheme' );
 
@@ -64,10 +65,14 @@ ok( $scheme->prepare_all, '->prepare_all runs ok' );
 ok( $scheme->extract_path, '->extract_path gets set'  );
 ok( -d $scheme->extract_path, '->extract_path exists' );
 ok( $scheme->workarea_file('Makefile.PL'), '->workarea_file returns a value' );
-like( $scheme->workarea_file('Makefile.PL'), qr/\bMakefile\.PL$/,
-	'->workarea_file return a right-looking string' );
-ok( -f $scheme->workarea_file('Makefile.PL'),
-	'Makefile.PL exists in the extract package' );
+like(
+	$scheme->workarea_file('Makefile.PL'), qr/\bMakefile\.PL$/,
+	'->workarea_file return a right-looking string',
+);
+ok(
+	-f $scheme->workarea_file('Makefile.PL'),
+	'Makefile.PL exists in the extract package',
+);
 ok( -f 'Makefile.PL', 'Changed to package directory, found Makefile.PL' );
 isa_ok( $scheme->platform, 'PITA::XML::Platform' );
 isa_ok( $scheme->install, 'PITA::XML::Install'   );
@@ -84,23 +89,35 @@ isa_ok( $scheme->report, 'PITA::XML::Report'             );
 ok( $scheme->execute_all, '->execute_all runs ok' );
 
 # Does the install object contain things
-is( scalar($scheme->install->commands), 3,
-	'->execute_all added three commands to the report' );
+is(
+	scalar($scheme->install->commands), 3,
+	'->execute_all added three commands to the report',
+);
 my @commands = $scheme->install->commands;
 isa_ok( $commands[0], 'PITA::XML::Command' );
 isa_ok( $commands[1], 'PITA::XML::Command' );
 isa_ok( $commands[2], 'PITA::XML::Command' );
-is( $commands[0]->cmd, 'perl Makefile.PL',
-	'Command 1 contains the expected command' );
-is( $commands[1]->cmd, 'make',
-	'Command 2 contains the expected command' );
-is( $commands[2]->cmd, 'make test',
-	'Command 3 contains the expected command' );
-like( ${$commands[2]->stdout}, qr/All tests successful./,
-	'Command 3 contains "all tests pass"' );
-ok( -f $scheme->workarea_file('Makefile'),
-	'Makefile actually got created' );
-ok( -d $scheme->workarea_file('blib'),
-	'blib directory actually got created' );
-
-exit(0);
+is(
+	$commands[0]->cmd, 'perl Makefile.PL',
+	'Command 1 contains the expected command',
+);
+is(
+	$commands[1]->cmd, 'make',
+	'Command 2 contains the expected command',
+);
+is(
+	$commands[2]->cmd, 'make test',
+	'Command 3 contains the expected command',
+);
+like(
+	${$commands[2]->stdout}, qr/All tests successful./,
+	'Command 3 contains "all tests pass"',
+);
+ok(
+	-f $scheme->workarea_file('Makefile'),
+	'Makefile actually got created',
+);
+ok(
+	-d $scheme->workarea_file('blib'),
+	'blib directory actually got created',
+);
