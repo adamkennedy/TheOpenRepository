@@ -18,7 +18,6 @@
 \.xsi$
 \.tar$
 \.tgz$
-\.tar\.gz$
 
 # OS and third-party tool detritus
 ^smoke
