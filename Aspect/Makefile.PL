@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.88;
+use inc::Module::Install::DSL 0.91;
 
 all_from      lib/Aspect.pm
 requires      Devel::Symdump 2.04

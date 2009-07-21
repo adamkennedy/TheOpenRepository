@@ -10,7 +10,7 @@ use Scalar::Util qw(weaken);
 use Aspect;
 
 
-our $VERSION = '0.16';
+our $VERSION = '0.21';
 
 
 use base qw(Aspect::Modular Exporter);

@@ -7,7 +7,7 @@ use Carp::Heavy; # added by eilara as hack around caller() core dump
 use Carp;
 
 
-our $VERSION = '0.16';
+our $VERSION = '0.21';
 
 
 *CORE::GLOBAL::caller = sub {

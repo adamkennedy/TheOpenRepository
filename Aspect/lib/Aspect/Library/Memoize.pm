@@ -7,7 +7,7 @@ use Memoize;
 use Aspect;
 
 
-our $VERSION = '0.16';
+our $VERSION = '0.21';
 
 
 use base 'Aspect::Modular';

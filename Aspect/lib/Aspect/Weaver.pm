@@ -7,7 +7,7 @@ use Aspect::Hook::LexWrap;
 use Devel::Symdump;
 
 
-our $VERSION = '0.16';
+our $VERSION = '0.21';
 
 
 my %UNTOUCHABLES = map { $_ => 1 } qw(

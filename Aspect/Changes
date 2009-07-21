@@ -1,5 +1,8 @@
 Revision history for Perl extension Aspect
 
+0.21  Tue 21 Jul 2009
+     - Bumped the version to 0.21 so the Hook::LexWrap module indexes
+
 0.16  Tue 19 May 2009
      - Moved out Aspect::Library::Profiler into a standalone distribution
 

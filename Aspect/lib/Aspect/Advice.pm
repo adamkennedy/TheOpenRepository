@@ -6,7 +6,7 @@ use Carp;
 use Aspect::AdviceContext;
 use Aspect::Weaver;
 
-our $VERSION = '0.16';
+our $VERSION = '0.21';
 
 sub new {
 	my ($class, $type, $code, $pointcut) = @_;

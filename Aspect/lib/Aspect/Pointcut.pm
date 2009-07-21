@@ -9,7 +9,7 @@ use Aspect::Pointcut::NotOp;
 use Data::Dumper;
 
 
-our $VERSION = '0.16';
+our $VERSION = '0.21';
 
 
 use overload
