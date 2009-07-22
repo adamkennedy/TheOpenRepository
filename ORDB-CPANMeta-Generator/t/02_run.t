@@ -115,51 +115,51 @@ is_deeply( $distributions, [
 is_deeply( $dependencies, [
 	[
 		'ADAMK/Acme-Terror-AU-0.01.tar.gz',
-		'build',
-		'Test::More',
-		'0.47',
-		'5.006002'
-	],
-	[
-		'ADAMK/Acme-Terror-AU-0.01.tar.gz',
-		'build',
 		'File::Spec',
 		'0.80',
+		'build',
 		'5.006001'
 	],
 	[
 		'ADAMK/Acme-Terror-AU-0.01.tar.gz',
-		'runtime',
+		'Test::More',
+		'0.47',
+		'build',
+		'5.006002'
+	],
+	[
+		'ADAMK/Acme-Terror-AU-0.01.tar.gz',
 		'perl',
 		'5.005',
+		'runtime',
 		'5.005'
 	],
 	[
 		'ADAMK/CSS-Tiny-1.15.tar.gz',
-		'runtime',
 		'Test::More',
 		'0.47',
+		'runtime',
 		'5.006002'
 	],
 	[
 		'ADAMK/Config-Tiny-2.12.tar.gz',
-		'runtime',
 		'Test::More',
 		'0.47',
+		'runtime',
 		'5.006002'
 	],
 	[
 		'ANDYA/HTML-Tiny-1.05.tar.gz',
-		'configure',
 		'ExtUtils::MakeMaker',
 		'0',
+		'configure',
 		'5'
 	],
 	[
 		'ANDYA/HTML-Tiny-1.05.tar.gz',
-		'runtime',
 		'Test::More',
 		'0',
+		'runtime',
 		'5.006002'
 	]
 ], 'Dependencies ok' );

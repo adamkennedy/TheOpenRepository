@@ -348,7 +348,7 @@ END_SQL
 	$self->create_indexes( $dbh );
 
 	# Clean and optimise the database
-	$dbh->do('PRAGMA user_version = ?', {}, 10);
+	$dbh->do('PRAGMA user_version = 10');
 	$dbh->do('VACUUM');
 	$dbh->do('ANALYZE main');
 
