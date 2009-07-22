@@ -360,9 +360,7 @@ consider adding it to the next release.
 
 =back
 
-=head1 LICENSE
-
-Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
+=head1 COPYRIGHT AND LICENSE
 
 I, the copyright holder of this package, hereby release the entire contents
 therein into the public domain. This applies worldwide, to the extent that
@@ -372,8 +370,13 @@ In case this is not legally possible, I grant any entity the right to use
 this work for any purpose, without any conditions, unless such conditions
 are required by law.
 
-The full details of this can be found in the B<LICENSE> file included in
-this package.
+This package is:
+Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
+or
+Copyright 2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
+
+Confused? The full details of this strange arrangement can be found in the
+B<LICENSE> file which should be included with this package.
 
 =head1 DISCLAIMER OF WARRANTY
 

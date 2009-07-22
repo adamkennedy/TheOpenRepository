@@ -102,32 +102,6 @@ SEE ALSO
     <http://burtleburtle.net/bob/rand/isaacafa.html>, Bob Jenkins' page
     about ISAAC, which explains the algorithm as well as potential attacks.
 
-CAVEATS
-  KNOWN BUGS
-    There are no known bugs as of this release.
-
-  LIMITATIONS
-    *   There is no method that allows re-seeding of algorithms. This is not
-        really necessary because one can simply call "new" again with the
-        new seed data periodically.
-
-    *   There was no method supplied to provide the initial seed data. On
-        his web site, Bob Jenkins writes:
-
-          Seeding a random number generator is essentially the same problem as
-          encrypting the seed with a block cipher.
-
-        But he also provides a simple workaround:
-
-          As ISAAC is intended to be a secure cipher, if you want to reseed
-          it, one way is to use some other cipher to seed some initial version
-          of ISAAC, then use ISAAC's output as a seed for other instances of
-          ISAAC whenever they need to be reseeded.
-
-    *   There is no way to clone a PRNG instance. I'm not sure why this is
-        might even be necessary or useful. File a bug report with an
-        explanation why and I'll consider adding it to the next release.
-
 LICENSE
     Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
 

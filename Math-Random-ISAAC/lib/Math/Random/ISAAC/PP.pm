@@ -371,20 +371,9 @@ L<Math::Random::ISAAC>
 Please file bugs for this module under the C<Math::Random::ISAAC>
 distribution. For more information, see L<Math::Random::ISAAC>'s perldoc.
 
-=head1 LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
-
-I, the copyright holder of this package, hereby release the entire contents
-therein into the public domain. This applies worldwide, to the extent that
-it is permissible by law.
-
-In case this is not legally possible, I grant any entity the right to use
-this work for any purpose, without any conditions, unless such conditions
-are required by law.
-
-The full details of this can be found in the B<LICENSE> file included in
-this package.
+This has the same copyright and licensing terms as L<Math::Random::ISAAC>.
 
 =head1 DISCLAIMER OF WARRANTY
 
