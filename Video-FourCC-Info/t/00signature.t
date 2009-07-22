@@ -20,6 +20,10 @@ unless ($ENV{TEST_AUTHOR}) {
   plan skip_all => 'Set TEST_AUTHOR to enable module author tests';
 }
 
+unless ($ENV{TEST_INTERNET}) {
+  plan skip_all => 'Set TEST_INTERNET to enable tests requiring Internet';
+}
+
 eval {
   require Test::Signature;
 };
