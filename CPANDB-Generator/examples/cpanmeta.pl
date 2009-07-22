@@ -8,7 +8,7 @@ our $VERSION = '0.15';
 
 my $cpandb = CPANDB::Generator->new(
 	cpanmeta => 1,
-	minicpan => 'F:\minicpan',
+	minicpan => 'G:\minicpan',
 	trace    => 1,
 	warnings => 1,
 );

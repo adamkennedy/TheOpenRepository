@@ -46,10 +46,9 @@ use URI::file                               ();
 use DBI                               1.608 ();
 use DBD::SQLite                        1.25 ();
 use CPAN::SQLite                      0.197 ();
-use CPAN::Mini::Visit                  0.10 ();
+use CPAN::Mini::Visit                  0.11 ();
 use LWP::UserAgent                    5.819 ();
 use Xtract::Publish                    0.10 ();
-use Parse::CPAN::Ratings               0.33 ();
 use Algorithm::Dependency             1.108 ();
 use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 0.05 ();
@@ -81,7 +80,7 @@ use CPANDB::Generator::GetIndex ();
 
 =head2 new
 
-  my $cpandb = CPANDB::Generator->new(
+  my $cpan = CPANDB::Generator->new(
       cpan   => '/root/.cpan',
       sqlite => '/root/CPANDB.sqlite',
   );
@@ -122,7 +121,7 @@ sub new {
 
 	# Set the default path to the publishing location
 	unless ( exists $self->{publish} ) {
-		$self->{publish} = 'cpandb';
+		$self->{publish} = 'cpan';
 	}
 
 	# If we have a minicpan and no urllist,
@@ -166,10 +165,10 @@ sub dsn {
 
 =pod
 
-=head2 cpandb_sql
+=head2 cpan_sql
 
 Once it has been fetched or updated from your CPAN mirror, the
-C<cpandb_sql> method returns the location of the L<CPAN::SQLite>
+C<cpan_sql> method returns the location of the L<CPAN::SQLite>
 database used by the CPAN client.
 
 This database is used as the source of the information that forms
@@ -178,7 +177,7 @@ data will be decorated around.
 
 =cut
 
-sub cpandb_sql {
+sub cpan_sql {
 	File::Spec->catfile($_[0]->cpan, 'cpandb.sql');
 }
 
@@ -221,7 +220,7 @@ sub run {
 	}
 
 	# Allocate a lot more memory to cut down file churn
-	$self->do('PRAGMA cache_size = 200000');
+	$self->do('PRAGMA cache_size = 100000');
 
 	# Refresh the CPAN index database
 	$self->say("Fetching CPAN Index...");
@@ -229,7 +228,7 @@ sub run {
 		cpan    => $self->cpan,
 		urllist => $self->urllist,
 	)->delegate;
-	unless ( -f $self->cpandb_sql ) {
+	unless ( -f $self->cpan_sql ) {
 		Carp::croak("Failed to fetch CPAN index");
 	}
 
@@ -272,11 +271,11 @@ sub run {
 	# Attach the various databases
 	my $cpanmeta_sqlite = $cpanmeta ? $cpanmeta->sqlite : ORDB::CPANMeta->sqlite;
 	$self->do( "ATTACH DATABASE ? AS meta",    {}, $cpanmeta_sqlite          );
-	$self->do( "ATTACH DATABASE ? AS cpandb",  {}, $self->cpandb_sql         );
+	$self->do( "ATTACH DATABASE ? AS cpan",    {}, $self->cpan_sql           );
 	$self->do( "ATTACH DATABASE ? AS upload",  {}, ORDB::CPANUploads->sqlite );
 	$self->do( "ATTACH DATABASE ? AS testers", {}, ORDB::CPANTesters->sqlite );
 
-	# Pre-process the cpandb data to produce cleaner intermediate
+	# Pre-process the cpan data to produce cleaner intermediate
 	# temp tables that produce better joins later on.
 	$self->say("Cleaning CPAN Index...");
 	$self->do(<<'END_SQL');
@@ -341,6 +340,7 @@ WHERE
 	AND dist_version in (
 		select dist_version from t_distribution
 	)
+	AND tester NOT LIKE '%dcollins%'
 END_SQL
 
 	# Step two, group into the smaller totals table
@@ -380,7 +380,7 @@ SELECT
 	cpanid AS author,
 	fullname AS name
 FROM
-	cpandb.auths
+	cpan.auths
 ORDER BY
 	author
 END_SQL
@@ -395,6 +395,8 @@ CREATE TABLE distribution (
 	distribution TEXT NOT NULL PRIMARY KEY,
 	version TEXT NULL,
 	author TEXT NOT NULL,
+	meta INTEGER NOT NULL,
+	license TEXT NULL,
 	release TEXT NOT NULL,
 	uploaded TEXT NOT NULL,
 	pass INTEGER NOT NULL,
@@ -416,6 +418,8 @@ SELECT
 	d.dist AS distribution,
 	d.version AS version,
 	d.author AS author,
+	0 as meta,
+	NULL as license,
 	d.release AS release,
 	u.uploaded AS uploaded,
 	0 AS pass,
@@ -436,33 +440,36 @@ ORDER BY
 END_SQL
 
 	# Fetch the popular ratings for the distributions
-	$self->say('Fetching CPAN Ratings...');
-	my $counter      = 0;
-	my $ratings_url  = 'http://cpanratings.perl.org/csv/all_ratings.csv';
-	my $ratings_dir  = File::Temp::tempdir( CLEANUP => 1 );
-	my $ratings_file = File::Spec->catfile( $ratings_dir, 'all_ratings.csv' );
-	my $response     = LWP::UserAgent->new(
-		agent   => "CPANDB::Generator/$VERSION",
-		timeout => 10,
-	)->mirror( $ratings_url => $ratings_file );
-	unless ( $response->is_success or $response->code == 304 ) {
-		Carp::croak("Error: Failed to fetch $ratings_url");
-	}
-	my $ratings = Parse::CPAN::Ratings->new(
-		filename => $ratings_file,
-	) or Carp::croak("Error: Failed to parse $ratings_url");
-	$self->say('Populating CPAN Ratings...');
-	$self->dbh->begin_work;
-	foreach my $rating ( $ratings->ratings ) {
-		$self->do(
-			'UPDATE distribution SET rating = ?, ratings = ? WHERE distribution = ?',
-			{}, $rating->rating, $rating->review_count, $rating->distribution,
-		);
-		next if ++$counter % 100;
-		$self->dbh->commit;
+	my $counter = 0;
+	# require Parse::CPAN::Ratings;
+	if ( Parse::CPAN::Ratings->VERSION ) {
+		$self->say('Fetching CPAN Ratings...');
+		my $ratings_url  = 'http://cpanratings.perl.org/csv/all_ratings.csv';
+		my $ratings_dir  = File::Temp::tempdir( CLEANUP => 1 );
+		my $ratings_file = File::Spec->catfile( $ratings_dir, 'all_ratings.csv' );
+		my $response     = LWP::UserAgent->new(
+			agent   => "CPANDB::Generator/$VERSION",
+			timeout => 10,
+		)->mirror( $ratings_url => $ratings_file );
+		unless ( $response->is_success or $response->code == 304 ) {
+			Carp::croak("Error: Failed to fetch $ratings_url");
+		}
+		my $ratings = Parse::CPAN::Ratings->new(
+			filename => $ratings_file,
+		) or Carp::croak("Error: Failed to parse $ratings_url");
+		$self->say('Populating CPAN Ratings...');
 		$self->dbh->begin_work;
+		foreach my $rating ( $ratings->ratings ) {
+			$self->do(
+				'UPDATE distribution SET rating = ?, ratings = ? WHERE distribution = ?',
+				{}, $rating->rating, $rating->review_count, $rating->distribution,
+			);
+			next if ++$counter % 100;
+			$self->dbh->commit;
+			$self->dbh->begin_work;
+		}
+		$self->dbh->commit;
 	}
-	$self->dbh->commit;
 
 	# Create the module table
 	$self->say("Generating table module...");
@@ -498,28 +505,27 @@ END_SQL
 	} );
 
 	# Create the module dependency table
-	$self->say("Generating table requires...");
+	$self->say("Generating table t_requires...");
 	$self->do(<<'END_SQL');
-CREATE TABLE requires (
+CREATE TABLE t_requires (
 	distribution TEXT NOT NULL,
 	module TEXT NOT NULL,
 	version TEXT NULL,
 	phase TEXT NOT NULL,
-	PRIMARY KEY ( distribution, module, phase ),
-	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution ),
-	FOREIGN KEY ( module ) REFERENCES module ( module )
+	core REAL NULL
 )
 END_SQL
 
 	# Fill the module dependency table
 	$self->create_index( distribution => 'release' );
 	$self->do(<<'END_SQL');
-INSERT INTO requires
+INSERT INTO t_requires
 SELECT
-	d.distribution as distribution,
-	m.module as module,
-	m.version as version,
-	m.phase as phase
+	d.distribution AS distribution,
+	m.module AS module,
+	m.version AS version,
+	m.phase AS phase,
+	m.core AS core
 FROM
 	distribution d,
 	meta.meta_dependency m
@@ -528,11 +534,12 @@ WHERE
 ORDER BY
 	distribution,
 	phase,
+	core desc,
 	module
 END_SQL
 
 	# Index the module dependency table
-	$self->create_index( requires => qw{
+	$self->create_index( t_requires => qw{
 		distribution
 		module
 		version
@@ -546,6 +553,7 @@ CREATE TABLE dependency (
 	distribution TEXT NOT NULL,
 	dependency TEXT NOT NULL,
 	phase TEXT NOT NULL,
+	core REAL NULL,
 	PRIMARY KEY ( distribution, dependency, phase ),
 	FOREIGN KEY ( distribution ) REFERENCES distribition ( distribution ),
 	FOREIGN KEY ( dependency ) REFERENCES distribution ( distribution )
@@ -555,25 +563,32 @@ END_SQL
 	# Fill the distribution dependency table
 	$self->do(<<'END_SQL');
 INSERT INTO dependency
-SELECT DISTINCT
+SELECT
 	distribution,
 	dependency,
-	phase
+	phase,
+	core
 FROM (
 	SELECT	
 		r.distribution as distribution,
 		m.distribution as dependency,
-		r.phase as phase
+		r.phase as phase,
+		r.core as core
 	FROM
 		module m,
-		requires r
+		t_requires r
 	WHERE
 		m.module == r.module
+	ORDER BY
+		distribution,
+		phase,
+		dependency,
+		core
 )
-ORDER BY
+GROUP BY
 	distribution,
-	phase,
-	dependency
+	dependency,
+	phase
 END_SQL
 
 	# Index the distribution dependency table
@@ -581,60 +596,129 @@ END_SQL
 		distribution
 		dependency
 		phase
+		core
 	} );
 
-	# Fill the CPAN Testers totals
-	$self->say("Populating CPAN Testers columns...");
-	my $testers = $self->dbh->selectall_arrayref(
-		'SELECT * FROM t_testers', {}
-	);
-	$self->dbh->begin_work;
-	foreach my $t ( @$testers ) {
-		$self->do(
-			"UPDATE distribution SET $t->[1] = ? WHERE distribution = ?",
-			{}, $t->[2], $t->[0],
-		);
-		next if ++$counter % 100;
-		$self->dbh->commit;
-		$self->dbh->begin_work;
-	}
-	$self->dbh->commit;
+	# Generate the final version of the requires table
+	# dropping the unneeded core column.
+	$self->say('Generating table requires...');
+	$self->do(<<'END_SQL');
+CREATE TABLE requires (
+	distribution TEXT NOT NULL,
+	module TEXT NOT NULL,
+	version TEXT NULL,
+	phase TEXT NOT NULL,
+	PRIMARY KEY ( distribution, module, phase ),
+	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution ),
+	FOREIGN KEY ( module ) REFERENCES module ( module )
+)
+END_SQL
+
+	# Fill it
+	$self->do(<<'END_SQL');
+INSERT INTO requires
+SELECT
+	distribution,
+	module,
+	version,
+	phase
+FROM
+	t_requires
+ORDER BY
+	distribution,
+	phase,
+	module
+END_SQL
+
+	# Add the indexes
+	$self->create_index( requires => qw{
+		distribution
+		module
+		version
+		phase
+	} );
 
 	# Derive the distribution weights
-	$self->say('Generating weight...');
-	my $weight  = $self->weight->weight_all;
-	$self->say('Populating weight...');
-	$self->dbh->begin_work;
-	foreach my $distribution ( sort keys %$weight ) {
-		$self->do(
-			'UPDATE distribution SET weight = ? WHERE distribution = ?',
-			{}, $weight->{$distribution}, $distribution,
-		);
-		next if ++$counter % 100;
-		$self->dbh->commit;
+	$self->say('Generating column  distribution.weight...');
+	SCOPE: {
+		my $weight  = $self->weight->weight_all;
+		$self->say('Populating column  distribution.weight...');
 		$self->dbh->begin_work;
+		foreach my $distribution ( sort keys %$weight ) {
+			$self->do(
+				'UPDATE distribution SET weight = ? WHERE distribution = ?',
+				{}, $weight->{$distribution}, $distribution,
+			);
+			next if ++$counter % 100;
+			$self->dbh->commit;
+			$self->dbh->begin_work;
+		}
+		$self->dbh->commit;
 	}
-	$self->dbh->commit;
 
 	# Derive the distribution volatility
-	$self->say('Generating volatility...');
-	my $volatility = $self->volatility->weight_all;
-	$self->say('Populating volatility...');
-	$self->dbh->begin_work;
-	foreach my $distribution ( sort keys %$volatility ) {
-		$self->do(
-			'UPDATE distribution SET volatility = ? WHERE distribution = ?',
-			{}, $volatility->{$distribution} - 1, $distribution,
-		);
-		next if ++$counter % 100;
-		$self->dbh->commit;
+	$self->say('Generating column  distribution.volatility...');
+	SCOPE: {
+		my $volatility = $self->volatility->weight_all;
+		$self->say('Populating column  distribution.volatility...');
 		$self->dbh->begin_work;
+		foreach my $distribution ( sort keys %$volatility ) {
+			$self->do(
+				'UPDATE distribution SET volatility = ? WHERE distribution = ?',
+				{}, $volatility->{$distribution} - 1, $distribution,
+			);
+			next if ++$counter % 100;
+			$self->dbh->commit;
+			$self->dbh->begin_work;
+		}
+		$self->dbh->commit;
 	}
-	$self->dbh->commit;
+
+	# Populate distribution-level META.yml information
+	$self->say('Generating columns distribution.(meta|license)...');
+	SCOPE: {
+		my $metas = $self->dbh->selectall_arrayref(
+			'SELECT * FROM meta.meta_distribution',
+			{ Slice => {} },
+		);
+		$self->dbh->begin_work;
+		foreach my $meta ( @$metas ) {
+			$self->do(
+				'UPDATE distribution SET meta = ?, license = ? WHERE release = ?',
+				{}, $meta->{meta}, $meta->{meta_license}, $meta->{release},
+			);
+			next if ++$counter % 100;
+			$self->dbh->commit;
+			$self->dbh->begin_work;
+		}
+		$self->dbh->commit;
+	}
+
+	# Fill the CPAN Testers totals
+	$self->say("Generating columns distribution.(pass|fail|unknown|na)...");
+	SCOPE: {
+		my $testers = $self->dbh->selectall_arrayref(
+			'SELECT * FROM t_testers', {}
+		);
+		$self->dbh->begin_work;
+		foreach my $t ( @$testers ) {
+			$self->do(
+				"UPDATE distribution SET $t->[1] = ? WHERE distribution = ?",
+				{}, $t->[2], $t->[0],
+			);
+			next if ++$counter % 100;
+			$self->dbh->commit;
+			$self->dbh->begin_work;
+		}
+		$self->dbh->commit;
+	}
 
 	# Index the rest of the distribution table
 	$self->create_index( distribution => qw{
+		version
 		author
+		meta
+		license
 		pass
 		fail
 		unknown
@@ -648,14 +732,15 @@ END_SQL
 
 	# Clean up tables
 	$self->say("Dropping excess tables...");
+	$self->do( "DROP TABLE t_requires"     );
 	$self->do( "DROP TABLE t_distribution" );
 	$self->do( "DROP TABLE t_uploaded"     );
 	$self->do( "DROP TABLE t_cpanstats"    );
 	$self->do( "DROP TABLE t_testers"      );
 
-	# Clean up attached databases
+	# Clean up databases
 	$self->say("Dropping attached databases...");
-	$self->do( "DETACH DATABASE cpandb"  );
+	$self->do( "DETACH DATABASE cpan"  );
 	$self->do( "DETACH DATABASE upload"  );
 	$self->do( "DETACH DATABASE meta"    );
 	$self->do( "DETACH DATABASE testers" );
@@ -702,15 +787,13 @@ sub create_index {
 # Weight and Volatility Math
 
 sub weight {
-	$_[0]->{weight} or
-	$_[0]->{weight} = Algorithm::Dependency::Weight->new(
+	Algorithm::Dependency::Weight->new(
 		source => $_[0]->weight_source,
 	);
 }
 
 sub weight_source {
-	$_[0]->{weight_source} or
-	$_[0]->{weight_source} = Algorithm::Dependency::Source::DBI->new(
+	Algorithm::Dependency::Source::DBI->new(
 		dbh            => $_[0]->dbh,
 		select_ids     => 'SELECT distribution FROM distribution',
 		select_depends => 'SELECT DISTINCT distribution, dependency FROM dependency',
@@ -718,15 +801,13 @@ sub weight_source {
 }
 
 sub volatility {
-	$_[0]->{volatility} or
-	$_[0]->{volatility} = Algorithm::Dependency::Weight->new(
+	Algorithm::Dependency::Weight->new(
 		source => $_[0]->volatility_source,
 	);
 }
 
 sub volatility_source {
-	$_[0]->{volatility_source} or
-	$_[0]->{volatility_source} = Algorithm::Dependency::Source::Invert->new(
+	Algorithm::Dependency::Source::Invert->new(
 		$_[0]->weight_source,
 	);
 }
