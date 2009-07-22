@@ -61,6 +61,56 @@ you know the seed. The algorithm was published by Bob Jenkins in the late
 90s and despite the best efforts of many security researchers, no feasible
 attacks have been found to date.
 
+=head2 USAGE WARNING
+
+There was no method supplied to provide the initial seed data by the author.
+On his web site, Bob Jenkins writes:
+
+  Seeding a random number generator is essentially the same problem as
+  encrypting the seed with a block cipher.
+
+In the same spirit, by default, this module does not seed the algorithm at
+all -- it simply fills the state with zeroes -- if no seed is provided.
+The idea is to remind users that selecting good seed data for their purpose
+is important, and for the module to conveniently set it to something like
+C<localtime> behind-the-scenes hurts users in the long run, since they don't
+understand the limitations of doing so.
+
+The type of seed you might want to use depends entirely on the purpose of
+using this algorithm in your program in the first place. Here are some
+suggested seeding methods:
+
+=over
+
+=item 1 Math::TrulyRandom
+
+The L<Math::TrulyRandom> module provides a way of obtaining truly random
+data by using timing interrupts. This is probably one of the better ways to
+seed the algorithm.
+
+=item 2 localtime()
+
+This works for basic things like simulations, but results in not-so-random
+output, especially if you create new instances quickly (as the seeds would
+be the same within per-second resolution).
+
+=item 3 Time::HiRes
+
+In theory, this is the same as option (2), but you get a higher resolution
+time so you're less likely to have the same seed twice. Note that you need
+to transform the output into an integer, so you might want to use the least
+significant bits (the stuff to the right of the decimal point). This would
+be less prone to duplicate instances, but it's still not ideal.
+
+=item 4 /dev/random
+
+Using the system random device is, in principle, the best idea, since it
+gathers entropy from various sources including interrupt timing, other
+device interrupts, etc. However, it's not portable to anything other than
+Unix-like platforms, and might not produce good data on some systems.
+
+=back
+
 =head1 SYNOPSIS
 
   use Math::Random::ISAAC;
@@ -295,20 +345,12 @@ There is no method that allows re-seeding of algorithms. This is not really
 necessary because one can simply call C<new> again with the new seed data
 periodically.
 
-=item *
-
-There was no method supplied to provide the initial seed data. On his web
-site, Bob Jenkins writes:
-
-  Seeding a random number generator is essentially the same problem as
-  encrypting the seed with a block cipher.
-
 But he also provides a simple workaround:
 
   As ISAAC is intended to be a secure cipher, if you want to reseed it,
   one way is to use some other cipher to seed some initial version of ISAAC,
   then use ISAAC's output as a seed for other instances of ISAAC whenever
-  they need to be reseeded. 
+  they need to be reseeded.
 
 =item *
 
