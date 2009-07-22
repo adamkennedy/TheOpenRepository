@@ -1,6 +1,10 @@
 $Id$
 
 Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
+or
+Copyright 2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
+
+(Confused? See the RATIONALE.)
 
 ABSTRACT
 
@@ -11,6 +15,16 @@ it is permissible by law.
 In case this is not legally possible, I grant any entity the right to use
 this work for any purpose, without any conditions, unless such conditions
 are required by law.
+
+DISCLAIMER OF WARRANTIES
+
+The software is provided "AS IS", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement. In no event shall the
+authors or copyright holders be liable for any claim, damages or other
+liability, whether in an action of contract, tort or otherwise, arising from,
+out of or in connection with the software or the use or other dealings in
+the software.
 
 RATIONALE
 
@@ -26,15 +40,12 @@ If this is the case, then I encourage a representative of your legal
 department to contact me directly to discuss a token fee being paid in
 exchange for a license to unrestricted use of the code.
 
-DISCLAIMER OF WARRANTIES
-
-The software is provided "AS IS", without warranty of any kind, express or
-implied, including but not limited to the warranties of merchantability,
-fitness for a particular purpose and noninfringement. In no event shall the
-authors or copyright holders be liable for any claim, damages or other
-liability, whether in an action of contract, tort or otherwise, arising from,
-out of or in connection with the software or the use or other dealings in
-the software.
+Similarly, in countries where authors are not permitted to surrender their
+copyrighted works into the public domain (i.e. to give up their copyright
+status), then this code must necessarily remain copyrighted to the author
+listed above, per the Berne Convention for the Protection of Literary and
+Artistic Works. As a result, use of this package will be construed under the
+terms of any accepted license (see the LICENSING section for details).
 
 LICENSING
 
