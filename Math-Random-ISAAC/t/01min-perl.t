@@ -3,13 +3,7 @@
 # t/01min-perl.t
 #  Tests that the minimum required Perl version matches META.yml
 #
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
 # $Id$
-#
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
 
 use strict;
 use warnings;
