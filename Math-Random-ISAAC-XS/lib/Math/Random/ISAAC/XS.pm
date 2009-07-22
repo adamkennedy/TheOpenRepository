@@ -28,9 +28,9 @@ use version; our $VERSION = qv('1.0.5');
 
 =head1 SYNOPSIS
 
-This module implements the same interface as C<Math::Random::ISAAC> and can be
-used as a drop-in replacement. This is the recommended implementation of the
-module, based on Bob Jenkins' reference implementation in C.
+This module implements the same interface as C<Math::Random::ISAAC> and can
+be used as a drop-in replacement. This is the recommended implementation of
+the module, based on Bob Jenkins' reference implementation in C.
 
 Selecting the backend to use manually really only has two uses:
 
@@ -38,8 +38,8 @@ Selecting the backend to use manually really only has two uses:
 
 =item *
 
-If you are trying to avoid the small overhead incurred with dispatching method
-calls to the appropriate backend modules.
+If you are trying to avoid the small overhead incurred with dispatching
+method calls to the appropriate backend modules.
 
 =item *
 
@@ -130,20 +130,21 @@ You can access the most recent development version of this module at:
 
 L<http://svn.ali.as/cpan/trunk/Math-Random-ISAAC-XS>
 
-If you are a CPAN developer and would like to make modifications to the code
-base, please contact Adam Kennedy E<lt>adamk@cpan.orgE<gt>, the repository
-administrator. I only ask that you contact me first to discuss the changes you
-wish to make to the distribution.
+If you are a CPAN developer and would like to make modifications to the
+code base, please contact Adam Kennedy E<lt>adamk@cpan.orgE<gt>, the
+repository administrator. I only ask that you contact me first to discuss
+the changes you wish to make to the distribution.
 
 =head1 FEEDBACK
 
-Please send relevant comments, rotten tomatoes and suggestions directly to the
+Please send relevant comments, rotten tomatoes and suggestions directly to
+the
 maintainer noted above.
 
 If you have a bug report or feature request, please file them on the CPAN
-Request Tracker at L<http://rt.cpan.org>. If you are able to submit your bug
-report in the form of failing unit tests, you are B<strongly> encouraged to do
-so.
+Request Tracker at L<http://rt.cpan.org>. If you are able to submit your
+bug report in the form of failing unit tests, you are B<strongly> encouraged
+to do so.
 
 =head1 SEE ALSO
 
