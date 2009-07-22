@@ -1,8 +1,12 @@
 Changes for Perl extension ORDB-CPANMeta-Generator
 
-0.09 Sun 12 Jul 2009
+0.10 Mon 20 Jul 2009
+	- If the dependency is in the core, store the version of the core
+	  that can satisfy the dependency without installing the tarball.
 	- Adding the meta column to distinguish distributions
 	  which have no META.yml at all from those that do.
+
+0.09 skipped
 
 0.08 Wed  8 Jul 2009
 	- Pass a warnings param to CPAN::Mini::Visit

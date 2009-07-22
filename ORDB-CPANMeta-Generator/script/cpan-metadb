@@ -4,9 +4,9 @@ use 5.008;
 use strict;
 use Params::Util                   qw{ _STRING };
 use Getopt::Long                   ();
-use ORDB::CPANMeta::Generator 0.05 ();
+use ORDB::CPANMeta::Generator 0.10 ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 # Check params
 my $DELTA = 0;
