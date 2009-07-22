@@ -1539,38 +1539,119 @@ sub delete_duplicate_parses {
 
                     # determine equivalence class
 
-                    # my @child_and_node_ids =
-                    # @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
-                    # my @child_equivalence_classes =
-                    # map { defined $_ ? $and_node_equivalence_class[$_] : 'undef' }
-                    # @child_and_node_ids;
-                    #
-                    # my $signature = join q{,}, @child_equivalence_classes;
+                    my @equivalence_work_list = ( [ 'A', $and_node_id ] );
+                    WORK_ENTRY:
+                    while ( my $equivalence_work_entry =
+                        pop @equivalence_work_list )
+                    {
 
-                    # my @child_or_nodes = @{$and_node}[
-                    # Marpa::Internal::And_Node::PREDECESSOR,
-                    # Marpa::Internal::And_Node::CAUSE
-                    # ];
-                    # my @child_or_node_ids =
-                    # map {
-                    # defined $_
-                    # ? $_->[Marpa::Internal::Or_Node::ID]
-                    # : undef
-                    # } @child_or_nodes;
-                    # my @child_equivalence_classes =
-                    # map { defined $_ ? $or_node_equivalence_class[$_] : 'undef' }
-                    # @child_or_node_ids;
-                    # for my $class (@child_equivalence_classes) {
-                    # next EQUIVALENCE_WORK_ITEM if not defined $class;
-                    # }
-                    # my $signature = join q{,},
-                    # $and_node->[Marpa::Internal::And_Node::RULE] + 0,
-                    # $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
-                    # $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
-                    # @child_equivalence_classes,
-                    # ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 )
-                    # + 0,
-                    # ;
+                        my ( $node_type, $work_entry_node_id ) =
+                            @{$equivalence_work_entry};
+
+                        # Do we have all the needed equivalence classes to
+                        # determine the full signature?
+                        my @equivalence_classes = ();
+                        my @new_work_entries    = ();
+                        if ( $node_type eq 'A' ) {
+                            my $work_entry_and_node =
+                                $and_nodes->[$work_entry_node_id];
+                            FIELD:
+                            for my $field (
+                                Marpa::Internal::And_Node::CAUSE,
+                                Marpa::Internal::And_Node::PREDECESSOR
+                                )
+                            {
+                                my $or_child_node =
+                                    $work_entry_and_node->[$field];
+                                my $class =
+                                    defined $or_child_node
+                                    ? $equivalence_class{ 'A'
+                                        . $or_child_node
+                                        ->[Marpa::Internal::Or_Node::ID] }
+                                    : q{-};
+
+                                if ( not defined $class ) {
+                                    push @new_work_entries,
+                                        [
+                                        'O',
+                                        $or_child_node
+                                            ->[Marpa::Internal::Or_Node::ID]
+                                        ];
+                                } ## end if ( not defined $class )
+
+                                # Don't need to accumulate other equivalence
+                                # classes if one is not
+                                # yet determined
+                                next FIELD if @new_work_entries;
+                                push @equivalence_classes, $class;
+                            } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...)
+                        } ## end if ( $node_type eq 'A' )
+                        else {
+                            for my $child_and_node_id (
+                                @{  $or_nodes->[$work_entry_node_id]->[
+                                        Marpa::Internal::Or_Node::CHILD_IDS
+                                    ]
+                                }
+                                )
+                            {
+                                my $class =
+                                    $equivalence_class{"A$child_and_node_id"};
+                                if ( not defined $class ) {
+                                    push @new_work_entries,
+                                        [ 'A', $child_and_node_id ];
+                                }
+                                elsif ( not @new_work_entries ) {
+
+                                    # Don't need to accumulate other equivalence
+                                    # classes if one is not
+                                    # yet determined
+                                    push @equivalence_classes, $class;
+                                } ## end elsif ( not @new_work_entries )
+                            } ## end for my $child_and_node_id ( @{ $or_nodes->[...]})
+                        } ## end else [ if ( $node_type eq 'A' ) ]
+
+                        if (@new_work_entries) {
+                            push @equivalence_work_list,
+                                $equivalence_work_entry, @new_work_entries;
+                            next WORK_ENTRY;
+                        }
+
+                        # If we are here we have everthing we need to compute a signature
+
+                        # my @child_and_node_ids =
+                        # @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
+                        # my @child_equivalence_classes =
+                        # map { defined $_ ? $and_node_equivalence_class[$_] : 'undef' }
+                        # @child_and_node_ids;
+                        #
+                        # my $signature = join q{,}, @child_equivalence_classes;
+
+                        # my @child_or_nodes = @{$and_node}[
+                        # Marpa::Internal::And_Node::PREDECESSOR,
+                        # Marpa::Internal::And_Node::CAUSE
+                        # ];
+                        # my @child_or_node_ids =
+                        # map {
+                        # defined $_
+                        # ? $_->[Marpa::Internal::Or_Node::ID]
+                        # : undef
+                        # } @child_or_nodes;
+                        # my @child_equivalence_classes =
+                        # map { defined $_ ? $or_node_equivalence_class[$_] : 'undef' }
+                        # @child_or_node_ids;
+                        # for my $class (@child_equivalence_classes) {
+                        # next EQUIVALENCE_WORK_ITEM if not defined $class;
+                        # }
+                        # my $signature = join q{,},
+                        # $and_node->[Marpa::Internal::And_Node::RULE] + 0,
+                        # $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
+                        # $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
+                        # @child_equivalence_classes,
+                        # ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 )
+                        # + 0,
+                        # ;
+
+                    } ## end while ( my $equivalence_work_entry = pop ...)
 
                     push @{$potential_duplicate_data_entry},
                         $equivalence_class{$key};
