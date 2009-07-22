@@ -362,21 +362,9 @@ consider adding it to the next release.
 
 =head1 COPYRIGHT AND LICENSE
 
-I, the copyright holder of this package, hereby release the entire contents
-therein into the public domain. This applies worldwide, to the extent that
-it is permissible by law.
-
-In case this is not legally possible, I grant any entity the right to use
-this work for any purpose, without any conditions, unless such conditions
-are required by law.
-
-This package is:
-Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
-or
-Copyright 2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
-
-Confused? The full details of this strange arrangement can be found in the
-B<LICENSE> file which should be included with this package.
+In a perfect world, I could just say that this package and all of the code
+it contains is Public Domain. It's a bit more complicated than that; you'll
+have to read the included B<LICENSE> file to get the full details.
 
 =head1 DISCLAIMER OF WARRANTY
 
