@@ -1,6 +1,6 @@
 Changes for Perl extension CPANDB-Generator
 
-0.15 Wed  8 Jul 2009
+0.16 Wed  8 Jul 2009
 	- Updating to ORDB::CPANMeta::Generator 0.10
 
 0.14 Tue  7 Jul 2009
