@@ -20,16 +20,16 @@ my $json = $graph->as_json;
 is( "$json\n", <<'END_JSON', '->as_json ok' );
 [
    {
-      "name" : "bar",
       "adjacencies" : [],
-      "id" : "bar"
+      "id" : "bar",
+      "name" : "bar"
    },
    {
-      "name" : "foo",
       "adjacencies" : [
          "bar"
       ],
-      "id" : "foo"
+      "id" : "foo",
+      "name" : "foo"
    }
 ]
 END_JSON
