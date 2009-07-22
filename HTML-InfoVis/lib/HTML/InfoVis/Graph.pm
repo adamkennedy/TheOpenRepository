@@ -119,7 +119,7 @@ sub as_json {
 			adjacencies => [ $graph->successors($name) ],
 		};
 	}
-	JSON->new->pretty(1)->encode(\@nodes);
+	JSON->new->canonical(1)->pretty(1)->encode(\@nodes);
 }
 
 1;
