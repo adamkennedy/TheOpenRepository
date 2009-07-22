@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Don't download 100meg just to install the module
+# Don't download 10meg just to install the module
 
 use strict;
 BEGIN {

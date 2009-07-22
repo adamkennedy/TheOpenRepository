@@ -6,15 +6,16 @@ use warnings;
 use Params::Util   1.00 ();
 use ORLite::Mirror 1.15 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.10';
 
 sub import {
-	my $class = shift;
+	my $class  = shift;
 	my $params = Params::Util::_HASH(shift) || {};
 
 	# Pass through any params from above
-	$params->{url}    ||= 'http://svn.ali.as/db/cpanmeta.gz';
-	$params->{maxage} ||= 24 * 60 * 60; # One day
+	$params->{url}          ||= 'http://svn.ali.as/db/cpanmeta.gz';
+	$params->{maxage}       ||= 24 * 60 * 60; # One day
+	$params->{user_version} ||= 10;
 
 	# Prevent double-initialisation
 	$class->can('orlite') or
@@ -162,7 +163,7 @@ for a datase. See the SQLite documentation for more details.
 
 =head1 SUPPORT
 
-ORDB::CPANMeta is based on L<ORLite> 1.22 and L<ORLite::Mirror> 1.14.
+ORDB::CPANMeta is based on L<ORLite> 1.22 and L<ORLite::Mirror> 1.15.
 
 Documentation created by L<ORLite::Pod> 0.06.
 
