@@ -1,5 +1,8 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+0.11 Mon 20 Jul 2009
+	- Add Harvey to the module blacklist
+
 0.10 Wed  8 Jul 2009
 	- Squelch errors resulting from the bad handling of other errors
 	- Add support for two levels of warnings

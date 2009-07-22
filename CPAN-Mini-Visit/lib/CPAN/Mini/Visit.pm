@@ -77,7 +77,7 @@ use Params::Util      1.00 qw{
 	_HASH _STRING _ARRAYLIKE _CODELIKE _REGEX
 };
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -134,7 +134,7 @@ sub new {
 	# Normalise
 	$self->{random}     = $self->random     ? 1 : 0;
 	$self->{prefer_bin} = $self->prefer_bin ? 1 : 0;
-	$self->{warnings} = 0 unless $self->{warnings};
+	$self->{warnings}   = 0 unless $self->{warnings};
 
 	# Check params
 	unless (
@@ -230,9 +230,10 @@ sub run {
 		# Explicitly ignore some damaging distributions
 		# if we are using Perl extraction
 		unless ( $self->prefer_bin ) {
-			next if $path =~ /Text-SenseClusters/;
-			next if $path =~ /Bio-Affymetrix/;
-			next if $path =~ /Alien-MeCab/;
+			next if $path =~ /\bHarvey-\d/;
+			next if $path =~ /\bText-SenseClusters\b/;
+			next if $path =~ /\bBio-Affymetrix\b/;
+			next if $path =~ /\bAlien-MeCab\b/;
 		}
 
 		# Extract the archive
