@@ -24,7 +24,7 @@ while (my ($module, $version) = each %MODULES) {
   next unless $@;
 
   if ($ENV{RELEASE_TESTING}) {
-    die 'Failed to load required release-testing module ' . $module;
+    die 'Could not load release-testing module ' . $module . ': ' . $@;
   }
   else {
     plan skip_all => $module . ' not available for testing';
