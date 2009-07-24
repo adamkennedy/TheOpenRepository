@@ -542,7 +542,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	my $self = $class->SUPER::new(%params);
 
 	# Check the version of Perl to build
-	unless ( $self->build_number ) {
+	unless ( defined $self->build_number ) {
 		PDWiX::Parameter->throw(
 			parameter => 'build_number',
 			where     => '->new'
