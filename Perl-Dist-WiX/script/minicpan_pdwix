@@ -24,6 +24,7 @@ STDERR->autoflush(1);
 
 my (@dists, @modules, @files);
 my $verbose = 1;
+my $force = 0;
 my $cpan = 'http://cpan.hexten.net/';
 my $minicpan = 'C:\minicpan';
 
@@ -34,6 +35,7 @@ my $result = GetOptions(
             "module=s"   => \@modules,      
             "file=s"     => \@files,      
             "verbose!"   => \$verbose,
+            "force!"     => \$force,
 			"help|?"     => sub { pod2usage(-exitstatus => 1, -verbose => 0); },
 			"man"        => sub { pod2usage(-exitstatus => 1, -verbose => 2); },
 			"usage"      => sub { usage(); },
@@ -76,6 +78,7 @@ CPAN::Mini::Devel->update_mirror(
 	remote       => $cpan,
 	local        => $minicpan,
 	trace        => $verbose,
+	force        => $force,
 	path_filters => [ sub { filters( $_[0] ); } ] );
 
 say 'Finished: ', scalar localtime;
@@ -118,7 +121,7 @@ This is $PROGRAM_NAME, version $VERSION, a minicpan script
 for Perl::Dist::WiX and subclasses.
 
 Usage: $PROGRAM_NAME [ --dist <distribution> ] [ --module <module> ]
-                     [ --file <file> ] [ --cpan <URL> ] 
+                     [ --file <file> ] [ --cpan <URL> ] [ --[no]force ]
                      [ --minicpan <filespec> ] [ --[no]verbose ]
                      [ --help ] [ --usage ] [ --man ] [ --version ] [ -? ]
 
@@ -147,7 +150,7 @@ distribution.
 =head1 SYNOPSIS
 
   minicpan_pdwix [ --dist <distribution> ] [ --module <module> ]
-                 [ --file <file> ] [ --cpan <URL> ] 
+                 [ --file <file> ] [ --cpan <URL> ] [ --[no]force ]
                  [ --minicpan <dir> ] [ --[no]verbose ]
                  [ --help ] [ --usage ] [ --man ] [ --version ] [ -?]
 				 
@@ -163,6 +166,9 @@ distribution.
     --verbose         Lists the files as they are downloaded. (default)
     --noverbose       Does not list the files as they are downloaded.
 	
+    --force           Forces rescanning even if index files are not updated.
+    --noforce         Does not force rescanning of minicpan. (default)
+
     --usage           Gives a minimum amount of aid and comfort.
     --help            Gives aid and comfort.
     -?                Gives aid and comfort.
@@ -208,6 +214,13 @@ Defaults to C<C:\minicpan\>.
 Specifies whether the list of files downloaded should be printed or not.
 
 Defaults to B<--verbose>.
+
+=item B<--force>/B<--noforce>
+
+Specifies whether the index files should be rescanned even if they were not
+updated.  This is useful when the list of files to download has been changed.
+
+Defaults to B<--noforce>.
 
 =item B<--usage>
 
