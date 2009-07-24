@@ -363,11 +363,12 @@ GSpot v2.70a, a freeware Codec Information utility. The registration dates
 come courtesy of Microsoft Corporation, accessed online at:
 L<http://msdn.microsoft.com/en-us/library/ms867195.aspx#fourcccodes>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 LICENSE
 
 In a perfect world, I could just say that this package and all of the code
 it contains is Public Domain. It's a bit more complicated than that; you'll
 have to read the included F<LICENSE> file to get the full details.
+
 =head1 DISCLAIMER OF WARRANTY
 
 The software is provided "AS IS", without warranty of any kind, express or
