@@ -1,6 +1,6 @@
 ---
 name: Video-FourCC-Info
-version: 1.001005
+version: 1.001006
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
 abstract: |-
@@ -27,21 +27,11 @@ build_requires:
 recommends:
   DateTime: 0
   Video::Info::Magic: 1.01
-  Test::DistManifest: 0
-  Test::Kwalitee: 1.01
-  Test::Perl::Critic: 0
-  Test::Pod: 1.14
-  Test::Pod::Coverage: 1.04
-  Test::Signature: 0
-  Test::YAML::Meta: 0
-  Test::Without::Module: 0
-  Test::Portability::Files: 0
-  Test::MinimumVersion: 0
 dynamic_config: 0
 provides:
   Video::FourCC::Info:
     file: lib/Video/FourCC/Info.pm
-    version: 1.001005
+    version: 1.001006
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html

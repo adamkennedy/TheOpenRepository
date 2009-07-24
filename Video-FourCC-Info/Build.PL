@@ -58,18 +58,6 @@ my $builder = Module::Build->new(
 
     # Optional module DateTime
     'DateTime'                => 0,
-
-    # Author tests
-    'Test::Perl::Critic'      => 0,
-    'Test::YAML::Meta'        => 0,
-    'Test::Kwalitee'          => 1.01,
-    'Test::Signature'         => 0,
-    'Test::Pod'               => 1.14,
-    'Test::Pod::Coverage'     => 1.04,
-    'Test::DistManifest'      => 0,
-    'Test::Without::Module'   => 0,
-    'Test::Portability::Files' => 0,
-    'Test::MinimumVersion'    => 0,
   },
   conflicts => {
   },
