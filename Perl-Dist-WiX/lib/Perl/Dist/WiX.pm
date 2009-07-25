@@ -453,7 +453,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	my $time = $params{build_start_time};
 	if ( $params{trace} >= 100 )        { print '# '; }
 	if ( $params{trace} > 1 )           { print '[0] '; }
-	if ( ( $params{trace} % 100 ) > 4 ) { print '[WiX.pm 455] '; }
+	if ( ( $params{trace} % 100 ) > 4 ) { print '[WiX.pm 457] '; }
 	print "Starting build at $time.\n";
 
 	# Apply more defaults
@@ -510,14 +510,14 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();
 		if ( $params{trace} >= 100 ) { print '# '; }
 		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[3] [WiX.pm 512] '
+			print '[3] [WiX.pm 514] '
 			  . "Currently executing perl: $perl_location\n";
 		}
 		my $our_perl_location =
 		  lc catfile( $params{image_dir}, qw(perl bin perl.exe) );
 		if ( $params{trace} >= 100 ) { print '# '; }
 		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[3] [WiX.pm 519] '
+			print '[3] [WiX.pm 521] '
 			  . "Our perl to create:       $our_perl_location\n";
 		}
 
@@ -624,6 +624,32 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$self->{cpan} = URI->new('http://cpan.strawberryperl.com/');
 	}
 
+	# If we have a file:// url for the CPAN, move the 
+	# sources directory out of the way.
+	
+	if ( $self->cpan->as_string =~ m{\Afile://}mxsi ) {
+		require CPAN;
+		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
+		$CPAN::Config->{'urllist'} = [ '$url' ];
+
+		my $cpan_path_from = $CPAN::Config->{'keep_source_where'};
+		my $cpan_path_to   = rel2abs(catdir($cpan_path_from, '..', 'old_sources'));
+
+		$self->trace_line(0, <<"EOF");
+Moving CPAN sources files:
+  From: $cpan_path_from
+  To:   $cpan_path_to
+EOF
+
+		File::Copy::Recursive::move($cpan_path_from, $cpan_path_to);
+		
+		$self->{'_cpan_sources_from'} = $cpan_path_from;
+		$self->{'_cpan_sources_to'} = $cpan_path_to;
+		$self->{'_cpan_moved'} = 1;
+	} else {
+		$self->{'_cpan_moved'} = 0;
+	}
+	
 	# Check params
 	$self->_check_string_parameter( $self->download_dir, 'download_dir' );
 	unless ( defined $self->modules_dir ) {
@@ -747,10 +773,22 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	return $self;
 } ## end sub new
 
+# Handle moving the CPAN source files back.
+sub DESTROY {
+	my $self = shift;
+
+	if (defined $self->{'_cpan_moved'} && $self->{'_cpan_moved'}) {
+		eval { 
+			File::Remove::remove( \1, $self->{'_cpan_sources_from'} );
+			File::Copy::Recursive::move($self->{'_cpan_sources_to'}, $self->{'_cpan_sources_from'});
+		}
+	}
+}
+
 #####################################################################
 # Upstream Binary Packages (Mirrored)
 
-Readonly my %PACKAGES = (
+Readonly my %PACKAGES => (
 	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
 	'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
 	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-3.tar.gz',
@@ -2926,8 +2964,9 @@ sub install_six {
 	my $self = shift;
 
 	# Install Gabor's crazy Perl 6 blob
-	my $filelist = $self->install_binary( name => 'six' );
+	my $filelist = $self->install_binary( name => 'six' , install_to => '.');
 	$self->insert_fragment( 'six', $filelist->files );
+	$self->add_env_path('six');
 
 	return 1;
 }
