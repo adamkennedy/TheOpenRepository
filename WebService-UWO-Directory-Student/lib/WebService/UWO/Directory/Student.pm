@@ -20,16 +20,16 @@ use HTML::Entities ();
 
 =head1 NAME
 
-WebService::UWO::Directory::Student - Perform lookups using the University of
-Western Ontario's student directory
+WebService::UWO::Directory::Student - Module for searching the University
+of Western Ontario's student directory
 
 =head1 VERSION
 
-Version 1.0.1 ($Id$)
+Version 1.0.2 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0.1');
+use version; our $VERSION = qv('1.0.2');
 
 =head1 DESCRIPTION
 
@@ -203,9 +203,11 @@ You may explore this using C<Data::Dumper>.
 sub lookup {
   my ($self, $params) = @_;
 
-  Carp::croak('You must call this method as an object') unless ref $self;
+  Carp::croak('You must call this method as an object')
+    unless ref $self;
 
-  Carp::croak('Parameter not a hash reference') unless ref($params) eq 'HASH';
+  Carp::croak('Parameter not a hash reference')
+    unless ref($params) eq 'HASH';
 
   Carp::croak('No search parameters provided')
     unless(
@@ -213,6 +215,9 @@ sub lookup {
       exists($params->{last})  ||
       exists($params->{email})
     );
+
+  $params->{first} = '' unless defined($params->{first});
+  $params->{last} = ''  unless defined($params->{last});
 
   # Don't do anything in void context
   unless (defined wantarray) {
@@ -255,8 +260,22 @@ sub lookup {
     }
   }
   else {
-    my $data = $self->_query($params->{last} . ',' . $params->{first});
-    return _parse($data);
+    my $query;
+
+    # If both first and last are given
+    if (length $params->{first} && length $params->{last}) {
+      $query = $params->{last} . ',' . $params->{first};
+    }
+    # First name only
+    elsif (length $params->{first}) {
+      $query = $params->{first} . '.';
+    }
+    # Last name only
+    else {
+      $query = $params->{last} . ',';
+    }
+
+    return _parse($self->_query($query));
   }
   return 0;
 }
