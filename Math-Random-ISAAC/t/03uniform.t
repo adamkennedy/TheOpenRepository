@@ -13,15 +13,24 @@ use Test::More;
 # Test the Pure Perl version only; the XS version has its own tests
 use Math::Random::ISAAC::PP ();
 
-unless ($ENV{TEST_AUTHOR}) {
-  plan skip_all => 'Set TEST_AUTHOR to enable module author tests';
+unless ($ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING}) {
+  plan skip_all => 'Author tests not required for installation';
 }
 
-eval {
-  require Statistics::Test::RandomWalk;
-};
-if ($@) {
-  plan skip_all => 'Statistics::Test::RandomWalk required to test uniformity';
+my %MODULES = (
+  'Statistics::Test::RandomWalk' => 0,
+);
+
+while (my ($module, $version) = each %MODULES) {
+  eval "use $module $version";
+  next unless $@;
+
+  if ($ENV{RELEASE_TESTING}) {
+    die 'Could not load release-testing module ' . $module;
+  }
+  else {
+    plan skip_all => $module . ' not available for testing';
+  }
 }
 
 my $no_bins = 20;
@@ -32,7 +41,7 @@ sub runtest {
   my ($rng) = @_;
 
   my $tester = Statistics::Test::RandomWalk->new();
-  $tester->set_data(sub { $rng->rand(); }, 1000000);
+  $tester->set_data(sub { $rng->rand(); }, 1_000_000);
 
   my ($quant, $got, $expected) = $tester->test($no_bins);
 

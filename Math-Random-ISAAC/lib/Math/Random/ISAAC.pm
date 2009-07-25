@@ -364,7 +364,7 @@ consider adding it to the next release.
 
 In a perfect world, I could just say that this package and all of the code
 it contains is Public Domain. It's a bit more complicated than that; you'll
-have to read the included B<LICENSE> file to get the full details.
+have to read the included F<LICENSE> file to get the full details.
 
 =head1 DISCLAIMER OF WARRANTY
 

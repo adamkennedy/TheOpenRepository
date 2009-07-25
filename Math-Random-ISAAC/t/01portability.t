@@ -10,18 +10,25 @@ use warnings;
 
 use Test::More;
 
-unless ($ENV{TEST_AUTHOR}) {
-  plan(skip_all => 'Set TEST_AUTHOR to enable module author tests');
+unless ($ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING}) {
+  plan skip_all => 'Author tests not required for installation';
 }
 
-eval {
-  require Test::Portability::Files;
-};
-if ($@) {
-  plan skip_all => 'Test::Portability::Files required to test portability';
-}
+my %MODULES = (
+  'Test::Portability::Files' => 0,
+);
 
-Test::Portability::Files->import();
+while (my ($module, $version) = each %MODULES) {
+  eval "use $module $version";
+  next unless $@;
+
+  if ($ENV{RELEASE_TESTING}) {
+    die 'Could not load release-testing module ' . $module;
+  }
+  else {
+    plan skip_all => $module . ' not available for testing';
+  }
+}
 
 options(
   # For descriptions of what these do, consult Test::Portability::Files
