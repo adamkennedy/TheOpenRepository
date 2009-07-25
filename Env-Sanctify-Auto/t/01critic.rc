@@ -73,6 +73,9 @@ script_sections = NAME|DESCRIPTION|SYNOPSIS|AUTHOR|LICENSE
 # isolating the documentation from the code it documents.
 [-Documentation::RequirePodAtEnd]
 
+# This causes spurious failures due to its poor handling of taint mode.
+[-Documentation::PodSpelling]
+
 # Ensure that each file is tagged with an Id
 [Miscellanea::RequireRcsKeywords]
 keywords = Id

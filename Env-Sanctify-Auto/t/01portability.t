@@ -3,31 +3,32 @@
 # t/01portability.t
 #  Tests if the distribution seems to be portable
 #
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
 # $Id$
-#
-# All rights to this test script are hereby disclaimed and its contents
-# released into the public domain by the author. Where this is not possible,
-# you may use this file under the same terms as Perl itself.
 
 use strict;
 use warnings;
 
 use Test::More;
 
-unless ($ENV{TEST_AUTHOR}) {
-  plan(skip_all => 'Set TEST_AUTHOR to enable module author tests');
+unless ($ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING}) {
+  plan skip_all => 'Author tests not required for installation';
 }
 
-eval {
-  require Test::Portability::Files;
-};
-if ($@) {
-  plan skip_all => 'Test::Portability::Files required to test portability';
-}
+my %MODULES = (
+  'Test::Portability::Files' => 0,
+);
 
-Test::Portability::Files->import();
+while (my ($module, $version) = each %MODULES) {
+  eval "use $module $version";
+  next unless $@;
+
+  if ($ENV{RELEASE_TESTING}) {
+    die 'Could not load release-testing module ' . $module;
+  }
+  else {
+    plan skip_all => $module . ' not available for testing';
+  }
+}
 
 options(
   # For descriptions of what these do, consult Test::Portability::Files
@@ -37,7 +38,7 @@ options(
   test_dir_noext      => 1,
   test_dos_length     => 0,
   test_mac_length     => 1,
-  test_one_dot        => 1,
+  test_one_dot        => 0,
   test_space          => 1,
   test_special_chars  => 1,
   test_symlink        => 1,

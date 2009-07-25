@@ -3,7 +3,7 @@
 # examples/list.pl
 #  List files in the current directory using `ls'
 #
-# $Id: checkmanifest.t 5633 2009-03-14 20:00:03Z FREQUENCY@cpan.org $
+# $Id$
 #
 # All rights to this example script are hereby disclaimed and its contents
 # released into the public domain by the author. Where this is not possible,

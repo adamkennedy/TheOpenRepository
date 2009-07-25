@@ -1,6 +1,6 @@
 ---
 name: Env-Sanctify-Auto
-version: 1.000001
+version: 1.000002
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
 abstract: Automatically clean up your %ENV
@@ -34,7 +34,7 @@ dynamic_config: 0
 provides:
   Env::Sanctify::Auto:
     file: lib/Env/Sanctify/Auto.pm
-    version: 1.000001
+    version: 1.000002
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html

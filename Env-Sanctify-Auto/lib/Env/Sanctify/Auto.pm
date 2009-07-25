@@ -2,11 +2,6 @@
 #  Automatically cleans up your environment to prevent security issues.
 #
 # $Id$
-#
-# Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
-#
-# This package is distributed with the same licensing terms as Perl itself.
-# For additional information, please read the included `LICENSE' file.
 
 package Env::Sanctify::Auto;
 
@@ -18,15 +13,15 @@ use base 'Env::Sanctify';
 
 =head1 NAME
 
-Env::Sanctify::Auto - Automatically clean up your %ENV
+Env::Sanctify::Auto - Module to automatically clean up your %ENV
 
 =head1 VERSION
 
-Version 1.0.1 ($Id$)
+Version 1.0.2 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0.1');
+use version; our $VERSION = qv('1.0.2');
 
 =head1 DESCRIPTION
 
@@ -185,8 +180,8 @@ Your name here ;-)
 
 =over
 
-=item * Thanks to Chris "BinGOs" Williams <chris@bingosnet.co.uk> for making
-L<Env::Sanctify>, a pretty neat module that inspired this one.
+=item * Thanks to Chris "BinGOs" Williams <chris@bingosnet.co.uk> for
+making L<Env::Sanctify>, a pretty neat module that inspired this one.
 
 =back
 
@@ -228,20 +223,20 @@ You can access the most recent development version of this module at:
 
 L<http://svn.ali.as/cpan/trunk/Env-Sanctify-Auto>
 
-If you are a CPAN developer and would like to make modifications to the code
-base, please contact Adam Kennedy E<lt>adamk@cpan.orgE<gt>, the repository
-administrator. I only ask that you contact me first to discuss the changes you
-wish to make to the distribution.
+If you are a CPAN developer and would like to make modifications to the
+code base, please contact Adam Kennedy E<lt>adamk@cpan.orgE<gt>, the
+repository administrator. I only ask that you contact me first to discuss
+the changes you wish to make to the distribution.
 
 =head1 FEEDBACK
 
-Please send relevant comments, rotten tomatoes and suggestions directly to the
-maintainer noted above.
+Please send relevant comments, rotten tomatoes and suggestions directly to
+the maintainer noted above.
 
 If you have a bug report or feature request, please file them on the CPAN
-Request Tracker at L<http://rt.cpan.org>. If you are able to submit your bug
-report in the form of failing unit tests, you are B<strongly> encouraged to do
-so.
+Request Tracker at L<http://rt.cpan.org>. If you are able to submit your
+bug report in the form of failing unit tests, you are B<strongly> encouraged
+to do so.
 
 =head1 SEE ALSO
 
@@ -271,8 +266,8 @@ and is not a substitute for performing your own security audit.
 
 =item *
 
-I'm not a security expert, so more than likely I've missed something. Please
-do file bug reports so that I can fix the module.
+I'm not a security expert, so more than likely I've missed something.
+Please do file bug reports so that I can fix the module.
 
 =item *
 
@@ -303,16 +298,16 @@ terms.
 
 This software is provided by the copyright holders and contributors "AS IS"
 and ANY EXPRESS OR IMPLIED WARRANTIES, including, but not limited to, the
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED.
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.
 
 In no event shall the copyright owner or contributors be liable for any
 direct, indirect, incidental, special, exemplary or consequential damages
 (including, but not limited to, procurement of substitute goods or services;
-loss of use, data or profits; or business interruption) however caused and on
-any theory of liability, whether in contract, strict liability or tort
-(including negligence or otherwise) arising in any way out of the use of this
-software, even if advised of the possibility of such damage.
+loss of use, data or profits; or business interruption) however caused and
+on any theory of liability, whether in contract, strict liability or tort
+(including negligence or otherwise) arising in any way out of the use of
+this software, even if advised of the possibility of such damage.
 
 =cut
 
