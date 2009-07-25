@@ -78,36 +78,36 @@ understand the limitations of doing so.
 
 The type of seed you might want to use depends entirely on the purpose of
 using this algorithm in your program in the first place. Here are some
-suggested seeding methods:
+possible seeding methods:
 
 =over
 
 =item 1 Math::TrulyRandom
 
 The L<Math::TrulyRandom> module provides a way of obtaining truly random
-data by using timing interrupts. This is probably one of the better ways to
-seed the algorithm.
+data by using timing interrupts. This is probably one of the better ways
+to seed the algorithm.
 
-=item 2 localtime()
-
-This works for basic things like simulations, but results in not-so-random
-output, especially if you create new instances quickly (as the seeds would
-be the same within per-second resolution).
-
-=item 3 Time::HiRes
-
-In theory, this is the same as option (2), but you get a higher resolution
-time so you're less likely to have the same seed twice. Note that you need
-to transform the output into an integer, so you might want to use the least
-significant bits (the stuff to the right of the decimal point). This would
-be less prone to duplicate instances, but it's still not ideal.
-
-=item 4 /dev/random
+=item 2 /dev/random
 
 Using the system random device is, in principle, the best idea, since it
 gathers entropy from various sources including interrupt timing, other
 device interrupts, etc. However, it's not portable to anything other than
 Unix-like platforms, and might not produce good data on some systems.
+
+=item 3 localtime()
+
+This works for basic things like simulations, but results in not-so-random
+output, especially if you create new instances quickly (as the seeds would
+be the same within per-second resolution).
+
+=item 4 Time::HiRes
+
+In theory, using L<Time::HiRes> is the same as option (2), but you get a
+higher resolution time so you're less likely to have the same seed twice.
+Note that you need to transform the output into an integer somehow, perhaps
+by taking the least significant bits or using a hash function. This would
+be less prone to duplicate instances, but it's still not ideal.
 
 =back
 
@@ -354,11 +354,22 @@ But he also provides a simple workaround:
 
 =item *
 
-There is no way to clone a PRNG instance. I'm not sure why this is might even
-be necessary or useful. File a bug report with an explanation why and I'll
-consider adding it to the next release.
+There is no way to clone a PRNG instance. I'm not sure why this is might
+even be necessary or useful. File a bug report with an explanation why and
+I'll consider adding it to the next release.
 
 =back
+
+=head1 QUALITY ASSURANCE METRICS
+
+=head2 TEST COVERAGE
+
+  ----------------------- ------ ------ ------ ------ ------ ------
+  File                    stmt   bran   cond    sub    pod   total
+  ----------------------- ------ ------ ------ ------ ------ ------
+  Math/Random/ISAAC.pm    100.0  100.0    n/a  100.0  100.0  100.0
+  Math/Random/ISAAC/PP.pm 100.0  100.0    n/a  100.0  100.0  100.0
+  Total                   100.0  100.0    n/a  100.0  100.0  100.0
 
 =head1 LICENSE
 
