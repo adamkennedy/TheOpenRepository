@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+# A test case provided by Kevin Ryde,
+# with minor changes.
+
 package MyObject;
 use strict;
 use warnings;

@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+# Test cases provided by Kevin Ryde,
+# most with only minor changes.
+
 use strict;
 use warnings;
 use Test::Weaken;
