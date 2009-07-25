@@ -3,10 +3,12 @@ Changes for Perl extension Perl-Dist-WiX
 1.000   Sat 25 Jul 2009.
     1. Used to make "Padre Standalone Plus Six" for the
        Padre Birthday party.
+    2. Major version number jump - this is stable enough
+       to not be a 0.x version anymore. 
     2. build_number can now be 0.
-	3. minicpan script updated to take command-line options
+    3. minicpan script updated to take command-line options
        in order to be able to make minicpans for subclasses.
-	3. minicpan script is more "PBP-compliant" (i.e. 
+    4. minicpan script is more "PBP-compliant" (i.e. 
        the standard meta-options like --help are there)
 
 0.192   Fri 17 Jul 2009.
