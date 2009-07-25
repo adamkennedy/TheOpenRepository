@@ -136,8 +136,7 @@ the changes you wish to make to the distribution.
 =head1 FEEDBACK
 
 Please send relevant comments, rotten tomatoes and suggestions directly to
-the
-maintainer noted above.
+the maintainer noted above.
 
 If you have a bug report or feature request, please file them on the CPAN
 Request Tracker at L<http://rt.cpan.org>. If you are able to submit your
@@ -148,11 +147,11 @@ to do so.
 
 L<Math::Random::ISAAC>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 LICENSE
 
 In a perfect world, I could just say that this package and all of the code
 it contains is Public Domain. It's a bit more complicated than that; you'll
-have to read the included B<LICENSE> file to get the full details.
+have to read the included F<LICENSE> file to get the full details.
 
 =head1 DISCLAIMER OF WARRANTY
 
