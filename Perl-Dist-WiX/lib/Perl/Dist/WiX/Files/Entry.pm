@@ -17,7 +17,7 @@ use Params::Util          qw( _IDENTIFIER _STRING                   );
 use File::Spec::Functions qw( splitpath                             );
 use Win32::Exe            qw();
 
-use version; $VERSION = version->new('0.191')->numify;
+use version; $VERSION = version->new('1.000')->numify;
 #>>>
 #####################################################################
 # Accessors:

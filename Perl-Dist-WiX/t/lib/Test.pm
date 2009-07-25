@@ -17,7 +17,7 @@ use URI                  ();
 
 use vars qw{$VERSION};
 BEGIN {
-    use version; $VERSION = qv('0.192');
+    use version; $VERSION = qv('1.000');
 }
 
 

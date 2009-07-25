@@ -6,7 +6,7 @@ use Perl::Dist::WiX ();
 use vars qw{ $VERSION };
 use base 'Perl::Dist::WiX';
 BEGIN {
-    use version; $VERSION = qv('0.190');
+    use version; $VERSION = qv('1.000');
 }
 
 

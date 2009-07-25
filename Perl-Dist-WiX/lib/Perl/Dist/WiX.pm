@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 0.192
+Perl-Dist-WiX version 1.000
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 0.192.
+This document describes Perl::Dist::WiX version 1.000.
 
 =for readme continue
 
@@ -107,7 +107,7 @@ use     Win32                 qw();
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('0.192')->numify;
+use version; $VERSION = version->new('1.000')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -5112,12 +5112,12 @@ L<Object::InsideOut> 3.53, L<Perl::Dist> 1.14, L<Process> 0.26, L<Readonly>
 =item 1.
 
 Create a distribution for handling the XML-generating parts 
-of Perl::Dist::WiX and depend on it (0.200)
+of Perl::Dist::WiX and depend on it (2.000)
 
 =item 2.
 
 Have an option to have WiX installed non-core modules install in a 
-'vendor path' (0.200? 0.210?)
+'vendor path' (1.010)
    
 =back
 
