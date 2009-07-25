@@ -10,6 +10,10 @@ Changes for Perl extension Perl-Dist-WiX
        in order to be able to make minicpans for subclasses.
     4. minicpan script is more "PBP-compliant" (i.e. 
        the standard meta-options like --help are there)
+    5. The cpan/sources directory is moved to the side when 
+       installing from a minicpan.
+    5. 'six' is now correctly integrated. (Note that 'six'
+       is not guaranteed to be stable or usable.)
 
 0.192   Fri 17 Jul 2009.
     1. Will be used to make Strawberry Perl July 2009.
