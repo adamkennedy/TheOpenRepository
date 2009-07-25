@@ -365,7 +365,7 @@ L<Math::Random::ISAAC>
 Please file bugs for this module under the C<Math::Random::ISAAC>
 distribution. For more information, see L<Math::Random::ISAAC>'s perldoc.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 LICENSE
 
 This has the same copyright and licensing terms as L<Math::Random::ISAAC>.
 

@@ -360,7 +360,7 @@ consider adding it to the next release.
 
 =back
 
-=head1 COPYRIGHT AND LICENSE
+=head1 LICENSE
 
 In a perfect world, I could just say that this package and all of the code
 it contains is Public Domain. It's a bit more complicated than that; you'll
