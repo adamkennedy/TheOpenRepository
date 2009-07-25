@@ -634,9 +634,9 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 		my $cpan_path_from = $CPAN::Config->{'keep_source_where'};
 		my $cpan_path_to   = rel2abs(catdir($cpan_path_from, '..', 'old_sources'));
-
-		$self->trace_line(0, <<"EOF");
-Moving CPAN sources files:
+		
+		$self->trace_line(0, "Moving CPAN sources files:\n");
+		$self->trace_line(2, <<"EOF");
   From: $cpan_path_from
   To:   $cpan_path_to
 EOF
