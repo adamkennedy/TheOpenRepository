@@ -13,7 +13,7 @@ use base 'Env::Sanctify';
 
 =head1 NAME
 
-Env::Sanctify::Auto - Module to automatically clean up your %ENV
+Env::Sanctify::Auto - Perl module that cleans up %ENV
 
 =head1 VERSION
 

@@ -1,6 +1,6 @@
 $Id$
 
-Env::Sanctify::Auto is a module to automatically clean up your %ENV
+Env::Sanctify::Auto is a Perl module that cleans up %ENV
 
 Copyright 2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
 
