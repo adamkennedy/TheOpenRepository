@@ -2,12 +2,6 @@
 #  A file I/O interface with journalling support, based on libjio.
 #
 # $Id$
-#
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
-# This package and its contents are released by the author into the Public
-# Domain, to the full extent permissible by law. For additional information,
-# please see the included `LICENSE' file.
 
 package IO::Journal;
 
@@ -27,28 +21,15 @@ use IO::Journal::Transaction;
 
 =head1 NAME
 
-IO::Journal - Perl interface for journalled file operations
+IO::Journal - Perl module providing durable transaction-oriented I/O
 
 =head1 VERSION
 
-Version 0.101 ($Id$)
+Version 0.2 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('0.101');
-
-=head1 COMPATIBILITY
-
-This module was tested under Perl 5.10.0, using Debian Linux i686. It provides
-some convenience methods similar to C<IO::Handle>, but most of the work is
-based on libjio, which must be installed before this module will compile.
-
-Unfortunately, that may require root access on your system. In the future, an
-C<Alien::> (a la SVN) or C<::Amalgamation> (a la DBD::SQLite) package may help
-streamline this process.
-
-If you encounter any problems on a different version or architecture, please
-contact the maintainer.
+use version; our $VERSION = qv('0.2');
 
 =head1 DESCRIPTION
 
@@ -56,8 +37,8 @@ To ensure reliability, some file systems and databases provide support for
 something known as journalling. The idea is to ensure data consistency by
 creating a log of actions to be taken (called a Write Ahead Log) before
 committing them to disk. That way, if a transaction were to fail due to a
-system crash or other unexpected event, the write ahead log could be used to
-finish writing the data.
+system crash or other unexpected event, the write ahead log could be used
+to finish writing the data.
 
 While this functionality is often available with networked databases, it can
 be a rather memory- and processor-intensive solution, even where reliable
@@ -93,11 +74,21 @@ sorted out.
   $trans->rollback;
   # File is now blank
 
+=head1 COMPATIBILITY
+
+This module was tested under Perl 5.10.0, using Debian Linux. It provides
+some convenience methods similar to C<IO::Handle>, but most of the work is
+based on libjio, which may be installed automatically during this module's
+build process through C<Alien::Libjio>.
+
+If you encounter any problems on a different version or architecture, please
+contact the maintainer.
+
 =cut
 
-# This is the code that actually bootstraps the module and exposes
-# the interface for the user. XSLoader is believed to be more
-# memory efficient than DynaLoader.
+# This is the code that actually bootstraps the module and exposes the
+# interface for the user. XSLoader is believed to be more memory efficient
+# than DynaLoader.
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
 
@@ -123,17 +114,52 @@ my %FLAGMAP = (
   '+>>' => O_RDWR | O_CREAT | O_APPEND,
 );
 
+=head1 METHODS
+
+=head2 IO::Journal->open( $mode, $filename )
+
+Creates a C<IO::Journal> object on top of libjio's file handle system (an
+opaque C<jfs_t> struct). This method opens the given file referenced by
+C<filename> using the given Perl-like C<mode> string, which behaves similarly
+to Perl's standard C<open> function.
+
+Note that, unlike Perl's open, this method does not support the one-parameter
+variant where a mode and filename are specified in the same string.
+
+Example code:
+
+  my $journal = IO::Journal->open('>>', 'filename');
+
+This method will return an appropriate B<IO::Journal::Transaction> object
+or throw an exception on error.
+
+=cut
+
 sub open {
   my ($self, $mode, $filename) = @_;
 
-  Carp::croak('Unrecognized mode: ' . $mode)
-    unless exists($FLAGMAP{$mode});
+  Carp::croak('You must call this as a class method') if ref($class);
+
+  Carp::croak('Unrecognized mode: ' . $mode) unless exists($FLAGMAP{$mode});
 
   return $self->sysopen($filename, $FLAGMAP{$mode});
 }
 
+=head2 $journal->begin_transaction()
+
+This method starts a new transaction, which is essentially the same as
+libjio's C<jtrans_new> function. In order to understand how to work with
+transactions, you'll need to look at L<IO::Journal::Transaction>.
+
+It returns a newly created B<IO::Journal::Transaction> object, or throws
+an exception on error.
+
+=cut
+
 sub begin_transaction {
   my ($self) = @_;
+
+  Carp::croak('You must call this as an object method') unless ref($class);
 
   return IO::Journal::Transaction->new($self);
 }
@@ -219,8 +245,10 @@ tracker.
 
 =head1 SEE ALSO
 
-L<http://blitiri.com.ar/p/libjio/>, libjio's C project page, which has the
-full source code and accompanying Python bindings.
+L<Alien::Libjio>, a Perl module for installing and finding libjio.
+
+L<http://blitiri.com.ar/p/libjio/>, Alberto Bertogli's page about libjio,
+which explains the purpose and features of libjio.
 
 =head1 CAVEATS
 
@@ -234,18 +262,9 @@ There are no known bugs as of this release.
 
 =head1 LICENSE
 
-Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
-
-I, the copyright holder of this package, hereby release the entire contents
-therein into the public domain. This applies worldwide, to the extent that
-it is permissible by law.
-
-In case this is not legally possible, I grant any entity the right to use
-this work for any purpose, without any conditions, unless such conditions
-are required by law.
-
-The full details of this can be found in the B<LICENSE> file included in
-this package.
+In a perfect world, I could just say that this package and all of the code
+it contains is Public Domain. It's a bit more complicated than that; you'll
+have to read the included F<LICENSE> file to get the full details.
 
 =head1 DISCLAIMER OF WARRANTY
 

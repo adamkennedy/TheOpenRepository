@@ -5,9 +5,9 @@
 #
 # By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
 #
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
+# This package and its contents are released by the author into the Public
+# Domain, to the full extent permissible by law. For additional information,
+# please see the included `LICENSE' file.
 
 package IO::Journal::Transaction;
 
@@ -21,11 +21,11 @@ IO::Journal::Transaction - Perl interface to IO::Journal transactions
 
 =head1 VERSION
 
-Version 0.101 ($Id$)
+Version 0.2 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('0.101');
+use version; our $VERSION = qv('0.2');
 
 =head1 DESCRIPTION
 

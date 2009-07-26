@@ -1,22 +1,22 @@
 ---
 name: IO::Journal
-version: 0.1
+version: 0.2
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
-abstract: Perl interface for journalled file operations
+abstract: Perl module providing durable transaction-oriented I/O
 license: unrestricted
 requires:
   Carp: 1.04
   Test::More: 0.62
   perl: 5.006
   strict: 0
-  version: 0.76
+  version: 0
   warnings: 0
 dynamic_config: 1
 provides:
   IO::Journal:
     file: lib/IO/Journal.pm
-    version: 0.1
+    version: 0.2
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html

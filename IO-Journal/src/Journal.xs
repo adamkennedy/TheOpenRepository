@@ -1,18 +1,12 @@
 /* Journal.xs: Perl interface for journalled file operations
  *
- * This is a Perl XS interface to libjio, which was written by Alberto
- * Bertogli and released into the public domain circa 2009.
- *
- * This package and its contents are released by the author into the Public
- * Domain, to the full extent permissible by law. For additional information,
- * please see the included `LICENSE' file.
- *
  * $Id$
  */
 
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#include "ppport.h"
 
 #include <errno.h>
 #include <sys/types.h>

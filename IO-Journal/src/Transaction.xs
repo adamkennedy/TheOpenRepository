@@ -1,17 +1,12 @@
 /* Transaction.xs: Perl interface for manipulation of transactions
  *
- * This is a Perl XS interface to libjio's transaction mechanism.
- *
- * This package and its contents are released by the author into the Public
- * Domain, to the full extent permissible by law. For additional information,
- * please see the included `LICENSE' file.
- *
  * $Id$
  */
 
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#include "ppport.h"
 
 #include <errno.h>
 #include <libjio.h>
