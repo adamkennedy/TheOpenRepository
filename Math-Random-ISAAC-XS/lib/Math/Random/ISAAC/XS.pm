@@ -2,10 +2,6 @@
 #  Interface to the ISAAC Pseudo-Random Number Generator
 #
 # $Id$
-#
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
 
 package Math::Random::ISAAC::XS;
 
