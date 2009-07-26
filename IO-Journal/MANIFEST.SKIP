@@ -13,6 +13,11 @@
 ^Build\.bat$
 ^_build/
 
+# Source object files
+^src/.*\.o$
+^lib/IO/Journal\.(o|c|xs)$
+^lib/IO/Journal/Transaction\.(o|c|xs)$
+
 # Module::Install included files.
 ^inc/Module/Install
 
