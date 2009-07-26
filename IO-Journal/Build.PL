@@ -15,7 +15,7 @@ my $builder = Module::Build->new(
   license               => 'unrestricted',
   dist_author           => 'Jonathan Yu <frequency@cpan.org>',
   dist_version_from     => 'lib/IO/Journal.pm',
-  dynamic_config        => 1,
+  dynamic_config        => 0,
   create_readme         => 0,
   recursive_test_files  => 1,
   sign                  => 1,
@@ -41,6 +41,9 @@ my $builder = Module::Build->new(
     'strict'            => 0,
     'Fcntl'             => 0,
 
+    # Use Alien::Libjio to ensure libjio is installed
+    'Alien::Libjio'     => 0,
+
     # The tests are based on Test::More
     'Test::More'        => 0.62,
   },
@@ -50,6 +53,7 @@ my $builder = Module::Build->new(
 
     # For the XS build process
     'ExtUtils::CBuilder'      => 0,
+    'Alien::Libjio'           => 0,
   },
   recommends => {
   },
