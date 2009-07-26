@@ -11,6 +11,8 @@ use warnings;
 use lib 'inc';
 use My::Builder;
 
+use Env '@PATH';
+
 my $builder = My::Builder->new(
   module_name           => 'Alien::Libjio',
   license               => 'unrestricted',
@@ -92,16 +94,11 @@ unless ($jio->installed) {
     $make = $Config{make};
 
     # Probe for GNU Make (useful on BSD/Unix variants)
-    if ($make eq 'make') {
-      `which gmake`;
-
-      # Check the return status is okay
-      if (!($? & 127) && ($? >> 8) == 0) {
-        $make = 'gmake';
-      }
-      elsif ($^O =~ /bsd$/) {
-        print {*STDERR} "warning: your system is a BSD variant but gmake " .
-          "wasn't found.\n";
+    if ($make eq 'make' && grep { -x $_ . '/gmake' } @PATH) {
+      $make = 'gmake';
+      if ($^O =~ /bsd$/) {
+        print {*STDERR} "warning: your system is a BSD variant but " .
+          "gmake wasn't found.\n";
       }
     }
   }
