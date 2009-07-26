@@ -624,32 +624,32 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$self->{cpan} = URI->new('http://cpan.strawberryperl.com/');
 	}
 
-	# If we have a file:// url for the CPAN, move the 
+	# If we have a file:// url for the CPAN, move the
 	# sources directory out of the way.
-	
+
 	if ( $self->cpan->as_string =~ m{\Afile://}mxsi ) {
 		require CPAN;
 		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
-		$CPAN::Config->{'urllist'} = [ '$url' ];
 
 		my $cpan_path_from = $CPAN::Config->{'keep_source_where'};
-		my $cpan_path_to   = rel2abs(catdir($cpan_path_from, '..', 'old_sources'));
-		
-		$self->trace_line(0, "Moving CPAN sources files:\n");
-		$self->trace_line(2, <<"EOF");
+		my $cpan_path_to =
+		  rel2abs( catdir( $cpan_path_from, q{..}, 'old_sources' ) );
+
+		$self->trace_line( 0, "Moving CPAN sources files:\n" );
+		$self->trace_line( 2, <<"EOF");
   From: $cpan_path_from
   To:   $cpan_path_to
 EOF
 
-		File::Copy::Recursive::move($cpan_path_from, $cpan_path_to);
-		
+		File::Copy::Recursive::move( $cpan_path_from, $cpan_path_to );
+
 		$self->{'_cpan_sources_from'} = $cpan_path_from;
-		$self->{'_cpan_sources_to'} = $cpan_path_to;
-		$self->{'_cpan_moved'} = 1;
+		$self->{'_cpan_sources_to'}   = $cpan_path_to;
+		$self->{'_cpan_moved'}        = 1;
 	} else {
 		$self->{'_cpan_moved'} = 0;
 	}
-	
+
 	# Check params
 	$self->_check_string_parameter( $self->download_dir, 'download_dir' );
 	unless ( defined $self->modules_dir ) {
@@ -777,13 +777,17 @@ EOF
 sub DESTROY {
 	my $self = shift;
 
-	if (defined $self->{'_cpan_moved'} && $self->{'_cpan_moved'}) {
-		eval { 
+	if ( defined $self->{'_cpan_moved'} && $self->{'_cpan_moved'} ) {
+		my $x = eval {
 			File::Remove::remove( \1, $self->{'_cpan_sources_from'} );
-			File::Copy::Recursive::move($self->{'_cpan_sources_to'}, $self->{'_cpan_sources_from'});
-		}
+			File::Copy::Recursive::move(
+				$self->{'_cpan_sources_to'},
+				$self->{'_cpan_sources_from'} );
+		};
 	}
-}
+
+	return;
+} ## end sub DESTROY
 
 #####################################################################
 # Upstream Binary Packages (Mirrored)
@@ -2964,12 +2968,15 @@ sub install_six {
 	my $self = shift;
 
 	# Install Gabor's crazy Perl 6 blob
-	my $filelist = $self->install_binary( name => 'six' , install_to => '.');
+	my $filelist = $self->install_binary(
+		name       => 'six',
+		install_to => q{.}
+	);
 	$self->insert_fragment( 'six', $filelist->files );
 	$self->add_env_path('six');
 
 	return 1;
-}
+} ## end sub install_six
 
 
 

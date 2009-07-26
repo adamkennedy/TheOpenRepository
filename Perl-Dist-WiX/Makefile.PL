@@ -63,6 +63,7 @@ if ($answer =~ /^y/i) {
 	install_script  $script_file;
 	requires       'CPAN::Mini'        => '0.576';
 	requires       'CPAN::Mini::Devel' => '0.03';
+	requires       'File::Slurp'       => '9999.13';
 }
 
 WriteAll;

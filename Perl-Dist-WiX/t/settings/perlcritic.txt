@@ -12,7 +12,7 @@ functions = :builtins
 exclude_functions = print
 
 [Variables::ProhibitPackageVars]
-add_packages = Module::CoreList
+add_packages = Module::CoreList CPAN::Config CPAN
 
 [Modules::PerlMinimumVersion]
 version = 5.008001

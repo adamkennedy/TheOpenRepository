@@ -89,6 +89,7 @@ my @modules_skip = (
        'Test::Prereq',
 # Needed only for the optional script
 	   'CPAN::Mini::Devel',
+	   'File::Slurp',
 	   'feature'
 );
 
