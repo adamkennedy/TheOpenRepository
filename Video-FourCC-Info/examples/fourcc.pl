@@ -4,12 +4,6 @@
 #  Determine information about a given codec
 #
 # $Id$
-#
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
 
 use strict;
 use warnings;
@@ -84,11 +78,7 @@ Jonathan Yu E<lt>frequency@cpan.orgE<gt>
 
 =head1 LICENSE
 
-Copyleft (C) 2009 by Jonathan Yu <frequency@cpan.org>
-
-This package and its contents are released by the author into the Public
-Domain, to the full extent permissible by law. For additional information,
-please see the included `LICENSE' file.
+This has the same copyright and licensing terms as L<Video::FourCC::Info>.
 
 =head1 SEE ALSO
 

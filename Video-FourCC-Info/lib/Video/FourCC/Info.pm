@@ -2,10 +2,6 @@
 #  Shows information about codecs specified as a Four Character Code
 #
 # $Id$
-#
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
 
 package Video::FourCC::Info;
 
@@ -287,9 +283,9 @@ Your name here ;-)
 
 =over
 
-=item * Thanks to Allen Day E<lt>allenday@ucla.eduE<gt> and Benjamin R. Ginter
-E<lt>bginter@asicommunications.comE<gt>, developers of Video::Info, which
-inspired the creation of this module.
+=item * Thanks to Allen Day E<lt>allenday@ucla.eduE<gt> and Benjamin R.
+Ginter E<lt>bginter@asicommunications.comE<gt>, developers of Video::Info,
+which inspired the creation of this module.
 
 =back
 
@@ -373,11 +369,11 @@ have to read the included F<LICENSE> file to get the full details.
 
 The software is provided "AS IS", without warranty of any kind, express or
 implied, including but not limited to the warranties of merchantability,
-fitness for a particular purpose and noninfringement. In no event shall the
-authors or copyright holders be liable for any claim, damages or other
-liability, whether in an action of contract, tort or otherwise, arising from,
-out of or in connection with the software or the use or other dealings in
-the software.
+fitness for a particular purpose and noninfringement. In no event shall
+the authors or copyright holders be liable for any claim, damages or other
+liability, whether in an action of contract, tort or otherwise, arising
+from, out of or in connection with the software or the use or other dealings
+in the software.
 
 =cut
 

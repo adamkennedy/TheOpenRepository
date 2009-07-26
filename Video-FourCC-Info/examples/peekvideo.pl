@@ -3,11 +3,7 @@
 # bin/peekvideo
 #  Determine information about a given media file
 #
-# $Id: peekvideo 6744 2009-04-29 14:32:07Z FREQUENCY@cpan.org $
-#
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
+# $Id$
 
 use strict;
 use warnings;
@@ -23,7 +19,7 @@ peekvideo - determine a codec used by a given file
 
 =head1 VERSION
 
-Version 1.1 ($Id: peekvideo 6744 2009-04-29 14:32:07Z FREQUENCY@cpan.org $)
+Version 1.1 ($Id$)
 
 =cut
 
@@ -31,7 +27,7 @@ use version; our $VERSION = qv('1.1');
 
 =head1 SYNOPSIS
 
-Usage: peekvideo filename [...]
+Usage: peekvideo.pl filename [...]
 
 Given a single path referring to a file containing video data, this script
 will determine the codec required for the media to play.
@@ -126,11 +122,7 @@ use the corresponding support methods.
 
 =head1 LICENSE
 
-Copyleft (C) 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
-
-This package and its contents are released by the author into the Public
-Domain, to the full extent permissible by law. For additional information,
-please see the included `LICENSE' file.
+This has the same copyright and licensing terms as L<Video::FourCC::Info>.
 
 =head1 SEE ALSO
 
