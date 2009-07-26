@@ -3,12 +3,6 @@
 #  ISAAC Pseudo-Random Number Generator
 #
 # $Id$
-#
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
-# This package and its contents are released by the author into the Public
-# Domain, to the full extent permissible by law. For additional information,
-# please see the included `LICENSE' file.
 
 package Math::Random::ISAAC;
 
@@ -365,11 +359,11 @@ I'll consider adding it to the next release.
 =head2 TEST COVERAGE
 
   ----------------------- ------ ------ ------ ------ ------ ------
-  File                    stmt   bran   cond    sub    pod   total
+  File                     stmt   bran   cond   sub    pod   total
   ----------------------- ------ ------ ------ ------ ------ ------
-  Math/Random/ISAAC.pm    100.0  100.0    n/a  100.0  100.0  100.0
-  Math/Random/ISAAC/PP.pm 100.0  100.0    n/a  100.0  100.0  100.0
-  Total                   100.0  100.0    n/a  100.0  100.0  100.0
+  Math/Random/ISAAC.pm    100.0  100.0  n/a    100.0  100.0  100.0
+  Math/Random/ISAAC/PP.pm 100.0  100.0  n/a    100.0  100.0  100.0
+  Total                   100.0  100.0  n/a    100.0  100.0  100.0
 
 =head1 LICENSE
 
