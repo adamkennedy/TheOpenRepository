@@ -72,7 +72,7 @@ my $builder = Module::Build->new(
       # Official keys (homepage, license, bugtracker)
       repository   => 'http://svn.ali.as/cpan/trunk/Video-FourCC-Info',
       bugtracker   => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Video-FourCC-Info',
-      license      => 'http://dev.perl.org/licenses/',
+      license      => 'http://edwardsamuels.com/copyright/beyond/articles/public.html',
     },
   },
 );
