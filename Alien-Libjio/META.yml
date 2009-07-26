@@ -10,7 +10,7 @@ requires:
   ExtUtils::Liblist: 0
   perl: 5.006
   strict: 0
-  version: 0.74
+  version: 0
   warnings: 0
   IPC::Open3: 0
   Cwd: 0
@@ -19,17 +19,6 @@ build_requires:
   Test::More: 0.62
   Test::NoWarnings: 0.084
   ExtUtils::CBuilder: 0
-recommends:
-  Perl::Critic: 1.096
-  Test::DistManifest: 1.001002
-  Test::Kwalitee: 1.01
-  Test::MinimumVersion: 0.008
-  Test::Perl::Critic: 1.01
-  Test::Pod: 1.14
-  Test::Pod::Coverage: 1.04
-  Test::Portability::Files: 0.05
-  Test::Signature: 1.1
-  Test::YAML::Meta: 0.11
 dynamic_config: 1
 provides:
   Alien::Libjio:

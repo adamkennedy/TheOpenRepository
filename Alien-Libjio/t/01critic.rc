@@ -1,14 +1,6 @@
 # Perl::Critic resource file
 #
 # $Id$
-#
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
-# $Id$
-#
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
 
 severity = brutal
 
@@ -74,6 +66,9 @@ script_sections = NAME|DESCRIPTION|SYNOPSIS|AUTHOR|LICENSE|SUPPORT
 # This restriction is silly; some measure of performance gain is not worth
 # isolating the documentation from the code it documents.
 [-Documentation::RequirePodAtEnd]
+
+# This causes spurious failures due to its poor handling of taint mode.
+[-Documentation::PodSpelling]
 
 # Ensure that each file is tagged with an Id
 [Miscellanea::RequireRcsKeywords]

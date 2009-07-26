@@ -3,33 +3,34 @@
 # t/01meta.t
 #  Tests that the META.yml meets the specification
 #
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
 # $Id$
-#
-# This package and its contents are released by the author into the Public
-# Domain, to the full extent permissible by law. For additional information,
-# please see the included `LICENSE' file.
 
 use strict;
 use warnings;
 
 use Test::More;
 
-unless ($ENV{TEST_AUTHOR}) {
-  plan skip_all => 'Set TEST_AUTHOR to enable module author tests';
+unless ($ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING}) {
+  plan skip_all => 'Author tests not required for installation';
 }
 
-eval {
-  require Test::YAML::Meta;
-};
-if ($@) {
-  plan skip_all => 'Test::YAML::Meta required to test META.yml';
+my %MODULES = (
+  'Test::CPAN::Meta'  => 0.13,
+);
+
+while (my ($module, $version) = each %MODULES) {
+  eval "use $module $version";
+  next unless $@;
+
+  if ($ENV{RELEASE_TESTING}) {
+    die 'Could not load release-testing module ' . $module;
+  }
+  else {
+    plan skip_all => $module . ' not available for testing';
+  }
 }
 
 plan tests => 2;
-
-Test::YAML::Meta->import();
 
 # counts as 2 tests
 meta_spec_ok('META.yml', undef, 'META.yml matches the META-spec');

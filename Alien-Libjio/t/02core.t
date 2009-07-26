@@ -4,10 +4,6 @@
 #  Tests core functionality
 #
 # $Id$
-#
-# This package and its contents are released by the author into the Public
-# Domain, to the full extent permissible by law. For additional information,
-# please see the included `LICENSE' file.
 
 use strict;
 use warnings;
@@ -28,7 +24,7 @@ SKIP: {
 
   # If we got our config from pkg-config, do it again with ExtUtils::Liblist
   # so we can test that method too.
-  $obj->_try_liblist() if $obj->how eq 'ExtUtils::Liblist';
+  $obj->_try_liblist() if $obj->how eq 'pkg-config';
 
   # Now that we've done liblist, our method should be 'ExtUtils::Liblist'
   is($obj->method, 'ExtUtils::Liblist', 'Detection method is correct');
