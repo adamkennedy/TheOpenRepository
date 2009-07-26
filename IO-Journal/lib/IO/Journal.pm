@@ -136,7 +136,7 @@ or throw an exception on error.
 =cut
 
 sub open {
-  my ($self, $mode, $filename) = @_;
+  my ($class, $mode, $filename) = @_;
 
   Carp::croak('You must call this as a class method') if ref($class);
 
