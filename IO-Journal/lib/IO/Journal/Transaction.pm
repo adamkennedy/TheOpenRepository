@@ -2,12 +2,6 @@
 #  Provides support for atomic transactions
 #
 # $Id$
-#
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
-# This package and its contents are released by the author into the Public
-# Domain, to the full extent permissible by law. For additional information,
-# please see the included `LICENSE' file.
 
 package IO::Journal::Transaction;
 
@@ -53,6 +47,8 @@ they can then be either saved to file (commit) or simply discarded (rollback).
 use XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
 
+=head1 METHODS
+
 =head1 AUTHOR
 
 Jonathan Yu E<lt>frequency@cpan.orgE<gt>
@@ -68,18 +64,7 @@ more information, see L<IO::Journal>'s perldoc.
 
 =head1 LICENSE
 
-Copyleft 2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
-
-I, the copyright holder of this package, hereby release the entire contents
-therein into the public domain. This applies worldwide, to the extent that
-it is permissible by law.
-
-In case this is not legally possible, I grant any entity the right to use
-this work for any purpose, without any conditions, unless such conditions
-are required by law.
-
-The full details of this can be found in the B<LICENSE> file included in
-this package.
+This has the same copyright and licensing terms as L<IO::Journal>.
 
 =head1 DISCLAIMER OF WARRANTY
 

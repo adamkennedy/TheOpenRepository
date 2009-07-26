@@ -151,6 +151,13 @@ This method starts a new transaction, which is essentially the same as
 libjio's C<jtrans_new> function. In order to understand how to work with
 transactions, you'll need to look at L<IO::Journal::Transaction>.
 
+For now, this is really just a nicer way of constructing a new Transaction
+object, similar in nature to:
+
+  my $trans = IO::Journal::Transaction->new($journal);
+  # looks messier & is longer to type than
+  my $trans = $journal->begin_transaction();
+
 It returns a newly created B<IO::Journal::Transaction> object, or throws
 an exception on error.
 
@@ -163,6 +170,20 @@ sub begin_transaction {
 
   return IO::Journal::Transaction->new($self);
 }
+
+=head2 IO::Journal->sysopen( $filename, $mode, [ $permissions ] )
+
+This function is the same as open, but is instead closer to the usual Unix
+system call, requiring a set of octal flags (those provided by F<fcntl.h>
+and exposed to Perl in L<Fcntl>).
+
+As a result, it's much less convenient than using C<open> and doesn't have
+as much error checking either, since it's implemented completely in XS.
+
+One useful feature of sysopen is that it optionally supports giving an octal
+specification of permissions to use in case the file doesn't yet exist. By
+default, new files are created with the permissions B<0666> (rw-rw-rw-) but
+the actual file created will vary based on your running C<umask>.
 
 =head1 AUTHOR
 
