@@ -1,7 +1,7 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -T
 
-# t/00signature.t
-#  Test that the SIGNATURE matches the distribution
+# t/01pod.t
+#  Checks that POD commands are correct
 #
 # $Id$
 
@@ -14,13 +14,14 @@ unless ($ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING}) {
   plan skip_all => 'Author tests not required for installation';
 }
 
-unless ($ENV{HAS_INTERNET}) {
-  plan skip_all => 'Set HAS_INTERNET to enable tests requiring Internet';
-}
-
 my %MODULES = (
-  'Test::Signature' => 0,
+  'Test::Pod'     => 1.26,
+  'Pod::Simple'   => 3.07,
 );
+
+# Module::CPANTS::Kwalitee won't detect that we're using test modules as
+# author tests, so we convince it that we're loading it in the normal way.
+0 and require Test::Pod;
 
 while (my ($module, $version) = each %MODULES) {
   eval "use $module $version";
@@ -34,6 +35,4 @@ while (my ($module, $version) = each %MODULES) {
   }
 }
 
-plan tests => 1;
-
-signature_ok();
+all_pod_files_ok();
