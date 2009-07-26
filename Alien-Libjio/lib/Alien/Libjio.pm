@@ -470,6 +470,19 @@ In a perfect world, I could just say that this package and all of the code
 it contains is Public Domain. It's a bit more complicated than that; you'll
 have to read the included F<LICENSE> file to get the full details.
 
+=head1 QUALITY ASSURANCE METRICS
+
+=head2 TEST COVERAGE
+
+  ----------------------- ------ ------ ------ ------ ------ ------
+  File                     stmt   bran   cond   sub    pod   total
+  ----------------------- ------ ------ ------ ------ ------ ------
+  Alien/Libjio.pm         98.9   87.5   66.7   100.0  100.0  94.9
+
+Okay, granted, the coverage sucks -- generally, I aim for 100% in all of
+the categories, using fault injection to test all the code paths. Due to
+the nature of the module it's somewhat difficult to do.
+
 =head1 DISCLAIMER OF WARRANTY
 
 The software is provided "AS IS", without warranty of any kind, express or
