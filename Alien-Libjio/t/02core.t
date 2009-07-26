@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Test::NoWarnings;
 
 use Alien::Libjio;
@@ -17,6 +17,7 @@ my $obj = Alien::Libjio->new;
 
 isa_ok($obj, 'Alien::Libjio', 'Create an Alien::Libjio instance');
 can_ok($obj, 'version');
+ok(defined $obj->version, 'Version is defined');
 
 # These sets of tests depend on whether libjio is installed
 SKIP: {
@@ -47,3 +48,7 @@ SKIP: {
   ok(!$obj->cflags, '->cflags is false');
   ok(!$obj->ldflags, '->ldflags is false');
 }
+
+# Make sure we try them in void context
+$obj->ldflags;
+$obj->cflags;
