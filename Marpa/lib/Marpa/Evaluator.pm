@@ -2118,15 +2118,18 @@ sub Marpa::Evaluator::new {
     # TODO: Add code to only attempt rewrite if grammar is cyclical
     rewrite_cycles($self);
 
-    OR_NODE: for my $or_node ( @{$or_nodes} ) {
-        my $child_and_node_ids =
-            $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+    my $first_ambiguous_or_node = List::Util::first {
+        @{ $_->[Marpa::Internal::Or_Node::CHILD_IDS] } > 1;
+    }
+    @{$or_nodes};
 
-        if ( scalar @{$child_and_node_ids} > 2 ) {
+    return $self if not defined $first_ambiguous_or_node;
 
-            # delete_duplicate_parses($self, $or_node);
-        }
-    } ## end for my $or_node ( @{$or_nodes} )
+    # The rest of the processing only applies to ambiguous grammars.
+
+    # delete_duplicate_parses($self, $first_ambiguous_or_node);
+
+    # Sort the and-node children of the or-nodes by their internal priority.
 
     return $self;
 
