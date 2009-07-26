@@ -142,7 +142,7 @@ sub open {
 
   Carp::croak('Unrecognized mode: ' . $mode) unless exists($FLAGMAP{$mode});
 
-  return $self->sysopen($filename, $FLAGMAP{$mode});
+  return $class->sysopen($filename, $FLAGMAP{$mode});
 }
 
 =head2 $journal->begin_transaction()
@@ -159,7 +159,7 @@ an exception on error.
 sub begin_transaction {
   my ($self) = @_;
 
-  Carp::croak('You must call this as an object method') unless ref($class);
+  Carp::croak('You must call this as an object method') unless ref($self);
 
   return IO::Journal::Transaction->new($self);
 }
