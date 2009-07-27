@@ -17,11 +17,18 @@ my $obj = Alien::Libjio->new;
 
 isa_ok($obj, 'Alien::Libjio', 'Create an Alien::Libjio instance');
 can_ok($obj, 'version');
-ok(defined $obj->version, 'Version is defined');
+
+SKIP: {
+  skip('version is only returned by pkg-config', 1)
+    unless $obj->how eq 'pkg-config';
+
+  ok(defined $obj->version, 'Version is defined');
+};
 
 # These sets of tests depend on whether libjio is installed
 SKIP: {
-  skip('tests for when libjio is installed', 5) unless $obj->installed;
+  skip('these tests require libjio to be installed first', 5)
+    unless $obj->installed;
 
   # If we got our config from pkg-config, do it again with ExtUtils::Liblist
   # so we can test that method too.
@@ -43,7 +50,8 @@ SKIP: {
 
 # Make sure the returned values are false
 SKIP: {
-  skip('tests for when libjio is not installed', 2) if $obj->installed;
+  skip('these tests are for when libjio is not installed', 2)
+    if $obj->installed;
 
   ok(!$obj->cflags, '->cflags is false');
   ok(!$obj->ldflags, '->ldflags is false');

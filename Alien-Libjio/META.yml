@@ -1,6 +1,6 @@
 ---
 name: Alien-Libjio
-version: 1.000003
+version: 1.000004
 author:
   - 'Jonathan Yu <frequency@cpan.org>'
 abstract: Installing and finding libjio (Journalled I/O library)
@@ -23,7 +23,7 @@ dynamic_config: 1
 provides:
   Alien::Libjio:
     file: lib/Alien/Libjio.pm
-    version: 1.000003
+    version: 1.000004
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
