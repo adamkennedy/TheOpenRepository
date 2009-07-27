@@ -1435,6 +1435,19 @@ sub delete_duplicate_parses {
 
     my ( $evaler, $first_ambiguous_or_node ) = @_;
 
+    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+
+    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
+    my $trace_fh;
+    my $trace_evaluation;
+
+    if ($tracing) {
+        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_evaluation =
+            $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
+    }
+
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $first_ambiguous_or_node_id =
@@ -1700,6 +1713,15 @@ sub delete_duplicate_parses {
         } ## end while ( my ( $short_signature, $potential_duplicate_and_ids...))
 
     } ## end for my $or_node_id ( $first_ambiguous_or_node_id .. $#...)
+
+    if ($trace_evaluation) {
+         for my $delete_work_entry (@delete_work_list) {
+             my ($tag, $and_node_id) = @{$delete_work_entry};
+             my $and_node = $and_nodes->[$and_node_id];
+             print {$trace_fh} "Deleting duplicate and-node:\n";
+             print {$trace_fh} $and_node->[Marpa::Internal::And_Node::TAG], "\n";
+         }
+    }
 
     delete_nodes( $evaler, \@delete_work_list );
 
