@@ -862,8 +862,9 @@ sub Marpa::Recognizer::end_input {
 sub scan_set {
 
     my $parse = shift;
+
     # Convert values to value refs
-    my @alternatives = map { [ $_->[0], \($_->[1]), $_->[2] ] } @_;
+    my @alternatives = map { [ $_->[0], \( $_->[1] ), $_->[2] ] } @_;
 
     my ($earley_set_list, $earley_hash,      $grammar,
         $current_set,     $furthest_earleme, $exhausted,

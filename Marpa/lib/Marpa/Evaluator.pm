@@ -1449,20 +1449,20 @@ sub delete_duplicate_parses {
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
-    my %equivalence_class_by_signature   = ();
-    my %equivalence_class_by_key         = ();
-    my @delete_work_list                 = ();
-    my %terminal_and_nodes_by_signature  = ();
+    my %equivalence_class_by_signature  = ();
+    my %equivalence_class_by_key        = ();
+    my @delete_work_list                = ();
+    my %terminal_and_nodes_by_signature = ();
 
     # Scan terminal and-nodes for duplicates
     AND_NODE:
     for my $and_node_id ( 0 .. $#{$and_nodes} ) {
-        my $and_node    = $and_nodes->[$and_node_id];
+        my $and_node = $and_nodes->[$and_node_id];
 
         # Eliminate non-terminals
         my $predecessor = $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
         next AND_NODE if defined $predecessor;
-        my $cause       = $and_node->[Marpa::Internal::And_Node::CAUSE];
+        my $cause = $and_node->[Marpa::Internal::And_Node::CAUSE];
         next AND_NODE if defined $cause;
 
         my $signature = join q{,},
@@ -1474,9 +1474,9 @@ sub delete_duplicate_parses {
             ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 ) + 0,
             ;
 
-        push @{$terminal_and_nodes_by_signature{$signature}}, $and_node_id;
+        push @{ $terminal_and_nodes_by_signature{$signature} }, $and_node_id;
 
-    }
+    } ## end for my $and_node_id ( 0 .. $#{$and_nodes} )
 
     ### Terminal and-nodes by signature: %terminal_and_nodes_by_signature
 
@@ -1485,20 +1485,22 @@ sub delete_duplicate_parses {
 
     ### Duplicate terminal and-nodes: @duplicate_terminal_and_nodes
 
-    return;
-
     if ($trace_evaluation) {
-         for my $delete_work_entry (@delete_work_list) {
-             my ($tag, $and_node_id) = @{$delete_work_entry};
-             my $and_node = $and_nodes->[$and_node_id];
-             print {$trace_fh} "Deleting duplicate and-node:\n";
-             print {$trace_fh} $and_node->[Marpa::Internal::And_Node::TAG], "\n";
-         }
-    }
+        for my $delete_work_entry (@delete_work_list) {
+            my ( $tag, $and_node_id ) = @{$delete_work_entry};
+            my $and_node = $and_nodes->[$and_node_id];
+            print {$trace_fh} "Deleting duplicate and-node:\n",
+                $and_node->[Marpa::Internal::And_Node::TAG], "\n"
+                or Marpa::exception('print to trace handle failed');
+        } ## end for my $delete_work_entry (@delete_work_list)
+    } ## end if ($trace_evaluation)
+
+    return;
 
     delete_nodes( $evaler, \@delete_work_list );
 
     return;
+
 } ## end sub delete_duplicate_parses
 
 # There can be duplicate and-nodes.  Prune these.
@@ -1508,7 +1510,7 @@ sub old_delete_duplicate_parses {
 
     # Unused variable so that perlcritic will catch that is
     # still here
-    my ( $delete_me );
+    my ($delete_me);
 
     my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
@@ -1794,19 +1796,10 @@ sub old_delete_duplicate_parses {
 
     } ## end for my $or_node_id ( $first_ambiguous_or_node_id .. $#...)
 
-    if ($trace_evaluation) {
-         for my $delete_work_entry (@delete_work_list) {
-             my ($tag, $and_node_id) = @{$delete_work_entry};
-             my $and_node = $and_nodes->[$and_node_id];
-             print {$trace_fh} "Deleting duplicate and-node:\n";
-             print {$trace_fh} $and_node->[Marpa::Internal::And_Node::TAG], "\n";
-         }
-    }
-
     delete_nodes( $evaler, \@delete_work_list );
 
     return;
-} ## end sub delete_duplicate_parses
+} ## end sub old_delete_duplicate_parses
 
 # Returns false if no parse
 sub Marpa::Evaluator::new {
