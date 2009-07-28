@@ -138,22 +138,22 @@ say "QDFA:\n",  $grammar->show_QDFA;
 INPUT_LENGTH: for my $input_length ( 3 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     TOKEN: for my $token ( 1 .. $input_length ) {
-        next TOKEN if $recce->earleme( [ $a, 'a', 1 ] );
+        next TOKEN if $recce->earleme( [ $a, chr(0x60 + $token), 1 ] );
         Marpa::exception( 'Parsing exhausted at character: ', $token );
     }
     $recce->end_input();
     say "Earley Sets:\n", $recce->show_earley_sets(99);
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     say "Bocage:\n", $evaler->show_bocage(99);
-    my $parse = 0;
+    # my $parse = 0;
 
     # while ( my $value = $evaler->new_value() ) {
 
-        my $value = $evaler->new_value();
-        say "Decisions:\n", $evaler->show_decisions(99);
-        $parse++;
-        my $got = ${$value};
-        say "$got; input length is $input_length; parse $parse";
+        # my $value = $evaler->new_value();
+        # say "Decisions:\n", $evaler->show_decisions(99);
+        # $parse++;
+        # my $got = ${$value};
+        # say "$got; input length is $input_length; parse $parse";
 
 } ## end for my $input_length ( 1 .. 4 )
 

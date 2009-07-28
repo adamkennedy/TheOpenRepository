@@ -66,6 +66,10 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Recognizer;
 
+# use Smart::Comments '###';
+
+### Using smart comments <where>...
+
 use Scalar::Util qw(weaken);
 use Data::Dumper;
 use English qw( -no_match_vars );
@@ -846,11 +850,6 @@ sub Marpa::Recognizer::end_input {
     return 1;
 } ## end sub Marpa::Recognizer::end_input
 
-# It's bad style, but this routine is in a tight loop -- it may be called
-# as often as once per character of input in.  For efficiency
-# I pull the token alternatives out of @_ one by one as I go in the code,
-# rather than at the beginning of the method.
-
 # The remaining arguments should be a list of token alternatives, as
 # array references.  The array for each alternative is (token, value,
 # length), where token is a symbol reference, value can anything
@@ -860,11 +859,11 @@ sub Marpa::Recognizer::end_input {
 # Given a parse object and a list of alternative tokens starting at
 # the current earleme, add Earley items to recognize those tokens.
 
-## no critic (Subroutines::RequireArgUnpacking)
 sub scan_set {
-## use critic
 
     my $parse = shift;
+    # Convert values to value refs
+    my @alternatives = map { [ $_->[0], \($_->[1]), $_->[2] ] } @_;
 
     my ($earley_set_list, $earley_hash,      $grammar,
         $current_set,     $furthest_earleme, $exhausted,
@@ -903,8 +902,10 @@ sub scan_set {
 
         # I allow ambigious tokenization.
         # Loop through the alternative tokens.
-        ALTERNATIVE: for my $alternative (@_) {
-            my ( $token, $value, $length ) = @{$alternative};
+        ALTERNATIVE: for my $alternative (@alternatives) {
+            my ( $token, $value_ref, $length ) = @{$alternative};
+
+            ### Alternative, value_ref: ($value_ref//0)+0
 
             if ( $length & Marpa::Internal::Recognizer::EARLEME_MASK ) {
                 Marpa::exception(
@@ -922,7 +923,7 @@ sub scan_set {
 
                 Marpa::exception( 'Token '
                         . $token->[Marpa::Internal::Symbol::NAME]
-                        . ' has negative length '
+                        . ' has non-positive length '
                         . $length );
 
             } ## end if ( $length <= 0 )
@@ -985,9 +986,12 @@ sub scan_set {
                     push @{$target_set}, $target_item;
                 } ## end if ( not defined $target_item )
                 next STATE if $reset;
+
+                ### Pushing token, value_ref: $value_ref+0
+
                 push @{ $target_item->[Marpa::Internal::Earley_Item::TOKENS]
                     },
-                    [ $earley_item, $value ];
+                    [ $earley_item, $value_ref ];
             }    # for my $state
 
         }    # ALTERNATIVE
