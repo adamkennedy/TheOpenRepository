@@ -14,11 +14,11 @@ Math::Random::ISAAC::XS - C implementation of the ISAAC PRNG Algorithm
 
 =head1 VERSION
 
-Version 1.0.6 ($Id$)
+Version 1.0.7 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0.6');
+use version; our $VERSION = qv('1.0.7');
 
 =head1 SYNOPSIS
 
