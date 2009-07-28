@@ -1,39 +1,39 @@
 package Alien::WiX;
 
-use 5.006;
+use 5.008;
 use warnings;
 use strict;
 use Carp;
-use File::Spec;
-use base                qw( Exporter );
-use vars                qw( $VERSION @EXPORT_OK %EXPORT_TAGS);
+use base qw( Exporter );
+use vars qw( $VERSION @EXPORT_OK %EXPORT_TAGS);
 use version; $VERSION = version->new('1.305419')->numify();
 
-eval { require Alien::WiX::v35; 1; } or
-eval { require Alien::WiX::v30; Alien::WiX::v30->VERSION(5419); 1; } or
-die @_;
+eval { require Alien::WiX::Version35; 1; } or eval {
+	require Alien::WiX::Version30;
+	Alien::WiX::Version30->VERSION(5419.0);
+	1;
+}
+  or croak @_;
 
-# http://wix.sourceforge.net/releases/3.0.5419.0/Wix3.msi
-
-@EXPORT_OK = qw(wix_binary wix_library wix_version wix_version_number wix_bin_candle wix_bin_light wix_lib_wixui);
+@EXPORT_OK =
+  qw(wix_binary wix_library wix_version wix_version_number wix_bin_candle wix_bin_light wix_lib_wixui);
 %EXPORT_TAGS = (
-    GENERAL => [qw(wix_binary wix_library wix_version wix_version_number)], 
-    ALL => [@EXPORT_OK]
-    );
- 
-my $_wix_registry;
+	GENERAL => [qw(wix_binary wix_library wix_version wix_version_number)],
+	ALL     => [@EXPORT_OK] );
 
-sub import {
+sub import { ## no critic (RequireArgUnpacking)
 	my @import = @_;
 	shift @import;
 
-	if (defined $Alien::WiX::v35::VERSION) {
-		Alien::WiX::v35->import(@import);
+	if ( defined $Alien::WiX::Version35::VERSION ) {
+		Alien::WiX::Version35->import(@import);
 	} else {
-		Alien::WiX::v30->import(@import);
+		Alien::WiX::Version30->import(@import);
 	}
-    Alien::WiX->export_to_level(1, @_);
-}
+	Alien::WiX->export_to_level( 1, @_ );
+
+	return;
+} ## end sub import
 
 
 1;
@@ -46,10 +46,10 @@ Alien::WiX - Installing and finding Windows Installer XML (WiX)
 
 =head1 VERSION
 
-This document describes Alien::WiX version 0.305419.
+This document describes Alien::WiX version 1.305419.
 
 Note that the first digit will change if the API changes 
-in an incompatible manner, while the other digits change 
+in an incompatible or major manner, while the other digits change 
 when the version of WiX that is installed by this module 
 changes.
 

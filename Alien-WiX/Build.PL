@@ -66,7 +66,7 @@ my $class = Module::Build->subclass(
 
 
 my $builder = $class->new(
-    module_name         => 'Alien::WiX::v30',
+    module_name         => 'Alien::WiX::Version30',
     license             => 'perl',
     dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
     dist_version_from   => 'lib/Alien/WiX.pm',
@@ -83,7 +83,7 @@ my $builder = $class->new(
 						=> '5.819',
 	},
 	requires            => {
-		'perl'          => '5.006',
+		'perl'          => '5.008',
         'Test::More'    => '0',
 		'Readonly'      => '1.03',
         'version'       => '0.76',
@@ -96,7 +96,7 @@ my $builder = $class->new(
 		'Readonly::XS'  => '1.05',
 	},
 	create_makefile_pl  => 'passthrough',
-    add_to_cleanup      => [ 'Alien-WiX-*' ],
+    add_to_cleanup      => [ 'Alien-WiX-Version30-*' ],
 );
 
 eval { require Win32API::Registry; }

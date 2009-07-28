@@ -45,7 +45,7 @@
 \B\._
 # Avoid archives of this distribution
 \bAlien-WiX-[\d\.\_]+
-\bAlien-WiX-v30-[\d\.\_]+
+\bAlien-WiX-Version30-[\d\.\_]+
 
 # Avoid releaserc file
 \breleaserc$
