@@ -7,8 +7,8 @@
  * $Id$
  */
 
-#ifndef RAND
-#define RAND 1
+#ifndef RAND_H
+#define RAND_H 1
 
 #include "standard.h"
 
@@ -39,4 +39,4 @@ ub4 randInt(randctx *);
     (r)->randrsl[(r)->randcnt])
  */
 
-#endif /* RAND */
+#endif /* RAND_H */

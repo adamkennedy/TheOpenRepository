@@ -9,8 +9,8 @@
  * $Id$
  */
 
-#ifndef STANDARD
-#define STANDARD 1
+#ifndef STANDARD_H
+#define STANDARD_H 1
 
 /* Determine what type to use based on Perl's detection */
 #ifdef USE_INT
@@ -50,4 +50,4 @@ typedef  unsigned long  ub4;
 #define FALSE 0
 #endif /* FALSE */
 
-#endif /* STANDARD */
+#endif /* STANDARD_H */
