@@ -148,7 +148,7 @@ that it successfully executes.
 
 =head1 DEPENDENCIES
 
-This module requires Perl 5.6.0.
+This module requires Perl 5.8.0.
 
 Non-core perl modules required are L<Win32API::Registry>
 (which is required to be installed in order to run the 

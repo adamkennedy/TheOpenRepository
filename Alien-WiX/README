@@ -34,7 +34,7 @@ Alternatively, to install with Module::Build, you can use the following commands
 
 DEPENDENCIES
 
-Dependencies for installation include perl 5.6.0, Win32API::Registry 0.30, 
+Dependencies for installation include perl 5.8.0, Win32API::Registry 0.30, 
 Module::Build 0.2808_01, and LWP::UserAgent 5.819.
 
 Non-core perl modules required to run this module are Win32::TieRegistry 0.25, 
