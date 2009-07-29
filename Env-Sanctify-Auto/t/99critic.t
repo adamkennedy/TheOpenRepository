@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/01critic.t
+# t/99critic.t
 #  Test the distribution using Perl::Critic for guidelines
 #
 # $Id$
@@ -27,7 +27,7 @@ while (my ($module, $version) = each %MODULES) {
   }
 }
 
-my $rcfile = File::Spec->catfile('t', '01critic.rc');
+my $rcfile = File::Spec->catfile('t', '99critic.rc');
 Test::Perl::Critic->import(-profile => $rcfile);
 
 all_critic_ok();
