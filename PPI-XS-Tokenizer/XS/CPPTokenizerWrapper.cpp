@@ -10,6 +10,7 @@ namespace PPITokenizer {
       Tokenizer fTokenizer;
       AV* fLines;
       static const char* fgTokenClasses[43];
+      static const int fgSpecialToken[43];
 
       static SV* newPerlObject(const char* className);
       static char* stealPV(SV* sv, STRLEN& len);
@@ -45,7 +46,7 @@ namespace PPITokenizer {
     "PPI::Token::QuoteLike::Regexp", // Token_QuoteLike_Regexp,
     "PPI::Token::QuoteLike::Words", // Token_QuoteLike_Words,
     "PPI::Token::Regexp::Match", // Token_Regexp_Match,
-    "PPI::Token::Regexp_Match::Bare", // FIXME doesn't exist in PPI Token_Regexp_Match_Bare,
+    "PPI::Token::Regexp::Match", // FIXME doesn't exist in PPI Token_Regexp_Match_Bare,
     "PPI::Token::Regexp::Substitute", // Token_Regexp_Substitute,
     "PPI::Token::Regexp::Transliterate", // Token_Regexp_Transliterate,
     "PPI::Token::Cast", // Token_Cast,
@@ -53,7 +54,7 @@ namespace PPITokenizer {
     "PPI::Token::ArrayIndex", // Token_ArrayIndex,
     "PPI::Token::HereDoc", // Token_HereDoc,
     "PPI::Token::Attribute", // Token_Attribute,
-    "PPI::Token::Attribute", // FIXME doesn't exist in PPI Token_Attribute_Parameterized,
+    "PPI::Token::Attribute", // Doesn't exist in PPI: Token_Attribute_Parameterized, (okay to map to PPI::Token::Attribute)
     "PPI::Token::Label", // Token_Label,
     "PPI::Token::Separator", // Token_Separator,
     "PPI::Token::End", // Token_End,
@@ -62,6 +63,59 @@ namespace PPITokenizer {
     "PPI::Token::BOM", // Token_BOM,
   };
 
+  const int CPPTokenizerWrapper::fgSpecialToken[43] = {
+    0, // Token_NoType = 0,
+    0, // Token_WhiteSpace,
+    0, // Token_Symbol,
+    0, // Token_Comment,
+    0, // Token_Word,
+    0, // Token_DashedWord,
+    0, // Token_Structure,
+    0, // Token_Magic,
+    0, // Token_Number,
+    0, // Token_Number_Version,
+    0, // Token_Number_Float,
+    0, // Token_Number_Hex,
+    0, // Token_Number_Binary,
+    0, // Token_Number_Octal,
+    0, // Token_Number_Exp,
+    0, // Token_Operator,
+    0, // FIXME Token_Operator_Attribute,
+    0, // Token_Unknown,
+    2, // Token_Quote_Single,
+    2, // Token_Quote_Double,
+    1, // Token_Quote_Interpolate,
+    1, // Token_Quote_Literal,
+    2, // Token_QuoteLike_Backtick,
+    1, // Token_QuoteLike_Readline,
+    1, // Token_QuoteLike_Command,
+    1, // Token_QuoteLike_Regexp,
+    1, // Token_QuoteLike_Words,
+    1, // Token_Regexp_Match,
+    1, // FIXME doesn't exist in PPI Token_Regexp_Match_Bare,
+    1, // Token_Regexp_Substitute,
+    1, // Token_Regexp_Transliterate,
+    0, // Token_Cast,
+    0, // Token_Prototype,
+    0, // Token_ArrayIndex,
+    3, // Token_HereDoc,
+    2, // Token_Attribute,
+    2, // Token_Attribute_Parameterized, (PPI::Token::Attribute)
+    0, // Token_Label,
+    0, // Token_Separator,
+    0, // Token_End,
+    0, // Token_Data,
+    0, // Token_Pod,
+    0, // Token_BOM,
+  };
+
+
+
+/*
+ * special tokens:
+ * PPI::Token::HereDoc
+ * all "extended" tokens
+ */
 
   /***********************************************************************/
   CPPTokenizerWrapper::CPPTokenizerWrapper(SV* source)
@@ -128,6 +182,21 @@ namespace PPITokenizer {
     SV* theObject = newPerlObject(className);
     HV* objHash = (HV*)SvRV((SV*)theObject);
     hv_stores( objHash, "content", newSVpvn(theToken->text, (STRLEN)theToken->length) );
+
+    ExtendedToken* theExtendedToken = (ExtendedToken*)theToken; // use only if case >= 1
+    switch(fgSpecialToken[ttype]) {
+    case 0:
+      break;
+    case 1:
+      hv_stores( objHash, "_section", newSViv(theExtendedToken->current_section) );
+
+      break;
+    case 2:
+    case 3:
+    default:
+      printf("UNHANDLED TOKEN TYPE\n");
+    };
+
     fTokenizer.freeToken(theToken);
 
     return theObject;
