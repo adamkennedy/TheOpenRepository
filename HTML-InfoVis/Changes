@@ -1,4 +1,7 @@
 Changes for Perl extension HTML-InfoVis
 
+0.02 Thu 20 Jul 2009
+	- Adding missing Graph dependency
+
 0.01 Wed 22 Jul 2009
 	- Creating the initial skeleton

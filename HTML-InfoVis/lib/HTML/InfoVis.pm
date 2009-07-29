@@ -23,7 +23,7 @@ use 5.006;
 use strict;
 use HTML::InfoVis::Graph ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 1;
 

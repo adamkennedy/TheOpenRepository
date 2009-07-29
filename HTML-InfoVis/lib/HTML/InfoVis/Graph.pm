@@ -35,7 +35,7 @@ use strict;
 use JSON  ();
 use Graph ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =pod
 
