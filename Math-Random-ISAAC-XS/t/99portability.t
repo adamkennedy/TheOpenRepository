@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/01portability.t
+# t/99portability.t
 #  Tests if the distribution seems to be portable
 #
 # $Id$
