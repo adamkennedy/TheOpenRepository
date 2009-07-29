@@ -39,15 +39,15 @@ use 5.00503;
 use strict;
 use Carp;
 use UNIVERSAL;
-use File::Spec        ();
-use File::Spec::Unix  ();
-use Params::Util      qw{ _STRING _HASHLIKE };
-use File::Find::Rule  ();
-use Parse::CPAN::Meta ();
+use File::Spec        0.82 ();
+use File::Spec::Unix       ();
+use Params::Util      0.38 qw{ _STRING _HASHLIKE };
+use File::Find::Rule  0.20 ();
+use Parse::CPAN::Meta 1.38 ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.08';
+	$VERSION = '1.09';
 	@ISA     = 'File::Find::Rule';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }

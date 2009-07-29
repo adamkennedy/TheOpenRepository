@@ -1,10 +1,13 @@
 Revision history for Perl extension File-Find-Rule-Perl
 
+1.09 Thu 30 Jul 2009
+	- 1.08 broke Windows. This unbreaks it again (ADAMK)
+
 1.08 Thu 16 Jul 2009
-  - Added the debian/ directory to the list of skipped paths (RT#47921)
+	- Added the debian/ directory to the list of skipped paths (RT#47921)
 
 1.07 Wed 15 Jul 2009
-  - Fix no_index regression with absolute paths (RT#47633)
+	- Fix no_index regression with absolute paths (RT#47633)
 
 1.06 Mon 13 Apr 2009
 	- Upgraded to Module::Install 0.82 (ADAMK)

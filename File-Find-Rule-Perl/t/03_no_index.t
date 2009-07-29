@@ -65,36 +65,44 @@ SCOPE: {
 # in no_index and in search prefix.
 
 SCOPE: {
-  my @params = (
-    {
-      name => 'Relative Path',
-      path => 'lib/File/Find/Rule/Perl.pm',
-      dir  => curdir(),
-      check => qr{Rule/Perl\.pm},
-    },
-    {
-      name => 'Absolute path, Absolute Dir',
-      path => rel2abs(curdir()) .'/lib/File/Find/Rule/Perl.pm',
-      dir => rel2abs(curdir()),
-      check => qr{Rule/Perl\.pm},
-    },
-  );
+	my @params = (
+		{
+			name  => 'Relative Path',
+			path  => 'lib/File/Find/Rule/Perl.pm',
+			dir   => curdir(),
+			check => [ 'Rule', 'Perl.pm' ],
+		},
+		{
+			name  => 'Absolute path, Absolute Dir',
+			path  => rel2abs(curdir())
+			       . '/lib/File/Find/Rule/Perl.pm',
+			dir   => rel2abs(curdir()),
+			check => [ 'Rule', 'Perl.pm' ],
+		},
+	);
 
-  foreach my $p (@params) {
-    my $rule = FFR->relative->no_index({ file => [ $p->{path} ] })->file;
+	foreach my $p ( @params ) {
+		my $check = quotemeta File::Spec->catfile( @{$p->{check}} );
+		my $regex = qr/$check/;
+		my $rule  = FFR->relative->no_index( {
+			file => [ $p->{path} ]
+		} )->file;
 
-    my @files = sort grep { $_ !~ m/\bblib\b/ && $_ =~ $p->{check}} $rule->in( $p->{dir} );
+		my @files = sort grep {
+			$_ !~ m/\bblib\b/ and $_ =~ $regex
+		} $rule->in( $p->{dir} );
 
-    if( @files ){ 
-        ok( 0, 'No_index + filename ' . $p->{name} );
-        for( @files ){
-            diag( "File Found: $_ \n , no_index file was <$p->{path}>");
-        }
-    } else { 
-        ok( 1, 'No_index + filename ' . $p->{name} );
-    }
-  }
+		if ( @files ) {
+			ok( 0, 'No_index + filename ' . $p->{name} );
+			for ( @files ) {
+				diag( "File Found: $_ \n , no_index file was <$p->{path}>");
+			}
+		} else { 
+			ok( 1, 'No_index + filename ' . $p->{name} );
+		}
+	}
 }
+
 
 
 
