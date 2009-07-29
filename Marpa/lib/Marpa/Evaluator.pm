@@ -43,7 +43,8 @@ use Marpa::Offset qw(
 
     TAG ID
     PREDECESSOR CAUSE
-    VALUE_REF PERL_CLOSURE END_EARLEME
+    VALUE_REF PERL_CLOSURE
+    START_EARLEME END_EARLEME
     ARGC RULE POSITION
     PARENT_ID
     PARENT_CHOICE
@@ -613,6 +614,8 @@ sub audit_and_node {
 
     my $deleted = $audit_and_node->[Marpa::Internal::And_Node::DELETED];
 
+    ### assert: defined $audit_and_node->[Marpa::Internal::And_Node::START_EARLEME];
+
     my $parent_id = $audit_and_node->[Marpa::Internal::And_Node::PARENT_ID];
     my $parent_choice =
         $audit_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
@@ -721,6 +724,7 @@ sub clone_and_node {
         Marpa::Internal::And_Node::TAG,
         Marpa::Internal::And_Node::VALUE_REF,
         Marpa::Internal::And_Node::PERL_CLOSURE,
+        Marpa::Internal::And_Node::START_EARLEME,
         Marpa::Internal::And_Node::END_EARLEME,
         Marpa::Internal::And_Node::ARGC,
         Marpa::Internal::And_Node::RULE,
@@ -928,7 +932,7 @@ sub rewrite_cycles {
             $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
     }
 
-    # Grour or-nodes by span.  Only or-nodes with the same
+    # Group or-nodes by span.  Only or-nodes with the same
     # span can be in a cycle.
     my %or_nodes_by_span;
     for my $or_node ( @{$or_nodes} ) {
@@ -1468,6 +1472,7 @@ sub delete_duplicate_parses {
         my $signature = join q{,},
             $and_node->[Marpa::Internal::And_Node::RULE] + 0,
             $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
+            $and_node->[Marpa::Internal::And_Node::START_EARLEME] + 0,
             $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
             q{-},
             q{-},
@@ -1480,10 +1485,30 @@ sub delete_duplicate_parses {
 
     ### Terminal and-nodes by signature: %terminal_and_nodes_by_signature
 
-    my @duplicate_terminal_and_nodes =
+    my @duplicate_terminal_and_node_sets =
         grep { @{$_} >= 2 } values %terminal_and_nodes_by_signature;
 
-    ### Duplicate terminal and-nodes: @duplicate_terminal_and_nodes
+    ### Duplicate terminal and-node sets: @duplicate_terminal_and_node_sets
+
+    my @duplicate_terminal_and_nodes =
+        map { $_->[0] }
+        sort { $a->[1] <=> $b->[1] || $a->[2] <=> $b->[2] } do {
+        my @sort_data;
+        for my $duplicate_and_node_id ( map { @{$_} }
+            @duplicate_terminal_and_node_sets )
+        {
+            my $duplicate_and_node = $and_nodes->[$duplicate_and_node_id];
+            my $start_earleme      = $duplicate_and_node
+                ->[Marpa::Internal::And_Node::START_EARLEME];
+            push @sort_data,
+                [
+                $duplicate_and_node, $start_earleme,
+                $duplicate_and_node->[Marpa::Internal::And_Node::END_EARLEME]
+                    - $start_earleme
+                ];
+        } ## end for my $duplicate_and_node_id ( map { @{$_} } ...)
+        @sort_data;
+        };
 
     if ($trace_evaluation) {
         for my $delete_work_entry (@delete_work_list) {
@@ -1554,6 +1579,8 @@ sub old_delete_duplicate_parses {
                 ->[Marpa::Internal::And_Node::RULE] + 0,
                 $potential_duplicate_and_node
                 ->[Marpa::Internal::And_Node::POSITION] + 0,
+                $potential_duplicate_and_node
+                ->[Marpa::Internal::And_Node::START_EARLEME] + 0,
                 $potential_duplicate_and_node
                 ->[Marpa::Internal::And_Node::END_EARLEME] + 0,
                 (
@@ -1725,6 +1752,9 @@ sub old_delete_duplicate_parses {
                                     ->[Marpa::Internal::And_Node::RULE] + 0,
                                     $work_entry_node
                                     ->[Marpa::Internal::And_Node::POSITION]
+                                    + 0,
+                                    $work_entry_node->[
+                                    Marpa::Internal::And_Node::START_EARLEME]
                                     + 0,
                                     $work_entry_node
                                     ->[Marpa::Internal::And_Node::END_EARLEME]
@@ -1935,9 +1965,10 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE] = $closure;
         $and_node->[Marpa::Internal::And_Node::ARGC] =
             scalar @{ $start_rule->[Marpa::Internal::Rule::RHS] };
-        $and_node->[Marpa::Internal::And_Node::RULE]        = $start_rule;
-        $and_node->[Marpa::Internal::And_Node::POSITION]    = 0;
-        $and_node->[Marpa::Internal::And_Node::END_EARLEME] = 0;
+        $and_node->[Marpa::Internal::And_Node::RULE]          = $start_rule;
+        $and_node->[Marpa::Internal::And_Node::POSITION]      = 0;
+        $and_node->[Marpa::Internal::And_Node::START_EARLEME] = 0;
+        $and_node->[Marpa::Internal::And_Node::END_EARLEME]   = 0;
         my $id = $and_node->[Marpa::Internal::And_Node::ID] = 0;
         my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
             $start_item->[Marpa::Internal::Earley_Item::NAME] . q{#} . $id;
@@ -2139,6 +2170,8 @@ sub Marpa::Evaluator::new {
                 $and_node->[Marpa::Internal::And_Node::RULE] = $sapling_rule;
                 $and_node->[Marpa::Internal::And_Node::POSITION] =
                     $sapling_position;
+                $and_node->[Marpa::Internal::And_Node::START_EARLEME] =
+                    $start_earleme;
                 $and_node->[Marpa::Internal::And_Node::END_EARLEME] =
                     $end_earleme;
                 my $id = $and_node->[Marpa::Internal::And_Node::ID] =
