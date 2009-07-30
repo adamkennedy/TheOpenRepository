@@ -3,8 +3,8 @@ package CPANDB;
 use 5.008005;
 use strict;
 use warnings;
-use Params::Util    1.00 ();
-use ORLite::Mirror  1.15 ();
+use Params::Util         ();
+use ORLite::Mirror       ();
 use CPANDB::Distribution ();
 
 our $VERSION = '0.05';
