@@ -1,6 +1,6 @@
 =head1 NAME
 
-CPANDB - A unified database for the CPAN index and related data
+CPANDB - An ORLite-based ORM Database API
 
 =head1 SYNOPSIS
 
@@ -133,7 +133,7 @@ for a datase. See the SQLite documentation for more details.
 
 =head1 SUPPORT
 
-CPANDB is based on L<ORLite> 1.22.
+CPANDB is based on L<ORLite> 1.23.
 
 Documentation created by L<ORLite::Pod> 0.06.
 
@@ -142,11 +142,11 @@ project documentation.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+The Author
 
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy.
+Copyright 2009 The Author.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

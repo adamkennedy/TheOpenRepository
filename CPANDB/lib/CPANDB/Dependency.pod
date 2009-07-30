@@ -83,6 +83,7 @@ following SQL command.
   	distribution TEXT NOT NULL,
   	dependency TEXT NOT NULL,
   	phase TEXT NOT NULL,
+  	core REAL NULL,
   	PRIMARY KEY ( distribution, dependency, phase ),
   	FOREIGN KEY ( distribution ) REFERENCES distribition ( distribution ),
   	FOREIGN KEY ( dependency ) REFERENCES distribution ( distribution )
@@ -96,11 +97,11 @@ See the documentation for L<CPANDB> for more information.
 
 =head1 AUTHOR
 
-Adam Kennedy
+The Author
 
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy.
+Copyright 2009 The Author.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

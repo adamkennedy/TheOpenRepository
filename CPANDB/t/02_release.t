@@ -7,13 +7,12 @@ BEGIN {
 }
 
 use Test::More;
-use LWP::Online ':skip_all';
 unless ( $ENV{RELEASE_TESTING} ) {
 	plan( skip_all => "Author tests not required for installation" );
 	exit(0);
 }
 
-plan( tests => 6 );
+plan( tests => 7 );
 
 # Download and load the database
 use_ok( 'CPANDB' );
@@ -49,8 +48,11 @@ SKIP: {
 
 	# Graph generation for a single distribution
 	SCOPE: {
-		my $graph = $cpandb->dependency_graph;
-		isa_ok( $graph, 'Graph::Directed' );
+		my $graph1 = $cpandb->dependency_graph;
+		isa_ok( $graph1, 'Graph::Directed' );
+
+		my $graph2 = $cpandb->dependency_graph( phase => 'runtime' );
+		isa_ok( $graph2, 'Graph::Directed' );
 	}
 }
 

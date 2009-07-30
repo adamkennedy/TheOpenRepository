@@ -10,7 +10,79 @@ CPANDB::Distribution - CPANDB class for the distribution table
 
 TO BE COMPLETED
 
-=head1 METHODS
+=head1 GRAPH METHODS
+
+CPANDB::Distribution comes with support for integrating with various types
+of graphing systems.
+
+=head2 dependency_graph
+
+  my $graph = CPANDB->distribution('Acme')->dependency_graph;
+
+You will need to install L<Graph> to get access to this method, otherwise
+it will throw an exception on use.
+
+The C<dependency_graph> method is used to generate a L<Graph>-based
+graph for a given distribution and all of its depedendencies recursively,
+including cross dependencies between the recursive dependencies.
+
+The graph is directional with edges from a distribution to the
+modules it depends on.
+
+These graphs are recommended for general graph analysis computation.
+
+=head2 dependency_easy
+
+  my $easy = CPANDB->distribution('Acme')->dependency_easy;
+
+You will need to install L<Graph::Easy> to get access to this method,
+otherwise it will throw an exception on use.
+
+The C<dependency_easy> method is used to generate a L<Graph::Easy>-based
+graph for a given distribution and all of its depedendencies recursively,
+including cross dependencies between the recursive dependencies.
+
+The graph is directional with edges from a distribution to the
+modules it depends on.
+
+The use of Graph::Easy is currently not recommended, as it has scaling
+issues with the very large graphs that L<CPANDB> often produces (especially
+in the layout engine). It is provided for completeness.
+
+=head2 dependency_graphviz
+
+  CPANDB->distribution('Acme')->dependency_graphviz->as_svg('Acme.svg');
+
+You will need to install L<Graphviz> to get access to this method,
+otherwise it will throw an exception on use.
+
+The C<dependency_graphviz> method is used to generate a L<Graphviz>-based
+graph for a given distribution and all of its depedendencies recursively,
+including cross dependencies between the recursive dependencies.
+
+The graph is directional with edges from a distribution to the
+modules it depends on.
+
+These graphs are recommended for use in graphics and visualisation.
+
+More-complex types of graphs are also possible. For example, the following
+culls the dependency graph of anything that won't require an install on
+Perl 5.6, including only runtime dependencies, and runs an alternative
+layour engine for the graph.
+
+  CPANDB->distribution('Acme')->dependency_graphviz(
+      perl        => 5.006,
+      phase       => 'runtime',
+      layout      => 'neato',
+      directed    => 1,
+      concentrate => 1,
+  )->as_svg('Acme.svg');
+
+Apart from the "perl" and "phase" parameters, all other params are passed
+down to the underlying L<Graphviz> object. So you can use anything that it
+supports.
+
+=head1 DATABASE METHODS
 
 =head2 select
 
@@ -83,8 +155,18 @@ following SQL command.
   	distribution TEXT NOT NULL PRIMARY KEY,
   	version TEXT NULL,
   	author TEXT NOT NULL,
+  	meta INTEGER NOT NULL,
+  	license TEXT NULL,
   	release TEXT NOT NULL,
   	uploaded TEXT NOT NULL,
+  	pass INTEGER NOT NULL,
+  	fail INTEGER NOT NULL,
+  	unknown INTEGER NOT NULL,
+  	na INTEGER NOT NULL,
+  	rating TEXT NULL,
+  	ratings INTEGER NOT NULL,
+  	weight INTEGER NOT NULL,
+  	volatility INTEGER NOT NULL,
   	FOREIGN KEY ( author ) REFERENCES author ( author )
   )
 
@@ -96,11 +178,11 @@ See the documentation for L<CPANDB> for more information.
 
 =head1 AUTHOR
 
-Adam Kennedy
+The Author
 
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy.
+Copyright 2009 The Author.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

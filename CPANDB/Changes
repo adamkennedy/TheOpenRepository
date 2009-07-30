@@ -1,5 +1,10 @@
 Changes for Perl extension CPANDB
 
+0.05 Tue 21 Jul 2009
+	- Better, more varied, and more controllable graph support
+	- Added cpangraph command line graph generator
+	- Updated documentation to the newest schema
+
 0.04 Fri  3 Jul 2009
 	- Adding support for producing a Graph object for dependencies
 
