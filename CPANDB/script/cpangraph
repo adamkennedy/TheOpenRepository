@@ -1,0 +1,52 @@
+#!/usr/bin/perl
+
+use 5.008005;
+use strict;
+use warnings;
+use Time::HiRes  ();
+use Getopt::Long ();
+
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '0.05';
+}
+
+use CPANDB ();
+
+# Check params
+my $PERL    = undef;
+my $PHASE   = undef;
+my $VERBOSE = 0;
+Getopt::Long::GetOptions(
+	'perl=s'  => \$PERL,
+	'phase=s' => \$PHASE,
+	'verbose' => \$VERBOSE,
+) or die "Failed to parse options";
+
+# Find the distribution
+my $name = shift @ARGV;
+unless ( $name ) {
+	print "Did not provide a distribution name\n";
+	exit(0);
+}
+
+# Load the database and fine the distribution
+CPANDB->import( {
+	show_progress => $VERBOSE,
+} );
+my $dist = CPANDB->distribution($name);
+
+# Determine the graph file name
+my $file = $name;
+if ( $PHASE ) {
+	$file .= '-' . $PHASE;
+}
+if ( $PERL ) {
+	$file .= '-' . $PERL;
+}
+
+# Generate the graph
+$dist->dependency_graphviz(
+	perl  => $PERL,
+	phase => $PHASE,
+)->as_svg("$file.svg");
