@@ -17,10 +17,12 @@ use CPANDB ();
 my $PERL    = undef;
 my $PHASE   = undef;
 my $VERBOSE = 0;
+my $RANKDIR = 0;
 Getopt::Long::GetOptions(
 	'perl=s'  => \$PERL,
 	'phase=s' => \$PHASE,
 	'verbose' => \$VERBOSE,
+	'rankdir' => \$RANKDIR,
 ) or die "Failed to parse options";
 
 # Find the distribution
@@ -47,6 +49,7 @@ if ( $PERL ) {
 
 # Generate the graph
 $dist->dependency_graphviz(
-	perl  => $PERL,
-	phase => $PHASE,
+	perl    => $PERL,
+	phase   => $PHASE,
+	rankdir => $RANKDIR,
 )->as_svg("$file.svg");
