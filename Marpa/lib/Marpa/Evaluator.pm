@@ -1491,24 +1491,45 @@ sub delete_duplicate_parses {
     ### Duplicate terminal and-node sets: @duplicate_terminal_and_node_sets
 
     my @duplicate_terminal_and_nodes =
-        map { $_->[0] }
-        sort { $a->[1] <=> $b->[1] || $a->[2] <=> $b->[2] } do {
-        my @sort_data;
-        for my $duplicate_and_node_id ( map { @{$_} }
-            @duplicate_terminal_and_node_sets )
-        {
-            my $duplicate_and_node = $and_nodes->[$duplicate_and_node_id];
-            my $start_earleme      = $duplicate_and_node
-                ->[Marpa::Internal::And_Node::START_EARLEME];
-            push @sort_data,
-                [
-                $duplicate_and_node, $start_earleme,
-                $duplicate_and_node->[Marpa::Internal::And_Node::END_EARLEME]
-                    - $start_earleme
-                ];
-        } ## end for my $duplicate_and_node_id ( map { @{$_} } ...)
-        @sort_data;
-        };
+        map  { $_->[0] }
+        sort { $a->[1] <=> $b->[1] }
+        map  { [ $_, $_->[Marpa::Internal::And_Node::START_EARLEME] ] }
+        map  { $and_nodes->[$_] }
+        map  { @{$_} } @duplicate_terminal_and_node_sets;
+
+    my $start_span_set_ix = 0;
+    SPAN_SET: while ( $start_span_set_ix < @duplicate_terminal_and_nodes ) {
+
+        # Find a span set
+        my $and_node = $duplicate_terminal_and_nodes[$start_span_set_ix];
+        if ( $and_node->[Marpa::Internal::And_Node::DELETED] ) {
+            $start_span_set_ix++;
+            next SPAN_SET;
+        }
+        my $span_set_start_earleme =
+            $and_node->[Marpa::Internal::And_Node::START_EARLEME];
+        my $span_set_end_earleme =
+            $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+        my $span_set_ix = $start_span_set_ix;
+        SPAN_SET_MEMBER:
+        while ( ++$span_set_ix < @duplicate_terminal_and_nodes ) {
+            next SPAN_SET_MEMBER
+                if $and_node->[Marpa::Internal::And_Node::DELETED];
+            my $start_earleme =
+                $and_node->[Marpa::Internal::And_Node::START_EARLEME];
+            last SPAN_SET_MEMBER if $start_earleme > $span_set_end_earleme;
+            $span_set_end_earleme =
+                $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+        } ## end while ( ++$span_set_ix < @duplicate_terminal_and_nodes )
+        my $end_span_set_ix = $span_set_ix;
+
+        # Look for duplicated and-nodes
+        # If one found, delete it, then start again at the same span set index
+
+        # If none found, start again at the index after the end of the span set
+        $start_span_set_ix = $end_span_set_ix + 1;
+
+    } ## end while ( $start_span_set_ix < @duplicate_terminal_and_nodes)
 
     if ($trace_evaluation) {
         for my $delete_work_entry (@delete_work_list) {
