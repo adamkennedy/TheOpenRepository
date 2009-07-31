@@ -15,7 +15,10 @@ namespace PPITokenizer {
         eSimple = 0,
         eExtended,
         eQuoteSingle,
-        eQuoteDouble
+        eQuoteDouble,
+        eBacktick,
+        eAttribute,
+        eHereDoc
       };
       static const char* fgTokenClasses[43];
       static const int fgSpecialToken[43];
@@ -43,7 +46,7 @@ namespace PPITokenizer {
     "PPI::Token::Number::Octal", // Token_Number_Octal,
     "PPI::Token::Number::Exp", // Token_Number_Exp,
     "PPI::Token::Operator", // Token_Operator,
-    "PPI::Token::Operator", // FIXME Token_Operator_Attribute,
+    "PPI::Token::Operator", // Token_Operator_Attribute,
     "PPI::Token::Unknown", // Token_Unknown,
     "PPI::Token::Quote::Single", // Token_Quote_Single,
     "PPI::Token::Quote::Double", // Token_Quote_Double,
@@ -89,13 +92,13 @@ namespace PPITokenizer {
     eSimple, // Token_Number_Octal,
     eSimple, // Token_Number_Exp,
     eSimple, // Token_Operator,
-    eSimple, // FIXME Token_Operator_Attribute,
+    eAttribute, // Token_Operator_Attribute,
     eSimple, // Token_Unknown,
     eQuoteSingle, // Token_Quote_Single,
     eQuoteDouble, // Token_Quote_Double,
     eExtended, // Token_Quote_Interpolate,
     eExtended, // Token_Quote_Literal,
-    4, // Token_QuoteLike_Backtick,
+    eBacktick, // Token_QuoteLike_Backtick,
     eExtended, // Token_QuoteLike_Readline,
     eExtended, // Token_QuoteLike_Command,
     eExtended, // Token_QuoteLike_Regexp,
@@ -107,9 +110,9 @@ namespace PPITokenizer {
     eSimple, // Token_Cast,
     eSimple, // Token_Prototype,
     eSimple, // Token_ArrayIndex,
-    4, // Token_HereDoc,
-    4, // Token_Attribute,
-    4, // Token_Attribute_Parameterized, (PPI::Token::Attribute)
+    eHereDoc, // Token_HereDoc,
+    eSimple, // Token_Attribute,
+    eSimple, // Token_Attribute_Parameterized, (PPI::Token::Attribute)
     eSimple, // Token_Label,
     eSimple, // Token_Separator,
     eSimple, // Token_End,
@@ -219,6 +222,15 @@ namespace PPITokenizer {
       break;
     case eQuoteDouble:
       hv_stores( objHash, "separator", newSVpvn("\"", 1) );
+      break;
+    case eBacktick:
+      hv_stores( objHash, "separator", newSVpvn("`", 1) );
+      break;
+    case eAttribute:
+      hv_stores( objHash, "_attribute", newSViv(1) );
+      break;
+    case eHereDoc:
+      printf("HEREDOCS AS YET UNHANDLED\n");
       break;
     default:
       printf("UNHANDLED TOKEN TYPE\n");
