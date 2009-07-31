@@ -14,8 +14,8 @@ SCOPE: {
   isa_ok($token, "PPI::Token::Word");
   is($token->content, 'Test', "Token contains the word 'Test'");
   is_deeply(
-    $token,
-    bless( {content => 'Test'} => 'PPI::Token::Word' ),
+    { %$token },
+    {content => 'Test'},
     'Check deep structure of Word token'
   );
 }
@@ -29,16 +29,15 @@ SCOPE: {
   isa_ok($token, "PPI::Token::Quote::Interpolate");
   is($token->content, 'qq{foo}', "Token content check");
   is_deeply(
-    $token,
-    bless( {
-        'operator' => 'qq',
-        '_sections' => 1,
-        'braced' => 1,
-        'separator' => undef,
-        'content' => 'qq{foo}',
-        'sections' => [ { 'position' => 3, 'type' => '{}', 'size' => 3 } ],
-      }, 'PPI::Token::Quote::Interpolate'
-    ),
+    { %$token },
+    {
+      'operator' => 'qq',
+      '_sections' => 1,
+      'braced' => 1,
+      'separator' => undef,
+      'content' => 'qq{foo}',
+      'sections' => [ { 'position' => 3, 'type' => '{}', 'size' => 3 } ],
+    },
     'Check deep structure of Interpolate token'
   );
 }
