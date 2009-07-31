@@ -6,9 +6,17 @@ namespace PPITokenizer {
       CPPTokenizerWrapper(SV* source);
       ~CPPTokenizerWrapper();
       SV* get_token();
+
     private:
       Tokenizer fTokenizer;
       AV* fLines;
+
+      enum SpecialTokenTypes {
+        eSimple = 0,
+        eExtended,
+        eQuoteSingle,
+        eQuoteDouble
+      };
       static const char* fgTokenClasses[43];
       static const int fgSpecialToken[43];
 
@@ -65,49 +73,49 @@ namespace PPITokenizer {
   };
 
   const int CPPTokenizerWrapper::fgSpecialToken[43] = {
-    0, // Token_NoType = 0,
-    0, // Token_WhiteSpace,
-    0, // Token_Symbol,
-    0, // Token_Comment,
-    0, // Token_Word,
-    0, // Token_DashedWord,
-    0, // Token_Structure,
-    0, // Token_Magic,
-    0, // Token_Number,
-    0, // Token_Number_Version,
-    0, // Token_Number_Float,
-    0, // Token_Number_Hex,
-    0, // Token_Number_Binary,
-    0, // Token_Number_Octal,
-    0, // Token_Number_Exp,
-    0, // Token_Operator,
-    0, // FIXME Token_Operator_Attribute,
-    0, // Token_Unknown,
-    2, // Token_Quote_Single,
-    2, // Token_Quote_Double,
-    1, // Token_Quote_Interpolate,
-    1, // Token_Quote_Literal,
-    2, // Token_QuoteLike_Backtick,
-    1, // Token_QuoteLike_Readline,
-    1, // Token_QuoteLike_Command,
-    1, // Token_QuoteLike_Regexp,
-    1, // Token_QuoteLike_Words,
-    1, // Token_Regexp_Match,
-    1, // FIXME doesn't exist in PPI Token_Regexp_Match_Bare,
-    1, // Token_Regexp_Substitute,
-    1, // Token_Regexp_Transliterate,
-    0, // Token_Cast,
-    0, // Token_Prototype,
-    0, // Token_ArrayIndex,
-    3, // Token_HereDoc,
-    2, // Token_Attribute,
-    2, // Token_Attribute_Parameterized, (PPI::Token::Attribute)
-    0, // Token_Label,
-    0, // Token_Separator,
-    0, // Token_End,
-    0, // Token_Data,
-    0, // Token_Pod,
-    0, // Token_BOM,
+    eSimple, // Token_NoType = 0,
+    eSimple, // Token_WhiteSpace,
+    eSimple, // Token_Symbol,
+    eSimple, // Token_Comment,
+    eSimple, // Token_Word,
+    eSimple, // Token_DashedWord,
+    eSimple, // Token_Structure,
+    eSimple, // Token_Magic,
+    eSimple, // Token_Number,
+    eSimple, // Token_Number_Version,
+    eSimple, // Token_Number_Float,
+    eSimple, // Token_Number_Hex,
+    eSimple, // Token_Number_Binary,
+    eSimple, // Token_Number_Octal,
+    eSimple, // Token_Number_Exp,
+    eSimple, // Token_Operator,
+    eSimple, // FIXME Token_Operator_Attribute,
+    eSimple, // Token_Unknown,
+    eQuoteSingle, // Token_Quote_Single,
+    eQuoteDouble, // Token_Quote_Double,
+    eExtended, // Token_Quote_Interpolate,
+    eExtended, // Token_Quote_Literal,
+    4, // Token_QuoteLike_Backtick,
+    eExtended, // Token_QuoteLike_Readline,
+    eExtended, // Token_QuoteLike_Command,
+    eExtended, // Token_QuoteLike_Regexp,
+    eExtended, // Token_QuoteLike_Words,
+    eExtended, // Token_Regexp_Match,
+    eExtended, // doesn't exist in PPI Token_Regexp_Match_Bare,
+    eExtended, // Token_Regexp_Substitute,
+    eExtended, // Token_Regexp_Transliterate,
+    eSimple, // Token_Cast,
+    eSimple, // Token_Prototype,
+    eSimple, // Token_ArrayIndex,
+    4, // Token_HereDoc,
+    4, // Token_Attribute,
+    4, // Token_Attribute_Parameterized, (PPI::Token::Attribute)
+    eSimple, // Token_Label,
+    eSimple, // Token_Separator,
+    eSimple, // Token_End,
+    eSimple, // Token_Data,
+    eSimple, // Token_Pod,
+    eSimple, // Token_BOM,
   };
 
 
@@ -189,9 +197,9 @@ namespace PPITokenizer {
     ExtendedToken* theExtendedToken = (ExtendedToken*)theToken; // use only if case >= 1
     char open_char;
     switch(fgSpecialToken[ttype]) {
-    case 0:
+    case eSimple:
       break;
-    case 1:
+    case eExtended:
       // Handle extended tokens with sections (mostly quotelikes)
       hv_stores( objHash, "_section", newSViv(theExtendedToken->current_section) );
       open_char = (char)theExtendedToken->sections[0].open_char;
@@ -206,8 +214,12 @@ namespace PPITokenizer {
       }
       S_makeSections( theExtendedToken, objHash );
       break;
-    case 2:
-    case 3:
+    case eQuoteSingle:
+      hv_stores( objHash, "separator", newSVpvn("'", 1) );
+      break;
+    case eQuoteDouble:
+      hv_stores( objHash, "separator", newSVpvn("\"", 1) );
+      break;
     default:
       printf("UNHANDLED TOKEN TYPE\n");
     };
