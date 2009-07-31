@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 25;
 BEGIN { use_ok('PPI::XS::Tokenizer') };
 require PPI;
 
@@ -19,6 +19,7 @@ SCOPE: {
     'Check deep structure of Word token'
   );
 }
+
 
 SCOPE: {
   my $t = PPI::XS::Tokenizer->new("qq{foo}");
@@ -40,6 +41,37 @@ SCOPE: {
     'Check deep structure of Interpolate token'
   );
 }
+
+
+SCOPE: {
+  my $t = PPI::XS::Tokenizer->new("'foo'");
+  isa_ok($t, 'PPI::XS::Tokenizer');
+  my $token = $t->get_token();
+  ok(defined $token, "Token defined");
+  isa_ok($token, "PPI::Token::Quote::Single");
+  is($token->content, "'foo'", "Token content check");
+  is_deeply(
+    { %$token },
+    { 'separator' => "'", 'content' => "'foo'" },
+    'Check deep structure of Quote::Single token'
+  );
+}
+
+
+SCOPE: {
+  my $t = PPI::XS::Tokenizer->new('"foo"');
+  isa_ok($t, 'PPI::XS::Tokenizer');
+  my $token = $t->get_token();
+  ok(defined $token, "Token defined");
+  isa_ok($token, "PPI::Token::Quote::Double");
+  is($token->content, '"foo"', "Token content check");
+  is_deeply(
+    { %$token },
+    { 'separator' => '"', 'content' => '"foo"' },
+    'Check deep structure of Quote::Double token'
+  );
+}
+
 
 SCOPE: {
   my $t = PPI::XS::Tokenizer->new(<<'HERE');
