@@ -12,8 +12,9 @@ namespace PPITokenizer {
       static const char* fgTokenClasses[43];
       static const int fgSpecialToken[43];
 
-      static SV* newPerlObject(const char* className);
-      static char* stealPV(SV* sv, STRLEN& len);
+      static SV* S_newPerlObject(const char* className);
+      static char* S_stealPV(SV* sv, STRLEN& len);
+      static void S_makeSections(ExtendedToken* token, HV* objHash);
   };
 
   /***********************************************************************/
@@ -159,7 +160,7 @@ namespace PPITokenizer {
       }
       // FIXME how do I take ownership of the contained char*?
       STRLEN len;
-      char* lineStr = stealPV(line, len);
+      char* lineStr = S_stealPV(line, len);
       LineTokenizeResults res = fTokenizer.tokenizeLine(lineStr, len);
 
       //LineTokenizeResults res = fTokenizer.tokenizeLine(SvPV(line, len), len);
@@ -179,7 +180,7 @@ namespace PPITokenizer {
     const char* className = CPPTokenizerWrapper::fgTokenClasses[ttype];
     printf("Class: %s\n", className);
 
-    SV* theObject = newPerlObject(className);
+    SV* theObject = S_newPerlObject(className);
     HV* objHash = (HV*)SvRV((SV*)theObject);
     // assign {content}
     hv_stores( objHash, "content", newSVpvn(theToken->text, (STRLEN)theToken->length) );
@@ -203,6 +204,7 @@ namespace PPITokenizer {
         hv_stores( objHash, "braced", newSViv(0) );
         hv_stores( objHash, "braced", newSVpvn(&open_char, 1) );
       }
+      S_makeSections( theExtendedToken, objHash );
       break;
     case 2:
     case 3:
@@ -217,7 +219,7 @@ namespace PPITokenizer {
 
   /***********************************************************************/
   SV*
-  CPPTokenizerWrapper::newPerlObject(const char* className)
+  CPPTokenizerWrapper::S_newPerlObject(const char* className)
   {
     HV* hash = newHV();
     SV* rv = newRV_noinc((SV*) hash);
@@ -227,7 +229,7 @@ namespace PPITokenizer {
 
   /***********************************************************************/
   char*
-  CPPTokenizerWrapper::stealPV(SV* sv, STRLEN &len)
+  CPPTokenizerWrapper::S_stealPV(SV* sv, STRLEN &len)
   {
     char* retval;
     // if ref count is one, it's a string, and it doesn't have magic/overloading
@@ -248,6 +250,35 @@ namespace PPITokenizer {
     }
     SvREFCNT_dec(sv);
     return retval;
+  }
+
+  /***********************************************************************/
+  void
+  CPPTokenizerWrapper::S_makeSections(ExtendedToken* token, HV* objHash)
+  {
+    AV* sectionsArray = (AV *)sv_2mortal((SV *)newAV());
+    HV* sectionHash   = NULL;
+    char* openClose;
+    Newx(openClose, 2, char);
+
+    const unsigned int nSections = token->current_section;
+    for (unsigned int iSection = 0; iSection < nSections; ++iSection) {
+      sectionHash = (HV *)sv_2mortal((SV *)newHV());
+
+      hv_stores( sectionHash, "position", newSViv(token->sections[iSection].position) );
+      hv_stores( sectionHash, "size", newSViv(token->sections[iSection].size) );
+
+      openClose[0] = token->sections[iSection].open_char;
+      openClose[1] = token->sections[iSection].close_char;
+      hv_stores( sectionHash, "type", newSVpvn(openClose, 2) );
+
+      av_push(sectionsArray, newRV((SV *)sectionHash));
+    }
+
+    hv_stores( objHash, "sections", newRV((SV *)sectionsArray) );
+
+    Safefree(openClose);
+    return;
   }
 
 }
