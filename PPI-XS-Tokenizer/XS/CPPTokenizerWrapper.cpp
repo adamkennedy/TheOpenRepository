@@ -174,22 +174,35 @@ namespace PPITokenizer {
       return &PL_sv_undef;
     }
     
-    // FIXME make a Perl PPI::Token here
+    // make a Perl PPI::Token
     int ttype = theToken->type->type;
     const char* className = CPPTokenizerWrapper::fgTokenClasses[ttype];
     printf("Class: %s\n", className);
 
     SV* theObject = newPerlObject(className);
     HV* objHash = (HV*)SvRV((SV*)theObject);
+    // assign {content}
     hv_stores( objHash, "content", newSVpvn(theToken->text, (STRLEN)theToken->length) );
 
+    // handle the non-simple tokens
     ExtendedToken* theExtendedToken = (ExtendedToken*)theToken; // use only if case >= 1
+    char open_char;
     switch(fgSpecialToken[ttype]) {
     case 0:
       break;
     case 1:
+      // Handle extended tokens with sections (mostly quotelikes)
       hv_stores( objHash, "_section", newSViv(theExtendedToken->current_section) );
-
+      open_char = (char)theExtendedToken->sections[0].open_char;
+      if (open_char == '{' || open_char == '['
+          || open_char == '(' || open_char == '<') {
+        hv_stores( objHash, "braced", newSViv(1) );
+        hv_stores( objHash, "braced", &PL_sv_undef );
+      }
+      else {
+        hv_stores( objHash, "braced", newSViv(0) );
+        hv_stores( objHash, "braced", newSVpvn(&open_char, 1) );
+      }
       break;
     case 2:
     case 3:
