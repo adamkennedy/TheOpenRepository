@@ -25,7 +25,6 @@ SCOPE: {
   isa_ok($t, 'PPI::XS::Tokenizer');
   my $token = $t->get_token();
   ok(defined $token, "Token defined");
-  use Data::Dumper; warn Dumper $token;
   isa_ok($token, "PPI::Token::Quote::Interpolate");
   is($token->content, 'qq{foo}', "Token content check");
   is_deeply(
