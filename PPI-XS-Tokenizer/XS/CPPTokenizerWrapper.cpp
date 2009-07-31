@@ -26,6 +26,7 @@ namespace PPITokenizer {
       static SV* S_newPerlObject(const char* className);
       static char* S_stealPV(SV* sv, STRLEN& len);
       static void S_makeSections(ExtendedToken* token, HV* objHash);
+      static void S_handleHereDoc(ExtendedToken* token, HV* objHash);
   };
 
   /***********************************************************************/
@@ -231,6 +232,7 @@ namespace PPITokenizer {
       break;
     case eHereDoc:
       printf("HEREDOCS AS YET UNHANDLED\n");
+      S_handleHereDoc( theExtendedToken, objHash );
       break;
     default:
       printf("UNHANDLED TOKEN TYPE\n");
@@ -305,6 +307,12 @@ namespace PPITokenizer {
     return;
   }
 
+  /***********************************************************************/
+  void
+  CPPTokenizerWrapper::S_handleHereDoc(ExtendedToken* token, HV* objHash)
+  {
+    return;
+  }
 }
 
 
