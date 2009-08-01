@@ -1,8 +1,6 @@
 Revision history for Test-Weaken
 
-3.001_001 Fri Jul 24 19:57:58 2009
-3.001_000 Thu Jul 16 18:07:37 2009
-        New series of developer's releases.
+3.002000 Sat Aug  1 15:40:36 2009
         Now descends into objects underlying tied objects.
         Added tracked_types named option.
         Ticket 44835.

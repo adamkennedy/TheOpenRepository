@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '3.001_001';
+our $VERSION   = '3.002000';
 
 # use Smart::Comments;
 
