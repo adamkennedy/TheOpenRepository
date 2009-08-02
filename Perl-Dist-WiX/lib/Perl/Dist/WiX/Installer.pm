@@ -17,8 +17,8 @@ package, generate .wxs files, or are otherwise WiX specific.
 
 =head1 METHODS
 
-Many public methods are listed in L<Perl::Dist::WiX>, since this is a 
-superclass of that class.
+Many public methods are listed in L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+since this is a superclass of that class.
 
 =cut
 
@@ -43,7 +43,7 @@ require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::CreateFolder;
 require Perl::Dist::WiX::RemoveFolder;
 
-use version; $VERSION = version->new('1.000')->numify;
+use version; $VERSION = version->new('1.000_001')->numify;
 #>>>
 
 =head2 Accessors
@@ -72,14 +72,15 @@ specified.
 
 =item * directories
 
-Returns the L<Perl::Dist::WiX::DirectoryTree> object 
-associated with this distribution.  Created by L</new>
+Returns the L<Perl::Dist::WiX::DirectoryTree|Perl::Dist::WiX::DirectoryTree> 
+object associated with this distribution.  Created by L</new>
 
 =item * fragments
 
 Returns a hashref containing the objects subclassed from 
-L<Perl::Dist::WiX::Base::Fragment> associated with this distribution.
-Created as the distribution's L</run> routine progresses.
+L<Perl::Dist::WiX::Base::Fragment|Perl::Dist::WiX::Base::Fragment> 
+associated with this distribution. Created as the distribution's 
+L</run> routine progresses.
 
 =item * msi_feature_tree
 
@@ -88,12 +89,13 @@ from L</new>. Unused as of yet.
 
 =item * msi_product_icon_id
 
-Specifies the Id for the icon that is used in Add/Remove Programs for this MSI file.
+Specifies the Id for the icon that is used in Add/Remove Programs for 
+this MSI file.
 
 =item * feature_tree_obj
 
-Returns the Perl::Dist::WiX::FeatureTree object 
-associated with this distribution.
+Returns the L<Perl::Dist::WiX::FeatureTree|Perl::Dist::WiX::FeatureTree> 
+object associated with this distribution.
 
 =cut
 
@@ -418,7 +420,7 @@ Returns the value to be used for perl -V:myuname, which is in this pattern:
 
 	Win32 app_id 5.10.0.1.beta_1 #1 Mon Jun 15 23:11:00 2009 i386
 	
-(the .betaX is ommitted if the beta_number accessor is not set.)
+(the .beta_X is ommitted if the beta_number accessor is not set.)
 
 =cut
 
@@ -878,7 +880,7 @@ __END__
 
 =head1 DIAGNOSTICS
 
-See Perl::Dist::WiX's <DIAGNOSTICS section|Perl::Dist::WiX/DIAGNOSTICS> for 
+See Perl::Dist::WiX's L<DIAGNOSTICS section|Perl::Dist::WiX/DIAGNOSTICS> for 
 details, as all diagnostics from this module are listed there.
 
 =head1 SUPPORT
@@ -888,7 +890,7 @@ Bugs should be reported via:
 1) The CPAN bug tracker at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 if you have an account there.
 
-2) Email to L<mailto:bug-Perl-Dist-WiX@rt.cpan.org> if you do not.
+2) Email to E<lt>bug-Perl-Dist-WiX@rt.cpan.orgE<gt> if you do not.
 
 For other issues, contact the topmost author.
 
@@ -900,7 +902,8 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist>, L<Perl::Dist::Inno::Script>, L<http://ali.as/>
+L<Perl::Dist|Perl::Dist>, L<Perl::Dist::Inno::Script|Perl::Dist::Inno::Script>, 
+L<http://ali.as/>, L<http://csjewell.comyr.com/perl/>
 
 =head1 COPYRIGHT
 

@@ -41,5 +41,6 @@
 \APerl-Dist-WiX-
 \bfilelist\.txt$
 
-# Avoid releaserc file
+# Avoid release files
 \breleaserc$
+\bsite_html_config.yaml$

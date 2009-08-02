@@ -107,7 +107,7 @@ use     Win32                 qw();
 require File::List::Object;
 require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('1.000')->numify;
+use version; $VERSION = version->new('1.000_001')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -909,7 +909,7 @@ C<output_dir> . '\debug.err'
 =head3 perl_version_corelist
 
 A hash containing the versions of the core modules in the version of 
-perl being distributed.  Retrieved from L<Module::Corelist>.
+perl being distributed.  Retrieved from L<Module::CoreList|Module::CoreList>.
 
 =head3 output_file
 
@@ -970,8 +970,8 @@ The B<Perl::Dist> module has limited ability to build offline, if all
 packages have already been downloaded and cached.
 
 The connectedness of the Perl::Dist object is checked automatically
-be default using L<LWP::Online>. It can be overidden by providing an
-offline param to the constructor.
+be default using L<LWP::Online|LWP::Online>. It can be overidden 
+by providing an offline param to the constructor.
 
 The C<offline> accessor returns true if no connection to "the internet"
 is available and the object will run in offline mode, or false
@@ -997,7 +997,8 @@ modules will be installed on the build server.
 
 At the present time, this is also the path to which Perl will be
 installed on the user's machine via the C<source_dir> accessor,
-which is an alias to the L<Perl::Dist::WiX::Installer> method
+which is an alias to the 
+L<Perl::Dist::WiX::Installer|Perl::Dist::WiX::Installer> method
 C<source_dir>. (although theoretically they can be different,
 this is likely to break the user's Perl install)
 
@@ -1296,7 +1297,7 @@ For example, this class is used by the Parrot distribution builder
 (which needs to sit on a full Strawberry install).
 
 Notably, the C<install_custom> method comes AFTER C<remove_waste>, so that the
-file deletion logic in C<remove_waste> won't accidntally delete files that
+file deletion logic in C<remove_waste> won't accidentally delete files that
 may result in a vastly more damaging effect on the custom software.
 
 Returns true, or throws an error on exception.
@@ -2931,7 +2932,7 @@ sub install_gmp {
   $dist->install_pari
 
 The C<install_pari> method install (via a PAR package) libpari and the
-L<Math::Pari> module into the distribution.
+L<Math::Pari|Math::Pari> module into the distribution.
 
 This method should only be called at during the install_modules phase.
 
@@ -3924,7 +3925,8 @@ The 'file' method is used to provide a local path to the source file
 on the local system, and should be a fully-resolved filesystem path.
 
 The 'share' method is used to provide a path to a file installed as
-part of a CPAN distribution, and accessed via L<File::ShareDir>.
+part of a CPAN distribution, and accessed via 
+L<File::ShareDir|File::ShareDir>.
 
 It should be a string containing two space-seperated value, the first
 of which is the distribution name, and the second is the path within
@@ -4932,7 +4934,7 @@ this version of the interpreter, please report this as a bug.
 
 =item C<< Failed to resolve Module::CoreList hash for %s >>
 
-We could not get a hash of modules from L<Module::Corelist|Module::Corelist> 
+We could not get a hash of modules from L<Module::CoreList|Module::CoreList> 
 for the version of Perl mentioned.
 
 =item C<< Unknown package %s >>
@@ -4953,8 +4955,10 @@ different, or the checkpoint was deleted.
 
 =item C<< Did not provide a toolchain resolver >>
 
-A Perl::Dist::Util::Toolchain object was not passed to 
-Perl::Dist::WiX->install_perl_toolchain, and that method was unable to create one.
+A L<Perl::Dist::Util::Toolchain|Perl::Dist::Util::Toolchain> 
+object was not passed to 
+L<Perl::Dist::WiX-E<gt>install_perl_toolchain|/install_perl_toolchain>, 
+and that method was unable to create one.
 
 =item C<< Cannot install CPAN modules yet, perl is not installed >>
 
@@ -5116,8 +5120,8 @@ greater.
 
 =item C<< Failed to generate toolchain distributions >>
 
-L<Perl::Dist::Util::Toolchain> was not able to find out which modules need
-upgraded in the CPAN toolchain.
+L<Perl::Dist::Util::Toolchain|Perl::Dist::Util::Toolchain> was not 
+able to find out which modules need upgraded in the CPAN toolchain.
 
 =item C<< Template error >>
 
@@ -5125,8 +5129,9 @@ There was a problem creating or processing the main .wxs template.
 
 =item C<< Could not find distribution directory for Perl::Dist::WiX >>
 
-File::ShareDir could not find the directory that Perl::Dist::WiX uses to 
-store its required data (C<< $Config{sitelib}\auto\share\Perl-Dist-WiX >>)
+L<File::ShareDir|File::ShareDir> could not find the directory that 
+Perl::Dist::WiX uses to store its required data 
+(C<< $Config{sitelib}\auto\share\Perl-Dist-WiX >>)
 
 =back
 
@@ -5143,11 +5148,14 @@ This is the Object::InsideOut equivalent of a PDWiX::Parameter error.
 Perl 5.8.1 is the mimimum version of perl that this module will run on.
 
 Other modules that this module depends on are a working version of 
-L<Alien::WiX>, L<Data::Dump::Streamer> 2.08,  L<Data::UUID> 1.149, 
-L<Devel::StackTrace> 1.20, L<Exception::Class> 1.22, L<File::ShareDir> 
-1.00, L<IO::String> 1.08,L<List::MoreUtils> 0.07, L<Module::Corelist> 2.17, 
-L<Object::InsideOut> 3.53, L<Perl::Dist> 1.14, L<Process> 0.26, L<Readonly> 
-1.03, L<URI> 1.35, and L<Win32> 0.35.
+L<Alien::WiX|Alien::WiX>, L<Data::Dump::Streamer|Data::Dump::Streamer> 2.08, 
+L<Data::UUID|Data::UUID> 1.149, L<Devel::StackTrace|Devel::StackTrace> 1.20, 
+L<Exception::Class|Exception::Class> 1.22, L<File::ShareDir|File::ShareDir> 
+1.00, L<IO::String|IO::String> 1.08, L<List::MoreUtils|List::MoreUtils> 0.07, 
+L<Module::CoreList|Module::CoreList> 2.17, 
+L<Object::InsideOut|Object::InsideOut> 3.53, L<Perl::Dist|Perl::Dist> 1.14, 
+L<Process|Process> 0.26, L<Readonly|Readonly> 1.03, L<URI|URI> 1.35, and 
+L<Win32|Win32> 0.35.
 
 =for readme stop
 
@@ -5158,7 +5166,7 @@ L<Object::InsideOut> 3.53, L<Perl::Dist> 1.14, L<Process> 0.26, L<Readonly>
 =item 1.
 
 Create a distribution for handling the XML-generating parts 
-of Perl::Dist::WiX and depend on it (2.000)
+of Perl::Dist::WiX and depend on it (1.100? 2.000?)
 
 =item 2.
 
@@ -5174,7 +5182,7 @@ Bugs should be reported via:
 1) The CPAN bug tracker at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 if you have an account there.
 
-2) Email to E<lt>bug-Perl-Dist-WiX@rt.cpan.orgE<gt> if you do not.
+2) Email to E<gt>mailto:bug-Perl-Dist-WiX@rt.cpan.orgE<gt> if you do not.
 
 For other issues, contact the topmost author.
 
@@ -5186,7 +5194,8 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist>, L<Perl::Dist::Inno>, L<http://ali.as/>
+L<Perl::Dist|Perl::Dist>, L<Perl::Dist::Inno|Perl::Dist::Inno>, 
+L<http://ali.as/>, L<http://csjewell.comyr.com/perl/>
 
 =for readme continue
 
