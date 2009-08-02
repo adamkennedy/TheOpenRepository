@@ -5172,17 +5172,17 @@ of Perl::Dist::WiX and depend on it (1.100? 2.000?)
 
 Have an option to have WiX installed non-core modules install in a 
 'vendor path' (1.010)
-   
+
 =back
 
-=head1 SUPPORT
+=head1 BUGS AND LIMITATIONS (SUPPORT)
 
 Bugs should be reported via: 
 
 1) The CPAN bug tracker at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 if you have an account there.
 
-2) Email to E<gt>mailto:bug-Perl-Dist-WiX@rt.cpan.orgE<gt> if you do not.
+2) Email to E<lt>bug-Perl-Dist-WiX@rt.cpan.orgE<gt> if you do not.
 
 For other issues, contact the topmost author.
 
