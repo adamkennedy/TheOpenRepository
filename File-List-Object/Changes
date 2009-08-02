@@ -1,5 +1,8 @@
 Revision history for File-List-Object
 
+0.200  Sat Aug  1 2009
+     - Documentation corrections only.
+
 0.190  Fri Jun 26 2009
      - Forgot to run author tests. OOPS.
        No functionality added, no need to 

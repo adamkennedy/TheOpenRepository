@@ -34,8 +34,8 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-if ( 0.199_001 > eval { $Perl::Critic::VERSION } ) {
-	plan( skip_all => "Perl::Critic needs updated to 0.199_001" );
+if ( 1.099_001 > eval { $Perl::Critic::VERSION } ) {
+	plan( skip_all => "Perl::Critic needs updated to 1.099_001" );
 }
 
 use File::Spec::Functions qw(catfile);
