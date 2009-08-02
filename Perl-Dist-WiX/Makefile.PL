@@ -50,11 +50,11 @@ install_share;
 
 my $answer;
 YN: 
-	while ($answer = prompt 'Do you want to install the minimal minicpan script?', 'n') {
-		last if $answer =~ /^y/i;
-		last if $answer =~ /^n/i;
-		local $| = 1;
-		print "Please answer 'y' or 'n'.\n";
+  while ($answer = prompt 'Do you want to install the minimal minicpan script?', 'n') {
+	last YN if $answer =~ /^y/i;
+	last YN if $answer =~ /^n/i;
+	local $| = 1;
+	print "Please answer 'y' or 'n'.\n";
 }
 
 if ($answer =~ /^y/i) {

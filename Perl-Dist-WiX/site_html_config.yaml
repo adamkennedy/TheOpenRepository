@@ -12,7 +12,8 @@ perltidy_cfg: t\settings\perltidy.txt
 site_name: csjewell.comyr.com
 site_user_name: a3922569
 top_dir_local: lib\Perl\Dist
-top_dir_remote: /public_html/perl
+top_dir_remote: /public_html/perl/Perl-Dist-WiX
+build_file: Makefile.PL
 url: http://csjewell.comyr.com/perl
 ---
 -
