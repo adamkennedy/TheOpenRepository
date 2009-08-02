@@ -1490,6 +1490,15 @@ sub delete_duplicate_parses {
 
     ### Duplicate terminal and-node sets: @duplicate_terminal_and_node_sets
 
+    my %duplicate_terminal_equivalence_class;
+    for my $duplicate_and_node_set (@duplicate_terminal_and_node_sets) {
+        my $class = 'A' . $duplicate_and_node_set->[0];
+        for my $duplicate_and_node_id ( @{$duplicate_and_node_set} ) {
+            $duplicate_terminal_equivalence_class{$duplicate_and_node_id} =
+                $class;
+        }
+    } ## end for my $duplicate_and_node_set (...)
+
     my @duplicate_terminal_and_nodes =
         map  { $_->[0] }
         sort { $a->[1] <=> $b->[1] }
@@ -1511,6 +1520,10 @@ sub delete_duplicate_parses {
         my $span_set_end_earleme =
             $and_node->[Marpa::Internal::And_Node::END_EARLEME];
         my $span_set_ix = $start_span_set_ix;
+
+        my %equivalence_class;
+        my @work_list;
+
         SPAN_SET_MEMBER:
         while ( ++$span_set_ix < @duplicate_terminal_and_nodes ) {
             next SPAN_SET_MEMBER
@@ -1518,8 +1531,17 @@ sub delete_duplicate_parses {
             my $start_earleme =
                 $and_node->[Marpa::Internal::And_Node::START_EARLEME];
             last SPAN_SET_MEMBER if $start_earleme > $span_set_end_earleme;
+
+            # If here, we have a member of this span set
             $span_set_end_earleme =
                 $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+
+            my $key = 'A' . $and_node->[Marpa::Internal::And_Node::ID];
+            $equivalence_class{$key} =
+                $duplicate_terminal_equivalence_class{$key};
+            push @work_list,
+                'O' . $and_node->[Marpa::Internal::And_Node::PARENT_ID];
+
         } ## end while ( ++$span_set_ix < @duplicate_terminal_and_nodes )
         my $end_span_set_ix = $span_set_ix;
 
