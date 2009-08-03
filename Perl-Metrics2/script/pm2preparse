@@ -36,7 +36,7 @@ my $metrics = Perl::Metrics2->new(
 # Generate the list of all existing cache documents
 print "Studying PPI Cache...\n";
 my %seen = ();
-foreach my $file ( File::Find::Rule->file->relative->in( $ARGV[1] ) ) {
+foreach my $file ( File::Find::Rule->name('*.ppi')->relative->in( $ARGV[1] ) ) {
 	$file =~ /(\w+)\.ppi$/ or next;
 	$seen{"$1"} = 1;
 }
@@ -55,10 +55,10 @@ foreach my $cpan_file ( Perl::Metrics2::CpanFile->select ) {
 	next if $metrics->seen($md5);
 
 	# Need to process this tarball
-	my $dist = $cpan_file->dist;
-	my $one  = substr($dist, 0, 1);
-	my $two  = substr($dist, 0, 2);
-	$need{"$one/$two/$dist"}++;
+	my $release = $cpan_file->release;
+	my $one     = substr($release, 0, 1);
+	my $two     = substr($release, 0, 2);
+	$need{"$one/$two/$release"}++;
 }
 print "Need to process " . scalar(keys %need) . " archives.\n";
 

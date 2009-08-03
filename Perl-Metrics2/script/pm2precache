@@ -31,9 +31,10 @@ my $metrics = Perl::Metrics2->new(
 );
 
 # Drop indexes for speed
-Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__dist');
-Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__file');
-Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__md5' );
+Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__release'   );
+Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__file'      );
+Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__md5'       );
+Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__indexable' );
 
 # Flush all entries if we get a flush option
 if ( $flush ) {
@@ -42,14 +43,14 @@ if ( $flush ) {
 }
 
 # Identify the distributions we have already seen
-my $dists = Perl::Metrics2->selectcol_arrayref(
-	'SELECT DISTINCT dist FROM cpan_file'
+my $releases = Perl::Metrics2->selectcol_arrayref(
+	'SELECT DISTINCT release FROM cpan_file'
 );
 my %index = ();
-foreach my $dist ( @$dists ) {
-	my $one = substr($dist, 0, 1);
-	my $two = substr($dist, 0, 2);
-	$index{"$one/$two/$dist"} = 1;
+foreach my $release ( @$releases ) {
+	my $one = substr($release, 0, 1);
+	my $two = substr($release, 0, 2);
+	$index{"$one/$two/$release"} = 1;
 }
 my $ignore = [ sub { $index{$_[0]} }, qr/PDF-API/ ];
 
@@ -61,15 +62,20 @@ CPAN::Mini::Visit->new(
 	callback => sub {
 		my $the = shift;
 		print STDERR "# $the->{counter} - $the->{dist}\n";
-		my @files = File::Find::Rule->ignore_svn->perl_file->relative->in($the->{tempdir});
-		foreach my $file ( @files ) {
-			print "# $file\n";
+		my $files = Perl::Metrics2->perl_files($the->{tempdir});
+		foreach my $file ( sort keys %$files ) {
+			if ( $files->{$file} ) {
+				print "+ $file\n";
+			} else {
+				print "- $file\n";
+			}
 			my $path = File::Spec->catfile($the->{tempdir}, $file);
 			my $md5  = PPI::Util::md5hex_file($file);
 			Perl::Metrics2::CpanFile->create(
-				dist => $the->{dist},
-				file => $path,
-				md5  => $md5,
+				release   => $the->{dist},
+				file      => $path,
+				md5       => $md5,
+				indexable => $files->{$file},
 			);
 		};
 		return 1 if $the->{counter} % 100;
@@ -79,6 +85,7 @@ CPAN::Mini::Visit->new(
 Perl::Metrics2->commit;
 
 # Restore indexes
-Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__dist on cpan_file ( dist )');
-Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__file on cpan_file ( file )');
-Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__md5  on cpan_file ( md5  )');
+Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__release   on cpan_file ( release   )');
+Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__file      on cpan_file ( file      )');
+Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__md5       on cpan_file ( md5       )');
+Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__indexable on cpan_file ( indexable )');

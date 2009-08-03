@@ -32,9 +32,10 @@ my $metrics = Perl::Metrics2->new(
 
 if ( 0 ) {
 	# Drop indexes for speed
-	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__dist');
-	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__file');
-	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__md5' );
+	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__release'  );
+	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__file'     );
+	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__md5'      );
+	Perl::Metrics2->do('DROP INDEX IF EXISTS cpan_file__indexable');
 
 	# Flush all entries if we get a flush option
 	if ( $flush ) {
@@ -65,9 +66,10 @@ if ( 0 ) {
 	Perl::Metrics2->commit;
 
 	# Restore indexes
-	Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__dist on cpan_file ( dist )');
-	Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__file on cpan_file ( file )');
-	Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__md5  on cpan_file ( md5  )');
+	Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__release   on cpan_file ( release   )');
+	Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__file      on cpan_file ( file      )');
+	Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__md5       on cpan_file ( md5       )');
+	Perl::Metrics2->do('CREATE INDEX IF NOT EXISTS cpan_file__indexable on cpan_file ( indexable )');
 
 } else {
 

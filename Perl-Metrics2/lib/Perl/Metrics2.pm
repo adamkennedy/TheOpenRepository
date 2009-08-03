@@ -81,7 +81,7 @@ use PPI::Document          ();
 use PPI::Cache             ();
 use Module::Pluggable;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use constant ORLITE_FILE => File::Spec->catfile(
 	File::HomeDir->my_data,
@@ -100,7 +100,7 @@ use ORLite::Migrate 0.03 {
 	file         => ORLITE_FILE,
 	create       => 1,
 	timeline     => ORLITE_TIMELINE,
-	user_version => 2,
+	user_version => 3,
 };
 
 
@@ -171,9 +171,16 @@ sub process_cache {
 	my @files = File::Find::Rule->name(qr/\.ppi\z/)->in($self->cache);
 	$self->trace("Found " . scalar(@files) . " documents");
 
+	# While filtering, save the total size of PPI storable
+	# content left to process.
+	my $total = 0;
+
 	# Filter and sort the documents
 	$self->trace("Cleaning, filtering and sorting documents...");
 	@files = map {
+		# Total the content
+		$total += $_->[2];
+
 		# Remove the schwartian
 		$_->[1]
 	} sort {
@@ -201,35 +208,34 @@ sub process_cache {
 		Perl::Metrics2->do($sql);
 	}
 
-	my $last  = 0;
 	my $count = 0;
-	my $total = scalar(@files);
-	my $time  = Time::HiRes::time();
+	my $start = Time::HiRes::time();
 	my $rate  = 0;
 	my $left  = 0;
+	my $done  = 0;
+	my $cache = PPI::Document->get_cache;
 	$self->begin;
 	foreach my $md5 ( @files ) {
 		$self->trace(
 			sprintf(
-				"%s - %d of %d @ %.1f/sec (%s remaining)",
-				$md5, ++$count, $total, $rate,
+				"%s - %d of %d @ %.1fk/sec (%s remaining)",
+				$md5, ++$count, scalar(@files), $rate / 1024,
 				Time::Elapsed::elapsed($left),
 			)
 		);
 
 		# Fetch the document from the cache and process it
-		my $document = PPI::Document->get_cache->get_document($md5);
+		my $document = $cache->get_document($md5);
 		unless ( $document ) {
 			warn("Failed to retrieve $md5 from the cache");
 			next;
 		}
 
 		$self->process_document($document, 'safe');
-		$rate = ($count - $last) / (Time::HiRes::time() - $time);
-		$left = ($total - $count + 1) / $rate;
+		$done += (stat(($cache->_paths($md5))[1]))[7];
+		$rate = $done / (Time::HiRes::time() - $start);
+		$left = ($total - $done) / $rate;
 		next if $count % 100;
-		$last = $count;
-		$time = Time::HiRes::time();
 		$self->commit_begin;
 	}
 	$self->commit;
@@ -260,6 +266,7 @@ sub process_distribution {
 	Carp::croak("Cannot index '$path'. No read permissions") unless -r _;
 
 	# Find the documents
+	my $files = $self->find_files($path);
 	my @files = File::Find::Rule->ignore_svn->no_index->perl_module->in($path);
 	$self->trace("$path: Found " . scalar(@files) . " files");
 	foreach my $file ( @files ) {
@@ -308,10 +315,27 @@ sub process_file {
 sub process_document {
 	my $self     = shift;
 	my $document = shift;
+	my $plugins  = $self->{plugins};
+
+	# Sort plugins with dustructive last
+	my @names = sort {
+		$plugins->{$a}->destructive <=> $plugins->{$b}->destructive
+		or
+		$a cmp $b
+	} keys %$plugins;
 
 	# Create the plugin objects
-	foreach my $name ( sort keys %{$self->{plugins}} ) {
-		$self->{plugins}->{$name}->process_document($document, @_);
+	foreach my $name ( @names ) {
+		# Clone the document if the plugin is destructive, UNLESS it is the
+		# last destructive plugin. If so, let it destroy the document anyway
+		# since we won't be needing it any more.
+		if ( $plugins->{$name}->destructive and $name ne $names[-1] ) {
+			# Run the plugin on a copy
+			my $copy = $document->clone;
+			$plugins->{$name}->process_document($copy, @_);
+		} else {
+			$plugins->{$name}->process_document($document, @_);
+		}
 	}
 
 	return 1;
@@ -319,35 +343,32 @@ sub process_document {
 
 sub index_distribution {
 	my $self     = shift;
-	my $dist     = shift;
+	my $release  = shift;
 	my $path     = shift;
 	my $hintsafe = !! shift;
 
 	# Find the documents
-	my @files = File::Find::Rule->ignore_svn
-		->no_index
-		->perl_file
-		->relative
-		->in($path);
+	my $files = $self->perl_files($path);
 
 	# Generate the md5 checksums for the files
 	my %md5 = map {
 		$_ => PPI::Util::md5hex_file(
 			File::Spec->catfile($path, $_)
 		)
-	} @files;
+	} sort keys %$files;
 
 	# Flush and push the files into the database
 	unless ( $hintsafe ) {
 		Perl::Metrics2::CpanFile->delete(
-			'where dist = ?', $dist,
+			'where release = ?', $release,
 		);
 	}
-	foreach my $file ( @files ) {
+	foreach my $file ( sort keys %$files ) {
 		Perl::Metrics2::CpanFile->create(
-			dist => $dist,
-			file => $file,
-			md5  => $md5{$file},
+			release   => $release,
+			file      => $file,
+			md5       => $md5{$file},
+			indexable => $files->{$file},
 		);
 	}
 
@@ -362,14 +383,15 @@ sub index_distribution {
 # Index Optimisation Methods
 
 my @INDEX = (
-	[ 'file_metric', 'md5'     ],
-	[ 'file_metric', 'name'    ],
-	[ 'file_metric', 'package' ],
-	[ 'file_metric', 'value'   ],
-	[ 'file_metric', 'version' ],
-	[ 'cpan_file',   'dist'    ],
-	[ 'cpan_file',   'file'    ],
-	[ 'cpan_file',   'md5'     ],
+	[ 'file_metric', 'md5'       ],
+	[ 'file_metric', 'name'      ],
+	[ 'file_metric', 'package'   ],
+	[ 'file_metric', 'value'     ],
+	[ 'file_metric', 'version'   ],
+	[ 'cpan_file',   'release'   ],
+	[ 'cpan_file',   'file'      ],
+	[ 'cpan_file',   'md5'       ],
+	[ 'cpan_file',   'indexable' ],
 );
 
 sub index_remove {
@@ -396,6 +418,53 @@ sub index_restore {
 	}
 
 	return 1;
+}
+
+
+
+
+
+######################################################################
+# File Search
+
+sub perl_files {
+	my $class = shift;
+	my $path  = shift;
+
+	# Find the basic file list
+	my @basic = File::Find::Rule->ignore_svn->perl_file->relative->in($path);
+	my %files = map { $_ => 0 } @basic;
+
+	# Find the subset that will be indexed
+	# If parsing the META.yml failes, don't ignore anything
+	eval {
+		my @index = File::Find::Rule->ignore_svn->no_index->perl_module->relative->in($path);
+		foreach ( @index ) {
+			$files{$_} = 1;
+		}
+	};
+
+	return \%files;
+}
+
+sub perl_modules {
+	my $class = shift;
+	my $path  = shift;
+
+	# Find the basic file list
+	my @basic = File::Find::Rule->ignore_svn->perl_module->relative->in($path);
+	my %files = map { $_ => 0 } @basic;
+
+	# Find the subset that will be indexed
+	# If parsing the META.yml failes, don't ignore anything
+	eval {
+		my @index = File::Find::Rule->ignore_svn->no_index->perl_module->relative->in($path);
+		foreach ( @index ) {
+			$files{$_} = 1;
+		}
+	};
+
+	return \%files;
 }
 
 

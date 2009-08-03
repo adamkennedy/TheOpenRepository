@@ -71,7 +71,7 @@ use Perl::Metrics2   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 
@@ -109,6 +109,23 @@ any code a little clearer).
 =cut
 
 sub class { ref $_[0] || $_[0] }
+
+=pod
+
+=head2 destructive
+
+The destructive method is used by the plugin to indicate that the PPI
+document passed in will be altered during the metric generation.
+
+The value is used by the metrics engine to optimise document cloning and
+reduce the number of expensive cloning to a minimum.
+
+This value defaults to true for safety reasons, and should be overridden
+in your subclass if your metrics are not destructive.
+
+=cut
+
+sub destructive { 1 }
 
 
 
@@ -186,10 +203,7 @@ sub process_document {
 	}
 
 	# Generate the new metrics values
-	my %metric = %{$self->metrics};
-	foreach my $name ( sort keys %metric ) {
-		$metric{$name} = $self->_metric($document, $name);
-	}
+	my %metric = $self->process_metrics($document, @_);
 
 	# Flush out the old records and write the new metrics
 	unless ( $hintsafe ) {
@@ -227,6 +241,16 @@ sub process_document {
 	$self->{seen}->{$md5} = 1;
 
 	return 1;
+}
+
+sub process_metrics {
+	my $self     = shift;
+	my $document = shift;
+	my %metric   = %{$self->metrics};
+	foreach my $name ( sort keys %metric ) {
+		$metric{$name} = $self->_metric($document, $name);
+	}
+	return %metric;
 }
 
 1;

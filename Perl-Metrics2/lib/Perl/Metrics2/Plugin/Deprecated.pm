@@ -21,15 +21,15 @@ Metrics are listed as "datatype name".
 =cut
 
 use strict;
-use bytes                  ();
-use List::Util             ();
 use Perl::Metrics2::Plugin ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 	@ISA     = 'Perl::Metrics2::Plugin';
 }
+
+sub destructive { 0 }
 
 =pod
 
