@@ -49,6 +49,7 @@ use Marpa::Offset qw(
     PARENT_ID
     PARENT_CHOICE
     DELETED
+    CLASS { Equivalence class, for pruning duplicates }
 
     { delete this } RANK
 
@@ -70,6 +71,7 @@ use Marpa::Offset qw(
     START_EARLEME END_EARLEME
     PARENT_IDS
     DELETED
+    CLASS { Equivalence class, for pruning duplicates }
 
     =LAST_FIELD
 );
@@ -849,6 +851,7 @@ sub delete_nodes {
                 Marpa::Internal::And_Node::CAUSE,
                 Marpa::Internal::And_Node::PREDECESSOR,
                 Marpa::Internal::And_Node::VALUE_REF,
+                Marpa::Internal::And_Node::CLASS,
                 )
             {
                 $delete_and_node->[$field] = undef;
@@ -897,6 +900,7 @@ sub delete_nodes {
             {
                 $or_node->[$field] = [];
             } ## end for my $field ( Marpa::Internal::Or_Node::PARENT_IDS,...)
+            $or_node->[Marpa::Internal::Or_Node::CLASS] = undef;
 
             #### Deleting or node, id, parent_ids: $delete_node_id, $or_node->[Marpa'Internal'Or_Node'PARENT_IDS]
 
@@ -1463,6 +1467,9 @@ sub delete_duplicate_parses {
     for my $and_node_id ( 0 .. $#{$and_nodes} ) {
         my $and_node = $and_nodes->[$and_node_id];
 
+        next AND_NODE
+            if $and_node->[Marpa::Internal::And_Node::DELETED];
+
         # Eliminate non-terminals
         my $predecessor = $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
         next AND_NODE if defined $predecessor;
@@ -1485,125 +1492,83 @@ sub delete_duplicate_parses {
 
     ### Terminal and-nodes by signature: %terminal_and_nodes_by_signature
 
-    my @duplicate_terminal_and_node_sets =
-        grep { @{$_} >= 2 } values %terminal_and_nodes_by_signature;
-
-    ### Duplicate terminal and-node sets: @duplicate_terminal_and_node_sets
-
-    my %duplicate_terminal_equivalence_class;
-    for my $duplicate_and_node_set (@duplicate_terminal_and_node_sets) {
+    my @work_list;
+    for my $duplicate_and_node_set ( values %terminal_and_nodes_by_signature )
+    {
         my $class = 'IA' . $duplicate_and_node_set->[0];
         for my $duplicate_and_node_id ( @{$duplicate_and_node_set} ) {
-            $duplicate_terminal_equivalence_class{$duplicate_and_node_id} =
-                $class;
-        }
-    } ## end for my $duplicate_and_node_set (...)
+            my $duplicate_and_node = $and_nodes->[$duplicate_and_node_id];
+            my $parent_or_node_id =
+                $duplicate_and_node->[Marpa::Internal::And_Node::PARENT_ID];
+            $duplicate_and_node->[Marpa::Internal::And_Node::CLASS] = $class;
+            push @work_list, "IO$parent_or_node_id";
+        } ## end for my $duplicate_and_node_id ( @{$duplicate_and_node_set...})
+    } ## end for my $duplicate_and_node_set ( values ...)
 
-    my @duplicate_terminal_and_nodes =
-        map  { $_->[0] }
-        sort { $a->[1] <=> $b->[1] }
-        map  { [ $_, $_->[Marpa::Internal::And_Node::START_EARLEME] ] }
-        map  { $and_nodes->[$_] }
-        map  { @{$_} } @duplicate_terminal_and_node_sets;
-
-    my $start_span_set_ix = 0;
-    SPAN_SET: while ( $start_span_set_ix < @duplicate_terminal_and_nodes ) {
-
-        # Find a span set
-        my $and_node = $duplicate_terminal_and_nodes[$start_span_set_ix];
-        if ( $and_node->[Marpa::Internal::And_Node::DELETED] ) {
-            $start_span_set_ix++;
-            next SPAN_SET;
-        }
-        my $span_set_start_earleme =
-            $and_node->[Marpa::Internal::And_Node::START_EARLEME];
-        my $span_set_end_earleme =
-            $and_node->[Marpa::Internal::And_Node::END_EARLEME];
-        my $span_set_ix = $start_span_set_ix;
-
-        my %equivalence_class;
-        my @work_list;
-
-        SPAN_SET_MEMBER:
-        while ( ++$span_set_ix < @duplicate_terminal_and_nodes ) {
-            next SPAN_SET_MEMBER
+    my %class_by_signature;
+    WORK_LIST_ENTRY: while ( my $work_list_entry = pop @work_list ) {
+        my ( $node_type, $node_id ) =
+            ( $work_list_entry =~ /\AI(A|O)(\d+)\z/xms );
+        if ( $node_type eq 'A' ) {
+            my $and_node = $and_nodes->[$node_id];
+            next WORK_LIST_ENTRY
                 if $and_node->[Marpa::Internal::And_Node::DELETED];
-            my $start_earleme =
-                $and_node->[Marpa::Internal::And_Node::START_EARLEME];
-            last SPAN_SET_MEMBER if $start_earleme > $span_set_end_earleme;
 
-            # If here, we have a member of this span set
-            $span_set_end_earleme =
-                $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+            # No check whether there is already a class -- an undeleted
+            # and-node with a class will not be on the work list.
 
-            my $key = 'IA' . $and_node->[Marpa::Internal::And_Node::ID];
-            $equivalence_class{$key} =
-                $duplicate_terminal_equivalence_class{$key};
-            push @work_list,
-                'IO' . $and_node->[Marpa::Internal::And_Node::PARENT_ID];
+            my @classes;
+            FIELD:
+            for my $field ( Marpa::Internal::And_Node::CAUSE,
+                Marpa::Internal::And_Node::PREDECESSOR
+                )
+            {
+                my $or_child = $and_node->[$field];
+                my $class =
+                    defined $or_child
+                    ? $or_child->[Marpa::Internal::Or_Node::CLASS]
+                    : q{-};
 
-        } ## end while ( ++$span_set_ix < @duplicate_terminal_and_nodes )
+                # If we don't have an equivalence class for a child,
+                # nothing we can do.
+                next WORK_LIST_ENTRY if not defined $class;
 
-        my $end_span_set_ix = $span_set_ix;
+                push @classes, $class;
 
-        # Look for duplicated and-nodes
-        # If one found, delete it, then start again at the same span set index
-        WORK_LIST_ENTRY: while ( my $work_list_entry = pop @work_list ) {
-            my ( $node_type, $node_id ) =
-                ( $work_list_entry =~ /\AI(A|O)(\d+)\z/ );
-            if ( $node_type eq 'A' ) {
-                my $and_node = $and_nodes->[$node_id];
-                my @classes;
+            } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...)
 
-                # Start by assuming it's a terminal and-node
-                my $terminal_and_node = 1;
+            my $signature = join q{,},
+                $and_node->[Marpa::Internal::And_Node::RULE] + 0,
+                $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
+                $and_node->[Marpa::Internal::And_Node::START_EARLEME] + 0,
+                $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
+                @classes,
+                ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 )
+                + 0,
+                ;
 
-                FIELD:
-                for my $field ( Marpa::Internal::And_Node::CAUSE,
-                    Marpa::Internal::And_Node::PREDECESSOR
-                    )
-                {
-                    my $class;
-                    my $or_child = $and_node->[$field];
-                    if ( defined $or_child ) {
+            my $class = $class_by_signature{$signature};
+            if ( not defined $class ) {
+                $class = $class_by_signature{$signature} = "A$node_id";
+            }
+            $and_node->[Marpa::Internal::And_Node::CLASS] = $class;
 
-                        # We have a defined child, so it is not a
-                        # terminal and-node
-                        $terminal_and_node = 0;
+            next WORK_LIST_ENTRY;
 
-                        my $or_child_key = 'IO'
-                            . $or_child->[Marpa::Internal::And_Node::ID];
-                        $class = $equivalence_class{$or_child_key};
+        } ## end if ( $node_type eq 'A' )
 
-                        # If we don't have an equivalence class for a child,
-                        # nothing we can do.
-                        next WORK_LIST_ENTRY if not defined $class;
+        if ( $node_type eq 'O' ) {
+            my $or_node = $or_nodes->[$node_id];
+            next WORK_LIST_ENTRY
+                if $or_node->[Marpa::Internal::Or_Node::DELETED];
 
-                        push @classes, $class;
-                        next FIELD;
-                    } ## end if ( defined $child )
+            next WORK_LIST_ENTRY;
 
-                    push @classes, q{-};
-                } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...)
+        } ## end if ( $node_type eq 'O' )
 
-                # Is it a terminal and-node?
-                # If so, either it's a duplicate and the equivalence class has
-                # already been determined, or it's unique and in its own equivalence
-                # class.
-                if ($terminal_and_node) {
-                    my $class = $equivalence_class{$work_list_entry} =
-                        $duplicate_terminal_equivalence_class{$work_list_entry};
-                    next WORK_LIST_ENTRY if defined $class;
-                    $equivalence_class{$work_list_entry} = $work_list_entry;
-                } ## end if ($terminal_and_node)
+        Marpa::exception("Internal error, unknown node type: $node_type");
 
-            } ## end if ( $node_type eq 'A' )
-        } ## end while ( my $work_list_entry = pop @work_list )
-
-        # If none found, start again at the index after the end of the span set
-        $start_span_set_ix = $end_span_set_ix + 1;
-
-    } ## end while ( $start_span_set_ix < @duplicate_terminal_and_nodes)
+    } ## end while ( my $work_list_entry = pop @work_list )
 
     if ($trace_evaluation) {
         for my $delete_work_entry (@delete_work_list) {
