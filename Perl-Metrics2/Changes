@@ -1,11 +1,14 @@
 Changes for Perl extension Perl-Metrics2
 
-0.04 to be released
+0.04 Mon  3 Aug 2009
 	- Implenting indexable tracking
 	- Prevent duplicate work in core plugin
 	- Plugins not advertise destruction
-	- Allow the last destructive plugin to destroy the
-	  original document, to prevent excessive cloning.
+	- Allow the last destructive plugin to destroy the original
+	  document, to prevent excessive cloning.
+	- Improved runtime estimation based on file-size throughput of
+	  the cache .ppi storables. Per-file estimation was pointless
+	  when running files smallest to largest.
 
 0.03 Sun 10 May 2009
 	- Adding source lines of code metric to the core
