@@ -43,16 +43,8 @@ if ( $flush ) {
 }
 
 # Identify the distributions we have already seen
-my $releases = Perl::Metrics2->selectcol_arrayref(
-	'SELECT DISTINCT release FROM cpan_file'
-);
-my %index = ();
-foreach my $release ( @$releases ) {
-	my $one = substr($release, 0, 1);
-	my $two = substr($release, 0, 2);
-	$index{"$one/$two/$release"} = 1;
-}
-my $ignore = [ sub { $index{$_[0]} }, qr/PDF-API/ ];
+my $seen   = Perl::Metrics2->release_index;
+my $ignore = [ sub { $seen->{$_[0]} }, qr/PDF-API/ ];
 
 Perl::Metrics2->begin;
 CPAN::Mini::Visit->new(

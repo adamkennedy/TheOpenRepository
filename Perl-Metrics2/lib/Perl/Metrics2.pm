@@ -67,6 +67,7 @@ use DBI                    ();
 use Time::HiRes            ();
 use Time::Elapsed          ();
 use File::Spec             ();
+use File::Next             ();
 use File::HomeDir          ();
 use File::ShareDir         ();
 use File::Find::Rule       ();
@@ -81,7 +82,7 @@ use PPI::Document          ();
 use PPI::Cache             ();
 use Module::Pluggable;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use constant ORLITE_FILE => File::Spec->catfile(
 	File::HomeDir->my_data,
@@ -103,6 +104,8 @@ use ORLite::Migrate 0.03 {
 	user_version => 3,
 };
 
+use Perl::Metrics2::CpanFile ();
+
 
 
 
@@ -121,7 +124,34 @@ sub new {
 		eval "require $plugin";
 		die $@ if $@;
 		$self->{plugins}->{$plugin} = $plugin->new;
-		$self->{plugins}->{$plugin}->study if $self->study;
+	}
+
+	# Study if needed.
+	if ( $self->study ) {
+		# If a document is present in all of the plugins
+		# use a more efficient single scalar.
+		my $all  = scalar keys %{$self->{plugins}};
+		my $sql = 'SELECT md5, package FROM file_metric';
+		my $sth = $self->prepare($sql) or die("prepare: $DBI::errstr");
+		$sth->execute or die("execute: $DBI::errstr");
+		my %seen = ();
+		while ( my $row = $sth->fetchrow_arrayref ) {
+			my $md5 = $row->[0];
+			my $pkg = $row->[1];
+			unless ( $seen{$md5} ) {
+				$seen{$md5} ||= {};
+			}
+			unless ( ref $seen{$md5} ) {
+				# All registered already
+				next;
+			}
+			$seen{$md5}->{$pkg} = 1;
+			if ( scalar keys %{$seen{$md5}} == $all ) {
+				$seen{$md5} = 1;
+			}
+		}
+		$sth->finish or die("finish: $DBI::errstr");
+		$self->{seen} = \%seen;
 	}
 
 	# Initialise the PPI cache if available
@@ -143,11 +173,8 @@ sub cache {
 sub seen {
 	my $self = shift;
 	my $md5  = shift;
-	foreach my $plugin ( sort keys %{$self->{plugins}} ) {
-		next if $self->{plugins}->{$plugin}->{seen}->{$md5};
-		return 0;
-	}
-	return 1;
+	$self->{seen}->{$md5} or return 0;
+	return not ref $self->{seen}->{$md5};
 }
 
 
@@ -166,39 +193,7 @@ sub process_cache {
 		Carp::croak("Must have study true to process_cache");
 	}
 
-	# Find all the files in the cache
-	$self->trace("Scanning cache directory " . $self->cache . "...");
-	my @files = File::Find::Rule->name(qr/\.ppi\z/)->in($self->cache);
-	$self->trace("Found " . scalar(@files) . " documents");
-
-	# While filtering, save the total size of PPI storable
-	# content left to process.
-	my $total = 0;
-
-	# Filter and sort the documents
-	$self->trace("Cleaning, filtering and sorting documents...");
-	@files = map {
-		# Total the content
-		$total += $_->[2];
-
-		# Remove the schwartian
-		$_->[1]
-	} sort {
-		# Smallest files first (for lowest parser stress)
-		$a->[2] <=> $b->[2]
-	} grep {
-		# Filter out things we've done already
-		not $self->seen($_->[1])
-	} map {
-		# Set up for the Schwartzian transform
-		/([a-f0-9]+).ppi\z/ ? [ $_, "$1", (stat($_))[7] ] : ()
-	} @files;
-	$self->trace("Filtered to " . scalar(@files) . " documents");
-
-	# Shortcut if there's nothing to do
-	unless ( @files ) {
-		return 1;
-	}
+	$| = 1;
 
 	# Remove indexes to speed up inserts
 	$self->trace("Removing indexes for faster inserts...");
@@ -208,37 +203,38 @@ sub process_cache {
 		Perl::Metrics2->do($sql);
 	}
 
-	my $count = 0;
-	my $start = Time::HiRes::time();
-	my $rate  = 0;
-	my $left  = 0;
-	my $done  = 0;
-	my $cache = PPI::Document->get_cache;
+	# Find all the files in the cache
+	$self->trace("Processing cache directory " . $self->cache . "...");
 	$self->begin;
-	foreach my $md5 ( @files ) {
-		$self->trace(
-			sprintf(
-				"%s - %d of %d @ %.1fk/sec (%s remaining)",
-				$md5, ++$count, scalar(@files), $rate / 1024,
-				Time::Elapsed::elapsed($left),
-			)
-		);
+	my $count  = 0;
+	my $files  = 0;
+	my $cache  = PPI::Document->get_cache;
+	my $search = File::Next::files( {
+		sort_files => 1,
+	}, $self->cache );
+	while ( my @file = $search->() ) {
+		$file[1] =~ /([a-f0-9]+)\.ppi\z/ or next;
+		(++$files % 100) or print '.';
 
-		# Fetch the document from the cache and process it
+		# Filter out things we've done already
+		my $md5 = $1;
+		$self->seen($md5) and next;
+		print "$1\n";
+
+		# Fetch the document from the cache
 		my $document = $cache->get_document($md5);
 		unless ( $document ) {
 			warn("Failed to retrieve $md5 from the cache");
 			next;
 		}
 
+		# Process the document
 		$self->process_document($document, 'safe');
-		$done += (stat(($cache->_paths($md5))[1]))[7];
-		$rate = $done / (Time::HiRes::time() - $start);
-		$left = ($total - $done) / $rate;
-		next if $count % 100;
+		next if ++$count % 100;
 		$self->commit_begin;
 	}
 	$self->commit;
+	print "\n";
 
 	# Add the indexes back to the database
 	$self->trace("Restoring indexes...");
@@ -473,6 +469,35 @@ sub perl_modules {
 
 #####################################################################
 # Support Methods
+
+sub selectcol_index {
+	my ($dbh, $stmt, $attr, @bind) = @_;
+	my $sth = (ref $stmt) ? $stmt : $dbh->prepare($stmt, $attr);
+	return unless $sth;
+	$sth->execute(@bind) || return;
+	my $column = $attr->{Columns} ? $attr->{Columns}->[0] : 1;
+	my $value  = undef;
+	$sth->bind_col($column, \$value) || return;
+	my $row  = 0;
+	my %hash = ();
+	if ( my $max = $attr->{MaxRows} ) {
+		while ( $sth->fetch ) {
+			last if ++$row > $max;
+			$hash{$value} = 1;
+		}
+	} else {
+		while ( $sth->fetch ) {
+			$hash{$value} = 1;			
+		}
+	}
+	return \%hash;
+}
+
+sub in {
+	my $self = shift;
+	my $sql  = '( ' . join( ', ', map { '?' } @_ ) . ' )';
+	return ( $sql, @_ );
+}
 
 sub trace {
 	print STDERR map { "# $_\n" } @_[1..$#_];

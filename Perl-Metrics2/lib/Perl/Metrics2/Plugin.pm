@@ -71,7 +71,7 @@ use Perl::Metrics2   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '0.05';
 }
 
 
@@ -134,56 +134,26 @@ sub destructive { 1 }
 #####################################################################
 # Perl::Metrics2::Plugin API
 
-=pod
-
-=head2 metrics
-
-The C<metrics> method provides the list of metrics that are provided
-by the metrics package. By default, this list is automatically
-generated for you scanning for C<metric_$name> methods that reside
-in the immediate package namespace.
-
-Returns a reference to a C<HASH> where the keys are the metric names,
-and the values are the "version" of the metric (for versioned metrics),
-or C<undef> if the metric is not versioned.
-
-=cut
-
-sub metrics {
-	my $self = shift;
-	$self->{_metrics} or
-	$self->{_metrics} = $self->_metrics;	
-}
-
-sub _metrics {
+# Flush out old records
+sub flush {
 	my $self    = shift;
-	my $class   = ref $self;
-	my $funcs   = Class::Inspector->functions($class)
-		or Carp::croak("Failed to get method list for '$class'");
-	my %metrics = map  { $_ => undef     }
-	              grep { _IDENTIFIER($_) }
-	              grep { s/^metric_//s   }
-	              @$funcs;
-	return \%metrics;
-}
-
-sub _metric {
-	my ($self, $document, $name) = @_;
-	my $method = "metric_$name";
-	$self->can($method) or Carp::croak("Bad metric name '$name'");
-	return scalar($self->$method($document));
+	my $class   = $self->class;
+	my $version = $class->VERSION;
+	Perl::Metrics2->do(
+		'delete from file_metric where package = ? and version = ?',
+		{}, $class, $version,
+	);
 }
 
 # Prepopulate the seen index
 sub study {
-	my $self    = shift;
-	my $class   = $self->class;
-	my $version = $class->VERSION;
-	my $md5     = Perl::Metrics2->selectcol_arrayref(
+	my $self      = shift;
+	my $class     = $self->class;
+	my $version   = $class->VERSION;
+	$self->{seen} = Perl::Metrics2->selectcol_index(
 		'select distinct(md5) from file_metric where package = ? and version = ?',
 		{}, $class, $version,
 	);
-	$self->{seen} = { map { $_ => 1 } @$md5 };
 	return 1;
 }
 

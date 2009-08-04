@@ -4,6 +4,7 @@ all_from       'lib/Perl/Metrics2.pm';
 requires       'Time::HiRes'           => '1.9718';
 requires       'Time::Elapsed'         => '0.24';
 requires       'File::Spec'            => '0.80';
+requires       'File::Next'            => '1.04';
 requires       'File::HomeDir'         => '0.82';
 requires       'File::ShareDir'        => '1.00';
 requires       'File::Find::Rule'      => '0.30';
