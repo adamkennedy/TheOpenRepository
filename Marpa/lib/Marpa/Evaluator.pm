@@ -1495,7 +1495,7 @@ sub sort_unique_nodes {
     my @work_list;
     for my $duplicate_and_node_set ( values %terminal_and_nodes_by_signature )
     {
-        my $class = 'IA' . $duplicate_and_node_set->[0];
+        my $class = $duplicate_and_node_set->[0];
         for my $duplicate_and_node_id ( @{$duplicate_and_node_set} ) {
             my $duplicate_and_node = $and_nodes->[$duplicate_and_node_id];
             my $parent_or_node_id =
@@ -1505,7 +1505,8 @@ sub sort_unique_nodes {
         } ## end for my $duplicate_and_node_id ( @{$duplicate_and_node_set...})
     } ## end for my $duplicate_and_node_set ( values ...)
 
-    my %class_signature;
+    my %and_class_signature;
+    my %or_class_signature;
     my %full_signature;
     WORK_LIST_ENTRY: while ( my $work_list_entry = pop @work_list ) {
         my ( $node_type, $node_id ) =
@@ -1528,7 +1529,7 @@ sub sort_unique_nodes {
                 my $class =
                     defined $or_child
                     ? $or_child->[Marpa::Internal::Or_Node::CLASS]
-                    : q{-};
+                    : -1;
 
                 # If we don't have an equivalence class for a child,
                 # nothing we can do.
@@ -1538,7 +1539,7 @@ sub sort_unique_nodes {
 
             } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...)
 
-            my $class_signature = join q{,},
+            my $and_class_signature = join q{,},
                 $and_node->[Marpa::Internal::And_Node::RULE] + 0,
                 $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
                 $and_node->[Marpa::Internal::And_Node::START_EARLEME] + 0,
@@ -1550,7 +1551,7 @@ sub sort_unique_nodes {
 
             if ($full_signature{
                     $and_node->[Marpa::Internal::And_Node::PARENT_ID]
-                        . ",$class_signature"
+                        . ",$and_class_signature"
                 }++
                 )
             {
@@ -1567,9 +1568,9 @@ sub sort_unique_nodes {
 
             } ## end if ( $full_signature{ $and_node->[...]})
 
-            my $class = $class_signature{$class_signature};
+            my $class = $and_class_signature{$and_class_signature};
             if ( not defined $class ) {
-                $class = $class_signature{$class_signature} = "A$node_id";
+                $class = $and_class_signature{$and_class_signature} = $node_id;
             }
             $and_node->[Marpa::Internal::And_Node::CLASS] = $class;
 
@@ -1581,6 +1582,51 @@ sub sort_unique_nodes {
             my $or_node = $or_nodes->[$node_id];
             next WORK_LIST_ENTRY
                 if $or_node->[Marpa::Internal::Or_Node::DELETED];
+
+            my $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+            my $child_and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+
+            my @keys;
+            for my $child_and_node_ix (0 .. $#{$child_and_nodes} )
+            {
+                my $child_and_node =
+                    $and_nodes->[ $child_ids->[$child_and_node_ix] ];
+                my $child_class =
+                    $child_and_node->[Marpa::Internal::Or_Node::CLASS];
+
+                # If we don't have the class for this child and-node,
+                # we have to give up on this work item
+                next WORK_LIST_ENTRY if not defined $child_class;
+
+                push @keys,
+                    pack 'NA20A20',
+                    ( $child_and_node->[Marpa::Internal::And_Node::RULE]
+                        ->[Marpa::Internal::Rule::INTERNAL_PRIORITY] // 0 ),
+                    $child_class,
+                    $child_and_node_ix;
+            }
+
+            my @new_child_ids;
+            my @new_and_nodes;
+            my @classes;
+            for my $key ( sort { $b cmp $a } @keys ) {
+                my ($pri, $class, $ix) = unpack 'NA20A20', $key;
+                push @new_child_ids, $child_ids->[$ix];
+                push @new_and_nodes, $child_and_nodes->[$ix];
+                push @classes, $class;
+            }
+ 
+            $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] = \@new_child_ids;
+            $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@new_and_nodes;
+
+            my $or_class_signature = join ',', @classes;
+            my $class = $or_class_signature{$or_class_signature};
+            if ( not defined $class ) {
+                $class = $or_class_signature{$or_class_signature} = $node_id;
+            }
+            $or_node->[Marpa::Internal::Or_Node::CLASS] = $class;
+
+            next WORK_LIST_ENTRY;
 
             next WORK_LIST_ENTRY;
 
