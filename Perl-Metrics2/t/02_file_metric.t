@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
+use Test::More tests => 13;
 use File::Spec::Functions ':ALL';
 use Perl::Metrics2;
 
@@ -40,5 +40,3 @@ foreach ( @rows ) {
 
 # Check the plugin study functionality
 my $core = new_ok( 'Perl::Metrics2::Plugin::Core', [] );
-ok( $core->study, '->study ok' );
-is( scalar(keys %{$core->{seen}}), 1, 'Found one seen document');

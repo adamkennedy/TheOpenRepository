@@ -24,7 +24,7 @@ sub process_metrics {
 		$_[1]->content eq '$['
 	} ) ? 1 : 0;
 
-	return \%metric;
+	return %metric;
 }
 
 1;

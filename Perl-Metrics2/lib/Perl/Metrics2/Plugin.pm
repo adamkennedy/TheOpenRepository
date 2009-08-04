@@ -92,9 +92,7 @@ merely as a convenience. You don't really need to think about this.
 
 sub new {
 	my $class = ref $_[0] ? ref shift : shift;
-	my $self  = bless {
-		seen => {},
-	}, $class;
+	my $self  = bless { }, $class;
 	return $self;
 }
 
@@ -145,35 +143,19 @@ sub flush {
 	);
 }
 
-# Prepopulate the seen index
-sub study {
-	my $self      = shift;
-	my $class     = $self->class;
-	my $version   = $class->VERSION;
-	$self->{seen} = Perl::Metrics2->selectcol_index(
-		'select distinct(md5) from file_metric where package = ? and version = ?',
-		{}, $class, $version,
-	);
-	return 1;
-}
-
 sub process_document {
 	my $self     = shift;
 	my $class    = ref $self;
-	my $document = _INSTANCE(shift, 'PPI::Document');
-	unless ( $document ) {
+	my %params   = @_;
+	my $document = $params{document};
+	my $md5      = $params{md5};
+	my $hintsafe = $params{hintsafe};
+	unless ( _INSTANCE($document, 'PPI::Document') ) {
 		Carp::croak("Did not provide a PPI::Document object");
-	}
-	my $hintsafe = !! shift;
-
-	# Shortcut if already processed
-	my $md5 = $document->hex_id;
-	if ( $self->{seen}->{$md5} ) {
-		return 1;
 	}
 
 	# Generate the new metrics values
-	my %metric = $self->process_metrics($document, @_);
+	my %metric = $self->process_metrics($document);
 
 	# Flush out the old records and write the new metrics
 	unless ( $hintsafe ) {
@@ -188,8 +170,7 @@ sub process_document {
 
 	# Temporary accelerate version
 	SCOPE: {
-		my $dbh = Perl::Metrics2->dbh;
-		my $sth = $dbh->prepare(
+		my $sth = Perl::Metrics2->dbh->prepare(
 			'INSERT INTO file_metric ( md5, package, version, name, value ) VALUES ( ?, ?, ?, ?, ? )'
 		);
 		foreach my $name ( sort keys %metric ) {
@@ -197,18 +178,6 @@ sub process_document {
 		}
 		$sth->finish;
 	}
-	#foreach my $name ( sort keys %metric ) {
-		#Perl::Metrics2::FileMetric->create(
-			#md5     => $md5,
-			#package => $class,
-			#version => $class->VERSION,
-			#name    => $name,
-			#value   => $metric{$name},
-		#);
-	#}
-
-	# Remember that we have processed this document
-	$self->{seen}->{$md5} = 1;
 
 	return 1;
 }

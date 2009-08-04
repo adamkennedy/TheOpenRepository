@@ -173,8 +173,20 @@ sub cache {
 sub seen {
 	my $self = shift;
 	my $md5  = shift;
-	$self->{seen}->{$md5} or return 0;
-	return not ref $self->{seen}->{$md5};
+	my $seen = $self->{seen}->{$md5};
+
+	# Document was seen by none
+	return 0 unless $seen;
+
+	# Document was seen by all
+	return 1 if not ref $seen;
+
+	# Seen by a specific plugin?
+	if ( @_ ) {
+		return 1 if $seen->{$_[0]};
+	}
+
+	return 0;
 }
 
 
@@ -229,7 +241,11 @@ sub process_cache {
 		}
 
 		# Process the document
-		$self->process_document($document, 'safe');
+		$self->process_document(
+			document => $document,
+			md5      => $md5,
+			hintsafe => 1,
+		);
 		next if ++$count % 100;
 		$self->commit_begin;
 	}
@@ -290,11 +306,9 @@ sub process_file {
 		# If and only if every plugin has seen the document
 		# we can shortcut and don't need to load it.
 		my $md5 = PPI::Util::md5hex_file($path);
-		if ( $self->seen($md5) ) {
-			return 1;
-		}
+		return 1 if $self->seen($md5);
 	}
-	
+
 	# Load the document
 	my $document = PPI::Document->new( $path,
 		readonly => 1,
@@ -303,21 +317,28 @@ sub process_file {
 		 warn("Failed to parse '$path'");
 		 next;
 	}
-
-	$self->process_document($document);
+	$self->process_document(
+		document => $document,
+	);
 }
 
 # Forcefully process a docucment
 sub process_document {
 	my $self     = shift;
-	my $document = shift;
-	my $plugins  = $self->{plugins};
+	my %params   = (@_ > 1) ? @_ : ( document => $_[0] );
+	my $document = $params{document};
+	my $md5      = $params{md5} || $document->hex_id;
+	my $hintsafe = $params{hintsafe};
 
-	# Sort plugins with dustructive last
-	my @names = sort {
+	# Filter out plugins we don't need to rerun
+	# and sort plugins with destructive last
+	my $plugins = $self->{plugins};
+	my @names   = sort {
 		$plugins->{$a}->destructive <=> $plugins->{$b}->destructive
 		or
 		$a cmp $b
+	} grep {
+		not $self->seen($md5, $_)
 	} keys %$plugins;
 
 	# Create the plugin objects
@@ -328,9 +349,17 @@ sub process_document {
 		if ( $plugins->{$name}->destructive and $name ne $names[-1] ) {
 			# Run the plugin on a copy
 			my $copy = $document->clone;
-			$plugins->{$name}->process_document($copy, @_);
+			$plugins->{$name}->process_document(
+				document => $document,
+				md5      => $md5,
+				hintsafe => $hintsafe,
+			);
 		} else {
-			$plugins->{$name}->process_document($document, @_);
+			$plugins->{$name}->process_document(
+				document => $document,
+				md5      => $md5,
+				hintsafe => $hintsafe,
+			);
 		}
 	}
 

@@ -6,6 +6,9 @@ Changes for Perl extension Perl-Metrics2
 	  than pre-build a list of them. Saves even more memory.
 	- Strip most of the speed monitoring code, it needed the pre-baked
 	  file list to work.
+	- Move the study index from the plugins to the core
+	- Pass-through md5 through several methods to prevent one instance
+	  of it having to be regenerated.
 
 0.04 Mon  3 Aug 2009
 	- Implenting indexable tracking
