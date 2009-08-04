@@ -35,7 +35,7 @@
 		Minimum="5.0.0"
 		IncludeMinimum="yes"
 		Maximum="[% dist.msi_perl_version %]"
-	 	IncludeMaximum="no"
+	 	IncludeMaximum="yes"
 		Language="1033"
 		Property="OLDERVERSIONBEINGUPGRADED" />
 	</Upgrade>
