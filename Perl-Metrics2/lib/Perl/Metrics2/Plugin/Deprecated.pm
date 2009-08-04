@@ -1,24 +1,5 @@
 package Perl::Metrics2::Plugin::Deprecated;
 
-=pod
-
-=head1 NAME
-
-Perl::Metrics2::Plugin::Core - The Core Perl Metrics Package
-
-=head1 DESCRIPTION
-
-This class provides a set of core metrics for Perl documents, based on
-very simple code using only the core L<PPI> package.
-
-=head1 METRICS
-
-As with all L<Perl::Metrics::Plugin> packages, all metrics can be
-referenced with the global identifier C<Perl::Metrics::Plugin::Core::metric>.
-
-Metrics are listed as "datatype name".
-
-=cut
 
 use strict;
 use Perl::Metrics2::Plugin ();
@@ -31,26 +12,49 @@ BEGIN {
 
 sub destructive { 0 }
 
-=pod
+sub process_metrics {
+	my $self     = shift;
+	my $document = shift;
+	my %metric   = ();
 
-=head2 boolean array_first_element_index
-
-The C<array_first_element_index> flag is true if the file uses the deprecated
-C<$[> magic variable.
-
-=cut
-
-sub metric_array_first_element_index {
-	$_[1]->find_any( sub {
+	# Look for the use of $[
+	$metric{array_first_element_index} = $document->find_any( sub {
 		$_[1]->isa('PPI::Token::Magic')
 		and
 		$_[1]->content eq '$['
 	} ) ? 1 : 0;
+
+	return \%metric;
 }
 
 1;
 
+__END__
+
 =pod
+
+=head1 NAME
+
+Perl::Metrics2::Plugin::Deprecated - Deprecated feature scanner
+
+=head1 DESCRIPTION
+
+This metrics class provides detection of various deprecated Perl features,
+to help identify real-world uses of features that may break when these
+features are eventually removed entirely.
+
+=head1 METRICS
+
+As with all L<Perl::Metrics::Plugin> packages, all metrics can be
+referenced with the global identifier
+C<Perl::Metrics::Plugin::Deprecated::metric>.
+
+Metrics are listed as "datatype name".
+
+=head2 boolean array_first_element_index
+
+The C<array_first_element_index> flag is true if the file uses the
+deprecated C<$[> magic variable.
 
 =head1 SUPPORT
 

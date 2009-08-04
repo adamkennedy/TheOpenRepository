@@ -214,13 +214,8 @@ sub process_document {
 }
 
 sub process_metrics {
-	my $self     = shift;
-	my $document = shift;
-	my %metric   = %{$self->metrics};
-	foreach my $name ( sort keys %metric ) {
-		$metric{$name} = $self->_metric($document, $name);
-	}
-	return %metric;
+	my $class = ref($_[0]) || $_[0];
+	die "Plugin $class does not implement process_metrics";
 }
 
 1;
