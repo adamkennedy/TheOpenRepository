@@ -5,7 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More tests => 4;
 
 use lib 'lib';
 use lib 't/lib';
@@ -125,7 +125,7 @@ TOKEN: for my $token (@tokens) {
 
 $recce->end_input();
 
-my @expected = (
+my @expected_values = (
     #<<< no perltidy
     '(((2-0)*3)+1)==7',
     '((2-(0*3))+1)==3',
@@ -136,18 +136,14 @@ my @expected = (
 );
 my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 
-my $i = -1;
+my @values;
 while ( defined( my $value = $evaler->value() ) ) {
-    $i++;
-    if ( $i > $#expected ) {
-        Test::More::fail(
-            'Ambiguous equation has extra value: ' . ${$value} . "\n" );
-    }
-    else {
-        Marpa::Test::is( ${$value}, $expected[$i],
-            "Ambiguous Equation Value $i" );
-    }
+    push @values, ${$value};
 } ## end while ( defined( my $value = $evaler->value() ) )
+
+my $values          = ( join "\n", sort @values ) . "\n";
+my $expected_values = ( join "\n", sort @expected_values ) . "\n";
+Marpa::Test::is( $values, $expected_values, 'Ambiguous Equation Values' );
 
 # Local Variables:
 #   mode: cperl

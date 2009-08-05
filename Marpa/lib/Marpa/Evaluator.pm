@@ -773,23 +773,23 @@ sub delete_nodes {
             my $parent_or_node = $or_nodes->[$parent_id];
 
             if ( not $parent_or_node->[Marpa::Internal::Or_Node::DELETED] ) {
-                ### Adding or-node for pruning to work list: $parent_id
+                #### Adding or-node for pruning to work list: $parent_id
                 push @{$delete_work_list}, [ PRUNE_OR_NODE, $parent_id ];
                 my $parent_choice = $delete_and_node
                     ->[Marpa::Internal::And_Node::PARENT_CHOICE];
 
-                ### Splicing out parent's child, parent id, choice: $parent_id, $parent_choice
+                #### Splicing out parent's child, parent id, choice: $parent_id, $parent_choice
 
                 my $parent_child_ids =
                     $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
 
-                ### Before splice: $parent_child_ids
+                #### Before splice: $parent_child_ids
 
-                ### assert: $parent_choice < @{$parent_child_ids}
+                #### assert: $parent_choice < @{$parent_child_ids}
 
                 splice @{$parent_child_ids}, $parent_choice, 1;
 
-                ### After splice: $parent_child_ids
+                #### After splice: $parent_child_ids
 
                 splice
                     @{ $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
@@ -878,8 +878,8 @@ sub delete_nodes {
             # start or-node.
             # Start or-node is always ID 0.
 
-            ### Pruning or node, parent_ids: $parent_ids
-            ### Pruning or node, child_ids: $child_ids
+            #### Pruning or node, parent_ids: $parent_ids
+            #### Pruning or node, child_ids: $child_ids
 
             next DELETE_WORK_ITEM
                 if ( scalar @{$parent_ids} or $delete_node_id == 0 )
@@ -889,8 +889,8 @@ sub delete_nodes {
 
             $or_node->[Marpa::Internal::Or_Node::DELETED] = 1;
 
-            ### Adding parent ids (and-nodes) to delete work list: $parent_ids
-            ### Adding child ids (and-nodes) to delete work list: $child_ids
+            #### Adding parent ids (and-nodes) to delete work list: $parent_ids
+            #### Adding child ids (and-nodes) to delete work list: $child_ids
 
             push @{$delete_work_list},
                 map { [ DELETE_AND_NODE, $_ ] } @{$parent_ids}, @{$child_ids};
@@ -904,7 +904,7 @@ sub delete_nodes {
             } ## end for my $field ( Marpa::Internal::Or_Node::PARENT_IDS,...)
             $or_node->[Marpa::Internal::Or_Node::CLASS] = undef;
 
-            ### Deleting or node, id, parent_ids: $delete_node_id, $or_node->[Marpa'Internal'Or_Node'PARENT_IDS]
+            #### Deleting or node, id, parent_ids: $delete_node_id, $or_node->[Marpa'Internal'Or_Node'PARENT_IDS]
 
             next DELETE_WORK_ITEM;
         } ## end if ( $action == PRUNE_OR_NODE )
@@ -992,7 +992,6 @@ sub rewrite_cycles {
                         ->[Marpa::Internal::Or_Node::CHILD_IDS] }
                 ];
             for my $or_child_ix (@or_child_ixes) {
-                #### initial transition: $or_parent_ix, $or_child_ix
                 $transition[$or_parent_ix][$or_child_ix]++;
                 push @work_list, [ $or_parent_ix, $or_child_ix ];
             }
@@ -1001,7 +1000,6 @@ sub rewrite_cycles {
         # Compute transitive closure of matrix of or-node transitions.
         while ( my $work_item = pop @work_list ) {
             my ( $parent_ix, $child_ix ) = @{$work_item};
-            #### work item: $parent_ix, $child_ix
             GRAND_CHILD:
             for my $grandchild_ix ( grep { $transition[$child_ix][$_] }
                 ( 0 .. $#{$span_set} ) )
@@ -1009,7 +1007,6 @@ sub rewrite_cycles {
                 my $transition_row = $transition[$parent_ix];
                 next GRAND_CHILD if $transition_row->[$grandchild_ix];
                 $transition_row->[$grandchild_ix]++;
-                #### transition: $parent_ix, $grandchild_ix
                 push @work_list, [ $parent_ix, $grandchild_ix ];
             } ## end for my $grandchild_ix ( grep { $transition[$child_ix]...})
         } ## end while ( my $work_item = pop @work_list )
@@ -1416,7 +1413,7 @@ sub rewrite_cycles {
         # Now actually do the deletions
         delete_nodes( $evaler, \@delete_work_list );
 
-        ### <where> After call to delete nodes ...
+        #### <where> After call to delete nodes ...
 
         # Should be deletion-consistent at this point
         ### assert: Marpa'Evaluator'audit($evaler) or 1
@@ -1492,7 +1489,7 @@ sub delete_duplicate_nodes {
 
     } ## end for my $and_node_id ( 0 .. $#{$and_nodes} )
 
-    ### Terminal and-nodes by signature: %terminal_and_nodes_by_signature
+    #### Terminal and-nodes by signature: %terminal_and_nodes_by_signature
 
     my @work_list;
     for my $duplicate_and_node_set ( values %terminal_and_nodes_by_signature )
@@ -1595,13 +1592,13 @@ sub delete_duplicate_nodes {
                 map { $and_nodes->[$_]->[Marpa::Internal::And_Node::CLASS] }
                 @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
 
-            ### Or-node child classes, id, classes: $node_id, \@classes
+            #### Or-node child classes, id, classes: $node_id, \@classes
 
             # If one of the classes is undefined, nothing we can do
             next WORK_LIST_ENTRY
                 if grep { not defined $_ } @classes;
 
-            ### <where> Or-node child classes, id, classes: $node_id, \@classes
+            #### <where> Or-node child classes, id, classes: $node_id, \@classes
 
             my $or_class_signature = join q{,}, ( sort @classes );
             my $class = $or_class_signature{$or_class_signature};
@@ -2014,17 +2011,8 @@ sub Marpa::Evaluator::new {
         my $parent_or_node_id =
             $parent_or_node->[Marpa::Internal::Or_Node::ID];
 
-        ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
         my @child_and_node_ids =
-            map  { $_->[0] }
-            sort { $b->[1] <=> $a->[1] }
-            map {
-            [   $_,
-                $and_nodes->[$_]->[Marpa::Internal::And_Node::RULE]
-                    ->[Marpa::Internal::Rule::INTERNAL_PRIORITY] // 0
-            ]
-            } @{ $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
-        ## use critic
+            @{ $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
 
         for my $choice ( 0 .. $#child_and_node_ids ) {
             my $and_node_id = $child_and_node_ids[$choice];
@@ -2063,6 +2051,40 @@ sub Marpa::Evaluator::new {
     # The rest of the processing only applies to ambiguous grammars.
 
     delete_duplicate_nodes($self);
+
+    OR_NODE: for my $or_node ( @{$or_nodes} ) {
+        my $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+        my $child_and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
+        next OR_NODE unless @{$child_ids} > 1;
+
+        ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
+        my @new_order = map { $_->[0] }
+            sort { $b->[1] <=> $a->[1] }
+            map {
+            [   $_,
+                (   $and_nodes->[ $child_ids->[$_] ]
+                        ->[Marpa::Internal::And_Node::RULE]
+                        ->[Marpa::Internal::Rule::INTERNAL_PRIORITY] // 0
+                )
+            ]
+            } ( 0 .. $#{$child_ids} );
+        ## use critic
+
+        $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] =
+            [ @{$child_ids}[@new_order] ];
+        $or_node->[Marpa::Internal::Or_Node::AND_NODES] =
+            [ @{$child_and_nodes}[@new_order] ];
+        $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+        for my $child_ix ( 0 .. $#{$child_ids} ) {
+            my $child_id       = $child_ids->[$child_ix];
+            my $child_and_node = $and_nodes->[$child_id];
+            $child_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
+                $child_ix;
+        } ## end for my $child_ix ( 0 .. $#{$child_ids} )
+
+    } ## end for my $or_node ( @{$or_nodes} )
+
+    ### assert: Marpa'Evaluator'audit($self) or 1
 
     return $self;
 
