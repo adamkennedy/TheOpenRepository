@@ -1,1 +1,2 @@
 Add Test::Pod Test::CPAN::Meta Test::MinimumVersion Test::Perl::Critic
+Make duplicate_parse.t part of standard testing?

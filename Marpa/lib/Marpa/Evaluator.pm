@@ -1438,8 +1438,7 @@ sub rewrite_cycles {
     return;
 } ## end sub rewrite_cycles
 
-# Make sure and-nodes are unique and sort them.  Almost
-# all the logic is about guaranteeing uniqueness.
+# Make sure and-nodes are unique.
 sub delete_duplicate_nodes {
 
     ### Entering delete_duplicate_nodes ...

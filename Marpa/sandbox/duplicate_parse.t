@@ -1,13 +1,13 @@
 #!perl
-# Catch the case of a final non-nulling symbol at the end of a rule
-# which has more than 2 proper nullables
-# This is to test an untested branch of the CHAF logic.
+
+# Test of deletion of duplicate parses.
+# Make this part of standard testiing?
 
 use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 4;
 
 use lib 'lib';
 use lib 't/lib';
@@ -20,9 +20,6 @@ BEGIN {
 my $grammar = Marpa::Grammar->new(
     {   start => 'S',
         strip => 0,
-        trace_journal => 99,
-        trace_iterations => 99,
-        trace_evaluation => 1,
 
         # Set max at 10 just in case there's an infinite loop.
         # This is for debugging, after all
@@ -130,32 +127,91 @@ END_OF_STRING
 
 my $a = $grammar->get_symbol('a');
 
-my @results = qw{NA (-;-;-;a) (a;-;-;a) (a;a;-;a) (a;a;a;a)};
+my $input_length = 3;
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+TOKEN: for my $token ( 1 .. $input_length ) {
+    next TOKEN if $recce->earleme( [ $a, chr( 0x60 + $token ), 1 ] );
+    Marpa::exception( 'Parsing exhausted at character: ', $token );
+}
+$recce->end_input();
+my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 
-say "Rules:\n", $grammar->show_rules;
-say "QDFA:\n",  $grammar->show_QDFA;
-
-INPUT_LENGTH: for my $input_length ( 3 ) {
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-    TOKEN: for my $token ( 1 .. $input_length ) {
-        next TOKEN if $recce->earleme( [ $a, chr(0x60 + $token), 1 ] );
-        Marpa::exception( 'Parsing exhausted at character: ', $token );
-    }
-    $recce->end_input();
-    say "Earley Sets:\n", $recce->show_earley_sets(99);
-    my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
-    say "Bocage:\n", $evaler->show_bocage(99);
-    # my $parse = 0;
-
-    # while ( my $value = $evaler->new_value() ) {
-
-        # my $value = $evaler->new_value();
-        # say "Decisions:\n", $evaler->show_decisions(99);
-        # $parse++;
-        # my $got = ${$value};
-        # say "$got; input length is $input_length; parse $parse";
-
-} ## end for my $input_length ( 1 .. 4 )
+my $bocage =  $evaler->show_bocage(99);
+Marpa::Test::is($bocage, <<'END_OF_STRING', 'Bocage');
+package: Marpa::E_0; parse count: 0
+S2@0-3L6#0 ::= S2@0-3L6#0[0]#0
+S2@0-3L6#0[0]#0 ::= S13@0-3L1#1
+    rule 10: S['] ::= S .
+    rhs length = 1; closure
+S2@0-3L6#0 ::= S2@0-3L6#0[1]#1
+S2@0-3L6#0[1]#1 ::= S8@0-3L1#2
+    rule 10: S['] ::= S .
+    rhs length = 1; closure
+S13@0-3L1#1 ::= S13@0-3L1#1[0]#2
+S13@0-3L1#1[0]#2 ::= S10@0-2R4:2#3 S5@2-3L5#4
+    rule 4: (part of 0) S -> { p p } p n .
+    rhs length = 3; closure
+S8@0-3L1#2 ::= S8@0-3L1#2[0]#3
+S8@0-3L1#2[0]#3 ::= S6@0-1R5:2#5 S9@1-3L5#6
+    rule 5: (part of 0) S -> { p p } p n .
+    rhs length = 3; closure
+S8@0-3L1#2 ::= S8@0-3L1#2[1]#4
+S8@0-3L1#2[1]#4 ::= S6@0-1R6:2#7 S9@1-3L5#6
+    rule 6: (part of 0) S -> { p p } p n .
+    rhs length = 3; closure
+S10@0-2R4:2#3 ::= S10@0-2R4:2#3[0]#5
+S10@0-2R4:2#3[0]#5 ::= S6@0-1R4:1#8 S4@1-2L2#9
+    rule 4: (part of 0) S -> { p p . } p n
+    rhs length = 3
+S5@2-3L5#4 ::= S5@2-3L5#4[0]#7
+S5@2-3L5#4[1]#7 ::= S7@2-2R9:1#10 S14@2-3L3#12
+    rule 9: (part of 0) S -> p p { p n . }
+    rhs length = 2; closure
+S6@0-1R5:2#5 ::= S6@0-1R5:2#5[0]#8
+S6@0-1R5:2#5[0]#8 ::= S1@0-0R5:1#13 S4@0-1L2#14
+    rule 5: (part of 0) S -> { p p . } p n
+    rhs length = 3
+S9@1-3L5#6 ::= S9@1-3L5#6[0]#10
+S9@1-3L5#6[1]#10 ::= S11@1-2R8:1#15 S14@2-3L3#12
+    rule 8: (part of 0) S -> p p { p n . }
+    rhs length = 2; closure
+S6@0-1R6:2#7 ::= S6@0-1R6:2#7[0]#11
+S6@0-1R6:2#7[0]#11 ::= S6@0-1R6:1#16 undef
+    rule 6: (part of 0) S -> { p p . } p n
+    rhs length = 3
+S6@0-1R4:1#8 ::= S6@0-1R4:1#8[0]#12
+S6@0-1R4:1#8[0]#12 ::= S4@0-1L2#14
+    rule 4: (part of 0) S -> { p . p } p n
+    rhs length = 3
+S4@1-2L2#9 ::= S4@1-2L2#9[0]#13
+S4@1-2L2#9[0]#13 ::= 'b'
+    rule 1: p ::= a .
+    rhs length = 1; closure
+S7@2-2R9:1#10 ::= S7@2-2R9:1#10[0]#14
+S7@2-2R9:1#10[0]#14 ::= undef
+    rule 9: (part of 0) S -> p p { p . n }
+    rhs length = 2
+S14@2-3L3#12 ::= S14@2-3L3#12[0]#16
+S14@2-3L3#12[0]#16 ::= 'c'
+    rule 3: n ::= a .
+    rhs length = 1; closure
+S1@0-0R5:1#13 ::= S1@0-0R5:1#13[0]#17
+S1@0-0R5:1#13[0]#17 ::= undef
+    rule 5: (part of 0) S -> { p . p } p n
+    rhs length = 3
+S4@0-1L2#14 ::= S4@0-1L2#14[0]#18
+S4@0-1L2#14[0]#18 ::= 'a'
+    rule 1: p ::= a .
+    rhs length = 1; closure
+S11@1-2R8:1#15 ::= S11@1-2R8:1#15[0]#19
+S11@1-2R8:1#15[0]#19 ::= S4@1-2L2#9
+    rule 8: (part of 0) S -> p p { p . n }
+    rhs length = 2
+S6@0-1R6:1#16 ::= S6@0-1R6:1#16[0]#20
+S6@0-1R6:1#16[0]#20 ::= S4@0-1L2#14
+    rule 6: (part of 0) S -> { p . p } p n
+    rhs length = 3
+END_OF_STRING
 
 # Local Variables:
 #   mode: cperl
