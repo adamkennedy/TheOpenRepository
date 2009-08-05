@@ -11,7 +11,7 @@ severity = 1
 
 color = 0
 
-[BuiltinFunctions::ProhibitBooleanGrep]
+[-BuiltinFunctions::ProhibitBooleanGrep]
 severity=5
 
 [BuiltinFunctions::ProhibitComplexMappings]
