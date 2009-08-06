@@ -1457,6 +1457,11 @@ sub install_perl_toolchain {
 			# 1.9402 fails its tests... ANDK says it's a test bug.
 			$force = 1;
 		}
+		if ( $dist =~ /ExtUtils-ParseXS-2\.20.tar.gz/msx ) {
+
+			# 2.20 is buggy on 5.8.9.
+			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_03.tar.gz'
+		}
 		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
 
 			# 1.28 makes some things fail tests...
