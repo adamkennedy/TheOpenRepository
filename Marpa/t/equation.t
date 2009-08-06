@@ -139,7 +139,7 @@ my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 my @values;
 while ( defined( my $value = $evaler->value() ) ) {
     push @values, ${$value};
-} ## end while ( defined( my $value = $evaler->value() ) )
+}
 
 my $values          = ( join "\n", sort @values ) . "\n";
 my $expected_values = ( join "\n", sort @expected_values ) . "\n";

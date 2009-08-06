@@ -737,8 +737,8 @@ sub clone_and_node {
         $new_and_node->[$field] = $and_node->[$field];
     } ## end for my $field ( Marpa::Internal::And_Node::TAG, ...)
     $new_and_node->[Marpa::Internal::And_Node::TAG] =~ s{
-        [#] \d* \z
-    }{#$new_and_node_id}xms;
+        [a] \d* \z
+    }{a$new_and_node_id}xms;
 
     return $new_and_node;
 } ## end sub clone_and_node
@@ -1117,8 +1117,8 @@ sub rewrite_cycles {
                 #### Creating new or-node: $new_or_node_id
 
                 $new_or_node->[Marpa::Internal::Or_Node::TAG] =~ s{
-                        [#] \d* \z
-                    }{#$new_or_node_id}xms;
+                        [o] \d* \z
+                    }{o$new_or_node_id}xms;
 
                 $new_or_node->[Marpa::Internal::Or_Node::ID] =
                     $new_or_node_id;
@@ -1763,8 +1763,8 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::END_EARLEME]   = 0;
         my $id = $and_node->[Marpa::Internal::And_Node::ID] = 0;
         my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
-            $start_item->[Marpa::Internal::Earley_Item::NAME] . q{#} . $id;
-        $and_node->[Marpa::Internal::And_Node::TAG] = $or_node_tag . '[0]#0';
+            $start_item->[Marpa::Internal::Earley_Item::NAME] . "o$id";
+        $and_node->[Marpa::Internal::And_Node::TAG] = $or_node_tag . 'a0';
 
         push @{$or_nodes},  $or_node;
         push @{$and_nodes}, $and_node;
@@ -1979,7 +1979,7 @@ sub Marpa::Evaluator::new {
         my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID] =
             @{$or_nodes};
         my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
-            $sapling_name . q{#} . $or_node_id;
+            $sapling_name . "o$or_node_id";
         $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@child_and_nodes;
         $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] =
             [ map { $_->[Marpa::Internal::And_Node::ID] } @child_and_nodes ];
@@ -1987,9 +1987,7 @@ sub Marpa::Evaluator::new {
             my $and_node    = $child_and_nodes[$and_node_choice];
             my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
             $and_node->[Marpa::Internal::And_Node::TAG] =
-                  $or_node_tag . '['
-                . $and_node_choice . ']' . q{#}
-                . $and_node_id;
+                $or_node_tag . "a$and_node_id";
             $and_node->[Marpa::Internal::And_Node::PARENT_ID] = $or_node_id;
             $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
                 $and_node_choice;
@@ -2053,9 +2051,9 @@ sub Marpa::Evaluator::new {
     delete_duplicate_nodes($self);
 
     OR_NODE: for my $or_node ( @{$or_nodes} ) {
-        my $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+        my $child_ids       = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
         my $child_and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
-        next OR_NODE unless @{$child_ids} > 1;
+        next OR_NODE if @{$child_ids} <= 1;
 
         ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
         my @new_order = map { $_->[0] }
@@ -2194,7 +2192,7 @@ sub Marpa::Evaluator::show_or_node {
         my $and_node_id = $and_node_ids->[$index];
         my $and_node    = $and_nodes->[$and_node_id];
 
-        my $and_node_tag = $or_node_tag . '[' . $index . ']#' . $and_node_id;
+        my $and_node_tag = $or_node_tag . "a$and_node_id";
         if ( $verbose >= 2 ) {
             $text .= "$or_node_tag ::= $and_node_tag\n";
         }

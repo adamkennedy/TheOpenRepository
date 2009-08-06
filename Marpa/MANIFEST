@@ -60,6 +60,7 @@ t/code_diag.t
 t/cycle2.t
 t/cycle_plex.t
 t/cycle.t
+t/duplicate_parse.t
 t/equation_s.t
 t/equation.t
 t/final_nonnullable.t

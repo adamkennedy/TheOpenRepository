@@ -127,88 +127,90 @@ END_OF_STRING
 
 my $a = $grammar->get_symbol('a');
 
+use constant SPACE => 0x60;
+
 my $input_length = 3;
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 TOKEN: for my $token ( 1 .. $input_length ) {
-    next TOKEN if $recce->earleme( [ $a, chr( 0x60 + $token ), 1 ] );
+    next TOKEN if $recce->earleme( [ $a, chr( SPACE + $token ), 1 ] );
     Marpa::exception( 'Parsing exhausted at character: ', $token );
 }
 $recce->end_input();
 my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 
-my $bocage =  $evaler->show_bocage(99);
-Marpa::Test::is($bocage, <<'END_OF_STRING', 'Bocage');
+my $bocage = $evaler->show_bocage(3);
+Marpa::Test::is( $bocage, <<'END_OF_STRING', 'Bocage' );
 package: Marpa::E_0; parse count: 0
-S2@0-3L6#0 ::= S2@0-3L6#0[0]#0
-S2@0-3L6#0[0]#0 ::= S13@0-3L1#1
+S2@0-3L6o0 ::= S2@0-3L6o0a0
+S2@0-3L6o0a0 ::= S13@0-3L1o1
     rule 10: S['] ::= S .
     rhs length = 1; closure
-S2@0-3L6#0 ::= S2@0-3L6#0[1]#1
-S2@0-3L6#0[1]#1 ::= S8@0-3L1#2
+S2@0-3L6o0 ::= S2@0-3L6o0a1
+S2@0-3L6o0a1 ::= S8@0-3L1o2
     rule 10: S['] ::= S .
     rhs length = 1; closure
-S13@0-3L1#1 ::= S13@0-3L1#1[0]#2
-S13@0-3L1#1[0]#2 ::= S10@0-2R4:2#3 S5@2-3L5#4
+S13@0-3L1o1 ::= S13@0-3L1o1a2
+S13@0-3L1o1a2 ::= S10@0-2R4:2o3 S5@2-3L5o4
     rule 4: (part of 0) S -> { p p } p n .
     rhs length = 3; closure
-S8@0-3L1#2 ::= S8@0-3L1#2[0]#3
-S8@0-3L1#2[0]#3 ::= S6@0-1R5:2#5 S9@1-3L5#6
-    rule 5: (part of 0) S -> { p p } p n .
-    rhs length = 3; closure
-S8@0-3L1#2 ::= S8@0-3L1#2[1]#4
-S8@0-3L1#2[1]#4 ::= S6@0-1R6:2#7 S9@1-3L5#6
+S8@0-3L1o2 ::= S8@0-3L1o2a4
+S8@0-3L1o2a4 ::= S6@0-1R6:2o7 S9@1-3L5o6
     rule 6: (part of 0) S -> { p p } p n .
     rhs length = 3; closure
-S10@0-2R4:2#3 ::= S10@0-2R4:2#3[0]#5
-S10@0-2R4:2#3[0]#5 ::= S6@0-1R4:1#8 S4@1-2L2#9
+S8@0-3L1o2 ::= S8@0-3L1o2a3
+S8@0-3L1o2a3 ::= S6@0-1R5:2o5 S9@1-3L5o6
+    rule 5: (part of 0) S -> { p p } p n .
+    rhs length = 3; closure
+S10@0-2R4:2o3 ::= S10@0-2R4:2o3a5
+S10@0-2R4:2o3a5 ::= S6@0-1R4:1o8 S4@1-2L2o9
     rule 4: (part of 0) S -> { p p . } p n
     rhs length = 3
-S5@2-3L5#4 ::= S5@2-3L5#4[0]#7
-S5@2-3L5#4[1]#7 ::= S7@2-2R9:1#10 S14@2-3L3#12
+S5@2-3L5o4 ::= S5@2-3L5o4a7
+S5@2-3L5o4a7 ::= S7@2-2R9:1o10 S14@2-3L3o12
     rule 9: (part of 0) S -> p p { p n . }
     rhs length = 2; closure
-S6@0-1R5:2#5 ::= S6@0-1R5:2#5[0]#8
-S6@0-1R5:2#5[0]#8 ::= S1@0-0R5:1#13 S4@0-1L2#14
+S6@0-1R5:2o5 ::= S6@0-1R5:2o5a8
+S6@0-1R5:2o5a8 ::= S1@0-0R5:1o13 S4@0-1L2o14
     rule 5: (part of 0) S -> { p p . } p n
     rhs length = 3
-S9@1-3L5#6 ::= S9@1-3L5#6[0]#10
-S9@1-3L5#6[1]#10 ::= S11@1-2R8:1#15 S14@2-3L3#12
+S9@1-3L5o6 ::= S9@1-3L5o6a10
+S9@1-3L5o6a10 ::= S11@1-2R8:1o15 S14@2-3L3o12
     rule 8: (part of 0) S -> p p { p n . }
     rhs length = 2; closure
-S6@0-1R6:2#7 ::= S6@0-1R6:2#7[0]#11
-S6@0-1R6:2#7[0]#11 ::= S6@0-1R6:1#16 undef
+S6@0-1R6:2o7 ::= S6@0-1R6:2o7a11
+S6@0-1R6:2o7a11 ::= S6@0-1R6:1o16 undef
     rule 6: (part of 0) S -> { p p . } p n
     rhs length = 3
-S6@0-1R4:1#8 ::= S6@0-1R4:1#8[0]#12
-S6@0-1R4:1#8[0]#12 ::= S4@0-1L2#14
+S6@0-1R4:1o8 ::= S6@0-1R4:1o8a12
+S6@0-1R4:1o8a12 ::= S4@0-1L2o14
     rule 4: (part of 0) S -> { p . p } p n
     rhs length = 3
-S4@1-2L2#9 ::= S4@1-2L2#9[0]#13
-S4@1-2L2#9[0]#13 ::= 'b'
+S4@1-2L2o9 ::= S4@1-2L2o9a13
+S4@1-2L2o9a13 ::= 'b'
     rule 1: p ::= a .
     rhs length = 1; closure
-S7@2-2R9:1#10 ::= S7@2-2R9:1#10[0]#14
-S7@2-2R9:1#10[0]#14 ::= undef
+S7@2-2R9:1o10 ::= S7@2-2R9:1o10a14
+S7@2-2R9:1o10a14 ::= undef
     rule 9: (part of 0) S -> p p { p . n }
     rhs length = 2
-S14@2-3L3#12 ::= S14@2-3L3#12[0]#16
-S14@2-3L3#12[0]#16 ::= 'c'
+S14@2-3L3o12 ::= S14@2-3L3o12a16
+S14@2-3L3o12a16 ::= 'c'
     rule 3: n ::= a .
     rhs length = 1; closure
-S1@0-0R5:1#13 ::= S1@0-0R5:1#13[0]#17
-S1@0-0R5:1#13[0]#17 ::= undef
+S1@0-0R5:1o13 ::= S1@0-0R5:1o13a17
+S1@0-0R5:1o13a17 ::= undef
     rule 5: (part of 0) S -> { p . p } p n
     rhs length = 3
-S4@0-1L2#14 ::= S4@0-1L2#14[0]#18
-S4@0-1L2#14[0]#18 ::= 'a'
+S4@0-1L2o14 ::= S4@0-1L2o14a18
+S4@0-1L2o14a18 ::= 'a'
     rule 1: p ::= a .
     rhs length = 1; closure
-S11@1-2R8:1#15 ::= S11@1-2R8:1#15[0]#19
-S11@1-2R8:1#15[0]#19 ::= S4@1-2L2#9
+S11@1-2R8:1o15 ::= S11@1-2R8:1o15a19
+S11@1-2R8:1o15a19 ::= S4@1-2L2o9
     rule 8: (part of 0) S -> p p { p . n }
     rhs length = 2
-S6@0-1R6:1#16 ::= S6@0-1R6:1#16[0]#20
-S6@0-1R6:1#16[0]#20 ::= S4@0-1L2#14
+S6@0-1R6:1o16 ::= S6@0-1R6:1o16a20
+S6@0-1R6:1o16a20 ::= S4@0-1L2o14
     rule 6: (part of 0) S -> { p . p } p n
     rhs length = 3
 END_OF_STRING

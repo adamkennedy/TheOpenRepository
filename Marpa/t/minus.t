@@ -169,12 +169,11 @@ Marpa::exception('Could not initialize parse') if not $evaler;
 my @values;
 while ( defined( my $value = $evaler->value() ) ) {
     push @values, ${$value};
-} ## end while ( defined( my $value = $evaler->value() ) )
+}
 
-my $values = join("\n", sort @values) . "\n";
-my $expected_values = join("\n", sort @expected_values) . "\n";
-Marpa::Test::is( $values, $expected_values, 
-            'Minuses Equation Values' );
+my $values          = join( "\n", sort @values ) . "\n";
+my $expected_values = join( "\n", sort @expected_values ) . "\n";
+Marpa::Test::is( $values, $expected_values, 'Minuses Equation Values' );
 
 # Local Variables:
 #   mode: cperl
