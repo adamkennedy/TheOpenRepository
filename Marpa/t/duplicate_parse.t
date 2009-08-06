@@ -1,7 +1,6 @@
-#!perl
+#!/usr/bin/perl
 
 # Test of deletion of duplicate parses.
-# Make this part of standard testiing?
 
 use 5.010;
 use strict;
