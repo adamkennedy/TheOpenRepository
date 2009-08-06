@@ -3,7 +3,7 @@ package Perl::Metrics2::CpanFile;
 use strict;
 use Perl::Metrics2 ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 sub release_index {
 	my $dbh = Perl::Metrics2->dbh or return;

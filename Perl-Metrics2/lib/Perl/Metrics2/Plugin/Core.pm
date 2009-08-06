@@ -6,7 +6,7 @@ use Perl::Metrics2::Plugin ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 	@ISA     = 'Perl::Metrics2::Plugin';
 }
 

@@ -13,7 +13,7 @@ use PPI::Cache           ();
 use PPI::Document        ();
 use Params::Util         '_ARRAY';
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 our @ISA     = qw{
 	Process::Delegatable
 	Process::Storable

@@ -1,5 +1,8 @@
 Changes for Perl extension Perl-Metrics2
 
+0.06 Fri  7 Aug 2009
+	- Added missing File::Find::Rule::Perl dependency
+
 0.05 Tue  4 Aug 2009
 	- A variety of more efficient indexes and index generators.
 	- Make the main document loop find documents in real-time rather

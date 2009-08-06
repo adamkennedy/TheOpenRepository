@@ -82,7 +82,7 @@ use PPI::Document          ();
 use PPI::Cache             ();
 use Module::Pluggable;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use constant ORLITE_FILE => File::Spec->catfile(
 	File::HomeDir->my_data,

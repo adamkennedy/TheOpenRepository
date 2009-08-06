@@ -71,7 +71,7 @@ use Perl::Metrics2   ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '0.06';
 }
 
 
