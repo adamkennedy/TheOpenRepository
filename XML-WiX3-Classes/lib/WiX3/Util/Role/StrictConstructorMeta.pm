@@ -1,5 +1,5 @@
 package # Hide from PAUSE.
-	XML::WiX3::Classes::Role::StrictConstructorMeta;
+	WiX3::Util::Role::StrictConstructorMeta;
 
 use strict;
 use warnings;
@@ -27,7 +27,7 @@ my \%attrs = (@attrs);
 my \@bad = sort grep { ! \$attrs{\$_} }  keys \%{ \$params };
 
 if (\@bad) {
-    XWObj::Parameter->throw("Found unknown attribute(s) passed to the constructor: \@bad");
+    WiX3::Parameter->throw("Found unknown attribute(s) passed to the constructor: \@bad");
 }
 EOF
 

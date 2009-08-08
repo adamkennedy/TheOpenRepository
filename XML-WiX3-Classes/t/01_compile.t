@@ -10,8 +10,8 @@ use Test::UseAllModules;
 # XML::WiX3::Classes::StrictConstructor needs to be used within 
 # a Moose class in order to work right.
 # We'll test it later.
-all_uses_ok(except => qw(XML::WiX3::Classes::StrictConstructor));
+all_uses_ok(except => qw(WiX3::Util::StrictConstructor));
 
 END {
-	diag( "Testing XML::WiX3::Classes $XML::WiX3::Classes::VERSION" );
+	diag( "Testing WiX3 $WiX3::VERSION" );
 }

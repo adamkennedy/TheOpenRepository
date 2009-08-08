@@ -3,8 +3,9 @@ package WiX3::XML::DirectoryRef;
 #<<<
 use 5.006;
 use Moose;
-use vars              qw( $VERSION );
-use Params::Util      qw( _STRING  );
+use vars                 qw( $VERSION );
+use Params::Util         qw( _STRING  );
+use MooseX::Types::Moose qw( Int Str  );
 
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
@@ -26,14 +27,14 @@ has _directory_object => (
 );
 
 has _diskid => (
-	id => 'ro',
-	isa => 'Int',
+	is => 'ro',
+	isa => Int,
 	reader => '_get_diskid',
 );
 
 has _filesource => (
-	id => 'ro',
-	isa => 'Str',
+	is => 'ro',
+	isa => Str,
 	reader => '_get_filesource',
 );
 

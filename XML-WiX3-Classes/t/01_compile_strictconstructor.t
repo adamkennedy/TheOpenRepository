@@ -9,9 +9,9 @@ BEGIN {
 	use Moose 0.74;
 	use Test::More tests => 1;
 
-	# XML::WiX3::Classes::StrictConstructor needs to be used within 
+	# WiX3::Util::StrictConstructor needs to be used within 
 	# a Moose class in order to work right.
-	use_ok('XML::WiX3::Classes::StrictConstructor');
+	use_ok('WiX3::Util::StrictConstructor');
 }
 
 1;

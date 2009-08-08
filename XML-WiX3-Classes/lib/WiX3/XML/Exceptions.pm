@@ -17,28 +17,28 @@ use Exception::Class 1.22 (
 	'WiX3::Exception::Parameter' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing or invalid',
-		'isa'    => 'XWC::Exception',
+		'isa'    => 'WiX3::Exception',
 	},
 	'WiX3::Exception::Caught' => {
 		'description' =>
 		  'Error caught by XML::WiX3::Classes from other module',
-		'isa'    => 'XWC::Exception',
+		'isa'    => 'WiX3::Exception',
 		'fields' => [ 'message', 'info' ],
 	},
 	'WiX3::Exception::Parameter::Missing' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing',
-		'isa'    => 'XWC::Exception::Parameter',
+		'isa'    => 'WiX3::Exception::Parameter',
 	},
 	'WiX3::Exception::Parameter::Invalid' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter invalid',
-		'isa'    => 'XWC::Exception::Parameter',
+		'isa'    => 'WiX3::Exception::Parameter',
 	},
 	'WiX3::Exception::Parameter::Odd' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing or invalid',
-		'isa'    => 'XWC::Exception::Parameter',
+		'isa'    => 'WiX3::Exception::Parameter',
 	},
 );
 
@@ -50,7 +50,7 @@ sub WiX3::Exception::full_message { ## no critic 'Capitalization'
 	  . $self->message() . "\n"
 	  . 'Time error caught: '
 	  . localtime() . "\n";
-	my $misc       = XML::WiX3::Classes::Traceable->new();
+	my $misc       = WiX3::Traceable->new();
 	my $tracelevel = $misc->get_tracelevel();
 
 	# Add trace to it if tracelevel high enough.
@@ -71,7 +71,7 @@ sub WiX3::Exception::Parameter::full_message { ## no critic 'Capitalization'
 	  . $self->message() . "\n"
 	  . 'Time error caught: '
 	  . localtime() . "\n";
-	my $misc       = XML::WiX3::Classes::Traceable->new();
+	my $misc       = WiX3::Traceable->new();
 	my $tracelevel = $misc->get_tracelevel();
 
 	# Add trace to it. (We automatically dump trace for parameter errors.)
@@ -91,7 +91,7 @@ sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
 	  . $self->info() . "\n"
 	  . 'Time error caught: '
 	  . localtime() . "\n";
-	my $misc       = Perl::Dist::WiX::Misc->new();
+	my $misc       = WiX3::Traceable->new();
 	my $tracelevel = $misc->get_trace() % 100;
 
 	# Add trace to it if tracelevel high enough.

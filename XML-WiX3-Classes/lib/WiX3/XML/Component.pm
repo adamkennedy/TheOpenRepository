@@ -1,12 +1,12 @@
 package WiX3::XML::Component;
 
 #<<<
-use 5.006;
+use 5.008001;
 use Moose;
-use vars                  qw( $VERSION      );
-use Params::Util          qw( _STRING       );
-use WiX3::Types           qw( YesNoType     );
-use MooseX::Types::Moose  qw( Str Maybe Int );
+use vars                  qw( $VERSION                    );
+use Params::Util          qw( _STRING                     );
+use WiX3::Types           qw( YesNoType ComponentGuidType );
+use MooseX::Types::Moose  qw( Str Maybe Int               );
 
 use version; $VERSION = version->new('0.004')->numify;
 #>>>

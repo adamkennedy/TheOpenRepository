@@ -1,9 +1,9 @@
 package # Hide from PAUSE.
-	XML::WiX3::Classes::Role::StrictConstructor;
+	WiX3::Util::Role::StrictConstructor;
 
 use strict;
 use warnings;
-use XML::WiX3::Classes::Exceptions;
+use WiX3::XML::Exceptions;
 use Moose::Role;
 
 after 'BUILDALL' => sub
@@ -22,7 +22,7 @@ after 'BUILDALL' => sub
 
     if (@bad)
     {
-        XWC::Exception::Parameter->throw("Found unknown attribute(s) init_arg passed to the constructor: @bad");
+        WiX3::Exception::Parameter->throw("Found unknown attribute(s) init_arg passed to the constructor: @bad");
     }
 
     return;

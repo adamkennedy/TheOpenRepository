@@ -4,10 +4,10 @@ package # Hide from PAUSE
 #<<<
 use     5.006;
 use		MooseX::Singleton;
-use     vars                      qw( $VERSION      );
-use     Data::UUID                qw( NameSpace_DNS );
-use     XML::WiX3::Classes::Types qw( Host          );
-require XML::WiX3::Classes::Exceptions;
+use     vars                   qw( $VERSION      );
+use     Data::UUID             qw( NameSpace_DNS );
+use     WiX3::Types            qw( Host          );
+require WiX3::XML::Exceptions;
 
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
@@ -16,7 +16,7 @@ use version; $VERSION = version->new('0.003')->numify;
 #####################################################################
 # Attributes
 
-with 'XML::WiX3::Classes::Role::Traceable';
+with 'WiX3::Role::Traceable';
 
 has _sitename => (
     is      => 'ro',

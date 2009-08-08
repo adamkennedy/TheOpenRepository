@@ -5,6 +5,8 @@ use 5.006;
 use Moose;
 use vars              qw( $VERSION );
 # use Params::Util      qw( _STRING  );
+use MooseX::Types::Moose qw( Int Str  );
+
 
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
@@ -20,7 +22,7 @@ with 'WiX3::XML::Role::GeneratesGUID';
 
 has id => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Str,
 	reader => 'get_id',
 	default => undef,
 );
@@ -28,61 +30,61 @@ has id => (
 # Path helps us in path searching.
 has path => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Str,
 	reader => 'get_path',
 );
 
 has noprefix => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Str,
 	reader => '_get_noprefix',
 	default => undef,
 );
 
 has _diskid => (
 	is => 'ro',
-	isa => 'Int',
+	isa => Int,
 	reader => '_get_diskid',
-	init_args => 'diskid',
+	init_arg => 'diskid',
 	default => undef,
 );
 
 has _filesource => (
 	is => 'ro',
-	isa => 'Str',
+	isa => Str,
 	reader => '_get_filesource',
-	init_args => 'filesource',
+	init_arg => 'filesource',
 	default => undef,
 );
 
 has name => (
 	is => 'ro',
-	isa => 'Str', # LongFileNameType
+	isa => Str, # LongFileNameType
 	reader => 'get_name',
 	default => undef,
 );
 
 has _sourcename => (
 	is => 'ro',
-	isa => 'Str', # LongFileNameType
+	isa => Str, # LongFileNameType
 	reader => '_get_sourcename',
-	init_args => 'sourcename',
+	init_arg => 'sourcename',
 	default => undef,
 );
 
 has _shortname => (
 	is => 'ro',
-	isa => 'Str', # ShortFileNameType
+	isa => Str, # ShortFileNameType
 	reader => '_get_shortname',
-	init_args => 'shortname',
+	init_arg => 'shortname',
 	default => undef,
 );
 
 has _shortsourcename => (
 	is => 'ro',
-	isa => 'Str', # ShortFileNameType
+	isa => Str, # ShortFileNameType
 	reader => '_get_shortsourcename',
-	init_args => 'shortsourcename',
+	init_arg => 'shortsourcename',
 	default => undef,
 );
 

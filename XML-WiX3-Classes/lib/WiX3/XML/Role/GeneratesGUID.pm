@@ -1,8 +1,8 @@
-package XML::WiX3::Classes::Role::GeneratesGUID;
+package WiX3::XML::Role::GeneratesGUID;
 
 use 5.008001;
 use Moose::Role;
-use XML::WiX3::Classes::Types qw(Host);
+use WiX3::Types qw(Host);
 
 use version; our $VERSION = version->new('0.003')->numify;
 

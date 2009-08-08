@@ -1,8 +1,8 @@
-package XML::WiX3::Classes::Role::Traceable;
+package WiX3::Role::Traceable;
 
 use 5.008001;
 use Moose::Role;
-use XML::WiX3::Classes::Trace::Object;
+use WiX3::Trace::Object;
 
 use version; our $VERSION = version->new('0.003')->numify;
 
@@ -15,7 +15,7 @@ has _traceopts => (
 
 has _traceobject => (
     is  => 'ro',
-    isa => 'XML::WiX3::Classes::Trace::Object',
+    isa => 'WiX3::Trace::Object',
 	lazy => 1,
 	init_arg => undef,
 	builder => '_setup_traceobject',
@@ -24,7 +24,7 @@ has _traceobject => (
 
 sub _setup_traceobject {
 	my $self = shift;
-	return XML::WiX3::Classes::Trace::Object->new( 
+	return WiX3::Trace::Object->new( 
 	  %{ $self->_get_traceopts() }, 
 	  use_logger_singleton => 1,
 	);

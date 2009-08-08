@@ -1,4 +1,4 @@
-package XML::WiX3::Classes::Role::Fragment;
+package WiX3::XML::Role::Fragment;
 
 #<<<
 use 5.006;
@@ -8,7 +8,7 @@ use vars qw( $VERSION );
 use version; $VERSION = version->new('0.003')->numify;
 #>>>
 
-with 'XML::WiX3::Classes::Role::Tag';
+with 'WiX3::XML::Role::Tag';
 
 has id => (
 	is => 'ro',

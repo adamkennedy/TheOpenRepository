@@ -1,4 +1,4 @@
-package XML::WiX3::Classes::Role::Tag;
+package WiX3::XML::Role::Tag;
 
 #<<<
 use     5.006;
@@ -6,9 +6,9 @@ use		Moose::Role;
 use     Params::Util  qw( _STRING _NONNEGINT );
 use     vars          qw( $VERSION );
 use     MooseX::AttributeHelpers;
-use     XML::WiX3::Classes::Types qw(IsTag);
+use     WiX3::Types qw(IsTag);
 use     MooseX::Types::Moose qw(ArrayRef);
-use     XML::WiX3::Classes::Exceptions;
+use     WiX3::XML::Exceptions;
 use     List::MoreUtils qw( uniq );
 
 use version; $VERSION = version->new('0.003')->numify;
@@ -168,15 +168,15 @@ __END__
 
 =head1 NAME
 
-XML::WiX3::Classes::Role::Tag - Base role for XML tags.
+WiX3::XML::Role::Tag - Base role for XML tags.
 
 =head1 VERSION
 
-This document describes XML::WiX3::Classes::Role::Tag version 0.003
+This document describes WiX3::XML::Role::Tag version 0.003
 
 =head1 SYNOPSIS
 
-    # use XML::WiX3::Classes;
+    # use WiX3;
 
 =head1 DESCRIPTION
 

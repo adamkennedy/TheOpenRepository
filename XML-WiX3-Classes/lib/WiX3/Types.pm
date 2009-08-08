@@ -3,7 +3,10 @@ package # Hide from PAUSE.
 
 use 5.008001;
 use Regexp::Common 2.105;
-use MooseX::Types -declare => [qw( Host Tracelevel IsTag)];
+use MooseX::Types -declare => [qw( 
+	Host Tracelevel IsTag _YesNoType YesNoType ComponentGuidType PositiveInt
+	NonNegativeInt
+)];
 use MooseX::Types::Moose qw(Str Int Bool);
 
 use version; our $VERSION = version->new('0.004')->numify;
@@ -37,7 +40,7 @@ coerce YesNoType,
 	
 coerce YesNoType,
 	from Bool|Int,
-	via { $_ ? 'yes' ? 'no' };
+	via { $_ ? 'yes' : 'no' };
 
 #coerce YesNoType,
 #	from Int,
