@@ -2492,46 +2492,77 @@ sub Marpa::Evaluator::new_value {
 
             $decisions->[$and_node_id] = 1;
 
-            my $or_node_id =
+            my $or_parent_id =
                 $and_node->[Marpa::Internal::And_Node::PARENT_ID];
-            my $or_node = $or_nodes->[$or_node_id];
-            my $and_node_choice =
-                $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
+            my $or_parent = $or_nodes->[$or_parent_id];
 
             # reject all alternatives to this choice at this or-node
-            my $siblings = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+            my $accepted_node_ix =
+                $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
+            my $siblings = $or_parent->[Marpa::Internal::Or_Node::CHILD_IDS];
+            SIBLING:
+            for my $sibling_ix ( ( 0 .. $accepted_node_ix - 1 ),
+                ( $accepted_node_ix + 1 .. $#{$siblings} ) )
+            {
 
-            my @sibling_reject_tasks = ();
-            SIBLING: for my $sibling_choice ( 0 .. $#{$siblings} ) {
+                push @tasks,
+                    [
+                    Marpa::Internal::Task::REJECT, $siblings->[$sibling_ix]
+                    ];
 
-                # Not a proper sibling -- this is our original accepted node.
-                next SIBLING if $sibling_choice == $and_node_choice;
+            } ## end for my $sibling_ix ( ( 0 .. $accepted_node_ix - 1 ), ...)
 
-                my $sibling_id = $siblings->[$sibling_choice];
+            # Now deal with the grandparent and grandchild and-nodes.
 
-                push @sibling_reject_tasks,
-                    [ Marpa::Internal::Task::REJECT, $sibling_id ];
+            # Gather the or-sets of and-node grandparents and grandchildren
+            my @and_node_id_sets =
+                $or_parent->[Marpa::Internal::Or_Node::PARENT_IDS],
+                (
+                map      { $_->[Marpa::Internal::Or_Node::CHILD_IDS] }
+                    grep { defined $_ } @{$and_node}[
+                    Marpa::Internal::And_Node::CAUSE,
+                Marpa::Internal::And_Node::PREDECESSOR
+                    ]
+                );
 
-                next SIBLING;
+            # In each or-set, look for a unique, unrejected and-node.
+            # If there is one, and it is not already accepted, accept
+            # it.
+            AND_NODE_ID_SET: for my $and_node_id_set (@and_node_id_sets) {
+                my $unrejected_and_node_id;
+                for my $and_node_id ( @{$and_node_id_set} ) {
+                    my $element_decision = $decisions->[$and_node_id];
+                    if ( not defined $element_decision ) {
 
-            } ## end for my $sibling_choice ( 0 .. $#{$siblings} )
+                        # If more than one unrejected and-node, give up on
+                        # this set.
+                        next AND_NODE_ID_SET
+                            if defined $unrejected_and_node_id;
+                        $unrejected_and_node_id = $and_node_id;
+                    } ## end if ( not defined $element_decision )
 
-            # Now deal with the parent and-node.  This may involve
-            # having to choose which fork to take on the path
-            # upward.
+                    # If there is an accepted and-node in the set, either
+                    # the unique unrejected and-node is already accepted,
+                    # or there is no unique unrejected and-node.  Either
+                    # way, give up on this set.
+                    next AND_NODE_ID_SET if $element_decision;
 
-            my $parent_ids = $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
+                    # If we are here the and-node is rejected.  We do not
+                    # need to do anything.
 
-            # No forks means we are are the top or-node.
-            # If we are at the top or-node,
-            # we are done following the upward path.
+                } ## end for my $and_node_id ( @{$and_node_id_set} )
 
-            if ( not scalar @{$parent_ids} ) {
-                push @tasks, @sibling_reject_tasks;
-                next TASK;
-            }
+                # We did not find a unique unrejected and-node.  Go on to
+                # the next set.
+                next AND_NODE_ID_SET if not defined $unrejected_and_node_id;
 
-            # TODO Accept parents?
+                # Push acceptance of the unique unrejected and-node
+                # on the task list.
+                push @tasks,
+                    [ Marpa::Internal::Task::ACCEPT,
+                    $unrejected_and_node_id ];
+
+            } ## end for my $and_node_id_set (@and_node_id_sets)
 
             next TASK;
 
@@ -2615,54 +2646,30 @@ sub Marpa::Evaluator::new_value {
 
             my ($and_node_id) = @{$task_data};
 
+            my $decision = $decisions->[$and_node_id];
+
+            # Has the decision already been made?
+            if ( defined $decision ) {
+
+                # Clear tasks stack and backtrack if already
+                # accepted.  Do nothing is already rejected.
+                # Do nothing if already accepted
+                if ($decision) {
+                    @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
+                }
+                next TASK;
+            } ## end if ( defined $decision )
+
             my $and_node = $and_nodes->[$and_node_id];
 
             if ($trace_tasks) {
                 my $and_node_tag =
                     $and_node->[Marpa::Internal::And_Node::TAG];
                 print {$trace_fh}
-                    "Task: REJECT_NODE, node $and_node_tag; ",
+                    "Task: REJECT, node $and_node_tag; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
-
-            my $decision = $decisions->[$and_node_id];
-
-            # Has the decision already been made?
-            if ( defined $decision ) {
-
-                # If it's already rejected, we're done.
-                # Next task.
-                if ( not $decision ) {
-
-                    if ( $trace_iterations >= 3 ) {
-                        my $and_node_tag =
-                            $and_node->[Marpa::Internal::And_Node::TAG];
-                        print {$trace_fh}
-                            "Iteration: Already rejected and-node $and_node_tag\n"
-                            or
-                            Marpa::exception('print to trace handle failed');
-                    } ## end if ( $trace_iterations >= 3 )
-
-                    next TASK;
-                } ## end if ( not $decision )
-
-                # If we're here, a decision to accept has already
-                # been made.  This can't happen and we need to
-                # backtrack.
-                if ( $trace_iterations >= 3 ) {
-                    my $and_node_tag =
-                        $and_node->[Marpa::Internal::And_Node::TAG];
-                    print {$trace_fh}
-                        "Iteration: Attempted to reject an accepted node: $and_node_tag; ",
-                        "need to backtrack\n"
-                        or Marpa::exception('print to trace handle failed');
-                } ## end if ( $trace_iterations >= 3 )
-
-                @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
-                next TASK;
-
-            } ## end if ( defined $decision )
 
             # If we are at this point, this and-node is undecided.
             # Reject it.

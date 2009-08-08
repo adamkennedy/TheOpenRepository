@@ -152,13 +152,13 @@ S13@0-3L1o1 ::= S13@0-3L1o1a2
 S13@0-3L1o1a2 ::= S10@0-2R4:2o3 S5@2-3L5o4
     rule 4: (part of 0) S -> { p p } p n .
     rhs length = 3; closure
-S8@0-3L1o2 ::= S8@0-3L1o2a4
-S8@0-3L1o2a4 ::= S6@0-1R6:2o7 S9@1-3L5o6
-    rule 6: (part of 0) S -> { p p } p n .
-    rhs length = 3; closure
 S8@0-3L1o2 ::= S8@0-3L1o2a3
 S8@0-3L1o2a3 ::= S6@0-1R5:2o5 S9@1-3L5o6
     rule 5: (part of 0) S -> { p p } p n .
+    rhs length = 3; closure
+S8@0-3L1o2 ::= S8@0-3L1o2a4
+S8@0-3L1o2a4 ::= S6@0-1R6:2o7 S9@1-3L5o6
+    rule 6: (part of 0) S -> { p p } p n .
     rhs length = 3; closure
 S10@0-2R4:2o3 ::= S10@0-2R4:2o3a5
 S10@0-2R4:2o3a5 ::= S6@0-1R4:1o8 S4@1-2L2o9
