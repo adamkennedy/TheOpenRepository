@@ -1,5 +1,9 @@
 Revision history for Perl extension AutoLoader
 
+5.69  Sat Aug  8 12:33 2009
+
+  - CPAN distribution upgrade: Add resources section to META.yml.
+
 5.68  Mon Jan  5 17:50 2009
   - VMS fixes for the AutoSplit tests (John Malmberg, RT #42137)
 
