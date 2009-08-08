@@ -102,7 +102,7 @@ use Marpa::Offset qw(
     NULL_VALUES
     { Delete this } CYCLES { Will this be needed? }
     JOURNAL
-    INSTANCES
+    RANKED_AND_NODE_IDS
     DECISIONS
 
 );
@@ -112,20 +112,10 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Journal_Tag
 
-    NODE { Records the acceptance or rejection an and-node. }
-
-    FORK { An interable decision to follow one branch of a fork
-    up the parse bocage. }
-
-    INSTANCE { An iterable decision to accept one of an instance's
-    and-nodes , or to reject them all.  }
-
-    RATCHET_INSTANCE_ACCEPTANCES {
-    Ratchet instance acceptances below "here".  That is,
-    the only iteration allowed for an accepted instance
-    is to reject it -- other possible ways of accepting
-    the instance are not considered.
-    }
+    DECIDE { Records the iterable acceptance of an and-node. }
+    ACCEPT { Records the non-iterable acceptance of an and-node. }
+    REJECT { Records the rejection of an and-node.
+    Rejections are always non-iterable.  }
 
 );
 
@@ -156,6 +146,10 @@ use English qw( -no_match_vars );
 use Data::Dumper;
 use Marpa::Internal;
 our @CARP_NOT = @Marpa::Internal::CARP_NOT;
+
+# Also used as mask, so must be 2**n-1
+use constant N_FORMAT_MAX   => 0x7fffffff;
+use constant N_FORMAT_BYTES => 4;
 
 sub run_preamble {
     my $grammar = shift;
@@ -1966,6 +1960,8 @@ sub Marpa::Evaluator::new {
                     $end_earleme;
                 my $id = $and_node->[Marpa::Internal::And_Node::ID] =
                     @{$and_nodes};
+                Marpa::exception("Too many and-nodes for evaluator: $id")
+                    if $id & ~(N_FORMAT_MAX);
                 push @{$and_nodes}, $and_node;
 
                 push @child_and_nodes, $and_node;
@@ -2050,38 +2046,6 @@ sub Marpa::Evaluator::new {
 
     delete_duplicate_nodes($self);
 
-    OR_NODE: for my $or_node ( @{$or_nodes} ) {
-        my $child_ids       = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
-        my $child_and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
-        next OR_NODE if @{$child_ids} <= 1;
-
-        ## no critic (BuiltinFunctions::ProhibitReverseSortBlock)
-        my @new_order = map { $_->[0] }
-            sort { $b->[1] <=> $a->[1] }
-            map {
-            [   $_,
-                (   $and_nodes->[ $child_ids->[$_] ]
-                        ->[Marpa::Internal::And_Node::RULE]
-                        ->[Marpa::Internal::Rule::INTERNAL_PRIORITY] // 0
-                )
-            ]
-            } ( 0 .. $#{$child_ids} );
-        ## use critic
-
-        $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] =
-            [ @{$child_ids}[@new_order] ];
-        $or_node->[Marpa::Internal::Or_Node::AND_NODES] =
-            [ @{$child_and_nodes}[@new_order] ];
-        $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
-        for my $child_ix ( 0 .. $#{$child_ids} ) {
-            my $child_id       = $child_ids->[$child_ix];
-            my $child_and_node = $and_nodes->[$child_id];
-            $child_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
-                $child_ix;
-        } ## end for my $child_ix ( 0 .. $#{$child_ids} )
-
-    } ## end for my $or_node ( @{$or_nodes} )
-
     ### assert: Marpa'Evaluator'audit($self) or 1
 
     return $self;
@@ -2154,22 +2118,18 @@ sub Marpa::Evaluator::show_decisions {
     $verbose //= 0;
     my $return_value = q{};
 
-    my $instances = $evaler->[Marpa::Internal::Evaluator::INSTANCES];
     my $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
-    for my $rank ( 0 .. $#{$instances} ) {
-        my $and_node_ids = $instances->[$rank];
-        for my $choice ( 0 .. $#{$and_node_ids} ) {
-            my $and_node_id = $and_node_ids->[$choice];
-            my $decision    = $decisions->[$and_node_id];
-            my $and_node    = $and_nodes->[$and_node_id];
-            $return_value
-                .= "$rank.$choice: "
-                . Marpa::show_decision($decision) . q{ }
-                . Marpa::show_and_node( $and_node, $verbose );
-        } ## end for my $choice ( 0 .. $#{$and_node_ids} )
-    } ## end for my $rank ( 0 .. $#{$instances} )
+    for my $and_node ( @{$and_nodes} ) {
+        my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
+        my $decision    = $decisions->[$and_node_id];
+        my $tag         = $and_node->[Marpa::Internal::And_Node::TAG];
+        $return_value
+            .= "$tag: "
+            . Marpa::show_decision($decision) . q{ }
+            . Marpa::show_and_node( $and_node, $verbose );
+    } ## end for my $and_node ( @{$and_nodes} )
 
     return $return_value;
 
@@ -2305,32 +2265,23 @@ sub Marpa::Evaluator::set {
     return 1;
 } ## end sub Marpa::Evaluator::set
 
-# A constant to indicate in the decision vector,
-# that a node is rejected.  It must not be a possible
-# index to that vector, and therefore must be some negative
-# number
-use constant REJECTED     => -1;
-use constant NOT_REJECTED => ( REJECTED - 1 );
-
 use Marpa::Offset qw(
     { tasks for use in Marpa::Evaluator::value }
     :package=Marpa::Internal::Task
-    ITERATE_INSTANCE
-    ACCEPT_NODE
-    REJECT_NODE
-    BACKTRACK_TO_FORK
-    BACKTRACK_TO_INSTANCE
+    DECIDE
+    ACCEPT
+    REJECT
+    ADVANCE
+    BACKTRACK
     EVALUATE
-    FORK_MARKER
 );
-
-use constant NEGATIVE_N_WIDTH => -4;
 
 sub Marpa::show_decision {
     my ($decision) = @_;
     return 'none' if not defined $decision;
-    return 'REJECTED' if $decision == REJECTED;
-    return "ACCEPTED($decision)";
+    return $decision
+        ? 'ACCEPTED'
+        : 'REJECTED';
 } ## end sub Marpa::show_decision
 
 # This will replace the old value method
@@ -2344,10 +2295,11 @@ sub Marpa::Evaluator::new_value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) if $evaler_class ne $right_class;
 
-    my $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
+    my $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
+    my $ranked_and_node_ids =
+        $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS];
-    my $instances = $evaler->[Marpa::Internal::Evaluator::INSTANCES];
 
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
@@ -2386,66 +2338,52 @@ sub Marpa::Evaluator::new_value {
 
     # Default is to backtrack, but if this is a new parse (no journal)
     # it will be overriden
-    my @tasks = ( [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
+    my @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
+
+    # The current rank, for advancing and backtracking.
+    my $current_rank;
 
     if ( not defined $journal ) {
 
+        my @sort_data = ();
+
+        my $depth = 0;
+        my @depth = $#{$and_nodes};
+        my @and_node_ids_at_depth =
+            @{ $or_nodes->[0]->[Marpa::Internal::Or_Node::CHILD_IDS] };
+
         # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
-        # Note the use of Unicode for packing, which I've not seen anyone else do.
-        my %instances_by_sortkey = ();
-        OR_NODE: for my $or_node ( @{$or_nodes} ) {
-            my $start_earleme =
-                $or_node->[Marpa::Internal::Or_Node::START_EARLEME];
-            my $end_earleme =
-                $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
-            my $or_node_children =
-                $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
-            for my $and_node_id ( @{$or_node_children} ) {
+        while (@and_node_ids_at_depth) {
+            AND_NODE: for my $and_node_id (@and_node_ids_at_depth) {
+                $depth[$and_node_id] = $depth;
                 my $and_node = $and_nodes->[$and_node_id];
-                my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
+
+                my $actual_rule =
+                    $and_node->[Marpa::Internal::And_Node::RULE];
+                my $original_rule =
+                    $actual_rule->[Marpa::Internal::Rule::ORIGINAL_RULE];
+                my $virtual_span =
+                    $actual_rule->[Marpa::Internal::Rule::VIRTUAL_SPAN];
+                my $rule =
+                      $virtual_span
+                    ? $original_rule
+                    : $actual_rule;
+
+                my $start_earleme =
+                    $and_node->[Marpa::Internal::And_Node::START_EARLEME];
+                my $end_earleme =
+                    $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+
                 my $user_priority =
                     $rule->[Marpa::Internal::Rule::USER_PRIORITY];
                 $user_priority //= 0;
-                ## a non-zero user priority makes an and-node interesting
 
-                my $internal_priority =
-                    $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY];
-                $internal_priority //= 0;
-
-                # is this and-node interesting for priority purposes?
-                ## any non-zero priority makes an and-node interesting
-                my $interesting = $user_priority || $internal_priority;
-
-                my $is_hasty = $rule->[Marpa::Internal::Rule::MINIMAL];
-                my $laziness = 0;
-                if ( defined $is_hasty ) {
-
-                    # a hasty or lazy and-node is interesting
-                    $interesting = 1;
-
-                    $laziness = $end_earleme - $start_earleme;
-                    if ($is_hasty) {
-                        $laziness = $earleme_beyond_last - $laziness;
-                    }
-                } ## end if ( defined $is_hasty )
-
-                # Only sort by location if the and-node is "interesting"
-                # and has the same span as it original rule.
-                my $location = 0;
-                my $virtual_span =
-                    $rule->[Marpa::Internal::Rule::VIRTUAL_SPAN];
-                if ( $interesting and not $virtual_span ) {
-                    $location = $earleme_beyond_last - $start_earleme;
+                my $length = $end_earleme - $start_earleme;
+                if ( not $rule->[Marpa::Internal::Rule::MINIMAL] ) {
+                    $length = N_FORMAT_MAX - $length;
                 }
 
-                # The sort order must
-                # 1.) Preserve the chaf order that is in the internal priority.
-                #     The below does that because all chaf pieces share the same
-                #     rule and therefor the same user-priority, and because
-                #     only the higher-sorted CHAF rules can have a non-zero
-                #     location, and they will all have the same location.
-                # 2.) Group all and-nodes with the signature together.
-                # Otherwise, things break.
+                my $location = $start_earleme;
 
                 # N-format is limited to 32-bits.
                 # Limits on all these values are enforced to prevent overflow,
@@ -2455,521 +2393,200 @@ sub Marpa::Evaluator::new_value {
                 # but someday technology may allow there to be 2**31
                 # rules.  Something to live for. :-)
 
-                my $rule_id = $rule->[Marpa::Internal::Rule::ID];
-                my $rule_position =
-                    $and_node->[Marpa::Internal::And_Node::POSITION];
-                my $sort_key = pack 'N*',
-                    $location, $user_priority, $internal_priority, $laziness,
-                    $rule_id, $rule_position, $start_earleme, $end_earleme;
-                push @{ $instances_by_sortkey{$sort_key} }, $and_node_id;
+                push @sort_data, pack 'N*',
+                    $location,
+                    ( N_FORMAT_MAX - $depth ),
+                    ( N_FORMAT_MAX - $user_priority ),
+                    $length,
+                    $and_node_id;
 
-            } ## end for my $and_node_id ( @{$or_node_children} )
-        } ## end for my $or_node ( @{$or_nodes} )
+            } ## end for my $and_node_id (@and_node_ids_at_depth)
 
-        $instances = $evaler->[Marpa::Internal::Evaluator::INSTANCES] = [
-            reverse map { $instances_by_sortkey{$_} }
-                sort keys %instances_by_sortkey
-        ];
+            @and_node_ids_at_depth =
+                grep { not defined $depth[$_] }
+                map  { @{ $_->[Marpa::Internal::Or_Node::CHILD_IDS] } }
+                grep { defined $_ }
+                map {
+                @{ $and_nodes->[$_] }[
+                    Marpa::Internal::And_Node::CAUSE,
+                    Marpa::Internal::And_Node::PREDECESSOR
+                    ]
+                } @and_node_ids_at_depth;
+            $depth++;
+            if ( $depth & ~(N_FORMAT_MAX) ) {
+                Marpa::exception(
+                    "Parse too deep (depth=$depth) to be evaluated");
+            }
+
+        } ## end while (@and_node_ids_at_depth)
+
+        $ranked_and_node_ids =
+            $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS] =
+            map { unpack $_, -(N_FORMAT_BYTES) } sort @sort_data;
         $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL]   = [];
         $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS] = [];
-        @tasks = ( [ Marpa::Internal::Task::ITERATE_INSTANCE, 0, 0 ] );
+        @tasks = ( [Marpa::Internal::Task::ADVANCE] );
+        $current_rank = 0;
 
     } ## end if ( not defined $journal )
     ## End not defined $journal
-
-    ## This code is inherently complex, and like a case statement
-    ## in that one case is laid out after another.  The performance
-    ## hit from Perl subroutines would buy only a lot of page-flipping
-    ## by the reader of the code.
-    ## no critic (ControlStructures::ProhibitDeepNests)
 
     TASK: while ( my $task_data = pop @tasks ) {
 
         my $task = shift @{$task_data};
 
-        if ( $task == Marpa::Internal::Task::ITERATE_INSTANCE ) {
+        if ( $task == Marpa::Internal::Task::ADVANCE ) {
+            my ($advance_is_to_do);
 
-            my ( $rank, $current_choice ) = @{$task_data};
+            # TO DO
+        }
 
-            if ($trace_tasks) {
-                print {$trace_fh} "Task: ITERATE_INSTANCE; rank $rank; ",
-                    "current choice $current_choice; ",
-                    ( scalar @tasks ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_tasks)
+        if ( $task == Marpa::Internal::Task::ACCEPT ) {
 
-            if ( $rank > $#{$instances} ) {
-                @tasks = ( [ Marpa::Internal::Task::EVALUATE, 0 ] );
-                next TASK;
-            }
-
-            my $choices = $instances->[$rank];
-
-            if ( $current_choice > $#{$choices} or $current_choice < 0 ) {
-                $current_choice = -1;
-            }
-
-            # Create the @tasks stack.
-            # Note that we # overwrite the @tasks stack,
-            # clearing it of any previous tasks.
-            # We start by stacking the next INSTANCE iteration.
-            # After that, we stack the ACCEPT_NODE task, if there is one.
-            # It's important that the ACCEPT_NODE task
-            # be performed after all the REJECT_NODE tasks.
-
-            # If it's an iterable choice, then journal it.
-            if ( $current_choice >= 0 ) {
-
-                # Journal this choice.
-                push @{$journal},
-                    [
-                    Marpa::Internal::Journal_Tag::INSTANCE, $rank,
-                    $current_choice
-                    ];
-
-                if ($trace_journal) {
-                    print {$trace_fh}
-                        "Journal: Accepted instance, rank $rank, choice $current_choice\n"
-                        or Marpa::exception('print to trace handle failed');
-                }
-
-                if ($trace_iterations) {
-                    my $and_node_id = $choices->[$current_choice];
-                    my $and_node    = $and_nodes->[$and_node_id];
-                    my $and_node_tag =
-                        $and_node->[Marpa::Internal::And_Node::TAG];
-                    print {$trace_fh}
-                        "Iteration: Accepted instance; rank $rank; ",
-                        "choice $current_choice; and-node $and_node_tag\n"
-                        or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_iterations)
-
-                @tasks = (
-                    [ Marpa::Internal::Task::ITERATE_INSTANCE, $rank + 1, 0 ],
-                    [   Marpa::Internal::Task::ACCEPT_NODE, $rank,
-                        $choices->[$current_choice]
-                    ]
-                );
-
-            } ## end if ( $current_choice >= 0 )
-            else {
-
-                if ($trace_iterations) {
-                    print {$trace_fh}
-                        "Iteration: Rejected instance, rank $rank\n"
-                        or Marpa::exception('print to trace handle failed');
-                }
-
-                @tasks = (
-                    [ Marpa::Internal::Task::ITERATE_INSTANCE, $rank + 1, 0 ],
-                );
-
-            } ## end else [ if ( $current_choice >= 0 ) ]
-
-            REJECT_TASK_CHOICE:
-            for my $rejection_choice ( 0 .. $#{$choices} ) {
-
-                # Don't reject the current acceptance choice.
-                next REJECT_TASK_CHOICE
-                    if $rejection_choice == $current_choice;
-
-                push @tasks,
-                    [
-                    Marpa::Internal::Task::REJECT_NODE, $rank,
-                    $choices->[$rejection_choice]
-                    ];
-
-            } ## end for my $rejection_choice ( 0 .. $#{$choices} )
-
-            next TASK;
-
-        } ## end if ( $task == Marpa::Internal::Task::ITERATE_INSTANCE)
-
-        if ( $task == Marpa::Internal::Task::ACCEPT_NODE ) {
-
-            my ( $rank, $and_node_id ) = @{$task_data};
-
-            if ($trace_tasks) {
-                print {$trace_fh}
-                    "Task: ACCEPT_NODE, rank $rank; and-node $and_node_id; ",
-                    ( scalar @tasks ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_tasks)
+            my ( $and_node_id, $rank ) = @{$task_data};
 
             my $decision = $decisions->[$and_node_id];
+            if ( defined $decision ) {
 
-            # If this node is not decided, accept it
-            if ( not defined $decision ) {
-
-                push @{$journal},
-                    [ Marpa::Internal::Journal_Tag::NODE, $and_node_id, ];
-
-                my $and_node = $and_nodes->[$and_node_id];
-                if ($trace_journal) {
-                    my $and_node_tag =
-                        $and_node->[Marpa::Internal::And_Node::TAG];
-                    print {$trace_fh}
-                        "Journal: Accepted $and_node_tag, rank $rank\n"
-                        or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_journal)
-
-                $decisions->[$and_node_id] = $rank;
-
-                my $or_node_id =
-                    $and_node->[Marpa::Internal::And_Node::PARENT_ID];
-                my $or_node = $or_nodes->[$or_node_id];
-                my $and_node_choice =
-                    $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
-
-                # reject all alternatives to this choice at this or-node
-                my $siblings =
-                    $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
-
-                my @sibling_reject_tasks = ();
-                SIBLING: for my $sibling_choice ( 0 .. $#{$siblings} ) {
-
-                    # Not a proper sibling -- this is our original accepted node.
-                    next SIBLING if $sibling_choice == $and_node_choice;
-
-                    my $sibling_id = $siblings->[$sibling_choice];
-
-                    push @sibling_reject_tasks,
-                        [
-                        Marpa::Internal::Task::REJECT_NODE, $rank,
-                        $sibling_id
-                        ];
-
-                    next SIBLING;
-
-                } ## end for my $sibling_choice ( 0 .. $#{$siblings} )
-
-                # Now deal with the parent and-node.  This may involve
-                # having to choose which fork to take on the path
-                # upward.
-
-                my $forks = $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
-
-                # No forks means we are are the top or-node.
-                # If we are at the top or-node,
-                # we are done following the upward path.
-
-                if ( not scalar @{$forks} ) {
-                    push @tasks, @sibling_reject_tasks;
-                    next TASK;
+                # Clear tasks stack and backtrack if already
+                # rejected.
+                # Do nothing if already accepted
+                if ( not $decision ) {
+                    @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
                 }
 
-                # Pick the first fork.  Do not journal the
-                # decision unless it is iterable.  In other
-                # words, do not journal if this fork choice
-                # is already the last possible one.
-
-                my $fork_choice = 0;
-                my $parent_id   = $forks->[$fork_choice];
-                my $parent_node = $and_nodes->[$parent_id];
-
-                if ($trace_iterations) {
-                    my $parent_node_tag =
-                        $parent_node->[Marpa::Internal::And_Node::TAG];
-                    print {$trace_fh}
-                        "Iteration: Choosing upward fork $fork_choice, ",
-                        "to $parent_node_tag, rank $rank\n"
-                        or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_iterations)
-
-                # Are there other iterations possible after this one?
-                if ( $fork_choice < $#{$forks} ) {
-
-                    push @{$journal},
-                        [
-                        Marpa::Internal::Journal_Tag::FORK,
-                        $rank, $forks, $fork_choice
-                        ];
-
-                    if ($trace_journal) {
-                        my $parent_node_tag =
-                            $parent_node->[Marpa::Internal::And_Node::TAG];
-                        print {$trace_fh}
-                            "Journal: Choosing upward fork $fork_choice, ",
-                            "to and-node $parent_node_tag, rank $rank\n"
-                            or
-                            Marpa::exception('print to trace handle failed');
-                    } ## end if ($trace_journal)
-
-                    # put a marker on the @tasks stack, so we can unwind to here.
-                    push @tasks,
-                        [ Marpa::Internal::Task::FORK_MARKER, $fork_choice ];
-
-                } ## end if ( $fork_choice < $#{$forks} )
-
-                push @tasks,
-                    [ Marpa::Internal::Task::ACCEPT_NODE, $rank, $parent_id ],
-                    @sibling_reject_tasks;
                 next TASK;
+            } ## end if ( defined $decision )
 
-            } ## end if ( not defined $decision )
+            if ($trace_tasks) {
+                my $and_node = $and_nodes->[$and_node_id];
+                my $tag      = $and_node->[Marpa::Internal::And_Node::TAG];
+                print {$trace_fh}
+                    "Task: ACCEPT $tag; ",
+                    ( scalar @tasks ), " tasks pending\n"
+                    or Marpa::exception('print to trace handle failed');
+            } ## end if ($trace_tasks)
 
-            # If the and-node has been rejected, or if we
-            # are in a cycle, then backtrack.
-            if (   $decision == REJECTED
-                or $decision == $rank )
-            {
+            # This node is not marked, so mark it accepted
 
-                if ($trace_iterations) {
-                    my $problem =
-                        $decision == REJECTED
-                        ? 'attempt to accept rejected node'
-                        : 'cycle';
-                    my $and_node = $and_nodes->[$and_node_id];
-                    my $and_node_tag =
-                        $and_node->[Marpa::Internal::And_Node::TAG];
-                    print {$trace_fh}
-                        "Iteration: Backtracking due to $problem at ",
-                        "$and_node_tag\n"
-                        or Marpa::exception('print to trace handle failed');
-                } ## end if ($trace_iterations)
-
-                push @tasks, [Marpa::Internal::Task::BACKTRACK_TO_FORK];
-                next TASK;
-
-            } ## end if ( $decision == REJECTED or $decision == $rank )
-
-            # At this point we know that
-            # the node was accepted
-            # by a previous instance.  Update the decision, journal that,
-            # and resume scanning instances.
+            my $journal_entry;
+            if ( defined $rank ) {
+                $journal_entry = [
+                    Marpa::Internal::Journal_Tag::DECIDE, $and_node_id,
+                    $rank
+                ];
+            } ## end if ( defined $rank )
+            else {
+                $journal_entry =
+                    [ Marpa::Internal::Journal_Tag::ACCEPT, $and_node_id ];
+            }
+            push @{$journal}, $journal_entry;
 
             my $and_node = $and_nodes->[$and_node_id];
-
-            push @{$journal},
-                [
-                Marpa::Internal::Journal_Tag::NODE, $and_node_id,
-                $decision
-                ];
-
             if ($trace_journal) {
                 my $and_node_tag =
                     $and_node->[Marpa::Internal::And_Node::TAG];
-                print {$trace_fh}
-                    "Journal: Re-accepted $and_node_tag; rank $rank\n"
+                print {$trace_fh} "Journal: Accepted $and_node_tag\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_journal)
 
-            $decisions->[$and_node_id] = $rank;
+            $decisions->[$and_node_id] = 1;
 
-            push @tasks,
-                [ Marpa::Internal::Task::ITERATE_INSTANCE, $rank + 1, 0 ];
+            my $or_node_id =
+                $and_node->[Marpa::Internal::And_Node::PARENT_ID];
+            my $or_node = $or_nodes->[$or_node_id];
+            my $and_node_choice =
+                $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
+
+            # reject all alternatives to this choice at this or-node
+            my $siblings = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+
+            my @sibling_reject_tasks = ();
+            SIBLING: for my $sibling_choice ( 0 .. $#{$siblings} ) {
+
+                # Not a proper sibling -- this is our original accepted node.
+                next SIBLING if $sibling_choice == $and_node_choice;
+
+                my $sibling_id = $siblings->[$sibling_choice];
+
+                push @sibling_reject_tasks,
+                    [ Marpa::Internal::Task::REJECT, $sibling_id ];
+
+                next SIBLING;
+
+            } ## end for my $sibling_choice ( 0 .. $#{$siblings} )
+
+            # Now deal with the parent and-node.  This may involve
+            # having to choose which fork to take on the path
+            # upward.
+
+            my $parent_ids = $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
+
+            # No forks means we are are the top or-node.
+            # If we are at the top or-node,
+            # we are done following the upward path.
+
+            if ( not scalar @{$parent_ids} ) {
+                push @tasks, @sibling_reject_tasks;
+                next TASK;
+            }
+
+            # TODO Accept parents?
+
             next TASK;
 
-        } ## end if ( $task == Marpa::Internal::Task::ACCEPT_NODE )
+        } ## end if ( $task == Marpa::Internal::Task::ACCEPT )
 
-        # FORK_MARKER tasks are no-ops, inserted to help the backtracking
-        # rearrange the stack
-        if ( $task == Marpa::Internal::Task::FORK_MARKER ) {
-            next TASK;
-        }
-
-=begin Implementation:
-
-In theory, we need to journal changes to the @tasks stack, so we can
-reverse them on backtracking.  In practice, we avoid this with a few
-tricks.
-
-Case 1, INSTANCE iterations.  At every instance iteration, the @tasks
-stack is empty.  So we can 'restore' the @tasks stack by clearing it.
-
-Case 2, FORK iterations.  Here we need to be trickier.  FORK iterations
-and pushing of BACKTRACK_TO_FORK tasks only happens during an ACCEPT_NODE
-task.  We set up so that ACCEPT_NODE tasks happen last, after all
-REJECT_NODE tasks are popped.  This means that at a FORK iteration, and
-when a BACKTRACK_TO_FORK task is pushed, the @tasks stack will always
-contain only a ITERATE_INSTANCE task.  So 'restoring' the @tasks stack is
-a no-op.  If we backtrack all the way to an instance, case 1 applies.
-
-=end Implementation:
-
-=cut
-
-        if (   $task == Marpa::Internal::Task::BACKTRACK_TO_FORK
-            or $task == Marpa::Internal::Task::BACKTRACK_TO_INSTANCE )
-        {
+        if ( $task == Marpa::Internal::Task::BACKTRACK ) {
 
             if ($trace_tasks) {
-                my $task_name =
-                    $task == Marpa::Internal::Task::BACKTRACK_TO_INSTANCE
-                    ? 'BACKTRACK_TO_INSTANCE'
-                    : 'BACKTRACK_TO_FORK';
-                print {$trace_fh} "Task: $task_name; ",
+                print {$trace_fh} 'Task: BACKTRACK; ',
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_tasks)
-
-            # Start with ratcheting off
-            my $instance_acceptances_ratcheted = 0;
+            }
 
             ENTRY: while ( my $journal_entry = pop @{$journal} ) {
 
                 my $entry_type = shift @{$journal_entry};
 
-                # A simple, non-iterable record of a decision about an
-                # and-node.  Restore the previous value,
-                # and move on.
-                if ( $entry_type == Marpa::Internal::Journal_Tag::NODE ) {
-                    my ( $and_node_id, $previous_value ) = @{$journal_entry};
+                # A simple, non-iterable record of an and-node
+                # rejection.  Restore to undef and move on.
+                if ( $entry_type == Marpa::Internal::Journal_Tag::REJECT ) {
+                    my ($and_node_id) = @{$journal_entry};
 
                     if ($trace_journal) {
-                        my $decision = $decisions->[$and_node_id];
                         my $and_node = $and_nodes->[$and_node_id];
                         my $and_node_tag =
                             $and_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
-                            "Journal: Changing $and_node_tag decision from ",
-                            Marpa::show_decision($decision),
-                            ' back to ',
-                            Marpa::show_decision($previous_value), "\n"
+                            "Journal: Changing $and_node_tag from ",
+                            " rejected back to undef\n",
                             or
                             Marpa::exception('print to trace handle failed');
                     } ## end if ($trace_journal)
 
-                    $decisions->[$and_node_id] = $previous_value;
+                    $decisions->[$and_node_id] = undef;
                     next ENTRY;
+
                 } ## end if ( $entry_type == ...)
 
-                # Iterate the choice at a fork in the upward path
-                # while following up on a decision to accept
-                if ( $entry_type == Marpa::Internal::Journal_Tag::FORK ) {
-
-                    # If we're backtracking to iterate an instance, just
-                    # throw this away.
-                    next ENTRY
-                        if $task != Marpa::Internal::Task::BACKTRACK_TO_FORK;
-
-                    my ( $rank, $forks, $fork_choice ) = @{$journal_entry};
-                    $fork_choice++;
-
-                    # Because we don't journal non-iterable FORK
-                    # events, we are sure that there is a
-                    # $forks->[$fork_choice]
-                    my $parent_id   = $forks->[$fork_choice];
-                    my $parent_node = $and_nodes->[$parent_id];
-
-                    # Unwind the tasks stack to the point where
-                    # this fork was taken
-                    TASK: while ( my $unwound_task = pop @tasks ) {
-                        my $task_name = shift @{$unwound_task};
-                        next TASK
-                            if $task_name
-                                != Marpa::Internal::Task::FORK_MARKER;
-                        my $forks_value_in_marker = shift @{$unwound_task};
-                        last TASK if $forks_value_in_marker == $forks;
-                    } ## end while ( my $unwound_task = pop @tasks )
-
-                    # Don't add a journal entry unless there is at
-                    # least one more iteration left
-                    if ( $fork_choice < $#{$forks} ) {
-
-                        push @{$journal},
-                            [
-                            Marpa::Internal::Journal_Tag::FORK,
-                            $rank, $forks, $fork_choice
-                            ];
-
-                        if ($trace_journal) {
-                            my $parent_node_tag = $parent_node
-                                ->[Marpa::Internal::And_Node::TAG];
-                            print {$trace_fh}
-                                "Journal: Choosing upward fork $fork_choice, to and-node $parent_node_tag,",
-                                " rank $rank\n"
-                                or Marpa::exception(
-                                'print to trace handle failed');
-                        } ## end if ($trace_journal)
-
-                        push @tasks,
-                            [
-                            Marpa::Internal::Task::FORK_MARKER, $fork_choice
-                            ];
-
-                    } ## end if ( $fork_choice < $#{$forks} )
-
-                    if ($trace_iterations) {
-                        my $parent_node_tag =
-                            $parent_node->[Marpa::Internal::And_Node::TAG];
-                        print {$trace_fh}
-                            "Iteration: Choosing upward fork $fork_choice, to and-node $parent_node_tag,",
-                            " rank $rank\n"
-                            or
-                            Marpa::exception('print to trace handle failed');
-                    } ## end if ($trace_iterations)
-
-                    push @tasks,
-                        [
-                        Marpa::Internal::Task::ACCEPT_NODE, $rank,
-                        $parent_id,
-                        ];
-                    next TASK;
-                } ## end if ( $entry_type == ...)
-
-                # "Ratchet" instance acceptances, that is, only iterate an
-                # accepted instance by rejecting it.
-                if ( $entry_type
-                    == Marpa::Internal::Journal_Tag::RATCHET_INSTANCE_ACCEPTANCES
-                    )
-                {
-
-                    # Ratchets encountered while the ratchet flag is already set will be no-ops.
-                    # There are left over from previous parses, and do no harm.
-                    $instance_acceptances_ratcheted = 1;
-                    next ENTRY;
-                } ## end if ( $entry_type == ...)
-
-                # This entry records a decision to accept an instance.
-                # Iterate this instance.
-                if ( $entry_type == Marpa::Internal::Journal_Tag::INSTANCE ) {
-                    my ( $rank, $choice ) = @{$journal_entry};
-
-                    if ($instance_acceptances_ratcheted) {
-
-                        if ($trace_journal) {
-                            print {$trace_fh}
-                                "Journal: Instance acceptance ratchet moved to rank $rank\n"
-                                or Marpa::exception(
-                                'print to trace handle failed');
-                        } ## end if ($trace_journal)
-
-                        push @{$journal},
-                            [
-                            Marpa::Internal::Journal_Tag::RATCHET_INSTANCE_ACCEPTANCES
-                            ];
-
-                        if ($trace_iterations) {
-                            print {$trace_fh}
-                                "Iteration: Backtracking, rejecting ratcheted instance, rank $rank\n"
-                                or Marpa::exception(
-                                'print to trace handle failed');
-                        } ## end if ($trace_iterations)
-
-                        @tasks = (
-                            [   Marpa::Internal::Task::ITERATE_INSTANCE,
-                                $rank, -1
-                            ]
-                        );
-                        next TASK;
-                    } ## end if ($instance_acceptances_ratcheted)
-
-                    $choice++;
+                # This entry records a decision to accept an and-node.
+                # Iterate this instance by rejecting the and-node.
+                if ( $entry_type == Marpa::Internal::Journal_Tag::ACCEPT ) {
+                    my ($and_node_id) = @{$journal_entry};
 
                     if ($trace_journal) {
+                        my $and_node = $and_nodes->[$and_node_id];
+                        my $and_node_tag =
+                            $and_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
-                            "Journal: Attempting to iterate rank $rank to ",
-                            " choice $choice\n"
+                            "Journal: Attempting to iterate by rejecting $and_node_tag\n"
                             or
                             Marpa::exception('print to trace handle failed');
                     } ## end if ($trace_journal)
 
-                    @tasks = (
-                        [   Marpa::Internal::Task::ITERATE_INSTANCE, $rank,
-                            $choice
-                        ]
-                    );
+                    @tasks =
+                        ( [ Marpa::Internal::Task::REJECT, $and_node_id ] );
 
                     next TASK;
 
@@ -2992,11 +2609,11 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
             # There are no (or no more) parses.
             return;
 
-        } ## end if ( $task == Marpa::Internal::Task::BACKTRACK_TO_FORK...)
+        } ## end if ( $task == Marpa::Internal::Task::BACKTRACK )
 
-        if ( $task == Marpa::Internal::Task::REJECT_NODE ) {
+        if ( $task == Marpa::Internal::Task::REJECT ) {
 
-            my ( $rank, $and_node_id ) = @{$task_data};
+            my ($and_node_id) = @{$task_data};
 
             my $and_node = $and_nodes->[$and_node_id];
 
@@ -3004,7 +2621,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 my $and_node_tag =
                     $and_node->[Marpa::Internal::And_Node::TAG];
                 print {$trace_fh}
-                    "Task: REJECT_NODE, rank $rank; node $and_node_tag; ",
+                    "Task: REJECT_NODE, node $and_node_tag; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_tasks)
@@ -3016,19 +2633,19 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
                 # If it's already rejected, we're done.
                 # Next task.
-                if ( $decision == REJECTED ) {
+                if ( not $decision ) {
 
                     if ( $trace_iterations >= 3 ) {
                         my $and_node_tag =
                             $and_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
-                            "Iteration: Already rejected and-node $and_node_tag, rank $rank\n"
+                            "Iteration: Already rejected and-node $and_node_tag\n"
                             or
                             Marpa::exception('print to trace handle failed');
                     } ## end if ( $trace_iterations >= 3 )
 
                     next TASK;
-                } ## end if ( $decision == REJECTED )
+                } ## end if ( not $decision )
 
                 # If we're here, a decision to accept has already
                 # been made.  This can't happen and we need to
@@ -3042,24 +2659,24 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ( $trace_iterations >= 3 )
 
-                @tasks = ( [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
+                @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
                 next TASK;
+
             } ## end if ( defined $decision )
 
             # If we are at this point, this and-node is undecided.
             # Reject it.
             push @{$journal},
-                [ Marpa::Internal::Journal_Tag::NODE, $and_node_id ];
+                [ Marpa::Internal::Journal_Tag::REJECT, $and_node_id ];
 
             if ($trace_journal) {
                 my $and_node_tag =
                     $and_node->[Marpa::Internal::And_Node::TAG];
-                print {$trace_fh} "Journal: Rejecting $and_node_tag, ",
-                    "rank $rank\n"
+                print {$trace_fh} "Journal: Rejecting $and_node_tag\n",
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_journal)
 
-            $decisions->[$and_node_id] = REJECTED;
+            $decisions->[$and_node_id] = 0;
 
             PARENT_OR_NODE: {
                 my $parent_or_node_id =
@@ -3070,8 +2687,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 my $child_ids =
                     $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
                 my $first_unrejected_sibling = List::Util::first {
-                    ( $decisions->[ $child_ids->[$_] ] // NOT_REJECTED )
-                        != REJECTED;
+                    $decisions->[ $child_ids->[$_] ] // 1;
                 }
                 ( 0 .. $#{$child_ids} );
 
@@ -3094,8 +2710,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                             or
                             Marpa::exception('print to trace handle failed');
                     } ## end if ($trace_iterations)
-                    @tasks =
-                        ( [Marpa::Internal::Task::BACKTRACK_TO_INSTANCE] );
+                    @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
                     next TASK;
                 } ## end if ( not scalar @{$parent_and_node_ids} )
 
@@ -3104,10 +2719,8 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 for my $parent_and_node_id ( @{$parent_and_node_ids} ) {
 
                     push @tasks,
-                        [
-                        Marpa::Internal::Task::REJECT_NODE, $rank,
-                        $parent_and_node_id
-                        ];
+                        [ Marpa::Internal::Task::REJECT,
+                        $parent_and_node_id ];
 
                 } ## end for my $parent_and_node_id ( @{$parent_and_node_ids})
             } ## end PARENT_OR_NODE:
@@ -3123,8 +2736,7 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 my $parent_ids =
                     $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
                 my $first_unrejected_coparent = List::Util::first {
-                    ( $decisions->[ $parent_ids->[$_] ] // NOT_REJECTED )
-                        != REJECTED;
+                    $decisions->[ $parent_ids->[$_] ] // 1;
                 }
                 ( 0 .. $#{$parent_ids} );
 
@@ -3140,17 +2752,14 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
                 for my $child_and_node_id ( @{$child_and_nodes} ) {
 
                     push @tasks,
-                        [
-                        Marpa::Internal::Task::REJECT_NODE, $rank,
-                        $child_and_node_id
-                        ];
+                        [ Marpa::Internal::Task::REJECT, $child_and_node_id ];
 
                 } ## end for my $child_and_node_id ( @{$child_and_nodes} )
             } ## end for my $child_field ( Marpa::Internal::And_Node::CAUSE...)
 
             next TASK;
 
-        } ## end if ( $task == Marpa::Internal::Task::REJECT_NODE )
+        } ## end if ( $task == Marpa::Internal::Task::REJECT )
 
         if ( $task == Marpa::Internal::Task::EVALUATE ) {
 
@@ -3162,22 +2771,13 @@ a no-op.  If we backtrack all the way to an instance, case 1 applies.
 
             my @work_list;
 
-            if ($trace_journal) {
-                print {$trace_fh}
-                    "Journal: Instance acceptance ratchet placed at end of journal\n"
-                    or Marpa::exception('print to trace handle failed');
-            }
-
-            push @{$journal},
-                [Marpa::Internal::Journal_Tag::RATCHET_INSTANCE_ACCEPTANCES];
-
             my @or_node_choices;
             $#or_node_choices = $#{$or_nodes};
             AND_NODE: for my $and_node_id ( 0 .. $#{$decisions} ) {
                 my $decision = $decisions->[$and_node_id];
                 next AND_NODE
                     if not defined $decision
-                        or $decision == REJECTED;
+                        or not $decision;
                 my $and_node = $and_nodes->[$and_node_id];
                 my $parent_choice =
                     $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
