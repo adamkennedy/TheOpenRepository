@@ -2,7 +2,7 @@
 # You should read "perldoc perlmodinstall" for instructions on
 #  how to install modules like this.
 
-require 5.006_001;
+require 5.006001;
 use strict;
 use ExtUtils::MakeMaker;
 WriteMakefile(
@@ -13,6 +13,13 @@ WriteMakefile(
   'ABSTRACT_FROM' => 'lib/AutoLoader.pm',
   'AUTHOR' => 'Steffen Mueller <smueller@cpan.org>',
   'INSTALLDIRS' => 'perl',
+  META_MERGE => {
+      resources => {
+          repository  => 'git://perl5.git.perl.org/perl.git perl-git',
+          bugtracker  => 'http://rt.perl.org/perlbug/',
+          MailingList => 'http://lists.cpan.org/showlist.cgi?name=perl5-porters'
+      },
+  }
 );
 
 __END__
