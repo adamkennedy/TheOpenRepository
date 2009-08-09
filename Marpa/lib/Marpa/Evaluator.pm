@@ -103,7 +103,7 @@ use Marpa::Offset qw(
     { Delete this } CYCLES { Will this be needed? }
     JOURNAL
     RANKED_AND_NODE_IDS
-    DECISIONS
+    MARKINGS
 
 );
 
@@ -112,10 +112,9 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Journal_Tag
 
-    DECIDE { Records the iterable acceptance of an and-node. }
-    ACCEPT { Records the non-iterable acceptance of an and-node. }
-    REJECT { Records the rejection of an and-node.
-    Rejections are always non-iterable.  }
+    MARKING { Records the non-iterable marking
+    of an and-node as accepted or rejected. }
+    DECISION { Records the iterable acceptance of an and-node. }
 
 );
 
@@ -2113,27 +2112,27 @@ sub Marpa::show_and_node {
 
 } ## end sub Marpa::show_and_node
 
-sub Marpa::Evaluator::show_decisions {
+sub Marpa::Evaluator::show_markings {
     my ( $evaler, $verbose ) = @_;
     $verbose //= 0;
     my $return_value = q{};
 
-    my $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS];
+    my $markings = $evaler->[Marpa::Internal::Evaluator::MARKINGS];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
     for my $and_node ( @{$and_nodes} ) {
         my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
-        my $decision    = $decisions->[$and_node_id];
+        my $marking    = $markings->[$and_node_id];
         my $tag         = $and_node->[Marpa::Internal::And_Node::TAG];
         $return_value
             .= "$tag: "
-            . Marpa::show_decision($decision) . q{ }
+            . Marpa::show_marking($marking) . q{ }
             . Marpa::show_and_node( $and_node, $verbose );
     } ## end for my $and_node ( @{$and_nodes} )
 
     return $return_value;
 
-} ## end sub Marpa::Evaluator::show_decisions
+} ## end sub Marpa::Evaluator::show_markings
 
 sub Marpa::Evaluator::show_or_node {
     my ( $evaler, $or_node, $verbose ) = @_;
@@ -2276,13 +2275,13 @@ use Marpa::Offset qw(
     EVALUATE
 );
 
-sub Marpa::show_decision {
-    my ($decision) = @_;
-    return 'none' if not defined $decision;
-    return $decision
+sub Marpa::show_marking {
+    my ($marking) = @_;
+    return 'none' if not defined $marking;
+    return $marking
         ? 'ACCEPTED'
         : 'REJECTED';
-} ## end sub Marpa::show_decision
+} ## end sub Marpa::show_marking
 
 # This will replace the old value method
 sub Marpa::Evaluator::new_value {
@@ -2299,7 +2298,7 @@ sub Marpa::Evaluator::new_value {
     my $ranked_and_node_ids =
         $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS];
+    my $markings = $evaler->[Marpa::Internal::Evaluator::MARKINGS];
 
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
@@ -2424,39 +2423,59 @@ sub Marpa::Evaluator::new_value {
             $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS] =
             map { unpack $_, -(N_FORMAT_BYTES) } sort @sort_data;
         $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL]   = [];
-        $decisions = $evaler->[Marpa::Internal::Evaluator::DECISIONS] = [];
+        $markings = $evaler->[Marpa::Internal::Evaluator::MARKINGS] = [];
         @tasks = ( [Marpa::Internal::Task::ADVANCE] );
         $current_rank = 0;
 
     } ## end if ( not defined $journal )
     ## End not defined $journal
 
-    TASK: while ( my $task_data = pop @tasks ) {
+    TASK: while ( 1 ) {
 
-        my $task = shift @{$task_data};
+        # Default task on empty stack is to try to advance through
+        # the ranked and-nodes.
+        if (not scalar @tasks) {
+           @tasks = ( [ Marpa::Internal::Task::ADVANCE ] );
+        }
+
+        my ($task, @task_data) = ${pop @tasks};
 
         if ( $task == Marpa::Internal::Task::ADVANCE ) {
-            my ($advance_is_to_do);
 
-            # TO DO
-        }
+            # Advance through the marked and-nodes to the first unmarked one,
+            # then accept it.
+            RANK: while ( $current_rank < scalar @{$ranked_and_node_ids} ) {
+                my $and_node_id = $ranked_and_node_ids->[$current_rank];
+                if (not defined $markings->[$and_node_id]) {
+                    @tasks = ( [ Marpa::Internal::Task::ACCEPT, $and_node_id, $current_rank ] );
+                    next TASK;
+                }
+                $current_rank++;
+            }
+
+            # If we have advanced through all the ranked
+            # and-nodes, we are ready to evaluate.
+            @tasks = ( [Marpa::Internal::Task::ADVANCE] );
+            next TASK;
+
+        } ## end if ( $task == Marpa::Internal::Task::ADVANCE )
 
         if ( $task == Marpa::Internal::Task::ACCEPT ) {
 
-            my ( $and_node_id, $rank ) = @{$task_data};
+            my ( $and_node_id, $rank ) = @task_data;
 
-            my $decision = $decisions->[$and_node_id];
-            if ( defined $decision ) {
+            my $marking = $markings->[$and_node_id];
+            if ( defined $marking ) {
 
                 # Clear tasks stack and backtrack if already
                 # rejected.
                 # Do nothing if already accepted
-                if ( not $decision ) {
+                if ( not $marking ) {
                     @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
                 }
 
                 next TASK;
-            } ## end if ( defined $decision )
+            } ## end if ( defined $marking )
 
             if ($trace_tasks) {
                 my $and_node = $and_nodes->[$and_node_id];
@@ -2472,13 +2491,13 @@ sub Marpa::Evaluator::new_value {
             my $journal_entry;
             if ( defined $rank ) {
                 $journal_entry = [
-                    Marpa::Internal::Journal_Tag::DECIDE, $and_node_id,
+                    Marpa::Internal::Journal_Tag::DECISION, $and_node_id,
                     $rank
                 ];
             } ## end if ( defined $rank )
             else {
                 $journal_entry =
-                    [ Marpa::Internal::Journal_Tag::ACCEPT, $and_node_id ];
+                    [ Marpa::Internal::Journal_Tag::MARKING, $and_node_id ];
             }
             push @{$journal}, $journal_entry;
 
@@ -2490,7 +2509,7 @@ sub Marpa::Evaluator::new_value {
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_journal)
 
-            $decisions->[$and_node_id] = 1;
+            $markings->[$and_node_id] = 1;
 
             my $or_parent_id =
                 $and_node->[Marpa::Internal::And_Node::PARENT_ID];
@@ -2531,21 +2550,21 @@ sub Marpa::Evaluator::new_value {
             AND_NODE_ID_SET: for my $and_node_id_set (@and_node_id_sets) {
                 my $unrejected_and_node_id;
                 for my $and_node_id ( @{$and_node_id_set} ) {
-                    my $element_decision = $decisions->[$and_node_id];
-                    if ( not defined $element_decision ) {
+                    my $element_marking = $markings->[$and_node_id];
+                    if ( not defined $element_marking ) {
 
                         # If more than one unrejected and-node, give up on
                         # this set.
                         next AND_NODE_ID_SET
                             if defined $unrejected_and_node_id;
                         $unrejected_and_node_id = $and_node_id;
-                    } ## end if ( not defined $element_decision )
+                    } ## end if ( not defined $element_marking )
 
                     # If there is an accepted and-node in the set, either
                     # the unique unrejected and-node is already accepted,
                     # or there is no unique unrejected and-node.  Either
                     # way, give up on this set.
-                    next AND_NODE_ID_SET if $element_decision;
+                    next AND_NODE_ID_SET if $element_marking;
 
                     # If we are here the and-node is rejected.  We do not
                     # need to do anything.
@@ -2582,29 +2601,30 @@ sub Marpa::Evaluator::new_value {
 
                 # A simple, non-iterable record of an and-node
                 # rejection.  Restore to undef and move on.
-                if ( $entry_type == Marpa::Internal::Journal_Tag::REJECT ) {
+                if ( $entry_type == Marpa::Internal::Journal_Tag::MARKING ) {
                     my ($and_node_id) = @{$journal_entry};
 
                     if ($trace_journal) {
                         my $and_node = $and_nodes->[$and_node_id];
+                        my $marking  = $markings->[$and_node_id];
                         my $and_node_tag =
                             $and_node->[Marpa::Internal::And_Node::TAG];
                         print {$trace_fh}
                             "Journal: Changing $and_node_tag from ",
-                            " rejected back to undef\n",
+                            show_marking($marking), " to undef\n",
                             or
                             Marpa::exception('print to trace handle failed');
                     } ## end if ($trace_journal)
 
-                    $decisions->[$and_node_id] = undef;
+                    $markings->[$and_node_id] = undef;
                     next ENTRY;
 
                 } ## end if ( $entry_type == ...)
 
                 # This entry records a decision to accept an and-node.
                 # Iterate this instance by rejecting the and-node.
-                if ( $entry_type == Marpa::Internal::Journal_Tag::ACCEPT ) {
-                    my ($and_node_id) = @{$journal_entry};
+                if ( $entry_type == Marpa::Internal::Journal_Tag::DECISION ) {
+                    my ($and_node_id, $rank) = @{$journal_entry};
 
                     if ($trace_journal) {
                         my $and_node = $and_nodes->[$and_node_id];
@@ -2616,6 +2636,7 @@ sub Marpa::Evaluator::new_value {
                             Marpa::exception('print to trace handle failed');
                     } ## end if ($trace_journal)
 
+                    $current_rank = $rank;
                     @tasks =
                         ( [ Marpa::Internal::Task::REJECT, $and_node_id ] );
 
@@ -2644,21 +2665,21 @@ sub Marpa::Evaluator::new_value {
 
         if ( $task == Marpa::Internal::Task::REJECT ) {
 
-            my ($and_node_id) = @{$task_data};
+            my ($and_node_id) = @task_data;
 
-            my $decision = $decisions->[$and_node_id];
+            my $marking = $markings->[$and_node_id];
 
-            # Has the decision already been made?
-            if ( defined $decision ) {
+            # Has the and-node already been marked?
+            if ( defined $marking ) {
 
                 # Clear tasks stack and backtrack if already
                 # accepted.  Do nothing is already rejected.
                 # Do nothing if already accepted
-                if ($decision) {
+                if ($marking) {
                     @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
                 }
                 next TASK;
-            } ## end if ( defined $decision )
+            } ## end if ( defined $marking )
 
             my $and_node = $and_nodes->[$and_node_id];
 
@@ -2674,7 +2695,7 @@ sub Marpa::Evaluator::new_value {
             # If we are at this point, this and-node is undecided.
             # Reject it.
             push @{$journal},
-                [ Marpa::Internal::Journal_Tag::REJECT, $and_node_id ];
+                [ Marpa::Internal::Journal_Tag::MARKING, $and_node_id ];
 
             if ($trace_journal) {
                 my $and_node_tag =
@@ -2683,7 +2704,7 @@ sub Marpa::Evaluator::new_value {
                     or Marpa::exception('print to trace handle failed');
             } ## end if ($trace_journal)
 
-            $decisions->[$and_node_id] = 0;
+            $markings->[$and_node_id] = 0;
 
             PARENT_OR_NODE: {
                 my $parent_or_node_id =
@@ -2694,7 +2715,7 @@ sub Marpa::Evaluator::new_value {
                 my $child_ids =
                     $parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
                 my $first_unrejected_sibling = List::Util::first {
-                    $decisions->[ $child_ids->[$_] ] // 1;
+                    $markings->[ $child_ids->[$_] ] // 1;
                 }
                 ( 0 .. $#{$child_ids} );
 
@@ -2723,13 +2744,10 @@ sub Marpa::Evaluator::new_value {
 
                 # We tested for the case of no parents (the top
                 # node) above, so this will add at least one task
-                for my $parent_and_node_id ( @{$parent_and_node_ids} ) {
+                push @tasks,
+                    map { [ Marpa::Internal::Task::REJECT, $_ ] }
+                    @{$parent_and_node_ids};
 
-                    push @tasks,
-                        [ Marpa::Internal::Task::REJECT,
-                        $parent_and_node_id ];
-
-                } ## end for my $parent_and_node_id ( @{$parent_and_node_ids})
             } ## end PARENT_OR_NODE:
 
             CHILD_OR_NODE:
@@ -2743,7 +2761,7 @@ sub Marpa::Evaluator::new_value {
                 my $parent_ids =
                     $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
                 my $first_unrejected_coparent = List::Util::first {
-                    $decisions->[ $parent_ids->[$_] ] // 1;
+                    $markings->[ $parent_ids->[$_] ] // 1;
                 }
                 ( 0 .. $#{$parent_ids} );
 
@@ -2753,15 +2771,11 @@ sub Marpa::Evaluator::new_value {
                 # If all the co-parents of the or-node
                 # were rejected, we reject the child
                 # and-nodes as well.
-                my $child_and_nodes =
-                    $child_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+                push @tasks,
+                    map { [ Marpa::Internal::Task::REJECT, $_ ] }
+                    @{ $child_or_node->[Marpa::Internal::Or_Node::CHILD_IDS]
+                    };
 
-                for my $child_and_node_id ( @{$child_and_nodes} ) {
-
-                    push @tasks,
-                        [ Marpa::Internal::Task::REJECT, $child_and_node_id ];
-
-                } ## end for my $child_and_node_id ( @{$child_and_nodes} )
             } ## end for my $child_field ( Marpa::Internal::And_Node::CAUSE...)
 
             next TASK;
@@ -2780,18 +2794,18 @@ sub Marpa::Evaluator::new_value {
 
             my @or_node_choices;
             $#or_node_choices = $#{$or_nodes};
-            AND_NODE: for my $and_node_id ( 0 .. $#{$decisions} ) {
-                my $decision = $decisions->[$and_node_id];
+            AND_NODE: for my $and_node_id ( 0 .. $#{$markings} ) {
+                my $marking = $markings->[$and_node_id];
                 next AND_NODE
-                    if not defined $decision
-                        or not $decision;
+                    if not defined $marking
+                        or not $marking;
                 my $and_node = $and_nodes->[$and_node_id];
                 my $parent_choice =
                     $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE];
                 my $parent_id =
                     $and_node->[Marpa::Internal::And_Node::PARENT_ID];
                 $or_node_choices[$parent_id] = $parent_choice;
-            } ## end for my $and_node_id ( 0 .. $#{$decisions} )
+            } ## end for my $and_node_id ( 0 .. $#{$markings} )
 
             # Write the and-nodes out in preorder
             my @preorder = ();
@@ -2955,9 +2969,8 @@ sub Marpa::Evaluator::new_value {
         } ## end if ( $task == Marpa::Internal::Task::EVALUATE )
         ## End EVALUATE
 
-    } ## end while ( my $task_data = pop @tasks )
+    } ## end while ( 1 )
     ## End TASK
-    ## use critic
 
     Carp::confess('Internal error: Should not reach here');
 
@@ -3403,8 +3416,6 @@ sub Marpa::Evaluator::value {
     return pop @evaluation_stack;
 
 } ## end sub Marpa::Evaluator::value
-
-*Marpa::Evaluator::old_value = \&Marpa::Evaluator::value;
 
 1;
 
