@@ -2117,12 +2117,12 @@ sub Marpa::Evaluator::show_markings {
     $verbose //= 0;
     my $return_value = q{};
 
-    my $markings = $evaler->[Marpa::Internal::Evaluator::MARKINGS];
+    my $markings  = $evaler->[Marpa::Internal::Evaluator::MARKINGS];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
     for my $and_node ( @{$and_nodes} ) {
         my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
-        my $marking    = $markings->[$and_node_id];
+        my $marking     = $markings->[$and_node_id];
         my $tag         = $and_node->[Marpa::Internal::And_Node::TAG];
         $return_value
             .= "$tag: "
@@ -2298,7 +2298,7 @@ sub Marpa::Evaluator::new_value {
     my $ranked_and_node_ids =
         $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $markings = $evaler->[Marpa::Internal::Evaluator::MARKINGS];
+    my $markings  = $evaler->[Marpa::Internal::Evaluator::MARKINGS];
 
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
@@ -2422,7 +2422,7 @@ sub Marpa::Evaluator::new_value {
         $ranked_and_node_ids =
             $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS] =
             map { unpack $_, -(N_FORMAT_BYTES) } sort @sort_data;
-        $journal   = $evaler->[Marpa::Internal::Evaluator::JOURNAL]   = [];
+        $journal  = $evaler->[Marpa::Internal::Evaluator::JOURNAL]  = [];
         $markings = $evaler->[Marpa::Internal::Evaluator::MARKINGS] = [];
         @tasks = ( [Marpa::Internal::Task::ADVANCE] );
         $current_rank = 0;
@@ -2430,15 +2430,15 @@ sub Marpa::Evaluator::new_value {
     } ## end if ( not defined $journal )
     ## End not defined $journal
 
-    TASK: while ( 1 ) {
+    TASK: while (1) {
 
         # Default task on empty stack is to try to advance through
         # the ranked and-nodes.
-        if (not scalar @tasks) {
-           @tasks = ( [ Marpa::Internal::Task::ADVANCE ] );
+        if ( not scalar @tasks ) {
+            @tasks = ( [Marpa::Internal::Task::ADVANCE] );
         }
 
-        my ($task, @task_data) = ${pop @tasks};
+        my ( $task, @task_data ) = ${ pop @tasks };
 
         if ( $task == Marpa::Internal::Task::ADVANCE ) {
 
@@ -2446,12 +2446,16 @@ sub Marpa::Evaluator::new_value {
             # then accept it.
             RANK: while ( $current_rank < scalar @{$ranked_and_node_ids} ) {
                 my $and_node_id = $ranked_and_node_ids->[$current_rank];
-                if (not defined $markings->[$and_node_id]) {
-                    @tasks = ( [ Marpa::Internal::Task::ACCEPT, $and_node_id, $current_rank ] );
+                if ( not defined $markings->[$and_node_id] ) {
+                    @tasks = (
+                        [   Marpa::Internal::Task::ACCEPT, $and_node_id,
+                            $current_rank
+                        ]
+                    );
                     next TASK;
-                }
+                } ## end if ( not defined $markings->[$and_node_id] )
                 $current_rank++;
-            }
+            } ## end while ( $current_rank < scalar @{$ranked_and_node_ids} )
 
             # If we have advanced through all the ranked
             # and-nodes, we are ready to evaluate.
@@ -2624,7 +2628,7 @@ sub Marpa::Evaluator::new_value {
                 # This entry records a decision to accept an and-node.
                 # Iterate this instance by rejecting the and-node.
                 if ( $entry_type == Marpa::Internal::Journal_Tag::DECISION ) {
-                    my ($and_node_id, $rank) = @{$journal_entry};
+                    my ( $and_node_id, $rank ) = @{$journal_entry};
 
                     if ($trace_journal) {
                         my $and_node = $and_nodes->[$and_node_id];
@@ -2969,7 +2973,7 @@ sub Marpa::Evaluator::new_value {
         } ## end if ( $task == Marpa::Internal::Task::EVALUATE )
         ## End EVALUATE
 
-    } ## end while ( 1 )
+    } ## end while (1)
     ## End TASK
 
     Carp::confess('Internal error: Should not reach here');
