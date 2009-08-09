@@ -11,7 +11,7 @@ use MooseX::Types::Moose qw( Int Str  );
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'WiX3::XML::Role::Tag';
+with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Component, Directory, Merge, and SymbolPath as children.
 
 with 'WiX3::XML::Role::GeneratesGUID';

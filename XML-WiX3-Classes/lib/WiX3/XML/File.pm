@@ -1,4 +1,4 @@
-package XML::WiX3::Classes::Files;
+package XML::WiX3::Classes::File;
 
 #<<<
 use 5.006;
@@ -10,14 +10,20 @@ use MooseX::Types::Moose qw( Str Maybe Int                        );
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'WiX3::XML::Role::Tag';
+with 'WiX3::XML::Role::TagAllowsChildTags';
+
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_file.htm
+
+# Allows child tags (WiX namespace:) AppId, AssemblyName, Class, CopyFile, 
+# ODBCDriver, ODBCTranslator, Permission, PermissionEx, Shortcut, SymbolPath, 
+# TypeLib
 
 #####################################################################
 # Attributes:
 
 has _assembly => (
 	is => 'ro',
-	isa => 'Str', # '.net', 'no', or 'win32'
+	isa => Str, # '.net', 'no', or 'win32'
 	reader => '_get_assembly',
 	init_arg => 'assembly',
 	default => undef,
@@ -136,7 +142,7 @@ has _keypath => (
 
 has name => (
 	is => 'ro',
-	isa => 'Str', # LongNameFileType
+	isa => Str, # LongNameFileType
 	reader => 'get_name',
 	default => undef,
 );
@@ -175,7 +181,7 @@ has _patchgroup => (
 
 has _processorarchitecture => (
 	is => 'ro',
-	isa => 'Str', # 'msil', 'x86', 'x64', or 'ia64'
+	isa => Str, # 'msil', 'x86', 'x64', or 'ia64'
 	reader => '_get_processorarchitecture',
 	init_arg => 'processorarchitecture',
 	default => undef,

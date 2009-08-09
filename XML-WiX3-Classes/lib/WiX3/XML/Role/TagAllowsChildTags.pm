@@ -1,120 +1,60 @@
-package WiX3::XML::Role::Tag;
+package WiX3::XML::Role::TagAllowsChildTags;
 
 #<<<
 use     5.006;
 use		Moose::Role;
-use     Params::Util  qw( _STRING _NONNEGINT );
 use     vars          qw( $VERSION );
 use     WiX3::XML::Exceptions;
-use     List::MoreUtils qw( uniq );
+use     WiX3::Types qw(IsTag);
+use     MooseX::AttributeHelpers;
+use     MooseX::Types::Moose qw(ArrayRef);
 
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
+with 'WiX3::XML::Role::Tag';
+
+#####################################################################
+# Attributes
+
+# A tag can contain other tags.
+has child_tags => (
+	metaclass => 'Collection::Array',
+	is => 'rw',
+	isa => ArrayRef[IsTag],
+	init_arg => undef,
+	default => sub { return []; },
+	provides => {
+	  'elements' => 'get_child_tags',
+	  'push'     => 'add_child_tag',
+	  'get'      => 'get_child_tag',
+	  'empty'    => 'has_child_tags',
+	  'count'    => 'count_child_tags',
+	  'delete'   => 'delete_child_tag',
+	}
+);
+
+# I think you could do method aliasing... with 'Role' => { alias => { 'add_child_tag' => '_add_child_tag' } }
+# then implement your own child tag to do validation
+
 #####################################################################
 # Methods
 
-# Tags have to be able to be strings.
-requires 'as_string';
-
-# Tags have to return the namespace they're in.
-requires 'get_namespace';
-
-########################################
-# indent($spaces, $string)
-# Parameters:
-#   $spaces_num: Number of spaces to indent $string.
-#   $string: String to indent.
-# Returns:
-#   Indented $string.
-
-sub indent {
-	my ( $self, $spaces_num, $string ) = @_;
-
-	# Check parameters.
-	unless ( defined $string ) {
-		XWC::Exception::Parameter::Missing->throw('string');
-	}
-
-	unless ( defined $spaces_num ) {
-		XWC::Exception::Parameter::Missing->throw('spaces_num');
-	}
-
-	unless ( defined _STRING($string) ) {
-		XWC::Exception::Parameter::Invalid->throw('string');
-	}
-
-	unless ( defined _NONNEGINT($spaces_num) ) {
-		XWC::Exception::Parameter::Invalid->throw('spaces_num');
-	}
-
-	# Indent string.
-	my $spaces = q{ } x $spaces_num;
-	my $answer = $spaces . $string;
-	chomp $answer;
-#<<<
-		$answer =~ s{\n}                   # match a newline 
-					{\n$spaces}gxms;       # and add spaces after it.
-										   # (i.e. the beginning of the line.)
-#>>>
-	return $answer;
-} ## end sub indent
-
-sub get_namespaces {
+sub as_string_children {
 	my $self = shift;
-	
-	my @namespaces = ( $self->get_namespace() );
+
+	my $string;
 	my $count = $self->count_child_tags();
 
 	if (0 == $count) {
-		return @namespaces;
-	}
-	
-	foreach my $tag ($self->get_child_tags()) {
-		push @namespaces, $tag->get_namespaces();
-	}
-
-	return uniq @namespaces;
-}
-
-sub get_component_array {
-	my $self = shift;
-
-	my @components;
-	my $count = $self->count_child_tags();
-
-	if (0 == $count) {
-		return ();
-	}
-
-	foreach my $tag ($self->get_child_tags()) {
-		if ($tag->meta()->does_role('WiX3::XML::Role::Component')) {
-			push @components, $tag->get_component_id();
-		} else {
-			push @components, $tag->get_component_array();
-		}
-	}
-
-	return @components;
-}
-
-sub print_attribute {
-	my $self = shift;
-	my $attribute = shift || undef;
-	my $value = shift || undef;
-
-	unless (defined $attribute) {
-		WiX3::Exception::Parameter::Missing->throw('attribute');
-	}
-
-	# $attribute needs to be an identifier.
-	
-	unless (defined $value) {
 		return q{};
 	}
 	
-	return qq{ $attribute='$value'};
-	
+	foreach my $tag ($self->get_child_tags()) {
+		$string .= $tag->as_string();
+	}
+
+	return $self->indent(2, $string);
 }
 
 no Moose::Role;

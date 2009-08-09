@@ -17,7 +17,11 @@ use MooseX::Types::Moose qw( Str );
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_environment.htm
+
 with 'WiX3::XML::Role::Tag';
+
+# No child tags allowed.
 
 #####################################################################
 # Accessors:

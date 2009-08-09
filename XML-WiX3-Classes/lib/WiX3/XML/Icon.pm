@@ -1,44 +1,34 @@
-package WiX3::XML::Fragment;
+package WiX3::XML::Icon;
 
 #<<<
 use 5.006;
 use Moose;
-use vars              qw( $VERSION );
+use vars                 qw( $VERSION );
+use Params::Util         qw( _STRING  );
+use MooseX::Types::Moose qw( Str      );
 
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-# http://wix.sourceforge.net/manual-wix3/wix_xsd_fragment.htm
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_icon.htm
 
-with 'WiX3::XML::Role::Fragment';
-with 'WiX3::XML::Role::TagAllowsChildTags';
+with 'WiX3::XML::Role::Tag';
 
-#####################################################################
-# Main Methods
+## Allows no child tags.
 
-# Append the id parameter to 'Fr_' to indicate a fragment.
-sub BUILDARGS {
-	my $class = shift;
-	
-	if ( @_ == 1 && ! ref $_[0] ) {
-		return { id => 'Fr_' . $_[0] };
-	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
-		if (exists $_[0]->{id}) {
-			$_[0]->{id} = 'Fr_' . $_[0]->{'id'};
-			return $_[0];
-		} else {
-			WiX3::Exception::Parameter::Missing->throw('id');
-		}
-	} else {
-		my %hash = @_;
-		if (exists $hash{id}) {
-			$hash{id} = 'Fr_' . $hash{'id'};
-			return \%hash;
-		} else {
-			WiX3::Exception::Parameter::Missing->throw('id');
-		}		
-	}
-}
+has id => (
+	is => 'ro',
+	isa => Str,
+	reader => 'get_id',
+	required => 1,
+);
+
+has sourcefile => (
+	is => 'ro',
+	isa => Str,
+	reader => 'get_sourcefile',
+	required => 1,
+);
 
 #####################################################################
 # Methods to implement the Tag role.
@@ -46,35 +36,28 @@ sub BUILDARGS {
 sub as_string {
 	my $self = shift;
 
-	my @namespaces   = $self->get_namespaces();
-	my $namespaces   = join q{ }, @namespaces;
-	my $id           = $self->get_id();
-	my $child_string = q{};
-	$child_string = $self->indent(2, $self->as_string_children()) if $self->has_child_tags();
-	chomp $child_string;
-	
-	return <<"EOF";
-<?xml version='1.0' encoding='windows-1252'?>
-<Wix $namespaces>
-  <Fragment Id='$id'>
-$child_string
-  </Fragment>
-</Wix>
-EOF
+	my $directory = $self->_get_directory();
+	my $children  = $self->has_child_tags();
+
+	if ($children) {
+		my $child_string = $self->as_string_children();
+		if (defined $directory) {
+			return qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
+		} else {
+			return qq{<CreateFolder>\n$child_string<CreateFolder />\n};
+		}
+	} else {
+		if (defined $directory) {
+			return qq{<CreateFolder Directory='$directory' />\n};
+		} else {
+			return qq{<CreateFolder />\n};
+		}
+	}
+
 } ## end sub as_string
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
-}
-
-#####################################################################
-# Methods to implement the Tag role.
-
-# Unless this method is overwritten, this fragment does not need
-# to regenerate itself before the .msi/.msm is built.
-
-sub regenerate {
-	return;
 }
 
 1;
@@ -83,41 +66,21 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::Fragment - Default fragment code.
+WiX3::XML::Icon - Defines a Icon tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Fragment version 0.004
+This document describes WiX3::XML::Icon version 0.004
 
 =head1 SYNOPSIS
 
-	my $fragment = WiX3::XML::Fragment(
-		id => $id,
-	);
+TODO
   
 =head1 DESCRIPTION
 
-This module defines a default fragment.
+TODO
 
 =head1 INTERFACE 
-
-=head2 new()
-
-Parameter exceptions will always print a stack trace.
-
-=head3 $fragment->parameter()
-
-The name of the parameter with the error.
-
-=head3 $e->info()
-
-Information about how the parameter was bad.
-
-=head3 $e->where()
-
-Information about what routine had the bad parameter.
-
-=back
 
 =for author to fill in:
     Write a separate section listing the public components of the modules
@@ -128,8 +91,7 @@ Information about what routine had the bad parameter.
 
 =head1 DIAGNOSTICS
 
-This module provides the error diagnostics for the XML::WiX3::Objects 
-distribution.  It has no diagnostics of its own.
+TODO
 
 =head1 INCOMPATIBILITIES
 
@@ -149,7 +111,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 SEE ALSO
 
-L<Exception::Class>
+L<http://wix.sourceforge.net/>
 
 =head1 LICENCE AND COPYRIGHT
 

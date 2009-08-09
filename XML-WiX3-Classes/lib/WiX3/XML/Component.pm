@@ -11,7 +11,9 @@ use MooseX::Types::Moose  qw( Str Maybe Int               );
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'WiX3::XML::Role::Tag';
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm
+
+with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows lots of children: Choice of elements AppId, Category, Class, 
 ## Condition, CopyFile, CreateFolder, Environment, Extension, File, IniFile, 
 ## Interface, IsolateComponent, ODBCDataSource, ODBCDriver, ODBCTranslator, 

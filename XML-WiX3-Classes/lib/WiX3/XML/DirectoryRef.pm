@@ -10,7 +10,7 @@ use MooseX::Types::Moose qw( Int Str  );
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'WiX3::XML::Role::Tag';
+with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Component, Directory, Merge as children.
 
 #####################################################################

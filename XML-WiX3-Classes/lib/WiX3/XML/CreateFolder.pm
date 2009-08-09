@@ -9,7 +9,7 @@ use Params::Util      qw( _STRING  );
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'WiX3::XML::Role::Tag';
+with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Permission, PermissionEx, Shortcut as children.
 
 #####################################################################
