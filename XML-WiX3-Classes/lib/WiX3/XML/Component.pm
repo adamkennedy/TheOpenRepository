@@ -171,7 +171,7 @@ sub as_string {
 	my $string;
 	$string  = '<Component';
 	
-	for my ($k, $v) = each { 
+	my %attribute = ( 
 		'Id'                        => $id,
 		'ComPlusFlags'              => $self->_get_complusflags(),
 		'Directory'                 => $self->_get_directory(),
@@ -188,19 +188,23 @@ sub as_string {
 		'Transitive'                => $self->_get_transitive(),
 		'UninstallWhenSuperceded'   => $self->_get_uninstallwhensuperceded(),
 		'Win64'                     => $self->_get_win64()
-	} {	
-		$answer .= $self->print_attribute($k, $v);
+	);
+	
+	my ($k, $v);
+	
+	while (($k, $v) = each %attribute) {	
+		$string .= $self->print_attribute($k, $v);
 	}
 	
-	$answer .= " />\n";
+	$string .= " />\n";
 	
 	if ($children) {
-		$answer .= qq{>\n$child_string<Component />\n};
+		$string .= qq{>\n$child_string<Component />\n};
 	} else {
-		$answer .= qq{ />\n};
+		$string .= qq{ />\n};
 	}
 	
-	return $answer;
+	return $string;
 } ## end sub as_string
 
 sub get_namespace {

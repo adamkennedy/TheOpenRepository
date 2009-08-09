@@ -17,7 +17,7 @@ use MooseX::Types::Moose qw( Str );
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
-with 'Wix3::XML::Role::Tag';
+with 'WiX3::XML::Role::Tag';
 
 #####################################################################
 # Accessors:
@@ -81,7 +81,7 @@ has _system => (
 	default => 'yes',
 );
 
-has _separator => 
+has _separator => (
 	is => 'ro',
 	isa => Str,
 	reader => '_get_separator',

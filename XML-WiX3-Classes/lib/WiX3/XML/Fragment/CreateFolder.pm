@@ -95,6 +95,11 @@ sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
 }
 
+# Needs no regeneration.
+sub regenerate {
+	return;
+}
+
 1;
 
 __END__
