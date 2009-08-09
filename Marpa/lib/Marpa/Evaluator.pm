@@ -2392,6 +2392,13 @@ sub Marpa::Evaluator::new_value {
                 # but someday technology may allow there to be 2**31
                 # rules.  Something to live for. :-)
 
+                ### sort item ....
+                ### location: $location
+                ### depth: $depth
+                ### user_priority: $user_priority
+                ### length: $length
+                ### and_node_id: $and_node_id
+
                 push @sort_data, pack 'N*',
                     $location,
                     ( N_FORMAT_MAX - $depth ),
@@ -2404,6 +2411,7 @@ sub Marpa::Evaluator::new_value {
             @and_node_ids_at_depth =
                 grep { not defined $depth[$_] }
                 map  { @{ $_->[Marpa::Internal::Or_Node::CHILD_IDS] } }
+                map { say STDERR "or-node: ", $_ }
                 grep { defined $_ }
                 map {
                 @{ $and_nodes->[$_] }[
@@ -2417,11 +2425,17 @@ sub Marpa::Evaluator::new_value {
                     "Parse too deep (depth=$depth) to be evaluated");
             }
 
+            ### and-node ids at depth: @and_node_ids_at_depth
+
         } ## end while (@and_node_ids_at_depth)
 
+        ### sort data: @sort_data
+
         $ranked_and_node_ids =
-            $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS] =
-            map { unpack $_, -(N_FORMAT_BYTES) } sort @sort_data;
+            $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS] = [
+            map { unpack 'N', ( substr $_, -(N_FORMAT_BYTES) ) }
+            sort @sort_data
+            ];
         $journal  = $evaler->[Marpa::Internal::Evaluator::JOURNAL]  = [];
         $markings = $evaler->[Marpa::Internal::Evaluator::MARKINGS] = [];
         @tasks = ( [Marpa::Internal::Task::ADVANCE] );
@@ -2438,7 +2452,7 @@ sub Marpa::Evaluator::new_value {
             @tasks = ( [Marpa::Internal::Task::ADVANCE] );
         }
 
-        my ( $task, @task_data ) = ${ pop @tasks };
+        my ( $task, @task_data ) = @{ pop @tasks };
 
         if ( $task == Marpa::Internal::Task::ADVANCE ) {
 

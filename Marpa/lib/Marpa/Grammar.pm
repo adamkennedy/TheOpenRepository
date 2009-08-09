@@ -226,6 +226,12 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Grammar;
 
+use Carp;
+
+# use Smart::Comments '###';
+
+### Using smart comments <where>...
+
 =begin Implementation:
 
 ID                 - number of this grammar
@@ -1581,12 +1587,15 @@ sub Marpa::brief_virtual_rule {
             if defined $dot_position;
         return Marpa::brief_rule($rule);
     }
+
     my $rule_id          = $rule->[Marpa::Internal::Rule::ID];
     my $original_rule_id = $original_rule->[Marpa::Internal::Rule::ID];
     my $original_lhs     = $original_rule->[Marpa::Internal::Rule::LHS];
+    my $chaf_rhs         = $rule->[Marpa::Internal::Rule::RHS];
     my $original_rhs     = $original_rule->[Marpa::Internal::Rule::RHS];
     my $chaf_start       = $rule->[Marpa::Internal::Rule::CHAF_START];
     my $chaf_end         = $rule->[Marpa::Internal::Rule::CHAF_END];
+
     if ( not defined $chaf_start ) {
         return "dot at $dot_position, virtual "
             . Marpa::brief_rule($original_rule)
@@ -1594,25 +1603,28 @@ sub Marpa::brief_virtual_rule {
         return 'virtual ' . Marpa::brief_rule($original_rule);
     } ## end if ( not defined $chaf_start )
     my $text .= "(part of $original_rule_id) ";
-    $text .= $original_lhs->[Marpa::Internal::Symbol::NAME] . ' -> ';
-    if ( @{$original_rhs} ) {
-        my @rhs_names =
-            map { $_->[Marpa::Internal::Symbol::NAME] } @{$original_rhs};
-        if ( defined $dot_position ) {
-            my $dot_in_original = $dot_position + $chaf_start;
-            given ( $dot_in_original - $chaf_end ) {
-                when (1) { $rhs_names[$chaf_end] .= q{ .}; }
-                when (2) { $rhs_names[-1]        .= q{ .}; }
-                default {
-                    $rhs_names[$dot_in_original] =
-                        q{. } . $rhs_names[$dot_in_original];
-                }
-            } ## end given
-        } ## end if ( defined $dot_position )
-        $rhs_names[$chaf_start] = '{ ' . $rhs_names[$chaf_start];
-        $rhs_names[$chaf_end] .= ' }';
-        $text .= join q{ }, @rhs_names;
-    } ## end if ( @{$original_rhs} )
+    $text .= $original_lhs->[Marpa::Internal::Symbol::NAME] . ' ->';
+    my @rhs_names =
+        map { $_->[Marpa::Internal::Symbol::NAME] } @{$original_rhs};
+    if ($dot_position >= scalar @{$chaf_rhs}) {
+        $dot_position = scalar @rhs_names;
+    } else {
+        $dot_position += $chaf_start;
+    }
+    POSITION: for my $position (0 .. scalar @rhs_names) {
+        if ($position == $chaf_start) {
+            $text .= " {";
+        }
+        if ($position == $dot_position) {
+            $text .= " .";
+        }
+        if ($position == $chaf_end+1) {
+            $text .= " }";
+        }
+        my $name = $rhs_names[$position];
+        next POSITION unless defined $name;
+        $text .= " $name";
+    }
     return $text;
 } ## end sub Marpa::brief_virtual_rule
 
@@ -1681,15 +1693,27 @@ sub Marpa::Grammar::show_rules {
 } ## end sub Marpa::Grammar::show_rules
 
 sub Marpa::show_dotted_rule {
-    my ( $rule, $position ) = @_;
+    my ( $rule, $dot_position ) = @_;
 
-    my @names =
+    my $text =
+        $rule->[Marpa::Internal::Rule::LHS]->[Marpa::Internal::Symbol::NAME]
+        . ' ::=';
+
+    my @rhs_names =
         map { $_->[Marpa::Internal::Symbol::NAME] }
-        $rule->[Marpa::Internal::Rule::LHS],
         @{ $rule->[Marpa::Internal::Rule::RHS] };
-    splice @names, $position + 1, 0, q{.};
-    splice @names, 1, 0, '::=';
-    return join q{ }, @names;
+
+    POSITION: for my $position ( 0 .. scalar @rhs_names ) {
+        if ( $position == $dot_position ) {
+            $text .= q{ .};
+        }
+        my $name = $rhs_names[$position];
+        next POSITION unless defined $name;
+        $text .= " $name";
+    } ## end for my $position ( 0 .. @rhs_names )
+
+    return $text;
+
 } ## end sub Marpa::show_dotted_rule
 
 sub Marpa::show_item {

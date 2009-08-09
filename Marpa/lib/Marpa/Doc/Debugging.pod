@@ -182,6 +182,8 @@ Setting it after that point will result in a warning.
 
 =end undocumented:
 
+=item trace_evaluation
+
 =item trace_iterations
 
 Traces creation of, and iteration of,
