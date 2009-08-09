@@ -108,7 +108,7 @@ sub as_string {
 	my $answer;
 	$answer	 = '< Environment';
 	$answer .= $self->print_attribute('Id',        $id);
-	$answer .= $self->print_attribute('Name',      $self->_get_id());
+	$answer .= $self->print_attribute('Name',      $self->_get_name());
 	$answer .= $self->print_attribute('Value',     $self->_get_value());
 	$answer .= $self->print_attribute('System',    $self->_get_system());
 	$answer .= $self->print_attribute('Permanent', $self->_get_permanent());

@@ -163,23 +163,44 @@ has _win64 => (
 sub as_string {
 	my $self = shift;
 
-	my $directory = $self->_get_directory();
 	my $children  = $self->has_child_tags();
+	my $child_string = $self->as_string_children();
+	my $id = 'C_' . $self->get_id();
 
-	if ($children) {
-		my $child_string = $self->as_string_children();
-		if (defined $directory) {
-			return qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
-		} else {
-			return qq{<CreateFolder>\n$child_string<CreateFolder />\n};
-		}
-	} else {
-		if (defined $directory) {
-			return qq{<CreateFolder Directory='$directory'/>\n};
-		} else {
-			return qq{<CreateFolder />\n};
-		}
+	
+	my $string;
+	$string  = '<Component';
+	
+	for my ($k, $v) = each { 
+		'Id'                        => $id,
+		'ComPlusFlags'              => $self->_get_complusflags(),
+		'Directory'                 => $self->_get_directory(),
+		'DisableRegistryReflection' => $self->_get_disableregistryreflection(),
+		'DiskId'                    => $self->_get_diskid(),
+		'Feature'                   => $self->_get_feature(),
+		'Guid'                      => $self->_get_guid(),
+		'Keypath'                   => $self->_get_keypath(),
+		'Location'                  => $self->_get_location(),
+		'NeverOverwrite'            => $self->_get_neveroverwrite(),
+		'Permanent'                 => $self->_get_permanent(),
+		'Shared'                    => $self->_get_shared(),
+		'SharedDllRefCount'         => $self->_get_shareddllrefcount(),
+		'Transitive'                => $self->_get_transitive(),
+		'UninstallWhenSuperceded'   => $self->_get_uninstallwhensuperceded(),
+		'Win64'                     => $self->_get_win64()
+	} {	
+		$answer .= $self->print_attribute($k, $v);
 	}
+	
+	$answer .= " />\n";
+	
+	if ($children) {
+		$answer .= qq{>\n$child_string<Component />\n};
+	} else {
+		$answer .= qq{ />\n};
+	}
+	
+	return $answer;
 } ## end sub as_string
 
 sub get_namespace {
