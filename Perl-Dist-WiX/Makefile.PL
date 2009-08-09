@@ -34,6 +34,7 @@ requires       'Perl::Dist'           => '1.16';
 requires       'Process'              => '0.26';
 requires       'Readonly'             => '1.03';
 requires       'URI'                  => '1.35';
+requires       'WiX3'                 => 0;
 recommends     'Readonly::XS'         => '1.05';
 test_requires  'Test::More'           => '0.61';
 test_requires  'Test::Output'         => '0.11';

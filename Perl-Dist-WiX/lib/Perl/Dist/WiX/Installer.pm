@@ -37,13 +37,14 @@ use     URI                      qw();
 require Perl::Dist::WiX::Files;
 require Perl::Dist::WiX::StartMenu;
 require Perl::Dist::WiX::Environment;
-require Perl::Dist::WiX::DirectoryTree;
 require Perl::Dist::WiX::FeatureTree;
 require Perl::Dist::WiX::Icons;
-require Perl::Dist::WiX::CreateFolder;
 require Perl::Dist::WiX::RemoveFolder;
+# Converted routines.
+require Perl::Dist::WiX::DirectoryTree2;
+require Perl::Dist::WiX::CreateFolderFragment;
 
-use version; $VERSION = version->new('1.000_001')->numify;
+use version; $VERSION = version->new('1.000_002')->numify;
 #>>>
 
 =head2 Accessors
@@ -227,7 +228,7 @@ sub new {
 
 	# Set element collections
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
-	$self->{directories} = Perl::Dist::WiX::DirectoryTree->new(
+	$self->{directories} = Perl::Dist::WiX::DirectoryTree2->new(
 		app_dir  => $self->image_dir,
 		app_name => $self->app_name,
 	  )
@@ -242,13 +243,15 @@ sub new {
 		directory_tree => $self->directories,
 		id             => 'Win32Extras',
 	);
-	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::CreateFolder->new(
-		directory => 'Cpan',
-		id        => 'CPANFolder',
+	$self->{fragments}->{CreateCpan} = WiX3::CreateFolder->new(
+		directory_tree => $self->directories,
+		directory      => 'Cpan',
+		id             => 'CPANFolder',
 	);
-	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::CreateFolder->new(
-		directory => 'Cpanplus',
-		id        => 'CPANPLUSFolder',
+	$self->{fragments}->{CreateCpanplus} = Perl::Dist::WiX::CreateFolderFragment->new(
+		directory_tree => $self->directories,
+		directory      => 'Cpanplus',
+		id             => 'CPANPLUSFolder',
 	) if ( '5100' eq $self->perl_version );
 
 	$self->{icons} = Perl::Dist::WiX::Icons->new( trace => $self->{trace} );
