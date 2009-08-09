@@ -1,7 +1,7 @@
-package Perl::Dist::WiX::CreateFolderFragment;
+package Perl::Dist::WiX::Fragment::CreateFolder;
 
 #####################################################################
-# Perl::Dist::WiX::CreateFolderFragment - A <Fragment> and <DirectoryRef> tag that
+# Perl::Dist::WiX::Fragment::CreateFolder - A <Fragment> and <DirectoryRef> tag that
 # contains a <CreateFolder> element.
 #
 # Copyright 2009 Curtis Jewell
@@ -17,7 +17,7 @@ use WiX3::XML::CreateFolder;
 use WiX3::XML::DirectoryRef;
 use WiX3::XML::Component;
 
-use version; $VERSION = version->new('1.000')->numify;
+use version; $VERSION = version->new('1.100')->numify;
 
 extends 'WiX3::XML::Fragment';
 
@@ -42,19 +42,13 @@ sub BUILDARGS {
 	if (not exists $args{'id'}) {
 		# TODO: Throw an error.
 	}
-	
-	if (not exists $args{'directory_tree'}) {
-		# TODO: Throw an error.
-	}
 
 	if (not exists $args{'directory_id'}) {
 		# TODO: Throw an error.
 	}
 
-	# TODO: Throw an error if directory_tree is not the correct type.
-	
 	my $id = $args{'id'};
-	my $directory_tree = $args{'directory_tree'};
+	my $directory_tree = Perl::Dist::WiX::DirectoryTree2->instance();
 	my $directory_id = $args{'directory_id'};	
 
 	my $directory_object = $directory_tree->get_directory_object('D_$directory_id');
@@ -76,3 +70,5 @@ sub BUILDARGS {
 	return { id => "Fr_Create$id" , child_tags => [ $tag3 ] };
 
 }
+
+1;
