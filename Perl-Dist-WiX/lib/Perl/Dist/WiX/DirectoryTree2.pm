@@ -10,7 +10,7 @@ package Perl::Dist::WiX::DirectoryTree2;
 #
 #<<<
 use 5.008001;
-use Moose;
+use MooseX::Singleton;
 use vars                  qw( $VERSION                       );
 use Params::Util          qw( _IDENTIFIER _STRING            );
 use File::Spec::Functions qw( catdir                         );
@@ -43,13 +43,6 @@ has app_name => (
 	reader => 'get_app_dir',
 	required => 1,
 )
-
-
-## no critic 'ProhibitUnusedVariables'
-my @root : Field : Get(root);
-my @app_dir : Field : Arg(Name => 'app_dir', Required => 1) : Get(app_dir);
-my @app_name : Field : Arg(Name => 'app_name', Required => 1) :
-  Get(app_name);
 
 #####################################################################
 # Constructor for DirectoryTree
