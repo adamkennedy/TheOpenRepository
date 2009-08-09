@@ -91,7 +91,7 @@ has _keypath => (
 
 has _location => (
 	is => 'ro',
-	isa => 'Maybe[Str]', # Enum: 'local', 'source', 'network'
+	isa => Maybe[Str], # Enum: 'local', 'source', 'network'
 	reader => '_get_location',
 	init_arg => 'location',
 	default => undef,

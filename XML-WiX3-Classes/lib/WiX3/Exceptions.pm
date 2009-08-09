@@ -1,4 +1,4 @@
-package WiX3::XML::Exceptions;
+package WiX3::Exceptions;
 
 #<<<
 use 5.008001;
@@ -6,41 +6,22 @@ use strict;
 use warnings;
 use vars     qw( $VERSION );
 use WiX3::Traceable;
-use WiX3::Exceptions;
 use version; $VERSION = version->new('0.004')->numify;
 
 #>>>
 
 use Exception::Class 1.22 (
-	'WiX3::Exception::Parameter' => {
+	'WiX3::Exception'            => { 
+		'description' => 'WiX3 error', 
+	},
+	'WiX3::Exception::Unimplemented' => {
 		'description' =>
-		  'WiX3::XML error: Parameter missing or invalid',
+		  'XML::WiX3::Classes error: Routine unimplemented',
 		'isa'    => 'WiX3::Exception',
-	},
-	'WiX3::Exception::Caught' => {
-		'description' =>
-		  'Error caught by WiX3::XML from other module',
-		'isa'    => 'WiX3::Exception',
-		'fields' => [ 'message', 'info' ],
-	},
-	'WiX3::Exception::Parameter::Missing' => {
-		'description' =>
-		  'XML::WiX3::Classes error: Parameter missing',
-		'isa'    => 'WiX3::Exception::Parameter',
-	},
-	'WiX3::Exception::Parameter::Invalid' => {
-		'description' =>
-		  'XML::WiX3::Classes error: Parameter invalid',
-		'isa'    => 'WiX3::Exception::Parameter',
-	},
-	'WiX3::Exception::Parameter::Odd' => {
-		'description' =>
-		  'XML::WiX3::Classes error: Parameter missing or invalid',
-		'isa'    => 'WiX3::Exception::Parameter',
 	},
 );
 
-sub WiX3::Exception::Parameter::full_message { ## no critic 'Capitalization'
+sub WiX3::Exception::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -51,34 +32,34 @@ sub WiX3::Exception::Parameter::full_message { ## no critic 'Capitalization'
 	my $misc       = WiX3::Traceable->new();
 	my $tracelevel = $misc->get_tracelevel();
 
-	# Add trace to it. (We automatically dump trace for parameter errors.)
-	$string .= "\n" . $self->trace() . "\n";
-
-	$misc->trace_line( 0, $string );
-	
-	return q{};
-} ## end sub PDWiX::Parameter::full_message
-
-sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
-	my $self = shift;
-
-	my $string =
-	    $self->description() . ': '
-	  . $self->message() . "\n"
-	  . $self->info() . "\n"
-	  . 'Time error caught: '
-	  . localtime() . "\n";
-	my $misc       = WiX3::Traceable->new();
-	my $tracelevel = $misc->get_trace() % 100;
-
 	# Add trace to it if tracelevel high enough.
 	if ( $tracelevel > 1 ) {
 		$string .= "\n" . $self->trace() . "\n";
 	}
 
-	return $misc->_trace_line( 0, $string, 0, $tracelevel,
-		$self->trace->frame(0) );
-} ## end sub PDWiX::Caught::full_message
+	$misc->trace_line( 0, $string );
+	
+	return q{};
+} ## end sub WiX3::Exception::full_message
+
+sub WiX3::Exception::Unimplemented::full_message { ## no critic 'Capitalization'
+	my $self = shift;
+
+	my $string =
+	    $self->description() . ': '
+	  . $self->message() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
+	my $misc       = WiX3::Traceable->new();
+	my $tracelevel = $misc->get_tracelevel();
+
+	# Add trace to it.
+	$string .= "\n" . $self->trace() . "\n";
+
+	$misc->trace_line( 0, $string );
+	
+	return q{};
+} ## end sub WiX3::Exception::Unimplemented::full_message
 
 1;
 
@@ -86,11 +67,11 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::Exceptions - Exceptions used in the WiX3 distribution.
+WiX3::Exceptions - Exceptions used in the WiX3 distribution.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Exceptions version 0.004
+This document describes WiX3::Exceptions version 0.004
 
 =head1 SYNOPSIS
 

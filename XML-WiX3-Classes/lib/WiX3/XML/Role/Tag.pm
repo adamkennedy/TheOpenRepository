@@ -5,10 +5,10 @@ use     5.006;
 use		Moose::Role;
 use     Params::Util  qw( _STRING _NONNEGINT );
 use     vars          qw( $VERSION );
-use     MooseX::AttributeHelpers;
-use     WiX3::Types qw(IsTag);
-use     MooseX::Types::Moose qw(ArrayRef);
 use     WiX3::XML::Exceptions;
+use     WiX3::Types qw(IsTag);
+use     MooseX::AttributeHelpers;
+use     MooseX::Types::Moose qw(ArrayRef);
 use     List::MoreUtils qw( uniq );
 
 use version; $VERSION = version->new('0.003')->numify;
@@ -131,7 +131,7 @@ sub get_component_array {
 	}
 
 	foreach my $tag ($self->get_child_tags()) {
-		if ($tag->meta()->does_role('XML::WiX3::Classes::Role::Component')) {
+		if ($tag->meta()->does_role('WiX3::XML::Role::Component')) {
 			push @components, $tag->get_component_id();
 		} else {
 			push @components, $tag->get_component_array();
@@ -147,7 +147,7 @@ sub print_attribute {
 	my $value = shift || undef;
 
 	unless (defined $attribute) {
-		XWC::Exception::Parameter::Missing->throw('attribute');
+		WiX3::Exception::Parameter::Missing->throw('attribute');
 	}
 
 	# $attribute needs to be an identifier.
