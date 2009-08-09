@@ -65,6 +65,16 @@ sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
 }
 
+#####################################################################
+# Methods to implement the Tag role.
+
+# Unless this method is overwritten, this fragment does not need
+# to regenerate itself before the .msi/.msm is built.
+
+sub regenerate {
+	return;
+}
+
 1;
 
 __END__
