@@ -12,7 +12,8 @@ package Perl::Dist::WiX::Fragment::Files;
 #<<<
 use 5.008001;
 use Moose;
-use vars              qw( $VERSION );
+use vars                 qw( $VERSION );
+use MooseX::Types::Moose qw( Bool     );
 use WiX3::Exceptions;
 use File::List::Object;
 
@@ -26,6 +27,13 @@ has files => (
 	required => 1,
 	reader => 'get_files',
 );
+
+has can_overwrite => (
+	is => 'ro',
+	isa => Bool,
+	default => 0,
+	reader => 'can_overwrite',
+)
 
 # This type of fragment needs regeneration.
 sub regenerate {
