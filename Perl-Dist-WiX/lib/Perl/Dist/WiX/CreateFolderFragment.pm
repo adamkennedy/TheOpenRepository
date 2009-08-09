@@ -73,6 +73,6 @@ sub BUILDARGS {
 		    'Creating directory creation entry for directory '
 		  . "id D_$directory_id\n" );
 	
-	return { id => "Fr_Create$id" };
+	return { id => "Fr_Create$id" , child_tags => [ $tag3 ] };
 
 }
