@@ -800,6 +800,9 @@ This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself, either version
 5.8.1 or any later version. See L<perlartistic> and L<perlgpl>.
 
+The full text of the license can be found in the
+LICENSE file included with this module.
+
 =for readme stop
 
 =head1 DISCLAIMER OF WARRANTY
