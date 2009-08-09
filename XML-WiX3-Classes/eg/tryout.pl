@@ -2,6 +2,6 @@
 
 use warnings;
 use strict;
-use XML::WiX3::Classes::CreateFolder;
+use WiX3::XML::CreateFolder;
 
-print XML::WiX3::Classes::CreateFolder->new()->as_string();
+print WiX3::XML::CreateFolder->new()->as_string();
