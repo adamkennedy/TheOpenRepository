@@ -1,7 +1,7 @@
-package Perl::Dist::WiX::Icons;
+package Perl::Dist::WiX::IconArray;
 
 ####################################################################
-# Perl::Dist::WiX::Icons - Object that represents a list of <Icon> tags.
+# Perl::Dist::WiX::IconArray - Object that represents a list of <Icon> tags.
 #
 # Copyright 2009 Curtis Jewell
 #
@@ -9,33 +9,27 @@ package Perl::Dist::WiX::Icons;
 #
 #<<<
 use 5.008001;
-use strict;
-use warnings;
-use Object::InsideOut      qw( Perl::Dist::WiX::Misc Storable );
+use Moose;
+use MooseX::AttributeHelpers;
 use Params::Util           qw( _STRING   );
 use File::Spec::Functions  qw( splitpath );
 use vars                   qw( $VERSION  );
 
-use version; $VERSION = version->new('1.000')->numify;
+use version; $VERSION = version->new('1.100')->numify;
 #>>>
-#####################################################################
-# Attributes
 
-my @icons : Field : Name(icons);
+has _icon => (
+	metaclass => 'Collection::Array',
+	is        => 'rw',
+	isa       => 'ArrayRef[Perl::Dist::WiX::Icon]',
+	default   => sub { [] },
+    provides  => {
+        'push'     => '_push_icon',
+		'count'    => '_count_icons',
+		'elements' => '_get_icon_array',
+	},
+);
 
-#####################################################################
-# Constructors for Icons
-#
-# Parameters: [none]
-
-sub _init : Init {
-	my $self = shift;
-
-	# Initialize our icons area.
-	@icons[ ${$self} ] = [];
-
-	return $self;
-}
 
 
 #####################################################################
@@ -86,11 +80,11 @@ sub add_icon {
 	$id .= ".$target_type.ico";
 
 	# Add icon to our list.
-	push @{ $icons[ ${$self} ] },
-	  { file        => $pathname_icon,
-		target_type => $target_type,
-		id          => $id
-	  };
+	$self->_push_icon(Perl::Dist::WiX::Icon->new(
+	  file        => $pathname_icon,
+	  target_type => $target_type,
+	  id          => $id
+	));
 
 	return $id;
 } ## end sub add_icon
@@ -123,14 +117,14 @@ sub search_icon {
 		);
 	}
 
-	if ( 0 == scalar @{ $icons[ ${$self} ] } ) { return undef; }
+	if ( 0 == $self->_count_icons() ) { return undef; }
 
 	# Print each icon
-	foreach my $icon ( @{ $icons[ ${$self} ] } ) {
-		if (    ( $icon->{file} eq $pathname_icon )
-			and ( $icon->{target_type} eq $target_type ) )
+	foreach my $icon ( $self->_get_icons_array() ) {
+		if (    ( $icon->get_file eq $pathname_icon )
+			and ( $icon->get_target_type eq $target_type ) )
 		{
-			return $icon->{id};
+			return $icon->get_id;
 		}
 	}
 
@@ -150,12 +144,14 @@ sub as_string {
 	my $answer;
 
 	# Short-circuit
-	if ( 0 == scalar @{ $icons[ ${$self} ] } ) { return q{}; }
+	if ( 0 == $self->count_icons ) { return q{}; }
 
 	# Print each icon
-	foreach my $icon ( @{ $icons[ ${$self} ] } ) {
+	foreach my $icon ( $self->_icon_array() ) {
+		my $id = $icon->get_id;
+		my $file = $icon->get_sourcefile();
 		$answer .=
-		  "  <Icon Id='I_$icon->{id}' SourceFile='$icon->{file}' />\n";
+		  "  <Icon Id='I_$id' SourceFile='$file' />\n";
 	}
 
 	return $answer;
