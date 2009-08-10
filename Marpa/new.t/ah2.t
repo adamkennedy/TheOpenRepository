@@ -21,7 +21,7 @@ BEGIN {
 my $grammar = Marpa::Grammar->new(
     {   precompute => 0,
         trace_journal => 1,
-        trace_iterations => 1,
+        trace_iterations => 3,
         trace_evaluation => 1,
         start      => 'S',
         strip      => 0,
@@ -380,7 +380,7 @@ Marpa::Test::is(
 
 my @answer = ( q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)] );
 
-for my $i ( 0 .. 4 ) {
+INPUT_LENGTH: for my $i ( 0 .. 4 ) {
     my $evaler = Marpa::Evaluator->new(
         {   recce => $recce,
             end   => $i,
@@ -389,12 +389,8 @@ for my $i ( 0 .. 4 ) {
     );
     say $evaler->show_bocage(3);
     my $result = $evaler->new_value();
-    TODO: {
-        ## no critic (ControlStructures::ProhibitPostfixControls)
-        local $TODO = 'new evaluator not yet written' if $i == 3;
-        ## use critic
-        Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
-    } ## end TODO:
+    Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
+    last INPUT_LENGTH if $i >= 1;
 } ## end for my $i ( 0 .. 4 )
 
 # Local Variables:

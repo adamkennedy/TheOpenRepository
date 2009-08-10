@@ -45,7 +45,15 @@ use Marpa::Offset qw(
     PREDECESSOR CAUSE
     VALUE_REF PERL_CLOSURE
     START_EARLEME END_EARLEME
-    ARGC RULE POSITION
+    ARGC RULE
+
+    POSITION { Position in an and-node is not the same as
+    position in a rule.  Rule positions are locations BETWEEN
+    symbols, and start from 0 (before the first symbol).
+    And-node positions are zero-based locations OF symbols.
+    An and-node position of -1 means the and-node is for a
+    rule with an empty RHS. }
+
     PARENT_ID
     PARENT_CHOICE
     DELETED
@@ -122,14 +130,6 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Evaluator_Rule
     CODE PERL_CLOSURE
-
-);
-
-use Marpa::Offset qw(
-
-    { Delete all these }
-    :package=Marpa::Internal::Ranked_Node
-    DECISION
 
 );
 
@@ -1744,6 +1744,9 @@ sub Marpa::Evaluator::new {
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = 0;
         $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = 0;
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED]  = 1;
+        my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID] = 0;
+        my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
+            $start_item->[Marpa::Internal::Earley_Item::NAME] . "o$or_node_id";
 
         $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
             \$start_null_value;
@@ -1751,13 +1754,13 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::ARGC] =
             scalar @{ $start_rule->[Marpa::Internal::Rule::RHS] };
         $and_node->[Marpa::Internal::And_Node::RULE]          = $start_rule;
-        $and_node->[Marpa::Internal::And_Node::POSITION]      = 0;
+        $and_node->[Marpa::Internal::And_Node::POSITION]      = -1;
         $and_node->[Marpa::Internal::And_Node::START_EARLEME] = 0;
         $and_node->[Marpa::Internal::And_Node::END_EARLEME]   = 0;
-        my $id = $and_node->[Marpa::Internal::And_Node::ID] = 0;
-        my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
-            $start_item->[Marpa::Internal::Earley_Item::NAME] . "o$id";
-        $and_node->[Marpa::Internal::And_Node::TAG] = $or_node_tag . 'a0';
+        $and_node->[Marpa::Internal::And_Node::PARENT_ID]     = 0;
+        $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] = 0;
+        my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID] = 0;
+        $and_node->[Marpa::Internal::And_Node::TAG] = $or_node_tag . 'a$and_node_id';
 
         push @{$or_nodes},  $or_node;
         push @{$and_nodes}, $and_node;
@@ -2411,7 +2414,6 @@ sub Marpa::Evaluator::new_value {
             @and_node_ids_at_depth =
                 grep { not defined $depth[$_] }
                 map  { @{ $_->[Marpa::Internal::Or_Node::CHILD_IDS] } }
-                map { say STDERR "or-node: ", $_ }
                 grep { defined $_ }
                 map {
                 @{ $and_nodes->[$_] }[
@@ -2456,6 +2458,13 @@ sub Marpa::Evaluator::new_value {
 
         if ( $task == Marpa::Internal::Task::ADVANCE ) {
 
+            if ($trace_tasks) {
+                print {$trace_fh}
+                    "Task: ADVANCE, current rank=$current_rank; ",
+                    ( scalar @tasks ), " tasks pending\n"
+                    or Marpa::exception('print to trace handle failed');
+            } ## end if ($trace_tasks)
+
             # Advance through the marked and-nodes to the first unmarked one,
             # then accept it.
             RANK: while ( $current_rank < scalar @{$ranked_and_node_ids} ) {
@@ -2466,6 +2475,7 @@ sub Marpa::Evaluator::new_value {
                             $current_rank
                         ]
                     );
+                    $current_rank++;
                     next TASK;
                 } ## end if ( not defined $markings->[$and_node_id] )
                 $current_rank++;
@@ -2473,7 +2483,7 @@ sub Marpa::Evaluator::new_value {
 
             # If we have advanced through all the ranked
             # and-nodes, we are ready to evaluate.
-            @tasks = ( [Marpa::Internal::Task::ADVANCE] );
+            @tasks = ( [Marpa::Internal::Task::EVALUATE] );
             next TASK;
 
         } ## end if ( $task == Marpa::Internal::Task::ADVANCE )
@@ -2481,6 +2491,15 @@ sub Marpa::Evaluator::new_value {
         if ( $task == Marpa::Internal::Task::ACCEPT ) {
 
             my ( $and_node_id, $rank ) = @task_data;
+            my $and_node = $and_nodes->[$and_node_id];
+
+            if ($trace_tasks) {
+                my $tag      = $and_node->[Marpa::Internal::And_Node::TAG];
+                print {$trace_fh}
+                    "Task: ACCEPT $tag; ",
+                    ( scalar @tasks ), " tasks pending\n"
+                    or Marpa::exception('print to trace handle failed');
+            } ## end if ($trace_tasks)
 
             my $marking = $markings->[$and_node_id];
             if ( defined $marking ) {
@@ -2495,37 +2514,33 @@ sub Marpa::Evaluator::new_value {
                 next TASK;
             } ## end if ( defined $marking )
 
-            if ($trace_tasks) {
-                my $and_node = $and_nodes->[$and_node_id];
-                my $tag      = $and_node->[Marpa::Internal::And_Node::TAG];
-                print {$trace_fh}
-                    "Task: ACCEPT $tag; ",
-                    ( scalar @tasks ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_tasks)
-
             # This node is not marked, so mark it accepted
 
-            my $journal_entry;
             if ( defined $rank ) {
-                $journal_entry = [
+                if ($trace_journal) {
+                    print {$trace_fh} "Journal: DECISION ",
+                        $and_node->[Marpa::Internal::And_Node::TAG],
+                        "; rank=$rank\n"
+                        or Marpa::exception('print to trace handle failed');
+                } ## end if ($trace_journal)
+                push @{$journal},
+                    [
                     Marpa::Internal::Journal_Tag::DECISION, $and_node_id,
                     $rank
-                ];
+                    ];
+
             } ## end if ( defined $rank )
             else {
-                $journal_entry =
-                    [ Marpa::Internal::Journal_Tag::MARKING, $and_node_id ];
-            }
-            push @{$journal}, $journal_entry;
 
-            my $and_node = $and_nodes->[$and_node_id];
-            if ($trace_journal) {
-                my $and_node_tag =
-                    $and_node->[Marpa::Internal::And_Node::TAG];
-                print {$trace_fh} "Journal: Accepted $and_node_tag\n"
-                    or Marpa::exception('print to trace handle failed');
-            } ## end if ($trace_journal)
+                if ($trace_journal) {
+                    print {$trace_fh} "Journal: MARKING ",
+                        $and_node->[Marpa::Internal::And_Node::TAG], "\n",
+                        or Marpa::exception('print to trace handle failed');
+                }
+                push @{$journal},
+                    [ Marpa::Internal::Journal_Tag::MARKING, $and_node_id ];
+
+            } ## end else [ if ( defined $rank ) ]
 
             $markings->[$and_node_id] = 1;
 
