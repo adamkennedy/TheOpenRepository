@@ -1606,25 +1606,26 @@ sub Marpa::brief_virtual_rule {
     $text .= $original_lhs->[Marpa::Internal::Symbol::NAME] . ' ->';
     my @rhs_names =
         map { $_->[Marpa::Internal::Symbol::NAME] } @{$original_rhs};
-    if ($dot_position >= scalar @{$chaf_rhs}) {
+    if ( $dot_position >= scalar @{$chaf_rhs} ) {
         $dot_position = scalar @rhs_names;
-    } else {
+    }
+    else {
         $dot_position += $chaf_start;
     }
-    POSITION: for my $position (0 .. scalar @rhs_names) {
-        if ($position == $chaf_start) {
-            $text .= " {";
+    POSITION: for my $position ( 0 .. scalar @rhs_names ) {
+        if ( $position == $chaf_start ) {
+            $text .= ' {';
         }
-        if ($position == $dot_position) {
-            $text .= " .";
+        if ( $position == $dot_position ) {
+            $text .= q{ .};
         }
-        if ($position == $chaf_end+1) {
-            $text .= " }";
+        if ( $position == $chaf_end + 1 ) {
+            $text .= ' }';
         }
         my $name = $rhs_names[$position];
-        next POSITION unless defined $name;
+        next POSITION if not defined $name;
         $text .= " $name";
-    }
+    } ## end for my $position ( 0 .. scalar @rhs_names )
     return $text;
 } ## end sub Marpa::brief_virtual_rule
 
@@ -1708,9 +1709,9 @@ sub Marpa::show_dotted_rule {
             $text .= q{ .};
         }
         my $name = $rhs_names[$position];
-        next POSITION unless defined $name;
+        next POSITION if not defined $name;
         $text .= " $name";
-    } ## end for my $position ( 0 .. @rhs_names )
+    } ## end for my $position ( 0 .. scalar @rhs_names )
 
     return $text;
 

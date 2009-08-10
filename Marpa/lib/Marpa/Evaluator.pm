@@ -1746,7 +1746,8 @@ sub Marpa::Evaluator::new {
         $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED]  = 1;
         my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID] = 0;
         my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
-            $start_item->[Marpa::Internal::Earley_Item::NAME] . "o$or_node_id";
+            $start_item->[Marpa::Internal::Earley_Item::NAME]
+            . "o$or_node_id";
 
         $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
             \$start_null_value;
@@ -1760,7 +1761,8 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::PARENT_ID]     = 0;
         $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] = 0;
         my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID] = 0;
-        $and_node->[Marpa::Internal::And_Node::TAG] = $or_node_tag . 'a$and_node_id';
+        $and_node->[Marpa::Internal::And_Node::TAG] =
+            $or_node_tag . "a$and_node_id";
 
         push @{$or_nodes},  $or_node;
         push @{$and_nodes}, $and_node;
@@ -2494,7 +2496,7 @@ sub Marpa::Evaluator::new_value {
             my $and_node = $and_nodes->[$and_node_id];
 
             if ($trace_tasks) {
-                my $tag      = $and_node->[Marpa::Internal::And_Node::TAG];
+                my $tag = $and_node->[Marpa::Internal::And_Node::TAG];
                 print {$trace_fh}
                     "Task: ACCEPT $tag; ",
                     ( scalar @tasks ), " tasks pending\n"
@@ -2518,7 +2520,7 @@ sub Marpa::Evaluator::new_value {
 
             if ( defined $rank ) {
                 if ($trace_journal) {
-                    print {$trace_fh} "Journal: DECISION ",
+                    print {$trace_fh} 'Journal: DECISION ',
                         $and_node->[Marpa::Internal::And_Node::TAG],
                         "; rank=$rank\n"
                         or Marpa::exception('print to trace handle failed');
@@ -2533,7 +2535,7 @@ sub Marpa::Evaluator::new_value {
             else {
 
                 if ($trace_journal) {
-                    print {$trace_fh} "Journal: MARKING ",
+                    print {$trace_fh} 'Journal: MARKING ',
                         $and_node->[Marpa::Internal::And_Node::TAG], "\n",
                         or Marpa::exception('print to trace handle failed');
                 }
