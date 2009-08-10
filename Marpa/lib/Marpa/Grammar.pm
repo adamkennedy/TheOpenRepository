@@ -27,7 +27,12 @@ use Marpa::Offset qw(
     ID NAME
     =LAST_BASIC_DATA_FIELD
 
-    IS_CHAF_NULLING NULL_ALIAS NULLING
+    IS_CHAF_NULLING
+    NULL_ALIAS
+    NULLING
+    MINIMAL { Minimal (shortest possible) evaluation?
+    Default is longest possible.  }
+
     =LAST_EVALUATOR_FIELD
 
     ACTION PREFIX SUFFIX
@@ -80,8 +85,7 @@ use Marpa::Offset qw(
     MINIMAL
     HAS_CHAF_LHS HAS_CHAF_RHS
 
-    VIRTUAL_SPAN { does this rule have a start or end
-    other than that of its original rule? }
+    HEIGHT_CONTOUR { Use this rule in calculating height? }
 
     =LAST_EVALUATOR_FIELD
     =LAST_RECOGNIZER_FIELD
@@ -3905,8 +3909,6 @@ sub rewrite_as_CHAF {
                 $new_rule->[Marpa::Internal::Rule::HAS_CHAF_RHS] =
                     $has_chaf_rhs;
 
-                $new_rule->[Marpa::Internal::Rule::VIRTUAL_SPAN] =
-                    $has_chaf_lhs;
                 $new_rule->[Marpa::Internal::Rule::ORIGINAL_RULE] = $rule;
                 $new_rule->[Marpa::Internal::Rule::CHAF_START] = $subp_start;
                 $new_rule->[Marpa::Internal::Rule::CHAF_END]   = $subp_end;

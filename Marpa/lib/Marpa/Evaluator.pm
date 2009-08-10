@@ -2366,12 +2366,7 @@ sub Marpa::Evaluator::new_value {
                     $and_node->[Marpa::Internal::And_Node::RULE];
                 my $original_rule =
                     $actual_rule->[Marpa::Internal::Rule::ORIGINAL_RULE];
-                my $virtual_span =
-                    $actual_rule->[Marpa::Internal::Rule::VIRTUAL_SPAN];
-                my $rule =
-                      $virtual_span
-                    ? $original_rule
-                    : $actual_rule;
+                my $rule = $original_rule // $actual_rule;
 
                 my $start_earleme =
                     $and_node->[Marpa::Internal::And_Node::START_EARLEME];
