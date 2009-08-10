@@ -1,0 +1,111 @@
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Repository - The repository that is used for Perl::Dist::WiX.
+
+=head1 DESCRIPTION
+
+This documentation describes the repository that Perl::Dist::WiX uses, and the
+branches that are currently being used as of August 2009.
+
+=head1 REPOSITORY
+
+Perl::Dist::WiX is currently on Adam Kennedy's "Open Repository" for CPAN 
+authors, at L<http://svn.ali.as/cpan/>
+
+My understanding is that if you're a CPAN author, you can get commit access 
+to it by asking Adam Kennedy for it. His e-mail address is 
+C<< adamk@cpan.org >>.
+
+If you aren't a CPAN author and need commit access for Perl::Dist::WiX, please 
+e-mail me with what you'd like to do (a patch would be nice) and I'll recommend 
+to him that you be given access.
+
+In any case, before committing anything more than minor changes to the Perl-Dist-WiX 
+trunk or branches, please e-mail me.  I'll probably say yes, but I need to know what 
+you're planning to do.
+
+=head1 BRANCHES
+
+The trunk is currently unstable at the moment, due to the fact that the code 
+is in the process of changing from using L<Object::InsideOut|Object::InsideOut>
+and L<Object::Tiny|Object::Tiny> to L<Moose|Moose>.
+
+Yes, I know Moose is "heavy" in the dependencies and initial loading time. 
+The problems are that Object::Tiny is a little TOO tiny for what I need, 
+and Object::InsideOut objects that contain other Object::InsideOut objects 
+are very difficult to make L<Storable>, which breaks checkpointing.
+
+Plus, with Moose, I gain the ability to check constructor parameters better,
+the ability to extend logging, and the ability to factor out the XML generation
+and handling to another distribution in a sane matter.
+
+So here are the 4 branches:
+
+=head2 Trunk 
+
+Location: L<http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/>
+
+The trunk right now has 4 goals for October:
+
+=over
+
+=item 1.
+
+5.10.1 support.
+
+=item 2.
+
+Moosification.
+
+=item 3.
+
+Refactoring the WiX.pm and Installer.pm modules into smaller modules.
+
+=item 4.
+
+Including the Perl::Dist::Asset and Perl::Dist::Util sets of modules into 
+the Perl::Dist::WiX distribution.
+
+=back
+
+Returning to stability is also important.
+
+=head2 July 2009 maintenance branch.
+
+Location: L<http://svn.ali.as/cpan/branches/Perl-Dist-WiX/July-2009-maintenance/>
+
+This branch exists for the sole purpose of rebuilding Strawberry Perl 5.8.9 and 5.10.0 if there are major problems before October 2009. Changes on this branch are HIGHLY discouraged.
+
+=head2 5.10.1 
+
+Location: L<http://svn.ali.as/cpan/branches/Perl-Dist-WiX/5.10.1/>
+
+This branch exists for the sole purpose of building Strawberry Perl 5.10.1 release candidates until the trunk is stable and passes tests again.
+
+Changes will only be included in this branch for functionality related to building Strawberry Perl 5.10.1.
+
+=head2 "Vendorperl"
+
+Location: L<http://svn.ali.as/cpan/branches/Perl-Dist-WiX/vendorperl/>)
+
+This was experimental code for having modules provided by Strawberry Perl install 
+into a "vendor" directory, instead of using the "site" directories.
+
+This code will be incorporated into the trunk once it is stable again.
+
+=head1 AUTHORS
+
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<http://ali.as/>, L<http://csjewell.comyr.com/perl/>
+
+=head1 COPYRIGHT AND LICENSE
+
+The license is the same as L<Perl::Dist::WiX|Perl::Dist::WiX>. 
+See that module for details.
+
+=cut
