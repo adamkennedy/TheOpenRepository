@@ -128,4 +128,7 @@ sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
 }
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
 1;
