@@ -1980,6 +1980,7 @@ sub add_user_rule {
     my $action            = $arg_copy{action};
     my $user_priority     = $arg_copy{user_priority};
     my $internal_priority = $arg_copy{internal_priority};
+    $arg_copy{height_contour} = 1;
 
     my ($rule_hash) = @{$grammar}[Marpa::Internal::Grammar::RULE_HASH];
 
@@ -2042,6 +2043,7 @@ sub add_rule {
     my $action            = $arg_hash->{action};
     my $user_priority     = $arg_hash->{user_priority};
     my $internal_priority = $arg_hash->{internal_priority};
+    my $height_contour    = $arg_hash->{height_contour};
 
     my $rules       = $grammar->[Marpa::Internal::Grammar::RULES];
     my $package     = $grammar->[Marpa::Internal::Grammar::NAME];
@@ -2114,16 +2116,17 @@ sub add_rule {
     my $new_rule   = [];
     my $nulling    = @{$rhs} ? undef : 1;
 
-    $new_rule->[Marpa::Internal::Rule::ID]            = $rule_count;
-    $new_rule->[Marpa::Internal::Rule::NAME]          = "rule $rule_count";
-    $new_rule->[Marpa::Internal::Rule::LHS]           = $lhs;
-    $new_rule->[Marpa::Internal::Rule::RHS]           = $rhs;
-    $new_rule->[Marpa::Internal::Rule::NULLABLE]      = $nulling;
-    $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
-    $new_rule->[Marpa::Internal::Rule::NULLING]       = $nulling;
-    $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
-    $new_rule->[Marpa::Internal::Rule::MINIMAL]       = 0;
-    $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
+    $new_rule->[Marpa::Internal::Rule::ID]             = $rule_count;
+    $new_rule->[Marpa::Internal::Rule::NAME]           = "rule $rule_count";
+    $new_rule->[Marpa::Internal::Rule::LHS]            = $lhs;
+    $new_rule->[Marpa::Internal::Rule::RHS]            = $rhs;
+    $new_rule->[Marpa::Internal::Rule::NULLABLE]       = $nulling;
+    $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]     = $nulling;
+    $new_rule->[Marpa::Internal::Rule::NULLING]        = $nulling;
+    $new_rule->[Marpa::Internal::Rule::ACTION]         = $action;
+    $new_rule->[Marpa::Internal::Rule::MINIMAL]        = 0;
+    $new_rule->[Marpa::Internal::Rule::USER_PRIORITY]  = $user_priority;
+    $new_rule->[Marpa::Internal::Rule::HEIGHT_CONTOUR] = $height_contour;
     $new_rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY] =
         $internal_priority;
 
@@ -2352,11 +2355,13 @@ EO_CODE
             $rule_action .= $action;
         } ## end default
     } ## end given
+
     add_rule(
         {   grammar => $grammar,
             lhs     => $lhs,
             rhs     => [$sequence],
             action  => $rule_action,
+            height_contour => 1,
         }
     );
 
@@ -2367,10 +2372,11 @@ EO_CODE
             ## use critic
         }
         add_rule(
-            {   grammar => $grammar,
-                lhs     => $lhs,
-                rhs     => [ $sequence, $separator, ],
-                action  => $rule_action,
+            {   grammar        => $grammar,
+                lhs            => $lhs,
+                rhs            => [ $sequence, $separator, ],
+                action         => $rule_action,
+                height_contour => 1,
             }
         );
     } ## end if ( defined $separator and not $proper_separation )
@@ -3895,7 +3901,8 @@ sub rewrite_as_CHAF {
                         lhs               => $subp_lhs,
                         rhs               => $factor_rhs,
                         user_priority     => $user_priority,
-                        internal_priority => $new_internal_priority
+                        internal_priority => $new_internal_priority,
+                        height_contour    => !$has_chaf_lhs
                     }
                 );
 
