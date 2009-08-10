@@ -4,7 +4,7 @@ package Graph::XGMML;
 
 =head1 NAME
 
-Graph::XGMLL - Simple Graph.pm-like interface for generating XGMML graphs
+Graph::XGMML - Simple Graph.pm-like interface for generating XGMML graphs
 
 =head1 SYNOPSIS
 
