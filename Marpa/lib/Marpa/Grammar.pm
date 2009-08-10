@@ -85,7 +85,7 @@ use Marpa::Offset qw(
     MINIMAL
     HAS_CHAF_LHS HAS_CHAF_RHS
 
-    HEIGHT_CONTOUR { Use this rule in calculating height? }
+    SIGNIFICANT { Use this rule in prioritizing evaluations }
 
     =LAST_EVALUATOR_FIELD
     =LAST_RECOGNIZER_FIELD
@@ -1857,9 +1857,10 @@ sub add_terminal {
     my $grammar = shift;
     my $name    = shift;
     my $options = shift;
-    my ( $regex, $prefix, $suffix );
+    my ( $regex, $prefix, $suffix, );
     my $action;
     my $user_priority = 0;
+    my $minimal       = 0;
 
     while ( my ( $key, $value ) = each %{$options} ) {
         given ($key) {
@@ -1868,6 +1869,7 @@ sub add_terminal {
             when ('prefix')   { $prefix        = $value; }
             when ('suffix')   { $suffix        = $value; }
             when ('regex')    { $regex         = $value; }
+            when ('minimal')  { $minimal       = $value; }
             default {
                 Marpa::exception(
                     "Attempt to add terminal named $name with unknown option $key"
@@ -1896,16 +1898,14 @@ sub add_terminal {
             Marpa::exception("Attempt to add terminal twice: $name");
         }
 
-        @{$symbol}[
-            Marpa::Internal::Symbol::PRODUCTIVE,
-            Marpa::Internal::Symbol::NULLING,
-            Marpa::Internal::Symbol::REGEX,
-            Marpa::Internal::Symbol::PREFIX,
-            Marpa::Internal::Symbol::SUFFIX,
-            Marpa::Internal::Symbol::ACTION,
-            Marpa::Internal::Symbol::TERMINAL,
-            ]
-            = ( 1, 0, $regex, $prefix, $suffix, $action, 1, );
+        $symbol->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
+        $symbol->[Marpa::Internal::Symbol::NULLING]    = 0;
+        $symbol->[Marpa::Internal::Symbol::REGEX]      = $regex;
+        $symbol->[Marpa::Internal::Symbol::PREFIX]     = $prefix;
+        $symbol->[Marpa::Internal::Symbol::SUFFIX]     = $suffix;
+        $symbol->[Marpa::Internal::Symbol::ACTION]     = $action;
+        $symbol->[Marpa::Internal::Symbol::TERMINAL]   = 1;
+        $symbol->[Marpa::Internal::Symbol::MINIMAL]    = $minimal;
 
         return;
     } ## end if ( defined $symbol )
@@ -1924,6 +1924,7 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::ACTION]        = $action;
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]      = 1;
     $new_symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
+    $new_symbol->[Marpa::Internal::Symbol::MINIMAL]       = $minimal;
 
     push @{$symbols}, $new_symbol;
     return weaken( $symbol_hash->{$name} = $new_symbol );
@@ -1980,7 +1981,7 @@ sub add_user_rule {
     my $action            = $arg_copy{action};
     my $user_priority     = $arg_copy{user_priority};
     my $internal_priority = $arg_copy{internal_priority};
-    $arg_copy{height_contour} = 1;
+    $arg_copy{significant} = 1;
 
     my ($rule_hash) = @{$grammar}[Marpa::Internal::Grammar::RULE_HASH];
 
@@ -2043,7 +2044,7 @@ sub add_rule {
     my $action            = $arg_hash->{action};
     my $user_priority     = $arg_hash->{user_priority};
     my $internal_priority = $arg_hash->{internal_priority};
-    my $height_contour    = $arg_hash->{height_contour};
+    my $significant       = $arg_hash->{significant};
 
     my $rules       = $grammar->[Marpa::Internal::Grammar::RULES];
     my $package     = $grammar->[Marpa::Internal::Grammar::NAME];
@@ -2116,17 +2117,17 @@ sub add_rule {
     my $new_rule   = [];
     my $nulling    = @{$rhs} ? undef : 1;
 
-    $new_rule->[Marpa::Internal::Rule::ID]             = $rule_count;
-    $new_rule->[Marpa::Internal::Rule::NAME]           = "rule $rule_count";
-    $new_rule->[Marpa::Internal::Rule::LHS]            = $lhs;
-    $new_rule->[Marpa::Internal::Rule::RHS]            = $rhs;
-    $new_rule->[Marpa::Internal::Rule::NULLABLE]       = $nulling;
-    $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]     = $nulling;
-    $new_rule->[Marpa::Internal::Rule::NULLING]        = $nulling;
-    $new_rule->[Marpa::Internal::Rule::ACTION]         = $action;
-    $new_rule->[Marpa::Internal::Rule::MINIMAL]        = 0;
-    $new_rule->[Marpa::Internal::Rule::USER_PRIORITY]  = $user_priority;
-    $new_rule->[Marpa::Internal::Rule::HEIGHT_CONTOUR] = $height_contour;
+    $new_rule->[Marpa::Internal::Rule::ID]            = $rule_count;
+    $new_rule->[Marpa::Internal::Rule::NAME]          = "rule $rule_count";
+    $new_rule->[Marpa::Internal::Rule::LHS]           = $lhs;
+    $new_rule->[Marpa::Internal::Rule::RHS]           = $rhs;
+    $new_rule->[Marpa::Internal::Rule::NULLABLE]      = $nulling;
+    $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
+    $new_rule->[Marpa::Internal::Rule::NULLING]       = $nulling;
+    $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
+    $new_rule->[Marpa::Internal::Rule::MINIMAL]       = 0;
+    $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
+    $new_rule->[Marpa::Internal::Rule::SIGNIFICANT]   = $significant;
     $new_rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY] =
         $internal_priority;
 
@@ -2357,11 +2358,11 @@ EO_CODE
     } ## end given
 
     add_rule(
-        {   grammar => $grammar,
-            lhs     => $lhs,
-            rhs     => [$sequence],
-            action  => $rule_action,
-            height_contour => 1,
+        {   grammar     => $grammar,
+            lhs         => $lhs,
+            rhs         => [$sequence],
+            action      => $rule_action,
+            significant => 1,
         }
     );
 
@@ -2372,11 +2373,11 @@ EO_CODE
             ## use critic
         }
         add_rule(
-            {   grammar        => $grammar,
-                lhs            => $lhs,
-                rhs            => [ $sequence, $separator, ],
-                action         => $rule_action,
-                height_contour => 1,
+            {   grammar     => $grammar,
+                lhs         => $lhs,
+                rhs         => [ $sequence, $separator, ],
+                action      => $rule_action,
+                significant => 1,
             }
         );
     } ## end if ( defined $separator and not $proper_separation )
@@ -3902,7 +3903,7 @@ sub rewrite_as_CHAF {
                         rhs               => $factor_rhs,
                         user_priority     => $user_priority,
                         internal_priority => $new_internal_priority,
-                        height_contour    => !$has_chaf_lhs
+                        significant       => !$has_chaf_lhs
                     }
                 );
 
@@ -3952,19 +3953,18 @@ sub rewrite_as_CHAF {
 
     # Create a new start rule
     my $new_start_rule = add_rule(
-        {   grammar => $grammar,
-            lhs     => $new_start_symbol,
-            rhs     => [$old_start_symbol],
+        {   grammar     => $grammar,
+            lhs         => $new_start_symbol,
+            rhs         => [$old_start_symbol],
+            significant => 1
         }
     );
-    @{$new_start_rule}[
-        Marpa::Internal::Rule::PRODUCTIVE,
-        Marpa::Internal::Rule::ACCESSIBLE,
-        Marpa::Internal::Rule::USEFUL,
-        Marpa::Internal::Rule::ACTION,
-        ]
-        ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-        = ( $productive, 1, 1, q{ $_[0] } );
+
+    $new_start_rule->[Marpa::Internal::Rule::PRODUCTIVE] = $productive;
+    $new_start_rule->[Marpa::Internal::Rule::ACCESSIBLE] = 1;
+    $new_start_rule->[Marpa::Internal::Rule::USEFUL]     = 1;
+    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+    $new_start_rule->[Marpa::Internal::Rule::ACTION] = q{ $_[0] };
     ## use critic
 
     # If we created a null alias for the original start symbol, we need
@@ -3975,7 +3975,12 @@ sub rewrite_as_CHAF {
         my $new_start_alias = alias_symbol( $grammar, $new_start_symbol );
         $new_start_alias->[Marpa::Internal::Symbol::START] = 1;
         my $new_start_alias_rule = add_rule(
-            { grammar => $grammar, lhs => $new_start_alias, rhs => [] } );
+            {   grammar     => $grammar,
+                lhs         => $new_start_alias,
+                rhs         => [],
+                significant => 1
+            }
+        );
 
         # Nulling rules are not considered useful, but the top-level one is an exception
         @{$new_start_alias_rule}[
