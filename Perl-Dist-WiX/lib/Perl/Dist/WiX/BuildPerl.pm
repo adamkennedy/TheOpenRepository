@@ -263,6 +263,12 @@ sub install_cpan_upgrades {
 			next MODULE;
 		}
 
+		# Locale::Maketext::Simple 0.20 has a test bug. Forcing.
+		if ( $module->cpan_file =~ m{/Locale-Maketext-Simple-0\.20}msx ) {
+			$self->_install_cpan_module( $module, 1 );
+			next MODULE;
+		}
+
 		if (    ( $module->cpan_file =~ m{/Module-Install-\d}msx )
 			and ( $module->cpan_version > 0.79 ) )
 		{
@@ -275,7 +281,8 @@ sub install_cpan_upgrades {
 		if (    ( $module->cpan_file =~ m{/ExtUtils-MakeMaker-\d}msx )
 			and ( $module->cpan_version > 6.50 ) )
 		{
-			# TODO: Delete the files that were removed in 6.52.
+			$self->remove_file(qw{perl lib ExtUtils MakeMaker bytes.pm});
+			$self->remove_file(qw{perl lib ExtUtils MakeMaker vmsish.pm});			
 			$self->_install_cpan_module( $module, $force );
 			next MODULE;
 		}
