@@ -20,7 +20,7 @@ use warnings;
 use File::Spec          0.80 ();
 use HTML::Spry::DataSet 0.01 ();
 use CPANDB 0.02 {
-	maxage => 24 * 3600 * 3600
+	maxage => 24 * 3600
 };
 
 our $VERSION = '0.06';
