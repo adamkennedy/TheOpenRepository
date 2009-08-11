@@ -264,7 +264,7 @@ EOS
 
 my $set1_at_0 = <<'EOS';
 Earley Set 1
-S7@0-1 [p=S1@0-0; t=\'a']
+S7@0-1 [p=S1@0-0; s=a; t=\'a']
 EOS
 
 my $set1_at_1 = <<'EOS';
@@ -277,7 +277,7 @@ EOS
 
 my $set2_at_1 = <<'EOS';
 Earley Set 2
-S7@1-2 [p=S4@1-1; t=\'a']
+S7@1-2 [p=S4@1-1; s=a; t=\'a']
 EOS
 
 my $set2_at_2 = <<'EOS';
@@ -294,7 +294,7 @@ EOS
 
 my $set3_at_2 = <<'EOS';
 Earley Set 3
-S7@2-3 [p=S12@2-2; t=\'a']
+S7@2-3 [p=S12@2-2; s=a; t=\'a']
 EOS
 
 my $set3_at_3 = <<'EOS';
@@ -311,7 +311,7 @@ EOS
 
 my $set4_at_3 = <<'EOS';
 Earley Set 4
-S7@3-4 [p=S14@3-3; t=\'a']
+S7@3-4 [p=S14@3-3; s=a; t=\'a']
 EOS
 
 my $set4_at_4 = <<'EOS';

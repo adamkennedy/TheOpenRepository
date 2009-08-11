@@ -43,7 +43,8 @@ use Marpa::Offset qw(
 
     TAG ID
     PREDECESSOR CAUSE
-    VALUE_REF PERL_CLOSURE
+    TOKEN VALUE_REF
+    PERL_CLOSURE
     START_EARLEME END_EARLEME
     ARGC RULE
 
@@ -718,6 +719,7 @@ sub clone_and_node {
     for my $field (
         Marpa::Internal::And_Node::TAG,
         Marpa::Internal::And_Node::VALUE_REF,
+        Marpa::Internal::And_Node::TOKEN,
         Marpa::Internal::And_Node::PERL_CLOSURE,
         Marpa::Internal::And_Node::START_EARLEME,
         Marpa::Internal::And_Node::END_EARLEME,
@@ -846,6 +848,7 @@ sub delete_nodes {
                 Marpa::Internal::And_Node::CAUSE,
                 Marpa::Internal::And_Node::PREDECESSOR,
                 Marpa::Internal::And_Node::VALUE_REF,
+                Marpa::Internal::And_Node::TOKEN,
                 Marpa::Internal::And_Node::CLASS,
                 )
             {
@@ -1868,11 +1871,11 @@ sub Marpa::Evaluator::new {
                 my $nulling_symbol_id =
                     $symbol->[Marpa::Internal::Symbol::ID];
                 my $null_value = $null_values->[$nulling_symbol_id];
-                @or_bud_list = ( [ $item, undef, \$null_value, ] );
+                @or_bud_list = ( [ $item, undef, $symbol, \$null_value, ] );
             } ## end if ( $symbol->[Marpa::Internal::Symbol::NULLING] )
             else {
                 @or_bud_list = (
-                    (   map { [ $_->[0], undef, $_->[1] ] }
+                    (   map { [ $_->[0], undef, @{$_}[1,2] ] }
                             @{ $item->[Marpa::Internal::Earley_Item::TOKENS] }
                     ),
                     (   map { [ $_->[0], $_->[1] ] }
@@ -1883,7 +1886,7 @@ sub Marpa::Evaluator::new {
 
             for my $or_bud (@or_bud_list) {
 
-                my ( $predecessor, $cause, $value_ref ) = @{$or_bud};
+                my ( $predecessor, $cause, $token, $value_ref ) = @{$or_bud};
 
                 my $predecessor_name;
 
@@ -1950,6 +1953,8 @@ sub Marpa::Evaluator::new {
                 $and_node->[Marpa::Internal::And_Node::PREDECESSOR] =
                     $predecessor_name;
                 $and_node->[Marpa::Internal::And_Node::CAUSE] = $cause_name;
+                $and_node->[Marpa::Internal::And_Node::TOKEN] =
+                    $token;
                 $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
                     $value_ref;
                 $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE] =
@@ -3006,7 +3011,6 @@ sub Marpa::Evaluator::new_value {
 
 } ## end sub Marpa::Evaluator::new_value
 
-# Apparently perlcritic has a bug and doesn't see the final return
 sub Marpa::Evaluator::value {
 
     my $evaler     = shift;
