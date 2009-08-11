@@ -104,24 +104,6 @@ This module defines a default fragment.
 
 =head1 INTERFACE 
 
-=head2 new()
-
-Parameter exceptions will always print a stack trace.
-
-=head3 $fragment->parameter()
-
-The name of the parameter with the error.
-
-=head3 $e->info()
-
-Information about how the parameter was bad.
-
-=head3 $e->where()
-
-Information about what routine had the bad parameter.
-
-=back
-
 =for author to fill in:
     Write a separate section listing the public components of the modules
     interface. These normally consist of either subroutines that may be
@@ -131,8 +113,7 @@ Information about what routine had the bad parameter.
 
 =head1 DIAGNOSTICS
 
-This module provides the error diagnostics for the XML::WiX3::Objects 
-distribution.  It has no diagnostics of its own.
+TODO
 
 =head1 INCOMPATIBILITIES
 

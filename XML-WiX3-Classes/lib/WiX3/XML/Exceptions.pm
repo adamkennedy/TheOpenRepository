@@ -129,8 +129,6 @@ Information about how the parameter was bad.
 
 Information about what routine had the bad parameter.
 
-=back
-
 =for author to fill in:
     Write a separate section listing the public components of the modules
     interface. These normally consist of either subroutines that may be
