@@ -143,9 +143,6 @@ sub as_string {
 	} else {
 		return q{<Fragment$tags />\n};
 	}
-
-	
-	return $answer;
 } ## end sub as_string
 
 sub get_namespace {

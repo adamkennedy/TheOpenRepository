@@ -13,7 +13,7 @@ use Moose;
 use vars                 qw( $VERSION            );
 use Params::Util         qw( _IDENTIFIER _STRING );
 use WiX3::Types          qw( YesNoType           );
-use MooseX::Types::Moose qw( Str );
+use MooseX::Types::Moose qw( Str Maybe           );
 use version; $VERSION = version->new('0.004')->numify;
 #>>>
 

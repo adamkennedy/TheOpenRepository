@@ -1,4 +1,4 @@
-package WiX3::XML::Icon;
+package WiX3::XML::ComponentRef;
 
 #<<<
 use 5.006;
@@ -28,7 +28,7 @@ has _primary => (
 	is => 'ro',
 	isa => Maybe[YesNoType],
 	reader => '_get_primary',
-	inst_arg => 'primary',
+	init_arg => 'primary',
 	default => undef,
 );
 
@@ -41,7 +41,7 @@ sub BUILDARGS {
 	
 	if ( @_ == 1 && ! ref $_[0] ) {
 		$id = $_[0];
-	} elsif ( @_ == 1 && _INSTANCE($_[0], 'WiX3::XML::Component' ) {
+	} elsif ( @_ == 1 && _INSTANCE($_[0], 'WiX3::XML::Component' ) ) {
 		$id = $_[0]->get_id();
 	} else {
 		return $class->SUPER::BUILDARGS(@_);
