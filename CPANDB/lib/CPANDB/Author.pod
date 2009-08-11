@@ -32,7 +32,8 @@ to be bound to the placeholders in the SQL phrase. Any SQL that is
 compatible with SQLite can be used in the parameter.
 
 Returns a list of B<CPANDB::Author> objects when called in list context, or a
-reference to an ARRAY of B<CPANDB::Author> objects when called in scalar context.
+reference to an C<ARRAY> of B<CPANDB::Author> objects when called in scalar
+ context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
 
@@ -80,9 +81,10 @@ The author table was originally created with the
 following SQL command.
 
   CREATE TABLE author (
-  	author TEXT NOT NULL PRIMARY KEY,
-  	name TEXT NOT NULL
+      author TEXT NOT NULL PRIMARY KEY,
+      name TEXT NOT NULL
   )
+
 
 =head1 SUPPORT
 
@@ -90,13 +92,9 @@ CPANDB::Author is part of the L<CPANDB> API.
 
 See the documentation for L<CPANDB> for more information.
 
-=head1 AUTHOR
-
-The Author
-
 =head1 COPYRIGHT
 
-Copyright 2009 The Author.
+Copyright 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

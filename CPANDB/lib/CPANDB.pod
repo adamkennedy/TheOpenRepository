@@ -14,16 +14,16 @@ TO BE COMPLETED
 
 =head2 dsn
 
-  my $string = Foo::Bar->dsn;
+  my $string = CPANDB->dsn;
 
-The C<dsn> accessor returns the dbi connection string used to connect
+The C<dsn> accessor returns the L<DBI> connection string used to connect
 to the SQLite database as a string.
 
 =head2 dbh
 
-  my $handle = Foo::Bar->dbh;
+  my $handle = CPANDB->dbh;
 
-To reliably prevent potential SQLite deadlocks resulting from multiple
+To reliably prevent potential L<SQLite> deadlocks resulting from multiple
 connections in a single process, each ORLite package will only ever
 maintain a single connection to the database.
 
@@ -31,11 +31,11 @@ During a transaction, this will be the same (cached) database handle.
 
 Although in most situations you should not need a direct DBI connection
 handle, the C<dbh> method provides a method for getting a direct
-connection in a way that is compatible with ORLite's connection
-management.
+connection in a way that is compatible with connection management in
+L<ORLite>.
 
 Please note that these connections should be short-lived, you should
-never hold onto a connection beyond the immediate scope.
+never hold onto a connection beyond your immediate scope.
 
 The transaction system in ORLite is specifically designed so that code
 using the database should never have to know whether or not it is in a
@@ -126,7 +126,7 @@ no means prohibited.
 =head2 pragma
 
   # Get the user_version for the schema
-  my $version = Foo::Bar->pragma('user_version');
+  my $version = CPANDB->pragma('user_version');
 
 The C<pragma> method provides a convenient method for fetching a pragma
 for a datase. See the SQLite documentation for more details.
@@ -140,13 +140,9 @@ Documentation created by L<ORLite::Pod> 0.06.
 For general support please see the support section of the main
 project documentation.
 
-=head1 AUTHOR
-
-The Author
-
 =head1 COPYRIGHT
 
-Copyright 2009 The Author.
+Copyright 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

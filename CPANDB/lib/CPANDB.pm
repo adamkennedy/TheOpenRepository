@@ -49,4 +49,18 @@ sub graph {
 	return $graph;
 }
 
+sub xgmml {
+	require Graph::XGMML;
+	my $class = shift;
+	my $graph = Graph::XGMML->new( directed => 1, @_ );
+	foreach my $vertex ( CPANDB::Distribution->select ) {
+		$graph->add_vertex( $vertex->distribution );
+	}
+	foreach my $edge ( CPANDB::Dependency->select ) {
+		$graph->add_edge( $edge->distribution => $edge->dependency );
+	}
+	$graph->end;
+	return 1;
+}
+
 1;

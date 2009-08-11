@@ -32,7 +32,8 @@ to be bound to the placeholders in the SQL phrase. Any SQL that is
 compatible with SQLite can be used in the parameter.
 
 Returns a list of B<CPANDB::Requires> objects when called in list context, or a
-reference to an ARRAY of B<CPANDB::Requires> objects when called in scalar context.
+reference to an C<ARRAY> of B<CPANDB::Requires> objects when called in scalar
+ context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
 
@@ -80,14 +81,31 @@ The requires table was originally created with the
 following SQL command.
 
   CREATE TABLE requires (
-  	distribution TEXT NOT NULL,
-  	module TEXT NOT NULL,
-  	version TEXT NULL,
-  	phase TEXT NOT NULL,
-  	PRIMARY KEY ( distribution, module, phase ),
-  	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution ),
-  	FOREIGN KEY ( module ) REFERENCES module ( module )
+      distribution TEXT NOT NULL,
+      module TEXT NOT NULL,
+      version TEXT NULL,
+      phase TEXT NOT NULL,
+      PRIMARY KEY (
+          distribution,
+          module,
+          phase
+      )
+  ,
+      FOREIGN KEY (
+          distribution
+      )
+      REFERENCES distribution (
+          distribution
+      )
+  ,
+      FOREIGN KEY (
+          module
+      )
+      REFERENCES module (
+          module
+      )
   )
+
 
 =head1 SUPPORT
 
@@ -95,13 +113,9 @@ CPANDB::Requires is part of the L<CPANDB> API.
 
 See the documentation for L<CPANDB> for more information.
 
-=head1 AUTHOR
-
-The Author
-
 =head1 COPYRIGHT
 
-Copyright 2009 The Author.
+Copyright 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

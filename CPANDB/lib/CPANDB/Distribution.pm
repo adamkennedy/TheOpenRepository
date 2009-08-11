@@ -13,18 +13,6 @@ our $VERSION = '0.05';
 ######################################################################
 # Graph Integration
 
-use constant NODE_METHOD => {
-	'Graph::Directed' => 'add_vertex',
-	'Graph::Easy'     => 'add_node',
-	'GraphViz'        => 'add_node',
-};
-
-use constant EDGE_METHOD => {
-	'Graph::Directed' => 'add_edge',
-	'Graph::Easy'     => 'add_edge',
-	'GraphViz'        => 'add_edge',
-};
-
 sub dependency_graph {
 	require Graph::Directed;
 	shift->_dependency( _class => 'Graph::Directed', @_ );
@@ -40,6 +28,11 @@ sub dependency_graphviz {
 	shift->_dependency( _class => 'GraphViz', @_ );
 }
 
+sub dependency_xgmml {
+	require Graph::XGMML;
+	shift->_dependency( _class => 'Graph::XGMML', @_ );
+}
+
 sub _dependency {
 	my $self     = shift;
 	my %param    = @_;
@@ -48,8 +41,7 @@ sub _dependency {
 	my $perl     = delete $param{perl};
 
 	# Prepare support values for the algorithm
-	my $add_node  = NODE_METHOD->{$class};
-	my $add_edge  = EDGE_METHOD->{$class};
+	my $add_node  = $class->can('add_vertex') ? 'add_vertex' : 'add_node';
 	my $sql_where = 'where distribution = ?';
 	my @sql_param = ();
 	if ( $phase ) {
@@ -81,7 +73,7 @@ sub _dependency {
 			$sql_where, $name, @sql_param,
 		);
 		foreach my $dep ( @deps ) {
-			$graph->$add_edge( $name => $dep );
+			$graph->add_edge( $name => $dep );
 		}
 
 		# Push the new ones to the list

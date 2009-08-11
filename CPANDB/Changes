@@ -1,5 +1,8 @@
 Changes for Perl extension CPANDB
 
+0.06 to be released
+	- Adding support for Graph::XGMML
+
 0.05 Tue 21 Jul 2009
 	- Better, more varied, and more controllable graph support
 	- Added cpangraph command line graph generator
