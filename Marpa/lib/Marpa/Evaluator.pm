@@ -2361,6 +2361,62 @@ sub Marpa::Evaluator::new_value {
             @{ $or_nodes->[0]->[Marpa::Internal::Or_Node::CHILD_IDS] };
 
         # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
+
+        my @heights;
+        $#heights = $#{$and_nodes};
+
+        my @and_node_work_list = ();
+
+        AND_NODE: for my $and_node ( @{$and_nodes} ) {
+
+            # This won't be defined for a deleted and-node.
+            next AND_NODE
+                if not
+                    defined $and_node->[Marpa::Internal::And_Node::VALUE_REF];
+
+            my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
+            my $height = $heights[$and_node_id] = 0;
+
+            my $token_start =
+                $and_node->[Marpa::Internal::And_Node::START_EARLEME];
+            my $token_end =
+                $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+            my $predecessor =
+                $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
+            if ( defined $predecessor ) {
+                $token_start =
+                    $predecessor->[Marpa::Internal::Or_Node::END_EARLEME];
+            }
+
+            my $location = $token_start;
+            my $token    = $and_node->[Marpa::Internal::And_Node::TOKEN];
+            my $user_priority =
+                $token->[Marpa::Internal::Symbol::USER_PRIORITY];
+
+            my $length = $token_end - $token_start;
+            if ( not $token->[Marpa::Internal::Symbol::MINIMAL] ) {
+                $length = N_FORMAT_MAX - $length;
+            }
+
+            push @sort_data, pack 'N*',
+                $location,
+                $height,
+                ( N_FORMAT_MAX - $user_priority ),
+                $length,
+                $and_node_id;
+
+            my $significant =
+                $and_node->[Marpa::Internal::And_Node::RULE]
+                ->[Marpa::Internal::Rule::SIGNIFICANT];
+            my $next_height = $significant ? ( $height + 1 ) : $height;
+            push @and_node_work_list,
+                map { [ $_, $next_height ] }
+                @{ $or_nodes
+                    ->[ $and_node->[Marpa::Internal::And_Node::PARENT_ID] ]
+                    ->[Marpa::Internal::Or_Node::PARENT_IDS] };
+
+        } ## end for my $and_node ( @{$and_nodes} )
+
         while (@and_node_ids_at_depth) {
             AND_NODE: for my $and_node_id (@and_node_ids_at_depth) {
                 $depth[$and_node_id] = $depth;
