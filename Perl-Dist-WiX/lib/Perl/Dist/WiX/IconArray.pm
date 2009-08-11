@@ -81,7 +81,7 @@ sub add_icon {
 
 	# Add icon to our list.
 	$self->_push_icon(Perl::Dist::WiX::Icon->new(
-	  file        => $pathname_icon,
+	  sourcefile  => $pathname_icon,
 	  target_type => $target_type,
 	  id          => $id
 	));
@@ -121,7 +121,7 @@ sub search_icon {
 
 	# Print each icon
 	foreach my $icon ( $self->_get_icons_array() ) {
-		if (    ( $icon->get_file eq $pathname_icon )
+		if (    ( $icon->get_sourcefile eq $pathname_icon )
 			and ( $icon->get_target_type eq $target_type ) )
 		{
 			return $icon->get_id;
@@ -148,7 +148,7 @@ sub as_string {
 
 	# Print each icon
 	foreach my $icon ( $self->_icon_array() ) {
-		my $id = $icon->get_id;
+		my $id = $icon->get_id();
 		my $file = $icon->get_sourcefile();
 		$answer .=
 		  "  <Icon Id='I_$id' SourceFile='$file' />\n";

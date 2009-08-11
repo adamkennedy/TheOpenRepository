@@ -76,15 +76,16 @@ To install this module, run the following commands:
 use     5.008001;
 use     strict;
 use     warnings;
-use     vars                  qw( $VERSION                   );
+use     vars                  qw( $VERSION                      );
 use     parent                qw( Perl::Dist::WiX::Installer 
-                                  Perl::Dist::WiX::BuildPerl );
-use     Archive::Zip          qw( :ERROR_CODES               );
-use     English               qw( -no_match_vars             );
-use     List::MoreUtils       qw( any none                   );
-use     Params::Util          qw( _HASH _STRING _INSTANCE    );
-use     Readonly              qw( Readonly                   );
-use     Storable              qw( retrieve                   );
+                                  Perl::Dist::WiX::BuildPerl
+                                  Perl::Dist::WiX::ReleaseNotes );
+use     Archive::Zip          qw( :ERROR_CODES                  );
+use     English               qw( -no_match_vars                );
+use     List::MoreUtils       qw( any none                      );
+use     Params::Util          qw( _HASH _STRING _INSTANCE       );
+use     Readonly              qw( Readonly                      );
+use     Storable              qw( retrieve                      );
 use     File::Spec::Functions qw(
 	catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
@@ -3761,62 +3762,6 @@ sub remake_path {
 	return $dir;
 }
 
-sub _add_to_distributions_installed {
-	my $self = shift;
-	my $dist = shift;
-	$self->{distributions_installed} =
-	  [ @{ $self->{distributions_installed} }, $dist ];
-
-	return;
-}
-
-sub create_distribution_list {
-	my $self = shift;
-	my $dist_list;
-	my ( $name, $ver );
-
-	foreach my $dist ( @{ $self->{distributions_installed} } ) {
-		( $name, $ver ) = $dist =~ m{(.*)-(?:v?)([0-9\._]*)}msx;
-		$dist_list .= "    $name $ver\n";
-	}
-
-	my $dist_txt;
-	my $vars = {
-		dist      => $self,
-		dist_list => $dist_list
-	};
-
-	my $tt = Template->new(
-		INCLUDE_PATH => [ $self->dist_dir, $self->wix_dist_dir, ],
-		ABSOLUTE     => 1,
-	  )
-	  || PDWiX::Caught->throw(
-		message => 'Template error',
-		info    => Template->error(),
-	  );
-
-	$tt->process( 'DISTRIBUTIONS.txt.tt', $vars, \$dist_txt )
-	  || PDWiX::Caught->throw(
-		message => 'Template error',
-		info    => $tt->error(),
-	  );
-
-	my $dist_file = catfile( $self->image_dir, q{DISTRIBUTIONS.txt} );
-	my $fh = IO::File->new( $dist_file, 'w' );
-
-	$self->trace_line( 2, "Creating distribution list at $dist_file\n" );
-
-	if ( not defined $fh ) {
-		PDWiX->throw(
-			"Could not open file $dist_file for writing [$!] [$^E]");
-	}
-	$fh->print($dist_txt);
-	$fh->close;
-
-	$self->add_to_fragment( 'perl', [$dist_file] );
-
-	return;
-} ## end sub create_distribution_list
 
 1;
 
