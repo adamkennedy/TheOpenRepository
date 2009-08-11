@@ -87,9 +87,10 @@ has _system => (
 
 has _separator => (
 	is => 'ro',
-	isa => Str,
+	isa => Maybe[Str],
 	reader => '_get_separator',
 	init_arg => 'separator',
+	default => undef,
 #	default => ';',   WiX defaults to this if not included
 );
 
