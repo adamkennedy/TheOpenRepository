@@ -30,13 +30,15 @@ use Marpa::Offset qw(
     IS_CHAF_NULLING
     NULL_ALIAS
     NULLING
+    USER_PRIORITY
     MINIMAL { Minimal (shortest possible) evaluation?
     Default is longest possible.  }
 
     =LAST_EVALUATOR_FIELD
 
     ACTION PREFIX SUFFIX
-    REGEX USER_PRIORITY TERMINAL
+    REGEX
+    TERMINAL
     =LAST_RECOGNIZER_FIELD
 
     LHS RHS ACCESSIBLE PRODUCTIVE START

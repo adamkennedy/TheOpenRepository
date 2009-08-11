@@ -1875,7 +1875,7 @@ sub Marpa::Evaluator::new {
             } ## end if ( $symbol->[Marpa::Internal::Symbol::NULLING] )
             else {
                 @or_bud_list = (
-                    (   map { [ $_->[0], undef, @{$_}[1,2] ] }
+                    (   map { [ $_->[0], undef, @{$_}[ 1, 2 ] ] }
                             @{ $item->[Marpa::Internal::Earley_Item::TOKENS] }
                     ),
                     (   map { [ $_->[0], $_->[1] ] }
@@ -1953,8 +1953,7 @@ sub Marpa::Evaluator::new {
                 $and_node->[Marpa::Internal::And_Node::PREDECESSOR] =
                     $predecessor_name;
                 $and_node->[Marpa::Internal::And_Node::CAUSE] = $cause_name;
-                $and_node->[Marpa::Internal::And_Node::TOKEN] =
-                    $token;
+                $and_node->[Marpa::Internal::And_Node::TOKEN] = $token;
                 $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
                     $value_ref;
                 $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE] =
