@@ -43,7 +43,7 @@ BEGIN {
 sub _compile { <<"END_PERL" }
 sub $_[0]->{name} {
 	\$_[0]->{$_[0]->{name}} or return '';
-	\$_[0]->{$_[0]->{name}}->( \$_[0]->{Alias}, \@_ );
+	\$_[0]->{$_[0]->{name}}->( \$_[0]->{Alias}, \@_[1..\$#_] );
 	return 1;
 }
 END_PERL

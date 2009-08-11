@@ -353,7 +353,11 @@ sub ID {
 
 =head2 postback
 
-  my $handler = $object->postback( 'event_name', $first_param, 'second_param' );
+  my $handler = $object->postback(
+      'event_name',
+      $first_param,
+      'second_param',
+  );
   $handler->( $third_param, $first_param );
 
 The C<postback> method is a wrapper for the equivalent L<POE::Session>
@@ -373,7 +377,11 @@ sub postback {
 
 =head2 callback
 
-  my $handler = $object->callback( 'event_name', $first_param, 'second_param' );
+  my $handler = $object->callback(
+      'event_name',
+      $first_param,
+      'second_param',
+  );
   $handler->( $third_param, $first_param );
 
 The C<callback> method is a wrapper for the equivalent L<POE::Session>
@@ -584,7 +592,7 @@ tasks in C<_start> you should always call it first.
   sub _start {
       my $self = $_[HEAP];
       $_[0]->SUPER::_start(@_[1..$#_]);
-
+  
       # Additional tasks here
       ...
   }
@@ -611,10 +619,10 @@ SUPER last.
 
   sub _stop {
       my $self = $_[HEAP];
-
+  
       # Additional tasks here
       ...
-
+  
       shift->SUPER::_stop(@_);
   }
 
