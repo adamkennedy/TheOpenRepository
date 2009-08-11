@@ -110,7 +110,7 @@ sub as_string {
 
 	# Print tag.
 	my $answer;
-	$answer	 = '< Environment';
+	$answer	 = '<Environment';
 	$answer .= $self->print_attribute('Id',        $id);
 	$answer .= $self->print_attribute('Name',      $self->_get_name());
 	$answer .= $self->print_attribute('Value',     $self->_get_value());
