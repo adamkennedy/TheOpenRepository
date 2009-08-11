@@ -7,7 +7,7 @@ use Params::Util         ();
 use ORLite::Mirror       ();
 use CPANDB::Distribution ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 sub import {
 	my $class  = shift;
