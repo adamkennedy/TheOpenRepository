@@ -4,7 +4,7 @@ use 5.008005;
 use strict;
 use warnings;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 
 
@@ -140,7 +140,7 @@ sub _dependants {
 		my @deps = grep {
 			not $edge{$_}++
 		} map {
-			$_->dependency
+			$_->distribution
 		} CPANDB::Dependency->select(
 			$sql_where, $name, @sql_param,
 		);
