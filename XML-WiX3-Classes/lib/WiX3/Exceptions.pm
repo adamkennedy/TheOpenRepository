@@ -11,13 +11,10 @@ use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
 use Exception::Class 1.22 (
-	'WiX3::Exception'            => { 
-		'description' => 'WiX3 error', 
-	},
+	'WiX3::Exception'                => { 'description' => 'WiX3 error', },
 	'WiX3::Exception::Unimplemented' => {
-		'description' =>
-		  'XML::WiX3::Classes error: Routine unimplemented',
-		'isa'    => 'WiX3::Exception',
+		'description' => 'XML::WiX3::Classes error: Routine unimplemented',
+		'isa'         => 'WiX3::Exception',
 	},
 );
 
@@ -38,11 +35,12 @@ sub WiX3::Exception::full_message { ## no critic 'Capitalization'
 	}
 
 	$misc->trace_line( 0, $string );
-	
+
 	return q{};
 } ## end sub WiX3::Exception::full_message
 
-sub WiX3::Exception::Unimplemented::full_message { ## no critic 'Capitalization'
+sub WiX3::Exception::Unimplemented::full_message
+{ ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -57,7 +55,7 @@ sub WiX3::Exception::Unimplemented::full_message { ## no critic 'Capitalization'
 	$string .= "\n" . $self->trace() . "\n";
 
 	$misc->trace_line( 0, $string );
-	
+
 	return q{};
 } ## end sub WiX3::Exception::Unimplemented::full_message
 

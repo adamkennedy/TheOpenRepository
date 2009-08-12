@@ -13,30 +13,26 @@ use version; $VERSION = version->new('0.004')->numify;
 
 use Exception::Class 1.22 (
 	'WiX3::Exception::Parameter' => {
-		'description' =>
-		  'WiX3::XML error: Parameter missing or invalid',
-		'isa'    => 'WiX3::Exception',
+		'description' => 'WiX3::XML error: Parameter missing or invalid',
+		'isa'         => 'WiX3::Exception',
 	},
 	'WiX3::Exception::Caught' => {
-		'description' =>
-		  'Error caught by WiX3::XML from other module',
-		'isa'    => 'WiX3::Exception',
-		'fields' => [ 'message', 'info' ],
+		'description' => 'Error caught by WiX3::XML from other module',
+		'isa'         => 'WiX3::Exception',
+		'fields'      => [ 'message', 'info' ],
 	},
 	'WiX3::Exception::Parameter::Missing' => {
-		'description' =>
-		  'XML::WiX3::Classes error: Parameter missing',
-		'isa'    => 'WiX3::Exception::Parameter',
+		'description' => 'XML::WiX3::Classes error: Parameter missing',
+		'isa'         => 'WiX3::Exception::Parameter',
 	},
 	'WiX3::Exception::Parameter::Invalid' => {
-		'description' =>
-		  'XML::WiX3::Classes error: Parameter invalid',
-		'isa'    => 'WiX3::Exception::Parameter',
+		'description' => 'XML::WiX3::Classes error: Parameter invalid',
+		'isa'         => 'WiX3::Exception::Parameter',
 	},
 	'WiX3::Exception::Parameter::Odd' => {
 		'description' =>
 		  'XML::WiX3::Classes error: Parameter missing or invalid',
-		'isa'    => 'WiX3::Exception::Parameter',
+		'isa' => 'WiX3::Exception::Parameter',
 	},
 );
 
@@ -55,9 +51,9 @@ sub WiX3::Exception::Parameter::full_message { ## no critic 'Capitalization'
 	$string .= "\n" . $self->trace() . "\n";
 
 	$misc->trace_line( 0, $string );
-	
+
 	return q{};
-} ## end sub PDWiX::Parameter::full_message
+} ## end sub WiX3::Exception::Parameter::full_message
 
 sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
 	my $self = shift;
@@ -78,7 +74,7 @@ sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
 
 	return $misc->_trace_line( 0, $string, 0, $tracelevel,
 		$self->trace->frame(0) );
-} ## end sub PDWiX::Caught::full_message
+} ## end sub WiX3::Exception::Caught::full_message
 
 1;
 

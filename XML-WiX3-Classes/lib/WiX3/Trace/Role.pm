@@ -1,5 +1,5 @@
-package # Hide from PAUSE.
-	WiX3::Trace::Role;
+package                                # Hide from PAUSE.
+  WiX3::Trace::Role;
 
 use 5.008001;
 use Moose::Role;
@@ -54,12 +54,12 @@ has smtp_pass => (
 
 sub testing {
 	my $self = shift;
-	
+
 	$self->_set_testing(1);
-	
+
 	return $self;
 }
 
 no Moose::Role;
 
-1; # Magic true value required at end of module
+1;                                     # Magic true value required at end of module

@@ -17,9 +17,9 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 #   None.
 
 has _directory => (
-	is => 'ro',
-	isa => 'Maybe[Str]',
-	reader => '_get_directory',
+	is      => 'ro',
+	isa     => 'Maybe[Str]',
+	reader  => '_get_directory',
 	default => undef,
 );
 
@@ -34,13 +34,14 @@ sub as_string {
 
 	if ($children) {
 		my $child_string = $self->as_string_children();
-		if (defined $directory) {
-			return qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
+		if ( defined $directory ) {
+			return
+qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
 		} else {
 			return qq{<CreateFolder>\n$child_string<CreateFolder />\n};
 		}
 	} else {
-		if (defined $directory) {
+		if ( defined $directory ) {
 			return qq{<CreateFolder Directory='$directory' />\n};
 		} else {
 			return qq{<CreateFolder />\n};

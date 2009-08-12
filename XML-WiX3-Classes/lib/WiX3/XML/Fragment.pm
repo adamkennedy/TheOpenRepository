@@ -19,11 +19,11 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 # Append the id parameter to 'Fr_' to indicate a fragment.
 sub BUILDARGS {
 	my $class = shift;
-	
-	if ( @_ == 1 && ! ref $_[0] ) {
+
+	if ( @_ == 1 && !ref $_[0] ) {
 		return { id => 'Fr_' . $_[0] };
 	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
-		if (exists $_[0]->{id}) {
+		if ( exists $_[0]->{id} ) {
 			$_[0]->{id} = 'Fr_' . $_[0]->{'id'};
 			return $_[0];
 		} else {
@@ -31,14 +31,16 @@ sub BUILDARGS {
 		}
 	} else {
 		my %hash = @_;
-		if (exists $hash{id}) {
+		if ( exists $hash{id} ) {
 			$hash{id} = 'Fr_' . $hash{'id'};
 			return \%hash;
 		} else {
 			WiX3::Exception::Parameter::Missing->throw('id');
-		}		
+		}
 	}
-}
+
+	return;
+} ## end sub BUILDARGS
 
 #####################################################################
 # Methods to implement the Tag role.
@@ -50,9 +52,10 @@ sub as_string {
 	my $namespaces   = join q{ }, @namespaces;
 	my $id           = $self->get_id();
 	my $child_string = q{};
-	$child_string = $self->indent(2, $self->as_string_children()) if $self->has_child_tags();
+	$child_string = $self->indent( 2, $self->as_string_children() )
+	  if $self->has_child_tags();
 	chomp $child_string;
-	
+
 	return <<"EOF";
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix $namespaces>

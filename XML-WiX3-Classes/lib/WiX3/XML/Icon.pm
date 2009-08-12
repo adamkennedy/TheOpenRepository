@@ -17,16 +17,16 @@ with 'WiX3::XML::Role::Tag';
 ## Allows no child tags.
 
 has id => (
-	is => 'ro',
-	isa => Str,
-	reader => 'get_id',
+	is       => 'ro',
+	isa      => Str,
+	reader   => 'get_id',
 	required => 1,
 );
 
 has sourcefile => (
-	is => 'ro',
-	isa => Str,
-	reader => 'get_sourcefile',
+	is       => 'ro',
+	isa      => Str,
+	reader   => 'get_sourcefile',
 	required => 1,
 );
 
@@ -41,13 +41,14 @@ sub as_string {
 
 	if ($children) {
 		my $child_string = $self->as_string_children();
-		if (defined $directory) {
-			return qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
+		if ( defined $directory ) {
+			return
+qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
 		} else {
 			return qq{<CreateFolder>\n$child_string<CreateFolder />\n};
 		}
 	} else {
-		if (defined $directory) {
+		if ( defined $directory ) {
 			return qq{<CreateFolder Directory='$directory' />\n};
 		} else {
 			return qq{<CreateFolder />\n};

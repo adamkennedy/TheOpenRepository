@@ -6,23 +6,21 @@ package WiX3::XML::Feature;
 # Copyright 2009 Curtis Jewell
 #
 # License is the same as perl. See Wix3.pm for details.
-#
-#<<<
+
 use 5.008001;
 use Moose;
-use vars                 qw( $VERSION            );
-use Params::Util         qw( _IDENTIFIER _STRING );
-use WiX3::Types          qw( YesNoType           );
+use vars qw( $VERSION            );
+use Params::Util qw( _IDENTIFIER _STRING );
+use WiX3::Types qw( YesNoType           );
 use MooseX::Types::Moose qw( Str Int Maybe       );
 use version; $VERSION = version->new('0.004')->numify;
-#>>>
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 
 # Child tags allowed:
-# Component, ComponentGroupRef, ComponentRef, Condition, Feature, 
+# Component, ComponentGroupRef, ComponentRef, Condition, Feature,
 # FeatureGroupRef, FeatureRef, MergeRef
 
 #####################################################################
@@ -30,83 +28,83 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 #   see new.
 
 has id => (
-	is => 'ro',
-	isa => Str,
-	reader => 'get_id',
+	is       => 'ro',
+	isa      => Str,
+	reader   => 'get_id',
 	required => 1,
 );
 
 has _absent => (
-	is => 'ro',
-	isa => Maybe[Str], # enum
-	reader => '_get_absent',
+	is       => 'ro',
+	isa      => Maybe [Str],           # enum
+	reader   => '_get_absent',
 	init_arg => 'absent',
-	default => undef,
+	default  => undef,
 );
 
 has _allow_advertise => (
-	is => 'ro',
-	isa => Maybe[Str],
-	reader => '_get_allow_advertise',
+	is       => 'ro',
+	isa      => Maybe [Str],
+	reader   => '_get_allow_advertise',
 	init_arg => 'allow_advertise',
-	default => undef
+	default  => undef,
 );
 
 
 has _configurable_directory => (
-	is => 'ro',
-	isa => Maybe[Str],
-	reader => '_get_configurable_directory',
+	is       => 'ro',
+	isa      => Maybe [Str],
+	reader   => '_get_configurable_directory',
 	init_arg => 'configurable_directory',
-	default => undef,
+	default  => undef,
 );
 
 has _description => (
-	is => 'ro',
-	isa => Maybe[Str],
-	reader => '_get_description',
+	is       => 'ro',
+	isa      => Maybe [Str],
+	reader   => '_get_description',
 	init_arg => 'description',
-	default => undef,
+	default  => undef,
 );
 
 has _display => (
-	is => 'ro',
-	isa => Maybe[Str],
-	reader => '_get_display',
+	is       => 'ro',
+	isa      => Maybe [Str],
+	reader   => '_get_display',
 	init_arg => 'display',
-	default => undef,
+	default  => undef,
 );
 
 has _install_default => (
-	is => 'ro',
-	isa => Maybe[Str],
-	reader => '_get_install_default',
+	is       => 'ro',
+	isa      => Maybe [Str],
+	reader   => '_get_install_default',
 	init_arg => 'install_default',
-	default => undef,
+	default  => undef,
 );
 
 has _level => (
-	is => 'ro',
-	isa => Maybe[Int],
-	reader => '_get_level',
+	is       => 'ro',
+	isa      => Maybe [Int],
+	reader   => '_get_level',
 	init_arg => 'level',
-	default => undef,
+	default  => undef,
 );
 
 has _title => (
-	is => 'ro',
-	isa => Maybe[Str],
-	reader => '_get_title',
+	is       => 'ro',
+	isa      => Maybe [Str],
+	reader   => '_get_title',
 	init_arg => 'title',
-	default => undef,
+	default  => undef,
 );
 
 has _typical_default => (
-	is => 'ro',
-	isa => Maybe[Str],
-	reader => '_get_typical_default',
+	is       => 'ro',
+	isa      => Maybe [Str],
+	reader   => '_get_typical_default',
 	init_arg => '_typical_default',
-	default => undef,
+	default  => undef,
 );
 
 #####################################################################
@@ -120,28 +118,37 @@ has _typical_default => (
 #   String containing <Fragment> tag defined by this object.
 
 sub as_string {
-	my $self      = shift;
+	my $self = shift;
 
-	my $children  = $self->has_children();
+	my $children = $self->has_children();
 	my $tags;
 
 	# Print tag.
-	$tags .= $self->print_attribute('Id',                    $self->get_id());
-	$tags .= $self->print_attribute('Absent',                $self->_get_absent());
-	$tags .= $self->print_attribute('AllowAdvertise',        $self->_get_allow_advertise());
-	$tags .= $self->print_attribute('ConfigurableDirectory', $self->_get_configurable_directory());
-	$tags .= $self->print_attribute('Description',           $self->_get_description());
-	$tags .= $self->print_attribute('Display',               $self->_get_display());
-	$tags .= $self->print_attribute('InstallDefault',        $self->_get_install_default());
-	$tags .= $self->print_attribute('Level',                 $self->_get_level());
-	$tags .= $self->print_attribute('Title',                 $self->_get_title());
-	$tags .= $self->print_attribute('TypicalDefault',        $self->_get_typical_default());
+	$tags .= $self->print_attribute( 'Id',     $self->get_id() );
+	$tags .= $self->print_attribute( 'Absent', $self->_get_absent() );
+	$tags .=
+	  $self->print_attribute( 'AllowAdvertise',
+		$self->_get_allow_advertise() );
+	$tags .=
+	  $self->print_attribute( 'ConfigurableDirectory',
+		$self->_get_configurable_directory() );
+	$tags .=
+	  $self->print_attribute( 'Description', $self->_get_description() );
+	$tags .= $self->print_attribute( 'Display', $self->_get_display() );
+	$tags .=
+	  $self->print_attribute( 'InstallDefault',
+		$self->_get_install_default() );
+	$tags .= $self->print_attribute( 'Level', $self->_get_level() );
+	$tags .= $self->print_attribute( 'Title', $self->_get_title() );
+	$tags .=
+	  $self->print_attribute( 'TypicalDefault',
+		$self->_get_typical_default() );
 
 	if ($children) {
 		my $child_string = $self->as_string_children();
 		return qq{<Fragment$tags>\n$child_string</Fragment>\n};
 	} else {
-		return q{<Fragment$tags />\n};
+		return qq{<Fragment$tags />\n};
 	}
 } ## end sub as_string
 

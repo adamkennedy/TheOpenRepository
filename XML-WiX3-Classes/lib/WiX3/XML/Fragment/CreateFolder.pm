@@ -1,20 +1,18 @@
-package XML::WiX3::Classes::CreateFolderFragment;
+package WiX3::XML::Fragment::CreateFolder;
 
-#<<<
-use 5.006;
+use 5.008001;
 use Moose;
-use vars              qw( $VERSION     );
-use Params::Util      qw( _IDENTIFIER  );
+use vars qw( $VERSION     );
+use Params::Util qw( _IDENTIFIER  );
 
 use version; $VERSION = version->new('0.003')->numify;
-#>>>
 
 with 'WiX3::XML::Role::Fragment';
 
 has _tag => (
-	is => 'ro',
-	isa => 'WiX3::XML::Fragment',
-	reader => '_get_tag',
+	is      => 'ro',
+	isa     => 'WiX3::XML::Fragment',
+	reader  => '_get_tag',
 	handles => [qw(search_file check_duplicates get_directory_id)],
 );
 
@@ -26,68 +24,66 @@ has _tag => (
 
 sub BUILDARGS {
 	my $class = shift;
-	my ($id, $directory_id);
-	
-	if ( @_ == 2 && ! ref $_[0] ) {
-		$id = $_[0];
+	my ( $id, $directory_id );
+
+	if ( @_ == 2 && !ref $_[0] ) {
+		$id           = $_[0];
 		$directory_id = $_[1];
-	}
-	elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
+	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		my %args = %{ $_[0] };
-		$id = $args{'id'};
-		$directory_id = $args{'directory_id'};		
-	}
-	elsif (@_ == 4) {
-		my %args = { @_ };
-		$id = $args{'id'};
-		$directory_id = $args{'directory_id'};		
+		$id           = $args{'id'};
+		$directory_id = $args{'directory_id'};
+	} elsif ( @_ == 4 ) {
+		my %args = {@_};
+		$id           = $args{'id'};
+		$directory_id = $args{'directory_id'};
 	} else {
 		WiX3::Exception::Parameter::Odd->throw();
 	}
-	
-	unless (defined $id) {
+
+	if ( not defined $id ) {
 		WiX3::Exception::Parameter::Missing->throw('id');
 	}
-	
-	unless (defined $directory_id) {
+
+	if ( not defined $directory_id ) {
 		WiX3::Exception::Parameter::Missing->throw('directory_id');
 	}
 
-	unless (defined _IDENTIFIER($id)) {
+	if ( not _IDENTIFIER($id) ) {
 		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
-	
-	unless (defined _IDENTIFIER($directory_id)) {
+
+	if ( not _IDENTIFIER($directory_id) ) {
 		WiX3::Exception::Parameter::Invalid->throw('directory_id');
 	}
 
-	my $tag1 = WiX3::XML::Fragment->new(id => "Create$id" );
-	my $tag2 = WiX3::XML::DirectoryRef->new(id => $directory_id );
-	my $tag3 = WiX3::XML::Component->new(id => "Create$id" );
+	my $tag1 = WiX3::XML::Fragment->new( id => "Create$id" );
+	my $tag2 = WiX3::XML::DirectoryRef->new( id => $directory_id );
+	my $tag3 = WiX3::XML::Component->new( id => "Create$id" );
 	my $tag4 = WiX3::XML::CreateFolder->new();
-	
+
 	$tag3->add_tag($tag4);
 	$tag2->add_tag($tag3);
 	$tag1->add_tag($tag2);
 
 	return { '_tag' => $tag1 };
-}
+} ## end sub BUILDARGS
 
 sub BUILD {
 	my $self = shift;
 
 	my $directory_id = $self->get_directory_id();
-	
+
 	$self->trace_line( 2,
-		'Creating directory creation entry for directory '
-	  . "id $directory_id\n" );
-	
+		    'Creating directory creation entry for directory '
+		  . "id $directory_id\n" );
+
 	return;
 }
 
 sub as_string {
 	my $self = shift;
-	
+
 	return $self->_get_tag()->as_string();
 }
 
@@ -106,25 +102,25 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::CreateFolderFragment - "Shortcut Fragment" containing only a CreateFolder entry.
+WiX3::XML::Fragment::CreateFolder - "Shortcut Fragment" containing only a CreateFolder entry.
 
 =head1 VERSION
 
-This document describes WiX3::XML::CreateFolderFragment version 0.003
+This document describes WiX3::XML::Fragment::CreateFolder version 0.003
 
 =head1 SYNOPSIS
 
-	my $fragment1 = WiX3::XML::CreateFolderFragment->new(
+	my $fragment1 = WiX3::XML::Fragment::CreateFolder->new(
 		id => $id1,
 		directory_id = $directory_id1,
 	);
 
-	my $fragment2 = WiX3::XML::CreateFolderFragment->new({
+	my $fragment2 = WiX3::XML::Fragment::CreateFolder->new({
 		id => $id2,
 		directory_id = $directory_id2,
 	});
 
-	my $fragment3 = WiX3::XML::CreateFolderFragment->new(
+	my $fragment3 = WiX3::XML::Fragment::CreateFolder->new(
 		$id3, $directory_id3);
 	
 =head1 DESCRIPTION

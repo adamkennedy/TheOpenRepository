@@ -18,18 +18,18 @@ with 'WiX3::XML::Role::Tag';
 ## Allows no child tags.
 
 has id => (
-	is => 'ro',
-	isa => Str,
-	reader => 'get_id',
+	is       => 'ro',
+	isa      => Str,
+	reader   => 'get_id',
 	required => 1,
 );
 
 has _primary => (
-	is => 'ro',
-	isa => Maybe[YesNoType],
-	reader => '_get_primary',
+	is       => 'ro',
+	isa      => Maybe [YesNoType],
+	reader   => '_get_primary',
 	init_arg => 'primary',
-	default => undef,
+	default  => undef,
 );
 
 #####################################################################
@@ -38,40 +38,40 @@ has _primary => (
 sub BUILDARGS {
 	my $class = shift;
 	my $id;
-	
-	if ( @_ == 1 && ! ref $_[0] ) {
+
+	if ( @_ == 1 && !ref $_[0] ) {
 		$id = $_[0];
-	} elsif ( @_ == 1 && _INSTANCE($_[0], 'WiX3::XML::Component' ) ) {
+	} elsif ( @_ == 1 && _INSTANCE( $_[0], 'WiX3::XML::Component' ) ) {
 		$id = $_[0]->get_id();
 	} else {
 		return $class->SUPER::BUILDARGS(@_);
 	}
-	
-	unless (defined $id) {
+
+	if ( not defined $id ) {
 		WiX3::Exception::Parameter::Missing->throw('id');
 	}
-	
-	unless (defined _IDENTIFIER($id)) {
+
+	if ( not defined _IDENTIFIER($id) ) {
 		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
-	
+
 	return { 'id' => $id };
-}
+} ## end sub BUILDARGS
 
 
 #####################################################################
 # Methods to implement the Tag role.
 
 sub as_string {
-	my $self      = shift;
+	my $self = shift;
 
 	my $id = 'C_' . $self->get_id();
 
 	# Print tag.
 	my $answer;
-	$answer	 = '<ComponentRef';
-	$answer .= $self->print_attribute('Id',      $id);
-	$answer .= $self->print_attribute('Primary', $self->_get_primary());
+	$answer = '<ComponentRef';
+	$answer .= $self->print_attribute( 'Id',      $id );
+	$answer .= $self->print_attribute( 'Primary', $self->_get_primary() );
 	$answer .= " />\n";
 
 	return $answer;

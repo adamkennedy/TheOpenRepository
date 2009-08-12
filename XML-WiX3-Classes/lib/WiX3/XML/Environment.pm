@@ -28,25 +28,25 @@ with 'WiX3::XML::Role::Tag';
 #   see new.
 
 has _id => (
-	is => 'ro',
-	isa => Str,
-	reader => '_get_id',
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_id',
 	init_arg => 'id',
 	required => 1,
 );
 
 has _name => (
-	is => 'ro',
-	isa => Str,
-	reader => '_get_name',
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_name',
 	init_arg => 'name',
 	required => 1,
 );
 
 has _value => (
-	is => 'ro',
-	isa => Str,
-	reader => '_get_value',
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_value',
 	init_arg => 'value',
 );
 
@@ -54,43 +54,44 @@ has _value => (
 # Note: see http://wix.sourceforge.net/manual-wix3/wix_xsd_environment.htm for valid values.
 
 has _action => (
-	is => 'ro',
-	isa => Str,
-	reader => '_get_value',
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_value',
 	init_arg => 'value',
-	default => 'set',
+	default  => 'set',
 );
 
 has _part => (
-	is => 'ro',
-	isa => Str,
-	reader => '_get_part',
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_part',
 	init_arg => 'part',
-	default => 'all',
+	default  => 'all',
 );
 
 has _permanent => (
-	is => 'ro',
-	isa => YesNoType,
-	reader => '_get_permanent',
+	is       => 'ro',
+	isa      => YesNoType,
+	reader   => '_get_permanent',
 	init_arg => 'permanent',
-	default => 'all',
+	default  => 'all',
 );
 
 has _system => (
-	is => 'ro',
-	isa => YesNoType,
-	reader => '_get_system',
+	is       => 'ro',
+	isa      => YesNoType,
+	reader   => '_get_system',
 	init_arg => 'system',
-	default => 'yes',
+	default  => 'yes',
 );
 
 has _separator => (
-	is => 'ro',
-	isa => Maybe[Str],
-	reader => '_get_separator',
+	is       => 'ro',
+	isa      => Maybe [Str],
+	reader   => '_get_separator',
 	init_arg => 'separator',
-	default => undef,
+	default  => undef,
+
 #	default => ';',   WiX defaults to this if not included
 );
 
@@ -105,21 +106,23 @@ has _separator => (
 #   String containing <Environment> tag defined by this object.
 
 sub as_string {
-	my $self      = shift;
+	my $self = shift;
 
 	my $id = 'E_' . $self->get_id();
 
 	# Print tag.
 	my $answer;
-	$answer	 = '<Environment';
-	$answer .= $self->print_attribute('Id',        $id);
-	$answer .= $self->print_attribute('Name',      $self->_get_name());
-	$answer .= $self->print_attribute('Value',     $self->_get_value());
-	$answer .= $self->print_attribute('System',    $self->_get_system());
-	$answer .= $self->print_attribute('Permanent', $self->_get_permanent());
-	$answer .= $self->print_attribute('Action',    $self->_get_action());
-	$answer .= $self->print_attribute('Part',      $self->_get_part());
-	$answer .= $self->print_attribute('Separator', $self->_get_separator());
+	$answer = '<Environment';
+	$answer .= $self->print_attribute( 'Id',     $id );
+	$answer .= $self->print_attribute( 'Name',   $self->_get_name() );
+	$answer .= $self->print_attribute( 'Value',  $self->_get_value() );
+	$answer .= $self->print_attribute( 'System', $self->_get_system() );
+	$answer .=
+	  $self->print_attribute( 'Permanent', $self->_get_permanent() );
+	$answer .= $self->print_attribute( 'Action', $self->_get_action() );
+	$answer .= $self->print_attribute( 'Part',   $self->_get_part() );
+	$answer .=
+	  $self->print_attribute( 'Separator', $self->_get_separator() );
 	$answer .= " />\n";
 
 	return $answer;

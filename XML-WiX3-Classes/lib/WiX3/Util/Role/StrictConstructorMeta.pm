@@ -1,27 +1,27 @@
-package # Hide from PAUSE.
-	WiX3::Util::Role::StrictConstructorMeta;
+package                                # Hide from PAUSE.
+  WiX3::Util::Role::StrictConstructorMeta;
 
+use 5.008001;
 use strict;
 use warnings;
-
+use vars qw( $VERSION     );
 use Moose::Role;
 
-around '_generate_BUILDALL' => sub
-{
-    my $orig = shift;
-    my $self = shift;
+use version; $VERSION = version->new('0.003')->numify;
 
-    my $source = $self->$orig();
-    $source .= ";\n" if $source;
+around '_generate_BUILDALL' => sub {
+	my $orig = shift;
+	my $self = shift;
 
-    my @attrs =
-        ( map { "$_ => 1," }
-          grep { defined }
-          map { $_->init_arg() }
-          @{ $self->_attributes() }
-        );
+	my $source = $self->$orig();
+	$source .= ";\n" if $source;
 
-    $source .= <<"EOF";
+	my @attrs = (
+		map  {"$_ => 1,"}
+		grep {defined}
+		map  { $_->init_arg() } @{ $self->_attributes() } );
+
+	$source .= <<"EOF";
 my \%attrs = (@attrs);
 
 my \@bad = sort grep { ! \$attrs{\$_} }  keys \%{ \$params };
@@ -31,7 +31,7 @@ if (\@bad) {
 }
 EOF
 
-    return $source;
+	return $source;
 };
 
 no Moose::Role;

@@ -32,19 +32,19 @@ sub indent {
 	my ( $self, $spaces_num, $string ) = @_;
 
 	# Check parameters.
-	unless ( defined $string ) {
+	if ( not defined $string ) {
 		XWC::Exception::Parameter::Missing->throw('string');
 	}
 
-	unless ( defined $spaces_num ) {
+	if ( not defined $spaces_num ) {
 		XWC::Exception::Parameter::Missing->throw('spaces_num');
 	}
 
-	unless ( defined _STRING($string) ) {
+	if ( not defined _STRING($string) ) {
 		XWC::Exception::Parameter::Invalid->throw('string');
 	}
 
-	unless ( defined _NONNEGINT($spaces_num) ) {
+	if ( not defined _NONNEGINT($spaces_num) ) {
 		XWC::Exception::Parameter::Invalid->throw('spaces_num');
 	}
 
@@ -62,20 +62,20 @@ sub indent {
 
 sub get_namespaces {
 	my $self = shift;
-	
-	my @namespaces = ( $self->get_namespace() );
-	my $count = $self->count_child_tags();
 
-	if (0 == $count) {
+	my @namespaces = ( $self->get_namespace() );
+	my $count      = $self->count_child_tags();
+
+	if ( 0 == $count ) {
 		return @namespaces;
 	}
-	
-	foreach my $tag ($self->get_child_tags()) {
+
+	foreach my $tag ( $self->get_child_tags() ) {
 		push @namespaces, $tag->get_namespaces();
 	}
 
 	return uniq @namespaces;
-}
+} ## end sub get_namespaces
 
 sub get_component_array {
 	my $self = shift;
@@ -83,12 +83,12 @@ sub get_component_array {
 	my @components;
 	my $count = $self->count_child_tags();
 
-	if (0 == $count) {
+	if ( 0 == $count ) {
 		return ();
 	}
 
-	foreach my $tag ($self->get_child_tags()) {
-		if ($tag->meta()->does_role('WiX3::XML::Role::Component')) {
+	foreach my $tag ( $self->get_child_tags() ) {
+		if ( $tag->meta()->does_role('WiX3::XML::Role::Component') ) {
 			push @components, $tag->get_component_id();
 		} else {
 			push @components, $tag->get_component_array();
@@ -96,26 +96,26 @@ sub get_component_array {
 	}
 
 	return @components;
-}
+} ## end sub get_component_array
 
 sub print_attribute {
-	my $self = shift;
+	my $self      = shift;
 	my $attribute = shift || undef;
-	my $value = shift || undef;
+	my $value     = shift || undef;
 
-	unless (defined $attribute) {
+	if ( not defined $attribute ) {
 		WiX3::Exception::Parameter::Missing->throw('attribute');
 	}
 
 	# $attribute needs to be an identifier.
-	
-	unless (defined $value) {
+
+	if ( not defined $value ) {
 		return q{};
 	}
-	
+
 	return qq{ $attribute='$value'};
-	
-}
+
+} ## end sub print_attribute
 
 no Moose::Role;
 

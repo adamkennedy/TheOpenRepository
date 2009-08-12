@@ -18,23 +18,23 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 #   None.
 
 has _directory_object => (
-	is => 'ro',
-	isa => 'WiX3::XML::Directory',
-	reader => '_get_directory_object',
+	is       => 'ro',
+	isa      => 'WiX3::XML::Directory',
+	reader   => '_get_directory_object',
 	init_arg => 'directory_object',
 	required => 1,
-	handles => [qw(get_path get_directory_id)],
+	handles  => [qw(get_path get_directory_id)],
 );
 
 has _diskid => (
-	is => 'ro',
-	isa => Int,
+	is     => 'ro',
+	isa    => Int,
 	reader => '_get_diskid',
 );
 
 has _filesource => (
-	is => 'ro',
-	isa => Str,
+	is     => 'ro',
+	isa    => Str,
 	reader => '_get_filesource',
 );
 
@@ -44,17 +44,18 @@ has _filesource => (
 sub as_string {
 	my $self = shift;
 
-	my $children  = $self->has_children();
+	my $children = $self->has_children();
 	my $tags;
-	$tags  = $self->print_attribute('Id', $self->get_directory_id());
-	$tags .= $self->print_attribute('DiskId', $self->_get_diskid());
-	$tags .= $self->print_attribute('FileSource', $self->_get_filesource());
+	$tags = $self->print_attribute( 'Id', $self->get_directory_id() );
+	$tags .= $self->print_attribute( 'DiskId', $self->_get_diskid() );
+	$tags .=
+	  $self->print_attribute( 'FileSource', $self->_get_filesource() );
 
 	if ($children) {
 		my $child_string = $self->as_string_children();
 		return qq{<DirectoryRef$tags>\n$child_string</DirectoryRef>\n};
 	} else {
-		return q{<DirectoryRef$tags />\n};
+		return qq{<DirectoryRef$tags />\n};
 	}
 } ## end sub as_string
 

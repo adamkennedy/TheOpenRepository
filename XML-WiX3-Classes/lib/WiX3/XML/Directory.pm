@@ -1,15 +1,13 @@
-package XML::WiX3::Classes::Directory;
+package WiX3::XML::Directory;
 
-#<<<
-use 5.006;
+use 5.008001;
 use Moose;
-use vars              qw( $VERSION );
+use vars qw( $VERSION );
+
 # use Params::Util      qw( _STRING  );
 use MooseX::Types::Moose qw( Int Str  );
 
-
 use version; $VERSION = version->new('0.004')->numify;
-#>>>
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Component, Directory, Merge, and SymbolPath as children.
@@ -21,74 +19,74 @@ with 'WiX3::XML::Role::GeneratesGUID';
 #   None.
 
 has id => (
-	is => 'ro',
-	isa => Str,
-	reader => 'get_id',
+	is      => 'ro',
+	isa     => Str,
+	reader  => 'get_id',
 	default => undef,
 );
 
 # Path helps us in path searching.
 has path => (
-	is => 'ro',
-	isa => Str,
+	is     => 'ro',
+	isa    => Str,
 	reader => 'get_path',
 );
 
 has noprefix => (
-	is => 'ro',
-	isa => Str,
-	reader => '_get_noprefix',
+	is      => 'ro',
+	isa     => Str,
+	reader  => '_get_noprefix',
 	default => undef,
 );
 
 has _diskid => (
-	is => 'ro',
-	isa => Int,
-	reader => '_get_diskid',
+	is       => 'ro',
+	isa      => Int,
+	reader   => '_get_diskid',
 	init_arg => 'diskid',
-	default => undef,
+	default  => undef,
 );
 
 has _filesource => (
-	is => 'ro',
-	isa => Str,
-	reader => '_get_filesource',
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_filesource',
 	init_arg => 'filesource',
-	default => undef,
+	default  => undef,
 );
 
 has name => (
-	is => 'ro',
-	isa => Str, # LongFileNameType
-	reader => 'get_name',
+	is      => 'ro',
+	isa     => Str,                    # LongFileNameType
+	reader  => 'get_name',
 	default => undef,
 );
 
 has _sourcename => (
-	is => 'ro',
-	isa => Str, # LongFileNameType
-	reader => '_get_sourcename',
+	is       => 'ro',
+	isa      => Str,                   # LongFileNameType
+	reader   => '_get_sourcename',
 	init_arg => 'sourcename',
-	default => undef,
+	default  => undef,
 );
 
 has _shortname => (
-	is => 'ro',
-	isa => Str, # ShortFileNameType
-	reader => '_get_shortname',
+	is       => 'ro',
+	isa      => Str,                   # ShortFileNameType
+	reader   => '_get_shortname',
 	init_arg => 'shortname',
-	default => undef,
+	default  => undef,
 );
 
 has _shortsourcename => (
-	is => 'ro',
-	isa => Str, # ShortFileNameType
-	reader => '_get_shortsourcename',
+	is       => 'ro',
+	isa      => Str,                   # ShortFileNameType
+	reader   => '_get_shortsourcename',
 	init_arg => 'shortsourcename',
-	default => undef,
+	default  => undef,
 );
 
-# Since we generate GUID's when none is included, 
+# Since we generate GUID's when none is included,
 # ComponentGuidGenerationSeed is not needed.
 
 #####################################################################
@@ -98,32 +96,33 @@ has _shortsourcename => (
 sub BUILDARGS {
 	my $class = shift;
 	my %args;
-	
+
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };
-	}
-	elsif (@_ % 2 == 0) {
-		%args = { @_ };
+	} elsif ( @_ % 2 == 0 ) {
+		%args = {@_};
 	} else {
 		WiX3::Exception::Parameter::Odd->throw();
 	}
 
-	unless (exists $args{'id'}) {
-		my $id = generate_guid($args{'path'});
-		$id =~ s{-}{_}g; 
+	if ( not exists $args{'id'} ) {
+		my $id = generate_guid( $args{'path'} );
+		$id =~ s{-}{_}gsm;
 		$args{'id'} = $id;
 	}
-	
-	unless (defined _IDENTIFIER($args{'id'})) {
+
+	if ( not defined _IDENTIFIER( $args{'id'} ) ) {
 		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
-}
+
+	return;
+} ## end sub BUILDARGS
 
 sub get_directory_id {
 	my $self = shift;
-	my $id = $self->get_id();
-	
-	if ($self->noprefix()) {
+	my $id   = $self->get_id();
+
+	if ( $self->noprefix() ) {
 		return $id;
 	} else {
 		return "D_$id";
@@ -136,21 +135,25 @@ sub get_directory_id {
 sub as_string {
 	my $self = shift;
 
-	my $children  = $self->has_children();
+	my $children = $self->has_children();
 	my $tags;
-	$tags  = $self->print_attribute('Id', $self->get_directory_id());
-	$tags .= $self->print_attribute('Name', $self->get_name());
-	$tags .= $self->print_attribute('ShortName', $self->_get_shortname());
-	$tags .= $self->print_attribute('SourceName', $self->_get_sourcename());
-	$tags .= $self->print_attribute('ShortSourceName', $self->_get_shortsourcename());
-	$tags .= $self->print_attribute('DiskId', $self->_get_diskid());
-	$tags .= $self->print_attribute('FileSource', $self->_get_filesource());
-	
+	$tags = $self->print_attribute( 'Id', $self->get_directory_id() );
+	$tags .= $self->print_attribute( 'Name',      $self->get_name() );
+	$tags .= $self->print_attribute( 'ShortName', $self->_get_shortname() );
+	$tags .=
+	  $self->print_attribute( 'SourceName', $self->_get_sourcename() );
+	$tags .=
+	  $self->print_attribute( 'ShortSourceName',
+		$self->_get_shortsourcename() );
+	$tags .= $self->print_attribute( 'DiskId', $self->_get_diskid() );
+	$tags .=
+	  $self->print_attribute( 'FileSource', $self->_get_filesource() );
+
 	if ($children) {
 		my $child_string = $self->as_string_children();
 		return qq{<Directory$tags>\n$child_string</Directory>\n};
 	} else {
-		return q{<Directory$tags />\n};
+		return qq{<Directory$tags />\n};
 	}
 } ## end sub as_string
 

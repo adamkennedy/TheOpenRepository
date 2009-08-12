@@ -1,5 +1,5 @@
-package # Hide from PAUSE
-	XML::WiX3::Classes::GeneratesGUID::Object;
+package                                # Hide from PAUSE
+  WiX3::XML::GeneratesGUID::Object;
 
 #<<<
 use     5.006;
@@ -19,7 +19,7 @@ use version; $VERSION = version->new('0.003')->numify;
 with 'WiX3::Role::Traceable';
 
 has _sitename => (
-    is      => 'ro',
+	is      => 'ro',
 	isa     => Host,
 	reader  => '_get_sitename',
 	default => q{www.perl.invalid},
@@ -36,7 +36,7 @@ has _guidgen => (
 );
 
 has _sitename_guid => (
-    is       => 'ro',
+	is       => 'ro',
 	isa      => 'Str',
 	reader   => '_get_sitename_guid',
 	lazy     => 1,
@@ -46,19 +46,15 @@ has _sitename_guid => (
 
 		my $guidgen = $self->_get_guidgen();
 
-		my $guid = $guidgen->create_from_name( 
-			Data::UUID::NameSpace_DNS,
-			$self->_get_sitename()
-		);
+		my $guid =
+		  $guidgen->create_from_name( Data::UUID::NameSpace_DNS,
+			$self->_get_sitename() );
 
 		$self->trace_line( 5,
-				'Generated site GUID: '
-			  . $guidgen->to_string($guid)
-			  . "\n"
-		);
+			'Generated site GUID: ' . $guidgen->to_string($guid) . "\n" );
 
 		return $guid;
-	}	
+	},
 );
 
 #####################################################################
@@ -76,13 +72,13 @@ has _sitename_guid => (
 
 sub generate_guid {
 	my ( $self, $id ) = @_;
-	
-	#... then use it to create a GUID out of the filename.
-	return uc $self->_get_guidgen()->create_from_name_str( 
-		$self->_get_sitename_guid(), $id
-	);
 
-} ## end sub generate_guid
+	#... then use it to create a GUID out of the filename.
+	return
+	  uc $self->_get_guidgen()
+	  ->create_from_name_str( $self->_get_sitename_guid(), $id );
+
+}
 
 __PACKAGE__->meta->make_immutable;
 no MooseX::Singleton;

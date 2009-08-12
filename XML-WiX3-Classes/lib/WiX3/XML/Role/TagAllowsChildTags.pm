@@ -1,16 +1,14 @@
 package WiX3::XML::Role::TagAllowsChildTags;
 
-#<<<
-use     5.006;
-use		Moose::Role;
-use     vars          qw( $VERSION );
-use     WiX3::XML::Exceptions;
-use     WiX3::Types qw(IsTag);
-use     MooseX::AttributeHelpers;
-use     MooseX::Types::Moose qw(ArrayRef);
+use 5.008001;
+use Moose::Role;
+use vars qw( $VERSION );
+use WiX3::XML::Exceptions;
+use WiX3::Types qw(IsTag);
+use MooseX::AttributeHelpers;
+use MooseX::Types::Moose qw(ArrayRef);
 
 use version; $VERSION = version->new('0.004')->numify;
-#>>>
 
 with 'WiX3::XML::Role::Tag';
 
@@ -20,18 +18,18 @@ with 'WiX3::XML::Role::Tag';
 # A tag can contain other tags.
 has child_tags => (
 	metaclass => 'Collection::Array',
-	is => 'rw',
-	isa => ArrayRef[IsTag],
-	init_arg => undef,
-	default => sub { return []; },
-	provides => {
-	  'elements' => 'get_child_tags',
-	  'push'     => 'add_child_tag',
-	  'get'      => 'get_child_tag',
-	  'empty'    => 'has_child_tags',
-	  'count'    => 'count_child_tags',
-	  'delete'   => 'delete_child_tag',
-	}
+	is        => 'rw',
+	isa       => ArrayRef [IsTag],
+	init_arg  => undef,
+	default   => sub { return []; },
+	provides  => {
+		'elements' => 'get_child_tags',
+		'push'     => 'add_child_tag',
+		'get'      => 'get_child_tag',
+		'empty'    => 'has_child_tags',
+		'count'    => 'count_child_tags',
+		'delete'   => 'delete_child_tag',
+	},
 );
 
 # I think you could do method aliasing... with 'Role' => { alias => { 'add_child_tag' => '_add_child_tag' } }
@@ -46,16 +44,16 @@ sub as_string_children {
 	my $string;
 	my $count = $self->count_child_tags();
 
-	if (0 == $count) {
+	if ( 0 == $count ) {
 		return q{};
 	}
-	
-	foreach my $tag ($self->get_child_tags()) {
+
+	foreach my $tag ( $self->get_child_tags() ) {
 		$string .= $tag->as_string();
 	}
 
-	return $self->indent(2, $string);
-}
+	return $self->indent( 2, $string );
+} ## end sub as_string_children
 
 no Moose::Role;
 
@@ -65,11 +63,11 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::Role::Tag - Base role for XML tags.
+WiX3::XML::Role::TagAllowsChildTags - Base role for XML tags that have children.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Role::Tag version 0.003
+This document describes WiX3::XML::Role::TagAllowsChildTags version 0.003
 
 =head1 SYNOPSIS
 
@@ -77,17 +75,9 @@ This document describes WiX3::XML::Role::Tag version 0.003
 
 =head1 DESCRIPTION
 
-This is the base class for all Classes that represent XML tags.
+This is the base class for all WiX3 classes that represent XML tags.
 
 =head1 INTERFACE 
-
-=head2 as_string
-
-	$string = $tag->as_string();
-
-Returns a string of XML that contains the tag defined by this object and all child tags.
-
-This routine is implemented by classes satisfying this role.
 
 =head2 as_string_children
 
@@ -96,56 +86,9 @@ This routine is implemented by classes satisfying this role.
 This routine returns a string of XML that contains the tag defined by this 
 object and all child tags, and is used by L<as_string>.
 
-=head2 indent
-
-	$string = $tag->indent(4, $string);
-
-This routine indents the string passed in with the given number of spaces, 
-and is used by L<as_string>.
-
-=head2 get_namespace
-
-	$string = $tag->get_namespace();
-
-Returns the namespace the tag uses. If the tag is in the main WiX namespace, 
-this routine returns C<q{xmlns='http://schemas.microsoft.com/wix/2006/wi'}>.
-
-This routine is implemented by classes satisfying this role.
-
-=head2 get_namespaces
-
-	@array = $tag->get_namespaces();
-
-Returns an list of all namespaces used by the tag and its children.
-
-If this tag and all child tags are in the main WiX namespace, this routine 
-returns a list with one element: undef.
-
-This routine is used by Fragment::as_string.
-
-=head2 get_component_array
-
-	@component_array = $tag->get_component_array();
-
-Returns a list of components contained in this tag.  If there are no 
-L<XML::WiX3::Classes::Role::Component> children in this tag, an empty list
-is returned.
-
-=head2 print_attribute
-
-	$attribute_string = $tag->print_attribute('Id', $id);
-
-Returns a string to use when printing the attribute specified within a tag if $id is defined, otherwise, returns an empty, but defined, string.
-
-This is meant to be used in as_string routines.
-
 =head1 DIAGNOSTICS
 
-The C<indent> and C<print_attribute> routines will throw 
-XWC::Exception::Parameter::Missing and XWC::Exception::Parameter::Invalid 
-objects, which are defined in L<XML::WiX3::Classes::Exceptions>.
-
-There are no other diagnostics for this role, however, other diagnostics may 
+There are no diagnostics for this role, however, other diagnostics may 
 be used by classes implementing this role.
 
 =head1 INCOMPATIBILITIES
