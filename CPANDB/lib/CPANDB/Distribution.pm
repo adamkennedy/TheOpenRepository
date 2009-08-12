@@ -4,7 +4,7 @@ use 5.008005;
 use strict;
 use warnings;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 
 
@@ -147,6 +147,8 @@ sub _dependants {
 			$sql_where, $name, @sql_param,
 		);
 		foreach my $dep ( @deps ) {
+			next if $dep =~ /^Task-/;
+			next if $dep =~ /^Acme-Mom/;
 			$graph->add_edge( $name => $dep );
 		}
 
