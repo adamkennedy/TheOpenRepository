@@ -1,7 +1,7 @@
 Revision history for Perl extension POE-Declare
 
 0.22 Wed 12 Aug 2009
-	- Fixing some bugs in Message events
+	- Fixing some bugs in Message events, and improved tests for it.
 
 0.21 Thu 19 Mar 2009
         - Improved checking of Message params

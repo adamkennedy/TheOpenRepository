@@ -8,7 +8,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 18;
+use Test::More tests => 19;
 use Test::NoWarnings;
 use POE;
 use Test::POE::Stopping;
@@ -102,7 +102,7 @@ sub done {
 	order(6, 'done');
 	is( $_[0], 'Test1.1', 'First callback param is the alias'  );
 	is( $_[1], 'done', 'Second callback param is the argument' );
-	
+	poe_stopping();
 }
 
 # Start the tests
