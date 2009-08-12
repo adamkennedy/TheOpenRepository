@@ -18,11 +18,13 @@ my $PERL    = undef;
 my $PHASE   = undef;
 my $VERBOSE = 0;
 my $RANKDIR = 0;
+my $REVERSE = 0;
 Getopt::Long::GetOptions(
 	'perl=s'  => \$PERL,
 	'phase=s' => \$PHASE,
 	'verbose' => \$VERBOSE,
 	'rankdir' => \$RANKDIR,
+	'reverse' => \$REVERSE,
 ) or die "Failed to parse options";
 
 # Find the distribution
@@ -48,7 +50,10 @@ if ( $PERL ) {
 }
 
 # Generate the graph
-$dist->dependency_graphviz(
+my $method = $REVERSE
+	? 'dependants_graphviz'
+	: 'dependency_graphviz';
+$dist->$method(
 	perl    => $PERL,
 	phase   => $PHASE,
 	rankdir => $RANKDIR,

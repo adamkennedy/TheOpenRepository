@@ -3,6 +3,7 @@ package CPANDB;
 use 5.008005;
 use strict;
 use warnings;
+use IO::File             ();
 use Params::Util         ();
 use ORLite::Mirror       ();
 use CPANDB::Distribution ();
@@ -49,6 +50,19 @@ sub graph {
 	return $graph;
 }
 
+sub easy {
+	require Graph::Easy;
+	my $class = shift;
+	my $graph = Graph::Easy->new;
+	foreach my $vertex ( CPANDB::Distribution->select ) {
+		$graph->add_vertex( $vertex->distribution );
+	}
+	foreach my $edge ( CPANDB::Dependency->select ) {
+		$graph->add_edge( $edge->distribution => $edge->dependency );
+	}
+	return $graph;	
+}
+
 sub xgmml {
 	require Graph::XGMML;
 	my $class = shift;
@@ -61,6 +75,16 @@ sub xgmml {
 	}
 	$graph->end;
 	return 1;
+}
+
+sub csv {
+	my $class = shift;
+	my $file  = shift;
+	my $csv   = IO::File->new($file, 'w');
+	foreach my $edge ( CPANDB::Dependency->select ) {
+		$csv->print( $edge->distribution . "\t" . $edge->dependency . "\n" );
+	}
+	$csv->close;
 }
 
 1;
