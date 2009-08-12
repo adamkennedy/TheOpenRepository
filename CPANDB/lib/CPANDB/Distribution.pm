@@ -133,6 +133,8 @@ sub _dependants {
 	my %seen = ( $self->distribution => 1 );
 	while ( @todo ) {
 		my $name = shift @todo;
+		next if $name =~ /^Task-/;
+		next if $name =~ /^Acme-Mom/;
 		$graph->$add_node( $name );
 
 		# Find the distinct dependencies for this node

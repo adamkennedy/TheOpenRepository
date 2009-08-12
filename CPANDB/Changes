@@ -1,5 +1,8 @@
 Changes for Perl extension CPANDB
 
+0.08 Thu 13 Aug 2009
+	- Ignore Task- modules in downstream dependants graphs
+
 0.07 Thu 13 Aug 2009
 	- Oopsi, typo
 
