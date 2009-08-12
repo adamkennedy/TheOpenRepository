@@ -2417,76 +2417,87 @@ sub Marpa::Evaluator::new_value {
 
         } ## end for my $and_node ( @{$and_nodes} )
 
-        while (@and_node_ids_at_depth) {
-            AND_NODE: for my $and_node_id (@and_node_ids_at_depth) {
-                $depth[$and_node_id] = $depth;
-                my $and_node = $and_nodes->[$and_node_id];
+        WORK_ENTRY:
+        while ( my $and_node_work_entry = pop @and_node_work_list ) {
+            my ( $and_node_id, $new_height ) = @{$and_node_work_entry};
+            my $height = $heights[$and_node_id];
+            next WORK_ENTRY if defined $height and $height >= $new_height;
 
-                my $actual_rule =
-                    $and_node->[Marpa::Internal::And_Node::RULE];
-                my $original_rule =
-                    $actual_rule->[Marpa::Internal::Rule::ORIGINAL_RULE];
-                my $rule = $original_rule // $actual_rule;
-
-                my $start_earleme =
-                    $and_node->[Marpa::Internal::And_Node::START_EARLEME];
-                my $end_earleme =
-                    $and_node->[Marpa::Internal::And_Node::END_EARLEME];
-
-                my $user_priority =
-                    $rule->[Marpa::Internal::Rule::USER_PRIORITY];
-                $user_priority //= 0;
-
-                my $length = $end_earleme - $start_earleme;
-                if ( not $rule->[Marpa::Internal::Rule::MINIMAL] ) {
-                    $length = N_FORMAT_MAX - $length;
-                }
-
-                my $location = $start_earleme;
-
-                # N-format is limited to 32-bits.
-                # Limits on all these values are enforced to prevent overflow,
-                # with the current exception of the RULE_ID.
-                # TODO: Put a limit on RULE_ID.  Right now memory
-                # overflow will occur long before it is reached,
-                # but someday technology may allow there to be 2**31
-                # rules.  Something to live for. :-)
-
-                ### sort item ....
-                ### location: $location
-                ### depth: $depth
-                ### user_priority: $user_priority
-                ### length: $length
-                ### and_node_id: $and_node_id
-
-                push @sort_data, pack 'N*',
-                    $location,
-                    ( N_FORMAT_MAX - $depth ),
-                    ( N_FORMAT_MAX - $user_priority ),
-                    $length,
-                    $and_node_id;
-
-            } ## end for my $and_node_id (@and_node_ids_at_depth)
-
-            @and_node_ids_at_depth =
-                grep { not defined $depth[$_] }
-                map  { @{ $_->[Marpa::Internal::Or_Node::CHILD_IDS] } }
-                grep { defined $_ }
-                map {
-                @{ $and_nodes->[$_] }[
-                    Marpa::Internal::And_Node::CAUSE,
-                    Marpa::Internal::And_Node::PREDECESSOR
-                    ]
-                } @and_node_ids_at_depth;
-            $depth++;
-            if ( $depth & ~(N_FORMAT_MAX) ) {
+            # This will never be a deleted and-node, because it was parent of
+            # an undeleted or-node.
+            if ( $new_height & ~(N_FORMAT_MAX) ) {
                 Marpa::exception(
-                    "Parse too deep (depth=$depth) to be evaluated");
+                    "Parse too deep (depth=$new_height) to be evaluated");
+            }
+            $heights[$and_node_id] = $new_height;
+            my $and_node = $and_nodes->[$and_node_id];
+
+            # If this is a and-node with a terminal defined, we've already
+            # set the height at 0 and put the parents on the work list.
+            # Move on to the next work entry.
+            next WORK_ENTRY
+                if defined $and_node->[Marpa::Internal::And_Node::VALUE_REF];
+
+            my $significant =
+                $and_node->[Marpa::Internal::And_Node::RULE]
+                ->[Marpa::Internal::Rule::SIGNIFICANT];
+            my $next_height = $significant ? ( $height + 1 ) : $height;
+            push @and_node_work_list,
+                map { [ $_, $next_height ] }
+                @{ $or_nodes
+                    ->[ $and_node->[Marpa::Internal::And_Node::PARENT_ID] ]
+                    ->[Marpa::Internal::Or_Node::PARENT_IDS] };
+
+        } ## end while ( my $and_node_work_entry = pop @and_node_work_list)
+
+        AND_NODE: for my $and_node ( @{$and_nodes} ) {
+            next AND_NODE if $and_node->[Marpa::Internal::And_Node::DELETED];
+            my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
+
+            my $actual_rule = $and_node->[Marpa::Internal::And_Node::RULE];
+            my $original_rule =
+                $actual_rule->[Marpa::Internal::Rule::ORIGINAL_RULE];
+            my $rule = $original_rule // $actual_rule;
+
+            my $start_earleme =
+                $and_node->[Marpa::Internal::And_Node::START_EARLEME];
+            my $end_earleme =
+                $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+
+            my $user_priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
+            $user_priority //= 0;
+
+            my $length = $end_earleme - $start_earleme;
+            if ( not $rule->[Marpa::Internal::Rule::MINIMAL] ) {
+                $length = N_FORMAT_MAX - $length;
             }
 
-            ### and-node ids at depth: @and_node_ids_at_depth
+            my $location = $start_earleme;
+            my $height   = $heights[$and_node_id];
 
-        } ## end while (@and_node_ids_at_depth)
+            # N-format is limited to 32-bits.
+            # Limits on all these values are enforced to prevent overflow,
+            # with the current exception of the RULE_ID.
+            # TODO: Put a limit on RULE_ID.  Right now memory
+            # overflow will occur long before it is reached,
+            # but someday technology may allow there to be 2**31
+            # rules.  Something to live for. :-)
+
+            ### sort item ....
+            ### location: $location
+            ### height: $height
+            ### user_priority: $user_priority
+            ### length: $length
+            ### and_node_id: $and_node_id
+
+            push @sort_data, pack 'N*',
+                $location,
+                $height,
+                ( N_FORMAT_MAX - $user_priority ),
+                $length,
+                $and_node_id;
+
+        } ## end for my $and_node ( @{$and_nodes} )
 
         ### sort data: @sort_data
 
