@@ -2085,6 +2085,9 @@ sub Marpa::show_and_node {
 
     my @rhs = ();
 
+    my $original_rule = $rule->[Marpa::Internal::Rule::ORIGINAL_RULE] // $rule;
+    my $is_virtual_rule = $rule != $original_rule;
+
     if ($predecessor) {
         push @rhs, $predecessor->[Marpa::Internal::Or_Node::TAG];
     }    # predecessor
@@ -2100,22 +2103,34 @@ sub Marpa::show_and_node {
         push @rhs, $value_as_string;
     }    # value
 
-    $return_value .= "$name ::= " . join( q{ }, @rhs ) . "\n";
+    $return_value .= "$name -> " . join( q{ }, @rhs ) . "\n";
 
-    if ($verbose) {
+    SHOW_RULE: {
+        if ( $is_virtual_rule and $verbose >= 2 ) {
+            $return_value
+                .= '    rule '
+                . $rule->[Marpa::Internal::Rule::ID] . ': '
+                . Marpa::show_dotted_rule( $rule, $position + 1 )
+                . "\n    "
+                . Marpa::brief_virtual_rule( $rule, $position + 1 ) . "\n";
+            last SHOW_RULE;
+        } ## end if ( $is_virtual_rule and $verbose >= 2 )
+
+        last SHOW_RULE if not $verbose;
         $return_value
             .= '    rule '
             . $rule->[Marpa::Internal::Rule::ID] . ': '
             . Marpa::brief_virtual_rule( $rule, $position + 1 ) . "\n";
-    } ## end if ($verbose)
 
-    if ( $verbose >= 2 ) {
+    } ## end SHOW_RULE:
+
+    if ( $verbose >= 3 ) {
         $return_value .= "    rhs length = $argc";
         if ( defined $closure ) {
             $return_value .= '; closure';
         }
         $return_value .= "\n";
-    } ## end if ( $verbose >= 2 )
+    } ## end if ( $verbose >= 3 )
 
     return $return_value;
 
@@ -2162,7 +2177,7 @@ sub Marpa::Evaluator::show_or_node {
 
         my $and_node_tag = $or_node_tag . "a$and_node_id";
         if ( $verbose >= 2 ) {
-            $text .= "$or_node_tag ::= $and_node_tag\n";
+            $text .= "$or_node_tag -> $and_node_tag\n";
         }
 
         $text .= Marpa::show_and_node( $and_node, $verbose );
@@ -2391,10 +2406,10 @@ sub Marpa::Evaluator::new_value {
             my $location = $token_start;
             my $token    = $and_node->[Marpa::Internal::And_Node::TOKEN];
             my $user_priority =
-                $token->[Marpa::Internal::Symbol::USER_PRIORITY];
+                $token->[Marpa::Internal::Symbol::USER_PRIORITY] // 0;
 
             my $length = $token_end - $token_start;
-            if ( not $token->[Marpa::Internal::Symbol::MINIMAL] ) {
+            if ( $token->[Marpa::Internal::Symbol::MINIMAL] ) {
                 $length = N_FORMAT_MAX - $length;
             }
 
@@ -2441,7 +2456,7 @@ sub Marpa::Evaluator::new_value {
             my $significant =
                 $and_node->[Marpa::Internal::And_Node::RULE]
                 ->[Marpa::Internal::Rule::SIGNIFICANT];
-            my $next_height = $significant ? ( $height + 1 ) : $height;
+            my $next_height = $significant ? ( $new_height + 1 ) : $new_height;
             push @and_node_work_list,
                 map { [ $_, $next_height ] }
                 @{ $or_nodes
@@ -2468,7 +2483,7 @@ sub Marpa::Evaluator::new_value {
             $user_priority //= 0;
 
             my $length = $end_earleme - $start_earleme;
-            if ( not $rule->[Marpa::Internal::Rule::MINIMAL] ) {
+            if ( $rule->[Marpa::Internal::Rule::MINIMAL] ) {
                 $length = N_FORMAT_MAX - $length;
             }
 
@@ -2506,6 +2521,17 @@ sub Marpa::Evaluator::new_value {
             map { unpack 'N', ( substr $_, -(N_FORMAT_BYTES) ) }
             sort @sort_data
             ];
+
+        if ($trace_tasks) {
+            for my $rank ( 0 .. $#{$ranked_and_node_ids} ) {
+                print {$trace_fh}
+                    "And-Node, rank $rank: ",
+                    Marpa::show_and_node(
+                    $and_nodes->[ $ranked_and_node_ids->[$rank] ], 1 )
+                    or Marpa::exception('print to trace handle failed');
+            } ## end for my $rank ( 0 .. $#{$ranked_and_node_ids} )
+        } ## end if ($trace_tasks)
+
         $journal  = $evaler->[Marpa::Internal::Evaluator::JOURNAL]  = [];
         $markings = $evaler->[Marpa::Internal::Evaluator::MARKINGS] = [];
         @tasks = ( [Marpa::Internal::Task::ADVANCE] );

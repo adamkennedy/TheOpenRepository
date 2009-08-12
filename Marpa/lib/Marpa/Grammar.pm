@@ -1704,7 +1704,7 @@ sub Marpa::show_dotted_rule {
 
     my $text =
         $rule->[Marpa::Internal::Rule::LHS]->[Marpa::Internal::Symbol::NAME]
-        . ' ::=';
+        . q{ ->};
 
     my @rhs_names =
         map { $_->[Marpa::Internal::Symbol::NAME] }

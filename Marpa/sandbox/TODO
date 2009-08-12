@@ -1,1 +1,2 @@
 Add Test::Pod Test::CPAN::Meta Test::MinimumVersion Test::Perl::Critic
+Add minimal to show_rule, show_symbol
