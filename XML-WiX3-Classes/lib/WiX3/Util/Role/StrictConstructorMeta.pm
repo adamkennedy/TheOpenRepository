@@ -6,8 +6,9 @@ use strict;
 use warnings;
 use vars qw( $VERSION     );
 use Moose::Role;
+use WiX3::XML::Exceptions;
 
-use version; $VERSION = version->new('0.003')->numify;
+use version; $VERSION = version->new('0.004')->numify;
 
 around '_generate_BUILDALL' => sub {
 	my $orig = shift;
@@ -27,7 +28,7 @@ my \%attrs = (@attrs);
 my \@bad = sort grep { ! \$attrs{\$_} }  keys \%{ \$params };
 
 if (\@bad) {
-    WiX3::Parameter->throw("Found unknown attribute(s) passed to the constructor: \@bad");
+    WiX3::Exception::Parameter->throw("Found unknown attribute(s) passed to the constructor: \@bad");
 }
 EOF
 

@@ -9,8 +9,8 @@ use Readonly qw( Readonly );
 
 use version; our $VERSION = version->new('0.003')->numify;
 
-Readonly my @LEVELS  => qw(error notice warning info info debug);
-Readonly my @CONFIGS => qw( screen0 screen1 screen2 screen3 );
+Readonly my @LEVELS  => qw(error notice info debug debug debug);
+Readonly my @CONFIGS => qw(screen0 screen1 screen2 screen3);
 
 extends 'Log::Dispatch::Configurator';
 with 'WiX3::Trace::Role';
@@ -22,8 +22,8 @@ sub get_attrs_global {
 	my $level = $self->get_tracelevel();
 	if ( $level == 5 ) {
 		@dispatchers = ('screen5');
-	} elsif ( $level == 4 ) {
-		@dispatchers = @CONFIGS[ 0 .. 3 ];
+	} elsif (( $level == 4 ) or ( $level == 3 )) {
+		@dispatchers = @CONFIGS[ 0, 1, 3 ];
 	} else {
 		@dispatchers = @CONFIGS[ 0 .. $level ];
 	}
@@ -62,9 +62,9 @@ sub get_attrs {
 		return {
 			class     => 'Log::Dispatch::Screen',
 			name      => 'screen2',
-			min_level => 'warning',
-			max_level => 'warning',
-			format    => q{[] %m},
+			min_level => 'info',
+			max_level => 'info',
+			format    => q{%m},
 		};
 	} elsif ( $name eq 'screen3' ) {
 		return {
@@ -72,22 +72,27 @@ sub get_attrs {
 			name      => 'screen3',
 			min_level => 'info',
 			max_level => 'info',
-			format    => q{[] [%F %L] %m},
+			format    => q{[%F %L] %m},
 		};
 	} elsif ( $name eq 'screen5' ) {
 		return {
 			class     => 'Log::Dispatch::Screen',
 			name      => 'screen5',
 			min_level => 'notice',
-			format    => q{[] [%F %L] %m},
+			format    => q{[%p] [%F %L] %m},
 		};
 	} elsif ( $name eq 'email' ) {
-		if ( defined $self->_get_smtp_user ) {
+		if ( defined $self->_get_smtp_user() ) {
 			MIME::Lite->send(
 				'smtp',
 				$self->_get_smtp(),
-				AuthUser => $self->_get_smtp_user(),
-				AuthPass => $self->_get_smtp_pass(),
+				defined $self->_get_smtp_user() ? (
+					AuthUser => $self->_get_smtp_user(),
+					AuthPass => $self->_get_smtp_pass(),
+				) : (),
+				defined $self->_get_smtp_port() ? (
+					Port => $self->_get_smtp_port(),
+				) : (),				
 			);
 		} elsif ( defined $self->_get_smtp() ) {
 			MIME::Lite->send( 'smtp', $self->_get_smtp() );

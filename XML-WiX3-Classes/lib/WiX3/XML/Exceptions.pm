@@ -50,9 +50,7 @@ sub WiX3::Exception::Parameter::full_message { ## no critic 'Capitalization'
 	# Add trace to it. (We automatically dump trace for parameter errors.)
 	$string .= "\n" . $self->trace() . "\n";
 
-	$misc->trace_line( 0, $string );
-
-	return q{};
+	return $misc->trace_line( 0, $string );
 } ## end sub WiX3::Exception::Parameter::full_message
 
 sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
@@ -72,8 +70,7 @@ sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
 		$string .= "\n" . $self->trace() . "\n";
 	}
 
-	return $misc->_trace_line( 0, $string, 0, $tracelevel,
-		$self->trace->frame(0) );
+	return $misc->trace_line( 0, $string );
 } ## end sub WiX3::Exception::Caught::full_message
 
 1;

@@ -8,7 +8,7 @@ use WiX3::Trace::Config;
 use version; our $VERSION = version->new('0.003')->numify;
 
 use Readonly qw( Readonly );
-Readonly my @LEVELS => qw(error notice warning info info debug);
+Readonly my @LEVELS => qw(error notice info debug debug debug);
 
 with 'WiX3::Trace::Role';
 with 'MooseX::LogDispatch';
@@ -21,12 +21,13 @@ has log_dispatch_conf => (
 		my $self = shift;
 		return WiX3::Trace::Config->new(
 			tracelevel => $self->get_tracelevel(),
-			testing    => $self->_get_testing(),
+			testing    => $self->get_testing(),
 			email_from => $self->_get_email_from(),
 			email_to   => $self->_get_email_to(),
 			smtp       => $self->_get_smtp(),
 			smtp_user  => $self->_get_smtp_user(),
 			smtp_pass  => $self->_get_smtp_pass(),
+			smtp_port  => $self->_get_smtp_port(),
 		);
 	},
 );
@@ -35,10 +36,22 @@ sub trace_line {
 	my $self = shift;
 	my ( $level, $text ) = @_;
 
-	$self->logger()->log(
-		level   => $LEVELS[$level],
-		message => $text
-	);
+	if ( $level <= $self->get_tracelevel() ) {	
+		if ( $self->get_testing() ) {
+			require Test::More;
+			Test::More::diag(
+				$self->logger()->as_string(
+					level   => $LEVELS[$level],
+					message => $text
+				)
+			);
+		} else {
+			$self->logger()->log(
+				level   => $LEVELS[$level],
+				message => $text
+			);
+		}
+	}
 
 	return $text;
 }

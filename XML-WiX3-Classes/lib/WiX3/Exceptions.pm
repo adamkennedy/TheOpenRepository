@@ -34,9 +34,7 @@ sub WiX3::Exception::full_message { ## no critic 'Capitalization'
 		$string .= "\n" . $self->trace() . "\n";
 	}
 
-	$misc->trace_line( 0, $string );
-
-	return q{};
+	return $misc->trace_line( 0, $string );
 } ## end sub WiX3::Exception::full_message
 
 sub WiX3::Exception::Unimplemented::full_message
@@ -54,9 +52,7 @@ sub WiX3::Exception::Unimplemented::full_message
 	# Add trace to it.
 	$string .= "\n" . $self->trace() . "\n";
 
-	$misc->trace_line( 0, $string );
-
-	return q{};
+	return $misc->trace_line( 0, $string );
 } ## end sub WiX3::Exception::Unimplemented::full_message
 
 1;

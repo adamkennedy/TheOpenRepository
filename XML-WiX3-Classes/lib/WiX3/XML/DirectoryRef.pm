@@ -1,14 +1,13 @@
 package WiX3::XML::DirectoryRef;
 
-#<<<
-use 5.006;
+use 5.008001;
 use Moose;
 use vars                 qw( $VERSION );
-use Params::Util         qw( _STRING  );
-use MooseX::Types::Moose qw( Int Str  );
+use Params::Util         qw( _STRING );
+use MooseX::Types::Moose qw( Int Str );
+use WiX3::Util::StrictConstructor;
 
 use version; $VERSION = version->new('0.004')->numify;
-#>>>
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Component, Directory, Merge as children.

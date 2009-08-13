@@ -5,6 +5,7 @@ use Moose;
 use vars qw( $VERSION );
 use WiX3::Types qw( YesNoType PositiveInt NonNegativeInt );
 use MooseX::Types::Moose qw( Str Maybe Int );
+use WiX3::Util::StrictConstructor;
 
 use version; $VERSION = version->new('0.004')->numify;
 

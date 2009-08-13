@@ -5,12 +5,16 @@ BEGIN {
 	use warnings;
 	use strict;
 	use Test::More;
+	use Capture::Tiny qw (capture);
 	$OUTPUT_AUTOFLUSH = 1;
 }
 
 require WiX3::XML::CreateFolder;
+require WiX3::Traceable;
 
-plan tests => 6;
+plan tests => 9;
+
+WiX3::Traceable->new(tracelevel => 0, testing => 1);
 
 my $cf_1 = WiX3::XML::CreateFolder->new();
 ok( $cf_1, 'CreateFolder->new returns true' );
@@ -18,7 +22,7 @@ ok( $cf_1, 'CreateFolder->new returns true' );
 my $test2_output = $cf_1->as_string();
 my $test2_string = "<CreateFolder />\n";
 
-is( $test2_output, $test2_string, 'Empty CreateFolder stringifies correctly.');
+is( $test2_output, $test2_string, 'Empty CreateFolder stringifies correctly.' );
 
 require WiX3::XML::Fragment;
 
@@ -35,7 +39,7 @@ my $test4_string = <<'EOF';
 </Wix>
 EOF
 
-is ($frag->as_string(), $test4_string, 'Empty Fragment stringifies correctly.');
+is( $frag->as_string(), $test4_string, 'Empty Fragment stringifies correctly.' );
 
 $frag->add_child_tag($cf_1);
 
@@ -48,7 +52,7 @@ my $test5_string = <<'EOF';
 </Wix>
 EOF
 
-is ($frag->as_string(), $test5_string, 'Fragment stringifies correctly.');
+is( $frag->as_string(), $test5_string, 'Fragment stringifies correctly.' );
 
 my $test6_object = {
 	child_tags => [ {
@@ -58,3 +62,11 @@ my $test6_object = {
 };
 
 is_deeply ($frag, $test6_object, 'Fragment is deeply correct.');
+
+(undef, undef) = capture { eval q{	my $frag2 = WiX3::XML::Fragment->new(id => 'TestID', idx => 'Test');}; };
+
+my $exception_object = $EVAL_ERROR;
+
+like($exception_object, qr(constructor: idx), 'Strict constructor creates the correct type of error.');
+isa_ok($exception_object, 'WiX3::Exception::Parameter', 'Error' );
+isa_ok($exception_object, 'WiX3::Exception', 'Error' );

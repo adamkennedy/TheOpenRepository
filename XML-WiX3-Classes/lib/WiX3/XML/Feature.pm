@@ -9,10 +9,12 @@ package WiX3::XML::Feature;
 
 use 5.008001;
 use Moose;
-use vars qw( $VERSION            );
+use vars qw( $VERSION );
 use Params::Util qw( _IDENTIFIER _STRING );
-use WiX3::Types qw( YesNoType           );
-use MooseX::Types::Moose qw( Str Int Maybe       );
+use WiX3::Types qw( YesNoType );
+use MooseX::Types::Moose qw( Str Int Maybe );
+use WiX3::Util::StrictConstructor;
+
 use version; $VERSION = version->new('0.004')->numify;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm

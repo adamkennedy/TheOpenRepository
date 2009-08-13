@@ -7,10 +7,11 @@ use WiX3::Trace::Object;
 use version; our $VERSION = version->new('0.003')->numify;
 
 has _traceopts => (
-	is      => 'ro',
-	isa     => 'HashRef',
-	reader  => '_get_traceopts',
-	default => sub { return { tracelevel => 1 } },
+	is       => 'ro',
+	isa      => 'HashRef',
+	reader   => '_get_traceopts',
+	init_arg => 'options',
+	default  => sub { return { tracelevel => 1 } },
 );
 
 has _traceobject => (
@@ -19,7 +20,7 @@ has _traceobject => (
 	lazy     => 1,
 	init_arg => undef,
 	builder  => '_setup_traceobject',
-	handles  => [qw(get_tracelevel set_tracelevel trace_line testing log)],
+	handles  => [qw(get_tracelevel set_tracelevel trace_line log)],
 );
 
 sub _setup_traceobject {

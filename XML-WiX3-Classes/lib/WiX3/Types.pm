@@ -20,12 +20,12 @@ subtype Host, as Str, where {
 	"$_ is not a valid hostname";
 };
 
+subtype IsTag, as role_type 'WiX3::XML::Role::Tag';
+
 subtype Tracelevel,
   as Int,
   where { ( $_ >= 0 ) && ( $_ <= 5 ) },
   message {"The tracelevel you provided, $_, was not valid."};
-
-subtype IsTag, as role_type 'WiX3::XML::Role::Tag';
 
 subtype _YesNoType,
   as Str,
@@ -40,10 +40,6 @@ subtype YesNoType,
 coerce YesNoType, from _YesNoType, via { lc $_ };
 
 coerce YesNoType, from Bool | Int, via { $_ ? 'yes' : 'no' };
-
-#coerce YesNoType,
-#	from Int,
-#	via { $_ ? 'yes' ? 'no' };
 
 subtype ComponentGuidType, as Str, where {
 	$_ =~

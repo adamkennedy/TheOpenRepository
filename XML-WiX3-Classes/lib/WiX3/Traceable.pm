@@ -1,14 +1,25 @@
 package WiX3::Traceable;
 
-#<<<
-use 5.006;
+use 5.008001;
 use Moose;
 use vars              qw( $VERSION );
 
 use version; $VERSION = version->new('0.004')->numify;
-#>>>
 
 with 'WiX3::Role::Traceable';
+
+sub BUILDARGS {
+	my $class = shift;
+	my %args;
+	
+	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
+		%args = %{ $_[0] };
+	} else  {
+		%args = ( @_ );
+	}
+
+	return \%args ;
+} ## end sub BUILDARGS
 
 1;
 

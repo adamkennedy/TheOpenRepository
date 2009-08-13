@@ -14,11 +14,9 @@ has tracelevel => (
 	default => 1,
 );
 
-has _testing => (
+has testing => (
 	isa      => 'Bool',
-	reader   => '_get_testing',
-	writer   => '_set_testing',
-	init_arg => undef,
+	reader   => 'get_testing',
 	default  => 0,
 );
 
@@ -52,13 +50,11 @@ has smtp_pass => (
 	default => undef,
 );
 
-sub testing {
-	my $self = shift;
-
-	$self->_set_testing(1);
-
-	return $self;
-}
+has smtp_port => (
+	isa     => 'Maybe[Int]',
+	reader  => '_get_smtp_port',
+	default => undef,
+);
 
 no Moose::Role;
 

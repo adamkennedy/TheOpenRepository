@@ -1,15 +1,14 @@
 package WiX3::XML::Component;
 
-#<<<
 use 5.008001;
 use Moose;
 use vars                  qw( $VERSION                    );
 use Params::Util          qw( _STRING                     );
 use WiX3::Types           qw( YesNoType ComponentGuidType );
 use MooseX::Types::Moose  qw( Str Maybe Int               );
+use WiX3::Util::StrictConstructor;
 
 use version; $VERSION = version->new('0.004')->numify;
-#>>>
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm
 
