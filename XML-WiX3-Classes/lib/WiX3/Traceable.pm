@@ -3,6 +3,7 @@ package WiX3::Traceable;
 use 5.008001;
 use Moose;
 use vars              qw( $VERSION );
+use WiX3::Util::StrictConstructor;
 
 use version; $VERSION = version->new('0.004')->numify;
 
@@ -18,8 +19,16 @@ sub BUILDARGS {
 		%args = ( @_ );
 	}
 
-	return \%args ;
+	return { options => \%args };
 } ## end sub BUILDARGS
+
+sub BUILD {
+	my $self = shift;
+	
+	# Necessary for the option to carry through.
+	$self->get_testing();
+
+}
 
 1;
 

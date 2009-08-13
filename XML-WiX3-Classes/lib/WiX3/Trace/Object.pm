@@ -16,7 +16,7 @@ with 'MooseX::LogDispatch';
 has log_dispatch_conf => (
 	is       => 'ro',
 	lazy     => 1,
-	required => 1,
+	init_arg => undef,
 	default  => sub {
 		my $self = shift;
 		return WiX3::Trace::Config->new(
@@ -37,20 +37,10 @@ sub trace_line {
 	my ( $level, $text ) = @_;
 
 	if ( $level <= $self->get_tracelevel() ) {	
-		if ( $self->get_testing() ) {
-			require Test::More;
-			Test::More::diag(
-				$self->logger()->as_string(
-					level   => $LEVELS[$level],
-					message => $text
-				)
-			);
-		} else {
-			$self->logger()->log(
-				level   => $LEVELS[$level],
-				message => $text
-			);
-		}
+		$self->logger()->log(
+			level   => $LEVELS[$level],
+			message => $text
+		);
 	}
 
 	return $text;

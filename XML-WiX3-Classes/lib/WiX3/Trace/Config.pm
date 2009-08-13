@@ -48,6 +48,7 @@ sub get_attrs {
 			class     => 'Log::Dispatch::Screen',
 			name      => 'screen0',
 			min_level => 'error',
+			stderr    => ! $self->get_testing(),
 			format    => q{%m},
 		};
 	} elsif ( $name eq 'screen1' ) {
@@ -56,6 +57,7 @@ sub get_attrs {
 			name      => 'screen1',
 			min_level => 'notice',
 			max_level => 'notice',
+			stderr    => 0,
 			format    => q{%m},
 		};
 	} elsif ( $name eq 'screen2' ) {
@@ -64,6 +66,7 @@ sub get_attrs {
 			name      => 'screen2',
 			min_level => 'info',
 			max_level => 'info',
+			stderr    => 0,
 			format    => q{%m},
 		};
 	} elsif ( $name eq 'screen3' ) {
@@ -72,6 +75,7 @@ sub get_attrs {
 			name      => 'screen3',
 			min_level => 'info',
 			max_level => 'info',
+			stderr    => 0,
 			format    => q{[%F %L] %m},
 		};
 	} elsif ( $name eq 'screen5' ) {
@@ -79,6 +83,7 @@ sub get_attrs {
 			class     => 'Log::Dispatch::Screen',
 			name      => 'screen5',
 			min_level => 'notice',
+			stderr    => 0,
 			format    => q{[%p] [%F %L] %m},
 		};
 	} elsif ( $name eq 'email' ) {

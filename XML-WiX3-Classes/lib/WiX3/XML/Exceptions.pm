@@ -45,12 +45,13 @@ sub WiX3::Exception::Parameter::full_message { ## no critic 'Capitalization'
 	  . 'Time error caught: '
 	  . localtime() . "\n";
 	my $misc       = WiX3::Traceable->new();
-	my $tracelevel = $misc->get_tracelevel();
 
 	# Add trace to it. (We automatically dump trace for parameter errors.)
 	$string .= "\n" . $self->trace() . "\n";
 
-	return $misc->trace_line( 0, $string );
+	$misc->trace_line( 0, $string );
+	
+	return "$string";
 } ## end sub WiX3::Exception::Parameter::full_message
 
 sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
@@ -63,14 +64,14 @@ sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
 	  . 'Time error caught: '
 	  . localtime() . "\n";
 	my $misc       = WiX3::Traceable->new();
-	my $tracelevel = $misc->get_trace() % 100;
+	my $tracelevel = $misc->get_tracelevel();
 
 	# Add trace to it if tracelevel high enough.
 	if ( $tracelevel > 1 ) {
 		$string .= "\n" . $self->trace() . "\n";
 	}
 
-	return $misc->trace_line( 0, $string );
+	return $misc->trace_error( 0, $string );
 } ## end sub WiX3::Exception::Caught::full_message
 
 1;
