@@ -8,6 +8,11 @@ package WiX3::XML::Feature;
 # License is the same as perl. See Wix3.pm for details.
 
 use 5.008001;
+# Must be done before Moose, or it won't get picked up.
+use metaclass (
+	metaclass => 'Moose::Meta::Class',
+    error_class => 'WiX3::Util::Error',
+);
 use Moose;
 use vars qw( $VERSION );
 use Params::Util qw( _IDENTIFIER _STRING );

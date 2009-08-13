@@ -1,12 +1,18 @@
 package WiX3::XML::Component;
 
 use 5.008001;
+# Must be done before Moose, or it won't get picked up.
+use metaclass (
+	metaclass => 'Moose::Meta::Class',
+    error_class => 'WiX3::Util::Error',
+);
 use Moose;
 use vars                  qw( $VERSION                    );
 use Params::Util          qw( _STRING                     );
 use WiX3::Types           qw( YesNoType ComponentGuidType );
 use MooseX::Types::Moose  qw( Str Maybe Int               );
 use WiX3::Util::StrictConstructor;
+use WiX3::XML::GeneratesGUID::Object;
 
 use version; $VERSION = version->new('0.004')->numify;
 
@@ -24,6 +30,8 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 #####################################################################
 # Accessors:
 #   None.
+
+#__PACKAGE__->meta->error_class('WiX3::Util::Error');
 
 has id => (
 	is       => 'ro',
@@ -79,7 +87,11 @@ has _guid => (
 	isa      => ComponentGuidType,
 	reader   => '_get_guid',
 	init_arg => 'guid',
-	default  => 'PUT-GUID-HERE',
+	lazy     => 1,
+	default  => sub {
+		my $self = shift;
+		return WiX3::XML::GeneratesGUID::Object->instance()->generate_guid($self->get_id());
+	},
 );
 
 has _keypath => (

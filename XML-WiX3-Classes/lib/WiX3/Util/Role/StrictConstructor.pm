@@ -4,7 +4,8 @@ package                                # Hide from PAUSE.
 use 5.008001;
 use strict;
 use warnings;
-use vars qw( $VERSION     );
+use vars qw( $VERSION );
+use WiX3::Exceptions;
 use WiX3::XML::Exceptions;
 use Moose::Role;
 

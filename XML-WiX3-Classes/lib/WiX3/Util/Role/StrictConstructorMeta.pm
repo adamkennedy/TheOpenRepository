@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use vars qw( $VERSION     );
 use Moose::Role;
+use WiX3::Exceptions;
 use WiX3::XML::Exceptions;
 
 use version; $VERSION = version->new('0.004')->numify;

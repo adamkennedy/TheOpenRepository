@@ -1,6 +1,11 @@
 package WiX3::XML::ComponentRef;
 
 use 5.008001;
+# Must be done before Moose, or it won't get picked up.
+use metaclass (
+	metaclass => 'Moose::Meta::Class',
+    error_class => 'WiX3::Util::Error',
+);
 use Moose;
 use vars                 qw( $VERSION  );
 use Params::Util         qw( _INSTANCE );

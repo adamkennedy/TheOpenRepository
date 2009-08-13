@@ -11,11 +11,24 @@ use version; $VERSION = version->new('0.004')->numify;
 #>>>
 
 use Exception::Class 1.22 (
-	'WiX3::Exception'                => { 'description' => 'WiX3 error', },
+	'WiX3::Exception'                => { 
+		'description' => 'WiX3 error',
+		'fields'      => [ qw(message longmess) ],
+	},
 	'WiX3::Exception::Unimplemented' => {
-		'description' => 'XML::WiX3::Classes error: Routine unimplemented',
+		'description' => 'WiX3 error: Routine unimplemented',
 		'isa'         => 'WiX3::Exception',
 	},
+	'WiX3::Exception::Parameter' => {
+		'description' => 'WiX3 error: Parameter missing or invalid',
+		'isa'         => 'WiX3::Exception',
+	},
+	'WiX3::Exception::Caught' => {
+		'description' => 'Error caught by WiX3 from other module',
+		'isa'         => 'WiX3::Exception',
+		'fields'      => [ qw(message info longmess) ],
+	},
+
 );
 
 sub WiX3::Exception::full_message { ## no critic 'Capitalization'
@@ -30,15 +43,14 @@ sub WiX3::Exception::full_message { ## no critic 'Capitalization'
 	my $tracelevel = $misc->get_tracelevel();
 
 	# Add trace to it if tracelevel high enough.
-	if ( $tracelevel > 1 ) {
+	if (( $tracelevel > 1 ) or ( $self->longmess() )) {
 		$string .= "\n" . $self->trace() . "\n";
 	}
 
 	return $misc->trace_line( 0, $string );
 } ## end sub WiX3::Exception::full_message
 
-sub WiX3::Exception::Unimplemented::full_message
-{ ## no critic 'Capitalization'
+sub WiX3::Exception::Unimplemented::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
@@ -47,7 +59,6 @@ sub WiX3::Exception::Unimplemented::full_message
 	  . 'Time error caught: '
 	  . localtime() . "\n";
 	my $misc       = WiX3::Traceable->new();
-	my $tracelevel = $misc->get_tracelevel();
 
 	# Add trace to it.
 	$string .= "\n" . $self->trace() . "\n";
@@ -56,6 +67,47 @@ sub WiX3::Exception::Unimplemented::full_message
 } ## end sub WiX3::Exception::Unimplemented::full_message
 
 1;
+
+sub WiX3::Exception::Parameter::full_message { ## no critic 'Capitalization'
+	my $self = shift;
+
+	my $string =
+	    $self->description() . ': '
+	  . $self->message() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
+	my $misc       = WiX3::Traceable->new();
+
+	# Add trace to it. (We automatically dump trace for parameter errors.)
+	$string .= "\n" . $self->trace() . "\n";
+
+	$misc->trace_line( 0, $string );
+	
+	return $string;
+} ## end sub WiX3::Exception::Parameter::full_message
+
+sub WiX3::Exception::Caught::full_message { ## no critic 'Capitalization'
+	my $self = shift;
+
+	my $string =
+	    $self->description() . ': '
+	  . $self->message() . "\n"
+	  . $self->info() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
+	my $misc       = WiX3::Traceable->new();
+	my $tracelevel = $misc->get_tracelevel();
+
+	# Add trace to it if tracelevel high enough.
+	if (( $tracelevel > 1 ) or ( $self->longmess() )) {
+		$string .= "\n" . $self->trace() . "\n";
+	}
+
+	$misc->trace_line( 0, $string );
+	
+	return $string;
+} ## end sub WiX3::Exception::Caught::full_message
+
 
 __END__
 
