@@ -11,7 +11,7 @@ use MooseX::Types -declare => [ qw(
 	  ) ];
 use MooseX::Types::Moose qw(Str Int Bool);
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 subtype Host, as Str, where {
 	$_ =~ /\A$RE{net}{IPv4}\z/msx

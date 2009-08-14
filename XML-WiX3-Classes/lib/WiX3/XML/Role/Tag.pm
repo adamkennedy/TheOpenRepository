@@ -7,7 +7,7 @@ use vars qw( $VERSION );
 use WiX3::XML::Exceptions;
 use List::MoreUtils qw( uniq );
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 #####################################################################
 # Methods
@@ -127,7 +127,7 @@ WiX3::XML::Role::Tag - Base role for XML tags.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Role::Tag version 0.003
+This document describes WiX3::XML::Role::Tag version 0.005
 
 =head1 SYNOPSIS
 

@@ -4,7 +4,7 @@ use 5.008001;
 use Moose::Role;
 use WiX3::Types qw(Host);
 
-use version; our $VERSION = version->new('0.003')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 has sitename => (
 	is      => 'ro',

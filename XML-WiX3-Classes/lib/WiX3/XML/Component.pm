@@ -14,7 +14,7 @@ use MooseX::Types::Moose qw( Str Maybe Int );
 use WiX3::Util::StrictConstructor;
 use WiX3::XML::GeneratesGUID::Object;
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm
 
@@ -255,7 +255,7 @@ WiX3::XML::Component - Defines a Component tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Component version 0.004
+This document describes WiX3::XML::Component version 0.005
 
 =head1 SYNOPSIS
 

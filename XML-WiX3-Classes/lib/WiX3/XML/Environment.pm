@@ -20,7 +20,7 @@ use WiX3::Types qw( YesNoType );
 use MooseX::Types::Moose qw( Str Maybe );
 use WiX3::Util::StrictConstructor;
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_environment.htm
 

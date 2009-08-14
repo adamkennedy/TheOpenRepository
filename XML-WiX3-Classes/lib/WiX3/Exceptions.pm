@@ -136,7 +136,7 @@ WiX3::Exceptions - Exceptions used in the WiX3 distribution.
 
 =head1 VERSION
 
-This document describes WiX3::Exceptions version 0.004
+This document describes WiX3::Exceptions version 0.005
 
 =head1 SYNOPSIS
 

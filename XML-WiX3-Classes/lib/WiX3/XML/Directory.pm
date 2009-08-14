@@ -11,7 +11,7 @@ use Moose;
 use MooseX::Types::Moose qw( Int Str  );
 use WiX3::Util::StrictConstructor;
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Component, Directory, Merge, and SymbolPath as children.
@@ -178,7 +178,7 @@ WiX3::XML::Directory - Class representing a Directory tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Directory version 0.004
+This document describes WiX3::XML::Directory version 0.005
 
 =head1 SYNOPSIS
 

@@ -20,7 +20,7 @@ use WiX3::Types qw( YesNoType );
 use MooseX::Types::Moose qw( Str Int Maybe );
 use WiX3::Util::StrictConstructor;
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
 
@@ -176,7 +176,7 @@ WiX3::XML::Feature - Defines a Icon tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Feature version 0.004
+This document describes WiX3::XML::Feature version 0.005
 
 =head1 SYNOPSIS
 

@@ -6,7 +6,7 @@ use warnings;
 use Moose::Role;
 use WiX3::Trace::Object;
 
-use version; our $VERSION = version->new('0.003')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 has _traceopts => (
 	is       => 'ro',

@@ -7,7 +7,7 @@ use WiX3::Types qw(IsTag);
 use MooseX::AttributeHelpers;
 use MooseX::Types::Moose qw(ArrayRef);
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 with 'WiX3::XML::Role::Tag';
 
@@ -66,7 +66,7 @@ WiX3::XML::Role::TagAllowsChildTags - Base role for XML tags that have children.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Role::TagAllowsChildTags version 0.003
+This document describes WiX3::XML::Role::TagAllowsChildTags version 0.005
 
 =head1 SYNOPSIS
 

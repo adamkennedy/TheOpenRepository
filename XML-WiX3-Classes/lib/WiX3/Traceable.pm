@@ -10,7 +10,7 @@ use metaclass (
 use Moose;
 use WiX3::Util::StrictConstructor;
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 with 'WiX3::Role::Traceable';
 
@@ -49,7 +49,7 @@ WiX3::Traceable - "Cheat Class" in order to get a Traceable object.
 
 =head1 VERSION
 
-This document describes WiX3::Traceable version 0.003
+This document describes WiX3::Traceable version 0.005
 
 =head1 SYNOPSIS
 

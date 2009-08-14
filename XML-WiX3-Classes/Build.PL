@@ -8,6 +8,7 @@ my $builder = Module::Build->new(
     dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
     dist_version_from   => 'lib/WiX3.pm',
 	create_makefile_pl  => 'passthrough',
+	create_license      => 1,
 	create_readme       => 1,
     requires => {
 		'Moose' => 0.76,
@@ -26,7 +27,7 @@ my $builder = Module::Build->new(
 		'Readonly::XS' => 1.05,
 		
 	},
-    add_to_cleanup      => [ 'XML-WiX3-Classes-*' ],
+    add_to_cleanup      => [ 'WiX3-*' ],
 );
 
 $builder->create_build_script();

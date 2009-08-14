@@ -13,7 +13,7 @@ use MooseX::Singleton;
 use WiX3::Trace::Config;
 use WiX3::Util::StrictConstructor;
 
-use version; our $VERSION = version->new('0.003')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 use Readonly qw( Readonly );
 Readonly my @LEVELS => qw(error notice info debug debug debug);

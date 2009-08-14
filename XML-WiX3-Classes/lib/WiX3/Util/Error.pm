@@ -5,7 +5,7 @@ use 5.008001;
 use strict;
 use warnings;
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 use WiX3::Exceptions;
 
 sub new {

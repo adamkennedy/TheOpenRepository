@@ -8,7 +8,7 @@ use Moose::Util::MetaRole;
 use WiX3::Util::Role::StrictConstructor;
 use WiX3::Util::Role::StrictConstructorMeta;
 
-use version; our $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.005')->numify;
 
 Moose::Exporter->setup_import_methods();
 
