@@ -40,53 +40,47 @@ has id => (
 	required => 1,
 );
 
-has _complusflags => (
+has complusflags => (
 	is       => 'ro',
 	isa      => Maybe [Int],
 	reader   => '_get_complusflags',
-	init_arg => 'complusflags',
 	default  => undef,
 );
 
-has _directory => (
+has directory => (
 	is       => 'ro',
 	isa      => Maybe [Str],
 	reader   => '_get_directory',
-	init_arg => 'directory',
 	default  => undef,
 );
 
 # DisableRegistryReflection requires Windows Installer 4.0
 
-has _disableregistryreflection => (
+has disableregistryreflection => (
 	is       => 'ro',
 	isa      => Maybe [YesNoType],
 	reader   => '_get_disableregistryreflection',
-	init_arg => 'disableregistryreflection',
 	default  => undef,
 );
 
-has _diskid => (
+has diskid => (
 	is       => 'ro',
 	isa      => Maybe [Int],
 	reader   => '_get_diskid',
-	init_arg => 'diskid',
 	default  => undef,
 );
 
-has _feature => (
+has feature => (
 	is       => 'ro',
 	isa      => Maybe [Str],
 	reader   => '_get_feature',
-	init_arg => 'feature',
 	default  => undef,
 );
 
-has _guid => (
+has guid => (
 	is       => 'ro',
 	isa      => ComponentGuidType,
 	reader   => '_get_guid',
-	init_arg => 'guid',
 	lazy     => 1,
 	default  => sub {
 		my $self = shift;
@@ -95,79 +89,70 @@ has _guid => (
 	},
 );
 
-has _keypath => (
+has keypath => (
 	is       => 'ro',
 	isa      => Maybe [YesNoType],
 	reader   => '_get_keypath',
-	init_arg => 'keypath',
 	default  => undef,
 );
 
-has _location => (
+has location => (
 	is       => 'ro',
 	isa      => Maybe [Str],           # Enum: 'local', 'source', 'network'
 	reader   => '_get_location',
-	init_arg => 'location',
 	default  => undef,
 );
 
-has _neveroverwrite => (
+has neveroverwrite => (
 	is       => 'ro',
 	isa      => Maybe [YesNoType],
 	reader   => '_get_neveroverwrite',
-	init_arg => 'neveroverwrite',
 	default  => undef,
 );
 
-has _permanent => (
+has permanent => (
 	is       => 'ro',
 	isa      => Maybe [YesNoType],
 	reader   => '_get_permanent',
-	init_arg => 'permanent',
 	default  => undef,
 );
 
 # Shared requires Windows Installer 4.5
 
-has _shared => (
+has shared => (
 	is       => 'ro',
 	isa      => Maybe [YesNoType],
 	reader   => '_get_shared',
-	init_arg => 'shared',
 	default  => undef,
 );
 
-has _shareddllrefcount => (
+has shareddllrefcount => (
 	is       => 'ro',
 	isa      => Maybe [YesNoType],
 	reader   => '_get_shareddllrefcount',
-	init_arg => 'shareddllrefcount',
 	default  => undef,
 );
 
-has _transitive => (
+has transitive => (
 	is       => 'ro',
 	isa      => Maybe [YesNoType],
 	reader   => '_get_transitive',
-	init_arg => 'transitive',
 	default  => undef,
 );
 
 # UninstallWhenSuperceded requires Windows Installer 4.5
 
-has _uninstallwhensuperceded => (
+has uninstallwhensuperceded => (
 	is       => 'ro',
 	isa      => Maybe [YesNoType],
 	reader   => '_get_uninstallwhensuperceded',
-	init_arg => 'uninstallwhensuperceded',
 	default  => undef,
 );
 
-has _win64 => (
+has win64 => (
 	is       => 'ro',
 	isa      => Maybe [YesNoType],
 	reader   => '_get_win64',
-	init_arg => 'win64',
 	default  => undef,
 );
 
@@ -216,7 +201,7 @@ sub as_string {
 	}
 
 	if ($children) {
-		$string .= qq{>\n$child_string<Component />\n};
+		$string .= qq{>\n$child_string\n<Component />\n};
 	} else {
 		$string .= qq{ />\n};
 	}

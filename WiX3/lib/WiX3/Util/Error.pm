@@ -4,9 +4,14 @@ package                                # Hide from PAUSE
 use 5.008001;
 use strict;
 use warnings;
+use Readonly qw (Readonly);
 
 use version; our $VERSION = version->new('0.005')->numify;
 use WiX3::Exceptions;
+
+Readonly my %TYPES => (
+	'Maybe[Int]' => 'an integer'
+);
 
 sub new {
 	my ( $self, @args ) = @_;
@@ -26,9 +31,6 @@ sub create_error_confess {
 sub _create_error_carpmess {
 	my ( $self, %args ) = @_;
 
-#	require Data::Dumper;
-#	print STDERR Data::Dumper->new([\%args])->Indent(1)->Dump();
-
 	my $carp_level = 3 + ( $args{depth} || 1 );
 
 	my @args = exists $args{message} ? $args{message} : ();
@@ -36,12 +38,28 @@ sub _create_error_carpmess {
 
 	my $longmess = exists $args{longmess} ? !!$args{longmess} : 0;
 
-	WiX3::Exception::Caught->throw(
-		message  => 'Moose',
-		info     => $info,
-		longmess => $longmess
-	);
-
+	if ($info =~ m/\A
+	               Attribute [ ] \((.*)\)  # $1 = attribute name
+				   [ ] does [ ] not [ ] pass [ ] the 
+				   [ ] type [ ] constraint [ ] because: 
+				   [ ] Validation [ ] failed [ ] for [ ] '(.*)' # $2 = type
+				   [ ] failed [ ] with [ ] value [ ] (.*) # $3 = bad value
+				   \z/msx) {
+		my ($attr_name, $attr_type, $value) = ($1, $2, $3);
+		my $type = exists $TYPES{$attr_type} ? $TYPES{$attr_type} : $attr_type;
+	
+		WiX3::Exception::Parameter::Validation->throw(
+			attribute => $attr_name,
+			type => $type,
+			value => $value,
+		);
+	} else {	
+		WiX3::Exception::Caught->throw(
+			message  => 'Moose',
+			info     => $info,
+			longmess => $longmess,
+		);
+	}
 	return;
 } ## end sub _create_error_carpmess
 

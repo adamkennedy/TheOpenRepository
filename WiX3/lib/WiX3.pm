@@ -3,14 +3,16 @@ package WiX3;
 use 5.008001;
 use warnings;
 use strict;
+
 use version; our $VERSION = version->new('0.005')->numify;
 
 1;                                     # Magic true value required at end of module
+
 __END__
 
 =begin readme text
 
-WiX3 version 0.005
+WiX3 Version 0.005
 
 =end readme
 
@@ -74,15 +76,6 @@ See those classes for documentation.
 
 Things that apply to all classes are here.
 
-=head1 INTERFACE 
-
-=for author to fill in:
-    Write a separate section listing the public components of the modules
-    interface. These normally consist of either subroutines that may be
-    exported, or methods that may be called on objects belonging to the
-    classes provided by the module.
-
-
 =head1 DIAGNOSTICS
 
 =for author to fill in:
@@ -115,6 +108,10 @@ WiX3 requires no configuration files or environment variables.
 =head1 DEPENDENCIES
 
 L<Moose>, L<Exception::Class> (more to add later)
+
+=head1 WARNING
+
+This distribution is not nearly complete yet - it is still in an alpha state.
 
 =for readme stop
 
