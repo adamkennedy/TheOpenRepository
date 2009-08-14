@@ -1,18 +1,18 @@
 package WiX3::XML::Icon;
 
 use 5.008001;
+
 # Must be done before Moose, or it won't get picked up.
 use metaclass (
-	metaclass => 'Moose::Meta::Class',
-    error_class => 'WiX3::Util::Error',
+	metaclass   => 'Moose::Meta::Class',
+	error_class => 'WiX3::Util::Error',
 );
 use Moose;
-use vars                 qw( $VERSION );
-use Params::Util         qw( _STRING  );
+use Params::Util qw( _STRING  );
 use MooseX::Types::Moose qw( Str      );
 use WiX3::Util::StrictConstructor;
 
-use version; $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.004')->numify;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_icon.htm
 

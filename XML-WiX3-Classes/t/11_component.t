@@ -5,8 +5,6 @@ BEGIN {
 	use warnings;
 	use strict;
 	use Test::More;
-	use IO::Capture::Stdout;
-	use IO::Capture::Stderr;
 	$OUTPUT_AUTOFLUSH = 1;
 }
 
@@ -14,20 +12,36 @@ require WiX3::XML::Component;
 require WiX3::Traceable;
 require WiX3::XML::GeneratesGUID::Object;
 
-plan tests => 1;
+plan tests => 7;
 
 WiX3::Traceable->new(tracelevel => 0, testing => 1);
 WiX3::XML::GeneratesGUID::Object->new();
 
-my $cf_1 = WiX3::XML::Component->new();
-nok( $cf_1, 'CreateFolder->new returns false' );
+my $cf_1;
+eval { $cf_1 = WiX3::XML::Component->new(); };
+my $empty_exception = $EVAL_ERROR;
+
+ok( ! $cf_1, 'CreateFolder->new returns false when empty' );
+like( 
+	$empty_exception, 
+	qr{Attribute\s\(id\)}, 
+	'CreateFolder->new returns exception that stringifies'
+);
+isa_ok( $empty_exception, 'WiX3::Exception::Caught', 'Error' );
+isa_ok( $empty_exception, 'WiX3::Exception', 'Error' );
+
+my $cf_2 = WiX3::XML::Component->new(id => 'TestID');
+
+ok( ! $cf_1, 'Component->new returns true with id' );
+isa_ok( $cf_2, 'WiX3::XML::Component' );
+# isa_ok( $empty_exception, 'WiX3::Exception' );
+
+my $test7_output = $cf_2->as_string();
+my $test7_string = "<Component Id='C_TestID' Guid='94029F5F-EFBF-39A5-AA11-DC6570C7FF48' />\n";
+
+is( $test7_output, $test7_string, 'Empty Component stringifies correctly.' );
 
 __END__
-
-my $test2_output = $cf_1->as_string();
-my $test2_string = "<CreateFolder />\n";
-
-is( $test2_output, $test2_string, 'Empty CreateFolder stringifies correctly.' );
 
 require WiX3::XML::Fragment;
 

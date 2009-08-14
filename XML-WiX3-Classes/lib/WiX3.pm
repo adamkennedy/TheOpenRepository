@@ -3,8 +3,7 @@ package WiX3;
 use 5.008001;
 use warnings;
 use strict;
-use vars qw( $VERSION );
-use version; $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.004')->numify;
 
 1;                                     # Magic true value required at end of module
 __END__

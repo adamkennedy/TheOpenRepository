@@ -2,14 +2,13 @@ package                                # Hide from PAUSE.
   WiX3::Util::StrictConstructor;
 
 use 5.008001;
-use vars qw( $VERSION );
 use Moose 0.74 qw();
 use Moose::Exporter;
 use Moose::Util::MetaRole;
 use WiX3::Util::Role::StrictConstructor;
 use WiX3::Util::Role::StrictConstructorMeta;
 
-use version; $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.004')->numify;
 
 Moose::Exporter->setup_import_methods();
 

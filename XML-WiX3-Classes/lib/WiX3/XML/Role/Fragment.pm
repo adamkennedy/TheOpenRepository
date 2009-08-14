@@ -1,12 +1,9 @@
 package WiX3::XML::Role::Fragment;
 
-#<<<
-use 5.006;
+use 5.008001;
 use Moose::Role;
-use vars qw( $VERSION );
 
-use version; $VERSION = version->new('0.003')->numify;
-#>>>
+use version; our $VERSION = version->new('0.003')->numify;
 
 with 'WiX3::XML::Role::Tag';
 

@@ -1,6 +1,8 @@
 package WiX3::Role::Traceable;
 
 use 5.008001;
+use strict;
+use warnings;
 use Moose::Role;
 use WiX3::Trace::Object;
 
@@ -20,7 +22,8 @@ has _traceobject => (
 	lazy     => 1,
 	init_arg => undef,
 	builder  => '_setup_traceobject',
-	handles  => [qw(get_tracelevel set_tracelevel get_testing trace_line log)],
+	handles =>
+	  [qw(get_tracelevel set_tracelevel get_testing trace_line log)],
 );
 
 sub _setup_traceobject {

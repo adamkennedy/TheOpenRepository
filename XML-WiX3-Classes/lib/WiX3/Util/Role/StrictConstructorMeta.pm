@@ -4,12 +4,10 @@ package                                # Hide from PAUSE.
 use 5.008001;
 use strict;
 use warnings;
-use vars qw( $VERSION     );
 use Moose::Role;
 use WiX3::Exceptions;
-use WiX3::XML::Exceptions;
 
-use version; $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.004')->numify;
 
 around '_generate_BUILDALL' => sub {
 	my $orig = shift;

@@ -1,15 +1,13 @@
 package WiX3::XML::Role::Tag;
 
-#<<<
-use     5.006;
-use		Moose::Role;
-use     Params::Util  qw( _STRING _NONNEGINT );
-use     vars          qw( $VERSION );
-use     WiX3::XML::Exceptions;
-use     List::MoreUtils qw( uniq );
+use 5.008001;
+use Moose::Role;
+use Params::Util qw( _STRING _NONNEGINT );
+use vars qw( $VERSION );
+use WiX3::XML::Exceptions;
+use List::MoreUtils qw( uniq );
 
-use version; $VERSION = version->new('0.004')->numify;
-#>>>
+use version; our $VERSION = version->new('0.004')->numify;
 
 #####################################################################
 # Methods

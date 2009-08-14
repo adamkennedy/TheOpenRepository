@@ -1,22 +1,27 @@
 package WiX3::Traceable;
 
 use 5.008001;
+
+# Must be done before Moose, or it won't get picked up.
+use metaclass (
+	metaclass   => 'Moose::Meta::Class',
+	error_class => 'WiX3::Util::Error',
+);
 use Moose;
-use vars              qw( $VERSION );
 use WiX3::Util::StrictConstructor;
 
-use version; $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.004')->numify;
 
 with 'WiX3::Role::Traceable';
 
 sub BUILDARGS {
 	my $class = shift;
 	my %args;
-	
+
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };
-	} else  {
-		%args = ( @_ );
+	} else {
+		%args = (@_);
 	}
 
 	return { options => \%args };
@@ -24,11 +29,15 @@ sub BUILDARGS {
 
 sub BUILD {
 	my $self = shift;
-	
+
 	# Necessary for the option to carry through.
 	$self->get_testing();
 
+	return;
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;
 

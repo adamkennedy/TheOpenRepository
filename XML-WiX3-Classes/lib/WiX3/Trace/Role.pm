@@ -2,6 +2,8 @@ package                                # Hide from PAUSE.
   WiX3::Trace::Role;
 
 use 5.008001;
+use strict;
+use warnings;
 use Moose::Role;
 use WiX3::Types qw(Tracelevel);
 
@@ -15,9 +17,9 @@ has tracelevel => (
 );
 
 has testing => (
-	isa      => 'Bool',
-	reader   => 'get_testing',
-	default  => 0,
+	isa     => 'Bool',
+	reader  => 'get_testing',
+	default => 0,
 );
 
 has email_from => (

@@ -2,10 +2,9 @@ package WiX3::XML::Fragment::CreateFolder;
 
 use 5.008001;
 use Moose;
-use vars qw( $VERSION     );
-use Params::Util qw( _IDENTIFIER  );
+use Params::Util qw( _IDENTIFIER );
 
-use version; $VERSION = version->new('0.003')->numify;
+use version; our $VERSION = version->new('0.003')->numify;
 
 with 'WiX3::XML::Role::Fragment';
 

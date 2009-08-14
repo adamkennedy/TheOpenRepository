@@ -2,13 +2,12 @@ package WiX3::XML::Role::TagAllowsChildTags;
 
 use 5.008001;
 use Moose::Role;
-use vars qw( $VERSION );
-use WiX3::XML::Exceptions;
+use WiX3::Exceptions;
 use WiX3::Types qw(IsTag);
 use MooseX::AttributeHelpers;
 use MooseX::Types::Moose qw(ArrayRef);
 
-use version; $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.004')->numify;
 
 with 'WiX3::XML::Role::Tag';
 

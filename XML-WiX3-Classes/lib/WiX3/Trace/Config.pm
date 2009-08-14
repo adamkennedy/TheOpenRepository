@@ -2,10 +2,15 @@ package                                # Hide from PAUSE.
   WiX3::Trace::Config;
 
 use 5.008001;
+use metaclass (
+	metaclass   => 'Moose::Meta::Class',
+	error_class => 'WiX3::Util::Error',
+);
 use Moose;
 use MooseX::NonMoose;
 use Carp qw(croak);
 use Readonly qw( Readonly );
+use WiX3::Util::StrictConstructor;
 
 use version; our $VERSION = version->new('0.003')->numify;
 
@@ -22,7 +27,7 @@ sub get_attrs_global {
 	my $level = $self->get_tracelevel();
 	if ( $level == 5 ) {
 		@dispatchers = ('screen5');
-	} elsif (( $level == 4 ) or ( $level == 3 )) {
+	} elsif ( ( $level == 4 ) or ( $level == 3 ) ) {
 		@dispatchers = @CONFIGS[ 0, 1, 3 ];
 	} else {
 		@dispatchers = @CONFIGS[ 0 .. $level ];
@@ -48,7 +53,7 @@ sub get_attrs {
 			class     => 'Log::Dispatch::Screen',
 			name      => 'screen0',
 			min_level => 'error',
-			stderr    => ! $self->get_testing(),
+			stderr    => !$self->get_testing(),
 			format    => q{%m},
 		};
 	} elsif ( $name eq 'screen1' ) {
@@ -91,13 +96,14 @@ sub get_attrs {
 			MIME::Lite->send(
 				'smtp',
 				$self->_get_smtp(),
-				defined $self->_get_smtp_user() ? (
-					AuthUser => $self->_get_smtp_user(),
+				defined $self->_get_smtp_user()
+				? ( AuthUser => $self->_get_smtp_user(),
 					AuthPass => $self->_get_smtp_pass(),
-				) : (),
-				defined $self->_get_smtp_port() ? (
-					Port => $self->_get_smtp_port(),
-				) : (),				
+				  )
+				: (),
+				defined $self->_get_smtp_port()
+				? ( Port => $self->_get_smtp_port(), )
+				: (),
 			);
 		} elsif ( defined $self->_get_smtp() ) {
 			MIME::Lite->send( 'smtp', $self->_get_smtp() );

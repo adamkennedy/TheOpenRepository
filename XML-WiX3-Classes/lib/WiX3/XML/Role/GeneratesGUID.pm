@@ -15,12 +15,12 @@ has sitename => (
 
 has _guidobject => (
 	is       => 'ro',
-	isa      => 'XML::WiX3::Classes::GeneratesGUID::Object',
+	isa      => 'WiX3::XML::GeneratesGUID::Object',
 	lazy     => 1,
 	init_arg => undef,
 	default  => sub {
 		my $self = shift;
-		return XML::WiX3::Classes::GeneratesGUID::Object->new(
+		return WiX3::XML::GeneratesGUID::Object->new(
 			sitename => $self->_get_sitename() );
 	},
 	handles => [qw(generate_guid)],

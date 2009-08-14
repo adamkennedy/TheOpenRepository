@@ -64,20 +64,8 @@ my $test6_object = {
 
 is_deeply ($frag, $test6_object, 'Fragment is deeply correct.');
 
-
-my $stdout = IO::Capture::Stdout->new();
-my $stderr = IO::Capture::Stderr->new();
-
-$stdout->start();
-$stderr->start();
-
 eval {	my $frag2 = WiX3::XML::Fragment->new(id => 'TestID', idx => 'Test'); }; 
-
 my $exception_object = $EVAL_ERROR;
-
-$stdout->stop();
-$stderr->stop();
-
 
 like($exception_object, qr(constructor: idx), 'Strict constructor creates the correct type of error.');
 isa_ok($exception_object, 'WiX3::Exception::Parameter', 'Error' );

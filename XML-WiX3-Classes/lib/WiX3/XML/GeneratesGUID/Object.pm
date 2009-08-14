@@ -1,16 +1,13 @@
 package                                # Hide from PAUSE
   WiX3::XML::GeneratesGUID::Object;
 
-#<<<
-use     5.006;
-use		MooseX::Singleton;
-use     vars                   qw( $VERSION      );
-use     Data::UUID             qw( NameSpace_DNS );
-use     WiX3::Types            qw( Host          );
+use 5.008001;
+use MooseX::Singleton;
+use Data::UUID qw( NameSpace_DNS );
+use WiX3::Types qw( Host          );
 require WiX3::XML::Exceptions;
 
-use version; $VERSION = version->new('0.003')->numify;
-#>>>
+use version; our $VERSION = version->new('0.003')->numify;
 
 
 #####################################################################

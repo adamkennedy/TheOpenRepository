@@ -1,20 +1,20 @@
 package WiX3::XML::Component;
 
 use 5.008001;
+
 # Must be done before Moose, or it won't get picked up.
 use metaclass (
-	metaclass => 'Moose::Meta::Class',
-    error_class => 'WiX3::Util::Error',
+	metaclass   => 'Moose::Meta::Class',
+	error_class => 'WiX3::Util::Error',
 );
 use Moose;
-use vars                  qw( $VERSION                    );
-use Params::Util          qw( _STRING                     );
-use WiX3::Types           qw( YesNoType ComponentGuidType );
-use MooseX::Types::Moose  qw( Str Maybe Int               );
+use Params::Util qw( _STRING );
+use WiX3::Types qw( YesNoType ComponentGuidType );
+use MooseX::Types::Moose qw( Str Maybe Int );
 use WiX3::Util::StrictConstructor;
 use WiX3::XML::GeneratesGUID::Object;
 
-use version; $VERSION = version->new('0.004')->numify;
+use version; our $VERSION = version->new('0.004')->numify;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm
 
@@ -90,7 +90,8 @@ has _guid => (
 	lazy     => 1,
 	default  => sub {
 		my $self = shift;
-		return WiX3::XML::GeneratesGUID::Object->instance()->generate_guid($self->get_id());
+		return WiX3::XML::GeneratesGUID::Object->instance()
+		  ->generate_guid( $self->get_id() );
 	},
 );
 
@@ -184,33 +185,35 @@ sub as_string {
 	my $string;
 	$string = '<Component';
 
-	my %attribute = (
-		'Id'           => $id,
-		'ComPlusFlags' => $self->_get_complusflags(),
-		'Directory'    => $self->_get_directory(),
-		'DisableRegistryReflection' =>
-		  $self->_get_disableregistryreflection(),
-		'DiskId'                  => $self->_get_diskid(),
-		'Feature'                 => $self->_get_feature(),
-		'Guid'                    => $self->_get_guid(),
-		'Keypath'                 => $self->_get_keypath(),
-		'Location'                => $self->_get_location(),
-		'NeverOverwrite'          => $self->_get_neveroverwrite(),
-		'Permanent'               => $self->_get_permanent(),
-		'Shared'                  => $self->_get_shared(),
-		'SharedDllRefCount'       => $self->_get_shareddllrefcount(),
-		'Transitive'              => $self->_get_transitive(),
-		'UninstallWhenSuperceded' => $self->_get_uninstallwhensuperceded(),
-		'Win64'                   => $self->_get_win64(),
+	my @attribute = (
+		[ 'Id'           => $id, ],
+		[ 'Guid'         => $self->_get_guid(), ],
+		[ 'ComPlusFlags' => $self->_get_complusflags(), ],
+		[ 'Directory'    => $self->_get_directory(), ],
+		[   'DisableRegistryReflection' =>
+			  $self->_get_disableregistryreflection(),
+		],
+		[ 'DiskId'            => $self->_get_diskid(), ],
+		[ 'Feature'           => $self->_get_feature(), ],
+		[ 'Keypath'           => $self->_get_keypath(), ],
+		[ 'Location'          => $self->_get_location(), ],
+		[ 'NeverOverwrite'    => $self->_get_neveroverwrite(), ],
+		[ 'Permanent'         => $self->_get_permanent(), ],
+		[ 'Shared'            => $self->_get_shared(), ],
+		[ 'SharedDllRefCount' => $self->_get_shareddllrefcount(), ],
+		[ 'Transitive'        => $self->_get_transitive(), ],
+		[   'UninstallWhenSuperceded' =>
+			  $self->_get_uninstallwhensuperceded(),
+		],
+		[ 'Win64' => $self->_get_win64(), ],
 	);
 
 	my ( $k, $v );
 
-	while ( ( $k, $v ) = each %attribute ) {
+	foreach my $ref (@attribute) {
+		( $k, $v ) = @{$ref};
 		$string .= $self->print_attribute( $k, $v );
 	}
-
-	$string .= " />\n";
 
 	if ($children) {
 		$string .= qq{>\n$child_string<Component />\n};

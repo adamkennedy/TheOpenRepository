@@ -2,8 +2,16 @@ package                                # Hide from PAUSE.
   WiX3::Trace::Object;
 
 use 5.008001;
+
+# Must be done before Moose, or it won't get picked up.
+use metaclass (
+	base_class  => 'MooseX::Singleton::Object',
+	metaclass   => 'MooseX::Singleton::Meta::Class',
+	error_class => 'WiX3::Util::Error',
+);
 use MooseX::Singleton;
 use WiX3::Trace::Config;
+use WiX3::Util::StrictConstructor;
 
 use version; our $VERSION = version->new('0.003')->numify;
 
@@ -36,7 +44,7 @@ sub trace_line {
 	my $self = shift;
 	my ( $level, $text ) = @_;
 
-	if ( $level <= $self->get_tracelevel() ) {	
+	if ( $level <= $self->get_tracelevel() ) {
 		$self->logger()->log(
 			level   => $LEVELS[$level],
 			message => $text
@@ -44,7 +52,7 @@ sub trace_line {
 	}
 
 	return $text;
-}
+} ## end sub trace_line
 
 no MooseX::Singleton;
 __PACKAGE__->meta->make_immutable;
