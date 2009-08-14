@@ -488,7 +488,7 @@ sub set_null_counts {
         my $rule_id = $rule->[Marpa::Internal::Rule::ID];
 
         my @rule_null_counts;
-        $#rule_null_counts    = $#{$rhs};
+        $#rule_null_counts = $#{$rhs};
         my $null_sequence_length = 0;
         for my $rhs_position ( 0 .. $#{$rhs} ) {
             $rule_null_counts[$rhs_position] = $null_sequence_length =
@@ -498,8 +498,9 @@ sub set_null_counts {
         } ## end for my $rhs_position ( 0 .. $#{$rhs} )
         $rule_data->[$rule_id]->[Marpa::Internal::Evaluator_Rule::NULL_COUNTS]
             = \@rule_null_counts;
-        $rule_data->[$rule_id]->[Marpa::Internal::Evaluator_Rule::TERMINAL_NULL_COUNT]
-            = $rule_null_counts[$#rule_null_counts];
+        $rule_data->[$rule_id]
+            ->[Marpa::Internal::Evaluator_Rule::TERMINAL_NULL_COUNT] =
+            $rule_null_counts[-1];
     } ## end for my $rule ( @{$rules} )
     return;
 } ## end sub set_null_counts
@@ -537,9 +538,8 @@ sub audit_or_node {
             Marpa::exception("or-node #$id has no parents");
         }
         if ( $deleted and $has_parents ) {
-
             Marpa::exception("Deleted or-node #$id has parents");
-        } ## end if ( $deleted and $has_parents )
+        }
     } ## end if ( $id != 0 )
 
     {
@@ -1996,7 +1996,8 @@ sub Marpa::show_and_node {
 
     my @rhs = ();
 
-    my $original_rule = $rule->[Marpa::Internal::Rule::ORIGINAL_RULE] // $rule;
+    my $original_rule = $rule->[Marpa::Internal::Rule::ORIGINAL_RULE]
+        // $rule;
     my $is_virtual_rule = $rule != $original_rule;
 
     if ($predecessor) {
@@ -2362,7 +2363,7 @@ sub Marpa::Evaluator::new_value {
             my $and_node = $and_nodes->[$and_node_id];
 
             push @and_node_work_list,
-                map { [ $_, $new_height+1 ] }
+                map { [ $_, $new_height + 1 ] }
                 @{ $or_nodes
                     ->[ $and_node->[Marpa::Internal::And_Node::PARENT_ID] ]
                     ->[Marpa::Internal::Or_Node::PARENT_IDS] };
