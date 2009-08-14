@@ -87,8 +87,6 @@ use Marpa::Offset qw(
     MINIMAL
     HAS_CHAF_LHS HAS_CHAF_RHS
 
-    SIGNIFICANT { Use this rule in prioritizing evaluations }
-
     =LAST_EVALUATOR_FIELD
     =LAST_RECOGNIZER_FIELD
 
@@ -2129,7 +2127,6 @@ sub add_rule {
     $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
     $new_rule->[Marpa::Internal::Rule::MINIMAL]       = 0;
     $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
-    $new_rule->[Marpa::Internal::Rule::SIGNIFICANT]   = $significant;
     $new_rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY] =
         $internal_priority;
 
