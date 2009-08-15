@@ -30,8 +30,7 @@ my $builder = Module::Build->new(
             repository  => 'http://svn.ali.as/cpan/trunk/Module-Starter-CSJEWELL/'
         },
     },
-    add_to_cleanup      => [ 'Module-Starter-CSJEWELL-*', 
-		qw(MANIFEST README LICENSE META.yml Makefile.PL) ], # Generated files.
+    add_to_cleanup      => [ 'Module-Starter-CSJEWELL-*', ],
 );
 
 $builder->create_build_script();
