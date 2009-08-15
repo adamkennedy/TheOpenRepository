@@ -15,7 +15,7 @@ use DBD::SQLite  1.25 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.23';
+	$VERSION = '1.24';
 }
 
 
@@ -127,6 +127,10 @@ sub connect {
 	DBI->connect(\$_[0]->dsn);
 }
 
+sub prepare {
+	shift->dbh->prepare(\@_);
+}
+
 sub do {
 	shift->dbh->do(\@_);
 }
@@ -155,13 +159,20 @@ sub selectrow_hashref {
 	shift->dbh->selectrow_hashref(\@_);
 }
 
-sub prepare {
-	shift->dbh->prepare(\@_);
-}
-
 sub pragma {
 	\$_[0]->do("pragma \$_[1] = \$_[2]") if \@_ > 2;
 	\$_[0]->selectrow_arrayref("pragma \$_[1]")->[0];
+}
+
+sub iterate {
+	my \$class = shift;
+	my \$call  = pop;
+	my \$sth   = \$class->prepare( shift );
+	\$sth->execute( \@_ );
+	while ( \$_ = \$sth->fetchrow_arrayref ) {
+		\$call->() or last;
+	}
+	\$sth->finish;
 }
 
 END_PERL

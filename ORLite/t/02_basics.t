@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 63;
+use Test::More tests => 65;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -111,6 +111,15 @@ SCOPE: {
 	} );
 	is( scalar(@$short), 1, 'Found only one record' );
 	is_deeply( $short->[0], $ones->[0], 'Found the same first record' );
+
+	# Lower level equivalent
+	my $short2 = [];
+	Foo::Bar->iterate( 'select * from table_one order by col1', sub {
+		push @$short2, $_;
+		return 0;
+	} );
+	is( scalar(@$short2), 1, 'Found only one record' );
+	is_deeply( $short2->[0], [ 1, 'foo' ], 'Found correct alternative' );
 
 	# Delete one of the objects via the class delete method
 	my $rv1 = Foo::Bar::TableOne->delete('where col2 = ?', 'bar');
