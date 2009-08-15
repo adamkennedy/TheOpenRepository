@@ -15,7 +15,7 @@ use DBD::SQLite  1.25 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.24';
+	$VERSION = '1.25';
 }
 
 
@@ -108,6 +108,7 @@ package $pkg;
 
 use strict;
 use Carp ();
+use DBI  ();
 
 my \$DBH = undef;
 
@@ -294,6 +295,10 @@ END_PERL
 			$code .= <<"END_PERL";
 package $table->{class};
 
+sub base { '$pkg' }
+
+sub table { '$table->{name}' }
+
 sub select {
 	my \$class = shift;
 	my \$sql   = '$sql->{select} ';
@@ -323,7 +328,7 @@ sub iterate {
 	}
 	\$sth->finish;
 }
-	
+
 END_PERL
 
 			# Generate the elements for tables with primary keys

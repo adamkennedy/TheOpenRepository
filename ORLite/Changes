@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.25 Sat 15 Aug 2009
+	- Adding base and table metadata methods to each class to support
+	  the creation of support/extension methods
+
 1.24 Sat 15 Aug 2009
 	- Adding support for an iterate method
 
