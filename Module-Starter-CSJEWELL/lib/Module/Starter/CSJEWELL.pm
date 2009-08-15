@@ -389,7 +389,8 @@ my $builder = Module::Build->new(
             repository  => 'http://www.no-source-code-repository.invalid/'
         },
     },
-    add_to_cleanup      => [ '<DISTRO>-*' ],
+    add_to_cleanup      => [ '<DISTRO>-*'
+		qw(MANIFEST README LICENSE META.yml Makefile.PL) ], # Generated files.
 );
 
 $builder->create_build_script();
