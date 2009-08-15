@@ -10,30 +10,29 @@ use warnings;
 
 =head1 NAME
 
-release - give your Perl distros to the world
+release-csjewell - give your Perl distros to the world
 
 =head1 SYNOPSIS
 
-	release [OPTIONS] [ LOCAL_FILE [ REMOTE_FILE ] ]
+	release-csjewell [OPTIONS] [ LOCAL_FILE [ REMOTE_FILE ] ]
 
 	# try a dry run without uploading anything
-	release -t
+	release-csjewell -t
 
 	# print a help message and exit
-	release -h
+	release-csjewell -h
 
 	# skip kwalitee testing (e.g. a script distro)
-	release -k
+	release-csjewell -k
 
 	# print debugging information
-	release -d
+	release-csjewell -d
 
 	# print release number and exit
-	release -v
+	release-csjewell -v
 
 	# set $ENV{AUTOMATED_TESTING} to a true value
-	release -a
-	
+	release-csjewell -a
 
 =head1 DESCRIPTION
 
