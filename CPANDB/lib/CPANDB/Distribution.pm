@@ -3,8 +3,9 @@ package CPANDB::Distribution;
 use 5.008005;
 use strict;
 use warnings;
+use ORLite::Statistics;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 
 

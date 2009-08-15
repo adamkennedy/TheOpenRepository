@@ -1,5 +1,8 @@
 Changes for Perl extension CPANDB
 
+0.10 Sun 16 Aug 2009
+	- Integrating support for Statistics::Basic
+
 0.09 Thu 13 Aug 2009
 	- Typo, grr
 
