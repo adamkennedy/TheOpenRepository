@@ -22,7 +22,8 @@ use Exporter                 ();
 use ORLite              1.25 ();
 use Statistics::Basic 1.6600 ();
 
-our $VERSION   = '0.01';
+our $VERSION   = '0.02';
+our @ISA       = 'Exporter';
 our @EXPORT    = 'vector';
 our @EXPORT_OK = 'vector';
 
