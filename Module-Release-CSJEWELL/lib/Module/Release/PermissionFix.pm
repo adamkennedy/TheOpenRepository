@@ -1,8 +1,9 @@
 package Module::Release::PermissionFix;
 
+use 5.006001;
 use strict;
 use warnings;
-use base qw(Exporter);
+use parent qw(Exporter);
 use vars qw($VERSION);
 use Archive::Tar;
 
@@ -94,6 +95,8 @@ This source is on the Open Repository:
 =head1 AUTHOR
 
 Curtis Jewell, C<< <csjewell@cpan.org> >>
+
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
 

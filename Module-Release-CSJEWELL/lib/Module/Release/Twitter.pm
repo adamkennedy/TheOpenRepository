@@ -2,10 +2,9 @@ package Module::Release::Twitter;
 
 use strict;
 use warnings;
-use base qw(Exporter);
+use parent qw(Exporter);
 use vars qw($VERSION);
-use Net::Twitter 3.00000;
-require Data::Dumper;
+use Net::Twitter 3.04006;
 
 our @EXPORT = qw(twit_upload twit_password);
 
@@ -15,12 +14,25 @@ $VERSION = '0.01';
 
 Module::Release::Twitter - Twitter the module upload
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 The release-csjewell script will automatically load this module if it 
 thinks that you want to announce your module on Twitter.
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
+
+    use Module::Release '2.00_04';
+
+    # ...
+    $release->load_mixin( 'Module::Release::Twitter' );
+    $release->twit_password;
+    # ...
+    last if $release->debug;
+
+    # ...
+    $release->twit_upload;
+
+=head1 INTERFACE
 
 =over 4
 

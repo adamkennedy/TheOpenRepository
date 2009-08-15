@@ -113,7 +113,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =for readme continue
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
 
