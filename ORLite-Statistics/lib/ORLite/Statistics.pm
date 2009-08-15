@@ -19,7 +19,7 @@ use 5.008;
 use strict;
 use warnings;
 use Exporter                 ();
-use ORLite              1.26 ();
+use ORLite              1.25 ();
 use Statistics::Basic 1.6600 ();
 
 our $VERSION   = '0.01';
