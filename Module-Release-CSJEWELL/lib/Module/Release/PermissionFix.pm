@@ -8,17 +8,22 @@ use Archive::Tar;
 
 our @EXPORT = qw(fix_permission);
 
-$VERSION = '0.01';
+$VERSION = '0.101';
+
 
 =head1 NAME
 
-Module::Release::PermissionFix - Fixes the 'v' that version.pm adds.
+Module::Release::PermissionFix - Fixes the permissions on .tar.gz files.
 
 =head1 SYNOPSIS
 
 The release-csjewell script will automatically load this module in order 
 to make sure that the permissions on the file uploaded are correct and 
 PAUSE will be able to index it.
+
+The reason for this module is that .tar files created on Windows often have
+permissions that are insane on Unix systems. PAUSE checks for those, and will
+not index them.
 
 =head1 DESCRIPTION
 
@@ -90,11 +95,37 @@ This source is on the Open Repository:
 
 Curtis Jewell, C<< <csjewell@cpan.org> >>
 
-=head1 COPYRIGHT AND LICENSE
+Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
 
-Copyright (c) 2009, Curtis Jewell.
+This module is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself, either version
+5.8.1 or any later version. See L<perlartistic> and L<perlgpl>.
 
-You may redistribute this under the same terms as Perl itself.
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=head1 DISCLAIMER OF WARRANTY
+
+BECAUSE THIS SOFTWARE IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
+FOR THE SOFTWARE, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN
+OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
+PROVIDE THE SOFTWARE "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
+EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
+ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH
+YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL
+NECESSARY SERVICING, REPAIR, OR CORRECTION.
+
+IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
+REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENCE, BE
+LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL,
+OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE
+THE SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
+RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
+FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
+SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
 
 =cut
 
