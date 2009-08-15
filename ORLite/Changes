@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+1.24 Sat 15 Aug 2009
+	- Adding support for an iterate method
+
 1.23 Thu 11 Jun 2009 
 	- Fixed a bug in method ->delete which deleted more than the actual
 	  object in case the primary key consist of more than one column.

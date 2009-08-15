@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 51;
+use Test::More tests => 63;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -70,24 +70,8 @@ ok(
 is( Foo::Bar::TableOne->count, 3, 'Found 3 rows' );
 is( Foo::Bar::TableOne->count('where col2 = ?', 'bar'), 2, 'Condition count works' );
 
-# Fetch the rows (list context)
-SCOPE: {
-	my @ones = Foo::Bar::TableOne->select('order by col1');
-	is( scalar(@ones), 3, 'Got 3 objects' );
-	isa_ok( $ones[0], 'Foo::Bar::TableOne' );
-	is( $ones[0]->col1, 1,     '->col1 ok' );
-	is( $ones[0]->col2, 'foo', '->col2 ok' );
-	isa_ok( $ones[1], 'Foo::Bar::TableOne' );
-	is( $ones[1]->col1, 2,     '->col1 ok' );
-	is( $ones[1]->col2, 'bar', '->col2 ok' );
-	isa_ok( $ones[2], 'Foo::Bar::TableOne' );
-	is( $ones[2]->col1, 3,     '->col1 ok' );
-	is( $ones[2]->col2, 'bar', '->col2 ok' );
-}
-
-# Fetch the rows (scalar context)
-SCOPE: {
-	my $ones = Foo::Bar::TableOne->select('order by col1');
+sub test_ones {
+	my $ones = shift;
 	is( scalar(@$ones), 3, 'Got 3 objects' );
 	isa_ok( $ones->[0], 'Foo::Bar::TableOne' );
 	is( $ones->[0]->col1, 1,     '->col1 ok' );
@@ -98,6 +82,35 @@ SCOPE: {
 	isa_ok( $ones->[2], 'Foo::Bar::TableOne' );
 	is( $ones->[2]->col1, 3,     '->col1 ok' );
 	is( $ones->[2]->col2, 'bar', '->col2 ok' );
+
+}
+
+# Fetch the rows (list context)
+test_ones(
+	[ Foo::Bar::TableOne->select('order by col1') ]
+);
+
+# Fetch the rows (scalar context)
+test_ones(
+	scalar Foo::Bar::TableOne->select('order by col1')
+);
+
+SCOPE: {
+	# Emulate select via iterate
+	my $ones = [];
+	Foo::Bar::TableOne->iterate( 'order by col1', sub {
+		push @$ones, $_;
+	} );
+	test_ones( $ones );
+
+	# Partial fetch
+	my $short = [];
+	Foo::Bar::TableOne->iterate( 'order by col1', sub {
+		push @$short, $_;
+		return 0;
+	} );
+	is( scalar(@$short), 1, 'Found only one record' );
+	is_deeply( $short->[0], $ones->[0], 'Found the same first record' );
 
 	# Delete one of the objects via the class delete method
 	my $rv1 = Foo::Bar::TableOne->delete('where col2 = ?', 'bar');

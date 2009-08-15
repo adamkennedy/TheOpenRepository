@@ -299,6 +299,20 @@ sub count {
 	$pkg->selectrow_array( \$sql, {}, \@_ );
 }
 
+sub iterate {
+	my \$class = shift;
+	my \$call  = pop;
+	my \$sql   = '$sql->{select} ';
+	   \$sql  .= shift if \@_;
+	my \$sth   = $pkg->prepare( \$sql );
+	\$sth->execute( \@_ );
+	while ( \$_ = \$sth->fetchrow_hashref ) {
+		bless( \$_, '$table->{class}' );
+		\$call->() or last;
+	}
+	\$sth->finish;
+}
+	
 END_PERL
 
 			# Generate the elements for tables with primary keys
