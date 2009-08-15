@@ -39,7 +39,7 @@ if ( 1.099_001 > eval { $Perl::Critic::VERSION } ) {
 	plan( skip_all => "Perl::Critic needs updated to 1.099_001" );
 }
 
-use File::Spec::Functions qw(catfile);
+use File::Spec::Functions qw(catfile catdir);
 Perl::Critic::Utils::Constants->import(':profile_strictness');
 my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
 
@@ -51,5 +51,11 @@ Test::Perl::Critic->import(
 	-severity           => 1, 
 	-profile-strictness => $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET
 );
-all_critic_ok();
+
+# I only want to criticize my own modules...
+if (-d catdir('blib', 'lib')) {
+    all_critic_ok(catdir('blib', 'lib'));
+} else {
+    all_critic_ok('lib');
+}
 

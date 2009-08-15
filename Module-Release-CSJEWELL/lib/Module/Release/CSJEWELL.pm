@@ -1,6 +1,6 @@
 package Module::Release::CSJEWELL;
 
-use 5.008001;
+use 5.006001;
 use warnings;
 use strict;
 

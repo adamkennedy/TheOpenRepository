@@ -30,6 +30,7 @@ my $builder = Module::Build->new(
             repository  => 'http://svn.ali.as/cpan/trunk/Module-Release-CSJEWELL/'
         },
     },
+	script_files        => 'script/release-csjewell.pl',
     add_to_cleanup      => [ 'Module-Release-CSJEWELL-*', ],
 );
 

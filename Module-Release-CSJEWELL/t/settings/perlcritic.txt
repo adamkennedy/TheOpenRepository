@@ -28,14 +28,11 @@ allowed_values = -1 0 1 2
 # No Emacs!
 [-Editor::RequireEmacsFileVariables]
 
-# I need the fix in 1.099_001 for Exception::Class stuff.
-[-NamingConventions::Capitalization]
-
 # The standard versioning I'm using does not allow this.
 [-ErrorHandling::RequireCheckingReturnValueOfEval]
 
-# Too much die-ing to deal with.
+# Too lightweight for exceptions.
 [-ErrorHandling::RequireUseOfExceptions]
 
-# Need not to use $_ within maps.
-[-BuiltinFunctions::ProhibitComplexMappings]
+# The plugins need to export by default. There IS no other way.
+[-Modules::ProhibitAutomaticExportation]

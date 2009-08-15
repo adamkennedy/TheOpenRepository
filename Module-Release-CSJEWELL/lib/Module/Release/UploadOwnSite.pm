@@ -1,14 +1,14 @@
 package Module::Release::UploadOwnSite;
 
-use 5.008001;
+use 5.006001;
 use strict;
 use warnings;
 use parent qw(Exporter);
-use vars qw($VERSION);
 
 our @EXPORT = qw(ownsite_upload ownsite_password);
 
-$VERSION = '0.101';
+our $VERSION = '0.101';
+$VERSION = eval { return $VERSION };
 
 =head1 NAME
 
@@ -45,40 +45,44 @@ Looks in local_name to get the name and version of the distribution file.
 sub ownsite_upload {
 	my $self = shift;
 
-    my $host = $self->config->ownsite_ftp_host();
+	my $host = $self->config->ownsite_ftp_host();
 	return unless $host;
 
 	my $user = $self->config->ownsite_ftp_user();
 	return unless $user;
 
-    my $dir = $self->config->ownsite_ftp_upload_dir();
+	my $dir = $self->config->ownsite_ftp_upload_dir();
 	return unless $dir;
-	
-    my $password = $self->config->ownsite_ftp_pass();
+
+	my $password = $self->config->ownsite_ftp_pass();
 	return unless $password;
-	
+
 	my $local_file = $self->local_file;
-	
-	$self->_print("Now uploading to $host\n" );
-	
+
+	$self->_print("Now uploading to $host\n");
+
 	$self->ftp_upload(
 		user       => $user,
 		password   => $password,
 		upload_dir => $dir,
 		hostname   => $host,
 	);
-}
+
+	return;
+} ## end sub ownsite_upload
 
 sub ownsite_password {
 	my $self = shift;
 	my $pass;
-	
-	if( $pass = $self->config->ownsite_ftp_pass() || $self->get_env_var( "FTP_PASS" )  )
-		{
-		$self->config->set( 'ownsite_ftp_pass', $pass ); 
-		}
 
-}
+	if (   $pass = $self->config->ownsite_ftp_pass()
+		|| $self->get_env_var('FTP_PASS') )
+	{
+		$self->config->set( 'ownsite_ftp_pass', $pass );
+	}
+
+	return;
+} ## end sub ownsite_password
 
 =back
 

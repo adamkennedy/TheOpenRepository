@@ -4,19 +4,19 @@ use 5.006001;
 use strict;
 use warnings;
 use parent qw(Exporter);
-use vars qw($VERSION);
 use Archive::Tar;
+use Carp qw(croak);
 
 our @EXPORT = qw(fix_permission);
 
-$VERSION = '0.101';
-
+our $VERSION = '0.101';
+$VERSION = eval { return $VERSION };
 
 =head1 NAME
 
 Module::Release::PermissionFix - Fixes the permissions on .tar.gz files.
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 The release-csjewell script will automatically load this module in order 
 to make sure that the permissions on the file uploaded are correct and 
@@ -26,7 +26,17 @@ The reason for this module is that .tar files created on Windows often have
 permissions that are insane on Unix systems. PAUSE checks for those, and will
 not index them.
 
-=head1 DESCRIPTION
+=head1 SYNOPSIS
+
+    use Module::Release '2.00_04';
+
+    # ...
+    $release->dist; # Needs to be after the last execution of this line.
+    # ...
+    $release->load_mixin( 'Module::Release::PermissionFix' );
+    $release->fix_permission();
+
+=head1 INTERFACE
 
 =over 4
 
@@ -44,40 +54,46 @@ sub fix_permission {
 
 	my $dist = $self->local_file;
 
-    my $fixes;
-    my $tar = Archive::Tar->new;
-    $tar->read($dist);
-    my @files = $tar->get_files;
-    foreach my $file (@files) {
-        my $fixedmode = my $mode = $file->mode;
-        my $filetype = '';
-        if ($file->is_file) {
-            $filetype = 'file';
-            if (substr(${ $file->get_content_by_ref }, 0, 2) eq '#!') {
-                $fixedmode = 0775;
-            } else {
-                $fixedmode = 0664;
-            }
-        } elsif ($file->is_dir) {
-            $filetype = 'dir';
-            $fixedmode = 0775;
-        } else {
-            next;
-        }
-        next if $mode eq $fixedmode;
-        $file->mode($fixedmode);
-        $fixes++;
-        $self->_debug(sprintf("Change mode %03o to %03o for %s '%s'\n", $mode, $fixedmode, $filetype, $file->name));
-    }
+	##no critic (ProhibitMagicNumbers ProhibitLeadingZeros)
 
-    if ($fixes) {
-		rename $dist, "$dist.bak" or die "Cannot rename file '$dist' to '$dist.bak': $!";
-		$tar->write($dist, 9);
-		$self->_print( "Permissions fixed: $dist.\n" );
-    } else {
-        $self->_print( "Permissions didn't need fixed: $dist.\n" );
-    }	
-}
+	my $fixes;
+	my $tar = Archive::Tar->new;
+	$tar->read($dist);
+	my @files = $tar->get_files;
+	foreach my $file (@files) {
+		my $fixedmode = my $mode = $file->mode;
+		my $filetype = q{};
+		if ( $file->is_file ) {
+			$filetype = 'file';
+			if ( substr( ${ $file->get_content_by_ref }, 0, 2 ) eq q{#!} ) {
+				$fixedmode = 0775;
+			} else {
+				$fixedmode = 0664;
+			}
+		} elsif ( $file->is_dir ) {
+			$filetype  = 'dir';
+			$fixedmode = 0775;
+		} else {
+			next;
+		}
+		next if $mode eq $fixedmode;
+		$file->mode($fixedmode);
+		$fixes++;
+		$self->_debug( sprintf "Change mode %03o to %03o for %s '%s'\n",
+			$mode, $fixedmode, $filetype, $file->name );
+	} ## end foreach my $file (@files)
+
+	if ($fixes) {
+		rename $dist, "$dist.bak"
+		  or croak "Cannot rename file '$dist' to '$dist.bak': $!";
+		$tar->write( $dist, 9 );
+		$self->_print("Permissions fixed: $dist.\n");
+	} else {
+		$self->_print("Permissions didn't need fixed: $dist.\n");
+	}
+
+	return;
+} ## end sub fix_permission
 
 
 =back
