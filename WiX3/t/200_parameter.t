@@ -24,7 +24,7 @@ my $empty_exception = $EVAL_ERROR;
 ok( ! $c_3, 'CreateFolder->new returns false when bad parameter passed in' );
 like( 
 	$empty_exception, 
-	qr{pass the type constraint}, 
+	qr{'diskid' not an integer \(value passed in: 'TestBad'\)}, 
 	'CreateFolder->new returns exception that stringifies'
 );
 isa_ok( $empty_exception, 'WiX3::Exception::Parameter::Validation', 'Error' );
