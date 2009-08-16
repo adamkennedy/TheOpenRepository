@@ -38,6 +38,13 @@ my $builder = Module::Build->new(
 		'MIME::Lite'               => '3.020',
 		'Readonly::XS'             => '1.05',
 	},
+	meta_merge     => {
+        resources => {
+            homepage    => 'http://csjewell.comyr.com/perl/',
+            bugtracker  => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=WiX3',
+            repository  => 'http://svn.ali.as/cpan/trunk/WiX3/'
+        },
+	},
     add_to_cleanup      => [ 'WiX3-*' ],
 );
 
