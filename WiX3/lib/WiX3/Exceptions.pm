@@ -6,11 +6,10 @@ use warnings;
 
 use version; our $VERSION = version->new('0.005')->numify;
 
-use Exception::Class 1.22 (
+use Exception::Class 1.29 (
 	'WiX3::Exception' => {
 		'description'  => 'WiX3 error',
 		'fields'       => [qw(message longmess)],
-		'ignore_class' => [qw(WiX3::Util::Error Moose::Meta::Class)],
 	},
 	'WiX3::Exception::Unimplemented' => {
 		'description' => 'Routine unimplemented',
@@ -33,10 +32,9 @@ use Exception::Class 1.22 (
 		'isa'         => 'WiX3::Exception::Parameter',
 	},
 	'WiX3::Exception::Parameter::Validation' => {
-		'description'  => 'validation error',
+		'description'  => 'Validation error',
 		'isa'          => 'WiX3::Exception::Parameter',
 		'fields'       => [qw(attribute type value)],
-		'ignore_class' => [qw(WiX3::Util::Error Moose::Meta::Class)],
 	},
 	'WiX3::Exception::Caught' => {
 		'description' => 'Error caught by WiX3 from other module',
@@ -115,11 +113,10 @@ sub WiX3::Exception::Parameter::Validation::full_message
 
 	my $string =
 	    'WiX3 error: '
-	  . $self->description() . ":\n  "
-	  . $self->attribute() . ' not '
-	  . $self->type()
-	  . ' (value passed in: '
-	  . $self->value . ")\n"
+	  . $self->description() . qq{:\n  '}
+	  . $self->attribute() . q{' not } 
+	  . $self->type() . q{ (value passed in: '}
+	  . $self->value . qq{')\n}
 	  . '  Time error caught: '
 	  . localtime() . "\n";
 	require WiX3::Traceable;

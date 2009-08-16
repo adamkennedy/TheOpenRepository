@@ -53,12 +53,14 @@ sub _create_error_carpmess {
 			attribute => $attr_name,
 			type      => $type,
 			value     => $value,
+			ignore_class => [qw(WiX3::Util::Error Moose::Meta::Class)],
 		);
 	} else {
 		WiX3::Exception::Caught->throw(
 			message  => 'Moose',
 			info     => $info,
 			longmess => $longmess,
+			ignore_class => [qw(WiX3::Util::Error Moose::Meta::Class)],
 		);
 	}
 	return;
