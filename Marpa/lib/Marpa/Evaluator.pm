@@ -2294,7 +2294,14 @@ sub Marpa::Evaluator::new_value {
                     push @child_heights, $height;
 
                 } ## end for my $child_and_id ( @{ $or_node->[...]})
-                $or_heights->[$node_id] = List::util::max(@child_heights) + 1;
+
+                my $new_height = List::util::max(@child_heights) + 1;
+                if ( $new_height & ~(N_FORMAT_MAX) ) {
+                    Marpa::exception(
+                        "Parse too deep (depth=$new_height) to be evaluated");
+                }
+                $or_heights->[$node_id] = $new_height;
+
                 push @height_work_list,
                     map { [ 'a', $_ ] }
                     @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] };
@@ -2323,8 +2330,14 @@ sub Marpa::Evaluator::new_value {
                     push @child_heights, $height;
 
                 } ## end for my $child_or_id ( map { $_->[...]})
-                $and_heights->[$node_id] =
-                    List::util::max(@child_heights) + 1;
+
+                my $new_height = List::util::max(@child_heights) + 1;
+                if ( $new_height & ~(N_FORMAT_MAX) ) {
+                    Marpa::exception(
+                        "Parse too deep (depth=$new_height) to be evaluated");
+                }
+                $and_heights->[$node_id] = $new_height;
+
                 push @height_work_list,
                     map { [ 'o', $_ ] }
                     @{ $and_node->[Marpa::Internal::And_Node::PARENT_ID] };
