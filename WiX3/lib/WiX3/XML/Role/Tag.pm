@@ -4,7 +4,7 @@ use 5.008001;
 use Moose::Role;
 use Params::Util qw( _STRING _NONNEGINT );
 use vars qw( $VERSION );
-use WiX3::XML::Exceptions;
+use WiX3::Exceptions;
 use List::MoreUtils qw( uniq );
 
 use version; our $VERSION = version->new('0.005')->numify;

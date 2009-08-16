@@ -47,47 +47,48 @@ has name => (
 );
 
 has value => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_value',
+	is     => 'ro',
+	isa    => Str,
+	reader => '_get_value',
 );
 
 # TODO: These two are enums. Define types accordingly.
 # Note: see http://wix.sourceforge.net/manual-wix3/wix_xsd_environment.htm for valid values.
 
 has action => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_action',
-	default  => 'set',
+	is      => 'ro',
+	isa     => Str,
+	reader  => '_get_action',
+	default => 'set',
 );
 
 has part => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_part',
-	default  => 'all',
+	is      => 'ro',
+	isa     => Str,
+	reader  => '_get_part',
+	default => 'all',
 );
 
 has permanent => (
-	is       => 'ro',
-	isa      => YesNoType,
-	reader   => '_get_permanent',
-	default  => 'all',
+	is      => 'ro',
+	isa     => YesNoType,
+	reader  => '_get_permanent',
+	default => 'all',
 );
 
 has system => (
-	is       => 'ro',
-	isa      => YesNoType,
-	reader   => '_get_system',
-	default  => 'yes',
+	is      => 'ro',
+	isa     => YesNoType,
+	reader  => '_get_system',
+	default => 'yes',
 );
 
 has separator => (
-	is       => 'ro',
-	isa      => Maybe [Str],
-	reader   => '_get_separator',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_separator',
+	default => undef,
+
 #	default => ';',   WiX defaults to this if not included
 );
 

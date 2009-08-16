@@ -41,48 +41,48 @@ has id => (
 );
 
 has complusflags => (
-	is       => 'ro',
-	isa      => Maybe [Int],
-	reader   => '_get_complusflags',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Int],
+	reader  => '_get_complusflags',
+	default => undef,
 );
 
 has directory => (
-	is       => 'ro',
-	isa      => Maybe [Str],
-	reader   => '_get_directory',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_directory',
+	default => undef,
 );
 
 # DisableRegistryReflection requires Windows Installer 4.0
 
 has disableregistryreflection => (
-	is       => 'ro',
-	isa      => Maybe [YesNoType],
-	reader   => '_get_disableregistryreflection',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_disableregistryreflection',
+	default => undef,
 );
 
 has diskid => (
-	is       => 'ro',
-	isa      => Maybe [Int],
-	reader   => '_get_diskid',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Int],
+	reader  => '_get_diskid',
+	default => undef,
 );
 
 has feature => (
-	is       => 'ro',
-	isa      => Maybe [Str],
-	reader   => '_get_feature',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_feature',
+	default => undef,
 );
 
 has guid => (
-	is       => 'ro',
-	isa      => ComponentGuidType,
-	reader   => '_get_guid',
-	lazy     => 1,
-	default  => sub {
+	is      => 'ro',
+	isa     => ComponentGuidType,
+	reader  => '_get_guid',
+	lazy    => 1,
+	default => sub {
 		my $self = shift;
 		return WiX3::XML::GeneratesGUID::Object->instance()
 		  ->generate_guid( $self->get_id() );
@@ -90,70 +90,70 @@ has guid => (
 );
 
 has keypath => (
-	is       => 'ro',
-	isa      => Maybe [YesNoType],
-	reader   => '_get_keypath',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_keypath',
+	default => undef,
 );
 
 has location => (
-	is       => 'ro',
-	isa      => Maybe [Str],           # Enum: 'local', 'source', 'network'
-	reader   => '_get_location',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],            # Enum: 'local', 'source', 'network'
+	reader  => '_get_location',
+	default => undef,
 );
 
 has neveroverwrite => (
-	is       => 'ro',
-	isa      => Maybe [YesNoType],
-	reader   => '_get_neveroverwrite',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_neveroverwrite',
+	default => undef,
 );
 
 has permanent => (
-	is       => 'ro',
-	isa      => Maybe [YesNoType],
-	reader   => '_get_permanent',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_permanent',
+	default => undef,
 );
 
 # Shared requires Windows Installer 4.5
 
 has shared => (
-	is       => 'ro',
-	isa      => Maybe [YesNoType],
-	reader   => '_get_shared',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_shared',
+	default => undef,
 );
 
 has shareddllrefcount => (
-	is       => 'ro',
-	isa      => Maybe [YesNoType],
-	reader   => '_get_shareddllrefcount',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_shareddllrefcount',
+	default => undef,
 );
 
 has transitive => (
-	is       => 'ro',
-	isa      => Maybe [YesNoType],
-	reader   => '_get_transitive',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_transitive',
+	default => undef,
 );
 
 # UninstallWhenSuperceded requires Windows Installer 4.5
 
 has uninstallwhensuperceded => (
-	is       => 'ro',
-	isa      => Maybe [YesNoType],
-	reader   => '_get_uninstallwhensuperceded',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_uninstallwhensuperceded',
+	default => undef,
 );
 
 has win64 => (
-	is       => 'ro',
-	isa      => Maybe [YesNoType],
-	reader   => '_get_win64',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_win64',
+	default => undef,
 );
 
 #####################################################################

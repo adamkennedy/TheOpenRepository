@@ -5,8 +5,6 @@ BEGIN {
 	use warnings;
 	use strict;
 	use Test::More;
-	use IO::Capture::Stdout;
-	use IO::Capture::Stderr;
 	$OUTPUT_AUTOFLUSH = 1;
 }
 

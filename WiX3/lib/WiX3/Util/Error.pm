@@ -9,9 +9,7 @@ use Readonly qw (Readonly);
 use version; our $VERSION = version->new('0.005')->numify;
 use WiX3::Exceptions;
 
-Readonly my %TYPES => (
-	'Maybe[Int]' => 'an integer'
-);
+Readonly my %TYPES => ( 'Maybe[Int]' => 'an integer' );
 
 sub new {
 	my ( $self, @args ) = @_;
@@ -38,22 +36,25 @@ sub _create_error_carpmess {
 
 	my $longmess = exists $args{longmess} ? !!$args{longmess} : 0;
 
-	if ($info =~ m/\A
+	if ($info =~ m{\A
 	               Attribute [ ] \((.*)\)  # $1 = attribute name
 				   [ ] does [ ] not [ ] pass [ ] the 
 				   [ ] type [ ] constraint [ ] because: 
 				   [ ] Validation [ ] failed [ ] for [ ] '(.*)' # $2 = type
 				   [ ] failed [ ] with [ ] value [ ] (.*) # $3 = bad value
-				   \z/msx) {
-		my ($attr_name, $attr_type, $value) = ($1, $2, $3);
-		my $type = exists $TYPES{$attr_type} ? $TYPES{$attr_type} : $attr_type;
-	
+				   \z}msx
+	  )
+	{
+		my ( $attr_name, $attr_type, $value ) = ( $1, $2, $3 );
+		my $type =
+		  exists $TYPES{$attr_type} ? $TYPES{$attr_type} : $attr_type;
+
 		WiX3::Exception::Parameter::Validation->throw(
 			attribute => $attr_name,
-			type => $type,
-			value => $value,
+			type      => $type,
+			value     => $value,
 		);
-	} else {	
+	} else {
 		WiX3::Exception::Caught->throw(
 			message  => 'Moose',
 			info     => $info,

@@ -74,7 +74,7 @@ sub WiX3::Exception::Unimplemented::full_message
 
 	my $string =
 	    'WiX3 error: '
-	  . $self->description() . ": "
+	  . $self->description() . q{: }
 	  . $self->message() . "\n"
 	  . '  Time error caught: '
 	  . localtime() . "\n";
@@ -109,14 +109,16 @@ sub WiX3::Exception::Parameter::full_message { ## no critic 'Capitalization'
 	return $string;
 } ## end sub WiX3::Exception::Parameter::full_message
 
-sub WiX3::Exception::Parameter::Validation::full_message { ## no critic 'Capitalization'
+sub WiX3::Exception::Parameter::Validation::full_message
+{ ## no critic 'Capitalization'
 	my $self = shift;
 
 	my $string =
 	    'WiX3 error: '
 	  . $self->description() . ":\n  "
-	  . $self->attribute() . ' not ' 
-	  . $self->type() . ' (value passed in: '
+	  . $self->attribute() . ' not '
+	  . $self->type()
+	  . ' (value passed in: '
 	  . $self->value . ")\n"
 	  . '  Time error caught: '
 	  . localtime() . "\n";
@@ -129,7 +131,7 @@ sub WiX3::Exception::Parameter::Validation::full_message { ## no critic 'Capital
 	$misc->trace_line( 0, $string );
 
 	return $string;
-} ## end sub WiX3::Exception::Parameter::full_message
+} ## end sub WiX3::Exception::Parameter::Validation::full_message
 
 
 

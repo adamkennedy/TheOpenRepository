@@ -43,6 +43,8 @@ if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {
 	plan( skip_all => "Perl::Tidy needs updated to 20090616" );
 }
 
+diag('Takes a few minutes...');
+
 use File::Spec::Functions qw(catfile);
 Perl::Critic::Utils::Constants->import(':profile_strictness');
 my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
