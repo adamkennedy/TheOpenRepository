@@ -2266,7 +2266,7 @@ sub Marpa::Evaluator::new_value {
             $and_heights->[$and_node_id] = 0;
 
             push @height_work_list,
-                    [ 'o', $and_node->[Marpa::Internal::And_Node::PARENT_ID] ];
+                [ 'o', $and_node->[Marpa::Internal::And_Node::PARENT_ID] ];
 
         } ## end for my $and_node ( @{$and_nodes} )
 
@@ -2366,7 +2366,7 @@ sub Marpa::Evaluator::new_value {
 
         $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL] = [];
         $evaler->[Marpa::Internal::Evaluator::AND_HEIGHTS] = $and_heights;
-        $evaler->[Marpa::Internal::Evaluator::OR_HEIGHTS] = $or_heights;
+        $evaler->[Marpa::Internal::Evaluator::OR_HEIGHTS]  = $or_heights;
         $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS] =
             $ranked_and_node_ids;
         @tasks = ( [Marpa::Internal::Task::ADVANCE] );
