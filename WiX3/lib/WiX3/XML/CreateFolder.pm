@@ -16,11 +16,13 @@ use version; our $VERSION = version->new('0.005')->numify;
 with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Permission, PermissionEx, Shortcut as children.
 
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_createfolder.htm
+
 #####################################################################
 # Accessors:
 #   None.
 
-has _directory => (
+has directory => (
 	is      => 'ro',
 	isa     => 'Maybe[Str]',
 	reader  => '_get_directory',

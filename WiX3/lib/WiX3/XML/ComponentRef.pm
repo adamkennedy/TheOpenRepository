@@ -8,7 +8,7 @@ use metaclass (
 	error_class => 'WiX3::Util::Error',
 );
 use Moose;
-use Params::Util qw( _INSTANCE );
+use Params::Util qw( _INSTANCE _IDENTIFIER );
 use MooseX::Types::Moose qw( Str Maybe );
 use WiX3::Types qw( YesNoType );
 use WiX3::Util::StrictConstructor;

@@ -12,7 +12,7 @@ require WiX3::XML::Component;
 require WiX3::Traceable;
 require WiX3::XML::GeneratesGUID::Object;
 
-plan tests => 13;
+plan tests => 16;
 
 WiX3::Traceable->new(tracelevel => 0, testing => 1);
 WiX3::XML::GeneratesGUID::Object->new(sitename => 'www.testing.invalid');
@@ -54,16 +54,44 @@ EOF
 
 is( $test8_output, $test8_string, 'Non-empty Component stringifies correctly.' );
 
-my $c_3;
-eval { $c_3 = WiX3::XML::Component->new(id => 'TestBad', diskid => 'TestBad'); };
-my $empty_exception = $EVAL_ERROR;
+require WiX3::XML::ComponentRef;
 
-ok( ! $c_3, 'CreateFolder->new returns false when bad parameter passed in' );
-like( 
-	$empty_exception, 
-	qr{pass the type constraint}, 
-	'CreateFolder->new returns exception that stringifies'
-);
-isa_ok( $empty_exception, 'WiX3::Exception::Parameter::Validation', 'Error' );
-isa_ok( $empty_exception, 'WiX3::Exception::Parameter', 'Error' );
-isa_ok( $empty_exception, 'WiX3::Exception', 'Error' );
+my $cr_1 = WiX3::XML::ComponentRef->new($c_2);
+
+ok( $cr_1, 'ComponentRef->new returns true with Component' );
+
+my $test10_output = $cr_1->as_string();
+my $test10_string = <<'EOF';
+<ComponentRef Id='C_TestID' />
+EOF
+
+is( $test10_output, $test10_string, 'Component ComponentRef stringifies correctly.' );
+
+my $cr_2 = WiX3::XML::ComponentRef->new(id => $c_2->get_id(), primary => 'yes');
+
+ok( $cr_2, 'ComponentRef->new returns true with regular parameters' );
+
+my $test12_output = $cr_2->as_string();
+my $test12_string = <<'EOF';
+<ComponentRef Id='C_TestID' Primary='yes' />
+EOF
+
+is( $test12_output, $test12_string, 'Hash ComponentRef stringifies correctly.' );
+
+my $cr_3 = WiX3::XML::ComponentRef->new({id => $c_2->get_id(), primary => 'yes'});
+
+ok( $cr_3, 'ComponentRef->new returns true with hashref parameters' );
+
+my $test14_output = $cr_3->as_string();
+my $test14_string = $test12_string;
+
+is( $test14_output, $test14_string, 'Hashref ComponentRef stringifies correctly.' );
+
+my $cr_4 = WiX3::XML::ComponentRef->new($c_2->get_id());
+
+ok( $cr_4, 'ComponentRef->new returns true with string id parameter' );
+
+my $test16_output = $cr_4->as_string();
+my $test16_string = $test10_string;
+
+is( $test16_output, $test16_string, 'String-id ComponentRef stringifies correctly.' );
