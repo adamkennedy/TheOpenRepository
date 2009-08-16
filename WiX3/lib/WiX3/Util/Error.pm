@@ -50,16 +50,16 @@ sub _create_error_carpmess {
 		  exists $TYPES{$attr_type} ? $TYPES{$attr_type} : $attr_type;
 
 		WiX3::Exception::Parameter::Validation->throw(
-			attribute => $attr_name,
-			type      => $type,
-			value     => $value,
+			attribute    => $attr_name,
+			type         => $type,
+			value        => $value,
 			ignore_class => [qw(WiX3::Util::Error Moose::Meta::Class)],
 		);
 	} else {
 		WiX3::Exception::Caught->throw(
-			message  => 'Moose',
-			info     => $info,
-			longmess => $longmess,
+			message      => 'Moose',
+			info         => $info,
+			longmess     => $longmess,
 			ignore_class => [qw(WiX3::Util::Error Moose::Meta::Class)],
 		);
 	}
