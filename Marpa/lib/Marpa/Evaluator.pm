@@ -112,7 +112,8 @@ use Marpa::Offset qw(
     { Delete this } CYCLES { Will this be needed? }
     JOURNAL
     RANKED_AND_NODE_IDS
-    HEIGHTS
+    AND_HEIGHTS
+    OR_HEIGHTS
 
 );
 
@@ -2200,8 +2201,9 @@ sub Marpa::Evaluator::new_value {
     my $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
     my $ranked_and_node_ids =
         $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS];
-    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $heights   = $evaler->[Marpa::Internal::Evaluator::HEIGHTS];
+    my $and_nodes   = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $and_heights = $evaler->[Marpa::Internal::Evaluator::AND_HEIGHTS];
+    my $or_heights  = $evaler->[Marpa::Internal::Evaluator::OR_HEIGHTS];
 
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
@@ -2246,7 +2248,7 @@ sub Marpa::Evaluator::new_value {
 
         # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
 
-        my @and_node_work_list = ();
+        my @height_work_list = ();
 
         # Set the height at 0 for all and-nodes with terminals
         # and no predecessors.
@@ -2261,40 +2263,76 @@ sub Marpa::Evaluator::new_value {
                     $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
 
             my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
-            $heights->[$and_node_id] = 0;
+            $and_heights->[$and_node_id] = 0;
 
-            push @and_node_work_list,
-                map { [ $_, 1 ] }
-                @{ $or_nodes
-                    ->[ $and_node->[Marpa::Internal::And_Node::PARENT_ID] ]
-                    ->[Marpa::Internal::Or_Node::PARENT_IDS] };
+            push @height_work_list,
+                    [ 'o', $and_node->[Marpa::Internal::And_Node::PARENT_ID] ];
 
         } ## end for my $and_node ( @{$and_nodes} )
 
         # Assign the heights of the other and-nodes.
-        # If there is a choice, pick the highest height.
+        # Each node must have a height above that of all of its children
         WORK_ENTRY:
-        while ( my $and_node_work_entry = pop @and_node_work_list ) {
-            my ( $and_node_id, $new_height ) = @{$and_node_work_entry};
-            my $height = $heights->[$and_node_id];
-            next WORK_ENTRY if defined $height and $height >= $new_height;
+        while ( my $height_work_entry = shift @height_work_list ) {
+            my ( $node_type, $node_id ) = @{$height_work_entry};
 
-            # This will never be a deleted and-node, because it was parent of
-            # an undeleted or-node.
-            if ( $new_height & ~(N_FORMAT_MAX) ) {
-                Marpa::exception(
-                    "Parse too deep (depth=$new_height) to be evaluated");
-            }
-            $heights->[$and_node_id] = $new_height;
-            my $and_node = $and_nodes->[$and_node_id];
+            if ( $node_type eq 'o' ) {
+                my @child_heights;
+                my $or_node = $or_nodes->[$node_id];
+                for my $child_and_id (
+                    @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
+                {
+                    my $height = $and_heights->[$child_and_id];
 
-            push @and_node_work_list,
-                map { [ $_, $new_height + 1 ] }
-                @{ $or_nodes
-                    ->[ $and_node->[Marpa::Internal::And_Node::PARENT_ID] ]
-                    ->[Marpa::Internal::Or_Node::PARENT_IDS] };
+                    # If any height is not defined, push the work entry
+                    # back into the queue and continue
+                    if ( not defined $height ) {
+                        push @height_work_list, $height_work_entry;
+                        next WORK_ENTRY;
+                    }
 
-        } ## end while ( my $and_node_work_entry = pop @and_node_work_list)
+                    push @child_heights, $height;
+
+                } ## end for my $child_and_id ( @{ $or_node->[...]})
+                $or_heights->[$node_id] = List::util::max(@child_heights) + 1;
+                push @height_work_list,
+                    map { [ 'a', $_ ] }
+                    @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] };
+            } ## end if ( $node_type eq 'o' )
+
+            if ( $node_type eq 'a' ) {
+                my @child_heights;
+                my $and_node = $and_nodes->[$node_id];
+                for my $child_or_id (
+                    map  { $_->[Marpa::Internal::Or_Node::ID] }
+                    grep { defined $_ } @{$and_node}[
+                    Marpa::Internal::And_Node::CAUSE,
+                    Marpa::Internal::And_Node::PREDECESSOR
+                    ]
+                    )
+                {
+                    my $height = $or_heights->[$child_or_id];
+
+                    # If any height is not defined, push the work entry
+                    # back into the queue and continue
+                    if ( not defined $height ) {
+                        push @height_work_list, $height_work_entry;
+                        next WORK_ENTRY;
+                    }
+
+                    push @child_heights, $height;
+
+                } ## end for my $child_or_id ( map { $_->[...]})
+                $and_heights->[$node_id] =
+                    List::util::max(@child_heights) + 1;
+                push @height_work_list,
+                    map { [ 'o', $_ ] }
+                    @{ $and_node->[Marpa::Internal::And_Node::PARENT_ID] };
+            } ## end if ( $node_type eq 'a' )
+
+            Marpa::exception("Unknown node type: $node_type");
+
+        } ## end while ( my $height_work_entry = shift @height_work_list)
 
         my @sort_data;
         AND_NODE: for my $and_node ( @{$and_nodes} ) {
@@ -2308,7 +2346,7 @@ sub Marpa::Evaluator::new_value {
                         - $and_node
                         ->[Marpa::Internal::And_Node::START_EARLEME]
                 ),
-                $heights->[$and_node_id],
+                $and_heights->[$and_node_id],
                 $and_node_id
                 );
         } ## end for my $and_node ( @{$and_nodes} )
@@ -2327,7 +2365,8 @@ sub Marpa::Evaluator::new_value {
         } ## end if ($trace_tasks)
 
         $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL] = [];
-        $evaler->[Marpa::Internal::Evaluator::HEIGHTS] = $heights;
+        $evaler->[Marpa::Internal::Evaluator::AND_HEIGHTS] = $and_heights;
+        $evaler->[Marpa::Internal::Evaluator::OR_HEIGHTS] = $or_heights;
         $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS] =
             $ranked_and_node_ids;
         @tasks = ( [Marpa::Internal::Task::ADVANCE] );
