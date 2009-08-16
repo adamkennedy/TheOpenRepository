@@ -1,17 +1,18 @@
-#!/usr/bin/perl
+#!perl
 
 # Test that modules pass perlcritic and perltidy.
 
 use strict;
 
 BEGIN {
+	BAIL_OUT ('Perl version unacceptably old.') if ($] < 5.008001);
 	use English qw(-no_match_vars);
 	$OUTPUT_AUTOFLUSH = 1;
 	$WARNING = 1;
 }
 
 my @MODULES = (
-    'Perl::Tidy',
+	'Perl::Tidy',
 	'Perl::Critic',
 	'Perl::Critic::Utils::Constants',
 	'Perl::Critic::More',
@@ -34,15 +35,15 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-if ( 0.199_001 > eval { $Perl::Critic::VERSION } ) {
-	plan( skip_all => "Perl::Critic needs updated to 0.199_001" );
+if ( 1.099_001 > eval { $Perl::Critic::VERSION } ) {
+	plan( skip_all => "Perl::Critic needs updated to 1.099_001" );
 }
 
 if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {
 	plan( skip_all => "Perl::Tidy needs updated to 20090616" );
 }
 
-use File::Spec::Functions qw(catfile catdir);
+use File::Spec::Functions qw(catfile);
 Perl::Critic::Utils::Constants->import(':profile_strictness');
 my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
 
@@ -56,3 +57,4 @@ Test::Perl::Critic->import(
 );
 
 all_critic_ok();
+

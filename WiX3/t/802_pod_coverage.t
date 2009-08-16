@@ -1,5 +1,9 @@
 #!perl
 
+# Test that modules are documented by their pod.
+
+use strict;
+
 sub filter {
 	my $module = shift;
 	
@@ -11,8 +15,6 @@ sub filter {
 	return 1;
 }
 
-use strict;
-
 BEGIN {
 	use English qw(-no_match_vars);
 	$OUTPUT_AUTOFLUSH = 1;
@@ -20,8 +22,9 @@ BEGIN {
 }
 
 my @MODULES = (
-    'Test::Pod::Coverage 1.04',
 	'Pod::Coverage::Moose 0.01',
+	'Pod::Coverage 0.20',
+	'Test::Pod::Coverage 1.08',
 );
 
 # Don't run tests for installs
