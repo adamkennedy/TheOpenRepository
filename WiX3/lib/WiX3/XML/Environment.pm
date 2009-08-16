@@ -32,71 +32,62 @@ with 'WiX3::XML::Role::Tag';
 # Accessors:
 #   see new.
 
-has _id => (
+has id => (
 	is       => 'ro',
 	isa      => Str,
 	reader   => '_get_id',
-	init_arg => 'id',
 	required => 1,
 );
 
-has _name => (
+has name => (
 	is       => 'ro',
 	isa      => Str,
 	reader   => '_get_name',
-	init_arg => 'name',
 	required => 1,
 );
 
-has _value => (
+has value => (
 	is       => 'ro',
 	isa      => Str,
 	reader   => '_get_value',
-	init_arg => 'value',
 );
 
 # TODO: These two are enums. Define types accordingly.
 # Note: see http://wix.sourceforge.net/manual-wix3/wix_xsd_environment.htm for valid values.
 
-has _action => (
+has action => (
 	is       => 'ro',
 	isa      => Str,
-	reader   => '_get_value',
-	init_arg => 'value',
+	reader   => '_get_action',
 	default  => 'set',
 );
 
-has _part => (
+has part => (
 	is       => 'ro',
 	isa      => Str,
 	reader   => '_get_part',
-	init_arg => 'part',
 	default  => 'all',
 );
 
-has _permanent => (
+has permanent => (
 	is       => 'ro',
 	isa      => YesNoType,
 	reader   => '_get_permanent',
-	init_arg => 'permanent',
 	default  => 'all',
 );
 
-has _system => (
+has system => (
 	is       => 'ro',
 	isa      => YesNoType,
 	reader   => '_get_system',
-	init_arg => 'system',
 	default  => 'yes',
 );
 
-has _separator => (
+has separator => (
 	is       => 'ro',
 	isa      => Maybe [Str],
 	reader   => '_get_separator',
-	init_arg => 'separator',
 	default  => undef,
-
 #	default => ';',   WiX defaults to this if not included
 );
 
