@@ -17,9 +17,10 @@ import struct
 import libjio
 
 
-# Useful constants, must match libjio.h
-DHS = 12	# disk header size
-DOHS = 16	# disk op header size
+# Useful constants, must match journal.h
+DHS = 8		# disk header size
+DOHS = 12	# disk op header size
+DTS = 8		# disk trailer size
 
 
 def tmppath():
@@ -37,6 +38,7 @@ def tmppath():
 
 def run_forked(f, *args, **kwargs):
 	"""Runs the function in a different process."""
+	sys.stdout.flush()
 	pid = os.fork()
 	if pid == 0:
 		# child
@@ -80,6 +82,8 @@ def biopen(path, mode = 'w+', jflags = 0):
 		flags = os.O_RDWR
 		if '+' in mode:
 			flags = flags | os.O_CREAT | os.O_TRUNC
+	elif 'a' in mode:
+		flags = os.O_RDWR | os.O_APPEND
 	else:
 		raise RuntimeError
 
@@ -107,9 +111,9 @@ def transpath(path, ntrans):
 	jpath = jiodir(path)
 	return jpath + '/' + str(ntrans)
 
-def fsck(path):
+def fsck(path, flags = 0):
 	"Calls libjio's jfsck()."
-	res = libjio.jfsck(path)
+	res = libjio.jfsck(path, flags = flags)
 	return res
 
 def fsck_verify(n, **kwargs):
@@ -123,11 +127,10 @@ def fsck_verify(n, **kwargs):
 		'reapplied': 0,
 		'corrupt': 0,
 		'in_progress': 0,
-		'apply_error': 0,
 	}
 	expected.update(kwargs)
 	expected['total'] = sum(expected.values())
-	res = fsck(n)
+	res = fsck(n, flags = libjio.J_CLEANUP)
 
 	for k in expected:
 		if k not in res:
@@ -159,9 +162,11 @@ class attrdict (dict):
 
 class TransFile (object):
 	def __init__(self, path = ''):
+		self.ver = 1
 		self.id = -1
 		self.flags = 0
 		self.numops = -1
+		self.checksum = -1
 		self.ops = []
 		self.path = path
 		if path:
@@ -171,30 +176,39 @@ class TransFile (object):
 		fd = open(self.path)
 
 		# header
-		hdrfmt = "III"
-		self.id, self.flags, self.numops = struct.unpack(hdrfmt,
+		hdrfmt = "!HHI"
+		self.ver, self.flags, self.id = struct.unpack(hdrfmt,
 				fd.read(struct.calcsize(hdrfmt)))
 
 		# operations (header only)
-		opfmt = "IIQ"
+		opfmt = "!IQ"
 		self.ops = []
-		for i in range(self.numops):
-			tlen, plen, offset = struct.unpack(opfmt,
+		while True:
+			tlen, offset = struct.unpack(opfmt,
 					fd.read(struct.calcsize(opfmt)))
+			if tlen == offset == 0:
+				break
 			payload = fd.read(tlen)
 			assert len(payload) == tlen
-			self.ops.append(attrdict(tlen = tlen, plen = plen,
-				offset = offset, payload = payload))
+			self.ops.append(attrdict(tlen = tlen, offset = offset,
+				payload = payload))
+
+		# trailer
+		trailerfmt = "!II"
+		self.numops, self.checksum = struct.unpack(trailerfmt,
+				fd.read(struct.calcsize(trailerfmt)))
 
 	def save(self):
 		# the lack of integrity checking in this function is
 		# intentional, so we can write broken transactions and see how
 		# jfsck() copes with them
 		fd = open(self.path, 'w')
-		fd.write(struct.pack("III", self.id, self.flags, self.numops))
+		fd.write(struct.pack("!HHI", self.ver, self.flags, self.id))
 		for o in self.ops:
-			fd.write(struct.pack("IIQs", o.tlen, o.plen, o.offset,
-				o.payload))
+			fd.write(struct.pack("!IQ", o.tlen, o.offset,))
+			fd.write(o.payload)
+		fd.write(struct.pack("!IQ", 0, 0))
+		fd.write(struct.pack("!II", self.numops, self.checksum))
 
 	def __repr__(self):
 		return '<TransFile %s: id:%d f:%s n:%d ops:%s>' % \
@@ -202,17 +216,20 @@ class TransFile (object):
 					self.ops)
 
 
-def gen_ret_after(n, notyet, itstime):
-	"""Returns a function that returns value of notyet the first n
-	invocations, and itstime afterwards."""
-	holder = [n]
+def gen_ret_seq(seq):
+	"""Returns a function that each time it is called returns a value of
+	the given sequence, in order. When the sequence is exhausted, returns
+	the last value."""
+	it = iter(seq)
+	last = [0]
 	def newf(*args, **kwargs):
-		holder[0] -= 1
-		if holder[0] >= 0:
-			return notyet
-		return itstime
+		try:
+			r = it.next()
+			last[0] = r
+			return r
+		except StopIteration:
+			return last[0]
 	return newf
-
 
 def autorun(module, specific_test = None):
 	"Runs all the functions in the given module that begin with 'test'."

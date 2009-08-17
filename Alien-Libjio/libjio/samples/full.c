@@ -27,9 +27,9 @@ int main(void)
 	}
 
 	/* write two "Hello world"s next to each other */
-	trans = jtrans_new(file);
-	jtrans_add(trans, TEXT, strlen(TEXT), 0);
-	jtrans_add(trans, TEXT, strlen(TEXT), strlen(TEXT));
+	trans = jtrans_new(file, 0);
+	jtrans_add_w(trans, TEXT, strlen(TEXT), 0);
+	jtrans_add_w(trans, TEXT, strlen(TEXT), strlen(TEXT));
 	r = jtrans_commit(trans);
 	if (r < 0) {
 		perror("jtrans_commit");

@@ -22,7 +22,8 @@ def test_n02():
 	c = gencontent()
 
 	def f1(f, jf):
-		jf.write(c)
+		jf.write(c[:len(c) / 2])
+		jf.write(c[len(c) / 2:])
 		jf.lseek(0, 0)
 		assert jf.read(len(c) * 2) == c
 
@@ -59,7 +60,7 @@ def test_n05():
 
 	def f1(f, jf):
 		t = jf.new_trans()
-		t.add(c, 80)
+		t.add_w(c, 80)
 		t.commit()
 
 	n = run_with_tmp(f1)
@@ -73,7 +74,7 @@ def test_n06():
 
 	def f1(f, jf):
 		t = jf.new_trans()
-		t.add(c, 80)
+		t.add_w(c, 80)
 		t.commit()
 		t.rollback()
 
@@ -94,7 +95,7 @@ def test_n07():
 	def f1(f, jf):
 		jf.write(c1)
 		t = jf.new_trans()
-		t.add(c2, len(c1) - 973)
+		t.add_w(c2, len(c1) - 973)
 		t.commit()
 		t.rollback()
 
@@ -115,10 +116,10 @@ def test_n08():
 	def f1(f, jf):
 		jf.write(c1)
 		t = jf.new_trans()
-		t.add(c2, len(c1) - 973)
-		t.add(c3, len(c1) - 1041)
-		t.add(c4, len(c1) - 666)
-		t.add(c5, len(c1) - 3000)
+		t.add_w(c2, len(c1) - 973)
+		t.add_w(c3, len(c1) - 1041)
+		t.add_w(c4, len(c1) - 666)
+		t.add_w(c5, len(c1) - 3000)
 		t.commit()
 
 	n = run_with_tmp(f1)
@@ -137,10 +138,10 @@ def test_n09():
 	def f1(f, jf):
 		jf.write(c1)
 		t = jf.new_trans()
-		t.add(c2, len(c1) - 973)
-		t.add(c3, len(c1) - 1041)
-		t.add(c4, len(c1) - 666)
-		t.add(c5, len(c1) - 3000)
+		t.add_w(c2, len(c1) - 973)
+		t.add_w(c3, len(c1) - 1041)
+		t.add_w(c4, len(c1) - 666)
+		t.add_w(c5, len(c1) - 3000)
 		t.commit()
 		t.rollback()
 
@@ -156,7 +157,7 @@ def test_n10():
 
 	def f1(f, jf):
 		t = jf.new_trans()
-		t.add(c, 0)
+		t.add_w(c, 0)
 		t.commit()
 		del t
 		assert content(f.name) == c
@@ -167,6 +168,228 @@ def test_n10():
 	n = run_with_tmp(f1, libjio.J_LINGER)
 
 	assert content(n) == c
+	fsck_verify(n)
+	cleanup(n)
+
+def test_n11():
+	"jfsck a nonexisting file"
+	try:
+		libjio.jfsck('this file does not exist')
+	except IOError:
+		return
+	raise
+
+def test_n12():
+	"jfsck with a nonexisting dir"
+	f, jf = bitmp()
+	try:
+		libjio.jfsck(f.name, 'this directory does not exist')
+	except IOError:
+		cleanup(f.name)
+		return
+	raise
+
+def test_n13():
+	"move journal to a nonexisting dir"
+	import os
+
+	f, jf = bitmp()
+	n = f.name
+	p = tmppath()
+
+	jf.write('x')
+	jf.jmove_journal(p)
+	jf.write('y')
+	del jf
+
+	assert libjio.jfsck(n, p)['total'] == 0
+	os.unlink(n)
+
+def test_n14():
+	"autosync"
+	f, jf = bitmp(jflags = libjio.J_LINGER)
+	n = f.name
+
+	jf.autosync_start(1, 10)
+	jf.write('x' * 200)
+	jf.write('x' * 200)
+	jf.autosync_stop()
+	del jf
+
+	fsck_verify(n)
+	cleanup(n)
+
+def test_n15():
+	"jpread/jpwrite"
+	c = gencontent()
+
+	f, jf = bitmp(jflags = libjio.J_LINGER)
+	n = f.name
+
+	jf.pwrite(c, 2000)
+	assert content(n) == '\0' * 2000 + c
+	assert jf.pread(len(c), 2000) == c
+	del jf
+
+	fsck_verify(n)
+	cleanup(n)
+
+def test_n16():
+	"jopen r/o + jtrans_add_w + jtrans_commit"
+	c = gencontent()
+
+	# create the file before opening, read-only mode does not create it
+	n = tmppath()
+	open(n, 'w+')
+	f, jf = biopen(n, mode = 'r')
+
+	t = jf.new_trans()
+
+	try:
+		t.add_w(c, 80)
+	except IOError:
+		pass
+	else:
+		raise AssertionError
+
+	try:
+		# note this fails because there are no ops to commit
+		t.commit()
+	except IOError:
+		pass
+	else:
+		raise AssertionError
+
+	cleanup(n)
+
+def test_n17():
+	"move journal to an existing dir"
+	import os
+
+	f, jf = bitmp()
+	n = f.name
+	p = tmppath()
+	os.mkdir(p)
+	open(p + '/x', 'w')
+
+	jf.write('x')
+	jf.jmove_journal(p)
+	jf.write('y')
+	del jf
+	os.unlink(p + '/x')
+
+	assert libjio.jfsck(n, p)['total'] == 0
+	os.unlink(n)
+
+def test_n18():
+	"jtrans_rollback with norollback"
+	c = gencontent()
+	f, jf = bitmp(jflags = libjio.J_NOROLLBACK)
+	n = f.name
+
+	t = jf.new_trans()
+	t.add_w(c, 80)
+	t.commit()
+	try:
+		t.rollback()
+	except IOError:
+		pass
+	else:
+		raise AssertionError
+
+	assert content(n) == '\0' * 80 + c
+	fsck_verify(n)
+	cleanup(n)
+
+def test_n19():
+	"jwrite in files opened with O_APPEND"
+	c1 = gencontent()
+	c2 = gencontent()
+	f, jf = bitmp(mode = 'a')
+	n = f.name
+
+	jf.write(c1)
+	jf.write(c2)
+
+	assert content(n) == c1 + c2
+	fsck_verify(n)
+	cleanup(n)
+
+def test_n20():
+	"jtrans_add_w of 0 length"
+	f, jf = bitmp()
+	n = f.name
+
+	t = jf.new_trans()
+
+	try:
+		t.add_w('', 80)
+	except IOError:
+		pass
+	else:
+		raise AssertionError
+
+	del t
+	del jf
+	fsck_verify(n)
+	cleanup(n)
+
+def test_n21():
+	"jwritev and jreadv"
+	f, jf = bitmp()
+	n = f.name
+
+	jf.writev(["hello ", "world"])
+	l = [bytearray("......"), bytearray(".....")]
+	jf.lseek(0, 0)
+	jf.readv(l)
+
+	assert content(n) == "hello world"
+	assert l[0] == "hello " and l[1] == "world"
+	fsck_verify(n)
+	cleanup(n)
+
+def test_n22():
+	"jpread/jpwrite ~2mb"
+	c = gencontent(2 * 1024 * 1024 + 1465)
+
+	f, jf = bitmp(jflags = libjio.J_LINGER)
+	n = f.name
+
+	jf.pwrite(c, 2000)
+	assert content(n) == '\0' * 2000 + c
+	assert jf.pread(len(c), 2000) == c
+	del jf
+
+	fsck_verify(n)
+	cleanup(n)
+
+def test_n23():
+	"jtrans_add_w + jtrans_add_r"
+	f, jf = bitmp()
+	n = f.name
+
+	c1 = gencontent(1000)
+	c2 = gencontent(1000)
+	c3 = gencontent(1000)
+
+	buf1 = bytearray(0 for i in range(30))
+	buf2 = bytearray(0 for i in range(100))
+
+	t = jf.new_trans()
+	t.add_w(c1, 0)
+	t.add_r(buf1, 0)
+	t.add_w(c2, len(c2))
+	t.add_r(buf2, len(c1) - len(buf2) / 2)
+	t.add_w(c3, len(c1) + len(c2))
+	t.commit()
+
+	assert content(n) == c1 + c2 + c3
+	assert buf1 == c1[:len(buf1)]
+	assert buf2 == c1[-(len(buf2) / 2):] + c2[:len(buf2) / 2]
+
+	del t
+	del jf
 	fsck_verify(n)
 	cleanup(n)
 

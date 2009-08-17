@@ -27,8 +27,11 @@ def test_c01():
 	n = run_with_tmp(f1)
 	assert content(n) == ''
 	tc = open(transpath(n, 1)).read()
-	# flip just one bit of the first byte
-	tc = chr((ord(tc[0]) & 0xFE) | (~ ord(tc[0]) & 0x1) & 0xFF) + tc[1:]
+	# flip just one bit in the transaction data
+	pos = DHS + DOHS + len(c) / 2
+	tc = tc[:pos] + \
+		chr((ord(tc[pos]) & 0xFE) | (~ ord(tc[pos]) & 0x1) & 0xFF) + \
+		tc[pos + 1:]
 	open(transpath(n, 1), 'w').write(tc)
 	fsck_verify(n, corrupt = 1)
 	assert content(n) == ''
@@ -86,4 +89,89 @@ def test_c04():
 	assert content(n) == ''
 	cleanup(n)
 
+def test_c05():
+	"truncate trans (tiny)"
+	c = gencontent()
+
+	def f1(f, jf):
+		fiu.enable("jio/commit/tf_sync")
+		jf.write(c)
+
+	n = run_with_tmp(f1)
+	assert content(n) == ''
+	tp = transpath(n, 1)
+	open(tp, 'r+').truncate(2)
+	fsck_verify(n, broken = 1)
+	assert content(n) == ''
+	cleanup(n)
+
+def test_c06():
+	"header version != 1"
+	c = gencontent()
+
+	def f1(f, jf):
+		fiu.enable("jio/commit/tf_sync")
+		jf.write(c)
+
+	n = run_with_tmp(f1)
+	assert content(n) == ''
+
+	# there is no need to recalculate the checsum because it is verified
+	# after the version check
+	tf = TransFile(transpath(n, 1))
+	tf.ver = 8
+	tf.save()
+	fsck_verify(n, broken = 1)
+	assert content(n) == ''
+	cleanup(n)
+
+def test_c07():
+	"trailer numops mismatch"
+	c = gencontent()
+
+	def f1(f, jf):
+		fiu.enable("jio/commit/tf_sync")
+		jf.write(c)
+
+	n = run_with_tmp(f1)
+	assert content(n) == ''
+
+	# there is no need to recalculate the checsum because it is verified
+	# after the numops check
+	tf = TransFile(transpath(n, 1))
+	tf.numops = 55
+	tf.save()
+	fsck_verify(n, broken = 1)
+	assert content(n) == ''
+	cleanup(n)
+
+def test_c08():
+	"broken journal"
+	c = gencontent()
+
+	f, jf = bitmp(jflags = 0)
+	n = f.name
+
+	def f1(f, jf):
+		fiu.enable("jio/commit/tf_sync")
+		jf.write(c)
+
+	run_forked(f1, f, jf)
+
+	assert content(n) == ''
+	open(jiodir(n) + '/broken', 'w+')
+
+	def f2(f, jf):
+		try:
+			jf.pwrite(c, 200)
+		except IOError:
+			return
+		raise RuntimeError
+
+	run_forked(f2, f, jf)
+
+	fsck_verify(n, reapplied = 1)
+	assert content(n) == c
+	assert not os.path.exists(jiodir(n) + '/broken')
+	cleanup(n)
 

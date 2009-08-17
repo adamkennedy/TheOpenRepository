@@ -1,6 +1,9 @@
 *.o
 *.a
 *.so
+*.so.*
+*.gcda
+*.gcno
 jiofsck
 libjio.pc
 samples/full
@@ -13,4 +16,6 @@ tests/performance/random
 *.pyo
 libjio/doxygen/doc.internal
 libjio/doxygen/doc.public
+libjio/doxygen/Doxygen.base
+libjio/build-flags
 

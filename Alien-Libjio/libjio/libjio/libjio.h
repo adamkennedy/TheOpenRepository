@@ -59,9 +59,6 @@ struct jfsck_result {
 	/** Number of corrupt transactions */
 	int corrupt;
 
-	/** Number of errors applying transactions */
-	int apply_error;
-
 	/** Number of transactions successfully reapplied */
 	int reapplied;
 };
@@ -86,6 +83,9 @@ enum jfsck_return {
 
 	/** Error cleaning the journal directory */
 	J_ECLEANUP = -4,
+
+	/** I/O error */
+	J_EIO = -5,
 };
 
 
@@ -111,7 +111,7 @@ enum jfsck_return {
  * @see jclose(), open()
  * @ingroup basic
  */
-jfs_t *jopen(const char *name, int flags, int mode, int jflags);
+jfs_t *jopen(const char *name, int flags, int mode, unsigned int jflags);
 
 /** Close a file opened with jopen().
  *
@@ -137,23 +137,30 @@ int jsync(jfs_t *fs);
 
 /** Create a new transaction.
  *
+ * Note that the final flags to use in the transaction will be the result of
+ * ORing the flags parameter with fs' flags.
+ *
  * @param fs open file the transaction will apply to
+ * @param flags transaction flags
  * @returns a new transaction (must be freed using jtrans_free())
  * @see jtrans_free()
  * @ingroup basic
  */
-jtrans_t *jtrans_new(jfs_t *fs);
+jtrans_t *jtrans_new(jfs_t *fs, unsigned int flags);
 
-/** Add an operation to a transaction.
+/** Add a write operation to a transaction.
  *
- * An operation consists of a buffer, its length, and the offset to write it
- * to.
+ * A write operation consists of a buffer, its length, and the offset to write
+ * it to.
  *
  * The file will not be touched (not even locked) until commit time, where the
  * first count bytes of buf will be written at offset.
  *
  * Transactions will be applied in order, and overlapping operations are
  * permitted, in which case the latest one will prevail.
+ *
+ * The buffer will be copied internally and can be free()d right after this
+ * function returns.
  *
  * @param ts transaction
  * @param buf buffer to write
@@ -162,22 +169,50 @@ jtrans_t *jtrans_new(jfs_t *fs);
  * @returns 0 on success, -1 on error
  * @ingroup basic
  */
-int jtrans_add(jtrans_t *ts, const void *buf, size_t count, off_t offset);
+int jtrans_add_w(jtrans_t *ts, const void *buf, size_t count, off_t offset);
+
+/** Add a read operation to a transaction.
+ *
+ * An operation consists of a buffer, its length, and the offset to read it
+ * from.
+ *
+ * The file will not be touched (not even locked) until commit time, where the
+ * first count bytes at offset will be read into buf.
+ *
+ * Note that if there is not enough data in the file to read the specified
+ * amount of bytes, the commit will fail, so do not attempt to read beyond EOF
+ * (you can use jread() for that purpose).
+ *
+ * Transactions will be applied in order, and overlapping operations are
+ * permitted, in which case the latest one will prevail.
+ *
+ * In case of an error in jtrans_commit(), the contents of the buffer are
+ * undefined.
+ *
+ * @param ts transaction
+ * @param buf buffer to read to
+ * @param count how many bytes to read
+ * @param offset offset to read at
+ * @returns 0 on success, -1 on error
+ * @ingroup basic
+ * @see jread()
+ */
+int jtrans_add_r(jtrans_t *ts, void *buf, size_t count, off_t offset);
 
 /** Commit a transaction.
  * 
- * All the operations added to it using jtrans_add() will be written to disk,
- * in the same order they were added.
+ * All the operations added to it using jtrans_add_w()/jtrans_add_r() will be
+ * written to/read from disk, in the same order they were added.
  *
  * After this function returns successfully, all the data can be trusted to be
  * on the disk. The commit is atomic with regards to other processes using
  * libjio, but not accessing directly to the file.
  *
  * @param ts transaction
- * @returns the amount of bytes written to disk, or -1 if there was an error
- *	but atomic warranties were preserved, or -2 if there was an error and
- *	there is a possible break of atomic warranties (which is an indication
- *	of a severe underlying condition).
+ * @returns 0 on success, or -1 if there was an error but atomic warranties
+ * 	were preserved, or -2 if there was an error and there is a possible
+ * 	break of atomic warranties (which is an indication of a severe
+ * 	underlying condition).
  * @ingroup basic
  */
 ssize_t jtrans_commit(jtrans_t *ts);
@@ -185,7 +220,8 @@ ssize_t jtrans_commit(jtrans_t *ts);
 /** Rollback a transaction.
  *
  * This function atomically undoes a previous committed transaction. After its
- * successful return, the data can be trusted to be on disk.
+ * successful return, the data can be trusted to be on disk. The read
+ * operations will be ignored.
  *
  * Use with care.
  *
@@ -259,14 +295,14 @@ int jfs_autosync_stop(jfs_t *fs);
  * @param jdir journal directory of the given file, use NULL for the default
  * @param res structure where to store the result
  * @param flags flags that change the checking behaviour, currently only
- *	J_NOCLEANUP is supported, which avoids cleaning up the journal
- *	directory after a successful recovery
+ *	J_CLEANUP is supported, which removes the journal directory after a
+ *	successful recovery
  * @see struct jfsck_result
  * @returns 0 on success, < 0 on error, with the following possible negative
  * 	values from enum jfsck_return: J_ENOENT if there was no such file with
  * 	the given name, J_ENOJOURNAL if there was no journal at the given
  * 	jdir, J_ENOMEM if memory could not be allocated, J_ECLEANUP if there
- * 	was an error cleaning the journal.
+ * 	was an error cleaning the journal, J_EIO if there was an I/O error.
  * @ingroup check
  */
 enum jfsck_return jfsck(const char *name, const char *jdir,
@@ -458,11 +494,11 @@ FILE *jfsopen(jfs_t *stream, const char *mode);
  * jfsck() flags
  */
 
-/** Do not perform a journal cleanup. Used in jfsck().
+/** Perform a journal cleanup. Used in jfsck().
  *
  * @see jfsck()
  * @ingroup check */
-#define J_NOCLEANUP	1
+#define J_CLEANUP	1
 
 #endif
 

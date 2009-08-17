@@ -17,119 +17,40 @@
 
 #include "libjio.h"
 #include "common.h"
+#include "journal.h"
 #include "trans.h"
 
 
-/** Fill a transaction structure from a mmapped transaction file */
-static off_t fill_trans(unsigned char *map, off_t len, struct jtrans *ts)
-{
-	int i;
-	unsigned char *p;
-	struct joper *op, *tmp;
-	off_t translen;
-
-	if (len < J_DISKHEADSIZE)
-		return 0;
-
-	p = map;
-
-	ts->id = *( (uint32_t *) p);
-	p += 4;
-
-	ts->flags = *( (uint32_t *) p);
-	p += 4;
-
-	ts->numops = *( (uint32_t *) p);
-	p += 4;
-
-	translen = J_DISKHEADSIZE;
-
-	for (i = 0; i < ts->numops; i++) {
-		if (p + J_DISKOPHEADSIZE > map + len)
-			goto error;
-
-		op = malloc(sizeof(struct joper));
-		if (op == NULL)
-			goto error;
-
-		op->len = *( (uint32_t *) p);
-		p += 4;
-
-		op->plen = *( (uint32_t *) p);
-		p += 4;
-
-		op->offset = *( (uint64_t *) p);
-		p += 8;
-
-		if (p + op->len > map + len)
-			goto error;
-
-		op->buf = (void *) p;
-		p += op->len;
-
-		op->pdata = NULL;
-
-		if (ts->op == NULL) {
-			ts->op = op;
-			op->prev = NULL;
-			op->next = NULL;
-		} else {
-			for (tmp = ts->op; tmp->next != NULL; tmp = tmp->next)
-				;
-			tmp->next = op;
-			op->prev = tmp;
-			op->next = NULL;
-		}
-
-		translen += J_DISKOPHEADSIZE + op->len;
-	}
-
-	return translen;
-
-error:
-	while (ts->op != NULL) {
-		tmp = ts->op->next;
-		free(ts->op);
-		ts->op = tmp;
-	}
-	return 0;
-}
-
-/** Remove all the files in the journal directory (if any).
+/** Remove the journal directory (if it's clean).
  *
  * @param name path to the file
- * @param jdir path to the journal directory, use NULL for the default
+ * @param jdir path to the journal directory
  * @returns 0 on success, < 0 on error
  */
 static int jfsck_cleanup(const char *name, const char *jdir)
 {
-	char path[PATH_MAX], tfile[PATH_MAX*3];
+	char tfile[PATH_MAX*3];
 	DIR *dir;
 	struct dirent *dent;
 
-	if (jdir == NULL) {
-		if (!get_jdir(name, path))
-			return -1;
-	} else {
-		strcpy(path, jdir);
-	}
-
-	dir = opendir(path);
+	dir = opendir(jdir);
 	if (dir == NULL && errno == ENOENT)
 		/* it doesn't exist, so it's clean */
 		return 0;
 	else if (dir == NULL)
 		return -1;
 
-	for (dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
-		/* we only care about transactions (named as numbers > 0) and
-		 * the lockfile (named "lock"); ignore everything else */
-		if (strcmp(dent->d_name, "lock") && atoi(dent->d_name) <= 0)
+	for (errno = 0, dent = readdir(dir); dent != NULL;
+			errno = 0, dent = readdir(dir)) {
+		/* We only care about files we know, and ignore everything
+		 * else. Note that transactions should have been removed by
+		 * jfsck(), we will not do it to prevent accidental misuse */
+		if (strcmp(dent->d_name, "lock"))
 			continue;
 
 		/* build the full path to the transaction file */
 		memset(tfile, 0, PATH_MAX * 3);
-		strcat(tfile, path);
+		strcat(tfile, jdir);
 		strcat(tfile, "/");
 		strcat(tfile, dent->d_name);
 
@@ -143,10 +64,16 @@ static int jfsck_cleanup(const char *name, const char *jdir)
 			return -1;
 		}
 	}
+
+	if (errno) {
+		closedir(dir);
+		return -1;
+	}
+
 	if (closedir(dir) != 0)
 		return -1;
 
-	if (rmdir(path) != 0)
+	if (rmdir(jdir) != 0)
 		return -1;
 
 	return 0;
@@ -158,16 +85,15 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 {
 	int tfd, rv, i, ret;
 	unsigned int maxtid;
-	uint32_t csum1, csum2;
-	char jlockfile[PATH_MAX], tname[PATH_MAX];
+	char jlockfile[PATH_MAX], tname[PATH_MAX], brokenname[PATH_MAX];
 	struct stat sinfo;
 	struct jfs fs;
 	struct jtrans *curts;
-	struct joper *tmpop;
+	struct operation *tmpop;
 	DIR *dir;
 	struct dirent *dent;
 	unsigned char *map;
-	off_t filelen, translen, lr;
+	off_t filelen, lr;
 
 	tfd = -1;
 	filelen = 0;
@@ -185,12 +111,13 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 	res->in_progress = 0;
 	res->broken = 0;
 	res->corrupt = 0;
-	res->apply_error = 0;
 	res->reapplied = 0;
 
 	fs.fd = open(name, O_RDWR | O_SYNC);
 	if (fs.fd < 0) {
-		ret = J_ENOENT;
+		ret = J_EIO;
+		if (errno == ENOENT)
+			ret = J_ENOENT;
 		goto exit;
 	}
 
@@ -216,14 +143,22 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 	}
 
 	rv = lstat(fs.jdir, &sinfo);
-	if (rv < 0 || !S_ISDIR(sinfo.st_mode)) {
+	if (rv < 0) {
+		ret = J_EIO;
+		if (errno == ENOENT)
+			ret = J_ENOJOURNAL;
+		goto exit;
+	}
+	if (!S_ISDIR(sinfo.st_mode)) {
 		ret = J_ENOJOURNAL;
 		goto exit;
 	}
 
 	fs.jdirfd = open(fs.jdir, O_RDONLY);
 	if (fs.jdirfd < 0) {
-		ret = J_ENOJOURNAL;
+		ret = J_EIO;
+		if (errno == ENOENT)
+			ret = J_ENOJOURNAL;
 		goto exit;
 	}
 
@@ -232,7 +167,9 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 	snprintf(jlockfile, PATH_MAX, "%s/%s", fs.jdir, "lock");
 	rv = open(jlockfile, O_RDWR | O_CREAT, 0600);
 	if (rv < 0) {
-		ret = J_ENOJOURNAL;
+		ret = J_EIO;
+		if (errno == ENOENT)
+			ret = J_ENOJOURNAL;
 		goto exit;
 	}
 	fs.jfd = rv;
@@ -240,20 +177,23 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 	fs.jmap = (unsigned int *) mmap(NULL, sizeof(unsigned int),
 			PROT_READ | PROT_WRITE, MAP_SHARED, fs.jfd, 0);
 	if (fs.jmap == MAP_FAILED) {
-		ret = J_ENOJOURNAL;
+		ret = J_EIO;
 		goto exit;
 	}
 
 	dir = opendir(fs.jdir);
 	if (dir == NULL) {
-		ret = J_ENOJOURNAL;
+		ret = J_EIO;
+		if (errno == ENOENT)
+			ret = J_ENOJOURNAL;
 		goto exit;
 	}
 
 	/* find the greatest transaction number by looking into the journal
 	 * directory */
 	maxtid = 0;
-	for (dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
+	for (errno = 0, dent = readdir(dir); dent != NULL;
+			errno = 0, dent = readdir(dir)) {
 		/* see if the file is named like a transaction, ignore
 		 * otherwise; as transactions are named as numbers > 0, a
 		 * simple atoi() is enough testing */
@@ -262,6 +202,10 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 			continue;
 		if (rv > maxtid)
 			maxtid = rv;
+	}
+	if (errno) {
+		ret = J_EIO;
+		goto exit;
 	}
 
 	/* rewrite the lockfile, writing the new maxtid on it, so that when we
@@ -272,9 +216,22 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 		goto exit;
 	}
 
+	/* remove the broken mark so we can call jtrans_commit() */
+	snprintf(brokenname, PATH_MAX, "%s/broken", fs.jdir);
+	rv = access(brokenname, F_OK);
+	if (rv == 0) {
+		if (unlink(brokenname) != 0) {
+			ret = J_EIO;
+			goto exit;
+		}
+	} else if (errno != ENOENT) {
+		ret = J_EIO;
+		goto exit;
+	}
+
 	/* verify (and possibly fix) all the transactions */
 	for (i = 1; i <= maxtid; i++) {
-		curts = jtrans_new(&fs);
+		curts = jtrans_new(&fs, 0);
 		if (curts == NULL) {
 			ret = J_ENOMEM;
 			goto exit;
@@ -289,8 +246,13 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 		get_jtfile(&fs, i, tname);
 		tfd = open(tname, O_RDWR | O_SYNC, 0600);
 		if (tfd < 0) {
-			res->invalid++;
-			goto loop;
+			if (errno == ENOENT) {
+				res->invalid++;
+				goto nounlink_loop;
+			} else {
+				ret = J_EIO;
+				goto exit;
+			}
 		}
 
 		/* try to lock the transaction file, if it's locked then it is
@@ -302,31 +264,28 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 		}
 
 		filelen = lseek(tfd, 0, SEEK_END);
+		if (filelen == 0) {
+			res->broken++;
+			goto loop;
+		} else if (filelen < 0) {
+			ret = J_EIO;
+			goto exit;
+		}
+
 		/* no overflow problems because we know the transaction size
 		 * is limited to SSIZE_MAX */
 		map = mmap((void *) 0, filelen, PROT_READ, MAP_SHARED, tfd, 0);
 		if (map == MAP_FAILED) {
-			res->broken++;
 			map = NULL;
-			goto loop;
-		}
-		translen = fill_trans(map, filelen, curts);
-		if (translen == 0) {
-			res->broken++;
-			goto loop;
+			ret = J_EIO;
+			goto exit;
 		}
 
-		/* see if there's enough room for the checksum after the
-		 * transaction information */
-		if (filelen != translen + sizeof(uint32_t)) {
+		rv = fill_trans(map, filelen, curts);
+		if (rv == -1) {
 			res->broken++;
 			goto loop;
-		}
-
-		/* verify the checksum */
-		csum1 = checksum_map(map, filelen - (sizeof(uint32_t)));
-		csum2 = * (uint32_t *) (map + filelen - (sizeof(uint32_t)));
-		if (csum1 != csum2) {
+		} else if (rv == -2) {
 			res->corrupt++;
 			goto loop;
 		}
@@ -338,12 +297,18 @@ enum jfsck_return jfsck(const char *name, const char *jdir,
 		rv = jtrans_commit(curts);
 
 		if (rv < 0) {
-			res->apply_error++;
-			goto loop;
+			ret = J_EIO;
+			goto exit;
 		}
 		res->reapplied++;
 
 loop:
+		if (unlink(tname) != 0) {
+			ret = J_EIO;
+			goto exit;
+		}
+
+nounlink_loop:
 		if (tfd >= 0) {
 			close(tfd);
 			tfd = -1;
@@ -364,8 +329,8 @@ loop:
 		res->total++;
 	}
 
-	if ( !(flags & J_NOCLEANUP) ) {
-		if (jfsck_cleanup(name, jdir) < 0) {
+	if (flags & J_CLEANUP) {
+		if (jfsck_cleanup(name, fs.jdir) < 0) {
 			ret = J_ECLEANUP;
 		}
 	}
@@ -385,6 +350,5 @@ exit:
 		munmap(fs.jmap, sizeof(unsigned int));
 
 	return ret;
-
 }
 

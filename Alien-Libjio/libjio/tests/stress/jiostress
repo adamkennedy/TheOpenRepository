@@ -37,8 +37,36 @@ def randfrange(maxend, maxsize):
 	size = random.randint(0, (maxend - 1) - start) % maxsize
 	return start, start + size
 
+def randfloat(min, max):
+	return min + random.random() % (max - min)
+
 class ConsistencyError (Exception):
 	pass
+
+def jfsck(fname):
+	try:
+		r = libjio.jfsck(fname)
+		return r
+	except IOError as e:
+		if e.args[0] == libjio.J_ENOJOURNAL:
+			return { 'total': 0 }
+		else:
+			raise
+
+def comp_cont(bytes):
+	"'aaaabbcc' -> [ ('a', 4), ('b', 2), ('c', 2) ]"
+	l = []
+	prev = bytes[0]
+	c = 1
+	for b in bytes[1:]:
+		if (b == prev):
+			c += 1
+			continue
+
+		l.append((prev, c))
+		prev = b
+		c = 1
+	return l
 
 
 #
@@ -67,7 +95,7 @@ class Stresser:
 		self.jf.truncate(fsize)
 
 		if use_as:
-			self.jf.autosync_start(5, 2 * 1024 * 1024)
+			self.jf.autosync_start(5, 10 * 1024 * 1024)
 
 		# data used for consistency checks
 		self.current_range = (0, 0)
@@ -77,11 +105,20 @@ class Stresser:
 	def pread(self, start, end):
 		ppos = self.f.tell()
 		self.f.seek(start, 0)
-		r = self.f.read(end - start)
+		r = bytes()
+		c = 0
+		total = end - start
+		while c < total:
+			n = self.f.read(total - c)
+			if (n == ''):
+				break
+			c += len(n)
+			r += n
 		self.f.seek(ppos, 0)
+		assert c == end - start
 		return r
 
-	def randwrite(self):
+	def prep_randwrite(self):
 		start, end = randfrange(self.fsize, self.maxoplen)
 
 		# read an extended range so we can check we
@@ -94,18 +131,38 @@ class Stresser:
 		nd = getbytes(end - start)
 		self.new_data = self.prev_data[:start - estart] \
 			+ nd + self.prev_data[- (eend - end):]
+		return nd, start
+
+	def randwrite(self, nd, start):
 		self.jf.pwrite(nd, start)
 		return True
 
 	def randwrite_fork(self):
+		# do the prep before the fork so we can verify() afterwards
+		nd, start = self.prep_randwrite()
+		sys.stdout.flush()
 		pid = os.fork()
 		if pid == 0:
 			# child
 			try:
-				self.randwrite()
-			except IOError:
+				self.fiu_enable()
+				self.randwrite(nd, start)
+				self.fiu_disable()
+			except (IOError, MemoryError):
+				try:
+					self.reopen()
+				except (IOError, MemoryError):
+					pass
+				except:
+					self.fiu_disable()
+					traceback.print_exc()
+				self.fiu_disable()
+				sys.exit(1)
+			except MemoryError:
+				self.fiu_disable()
 				sys.exit(1)
 			except:
+				self.fiu_disable()
 				traceback.print_exc()
 				sys.exit(1)
 			sys.exit(0)
@@ -124,11 +181,18 @@ class Stresser:
 		real_data = self.pread(self.current_range[0],
 				self.current_range[1])
 		if real_data not in (self.prev_data, self.new_data):
+			print('Corruption detected')
+			print('Range:', self.current_range)
+			print('Real:', comp_cont(real_data))
+			print('Prev:', comp_cont(self.prev_data))
+			print('New: ', comp_cont(self.new_data))
+			print()
 			raise ConsistencyError
 
 	def reopen(self):
 		self.jf = None
-		r = libjio.jfsck(self.fname)
+		r = jfsck(self.fname)
+
 		self.verify()
 
 		self.jf = libjio.open(self.fname,
@@ -136,15 +200,30 @@ class Stresser:
 		return r
 
 	def fiu_enable(self):
-		if self.use_fi:
-			fiu.enable_random('jio/*', probability = 0.02)
+		if not self.use_fi:
+			return
+
+		# To improve code coverage, we randomize the probability each
+		# time we enable failure points
+		fiu.enable_random('jio/*',
+				probability = randfloat(0.0005, 0.005))
+		fiu.enable_random('linux/*',
+				probability = randfloat(0.005, 0.03))
+		fiu.enable_random('posix/*',
+			probability = randfloat(0.005, 0.03))
+		fiu.enable_random('libc/mm/*',
+			probability = randfloat(0.003, 0.07))
+		fiu.enable_random('libc/str/*',
+			probability = randfloat(0.005, 0.07))
 
 	def fiu_disable(self):
 		if self.use_fi:
+			fiu.disable('libc/mm/*')
+			fiu.disable('posix/*')
 			fiu.disable('jio/*')
+			fiu.disable('linux/*')
 
 	def run(self):
-		self.fiu_enable()
 		nfailures = 0
 		sys.stdout.write("  ")
 		for i in range(1, self.nops + 1):
@@ -159,17 +238,14 @@ class Stresser:
 			if self.use_fi:
 				r = self.randwrite_fork()
 			else:
-				r = self.randwrite()
+				nd, start = self.prep_randwrite()
+				r = self.randwrite(nd, start)
 			if not r:
 				nfailures += 1
-				self.fiu_disable()
 				r = self.reopen()
-				assert r['total'] <= 1
-				self.fiu_enable()
 			self.verify()
 		sys.stdout.write("\n")
 		sys.stdout.flush()
-		self.fiu_disable()
 		return nfailures
 
 
@@ -224,8 +300,7 @@ def main():
 	print("  %d operations" % nops)
 	print("  %d simulated failures" % nfailures)
 
-	r = libjio.jfsck(fname)
-	assert r['total'] == 0
+	r = jfsck(fname)
 	print("Final check completed")
 	#os.unlink(fname)
 

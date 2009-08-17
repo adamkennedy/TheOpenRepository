@@ -7,8 +7,8 @@ Introduction
 
 This small document attempts to serve as a guide to the programmer who wants
 to use the library. It's not a replacement for the man page or reading the
-code; but it's a good starting point for everyone who wants to get involved
-with it.
+code, but is a good starting point for everyone who wants to get involved with
+it.
 
 The library is not complex to use at all, and the interfaces were designed to
 be as intuitive as possible, so the text is structured as a guide to present
@@ -27,7 +27,7 @@ the form of a directory with files on it) to guarantee coherency even after a
 crash at any point.
 
 In this document, we think of a transaction as a list of *(buffer, length,
-offset)* to be applied to a file. That triplet is called an *operation*, so we
+offset)* to be written to a file. That triplet is called an *operation*, so we
 can say that a transaction represents an ordered group of operations on the
 same file.
 
@@ -75,9 +75,9 @@ Now that you have opened a file, the next thing to do would be to create a
 transaction. This is what *jtrans_new()* is for: it takes a file structure and
 returns a new transaction structure.
 
-To add an operation to the transaction, use *jtrans_add()*. You can add as
-many operations as you want. Operations within a transaction may overlap, and
-will be applied in order.
+To add a write operation to the transaction, use *jtrans_add_w()*. You can add
+as many operations as you want. Operations within a transaction may overlap,
+and will be applied in order.
 
 Finally, to apply our transaction to the file, use *jtrans_commit()*.
 
@@ -92,8 +92,8 @@ are ignored for simplicity)::
 
   file = jopen("filename", O_RDWR | O_CREAT, 0600, 0);
 
-  trans = jtrans_new(file);
-  jtrans_add(trans, buf, strlen(buf), 0);
+  trans = jtrans_new(file, 0);
+  jtrans_add_w(trans, buf, strlen(buf), 0);
   jtrans_commit(trans);
   jtrans_free(trans);
 
@@ -101,7 +101,7 @@ are ignored for simplicity)::
 
 As we've seen, you open the file and initialize the structure with *jopen()*
 (with the parameter *jflags* being the last 0), create a new transaction with
-*jtrans_new()*, then add an operation with *jtrans_add()* (the last 0 is the
+*jtrans_new()*, then add an operation with *jtrans_add_w()* (the last 0 is the
 offset, in this case the beginning of the file), commit the transaction with
 *jtrans_commit()*, free it with *jtrans_free()*, and finally close the file
 with *jclose()*.
@@ -110,6 +110,9 @@ Reading is much easier: the library provides three functions, *jread()*,
 *jpread()* and *jreadv()*, that behave exactly like *read()*, *pread()* and
 *readv()*, except that they play safe with libjio's writing code. You should
 use these to read from files when using libjio.
+
+You can also add read operations to a transaction using *jtrans_add_r()*, and
+the data will be read atomically at commit time.
 
 
 Integrity checking and recovery
@@ -168,21 +171,23 @@ here; however the naming is quite simple: just prepend a 'j' to all the names:
 *jread()*, *jwrite()*, etc.
 
 
-Threads and locking
--------------------
+Processes, threads and locking
+------------------------------
 
-The library is completely safe to use in multithreaded applications; however,
-there are some very basic and intuitive locking rules you have to bear in
-mind.
+The library is completely safe to use in multi-process and/or multi-thread
+applications, as long as you abide by the following rules:
 
-You need to care only when closing and checking for integrity. In
-practise, that means that you shouldn't call *jclose()* in the middle of an
-I/O operation, just like you do when using the normal UNIX calls. In the case
-of *jfsck()*, you shouldn't invoke it for the same file more than once at the
-time, or when the file is open by any other process (this requirement will be
-lifted in future releases).
+ - Within a process, a file must not be held open at the same time more than
+   once, due to *fcntl()* locking limitations. Opening, closing and then
+   opening again is safe.
+ - *jclose()* must only be called when there are no other I/O operations in
+   progress.
+ - *jfsck()* must only be called when the file is known **not** to be open by
+   any process.
+ - *jmove_journal()* must only be called when the file is known **not** to be
+   open by any other processes.
 
-All other operations (commiting a transaction, rolling it back, adding
+All other operations (committing a transaction, rolling it back, adding
 operations, etc.) and all the wrappers are safe and don't require any special
 considerations.
 
@@ -195,7 +200,9 @@ this mode, transactions take up more disk space but allows you to do the
 synchronous write only once, making commits much faster. To use them, just add
 *J_LINGER* to the *jflags* parameter in *jopen()*. You should call *jsync()*
 frequently to avoid using up too much space, or start an asynchronous thread
-that calls *jsync()* automatically using *jfs_autosync_start()*.
+that calls *jsync()* automatically using *jfs_autosync_start()*. Note that
+files opened with this mode must not be opened by more than one process at the
+same time.
 
 
 Disk layout
@@ -226,13 +233,18 @@ if you need them.
 Compiling and linking
 ---------------------
 
-When you want to use your library, besides including the "libjio.h" header,
-you have to make sure your application uses the Large File Support ("LFS" from
-now on), to be able to handle large files properly. This means that you will
-have to pass some special standard flags to the compiler, so your C library
-uses the same data types as the library. For instance, on 32-bit platforms
-(like x86), when using LFS, offsets are usually 64 bits, as opposed to the
-usual 32.
+If you have *pkg-config* in your build environment, then you can get the build
+flags you need to use when building and linking against the library by
+running::
+
+  pkg-config --cflags --libs libjio
+
+If *pkg-config* is not available, you have to make sure your application uses
+the Large File Support (*"LFS"* from now on), to be able to handle large files
+properly. This means that you will have to pass some special standard flags to
+the compiler, so your C library uses the same data types as the library. For
+instance, on 32-bit platforms (like x86), when using LFS, offsets are usually
+64 bits, as opposed to the usual 32.
 
 The library is always built with LFS; however, linking it against an
 application without LFS support could lead to serious problems because this

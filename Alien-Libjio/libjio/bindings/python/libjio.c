@@ -4,6 +4,7 @@
  * Alberto Bertogli (albertito@blitiri.com.ar)
  */
 
+#define PY_SSIZE_T_CLEAN 1
 
 #include <Python.h>
 
@@ -49,6 +50,10 @@ typedef struct {
 	PyObject_HEAD
 	jtrans_t *ts;
 	jfile_object *jfile;
+
+	/* add_r() allocates views which must be freed by the destructor */
+	Py_buffer **views;
+	size_t nviews;
 } jtrans_object;
 
 static PyTypeObject jtrans_type;
@@ -162,6 +167,106 @@ static PyObject *jf_pread(jfile_object *fp, PyObject *args)
 	return r;
 }
 
+/* readv */
+PyDoc_STRVAR(jf_readv__doc,
+"readv([buf1, buf2, ...])\n\
+\n\
+Reads the data from the file into the different buffers; returns the\n\
+number of bytes written.\n\
+The buffers must be objects that support slice assignment, like bytearray\n\
+(but *not* str).\n\
+Only available in Python >= 2.6.\n\
+It's a wrapper to jreadv().\n");
+
+/* readv requires the new Py_buffer interface, which is only available in
+ * Python >= 2.6 */
+#if PY_MAJOR_VERSION >= 3 || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 6)
+static PyObject *jf_readv(jfile_object *fp, PyObject *args)
+{
+	long rv;
+	PyObject *buffers, *buf;
+	Py_buffer *views = NULL;
+	ssize_t len, pos = 0;
+	struct iovec *iov = NULL;
+
+	if (!PyArg_ParseTuple(args, "O:readv", &buffers))
+		return NULL;
+
+	len = PySequence_Length(buffers);
+	if (len < 0) {
+		PyErr_SetString(PyExc_TypeError, "iterable expected");
+		return NULL;
+	}
+
+	iov = malloc(sizeof(struct iovec) * len);
+	if (iov == NULL)
+		return PyErr_NoMemory();
+
+	views = malloc(sizeof(Py_buffer) * len);
+	if (views == NULL) {
+		free(iov);
+		return PyErr_NoMemory();
+	}
+
+	for (pos = 0; pos < len; pos++) {
+		buf = PySequence_GetItem(buffers, pos);
+		if (buf == NULL)
+			goto error;
+
+		if (!PyObject_CheckBuffer(buf)) {
+			PyErr_SetString(PyExc_TypeError,
+				"object must support the buffer interface");
+			goto error;
+		}
+
+		if (PyObject_GetBuffer(buf, &(views[pos]), PyBUF_CONTIG))
+			goto error;
+
+		iov[pos].iov_base = views[pos].buf;
+		iov[pos].iov_len = views[pos].len;
+	}
+
+	Py_BEGIN_ALLOW_THREADS
+	rv = jreadv(fp->fs, iov, len);
+	Py_END_ALLOW_THREADS
+
+	for (pos = 0; pos < len; pos++) {
+		PyBuffer_Release(&(views[pos]));
+	}
+
+	free(iov);
+	free(views);
+
+	if (rv < 0)
+		return PyErr_SetFromErrno(PyExc_IOError);
+
+	return PyLong_FromLong(rv);
+
+error:
+	/* We might get here with pos between 0 and len, so we must release
+	 * only what we have already taken */
+	pos--;
+	while (pos >= 0) {
+		PyBuffer_Release(&(views[pos]));
+		pos--;
+	}
+
+	free(iov);
+	free(views);
+	return NULL;
+}
+
+#else
+
+static PyObject *jf_readv(jfile_object *fp, PyObject *args)
+{
+	PyErr_SetString(PyExc_NotImplementedError,
+			"only supported in Python >= 2.6");
+	return NULL;
+}
+
+#endif /* python version >= 2.6 */
+
 /* write */
 PyDoc_STRVAR(jf_write__doc,
 "write(buf)\n\
@@ -210,6 +315,60 @@ static PyObject *jf_pwrite(jfile_object *fp, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 	rv = jpwrite(fp->fs, buf, len, offset);
 	Py_END_ALLOW_THREADS
+
+	if (rv < 0)
+		return PyErr_SetFromErrno(PyExc_IOError);
+
+	return PyLong_FromLong(rv);
+}
+
+/* writev */
+PyDoc_STRVAR(jf_writev__doc,
+"writev([buf1, buf2, ...])\n\
+\n\
+Writes the data contained in the different buffers to the file, returns the\n\
+number of bytes written.\n\
+The buffers must be strings or string-alike objects, like str or bytes.\n\
+It's a wrapper to jwritev().\n");
+
+static PyObject *jf_writev(jfile_object *fp, PyObject *args)
+{
+	long rv;
+	PyObject *buffers, *buf;
+	ssize_t len, pos;
+	struct iovec *iov;
+
+	if (!PyArg_ParseTuple(args, "O:writev", &buffers))
+		return NULL;
+
+	len = PySequence_Length(buffers);
+	if (len < 0) {
+		PyErr_SetString(PyExc_TypeError, "iterable expected");
+		return NULL;
+	}
+
+	iov = malloc(sizeof(struct iovec) * len);
+	if (iov == NULL)
+		return PyErr_NoMemory();
+
+	for (pos = 0; pos < len; pos++) {
+		buf = PySequence_GetItem(buffers, pos);
+		if (buf == NULL)
+			return NULL;
+
+		iov[pos].iov_len = 0;
+		if (!PyArg_Parse(buf, "s#:writev", &(iov[pos].iov_base),
+				&(iov[pos].iov_len))) {
+			free(iov);
+			return NULL;
+		}
+	}
+
+	Py_BEGIN_ALLOW_THREADS
+	rv = jwritev(fp->fs, iov, len);
+	Py_END_ALLOW_THREADS
+
+	free(iov);
 
 	if (rv < 0)
 		return PyErr_SetFromErrno(PyExc_IOError);
@@ -385,8 +544,9 @@ It's a wrapper to jtrans_new().\n");
 static PyObject *jf_new_trans(jfile_object *fp, PyObject *args)
 {
 	jtrans_object *tp;
+	unsigned int flags = 0;
 
-	if (!PyArg_ParseTuple(args, ":new_trans"))
+	if (!PyArg_ParseTuple(args, "|I:new_trans", &flags))
 		return NULL;
 
 #ifdef PYTHON3
@@ -397,7 +557,7 @@ static PyObject *jf_new_trans(jfile_object *fp, PyObject *args)
 	if (tp == NULL)
 		return NULL;
 
-	tp->ts = jtrans_new(fp->fs);
+	tp->ts = jtrans_new(fp->fs, flags);
 	if(tp->ts == NULL) {
 		return PyErr_NoMemory();
 	}
@@ -405,6 +565,9 @@ static PyObject *jf_new_trans(jfile_object *fp, PyObject *args)
 	/* increment the reference count, it's decremented on deletion */
 	tp->jfile = fp;
 	Py_INCREF(fp);
+
+	tp->views = NULL;
+	tp->nviews = 0;
 
 	return (PyObject *) tp;
 }
@@ -414,8 +577,10 @@ static PyMethodDef jfile_methods[] = {
 	{ "fileno", (PyCFunction) jf_fileno, METH_VARARGS, jf_fileno__doc },
 	{ "read", (PyCFunction) jf_read, METH_VARARGS, jf_read__doc },
 	{ "pread", (PyCFunction) jf_pread, METH_VARARGS, jf_pread__doc },
+	{ "readv", (PyCFunction) jf_readv, METH_VARARGS, jf_readv__doc },
 	{ "write", (PyCFunction) jf_write, METH_VARARGS, jf_write__doc },
 	{ "pwrite", (PyCFunction) jf_pwrite, METH_VARARGS, jf_pwrite__doc },
+	{ "writev", (PyCFunction) jf_writev, METH_VARARGS, jf_writev__doc },
 	{ "truncate", (PyCFunction) jf_truncate, METH_VARARGS,
 		jf_truncate__doc },
 	{ "lseek", (PyCFunction) jf_lseek, METH_VARARGS, jf_lseek__doc },
@@ -471,33 +636,118 @@ static void jt_dealloc(jtrans_object *tp)
 		jtrans_free(tp->ts);
 	}
 	Py_DECREF(tp->jfile);
+
+	/* release views allocated by add_r */
+	while (tp->nviews) {
+		PyBuffer_Release(tp->views[tp->nviews - 1]);
+		free(tp->views[tp->nviews - 1]);
+		tp->nviews--;
+	}
+	free(tp->views);
+
 	PyObject_Del(tp);
 }
 
-/* add */
-PyDoc_STRVAR(jt_add__doc,
-"add(buf, offset)\n\
+/* add_w */
+PyDoc_STRVAR(jt_add_w__doc,
+"add_w(buf, offset)\n\
 \n\
 Add an operation to write the given buffer at the given offset to the\n\
 transaction.\n\
-It's a wrapper to jtrans_add().\n");
+It's a wrapper to jtrans_add_w().\n");
 
-static PyObject *jt_add(jtrans_object *tp, PyObject *args)
+static PyObject *jt_add_w(jtrans_object *tp, PyObject *args)
 {
 	long rv;
 	int len;
 	long long offset;
 	unsigned char *buf;
 
-	if (!PyArg_ParseTuple(args, "s#L:add", &buf, &len, &offset))
+	if (!PyArg_ParseTuple(args, "s#L:add_w", &buf, &len, &offset))
 		return NULL;
 
-	rv = jtrans_add(tp->ts, buf, len, offset);
+	rv = jtrans_add_w(tp->ts, buf, len, offset);
 	if (rv < 0)
 		return PyErr_SetFromErrno(PyExc_IOError);
 
 	return PyLong_FromLong(rv);
 }
+
+/* add_r */
+PyDoc_STRVAR(jt_add_r__doc,
+"add_r(buf, offset)\n\
+\n\
+Add an operation to read into the given buffer at the given offset to the\n\
+transaction.\n\
+It's a wrapper to jtrans_add_r().\n\
+\n\
+The buffer must be objects that support slice assignment, like bytearray\n\
+(but *not* str).\n\
+Only available in Python >= 2.6.\n");
+
+/* add_r requires the new Py_buffer interface, which is only available in
+ * Python >= 2.6 */
+#if PY_MAJOR_VERSION >= 3 || (PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION >= 6)
+static PyObject *jt_add_r(jtrans_object *tp, PyObject *args)
+{
+	long rv;
+	PyObject *py_buf;
+	unsigned long long offset;
+	Py_buffer *view = NULL, **new_views;
+
+	if (!PyArg_ParseTuple(args, "OL:add_r", &py_buf, &offset))
+		return NULL;
+
+	if (!PyObject_CheckBuffer(py_buf)) {
+		PyErr_SetString(PyExc_TypeError,
+			"object must support the buffer interface");
+		return NULL;
+	}
+
+	view = malloc(sizeof(Py_buffer));
+	if (view == NULL)
+		return PyErr_NoMemory();
+
+	if (PyObject_GetBuffer(py_buf, view, PyBUF_CONTIG)) {
+		free(view);
+		return NULL;
+	}
+
+	Py_BEGIN_ALLOW_THREADS
+	rv = jtrans_add_r(tp->ts, view->buf, view->len, offset);
+	Py_END_ALLOW_THREADS
+
+	if (rv < 0) {
+		PyBuffer_Release(view);
+		free(view);
+		return PyErr_SetFromErrno(PyExc_IOError);
+	}
+
+	new_views = realloc(tp->views, sizeof(Py_buffer *) * tp->nviews + 1);
+	if (new_views == NULL) {
+		PyBuffer_Release(view);
+		free(view);
+		return PyErr_NoMemory();
+	}
+
+	tp->nviews++;
+	tp->views = new_views;
+	tp->views[tp->nviews - 1] = view;
+
+	return PyLong_FromLong(rv);
+}
+
+#else
+
+static PyObject *jt_add_r(jtrans_object *tp, PyObject *args)
+{
+	PyErr_SetString(PyExc_NotImplementedError,
+			"only supported in Python >= 2.6");
+	return NULL;
+}
+
+#endif /* python version >= 2.6 */
+
 
 /* commit */
 PyDoc_STRVAR(jt_commit__doc,
@@ -549,7 +799,8 @@ static PyObject *jt_rollback(jtrans_object *tp, PyObject *args)
 
 /* method table */
 static PyMethodDef jtrans_methods[] = {
-	{ "add", (PyCFunction) jt_add, METH_VARARGS, jt_add__doc },
+	{ "add_r", (PyCFunction) jt_add_r, METH_VARARGS, jt_add_r__doc },
+	{ "add_w", (PyCFunction) jt_add_w, METH_VARARGS, jt_add_w__doc },
 	{ "commit", (PyCFunction) jt_commit, METH_VARARGS, jt_commit__doc },
 	{ "rollback", (PyCFunction) jt_rollback, METH_VARARGS, jt_rollback__doc },
 	{ NULL }
@@ -600,14 +851,16 @@ It's a wrapper to jopen().\n");
 static PyObject *jf_open(PyObject *self, PyObject *args)
 {
 	char *file;
-	int flags, mode, jflags;
+	int flags = O_RDONLY;
+	int mode = 0600;
+	unsigned int jflags = 0;
 	jfile_object *fp;
 
 	flags = O_RDWR;
 	mode = 0600;
 	jflags = 0;
 
-	if (!PyArg_ParseTuple(args, "s|iii:open", &file, &flags, &mode,
+	if (!PyArg_ParseTuple(args, "s|iiI:open", &file, &flags, &mode,
 				&jflags))
 		return NULL;
 
@@ -679,7 +932,6 @@ static PyObject *jf_jfsck(PyObject *self, PyObject *args, PyObject *kw)
 	PyDict_SetItemString(dict, "in_progress", PyLong_FromLong(res.in_progress));
 	PyDict_SetItemString(dict, "broken", PyLong_FromLong(res.broken));
 	PyDict_SetItemString(dict, "corrupt", PyLong_FromLong(res.corrupt));
-	PyDict_SetItemString(dict, "apply_error", PyLong_FromLong(res.apply_error));
 	PyDict_SetItemString(dict, "reapplied", PyLong_FromLong(res.reapplied));
 
 	return dict;
@@ -717,10 +969,17 @@ static void populate_module(PyObject *m)
 	PyModule_AddIntConstant(m, "J_ROLLBACKED", J_ROLLBACKED);
 	PyModule_AddIntConstant(m, "J_ROLLBACKING", J_ROLLBACKING);
 	PyModule_AddIntConstant(m, "J_RDONLY", J_RDONLY);
+
+	/* enum jfsck_return */
 	PyModule_AddIntConstant(m, "J_ESUCCESS", J_ESUCCESS);
 	PyModule_AddIntConstant(m, "J_ENOENT", J_ENOENT);
 	PyModule_AddIntConstant(m, "J_ENOJOURNAL", J_ENOJOURNAL);
 	PyModule_AddIntConstant(m, "J_ENOMEM", J_ENOMEM);
+	PyModule_AddIntConstant(m, "J_ECLEANUP", J_ECLEANUP);
+	PyModule_AddIntConstant(m, "J_EIO", J_EIO);
+
+	/* jfsck() flags */
+	PyModule_AddIntConstant(m, "J_CLEANUP", J_CLEANUP);
 
 	/* open constants (at least the POSIX ones) */
 	PyModule_AddIntConstant(m, "O_RDONLY", O_RDONLY);
