@@ -57,7 +57,7 @@ sub shell {
 	my $command = shift;
 	print "> $command\n" if $VERBOSE;
 	my $rv = IPC::Run3::run3( $command, undef, undef );
-	if ( $rv or ! @_ ) {
+	if ( $rv ) {
 		return $rv;
 	}
 	Carp::croak( $_[0] || "Failed to run '$command'" );
