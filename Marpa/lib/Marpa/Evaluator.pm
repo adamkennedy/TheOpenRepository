@@ -60,6 +60,12 @@ use Marpa::Offset qw(
     DELETED
     CLASS { Equivalence class, for pruning duplicates }
 
+    SORT_ELEMENT
+    SORT_KEY
+    OR_MAP
+    BEST_SORT_KEY
+    BEST_OR_MAP
+
     { delete this } RANK
 
     =LAST_FIELD
@@ -81,8 +87,16 @@ use Marpa::Offset qw(
     PARENT_IDS
     DELETED
     CLASS { Equivalence class, for pruning duplicates }
+    AND_CHOICES
 
     =LAST_FIELD
+);
+
+use Marpa::Offset qw(
+    :package=Marpa::Internal::And_Choice
+    ID
+    SORT_KEY
+    OR_MAP
 );
 
 use Marpa::Offset qw(
@@ -2171,21 +2185,11 @@ sub Marpa::Evaluator::set {
 use Marpa::Offset qw(
     { tasks for use in Marpa::Evaluator::value }
     :package=Marpa::Internal::Task
-    DECIDE
-    ACCEPT
-    REJECT
-    ADVANCE
+    ADVANCE { Delete this? }
+    INITIALIZE_AND_NODE
     BACKTRACK
     EVALUATE
 );
-
-sub Marpa::show_marking {
-    my ($marking) = @_;
-    return 'none' if not defined $marking;
-    return $marking
-        ? 'ACCEPTED'
-        : 'REJECTED';
-} ## end sub Marpa::show_marking
 
 # This will replace the old value method
 sub Marpa::Evaluator::new_value {
@@ -2295,12 +2299,9 @@ sub Marpa::Evaluator::new_value {
 
                 } ## end for my $child_and_id ( @{ $or_node->[...]})
 
-                my $new_height = List::util::max(@child_heights) + 1;
-                if ( $new_height & ~(N_FORMAT_MAX) ) {
-                    Marpa::exception(
-                        "Parse too deep (depth=$new_height) to be evaluated");
-                }
-                $or_heights->[$node_id] = $new_height;
+                # Height of an or-node is the highest height of an
+                # and-child.
+                $or_heights->[$node_id] = List::util::max(@child_heights);
 
                 push @height_work_list,
                     map { [ 'a', $_ ] }
@@ -2387,8 +2388,9 @@ sub Marpa::Evaluator::new_value {
     } ## end if ( not defined $journal )
     ## End not defined $journal
 
-    # Default is to backtrack, but if this is a new parse (no journal)
-    # it will be overriden
+    # Default is to backtrack on first entering the task
+    # loop is to backtrack, unless this is a new parse, in
+    # which case the task stack is already set up.
     if ( not scalar @tasks ) {
         @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
     }
@@ -2403,6 +2405,115 @@ sub Marpa::Evaluator::new_value {
 
         my $task_entry = pop @tasks;
         my $task       = shift @{$task_entry};
+
+        if ( $task == Marpa::Internal::Task::INITIALIZE_AND_NODE ) {
+
+            my ($and_node_id) = @{$task_entry};
+            my $and_node = $and_nodes->[$and_node_id];
+
+            if ($trace_tasks) {
+                print {$trace_fh} 'Task: INITIALIZE_AND_NODE; ',
+                    ( scalar @tasks ), " tasks pending\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
+
+            my $best_sort_key = $and_node->[Marpa::Internal::And_Node::BEST_SORT_KEY];
+            if ( defined $best_sort_key ) {
+                $and_node->[Marpa::Internal::And_Node::SORT_KEY] =
+                    $best_sort_key;
+                $and_node->[Marpa::Internal::And_Node::OR_MAP] =
+                    $and_node->[Marpa::Internal::And_Node::BEST_OR_MAP];
+                next TASK;
+            } ## end if ( defined $best_sort_key )
+
+            # If we are here, the initial, "best" or-choices and sort-key
+            # have not been computed and need
+            # to be set up.  The current values will be set from
+            # them.
+
+            my $best_or_map;
+            my @child_or_map;
+
+            # Get the predecessor or-choices and sort key
+            my $predecessor_or_map = [];
+            my $predecessor_sort_key = [];
+            my $predecessor_or_node = $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
+            if ( defined $predecessor_or_node ) {
+                my $sorted_and_choices = $predecessor_or_node
+                    ->[Marpa::Internal::Or_Node::AND_CHOICES];
+                if ( not defined $sorted_and_choices ) {
+
+                    # Set up the and-choices from the children
+                    $predecessor_or_node
+                        ->[Marpa::Internal::Or_Node::AND_CHOICES] =
+                        $sorted_and_choices = [
+                        sort {
+                            $a->[Marpa::Internal::And_Choice::SORT_KEY] <=> $b
+                                ->[Marpa::Internal::And_Choice::SORT_KEY]
+                            }
+                            map {
+                            [   $_,
+                                @{ $and_nodes->[$_] }[
+                                    Marpa::Internal::And_Node::BEST_SORT_KEY,
+                                Marpa::Internal::And_Node::BEST_OR_MAP
+                                ]
+                            ]
+                            } @{
+                            $predecessor_or_node
+                                ->[Marpa::Internal::Or_Node::CHILD_IDS]
+                            }
+                        ];
+                } ## end if ( not defined $sorted_and_choices )
+
+                my $predecessor_or_node_id =
+                    $predecessor_or_node->[Marpa::Internal::Or_Node::ID];
+                my $sorted_and_choice = $sorted_and_choices->[-1];
+                push @child_or_map,
+                    [
+                    $predecessor_or_node_id,
+                    $sorted_and_choice->[Marpa::Internal::And_Choice::ID]
+                    ];
+                $predecessor_or_map =
+                    $sorted_and_choice
+                    ->[Marpa::Internal::And_Choice::OR_MAP];
+                $predecessor_sort_key =
+                    $sorted_and_choice
+                    ->[Marpa::Internal::And_Choice::SORT_KEY];
+
+            } ## end if ( defined $predecessor_or_node )
+
+            my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
+            my $maximal = $rule->[Marpa::Internal::Rule::MAXIMAL];
+            my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
+            my $sort_element;
+
+            if ($maximal or $priority) {
+
+                # compute this and-nodes sort key element
+                # insert it into the predecessor sort key elements
+                my $start_earleme = $and_node->[Marpa::Internal::And_Node::START_EARLEME];
+                my $end_earleme = $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+                my $location = $start_earleme;
+                my $length =
+                    $maximal < 0
+                    ? N_FORMAT_MAX - ( $start_earleme - $end_earleme )
+                    : $maximal > 0 ? $end_earleme - $start_earleme
+                    :                0;
+                $sort_element = [ $location, 0, $priority, $length ];
+
+            }
+            
+            # Append the cause sort key
+            # Combine the or-choices for this and-nodes with those of its children
+
+            $and_node->[Marpa::Internal::And_Node::OR_MAP] =
+                $and_node->[Marpa::Internal::And_Node::BEST_OR_MAP] =
+                $best_or_map;
+            $and_node->[Marpa::Internal::And_Node::SORT_KEY] =
+                $and_node->[Marpa::Internal::And_Node::BEST_SORT_KEY] =
+                $best_sort_key;
+
+        }
 
         if ( $task == Marpa::Internal::Task::EVALUATE ) {
 
@@ -2578,6 +2689,8 @@ sub Marpa::Evaluator::new_value {
 
         } ## end if ( $task == Marpa::Internal::Task::EVALUATE )
         ## End EVALUATE
+
+        Carp::confess("Internal error: Unknown task, number $task");
 
     } ## end while (1)
     ## End TASK

@@ -20,6 +20,7 @@ what in C would be structures.
 
 =cut
 
+#<<< no perltidy
 use Marpa::Offset qw(
 
     :package=Marpa::Internal::Symbol
@@ -31,8 +32,10 @@ use Marpa::Offset qw(
     NULL_ALIAS
     NULLING
     USER_PRIORITY
-    MINIMAL { Minimal (shortest possible) evaluation?
-    Default is longest possible.  }
+
+    MAXIMAL { Maximal (longest possible)
+        or minimal (shortest possible) evaluation?
+        Default is indifferent. }
 
     =LAST_EVALUATOR_FIELD
 
@@ -47,6 +50,7 @@ use Marpa::Offset qw(
     COUNTED
     =LAST_FIELD
 );
+#>>>
 
 # LHS             - rules with this as the lhs,
 #                   as a ref to an array of rule refs
@@ -84,7 +88,7 @@ use Marpa::Offset qw(
     CODE CYCLE
     USER_PRIORITY
     INTERNAL_PRIORITY
-    MINIMAL
+    MAXIMAL
     HAS_CHAF_LHS HAS_CHAF_RHS
 
     =LAST_EVALUATOR_FIELD
@@ -1653,7 +1657,7 @@ sub Marpa::show_rule {
             [ 1, 'inaccessible', Marpa::Internal::Rule::ACCESSIBLE, ],
             [ 0, 'nullable',     Marpa::Internal::Rule::NULLABLE, ],
             [ 0, 'nulling',      Marpa::Internal::Rule::NULLING, ],
-            [ 0, 'minimal',      Marpa::Internal::Rule::MINIMAL, ],
+            [ 0, 'maximal',      Marpa::Internal::Rule::MAXIMAL, ],
         )
         )
     {
@@ -1860,7 +1864,7 @@ sub add_terminal {
     my ( $regex, $prefix, $suffix, );
     my $action;
     my $user_priority = 0;
-    my $minimal       = 0;
+    my $maximal       = 0;
 
     while ( my ( $key, $value ) = each %{$options} ) {
         given ($key) {
@@ -1869,7 +1873,7 @@ sub add_terminal {
             when ('prefix')   { $prefix        = $value; }
             when ('suffix')   { $suffix        = $value; }
             when ('regex')    { $regex         = $value; }
-            when ('minimal')  { $minimal       = $value; }
+            when ('maximal')  { $maximal       = $value; }
             default {
                 Marpa::exception(
                     "Attempt to add terminal named $name with unknown option $key"
@@ -1905,7 +1909,7 @@ sub add_terminal {
         $symbol->[Marpa::Internal::Symbol::SUFFIX]     = $suffix;
         $symbol->[Marpa::Internal::Symbol::ACTION]     = $action;
         $symbol->[Marpa::Internal::Symbol::TERMINAL]   = 1;
-        $symbol->[Marpa::Internal::Symbol::MINIMAL]    = $minimal;
+        $symbol->[Marpa::Internal::Symbol::MAXIMAL]    = $maximal;
 
         return;
     } ## end if ( defined $symbol )
@@ -1924,7 +1928,7 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::ACTION]        = $action;
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]      = 1;
     $new_symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
-    $new_symbol->[Marpa::Internal::Symbol::MINIMAL]       = $minimal;
+    $new_symbol->[Marpa::Internal::Symbol::MAXIMAL]       = $maximal;
 
     push @{$symbols}, $new_symbol;
     return weaken( $symbol_hash->{$name} = $new_symbol );
@@ -2125,7 +2129,7 @@ sub add_rule {
     $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
     $new_rule->[Marpa::Internal::Rule::NULLING]       = $nulling;
     $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
-    $new_rule->[Marpa::Internal::Rule::MINIMAL]       = 0;
+    $new_rule->[Marpa::Internal::Rule::MAXIMAL]       = 0;
     $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
     $new_rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY] =
         $internal_priority;
