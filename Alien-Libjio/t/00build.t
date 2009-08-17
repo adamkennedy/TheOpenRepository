@@ -9,7 +9,7 @@ use strict;
 use warnings;
 
 use Test::More tests => 4;
-use Test::NoWarnings;
+use Test::NoWarnings; # 1 test
 
 use Module::Build;
 my $builder = Module::Build->current;

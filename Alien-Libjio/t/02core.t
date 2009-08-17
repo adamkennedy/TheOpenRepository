@@ -9,7 +9,7 @@ use strict;
 use warnings;
 
 use Test::More tests => 11;
-use Test::NoWarnings;
+use Test::NoWarnings; # 1 test
 
 use Alien::Libjio;
 
