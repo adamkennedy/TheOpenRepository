@@ -15,11 +15,12 @@ Alien::Libjio - Utility package to install and locate libjio
 
 =head1 VERSION
 
-Version 1.0.4 ($Id$)
+Version 1.0.5 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0.4');
+our $VERSION = '1.000005';
+$VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
 
@@ -276,10 +277,11 @@ sub _try_pkg_config {
   my ($self) = @_;
 
   my ($value, $err) = _get_pc('cflags');
-  if (defined $err && length $err) {
-    #warn "Problem with pkg-config; using ExtUtils::Liblist instead\n";
-    return;
-  }
+  return unless (defined $value && length $value);
+  #if (defined $err && length $err) {
+  #  #warn "Problem with pkg-config; using ExtUtils::Liblist instead\n";
+  #  return;
+  #}
 
   $self->{installed} = 1;
   $self->{method} = 'pkg-config';

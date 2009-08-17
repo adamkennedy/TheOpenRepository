@@ -18,13 +18,6 @@ my $obj = Alien::Libjio->new;
 isa_ok($obj, 'Alien::Libjio', 'Create an Alien::Libjio instance');
 can_ok($obj, 'version');
 
-SKIP: {
-  skip('version is only returned by pkg-config', 1)
-    unless $obj->how eq 'pkg-config';
-
-  ok(defined $obj->version, 'Version is defined');
-};
-
 # These sets of tests depend on whether libjio is installed
 SKIP: {
   skip('these tests require libjio to be installed first', 5)
@@ -46,7 +39,14 @@ SKIP: {
   ok(scalar(@a) > 0, '->cflags returns a LIST');
   @a = $obj->ldflags;
   ok(scalar(@a) > 0, '->ldflags returns a LIST');
-};
+
+  SKIP: {
+    skip('version is only returned by pkg-config', 1)
+      unless $obj->how eq 'pkg-config';
+
+    ok(defined $obj->version, 'Version is defined');
+  }
+}
 
 # Make sure the returned values are false
 SKIP: {
