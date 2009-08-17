@@ -1,0 +1,55 @@
+1.001 - XXX - Jonathan Yu <frequency@cpan.org>
+
+  + Integrate version 0.90 of libjio
+  + Remove generated files from the repository
+  + Update MANIFEST.SKIP's paths so that libjio's Makefile
+    isn't skipped
+  + Move the version test inside the SKIP block -- doesn't
+    make sense to run it if it's not installed; this should
+    fix the CPAN Testers errors (thanks hobbs@freenode #perl)
+  + Switch version number to a simple string, per David Golden's
+    Article:
+    http://www.dagolden.com/index.php/369/version-numbers-should-be-boring/
+
+1.0.4 - 26 Jul 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Fix core tests to correct regression in version 1.0.3
+
+1.0.3 - 25 Jul 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Changed the method of probing @PATH for gmake, now we don't
+    need to execute which
+  + Added information about Test Coverage
+  + Added some commands so that the void context paths are touched
+    (increases coverage a bit)
+  + Update documentation
+  + Overhaul test scripts, remove author tests from Recommends
+    (Alias' journal #5375)
+  + Update LICENSE and README (no longer generate a readme, just
+    use a simple one)
+
+1.0.2 - 01 Jul 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + New upstream release: libjio 0.51 (release 2009-06-30)
+  + Better detection with ENV{MAKE} (uses gmake if on BSD)
+  + There are no Ruby bindings, so remove that from the Build.PL
+    prompt asking if they should be installed
+
+1.0.1 - 18 Jun 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + No longer enforce "one dot only" in filenames. This breaks
+    compatibility with OpenVMS.
+  + Updated perlcriticrc with new preferences, removed "no critic"
+    stuff for those in Alien/Libjio.pm
+  + Added limitation warnings
+  + Use a safer ENV{PATH}
+  + Don't do ExtUtils::Liblist twice in t/02core.t
+  + Revert dependency on version.pm to 0.74
+  + Try to find 'make' using ENV{MAKE}
+  + Update README
+  + Add t/00build.t to make sure build completes properly
+  + Changed abstract
+
+1.0 - 09 Jun 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Initial release
