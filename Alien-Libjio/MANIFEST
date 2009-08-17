@@ -19,7 +19,7 @@ libjio/libjio/common.c
 libjio/libjio/common.h
 libjio/libjio/compat.c
 libjio/libjio/compat.h
-libjio/libjio/doxygen/Doxyfile.base
+libjio/libjio/doxygen/Doxyfile.base.in
 libjio/libjio/doxygen/Doxyfile.internal
 libjio/libjio/doxygen/Doxyfile.public
 libjio/libjio/doxygen/groups.doxy
@@ -29,7 +29,7 @@ libjio/libjio/journal.c
 libjio/libjio/journal.h
 libjio/libjio/libjio.3
 libjio/libjio/libjio.h
-libjio/libjio/libjio.skel.pc
+libjio/libjio/libjio.pc.in
 libjio/libjio/trans.c
 libjio/libjio/trans.h
 libjio/libjio/unix.c
