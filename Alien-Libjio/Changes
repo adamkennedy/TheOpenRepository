@@ -1,4 +1,4 @@
-1.001 - XXX - Jonathan Yu <frequency@cpan.org>
+1.001 - 17 Aug 2009 - Jonathan Yu <frequency@cpan.org>
 
   + Integrate version 0.90 of libjio
   + Remove generated files from the repository
