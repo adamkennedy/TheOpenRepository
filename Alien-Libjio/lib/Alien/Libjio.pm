@@ -15,11 +15,11 @@ Alien::Libjio - Utility package to install and locate libjio
 
 =head1 VERSION
 
-Version 1.0.5 ($Id$)
+Version 1.001 ($Id$)
 
 =cut
 
-our $VERSION = '1.000005';
+our $VERSION = '1.001';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
@@ -479,7 +479,7 @@ have to read the included F<LICENSE> file to get the full details.
   ----------------------- ------ ------ ------ ------ ------ ------
   File                     stmt   bran   cond   sub    pod   total
   ----------------------- ------ ------ ------ ------ ------ ------
-  Alien/Libjio.pm         98.9   87.5   66.7   100.0  100.0  94.9
+  Alien/Libjio.pm         97.7   84.4   66.7   100.0  100.0  93.4
 
 Okay, granted, the coverage sucks -- generally, I aim for 100% in all of
 the categories, using fault injection to test all the code paths. Due to
