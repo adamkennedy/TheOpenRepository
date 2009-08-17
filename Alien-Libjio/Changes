@@ -7,9 +7,9 @@
   + Move the version test inside the SKIP block -- doesn't
     make sense to run it if it's not installed; this should
     fix the CPAN Testers errors (thanks hobbs@freenode #perl)
-  + Switch version number to a simple string, per David Golden's
-    Article:
+  + Use a simple string version, per David Golden's article:
     http://www.dagolden.com/index.php/369/version-numbers-should-be-boring/
+  + No longer use Perl::Critic to test
 
 1.0.4 - 26 Jul 2009 - Jonathan Yu <frequency@cpan.org>
 
