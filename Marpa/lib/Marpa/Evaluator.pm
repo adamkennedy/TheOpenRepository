@@ -2417,7 +2417,8 @@ sub Marpa::Evaluator::new_value {
                     or Marpa::exception('print to trace handle failed');
             }
 
-            my $best_sort_key = $and_node->[Marpa::Internal::And_Node::BEST_SORT_KEY];
+            my $best_sort_key =
+                $and_node->[Marpa::Internal::And_Node::BEST_SORT_KEY];
             if ( defined $best_sort_key ) {
                 $and_node->[Marpa::Internal::And_Node::SORT_KEY] =
                     $best_sort_key;
@@ -2435,9 +2436,10 @@ sub Marpa::Evaluator::new_value {
             my @child_or_map;
 
             # Get the predecessor or-choices and sort key
-            my $predecessor_or_map = [];
+            my $predecessor_or_map   = [];
             my $predecessor_sort_key = [];
-            my $predecessor_or_node = $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
+            my $predecessor_or_node =
+                $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
             if ( defined $predecessor_or_node ) {
                 my $sorted_and_choices = $predecessor_or_node
                     ->[Marpa::Internal::Or_Node::AND_CHOICES];
@@ -2474,25 +2476,25 @@ sub Marpa::Evaluator::new_value {
                     $sorted_and_choice->[Marpa::Internal::And_Choice::ID]
                     ];
                 $predecessor_or_map =
-                    $sorted_and_choice
-                    ->[Marpa::Internal::And_Choice::OR_MAP];
-                $predecessor_sort_key =
-                    $sorted_and_choice
+                    $sorted_and_choice->[Marpa::Internal::And_Choice::OR_MAP];
+                $predecessor_sort_key = $sorted_and_choice
                     ->[Marpa::Internal::And_Choice::SORT_KEY];
 
             } ## end if ( defined $predecessor_or_node )
 
-            my $rule = $and_node->[Marpa::Internal::And_Node::RULE];
-            my $maximal = $rule->[Marpa::Internal::Rule::MAXIMAL];
+            my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
+            my $maximal  = $rule->[Marpa::Internal::Rule::MAXIMAL];
             my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
             my $sort_element;
 
-            if ($maximal or $priority) {
+            if ( $maximal or $priority ) {
 
                 # compute this and-nodes sort key element
                 # insert it into the predecessor sort key elements
-                my $start_earleme = $and_node->[Marpa::Internal::And_Node::START_EARLEME];
-                my $end_earleme = $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+                my $start_earleme =
+                    $and_node->[Marpa::Internal::And_Node::START_EARLEME];
+                my $end_earleme =
+                    $and_node->[Marpa::Internal::And_Node::END_EARLEME];
                 my $location = $start_earleme;
                 my $length =
                     $maximal < 0
@@ -2501,8 +2503,8 @@ sub Marpa::Evaluator::new_value {
                     :                0;
                 $sort_element = [ $location, 0, $priority, $length ];
 
-            }
-            
+            } ## end if ( $maximal or $priority )
+
             # Append the cause sort key
             # Combine the or-choices for this and-nodes with those of its children
 
@@ -2513,7 +2515,7 @@ sub Marpa::Evaluator::new_value {
                 $and_node->[Marpa::Internal::And_Node::BEST_SORT_KEY] =
                 $best_sort_key;
 
-        }
+        } ## end if ( $task == Marpa::Internal::Task::INITIALIZE_AND_NODE)
 
         if ( $task == Marpa::Internal::Task::EVALUATE ) {
 

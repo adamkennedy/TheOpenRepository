@@ -50,7 +50,8 @@ use Marpa::Offset qw(
     COUNTED
     =LAST_FIELD
 );
-#>>>
+#>>> End of no perltidy
+#
 
 # LHS             - rules with this as the lhs,
 #                   as a ref to an array of rule refs
