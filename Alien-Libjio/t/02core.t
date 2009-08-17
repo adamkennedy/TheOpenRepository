@@ -20,7 +20,7 @@ can_ok($obj, 'version');
 
 # These sets of tests depend on whether libjio is installed
 SKIP: {
-  skip('these tests require libjio to be installed first', 5)
+  skip('these tests require libjio to be installed first', 6)
     unless $obj->installed;
 
   # If we got our config from pkg-config, do it again with ExtUtils::Liblist
