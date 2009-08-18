@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# t/00build.t
+# t/01build.t
 #  Test that the build completed successfully
 #
 # $Id$

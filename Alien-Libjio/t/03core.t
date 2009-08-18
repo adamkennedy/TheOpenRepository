@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# t/02core.t
+# t/03core.t
 #  Tests core functionality
 #
 # $Id$
