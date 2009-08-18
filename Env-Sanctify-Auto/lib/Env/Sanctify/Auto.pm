@@ -17,11 +17,12 @@ Env::Sanctify::Auto - Perl module that cleans up %ENV
 
 =head1 VERSION
 
-Version 1.0.2 ($Id$)
+Version 1.001 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0.2');
+our $VERSION = '1.001';
+$VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
 
@@ -290,9 +291,9 @@ or know how they work, feel free to send me an e-mail or patch.
 
 Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
 
-This package is distributed under the same terms as Perl itself. Please see
-the LICENSE file included in this distribution for full details of these
-terms.
+This package is distributed under the same terms as Perl itself. Please
+see the LICENSE file included in this distribution for full details of
+these terms.
 
 =head1 DISCLAIMER OF WARRANTY
 
