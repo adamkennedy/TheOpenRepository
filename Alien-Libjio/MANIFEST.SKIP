@@ -38,8 +38,10 @@
 
 # Compiled files: libjio
 \.(o|a|so|lib|dll)$
+^libjio/libjio/build-flags$
 ^libjio/libjio/libjio.pc$
 ^libjio/libjio/jiofsck$
+^libjio/libjio/libjio.so # .so symlink
 
 # Debian package control files
 ^debian/

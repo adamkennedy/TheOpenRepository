@@ -1,6 +1,10 @@
 1.002 - XXX - Jonathan Yu <frequency@cpan.org>
 
   + Updated test sequence
+  + Remove modules available in core since Perl 5.6 from requires
+  + Added ignore expressions for libjio's build-flags
+    and libjio.so.0.90 (the symlink)
+  + Override clean action to clean libjio files
 
 1.001 - 17 Aug 2009 - Jonathan Yu <frequency@cpan.org>
 

@@ -29,17 +29,6 @@ my $builder = My::Builder->new(
 
   requires => {
     'perl'              => 5.006,
-
-    # Pragmatic and special modules
-    'Carp'              => 1.04,
-    'warnings'          => 0,
-    'strict'            => 0,
-
-    # Utilities to find compile information
-    'ExtUtils::Liblist'       => 0,
-    'IPC::Open3'              => 0,
-    'Cwd'                     => 0,
-    'File::Spec'              => 0,
   },
   build_requires => {
     # User tests for good functionality

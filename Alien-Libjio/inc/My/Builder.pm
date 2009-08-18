@@ -2,12 +2,6 @@
 #  A local Module::Build subclass for installing libjio
 #
 # $Id$
-#
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
-# This package and its contents are released by the author into the Public
-# Domain, to the full extent permissible by law. For additional information,
-# please see the included `LICENSE' file.
 
 package My::Builder;
 
@@ -77,6 +71,17 @@ sub ACTION_install {
     $rc = (system($self->notes('make'), 'install') == 0) ? 1 : 0;
     _chdir_back();
   }
+
+  return $rc;
+}
+
+sub ACTION_clean {
+  my ($self) = @_;
+
+  my $rc = $self->SUPER::ACTION_install;
+  _chdir_or_die('libjio');
+  $rc = (system($self->notes('make'), 'clean') == 0) ? 1 : 0;
+  _chdir_back();
 
   return $rc;
 }
