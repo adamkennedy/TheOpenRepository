@@ -1,7 +1,7 @@
 package Crypt::DSA::Util;
 
 use strict;
-use Math::BigInt lib => 'GMP';
+use Math::BigInt try => 'GMP, Pari';
 use Fcntl;
 use Carp qw( croak );
 

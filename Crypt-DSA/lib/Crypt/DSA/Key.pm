@@ -1,9 +1,11 @@
 package Crypt::DSA::Key;
 
 use strict;
-use Math::BigInt lib => 'GMP';
+use Math::BigInt try => 'GMP, Pari';
 use Carp qw( croak );
 use Crypt::DSA::Util qw( bitsize );
+
+
 
 use vars qw{$VERSION};
 BEGIN {
