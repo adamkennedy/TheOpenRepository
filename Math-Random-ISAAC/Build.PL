@@ -27,12 +27,6 @@ my $builder = Module::Build->new(
   requires => {
     'perl'              => 5.006,
 
-    # Pragmatic and special modules
-    'Carp'              => 1.04,
-    'warnings'          => 0,
-    'strict'            => 0,
-    'integer'           => 0,
-
     # The tests are based on Test::More
     'Test::More'        => 0.62,
   },
