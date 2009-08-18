@@ -8,10 +8,11 @@ use metaclass (
 	error_class => 'WiX3::Util::Error',
 );
 use Moose;
-use MooseX::Types::Moose qw( Int Str  );
+use MooseX::Types::Moose qw( Int Str Maybe );
 use WiX3::Util::StrictConstructor;
+use Params::Util qw( _IDENTIFIER _STRING );
 
-use version; our $VERSION = version->new('0.005')->numify;
+use version; our $VERSION = version->new('0.006')->numify;
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Component, Directory, Merge, and SymbolPath as children.
@@ -23,54 +24,53 @@ with 'WiX3::XML::Role::GeneratesGUID';
 #   None.
 
 has id => (
-	is      => 'ro',
-	isa     => Str,
-	reader  => 'get_id',
-	default => undef,
+	is       => 'ro',
+	isa      => Str,
+	reader   => 'get_id',
+	required => 1,
 );
 
 # Path helps us in path searching.
 has path => (
-	is     => 'ro',
-	isa    => Str,
-	reader => 'get_path',
+	is      => 'ro',
+	isa     => Maybe[Str],
+	reader  => 'get_path',
+	default => undef,
 );
 
 has noprefix => (
 	is      => 'ro',
-	isa     => Str,
+	isa     => Maybe[Str],
 	reader  => '_get_noprefix',
 	default => undef,
 );
 
-has _diskid => (
+has diskid => (
 	is       => 'ro',
-	isa      => Int,
+	isa      => Maybe[Int],
 	reader   => '_get_diskid',
 	init_arg => 'diskid',
 	default  => undef,
 );
 
-has _filesource => (
+has filesource => (
 	is       => 'ro',
-	isa      => Str,
+	isa      => Maybe[Str],
 	reader   => '_get_filesource',
-	init_arg => 'filesource',
 	default  => undef,
 );
 
 has name => (
 	is      => 'ro',
-	isa     => Str,                    # LongFileNameType
+	isa     => Maybe[Str],                # LongFileNameType
 	reader  => 'get_name',
 	default => undef,
 );
 
-has _sourcename => (
+has sourcename => (
 	is       => 'ro',
-	isa      => Str,                   # LongFileNameType
+	isa      => Maybe[Str],                   # LongFileNameType
 	reader   => '_get_sourcename',
-	init_arg => 'sourcename',
 	default  => undef,
 );
 
@@ -103,8 +103,8 @@ sub BUILDARGS {
 
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };
-	} elsif ( @_ % 2 == 0 ) {
-		%args = {@_};
+	} elsif ( 0 == @_ % 2 ) {
+		%args = @_;
 	} else {
 		WiX3::Exception::Parameter::Odd->throw();
 	}
@@ -118,20 +118,31 @@ sub BUILDARGS {
 	if ( not defined _IDENTIFIER( $args{'id'} ) ) {
 		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
-
-	return;
+	
+	return \%args;
 } ## end sub BUILDARGS
 
 sub get_directory_id {
 	my $self = shift;
 	my $id   = $self->get_id();
 
-	if ( $self->noprefix() ) {
+	if ( $self->_get_noprefix() ) {
 		return $id;
 	} else {
 		return "D_$id";
 	}
 }
+
+sub add_directory {
+	my $self = shift;
+	
+	my $new_dir = WiX3::XML::Directory->new(@_);
+	$self->add_child_tag($new_dir);
+
+	return $new_dir;
+}
+
+
 
 #####################################################################
 # Methods to implement the Tag role.
@@ -139,7 +150,7 @@ sub get_directory_id {
 sub as_string {
 	my $self = shift;
 
-	my $children = $self->has_children();
+	my $children = $self->has_child_tags();
 	my $tags;
 	$tags = $self->print_attribute( 'Id', $self->get_directory_id() );
 	$tags .= $self->print_attribute( 'Name',      $self->get_name() );
@@ -155,7 +166,7 @@ sub as_string {
 
 	if ($children) {
 		my $child_string = $self->as_string_children();
-		return qq{<Directory$tags>\n$child_string</Directory>\n};
+		return qq{<Directory$tags>\n$child_string\n</Directory>\n};
 	} else {
 		return qq{<Directory$tags />\n};
 	}

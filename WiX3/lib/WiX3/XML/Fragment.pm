@@ -14,6 +14,7 @@ use version; our $VERSION = version->new('0.005')->numify;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_fragment.htm
 
+with 'WiX3::Role::Traceable';
 with 'WiX3::XML::Role::Fragment';
 with 'WiX3::XML::Role::TagAllowsChildTags';
 
