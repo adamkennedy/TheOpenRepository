@@ -78,7 +78,7 @@ sub ACTION_install {
 sub ACTION_clean {
   my ($self) = @_;
 
-  my $rc = $self->SUPER::ACTION_install;
+  my $rc = $self->SUPER::ACTION_clean;
   _chdir_or_die('libjio');
   $rc = (system($self->notes('make'), 'clean') == 0) ? 1 : 0;
   _chdir_back();
