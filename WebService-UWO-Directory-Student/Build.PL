@@ -26,7 +26,8 @@ my $builder = Module::Build->new(
 
   requires => {
     'perl'              => 5.006,
-    'Carp'              => 1.04,
+
+    # For retrieving & decoding HTML data
     'LWP::UserAgent'    => 0,
     'HTML::Entities'    => 0,
 

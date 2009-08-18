@@ -3,6 +3,8 @@
   + Use a simple string version, per David Golden's article:
     http://www.dagolden.com/index.php/369/version-numbers-should-be-boring/
   + No longer use Perl::Critic to test
+  + Remove modules available in core since Perl 5.6 from
+    requires
 
 1.0.2 - 25 Jul 2009 - Jonathan Yu <frequency@cpan.org>
 
