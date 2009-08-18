@@ -16,11 +16,12 @@ Math::Random::ISAAC - Perl interface to the ISAAC PRNG Algorithm
 
 =head1 VERSION
 
-Version 1.0.5 ($Id$)
+Version 1.001 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0.5');
+our $VERSION = '1.001';
+$VERSION = eval $VERSION;
 
 our $DRIVER = 'PP';
 

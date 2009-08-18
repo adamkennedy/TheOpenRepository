@@ -1,0 +1,58 @@
+1.001 - 17 Aug 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Remove generated files from the repository
+  + Use a simple string version, per David Golden's article:
+    http://www.dagolden.com/index.php/369/version-numbers-should-be-boring/
+  + No longer use Perl::Critic to test
+
+1.0.5 - 25 Jul 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + No longer test Perl::Critic during AUTOMATED_TESTING,
+    only RELEASE_TESTING. Thanks to Elliot Shank for the
+    discussion in a private mail.
+  + Changed critic.rc to ignore PodSpelling policy (fixes a
+    bug in Debian, BTS#538115 -- when Pod::Spell and other
+    dependencies are installed)
+  + COPYRIGHT AND LICENSE -> LICENSE in POD
+  + No more versioned dependency on version.pm
+  + Overhaul test scripts, remove author tests from
+    Recommends (Alias' journal #5375)
+  + Update LICENSE and README to a smaller format. Clarify
+    POD. No longer generates a readme using pod2text
+  + All the copyrights now reference the main file, to
+    reduce the number of things that need to be updated in
+    case the years are updated
+  + Require Internet (TEST_INTERNET) to do the signature
+    test, since it tries to download the key from a keyserver
+  + Make it clearer in POD that there is no default seeding
+    mechanism
+  + No longer enforce "one dot only" in filenames. This
+    breaks compatibility with OpenVMS.
+  + New simplified license - Public Domain (fallback on MIT,
+    Artistic-2+, GPL-2+ only)
+
+1.0.4 - 26 Apr 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Added some more tests for fallback functionality; I
+    believe having 'use' for ISAAC meant that it would be put
+    in a BEGIN{} block, which means selection happens before
+    Test::Without::Module is even loaded (this was fixed by
+    changing to require in an eval)
+  + Added a test to ensure the module was compiled/loaded, then
+    check if $Math::Random::ISAAC::DRIVER is defined first
+  + Added Build.bat to MANIFEST.SKIP for Win32 builds...
+
+1.0.3 - 23 Apr 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Added example scripts
+  + Move calls to $self->{randa} outside the for loop to increase
+    performance
+
+1.0.1 - 06 Apr 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Fixed the PurePerl algorithm to mask out high bits for
+    64-bit systems, so as to be portable
+
+1.0 - 25 Mar 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Initial release

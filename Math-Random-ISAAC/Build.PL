@@ -33,7 +33,6 @@ my $builder = Module::Build->new(
 
     # Pragmatic and special modules
     'Carp'              => 1.04,
-    'version'           => 0,
     'warnings'          => 0,
     'strict'            => 0,
     'integer'           => 0,
