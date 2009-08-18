@@ -1,7 +1,7 @@
 Revision history for Crypt::DSA
 
 0.15_01 2009.02.13
-	- Updated to Module::Install 0.79
+	- Updated to Module::Install 0.91
 	- Added a consistent $VERSION across the entire distro
 	- Removed the optional dependency on Convert::PEM for more
 	  consistent downstream packaging (it was pointless to ask

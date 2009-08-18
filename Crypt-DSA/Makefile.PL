@@ -1,4 +1,4 @@
-use inc::Module::Install 0.79;
+use inc::Module::Install 0.91;
 
 all_from      'lib/Crypt/DSA.pm';
 requires      'IPC::Open3'   => 0;
