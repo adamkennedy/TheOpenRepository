@@ -3,6 +3,9 @@
 use strict;
 use Test::More;
 use File::Which;
+use Math::BigInt try => 'GMP';
+use Crypt::DSA;
+
 BEGIN {
 	if ( $^O eq 'MSWin32' and not $INC{'Math/BigInt/GMP.pm'} ) {
 		plan( skip_all => 'Test is excessively slow without GMP' );
@@ -10,7 +13,6 @@ BEGIN {
 		plan( tests => 4 );
 	}
 }
-use Crypt::DSA;
 
 my $message = "Je suis l'homme a tete de chou.";
 
@@ -25,4 +27,7 @@ my $verified = $dsa->verify(
 	Message   => $message,
 	Signature => $sig,
 );
-ok($verified);
+ok($dsa, 'Crypt::DSA->new ok');
+ok($key, 'Generated key correctly');
+ok($sig, 'generated signature correctly');
+ok($verified, 'verified signature correctly');

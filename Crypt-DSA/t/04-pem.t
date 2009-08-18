@@ -20,45 +20,45 @@ my $key = $dsa->keygen( Size => 512 );
 
 ## Serialize a signature.
 my $sig = $dsa->sign( Message => 'foo', Key => $key );
-ok($sig);
+ok($sig, 'Signature created correctly using Crypt::DSA->sign');
 my $buf = $sig->serialize;
-ok($buf);
+ok($buf, 'Signature serialized correctly');
 my $sig2 = Crypt::DSA::Signature->new( Content => $buf );
-ok($sig2);
-is($sig2->r, $sig->r);
-is($sig2->s, $sig->s);
+ok($sig2, 'Signature created correctly using Crypt::DSA::Signature');
+is($sig2->r, $sig->r, '->r of both signatures is identical');
+is($sig2->s, $sig->s, '->s of both signatures is identical');
 
 my $key2;
 
-ok($key->write( Type => 'PEM', Filename => $keyfile));
+ok($key->write( Type => 'PEM', Filename => $keyfile), 'Writing key works.');
 $key2 = Crypt::DSA::Key->new( Type => 'PEM', Filename => $keyfile );
-ok($key2);
-is($key->p, $key2->p);
-is($key->q, $key2->q);
-is($key->g, $key2->g);
-is($key->pub_key, $key2->pub_key);
-is($key->priv_key, $key2->priv_key);
+ok($key2, 'Load key using Crypt::DSA::key');
+is($key->p, $key2->p, '->p of both keys is identical');
+is($key->q, $key2->q, '->q of both keys is identical');
+is($key->g, $key2->g, '->g of both keys is identical');
+is($key->pub_key, $key2->pub_key, '->pub_key of both keys is identical');
+is($key->priv_key, $key2->priv_key, '->priv_key of both keys is identical');
 
-ok($key->write( Type => 'PEM', Filename => $keyfile, Password => 'foo'));
+ok($key->write( Type => 'PEM', Filename => $keyfile, Password => 'foo'), 'Writing keyfile with password works');
 $key2 = Crypt::DSA::Key->new( Type => 'PEM', Filename => $keyfile, Password => 'foo' );
-ok($key2);
-is($key->p, $key2->p);
-is($key->q, $key2->q);
-is($key->g, $key2->g);
-is($key->pub_key, $key2->pub_key);
-is($key->priv_key, $key2->priv_key);
+ok($key2, 'Reading keyfile with password works');
+is($key->p, $key2->p, '->p of both keys is identical');
+is($key->q, $key2->q, '->q of both keys is identical');
+is($key->g, $key2->g, '->g of both keys is identical');
+is($key->pub_key, $key2->pub_key, '->pub_key of both keys is identical');
+is($key->priv_key, $key2->priv_key, '->priv_key of both keys is identical');
 
 ## Now remove the private key portion of the key. write should automatically
 ## write a public key format instead, and new should be able to understand
 ## it.
 $key->priv_key(undef);
-ok($key->write( Type => 'PEM', Filename => $keyfile));
+ok($key->write( Type => 'PEM', Filename => $keyfile), 'Writing keyfile without private key works');
 $key2 = Crypt::DSA::Key->new( Type => 'PEM', Filename => $keyfile );
-ok($key2);
-is($key->p, $key2->p);
-is($key->q, $key2->q);
-is($key->g, $key2->g);
-is($key->pub_key, $key2->pub_key);
-ok(!$key->priv_key);
+ok($key2, 'Reading keyfile without private key works');
+is($key->p, $key2->p, '->p of both keys is identical');
+is($key->q, $key2->q, '->q of both keys is identical');
+is($key->g, $key2->g, '->g of both keys is identical');
+is($key->pub_key, $key2->pub_key, '->pub_key of both keys is identical');
+ok(!$key->priv_key, 'No private key');
 
 unlink $keyfile;
