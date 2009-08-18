@@ -27,15 +27,6 @@ my $builder = Module::Build->new(
   requires => {
     'perl'                    => 5.006,
 
-    # Pragmatic and special modules
-    'Carp'                    => 1.04,
-    'warnings'                => 0,
-    'strict'                  => 0,
-
-    # File manipulation modules
-    'File::Spec'              => 0,
-    'File::Basename'          => 0,
-
     # Database related modules
     'DBI'                     => 0,
     'DBD::SQLite'             => 1.20,
