@@ -34,7 +34,6 @@ use     Params::Util
 use     IO::File                 qw();
 use     IPC::Run3                qw();
 use     URI                      qw();
-require Perl::Dist::WiX::Files;
 require Perl::Dist::WiX::StartMenu;
 require Perl::Dist::WiX::Environment;
 require Perl::Dist::WiX::FeatureTree;
@@ -42,7 +41,11 @@ require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::RemoveFolder;
 # Converted routines.
 require Perl::Dist::WiX::DirectoryTree2;
-require Perl::Dist::WiX::CreateFolderFragment;
+require Perl::Dist::WiX::Fragment::CreateFolder;
+require Perl::Dist::WiX::Fragment::Files;
+
+# New routines from WiX3.
+require WiX3::Traceable;
 
 use version; $VERSION = version->new('1.000_002')->numify;
 #>>>
@@ -146,9 +149,8 @@ sub new {
 	$self->{pdw_version} = $Perl::Dist::WiX::VERSION;
 	$self->{pdw_class}   = $class;
 
-	$self->{misc} = Perl::Dist::WiX::Misc->new(
-		trace    => $self->{trace},
-		sitename => $self->{sitename} );
+	$self->{misc} = WiX3::Traceable->new(
+		tracelevel => $self->{trace} );
 
 	# Apply defaults
 	unless ( defined $self->output_dir ) {
@@ -239,20 +241,20 @@ sub new {
 	  Perl::Dist::WiX::StartMenu->new( directory => 'D_App_Menu', );
 	$self->{fragments}->{Environment} =
 	  Perl::Dist::WiX::Environment->new( id => 'Environment', );
-	$self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Files->new(
-		directory_tree => $self->directories,
+	$self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Fragment::Files->new(
+#		directory_tree => $self->directories,
 		id             => 'Win32Extras',
+		files          => File::List::Object->new(),
 	);
-	$self->{fragments}->{CreateCpan} = WiX3::CreateFolder->new(
-		directory_tree => $self->directories,
-		directory      => 'Cpan',
+		
+	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::Fragment::CreateFolder->new(
+		directory_id   => 'Cpan',
 		id             => 'CPANFolder',
 	);
-	$self->{fragments}->{CreateCpanplus} = Perl::Dist::WiX::CreateFolderFragment->new(
-		directory_tree => $self->directories,
-		directory      => 'Cpanplus',
+	$self->{fragments}->{CreateCpanplus} = Perl::Dist::WiX::Fragment::CreateFolder->new(
+		directory_id   => 'Cpanplus',
 		id             => 'CPANPLUSFolder',
-	) if ( '5100' eq $self->perl_version );
+	) if ( 5100 >= $self->perl_version );
 
 	$self->{icons} = Perl::Dist::WiX::Icons->new( trace => $self->{trace} );
 

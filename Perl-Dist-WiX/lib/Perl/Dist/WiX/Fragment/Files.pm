@@ -33,7 +33,7 @@ has can_overwrite => (
 	isa => Bool,
 	default => 0,
 	reader => 'can_overwrite',
-)
+);
 
 # This type of fragment needs regeneration.
 sub regenerate {

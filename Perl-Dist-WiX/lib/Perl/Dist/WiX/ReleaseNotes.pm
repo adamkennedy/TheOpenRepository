@@ -1,4 +1,4 @@
-package Perl::Dist::WiX::BuildPerl;
+package Perl::Dist::WiX::ReleaseNotes;
 
 =pod
 
@@ -70,7 +70,7 @@ sub create_release_notes {
 	my $vars = {
 		dist      => $self,
 		dist_list => $dist_list,
-		dist_date => sprintf "%02i %s %4i", $time[2], $months($time[3]), $time[4] + 1900,
+		dist_date => sprintf "%02i %s %4i", $time[2], $months[$time[3]], $time[4] + 1900,
 	};
 
 	my $tt = Template->new(

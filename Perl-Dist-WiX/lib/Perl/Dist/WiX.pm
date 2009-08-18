@@ -455,7 +455,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	my $time = $params{build_start_time};
 	if ( $params{trace} >= 100 )        { print '# '; }
 	if ( $params{trace} > 1 )           { print '[0] '; }
-	if ( ( $params{trace} % 100 ) > 4 ) { print '[WiX.pm 457] '; }
+	if ( ( $params{trace} % 100 ) > 4 ) { print '[WiX.pm 459] '; }
 	print "Starting build at $time.\n";
 
 	# Apply more defaults
@@ -512,14 +512,14 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();
 		if ( $params{trace} >= 100 ) { print '# '; }
 		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[3] [WiX.pm 514] '
+			print '[3] [WiX.pm 515] '
 			  . "Currently executing perl: $perl_location\n";
 		}
 		my $our_perl_location =
 		  lc catfile( $params{image_dir}, qw(perl bin perl.exe) );
 		if ( $params{trace} >= 100 ) { print '# '; }
 		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[3] [WiX.pm 521] '
+			print '[3] [WiX.pm 522] '
 			  . "Our perl to create:       $our_perl_location\n";
 		}
 
@@ -540,8 +540,8 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$params{perl_version} = '5100';
 	}
 
-	# Hand off to the parent class
-	my $self = $class->SUPER::new(%params);
+	# Hand off to a parent class
+	my $self = $class->Perl::Dist::WiX::Installer::new(%params);
 
 	# Check the version of Perl to build
 	unless ( defined $self->build_number ) {
