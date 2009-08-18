@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/02fallback.t
+# t/03fallback.t
 #  Tests core functionality
 #
 # $Id$

@@ -44,19 +44,19 @@ Video::FourCC::Info - Perl module to retrieve information about FourCCs
 
 =head1 VERSION
 
-Version 1.1.7 ($Id$)
+Version 1.002 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.1.7');
+use version; our $VERSION = qv('1.002');
 
 =head1 DESCRIPTION
 
-In order for video players to detect the algorithm required to decode a given
-video file, a four-byte sequence called a Four Character Code is written
-somewhere in the header of the file. This ensures that the detected codec
-format is independent of the file extension, which may be incorrect due to
-human error or for some other reason.
+In order for video players to detect the algorithm required to decode a
+given video file, a four-byte sequence called a Four Character Code is
+written somewhere in the header of the file. This ensures that the detected
+codec format is independent of the file extension, which may be incorrect
+due to human error or for some other reason.
 
 This is similar to the four-byte "magic number" used by the UNIX file(1)
 command to roughly determine a file format.
@@ -74,9 +74,9 @@ internally, your given FourCC's will be silently converted to uppercase.
 
 =head1 COMPATIBILITY
 
-This module was tested under Perl 5.10.0, using Debian Linux. However, because
-it's Pure Perl and doesn't do anything too obscure, it should be compatible
-with any version of Perl that supports its prerequisite modules.
+This module was tested under Perl 5.10.0, using Debian Linux. However,
+because it's Pure Perl and doesn't do anything too obscure, it should be
+compatible with any version of Perl that supports its prerequisite modules.
 
 If you encounter any problems on a different version or architecture, please
 contact the maintainer.
@@ -158,12 +158,12 @@ Example code:
   my $codec_desc = Video::FourCC::Info->describe('DIV3');
 
 Internally, this method creates a temporary object and returns the
-description, destroying the object due to falling out of scope. If you already
-have a C<Video::FourCC::Info> object, then the B<description> accessor will
-provide better performance.
+description, destroying the object due to falling out of scope. If you
+already have a C<Video::FourCC::Info> object, then the B<description>
+accessor will provide better performance.
 
-Note, that just like C<new>, this class method may throw an exception if the
-Four Character Code does not exist in the database.
+Note, that just like C<new>, this class method may throw an exception if
+the Four Character Code does not exist in the database.
 
 Remember that this value could be C<undef> if the information is unknown.
 
@@ -323,13 +323,13 @@ L<http://cpants.perl.org/dist/overview/Video-FourCC-Info>
 
 =head1 FEEDBACK
 
-Please send relevant comments, rotten tomatoes and suggestions directly to the
-maintainer noted above.
+Please send relevant comments, rotten tomatoes and suggestions directly to
+the maintainer noted above.
 
 If you have a bug report or feature request, please file them on the CPAN
-Request Tracker at L<http://rt.cpan.org>. If you are able to submit your bug
-report in the form of failing unit tests, you are B<strongly> encouraged to do
-so.
+Request Tracker at L<http://rt.cpan.org>. If you are able to submit your
+bug report in the form of failing unit tests, you are B<strongly> encouraged
+to do so.
 
 =head1 SEE ALSO
 

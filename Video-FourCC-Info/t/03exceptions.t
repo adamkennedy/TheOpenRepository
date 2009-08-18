@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/02exceptions.t
+# t/03exceptions.t
 #  Tests fast errors produced with obvious mistakes
 #
 # $Id$
