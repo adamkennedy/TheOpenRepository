@@ -1,6 +1,6 @@
 $Id$
 
-Math::Random::ISAAC is a Perl interface to the ISAAC PRNG Algorithm
+Video::FourCC::Info is a Perl module to retrieve information about FourCCs
 
 Copyright 2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
 
@@ -21,9 +21,9 @@ USAGE AND DOCUMENTATION
 
   In order to use the module, you'll probably need the documentation. Once
   installed, you can read that using:
-  $ perldoc Math::Random::ISAAC
+  $ perldoc Video::FourCC::Info
 
-COPYRIGHT AND LICENCE
+LICENSE
 
   In a perfect world, I could just say that this package and all of the
   code it contains is Public Domain. It's a bit more complicated than
