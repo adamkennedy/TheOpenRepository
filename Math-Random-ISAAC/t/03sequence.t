@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/02sequence.t
+# t/03sequence.t
 #  Checks that the generated sequence matches the reference
 #
 # $Id$

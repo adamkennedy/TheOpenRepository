@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/01memory.t
+# t/03memory.t
 #  Tests that there are no memory leaks
 #
 # $Id$

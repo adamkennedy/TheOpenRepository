@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/03uniform.t
+# t/04uniform.t
 #  Checks that the generated sequence is a uniform distribution
 #
 # $Id$

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/01compile.t
+# t/02compile.t
 #  Check that the module can be compiled and loaded properly.
 #
 # $Id$

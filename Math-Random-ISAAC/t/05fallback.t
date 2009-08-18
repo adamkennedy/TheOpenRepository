@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/04fallback.t
+# t/05fallback.t
 #  Tests use of the Pure Perl interface
 #
 # $Id$
