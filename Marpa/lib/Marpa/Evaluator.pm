@@ -2221,7 +2221,7 @@ sub Marpa::Evaluator::new_value {
     my $trace_iterations = 0;
     my $trace_tasks      = 0;
     if ($tracing) {
-        $trace_values  = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
+        $trace_values = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
         $trace_tasks = $trace_iterations >= 2;
