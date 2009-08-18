@@ -124,7 +124,6 @@ use Marpa::Offset qw(
     PACKAGE
     NULL_VALUES
     { Delete this } CYCLES { Will this be needed? }
-    JOURNAL
     RANKED_AND_NODE_IDS
     AND_HEIGHTS
     OR_HEIGHTS
@@ -2202,7 +2201,6 @@ sub Marpa::Evaluator::new_value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) if $evaler_class ne $right_class;
 
-    my $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL];
     my $ranked_and_node_ids =
         $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS];
     my $and_nodes   = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
@@ -2212,7 +2210,7 @@ sub Marpa::Evaluator::new_value {
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
     # whenever called.
-    return if defined $journal and @{$journal} == 0;
+    Marpa::exception('How to recognize exhausted parse without journal?');
 
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar    = $recognizer->[Marpa::Internal::Recognizer::GRAMMAR];
@@ -2220,11 +2218,9 @@ sub Marpa::Evaluator::new_value {
     my $tracing  = $grammar->[Marpa::Internal::Grammar::TRACING];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $trace_values     = 0;
-    my $trace_journal    = 0;
     my $trace_iterations = 0;
     my $trace_tasks      = 0;
     if ($tracing) {
-        $trace_journal = $grammar->[Marpa::Internal::Grammar::TRACE_JOURNAL];
         $trace_values  = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
@@ -2243,7 +2239,7 @@ sub Marpa::Evaluator::new_value {
 
     my @tasks;
 
-    if ( not defined $journal ) {
+    if ( not $parse_count ) {
 
         my $depth = 0;
         my @depth = $#{$and_nodes};
@@ -2348,25 +2344,14 @@ sub Marpa::Evaluator::new_value {
 
         } ## end while ( my $height_work_entry = shift @height_work_list)
 
-        my @sort_data;
-        AND_NODE: for my $and_node ( @{$and_nodes} ) {
-            next AND_NODE if $and_node->[Marpa::Internal::And_Node::DELETED];
-            my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
-            push @sort_data,
-                (
-                pack 'N*',
-                $and_node->[Marpa::Internal::And_Node::END_EARLEME],
-                (   N_FORMAT_MAX
-                        - $and_node
-                        ->[Marpa::Internal::And_Node::START_EARLEME]
-                ),
-                $and_heights->[$and_node_id],
-                $and_node_id
-                );
-        } ## end for my $and_node ( @{$and_nodes} )
-
-        $ranked_and_node_ids =
-            map { unpack 'N', substr $_, N_FORMAT_BYTES } sort @sort_data;
+        $ranked_and_node_ids = [
+            map { unpack 'N', substr $_, N_FORMAT_BYTES }
+                sort
+                map { pack 'N*', $and_heights->[$_], $_ }
+                map  { $_->[Marpa::Internal::And_Node::ID] }
+                grep { not $_->[Marpa::Internal::And_Node::DELETED] }
+                @{$and_nodes}
+        ];
 
         if ($trace_tasks) {
             for my $rank ( 0 .. $#{$ranked_and_node_ids} ) {
@@ -2378,15 +2363,13 @@ sub Marpa::Evaluator::new_value {
             } ## end for my $rank ( 0 .. $#{$ranked_and_node_ids} )
         } ## end if ($trace_tasks)
 
-        $journal = $evaler->[Marpa::Internal::Evaluator::JOURNAL] = [];
         $evaler->[Marpa::Internal::Evaluator::AND_HEIGHTS] = $and_heights;
         $evaler->[Marpa::Internal::Evaluator::OR_HEIGHTS]  = $or_heights;
         $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS] =
             $ranked_and_node_ids;
         @tasks = ( [Marpa::Internal::Task::ADVANCE] );
 
-    } ## end if ( not defined $journal )
-    ## End not defined $journal
+    } ## end if ( not $parse_count )
 
     # Default is to backtrack on first entering the task
     # loop is to backtrack, unless this is a new parse, in

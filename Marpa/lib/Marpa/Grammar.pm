@@ -204,7 +204,6 @@ use Marpa::Offset qw(
     TRACE_EVALUATION { General evaluation trace }
     TRACE_ACTIONS
     TRACE_VALUES
-    TRACE_JOURNAL { Trace the evaluator journal }
 
     MAX_PARSES
     PREAMBLE
@@ -674,7 +673,6 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX]      = 1;
     $grammar->[Marpa::Internal::Grammar::TRACE_RULES]        = 0;
     $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]       = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_JOURNAL]      = 0;
     $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS]   = 0;
     $grammar->[Marpa::Internal::Grammar::TRACING]            = 0;
     $grammar->[Marpa::Internal::Grammar::STRIP]              = 1;
@@ -1000,16 +998,6 @@ sub Marpa::Grammar::set {
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 }
             } ## end when ('trace_lex_matches')
-            when ('trace_journal') {
-                Marpa::exception("$option must be set to a number >= 0")
-                    if not $value =~ /\A\d+\z/xms;
-                $grammar->[Marpa::Internal::Grammar::TRACE_JOURNAL] =
-                    $value + 0;
-                if ($value) {
-                    say {$trace_fh} "Setting $option option to $value";
-                    $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
-                }
-            } ## end when ('trace_journal')
             when ('trace_values') {
                 Marpa::exception('trace_values must be set to a number >= 0')
                     if not $value =~ /\A\d+\z/xms;
