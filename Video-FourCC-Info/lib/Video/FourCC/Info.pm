@@ -48,7 +48,8 @@ Version 1.002 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.002');
+our $VERSION = '1.002';
+$VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
 
