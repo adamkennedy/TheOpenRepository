@@ -2,18 +2,18 @@
 
 use strict;
 use Test::More;
-use File::Which;
-use Crypt::DSA;
-use Crypt::DSA::Util qw( mod_exp );
-use Math::BigInt try => 'GMP';
+use Math::BigInt try => 'GMP, Pari';
 
 BEGIN {
-	if ( $^O eq 'MSWin32' and not $INC{'Math/BigInt/GMP.pm'} ) {
-		plan( skip_all => 'Test is excessively slow without GMP' );
+	if ( not $INC{'Math/BigInt/GMP.pm'} and not $INC{'Math/BigInt/Pari.pm'} ) {
+		plan( skip_all => 'Test is excessively slow without GMP or Pari' );
 	} else {
 		plan( tests => 18 );
 	}
 }
+
+use Crypt::DSA;
+use Crypt::DSA::Util qw( mod_exp );
 
 my $dsa = Crypt::DSA->new;
 my $two = Math::BigInt->new(2);

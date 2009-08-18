@@ -1,14 +1,12 @@
 use strict;
 
 use Test::More;
-use File::Which;
-use Math::BigInt try => 'GMP';
 use Crypt::DSA;
 use Crypt::DSA::KeyChain;
 
 BEGIN {
-	if ( $^O eq 'MSWin32' and not $INC{'Math/BigInt/GMP.pm'} and not $ENV{AUTOMATED_TESTING} ) {
-		plan( skip_all => 'Test is excessively slow without GMP' );
+	if ( not $INC{'Math/BigInt/GMP.pm'} and not $INC{'Math/BigInt/Pari.pm'} ) {
+		plan( skip_all => 'Test is excessively slow without GMP or Pari' );
 	} else {
 		plan( tests => 9 );
 	}
