@@ -1,4 +1,4 @@
-1.002 - XXX - Jonathan Yu <frequency@cpan.org>
+1.002 - 18 Aug 2009 - Jonathan Yu <frequency@cpan.org>
 
   + Updated test sequence
   + Remove modules available in core since Perl 5.6 from requires
