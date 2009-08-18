@@ -4,10 +4,6 @@
 #  Script to build and install this distribution
 #
 # $Id$
-#
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
 
 use strict;
 use warnings;
@@ -30,14 +26,9 @@ my $builder = Module::Build->new(
 
   requires => {
     'perl'              => 5.006,
+    'Carp'              => 1.04,
     'LWP::UserAgent'    => 0,
     'HTML::Entities'    => 0,
-
-    # Pragmatic and special modules
-    'Carp'              => 1.04,
-    'version'           => 0,
-    'warnings'          => 0,
-    'strict'            => 0,
 
     # The tests are based on Test::More
     'Test::More'        => 0.62,

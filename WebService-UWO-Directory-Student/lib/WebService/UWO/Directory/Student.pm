@@ -2,12 +2,6 @@
 #  Retrieve student information from the Western Student Directory
 #
 # $Id$
-#
-# By Jonathan Yu <frequency@cpan.org>, 2006-2009. All rights reversed.
-#
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
 
 package WebService::UWO::Directory::Student;
 
@@ -20,16 +14,17 @@ use HTML::Entities ();
 
 =head1 NAME
 
-WebService::UWO::Directory::Student - Module for searching the University
-of Western Ontario's student directory
+WebService::UWO::Directory::Student - Perl module for searching the UWO
+student directory
 
 =head1 VERSION
 
-Version 1.0.2 ($Id$)
+Version 1.001 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('1.0.2');
+our $VERSION = '1.001';
+$VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
 
@@ -468,18 +463,9 @@ necessary for most uses.
 
 =head1 LICENSE
 
-Copyleft 2006-2009 by Jonathan Yu <frequency@cpan.org>. All rights reversed.
-
-I, the copyright holder of this package, hereby release the entire contents
-therein into the public domain. This applies worldwide, to the extent that it
-is permissible by law.
-
-In case this is not legally possible, I grant any entity the right to use this
-work for any purpose, without any conditions, unless such conditions are
-required by law.
-
-The full details of this can be found in the B<LICENSE> file included in this
-package.
+In a perfect world, I could just say that this package and all of the code
+it contains is Public Domain. It's a bit more complicated than that; you'll
+have to read the included F<LICENSE> file to get the full details.
 
 =head1 DISCLAIMER OF WARRANTY
 
@@ -488,8 +474,8 @@ implied, including but not limited to the warranties of merchantability,
 fitness for a particular purpose and noninfringement. In no event shall the
 authors or copyright holders be liable for any claim, damages or other
 liability, whether in an action of contract, tort or otherwise, arising from,
-out of or in connection with the software or the use or other dealings in the
-software.
+out of or in connection with the software or the use or other dealings in
+the software.
 
 =cut
 
