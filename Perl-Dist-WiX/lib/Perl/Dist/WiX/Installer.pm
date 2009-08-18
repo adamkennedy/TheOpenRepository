@@ -37,12 +37,12 @@ use     URI                      qw();
 require Perl::Dist::WiX::StartMenu;
 require Perl::Dist::WiX::Environment;
 require Perl::Dist::WiX::FeatureTree;
-require Perl::Dist::WiX::Icons;
 require Perl::Dist::WiX::RemoveFolder;
 # Converted routines.
 require Perl::Dist::WiX::DirectoryTree2;
 require Perl::Dist::WiX::Fragment::CreateFolder;
 require Perl::Dist::WiX::Fragment::Files;
+require Perl::Dist::WiX::IconArray;
 
 # New routines from WiX3.
 require WiX3::Traceable;
@@ -256,7 +256,7 @@ sub new {
 		id             => 'CPANPLUSFolder',
 	) if ( 5100 >= $self->perl_version );
 
-	$self->{icons} = Perl::Dist::WiX::Icons->new( trace => $self->{trace} );
+	$self->{icons} = Perl::Dist::WiX::IconArray->new();
 
 	if ( defined $self->msi_product_icon ) {
 		$self->icons->add_icon( $self->msi_product_icon );
