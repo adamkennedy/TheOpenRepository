@@ -23,7 +23,7 @@ USAGE AND DOCUMENTATION
   installed, you can read that using:
   $ perldoc Alien::Libjio
 
-COPYRIGHT AND LICENCE
+LICENSE
 
   In a perfect world, I could just say that this package and all of the
   code it contains is Public Domain. It's a bit more complicated than
