@@ -60,14 +60,17 @@ use Marpa::Offset qw(
     DELETED
     CLASS { Equivalence class, for pruning duplicates }
 
+    =LAST_GENERAL_EVALUATOR_FIELD
+
     SORT_ELEMENT
     SORT_KEY
     OR_MAP
+    TRAILING_NULLS
     BEST_SORT_KEY
     BEST_OR_MAP
+    PREDECESSOR_SPANS_TO_END
 
-    { delete this } RANK
-
+    =LAST_PER_METHOD_EVALUATOR_FIELD
     =LAST_FIELD
 
 );
@@ -87,8 +90,11 @@ use Marpa::Offset qw(
     PARENT_IDS
     DELETED
     CLASS { Equivalence class, for pruning duplicates }
-    AND_CHOICES
+    =LAST_GENERAL_EVALUATOR_FIELD
 
+    TRAILING_NULLS
+    AND_CHOICES
+    =LAST_PER_METHOD_EVALUATOR_FIELD
     =LAST_FIELD
 );
 
@@ -746,7 +752,6 @@ sub clone_and_node {
         Marpa::Internal::And_Node::ARGC,
         Marpa::Internal::And_Node::RULE,
         Marpa::Internal::And_Node::POSITION,
-        Marpa::Internal::And_Node::RANK,
         )
     {
         $new_and_node->[$field] = $and_node->[$field];
@@ -2393,6 +2398,10 @@ sub Marpa::Evaluator::new_value {
 
             my ($and_node_id) = @{$task_entry};
             my $and_node = $and_nodes->[$and_node_id];
+            my $and_node_start_earleme =
+                $and_node->[Marpa::Internal::And_Node::START_EARLEME];
+            my $and_node_end_earleme =
+                $and_node->[Marpa::Internal::And_Node::END_EARLEME];
 
             if ($trace_tasks) {
                 print {$trace_fh} 'Task: INITIALIZE_AND_NODE; ',
@@ -2417,20 +2426,40 @@ sub Marpa::Evaluator::new_value {
 
             my $best_or_map;
             my @child_or_map;
+            my $predecessor_spans_to_end = 0;
 
-            # Get the predecessor or-choices and sort key
-            my $predecessor_or_map   = [];
-            my $predecessor_sort_key = [];
             my $predecessor_or_node =
                 $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
+            my $cause_or_node = $and_node->[Marpa::Internal::And_Node::CAUSE];
             if ( defined $predecessor_or_node ) {
-                my $sorted_and_choices = $predecessor_or_node
-                    ->[Marpa::Internal::Or_Node::AND_CHOICES];
+                my $predecessor_end = $predecessor_or_node
+                    ->[Marpa::Internal::Or_Node::END_EARLEME];
+                if ( $predecessor_end == $and_node_end_earleme ) {
+                    $predecessor_spans_to_end =
+                        $and_node->[
+                        Marpa::Internal::And_Node::PREDECESSOR_SPANS_TO_END ]
+                        = 1;
+                } ## end if ( $predecessor_end == $and_node_end_earleme )
+            } ## end if ( defined $predecessor_or_node )
+
+            # Get the child or-node or-maps and sort-keys
+            # TO DO, 1: Compute internal trailing nulls
+            # TO DO, 2: Compute TRAILING NULLS for both and- and or-nodes
+            # TO DO, 3: Compute or-map -- easy, just push or-maps
+            # TO DO, 4: Add sort-key computation
+
+            CHILD_OR_NODE:
+            for my $child_or_node ( $predecessor_or_node, $cause_or_node )
+            {
+                next CHILD_OR_NODE if not defined $child_or_node;
+                my $child_or_map   = [];
+                my $child_sort_key = [];
+                my $sorted_and_choices =
+                    $child_or_node->[Marpa::Internal::Or_Node::AND_CHOICES];
                 if ( not defined $sorted_and_choices ) {
 
                     # Set up the and-choices from the children
-                    $predecessor_or_node
-                        ->[Marpa::Internal::Or_Node::AND_CHOICES] =
+                    $child_or_node->[Marpa::Internal::Or_Node::AND_CHOICES] =
                         $sorted_and_choices = [
                         sort {
                             $a->[Marpa::Internal::And_Choice::SORT_KEY] <=> $b
@@ -2444,26 +2473,27 @@ sub Marpa::Evaluator::new_value {
                                 ]
                             ]
                             } @{
-                            $predecessor_or_node
+                            $child_or_node
                                 ->[Marpa::Internal::Or_Node::CHILD_IDS]
                             }
                         ];
                 } ## end if ( not defined $sorted_and_choices )
 
-                my $predecessor_or_node_id =
-                    $predecessor_or_node->[Marpa::Internal::Or_Node::ID];
+                my $child_or_node_id =
+                    $child_or_node->[Marpa::Internal::Or_Node::ID];
+
                 my $sorted_and_choice = $sorted_and_choices->[-1];
                 push @child_or_map,
                     [
-                    $predecessor_or_node_id,
+                    $child_or_node_id,
                     $sorted_and_choice->[Marpa::Internal::And_Choice::ID]
                     ];
-                $predecessor_or_map =
+                $child_or_map =
                     $sorted_and_choice->[Marpa::Internal::And_Choice::OR_MAP];
-                $predecessor_sort_key = $sorted_and_choice
+                $child_sort_key = $sorted_and_choice
                     ->[Marpa::Internal::And_Choice::SORT_KEY];
 
-            } ## end if ( defined $predecessor_or_node )
+            } ## end for my $child_or_node ( $predecessor_or_node, ...)
 
             my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
             my $maximal  = $rule->[Marpa::Internal::Rule::MAXIMAL];
@@ -2474,16 +2504,14 @@ sub Marpa::Evaluator::new_value {
 
                 # compute this and-nodes sort key element
                 # insert it into the predecessor sort key elements
-                my $start_earleme =
-                    $and_node->[Marpa::Internal::And_Node::START_EARLEME];
-                my $end_earleme =
-                    $and_node->[Marpa::Internal::And_Node::END_EARLEME];
-                my $location = $start_earleme;
+                my $location = $and_node_start_earleme;
                 my $length =
                     $maximal < 0
-                    ? N_FORMAT_MAX - ( $start_earleme - $end_earleme )
-                    : $maximal > 0 ? $end_earleme - $start_earleme
-                    :                0;
+                    ? N_FORMAT_MAX
+                    - ( $and_node_start_earleme - $and_node_end_earleme )
+                    : $maximal > 0
+                    ? $and_node_end_earleme - $and_node_start_earleme
+                    : 0;
                 $sort_element = [ $location, 0, $priority, $length ];
 
             } ## end if ( $maximal or $priority )
