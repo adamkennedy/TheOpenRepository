@@ -32,6 +32,19 @@ sub _setup_traceobject {
 		use_logger_singleton => 1, );
 }
 
+sub STORABLE_freeze {
+	my ($self, $cloning) = @_;
+	return $self->_get_traceopts();
+}
+
+sub STORABLE_thaw {
+	my ($self, $cloning, $traceopts) = @_;
+	$self->{_traceopts} = $traceopts;
+	$self->{_traceobject} = $self->_setup_traceobject;
+	
+	return;
+}
+
 no Moose::Role;
 
 1;                                     # Magic true value required at end of module

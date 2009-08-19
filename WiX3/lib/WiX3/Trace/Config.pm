@@ -3,10 +3,12 @@ package                                # Hide from PAUSE.
 
 use 5.008001;
 use metaclass (
-	metaclass   => 'Moose::Meta::Class',
+	base_class  => 'MooseX::Singleton::Object',
+	metaclass   => 'MooseX::Singleton::Meta::Class',
+#	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
-use Moose;
+use MooseX::Singleton;
 use MooseX::NonMoose;
 use Carp qw(croak);
 use Readonly qw( Readonly );
