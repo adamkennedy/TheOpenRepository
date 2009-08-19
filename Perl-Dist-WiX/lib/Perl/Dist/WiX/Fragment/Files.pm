@@ -11,7 +11,7 @@ package Perl::Dist::WiX::Fragment::Files;
 #
 use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Bool     );
+use MooseX::Types::Moose qw( Bool );
 use WiX3::Exceptions;
 use File::List::Object;
 
@@ -39,6 +39,16 @@ sub regenerate {
 	WiX3::Exception::Unimplemented->throw();
 
 	return;
+}
+
+sub check_duplicates {
+	my $self = shift;
+
+	if (not $self->can_overwrite()) {
+		return 1;
+	}
+	# TODO: Implement later.
+	return 0;
 }
 
 no Moose;

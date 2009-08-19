@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.000
+Perl-Dist-WiX version 1.100
 
 =end readme
 
@@ -79,6 +79,7 @@ use     warnings;
 use     vars                  qw( $VERSION                      );
 use     parent                qw( Perl::Dist::WiX::Installer 
                                   Perl::Dist::WiX::BuildPerl
+                                  Perl::Dist::WiX::Checkpoint
                                   Perl::Dist::WiX::ReleaseNotes );
 use     Archive::Zip          qw( :ERROR_CODES                  );
 use     English               qw( -no_match_vars                );
@@ -1006,121 +1007,6 @@ this is likely to break the user's Perl install)
 
 =cut
 
-#####################################################################
-# Checkpoint Support
-
-sub checkpoint_task {
-	my $self = shift;
-	my $task = shift;
-	my $step = shift;
-
-	# Are we loading at this step?
-	if ( $self->checkpoint_before == $step ) {
-		$self->checkpoint_load;
-	}
-
-	# Skip if we are loading later on
-	unless ( $self->checkpoint_before > $step ) {
-		my $t = time;
-		$self->$task();
-		$self->trace_line( 0,
-			"Completed $task in " . ( time - $t ) . " seconds\n" );
-	} else {
-		$self->trace_line( 0, "Skipping $task.\n" );
-	}
-
-	# Are we saving at this step
-	if ( $self->checkpoint_after == $step ) {
-		$self->checkpoint_save;
-	}
-
-	return $self;
-} ## end sub checkpoint_task
-
-sub checkpoint_file {
-	return catfile( $_[0]->checkpoint_dir, 'self.dat' );
-}
-
-sub checkpoint_self {
-	return PDWiX->throw('CODE INCOMPLETE');
-}
-
-sub checkpoint_save {
-	my $self = shift;
-	unless ( $self->temp_dir ) {
-		PDWiX->throw('Checkpoints require a temp_dir to be set');
-	}
-
-	# Clear out any existing checkpoint
-	$self->trace_line( 1, "Removing old checkpoint\n" );
-	$self->{checkpoint_dir} = catfile( $self->temp_dir, 'checkpoint' );
-	$self->remake_path( $self->checkpoint_dir );
-
-	# Copy the paths into the checkpoint directory
-	$self->trace_line( 1, "Copying checkpoint directories...\n" );
-	foreach my $dir (qw{ build_dir download_dir image_dir output_dir }) {
-		my $from = $self->$dir();
-		my $to = catdir( $self->checkpoint_dir, $dir );
-		$self->_copy( $from => $to );
-	}
-
-	# Store the main object.
-	# Blank the checkpoint values to prevent load/save loops, and remove
-	# things we can recreate later.
-	my $copy = {
-		%{$self},
-		checkpoint_before => 0,
-		checkpoint_after  => 0,
-		tt_exists         => ( defined $self->{template_toolkit} ? 1 : 0 ),
-		template_toolkit  => undef,
-		user_agent        => undef,
-	};
-	require Data::Dump::Streamer;
-	print "\n\n\n";
-	print Data::Dump::Streamer->new()->IndentKeys(1)->DumpGlob(1)
-	  ->Data($copy)->Out();
-	print "\n\n\n";
-	Storable::nstore( $copy, $self->checkpoint_file );
-
-	return 1;
-} ## end sub checkpoint_save
-
-sub checkpoint_load {
-	my $self = shift;
-	unless ( $self->temp_dir ) {
-		PDWiX->throw('Checkpoints require a temp_dir to be set');
-	}
-
-	# Does the checkpoint exist
-	$self->trace_line( 1, "Removing old checkpoint\n" );
-	$self->{checkpoint_dir} =
-	  File::Spec->catfile( $self->temp_dir, 'checkpoint', );
-	unless ( -d $self->checkpoint_dir ) {
-		PDWiX->throw('Failed to find checkpoint directory');
-	}
-
-	# Load the stored hash over our object
-	my $stored = Storable::retrieve( $self->checkpoint_file );
-	%{$self} = %{$stored};
-
-	# Reload the template object if it existed before.
-	if ( $self->{tt_exists} ) {
-		$self->patch_template();
-		delete $self->{tt_exists};
-	}
-
-	# Pull all the directories out of the storage
-	$self->trace_line( 0, "Restoring checkpoint directories...\n" );
-	foreach my $dir (qw{ build_dir download_dir image_dir output_dir }) {
-		my $from = File::Spec->catdir( $self->checkpoint_dir, $dir );
-		my $to = $self->$dir();
-		File::Remove::remove($to);
-		$self->_copy( $from => $to );
-	}
-
-	return 1;
-} ## end sub checkpoint_load
-
 sub source_dir {
 	return $_[0]->image_dir;
 }
@@ -1249,6 +1135,8 @@ sub run {
 	# Install the core C toolchain
 	$self->checkpoint_task( install_c_toolchain => 1 );
 
+	return;
+	
 	# Install any additional C libraries
 	$self->checkpoint_task( install_c_libraries => 2 );
 
@@ -1554,7 +1442,7 @@ sub install_dmake {
 		PDWiX->throw(q{Can't execute make});
 	}
 
-	$self->insert_fragment( 'dmake', $filelist->files );
+	$self->insert_fragment( 'dmake', $filelist );
 
 	return 1;
 } ## end sub install_dmake
@@ -1589,11 +1477,11 @@ sub install_gcc {
 		},
 	);
 
-	$self->insert_fragment( 'gcc_core', $fl->files );
+	$self->insert_fragment( 'gcc_core', $fl );
 
 	$fl = $self->install_binary( name => 'gcc-g++', );
 
-	$self->insert_fragment( 'gcc_gplusplus', $fl->files );
+	$self->insert_fragment( 'gcc_gplusplus', $fl );
 
 	return 1;
 } ## end sub install_gcc
@@ -1631,7 +1519,7 @@ sub install_binutils {
 		PDWiX->throw(q{Can't execute dlltool});
 	}
 
-	$self->insert_fragment( 'binutils', $filelist->files );
+	$self->insert_fragment( 'binutils', $filelist );
 
 	return 1;
 } ## end sub install_binutils
@@ -1667,7 +1555,7 @@ sub install_pexports {
 		PDWiX->throw(q{Can't execute pexports});
 	}
 
-	$self->insert_fragment( 'pexports', $filelist->files );
+	$self->insert_fragment( 'pexports', $filelist );
 
 	return 1;
 } ## end sub install_pexports
@@ -1697,7 +1585,7 @@ sub install_mingw_runtime {
 		},
 	);
 
-	$self->insert_fragment( 'mingw_runtime', $filelist->files );
+	$self->insert_fragment( 'mingw_runtime', $filelist );
 
 	return 1;
 } ## end sub install_mingw_runtime
@@ -1740,7 +1628,7 @@ sub install_zlib {
 		},
 	);
 
-	$self->insert_fragment( 'zlib', $filelist->files );
+	$self->insert_fragment( 'zlib', $filelist );
 
 	return 1;
 } ## end sub install_zlib
@@ -1763,7 +1651,7 @@ sub install_win32api {
 
 	my $filelist = $self->install_binary( name => 'w32api', );
 
-	$self->insert_fragment( 'w32api', $filelist->files );
+	$self->insert_fragment( 'w32api', $filelist );
 
 	return 1;
 }
@@ -1790,7 +1678,7 @@ sub install_mingw_make {
 
 	my $filelist = $self->install_binary( name => 'mingw-make', );
 
-	$self->insert_fragment( 'mingw_make', $filelist->files );
+	$self->insert_fragment( 'mingw_make', $filelist );
 
 	return 1;
 }
@@ -1830,7 +1718,7 @@ sub install_libiconv {
 	$self->_copy( $from, $to );
 	$filelist->add_file($to);
 
-	$self->insert_fragment( 'libiconv', $filelist->files );
+	$self->insert_fragment( 'libiconv', $filelist );
 
 	return 1;
 } ## end sub install_libiconv
@@ -1869,7 +1757,7 @@ sub install_libxml {
 		},
 	);
 
-	$self->insert_fragment( 'libxml', $filelist->files );
+	$self->insert_fragment( 'libxml', $filelist );
 
 	return 1;
 } ## end sub install_libxml
@@ -1899,7 +1787,7 @@ sub install_expat {
 		install_c    => 0,
 	);
 
-	$self->insert_fragment( 'libexpat', $filelist->files );
+	$self->insert_fragment( 'libexpat', $filelist );
 
 	return 1;
 } ## end sub install_expat
@@ -1923,7 +1811,7 @@ sub install_gmp {
 	# Comes as a single prepackaged vanilla-specific zip file
 	my $filelist = $self->install_binary( name => 'gmp', );
 
-	$self->insert_fragment( 'gmp', $filelist->files );
+	$self->insert_fragment( 'gmp', $filelist );
 
 	return 1;
 }
@@ -1949,7 +1837,7 @@ sub install_pari {
 		url  => 'http://strawberryperl.com/package/Math-Pari-2.010800.par',
 	);
 
-	$self->insert_fragment( 'pari', $filelist->files );
+	$self->insert_fragment( 'pari', $filelist );
 
 	return 1;
 } ## end sub install_pari
@@ -1976,7 +1864,7 @@ sub install_six {
 		name       => 'six',
 		install_to => q{.}
 	);
-	$self->insert_fragment( 'six', $filelist->files );
+	$self->insert_fragment( 'six', $filelist );
 	$self->add_env_path('six');
 
 	return 1;

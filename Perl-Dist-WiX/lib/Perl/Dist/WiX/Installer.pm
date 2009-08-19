@@ -30,13 +30,14 @@ use     vars                     qw( $VERSION                      );
 use     Alien::WiX               qw( :ALL                          );
 use     File::Spec::Functions    qw( catdir catfile rel2abs curdir );
 use     Params::Util
-	qw( _STRING _IDENTIFIER _ARRAY0 _ARRAY                         );
+	qw( _STRING _IDENTIFIER _ARRAY0 _ARRAY _INSTANCE               );
 use     IO::File                 qw();
 use     IPC::Run3                qw();
 use     URI                      qw();
 #require Perl::Dist::WiX::FeatureTree;
 #require Perl::Dist::WiX::RemoveFolder;
 # Converted routines.
+require Perl::Dist::WiX::Exceptions;
 require Perl::Dist::WiX::DirectoryTree2;
 require Perl::Dist::WiX::Fragment::CreateFolder;
 require Perl::Dist::WiX::Fragment::Files;
@@ -758,7 +759,7 @@ This B<MUST> be done for each set of files to be installed in an MSI.
 =cut
 
 sub insert_fragment {
-	my ( $self, $id, $files_ref ) = @_;
+	my ( $self, $id, $files_obj ) = @_;
 
 	# Check parameters.
 	unless ( _IDENTIFIER($id) ) {
@@ -767,25 +768,25 @@ sub insert_fragment {
 			where     => '::Installer->insert_fragment'
 		);
 	}
-	unless ( _ARRAY0($files_ref) ) {
+	unless ( _INSTANCE($files_obj, 'File::List::Object') ) {
 		PDWiX::Parameter->throw(
-			parameter => 'files_ref',
+			parameter => 'files_obj',
 			where     => '::Installer->insert_fragment'
 		);
 	}
 
 	$self->trace_line( 2, "Adding fragment $id...\n" );
 
-	foreach my $key ( keys %{ $self->{fragments} } ) {
-		$self->{fragments}->{$key}->check_duplicates($files_ref);
+  FRAGMENT:
+	foreach my $frag ( keys %{ $self->{fragments} } ) {
+		next FRAGMENT if not $self->{fragments}->{$frag}->isa('Perl::Dist::WiX::Fragment::Files');
+		$self->{fragments}->{$frag}->check_duplicates($files_obj);
 	}
 
-	my $fragment = Perl::Dist::WiX::Files->new(
+	my $fragment = Perl::Dist::WiX::Fragment::Files->new(
 		id             => $id,
-		sitename       => $self->sitename,
-		directory_tree => $self->directories,
-		trace          => $self->{trace},
-	)->add_files( @{$files_ref} );
+		files          => $files_obj,
+	);
 
 	$self->{fragments}->{$id} = $fragment;
 
