@@ -23,7 +23,7 @@ use CPANDB 0.10 {
 	maxage => 0
 };
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 
 
@@ -80,7 +80,7 @@ sub run {
 	$dataset->add( 'ds5',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		$class->report(
-			sql_score => 'd.volatility * d.meta',
+			sql_score => 'd.volatility * ( 1 - d.meta )',
 		),
 	);
 

@@ -1,5 +1,8 @@
 Changes for Perl extension CPAN-WWW-Top100-Generator
 
+0.08 Wed 17 Aug 2009
+	- Bug fix for 0.07
+
 0.07 Wed 17 Aug 2009
 	- Upgrading to CPANDB 0.10
 	- Adding new iteration of the Meta 100 (Layer 1) list
