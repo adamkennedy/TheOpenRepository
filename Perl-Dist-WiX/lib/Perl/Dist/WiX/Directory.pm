@@ -86,4 +86,7 @@ sub get_directory_object {
 	return undef;
 }
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
 1;

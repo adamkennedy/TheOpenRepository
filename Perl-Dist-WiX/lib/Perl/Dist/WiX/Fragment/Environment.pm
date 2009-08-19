@@ -8,7 +8,6 @@ package Perl::Dist::WiX::Fragment::Environment;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-#<<<
 use 5.008001;
 use Moose;
 use WiX3::XML::Environment;
@@ -18,7 +17,6 @@ $VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Fragment';
 
-#>>>
 #####################################################################
 # Accessors:
 
@@ -98,5 +96,8 @@ sub get_entries_count {
 	return $self->_get_component()->count_child_tags();
 
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;

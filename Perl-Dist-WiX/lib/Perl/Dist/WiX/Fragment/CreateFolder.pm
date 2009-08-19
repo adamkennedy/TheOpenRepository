@@ -8,17 +8,16 @@ package Perl::Dist::WiX::Fragment::CreateFolder;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-#<<<
 use 5.008001;
 use Moose;
-use vars                 qw( $VERSION );
 use Params::Util         qw( _STRING  );
 use MooseX::Types::Moose qw( Str      );
 use WiX3::XML::CreateFolder;
 use WiX3::XML::DirectoryRef;
 use WiX3::XML::Component;
 
-use version; $VERSION = version->new('1.100')->numify;
+our $VERSION = '1.100';
+$VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Fragment';
 
@@ -88,5 +87,8 @@ sub BUILD {
 	
 	return;
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;

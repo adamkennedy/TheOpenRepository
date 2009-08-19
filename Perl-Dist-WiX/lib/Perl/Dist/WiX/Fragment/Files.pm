@@ -9,15 +9,14 @@ package Perl::Dist::WiX::Fragment::Files;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-#<<<
 use 5.008001;
 use Moose;
-use vars                 qw( $VERSION );
 use MooseX::Types::Moose qw( Bool     );
 use WiX3::Exceptions;
 use File::List::Object;
 
-use version; $VERSION = version->new('1.100')->numify;
+our $VERSION = '1.100';
+$VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Fragment';
 
@@ -41,5 +40,8 @@ sub regenerate {
 
 	return;
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;

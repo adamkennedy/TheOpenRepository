@@ -7,16 +7,14 @@ package Perl::Dist::WiX::IconArray;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-#<<<
 use 5.008001;
 use Moose;
 use MooseX::AttributeHelpers;
 use Params::Util           qw( _STRING   );
 use File::Spec::Functions  qw( splitpath );
-use vars                   qw( $VERSION  );
 
-use version; $VERSION = version->new('1.100')->numify;
-#>>>
+our $VERSION = '1.100';
+$VERSION = eval { return $VERSION };
 
 has _icon => (
 	metaclass => 'Collection::Array',
@@ -156,5 +154,8 @@ sub as_string {
 
 	return $answer;
 } ## end sub as_string
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;

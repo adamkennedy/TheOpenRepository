@@ -8,20 +8,19 @@ package Perl::Dist::WiX::DirectoryTree2;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-#<<<
 use 5.008001;
 use MooseX::Singleton;
-use vars                  qw( $VERSION                       );
 use Params::Util          qw( _IDENTIFIER _STRING            );
 use File::Spec::Functions qw( catdir                         );
 use MooseX::Types::Moose  qw( Str                            );
 use Perl::Dist::WiX::Directory;
 use WiX3::Exceptions;
 
+our $VERSION = '1.100';
+$VERSION = eval { return $VERSION };
+
 with 'WiX3::Role::Traceable';
 
-use version; $VERSION = version->new('1.010')->numify;
-#>>>
 #####################################################################
 # Accessors:
 #   root: Returns the root of the directory tree created by new.
@@ -143,6 +142,9 @@ sub search_dir {
 	
 	return;
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;
 

@@ -8,14 +8,14 @@ package Perl::Dist::WiX::DirectoryCache;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-#<<<
 use 5.008001;
-use vars qw( $VERSION );
 use MooseX::Singleton;
 use WiX3::XML::Directory;
 use MooseX::AttributeHelpers;
-use version; $VERSION = version->new('1.100')->numify;
-#>>>
+
+our $VERSION = '1.100';
+$VERSION = eval { return $VERSION };
+
 #####################################################################
 # Accessors:
 #   root: Returns the root of the directory tree created by new.
@@ -73,6 +73,9 @@ sub delete_cache_entry {
 
 	return _delete_cache_entry($directory->get_guid());
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;
 

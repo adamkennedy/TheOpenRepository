@@ -11,10 +11,10 @@ package Perl::Dist::WiX::Icon;
 #<<<
 use 5.008001;
 use Moose;
-use vars                 qw( $VERSION );
-use MooseX::Types::Moose qw( Str      );
+use MooseX::Types::Moose qw( Str );
 
-use version; $VERSION = version->new('1.100')->numify;
+our $VERSION = '1.100';
+$VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Icon';
 
@@ -24,5 +24,8 @@ has target_type => (
 	reader => 'get_target_type',
 	required => 1,
 );
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;
