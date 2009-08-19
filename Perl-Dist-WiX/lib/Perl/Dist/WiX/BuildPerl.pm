@@ -27,7 +27,6 @@ build Perl itself.
 use     5.008001;
 use     strict;
 use     warnings;
-use     vars                  qw( $VERSION                   );
 use     Archive::Zip          qw( :ERROR_CODES               );
 use     English               qw( -no_match_vars             );
 use     List::MoreUtils       qw( any none                   );
@@ -54,9 +53,10 @@ use     SelectSaver           qw();
 use     Template              qw();
 use     Win32                 qw();
 require File::List::Object;
-require Perl::Dist::WiX::StartMenuComponent;
+# require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('1.100')->numify;
+our $VERSION = '1.100';
+$VERSION = eval { return $VERSION };
 
 use Perl::Dist::Asset               1.16 ();
 use Perl::Dist::Asset::Binary       1.16 ();

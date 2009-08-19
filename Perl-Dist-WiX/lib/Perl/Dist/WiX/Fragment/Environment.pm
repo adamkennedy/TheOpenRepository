@@ -11,10 +11,10 @@ package Perl::Dist::WiX::Fragment::Environment;
 #<<<
 use 5.008001;
 use Moose;
-use vars qw( $VERSION );
 use WiX3::XML::Environment;
 
-use version; $VERSION = version->new('1.100')->numify;
+our $VERSION = '1.100';
+$VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Fragment';
 
@@ -22,11 +22,10 @@ extends 'WiX3::XML::Fragment';
 #####################################################################
 # Accessors:
 
-has _component => (
+has component => (
 	is => 'ro',
 	isa => 'WiX3::XML::Component',
 	reader => '_get_component',
-	init_arg => 'component',
 	required => 1,
 );
 
@@ -46,27 +45,36 @@ sub BUILDARGS {
 		# TODO: Throw an error.
 	}
 
+	my $id;
+
 	if (not exists $args{'id'}) {
-		# TODO: Throw an error.
+		$id = 'Environment';
+	} else {
+		$id = $args{'id'};
 	}
 
-	my $id = $args{'id'};
-	
 	my $tag1 = WiX3::XML::Component->new( 
 		id => "C_$id"
 	);
-	my $tag2 = WiX3::XML::DirectoryRef->new( 
-		directory_object = Perl::Dist::WiX::DirectoryTree2->get_root(),
-		child_tags => [ $tag1 ],
-	);
-	
-	$class->trace_line( 3, "Creating environment fragment.\n" );
 
 	return { 
 		id => "Fr_$id",
-		child_tags => [ $tag2 ],
 		component => $tag1,
 	};
+}
+
+sub BUILD {
+	my $self = shift;
+
+	my $tag2 = WiX3::XML::DirectoryRef->new( 
+		directory_object => Perl::Dist::WiX::DirectoryTree2->instance()->get_root(),
+	);
+	$tag2->add_child_tag($self->_get_component());
+
+	$self->add_child_tag($tag2);	
+	$self->trace_line( 3, "Creating environment fragment.\n" );
+	
+	return;
 }
 
 ########################################
@@ -82,6 +90,13 @@ sub add_entry {
 	$self->_get_component()->add_child_tag( WiX3::XML::Environment->new(@_) );
 
 	return $self;
+}
+
+sub get_entries_count {
+	my $self = shift;
+
+	return $self->_get_component()->count_child_tags();
+
 }
 
 1;

@@ -34,14 +34,14 @@ use     Params::Util
 use     IO::File                 qw();
 use     IPC::Run3                qw();
 use     URI                      qw();
-require Perl::Dist::WiX::StartMenu;
-require Perl::Dist::WiX::Environment;
-require Perl::Dist::WiX::FeatureTree;
-require Perl::Dist::WiX::RemoveFolder;
+#require Perl::Dist::WiX::FeatureTree;
+#require Perl::Dist::WiX::RemoveFolder;
 # Converted routines.
 require Perl::Dist::WiX::DirectoryTree2;
 require Perl::Dist::WiX::Fragment::CreateFolder;
 require Perl::Dist::WiX::Fragment::Files;
+require Perl::Dist::WiX::Fragment::Environment;
+require Perl::Dist::WiX::Fragment::StartMenu;
 require Perl::Dist::WiX::IconArray;
 
 # New routines from WiX3.
@@ -236,13 +236,13 @@ sub new {
 	  )
 	  ->initialize_tree( $self->perl_version,
 		@{ $self->{msi_directory_tree_additions} } );
+		
 	$self->{fragments} = {};
 	$self->{fragments}->{Icons} =
-	  Perl::Dist::WiX::StartMenu->new( directory => 'D_App_Menu', );
+	  Perl::Dist::WiX::Fragment::StartMenu->new( directory_id => 'D_App_Menu', );
 	$self->{fragments}->{Environment} =
-	  Perl::Dist::WiX::Environment->new( id => 'Environment', );
+	  Perl::Dist::WiX::Fragment::Environment->new();
 	$self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Fragment::Files->new(
-#		directory_tree => $self->directories,
 		id             => 'Win32Extras',
 		files          => File::List::Object->new(),
 	);
@@ -256,7 +256,7 @@ sub new {
 		id             => 'CPANPLUSFolder',
 	) if ( 5100 >= $self->perl_version );
 
-	$self->{icons} = Perl::Dist::WiX::IconArray->new();
+	$self->{icons} = $self->{fragments}->{Icons}->get_icons();
 
 	if ( defined $self->msi_product_icon ) {
 		$self->icons->add_icon( $self->msi_product_icon );
