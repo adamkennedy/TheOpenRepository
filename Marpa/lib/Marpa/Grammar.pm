@@ -3,7 +3,7 @@ package Marpa::Grammar;
 use 5.010;
 
 use warnings;
-no warnings 'recursion';
+no warnings qw(recursion qw);
 use strict;
 
 # It's all integers, except for the version number
@@ -36,6 +36,9 @@ use Marpa::Offset qw(
     MAXIMAL { Maximal (longest possible)
         or minimal (shortest possible) evaluation?
         Default is indifferent. }
+
+    NULL_WIDTH { When nulled,
+    the number of nulls it represents }
 
     =LAST_EVALUATOR_FIELD
 
@@ -828,7 +831,7 @@ sub parse_source_grammar {
 
     my $failed_at_earleme = $recce->text($source);
     if ( $failed_at_earleme >= 0 ) {
-        die_with_parse_failure( $source, $failed_at_earleme );
+        Marpa::die_with_parse_failure( $source, $failed_at_earleme );
     }
     $recce->end_input();
     my $evaler = Marpa::Evaluator->new( { recce => $recce } );
