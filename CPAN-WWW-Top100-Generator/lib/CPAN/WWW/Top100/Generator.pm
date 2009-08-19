@@ -19,11 +19,11 @@ use strict;
 use warnings;
 use File::Spec          0.80 ();
 use HTML::Spry::DataSet 0.01 ();
-use CPANDB 0.02 {
-	maxage => 24 * 3600
+use CPANDB 0.10 {
+	maxage => 0
 };
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 
 
@@ -76,11 +76,11 @@ sub run {
 		),
 	);
 
-	# Build the Meta 100 index (Level 1)
+	# Build the Meta 100 (Level 1)
 	$dataset->add( 'ds5',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		$class->report(
-			sql_score => 'd.volatility * 0',
+			sql_score => 'd.volatility * d.meta',
 		),
 	);
 
