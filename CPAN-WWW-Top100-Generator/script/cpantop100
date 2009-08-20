@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use CPAN::WWW::Top100::Generator 0.07 ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 my $dir = $ARGV[0];
 unless ( $dir ) {

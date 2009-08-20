@@ -1,5 +1,8 @@
 Changes for Perl extension CPAN-WWW-Top100-Generator
 
+0.09 Thu 18 Aug 2009
+	- Adding support for Google Chart
+
 0.08 Wed 17 Aug 2009
 	- Bug fix for 0.07
 

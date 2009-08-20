@@ -19,11 +19,12 @@ use strict;
 use warnings;
 use File::Spec          0.80 ();
 use HTML::Spry::DataSet 0.01 ();
+use Google::Chart    0.05013 ();
 use CPANDB 0.10 {
 	maxage => 0
 };
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 
 
@@ -32,101 +33,114 @@ our $VERSION = '0.08';
 #####################################################################
 # Main Methods
 
-sub run {
+sub new {
 	my $class = shift;
 
-	# Check the target directory
-	my $dir = shift;
-	unless ( -d $dir ) {
+	# Create the basic object
+	my $self = bless {
+		spry => HTML::Spry::DataSet->new,
+		@_,
+	}, $class;
+
+	# Check params
+	unless ( defined $self->dir and -d $self->dir ) {
 		die "Missing or invalid directory";
 	}
 
-	# Prepare the dataset object
-	my $dataset = HTML::Spry::DataSet->new;
+	return $self;
+}
+
+sub spry {
+	$_[0]->{spry};
+}
+
+sub dir {
+	$_[0]->{dir};
+}
+
+sub file {
+	File::Spec->catfile( $_[0]->dir, $_[1] );
+}
+
+sub run {
+	my $self = shift;
 
 	# Build the Heavy 100 index
-	$dataset->add( 'ds1',
-		[ 'Rank', 'Dependencies', 'Author', 'Distribution' ],
-		$class->report(
-			sql_score => 'd.weight',
-		),
+	$self->dataset( 'ds1' => 'd.weight',
+		[ 'Rank', 'Dependencies', 'Author', 'Distribution' ]
 	);
 
 	# Build the Volatile 100 index
-	$dataset->add( 'ds2',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-		$class->report(
-			sql_score => 'd.volatility',
-		),
+	$self->dataset( 'ds2' => 'd.volatility',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Debian 100 index
-	$dataset->add( 'ds3',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-		$class->report(
-			sql_score => 'd.volatility * 0',
-		)
+	$self->dataset( 'ds3' => 'd.volatility * 0',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Downstream 100 index
-	$dataset->add( 'ds4',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-		$class->report(
-			sql_score => 'd.volatility * 0',
-		),
+	$self->dataset( 'ds4' => 'd.volatility * 0',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Meta 100 (Level 1)
-	$dataset->add( 'ds5',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-		$class->report(
-			sql_score => 'd.volatility * ( 1 - d.meta )',
-		),
+	$self->dataset( 'ds5' => 'd.volatility * ( 1 - d.meta )',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Meta 100 index (Level 2)
-	$dataset->add( 'ds6',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-		$class->report(
-			sql_score => 'd.volatility * 0',
-		),
+	$self->dataset( 'ds6' => 'd.volatility * 0',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Meta 100 index (Level 3)
-	$dataset->add( 'ds7',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
-		$class->report(
-			sql_score => 'd.volatility * 0',
-		),
+	$self->dataset( 'ds7' => 'd.volatility * 0',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the FAIL 100 index
-	$dataset->add( 'ds8',
-		[ 'Rank', 'Score', 'Author', 'Distribution' ],
-		$class->report(
-			sql_score => 'd.volatility * (d.fail + d.unknown)',
-		),
+	$self->dataset( 'ds8' => 'd.volatility * (d.fail + d.unknown)',
+		[ 'Rank', 'Score', 'Author', 'Distribution' ]
 	);
 
 	# Write out the daa file
-	$dataset->write(
-		File::Spec->catfile( $dir, 'data.html' )
-	);
+	$self->spry->write( $self->file('data.html') );
 
 	return 1;
 }
 
+sub dataset {
+	my ($self, $name, $header, $score) = @_;
+	my @report = $self->report(
+		sql_score => $score,
+	);
+	$self->spry->add( $name, $header, @report );
+	$self->chart( @report )->render_to_file(
+		filename => $self->file( "$name.png" ),
+	);
+}
+
 sub report {
-	my $class  = shift;
+	my $self  = shift;
 	my %param = @_;
 	my $list  = CPANDB->selectall_arrayref(
-		$class->_distsql( %param ),
+		$self->_distsql( %param ),
 	);
 	unless ( $list ) {
 		die("Report SQL failed in " . CPANDB->dsn);
 	}
-	$class->_rank( $list );
+	$self->_rank( $list );
 	return @$list;
+}
+
+sub chart {
+	my $self  = shift;
+	my $chart = Google::Chart->new(
+		type => 'Line',
+		data => [ map { $_->[1] } @_ ],
+	);
 }
 
 
@@ -138,7 +152,7 @@ sub report {
 
 # Prepends ranks in place (ugly, but who cares for now)
 sub _rank {
-	my $class = shift;
+	my $self = shift;
 	my $table = shift;
 	my $rank  = 0;
 	my @ranks = ();
@@ -166,7 +180,7 @@ sub _rank {
 }
 
 sub _distsql {
-	my $class = shift;
+	my $self = shift;
 	my %param = @_;
 	$param{sql_limit} ||= 100;
 	unless ( defined $param{sql_score} ) {
