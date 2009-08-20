@@ -139,8 +139,8 @@ sub chart {
 	my $self  = shift;
 	my $data  = [ map { $_->[1] } @_ ];
 	Google::Chart->new(
-		type => 'Line',
-		data => $data,
+		type => 'Bar',
+		data => [ 1, 2, 3, 4 ],
 	);
 }
 
