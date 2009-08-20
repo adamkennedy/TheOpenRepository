@@ -136,12 +136,13 @@ sub report {
 }
 
 sub chart {
-	my $self  = shift;
-	my @data  = map { $_->[1] } @_;
-	my $scale = List::Util::max @data;
+	my $self   = shift;
+	my @report = map { $_->[1] } @_;
+	my $scale  = List::Util::max @report;
+	my @data   = map { $_ / $scale * 100 } @data;
 	Google::Chart->new(
 		type => 'Bar',
-		data => [ map { $_ / $scale * 100 } @data ],
+		data => \@data,
 	);
 }
 
