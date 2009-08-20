@@ -18,6 +18,6 @@ mkdir($dir) or die "Failed to create $dir";
 
 # Generate the site
 ok(
-	CPAN::WWW::Top100::Generator->run($dir),
+	CPAN::WWW::Top100::Generator->new( dir => $dir )->run,
 	'->run ok',
 );
