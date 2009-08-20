@@ -112,7 +112,7 @@ sub run {
 }
 
 sub dataset {
-	my ($self, $name, $header, $score) = @_;
+	my ($self, $name, $score, $header) = @_;
 	my @report = $self->report(
 		sql_score => $score,
 	);
