@@ -66,42 +66,50 @@ sub run {
 	my $self = shift;
 
 	# Build the Heavy 100 index
-	$self->dataset( 'ds1' => 'd.weight',
+	$self->dataset( 'ds1' => 'Heavy 100',
+		'd.weight',
 		[ 'Rank', 'Dependencies', 'Author', 'Distribution' ]
 	);
 
 	# Build the Volatile 100 index
-	$self->dataset( 'ds2' => 'd.volatility',
+	$self->dataset( 'ds2' => 'Volatile 100',
+		'd.volatility',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Debian 100 index
-	$self->dataset( 'ds3' => 'd.volatility * 0',
+	$self->dataset( 'ds3' => 'Debian 100',
+		'd.volatility * 0',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Downstream 100 index
-	$self->dataset( 'ds4' => 'd.volatility * 0',
+	$self->dataset( 'ds4' => 'Downstream 100',
+		'd.volatility * 0',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Meta 100 (Level 1)
-	$self->dataset( 'ds5' => 'd.volatility * ( 1 - d.meta )',
+	$self->dataset( 'ds5' => 'Meta 100',
+		'd.volatility * ( 1 - d.meta )',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Meta 100 index (Level 2)
-	$self->dataset( 'ds6' => 'd.volatility * 0',
+	$self->dataset( 'ds6' => 'Meta 100',
+		'd.volatility * 0',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Meta 100 index (Level 3)
-	$self->dataset( 'ds7' => 'd.volatility * 0',
+	$self->dataset( 'ds7' => 'Meta 100',
+		'd.volatility * 0',
 		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the FAIL 100 index
-	$self->dataset( 'ds8' => 'd.volatility * (d.fail + d.unknown)',
+	$self->dataset( 'ds8' => 'FAIL 100',
+		'd.volatility * (d.fail + d.unknown)',
 		[ 'Rank', 'Score', 'Author', 'Distribution' ]
 	);
 
@@ -112,12 +120,12 @@ sub run {
 }
 
 sub dataset {
-	my ($self, $name, $score, $header) = @_;
+	my ($self, $name, $legend, $score, $header) = @_;
 	my @report = $self->report(
 		sql_score => $score,
 	);
 	$self->spry->add( $name, $header, @report );
-	$self->chart( @report )->render_to_file(
+	$self->chart( $legend, @report )->render_to_file(
 		filename => $self->file( "$name.png" ),
 	);
 }
@@ -137,14 +145,16 @@ sub report {
 
 sub chart {
 	my $self   = shift;
+	my $legend = shift;
 	my @report = map { $_->[1] } @_;
 	my $scale  = List::Util::max @report;
 	my @data   = map {
 		$scale ? ($_ / $scale * 100) : 0
 	} @report;
 	Google::Chart->new(
-		type => 'Line',
-		data => \@data,
+		legend => $legend,
+		type   => 'Line',
+		data   => \@data,
 	);
 }
 
