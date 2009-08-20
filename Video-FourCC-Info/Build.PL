@@ -8,9 +8,10 @@
 use strict;
 use warnings;
 
-use Module::Build;
+use lib 'inc';
+use My::Builder;
 
-my $builder = Module::Build->new(
+my $builder = My::Builder->new(
   module_name           => 'Video::FourCC::Info',
   license               => 'unrestricted',
   dist_author           => 'Jonathan Yu <frequency@cpan.org>',

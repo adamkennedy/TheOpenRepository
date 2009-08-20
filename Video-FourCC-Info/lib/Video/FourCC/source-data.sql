@@ -1,12 +1,3 @@
-BEGIN TRANSACTION;
-CREATE TABLE fourcc
-(
-  fourcc char(4) NOT NULL,
-  "owner" varchar(100),
-  registered date,
-  description varchar(200) NOT NULL,
-  CONSTRAINT fourcc_pkey PRIMARY KEY (fourcc)
-);
 INSERT INTO "fourcc" VALUES('2VUY',NULL,NULL,'Optibase VideoPump 8-bit 4:2:2 Component Y''CbCr');
 INSERT INTO "fourcc" VALUES('1978',NULL,NULL,'A.M.Paredes predictor (LossLess)');
 INSERT INTO "fourcc" VALUES('3IV0',NULL,NULL,'MPEG4-based codec 3ivx');
@@ -756,5 +747,3 @@ INSERT INTO "fourcc" VALUES('ETV2','eTreppid Technologies','2001-10-11','eTreppi
 INSERT INTO "fourcc" VALUES('ETVC','eTreppid Technologies','2001-10-11','eTreppid Video Codec');
 INSERT INTO "fourcc" VALUES('FLJP','D-Vision','1996-10-21','Field Encoded Motion JPEG');
 INSERT INTO "fourcc" VALUES('FRWA','SoftLab-Nsk','1998-06-25','Forward Motion JPEG w/alpha');
-CREATE UNIQUE INDEX idx_fourcc ON fourcc (fourcc);
-COMMIT;
