@@ -120,12 +120,12 @@ sub run {
 }
 
 sub dataset {
-	my ($self, $name, $legend, $score, $header) = @_;
+	my ($self, $name, $title, $score, $header) = @_;
 	my @report = $self->report(
 		sql_score => $score,
 	);
 	$self->spry->add( $name, $header, @report );
-	$self->chart( $legend, @report )->render_to_file(
+	$self->chart( $title, @report )->render_to_file(
 		filename => $self->file( "$name.png" ),
 	);
 }
@@ -145,16 +145,16 @@ sub report {
 
 sub chart {
 	my $self   = shift;
-	my $legend = shift;
+	my $title  = shift;
 	my @report = map { $_->[1] } @_;
 	my $scale  = List::Util::max @report;
 	my @data   = map {
 		$scale ? ($_ / $scale * 100) : 0
 	} @report;
 	Google::Chart->new(
-		legend => $legend,
-		type   => 'Line',
-		data   => \@data,
+		title => $title,
+		type  => 'Line',
+		data  => \@data,
 	);
 }
 
