@@ -3,7 +3,6 @@ package Perl::Dist::WiX::Asset::DistFile;
 use Moose;
 use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef ); 
 use File::Spec::Functions qw( catdir catfile );
-use Params::Util qw ( _INSTANCE );
 
 require File::Remove;
 require URI;
@@ -14,6 +13,7 @@ our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::Asset';
+extends 'Perl::Dist::WiX::Role::DistBase';
 
 has name => (
 	is       => 'ro',

@@ -1,10 +1,9 @@
 package Perl::Dist::WiX::Asset::DistBase;
 
 use Moose;
-use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef ); 
 use File::Spec::Functions qw( catdir catfile );
 use Params::Util qw ( _INSTANCE );
-require File::Remove;
+
 require URI;
 require File::Spec::Unix;
 

@@ -1,12 +1,9 @@
 package Perl::Dist::WiX::Asset::Distribution;
 
 use Moose;
-use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef ); 
 use File::Spec::Functions qw( catdir catfile );
-use Params::Util qw ( _INSTANCE );
 require File::Remove;
 require URI;
-require File::Spec::Unix;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -66,12 +63,12 @@ has buildpl_param => (
 	default  => sub { return [] },
 );
 
-has inject => (
-	is       => 'ro',
-	isa      => Maybe['URI'],
-	reader   => '_get_inject',
-	default  => undef,
-);
+#has inject => (
+#	is       => 'ro',
+#	isa      => Maybe['URI'],
+#	reader   => '_get_inject',
+#	default  => undef,
+#);
 
 has packlist => (
 	is       => 'ro',
