@@ -31,7 +31,7 @@ sub BUILDARGS {
 	my $class = shift;
 	my %args;
 	
-	if ( @_ == 1 && 'HASH' ne ref $_[0] ) {
+	if ( @_ == 1 && ! ref $_[0] ) {
 		$args{'id'} = $_[0];
 	} elsif ( 0 == @_ ) {
 		$args{'id'} = 'Environment';
@@ -40,7 +40,7 @@ sub BUILDARGS {
 	} elsif ( 0 == @_ % 2 ) {
 		%args = ( @_ );
 	} else {
-		# TODO: Throw an error.
+		PDWiX->throw('Parameters incorrect (not a hashref, hash, or id) for ::Fragment::Environment');
 	}
 
 	my $id;

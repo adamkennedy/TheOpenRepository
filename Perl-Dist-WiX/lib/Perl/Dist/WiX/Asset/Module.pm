@@ -1,4 +1,4 @@
-package Perl::Dist::Asset::Module;
+package Perl::Dist::WiX::Asset::Module;
 
 use Moose;
 use MooseX::Types::Moose qw( Str Bool ); 

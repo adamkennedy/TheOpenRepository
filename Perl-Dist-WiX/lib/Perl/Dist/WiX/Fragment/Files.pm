@@ -47,7 +47,9 @@ sub check_duplicates {
 	if (not $self->can_overwrite()) {
 		return 1;
 	}
+	
 	# TODO: Implement later.
+	PDWiX::Unimplemented->throw('Perl::Dist::WiX::Fragment::Files->check_duplicates');
 	return 0;
 }
 

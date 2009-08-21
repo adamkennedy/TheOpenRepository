@@ -7,8 +7,9 @@ use Moose::Role;
 use File::Spec::Functions qw( rel2abs );
 use MooseX::Types::Moose qw( Str );
 require File::List::Object;
-require File::Spec::Unix;
 require File::ShareDir;
+require File::Spec::Unix;
+require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
@@ -74,12 +75,17 @@ sub BUILDARGS {
 	} elsif ( 0 == @_ % 2 ) {
 		%args = ( @_ );
 	} else {
-		print "Error situation 1\n";
-		# TODO: Throw an error.
+		PDWiX->throw('Parameters incorrect (not a hashref or hash) for ::Asset::*');
 	}
 
 	my $parent = $args{parent};
-	# TODO: Check $parent.
+	
+	unless ( defined _INSTANCE($args{ parent}, 'Perl::Dist::WiX' ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'parent: missing or not a Perl::Dist::WiX instance',
+			where => '::Role::Asset->new',
+		);
+	}
 	
 	unless ( defined $args{url} ) {
 		if ( defined $args{share} ) {
@@ -90,8 +96,7 @@ sub BUILDARGS {
 				File::ShareDir::dist_file( $dist, $name )
 			);
 			unless ( -f $file ) {
-				# TODO: Throw exception instead.
-				croak("Failed to find $file");
+				PDWiX->throw("Failed to find $file");
 			}
 			$args{url} = URI::file->new($file)->as_string;
 			$parent->trace_line(" found\n");
@@ -117,8 +122,7 @@ sub BUILDARGS {
 	$args{file} = $args{url};
 	$args{file} =~ s|.+/||;
 	unless ( defined $args{file} and length $args{file} ) {
-		# TODO: Throw exception
-		croak("Missing or invalid file");
+		PDWiX::Parameter::throw->(parameter => 'file', where => '::Role::Asset->new');
 	}
 
 	my %default_args = ( url => $args{url}, file => $args{file}, parent => $args{parent} );

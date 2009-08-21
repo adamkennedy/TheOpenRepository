@@ -1,4 +1,4 @@
-package Perl::Dist::Asset::Website;
+package Perl::Dist::WiX::Asset::Website;
 
 use Moose;
 use MooseX::Types::Moose qw( Str Int Maybe ); 

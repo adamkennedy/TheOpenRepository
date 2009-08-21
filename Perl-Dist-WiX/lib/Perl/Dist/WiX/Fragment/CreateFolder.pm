@@ -44,19 +44,14 @@ sub BUILDARGS {
 	} elsif ( 0 == @_ % 2 ) {
 		%args = @_;
 	} else {
-		# TODO: Throw an error.
+		PDWiX->throw('Parameters incorrect (not a hashref or a hash) for ::Fragment::CreateFolder');
 	}
 	
 	if (not exists $args{'id'}) {
-		# TODO: Throw an error.
-	}
-
-	if (not exists $args{'directory_id'}) {
-		# TODO: Throw an error.
+		PDWiX::Parameter->throw(parameter => 'id', where => '::Fragment::CreateFolder->new');
 	}
 
 	return { id => "Fr_Create$args{id}", directory_id => $args{'directory_id'} };
-
 }
 
 sub BUILD {

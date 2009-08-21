@@ -36,6 +36,10 @@ use Exception::Class (
 		'isa'    => 'PDWiX',
 		'fields' => [ 'message', 'info' ],
 	},
+	'PDWiX::Unimplemented' => { 
+		'description' => 'Perl::Dist::WiX error: Routine unimplemented', 
+		'isa'    => 'PDWiX',
+	},
 );
 
 sub PDWiX::full_message { ## no critic 'Capitalization'

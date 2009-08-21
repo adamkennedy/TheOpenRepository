@@ -47,8 +47,7 @@ sub BUILDARGS {
 	} elsif ( 0 == @_ % 2 ) {
 		%args = ( @_ );
 	} else {
-		print "Error situation 1\n";
-		# TODO: Throw an error.
+		PDWiX->throw('Parameters incorrect (not a hashref, hash, or id) for ::Fragment::StartMenu');
 	}
 	
 	if (not exists $args{'id'}) {

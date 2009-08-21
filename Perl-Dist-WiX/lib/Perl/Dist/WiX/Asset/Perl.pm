@@ -54,7 +54,7 @@ has force => (
 );
 
 sub install {
-	# TODO: Throw exception.
+	PDWiX::Unimplemented->throw('Perl::Dist::WiX::Asset::Perl->install');
 }
 
 1;

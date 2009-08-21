@@ -60,7 +60,7 @@ sub BUILDARGS {
 	} elsif ( 0 == @_ % 2 ) {
 		%args = ( @_ );
 	} else {
-		# TODO: Throw an error.
+		PDWiX->throw('Parameters incorrect (not a hashref or a hash) for DirectoryTree2');
 	}
 
 	my $app_dir = $args{'app_dir'};
