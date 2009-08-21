@@ -1,18 +1,19 @@
-package Perl::Dist::WiX::Asset::Distribution;
+package Perl::Dist::WiX::Asset::DistFile;
 
 use Moose;
 use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef ); 
 use File::Spec::Functions qw( catdir catfile );
 use Params::Util qw ( _INSTANCE );
+
 require File::Remove;
 require URI;
 require File::Spec::Unix;
+require Perl::Dist::WiX::Exceptions;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::Asset';
-extends 'Perl::Dist::WiX::Role::DistBase';
 
 has name => (
 	is       => 'ro',
@@ -66,12 +67,12 @@ has buildpl_param => (
 	default  => sub { return [] },
 );
 
-has inject => (
-	is       => 'ro',
-	isa      => Maybe['URI'],
-	reader   => '_get_inject',
-	default  => undef,
-);
+#has inject => (
+#	is       => 'ro',
+#	isa      => Maybe['URI'],
+#	reader   => '_get_inject',
+#	default  => undef,
+#);
 
 has packlist => (
 	is       => 'ro',
@@ -80,23 +81,20 @@ has packlist => (
 	default  => 1,
 );
 
-sub BUILD {
-	my $self = shift;
-
-	if ( $self->get_name eq $self->get_url and not _DIST($self->_get_name) ) {
-		PDWiX::Parameter->throw("Missing or invalid name param\n");
-	}
-
-	return;
-}
-
 sub install {
 	my $self = shift;
-	my $name = $self->get_name();
-	my $build_dir = $self->_get_build_dir();
-	
+	my $path = $self->_get_file();
+
+	if ( not -f $path ) {
+		PDWiX::Parameter->throw(
+			parameter => "file: $path does not exist",
+			where     => '->install_distribution_from_file'
+		);
+	}
+
 # If we don't have a packlist file, get an initial filelist to subtract from.
-	my $module = $self->_get_module_name();
+	my ( undef, undef, $filename ) = splitpath( $path, 0 );
+	my $module = $self->_name_to_module("CSJ/$filename");
 	my $filelist_sub;
 
 	if ( not $self->_get_packlist() ) {
@@ -107,24 +105,21 @@ sub install {
 			  . " requires packlist => 0 *****\n" );
 	}
 
-	# Download the file
-	my $tgz =
-	  $self->_mirror( $self->_abs_uri( $self->_get_cpan() ), $self->_get_modules_dir(), );
-
 	# Where will it get extracted to
-	my $dist_path = $name;
+	my $dist_path = $filename;
 	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
 	$dist_path =~ s{\.zip}{}msx;
-	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
-	my $unpack_to = catdir( $build_dir, $dist_path );
 	$self->_add_to_distributions_installed($dist_path);
+
+	my $unpack_to = catdir( $self->build_dir, $dist_path );
 
 	# Extract the tarball
 	if ( -d $unpack_to ) {
 		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
 		File::Remove::remove( \1, $unpack_to );
 	}
-	$self->_extract( $tgz => $build_dir );
+	$self->_trace_line( 4, "Unpacking to $unpack_to\n" );
+	$self->_extract( $path => $self->build_dir );
 	unless ( -d $unpack_to ) {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
@@ -132,8 +127,7 @@ sub install {
 	my $buildpl = ( -r catfile( $unpack_to, 'Build.PL' ) ) ? 1 : 0;
 	my $makefilepl = ( -r catfile( $unpack_to, 'Makefile.PL' ) ) ? 1 : 0;
 
-	unless ( $buildpl or $makefilepl )
-	{
+	unless ( $buildpl or $makefilepl ) {
 		PDWiX->throw(
 			"Could not find Makefile.PL or Build.PL in $unpack_to\n");
 	}
@@ -148,14 +142,7 @@ sub install {
 			  " (too early for Build.PL)\n");
 		}
 	} ## end unless ( ( -r catfile( catdir...
-
-	# Can't build version.pm using Build.PL until Module::Build
-	# has been upgraded.
-	if ( $module eq 'version' ) {
-		$self->_trace_line( 3, "Bypassing version.pm's Build.PL\n" );
-		$buildpl = 0;
-	}
-
+	
 	# Build the module
   SCOPE: {
 		my $wd = $self->_pushd($unpack_to);
@@ -167,7 +154,7 @@ sub install {
 				"Installing with AUTOMATED_TESTING enabled...\n" );
 		}
 		if ( $self->_get_release_testing() ) {
-			$self->_trace_line( 2,
+			$self->trace_line( 2,
 				"Installing with RELEASE_TESTING enabled...\n" );
 		}
 		local $ENV{AUTOMATED_TESTING} = $self->_get_automated_testing() ? 1 : undef;
@@ -176,23 +163,21 @@ sub install {
 		$self->_configure($buildpl);
 
 		$self->_install_distribution($buildpl);
-
+		
 	} ## end SCOPE:
 
 	# Making final filelist.
 	my $filelist;
-	if ($self->_get_packlist()) {
+	if ( $self->_get_packlist() ) {
 		$filelist = $self->_search_packlist($module);
 	} else {
-		$filelist = File::List::Object->new()->readdir(
+		$filelist = File::List::Object->new->readdir(
 			catdir( $self->image_dir, 'perl' ) );
-		$filelist->subtract($filelist_sub)->filter( $self->_filters );
+		$filelist->subtract($filelist_sub)->filter( $self->filters );
 	}
 	
 	return $filelist;
 } ## end sub install_distribution
-
-1;
 
 __END__
 
@@ -200,10 +185,11 @@ __END__
 
 =head1 NAME
 
-Perl::Dist::WiX::Asset::Distribution - "Perl Distribution" asset for a Win32 Perl
+Perl::Dist::WiX::Asset::DistFile - "Perl Distribution" asset for a Win32 Perl
 
 =head1 SYNOPSIS
 
+  # TODO: Update
   my $distribution = Perl::Dist::WiX::Asset::Distribution->new(
       name  => 'MSERGEANT/DBD-SQLite-1.14.tar.gz',
       force => 1,
@@ -227,13 +213,14 @@ direct method, as well as the installation of a few special case modules
 such as ones where the newest release is broken, but an older
 or a development release is known to be good.
 
-B<Perl::Dist::WiX::Asset::Distribution> is a data class that provides
+B<Perl::Dist::WiX::Asset::DistFile> is a data class that provides
 encapsulation and error checking for a "Perl Distribution" to be
 installed in a L<Perl::Dist::WiX>-based Perl distribution using this
-secondary method.
+secondary method that comes from a file on disk (possibly in a share 
+directory.)
 
 It is normally created on the fly by the Perl::Dist::WiX
-C<install_distribution> method (and other things that call it).
+C<install_distribution_from_file> method (and other things that call it).
 
 The specification of the location to retrieve the package is done via
 the standard mechanism implemented in L<Perl::Dist::WiX::Role::Asset>.
@@ -245,7 +232,7 @@ This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Asset::Distribution> object.
+and returns a new B<Perl::Dist::WiX::Asset::DistFile> object.
 
 It inherits all the params described in the L<Perl::Dist::WiX::Role::Asset> 
 C<new> method documentation, and adds some additional params.

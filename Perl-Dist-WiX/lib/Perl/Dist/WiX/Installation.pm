@@ -28,6 +28,17 @@ use     strict;
 use     warnings;
 use     Perl::Dist::WiX::Exceptions;
 
+require Perl::Dist::WiX::Asset::Binary;
+require Perl::Dist::WiX::Asset::Distribution;
+require Perl::Dist::WiX::Asset::DistFile;
+require Perl::Dist::WiX::Asset::File;
+require Perl::Dist::WiX::Asset::Launcher;
+require Perl::Dist::WiX::Asset::Library;
+require Perl::Dist::WiX::Asset::Module;
+require Perl::Dist::WiX::Asset::PAR;
+# require Perl::Dist::WiX::Asset::Perl;
+require Perl::Dist::WiX::Asset::Website;
+
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
@@ -171,25 +182,25 @@ The C<install_distribution_from_file> method is used to install a single
 CPAN or non-CPAN distribution directly, without installing any of the
 dependencies for that distribution, from disk.
 
-It takes a compulsory 'file' param, which should be the location of the
+It takes a compulsory 'file' parameter, which should be the location of the
 distribution on disk.
 
-The optional 'force' param allows the installation of distributions
+The optional 'force' parameter allows the installation of distributions
 with spuriously failing test suites.
 
-The optional 'automated_testing' param allows for installation
+The optional 'automated_testing' parameter allows for installation
 with the C<AUTOMATED_TESTING> environment flag enabled, which is
 used to either run more-intensive testing, or to convince certain
 Makefile.PL that insists on prompting that there is no human around
 and they REALLY need to just go with the default options.
 
 The optional 'makefilepl_param' param should be a reference to an
-array of additional params that should be passwd to the
+array of additional params that should be passed to the
 C<perl Makefile.PL>. This can help with distributions that insist
 on taking additional options via Makefile.PL.
 
-Distributions that do not have a Makefile.PL cannot be installed via
-this routine.
+The optional 'buildpl_param' parameter does the same thing as makefile_pl,
+but for Build.PL instead of Makefile.PL.
 
 Returns true or throws an exception on error.
 
@@ -197,115 +208,12 @@ Returns true or throws an exception on error.
 
 sub install_distribution_from_file {
 	my $self = shift;
-	my $dist = {
-		automated_testing => 0,
-		release_testing   => 0,
-		packlist          => 1,
-		force             => $self->force,
-		@_,
-	};
-	my $name = $dist->{file};
 
-	unless ( _STRING($name) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'file',
-			where     => '->install_distribution_from_file'
-		);
-	}
-	if ( not -f $name ) {
-		PDWiX::Parameter->throw(
-			parameter => "file: $name does not exist",
-			where     => '->install_distribution_from_file'
-		);
-	}
+	my $dist = Perl::Dist::WiX::Asset::DistFile->new(@_);
 
-# If we don't have a packlist file, get an initial filelist to subtract from.
-	my ( undef, undef, $filename ) = splitpath( $name, 0 );
-	my $module = $self->_name_to_module("CSJ/$filename");
-	my $filelist_sub;
+	$dist->install();
+	my $mod_id = $dist->_get_module_name();
 
-	if ( not $dist->{packlist} ) {
-		$filelist_sub = File::List::Object->new->readdir(
-			catdir( $self->image_dir, 'perl' ) );
-		$self->trace_line( 5,
-			    "***** Module being installed $module"
-			  . " requires packlist => 0 *****\n" );
-	}
-
-	# Where will it get extracted to
-	my $dist_path = $filename;
-	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
-	$dist_path =~ s{\.zip}{}msx;
-	$self->_add_to_distributions_installed($dist_path);
-
-	my $unpack_to = catdir( $self->build_dir, $dist_path );
-
-	# Extract the tarball
-	if ( -d $unpack_to ) {
-		$self->trace_line( 2, "Removing previous $unpack_to\n" );
-		File::Remove::remove( \1, $unpack_to );
-	}
-	$self->trace_line( 4, "Unpacking to $unpack_to\n" );
-	$self->_extract( $name => $self->build_dir );
-	unless ( -d $unpack_to ) {
-		PDWiX->throw("Failed to extract $unpack_to\n");
-	}
-
-	unless ( ( -r catfile( $unpack_to, 'Makefile.PL' ) )
-		or ( -r catfile( $unpack_to, 'Build.PL' ) ) )
-	{
-		PDWiX->throw(
-			"Could not find Makefile.PL or Build.PL in $unpack_to\n");
-	}
-
-	my $buildpl = ( -r catfile( $unpack_to, 'Build.PL' ) ) ? 1 : 0;
-
-	# Build the module
-  SCOPE: {
-		my $wd = $self->_pushd($unpack_to);
-
-		# Enable automated_testing mode if needed
-		# Blame Term::ReadLine::Perl for needing this ugly hack.
-		if ( $dist->{automated_testing} ) {
-			$self->trace_line( 2,
-				"Installing with AUTOMATED_TESTING enabled...\n" );
-		}
-		if ( $dist->{release_testing} ) {
-			$self->trace_line( 2,
-				"Installing with RELEASE_TESTING enabled...\n" );
-		}
-		local $ENV{AUTOMATED_TESTING} = $dist->{automated_testing};
-		local $ENV{RELEASE_TESTING}   = $dist->{release_testing};
-
-		$self->trace_line( 2, "Configuring $name...\n" );
-		$buildpl
-		  ? $self->_perl( 'Build.PL',    @{ $dist->{buildpl_param} } )
-		  : $self->_perl( 'Makefile.PL', @{ $dist->{makefilepl_param} } );
-
-		$self->trace_line( 1, "Building $name...\n" );
-		$buildpl ? $self->_build : $self->_make;
-
-		unless ( $dist->{force} ) {
-			$self->trace_line( 2, "Testing $name...\n" );
-			$buildpl ? $self->_build('test') : $self->_make('test');
-		}
-
-		$self->trace_line( 2, "Installing $name...\n" );
-		$buildpl
-		  ? $self->_build(qw/install uninst=1/)
-		  : $self->_make(qw/install UNINST=1/);
-	} ## end SCOPE:
-
-	# Making final filelist.
-	my $filelist;
-	if ( $dist->{packlist} ) {
-		$filelist = $self->search_packlist($module);
-	} else {
-		$filelist = File::List::Object->new->readdir(
-			catdir( $self->image_dir, 'perl' ) );
-		$filelist->subtract($filelist_sub)->filter( $self->filters );
-	}
-	my $mod_id = $module;
 	$mod_id =~ s{::}{_}msg;
 	$mod_id =~ s{-}{_}msg;
 
