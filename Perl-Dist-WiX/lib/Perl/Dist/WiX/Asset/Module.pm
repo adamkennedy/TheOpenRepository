@@ -1,7 +1,12 @@
 package Perl::Dist::Asset::Module;
 
 use Moose;
-use MooseX::Types::Moose qw( Str ); 
+use MooseX::Types::Moose qw( Str Bool ); 
+use English qw( -no_match_vars ); 
+use File::Spec::Functions qw( catdir );
+require Perl::Dist::WiX::Exceptions;
+require File::List::Object;
+require IO::File;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -30,17 +35,18 @@ has packlist => (
 	default  => 1,
 );
 
-use Object::Tiny qw{
-	type
-	extras
-};
+# Don't know what these are for.
+#use Object::Tiny qw{
+#	type
+#	extras
+#};
 
 sub install_module {
 	my $self   = shift;
-	my $name  = $module->_get_name();
-	my $force = $module->_get_force();
+	my $name  = $self->_get_name();
+	my $force = $self->_get_force();
 		
-	my $packlist_flag = $module->_get_packlist();
+	my $packlist_flag = $self->_get_packlist();
 
 	unless ( $self->_get_bin_perl ) {
 		PDWiX->throw(

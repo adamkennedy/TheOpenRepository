@@ -1,8 +1,12 @@
 package Perl::Dist::WiX::Asset::Distribution;
 
 use Moose;
-use MooseX::Types::Moose qw( Str Maybe ); 
-use File::Remove qw();
+use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef ); 
+use File::Spec::Functions qw( catdir catfile );
+use Params::Util qw ( _INSTANCE );
+require File::Remove;
+require URI;
+require File::Spec::Unix;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -22,28 +26,28 @@ has module_name => (
 	reader   => 'get_module_name',
 	init_arg => 'mod_name',
 	lazy     => 1,
-	default  => sub { my $self = shift; return $self->_name_to_module($self->get_name()); },
+	default  => sub { return $_[0]->_name_to_module(); },
 );
 
 has force => (
 	is       => 'ro',
 	isa      => Bool,
-	reader   => 'get_force',
+	reader   => '_get_force',
 	lazy     => 1,
-	default  => sub { !! $_[0]->parent->force },
+	default  => sub { !! $_[0]->parent()->force },
 );
 
 has automated_testing => (
 	is       => 'ro',
 	isa      => Bool,
-	reader   => 'get_automated_testing',
+	reader   => '_get_automated_testing',
 	default  => 0,
 );
 
 has release_testing => (
 	is       => 'ro',
 	isa      => Bool,
-	reader   => 'get_release_testing',
+	reader   => '_get_release_testing',
 	default  => 0,
 );
 
@@ -65,14 +69,7 @@ has inject => (
 	is       => 'ro',
 	isa      => Maybe['URI'],
 	reader   => '_get_inject',
-	default => undef,
-);
-
-has automated_testing => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_packlist',
-	default  => 1,
+	default  => undef,
 );
 
 has packlist => (
@@ -86,8 +83,7 @@ sub BUILD {
 	my $self = shift;
 
 	if ( $self->get_name eq $self->get_url and not _DIST($self->_get_name) ) {
-		# TODO: Throw exception instead.
-		Carp::croak("Missing or invalid name param");
+		PDWiX::Parameter->throw("Missing or invalid name param\n");
 	}
 
 	return;
@@ -95,8 +91,8 @@ sub BUILD {
 
 sub install {
 	my $self = shift;
-	my $name = $self->_get_name();
-	my $parent = $self->_get_parent();
+	my $name = $self->get_name();
+	my $build_dir = $self->_get_build_dir();
 	
 # If we don't have a packlist file, get an initial filelist to subtract from.
 	my $module = $self->_get_module_name();
@@ -105,29 +101,29 @@ sub install {
 	if ( not $self->_get_packlist() ) {
 		$filelist_sub = File::List::Object->new->readdir(
 			catdir( $self->image_dir, 'perl' ) );
-		$parent->trace_line( 5,
+		$self->_trace_line( 5,
 			    "***** Module being installed $module"
 			  . " requires packlist => 0 *****\n" );
 	}
 
 	# Download the file
 	my $tgz =
-	  $self->_mirror( $self->abs_uri( $self->_get_cpan ), $self->_get_modules_dir, );
+	  $self->_mirror( $self->_abs_uri( $self->_get_cpan() ), $self->_get_modules_dir(), );
 
 	# Where will it get extracted to
 	my $dist_path = $name;
 	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
 	$dist_path =~ s{\.zip}{}msx;
 	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
-	my $unpack_to = catdir( $parent->build_dir, $dist_path );
-	$parent->_add_to_distributions_installed($dist_path);
+	my $unpack_to = catdir( $build_dir, $dist_path );
+	$self->_add_to_distributions_installed($dist_path);
 
 	# Extract the tarball
 	if ( -d $unpack_to ) {
-		$parent->trace_line( 2, "Removing previous $unpack_to\n" );
+		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
 		File::Remove::remove( \1, $unpack_to );
 	}
-	$parent->_extract( $tgz => $parent->build_dir );
+	$self->_extract( $tgz => $build_dir );
 	unless ( -d $unpack_to ) {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
@@ -143,7 +139,7 @@ sub install {
 
 	# Build using Build.PL if we have one
 	# unless Module::Build is not installed.
-	unless ( $self->_module_build_installed($parent->image_dir) )
+	unless ( $self->_module_build_installed() )
 	{
 		$buildpl = 0;
 		unless ( $makefilepl ) {
@@ -155,26 +151,26 @@ sub install {
 	# Can't build version.pm using Build.PL until Module::Build
 	# has been upgraded.
 	if ( $module eq 'version' ) {
-		$parent->trace_line( 3, "Bypassing version.pm's Build.PL\n" );
+		$self->_trace_line( 3, "Bypassing version.pm's Build.PL\n" );
 		$buildpl = 0;
 	}
 
 	# Build the module
   SCOPE: {
-		my $wd = $parent->_pushd($unpack_to);
+		my $wd = $self->_pushd($unpack_to);
 
 		# Enable automated_testing mode if needed
 		# Blame Term::ReadLine::Perl for needing this ugly hack.
-		if ( $self->automated_testing ) {
-			$parent->trace_line( 2,
+		if ( $self->_get_automated_testing() ) {
+			$self->_trace_line( 2,
 				"Installing with AUTOMATED_TESTING enabled...\n" );
 		}
-		if ( $self->release_testing ) {
-			$parent->trace_line( 2,
+		if ( $self->_get_release_testing() ) {
+			$self->_trace_line( 2,
 				"Installing with RELEASE_TESTING enabled...\n" );
 		}
-		local $ENV{AUTOMATED_TESTING} = $self->_get_automated_testing ? 1 : undef;
-		local $ENV{RELEASE_TESTING}   = $self->_get_release_testing ? 1 : undef;
+		local $ENV{AUTOMATED_TESTING} = $self->_get_automated_testing() ? 1 : undef;
+		local $ENV{RELEASE_TESTING}   = $self->_get_release_testing() ? 1 : undef;
 
 		$self->_configure($buildpl);
 
@@ -185,11 +181,11 @@ sub install {
 	# Making final filelist.
 	my $filelist;
 	if ($self->_get_packlist()) {
-		$filelist = $self->search_packlist($module);
+		$filelist = $self->_search_packlist($module);
 	} else {
 		$filelist = File::List::Object->new()->readdir(
 			catdir( $self->image_dir, 'perl' ) );
-		$filelist->subtract($filelist_sub)->filter( $parent->filters );
+		$filelist->subtract($filelist_sub)->filter( $self->_filters );
 	}
 	
 	return $filelist;
@@ -198,12 +194,12 @@ sub install {
 sub _configure {
 	my $self = shift;
 	my $buildpl = shift;
-	my $parent = $self->_get_parent();
+	my $name = $self->_get_name();
 
-	$parent->trace_line( 2, "Configuring $name...\n" );
+	$self->_trace_line( 2, "Configuring $name...\n" );
 	$buildpl
-	  ? $parent->_perl( 'Build.PL',    @{ $self->_get_buildpl_param } )
-	  : $parent->_perl( 'Makefile.PL', @{ $self->_get_makefilepl_param } );
+	  ? $self->_perl( 'Build.PL',    @{ $self->_get_buildpl_param } )
+	  : $self->_perl( 'Makefile.PL', @{ $self->_get_makefilepl_param } );
 	  
 	return;
 }
@@ -211,29 +207,30 @@ sub _configure {
 sub _install_distribution {
 	my $self = shift;
 	my $buildpl = shift;
-	my $parent = $self->_get_parent();
+	my $name = $self->_get_name();
 	
-	$parent->trace_line( 1, "Building $name...\n" );
-	$buildpl ? $parent->_build : $parent->_make;
+	$self->_trace_line( 1, "Building $name...\n" );
+	$buildpl ? $self->_build : $self->_make;
 		
 	unless ( $self->_get_force() ) {
-		$parent->trace_line( 2, "Testing $name...\n" );
-		$buildpl ? $parent->_build('test') : $parent->_make('test');
+		$self->_trace_line( 2, "Testing $name...\n" );
+		$buildpl ? $self->_build('test') : $self->_make('test');
 	}
 	
-	$parent->trace_line( 2, "Installing $name...\n" );
+	$self->_trace_line( 2, "Installing $name...\n" );
 	$buildpl
-	  ? $parent->_build(qw/install uninst=1/)
-	  : $parent->_make(qw/install UNINST=1/);
+	  ? $self->_build(qw/install uninst=1/)
+	  : $self->_make(qw/install UNINST=1/);
 		  
 	return;
 }
 
 sub _name_to_module {
-	my ( $self, $parent, $dist ) = @_;
+	my $self= shift;
 	
-	$parent->trace_line( 3, "Trying to get module name out of $dist\n" );
-
+	my $dist = $self->_get_name();
+	$self->_trace_line( 3, "Trying to get module name out of $dist\n" );
+	
 #<<<
 	my ( $module ) = $dist =~ m{\A  # Start the string...
 					[A-Za-z/]*      # With a string of letters and slashes
@@ -249,7 +246,7 @@ sub _name_to_module {
 
 sub _module_build_installed {
 	my $self = shift;
-	my $image_dir = shift;
+	my $image_dir = $self->_get_image_dir();
 	
 	my $perl_dir = catdir($image_dir, 'perl');
 	my @dirs = (
@@ -265,27 +262,76 @@ sub _module_build_installed {
 	return 0;
 }
 
+#####################################################################
+# Main Methods
+
+sub _abs_uri {
+	my $self = shift;
+
+	my $url = $self->_get_url() || $self->_get_name();
+	
+	# Get the base path
+	my $cpan = _INSTANCE($self->_get_cpan(), 'URI');
+	unless ( $cpan ) {
+		PDWiX::Parameter->throw("Did not get a cpan URI\n");
+	}
+
+	# If we have an explicit absolute URI use it directly.
+	my $new_abs = URI->new_abs($url, $cpan);
+	if ( $new_abs eq $url ) {
+		return $new_abs;
+	}
+
+	# Generate the full relative path
+	my $name = $self->_get_name();
+	my $path = File::Spec::Unix->catfile( 'authors', 'id',
+		substr($name, 0, 1),
+		substr($name, 0, 2),
+		$name,
+	);
+
+	URI->new_abs( $path, $cpan );
+}
+
+#####################################################################
+# Support Methods
+
+sub _DIST {
+	my $it = shift;
+	unless ( defined $it and ! ref $it ) {
+		return undef;
+	}
+	unless ( $it =~ q|^([A-Z]){2,}/| ) {
+		return undef;
+	}
+	return $it;
+}
+
+1;
+
+__END__
+
 =pod
 
 =head1 NAME
 
-Perl::Dist::Asset::Distribution - "Perl Distribution" asset for a Win32 Perl
+Perl::Dist::WiX::Asset::Distribution - "Perl Distribution" asset for a Win32 Perl
 
 =head1 SYNOPSIS
 
-  my $distribution = Perl::Dist::Asset::Distribution->new(
+  my $distribution = Perl::Dist::WiX::Asset::Distribution->new(
       name  => 'MSERGEANT/DBD-SQLite-1.14.tar.gz',
       force => 1,
   );
 
 =head1 DESCRIPTION
 
-L<Perl::Dist::Inno> supports two methods for adding Perl modules to the
+L<Perl::Dist::WiX> supports two methods for adding Perl modules to the
 installation. The main method is to install it via the CPAN shell.
 
 The second is to download, make, test and install the Perl distribution
-package independantly, avoiding the use of the CPAN client. Unlike the
-CPAN installation method, installation the distribution directly does
+package independently, avoiding the use of the CPAN client. Unlike the
+CPAN installation method, installing the distribution directly does
 C<not> allow the installation of dependencies, or the ability to discover
 and install the most recent release of the module.
 
@@ -301,43 +347,23 @@ encapsulation and error checking for a "Perl Distribution" to be
 installed in a L<Perl::Dist::WiX>-based Perl distribution using this
 secondary method.
 
-It is normally created on the fly by the <Perl::Dist::WiX>
+It is normally created on the fly by the Perl::Dist::WiX
 C<install_distribution> method (and other things that call it).
 
 The specification of the location to retrieve the package is done via
-the standard mechanism implemented in L<Perl::Dist::WiX::Asset>.
+the standard mechanism implemented in L<Perl::Dist::WiX::Role::Asset>.
 
 =head1 METHODS
 
-This class inherits from L<Perl::Dist::Asset> and shares its API.
-
-=cut
-
-use strict;
-use Carp              ();
-use Params::Util      qw{ _STRING _ARRAY _INSTANCE };
-use File::Spec        ();
-use File::Spec::Unix  ();
-use URI               ();
-use URI::file         ();
-
-
-
-
-
-
-#####################################################################
-# Constructor
-
-=pod
+This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
 
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::Asset::Binary> object.
+and returns a new B<Perl::Dist::WiX::Asset::Distribution> object.
 
-It inherits all the params described in the L<Perl::Dist::Asset> C<new>
-method documentation, and adds some additional params.
+It inherits all the params described in the L<Perl::Dist::WiX::Role::Asset> 
+C<new> method documentation, and adds some additional params.
 
 =over 4
 
@@ -360,7 +386,7 @@ Unlike in the CPAN client installation, in which all modules MUST pass
 their tests to be added, the secondary method allows for cases where
 it is known that the tests can be safely "forced".
 
-The optional boolean C<force> param allows you to specify is the tests
+The optional boolean C<force> param allows you to specify that the tests
 should be skipped and the module installed without validating it.
 
 =item automated_testing
@@ -384,7 +410,7 @@ tests should be run with the additional C<RELEASE_TESTING> environment
 flag set.
 
 By default, C<release_testing> is set to false to squelch any accidental
-execution of release tests when L<Perl::Dist> itself is being tested
+execution of release tests when L<Perl::Dist::WiX> itself is being tested
 under C<RELEASE_TESTING>.
 
 =item makefilepl_param
@@ -395,88 +421,46 @@ parameters when you invoke "perl Makefile.PL".
 The optional C<makefilepl_param> param should be a reference to an ARRAY
 where each element contains the argument to pass to the Makefile.PL.
 
+=item buildpl_param
+
+Some distributions require you to pass additional non-standard
+parameters when you invoke "perl Build.PL".
+
+The optional C<buildpl_param> param should be a reference to an ARRAY
+where each element contains the argument to pass to the Build.PL.
+
 =back
 
-The C<new> method returns a B<Perl::Dist::Asset::Distribution> object,
-or throws an exception (dies) on error.
+The C<new> method returns a B<Perl::Dist::WiX::Asset::Distribution> object,
+or throws an exception on error.
 
-=cut
+=head2 install
 
-
-sub url { $_[0]->{url} || $_[0]->{name} }
-
-
-
-
-
-#####################################################################
-# Main Methods
-
-sub abs_uri {
-	my $self = shift;
-
-	# Get the base path
-	my $cpan = _INSTANCE(shift, 'URI');
-	unless ( $cpan ) {
-		Carp::croak("Did not pass a cpan URI");
-	}
-
-	# If we have an explicit absolute URI use it directly.
-	my $new_abs = URI->new_abs($self->url, $cpan);
-	if ( $new_abs eq $self->url ) {
-		return $new_abs;
-	}
-
-	# Generate the full relative path
-	my $name = $self->name;
-	my $path = File::Spec::Unix->catfile( 'authors', 'id',
-		substr($name, 0, 1),
-		substr($name, 0, 2),
-		$name,
-	);
-
-	URI->new_abs( $path, $cpan );
-}
-
-
-
-
-
-#####################################################################
-# Support Methods
-
-sub _DIST {
-	my $it = shift;
-	unless ( defined $it and ! ref $it ) {
-		return undef;
-	}
-	unless ( $it =~ q|^([A-Z]){2,}/| ) {
-		return undef;
-	}
-	return $it;
-}
-
-1;
-
-=pod
+The install method installs the distribution described by the
+B<Perl::Dist::WiX::Asset::Distribution> object and returns a list of files
+that were installed as a L<File::List::Object> object.
 
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 
 For other issues, contact the author.
 
 =head1 AUTHOR
 
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist>, L<Perl::Dist::Inno>, L<Perl::Dist::Asset>
+L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
+
+Copyright 2009 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 

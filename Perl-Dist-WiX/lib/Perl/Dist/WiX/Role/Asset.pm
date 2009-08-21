@@ -3,16 +3,14 @@ package Perl::Dist::WiX::Role::Asset;
 # Convenience role for Perl::Dist::WiX assets
 
 use 5.008001;
-use Moose;
-# TODO: Throw exceptions instead.
-use Carp             qw(croak);
-use File::Spec::Unix qw();
-use File::ShareDir   qw();
-use URI              qw();
-use URI::file        qw();
-use File::Spec::Functions qw( rel2abs )
+use Moose::Role;
+use File::Spec::Functions qw( rel2abs );
 use MooseX::Types::Moose qw( Str );
-use File::List::Object qw();
+require File::List::Object;
+require File::Spec::Unix;
+require File::ShareDir;
+require URI;
+require URI::file;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -38,6 +36,10 @@ has parent => (
 		'_dll_to_a'    => '_dll_to_a',
 		'_copy'        => '_copy',
 		'_extract'     => '_extract',
+		'_pushd'       => '_pushd',
+		'_perl'        => '_perl',
+		'_build'       => '_build',
+		'_make'        => '_make',
 		'_add_to_distributions_installed' => '_add_to_distributions_installed',
 	},
 	required => 1,
@@ -76,11 +78,14 @@ sub BUILDARGS {
 		# TODO: Throw an error.
 	}
 
+	my $parent = $args{parent};
+	# TODO: Check $parent.
+	
 	unless ( defined $args{url} ) {
 		if ( defined $args{share} ) {
 			# Map share to url vis File::ShareDir
 			my ($dist, $name) = split /\s+/, $args{share};
-			$self->trace("Finding $name in $dist... ");
+			$parent->trace_line("Finding $name in $dist... ");
 			my $file = rel2abs(
 				File::ShareDir::dist_file( $dist, $name )
 			);
@@ -89,12 +94,12 @@ sub BUILDARGS {
 				croak("Failed to find $file");
 			}
 			$args{url} = URI::file->new($file)->as_string;
-			$self->trace(" found\n");
+			$parent->trace_line(" found\n");
 
 		} elsif ( defined $args{dist} ) {
 			# Map CPAN dist path to url
 			my $dist = $args{dist};
-			$self->trace("Using distribution path $dist\n");
+			$parent->trace_line("Using distribution path $dist\n");
 			my $one  = substr( $dist, 0, 1 );
 			my $two  = substr( $dist, 1, 1 );
 			my $path = File::Spec::Unix->catfile(
@@ -104,20 +109,20 @@ sub BUILDARGS {
 
 		} elsif ( defined $args{name} ) {
 			# Map name to URL via the default package path
-			$args{url} = $self->parent->binary_url($args{name});
+			$args{url} = $parent->binary_url($args{name});
 		}
 	}
 
 	# Create the filename from the url
 	$args{file} = $args{url};
 	$args{file} =~ s|.+/||;
-	unless ( defined $args{file} and length $args->{file} ) {
+	unless ( defined $args{file} and length $args{file} ) {
 		# TODO: Throw exception
 		croak("Missing or invalid file");
 	}
 
-	my %default_args = url => ( $args{url}, file => $args{file}, parent => $args{parent} );
-	delete @args{'url', 'file', 'parent', 'name', 'share', 'dist'}
+	my %default_args = ( url => $args{url}, file => $args{file}, parent => $args{parent} );
+	delete @args{'url', 'file', 'parent', 'name', 'share', 'dist'};
 	
 	return { (%default_args) , (%args) };
 }
@@ -152,12 +157,13 @@ EOF
 	my $packlist;
   DIR:
 	foreach my $dir (@dirs) {
-		$packlist = catfile($dir, '.packlist')
+		$packlist = catfile($dir, '.packlist');
 		last DIR if -r $packlist; 
 	}
 
+	my $filelist;
 	if ( -r $packlist ) {
-		$fl = File::List::Object->new->load_file($packlist)->add_file($packlist);
+		$filelist = File::List::Object->new->load_file($packlist)->add_file($packlist);
 	} else {
 
 		my $output = catfile( $self->_get_output_dir, 'debug.out' );
@@ -185,11 +191,11 @@ EOF
 		} else {
 			$self->trace_line( 4, "Adding files:\n" );
 			$self->trace_line( 4, q{  } . join "\n  ", @files_list );
-			$fl = File::List::Object->new->load_array(@files_list);
+			$filelist = File::List::Object->new->load_array(@files_list);
 		}
 	} ## end else [ if ( -r $perl ) ]
 
-	return $fl->filter( $self->_filters );
+	return $filelist->filter( $self->_filters );
 } ## end sub search_packlist
 
 

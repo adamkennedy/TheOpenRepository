@@ -1,7 +1,7 @@
 package Perl::Dist::WiX::Asset::Binary;
 
 use Moose;
-use MooseX::Types::Moose qw( Str ); 
+use MooseX::Types::Moose qw( Str HashRef Maybe ); 
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };

@@ -3,7 +3,7 @@ package Perl::Dist::WiX::Asset::Perl;
 # Perl::Dist asset for the Perl source code itself
 
 use Moose;
-use MooseX::Types::Moose qw( Str Hashref ArrayRef ); 
+use MooseX::Types::Moose qw( Str HashRef ArrayRef Bool ); 
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };

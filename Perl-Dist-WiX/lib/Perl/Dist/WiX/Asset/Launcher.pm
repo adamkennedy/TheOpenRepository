@@ -1,4 +1,4 @@
-package Perl::Dist::WiX:Asset::Launcher;
+package Perl::Dist::WiX::Asset::Launcher;
 
 use Moose;
 use MooseX::Types::Moose qw( Str ); 

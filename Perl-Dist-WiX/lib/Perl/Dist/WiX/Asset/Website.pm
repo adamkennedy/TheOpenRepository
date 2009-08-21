@@ -45,9 +45,9 @@ sub install {
 
 	my $website;
 	# Use exceptions instead of dieing.
-	open $website, q{>}, $filename  or die "open($to): $!";
-	print $website $self->content() or die "print($to): $!";
-	close $website                  or die "close($to): $!";
+	open $website, q{>}, $filename  or die "open($filename): $!";
+	print $website $self->content() or die "print($filename): $!";
+	close $website                  or die "close($filename): $!";
 
 	# Add the file.
 	$self->add_file(
@@ -73,10 +73,12 @@ sub _content {
 	
 	my @content = "[InternetShortcut]\n";
 	push @content, "URL=" . $self->_get_url();
-	if ( defined my $file = $self->_get_icon_file() ) {
+	my $file = $self->_get_icon_file();
+	if ( defined $file ) {
 		push @content, "IconFile=" . $file;
 	}
-	if ( defined my $index = $self->_get_icon_index() ) {
+	my $index = $self->_get_icon_index();
+	if ( defined $index ) {
 		push @content, "IconIndex=" . $index;
 	}
 	return join '', map { "$_\n" } @content;

@@ -1,7 +1,7 @@
 package Perl::Dist::WiX::Asset::Library;
 
 use Moose;
-use MooseX::Types::Moose qw( Str ); 
+use MooseX::Types::Moose qw( Str Maybe HashRef ); 
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -63,7 +63,7 @@ sub install {
 
 	# Build the .a file if needed
 	my $build_a = $self->_get_build_a();
-	if ( defined $build_a ) ) {
+	if ( defined $build_a ) {
 
 		# Hand off for the .a generation
 		push @files,
@@ -91,7 +91,7 @@ sub install {
 
 	# Copy in licenses
 	my $licenses = $self->_get_license();
-	if ( defined $licenses ) ) {
+	if ( defined $licenses ) {
 		my $license_dir = catdir( $self->image_dir, 'licenses' );
 		push @files,
 		  $self->_extract_filemap( $tgz, $licenses, $license_dir,
