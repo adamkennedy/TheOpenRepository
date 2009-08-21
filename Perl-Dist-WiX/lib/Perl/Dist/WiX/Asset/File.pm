@@ -2,6 +2,8 @@ package Perl::Dist::WiX::Asset::File;
 
 use Moose;
 use MooseX::Types::Moose qw( Str ); 
+require File::Remove;
+require File::List::Object;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -14,6 +16,39 @@ has install_to => (
 	reader   => '_get_install_to',
 	required => 1,
 );
+
+sub install {
+	my $self = shift;
+
+	my $download_dir = $self->_get_download_dir();
+	my $image_dir    = $self->_get_image_dir();	
+	my @files;
+
+	
+	# Get the file
+	my $tgz = $self->_mirror( $self->_get_url, $download_dir );
+
+	# Copy the file to the target location
+	my $from = catfile( $download_dir, $self->_get_file );
+	my $to   = catfile( $image_dir,    $self->_get_install_to );
+	unless ( -f $to ) {
+		push @files, $to;
+	}
+
+	$self->_copy( $from => $to );
+
+	# Clear the download file
+	File::Remove::remove( \1, $tgz );
+
+	my $filelist =
+	  File::List::Object->new->load_array(@files)->filter( $self->_filters );
+
+	return $filelist;
+} ## end sub install_file
+
+1;
+
+__END__
 
 =pod
 

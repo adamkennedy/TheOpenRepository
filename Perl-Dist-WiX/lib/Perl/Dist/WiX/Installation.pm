@@ -76,7 +76,7 @@ Returns true or throws an exception on error.
 
 sub install_library {
 	my $self    = shift;
-	my $library = Perl::Dist::Asset::Library->new(
+	my $library = Perl::Dist::WiX::Asset::Library->new(
 		parent => $self,
 		@_,
 	);
@@ -136,7 +136,7 @@ Returns true or throws an exception on error.
 
 sub install_distribution {
 	my $self = shift;
-	my $dist = Perl::Dist::Asset::Distribution->new(
+	my $dist = Perl::Dist::WiX::Asset::Distribution->new(
 		parent => $self,
 		@_,
 	);
@@ -351,7 +351,7 @@ Returns true or throws an exception on error.
 
 sub install_module {
 	my $self   = shift;
-	my $module = Perl::Dist::Asset::Module->new(
+	my $module = Perl::Dist::WiX::Asset::Module->new(
 		parent => $self,
 		@_,
 	);
@@ -416,96 +416,21 @@ Returns true on success or throws an exception on error.
 
 sub install_par {
 	my $self = shift;
-	my $output;
-	$self->trace_line( 1, q{Preparing } . {@_}->{name} . "\n" );
-	my $io = IO::String->new($output);
-	my $packlist;
 
-	# When $saved goes out of context, STDOUT will be restored.
-	{
-		my $saved = SelectSaver->new($io);
+	# Create Asset::Par object.
+	my $par = Perl::Dist::WiX::Asset::PAR->new(
+		parent => $self,
 
-		# Create Asset::Par object.
-		my $par = Perl::Dist::Asset::PAR->new(
-			parent => $self,
+		# not supported at the moment:
+		#install_to => 'c', # Default to the C dir
+		@_,
+	);
 
-			# not supported at the moment:
-			#install_to => 'c', # Default to the C dir
-			@_,
-		);
-
-		# Download the file.
-		# Do it here for consistency instead of letting PAR::Dist do it
-		my $file = $self->_mirror( $par->url, $self->download_dir, );
-
-		# Set the appropriate installation paths
-		my $no_colon = $par->name;
-		$no_colon =~ s{::}{-}gmsx;     # Convert colons to dashes.
-		my $perldir = catdir( $self->image_dir, 'perl' );
-		my $libdir = catdir( $perldir, 'site', 'lib' );
-		my $bindir = catdir( $perldir, 'bin' );
-		$packlist = catfile( $libdir, $no_colon, '.packlist' );
-		my $cdir = catdir( $self->image_dir, 'c' );
-
-		# Suppress warnings for resources that don't exist
-		local $WARNING = 0;
-
-		# Install
-		PAR::Dist::install_par(
-			dist           => $file,
-			packlist_read  => $packlist,
-			packlist_write => $packlist,
-			inst_lib       => $libdir,
-			inst_archlib   => $libdir,
-			inst_bin       => $bindir,
-			inst_script    => $bindir,
-			inst_man1dir   => undef,   # no man pages
-			inst_man3dir   => undef,   # no man pages
-			custom_targets => {
-				'blib/c/lib'     => catdir( $cdir, 'lib' ),
-				'blib/c/bin'     => catdir( $cdir, 'bin' ),
-				'blib/c/include' => catdir( $cdir, 'include' ),
-				'blib/c/share'   => catdir( $cdir, 'share' ),
-			},
-		);
-	}
-
-	# Print saved output if required.
-	$io->close;
-	$self->trace_line( 2, $output );
-
-	# Get distribution name to add to what's installed.
-	if ( ( defined {@_}->{url} ) and ( {@_}->{url} =~ m{.*/([^/]*)\z}msx ) )
-	{
-		my $dist_info = $1;
-		$dist_info =~ s{\.par}{}msx;   # Take off .par extension.
-#<<<
-		if ($dist_info =~
-            m{\A(.*?)   # Grab anything that could be the name non-greedily, ...
-			-           # break at a dash,
-			([0-9._]*)  # then try to grab a version,
-			(?:-.*)?    # then discard anything else.
-			\z}msx
-		  )
-#>>>
-		{
-			my ( $name, $ver ) = ( $1, $2 );
-			$dist_info = "$name-$ver";
-			$self->_add_to_distributions_installed($dist_info);
-		} else {
-			$self->trace_line( 1, <<"EOF");
-Could not parse name of .par to determine name and version.
-Source: $dist_info
-EOF
-		}
-	} ## end if ( ( defined {@_}->{...}))
-
-	# Read in the .packlist and return it.
-	my $filelist =
-	  File::List::Object->new->load_file($packlist)
-	  ->filter( $self->filters )->add_file($packlist);
-
-	return $filelist;
+	my $filelist = $par->install();
+	
+	# TODO: Put in fragment.
+	
+	return $self;
 } ## end sub install_par
 
 =pod
@@ -549,7 +474,7 @@ The 'share' method is used to provide a path to a file installed as
 part of a CPAN distribution, and accessed via 
 L<File::ShareDir|File::ShareDir>.
 
-It should be a string containing two space-seperated value, the first
+It should be a string containing two space-separated values, the first
 of which is the distribution name, and the second is the path within
 the share dir of that distribution.
 
@@ -557,37 +482,20 @@ The final compulsory method is the 'install_to' method, which provides
 either a destination file path, or alternatively a path to an existing
 directory that the file be installed below, using its source file name.
 
-Returns true or throws an exception on error.
+Returns the file installed as a L<File::List::Object|File::List::Object> 
+or throws an exception on error.
 
 =cut
 
 sub install_file {
 	my $self = shift;
-	my $dist = Perl::Dist::Asset::File->new(
+	my $file = Perl::Dist::WiX::Asset::File->new(
 		parent => $self,
 		@_,
 	);
 
-	my @files;
-
-	# Get the file
-	my $tgz = $self->_mirror( $dist->url, $self->download_dir );
-
-	# Copy the file to the target location
-	my $from = catfile( $self->download_dir, $dist->file );
-	my $to   = catfile( $self->image_dir,    $dist->install_to );
-	unless ( -f $to ) {
-		push @files, $to;
-	}
-
-	$self->_copy( $from => $to );
-
-	# Clear the download file
-	File::Remove::remove( \1, $tgz );
-
-	my $filelist =
-	  File::List::Object->new->load_array(@files)->filter( $self->filters );
-
+	my $filelist = $file->install();
+	
 	return $filelist;
 } ## end sub install_file
 
@@ -620,30 +528,12 @@ Returns true or throws an exception on error.
 
 sub install_launcher {
 	my $self     = shift;
-	my $launcher = Perl::Dist::Asset::Launcher->new(
+	my $launcher = Perl::Dist::WiX::Asset::Launcher->new(
 		parent => $self,
 		@_,
 	);
 
-	# Check the script exists
-	my $to =
-	  catfile( $self->image_dir, 'perl', 'bin', $launcher->bin . '.bat' );
-	unless ( -f $to ) {
-		PDWiX->throw(
-			q{The script '} . $launcher->bin . q{" does not exist} );
-	}
-
-	my $icon_id = $self->icons->add_icon(
-		catfile( $self->dist_dir, $launcher->bin . '.ico' ),
-		$launcher->bin . '.bat' );
-
-	# Add the icon.
-	$self->add_icon(
-		name     => $launcher->name,
-		filename => $to,
-		fragment => 'Icons',
-		icon_id  => $icon_id
-	);
+	$launcher->install();
 
 	return $self;
 } ## end sub install_launcher
@@ -685,28 +575,9 @@ sub install_website {
 		@_,
 	);
 
-	my $filename = catfile( $self->image_dir, 'win32', $website->file );
-
-	# Write the file directly to the image
-	$website->write($filename);
-
-	# Add the file.
-	$self->add_file(
-		source   => $filename,
-		fragment => 'Win32Extras'
-	);
-
-	my $icon_id = $self->icons->add_icon( $website->icon_file, $filename );
-
-	# Add the icon.
-	$self->add_icon(
-		name     => $website->name,
-		filename => $filename,
-		fragment => 'Icons',
-		icon_id  => $icon_id,
-	);
-
-	return $filename;
+	$website->install();
+	
+	return $self;
 } ## end sub install_website
 
 __END__

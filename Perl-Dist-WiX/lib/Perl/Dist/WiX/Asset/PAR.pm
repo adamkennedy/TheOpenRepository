@@ -2,6 +2,10 @@ package Perl::Dist::WiX::Asset::PAR;
 
 use Moose;
 use MooseX::Types::Moose qw( Str ); 
+use File::Spec::Functions qw( catdir catfile );
+require SelectSaver;
+require PAR::Dist;
+require IO::String;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -14,6 +18,100 @@ has name => (
 	reader   => '_get_name',
 	required => 1,
 );
+
+sub install {
+	my $self = shift;
+	
+	my $parent = $self->_get_parent();
+	my $name = $self->get_name();
+	my $image_dir = $self->_get_image_dir();
+	my $dowmload_dir = $self->_get_download_dir();
+	my $url = $self->_get_url();
+		
+	$self->_trace_line( 1, "Preparing $name\n" );
+
+	my $output;
+	my $io = IO::String->new($output);
+	my $packlist;
+
+	# When $saved goes out of context, STDOUT will be restored.
+	{
+		my $saved = SelectSaver->new($io);
+
+		# Download the file.
+		# Do it here for consistency instead of letting PAR::Dist do it
+		my $file = $self->_mirror( $url, $download_dir, );
+
+		# Set the appropriate installation paths
+		my @module_dirs = split m{::}ms, $name;
+		my $perldir = catdir( $image_dir, 'perl' );
+		# TODO: VENDORPERL: Change to vendor.
+		my $libdir = catdir( $perldir, 'site', 'lib' );
+		my $bindir = catdir( $perldir, 'bin' );
+		$packlist = catfile( $libdir, 'auto', @module_dirs, '.packlist' );
+		my $cdir = catdir( $image_dir, 'c' );
+
+		# Suppress warnings for resources that don't exist
+		local $WARNING = 0;
+
+		# Install
+		PAR::Dist::install_par(
+			dist           => $file,
+			packlist_read  => $packlist,
+			packlist_write => $packlist,
+			inst_lib       => $libdir,
+			inst_archlib   => $libdir,
+			inst_bin       => $bindir,
+			inst_script    => $bindir,
+			inst_man1dir   => undef,   # no man pages
+			inst_man3dir   => undef,   # no man pages
+			custom_targets => {
+				'blib/c/lib'     => catdir( $cdir, 'lib' ),
+				'blib/c/bin'     => catdir( $cdir, 'bin' ),
+				'blib/c/include' => catdir( $cdir, 'include' ),
+				'blib/c/share'   => catdir( $cdir, 'share' ),
+			},
+		);
+	}
+
+	# Print saved output if required.
+	$io->close;
+	$self->trace_line( 2, $output );
+
+	# Get distribution name to add to what's installed.
+	if ( ( defined $url ) and ( $url =~ m{.*/([^/]*)\z}msx ) )
+	{
+		my $dist_info = $1;
+		$dist_info =~ s{\.par}{}msx;   # Take off .par extension.
+#<<<
+		if ($dist_info =~
+            m{\A(.*?)   # Grab anything that could be the name non-greedily, ...
+			-           # break at a dash,
+			([0-9._]*)  # then try to grab a version,
+			(?:-.*)?    # then discard anything else.
+			\z}msx
+		  )
+#>>>
+		{
+			my ( $name, $ver ) = ( $1, $2 );
+			$dist_info = "$name-$ver";
+			$self->_add_to_distributions_installed($dist_info);
+		} else {
+			$self->_trace_line( 1, <<"EOF");
+Could not parse name of .par to determine name and version.
+Source: $dist_info
+EOF
+		}
+	} ## end if ( ( defined {@_}->{...}))
+
+	# Read in the .packlist and return it.
+	my $filelist =
+	  File::List::Object->new->load_file($packlist)
+	  ->filter( $self->_filters )->add_file($packlist);
+
+	return $filelist;
+} ## end sub install_par
+
 
 1;
 

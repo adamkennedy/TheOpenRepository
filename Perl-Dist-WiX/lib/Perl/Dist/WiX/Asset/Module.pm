@@ -39,24 +39,21 @@ sub install_module {
 	my $self   = shift;
 	my $name  = $module->_get_name();
 	my $force = $module->_get_force();
-	my $parent = $self->_get_parent();
-	
-	
-	my $packlist_flag =
-	  defined $module->{packlist} ? $module->{packlist} : 1;
+		
+	my $packlist_flag = $module->_get_packlist();
 
-	unless ( $parent->bin_perl ) {
+	unless ( $self->_get_bin_perl ) {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
-	my $dist_file = catfile( $parent->output_dir, 'cpan_distro.txt' );
+	my $dist_file = catfile( $self->_get_output_dir, 'cpan_distro.txt' );
 
 	# Generate the CPAN installation script.
 	# Fix url's for minicpans until 1.9403 is released.
-	my $url = $parent->cpan()->as_string();
+	my $url = $self->_get_cpan()->as_string();
 	$url =~ s{\Afile:///C:/}{file://C:/}msx;
 
-	my $dp_dir = catdir( $parent->wix_dist_dir, 'distroprefs' );
+	my $dp_dir = catdir( $self->_get_wix_dist_dir, 'distroprefs' );
 	my $internet_available = ($url =~ m{ \A file://}msx) ? 1 : 0; 
 	
 	my $cpan_string = <<"END_PERL";
@@ -101,15 +98,15 @@ END_PERL
 	if ( not $self->_get_packlist() ) {
 		$filelist_sub = File::List::Object->new->readdir(
 			catdir( $self->image_dir, 'perl' ) );
-		$parent->trace_line( 5,
+		$self->_trace_line( 5,
 			    "***** Module being installed $name"
 			  . " requires packlist => 0 *****\n" );
 	}
 
 	# Dump the CPAN script to a temp file and execute
-	$parent->trace_line( 1, "Running install of $name\n" );
-	$parent->trace_line( 2, '  at ' . localtime() . "\n" );
-	my $cpan_file = catfile( $parent->build_dir, 'cpan_string.pl' );
+	$self->_trace_line( 1, "Running install of $name\n" );
+	$self->_trace_line( 2, '  at ' . localtime() . "\n" );
+	my $cpan_file = catfile( $self->_get_build_dir(), 'cpan_string.pl' );
   SCOPE: {
 		my $CPAN_FILE;
 		open $CPAN_FILE, '>', $cpan_file
@@ -121,7 +118,7 @@ END_PERL
 	local $ENV{PERL_MM_USE_DEFAULT} = 1;
 	local $ENV{AUTOMATED_TESTING}   = undef;
 	local $ENV{RELEASE_TESTING}     = undef;
-	$parent->_run3( $parent->bin_perl, $cpan_file )
+	$self->_run3( $self->_get_bin_perl, $cpan_file )
 	  or PDWiX->throw('CPAN script execution failed');
 	PDWiX->throw(
 		"Failure detected installing $name, stopping [$CHILD_ERROR]")
@@ -139,9 +136,9 @@ END_PERL
 		$dist_info =~ s{\.tar\.gz}{}msx;   # Take off extensions.
 		$dist_info =~ s{\.zip}{}msx;
 		$dist_info =~ s{.+\/}{}msx;    # Take off directories.
-		$parent->_add_to_distributions_installed($dist_info);
+		$self->_add_to_distributions_installed($dist_info);
 	} else {
-		$parent->trace_line( 0,
+		$self->_trace_line( 0,
 			"Distribution for module $name was up-to-date\n" );
 	}
 
@@ -150,9 +147,9 @@ END_PERL
 	if ($packlist_flag) {
 		$filelist = $self->_search_packlist( $name );
 	} else {
-		$filelist = File::List::Object->new->readdir(
+		$filelist = File::List::Object->new()->readdir(
 			catdir( $self->image_dir, 'perl' ) );
-		$filelist->subtract($filelist_sub)->filter( $self->filters );
+		$filelist->subtract($filelist_sub)->filter( $self->_filters );
 	}
 
 	return $filelist;

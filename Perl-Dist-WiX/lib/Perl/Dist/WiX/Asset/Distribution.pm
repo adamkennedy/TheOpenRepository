@@ -112,7 +112,7 @@ sub install {
 
 	# Download the file
 	my $tgz =
-	  $self->_mirror( $self->abs_uri( $parent->cpan ), $parent->modules_dir, );
+	  $self->_mirror( $self->abs_uri( $self->_get_cpan ), $self->_get_modules_dir, );
 
 	# Where will it get extracted to
 	my $dist_path = $name;

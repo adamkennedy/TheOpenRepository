@@ -11,64 +11,75 @@ with 'Perl::Dist::WiX::Role::Asset';
 has name => (
 	is       => 'ro',
 	isa      => Str,
-	reader   => '_get_name',
+	reader   => 'get_name',
 	required => 1,
 );
 
 has url => (
 	is       => 'ro',
 	isa      => Str,
-	reader   => 'get_force',
+	reader   => '_get_url',
 	required => 1,
 );
 
 has icon_file => (
 	is       => 'ro',
 	isa      => Str,
-	reader   => 'get_icon_file',
+	reader   => '_get_icon_file',
 	default  => undef,
 );
 
 has icon_index => (
 	is       => 'ro',
 	isa      => Maybe[Int],
-	reader   => 'get_icon_index',
+	reader   => '_get_icon_index',
 	lazy     => 1,
 	default  => sub { defined shift->get_icon_file() ? 1 : undef;},
 );
 
-
-
-
-
-
-
-sub file {
-	shift->_get_name() . '.url';
-}
-
-sub content {
+sub install {
 	my $self    = shift;
+
+	my $name = $self->get_name();
+	my $filename = catfile( $self->_get_image_dir, 'win32', "$name.url" );
+
+	my $website;
+	# Use exceptions instead of dieing.
+	open $website, q{>}, $filename  or die "open($to): $!";
+	print $website $self->content() or die "print($to): $!";
+	close $website                  or die "close($to): $!";
+
+	# Add the file.
+	$self->add_file(
+		source   => $filename,
+		fragment => 'Win32Extras'
+	);
+
+	my $icon_id = $self->_get_icons()->add_icon( $self->_get_icon_file(), $filename );
+
+	# Add the icon.
+	$self->add_icon(
+		name     => $name,
+		filename => $filename,
+		fragment => 'Icons',
+		icon_id  => $icon_id,
+	);
+
+	return $filename;
+} ## end sub install_website
+
+sub _content {
+	my $self    = shift;
+	
 	my @content = "[InternetShortcut]\n";
-	push @content, "URL=" . $self->get_url();
-	if ( defined my $file = $self->get_icon_file() ) {
+	push @content, "URL=" . $self->_get_url();
+	if ( defined my $file = $self->_get_icon_file() ) {
 		push @content, "IconFile=" . $file;
 	}
-	if ( defined my $index = $self->get_icon_index() ) {
+	if ( defined my $index = $self->_get_icon_index() ) {
 		push @content, "IconIndex=" . $index;
 	}
 	return join '', map { "$_\n" } @content;
-}
-
-sub write {
-	my $self = shift;
-	my $to   = shift;
-	my $website;
-	# Use exceptions instead of dieing.
-	open $website, q{>}, $to        or die "open($to): $!";
-	print $website $self->content() or die "print($to): $!";
-	close $website                  or die "close($to): $!";
-	return 1;
 }
 
 1;

@@ -46,22 +46,20 @@ has build_a => (
 sub install {
 	my $self    = shift;
 
-	my $parent = $self->_get_parent();
-	
 	my $name = $self->_get_name();
-	$parent->trace_line( 1, "Preparing $name\n" );
+	$self->_trace_line( 1, "Preparing $name\n" );
 
 	# Download the file
-	my $tgz = $parent->_mirror( $self->_get_url(), $parent->download_dir(), );
+	my $tgz = $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
 
 	# Unpack to the build directory
 	my @files;
-	my $unpack_to = catdir( $parent->build_dir(), $self->_get_unpack_to() );
+	my $unpack_to = catdir( $self->_get_build_dir(), $self->_get_unpack_to() );
 	if ( -d $unpack_to ) {
-		$parent->trace_line( 2, "Removing previous $unpack_to\n" );
+		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
 		File::Remove::remove( \1, $unpack_to );
 	}
-	@files = $parent->_extract( $tgz, $unpack_to );
+	@files = $self->_extract( $tgz, $unpack_to );
 
 	# Build the .a file if needed
 	my $build_a = $self->_get_build_a();
@@ -69,7 +67,7 @@ sub install {
 
 		# Hand off for the .a generation
 		push @files,
-		  $parent->_dll_to_a(
+		  $self->_dll_to_a(
 			$build_a->{source}
 			? ( source =>
 				  catfile( $unpack_to, $build_a->{source} ), )
@@ -85,8 +83,8 @@ sub install {
 	if ( $install_to ) {
 		foreach my $k ( sort keys %{$install_to} ) {
 			my $from = catdir( $unpack_to,       $k );
-			my $to   = catdir( $parent->image_dir(), $install_to->{$k} );
-			$parent->_copy( $from, $to );
+			my $to   = catdir( $self->_get_image_dir(), $install_to->{$k} );
+			$self->_copy( $from, $to );
 			@files = $self->_copy_filesref( \@files, $from, $to );
 		}
 	}
@@ -103,7 +101,7 @@ sub install {
 	my @sorted_files = sort { $a cmp $b } @files;
 	my $filelist =
 	  File::List::Object->new->load_array(@sorted_files)
-	  ->filter( $self->filters )->filter( [$unpack_to] );
+	  ->filter( $self->_filters )->filter( [$unpack_to] );
 
 	return $filelist;
 } ## end sub install_library

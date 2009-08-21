@@ -53,4 +53,8 @@ has force => (
 	default  => sub { !! $_[0]->parent->force },
 );
 
+sub install {
+	# TODO: Throw exception.
+}
+
 1;

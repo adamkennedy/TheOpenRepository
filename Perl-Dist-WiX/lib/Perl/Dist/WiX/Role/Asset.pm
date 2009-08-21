@@ -21,6 +21,25 @@ has parent => (
 	is       => 'ro',
 	isa      => 'Perl::Dist::WiX',
 	reader   => 'get_parent',
+	handles  => { 
+		'image_dir'    => '_get_image_dir',
+		'download_dir' => '_get_download_dir',
+		'output_dir'   => '_get_output_dir',
+		'modules_dir'  => '_get_modules_dir',
+		'cpan'         => '_get_cpan',
+		'bin_perl'     => '_get_bin_perl',
+		'wix_dist_dir' => '_get_wix_dist_dir',
+		'icons'        => '_get_icons',
+		'trace_line'   => '_trace_line',
+		'_mirror'      => '_mirror',
+		'_run3'        => '_run3',		
+		'filters'      => '_filters',
+		'add_icon'     => '_add_icon',
+		'_dll_to_a'    => '_dll_to_a',
+		'_copy'        => '_copy',
+		'_extract'     => '_extract',
+		'_add_to_distributions_installed' => '_add_to_distributions_installed',
+	},
 	required => 1,
 );
 
@@ -109,8 +128,6 @@ sub cpan {
 
 sub _search_packlist {
 	my ( $self, $module ) = @_;
-
-	my $parent = $self->_get_parent();
 	
 	# We don't use the error until later, if needed.
 	my $error = <<"EOF";
@@ -124,11 +141,12 @@ packlist => 0.
 EOF
 	chomp $error;
 
+	my $image_dir = $self->_get_image_dir();
 	my @module_dirs = split /::/ms, $module;
 	my @dirs = (
-		catdir( $parent->image_dir, qw{perl vendor lib auto}, @module_dirs),
-		catdir( $parent->image_dir, qw{perl site   lib auto}, @module_dirs),
-		catdir( $parent->image_dir, qw{perl        lib auto}, @module_dirs),
+		catdir( $image_dir, qw{perl vendor lib auto}, @module_dirs),
+		catdir( $image_dir, qw{perl site   lib auto}, @module_dirs),
+		catdir( $image_dir, qw{perl        lib auto}, @module_dirs),
 	);
 
 	my $packlist;
@@ -142,10 +160,10 @@ EOF
 		$fl = File::List::Object->new->load_file($packlist)->add_file($packlist);
 	} else {
 
-		my $output = catfile( $parent->output_dir, 'debug.out' );
+		my $output = catfile( $self->_get_output_dir, 'debug.out' );
 		
 		# Trying to use the output to make an array.
-		$parent->trace_line( 3,
+		$self->trace_line( 3,
 			"Attempting to use debug.out file to make filelist\n" );
 
 		my $fh = IO::File->new( $output, 'r' );
@@ -165,13 +183,13 @@ EOF
 		if ( $#files_list == 0 ) {
 			PDWiX->throw($error);
 		} else {
-			$parent->trace_line( 4, "Adding files:\n" );
-			$parent->trace_line( 4, q{  } . join "\n  ", @files_list );
+			$self->trace_line( 4, "Adding files:\n" );
+			$self->trace_line( 4, q{  } . join "\n  ", @files_list );
 			$fl = File::List::Object->new->load_array(@files_list);
 		}
 	} ## end else [ if ( -r $perl ) ]
 
-	return $fl->filter( $parent->filters );
+	return $fl->filter( $self->_filters );
 } ## end sub search_packlist
 
 
