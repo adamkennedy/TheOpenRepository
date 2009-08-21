@@ -152,7 +152,7 @@ sub chart {
 		$scale ? ($_ / $scale * 100) : 0
 	} @report;
 	Google::Chart->new(
-		title => $title,
+		title => { text => $title },
 		type  => 'Line',
 		data  => \@data,
 	);
