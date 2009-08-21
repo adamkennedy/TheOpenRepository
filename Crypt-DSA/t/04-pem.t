@@ -2,6 +2,10 @@ use strict;
 
 use Test::More;
 BEGIN {
+    eval { require Crypt::DES_EDE3 };
+    if ($@) {
+        Test::More->import( skip_all => 'no Crypt::DES_EDE3' );
+    }
     eval { require Convert::PEM };
     if ($@) {
         Test::More->import( skip_all => 'no Convert::PEM' );
