@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use File::Spec          0.80 ();
 use HTML::Spry::DataSet 0.01 ();
-use Google::Chart 0.05013;
+use Google::Chart 0.05014;
 use CPANDB 0.10 {
 	maxage => 0
 };
