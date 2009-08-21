@@ -31,8 +31,6 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 # Accessors:
 #   None.
 
-#__PACKAGE__->meta->error_class('WiX3::Util::Error');
-
 has id => (
 	is       => 'ro',
 	isa      => Str,
