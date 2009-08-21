@@ -23,10 +23,11 @@ install the C toolchain and library files.
 
 =cut
 
-use     5.008001;
-use     strict;
-use     warnings;
-use     Perl::Dist::WiX::Exceptions;
+use 5.008001;
+use strict;
+use warnings;
+use File::Spec::Functions qw( catfile );
+use Perl::Dist::WiX::Exceptions;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };

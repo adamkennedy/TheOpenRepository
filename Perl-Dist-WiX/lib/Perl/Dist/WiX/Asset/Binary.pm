@@ -2,12 +2,12 @@ package Perl::Dist::WiX::Asset::Binary;
 
 use Moose;
 use MooseX::Types::Moose qw( Str HashRef Maybe ); 
+use File::Spec::Functions qw( catdir );
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::Asset';
-with 'WiX3::Role::Traceable';
 
 has name => (
 	is       => 'ro',
@@ -32,46 +32,45 @@ has license => (
 
 sub install {
 	my $self   = shift;
-
-	my $parent = $self->_get_parent();
 	
 	my $name = $self->_get_name();
-	$self->trace_line( 1, "Preparing $name\n" );
+	$self->_trace_line( 1, "Preparing $name\n" );
 
 	# Download the file
-	my $tgz = $parent->_mirror( $self->_get_url, $parent->download_dir, );
+	my $tgz = $self->_mirror( $self->_get_url, $self->_get_download_dir, );
 
 	# Unpack the archive
 	my @files;
 	my $install_to = $self->_get_install_to();
 	if ( ref $install_to eq 'HASH' ) {
 		@files =
-		  $parent->_extract_filemap( $tgz, $install_to,
-			$parent->image_dir );
+		  $self->_extract_filemap( $tgz, $install_to,
+			$self->_get_image_dir );
 
 	} elsif ( !ref $install_to ) {
 
 		# unpack as a whole
-		my $tgt = catdir( $parent->image_dir, $install_to );
-		@files = $parent->_extract( $tgz, $tgt );
+		my $tgt = catdir( $self->_get_image_dir(), $install_to );
+		@files = $self->_extract( $tgz, $tgt );
 	}
 
 	# Find the licenses
 	my $licenses = $self->_get_license();
 	if ( defined $licenses ) {
 		push @files,
-		  $parent->_extract_filemap( $tgz, $licenses,
-			$parent->license_dir, 1 );
+		  $self->_extract_filemap( $tgz, $licenses,
+			$self->_get_license_dir, 1 );
 	}
 
 	my $filelist =
-	  File::List::Object->new()->load_array(@files)->filter( $parent->filters );
+	  File::List::Object->new()->load_array(@files)->filter( $self->_filters );
 
 	return $filelist;
 } ## end sub install_binary
 
-
 1;
+
+__END__
 
 =pod
 

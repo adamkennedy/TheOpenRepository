@@ -41,7 +41,7 @@ has packlist => (
 #	extras
 #};
 
-sub install_module {
+sub install {
 	my $self   = shift;
 	my $name  = $self->_get_name();
 	my $force = $self->_get_force();
@@ -160,6 +160,5 @@ END_PERL
 
 	return $filelist;
 } ## end sub install_module
-
 
 1;

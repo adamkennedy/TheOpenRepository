@@ -211,7 +211,7 @@ sub install_distribution_from_file {
 
 	my $dist = Perl::Dist::WiX::Asset::DistFile->new(@_);
 
-	$dist->install();
+	my $filelist = $dist->install();
 	my $mod_id = $dist->_get_module_name();
 
 	$mod_id =~ s{::}{_}msg;

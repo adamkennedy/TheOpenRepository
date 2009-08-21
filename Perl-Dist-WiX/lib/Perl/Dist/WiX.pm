@@ -81,6 +81,7 @@ use     parent                qw( Perl::Dist::WiX::Installer
                                   Perl::Dist::WiX::BuildPerl
                                   Perl::Dist::WiX::Checkpoint
                                   Perl::Dist::WiX::Libraries
+                                  Perl::Dist::WiX::Installation
                                   Perl::Dist::WiX::ReleaseNotes );
 use     Archive::Zip          qw( :ERROR_CODES                  );
 use     English               qw( -no_match_vars                );

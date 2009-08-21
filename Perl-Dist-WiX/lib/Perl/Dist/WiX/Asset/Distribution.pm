@@ -1,7 +1,9 @@
 package Perl::Dist::WiX::Asset::Distribution;
 
 use Moose;
+use MooseX::Types::Moose qw( Str Bool ArrayRef Maybe ); 
 use File::Spec::Functions qw( catdir catfile );
+
 require File::Remove;
 require URI;
 
@@ -9,7 +11,7 @@ our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::Asset';
-extends 'Perl::Dist::WiX::Role::DistBase';
+extends 'Perl::Dist::WiX::Asset::DistBase';
 
 has name => (
 	is       => 'ro',

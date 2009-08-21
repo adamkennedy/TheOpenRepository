@@ -6,6 +6,7 @@ use 5.008001;
 use Moose::Role;
 use File::Spec::Functions qw( rel2abs );
 use MooseX::Types::Moose qw( Str );
+use Params::Util qw( _INSTANCE );
 require File::List::Object;
 require File::ShareDir;
 require File::Spec::Unix;
@@ -19,28 +20,30 @@ $VERSION = eval { return $VERSION };
 has parent => (
 	is       => 'ro',
 	isa      => 'Perl::Dist::WiX',
-	reader   => 'get_parent',
+	reader   => '_get_parent',
 	handles  => { 
-		'image_dir'    => '_get_image_dir',
-		'download_dir' => '_get_download_dir',
-		'output_dir'   => '_get_output_dir',
-		'modules_dir'  => '_get_modules_dir',
-		'cpan'         => '_get_cpan',
-		'bin_perl'     => '_get_bin_perl',
-		'wix_dist_dir' => '_get_wix_dist_dir',
-		'icons'        => '_get_icons',
-		'trace_line'   => '_trace_line',
-		'_mirror'      => '_mirror',
-		'_run3'        => '_run3',		
-		'filters'      => '_filters',
-		'add_icon'     => '_add_icon',
-		'_dll_to_a'    => '_dll_to_a',
-		'_copy'        => '_copy',
-		'_extract'     => '_extract',
-		'_pushd'       => '_pushd',
-		'_perl'        => '_perl',
-		'_build'       => '_build',
-		'_make'        => '_make',
+		'_get_image_dir',   => 'image_dir',
+		'_get_download_dir' => 'download_dir',
+		'_get_output_dir'   => 'output_dir',
+		'_get_modules_dir'  => 'modules_dir',
+		'_get_license_dir'  => 'license_dir',
+		'_get_cpan'         => 'cpan',
+		'_get_bin_perl'     => 'bin_perl',
+		'_get_wix_dist_dir' => 'wix_dist_dir',
+		'_get_icons'        => 'icons',
+		'_trace_line'       => 'trace_line',
+		'_mirror'           => '_mirror',
+		'_run3'             => '_run3',		
+		'_filters'          => 'filters',
+		'_add_icon'         => 'add_icon',
+		'_dll_to_a'         => '_dll_to_a',
+		'_copy'             => '_copy',
+		'_extract'          => '_extract',
+		'_extract_filemap'  => '_extract_filemap',
+		'_pushd'            => '_pushd',
+		'_perl'             => '_perl',
+		'_build'            => '_build',
+		'_make'             => '_make',
 		'_add_to_distributions_installed' => '_add_to_distributions_installed',
 	},
 	required => 1,
@@ -126,7 +129,7 @@ sub BUILDARGS {
 	}
 
 	my %default_args = ( url => $args{url}, file => $args{file}, parent => $args{parent} );
-	delete @args{'url', 'file', 'parent', 'name', 'share', 'dist'};
+	delete @args{'url', 'file', 'parent'};
 	
 	return { (%default_args) , (%args) };
 }

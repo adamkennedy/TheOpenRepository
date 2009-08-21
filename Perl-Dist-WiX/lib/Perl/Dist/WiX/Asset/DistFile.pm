@@ -13,7 +13,7 @@ our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::Asset';
-extends 'Perl::Dist::WiX::Role::DistBase';
+extends 'Perl::Dist::WiX::Asset::DistBase';
 
 has name => (
 	is       => 'ro',
@@ -178,6 +178,8 @@ sub install {
 	
 	return $filelist;
 } ## end sub install_distribution
+
+1;
 
 __END__
 
