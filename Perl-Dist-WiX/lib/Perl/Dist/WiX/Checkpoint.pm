@@ -167,6 +167,7 @@ sub checkpoint_save {
 #	  ->Data($copy)->Out();
 #	print "\n\n\n";
 	
+	local $Storable::Deparse = 1;
 	Storable::nstore( $copy, $self->checkpoint_file );
 
 	return 1;
@@ -195,6 +196,7 @@ sub checkpoint_load {
 	}
 
 	# Load the stored hash over our object
+	local $Storable::Eval = 1;
 	my $stored = Storable::retrieve( $self->checkpoint_file );
 	%{$self} = %{$stored};
 
@@ -203,6 +205,11 @@ sub checkpoint_load {
 		$self->patch_template();
 		delete $self->{tt_exists};
 	}
+
+	# Reload the misc object.
+	WiX3::Traceable->_clear_instance();
+	$self->{misc} = WiX3::Traceable->new(
+		tracelevel => $self->{trace} );
 
 	# Pull all the directories out of the storage.
 	$self->trace_line( 0, "Restoring checkpoint directories...\n" );

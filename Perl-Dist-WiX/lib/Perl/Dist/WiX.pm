@@ -1127,11 +1127,11 @@ sub run {
 	# Install the core C toolchain
 	$self->checkpoint_task( install_c_toolchain => 1 );
 
-	return;
-	
 	# Install any additional C libraries
 	$self->checkpoint_task( install_c_libraries => 2 );
 
+	return;
+	
 	# Install the Perl binary
 	$self->checkpoint_task( install_perl => 3 );
 

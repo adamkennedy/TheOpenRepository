@@ -665,14 +665,14 @@ sub install_perl_589 {
 
 	my $fl_lic = File::List::Object->new->readdir(
 		catdir( $self->image_dir, 'licenses', 'perl' ) );
-	$self->insert_fragment( 'perl_licenses', $fl_lic->files );
+	$self->insert_fragment( 'perl_licenses', $fl_lic );
 
 	my $fl = File::List::Object->new->readdir(
 		catdir( $self->image_dir, 'perl' ) );
 
 	$fl->subtract($fl2)->filter( $self->filters );
 
-	$self->insert_fragment( 'perl', $fl->files );
+	$self->insert_fragment( 'perl', $fl );
 
 	# Upgrade the toolchain modules
 	$self->install_perl_toolchain($toolchain);
@@ -820,14 +820,14 @@ sub install_perl_5100 {
 
 	my $fl_lic = File::List::Object->new->readdir(
 		catdir( $self->image_dir, 'licenses', 'perl' ) );
-	$self->insert_fragment( 'perl_licenses', $fl_lic->files );
+	$self->insert_fragment( 'perl_licenses', $fl_lic );
 
 	my $fl = File::List::Object->new->readdir(
 		catdir( $self->image_dir, 'perl' ) );
 
 	$fl->subtract($fl2)->filter( $self->filters );
 
-	$self->insert_fragment( 'perl', $fl->files );
+	$self->insert_fragment( 'perl', $fl );
 
 	# Install the toolchain
 	$self->install_perl_toolchain($toolchain);
