@@ -1,13 +1,12 @@
 package WiX3::Role::Traceable;
 
 use 5.008001;
-use strict;
-use warnings;
 use Moose::Role;
 use WiX3::Trace::Object;
+use WiX3::Trace::Config;
 use WiX3::Types qw( TraceConfig TraceObject );
 
-use version; our $VERSION = version->new('0.005')->numify;
+use version; our $VERSION = version->new('0.006')->numify;
 
 has _traceconfig => (
 	is       => 'ro',
