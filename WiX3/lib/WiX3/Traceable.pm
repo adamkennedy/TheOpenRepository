@@ -8,6 +8,7 @@ use metaclass (
 );
 use MooseX::Singleton;
 use WiX3::Util::StrictConstructor;
+use WiX3::Trace::Config;
 
 use version; our $VERSION = version->new('0.006')->numify;
 
@@ -23,7 +24,7 @@ sub BUILDARGS {
 		%args = (@_);
 	}
 
-	return { options => \%args };
+	return { options => WiX3::Trace::Config->new(%args) };
 } ## end sub BUILDARGS
 
 sub BUILD {

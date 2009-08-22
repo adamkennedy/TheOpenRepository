@@ -44,6 +44,10 @@ use Exception::Class 1.29 (
 
 );
 
+sub WiX3::Exception::as_string { ## no critic 'Capitalization'
+	return q{};
+}
+
 sub WiX3::Exception::full_message { ## no critic 'Capitalization'
 	my $self = shift;
 

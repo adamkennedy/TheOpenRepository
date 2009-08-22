@@ -8,12 +8,12 @@ BEGIN {
 	$OUTPUT_AUTOFLUSH = 1;
 }
 
-require WiX3::XML::CreateFolder;
-require WiX3::Traceable;
-
 plan tests => 2;
 
+require WiX3::Traceable;
 WiX3::Traceable->new(tracelevel => 0, testing => 1);
+
+require WiX3::XML::CreateFolder;
 
 my $cf_1 = WiX3::XML::CreateFolder->new();
 ok( $cf_1, 'CreateFolder->new returns true' );

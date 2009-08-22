@@ -33,45 +33,45 @@ has id => (
 # Path helps us in path searching.
 has path => (
 	is      => 'ro',
-	isa     => Maybe[Str],
+	isa     => Maybe [Str],
 	reader  => 'get_path',
 	default => undef,
 );
 
 has noprefix => (
 	is      => 'ro',
-	isa     => Maybe[Str],
+	isa     => Maybe [Str],
 	reader  => '_get_noprefix',
 	default => undef,
 );
 
 has diskid => (
 	is       => 'ro',
-	isa      => Maybe[Int],
+	isa      => Maybe [Int],
 	reader   => '_get_diskid',
 	init_arg => 'diskid',
 	default  => undef,
 );
 
 has filesource => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_filesource',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_filesource',
+	default => undef,
 );
 
 has name => (
 	is      => 'ro',
-	isa     => Maybe[Str],                # LongFileNameType
+	isa     => Maybe [Str],            # LongFileNameType
 	reader  => 'get_name',
 	default => undef,
 );
 
 has sourcename => (
-	is       => 'ro',
-	isa      => Maybe[Str],                   # LongFileNameType
-	reader   => '_get_sourcename',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],            # LongFileNameType
+	reader  => '_get_sourcename',
+	default => undef,
 );
 
 has _shortname => (
@@ -118,7 +118,7 @@ sub BUILDARGS {
 	if ( not defined _IDENTIFIER( $args{'id'} ) ) {
 		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
-	
+
 	return \%args;
 } ## end sub BUILDARGS
 
@@ -135,7 +135,7 @@ sub get_directory_id {
 
 sub add_directory {
 	my $self = shift;
-	
+
 	my $new_dir = WiX3::XML::Directory->new(@_);
 	$self->add_child_tag($new_dir);
 

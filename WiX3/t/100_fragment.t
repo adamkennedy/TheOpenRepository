@@ -8,13 +8,13 @@ BEGIN {
 	$OUTPUT_AUTOFLUSH = 1;
 }
 
-require WiX3::XML::CreateFolder;
+plan tests => 3;
+
 require WiX3::Traceable;
-require WiX3::XML::Fragment;
-
-plan tests => 4;
-
 WiX3::Traceable->new(tracelevel => 0, testing => 1);
+
+require WiX3::XML::CreateFolder;
+require WiX3::XML::Fragment;
 
 my $frag = WiX3::XML::Fragment->new(id => 'TestID');
 
@@ -43,12 +43,3 @@ my $test3_string = <<'EOF';
 EOF
 
 is( $frag->as_string(), $test3_string, 'Fragment stringifies correctly.' );
-
-my $test4_object = {
-	child_tags => [ {
-		child_tags => [] 
-	} ],
-	id => 'Fr_TestID'
-};
-
-is_deeply ($frag, $test4_object, 'Fragment is deeply correct.');

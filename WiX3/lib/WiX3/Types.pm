@@ -2,14 +2,13 @@ package                                # Hide from PAUSE.
   WiX3::Types;
 
 use 5.008001;
-use strict;
-use warnings;
-use Regexp::Common 2.105;
 use MooseX::Types -declare => [ qw(
 	  Host Tracelevel IsTag _YesNoType YesNoType ComponentGuidType PositiveInt
 	  NonNegativeInt TraceConfig TraceObject
 	  ) ];
-use MooseX::Types::Moose qw(Str Int Bool);
+use Regexp::Common 2.105;
+use MooseX::Types::Moose qw( Str Int Bool HashRef );
+use WiX3::Trace::Config ();
 
 use version; our $VERSION = version->new('0.006')->numify;
 
@@ -24,7 +23,8 @@ subtype IsTag, as role_type 'WiX3::XML::Role::Tag';
 
 subtype TraceConfig, as class_type 'WiX3::Trace::Config';
 
-coerce TraceConfig, from HashRef, via { WiX3::Trace::Config->new($_); }
+coerce TraceConfig, from HashRef,
+  via { return WiX3::Trace::Config->new($_) };
 
 subtype TraceObject, as class_type 'WiX3::Trace::Object';
 

@@ -8,12 +8,12 @@ BEGIN {
 	$OUTPUT_AUTOFLUSH = 1;
 }
 
-require WiX3::Traceable;
-require WiX3::XML::Fragment;
-
 plan tests => 3;
 
+require WiX3::Traceable;
 WiX3::Traceable->new(tracelevel => 0, testing => 1);
+
+require WiX3::XML::Fragment;
 
 eval {	my $frag2 = WiX3::XML::Fragment->new(id => 'TestID', idx => 'Test'); }; 
 my $exception_object = $EVAL_ERROR;

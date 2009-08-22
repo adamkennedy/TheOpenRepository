@@ -12,6 +12,8 @@ use MooseX::NonMoose;
 use Carp qw(croak);
 use Readonly qw( Readonly );
 use WiX3::Util::StrictConstructor;
+use WiX3::Types qw( Tracelevel Host );
+use MooseX::Types::Moose qw( Int Maybe Str Bool ArrayRef );
 
 use version; our $VERSION = version->new('0.006')->numify;
 
@@ -25,49 +27,49 @@ has tracelevel => (
 
 has testing => (
 	is      => 'ro',
-	isa     => 'Bool',
+	isa     => Bool,
 	reader  => 'get_testing',
 	default => 0,
 );
 
 has email_from => (
 	is      => 'ro',
-	isa     => 'Maybe[Str]',
+	isa     => Maybe [Str],
 	reader  => '_get_email_from',
 	default => undef,
 );
 
 has email_to => (
 	is      => 'ro',
-	isa     => 'ArrayRef[Str]',
+	isa     => ArrayRef [Str],
 	reader  => '_get_email_to',
 	default => sub { return []; },
 );
 
 has smtp => (
 	is      => 'ro',
-	isa     => 'Maybe[Str]',
+	isa     => Maybe [Host],
 	reader  => '_get_smtp',
 	default => undef,
 );
 
 has smtp_user => (
 	is      => 'ro',
-	isa     => 'Maybe[Str]',
+	isa     => Maybe [Str],
 	reader  => '_get_smtp_user',
 	default => q{},
 );
 
 has smtp_pass => (
 	is      => 'ro',
-	isa     => 'Maybe[Str]',
+	isa     => Maybe [Str],
 	reader  => '_get_smtp_pass',
 	default => undef,
 );
 
 has smtp_port => (
 	is      => 'ro',
-	isa     => 'Maybe[Int]',
+	isa     => Maybe [Int],
 	reader  => '_get_smtp_port',
 	default => undef,
 );

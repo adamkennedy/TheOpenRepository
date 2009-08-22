@@ -2,10 +2,10 @@ verbose = %f:%l:%c:\n %p: %m\n
 theme = (core || more)
 
 [TestingAndDebugging::RequireUseWarnings]
-equivalent_modules = MooseX::Singleton metaclass
+equivalent_modules = MooseX::Singleton metaclass MooseX::Types
 
 [TestingAndDebugging::RequireUseStrict]
-equivalent_modules = MooseX::Singleton metaclass
+equivalent_modules = MooseX::Singleton metaclass MooseX::Types
 
 [ControlStructures::ProhibitPostfixControls]
 allow = if unless

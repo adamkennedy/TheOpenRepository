@@ -13,7 +13,7 @@ has _traceconfig => (
 	isa      => TraceConfig,
 	reader   => '_get_traceconfig',
 	init_arg => 'options',
-	default  => sub { WiX3::Trace::Config->instance() },
+	default  => sub { WiX3::Trace::Config->new() },
 );
 
 has _traceobject => (
@@ -28,8 +28,10 @@ has _traceobject => (
 
 sub _setup_traceobject {
 	my $self = shift;
-	return WiX3::Trace::Object->new( options => $self->_get_traceconfig(),
-		use_logger_singleton => 1, );
+	return WiX3::Trace::Object->new(
+		log_dispatch_conf    => $self->_get_traceconfig(),
+		use_logger_singleton => 1,
+	);
 }
 
 #sub STORABLE_freeze {
@@ -46,14 +48,14 @@ sub _setup_traceobject {
 #	print "Test 1\n";
 #	require Data::Dumper;
 #	print Data::Dumper->new([$self, $traceopts])->Indent(1)->Dump();
-#	print "\n";	
+#	print "\n";
 #	print $self;
-#	print "\n";	
+#	print "\n";
 #	print $traceopts;
 #	print "\n";
 #	$self->{_traceobject} = $self->_setup_traceobject;
 #	print "Test 2\n";
-#	
+#
 #	return;
 #}
 

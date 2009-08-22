@@ -20,9 +20,8 @@ with 'MooseX::LogDispatch';
 
 has log_dispatch_conf => (
 	is       => 'ro',
-	init_arg => 'config',
 	required => 1,
-	handles => [qw( get_tracelevel set_tracelevel get_testing)],
+	handles  => [qw( get_tracelevel set_tracelevel get_testing)],
 );
 
 sub trace_line {

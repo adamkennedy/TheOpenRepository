@@ -8,14 +8,16 @@ BEGIN {
 	$OUTPUT_AUTOFLUSH = 1;
 }
 
-require WiX3::XML::Component;
-require WiX3::Traceable;
-require WiX3::XML::GeneratesGUID::Object;
-
 plan tests => 16;
 
+require WiX3::Traceable;
 WiX3::Traceable->new(tracelevel => 0, testing => 1);
+
+require WiX3::XML::GeneratesGUID::Object;
 WiX3::XML::GeneratesGUID::Object->new(sitename => 'www.testing.invalid');
+
+require WiX3::XML::Component;
+
 
 my $c_1;
 eval { $c_1 = WiX3::XML::Component->new(); };
