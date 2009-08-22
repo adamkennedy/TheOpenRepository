@@ -7,7 +7,7 @@ use warnings;
 use Regexp::Common 2.105;
 use MooseX::Types -declare => [ qw(
 	  Host Tracelevel IsTag _YesNoType YesNoType ComponentGuidType PositiveInt
-	  NonNegativeInt
+	  NonNegativeInt TraceConfig TraceObject
 	  ) ];
 use MooseX::Types::Moose qw(Str Int Bool);
 
@@ -21,6 +21,12 @@ subtype Host, as Str, where {
 };
 
 subtype IsTag, as role_type 'WiX3::XML::Role::Tag';
+
+subtype TraceConfig, as class_type 'WiX3::Trace::Config';
+
+coerce TraceConfig, from HashRef, via { WiX3::Trace::Config->new($_); }
+
+subtype TraceObject, as class_type 'WiX3::Trace::Object';
 
 subtype Tracelevel,
   as Int,

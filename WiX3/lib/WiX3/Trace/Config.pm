@@ -5,7 +5,6 @@ use 5.008001;
 use metaclass (
 	base_class  => 'MooseX::Singleton::Object',
 	metaclass   => 'MooseX::Singleton::Meta::Class',
-#	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
 use MooseX::Singleton;
@@ -16,11 +15,67 @@ use WiX3::Util::StrictConstructor;
 
 use version; our $VERSION = version->new('0.005')->numify;
 
-Readonly my @LEVELS  => qw(error notice info debug debug debug);
-Readonly my @CONFIGS => qw(screen0 screen1 screen2 screen3);
+has tracelevel => (
+	is      => 'rw',
+	isa     => Tracelevel,
+	reader  => 'get_tracelevel',
+	writer  => 'set_tracelevel',
+	default => 1,
+);
+
+has testing => (
+	is      => 'ro',
+	isa     => 'Bool',
+	reader  => 'get_testing',
+	default => 0,
+);
+
+has email_from => (
+	is      => 'ro',
+	isa     => 'Maybe[Str]',
+	reader  => '_get_email_from',
+	default => undef,
+);
+
+has email_to => (
+	is      => 'ro',
+	isa     => 'ArrayRef[Str]',
+	reader  => '_get_email_to',
+	default => sub { return []; },
+);
+
+has smtp => (
+	is      => 'ro',
+	isa     => 'Maybe[Str]',
+	reader  => '_get_smtp',
+	default => undef,
+);
+
+has smtp_user => (
+	is      => 'ro',
+	isa     => 'Maybe[Str]',
+	reader  => '_get_smtp_user',
+	default => q{},
+);
+
+has smtp_pass => (
+	is      => 'ro',
+	isa     => 'Maybe[Str]',
+	reader  => '_get_smtp_pass',
+	default => undef,
+);
+
+has smtp_port => (
+	is      => 'ro',
+	isa     => 'Maybe[Int]',
+	reader  => '_get_smtp_port',
+	default => undef,
+);
 
 extends 'Log::Dispatch::Configurator';
-with 'WiX3::Trace::Role';
+
+Readonly my @LEVELS  => qw(error notice info debug debug debug);
+Readonly my @CONFIGS => qw(screen0 screen1 screen2 screen3);
 
 sub get_attrs_global {
 	my $self = shift;

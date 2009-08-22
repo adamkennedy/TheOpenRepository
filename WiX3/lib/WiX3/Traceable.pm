@@ -1,12 +1,9 @@
 package WiX3::Traceable;
 
 use 5.008001;
-
-# Must be done before Moose, or it won't get picked up.
 use metaclass (
 	base_class  => 'MooseX::Singleton::Object',
 	metaclass   => 'MooseX::Singleton::Meta::Class',
-#	metaclass   => 'Moose::Meta::Class',
 	error_class => 'WiX3::Util::Error',
 );
 use MooseX::Singleton;
