@@ -112,7 +112,7 @@ use     Win32                 qw();
 require File::List::Object;
 # require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('1.000_001')->numify;
+use version; $VERSION = version->new('1.099_040')->numify;
 
 use Object::Tiny qw(
   perl_version
@@ -1130,11 +1130,11 @@ sub run {
 	# Install any additional C libraries
 	$self->checkpoint_task( install_c_libraries => 2 );
 
-	return;
-	
 	# Install the Perl binary
 	$self->checkpoint_task( install_perl => 3 );
 
+	return;
+	
 	# Install additional Perl modules
 	$self->checkpoint_task( install_perl_modules => 4 );
 
@@ -1552,7 +1552,7 @@ sub patch_file {
 
 		# Generate the file
 		my $hash = _HASH(shift) || {};
-		my ( $fh, $output ) = File::Temp::tempfile();
+		my ( $fh, $output ) = File::Temp::tempfile( TEMPLATE => 'pdwXXXXXX' );
 		$self->trace_line( 2,
 			"Generating $from_tt into temp file $output\n" );
 		$self->patch_template->process( $from_tt,
@@ -1561,7 +1561,7 @@ sub patch_file {
 
 		# Copy the file to the final location
 		$fh->close;
-		$self->_copy( $output => $to );
+		$self->_move( $output => $to );
 
 	} elsif ( $from ne q{} ) {
 
