@@ -8,7 +8,6 @@ use MooseX::Types -declare => [ qw(
 	  ) ];
 use Regexp::Common 2.105;
 use MooseX::Types::Moose qw( Str Int Bool HashRef );
-use WiX3::Trace::Config ();
 
 use version; our $VERSION = version->new('0.006')->numify;
 
@@ -22,9 +21,6 @@ subtype Host, as Str, where {
 subtype IsTag, as role_type 'WiX3::XML::Role::Tag';
 
 subtype TraceConfig, as class_type 'WiX3::Trace::Config';
-
-coerce TraceConfig, from HashRef,
-  via { return WiX3::Trace::Config->new($_) };
 
 subtype TraceObject, as class_type 'WiX3::Trace::Object';
 
