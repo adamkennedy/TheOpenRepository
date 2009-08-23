@@ -32,7 +32,10 @@ has parent => (
 		'_get_bin_perl'     => 'bin_perl',
 		'_get_wix_dist_dir' => 'wix_dist_dir',
 		'_get_icons'        => 'icons',
+		# TODO: comment _get_version out eventually.
 		'_get_version'      => 'perl_version_human',
+		'_get_pv_human'     => 'perl_version_human',
+		'_get_pv_literal'   => 'perl_version_literal',
 		'_trace_line'       => 'trace_line',
 		'_mirror'           => '_mirror',
 		'_run3'             => '_run3',		

@@ -12,6 +12,7 @@ our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::Asset';
+extends 'Perl::Dist::WiX::Asset::DistBase';
 
 has name => (
 	is       => 'ro',
@@ -231,7 +232,7 @@ sub install_perl_toolchain {
 
 		$module_id = $self->_name_to_module($dist);
 		$core =
-		  exists $Module::CoreList::version{ $self->perl_version_literal }
+		  exists $Module::CoreList::version{ $self->_get_pv_literal() }
 		  {$module_id} ? 1 : 0;
 #<<<
 		$self->install_distribution(
