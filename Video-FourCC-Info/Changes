@@ -9,8 +9,6 @@
   + Generate codecs.dat at build time, rather than bundle a binary
     copy -- this should make things a bit more robust
 
-  TODO: need to figure out how to get VACUUM after .dat build
-
 1.1.7 - 25 Jul 2009 - Jonathan Yu <frequency@cpan.org>
 
   + Removed useless headers, reference the main module

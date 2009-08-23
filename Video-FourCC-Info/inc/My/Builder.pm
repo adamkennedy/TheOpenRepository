@@ -43,10 +43,12 @@ sub ACTION_code {
       'notused',
       {
         RaiseError => 1,
-        AutoCommit => 0,
         PrintError => 0,
       }
     );
+
+    # Use a transaction for faster insertion
+    $dbh->begin_work;
 
     print "Creating database structure\n";
     $dbh->do(q{
