@@ -23,53 +23,41 @@ build Perl itself.
 
 =cut
 
-#<<<
 use     5.008001;
 use     strict;
 use     warnings;
-use     Archive::Zip          qw( :ERROR_CODES               );
-use     English               qw( -no_match_vars             );
-use     List::MoreUtils       qw( any none                   );
-use     Params::Util          qw( _HASH _STRING _INSTANCE    );
-use     Readonly              qw( Readonly                   );
-use     File::Spec::Functions qw(
+use     Archive::Zip             qw( :ERROR_CODES               );
+use     English                  qw( -no_match_vars             );
+use     List::MoreUtils          qw( any none                   );
+use     Params::Util             qw( _HASH _STRING _INSTANCE    );
+use     Readonly                 qw( Readonly                   );
+use     File::Spec::Functions    qw(
 	catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use     Archive::Tar     1.42 qw();
-use     File::Remove          qw();
-use     File::pushd           qw();
-use     File::ShareDir        qw();
-use     File::Copy::Recursive qw();
-use     File::PathList        qw();
-use     HTTP::Status          qw();
-use     IO::String            qw();
-use     IO::Handle            qw();
-use     LWP::UserAgent        qw();
-use     LWP::Online           qw();
-use     Module::CoreList 2.17 qw();
-use     PAR::Dist             qw();
-use     Probe::Perl           qw();
-use     SelectSaver           qw();
-use     Template              qw();
-use     Win32                 qw();
+use     Archive::Tar        1.42 qw();
+use     File::Remove             qw();
+use     File::pushd              qw();
+use     File::ShareDir           qw();
+use     File::Copy::Recursive    qw();
+use     File::PathList           qw();
+use     HTTP::Status             qw();
+use     IO::String               qw();
+use     IO::Handle               qw();
+use     LWP::UserAgent           qw();
+use     LWP::Online              qw();
+use     Module::CoreList    2.17 qw();
+use     PAR::Dist                qw();
+use     Probe::Perl              qw();
+use     SelectSaver              qw();
+use     Template                 qw();
+use     Win32                    qw();
+use Perl::Dist::WiX::Asset::Perl qw();
+require Perl::Dist::Util::Toolchain;
 require File::List::Object;
-# require Perl::Dist::WiX::StartMenuComponent;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
-use Perl::Dist::Asset               1.16 ();
-use Perl::Dist::Asset::Binary       1.16 ();
-use Perl::Dist::Asset::Library      1.16 ();
-use Perl::Dist::Asset::Perl         1.16 ();
-use Perl::Dist::Asset::Distribution 1.16 ();
-use Perl::Dist::Asset::Module       1.16 ();
-use Perl::Dist::Asset::PAR          1.16 ();
-use Perl::Dist::Asset::File         1.16 ();
-use Perl::Dist::Asset::Website      1.16 ();
-use Perl::Dist::Asset::Launcher     1.16 ();
-use Perl::Dist::Util::Toolchain     1.16 ();
-#>>>
 
 Readonly my %MODULE_FIX => (
 	'CGI.pm'               => 'CGI',
@@ -99,124 +87,6 @@ Readonly my @MODULE_DELAY => qw(
 
 # NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX 
 # object.
-
-=head2 install_perl_toolchain
-
-The C<install_perl_toolchain> method is a routine provided to install the
-"perl toolchain": the modules required for CPAN (and CPANPLUS on 5.10.x 
-versions of perl) to be able to install modules.
-
-Returns true (technically, the object that called it), or throws an exception.
-
-=cut
-
-sub install_perl_toolchain {
-	my $self = shift;
-	my $toolchain =
-	  @_
-	  ? _INSTANCE( $_[0], 'Perl::Dist::Util::Toolchain' )
-	  : Perl::Dist::Util::Toolchain->new(
-		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan()->as_string() );
-	unless ($toolchain) {
-		PDWiX->throw('Did not provide a toolchain resolver');
-	}
-
-	# Get the regular Perl to generate the list.
-	# Run it in a separate process so we don't hold
-	# any permanent CPAN.pm locks.
-	unless ( eval { $toolchain->delegate; 1; } ) {
-		PDWiX::Caught->throw(
-			message => 'Delegation error occured',
-			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
-		);
-	}
-	if ( $toolchain->{errstr} ) {
-		PDWiX::Caught->throw(
-			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->{errstr} );
-	}
-
-	my ( $core, $module_id );
-
-	# Install the toolchain dists
-	foreach my $dist ( @{ $toolchain->{dists} } ) {
-		my $automated_testing = 0;
-		my $release_testing   = 0;
-		my $force             = $self->force;
-		if (    ( $dist =~ /Test-Simple/msx )
-			and ( $self->perl_version eq '588' ) )
-		{
-
-			# Can't rely on t/threads.t to work right
-			# inside the harness.
-			$force = 1;
-		}
-		if ( $dist =~ /Scalar-List-Util/msx ) {
-
-			# Does something weird with tainting
-			$force = 1;
-		}
-		if ( $dist =~ /URI-/msx ) {
-
-			# Can't rely on t/heuristic.t not finding a www.perl.bv
-			# because some ISP's use DNS redirectors for unfindable
-			# sites.
-			$force = 1;
-		}
-		if ( $dist =~ /Term-ReadLine-Perl/msx ) {
-
-			# Does evil things when testing, and
-			# so testing cannot be automated.
-			$automated_testing = 1;
-		}
-		if ( $dist =~ /TermReadKey-2\.30/msx ) {
-
-			# Upgrading to this version, instead...
-			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
-		}
-		if ( $dist =~ /CPAN-1\.9402/msx ) {
-
-			# 1.9402 fails its tests... ANDK says it's a test bug.
-			$force = 1;
-		}
-		if ( $dist =~ /ExtUtils-ParseXS-2\.20.tar.gz/msx ) {
-
-			# 2.20 is buggy on 5.8.9.
-			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_03.tar.gz'
-		}
-		if ( $dist =~ /Archive-Zip-1\.28/msx ) {
-
-			# 1.28 makes some things fail tests...
-			PDWiX->throw(<<'EOF');
-Cannot build using Archive::Zip 1.28.
-It makes other modules fail tests.
-EOF
-		}
-
-		$module_id = $self->_name_to_module($dist);
-		$core =
-		  exists $Module::CoreList::version{ $self->perl_version_literal }
-		  {$module_id} ? 1 : 0;
-#<<<
-		$self->install_distribution(
-			name              => $dist,
-			mod_name          => $self->_module_fix($module_id),
-			force             => $force,
-			automated_testing => $automated_testing,
-			release_testing   => $release_testing,
-			$core
-			  ? (
-				  makefilepl_param => ['INSTALLDIRS=perl'],
-				  buildpl_param => ['--installdirs', 'core'],
-				)
-			  : (),
-		);
-#>>>
-	} ## end foreach my $dist ( @{ $toolchain...})
-
-	return $self;
-} ## end sub install_perl_toolchain
 
 =head2 install_cpan_upgrades
 
@@ -578,9 +448,9 @@ Returns true, or throws an exception on error.
 
 =pod
 
-=head2 install_perl_*_bin
+=head2 install_perl_bin
 
-	$self->install_perl_5100_bin(
+	$self->install_perl_bin(
 	  name       => 'perl',
 	  dist       => 'RGARCIA/perl-5.10.0.tar.gz',
 	  unpack_to  => 'perl',
@@ -592,7 +462,7 @@ Returns true, or throws an exception on error.
 	  install_to => 'perl',
 	);
 
-The C<install_perl_*_bin> method takes care of the detailed process
+The C<install_perl_bin> method takes care of the detailed process
 of building the Perl binary and installing it into the
 distribution.
 
@@ -641,15 +511,13 @@ sub install_perl_589 {
 	# Make the perl directory if it hasn't been made alreafy.
 	$self->make_path( catdir( $self->image_dir, 'perl' ) );
 
-	my $fl2 = File::List::Object->new->readdir(
-		catdir( $self->image_dir, 'perl' ) );
-
 	# Install the main perl distributions
-	$self->install_perl_589_bin(
+	$self->install_perl_bin(
 		name       => 'perl',
 		url        => 'http://strawberryperl.com/package/perl-5.8.9.tar.gz',
 		unpack_to  => 'perl',
 		install_to => 'perl',
+		toolchain  => $toolchain,
 		patch      => [ qw{
 			  lib/CPAN/Config.pm
 			  win32/config.gc
@@ -663,96 +531,23 @@ sub install_perl_589 {
 		},
 	);
 
-	my $fl_lic = File::List::Object->new->readdir(
-		catdir( $self->image_dir, 'licenses', 'perl' ) );
-	$self->insert_fragment( 'perl_licenses', $fl_lic );
-
-	my $fl = File::List::Object->new->readdir(
-		catdir( $self->image_dir, 'perl' ) );
-
-	$fl->subtract($fl2)->filter( $self->filters );
-
-	$self->insert_fragment( 'perl', $fl );
-
-	# Upgrade the toolchain modules
-	$self->install_perl_toolchain($toolchain);
-
 	return 1;
 } ## end sub install_perl_589
 
-sub install_perl_589_bin {
+sub install_perl_bin {
 	my $self = shift;
-	my $perl = Perl::Dist::Asset::Perl->new(
+	my $perl = Perl::Dist::WiX::Asset::Perl->new(
 		parent => $self,
 		force  => $self->force,
 		@_,
 	);
+	
 	unless ( $self->bin_make ) {
 		PDWiX->throw('Cannot build Perl yet, no bin_make defined');
 	}
-	$self->trace_line( 0, 'Preparing ' . $perl->name . "\n" );
-
-	# Download the file
-	my $tgz = $self->_mirror( $perl->url, $self->download_dir, );
-
-	# Unpack to the build directory
-	my $unpack_to = catdir( $self->build_dir, $perl->unpack_to );
-	if ( -d $unpack_to ) {
-		$self->trace_line( 2, "Removing previous $unpack_to\n" );
-		File::Remove::remove( \1, $unpack_to );
-	}
-	my @files = $self->_extract( $tgz, $unpack_to );
-
-	# Get the versioned name of the directory
-	( my $perlsrc = $tgz ) =~ s{\.tar\.gz\z | \.tgz\z}{}msx;
-	$perlsrc = File::Basename::basename($perlsrc);
-
-	# Pre-copy updated files over the top of the source
-	my $patch = $perl->patch;
-	if ($patch) {
-
-		# Overwrite the appropriate files
-		foreach my $file ( @{$patch} ) {
-			$self->patch_file( "perl-5.8.9/$file" => $unpack_to );
-		}
-	}
-
-	# Copy in licenses
-	if ( ref $perl->license eq 'HASH' ) {
-		my $license_dir = catdir( $self->image_dir, 'licenses' );
-		$self->_extract_filemap( $tgz, $perl->license, $license_dir, 1 );
-	}
-
-	# Build win32 perl
-  SCOPE: {
-		my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
-
-		# Prepare to patch
-		my $image_dir = $self->image_dir;
-		my $INST_TOP = catdir( $self->image_dir, $perl->install_to );
-		my ($INST_DRV) = splitpath( $INST_TOP, 1 );
-
-		$self->trace_line( 2, "Patching makefile.mk\n" );
-		$self->patch_file(
-			'perl-5.8.9/win32/makefile.mk' => $unpack_to,
-			{   dist     => $self,
-				INST_DRV => $INST_DRV,
-				INST_TOP => $INST_TOP,
-			} );
-
-		$self->trace_line( 1, "Building perl 5.8.9...\n" );
-		$self->_make;
-
-		unless ( $perl->force ) {
-			local $ENV{PERL_SKIP_TTY_TEST} = 1;
-			$self->trace_line( 1, "Testing perl...\n" );
-			$self->_make('test');
-		}
-
-		$self->trace_line( 1, "Installing perl...\n" );
-		$self->_make(qw/install UNINST=1/);
-	} ## end SCOPE:
-
+	
+	$perl->install();
+	
 	# Should now have a perl to use
 	$self->{bin_perl} = catfile( $self->image_dir, qw/perl bin perl.exe/ );
 	unless ( -x $self->bin_perl ) {
@@ -795,15 +590,13 @@ sub install_perl_5100 {
 	# Make the perl directory if it hasn't been made already.
 	$self->make_path( catdir( $self->image_dir, 'perl' ) );
 
-	my $fl2 = File::List::Object->new->readdir(
-		catdir( $self->image_dir, 'perl' ) );
-
 	# Install the main binary
-	$self->install_perl_5100_bin(
+	$self->install_perl_bin(
 		name      => 'perl',
 		url       => 'http://strawberryperl.com/package/perl-5.10.0.tar.gz',
 		unpack_to => 'perl',
 		install_to => 'perl',
+		toolchain  => $toolchain,
 		patch      => [ qw{
 			  lib/ExtUtils/Command.pm
 			  lib/CPAN/Config.pm
@@ -818,130 +611,8 @@ sub install_perl_5100 {
 		},
 	);
 
-	my $fl_lic = File::List::Object->new->readdir(
-		catdir( $self->image_dir, 'licenses', 'perl' ) );
-	$self->insert_fragment( 'perl_licenses', $fl_lic );
-
-	my $fl = File::List::Object->new->readdir(
-		catdir( $self->image_dir, 'perl' ) );
-
-	$fl->subtract($fl2)->filter( $self->filters );
-
-	$self->insert_fragment( 'perl', $fl );
-
-	# Install the toolchain
-	$self->install_perl_toolchain($toolchain);
-
 	return 1;
 } ## end sub install_perl_5100
-
-sub install_perl_5100_bin {
-	my $self = shift;
-	my $perl = Perl::Dist::Asset::Perl->new(
-		parent => $self,
-		force  => $self->force,
-		@_,
-	);
-	unless ( $self->bin_make ) {
-	}
-	$self->trace_line( 0, 'Preparing ' . $perl->name . "\n" );
-
-	# Download the file
-	my $tgz = $self->_mirror( $perl->url, $self->download_dir, );
-
-	# Unpack to the build directory
-	my $unpack_to = catdir( $self->build_dir, $perl->unpack_to );
-	if ( -d $unpack_to ) {
-		$self->trace_line( 2, "Removing previous $unpack_to\n" );
-		File::Remove::remove( \1, $unpack_to );
-	}
-	$self->_extract( $tgz, $unpack_to );
-
-	# Get the versioned name of the directory
-	( my $perlsrc = $tgz ) =~ s{\.tar\.gz\z | \.tgz\z}{}msx;
-	$perlsrc = File::Basename::basename($perlsrc);
-
-	# Pre-copy updated files over the top of the source
-	my $patch = $perl->patch;
-	if ($patch) {
-
-		# Overwrite the appropriate files
-		foreach my $file ( @{$patch} ) {
-			$self->patch_file( "perl-5.10.0/$file" => $unpack_to );
-		}
-	}
-
-	# Copy in licenses
-	if ( ref $perl->license eq 'HASH' ) {
-		my $license_dir = catdir( $self->image_dir, 'licenses' );
-		$self->_extract_filemap( $tgz, $perl->license, $license_dir, 1 );
-	}
-
-	# Build win32 perl
-  SCOPE: {
-		my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
-
-		# Prepare to patch
-		my $image_dir = $self->image_dir;
-		my $INST_TOP = catdir( $self->image_dir, $perl->install_to );
-		my ($INST_DRV) = splitpath( $INST_TOP, 1 );
-
-		$self->trace_line( 2, "Patching makefile.mk\n" );
-		$self->patch_file(
-			'perl-5.10.0/win32/makefile.mk' => $unpack_to,
-			{   dist     => $self,
-				INST_DRV => $INST_DRV,
-				INST_TOP => $INST_TOP,
-			} );
-
-		$self->trace_line( 1, "Building perl 5.10.0...\n" );
-		$self->_make;
-
-		my $long_build =
-		  Win32::GetLongPathName( rel2abs( $self->build_dir ) );
-
-		if ( ( not $perl->force ) && ( $long_build =~ /\s/ms ) ) {
-			$self->trace_line( 0, <<"EOF");
-***********************************************************
-* Perl 5.10.0 cannot be tested at this point.
-* Because the build directory
-* $long_build
-* contains spaces when it becomes a long name,
-* testing the CPANPLUS module fails in 
-* lib/CPANPLUS/t/15_CPANPLUS-Shell.t
-* 
-* You may wish to build perl within a directory
-* that does not contain spaces by setting the build_dir
-* (or temp_dir, which sets the build_dir indirectly if
-* build_dir is not specified) parameter to new to a 
-* directory that does not contain spaces.
-*
-* -- csjewell\@cpan.org
-***********************************************************
-EOF
-		} ## end if ( ( not $perl->force...))
-
-		unless ( ( $perl->force ) or ( $long_build =~ /\s/ms ) ) {
-			local $ENV{PERL_SKIP_TTY_TEST} = 1;
-			$self->trace_line( 1, "Testing perl...\n" );
-			$self->_make('test');
-		}
-
-		$self->trace_line( 1, "Installing perl...\n" );
-		$self->_make('install');
-	} ## end SCOPE:
-
-	# Should now have a perl to use
-	$self->{bin_perl} = catfile( $self->image_dir, qw/perl bin perl.exe/ );
-	unless ( -x $self->bin_perl ) {
-		PDWiX->throw( q{Can't execute } . $self->bin_perl );
-	}
-
-	# Add to the environment variables
-	$self->add_env_path( 'perl', 'bin' );
-
-	return 1;
-} ## end sub install_perl_5100_bin
 
 1;
 
