@@ -760,8 +760,6 @@ sub clone_and_node {
     return $new_and_node;
 } ## end sub clone_and_node
 
-use Marpa::Offset qw(DELETE_AND_NODE PRUNE_OR_NODE);
-
 sub delete_nodes {
     my ( $evaler, $delete_work_list ) = @_;
 
@@ -772,9 +770,11 @@ sub delete_nodes {
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     DELETE_WORK_ITEM:
     while ( my $delete_work_item = pop @{$delete_work_list} ) {
-        my ( $action, $delete_node_id ) = @{$delete_work_item};
+        my ( $node_type, $delete_node_id ) = @{$delete_work_item};
 
-        if ( $action == DELETE_AND_NODE ) {
+        ### Delete work item: $node_type, $delete_node_id
+
+        if ( $node_type eq 'a' ) {
 
             my $delete_and_node = $and_nodes->[$delete_node_id];
 
@@ -786,7 +786,7 @@ sub delete_nodes {
             my $parent_or_node = $or_nodes->[$parent_id];
 
             if ( not $parent_or_node->[Marpa::Internal::Or_Node::DELETED] ) {
-                push @{$delete_work_list}, [ PRUNE_OR_NODE, $parent_id ];
+                push @{$delete_work_list}, [ 'o', $parent_id ];
                 my $parent_choice = $delete_and_node
                     ->[Marpa::Internal::And_Node::PARENT_CHOICE];
 
@@ -826,7 +826,7 @@ sub delete_nodes {
                     if $child_or_node->[Marpa::Internal::Or_Node::DELETED];
                 my $id = $child_or_node->[Marpa::Internal::Or_Node::ID];
 
-                push @{$delete_work_list}, [ PRUNE_OR_NODE, $id ];
+                push @{$delete_work_list}, [ 'o', $id ];
 
                 # Splice out the reference to this or-node in the PARENT_IDS
                 # field of the or-node child
@@ -857,9 +857,9 @@ sub delete_nodes {
             $delete_and_node->[Marpa::Internal::And_Node::DELETED] = 1;
 
             next DELETE_WORK_ITEM;
-        } ## end if ( $action == DELETE_AND_NODE )
+        } ## end if ( $node_type eq 'a' )
 
-        if ( $action == PRUNE_OR_NODE ) {
+        if ( $node_type eq 'o' ) {
 
             my $or_node = $or_nodes->[$delete_node_id];
             next DELETE_WORK_ITEM
@@ -878,7 +878,7 @@ sub delete_nodes {
             $or_node->[Marpa::Internal::Or_Node::DELETED] = 1;
 
             push @{$delete_work_list},
-                map { [ DELETE_AND_NODE, $_ ] } @{$parent_ids}, @{$child_ids};
+                map { [ 'a', $_ ] } @{$parent_ids}, @{$child_ids};
             for my $field (
                 Marpa::Internal::Or_Node::PARENT_IDS,
                 Marpa::Internal::Or_Node::CHILD_IDS,
@@ -890,9 +890,9 @@ sub delete_nodes {
             $or_node->[Marpa::Internal::Or_Node::CLASS] = undef;
 
             next DELETE_WORK_ITEM;
-        } ## end if ( $action == PRUNE_OR_NODE )
+        } ## end if ( $node_type eq 'o' )
 
-        Marpa::exception("Unknown delete-work-list action: $action");
+        Marpa::exception("Unknown delete-work-list node-type: $node_type");
     } ## end while ( my $delete_work_item = pop @{$delete_work_list})
     return;
 } ## end sub delete_nodes
@@ -1215,7 +1215,7 @@ sub rewrite_cycles {
                 {
 
                     push @delete_work_list,
-                        [ DELETE_AND_NODE, $new_parent_and_node_id ];
+                        [ 'a', $new_parent_and_node_id ];
                     next PARENT_AND_NODE;
 
                 } ## end if ( defined( my $new_parent_and_node_id = ...))
@@ -1329,7 +1329,7 @@ sub rewrite_cycles {
                         xor $internal_and_nodes{$original_parent_and_node_id};
 
                 push @delete_work_list,
-                    [ DELETE_AND_NODE, $original_parent_and_node_id ];
+                    [ 'a', $original_parent_and_node_id ];
             } ## end for my $original_parent_and_node_id ( @{ ...})
         } ## end for my $original_or_node (@cycle)
 
@@ -1361,6 +1361,8 @@ sub rewrite_cycles {
 # Make sure and-nodes are unique.
 sub delete_duplicate_nodes {
 
+    ### Calling delete_duplicate_nodes ...
+
     my ($evaler) = @_;
 
     my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
@@ -1379,59 +1381,28 @@ sub delete_duplicate_nodes {
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
-    my %class_by_signature              = ();
-    my %terminal_and_nodes_by_signature = ();
-
-    # Scan terminal and-nodes for duplicates
-    AND_NODE:
-    for my $and_node_id ( 0 .. $#{$and_nodes} ) {
-        my $and_node = $and_nodes->[$and_node_id];
-
-        next AND_NODE
-            if $and_node->[Marpa::Internal::And_Node::DELETED];
-
-        # Eliminate non-terminals
-        my $predecessor = $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
-        next AND_NODE if defined $predecessor;
-        my $cause = $and_node->[Marpa::Internal::And_Node::CAUSE];
-        next AND_NODE if defined $cause;
-
-        my $signature = join q{,},
-            $and_node->[Marpa::Internal::And_Node::RULE] + 0,
-            $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
-            $and_node->[Marpa::Internal::And_Node::START_EARLEME] + 0,
-            $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
-            q{-},
-            q{-},
-            ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 ) + 0,
-            ;
-
-        push @{ $terminal_and_nodes_by_signature{$signature} }, $and_node_id;
-
-    } ## end for my $and_node_id ( 0 .. $#{$and_nodes} )
-
-    my @work_list;
-    for my $duplicate_and_node_set ( values %terminal_and_nodes_by_signature )
-    {
-        my $class = $duplicate_and_node_set->[0];
-        for my $duplicate_and_node_id ( @{$duplicate_and_node_set} ) {
-            my $duplicate_and_node = $and_nodes->[$duplicate_and_node_id];
-            my $parent_or_node_id =
-                $duplicate_and_node->[Marpa::Internal::And_Node::PARENT_ID];
-            $duplicate_and_node->[Marpa::Internal::And_Node::CLASS] = $class;
-            push @work_list, "O$parent_or_node_id";
-        } ## end for my $duplicate_and_node_id ( @{$duplicate_and_node_set...})
-    } ## end for my $duplicate_and_node_set ( values ...)
+    # Initialize the work list with the terminal and-nodes
+    my @work_list = map { [ 'a', $_->[Marpa::Internal::And_Node::ID] ] }
+        grep {
+                not $_->[Marpa::Internal::And_Node::DELETED]
+            and not $_->[Marpa::Internal::And_Node::PREDECESSOR]
+            and not $_->[Marpa::Internal::And_Node::CAUSE]
+        } @{$and_nodes};
 
     my %and_class_signature;
     my %or_class_signature;
     my %full_signature;
     WORK_LIST_ENTRY: while ( my $work_list_entry = pop @work_list ) {
 
-        my ( $node_type, $node_id ) =
-            ( $work_list_entry =~ /\A(A|O)(\d+)\z/xms );
-        if ( $node_type eq 'A' ) {
+        ### Delete Duplicate Work list size: scalar @work_list
+
+        my ( $node_type, $node_id ) = @{$work_list_entry};
+
+        if ( $node_type eq 'a' ) {
             my $and_node = $and_nodes->[$node_id];
+
+            ### Delete Duplicate Work list and-node: $node_id
+
             next WORK_LIST_ENTRY
                 if $and_node->[Marpa::Internal::And_Node::DELETED]
                     or defined $and_node->[Marpa::Internal::And_Node::CLASS];
@@ -1470,6 +1441,11 @@ sub delete_duplicate_nodes {
                 ;
 
             my $parent_id = $and_node->[Marpa::Internal::And_Node::PARENT_ID];
+
+            push @work_list, [ 'o', $parent_id ];
+
+            ### Delete Duplicate Work list and-node: $node_id, $parent_id, $and_class_signature
+
             if ( $full_signature{"$parent_id,$and_class_signature"}++ ) {
 
                 if ($trace_evaluation) {
@@ -1478,7 +1454,7 @@ sub delete_duplicate_nodes {
                         or Marpa::exception('print to trace handle failed');
                 }
 
-                delete_nodes( $evaler, [ [ DELETE_AND_NODE, $node_id ] ] );
+                delete_nodes( $evaler, [ [ 'a', $node_id ] ] );
 
                 next WORK_LIST_ENTRY;
 
@@ -1491,14 +1467,15 @@ sub delete_duplicate_nodes {
             }
             $and_node->[Marpa::Internal::And_Node::CLASS] = $class;
 
-            push @work_list, "O$parent_id";
-
             next WORK_LIST_ENTRY;
 
-        } ## end if ( $node_type eq 'A' )
+        } ## end if ( $node_type eq 'a' )
 
-        if ( $node_type eq 'O' ) {
+        if ( $node_type eq 'o' ) {
             my $or_node = $or_nodes->[$node_id];
+
+            ### Delete Duplicate Work list or-node: $node_id
+
             next WORK_LIST_ENTRY
                 if $or_node->[Marpa::Internal::Or_Node::DELETED]
                     or defined $or_node->[Marpa::Internal::Or_Node::CLASS];
@@ -1519,12 +1496,12 @@ sub delete_duplicate_nodes {
             $or_node->[Marpa::Internal::Or_Node::CLASS] = $class;
 
             push @work_list,
-                map { 'A' . $_ }
+                map { [ 'a', $_ ] }
                 @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] };
 
             next WORK_LIST_ENTRY;
 
-        } ## end if ( $node_type eq 'O' )
+        } ## end if ( $node_type eq 'o' )
 
         Marpa::exception("Internal error, unknown node type: $node_type");
 
