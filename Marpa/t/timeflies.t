@@ -7,74 +7,70 @@ use lib 'lib';
 use lib 't/lib';
 use English qw( -no_match_vars );
 
-use Test::More tests => 5;
+use Test::More tests => 2;
 use Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
 }
 
-my $grammar_description='
-start symbol is englishsentence.
-semantics are perl5.  version is 0.001_015.
-default lex prefix is /\s+|\A/.
-concatenate lines is q{ (scalar @_) ? (join "-", (grep { $_ } @_)) : undef; }.
-default action is concatenate lines.
+my $grammar = Marpa::Grammar->new(
+    {   start              => 'sentence',
+        strip              => 0,
+        default_lex_prefix => '\s+|\A',
+        rules              => [
+            [   'sentence', [qw(subject verb adjunct)],
+                q{ "sva($_[0];$_[1];$_[2])" }
+            ],
+            [   'sentence', [qw(subject verb object)],
+                q{ "svo($_[0];$_[1];$_[2])" }
+            ],
+            [ 'adjunct', [qw(preposition object)], q{ "adju($_[0];$_[1])" } ],
+            [ 'adjective', [qw(adjective_noun_lex)], q{ "adje($_[0])" } ],
+            [ 'subject',   [qw(adjective noun)],     q{ "s($_[0];$_[1])" } ],
+            [ 'subject',   [qw(noun)],               q{ "s($_[0])" } ],
+            [ 'noun',      [qw(adjective_noun_lex)], q{ "n($_[0])" } ],
+            [ 'verb',      [qw(verb_lex)],           q{ "v($_[0])" } ],
+            [ 'object',    [qw(article noun)],       q{ "o($_[0];$_[1])" } ],
+            [ 'article',   [qw(article_lex)],        q{ "art($_[0])" } ],
+            [ 'preposition', [qw(preposition_lex)], q{ "pr($_[0])" } ],
+        ],
+        terminals => [
+            [ preposition_lex => { regex => qr/like/ } ],
+            [ verb_lex        => { regex => qr/like|flies/ } ],
+            [   adjective_noun_lex =>
+                    { regex => qr/fruit|banana|time|arrow|flies/ }
+            ],
+            [ article_lex => { regex => qr/a\b|an/ } ],
+        ]
+    }
+);
 
-englishsentence: subject, verb, conjunction, object.
-    q{ "svco(" . join(";", @_) . ")" }.
 
-englishsentence: subject, verb, object.
-    q{ "svo(" . join(";", @_) . ")" }.
+my $expected = <<'EOS';
+svo(s(adje(time);n(flies));v(like);o(art(an);n(arrow)))
+sva(s(n(time));v(flies);adju(pr(like);o(art(an);n(arrow))))
+svo(s(adje(fruit);n(flies));v(like);o(art(a);n(banana)))
+sva(s(n(fruit));v(flies);adju(pr(like);o(art(a);n(banana))))
+EOS
+my $actual = q{};
 
-specializernoun: noun.  q{ "specializernoun($_[0])" }.
+for my $data ( 'time flies like an arrow.', 'fruit flies like a banana.' ) {
 
-ordinarynoun: noun.  q{ "ordinarynoun($_[0])" }.
-
-subject: specializernoun, ordinarynoun.  q{ "spsub($_[0]+$_[1])" }.
-
-subject: noun.  q{ "subject($_[0])" }.
-
-noun: nounlex.
-
-nounlex matches /fruit|banana|time|arrow|flies/.
-
-verb: verblex.  q{ "verb($_[0])" }.
-
-verblex matches /like|flies/.
-
-object: article, noun.  q{ "ob(prep($_[0])+n($_[1]))" }.
-
-conjunction: /like/.  q{ "conjunction($_[0])" }.
-
-article: articlelex.
-
-articlelex matches /a\b|an/.
-
-';
-
-my $data1 = 'time flies like an arrow.';
-my $data2 = 'fruit flies like a banana.';
-my $grammar =
-    Marpa::Grammar->new( { mdl_source => \$grammar_description, strip => 0 } );
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-
-my $fail_offset = $recce->text($data1);
-if ( $fail_offset >= 0 ) {
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $fail_offset = $recce->text($data);
+    if ( $fail_offset >= 0 ) {
         Carp::croak("Parse failed at offset $fail_offset");
-}
-$recce->end_input();
-say $grammar->show_QDFA();
-say $recce->show_earley_sets();
+    }
+    $recce->end_input();
 
-my $evaler = Marpa::Evaluator->new( { recognizer => $recce, clone => 0, trace_evaluation => 1 } );
-Carp::croak('Parse failed') unless $evaler;
-say $evaler->show_bocage(99);
+    my $evaler = Marpa::Evaluator->new(
+        { recognizer => $recce, clone => 0 } );
+    Carp::croak('Parse failed') unless $evaler;
 
-my $i = -1;
-while ( defined( my $value = $evaler->value() ) ) {
-    say "=====";
-    say ${$value};
-    say $evaler->show_tree(99);
-    say q{};
-}
+    while ( defined( my $value = $evaler->value() ) ) {
+        $actual .= ${$value} . "\n";
+    }
+} ## end for my $data ( 'time flies like an arrow.', ...)
+
+Marpa::Test::is($actual, $expected, 'Ambiguous English sentences');
