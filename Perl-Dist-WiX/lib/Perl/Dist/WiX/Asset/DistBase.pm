@@ -48,8 +48,7 @@ sub _name_to_module {
 	my $self = shift;
 	my $dist = shift;
 
-	# TODO: Change this back to 3.
-	$self->_trace_line( 0, "Trying to get module name out of $dist\n" );
+	$self->_trace_line( 3, "Trying to get module name out of $dist\n" );
 	
 #<<<
 	my ( $module ) = $dist =~ m{\A  # Start the string...

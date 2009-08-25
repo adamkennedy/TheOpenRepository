@@ -106,9 +106,6 @@ sub install {
 			  . " requires packlist => 0 *****\n" );
 	}
 
-#	require Data::Dumper;
-#	print Data::Dumper->new([$self], [qw(*self)])->Indent(1)->Dump();
-	
 	# Download the file
 	my $tgz =
 	  $self->_mirror( $self->_abs_uri( $self->_get_cpan() ), $self->_get_modules_dir(), );

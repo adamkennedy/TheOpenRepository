@@ -49,11 +49,13 @@ use     Module::CoreList    2.17 qw();
 use     PAR::Dist                qw();
 use     Probe::Perl              qw();
 use     SelectSaver              qw();
+use     Storable                 qw( retrieve );
 use     Template                 qw();
 use     Win32                    qw();
 use Perl::Dist::WiX::Asset::Perl qw();
 require Perl::Dist::Util::Toolchain;
 require File::List::Object;
+
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -576,7 +578,7 @@ sub install_perl_bin {
 	
 	$perl->install();
 	
-	# Should have a perl to use after the middle of install().
+	# Should have a perl to use now.
 	$self->{bin_perl} = catfile( $self->image_dir, qw/perl bin perl.exe/ );
 
 	# Add to the environment variables
