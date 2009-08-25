@@ -158,7 +158,7 @@ sub install_distribution {
 	$module =~ s{-}{_}msg;
 
 	# Insert fragment.
-	$self->insert_fragment( $module, $filelist->files );
+	$self->insert_fragment( $module, $filelist );
 
 	return $self;
 } ## end sub install_distribution
@@ -212,7 +212,7 @@ sub install_distribution_from_file {
 	my $dist = Perl::Dist::WiX::Asset::DistFile->new(@_);
 
 	my $filelist = $dist->install();
-	my $mod_id = $dist->_get_module_name();
+	my $mod_id = $dist->get_module_name();
 
 	$mod_id =~ s{::}{_}msg;
 	$mod_id =~ s{-}{_}msg;
@@ -235,7 +235,7 @@ sub install_distribution_from_file {
   );
 
 The C<install_module> method is a high level installation method that can
-be used during the C<install_perl_modules> phase, once the CPAN toolchain
+be used during the C<install_perl_modules_*> phases, once the CPAN toolchain
 has been been initialized.
 
 It makes the installation call using the CPAN client directly, allowing

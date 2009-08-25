@@ -25,6 +25,7 @@ has files => (
 	isa	=> 'File::List::Object',
 	required => 1,
 	reader => 'get_files',
+	handles => [ 'add_files' ],
 );
 
 has can_overwrite => (
@@ -43,13 +44,14 @@ sub regenerate {
 
 sub check_duplicates {
 	my $self = shift;
+	my $filelist = shift;
 
 	if (not $self->can_overwrite()) {
 		return 1;
 	}
 	
 	# TODO: Implement later.
-	PDWiX::Unimplemented->throw('Perl::Dist::WiX::Fragment::Files->check_duplicates');
+	# PDWiX::Unimplemented->throw('Perl::Dist::WiX::Fragment::Files->check_duplicates');
 	return 0;
 }
 

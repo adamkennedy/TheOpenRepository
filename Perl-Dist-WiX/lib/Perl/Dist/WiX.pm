@@ -150,6 +150,7 @@ use Object::Tiny qw(
   build_start_time
   perl_config_cf_email
   perl_config_cf_by
+  toolchain
 );
 #  Don't need to put distributions_installed in here.
 
@@ -1133,27 +1134,35 @@ sub run {
 	# Install the Perl binary
 	$self->checkpoint_task( install_perl => 3 );
 
-	return;
-	
+	# Install the Perl binary
+	$self->checkpoint_task( install_perl_toolchain => 4 );
+
 	# Install additional Perl modules
-	$self->checkpoint_task( install_perl_modules => 4 );
+	$self->checkpoint_task( install_cpan_upgrades => 5 );
+	$self->checkpoint_task( install_perl_modules_1 => 6 );
+	$self->checkpoint_task( install_perl_modules_2 => 7 );
+	$self->checkpoint_task( install_perl_modules_3 => 8 );
+	$self->checkpoint_task( install_perl_modules_4 => 9 );
+	$self->checkpoint_task( install_perl_modules_5 => 10 );
 
 	# Install the Win32 extras
-	$self->checkpoint_task( install_win32_extras => 5 );
+	$self->checkpoint_task( install_win32_extras => 11 );
 
+	return;
+	
 	# Apply optional portability support
-	$self->checkpoint_task( install_portable => 6 )
+	$self->checkpoint_task( install_portable => 12 )
 	  if $self->portable;
 
 	# Remove waste and temporary files
-	$self->checkpoint_task( remove_waste => 7 );
+	$self->checkpoint_task( remove_waste => 13 );
 
 	# Install any extra custom non-Perl software on top of Perl.
 	# This is primarily added for the benefit of Parrot.
-	$self->checkpoint_task( install_custom => 8 );
+	$self->checkpoint_task( install_custom => 14 );
 
 	# Write out the distributions
-	$self->checkpoint_task( write => 9 );
+	$self->checkpoint_task( write => 14 );
 
 	# Finished
 	$self->trace_line( 0,
@@ -1780,6 +1789,11 @@ sub _make {
 sub _perl {
 	my $self   = shift;
 	my @params = @_;
+	
+	unless ( -x $self->bin_perl ) {
+		PDWiX->throw( q{Can't execute } . $self->bin_perl );
+	}
+
 	$self->trace_line( 2,
 		join( q{ }, '>', $self->bin_perl, @params ) . qq{\n} );
 	$self->_run3( $self->bin_perl, @params )

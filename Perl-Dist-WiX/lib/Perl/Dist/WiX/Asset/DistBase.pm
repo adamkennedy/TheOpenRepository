@@ -13,7 +13,7 @@ $VERSION = eval { return $VERSION };
 sub _configure {
 	my $self = shift;
 	my $buildpl = shift;
-	my $name = $self->_get_name();
+	my $name = $self->get_name();
 
 	$self->_trace_line( 2, "Configuring $name...\n" );
 	$buildpl
@@ -26,10 +26,10 @@ sub _configure {
 sub _install_distribution {
 	my $self = shift;
 	my $buildpl = shift;
-	my $name = $self->_get_name();
+	my $name = $self->get_name();
 	
 	$self->_trace_line( 1, "Building $name...\n" );
-	$buildpl ? $self->_build : $self->_make;
+	$buildpl ? $self->_build() : $self->_make();
 		
 	unless ( $self->_get_force() ) {
 		$self->_trace_line( 2, "Testing $name...\n" );
@@ -45,11 +45,11 @@ sub _install_distribution {
 }
 
 sub _name_to_module {
-	my $self= shift;
-	
-	my $dist = $self->_get_name();
+	my $self = shift;
+	my $dist = shift;
+
 	# TODO: Change this back to 3.
-	$self->_trace_line( 2, "Trying to get module name out of $dist\n" );
+	$self->_trace_line( 0, "Trying to get module name out of $dist\n" );
 	
 #<<<
 	my ( $module ) = $dist =~ m{\A  # Start the string...
@@ -88,29 +88,23 @@ sub _module_build_installed {
 sub _abs_uri {
 	my $self = shift;
 
-	my $url = $self->_get_url() || $self->_get_name();
-	
 	# Get the base path
 	my $cpan = _INSTANCE($self->_get_cpan(), 'URI');
 	unless ( $cpan ) {
 		PDWiX::Parameter->throw("Did not get a cpan URI\n");
 	}
 
-	# If we have an explicit absolute URI use it directly.
-	my $new_abs = URI->new_abs($url, $cpan);
-	if ( $new_abs eq $url ) {
-		return $new_abs;
-	}
-
 	# Generate the full relative path
-	my $name = $self->_get_name();
+	my $name = $self->get_name();
 	my $path = File::Spec::Unix->catfile( 'authors', 'id',
 		substr($name, 0, 1),
 		substr($name, 0, 2),
 		$name,
 	);
 
-	URI->new_abs( $path, $cpan );
+	my $answer = URI->new_abs( $path, $cpan );
+	$self->_set_url($answer->as_string());
+	return $answer;
 }
 
 #####################################################################

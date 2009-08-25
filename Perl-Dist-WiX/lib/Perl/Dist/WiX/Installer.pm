@@ -759,7 +759,7 @@ This B<MUST> be done for each set of files to be installed in an MSI.
 =cut
 
 sub insert_fragment {
-	my ( $self, $id, $files_obj ) = @_;
+	my ( $self, $id, $files_obj, $overwritable ) = @_;
 
 	# Check parameters.
 	unless ( _IDENTIFIER($id) ) {
@@ -775,6 +775,8 @@ sub insert_fragment {
 		);
 	}
 
+	defined $overwritable or $overwritable = 0;
+	
 	$self->trace_line( 2, "Adding fragment $id...\n" );
 
   FRAGMENT:
@@ -786,6 +788,7 @@ sub insert_fragment {
 	my $fragment = Perl::Dist::WiX::Fragment::Files->new(
 		id             => $id,
 		files          => $files_obj,
+		can_overwrite  => $overwritable,
 	);
 
 	$self->{fragments}->{$id} = $fragment;

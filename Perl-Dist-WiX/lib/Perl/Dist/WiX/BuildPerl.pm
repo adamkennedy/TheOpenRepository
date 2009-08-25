@@ -378,25 +378,53 @@ sub _module_fix {
 	return ( exists $MODULE_FIX{$module} ) ? $MODULE_FIX{$module} : $module;
 }
 
-=head2 install_perl_modules
+=head2 install_perl_modules_*
 
-The C<install_perl_modules> method is a stub provided to allow sub-classed
+(* = 1, 2, or 3)
+
+The C<install_perl_modules_*> methods are stubs provided to allow sub-classed
 distributions to install additional modules after perl is installed.
 
-By default, it calls L<install_cpan_upgrades|/install_cpan_upgrades> in 
-order to upgrade all the modules included with perl.
+By default, C<install_perl_modules_1> calls 
+L<install_cpan_upgrades|/install_cpan_upgrades> in order to upgrade all the 
+modules included with perl. The others do nothing.
 
 Returns true (technically, the object that called it), or throws an exception.
 
 =cut
 
-sub install_perl_modules {
+sub install_perl_modules_1 {
 	my $self = shift;
 
-	# Upgrade anything out of date,
-	# but don't install anything extra.
-	$self->install_cpan_upgrades;
+	# Don't do anything here.
+	return $self;
+}
 
+sub install_perl_modules_2 {
+	my $self = shift;
+	
+	# Don't do anything here.
+	return $self;
+}
+
+sub install_perl_modules_3 {
+	my $self = shift;
+	
+	# Don't do anything here.
+	return $self;
+}
+
+sub install_perl_modules_4 {
+	my $self = shift;
+	
+	# Don't do anything here.
+	return $self;
+}
+
+sub install_perl_modules_5 {
+	my $self = shift;
+	
+	# Don't do anything here.
 	return $self;
 }
 
@@ -548,18 +576,14 @@ sub install_perl_bin {
 	
 	$perl->install();
 	
-	# Should now have a perl to use
+	# Should have a perl to use after the middle of install().
 	$self->{bin_perl} = catfile( $self->image_dir, qw/perl bin perl.exe/ );
-	unless ( -x $self->bin_perl ) {
-		PDWiX->throw( q{Can't execute } . $self->bin_perl );
-	}
 
 	# Add to the environment variables
 	$self->add_env_path( 'perl', 'bin' );
 
 	return 1;
 } ## end sub install_perl_589_bin
-
 
 
 #####################################################################
@@ -587,6 +611,8 @@ sub install_perl_5100 {
 			info    => $toolchain->{errstr} );
 	}
 
+	$self->{toolchain} = $toolchain;
+	
 	# Make the perl directory if it hasn't been made already.
 	$self->make_path( catdir( $self->image_dir, 'perl' ) );
 
@@ -613,6 +639,111 @@ sub install_perl_5100 {
 
 	return 1;
 } ## end sub install_perl_5100
+
+
+#####################################################################
+# Perl Toolchain Support
+
+
+=head2 install_perl_toolchain
+
+The C<install_perl_toolchain> method is a routine provided to install the
+"perl toolchain": the modules required for CPAN (and CPANPLUS on 5.10.x 
+versions of perl) to be able to install modules.
+
+Returns true (technically, the object that called it), or throws an exception.
+
+=cut
+
+sub install_perl_toolchain {
+	my $self = shift;
+	my $toolchain = $self->toolchain;
+
+	my ( $core, $module_id );
+
+	# Install the toolchain dists
+	foreach my $dist ( @{ $toolchain->{dists} } ) {
+		my $automated_testing = 0;
+		my $release_testing   = 0;
+		my $force             = $self->force;
+		if ( $dist =~ /Scalar-List-Util/msx ) {
+
+			# Does something weird with tainting
+			$force = 1;
+		}
+		if ( $dist =~ /URI-/msx ) {
+
+			# Can't rely on t/heuristic.t not finding a www.perl.bv
+			# because some ISP's use DNS redirectors for unfindable
+			# sites.
+			$force = 1;
+		}
+		if ( $dist =~ /Term-ReadLine-Perl/msx ) {
+
+			# Does evil things when testing, and
+			# so testing cannot be automated.
+			$automated_testing = 1;
+		}
+		if ( $dist =~ /TermReadKey-2\.30/msx ) {
+
+			# Upgrading to this version, instead...
+			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
+		}
+		if ( $dist =~ /CPAN-1\.9402/msx ) {
+
+			# 1.9402 fails its tests... ANDK says it's a test bug.
+			$force = 1;
+		}
+		if ( $dist =~ /ExtUtils-ParseXS-2\.20(?:02)?\.tar\.gz/msx ) {
+
+			# 2.20 and 2.2002 are buggy on 5.8.9.
+			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_05.tar.gz'
+		}
+
+		$module_id = $self->_name_to_module($dist);
+		$core =
+		  exists $Module::CoreList::version{ $self->perl_version_literal() }
+		  {$module_id} ? 1 : 0;
+#<<<
+		$self->install_distribution(
+			name              => $dist,
+			mod_name          => $self->_module_fix($module_id),
+			force             => $force,
+			automated_testing => $automated_testing,
+			release_testing   => $release_testing,
+			$core
+			  ? (
+				  makefilepl_param => ['INSTALLDIRS=perl'],
+				  buildpl_param => ['--installdirs', 'core'],
+				)
+			  : (),
+		);
+#>>>
+	} ## end foreach my $dist ( @{ $toolchain...})
+
+	return $self;
+} ## end sub install_perl_toolchain
+
+sub _name_to_module {
+	my $self = shift;
+	my $dist = shift;
+
+	$self->trace_line( 3, "Trying to get module name out of $dist\n" );
+	
+#<<<
+	my ( $module ) = $dist =~ m{\A  # Start the string...
+					[A-Za-z/]*      # With a string of letters and slashes
+					/               # followed by a forward slash. 
+					(.*?)           # Then capture all characters, non-greedily 
+					-\d*[.]         # up to a dash, a sequence of digits, and then a period.
+					}smx;           # (i.e. starting a version number.)
+#>>>
+	$module =~ s{-}{::}msg;
+
+	return $module;
+} ## end sub _name_to_module
+
+
 
 1;
 

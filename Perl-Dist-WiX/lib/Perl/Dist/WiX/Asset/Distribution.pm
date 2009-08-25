@@ -82,7 +82,7 @@ has packlist => (
 sub BUILD {
 	my $self = shift;
 
-	if ( $self->get_name eq $self->get_url and not _DIST($self->_get_name) ) {
+	if ( $self->get_name eq $self->_get_url and not _DIST($self->get_name()) ) {
 		PDWiX::Parameter->throw("Missing or invalid name param\n");
 	}
 
@@ -95,7 +95,7 @@ sub install {
 	my $build_dir = $self->_get_build_dir();
 	
 # If we don't have a packlist file, get an initial filelist to subtract from.
-	my $module = $self->_get_module_name();
+	my $module = $self->get_module_name();
 	my $filelist_sub;
 
 	if ( not $self->_get_packlist() ) {
@@ -106,6 +106,9 @@ sub install {
 			  . " requires packlist => 0 *****\n" );
 	}
 
+#	require Data::Dumper;
+#	print Data::Dumper->new([$self], [qw(*self)])->Indent(1)->Dump();
+	
 	# Download the file
 	my $tgz =
 	  $self->_mirror( $self->_abs_uri( $self->_get_cpan() ), $self->_get_modules_dir(), );

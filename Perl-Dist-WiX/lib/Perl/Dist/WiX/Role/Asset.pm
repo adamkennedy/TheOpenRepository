@@ -4,7 +4,7 @@ package Perl::Dist::WiX::Role::Asset;
 
 use 5.008001;
 use Moose::Role;
-use File::Spec::Functions qw( rel2abs );
+use File::Spec::Functions qw( rel2abs catdir catfile );
 use MooseX::Types::Moose qw( Str );
 use Params::Util qw( _INSTANCE );
 require File::List::Object;
@@ -32,10 +32,8 @@ has parent => (
 		'_get_bin_perl'     => 'bin_perl',
 		'_get_wix_dist_dir' => 'wix_dist_dir',
 		'_get_icons'        => 'icons',
-		# TODO: comment _get_version out eventually.
-		'_get_version'      => 'perl_version_human',
 		'_get_pv_human'     => 'perl_version_human',
-		'_get_pv_literal'   => 'perl_version_literal',
+		'_module_fix'       => '_module_fix',
 		'_trace_line'       => 'trace_line',
 		'_mirror'           => '_mirror',
 		'_run3'             => '_run3',		
@@ -57,9 +55,10 @@ has parent => (
 );
 
 has url => (
-	is       => 'ro',
+	is       => 'rw',
 	isa      => Str,
 	reader   => '_get_url',
+	writer   => '_set_url',
 	required => 1,
 );
 
@@ -183,7 +182,7 @@ EOF
 		my $output = catfile( $self->_get_output_dir, 'debug.out' );
 		
 		# Trying to use the output to make an array.
-		$self->trace_line( 3,
+		$self->_trace_line( 3,
 			"Attempting to use debug.out file to make filelist\n" );
 
 		my $fh = IO::File->new( $output, 'r' );
@@ -203,8 +202,8 @@ EOF
 		if ( $#files_list == 0 ) {
 			PDWiX->throw($error);
 		} else {
-			$self->trace_line( 4, "Adding files:\n" );
-			$self->trace_line( 4, q{  } . join "\n  ", @files_list );
+			$self->_trace_line( 4, "Adding files:\n" );
+			$self->_trace_line( 4, q{  } . join "\n  ", @files_list );
 			$filelist = File::List::Object->new->load_array(@files_list);
 		}
 	} ## end else [ if ( -r $perl ) ]

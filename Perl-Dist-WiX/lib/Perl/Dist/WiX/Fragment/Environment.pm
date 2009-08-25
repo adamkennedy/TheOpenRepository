@@ -97,6 +97,11 @@ sub get_entries_count {
 
 }
 
+# No duplicates will be here to check.
+sub check_duplicates {
+	return;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 
