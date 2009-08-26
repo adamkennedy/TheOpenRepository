@@ -103,7 +103,7 @@ use     IO::String            qw();
 use     IO::Handle            qw();
 use     LWP::UserAgent        qw();
 use     LWP::Online           qw();
-use     Module::CoreList 2.17 qw();
+use     Module::CoreList 2.18 qw();
 use     PAR::Dist             qw();
 use     Probe::Perl           qw();
 use     SelectSaver           qw();
@@ -267,10 +267,10 @@ Default is 1 if not set.
 =item * perl_version
 
 The C<perl_version> parameter specifies what version of perl is 
-downloaded and built.  Legal values for this parameter are '588', 
-'589', and '5100' (for 5.8.8, 5.8.9, and 5.10.0, respectively.)
+downloaded and built.  Legal values for this parameter are '589', 
+'5100', and '5101' (for 5.8.9, 5.10.0, and 5.10.1, respectively.)
 
-This parameter defaults to '5100' if not specified.
+This parameter defaults to '5101' if not specified.
 
 =item * cpan
 
@@ -530,7 +530,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$class->remake_path( $params{image_dir} );
 	} ## end if ( defined $params{image_dir...})
 	unless ( defined $params{perl_version} ) {
-		$params{perl_version} = '5100';
+		$params{perl_version} = '5101';
 	}
 
 	# Hand off to a parent class
@@ -823,7 +823,7 @@ sub binary_url {
 		);
 	}
 
-	unless ( $file =~ /\.(zip | gz | tgz)\z/imsx ) {
+	unless ( $file =~ /\.(zip | gz | tgz | par)\z/imsx ) {
 
 		# Shorthand, map to full file name
 		$file = $self->binary_file( $file, @_ );
@@ -1036,7 +1036,7 @@ The C<perl_version> accessor returns the shorthand perl version
 as a string (consisting of the three-part version with dots
 removed).
 
-Thus Perl 5.8.8 will be "588" and Perl 5.10.0 will return "5100".
+Thus Perl 5.8.9 will be "589" and Perl 5.10.0 will return "5100".
 
 =head3 perl_version_literal
 
@@ -1050,9 +1050,9 @@ and for Perl 5.10.0 this will be '5.010000'.
 
 sub perl_version_literal {
 	return {
-		588  => '5.008008',
 		589  => '5.008009',
 		5100 => '5.010000',
+		5101 => '5.010001',
 	  }->{ $_[0]->perl_version }
 	  || 0;
 }
@@ -1064,15 +1064,15 @@ sub perl_version_literal {
 The C<perl_version_human> method returns the "marketing" form
 of the Perl version.
 
-This will be either '5.8.8', '5.8.9' or '5.10.0'.
+This will be either '5.8.9', '5.10.0', or '5.10.1'.
 
 =cut
 
 sub perl_version_human {
 	return {
-		588  => '5.8.8',
 		589  => '5.8.9',
 		5100 => '5.10.0',
+		5101 => '5.10.0',
 	  }->{ $_[0]->perl_version }
 	  || 0;
 }
@@ -1312,12 +1312,6 @@ sub install_win32_extras {
 		url       => 'http://search.cpan.org/',
 		icon_file => catfile( $self->wix_dist_dir(), 'cpan.ico' ) );
 
-	if ( $self->perl_version_human eq '5.8.8' ) {
-		$self->install_website(
-			name      => 'Perl 5.8.8 Documentation',
-			url       => 'http://perldoc.perl.org/5.8.8/',
-			icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
-	}
 	if ( $self->perl_version_human eq '5.8.9' ) {
 		$self->install_website(
 			name      => 'Perl 5.8.9 Documentation',
@@ -1327,6 +1321,12 @@ sub install_win32_extras {
 	if ( $self->perl_version_human eq '5.10.0' ) {
 		$self->install_website(
 			name      => 'Perl 5.10.0 Documentation',
+			url       => 'http://perldoc.perl.org/5.10.0/',
+			icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
+	}
+	if ( $self->perl_version_human eq '5.10.1' ) {
+		$self->install_website(
+			name      => 'Perl 5.10.1 Documentation',
 			url       => 'http://perldoc.perl.org/',
 			icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
 	}

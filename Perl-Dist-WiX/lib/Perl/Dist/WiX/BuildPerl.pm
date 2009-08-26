@@ -460,10 +460,7 @@ sub install_perl {
 	return $self;
 } ## end sub install_perl
 
-#####################################################################
-# Perl 5.8.8 Support
-
-=head2 install_perl_* (* = 588, 589, or 5100)
+=head2 install_perl_* (* = 589, 5100, or 5101)
 
 	$self->install_perl_5100;
 
@@ -641,6 +638,57 @@ sub install_perl_5100 {
 
 	return 1;
 } ## end sub install_perl_5100
+
+
+sub install_perl_5101 {
+	my $self = shift;
+
+	# Prefetch and predelegate the toolchain so that it
+	# fails early if there's a problem
+	$self->trace_line( 1, "Pregenerating toolchain...\n" );
+	my $toolchain = Perl::Dist::Util::Toolchain->new(
+		perl_version => $self->perl_version_literal,
+		cpan         => $self->cpan->as_string
+	) or PDWiX->throw('Failed to resolve toolchain modules');
+	unless ( eval { $toolchain->delegate; 1; } ) {
+		PDWiX::Caught->throw(
+			message => 'Delegation error occured',
+			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
+		);
+	}
+	if ( $toolchain->{errstr} ) {
+		PDWiX::Caught->throw(
+			message => 'Failed to generate toolchain distributions',
+			info    => $toolchain->{errstr} );
+	}
+
+	$self->{toolchain} = $toolchain;
+	
+	# Make the perl directory if it hasn't been made already.
+	$self->make_path( catdir( $self->image_dir, 'perl' ) );
+
+	# Install the main binary
+	$self->install_perl_bin(
+		name      => 'perl',
+		url       => 'http://strawberryperl.com/package/perl-5.10.1.tar.gz',
+		unpack_to => 'perl',
+		install_to => 'perl',
+		toolchain  => $toolchain,
+		patch      => [ qw{
+			  lib/CPAN/Config.pm
+			  win32/config.gc
+			  win32/config_sh.PL
+			  }
+		],
+		license => {
+			'perl-5.10.1/Readme'   => 'perl/Readme',
+			'perl-5.10.1/Artistic' => 'perl/Artistic',
+			'perl-5.10.1/Copying'  => 'perl/Copying',
+		},
+	);
+
+	return 1;
+} ## end sub install_perl_5101
 
 
 #####################################################################

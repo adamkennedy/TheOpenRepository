@@ -18,6 +18,7 @@ if (is_admin) {
 }
 
 all_from       'lib/Perl/Dist/WiX.pm';
+requires       'parent'               => '0.221';
 requires       'version'              => '0.76';
 requires       'Alien::WiX'           => '0.300000';
 requires       'Data::Dump::Streamer' => '2.08';
@@ -28,7 +29,7 @@ requires       'File::ShareDir'       => '1.00';
 requires       'File::List::Object'   => '0.189';
 requires       'IO::String'           => '1.08';
 requires       'List::MoreUtils'      => '0.07';
-requires       'Module::CoreList'     => '2.17';
+requires       'Module::CoreList'     => '2.18';
 requires       'Object::InsideOut'    => '3.53';
 requires       'Perl::Dist'           => '1.16';
 requires       'Process'              => '0.26';

@@ -255,7 +255,7 @@ sub new {
 	$self->{fragments}->{CreateCpanplus} = Perl::Dist::WiX::Fragment::CreateFolder->new(
 		directory_id   => 'Cpanplus',
 		id             => 'CPANPLUSFolder',
-	) if ( 5100 >= $self->perl_version );
+	) if ( 5100 <= $self->perl_version );
 
 	$self->{icons} = $self->{fragments}->{Icons}->get_icons();
 
@@ -407,9 +407,9 @@ sub msi_perl_version {
 
 	# Get perl version arrayref.
 	my $ver = {
-		588  => [ 5, 8,  8 ],
 		589  => [ 5, 8,  9 ],
 		5100 => [ 5, 10, 0 ],
+		5101 => [ 5, 10, 1 ],
 	  }->{ $self->perl_version }
 	  || [ 0, 0, 0 ];
 

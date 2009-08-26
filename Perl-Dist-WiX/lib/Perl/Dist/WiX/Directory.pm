@@ -86,6 +86,10 @@ sub get_directory_object {
 	return undef;
 }
 
+sub search_dir {
+	WiX3::Exception::Unimplemented->throw();
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 
