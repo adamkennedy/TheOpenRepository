@@ -3,7 +3,7 @@ package Perl::Dist::WiX::Asset::Module;
 use Moose;
 use MooseX::Types::Moose qw( Str Bool ); 
 use English qw( -no_match_vars ); 
-use File::Spec::Functions qw( catdir );
+use File::Spec::Functions qw( catdir catfile );
 require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
@@ -11,21 +11,21 @@ require IO::File;
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
-with 'Perl::Dist::WiX::Role::Asset';
+with 'Perl::Dist::WiX::Role::NonURLAsset';
 
 has name => (
 	is       => 'ro',
 	isa      => Str,
-	reader   => '_get_name',
+	reader   => 'get_name',
 	required => 1,
 );
 
 has force => (
 	is       => 'ro',
 	isa      => Bool,
-	reader   => 'get_force',
+	reader   => '_get_force',
 	lazy     => 1,
-	default  => sub { !! $_[0]->parent->force },
+	default  => sub { !! $_[0]->_get_parent()->force() },
 );
 
 has packlist => (
@@ -35,7 +35,7 @@ has packlist => (
 	default  => 1,
 );
 
-# Don't know what these are for.
+# Don't know what these are for. TODO: Delete.
 #use Object::Tiny qw{
 #	type
 #	extras
@@ -43,7 +43,7 @@ has packlist => (
 
 sub install {
 	my $self   = shift;
-	my $name  = $self->_get_name();
+	my $name  = $self->get_name();
 	my $force = $self->_get_force();
 		
 	my $packlist_flag = $self->_get_packlist();

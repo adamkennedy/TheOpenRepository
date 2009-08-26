@@ -1,4 +1,4 @@
-package Perl::Dist::WiX::Role::Asset;
+package Perl::Dist::WiX::Role::NonURLAsset;
 
 # Convenience role for Perl::Dist::WiX assets
 
@@ -28,6 +28,7 @@ has parent => (
 		'_get_modules_dir'  => 'modules_dir',
 		'_get_license_dir'  => 'license_dir',
 		'_get_build_dir'    => 'build_dir',
+		'_get_dist_dir'     => 'dist_dir',
 		'_get_cpan'         => 'cpan',
 		'_get_bin_perl'     => 'bin_perl',
 		'_get_wix_dist_dir' => 'wix_dist_dir',
@@ -54,99 +55,8 @@ has parent => (
 	required => 1,
 );
 
-has url => (
-	is       => 'rw',
-	isa      => Str,
-	reader   => '_get_url',
-	writer   => '_set_url',
-	required => 1,
-);
-
-has file => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_file',
-	required => 1,
-);
-
 # An asset knows how to install itself.
 requires 'install';
-
-#####################################################################
-# Mangle arguments for constructor.
-
-sub BUILDARGS {
-	my $class = shift;
-	my %args;
-	
-	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
-		%args = %{$_[0]};
-	} elsif ( 0 == @_ % 2 ) {
-		%args = ( @_ );
-	} else {
-		PDWiX->throw('Parameters incorrect (not a hashref or hash) for ::Asset::*');
-	}
-
-	my $parent = $args{parent};
-	
-	unless ( defined _INSTANCE($args{ parent}, 'Perl::Dist::WiX' ) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'parent: missing or not a Perl::Dist::WiX instance',
-			where => '::Role::Asset->new',
-		);
-	}
-	
-	unless ( defined $args{url} ) {
-		if ( defined $args{share} ) {
-			# Map share to url vis File::ShareDir
-			my ($dist, $name) = split /\s+/, $args{share};
-			$parent->trace_line("Finding $name in $dist... ");
-			my $file = rel2abs(
-				File::ShareDir::dist_file( $dist, $name )
-			);
-			unless ( -f $file ) {
-				PDWiX->throw("Failed to find $file");
-			}
-			$args{url} = URI::file->new($file)->as_string;
-			$parent->trace_line(" found\n");
-
-		} elsif ( defined $args{dist} ) {
-			# Map CPAN dist path to url
-			my $dist = $args{dist};
-			$parent->trace_line("Using distribution path $dist\n");
-			my $one  = substr( $dist, 0, 1 );
-			my $two  = substr( $dist, 1, 1 );
-			my $path = File::Spec::Unix->catfile(
-				'authors', 'id', $one, "$one$two", $dist,
-			);
-			$args{url} = URI->new_abs( $path, $args{parent}->cpan() )->as_string;
-
-		} elsif ( defined $args{name} ) {
-			if ($class ne 'Perl::Dist::WiX::Asset::Module') {
-				# Map name to URL via the default package path
-				$args{url} = $parent->binary_url($args{name});
-			} else {
-				$args{url} = q{};
-			}
-		}
-	}
-
-	if ($class ne 'Perl::Dist::WiX::Asset::Module') {
-		# Create the filename from the url
-		$args{file} = $args{url};
-		$args{file} =~ s|.+/||;
-		unless ( defined $args{file} and length $args{file}) {
-			PDWiX::Parameter::throw->(parameter => 'file', where => '::Role::Asset->new');
-		}
-	} else {
-		$args{file} = q{};
-	}
-
-	my %default_args = ( url => $args{url}, file => $args{file}, parent => $args{parent} );
-	delete @args{'url', 'file', 'parent'};
-	
-	return { (%default_args) , (%args) };
-}
 
 sub cpan {
 	# Throw error.
@@ -184,7 +94,7 @@ EOF
 
 	my $filelist;
 	if ( -r $packlist ) {
-		$filelist = File::List::Object->new->load_file($packlist)->add_file($packlist);
+		$filelist = File::List::Object->new()->load_file($packlist)->add_file($packlist);
 	} else {
 
 		my $output = catfile( $self->_get_output_dir, 'debug.out' );
@@ -212,12 +122,11 @@ EOF
 		} else {
 			$self->_trace_line( 4, "Adding files:\n" );
 			$self->_trace_line( 4, q{  } . join "\n  ", @files_list );
-			$filelist = File::List::Object->new->load_array(@files_list);
+			$filelist = File::List::Object->new()->load_array(@files_list);
 		}
 	} ## end else [ if ( -r $perl ) ]
 
 	return $filelist->filter( $self->_filters );
 } ## end sub search_packlist
-
 
 1;

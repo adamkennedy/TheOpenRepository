@@ -1561,7 +1561,7 @@ sub patch_file {
 
 		# Generate the file
 		my $hash = _HASH(shift) || {};
-		my ( $fh, $output ) = File::Temp::tempfile( TEMPLATE => 'pdwXXXXXX' );
+		my ( $fh, $output ) = File::Temp::tempfile( 'pdwXXXXXX', TMPDIR => 1 );
 		$self->trace_line( 2,
 			"Generating $from_tt into temp file $output\n" );
 		$self->patch_template->process( $from_tt,
@@ -1569,8 +1569,9 @@ sub patch_file {
 		  or PDWiX->throw("Template processing failed for $from_tt");
 
 		# Copy the file to the final location
-		$fh->close;
-		$self->_move( $output => $to );
+		$fh->close or PDWiX->throw("Could not close: $OS_ERROR");
+		$self->_copy( $output => $to );
+		unlink $output;
 
 	} elsif ( $from ne q{} ) {
 

@@ -218,7 +218,7 @@ sub install_distribution_from_file {
 	$mod_id =~ s{-}{_}msg;
 
 	# Insert fragment.
-	$self->insert_fragment( $mod_id, $filelist->files );
+	$self->insert_fragment( $mod_id, $filelist );
 
 	return $self;
 } ## end sub install_distribution_from_file
@@ -271,7 +271,7 @@ sub install_module {
 	$name =~ s{::}{_}gmsx;
 
 	# Insert fragment.
-	$self->insert_fragment( $name, $filelist->files )
+	$self->insert_fragment( $name, $filelist )
 	  unless ( 0 == scalar @{ $filelist->files } );
 
 	return $self;

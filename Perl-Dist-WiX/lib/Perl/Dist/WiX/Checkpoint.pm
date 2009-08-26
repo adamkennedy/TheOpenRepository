@@ -195,10 +195,16 @@ sub checkpoint_load {
 		PDWiX->throw('Failed to find checkpoint directory');
 	}
 
+	# If we want a future checkpoint, save it.
+	my $checkpoint_after = $self->{checkpoint_after} || 0;
+	
 	# Load the stored hash over our object
 	local $Storable::Eval = 1;
 	my $stored = Storable::retrieve( $self->checkpoint_file );
 	%{$self} = %{$stored};
+
+	# Restore any possible future checkpoint.
+	$self->{checkpoint_after} = $checkpoint_after;
 
 	# Reload the template object if it existed before.
 	if ( $self->{tt_exists} ) {

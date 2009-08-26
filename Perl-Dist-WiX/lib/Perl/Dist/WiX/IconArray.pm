@@ -12,6 +12,7 @@ use Moose;
 use MooseX::AttributeHelpers;
 use Params::Util           qw( _STRING   );
 use File::Spec::Functions  qw( splitpath );
+require Perl::Dist::WiX::Icon;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -63,8 +64,9 @@ sub add_icon {
 
 	# Find the type of target.
 	my ($target_type) = $pathname_target =~ m{\A.*[.](.+)\z}msx;
-	$self->trace_line( 2,
-		"Adding icon $pathname_icon with target type $target_type.\n" );
+# TODO: Make this work.
+#	$self->trace_line( 2,
+#		"Adding icon $pathname_icon with target type $target_type.\n" );
 
 	# If we have an icon already, return it.
 	my $icon = $self->search_icon( $pathname_icon, $target_type );

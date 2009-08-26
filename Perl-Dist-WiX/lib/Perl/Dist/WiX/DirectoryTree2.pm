@@ -29,6 +29,7 @@ has root => (
 	is => 'ro',
 	isa => 'WiX3::XML::Directory',
 	reader => 'get_root',
+	handles => ['search_dir', 'get_directory_object'],
 	required => 1,
 );
 
@@ -126,21 +127,6 @@ sub initialize_tree {
 #>>>
 	
 	return $self;
-}
-
-sub get_directory_object {
-	my $self = shift;
-	my $id = shift;
-	
-	return $self->get_root()->get_directory_object($id);
-}
-
-# We still need to get the routines below written.
-
-sub search_dir {
-	WiX3::Exception::Unimplemented->throw();
-	
-	return;
 }
 
 no Moose;

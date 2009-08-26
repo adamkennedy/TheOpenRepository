@@ -8,12 +8,12 @@ use Perl::Dist::WiX::Exceptions;
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
-with 'Perl::Dist::WiX::Role::Asset';
+with 'Perl::Dist::WiX::Role::NonURLAsset';
 
 has name => (
 	is       => 'ro',
 	isa      => Str,
-	reader   => '_get_name',
+	reader   => 'get_name',
 	required => 1,
 );
 
