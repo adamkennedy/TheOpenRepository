@@ -127,9 +127,6 @@ use Marpa::Offset qw(
     PACKAGE
     NULL_VALUES
     { Delete this } CYCLES { Will this be needed? }
-    RANKED_AND_NODE_IDS
-    AND_HEIGHTS
-    OR_HEIGHTS
 
 );
 
@@ -1218,11 +1215,8 @@ sub rewrite_cycles {
                     )
                     )
                 {
-
-                    push @delete_work_list,
-                        [ 'a', $new_parent_and_node_id ];
+                    push @delete_work_list, [ 'a', $new_parent_and_node_id ];
                     next PARENT_AND_NODE;
-
                 } ## end if ( defined( my $new_parent_and_node_id = ...))
 
                 # If we are here, the parent node is cycle-external.
@@ -1333,8 +1327,7 @@ sub rewrite_cycles {
                     if $is_root
                         xor $internal_and_nodes{$original_parent_and_node_id};
 
-                push @delete_work_list,
-                    [ 'a', $original_parent_and_node_id ];
+                push @delete_work_list, [ 'a', $original_parent_and_node_id ];
             } ## end for my $original_parent_and_node_id ( @{ ...})
         } ## end for my $original_or_node (@cycle)
 
@@ -1403,7 +1396,7 @@ sub delete_duplicate_nodes {
     # EC before a set of deletions, they
     # will be after.
     #
-    # Induction hypothesis: any two nodes of level n in 
+    # Induction hypothesis: any two nodes of level n in
     # a common EC before a set of deletions, will be in
     # a common EC after the set of deletions.
     #
@@ -1581,9 +1574,8 @@ sub delete_duplicate_nodes {
         # Remove any deleted nodes from the terminal nodes
         # before looping
         @terminal_nodes =
-            grep {
-                    not $_->[Marpa::Internal::And_Node::DELETED]
-            } @terminal_nodes;
+            grep { not $_->[Marpa::Internal::And_Node::DELETED] }
+            @terminal_nodes;
 
     } ## end while (1)
 
@@ -2244,9 +2236,11 @@ use Marpa::Offset qw(
     { tasks for use in Marpa::Evaluator::value }
     :package=Marpa::Internal::Task
     ADVANCE { Delete this? }
+    BACKTRACK { Delete this? }
     INITIALIZE_AND_NODE
+    SCHEDULE_INITIALIZE_AND_NODE
     INITIALIZE_OR_NODE
-    BACKTRACK
+    SCHEDULE_INITIALIZE_OR_NODE
     EVALUATE
 );
 
@@ -2261,11 +2255,7 @@ sub Marpa::Evaluator::new_value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) if $evaler_class ne $right_class;
 
-    my $ranked_and_node_ids =
-        $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS];
-    my $and_nodes   = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $and_heights = $evaler->[Marpa::Internal::Evaluator::AND_HEIGHTS];
-    my $or_heights  = $evaler->[Marpa::Internal::Evaluator::OR_HEIGHTS];
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
@@ -2297,157 +2287,22 @@ sub Marpa::Evaluator::new_value {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
     }
 
-    my @tasks;
-
-    if ( not $parse_count ) {
-
-        my $depth = 0;
-        my @depth = $#{$and_nodes};
-        my @and_node_ids_at_depth =
-            @{ $or_nodes->[0]->[Marpa::Internal::Or_Node::CHILD_IDS] };
-
-        # This is a Guttman-Rossler Transform, which you can look up on Wikipedia.
-
-        my @height_work_list = ();
-
-        # Set the height at 0 for all and-nodes with terminals
-        # and no predecessors.
-        AND_NODE: for my $and_node ( @{$and_nodes} ) {
-
-            # VALUE_REF will not be defined for a deleted and-node
-            # so deleted and-nodes are also excluded here.
-            next AND_NODE
-                if not
-                    defined $and_node->[Marpa::Internal::And_Node::VALUE_REF]
-                    or defined
-                    $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
-
-            my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
-            $and_heights->[$and_node_id] = 0;
-
-            push @height_work_list,
-                [ 'o', $and_node->[Marpa::Internal::And_Node::PARENT_ID] ];
-
-        } ## end for my $and_node ( @{$and_nodes} )
-
-        # Assign the heights of the other and-nodes.
-        # Each node must have a height above that of all of its children
-        WORK_ENTRY:
-        while ( my $height_work_entry = shift @height_work_list ) {
-            my ( $node_type, $node_id ) = @{$height_work_entry};
-
-            if ( $node_type eq 'o' ) {
-                my @child_heights;
-                my $or_node = $or_nodes->[$node_id];
-                for my $child_and_id (
-                    @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
-                {
-                    my $height = $and_heights->[$child_and_id];
-
-                    # If any height is not defined, push the work entry
-                    # back into the queue and continue
-                    if ( not defined $height ) {
-                        push @height_work_list, $height_work_entry;
-                        next WORK_ENTRY;
-                    }
-
-                    push @child_heights, $height;
-
-                } ## end for my $child_and_id ( @{ $or_node->[...]})
-
-                # Height of an or-node is the highest height of an
-                # and-child.
-                $or_heights->[$node_id] = List::util::max(@child_heights);
-
-                push @height_work_list,
-                    map { [ 'a', $_ ] }
-                    @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] };
-            } ## end if ( $node_type eq 'o' )
-
-            if ( $node_type eq 'a' ) {
-                my @child_heights;
-                my $and_node = $and_nodes->[$node_id];
-                for my $child_or_id (
-                    map  { $_->[Marpa::Internal::Or_Node::ID] }
-                    grep { defined $_ } @{$and_node}[
-                    Marpa::Internal::And_Node::CAUSE,
-                    Marpa::Internal::And_Node::PREDECESSOR
-                    ]
-                    )
-                {
-                    my $height = $or_heights->[$child_or_id];
-
-                    # If any height is not defined, push the work entry
-                    # back into the queue and continue
-                    if ( not defined $height ) {
-                        push @height_work_list, $height_work_entry;
-                        next WORK_ENTRY;
-                    }
-
-                    push @child_heights, $height;
-
-                } ## end for my $child_or_id ( map { $_->[...]})
-
-                my $new_height = List::util::max(@child_heights) + 1;
-                if ( $new_height & ~(N_FORMAT_MAX) ) {
-                    Marpa::exception(
-                        "Parse too deep (depth=$new_height) to be evaluated");
-                }
-                $and_heights->[$node_id] = $new_height;
-
-                push @height_work_list,
-                    map { [ 'o', $_ ] }
-                    @{ $and_node->[Marpa::Internal::And_Node::PARENT_ID] };
-            } ## end if ( $node_type eq 'a' )
-
-            Marpa::exception("Unknown node type: $node_type");
-
-        } ## end while ( my $height_work_entry = shift @height_work_list)
-
-        my @sort_data =
-            map { pack 'NCN', $and_heights->[$_], 'a', $_ }
-            map  { $_->[Marpa::Internal::And_Node::ID] }
-            grep { not $_->[Marpa::Internal::And_Node::DELETED] }
-            @{$and_nodes};
-        push @sort_data, map { pack 'NCN', $or_heights->[$_], 'o', $_ }
-            map  { $_->[Marpa::Internal::Or_Node::ID] }
-            grep { not $_->[Marpa::Internal::Or_Node::DELETED] } @{$or_nodes};
-        $ranked_and_node_ids = [
-            map { unpack 'N', substr $_, N_FORMAT_BYTES }
-            sort @sort_data
-        ];
-
-        if ($trace_tasks) {
-            for my $rank ( 0 .. $#{$ranked_and_node_ids} ) {
-                print {$trace_fh}
-                    "And-Node, rank $rank: ",
-                    Marpa::show_and_node(
-                    $and_nodes->[ $ranked_and_node_ids->[$rank] ], 2 )
-                    or Marpa::exception('print to trace handle failed');
-            } ## end for my $rank ( 0 .. $#{$ranked_and_node_ids} )
-        } ## end if ($trace_tasks)
-
-        $evaler->[Marpa::Internal::Evaluator::AND_HEIGHTS] = $and_heights;
-        $evaler->[Marpa::Internal::Evaluator::OR_HEIGHTS]  = $or_heights;
-        $evaler->[Marpa::Internal::Evaluator::RANKED_AND_NODE_IDS] =
-            $ranked_and_node_ids;
-        @tasks = ( [Marpa::Internal::Task::ADVANCE] );
-
-    } ## end if ( not $parse_count )
-
     # Default is to backtrack on first entering the task
-    # loop is to backtrack, unless this is a new parse, in
-    # which case the task stack is already set up.
-    if ( not scalar @tasks ) {
-        @tasks = ( [Marpa::Internal::Task::BACKTRACK] );
-    }
+    # loop is to backtrack, unless this is a new parse.
+    my @tasks =
+        $parse_count
+        ? ( [Marpa::Internal::Task::BACKTRACK] )
+        : (
+        [Marpa::Internal::Task::EVALUATE],
+        [ Marpa::Internal::Task::SCHEDULE_INITIALIZE_OR_NODE, 0 ],
+        );
 
     TASK: while (1) {
 
         # Default task on empty stack is to try to advance through
         # the ranked and-nodes.
         if ( not scalar @tasks ) {
-            @tasks = ( [Marpa::Internal::Task::ADVANCE] );
+            Marpa::exception('Internal error: No default task');
         }
 
         my $task_entry = pop @tasks;
@@ -2530,7 +2385,8 @@ sub Marpa::Evaluator::new_value {
 
             # Flag to indicate our sort element has been added to the
             # sort key.  Initialized to (vacuously) true if
-            # there is no sort element for this and-node
+            # there is no sort element for this and-node,
+            # otherwise initialized to false.
             my $sort_element_added = not defined $this_sort_element;
 
             CHILD_OR_NODE:
@@ -2549,10 +2405,14 @@ sub Marpa::Evaluator::new_value {
                     $child_or_node->[Marpa::Internal::Or_Node::ID];
 
                 my $sorted_and_choice = $sorted_and_choices->[-1];
+
+                # Add an entry for the or-node child to the or-map,
+                # as well as that child's or-map
                 push @or_map,
                     $child_or_node_id,
                     $sorted_and_choice->[Marpa::Internal::And_Choice::ID],
-                    $sorted_and_choice->[Marpa::Internal::And_Choice::OR_MAP];
+                    @{ $sorted_and_choice
+                        ->[Marpa::Internal::And_Choice::OR_MAP] };
 
                 # Compute sort-key
                 # Sort in sort element

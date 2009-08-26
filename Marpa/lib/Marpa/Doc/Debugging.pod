@@ -1,6 +1,6 @@
 =head1 NAME
 
-Marpa::Doc::Debugging - Debugging Marpa Grammars
+Marpa::Doc::Debugging - How to Debug Your Grammar
 
 =head1 DESCRIPTION
 

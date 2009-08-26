@@ -18,7 +18,8 @@ my $grammar = Marpa::Grammar->new(
     {   start              => 'sentence',
         strip              => 0,
         default_lex_prefix => '\s+|\A',
-        rules              => [
+        ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+        rules => [
             [   'sentence', [qw(subject verb adjunct)],
                 q{ "sva($_[0];$_[1];$_[2])" }
             ],
@@ -35,17 +36,17 @@ my $grammar = Marpa::Grammar->new(
             [ 'article',   [qw(article_lex)],        q{ "art($_[0])" } ],
             [ 'preposition', [qw(preposition_lex)], q{ "pr($_[0])" } ],
         ],
+        ## use critic
         terminals => [
-            [ preposition_lex => { regex => qr/like/ } ],
-            [ verb_lex        => { regex => qr/like|flies/ } ],
+            [ preposition_lex => { regex => qr/like/xms } ],
+            [ verb_lex        => { regex => qr/like|flies/xms } ],
             [   adjective_noun_lex =>
-                    { regex => qr/fruit|banana|time|arrow|flies/ }
+                    { regex => qr/fruit|banana|time|arrow|flies/xms }
             ],
-            [ article_lex => { regex => qr/a\b|an/ } ],
+            [ article_lex => { regex => qr/a\b|an/xms } ],
         ]
     }
 );
-
 
 my $expected = <<'EOS';
 svo(s(adje(time);n(flies));v(like);o(art(an);n(arrow)))
@@ -64,13 +65,13 @@ for my $data ( 'time flies like an arrow.', 'fruit flies like a banana.' ) {
     }
     $recce->end_input();
 
-    my $evaler = Marpa::Evaluator->new(
-        { recognizer => $recce, clone => 0 } );
-    Carp::croak('Parse failed') unless $evaler;
+    my $evaler =
+        Marpa::Evaluator->new( { recognizer => $recce, clone => 0 } );
+    Carp::croak('Parse failed') if not $evaler;
 
     while ( defined( my $value = $evaler->value() ) ) {
         $actual .= ${$value} . "\n";
     }
 } ## end for my $data ( 'time flies like an arrow.', ...)
 
-Marpa::Test::is($actual, $expected, 'Ambiguous English sentences');
+Marpa::Test::is( $actual, $expected, 'Ambiguous English sentences' );
