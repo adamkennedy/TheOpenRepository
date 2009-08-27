@@ -113,6 +113,8 @@ EOF
 	return $filelist;
 } ## end sub install_par
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;
 

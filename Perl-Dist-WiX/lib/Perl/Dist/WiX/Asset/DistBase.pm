@@ -122,6 +122,9 @@ sub _DIST {
 
 1;
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
 __END__
 
 =pod

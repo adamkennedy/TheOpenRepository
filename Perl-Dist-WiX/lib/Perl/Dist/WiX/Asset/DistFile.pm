@@ -179,6 +179,9 @@ sub install {
 	return $filelist;
 } ## end sub install_distribution
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
 1;
 
 __END__
