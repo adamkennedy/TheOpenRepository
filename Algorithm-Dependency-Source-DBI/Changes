@@ -1,5 +1,10 @@
 Change for Perl extension Algorithm-Dependency-Source-DBI
 
+1.06 Thu 27 Aug 2009
+	- Updating to production version
+	- Updating to Module::Install 0.91
+	- Filter out links on BOTH source and destination
+
 0.05 Wed 14 Nov 2007
 	- No functional changes
 	- Adding debugging messages to work out why the AUTOMATED_TESTING

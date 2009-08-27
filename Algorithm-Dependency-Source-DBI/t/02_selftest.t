@@ -8,10 +8,10 @@ BEGIN {
 
 use Test::More;
 BEGIN {
-	if ( $ENV{AUTOMATED_TESTING} ) {
+	if ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING}  ) {
 		plan( tests => 6 );
 	} else {
-		plan( skip_all => 'AUTOMATED_TESTING is not enabled' );
+		plan( skip_all => 'CPAN Testers code not needed for install' );
 		exit(0);
 	}
 }

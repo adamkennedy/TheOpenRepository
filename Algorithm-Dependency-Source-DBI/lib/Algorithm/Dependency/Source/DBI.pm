@@ -24,7 +24,7 @@ Algorithm::Dependency::Source::DBI - Database source for Algorithm::Dependency
   my $dep = Algorithm::Dependency->new(
       source   => $data_source,
       selected => [ 'This', 'That' ]
-      ) or die 'Failed to set up dependency algorithm';
+  ) or die 'Failed to set up dependency algorithm';
   
   # For the item 'Foo', find out the other things we also have to select.
   # This WON'T include the item we selected, 'Foo'.
@@ -56,13 +56,14 @@ data from a database directly.
 
 use 5.005;
 use strict;
-use base 'Algorithm::Dependency::Source';
 use Params::Util qw{  _STRING _ARRAY _INSTANCE };
-use Algorithm::Dependency::Item ();
+use Algorithm::Dependency::Item   ();
+use Algorithm::Dependency::Source ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '1.06';
+	@ISA     = 'Algorithm::Dependency::Source';
 }
 
 
@@ -206,6 +207,7 @@ sub _load_item_list {
 		);
 	foreach my $depend ( @$depends ) {
 		next unless $hash{$depend->[0]};
+		next unless $hash{$depend->[1]};
 		push @{$hash{$depend->[0]}}, $depend->[1];
 	}
 

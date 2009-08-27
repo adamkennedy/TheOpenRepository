@@ -8,10 +8,10 @@ BEGIN {
 
 use Test::More;
 BEGIN {
-	if ( $ENV{AUTOMATED_TESTING} ) {
+	if ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
 		plan( tests => 10 );
 	} else {
-		plan( skip_all => 'AUTOMATED_TESTING is not enabled' );
+		plan( skip_all => 'CPAN Testers code not needed for install' );
 		exit(0);
 	}
 }
@@ -23,7 +23,11 @@ use t::lib::SQLite::Temp;
 use Algorithm::Dependency              ();
 use Algorithm::Dependency::Source::DBI ();
 
-my @create = map { catfile( 't', 'data', 'simple', $_ ) } qw{ create.sql one.csv links.csv };
+my @create = map { catfile( 't', 'data', 'simple', $_ ) } qw{
+	create.sql
+	one.csv
+	links.csv
+};
 foreach ( @create ) {
 	ok( -f $_, "$_ exists" );
 }

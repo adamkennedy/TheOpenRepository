@@ -10,12 +10,12 @@ use Test::More tests => 3;
 
 ok( $] >= 5.005, 'Perl version is new enough' );
 
+use_ok( 'Algorithm::Dependency::Source::DBI' );
+
 SKIP: {
-	unless ( $ENV{AUTOMATED_TESTING} ) {
-		skip("AUTOMATED_TESTING is not enabled", 1);
+	unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING}  ) {
+		skip('CPAN Testers code not needed for install', 1);
 	}
-	diag("AUTOMATED_TESTING is enabled");
 	use_ok( 't::lib::SQLite::Temp' );
 }
 
-use_ok( 'Algorithm::Dependency::Source::DBI' );

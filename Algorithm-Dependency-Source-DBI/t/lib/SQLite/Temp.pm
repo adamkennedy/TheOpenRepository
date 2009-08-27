@@ -10,7 +10,7 @@ use Parse::CSV  ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '1.06';
 	require Exporter;
 	@ISA    = 'Exporter';
 	@EXPORT = qw{ empty_db create_db };
@@ -22,7 +22,10 @@ sub empty_db {
 	my $file = File::Spec->catfile( $dir, 'sqlite.db' );
 
 	# Create the database
-	DBI->connect( 'dbi:SQLite:' . $file ) or die "Failed to create test DB handle";
+	my $dbh = DBI->connect("dbi:SQLite:$file");
+	unless ( $dbh ) {
+		die "Failed to create test DB handle";
+	}
 }
 
 sub create_db {
