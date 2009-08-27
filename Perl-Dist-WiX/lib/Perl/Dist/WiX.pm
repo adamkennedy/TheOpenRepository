@@ -1072,7 +1072,7 @@ sub perl_version_human {
 	return {
 		589  => '5.8.9',
 		5100 => '5.10.0',
-		5101 => '5.10.0',
+		5101 => '5.10.1',
 	  }->{ $_[0]->perl_version }
 	  || 0;
 }
@@ -1148,7 +1148,7 @@ sub run {
 	# Install the Win32 extras
 	$self->checkpoint_task( install_win32_extras => 11 );
 
-	return;
+#	return;
 	
 	# Apply optional portability support
 	$self->checkpoint_task( install_portable => 12 )
@@ -1162,7 +1162,7 @@ sub run {
 	$self->checkpoint_task( install_custom => 14 );
 
 	# Write out the distributions
-	$self->checkpoint_task( write => 14 );
+	$self->checkpoint_task( write => 15 );
 
 	# Finished
 	$self->trace_line( 0,
