@@ -18,7 +18,7 @@ my $build = Module::Build->new(
         no_index          => {
             directory => [qw(inc t example bootstrap author.t save)],
             namespace => ['Marpa::Internal'],
-            package   => ['Marpa::Offset'],
+            package   => [qw(Marpa::Internal Marpa::Offset)],
         },
     },
     meta_add    => {

@@ -2247,8 +2247,9 @@ use Marpa::Offset qw(
 );
 
 # This will replace the old value method
-sub Marpa::Evaluator::new_value {
-    my ($evaler) = @_;
+sub Marpa::Evaluator::value {
+    my ($evaler, $new_flag) = @_;
+    goto &Marpa::Evaluator::old_value if not $new_flag;
 
     Marpa::exception('No parse supplied') if not defined $evaler;
     my $evaler_class = ref $evaler;
@@ -2684,7 +2685,7 @@ sub Marpa::Evaluator::new_value {
 
 } ## end sub Marpa::Evaluator::new_value
 
-sub Marpa::Evaluator::value {
+sub Marpa::Evaluator::old_value {
 
     my $evaler     = shift;
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
