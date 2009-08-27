@@ -11,6 +11,7 @@ use Moose;
 use MooseX::Types::Moose qw( Int Str Maybe );
 use WiX3::Util::StrictConstructor;
 use Params::Util qw( _IDENTIFIER _STRING );
+use File::Spec::Functions qw( catdir );
 
 use version; our $VERSION = version->new('0.006')->numify;
 
@@ -109,6 +110,17 @@ sub BUILDARGS {
 		WiX3::Exception::Parameter::Odd->throw();
 	}
 
+	if ( not exists $args{'path'} and exists $args{'name'} and exists $args{'parent'} ) {
+
+		# Create our path off our parent's path.
+		my $parent_path = $args{'parent'}->_get_path();
+		if (defined $parent_path) {
+			$args{'path'} = catdir ( $parent_path, $args{'name'} );
+		}
+		
+		delete $args{'parent'};
+	}
+	
 	if ( not exists $args{'id'} ) {
 		my $id = generate_guid( $args{'path'} );
 		$id =~ s{-}{_}gsm;

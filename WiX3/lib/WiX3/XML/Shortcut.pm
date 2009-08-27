@@ -1,4 +1,4 @@
-package WiX3::XML::Icon;
+package WiX3::XML::Shortcut;
 
 use 5.008001;
 
@@ -9,12 +9,13 @@ use metaclass (
 );
 use Moose;
 use Params::Util qw( _STRING  );
-use MooseX::Types::Moose qw( Str );
+use MooseX::Types::Moose qw( Str Int Maybe );
+use WiX3::Types qw( YesNoType );
 use WiX3::Util::StrictConstructor;
 
 use version; our $VERSION = version->new('0.005')->numify;
 
-# http://wix.sourceforge.net/manual-wix3/wix_xsd_icon.htm
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_shortcut.htm
 
 with 'WiX3::XML::Role::Tag';
 
@@ -27,11 +28,116 @@ has id => (
 	required => 1,
 );
 
-has sourcefile => (
+has advertise => (
 	is       => 'ro',
-	isa      => Str,
-	reader   => 'get_sourcefile',
+	isa      => Maybe[YesNoType],
+	reader   => '_get_advertise',
+	default  => undef,
+);
+
+has arguments => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_arguments',
+	default  => undef,
+);
+
+has description => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_description',
+	default  => undef,
+);
+
+has descriptionresourcedll => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_descriptionresourcedll',
+	default  => undef,
+);
+
+has descriptionresourceid => (
+	is       => 'ro',
+	isa      => Maybe[Int],
+	reader   => '_get_descriptionresourceid',
+	default  => undef,
+);
+
+has directory => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_directory',
+	default  => undef,
+);
+
+has displayresourcedll => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_displayresourcedll',
+	default  => undef,
+);
+
+has displayresourceid => (
+	is       => 'ro',
+	isa      => Maybe[Int],
+	reader   => '_get_displayresourceid',
+	default  => undef,
+);
+
+has hotkey => (
+	is       => 'ro',
+	isa      => Maybe[Int],
+	reader   => '_get_hotkey',
+	default  => undef,
+);
+
+has icon => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_icon',
+	default  => undef,
+);
+
+has iconindex => (
+	is       => 'ro',
+	isa      => Maybe[Int],
+	reader   => '_get_iconindex',
+	default  => undef,
+);
+
+has name => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_name',
 	required => 1,
+);
+
+has shortname => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_shortname',
+	default  => undef,
+);
+
+has show => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_show',
+	default  => undef,
+);
+
+has target => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_target',
+	default  => undef,
+);
+
+has workingdirectory => (
+	is       => 'ro',
+	isa      => Maybe[Str],
+	reader   => '_get_workingdirectory',
+	default  => undef,
 );
 
 #####################################################################
@@ -40,25 +146,10 @@ has sourcefile => (
 sub as_string {
 	my $self = shift;
 
-	my $directory = $self->_get_directory();
-	my $children  = $self->has_child_tags();
-
-	if ($children) {
-		my $child_string = $self->as_string_children();
-		if ( defined $directory ) {
-			return
-qq{<CreateFolder Directory='$directory'>\n$child_string<CreateFolder />\n};
-		} else {
-			return qq{<CreateFolder>\n$child_string<CreateFolder />\n};
-		}
-	} else {
-		if ( defined $directory ) {
-			return qq{<CreateFolder Directory='$directory' />\n};
-		} else {
-			return qq{<CreateFolder />\n};
-		}
-	}
-
+	# TODO: Fix this.
+	
+	return q{};
+	
 } ## end sub as_string
 
 sub get_namespace {
