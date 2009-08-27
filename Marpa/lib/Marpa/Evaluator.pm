@@ -2235,12 +2235,14 @@ sub Marpa::Evaluator::set {
 use Marpa::Offset qw(
     { tasks for use in Marpa::Evaluator::value }
     :package=Marpa::Internal::Task
-    ADVANCE { Delete this? }
-    BACKTRACK { Delete this? }
-    INITIALIZE_AND_NODE
-    SCHEDULE_INITIALIZE_AND_NODE
+    SETUP_AND_NODE
+    SCHEDULE_AND_NODE_INITIALIZATION
+    SCHEDULE_OR_NODE_INITIALIZATION
+    SCHEDULE_AND_NODE_ITERATION
+    RESCHEDULE_AND_NODE_ITERATION
     INITIALIZE_OR_NODE
-    SCHEDULE_INITIALIZE_OR_NODE
+    ITERATE_OR_NODE
+    SCHEDULE_OR_NODE_ITERATION
     EVALUATE
 );
 
@@ -2291,10 +2293,10 @@ sub Marpa::Evaluator::new_value {
     # loop is to backtrack, unless this is a new parse.
     my @tasks =
         $parse_count
-        ? ( [Marpa::Internal::Task::BACKTRACK] )
+        ? ( [ Marpa::Internal::Task::SCHEDULE_OR_NODE_ITERATION, 0 ] )
         : (
         [Marpa::Internal::Task::EVALUATE],
-        [ Marpa::Internal::Task::SCHEDULE_INITIALIZE_OR_NODE, 0 ],
+        [ Marpa::Internal::Task::SCHEDULE_OR_NODE_INITIALIZATION, 0 ],
         );
 
     TASK: while (1) {
@@ -2336,7 +2338,7 @@ sub Marpa::Evaluator::new_value {
             next TASK;
         } ## end if ( $task == Marpa::Internal::Task::INITIALIZE_OR_NODE)
 
-        if ( $task == Marpa::Internal::Task::INITIALIZE_AND_NODE ) {
+        if ( $task == Marpa::Internal::Task::SETUP_AND_NODE ) {
 
             my ($and_node_id) = @{$task_entry};
             my $and_node = $and_nodes->[$and_node_id];
@@ -2409,8 +2411,10 @@ sub Marpa::Evaluator::new_value {
                 # Add an entry for the or-node child to the or-map,
                 # as well as that child's or-map
                 push @or_map,
+                    [
                     $child_or_node_id,
-                    $sorted_and_choice->[Marpa::Internal::And_Choice::ID],
+                    $sorted_and_choice->[Marpa::Internal::And_Choice::ID]
+                    ],
                     @{ $sorted_and_choice
                         ->[Marpa::Internal::And_Choice::OR_MAP] };
 
@@ -2495,10 +2499,19 @@ sub Marpa::Evaluator::new_value {
                     or Marpa::exception('print to trace handle failed');
             }
 
-            Marpa::exception('TO DO: Convert code to set up or-choices');
-
-            my @or_node_choices;
-            $#or_node_choices = $#{$or_nodes};
+            my @or_node_choices = 0 x $#{$or_nodes};
+            while (
+                my ( $or_node_id, $choice ) = @{
+                    pop @{
+                        $or_nodes->[0]
+                            ->[Marpa::Internal::Or_Node::AND_CHOICES]->[-1]
+                            ->[Marpa::Internal::And_Node::OR_MAP]
+                        }
+                }
+                )
+            {
+                $or_node_choices[$or_node_id] = $choice;
+            } ## end while ( my ( $or_node_id, $choice ) = @{ pop @{ ...}})
 
             # Write the and-nodes out in preorder
             my @preorder = ();
