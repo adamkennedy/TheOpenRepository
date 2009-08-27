@@ -11,7 +11,7 @@ use Module::Plan::Base ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.14';
+	$VERSION = '1.15';
 }
 
 

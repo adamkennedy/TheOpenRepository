@@ -1,4 +1,4 @@
-use inc::Module::Install;
+use inc::Module::Install 0.91;
 
 my $WIN32 = !! ( $^O eq 'MSWin32' );
 
@@ -23,9 +23,9 @@ requires       'Params::Util'   => '0.21';
 requires       'URI'            => 0;
 requires       'LWP::Simple'    => 0;
 requires       'PAR::Dist'      => '0.25';
-test_requires 'Test::More'     => '0.42';
-test_requires 'Test::Script'   => '1.02';
-test_requires 'LWP::Online'    => '0.02';
+test_requires  'Test::More'     => '0.42';
+test_requires  'Test::Script'   => '1.02';
+test_requires  'LWP::Online'    => '0.02';
 install_script 'pip';
 
 # Required for p5z creation and extraction
