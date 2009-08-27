@@ -478,7 +478,7 @@ Returns true on success, or throws an exception on error.
 
 sub install_website {
 	my $self    = shift;
-	my $website = Perl::Dist::Asset::Website->new(
+	my $website = Perl::Dist::WiX::Asset::Website->new(
 		parent => $self,
 		@_,
 	);

@@ -10,9 +10,12 @@ package Perl::Dist::WiX::Fragment::StartMenu;
 #
 use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str );
+use MooseX::Types::Moose qw( Str Bool );
 use WiX3::Exceptions;
 use Perl::Dist::WiX::IconArray;
+use WiX3::XML::Component;
+use WiX3::XML::CreateFolder;
+use WiX3::XML::Shortcut;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -20,19 +23,27 @@ $VERSION = eval { return $VERSION };
 extends 'WiX3::XML::Fragment';
 
 has icons => (
-	is => 'ro',
-	isa	=> 'Perl::Dist::WiX::IconArray',
+	is      => 'ro',
+	isa	    => 'Perl::Dist::WiX::IconArray',
 	default => sub { return Perl::Dist::WiX::IconArray->new() },
-	reader => 'get_icons',
+	reader  => 'get_icons',
 );
 
 has directory_id => (
-	is => 'ro',
-	isa	=> Str,
+	is       => 'ro',
+	isa	     => Str,
 	required => 1,
-	reader => 'get_directory_id',
+	reader   => 'get_directory_id',
 );
 
+has _created_directory => (
+	is       => 'rw',
+	isa      => Bool,
+	init_arg => undef,
+	reader   => '_get_created_directory',
+	writer   => '_set_created_directory',
+	default  => 0,
+);
 
 sub BUILDARGS {
 	my $class = shift;
@@ -55,6 +66,36 @@ sub BUILDARGS {
 	}
 
 	return \%args;
+}
+
+# Takes hash only at present.
+sub add_shortcut {
+	my $self = shift;
+	my %args = @_;
+
+	# TODO: Validate arguments.
+
+	my $component = WiX3::XML::Component->new(id => "C_S_$args{id}");
+	my $shortcut = WiX3::XML::Shortcut->new(
+		id => "S_$args{id}",
+		name => $args{name},
+		description => $args{description},
+		target => $args{target},
+		icon => "I_$args{icon_id}",
+		workingdirectory => "D_$args{working_dir}",
+	);
+	
+	$component->add_child_tag($shortcut);
+
+	if (not $self->_get_created_directory()) {
+		my $cf = WiX3::XML::CreateFolder->new(directory => $self->get_directory_id());
+		$component->add_child_tag($cf);
+		$self->_set_created_directory(1);
+	}
+
+	$self->add_child_tag($component);
+	
+	return;
 }
 
 # This type of fragment needs regeneration.

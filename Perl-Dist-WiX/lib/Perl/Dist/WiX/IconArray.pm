@@ -120,7 +120,7 @@ sub search_icon {
 	if ( 0 == $self->_count_icons() ) { return undef; }
 
 	# Print each icon
-	foreach my $icon ( $self->_get_icons_array() ) {
+	foreach my $icon ( $self->_get_icon_array() ) {
 		if (    ( $icon->get_sourcefile eq $pathname_icon )
 			and ( $icon->get_target_type eq $target_type ) )
 		{

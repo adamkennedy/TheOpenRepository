@@ -25,7 +25,7 @@ has files => (
 	isa	=> 'File::List::Object',
 	required => 1,
 	reader => 'get_files',
-	handles => [ 'add_files' ],
+	handles => [ 'add_files', 'add_file' ],
 );
 
 has can_overwrite => (

@@ -39,6 +39,7 @@ has parent => (
 		'_run3'             => '_run3',		
 		'_filters'          => 'filters',
 		'_add_icon'         => 'add_icon',
+		'_add_file'         => 'add_file',		
 		'_dll_to_a'         => '_dll_to_a',
 		'_copy'             => '_copy',
 		'_extract'          => '_extract',
@@ -122,26 +123,23 @@ sub BUILDARGS {
 			$args{url} = URI->new_abs( $path, $args{parent}->cpan() )->as_string;
 
 		} elsif ( defined $args{name} ) {
-			if ($class ne 'Perl::Dist::WiX::Asset::Module') {
-				# Map name to URL via the default package path
-				$args{url} = $parent->binary_url($args{name});
-			} else {
-				$args{url} = q{};
-			}
+			# Map name to URL via the default package path
+			$args{url} = $parent->binary_url($args{name});
 		}
 	}
 
-	if ($class ne 'Perl::Dist::WiX::Asset::Module') {
-		# Create the filename from the url
-		$args{file} = $args{url};
-		$args{file} =~ s|.+/||;
-		unless ( defined $args{file} and length $args{file}) {
-			PDWiX::Parameter::throw->(parameter => 'file', where => '::Role::Asset->new');
+	# Create the filename from the url
+	$args{file} = $args{url};
+	$args{file} =~ s|.+/||;
+	unless ( defined $args{file} and length $args{file}) {
+		if ($class ne 'Perl::Dist::WiX::Asset::Website') {
+			PDWiX::Parameter->throw(parameter => 'file', where => '::Role::Asset->new');
+		} else {
+			# file is not used in Websites.
+			$args{file} = q{ };
 		}
-	} else {
-		$args{file} = q{};
 	}
-
+	
 	my %default_args = ( url => $args{url}, file => $args{file}, parent => $args{parent} );
 	delete @args{'url', 'file', 'parent'};
 	
@@ -149,7 +147,10 @@ sub BUILDARGS {
 }
 
 sub cpan {
-	# Throw error.
+	# TODO: Throw error.
+	WiX3::Exception::Unimplemented->throw('Perl::Dist::WiX::Role::Asset->cpan');
+	
+	return;
 }
 
 sub _search_packlist {

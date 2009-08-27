@@ -1303,6 +1303,18 @@ sub install_win32_extras {
 
 	File::Path::mkpath( catdir( $self->image_dir, 'win32' ) );
 
+	# TODO: Delete next two statements.
+	my $perldir = $self->{directories}->search_dir( 
+		path_to_find => catdir( $self->image_dir, 'perl' ),
+		exact => 1,
+		descend => 1,
+	);
+	$perldir->add_directory(
+		name => 'bin',
+		id => 'PerlBin',
+		path => catdir( $self->image_dir, qw( perl bin ) ),
+	);
+	
 	$self->install_launcher(
 		name => 'CPAN Client',
 		bin  => 'cpan',
@@ -1474,22 +1486,21 @@ sub add_icon {
 		path_to_find => catdir( $vol, $dir ),
 		exact        => 1,
 		descend      => 1,
-	)->get_component_id();
+	)->get_id();
 
 	# Get a legal id.
 	my $id = $params{name};
 	$id =~ s{\s}{_}msxg;               # Convert whitespace to underlines.
-
+	
 	# Add the start menu icon.
-	$self->{fragments}->{Icons}->add_component(
-		Perl::Dist::WiX::StartMenuComponent->new(
-			name        => $params{name},
-			target      => "[D_$dir_id]$file",
-			id          => $id,
-			working_dir => $dir_id,
-			menudir_id  => 'D_App_Menu',
-			icon_id     => $params{icon_id},
-		) );
+	$self->{fragments}->{Icons}->add_shortcut(
+		name        => $params{name},
+		description => $params{name},
+		target      => "[D_$dir_id]$file",
+		id          => $id,
+		working_dir => $dir_id,
+		icon_id     => $params{icon_id},
+	);
 
 	return $self;
 } ## end sub add_icon

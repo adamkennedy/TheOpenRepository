@@ -1,7 +1,8 @@
 package Perl::Dist::WiX::Asset::Website;
 
 use Moose;
-use MooseX::Types::Moose qw( Str Int Maybe ); 
+use MooseX::Types::Moose qw( Str Int Maybe );
+use File::Spec::Functions qw( catfile );
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -34,7 +35,7 @@ has icon_index => (
 	isa      => Maybe[Int],
 	reader   => '_get_icon_index',
 	lazy     => 1,
-	default  => sub { defined shift->get_icon_file() ? 1 : undef;},
+	default  => sub { defined shift->_get_icon_file() ? 1 : undef;},
 );
 
 sub install {
@@ -44,13 +45,13 @@ sub install {
 	my $filename = catfile( $self->_get_image_dir, 'win32', "$name.url" );
 
 	my $website;
-	# Use exceptions instead of dieing.
-	open $website, q{>}, $filename  or die "open($filename): $!";
-	print $website $self->content() or die "print($filename): $!";
-	close $website                  or die "close($filename): $!";
+	# TODO: Use exceptions instead of dieing.
+	open $website, q{>}, $filename   or die "open($filename): $!";
+	print $website $self->_content() or die "print($filename): $!";
+	close $website                   or die "close($filename): $!";
 
 	# Add the file.
-	$self->add_file(
+	$self->_add_file(
 		source   => $filename,
 		fragment => 'Win32Extras'
 	);
@@ -58,7 +59,7 @@ sub install {
 	my $icon_id = $self->_get_icons()->add_icon( $self->_get_icon_file(), $filename );
 
 	# Add the icon.
-	$self->add_icon(
+	$self->_add_icon(
 		name     => $name,
 		filename => $filename,
 		fragment => 'Icons',
