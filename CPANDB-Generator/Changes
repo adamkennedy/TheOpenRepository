@@ -1,5 +1,9 @@
 Changes for Perl extension CPANDB-Generator
 
+0.17 Fri 28 Aug 2009
+	- Updating to Algorithm::Dependency::Source::DBI 1.06
+	- Strip out Task:: from the Heavy 100
+
 0.16 Wed  8 Jul 2009
 	- Updating to ORDB::CPANMeta::Generator 0.10
 

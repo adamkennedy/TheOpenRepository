@@ -51,10 +51,9 @@ use LWP::UserAgent                    5.819 ();
 use Xtract::Publish                    0.10 ();
 use Algorithm::Dependency             1.108 ();
 use Algorithm::Dependency::Weight           ();
-use Algorithm::Dependency::Source::DBI 0.05 ();
-use Algorithm::Dependency::Source::Invert   ();
+use Algorithm::Dependency::Source::DBI 1.06 ();
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -795,8 +794,8 @@ sub weight {
 sub weight_source {
 	Algorithm::Dependency::Source::DBI->new(
 		dbh            => $_[0]->dbh,
-		select_ids     => 'SELECT distribution FROM distribution',
-		select_depends => 'SELECT DISTINCT distribution, dependency FROM dependency',
+		select_ids     => "SELECT distribution FROM distribution WHERE name NOT LIKE 'Task-%'",
+		select_depends => "SELECT DISTINCT distribution, dependency FROM dependency",
 	);
 }
 
@@ -807,8 +806,10 @@ sub volatility {
 }
 
 sub volatility_source {
-	Algorithm::Dependency::Source::Invert->new(
-		$_[0]->weight_source,
+	Algorithm::Dependency::Source::DBI->new(
+		dbh            => $_[0]->dbh,
+		select_ids     => "SELECT distribution FROM distribution",
+		select_depends => "SELECT DISTINCT dependency, distribution FROM dependency",
 	);
 }
 
