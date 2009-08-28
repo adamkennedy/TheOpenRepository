@@ -26,34 +26,34 @@ build Perl itself.
 use     5.008001;
 use     strict;
 use     warnings;
-use     Archive::Zip             qw( :ERROR_CODES               );
-use     English                  qw( -no_match_vars             );
-use     List::MoreUtils          qw( any none                   );
-use     Params::Util             qw( _HASH _STRING _INSTANCE    );
-use     Readonly                 qw( Readonly                   );
+use     Archive::Zip             qw( :ERROR_CODES            );
+use     English                  qw( -no_match_vars          );
+use     List::MoreUtils          qw( any none                );
+use     Params::Util             qw( _HASH _STRING _INSTANCE );
+use     Readonly                 qw( Readonly                );
+use     Storable                 qw( retrieve );
 use     File::Spec::Functions    qw(
 	catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
 use     Archive::Tar        1.42 qw();
-use     File::Remove             qw();
-use     File::pushd              qw();
-use     File::ShareDir           qw();
-use     File::Copy::Recursive    qw();
-use     File::PathList           qw();
-use     HTTP::Status             qw();
-use     IO::String               qw();
-use     IO::Handle               qw();
-use     LWP::UserAgent           qw();
-use     LWP::Online              qw();
-use     Module::CoreList    2.17 qw();
-use     PAR::Dist                qw();
-use     Probe::Perl              qw();
-use     SelectSaver              qw();
-use     Storable                 qw( retrieve );
-use     Template                 qw();
-use     Win32                    qw();
-use Perl::Dist::WiX::Asset::Perl qw();
-require Perl::Dist::Util::Toolchain;
+use     Module::CoreList    2.18 qw();
+require File::Remove;
+require File::pushd;
+require File::ShareDir;
+require File::Copy::Recursive;
+require File::PathList;
+require HTTP::Status;
+require IO::String;
+require IO::Handle;
+require LWP::UserAgent;
+require LWP::Online;
+require PAR::Dist;
+require Probe::Perl;
+require SelectSaver;
+require Template;
+require Win32;
+require Perl::Dist::WiX::Asset::Perl;
+require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
 
@@ -519,7 +519,7 @@ sub install_perl_589 {
 	# Prefetch and predelegate the toolchain so that it
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $toolchain = Perl::Dist::Util::Toolchain->new(
+	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal,
 		cpan         => $self->cpan->as_string
 	) or PDWiX->throw('Failed to resolve toolchain modules');
@@ -529,10 +529,10 @@ sub install_perl_589 {
 			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
 		);
 	}
-	if ( $toolchain->{errstr} ) {
+	if ( defined $toolchain->get_error() ) {
 		PDWiX::Caught->throw(
 			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->{errstr} );
+			info    => $toolchain->get_error() );
 	}
 
 	# Make the perl directory if it hasn't been made alreafy.
@@ -594,7 +594,7 @@ sub install_perl_5100 {
 	# Prefetch and predelegate the toolchain so that it
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $toolchain = Perl::Dist::Util::Toolchain->new(
+	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal,
 		cpan         => $self->cpan->as_string
 	) or PDWiX->throw('Failed to resolve toolchain modules');
@@ -604,10 +604,10 @@ sub install_perl_5100 {
 			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
 		);
 	}
-	if ( $toolchain->{errstr} ) {
+	if ( defined $toolchain->get_error() ) {
 		PDWiX::Caught->throw(
 			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->{errstr} );
+			info    => $toolchain->get_error() );
 	}
 
 	$self->{toolchain} = $toolchain;
@@ -646,7 +646,7 @@ sub install_perl_5101 {
 	# Prefetch and predelegate the toolchain so that it
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $toolchain = Perl::Dist::Util::Toolchain->new(
+	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal,
 		cpan         => $self->cpan->as_string
 	) or PDWiX->throw('Failed to resolve toolchain modules');
@@ -656,10 +656,10 @@ sub install_perl_5101 {
 			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
 		);
 	}
-	if ( $toolchain->{errstr} ) {
+	if ( defined $toolchain->get_error() ) {
 		PDWiX::Caught->throw(
 			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->{errstr} );
+			info    => $toolchain->get_error() );
 	}
 
 	$self->{toolchain} = $toolchain;
@@ -709,10 +709,14 @@ sub install_perl_toolchain {
 	my $self = shift;
 	my $toolchain = $self->toolchain;
 
+	if (0 == $toolchain->dist_count()) {
+		PDWiX->throw('Toolchain did not get collected');
+	}
+	
 	my ( $core, $module_id );
 
 	# Install the toolchain dists
-	foreach my $dist ( @{ $toolchain->{dists} } ) {
+	foreach my $dist ( $toolchain->get_dists() ) {
 		my $automated_testing = 0;
 		my $release_testing   = 0;
 		my $force             = $self->force;
