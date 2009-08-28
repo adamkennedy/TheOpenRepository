@@ -28,6 +28,7 @@ use     strict;
 use     warnings;
 use     Archive::Zip          qw( :ERROR_CODES               );
 use     English               qw( -no_match_vars             );
+use     List::Util            qw( first                      );
 use     List::MoreUtils       qw( any none                   );
 use     Params::Util          qw( _HASH _STRING _INSTANCE    );
 use     Readonly              qw( Readonly                   );
@@ -89,14 +90,19 @@ sub checkpoint_task {
 		my $t = time;
 		$self->$task();
 		$self->trace_line( 0,
-			"Completed $task in " . ( time - $t ) . " seconds\n" );
+			"Completed $task (step $step) in " . ( time - $t ) . " seconds\n" );
 	} else {
-		$self->trace_line( 0, "Skipping $task.\n" );
+		$self->trace_line( 0, "Skipping $task (step $step.)\n" );
 	}
 
 	# Are we saving at this step?
-	if ( $self->checkpoint_after == $step ) {
+	if ( defined first { $step == $_ } @{$self->checkpoint_after} ) {
 		$self->checkpoint_save;
+	}
+
+	# Are we stopping at this step?
+	if ( $self->checkpoint_stop == $step ) {
+		return 0;
 	}
 
 	return $self;

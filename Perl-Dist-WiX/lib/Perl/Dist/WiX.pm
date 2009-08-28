@@ -143,6 +143,8 @@ use Object::Tiny qw(
   force
   checkpoint_before
   checkpoint_after
+  checkpoint_stop
+  tasklist  
   filters
   build_number
   beta_number
@@ -596,7 +598,47 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$self->{checkpoint_before} = 0;
 	}
 	unless ( defined $self->checkpoint_after ) {
-		$self->{checkpoint_after} = 0;
+		$self->{checkpoint_after} = [ 0 ];
+	}
+	unless ( defined $self->checkpoint_stop ) {
+		$self->{checkpoint_stop} = 0;
+	}
+	unless ( defined $self->tasklist ) {
+		$self->{tasklist} = [
+			# Install the core C toolchain
+			'install_c_toolchain',
+
+			# Install any additional C libraries
+			'install_c_libraries',
+
+			# Install the Perl binary
+			'install_perl',
+
+			# Install the Perl toolchain
+			'install_perl_toolchain',
+
+			# Install additional Perl modules
+			'install_cpan_upgrades',
+
+			# Install the Win32 extras
+			'install_win32_extras',
+
+			# Apply optional portability support
+			'install_portable',
+
+			# Remove waste and temporary files
+			'remove_waste',
+
+			# Regenerate file fragments
+			'regenerate_fragments',
+			
+			# Install any extra custom non-Perl software on top of Perl.
+			# This is primarily added for the benefit of Parrot.
+			'install_custom',
+
+			# Write out the distributions
+			'write',
+		];
 	}
 
 	# Normalize some params
@@ -1125,45 +1167,16 @@ sub run {
 	# Don't buffer
 	STDOUT->autoflush(1);
 
-	# Install the core C toolchain
-	$self->checkpoint_task( install_c_toolchain => 1 );
-
-	# Install any additional C libraries
-	$self->checkpoint_task( install_c_libraries => 2 );
-
-	# Install the Perl binary
-	$self->checkpoint_task( install_perl => 3 );
-
-	# Install the Perl binary
-	$self->checkpoint_task( install_perl_toolchain => 4 );
-
-	# Install additional Perl modules
-	$self->checkpoint_task( install_cpan_upgrades => 5 );
-	$self->checkpoint_task( install_perl_modules_1 => 6 );
-	$self->checkpoint_task( install_perl_modules_2 => 7 );
-	$self->checkpoint_task( install_perl_modules_3 => 8 );
-	$self->checkpoint_task( install_perl_modules_4 => 9 );
-	$self->checkpoint_task( install_perl_modules_5 => 10 );
-
-	# Install the Win32 extras
-	$self->checkpoint_task( install_win32_extras => 11 );
-
-#	return;
+	my @task_list = @{$self->tasklist()};
+	my $task_number = 1;
+	my $task;
+	my $answer = 1;
 	
-	# Apply optional portability support
-	$self->checkpoint_task( install_portable => 12 )
-	  if $self->portable;
-
-	# Remove waste and temporary files
-	$self->checkpoint_task( remove_waste => 13 );
-
-	# Install any extra custom non-Perl software on top of Perl.
-	# This is primarily added for the benefit of Parrot.
-	$self->checkpoint_task( install_custom => 14 );
-
-	# Write out the distributions
-	$self->checkpoint_task( write => 15 );
-
+	while ($answer and ($task = shift @task_list)) {
+		$answer = $self->checkpoint_task( $task => $task_number );
+		$task_number++;
+	}
+	
 	# Finished
 	$self->trace_line( 0,
 		    'Distribution generation completed in '
@@ -1264,6 +1277,8 @@ sub install_c_libraries {
 sub install_portable {
 	my $self = shift;
 
+	return 1 unless $self->portable;
+	
 	# Install the regular parts of Portability
 	$self->install_modules( qw(
 		  Sub::Uplevel
@@ -1409,6 +1424,22 @@ sub remove_file {
 	my $self = shift;
 	my $file = $self->file(@_);
 	File::Remove::remove( \1, $file ) if -e $file;
+	return 1;
+}
+
+#####################################################################
+# Package Generation
+
+sub regenerate_fragments {
+	my $self = shift;
+	
+	return 1 unless $self->msi;
+	
+	my ($name, $fragment);
+	while ( ( $name, $fragment )= each %{$self->{fragments}} ) {
+		$fragment->regenerate();
+	}
+
 	return 1;
 }
 

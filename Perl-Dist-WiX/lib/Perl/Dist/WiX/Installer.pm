@@ -825,11 +825,15 @@ sub add_to_fragment {
 		PDWiX->throw("Fragment $id does not exist");
 	}
 
+	my @files = @{$files_ref};
+	
+	my $files_obj = File::List::Object->new()->add_files(@files);
+	
 	foreach my $key ( keys %{ $self->{fragments} } ) {
-		$self->{fragments}->{$key}->check_duplicates($files_ref);
+		$self->{fragments}->{$key}->check_duplicates($files_obj);
 	}
 
-	my $fragment = $self->{fragments}->{$id}->add_files( @{$files_ref} );
+	my $fragment = $self->{fragments}->{$id}->add_files( @files );
 
 	return $fragment;
 } ## end sub add_to_fragment

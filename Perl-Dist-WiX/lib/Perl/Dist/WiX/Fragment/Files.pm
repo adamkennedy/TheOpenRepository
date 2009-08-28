@@ -12,8 +12,10 @@ package Perl::Dist::WiX::Fragment::Files;
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Bool );
-use WiX3::Exceptions;
-use File::List::Object;
+use Params::Util qw( _INSTANCE );
+require Perl::Dist::WiX::Exceptions;
+require WiX3::Exceptions;
+require File::List::Object;
 
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
@@ -25,7 +27,11 @@ has files => (
 	isa	=> 'File::List::Object',
 	required => 1,
 	reader => 'get_files',
-	handles => [ 'add_files', 'add_file' ],
+	handles => { 
+		'add_files'     => 'add_files', 
+		'add_file'      => 'add_file',
+		'_subtract'     => 'subtract', 
+	},
 );
 
 has can_overwrite => (
@@ -47,12 +53,19 @@ sub check_duplicates {
 	my $filelist = shift;
 
 	if (not $self->can_overwrite()) {
-		return 1;
+		return $self;
 	}
-	
-	# TODO: Implement later.
-	# PDWiX::Unimplemented->throw('Perl::Dist::WiX::Fragment::Files->check_duplicates');
-	return 0;
+
+	if (not defined _INSTANCE($filelist, 'File::List::Object')) {
+		PDWiX::Parameter->throw(
+			parameter => 'filelist',
+			where => 'Perl::Dist::WiX::Fragment::Files->check_duplicates',
+		);
+		return 0;
+	}
+
+	$self->_subtract($filelist);
+	return $self;
 }
 
 no Moose;
