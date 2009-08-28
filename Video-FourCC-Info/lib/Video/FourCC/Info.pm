@@ -8,13 +8,14 @@ package Video::FourCC::Info;
 use strict;
 use warnings;
 
+
 use Carp ();
 
 use DBI ();
+use DBD::SQLite ();
 
-use File::Basename  ();
-use File::Spec      ();
-use DBD::SQLite     ();
+use File::Basename ();
+use File::Spec ();
 
 # Use DateTime if available
 eval { require DateTime; };
@@ -44,11 +45,11 @@ Video::FourCC::Info - Perl module to retrieve information about FourCCs
 
 =head1 VERSION
 
-Version 1.002 ($Id$)
+Version 1.003 ($Id$)
 
 =cut
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION

@@ -36,6 +36,10 @@ my $builder = My::Builder->new(
     # User tests for good functionality
     'Test::More'              => 0.62,
     'Test::NoWarnings'        => 0.084,
+
+    # Database related modules
+    'DBI'                     => 0,
+    'DBD::SQLite'             => 1.20,
   },
   recommends => {
     # Video::Info for detecting FourCC used in files
