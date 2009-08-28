@@ -1,5 +1,9 @@
 Changes for Perl extension CPANDB-Generator
 
+0.19 Sat 29 Aug 2009
+	- Removed Acme:: from the Heavy 100, which should make the
+	  graph actually useful.
+
 0.18 Fri 28 Aug 2009
 	- Fixing a database column thinko
 

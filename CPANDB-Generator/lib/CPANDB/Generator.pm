@@ -53,7 +53,7 @@ use Algorithm::Dependency             1.108 ();
 use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 1.06 ();
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -794,7 +794,7 @@ sub weight {
 sub weight_source {
 	Algorithm::Dependency::Source::DBI->new(
 		dbh            => $_[0]->dbh,
-		select_ids     => "SELECT distribution FROM distribution WHERE distribution NOT LIKE 'Task-%'",
+		select_ids     => "SELECT distribution FROM distribution WHERE distribution NOT LIKE 'Task-%' AND distribution NOT LIKE 'Acme-%'",
 		select_depends => "SELECT DISTINCT distribution, dependency FROM dependency",
 	);
 }
