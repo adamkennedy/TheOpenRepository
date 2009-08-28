@@ -1,5 +1,8 @@
 Changes for Perl extension CPANDB-Generator
 
+0.18 Fri 28 Aug 2009
+	- Fixing a database column thinko
+
 0.17 Fri 28 Aug 2009
 	- Updating to Algorithm::Dependency::Source::DBI 1.06
 	- Strip out Task:: from the Heavy 100
