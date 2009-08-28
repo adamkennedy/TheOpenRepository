@@ -10,7 +10,8 @@ use MooseX::Singleton;
 use WiX3::Util::StrictConstructor;
 use WiX3::Trace::Config;
 
-use version; our $VERSION = version->new('0.006')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 with 'WiX3::Role::Traceable';
 
