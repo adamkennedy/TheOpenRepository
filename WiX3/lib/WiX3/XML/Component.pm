@@ -233,7 +233,7 @@ sub as_string {
 	}
 
 	if ($children) {
-		$string .= qq{>\n$child_string\n<Component />\n};
+		$string .= qq{>\n$child_string\n</Component>\n};
 	} else {
 		$string .= qq{ />\n};
 	}
