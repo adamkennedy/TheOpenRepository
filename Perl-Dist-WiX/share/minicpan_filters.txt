@@ -58,7 +58,7 @@
 /NUFFIN/Tie-RefHash-
 /JHI/Time-HiRes-
 /DROLSKY/Time-Local-
-/DCONWAY/Text-Balanced-
+/(?:DCONWAY|ADAMK)/Text-Balanced-
 /MSERGEANT/Time-Piece-
 /JDB/Win32-\d
 /SAPER/XSLoader-
