@@ -21,7 +21,7 @@ my $sb = Perl::Dist::WiX->new(
 #	checkpoint_before => 5,
 #	checkpoint_after => 10,
 # After this run, uncomment this line, and comment the two above.
-	checkpoint_before => 9,
+	checkpoint_before => 11,
 	msi => 1,
 	zip => 1,
 	perl_version => 5100,

@@ -18,7 +18,7 @@ my $sb = Perl::Dist::WiX->new(
 	app_publisher => 'Curtis Jewell',
 	app_publisher_url => 'http://csjewell.comyr.com/perl/',
 	build_number => 10,
-	checkpoint_after => [ 4, 8 ],
+	checkpoint_after => [ 8, 9, 10 ],
 	checkpoint_stop => 8,
 	msi => 1,
 	zip => 1,
@@ -27,6 +27,6 @@ my $sb = Perl::Dist::WiX->new(
 
 $sb->run();
 
-require Data::Dumper;
-require File::Slurp;
-File::Slurp::write_file('makewix.data.txt', Data::Dumper->new([$sb], ['*sb'])->Indent(1)->Dump());
+#require Data::Dumper;
+#require File::Slurp;
+#File::Slurp::write_file('makewix.data.txt', Data::Dumper->new([$sb], ['*sb'])->Indent(1)->Dump());
