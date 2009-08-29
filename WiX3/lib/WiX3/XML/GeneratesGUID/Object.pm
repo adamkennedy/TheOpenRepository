@@ -2,6 +2,11 @@ package                                # Hide from PAUSE
   WiX3::XML::GeneratesGUID::Object;
 
 use 5.008001;
+use metaclass (
+	base_class  => 'MooseX::Singleton::Object',
+	metaclass   => 'MooseX::Singleton::Meta::Class',
+	error_class => 'WiX3::Util::Error',
+);
 use MooseX::Singleton;
 use Data::UUID qw( NameSpace_DNS );
 use WiX3::Types qw( Host          );

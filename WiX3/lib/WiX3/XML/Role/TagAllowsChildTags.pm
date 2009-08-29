@@ -6,6 +6,7 @@ use WiX3::Exceptions;
 use WiX3::Types qw(IsTag);
 use MooseX::AttributeHelpers;
 use MooseX::Types::Moose qw(ArrayRef);
+use List::MoreUtils qw( uniq );
 
 use version; our $VERSION = version->new('0.005')->numify;
 
@@ -54,6 +55,28 @@ sub as_string_children {
 
 	return $self->indent( 2, $string );
 } ## end sub as_string_children
+
+sub get_namespaces {
+	my $self = shift;
+
+	my @namespaces = ( $self->get_namespace() );
+	my $count      = $self->count_child_tags();
+
+	if ( 0 == $count ) {
+		return @namespaces;
+	}
+
+	foreach my $tag ( $self->get_child_tags() ) {
+		if ( $tag->does('get_namespaces') ) {
+			push @namespaces, $tag->get_namespaces();
+		} else {
+			push @namespaces, $tag->get_namespace();
+		}
+	}
+
+	return uniq @namespaces;
+} ## end sub get_namespaces
+
 
 no Moose::Role;
 

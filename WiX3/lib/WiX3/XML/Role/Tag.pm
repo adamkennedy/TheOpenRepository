@@ -5,7 +5,6 @@ use Moose::Role;
 use Params::Util qw( _STRING _NONNEGINT );
 use vars qw( $VERSION );
 use WiX3::Exceptions;
-use List::MoreUtils qw( uniq );
 
 use version; our $VERSION = version->new('0.005')->numify;
 
@@ -57,23 +56,6 @@ sub indent {
 #>>>
 	return $answer;
 } ## end sub indent
-
-sub get_namespaces {
-	my $self = shift;
-
-	my @namespaces = ( $self->get_namespace() );
-	my $count      = $self->count_child_tags();
-
-	if ( 0 == $count ) {
-		return @namespaces;
-	}
-
-	foreach my $tag ( $self->get_child_tags() ) {
-		push @namespaces, $tag->get_namespaces();
-	}
-
-	return uniq @namespaces;
-} ## end sub get_namespaces
 
 sub get_component_array {
 	my $self = shift;

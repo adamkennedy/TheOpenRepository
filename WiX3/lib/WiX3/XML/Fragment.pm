@@ -21,27 +21,16 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 #####################################################################
 # Main Methods
 
-# Append the id parameter to 'Fr_' to indicate a fragment.
 sub BUILDARGS {
 	my $class = shift;
 
 	if ( @_ == 1 && !ref $_[0] ) {
-		return { id => 'Fr_' . $_[0] };
+		return { id => $_[0] };
 	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
-		if ( exists $_[0]->{id} ) {
-			$_[0]->{id} = 'Fr_' . $_[0]->{'id'};
-			return $_[0];
-		} else {
-			WiX3::Exception::Parameter::Missing->throw('id');
-		}
+		return $_[0];
 	} else {
 		my %hash = @_;
-		if ( exists $hash{id} ) {
-			$hash{id} = 'Fr_' . $hash{'id'};
-			return \%hash;
-		} else {
-			WiX3::Exception::Parameter::Missing->throw('id');
-		}
+		return \%hash;
 	}
 
 	return;
@@ -55,7 +44,7 @@ sub as_string {
 
 	my @namespaces   = $self->get_namespaces();
 	my $namespaces   = join q{ }, @namespaces;
-	my $id           = $self->get_id();
+	my $id           = 'Fr_' . $self->get_id();
 	my $child_string = q{};
 	$child_string = $self->indent( 2, $self->as_string_children() )
 	  if $self->has_child_tags();

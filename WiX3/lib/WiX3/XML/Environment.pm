@@ -36,7 +36,7 @@ with 'WiX3::XML::Role::Tag';
 has id => (
 	is       => 'ro',
 	isa      => Str,
-	reader   => '_get_id',
+	reader   => 'get_id',
 	required => 1,
 );
 

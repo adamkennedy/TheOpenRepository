@@ -47,7 +47,7 @@ has filesource => (
 sub as_string {
 	my $self = shift;
 
-	my $children = $self->has_children();
+	my $children = $self->has_child_tags();
 	my $tags;
 	$tags = $self->print_attribute( 'Id', $self->get_directory_id() );
 	$tags .= $self->print_attribute( 'DiskId', $self->_get_diskid() );
@@ -56,7 +56,7 @@ sub as_string {
 
 	if ($children) {
 		my $child_string = $self->as_string_children();
-		return qq{<DirectoryRef$tags>\n$child_string</DirectoryRef>\n};
+		return qq{<DirectoryRef$tags>\n$child_string\n</DirectoryRef>\n};
 	} else {
 		return qq{<DirectoryRef$tags />\n};
 	}
