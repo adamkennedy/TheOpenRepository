@@ -85,7 +85,7 @@ use     parent                qw( Perl::Dist::WiX::Installer
                                   Perl::Dist::WiX::ReleaseNotes );
 use     Archive::Zip          qw( :ERROR_CODES                  );
 use     English               qw( -no_match_vars                );
-use     List::MoreUtils       qw( any none                      );
+use     List::MoreUtils       qw( any none uniq                 );
 use     Params::Util          qw( _HASH _STRING _INSTANCE       );
 use     Readonly              qw( Readonly                      );
 use     Storable              qw( retrieve                      );
@@ -1438,11 +1438,19 @@ sub regenerate_fragments {
 	
 	return 1 unless $self->msi;
 	
-	my ($name, $fragment);
-	while ( ( $name, $fragment )= each %{$self->{fragments}} ) {
-		$fragment->regenerate();
-	}
+	my @fragment_names_regenerate;
+	my @fragment_names = keys %{$self->{fragments}};
 
+	while (0 != scalar @fragment_names) {
+		foreach my $name (@fragment_names) {
+			push @fragment_names_regenerate, $self->{fragments}->{$name}->regenerate();
+		}
+	
+		$#fragment_names = -1; # clears the array.
+		@fragment_names = uniq @fragment_names_regenerate;
+		$#fragment_names_regenerate = -1;		
+	}
+	
 	return 1;
 }
 

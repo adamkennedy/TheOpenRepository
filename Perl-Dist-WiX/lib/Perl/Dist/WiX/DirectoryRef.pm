@@ -48,7 +48,7 @@ sub search_dir {
 	} elsif ( @_ % 2 == 0 ) {
 		%args = @_ ;
 	} else {
-		print "Argument problem\n";
+#		print "Argument problem\n";
 		# Throw error.
 	}
 	
@@ -62,21 +62,21 @@ sub search_dir {
 	my $exact   = $args{exact}   || 0;
 	my $path    = $self->get_path();
 	
-	print "Path problem\n" unless defined $path;
+#	print "Path problem\n" unless defined $path;
 	return undef unless defined $path;
 
 # TODO: Make trace_line work.	
 #	$self->trace_line( 3, "Looking for $path_to_find\n" );
 #	$self->trace_line( 4, "  in:      $path.\n" );
 #	$self->trace_line( 5, "  descend: $descend exact: $exact.\n" );
-print "Looking for $path_to_find\n" ;
-print "  in:      $path.\n" ;
-print "  descend: $descend exact: $exact.\n" ;
+#print "Looking for $path_to_find\n" ;
+#print "  in:      $path.\n" ;
+#print "  descend: $descend exact: $exact.\n" ;
 
 	# If we're at the correct path, exit with success!
 	if ( ( defined $path ) && ( $path_to_find eq $path ) ) {
 #		$self->trace_line( 4, "Found $path.\n" );
-print "Found $path.\n" ;
+#print "Found $path.\n" ;
 		return $self;
 	}
 
@@ -88,19 +88,23 @@ print "Found $path.\n" ;
 	if ( not $subset ) {
 #		$self->trace_line( 4, "Not a subset in: $path.\n" );
 #		$self->trace_line( 5, "  To find: $path_to_find.\n" );
-print "Not a subset in: $path.\n" ;
-print "  To find: $path_to_find.\n" ;
+#print "Not a subset in: $path.\n" ;
+#print "  To find: $path_to_find.\n" ;
 		return undef;
 	}
 
 	# Check each of our branches.
 	my @tags = $self->get_child_tags();
 	my $answer;
-	print "** Number of child tags: " . scalar @tags . "\n";
+#	print "** Number of child tags: " . scalar @tags . "\n";
 	
   TAG:
 	foreach my $tag ( @tags ) {
 		next TAG unless $tag->isa('Perl::Dist::WiX::Directory');
+		
+		my $x = ref $tag;
+		my $y = $tag->get_path();
+#		print "Searching in a $x containing $y for $path_to_find\n";
 		
 		$answer = $tag->search_dir( \%args );
 		if ( defined $answer ) {
@@ -138,9 +142,9 @@ sub _add_directory_recursive {
 	} else {
 		my ($volume, $dirs, undef) = splitpath($path_to_find, 1);
 		my @dirs = splitdir($dirs);
-		my $dir_to_add = pop @dirs;
+		my $dir_to_add_down = pop @dirs;
 		my $path_to_find_down = catpath($volume, catdir(@dirs), undef);
-		my $dir = $self->_add_directory_recursive($path_to_find_down, $dir_to_find_down);
+		my $dir = $self->_add_directory_recursive($path_to_find_down, $dir_to_add_down);
 		return $dir->add_directory( name => $dir_to_add );
 		
 	}

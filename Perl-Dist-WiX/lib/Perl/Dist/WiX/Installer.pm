@@ -565,7 +565,7 @@ sub write_msi {
 		next
 		  if ( ( not defined $fragment_string )
 			or ( $fragment_string eq q{} ) );
-		$fragment_name = $fragment->get_fragment_id;
+		$fragment_name = $fragment->get_id;
 		$filename_in   = catfile( $dir, $fragment_name . q{.wxs} );
 		$filename_out  = catfile( $dir, $fragment_name . q{.wixout} );
 		$fh            = IO::File->new( $filename_in, 'w' );

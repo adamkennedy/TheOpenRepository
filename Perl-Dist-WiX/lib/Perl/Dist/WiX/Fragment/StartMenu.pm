@@ -98,9 +98,7 @@ sub add_shortcut {
 	return;
 }
 
-# This type of fragment needs regeneration.
 sub regenerate {
-	WiX3::Exception::Unimplemented->throw();
 
 	return;
 }

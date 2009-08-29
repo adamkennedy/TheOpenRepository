@@ -9,6 +9,11 @@ package Perl::Dist::WiX::DirectoryTree2;
 # License is the same as perl. See Wix.pm for details.
 #
 use 5.008001;
+use metaclass (
+	base_class  => 'MooseX::Singleton::Object',
+	metaclass   => 'MooseX::Singleton::Meta::Class',
+	error_class => 'WiX3::Util::Error',
+);
 use MooseX::Singleton;
 use Params::Util          qw( _IDENTIFIER _STRING );
 use File::Spec::Functions qw( catdir catpath splitdir splitpath );
@@ -153,6 +158,8 @@ sub add_directory {
 	my $self = shift;
 	my $dir = shift;
 	
+	$self->trace_line(3, "Adding directory with path $dir to tree.\n");
+	
 	unless ( defined _STRING($dir) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'dir',
@@ -173,7 +180,7 @@ sub add_directory {
 	my $dir_to_add = pop @dirs;
 	my $path_to_find = catpath($volume, catdir(@dirs), undef);
 	
-	my $dir_out = $self->_add_directory_recursive($path_to_find, $dirs[-1]);
+	my $dir_out = $self->_add_directory_recursive($path_to_find, $dir_to_add);
 
 	return defined $dir_out ? 1 : 0;
 };

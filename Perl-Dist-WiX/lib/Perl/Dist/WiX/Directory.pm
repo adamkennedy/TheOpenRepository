@@ -12,7 +12,7 @@ package Perl::Dist::WiX::Directory;
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str );
-use File::Spec::Functions qw( catdir abs2rel );
+use File::Spec::Functions qw( catpath catdir abs2rel splitpath splitdir );
 use Params::Util qw( _STRING );
 
 our $VERSION = '1.100';
@@ -86,7 +86,7 @@ sub search_dir {
 	} elsif ( @_ % 2 == 0 ) {
 		%args = @_ ;
 	} else {
-		print "Argument problem\n";
+#		print "Argument problem\n";
 		# Throw error.
 	}
 	
@@ -100,21 +100,21 @@ sub search_dir {
 	my $exact   = $args{exact}   || 0;
 	my $path    = $self->get_path();
 	
-	print "Path problem\n" unless defined $path;
+#	print "Path problem\n" unless defined $path;
 	return undef unless defined $path;
 
 # TODO: Make trace_line work.	
 #	$self->trace_line( 3, "Looking for $path_to_find\n" );
 #	$self->trace_line( 4, "  in:      $path.\n" );
 #	$self->trace_line( 5, "  descend: $descend exact: $exact.\n" );
-print "Looking for $path_to_find\n" ;
-print "  in:      $path.\n" ;
-print "  descend: $descend exact: $exact.\n" ;
+#print "Looking for $path_to_find\n" ;
+#print "  in:      $path.\n" ;
+#print "  descend: $descend exact: $exact.\n" ;
 
 	# If we're at the correct path, exit with success!
 	if ( ( defined $path ) && ( $path_to_find eq $path ) ) {
 #		$self->trace_line( 4, "Found $path.\n" );
-print "Found $path.\n" ;
+#print "Found $path.\n" ;
 		return $self;
 	}
 
@@ -126,15 +126,15 @@ print "Found $path.\n" ;
 	if ( not $subset ) {
 #		$self->trace_line( 4, "Not a subset in: $path.\n" );
 #		$self->trace_line( 5, "  To find: $path_to_find.\n" );
-print "Not a subset in: $path.\n" ;
-print "  To find: $path_to_find.\n" ;
+#print "Not a subset in: $path.\n" ;
+#print "  To find: $path_to_find.\n" ;
 		return undef;
 	}
 
 	# Check each of our branches.
 	my @tags = $self->get_child_tags();
 	my $answer;
-	print "** Number of child tags: " . scalar @tags . "\n";
+#	print "** Number of child tags: " . scalar @tags . "\n";
 	
   TAG:
 	foreach my $tag ( @tags ) {
@@ -154,7 +154,7 @@ sub _add_directory_recursive {
 	my $self = shift;
 	my $path_to_find = shift;
 	my $dir_to_add = shift;
-
+	
 	# Should not happen, but checking to make sure we bottom out, 
 	# rather than going into infinite recursion.
 	if (length $path_to_find < 4) {
@@ -169,7 +169,6 @@ sub _add_directory_recursive {
 
 	if (defined $directory) {
 		return $directory->add_directory(
-			parent => $directory,
 			name => $dir_to_add,
 			# TODO: Check for other needs.
 		);

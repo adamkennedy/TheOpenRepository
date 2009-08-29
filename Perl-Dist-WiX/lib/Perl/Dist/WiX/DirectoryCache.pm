@@ -23,7 +23,7 @@ $VERSION = eval { return $VERSION };
 has _cache => (
 	metaclass => 'Collection::Hash',
 	is        => 'rw',
-	isa       => 'HashRef[Perl::Dist::WiX::Fragment::Files]',
+	isa       => 'HashRef[Str]',
 	default   => sub { {} },
     provides  => {
         'set'    => '_set_cache_entry',
@@ -39,10 +39,9 @@ sub add_to_cache {
 	my $fragment = shift || undef;
 	
 	# TODO: If $directory is not a WiX3::XML::Directory, throw an exception. 
-	# TODO: If $fragment is not a Perl::Dist::WiX::Fragment::Files, throw an exception.
 	# TODO: If the guid exists, throw an exception.
 	
-	$self->set_cache_entry($directory->get_guid(), $fragment);
+	$self->_set_cache_entry( $directory->get_id(), $fragment->get_id() );
 	
 	return;
 }
@@ -53,7 +52,7 @@ sub exists_in_cache {
 	
 	# TODO: If $directory is not a WiX3::XML::Directory, throw an exception. 
 
-	return _exists_cache_entry($directory->get_guid());
+	return $self->_exists_cache_entry($directory->get_id());
 }
 
 sub get_previous_fragment {
@@ -62,7 +61,7 @@ sub get_previous_fragment {
 	
 	# TODO: If $directory is not a WiX3::XML::Directory, throw an exception. 
 
-	return _get_cache_entry($directory->get_guid());
+	return $self->_get_cache_entry($directory->get_id());
 }
 
 sub delete_cache_entry {
@@ -71,7 +70,7 @@ sub delete_cache_entry {
 	
 	# TODO: If $directory is not a WiX3::XML::Directory, throw an exception. 
 
-	return _delete_cache_entry($directory->get_guid());
+	return $self->_delete_cache_entry($directory->get_id());
 }
 
 no Moose;

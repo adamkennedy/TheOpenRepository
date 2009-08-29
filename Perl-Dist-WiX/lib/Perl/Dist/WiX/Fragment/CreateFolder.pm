@@ -51,7 +51,7 @@ sub BUILDARGS {
 		PDWiX::Parameter->throw(parameter => 'id', where => '::Fragment::CreateFolder->new');
 	}
 
-	return { id => "Fr_Create$args{id}", directory_id => $args{'directory_id'} };
+	return { id => "Create$args{id}", directory_id => $args{'directory_id'} };
 }
 
 sub BUILD {
@@ -59,21 +59,18 @@ sub BUILD {
 	
 	my $id = $self->get_id();
 	my $directory_tree = Perl::Dist::WiX::DirectoryTree2->instance();
-	$id = substr $id, 9;
 
 	my $directory_id = $self->_get_directory_id();	
 	my $directory_object = $directory_tree->get_directory_object("D_$directory_id");
 	
 	my $tag1 = WiX3::XML::CreateFolder->new();
-	my $tag2 = WiX3::XML::Component->new( 
-		id => "C_Create$id"
-	);
-	$tag2->add_child_tag($tag1);
+	my $tag2 = WiX3::XML::Component->new( id => $id );
 	my $tag3 = WiX3::XML::DirectoryRef->new( 
 		directory_object => $directory_object,
 	);
-	$tag3->add_child_tag($tag2);
-	
+
+	$tag2->add_child_tag($tag1);
+	$tag3->add_child_tag($tag2);	
 	$self->add_child_tag($tag3);
 	
 	$self->trace_line( 2,

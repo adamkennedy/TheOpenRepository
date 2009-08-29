@@ -52,11 +52,11 @@ sub BUILDARGS {
 	}
 
 	my $tag1 = WiX3::XML::Component->new( 
-		id => "C_$id"
+		id => $id
 	);
 
 	return { 
-		id => "Fr_$id",
+		id => $id,
 		component => $tag1,
 	};
 }
