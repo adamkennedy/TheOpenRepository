@@ -239,10 +239,15 @@ sub _add_directory_recursive {
 	
 	my $dirs_to_add = abs2rel( $dir, $tag->get_path() );
 	my @dirs_to_add = splitpath($dirs_to_add);
+
 	while ($dirs_to_add[0] eq '') {
 		shift @dirs_to_add;
 	}
 		
+	print q{add_directory_recursive: dirs to add : '};
+	print join q{', '}, @dirs_to_add;
+	print qq{'\n};
+	
 	foreach my $dir_to_add (@dirs_to_add) {
 		$directory_object = $directory_object->add_directory(name => $dir_to_add);
 		if ($cache->exists_in_cache($directory_object)) {
