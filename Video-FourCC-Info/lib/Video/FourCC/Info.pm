@@ -45,11 +45,11 @@ Video::FourCC::Info - Perl module to retrieve information about FourCCs
 
 =head1 VERSION
 
-Version 1.003 ($Id$)
+Version 1.004 ($Id$)
 
 =cut
 
-our $VERSION = '1.003';
+our $VERSION = '1.004';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION

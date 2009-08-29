@@ -1,3 +1,7 @@
+1.004 - 29 Aug 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Prevent codecs.dat from being installed (add to MANIFEST.SKIP)
+
 1.003 - 28 Aug 2009 - Jonathan Yu <frequency@cpan.org>
 
   + Add DBI and DBD::SQLite to build_requires (this should

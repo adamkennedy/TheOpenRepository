@@ -25,6 +25,9 @@
 \bpm_to_blib$
 \bblibdirs\.ts$         # 6.18 through 6.25 generated this
 
+# Files generated during build process
+^lib/Video/FourCC/codecs.dat$
+
 # Temp, old and emacs backup files.
 ~$
 \.old$
