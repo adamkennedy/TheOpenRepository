@@ -426,6 +426,8 @@ address above.
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
+=head2 CONTIRBUTORS
+
 Jonathan Yu E<lt>frequency@cpan.orgE<gt>
 
 =head1 SEE ALSO
@@ -434,7 +436,7 @@ L<ExtUtils::Manifest>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2009 Adam Kennedy, et al.
+Copyright 2006-2009, Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
