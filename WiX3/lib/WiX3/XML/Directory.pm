@@ -147,8 +147,12 @@ sub get_directory_id {
 
 sub add_directory {
 	my $self = shift;
-
-	my $new_dir = WiX3::XML::Directory->new(@_);
+	my $class = ref $self;
+	
+	# We make a new $class, rather than a new WiX3::XML::Directory,
+	# so subclasses can create more of themselves without
+	# having to override this routine.
+	my $new_dir = $class->new(parent => $self, @_);
 	$self->add_child_tag($new_dir);
 
 	return $new_dir;

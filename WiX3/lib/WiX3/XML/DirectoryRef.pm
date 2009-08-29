@@ -21,22 +21,21 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 # Accessors:
 #   None.
 
-has _directory_object => (
+has directory_object => (
 	is       => 'ro',
 	isa      => 'WiX3::XML::Directory',
 	reader   => '_get_directory_object',
-	init_arg => 'directory_object',
 	required => 1,
 	handles  => [qw(get_path get_directory_id)],
 );
 
-has _diskid => (
+has diskid => (
 	is     => 'ro',
 	isa    => Int,
 	reader => '_get_diskid',
 );
 
-has _filesource => (
+has filesource => (
 	is     => 'ro',
 	isa    => Str,
 	reader => '_get_filesource',

@@ -28,6 +28,7 @@ has child_tags => (
 		'empty'    => 'has_child_tags',
 		'count'    => 'count_child_tags',
 		'delete'   => 'delete_child_tag',
+		'clear'    => 'clear_child_tags',
 	},
 );
 
