@@ -6,7 +6,8 @@ use Params::Util qw( _STRING _NONNEGINT );
 use vars qw( $VERSION );
 use WiX3::Exceptions;
 
-use version; our $VERSION = version->new('0.005')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 #####################################################################
 # Methods
@@ -30,19 +31,19 @@ sub indent {
 
 	# Check parameters.
 	if ( not defined $string ) {
-		XWC::Exception::Parameter::Missing->throw('string');
+		WiX3::Exception::Parameter::Missing->throw('string');
 	}
 
 	if ( not defined $spaces_num ) {
-		XWC::Exception::Parameter::Missing->throw('spaces_num');
+		WiX3::Exception::Parameter::Missing->throw('spaces_num');
 	}
 
 	if ( not defined _STRING($string) ) {
-		XWC::Exception::Parameter::Invalid->throw('string');
+		WiX3::Exception::Parameter::Invalid->throw('string');
 	}
 
 	if ( not defined _NONNEGINT($spaces_num) ) {
-		XWC::Exception::Parameter::Invalid->throw('spaces_num');
+		WiX3::Exception::Parameter::Invalid->throw('spaces_num');
 	}
 
 	# Indent string.
