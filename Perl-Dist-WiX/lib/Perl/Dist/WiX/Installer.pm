@@ -576,16 +576,16 @@ sub write_msi {
 		}
 		$fh->print($fragment_string);
 		$fh->close;
-		$self->trace_line( 2, "Compiling $filename_in\n" );
-		$self->compile_wxs( $filename_in, $filename_out )
-		  or PDWiX->throw("WiX could not compile $filename_in");
+#		$self->trace_line( 2, "Compiling $filename_in\n" );
+#		$self->compile_wxs( $filename_in, $filename_out )
+#		  or PDWiX->throw("WiX could not compile $filename_in");
 
-		unless ( -f $filename_out ) {
-			PDWiX->throw( "Failed to find $filename_out (probably "
-				  . "compilation error in $filename_in)" );
-		}
+#		unless ( -f $filename_out ) {
+#			PDWiX->throw( "Failed to find $filename_out (probably "
+#				  . "compilation error in $filename_in)" );
+#		}
 
-		push @files, $filename_out;
+#		push @files, $filename_out;
 	} ## end foreach my $key ( keys %{ $self...})
 
 	# Generate feature tree.
