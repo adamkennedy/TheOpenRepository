@@ -20,7 +20,7 @@ my $sb = Perl::Dist::WiX->new(
 	build_number => 10,
 	checkpoint_after => [ 4, 8 ],
 	checkpoint_stop => 8,
-	msi => 0,
+	msi => 1,
 	zip => 1,
 	perl_version => 5100,
 );
