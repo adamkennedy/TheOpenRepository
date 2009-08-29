@@ -14,7 +14,7 @@ use Moose;
 use MooseX::Types::Moose qw( Bool );
 use Params::Util qw( _INSTANCE );
 use File::Spec::Functions qw( abs2rel );
-use List::Util qw( uniq );
+use List::MoreUtils qw( uniq );
 require Perl::Dist::WiX::Exceptions;
 require WiX3::Exceptions;
 require File::List::Object;
@@ -32,7 +32,8 @@ has files => (
 	handles => { 
 		'add_files'     => 'add_files', 
 		'add_file'      => 'add_file',
-		'_subtract'     => 'subtract', 
+		'_subtract'     => 'subtract',
+		'_get_files'    => 'files', 
 	},
 );
 
@@ -50,11 +51,11 @@ sub regenerate {
 	my $caused_regeneration = 0;
 	my @fragments_to_regenerate;
 	my $firsttime = 1;
+	my @files = @{$self->_get_files()};
 	
+	while ($firsttime or $caused_regeneration) {
 	
-	while ($firsttime or $caused_regeneration)
-	
-		my $id = $role->get_id();
+		my $id = $self->get_id();
 		print "Regenerating $id\n";
 	
 		$self->clear_child_tags();
@@ -77,7 +78,7 @@ sub regenerate {
 sub _add_file {
 	my $self = shift;
 	my $file_path = shift;
-	my $tree = Perl::Dist:WiX::DirectoryTree2->instance();
+	my $tree = Perl::Dist::WiX::DirectoryTree2->instance();
 
 	# return () or any fragments that need regeneration retrieved from the cache.
 	my ($directory_final, @fragments);
@@ -101,7 +102,7 @@ sub _add_file {
 		$tag_step1 = $child_tags[$i_step1];
 		$i_step1++;
 	
-		next STEP1 unless ($tag_step1->isa('Perl::Dist::WiX::Directory') or $tag_step1->isa('Perl::Dist::WiX::DirectoryRef')) 
+		next STEP1 unless ($tag_step1->isa('Perl::Dist::WiX::Directory') or $tag_step1->isa('Perl::Dist::WiX::DirectoryRef'));
 	
 		# Search for directory.
 		$directory_step1 = $tag_step1->search_dir(
@@ -111,7 +112,7 @@ sub _add_file {
 		);
 		
 		if (defined $directory_step1) {
-			$found_s1 = 1;
+			$found_step1 = 1;
 			$self->add_file_component($directory_step1, $file_path);
 			return ();
 		}
@@ -154,7 +155,7 @@ sub _add_file {
 		$tag_step3 = $child_tags[$i_step3];
 		$i_step3++;
 	
-		next STEP3 unless ($tag_step3->isa('Perl::Dist::WiX::Directory') or $tag_step3->isa('Perl::Dist::WiX::DirectoryRef')) 
+		next STEP3 unless ($tag_step3->isa('Perl::Dist::WiX::Directory') or $tag_step3->isa('Perl::Dist::WiX::DirectoryRef'));
 	
 		# Search for directory.
 		$directory_step3 = $tag_step3->search_dir(
@@ -164,7 +165,7 @@ sub _add_file {
 		);
 		
 		if (defined $directory_step3) {
-			$found_s3 = 1;
+			$found_step3 = 1;
 			($directory_final, @fragments) = $self->_add_directory_recursive($directory_step3, $path_to_find);		
 			$self->_add_file_component($directory_final, $file_path);
 			return @fragments;
@@ -228,7 +229,7 @@ sub _add_directory_recursive {
 	my $tag = shift;
 	my $dir = shift;
 	my $cache = Perl::Dist::WiX::DirectoryCache->instance();
-	my $tree = Perl::Dist:WiX::DirectoryTree2->instance();
+	my $tree = Perl::Dist::WiX::DirectoryTree2->instance();
 	my $directory_object = $tag;
 	my @fragments = ();
 	
@@ -253,12 +254,12 @@ sub _add_file_component {
 	my $file = shift;
 	
 	my $component = WiX3::XML::Component->new();
-	my $file = Perl::Dist::WiX::File->new(
+	my $file_obj = Perl::Dist::WiX::File->new(
 		guid => $component->get_guid(),
 		source => $file,
 	);
 	
-	$component->add_child_tag($file);
+	$component->add_child_tag($file_obj);
 	$tag->add_child_tag($component);
 
 }

@@ -126,32 +126,25 @@ sub initialize_tree {
 	) if (5100 >= $ver);
 #>>>
 	
-	my @list = (
-		c\bin
-		c\include
-		c\lib
-		c\libexec
-		c\mingw32
-		c\share
-		perl\bin
-		perl\lib
-		perl\lib\auto
-		perl\site
-		perl\site\lib
-		perl\site\lib\auto
-		perl\site\lib\auto\share
-		perl\site\lib\auto\share\dist
-		perl\site\lib\auto\share\module
-		perl\vendor
-		perl\vendor\lib
-		perl\vendor\lib\auto
-		perl\vendor\lib\auto\share
-		perl\vendor\lib\auto\share\dist
-		perl\vendor\lib\auto\share\module
-		cpan\sources
-	)
+	my @list = qw(
+		c\\bin
+		c\\include
+		c\\lib
+		c\\libexec
+		c\\mingw32
+		c\\share
+		perl\\bin
+		perl\\lib\\auto
+		perl\\site\\lib\\auto\\share\\dist
+		perl\\site\\lib\\auto\\share\\module
+		perl\\vendor\\lib\\auto\\share\\dist
+		perl\\vendor\\lib\\auto\\share\\module
+		cpan\\sources
+	);
 	
-	foreach $dir
+	foreach my $dir (@list) {
+		$self->add_directory( catdir( $self->get_app_dir(), $dir ) );
+	}
 	
 	return $self;
 }
@@ -173,16 +166,16 @@ sub add_directory {
 		path_to_find => $dir,
 		descend      => 1,
 		exact        => 1,
-	);
+	) );
 
 	my ($volume, $dirs, undef) = splitpath($dir, 1);
-	@dirs = splitdir($dirs);
+	my @dirs = splitdir($dirs);
 	my $dir_to_add = pop @dirs;
 	my $path_to_find = catpath($volume, catdir(@dirs), undef);
 	
-	my $dir = $self->_add_directory_recursive($path_to_find, $dirs[-1]);
+	my $dir_out = $self->_add_directory_recursive($path_to_find, $dirs[-1]);
 
-	return defined $dir ? 1 : 0;
+	return defined $dir_out ? 1 : 0;
 };
 
 

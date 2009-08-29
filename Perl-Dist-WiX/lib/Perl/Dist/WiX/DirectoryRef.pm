@@ -1,7 +1,7 @@
-package Perl::Dist::WiX::Directory;
+package Perl::Dist::WiX::DirectoryRef;
 
 #####################################################################
-# Perl::Dist::WiX::Directory - Extends <Directory> tags to make them  
+# Perl::Dist::WiX::DirectoryRef - Extends <Directory> tags to make them  
 # easily searchable.
 #
 # Copyright 2009 Curtis Jewell
@@ -18,45 +18,7 @@ use Params::Util qw( _STRING );
 our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
-extends 'WiX3::XML::Directory';
-
-########################################
-# add_directories_id(($id, $name)...)
-# Parameters: [repeatable in pairs]
-#   $id:   ID of directory object to create.
-#   $name: Name of directory to create object for.
-# Returns:
-#   Object being operated on. (chainable)
-
-sub add_directories_id {
-	my ( $self, @params ) = @_;
-	
-	# We need id, name pairs passed in.
-	if ( @params % 2 != 0 )
-	{              
-		PDWiX->throw(
-			'Internal Error: Odd number of parameters to add_directories_id'
-		);
-	}
-
-	# Add each individual id and name.
-	my ( $id, $name );
-	while ( $#params > 0 ) {
-		$id   = shift @params;
-		$name = shift @params;
-		if ( $name =~ m{\\}ms ) {
-			# TODO: Throw an error.
-		} else {
-			$self->add_directory( {
-					id   => $id,
-					path => $self->get_path() . q{\\} . $name,
-					name => $name,
-				} );
-		}
-	} ## end while ( $#params > 0 )
-
-	return $self;
-} ## end sub add_directories_id
+extends 'WiX3::XML::DirectoryRef';
 
 sub get_directory_object {
 	my $self = shift;
@@ -176,13 +138,23 @@ sub _add_directory_recursive {
 	} else {
 		my ($volume, $dirs, undef) = splitpath($path_to_find, 1);
 		my @dirs = splitdir($dirs);
-		my $dir_to_add_down = pop @dirs;
+		my $dir_to_add = pop @dirs;
 		my $path_to_find_down = catpath($volume, catdir(@dirs), undef);
-		my $dir = $self->_add_directory_recursive($path_to_find_down, $dir_to_add_down);
+		my $dir = $self->_add_directory_recursive($path_to_find_down, $dir_to_find_down);
 		return $dir->add_directory( name => $dir_to_add );
 		
 	}
 }
+
+sub add_directory {
+	my $self = shift;
+	
+	my $new_dir = Perl::Dist::WiX::Directory->new(parent => $self, @_);
+	$self->add_child_tag($new_dir);
+
+	return $new_dir;
+}
+
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
