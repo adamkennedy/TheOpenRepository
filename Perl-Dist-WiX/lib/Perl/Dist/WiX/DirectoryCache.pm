@@ -42,7 +42,7 @@ sub add_to_cache {
 	# TODO: If $fragment is not a Perl::Dist::WiX::Fragment::Files, throw an exception.
 	# TODO: If the guid exists, throw an exception.
 	
-	$self->_set_cache_entry($directory->get_guid(), $fragment);
+	$self->set_cache_entry($directory->get_guid(), $fragment);
 	
 	return;
 }

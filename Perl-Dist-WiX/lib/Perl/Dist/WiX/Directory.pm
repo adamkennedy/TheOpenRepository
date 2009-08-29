@@ -20,15 +20,6 @@ $VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Directory';
 
-sub add_directory {
-	my $self = shift;
-	
-	my $new_dir = Perl::Dist::WiX::Directory->new(@_);
-	$self->add_child_tag($new_dir);
-
-	return $new_dir;
-}
-
 ########################################
 # add_directories_id(($id, $name)...)
 # Parameters: [repeatable in pairs]
@@ -157,6 +148,40 @@ print "  To find: $path_to_find.\n" ;
 
 	# If we get here, we did not find a lower directory.
 	return $exact ? undef : $self;
+}
+
+sub _add_directory_recursive {
+	my $self = shift;
+	my $path_to_find = shift;
+	my $dir_to_add = shift;
+
+	# Should not happen, but checking to make sure we bottom out, 
+	# rather than going into infinite recursion.
+	if (length $path_to_find < 4) {
+		return undef;
+	}
+	
+	my $directory = $self->search_dir(
+		path_to_find => $path_to_find,
+		descend      => 1,
+		exact        => 1,
+	);
+
+	if (defined $directory) {
+		return $directory->add_directory(
+			parent => $directory,
+			name => $dir_to_add,
+			# TODO: Check for other needs.
+		);
+	} else {
+		my ($volume, $dirs, undef) = splitpath($path_to_find, 1);
+		my @dirs = splitdir($dirs);
+		my $dir_to_add = pop @dirs;
+		my $path_to_find_down = catpath($volume, catdir(@dirs), undef);
+		my $dir = $self->_add_directory_recursive($path_to_find_down, $dir_to_find_down);
+		return $dir->add_directory( name => $dir_to_add );
+		
+	}
 }
 
 no Moose;

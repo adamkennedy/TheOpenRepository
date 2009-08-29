@@ -10,9 +10,9 @@ package Perl::Dist::WiX::DirectoryTree2;
 #
 use 5.008001;
 use MooseX::Singleton;
-use Params::Util          qw( _IDENTIFIER _STRING            );
-use File::Spec::Functions qw( catdir                         );
-use MooseX::Types::Moose  qw( Str                            );
+use Params::Util          qw( _IDENTIFIER _STRING );
+use File::Spec::Functions qw( catdir catpath splitdir splitpath );
+use MooseX::Types::Moose  qw( Str );
 use Perl::Dist::WiX::Directory;
 use WiX3::Exceptions;
 
@@ -27,9 +27,9 @@ with 'WiX3::Role::Traceable';
 
 has root => (
 	is => 'ro',
-	isa => 'WiX3::XML::Directory',
+	isa => 'Perl::Dist::WiX::Directory',
 	reader => 'get_root',
-	handles => ['search_dir', 'get_directory_object'],
+	handles => [qw(search_dir get_directory_object _add_directory_recursive)],
 	required => 1,
 );
 
@@ -126,8 +126,65 @@ sub initialize_tree {
 	) if (5100 >= $ver);
 #>>>
 	
+	my @list = (
+		c\bin
+		c\include
+		c\lib
+		c\libexec
+		c\mingw32
+		c\share
+		perl\bin
+		perl\lib
+		perl\lib\auto
+		perl\site
+		perl\site\lib
+		perl\site\lib\auto
+		perl\site\lib\auto\share
+		perl\site\lib\auto\share\dist
+		perl\site\lib\auto\share\module
+		perl\vendor
+		perl\vendor\lib
+		perl\vendor\lib\auto
+		perl\vendor\lib\auto\share
+		perl\vendor\lib\auto\share\dist
+		perl\vendor\lib\auto\share\module
+		cpan\sources
+	)
+	
+	foreach $dir
+	
 	return $self;
 }
+
+sub add_directory {
+	my $self = shift;
+	my $dir = shift;
+	
+	unless ( defined _STRING($dir) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'dir',
+			where     => '::DirectoryTree->add_directory'
+		);
+	}
+
+	# Does the directory already exist?
+	# If so, short-circuit.
+	return 1 if ($self->search_dir(
+		path_to_find => $dir,
+		descend      => 1,
+		exact        => 1,
+	);
+
+	my ($volume, $dirs, undef) = splitpath($dir, 1);
+	@dirs = splitdir($dirs);
+	my $dir_to_add = pop @dirs;
+	my $path_to_find = catpath($volume, catdir(@dirs), undef);
+	
+	my $dir = $self->_add_directory_recursive($path_to_find, $dirs[-1]);
+
+	return defined $dir ? 1 : 0;
+};
+
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -135,40 +192,6 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
-
-########################################
-# search_dir($path)
-# Parameters: [pairs]
-#   path_to_find: Path being searched for.
-#   descend: 1 if can descend to lower levels, [default]
-#            0 if has to be on this level.
-#   exact:   1 if has to be equal,
-#            0 if equal or subset. [default]
-# Returns:
-#   Directory object representing $path or undef.
-
-sub search_dir {
-	my $self       = shift;
-	my $params_ref = {@_};
-
-	# Set defaults for parameters.
-	$self->trace_line( 5,
-		    "\$self: $self\n$params_ref: $params_ref\n"
-		  . "path_to_find: $params_ref->{path_to_find}\n" );
-	my $path_to_find = _STRING( $params_ref->{path_to_find} )
-	  || PDWiX::Parameter->throw(
-		parameter => 'path_to_find',
-		where     => '::DirectoryTree->search_dir'
-	  );
-	my $descend = $params_ref->{descend} || 1;
-	my $exact   = $params_ref->{exact}   || 0;
-
-	return $self->root->search_dir(
-		path_to_find => $path_to_find,
-		descend      => $descend,
-		exact        => $exact,
-	);
-} ## end sub search_dir
 
 ########################################
 # add_root_directory($id, $dir)

@@ -767,6 +767,9 @@ EOF
 		File::Path::mkpath($d);
 	}
 
+	# Initialize output file list.
+	$self->{output_file} = [];
+	
 	# Initialize filters.
 	my @filters_array;
 #<<<
