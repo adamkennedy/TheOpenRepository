@@ -62,7 +62,7 @@ use Marpa::Offset qw(
 
     =LAST_GENERAL_EVALUATOR_FIELD
 
-    SORT_ELEMENT 
+    SORT_ELEMENT
     SORT_KEY
     OR_MAP
     TRAILING_NULLS
@@ -2248,7 +2248,7 @@ use Marpa::Offset qw(
 
 # This will replace the old value method
 sub Marpa::Evaluator::value {
-    my ($evaler, $new_flag) = @_;
+    my ( $evaler, $new_flag ) = @_;
     goto &Marpa::Evaluator::old_value if not $new_flag;
 
     Marpa::exception('No parse supplied') if not defined $evaler;
@@ -2357,7 +2357,8 @@ sub Marpa::Evaluator::value {
                     or Marpa::exception('print to trace handle failed');
             }
 
-            my $sort_element = ${$and_node->[Marpa::Internal::And_Node::SORT_ELEMENT]};
+            my $sort_element =
+                ${ $and_node->[Marpa::Internal::And_Node::SORT_ELEMENT] };
             CALCULATE_SORT_ELEMENT: {
                 last CALCULATE_SORT_ELEMENT if defined $sort_element;
                 $sort_element = q{};    # Empty string means no sort element
@@ -2408,7 +2409,7 @@ sub Marpa::Evaluator::value {
 
                 # If the or node is exhausted, then
                 # so is this and-node
-                if (not scalar @{$sorted_and_choices}) {
+                if ( not scalar @{$sorted_and_choices} ) {
                     $and_node->[Marpa::Internal::And_Node::OR_MAP] = undef;
                     next TASK;
                 }
@@ -2435,7 +2436,7 @@ sub Marpa::Evaluator::value {
                         ->[Marpa::Internal::And_Choice::OR_MAP] };
 
                 # Add the child's sort elements
-                push @sort_key, 
+                push @sort_key,
                     @{ $sorted_and_choice
                         ->[Marpa::Internal::And_Choice::SORT_KEY] };
 
@@ -2450,7 +2451,8 @@ sub Marpa::Evaluator::value {
             if ($internal_nulls) {
                 SORT_ELEMENT: for my $sort_element (@sort_key) {
                     my ( $location, $sub_location, @rest ) = @{$sort_element};
-                    next SORT_ELEMENT if $location != $internal_nulls_position;
+                    next SORT_ELEMENT
+                        if $location != $internal_nulls_position;
                     $sort_element =
                         [ $location, $sub_location + $internal_nulls, @rest ];
                 } ## end for my $sort_element (@sort_key)
@@ -2458,14 +2460,15 @@ sub Marpa::Evaluator::value {
 
             $and_node->[Marpa::Internal::And_Node::TRAILING_NULLS] =
                 $trailing_nulls // 0;
-            $and_node->[Marpa::Internal::And_Node::OR_MAP] = \@or_map;
-            $and_node->[Marpa::Internal::And_Node::SORT_KEY] =
-                [ map { $_->[1] }
+            $and_node->[Marpa::Internal::And_Node::OR_MAP]   = \@or_map;
+            $and_node->[Marpa::Internal::And_Node::SORT_KEY] = [
+                map  { $_->[1] }
                 sort { $a->[0] cmp $b->[0] }
-                map { [ ( pack 'N*', @{$_} ), $_ ] } @sort_key ];
+                map  { [ ( pack 'N*', @{$_} ), $_ ] } @sort_key
+            ];
             next TASK;
 
-        } ## end if ( $task == Marpa::Internal::Task::INITIALIZE_AND_NODE)
+        } ## end if ( $task == Marpa::Internal::Task::SETUP_AND_NODE )
 
         if ( $task == Marpa::Internal::Task::INITIALIZE_OR_TREE ) {
             my ($or_node_id) = @{$task_entry};
@@ -2500,7 +2503,7 @@ sub Marpa::Evaluator::value {
             # ITERATE_OR_TREE on best child or-node
 
             next TASK;
-        } ## end if ( $task == Marpa::Internal::Task::ITERATE_OR_TREE)
+        } ## end if ( $task == Marpa::Internal::Task::ITERATE_AND_TREE)
 
         if ( $task == Marpa::Internal::Task::ITERATE_AND_TREE2 ) {
             my ($or_node_id) = @{$task_entry};
@@ -2518,7 +2521,7 @@ sub Marpa::Evaluator::value {
             #   ITERATE_OR_NODE on OK child or-node
 
             next TASK;
-        } ## end if ( $task == Marpa::Internal::Task::ITERATE_OR_TREE2)
+        } ## end if ( $task == Marpa::Internal::Task::ITERATE_AND_TREE2)
 
         if ( $task == Marpa::Internal::Task::ITERATE_OR_NODE ) {
             my ($or_node_id) = @{$task_entry};
@@ -2544,7 +2547,7 @@ sub Marpa::Evaluator::value {
                         }
                 ) <= $top_sortkey;
             } ## end List::Util::first
-            reverse( 0 .. $#{$and_choices} );
+            reverse +( 0 .. $#{$and_choices} );
 
             $first_not_greater_choice_ix //= -1;
             splice @{$and_choices}, $first_not_greater_choice_ix + 1, 0,
@@ -2762,7 +2765,7 @@ sub Marpa::Evaluator::value {
 
     Carp::confess('Internal error: Should not reach here');
 
-} ## end sub Marpa::Evaluator::new_value
+} ## end sub Marpa::Evaluator::value
 
 sub Marpa::Evaluator::old_value {
 
@@ -3202,7 +3205,7 @@ sub Marpa::Evaluator::old_value {
 
     return pop @evaluation_stack;
 
-} ## end sub Marpa::Evaluator::value
+} ## end sub Marpa::Evaluator::old_value
 
 1;
 
