@@ -1,5 +1,9 @@
 Revision history for WiX3
 
+0.006  Sun Aug 20 2009
+       - More tags (Shortcut, FeatureRef)
+	   - Fixing to work with Perl-Dist-WiX
+
 0.005  Sat Aug 15 2009
-       Initial release of WiX3. Basic testing only, and 
-       not every module is implemented.
+       - Initial release of WiX3. Basic testing only, and 
+         not every module is implemented.

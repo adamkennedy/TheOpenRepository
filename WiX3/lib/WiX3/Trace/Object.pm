@@ -10,10 +10,11 @@ use metaclass (
 use MooseX::Singleton;
 use WiX3::Trace::Config;
 use WiX3::Util::StrictConstructor;
-
-use version; our $VERSION = version->new('0.006')->numify;
-
 use Readonly qw( Readonly );
+
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
+
 Readonly my @LEVELS => qw(error notice info debug debug debug);
 
 with 'MooseX::LogDispatch';

@@ -13,13 +13,14 @@ use WiX3::Types qw( YesNoType ComponentGuidType );
 use MooseX::Types::Moose qw( Str Maybe Int );
 use WiX3::Util::StrictConstructor;
 
-use version; our $VERSION = version->new('0.005')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm
 
-with qw(WiX3::XML::Role::TagAllowsChildTags 
-		WiX3::XML::Role::GeneratesGUID
-		WiX3::Role::Traceable
+with qw(WiX3::XML::Role::TagAllowsChildTags
+  WiX3::XML::Role::GeneratesGUID
+  WiX3::Role::Traceable
 );
 
 ## Allows lots of children: Choice of elements AppId, Category, Class,
@@ -35,11 +36,11 @@ with qw(WiX3::XML::Role::TagAllowsChildTags
 #   None.
 
 has id => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => 'get_id',
-	builder  => 'id_build',
-	lazy     => 1,
+	is      => 'ro',
+	isa     => Str,
+	reader  => 'get_id',
+	builder => 'id_build',
+	lazy    => 1,
 );
 
 has complusflags => (
@@ -110,10 +111,10 @@ has neveroverwrite => (
 );
 
 has path => (
-	is       => 'ro',
-	isa      => Maybe [Str],
-	reader   => 'get_path',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => 'get_path',
+	default => undef,
 );
 
 has permanent => (
@@ -177,19 +178,18 @@ sub BUILDARGS {
 		WiX3::Exception::Parameter::Odd->throw("$class->new");
 	}
 
-	if (defined $args{'guid'}) {
+	if ( defined $args{'guid'} ) {
+
 		# TODO: Throw exception.
 	}
-	
-	unless (defined $args{'id'} or defined $args{'path'}) {
+
+	if ( not( defined $args{'id'} or defined $args{'path'} ) ) {
 		WiX3::Exception::Parameter->throw(
-			where => 'WiX3::XML::Component->new',
-			parameter => 'Either id or path required',
-		);
+			"Either id or path required in $class->new");
 	}
-	
+
 	return \%args;
-}
+} ## end sub BUILDARGS
 
 sub as_string {
 	my $self = shift;

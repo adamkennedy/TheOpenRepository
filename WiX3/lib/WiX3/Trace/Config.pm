@@ -15,7 +15,8 @@ use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( Tracelevel Host );
 use MooseX::Types::Moose qw( Int Maybe Str Bool ArrayRef );
 
-use version; our $VERSION = version->new('0.006')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 has tracelevel => (
 	is      => 'rw',

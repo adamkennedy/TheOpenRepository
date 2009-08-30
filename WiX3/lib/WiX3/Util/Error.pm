@@ -5,9 +5,10 @@ use 5.008001;
 use strict;
 use warnings;
 use Readonly qw (Readonly);
-
-use version; our $VERSION = version->new('0.005')->numify;
 use WiX3::Exceptions;
+
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 Readonly my %TYPES => ( 'Maybe[Int]' => 'an integer' );
 

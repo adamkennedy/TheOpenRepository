@@ -9,10 +9,11 @@ use metaclass (
 );
 use MooseX::Singleton;
 use Data::UUID qw( NameSpace_DNS );
-use WiX3::Types qw( Host          );
+use WiX3::Types qw( Host );
 require WiX3::Exceptions;
 
-use version; our $VERSION = version->new('0.005')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 
 #####################################################################

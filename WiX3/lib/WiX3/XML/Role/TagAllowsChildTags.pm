@@ -8,7 +8,8 @@ use MooseX::AttributeHelpers;
 use MooseX::Types::Moose qw(ArrayRef);
 use List::MoreUtils qw( uniq );
 
-use version; our $VERSION = version->new('0.005')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 with 'WiX3::XML::Role::Tag';
 

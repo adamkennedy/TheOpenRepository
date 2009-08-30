@@ -11,7 +11,8 @@ use Moose;
 use Params::Util qw( _STRING  );
 use WiX3::Util::StrictConstructor;
 
-use version; our $VERSION = version->new('0.005')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Permission, PermissionEx, Shortcut as children.

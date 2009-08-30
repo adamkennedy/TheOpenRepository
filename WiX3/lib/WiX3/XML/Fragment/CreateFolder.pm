@@ -4,7 +4,8 @@ use 5.008001;
 use Moose;
 use Params::Util qw( _IDENTIFIER );
 
-use version; our $VERSION = version->new('0.005')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 with 'WiX3::XML::Role::Fragment';
 

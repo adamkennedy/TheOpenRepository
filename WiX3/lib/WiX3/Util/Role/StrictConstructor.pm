@@ -7,7 +7,8 @@ use warnings;
 use Moose::Role;
 use WiX3::Exceptions;
 
-use version; our $VERSION = version->new('0.005')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 after 'BUILDALL' => sub {
 	my $self   = shift;

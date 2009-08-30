@@ -58,7 +58,7 @@ sub indent {
 	return $answer;
 } ## end sub indent
 
-sub get_component_array {
+sub get_componentref_array {
 	my $self = shift;
 
 	my @components;
@@ -70,14 +70,20 @@ sub get_component_array {
 
 	foreach my $tag ( $self->get_child_tags() ) {
 		if ( $tag->meta()->does_role('WiX3::XML::Role::Component') ) {
-			push @components, $tag->get_component_id();
+			push @components, WiX3::XML::ComponentRef->new($tag);
+		} elsif ( $tag->meta()->isa('WiX3::XML::Feature') ) {
+			push @components, WiX3::XML::FeatureRef->new($tag);
+		} elsif (
+			$tag->meta()->does_role('WiX3::XML::Role::TagAllowsChildTags') )
+		{
+			push @components, $tag->get_componentref_array();
 		} else {
-			push @components, $tag->get_component_array();
+			return ();
 		}
-	}
+	} ## end foreach my $tag ( $self->get_child_tags...)
 
 	return @components;
-} ## end sub get_component_array
+} ## end sub get_componentref_array
 
 sub print_attribute {
 	my $self      = shift;

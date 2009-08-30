@@ -18,7 +18,6 @@ WiX3::XML::GeneratesGUID::Object->new(sitename => 'www.testing.invalid');
 
 require WiX3::XML::Component;
 
-
 my $c_1;
 eval { $c_1 = WiX3::XML::Component->new(); };
 my $empty_exception = $EVAL_ERROR;
@@ -26,10 +25,10 @@ my $empty_exception = $EVAL_ERROR;
 ok( ! $c_1, 'CreateFolder->new returns false when empty' );
 like( 
 	$empty_exception, 
-	qr{Attribute\s\(id\)}, 
+	qr{\sParameter\s}, 
 	'CreateFolder->new returns exception that stringifies'
 );
-isa_ok( $empty_exception, 'WiX3::Exception::Caught', 'Error' );
+isa_ok( $empty_exception, 'WiX3::Exception::Parameter', 'Error' );
 isa_ok( $empty_exception, 'WiX3::Exception', 'Error' );
 
 my $c_2 = WiX3::XML::Component->new(id => 'TestID');
@@ -51,7 +50,7 @@ my $test8_output = $c_2->as_string();
 my $test8_string = <<'EOF';
 <Component Id='C_TestID' Guid='94029F5F-EFBF-39A5-AA11-DC6570C7FF48'>
   <CreateFolder />
-<Component />
+</Component>
 EOF
 
 is( $test8_output, $test8_string, 'Non-empty Component stringifies correctly.' );

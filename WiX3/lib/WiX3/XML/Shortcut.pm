@@ -13,7 +13,8 @@ use MooseX::Types::Moose qw( Str Int Maybe );
 use WiX3::Types qw( YesNoType );
 use WiX3::Util::StrictConstructor;
 
-use version; our $VERSION = version->new('0.005')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_shortcut.htm
 
@@ -29,115 +30,115 @@ has id => (
 );
 
 has advertise => (
-	is       => 'ro',
-	isa      => Maybe[YesNoType],
-	reader   => '_get_advertise',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_advertise',
+	default => undef,
 );
 
 has arguments => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_arguments',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_arguments',
+	default => undef,
 );
 
 has description => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_description',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_description',
+	default => undef,
 );
 
 has descriptionresourcedll => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_descriptionresourcedll',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_descriptionresourcedll',
+	default => undef,
 );
 
 has descriptionresourceid => (
-	is       => 'ro',
-	isa      => Maybe[Int],
-	reader   => '_get_descriptionresourceid',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Int],
+	reader  => '_get_descriptionresourceid',
+	default => undef,
 );
 
 has directory => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_directory',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_directory',
+	default => undef,
 );
 
 has displayresourcedll => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_displayresourcedll',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_displayresourcedll',
+	default => undef,
 );
 
 has displayresourceid => (
-	is       => 'ro',
-	isa      => Maybe[Int],
-	reader   => '_get_displayresourceid',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Int],
+	reader  => '_get_displayresourceid',
+	default => undef,
 );
 
 has hotkey => (
-	is       => 'ro',
-	isa      => Maybe[Int],
-	reader   => '_get_hotkey',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Int],
+	reader  => '_get_hotkey',
+	default => undef,
 );
 
 has icon => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_icon',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_icon',
+	default => undef,
 );
 
 has iconindex => (
-	is       => 'ro',
-	isa      => Maybe[Int],
-	reader   => '_get_iconindex',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Int],
+	reader  => '_get_iconindex',
+	default => undef,
 );
 
 has name => (
 	is       => 'ro',
-	isa      => Maybe[Str],
+	isa      => Maybe [Str],
 	reader   => '_get_name',
 	required => 1,
 );
 
 has shortname => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_shortname',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_shortname',
+	default => undef,
 );
 
 has show => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_show',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_show',
+	default => undef,
 );
 
 has target => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_target',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_target',
+	default => undef,
 );
 
 has workingdirectory => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_workingdirectory',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_workingdirectory',
+	default => undef,
 );
 
 #####################################################################
@@ -146,29 +147,31 @@ has workingdirectory => (
 sub as_string {
 	my $self = shift;
 
-	my $id           = 'S_' . $self->get_id();
+	my $id = 'S_' . $self->get_id();
 
 	my $string;
 	$string = '<Shortcut';
 
 	my @attribute = (
-		[ 'Id'                       => $id, ],
-		[ 'Advertise'                => $self->_get_advertise(),              ],
-		[ 'Arguments'                => $self->_get_arguments(),              ],
-		[ 'Description'              => $self->_get_description(),            ],
-		[ 'DescriptionResourceDll'   => $self->_get_descriptionresourcedll(), ],
-		[ 'DescriptionResourceId'    => $self->_get_descriptionresourceid(),  ],
-		[ 'Directory'                => $self->_get_directory(),              ],
-		[ 'DisplayResourceDll'       => $self->_get_displayresourcedll(),     ],
-		[ 'DisplayResourceId'        => $self->_get_displayresourceid(),      ],
-		[ 'Hotkey'                   => $self->_get_hotkey(),                 ],
-		[ 'Icon'                     => $self->_get_icon(),                   ],
-		[ 'IconIndex'                => $self->_get_iconindex(),              ],
-		[ 'Name'                     => $self->_get_name(),                   ],
-		[ 'ShortName'                => $self->_get_shortname(),              ],
-		[ 'Show'                     => $self->_get_show(),                   ],
-		[ 'Target'                   => $self->_get_target(),                 ],
-		[ 'WorkingDirectory'         => $self->_get_workingdirectory(),       ],
+		[ 'Id'          => $id, ],
+		[ 'Advertise'   => $self->_get_advertise(), ],
+		[ 'Arguments'   => $self->_get_arguments(), ],
+		[ 'Description' => $self->_get_description(), ],
+		[   'DescriptionResourceDll' =>
+			  $self->_get_descriptionresourcedll(),
+		],
+		[ 'DescriptionResourceId' => $self->_get_descriptionresourceid(), ],
+		[ 'Directory'             => $self->_get_directory(), ],
+		[ 'DisplayResourceDll'    => $self->_get_displayresourcedll(), ],
+		[ 'DisplayResourceId'     => $self->_get_displayresourceid(), ],
+		[ 'Hotkey'                => $self->_get_hotkey(), ],
+		[ 'Icon'                  => $self->_get_icon(), ],
+		[ 'IconIndex'             => $self->_get_iconindex(), ],
+		[ 'Name'                  => $self->_get_name(), ],
+		[ 'ShortName'             => $self->_get_shortname(), ],
+		[ 'Show'                  => $self->_get_show(), ],
+		[ 'Target'                => $self->_get_target(), ],
+		[ 'WorkingDirectory'      => $self->_get_workingdirectory(), ],
 	);
 
 	my ( $k, $v );
@@ -179,9 +182,9 @@ sub as_string {
 	}
 
 	$string .= qq{ />\n};
-	
+
 	return $string;
-	
+
 } ## end sub as_string
 
 sub get_namespace {
@@ -197,11 +200,11 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::Icon - Defines a Icon tag.
+WiX3::XML::Shortcut - Defines a Shortcut tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Icon version 0.005
+This document describes WiX3::XML::Shortcut version 0.006
 
 =head1 SYNOPSIS
 

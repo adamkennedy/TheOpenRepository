@@ -14,11 +14,12 @@ use WiX3::Util::StrictConstructor;
 use Params::Util qw( _IDENTIFIER _STRING );
 use File::Spec::Functions qw( catdir );
 
-use version; our $VERSION = version->new('0.006')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
-with qw(WiX3::XML::Role::TagAllowsChildTags 
-		WiX3::XML::Role::GeneratesGUID
-		WiX3::Role::Traceable
+with qw(WiX3::XML::Role::TagAllowsChildTags
+  WiX3::XML::Role::GeneratesGUID
+  WiX3::Role::Traceable
 );
 
 ## Allows Component, Directory, Merge, and SymbolPath as children.
@@ -28,11 +29,11 @@ with qw(WiX3::XML::Role::TagAllowsChildTags
 #   None.
 
 has id => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => 'get_id',
-	builder  => 'id_build',
-	lazy     => 1,
+	is      => 'ro',
+	isa     => Str,
+	reader  => 'get_id',
+	builder => 'id_build',
+	lazy    => 1,
 );
 
 # Path helps us in path searching.
@@ -122,22 +123,25 @@ sub BUILDARGS {
 	} else {
 		WiX3::Exception::Parameter::Odd->throw("$class->new");
 	}
-	
-	if ( not exists $args{'path'} and exists $args{'name'} and exists $args{'parent'} ) {
+
+	if (    not exists $args{'path'}
+		and exists $args{'name'}
+		and exists $args{'parent'} )
+	{
 
 		# Create our path off our parent's path.
 		my $parent_path = $args{'parent'}->get_path();
-		if (defined $parent_path) {
-			$args{'path'} = catdir ( $parent_path, $args{'name'} );
+		if ( defined $parent_path ) {
+			$args{'path'} = catdir( $parent_path, $args{'name'} );
 		}
-		
+
 		delete $args{'parent'};
-	}
+	} ## end if ( not exists $args{...})
 
 	if ( defined $args{'id'} and not defined _IDENTIFIER( $args{'id'} ) ) {
 		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
-	
+
 	return \%args;
 } ## end sub BUILDARGS
 
@@ -153,10 +157,10 @@ sub get_directory_id {
 }
 
 sub add_directory {
-	my $self = shift;	
+	my $self  = shift;
 	my $class = ref $self;
 	my %args;
-	
+
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };
 	} elsif ( 0 == @_ % 2 ) {
@@ -166,16 +170,19 @@ sub add_directory {
 	}
 
 	my $name = $args{name};
-	$self->trace_line(3, "Adding directory $name\n") if defined $name;
-	
+	$self->trace_line( 3, "Adding directory $name\n" ) if defined $name;
+
 	# We make a new $class, rather than a new WiX3::XML::Directory,
 	# so subclasses can create more of themselves without
 	# having to override this routine.
-	my $new_dir = $class->new(parent => $self, %args);
+	my $new_dir = $class->new(
+		parent => $self,
+		%args
+	);
 	$self->add_child_tag($new_dir);
 
 	return $new_dir;
-}
+} ## end sub add_directory
 
 
 

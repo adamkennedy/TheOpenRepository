@@ -1,4 +1,4 @@
-package WiX3::XML::Fragment;
+package WiX3::XML::FeatureRef;
 
 use 5.008001;
 
@@ -8,71 +8,85 @@ use metaclass (
 	error_class => 'WiX3::Util::Error',
 );
 use Moose;
+use Params::Util qw( _INSTANCE _IDENTIFIER );
+use MooseX::Types::Moose qw( Str Maybe );
+use WiX3::Types qw( YesNoType );
 use WiX3::Util::StrictConstructor;
 
 our $VERSION = '0.006';
 $VERSION = eval { return $VERSION };
 
-# http://wix.sourceforge.net/manual-wix3/wix_xsd_fragment.htm
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_featureref.htm
 
-with 'WiX3::Role::Traceable';
-with 'WiX3::XML::Role::Fragment';
 with 'WiX3::XML::Role::TagAllowsChildTags';
 
+## Allows Component, ComponentGroupRef, ComponentRef, Feature,
+## FeatureGroup, FeatureGroupRef, FeatureRef, MergeRef.
+
+has id => (
+	is       => 'ro',
+	isa      => Str,
+	reader   => 'get_id',
+	required => 1,
+);
+
+has ignoreparent => (
+	is      => 'ro',
+	isa     => Maybe [YesNoType],
+	reader  => '_get_ignoreparent',
+	default => undef,
+);
+
 #####################################################################
-# Main Methods
+# Constructor shortcuts.
 
 sub BUILDARGS {
 	my $class = shift;
+	my $id;
 
 	if ( @_ == 1 && !ref $_[0] ) {
-		return { id => $_[0] };
-	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
-		return $_[0];
+		$id = $_[0];
+	} elsif ( @_ == 1 && _INSTANCE( $_[0], 'WiX3::XML::Feature' ) ) {
+		$id = $_[0]->get_id();
 	} else {
-		my %hash = @_;
-		return \%hash;
+		return $class->SUPER::BUILDARGS(@_);
 	}
 
-	return;
+	if ( not defined $id ) {
+		WiX3::Exception::Parameter::Missing->throw('id');
+	}
+
+	if ( not defined _IDENTIFIER($id) ) {
+		WiX3::Exception::Parameter::Invalid->throw('id');
+	}
+
+	return { 'id' => $id };
 } ## end sub BUILDARGS
+
 
 #####################################################################
 # Methods to implement the Tag role.
 
+
+# TODO: Handle children.
 sub as_string {
 	my $self = shift;
 
-	my @namespaces   = $self->get_namespaces();
-	my $namespaces   = join q{ }, @namespaces;
-	my $id           = 'Fr_' . $self->get_id();
-	my $child_string = q{};
-	$child_string = $self->indent( 2, $self->as_string_children() )
-	  if $self->has_child_tags();
-	chomp $child_string;
+	my $id = 'Feat_' . $self->get_id();
 
-	return <<"EOF";
-<?xml version='1.0' encoding='windows-1252'?>
-<Wix $namespaces>
-  <Fragment Id='$id'>
-$child_string
-  </Fragment>
-</Wix>
-EOF
+	# Print tag.
+	my $answer;
+	$answer = '<FeatureRef';
+	$answer .= $self->print_attribute( 'Id', $id );
+	$answer .=
+	  $self->print_attribute( 'IgnoreParent', $self->_ignoreparent() );
+	$answer .= " />\n";
+
+	return $answer;
 } ## end sub as_string
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};
-}
-
-#####################################################################
-# Methods to implement the Tag role.
-
-# Unless this method is overwritten, this fragment does not need
-# to regenerate itself before the .msi/.msm is built.
-
-sub regenerate {
-	return;
 }
 
 no Moose;
@@ -84,21 +98,19 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::Fragment - Default fragment code.
+WiX3::XML::FeatureRef - Defines a FeatureRef tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Fragment version 0.005
+This document describes WiX3::XML::FeatureRef version 0.005
 
 =head1 SYNOPSIS
 
-	my $fragment = WiX3::XML::Fragment(
-		id => $id,
-	);
+TODO
   
 =head1 DESCRIPTION
 
-This module defines a default fragment.
+TODO
 
 =head1 INTERFACE 
 
@@ -131,7 +143,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 SEE ALSO
 
-L<Exception::Class>
+L<http://wix.sourceforge.net/>
 
 =head1 LICENCE AND COPYRIGHT
 

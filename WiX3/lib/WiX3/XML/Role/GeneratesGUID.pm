@@ -5,7 +5,8 @@ use Moose::Role;
 use WiX3::Types qw( Host );
 require WiX3::XML::GeneratesGUID::Object;
 
-use version; our $VERSION = version->new('0.005')->numify;
+our $VERSION = '0.006';
+$VERSION = eval { return $VERSION };
 
 # requires 'get_path';
 
@@ -39,8 +40,8 @@ sub id_build {
 
 sub guid_build {
 	my $self = shift;
-		
-	if (defined $self->get_path()) {
+
+	if ( defined $self->get_path() ) {
 		return $self->generate_guid( $self->get_path() );
 	} else {
 		return $self->generate_guid( $self->get_id() );
