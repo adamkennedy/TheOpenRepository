@@ -13,7 +13,7 @@ use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Bool );
 use Params::Util qw( _INSTANCE );
-use File::Spec::Functions qw( abs2rel splitpath catpath catdir );
+use File::Spec::Functions qw( abs2rel splitpath catpath catdir splitdir );
 use List::MoreUtils qw( uniq );
 require Perl::Dist::WiX::Exceptions;
 require Perl::Dist::WiX::DirectoryRef;
@@ -238,16 +238,12 @@ sub _add_directory_recursive {
 	my @fragment_ids = ();
 	
 	my $dirs_to_add = abs2rel( $dir, $tag->get_path() );
-	my @dirs_to_add = splitpath($dirs_to_add);
+	my @dirs_to_add = splitdir($dirs_to_add);
 
 	while ($dirs_to_add[0] eq '') {
 		shift @dirs_to_add;
 	}
-		
-	print q{add_directory_recursive: dirs to add : '};
-	print join q{', '}, @dirs_to_add;
-	print qq{'\n};
-	
+
 	foreach my $dir_to_add (@dirs_to_add) {
 		$directory_object = $directory_object->add_directory(name => $dir_to_add);
 		if ($cache->exists_in_cache($directory_object)) {
