@@ -146,9 +146,41 @@ has workingdirectory => (
 sub as_string {
 	my $self = shift;
 
-	# TODO: Fix this.
+	my $id           = 'S_' . $self->get_id();
+
+	my $string;
+	$string = '<Shortcut';
+
+	my @attribute = (
+		[ 'Id'                       => $id, ],
+		[ 'Advertise'                => $self->_get_advertise(),              ],
+		[ 'Arguments'                => $self->_get_arguments(),              ],
+		[ 'Description'              => $self->_get_description(),            ],
+		[ 'DescriptionResourceDll'   => $self->_get_descriptionresourcedll(), ],
+		[ 'DescriptionResourceId'    => $self->_get_descriptionresourceid(),  ],
+		[ 'Directory'                => $self->_get_directory(),              ],
+		[ 'DisplayResourceDll'       => $self->_get_displayresourcedll(),     ],
+		[ 'DisplayResourceId'        => $self->_get_displayresourceid(),      ],
+		[ 'Hotkey'                   => $self->_get_hotkey(),                 ],
+		[ 'Icon'                     => $self->_get_icon(),                   ],
+		[ 'IconIndex'                => $self->_get_iconindex(),              ],
+		[ 'Name'                     => $self->_get_name(),                   ],
+		[ 'ShortName'                => $self->_get_shortname(),              ],
+		[ 'Show'                     => $self->_get_show(),                   ],
+		[ 'Target'                   => $self->_get_target(),                 ],
+		[ 'WorkingDirectory'         => $self->_get_workingdirectory(),       ],
+	);
+
+	my ( $k, $v );
+
+	foreach my $ref (@attribute) {
+		( $k, $v ) = @{$ref};
+		$string .= $self->print_attribute( $k, $v );
+	}
+
+	$string .= qq{ />\n};
 	
-	return q{};
+	return $string;
 	
 } ## end sub as_string
 
