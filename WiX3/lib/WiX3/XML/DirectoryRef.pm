@@ -8,7 +8,7 @@ use metaclass (
 	error_class => 'WiX3::Util::Error',
 );
 use Moose;
-use Params::Util qw( _STRING );
+use Params::Util qw( _STRING _IDENTIFIER );
 use MooseX::Types::Moose qw( Int Str );
 use WiX3::Util::StrictConstructor;
 
