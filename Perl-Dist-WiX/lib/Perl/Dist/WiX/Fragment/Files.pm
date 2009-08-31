@@ -25,7 +25,6 @@ require WiX3::Exceptions;
 require File::List::Object;
 
 our $VERSION = '1.090';
-our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Fragment';

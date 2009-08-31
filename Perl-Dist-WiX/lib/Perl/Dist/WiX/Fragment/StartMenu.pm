@@ -53,7 +53,7 @@ has root => (
 	lazy     => 1,
 	builder  => '_build_root',
 	reader   => '_get_root',
-)
+);
 
 sub BUILDARGS {
 	my $class = shift;
