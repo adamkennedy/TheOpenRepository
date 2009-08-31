@@ -12,7 +12,7 @@ use Params::Util qw( _STRING );
 use MooseX::Types::Moose qw( Int Str );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.006';
+our $VERSION = '0.007';
 $VERSION = eval { return $VERSION };
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
@@ -44,6 +44,30 @@ has filesource => (
 
 #####################################################################
 # Methods to implement the Tag role.
+
+sub BUILDARGS {
+	my $class = shift;
+	my $id;
+
+	if ( @_ == 1 && !ref $_[0] ) {
+		$id = $_[0];
+	} elsif ( @_ == 1 && _INSTANCE( $_[0], 'WiX3::XML::Directory' ) ) {
+		$id = $_[0]->get_id();
+	} else {
+		return $class->SUPER::BUILDARGS(@_);
+	}
+
+	if ( not defined $id ) {
+		WiX3::Exception::Parameter::Missing->throw('id');
+	}
+
+	if ( not defined _IDENTIFIER($id) ) {
+		WiX3::Exception::Parameter::Invalid->throw('id');
+	}
+
+	return { 'id' => $id };
+} ## end sub BUILDARGS
+
 
 sub as_string {
 	my $self = shift;
