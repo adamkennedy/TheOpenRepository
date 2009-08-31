@@ -8,7 +8,7 @@ use MooseX::AttributeHelpers;
 use MooseX::Types::Moose qw(ArrayRef);
 use List::MoreUtils qw( uniq );
 
-our $VERSION = '0.006';
+our $VERSION = '0.007';
 $VERSION = eval { return $VERSION };
 
 with 'WiX3::XML::Role::Tag';
@@ -77,7 +77,6 @@ sub get_namespaces {
 
 	return uniq @namespaces;
 } ## end sub get_namespaces
-
 
 no Moose::Role;
 

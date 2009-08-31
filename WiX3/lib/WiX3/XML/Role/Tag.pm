@@ -6,7 +6,7 @@ use Params::Util qw( _STRING _NONNEGINT );
 use vars qw( $VERSION );
 use WiX3::Exceptions;
 
-our $VERSION = '0.006';
+our $VERSION = '0.007';
 $VERSION = eval { return $VERSION };
 
 #####################################################################
@@ -69,13 +69,11 @@ sub get_componentref_array {
 	}
 
 	foreach my $tag ( $self->get_child_tags() ) {
-		if ( $tag->meta()->does_role('WiX3::XML::Role::Component') ) {
+		if ( $tag->does('WiX3::XML::Role::Component') ) {
 			push @components, WiX3::XML::ComponentRef->new($tag);
-		} elsif ( $tag->meta()->isa('WiX3::XML::Feature') ) {
+		} elsif ( $tag->isa('WiX3::XML::Feature') ) {
 			push @components, WiX3::XML::FeatureRef->new($tag);
-		} elsif (
-			$tag->meta()->does_role('WiX3::XML::Role::TagAllowsChildTags') )
-		{
+		} elsif ( $tag->does('WiX3::XML::Role::TagAllowsChildTags') ) {
 			push @components, $tag->get_componentref_array();
 		} else {
 			return ();
@@ -94,7 +92,7 @@ sub print_attribute {
 		WiX3::Exception::Parameter::Missing->throw('attribute');
 	}
 
-	# $attribute needs to be an identifier.
+	# TODO: $attribute needs to be an identifier.
 
 	if ( not defined $value ) {
 		return q{};
