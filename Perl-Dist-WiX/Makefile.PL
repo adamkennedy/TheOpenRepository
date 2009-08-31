@@ -19,7 +19,6 @@ if (is_admin) {
 
 all_from       'lib/Perl/Dist/WiX.pm';
 requires       'parent'               => '0.221';
-requires       'version'              => '0.76';
 requires       'Alien::WiX'           => '0.300000';
 requires       'Data::Dump::Streamer' => '2.08';
 requires       'Data::UUID'           => '1.149';
@@ -30,12 +29,10 @@ requires       'File::List::Object'   => '0.189';
 requires       'IO::String'           => '1.08';
 requires       'List::MoreUtils'      => '0.07';
 requires       'Module::CoreList'     => '2.18';
-# requires       'Object::InsideOut'    => '3.53';
-# requires       'Perl::Dist'           => '1.16';
 requires       'Process'              => '0.26';
 requires       'Readonly'             => '1.03';
 requires       'URI'                  => '1.35';
-requires       'WiX3'                 => 0;
+requires       'WiX3'                 => '0.006';
 recommends     'Readonly::XS'         => '1.05';
 test_requires  'Test::More'           => '0.61';
 test_requires  'Test::Output'         => '0.11';
@@ -47,6 +44,7 @@ resources      'repository'           => 'http://svn.ali.as/cpan/trunk/Perl-Dist
 resources      'bugtracker'           => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX';
 resources      'homepage'             => 'http://csjewell.comyr.com/perl/';
 resources      'IRC'                  => 'irc://irc.perl.org/#win32';
+resources      'DLSIP'                => 'http://search.cpan.org/dlsip?RpdOp';
 license        'perl';
 install_share;
 
