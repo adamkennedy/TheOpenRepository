@@ -4,7 +4,7 @@ use Moose;
 use MooseX::Types::Moose qw( Str Int Maybe );
 use File::Spec::Functions qw( catfile );
 
-our $VERSION = '1.100';
+our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::Asset';

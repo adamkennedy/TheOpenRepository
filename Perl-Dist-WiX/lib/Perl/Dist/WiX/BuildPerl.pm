@@ -57,7 +57,7 @@ require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
 
-our $VERSION = '1.100';
+our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 

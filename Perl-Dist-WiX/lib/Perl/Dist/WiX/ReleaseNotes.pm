@@ -39,7 +39,8 @@ use     IO::File              qw();
 use     Template              qw();
 use     Win32                 qw();
 
-use version; $VERSION = version->new('1.100')->numify;
+our $VERSION = '1.090';
+$VERSION = eval { return $VERSION };
 
 #>>>
 

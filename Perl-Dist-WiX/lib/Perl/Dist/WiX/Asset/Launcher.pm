@@ -5,7 +5,7 @@ use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catfile );
 use Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.100';
+our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';

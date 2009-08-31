@@ -15,7 +15,7 @@ use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catpath catdir abs2rel splitpath splitdir );
 use Params::Util qw( _STRING );
 
-our $VERSION = '1.100';
+our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Directory';

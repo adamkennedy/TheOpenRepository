@@ -8,7 +8,7 @@ use File::Spec::Functions qw( catdir splitpath rel2abs );
 require File::Remove;
 require File::Basename;
 
-our $VERSION = '1.100';
+our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::Asset';

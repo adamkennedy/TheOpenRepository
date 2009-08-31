@@ -15,9 +15,10 @@ use WiX3::Exceptions;
 use Perl::Dist::WiX::IconArray;
 use WiX3::XML::Component;
 use WiX3::XML::CreateFolder;
+use WiX3::XML::DirectoryRef;
 use WiX3::XML::Shortcut;
 
-our $VERSION = '1.100';
+our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Fragment';
@@ -36,7 +37,7 @@ has directory_id => (
 	reader   => 'get_directory_id',
 );
 
-has _created_directory => (
+has created_directory => (
 	is       => 'rw',
 	isa      => Bool,
 	init_arg => undef,
@@ -44,6 +45,15 @@ has _created_directory => (
 	writer   => '_set_created_directory',
 	default  => 0,
 );
+
+has root => (
+	is       => 'ro',
+	isa	     => 'Perl::Dist::WiX::DirectoryRef',
+	init_arg => undef,
+	lazy     => 1,
+	builder  => '_build_root',
+	reader   => '_get_root',
+)
 
 sub BUILDARGS {
 	my $class = shift;
@@ -68,6 +78,13 @@ sub BUILDARGS {
 	return \%args;
 }
 
+sub _build_root {
+	my $self = shift;
+	my $root = Perl::Dist::WiX::DirectoryRef->new($self->get_directory_id());
+	$self->add_child_tag($root);
+	return $root;
+}
+
 # Takes hash only at present.
 sub add_shortcut {
 	my $self = shift;
@@ -75,9 +92,9 @@ sub add_shortcut {
 
 	# TODO: Validate arguments.
 
-	my $component = WiX3::XML::Component->new(id => "C_S_$args{id}");
+	my $component = WiX3::XML::Component->new(id => "S_$args{id}");
 	my $shortcut = WiX3::XML::Shortcut->new(
-		id => "S_$args{id}",
+		id => "$args{id}",
 		name => $args{name},
 		description => $args{description},
 		target => $args{target},
@@ -93,13 +110,13 @@ sub add_shortcut {
 		$self->_set_created_directory(1);
 	}
 
-	$self->add_child_tag($component);
+	$self->_get_root()->add_child_tag($component);
 	
 	return;
 }
 
+# The fragment is already generated. No need to regenerate.
 sub regenerate {
-
 	return;
 }
 

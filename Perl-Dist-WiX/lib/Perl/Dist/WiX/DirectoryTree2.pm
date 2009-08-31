@@ -21,7 +21,7 @@ use MooseX::Types::Moose  qw( Str );
 use Perl::Dist::WiX::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.100';
+our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 with 'WiX3::Role::Traceable';

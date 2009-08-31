@@ -24,7 +24,7 @@ to him that you be given access.
 
 In any case, before committing anything more than minor changes to the Perl-Dist-WiX 
 trunk or branches, please e-mail me.  I'll probably say yes, but I need to know what 
-you're planning to do.
+you're planning to do, so that I don't accidentally step on your changes.
 
 =head1 BRANCHES
 

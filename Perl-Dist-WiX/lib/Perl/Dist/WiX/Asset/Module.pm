@@ -8,7 +8,7 @@ require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
 
-our $VERSION = '1.100';
+our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';

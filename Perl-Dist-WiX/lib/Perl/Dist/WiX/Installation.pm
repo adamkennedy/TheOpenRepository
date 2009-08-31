@@ -39,7 +39,7 @@ require Perl::Dist::WiX::Asset::PAR;
 # require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Asset::Website;
 
-our $VERSION = '1.100';
+our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 =pod

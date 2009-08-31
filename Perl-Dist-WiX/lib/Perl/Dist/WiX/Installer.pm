@@ -26,7 +26,6 @@ since this is a superclass of that class.
 use     5.008001;
 use     strict;
 use     warnings;
-use     vars                     qw( $VERSION                      );
 use     Alien::WiX               qw( :ALL                          );
 use     File::Spec::Functions    qw( catdir catfile rel2abs curdir );
 use     Params::Util
@@ -34,11 +33,11 @@ use     Params::Util
 use     IO::File                 qw();
 use     IPC::Run3                qw();
 use     URI                      qw();
-#require Perl::Dist::WiX::FeatureTree;
 #require Perl::Dist::WiX::RemoveFolder;
 # Converted routines.
 require Perl::Dist::WiX::Exceptions;
 require Perl::Dist::WiX::DirectoryTree2;
+require Perl::Dist::WiX::FeatureTree2;
 require Perl::Dist::WiX::Fragment::CreateFolder;
 require Perl::Dist::WiX::Fragment::Files;
 require Perl::Dist::WiX::Fragment::Environment;
@@ -48,7 +47,8 @@ require Perl::Dist::WiX::IconArray;
 # New routines from WiX3.
 require WiX3::Traceable;
 
-use version; $VERSION = version->new('1.000_002')->numify;
+our $VERSION = '1.090_001';
+$VERSION = eval { return $VERSION };
 #>>>
 
 =head2 Accessors
@@ -558,9 +558,10 @@ sub write_msi {
 		$self->add_env( 'PATH', $value, 1 );
 	}
 
+  FRAGMENT:
 	# Write out .wxs files for all the fragments and compile them.
 	foreach my $key ( keys %{ $self->{fragments} } ) {
-		$fragment        = $self->{fragments}->{$key};
+		$fragment        = $self->{fragments}->{$key};		
 		$fragment_string = $fragment->as_string;
 		next
 		  if ( ( not defined $fragment_string )
@@ -576,21 +577,20 @@ sub write_msi {
 		}
 		$fh->print($fragment_string);
 		$fh->close;
-#		$self->trace_line( 2, "Compiling $filename_in\n" );
-#		$self->compile_wxs( $filename_in, $filename_out )
-#		  or PDWiX->throw("WiX could not compile $filename_in");
+		$self->trace_line( 2, "Compiling $filename_in\n" );
+		$self->compile_wxs( $filename_in, $filename_out )
+		  or PDWiX->throw("WiX could not compile $filename_in");
+		unless ( -f $filename_out ) {
+			PDWiX->throw( "Failed to find $filename_out (probably "
+				  . "compilation error in $filename_in)" );
+		}
 
-#		unless ( -f $filename_out ) {
-#			PDWiX->throw( "Failed to find $filename_out (probably "
-#				  . "compilation error in $filename_in)" );
-#		}
-
-#		push @files, $filename_out;
+		push @files, $filename_out;
 	} ## end foreach my $key ( keys %{ $self...})
 
 	# Generate feature tree.
 	$self->{feature_tree_obj} =
-	  Perl::Dist::WiX::FeatureTree->new( parent => $self, );
+	  Perl::Dist::WiX::FeatureTree2->new( parent => $self, );
 
 	# Write out the .wxs file
 	my $content = $self->as_string;

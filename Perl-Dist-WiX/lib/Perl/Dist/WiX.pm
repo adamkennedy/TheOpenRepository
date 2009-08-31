@@ -110,9 +110,9 @@ use     SelectSaver           qw();
 use     Template              qw();
 use     Win32                 qw();
 require File::List::Object;
-# require Perl::Dist::WiX::StartMenuComponent;
 
-use version; $VERSION = version->new('1.099_040')->numify;
+our $VERSION = '1.090_001';
+$VERSION = eval { return $VERSION };
 
 use Object::Tiny qw(
   perl_version
