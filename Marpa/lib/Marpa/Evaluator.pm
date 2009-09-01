@@ -80,7 +80,6 @@ use Marpa::Offset qw(
 
 );
 
-
 use Marpa::Offset qw(
 
     :package=Marpa::Internal::Or_Node
@@ -2280,19 +2279,21 @@ sub Marpa::Evaluator::value {
     ) if $evaler_class ne $right_class;
 
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
 
     # If the journal is defined, but empty, that means we've
     # exhausted all parses.  Patiently keep returning failure
     # whenever called.
-    my $and_iterations = $evaler->[Marpa::Internal::Evaluator::AND_ITERATIONS];
+    my $and_iterations =
+        $evaler->[Marpa::Internal::Evaluator::AND_ITERATIONS];
     my $or_iterations = $evaler->[Marpa::Internal::Evaluator::OR_ITERATIONS];
-    if (not defined $and_iterations) {
+    if ( not defined $and_iterations ) {
         $#{$and_iterations} = $#{$and_nodes};
-        $#{$or_iterations} = $#{$or_nodes};
-        $evaler->[Marpa::Internal::Evaluator::AND_ITERATIONS] = $and_iterations;
+        $#{$or_iterations}  = $#{$or_nodes};
+        $evaler->[Marpa::Internal::Evaluator::AND_ITERATIONS] =
+            $and_iterations;
         $evaler->[Marpa::Internal::Evaluator::OR_ITERATIONS] = $or_iterations;
-    }
+    } ## end if ( not defined $and_iterations )
 
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar    = $recognizer->[Marpa::Internal::Recognizer::GRAMMAR];
@@ -2351,21 +2352,24 @@ sub Marpa::Evaluator::value {
 
             # Set up the and-choices from the children
             my @and_choices;
-            for my $child_id ( @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } ) {
+            for my $child_id (
+                @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
+            {
                 my $and_choice;
                 $#{$and_choice} = Marpa::Internal::And_Choice::LAST_FIELD;
                 $and_choice->[Marpa::Internal::And_Choice::ID] = $child_id;
                 my $and_iteration = $and_iterations->[$child_id];
                 $and_choice->[Marpa::Internal::And_Choice::SORT_KEY] =
-                    $and_iteration->[Marpa::Internal::And_Iteration::SORT_KEY];
+                    $and_iteration
+                    ->[Marpa::Internal::And_Iteration::SORT_KEY];
                 $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $and_iteration->[Marpa::Internal::And_Iteration::OR_MAP];
 
-                Marpa::exception("TODO: Add frozen iteration?!");
+                Marpa::exception('TODO: Add frozen iteration?!');
 
                 push @and_choices, $and_choice;
-                   
-            }
+
+            } ## end for my $child_id ( @{ $or_node->[...]})
             $or_iterations->[$or_node_id] = [
                 map      { $_->[1] }
                     sort { $a->[0] <=> $b->[0] }
@@ -2382,8 +2386,8 @@ sub Marpa::Evaluator::value {
 
         if ( $task == Marpa::Internal::Task::SETUP_AND_NODE ) {
 
-            my ($and_node_id) = @{$task_entry};
-            my $and_node = $and_nodes->[$and_node_id];
+            my ($and_node_id)      = @{$task_entry};
+            my $and_node           = $and_nodes->[$and_node_id];
             my $and_node_iteration = $and_iterations->[$and_node_id];
 
             if ($trace_tasks) {
@@ -2446,8 +2450,7 @@ sub Marpa::Evaluator::value {
 
                 my $child_or_node_id =
                     $child_or_node->[Marpa::Internal::Or_Node::ID];
-                my $sorted_and_choices =
-                    $or_iterations->[$child_or_node_id];
+                my $sorted_and_choices = $or_iterations->[$child_or_node_id];
 
                 # If the or node is exhausted, then
                 # so is this and-node
@@ -2498,16 +2501,19 @@ sub Marpa::Evaluator::value {
                 } ## end for my $sort_element (@sort_key)
             } ## end if ($internal_nulls)
 
-            $and_node_iteration->[Marpa::Internal::And_Iteration::TRAILING_NULLS] =
+            $and_node_iteration
+                ->[Marpa::Internal::And_Iteration::TRAILING_NULLS] =
                 $trailing_nulls // 0;
-            $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP]   = \@or_map;
-            $and_node_iteration->[Marpa::Internal::And_Iteration::SORT_KEY] = [
+            $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP] =
+                \@or_map;
+            $and_node_iteration->[Marpa::Internal::And_Iteration::SORT_KEY] =
+                [
                 map  { $_->[1] }
                 sort { $a->[0] cmp $b->[0] }
                 map  { [ ( pack 'N*', @{$_} ), $_ ] } @sort_key
-            ];
+                ];
 
-            Marpa::exception("TODO: Set up the frozen iteration");
+            Marpa::exception('TODO: Set up the frozen iteration');
 
             next TASK;
 
@@ -2568,18 +2574,19 @@ sub Marpa::Evaluator::value {
 
         if ( $task == Marpa::Internal::Task::ITERATE_OR_NODE ) {
             my ($or_node_id) = @{$task_entry};
-            my $and_choices =
-                $or_iterations->[$or_node_id];
+            my $and_choices = $or_iterations->[$or_node_id];
             next TASK if not scalar @{$and_choices};
-            my $top_choice = pop @{$and_choices};
+            my $top_choice    = pop @{$and_choices};
             my $top_iteration = $and_iterations
                 ->[ $top_choice->[Marpa::Internal::And_Choice::ID] ];
             next TASK
-                if not defined $top_iteration
-                    ->[Marpa::Internal::And_Iteration::OR_MAP];
+                if not defined
+                    $top_iteration->[Marpa::Internal::And_Iteration::OR_MAP];
             my $top_sortkey = pack 'N*',
-                ( map { @{$_} }
-                    @{ $top_iteration->[Marpa::Internal::And_Iteration::SORT_KEY] }
+                (
+                map { @{$_} } @{
+                    $top_iteration->[Marpa::Internal::And_Iteration::SORT_KEY]
+                    }
                 );
 
             my $first_not_greater_choice_ix = List::Util::first {
@@ -2607,7 +2614,8 @@ sub Marpa::Evaluator::value {
             my ($or_node_id) = @{$task_entry};
             my $or_node = $or_nodes->[$or_node_id];
             my $current_and_node_id =
-                $or_iterations->[$or_node_id]->[-1]->[Marpa::Internal::And_Choice::ID];
+                $or_iterations->[$or_node_id]->[-1]
+                ->[Marpa::Internal::And_Choice::ID];
             push @tasks,
                 [ Marpa::Internal::Task::ITERATE_OR_NODE, $or_node_id ],
                 [
@@ -2618,11 +2626,11 @@ sub Marpa::Evaluator::value {
         } ## end if ( $task == Marpa::Internal::Task::ITERATE_OR_TREE)
 
         if ( $task == Marpa::Internal::Task::RESTORE_OR_TREE ) {
-            my ($or_node_id, $frozen_iteration) = @{$task_entry};
+            my ( $or_node_id, $frozen_iteration ) = @{$task_entry};
             my ( $and_slice, $and_values, $or_slice, $or_values ) =
                 Storable::thaw($frozen_iteration);
-            @{$and_iterations}[@{$and_slice}] = @{$and_values};
-            @{$or_iterations}[@{$or_slice}] = @{$or_values};
+            @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
+            @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
 
             Marpa::exception(
                 'TODO: Need to add the frozen iteration in the below');
@@ -2642,7 +2650,7 @@ sub Marpa::Evaluator::value {
                 ];
 
             next TASK;
-        }
+        } ## end if ( $task == Marpa::Internal::Task::RESTORE_OR_TREE)
 
         if ( $task == Marpa::Internal::Task::EVALUATE ) {
 
@@ -2653,11 +2661,12 @@ sub Marpa::Evaluator::value {
             }
 
             my @or_node_choices = 0 x $#{$or_nodes};
-            my $top_or_map = pop @{
-                        $or_iterations->[0]->[-1]
-                            ->[Marpa::Internal::And_Choice::OR_MAP]
-                        };
-            while ( my ( $or_node_id, $choice ) = (splice @{$top_or_map}, 0, 2) ) {
+            my $top_or_map =
+                pop @{ $or_iterations->[0]->[-1]
+                    ->[Marpa::Internal::And_Choice::OR_MAP] };
+            while ( my ( $or_node_id, $choice ) =
+                ( splice @{$top_or_map}, 0, 2 ) )
+            {
                 $or_node_choices[$or_node_id] = $choice;
             }
 

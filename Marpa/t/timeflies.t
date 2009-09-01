@@ -14,7 +14,7 @@
 # is attributed to Groucho Marx, but there is no reason to believe
 # he ever said it.  Apparently, the saying
 # first appeared on the Usenet on net.jokes in 1982.
-# I've documented this whole thing on Wikipedia: 
+# I've documented this whole thing on Wikipedia:
 # http://en.wikipedia.org/wiki/Time_flies_like_an_arrow
 #
 # The permalink is:
