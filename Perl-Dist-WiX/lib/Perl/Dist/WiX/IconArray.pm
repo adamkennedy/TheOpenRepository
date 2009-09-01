@@ -144,7 +144,7 @@ sub as_string {
 	my $answer;
 
 	# Short-circuit
-	if ( 0 == $self->count_icons ) { return q{}; }
+	if ( 0 == $self->_count_icons ) { return q{}; }
 
 	# Print each icon
 	foreach my $icon ( $self->_icon_array() ) {

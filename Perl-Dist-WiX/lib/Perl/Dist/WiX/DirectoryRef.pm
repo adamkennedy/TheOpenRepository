@@ -13,7 +13,7 @@ use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catdir abs2rel );
-use Params::Util qw( _STRING );
+use Params::Util qw( _STRING _INSTANCE );
 
 our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
@@ -31,7 +31,7 @@ sub get_directory_object {
 	
   SUBDIRECTORY:
 	foreach my $object ($self->get_child_tags()) {
-		next SUBDIRECTORY if not $object->isa('Perl::Dist::WiX::Directory');
+		next SUBDIRECTORY if not _INSTANCE( $object, 'Perl::Dist::WiX::Directory');
 		$return = $object->get_directory_object($id);
 		return $return if defined $return;
 	}

@@ -356,6 +356,8 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm?>
 sub msi_product_id {
 	my $self = shift;
 
+	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
+	
 	my $product_name =
 	    $self->app_name
 	  . ( $self->portable ? ' Portable ' : q{ } )
@@ -364,7 +366,7 @@ sub msi_product_id {
 	  . $self->msi_perl_version;
 
 	#... then use it to create a GUID out of the ID.
-	my $guid = $self->{misc}->generate_guid($product_name);
+	my $guid = $generator->generate_guid($product_name);
 
 	return $guid;
 } ## end sub msi_product_id
@@ -381,13 +383,15 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_upgrade.htm>
 sub msi_upgrade_code {
 	my $self = shift;
 
+	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
+	
 	my $upgrade_ver =
 	    $self->app_name
 	  . ( $self->portable ? ' Portable' : q{} ) . q{ }
 	  . $self->app_publisher_url;
 
 	#... then use it to create a GUID out of the ID.
-	my $guid = $self->{misc}->generate_guid($upgrade_ver);
+	my $guid = $generator->generate_guid($upgrade_ver);
 
 	return $guid;
 } ## end sub msi_upgrade_code
@@ -461,7 +465,7 @@ sub get_component_array {
 
 	my @answer;
 	foreach my $key ( keys %{ $self->fragments } ) {
-		push @answer, $self->fragments->{$key}->get_component_array;
+		push @answer, $self->fragments->{$key}->get_componentref_array;
 	}
 
 	return @answer;

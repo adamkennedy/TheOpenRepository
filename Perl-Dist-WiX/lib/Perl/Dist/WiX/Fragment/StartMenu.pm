@@ -12,11 +12,12 @@ use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str Bool );
 use WiX3::Exceptions;
-use Perl::Dist::WiX::IconArray;
-use WiX3::XML::Component;
-use WiX3::XML::CreateFolder;
-use WiX3::XML::DirectoryRef;
-use WiX3::XML::Shortcut;
+require Perl::Dist::WiX::IconArray;
+require Perl::Dist::WiX::DirectoryTree2;
+require WiX3::XML::Component;
+require WiX3::XML::CreateFolder;
+require WiX3::XML::DirectoryRef;
+require WiX3::XML::Shortcut;
 
 our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
@@ -80,8 +81,17 @@ sub BUILDARGS {
 
 sub _build_root {
 	my $self = shift;
-	my $root = Perl::Dist::WiX::DirectoryRef->new($self->get_directory_id());
+	my $tree = Perl::Dist::WiX::DirectoryTree2->instance();
+
+	my $id = $self->get_directory_id();
+	my $directory = $tree->get_directory_object($id);	
+	if (not defined $directory) {
+		PDWiX->throw("Could not find directory object for id $id");
+	}
+
+	my $root = Perl::Dist::WiX::DirectoryRef->new($directory);
 	$self->add_child_tag($root);
+
 	return $root;
 }
 

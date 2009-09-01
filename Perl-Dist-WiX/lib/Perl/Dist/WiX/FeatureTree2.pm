@@ -26,6 +26,7 @@ has parent => (
 		'_app_ver_name'   => 'app_ver_name',
 		'_feature_tree'   => 'msi_feature_tree',
 		'_get_components' => 'get_component_array',
+		'_trace_line'     => 'trace_line',
 	}
 );
 
@@ -47,25 +48,27 @@ has features => (
 # Constructor for FeatureTree2
 #
 
-sub BUILDARGS {
+sub BUILD {
 	my $self = shift;
-
+	my $feat;
+	
 	# Start the tree.
-	$self->trace_line( 0, "Creating feature tree...\n" );
+	$self->_trace_line( 0, "Creating feature tree...\n" );
 	if ( defined $self->_feature_tree() ) {
 		PDWiX->throw( 'Complex feature tree not implemented in '
 			  . "Perl::Dist::WiX $VERSION." );
 	} else {
-		my $feat = WiX3::XML::Feature->new(
+		$feat = WiX3::XML::Feature->new(
 			id          => 'Complete',
 			title       => $self->_app_ver_name(),
 			description => 'The complete package.',
 			level       => 1,
-		)->_add_child_tag( $self->_get_components() );
+		);
+		$feat->add_child_tag( $self->_get_components() );
 		$self->_push_feature($feat);
 	}
 
-	return $self;
+	return;
 } ## end sub _init :
 
 ########################################
