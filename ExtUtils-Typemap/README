@@ -1,0 +1,108 @@
+NAME
+    ExtUtils::Typemap - Read/Write/Modify Perl/XS typemap files
+
+SYNOPSIS
+      # read/create file
+      my $typemap = ExtUtils::Typemap->new(file => 'typemap');
+      # alternatively create an in-memory typemap
+      # $typemap = ExtUtils::Typemap->new();
+  
+      # add a mapping
+      $typemap->add_typemap(ctype => 'NV', xstype => 'T_NV');
+      $typemap->add_inputmap (xstype => 'T_NV', code => '$var = ($type)SvNV($arg);');
+      $typemap->add_outputmap(xstype => 'T_NV', code => 'sv_setnv($arg, (NV)$var);');
+  
+      # remove a mapping (same for remove_typemap and remove_outputmap...)
+      $typemap->remove_inputmap(xstype => 'SomeType');
+  
+      # save a typemap to a file
+      $typemap->write(file => 'anotherfile.map');
+
+DESCRIPTION
+    This module can read, modify, create and write Perl XS typemap files. If
+    you don't know what a typemap is, please confer the perlxstut and perlxs
+    manuals.
+
+    The module is not entirely round-trip safe: For example it currently
+    simply strips all comments. The order of entries in the maps is,
+    however, preserved.
+
+    We check for duplicate entries in the typemap, but do not check for
+    missing "TYPEMAP" entries for "INPUTMAP" or "OUTPUTMAP" entries since
+    these might be hidden in a different typemap.
+
+METHODS
+  new
+    Returns a new typemap object. Takes an optional "file" parameter. If
+    set, the given file will be read. If the file doesn't exist, an empty
+    typemap is returned.
+
+  file
+    Get/set the file that the typemap is written to when the "write" method
+    is called.
+
+  add_typemap
+    Add a "TYPEMAP" entry to the typemap.
+
+    Required named arguments: The "ctype" (e.g. "ctype => 'NV'") and the
+    "xstype" (e.g. "xstype => 'T_NV'").
+
+    Optional named arguments: "replace => 1" forces removal/replacement of
+    existing "TYPEMAP" entries of the same "ctype".
+
+  add_inputmap
+    Add an "INPUT" entry to the typemap.
+
+    Required named arguments: The "xstype" (e.g. "xstype => 'T_NV'") and the
+    "code" to associate with it for input.
+
+    Optional named arguments: "replace => 1" forces removal/replacement of
+    existing "INPUT" entries of the same "xstype".
+
+  add_outputmap
+    Add an "OUTPUT" entry to the typemap. Works exactly the same as
+    "add_inputmap".
+
+  remove_typemap
+    Removes a "TYPEMAP" entry from the typemap.
+
+    Required named argument: "ctype" to specify the entry to remove from the
+    typemap.
+
+  remove_inputmap
+    Removes an "INPUT" entry from the typemap.
+
+    Required named argument: "xstype" to specify the entry to remove from
+    the typemap.
+
+  remove_inputmap
+    Removes an "OUTPUT" entry from the typemap.
+
+    Required named argument: "xstype" to specify the entry to remove from
+    the typemap.
+
+  write
+    Write the typemap to a file. Optionally takes a "file" argument. If
+    given, the typemap will be written to the specified file. If not, the
+    typemap is written to the currently stored file name (see "->file"
+    above, this defaults to the file it was read from if any).
+
+CAVEATS
+    Mostly untested and likely not fool proof.
+
+    Inherits some evil code from "ExtUtils::ParseXS".
+
+SEE ALSO
+    The parser is heavily inspired from the one in ExtUtils::ParseXS.
+
+    For details on typemaps: perlxstut, perlxs.
+
+AUTHOR
+    Steffen Mueller "<smueller@cpan.org">
+
+COPYRIGHT & LICENSE
+    Copyright 2009 Steffen Mueller
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
