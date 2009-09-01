@@ -20,6 +20,7 @@ require Perl::Dist::WiX::DirectoryRef;
 require Perl::Dist::WiX::DirectoryCache;
 require Perl::Dist::WiX::DirectoryTree2;
 require WiX3::XML::Component;
+require WiX3::XML::Feature;
 require WiX3::XML::File;
 require WiX3::Exceptions;
 require File::List::Object;
@@ -49,6 +50,21 @@ has can_overwrite => (
 	reader => 'can_overwrite',
 );
 
+has feature => (
+	is       => 'ro',
+	isa      => 'WiX3::XML::Feature',
+	init_arg => undef,
+	reader   => '_read_feature',
+	builder  => '_build_feature',
+);
+
+sub _build_feature {
+	my $self = shift
+	my $feat = WiX3::XML::Feature->new( id => $self->get_id(), display => 1);
+	$self->add_child_tag($feat);
+	return $feat;
+}
+
 # This type of fragment needs regeneration.
 sub regenerate {
 	my $self = shift;
@@ -57,6 +73,7 @@ sub regenerate {
 	my @files = @{$self->_get_files()};
 	
 	my $id = $self->get_id();
+	# TODO: Make this a trace_line.
 	print "Regenerating $id\n";
 
 	$self->clear_child_tags();
@@ -86,7 +103,7 @@ sub _add_file_to_fragment {
 	my ($volume, $dirs, $file) = splitpath($file_path, 0);
 	my $path_to_find = catdir($volume, $dirs);
 
-	my @child_tags = $self->get_child_tags();
+	my @child_tags = $self->_get_fragment()->get_child_tags();
 	my $child_tags_count = scalar @child_tags;
 	
 	# Step 1: Search in our own directories exactly.
@@ -138,7 +155,7 @@ sub _add_file_to_fragment {
 			directory_object => $directory_step2
 		);
 		
-		$self->add_child_tag($directory_ref_step2);
+		$self->_get_feature()->add_child_tag($directory_ref_step2);
 		$self->_add_file_component($directory_ref_step2, $file_path);
 		return ();
 	}
@@ -197,7 +214,7 @@ sub _add_file_to_fragment {
 			directory_object => $directory_step4
 		);
 		
-		$self->add_child_tag($directory_ref_step4);
+		$self->_get_feature()->add_child_tag($directory_ref_step4);
 		($directory_final, @fragment_ids) = $self->_add_directory_recursive($directory_ref_step4, $path_to_find);		
 		$self->_add_file_component($directory_final, $file_path);
 		return @fragment_ids;

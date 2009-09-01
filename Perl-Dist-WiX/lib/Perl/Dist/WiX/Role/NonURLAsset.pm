@@ -21,6 +21,7 @@ has parent => (
 	is       => 'ro',
 	isa      => 'Perl::Dist::WiX',
 	reader   => '_get_parent',
+	weak_ref => 1,
 	handles  => { 
 		'_get_image_dir',   => 'image_dir',
 		'_get_download_dir' => 'download_dir',

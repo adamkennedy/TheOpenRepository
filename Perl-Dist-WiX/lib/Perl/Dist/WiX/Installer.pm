@@ -239,7 +239,7 @@ sub new {
 		@{ $self->{msi_directory_tree_additions} } );
 		
 	$self->{fragments} = {};
-	$self->{fragments}->{Icons} =
+	$self->{fragments}->{StartMenuIcons} =
 	  Perl::Dist::WiX::Fragment::StartMenu->new( directory_id => 'D_App_Menu', );
 	$self->{fragments}->{Environment} =
 	  Perl::Dist::WiX::Fragment::Environment->new();
@@ -257,7 +257,7 @@ sub new {
 		id             => 'CPANPLUSFolder',
 	) if ( 5100 <= $self->perl_version );
 
-	$self->{icons} = $self->{fragments}->{Icons}->get_icons();
+	$self->{icons} = $self->{fragments}->{StartMenuIcons}->get_icons();
 
 	if ( defined $self->msi_product_icon ) {
 		$self->icons->add_icon( $self->msi_product_icon );
@@ -463,9 +463,15 @@ L<http://wix.sourceforge.net/manual-wix3/wix_xsd_componentref.htm>
 sub get_component_array {
 	my $self = shift;
 
+	my $answer_size;
+
+	print "Running get_component_array...\n";
 	my @answer;
 	foreach my $key ( keys %{ $self->fragments } ) {
-		push @answer, $self->fragments->{$key}->get_componentref_array;
+		push @answer, $self->fragments->{$key}->get_componentref_array();
+		
+		$answer_size = scalar @answer;
+		print "Size of list after fragment $key: $answer_size\n";
 	}
 
 	return @answer;

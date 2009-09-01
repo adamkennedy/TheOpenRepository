@@ -20,9 +20,10 @@ $VERSION = eval { return $VERSION };
 # Accessors:
 
 has parent => (
-	is => 'ro',
-	isa => 'Perl::Dist::WiX',
-	handles => {
+	is       => 'ro',
+	isa      => 'Perl::Dist::WiX',
+	weak_ref => 1,
+	handles  => {
 		'_app_ver_name'   => 'app_ver_name',
 		'_feature_tree'   => 'msi_feature_tree',
 		'_get_components' => 'get_component_array',
@@ -97,5 +98,8 @@ sub as_string {
 
 	return $answer;
 } ## end sub as_string
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;

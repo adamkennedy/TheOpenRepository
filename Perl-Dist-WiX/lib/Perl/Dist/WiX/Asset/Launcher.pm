@@ -45,7 +45,7 @@ sub install {
 	$self->_add_icon(
 		name     => $self->get_name(),
 		filename => $to,
-		fragment => 'Icons',
+		fragment => 'StartMenuIcons',
 		icon_id  => $icon_id
 	);
 

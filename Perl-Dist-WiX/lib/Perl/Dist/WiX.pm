@@ -1535,7 +1535,7 @@ sub add_icon {
 	$id =~ s{\s}{_}msxg;               # Convert whitespace to underlines.
 	
 	# Add the start menu icon.
-	$self->{fragments}->{Icons}->add_shortcut(
+	$self->{fragments}->{StartMenuIcons}->add_shortcut(
 		name        => $params{name},
 		description => $params{name},
 		target      => "[D_$dir_id]$file",

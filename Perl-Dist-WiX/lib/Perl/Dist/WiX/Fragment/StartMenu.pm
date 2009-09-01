@@ -63,7 +63,7 @@ sub BUILDARGS {
 	if ( @_ == 1 && 'HASH' ne ref $_[0] ) {
 		$args{'id'} = $_[0];
 	} elsif ( 0 == @_ ) {
-		$args{'id'} = 'Icons';
+		$args{'id'} = 'StartMenuIcons';
 	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{$_[0]};
 	} elsif ( 0 == @_ % 2 ) {
@@ -73,7 +73,7 @@ sub BUILDARGS {
 	}
 	
 	if (not exists $args{'id'}) {
-		$args{'id'} = 'Icons';
+		$args{'id'} = 'StartMenuIcons';
 	}
 
 	return \%args;
@@ -102,6 +102,8 @@ sub add_shortcut {
 
 	# TODO: Validate arguments.
 
+	$args{id} =~ s{[^A-Za-z0-9]}{_}msgx;
+	
 	my $component = WiX3::XML::Component->new(id => "S_$args{id}");
 	my $shortcut = WiX3::XML::Shortcut->new(
 		id => "$args{id}",

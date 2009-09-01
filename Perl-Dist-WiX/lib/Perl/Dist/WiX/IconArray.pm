@@ -147,7 +147,7 @@ sub as_string {
 	if ( 0 == $self->_count_icons ) { return q{}; }
 
 	# Print each icon
-	foreach my $icon ( $self->_icon_array() ) {
+	foreach my $icon ( $self->_get_icon_array() ) {
 		my $id = $icon->get_id();
 		my $file = $icon->get_sourcefile();
 		$answer .=
