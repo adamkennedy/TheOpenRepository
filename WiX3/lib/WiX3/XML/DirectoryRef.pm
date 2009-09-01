@@ -27,6 +27,7 @@ has directory_object => (
 	isa      => 'WiX3::XML::Directory',
 	reader   => '_get_directory_object',
 	required => 1,
+	weak_ref => 1,
 	handles  => [qw(get_path get_directory_id)],
 );
 

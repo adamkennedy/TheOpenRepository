@@ -54,8 +54,9 @@ sub BUILDARGS {
 	if ( not defined $id ) {
 		WiX3::Exception::Parameter::Missing->throw('id');
 	}
-
-	if ( not defined _IDENTIFIER($id) ) {
+	
+	if ( not defined _IDENTIFIER("C_$id") ) {
+		print "Invalid ID: $id\n";
 		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
 

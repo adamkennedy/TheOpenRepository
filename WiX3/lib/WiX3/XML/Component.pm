@@ -8,7 +8,7 @@ use metaclass (
 	error_class => 'WiX3::Util::Error',
 );
 use Moose;
-use Params::Util qw( _STRING );
+use Params::Util qw( _STRING _IDENTIFIER );
 use WiX3::Types qw( YesNoType ComponentGuidType );
 use MooseX::Types::Moose qw( Str Maybe Int );
 use WiX3::Util::StrictConstructor;
@@ -188,6 +188,12 @@ sub BUILDARGS {
 			"Either id or path required in $class->new");
 	}
 
+	if ( defined $args{id} and not defined _IDENTIFIER("C_$args{id}") ) {
+		print "Invalid ID: $args{id}\n";
+		WiX3::Exception::Parameter::Invalid->throw('id');
+	}
+
+	
 	return \%args;
 } ## end sub BUILDARGS
 
