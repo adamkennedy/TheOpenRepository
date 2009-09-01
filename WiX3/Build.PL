@@ -3,10 +3,10 @@ use warnings;
 use Module::Build;
 
 my $builder = Module::Build->new(
-    module_name         => 'WiX3',
-    license             => 'perl',
-    dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
-    dist_version_from   => 'lib/WiX3.pm',
+	module_name         => 'WiX3',
+	license             => 'perl',
+	dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
+	dist_version_from   => 'lib/WiX3.pm',
 	create_makefile_pl  => 'passthrough',
 	create_license      => 1,
 	create_readme       => 1,
@@ -17,7 +17,7 @@ my $builder = Module::Build->new(
 		'Test::More'               => '0.61',
 		'Test::UseAllModules'      => '0.12',
 	},
-    requires => {
+	requires => {
 		'perl'                     => 5.008001,
 		'Exception::Class'         => '1.29',
 		'List::MoreUtils'          => '>= 0.22, != 0.23, != 0.24',
@@ -31,21 +31,22 @@ my $builder = Module::Build->new(
 		'MooseX::AttributeHelpers' => '0.19',
 		'MooseX::NonMoose'         => '0.05',
 		'Regexp::Common'           => '2.122',
-        'version'                  => '0.77',
+		'version'                  => '0.77',
 		'Readonly'                 => '1.03',
-    },
+	},
 	recommends => {
 		'MIME::Lite'               => '3.020',
 		'Readonly::XS'             => '1.05',
 	},
 	meta_merge     => {
-        resources => {
-            homepage    => 'http://csjewell.comyr.com/perl/',
-            bugtracker  => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=WiX3',
-            repository  => 'http://svn.ali.as/cpan/trunk/WiX3/'
-        },
+		resources => {
+			homepage    => 'http://csjewell.comyr.com/perl/',
+			bugtracker  => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=WiX3',
+			repository  => 'http://svn.ali.as/cpan/trunk/WiX3/',
+			DLSIP       => 'http://search.cpan.org/dlsip?apdOp',
+		},
 	},
-    add_to_cleanup      => [ 'WiX3-*' ],
+	add_to_cleanup      => [ 'WiX3-*' ],
 );
 
 $builder->create_build_script();
