@@ -8,7 +8,7 @@ use metaclass (
 	error_class => 'WiX3::Util::Error',
 );
 use Moose;
-use Params::Util qw( _STRING _IDENTIFIER );
+use Params::Util qw( _INSTANCE );
 use MooseX::Types::Moose qw( Int Str );
 use WiX3::Util::StrictConstructor;
 
@@ -49,23 +49,11 @@ sub BUILDARGS {
 	my $class = shift;
 	my $id;
 
-	if ( @_ == 1 && !ref $_[0] ) {
-		$id = $_[0];
-	} elsif ( @_ == 1 && _INSTANCE( $_[0], 'WiX3::XML::Directory' ) ) {
-		$id = $_[0]->get_id();
+	if ( @_ == 1 && _INSTANCE( $_[0], 'WiX3::XML::Directory' ) ) {
+		return { directory_object => $_[0] };
 	} else {
 		return $class->SUPER::BUILDARGS(@_);
 	}
-
-	if ( not defined $id ) {
-		WiX3::Exception::Parameter::Missing->throw('id');
-	}
-
-	if ( not defined _IDENTIFIER($id) ) {
-		WiX3::Exception::Parameter::Invalid->throw('id');
-	}
-
-	return { 'id' => $id };
 } ## end sub BUILDARGS
 
 

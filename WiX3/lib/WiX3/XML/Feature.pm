@@ -128,7 +128,7 @@ has _typical_default => (
 sub as_string {
 	my $self = shift;
 
-	my $children = $self->has_children();
+	my $children = $self->has_child_tags();
 	my $tags;
 
 	# Print tag.
