@@ -78,6 +78,22 @@ sub get_namespaces {
 	return uniq @namespaces;
 } ## end sub get_namespaces
 
+sub count_all_child_tags {
+	my $self = shift;
+	
+	my $answer = 1;
+	
+	foreach my $tag ( $self->get_child_tags() ) {
+		if ( $tag->does('count_all_child_tags') ) {
+			$answer += $tag->count_all_child_tags();
+		} else {
+			$answer++;
+		}
+	}
+	
+	return $answer;
+}
+
 no Moose::Role;
 
 1;
