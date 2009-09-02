@@ -4,7 +4,7 @@ use 5.008001;
 use warnings;
 use strict;
 
-our $VERSION = '0.006';
+our $VERSION = '0.007';
 $VERSION = eval { return $VERSION };
 
 1;                                     # Magic true value required at end of module
@@ -13,7 +13,7 @@ __END__
 
 =begin readme text
 
-WiX3 Version 0.006
+WiX3 Version 0.007
 
 =end readme
 
@@ -25,7 +25,7 @@ WiX3 - Objects useful for generating Windows Installer XML files.
 
 =head1 VERSION
 
-This document describes WiX3 version 0.006
+This document describes WiX3 version 0.007
 
 =for readme continue
 

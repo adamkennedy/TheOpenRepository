@@ -13,7 +13,7 @@ use WiX3::Types qw( YesNoType ComponentGuidType );
 use MooseX::Types::Moose qw( Str Maybe Int );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.006';
+our $VERSION = '0.007';
 $VERSION = eval { return $VERSION };
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm

@@ -31,7 +31,6 @@ my $builder = Module::Build->new(
 		'MooseX::AttributeHelpers' => '0.19',
 		'MooseX::NonMoose'         => '0.05',
 		'Regexp::Common'           => '2.122',
-		'version'                  => '0.77',
 		'Readonly'                 => '1.03',
 	},
 	recommends => {

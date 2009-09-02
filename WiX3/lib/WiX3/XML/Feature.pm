@@ -20,7 +20,7 @@ use WiX3::Types qw( YesNoType );
 use MooseX::Types::Moose qw( Str Int Maybe );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.006';
+our $VERSION = '0.007';
 $VERSION = eval { return $VERSION };
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
