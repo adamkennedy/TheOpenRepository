@@ -132,7 +132,7 @@ sub as_string {
 	my $tags;
 
 	# Print tag.
-	$tags .= $self->print_attribute( 'Id',     $self->get_id() );
+	$tags .= $self->print_attribute( 'Id',     'Feat_' . $self->get_id() );
 	$tags .= $self->print_attribute( 'Absent', $self->_get_absent() );
 	$tags .=
 	  $self->print_attribute( 'AllowAdvertise',
@@ -154,9 +154,9 @@ sub as_string {
 
 	if ($children) {
 		my $child_string = $self->as_string_children();
-		return qq{<Fragment$tags>\n$child_string</Fragment>\n};
+		return qq{<Feature$tags>\n$child_string\n</Feature>\n};
 	} else {
-		return qq{<Fragment$tags />\n};
+		return qq{<Feature$tags />\n};
 	}
 } ## end sub as_string
 
@@ -173,7 +173,7 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::Feature - Defines a Icon tag.
+WiX3::XML::Feature - Defines a Feature tag.
 
 =head1 VERSION
 
