@@ -2262,7 +2262,7 @@ use Marpa::Offset qw(
     ITERATE_AND_TREE2
     ITERATE_OR_NODE
     ITERATE_OR_TREE
-    RESTORE_OR_TREE
+    RESTORE_AND_TREE
     EVALUATE
 );
 
@@ -2352,20 +2352,31 @@ sub Marpa::Evaluator::value {
 
             # Set up the and-choices from the children
             my @and_choices;
-            for my $child_id (
+            for my $child_and_node_id (
                 @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
             {
                 my $and_choice;
                 $#{$and_choice} = Marpa::Internal::And_Choice::LAST_FIELD;
-                $and_choice->[Marpa::Internal::And_Choice::ID] = $child_id;
-                my $and_iteration = $and_iterations->[$child_id];
+                $and_choice->[Marpa::Internal::And_Choice::ID] = $child_and_node_id;
+                my $and_iteration = $and_iterations->[$child_and_node_id];
                 $and_choice->[Marpa::Internal::And_Choice::SORT_KEY] =
                     $and_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_KEY];
-                $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
+                my $or_map = $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $and_iteration->[Marpa::Internal::And_Iteration::OR_MAP];
 
-                Marpa::exception('TODO: Add frozen iteration?!');
+                # Add frozen iteration
+                my @or_slice = map { $_->[0] } @{$or_map};
+                my @and_slice = ($child_and_node_id);
+                push @and_slice, map {
+                    $or_nodes->[ $_->[0] ]
+                        ->[Marpa::Internal::Or_Node::CHILD_IDS]->[ $_->[1] ]
+                } @{$or_map};
+                my @or_values = @{$or_iterations}[@or_slice];
+                my @and_values = ($and_iteration);
+                push @and_values, @{$and_iterations}[@and_slice];
+                $and_choice->[Marpa::Internal::And_Choice::FROZEN_ITERATION] =
+                    [ \@and_slice, \@and_values, \@or_slice, \@or_values ];
 
                 push @and_choices, $and_choice;
 
@@ -2513,8 +2524,6 @@ sub Marpa::Evaluator::value {
                 map  { [ ( pack 'N*', @{$_} ), $_ ] } @sort_key
                 ];
 
-            Marpa::exception('TODO: Set up the frozen iteration');
-
             next TASK;
 
         } ## end if ( $task == Marpa::Internal::Task::SETUP_AND_NODE )
@@ -2625,32 +2634,27 @@ sub Marpa::Evaluator::value {
             next TASK;
         } ## end if ( $task == Marpa::Internal::Task::ITERATE_OR_TREE)
 
-        if ( $task == Marpa::Internal::Task::RESTORE_OR_TREE ) {
-            my ( $or_node_id, $frozen_iteration ) = @{$task_entry};
+        if ( $task == Marpa::Internal::Task::RESTORE_AND_TREE ) {
+            my ( $and_node_id, $frozen_iteration ) = @{$task_entry};
             my ( $and_slice, $and_values, $or_slice, $or_values ) =
-                Storable::thaw($frozen_iteration);
+                @{Storable::thaw($frozen_iteration)};
             @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
             @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
 
-            Marpa::exception(
-                'TODO: Need to add the frozen iteration in the below');
             push @tasks, map {
-                [   Marpa::Internal::Task::RESTORE_OR_TREE,
-                    $_->[Marpa::Internal::Or_Node::ID],
-                    undef
+                [   Marpa::Internal::Task::RESTORE_AND_TREE, $_,
+                    $or_iterations->[$_]->[-1]
+                        ->[Marpa::Internal::And_Choice::FROZEN_ITERATION]
                 ]
-                } @{
-                $and_nodes->[
-                    $or_iterations->[$or_node_id]->[-1]
-                    ->[Marpa::Internal::And_Choice::ID]
-                ]
-                }[
+                }
+                map  { $_->[Marpa::Internal::Or_Node::ID] }
+                grep { defined $_ } @{ $and_nodes->[$and_node_id] }[
                 Marpa::Internal::And_Node::CAUSE,
                 Marpa::Internal::And_Node::PREDECESSOR
                 ];
 
             next TASK;
-        } ## end if ( $task == Marpa::Internal::Task::RESTORE_OR_TREE)
+        } ## end if ( $task == Marpa::Internal::Task::RESTORE_AND_TREE)
 
         if ( $task == Marpa::Internal::Task::EVALUATE ) {
 
