@@ -2357,12 +2357,14 @@ sub Marpa::Evaluator::value {
             {
                 my $and_choice;
                 $#{$and_choice} = Marpa::Internal::And_Choice::LAST_FIELD;
-                $and_choice->[Marpa::Internal::And_Choice::ID] = $child_and_node_id;
+                $and_choice->[Marpa::Internal::And_Choice::ID] =
+                    $child_and_node_id;
                 my $and_iteration = $and_iterations->[$child_and_node_id];
                 $and_choice->[Marpa::Internal::And_Choice::SORT_KEY] =
                     $and_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_KEY];
-                my $or_map = $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
+                my $or_map =
+                    $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $and_iteration->[Marpa::Internal::And_Iteration::OR_MAP];
 
                 # Add frozen iteration
@@ -2372,7 +2374,7 @@ sub Marpa::Evaluator::value {
                     $or_nodes->[ $_->[0] ]
                         ->[Marpa::Internal::Or_Node::CHILD_IDS]->[ $_->[1] ]
                 } @{$or_map};
-                my @or_values = @{$or_iterations}[@or_slice];
+                my @or_values  = @{$or_iterations}[@or_slice];
                 my @and_values = ($and_iteration);
                 push @and_values, @{$and_iterations}[@and_slice];
                 $and_choice->[Marpa::Internal::And_Choice::FROZEN_ITERATION] =
@@ -2380,7 +2382,7 @@ sub Marpa::Evaluator::value {
 
                 push @and_choices, $and_choice;
 
-            } ## end for my $child_id ( @{ $or_node->[...]})
+            } ## end for my $child_and_node_id ( @{ $or_node->[...]})
             $or_iterations->[$or_node_id] = [
                 map      { $_->[1] }
                     sort { $a->[0] <=> $b->[0] }
@@ -2637,7 +2639,7 @@ sub Marpa::Evaluator::value {
         if ( $task == Marpa::Internal::Task::RESTORE_AND_TREE ) {
             my ( $and_node_id, $frozen_iteration ) = @{$task_entry};
             my ( $and_slice, $and_values, $or_slice, $or_values ) =
-                @{Storable::thaw($frozen_iteration)};
+                @{ Storable::thaw($frozen_iteration) };
             @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
             @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
 
