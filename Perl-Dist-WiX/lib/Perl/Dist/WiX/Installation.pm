@@ -152,13 +152,7 @@ sub install_distribution {
 		@_,
 	);
 
-	my $filelist = $dist->install();
-	my $module = $dist->get_module_name();	
-	$module =~ s{::}{_}msg;
-	$module =~ s{-}{_}msg;
-
-	# Insert fragment.
-	$self->insert_fragment( $module, $filelist );
+	$dist->install();
 
 	return $self;
 } ## end sub install_distribution

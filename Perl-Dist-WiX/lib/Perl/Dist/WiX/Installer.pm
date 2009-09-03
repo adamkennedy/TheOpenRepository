@@ -33,8 +33,6 @@ use     Params::Util
 use     IO::File                 qw();
 use     IPC::Run3                qw();
 use     URI                      qw();
-#require Perl::Dist::WiX::RemoveFolder;
-# Converted routines.
 require Perl::Dist::WiX::Exceptions;
 require Perl::Dist::WiX::DirectoryTree2;
 require Perl::Dist::WiX::FeatureTree2;
@@ -43,9 +41,6 @@ require Perl::Dist::WiX::Fragment::Files;
 require Perl::Dist::WiX::Fragment::Environment;
 require Perl::Dist::WiX::Fragment::StartMenu;
 require Perl::Dist::WiX::IconArray;
-
-# New routines from WiX3.
-require WiX3::Traceable;
 
 our $VERSION = '1.090_001';
 $VERSION = eval { return $VERSION };
@@ -142,129 +137,6 @@ sub _check_string_parameter {
 
 	return;
 } ## end sub _check_string_parameter
-
-sub new {
-	my $class = shift;
-	my $self = bless {@_}, $class;
-
-	$self->{pdw_version} = $Perl::Dist::WiX::VERSION;
-	$self->{pdw_class}   = $class;
-
-	$self->{misc} = WiX3::Traceable->new(
-		tracelevel => $self->{trace} );
-
-	# Apply defaults
-	unless ( defined $self->output_dir ) {
-		$self->{output_dir} = rel2abs( curdir, );
-	}
-
-	unless ( defined _ARRAY0( $self->msi_directory_tree_additions ) ) {
-		$self->{msi_directory_tree_additions} = [];
-	}
-
-	unless ( defined $self->default_group_name ) {
-		$self->{default_group_name} = $self->app_name;
-	}
-	unless ( _STRING( $self->msi_license_file ) ) {
-		$self->{msi_license_file} =
-		  catfile( $self->wix_dist_dir, 'License.rtf' );
-	}
-
-	# Check and default params
-	unless ( _IDENTIFIER( $self->app_id ) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'app_id',
-			where     => '::Installer->new'
-		);
-	}
-	$self->_check_string_parameter( $self->app_name,      'app_name' );
-	$self->_check_string_parameter( $self->app_ver_name,  'app_ver_name' );
-	$self->_check_string_parameter( $self->app_publisher, 'app_publisher' );
-	$self->_check_string_parameter( $self->app_publisher_url,
-		'app_publisher_url' );
-
-	if ( $self->app_name =~ m{[\\/:*"<>|]}msx ) {
-		PDWiX::Parameter->throw(
-			parameter => 'app_name: Contains characters invalid '
-			  . 'for Windows file/directory names',
-			where => '::Installer->new'
-		);
-	}
-
-	unless ( _STRING( $self->sitename ) ) {
-		$self->{sitename} = URI->new( $self->app_publisher_url )->host;
-	}
-	$self->_check_string_parameter( $self->default_group_name,
-		'default_group_name' );
-	$self->_check_string_parameter( $self->output_dir, 'output_dir' );
-	unless ( -d $self->output_dir ) {
-		$self->trace_line( 0,
-			'Directory does not exist: ' . $self->output_dir . "\n" );
-		PDWiX::Parameter->throw(
-			parameter => 'output_dir: Directory does not exist',
-			where     => '::Installer->new'
-		);
-	}
-	unless ( -w $self->output_dir ) {
-		PDWiX->throw('The output_dir directory is not writable');
-	}
-	$self->_check_string_parameter( $self->output_base_filename,
-		'output_base_filename' );
-	$self->_check_string_parameter( $self->source_dir, 'source_dir' );
-	unless ( -d $self->source_dir ) {
-		$self->trace_line( 0,
-			'Directory does not exist: ' . $self->source_dir . "\n" );
-		PDWiX::Parameter->throw(
-			parameter => 'source_dir: Directory does not exist',
-			where     => '::Installer->new'
-		);
-	}
-	$self->_check_string_parameter( $self->fragment_dir, 'fragment_dir' );
-	unless ( -d $self->fragment_dir ) {
-		$self->trace_line( 0,
-			'Directory does not exist: ' . $self->fragment_dir . "\n" );
-		PDWiX::Parameter->throw(
-			parameter => 'fragment_dir: Directory does not exist',
-			where     => '::Installer->new'
-		);
-	}
-
-	# Set element collections
-	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
-	$self->{directories} = Perl::Dist::WiX::DirectoryTree2->new(
-		app_dir  => $self->image_dir,
-		app_name => $self->app_name,
-	  )
-	  ->initialize_tree( $self->perl_version,
-		@{ $self->{msi_directory_tree_additions} } );
-		
-	$self->{fragments} = {};
-	$self->{fragments}->{StartMenuIcons} =
-	  Perl::Dist::WiX::Fragment::StartMenu->new( directory_id => 'D_App_Menu', );
-	$self->{fragments}->{Environment} =
-	  Perl::Dist::WiX::Fragment::Environment->new();
-	$self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Fragment::Files->new(
-		id             => 'Win32Extras',
-		files          => File::List::Object->new(),
-	);
-		
-	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::Fragment::CreateFolder->new(
-		directory_id   => 'Cpan',
-		id             => 'CPANFolder',
-	);
-	$self->{fragments}->{CreateCpanplus} = Perl::Dist::WiX::Fragment::CreateFolder->new(
-		directory_id   => 'Cpanplus',
-		id             => 'CPANPLUSFolder',
-	) if ( 5100 <= $self->perl_version );
-
-	$self->{icons} = $self->{fragments}->{StartMenuIcons}->get_icons();
-
-	if ( defined $self->msi_product_icon ) {
-		$self->icons->add_icon( $self->msi_product_icon );
-	}
-
-	return $self;
-} ## end sub new
 
 sub trace_line {
 	my $self = shift;
@@ -468,10 +340,7 @@ sub get_component_array {
 	print "Running get_component_array...\n";
 	my @answer;
 	foreach my $key ( keys %{ $self->fragments } ) {
-		push @answer, $self->fragments->{$key}->get_componentref_array();
-		
-		$answer_size = scalar @answer;
-		print "Size of list after fragment $key: $answer_size\n";
+		push @answer, $self->fragments->{$key}->get_componentref_array();		
 	}
 
 	return @answer;
@@ -558,7 +427,7 @@ sub write_msi {
 	my ( $filename_in, $filename_out );
 	my $fh;
 	my @files;
-
+	
 	$self->trace_line( 1, "Generating msi\n" );
 
 	# Add the path in.
@@ -874,7 +743,10 @@ sub as_string {
 	  );
 
 	my $answer;
-	my $vars = { dist => $self };
+	my $vars = { 
+		dist => $self, 
+		directory_tree => Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
+	};
 
 	$tt->process( 'Main.wxs.tt', $vars, \$answer )
 	  || PDWiX::Caught->throw(

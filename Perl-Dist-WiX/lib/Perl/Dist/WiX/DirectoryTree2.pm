@@ -41,14 +41,14 @@ has root => (
 has app_dir => (
 	is => 'ro',
 	isa => Str,
-	reader => 'get_app_dir',
+	reader => '_get_app_dir',
 	required => 1,
 );
 
 has app_name => (
 	is => 'ro',
 	isa => Str,
-	reader => 'get_app_name',
+	reader => '_get_app_name',
 	required => 1,
 );
 
@@ -69,7 +69,7 @@ sub BUILDARGS {
 		PDWiX->throw('Parameters incorrect (not a hashref or a hash) for DirectoryTree2');
 	}
 
-	my $app_dir = $args{'app_dir'};
+	my $app_dir = $args{'app_dir'} or PDWiX::Parameter->throw('No app_dir parameter');
 
 	my $root = Perl::Dist::WiX::Directory->new( 
 		id       => 'TARGETDIR', 
@@ -81,17 +81,10 @@ sub BUILDARGS {
 	return { root => $root, %args }; 
 }
 
-########################################
-# as_string
-# Parameters:
-#   None
-# Returns:
-#   String representation of the <Directory> tags this object contains.
-
 sub as_string {
 	my $self = shift;
 
-	my $string = $self->get_root()->as_string(1);
+	my $string = $self->get_root()->as_string();
 
 	return $string ne q{} ? $self->get_root()->indent( 4, $string ) : q{};
 }
@@ -104,18 +97,18 @@ sub initialize_tree {
 	$self->trace_line( 2, "Initializing directory tree.\n" );
 
 	# Create starting directories.
-	my $branch = $self->get_root->add_directory( {
+	my $branch = $self->get_root()->add_directory( {
 			id       => 'INSTALLDIR',
 			noprefix => 1,
-			path     => $self->get_app_dir(),
+			path     => $self->_get_app_dir(),
 		} );
-	$self->get_root->add_directory( {
+	$self->get_root()->add_directory( {
 			id       => 'ProgramMenuFolder',
 			noprefix => 1,
 		}
 	  )->add_directory( {
 			id      => 'App_Menu',
-			name    => $self->get_app_name(),
+			name    => $self->_get_app_name(),
 	} );
 
 #<<<
@@ -148,7 +141,7 @@ sub initialize_tree {
 	);
 	
 	foreach my $dir (@list) {
-		$self->add_directory( catdir( $self->get_app_dir(), $dir ) );
+		$self->add_directory( catdir( $self->_get_app_dir(), $dir ) );
 	}
 	
 	return $self;
@@ -158,8 +151,6 @@ sub add_directory {
 	my $self = shift;
 	my $dir = shift;
 	
-	$self->trace_line(3, "Adding directory with path $dir to tree.\n");
-	
 	unless ( defined _STRING($dir) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'dir',
@@ -167,6 +158,8 @@ sub add_directory {
 		);
 	}
 
+	$self->trace_line(3, "Adding directory with path $dir to tree.\n");
+		
 	# Does the directory already exist?
 	# If so, short-circuit.
 	return 1 if ($self->search_dir(
@@ -180,8 +173,9 @@ sub add_directory {
 	my $dir_to_add = pop @dirs;
 	my $path_to_find = catpath($volume, catdir(@dirs), undef);
 	
+	$self->trace_line(5, "  Adding directory recursively: $path_to_find, $dir_to_add to tree.\n");
 	my $dir_out = $self->_add_directory_recursive($path_to_find, $dir_to_add);
-
+	
 	return defined $dir_out ? 1 : 0;
 };
 
@@ -193,39 +187,107 @@ __PACKAGE__->meta->make_immutable;
 
 __END__
 
-########################################
-# add_root_directory($id, $dir)
+=pod
 
-sub add_root_directory {
-	my ( $self, $id, $dir ) = @_;
+=head1 NAME
 
-	unless ( defined _IDENTIFIER($id) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'id',
-			where     => '::DirectoryTree->add_root_directory'
-		);
-	}
+Perl::Dist::WiX::DirectoryTree2 - Base directory tree for Perl::Dist::WiX.
 
-	unless ( defined _STRING($dir) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'dir',
-			where     => '::DirectoryTree->add_root_directory'
-		);
-	}
+=head1 VERSION
 
-	my $path = $self->app_dir;
+This document describes Perl::Dist::WiX::DirectoryTree2 version 1.090.
 
-	$self->trace_line( 5, "Path: $path\n" );
+=head1 DESCRIPTION
 
-	return $self->search_dir(
-		path_to_find => $path,
-		descend      => 0,
-		exact        => 1,
-	  )->add_directory( {
-			id   => $id,
-			name => $dir,
-			path => catdir( $path, $dir ) } );
-} ## end sub add_root_directory
+This is an object that establishes a directory tree.
 
+=head1 METHODS
 
-1;
+=head2 new
+
+	my $tree = Perl::Dist::WiX::DirectoryTree2->new(
+		app_dir => 'C:\strawberry',
+		app_name => 'Strawberry Perl'
+	);
+
+Creates new directory tree object and creates the 'root' of the tree.
+
+Note that this object is a L<MooseX::Singleton|MooseX::Singleton> object.
+
+=head2 instance
+
+	my $tree = Perl::Dist::WiX::DirectoryTree2->instance();
+	
+Returns the previously created directory tree. 
+
+=head2 get_root
+
+	my $directory_object = $tree->get_root();
+	
+Gets the L<Perl::Dist::WiX::Directory|Perl::Dist::WiX::Directory> object at
+the root of the tree.
+	
+=head2 initialize_tree
+
+	$tree->initialize_tree($perl_version);
+
+Adds a basic directory structure to the directory tree object.
+
+=head2 add_directory
+
+	$tree->add_directory($directory);
+
+Adds a directory to the tree, including all directories required along 
+the way.
+	
+=head2 as_string
+
+	print $tree->as_string();
+	
+Prints out the tree as a series of XML tags.
+
+=head2 get_directory_object
+
+Calls L<Perl::Dist::WiX::Directory's get_directory_object routine|Perl::Dist::WiX::Directory/get_directory_object>
+on the root directory with the parameters given.
+
+=head2 search_dir
+
+Calls L<Perl::Dist::WiX::Directory's search_dir routine|Perl::Dist::WiX::Directory/search_dir>
+on the root directory with the parameters given.
+
+=head1 DIAGNOSTICS
+
+See Perl::Dist::WiX's L<DIAGNOSTICS section|Perl::Dist::WiX/DIAGNOSTICS> for 
+details, as all diagnostics from this module are listed there.
+
+=head1 SUPPORT
+
+Bugs should be reported via: 
+
+1) The CPAN bug tracker at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
+if you have an account there.
+
+2) Email to E<lt>bug-Perl-Dist-WiX@rt.cpan.orgE<gt> if you do not.
+
+For other issues, contact the topmost author.
+
+=head1 AUTHORS
+
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist|Perl::Dist>, L<http://ali.as/>, L<http://csjewell.comyr.com/perl/>
+
+=head1 COPYRIGHT
+
+Copyright 2009 Curtis Jewell.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

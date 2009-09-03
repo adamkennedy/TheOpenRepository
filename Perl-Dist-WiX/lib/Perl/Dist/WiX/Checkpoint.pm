@@ -18,41 +18,105 @@ support checkpointing.
 =head1 SYNOPSIS
 
 	# This module is not to be used independently.
+	$dist = Perl::Dist::WiX->new(
+		# ...
+		checkpoint_before => 5
+		checkpoint_after => [8, 9],
+		checkpoint_stop => 9,
+		# ...
+	);
 
 =head1 INTERFACE
+
+There are 2 portions to the interface to this module - the parameters to 
+L<new()|Perl::Dist::WiX/new> (listed under C<Parameters> below), and the 
+object calls that Perl::Dist::WiX uses to coordinate checkpointing.
+
+=head2 Parameters
+
+=head3 tasklist
+
+	$dist = Perl::Dist::WiX->new(
+		# ...
+		tasklist => [
+			# Install the core C toolchain
+			'install_c_toolchain',
+
+			# Install any additional C libraries
+			'install_c_libraries',
+
+			# Install the Perl binary
+			'install_perl',
+
+			# Install the Perl toolchain
+			'install_perl_toolchain',
+
+			# Install additional Perl modules
+			'install_cpan_upgrades',
+
+			# Install the Win32 extras
+			'install_win32_extras',
+
+			# Apply optional portability support
+			'install_portable',
+
+			# Remove waste and temporary files
+			'remove_waste',
+
+			# Regenerate file fragments
+			'regenerate_fragments',
+			
+			# Install any extra custom non-Perl software on top of Perl.
+			# This is primarily added for the benefit of Parrot.
+			'install_custom',
+
+			# Write out the distributions
+			'write',
+		];
+		# ...
+	);
+
+This is the parameter that specifies what tasks to execute.  The names 
+are of object methods of Perl::Dist::WiX (or its subclasses) that will be 
+executed in order, and their task numbers (as used below) will begin with 
+1 and increment in sequence.
+
+The default task list for Perl::Dist::WiX is as shown above.  Subclasses should
+insert their tasks in this list, rather than overriding routines shown above.
+
+=head3 checkpoint_after
+
+C<checkpoint_after> is given an arrayref of task numbers.  After each task in 
+the list, Perl::Dist::WiX will stop and save a checkpoint.
+
+[ 0 ] is the default, meaning that you do not wish to save a checkpoint anywhere.
+
+=head3 checkpoint_stop
+
+C<checkpoint_stop> stops execution after the specified task if no error has 
+happened before then.
+
+0 is the default, meaning that you do not wish to stop unless an error occurs.
+
+=head3 checkpoint_before
+
+C<checkpoint_before> is given an integer to know when to load a checkpoint.
+Unlike the other parameters, this is based on the task number that is GOING 
+to execute, rather than the task number that just executed, so that if a 
+checkpoint was saved after (for example) task 5, this parameter should be 6
+in order to load the checkpoint and start on task 6.
+
+0 is the default, meaning that you do not wish to stop unless an error occurs.
 
 =cut
 
 use     5.008001;
 use     strict;
 use     warnings;
-use     Archive::Zip          qw( :ERROR_CODES               );
-use     English               qw( -no_match_vars             );
-use     List::Util            qw( first                      );
-use     List::MoreUtils       qw( any none                   );
-use     Params::Util          qw( _HASH _STRING _INSTANCE    );
-use     Readonly              qw( Readonly                   );
-use     File::Spec::Functions qw(
-	catdir catfile catpath tmpdir splitpath rel2abs curdir
-);
-use     Archive::Tar     1.42 qw();
+use     English               qw( -no_match_vars );
+use     List::Util            qw( first          );
+use     File::Spec::Functions qw( catdir catfile );
 use     File::Remove          qw();
-use     File::pushd           qw();
-use     File::ShareDir        qw();
-use     File::Copy::Recursive qw();
-use     File::PathList        qw();
-use     HTTP::Status          qw();
-use     IO::String            qw();
-use     IO::Handle            qw();
-use     LWP::UserAgent        qw();
-use     LWP::Online           qw();
-use     Module::CoreList 2.17 qw();
-use     PAR::Dist             qw();
-use     Probe::Perl           qw();
-use     SelectSaver           qw();
-use     Template              qw();
-use     Win32                 qw();
-require File::List::Object;
 
 our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
@@ -69,7 +133,7 @@ C<checkpoint_task> executes a portion of creating an installer.
 
 The first parameter is the name of the subroutine to be executed.
 
-The second parameter is the step number that goes with that subroutine.
+The second parameter is the task number that goes with that subroutine.
 
 Returns true (technically, the object that called it), or throws an exception.
 
@@ -118,7 +182,7 @@ sub checkpoint_file {
 	return catfile( $_[0]->checkpoint_dir, 'self.dat' );
 }
 
-=head2 checkpoint_file
+=head2 checkpoint_self
 
 Currently unimplemented, and throws an exception saying so.
 
@@ -160,19 +224,14 @@ sub checkpoint_save {
 	my $copy = {
 		%{$self},
 		checkpoint_before => 0,
-		checkpoint_after  => 0,
+		checkpoint_after  => [ 0 ],
+		checkpoint_stop   => 0,
 		tt_exists         => ( defined $self->{template_toolkit} ? 1 : 0 ),
 		template_toolkit  => undef,
 		user_agent        => undef,
 		misc              => undef,
 	};
-	
-#	require Data::Dump::Streamer;
-#	print "\n\n\n";
-#	print Data::Dump::Streamer->new()->IndentKeys(1)->DumpGlob(1)
-#	  ->Data($copy)->Out();
-#	print "\n\n\n";
-	
+		
 	local $Storable::Deparse = 1;
 	Storable::nstore( $copy, $self->checkpoint_file );
 
@@ -203,6 +262,7 @@ sub checkpoint_load {
 
 	# If we want a future checkpoint, save it.
 	my $checkpoint_after = $self->{checkpoint_after} || 0;
+	my $checkpoint_stop  = $self->{checkpoint_stop} || 0;
 	
 	# Load the stored hash over our object
 	local $Storable::Eval = 1;
@@ -211,6 +271,7 @@ sub checkpoint_load {
 
 	# Restore any possible future checkpoint.
 	$self->{checkpoint_after} = $checkpoint_after;
+	$self->{checkpoint_stop} = $checkpoint_stop;
 
 	# Reload the template object if it existed before.
 	if ( $self->{tt_exists} ) {

@@ -79,6 +79,13 @@ has packlist => (
 	default  => 1,
 );
 
+has overwritable => (
+	is       => 'ro',
+	isa      => Bool,
+	reader   => '_get_overwritable',
+	default  => 0,
+);
+
 sub BUILD {
 	my $self = shift;
 
@@ -188,7 +195,14 @@ sub install {
 		$filelist->subtract($filelist_sub)->filter( $self->_filters );
 	}
 	
-	return $filelist;
+	my $module_name = $self->get_module_name();	
+	$module_name =~ s{::}{_}msg;
+	$module_name =~ s{-}{_}msg;
+
+	# Insert fragment.
+	$self->_insert_fragment( $module_name, $filelist, $self->_get_overwritable() );
+	
+	return 1;
 } ## end sub install_distribution
 
 no Moose;

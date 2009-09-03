@@ -16,6 +16,7 @@ require Perl::Dist::WiX::IconArray;
 require Perl::Dist::WiX::DirectoryTree2;
 require WiX3::XML::Component;
 require WiX3::XML::CreateFolder;
+require WiX3::XML::RemoveFolder;
 require WiX3::XML::DirectoryRef;
 require WiX3::XML::Shortcut;
 
@@ -36,15 +37,6 @@ has directory_id => (
 	isa	     => Str,
 	required => 1,
 	reader   => 'get_directory_id',
-);
-
-has created_directory => (
-	is       => 'rw',
-	isa      => Bool,
-	init_arg => undef,
-	reader   => '_get_created_directory',
-	writer   => '_set_created_directory',
-	default  => 0,
 );
 
 has root => (
@@ -89,7 +81,17 @@ sub _build_root {
 		PDWiX->throw("Could not find directory object for id $id");
 	}
 
+	my $remove = WiX3::XML::RemoveFolder->new(
+		id => 'RemoveStartMenuFolder',
+		on => 'uninstall',
+	);
+	my $remove_component = WiX3::XML::Component->new(
+		id => 'RemoveStartMenuFolder',
+	);	
 	my $root = Perl::Dist::WiX::DirectoryRef->new($directory);
+
+	$remove_component->add_child_tag($remove);
+	$root->add_child_tag($remove_component); 
 	$self->add_child_tag($root);
 
 	return $root;
@@ -116,11 +118,8 @@ sub add_shortcut {
 	
 	$component->add_child_tag($shortcut);
 
-	if (not $self->_get_created_directory()) {
-		my $cf = WiX3::XML::CreateFolder->new(directory => $self->get_directory_id());
-		$component->add_child_tag($cf);
-		$self->_set_created_directory(1);
-	}
+	my $cf = WiX3::XML::CreateFolder->new(directory => $self->get_directory_id());
+	$component->add_child_tag($cf);
 
 	$self->_get_root()->add_child_tag($component);
 	

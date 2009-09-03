@@ -86,7 +86,9 @@ use     parent                qw( Perl::Dist::WiX::Installer
 use     Archive::Zip          qw( :ERROR_CODES                  );
 use     English               qw( -no_match_vars                );
 use     List::MoreUtils       qw( any none uniq                 );
-use     Params::Util          qw( _HASH _STRING _INSTANCE       );
+use     Params::Util          qw( 
+	_HASH _STRING _INSTANCE _IDENTIFIER      
+);
 use     Readonly              qw( Readonly                      );
 use     Storable              qw( retrieve                      );
 use     File::Spec::Functions qw(
@@ -110,6 +112,15 @@ use     SelectSaver           qw();
 use     Template              qw();
 use     Win32                 qw();
 require File::List::Object;
+require Perl::Dist::WiX::Exceptions;
+require Perl::Dist::WiX::DirectoryTree2;
+require Perl::Dist::WiX::FeatureTree2;
+require Perl::Dist::WiX::Fragment::CreateFolder;
+require Perl::Dist::WiX::Fragment::Files;
+require Perl::Dist::WiX::Fragment::Environment;
+require Perl::Dist::WiX::Fragment::StartMenu;
+require Perl::Dist::WiX::IconArray;
+require WiX3::Traceable;
 
 our $VERSION = '1.090_001';
 $VERSION = eval { return $VERSION };
@@ -308,14 +319,6 @@ be created.
 
 The optional boolean C<exe> param is unused at the moment.
 
-=item * checkpoint_after
-
-Stops the installation at the stage that has this number. 
-
-=item * checkpoint_before
-
-Starts a saved installation at the stage that has this number.
-
 =item * app_id I<(required)>
 
 The C<app_id> parameter provides the base identifier of the 
@@ -438,36 +441,22 @@ should then call C<run> on to generate the distribution.
 
 sub new { ## no critic 'ProhibitExcessComplexity'
 	my $class  = shift;
-	my %params = @_;
+	my %params = ( 
+		trace            => 1,
+		build_start_time => localtime, 
+		temp_dir         => catdir( tmpdir(), 'perldist' ),
+		@_ 
+	);
 
-	# Apply some defaults
-	unless ( defined $params{trace} ) {
-		$params{trace} = 1;
-	}
-
-	# Announce that we're staring.
-	$params{build_start_time} = localtime;
-	my $time = $params{build_start_time};
-	if ( $params{trace} >= 100 )        { print '# '; }
-	if ( $params{trace} > 1 )           { print '[0] '; }
-	if ( ( $params{trace} % 100 ) > 4 ) { print '[WiX.pm 459] '; }
-	print "Starting build at $time.\n";
-
-	# Apply more defaults
-	# Auto-detect online-ness if needed
-	unless ( defined $params{offline} ) {
-		$params{offline} = LWP::Online::offline();
-	}
-	unless ( ( defined $params{perl_config_cf_email} )
-		&& ( $params{perl_config_cf_email} =~ m/\A.*@.*\z/msx ) )
+	$params{misc} = WiX3::Traceable->new(
+		tracelevel => $params{trace} );
+	
+	# Announce that we're starting. 
 	{
-		$params{perl_config_cf_email} = 'anonymous@unknown.builder.invalid';
+		my $time = scalar localtime;
+		$params{misc}->trace_line(0, "Starting build at $time.\n");
 	}
-	( $params{perl_config_cf_by} ) =
-	  $params{perl_config_cf_email} =~ m/\A(.*)@.*\z/msx;
-	unless ( defined $params{temp_dir} ) {
-		$params{temp_dir} = catdir( tmpdir(), 'perldist' );
-	}
+	
 	unless ( defined $params{download_dir} ) {
 		$params{download_dir} = catdir( $params{temp_dir}, 'download' );
 		File::Path::mkpath( $params{download_dir} );
@@ -492,10 +481,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 	unless ( defined $params{output_dir} ) {
 		$params{output_dir} = catdir( $params{temp_dir}, 'output' );
-		if ( $params{trace} > 0 ) {
-			if ( $params{trace} > 1 ) { print '[1] '; }
-			print "Wait a second while we empty the output directory...\n";
-		}
+		$params{misc}->trace_line(1, "Wait a second while we empty the output directory...\n");
 		$class->remake_path( $params{output_dir} );
 	}
 	unless ( defined $params{fragment_dir} ) {
@@ -505,18 +491,10 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 	if ( defined $params{image_dir} ) {
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();
-		if ( $params{trace} >= 100 ) { print '# '; }
-		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[3] [WiX.pm 515] '
-			  . "Currently executing perl: $perl_location\n";
-		}
+		$params{misc}->trace_line(3, "Currently executing perl: $perl_location\n");
 		my $our_perl_location =
 		  lc catfile( $params{image_dir}, qw(perl bin perl.exe) );
-		if ( $params{trace} >= 100 ) { print '# '; }
-		if ( 2 < ( $params{trace} % 100 ) ) {
-			print '[3] [WiX.pm 522] '
-			  . "Our perl to create:       $our_perl_location\n";
-		}
+		$params{misc}->trace_line(3, "Our perl to create:       $our_perl_location\n");
 
 		PDWiX::Parameter->throw(
 			parameter => ' image_dir : attempting to commit suicide ',
@@ -531,12 +509,143 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 		$class->remake_path( $params{image_dir} );
 	} ## end if ( defined $params{image_dir...})
-	unless ( defined $params{perl_version} ) {
-		$params{perl_version} = '5101';
+
+	my $tasklist = [
+		# Final initialization
+		'final_initialization',
+	
+		# Install the core C toolchain
+		'install_c_toolchain',
+
+		# Install any additional C libraries
+		'install_c_libraries',
+
+		# Install the Perl binary
+		'install_perl',
+
+		# Install the Perl toolchain
+		'install_perl_toolchain',
+
+		# Install additional Perl modules
+		'install_cpan_upgrades',
+
+		# Install the Win32 extras
+		'install_win32_extras',
+
+		# Apply optional portability support
+		'install_portable',
+
+		# Remove waste and temporary files
+		'remove_waste',
+
+		# Regenerate file fragments
+		'regenerate_fragments',
+		
+		# Install any extra custom non-Perl software on top of Perl.
+		# This is primarily added for the benefit of Parrot.
+		'install_custom',
+
+		# Write out the distributions
+		'write',
+	];
+
+	my $self = bless {
+		perl_version            => '5101',
+		offline                 => LWP::Online::offline(),
+		pdw_version             => $Perl::Dist::WiX::VERSION,
+		pdw_class               => $class,
+		fragments               => {},
+		beta_number             => 0,
+		force                   => 0,
+		exe                     => 0,
+		msi                     => 1,  # Goal of Perl::Dist::WiX is to make an MSI.
+		checkpoint_before       => 0,
+		checkpoint_after        => [ 0 ],
+		checkpoint_stop         => 0,
+		output_file             => [],
+		env_path                => [],
+		distributions_installed => [],
+		output_dir              => rel2abs( curdir, ),
+		tasklist                => $tasklist,
+		%params,
+	}, $class;
+	
+	# Apply defaults
+	
+	unless ( ( defined $self->{perl_config_cf_email} )
+		&& ( $self->{perl_config_cf_email} =~ m/\A.*@.*\z/msx ) )
+	{
+		$self->{perl_config_cf_email} = 'anonymous@unknown.builder.invalid';
+	}
+	( $self->{perl_config_cf_by} ) =
+	  $self->{perl_config_cf_email} =~ m/\A(.*)@.*\z/msx;
+
+	unless ( defined $self->default_group_name ) {
+		$self->{default_group_name} = $self->app_name;
+	}
+	unless ( _STRING( $self->msi_license_file ) ) {
+		$self->{msi_license_file} =
+		  catfile( $self->wix_dist_dir, 'License.rtf' );
 	}
 
-	# Hand off to a parent class
-	my $self = $class->Perl::Dist::WiX::Installer::new(%params);
+	# Check and default params
+	unless ( _IDENTIFIER( $self->app_id ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'app_id',
+			where     => '::Installer->new'
+		);
+	}
+	$self->_check_string_parameter( $self->app_name,      'app_name' );
+	$self->_check_string_parameter( $self->app_ver_name,  'app_ver_name' );
+	$self->_check_string_parameter( $self->app_publisher, 'app_publisher' );
+	$self->_check_string_parameter( $self->app_publisher_url,
+		'app_publisher_url' );
+
+	if ( $self->app_name =~ m{[\\/:*"<>|]}msx ) {
+		PDWiX::Parameter->throw(
+			parameter => 'app_name: Contains characters invalid '
+			  . 'for Windows file/directory names',
+			where => '::Installer->new'
+		);
+	}
+
+	unless ( _STRING( $self->sitename ) ) {
+		$self->{sitename} = URI->new( $self->app_publisher_url )->host;
+	}
+	$self->_check_string_parameter( $self->default_group_name,
+		'default_group_name' );
+	$self->_check_string_parameter( $self->output_dir, 'output_dir' );
+	unless ( -d $self->output_dir ) {
+		$self->trace_line( 0,
+			'Directory does not exist: ' . $self->output_dir . "\n" );
+		PDWiX::Parameter->throw(
+			parameter => 'output_dir: Directory does not exist',
+			where     => '::Installer->new'
+		);
+	}
+	unless ( -w $self->output_dir ) {
+		PDWiX->throw('The output_dir directory is not writable');
+	}
+	$self->_check_string_parameter( $self->output_base_filename,
+		'output_base_filename' );
+	$self->_check_string_parameter( $self->source_dir, 'source_dir' );
+	unless ( -d $self->source_dir ) {
+		$self->trace_line( 0,
+			'Directory does not exist: ' . $self->source_dir . "\n" );
+		PDWiX::Parameter->throw(
+			parameter => 'source_dir: Directory does not exist',
+			where     => '::Installer->new'
+		);
+	}
+	$self->_check_string_parameter( $self->fragment_dir, 'fragment_dir' );
+	unless ( -d $self->fragment_dir ) {
+		$self->trace_line( 0,
+			'Directory does not exist: ' . $self->fragment_dir . "\n" );
+		PDWiX::Parameter->throw(
+			parameter => 'fragment_dir: Directory does not exist',
+			where     => '::Installer->new'
+		);
+	}
 
 	# Check the version of Perl to build
 	unless ( defined $self->build_number ) {
@@ -544,9 +653,6 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 			parameter => 'build_number',
 			where     => '->new'
 		);
-	}
-	unless ( $self->beta_number ) {
-		$self->{beta_number} = 0;
 	}
 	unless ( $self->perl_version_literal ) {
 		PDWiX::Parameter->throw(
@@ -575,70 +681,14 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 
 	# Apply more defaults
-	unless ( defined $self->{force} ) {
-		$self->{force} = 0;
-	}
 	unless ( defined $self->debug_stdout ) {
 		$self->{debug_stdout} = catfile( $self->output_dir, 'debug.out' );
 	}
 	unless ( defined $self->debug_stderr ) {
 		$self->{debug_stderr} = catfile( $self->output_dir, 'debug.err' );
 	}
-
-	unless ( defined $self->exe ) {
-		$self->{exe} = 0;              #  Can't make an exe yet from WiX alone.
-	}
 	unless ( defined $self->zip ) {
 		$self->{zip} = $self->portable ? 1 : 0;
-	}
-	unless ( defined $self->msi ) {
-		$self->{msi} = 1;              # Goal of Perl::Dist::WiX is to make an MSI.
-	}
-	unless ( defined $self->checkpoint_before ) {
-		$self->{checkpoint_before} = 0;
-	}
-	unless ( defined $self->checkpoint_after ) {
-		$self->{checkpoint_after} = [ 0 ];
-	}
-	unless ( defined $self->checkpoint_stop ) {
-		$self->{checkpoint_stop} = 0;
-	}
-	unless ( defined $self->tasklist ) {
-		$self->{tasklist} = [
-			# Install the core C toolchain
-			'install_c_toolchain',
-
-			# Install any additional C libraries
-			'install_c_libraries',
-
-			# Install the Perl binary
-			'install_perl',
-
-			# Install the Perl toolchain
-			'install_perl_toolchain',
-
-			# Install additional Perl modules
-			'install_cpan_upgrades',
-
-			# Install the Win32 extras
-			'install_win32_extras',
-
-			# Apply optional portability support
-			'install_portable',
-
-			# Remove waste and temporary files
-			'remove_waste',
-
-			# Regenerate file fragments
-			'regenerate_fragments',
-			
-			# Install any extra custom non-Perl software on top of Perl.
-			# This is primarily added for the benefit of Parrot.
-			'install_custom',
-
-			# Write out the distributions
-			'write',
-		];
 	}
 
 	# Normalize some params
@@ -750,66 +800,6 @@ EOF
 			'No previous ' . $self->image_dir . " found\n" );
 	}
 
-	# Clear the par cache, just to be safe.
-	# Sometimes, if not cleared, PAR fails tests.
-	my $par_temp = catdir( $ENV{TEMP}, 'par-' . Win32::LoginName() );
-	if ( -d $par_temp ) {
-		$self->trace_line( 1, 'Removing ' . $par_temp . "\n" );
-		File::Remove::remove( \1, $par_temp );
-	}
-
-	# Initialize the build
-	for my $d ( $self->download_dir, $self->image_dir, $self->modules_dir,
-		$self->license_dir, catdir( $self->image_dir, 'cpan' ),
-	  )
-	{
-		next if -d $d;
-		File::Path::mkpath($d);
-	}
-
-	# Initialize output file list.
-	$self->{output_file} = [];
-	
-	# Initialize filters.
-	my @filters_array;
-#<<<
-	push @filters_array,
-			   $self->temp_dir . q{\\},
-	  catdir ( $self->image_dir, qw{ perl man         } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ perl html        } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    man         } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    doc         } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    info        } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    contrib     } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    html        } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    examples    } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    manifest    } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ cpan sources     } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ cpan build       } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    bin         startup mac   } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    bin         startup msdos } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    bin         startup os2   } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    bin         startup qssl  } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    bin         startup tos   } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    libexec     gcc     mingw32 3.4.5 install-tools}),
-	  catfile( $self->image_dir, qw{ c    COPYING     } ),
-	  catfile( $self->image_dir, qw{ c    COPYING.LIB } ),
-	  catfile( $self->image_dir, qw{ c    bin         gccbug  } ),
-	  catfile( $self->image_dir, qw{ c    bin         mingw32-gcc-3.4.5  } ),
-	  ;
-#>>>
-
-	$self->{filters} = \@filters_array;
-
-	# Get environment started.
-	$self->{env_path} = [];
-
-	$self->add_env( 'TERM',        'dumb' );
-	$self->add_env( 'FTP_PASSIVE', '1' );
-
-	# Get installation list started.
-	$self->{distributions_installed} = [];
-
 	return $self;
 } ## end sub new
 
@@ -848,6 +838,95 @@ Readonly my %PACKAGES => (
 	'six'           => 'six-20090724-gabor.zip',
 	'libiconv'      => 'libiconv-08192009.zip',
 );
+
+sub final_initialization {
+	my $self = shift;
+
+		# Set element collections
+	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
+	$self->{directories} = Perl::Dist::WiX::DirectoryTree2->new(
+		app_dir  => $self->image_dir,
+		app_name => $self->app_name,
+	  )
+	  ->initialize_tree( $self->perl_version );
+		
+	$self->{fragments}->{StartMenuIcons} =
+	  Perl::Dist::WiX::Fragment::StartMenu->new( directory_id => 'D_App_Menu', );
+	$self->{fragments}->{Environment} =
+	  Perl::Dist::WiX::Fragment::Environment->new();
+	$self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Fragment::Files->new(
+		id             => 'Win32Extras',
+		files          => File::List::Object->new(),
+	);
+		
+	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::Fragment::CreateFolder->new(
+		directory_id   => 'Cpan',
+		id             => 'CPANFolder',
+	);
+	$self->{fragments}->{CreateCpanplus} = Perl::Dist::WiX::Fragment::CreateFolder->new(
+		directory_id   => 'Cpanplus',
+		id             => 'CPANPLUSFolder',
+	) if ( 5100 <= $self->perl_version );
+
+	$self->{icons} = $self->{fragments}->{StartMenuIcons}->get_icons();
+
+	if ( defined $self->msi_product_icon ) {
+		$self->icons->add_icon( $self->msi_product_icon );
+	}
+	
+	# Clear the par cache, just to be safe.
+	# Sometimes, if not cleared, PAR fails tests.
+	my $par_temp = catdir( $ENV{TEMP}, 'par-' . Win32::LoginName() );
+	if ( -d $par_temp ) {
+		$self->trace_line( 1, 'Removing ' . $par_temp . "\n" );
+		File::Remove::remove( \1, $par_temp );
+	}
+
+	# Initialize the build
+	for my $d ( $self->download_dir, $self->image_dir, $self->modules_dir,
+		$self->license_dir, catdir( $self->image_dir, 'cpan' ),
+	  )
+	{
+		next if -d $d;
+		File::Path::mkpath($d);
+	}
+	
+	# Initialize filters.
+	my @filters_array;
+#<<<
+	push @filters_array,
+			   $self->temp_dir . q{\\},
+	  catdir ( $self->image_dir, qw{ perl man         } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ perl html        } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    man         } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    doc         } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    info        } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    contrib     } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    html        } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    examples    } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    manifest    } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ cpan sources     } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ cpan build       } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    bin         startup mac   } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    bin         startup msdos } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    bin         startup os2   } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    bin         startup qssl  } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    bin         startup tos   } ) . q{\\},
+	  catdir ( $self->image_dir, qw{ c    libexec     gcc     mingw32 3.4.5 install-tools}),
+	  catfile( $self->image_dir, qw{ c    COPYING     } ),
+	  catfile( $self->image_dir, qw{ c    COPYING.LIB } ),
+	  catfile( $self->image_dir, qw{ c    bin         gccbug  } ),
+	  catfile( $self->image_dir, qw{ c    bin         mingw32-gcc-3.4.5  } ),
+	  ;
+#>>>
+
+	$self->{filters} = \@filters_array;
+
+	$self->add_env( 'TERM',        'dumb' );
+	$self->add_env( 'FTP_PASSIVE', '1' );
+
+	return 1;
+}
 
 sub binary_file {
 	unless ( $PACKAGES{ $_[1] } ) {

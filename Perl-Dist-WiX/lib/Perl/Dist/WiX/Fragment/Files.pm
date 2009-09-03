@@ -31,11 +31,11 @@ $VERSION = eval { return $VERSION };
 extends 'WiX3::XML::Fragment';
 
 has files => (
-	is => 'ro',
-	isa	=> 'File::List::Object',
+	is       => 'ro',
+	isa      => 'File::List::Object',
 	required => 1,
-	reader => 'get_files',
-	handles => { 
+	reader   => 'get_files',
+	handles  => { 
 		'add_files'     => 'add_files', 
 		'add_file'      => 'add_file',
 		'_subtract'     => 'subtract',
@@ -44,26 +44,32 @@ has files => (
 );
 
 has can_overwrite => (
-	is => 'ro',
-	isa => Bool,
+	is      => 'ro',
+	isa     => Bool,
 	default => 0,
-	reader => 'can_overwrite',
+	reader  => 'can_overwrite',
 );
 
-has feature => (
-	is       => 'ro',
-	isa      => 'WiX3::XML::Feature',
-	init_arg => undef,
-	reader   => '_read_feature',
-	builder  => '_build_feature',
-);
+# TODO: Uncomment when we figure out how to get feature tags working right.
+#has feature => (
+#	is       => 'ro',
+#	isa      => 'WiX3::XML::Feature',
+#	init_arg => undef,
+#	lazy     => 1,
+#	reader   => '_get_feature',
+#	builder  => '_build_feature',
+#);
 
-sub _build_feature {
-	my $self = shift
-	my $feat = WiX3::XML::Feature->new( id => $self->get_id(), display => 1);
-	$self->add_child_tag($feat);
-	return $feat;
-}
+#sub _build_feature {
+#	my $self = shift;
+#	my $feat = WiX3::XML::Feature->new( 
+#		id => $self->get_id(), 
+#		level => 1,
+#		display => 'hidden',
+#	);
+#	$self->add_child_tag($feat);
+#	return $feat;
+#}
 
 # This type of fragment needs regeneration.
 sub regenerate {
@@ -71,13 +77,13 @@ sub regenerate {
 	my $answer;
 	my @fragment_ids;
 	my @files = @{$self->_get_files()};
-	
+
 	my $id = $self->get_id();
 	# TODO: Make this a trace_line.
-	print "Regenerating $id\n";
+	# print "Regenerating $id\n";
 
 	$self->clear_child_tags();
-	
+
   FILE:
 	foreach my $file (@files) {
 		push @fragment_ids, $self->_add_file_to_fragment($file);
@@ -86,7 +92,7 @@ sub regenerate {
 	if (0 < scalar @fragment_ids) {
 		push @fragment_ids, $id;
 	}
-		
+
 	return uniq @fragment_ids;
 }
 
@@ -96,20 +102,22 @@ sub _add_file_to_fragment {
 	my $tree = Perl::Dist::WiX::DirectoryTree2->instance();
 
 	$self->trace_line(3, "Adding $file_path\n");
-	
+
 	# return () or any fragments that need regeneration retrieved from the cache.
 	my ($directory_final, @fragment_ids);
-	
+
 	my ($volume, $dirs, $file) = splitpath($file_path, 0);
 	my $path_to_find = catdir($volume, $dirs);
 
-	my @child_tags = $self->_get_fragment()->get_child_tags();
+# TODO: Wait until feature tags working right.
+#	my @child_tags = $self->_get_feature()->get_child_tags();
+	my @child_tags = $self->get_child_tags();
 	my $child_tags_count = scalar @child_tags;
-	
+
 	# Step 1: Search in our own directories exactly.
 	#  SUCCESS: Create component and file.
 
-	my $i_step1 = 0;	
+	my $i_step1 = 0;
 	my $found_step1 = 0;
 	my $directory_step1;
 	my $tag_step1;
@@ -118,28 +126,28 @@ sub _add_file_to_fragment {
 
 		$tag_step1 = $child_tags[$i_step1];
 		$i_step1++;
-	
+
 		next STEP1 unless ($tag_step1->isa('Perl::Dist::WiX::Directory') or $tag_step1->isa('Perl::Dist::WiX::DirectoryRef'));
-			
+
 		# Search for directory.
 		$directory_step1 = $tag_step1->search_dir(
 			path_to_find => $path_to_find,
 			descend      => 1,
 			exact        => 1,
 		);
-		
+
 		if (defined $directory_step1) {
-		
+
 			$found_step1 = 1;
 			$self->_add_file_component($directory_step1, $file_path);
 			return ();
 		}
 	}
-	
-	
+
+
 	# Step 2: Search in the directory tree exactly.
 	#  SUCCESS: Create a reference, create component and file.
-	
+
 	my $directory_step2;
   STEP2:
 	# Search for directory.
@@ -148,24 +156,25 @@ sub _add_file_to_fragment {
 		descend      => 1,
 		exact        => 1,
 	);
-		
+
 	if (defined $directory_step2) {
 
 		my $directory_ref_step2 = Perl::Dist::WiX::DirectoryRef->new(
 			directory_object => $directory_step2
 		);
-		
-		$self->_get_feature()->add_child_tag($directory_ref_step2);
+
+# TODO: Wait until feature tags work right... 
+#		$self->_get_feature()->add_child_tag($directory_ref_step2);
+		$self->add_child_tag($directory_ref_step2);
 		$self->_add_file_component($directory_ref_step2, $file_path);
 		return ();
 	}
-	
 
 	# Step 3: Search in our own directories non-exactly.
 	#  SUCCESS: Create directories, create component and file.
 	#  NOTE: Check if directories are in cache, and if so, add to directory tree and regenerate.
-	
-	my $i_step3 = 0;	
+
+	my $i_step3 = 0;
 	my $found_step3 = 0;
 	my $directory_step3;
 	my $tag_step3;
@@ -174,16 +183,16 @@ sub _add_file_to_fragment {
 
 		$tag_step3 = $child_tags[$i_step3];
 		$i_step3++;
-	
+
 		next STEP3 unless ($tag_step3->isa('Perl::Dist::WiX::Directory') or $tag_step3->isa('Perl::Dist::WiX::DirectoryRef'));
-	
+
 		# Search for directory.
 		$directory_step3 = $tag_step3->search_dir(
 			path_to_find => $path_to_find,
 			descend      => 1,
 			exact        => 0,
 		);
-		
+
 		if (defined $directory_step3) {
 
 			$found_step3 = 1;
@@ -192,13 +201,13 @@ sub _add_file_to_fragment {
 			return @fragment_ids;
 		}
 	}
-	
-	
+
+
 	# Step 4: Search in the directory tree non-exactly.
 	#  SUCCESS: Create a reference, create directories below it, create component and file.
 	#  NOTE: Same as Step 3.
 	#  FAIL: Throw error.
-	
+
 	my $directory_step4;
   STEP3:
 	# Search for directory.
@@ -207,14 +216,16 @@ sub _add_file_to_fragment {
 		descend      => 1,
 		exact        => 0,
 	);
-		
+
 	if (defined $directory_step4) {
-	
+
 		my $directory_ref_step4 = Perl::Dist::WiX::DirectoryRef->new(
 			directory_object => $directory_step4
 		);
-		
-		$self->_get_feature()->add_child_tag($directory_ref_step4);
+
+# TODO: Wait until feature tags work right.
+#		$self->_get_feature()->add_child_tag($directory_ref_step4);
+		$self->add_child_tag($directory_ref_step4);
 		($directory_final, @fragment_ids) = $self->_add_directory_recursive($directory_ref_step4, $path_to_find);		
 		$self->_add_file_component($directory_final, $file_path);
 		return @fragment_ids;
@@ -222,7 +233,6 @@ sub _add_file_to_fragment {
 
 	PDWiX->throw("Could not add $file_path");
 	return ();
-	
 }
 
 sub check_duplicates {
@@ -253,7 +263,7 @@ sub _add_directory_recursive {
 	my $tree = Perl::Dist::WiX::DirectoryTree2->instance();
 	my $directory_object = $tag;
 	my @fragment_ids = ();
-	
+
 	my $dirs_to_add = abs2rel( $dir, $tag->get_path() );
 	my @dirs_to_add = splitdir($dirs_to_add);
 
@@ -279,10 +289,10 @@ sub _add_file_component {
 	my $self = shift;
 	my $tag = shift;
 	my $file = shift;
-	
+
 	my $component = WiX3::XML::Component->new( path => $file );
 	my $file_obj = WiX3::XML::File->new( source => $file, id => $component->get_id() );
-	
+
 	$component->add_child_tag($file_obj);
 	$tag->add_child_tag($component);
 

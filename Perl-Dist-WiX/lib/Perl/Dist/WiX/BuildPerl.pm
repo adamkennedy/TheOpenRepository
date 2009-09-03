@@ -719,6 +719,7 @@ sub install_perl_toolchain {
 	foreach my $dist ( $toolchain->get_dists() ) {
 		my $automated_testing = 0;
 		my $release_testing   = 0;
+		my $overwritable      = 0;
 		my $force             = $self->force;
 		if ( $dist =~ /Scalar-List-Util/msx ) {
 
@@ -753,6 +754,21 @@ sub install_perl_toolchain {
 			# 2.20 and 2.2002 are buggy on 5.8.9.
 			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_05.tar.gz'
 		}
+		if ( $dist =~ /ExtUtils-MakeMaker-/msx ) {
+
+			# There are modules that overwrite portions of this one.
+			$overwritable = 1;
+		}
+		if ( $dist =~ /Win32API-Registry-/msx ) {
+
+			# This module needs forced on Vista (and probably 2008/Win7 as well).
+			$force = 1;
+		}
+		if ( $dist =~ /Win32-TieRegistry-/msx ) {
+
+			# This module needs forced on Vista (and probably 2008/Win7 as well).
+			$force = 1;
+		}
 
 		$module_id = $self->_name_to_module($dist);
 		$core =
@@ -765,6 +781,7 @@ sub install_perl_toolchain {
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
+			overwritable      => $overwritable,
 			$core
 			  ? (
 				  makefilepl_param => ['INSTALLDIRS=perl'],
