@@ -14,6 +14,7 @@ has _traceconfig => (
 	isa      => TraceConfig,
 	reader   => '_get_traceconfig',
 	init_arg => 'options',
+	weak_ref => 1,
 	default  => sub { WiX3::Trace::Config->new() },
 );
 
@@ -22,6 +23,7 @@ has _traceobject => (
 	isa      => TraceObject,
 	lazy     => 1,
 	init_arg => undef,
+	weak_ref => 1,
 	builder  => '_setup_traceobject',
 	handles =>
 	  [qw(get_tracelevel set_tracelevel get_testing trace_line log)],

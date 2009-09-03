@@ -282,7 +282,7 @@ This document describes WiX3::XML::Component version 0.005
 
 =head1 SYNOPSIS
 
-	my $component = new XML::WiX3::Classes::Component(
+	my $component = new WiX3::XML::Component(
 		id => 'MyComponent',
 		
 	);

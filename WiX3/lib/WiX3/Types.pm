@@ -4,7 +4,7 @@ package                                # Hide from PAUSE.
 use 5.008001;
 use MooseX::Types -declare => [ qw(
 	  Host Tracelevel IsTag _YesNoType YesNoType ComponentGuidType PositiveInt
-	  NonNegativeInt TraceConfig TraceObject
+	  NonNegativeInt TraceConfig TraceObject EnumRemoveFolderOn
 	  ) ];
 use Regexp::Common 2.105;
 use MooseX::Types::Moose qw( Str Int Bool HashRef );
@@ -18,6 +18,8 @@ subtype Host, as Str, where {
 }, message {
 	"$_ is not a valid hostname";
 };
+
+enum EnumRemoveFolderOn, qw( install uninstall both );
 
 subtype IsTag, as role_type 'WiX3::XML::Role::Tag';
 
