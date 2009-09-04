@@ -306,6 +306,7 @@ sub WriteAll {
 			File::Spec->catfile($dir, $params->{default}),
 			%$params,
 		);
+	}
 }
 
 #####################################################################
