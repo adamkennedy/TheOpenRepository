@@ -304,11 +304,10 @@ sub install_modules {
 =head2 install_par
 
 The C<install_par> method extends the available installation options to
-allow for the install of pre-compiled modules and pre-compiled C libraries
-via "PAR" packages.
+allow for the install of pre-compiled modules via "PAR" packages.
 
 The compulsory 'name' param should be a simple identifying name, and does
-not have any functional use.
+not have any functional use other than determining the fragment name.
 
 The compulsory 'uri' param should be a URL string to the PAR package.
 
@@ -330,7 +329,11 @@ sub install_par {
 
 	my $filelist = $par->install();
 	
-	# TODO: Put in fragment.
+	my $name = $par->get_name();
+	$name =~ s{::}{_}msg;
+	$name =~ s{-}{_}msg;
+
+	$self->insert_fragment( $name, $filelist );
 	
 	return $self;
 } ## end sub install_par

@@ -231,7 +231,7 @@ sub checkpoint_save {
 		user_agent        => undef,
 		misc              => undef,
 	};
-		
+
 	local $Storable::Deparse = 1;
 	Storable::nstore( $copy, $self->checkpoint_file );
 
@@ -308,6 +308,19 @@ See L<Perl::Dist::WiX::Diagnostics|Perl::Dist::WiX::Diagnostics> for a list of
 exceptions that this module can throw.
 
 =head1 BUGS AND LIMITATIONS (SUPPORT)
+
+B<WARNING:> The checkpointing facility in this module is NOT stable.  It is 
+currently implemented using L<Storable|Storable> with the C<$Storable::Deparse>
+variable set to 1 (localized, of course).  This probably WILL change in the 
+future, as when checkpoints are reloaded, hash entries are appearing that 
+weren't intended to be there.  I am also not sure that references that were 
+weakened are weakened when reloaded.
+
+Restored checkpoints currently crash with "Free in wrong pool" errors in global 
+destruction - if an exception occurs, they're reported there instead.
+
+Do B<NOT> use this in production.  Debugging a distribution using the facilities 
+provided here is fine.
 
 Bugs should be reported via: 
 

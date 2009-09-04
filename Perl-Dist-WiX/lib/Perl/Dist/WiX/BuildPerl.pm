@@ -8,7 +8,7 @@ Perl::Dist::WiX::BuildPerl - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::BuildPerl version 1.000.
+This document describes Perl::Dist::WiX::BuildPerl version 1.090.
 
 =head1 DESCRIPTION
 
@@ -56,10 +56,8 @@ require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-
 our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
-
 
 Readonly my %MODULE_FIX => (
 	'CGI.pm'               => 'CGI',
@@ -96,7 +94,10 @@ The C<install_cpan_upgrades> method is provided to upgrade all the
 modules that were installed with Perl that were not upgraded by the
 L<install_perl_toolchain|/install_perl_toolchain> subroutine.
 
-Returns true (technically, the object that called it), or throws an exception.
+Returns true or throws an exception.
+
+This is recommended to be used as a task in the tasklist, and is in 
+the default tasklist after the "perl toolchain" is installed.
 
 =cut
 
@@ -380,56 +381,6 @@ sub _module_fix {
 	return ( exists $MODULE_FIX{$module} ) ? $MODULE_FIX{$module} : $module;
 }
 
-=head2 install_perl_modules_*
-
-(* = 1, 2, or 3)
-
-The C<install_perl_modules_*> methods are stubs provided to allow sub-classed
-distributions to install additional modules after perl is installed.
-
-By default, C<install_perl_modules_1> calls 
-L<install_cpan_upgrades|/install_cpan_upgrades> in order to upgrade all the 
-modules included with perl. The others do nothing.
-
-Returns true (technically, the object that called it), or throws an exception.
-
-=cut
-
-sub install_perl_modules_1 {
-	my $self = shift;
-
-	# Don't do anything here.
-	return $self;
-}
-
-sub install_perl_modules_2 {
-	my $self = shift;
-	
-	# Don't do anything here.
-	return $self;
-}
-
-sub install_perl_modules_3 {
-	my $self = shift;
-	
-	# Don't do anything here.
-	return $self;
-}
-
-sub install_perl_modules_4 {
-	my $self = shift;
-	
-	# Don't do anything here.
-	return $self;
-}
-
-sub install_perl_modules_5 {
-	my $self = shift;
-	
-	# Don't do anything here.
-	return $self;
-}
-
 #####################################################################
 # Perl installation support
 
@@ -440,6 +391,9 @@ correct L<install_perl_*|/install_perl_*> routine for the version of perl
 being created.
 
 Returns true (technically, the object that called it), or throws an exception.
+
+This is recommended to be used as a task in the tasklist, and is in 
+the default tasklist after the "c toolchain" is installed.
 
 =cut
 
@@ -457,7 +411,7 @@ sub install_perl {
 	$self->add_to_fragment( 'perl',
 		[ catfile( $self->image_dir, qw(perl lib perllocal.pod) ) ] );
 
-	return $self;
+	return 1;
 } ## end sub install_perl
 
 =head2 install_perl_* (* = 589, 5100, or 5101)
@@ -467,9 +421,8 @@ sub install_perl {
 The C<install_perl_*> method provides a simplified way to install
 Perl into the distribution.
 
-It takes care of calling C<install_perl_*_bin> with the standard
-params, and then calls C<install_perl_toolchain> to set up the
-CPAN toolchain.
+It takes care of calling C<install_perl_bin> with the standard
+parameters.
 
 Returns true, or throws an exception on error.
 
@@ -702,6 +655,9 @@ The C<install_perl_toolchain> method is a routine provided to install the
 versions of perl) to be able to install modules.
 
 Returns true (technically, the object that called it), or throws an exception.
+
+This is recommended to be used as a task in the tasklist, and is in 
+the default tasklist after the perl interpreter is installed.
 
 =cut
 

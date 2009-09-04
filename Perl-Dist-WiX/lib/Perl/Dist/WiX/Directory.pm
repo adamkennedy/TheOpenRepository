@@ -6,14 +6,17 @@ package Perl::Dist::WiX::Directory;
 #
 # Copyright 2009 Curtis Jewell
 #
-# License is the same as perl. See Wix.pm for details.
+# License is the same as perl. See WiX.pm for details.
 #
 #<<<
 use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str );
-use File::Spec::Functions qw( catpath catdir abs2rel splitpath splitdir );
+# TODO: May or may not need this. Needs to be tested.
+# use WiX3::Util::StrictConstructor;
+use File::Spec::Functions qw( catpath catdir splitpath splitdir );
 use Params::Util qw( _STRING );
+
+require Perl::Dist::WiX::Exceptions;
 
 our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };

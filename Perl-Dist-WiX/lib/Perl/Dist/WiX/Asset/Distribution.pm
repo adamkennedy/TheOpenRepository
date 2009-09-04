@@ -4,6 +4,7 @@ use Moose;
 use MooseX::Types::Moose qw( Str Bool ArrayRef Maybe ); 
 use File::Spec::Functions qw( catdir catfile );
 
+# require Data::Dumper;
 require File::Remove;
 require URI;
 
@@ -34,7 +35,7 @@ has force => (
 	isa      => Bool,
 	reader   => '_get_force',
 	lazy     => 1,
-	default  => sub { !! $_[0]->parent()->force },
+	default  => sub { !! $_[0]->_get_parent()->force },
 );
 
 has automated_testing => (
@@ -98,6 +99,9 @@ sub BUILD {
 
 sub install {
 	my $self = shift;
+	
+#	print Data::Dumper->new([$self], [qw(*self)])->Indent(1)->Maxdepth(1)->Dump();
+	
 	my $name = $self->get_name();
 	my $build_dir = $self->_get_build_dir();
 	
@@ -176,9 +180,10 @@ sub install {
 			$self->_trace_line( 2,
 				"Installing with RELEASE_TESTING enabled...\n" );
 		}
-		local $ENV{AUTOMATED_TESTING} = $self->_get_automated_testing() ? 1 : undef;
-		local $ENV{RELEASE_TESTING}   = $self->_get_release_testing() ? 1 : undef;
-
+		local $ENV{AUTOMATED_TESTING}   = $self->_get_automated_testing() ? 1 : undef;
+		local $ENV{RELEASE_TESTING}     = $self->_get_release_testing() ? 1 : undef;
+		local $ENV{PERL_MM_USE_DEFAULT} = 1;
+		
 		$self->_configure($buildpl);
 
 		$self->_install_distribution($buildpl);

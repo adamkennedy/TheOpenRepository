@@ -16,15 +16,14 @@ with 'Perl::Dist::WiX::Role::Asset';
 has name => (
 	is       => 'ro',
 	isa      => Str,
-	reader   => '_get_name',
+	reader   => 'get_name',
 	required => 1,
 );
 
 sub install {
 	my $self = shift;
 	
-	my $parent = $self->_get_parent();
-	my $name = $self->_get_name();
+	my $name = $self->get_name();
 	my $image_dir = $self->_get_image_dir();
 	my $download_dir = $self->_get_download_dir();
 	my $url = $self->_get_url();
@@ -124,7 +123,7 @@ __END__
 
 =head1 NAME
 
-Perl::Dist::Asset::PAR - "Binary .par package" asset for a Win32 Perl
+Perl::Dist::WiX::Asset::PAR - "Binary .par package" asset for a Win32 Perl
 
 =head1 SYNOPSIS
 
@@ -133,7 +132,7 @@ Perl::Dist::Asset::PAR - "Binary .par package" asset for a Win32 Perl
   );
   
   # Or usually more like this:
-  $perl_dist_inno_obj->install_par(
+  $perl_dist_wix_obj->install_par(
     name => 'Perl-Dist-PrepackagedPAR-libexpat',
     url  => 'http://parrepository.de/Perl-Dist-PrepackagedPAR-libexpat-2.0.1-MSWin32-x86-multi-thread-anyversion.par',
   );
@@ -142,49 +141,51 @@ Perl::Dist::Asset::PAR - "Binary .par package" asset for a Win32 Perl
 
 B<Perl::Dist::WiX::Asset::PAR> is a data class that provides encapsulation
 and error checking for a "binary .par package" to be installed in a
-L<Perl::Dist::WiX>-based Perl distribution.
+L<Perl::Dist::WiX|Perl::Dist::WiX>-based Perl distribution.
 
-It is normally created on the fly by the L<Perl::Dist::WiX> C<install_par>
-method (and other things that call it). The C<install_par> routine
-is currently implemented in this file and monkey-patched into
-L<Perl::Dist::Inno> namespace. This will hopefully change in future.
+It is normally created by the L<install_par|Perl::Dist::WiX::Installation/install_par> 
+method of C<Perl::Dist::WiX> (and other things that call it). 
 
 The specification of the location to retrieve the package is done via
-the standard mechanism implemented in L<Perl::Dist::Asset>.
+the standard mechanism implemented in L<Perl::Dist::WiX::Asset|Perl::Dist::WiX::Asset>.
 
-The C<install_to> argument of the L<Perl::Dist::Asset::Library> Perl::Dist asset
-is not currently supported by the PAR asset.
+The C<install_to> argument of the 
+L<Perl::Dist::WiX::Asset::Library|Perl::Dist::WiX::Asset::Library> 
+asset is not supported by the PAR asset.
+
 See L<PAR FILE FORMAT EXTENSIONS> below for details on how non-Perl binaries
 are installed.
 
 =head1 METHODS
 
-This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
+This class is a L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset> 
+and shares its API.
 
 =head2 new
 
-The C<new> constructor takes a series of parameters, validates then
+The C<new> constructor takes a series of parameters, validates them
 and returns a new B<Perl::Dist::Asset::PAR> object.
 
-It inherits all the params described in the L<Perl::Dist::Asset> C<new>
-method documentation, and adds some additional params.
+It inherits all the parameters described in the C<Perl::Dist::WiX::Asset> 
+C<new> method documentation, and adds an additional parameter.
 
 =over 4
 
 =item name
 
-The required C<name> param is the logical (arbitrary) name of the package
-for the purposes of identification. A sensible default would be the name of
+The required C<name> param is the logical name of the package for the 
+purposes of identification. A sensible default would be the name of
 the primary Perl module in the package.
 
 =back
 
-The C<new> constructor returns a B<Perl::Dist::Asset::PAR> object,
+The C<new> constructor returns a B<Perl::Dist::WiX::Asset::PAR> object,
 or throws an exception (dies) if an invalid param is provided.
 
 =head1 PAR FILE FORMAT EXTENSIONS
 
-This concerns packagers of .par binaries only. 
+This concerns packagers of .par binaries only.
+ 
 A .par usually mostly contains the blib/ directory after making a Perl module.
 For use with Perl::Dist::Asset::PAR, there are currently three more subdirectories
 which will be installed:
@@ -198,19 +199,21 @@ which will be installed:
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 
 For other issues, contact the author.
 
 =head1 AUTHOR
 
-Steffen Mueller E<lt>smueller@cpan.orgE<gt>
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
 L<Perl::Dist>, L<Perl::Dist::Inno>, L<Perl::Dist::Asset>
 
 =head1 COPYRIGHT AND LICENSE
+
+Copyright 2009 Curtis Jewell.
 
 Copyright 2008 Steffen Mueller, borrowing heavily from
 Adam Kennedy's code.
@@ -222,4 +225,3 @@ The full text of the license can be found in the
 LICENSE file included with this module.
 
 =cut
-
