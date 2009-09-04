@@ -102,7 +102,7 @@ sub BUILDARGS {
 		if ( defined $args{share} ) {
 			# Map share to url vis File::ShareDir
 			my ($dist, $name) = split /\s+/, $args{share};
-			$parent->trace_line("Finding $name in $dist... ");
+			$parent->trace_line(2, "Finding $name in $dist... ");
 			my $file = rel2abs(
 				File::ShareDir::dist_file( $dist, $name )
 			);
@@ -110,12 +110,12 @@ sub BUILDARGS {
 				PDWiX->throw("Failed to find $file");
 			}
 			$args{url} = URI::file->new($file)->as_string;
-			$parent->trace_line(" found\n");
+			$parent->trace_line(2, " found\n");
 
 		} elsif ( defined $args{dist} ) {
 			# Map CPAN dist path to url
 			my $dist = $args{dist};
-			$parent->trace_line("Using distribution path $dist\n");
+			$parent->trace_line(2, "Using distribution path $dist\n");
 			my $one  = substr( $dist, 0, 1 );
 			my $two  = substr( $dist, 1, 1 );
 			my $path = File::Spec::Unix->catfile(
