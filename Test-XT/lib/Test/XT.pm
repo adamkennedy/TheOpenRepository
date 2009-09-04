@@ -8,14 +8,18 @@ Test::XT - Generate best practice author tests
 
 =head1 SYNOPSIS
 
-  use Test::XT 'WriteXT';
+  use Test::XT qw(WriteXT);
   
+  # Write some specific tests:
   WriteXT(
       'Test::Pod'            => 't/pod.t',
       'Test::CPAN::Meta'     => 't/meta.t',
       'Test::MinimumVersion' => 't/minimumversion.t',
       'Test::Perl::Critic'   => 't/critic.t',
   );
+  
+  # Write all available author tests:
+  WriteAll('t');
 
 =head1 DESCRIPTION
 
@@ -75,11 +79,12 @@ use Exporter ();
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION   = '0.02';
+	$VERSION   = '0.03';
 	@ISA       = 'Exporter';
 	@EXPORT_OK = qw{
 		WriteTest
 		WriteXT
+		WriteAll
 	};
 }
 
@@ -197,7 +202,7 @@ my %STANDARD = (
 
 =pod
 
-=head1 EXPORTED FUNCTIONS
+=head1 EXPORTABLE FUNCTIONS
 
 =head2 WriteTest( $file, %test_data )
 
@@ -276,9 +281,32 @@ sub WriteXT {
 	}
 }
 
+=pod
 
+=head2 WriteAll( $directory )
 
+This is a convenient way to write all of the available tests in the author
+test collection. You'll need to review each of these for usefulness in your
+package, but it provides some useful tests nonetheless.
 
+The directory part is optional; it will default to the 't/' directory.
+
+Example code:
+
+  WriteAll('t');
+  WriteAll(); # same as above
+
+=cut
+
+sub WriteAll {
+	my $dir = shift || 't';
+	use File::Spec;
+	while (my ($name, $params) = each %STANDARD) {
+		WriteTest(
+			File::Spec->catfile($dir, $params->{default}),
+			%$params,
+		);
+}
 
 #####################################################################
 # Object Form
@@ -314,7 +342,7 @@ sub write_string {
 	my $modules = join "\n", map {
 		"\t'$_ $self->{modules}->{$_}',"
 	} sort keys %{$self->{modules}};
-	return <<"END_TEST";
+	my $o       = << "END_HEADER";
 #!/usr/bin/perl
 $comment
 use strict;
@@ -329,25 +357,32 @@ $modules
 
 # Don't run tests during end-user installs
 use Test::More;
-unless ( \$ENV{AUTOMATED_TESTING} or \$ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
+END_HEADER
 
+	# See if this is RELEASE_TESTING only
+	$o .= "plan( skip_all => 'Author tests not required for installation' )\n";
+	$o .= q|	unless ( $ENV{RELEASE_TESTING}|;
+	unless ($self->{release}) {
+		$o .= ' or $ENV{AUTHOR_TESTING}';
+	}
+	$o .= " );\n\n";
+
+	$o .= << 'END_MODULES';
 # Load the testing modules
-foreach my \$MODULE ( \@MODULES ) {
-	eval "use \$MODULE";
-	if ( \$@ ) {
-		\$ENV{RELEASE_TESTING}
-		? die( "Failed to load required release-testing module \$MODULE" )
-		: plan( skip_all => "\$MODULE not available for testing" );
+foreach my $MODULE ( @MODULES ) {
+	eval "use $MODULE";
+	if ( $@ ) {
+		$ENV{RELEASE_TESTING}
+		? die( "Failed to load required release-testing module $MODULE" )
+		: plan( skip_all => "$MODULE not available for testing" );
 	}
 }
 
-$self->{test}();
+END_MODULES
 
-1;
-END_TEST
-
+	$o .= $self->{test} . "()\n\n";
+	$o .= "1;\n";
+	return $o;
 }
 
 1;

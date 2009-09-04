@@ -1,5 +1,11 @@
 Changes for Perl extension Test-XS
 
+0.03 Thu 3 Sep 2009
+	- Adds three new modules
+	- More documentation on everything
+	- New WriteAll function to write all test scripts
+	- Add support for RELEASE_TESTING-only modules
+
 0.02 Thu 23 Apr 2009
 	- Adding two more modules
 
