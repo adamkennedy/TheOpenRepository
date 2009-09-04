@@ -381,7 +381,7 @@ foreach my $MODULE ( @MODULES ) {
 
 END_MODULES
 
-	$o .= $self->{test} . "()\n\n";
+	$o .= $self->{test} . "();\n\n";
 	$o .= "1;\n";
 	return $o;
 }
