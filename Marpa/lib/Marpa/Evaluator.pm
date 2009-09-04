@@ -2378,7 +2378,8 @@ sub Marpa::Evaluator::value {
                 my @and_values = ($and_iteration);
                 push @and_values, @{$and_iterations}[@and_slice];
                 $and_choice->[Marpa::Internal::And_Choice::FROZEN_ITERATION] =
-                    Storable::freeze([ \@and_slice, \@and_values, \@or_slice, \@or_values ]);
+                    Storable::freeze(
+                    [ \@and_slice, \@and_values, \@or_slice, \@or_values ] );
 
                 push @and_choices, $and_choice;
 
@@ -2446,17 +2447,20 @@ sub Marpa::Evaluator::value {
             my $cause_id;
             my $cause_and_node_choice;
             my $cause_and_node_iteration;
+
             # assignment instead of comparison intentional
             if ( $cause = $and_node->[Marpa::Internal::And_Node::CAUSE] ) {
                 $cause_id = $cause->[Marpa::Internal::Or_Node::ID];
                 $cause_and_node_choice = $or_iterations->[$cause_id]->[-1];
-                $cause_and_node_iteration = $and_iterations->[$cause_and_node_choice];
-            }
+                $cause_and_node_iteration =
+                    $and_iterations->[$cause_and_node_choice];
+            } ## end if ( $cause = $and_node->[...])
 
             my $predecessor;
             my $predecessor_id;
             my $predecessor_and_node_choice;
             my $predecessor_and_node_iteration;
+
             # assignment instead of comparison intentional
             if ( $predecessor =
                 $and_node->[Marpa::Internal::And_Node::PREDECESSOR] )
@@ -2474,13 +2478,14 @@ sub Marpa::Evaluator::value {
                 if ( not defined $cause ) {
                     $sort_key =
                         defined $predecessor_and_node_choice
-                        ? $predecessor_and_node_choice->[Marpa::Internal::And_Choice::SORT_KEY]
+                        ? $predecessor_and_node_choice
+                        ->[Marpa::Internal::And_Choice::SORT_KEY]
                         : [];
                     last DERIVE_SORT_KEY;
                 } ## end if ( not defined $cause )
 
-                my $cause_sort_elements =
-                    $cause_and_node_choice->[Marpa::Internal::And_Choice::SORT_KEY];
+                my $cause_sort_elements = $cause_and_node_choice
+                    ->[Marpa::Internal::And_Choice::SORT_KEY];
 
                 # If we are here, there a cause child defined
                 if ( not defined $predecessor ) {
@@ -2520,7 +2525,7 @@ sub Marpa::Evaluator::value {
                             )
                     ];
 
-                } ## end if ( my $internal_nulls = $or_iteration->[ ...])
+                } ## end if ( my $internal_nulls = ...)
 
             } ## end DERIVE_SORT_KEY:
 
@@ -2546,15 +2551,16 @@ sub Marpa::Evaluator::value {
                 push @or_map,
                     [
                     $cause_id,
-                    $cause_and_node_choice
-                        ->[Marpa::Internal::And_Choice::ID]
+                    $cause_and_node_choice->[Marpa::Internal::And_Choice::ID]
                     ],
                     @{ $cause_and_node_choice
                         ->[Marpa::Internal::And_Choice::OR_MAP] };
             } ## end if ( defined $cause )
-            $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP] = \@or_map;
+            $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP] =
+                \@or_map;
 
-            $and_node_iteration->[Marpa::Internal::And_Iteration::SORT_KEY] = $sort_key;
+            $and_node_iteration->[Marpa::Internal::And_Iteration::SORT_KEY] =
+                $sort_key;
             next TASK;
 
         } ## end if ( $task == Marpa::Internal::Task::SETUP_AND_NODE )
