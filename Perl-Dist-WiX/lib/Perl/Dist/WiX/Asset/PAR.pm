@@ -24,7 +24,7 @@ sub install {
 	my $self = shift;
 	
 	my $parent = $self->_get_parent();
-	my $name = $self->get_name();
+	my $name = $self->_get_name();
 	my $image_dir = $self->_get_image_dir();
 	my $download_dir = $self->_get_download_dir();
 	my $url = $self->_get_url();
@@ -77,7 +77,7 @@ sub install {
 
 	# Print saved output if required.
 	$io->close;
-	$self->trace_line( 2, $output );
+	$self->_trace_line( 2, $output );
 
 	# Get distribution name to add to what's installed.
 	if ( ( defined $url ) and ( $url =~ m{.*/([^/]*)\z}msx ) )

@@ -382,12 +382,10 @@ Returns true or throws an exception on error.
 sub install_expat {
 	my $self = shift;
 
-	# Install the PAR version of libexpat
-	my $filelist = $self->install_par(
-		name         => 'libexpat',
-		share        => 'Perl-Dist vanilla/libexpat-vanilla.par',
-		install_perl => 1,
-		install_c    => 0,
+	my $filelist = $self->install_binary(
+		name       => 'libexpat',
+		install_to => q{.},
+		url        => $self->binary_url('libexpat-2.0.1-vanilla.zip'),
 	);
 
 	$self->insert_fragment( 'libexpat', $filelist );
