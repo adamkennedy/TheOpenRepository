@@ -25,7 +25,7 @@ has force => (
 	isa      => Bool,
 	reader   => '_get_force',
 	lazy     => 1,
-	default  => sub { !! $_[0]->_get_parent()->force() },
+	default  => sub { $_[0]->_get_parent()->force() ? 1 : 0 },
 );
 
 has packlist => (

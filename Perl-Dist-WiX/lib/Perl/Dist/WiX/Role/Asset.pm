@@ -129,16 +129,20 @@ sub BUILDARGS {
 		}
 	}
 
-	# Create the filename from the url
-	$args{file} = $args{url};
-	$args{file} =~ s|.+/||;
-	unless ( defined $args{file} and length $args{file}) {
-		if ($class ne 'Perl::Dist::WiX::Asset::Website') {
-			PDWiX::Parameter->throw(parameter => 'file', where => '::Role::Asset->new');
-		} else {
-			# file is not used in Websites.
-			$args{file} = q{ };
+	if ($class ne 'Perl::Dist::WiX::Asset::DistFile') {
+		# Create the filename from the url
+		$args{file} = $args{url};
+		$args{file} =~ s|.+/||;
+		unless ( defined $args{file} and length $args{file}) {
+			if ($class ne 'Perl::Dist::WiX::Asset::Website') {
+				PDWiX::Parameter->throw(parameter => 'file', where => '::Role::Asset->new');
+			} else {
+				# file is not used in Websites.
+				$args{file} = q{ };
+			}
 		}
+	} else {
+		$args{url} = q{ };
 	}
 	
 	my %default_args = ( url => $args{url}, file => $args{file}, parent => $args{parent} );

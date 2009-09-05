@@ -2,7 +2,7 @@ package Perl::Dist::WiX::Asset::DistFile;
 
 use Moose;
 use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef ); 
-use File::Spec::Functions qw( catdir catfile );
+use File::Spec::Functions qw( catdir catfile splitpath );
 
 require File::Remove;
 require URI;
@@ -14,13 +14,6 @@ $VERSION = eval { return $VERSION };
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
-
-has name => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => 'get_name',
-	required => 1,
-);
 
 has module_name => (
 	is       => 'ro',
@@ -36,7 +29,7 @@ has force => (
 	isa      => Bool,
 	reader   => '_get_force',
 	lazy     => 1,
-	default  => sub { !! $_[0]->parent()->force },
+	default  => sub { !! $_[0]->_get_parent()->force },
 );
 
 has automated_testing => (
@@ -81,6 +74,10 @@ has packlist => (
 	default  => 1,
 );
 
+sub get_name {
+	return $_[0]->get_module_name();
+}
+
 sub install {
 	my $self = shift;
 	my $path = $self->_get_file();
@@ -111,7 +108,7 @@ sub install {
 	$dist_path =~ s{\.zip}{}msx;
 	$self->_add_to_distributions_installed($dist_path);
 
-	my $unpack_to = catdir( $self->build_dir, $dist_path );
+	my $unpack_to = catdir( $self->_get_build_dir(), $dist_path );
 
 	# Extract the tarball
 	if ( -d $unpack_to ) {
@@ -119,7 +116,7 @@ sub install {
 		File::Remove::remove( \1, $unpack_to );
 	}
 	$self->_trace_line( 4, "Unpacking to $unpack_to\n" );
-	$self->_extract( $path => $self->build_dir );
+	$self->_extract( $path => $self->_get_build_dir() );
 	unless ( -d $unpack_to ) {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
@@ -172,8 +169,8 @@ sub install {
 		$filelist = $self->_search_packlist($module);
 	} else {
 		$filelist = File::List::Object->new->readdir(
-			catdir( $self->image_dir, 'perl' ) );
-		$filelist->subtract($filelist_sub)->filter( $self->filters );
+			catdir( $self->_get_image_dir(), 'perl' ) );
+		$filelist->subtract($filelist_sub)->filter( $self->_filters() );
 	}
 	
 	return $filelist;

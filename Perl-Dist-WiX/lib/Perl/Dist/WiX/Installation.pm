@@ -203,7 +203,10 @@ Returns true or throws an exception on error.
 sub install_distribution_from_file {
 	my $self = shift;
 
-	my $dist = Perl::Dist::WiX::Asset::DistFile->new(@_);
+	my $dist = Perl::Dist::WiX::Asset::DistFile->new(
+		parent => $self,
+		@_,
+	);
 
 	my $filelist = $dist->install();
 	my $mod_id = $dist->get_module_name();
