@@ -830,13 +830,7 @@ Readonly my %PACKAGES => (
 	'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
 	'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
 	'w32api'        => 'w32api-3.10.tar.gz',
-#	'libiconv-dep'  => 'libiconv-1.9.2-1-dep.zip',
-#	'libiconv-lib'  => 'libiconv-1.9.2-1-lib.zip',
-#	'libiconv-bin'  => 'libiconv-1.9.2-1-bin.zip',
-	'expat'         => 'expat-2.0.1-vanilla.zip',
-	'gmp'           => 'gmp-4.2.1-vanilla.zip',
 	'six'           => 'six-20090724-gabor.zip',
-	'libiconv'      => 'libiconv-08192009.zip',
 );
 
 sub final_initialization {
