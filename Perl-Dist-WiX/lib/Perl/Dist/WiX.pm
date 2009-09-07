@@ -830,7 +830,6 @@ Readonly my %PACKAGES => (
 	'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
 	'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
 	'w32api'        => 'w32api-3.10.tar.gz',
-	'six'           => 'six-20090724-gabor.zip',
 );
 
 sub final_initialization {
