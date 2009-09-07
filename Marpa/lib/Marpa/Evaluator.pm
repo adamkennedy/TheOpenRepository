@@ -2006,8 +2006,9 @@ sub Marpa::Evaluator::new {
             next FIELD if not defined $name;
             my $child_or_node = $or_node_by_name{$name};
             $and_node->[$field] = $child_or_node;
-            my $parent_ids = $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
-            push @{ $parent_ids }, $and_node_id;
+            my $parent_ids =
+                $child_or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
+            push @{$parent_ids}, $and_node_id;
         } ## end for my $field ( Marpa::Internal::And_Node::PREDECESSOR...)
 
     } ## end for my $and_node ( @{$and_nodes} )
@@ -2023,7 +2024,7 @@ sub Marpa::Evaluator::new {
         next OR_NODE if scalar @{$parent_ids} <= 1;
 
         # Marpa::exception( "Zero length or-node: ",
-            # $or_node->[Marpa::Internal::Or_Node::TAG] );
+        # $or_node->[Marpa::Internal::Or_Node::TAG] );
 
     } ## end for my $or_node ( @{$or_nodes} )
 
@@ -2405,7 +2406,7 @@ sub Marpa::Evaluator::value {
         # Set up, dual task for both initialization and iteration
         if ( $task == Marpa::Internal::Task::SETUP_AND_NODE ) {
 
-            my ($and_node_id)      = @{$task_entry};
+            my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
                 print {$trace_fh} 'Task: SETUP_AND_NODE; ',
