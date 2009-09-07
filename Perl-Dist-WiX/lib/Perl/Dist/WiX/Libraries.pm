@@ -273,34 +273,6 @@ sub install_mingw_make {
 	return 1;
 }
 
-=pod
-
-=head2 install_six
-
-  $dist->install_six
-
-The C<install_six> method installs (via a ZIP file) an experimental parrot
-and rakudo conglomeration codenamed "six" that is utterly unlike whatever
-the final packaged binary of Perl 6 will look like.
-
-This method should only be called after all Perl 5 components are installed.
-
-=cut
-
-sub install_six {
-	my $self = shift;
-
-	# Install Gabor's crazy Perl 6 blob
-	my $filelist = $self->install_binary(
-		name       => 'six',
-		install_to => q{.}
-	);
-	$self->insert_fragment( 'six', $filelist );
-	$self->add_env_path('six');
-
-	return 1;
-} ## end sub install_six
-
 __END__
 
 =pod
