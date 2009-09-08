@@ -2013,22 +2013,110 @@ sub Marpa::Evaluator::new {
 
     } ## end for my $and_node ( @{$and_nodes} )
 
+    # We don't allow zero-length or-nodes to have more than one
+    # and-node parent.
+    # We do that to prevent two and-nodes in a
+    # parse from overlapping.
+    # For non-zero-length or-nodes preventing overlap is
+    # easy -- if no and-nodes have overlapping spans
+    # as determined by start and end earleme,
+    # they won't have overlapping non-zero-length or-nodes.
+    # But with zero-length or-nodes, an or-node can
+    # be a trailing or-node and a lead or-node at the same
+    # earleme location.
+    # That means that two adjacent and-nodes can share
+    # the same child or-node -- one which has it as a trailing
+    # or-node, the other which has it as a leading or-node.
+    #
+    # So in the below, we make sure every zero-length or-node
+    # has only one parent.
     OR_NODE: for my $or_node ( @{$or_nodes} ) {
 
-        # No deleted nodes yet
+        # Don't need to deal with deleted ndoes
+        # There aren't any at this point
         next OR_NODE
             if $or_node->[Marpa::Internal::Or_Node::START_EARLEME]
-                == $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
+                != $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
 
-        my $parent_ids = $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
-        next OR_NODE if scalar @{$parent_ids} <= 1;
+        my $parent_and_node_ids = $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
+        next OR_NODE if scalar @{$parent_and_node_ids} <= 1;
 
-        # Marpa::exception( "Zero length or-node: ",
-        # $or_node->[Marpa::Internal::Or_Node::TAG] );
+        # Remove the other parents from the original (uncloned)
+        # or-node.
+        $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] =
+            [ $parent_and_node_ids->[0] ];
+
+        # This or-node needs to be cloned, so that it will be
+        # unique to its parent and-node
+        for my $parent_and_node_id (
+            @{$parent_and_node_ids}[ 1 .. $#{$parent_and_node_ids} ] )
+        {
+            my @cloned_and_nodes =
+                map { clone_and_node( $self, $and_nodes->[$_] ) }
+                @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
+
+            my $cloned_or_node = [];
+            $#{$cloned_or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
+            my $cloned_or_node_id =
+                $cloned_or_node->[Marpa::Internal::Or_Node::ID] =
+                @{$or_nodes};
+            my $cloned_or_node_tag =
+                $or_node->[Marpa::Internal::Or_Node::TAG];
+            $cloned_or_node_tag =~ s/ (o\d+) \z /o$cloned_or_node_id/xms;
+            $cloned_or_node->[Marpa::Internal::Or_Node::TAG] =
+                $cloned_or_node_tag;
+            $cloned_or_node->[Marpa::Internal::Or_Node::AND_NODES] =
+                \@cloned_and_nodes;
+            $cloned_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] =
+                [ map { $_->[Marpa::Internal::And_Node::ID] }
+                    @cloned_and_nodes ];
+
+            for my $cloned_and_node_choice ( 0 .. $#cloned_and_nodes ) {
+                my $cloned_and_node =
+                    $cloned_and_nodes[$cloned_and_node_choice];
+                my $cloned_and_node_id =
+                    $cloned_and_node->[Marpa::Internal::And_Node::ID];
+                $cloned_and_node->[Marpa::Internal::And_Node::TAG] =
+                    $cloned_or_node_tag . "a$cloned_and_node_id";
+                $cloned_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
+                    $cloned_or_node_id;
+                $cloned_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
+                    $cloned_and_node_choice;
+            } ## end for my $cloned_and_node_choice ( 0 .. $#cloned_and_nodes)
+            for my $field (
+                Marpa::Internal::Or_Node::START_EARLEME,
+                Marpa::Internal::Or_Node::END_EARLEME,
+                Marpa::Internal::Or_Node::IS_COMPLETED
+                )
+            {
+                $cloned_or_node->[$field] = $or_node->[$field];
+            } ## end for my $field ( Marpa::Internal::Or_Node::START_EARLEME...)
+
+            $cloned_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] =
+                [$parent_and_node_id];
+
+            my $parent_and_node = $and_nodes->[$parent_and_node_id];
+            my $parent_and_node_cause =
+                $parent_and_node->[Marpa::Internal::And_Node::CAUSE];
+            if ( defined $parent_and_node_cause
+                and $or_node == $parent_and_node_cause )
+            {
+                $parent_and_node->[Marpa::Internal::And_Node::CAUSE] =
+                    $cloned_or_node;
+            } ## end if ( defined $parent_and_node_cause and $or_node == ...)
+            else {
+                $parent_and_node->[Marpa::Internal::And_Node::PREDECESSOR] =
+                    $cloned_or_node;
+            }
+
+            push @{$or_nodes}, $cloned_or_node;
+        } ## end for my $parent_and_node_id ( @{$parent_and_node_ids}[...])
 
     } ## end for my $or_node ( @{$or_nodes} )
 
     ### Bocage: &Marpa'Evaluator'show_bocage($self, 3)
+
+    ### assert: Marpa'Evaluator'audit($self) or 1
 
     # TODO: Add code to only attempt rewrite if grammar is cyclical
     rewrite_cycles($self);
