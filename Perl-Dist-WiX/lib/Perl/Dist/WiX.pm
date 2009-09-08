@@ -541,10 +541,6 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		# Regenerate file fragments
 		'regenerate_fragments',
 		
-		# Install any extra custom non-Perl software on top of Perl.
-		# This is primarily added for the benefit of Parrot.
-		'install_custom',
-
 		# Write out the distributions
 		'write',
 	];
@@ -884,6 +880,11 @@ sub final_initialization {
 		File::Path::mkpath($d);
 	}
 	
+	my $cpanplus_dir = catdir( $self->image_dir, 'cpanplus' );
+	if (( 5100 <= $self->perl_version ) and ( not -d $cpanplus_dir )) {
+		File::Path::mkpath($cpanplus_dir);	
+	}
+
 	# Initialize filters.
 	my @filters_array;
 #<<<
@@ -1509,6 +1510,10 @@ sub regenerate_fragments {
 	my $self = shift;
 	
 	return 1 unless $self->msi;
+	
+	# Add the perllocal.pod here, because apparently it's disappearing.
+	$self->add_to_fragment('perl', 
+		catfile($self->image_dir(), qw( perl lib perllocal.pod )));
 	
 	my @fragment_names_regenerate;
 	my @fragment_names = keys %{$self->{fragments}};

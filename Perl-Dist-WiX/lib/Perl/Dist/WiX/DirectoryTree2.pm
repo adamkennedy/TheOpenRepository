@@ -121,7 +121,7 @@ sub initialize_tree {
 	);
 	$branch->add_directories_id(
 		'Cpanplus',  'cpanplus',
-	) if (5100 >= $ver);
+	) if (5100 <= $ver);
 #>>>
 	
 	my @list = qw(
@@ -179,6 +179,14 @@ sub add_directory {
 	return defined $dir_out ? 1 : 0;
 };
 
+sub add_root_directory {
+	my $self = shift;
+	my $id = shift;
+	my $dir = shift;
+	
+	my $branch = $self->get_directory_object('INSTALLDIR');	
+	return $branch->add_directories_id($id, $dir);
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
