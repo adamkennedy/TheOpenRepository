@@ -2038,7 +2038,8 @@ sub Marpa::Evaluator::new {
             if $or_node->[Marpa::Internal::Or_Node::START_EARLEME]
                 != $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
 
-        my $parent_and_node_ids = $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
+        my $parent_and_node_ids =
+            $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
         next OR_NODE if scalar @{$parent_and_node_ids} <= 1;
 
         # Remove the other parents from the original (uncloned)
