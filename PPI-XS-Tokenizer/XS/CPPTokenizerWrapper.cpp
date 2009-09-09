@@ -158,6 +158,48 @@ namespace PPITokenizer {
   }
 
   /***********************************************************************/
+  const char *GetQuoteOperatorString(Token *tkn, unsigned long *length) {
+    TokenTypeNames name = tkn->type->type;
+    switch (name) {
+      case Token_Quote_Interpolate:
+        *length = 2;
+        return "qq";
+      case Token_Quote_Literal:
+        *length = 1;
+        return "q";
+      case Token_QuoteLike_Command:
+        *length = 2;
+        return "qx";
+      case Token_QuoteLike_Regexp:
+        *length = 2;
+        return "qr";
+      case Token_QuoteLike_Words:
+        *length = 2;
+        return "qw";
+      case Token_Regexp_Match:
+        *length = 1;
+        return "m";
+      case Token_Regexp_Substitute:
+        *length = 1;
+        return "s";
+      case Token_Regexp_Transliterate:
+        if (tkn->text[0] == 'y') {
+          *length = 1;
+          return "y";
+        } else {
+          *length = 2;
+          return "tr";
+        }
+      // Every other case - should be undef
+      case Token_Regexp_Match_Bare:
+      case Token_QuoteLike_Readline:
+      default:
+        *length = 0;
+        return NULL;
+    }
+  }
+
+  /***********************************************************************/
   SV*
   CPPTokenizerWrapper::get_token()
   {
