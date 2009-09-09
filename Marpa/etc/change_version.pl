@@ -88,13 +88,14 @@ sub fix_build_pl {
     my $text_ref  = shift;
     my $file_name = shift;
 
-    if ( ${$text_ref} !~ s/(my\s+\$marpa_version\s*=\s*')$old';/$1$new';/xms ) {
+    if ( ${$text_ref} !~ s/(my\s+\$marpa_version\s*=\s*')$old';/$1$new';/xms )
+    {
         say {*STDERR}
             "failed to change VERSION from $old to $new in $file_name"
             or Marpa::exception("Could not print to STDERR: $ERRNO");
-    }
+    } ## end if ( ${$text_ref} !~ ...)
     return $text_ref;
-} ## end sub fix_marpa_pm
+} ## end sub fix_build_pl
 
 sub fix_marpa_pm {
     my $text_ref  = shift;
