@@ -1,4 +1,9 @@
-Revision history for Perl extension YAML-Tiny
+Revision history for Perl extension ExtUtils::Typemap
+
+0.02 Wed  9 Sep 2009
+  - Add as_string method.
+  - Fix to typemap validation.
+  - More tests.
 
 0.01 Tue  1 Sep 2009
   - Initial CPAN release.
