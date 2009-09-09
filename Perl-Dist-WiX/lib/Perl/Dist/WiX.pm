@@ -120,6 +120,7 @@ require Perl::Dist::WiX::Fragment::Files;
 require Perl::Dist::WiX::Fragment::Environment;
 require Perl::Dist::WiX::Fragment::StartMenu;
 require Perl::Dist::WiX::IconArray;
+require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 
 our $VERSION = '1.090_001';
@@ -456,6 +457,20 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		my $time = scalar localtime;
 		$params{misc}->trace_line(0, "Starting build at $time.\n");
 	}
+
+	# Get the parameters required for the GUID generator set up.
+	unless ( _STRING( $params{app_publisher_url} ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'app_publisher_url',
+			where     => '::Installer->new'
+		);
+	}
+	
+	unless ( _STRING( $params{sitename} ) ) {
+		$params{sitename} = URI->new( $params{app_publisher_url} )->host;
+	}
+	
+	$params{_guidgen} = WiX3::XML::GeneratesGUID::Object->new(_sitename => $params{sitename});
 	
 	unless ( defined $params{download_dir} ) {
 		$params{download_dir} = catdir( $params{temp_dir}, 'download' );
@@ -605,9 +620,6 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		);
 	}
 
-	unless ( _STRING( $self->sitename ) ) {
-		$self->{sitename} = URI->new( $self->app_publisher_url )->host;
-	}
 	$self->_check_string_parameter( $self->default_group_name,
 		'default_group_name' );
 	$self->_check_string_parameter( $self->output_dir, 'output_dir' );

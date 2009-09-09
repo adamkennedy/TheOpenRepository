@@ -1,7 +1,8 @@
 package Perl::Dist::WiX::Asset::File;
 
 use Moose;
-use MooseX::Types::Moose qw( Str ); 
+use MooseX::Types::Moose qw( Str );
+use File::Spec::Functions qw( catfile );
 require File::Remove;
 require File::List::Object;
 
