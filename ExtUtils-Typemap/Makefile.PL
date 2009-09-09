@@ -7,7 +7,9 @@ WriteMakefile(
     NAME              => 'ExtUtils::Typemap',
     VERSION_FROM      => 'lib/ExtUtils/Typemap.pm', # finds $VERSION
     PREREQ_PM         => {
+      'File::Spec' => '0',
       'Test::More' => '0.44',
+      'File::Temp' => '0',
     },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/ExtUtils/Typemap.pm', # retrieve abstract from module
