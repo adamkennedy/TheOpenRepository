@@ -1525,7 +1525,8 @@ sub regenerate_fragments {
 	
 	# Add the perllocal.pod here, because apparently it's disappearing.
 	$self->add_to_fragment('perl', 
-		catfile($self->image_dir(), qw( perl lib perllocal.pod )));
+		[ catfile($self->image_dir(), qw( perl lib perllocal.pod )) ] 
+	);
 	
 	my @fragment_names_regenerate;
 	my @fragment_names = keys %{$self->{fragments}};
