@@ -2,7 +2,7 @@ package ExtUtils::Typemap;
 use 5.006001;
 use strict;
 use warnings;
-our $VERSION = 0.01;
+our $VERSION = '0.02';
 use Carp qw(croak);
 
 our $Proto_Regexp = "[" . quotemeta('\$%&*@;[]') . "]";
@@ -108,7 +108,7 @@ sub add_typemap {
   if ($args{replace}) {
     $self->remove_typemap(ctype => $ctype);
   } else {
-    $self->validate(@_);
+    $self->validate(typemap_xstype => $xstype, ctype => $ctype);
   }
   my $proto = $args{"prototype"} || '';
   push @{$self->{typemap_section}},
@@ -139,9 +139,9 @@ sub add_inputmap {
   if ($args{replace}) {
     $self->remove_inputmap(xstype => $xstype);
   } else {
-    $self->validate(@_);
+    $self->validate(inputmap_xstype => $xstype);
   }
-  $code =~ s/([\t ]+)\n/defined $1 && $1 ne '' ? "$1\n" : "\t\n"/ge;
+  $code =~ s/^(?=\S)/\t/mg;
   push @{$self->{input_section}},
     {xstype => $xstype, code => $code};
   return 1;
@@ -165,9 +165,9 @@ sub add_outputmap {
   if ($args{replace}) {
     $self->remove_outputmap(xstype => $xstype);
   } else {
-    $self->validate(@_);
+    $self->validate(outputmap_xstype => $xstype);
   }
-  $code =~ s/([\t ]+)\n/defined $1 && $1 ne '' ? "$1\n" : "\t\n"/ge;
+  $code =~ s/^(?=\S)/\t/mg;
   push @{$self->{output_section}},
     {xstype => $xstype, code => $code};
   return 1;
@@ -261,28 +261,45 @@ sub write {
 
   open my $fh, '>', $file
     or die "Cannot open typemap file '$file' for writing: $!";
+  print $fh $self->as_string();
+  close $fh;
+}
 
+=head2 as_string
+
+Generates and returns the string form of the typemap.
+
+=cut
+
+sub as_string {
+  my $self = shift;
   my $typemap = $self->{typemap_section};
-  print $fh "TYPEMAP\n";
+  my @code;
+  push @code, "TYPEMAP\n";
   foreach my $entry (@$typemap) {
     # type kind proto
     # /^(.*?\S)\s+(\S+)\s*($Proto_Regexp*)$/o
     my $ctype = defined($entry->{ctype}) ? $entry->{ctype} : $entry->{tidy_ctype};
-    print $fh "$ctype\t" . $entry->{xstype}
+    push @code, "$ctype\t" . $entry->{xstype}
               . ($entry->{proto} ne '' ? "\t".$entry->{proto} : '') . "\n";
   }
 
   my $input = $self->{input_section};
-  print $fh "\nINPUT\n";
-  foreach my $entry (@$input) {
-    print $fh $entry->{xstype}, "\n", $entry->{code}, "\n";
+  if (@$input) {
+    push @code, "\nINPUT\n";
+    foreach my $entry (@$input) {
+      push @code, $entry->{xstype}, "\n", $entry->{code}, "\n";
+    }
   }
 
   my $output = $self->{output_section};
-  print $fh "\nOUTPUT\n";
-  foreach my $entry (@$output) {
-    print $fh $entry->{xstype}, "\n", $entry->{code}, "\n";
+  if (@$output) {
+    push @code, "\nOUTPUT\n";
+    foreach my $entry (@$output) {
+      push @code, $entry->{xstype}, "\n", $entry->{code}, "\n";
+    }
   }
+  return join '', @code;
 }
 
 # Note: This is really inefficient. One could keep a hash to start with.
@@ -292,7 +309,7 @@ sub validate {
 
   my %xstypes;
   my %ctypes;
-  $xstypes{$args{xstype}}++ if defined $args{xstype};
+  $xstypes{$args{typemap_xstype}}++ if defined $args{typemap_xstype};
   $ctypes{$args{ctype}}++ if defined $args{ctype};
 
   foreach my $map (@{$self->{typemap_section}}) {
@@ -307,6 +324,7 @@ sub validate {
   }
 
   %xstypes = ();
+  $xstypes{$args{inputmap_xstype}}++ if defined $args{inputmap_xstype};
   foreach my $map (@{$self->{input_section}}) {
     my $xstype = $map->{xstype};
     croak("Multiple definition of xstype '$xstype' in INPUTMAP section")
@@ -315,6 +333,7 @@ sub validate {
   }
 
   %xstypes = ();
+  $xstypes{$args{outputmap_xstype}}++ if defined $args{outputmap_xstype};
   foreach my $map (@{$self->{output_section}}) {
     my $xstype = $map->{xstype};
     croak("Multiple definition of xstype '$xstype' in OUTPUTMAP section")
