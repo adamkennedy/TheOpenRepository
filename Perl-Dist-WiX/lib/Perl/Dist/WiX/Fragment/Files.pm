@@ -24,6 +24,7 @@ require WiX3::XML::Feature;
 require WiX3::XML::File;
 require WiX3::Exceptions;
 require File::List::Object;
+require Win32::Exe;
 
 our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
@@ -291,11 +292,40 @@ sub _add_file_component {
 	my $file = shift;
 
 	my $component = WiX3::XML::Component->new( path => $file );
-	my $file_obj = WiX3::XML::File->new( source => $file, id => $component->get_id() );
+	my $file_obj;
+	
+	# If the file is a .dll or .exe file, check for a version.
+	if ( ( $file =~ m{\.dll\z}sm )
+		or ( $file =~ m{\.exe\z}sm ) )
+	{
+		my $language;
+		my $exe = Win32::Exe->new( $file );
+		my $vi  = $exe->version_info();
+		if ( defined $vi ) {
+			$vi->get('OriginalFilename'); # To load the variable used below.
+			$language = hex substr $vi->{'cur_trans'}, 0, 4;
+			$file_obj = WiX3::XML::File->new( 
+				source => $file, 
+				id => $component->get_id(),
+				defaultlanguage => $language,
+			);
+		} else {
+			$file_obj = WiX3::XML::File->new( 
+				source => $file, 
+				id => $component->get_id(),
+			);
+		}
+	} else {
+		$file_obj = WiX3::XML::File->new( 
+			source => $file, 
+			id => $component->get_id(),			
+		);
+	}
 
 	$component->add_child_tag($file_obj);
 	$tag->add_child_tag($component);
 
+	return 1;
 }
 
 no Moose;
