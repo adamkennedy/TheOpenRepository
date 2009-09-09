@@ -362,7 +362,6 @@ sub _parse {
   my @output_expr;
   while (<$fh>) {
     ++$lineno;
-    warn $_;
     chomp;
     next if /^\s*#/;
     if (/^INPUT\s*$/) {
