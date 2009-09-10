@@ -46,26 +46,35 @@ test script ends.
 use 5.006;
 use strict;
 use warnings;
-use Test::Builder  ();
-use POE          qw( Session );
-use POE::API::Peek ();
+use YAML::Tiny     1.38 ();
+use Test::More     0.80 ();
+use Test::Builder  0.80 ();
+use POE           1.003 qw( Session );
+use POE::API::Peek 1.34 ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	require Exporter;
-	$VERSION = '0.03';
+	$VERSION = '1.04';
 	@ISA     = 'Exporter';
 	@EXPORT  = 'poe_stopping';
 }
 
-my $Test = Test::Builder->new;
-
 sub import {
-	my $self = shift;
-	my $pkg  = caller;
-	$Test->exported_to($pkg);
-	$Test->plan(@_);
-	$self->export_to_level(1, $self, 'poe_stopping');
+	my $class = shift;
+	my $pkg   = caller;
+	my $test  = Test::Builder->new;
+	$test->exported_to($pkg);
+	$test->plan(@_);
+	$class->export_to_level(1, $class, 'poe_stopping');
+}
+
+sub fail {
+	my $test = Test::Builder->new;
+	local $Test::Builder::Level = $Test::Builder::Level + 1;
+	$test->ok( 0, 'POE appears to be stopping cleanly' );
+	$test->diag( YAML::Tiny->new(@_)->write_string );
+	$poe_kernel->stop;
 }
 
 
@@ -87,55 +96,83 @@ event, the POE kernel will have nothing else left to do and so will stop.
 =cut
 
 sub poe_stopping {
-	my $result = _poe_stopping();
-	$Test->ok( $result, 'POE appears to be stopping cleanly' );
-	$poe_kernel->stop unless $result;
-	return 1;	
-}		
-
-sub _poe_stopping {
-	my $api = POE::API::Peek->new;
+	my $api  = POE::API::Peek->new;
+	my $test = Test::Builder->new;
 
 	# The kernel should be running
-	return undef unless $api->is_kernel_running;
-
-	# There should only be one session left
-	# Why 2? One for the controlling session, one for the kernel
-	return undef unless $api->session_count == 2;
-
-	# There should be no events left for this session
-	my @items = $api->event_queue_dump();
-	if ( @items ) {
-		return undef if @items > 1;
-
-		# Make sure it's not the TRACE_STATISTICS tick
-		unless (
-			$items[0]->{'source'}->isa('POE::Kernel')
-			and
-			$items[0]->{'destination'}->isa('POE::Kernel')
-			and
-			$items[0]->{'event'} eq '_stat_tick'
-		) {
-			return undef;
-		}
+	unless ( $api->is_kernel_running ) {
+		return fail();
 	}
 
-	# The kernel should not be tracking any handles
-	return undef if $api->handle_count;
+	# There should only be one session left
+	my @sessions = map { session_summary($_) } $api->session_list;
+	my $session  = $sessions[0];
+	unless ( @sessions == 1 ) {
+		return fail(@sessions);
+	}
 
-	# Is this last session watching any signals
+	# It should be the current session
+	unless ( $session->{current} ) {
+		return fail(@sessions);
+	}
+
+	# There should be no registered aliases
+	if ( $session->{alias} ) {
+		return fail(@sessions);
+	}
+
+	# There should be no extra references
+	if ( $session->{extra} ) {
+		return fail(@sessions);
+	}
+
+	# There should be no handles on the session
+	if ( $session->{handles} ) {
+		return fail(@sessions);
+	}
+
+	# There should be no events left for this session
+	if ( $session->{queue} ) {
+		return fail(@sessions);
+	}
+
+	# There should be no registered signals
+	if ( $session->{signals} ) {
+		return fail(@sessions);
+	}
+
+	# All the evidence says that we are stopping
+	Test::Builder->new->ok( 1, 'POE appears to be stopping cleanly' );
+
+	return @sessions;
+}
+
+sub session_summary {
+	my $session = shift;
+	my $api     = POE::API::Peek->new;
+	my $current = $api->current_session;
 	my %signals = eval {
-		$api->signals_watched_by_session;
+		$api->signals_watched_by_session($session);
 	};
-
-	# Catch and handle a bug in POE
 	if ( $@ and $@ =~ /^Can\'t use an undefined value as a HASH reference/ ) {
 		%signals = ();
 	}
-	return undef if %signals;
-
-	# Looks good
-	return 1;
+	my $summary = {
+		id      => $session->ID,
+		alias   => $api->session_alias_count($session),
+		extra   => $api->get_session_extref_count($session),
+		handles => $api->session_handle_count($session),
+		signals => scalar(keys %signals),
+		current => ($current->ID == $session->ID) ? 1 : 0,
+		queue   => scalar grep { ! (
+			$_->{source}->isa('POE::Kernel')
+			and
+			$_->{destination}->isa('POE::Kernel')
+			and
+			$_->{event} eq '_stat_tick'
+		) } $api->event_queue_dump,
+	};
+	return $summary;
 }
 
 1;

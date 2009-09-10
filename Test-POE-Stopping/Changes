@@ -1,5 +1,9 @@
 Changes for Perl extension Test-POE-Stopping
 
+1.04 Fri 11 Sep 2009
+	- Adding diagnostics on the state of the various sessions
+	- Updated to Module::Install 0.91
+
 0.03 Wed 11 Mar 2009
 	- No functional changes
 	- Updated Perl dependency to 5.6

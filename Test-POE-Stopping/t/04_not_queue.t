@@ -23,8 +23,16 @@ POE::Session->create(
 );
 
 test_out("not ok 1 - POE appears to be stopping cleanly");
-test_fail(19);
+test_fail(27);
 POE::Kernel->run;
+test_err('# ---'       );
+test_err('# alias: 0'  );
+test_err('# current: 1');
+test_err('# extra: 0'  );
+test_err('# handles: 0');
+test_err('# id: 2'     );
+test_err('# queue: 1'  );
+test_err('# signals: 0');
 test_test("Fails correctly for pending event");
 pass( 'POE Stopped' );
 
