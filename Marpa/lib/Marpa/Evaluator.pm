@@ -2571,36 +2571,51 @@ sub Marpa::Evaluator::value {
             my $and_node_iteration = $and_iterations->[$and_node_id];
             next TASK if not $and_node_iteration;
 
-            my $sort_element =
-                $and_node->[Marpa::Internal::And_Node::SORT_ELEMENT];
-
-            my @sort_key = defined $sort_element ? () : ($sort_element);
+            my $current_sort_elements = [
+                do {
+                    my $sort_element =
+                        $and_node->[Marpa::Internal::And_Node::SORT_ELEMENT];
+                    $sort_element
+                        ? ($sort_element)
+                        : ();
+                    } ## end do
+            ];
 
             my $cause;
             my $cause_id;
-            my $cause_iteration;
+            my $cause_or_node_iteration;
             my $cause_and_node_choice;
+            my $cause_and_node_iteration;
+            my $cause_sort_elements;
 
             # assignment instead of comparison intentional
             if ( $cause = $and_node->[Marpa::Internal::And_Node::CAUSE] ) {
                 $cause_id        = $cause->[Marpa::Internal::Or_Node::ID];
-                $cause_iteration = $or_iterations->[$cause_id];
+                $cause_or_node_iteration = $or_iterations->[$cause_id];
 
                 # If there is a predecessor, but it is
                 # exhausted, this and-node is exhausted.
-                if ( not $cause_iteration ) {
+                if ( not $cause_or_node_iteration ) {
                     $and_iterations->[$and_node_id] = undef;
                     next TASK;
                 }
 
-                $cause_and_node_choice = $cause_iteration->[-1];
+                $cause_and_node_choice = $cause_or_node_iteration->[-1];
+                my $cause_and_node_id =
+                    $cause_and_node_choice->[Marpa::Internal::And_Choice::ID];
+                $cause_and_node_iteration =
+                    $and_iterations->[$cause_and_node_id];
+                $cause_sort_elements = $cause_and_node_iteration
+                    ->[Marpa::Internal::And_Iteration::SORT_KEY];
 
             } ## end if ( $cause = $and_node->[...])
 
             my $predecessor;
             my $predecessor_id;
-            my $predecessor_iteration;
+            my $predecessor_or_node_iteration;
             my $predecessor_and_node_choice;
+            my $predecessor_and_node_iteration;
+            my $predecessor_sort_elements;
 
             # assignment instead of comparison intentional
             if ( $predecessor =
@@ -2608,85 +2623,74 @@ sub Marpa::Evaluator::value {
             {
                 $predecessor_id =
                     $predecessor->[Marpa::Internal::Or_Node::ID];
-                $predecessor_iteration = $or_iterations->[$predecessor_id];
+                $predecessor_or_node_iteration = $or_iterations->[$predecessor_id];
 
                 # If there is a predecessor, but it is
                 # exhausted, this and-node is exhausted.
-                if ( not $predecessor_iteration ) {
+                if ( not $predecessor_or_node_iteration ) {
                     $and_iterations->[$and_node_id] = undef;
                     next TASK;
                 }
 
-                $predecessor_and_node_choice = $predecessor_iteration->[-1];
+                $predecessor_and_node_choice = $predecessor_or_node_iteration->[-1];
+                my $predecessor_and_node_id =
+                    $predecessor_and_node_choice->[Marpa::Internal::And_Choice::ID];
+                $predecessor_and_node_iteration =
+                    $and_iterations->[$predecessor_and_node_id];
+                $predecessor_sort_elements =
+                    $predecessor_and_node_iteration
+                    ->[Marpa::Internal::And_Iteration::SORT_KEY];
 
             } ## end if ( $predecessor = $and_node->[...])
 
-            Marpa::exception('TODO:: Rewrite from here');
+            # Compute final and internal trailing nulls
+            my $and_node_end_earleme = $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+            my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
 
-            my $sort_key;
-            DERIVE_SORT_KEY: {
-                if ( not defined $cause ) {
-                    $sort_key =
-                        defined $predecessor_and_node_choice
-                        ? $predecessor_and_node_choice
-                        ->[Marpa::Internal::And_Choice::SORT_KEY]
-                        : [];
-                    last DERIVE_SORT_KEY;
-                } ## end if ( not defined $cause )
+            my $internal_nulls;
+            my $final_nulls = $token ? $token->[Marpa::Internal::Symbol::NULL_WIDTH] : 0;
 
-                my $cause_sort_elements = $cause_and_node_choice
-                    ->[Marpa::Internal::And_Choice::SORT_KEY];
+            if ($cause) {
+                $final_nulls += $cause_and_node_iteration
+                    ->[Marpa::Internal::And_Iteration::TRAILING_NULLS];
+            }
 
-                # If we are here, there a cause child defined
-                if ( not defined $predecessor ) {
-                    $sort_key = $cause_sort_elements;
-                    last DERIVE_SORT_KEY;
-                }
-
-                # If we are here, there a both a cause
-                # and a predecessor defined
-
-                # assignment instead of comparison intentional here
-                if (my $internal_nulls = $and_iterations->[
-                    $predecessor_and_node_choice
-                    ->[Marpa::Internal::And_Choice::ID]
-                    ]->[Marpa::Internal::And_Iteration::TRAILING_NULLS]
-                    )
+            if ($predecessor) {
+                if ( $predecessor->[Marpa::Internal::Or_Node::END_EARLEME]
+                    == $and_node_end_earleme )
                 {
-                    my $internal_nulls_earleme =
-                        $predecessor->[Marpa::Internal::Or_Node::END_EARLEME];
-                    $cause_sort_elements = map {
-                        $_->[0] == $internal_nulls_earleme
-                            ? [
-                            $_->[0],
-                            $_->[1] + $internal_nulls,
-                            @{$_}[ 2, 3 ]
-                            ]
-                            : $_
-                    } @{$cause_sort_elements};
+                    $final_nulls += $predecessor_and_node_iteration
+                        ->[Marpa::Internal::And_Iteration::TRAILING_NULLS];
+                } ## end if ( $predecessor->[...])
+                else {
+                    $internal_nulls = $predecessor_and_node_iteration
+                        ->[Marpa::Internal::And_Iteration::TRAILING_NULLS];
+                }
+            }
 
-                    $sort_key = [
-                        map      { $_->[1] }
-                            sort { $a->[0] cmp $b->[0] }
-                            map  { [ ( pack 'N*', @{$_} ), $_ ] } (
-                            $sort_element,
-                            @{  $predecessor_and_node_choice
-                                    ->[Marpa::Internal::And_Choice::SORT_KEY]
-                                },
-                            @{$cause_sort_elements}
-                            )
-                    ];
+            if ($internal_nulls) {
+                $cause_sort_elements = [ map {
+                    $_->[0] == $predecessor
+                        ->[Marpa::Internal::Or_Node::END_EARLEME]
+                        ? [ $_->[0], $_->[1] + $internal_nulls,
+                        @{$_}[ 2, 3 ] ]
+                        : $_
+                } @{$cause_sort_elements} ];
+            } ## end if ($internal_nulls)
 
-                } ## end if ( my $internal_nulls = $and_iterations->[ ...])
 
-            } ## end DERIVE_SORT_KEY:
+            my @sort_key = [
+                map      { $_->[1] }
+                    sort { $a->[0] cmp $b->[0] }
+                    map  { [ ( pack 'N*', @{$_} ), $_ ] } (
+                    @{$current_sort_elements},
+                    @{$predecessor_sort_elements},
+                    @{$cause_sort_elements}
+                    )
+            ];
 
-            Marpa::exception('TODO:: Compute Trailing Nulls');
-
-            my $trailing_nulls;
             $and_node_iteration
-                ->[Marpa::Internal::And_Iteration::TRAILING_NULLS] =
-                $trailing_nulls // 0;
+                ->[Marpa::Internal::And_Iteration::TRAILING_NULLS] = $final_nulls;
 
             my @or_map;
             if ( defined $predecessor ) {
@@ -2712,7 +2716,15 @@ sub Marpa::Evaluator::value {
                 \@or_map;
 
             $and_node_iteration->[Marpa::Internal::And_Iteration::SORT_KEY] =
-                $sort_key;
+                \@sort_key;
+
+            if ( defined $cause_sort_elements and defined $predecessor_sort_elements ) {
+                $and_node_iteration
+                    ->[Marpa::Internal::And_Iteration::CURRENT_CHILD] =
+                    $cause_sort_elements ge $predecessor_sort_elements
+                    ? Marpa::Internal::And_Node::CAUSE
+                    : Marpa::Internal::And_Node::PREDECESSOR;
+            } ## end if ( defined $cause_sort_key and defined ...)
             next TASK;
 
         } ## end if ( $task == Marpa::Internal::Task::SETUP_AND_NODE )
