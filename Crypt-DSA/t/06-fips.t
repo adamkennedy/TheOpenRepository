@@ -1,5 +1,10 @@
-use strict;
+#!/usr/bin/perl
 
+use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 use Test::More;
 use Crypt::DSA;
 use Crypt::DSA::KeyChain;
@@ -14,7 +19,7 @@ BEGIN {
 
 ## Test with data from fips 186 (appendix 5) doc (using SHA1
 ## instead of SHA digests).
-my @seed_hex = "d5014e4b60ef2ba8b6211b4062ba3224e0427dd3" =~ /(..)/g;
+my @seed_hex   = "d5014e4b60ef2ba8b6211b4062ba3224e0427dd3" =~ /(..)/g;
 my $start_seed = join '', map chr hex, @seed_hex;
 my $expected_p = "7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673";
 my $expected_q = "1138656671590261728308283492178581223478058193247";
@@ -34,8 +39,10 @@ ok($keychain, 'Crypt::DSA::KeyChain->new worked');
 diag('This takes a couple of minutes on slower machines.');
 
 ## generate_params builds p, q, and g.
-my($key, $counter, $h, $seed) =
-    $keychain->generate_params(Size => 512, Seed => $start_seed);
+my($key, $counter, $h, $seed) = $keychain->generate_params(
+	Size => 512,
+	Seed => $start_seed,
+);
 is("@{[ $key->p ]}", $expected_p, '->p returns expected value');
 is("@{[ $key->q ]}", $expected_q, '->q returns expected value');
 is("@{[ $key->g ]}", $expected_g, '->g returns expected value');

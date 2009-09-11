@@ -1,4 +1,8 @@
-Revision history for Crypt::DSA
+Revision history for Perl extension Crypt-DSA
+
+1.16 2009.09.11
+	- Switching to production release
+	- Switching to non-development version
 
 0.15_01 2009.02.13
 	- Updated to Module::Install 0.91

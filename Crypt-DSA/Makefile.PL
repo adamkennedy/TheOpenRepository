@@ -7,9 +7,8 @@ requires      'Digest::SHA1' => 0;
 requires      'MIME::Base64' => 0;
 requires      'File::Which'  => '0.05';
 requires      'Math::BigInt' => '1.78';
-requires      'Data::Random' => '0.05' if $^O eq 'MSWin32';
+requires      'Data::Random' => '0.05' if win32;
 requires      'Data::Buffer' => '0.01';
-test_requires 'Test'         => 0;
 test_requires 'Test::More'   => '0.42';
 
 WriteAll;

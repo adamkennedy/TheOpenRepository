@@ -9,7 +9,7 @@ use Crypt::DSA::Util qw( bitsize );
 
 use vars qw{$VERSION};
 BEGIN {
-    $VERSION = '0.15_01';
+    $VERSION = '1.16';
 }
 
 sub new {

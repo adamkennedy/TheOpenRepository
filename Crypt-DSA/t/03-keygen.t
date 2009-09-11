@@ -1,6 +1,10 @@
 #!/usr/bin/perl
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 use Test::More;
 use Math::BigInt try => 'GMP, Pari';
 

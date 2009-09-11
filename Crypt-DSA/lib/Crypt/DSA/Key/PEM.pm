@@ -7,7 +7,7 @@ use Crypt::DSA::Key;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-    $VERSION = '0.15_01';
+    $VERSION = '1.16';
     @ISA     = 'Crypt::DSA::Key';
 }
 
