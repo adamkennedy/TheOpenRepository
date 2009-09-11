@@ -8,14 +8,15 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 30;
+use Test::More tests => 33;
 use Test::NoWarnings;
 use POE;
 use Test::POE::Stopping;
 
-#BEGIN {
-	#$POE::Declare::Meta::DEBUG = 1;
-#}
+BEGIN {
+	no warnings;
+	#$POE::Debug::DEBUG = 1;
+}
 
 # Test event firing order
 my $order = 0;
@@ -45,12 +46,18 @@ CLASS: {
 	declare child   => 'Internal';
 
 	sub _start : Event {
+		order(1, 'Test1._start');
 		$_[0]->SUPER::_start(@_[1..$#_]);
 		$_[SELF]->post('startup');
 	}
 
+	sub _stop : Event {
+		order(14, 'Test1._stop');
+		$_[0]->SUPER::_stop(@_[1..$#_]);
+	}
+
 	sub startup : Event {
-		order(1, 'Test1.startup');
+		order(2, 'Test1.startup');
 		my $test = 'foo';
 		$_[SELF]->{child} = Test2->new(
 			Started => $_[SELF]->postback('child_startup', 5),
@@ -65,22 +72,22 @@ CLASS: {
 	}
 
 	sub child_startup : Event {
-		order(5, 'Test1.child_startup');
+		order(6, 'Test1.child_startup');
 		is_deeply( $_[ARG0], [ 5 ], 'Test2.1 child_startup' );
 		is_deeply( $_[ARG1], [ 'Test2.1' ], 'Test2.1 child_startup' );
 		$_[SELF]->{child}->post('echo', 'abcdefg');
 	}
 
 	sub child_shutdown : Event {
-		order(12, 'Test1.child_shutdown');
-		is_deeply( $_[ARG0], [ 12 ], 'Test2.1 child_shutdown' );
-		is_deeply( $_[ARG1], [ 'Test2.1' ], 'Test2.1 child_shutdown' );
+		order(13, 'Test1.child_shutdown');
+		is_deeply( $_[ARG0], [ 12 ], 'Test2.1 child_shutdown param ok' );
+		is_deeply( $_[ARG1], [ 'Test2.1' ], 'Test2.1 child_shutdown alias ok' );
 		$_[SELF]->call('_alias_remove');
 		$_[SELF]->Stopped;
 	}
 
 	sub message1 : Event {
-		order(10, 'Test1.message1');
+		order(11, 'Test1.message1');
 		is_deeply( $_[ARG0], [ 10 ], 'Test2.1 message1' );
 		is_deeply( $_[ARG1], [ 'Test2.1', 'abcdefg' ], '... and param ok' );
 
@@ -89,19 +96,19 @@ CLASS: {
 	}
 
 	sub message2 : Event {
-		order(7, 'Test1.message2');
+		order(8, 'Test1.message2');
 		is_deeply( $_[ARG0], [ 7 ], 'Test2.1 message2' );
 		is_deeply( $_[ARG1], [ 'Test2.1', 'abcdefg' ], '... and param ok' );
 	}
 
 	sub message3 : Event {
-		order(8, 'Test1.message3');
+		order(9, 'Test1.message3');
 		is( $_[ARG0], 'Test2.1', 'Test2.1 message3' );
 		is( $_[ARG1], 'abcdefg', '... and param ok' );
 	}
 
 	sub message4 {
-		order(9, 'Test1::startup');
+		order(10, 'Test1::startup');
 		is( $_[0], 'Test2.1', 'Test2.1 message4' );
 		is( $_[1], 'abcdefg', '... and param ok' );		
 	}
@@ -125,19 +132,24 @@ CLASS: {
 	declare Echo4   => 'Message';
 
 	sub _start : Event {
-		order(2, 'Test2._start');
+		order(3, 'Test2._start');
 		$_[0]->SUPER::_start(@_[1..$#_]);
 		$_[SELF]->post('startup');
 	}
 
+	sub _stop : Event {
+		order(15, 'Test2._stop');
+		$_[0]->SUPER::_stop(@_[1..$#_]);
+	}
+
 	sub startup : Event {
-		order(4, 'Test2.startup');
+		order(5, 'Test2.startup');
 		# Nothing to do, just post the message
 		$_[SELF]->Started;
 	}
 
 	sub echo : Event {
-		order(6, 'Test2.echo');
+		order(7, 'Test2.echo');
 		my $value = $_[ARG0];
 		$_[SELF]->Echo1($value);
 		$_[SELF]->Echo2($value);
@@ -147,9 +159,7 @@ CLASS: {
 	}
 
 	sub shutdown : Event {
-		order(11, 'Test2.shutdown');
-
-		# Nothing to do, just post the message
+		order(12, 'Test2.shutdown');
 		$_[SELF]->call('_alias_remove');
 		$_[SELF]->Stopped;
 		foreach ( $_[SELF]->meta->_params ) {
@@ -178,7 +188,7 @@ is( ref($foo->{Stopped}), 'CODE', 'Stopped is a CODE reference' );
 ok( $foo->spawn, '->spawn ok' );
 
 sub callback {
-	order(3, 'callback');
+	order(4, 'callback');
 	is( $_[0], 'Test1.1', 'First callback param is the alias' );
 }
 

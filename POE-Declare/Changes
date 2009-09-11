@@ -1,5 +1,10 @@
 Revision history for Perl extension POE-Declare
 
+0.23_01 Fri 11 Sep 2009
+	- Experimental change, immediately disconnect every session from
+	  their parent at _start time so that we never use POE's internal
+	  child session reference tracking.
+
 0.22 Wed 12 Aug 2009
 	- Fixing some bugs in Message events, and improved tests for it.
 

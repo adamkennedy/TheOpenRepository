@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.22';
+	$VERSION = '0.23_01';
 }
 
 # Inside-out storage of internal values
@@ -605,6 +605,14 @@ after the SUPER call.
 
 sub _start : Event {
 	$ID{Scalar::Util::refaddr($_[HEAP])} = $_[SESSION]->ID;
+
+	# Cheaper to do this blind detach rather than testing first to
+	# make sure we have a session as a parent.
+	SCOPE: {
+		local $!; 
+		$poe_kernel->detach_myself;
+	}
+
 	$poe_kernel->call( $_[SESSION], '_alias_set');
 }
 
