@@ -23,12 +23,15 @@ version = 5.008001
 [ValuesAndExpressions::ProhibitMagicNumbers]
 allowed_values = 0..5 100
 
+# Temporary exclusions
+#[-CodeLayout::RequireTidyCode]
+[-CodeLayout::ProhibitTrailingWhitespace]
+
 # Exclusions
 [-CodeLayout::ProhibitHardTabs]
-#[-ControlStructures::ProhibitUnlessBlocks]
+[-ValuesAndExpressions::RequireConstantVersion]
 [-Miscellanea::RequireRcsKeywords]
 [-Subroutines::RequireArgUnpacking]
 [-Documentation::RequirePodAtEnd]
 [-Documentation::RequirePodSections]
-#[-ValuesAndExpressions::RestrictLongStrings]
 [-Editor::RequireEmacsFileVariables]

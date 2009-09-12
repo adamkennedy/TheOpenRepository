@@ -13,6 +13,7 @@ BEGIN {
 
 my @MODULES = (
 	'Perl::Tidy',
+	'Regexp::Parser',
 	'Perl::Critic',
 	'Perl::Critic::Utils::Constants',
 	'Perl::Critic::More',
@@ -35,8 +36,8 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-if ( 1.099_001 > eval { $Perl::Critic::VERSION } ) {
-	plan( skip_all => "Perl::Critic needs updated to 1.099_001" );
+if ( 1.105 > eval { $Perl::Critic::VERSION } ) {
+	plan( skip_all => "Perl::Critic needs updated to 1.105" );
 }
 
 if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {

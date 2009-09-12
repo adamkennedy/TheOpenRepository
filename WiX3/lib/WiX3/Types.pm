@@ -8,13 +8,24 @@ use MooseX::Types -declare => [ qw(
 	  ) ];
 use Regexp::Common 2.105;
 use MooseX::Types::Moose qw( Str Int Bool HashRef );
+use Readonly 1.03 qw( Readonly );
 
 our $VERSION = '0.007';
 $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
+# Assemble the GUID regex from pieces.
+Readonly my $HEX => '0-9A-F';
+Readonly my $GUID_MIDDLE_PART => "[$HEX]{4}";
+Readonly my $GUID_MIDDLE => "[-] $GUID_MIDDLE_PART [-] $GUID_MIDDLE_PART [-] $GUID_MIDDLE_PART [-]";
+Readonly my $GUID_BEGINNING => "[$HEX]{8}";
+Readonly my $GUID_END => "[$HEX]{12}";
+Readonly my $GUID_OPEN => '\A [{(]?';
+Readonly my $GUID_CLOSE => '[})]? \z';
+Readonly my $GUID_QR => qr{$GUID_OPEN $GUID_BEGINNING $GUID_MIDDLE $GUID_END $GUID_CLOSE}msx;
+
 subtype Host, as Str, where {
-	$_ =~ /\A$RE{net}{IPv4}\z/msx
-	  or $_ =~ /\A$RE{net}{domain}{-nospace}\z/msx;
+	$_ =~ /\A $RE{net}{IPv4} \z/msx
+	  or $_ =~ /\A $RE{net}{domain}{-nospace} \z/msx;
 }, message {
 	"$_ is not a valid hostname";
 };
@@ -47,8 +58,7 @@ coerce YesNoType, from _YesNoType, via { lc $_ };
 coerce YesNoType, from Bool | Int, via { $_ ? 'yes' : 'no' };
 
 subtype ComponentGuidType, as Str, where {
-	$_ =~
-m{\A[{(]?[0-9A-F]{8}\-[0-9A-F]{4}\-[0-9A-F]{4}\-[0-9A-F]{4}\-[0-9A-F]{12}[})]?\z}msx;
+	$_ =~ $GUID_QR;
 }, message {
 	"$_ is not a GUID";
 };

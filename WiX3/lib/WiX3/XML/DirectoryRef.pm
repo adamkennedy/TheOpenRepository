@@ -48,7 +48,6 @@ has filesource => (
 
 sub BUILDARGS {
 	my $class = shift;
-	my $id;
 
 	if ( @_ == 1 && _INSTANCE( $_[0], 'WiX3::XML::Directory' ) ) {
 		return { directory_object => $_[0] };
