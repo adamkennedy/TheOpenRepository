@@ -119,6 +119,7 @@ sub initialize_tree {
 		'Cpan',      'cpan',
 		'Win32',     'win32',
 	);
+
 	$branch->add_directories_id(
 		'Cpanplus',  'cpanplus',
 	) if (5100 <= $ver);
@@ -143,7 +144,7 @@ sub initialize_tree {
 	foreach my $dir (@list) {
 		$self->add_directory( catdir( $self->_get_app_dir(), $dir ) );
 	}
-	
+
 	return $self;
 }
 
@@ -159,7 +160,7 @@ sub add_directory {
 	}
 
 	$self->trace_line(3, "Adding directory with path $dir to tree.\n");
-		
+
 	# Does the directory already exist?
 	# If so, short-circuit.
 	return 1 if ($self->search_dir(
@@ -171,11 +172,11 @@ sub add_directory {
 	my ($volume, $dirs, undef) = splitpath($dir, 1);
 	my @dirs = splitdir($dirs);
 	my $dir_to_add = pop @dirs;
-	my $path_to_find = catpath($volume, catdir(@dirs), undef);
+	my $path_to_find = catdir($volume, @dirs);
 	
 	$self->trace_line(5, "  Adding directory recursively: $path_to_find, $dir_to_add to tree.\n");
 	my $dir_out = $self->_add_directory_recursive($path_to_find, $dir_to_add);
-	
+
 	return defined $dir_out ? 1 : 0;
 };
 

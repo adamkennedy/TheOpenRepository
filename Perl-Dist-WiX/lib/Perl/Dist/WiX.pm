@@ -123,8 +123,8 @@ require Perl::Dist::WiX::IconArray;
 require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 
-our $VERSION = '1.090_001';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION ;
 
 use Object::Tiny qw(
   perl_version
@@ -170,28 +170,6 @@ use Object::Tiny qw(
 
 #>>>
 
-Readonly my %MODULE_FIX => (
-	'CGI.pm'               => 'CGI',
-	'Fatal'                => 'autodie',
-	'Filter::Util::Call'   => 'Filter',
-	'Locale::Maketext'     => 'Locale-Maketext',
-	'Pod::Man'             => 'Pod',
-	'Text::Tabs'           => 'Text',
-	'PathTools'            => 'Cwd',
-	'TermReadKey'          => 'Term::ReadKey',
-	'Term::ReadLine::Perl' => 'Term::ReadLine',
-	'libwww::perl'         => 'LWP',
-	'Scalar::List::Utils'  => 'List::Util',
-	'libnet'               => 'Net',
-	'encoding'             => 'Encode',
-	'IO::Scalar'           => 'IO::Stringy',
-);
-
-Readonly my @MODULE_DELAY => qw(
-  CPANPLUS::Dist::Build
-  File::Fetch
-  Thread::Queue
-);
 
 
 #####################################################################
@@ -843,14 +821,14 @@ Readonly my %PACKAGES => (
 sub final_initialization {
 	my $self = shift;
 
-		# Set element collections
+	# Set element collections
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
 	$self->{directories} = Perl::Dist::WiX::DirectoryTree2->new(
 		app_dir  => $self->image_dir,
 		app_name => $self->app_name,
 	  )
 	  ->initialize_tree( $self->perl_version );
-		
+
 	$self->{fragments}->{StartMenuIcons} =
 	  Perl::Dist::WiX::Fragment::StartMenu->new( directory_id => 'D_App_Menu', );
 	$self->{fragments}->{Environment} =
@@ -859,7 +837,7 @@ sub final_initialization {
 		id             => 'Win32Extras',
 		files          => File::List::Object->new(),
 	);
-		
+	
 	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::Fragment::CreateFolder->new(
 		directory_id   => 'Cpan',
 		id             => 'CPANFolder',
@@ -918,7 +896,7 @@ sub final_initialization {
 	  catdir ( $self->image_dir, qw{ c    bin         startup os2   } ) . q{\\},
 	  catdir ( $self->image_dir, qw{ c    bin         startup qssl  } ) . q{\\},
 	  catdir ( $self->image_dir, qw{ c    bin         startup tos   } ) . q{\\},
-	  catdir ( $self->image_dir, qw{ c    libexec     gcc     mingw32 3.4.5 install-tools}),
+	  catdir ( $self->image_dir, qw{ c    libexec     gcc     mingw32 3.4.5 install-tools}) . q{\\},
 	  catfile( $self->image_dir, qw{ c    COPYING     } ),
 	  catfile( $self->image_dir, qw{ c    COPYING.LIB } ),
 	  catfile( $self->image_dir, qw{ c    bin         gccbug  } ),
@@ -1254,6 +1232,7 @@ sub run {
 
 	# Don't buffer
 	STDOUT->autoflush(1);
+	STDERR->autoflush(1);
 
 	my @task_list = @{$self->tasklist()};
 	my $task_number = 1;

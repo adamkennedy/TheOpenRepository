@@ -30,6 +30,7 @@ our $VERSION = '1.090';
 $VERSION = eval { return $VERSION };
 
 extends 'WiX3::XML::Fragment';
+with 'WiX3::Role::Traceable';
 
 has files => (
 	is       => 'ro',
@@ -80,8 +81,7 @@ sub regenerate {
 	my @files = @{$self->_get_files()};
 
 	my $id = $self->get_id();
-	# TODO: Make this a trace_line.
-	# print "Regenerating $id\n";
+	$self->trace_line(2, "Regenerating $id\n");
 
 	$self->clear_child_tags();
 
@@ -295,8 +295,8 @@ sub _add_file_component {
 	my $file_obj;
 	
 	# If the file is a .dll or .exe file, check for a version.
-	if ( ( $file =~ m{\.dll\z}sm )
-		or ( $file =~ m{\.exe\z}sm ) )
+	if ( (-r $file) and ( ( $file =~ m{\.dll\z}sm )
+			or ( $file =~ m{\.exe\z}sm ) ) )
 	{
 		my $language;
 		my $exe = Win32::Exe->new( $file );
@@ -316,12 +316,13 @@ sub _add_file_component {
 			);
 		}
 	} else {
+		# If the file doesn't exist, it gets caught later.
 		$file_obj = WiX3::XML::File->new( 
 			source => $file, 
 			id => $component->get_id(),			
 		);
 	}
-
+	
 	$component->add_child_tag($file_obj);
 	$tag->add_child_tag($component);
 

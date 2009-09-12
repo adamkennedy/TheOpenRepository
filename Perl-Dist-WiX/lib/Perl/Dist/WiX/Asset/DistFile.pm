@@ -9,8 +9,8 @@ require URI;
 require File::Spec::Unix;
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION;
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';

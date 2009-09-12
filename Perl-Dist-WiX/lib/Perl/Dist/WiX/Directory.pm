@@ -179,7 +179,7 @@ sub _add_directory_recursive {
 		my ($volume, $dirs, undef) = splitpath($path_to_find, 1);
 		my @dirs = splitdir($dirs);
 		my $dir_to_add_down = pop @dirs;
-		my $path_to_find_down = catpath($volume, catdir(@dirs), undef);
+		my $path_to_find_down = catdir($volume, @dirs);
 		my $dir = $self->_add_directory_recursive($path_to_find_down, $dir_to_add_down);
 		return $dir->add_directory( name => $dir_to_add );
 		

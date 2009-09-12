@@ -8,8 +8,8 @@ require SelectSaver;
 require PAR::Dist;
 require IO::String;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION;
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -45,8 +45,7 @@ sub install {
 		# Set the appropriate installation paths
 		my @module_dirs = split m{::}ms, $name;
 		my $perldir = catdir( $image_dir, 'perl' );
-		# TODO: VENDORPERL: Change to vendor.
-		my $libdir = catdir( $perldir, 'site', 'lib' );
+		my $libdir = catdir( $perldir, 'vendor', 'lib' );
 		my $bindir = catdir( $perldir, 'bin' );
 		$packlist = catfile( $libdir, 'auto', @module_dirs, '.packlist' );
 		my $cdir = catdir( $image_dir, 'c' );

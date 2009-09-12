@@ -8,8 +8,8 @@ use File::Spec::Functions qw( catdir catfile );
 require File::Remove;
 require URI;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION;
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';

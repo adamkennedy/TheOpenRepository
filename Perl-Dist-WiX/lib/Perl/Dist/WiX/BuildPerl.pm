@@ -56,13 +56,22 @@ require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_101';
+$VERSION = eval $VERSION;
 
-Readonly my %MODULE_FIX => (
+Readonly my %CORE_MODULE_FIX => (
+	'IO::Compress'         => 'IO::Compress::Base',
+	'Filter'               => 'Filter::Util::Call',
+	'autodie'              => 'Fatal',
+	'Pod'                  => 'Pod::Man',
+	'Text'                 => 'Text::Tabs',
+	'PathTools'            => 'Cwd',
+	'Scalar::List::Utils'  => 'List::Util',
+);
+
+Readonly my %DIST_TO_MODULE_FIX => (
 	'CGI.pm'               => 'CGI',
 	'Fatal'                => 'autodie',
-	'Filter::Util::Call'   => 'Filter',
 	'Locale::Maketext'     => 'Locale-Maketext',
 	'Pod::Man'             => 'Pod',
 	'Text::Tabs'           => 'Text',
@@ -76,11 +85,26 @@ Readonly my %MODULE_FIX => (
 	'IO::Scalar'           => 'IO::Stringy',
 );
 
+
 Readonly my @MODULE_DELAY => qw(
   CPANPLUS::Dist::Build
   File::Fetch
   Thread::Queue
 );
+
+sub _delay_upgrade {
+	my ( $self, $module ) = @_;
+
+	return ( any { $module->id eq $_ } @MODULE_DELAY ) ? 1 : 0;
+}
+
+sub _module_fix {
+	my ( $self, $module ) = @_;
+
+	return ( exists $CORE_MODULE_FIX{$module} ) ? $CORE_MODULE_FIX{$module} : $module;
+}
+
+
 
 #####################################################################
 # CPAN installation and upgrade support
@@ -169,6 +193,14 @@ sub install_cpan_upgrades {
 			next MODULE;
 		}
 
+		if (    ( $module->cpan_file =~ m{/CGI\.pm-\d}msx )
+			and ( $module->cpan_version > 3.45 ) )
+		{
+			$self->install_modules(qw( FCGI ));
+			$self->_install_cpan_module( $module, $force );
+			next MODULE;
+		}
+		
 		if ( $self->_delay_upgrade($module) ) {
 
 			# Delay these module until last.
@@ -321,13 +353,13 @@ sub _install_cpan_module {
 	my ( $self, $module, $force ) = @_;
 	$force = $force or $self->force;
 	my $perl_version = $self->perl_version_literal;
+	my $module_id = $self->_module_fix( $module->id );
+	my $module_file = substr $module->cpan_file, 5;
 #<<<
 	my $core =
-	  exists $Module::CoreList::version{ $perl_version }{ $module->id }
+	  exists $Module::CoreList::version{ $perl_version }{ $module_id }
 	  ? 1
 	  : 0;
-	my $module_file = substr $module->cpan_file, 5;
-	my $module_id = $self->_module_fix( $module->id );
 	$self->install_distribution(
 		name     => $module_file,
 		mod_name => $module_id,
@@ -336,7 +368,10 @@ sub _install_cpan_module {
 		      makefilepl_param => ['INSTALLDIRS=perl'],
 			  buildpl_param => ['--installdirs', 'core'],
 		    )
-		  : (),
+		  : (
+		      makefilepl_param => ['INSTALLDIRS=vendor'],
+			  buildpl_param => ['--installdirs', 'vendor'],
+		    ),
 		$force
 		  ? ( force => 1 )
 		  : (),
@@ -368,18 +403,6 @@ sub _skip_upgrade {
 
 	return 0;
 } ## end sub _skip_upgrade
-
-sub _delay_upgrade {
-	my ( $self, $module ) = @_;
-
-	return ( any { $module->id eq $_ } @MODULE_DELAY ) ? 1 : 0;
-}
-
-sub _module_fix {
-	my ( $self, $module ) = @_;
-
-	return ( exists $MODULE_FIX{$module} ) ? $MODULE_FIX{$module} : $module;
-}
 
 #####################################################################
 # Perl installation support
@@ -488,6 +511,8 @@ sub install_perl_589 {
 			info    => $toolchain->get_error() );
 	}
 
+	$self->{toolchain} = $toolchain;
+
 	# Make the perl directory if it hasn't been made alreafy.
 	$self->make_path( catdir( $self->image_dir, 'perl' ) );
 
@@ -502,6 +527,7 @@ sub install_perl_589 {
 			  lib/CPAN/Config.pm
 			  win32/config.gc
 			  win32/config_sh.PL
+			  win32/config_H.gc
 			  }
 		],
 		license => {
@@ -580,6 +606,7 @@ sub install_perl_5100 {
 			  lib/CPAN/Config.pm
 			  win32/config.gc
 			  win32/config_sh.PL
+			  win32/config_H.gc
 			  }
 		],
 		license => {
@@ -616,7 +643,7 @@ sub install_perl_5101 {
 	}
 
 	$self->{toolchain} = $toolchain;
-	
+
 	# Make the perl directory if it hasn't been made already.
 	$self->make_path( catdir( $self->image_dir, 'perl' ) );
 
@@ -631,6 +658,7 @@ sub install_perl_5101 {
 			  lib/CPAN/Config.pm
 			  win32/config.gc
 			  win32/config_sh.PL
+			  win32/config_H.gc
 			  }
 		],
 		license => {
@@ -726,14 +754,14 @@ sub install_perl_toolchain {
 			$force = 1;
 		}
 
-		$module_id = $self->_name_to_module($dist);
+		$module_id = $self->_module_fix($self->_name_to_module($dist));
 		$core =
 		  exists $Module::CoreList::version{ $self->perl_version_literal() }
 		  {$module_id} ? 1 : 0;
 #<<<
 		$self->install_distribution(
 			name              => $dist,
-			mod_name          => $self->_module_fix($module_id),
+			mod_name          => $module_id,
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
@@ -743,7 +771,10 @@ sub install_perl_toolchain {
 				  makefilepl_param => ['INSTALLDIRS=perl'],
 				  buildpl_param => ['--installdirs', 'core'],
 				)
-			  : (),
+			  : (
+				  makefilepl_param => ['INSTALLDIRS=vendor'],
+				  buildpl_param => ['--installdirs', 'vendor'],
+			    ),
 		);
 #>>>
 	} ## end foreach my $dist ( @{ $toolchain...})

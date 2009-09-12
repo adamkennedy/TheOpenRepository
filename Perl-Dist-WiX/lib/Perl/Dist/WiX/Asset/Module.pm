@@ -8,8 +8,8 @@ require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION;
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';
 
@@ -72,6 +72,10 @@ CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'prerequisites_policy'} = q[ignore];
 \$CPAN::Config->{'connect_to_internet_ok'} = q[$internet_available];
 \$CPAN::Config->{'ftp'} = q[];
+\$CPAN::Config->{'makepl_arg'} = q[INSTALLDIRS=vendor];
+\$CPAN::Config->{'make_install_arg'} = q[INSTALLDIRS=vendor];
+\$CPAN::Config->{'mbuildpl_arg'} = q[--installdirs vendor];
+\$CPAN::Config->{'mbuild_install_arg'} = q[--installdirs vendor];
 print "Installing $name from CPAN...\\n";
 my \$module = CPAN::Shell->expandany( "$name" ) 
 	or die "CPAN.pm couldn't locate $name";
