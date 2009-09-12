@@ -7,8 +7,8 @@ use warnings;
 use Readonly qw (Readonly);
 use WiX3::Exceptions;
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 Readonly my %TYPES => ( 'Maybe[Int]' => 'an integer' );
 

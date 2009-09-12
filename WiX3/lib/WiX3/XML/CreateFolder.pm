@@ -11,8 +11,8 @@ use Moose;
 use Params::Util qw( _STRING  );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Permission, PermissionEx, Shortcut as children.

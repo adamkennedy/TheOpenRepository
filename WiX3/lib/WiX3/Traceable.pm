@@ -10,8 +10,8 @@ use MooseX::Singleton;
 use WiX3::Util::StrictConstructor;
 use WiX3::Trace::Config;
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 with 'WiX3::Role::Traceable';
 

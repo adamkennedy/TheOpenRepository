@@ -15,8 +15,8 @@ use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( Tracelevel Host );
 use MooseX::Types::Moose qw( Int Maybe Str Bool ArrayRef );
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 has tracelevel => (
 	is      => 'rw',

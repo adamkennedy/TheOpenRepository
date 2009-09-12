@@ -5,8 +5,8 @@ use Moose::Role;
 use WiX3::Types qw( Host );
 require WiX3::XML::GeneratesGUID::Object;
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 # requires 'get_path';
 

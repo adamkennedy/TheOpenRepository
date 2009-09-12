@@ -8,7 +8,7 @@ require WiX3::XML::ComponentRef;
 require WiX3::XML::FeatureRef;
 
 our $VERSION = '0.007';
-$VERSION = eval { return $VERSION };
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 #####################################################################
 # Methods

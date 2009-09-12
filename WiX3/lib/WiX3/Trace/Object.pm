@@ -12,8 +12,8 @@ use WiX3::Trace::Config;
 use WiX3::Util::StrictConstructor;
 use Readonly qw( Readonly );
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 Readonly my @LEVELS => qw(error notice info debug debug debug);
 

@@ -9,7 +9,7 @@ use MooseX::Types::Moose qw(ArrayRef);
 use List::MoreUtils qw( uniq );
 
 our $VERSION = '0.007';
-$VERSION = eval { return $VERSION };
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 with 'WiX3::XML::Role::Tag';
 

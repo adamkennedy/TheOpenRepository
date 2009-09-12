@@ -9,8 +9,8 @@ use MooseX::Types -declare => [ qw(
 use Regexp::Common 2.105;
 use MooseX::Types::Moose qw( Str Int Bool HashRef );
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 subtype Host, as Str, where {
 	$_ =~ /\A$RE{net}{IPv4}\z/msx

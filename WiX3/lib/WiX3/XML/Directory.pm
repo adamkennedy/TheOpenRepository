@@ -14,8 +14,8 @@ use WiX3::Util::StrictConstructor;
 use Params::Util qw( _IDENTIFIER _STRING );
 use File::Spec::Functions qw( catdir );
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 with qw(WiX3::XML::Role::TagAllowsChildTags
   WiX3::XML::Role::GeneratesGUID

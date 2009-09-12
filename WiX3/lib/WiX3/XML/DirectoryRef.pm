@@ -13,7 +13,7 @@ use MooseX::Types::Moose qw( Int Str );
 use WiX3::Util::StrictConstructor;
 
 our $VERSION = '0.007';
-$VERSION = eval { return $VERSION };
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Component, Directory, Merge as children.

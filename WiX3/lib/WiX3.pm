@@ -5,7 +5,7 @@ use warnings;
 use strict;
 
 our $VERSION = '0.007';
-$VERSION = eval { return $VERSION };
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 1;                                     # Magic true value required at end of module
 

@@ -12,8 +12,8 @@ use WiX3::Types qw( YesNoType PositiveInt NonNegativeInt );
 use MooseX::Types::Moose qw( Str Maybe Int );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 

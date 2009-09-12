@@ -7,8 +7,8 @@ use warnings;
 use Moose::Role;
 use WiX3::Exceptions;
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 around '_generate_BUILDALL' => sub {
 	my $orig = shift;

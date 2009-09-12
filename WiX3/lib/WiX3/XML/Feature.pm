@@ -21,7 +21,7 @@ use MooseX::Types::Moose qw( Str Int Maybe );
 use WiX3::Util::StrictConstructor;
 
 our $VERSION = '0.007';
-$VERSION = eval { return $VERSION };
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
 

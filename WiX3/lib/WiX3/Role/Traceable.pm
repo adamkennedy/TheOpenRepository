@@ -6,8 +6,8 @@ use WiX3::Trace::Object;
 use WiX3::Trace::Config;
 use WiX3::Types qw( TraceConfig TraceObject );
 
-our $VERSION = '0.006';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.007';
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 has _traceconfig => (
 	is       => 'ro',

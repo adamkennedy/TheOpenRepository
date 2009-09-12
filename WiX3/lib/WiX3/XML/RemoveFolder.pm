@@ -14,7 +14,7 @@ use WiX3::Types qw( EnumRemoveFolderOn );
 use WiX3::Util::StrictConstructor;
 
 our $VERSION = '0.007';
-$VERSION = eval { return $VERSION };
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 with 'WiX3::XML::Role::Tag';
 
