@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 2;
+use Test::More tests => 2, import => ['!done_testing'];
 
 BEGIN {
 	use strict;

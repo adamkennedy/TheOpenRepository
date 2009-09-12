@@ -11,7 +11,7 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Test::Prereq 1.036',
+	'Test::Prereq::Build 1.036',
 );
 
 # Don't run tests for installs

@@ -20,6 +20,8 @@
 
 # Avoid Module::Build generated and utility files.
 \bBuild$
+\bBuild.bat$
+\bBuild.com$
 \b_build/
 
 # Avoid temp and backup files.
