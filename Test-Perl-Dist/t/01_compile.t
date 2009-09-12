@@ -1,21 +1,15 @@
 #!/usr/bin/perl
 
-use strict;
+use Test::More tests => 2;
+
 BEGIN {
-	$|  = 1;
+	use strict;
 	$^W = 1;
+	$| = 1;
+
+    ok(($] > 5.008000), 'Perl version acceptable') or BAIL_OUT ('Perl version unacceptably old.');
+    use_ok( 'Test::Perl::Dist' );
+    diag( "Testing Test::Perl::Dist $Test::Perl::Dist::VERSION" );
 }
-
-use Test::More;
-use Test::UseAllModules;
-
-BEGIN {
-	if ( $^O ne 'MSWin32' ) {
-		plan skip_all => 'Not on Win32';
-	}
-}
-
-all_uses_ok();
-diag( "Testing Perl::Dist::WiX $Perl::Dist::WiX::VERSION" );
 
 

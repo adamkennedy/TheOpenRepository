@@ -42,7 +42,7 @@ if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {
 	plan( skip_all => "Perl::Tidy needs updated to 20090616" );
 }
 
-use File::Spec::Functions qw(catfile catdir);
+use File::Spec::Functions qw(catfile);
 Perl::Critic::Utils::Constants->import(':profile_strictness');
 my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
 
@@ -55,9 +55,4 @@ Test::Perl::Critic->import(
 	-profile-strictness => $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET
 );
 
-# I only want to criticize my own modules, not the module patches to the differing perls...
-if (-d catdir('blib', 'lib')) {
-    all_critic_ok(catdir('blib', 'lib', 'Perl'));
-} else {
-    all_critic_ok();
-}
+all_critic_ok();
