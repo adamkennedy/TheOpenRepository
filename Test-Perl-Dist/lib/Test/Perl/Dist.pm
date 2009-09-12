@@ -18,18 +18,8 @@ our @EXPORT =
   qw(test_run_dist test_add test_verify_files_short test_verify_files_medium  test_verify_files_long test_verify_portability );
 push @EXPORT, @Test::More::EXPORT;
 
-BEGIN {
-	our $VERSION = '0.200';
-	$VERSION = eval $VERSION; ##no critic(RequireConstantVersion)
-
-	if ( $OSNAME ne 'MSWin32' ) {
-		plan( skip_all => 'Not on Win32' );
-	}
-	if ( rel2abs( curdir() ) =~ m{[.]}ms ) {
-		plan( skip_all =>
-			  'Cannot be tested in a directory with an extension.' );
-	}
-} ## end BEGIN
+our $VERSION = '0.200';
+$VERSION = eval $VERSION; ##no critic(RequireConstantVersion)
 
 my $tests_completed = 0;
 
@@ -116,6 +106,15 @@ sub new_test_class_short {
 	my $test_number   = shift;
 	my $test_version  = shift;
 	my $class_to_test = shift;
+
+	if ( $OSNAME ne 'MSWin32' ) {
+		plan( skip_all => 'Not on Win32' );
+	}
+	if ( rel2abs( curdir() ) =~ m{[.]}ms ) {
+		plan( skip_all =>
+			  'Cannot be tested in a directory with an extension.' );
+	}
+
 	my $test_class =
 	  $self->create_test_class_short( $test_number, $test_version,
 		$class_to_test );
@@ -149,6 +148,13 @@ sub new_test_class_medium {
 	my $test_version  = shift;
 	my $class_to_test = shift;
 
+	if ( $OSNAME ne 'MSWin32' ) {
+		plan( skip_all => 'Not on Win32' );
+	}
+	if ( rel2abs( curdir() ) =~ m{[.]}ms ) {
+		plan( skip_all =>
+			  'Cannot be tested in a directory with an extension.' );
+	}
 	if ( not $ENV{RELEASE_TESTING} ) {
 		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 	}
@@ -186,6 +192,13 @@ sub new_test_class_long {
 	my $test_version  = shift;
 	my $class_to_test = shift;
 
+	if ( $OSNAME ne 'MSWin32' ) {
+		plan( skip_all => 'Not on Win32' );
+	}
+	if ( rel2abs( curdir() ) =~ m{[.]}ms ) {
+		plan( skip_all =>
+			  'Cannot be tested in a directory with an extension.' );
+	}
 	if ( not $ENV{RELEASE_TESTING} ) {
 		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 	}
