@@ -1,4 +1,5 @@
-
+#include <iostream>
+using namespace std;
 namespace PPITokenizer {
 
   class CPPTokenizerWrapper {
@@ -27,6 +28,7 @@ namespace PPITokenizer {
       static char* S_stealPV(SV* sv, STRLEN& len);
       static void S_makeSections(ExtendedToken* token, HV* objHash);
       static void S_handleHereDoc(ExtendedToken* token, HV* objHash);
+      static const char* S_getQuoteOperatorString(Token* token, unsigned long* length);
   };
 
   /***********************************************************************/
@@ -157,47 +159,6 @@ namespace PPITokenizer {
     SvREFCNT_dec(fLines);
   }
 
-  /***********************************************************************/
-  const char *GetQuoteOperatorString(Token *tkn, unsigned long *length) {
-    TokenTypeNames name = tkn->type->type;
-    switch (name) {
-      case Token_Quote_Interpolate:
-        *length = 2;
-        return "qq";
-      case Token_Quote_Literal:
-        *length = 1;
-        return "q";
-      case Token_QuoteLike_Command:
-        *length = 2;
-        return "qx";
-      case Token_QuoteLike_Regexp:
-        *length = 2;
-        return "qr";
-      case Token_QuoteLike_Words:
-        *length = 2;
-        return "qw";
-      case Token_Regexp_Match:
-        *length = 1;
-        return "m";
-      case Token_Regexp_Substitute:
-        *length = 1;
-        return "s";
-      case Token_Regexp_Transliterate:
-        if (tkn->text[0] == 'y') {
-          *length = 1;
-          return "y";
-        } else {
-          *length = 2;
-          return "tr";
-        }
-      // Every other case - should be undef
-      case Token_Regexp_Match_Bare:
-      case Token_QuoteLike_Readline:
-      default:
-        *length = 0;
-        return NULL;
-    }
-  }
 
   /***********************************************************************/
   SV*
@@ -232,7 +193,7 @@ namespace PPITokenizer {
     // make a Perl PPI::Token
     int ttype = theToken->type->type;
     const char* className = CPPTokenizerWrapper::fgTokenClasses[ttype];
-    printf("Class: %s\n", className);
+    //printf("Class: %s\n", className);
 
     SV* theObject = S_newPerlObject(className);
     HV* objHash = (HV*)SvRV((SV*)theObject);
@@ -242,24 +203,32 @@ namespace PPITokenizer {
     // handle the non-simple tokens
     ExtendedToken* theExtendedToken = (ExtendedToken*)theToken; // use only if case >= 1
     char open_char;
+    unsigned long opNameLength = 0;
+    char* opName = NULL;
     switch(fgSpecialToken[ttype]) {
     case eSimple:
       break;
     case eExtended:
       // Handle extended tokens with sections (mostly quotelikes)
-      hv_stores( objHash, "_section", newSViv(theExtendedToken->current_section) );
+      hv_stores( objHash, "_sections", newSViv(theExtendedToken->current_section) );
       open_char = (char)theExtendedToken->sections[0].open_char;
       if (open_char == '{' || open_char == '['
           || open_char == '(' || open_char == '<') {
         hv_stores( objHash, "braced", newSViv(1) );
-        hv_stores( objHash, "braced", &PL_sv_undef );
+        hv_stores( objHash, "separator", &PL_sv_undef );
       }
       else {
         hv_stores( objHash, "braced", newSViv(0) );
-        hv_stores( objHash, "braced", newSVpvn(&open_char, 1) );
+        hv_stores( objHash, "separator", newSVpvn(&open_char, 1) );
       }
       S_makeSections( theExtendedToken, objHash );
+      opName = (char*)S_getQuoteOperatorString(theToken, &opNameLength);
+
+      // FIXME: ownership?
+      if (opName != NULL)
+        hv_stores( objHash, "operator", newSVpvn(opName, opNameLength) );
       break;
+
     case eQuoteSingle:
       hv_stores( objHash, "separator", newSVpvn("'", 1) );
       break;
@@ -273,7 +242,6 @@ namespace PPITokenizer {
       hv_stores( objHash, "_attribute", newSViv(1) );
       break;
     case eHereDoc:
-      printf("HEREDOCS AS YET UNHANDLED\n");
       S_handleHereDoc( theExtendedToken, objHash );
       break;
     default:
@@ -353,7 +321,65 @@ namespace PPITokenizer {
   void
   CPPTokenizerWrapper::S_handleHereDoc(ExtendedToken* token, HV* objHash)
   {
+/* Expected output:
+{'_mode' => 'literal',
+ '_heredoc' => [
+  'foo
+',
+  'bar
+'
+ ],
+ '_terminator' => 'HERE',
+ 'content' => '<<\'HERE\'',
+ '_terminator_line' => 'HERE
+'
+}
+*/
     return;
+  }
+
+  /***********************************************************************/
+  /* Deduce the operator name in case of a quotelike operator. Note: This could be more efficient as a lookup table. */
+  const char*
+  CPPTokenizerWrapper::S_getQuoteOperatorString(Token* token, unsigned long* length) {
+    TokenTypeNames name = token->type->type;
+    switch (name) {
+      case Token_Quote_Interpolate:
+        *length = 2;
+        return "qq";
+      case Token_Quote_Literal:
+        *length = 1;
+        return "q";
+      case Token_QuoteLike_Command:
+        *length = 2;
+        return "qx";
+      case Token_QuoteLike_Regexp:
+        *length = 2;
+        return "qr";
+      case Token_QuoteLike_Words:
+        *length = 2;
+        return "qw";
+      case Token_Regexp_Match:
+        *length = 1;
+        return "m";
+      case Token_Regexp_Substitute:
+        *length = 1;
+        return "s";
+      case Token_Regexp_Transliterate:
+        if (token->text[0] == 'y') {
+          *length = 1;
+          return "y";
+        } else {
+          *length = 2;
+          return "tr";
+        }
+      // Every other case - should be undef
+      case Token_Regexp_Match_Bare:
+      case Token_QuoteLike_Readline:
+      default:
+        *length = 0;
+        return NULL;
+    }
   }
 }
 
