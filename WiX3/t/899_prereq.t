@@ -33,7 +33,7 @@ foreach my $MODULE ( @MODULES ) {
 
 local $ENV{PERL_MM_USE_DEFAULT} = 1;
 
-diag('Takes a few minutes...');
+diag('Takes up to 10 minutes. Do not worry...');
 
 my @modules_skip = (
 # Modules needed for prerequisites, not for this module

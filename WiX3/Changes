@@ -1,8 +1,10 @@
 Revision history for WiX3
 
-0.007  Wed Sep 02 2009
+0.007  Sat Sep 12 2009
        - Adding RemoveFolder tag.
        - Bug fixes found when testing Perl-Dist-WiX.
+       - Will fix documentation and testing in future
+         versions.
 
 0.006  Sun Aug 30 2009
        - More tags (Shortcut, FeatureRef)

@@ -44,7 +44,7 @@ sub _create_error_carpmess {
 				   [ ] type [ ] constraint [ ] because: 
 				   [ ] Validation [ ] failed [ ] for [ ] '(.*)' # $2 = type
 				   [ ] failed [ ] with [ ] value [ ] (.*) # $3 = bad value
-				   \z}msx 
+				   \z}msx
 	  )
 	{
 		my ( $attr_name, $attr_type, $value ) = ( $1, $2, $3 );

@@ -54,7 +54,7 @@ sub BUILDARGS {
 	} else {
 		return $class->SUPER::BUILDARGS(@_);
 	}
-} ## end sub BUILDARGS
+}
 
 
 sub as_string {

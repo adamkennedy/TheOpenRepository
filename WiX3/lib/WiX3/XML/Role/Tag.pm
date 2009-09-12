@@ -64,11 +64,11 @@ sub get_componentref_array {
 
 	my @components;
 	my $count = $self->count_child_tags();
-	
+
 	if ( $self->isa('WiX3::XML::Component') ) {
 		return WiX3::XML::ComponentRef->new($self);
 	}
-	
+
 	if ( $self->isa('WiX3::XML::Feature') ) {
 		return WiX3::XML::FeatureRef->new($self);
 	}
@@ -83,7 +83,7 @@ sub get_componentref_array {
 		} else {
 			return ();
 		}
-	} ## end foreach my $tag ( $self->get_child_tags...)
+	}
 
 	return @components;
 } ## end sub get_componentref_array

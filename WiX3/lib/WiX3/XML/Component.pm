@@ -193,7 +193,7 @@ sub BUILDARGS {
 		WiX3::Exception::Parameter::Invalid->throw('id');
 	}
 
-	
+
 	return \%args;
 } ## end sub BUILDARGS
 

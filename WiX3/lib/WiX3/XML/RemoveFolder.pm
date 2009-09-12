@@ -26,14 +26,14 @@ with 'WiX3::XML::Role::Tag';
 
 has directory => (
 	is      => 'ro',
-	isa     => Maybe[Str],
+	isa     => Maybe [Str],
 	reader  => '_get_directory',
 	default => undef,
 );
 
 has property => (
 	is      => 'ro',
-	isa     => Maybe[Str],
+	isa     => Maybe [Str],
 	reader  => '_get_property',
 	default => undef,
 );
@@ -56,7 +56,7 @@ has on => (
 # Methods to implement the Tag role.
 
 sub as_string {
-	my $self = shift;
+	my $self   = shift;
 	my $string = '<RemoveFolder';
 
 	my @attribute = (

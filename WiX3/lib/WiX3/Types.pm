@@ -14,14 +14,16 @@ our $VERSION = '0.007';
 $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 # Assemble the GUID regex from pieces.
-Readonly my $HEX => '0-9A-F';
+Readonly my $HEX              => '0-9A-F';
 Readonly my $GUID_MIDDLE_PART => "[$HEX]{4}";
-Readonly my $GUID_MIDDLE => "[-] $GUID_MIDDLE_PART [-] $GUID_MIDDLE_PART [-] $GUID_MIDDLE_PART [-]";
+Readonly my $GUID_MIDDLE =>
+  "[-] $GUID_MIDDLE_PART [-] $GUID_MIDDLE_PART [-] $GUID_MIDDLE_PART [-]";
 Readonly my $GUID_BEGINNING => "[$HEX]{8}";
-Readonly my $GUID_END => "[$HEX]{12}";
-Readonly my $GUID_OPEN => '\A [{(]?';
-Readonly my $GUID_CLOSE => '[})]? \z';
-Readonly my $GUID_QR => qr{$GUID_OPEN $GUID_BEGINNING $GUID_MIDDLE $GUID_END $GUID_CLOSE}msx;
+Readonly my $GUID_END       => "[$HEX]{12}";
+Readonly my $GUID_OPEN      => '\A [{(]?';
+Readonly my $GUID_CLOSE     => '[})]? \z';
+Readonly my $GUID_QR =>
+  qr{$GUID_OPEN $GUID_BEGINNING $GUID_MIDDLE $GUID_END $GUID_CLOSE}msx;
 
 subtype Host, as Str, where {
 	$_ =~ /\A $RE{net}{IPv4} \z/msx

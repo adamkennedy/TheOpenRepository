@@ -23,9 +23,9 @@ version = 5.008001
 [ValuesAndExpressions::ProhibitMagicNumbers]
 allowed_values = 0..5 100
 
-# Temporary exclusions
+# Temporary exclusions - used as I work on cleaning up other errors.
 #[-CodeLayout::RequireTidyCode]
-[-CodeLayout::ProhibitTrailingWhitespace]
+#[-CodeLayout::ProhibitTrailingWhitespace]
 
 # Exclusions
 [-CodeLayout::ProhibitHardTabs]
