@@ -341,6 +341,7 @@ sub create_test_class_short {
 				perl_version => $test_version,
 				trace        => 1,
 				build_number => 1,
+				app_publisher_url => 'http://vanillaperl.org',
 				tasklist     => [qw(final_initialization install_dmake)],
 				\@_,
 			);
@@ -380,11 +381,13 @@ sub create_test_class_medium {
 				perl_version => $test_version,
 				trace => 1,
 				build_number => 1,
+				app_publisher_url => 'http://vanillaperl.org',
 				tasklist => [ qw(
 					final_initialization
 					install_c_toolchain
 					install_c_libraries
 					install_perl
+					install_perl_toolchain
 					test_distro
 					regenerate_fragments
 					write
@@ -396,8 +399,9 @@ sub create_test_class_medium {
 		sub ${answer}::test_distro {
 			my \$self = shift;
 			\$self->install_distribution(
-				name =>     'ADAMK/Config-Tiny-2.12.tar.gz',
-				mod_name => 'Config::Tiny',
+				name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
+				mod_name         => 'Config::Tiny',
+				makefilepl_param => ['INSTALLDIRS=vendor'],
 			);		
 			return 1;
 		}
@@ -414,33 +418,41 @@ sub create_test_class_long {
 	my $answer       = "Test::Perl::Dist::Long$test_number";
 
 	eval <<"EOF";
-
-		package $answer;
-
-		use strict;
 		require $test_class;
 
-		use base $test_class;
+		\@${answer}::ISA = ( "$test_class" );
 
 		###############################################################
 		# Configuration
 
-		sub app_name             { 'Test Perl'               }
-		sub app_ver_name         { 'Test Perl 1 alpha 1'     }
-		sub app_publisher        { 'Vanilla Perl Project'    }
-		sub app_publisher_url    { 'http://vanillaperl.org'  }
-		sub app_id               { 'testperl'                }
+		sub ${answer}::app_name             { 'Test Perl'               }
+		sub ${answer}::app_ver_name         { 'Test Perl 1 alpha 1'     }
+		sub ${answer}::app_publisher        { 'Vanilla Perl Project'    }
+		sub ${answer}::app_publisher_url    { 'http://vanillaperl.org'  }
+		sub ${answer}::app_id               { 'testperl'                }
 
 		###############################################################
 		# Main Methods
 
-		sub new {
-			return shift->SUPER::new(
+		sub ${answer}::new {
+			return shift->${test_class}::new(
 				perl_version => $test_version,
 				trace => 1,
 				build_number => 1,
+				app_publisher_url => 'http://vanillaperl.org',
 				\@_,
 			);
+		}
+		
+		sub ${answer}::install_cpan_upgrades {
+			my \$self = shift;
+			\$self->Perl::Dist::WiX::install_cpan_upgrades();
+			\$self->install_distribution(
+				name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
+				mod_name         => 'Config::Tiny',
+				makefilepl_param => ['INSTALLDIRS=vendor'],
+			);		
+			return 1;
 		}
 EOF
 
