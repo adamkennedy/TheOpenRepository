@@ -43,6 +43,7 @@ requires       'WiX3'                  => '0.006';
 recommends     'Readonly::XS'          => '1.05';
 test_requires  'Test::More'            => '0.61';
 test_requires  'Test::Output'          => '0.11';
+test_requires  'Test::Perl::Dist'      => '0.200';
 test_requires  'Test::UseAllModules'   => '0.09';
 requires       'Win32'                 => '0.35';
 requires       'Win32::Exe'            => '0.11';
