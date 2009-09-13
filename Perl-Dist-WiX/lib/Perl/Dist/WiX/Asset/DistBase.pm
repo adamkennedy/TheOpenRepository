@@ -112,7 +112,7 @@ sub _abs_uri {
 
 sub _DIST {
 	my $it = shift;
-	unless ( defined $it and not ref $it ) {
+	if ( not( defined $it and not ref $it ) ) {
 		return undef;
 	}
 	unless ( $it =~ q|^([A-Z]){2,}/| ) {

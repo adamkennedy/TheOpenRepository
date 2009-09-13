@@ -150,15 +150,15 @@ sub checkpoint_task {
 	}
 
 	# Skip if we are loading later on
-	unless ( $self->checkpoint_before > $step ) {
+	if ( $self->checkpoint_before > $step ) {
+		$self->trace_line( 0, "Skipping $task (step $step.)\n" );
+	} else {
 		my $t = time;
 		$self->$task();
 		$self->trace_line( 0,
 			    "Completed $task (step $step) in "
 			  . ( time - $t )
 			  . " seconds\n" );
-	} else {
-		$self->trace_line( 0, "Skipping $task (step $step.)\n" );
 	}
 
 	# Are we saving at this step?

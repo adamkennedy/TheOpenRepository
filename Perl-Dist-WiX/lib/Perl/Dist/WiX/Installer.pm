@@ -385,7 +385,7 @@ sub compile_wxs {
 	my $out;
 	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
 
-	unless ( ( -f $wixobj ) and ( not $out =~ /error|warning/msx ) ) {
+	if ( ( not -f $wixobj ) and ( $out =~ /error|warning/msx ) ) {
 		$self->trace_line( 0, $out );
 		PDWiX->throw( "Failed to find $wixobj (probably "
 			  . "compilation error in $filename)" );
@@ -536,7 +536,7 @@ sub write_msi {
 	$self->trace_line( 1, $out );
 
 	# Did everything get done correctly?
-	unless ( ( -f $output_msi ) and ( not $out =~ /error|warning/msx ) ) {
+	if ( ( not -f $output_msi ) and ( $out =~ /error|warning/msx ) ) {
 		$self->trace_line( 0, $out );
 		PDWiX->throw(
 			"Failed to find $output_msi (probably compilation error)");
@@ -757,6 +757,7 @@ sub as_string {
 		info    => $tt->error() );
 #<<<
 	# Delete empty lines.
+	## no critic(ProhibitComplexRegexes)
 	$answer =~ s{(?>\x0D\x0A?|[\x0A-\x0C\x85\x{2028}\x{2029}])
                             # Replace a linebreak, 
 							# (within parentheses is = to \R for 5.8)

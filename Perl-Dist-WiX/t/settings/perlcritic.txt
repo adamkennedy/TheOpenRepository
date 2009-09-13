@@ -23,9 +23,6 @@ add_packages = Module::CoreList CPAN::Config CPAN Storable
 [Modules::PerlMinimumVersion]
 version = 5.008001
 
-[RegularExpressions::ProhibitComplexRegexes]
-max_characters = 80
-
 # Temporary exclusions to use while cleaning up.
 #[-CodeLayout::RequireTidyCode]
 #[-CodeLayout::ProhibitTrailingWhitespace]
@@ -45,6 +42,3 @@ max_characters = 80
 [-ValuesAndExpressions::ProhibitLongChainsOfMethodCalls]
 [-ValuesAndExpressions::RestrictLongStrings]
 [-Editor::RequireEmacsFileVariables]
-
-# For now
-[-ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
