@@ -1703,7 +1703,6 @@ sub patch_file {
 		$fh->close or PDWiX->throw("Could not close: $OS_ERROR");
 		$self->_copy( $output => $to );
 		unlink $output
-		  or
 		  or PDWiX->throw("Could not delete $output: $OS_ERROR");
 
 	} elsif ( $from ne q{} ) {

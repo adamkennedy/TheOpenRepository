@@ -159,7 +159,8 @@ sub BUILDARGS {
 	my %default_args = (
 		url    => $args{url},
 		file   => $args{file},
-		parent => $args{parent}, );
+		parent => $args{parent},
+	);
 	delete @args{ 'url', 'file', 'parent' };
 
 	return { (%default_args), (%args) };

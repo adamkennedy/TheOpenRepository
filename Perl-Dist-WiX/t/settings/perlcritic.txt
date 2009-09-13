@@ -1,6 +1,12 @@
 verbose = %f:%l:%c:\n %p: %m\n
 theme = (core || more)
 
+[TestingAndDebugging::RequireUseWarnings]
+equivalent_modules = MooseX::Singleton metaclass MooseX::Types
+
+[TestingAndDebugging::RequireUseStrict]
+equivalent_modules = MooseX::Singleton metaclass MooseX::Types
+
 [ControlStructures::ProhibitPostfixControls]
 allow = if unless
 
@@ -12,15 +18,24 @@ functions = :builtins
 exclude_functions = print
 
 [Variables::ProhibitPackageVars]
-add_packages = Module::CoreList CPAN::Config CPAN
+add_packages = Module::CoreList CPAN::Config CPAN Storable
 
 [Modules::PerlMinimumVersion]
 version = 5.008001
 
+[RegularExpressions::ProhibitComplexRegexes]
+max_characters = 80
+
+# Temporary exclusions to use while cleaning up.
+#[-CodeLayout::RequireTidyCode]
+#[-CodeLayout::ProhibitTrailingWhitespace]
+
 # Exclusions
+[-ControlStructures::ProhibitUnlessBlocks]
+[-RegularExpressions::ProhibitEnumeratedClasses]
+[-ValuesAndExpressions::RequireConstantVersion]
 [-ValuesAndExpressions::ProhibitMagicNumbers]
 [-CodeLayout::ProhibitHardTabs]
-[-ControlStructures::ProhibitUnlessBlocks]
 [-Miscellanea::RequireRcsKeywords]
 [-Subroutines::RequireArgUnpacking]
 [-Subroutines::ProhibitExplicitReturnUndef]
