@@ -1,15 +1,16 @@
 package Perl::Dist::WiX::Asset::PAR;
 
+use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str ); 
+use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catdir catfile );
-use English qw( -no_match_vars ); 
+use English qw( -no_match_vars );
 require SelectSaver;
 require PAR::Dist;
 require IO::String;
 
 our $VERSION = '1.090_102';
-$VERSION = eval $VERSION;
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -22,12 +23,12 @@ has name => (
 
 sub install {
 	my $self = shift;
-	
-	my $name = $self->get_name();
-	my $image_dir = $self->_get_image_dir();
+
+	my $name         = $self->get_name();
+	my $image_dir    = $self->_get_image_dir();
 	my $download_dir = $self->_get_download_dir();
-	my $url = $self->_get_url();
-		
+	my $url          = $self->_get_url();
+
 	$self->_trace_line( 1, "Preparing $name\n" );
 
 	my $output;
@@ -45,8 +46,8 @@ sub install {
 		# Set the appropriate installation paths
 		my @module_dirs = split m{::}ms, $name;
 		my $perldir = catdir( $image_dir, 'perl' );
-		my $libdir = catdir( $perldir, 'vendor', 'lib' );
-		my $bindir = catdir( $perldir, 'bin' );
+		my $libdir  = catdir( $perldir,   'vendor', 'lib' );
+		my $bindir  = catdir( $perldir,   'bin' );
 		$packlist = catfile( $libdir, 'auto', @module_dirs, '.packlist' );
 		my $cdir = catdir( $image_dir, 'c' );
 
@@ -78,10 +79,9 @@ sub install {
 	$self->_trace_line( 2, $output );
 
 	# Get distribution name to add to what's installed.
-	if ( ( defined $url ) and ( $url =~ m{.*/([^/]*)\z}msx ) )
-	{
+	if ( ( defined $url ) and ( $url =~ m{.*/([^/]*)\z}msx ) ) {
 		my $dist_info = $1;
-		$dist_info =~ s{\.par}{}msx;   # Take off .par extension.
+		$dist_info =~ s{[.] par}{}msx; # Take off .par extension.
 #<<<
 		if ($dist_info =~
             m{\A(.*?)   # Grab anything that could be the name non-greedily, ...
@@ -92,8 +92,8 @@ sub install {
 		  )
 #>>>
 		{
-			my ( $name, $ver ) = ( $1, $2 );
-			$dist_info = "$name-$ver";
+			my ( $dist_name, $dist_ver ) = ( $1, $2 );
+			$dist_info = "${dist_name}-${dist_ver}";
 			$self->_add_to_distributions_installed($dist_info);
 		} else {
 			$self->_trace_line( 1, <<"EOF");
@@ -101,7 +101,7 @@ Could not parse name of .par to determine name and version.
 Source: $dist_info
 EOF
 		}
-	} ## end if ( ( defined {@_}->{...}))
+	} ## end if ( ( defined $url ) ...)
 
 	# Read in the .packlist and return it.
 	my $filelist =
@@ -109,7 +109,7 @@ EOF
 	  ->filter( $self->_filters )->add_file($packlist);
 
 	return $filelist;
-} ## end sub install_par
+} ## end sub install
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

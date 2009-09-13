@@ -1,7 +1,7 @@
 package Perl::Dist::WiX::Directory;
 
 #####################################################################
-# Perl::Dist::WiX::Directory - Extends <Directory> tags to make them  
+# Perl::Dist::WiX::Directory - Extends <Directory> tags to make them
 # easily searchable.
 #
 # Copyright 2009 Curtis Jewell
@@ -18,8 +18,8 @@ use Params::Util qw( _STRING );
 
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 extends 'WiX3::XML::Directory';
 

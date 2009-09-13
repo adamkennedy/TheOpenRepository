@@ -1,7 +1,7 @@
 package Perl::Dist::WiX::Icon;
 
 #####################################################################
-# Perl::Dist::WiX::Icon - Extends <Icon> tags to make them searchable 
+# Perl::Dist::WiX::Icon - Extends <Icon> tags to make them searchable
 # easily by Perl::Dist::WiX::IconArray.
 #
 # Copyright 2009 Curtis Jewell
@@ -13,8 +13,8 @@ use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str );
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 extends 'WiX3::XML::Icon';
 

@@ -29,8 +29,8 @@ use warnings;
 use File::Spec::Functions qw( catfile );
 use Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 #####################################################################
 # Installing C Toolchain and Library Packages
@@ -272,6 +272,8 @@ sub install_mingw_make {
 
 	return 1;
 }
+
+1;
 
 __END__
 

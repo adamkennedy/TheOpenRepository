@@ -110,21 +110,21 @@ in order to load the checkpoint and start on task 6.
 
 =cut
 
-use     5.008001;
-use     strict;
-use     warnings;
-use     English               qw( -no_match_vars );
-use     List::Util            qw( first          );
-use     File::Spec::Functions qw( catdir catfile );
-use     File::Remove          qw();
+use 5.008001;
+use strict;
+use warnings;
+use English qw( -no_match_vars );
+use List::Util qw( first          );
+use File::Spec::Functions qw( catdir catfile );
+use File::Remove qw();
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 #####################################################################
 # Checkpoint Support
 
-# NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX 
+# NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX
 # object.
 
 =head2 checkpoint_task
@@ -154,13 +154,15 @@ sub checkpoint_task {
 		my $t = time;
 		$self->$task();
 		$self->trace_line( 0,
-			"Completed $task (step $step) in " . ( time - $t ) . " seconds\n" );
+			    "Completed $task (step $step) in "
+			  . ( time - $t )
+			  . " seconds\n" );
 	} else {
 		$self->trace_line( 0, "Skipping $task (step $step.)\n" );
 	}
 
 	# Are we saving at this step?
-	if ( defined first { $step == $_ } @{$self->checkpoint_after} ) {
+	if ( defined first { $step == $_ } @{ $self->checkpoint_after } ) {
 		$self->checkpoint_save;
 	}
 
@@ -224,7 +226,7 @@ sub checkpoint_save {
 	my $copy = {
 		%{$self},
 		checkpoint_before => 0,
-		checkpoint_after  => [ 0 ],
+		checkpoint_after  => [0],
 		checkpoint_stop   => 0,
 		tt_exists         => ( defined $self->{template_toolkit} ? 1 : 0 ),
 		template_toolkit  => undef,
@@ -262,8 +264,8 @@ sub checkpoint_load {
 
 	# If we want a future checkpoint, save it.
 	my $checkpoint_after = $self->{checkpoint_after} || 0;
-	my $checkpoint_stop  = $self->{checkpoint_stop} || 0;
-	
+	my $checkpoint_stop  = $self->{checkpoint_stop}  || 0;
+
 	# Load the stored hash over our object
 	local $Storable::Eval = 1;
 	my $stored = Storable::retrieve( $self->checkpoint_file );
@@ -271,7 +273,7 @@ sub checkpoint_load {
 
 	# Restore any possible future checkpoint.
 	$self->{checkpoint_after} = $checkpoint_after;
-	$self->{checkpoint_stop} = $checkpoint_stop;
+	$self->{checkpoint_stop}  = $checkpoint_stop;
 
 	# Reload the template object if it existed before.
 	if ( $self->{tt_exists} ) {
@@ -280,9 +282,8 @@ sub checkpoint_load {
 	}
 
 	# Reload the misc object.
-	WiX3::Traceable->_clear_instance();
-	$self->{misc} = WiX3::Traceable->new(
-		tracelevel => $self->{trace} );
+	WiX3::Traceable->_clear_instance(); ## no critic(ProtectPrivateSubs)
+	$self->{misc} = WiX3::Traceable->new( tracelevel => $self->{trace} );
 
 	# Pull all the directories out of the storage.
 	$self->trace_line( 0, "Restoring checkpoint directories...\n" );

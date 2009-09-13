@@ -15,14 +15,14 @@ use metaclass (
 	error_class => 'WiX3::Util::Error',
 );
 use MooseX::Singleton;
-use Params::Util          qw( _IDENTIFIER _STRING );
+use Params::Util qw( _IDENTIFIER _STRING );
 use File::Spec::Functions qw( catdir catpath splitdir splitpath );
-use MooseX::Types::Moose  qw( Str );
+use MooseX::Types::Moose qw( Str );
 use Perl::Dist::WiX::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'WiX3::Role::Traceable';
 
@@ -31,24 +31,25 @@ with 'WiX3::Role::Traceable';
 #   root: Returns the root of the directory tree created by new.
 
 has root => (
-	is => 'ro',
-	isa => 'Perl::Dist::WiX::Directory',
+	is     => 'ro',
+	isa    => 'Perl::Dist::WiX::Directory',
 	reader => 'get_root',
-	handles => [qw(search_dir get_directory_object _add_directory_recursive)],
+	handles =>
+	  [qw(search_dir get_directory_object _add_directory_recursive)],
 	required => 1,
 );
 
 has app_dir => (
-	is => 'ro',
-	isa => Str,
-	reader => '_get_app_dir',
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_app_dir',
 	required => 1,
 );
 
 has app_name => (
-	is => 'ro',
-	isa => Str,
-	reader => '_get_app_name',
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_app_name',
 	required => 1,
 );
 
@@ -60,26 +61,32 @@ has app_name => (
 sub BUILDARGS {
 	my $class = shift;
 	my %args;
-	
+
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
-		%args = %{$_[0]};
+		%args = %{ $_[0] };
 	} elsif ( 0 == @_ % 2 ) {
-		%args = ( @_ );
+		%args = (@_);
 	} else {
-		PDWiX->throw('Parameters incorrect (not a hashref or a hash) for DirectoryTree2');
+		PDWiX->throw(
+'Parameters incorrect (not a hashref or a hash) for DirectoryTree2'
+		);
 	}
 
-	my $app_dir = $args{'app_dir'} or PDWiX::Parameter->throw('No app_dir parameter');
+	my $app_dir = $args{'app_dir'}
+	  or PDWiX::Parameter->throw('No app_dir parameter');
 
-	my $root = Perl::Dist::WiX::Directory->new( 
-		id       => 'TARGETDIR', 
+	my $root = Perl::Dist::WiX::Directory->new(
+		id       => 'TARGETDIR',
 		name     => 'SourceDir',
 		path     => $app_dir,
 		noprefix => 1,
 	);
-	
-	return { root => $root, %args }; 
-}
+
+	return {
+		root => $root,
+		%args
+	};
+} ## end sub BUILDARGS
 
 sub as_string {
 	my $self = shift;
@@ -92,8 +99,8 @@ sub as_string {
 
 sub initialize_tree {
 	my $self = shift;
-	my $ver = shift;
-	
+	my $ver  = shift;
+
 	$self->trace_line( 2, "Initializing directory tree.\n" );
 
 	# Create starting directories.
@@ -107,9 +114,9 @@ sub initialize_tree {
 			noprefix => 1,
 		}
 	  )->add_directory( {
-			id      => 'App_Menu',
-			name    => $self->_get_app_name(),
-	} );
+			id   => 'App_Menu',
+			name => $self->_get_app_name(),
+		} );
 
 #<<<
 	$branch->add_directories_id(
@@ -124,34 +131,34 @@ sub initialize_tree {
 		'Cpanplus',  'cpanplus',
 	) if (5100 <= $ver);
 #>>>
-	
+
 	my @list = qw(
-		c\\bin
-		c\\include
-		c\\lib
-		c\\libexec
-		c\\mingw32
-		c\\share
-		perl\\bin
-		perl\\lib\\auto
-		perl\\site\\lib\\auto\\share\\dist
-		perl\\site\\lib\\auto\\share\\module
-		perl\\vendor\\lib\\auto\\share\\dist
-		perl\\vendor\\lib\\auto\\share\\module
-		cpan\\sources
+	  c\\bin
+	  c\\include
+	  c\\lib
+	  c\\libexec
+	  c\\mingw32
+	  c\\share
+	  perl\\bin
+	  perl\\lib\\auto
+	  perl\\site\\lib\\auto\\share\\dist
+	  perl\\site\\lib\\auto\\share\\module
+	  perl\\vendor\\lib\\auto\\share\\dist
+	  perl\\vendor\\lib\\auto\\share\\module
+	  cpan\\sources
 	);
-	
+
 	foreach my $dir (@list) {
 		$self->add_directory( catdir( $self->_get_app_dir(), $dir ) );
 	}
 
 	return $self;
-}
+} ## end sub initialize_tree
 
 sub add_directory {
 	my $self = shift;
-	my $dir = shift;
-	
+	my $dir  = shift;
+
 	unless ( defined _STRING($dir) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'dir',
@@ -159,34 +166,39 @@ sub add_directory {
 		);
 	}
 
-	$self->trace_line(3, "Adding directory with path $dir to tree.\n");
+	$self->trace_line( 3, "Adding directory with path $dir to tree.\n" );
 
 	# Does the directory already exist?
 	# If so, short-circuit.
-	return 1 if ($self->search_dir(
-		path_to_find => $dir,
-		descend      => 1,
-		exact        => 1,
-	) );
+	return 1
+	  if (
+		$self->search_dir(
+			path_to_find => $dir,
+			descend      => 1,
+			exact        => 1,
+		) );
 
-	my ($volume, $dirs, undef) = splitpath($dir, 1);
-	my @dirs = splitdir($dirs);
-	my $dir_to_add = pop @dirs;
-	my $path_to_find = catdir($volume, @dirs);
-	
-	$self->trace_line(5, "  Adding directory recursively: $path_to_find, $dir_to_add to tree.\n");
-	my $dir_out = $self->_add_directory_recursive($path_to_find, $dir_to_add);
+	my ( $volume, $dirs, undef ) = splitpath( $dir, 1 );
+	my @dirs         = splitdir($dirs);
+	my $dir_to_add   = pop @dirs;
+	my $path_to_find = catdir( $volume, @dirs );
+
+	$self->trace_line( 5,
+"  Adding directory recursively: $path_to_find, $dir_to_add to tree.\n"
+	);
+	my $dir_out =
+	  $self->_add_directory_recursive( $path_to_find, $dir_to_add );
 
 	return defined $dir_out ? 1 : 0;
-};
+} ## end sub add_directory
 
 sub add_root_directory {
 	my $self = shift;
-	my $id = shift;
-	my $dir = shift;
-	
-	my $branch = $self->get_directory_object('INSTALLDIR');	
-	return $branch->add_directories_id($id, $dir);
+	my $id   = shift;
+	my $dir  = shift;
+
+	my $branch = $self->get_directory_object('INSTALLDIR');
+	return $branch->add_directories_id( $id, $dir );
 }
 
 no Moose;

@@ -4,46 +4,47 @@ use 5.008001;
 use Moose;
 use MooseX::NonMoose;
 use MooseX::AttributeHelpers;
-use MooseX::Types::Moose  qw( Str Int Bool HashRef ArrayRef Maybe );
-use English               qw( -no_match_vars );
-use Carp                  qw();
-use Params::Util          qw( _HASH _ARRAY );
+use MooseX::Types::Moose qw( Str Int Bool HashRef ArrayRef Maybe );
+use English qw( -no_match_vars );
+use Carp qw();
+use Params::Util qw( _HASH _ARRAY );
 use Module::CoreList 2.18 qw();
-use IO::Capture::Stdout   qw();
-use IO::Capture::Stderr   qw();
+use IO::Capture::Stdout qw();
+use IO::Capture::Stderr qw();
+
 # use Process::Delegatable  qw();
 # use Process               qw();
-use vars                  qw(@DELEGATE);
+use vars qw(@DELEGATE);
 
-our $VERSION = '1.090';
+our $VERSION = '1.090_102';
 $VERSION = eval { return $VERSION };
 
 extends qw(
-	Process::Delegatable
-	Process
+  Process::Delegatable
+  Process
 );
 
 has modules => (
 	metaclass => 'Collection::ImmutableHash',
 	is        => 'ro',
-	isa       => HashRef[ArrayRef[Str]],
+	isa       => HashRef [ ArrayRef [Str] ],
 	builder   => '_modules_build',
 	init_arg  => undef,
-    provides  => {
-        'exists'   => '_modules_exists',
-		'get'      => '_get_modules',
+	provides  => {
+		'exists' => '_modules_exists',
+		'get'    => '_get_modules',
 	},
 );
 
 has corelist_version => (
 	metaclass => 'Collection::ImmutableHash',
 	is        => 'ro',
-	isa       => HashRef[Str],
+	isa       => HashRef [Str],
 	builder   => '_corelist_version_build',
 	init_arg  => undef,
-    provides  => {
-        'exists'   => '_corelist_version_exists',
-		'get'      => '_get_corelist_version',
+	provides  => {
+		'exists' => '_corelist_version_exists',
+		'get'    => '_get_corelist_version',
 	},
 );
 
@@ -54,20 +55,20 @@ has corelist => (
 	builder   => '_corelist_build',
 	init_arg  => undef,
 	lazy      => 1,
-    provides  => {
-        'exists'   => '_corelist_exists',
-		'get'      => '_get_corelist',
+	provides  => {
+		'exists' => '_corelist_exists',
+		'get'    => '_get_corelist',
 	},
 );
 
 has dists => (
 	metaclass => 'Collection::Array',
 	is        => 'rw',
-	isa       => ArrayRef[Str],
+	isa       => ArrayRef [Str],
 	default   => sub { return [] },
 	init_arg  => undef,
-    provides  => {
-        'push'     => '_push_dists',
+	provides  => {
+		'push'     => '_push_dists',
 		'elements' => 'get_dists',
 		'grep'     => '_grep_dists',
 		'clear'    => '_empty_dists',
@@ -76,10 +77,10 @@ has dists => (
 );
 
 has perl_version => (
-	is        => 'ro',
-	isa       => Str,
-	reader    => '_get_perl_version',
-	required  => 1,
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_perl_version',
+	required => 1,
 );
 
 has force => (
@@ -87,17 +88,17 @@ has force => (
 	is        => 'ro',
 	isa       => HashRef,
 	default   => sub { return {} },
-    provides  => {
-        'exists'   => '_force_exists',
-		'get'      => '_get_forced_dist',
+	provides  => {
+		'exists' => '_force_exists',
+		'get'    => '_get_forced_dist',
 	},
 );
 
 has cpan => (
-	is        => 'ro',
-	isa       => Str,
-	reader    => '_get_cpan',
-	required  => 1,
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_cpan',
+	required => 1,
 );
 
 has _delegated => (
@@ -105,20 +106,18 @@ has _delegated => (
 	is        => 'rw',
 	isa       => Bool,
 	init_arg  => undef,
-	default   => sub { 0 },
-    provides  => {
-        'set'   => '_delegate',
-	},
+	default   => sub {0},
+	provides  => { 'set' => '_delegate', },
 );
 
 # Process::Delegatable sets this, this attribute just
 # defines how to get at it.
 has errstr => (
-	is        => 'ro',
-	isa       => Maybe[Str],
-	init_arg  => undef,
-	default   => undef,
-	reader    => 'get_error',
+	is       => 'ro',
+	isa      => Maybe [Str],
+	init_arg => undef,
+	default  => undef,
+	reader   => 'get_error',
 );
 
 BEGIN {
@@ -127,9 +126,7 @@ BEGIN {
 	# Automatically handle delegation within the test suite
 	if ( $ENV{HARNESS_ACTIVE} ) {
 		require Probe::Perl;
-		@DELEGATE = (
-			Probe::Perl->find_perl_interpreter, '-Mblib',
-		);
+		@DELEGATE = ( Probe::Perl->find_perl_interpreter, '-Mblib', );
 	}
 }
 
@@ -137,59 +134,60 @@ sub _modules_build {
 
 	my %modules = (
 		'5.008009' => [ qw{
-			ExtUtils::MakeMaker
-			File::Path
-			ExtUtils::Command
-			Win32API::File
-			ExtUtils::Install
-			ExtUtils::Manifest
-			Test::Harness
-			Test::Simple
-			ExtUtils::CBuilder
-			ExtUtils::ParseXS
-			version
-			Scalar::Util
-			Compress::Raw::Zlib
-			Compress::Raw::Bzip2
-			IO::Compress::Base
-			Compress::Bzip2
-			IO::Zlib
-			File::Spec
-			File::Temp
-			Win32::WinError
-			Win32API::Registry
-			Win32::TieRegistry
-			File::HomeDir
-			File::Which
-			Archive::Zip
-			Package::Constants
-			IO::String
-			Archive::Tar
-			Compress::unLZMA
-			Parse::CPAN::Meta
-			YAML
-			Net::FTP
-			Digest::MD5
-			Digest::SHA1
-			Digest::SHA
-			Module::Build
-			Term::Cap
-			CPAN
-			Term::ReadKey
-			Term::ReadLine::Perl
-			Text::Glob
-			Data::Dumper
-			URI
-			HTML::Tagset
-			HTML::Parser
-			LWP::UserAgent
-		} ],
+			  ExtUtils::MakeMaker
+			  File::Path
+			  ExtUtils::Command
+			  Win32API::File
+			  ExtUtils::Install
+			  ExtUtils::Manifest
+			  Test::Harness
+			  Test::Simple
+			  ExtUtils::CBuilder
+			  ExtUtils::ParseXS
+			  version
+			  Scalar::Util
+			  Compress::Raw::Zlib
+			  Compress::Raw::Bzip2
+			  IO::Compress::Base
+			  Compress::Bzip2
+			  IO::Zlib
+			  File::Spec
+			  File::Temp
+			  Win32::WinError
+			  Win32API::Registry
+			  Win32::TieRegistry
+			  File::HomeDir
+			  File::Which
+			  Archive::Zip
+			  Package::Constants
+			  IO::String
+			  Archive::Tar
+			  Compress::unLZMA
+			  Parse::CPAN::Meta
+			  YAML
+			  Net::FTP
+			  Digest::MD5
+			  Digest::SHA1
+			  Digest::SHA
+			  Module::Build
+			  Term::Cap
+			  CPAN
+			  Term::ReadKey
+			  Term::ReadLine::Perl
+			  Text::Glob
+			  Data::Dumper
+			  URI
+			  HTML::Tagset
+			  HTML::Parser
+			  LWP::UserAgent
+			  }
+		],
 	);
 	$modules{'5.010001'} = $modules{'5.008009'};
 	$modules{'5.010000'} = $modules{'5.008009'};
-	
+
 	return \%modules;
-}
+} ## end sub _modules_build
 
 sub _corelist_version_build {
 
@@ -204,35 +202,41 @@ sub _corelist_version_build {
 
 sub _corelist_build {
 	my $self = shift;
-	
+
 	# Confirm we can find the corelist for the Perl version
-	my $corelist_version = $self->_get_corelist_version($self->_get_perl_version());
+	my $corelist_version =
+	  $self->_get_corelist_version( $self->_get_perl_version() );
 	my $corelist = $Module::CoreList::version{$corelist_version}
-	            || $Module::CoreList::version{$corelist_version+0};
-				
+	  || $Module::CoreList::version{ $corelist_version + 0 };
+
 	# TODO: Use exceptions instead.
 	unless ( _HASH($corelist) ) {
-		Carp::croak("Failed to find module core versions for Perl " . $self->_get_perl_version());
+		Carp::croak( 'Failed to find module core versions for Perl '
+			  . $self->_get_perl_version() );
 	}
 
 	return $corelist;
-}
+} ## end sub _corelist_build
 
 #####################################################################
 # Constructor and Accessors
 
 sub BUILD {
-	my $self = shift;
+	my $self  = shift;
 	my $class = ref $self;
-	
+
 	# TODO: Use exceptions instead.
-	unless ( $self->_modules_exists($self->_get_perl_version) ) {
-		Carp::croak("Perl version '" . $self->_get_perl_version . "' is not supported in $class");
+	unless ( $self->_modules_exists( $self->_get_perl_version ) ) {
+		Carp::croak( q{Perl version '}
+			  . $self->_get_perl_version
+			  . "' is not supported in $class" );
 	}
-	unless ( $self->_corelist_version_exists($self->_get_perl_version) ) {
-		Carp::croak("Perl version '" . $self->_get_perl_version . "' is not supported in $class");
+	unless ( $self->_corelist_version_exists( $self->_get_perl_version ) ) {
+		Carp::croak( q{Perl version '}
+			  . $self->_get_perl_version
+			  . "' is not supported in $class" );
 	}
-}
+} ## end sub BUILD
 
 sub prepare {
 	my $self = shift;
@@ -248,19 +252,25 @@ sub prepare {
 	CPAN->import();
 
 	# Load the latest index
-	eval {
-		local $SIG{__WARN__} = sub { 1 };
-		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
-		$CPAN::Config->{'urllist'} = [ $self->{cpan} ];
-		$CPAN::Config->{'use_sqlite'} = q[0];
-		CPAN::Index->reload;
-	};
-
-	$stdout->stop;
-	$stderr->stop;
-
-	return $EVAL_ERROR ? '' : 1;
-}
+	if (
+		eval {
+			local $SIG{__WARN__} = sub {1};
+			CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
+			$CPAN::Config->{'urllist'}    = [ $self->{cpan} ];
+			$CPAN::Config->{'use_sqlite'} = q[0];
+			CPAN::Index->reload;
+			1;
+		} )
+	{
+		$stdout->stop;
+		$stderr->stop;
+		return 1;
+	} else {
+		$stdout->stop;
+		$stderr->stop;
+		return q{};
+	}
+} ## end sub prepare
 
 sub run {
 	my $self = shift;
@@ -272,36 +282,41 @@ sub run {
 	$stdout->start;
 	$stderr->start;
 	CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
-	$CPAN::Config->{'urllist'} = [ $self->_get_cpan() ];
+	$CPAN::Config->{'urllist'}    = [ $self->_get_cpan() ];
 	$CPAN::Config->{'use_sqlite'} = q[0];
 	$stdout->stop;
 	$stderr->stop;
 
-	foreach my $name ( @{$self->_get_modules($self->_get_perl_version)} ) {
-		
+	foreach
+	  my $name ( @{ $self->_get_modules( $self->_get_perl_version ) } )
+	{
+
 		# Shortcut if forced
 		if ( $self->_force_exists($name) ) {
-			$self->_dist_push($self->_get_forced_dist($name));
+			$self->_dist_push( $self->_get_forced_dist($name) );
 			next;
 		}
 
 		# Get the CPAN object for the module, covering any output.
 		$stdout->start;
 		$stderr->start;
-		my $module = CPAN::Shell->expand('Module', $name);
+		my $module = CPAN::Shell->expand( 'Module', $name );
 		$stdout->stop;
 		$stderr->stop;
-		unless ( $module ) {
+
+		unless ($module) {
+			## no critic (RequireCarping RequireUseOfExceptions)
 			die "Failed to find '$name'";
 		}
 
 		# Ignore modules that don't need to be updated
 		my $core_version = $self->_get_corelist($name);
-		if ( defined $core_version and $core_version =~ /_/ ) {
+		if ( defined $core_version and $core_version =~ /_/ms ) {
+
 			# Sometimes, the core contains a developer
 			# version. For the purposes of this comparison
 			# it should be safe to "round down".
-			$core_version =~ s{_.+$}{};
+			$core_version =~ s{_.+}{}ms;
 		}
 		my $cpan_version = $module->cpan_version;
 		unless ( defined $cpan_version ) {
@@ -313,24 +328,24 @@ sub run {
 
 		# Filter out already seen dists
 		my $file = $module->cpan_file;
-		$file =~ s{^[A-Z]/[A-Z][A-Z]/}{};
+		$file =~ s{\A [A-Z] / [A-Z][A-Z] /}{}msx;
 		$self->_push_dists($file);
-	}
+	} ## end foreach my $name ( @{ $self...})
 
 	# Remove duplicates
 	my %seen = ();
-	my @dists = $self->_grep_dists( sub { ! $seen{$_}++ } );
+	my @dists = $self->_grep_dists( sub { !$seen{$_}++ } );
 
 	$self->_empty_dists();
 	$self->_push_dists(@dists);
-	
+
 	return 1;
-}
+} ## end sub run
 
 sub delegate {
 	my $self = shift;
 	unless ( $self->_delegated() ) {
-		$self->SUPER::delegate( @DELEGATE );
+		$self->SUPER::delegate(@DELEGATE);
 		$self->_delegate();
 	}
 	return 1;

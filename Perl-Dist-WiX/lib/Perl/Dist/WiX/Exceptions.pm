@@ -11,12 +11,12 @@ package Perl::Dist::WiX::Exceptions;
 # meant to be subclassed, as opposed to creating objects of this
 # class directly.
 
-use     5.008001;
-use     strict;
-use     warnings;
+use 5.008001;
+use strict;
+use warnings;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 
 #####################################################################
@@ -36,13 +36,13 @@ use Exception::Class (
 		'isa'    => 'PDWiX',
 		'fields' => [ 'message', 'info' ],
 	},
-	'PDWiX::Unimplemented' => { 
-		'description' => 'Perl::Dist::WiX error: Routine unimplemented', 
-		'isa'    => 'PDWiX',
+	'PDWiX::Unimplemented' => {
+		'description' => 'Perl::Dist::WiX error: Routine unimplemented',
+		'isa'         => 'PDWiX',
 	},
 );
 
-sub PDWiX::full_message { ## no critic 'Capitalization'
+sub PDWiX::full_message {
 	my $self = shift;
 
 	my $string =
@@ -61,7 +61,7 @@ sub PDWiX::full_message { ## no critic 'Capitalization'
 	return $string;
 } ## end sub PDWiX::full_message
 
-sub PDWiX::Parameter::full_message { ## no critic 'Capitalization'
+sub PDWiX::Parameter::full_message {
 	my $self = shift;
 
 	my $string =
@@ -80,7 +80,7 @@ sub PDWiX::Parameter::full_message { ## no critic 'Capitalization'
 	return $string;
 } ## end sub PDWiX::Parameter::full_message
 
-sub PDWiX::Caught::full_message { ## no critic 'Capitalization'
+sub PDWiX::Caught::full_message {
 	my $self = shift;
 
 	my $string =

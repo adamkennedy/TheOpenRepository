@@ -23,10 +23,10 @@ install files.
 
 =cut
 
-use     5.008001;
-use     strict;
-use     warnings;
-use     Perl::Dist::WiX::Exceptions;
+use 5.008001;
+use strict;
+use warnings;
+use Perl::Dist::WiX::Exceptions;
 
 require Perl::Dist::WiX::Asset::Binary;
 require Perl::Dist::WiX::Asset::Distribution;
@@ -36,11 +36,12 @@ require Perl::Dist::WiX::Asset::Launcher;
 require Perl::Dist::WiX::Asset::Library;
 require Perl::Dist::WiX::Asset::Module;
 require Perl::Dist::WiX::Asset::PAR;
+
 # require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Asset::Website;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 =pod
 
@@ -65,7 +66,7 @@ sub install_binary {
 		install_to => 'c',             # Default to the C dir
 		@_,
 	);
-	
+
 	my $filelist = $binary->install();
 
 	return $filelist;
@@ -91,11 +92,11 @@ sub install_library {
 		parent => $self,
 		@_,
 	);
-	
+
 	my $filelist = $library->install();
-	  
+
 	return $filelist;
-} ## end sub install_library
+}
 
 
 =pod
@@ -155,7 +156,7 @@ sub install_distribution {
 	$dist->install();
 
 	return $self;
-} ## end sub install_distribution
+}
 
 =pod
 
@@ -209,7 +210,7 @@ sub install_distribution_from_file {
 	);
 
 	my $filelist = $dist->install();
-	my $mod_id = $dist->get_module_name();
+	my $mod_id   = $dist->get_module_name();
 
 	$mod_id =~ s{::}{_}msg;
 	$mod_id =~ s{-}{_}msg;
@@ -260,10 +261,10 @@ sub install_module {
 		parent => $self,
 		@_,
 	);
-	
+
 	my $filelist = $module->install();
-	my $name  = $module->get_name();
-	
+	my $name     = $module->get_name();
+
 	# Make legal fragment id.
 	$name =~ s{::}{_}gmsx;
 
@@ -331,13 +332,13 @@ sub install_par {
 	);
 
 	my $filelist = $par->install();
-	
+
 	my $name = $par->get_name();
 	$name =~ s{::}{_}msg;
 	$name =~ s{-}{_}msg;
 
 	$self->insert_fragment( $name, $filelist );
-	
+
 	return $self;
 } ## end sub install_par
 
@@ -403,9 +404,9 @@ sub install_file {
 	);
 
 	my $filelist = $file->install();
-	
+
 	return $filelist;
-} ## end sub install_file
+}
 
 =pod
 
@@ -444,7 +445,7 @@ sub install_launcher {
 	$launcher->install();
 
 	return $self;
-} ## end sub install_launcher
+}
 
 =pod
 
@@ -484,9 +485,11 @@ sub install_website {
 	);
 
 	$website->install();
-	
+
 	return $self;
-} ## end sub install_website
+}
+
+1;
 
 __END__
 

@@ -2,14 +2,15 @@ package Perl::Dist::WiX::Asset::Perl;
 
 # Perl::Dist asset for the Perl source code itself
 
+use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str HashRef ArrayRef Bool ); 
+use MooseX::Types::Moose qw( Str HashRef ArrayRef Bool );
 use File::Spec::Functions qw( catdir splitpath rel2abs );
 require File::Remove;
 require File::Basename;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
@@ -36,9 +37,9 @@ has patch => (
 );
 
 has unpack_to => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_unpack_to',
+	is      => 'ro',
+	isa     => Str,
+	reader  => '_get_unpack_to',
 	default => q{},
 );
 
@@ -50,11 +51,11 @@ has install_to => (
 );
 
 has force => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_force',
-	lazy     => 1,
-	default  => sub { $_[0]->parent->force ? 1 : 0 },
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_force',
+	lazy    => 1,
+	default => sub { $_[0]->parent->force ? 1 : 0 },
 );
 
 sub install {
@@ -77,11 +78,11 @@ sub install {
 	my @files = $self->_extract( $tgz, $unpack_to );
 
 	# Get the versioned name of the directory
-	( my $perlsrc = $tgz ) =~ s{\.tar\.gz\z | \.tgz\z}{}msx;
+	( my $perlsrc = $tgz ) =~ s{[.] tar[.] gz\z | [.] tgz\z}{}msx;
 	$perlsrc = File::Basename::basename($perlsrc);
 
 	# Pre-copy updated files over the top of the source
-	my $patch = $self->_get_patch;
+	my $patch   = $self->_get_patch;
 	my $version = $self->_get_pv_human;
 	if ($patch) {
 
@@ -94,7 +95,8 @@ sub install {
 	# Copy in licenses
 	if ( ref $self->_get_license eq 'HASH' ) {
 		my $license_dir = catdir( $self->_get_image_dir, 'licenses' );
-		$self->_extract_filemap( $tgz, $self->_get_license, $license_dir, 1 );
+		$self->_extract_filemap( $tgz, $self->_get_license, $license_dir,
+			1 );
 	}
 
 	# Build win32 perl
@@ -121,7 +123,10 @@ sub install {
 		  Win32::GetLongPathName( rel2abs( $self->_get_build_dir ) );
 
 		my $force = $self->_get_force();
-		if ( ( not $force ) && ( $long_build =~ /\s/ms ) && ($self->_get_version eq '5.10.0')) {
+		if (   ( not $force )
+			&& ( $long_build =~ /\s/ms )
+			&& ( $self->_get_version eq '5.10.0' ) )
+		{
 			$force = 1;
 			$self->_trace_line( 0, <<"EOF");
 ***********************************************************
@@ -141,9 +146,9 @@ sub install {
 * -- csjewell\@cpan.org
 ***********************************************************
 EOF
-		} ## end if ( ( not $perl->force...))
-		
-		unless ( $force ) {
+		} ## end if ( ( not $force ) &&...)
+
+		unless ($force) {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
 			$self->_trace_line( 1, "Testing perl...\n" );
 			$self->_make('test');
@@ -153,17 +158,17 @@ EOF
 		$self->_make(qw/install UNINST=1/);
 	} ## end SCOPE:
 
-	my $fl_lic = File::List::Object->new()->readdir(
-		catdir( $self->_get_image_dir, 'licenses', 'perl' ) );
+	my $fl_lic = File::List::Object->new()
+	  ->readdir( catdir( $self->_get_image_dir, 'licenses', 'perl' ) );
 	$self->_insert_fragment( 'perl_licenses', $fl_lic );
 
-	my $fl = File::List::Object->new()->readdir(
-		catdir( $self->_get_image_dir, 'perl' ) );
+	my $fl = File::List::Object->new()
+	  ->readdir( catdir( $self->_get_image_dir, 'perl' ) );
 	$fl->subtract($fl2)->filter( $self->_filters );
 	$self->_insert_fragment( 'perl', $fl, 1 );
 
 	return 1;
-}
+} ## end sub install
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

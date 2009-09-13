@@ -23,34 +23,31 @@ make the distributions.txt and the release notes files.
 
 =cut
 
-#<<<
-use     5.008001;
-use     strict;
-use     warnings;
-use     vars                  qw( $VERSION                   );
-use     English               qw( -no_match_vars             );
-use     File::Spec::Functions qw(
-	catdir catfile catpath tmpdir splitpath rel2abs curdir
+use 5.008001;
+use strict;
+use warnings;
+use vars qw( $VERSION                   );
+use English qw( -no_match_vars             );
+use File::Spec::Functions qw(
+  catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use     File::Remove          qw();
-use     File::pushd           qw();
-use     File::ShareDir        qw();
-use     IO::File              qw();
-use     Template              qw();
-use     Win32                 qw();
+use File::Remove qw();
+use File::pushd qw();
+use File::ShareDir qw();
+use IO::File qw();
+use Template qw();
+use Win32 qw();
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
-
-#>>>
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 sub release_notes_filename {
 	my $self = shift;
-	my $filename = $self->perl_version_human
-		. q{.} . $self->build_number
-		. ($self->beta_number ? '.beta' : '')
-		. '.html';
-	
+	my $filename =
+	    $self->perl_version_human . q{.}
+	  . $self->build_number
+	  . ( $self->beta_number ? '.beta' : q{} ) . '.html';
+
 	return $filename;
 }
 
@@ -60,18 +57,19 @@ sub create_release_notes {
 	my ( $name, $ver );
 
 	foreach my $dist ( @{ $self->{distributions_installed} } ) {
-		( $name, $ver ) = $dist =~ m{(.*)-(?:v?)([0-9\._]*)}msx;
+		( $name, $ver ) = $dist =~ m{(.*)-(?:v?)([0-9._]*)}msx;
 		$dist_list .= "<tr><td>$name</td><td>$ver</td></tr>\n";
 	}
 
-	my @time = localtime;
+	my @time   = localtime;
 	my @months = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
-	
+
 	my $dist_txt;
 	my $vars = {
 		dist      => $self,
 		dist_list => $dist_list,
-		dist_date => sprintf "%02i %s %4i", $time[2], $months[$time[3]], $time[4] + 1900,
+		dist_date => sprintf '%02i %s %4i',
+		$time[2], $months[ $time[3] ], $time[4] + 1900,
 	};
 
 	my $tt = Template->new(
@@ -89,26 +87,28 @@ sub create_release_notes {
 		info    => $tt->error(),
 	  );
 
-	my $dist_file = catfile( $self->output_dir, $self->release_notes_filename );
+	my $dist_file =
+	  catfile( $self->output_dir, $self->release_notes_filename );
 	my $fh = IO::File->new( $dist_file, 'w' );
 
 	$self->trace_line( 2, "Creating release notes at $dist_file\n" );
 
 	if ( not defined $fh ) {
 		PDWiX->throw(
-			"Could not open file $dist_file for writing [$!] [$^E]");
+"Could not open file $dist_file for writing [$OS_ERROR] [$EXTENDED_OS_ERROR]"
+		);
 	}
 	$fh->print($dist_txt);
 	$fh->close;
-	
+
 	return $dist_file;
-}
+} ## end sub create_release_notes
 
 
 #####################################################################
 # DISTRIBUTIONS.txt
 
-# NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX 
+# NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX
 # object.
 
 =head2 create_distribution_list
@@ -134,7 +134,7 @@ sub create_distribution_list {
 	my ( $name, $ver );
 
 	foreach my $dist ( @{ $self->{distributions_installed} } ) {
-		( $name, $ver ) = $dist =~ m{(.*)-(?:v?)([0-9\._]*)}msx;
+		( $name, $ver ) = $dist =~ m{(.*)-(?:v?)([0-9._]*)}msx;
 		$dist_list .= "    $name $ver\n";
 	}
 
@@ -166,7 +166,8 @@ sub create_distribution_list {
 
 	if ( not defined $fh ) {
 		PDWiX->throw(
-			"Could not open file $dist_file for writing [$!] [$^E]");
+"Could not open file $dist_file for writing [$OS_ERROR] [$EXTENDED_OS_ERROR]"
+		);
 	}
 	$fh->print($dist_txt);
 	$fh->close;

@@ -1,7 +1,7 @@
 package Perl::Dist::WiX::DirectoryRef;
 
 #####################################################################
-# Perl::Dist::WiX::DirectoryRef - Extends <Directory> tags to make them  
+# Perl::Dist::WiX::DirectoryRef - Extends <Directory> tags to make them
 # easily searchable.
 #
 # Copyright 2009 Curtis Jewell
@@ -15,8 +15,8 @@ use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catdir abs2rel );
 use Params::Util qw( _STRING _INSTANCE );
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 extends 'WiX3::XML::DirectoryRef';
 

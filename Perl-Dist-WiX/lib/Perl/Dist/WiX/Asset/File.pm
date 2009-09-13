@@ -1,13 +1,14 @@
 package Perl::Dist::WiX::Asset::File;
 
+use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catfile );
 require File::Remove;
 require File::List::Object;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -22,10 +23,10 @@ sub install {
 	my $self = shift;
 
 	my $download_dir = $self->_get_download_dir();
-	my $image_dir    = $self->_get_image_dir();	
+	my $image_dir    = $self->_get_image_dir();
 	my @files;
 
-	
+
 	# Get the file
 	my $tgz = $self->_mirror( $self->_get_url, $download_dir );
 
@@ -42,10 +43,11 @@ sub install {
 	File::Remove::remove( \1, $tgz );
 
 	my $filelist =
-	  File::List::Object->new->load_array(@files)->filter( $self->_filters );
+	  File::List::Object->new->load_array(@files)
+	  ->filter( $self->_filters );
 
 	return $filelist;
-} ## end sub install_file
+} ## end sub install
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

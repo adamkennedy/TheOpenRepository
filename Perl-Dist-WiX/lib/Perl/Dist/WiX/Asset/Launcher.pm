@@ -1,12 +1,13 @@
 package Perl::Dist::WiX::Asset::Launcher;
 
+use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str ); 
+use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catfile );
 use Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';
 
@@ -25,20 +26,20 @@ has bin => (
 );
 
 sub install {
-	my $self     = shift;
+	my $self = shift;
 
 	my $bin = $self->_get_bin();
-	
+
 	# Check the script exists
 	my $to =
 	  catfile( $self->_get_image_dir(), 'perl', 'bin', $bin . '.bat' );
 	unless ( -f $to ) {
-		PDWiX->throw(
-			qq{The script "$bin" does not exist} );
+		PDWiX->throw(qq{The script "$bin" does not exist});
 	}
 
-	my $icon_id = $self->_get_icons()->add_icon(
-		catfile( $self->_get_dist_dir(), "$bin.ico" ),
+	my $icon_id =
+	  $self->_get_icons()
+	  ->add_icon( catfile( $self->_get_dist_dir(), "$bin.ico" ),
 		"$bin.bat" );
 
 	# Add the icon.
@@ -50,7 +51,7 @@ sub install {
 	);
 
 	return 1;
-} ## end sub install_launcher
+} ## end sub install
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

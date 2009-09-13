@@ -1,15 +1,16 @@
 package Perl::Dist::WiX::Asset::Module;
 
+use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str Bool ); 
-use English qw( -no_match_vars ); 
+use MooseX::Types::Moose qw( Str Bool );
+use English qw( -no_match_vars );
 use File::Spec::Functions qw( catdir catfile );
 require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
 
 our $VERSION = '1.090_102';
-$VERSION = eval $VERSION;
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';
 
@@ -21,18 +22,18 @@ has name => (
 );
 
 has force => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_force',
-	lazy     => 1,
-	default  => sub { $_[0]->_get_parent()->force() ? 1 : 0 },
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_force',
+	lazy    => 1,
+	default => sub { $_[0]->_get_parent()->force() ? 1 : 0 },
 );
 
 has packlist => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_packlist',
-	default  => 1,
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_packlist',
+	default => 1,
 );
 
 # Don't know what these are for. TODO: Delete.
@@ -42,10 +43,10 @@ has packlist => (
 #};
 
 sub install {
-	my $self   = shift;
+	my $self  = shift;
 	my $name  = $self->get_name();
 	my $force = $self->_get_force();
-		
+
 	my $packlist_flag = $self->_get_packlist();
 
 	unless ( $self->_get_bin_perl ) {
@@ -60,8 +61,8 @@ sub install {
 	$url =~ s{\Afile:///C:/}{file://C:/}msx;
 
 	my $dp_dir = catdir( $self->_get_wix_dist_dir, 'distroprefs' );
-	my $internet_available = ($url =~ m{ \A file://}msx) ? 1 : 0; 
-	
+	my $internet_available = ( $url =~ m{ \A file://}msx ) ? 1 : 0;
+
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -86,10 +87,10 @@ if ( \$module->uptodate ) {
 	exit(0);
 }
 SCOPE: {
-	open( CPAN_FILE, '>', \$dist_file )      or die "open: $!";
+	open( CPAN_FILE, '>', \$dist_file )      or die "open: \$!";
 	print CPAN_FILE 
-		\$module->distribution()->pretty_id() or die "print: $!";
-	close( CPAN_FILE )                       or die "close: $!";
+		\$module->distribution()->pretty_id() or die "print: \$!";
+	close( CPAN_FILE )                       or die "close: \$!";
 }
 
 print "\\\$ENV{PATH} = '\$ENV{PATH}'\\n";
@@ -121,10 +122,11 @@ END_PERL
   SCOPE: {
 		my $CPAN_FILE;
 		open $CPAN_FILE, '>', $cpan_file
-		  or PDWiX->throw("CPAN script open failed: $!");
+		  or PDWiX->throw("CPAN script open failed: $OS_ERROR");
 		print {$CPAN_FILE} $cpan_string
-		  or PDWiX->throw("CPAN script print failed: $!");
-		close $CPAN_FILE or PDWiX->throw("CPAN script close failed: $!");
+		  or PDWiX->throw("CPAN script print failed: $OS_ERROR");
+		close $CPAN_FILE
+		  or PDWiX->throw("CPAN script close failed: $OS_ERROR");
 	}
 	local $ENV{PERL_MM_USE_DEFAULT} = 1;
 	local $ENV{AUTOMATED_TESTING}   = undef;
@@ -136,16 +138,15 @@ END_PERL
 	  if $CHILD_ERROR;
 
 	# Read in the dist file and return it as $dist_info.
-	my @files;
 	if ( -r $dist_file ) {
 		my $fh = IO::File->new( $dist_file, 'r' );
 		if ( not defined $fh ) {
-			PDWiX->throw("CPAN modules file error: $!");
+			PDWiX->throw("CPAN modules file error: $OS_ERROR");
 		}
 		my $dist_info = <$fh>;
 		$fh->close;
-		$dist_info =~ s{\.tar\.gz}{}msx;   # Take off extensions.
-		$dist_info =~ s{\.zip}{}msx;
+		$dist_info =~ s{[.] tar [.] gz}{}msx;   # Take off extensions.
+		$dist_info =~ s{[.] zip}{}msx;
 		$dist_info =~ s{.+\/}{}msx;    # Take off directories.
 		$self->_add_to_distributions_installed($dist_info);
 	} else {
@@ -156,15 +157,15 @@ END_PERL
 	# Making final filelist.
 	my $filelist;
 	if ($packlist_flag) {
-		$filelist = $self->_search_packlist( $name );
+		$filelist = $self->_search_packlist($name);
 	} else {
-		$filelist = File::List::Object->new()->readdir(
-			catdir( $self->image_dir, 'perl' ) );
+		$filelist = File::List::Object->new()
+		  ->readdir( catdir( $self->image_dir, 'perl' ) );
 		$filelist->subtract($filelist_sub)->filter( $self->_filters );
 	}
 
 	return $filelist;
-} ## end sub install_module
+} ## end sub install
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

@@ -1,7 +1,8 @@
 package Perl::Dist::WiX::Asset::Distribution;
 
+use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str Bool ArrayRef Maybe ); 
+use MooseX::Types::Moose qw( Str Bool ArrayRef Maybe );
 use File::Spec::Functions qw( catdir catfile );
 
 # require Data::Dumper;
@@ -9,7 +10,7 @@ require File::Remove;
 require URI;
 
 our $VERSION = '1.090_102';
-$VERSION = eval $VERSION;
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
@@ -23,7 +24,7 @@ has name => (
 
 has module_name => (
 	is       => 'ro',
-	isa      => Maybe[Str],
+	isa      => Maybe [Str],
 	reader   => 'get_module_name',
 	init_arg => 'mod_name',
 	lazy     => 1,
@@ -31,39 +32,39 @@ has module_name => (
 );
 
 has force => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_force',
-	lazy     => 1,
-	default  => sub { !! $_[0]->_get_parent()->force },
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_force',
+	lazy    => 1,
+	default => sub { !!$_[0]->_get_parent()->force },
 );
 
 has automated_testing => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_automated_testing',
-	default  => 0,
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_automated_testing',
+	default => 0,
 );
 
 has release_testing => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_release_testing',
-	default  => 0,
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_release_testing',
+	default => 0,
 );
 
 has makefilepl_param => (
-	is       => 'ro',
-	isa      => ArrayRef,
-	reader   => '_get_makefilepl_param',
-	default  => sub { return [] },
+	is      => 'ro',
+	isa     => ArrayRef,
+	reader  => '_get_makefilepl_param',
+	default => sub { return [] },
 );
 
 has buildpl_param => (
-	is       => 'ro',
-	isa      => ArrayRef,
-	reader   => '_get_buildpl_param',
-	default  => sub { return [] },
+	is      => 'ro',
+	isa     => ArrayRef,
+	reader  => '_get_buildpl_param',
+	default => sub { return [] },
 );
 
 #has inject => (
@@ -74,23 +75,25 @@ has buildpl_param => (
 #);
 
 has packlist => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_packlist',
-	default  => 1,
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_packlist',
+	default => 1,
 );
 
 has overwritable => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_overwritable',
-	default  => 0,
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_overwritable',
+	default => 0,
 );
 
 sub BUILD {
 	my $self = shift;
 
-	if ( $self->get_name eq $self->_get_url and not _DIST($self->get_name()) ) {
+	if ( $self->get_name eq $self->_get_url
+		and not _DIST( $self->get_name() ) )
+	{
 		PDWiX::Parameter->throw("Missing or invalid name param\n");
 	}
 
@@ -99,12 +102,12 @@ sub BUILD {
 
 sub install {
 	my $self = shift;
-	
+
 #	print Data::Dumper->new([$self], [qw(*self)])->Indent(1)->Maxdepth(1)->Dump();
-	
-	my $name = $self->get_name();
+
+	my $name      = $self->get_name();
 	my $build_dir = $self->_get_build_dir();
-	
+
 # If we don't have a packlist file, get an initial filelist to subtract from.
 	my $module = $self->get_module_name();
 	my $filelist_sub;
@@ -118,13 +121,15 @@ sub install {
 	}
 
 	# Download the file
-	my $tgz =
-	  $self->_mirror( $self->_abs_uri( $self->_get_cpan() ), $self->_get_modules_dir(), );
+	my $tgz = $self->_mirror(
+		$self->_abs_uri( $self->_get_cpan() ),
+		$self->_get_modules_dir(),
+	);
 
 	# Where will it get extracted to
 	my $dist_path = $name;
-	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
-	$dist_path =~ s{\.zip}{}msx;
+	$dist_path =~ s{[.] tar [.] gz}{}msx;   # Take off extensions.
+	$dist_path =~ s{[.] zip}{}msx;
 	$dist_path =~ s{.+\/}{}msx;        # Take off directories.
 	my $unpack_to = catdir( $build_dir, $dist_path );
 	$self->_add_to_distributions_installed($dist_path);
@@ -139,25 +144,23 @@ sub install {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
 
-	my $buildpl = ( -r catfile( $unpack_to, 'Build.PL' ) ) ? 1 : 0;
+	my $buildpl    = ( -r catfile( $unpack_to, 'Build.PL' ) )    ? 1 : 0;
 	my $makefilepl = ( -r catfile( $unpack_to, 'Makefile.PL' ) ) ? 1 : 0;
 
-	unless ( $buildpl or $makefilepl )
-	{
+	unless ( $buildpl or $makefilepl ) {
 		PDWiX->throw(
 			"Could not find Makefile.PL or Build.PL in $unpack_to\n");
 	}
 
 	# Build using Build.PL if we have one
 	# unless Module::Build is not installed.
-	unless ( $self->_module_build_installed() )
-	{
+	unless ( $self->_module_build_installed() ) {
 		$buildpl = 0;
-		unless ( $makefilepl ) {
-			PDWiX->throw("Could not find Makefile.PL in $unpack_to".
-			  " (too early for Build.PL)\n");
+		unless ($makefilepl) {
+			PDWiX->throw( "Could not find Makefile.PL in $unpack_to"
+				  . " (too early for Build.PL)\n" );
 		}
-	} ## end unless ( ( -r catfile( catdir...
+	}
 
 	# Can't build version.pm using Build.PL until Module::Build
 	# has been upgraded.
@@ -180,10 +183,12 @@ sub install {
 			$self->_trace_line( 2,
 				"Installing with RELEASE_TESTING enabled...\n" );
 		}
-		local $ENV{AUTOMATED_TESTING}   = $self->_get_automated_testing() ? 1 : undef;
-		local $ENV{RELEASE_TESTING}     = $self->_get_release_testing() ? 1 : undef;
+		local $ENV{AUTOMATED_TESTING} =
+		  $self->_get_automated_testing() ? 1 : undef;
+		local $ENV{RELEASE_TESTING} =
+		  $self->_get_release_testing() ? 1 : undef;
 		local $ENV{PERL_MM_USE_DEFAULT} = 1;
-		
+
 		$self->_configure($buildpl);
 
 		$self->_install_distribution($buildpl);
@@ -192,23 +197,24 @@ sub install {
 
 	# Making final filelist.
 	my $filelist;
-	if ($self->_get_packlist()) {
+	if ( $self->_get_packlist() ) {
 		$filelist = $self->_search_packlist($module);
 	} else {
-		$filelist = File::List::Object->new()->readdir(
-			catdir( $self->image_dir, 'perl' ) );
+		$filelist = File::List::Object->new()
+		  ->readdir( catdir( $self->image_dir, 'perl' ) );
 		$filelist->subtract($filelist_sub)->filter( $self->_filters );
 	}
-	
-	my $module_name = $self->get_module_name();	
+
+	my $module_name = $self->get_module_name();
 	$module_name =~ s{::}{_}msg;
 	$module_name =~ s{-}{_}msg;
 
 	# Insert fragment.
-	$self->_insert_fragment( $module_name, $filelist, $self->_get_overwritable() );
-	
+	$self->_insert_fragment( $module_name, $filelist,
+		$self->_get_overwritable() );
+
 	return 1;
-} ## end sub install_distribution
+} ## end sub install
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

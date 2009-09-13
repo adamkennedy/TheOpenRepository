@@ -1,11 +1,12 @@
 package Perl::Dist::WiX::Asset::Binary;
 
+use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str HashRef Maybe ); 
+use MooseX::Types::Moose qw( Str HashRef Maybe );
 use File::Spec::Functions qw( catdir );
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -17,22 +18,22 @@ has name => (
 );
 
 has install_to => (
-	is       => 'ro',
-	isa      => Str | HashRef,
-	reader   => '_get_install_to',
+	is      => 'ro',
+	isa     => Str | HashRef,
+	reader  => '_get_install_to',
 	default => 'c',
 );
 
 has license => (
-	is       => 'ro',
-	isa      => Maybe[HashRef],
-	reader   => '_get_license',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [HashRef],
+	reader  => '_get_license',
+	default => undef,
 );
 
 sub install {
-	my $self   = shift;
-	
+	my $self = shift;
+
 	my $name = $self->_get_name();
 	$self->_trace_line( 1, "Preparing $name\n" );
 
@@ -58,15 +59,16 @@ sub install {
 	my $licenses = $self->_get_license();
 	if ( defined $licenses ) {
 		push @files,
-		  $self->_extract_filemap( $tgz, $licenses,
-			$self->_get_license_dir, 1 );
+		  $self->_extract_filemap( $tgz, $licenses, $self->_get_license_dir,
+			1 );
 	}
 
 	my $filelist =
-	  File::List::Object->new()->load_array(@files)->filter( $self->_filters );
+	  File::List::Object->new()->load_array(@files)
+	  ->filter( $self->_filters );
 
 	return $filelist;
-} ## end sub install_binary
+} ## end sub install
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
@@ -80,11 +82,11 @@ __END__
 
 =head1 NAME
 
-Perl::Dist::Asset::Binary - "Binary Package" asset for a Win32 Perl
+Perl::Dist::WiX::Asset::Binary - "Binary Package" asset for a Win32 Perl
 
 =head1 SYNOPSIS
 
-  my $binary = Perl::Dist::Asset::Binary->new(
+  my $binary = Perl::Dist::WiX::Asset::Binary->new(
       name       => 'dmake',
       license    => {
           'dmake/COPYING'            => 'dmake/COPYING',
@@ -96,6 +98,8 @@ Perl::Dist::Asset::Binary - "Binary Package" asset for a Win32 Perl
       },
   );
 
+TODO: NEEDS UPDATING AFTER THIS POINT
+  
 =head1 DESCRIPTION
 
 B<Perl::Dist::Asset::Binary> is a data class that provides encapsulation

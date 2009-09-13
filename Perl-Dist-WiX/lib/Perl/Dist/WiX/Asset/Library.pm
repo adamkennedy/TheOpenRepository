@@ -1,10 +1,11 @@
 package Perl::Dist::WiX::Asset::Library;
 
+use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str Maybe HashRef ); 
+use MooseX::Types::Moose qw( Str Maybe HashRef );
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -16,16 +17,16 @@ has name => (
 );
 
 has unpack_to => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_unpack_to',
+	is      => 'ro',
+	isa     => Str,
+	reader  => '_get_unpack_to',
 	default => q{},
 );
 
 has license => (
-	is       => 'ro',
-	isa      => Maybe[HashRef],
-	reader   => '_get_license',
+	is      => 'ro',
+	isa     => Maybe [HashRef],
+	reader  => '_get_license',
 	default => undef,
 );
 
@@ -37,24 +38,26 @@ has install_to => (
 );
 
 has build_a => (
-	is       => 'ro',
-	isa      => HashRef,
-	reader   => '_get_build_a',
-	default  => sub { return {} },
+	is      => 'ro',
+	isa     => HashRef,
+	reader  => '_get_build_a',
+	default => sub { return {} },
 );
 
 sub install {
-	my $self    = shift;
+	my $self = shift;
 
 	my $name = $self->_get_name();
 	$self->_trace_line( 1, "Preparing $name\n" );
 
 	# Download the file
-	my $tgz = $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
+	my $tgz =
+	  $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
 
 	# Unpack to the build directory
 	my @files;
-	my $unpack_to = catdir( $self->_get_build_dir(), $self->_get_unpack_to() );
+	my $unpack_to =
+	  catdir( $self->_get_build_dir(), $self->_get_unpack_to() );
 	if ( -d $unpack_to ) {
 		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
 		File::Remove::remove( \1, $unpack_to );
@@ -69,21 +72,20 @@ sub install {
 		push @files,
 		  $self->_dll_to_a(
 			$build_a->{source}
-			? ( source =>
-				  catfile( $unpack_to, $build_a->{source} ), )
+			? ( source => catfile( $unpack_to, $build_a->{source} ), )
 			: (),
 			dll => catfile( $unpack_to, $build_a->{dll} ),
 			def => catfile( $unpack_to, $build_a->{def} ),
 			a   => catfile( $unpack_to, $build_a->{a} ),
 		  );
-	} ## end if ( _HASH( $library->build_a...))
+	} ## end if ( defined $build_a )
 
 	# Copy in the files
 	my $install_to = $self->_get_install_to();
-	if ( $install_to ) {
+	if ($install_to) {
 		foreach my $k ( sort keys %{$install_to} ) {
-			my $from = catdir( $unpack_to,       $k );
-			my $to   = catdir( $self->_get_image_dir(), $install_to->{$k} );
+			my $from = catdir( $unpack_to, $k );
+			my $to = catdir( $self->_get_image_dir(), $install_to->{$k} );
 			$self->_copy( $from, $to );
 			@files = $self->_copy_filesref( \@files, $from, $to );
 		}
@@ -94,8 +96,7 @@ sub install {
 	if ( defined $licenses ) {
 		my $license_dir = catdir( $self->image_dir, 'licenses' );
 		push @files,
-		  $self->_extract_filemap( $tgz, $licenses, $license_dir,
-			1 );
+		  $self->_extract_filemap( $tgz, $licenses, $license_dir, 1 );
 	}
 
 	my @sorted_files = sort { $a cmp $b } @files;
@@ -104,7 +105,7 @@ sub install {
 	  ->filter( $self->_filters )->filter( [$unpack_to] );
 
 	return $filelist;
-} ## end sub install_library
+} ## end sub install
 
 sub _copy_filesref {
 	my ( $self, $files_ref, $from, $to ) = @_;
@@ -125,6 +126,8 @@ sub _copy_filesref {
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
+
+1;
 
 __END__
 

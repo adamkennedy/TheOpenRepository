@@ -124,7 +124,7 @@ require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 
 our $VERSION = '1.090_102';
-$VERSION = eval $VERSION ;
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 use Object::Tiny qw(
   perl_version
@@ -420,20 +420,19 @@ should then call C<run> on to generate the distribution.
 
 sub new { ## no critic 'ProhibitExcessComplexity'
 	my $class  = shift;
-	my %params = ( 
+	my %params = (
 		trace            => 1,
-		build_start_time => localtime, 
+		build_start_time => localtime,
 		temp_dir         => catdir( tmpdir(), 'perldist' ),
-		@_ 
+		@_,
 	);
 
-	$params{misc} = WiX3::Traceable->new(
-		tracelevel => $params{trace} );
-	
-	# Announce that we're starting. 
+	$params{misc} = WiX3::Traceable->new( tracelevel => $params{trace} );
+
+	# Announce that we're starting.
 	{
 		my $time = scalar localtime;
-		$params{misc}->trace_line(0, "Starting build at $time.\n");
+		$params{misc}->trace_line( 0, "Starting build at $time.\n" );
 	}
 
 	# Get the parameters required for the GUID generator set up.
@@ -443,13 +442,15 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 			where     => '::Installer->new'
 		);
 	}
-	
+
 	unless ( _STRING( $params{sitename} ) ) {
 		$params{sitename} = URI->new( $params{app_publisher_url} )->host;
 	}
-	
-	$params{_guidgen} = WiX3::XML::GeneratesGUID::Object->new(_sitename => $params{sitename});
-	
+
+	$params{_guidgen} =
+	  WiX3::XML::GeneratesGUID::Object->new(
+		_sitename => $params{sitename} );
+
 	unless ( defined $params{download_dir} ) {
 		$params{download_dir} = catdir( $params{temp_dir}, 'download' );
 		File::Path::mkpath( $params{download_dir} );
@@ -465,7 +466,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$params{build_dir} = catdir( $params{temp_dir}, 'build' );
 		$class->remake_path( $params{build_dir} );
 	}
-	if ( $params{build_dir} =~ m{\.}ms ) {
+	if ( $params{build_dir} =~ m{[.]}ms ) {
 		PDWiX::Parameter->throw(
 			parameter => 'build_dir: Cannot be '
 			  . 'a directory that has a . in the name.',
@@ -474,7 +475,8 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 	unless ( defined $params{output_dir} ) {
 		$params{output_dir} = catdir( $params{temp_dir}, 'output' );
-		$params{misc}->trace_line(1, "Wait a second while we empty the output directory...\n");
+		$params{misc}->trace_line( 1,
+			"Wait a second while we empty the output directory...\n" );
 		$class->remake_path( $params{output_dir} );
 	}
 	unless ( defined $params{fragment_dir} ) {
@@ -484,10 +486,12 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 	if ( defined $params{image_dir} ) {
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();
-		$params{misc}->trace_line(3, "Currently executing perl: $perl_location\n");
+		$params{misc}
+		  ->trace_line( 3, "Currently executing perl: $perl_location\n" );
 		my $our_perl_location =
 		  lc catfile( $params{image_dir}, qw(perl bin perl.exe) );
-		$params{misc}->trace_line(3, "Our perl to create:       $our_perl_location\n");
+		$params{misc}->trace_line( 3,
+			"Our perl to create:       $our_perl_location\n" );
 
 		PDWiX::Parameter->throw(
 			parameter => ' image_dir : attempting to commit suicide ',
@@ -504,9 +508,10 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	} ## end if ( defined $params{image_dir...})
 
 	my $tasklist = [
+
 		# Final initialization
 		'final_initialization',
-	
+
 		# Install the core C toolchain
 		'install_c_toolchain',
 
@@ -533,23 +538,23 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 		# Regenerate file fragments
 		'regenerate_fragments',
-		
+
 		# Write out the distributions
 		'write',
 	];
 
 	my $self = bless {
-		perl_version            => '5101',
-		offline                 => LWP::Online::offline(),
-		pdw_version             => $Perl::Dist::WiX::VERSION,
-		pdw_class               => $class,
-		fragments               => {},
-		beta_number             => 0,
-		force                   => 0,
-		exe                     => 0,
-		msi                     => 1,  # Goal of Perl::Dist::WiX is to make an MSI.
-		checkpoint_before       => 0,
-		checkpoint_after        => [ 0 ],
+		perl_version => '5101',
+		offline      => LWP::Online::offline(),
+		pdw_version  => $Perl::Dist::WiX::VERSION,
+		pdw_class    => $class,
+		fragments    => {},
+		beta_number  => 0,
+		force        => 0,
+		exe          => 0,
+		msi               => 1,        # Goal of Perl::Dist::WiX is to make an MSI.
+		checkpoint_before => 0,
+		checkpoint_after        => [0],
 		checkpoint_stop         => 0,
 		output_file             => [],
 		env_path                => [],
@@ -558,9 +563,9 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		tasklist                => $tasklist,
 		%params,
 	}, $class;
-	
+
 	# Apply defaults
-	
+
 	unless ( ( defined $self->{perl_config_cf_email} )
 		&& ( $self->{perl_config_cf_email} =~ m/\A.*@.*\z/msx ) )
 	{
@@ -826,33 +831,36 @@ sub final_initialization {
 	$self->{directories} = Perl::Dist::WiX::DirectoryTree2->new(
 		app_dir  => $self->image_dir,
 		app_name => $self->app_name,
-	  )
-	  ->initialize_tree( $self->perl_version );
+	)->initialize_tree( $self->perl_version );
 
 	$self->{fragments}->{StartMenuIcons} =
-	  Perl::Dist::WiX::Fragment::StartMenu->new( directory_id => 'D_App_Menu', );
+	  Perl::Dist::WiX::Fragment::StartMenu->new(
+		directory_id => 'D_App_Menu', );
 	$self->{fragments}->{Environment} =
 	  Perl::Dist::WiX::Fragment::Environment->new();
-	$self->{fragments}->{Win32Extras} = Perl::Dist::WiX::Fragment::Files->new(
-		id             => 'Win32Extras',
-		files          => File::List::Object->new(),
-	);
-	
-	$self->{fragments}->{CreateCpan} = Perl::Dist::WiX::Fragment::CreateFolder->new(
-		directory_id   => 'Cpan',
-		id             => 'CPANFolder',
-	);
-	$self->{fragments}->{CreateCpanplus} = Perl::Dist::WiX::Fragment::CreateFolder->new(
-		directory_id   => 'Cpanplus',
-		id             => 'CPANPLUSFolder',
-	) if ( 5100 <= $self->perl_version );
+	$self->{fragments}->{Win32Extras} =
+	  Perl::Dist::WiX::Fragment::Files->new(
+		id    => 'Win32Extras',
+		files => File::List::Object->new(),
+	  );
+
+	$self->{fragments}->{CreateCpan} =
+	  Perl::Dist::WiX::Fragment::CreateFolder->new(
+		directory_id => 'Cpan',
+		id           => 'CPANFolder',
+	  );
+	$self->{fragments}->{CreateCpanplus} =
+	  Perl::Dist::WiX::Fragment::CreateFolder->new(
+		directory_id => 'Cpanplus',
+		id           => 'CPANPLUSFolder',
+	  ) if ( 5100 <= $self->perl_version );
 
 	$self->{icons} = $self->{fragments}->{StartMenuIcons}->get_icons();
 
 	if ( defined $self->msi_product_icon ) {
 		$self->icons->add_icon( $self->msi_product_icon );
 	}
-	
+
 	# Clear the par cache, just to be safe.
 	# Sometimes, if not cleared, PAR fails tests.
 	my $par_temp = catdir( $ENV{TEMP}, 'par-' . Win32::LoginName() );
@@ -869,10 +877,10 @@ sub final_initialization {
 		next if -d $d;
 		File::Path::mkpath($d);
 	}
-	
+
 	my $cpanplus_dir = catdir( $self->image_dir, 'cpanplus' );
-	if (( 5100 <= $self->perl_version ) and ( not -d $cpanplus_dir )) {
-		File::Path::mkpath($cpanplus_dir);	
+	if ( ( 5100 <= $self->perl_version ) and ( not -d $cpanplus_dir ) ) {
+		File::Path::mkpath($cpanplus_dir);
 	}
 
 	# Initialize filters.
@@ -910,7 +918,7 @@ sub final_initialization {
 	$self->add_env( 'FTP_PASSIVE', '1' );
 
 	return 1;
-}
+} ## end sub final_initialization
 
 sub binary_file {
 	unless ( $PACKAGES{ $_[1] } ) {
@@ -931,7 +939,7 @@ sub binary_url {
 		);
 	}
 
-	unless ( $file =~ /\.(zip | gz | tgz | par)\z/imsx ) {
+	unless ( $file =~ /[.] (zip | gz | tgz | par) \z/imsx ) {
 
 		# Shorthand, map to full file name
 		$file = $self->binary_file( $file, @_ );
@@ -1234,16 +1242,16 @@ sub run {
 	STDOUT->autoflush(1);
 	STDERR->autoflush(1);
 
-	my @task_list = @{$self->tasklist()};
+	my @task_list   = @{ $self->tasklist() };
 	my $task_number = 1;
 	my $task;
 	my $answer = 1;
-	
-	while ($answer and ($task = shift @task_list)) {
+
+	while ( $answer and ( $task = shift @task_list ) ) {
 		$answer = $self->checkpoint_task( $task => $task_number );
 		$task_number++;
 	}
-	
+
 	# Finished
 	$self->trace_line( 0,
 		    'Distribution generation completed in '
@@ -1345,7 +1353,7 @@ sub install_portable {
 	my $self = shift;
 
 	return 1 unless $self->portable;
-	
+
 	# Install the regular parts of Portability
 	$self->install_modules( qw(
 		  Sub::Uplevel
@@ -1386,17 +1394,17 @@ sub install_win32_extras {
 	File::Path::mkpath( catdir( $self->image_dir, 'win32' ) );
 
 	# TODO: Delete next two statements.
-	my $perldir = $self->{directories}->search_dir( 
+	my $perldir = $self->{directories}->search_dir(
 		path_to_find => catdir( $self->image_dir, 'perl' ),
-		exact => 1,
-		descend => 1,
+		exact        => 1,
+		descend      => 1,
 	);
 	$perldir->add_directory(
 		name => 'bin',
-		id => 'PerlBin',
+		id   => 'PerlBin',
 		path => catdir( $self->image_dir, qw( perl bin ) ),
 	);
-	
+
 	$self->install_launcher(
 		name => 'CPAN Client',
 		bin  => 'cpan',
@@ -1499,29 +1507,29 @@ sub remove_file {
 
 sub regenerate_fragments {
 	my $self = shift;
-	
-	return 1 unless $self->msi;
-	
-	# Add the perllocal.pod here, because apparently it's disappearing.
-	$self->add_to_fragment('perl', 
-		[ catfile($self->image_dir(), qw( perl lib perllocal.pod )) ] 
-	);
-	
-	my @fragment_names_regenerate;
-	my @fragment_names = keys %{$self->{fragments}};
 
-	while (0 != scalar @fragment_names) {
+	return 1 unless $self->msi;
+
+	# Add the perllocal.pod here, because apparently it's disappearing.
+	$self->add_to_fragment( 'perl',
+		[ catfile( $self->image_dir(), qw( perl lib perllocal.pod ) ) ] );
+
+	my @fragment_names_regenerate;
+	my @fragment_names = keys %{ $self->{fragments} };
+
+	while ( 0 != scalar @fragment_names ) {
 		foreach my $name (@fragment_names) {
-			push @fragment_names_regenerate, $self->{fragments}->{$name}->regenerate();
+			push @fragment_names_regenerate,
+			  $self->{fragments}->{$name}->regenerate();
 		}
-	
-		$#fragment_names = -1; # clears the array.
-		@fragment_names = uniq @fragment_names_regenerate;
-		$#fragment_names_regenerate = -1;		
+
+		$#fragment_names = -1;         # clears the array.
+		@fragment_names             = uniq @fragment_names_regenerate;
+		$#fragment_names_regenerate = -1;
 	}
-	
+
 	return 1;
-}
+} ## end sub regenerate_fragments
 
 #####################################################################
 # Package Generation
@@ -1575,7 +1583,7 @@ sub write_zip {
 	foreach my $member (@members) {
 		next if $member->isDirectory();
 		$member->desiredCompressionLevel(9);
-		if ( $member->fileName =~ m{\.AAA\z}sm ) {
+		if ( $member->fileName =~ m{[.] AAA\z}smx ) {
 			$zip->removeMember($member);
 		}
 	}
@@ -1602,7 +1610,7 @@ sub add_icon {
 	# Get a legal id.
 	my $id = $params{name};
 	$id =~ s{\s}{_}msxg;               # Convert whitespace to underlines.
-	
+
 	# Add the start menu icon.
 	$self->{fragments}->{StartMenuIcons}->add_shortcut(
 		name        => $params{name},
@@ -1683,7 +1691,8 @@ sub patch_file {
 
 		# Generate the file
 		my $hash = _HASH(shift) || {};
-		my ( $fh, $output ) = File::Temp::tempfile( 'pdwXXXXXX', TMPDIR => 1 );
+		my ( $fh, $output ) =
+		  File::Temp::tempfile( 'pdwXXXXXX', TMPDIR => 1 );
 		$self->trace_line( 2,
 			"Generating $from_tt into temp file $output\n" );
 		$self->patch_template->process( $from_tt,
@@ -1693,7 +1702,9 @@ sub patch_file {
 		# Copy the file to the final location
 		$fh->close or PDWiX->throw("Could not close: $OS_ERROR");
 		$self->_copy( $output => $to );
-		unlink $output;
+		unlink $output
+		  or
+		  or PDWiX->throw("Could not delete $output: $OS_ERROR");
 
 	} elsif ( $from ne q{} ) {
 
@@ -1912,7 +1923,7 @@ sub _make {
 sub _perl {
 	my $self   = shift;
 	my @params = @_;
-	
+
 	unless ( -x $self->bin_perl ) {
 		PDWiX->throw( q{Can't execute } . $self->bin_perl );
 	}
@@ -1923,7 +1934,7 @@ sub _perl {
 	  or PDWiX->throw('perl failed');
 	PDWiX->throw('perl failed (OS error)') if ( $CHILD_ERROR >> 8 );
 	return 1;
-}
+} ## end sub _perl
 
 sub _run3 {
 	my $self = shift;
@@ -1983,7 +1994,7 @@ sub _extract {
 	my @filelist;
 
 	$self->trace_line( 2, "Extracting $from...\n" );
-	if ( $from =~ m{\.zip\z}ms ) {
+	if ( $from =~ m{[.] zip\z}msx ) {
 		my $zip = Archive::Zip->new($from);
 
 # I can't just do an extractTree here, as I'm trying to
@@ -2001,7 +2012,7 @@ sub _extract {
 			push @filelist, $filename;
 		}
 
-	} elsif ( $from =~ m{\.tar\.gz | \.tgz}msx ) {
+	} elsif ( $from =~ m{ [.] tar [.] gz | [.] tgz}msx ) {
 		local $Archive::Tar::CHMOD = 0;
 		my @fl = @filelist = Archive::Tar->extract_archive( $from, 1 );
 		@filelist = map { catfile( $to, $_ ) } @fl;
@@ -2020,7 +2031,7 @@ sub _extract_filemap {
 
 	my @files;
 
-	if ( $archive =~ m{\.zip\z}ms ) {
+	if ( $archive =~ m{[.] zip\z}msx ) {
 
 		my $zip = Archive::Zip->new($archive);
 		my $wd  = $self->_pushd($basedir);
@@ -2047,7 +2058,7 @@ sub _extract_filemap {
 			} ## end foreach my $member (@members)
 		} ## end while ( my ( $f, $t ) = each...)
 
-	} elsif ( $archive =~ m{\.tar\.gz | \.tgz}msx ) {
+	} elsif ( $archive =~ m{[.] tar [.] gz | [.] tgz}msx ) {
 		local $Archive::Tar::CHMOD = 0;
 		my $tar = Archive::Tar->new($archive);
 		for my $file ( $tar->get_files ) {
@@ -2097,7 +2108,7 @@ sub _dll_to_a {
 
 	# Source file
 	my $source = $params{source};
-	if ( $source and not( $source =~ /\.dll\z/ms ) ) {
+	if ( $source and not( $source =~ /[.]dll\z/msx ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'source',
 			where     => '->_dll_to_a'
@@ -2106,7 +2117,7 @@ sub _dll_to_a {
 
 	# Target .dll file
 	my $dll = $params{dll};
-	unless ( $dll and $dll =~ /\.dll/ms ) {
+	unless ( $dll and $dll =~ /[.]dll/msx ) {
 		PDWiX::Parameter->throw(
 			parameter => 'dll',
 			where     => '->_dll_to_a'
@@ -2115,7 +2126,7 @@ sub _dll_to_a {
 
 	# Target .def file
 	my $def = $params{def};
-	unless ( $def and $def =~ /\.def\z/ms ) {
+	unless ( $def and $def =~ /[.]def\z/msx ) {
 		PDWiX::Parameter->throw(
 			parameter => 'def',
 			where     => '->_dll_to_a'
@@ -2124,7 +2135,7 @@ sub _dll_to_a {
 
 	# Target .a file
 	my $_a = $params{a};
-	unless ( $_a and $_a =~ /\.a\z/ms ) {
+	unless ( $_a and $_a =~ /[.]a\z/msx ) {
 		PDWiX::Parameter->throw(
 			parameter => 'a',
 			where     => '->_dll_to_a'

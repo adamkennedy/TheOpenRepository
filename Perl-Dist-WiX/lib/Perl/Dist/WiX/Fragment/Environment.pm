@@ -12,8 +12,8 @@ use 5.008001;
 use Moose;
 use WiX3::XML::Environment;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 extends 'WiX3::XML::Fragment';
 
@@ -21,59 +21,60 @@ extends 'WiX3::XML::Fragment';
 # Accessors:
 
 has component => (
-	is => 'ro',
-	isa => 'WiX3::XML::Component',
-	reader => '_get_component',
+	is       => 'ro',
+	isa      => 'WiX3::XML::Component',
+	reader   => '_get_component',
 	required => 1,
 );
 
 sub BUILDARGS {
 	my $class = shift;
 	my %args;
-	
-	if ( @_ == 1 && ! ref $_[0] ) {
+
+	## no critic(CascadingIfElse)
+	if ( @_ == 1 && !ref $_[0] ) {
 		$args{'id'} = $_[0];
 	} elsif ( 0 == @_ ) {
 		$args{'id'} = 'Environment';
 	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
-		%args = %{$_[0]};
+		%args = %{ $_[0] };
 	} elsif ( 0 == @_ % 2 ) {
-		%args = ( @_ );
+		%args = (@_);
 	} else {
-		PDWiX->throw('Parameters incorrect (not a hashref, hash, or id) for ::Fragment::Environment');
+		PDWiX->throw(
+'Parameters incorrect (not a hashref, hash, or id) for ::Fragment::Environment'
+		);
 	}
 
 	my $id;
 
-	if (not exists $args{'id'}) {
+	if ( not exists $args{'id'} ) {
 		$id = 'Environment';
 	} else {
 		$id = $args{'id'};
 	}
 
-	my $tag1 = WiX3::XML::Component->new( 
-		id => $id
-	);
+	my $tag1 = WiX3::XML::Component->new( id => $id );
 
-	return { 
-		id => $id,
+	return {
+		id        => $id,
 		component => $tag1,
 	};
-}
+} ## end sub BUILDARGS
 
 sub BUILD {
 	my $self = shift;
 
-	my $tag2 = WiX3::XML::DirectoryRef->new( 
-		directory_object => Perl::Dist::WiX::DirectoryTree2->instance()->get_root(),
-	);
-	$tag2->add_child_tag($self->_get_component());
+	my $tag2 =
+	  WiX3::XML::DirectoryRef->new( directory_object =>
+		  Perl::Dist::WiX::DirectoryTree2->instance()->get_root(), );
+	$tag2->add_child_tag( $self->_get_component() );
 
-	$self->add_child_tag($tag2);	
+	$self->add_child_tag($tag2);
 	$self->trace_line( 3, "Creating environment fragment.\n" );
-	
+
 	return;
-}
+} ## end sub BUILD
 
 ########################################
 # add_entry(...)
@@ -85,7 +86,8 @@ sub BUILD {
 sub add_entry {
 	my $self = shift;
 
-	$self->_get_component()->add_child_tag( WiX3::XML::Environment->new(@_) );
+	$self->_get_component()
+	  ->add_child_tag( WiX3::XML::Environment->new(@_) );
 
 	return $self;
 }

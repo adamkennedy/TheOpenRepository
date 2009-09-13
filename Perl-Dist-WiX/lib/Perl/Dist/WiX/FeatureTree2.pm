@@ -7,15 +7,14 @@ package Perl::Dist::WiX::FeatureTree2;
 #
 # License is the same as perl. See Wix.pm for details.
 #
-#<<<
-use     5.008001;
-use     Moose;
-use     MooseX::AttributeHelpers;
+use 5.008001;
+use Moose;
+use MooseX::AttributeHelpers;
 require WiX3::XML::Feature;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
-#>>>
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+
 #####################################################################
 # Accessors:
 
@@ -28,7 +27,7 @@ has parent => (
 		'_feature_tree'   => 'msi_feature_tree',
 		'_get_components' => 'get_component_array',
 		'_trace_line'     => 'trace_line',
-	}
+	},
 );
 
 has features => (
@@ -37,8 +36,8 @@ has features => (
 	isa       => 'ArrayRef[WiX3::XML::Feature]',
 	default   => sub { [] },
 	init_arg  => undef,
-    provides  => {
-        'push'     => '_push_feature',
+	provides  => {
+		'push'     => '_push_feature',
 		'count'    => '_count_features',
 		'elements' => '_get_feature_array',
 	},
@@ -52,7 +51,7 @@ has features => (
 sub BUILD {
 	my $self = shift;
 	my $feat;
-	
+
 	# Start the tree.
 	$self->_trace_line( 0, "Creating feature tree...\n" );
 	if ( defined $self->_feature_tree() ) {
@@ -70,7 +69,7 @@ sub BUILD {
 	}
 
 	return;
-} ## end sub _init :
+} ## end sub BUILD
 
 ########################################
 # as_string
@@ -80,10 +79,10 @@ sub BUILD {
 #   String representing features contained in this object.
 
 sub as_string {
-	my $self      = shift;
+	my $self = shift;
 
 	# Get the strings for each of our branches.
-	my $spaces = q{    }; # Indent 4 spaces.
+	my $spaces = q{    };              # Indent 4 spaces.
 	my $answer = $spaces;
 	foreach my $feature ( $self->_get_feature_array() ) {
 		$answer .= $feature->as_string;

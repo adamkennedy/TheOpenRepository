@@ -1,11 +1,13 @@
 package Perl::Dist::WiX::Asset::Website;
 
+use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str Int Maybe );
 use File::Spec::Functions qw( catfile );
+use English qw( -no_match_vars );
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -24,31 +26,33 @@ has url => (
 );
 
 has icon_file => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_icon_file',
-	default  => undef,
+	is      => 'ro',
+	isa     => Str,
+	reader  => '_get_icon_file',
+	default => undef,
 );
 
 has icon_index => (
-	is       => 'ro',
-	isa      => Maybe[Int],
-	reader   => '_get_icon_index',
-	lazy     => 1,
-	default  => sub { defined shift->_get_icon_file() ? 1 : undef;},
+	is      => 'ro',
+	isa     => Maybe [Int],
+	reader  => '_get_icon_index',
+	lazy    => 1,
+	default => sub { defined shift->_get_icon_file() ? 1 : undef; },
 );
 
 sub install {
-	my $self    = shift;
+	my $self = shift;
 
 	my $name = $self->get_name();
 	my $filename = catfile( $self->_get_image_dir, 'win32', "$name.url" );
 
 	my $website;
+
 	# TODO: Use exceptions instead of dieing.
-	open $website, q{>}, $filename   or die "open($filename): $!";
-	print $website $self->_content() or die "print($filename): $!";
-	close $website                   or die "close($filename): $!";
+	## no critic (RequireCarping RequireUseOfExceptions)
+	open $website, q{>}, $filename or die "open($filename): $OS_ERROR";
+	print {$website} $self->_content() or die "print($filename): $OS_ERROR";
+	close $website or die "close($filename): $OS_ERROR";
 
 	# Add the file.
 	$self->_add_file(
@@ -56,7 +60,8 @@ sub install {
 		fragment => 'Win32Extras'
 	);
 
-	my $icon_id = $self->_get_icons()->add_icon( $self->_get_icon_file(), $filename );
+	my $icon_id =
+	  $self->_get_icons()->add_icon( $self->_get_icon_file(), $filename );
 
 	# Add the icon.
 	$self->_add_icon(
@@ -67,25 +72,25 @@ sub install {
 	);
 
 	# TODO: Return a File::List::Object.
-	
+
 	return $filename;
-} ## end sub install_website
+} ## end sub install
 
 sub _content {
-	my $self    = shift;
-	
+	my $self = shift;
+
 	my @content = "[InternetShortcut]\n";
-	push @content, "URL=" . $self->_get_url();
+	push @content, 'URL=' . $self->_get_url();
 	my $file = $self->_get_icon_file();
 	if ( defined $file ) {
-		push @content, "IconFile=" . $file;
+		push @content, 'IconFile=' . $file;
 	}
 	my $index = $self->_get_icon_index();
 	if ( defined $index ) {
-		push @content, "IconIndex=" . $index;
+		push @content, 'IconIndex=' . $index;
 	}
-	return join '', map { "$_\n" } @content;
-}
+	return join q{}, map {"$_\n"} @content;
+} ## end sub _content
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

@@ -1,7 +1,8 @@
 package Perl::Dist::WiX::Asset::DistFile;
 
+use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef ); 
+use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef );
 use File::Spec::Functions qw( catdir catfile splitpath );
 
 require File::Remove;
@@ -10,14 +11,14 @@ require File::Spec::Unix;
 require Perl::Dist::WiX::Exceptions;
 
 our $VERSION = '1.090_102';
-$VERSION = eval $VERSION;
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
 
 has module_name => (
 	is       => 'ro',
-	isa      => Maybe[Str],
+	isa      => Maybe [Str],
 	reader   => 'get_module_name',
 	init_arg => 'mod_name',
 	lazy     => 1,
@@ -25,39 +26,39 @@ has module_name => (
 );
 
 has force => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_force',
-	lazy     => 1,
-	default  => sub { !! $_[0]->_get_parent()->force },
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_force',
+	lazy    => 1,
+	default => sub { !!$_[0]->_get_parent()->force },
 );
 
 has automated_testing => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_automated_testing',
-	default  => 0,
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_automated_testing',
+	default => 0,
 );
 
 has release_testing => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_release_testing',
-	default  => 0,
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_release_testing',
+	default => 0,
 );
 
 has makefilepl_param => (
-	is       => 'ro',
-	isa      => ArrayRef,
-	reader   => '_get_makefilepl_param',
-	default  => sub { return [] },
+	is      => 'ro',
+	isa     => ArrayRef,
+	reader  => '_get_makefilepl_param',
+	default => sub { return [] },
 );
 
 has buildpl_param => (
-	is       => 'ro',
-	isa      => ArrayRef,
-	reader   => '_get_buildpl_param',
-	default  => sub { return [] },
+	is      => 'ro',
+	isa     => ArrayRef,
+	reader  => '_get_buildpl_param',
+	default => sub { return [] },
 );
 
 #has inject => (
@@ -68,10 +69,10 @@ has buildpl_param => (
 #);
 
 has packlist => (
-	is       => 'ro',
-	isa      => Bool,
-	reader   => '_get_packlist',
-	default  => 1,
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_packlist',
+	default => 1,
 );
 
 sub get_name {
@@ -104,8 +105,8 @@ sub install {
 
 	# Where will it get extracted to
 	my $dist_path = $filename;
-	$dist_path =~ s{\.tar\.gz}{}msx;   # Take off extensions.
-	$dist_path =~ s{\.zip}{}msx;
+	$dist_path =~ s{[.] tar [.] gz}{}msx;   # Take off extensions.
+	$dist_path =~ s{[.] zip}{}msx;
 	$self->_add_to_distributions_installed($dist_path);
 
 	my $unpack_to = catdir( $self->_get_build_dir(), $dist_path );
@@ -121,7 +122,7 @@ sub install {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
 
-	my $buildpl = ( -r catfile( $unpack_to, 'Build.PL' ) ) ? 1 : 0;
+	my $buildpl    = ( -r catfile( $unpack_to, 'Build.PL' ) )    ? 1 : 0;
 	my $makefilepl = ( -r catfile( $unpack_to, 'Makefile.PL' ) ) ? 1 : 0;
 
 	unless ( $buildpl or $makefilepl ) {
@@ -131,15 +132,14 @@ sub install {
 
 	# Build using Build.PL if we have one
 	# unless Module::Build is not installed.
-	unless ( $self->_module_build_installed() )
-	{
+	unless ( $self->_module_build_installed() ) {
 		$buildpl = 0;
-		unless ( $makefilepl ) {
-			PDWiX->throw("Could not find Makefile.PL in $unpack_to".
-			  " (too early for Build.PL)\n");
+		unless ($makefilepl) {
+			PDWiX->throw( "Could not find Makefile.PL in $unpack_to"
+				  . " (too early for Build.PL)\n" );
 		}
-	} ## end unless ( ( -r catfile( catdir...
-	
+	}
+
 	# Build the module
   SCOPE: {
 		my $wd = $self->_pushd($unpack_to);
@@ -154,13 +154,15 @@ sub install {
 			$self->trace_line( 2,
 				"Installing with RELEASE_TESTING enabled...\n" );
 		}
-		local $ENV{AUTOMATED_TESTING} = $self->_get_automated_testing() ? 1 : undef;
-		local $ENV{RELEASE_TESTING}   = $self->_get_release_testing() ? 1 : undef;
+		local $ENV{AUTOMATED_TESTING} =
+		  $self->_get_automated_testing() ? 1 : undef;
+		local $ENV{RELEASE_TESTING} =
+		  $self->_get_release_testing() ? 1 : undef;
 
 		$self->_configure($buildpl);
 
 		$self->_install_distribution($buildpl);
-		
+
 	} ## end SCOPE:
 
 	# Making final filelist.
@@ -172,9 +174,9 @@ sub install {
 			catdir( $self->_get_image_dir(), 'perl' ) );
 		$filelist->subtract($filelist_sub)->filter( $self->_filters() );
 	}
-	
+
 	return $filelist;
-} ## end sub install_distribution
+} ## end sub install
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

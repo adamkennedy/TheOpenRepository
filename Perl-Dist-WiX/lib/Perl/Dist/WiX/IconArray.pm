@@ -10,20 +10,20 @@ package Perl::Dist::WiX::IconArray;
 use 5.008001;
 use Moose;
 use MooseX::AttributeHelpers;
-use Params::Util           qw( _STRING   );
-use File::Spec::Functions  qw( splitpath );
+use Params::Util qw( _STRING   );
+use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Icon;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 has _icon => (
 	metaclass => 'Collection::Array',
 	is        => 'rw',
 	isa       => 'ArrayRef[Perl::Dist::WiX::Icon]',
 	default   => sub { [] },
-    provides  => {
-        'push'     => '_push_icon',
+	provides  => {
+		'push'     => '_push_icon',
 		'count'    => '_count_icons',
 		'elements' => '_get_icon_array',
 	},
@@ -64,6 +64,7 @@ sub add_icon {
 
 	# Find the type of target.
 	my ($target_type) = $pathname_target =~ m{\A.*[.](.+)\z}msx;
+
 # TODO: Make this work.
 #	$self->trace_line( 2,
 #		"Adding icon $pathname_icon with target type $target_type.\n" );
@@ -80,11 +81,12 @@ sub add_icon {
 	$id .= ".$target_type.ico";
 
 	# Add icon to our list.
-	$self->_push_icon(Perl::Dist::WiX::Icon->new(
-	  sourcefile  => $pathname_icon,
-	  target_type => $target_type,
-	  id          => $id
-	));
+	$self->_push_icon(
+		Perl::Dist::WiX::Icon->new(
+			sourcefile  => $pathname_icon,
+			target_type => $target_type,
+			id          => $id
+		) );
 
 	return $id;
 } ## end sub add_icon
@@ -148,10 +150,9 @@ sub as_string {
 
 	# Print each icon
 	foreach my $icon ( $self->_get_icon_array() ) {
-		my $id = $icon->get_id();
+		my $id   = $icon->get_id();
 		my $file = $icon->get_sourcefile();
-		$answer .=
-		  "  <Icon Id='I_$id' SourceFile='$file' />\n";
+		$answer .= "  <Icon Id='I_$id' SourceFile='$file' />\n";
 	}
 
 	return $answer;

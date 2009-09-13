@@ -23,20 +23,20 @@ build Perl itself.
 
 =cut
 
-use     5.008001;
-use     strict;
-use     warnings;
-use     Archive::Zip             qw( :ERROR_CODES            );
-use     English                  qw( -no_match_vars          );
-use     List::MoreUtils          qw( any none                );
-use     Params::Util             qw( _HASH _STRING _INSTANCE );
-use     Readonly                 qw( Readonly                );
-use     Storable                 qw( retrieve );
-use     File::Spec::Functions    qw(
-	catdir catfile catpath tmpdir splitpath rel2abs curdir
+use 5.008001;
+use strict;
+use warnings;
+use Archive::Zip qw( :ERROR_CODES            );
+use English qw( -no_match_vars          );
+use List::MoreUtils qw( any none                );
+use Params::Util qw( _HASH _STRING _INSTANCE );
+use Readonly qw( Readonly                );
+use Storable qw( retrieve );
+use File::Spec::Functions qw(
+  catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use     Archive::Tar        1.42 qw();
-use     Module::CoreList    2.18 qw();
+use Archive::Tar 1.42 qw();
+use Module::CoreList 2.18 qw();
 require File::Remove;
 require File::pushd;
 require File::ShareDir;
@@ -56,17 +56,17 @@ require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-our $VERSION = '1.090_101';
-$VERSION = eval $VERSION;
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 Readonly my %CORE_MODULE_FIX => (
-	'IO::Compress'         => 'IO::Compress::Base',
-	'Filter'               => 'Filter::Util::Call',
-	'autodie'              => 'Fatal',
-	'Pod'                  => 'Pod::Man',
-	'Text'                 => 'Text::Tabs',
-	'PathTools'            => 'Cwd',
-	'Scalar::List::Utils'  => 'List::Util',
+	'IO::Compress'        => 'IO::Compress::Base',
+	'Filter'              => 'Filter::Util::Call',
+	'autodie'             => 'Fatal',
+	'Pod'                 => 'Pod::Man',
+	'Text'                => 'Text::Tabs',
+	'PathTools'           => 'Cwd',
+	'Scalar::List::Utils' => 'List::Util',
 );
 
 Readonly my %DIST_TO_MODULE_FIX => (
@@ -101,7 +101,9 @@ sub _delay_upgrade {
 sub _module_fix {
 	my ( $self, $module ) = @_;
 
-	return ( exists $CORE_MODULE_FIX{$module} ) ? $CORE_MODULE_FIX{$module} : $module;
+	return ( exists $CORE_MODULE_FIX{$module} )
+	  ? $CORE_MODULE_FIX{$module}
+	  : $module;
 }
 
 
@@ -109,7 +111,7 @@ sub _module_fix {
 #####################################################################
 # CPAN installation and upgrade support
 
-# NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX 
+# NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX
 # object.
 
 =head2 install_cpan_upgrades
@@ -132,15 +134,16 @@ sub install_cpan_upgrades {
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
 
-	# Get list of modules to be upgraded. 
+	# Get list of modules to be upgraded.
 	# (The list is saved as a Storable arrayref of CPAN::Module objects.)
 	my $cpan_info_file = $self->_get_cpan_upgrades_list();
-	my $module_info = retrieve $cpan_info_file;
+	my $module_info    = retrieve $cpan_info_file;
 
 	my $force;
 	my @delayed_modules;
 	require CPAN;
   MODULE:
+
 	for my $module ( @{$module_info} ) {
 		$force = $self->force;
 
@@ -152,7 +155,7 @@ sub install_cpan_upgrades {
 			$self->_install_cpan_module( $module, 1 );
 			next MODULE;
 		}
-		
+
 		# Safe seems to have problems inside a build VM, but
 		# not outside.  Forcing to be safe.
 		if ( $module->cpan_file =~ m{/Safe-\d}msx ) {
@@ -161,7 +164,8 @@ sub install_cpan_upgrades {
 		}
 
 		# Locale::Maketext::Simple 0.20 has a test bug. Forcing.
-		if ( $module->cpan_file =~ m{/Locale-Maketext-Simple-0\.20}msx ) {
+		if ( $module->cpan_file =~ m{/Locale-Maketext-Simple-0 [.] 20}msx )
+		{
 			$self->_install_cpan_module( $module, 1 );
 			next MODULE;
 		}
@@ -169,6 +173,7 @@ sub install_cpan_upgrades {
 		if (    ( $module->cpan_file =~ m{/Module-Install-\d}msx )
 			and ( $module->cpan_version > 0.79 ) )
 		{
+
 			# We need a few more modules.
 			$self->install_modules(qw( File::Remove YAML::Tiny ));
 			$self->_install_cpan_module( $module, $force );
@@ -179,7 +184,7 @@ sub install_cpan_upgrades {
 			and ( $module->cpan_version > 6.50 ) )
 		{
 			$self->remove_file(qw{perl lib ExtUtils MakeMaker bytes.pm});
-			$self->remove_file(qw{perl lib ExtUtils MakeMaker vmsish.pm});			
+			$self->remove_file(qw{perl lib ExtUtils MakeMaker vmsish.pm});
 			$self->_install_cpan_module( $module, $force );
 			next MODULE;
 		}
@@ -193,14 +198,14 @@ sub install_cpan_upgrades {
 			next MODULE;
 		}
 
-		if (    ( $module->cpan_file =~ m{/CGI\.pm-\d}msx )
+		if (    ( $module->cpan_file =~ m{/CGI [.] pm-\d}msx )
 			and ( $module->cpan_version > 3.45 ) )
 		{
 			$self->install_modules(qw( FCGI ));
 			$self->_install_cpan_module( $module, $force );
 			next MODULE;
 		}
-		
+
 		if ( $self->_delay_upgrade($module) ) {
 
 			# Delay these module until last.
@@ -214,13 +219,13 @@ sub install_cpan_upgrades {
 	for my $module (@delayed_modules) {
 		$self->_install_cpan_module( $module, $force );
 	}
-	
+
 	# Getting modules for autodie support installed.
-	# Yes, I know that technically it's a core module with 
-	# non-core dependencies, and that's ugly. I've just got 
+	# Yes, I know that technically it's a core module with
+	# non-core dependencies, and that's ugly. I've just got
 	# to live with it.
 	my $autodie_location =
-		catfile( $self->image_dir, qw(perl lib autodie.pm) );
+	  catfile( $self->image_dir, qw(perl lib autodie.pm) );
 
 	if ( -e $autodie_location ) {
 		$self->install_modules(qw( Win32::Process IPC::System::Simple ));
@@ -336,10 +341,11 @@ END_PERL
   SCOPE: {
 		my $CPAN_FILE;
 		open $CPAN_FILE, '>', $cpan_file
-		  or PDWiX->throw("CPAN script open failed: $!");
+		  or PDWiX->throw("CPAN script open failed: $OS_ERROR");
 		print {$CPAN_FILE} $cpan_string
-		  or PDWiX->throw("CPAN script print failed: $!");
-		close $CPAN_FILE or PDWiX->throw("CPAN script close failed: $!");
+		  or PDWiX->throw("CPAN script print failed: $OS_ERROR");
+		close $CPAN_FILE
+		  or PDWiX->throw("CPAN script close failed: $OS_ERROR");
 	}
 	$self->_run3( $self->bin_perl, $cpan_file )
 	  or PDWiX->throw('CPAN script execution failed');
@@ -347,14 +353,14 @@ END_PERL
 	  if $CHILD_ERROR;
 
 	return $cpan_info_file;
-}
+} ## end sub _get_cpan_upgrades_list
 
 sub _install_cpan_module {
 	my ( $self, $module, $force ) = @_;
 	$force = $force or $self->force;
 	my $perl_version = $self->perl_version_literal;
-	my $module_id = $self->_module_fix( $module->id );
-	my $module_file = substr $module->cpan_file, 5;
+	my $module_id    = $self->_module_fix( $module->id );
+	my $module_file  = substr $module->cpan_file, 5;
 #<<<
 	my $core =
 	  exists $Module::CoreList::version{ $perl_version }{ $module_id }
@@ -384,7 +390,7 @@ sub _skip_upgrade {
 	my ( $self, $module ) = @_;
 
 	# DON'T try to install Perl.
-	return 1 if $module->cpan_file =~ m{/perl-5\.}msx;
+	return 1 if $module->cpan_file =~ m{/perl-5 [.]}msx;
 
 	# DON'T try to install Term::ReadKey, we
 	# already upgraded it.
@@ -397,9 +403,9 @@ sub _skip_upgrade {
 	# There were some files gotten rid of after 6.50, so
 	# install_cpan_upgrades thinks that it needs to upgrade
 	# those files using it.
-	
+
 	# This code is in here for safety as of yet.
-	return 1 if $module->cpan_file =~ m{/ExtUtils-MakeMaker-6\.50}msx;
+	return 1 if $module->cpan_file =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
 
 	return 0;
 } ## end sub _skip_upgrade
@@ -547,13 +553,13 @@ sub install_perl_bin {
 		force  => $self->force,
 		@_,
 	);
-	
+
 	unless ( $self->bin_make ) {
 		PDWiX->throw('Cannot build Perl yet, no bin_make defined');
 	}
-	
+
 	$perl->install();
-	
+
 	# Should have a perl to use now.
 	$self->{bin_perl} = catfile( $self->image_dir, qw/perl bin perl.exe/ );
 
@@ -561,7 +567,7 @@ sub install_perl_bin {
 	$self->add_env_path( 'perl', 'bin' );
 
 	return 1;
-} ## end sub install_perl_589_bin
+} ## end sub install_perl_bin
 
 
 #####################################################################
@@ -590,7 +596,7 @@ sub install_perl_5100 {
 	}
 
 	$self->{toolchain} = $toolchain;
-	
+
 	# Make the perl directory if it hasn't been made already.
 	$self->make_path( catdir( $self->image_dir, 'perl' ) );
 
@@ -690,13 +696,13 @@ the default tasklist after the perl interpreter is installed.
 =cut
 
 sub install_perl_toolchain {
-	my $self = shift;
+	my $self      = shift;
 	my $toolchain = $self->toolchain;
 
-	if (0 == $toolchain->dist_count()) {
+	if ( 0 == $toolchain->dist_count() ) {
 		PDWiX->throw('Toolchain did not get collected');
 	}
-	
+
 	my ( $core, $module_id );
 
 	# Install the toolchain dists
@@ -723,20 +729,20 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
-		if ( $dist =~ /TermReadKey-2\.30/msx ) {
+		if ( $dist =~ /TermReadKey-2 [.] 30/msx ) {
 
 			# Upgrading to this version, instead...
 			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
 		}
-		if ( $dist =~ /CPAN-1\.9402/msx ) {
+		if ( $dist =~ /CPAN-1 [.] 9402/msx ) {
 
 			# 1.9402 fails its tests... ANDK says it's a test bug.
 			$force = 1;
 		}
-		if ( $dist =~ /ExtUtils-ParseXS-2\.20(?:02)?\.tar\.gz/msx ) {
+		if ( $dist =~ /ExtUtils-ParseXS-2[.]20(?:02)?[.]tar[.]gz/msx ) {
 
 			# 2.20 and 2.2002 are buggy on 5.8.9.
-			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_05.tar.gz'
+			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_05.tar.gz';
 		}
 		if ( $dist =~ /ExtUtils-MakeMaker-/msx ) {
 
@@ -745,16 +751,16 @@ sub install_perl_toolchain {
 		}
 		if ( $dist =~ /Win32API-Registry-/msx ) {
 
-			# This module needs forced on Vista (and probably 2008/Win7 as well).
+	   # This module needs forced on Vista (and probably 2008/Win7 as well).
 			$force = 1;
 		}
 		if ( $dist =~ /Win32-TieRegistry-/msx ) {
 
-			# This module needs forced on Vista (and probably 2008/Win7 as well).
+	   # This module needs forced on Vista (and probably 2008/Win7 as well).
 			$force = 1;
 		}
 
-		$module_id = $self->_module_fix($self->_name_to_module($dist));
+		$module_id = $self->_module_fix( $self->_name_to_module($dist) );
 		$core =
 		  exists $Module::CoreList::version{ $self->perl_version_literal() }
 		  {$module_id} ? 1 : 0;
@@ -777,7 +783,7 @@ sub install_perl_toolchain {
 			    ),
 		);
 #>>>
-	} ## end foreach my $dist ( @{ $toolchain...})
+	} ## end foreach my $dist ( $toolchain...)
 
 	return $self;
 } ## end sub install_perl_toolchain
@@ -787,7 +793,7 @@ sub _name_to_module {
 	my $dist = shift;
 
 	$self->trace_line( 3, "Trying to get module name out of $dist\n" );
-	
+
 #<<<
 	my ( $module ) = $dist =~ m{\A  # Start the string...
 					[A-Za-z/]*      # With a string of letters and slashes

@@ -7,6 +7,7 @@ use Moose::Role;
 use File::Spec::Functions qw( rel2abs catdir catfile );
 use MooseX::Types::Moose qw( Str );
 use Params::Util qw( _INSTANCE );
+use English qw( -no_match_vars );
 require File::List::Object;
 require File::ShareDir;
 require File::Spec::Unix;
@@ -14,15 +15,15 @@ require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
-our $VERSION = '1.090';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 has parent => (
 	is       => 'ro',
 	isa      => 'Perl::Dist::WiX',
 	reader   => '_get_parent',
 	weak_ref => 1,
-	handles  => { 
+	handles  => {
 		'_get_image_dir',   => 'image_dir',
 		'_get_download_dir' => 'download_dir',
 		'_get_output_dir'   => 'output_dir',
@@ -38,7 +39,7 @@ has parent => (
 		'_module_fix'       => '_module_fix',
 		'_trace_line'       => 'trace_line',
 		'_mirror'           => '_mirror',
-		'_run3'             => '_run3',		
+		'_run3'             => '_run3',
 		'_filters'          => 'filters',
 		'_add_icon'         => 'add_icon',
 		'_dll_to_a'         => '_dll_to_a',
@@ -51,7 +52,8 @@ has parent => (
 		'_patch_file'       => 'patch_file',
 		'_build'            => '_build',
 		'_make'             => '_make',
-		'_add_to_distributions_installed' => '_add_to_distributions_installed',
+		'_add_to_distributions_installed' =>
+		  '_add_to_distributions_installed',
 	},
 	required => 1,
 );
@@ -60,12 +62,13 @@ has parent => (
 requires 'install';
 
 sub cpan {
+
 	# Throw error.
 }
 
 sub _search_packlist {
 	my ( $self, $module ) = @_;
-	
+
 	# We don't use the error until later, if needed.
 	my $error = <<"EOF";
 No .packlist found for $module.
@@ -78,35 +81,37 @@ packlist => 0.
 EOF
 	chomp $error;
 
-	my $image_dir = $self->_get_image_dir();
+	my $image_dir   = $self->_get_image_dir();
 	my @module_dirs = split /::/ms, $module;
-	my @dirs = (
-		catdir( $image_dir, qw{perl vendor lib auto}, @module_dirs),
-		catdir( $image_dir, qw{perl site   lib auto}, @module_dirs),
-		catdir( $image_dir, qw{perl        lib auto}, @module_dirs),
+	my @dirs        = (
+		catdir( $image_dir, qw{perl vendor lib auto}, @module_dirs ),
+		catdir( $image_dir, qw{perl site   lib auto}, @module_dirs ),
+		catdir( $image_dir, qw{perl        lib auto}, @module_dirs ),
 	);
 
 	my $packlist;
   DIR:
 	foreach my $dir (@dirs) {
-		$packlist = catfile($dir, '.packlist');
-		last DIR if -r $packlist; 
+		$packlist = catfile( $dir, '.packlist' );
+		last DIR if -r $packlist;
 	}
 
 	my $filelist;
 	if ( -r $packlist ) {
-		$filelist = File::List::Object->new()->load_file($packlist)->add_file($packlist);
+		$filelist =
+		  File::List::Object->new()->load_file($packlist)
+		  ->add_file($packlist);
 	} else {
 
 		my $output = catfile( $self->_get_output_dir, 'debug.out' );
-		
+
 		# Trying to use the output to make an array.
 		$self->_trace_line( 3,
 			"Attempting to use debug.out file to make filelist\n" );
 
 		my $fh = IO::File->new( $output, 'r' );
 		if ( not defined $fh ) {
-			PDWiX->throw("Error reading output file $output: $!");
+			PDWiX->throw("Error reading output file $output: $OS_ERROR");
 		}
 		my @output_list = <$fh>;
 		$fh->close();
@@ -125,9 +130,9 @@ EOF
 			$self->_trace_line( 4, q{  } . join "\n  ", @files_list );
 			$filelist = File::List::Object->new()->load_array(@files_list);
 		}
-	} ## end else [ if ( -r $perl ) ]
+	} ## end else [ if ( -r $packlist ) ]
 
 	return $filelist->filter( $self->_filters );
-} ## end sub search_packlist
+} ## end sub _search_packlist
 
 1;

@@ -22,17 +22,16 @@ since this is a superclass of that class.
 
 =cut
 
-#<<<
-use     5.008001;
-use     strict;
-use     warnings;
-use     Alien::WiX               qw( :ALL                          );
-use     File::Spec::Functions    qw( catdir catfile rel2abs curdir );
-use     Params::Util
-	qw( _STRING _IDENTIFIER _ARRAY0 _ARRAY _INSTANCE               );
-use     IO::File                 qw();
-use     IPC::Run3                qw();
-use     URI                      qw();
+use 5.008001;
+use strict;
+use warnings;
+use Alien::WiX qw( :ALL );
+use File::Spec::Functions qw( catdir catfile rel2abs curdir );
+use Params::Util qw( _STRING _IDENTIFIER _ARRAY0 _ARRAY _INSTANCE );
+use English qw( -no_match_vars );
+use IO::File qw();
+use IPC::Run3 qw();
+use URI qw();
 require Perl::Dist::WiX::Exceptions;
 require Perl::Dist::WiX::DirectoryTree2;
 require Perl::Dist::WiX::FeatureTree2;
@@ -42,9 +41,8 @@ require Perl::Dist::WiX::Fragment::Environment;
 require Perl::Dist::WiX::Fragment::StartMenu;
 require Perl::Dist::WiX::IconArray;
 
-our $VERSION = '1.090_001';
-$VERSION = eval { return $VERSION };
-#>>>
+our $VERSION = '1.090_102';
+$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 =head2 Accessors
 
@@ -229,7 +227,7 @@ sub msi_product_id {
 	my $self = shift;
 
 	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
-	
+
 	my $product_name =
 	    $self->app_name
 	  . ( $self->portable ? ' Portable ' : q{ } )
@@ -256,7 +254,7 @@ sub msi_upgrade_code {
 	my $self = shift;
 
 	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
-	
+
 	my $upgrade_ver =
 	    $self->app_name
 	  . ( $self->portable ? ' Portable' : q{} ) . q{ }
@@ -335,12 +333,10 @@ L<http://wix.sourceforge.net/manual-wix3/wix_xsd_componentref.htm>
 sub get_component_array {
 	my $self = shift;
 
-	my $answer_size;
-
 	print "Running get_component_array...\n";
 	my @answer;
 	foreach my $key ( keys %{ $self->fragments } ) {
-		push @answer, $self->fragments->{$key}->get_componentref_array();		
+		push @answer, $self->fragments->{$key}->get_componentref_array();
 	}
 
 	return @answer;
@@ -427,7 +423,7 @@ sub write_msi {
 	my ( $filename_in, $filename_out );
 	my $fh;
 	my @files;
-	
+
 	$self->trace_line( 1, "Generating msi\n" );
 
 	# Add the path in.
@@ -438,9 +434,10 @@ sub write_msi {
 	}
 
   FRAGMENT:
+
 	# Write out .wxs files for all the fragments and compile them.
 	foreach my $key ( keys %{ $self->{fragments} } ) {
-		$fragment        = $self->{fragments}->{$key};		
+		$fragment        = $self->{fragments}->{$key};
 		$fragment_string = $fragment->as_string;
 		next
 		  if ( ( not defined $fragment_string )
@@ -452,13 +449,15 @@ sub write_msi {
 
 		if ( not defined $fh ) {
 			PDWiX->throw(
-				"Could not open file $filename_in for writing [$!] [$^E]");
+"Could not open file $filename_in for writing [$OS_ERROR] [$EXTENDED_OS_ERROR]"
+			);
 		}
 		$fh->print($fragment_string);
 		$fh->close;
 		$self->trace_line( 2, "Compiling $filename_in\n" );
 		$self->compile_wxs( $filename_in, $filename_out )
 		  or PDWiX->throw("WiX could not compile $filename_in");
+
 		unless ( -f $filename_out ) {
 			PDWiX->throw( "Failed to find $filename_out (probably "
 				  . "compilation error in $filename_in)" );
@@ -489,7 +488,8 @@ sub write_msi {
 
 	if ( not defined $fh ) {
 		PDWiX->throw(
-			"Could not open file $filename_in for writing [$!] [$^E]");
+"Could not open file $filename_in for writing [$OS_ERROR] [$EXTENDED_OS_ERROR]"
+		);
 	}
 	$fh->print($content);
 	$fh->close;
@@ -647,7 +647,7 @@ sub insert_fragment {
 			where     => '::Installer->insert_fragment'
 		);
 	}
-	unless ( _INSTANCE($files_obj, 'File::List::Object') ) {
+	unless ( _INSTANCE( $files_obj, 'File::List::Object' ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'files_obj',
 			where     => '::Installer->insert_fragment'
@@ -655,19 +655,21 @@ sub insert_fragment {
 	}
 
 	defined $overwritable or $overwritable = 0;
-	
+
 	$self->trace_line( 2, "Adding fragment $id...\n" );
 
   FRAGMENT:
 	foreach my $frag ( keys %{ $self->{fragments} } ) {
-		next FRAGMENT if not $self->{fragments}->{$frag}->isa('Perl::Dist::WiX::Fragment::Files');
+		next FRAGMENT
+		  if not $self->{fragments}->{$frag}
+			  ->isa('Perl::Dist::WiX::Fragment::Files');
 		$self->{fragments}->{$frag}->check_duplicates($files_obj);
 	}
 
 	my $fragment = Perl::Dist::WiX::Fragment::Files->new(
-		id             => $id,
-		files          => $files_obj,
-		can_overwrite  => $overwritable,
+		id            => $id,
+		files         => $files_obj,
+		can_overwrite => $overwritable,
 	);
 
 	$self->{fragments}->{$id} = $fragment;
@@ -705,14 +707,14 @@ sub add_to_fragment {
 	}
 
 	my @files = @{$files_ref};
-	
+
 	my $files_obj = File::List::Object->new()->add_files(@files);
-	
+
 	foreach my $key ( keys %{ $self->{fragments} } ) {
 		$self->{fragments}->{$key}->check_duplicates($files_obj);
 	}
 
-	my $fragment = $self->{fragments}->{$id}->add_files( @files );
+	my $fragment = $self->{fragments}->{$id}->add_files(@files);
 
 	return $fragment;
 } ## end sub add_to_fragment
@@ -743,9 +745,10 @@ sub as_string {
 	  );
 
 	my $answer;
-	my $vars = { 
-		dist => $self, 
-		directory_tree => Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
+	my $vars = {
+		dist => $self,
+		directory_tree =>
+		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
 	};
 
 	$tt->process( 'Main.wxs.tt', $vars, \$answer )
