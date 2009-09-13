@@ -20,6 +20,8 @@ unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
 	plan( skip_all => "Author tests not required for installation" );
 }
 
+plan( skip_all => "Module::Install and Build::Prereq do not go together." );
+
 # Load the testing modules
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
