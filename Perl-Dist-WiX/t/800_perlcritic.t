@@ -14,6 +14,7 @@ my @MODULES = (
     'Perl::Tidy',
 	'Perl::Critic',
 	'Regexp::Parser',
+	'Email::Address',
 	'Perl::Critic::Utils::Constants',
 	'Perl::Critic::More',
 	'Test::Perl::Critic',
