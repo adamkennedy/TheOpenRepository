@@ -236,6 +236,7 @@ sub BUILD {
 			  . $self->_get_perl_version
 			  . "' is not supported in $class" );
 	}
+	
 } ## end sub BUILD
 
 sub prepare {
@@ -256,7 +257,7 @@ sub prepare {
 		eval {
 			local $SIG{__WARN__} = sub {1};
 			CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
-			$CPAN::Config->{'urllist'}    = [ $self->{cpan} ];
+			$CPAN::Config->{'urllist'}    = [ $self->_get_cpan() ];
 			$CPAN::Config->{'use_sqlite'} = q[0];
 			CPAN::Index->reload;
 			1;

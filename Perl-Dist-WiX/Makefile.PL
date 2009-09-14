@@ -20,6 +20,9 @@ if (is_admin) {
 all_from       'lib/Perl/Dist/WiX.pm';
 requires       'parent'                => '0.221';
 requires       'Alien::WiX'            => '0.300000';
+# To get minicpans working right, we need the volume fix
+# that's in CPAN 1.94_51.
+requires       'CPAN'                  => '1.9450';
 requires       'Data::Dump::Streamer'  => '2.08';
 requires       'Data::UUID'            => '1.149';
 requires       'Devel::StackTrace'     => '1.20';
