@@ -2353,7 +2353,6 @@ use Marpa::Offset qw(
     :package=Marpa::Internal::Task
     RESET_AND_NODE
     SETUP_AND_NODE
-    INITIALIZE_AND_TREE
     ITERATE_AND_TREE
     ITERATE_AND_TREE_2
     ITERATE_AND_TREE_3
@@ -2362,6 +2361,7 @@ use Marpa::Offset qw(
     RESET_OR_TREE
     ITERATE_OR_NODE
     ITERATE_OR_TREE
+    FREEZE_TREE
     EVALUATE
 );
 
@@ -2481,7 +2481,7 @@ sub Marpa::Evaluator::value {
             # Set up the and-choices from the children
             my @and_choices;
             my $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
-            for my $child_ix ( 0 .. $#$child_ids ) {
+            for my $child_ix ( 0 .. $#{$child_ids} ) {
                 my $child_and_node_id = $child_ids->[$child_ix];
                 my $and_choice;
                 $#{$and_choice} = Marpa::Internal::And_Choice::LAST_FIELD;
@@ -2500,24 +2500,12 @@ sub Marpa::Evaluator::value {
                         }
                     ];
 
-                # Add frozen iteration
-                my @or_slice = map { $_->[0] } @{$or_map};
-                my @and_slice = map {
-                    $or_nodes->[ $_->[0] ]
-                        ->[Marpa::Internal::Or_Node::CHILD_IDS]->[ $_->[1] ]
-                } @{$or_map};
-                my @or_values  = @{$or_iterations}[@or_slice];
-                my @and_values = @{$and_iterations}[@and_slice];
-                $and_choice->[Marpa::Internal::And_Choice::FROZEN_ITERATION] =
-                    Storable::freeze(
-                    [ \@and_slice, \@and_values, \@or_slice, \@or_values ] );
-
                 push @and_choices, $and_choice;
 
-            } ## end for my $child_and_node_id ( @{ $or_node->[...]})
+            } ## end for my $child_ix ( 0 .. $#{$child_ids} )
 
             # Sort and-choices
-            $or_iterations->[$or_node_id] = [
+            my $or_iteration = $or_iterations->[$or_node_id] = [
                 map      { $_->[1] }
                     sort { $a->[0] <=> $b->[0] }
                     map {
@@ -2530,6 +2518,11 @@ sub Marpa::Evaluator::value {
                     ]
                     } @and_choices
             ];
+
+            push @tasks,
+                map { [ Marpa::Internal::Task::FREEZE_TREE, $_ ] }
+                @{$or_iteration}[ 0 .. $#{$or_iteration} - 1 ];
+
             next TASK;
         } ## end if ( $task == Marpa::Internal::Task::RESET_OR_NODE )
 
@@ -2577,8 +2570,9 @@ sub Marpa::Evaluator::value {
             my $and_node_iteration = $and_iterations->[$and_node_id];
             next TASK if not $and_node_iteration;
 
-            my $sort_element = $and_node->[Marpa::Internal::And_Node::SORT_ELEMENT];
-            my @current_sort_elements = $sort_element ? ( $sort_element ) : ();
+            my $sort_element =
+                $and_node->[Marpa::Internal::And_Node::SORT_ELEMENT];
+            my @current_sort_elements = $sort_element ? ($sort_element) : ();
 
             my $cause;
             my $cause_id;
@@ -2800,8 +2794,9 @@ sub Marpa::Evaluator::value {
             }
 
             my $and_node = $and_nodes->[$and_node_id];
-            my $cause = $and_node->[Marpa::Internal::And_Node::CAUSE];
-            my $predecessor = $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
+            my $cause    = $and_node->[Marpa::Internal::And_Node::CAUSE];
+            my $predecessor =
+                $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
             if ( defined $cause and defined $predecessor ) {
                 push @tasks,
                     [
@@ -2820,6 +2815,7 @@ sub Marpa::Evaluator::value {
         } ## end if ( $task == Marpa::Internal::Task::ITERATE_AND_TREE)
 
         if ( $task == Marpa::Internal::Task::ITERATE_AND_TREE_2 ) {
+
             # We always have both a cause and a predecessor if we are
             # in this task.
 
@@ -2857,11 +2853,51 @@ sub Marpa::Evaluator::value {
                 : Marpa::Internal::And_Node::CAUSE
             ]->[Marpa::Internal::Or_Node::ID];
 
-            push @tasks, [ Marpa::Internal::Task::ITERATE_AND_TREE_3, $and_node_id ],
+            push @tasks,
+                [ Marpa::Internal::Task::ITERATE_AND_TREE_3, $and_node_id ],
                 [ Marpa::Internal::Task::ITERATE_OR_TREE, $other_child_id ];
 
             next TASK;
         } ## end if ( $task == Marpa::Internal::Task::ITERATE_AND_TREE_2)
+
+        if ( $task == Marpa::Internal::Task::ITERATE_AND_TREE_3 ) {
+
+            # We always have both a cause and a predecessor if we are
+            # in this task.
+
+            my ($and_node_id) = @{$task_entry};
+
+            if ($trace_tasks) {
+                print {$trace_fh} 'Task: ITERATE_AND_TREE_3; ',
+                    ( scalar @tasks ), " tasks pending\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
+
+            my $and_node = $and_nodes->[$and_node_id];
+
+            push @tasks,
+                [ Marpa::Internal::Task::SETUP_AND_NODE, $and_node_id ];
+
+            my @exhausted_children = grep {
+                not defined $or_iterations->[ $_->[Marpa::Internal::Or_Node::ID]
+                    ]
+                } @{$and_node}[
+                Marpa::Internal::And_Node::CAUSE,
+                Marpa::Internal::And_Node::PREDECESSOR
+                ];
+
+            # If both children exhausted, this and node is exhausted
+            # Let SETUP_AND_NODE deal with that.
+            next TASK if @exhausted_children >= 2;
+
+            push @tasks,
+                [
+                Marpa::Internal::Task::RESET_OR_TREE,
+                $exhausted_children[0]->[Marpa::Internal::Or_Node::ID]
+                ];
+
+            next TASK;
+        }
 
         if ( $task == Marpa::Internal::Task::ITERATE_OR_NODE ) {
             my ($or_node_id) = @{$task_entry};
@@ -2873,39 +2909,86 @@ sub Marpa::Evaluator::value {
             }
 
             my $and_choices = $or_iterations->[$or_node_id];
-            next TASK if not scalar @{$and_choices};
-            my $top_choice    = pop @{$and_choices};
-            my $top_iteration = $and_iterations
-                ->[ $top_choice->[Marpa::Internal::And_Choice::ID] ];
-            next TASK
-                if not defined
-                    $top_iteration->[Marpa::Internal::And_Iteration::OR_MAP];
-            my $top_sortkey = pack 'N*',
-                (
-                map { @{$_} } @{
-                    $top_iteration->[Marpa::Internal::And_Iteration::SORT_KEY]
-                    }
-                );
 
-            my $first_not_greater_choice_ix = List::Util::first {
-                (   pack 'N*',
-                    map { @{$_} } @{
-                        $and_choices->[$_]
-                            ->[Marpa::Internal::And_Choice::SORT_KEY]
-                        }
-                ) <= $top_sortkey;
-            } ## end List::Util::first
-            reverse +( 0 .. $#{$and_choices} );
+            my $current_and_choice = $and_choices->[-1];
+            my $current_and_node_id =
+                $current_and_choice->[Marpa::Internal::And_Choice::ID];
+            my $current_and_iteration =
+                $and_iterations->[$current_and_node_id];
 
-            $first_not_greater_choice_ix //= -1;
-            splice @{$and_choices}, $first_not_greater_choice_ix + 1, 0,
-                $top_choice;
+            my $current_choice_must_be_thawed = 0;
+
+            # If the current and-choice is exhausted ...
+            if ( not defined $current_and_iteration ) {
+                pop @{$and_choices};
+
+                # If there are no more choices, the or-node is exhausted ...
+                if ( not scalar @{$and_choices} ) {
+                    $or_iterations->[$or_node_id] = undef;
+                    next TASK;
+                }
+
+                # Reset the current and-choice,
+                # and throw away it's frozen iteration data.
+                # Frozen iterations are invalided when
+                # the and-choice is the current one.
+                $current_and_choice = $and_choices->[-1];
+
+                $current_choice_must_be_thawed = 1;
+
+            } ## end if ( not defined $current_and_iteration )
+
+            # If we are here the current and-choice is not exhausted,
+            # but it may have been iterated to the point where it is
+            # no longer the first in sort order.
+
+            # TODO: Rewrite from here.
+
+            # my $top_sortkey = pack 'N*',
+            #     (
+            #     map { @{$_} } @{
+            #         $top_iteration->[Marpa::Internal::And_Iteration::SORT_KEY]
+            #         }
+            #     );
+
+            # my $first_not_greater_choice_ix = List::Util::first {
+            #     (   pack 'N*',
+            #         map { @{$_} } @{
+            #             $and_choices->[$_]
+            #                 ->[Marpa::Internal::And_Choice::SORT_KEY]
+            #             }
+            #     ) <= $top_sortkey;
+            # } ## end List::Util::first
+            # reverse +( 0 .. $#{$and_choices} );
+
+            # $first_not_greater_choice_ix //= -1;
+            # splice @{$and_choices}, $first_not_greater_choice_ix + 1, 0,
+            #     $top_choice;
+
+            # TODO: Handle all cases of top choice unchanged prior to
+            # this point.  But all cases where the top choice does
+            # change must reach here.
 
             # TODO:
             # if top choice changed, re-initialize all the children of the
             # new top choice.
 
+            # If we are here, the current choice is new
+            # It must be thawed and its frozen iteration thrown away
+            my ( $and_slice, $and_values, $or_slice, $or_values ) = @{
+                Storable::thaw(
+                    $current_and_choice
+                        ->[Marpa::Internal::And_Choice::FROZEN_ITERATION]
+                )
+                };
+            @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
+            @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
+
+            $current_and_choice
+                ->[Marpa::Internal::And_Choice::FROZEN_ITERATION] = undef;
+
             next TASK;
+
         } ## end if ( $task == Marpa::Internal::Task::ITERATE_OR_NODE)
 
         if ( $task == Marpa::Internal::Task::ITERATE_OR_TREE ) {
@@ -2930,34 +3013,23 @@ sub Marpa::Evaluator::value {
             next TASK;
         } ## end if ( $task == Marpa::Internal::Task::ITERATE_OR_TREE)
 
-        if ( $task == Marpa::Internal::Task::RESET_AND_TREE ) {
-            my ( $and_node_id, $frozen_iteration ) = @{$task_entry};
+        if ( $task == Marpa::Internal::Task::FREEZE_TREE ) {
+            my ($and_choice) = @{$task_entry};
 
-            if ($trace_tasks) {
-                print {$trace_fh} 'Task: RESET_AND_TREE; ',
-                    ( scalar @tasks ), " tasks pending\n"
-                    or Marpa::exception('print to trace handle failed');
-            }
+            my $or_map = $and_choice->[Marpa::Internal::And_Choice::OR_MAP];
 
-            my ( $and_slice, $and_values, $or_slice, $or_values ) =
-                @{ Storable::thaw($frozen_iteration) };
-            @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
-            @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
-
-            push @tasks, map {
-                [   Marpa::Internal::Task::RESET_AND_TREE, $_,
-                    $or_iterations->[$_]->[-1]
-                        ->[Marpa::Internal::And_Choice::FROZEN_ITERATION]
-                ]
-                }
-                map  { $_->[Marpa::Internal::Or_Node::ID] }
-                grep { defined $_ } @{ $and_nodes->[$and_node_id] }[
-                Marpa::Internal::And_Node::CAUSE,
-                Marpa::Internal::And_Node::PREDECESSOR
-                ];
-
-            next TASK;
-        } ## end if ( $task == Marpa::Internal::Task::RESET_AND_TREE )
+            # Add frozen iteration
+            my @or_slice = map { $_->[0] } @{$or_map};
+            my @and_slice = map {
+                $or_nodes->[ $_->[0] ]->[Marpa::Internal::Or_Node::CHILD_IDS]
+                    ->[ $_->[1] ]
+            } @{$or_map};
+            my @or_values  = @{$or_iterations}[@or_slice];
+            my @and_values = @{$and_iterations}[@and_slice];
+            $and_choice->[Marpa::Internal::And_Choice::FROZEN_ITERATION] =
+                Storable::freeze(
+                [ \@and_slice, \@and_values, \@or_slice, \@or_values ] );
+        } ## end if ( $task == Marpa::Internal::Task::FREEZE_TREE )
 
         if ( $task == Marpa::Internal::Task::EVALUATE ) {
 
