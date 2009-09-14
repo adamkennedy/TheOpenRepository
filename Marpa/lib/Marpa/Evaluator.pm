@@ -2879,8 +2879,8 @@ sub Marpa::Evaluator::value {
                 [ Marpa::Internal::Task::SETUP_AND_NODE, $and_node_id ];
 
             my @exhausted_children = grep {
-                not defined $or_iterations->[ $_->[Marpa::Internal::Or_Node::ID]
-                    ]
+                not defined
+                    $or_iterations->[ $_->[Marpa::Internal::Or_Node::ID] ]
                 } @{$and_node}[
                 Marpa::Internal::And_Node::CAUSE,
                 Marpa::Internal::And_Node::PREDECESSOR
@@ -2897,7 +2897,7 @@ sub Marpa::Evaluator::value {
                 ];
 
             next TASK;
-        }
+        } ## end if ( $task == Marpa::Internal::Task::ITERATE_AND_TREE_3)
 
         if ( $task == Marpa::Internal::Task::ITERATE_OR_NODE ) {
             my ($or_node_id) = @{$task_entry};
