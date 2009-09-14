@@ -26,7 +26,3 @@ my $sb = Perl::Dist::WiX->new(
 );
 
 $sb->run();
-
-#require Data::Dumper;
-#require File::Slurp;
-#File::Slurp::write_file('makewix.data.txt', Data::Dumper->new([$sb], ['*sb'])->Indent(1)->Dump());
