@@ -18,7 +18,7 @@ our @EXPORT =
   qw(test_run_dist test_add test_verify_files_short test_verify_files_medium  test_verify_files_long test_verify_portability );
 push @EXPORT, @Test::More::EXPORT;
 
-our $VERSION = '0.200';
+our $VERSION = '0.201';
 $VERSION = eval $VERSION; ##no critic(RequireConstantVersion)
 
 my $tests_completed = 0;
@@ -508,7 +508,7 @@ sub test_verify_files_long {
 		'Found Perl DLL',
 	);
 
-	$tests_completed += 8;
+	$tests_completed += 7;
 
 	return;
 } ## end sub test_verify_files_long
