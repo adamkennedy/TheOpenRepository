@@ -77,6 +77,8 @@
 /JDHEDDEN/Thread-Queue-
 /KANE/File-Fetch-
 /BINGOS/CPANPLUS-Dist-Build-
+/BINGOS/Log-Message-Simple-
+/RMBARKER/Pod-Plainer-
 
 # Toolchain
 /MSCHWERN/ExtUtils-MakeMaker-
