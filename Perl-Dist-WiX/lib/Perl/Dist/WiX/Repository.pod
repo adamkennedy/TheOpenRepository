@@ -6,8 +6,8 @@ Perl::Dist::WiX::Repository - The repository that is used for Perl::Dist::WiX.
 
 =head1 DESCRIPTION
 
-This documentation describes the repository that Perl::Dist::WiX uses, and the
-branches that are currently being used as of September 2009.
+This documentation describes the repository that Perl::Dist::WiX uses, and 
+the branches that are currently being used as of September 2009.
 
 =head1 REPOSITORY
 
@@ -19,19 +19,20 @@ to it by asking Adam Kennedy for it. His e-mail address is
 C<< adamk@cpan.org >>.
 
 If you aren't a CPAN author and need commit access for Perl::Dist::WiX, please 
-e-mail me with what you'd like to do (a patch would be nice) and I'll recommend 
-to him that you be given access.
+e-mail me with what you'd like to do (a patch would be nice) and I'll 
+recommend to him that you be given access.
 
-In any case, before committing anything more than minor changes to the Perl-Dist-WiX 
-trunk or branches, please e-mail me.  I'll probably say yes, but I need to know what 
-you're planning to do, so that I don't accidentally step on your changes.
+In any case, before committing anything more than minor changes to the 
+Perl-Dist-WiX trunk or current branches, please e-mail me.  I'll probably 
+say yes, but I need to know what you're planning to do, so that I don't 
+accidentally step on your changes.
 
-You may wish to work on your own branch, and then communicate with me to get it 
-merged into the trunk, by doing:
+You may wish to work on your own branch, and then communicate with me to 
+get it merged into the trunk, by doing:
 
 	svn cp http://svn.ali.as/trunk/Perl-Dist-WiX/ http://svn.ali.as/branches/Perl-Dist-WiX/<branch_name>
 
-	=head1 BRANCHES
+=head1 BRANCHES
 
 The trunk is currently unstable at the moment, due to the fact that the code 
 is in the process of changing from using L<Object::InsideOut|Object::InsideOut>
@@ -43,42 +44,44 @@ and Object::InsideOut objects that contain other Object::InsideOut objects
 are very difficult to make L<Storable>, which breaks checkpointing.
 
 Plus, with Moose, I gain the ability to check constructor parameters better,
-the ability to extend logging, and the ability to factor out the XML generation
-and handling to another distribution in a sane matter.
+the ability to extend logging, and the ability to factor out most of the XML 
+generation and handling to another distribution in an easier matter.
 
-So here are the 3 branches:
+So here are the branches:
 
 =head2 Trunk 
 
 Location: L<http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/>
 
-The trunk right now has 4 goals for October:
+The trunk right now has 5 goals for October:
 
 =over
 
 =item 1.
 
-5.10.1 support.
+5.10.1 support. (has been completed)
 
 =item 2.
 
-Moosification.
+Moosification. (This is in process, but has been taken as far as required 
+for October.)
 
 =item 3.
 
-Refactoring the WiX.pm and Installer.pm modules into smaller modules.
+Refactoring the WiX.pm and Installer.pm modules into smaller modules. (This 
+is in process, but has been taken as far as required for October.)
 
 =item 4.
 
 Including the Perl::Dist::Asset and Perl::Dist::Util sets of modules into 
-the Perl::Dist::WiX distribution.
+the Perl::Dist::WiX distribution. (has been completed)
+
+=item 5.
+
+To support installation into the 'vendor' portion of Perl's module 
+installation area, instead of using the 'site' portion. (has been completed)
 
 =back
-
-Returning to stability is also important.
-
-This has been completed, and changes from the "Vendorperl" branch below are 
-expected to be merged soon.
 
 =head2 July 2009 maintenance branch.
 
@@ -87,16 +90,6 @@ Location: L<http://svn.ali.as/cpan/branches/Perl-Dist-WiX/July-2009-maintenance/
 This branch exists for the sole purpose of rebuilding Strawberry Perl 5.8.9 
 and 5.10.0 if there are major problems before October 2009. Changes on this 
 branch are HIGHLY discouraged.
-
-=head2 "Vendorperl"
-
-Location: L<http://svn.ali.as/cpan/branches/Perl-Dist-WiX/vendorperl2/>)
-
-This is the current "work" branch" and includes code for having modules 
-provided by Strawberry Perl install into a "vendor" directory, instead 
-of using the "site" directories.
-
-This code will be incorporated into the trunk soon.
 
 =head1 AUTHORS
 
@@ -108,7 +101,8 @@ L<http://ali.as/>, L<http://csjewell.comyr.com/perl/>
 
 =head1 COPYRIGHT AND LICENSE
 
-The license is the same as L<Perl::Dist::WiX|Perl::Dist::WiX>. 
-See that module for details.
+The copyright and license is the same as for 
+L<Perl::Dist::WiX|Perl::Dist::WiX>. See that module's documentation for 
+details.
 
 =cut

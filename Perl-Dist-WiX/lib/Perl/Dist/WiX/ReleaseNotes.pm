@@ -26,8 +26,8 @@ make the distributions.txt and the release notes files.
 use 5.008001;
 use strict;
 use warnings;
-use vars qw( $VERSION                   );
-use English qw( -no_match_vars             );
+use vars qw( $VERSION );
+use English qw( -no_match_vars );
 use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
@@ -101,7 +101,9 @@ sub create_release_notes {
 	$fh->print($dist_txt);
 	$fh->close;
 
-	return $dist_file;
+	push @{ $self->{output_file} }, $dist_file;
+
+	return 1;
 } ## end sub create_release_notes
 
 
@@ -174,7 +176,7 @@ sub create_distribution_list {
 
 	$self->add_to_fragment( 'perl', [$dist_file] );
 
-	return;
+	return 1;
 } ## end sub create_distribution_list
 
 1;

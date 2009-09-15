@@ -535,6 +535,9 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 		# Remove waste and temporary files
 		'remove_waste',
+		
+		# Create the distribution list
+		'create_distribution_list',
 
 		# Regenerate file fragments
 		'regenerate_fragments',
@@ -1544,8 +1547,6 @@ sub regenerate_fragments {
 sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	my $self = shift;
 	$self->{output_file} ||= [];
-
-	$self->create_distribution_list;
 
 	if ( $self->zip ) {
 		push @{ $self->{output_file} }, $self->write_zip;
