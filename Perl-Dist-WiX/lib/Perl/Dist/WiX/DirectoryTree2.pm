@@ -141,8 +141,7 @@ sub initialize_tree {
 	  c\\share
 	  perl\\bin
 	  perl\\lib\\auto
-	  perl\\site\\lib\\auto\\share\\dist
-	  perl\\site\\lib\\auto\\share\\module
+	  perl\\site\\lib\\auto
 	  perl\\vendor\\lib\\auto\\share\\dist
 	  perl\\vendor\\lib\\auto\\share\\module
 	  cpan\\sources
