@@ -2,13 +2,13 @@
 
 use 5.010;
 
-$Marpa::EVALUATOR = 'old';
-
 # An ambiguous equation,
 # this time using the lexer
 
 use strict;
 use warnings;
+
+$Marpa::EVALUATOR = 'old';
 
 use Test::More tests => 4;
 

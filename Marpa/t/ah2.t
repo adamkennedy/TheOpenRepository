@@ -4,11 +4,11 @@
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,
 # in its "NNF" form
 
-local $Marpa::EVALUATOR = 'old';
-
 use 5.010;
 use strict;
 use warnings;
+
+local $Marpa::EVALUATOR = 'old';
 
 use Test::More tests => 20;
 

@@ -1,11 +1,11 @@
 #!perl
 # Ensure various coding errors are caught
 
-$Marpa::EVALUATOR = 'old';
-
 use 5.010;
 use strict;
 use warnings;
+
+$Marpa::EVALUATOR = 'old';
 
 use Test::More tests => 42;
 

@@ -2,8 +2,6 @@
 #
 use 5.010;
 
-$Marpa::EVALUATOR = 'old';
-
 # An ambiguous equation,
 # this time using the lexer
 
@@ -12,6 +10,8 @@ use warnings;
 use lib 'lib';
 use lib 't/lib';
 use English qw( -no_match_vars );
+
+$Marpa::EVALUATOR = 'old';
 
 use Test::More tests => 10;
 use Marpa::Test;

@@ -2363,8 +2363,9 @@ sub Marpa::Evaluator::value {
     my ($evaler) = @_;
 
     my $env_evaluator = $ENV{MARPA_EVALUATOR};
-    goto &Marpa::Evaluator::old_value if defined $Marpa::EVALUATOR and $Marpa::EVALUATOR eq "old"
-       or (defined $env_evaluator and $env_evaluator ne 'new');
+    goto &Marpa::Evaluator::old_value
+        if defined $Marpa::EVALUATOR and $Marpa::EVALUATOR eq 'old'
+            or ( defined $env_evaluator and $env_evaluator ne 'new' );
 
     Marpa::exception('No parse supplied') if not defined $evaler;
     my $evaler_class = ref $evaler;
@@ -2771,10 +2772,11 @@ sub Marpa::Evaluator::value {
             my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} "Task: ITERATE_AND_TREE from #$and_node_id; ",
+                print {$trace_fh}
+                    "Task: ITERATE_AND_TREE from #$and_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
-            }
+            } ## end if ($trace_tasks)
 
             push @tasks,
                 [ Marpa::Internal::Task::SETUP_AND_NODE, $and_node_id ];
@@ -2818,10 +2820,11 @@ sub Marpa::Evaluator::value {
             my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} "Task: ITERATE_AND_TREE_2 from #$and_node_id; ",
+                print {$trace_fh}
+                    "Task: ITERATE_AND_TREE_2 from #$and_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
-            }
+            } ## end if ($trace_tasks)
 
             my $and_node = $and_nodes->[$and_node_id];
 
@@ -2864,10 +2867,11 @@ sub Marpa::Evaluator::value {
             my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} "Task: ITERATE_AND_TREE_3 from #$and_node_id; ",
+                print {$trace_fh}
+                    "Task: ITERATE_AND_TREE_3 from #$and_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
-            }
+            } ## end if ($trace_tasks)
 
             my $and_node = $and_nodes->[$and_node_id];
 

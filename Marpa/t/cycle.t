@@ -1,13 +1,13 @@
 #!perl
 # A grammar with cycles
 
-$Marpa::EVALUATOR = 'old';
-
 use 5.010;
 use strict;
 use warnings;
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
+
+$Marpa::EVALUATOR = 'old';
 
 use Test::More tests => 7;
 use lib 'lib';

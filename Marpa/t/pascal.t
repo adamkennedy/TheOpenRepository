@@ -2,8 +2,6 @@
 
 use 5.010;
 
-$Marpa::EVALUATOR = 'old';
-
 # variations on
 # the example grammar in Aycock/Horspool "Practical Earley Parsing",
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,
@@ -12,6 +10,8 @@ use strict;
 use warnings;
 use lib 'lib';
 use lib 't/lib';
+
+$Marpa::EVALUATOR = 'old';
 
 use Test::More tests => 8;
 use Marpa::Test;

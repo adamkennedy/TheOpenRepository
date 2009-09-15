@@ -1907,7 +1907,7 @@ sub add_terminal {
         $symbol->[Marpa::Internal::Symbol::ACTION]     = $action;
         $symbol->[Marpa::Internal::Symbol::TERMINAL]   = 1;
         $symbol->[Marpa::Internal::Symbol::MAXIMAL]    = $maximal;
-        $symbol->[Marpa::Internal::Symbol::NULL_WIDTH]    = 0;
+        $symbol->[Marpa::Internal::Symbol::NULL_WIDTH] = 0;
 
         return;
     } ## end if ( defined $symbol )
@@ -3802,12 +3802,14 @@ sub rewrite_as_CHAF {
                     scalar @{ $grammar->[Marpa::Internal::Grammar::SYMBOLS] }
                     );
 
-
-                $next_subp_lhs = assign_symbol( $grammar,
-                          $lhs->[Marpa::Internal::Symbol::NAME] . '[R' 
-                        . $rule_id . q{:}
-                        . ( $subp_end + 1 ) . ']'
-                        . $unique_name_piece );
+                $next_subp_lhs = assign_symbol(
+                    $grammar,
+                    (         $lhs->[Marpa::Internal::Symbol::NAME] . '[R'
+                            . $rule_id . q{:}
+                            . ( $subp_end + 1 ) . ']'
+                            . $unique_name_piece
+                    )
+                );
 
                 @{$next_subp_lhs}[
                     Marpa::Internal::Symbol::NULLABLE,
