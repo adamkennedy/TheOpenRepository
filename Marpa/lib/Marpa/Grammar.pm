@@ -1484,6 +1484,11 @@ sub Marpa::show_symbol {
         if ($value) { $text .= " $comment" }
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
 
+    my $null_width = $symbol->[Marpa::Internal::Symbol::NULL_WIDTH];
+    if ($null_width) {
+        $text .= " null_width=$null_width";
+    }
+
     return $text .= "\n";
 
 } ## end sub Marpa::show_symbol
@@ -1902,6 +1907,7 @@ sub add_terminal {
         $symbol->[Marpa::Internal::Symbol::ACTION]     = $action;
         $symbol->[Marpa::Internal::Symbol::TERMINAL]   = 1;
         $symbol->[Marpa::Internal::Symbol::MAXIMAL]    = $maximal;
+        $symbol->[Marpa::Internal::Symbol::NULL_WIDTH]    = 0;
 
         return;
     } ## end if ( defined $symbol )
@@ -1921,6 +1927,7 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]      = 1;
     $new_symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
     $new_symbol->[Marpa::Internal::Symbol::MAXIMAL]       = $maximal;
+    $new_symbol->[Marpa::Internal::Symbol::NULL_WIDTH]    = 0;
 
     push @{$symbols}, $new_symbol;
     return weaken( $symbol_hash->{$name} = $new_symbol );
@@ -3795,16 +3802,13 @@ sub rewrite_as_CHAF {
                     scalar @{ $grammar->[Marpa::Internal::Grammar::SYMBOLS] }
                     );
 
-                #<<< perltidy gets confused here
+
                 $next_subp_lhs = assign_symbol( $grammar,
-                              $lhs->[Marpa::Internal::Symbol::NAME]
-                            . '[R'
-                                . $rule_id . q{:}
-                                . ( $subp_end + 1 )
-                            . ']'
-                            . $unique_name_piece
-                        );
-                #>>>
+                          $lhs->[Marpa::Internal::Symbol::NAME] . '[R' 
+                        . $rule_id . q{:}
+                        . ( $subp_end + 1 ) . ']'
+                        . $unique_name_piece );
+
                 @{$next_subp_lhs}[
                     Marpa::Internal::Symbol::NULLABLE,
                     Marpa::Internal::Symbol::ACCESSIBLE,

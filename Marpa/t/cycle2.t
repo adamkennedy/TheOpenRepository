@@ -11,6 +11,8 @@ use Fatal qw(open close chdir);
 use Test::More tests => 4;
 use Marpa::Test;
 
+$Marpa::EVALUATOR = 'old';
+
 BEGIN {
     Test::More::use_ok('Marpa');
 }

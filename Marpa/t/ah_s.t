@@ -4,6 +4,8 @@
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,
 # in source form
 
+$Marpa::EVALUATOR = 'old';
+
 use 5.010;
 use strict;
 use warnings;

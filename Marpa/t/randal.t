@@ -7,6 +7,8 @@ use lib 'lib';
 use lib 't/lib';
 use English qw( -no_match_vars );
 
+$Marpa::EVALUATOR = 'old';
+
 use Test::More tests => 5;
 use Marpa::Test;
 

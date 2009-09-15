@@ -1467,14 +1467,10 @@ sub delete_duplicate_nodes {
 
         WORK_LIST_ENTRY: while ( my $work_list_entry = pop @work_list ) {
 
-            ### Delete Duplicate Work list size: scalar @work_list
-
             my ( $node_type, $node_id ) = @{$work_list_entry};
 
             if ( $node_type eq 'a' ) {
                 my $and_node = $and_nodes->[$node_id];
-
-                ### Delete Duplicate Work list and-node: $node_id
 
                 next WORK_LIST_ENTRY
                     if $and_node->[Marpa::Internal::And_Node::DELETED]
@@ -1519,8 +1515,6 @@ sub delete_duplicate_nodes {
 
                 push @work_list, [ 'o', $parent_id ];
 
-                ### Delete Duplicate Work list and-node: $node_id, $parent_id, $and_class_signature
-
                 my $class = $and_class_signature{$and_class_signature};
                 if ( not defined $class ) {
                     $class = $and_class_signature{$and_class_signature} =
@@ -1549,8 +1543,6 @@ sub delete_duplicate_nodes {
 
             if ( $node_type eq 'o' ) {
                 my $or_node = $or_nodes->[$node_id];
-
-                ### Delete Duplicate Work list or-node: $node_id
 
                 next WORK_LIST_ENTRY
                     if $or_node->[Marpa::Internal::Or_Node::DELETED]
@@ -2368,8 +2360,11 @@ use Marpa::Offset qw(
 
 # This will replace the old value method
 sub Marpa::Evaluator::value {
-    my ( $evaler, $new_flag ) = @_;
-    goto &Marpa::Evaluator::old_value if not $new_flag;
+    my ($evaler) = @_;
+
+    my $env_evaluator = $ENV{MARPA_EVALUATOR};
+    goto &Marpa::Evaluator::old_value if defined $Marpa::EVALUATOR and $Marpa::EVALUATOR eq "old"
+       or (defined $env_evaluator and $env_evaluator ne 'new');
 
     Marpa::exception('No parse supplied') if not defined $evaler;
     my $evaler_class = ref $evaler;
@@ -2532,7 +2527,7 @@ sub Marpa::Evaluator::value {
             my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} 'Task: RESET_AND_NODE; ',
+                print {$trace_fh} "Task: RESET_AND_NODE #$and_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             }
@@ -2562,7 +2557,7 @@ sub Marpa::Evaluator::value {
             my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} 'Task: SETUP_AND_NODE; ',
+                print {$trace_fh} "Task: SETUP_AND_NODE #$and_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             }
@@ -2735,7 +2730,7 @@ sub Marpa::Evaluator::value {
             my ($or_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} 'Task: RESET_OR_TREE; ',
+                print {$trace_fh} "Task: RESET_OR_TREE from #$or_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             }
@@ -2752,7 +2747,7 @@ sub Marpa::Evaluator::value {
             my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} 'Task: RESET_AND_TREE; ',
+                print {$trace_fh} "Task: RESET_AND_TREE from #$and_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             }
@@ -2776,7 +2771,7 @@ sub Marpa::Evaluator::value {
             my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} 'Task: ITERATE_AND_TREE; ',
+                print {$trace_fh} "Task: ITERATE_AND_TREE from #$and_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             }
@@ -2823,7 +2818,7 @@ sub Marpa::Evaluator::value {
             my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} 'Task: ITERATE_AND_TREE_2; ',
+                print {$trace_fh} "Task: ITERATE_AND_TREE_2 from #$and_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             }
@@ -2869,7 +2864,7 @@ sub Marpa::Evaluator::value {
             my ($and_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} 'Task: ITERATE_AND_TREE_3; ',
+                print {$trace_fh} "Task: ITERATE_AND_TREE_3 from #$and_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             }
@@ -2904,7 +2899,7 @@ sub Marpa::Evaluator::value {
             my ($or_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} 'Task: ITERATE_OR_NODE; ',
+                print {$trace_fh} "Task: ITERATE_OR_NODE #$or_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             }
@@ -2992,7 +2987,7 @@ sub Marpa::Evaluator::value {
             my ($or_node_id) = @{$task_entry};
 
             if ($trace_tasks) {
-                print {$trace_fh} 'Task: ITERATE_OR_TREE; ',
+                print {$trace_fh} "Task: ITERATE_OR_TREE #$or_node_id; ",
                     ( scalar @tasks ), " tasks pending\n"
                     or Marpa::exception('print to trace handle failed');
             }
@@ -3013,6 +3008,12 @@ sub Marpa::Evaluator::value {
         if ( $task == Marpa::Internal::Task::FREEZE_TREE ) {
             my ($and_choice) = @{$task_entry};
 
+            if ($trace_tasks) {
+                print {$trace_fh} 'Task: FREEZE_TREE; ',
+                    ( scalar @tasks ), " tasks pending\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
+
             my $or_map = $and_choice->[Marpa::Internal::And_Choice::OR_MAP];
 
             # Add frozen iteration
@@ -3030,6 +3031,12 @@ sub Marpa::Evaluator::value {
 
         if ( $task == Marpa::Internal::Task::THAW_TREE ) {
             my ($and_choice) = @{$task_entry};
+
+            if ($trace_tasks) {
+                print {$trace_fh} 'Task: THAW_TREE; ',
+                    ( scalar @tasks ), " tasks pending\n"
+                    or Marpa::exception('print to trace handle failed');
+            }
 
             # If we are here, the current choice is new
             # It must be thawed and its frozen iteration thrown away

@@ -4,6 +4,8 @@ use 5.010;
 use strict;
 use warnings;
 
+$Marpa::EVALUATOR = 'old';
+
 # A test of priorities.
 # Since it's a basic functionality,
 # I bypass MDL.

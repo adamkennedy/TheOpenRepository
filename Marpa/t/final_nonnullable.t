@@ -7,6 +7,8 @@ use 5.010;
 use strict;
 use warnings;
 
+$Marpa::EVALUATOR = 'old';
+
 use Test::More tests => 7;
 
 use lib 'lib';

@@ -6,6 +6,8 @@ use warnings;
 use lib 'lib';
 use lib 't/lib';
 
+$Marpa::EVALUATOR = 'old';
+
 use Scalar::Util qw(refaddr reftype isweak weaken);
 use Test::More tests => 2;
 use Test::Weaken;

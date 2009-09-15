@@ -10,6 +10,8 @@ use Config;
 use Fatal qw( chdir close waitpid );
 use IPC::Open2;
 
+$ENV{MARPA_EVALUATOR} = 'old';
+
 use Test::More;
 use Marpa::Test;
 

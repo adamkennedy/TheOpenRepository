@@ -4,8 +4,6 @@
 # _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,
 # in its "NNF" form
 
-local $Marpa::EVALUATOR = 'old';
-
 use 5.010;
 use strict;
 use warnings;
@@ -384,15 +382,11 @@ for my $i ( 0 .. 4 ) {
         {   recce => $recce,
             end   => $i,
             clone => 0,
+            trace_iterations => 3,
         }
     );
     my $result = $evaler->value();
-    TODO: {
-        ## no critic (ControlStructures::ProhibitPostfixControls)
-        local $TODO = 'new evaluator not yet written' if $i == 3;
-        ## use critic
-        Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
-    } ## end TODO:
+    Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
 } ## end for my $i ( 0 .. 4 )
 
 # Local Variables:

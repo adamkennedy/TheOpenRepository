@@ -8,6 +8,8 @@ use warnings;
 use lib 'lib';
 use lib 't/lib';
 
+$Marpa::EVALUATOR = 'old';
+
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 

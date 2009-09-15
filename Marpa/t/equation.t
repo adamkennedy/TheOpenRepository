@@ -11,6 +11,8 @@ use lib 'lib';
 use lib 't/lib';
 use Marpa::Test;
 
+$Marpa::EVALUATOR = 'old';
+
 BEGIN {
     Test::More::use_ok('Marpa');
 }

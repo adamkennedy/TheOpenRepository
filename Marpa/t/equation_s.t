@@ -9,6 +9,8 @@ use lib 't/lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
+$Marpa::EVALUATOR = 'old';
+
 use Test::More tests => 6;
 use Marpa::Test;
 
