@@ -56,7 +56,7 @@ require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.090_103';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 Readonly my %CORE_MODULE_FIX => (
@@ -534,6 +534,7 @@ sub install_perl_589 {
 			  win32/config.gc
 			  win32/config_sh.PL
 			  win32/config_H.gc
+			  perl.c
 			  }
 		],
 		license => {
@@ -613,6 +614,7 @@ sub install_perl_5100 {
 			  win32/config.gc
 			  win32/config_sh.PL
 			  win32/config_H.gc
+			  perl.c
 			  }
 		],
 		license => {
@@ -665,6 +667,7 @@ sub install_perl_5101 {
 			  win32/config.gc
 			  win32/config_sh.PL
 			  win32/config_H.gc
+			  perl.c
 			  }
 		],
 		license => {
