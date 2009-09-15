@@ -123,7 +123,7 @@ require Perl::Dist::WiX::IconArray;
 require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.090_103';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 use Object::Tiny qw(
@@ -698,8 +698,15 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 	# If we are online and don't have a cpan repository,
 	# use cpan.strawberryperl.com as a default.
-	if ( not $self->offline and not $self->cpan ) {
-		$self->{cpan} = URI->new('http://cpan.strawberryperl.com/');
+	if ( not $self->cpan ) {
+		if ( $self->offline ) {
+			PDWiX::Parameter->throw(
+				parameter => 'cpan: Required if offline => 1',
+				where     => '->new'
+			);
+		} else {
+			$self->{cpan} = URI->new('http://cpan.strawberryperl.com/');
+		}
 	}
 
 	# If we have a file:// url for the CPAN, move the
