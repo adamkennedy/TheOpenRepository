@@ -2935,7 +2935,8 @@ sub Marpa::Evaluator::value {
                             $and_choices->[-1]
                             ];
                     } ## end default
-                } ## end given
+                };    ## end given
+
                 next TASK;
 
             } ## end if ( not defined $current_and_iteration )
@@ -2965,9 +2966,11 @@ sub Marpa::Evaluator::value {
                             ->[Marpa::Internal::And_Choice::SORT_KEY]
                         }
                 ) le $current_sort_key;
-            } reverse 0 .. ($#{$and_choices} - 1);
+            } ## end List::Util::first
+            reverse 0 .. ( $#{$and_choices} - 1 );
 
-            my $insert_point = defined $first_le_sort_key ? $first_le_sort_key+1 : 0;
+            my $insert_point =
+                defined $first_le_sort_key ? $first_le_sort_key + 1 : 0;
 
             # If current choice would be inserted where it already
             # is now, we're done
@@ -3042,8 +3045,8 @@ sub Marpa::Evaluator::value {
             # Once it's unfrozen, it's subject to change, so the
             # the frozen version will become invalid.
             # We undef it.
-            $and_choice
-                ->[Marpa::Internal::And_Choice::FROZEN_ITERATION] = undef;
+            $and_choice->[Marpa::Internal::And_Choice::FROZEN_ITERATION] =
+                undef;
 
         } ## end if ( $task == Marpa::Internal::Task::THAW_TREE )
 
