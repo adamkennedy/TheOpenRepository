@@ -4767,14 +4767,6 @@ S_init_perllib(pTHX)
     if (!PL_tainting)
 	incpush(":", FALSE, FALSE, TRUE, FALSE);
 #else
-#ifndef PRIVLIB_EXP
-#  define PRIVLIB_EXP "/usr/local/lib/perl5:/usr/local/lib/perl"
-#endif
-#if defined(WIN32)
-    incpush(PRIVLIB_EXP, TRUE, FALSE, TRUE, TRUE);
-#else
-    incpush(PRIVLIB_EXP, FALSE, FALSE, TRUE, TRUE);
-#endif
 
 #ifdef PERL_VENDORARCH_EXP
     /* vendorarch is always relative to vendorlib on Windows for
@@ -4816,6 +4808,15 @@ S_init_perllib(pTHX)
 #if defined(SITELIB_STEM) && defined(PERL_INC_VERSION_LIST)
     /* Search for version-specific dirs below here */
     incpush(SITELIB_STEM, FALSE, TRUE, TRUE, TRUE);
+#endif
+
+#ifndef PRIVLIB_EXP
+#  define PRIVLIB_EXP "/usr/local/lib/perl5:/usr/local/lib/perl"
+#endif
+#if defined(WIN32)
+    incpush(PRIVLIB_EXP, TRUE, FALSE, TRUE, TRUE);
+#else
+    incpush(PRIVLIB_EXP, FALSE, FALSE, TRUE, TRUE);
 #endif
 
 /* Use the ~-expanded versions of APPLLIB (undocumented),
