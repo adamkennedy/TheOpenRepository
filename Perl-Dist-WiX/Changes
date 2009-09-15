@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.090_002   Mon 14 Sep 2009
+1.090_102   Mon 14 Sep 2009
     1. Major refactoring. (Now uses Moose rather 
        than Object::InsideOut.)
     2. 5.10.1 is now supported.
