@@ -5,7 +5,7 @@ package Perl::Dist::WiX::Asset::Perl;
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str HashRef ArrayRef Bool );
-use File::Spec::Functions qw( catdir splitpath rel2abs );
+use File::Spec::Functions qw( catdir splitpath rel2abs catfile );
 require File::Remove;
 require File::Basename;
 
