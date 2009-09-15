@@ -53,7 +53,7 @@ INST_TOP	*= [% INST_TOP %]
 # before anything else.  This script can then be set up, for example,
 # to add additional entries to @INC.
 #
-#USE_SITECUST	*= define
+USE_SITECUST	*= define
 
 #
 # uncomment to enable multiple interpreters.  This is need for fork()

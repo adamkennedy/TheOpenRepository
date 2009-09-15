@@ -534,7 +534,6 @@ sub install_perl_589 {
 			  win32/config.gc
 			  win32/config_sh.PL
 			  win32/config_H.gc
-			  perl.c
 			  }
 		],
 		license => {
@@ -614,7 +613,6 @@ sub install_perl_5100 {
 			  win32/config.gc
 			  win32/config_sh.PL
 			  win32/config_H.gc
-			  perl.c
 			  }
 		],
 		license => {
@@ -667,7 +665,6 @@ sub install_perl_5101 {
 			  win32/config.gc
 			  win32/config_sh.PL
 			  win32/config_H.gc
-			  perl.c
 			  }
 		],
 		license => {
