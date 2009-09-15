@@ -2362,6 +2362,7 @@ use Marpa::Offset qw(
     ITERATE_OR_NODE
     ITERATE_OR_TREE
     FREEZE_TREE
+    THAW_TREE
     EVALUATE
 );
 
@@ -2916,25 +2917,26 @@ sub Marpa::Evaluator::value {
             my $current_and_iteration =
                 $and_iterations->[$current_and_node_id];
 
-            my $current_choice_must_be_thawed = 0;
-
             # If the current and-choice is exhausted ...
             if ( not defined $current_and_iteration ) {
                 pop @{$and_choices};
 
                 # If there are no more choices, the or-node is exhausted ...
-                if ( not scalar @{$and_choices} ) {
-                    $or_iterations->[$or_node_id] = undef;
-                    next TASK;
-                }
+                given ( scalar @{$and_choices} ) {
+                    when (0) {
+                        $or_iterations->[$or_node_id] = undef;
+                    }
+                    default {
 
-                # Reset the current and-choice,
-                # and throw away it's frozen iteration data.
-                # Frozen iterations are invalided when
-                # the and-choice is the current one.
-                $current_and_choice = $and_choices->[-1];
-
-                $current_choice_must_be_thawed = 1;
+                        # Thaw out the current and-choice,
+                        push @tasks,
+                            [
+                            Marpa::Internal::Task::THAW_TREE,
+                            $and_choices->[-1]
+                            ];
+                    } ## end default
+                } ## end given
+                next TASK;
 
             } ## end if ( not defined $current_and_iteration )
 
@@ -2942,50 +2944,42 @@ sub Marpa::Evaluator::value {
             # but it may have been iterated to the point where it is
             # no longer the first in sort order.
 
-            # TODO: Rewrite from here.
+            # If only one choice still active,
+            # clearly no need to
+            # worry about sorting alternatives.
+            next TASK if @{$and_choices} <= 1;
 
-            # my $top_sortkey = pack 'N*',
-            #     (
-            #     map { @{$_} } @{
-            #         $top_iteration->[Marpa::Internal::And_Iteration::SORT_KEY]
-            #         }
-            #     );
-
-            # my $first_not_greater_choice_ix = List::Util::first {
-            #     (   pack 'N*',
-            #         map { @{$_} } @{
-            #             $and_choices->[$_]
-            #                 ->[Marpa::Internal::And_Choice::SORT_KEY]
-            #             }
-            #     ) <= $top_sortkey;
-            # } ## end List::Util::first
-            # reverse +( 0 .. $#{$and_choices} );
-
-            # $first_not_greater_choice_ix //= -1;
-            # splice @{$and_choices}, $first_not_greater_choice_ix + 1, 0,
-            #     $top_choice;
-
-            # TODO: Handle all cases of top choice unchanged prior to
-            # this point.  But all cases where the top choice does
-            # change must reach here.
-
-            # TODO:
-            # if top choice changed, re-initialize all the children of the
-            # new top choice.
-
-            # If we are here, the current choice is new
-            # It must be thawed and its frozen iteration thrown away
-            my ( $and_slice, $and_values, $or_slice, $or_values ) = @{
-                Storable::thaw(
+            my $current_sort_key
+                = pack 'N*',
+                (
+                map { @{$_} } @{
                     $current_and_choice
-                        ->[Marpa::Internal::And_Choice::FROZEN_ITERATION]
-                )
-                };
-            @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
-            @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
+                        ->[Marpa::Internal::And_Choice::SORT_KEY]
+                    }
+                );
 
-            $current_and_choice
-                ->[Marpa::Internal::And_Choice::FROZEN_ITERATION] = undef;
+            my $first_le_sort_key = List::Util::first {
+                (   pack 'N*',
+                    map { @{$_} } @{
+                        $and_choices->[$_]
+                            ->[Marpa::Internal::And_Choice::SORT_KEY]
+                        }
+                ) le $current_sort_key;
+            } reverse 0 .. ($#{$and_choices} - 1);
+
+            my $insert_point = defined $first_le_sort_key ? $first_le_sort_key+1 : 0;
+
+            # If current choice would be inserted where it already
+            # is now, we're done
+            next TASK if $insert_point == $#{$and_choices};
+
+            my $former_current_choice = pop @{$and_choices};
+            splice @{$and_choices}, $insert_point, 0, $former_current_choice;
+
+            push @tasks,
+                [ Marpa::Internal::Task::THAW_TREE, $and_choices->[1] ],
+                [ Marpa::Internal::Task::FREEZE_TREE,
+                $former_current_choice ];
 
             next TASK;
 
@@ -3030,6 +3024,28 @@ sub Marpa::Evaluator::value {
                 Storable::freeze(
                 [ \@and_slice, \@and_values, \@or_slice, \@or_values ] );
         } ## end if ( $task == Marpa::Internal::Task::FREEZE_TREE )
+
+        if ( $task == Marpa::Internal::Task::THAW_TREE ) {
+            my ($and_choice) = @{$task_entry};
+
+            # If we are here, the current choice is new
+            # It must be thawed and its frozen iteration thrown away
+            my ( $and_slice, $and_values, $or_slice, $or_values ) = @{
+                Storable::thaw(
+                    $and_choice
+                        ->[Marpa::Internal::And_Choice::FROZEN_ITERATION]
+                )
+                };
+            @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
+            @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
+
+            # Once it's unfrozen, it's subject to change, so the
+            # the frozen version will become invalid.
+            # We undef it.
+            $and_choice
+                ->[Marpa::Internal::And_Choice::FROZEN_ITERATION] = undef;
+
+        } ## end if ( $task == Marpa::Internal::Task::THAW_TREE )
 
         if ( $task == Marpa::Internal::Task::EVALUATE ) {
 
