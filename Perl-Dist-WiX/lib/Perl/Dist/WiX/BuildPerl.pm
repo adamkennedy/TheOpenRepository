@@ -396,6 +396,10 @@ sub _skip_upgrade {
 	# already upgraded it.
 	return 1 if $module->id eq 'Term::ReadKey';
 
+	# DON'T try to install Win32API::Registry, we
+	# already upgraded it as far as we can.
+	return 1 if $module->id eq 'Win32API::Registry';
+
 	# If the ID is CGI::Carp, there's a bug in the index.
 	return 1 if $module->id eq 'CGI::Carp';
 
@@ -723,6 +727,11 @@ sub install_perl_toolchain {
 			# sites.
 			$force = 1;
 		}
+		if ( $dist =~ /Time-HiRes/msx ) {
+
+			# Tests are so timing-sensitive they fail on their own sometimes. 
+			$force = 1;
+		}
 		if ( $dist =~ /Term-ReadLine-Perl/msx ) {
 
 			# Does evil things when testing, and
@@ -744,7 +753,7 @@ sub install_perl_toolchain {
 			# 2.20 and 2.2002 are buggy on 5.8.9.
 			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_05.tar.gz';
 		}
-		if ( $dist =~ /Win32API-Registry-0[.]31[.]tar[.]gz/msx ) {
+		if ( $dist =~ /Win32API-Registry-0 [.] 31/msx ) {
 
 			# 0.31 does not include a Makefile.PL.
 			$dist = 'BLM/Win32API-Registry-0.30.tar.gz';
