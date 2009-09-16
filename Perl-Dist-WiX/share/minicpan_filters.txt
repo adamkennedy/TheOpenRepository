@@ -127,3 +127,7 @@
 /PETDANCE/HTML-Tagset-
 /GAAS/HTML-Parser-
 /GAAS/libwww-perl-
+/ADAMK/Test-Script-
+/KWILLIAMS/Probe-Perl-
+/(?:RSCHUPP|RJBS)/IPC-Run3-
+
