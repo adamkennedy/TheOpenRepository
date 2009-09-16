@@ -4,13 +4,13 @@ package                                # Hide from PAUSE.
 use 5.008001;
 use MooseX::Types -declare => [ qw(
 	  Host Tracelevel IsTag _YesNoType YesNoType ComponentGuidType PositiveInt
-	  NonNegativeInt TraceConfig TraceObject EnumRemoveFolderOn
+	  NonNegativeInt TraceObject EnumRemoveFolderOn
 	  ) ];
 use Regexp::Common 2.105;
 use MooseX::Types::Moose qw( Str Int Bool HashRef );
 use Readonly 1.03 qw( Readonly );
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 # Assemble the GUID regex from pieces.
@@ -35,8 +35,6 @@ subtype Host, as Str, where {
 enum EnumRemoveFolderOn, qw( install uninstall both );
 
 subtype IsTag, as role_type 'WiX3::XML::Role::Tag';
-
-subtype TraceConfig, as class_type 'WiX3::Trace::Config';
 
 subtype TraceObject, as class_type 'WiX3::Trace::Object';
 

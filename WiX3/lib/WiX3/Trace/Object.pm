@@ -37,6 +37,6 @@ sub trace_line {
 }
 
 no MooseX::Singleton;
-__PACKAGE__->meta->make_immutable();
+__PACKAGE__->meta->make_immutable( inline_constructor => 0 );
 
 1;                                     # Magic true value required at end of module

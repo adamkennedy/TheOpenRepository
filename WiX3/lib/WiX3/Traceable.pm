@@ -9,7 +9,7 @@ use 5.008001;
 #);
 use MooseX::Singleton;
 use WiX3::Util::StrictConstructor;
-use WiX3::Trace::Config;
+use WiX3::Trace::Object;
 
 our $VERSION = '0.008';
 $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
