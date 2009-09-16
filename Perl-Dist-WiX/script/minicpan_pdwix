@@ -12,8 +12,11 @@ use Getopt::Long           qw( GetOptions            );
 use Pod::Usage             qw( pod2usage             );
 use English                qw( -no_match_vars        );
 use CPAN::Mini::Devel 0.03 qw(                       );
+use LWP::UserAgent         qw(                       ); 
+use File::Spec::Functions  qw( catdir                );
 
-use version 0.76; our $VERSION = version->new("1.000");
+our $VERSION = '1.090_103;
+$VERSION = eval $VERSION;
 
 sub filters;
 sub usage;
@@ -22,7 +25,7 @@ sub version;
 STDOUT->autoflush(1);
 STDERR->autoflush(1);
 
-my (@dists, @modules, @files);
+my (@dists, @modules, @files, @add_files);
 my $verbose = 1;
 my $force = 0;
 my $cpan = 'http://cpan.hexten.net/';
@@ -31,9 +34,10 @@ my $minicpan = 'C:\minicpan';
 my $result = GetOptions(
             "cpan=s"     => \$cpan,
             "minicpan=s" => \$minicpan,
-            "dist=s"     => \@dists,      
+            "dist=s"     => \@dists,
             "module=s"   => \@modules,      
             "file=s"     => \@files,      
+            "add_file=s" => \@add_files,
             "verbose!"   => \$verbose,
             "force!"     => \$force,
 			"help|?"     => sub { pod2usage(-exitstatus => 1, -verbose => 0); },
@@ -81,6 +85,19 @@ CPAN::Mini::Devel->update_mirror(
 	force        => $force,
 	path_filters => [ sub { filters( $_[0] ); } ] );
 
+my $ua;
+foreach my $file_to_add (@add_files) {
+	$ua //= LWP::UserAgent->new(env_proxy => 1, agent => "minicpan_pdwix/$VERSION ");
+
+	my $l1 = substr $file_to_add, 0, 1;
+	my $l2 = substr $file_to_add, 0, 2;
+
+	my $url = "${cpan}author/id/$l1/$l2/$file_to_add";
+	my $target = catfile( $minicpan, qw( author id ), $l1, $l2, $file_to_add ); 
+	print "Downloading URL $url to $target\n";
+	$ua->mirror( $url, $target );
+}
+	
 say 'Finished: ', scalar localtime;
 
 exit 0;
