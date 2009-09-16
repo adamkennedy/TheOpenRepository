@@ -2644,7 +2644,7 @@ sub Marpa::Evaluator::value {
 
             my $internal_nulls;
             my $final_nulls =
-                $token ? $token->[Marpa::Internal::Symbol::NULL_WIDTH] : 0;
+                $token ? $token->[Marpa::Internal::Symbol::NULLABLE] : 0;
 
             if ($cause) {
                 $final_nulls += $cause_and_node_iteration

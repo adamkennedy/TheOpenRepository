@@ -45,10 +45,10 @@ $grammar->set( { terminals => ['a'], } );
 $grammar->precompute();
 
 Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
-0: S -> A A A A /* !useful */
+0: S -> A A A A /* !useful nullable */
 1: A -> a
-2: A -> E /* !useful */
-3: E -> /* !useful empty */
+2: A -> E /* !useful nullable */
+3: E -> /* !useful empty nullable */
 4: S -> A S[R0:1][x6] /* priority=0.44 */
 5: S -> A[] S[R0:1][x6] /* priority=0.42 */
 6: S -> A S[R0:1][x6][] /* priority=0.43 */
@@ -59,22 +59,22 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 11: S[R0:2][x8] -> A[] A /* priority=0.22 */
 12: S[R0:2][x8] -> A A[] /* priority=0.23 */
 13: S['] -> S
-14: S['][] -> /* empty */
+14: S['][] -> /* empty nullable */
 EOS
 
 Marpa::Test::is( $grammar->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
 0: S, lhs=[0 4 5 6] rhs=[13]
 1: A, lhs=[1 2] rhs=[0 4 6 7 9 10 11 12]
 2: a, lhs=[] rhs=[1] terminal
-3: E, lhs=[3] rhs=[2] nullable nulling
-4: S[], lhs=[] rhs=[] nullable nulling
-5: A[], lhs=[] rhs=[5 8 11 12] nullable nulling
+3: E, lhs=[3] rhs=[2] nullable=1 nulling
+4: S[], lhs=[] rhs=[] nullable=1 nulling
+5: A[], lhs=[] rhs=[5 8 11 12] nullable=1 nulling
 6: S[R0:1][x6], lhs=[7 8 9] rhs=[4 5]
-7: S[R0:1][x6][], lhs=[] rhs=[6] nullable nulling
+7: S[R0:1][x6][], lhs=[] rhs=[6] nullable=1 nulling
 8: S[R0:2][x8], lhs=[10 11 12] rhs=[7 8]
-9: S[R0:2][x8][], lhs=[] rhs=[9] nullable nulling
+9: S[R0:2][x8][], lhs=[] rhs=[9] nullable=1 nulling
 10: S['], lhs=[13] rhs=[]
-11: S['][], lhs=[14] rhs=[] nullable nulling
+11: S['][], lhs=[14] rhs=[] nullable=1 nulling
 EOS
 
 Marpa::Test::is(

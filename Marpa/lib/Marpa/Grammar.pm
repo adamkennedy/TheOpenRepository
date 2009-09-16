@@ -37,9 +37,6 @@ use Marpa::Offset qw(
         or minimal (shortest possible) evaluation?
         Default is indifferent. }
 
-    NULL_WIDTH { When nulled,
-    the number of nulls it represents }
-
     =LAST_EVALUATOR_FIELD
 
     ACTION PREFIX SUFFIX
@@ -48,7 +45,12 @@ use Marpa::Offset qw(
     =LAST_RECOGNIZER_FIELD
 
     LHS RHS ACCESSIBLE PRODUCTIVE START
-    NULLABLE NULL_VALUE
+
+    NULLABLE { The number of nullable symbols
+    the symbol represents,
+    0 if the symbol is not nullable. }
+
+    NULL_VALUE
     CLOSURE
     COUNTED
     =LAST_FIELD
@@ -1467,11 +1469,15 @@ sub Marpa::show_symbol {
 
     if ($stripped) { $text .= ' stripped' }
 
+    my $nullable = $symbol->[Marpa::Internal::Symbol::NULLABLE];
+    if ($nullable) {
+        $text .= " nullable=$nullable";
+    }
+
     ELEMENT:
     for my $comment_element (
         (   [ 1, 'unproductive', Marpa::Internal::Symbol::PRODUCTIVE, ],
             [ 1, 'inaccessible', Marpa::Internal::Symbol::ACCESSIBLE, ],
-            [ 0, 'nullable',     Marpa::Internal::Symbol::NULLABLE, ],
             [ 0, 'nulling',      Marpa::Internal::Symbol::NULLING, ],
             [ 0, 'terminal',     Marpa::Internal::Symbol::TERMINAL, ],
         )
@@ -1483,11 +1489,6 @@ sub Marpa::show_symbol {
         if ($reverse) { $value = !$value }
         if ($value) { $text .= " $comment" }
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
-
-    my $null_width = $symbol->[Marpa::Internal::Symbol::NULL_WIDTH];
-    if ($null_width) {
-        $text .= " null_width=$null_width";
-    }
 
     return $text .= "\n";
 
@@ -1653,6 +1654,7 @@ sub Marpa::show_rule {
         (   [ 1, 'unproductive', Marpa::Internal::Rule::PRODUCTIVE, ],
             [ 1, 'inaccessible', Marpa::Internal::Rule::ACCESSIBLE, ],
             [ 0, 'maximal',      Marpa::Internal::Rule::MAXIMAL, ],
+            [ 0, 'nullable',     Marpa::Internal::Rule::NULLABLE, ],
         )
         )
     {
@@ -1905,7 +1907,6 @@ sub add_terminal {
         $symbol->[Marpa::Internal::Symbol::ACTION]     = $action;
         $symbol->[Marpa::Internal::Symbol::TERMINAL]   = 1;
         $symbol->[Marpa::Internal::Symbol::MAXIMAL]    = $maximal;
-        $symbol->[Marpa::Internal::Symbol::NULL_WIDTH] = 0;
 
         return;
     } ## end if ( defined $symbol )
@@ -1925,7 +1926,6 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]      = 1;
     $new_symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
     $new_symbol->[Marpa::Internal::Symbol::MAXIMAL]       = $maximal;
-    $new_symbol->[Marpa::Internal::Symbol::NULL_WIDTH]    = 0;
 
     push @{$symbols}, $new_symbol;
     return weaken( $symbol_hash->{$name} = $new_symbol );
@@ -2832,7 +2832,7 @@ sub nulling {
 
 # returns undef if there was a problem
 sub nullable {
-    my $grammar = shift;
+    my ($grammar) = @_;
     my ( $rules, $symbols, $tracing ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
         Marpa::Internal::Grammar::SYMBOLS,
@@ -2844,133 +2844,65 @@ sub nullable {
         $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACING];
     }
 
-    # boolean to track if current pass has changed anything
-    my $work_to_do = 1;
+    my @workset;
+    my @potential_nullable_symbol_ids = (
+        map {
+            $_->[Marpa::Internal::Rule::LHS]->[Marpa::Internal::Symbol::ID]
+            }
+            grep { not scalar @{ $_->[Marpa::Internal::Rule::RHS] } }
+            @{$rules}
+    );
+    @workset[@potential_nullable_symbol_ids] =
+        (1) x scalar @potential_nullable_symbol_ids;
 
-    my $symbol_work_set = [];
-    $#{$symbol_work_set} = @{$symbols};
-    my $rule_work_set = [];
-    $#{$rule_work_set} = @{$rules};
+    while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#{$symbols} ) ) {
+        @workset = ();
+        SYMBOL: for my $symbol ( map { $symbols->[$_] } @symbol_ids ) {
 
-    for my $symbol_id (
-        map { $_->[Marpa::Internal::Symbol::ID] }
-        grep {
-                   $_->[Marpa::Internal::Symbol::NULLABLE]
-                or $_->[Marpa::Internal::Symbol::NULLING]
-        } @{$symbols}
-        )
-    {
-        $symbol_work_set->[$symbol_id] = 1;
-    } ## end for my $symbol_id ( map { $_->[Marpa::Internal::Symbol::ID...]})
-    for my $rule_id (
-        map  { $_->[Marpa::Internal::Rule::ID] }
-        grep { defined $_->[Marpa::Internal::Rule::NULLABLE] } @{$rules}
-        )
-    {
-        $rule_work_set->[$rule_id] = 1;
-    } ## end for my $rule_id ( map { $_->[Marpa::Internal::Rule::ID...]})
+            ### Trying symbol: $symbol->[Marpa'Internal'Symbol'NAME]
 
-    while ($work_to_do) {
-        $work_to_do = 0;
+            # Terminals can be nullable
 
-        SYMBOL_PASS:
-        for my $symbol_id ( grep { $symbol_work_set->[$_] }
-            ( 0 .. $#{$symbol_work_set} ) )
-        {
-            my $work_symbol = $symbols->[$symbol_id];
-            $symbol_work_set->[$symbol_id] = 0;
-            my $rules_producing =
-                $work_symbol->[Marpa::Internal::Symbol::RHS];
-
-            PRODUCING_RULE: for my $rule ( @{$rules_producing} ) {
-
-                # assume nullable until we hit an unmarked or non-nullable symbol
-                my $rule_nullable = 1;
-
-                # no work to do -- this rule already has nullability marked
-                next PRODUCING_RULE
-                    if defined $rule->[Marpa::Internal::Rule::NULLABLE];
-
-                # are all symbols on the RHS of this rule bottom marked?
-                RHS_SYMBOL:
-                for my $rhs_symbol (
-                    @{ $rule->[Marpa::Internal::Rule::RHS] } )
-                {
-                    my $nullable =
-                        $rhs_symbol->[Marpa::Internal::Symbol::NULLABLE];
-
-                    # unmarked symbol, change the assumption for rule to undef, but keep scanning for non-nullable
-                    # symbol, which will override everything else
-                    if ( not defined $nullable ) {
-                        $rule_nullable = undef;
-                        next RHS_SYMBOL;
-                    }
-
-                    # any non-nullable RHS symbol means the rule is not nullable
-                    if ( $nullable == 0 ) {
-                        $rule_nullable = 0;
-                        last RHS_SYMBOL;
-                    }
-                } ## end for my $rhs_symbol ( @{ $rule->[...]})
-
-                # if this pass found the rule nullable or not, so mark the rule
-                if ( defined $rule_nullable ) {
-                    $rule->[Marpa::Internal::Rule::NULLABLE] = $rule_nullable;
-                    $work_to_do++;
-                    $rule_work_set->[ $rule->[Marpa::Internal::Rule::ID] ] =
-                        1;
-                } ## end if ( defined $rule_nullable )
-
-            } ## end for my $rule ( @{$rules_producing} )
-        }    # SYMBOL_PASS
-
-        RULE:
-        for my $rule_id ( grep { $rule_work_set->[$_] }
-            ( 0 .. $#{$rule_work_set} ) )
-        {
-            my $work_rule  = $rules->[$rule_id];
-            my $lhs_symbol = $work_rule->[Marpa::Internal::Rule::LHS];
-
-            # no work to do -- this symbol already has nullability marked
-            next RULE
-                if defined $lhs_symbol->[Marpa::Internal::Symbol::NULLABLE];
-
-            # assume non-nullable until we hit an unmarked or non-nullable symbol
-            my $symbol_nullable = 0;
-
-            LHS_RULE:
-            for my $rule ( @{ $lhs_symbol->[Marpa::Internal::Symbol::LHS] } )
-            {
-
-                my $nullable = $rule->[Marpa::Internal::Rule::NULLABLE];
-
-                # unmarked symbol, change the assumption for rule to undef,
-                # but keep scanning for nullable
-                # rule, which will override everything else
-                if ( not defined $nullable ) {
-                    $symbol_nullable = undef;
-                    next LHS_RULE;
+            # This is a nullable symbol if every symbol on the rhs
+            # of any rule that has this symbol on its lhs, is nullable
+            my $nullable = List::Util::min
+                map {
+                (   List::Util::sum
+                        map { $_->[Marpa::Internal::Symbol::NULLABLE]; }
+                        @{ $_->[Marpa::Internal::Rule::RHS] }
+                    )
+                    // 1
                 }
-
-                # any nullable rule means the LHS is nullable
-                if ( $nullable == 1 ) {
-                    $symbol_nullable = 1;
-                    last LHS_RULE;
+                grep {
+                not defined List::Util::first {
+                    not $_->[Marpa::Internal::Symbol::NULLABLE];
                 }
-            } ## end for my $rule ( @{ $lhs_symbol->[...]})
+                @{ $_->[Marpa::Internal::Rule::RHS] }
+                } @{ $symbol->[Marpa::Internal::Symbol::LHS] };
+            next SYMBOL if not $nullable;
 
-            # if this pass found the symbol nullable or not, mark the symbol
-            if ( defined $symbol_nullable ) {
-                $lhs_symbol->[Marpa::Internal::Symbol::NULLABLE] =
-                    $symbol_nullable;
-                $work_to_do++;
-                $symbol_work_set->[ $lhs_symbol->[Marpa::Internal::Symbol::ID]
-                ] = 1;
-            } ## end if ( defined $symbol_nullable )
+            my $old_nullable = $symbol->[Marpa::Internal::Symbol::NULLABLE];
+            if ( $old_nullable and $nullable > $old_nullable ) {
+                my $name = $symbol->[Marpa::Internal::Symbol::NAME];
+                my $problem =
+                    "Symbol $name has ambiguous nullable count: $old_nullable vs. $nullable";
+                push @{ $grammar->[Marpa::Internal::Grammar::PROBLEMS] },
+                    $problem;
+                next SYMBOL;
+            } ## end if ( $old_nullable and $nullable > $old_nullable )
 
-        }    # RULE
+            $symbol->[Marpa::Internal::Symbol::NULLABLE] = $nullable;
+            my @potential_new_nullable_symbol_ids =
+                map {
+                $_->[Marpa::Internal::Rule::LHS]
+                    ->[Marpa::Internal::Symbol::ID]
+                } @{ $symbol->[Marpa::Internal::Symbol::RHS] };
+            @workset[@potential_new_nullable_symbol_ids] =
+                (1) x scalar @potential_new_nullable_symbol_ids;
 
-    }    # work_to_do loop
+        } ## end for my $symbol ( map { $symbols->[$_] } @symbol_ids )
+
+    } ## end while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#...))
 
     my $counted_nullable_count;
     for my $symbol ( @{$symbols} ) {
@@ -2992,6 +2924,15 @@ sub nullable {
         push @{ $grammar->[Marpa::Internal::Grammar::PROBLEMS] }, $problem;
         return;
     } ## end if ($counted_nullable_count)
+
+    for my $rule ( @{$rules} ) {
+        $rule->[Marpa::Internal::Rule::NULLABLE] = (
+            not defined List::Util::first {
+                not $_->[Marpa::Internal::Symbol::NULLABLE];
+            }
+            @{ $rule->[Marpa::Internal::Rule::RHS] }
+        );
+    } ## end for my $rule ( @{$rules} )
 
     return 1;
 
