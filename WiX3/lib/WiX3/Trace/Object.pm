@@ -2,17 +2,17 @@ package                                # Hide from PAUSE.
   WiX3::Trace::Object;
 
 use 5.008001;
-use metaclass (
-	base_class  => 'MooseX::Singleton::Object',
-	metaclass   => 'MooseX::Singleton::Meta::Class',
-	error_class => 'WiX3::Util::Error',
-);
+#use metaclass (
+#	base_class  => 'MooseX::Singleton::Object',
+#	metaclass   => 'MooseX::Singleton::Meta::Class',
+#	error_class => 'WiX3::Util::Error',
+#);
 use MooseX::Singleton;
 use WiX3::Trace::Config;
 use WiX3::Util::StrictConstructor;
 use Readonly qw( Readonly );
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 Readonly my @LEVELS => qw(error notice info debug debug debug);
