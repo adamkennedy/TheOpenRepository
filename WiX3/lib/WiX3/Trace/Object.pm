@@ -2,48 +2,41 @@ package                                # Hide from PAUSE.
   WiX3::Trace::Object;
 
 use 5.008001;
-#use metaclass (
-#	base_class  => 'MooseX::Singleton::Object',
-#	metaclass   => 'MooseX::Singleton::Meta::Class',
-#	error_class => 'WiX3::Util::Error',
-#);
 use MooseX::Singleton;
-use WiX3::Trace::Config;
 use WiX3::Util::StrictConstructor;
-use Readonly qw( Readonly );
+use WiX3::Types qw( Tracelevel );
+use MooseX::Types::Moose qw( Bool );
 
 our $VERSION = '0.008';
 $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
-Readonly my @LEVELS => qw(error notice info debug debug debug);
-
-with 'MooseX::LogDispatch';
-
-has log_dispatch_conf => (
-	is       => 'ro',
-	required => 1,
-	handles  => [qw( get_tracelevel set_tracelevel get_testing)],
+has tracelevel => (
+	is      => 'rw',
+	isa     => Tracelevel,
+	reader  => 'get_tracelevel',
+	writer  => 'set_tracelevel',
+	default => 1,
 );
 
-sub BUILD {
-	print "Building WiX3::Trace::Object\n";
-}
+has testing => (
+	is      => 'ro',
+	isa     => Bool,
+	reader  => 'get_testing',
+	default => 0,
+);
 
 sub trace_line {
 	my $self = shift;
 	my ( $level, $text ) = @_;
 
 	if ( $level <= $self->get_tracelevel() ) {
-		$self->logger()->log(
-			level   => $LEVELS[$level],
-			message => $text
-		);
+		print $text;
 	}
 
 	return $text;
 } ## end sub trace_line
 
 no MooseX::Singleton;
-__PACKAGE__->meta->make_immutable(inline_constructor => 0);
+__PACKAGE__->meta->make_immutable();
 
 1;                                     # Magic true value required at end of module

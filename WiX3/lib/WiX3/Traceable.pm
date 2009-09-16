@@ -25,14 +25,12 @@ sub BUILDARGS {
 		%args = (@_);
 	}
 
-	return { options => WiX3::Trace::Config->new(%args) };
+	return { options => WiX3::Trace::Object->new(%args) };
 } ## end sub BUILDARGS
 
 sub BUILD {
 	my $self = shift;
 	
-	print "Building WiX3::Traceable\n";
-
 	# Necessary for the option to carry through.
 	$self->get_testing();
 
@@ -45,7 +43,7 @@ __END__
 
 =head1 NAME
 
-WiX3::Traceable - "Cheat Class" in order to get a Traceable object.
+WiX3::Traceable - "Cheat Class" in order to initialize a Traceable object.
 
 =head1 VERSION
 
@@ -53,7 +51,10 @@ This document describes WiX3::Traceable version 0.005
 
 =head1 SYNOPSIS
 
-TODO
+	WiX3::Traceable->new(
+		tracelevel => 2,
+		testing => 0,
+	);
   
 =head1 DESCRIPTION
 
