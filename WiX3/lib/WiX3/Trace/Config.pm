@@ -2,11 +2,11 @@ package                                # Hide from PAUSE.
   WiX3::Trace::Config;
 
 use 5.008001;
-use metaclass (
-	base_class  => 'MooseX::Singleton::Object',
-	metaclass   => 'MooseX::Singleton::Meta::Class',
-	error_class => 'WiX3::Util::Error',
-);
+#use metaclass (
+#	base_class  => 'MooseX::Singleton::Object',
+#	metaclass   => 'MooseX::Singleton::Meta::Class',
+#	error_class => 'WiX3::Util::Error',
+#);
 use MooseX::Singleton;
 use MooseX::NonMoose;
 use Carp qw(croak);
@@ -15,7 +15,7 @@ use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( Tracelevel Host );
 use MooseX::Types::Moose qw( Int Maybe Str Bool ArrayRef );
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 has tracelevel => (
@@ -79,6 +79,12 @@ extends 'Log::Dispatch::Configurator';
 
 Readonly my @LEVELS  => qw(error notice info debug debug debug);
 Readonly my @CONFIGS => qw(screen0 screen1 screen2 screen3);
+
+sub BUILD {
+	print "Building WiX3::Trace::Config\n";
+	
+	return;
+}
 
 sub get_attrs_global {
 	my $self = shift;

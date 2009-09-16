@@ -1,16 +1,16 @@
 package WiX3::Traceable;
 
 use 5.008001;
-use metaclass (
-	base_class  => 'MooseX::Singleton::Object',
-	metaclass   => 'MooseX::Singleton::Meta::Class',
-	error_class => 'WiX3::Util::Error',
-);
+#use metaclass (
+#	base_class  => 'MooseX::Singleton::Object',
+#	metaclass   => 'MooseX::Singleton::Meta::Class',
+#	error_class => 'WiX3::Util::Error',
+#);
 use MooseX::Singleton;
 use WiX3::Util::StrictConstructor;
 use WiX3::Trace::Config;
 
-our $VERSION = '0.007';
+our $VERSION = '0.008';
 $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 with 'WiX3::Role::Traceable';
@@ -30,6 +30,8 @@ sub BUILDARGS {
 
 sub BUILD {
 	my $self = shift;
+	
+	print "Building WiX3::Traceable\n";
 
 	# Necessary for the option to carry through.
 	$self->get_testing();

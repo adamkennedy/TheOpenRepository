@@ -31,7 +31,8 @@ has _traceobject => (
 
 sub _setup_traceobject {
 	my $self = shift;
-	return WiX3::Trace::Object->new(
+	
+	return WiX3::Trace::Object->instance(
 		log_dispatch_conf    => $self->_get_traceconfig(),
 		use_logger_singleton => 1,
 	);

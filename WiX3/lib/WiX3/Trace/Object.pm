@@ -25,6 +25,10 @@ has log_dispatch_conf => (
 	handles  => [qw( get_tracelevel set_tracelevel get_testing)],
 );
 
+sub BUILD {
+	print "Building WiX3::Trace::Object\n";
+}
+
 sub trace_line {
 	my $self = shift;
 	my ( $level, $text ) = @_;
@@ -40,6 +44,6 @@ sub trace_line {
 } ## end sub trace_line
 
 no MooseX::Singleton;
-__PACKAGE__->meta->make_immutable;
+__PACKAGE__->meta->make_immutable(inline_constructor => 0);
 
 1;                                     # Magic true value required at end of module
