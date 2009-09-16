@@ -100,7 +100,7 @@ use Marpa::Offset qw(
 
     ORIGINAL_RULE
     CHAF_START CHAF_END
-    NULLABLE ACCESSIBLE PRODUCTIVE NULLING
+    NULLABLE ACCESSIBLE PRODUCTIVE
     =LAST_FIELD
 );
 
@@ -2124,7 +2124,6 @@ sub add_rule {
     $new_rule->[Marpa::Internal::Rule::RHS]           = $rhs;
     $new_rule->[Marpa::Internal::Rule::NULLABLE]      = $nulling;
     $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
-    $new_rule->[Marpa::Internal::Rule::NULLING]       = $nulling;
     $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
     $new_rule->[Marpa::Internal::Rule::MAXIMAL]       = 0;
     $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
@@ -2771,7 +2770,6 @@ sub mark_all_symbols_terminal {
     } ## end for my $symbol ( @{$symbols} )
     my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
     for my $rule ( @{$rules} ) {
-        $rule->[Marpa::Internal::Rule::NULLING]    = 0;
         $rule->[Marpa::Internal::Rule::NULLABLE]   = 0;
         $rule->[Marpa::Internal::Rule::PRODUCTIVE] = 1;
     }
@@ -2787,10 +2785,15 @@ sub nulling {
     ];
 
     my @workset;
-    my @potential_nulling_symbol_ids =
-        map  { $_->[Marpa::Internal::Rule::LHS]->[Marpa::Internal::Symbol::ID] }
-        grep { not scalar @{$_->[Marpa::Internal::Rule::RHS]} } @{$rules};
-    @workset[@potential_nulling_symbol_ids] = (1) x scalar @potential_nulling_symbol_ids;
+    my @potential_nulling_symbol_ids = (
+        map {
+            $_->[Marpa::Internal::Rule::LHS]->[Marpa::Internal::Symbol::ID]
+            }
+            grep { not scalar @{ $_->[Marpa::Internal::Rule::RHS] } }
+            @{$rules}
+    );
+    @workset[@potential_nulling_symbol_ids] =
+        (1) x scalar @potential_nulling_symbol_ids;
 
     while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#{$symbols} ) ) {
         @workset = ();
@@ -2804,9 +2807,14 @@ sub nulling {
             # This is not a nulling symbol unless every symbol on the rhs
             # of every rule that has this symbol on its lhs is nulling
             next SYMBOL
-                if defined List::Util::first { not $_->[Marpa::Internal::Symbol::NULLING] }
-                    map { @{ $_->[Marpa::Internal::Rule::RHS] } }
-                    @{ $symbol->[Marpa::Internal::Symbol::LHS] };
+                if (
+                defined List::Util::first {
+                    not $_->[Marpa::Internal::Symbol::NULLING];
+                }
+                map { @{ $_->[Marpa::Internal::Rule::RHS] } }
+                @{ $symbol->[Marpa::Internal::Symbol::LHS] }
+                );
+
             $symbol->[Marpa::Internal::Symbol::NULLING] = 1;
             my @potential_new_nulling_symbol_ids =
                 map {
@@ -3574,16 +3582,19 @@ sub rewrite_as_CHAF {
         my $accessible = $rule->[Marpa::Internal::Rule::ACCESSIBLE];
         next RULE if not $accessible;
 
-        my $rhs           = $rule->[Marpa::Internal::Rule::RHS];
+        my $rhs = $rule->[Marpa::Internal::Rule::RHS];
 
         # A nulling rule -- one with only nulling symbols on
         # the rhs is useless.
         # By this definition, it is vacuously true
         # that empty rules are nulling.
-        my $nulling = not defined(
-            List::Util::first { not $_->[Marpa::Internal::Symbol::NULLING] }
-            @{$rhs} );
-        next RULE if $nulling;
+        next RULE
+            if (
+            not defined List::Util::first {
+                not $_->[Marpa::Internal::Symbol::NULLING];
+            }
+            @{$rhs}
+            );
 
         my $lhs           = $rule->[Marpa::Internal::Rule::LHS];
         my $nullable      = $rule->[Marpa::Internal::Rule::NULLABLE];
@@ -3820,7 +3831,6 @@ sub rewrite_as_CHAF {
                 $new_rule->[Marpa::Internal::Rule::ACCESSIBLE] = 1;
                 $new_rule->[Marpa::Internal::Rule::PRODUCTIVE] = 1;
                 $new_rule->[Marpa::Internal::Rule::NULLABLE]   = 0;
-                $new_rule->[Marpa::Internal::Rule::NULLING]    = 0;
                 $new_rule->[Marpa::Internal::Rule::HAS_CHAF_LHS] =
                     $has_chaf_lhs;
                 $new_rule->[Marpa::Internal::Rule::HAS_CHAF_RHS] =

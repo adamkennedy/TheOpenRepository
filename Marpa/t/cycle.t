@@ -137,7 +137,7 @@ for my $test_data (@test_data) {
             my $evaler =
                 Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
             $result = $evaler->value();
-        }
+        } ## end when ( $_ < 0 )
         default {
             $result = \"Parse failed at offset $fail_offset";
         }
@@ -145,8 +145,9 @@ for my $test_data (@test_data) {
 
     close $MEMORY;
 
-    Marpa::Test::is( ${$result}, $expected, "$test_name result" );
+    Marpa::Test::is( ${$result}, $expected,       "$test_name result" );
     Marpa::Test::is( $trace,     $expected_trace, "$test_name trace" );
+
 } ## end for my $test_data (@test_data)
 
 # Local Variables:
