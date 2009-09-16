@@ -2,6 +2,8 @@ Revision history for WiX3
 
 0.008  Wed Sep 16 2009
        - Updating to work with Moose 0.90.
+       - Took out the "e-mail traced lines" code 
+         (may implement it another way later.)
 
 0.007  Sat Sep 12 2009
        - Adding RemoveFolder tag.

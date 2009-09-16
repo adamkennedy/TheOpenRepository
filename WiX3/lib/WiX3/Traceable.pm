@@ -1,6 +1,7 @@
 package WiX3::Traceable;
 
 use 5.008001;
+
 #use metaclass (
 #	base_class  => 'MooseX::Singleton::Object',
 #	metaclass   => 'MooseX::Singleton::Meta::Class',
@@ -30,7 +31,7 @@ sub BUILDARGS {
 
 sub BUILD {
 	my $self = shift;
-	
+
 	# Necessary for the option to carry through.
 	$self->get_testing();
 

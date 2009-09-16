@@ -13,7 +13,7 @@ has _traceobject => (
 	init_arg => 'options',
 	weak_ref => 1,
 	default  => sub { WiX3::Trace::Object->new() },
-	handles => [qw(get_tracelevel set_tracelevel get_testing trace_line)],
+	handles  => [qw(get_tracelevel set_tracelevel get_testing trace_line)],
 );
 
 no Moose::Role;

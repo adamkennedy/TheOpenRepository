@@ -2,6 +2,7 @@ package                                # Hide from PAUSE
   WiX3::XML::GeneratesGUID::Object;
 
 use 5.008001;
+
 #use metaclass (
 #	base_class  => 'MooseX::Singleton::Object',
 #	metaclass   => 'MooseX::Singleton::Meta::Class',

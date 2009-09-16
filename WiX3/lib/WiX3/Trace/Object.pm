@@ -34,7 +34,7 @@ sub trace_line {
 	}
 
 	return $text;
-} ## end sub trace_line
+}
 
 no MooseX::Singleton;
 __PACKAGE__->meta->make_immutable();
