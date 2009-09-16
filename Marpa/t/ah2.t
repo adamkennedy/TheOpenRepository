@@ -45,10 +45,10 @@ $grammar->set( { terminals => ['a'], } );
 $grammar->precompute();
 
 Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
-0: S -> A A A A /* !useful nullable */
+0: S -> A A A A /* !useful */
 1: A -> a
-2: A -> E /* !useful nullable nulling */
-3: E -> /* !useful empty nullable nulling */
+2: A -> E /* !useful */
+3: E -> /* !useful empty */
 4: S -> A S[R0:1][x6] /* priority=0.44 */
 5: S -> A[] S[R0:1][x6] /* priority=0.42 */
 6: S -> A S[R0:1][x6][] /* priority=0.43 */
@@ -59,7 +59,7 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 11: S[R0:2][x8] -> A[] A /* priority=0.22 */
 12: S[R0:2][x8] -> A A[] /* priority=0.23 */
 13: S['] -> S
-14: S['][] -> /* empty nullable nulling */
+14: S['][] -> /* empty */
 EOS
 
 Marpa::Test::is( $grammar->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );

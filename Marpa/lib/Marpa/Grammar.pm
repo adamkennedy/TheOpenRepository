@@ -1652,8 +1652,6 @@ sub Marpa::show_rule {
     for my $comment_element (
         (   [ 1, 'unproductive', Marpa::Internal::Rule::PRODUCTIVE, ],
             [ 1, 'inaccessible', Marpa::Internal::Rule::ACCESSIBLE, ],
-            [ 0, 'nullable',     Marpa::Internal::Rule::NULLABLE, ],
-            [ 0, 'nulling',      Marpa::Internal::Rule::NULLING, ],
             [ 0, 'maximal',      Marpa::Internal::Rule::MAXIMAL, ],
         )
         )
@@ -2788,135 +2786,37 @@ sub nulling {
         Marpa::Internal::Grammar::SYMBOLS,
     ];
 
-    my $symbol_work_set = [];
-    $#{$symbol_work_set} = $#{$symbols};
-    my $rule_work_set = [];
-    $#{$rule_work_set} = $#{$rules};
+    my @workset;
+    my @potential_nulling_symbol_ids =
+        map  { $_->[Marpa::Internal::Rule::LHS]->[Marpa::Internal::Symbol::ID] }
+        grep { not scalar @{$_->[Marpa::Internal::Rule::RHS]} } @{$rules};
+    @workset[@potential_nulling_symbol_ids] = (1) x scalar @potential_nulling_symbol_ids;
 
-    for my $rule_id (
-        map  { $_->[Marpa::Internal::Rule::ID] }
-        grep { $_->[Marpa::Internal::Rule::NULLING] } @{$rules}
-        )
-    {
-        $rule_work_set->[$rule_id] = 1;
-    } ## end for my $rule_id ( map { $_->[Marpa::Internal::Rule::ID...]})
+    while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#{$symbols} ) ) {
+        @workset = ();
+        SYMBOL: for my $symbol ( map { $symbols->[$_] } @symbol_ids ) {
 
-    for my $symbol_id (
-        map  { $_->[Marpa::Internal::Symbol::ID] }
-        grep { $_->[Marpa::Internal::Symbol::NULLING] } @{$symbols}
-        )
-    {
-        $symbol_work_set->[$symbol_id] = 1;
-    } ## end for my $symbol_id ( map { $_->[Marpa::Internal::Symbol::ID...]})
+            ### Trying symbol: $symbol->[Marpa'Internal'Symbol'NAME]
 
-    my $work_to_do = 1;
+            # Terminals are never nulling
+            next SYMBOL if $symbol->[Marpa::Internal::Symbol::TERMINAL];
 
-    while ($work_to_do) {
-        $work_to_do = 0;
-
-        RULE:
-        for my $rule_id ( grep { $rule_work_set->[$_] }
-            ( 0 .. $#{$rule_work_set} ) )
-        {
-            my $work_rule = $rules->[$rule_id];
-            $rule_work_set->[$rule_id] = 0;
-            my $lhs_symbol = $work_rule->[Marpa::Internal::Rule::LHS];
-
-            # no work to do -- this symbol already is marked one way or the other
-            next RULE
-                if defined $lhs_symbol->[Marpa::Internal::Symbol::NULLING];
-
-            # assume nulling until we hit an unmarked or non-nulling symbol
-            my $symbol_nulling = 1;
-
-            # make sure that all rules for this lhs are nulling
-            LHS_RULE:
-            for my $rule ( @{ $lhs_symbol->[Marpa::Internal::Symbol::LHS] } )
-            {
-
-                my $nulling = $rule->[Marpa::Internal::Rule::NULLING];
-
-                # unmarked rule, change the assumption for the symbol to undef,
-                # but keep scanning for rule marked non-nulling,
-                # which will override everything else
-                if ( not defined $nulling ) {
-                    $symbol_nulling = undef;
-                    next LHS_RULE;
-                }
-
-                # any non-nulling rule means the LHS is not nulling
-                if ( $nulling == 0 ) {
-                    $symbol_nulling = 0;
-                    last LHS_RULE;
-                }
-            } ## end for my $rule ( @{ $lhs_symbol->[...]})
-
-            # if this pass found the symbol nulling or non-nulling
-            #  mark the symbol
-            if ( defined $symbol_nulling ) {
-                $lhs_symbol->[Marpa::Internal::Symbol::NULLING] =
-                    $symbol_nulling;
-                $work_to_do++;
-
-                $symbol_work_set->[ $lhs_symbol->[Marpa::Internal::Symbol::ID]
-                ] = 1;
-            } ## end if ( defined $symbol_nulling )
-
-        }    # RULE
-
-        SYMBOL_PASS:
-        for my $symbol_id ( grep { $symbol_work_set->[$_] }
-            ( 0 .. $#{$symbol_work_set} ) )
-        {
-            my $work_symbol = $symbols->[$symbol_id];
-            $symbol_work_set->[$symbol_id] = 0;
-
-            my $rules_producing =
-                $work_symbol->[Marpa::Internal::Symbol::RHS];
-            PRODUCING_RULE: for my $rule ( @{$rules_producing} ) {
-
-                # no work to do -- this rule already has nulling marked
-                next PRODUCING_RULE
-                    if defined $rule->[Marpa::Internal::Rule::NULLING];
-
-                # assume nulling until we hit an unmarked or non-nulling symbol
-                my $rule_nulling = 1;
-
-                # are all symbols on the RHS of this rule marked?
-                RHS_SYMBOL:
-                for my $rhs_symbol (
-                    @{ $rule->[Marpa::Internal::Rule::RHS] } )
-                {
-                    my $nulling =
-                        $rhs_symbol->[Marpa::Internal::Symbol::NULLING];
-
-                    # unmarked rule, change the assumption for rule to undef,
-                    # but keep scanning for non-nulling
-                    # rule, which will override everything else
-                    if ( not defined $nulling ) {
-                        $rule_nulling = undef;
-                        next RHS_SYMBOL;
-                    }
-
-                    # any non-nulling RHS symbol means the rule is non-nulling
-                    if ( $nulling == 0 ) {
-                        $rule_nulling = 0;
-                        last RHS_SYMBOL;
-                    }
-                } ## end for my $rhs_symbol ( @{ $rule->[...]})
-
-                # if this pass found the rule nulling or non-nulling, mark the rule
-                if ( defined $rule_nulling ) {
-                    $rule->[Marpa::Internal::Rule::NULLING] = $rule_nulling;
-                    $work_to_do++;
-                    $rule_work_set->[ $rule->[Marpa::Internal::Rule::ID] ] =
-                        1;
-                } ## end if ( defined $rule_nulling )
-
-            } ## end for my $rule ( @{$rules_producing} )
-        }    # SYMBOL_PASS
-
-    }    # work_to_do loop
+            # This is not a nulling symbol unless every symbol on the rhs
+            # of every rule that has this symbol on its lhs is nulling
+            next SYMBOL
+                if defined List::Util::first { not $_->[Marpa::Internal::Symbol::NULLING] }
+                    map { @{ $_->[Marpa::Internal::Rule::RHS] } }
+                    @{ $symbol->[Marpa::Internal::Symbol::LHS] };
+            $symbol->[Marpa::Internal::Symbol::NULLING] = 1;
+            my @potential_new_nulling_symbol_ids =
+                map {
+                $_->[Marpa::Internal::Rule::LHS]
+                    ->[Marpa::Internal::Symbol::ID]
+                } @{ $symbol->[Marpa::Internal::Symbol::RHS] };
+            @workset[@potential_new_nulling_symbol_ids] =
+                (1) x scalar @potential_new_nulling_symbol_ids;
+        } ## end for my $symbol ( map { $symbols->[$_] } @symbol_ids )
+    } ## end while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#...))
 
     return 1;
 
@@ -3668,16 +3568,24 @@ sub rewrite_as_CHAF {
     RULE: for my $rule_id ( 0 .. ( $rule_count - 1 ) ) {
         my $rule = $rules->[$rule_id];
 
-        # unreachable and nulling rules are useless
+        # unreachable rules are useless
         my $productive = $rule->[Marpa::Internal::Rule::PRODUCTIVE];
         next RULE if not $productive;
         my $accessible = $rule->[Marpa::Internal::Rule::ACCESSIBLE];
         next RULE if not $accessible;
-        my $nulling = $rule->[Marpa::Internal::Rule::NULLING];
+
+        my $rhs           = $rule->[Marpa::Internal::Rule::RHS];
+
+        # A nulling rule -- one with only nulling symbols on
+        # the rhs is useless.
+        # By this definition, it is vacuously true
+        # that empty rules are nulling.
+        my $nulling = not defined(
+            List::Util::first { not $_->[Marpa::Internal::Symbol::NULLING] }
+            @{$rhs} );
         next RULE if $nulling;
 
         my $lhs           = $rule->[Marpa::Internal::Rule::LHS];
-        my $rhs           = $rule->[Marpa::Internal::Rule::RHS];
         my $nullable      = $rule->[Marpa::Internal::Rule::NULLABLE];
         my $user_priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
 

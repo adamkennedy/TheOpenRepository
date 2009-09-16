@@ -41,11 +41,11 @@ $g->set(
 );
 
 Marpa::Test::is( $g->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
-0: S' -> S /* nullable */
-1: S -> A A A A /* nullable */
+0: S' -> S
+1: S -> A A A A
 2: A -> a
-3: A -> E /* nullable nulling */
-4: E -> /* empty nullable nulling */
+3: A -> E
+4: E -> /* empty */
 EOS
 
 Marpa::Test::is( $g->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
