@@ -63,17 +63,17 @@ sub create_release_notes {
 
 	my @time   = localtime;
 	my @months = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
-
+	my $date   = sprintf '%02i %s %4i', $time[3], $months[ $time[4] ], $time[5] + 1900;
+	
 	my $dist_txt;
 	my $vars = {
 		dist      => $self,
 		dist_list => $dist_list,
-		dist_date => sprintf '%02i %s %4i',
-		$time[2], $months[ $time[3] ], $time[4] + 1900,
+		dist_date => $date,
 	};
 
 	my $tt = Template->new(
-		INCLUDE_PATH => [ $self->dist_dir, $self->wix_dist_dir, ],
+		INCLUDE_PATH => [ $self->dist_dir(), $self->wix_dist_dir(), ],
 		ABSOLUTE     => 1,
 	  )
 	  || PDWiX::Caught->throw(

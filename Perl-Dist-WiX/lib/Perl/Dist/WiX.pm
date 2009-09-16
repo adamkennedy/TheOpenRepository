@@ -153,6 +153,7 @@ use Object::Tiny qw(
   perl_version_corelist
   cpan
   force
+  forceperl
   checkpoint_before
   checkpoint_after
   checkpoint_stop
@@ -554,6 +555,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		fragments    => {},
 		beta_number  => 0,
 		force        => 0,
+		forceperl    => 0,
 		exe          => 0,
 		msi               => 1,        # Goal of Perl::Dist::WiX is to make an MSI.
 		checkpoint_before => 0,

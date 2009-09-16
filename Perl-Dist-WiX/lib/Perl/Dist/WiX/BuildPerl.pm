@@ -550,7 +550,7 @@ sub install_perl_bin {
 	my $self = shift;
 	my $perl = Perl::Dist::WiX::Asset::Perl->new(
 		parent => $self,
-		force  => $self->force,
+		force  => $self->forceperl() || $self->force(),
 		@_,
 	);
 
@@ -743,6 +743,11 @@ sub install_perl_toolchain {
 
 			# 2.20 and 2.2002 are buggy on 5.8.9.
 			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_05.tar.gz';
+		}
+		if ( $dist =~ /Win32API-Registry-0[.]31[.]tar[.]gz/msx ) {
+
+			# 0.31 does not include a Makefile.PL.
+			$dist = 'BLM/Win32API-Registry-0.30.tar.gz';
 		}
 		if ( $dist =~ /ExtUtils-MakeMaker-/msx ) {
 
