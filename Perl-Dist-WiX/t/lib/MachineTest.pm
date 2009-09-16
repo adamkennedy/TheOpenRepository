@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Perl::Dist::WiX::Util::Machine;
 
-our @t::lib::MachineTest::ISA = qw( Perl::Dist::WiX );
+our @ISA = qw( Perl::Dist::WiX );
 
 sub default_machine {
 	my $class = shift;
@@ -50,6 +50,8 @@ sub new {
 	my $self = bless { @_ }, $class;
 
 	mkdir $self->{image_dir};
+	
+	return $self;
 }
 
 sub prepare { 1; };
@@ -57,7 +59,7 @@ sub prepare { 1; };
 sub run {
 	my $self = shift;
 
-	my $num = $self->{number2} * 5 + $self->{number2}; 
+	my $num = $self->{number2} * 5 + $self->{number1}; 
 	
 	print "Object number $num ran.\n";
 }

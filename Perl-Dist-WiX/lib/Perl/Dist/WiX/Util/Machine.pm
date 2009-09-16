@@ -91,7 +91,9 @@ use Moose 0.90;
 use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool );
 use Params::Util qw( _IDENTIFIER _HASH0 _DRIVER );
 use File::Copy qw();
+use File::Remove qw();
 use File::HomeDir qw();
+use Perl::Dist::WiX::Exceptions;
 
 our $VERSION = '1.090_103';
 $VERSION = eval $VERSION;
@@ -124,23 +126,23 @@ has options => (
 	default  => sub { return {}; },
 	init_arg => undef,
     handles  => {
-	    '_add_option'    => 'set',
+	    '_set_options'   => 'set',
 		'_option_exists' => 'exists',
-		'_get_option'    => 'get',
+		'_get_options'   => 'get',
 		
 	},
 );
 
 has state => (
 	traits   => ['Hash'],
-	is       => 'ro',
+	is       => 'bare',
 	isa      => HashRef,
 	default  => sub { return {} },
 	init_arg => undef,
-	reader   => '_get_state',
     handles  => {
 	    '_has_state'   => 'count',
-        '_next_state'  => 'inc',
+	    '_set_state'   => 'set',
+		'_get_state'   => 'get',
 	},
 );
 
@@ -156,14 +158,14 @@ has eos => (
 	},
 );
 
-has output (
+has output => (
 	is      => 'ro',
 	isa     => Str,
 	default => sub { return File::HomeDir->my_desktop; },
 	reader  => '_get_output',
 );
 
-has common (
+has common => (
 	traits   => ['Array'],
 	is       => 'bare',
 	isa      => ArrayRef,
@@ -200,8 +202,8 @@ sub BUILD {
 	my $self = shift;
 
 	# Check params
-	unless ( _DRIVER($self->class, 'Perl::Dist::WiX') ) {
-		croak("Missing or invalid class param");
+	unless ( _DRIVER($self->_get_class(), 'Perl::Dist::WiX') ) {
+		PDWiX->throw("Missing or invalid class param");
 	}
 	
 	my $output = $self->_get_output();
@@ -245,7 +247,7 @@ sub add_dimension {
 	}
 	
 	$self->_add_dimension($name);
-	$self->_add_option( $name => [ ] );
+	$self->_set_options( $name => [ ] );
 	return 1;
 }
 
@@ -281,7 +283,7 @@ sub _increment_state {
 	my $name = shift;
 	
 	my $number = $self->_get_state($name);
-	$self->set_state($name, ++$number);
+	$self->_set_state($name, ++$number);
 	
 	return;
 }
@@ -322,7 +324,6 @@ sub next {
 	}
 
 	# Initialize the iterator if needed
-	my $options = $self->_get_options();
 	if ( $self->_has_state() ) {
 		# Move to the next position
 		my $found = 0;
