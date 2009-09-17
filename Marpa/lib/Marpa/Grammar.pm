@@ -3564,32 +3564,29 @@ sub rewrite_as_CHAF {
         # that lhs will be non-nullable, and since that
         # new lhs is on the far rhs of subsequent (going left) subproductions,
         # all subsequent subproductions and their lhs's will be non-nullable.
-        #
-        # Finally, in one more complication, remember that the nullable flag
-        # was unset if a nullable was aliased.  So we need to check both the
-        # NULL_ALIAS (for proper nullables) and the NULLING flags to see if
-        # the original rule was nullable.
 
-        my $last_nonnullable_ix  = -1;
-        my $proper_nullable_ixes = [];
-        RHS_SYMBOL: for my $ix ( 0 .. $#{$rhs} ) {
-            my $symbol = $rhs->[$ix];
-            my ( $null_alias, $rhs_symbol_nulling, $null_value ) = @{$symbol}[
-                Marpa::Internal::Symbol::NULL_ALIAS,
-                Marpa::Internal::Symbol::NULLING,
-                Marpa::Internal::Symbol::NULL_VALUE,
-            ];
-            next RHS_SYMBOL if $rhs_symbol_nulling;
-            if ($null_alias) {
-                push @{$proper_nullable_ixes}, $ix;
-                next RHS_SYMBOL;
+        my @aliased_rhs = map { $_->[Marpa::Internal::Symbol::NULL_ALIAS] // $_ } @{$rhs};
+        my @proper_nullable_ixes = grep {
+            $rhs->[$_]->[Marpa::Internal::Symbol::NULL_ALIAS]
+            } ( 0 .. $#{$rhs} );
+        my $last_nonnullable_ix = (
+            List::Util::first {
+                not $aliased_rhs[$_]->[Marpa::Internal::Symbol::NULLABLE];
             }
-            $last_nonnullable_ix = $ix;
-        } ## end for my $ix ( 0 .. $#{$rhs} )
+            ( reverse 0 .. $#aliased_rhs )
+        ) // -1;
+
+        my @trailing_null_width = (0) x scalar @{$rhs};
+        my $null_width_so_far   = 0;
+        IX: for my $ix ( reverse (($last_nonnullable_ix+1) .. $#{$rhs}) ) {
+            my $nullable = $aliased_rhs[$ix]->[Marpa::Internal::Symbol::NULLABLE];
+            $trailing_null_width[$ix] = $null_width_so_far + $nullable;
+            $null_width_so_far = $trailing_null_width[$ix];
+        }
 
         # we found no properly nullable symbols in the RHS, so this rule is useful without
         # any changes
-        if ( @{$proper_nullable_ixes} == 0 ) {
+        if ( not scalar @proper_nullable_ixes ) {
             $rule->[Marpa::Internal::Rule::USEFUL] = 1;
             next RULE;
         }
@@ -3604,11 +3601,11 @@ sub rewrite_as_CHAF {
         SUBPRODUCTION: while (1) {
 
             my $subproduction_end_ix;
-            my $proper_nullable_0_ix = $proper_nullable_ixes->[0];
+            my $proper_nullable_0_ix = $proper_nullable_ixes[0];
             my $proper_nullable_0_subproduction_ix =
                 $proper_nullable_0_ix - $subproduction_start_ix;
 
-            my $proper_nullable_1_ix = $proper_nullable_ixes->[1];
+            my $proper_nullable_1_ix = $proper_nullable_ixes[1];
             my $proper_nullable_1_subproduction_ix;
             if ( defined $proper_nullable_1_ix ) {
                 $proper_nullable_1_subproduction_ix =
@@ -3618,7 +3615,7 @@ sub rewrite_as_CHAF {
             my $subproduction_factor_0_rhs;
             my $next_subproduction_lhs;
 
-            given ( scalar @{$proper_nullable_ixes} ) {
+            given ( scalar @proper_nullable_ixes ) {
 
                 # When there is 1 proper nullables
                 when (1) {
@@ -3628,7 +3625,7 @@ sub rewrite_as_CHAF {
                             $subproduction_start_ix .. $subproduction_end_ix
                         ]
                     ];
-                    $proper_nullable_ixes = [];
+                    @proper_nullable_ixes = ();
                 } ## end when (1)
 
                 # When there are 2 proper nullables
@@ -3639,14 +3636,14 @@ sub rewrite_as_CHAF {
                             $subproduction_start_ix .. $subproduction_end_ix
                         ]
                     ];
-                    $proper_nullable_ixes = [];
+                    @proper_nullable_ixes = ();
                 } ## end when (2)
 
                 # When there are 3 or more proper nullables
                 # and following subproduction is non-nullable.
                 when ( $proper_nullable_1_ix < $last_nonnullable_ix ) {
                     $subproduction_end_ix = $proper_nullable_1_ix;
-                    splice @{$proper_nullable_ixes}, 0, 2;
+                    splice @proper_nullable_ixes, 0, 2;
 
                     my $unique_name_piece = sprintf '[x%x]',
                         (
@@ -3678,7 +3675,7 @@ sub rewrite_as_CHAF {
                     # if we got this far we have 3 or more proper nullables, and the next
                     # subproduction is nullable
                     $subproduction_end_ix = $proper_nullable_1_ix - 1;
-                    shift @{$proper_nullable_ixes};
+                    shift @proper_nullable_ixes;
 
                     my $unique_name_piece = sprintf '[x%x]',
                         (
@@ -3695,13 +3692,16 @@ sub rewrite_as_CHAF {
                         )
                     );
 
-                    @{$next_subproduction_lhs}[
-                        Marpa::Internal::Symbol::NULLABLE,
-                        Marpa::Internal::Symbol::ACCESSIBLE,
-                        Marpa::Internal::Symbol::PRODUCTIVE,
-                        Marpa::Internal::Symbol::NULLING,
-                        ]
-                        = ( 1, 1, 1, 0, );
+                    $next_subproduction_lhs
+                        ->[Marpa::Internal::Symbol::NULLABLE] =
+                        $trailing_null_width[$subproduction_end_ix+1];
+                    $next_subproduction_lhs
+                        ->[Marpa::Internal::Symbol::NULLING] = 0;
+                    $next_subproduction_lhs
+                        ->[Marpa::Internal::Symbol::ACCESSIBLE] = 1;
+                    $next_subproduction_lhs
+                        ->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
+
                     my $nulling_subproduction_lhs =
                         alias_symbol( $grammar, $next_subproduction_lhs );
                     $nulling_subproduction_lhs
