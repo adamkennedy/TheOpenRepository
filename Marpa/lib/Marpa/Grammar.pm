@@ -1445,9 +1445,8 @@ sub Marpa::show_symbol {
     my $text     = q{};
     my $stripped = $#{$symbol} < Marpa::Internal::Symbol::LAST_FIELD;
 
-    $text .= sprintf '%d: %s,',
-        $symbol->[Marpa::Internal::Symbol::ID],
-        $symbol->[Marpa::Internal::Symbol::NAME];
+    my $name = $symbol->[Marpa::Internal::Symbol::NAME];
+    $text .= sprintf '%d: %s,', $symbol->[Marpa::Internal::Symbol::ID], $name;
 
     if ( exists $symbol->[Marpa::Internal::Symbol::LHS] ) {
         $text .= sprintf ' lhs=[%s]',
@@ -1473,6 +1472,16 @@ sub Marpa::show_symbol {
     if ($nullable) {
         $text .= " nullable=$nullable";
     }
+
+    given ( my $maximal = $symbol->[Marpa::Internal::Symbol::MAXIMAL] ) {
+        when (undef) { break; }
+        when (1)     { $text .= ' maximal' }
+        when (0)     { $text .= ' minimal' }
+        default {
+            Marpa::exception(
+                qq{Invalid maximal value for symbol "$name": $maximal})
+        }
+    } ## end given
 
     ELEMENT:
     for my $comment_element (
@@ -1653,7 +1662,6 @@ sub Marpa::show_rule {
     for my $comment_element (
         (   [ 1, 'unproductive', Marpa::Internal::Rule::PRODUCTIVE, ],
             [ 1, 'inaccessible', Marpa::Internal::Rule::ACCESSIBLE, ],
-            [ 0, 'maximal',      Marpa::Internal::Rule::MAXIMAL, ],
             [ 0, 'nullable',     Marpa::Internal::Rule::NULLABLE, ],
         )
         )
@@ -1665,6 +1673,17 @@ sub Marpa::show_rule {
         next ELEMENT if not $value;
         push @comment, $comment;
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
+
+    given ( my $maximal = $rule->[Marpa::Internal::Rule::MAXIMAL] ) {
+        when (undef) { break; }
+        when (1)     { push @comment, 'maximal' }
+        when (0)     { push @comment, 'minimal' }
+        default {
+            my $name = $rule->[Marpa::Internal::Rule::NAME];
+            Marpa::exception(
+                qq{Invalid maximal value for rule "$name": $maximal})
+        }
+    } ## end given
 
     my $user_priority     = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
     my $internal_priority = $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY];
@@ -1861,7 +1880,7 @@ sub add_terminal {
     my ( $regex, $prefix, $suffix, );
     my $action;
     my $user_priority = 0;
-    my $maximal       = 0;
+    my $maximal;
 
     while ( my ( $key, $value ) = each %{$options} ) {
         given ($key) {
@@ -2125,7 +2144,6 @@ sub add_rule {
     $new_rule->[Marpa::Internal::Rule::NULLABLE]      = $nulling;
     $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
     $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
-    $new_rule->[Marpa::Internal::Rule::MAXIMAL]       = 0;
     $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
     $new_rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY] =
         $internal_priority;
@@ -3432,16 +3450,17 @@ sub alias_symbol {
     my $alias_name = $nullable_symbol->[Marpa::Internal::Symbol::NAME] . '[]';
     my $alias      = [];
     $#{$alias} = Marpa::Internal::Symbol::LAST_FIELD;
-    $alias->[ Marpa::Internal::Symbol::ID, ]         = $symbol_count;
+    $alias->[Marpa::Internal::Symbol::ID]            = $symbol_count;
     $alias->[Marpa::Internal::Symbol::NAME]          = $alias_name;
     $alias->[Marpa::Internal::Symbol::LHS]           = [];
     $alias->[Marpa::Internal::Symbol::RHS]           = [];
     $alias->[Marpa::Internal::Symbol::ACCESSIBLE]    = $accessible;
     $alias->[Marpa::Internal::Symbol::PRODUCTIVE]    = $productive;
-    $alias->[Marpa::Internal::Symbol::NULLABLE]      = 1;
     $alias->[Marpa::Internal::Symbol::NULLING]       = 1;
     $alias->[Marpa::Internal::Symbol::NULL_VALUE]    = $null_value;
     $alias->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
+    $alias->[Marpa::Internal::Symbol::NULLABLE] =
+        $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE];
     push @{$symbols}, $alias;
     weaken( $symbol->{$alias_name} = $alias );
 
@@ -3500,17 +3519,6 @@ sub rewrite_as_CHAF {
 
     # mark, or create as needed, the useful rules
 
-    my $position_format = do {
-        my $max_rhs_length = 10;
-        RULE: for my $rule ( @{$rules} ) {
-            my $rhs = $rule->[Marpa::Internal::Rule::RHS];
-            next RULE if $max_rhs_length >= @{$rhs};
-            $max_rhs_length = @{$rhs};
-        }
-        my $format_length = 1 + length sprintf '%u', $max_rhs_length;
-        q{%0} . $format_length . 'u';
-    };
-
     # get the initial rule count -- new rules will be added but we don't iterate
     # over them
     my $rule_count = @{$rules};
@@ -3561,8 +3569,8 @@ sub rewrite_as_CHAF {
         # NULL_ALIAS (for proper nullables) and the NULLING flags to see if
         # the original rule was nullable.
 
-        my $last_nonnullable = -1;
-        my $proper_nullables = [];
+        my $last_nonnullable_ix = -1;
+        my $proper_nullable_ixes = [];
         RHS_SYMBOL: for my $ix ( 0 .. $#{$rhs} ) {
             my $symbol = $rhs->[$ix];
             my ( $null_alias, $rhs_symbol_nulling, $null_value ) = @{$symbol}[
@@ -3572,122 +3580,136 @@ sub rewrite_as_CHAF {
             ];
             next RHS_SYMBOL if $rhs_symbol_nulling;
             if ($null_alias) {
-                push @{$proper_nullables}, $ix;
+                push @{$proper_nullable_ixes}, $ix;
                 next RHS_SYMBOL;
             }
-            $last_nonnullable = $ix;
+            $last_nonnullable_ix = $ix;
         } ## end for my $ix ( 0 .. $#{$rhs} )
 
         # we found no properly nullable symbols in the RHS, so this rule is useful without
         # any changes
-        if ( @{$proper_nullables} == 0 ) {
+        if ( @{$proper_nullable_ixes} == 0 ) {
             $rule->[Marpa::Internal::Rule::USEFUL] = 1;
             next RULE;
         }
 
         # The left hand side of the first subproduction is the lhs of the original rule
-        my $subp_lhs   = $lhs;
-        my $subp_start = 0;
+        my $subproduction_lhs   = $lhs;
+        my $subproduction_start_ix = 0;
 
         # break this production into subproductions with a fixed number of proper nullables,
         # then factor out the proper nullables into a set of productions
         # with only non-nullable and nulling symbols.
         SUBPRODUCTION: while (1) {
 
-            my $subp_end;
-            my $proper_nullable0      = $proper_nullables->[0];
-            my $subp_proper_nullable0 = $proper_nullable0 - $subp_start;
-            my $proper_nullable1;
-            my $subp_proper_nullable1;
-            my $subp_factor0_rhs;
-            my $next_subp_lhs;
+            my $subproduction_end_ix;
+            my $proper_nullable_0_ix = $proper_nullable_ixes->[0];
+            my $proper_nullable_0_subproduction_ix =
+                $proper_nullable_0_ix - $subproduction_start_ix;
+            my $proper_nullable_1_ix;
+            my $proper_nullable_1_subproduction_ix;
+            my $subproduction_factor_0_rhs;
+            my $next_subproduction_lhs;
 
             SETUP_SUBPRODUCTION: {
 
-                if ( @{$proper_nullables} == 1 ) {
-                    $subp_end = $#{$rhs};
-                    $subp_factor0_rhs =
-                        [ @{$rhs}[ $subp_start .. $subp_end ] ];
-                    $proper_nullables = [];
+                if ( @{$proper_nullable_ixes} == 1 ) {
+                    $subproduction_end_ix       = $#{$rhs};
+                    $subproduction_factor_0_rhs = [
+                        @{$rhs}[
+                            $subproduction_start_ix .. $subproduction_end_ix
+                        ]
+                    ];
+                    $proper_nullable_ixes = [];
                     last SETUP_SUBPRODUCTION;
-                } ## end if ( @{$proper_nullables} == 1 )
+                } ## end if ( @{$proper_nullable_ixes} == 1 )
 
-                $proper_nullable1      = $proper_nullables->[1];
-                $subp_proper_nullable1 = $proper_nullable1 - $subp_start;
+                $proper_nullable_1_ix = $proper_nullable_ixes->[1];
+                $proper_nullable_1_subproduction_ix =
+                    $proper_nullable_1_ix - $subproduction_start_ix;
 
-                if ( @{$proper_nullables} == 2 ) {
-                    $subp_end = $#{$rhs};
-                    $subp_factor0_rhs =
-                        [ @{$rhs}[ $subp_start .. $subp_end ] ];
-                    $proper_nullables = [];
+                if ( @{$proper_nullable_ixes} == 2 ) {
+                    $subproduction_end_ix       = $#{$rhs};
+                    $subproduction_factor_0_rhs = [
+                        @{$rhs}[
+                            $subproduction_start_ix .. $subproduction_end_ix
+                        ]
+                    ];
+                    $proper_nullable_ixes = [];
                     last SETUP_SUBPRODUCTION;
-                } ## end if ( @{$proper_nullables} == 2 )
+                } ## end if ( @{$proper_nullable_ixes} == 2 )
 
                 # The following subproduction is non-nullable.
-                if ( $proper_nullable1 < $last_nonnullable ) {
-                    $subp_end = $proper_nullable1;
-                    splice @{$proper_nullables}, 0, 2;
+                if ( $proper_nullable_1_ix < $last_nonnullable_ix ) {
+                    $subproduction_end_ix = $proper_nullable_1_ix;
+                    splice @{$proper_nullable_ixes}, 0, 2;
 
                     my $unique_name_piece = sprintf '[x%x]',
                         (
                         scalar
                             @{ $grammar->[Marpa::Internal::Grammar::SYMBOLS] }
                         );
-                    $next_subp_lhs = assign_symbol( $grammar,
+                    $next_subproduction_lhs = assign_symbol( $grammar,
                               $lhs->[Marpa::Internal::Symbol::NAME] . '[R'
                             . $rule_id . q{:}
-                            . ( $subp_end + 1 ) . ']'
+                            . ( $subproduction_end_ix + 1 ) . ']'
                             . $unique_name_piece );
-                    @{$next_subp_lhs}[
+                    @{$next_subproduction_lhs}[
                         Marpa::Internal::Symbol::NULLABLE,
                         Marpa::Internal::Symbol::ACCESSIBLE,
                         Marpa::Internal::Symbol::PRODUCTIVE,
                         Marpa::Internal::Symbol::NULLING,
                         ]
                         = ( 0, 1, 1, 0 );
-                    $subp_factor0_rhs = [
-                        @{$rhs}[ $subp_start .. $subp_end ],
-                        $next_subp_lhs
+                    $subproduction_factor_0_rhs = [
+                        @{$rhs}[
+                            $subproduction_start_ix .. $subproduction_end_ix
+                        ],
+                        $next_subproduction_lhs
                     ];
                     last SETUP_SUBPRODUCTION;
-                } ## end if ( $proper_nullable1 < $last_nonnullable )
+                } ## end if ( $proper_nullable_1_ix < $last_nonnullable_ix )
 
                 # if we got this far we have 3 or more proper nullables, and the next
                 # subproduction is nullable
-                $subp_end = $proper_nullable1 - 1;
-                shift @{$proper_nullables};
+                $subproduction_end_ix = $proper_nullable_1_ix - 1;
+                shift @{$proper_nullable_ixes};
 
                 my $unique_name_piece = sprintf '[x%x]',
                     (
                     scalar @{ $grammar->[Marpa::Internal::Grammar::SYMBOLS] }
                     );
 
-                $next_subp_lhs = assign_symbol(
+                $next_subproduction_lhs = assign_symbol(
                     $grammar,
                     (         $lhs->[Marpa::Internal::Symbol::NAME] . '[R'
                             . $rule_id . q{:}
-                            . ( $subp_end + 1 ) . ']'
+                            . ( $subproduction_end_ix + 1 ) . ']'
                             . $unique_name_piece
                     )
                 );
 
-                @{$next_subp_lhs}[
+                @{$next_subproduction_lhs}[
                     Marpa::Internal::Symbol::NULLABLE,
                     Marpa::Internal::Symbol::ACCESSIBLE,
                     Marpa::Internal::Symbol::PRODUCTIVE,
                     Marpa::Internal::Symbol::NULLING,
                     ]
                     = ( 1, 1, 1, 0, );
-                my $nulling_subp_lhs =
-                    alias_symbol( $grammar, $next_subp_lhs );
-                $nulling_subp_lhs->[Marpa::Internal::Symbol::IS_CHAF_NULLING]
-                    = [ @{$rhs}[ ( $subp_end + 1 ) .. $#{$rhs} ] ];
-                $subp_factor0_rhs =
-                    [ @{$rhs}[ $subp_start .. $subp_end ], $next_subp_lhs ];
+                my $nulling_subproduction_lhs =
+                    alias_symbol( $grammar, $next_subproduction_lhs );
+                $nulling_subproduction_lhs
+                    ->[Marpa::Internal::Symbol::IS_CHAF_NULLING] =
+                    [ @{$rhs}[ ( $subproduction_end_ix + 1 ) .. $#{$rhs} ] ];
+                $subproduction_factor_0_rhs = [
+                    @{$rhs}
+                        [ $subproduction_start_ix .. $subproduction_end_ix ],
+                    $next_subproduction_lhs
+                ];
 
             }    # SETUP_SUBPRODUCTION
 
-            my $factored_rhs = [$subp_factor0_rhs];
+            my $factored_rhs = [$subproduction_factor_0_rhs];
 
             FACTOR: {
 
@@ -3702,23 +3724,26 @@ sub rewrite_as_CHAF {
                 # If substituting nulling symbols for all proper nullables does not
                 # make a production nulling, then it is not nullable, and vice versa.
 
-                last FACTOR if $nullable and not defined $proper_nullable1;
+                last FACTOR
+                    if $nullable and not defined $proper_nullable_1_ix;
 
                 # The second factored production, with a nulling symbol substituted for
                 # the first proper nullable.
                 # and nulling it would make this factored subproduction nulling, don't
                 # bother.
-                $factored_rhs->[1] = [ @{$subp_factor0_rhs} ];
-                $factored_rhs->[1]->[$subp_proper_nullable0] =
-                    $subp_factor0_rhs->[$subp_proper_nullable0]
+                $factored_rhs->[1] = [ @{$subproduction_factor_0_rhs} ];
+                $factored_rhs->[1]->[$proper_nullable_0_subproduction_ix] =
+                    $subproduction_factor_0_rhs
+                    ->[$proper_nullable_0_subproduction_ix]
                     ->[Marpa::Internal::Symbol::NULL_ALIAS];
 
                 # The third factored production, with a nulling symbol replacing the
                 # second proper nullable.  Make sure there ARE two proper nullables.
-                last FACTOR if not defined $proper_nullable1;
-                $factored_rhs->[2] = [ @{$subp_factor0_rhs} ];
-                $factored_rhs->[2]->[$subp_proper_nullable1] =
-                    $subp_factor0_rhs->[$subp_proper_nullable1]
+                last FACTOR if not defined $proper_nullable_1_ix;
+                $factored_rhs->[2] = [ @{$subproduction_factor_0_rhs} ];
+                $factored_rhs->[2]->[$proper_nullable_1_subproduction_ix] =
+                    $subproduction_factor_0_rhs
+                    ->[$proper_nullable_1_subproduction_ix]
                     ->[Marpa::Internal::Symbol::NULL_ALIAS];
 
                 # The fourth and last factored production, with a nulling symbol replacing
@@ -3726,8 +3751,9 @@ sub rewrite_as_CHAF {
                 # production.
                 last FACTOR if $nullable;
                 $factored_rhs->[3] = [ @{ $factored_rhs->[2] } ];
-                $factored_rhs->[3]->[$subp_proper_nullable0] =
-                    $subp_factor0_rhs->[$subp_proper_nullable0]
+                $factored_rhs->[3]->[$proper_nullable_0_subproduction_ix] =
+                    $subproduction_factor_0_rhs
+                    ->[$proper_nullable_0_subproduction_ix]
                     ->[Marpa::Internal::Symbol::NULL_ALIAS];
 
             }    # FACTOR
@@ -3742,13 +3768,13 @@ sub rewrite_as_CHAF {
                 # figure out which closure to use
                 # if the LHS is the not LHS of the original rule, we have a
                 # special CHAF header
-                my $has_chaf_lhs = ( $subp_lhs != $lhs );
+                my $has_chaf_lhs = ( $subproduction_lhs != $lhs );
 
                 # if a CHAF LHS was created for the next subproduction,
                 # there is a CHAF continuation for this subproduction.
                 # It applies to this factor if there is one of the first two
                 # factors of more than two.
-                my $has_chaf_rhs = $next_subp_lhs;
+                my $has_chaf_rhs = $next_subproduction_lhs;
 
                 # Add new rule.   In assigning internal priority:
                 # Leftmost subproductions have highest priority.
@@ -3757,10 +3783,11 @@ sub rewrite_as_CHAF {
                 # highest, last is lowest, but middle two are
                 # reversed.
                 my $new_internal_priority =
-                    10 * ( @{$rhs} - $subp_start ) + ( qw(4 2 3 1) [$ix] );
+                    10 * ( @{$rhs} - $subproduction_start_ix )
+                    + ( qw(4 2 3 1) [$ix] );
                 my $new_rule = add_rule(
                     {   grammar           => $grammar,
-                        lhs               => $subp_lhs,
+                        lhs               => $subproduction_lhs,
                         rhs               => $factor_rhs,
                         user_priority     => $user_priority,
                         internal_priority => $new_internal_priority,
@@ -3778,18 +3805,20 @@ sub rewrite_as_CHAF {
                     $has_chaf_rhs;
 
                 $new_rule->[Marpa::Internal::Rule::ORIGINAL_RULE] = $rule;
-                $new_rule->[Marpa::Internal::Rule::CHAF_START] = $subp_start;
-                $new_rule->[Marpa::Internal::Rule::CHAF_END]   = $subp_end;
+                $new_rule->[Marpa::Internal::Rule::CHAF_START] =
+                    $subproduction_start_ix;
+                $new_rule->[Marpa::Internal::Rule::CHAF_END] =
+                    $subproduction_end_ix;
                 $new_rule->[Marpa::Internal::Rule::ACTION] =
                     $rule->[Marpa::Internal::Rule::ACTION];
 
             }    # for each factored rhs
 
             # no more
-            last SUBPRODUCTION if not $next_subp_lhs;
-            $subp_lhs   = $next_subp_lhs;
-            $subp_start = $subp_end + 1;
-            $nullable   = $subp_start > $last_nonnullable;
+            last SUBPRODUCTION if not $next_subproduction_lhs;
+            $subproduction_lhs      = $next_subproduction_lhs;
+            $subproduction_start_ix = $subproduction_end_ix + 1;
+            $nullable = $subproduction_start_ix > $last_nonnullable_ix;
 
         }    # SUBPRODUCTION
 

@@ -67,7 +67,7 @@ Marpa::Test::is( $grammar->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
 1: A, lhs=[1 2] rhs=[0 4 6 7 9 10 11 12]
 2: a, lhs=[] rhs=[1] terminal
 3: E, lhs=[3] rhs=[2] nullable=1 nulling
-4: S[], lhs=[] rhs=[] nullable=1 nulling
+4: S[], lhs=[] rhs=[] nullable=4 nulling
 5: A[], lhs=[] rhs=[5 8 11 12] nullable=1 nulling
 6: S[R0:1][x6], lhs=[7 8 9] rhs=[4 5]
 7: S[R0:1][x6][], lhs=[] rhs=[6] nullable=1 nulling

@@ -1,5 +1,4 @@
 Add Test::Pod Test::CPAN::Meta Test::MinimumVersion Test::Perl::Critic
-Add minimal, maximal to show_rule, show_symbol
 Eliminate internal priority?  If so, rename user priority to PRIORITY.
 Convert user priority to string?
 
