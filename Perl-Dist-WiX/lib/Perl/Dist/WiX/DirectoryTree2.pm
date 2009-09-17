@@ -9,6 +9,7 @@ package Perl::Dist::WiX::DirectoryTree2;
 # License is the same as perl. See Wix.pm for details.
 #
 use 5.008001;
+
 #use metaclass (
 #	base_class  => 'MooseX::Singleton::Object',
 #	metaclass   => 'MooseX::Singleton::Meta::Class',

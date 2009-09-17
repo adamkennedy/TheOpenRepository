@@ -43,7 +43,7 @@ requires       'Readonly'              => '1.03';
 # Make this 2.20, !2.21 when I switch to M::B 0.36.
 requires       'Template'              => '2.22';
 requires       'URI'                   => '1.35';
-requires       'WiX3'                  => '0.006';
+requires       'WiX3'                  => '0.008';
 recommends     'Readonly::XS'          => '1.05';
 test_requires  'Test::More'            => '0.61';
 test_requires  'Test::Output'          => '0.11';

@@ -96,13 +96,13 @@ use File::HomeDir qw();
 use Perl::Dist::WiX::Exceptions;
 
 our $VERSION = '1.090_103';
-$VERSION = eval $VERSION;
+$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 has class => (
-	is => 'ro',
-	isa => Str,
+	is       => 'ro',
+	isa      => Str,
 	required => 1,
-    reader => '_get_class',	
+	reader   => '_get_class',
 );
 
 has dimensions => (
@@ -111,11 +111,11 @@ has dimensions => (
 	isa      => ArrayRef,
 	default  => sub { return []; },
 	init_arg => undef,
-    handles  => {
-	    '_add_dimension' => 'push',
+	handles  => {
+		'_add_dimension'  => 'push',
 		'_get_dimensions' => 'elements',
-		
-		
+
+
 	},
 );
 
@@ -125,11 +125,11 @@ has options => (
 	isa      => HashRef,
 	default  => sub { return {}; },
 	init_arg => undef,
-    handles  => {
-	    '_set_options'   => 'set',
+	handles  => {
+		'_set_options'   => 'set',
 		'_option_exists' => 'exists',
 		'_get_options'   => 'get',
-		
+
 	},
 );
 
@@ -139,10 +139,10 @@ has state => (
 	isa      => HashRef,
 	default  => sub { return {} },
 	init_arg => undef,
-    handles  => {
-	    '_has_state'   => 'count',
-	    '_set_state'   => 'set',
-		'_get_state'   => 'get',
+	handles  => {
+		'_has_state' => 'count',
+		'_set_state' => 'set',
+		'_get_state' => 'get',
 	},
 );
 
@@ -153,9 +153,7 @@ has eos => (
 	default  => 0,
 	init_arg => undef,
 	reader   => '_get_eos',
-    handles => {
-        '_set_eos' => 'set',
-	},
+	handles  => { '_set_eos' => 'set', },
 );
 
 has output => (
@@ -170,9 +168,7 @@ has common => (
 	is       => 'bare',
 	isa      => ArrayRef,
 	required => 1,
-	handles  => {
-		'_get_common' => 'elements',
-	},
+	handles  => { '_get_common' => 'elements', },
 );
 
 #####################################################################
@@ -188,31 +184,34 @@ sub BUILDARGS {
 		%args = (@_);
 	} else {
 		PDWiX->throw(
-			'Parameters incorrect (not a hashref or hash) for Perl::Dist::WiX::Util::Machine');
+'Parameters incorrect (not a hashref or hash) for Perl::Dist::WiX::Util::Machine'
+		);
 	}
-		
-	if ( _HASH0($args{common}) ) {
+
+	if ( _HASH0( $args{common} ) ) {
 		$args{common} = [ %{ $args{common} } ];
 	}
 
 	return \%args;
-}
+} ## end sub BUILDARGS
 
 sub BUILD {
 	my $self = shift;
 
 	# Check params
-	unless ( _DRIVER($self->_get_class(), 'Perl::Dist::WiX') ) {
-		PDWiX->throw("Missing or invalid class param");
+	unless ( _DRIVER( $self->_get_class(), 'Perl::Dist::WiX' ) ) {
+		PDWiX->throw('Missing or invalid class param');
 	}
-	
+
 	my $output = $self->_get_output();
 	unless ( -d $output and -w $output ) {
-		PDWiX->throw("The output directory '$output' does not exist, or is not writable");
+		PDWiX->throw(
+"The output directory '$output' does not exist, or is not writable"
+		);
 	}
 
 	return $self;
-}
+} ## end sub BUILD
 
 
 
@@ -238,18 +237,19 @@ generated.
 
 sub add_dimension {
 	my $self = shift;
-	my $name = _IDENTIFIER(shift) or PDWiX->throw("Missing or invalid dimension name");
+	my $name = _IDENTIFIER(shift)
+	  or PDWiX->throw('Missing or invalid dimension name');
 	if ( $self->_has_state() ) {
-		PDWiX->throw("Cannot alter params once iterating");
+		PDWiX->throw('Cannot alter params once iterating');
 	}
 	if ( $self->_option_exists($name) ) {
 		PDWiX->throw("The dimension '$name' already exists");
 	}
-	
+
 	$self->_add_dimension($name);
-	$self->_set_options( $name => [ ] );
+	$self->_set_options( $name => [] );
 	return 1;
-}
+} ## end sub add_dimension
 
 =head2 add_option
 
@@ -259,18 +259,19 @@ Adds a 'option' (a set of parameters that can change) to a dimension.
 
 sub add_option {
 	my $self = shift;
-	my $name = _IDENTIFIER(shift) or PDWiX->throw("Missing or invalid dimension name");
+	my $name = _IDENTIFIER(shift)
+	  or PDWiX->throw('Missing or invalid dimension name');
 	if ( $self->_has_state() ) {
-		PDWiX->throw("Cannot alter params once iterating");
+		PDWiX->throw('Cannot alter params once iterating');
 	}
 	unless ( $self->_option_exists($name) ) {
-		croak("The dimension '$name' does not exist");
+		PDWiX->throw("The dimension '$name' does not exist");
 	}
 	my $option = $self->_get_options($name);
-	push @{$option}, [ @_ ];
-	$self->_set_options($name => $option);
+	push @{$option}, [@_];
+	$self->_set_options( $name => $option );
 	return 1;
-}
+} ## end sub add_option
 
 
 
@@ -281,10 +282,10 @@ sub add_option {
 sub _increment_state {
 	my $self = shift;
 	my $name = shift;
-	
+
 	my $number = $self->_get_state($name);
-	$self->_set_state($name, ++$number);
-	
+	$self->_set_state( $name, ++$number );
+
 	return;
 }
 
@@ -300,7 +301,7 @@ distributions configured for this machine.
 sub all {
 	my $self    = shift;
 	my @objects = ();
-	while ( 1 ) {
+	while (1) {
 		my $object = $self->next() or last;
 		push @objects, $object;
 	}
@@ -316,19 +317,24 @@ distribution that is configured for this machine.
 
 =cut
 
-sub next {
+sub next { ## no critic (ProhibitBuiltinHomonyms)
 	my $self = shift;
 	if ( $self->_get_eos() ) {
+
 		# Already at last state
 		return undef;
 	}
 
 	# Initialize the iterator if needed
 	if ( $self->_has_state() ) {
+
 		# Move to the next position
 		my $found = 0;
 		foreach my $name ( $self->_get_dimensions() ) {
-			unless ( $self->_get_state($name) == $#{ $self->_get_options($name) } ) {
+			unless ( $self->_get_state($name) ==
+				$#{ $self->_get_options($name) } )
+			{
+
 				# Normal iteration
 				$self->_increment_state($name);
 				$found = 1;
@@ -339,13 +345,14 @@ sub next {
 			# Loop the state to the start, so the
 			# next dimension will iterate to the
 			# correct value.
-			$self->_set_state($name => 0);
-		}
-		unless ( $found ) {
+			$self->_set_state( $name => 0 );
+		} ## end foreach my $name ( $self->_get_dimensions...)
+		unless ($found) {
 			$self->_set_eos();
 			return undef;
 		}
 	} else {
+
 		# Initialize to the first position
 		my %state;
 		foreach my $name ( $self->_get_dimensions() ) {
@@ -355,19 +362,19 @@ sub next {
 			$state{$name} = 0;
 		}
 		$self->_set_state(%state);
-		
-	}
+
+	} ## end else [ if ( $self->_has_state...)]
 
 	# Create the param-set
 	my @params = $self->_get_common();
 	foreach my $name ( $self->_get_dimensions() ) {
 		my $i = $self->_get_state($name);
-		push @params, @{ $self->_get_options($name)->[ $i ] };
+		push @params, @{ $self->_get_options($name)->[$i] };
 	}
 
 	# Create the object with those params
-	return $self->_get_class()->new( @params );
-}
+	return $self->_get_class()->new(@params);
+} ## end sub next
 
 
 
@@ -386,27 +393,28 @@ machine.
 =cut
 
 sub run {
-	my $self = shift;
-	my $success;
+	my $self       = shift;
+	my $success    = 0;
 	my $output_dir = $self->_get_output();
-	
+
 	while ( my $dist = $self->next() ) {
 		$dist->prepare();
-		my $success = eval { $dist->run(); 1; };
+		$success = eval { $dist->run(); 1; };
 
 		if ($success) {
+
 			# Copy the output products for this run to the
 			# main output area.
 			foreach my $file ( @{ $dist->output_file() } ) {
 				File::Copy::move( $file, $output_dir );
 			}
-		};
-		
+		}
+
 		# Flush out the image dir for the next run
-		File::Remove::remove(\1, $dist->image_dir());
-	}
+		File::Remove::remove( \1, $dist->image_dir() );
+	} ## end while ( my $dist = $self->next...)
 	return 1;
-}
+} ## end sub run
 
 1;
 

@@ -536,7 +536,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 		# Remove waste and temporary files
 		'remove_waste',
-		
+
 		# Create the distribution list
 		'create_distribution_list',
 

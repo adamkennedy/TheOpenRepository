@@ -729,7 +729,7 @@ sub install_perl_toolchain {
 		}
 		if ( $dist =~ /Time-HiRes/msx ) {
 
-			# Tests are so timing-sensitive they fail on their own sometimes. 
+		   # Tests are so timing-sensitive they fail on their own sometimes.
 			$force = 1;
 		}
 		if ( $dist =~ /Term-ReadLine-Perl/msx ) {

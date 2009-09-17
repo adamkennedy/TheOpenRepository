@@ -63,8 +63,9 @@ sub create_release_notes {
 
 	my @time   = localtime;
 	my @months = qw( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec );
-	my $date   = sprintf '%02i %s %4i', $time[3], $months[ $time[4] ], $time[5] + 1900;
-	
+	my $date   = sprintf '%02i %s %4i', $time[3], $months[ $time[4] ],
+	  $time[5] + 1900;
+
 	my $dist_txt;
 	my $vars = {
 		dist      => $self,

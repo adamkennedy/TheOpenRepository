@@ -239,7 +239,7 @@ sub BUILD {
 			  . $self->_get_perl_version
 			  . "' is not supported in $class" );
 	}
-	
+
 } ## end sub BUILD
 
 sub prepare {
