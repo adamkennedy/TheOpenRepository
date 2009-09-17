@@ -79,6 +79,7 @@
 /BINGOS/CPANPLUS-Dist-Build-
 /BINGOS/Log-Message-Simple-
 /RMBARKER/Pod-Plainer-
+/LETO/Math-BigRat-
 
 # Toolchain
 /MSCHWERN/ExtUtils-MakeMaker-
