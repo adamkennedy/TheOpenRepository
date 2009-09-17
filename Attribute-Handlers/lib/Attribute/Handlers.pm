@@ -4,7 +4,7 @@ use Carp;
 use warnings;
 use strict;
 use vars qw($VERSION $AUTOLOAD);
-$VERSION = '0.86'; # remember to update version in POD!
+$VERSION = '0.86_01'; # remember to update version in POD!
 # $DB::single=1;
 
 my %symcache;
@@ -90,6 +90,29 @@ sub import {
         }
     }
 }
+
+# On older perls, code attribute handlers run before the sub gets placed
+# in its package.  Since the :ATTR handlers need to know the name of the
+# sub they're applied to, the name lookup (via findsym) needs to be
+# delayed: we do it immediately before we might need to find attribute
+# handlers from their name.  However, on newer perls (which fix some
+# problems relating to attribute application), a sub gets placed in its
+# package before its attributes are processed.  In this case, the
+# delayed name lookup might be too late, because the sub we're looking
+# for might have already been replaced.  So we need to detect which way
+# round this perl does things, and time the name lookup accordingly.
+BEGIN {
+	my $delayed;
+	sub Attribute::Handlers::_TEST_::MODIFY_CODE_ATTRIBUTES {
+		$delayed = \&Attribute::Handlers::_TEST_::t != $_[1];
+		return ();
+	}
+	sub Attribute::Handlers::_TEST_::t :T { }
+	*_delayed_name_resolution = sub() { $delayed };
+	undef &Attribute::Handlers::_TEST_::MODIFY_CODE_ATTRIBUTES;
+	undef &Attribute::Handlers::_TEST_::t;
+}
+
 sub _resolve_lastattr {
 	return unless $lastattr{ref};
 	my $sym = findsym @lastattr{'pkg','ref'}
@@ -116,7 +139,7 @@ my $builtin = qr/lvalue|method|locked|unique|shared/;
 
 sub _gen_handler_AH_() {
 	return sub {
-	    _resolve_lastattr;
+	    _resolve_lastattr if _delayed_name_resolution;
 	    my ($pkg, $ref, @attrs) = @_;
 	    my (undef, $filename, $linenum) = caller 2;
 	    foreach (@attrs) {
@@ -141,6 +164,7 @@ sub _gen_handler_AH_() {
 			croak "Bad attribute type: ATTR($data)"
 				unless $validtype{$data};
 			%lastattr=(pkg=>$pkg,ref=>$ref,type=>$data);
+			_resolve_lastattr unless _delayed_name_resolution;
 		}
 		else {
 			my $type = ref $ref;
@@ -212,7 +236,7 @@ sub _apply_handler_AH_ {
         no warnings 'void';
         CHECK {
                $global_phase++;
-               _resolve_lastattr;
+               _resolve_lastattr if _delayed_name_resolution;
                _apply_handler_AH_($_,'CHECK') foreach @declarations;
         }
 
@@ -233,8 +257,8 @@ Attribute::Handlers - Simpler definition of attribute handlers
 
 =head1 VERSION
 
-This document describes version 0.86 of Attribute::Handlers,
-released August  8, 2009.
+This document describes version 0.86_01 of Attribute::Handlers,
+released September 17, 2009.
 
 =head1 SYNOPSIS
 
