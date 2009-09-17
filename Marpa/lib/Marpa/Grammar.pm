@@ -3565,10 +3565,11 @@ sub rewrite_as_CHAF {
         # new lhs is on the far rhs of subsequent (going left) subproductions,
         # all subsequent subproductions and their lhs's will be non-nullable.
 
-        my @aliased_rhs = map { $_->[Marpa::Internal::Symbol::NULL_ALIAS] // $_ } @{$rhs};
-        my @proper_nullable_ixes = grep {
-            $rhs->[$_]->[Marpa::Internal::Symbol::NULL_ALIAS]
-            } ( 0 .. $#{$rhs} );
+        my @aliased_rhs =
+            map { $_->[Marpa::Internal::Symbol::NULL_ALIAS] // $_ } @{$rhs};
+        my @proper_nullable_ixes =
+            grep { $rhs->[$_]->[Marpa::Internal::Symbol::NULL_ALIAS] }
+            ( 0 .. $#{$rhs} );
         my $last_nonnullable_ix = (
             List::Util::first {
                 not $aliased_rhs[$_]->[Marpa::Internal::Symbol::NULLABLE];
@@ -3578,11 +3579,12 @@ sub rewrite_as_CHAF {
 
         my @trailing_null_width = (0) x scalar @{$rhs};
         my $null_width_so_far   = 0;
-        IX: for my $ix ( reverse (($last_nonnullable_ix+1) .. $#{$rhs}) ) {
-            my $nullable = $aliased_rhs[$ix]->[Marpa::Internal::Symbol::NULLABLE];
-            $trailing_null_width[$ix] = $null_width_so_far + $nullable;
+        IX: for my $ix ( reverse( $last_nonnullable_ix + 1 ) .. $#{$rhs} ) {
+            my $null_width =
+                $aliased_rhs[$ix]->[Marpa::Internal::Symbol::NULLABLE];
+            $trailing_null_width[$ix] = $null_width_so_far + $null_width;
             $null_width_so_far = $trailing_null_width[$ix];
-        }
+        } ## end for my $ix ( reverse( $last_nonnullable_ix + 1 ) .. $#...)
 
         # we found no properly nullable symbols in the RHS, so this rule is useful without
         # any changes
@@ -3694,7 +3696,7 @@ sub rewrite_as_CHAF {
 
                     $next_subproduction_lhs
                         ->[Marpa::Internal::Symbol::NULLABLE] =
-                        $trailing_null_width[$subproduction_end_ix+1];
+                        $trailing_null_width[ $subproduction_end_ix + 1 ];
                     $next_subproduction_lhs
                         ->[Marpa::Internal::Symbol::NULLING] = 0;
                     $next_subproduction_lhs
