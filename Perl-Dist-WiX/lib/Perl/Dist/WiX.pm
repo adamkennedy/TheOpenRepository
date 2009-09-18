@@ -428,8 +428,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		@_,
 	);
 
-	WiX3::Traceable->_clear_instance();
-	$params{misc} = WiX3::Traceable->new( tracelevel => $params{trace} );
+	$params{misc} ||= WiX3::Traceable->new( tracelevel => $params{trace} );
 
 	# Announce that we're starting.
 	{
@@ -449,8 +448,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		$params{sitename} = URI->new( $params{app_publisher_url} )->host;
 	}
 
-	WiX3::XML::GeneratesGUID::Object->_clear_instance();
-	$params{_guidgen} =
+	$params{_guidgen} ||=
 	  WiX3::XML::GeneratesGUID::Object->new(
 		_sitename => $params{sitename} );
 

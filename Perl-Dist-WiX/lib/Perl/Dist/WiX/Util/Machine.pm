@@ -91,6 +91,8 @@ use Moose 0.90;
 use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool );
 use Params::Util qw( _IDENTIFIER _HASH0 _DRIVER );
 use File::Copy qw();
+use File::Copy::Recursive qw();
+use File::Spec::Functions qw( catdir );
 use File::Remove qw();
 use File::HomeDir qw();
 use Perl::Dist::WiX::Exceptions;
@@ -396,9 +398,11 @@ sub run {
 	my $self       = shift;
 	my $success    = 0;
 	my $output_dir = $self->_get_output();
-
+	my $num = 0;
+	
 	while ( my $dist = $self->next() ) {
 		$dist->prepare();
+		$num++;
 		$success = eval { $dist->run(); 1; };
 
 		if ($success) {
@@ -408,6 +412,9 @@ sub run {
 			foreach my $file ( @{ $dist->output_file() } ) {
 				File::Copy::move( $file, $output_dir );
 			}
+		} else {
+			print $@;
+			File::Copy::Recursive::dircopy( $dist->output_dir(), catdir($output_dir, "error-output-$num") );
 		}
 
 		# Flush out the image dir for the next run

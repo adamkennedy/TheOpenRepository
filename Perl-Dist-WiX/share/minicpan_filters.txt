@@ -80,6 +80,8 @@
 /BINGOS/Log-Message-Simple-
 /RMBARKER/Pod-Plainer-
 /LETO/Math-BigRat-
+/SMPETERS/Net-Ping-
+/SKIMO/FCGI-\d
 
 # Toolchain
 /MSCHWERN/ExtUtils-MakeMaker-
