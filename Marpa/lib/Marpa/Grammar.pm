@@ -1968,6 +1968,8 @@ sub assign_symbol {
         $symbol->[Marpa::Internal::Symbol::LHS]           = [];
         $symbol->[Marpa::Internal::Symbol::RHS]           = [];
         $symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
+        $symbol->[Marpa::Internal::Symbol::NULLABLE]      = 0;
+        $symbol->[Marpa::Internal::Symbol::NULLING]       = 0;
         push @{$symbols}, $symbol;
         weaken( $symbol_hash->{$name} = $symbol );
     } ## end if ( not defined $symbol )

@@ -2504,7 +2504,7 @@ sub Marpa::Evaluator::value {
             # Sort and-choices
             my $or_iteration = $or_iterations->[$or_node_id] = [
                 map      { $_->[1] }
-                    sort { $a->[0] <=> $b->[0] }
+                    sort { $a->[0] cmp $b->[0] }
                     map {
                     [   (   pack 'N*',
                             map { @{$_} } @{
@@ -2538,11 +2538,10 @@ sub Marpa::Evaluator::value {
 
             $and_node_iteration
                 ->[Marpa::Internal::And_Iteration::CURRENT_CHILD] =
-                $and_node->[Marpa::Internal::And_Node::CAUSE]
-                ? Marpa::Internal::And_Node::CAUSE
-                : $and_node->[Marpa::Internal::And_Node::PREDECESSOR]
-                ? Marpa::Internal::And_Node::PREDECESSOR
-                : undef;
+                List::Util::first { defined $and_node->[$_] } (
+                Marpa::Internal::And_Node::CAUSE,
+                Marpa::Internal::And_Node::PREDECESSOR
+                );
 
             push @tasks,
                 [ Marpa::Internal::Task::SETUP_AND_NODE, $and_node_id ];
@@ -2647,8 +2646,10 @@ sub Marpa::Evaluator::value {
                 $token ? $token->[Marpa::Internal::Symbol::NULLABLE] : 0;
 
             if ($cause) {
+
                 $final_nulls += $cause_and_node_iteration
                     ->[Marpa::Internal::And_Iteration::TRAILING_NULLS];
+
             }
 
             if ($predecessor) {
