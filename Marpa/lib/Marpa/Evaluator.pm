@@ -2646,10 +2646,8 @@ sub Marpa::Evaluator::value {
                 $token ? $token->[Marpa::Internal::Symbol::NULLABLE] : 0;
 
             if ($cause) {
-
                 $final_nulls += $cause_and_node_iteration
                     ->[Marpa::Internal::And_Iteration::TRAILING_NULLS];
-
             }
 
             if ($predecessor) {
