@@ -82,6 +82,8 @@
 /LETO/Math-BigRat-
 /SMPETERS/Net-Ping-
 /SKIMO/FCGI-\d
+/JESSE/Locale-Maketext-Simple-
+/BINGOS/Module-Loaded-
 
 # Toolchain
 /MSCHWERN/ExtUtils-MakeMaker-
