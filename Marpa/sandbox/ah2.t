@@ -14,15 +14,20 @@ use lib 'lib';
 use lib 't/lib';
 use Marpa::Test;
 
+use Smart::Comments '-ENV';
+
 BEGIN {
     Test::More::use_ok('Marpa');
 }
 
 my $grammar = Marpa::Grammar->new(
-    {   precompute => 0,
-        start      => 'S',
-        strip      => 0,
-        rules      => [
+    {   precompute       => 0,
+        start            => 'S',
+        strip            => 0,
+        trace_iterations => 3,
+        trace_lex        => 3,
+        trace_values     => 9,
+        rules            => [
             [ 'S', [qw/A A A A/] ],
             [ 'A', [qw/a/] ],
             [ 'A', [qw/E/] ],
@@ -386,6 +391,8 @@ for my $i ( 0 .. 4 ) {
     );
     my $result = $evaler->value();
     Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
+    ### assert: defined ${$result}
+    ### assert: (${$result} eq $answer[$i])
 
 } ## end for my $i ( 0 .. 4 )
 
