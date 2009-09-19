@@ -1887,11 +1887,12 @@ sub add_terminal {
         } ## end given
     } ## end while ( my ( $key, $value ) = each %{$options} )
 
-    my $symbol_hash = $grammar->[ Marpa::Internal::Grammar::SYMBOL_HASH ];
-    my $symbols = $grammar->[ Marpa::Internal::Grammar::SYMBOLS ];
-    my $default_null_value = $grammar->[ Marpa::Internal::Grammar::DEFAULT_NULL_VALUE ];
-    my $default_minimal = $grammar->[ Marpa::Internal::Grammar::MINIMAL ];
-    my $default_maximal = $grammar->[ Marpa::Internal::Grammar::MAXIMAL ];
+    my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
+    my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
+    my $default_null_value =
+        $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
+    my $default_minimal = $grammar->[Marpa::Internal::Grammar::MINIMAL];
+    my $default_maximal = $grammar->[Marpa::Internal::Grammar::MAXIMAL];
 
     # I allow redefinition of a LHS symbol as a terminal
     # I need to test that this works, or disallow it
@@ -2287,10 +2288,10 @@ sub add_rules_from_hash {
         # This is an ordinary, non-counted rule,
         # which we'll take care of first as a special case
         my $ordinary_rule = add_user_rule(
-            {   grammar       => $grammar,
-                lhs           => $lhs_name,
-                rhs           => $rhs_names,
-                action        => $action,
+            {   grammar => $grammar,
+                lhs     => $lhs_name,
+                rhs     => $rhs_names,
+                action  => $action,
                 @rule_options
             }
         );
@@ -2314,10 +2315,10 @@ sub add_rules_from_hash {
             }
         } ## end given
         add_user_rule(
-            {   grammar       => $grammar,
-                lhs           => $lhs_name,
-                rhs           => [],
-                action        => $rule_action,
+            {   grammar => $grammar,
+                lhs     => $lhs_name,
+                rhs     => [],
+                action  => $rule_action,
                 @rule_options
             }
         );
@@ -2395,10 +2396,10 @@ EO_CODE
     } ## end given
 
     add_rule(
-        {   grammar     => $grammar,
-            lhs         => $lhs,
-            rhs         => [$sequence],
-            action      => $rule_action,
+        {   grammar => $grammar,
+            lhs     => $lhs,
+            rhs     => [$sequence],
+            action  => $rule_action,
             @rule_options
         }
     );
@@ -2410,10 +2411,10 @@ EO_CODE
             ## use critic
         }
         add_rule(
-            {   grammar     => $grammar,
-                lhs         => $lhs,
-                rhs         => [ $sequence, $separator, ],
-                action      => $rule_action,
+            {   grammar => $grammar,
+                lhs     => $lhs,
+                rhs     => [ $sequence, $separator, ],
+                action  => $rule_action,
                 @rule_options
             }
         );
@@ -3571,15 +3572,15 @@ sub rewrite_as_CHAF {
             @{$rhs}
             );
 
-        my $lhs           = $rule->[Marpa::Internal::Rule::LHS];
-        my $nullable      = $rule->[Marpa::Internal::Rule::NULLABLE];
+        my $lhs      = $rule->[Marpa::Internal::Rule::LHS];
+        my $nullable = $rule->[Marpa::Internal::Rule::NULLABLE];
 
         # options to be "inherited" by all the rules we create
         # from this one
         my @rule_options = (
             user_priority => $rule->[Marpa::Internal::Rule::USER_PRIORITY],
-            maximal => $rule->[Marpa::Internal::Rule::MAXIMAL],
-            minimal => $rule->[Marpa::Internal::Rule::MINIMAL],
+            maximal       => $rule->[Marpa::Internal::Rule::MAXIMAL],
+            minimal       => $rule->[Marpa::Internal::Rule::MINIMAL],
         );
 
         # Keep track of whether the lhs side of any new rules we create should
@@ -3884,9 +3885,9 @@ sub rewrite_as_CHAF {
 
     # Create a new start rule
     my $new_start_rule = add_rule(
-        {   grammar     => $grammar,
-            lhs         => $new_start_symbol,
-            rhs         => [$old_start_symbol],
+        {   grammar => $grammar,
+            lhs     => $new_start_symbol,
+            rhs     => [$old_start_symbol],
         }
     );
 
@@ -3905,9 +3906,9 @@ sub rewrite_as_CHAF {
         my $new_start_alias = alias_symbol( $grammar, $new_start_symbol );
         $new_start_alias->[Marpa::Internal::Symbol::START] = 1;
         my $new_start_alias_rule = add_rule(
-            {   grammar     => $grammar,
-                lhs         => $new_start_alias,
-                rhs         => [],
+            {   grammar => $grammar,
+                lhs     => $new_start_alias,
+                rhs     => [],
             }
         );
 
