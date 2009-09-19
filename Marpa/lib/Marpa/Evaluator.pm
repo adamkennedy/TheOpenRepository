@@ -172,11 +172,12 @@ use Storable;
 use Marpa::Internal;
 our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 
-use constant N_FORMAT_MASK   => 0xFFFFFFFF;
-use constant N_FORMAT_BYTES => -4;
+use constant N_FORMAT_MASK                => 0xffffffff;
+use constant N_FORMAT_WIDTH               => 4;
+use constant NULL_SORT_ELEMENT_FILL_WIDTH => ( N_FORMAT_WIDTH * 2 );
 
 # Also used as mask, so must be 2**n-1
-use constant N_FORMAT_MAX   => 0x7fffffff;
+use constant N_FORMAT_MAX => 0x7fffffff;
 
 sub run_preamble {
     my $grammar = shift;
@@ -2416,7 +2417,7 @@ sub Marpa::Evaluator::value {
                 $and_node->[Marpa::Internal::And_Node::SORT_ELEMENT] =
                     [ $location, ~( $priority & N_FORMAT_MASK ), $length ];
 
-            } ## end if ( $maximal or $priority )
+            } ## end if ( $maximal or $minimal or $priority )
 
         } ## end for my $and_node ( @{$and_nodes} )
 
@@ -2507,8 +2508,10 @@ sub Marpa::Evaluator::value {
                         map {
                         [   (   join q{},
                                 map {
-                                    length $_ == 4
-                                        ? ( ~$_ ) . ( "\0" x 8 )
+                                    length $_ == N_FORMAT_WIDTH
+                                        ? ( ~$_ )
+                                        . (
+                                        "\0" x NULL_SORT_ELEMENT_FILL_WIDTH )
                                         : ~$_
                                     }
                                     sort map { pack 'N*', @{$_} } @{
@@ -2646,16 +2649,17 @@ sub Marpa::Evaluator::value {
                     $and_node->[Marpa::Internal::And_Node::TOKEN] )
                 {
                     push @current_sort_elements,
-                        ([
-                        $and_node->[Marpa::Internal::And_Node::START_EARLEME]
-                        ]) x $token->[Marpa::Internal::Symbol::NULLABLE];
+                        (
+                        [   $and_node
+                                ->[Marpa::Internal::And_Node::START_EARLEME]
+                        ]
+                        ) x $token->[Marpa::Internal::Symbol::NULLABLE];
                 } ## end if ( my $token = $and_node->[...])
 
                 $and_node_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_KEY] = [
-                        @current_sort_elements,
-                        @{$predecessor_sort_elements},
-                        @{$cause_sort_elements}
+                    @current_sort_elements, @{$predecessor_sort_elements},
+                    @{$cause_sort_elements}
                     ];
 
                 ### sort-key for and-node id: $and_node_id, $and_node_iteration->[Marpa'Internal'And_Iteration'SORT_KEY]
@@ -2922,23 +2926,32 @@ sub Marpa::Evaluator::value {
                 # worry about sorting alternatives.
                 next TASK if @{$and_choices} <= 1;
 
-                my $current_sort_key
-                    = join q{},
-                    map { length $_ == 4 ? ( ~$_ ) . ( "\0" x 8 ) : ~$_ }
+                my $current_sort_key = join q{}, map {
+                    length $_ == N_FORMAT_WIDTH
+                        ? ( ~$_ ) . ( "\0" x NULL_SORT_ELEMENT_FILL_WIDTH )
+                        : ~$_
+                    }
                     sort map { pack 'N*', @{$_} }
                     @{ $current_and_choice
                         ->[Marpa::Internal::And_Choice::SORT_KEY] };
 
-                my $first_le_sort_key = List::Util::first {
-                    (   join q{},
-                        map { length $_ == 4 ? ( ~$_ ) . ( "\0" x 8 ) : ~$_ }
-                            sort map { pack 'N*', @{$_} } @{
-                            $current_and_choice
-                                ->[Marpa::Internal::And_Choice::SORT_KEY]
-                            }
-                    ) le $current_sort_key;
-                } ## end List::Util::first
-                reverse 0 .. ( $#{$and_choices} - 1 );
+                my $first_le_sort_key = (
+                    List::Util::first {
+                        (   join q{},
+                            map {
+                                length $_ == N_FORMAT_WIDTH
+                                    ? ( ~$_ )
+                                    . ( "\0" x NULL_SORT_ELEMENT_FILL_WIDTH )
+                                    : ~$_
+                                }
+                                sort map { pack 'N*', @{$_} } @{
+                                $current_and_choice
+                                    ->[Marpa::Internal::And_Choice::SORT_KEY]
+                                }
+                        ) le $current_sort_key;
+                    } ## end List::Util::first
+                    reverse 0 .. ( $#{$and_choices} - 1 )
+                );
 
                 my $insert_point =
                     defined $first_le_sort_key ? $first_le_sort_key + 1 : 0;

@@ -902,8 +902,8 @@ sub Marpa::Grammar::set {
                 $grammar->[Marpa::Internal::Grammar::MAXIMAL] = $value;
                 delete $args->{'maximal'};
             } ## end when ('maximal')
-        }
-    }
+        } ## end given
+    } ## end while ( my ( $option, $value ) = each %{$args} )
 
     # Second pass options
     while ( my ( $option, $value ) = each %{$args} ) {
