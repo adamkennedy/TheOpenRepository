@@ -391,6 +391,7 @@ for my $i ( 0 .. 4 ) {
     );
     my $result = $evaler->value();
     Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
+
     ### assert: defined ${$result}
     ### assert: (${$result} eq $answer[$i])
 

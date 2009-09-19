@@ -793,8 +793,6 @@ sub delete_nodes {
     while ( my $delete_work_item = pop @{$delete_work_list} ) {
         my ( $node_type, $delete_node_id ) = @{$delete_work_item};
 
-        ### Delete work item: $node_type, $delete_node_id
-
         if ( $node_type eq 'a' ) {
 
             my $delete_and_node = $and_nodes->[$delete_node_id];
@@ -1380,8 +1378,6 @@ sub rewrite_cycles {
 # Make sure and-nodes are unique.
 sub delete_duplicate_nodes {
 
-    ### Calling delete_duplicate_nodes ...
-
     my ($evaler) = @_;
 
     my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
@@ -1576,8 +1572,6 @@ sub delete_duplicate_nodes {
             Marpa::exception("Internal error, unknown node type: $node_type");
 
         } ## end while ( my $work_list_entry = pop @work_list )
-
-        ### Delete Work List: @delete_work_list
 
         # If no nodes are deleted, we are finished
         last DELETE_DUPLICATE_PASS
@@ -2689,6 +2683,8 @@ sub Marpa::Evaluator::value {
                         )
                     ];
 
+                ### sort-key for and-node id: $and_node_id, $and_node_iteration->[Marpa'Internal'And_Iteration'SORT_KEY]
+
                 $and_node_iteration
                     ->[Marpa::Internal::And_Iteration::TRAILING_NULLS] =
                     $final_nulls;
@@ -3034,9 +3030,6 @@ sub Marpa::Evaluator::value {
                 my @or_values  = @{$or_iterations}[@or_slice];
                 my @and_values = @{$and_iterations}[@and_slice];
 
-                ### or-map: $or_map
-                ### assert: not (grep { not defined $and_iterations->[$_]} @and_slice)
-
                 $and_choice->[Marpa::Internal::And_Choice::FROZEN_ITERATION] =
                     Storable::freeze(
                     [ \@and_slice, \@and_values, \@or_slice, \@or_values ] );
@@ -3080,8 +3073,6 @@ sub Marpa::Evaluator::value {
                     'Task: EVALUATE; ', ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
-
-                ### or-mapping: $or_iterations->[0]->[-1]->[Marpa'Internal'And_Choice'OR_MAP]
 
                 my @or_node_choices;
                 $#or_node_choices = $#{$or_nodes};
