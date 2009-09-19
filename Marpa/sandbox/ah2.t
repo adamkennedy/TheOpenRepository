@@ -27,6 +27,7 @@ my $grammar = Marpa::Grammar->new(
         trace_iterations => 3,
         trace_lex        => 3,
         trace_values     => 9,
+        maximal          => 1,
         rules            => [
             [ 'S', [qw/A A A A/] ],
             [ 'A', [qw/a/] ],
@@ -48,27 +49,27 @@ $grammar->set( { terminals => ['a'], } );
 $grammar->precompute();
 
 Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
-0: S -> A A A A /* !useful nullable */
-1: A -> a
-2: A -> E /* !useful nullable */
-3: E -> /* !useful empty nullable */
-4: S -> A S[R0:1][x6] /* priority=0.44 */
-5: S -> A[] S[R0:1][x6] /* priority=0.42 */
-6: S -> A S[R0:1][x6][] /* priority=0.43 */
-7: S[R0:1][x6] -> A S[R0:2][x8] /* priority=0.34 */
-8: S[R0:1][x6] -> A[] S[R0:2][x8] /* priority=0.32 */
-9: S[R0:1][x6] -> A S[R0:2][x8][] /* priority=0.33 */
-10: S[R0:2][x8] -> A A /* priority=0.24 */
-11: S[R0:2][x8] -> A[] A /* priority=0.22 */
-12: S[R0:2][x8] -> A A[] /* priority=0.23 */
-13: S['] -> S
-14: S['][] -> /* empty nullable */
+0: S -> A A A A /* !useful nullable maximal */
+1: A -> a /* maximal */
+2: A -> E /* !useful nullable maximal */
+3: E -> /* !useful empty nullable maximal */
+4: S -> A S[R0:1][x6] /* maximal priority=0.44 */
+5: S -> A[] S[R0:1][x6] /* maximal priority=0.42 */
+6: S -> A S[R0:1][x6][] /* maximal priority=0.43 */
+7: S[R0:1][x6] -> A S[R0:2][x8] /* maximal priority=0.34 */
+8: S[R0:1][x6] -> A[] S[R0:2][x8] /* maximal priority=0.32 */
+9: S[R0:1][x6] -> A S[R0:2][x8][] /* maximal priority=0.33 */
+10: S[R0:2][x8] -> A A /* maximal priority=0.24 */
+11: S[R0:2][x8] -> A[] A /* maximal priority=0.22 */
+12: S[R0:2][x8] -> A A[] /* maximal priority=0.23 */
+13: S['] -> S /* maximal */
+14: S['][] -> /* empty nullable maximal */
 EOS
 
 Marpa::Test::is( $grammar->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
 0: S, lhs=[0 4 5 6] rhs=[13]
 1: A, lhs=[1 2] rhs=[0 4 6 7 9 10 11 12]
-2: a, lhs=[] rhs=[1] terminal
+2: a, lhs=[] rhs=[1] terminal maximal
 3: E, lhs=[3] rhs=[2] nullable=1 nulling
 4: S[], lhs=[] rhs=[] nullable=4 nulling
 5: A[], lhs=[] rhs=[5 8 11 12] nullable=1 nulling
@@ -380,7 +381,7 @@ Marpa::Test::is(
     'Aycock/Horspool Parse Status at 4'
 );
 
-my @answer = ( q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)] );
+my @expected = ( q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)] );
 
 for my $i ( 0 .. 4 ) {
     my $evaler = Marpa::Evaluator->new(
@@ -390,10 +391,10 @@ for my $i ( 0 .. 4 ) {
         }
     );
     my $result = $evaler->value();
-    Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
+    Test::More::is( ${$result}, $expected[$i], "parse permutation $i" );
 
-    ### assert: defined ${$result}
-    ### assert: (${$result} eq $answer[$i])
+    #### assert: defined ${$result}
+    #### assert: (${$result} eq $expected[$i])
 
 } ## end for my $i ( 0 .. 4 )
 

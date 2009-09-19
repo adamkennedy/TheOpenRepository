@@ -883,6 +883,29 @@ sub Marpa::Grammar::set {
             Marpa::Internal::Phase::RULES;
     } ## end if ( defined $source )
 
+    # First pass options: These affect processing of other
+    # options and are expected to take force for the other
+    # options, even if specified afterwards
+    while ( my ( $option, $value ) = each %{$args} ) {
+        given ($option) {
+            when ('minimal') {
+                Marpa::exception(
+                    "$option option not allowed after grammar is precomputed")
+                    if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
+                $grammar->[Marpa::Internal::Grammar::MINIMAL] = $value;
+                delete $args->{'minimal'};
+            } ## end when ('minimal')
+            when ('maximal') {
+                Marpa::exception(
+                    "$option option not allowed after grammar is precomputed")
+                    if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
+                $grammar->[Marpa::Internal::Grammar::MAXIMAL] = $value;
+                delete $args->{'maximal'};
+            } ## end when ('maximal')
+        }
+    }
+
+    # Second pass options
     while ( my ( $option, $value ) = each %{$args} ) {
         given ($option) {
             when ('rules') {

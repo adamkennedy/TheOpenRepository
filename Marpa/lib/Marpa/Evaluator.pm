@@ -75,7 +75,6 @@ use Marpa::Offset qw(
 
     SORT_KEY
     OR_MAP
-    TRAILING_NULLS
     CURRENT_CHILD
 
     =LAST_FIELD
@@ -173,9 +172,11 @@ use Storable;
 use Marpa::Internal;
 our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 
+use constant N_FORMAT_MASK   => 0xFFFFFFFF;
+use constant N_FORMAT_BYTES => -4;
+
 # Also used as mask, so must be 2**n-1
 use constant N_FORMAT_MAX   => 0x7fffffff;
-use constant N_FORMAT_BYTES => -4;
 
 sub run_preamble {
     my $grammar = shift;
@@ -2392,9 +2393,10 @@ sub Marpa::Evaluator::value {
 
             my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
             my $maximal  = $rule->[Marpa::Internal::Rule::MAXIMAL];
+            my $minimal  = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
 
-            if ( $maximal or $priority ) {
+            if ( $maximal or $minimal or $priority ) {
 
                 my $and_node_start_earleme =
                     $and_node->[Marpa::Internal::And_Node::START_EARLEME];
@@ -2405,14 +2407,14 @@ sub Marpa::Evaluator::value {
                 # insert it into the predecessor sort key elements
                 my $location = $and_node_start_earleme;
                 my $length =
-                    $maximal < 0
-                    ? N_FORMAT_MAX
-                    - ( $and_node_start_earleme - $and_node_end_earleme )
-                    : $maximal > 0
-                    ? $and_node_end_earleme - $and_node_start_earleme
+                    $maximal
+                    ? ~( ( $and_node_end_earleme - $and_node_start_earleme )
+                    & N_FORMAT_MASK )
+                    : $minimal
+                    ? ( $and_node_end_earleme - $and_node_start_earleme )
                     : 0;
                 $and_node->[Marpa::Internal::And_Node::SORT_ELEMENT] =
-                    [ $location, 0, $priority, $length ];
+                    [ $location, ~( $priority & N_FORMAT_MASK ), $length ];
 
             } ## end if ( $maximal or $priority )
 
@@ -2496,13 +2498,20 @@ sub Marpa::Evaluator::value {
 
                 } ## end for my $child_and_node_id ( @{ $or_node->[...]})
 
+                ### sort_keys: map { $_->[Marpa'Internal'And_Choice'SORT_KEY] } @and_choices
+
                 # Sort and-choices
                 my $or_iteration = $or_iterations->[$or_node_id] = [
                     map      { $_->[1] }
                         sort { $a->[0] cmp $b->[0] }
                         map {
-                        [   (   pack 'N*',
-                                map { @{$_} } @{
+                        [   (   join q{},
+                                map {
+                                    length $_ == 4
+                                        ? ( ~$_ ) . ( "\0" x 8 )
+                                        : ~$_
+                                    }
+                                    sort map { pack 'N*', @{$_} } @{
                                     $_->[
                                         Marpa::Internal::And_Choice::SORT_KEY]
                                     }
@@ -2569,7 +2578,7 @@ sub Marpa::Evaluator::value {
                 my $cause_or_node_iteration;
                 my $cause_and_node_choice;
                 my $cause_and_node_iteration;
-                my $cause_sort_elements;
+                my $cause_sort_elements = [];
 
                 # assignment instead of comparison intentional
                 if ( $cause = $and_node->[Marpa::Internal::And_Node::CAUSE] )
@@ -2599,7 +2608,7 @@ sub Marpa::Evaluator::value {
                 my $predecessor_or_node_iteration;
                 my $predecessor_and_node_choice;
                 my $predecessor_and_node_iteration;
-                my $predecessor_sort_elements;
+                my $predecessor_sort_elements = [];
                 my $predecessor_end_earleme;
 
                 # assignment instead of comparison intentional
@@ -2633,61 +2642,23 @@ sub Marpa::Evaluator::value {
                 } ## end if ( $predecessor = $and_node->[...])
 
                 # Compute final and internal trailing nulls
-                my $and_node_end_earleme =
-                    $and_node->[Marpa::Internal::And_Node::END_EARLEME];
-                my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
-
-                my $internal_nulls;
-                my $final_nulls =
-                    $token ? $token->[Marpa::Internal::Symbol::NULLABLE] : 0;
-
-                if ($cause) {
-                    $final_nulls += $cause_and_node_iteration
-                        ->[Marpa::Internal::And_Iteration::TRAILING_NULLS];
-                }
-
-                if ($predecessor) {
-                    my $predecessor_trailing_nulls =
-                        $predecessor_and_node_iteration
-                        ->[Marpa::Internal::And_Iteration::TRAILING_NULLS];
-                    if ( $predecessor_end_earleme == $and_node_end_earleme ) {
-                        $final_nulls += $predecessor_trailing_nulls;
-                    }
-                    else {
-                        $internal_nulls = $predecessor_trailing_nulls;
-                    }
-                } ## end if ($predecessor)
-
-                if ($internal_nulls) {
-                    $cause_sort_elements = [
-                        map {
-                            $_->[0] == $predecessor_end_earleme
-                                ? [
-                                $_->[0],
-                                $_->[1] + $internal_nulls,
-                                @{$_}[ 2, 3 ]
-                                ]
-                                : $_
-                            } @{$cause_sort_elements}
-                    ];
-                } ## end if ($internal_nulls)
+                if ( my $token =
+                    $and_node->[Marpa::Internal::And_Node::TOKEN] )
+                {
+                    push @current_sort_elements,
+                        ([
+                        $and_node->[Marpa::Internal::And_Node::START_EARLEME]
+                        ]) x $token->[Marpa::Internal::Symbol::NULLABLE];
+                } ## end if ( my $token = $and_node->[...])
 
                 $and_node_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_KEY] = [
-                    map      { $_->[1] }
-                        sort { $a->[0] cmp $b->[0] }
-                        map  { [ ( pack 'N*', @{$_} ), $_ ] } (
                         @current_sort_elements,
                         @{$predecessor_sort_elements},
                         @{$cause_sort_elements}
-                        )
                     ];
 
                 ### sort-key for and-node id: $and_node_id, $and_node_iteration->[Marpa'Internal'And_Iteration'SORT_KEY]
-
-                $and_node_iteration
-                    ->[Marpa::Internal::And_Iteration::TRAILING_NULLS] =
-                    $final_nulls;
 
                 my @or_map;
                 if ( defined $predecessor ) {
@@ -2952,18 +2923,17 @@ sub Marpa::Evaluator::value {
                 next TASK if @{$and_choices} <= 1;
 
                 my $current_sort_key
-                    = pack 'N*',
-                    (
-                    map { @{$_} } @{
-                        $current_and_choice
-                            ->[Marpa::Internal::And_Choice::SORT_KEY]
-                        }
-                    );
+                    = join q{},
+                    map { length $_ == 4 ? ( ~$_ ) . ( "\0" x 8 ) : ~$_ }
+                    sort map { pack 'N*', @{$_} }
+                    @{ $current_and_choice
+                        ->[Marpa::Internal::And_Choice::SORT_KEY] };
 
                 my $first_le_sort_key = List::Util::first {
-                    (   pack 'N*',
-                        map { @{$_} } @{
-                            $and_choices->[$_]
+                    (   join q{},
+                        map { length $_ == 4 ? ( ~$_ ) . ( "\0" x 8 ) : ~$_ }
+                            sort map { pack 'N*', @{$_} } @{
+                            $current_and_choice
                                 ->[Marpa::Internal::And_Choice::SORT_KEY]
                             }
                     ) le $current_sort_key;
