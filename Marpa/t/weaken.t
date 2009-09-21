@@ -3,14 +3,15 @@
 use 5.010;
 use strict;
 use warnings;
+use lib 'inc';
 use lib 'lib';
-use lib 't/lib';
 
 $Marpa::EVALUATOR = 'old';
 
 use Scalar::Util qw(refaddr reftype isweak weaken);
 use Test::More tests => 2;
 use Test::Weaken;
+use t::lib::Marpa::Test;
 
 BEGIN { Test::More::use_ok('Marpa'); }
 

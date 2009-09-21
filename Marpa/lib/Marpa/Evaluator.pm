@@ -2499,8 +2499,6 @@ sub Marpa::Evaluator::value {
 
                 } ## end for my $child_and_node_id ( @{ $or_node->[...]})
 
-                ### sort_keys: map { $_->[Marpa'Internal'And_Choice'SORT_KEY] } @and_choices
-
                 # Sort and-choices
                 my $or_iteration = $or_iterations->[$or_node_id] = [
                     map      { $_->[1] }
@@ -2523,6 +2521,10 @@ sub Marpa::Evaluator::value {
                         ]
                         } @and_choices
                 ];
+
+                ### or-node-id, count of and-choices: $or_node_id, scalar @and_choices
+
+                ### sort-keys: map { join ";", map { @{$_} } grep { scalar @{$_} <= 1 } @{$_} } map { $_->[Marpa'Internal'And_Choice'SORT_KEY] } @and_choices
 
                 push @tasks,
                     map { [ Marpa::Internal::Task::FREEZE_TREE, $_ ] }
@@ -2644,14 +2646,18 @@ sub Marpa::Evaluator::value {
 
                 } ## end if ( $predecessor = $and_node->[...])
 
-                # Compute final and internal trailing nulls
+                # Compute trailing nulls
                 if ( my $token =
                     $and_node->[Marpa::Internal::And_Node::TOKEN] )
                 {
+
+                    # A null token must start at the end earleme
+                    # This will not necessarily be the start earleme
+                    # -- there may be a predecessor
                     push @current_sort_elements,
                         (
                         [   $and_node
-                                ->[Marpa::Internal::And_Node::START_EARLEME]
+                                ->[Marpa::Internal::And_Node::END_EARLEME]
                         ]
                         ) x $token->[Marpa::Internal::Symbol::NULLABLE];
                 } ## end if ( my $token = $and_node->[...])
@@ -2661,8 +2667,6 @@ sub Marpa::Evaluator::value {
                     @current_sort_elements, @{$predecessor_sort_elements},
                     @{$cause_sort_elements}
                     ];
-
-                ### sort-key for and-node id: $and_node_id, $and_node_iteration->[Marpa'Internal'And_Iteration'SORT_KEY]
 
                 my @or_map;
                 if ( defined $predecessor ) {

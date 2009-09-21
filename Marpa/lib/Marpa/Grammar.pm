@@ -1636,31 +1636,45 @@ sub Marpa::brief_virtual_rule {
             if defined $dot_position;
         return 'virtual ' . Marpa::brief_rule($original_rule);
     } ## end if ( not defined $chaf_start )
+
     my $text .= "(part of $original_rule_id) ";
     $text .= $original_lhs->[Marpa::Internal::Symbol::NAME] . ' ->';
     my @rhs_names =
         map { $_->[Marpa::Internal::Symbol::NAME] } @{$original_rhs};
-    if ( $dot_position >= scalar @{$chaf_rhs} ) {
-        $dot_position = scalar @rhs_names;
+
+    my @chaf_symbol_start;
+    my @chaf_symbol_end;
+
+    # Mark the beginning and end of the non-CHAF symbols
+    # in the CHAF rule.
+    for my $chaf_ix ($chaf_start .. $chaf_end) {
+        $chaf_symbol_start[$chaf_ix] = 1;
+        $chaf_symbol_end[$chaf_ix+1] = 1;
     }
-    else {
-        $dot_position += $chaf_start;
+
+    # Mark the beginning and special CHAF symbol
+    # for the "rest" of the rule.
+    if ($chaf_end < $#rhs_names) {
+        $chaf_symbol_start[$chaf_end+1] = 1;
+        $chaf_symbol_end[scalar @rhs_names] = 1;
     }
-    POSITION: for my $position ( 0 .. scalar @rhs_names ) {
-        if ( $position == $chaf_start ) {
-            $text .= ' {';
+
+    $dot_position =
+        $dot_position >= scalar @{$chaf_rhs}
+        ? scalar @rhs_names
+        : ($chaf_start+$dot_position);
+
+    for ( 0 .. scalar @rhs_names ) {
+        when ( defined $chaf_symbol_end[$_] )   { $text .= ' >>';    continue }
+        when ($dot_position)                    { $text .= q{ .}; continue; }
+        when ( defined $chaf_symbol_start[$_] ) { $text .= ' <<';    continue }
+        when ( $_ < scalar @rhs_names ) {
+            $text .= q{ } . $rhs_names[$_]
         }
-        if ( $position == $dot_position ) {
-            $text .= q{ .};
-        }
-        if ( $position == $chaf_end + 1 ) {
-            $text .= ' }';
-        }
-        my $name = $rhs_names[$position];
-        next POSITION if not defined $name;
-        $text .= " $name";
-    } ## end for my $position ( 0 .. scalar @rhs_names )
+    } ## end for ( 0 .. scalar @rhs_names )
+
     return $text;
+
 } ## end sub Marpa::brief_virtual_rule
 
 sub Marpa::show_rule {
