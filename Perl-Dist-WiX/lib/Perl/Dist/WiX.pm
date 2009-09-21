@@ -1406,16 +1406,16 @@ sub install_win32_extras {
 	File::Path::mkpath( catdir( $self->image_dir, 'win32' ) );
 
 	# TODO: Delete next two statements.
-	my $perldir = $self->{directories}->search_dir(
-		path_to_find => catdir( $self->image_dir, 'perl' ),
-		exact        => 1,
-		descend      => 1,
-	);
-	$perldir->add_directory(
-		name => 'bin',
-		id   => 'PerlBin',
-		path => catdir( $self->image_dir, qw( perl bin ) ),
-	);
+#	my $perldir = $self->{directories}->search_dir(
+#		path_to_find => catdir( $self->image_dir, 'perl' ),
+#		exact        => 1,
+#		descend      => 1,
+#	);
+#	$perldir->add_directory(
+#		name => 'bin',
+#		id   => 'PerlBin',
+#		path => catdir( $self->image_dir, qw( perl bin ) ),
+#	);
 
 	$self->install_launcher(
 		name => 'CPAN Client',

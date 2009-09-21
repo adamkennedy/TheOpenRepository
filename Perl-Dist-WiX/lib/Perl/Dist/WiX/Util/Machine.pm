@@ -417,6 +417,10 @@ sub run {
 			File::Copy::Recursive::dircopy( $dist->output_dir(), catdir($output_dir, "error-output-$num") );
 		}
 
+		print "\n\n\n\n\n";
+		print q{-} x 60;
+		print "\n\n\n\n\n\n";
+				
 		# Flush out the image dir for the next run
 		File::Remove::remove( \1, $dist->image_dir() );
 	} ## end while ( my $dist = $self->next...)
