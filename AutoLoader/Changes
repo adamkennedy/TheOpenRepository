@@ -1,7 +1,10 @@
 Revision history for Perl extension AutoLoader
 
-5.69  Sat Aug  8 12:33 2009
+5.70  Mon Sep 21 15:46 2009
+  - Merge trivial test change from core that was done
+    as part of the lib-to-ext migration.
 
+5.69  Sat Aug  8 12:33 2009
   - CPAN distribution upgrade: Add resources section to META.yml.
 
 5.68  Mon Jan  5 17:50 2009
