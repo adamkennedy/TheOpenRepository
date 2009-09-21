@@ -151,3 +151,5 @@ t Revision history for Perl extension Attribute-Handlers
           things happen.  The resulting A:H works either way, which is essential
           for its dual-life nature.
 
+0.87	Mon Sep 21 15:55:00 CET 2009
+        - Promote to stable release
