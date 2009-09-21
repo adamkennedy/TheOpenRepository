@@ -231,6 +231,7 @@ sub checkpoint_save {
 		tt_exists         => ( defined $self->{template_toolkit} ? 1 : 0 ),
 		template_toolkit  => undef,
 		user_agent        => undef,
+		'_guidgen'        => undef,
 		misc              => undef,
 	};
 
@@ -281,9 +282,17 @@ sub checkpoint_load {
 		delete $self->{tt_exists};
 	}
 
+	## no critic(ProtectPrivateSubs)
+	
 	# Reload the misc object.
-	WiX3::Traceable->_clear_instance(); ## no critic(ProtectPrivateSubs)
+	WiX3::Trace::Object->_clear_instance();
+	WiX3::Traceable->_clear_instance();
 	$self->{misc} = WiX3::Traceable->new( tracelevel => $self->{trace} );
+
+	WiX3::XML::GeneratesGUID::Object->_clear_instance();
+	$self->{_guidgen} =
+	  WiX3::XML::GeneratesGUID::Object->new(
+		_sitename => $self->{sitename} );
 
 	# Pull all the directories out of the storage.
 	$self->trace_line( 0, "Restoring checkpoint directories...\n" );

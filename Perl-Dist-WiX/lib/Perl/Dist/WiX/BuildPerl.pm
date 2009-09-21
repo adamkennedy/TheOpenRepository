@@ -761,7 +761,7 @@ sub install_perl_toolchain {
 		if ( $dist =~ /Module-Build-/msx ) {
 
 			# 0.31 does not include a Makefile.PL.
-			$dist = 'ftp://DAGOLDEN/Module-Build-0.3500_01.tar.gz';
+			$dist = 'DAGOLDEN/Module-Build-0.3500_01.tar.gz';
 		}
 		if ( $dist =~ /ExtUtils-MakeMaker-/msx ) {
 
