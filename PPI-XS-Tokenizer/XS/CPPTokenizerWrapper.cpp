@@ -159,6 +159,41 @@ namespace PPITokenizer {
     SvREFCNT_dec(fLines);
   }
 
+  
+  void PopulateHeredocObject(ExtendedToken *c_doc, HV* perl_doc) {
+    hv_stores( perl_doc, "content", newSVpvn(c_doc->text, c_doc->sections[0].size) );
+    hv_stores( perl_doc, "_terminator", newSVpvn(c_doc->text + c_doc->modifiers.position, c_doc->modifiers.size) );
+    // can be: 'interpolate', 'literal', 'command'
+    //hv_stores( perl_doc, "_mode", newSVpvn(c_doc->text, 2) );
+    
+    // the lines inside the HereDoc. array, each line includes the \n
+    AV *lines = newAV();
+    unsigned long line_start = c_doc->sections[1].position;
+    unsigned long limit = c_doc->length;
+    while (line_start < limit) {
+      unsigned long line_end = start;
+      while (( line_end < limit ) && ( line_end != '\n' )) {
+        line_end++;
+      }
+      if (line_end >= limit - 1) {
+        // the last line
+        if ( c_doc->state == 0 ) {
+          // uncomplete HereDoc
+          av_push(lines, newSVpvn(c_doc->text + line_start, line_end - line_start + 1);
+          hv_stores( perl_doc, "_damaged", newSViv(1) );
+          hv_stores( perl_doc, "_terminator_line", newSV() ); // undef    
+        } else {
+          // contains the terminator - the last line, (of the stopper) including the '\n'
+          hv_stores( perl_doc, "_terminator_line", newSVpvn(c_doc->text + line_start, line_end - line_start + 1) );    
+        }
+        break;
+      } else {
+        av_push(lines, newSVpvn(c_doc->text + line_start, line_end - line_start + 1);
+        line_start = line_end + 1;
+      }
+    }
+    hv_stores( perl_doc, "_heredoc", lines );
+  }
 
   /***********************************************************************/
   SV*
