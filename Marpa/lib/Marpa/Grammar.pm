@@ -1647,27 +1647,27 @@ sub Marpa::brief_virtual_rule {
 
     # Mark the beginning and end of the non-CHAF symbols
     # in the CHAF rule.
-    for my $chaf_ix ($chaf_start .. $chaf_end) {
+    for my $chaf_ix ( $chaf_start .. $chaf_end ) {
         $chaf_symbol_start[$chaf_ix] = 1;
-        $chaf_symbol_end[$chaf_ix+1] = 1;
+        $chaf_symbol_end[ $chaf_ix + 1 ] = 1;
     }
 
     # Mark the beginning and special CHAF symbol
     # for the "rest" of the rule.
-    if ($chaf_end < $#rhs_names) {
-        $chaf_symbol_start[$chaf_end+1] = 1;
-        $chaf_symbol_end[scalar @rhs_names] = 1;
+    if ( $chaf_end < $#rhs_names ) {
+        $chaf_symbol_start[ $chaf_end + 1 ] = 1;
+        $chaf_symbol_end[ scalar @rhs_names ] = 1;
     }
 
     $dot_position =
         $dot_position >= scalar @{$chaf_rhs}
         ? scalar @rhs_names
-        : ($chaf_start+$dot_position);
+        : ( $chaf_start + $dot_position );
 
     for ( 0 .. scalar @rhs_names ) {
-        when ( defined $chaf_symbol_end[$_] )   { $text .= ' >>';    continue }
+        when ( defined $chaf_symbol_end[$_] )   { $text .= ' >>'; continue }
         when ($dot_position)                    { $text .= q{ .}; continue; }
-        when ( defined $chaf_symbol_start[$_] ) { $text .= ' <<';    continue }
+        when ( defined $chaf_symbol_start[$_] ) { $text .= ' <<'; continue }
         when ( $_ < scalar @rhs_names ) {
             $text .= q{ } . $rhs_names[$_]
         }

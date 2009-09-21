@@ -17,11 +17,11 @@ BEGIN {
 }
 
 my $grammar = Marpa::Grammar->new(
-    {   precompute       => 0,
-        start            => 'S',
-        strip            => 0,
-        maximal          => 1,
-        rules            => [
+    {   precompute => 0,
+        start      => 'S',
+        strip      => 0,
+        maximal    => 1,
+        rules      => [
             [ 'S', [qw/A A A A/] ],
             [ 'A', [qw/a/] ],
             [ 'A', [qw/E/] ],
