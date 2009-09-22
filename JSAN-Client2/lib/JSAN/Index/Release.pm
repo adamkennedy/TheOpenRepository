@@ -52,6 +52,14 @@ sub retrieve {
     return $result
 }
 
+
+sub retrieve_all {
+    my $class  = shift;
+    
+    return $class->select()
+}
+
+
 sub file_path {
     JSAN::Transport->file_location($_[0]->source)->path;
 }
