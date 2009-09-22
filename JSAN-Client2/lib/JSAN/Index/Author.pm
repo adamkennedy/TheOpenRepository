@@ -1,4 +1,4 @@
-package ORDB::JSAN::Author;
+package JSAN::Index::Author;
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use warnings;
 sub releases {
     my $self = shift;
     
-    return ORDB::JSAN::Release->select('where author = ?', $self->login);
+    return JSAN::Index::Release->select('where author = ?', $self->login);
 }
 
 
@@ -33,7 +33,7 @@ __PACKAGE__;
 
 =head1 NAME
 
-ORDB::JSAN::Author - ORDB::JSAN class for the author table
+JSAN::Index::Author - JSAN::Index class for the author table
 
 =head1 SYNOPSIS
 
@@ -48,10 +48,10 @@ TO BE COMPLETED
 =head2 select
 
   # Get all objects in list context
-  my @list = ORDB::JSAN::Author->select;
+  my @list = JSAN::Index::Author->select;
   
   # Get a subset of objects in scalar context
-  my $array_ref = ORDB::JSAN::Author->select(
+  my $array_ref = JSAN::Index::Author->select(
       'where login > ? order by login',
       1000,
   );
@@ -64,8 +64,8 @@ C<FROM author> section of the query, followed by variables
 to be bound to the placeholders in the SQL phrase. Any SQL that is
 compatible with SQLite can be used in the parameter.
 
-Returns a list of B<ORDB::JSAN::Author> objects when called in list context, or a
-reference to an C<ARRAY> of B<ORDB::JSAN::Author> objects when called in scalar
+Returns a list of B<JSAN::Index::Author> objects when called in list context, or a
+reference to an C<ARRAY> of B<JSAN::Index::Author> objects when called in scalar
  context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
@@ -73,10 +73,10 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 =head2 count
 
   # How many objects are in the table
-  my $rows = ORDB::JSAN::Author->count;
+  my $rows = JSAN::Index::Author->count;
   
   # How many objects 
-  my $small = ORDB::JSAN::Author->count(
+  my $small = JSAN::Index::Author->count(
       'where login > ?',
       1000,
   );
@@ -142,9 +142,9 @@ following SQL command.
 
 =head1 SUPPORT
 
-ORDB::JSAN::Author is part of the L<ORDB::JSAN> API.
+JSAN::Index::Author is part of the L<JSAN::Index> API.
 
-See the documentation for L<ORDB::JSAN> for more information.
+See the documentation for L<JSAN::Index> for more information.
 
 =head1 COPYRIGHT
 

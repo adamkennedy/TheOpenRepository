@@ -1,6 +1,6 @@
 =head1 NAME
 
-ORDB::JSAN::Library - ORDB::JSAN class for the library table
+JSAN::Index::Library - JSAN::Index class for the library table
 
 =head1 SYNOPSIS
 
@@ -15,10 +15,10 @@ TO BE COMPLETED
 =head2 select
 
   # Get all objects in list context
-  my @list = ORDB::JSAN::Library->select;
+  my @list = JSAN::Index::Library->select;
   
   # Get a subset of objects in scalar context
-  my $array_ref = ORDB::JSAN::Library->select(
+  my $array_ref = JSAN::Index::Library->select(
       'where name > ? order by name',
       1000,
   );
@@ -31,8 +31,8 @@ C<FROM library> section of the query, followed by variables
 to be bound to the placeholders in the SQL phrase. Any SQL that is
 compatible with SQLite can be used in the parameter.
 
-Returns a list of B<ORDB::JSAN::Library> objects when called in list context, or a
-reference to an C<ARRAY> of B<ORDB::JSAN::Library> objects when called in scalar
+Returns a list of B<JSAN::Index::Library> objects when called in list context, or a
+reference to an C<ARRAY> of B<JSAN::Index::Library> objects when called in scalar
  context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
@@ -40,10 +40,10 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 =head2 count
 
   # How many objects are in the table
-  my $rows = ORDB::JSAN::Library->count;
+  my $rows = JSAN::Index::Library->count;
   
   # How many objects 
-  my $small = ORDB::JSAN::Library->count(
+  my $small = JSAN::Index::Library->count(
       'where name > ?',
       1000,
   );
@@ -109,9 +109,9 @@ following SQL command.
 
 =head1 SUPPORT
 
-ORDB::JSAN::Library is part of the L<ORDB::JSAN> API.
+JSAN::Index::Library is part of the L<JSAN::Index> API.
 
-See the documentation for L<ORDB::JSAN> for more information.
+See the documentation for L<JSAN::Index> for more information.
 
 =head1 COPYRIGHT
 

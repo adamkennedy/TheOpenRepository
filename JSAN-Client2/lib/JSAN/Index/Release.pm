@@ -1,6 +1,6 @@
 =head1 NAME
 
-ORDB::JSAN::Release - ORDB::JSAN class for the release table
+JSAN::Index::Release - JSAN::Index class for the release table
 
 =head1 SYNOPSIS
 
@@ -15,10 +15,10 @@ TO BE COMPLETED
 =head2 select
 
   # Get all objects in list context
-  my @list = ORDB::JSAN::Release->select;
+  my @list = JSAN::Index::Release->select;
   
   # Get a subset of objects in scalar context
-  my $array_ref = ORDB::JSAN::Release->select(
+  my $array_ref = JSAN::Index::Release->select(
       'where id > ? order by id',
       1000,
   );
@@ -31,8 +31,8 @@ C<FROM release> section of the query, followed by variables
 to be bound to the placeholders in the SQL phrase. Any SQL that is
 compatible with SQLite can be used in the parameter.
 
-Returns a list of B<ORDB::JSAN::Release> objects when called in list context, or a
-reference to an C<ARRAY> of B<ORDB::JSAN::Release> objects when called in scalar
+Returns a list of B<JSAN::Index::Release> objects when called in list context, or a
+reference to an C<ARRAY> of B<JSAN::Index::Release> objects when called in scalar
  context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
@@ -40,10 +40,10 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 =head2 count
 
   # How many objects are in the table
-  my $rows = ORDB::JSAN::Release->count;
+  my $rows = JSAN::Index::Release->count;
   
   # How many objects 
-  my $small = ORDB::JSAN::Release->count(
+  my $small = JSAN::Index::Release->count(
       'where id > ?',
       1000,
   );
@@ -123,9 +123,9 @@ following SQL command.
 
 =head1 SUPPORT
 
-ORDB::JSAN::Release is part of the L<ORDB::JSAN> API.
+JSAN::Index::Release is part of the L<JSAN::Index> API.
 
-See the documentation for L<ORDB::JSAN> for more information.
+See the documentation for L<JSAN::Index> for more information.
 
 =head1 COPYRIGHT
 

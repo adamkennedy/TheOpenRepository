@@ -1,16 +1,16 @@
-package ORDB::JSAN::Distribution;
+package JSAN::Index::Distribution;
 
 use strict;
 use warnings;
 
 
-use base 'ORDB::JSAN::Extractable';
+use base 'JSAN::Index::Extractable';
 
 
 sub releases {
     my $self = shift;
     
-    return ORDB::JSAN::Release->select('where distribution = ?', $self->name);
+    return JSAN::Index::Release->select('where distribution = ?', $self->name);
 }
 
 
@@ -46,7 +46,7 @@ __PACKAGE__;
 
 =head1 NAME
 
-ORDB::JSAN::Distribution - ORDB::JSAN class for the distribution table
+JSAN::Index::Distribution - JSAN::Index class for the distribution table
 
 =head1 SYNOPSIS
 
@@ -61,10 +61,10 @@ TO BE COMPLETED
 =head2 select
 
   # Get all objects in list context
-  my @list = ORDB::JSAN::Distribution->select;
+  my @list = JSAN::Index::Distribution->select;
   
   # Get a subset of objects in scalar context
-  my $array_ref = ORDB::JSAN::Distribution->select(
+  my $array_ref = JSAN::Index::Distribution->select(
       'where name > ? order by name',
       1000,
   );
@@ -77,8 +77,8 @@ C<FROM distribution> section of the query, followed by variables
 to be bound to the placeholders in the SQL phrase. Any SQL that is
 compatible with SQLite can be used in the parameter.
 
-Returns a list of B<ORDB::JSAN::Distribution> objects when called in list context, or a
-reference to an C<ARRAY> of B<ORDB::JSAN::Distribution> objects when called in scalar
+Returns a list of B<JSAN::Index::Distribution> objects when called in list context, or a
+reference to an C<ARRAY> of B<JSAN::Index::Distribution> objects when called in scalar
  context.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
@@ -86,10 +86,10 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 =head2 count
 
   # How many objects are in the table
-  my $rows = ORDB::JSAN::Distribution->count;
+  my $rows = JSAN::Index::Distribution->count;
   
   # How many objects 
-  my $small = ORDB::JSAN::Distribution->count(
+  my $small = JSAN::Index::Distribution->count(
       'where name > ?',
       1000,
   );
@@ -143,9 +143,9 @@ following SQL command.
 
 =head1 SUPPORT
 
-ORDB::JSAN::Distribution is part of the L<ORDB::JSAN> API.
+JSAN::Index::Distribution is part of the L<JSAN::Index> API.
 
-See the documentation for L<ORDB::JSAN> for more information.
+See the documentation for L<JSAN::Index> for more information.
 
 =head1 COPYRIGHT
 

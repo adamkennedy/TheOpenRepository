@@ -1,13 +1,13 @@
-package ORDB::JSAN::Extractable;
+package JSAN::Index::Extractable;
 
-# ORDB::JSAN::Extractable provides a common base class for the various
+# JSAN::Index::Extractable provides a common base class for the various
 # things that can be identified by a tarball and extracted to the local
 # filesystem (or elsewhere).
 #
-# For each of the methods, when called on a C<ORDB::JSAN::Release> it
-# extracts that release, when called on a C<ORDB::JSAN::Distribution>
+# For each of the methods, when called on a C<JSAN::Index::Release> it
+# extracts that release, when called on a C<JSAN::Index::Distribution>
 # extracts from the most recent release, and when call on a
-# C<ORDB::JSAN::Library> extracts the release that the library is
+# C<JSAN::Index::Library> extracts the release that the library is
 # contained in (according to the indexer).
 
 use strict;

@@ -1,4 +1,4 @@
-package ORDB::JSAN;
+package JSAN::Index;
 
 use 5.008005;
 use strict;
@@ -23,9 +23,9 @@ sub import {
 	return 1;
 }
 
-use ORDB::JSAN::Author;
+use JSAN::Index::Author;
 
-use ORDB::JSAN::Distribution;
+use JSAN::Index::Distribution;
 
 1;
 
@@ -35,7 +35,7 @@ __END__
 
 =head1 NAME
 
-ORDB::JSAN - An ORLite-based ORM Database API
+JSAN::Index - An ORLite-based ORM Database API
 
 =head1 SYNOPSIS
 
@@ -49,14 +49,14 @@ TO BE COMPLETED
 
 =head2 dsn
 
-  my $string = ORDB::JSAN->dsn;
+  my $string = JSAN::Index->dsn;
 
 The C<dsn> accessor returns the L<DBI> connection string used to connect
 to the SQLite database as a string.
 
 =head2 dbh
 
-  my $handle = ORDB::JSAN->dbh;
+  my $handle = JSAN::Index->dbh;
 
 To reliably prevent potential L<SQLite> deadlocks resulting from multiple
 connections in a single process, each ORLite package will only ever
@@ -161,14 +161,14 @@ no means prohibited.
 =head2 pragma
 
   # Get the user_version for the schema
-  my $version = ORDB::JSAN->pragma('user_version');
+  my $version = JSAN::Index->pragma('user_version');
 
 The C<pragma> method provides a convenient method for fetching a pragma
 for a datase. See the SQLite documentation for more details.
 
 =head1 SUPPORT
 
-ORDB::JSAN is based on L<ORLite> 1.25.
+JSAN::Index is based on L<ORLite> 1.25.
 
 Documentation created by L<ORLite::Pod> 0.07.
 
