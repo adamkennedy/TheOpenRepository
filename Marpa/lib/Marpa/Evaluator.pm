@@ -2577,7 +2577,7 @@ sub Marpa::Evaluator::value {
                         or Marpa::exception('print to trace handle failed');
                 }
 
-                my $and_node           = $and_nodes->[$and_node_id];
+                my $and_node = $and_nodes->[$and_node_id];
 
                 ### defined child-or-nodes: [grep { defined $and_node->[$_] } (2,3)]
 
@@ -2606,7 +2606,7 @@ sub Marpa::Evaluator::value {
                     # exhausted, this and-node is exhausted.
                     if ( not $cause_or_node_iteration ) {
                         $and_iterations->[$and_node_id] = undef;
-                        break
+                        break;
                     }
 
                     $cause_and_node_choice = $cause_or_node_iteration->[-1];
@@ -2645,7 +2645,7 @@ sub Marpa::Evaluator::value {
                     # exhausted, this and-node is exhausted.
                     if ( not $predecessor_or_node_iteration ) {
                         $and_iterations->[$and_node_id] = undef;
-                        break
+                        break;
                     }
 
                     $predecessor_and_node_choice =
@@ -2729,7 +2729,7 @@ sub Marpa::Evaluator::value {
 
                     ### Setting current-child: $and_node_iteration->[Marpa'Internal'And_Iteration'CURRENT_CHILD]
 
-                } ## end if ( defined $cause_sort_elements and defined ...)
+                } ## end if ( defined $cause and defined $predecessor )
 
             } ## end when (Marpa::Internal::Task::SETUP_AND_NODE)
 
@@ -2798,14 +2798,14 @@ sub Marpa::Evaluator::value {
                     ->[Marpa::Internal::And_Iteration::CURRENT_CHILD];
                 if ( not defined $current_child_field ) {
                     $and_iterations->[$and_node_id] = undef;
-                    break
+                    break;
                 }
 
                 my $and_node = $and_nodes->[$and_node_id];
 
                 ### defined child-or-nodes: [grep { defined $and_node->[$_] } (2,3)]
 
-                my $cause    = $and_node->[Marpa::Internal::And_Node::CAUSE];
+                my $cause = $and_node->[Marpa::Internal::And_Node::CAUSE];
                 my $predecessor =
                     $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
                 if ( defined $cause and defined $predecessor ) {
@@ -2820,7 +2820,11 @@ sub Marpa::Evaluator::value {
                 ### current, cause, predecessor: $current_child_field, Marpa'Internal'And_Node'CAUSE, Marpa'Internal'And_Node'PREDECESSOR
                 ### assert: defined $and_node->[$current_child_field]
 
-                Carp::confess("unexpected undef current child") if not defined $and_node->[$current_child_field];
+                # Deliberately leaving this perlcritic problem
+                # (an uninterpolated string)
+                # here so that I remember to delete this
+                Carp::confess("unexpected undef current child")
+                    if not defined $and_node->[$current_child_field];
 
                 push @tasks,
                     [
