@@ -12,5 +12,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'	=> 'Class::ISA',
     'VERSION_FROM' => 'lib/Class/ISA.pm', # finds $VERSION
+    'PREREQ_PM' => {
+      'if' => '0',
+    },
     'dist'        => { COMPRESS => 'gzip -6f', SUFFIX => 'gz', },
 );
