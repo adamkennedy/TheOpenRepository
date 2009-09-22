@@ -35,6 +35,10 @@ sub retrieve {
     }
 }
 
+sub extract_resource {
+	shift->fetch_release->extract_resource(@_);
+}
+
 1;
 
 __END__

@@ -10,6 +10,6 @@ use Test::More tests => 4;
 
 ok( $] >= 5.006, 'Perl version is new enough' );
 
+require_ok( 'JSAN::Transport' );
 use_ok( 'JSAN::Client' );
-use_ok( 'JSAN::Transport' );
 use_ok( 'JSAN::Index' );
