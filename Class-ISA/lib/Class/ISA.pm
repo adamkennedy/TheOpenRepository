@@ -2,7 +2,7 @@ package Class::ISA;
 require 5;
 use strict;
 use vars qw($Debug $VERSION);
-$VERSION = '0.33_01';
+$VERSION = '0.34';
 $Debug = 0 unless defined $Debug;
 
 use if $] >= 5.011, 'deprecate';
