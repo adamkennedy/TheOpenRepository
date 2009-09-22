@@ -33,13 +33,13 @@ __END__
 
 ORDB::JSAN - An ORLite-based ORM Database API
 
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
-
 =head1 DESCRIPTION
 
-TO BE COMPLETED
+This module is a demonstration package for what a new SQLite index-based
+client might look like, or at least the ORM layer part of it.
+
+It is implemented as a pure L<ORLite::Mirror> class with no additional
+code.
 
 =head1 METHODS
 
