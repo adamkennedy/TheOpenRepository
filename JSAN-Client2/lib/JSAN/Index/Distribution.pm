@@ -4,6 +4,8 @@ use strict;
 use warnings;
 
 use base 'JSAN::Index::Extractable';
+use JSAN::Index::Release    ();
+
 
 sub releases {
     my $self = shift;

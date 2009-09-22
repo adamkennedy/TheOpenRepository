@@ -3,6 +3,8 @@ package JSAN::Index::Author;
 use strict;
 use warnings;
 
+use JSAN::Index::Release    ();
+
 our $VERSION = '0.20';
 
 sub releases {
