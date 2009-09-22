@@ -6,8 +6,10 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 4;
 
 ok( $] >= 5.006, 'Perl version is new enough' );
 
-use_ok( 'JSAN::Client2' );
+use_ok( 'JSAN::Client' );
+use_ok( 'JSAN::Transport' );
+use_ok( 'JSAN::Client::Index' );

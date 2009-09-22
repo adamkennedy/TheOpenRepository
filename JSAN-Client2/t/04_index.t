@@ -13,7 +13,7 @@ use Params::Util '_HASH';
 use File::Remove 'remove';
 use LWP::Online  'online';
 use JSAN::Transport;
-use JSAN::Index;
+use JSAN::Client2::Index;
 
 if ( online() ) {
 	plan( tests => 50 );
@@ -30,7 +30,7 @@ if ( online() ) {
 # Testing ::Author
 
 # Find a known-good author
-my $adamk = JSAN::Index::Author->retrieve( login => 'adamk' );
+my $adamk = JSAN::Index::Author->select( 'where login = ?', 'adamk' );
 isa_ok( $adamk, 'JSAN::Index::Author' );
 is(   $adamk->login, 'adamk',                            'Author->login returns as expected'        );
 is(   $adamk->name,  'Adam Kennedy',                     'Author->name returns as expected'         );
@@ -48,7 +48,7 @@ ok( scalar(@releases), '->releases works' );
 # Testing ::Distribution
 
 # Find a known-good distribution
-my $swapdist = JSAN::Index::Distribution->retrieve( name => 'Display.Swap' );
+my $swapdist = JSAN::Index::Distribution->select( 'where name = ?', 'Display.Swap' );
 isa_ok( $swapdist, 'JSAN::Index::Distribution' );
 is(   $swapdist->name,    'Display.Swap', 'Distribution->name matches expected' );
 like( $swapdist->doc,     qr{^/},         'Distribution->doc returns a root-relative path' );
@@ -67,7 +67,7 @@ can_ok( $swapdist, 'extract_libs', 'extract_tests', 'extract_resource' );
 # Testing ::Release
 
 # Find a known release
-my $swaprel = JSAN::Index::Release->retrieve( source => '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz' );
+my $swaprel = JSAN::Index::Release->select( 'where source = ?', '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz' );
 isa_ok( $swaprel,                 'JSAN::Index::Release'      );
 isa_ok( $swaprel->distribution,   'JSAN::Index::Distribution' );
 isa_ok( $swaprel->author,         'JSAN::Index::Author'       );
