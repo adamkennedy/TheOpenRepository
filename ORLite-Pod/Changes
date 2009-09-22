@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite-Pod
 
+0.07 Wed 29 Jul 2009
+	- Add support for --email to orlite2pod
+
 0.06 Thu 15 Jan 2009
 	- Add support for --author to orlite2pod
 	- Add support for --rt to orlite2pod

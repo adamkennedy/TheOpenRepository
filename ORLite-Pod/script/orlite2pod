@@ -8,7 +8,7 @@ orlite2pod - Documentation generator frontend for ORLite
 
 =head1 SYNOPSIS
 
-  orlite2pod --author="Adam Kennedy" Class::Name
+  orlite2pod Class::Name
 
 =head1 DESCRIPTION
 
@@ -26,17 +26,17 @@ author to be used when generating the POD files.
 use 5.006;
 use strict;
 use Getopt::Long ();
+use Params::Util ();
 use ORLite::Pod  ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.06';
-}
+our $VERSION = '0.07';
 
 my $AUTHOR = undef;
+my $EMAIL  = undef;
 my $RT     = undef;
 Getopt::Long::GetOptions(
 	'author=s' => \$AUTHOR,
+	'email=s'  => \$EMAIL,
 	'rt'       => \$RT,
 );
 
@@ -46,8 +46,13 @@ unless ( -d 'lib' ) {
 unshift @INC, 'lib';
 
 my $class = shift;
-eval "use $class;";
-die $@ if $@;
+unless ( Params::Util::_CLASS($class) ) {
+	die("Did not provide a valid class name");
+}
+eval "use $class { show_progress => 1 };";
+if ( $@ ) {
+	die("Failed to load $class: $@");
+}
 
 print "Creating ORLite::Pod instance...\n";
 my %params = (
@@ -56,6 +61,9 @@ my %params = (
 );
 if ( defined $AUTHOR ) {
 	$params{author} = $AUTHOR;
+}
+if ( defined $EMAIL ) {
+	$params{email} = $EMAIL;
 }
 if ( $RT ) {
 	$params{rt} = 1;

@@ -12,6 +12,7 @@ ORLite::Pod - Documentation generator for ORLite
       from   => 'My::Project::DB',
       to     => 'My-Project/lib',
       author => 'Adam Kennedy',
+      email  => 'adamk@cpan.org',
   );
   
   $generator->run;
@@ -53,13 +54,11 @@ use Params::Util     ();
 use Class::Inspector ();
 use ORLite           ();
 use Template         ();
+use SQL::Beautify    ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.06';
-}
+our $VERSION = '0.07';
 
-my $now = (localtime(time))[5] + 1900;
+my $year = (localtime(time))[5] + 1900;
 
 
 
@@ -90,18 +89,21 @@ sub new {
 	unless ( -w $self->to ) {
 		die("No permission to write to directory '$to'");
 	}
-	unless ( $self->author ) {
-		$self->{author} = "The Author";
+	unless ( defined $self->author ) {
+		$self->{author} = '';
+	}
+	unless ( defined $self->email ) {
+		$self->{email} = '';
 	}
 	unless ( $self->year ) {
-		$self->{year} = $now;
+		$self->{year} = $year;
 	}
 
 	# Create the copyright year
-	if ( $self->{year} == $now ) {
+	if ( $self->{year} == $year ) {
 		$self->{copyyear} = $self->{year};
 	} else {
-		$self->{copyyear} = "$self->{year} - $now";
+		$self->{copyyear} = "$self->{year} - $year";
 	}
 
 	# Create the Template Toolkit context
@@ -128,6 +130,21 @@ sub to {
 
 sub author {
 	$_[0]->{author};
+}
+
+sub author_pod {
+	my $self = shift;
+	if ( $self->author and $self->email ) {
+		return $self->author . ' E<lt>' . $self->email . 'E<gt>';
+	} elsif ( $self->author ) {
+		return $self->author;
+	} else {
+		return '';
+	}
+}
+
+sub email {
+	$_[0]->{email};
 }
 
 sub year {
@@ -214,6 +231,11 @@ sub run {
 
 	# Generate the table .pod files
 	foreach my $table ( @$tables ) {
+		# Beautify the create fragment
+		$table->{create} = SQL::Beautify->new(
+			query  => $table->{sql}->{create},
+		)->beautify;
+
 		# Skip tables we aren't modelling
 		next unless $table->{class}->can('select');
 
@@ -344,18 +366,18 @@ sub template_db { <<"END_TT" }
 [% IF method.dsn %]
 |=head2 dsn
 |
-|  my \$string = Foo::Bar->dsn;
+|  my \$string = [%+ pkg %]->dsn;
 |
-|The C<dsn> accessor returns the dbi connection string used to connect
+|The C<dsn> accessor returns the L<DBI> connection string used to connect
 |to the SQLite database as a string.
 |
 [% END %]
 [% IF method.dbh %]
 |=head2 dbh
 |
-|  my \$handle = Foo::Bar->dbh;
+|  my \$handle = [%+ pkg %]->dbh;
 |
-|To reliably prevent potential SQLite deadlocks resulting from multiple
+|To reliably prevent potential L<SQLite> deadlocks resulting from multiple
 |connections in a single process, each ORLite package will only ever
 |maintain a single connection to the database.
 |
@@ -363,11 +385,11 @@ sub template_db { <<"END_TT" }
 |
 |Although in most situations you should not need a direct DBI connection
 |handle, the C<dbh> method provides a method for getting a direct
-|connection in a way that is compatible with ORLite's connection
-|management.
+|connection in a way that is compatible with connection management in
+|L<ORLite>.
 |
 |Please note that these connections should be short-lived, you should
-|never hold onto a connection beyond the immediate scope.
+|never hold onto a connection beyond your immediate scope.
 |
 |The transaction system in ORLite is specifically designed so that code
 |using the database should never have to know whether or not it is in a
@@ -392,7 +414,7 @@ sub template_db { <<"END_TT" }
 [% IF method.begin %]
 |=head2 begin
 |
-|  Foo::Bar->begin;
+|  [%+ pkg %]->begin;
 |
 |The C<begin> method indicates the start of a transaction.
 |
@@ -409,7 +431,7 @@ sub template_db { <<"END_TT" }
 [% IF method.commit %]
 |=head2 commit
 |
-|  Foo::Bar->commit;
+|  [%+ pkg %]->commit;
 |
 |The C<commit> method commits the current transaction. If called outside
 |of a current transaction, it is accepted and treated as a null operation.
@@ -438,7 +460,8 @@ sub template_db { <<"END_TT" }
 |
 |=head2 do
 |
-|  Foo::Bar->do('insert into table (foo, bar) values (?, ?)', {},
+|  [%+ pkg %]->do(
+|      'insert into table ( foo, bar ) values ( ?, ? )', {},
 |      \$foo_value,
 |      \$bar_value,
 |  );
@@ -535,7 +558,7 @@ sub template_db { <<"END_TT" }
 |=head2 pragma
 |
 |  # Get the user_version for the schema
-|  my \$version = Foo::Bar->pragma('user_version');
+|  my \$version = [% pkg %]->pragma('user_version');
 |
 |The C<pragma> method provides a convenient method for fetching a pragma
 |for a datase. See the SQLite documentation for more details.
@@ -553,15 +576,16 @@ sub template_db { <<"END_TT" }
 |L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=[% self.dist %]>
 |
 |For other issues, contact the author.
-|[% ELSE %]
+[% ELSE %]
 |For general support please see the support section of the main
 |project documentation.
-|[% END %]
+[% END %]
 |
+[% IF self.author_email %]
 |=head1 AUTHOR
 |
-|[%+ self.author %]
-|
+|[%+ self.author_email %]
+[% END %]
 |=head1 COPYRIGHT
 |
 |Copyright [% self.copyyear %] [%+ self.author %].
@@ -617,7 +641,8 @@ sub template_table { <<"END_TT" }
 |compatible with SQLite can be used in the parameter.
 |
 |Returns a list of B<[% pkg %]> objects when called in list context, or a
-|reference to an ARRAY of B<[% pkg %]> objects when called in scalar context.
+|reference to an C<ARRAY> of B<[% pkg %]> objects when called in scalar
+| context.
 |
 |Throws an exception on error, typically directly from the L<DBI> layer.
 |
@@ -669,15 +694,15 @@ sub template_table { <<"END_TT" }
 |
 |The C<create> constructor is a one-step combination of C<new> and
 |C<insert> that takes the column parameters, creates a new
-|L<[% pkg %]> object, inserts the appropriate row into the L<[% table.name %]>
-|table, and then returns the object.
+|L<[% pkg %]> object, inserts the appropriate row into the
+| L<[% table.name %]> table, and then returns the object.
 |
 |If the primary key column C<[% table.pk %]> is not provided to the
 |constructor (or it is false) the object returned will have
 |C<[% table.pk %]> set to the new unique identifier.
 | 
-|Returns a new L<[% table.name %]> object, or throws an exception on error,
-|typically from the L<DBI> layer.
+|Returns a new L<[% table.name %]> object, or throws an exception on
+|error, typically from the L<DBI> layer.
 |
 [% END %]
 [% IF method.insert %]
@@ -761,7 +786,7 @@ sub template_table { <<"END_TT" }
 |The [% table.name %] table was originally created with the
 |following SQL command.
 |
-|[%+ table.sql.create | indent('  ')%]
+|[%+ table.create | indent('  ')%]
 |
 |=head1 SUPPORT
 |
@@ -769,10 +794,11 @@ sub template_table { <<"END_TT" }
 |
 |See the documentation for L<[% root %]> for more information.
 |
+[% IF self.author_email %]
 |=head1 AUTHOR
 |
-|[%+ self.author %]
-|
+|[%+ self.author_email %]
+[% END %]
 |=head1 COPYRIGHT
 |
 |Copyright [% self.copyyear %] [%+ self.author %].
