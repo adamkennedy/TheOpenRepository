@@ -16,7 +16,7 @@ use ORLite::Migrate 0.02 {
 	file          => File::Spec->catdir(
 		File::HomeDir->my_data,
 		($^O eq 'MSWin32' ? 'Perl' : '.perl'),
-		'JSAN-Client',
+		'JSAN-Client2',
 	),
 	timeline      => File::Spec->catdir(
 		File::ShareDir::dist_dir('JSAN-Client2),
