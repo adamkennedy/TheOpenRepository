@@ -3,16 +3,13 @@ package JSAN::Index::Distribution;
 use strict;
 use warnings;
 
-
 use base 'JSAN::Index::Extractable';
-
 
 sub releases {
     my $self = shift;
     
     return JSAN::Index::Release->select('where distribution = ?', $self->name);
 }
-
 
 sub retrieve {
     my $self = shift;
@@ -29,7 +26,6 @@ sub retrieve {
     
     return $result
 }
-
 
 sub latest_release {
     my $self     = shift;

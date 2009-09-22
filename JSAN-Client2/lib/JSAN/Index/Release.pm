@@ -3,16 +3,20 @@ package JSAN::Index::Release;
 # See POD at end for docs
 
 use strict;
-use File::Spec       ();
-use File::Spec::Unix ();
-use File::Path       ();
-use Params::Util     '_INSTANCE';
+use warnings;
+use Carp                      ();
+use File::Spec                ();
+use File::Spec::Unix          ();
+use File::Path                ();
+use Params::Util              ();
+use JSAN::Index::Extractable  ();
+use JSAN::Index::Distribution ();
+use JSAN::Index::Author       ();
 
-use base 'JSAN::Index::Extractable';
-
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
     $VERSION = '0.16';
+    @ISA     = 'JSAN::Index::Extractable';
 
     # Optional prefork.pm support
     eval "use prefork 'YAML'";
@@ -23,47 +27,44 @@ BEGIN {
 # Make the tar code read saner below
 use constant COMPRESSED => 1;
 
-
-
-sub retrieve {
-    my $self = shift;
-    
-    my %params = @_;
-    
-    my $sql = join " and ", map { "$_ = ?" } keys(%params); 
-    
-    my $result = __PACKAGE__->select("where $sql", values(%params));
-    
-    if (scalar(@$result) == 1) {
-        return $result->[0]
-    } 
-    
-    return $result
+sub fetch_distribution {
+    JSAN::Index::Distribution->retrieve(
+        name => $_[0]->distribution,
+    );
 }
 
+sub fetch_author {
+    JSAN::Index::Author->retrieve(
+        login => $_[0]->author,
+    );
+}
+
+sub retrieve {
+    my $class  = shift;
+    my %params = @_;
+    my $sql    = join " and ", map { "$_ = ?" } keys(%params); 
+    my $result = $class->select("where $sql", values(%params));
+
+    if ( scalar(@$result) == 1 ) {
+        return $result->[0]
+    } 
+
+    return $result
+}
 
 sub file_path {
     JSAN::Transport->file_location($_[0]->source)->path;
 }
 
-
 sub file_mirrored {
     !! -f $_[0]->file_path;
 }
-
 
 sub mirror {
     my $self     = shift;
     my $location = JSAN::Transport->file_mirror($self->source);
     $location->path;
 }
-
-
-
-
-
-
-
 
 sub created_string {
     scalar localtime( shift()->created );
@@ -91,7 +92,7 @@ sub requires {
     if ( UNIVERSAL::isa($requires, 'ARRAY') ) {
         my %hash = ();
         foreach my $dep ( @$requires ) {
-            unless ( _INSTANCE($dep, 'Module::META::Requires') ) {
+            unless ( Params::Util::_INSTANCE($dep, 'Module::META::Requires') ) {
                 Carp::croak("Unknown dependency structure in META.yml for "
                     . $self->source);
             }
@@ -126,7 +127,7 @@ sub build_requires {
     if ( UNIVERSAL::isa($requires, 'ARRAY') ) {
         my %hash = ();
         foreach my $dep ( @$requires ) {
-            unless ( _INSTANCE($dep, 'Module::META::Requires') ) {
+            unless ( Params::Util::_INSTANCE($dep, 'Module::META::Requires') ) {
                 Carp::croak("Unknown dependency structure in META.yml for "
                     . $self->source);
             }
@@ -317,12 +318,15 @@ sub _write {
 
     # Save it
     my $path = File::Spec->catfile( $dir, $file );
-    open( LIBRARY, '>', $path ) 
-        or Carp::croak( "Failed to open '$path' for writing: $!" );
-    print LIBRARY $content
-        or Carp::croak( "Failed to write to '$path'" );
-    close LIBRARY
-        or Carp::croak( "Failed to close '$path' after writing" );
+    unless ( open( LIBRARY, '>', $path ) ) {
+        Carp::croak( "Failed to open '$path' for writing: $!" );
+    }
+    unless ( print LIBRARY $content ) {
+        Carp::croak( "Failed to write to '$path'" );
+    }
+    unless ( close LIBRARY ) {
+        Carp::croak( "Failed to close '$path' after writing" );
+    }
 
     1;
 }

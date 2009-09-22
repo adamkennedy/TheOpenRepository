@@ -9,7 +9,7 @@ BEGIN {
 }
 
 use Test::More;
-use Params::Util '_HASH';
+use Params::Util qw{ _HASH _HASHLIKE };
 use File::Remove 'remove';
 use LWP::Online  'online';
 use JSAN::Transport;
@@ -29,20 +29,20 @@ if ( online() ) {
 #####################################################################
 # Testing ::Author
 
-# Find a known-good author
-my $adamk = JSAN::Index::Author->retrieve( login => 'adamk' );
+# Test a known-good author
+SCOPE: {
+	my $adamk = JSAN::Index::Author->retrieve( login => 'adamk' );
+	isa_ok( $adamk,        'JSAN::Index::Author' );
+	is(     $adamk->login, 'adamk',                            'Author->login returns as expected'        );
+	is(     $adamk->name,  'Adam Kennedy',                     'Author->name returns as expected'         );
+	like(   $adamk->doc,   qr{^/},                             'Author->doc returns a root-relative path' );
+	like(   $adamk->email, qr{^[\w.-]+\@[\w-]+(?:\.[\w-]+)*$}, 'Author->email returns an email address'   );
+	like(   $adamk->url,   qr{^http://},                        'Author->url returns a URI'                );
+	my @releases = @{$adamk->releases};
+	ok( scalar(@releases), '->releases works' );
+	isa_ok( $releases[0], 'JSAN::Index::Release');
+}
 
-isa_ok( $adamk,        'JSAN::Index::Author' );
-is(     $adamk->login, 'adamk',                            'Author->login returns as expected'        );
-is(     $adamk->name,  'Adam Kennedy',                     'Author->name returns as expected'         );
-like(   $adamk->doc,   qr{^/},                             'Author->doc returns a root-relative path' );
-like(   $adamk->email, qr{^[\w.-]+\@[\w-]+(?:\.[\w-]+)*$}, 'Author->email returns an email address'   );
-like(   $adamk->url,   qr{^http://},                        'Author->url returns a URI'                );
-
-my @releases = @{$adamk->releases};
-ok( scalar(@releases), '->releases works' );
-
-isa_ok( $releases[0], 'JSAN::Index::Release');
 
 
 
@@ -50,22 +50,19 @@ isa_ok( $releases[0], 'JSAN::Index::Release');
 #####################################################################
 # Testing ::Distribution
 
-# Find a known-good distribution
-my $swapdist = JSAN::Index::Distribution->retrieve( name => 'Display.Swap' );
-
-isa_ok( $swapdist, 'JSAN::Index::Distribution' );
-is(   $swapdist->name,    'Display.Swap', 'Distribution->name matches expected' );
-like( $swapdist->doc,     qr{^/},         'Distribution->doc returns a root-relative path' );
-
-@releases = @{$swapdist->releases};
-
-ok( scalar(@releases), '->releases works' );
-isa_ok( $releases[0], 'JSAN::Index::Release');
-
-isa_ok( $swapdist->latest_release, 'JSAN::Index::Release'      );
-
-# Is extractable
-can_ok( $swapdist, 'extract_libs', 'extract_tests', 'extract_resource' );
+# Test a known-good distribution
+SCOPE: {
+	my $swapdist = JSAN::Index::Distribution->retrieve( name => 'Display.Swap' );
+	isa_ok( $swapdist, 'JSAN::Index::Distribution' );
+	is(   $swapdist->name,    'Display.Swap', 'Distribution->name matches expected' );
+	like( $swapdist->doc,     qr{^/},         'Distribution->doc returns a root-relative path' );
+	my @releases = @{$swapdist->releases};
+	ok( scalar(@releases), '->releases works' );
+	isa_ok( $releases[0], 'JSAN::Index::Release');
+	isa_ok( $swapdist->latest_release, 'JSAN::Index::Release'      );
+	# Is extractable
+	can_ok( $swapdist, 'extract_libs', 'extract_tests', 'extract_resource' );
+}
 
 
 
@@ -77,24 +74,26 @@ can_ok( $swapdist, 'extract_libs', 'extract_tests', 'extract_resource' );
 
 #####################################################################
 # Find a known release
-my $swaprel = JSAN::Index::Release->retrieve( source => '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz' );
-
-isa_ok( $swaprel,                 'JSAN::Index::Release'      );
-isa_ok( $swaprel->distribution,   'JSAN::Index::Distribution' );
-isa_ok( $swaprel->author,         'JSAN::Index::Author'       );
-ok(     $swaprel->source,         '::Release has a ->source'  );
+my $swaprel = JSAN::Index::Release->retrieve(
+	source => '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz',
+);
+isa_ok( $swaprel,                     'JSAN::Index::Release'      );
+isa_ok( $swaprel->fetch_distribution, 'JSAN::Index::Distribution' );
+isa_ok( $swaprel->fetch_author,       'JSAN::Index::Author'       );
+ok(     $swaprel->source,             '::Release has a ->source'  );
 
 
 #####################################################################
 # Clear out any existing file
 my $swaprel_file = $swaprel->file_path;
-
 ok( $swaprel_file, '::Release->file_path returns a value' );
 
 SKIP: {
 	skip( "Don't need to predelete file", 2 ) unless -f $swaprel_file;
-	ok( scalar(remove( \1, $swaprel_file )),
-		"Removing existing release file $swaprel_file" );
+	ok(
+		scalar(remove( \1, $swaprel_file )),
+		"Removing existing release file $swaprel_file",
+	);
 	ok( ! -f $swaprel_file, 'File was removed' );
 }
 is( $swaprel->file_mirrored, '', '::Release->file_mirrored returns false when no file' );
@@ -117,7 +116,7 @@ isa_ok( $swaprel->archive, 'Archive::Tar' );
 #####################################################################
 # Load the META.yaml data for the release
 my $meta = $swaprel->meta_data;
-ok( UNIVERSAL::isa($meta, 'HASH'), '::Release->meta_data returns a HASH' );
+ok( _HASHLIKE($meta), '::Release->meta_data returns a HASH' );
 
 
 #####################################################################
@@ -128,10 +127,14 @@ can_ok( $swaprel, 'extract_libs', 'extract_tests', 'extract_resource' );
 #####################################################################
 # Can we find its dependencies
 is_deeply( scalar($swaprel->requires), {}, '::Release->requires returns an empty hash for known-null deps' );
-is_deeply( [ $swaprel->requires_libraries ], [ ],
-	'::Release->requires_libraries for known no-deps returns null list' );
-is_deeply( [ $swaprel->requires_releases  ], [ ],
-	'::Release->requires_releases  for known no-deps returns null list' );
+is_deeply(
+	[ $swaprel->requires_libraries ], [ ],
+	'::Release->requires_libraries for known no-deps returns null list',
+);
+is_deeply(
+	[ $swaprel->requires_releases  ], [ ],
+	'::Release->requires_releases  for known no-deps returns null list',
+);
 
 
 #####################################################################
@@ -150,14 +153,16 @@ is( ref($deps), 'HASH', '::Release returns a HASH for known deps release'    );
 
 ok( defined($deps->{Display}), 'Display.Swap depends on Display as expected' );
 ok( defined($deps->{JSAN}),    'Display.Swap depends on JSAN as expected'    );
-
-is_deeply( [ $hasdeps->requires_libraries ], [ $display, $jsan ],
-	'::Release->requires_libraries returns as expected for known-deps release' );
+is_deeply(
+	[ $hasdeps->requires_libraries ], [ $display, $jsan ],
+	'::Release->requires_libraries returns as expected for known-deps release',
+);
 
 my @hasdeps_releases = $hasdeps->requires_releases;
-
-is( scalar(@hasdeps_releases), 2,
-	'::Release->requires_releases returns 2 items for known-deps release' );
+is(
+	scalar(@hasdeps_releases), 2,
+	'::Release->requires_releases returns 2 items for known-deps release',
+);
 isa_ok( $hasdeps_releases[0], 'JSAN::Index::Release' );
 isa_ok( $hasdeps_releases[1], 'JSAN::Index::Release' );
 
@@ -175,8 +180,10 @@ isa_ok( $swaplib->distribution, 'JSAN::Index::Distribution'                 );
 isa_ok( $swaplib->release,      'JSAN::Index::Release'                      );
 ok(     $swaplib->version,      'Library->version returns true'             );
 like(   $swaplib->doc, qr{^/},  'Library->doc returns a root-relative path' );
-is( $swaplib->distribution, $swaplib->release->distribution,
-	'->release->distribution matches ->distribution' );
+is(
+	$swaplib->distribution, $swaplib->release->distribution,
+	'->release->distribution matches ->distribution',
+);
 
 # Is extractable
 can_ok( $swaplib, 'extract_libs', 'extract_tests', 'extract_resource' );
@@ -191,6 +198,3 @@ can_ok( $swaplib, 'extract_libs', 'extract_tests', 'extract_resource' );
 my $file = $swaplib->release->mirror;
 ok( $file,    'Library->release->mirror returns true' );
 ok( -f $file, 'Library->release->mirror exists'       );
-
-exit(0);
-

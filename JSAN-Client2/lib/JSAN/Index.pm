@@ -25,8 +25,8 @@ sub import {
 
 
 use JSAN::Index::Author       ();
-use JSAN::Index::Distribution ();
 use JSAN::Index::Release      ();
+use JSAN::Index::Distribution ();
 
 1;
 
