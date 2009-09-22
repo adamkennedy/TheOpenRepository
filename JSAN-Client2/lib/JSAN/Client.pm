@@ -186,7 +186,7 @@ sub install_library {
             or Carp::croak("The JSAN library '$library' does not exist");
     }
 
-    $self->_install_release( $library->release, $_[0] );
+    $self->_install_release( $library->fetch_release, $_[0] );
 }
 
 =pod
