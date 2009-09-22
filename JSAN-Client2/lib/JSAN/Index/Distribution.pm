@@ -2,45 +2,46 @@ package JSAN::Index::Distribution;
 
 use strict;
 use warnings;
+use JSAN::Index::Extractable ();
+use JSAN::Index::Release     ();
 
-use base 'JSAN::Index::Extractable';
-use JSAN::Index::Release    ();
-
+our $VERSION = '0.20';
+our @ISA     = 'JSAN::Index::Extractable';
 
 sub releases {
-    my $self = shift;
-    
-    return JSAN::Index::Release->select('where distribution = ?', $self->name);
+    JSAN::Index::Release->select('where distribution = ?', $_[0]->name);
 }
 
 sub retrieve {
-    my $self = shift;
-    
+    my $class  = shift;
     my %params = @_;
-    
-    my $sql = join " and ", map { "$_ = ?" } keys(%params); 
-    
-    my $result = __PACKAGE__->select("where $sql", values(%params));
-    
-    if (scalar(@$result) == 1) {
-        return $result->[0]
-    } 
-    
-    return $result
+    my $sql    = join " and ", map { "$_ = ?" } keys(%params); 
+    my @result = $class->select( "where $sql", values(%params) );
+    if ( @result == 1 ) {
+        return $result[0];
+    }
+    if ( @result > 1 ) {
+        Carp::croak("Found more than one author record");
+    } else {
+        return undef;
+    }
 }
 
 sub latest_release {
     my $self     = shift;
-    my @releases = $self->releases
-        or Carp::croak("No releases found for distribution "
-            . $self->name );
+    my @releases = $self->releases;
+    unless ( @releases ) {
+        Carp::croak( "No releases found for distribution " . $self->name );
+    }
     @releases = sort { $b->version <=> $a->version } @releases;
     $releases[0];
 }
 
+1;
 
-__PACKAGE__;
+__END__
 
+=pod
 
 =head1 NAME
 
@@ -155,3 +156,4 @@ it and/or modify it under the same terms as Perl itself.
 The full text of the license can be found in the
 LICENSE file included with this module.
 
+=cut

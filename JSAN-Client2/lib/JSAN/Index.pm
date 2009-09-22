@@ -6,7 +6,7 @@ use warnings;
 use Params::Util   1.00 ();
 use ORLite::Mirror 1.15 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.20';
 
 sub import {
 	my $class  = shift;
@@ -25,6 +25,7 @@ sub import {
 
 
 use JSAN::Index::Author       ();
+use JSAN::Index::Library      ();
 use JSAN::Index::Release      ();
 use JSAN::Index::Distribution ();
 

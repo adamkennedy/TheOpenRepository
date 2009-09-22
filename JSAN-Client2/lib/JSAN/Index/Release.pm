@@ -43,13 +43,15 @@ sub retrieve {
     my $class  = shift;
     my %params = @_;
     my $sql    = join " and ", map { "$_ = ?" } keys(%params); 
-    my $result = $class->select("where $sql", values(%params));
-
-    if ( scalar(@$result) == 1 ) {
-        return $result->[0]
-    } 
-
-    return $result
+    my @result = $class->select( "where $sql", values(%params) );
+    if ( @result == 1 ) {
+        return $result[0];
+    }
+    if ( @result > 1 ) {
+        Carp::croak("Found more than one author record");
+    } else {
+        return undef;
+    }
 }
 
 
@@ -181,7 +183,7 @@ sub requires_releases {
     my @libraries = $self->requires_libraries;
 
     # Derive a list of releases
-    my @releases = map { $_->release } @libraries;
+    my @releases = map { $_->fetch_release } @libraries;
     return @releases;
 }
 
@@ -190,7 +192,7 @@ sub build_requires_releases {
     my @libraries = $self->build_requires_libraries;
 
     # Derive a list of releases
-    my @releases = map { $_->release } @libraries;
+    my @releases = map { $_->fetch_release } @libraries;
     return @releases;
 }
 

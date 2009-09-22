@@ -16,7 +16,7 @@ use JSAN::Transport;
 use JSAN::Index;
 
 if ( online() ) {
-	plan( tests => 50 );
+	plan( tests => 52 );
 } else {
 	plan( skip_all => "Skipping online tests" );
 	exit(0);
@@ -70,7 +70,6 @@ SCOPE: {
 
 #####################################################################
 # Testing ::Release
-
 
 #####################################################################
 # Find a known release
@@ -176,13 +175,13 @@ isa_ok( $hasdeps_releases[1], 'JSAN::Index::Release' );
 # Find a known library
 my $swaplib = JSAN::Index::Library->retrieve( name => 'Display.Swap' );
 isa_ok( $swaplib, 'JSAN::Index::Library' );
-isa_ok( $swaplib->distribution, 'JSAN::Index::Distribution'                 );
-isa_ok( $swaplib->release,      'JSAN::Index::Release'                      );
-ok(     $swaplib->version,      'Library->version returns true'             );
-like(   $swaplib->doc, qr{^/},  'Library->doc returns a root-relative path' );
+isa_ok( $swaplib->fetch_distribution, 'JSAN::Index::Distribution' );
+isa_ok( $swaplib->fetch_release, 'JSAN::Index::Release' );
+ok( $swaplib->version, 'Library->version returns true' );
+like( $swaplib->doc, qr{^/},  'Library->doc returns a root-relative path' );
 is(
-	$swaplib->fetch_distribution, $swaplib->release->fetch_distribution,
-	'->release->fetch_distribution matches ->fetch_distribution',
+	$swaplib->distribution, $swaplib->fetch_release->distribution,
+	'->fetch_release->distribution matches ->distribution',
 );
 
 # Is extractable
@@ -195,6 +194,6 @@ can_ok( $swaplib, 'extract_libs', 'extract_tests', 'extract_resource' );
 #####################################################################
 # More Interesting Tests
 
-my $file = $swaplib->release->mirror;
-ok( $file,    'Library->release->mirror returns true' );
-ok( -f $file, 'Library->release->mirror exists'       );
+my $file = $swaplib->fetch_release->mirror;
+ok( $file,    'Library->fetch_release->mirror returns true' );
+ok( -f $file, 'Library->fetch_release->mirror exists'       );

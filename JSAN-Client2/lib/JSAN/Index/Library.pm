@@ -1,3 +1,46 @@
+package JSAN::Index::Library;
+
+use strict;
+use warnings;
+use Carp                     ();
+use JSAN::Index::Extractable ();
+
+our $VERSION = '0.20';
+our @ISA     = 'JSAN::Index::Extractable';
+
+sub fetch_distribution {
+    JSAN::Index::Distribution->retrieve(
+        name => $_[0]->distribution,
+    );
+}
+
+sub fetch_release {
+    JSAN::Index::Release->retrieve(
+        id => $_[0]->release,
+    );
+}
+
+sub retrieve {
+    my $class  = shift;
+    my %params = @_;
+    my $sql    = join " and ", map { "$_ = ?" } keys(%params); 
+    my @result = $class->select( "where $sql", values(%params) );
+    if ( @result == 1 ) {
+        return $result[0];
+    }
+    if ( @result > 1 ) {
+        Carp::croak("Found more than one author record");
+    } else {
+        return undef;
+    }
+}
+
+1;
+
+__END__
+
+=pod
+
 =head1 NAME
 
 JSAN::Index::Library - JSAN::Index class for the library table
@@ -123,3 +166,4 @@ it and/or modify it under the same terms as Perl itself.
 The full text of the license can be found in the
 LICENSE file included with this module.
 
+=cut
