@@ -28,6 +28,7 @@ etc/perlcriticrc
 example/equation.marpa
 example/null_value.marpa
 example/synopsis.pl
+inc/Test/Weaken.pm
 lib/Marpa/Doc/Algorithm.pod
 lib/Marpa/Doc/Bibliography.pod
 lib/Marpa/Doc/Debugging.pod

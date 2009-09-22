@@ -164,8 +164,8 @@ use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
-use Scalar::Util qw(weaken);
-use List::Util qw(min);
+use Scalar::Util;
+use List::Util;
 use English qw( -no_match_vars );
 use Data::Dumper;
 use Storable;
@@ -2457,7 +2457,7 @@ sub Marpa::Evaluator::value {
         ]
     );
 
-    TASK: while (1) {
+    while (1) {
 
         my $task_entry = pop @tasks;
         my $task       = shift @{$task_entry};
@@ -2543,14 +2543,22 @@ sub Marpa::Evaluator::value {
                 }
 
                 my $and_node = $and_nodes->[$and_node_id];
+
                 my $and_node_iteration = $and_iterations->[$and_node_id] = [];
 
                 $and_node_iteration
                     ->[Marpa::Internal::And_Iteration::CURRENT_CHILD] =
-                    List::Util::first { defined $and_node->[$_] } (
-                    Marpa::Internal::And_Node::CAUSE,
-                    Marpa::Internal::And_Node::PREDECESSOR
-                    );
+                    defined $and_node->[Marpa::Internal::And_Node::CAUSE]
+                    ? Marpa::Internal::And_Node::CAUSE
+                    : defined
+                    $and_node->[Marpa::Internal::And_Node::PREDECESSOR]
+                    ? Marpa::Internal::And_Node::PREDECESSOR
+                    : undef;
+
+                ### TAG1 first() result: List'Util'first { $and_node->[$_] } Marpa'Internal'And_Node'CAUSE, Marpa'Internal'And_Node'PREDECESSOR
+                ### TAG1 defined child-or-nodes: grep { defined $and_node->[$_] } Marpa'Internal'And_Node'CAUSE, Marpa'Internal'And_Node'PREDECESSOR
+
+                ### Setting current-child: $and_node_iteration->[Marpa'Internal'And_Iteration'CURRENT_CHILD]
 
                 push @tasks,
                     [ Marpa::Internal::Task::SETUP_AND_NODE, $and_node_id ];
@@ -2570,8 +2578,11 @@ sub Marpa::Evaluator::value {
                 }
 
                 my $and_node           = $and_nodes->[$and_node_id];
+
+                ### defined child-or-nodes: [grep { defined $and_node->[$_] } (2,3)]
+
                 my $and_node_iteration = $and_iterations->[$and_node_id];
-                next TASK if not $and_node_iteration;
+                break if not $and_node_iteration;
 
                 my $sort_element =
                     $and_node->[Marpa::Internal::And_Node::SORT_ELEMENT];
@@ -2595,7 +2606,7 @@ sub Marpa::Evaluator::value {
                     # exhausted, this and-node is exhausted.
                     if ( not $cause_or_node_iteration ) {
                         $and_iterations->[$and_node_id] = undef;
-                        next TASK;
+                        break
                     }
 
                     $cause_and_node_choice = $cause_or_node_iteration->[-1];
@@ -2605,6 +2616,9 @@ sub Marpa::Evaluator::value {
                         $and_iterations->[$cause_and_node_id];
                     $cause_sort_elements = $cause_and_node_iteration
                         ->[Marpa::Internal::And_Iteration::SORT_KEY];
+
+                    ### cause-and-node-id: $cause_and_node_id
+                    ### assert: defined $cause_sort_elements
 
                 } ## end if ( $cause = $and_node->[...])
 
@@ -2631,7 +2645,7 @@ sub Marpa::Evaluator::value {
                     # exhausted, this and-node is exhausted.
                     if ( not $predecessor_or_node_iteration ) {
                         $and_iterations->[$and_node_id] = undef;
-                        next TASK;
+                        break
                     }
 
                     $predecessor_and_node_choice =
@@ -2692,14 +2706,29 @@ sub Marpa::Evaluator::value {
                 $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP]
                     = \@or_map;
 
-                if (    defined $cause_sort_elements
-                    and defined $predecessor_sort_elements )
+                if (    defined $cause
+                    and defined $predecessor )
                 {
+                    my ( $cause_sort_string, $predecessor_sort_string ) =
+                        map {
+                        join q{}, map {
+                            length $_ == N_FORMAT_WIDTH
+                                ? ( ~$_ )
+                                . ( "\0" x NULL_SORT_ELEMENT_FILL_WIDTH )
+                                : ~$_
+                            }
+                            sort map { pack 'N*', @{$_} }
+                            @{$_}
+                        } ( $cause_sort_elements,
+                        $predecessor_sort_elements );
                     $and_node_iteration
                         ->[Marpa::Internal::And_Iteration::CURRENT_CHILD] =
-                        $cause_sort_elements ge $predecessor_sort_elements
+                        $cause_sort_string ge $predecessor_sort_string
                         ? Marpa::Internal::And_Node::CAUSE
                         : Marpa::Internal::And_Node::PREDECESSOR;
+
+                    ### Setting current-child: $and_node_iteration->[Marpa'Internal'And_Iteration'CURRENT_CHILD]
+
                 } ## end if ( defined $cause_sort_elements and defined ...)
 
             } ## end when (Marpa::Internal::Task::SETUP_AND_NODE)
@@ -2732,6 +2761,9 @@ sub Marpa::Evaluator::value {
                 } ## end if ($trace_tasks)
 
                 my $and_node = $and_nodes->[$and_node_id];
+
+                ### defined child-or-nodes: [grep { defined $and_node->[$_] } (2,3)]
+
                 push @tasks,
                     [ Marpa::Internal::Task::RESET_AND_NODE, $and_node_id ],
                     map {
@@ -2766,10 +2798,13 @@ sub Marpa::Evaluator::value {
                     ->[Marpa::Internal::And_Iteration::CURRENT_CHILD];
                 if ( not defined $current_child_field ) {
                     $and_iterations->[$and_node_id] = undef;
-                    next TASK;
+                    break
                 }
 
                 my $and_node = $and_nodes->[$and_node_id];
+
+                ### defined child-or-nodes: [grep { defined $and_node->[$_] } (2,3)]
+
                 my $cause    = $and_node->[Marpa::Internal::And_Node::CAUSE];
                 my $predecessor =
                     $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
@@ -2780,6 +2815,12 @@ sub Marpa::Evaluator::value {
                         $and_node_id
                         ];
                 } ## end if ( defined $cause and defined $predecessor )
+
+                ### cause, predecessor: (defined $cause), (defined $predecessor)
+                ### current, cause, predecessor: $current_child_field, Marpa'Internal'And_Node'CAUSE, Marpa'Internal'And_Node'PREDECESSOR
+                ### assert: defined $and_node->[$current_child_field]
+
+                Carp::confess("unexpected undef current child") if not defined $and_node->[$current_child_field];
 
                 push @tasks,
                     [
@@ -2818,7 +2859,7 @@ sub Marpa::Evaluator::value {
                 # if the current child is not exhausted, the last task
                 # successfully iterated it.  So SETUP_AND_NODE is all
                 # that is needed.
-                next TASK
+                break
                     if defined $or_iterations->[
                         $and_node->[$current_child_field]
                         ->[Marpa::Internal::Or_Node::ID]
@@ -2870,7 +2911,7 @@ sub Marpa::Evaluator::value {
 
                 # If both children exhausted, this and node is exhausted
                 # Let SETUP_AND_NODE deal with that.
-                next TASK if @exhausted_children >= 2;
+                break if @exhausted_children >= 2;
 
                 push @tasks,
                     [
@@ -2917,7 +2958,7 @@ sub Marpa::Evaluator::value {
                         } ## end default
                     };    ## end given
 
-                    next TASK;
+                    break
 
                 } ## end if ( not defined $current_and_iteration )
 
@@ -2928,7 +2969,7 @@ sub Marpa::Evaluator::value {
                 # If only one choice still active,
                 # clearly no need to
                 # worry about sorting alternatives.
-                next TASK if @{$and_choices} <= 1;
+                break if @{$and_choices} <= 1;
 
                 my $current_sort_key = join q{}, map {
                     length $_ == N_FORMAT_WIDTH
@@ -2962,7 +3003,7 @@ sub Marpa::Evaluator::value {
 
                 # If current choice would be inserted where it already
                 # is now, we're done
-                next TASK if $insert_point == $#{$and_choices};
+                break if $insert_point == $#{$and_choices};
 
                 my $former_current_choice = pop @{$and_choices};
                 splice @{$and_choices}, $insert_point, 0,
@@ -2986,7 +3027,10 @@ sub Marpa::Evaluator::value {
                         or Marpa::exception('print to trace handle failed');
                 }
 
+                ### assert: defined $or_node_id
+
                 my $or_node = $or_nodes->[$or_node_id];
+
                 my $current_and_node_id =
                     $or_iterations->[$or_node_id]->[-1]
                     ->[Marpa::Internal::And_Choice::ID];
@@ -3224,7 +3268,6 @@ sub Marpa::Evaluator::value {
         } ## end given
 
     } ## end while (1)
-    ## End TASK
 
     Carp::confess('Internal error: Should not reach here');
 
@@ -3532,7 +3575,7 @@ sub Marpa::Evaluator::old_value {
     my $build_depth =
         $tree->[$build_node]->[Marpa::Internal::Tree_Node::DEPTH];
     my $leaf_side_start_position =
-        min( grep { defined $_ }
+        List::Util::min( grep { defined $_ }
             @last_position_by_depth[ 0 .. $build_depth ] );
     my $nodes_built = @{$tree} - $build_node;
 

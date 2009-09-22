@@ -1,6 +1,9 @@
 Add Test::Pod Test::CPAN::Meta Test::MinimumVersion Test::Perl::Critic
-Eliminate internal priority?  If so, rename user priority to PRIORITY.
-Convert user priority to string?
+
+Eliminate internal priority?
+    If so, rename user priority to PRIORITY.
+
+Add ah_minimal.t -- ah2.t with minimal set on the grammar
 
 Add optimizations when max_parses <= 1
     For example, no need to prune duplicate parses
