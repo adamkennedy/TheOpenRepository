@@ -2,7 +2,7 @@ use inc::Module::Install 0.91;
 
 all_from      'lib/JSAN/Client.pm';
 requires      'ORLite'          => '1.25';
-requires      'ORLite::Migrate' => '1.15';
+requires      'ORLite::Mirror'  => '1.16';
 requires      'Digest::MD5'     => '2.33';
 requires      'LWP::Simple'     => '1.41';
 requires      'LWP::Online'     => '0.03';
