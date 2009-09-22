@@ -4,4 +4,7 @@ Makefile(\.old)?$
 CVS
 blib
 ~
-
+.svn
+Class-ISA-.*\.tar\.gz$
+\.swp$
+\.swo$
