@@ -74,6 +74,8 @@ can_ok( $swapdist, 'extract_libs', 'extract_tests', 'extract_resource' );
 #####################################################################
 # Testing ::Release
 
+
+#####################################################################
 # Find a known release
 my $swaprel = JSAN::Index::Release->retrieve( source => '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz' );
 
@@ -82,6 +84,8 @@ isa_ok( $swaprel->distribution,   'JSAN::Index::Distribution' );
 isa_ok( $swaprel->author,         'JSAN::Index::Author'       );
 ok(     $swaprel->source,         '::Release has a ->source'  );
 
+
+#####################################################################
 # Clear out any existing file
 my $swaprel_file = $swaprel->file_path;
 
@@ -95,6 +99,8 @@ SKIP: {
 }
 is( $swaprel->file_mirrored, '', '::Release->file_mirrored returns false when no file' );
 
+
+#####################################################################
 # Attempt to mirror the file twice. This should exercise both the normal
 # and shortcut logic.
 is( $swaprel->mirror, $swaprel_file, '->mirror returns the file path' );
@@ -102,16 +108,24 @@ ok( -f $swaprel_file, "->mirror actually fetched file" );
 ok( $swaprel->file_mirrored, '::Release->file_mirrored returns true when file exists' );
 is( $swaprel->mirror, $swaprel_file, '->mirror return the file path on the second (shortcut) call' );
 
+
+#####################################################################
 # Get the archive object directly
 isa_ok( $swaprel->archive, 'Archive::Tar' );
 
+
+#####################################################################
 # Load the META.yaml data for the release
 my $meta = $swaprel->meta_data;
 ok( UNIVERSAL::isa($meta, 'HASH'), '::Release->meta_data returns a HASH' );
 
+
+#####################################################################
 # Is it extractable
 can_ok( $swaprel, 'extract_libs', 'extract_tests', 'extract_resource' );
 
+
+#####################################################################
 # Can we find its dependencies
 is_deeply( scalar($swaprel->requires), {}, '::Release->requires returns an empty hash for known-null deps' );
 is_deeply( [ $swaprel->requires_libraries ], [ ],
@@ -119,20 +133,29 @@ is_deeply( [ $swaprel->requires_libraries ], [ ],
 is_deeply( [ $swaprel->requires_releases  ], [ ],
 	'::Release->requires_releases  for known no-deps returns null list' );
 
+
+#####################################################################
 # Repeat for something we know has deps
 my $hasdeps = JSAN::Index::Release->retrieve( source => '/dist/a/ad/adamk/Display.Swap-0.09.tar.gz' );
 my $display = JSAN::Index::Library->retrieve( name => 'Display' );
 my $jsan    = JSAN::Index::Library->retrieve( name => 'JSAN'    );
+
 isa_ok( $hasdeps, 'JSAN::Index::Release' );
 isa_ok( $display, 'JSAN::Index::Library' );
 isa_ok( $jsan,    'JSAN::Index::Library' );
+
 my $deps = $hasdeps->requires;
+
 is( ref($deps), 'HASH', '::Release returns a HASH for known deps release'    );
+
 ok( defined($deps->{Display}), 'Display.Swap depends on Display as expected' );
 ok( defined($deps->{JSAN}),    'Display.Swap depends on JSAN as expected'    );
+
 is_deeply( [ $hasdeps->requires_libraries ], [ $display, $jsan ],
 	'::Release->requires_libraries returns as expected for known-deps release' );
+
 my @hasdeps_releases = $hasdeps->requires_releases;
+
 is( scalar(@hasdeps_releases), 2,
 	'::Release->requires_releases returns 2 items for known-deps release' );
 isa_ok( $hasdeps_releases[0], 'JSAN::Index::Release' );
