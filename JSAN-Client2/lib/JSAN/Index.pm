@@ -23,8 +23,10 @@ sub import {
 	return 1;
 }
 
+
 use JSAN::Index::Author       ();
 use JSAN::Index::Distribution ();
+use JSAN::Index::Release      ();
 
 1;
 

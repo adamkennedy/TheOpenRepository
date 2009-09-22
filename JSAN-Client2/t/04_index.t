@@ -30,16 +30,19 @@ if ( online() ) {
 # Testing ::Author
 
 # Find a known-good author
-my $adamk = JSAN::Index::Author->select( 'where login = ?', 'adamk' );
-isa_ok( $adamk, 'JSAN::Index::Author' );
-is(   $adamk->login, 'adamk',                            'Author->login returns as expected'        );
-is(   $adamk->name,  'Adam Kennedy',                     'Author->name returns as expected'         );
-like( $adamk->doc,   qr{^/},                             'Author->doc returns a root-relative path' );
-like( $adamk->email, qr{^[\w.-]+\@[\w-]+(?:\.[\w-]+)*$}, 'Author->email returns an email address'   );
-like( $adamk->url,  qr{^http://},                        'Author->url returns a URI'                );
-my @releases = $adamk->releases;
+my $adamk = JSAN::Index::Author->retrieve( login => 'adamk' );
+
+isa_ok( $adamk,        'JSAN::Index::Author' );
+is(     $adamk->login, 'adamk',                            'Author->login returns as expected'        );
+is(     $adamk->name,  'Adam Kennedy',                     'Author->name returns as expected'         );
+like(   $adamk->doc,   qr{^/},                             'Author->doc returns a root-relative path' );
+like(   $adamk->email, qr{^[\w.-]+\@[\w-]+(?:\.[\w-]+)*$}, 'Author->email returns an email address'   );
+like(   $adamk->url,   qr{^http://},                        'Author->url returns a URI'                );
+
+my @releases = @{$adamk->releases};
 ok( scalar(@releases), '->releases works' );
 
+isa_ok( $releases[0], 'JSAN::Index::Release');
 
 
 
@@ -48,12 +51,17 @@ ok( scalar(@releases), '->releases works' );
 # Testing ::Distribution
 
 # Find a known-good distribution
-my $swapdist = JSAN::Index::Distribution->select( 'where name = ?', 'Display.Swap' );
+my $swapdist = JSAN::Index::Distribution->retrieve( name => 'Display.Swap' );
+
 isa_ok( $swapdist, 'JSAN::Index::Distribution' );
 is(   $swapdist->name,    'Display.Swap', 'Distribution->name matches expected' );
 like( $swapdist->doc,     qr{^/},         'Distribution->doc returns a root-relative path' );
-@releases = $swapdist->releases;
+
+@releases = @{$swapdist->releases};
+
 ok( scalar(@releases), '->releases works' );
+isa_ok( $releases[0], 'JSAN::Index::Release');
+
 isa_ok( $swapdist->latest_release, 'JSAN::Index::Release'      );
 
 # Is extractable
@@ -67,7 +75,8 @@ can_ok( $swapdist, 'extract_libs', 'extract_tests', 'extract_resource' );
 # Testing ::Release
 
 # Find a known release
-my $swaprel = JSAN::Index::Release->select( 'where source = ?', '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz' );
+my $swaprel = JSAN::Index::Release->retrieve( source => '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz' );
+
 isa_ok( $swaprel,                 'JSAN::Index::Release'      );
 isa_ok( $swaprel->distribution,   'JSAN::Index::Distribution' );
 isa_ok( $swaprel->author,         'JSAN::Index::Author'       );
@@ -75,7 +84,9 @@ ok(     $swaprel->source,         '::Release has a ->source'  );
 
 # Clear out any existing file
 my $swaprel_file = $swaprel->file_path;
+
 ok( $swaprel_file, '::Release->file_path returns a value' );
+
 SKIP: {
 	skip( "Don't need to predelete file", 2 ) unless -f $swaprel_file;
 	ok( scalar(remove( \1, $swaprel_file )),

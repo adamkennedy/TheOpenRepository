@@ -1,3 +1,336 @@
+package JSAN::Index::Release;
+
+# See POD at end for docs
+
+use strict;
+use File::Spec       ();
+use File::Spec::Unix ();
+use File::Path       ();
+use Params::Util     '_INSTANCE';
+
+use base 'JSAN::Index::Extractable';
+
+use vars qw{$VERSION};
+BEGIN {
+    $VERSION = '0.16';
+
+    # Optional prefork.pm support
+    eval "use prefork 'YAML'";
+    eval "use prefork 'Archive::Tar'";
+    eval "use prefork 'Archive::Zip'";
+}
+
+# Make the tar code read saner below
+use constant COMPRESSED => 1;
+
+
+
+sub retrieve {
+    my $self = shift;
+    
+    my %params = @_;
+    
+    my $sql = join " and ", map { "$_ = ?" } keys(%params); 
+    
+    my $result = __PACKAGE__->select("where $sql", values(%params));
+    
+    if (scalar(@$result) == 1) {
+        return $result->[0]
+    } 
+    
+    return $result
+}
+
+
+sub file_path {
+    JSAN::Transport->file_location($_[0]->source)->path;
+}
+
+
+sub file_mirrored {
+    !! -f $_[0]->file_path;
+}
+
+
+sub mirror {
+    my $self     = shift;
+    my $location = JSAN::Transport->file_mirror($self->source);
+    $location->path;
+}
+
+
+
+
+
+
+
+
+sub created_string {
+    scalar localtime( shift()->created );
+}
+
+sub requires {
+    my $self = shift;
+
+    # Get the raw dependency hash
+    my $meta = $self->meta_data;
+    unless ( UNIVERSAL::isa($meta, 'HASH') ) {
+        # If it has no META.yml at all, we assume that it
+        # has no dependencies.
+        return ();
+    }
+    my $requires = $meta->{requires} or return {};
+    if ( UNIVERSAL::isa($requires, 'HASH') ) {
+        # To be safe (mainly in case it's a dependency object of
+        # some sort) make sure it's a plain hash before returning.
+        my %hash = %$requires;
+        return \%hash;
+    }
+
+    # It could be an array of Requires objects
+    if ( UNIVERSAL::isa($requires, 'ARRAY') ) {
+        my %hash = ();
+        foreach my $dep ( @$requires ) {
+            unless ( _INSTANCE($dep, 'Module::META::Requires') ) {
+                Carp::croak("Unknown dependency structure in META.yml for "
+                    . $self->source);
+            }
+            $hash{ $dep->{name} } = $dep->{version};
+        }
+        return \%hash;
+    }
+
+    Carp::croak("Unknown 'requires' dependency structure in META.yml for "
+        . $self->source);
+}
+
+sub build_requires {
+    my $self = shift;
+
+    # Get the raw dependency hash
+    my $meta = $self->meta_data;
+    unless ( UNIVERSAL::isa($meta, 'HASH') ) {
+        # If it has no META.yml at all, we assume that it
+        # has no dependencies.
+        return ();
+    }
+    my $requires = $meta->{build_requires} or return {};
+    if ( UNIVERSAL::isa($requires, 'HASH') ) {
+        # To be safe (mainly in case it's a dependency object of
+        # some sort) make sure it's a plain hash before returning.
+        my %hash = %$requires;
+        return \%hash;
+    }
+
+    # It could be an array of Requires objects
+    if ( UNIVERSAL::isa($requires, 'ARRAY') ) {
+        my %hash = ();
+        foreach my $dep ( @$requires ) {
+            unless ( _INSTANCE($dep, 'Module::META::Requires') ) {
+                Carp::croak("Unknown dependency structure in META.yml for "
+                    . $self->source);
+            }
+            $hash{ $dep->{name} } = $dep->{version};
+        }
+        return \%hash;
+    }
+
+    Carp::croak("Unknown 'build_requires' dependency structure in META.yml for "
+        . $self->source);
+}
+
+sub requires_libraries {
+    my $self     = shift;
+    my $requires = $self->requires;
+
+    # Find the library object for each key
+    my @libraries = ();
+    foreach my $name ( sort keys %$requires ) {
+        my $library = JSAN::Index::Library->retrieve( name => $name );
+        push @libraries, $library if $library;
+    }
+
+    @libraries;
+}
+
+sub build_requires_libraries {
+    my $self     = shift;
+    my $requires = $self->build_requires;
+
+    # Find the library object for each key
+    my @libraries = ();
+    foreach my $name ( sort keys %$requires ) {
+        my $library = JSAN::Index::Library->retrieve( name => $name );
+        push @libraries, $library if $library;
+    }
+
+    @libraries;
+}
+
+sub requires_releases {
+    my $self      = shift;
+    my @libraries = $self->requires_libraries;
+
+    # Derive a list of releases
+    my @releases = map { $_->release } @libraries;
+    return @releases;
+}
+
+sub build_requires_releases {
+    my $self      = shift;
+    my @libraries = $self->build_requires_libraries;
+
+    # Derive a list of releases
+    my @releases = map { $_->release } @libraries;
+    return @releases;
+}
+
+sub meta_data {
+    my $self    = shift;
+    require YAML;
+    my @structs = YAML::Load($self->meta);
+    unless ( defined $structs[0] ) {
+        Carp::croak("Failed to load META.yml struct for "
+            . $self->source );
+    }
+    $structs[0];
+}
+
+sub archive {
+    # Cache result of the real method
+    $_[0]->{archive} or
+    $_[0]->{archive} = $_[0]->_archive;
+}
+
+sub _archive {
+    my $self = shift;
+
+    # Load tarballs
+    if ( $self->source =~ /\.tar\.gz/ ) {
+        require Archive::Tar;
+        my $tar  = Archive::Tar->new;
+        my $path = $self->mirror;
+        $tar->read($path, COMPRESSED)
+            or Carp::croak("Failed to open tarball '$path'");
+        return $tar;
+    }
+
+    # Load zip files
+    if ( $self->source =~ /\.zip$/ ) {
+        require Archive::Zip;
+        my $zip  = Archive::Zip->new;
+        my $path = $self->mirror;
+        unless ( $zip->read($path) == Archive::Zip::AZ_OK() ) {
+            Carp::croak("Failed to open zip file '$path'");
+        }
+        return $zip;
+    }
+
+    # We don't support anything else
+    Carp::croak('Failed to load unsupported archive type '
+        . $self->source);
+}
+
+sub extract_libs {
+    my $self = shift;
+    $self->extract_resource('lib', @_ );
+}
+
+sub extract_resource {
+    my $self     = shift;
+    my $resource = shift
+        or Carp::croak("No resource name provided to _extract_resource");
+    my %params   = @_;
+
+    # Check the extraction destination
+    $params{to} ||= File::Spec->curdir;
+    unless ( -d $params{to} ) {
+        Carp::croak("Extraction directory '$params{to}' does not exist");
+    }
+    unless ( -w $params{to} ) {
+        Carp::croak("No permissions to write to extraction directory '$params{to}'");
+    }
+
+    # Split on archive type
+    if ( $self->archive->isa('Archive::Tar') ) {
+        return $self->_extract_resource_from_tar($resource, @_);
+    }
+    if ( $self->archive->isa('Archive::Zip') ) {
+        return $self->_extract_resource_from_zip($resource, @_);
+    }
+    Carp::croak("Unsupported archive type " . ref($self->archive));
+}
+
+
+
+
+
+#####################################################################
+# Support Methods
+
+sub _extract_resource_from_tar {
+    my ($self, $resource, %params) = @_;
+    my $tar   = $self->archive;
+    my @files = $tar->get_files;
+
+    # Determine which files to extract, and to where
+    my $extracted_files = 0;
+    foreach my $item ( @files ) {
+        next unless $item->is_file;
+
+        # Split into parts and remove the top level dir
+        my ($vol, $dir, $file)
+            = File::Spec::Unix->splitpath($item->name);
+        my @dirs = File::Spec::Unix->splitdir($dir);
+        shift @dirs;
+
+        # Is this file in the resource directory
+        my $res = shift(@dirs) or next;
+        next unless $res eq $resource;
+
+        # These are STILL relative, but we'll deal with that later.
+        my $write_dir = File::Spec->catfile($params{to}, @dirs);
+
+        # Write the file
+        $self->_write( $write_dir, $file, $item->get_content );
+        $extracted_files++;
+    }
+
+    # Return the number of files, or error if none
+    return $extracted_files if $extracted_files;
+    my $path = $self->source;
+    Carp::croak("Tarball '$path' does not contain resource '$resource'");
+}
+
+sub _extract_resource_from_zip {
+    Carp::croak("Zip support not yet completed");
+}
+
+sub _write {
+    my ($self, $dir, $file, $content) = @_;
+
+    # Localise newlines in the files
+    $content =~ s/(\015{1,2}\012|\015|\012)/\n/g;
+
+    # Create the save directory if needed
+    File::Path::mkpath( $dir, 0, 0755 ) unless -d $dir;
+
+    # Save it
+    my $path = File::Spec->catfile( $dir, $file );
+    open( LIBRARY, '>', $path ) 
+        or Carp::croak( "Failed to open '$path' for writing: $!" );
+    print LIBRARY $content
+        or Carp::croak( "Failed to write to '$path'" );
+    close LIBRARY
+        or Carp::croak( "Failed to close '$path' after writing" );
+
+    1;
+}
+
+
+__PACKAGE__
+
+
 =head1 NAME
 
 JSAN::Index::Release - JSAN::Index class for the release table
