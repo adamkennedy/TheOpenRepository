@@ -99,8 +99,7 @@ sub new {
 	unless ( $self->{config}->{mirror} ) {
 		$self->_print("Locating closest JSAN mirror...");
 		my $mirror_yaml = Mirror::JSON->read( MIRROR_INIT );
-		$mirror_yaml->check_master;
-		my @mirrors = $mirror_yaml->select_mirrors;
+		my @mirrors = $mirror_yaml->mirrors;
 		my $mirror  = $mirrors[ int rand scalar @mirrors ];
 		$self->{config}->{mirror} = $mirror;
 	}
