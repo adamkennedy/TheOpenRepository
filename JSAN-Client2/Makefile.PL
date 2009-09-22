@@ -1,6 +1,6 @@
 use inc::Module::Install 0.91;
 
-all_from      'lib/JSAN/Client2.pm';
+all_from      'lib/JSAN/Client.pm';
 requires      'ORLite'          => '1.25';
 requires      'ORLite::Migrate' => '1.15';
 requires      'Digest::MD5'     => '2.33';
