@@ -181,8 +181,8 @@ isa_ok( $swaplib->release,      'JSAN::Index::Release'                      );
 ok(     $swaplib->version,      'Library->version returns true'             );
 like(   $swaplib->doc, qr{^/},  'Library->doc returns a root-relative path' );
 is(
-	$swaplib->distribution, $swaplib->release->distribution,
-	'->release->distribution matches ->distribution',
+	$swaplib->fetch_distribution, $swaplib->release->fetch_distribution,
+	'->release->fetch_distribution matches ->fetch_distribution',
 );
 
 # Is extractable
