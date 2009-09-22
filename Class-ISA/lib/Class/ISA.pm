@@ -1,5 +1,3 @@
-#!/usr/local/bin/perl
-
 package Class::ISA;
 require 5;
 use strict;
