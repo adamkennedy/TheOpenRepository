@@ -3,22 +3,16 @@ package JSAN::Index::Author;
 use strict;
 use warnings;
 
-
+our $VERSION = '0.20';
 
 sub releases {
-    my $self = shift;
-    
-    return JSAN::Index::Release->select('where author = ?', $self->login);
+    JSAN::Index::Release->select( 'where author = ?', $_[0]->login );
 }
 
-
 sub retrieve {
-    my $self = shift;
-    
+    my $self   = shift;
     my %params = @_;
-    
-    my $sql = join " and ", map { "$_ = ?" } keys(%params); 
-    
+    my $sql    = join " and ", map { "$_ = ?" } keys(%params); 
     my $result = __PACKAGE__->select("where $sql", values(%params));
     
     if (scalar(@$result) == 1) {
@@ -28,8 +22,11 @@ sub retrieve {
     return $result
 }
 
+1;
 
 __PACKAGE__;
+
+=pod
 
 =head1 NAME
 
