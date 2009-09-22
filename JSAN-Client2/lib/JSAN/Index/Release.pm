@@ -327,9 +327,9 @@ sub _write {
     1;
 }
 
+1;
 
-__PACKAGE__
-
+__END__
 
 =head1 NAME
 
