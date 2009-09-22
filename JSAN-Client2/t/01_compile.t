@@ -12,4 +12,4 @@ ok( $] >= 5.006, 'Perl version is new enough' );
 
 use_ok( 'JSAN::Client' );
 use_ok( 'JSAN::Transport' );
-use_ok( 'JSAN::Client::Index' );
+use_ok( 'JSAN::Index' );

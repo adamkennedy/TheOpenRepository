@@ -1,4 +1,4 @@
-package JSAN::Client2;
+package JSAN::Client;
 
 =pod
 

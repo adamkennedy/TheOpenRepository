@@ -13,7 +13,7 @@ use Params::Util '_HASH';
 use File::Remove 'remove';
 use LWP::Online  'online';
 use JSAN::Transport;
-use JSAN::Client2::Index;
+use JSAN::Index;
 
 if ( online() ) {
 	plan( tests => 50 );
