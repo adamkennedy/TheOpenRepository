@@ -52,9 +52,9 @@ BEGIN {
 }
 
 # Locate the starting mirror.json
-use constant MIRROR_INIT => File::ShareDir::module_file(
-	'JSAN::Shell', 'mirror.json',
-	);
+use constant MIRROR_INIT => File::ShareDir::dist_dir(
+	'JSAN-Shell'
+);
 
 
 
@@ -546,7 +546,7 @@ sub show_dist {
 sub show_release {
 	my $self    = shift;
 	my $release = shift;
-	my $dist    = $release->distribution;
+	my $dist    = $release->fetch_distribution;
 	my $author  = $release->author;
 
 	$self->_show(
@@ -566,7 +566,7 @@ sub show_library {
 	my $self    = shift;
 	my $library = shift;
 	my $release = $library->release;
-	my $dist    = $release->distribution;
+	my $dist    = $release->fetch_distribution;
 	my $author  = $release->author;
 
 	# Get the list of libraries in this release.
