@@ -1,6 +1,3 @@
-README for Class::ISA
-                                        Time-stamp: "2000-05-13 20:01:35 MDT"
-
 NAME
     Class::ISA -- report the search path for a class's ISA tree
 
@@ -54,13 +51,13 @@ FUNCTIONS
         -- if you need to consider it, add it to the end.
 
     the function Class::ISA::self_and_super_path($CLASS)
-        Just like `super_path', except that $CLASS is included as the first
+        Just like "super_path", except that $CLASS is included as the first
         element.
 
     the function Class::ISA::self_and_super_versions($CLASS)
-        This returns a hash whose keys are $CLASS and its (super-
-        )superclasses, and whose values are the contents of each class's
-        $VERSION (or undef, for classes with no $VERSION).
+        This returns a hash whose keys are $CLASS and its
+        (super-)superclasses, and whose values are the contents of each
+        class's $VERSION (or undef, for classes with no $VERSION).
 
         The code for self_and_super_versions is meant to serve as an example
         for precisely the kind of tasks I anticipate that
@@ -107,61 +104,15 @@ CAUTIONARY NOTES
     changing ISAs at runtime is probably a sign that you're out of your
     mind!
 
-COPYRIGHT
-    Copyright (c) 1999, 2000 Sean M. Burke. All rights reserved.
+COPYRIGHT AND LICENSE
+    Copyright (c) 1999-2009 Sean M. Burke. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself.
 
 AUTHOR
-    Sean M. Burke <sburke@cpan.org>
+    Sean M. Burke "sburke@cpan.org"
 
+MAINTAINER
+    Maintained by Steffen Mueller "smueller@cpan.org".
 
-PREREQUISITES
-
-This suite requires Perl 5; I've only used it under Perl 5.004, so for
-anything lower, you're on your own.
-
-Class::ISA doesn't use any nonstandard modules.
-
-
-INSTALLATION
-
-You install Class::ISA, as you would install any perl module
-library, by running these commands:
-
-   perl Makefile.PL
-   make
-   make test
-   make install
-
-If you want to install a private copy of Class::ISA in your home
-directory, then you should try to produce the initial Makefile with
-something like this command:
-
-  perl Makefile.PL LIB=~/perl
-
-
-DOCUMENTATION
-
-POD-format documentation is included in ISA.pm.  POD is readable
-with the 'perldoc' utility.  See ChangeLog for recent changes.
-
-
-MACPERL INSTALLATION NOTES
-
-Don't bother with the makefiles.  Just make a Class directory in your
-MacPerl site_lib or lib directory, and move ISA.pm into there.
-
-
-SUPPORT
-
-Questions, bug reports, useful code bits, and suggestions for
-Class::ISA should just be sent to me at sburke@cpan.org
-
-
-AVAILABILITY
-
-The latest version of Class::ISA is available from the
-Comprehensive Perl Archive Network (CPAN).  Visit
-<http://www.perl.com/CPAN/> to find a CPAN site near you.
