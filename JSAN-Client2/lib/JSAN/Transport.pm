@@ -49,7 +49,7 @@ BEGIN {
 	$VERSION = '0.20';
 
 	# Optional prefork.pm support
-	eval "use prefork 'Class::DBI';";
+	eval "use prefork 'ORLite';";
 }
 
 # The path to the index
@@ -361,12 +361,12 @@ sub index_dbh {
 	my $self = shift->_self;
 	my $DSN  = $self->index_dsn;
 
-	# Unless we use Class::DBI's attributes, the whole thing comes
-	# tumbling horribly down around us. Yes, this completely sucks.
-	require Class::DBI;
-	my %attr = Class::DBI->_default_attributes;
+#	# Unless we use Class::DBI's attributes, the whole thing comes
+#	# tumbling horribly down around us. Yes, this completely sucks.
+#	require Class::DBI;
+#	my %attr = Class::DBI->_default_attributes;
 
-	DBI->connect( $DSN, '', '', \%attr )
+	DBI->connect( $DSN, '', '', {} )
 		or Carp::croak("Database error connecting to JSAN index at $DSN");
 }
 

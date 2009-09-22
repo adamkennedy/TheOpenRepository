@@ -64,7 +64,7 @@ END_SQL
 
 # Create additional indexes
 do('CREATE INDEX idx_release_distribution on release ( distribution )');
-do('CREATE INDEX idx_release_distribution on release ( author )');
+do('CREATE INDEX idx_release_author on release ( author )');
 do('CREATE INDEX idx_library_release on library ( release )');
 
 exit(0);
