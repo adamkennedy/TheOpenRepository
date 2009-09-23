@@ -2975,6 +2975,14 @@ sub Marpa::Evaluator::value {
 
                 ### <where>
 
+                # Refresh and-choice's fields
+                $current_and_choice->[Marpa::Internal::And_Choice::SORT_KEY] =
+                    $current_and_iteration
+                    ->[Marpa::Internal::And_Iteration::SORT_KEY];
+                $current_and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
+                    $current_and_iteration
+                    ->[Marpa::Internal::And_Iteration::OR_MAP];
+
                 # If only one choice still active,
                 # clearly no need to
                 # worry about sorting alternatives.
@@ -3081,11 +3089,12 @@ sub Marpa::Evaluator::value {
             when (Marpa::Internal::Task::THAW_TREE) {
                 my ($and_choice) = @{$task_entry};
 
+                my $and_node_id = $and_choice->[Marpa::Internal::And_Choice::ID];
+
                 if ($trace_tasks) {
                     printf {$trace_fh}
                         "Task: THAW_TREE; and-node-id: %d; %d tasks pending\n",
-                        $and_choice->[Marpa::Internal::And_Choice::ID],
-                        ( scalar @tasks )
+                        $and_node_id, ( scalar @tasks )
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
 
@@ -3103,6 +3112,15 @@ sub Marpa::Evaluator::value {
 
                 @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
                 @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
+
+                # Refresh and-choice's fields
+                my $current_and_iteration = $and_iterations->[$and_node_id];
+                $and_choice->[Marpa::Internal::And_Choice::SORT_KEY] =
+                    $current_and_iteration
+                    ->[Marpa::Internal::And_Iteration::SORT_KEY];
+                $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
+                    $current_and_iteration
+                    ->[Marpa::Internal::And_Iteration::OR_MAP];
 
                 # Once it's unfrozen, it's subject to change, so the
                 # the frozen version will become invalid.
@@ -3122,8 +3140,12 @@ sub Marpa::Evaluator::value {
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
 
+                # If the top or node is exhausted, we are done
+                my $top_or_iteration = $or_iterations->[0];
+                return if not $top_or_iteration;
+
                 # Initialize with the top or-node's and-choice
-                my $top_and_choice = $or_iterations->[0]->[-1];
+                my $top_and_choice = $top_or_iteration->[-1];
 
                 # Position 0 is top and-node id
                 my @or_node_choices = ( $and_nodes->[$top_and_choice->[Marpa::Internal::And_Choice::ID]] );
