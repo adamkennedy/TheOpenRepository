@@ -78,6 +78,19 @@ Config:
   man1direxp: ''
   man3dir: ''
   man3direxp: ''
+  vendorarch: perl/vendor/lib
+  vendorarchexp: perl/vendor/lib
+  vendorbin: perl/bin
+  vendorbinexp: perl/bin
+  vendorhtml1dir: ''
+  vendorhtml3dir: ''
+  vendorlib: perl/vendor/lib
+  vendorlibexp: perl/vendor/lib
+  vendorman1dir: ''
+  vendorman3dir: ''
+  vendorprefix: perl/vendor
+  vendorprefixexp: perl/vendor
+  vendorscript: ''
 Env:
   PATH:
     - c/bin
