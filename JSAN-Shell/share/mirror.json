@@ -5,11 +5,7 @@
 	"timestamp" : "2007-01-15T21:17:52Z",
 	"benchmark" : "benchmark/random100k.txt",
 	"mirrors" : [
-		{
-			"uri" : "http://master.openjsan.org"
-		},
-		{
-			"uri" : "http://www.openjsan.org"
-		}
+		"http://master.openjsan.org",
+	    "uri" : "http://www.openjsan.org"
 	]
 }
