@@ -3,11 +3,9 @@ package JSAN::Index::Distribution;
 use 5.008005;
 use strict;
 use warnings;
-use JSAN::Index::Extractable ();
 use JSAN::Index::Release     ();
 
 our $VERSION = '0.20';
-our @ISA     = 'JSAN::Index::Extractable';
 
 sub releases {
     JSAN::Index::Release->select('where distribution = ?', $_[0]->name);
@@ -48,6 +46,24 @@ sub search_like {
     
     return @result
 }
+
+sub extract_libs {
+    my $self = shift;
+    $self->extract_resource('lib', @_);
+}
+
+sub extract_tests {
+    my $self = shift;
+    $self->extract_resource('tests', @_);
+}
+
+sub extract_resource {
+    my $class = ref $_[0] || $_[0];
+    Carp::croak("$class does not implement method 'extract_resource'");
+}
+
+
+
 
 
 ######################################################################

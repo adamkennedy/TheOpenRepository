@@ -10,12 +10,10 @@ use File::Spec                ();
 use File::Spec::Unix          ();
 use File::Path                ();
 use Params::Util              ();
-use JSAN::Index::Extractable  ();
 use JSAN::Index::Distribution ();
 use JSAN::Index::Author       ();
 
 our $VERSION = '0.20';
-our @ISA     = 'JSAN::Index::Extractable';
 
 BEGIN {
     # Optional prefork.pm support
@@ -253,7 +251,12 @@ sub _archive {
 
 sub extract_libs {
     my $self = shift;
-    $self->extract_resource('lib', @_ );
+    $self->extract_resource('lib', @_);
+}
+
+sub extract_tests {
+    my $self = shift;
+    $self->extract_resource('tests', @_);
 }
 
 sub extract_resource {

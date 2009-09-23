@@ -38,7 +38,22 @@ class, or even more preferably the L<jsan> installer application.
 use 5.008005;
 use strict;
 use warnings;
-use Params::Util 1.00 ();
+
+# Versioned loads of all our main dependencies both for certainty
+# and to feed the information to Module::Install.
+use Algorithm::Dependency 1.106 ();
+use Config::Tiny          2.12  ();
+use Digest::MD5           2.33  ();
+use File::Spec            0.80  ();
+use File::Path            1.06  ();
+use File::HomeDir         0.69  ();
+use LWP::Simple           1.41  ();
+use LWP::Online           0.03  ();
+use ORLite::Mirror        1.16  ();
+use Params::Util          1.00  ();
+use Scalar::Util          1.11  ();
+use URI::ToDisk           1.08  ();
+
 use JSAN::Transport;
 use JSAN::Index;
 
@@ -300,7 +315,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2007 Adam Kennedy.
+Copyright 2005 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

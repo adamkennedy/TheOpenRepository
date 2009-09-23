@@ -3,11 +3,9 @@ package JSAN::Index::Library;
 use 5.008005;
 use strict;
 use warnings;
-use Carp                     ();
-use JSAN::Index::Extractable ();
+use Carp ();
 
 our $VERSION = '0.20';
-our @ISA     = 'JSAN::Index::Extractable';
 
 sub distribution {
     JSAN::Index::Distribution->retrieve(
@@ -36,31 +34,37 @@ sub retrieve {
     }
 }
 
+sub extract_libs {
+    my $self = shift;
+    $self->extract_resource('lib', @_);
+}
+
+sub extract_tests {
+    my $self = shift;
+    $self->extract_resource('tests', @_);
+}
+
 sub extract_resource {
     shift->release->extract_resource(@_);
 }
-
 
 sub search {
     my $class  = shift;
     my %params = @_;
     my $sql    = join " and ", map { "$_ = ?" } keys(%params); 
-    
     my @result = $class->select( "where $sql", values(%params) );
-    
     return @result
 }
-
 
 sub search_like {
     my $class  = shift;
     my %params = @_;
     my $sql    = join " and ", map { "$_ like ?" } keys(%params); 
-    
     my @result = $class->select( "where $sql", values(%params) );
-    
     return @result
 }
+
+
 
 
 
@@ -124,7 +128,6 @@ sub doc {
 1;
 
 __END__
-
 
 =pod
 
