@@ -10,9 +10,9 @@ JSAN::Client - JSAN Client 2.0 (migrated from Class::DBI to ORLite)
 
   # Create the client object
   my $client = JSAN::Client->new(
-    prefix  => '/usr/local/js',
-    verbose => 1,
-    );
+      prefix  => '/usr/local/js',
+      verbose => 1,
+  );
   
   # Install by library name
   $client->install_library('Display.Swap');

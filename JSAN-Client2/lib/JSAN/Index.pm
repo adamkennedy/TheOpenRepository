@@ -9,20 +9,24 @@ use ORLite::Mirror 1.15 ();
 our $VERSION = '0.20';
 
 sub import {
-	my $class  = shift;
-	my $params = Params::Util::_HASH(shift) || {};
+    my $class  = shift;
+    my $params = Params::Util::_HASH(shift) || {};
 
-	# Pass through any params from above
-	$params->{url}          ||= 'http://openjsan.org/index.sqlite';
-	$params->{maxage}       ||= 24 * 60 * 60; # One day
+    # Pass through any params from above
+    $params->{url}    ||= 'http://openjsan.org/index.sqlite';
+    $params->{maxage} ||= 24 * 60 * 60; # One day
 
-	# Prevent double-initialisation
-	$class->can('orlite') or
-	ORLite::Mirror->import( $params );
+    # Don't generate the table classes because we have inlined the
+    # generated code ourself for speed and to make it work a bit more
+    # like Class::DBI
+    $params->{tables} ||= 0;
 
-	return 1;
+    # Prevent double-initialisation
+    $class->can('orlite') or
+    ORLite::Mirror->import( $params );
+
+    return 1;
 }
-
 
 use JSAN::Index::Author       ();
 use JSAN::Index::Library      ();
