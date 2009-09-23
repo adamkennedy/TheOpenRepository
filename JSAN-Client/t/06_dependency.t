@@ -9,9 +9,11 @@ BEGIN {
 }
 
 use Test::More;
-use JSAN::Transport;
-use JSAN::Index;
-use LWP::Online 'online';
+use File::Remove 'remove';
+use LWP::Online  'online';
+
+BEGIN { remove( \1, 'temp' ) if -e 'temp'; }
+END   { remove( \1, 'temp' ) if -e 'temp'; }
 
 if ( online() ) {
     plan( tests => 8 );
@@ -20,15 +22,8 @@ if ( online() ) {
     exit(0);
 }
 
-# Cache directory clean up
-END {
-    eval {
-        my $dir = JSAN::Transport->mirror_local;
-        if ( defined $dir and $dir and -e $dir ) {
-            remove( \1, $dir );
-        }
-    };
-}
+use JSAN::Transport mirror_local => 'temp';
+use JSAN::Index;
 
 
 

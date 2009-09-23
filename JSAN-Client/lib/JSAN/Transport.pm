@@ -155,7 +155,14 @@ sub init {
     1;
 }
 
-sub import { shift->init(@_) }
+sub import {
+    my $class = shift;
+    if ( @_ or not $SINGLETON ) {
+        return $class->init(@_);
+    } else {
+        return 1;
+    }
+}
 
 sub _self {
     return shift if ref $_[0];

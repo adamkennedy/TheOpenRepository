@@ -6,10 +6,12 @@ BEGIN {
     $^W = 1;
 }
 
-use Test::More tests => 4;
+use Test::More tests => 3;
+use File::Remove ();
 
-ok( $] >= 5.006, 'Perl version is new enough' );
+BEGIN { File::Remove::remove( \1, 'temp' ) if -e 'temp'; }
+END   { File::Remove::remove( \1, 'temp' ) if -e 'temp'; }
 
-require_ok( 'JSAN::Transport' );
+use_ok( 'JSAN::Transport', mirror_local => 'temp' );
 use_ok( 'JSAN::Client' );
-use_ok( 'JSAN::Index' );
+use_ok( 'JSAN::Index'  );

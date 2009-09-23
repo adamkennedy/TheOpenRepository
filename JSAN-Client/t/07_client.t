@@ -3,36 +3,30 @@
 # Top level testing for JSAN::Client itself
 
 use strict;
-use File::Spec::Functions ':ALL';
 BEGIN {
     $|  = 1;
     $^W = 1;
 }
 
 use Test::More tests => 17;
-
+use File::Spec::Functions ':ALL';
 use Scalar::Util ();
-use File::Remove ();
-use JSAN::Client;
-use LWP::Online 'online';
+use File::Remove 'remove';
+use LWP::Online  'online';
 
-# Cache directory clean up
-END {
-    eval {
-        my $dir = JSAN::Transport->mirror_local;
-        if ( defined $dir and $dir and -e $dir ) {
-            remove( \1, $dir );
-        }
-    };
-}
+BEGIN { remove( \1, 'temp' ) if -e 'temp'; }
+END   { remove( \1, 'temp' ) if -e 'temp'; }
+
+use JSAN::Transport mirror_local => 'temp';
+use JSAN::Client;
 
 # Create and/or clear the test directory
 my $testdir = catdir( curdir(), '07_client' );
-File::Remove::remove \1, $testdir if -e $testdir;
+remove \1, $testdir if -e $testdir;
 ok( ! -e $testdir, "Test directory '$testdir' does not exist" );
 ok( mkdir($testdir), "Create test directory '$testdir'" );
 END {
-    File::Remove::remove \1, $testdir if -e $testdir;
+    remove \1, $testdir if -e $testdir;
 }
 
 my @requires = map { catfile(@$_) } (

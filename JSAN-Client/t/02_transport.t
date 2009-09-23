@@ -9,20 +9,15 @@ BEGIN {
 }
 
 use Test::More tests => 22;
-use JSAN::Transport ();
+use File::Remove    ();
 use LWP::Online     ();
+use JSAN::Transport ();
 
 my $yamlindex = 'index.yaml';
 
-# Cache directory clean up
-END {
-    eval {
-        my $dir = JSAN::Transport->mirror_local;
-        if ( defined $dir and $dir and -e $dir ) {
-            remove( \1, $dir );
-        }
-    };
-}
+BEGIN { File::Remove::remove( \1, 'temp' ) if -e 'temp'; }
+END   { File::Remove::remove( \1, 'temp' ) if -e 'temp'; }
+
 
 
 
@@ -34,13 +29,13 @@ END {
 #####################################################################
 # Sanity
 
-ok( JSAN::Transport->init, '->init returns true' );
+ok( JSAN::Transport->init( mirror_local => 'temp' ), '->init returns true' );
 isa_ok( JSAN::Transport->_self,        'JSAN::Transport' );
 isa_ok( JSAN::Transport->_self->_self, 'JSAN::Transport' );
 isa_ok( JSAN::Transport->mirror_location, 'URI::ToDisk' );
 ok( JSAN::Transport->mirror_remote, '->mirror_remote returns true'  );
-ok( JSAN::Transport->mirror_local,  '->mirror_local returns true'   );
-is( JSAN::Transport->verbose, '',   '->verbose is false by default' );
+ok( JSAN::Transport->mirror_local, '->mirror_local returns true' );
+is( JSAN::Transport->verbose, '', '->verbose is false by default' );
 
 
 

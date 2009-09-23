@@ -12,7 +12,11 @@ use Test::More;
 use Params::Util qw{ _HASH _HASHLIKE };
 use File::Remove 'remove';
 use LWP::Online  'online';
-use JSAN::Transport;
+
+BEGIN { remove( \1, 'temp' ) if -e 'temp'; }
+END   { remove( \1, 'temp' ) if -e 'temp'; }
+
+use JSAN::Transport mirror_local => 'temp';
 use JSAN::Index;
 
 if ( online() ) {
@@ -20,16 +24,6 @@ if ( online() ) {
 } else {
     plan( skip_all => "Skipping online tests" );
     exit(0);
-}
-
-# Cache directory clean up
-END {
-    eval {
-        my $dir = JSAN::Transport->mirror_local;
-        if ( defined $dir and $dir and -e $dir ) {
-            remove( \1, $dir );
-        }
-    };
 }
 
 
