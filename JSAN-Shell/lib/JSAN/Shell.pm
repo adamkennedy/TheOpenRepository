@@ -545,7 +545,7 @@ sub show_dist {
 sub show_release {
 	my $self    = shift;
 	my $release = shift;
-	my $dist    = $release->fetch_distribution;
+	my $dist    = $release->distribution;
 	my $author  = $release->author;
 
 	$self->_show(
@@ -565,7 +565,7 @@ sub show_library {
 	my $self    = shift;
 	my $library = shift;
 	my $release = $library->release;
-	my $dist    = $release->fetch_distribution;
+	my $dist    = $release->distribution;
 	my $author  = $release->author;
 
 	# Get the list of libraries in this release.
