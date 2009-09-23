@@ -441,7 +441,7 @@ This class provides objects for a single release of a distribution by an author
 
 =head1 METHODS
 
-In addition to the general methods provided by L<Class::DBI>, it has the
+In addition to the general methods provided by L<ORLite>, it has the
 following methods
 
 =head2 id

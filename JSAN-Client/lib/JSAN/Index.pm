@@ -4,7 +4,7 @@ package JSAN::Index;
 
 =head1 NAME
 
-JSAN::Index - JavaScript Archive Network (JSAN) SQLite/CDBI Index
+JSAN::Index - JavaScript Archive Network (JSAN) SQLite/ORLite Index
 
 =head1 DESCRIPTION
 
@@ -15,7 +15,7 @@ You can find the JSAN at L<http://openjsan.org>.
 As well as a flat text file index like CPAN, the JSAN index is also
 distributed as a L<DBD::SQLite> database.
 
-C<JSAN::Index> is a L<Class::DBI> wrapper built around the JSAN
+C<JSAN::Index> is a L<ORLite> wrapper built around the JSAN
 SQLite index.
 
 It allow you to easily do all sorts of nifty things with the index in a
@@ -241,20 +241,6 @@ sub _load_item_list {
 __END__
 
 =pod
-
-=head1 NAME
-
-JSAN::Index - An ORLite-based ORM Database API
-
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
-
-=head1 DESCRIPTION
-
-TO BE COMPLETED
-
-=head1 METHODS
 
 =head2 dsn
 

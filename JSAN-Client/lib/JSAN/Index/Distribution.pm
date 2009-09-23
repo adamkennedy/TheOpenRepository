@@ -104,7 +104,7 @@ This class provides objects for named distributions in the JSAN index.
 
 =head1 METHODS
 
-In addition to the general methods provided by L<Class::DBI>, it has the
+In addition to the general methods provided by L<ORLite>, it has the
 following methods
 
 =head2 name

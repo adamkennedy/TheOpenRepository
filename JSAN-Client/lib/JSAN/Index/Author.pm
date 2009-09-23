@@ -103,7 +103,7 @@ This class provides objects that represent authors in the L<JSAN::Index>.
 
 =head1 METHODS
 
-In addition to the general methods provided by L<Class::DBI>, this class has
+In addition to the general methods provided by L<ORLite>, this class has
 the following additional methods.
 
 =head2 login
