@@ -688,6 +688,8 @@ my %COMMANDS = (
 	'pull'         => 'pull',
 	'i'            => 'install',
 	'install'      => 'install',
+	'r'            => 'readme',
+	'readme'       => 'readme',
 	);
 
 sub resolve_command {
