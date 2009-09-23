@@ -41,6 +41,26 @@ sub extract_resource {
 }
 
 
+sub search {
+    my $class  = shift;
+    my %params = @_;
+    my $sql    = join " and ", map { "$_ = ?" } keys(%params); 
+    
+    my @result = $class->select( "where $sql", values(%params) );
+    
+    return @result
+}
+
+
+sub search_like {
+    my $class  = shift;
+    my %params = @_;
+    my $sql    = join " and ", map { "$_ like ?" } keys(%params); 
+    
+    my @result = $class->select( "where $sql", values(%params) );
+    
+    return @result
+}
 
 
 
