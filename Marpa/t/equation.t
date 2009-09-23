@@ -136,10 +136,10 @@ my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 my $i = 0;
 while ( defined( my $value = $evaler->value() ) ) {
     my $value = ${$value};
-    Test::More::ok( $expected_value{$value}, "Values in unspecified order" );
+    Test::More::ok( $expected_value{$value}, "Value $i (unspecified order)" );
     delete $expected_value{$value};
     $i++;
-}
+} ## end while ( defined( my $value = $evaler->value() ) )
 
 # Local Variables:
 #   mode: cperl

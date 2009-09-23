@@ -2607,7 +2607,7 @@ sub Marpa::Evaluator::value {
 
                         $and_iterations->[$and_node_id] = undef;
                         break;
-                    }
+                    } ## end if ( not $cause_or_node_iteration )
 
                     $cause_and_node_choice = $cause_or_node_iteration->[-1];
                     my $cause_and_node_id = $cause_and_node_choice
@@ -2649,7 +2649,7 @@ sub Marpa::Evaluator::value {
 
                         $and_iterations->[$and_node_id] = undef;
                         break;
-                    }
+                    } ## end if ( not $predecessor_or_node_iteration )
 
                     $predecessor_and_node_choice =
                         $predecessor_or_node_iteration->[-1];
@@ -2821,16 +2821,6 @@ sub Marpa::Evaluator::value {
                         ];
                 } ## end if ( defined $cause and defined $predecessor )
 
-                ### cause, predecessor: (defined $cause), (defined $predecessor)
-                ### current, cause, predecessor: $current_child_field, Marpa'Internal'And_Node'CAUSE, Marpa'Internal'And_Node'PREDECESSOR
-                ### assert: defined $and_node->[$current_child_field]
-
-                # Deliberately leaving this perlcritic problem
-                # (an uninterpolated string)
-                # here so that I remember to delete this
-                Carp::confess("unexpected undef current child")
-                    if not defined $and_node->[$current_child_field];
-
                 push @tasks,
                     [
                     Marpa::Internal::Task::ITERATE_OR_TREE,
@@ -2952,7 +2942,7 @@ sub Marpa::Evaluator::value {
                     ### Popped current-and-node, id: $current_and_node_id
 
                     # If there are no more choices, the or-node is exhausted ...
-                    if ( scalar @{$and_choices} == 0) {
+                    if ( scalar @{$and_choices} == 0 ) {
                         ### Marking or-node exhausted, id: $or_node_id
                         $or_iterations->[$or_node_id] = undef;
                         break;
@@ -3068,7 +3058,7 @@ sub Marpa::Evaluator::value {
                         $and_choice->[Marpa::Internal::And_Choice::ID],
                         ( scalar @tasks )
                         or Marpa::exception('print to trace handle failed');
-                }
+                } ## end if ($trace_tasks)
 
                 my $or_map =
                     $and_choice->[Marpa::Internal::And_Choice::OR_MAP];
@@ -3089,7 +3079,8 @@ sub Marpa::Evaluator::value {
             when (Marpa::Internal::Task::THAW_TREE) {
                 my ($and_choice) = @{$task_entry};
 
-                my $and_node_id = $and_choice->[Marpa::Internal::And_Choice::ID];
+                my $and_node_id =
+                    $and_choice->[Marpa::Internal::And_Choice::ID];
 
                 if ($trace_tasks) {
                     printf {$trace_fh}
@@ -3148,7 +3139,11 @@ sub Marpa::Evaluator::value {
                 my $top_and_choice = $top_or_iteration->[-1];
 
                 # Position 0 is top and-node id
-                my @or_node_choices = ( $and_nodes->[$top_and_choice->[Marpa::Internal::And_Choice::ID]] );
+                my @or_node_choices = (
+                    $and_nodes->[
+                        $top_and_choice->[Marpa::Internal::And_Choice::ID]
+                    ]
+                );
                 $#or_node_choices = $#{$or_nodes};
 
                 for my $or_mapping (
