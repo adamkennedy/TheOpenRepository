@@ -71,7 +71,6 @@ t/final_nonnullable.t
 t/gj.t
 t/hu.t
 t/lib/Marpa/Test.pm
-t/lib/Test/Weaken.pm
 t/limits.t
 t/Makefile
 t/minus_s.t

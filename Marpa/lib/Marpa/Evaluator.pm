@@ -2677,6 +2677,10 @@ sub Marpa::Evaluator::value {
                                 ->[Marpa::Internal::And_Node::END_EARLEME]
                         ]
                         ) x $token->[Marpa::Internal::Symbol::NULLABLE];
+
+                    ### token name: $token->[Marpa'Internal'Symbol'NAME]
+                    ### assert: defined $token->[Marpa'Internal'Symbol'NULLABLE]
+
                 } ## end if ( my $token = $and_node->[...])
 
                 ### Setting SORT_KEY for and-node: $and_node_id

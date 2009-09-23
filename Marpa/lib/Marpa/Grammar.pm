@@ -37,6 +37,10 @@ use Marpa::Offset qw(
         or minimal (shortest possible) evaluation
         Default is indifferent. }
 
+    NULLABLE { The number of nullable symbols
+    the symbol represents,
+    0 if the symbol is not nullable. }
+
     =LAST_EVALUATOR_FIELD
 
     ACTION PREFIX SUFFIX
@@ -45,10 +49,6 @@ use Marpa::Offset qw(
     =LAST_RECOGNIZER_FIELD
 
     LHS RHS ACCESSIBLE PRODUCTIVE START
-
-    NULLABLE { The number of nullable symbols
-    the symbol represents,
-    0 if the symbol is not nullable. }
 
     NULL_VALUE
     CLOSURE
