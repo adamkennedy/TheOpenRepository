@@ -1,5 +1,6 @@
 package JSAN::Index::Distribution;
 
+use 5.008005;
 use strict;
 use warnings;
 use JSAN::Index::Extractable ();

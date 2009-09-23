@@ -33,6 +33,7 @@ database connectivity to the JSAN index.
 
 =cut
 
+use 5.008005;
 use strict;
 use Carp           ();
 use Digest::MD5    ();
@@ -44,10 +45,9 @@ use URI::ToDisk    ();
 use LWP::Simple    ();
 use DBI            ();
 
-use vars qw{$VERSION};
-BEGIN {
-    $VERSION = '0.20';
+our $VERSION = '0.20';
 
+BEGIN {
     # Optional prefork.pm support
     eval "use prefork 'ORLite';";
 }

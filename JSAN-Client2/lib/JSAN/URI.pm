@@ -39,16 +39,15 @@ This module implements the logic required to do this in a reusable form
 
 =cut
 
+use 5.008005;
 use strict;
+use warnings;
 use URI              ();
 use LWP::Simple      ();
 use Config::Tiny     ();
 use File::Spec::Unix ();
 
-use vars qw{$VERSION};
-BEGIN {
-    $VERSION = '0.16';
-}
+our $VERSION = '0.16';
 
 use constant JSAN_MASTER => 'http://master.openjsan.org/';
 

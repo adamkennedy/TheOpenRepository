@@ -2,6 +2,7 @@ package JSAN::Index::Release;
 
 # See POD at end for docs
 
+use 5.008005;
 use strict;
 use warnings;
 use Carp                      ();
@@ -13,11 +14,10 @@ use JSAN::Index::Extractable  ();
 use JSAN::Index::Distribution ();
 use JSAN::Index::Author       ();
 
-use vars qw{$VERSION @ISA};
-BEGIN {
-    $VERSION = '0.16';
-    @ISA     = 'JSAN::Index::Extractable';
+our $VERSION = '0.20';
+our @ISA     = 'JSAN::Index::Extractable';
 
+BEGIN {
     # Optional prefork.pm support
     eval "use prefork 'YAML'";
     eval "use prefork 'Archive::Tar'";

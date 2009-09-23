@@ -10,12 +10,11 @@ package JSAN::Index::Extractable;
 # C<JSAN::Index::Library> extracts the release that the library is
 # contained in (according to the indexer).
 
+use 5.008005;
 use strict;
+use warnings;
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.16';
-}
+our $VERSION = '0.20';
 
 sub extract_libs {
 	my $self = shift;

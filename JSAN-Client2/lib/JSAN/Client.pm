@@ -35,8 +35,9 @@ class, or even more preferably the L<jsan> installer application.
 
 =cut
 
-use 5.006;
+use 5.008005;
 use strict;
+use warnings;
 use Params::Util 1.00 ();
 use JSAN::Transport;
 use JSAN::Index;

@@ -1,9 +1,9 @@
 package JSAN::Index::Author;
 
+use 5.006;
 use strict;
 use warnings;
-
-use JSAN::Index::Release    ();
+use JSAN::Index::Release ();
 
 our $VERSION = '0.20';
 
