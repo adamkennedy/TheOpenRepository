@@ -127,8 +127,10 @@ sub init {
 
     # Apply defaults
     my $uri  = $params->{mirror_remote} || 'http://openjsan.org';
-    my $path = $params->{mirror_local}  || File::Spec->catdir(
-        File::HomeDir::home(), '.jsan'
+    my $path = $params->{mirror_local}
+        ||
+        File::Spec->catdir(
+            File::HomeDir::home(), '.jsan'
         );
 
     # Strip superfluous trailing slashes

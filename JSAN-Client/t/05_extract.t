@@ -16,6 +16,16 @@ use JSAN::Transport;
 use JSAN::Index;
 use LWP::Online 'online';
 
+# Cache directory clean up
+END {
+    eval {
+        my $dir = JSAN::Transport->mirror_local;
+        if ( defined $dir and $dir and -e $dir ) {
+            remove( \1, $dir );
+        }
+    };
+}
+
 # Create and/or clear the test directory
 my $testdir = catdir( curdir(), '05_extract' );
 File::Remove::remove \1, $testdir if -e $testdir;

@@ -22,6 +22,16 @@ if ( online() ) {
     exit(0);
 }
 
+# Cache directory clean up
+END {
+    eval {
+        my $dir = JSAN::Transport->mirror_local;
+        if ( defined $dir and $dir and -e $dir ) {
+            remove( \1, $dir );
+        }
+    };
+}
+
 
 
 
@@ -76,10 +86,10 @@ SCOPE: {
 my $swaprel = JSAN::Index::Release->retrieve(
     source => '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz',
 );
-isa_ok( $swaprel,                     'JSAN::Index::Release'      );
+isa_ok( $swaprel,               'JSAN::Index::Release'      );
 isa_ok( $swaprel->distribution, 'JSAN::Index::Distribution' );
 isa_ok( $swaprel->author,       'JSAN::Index::Author'       );
-ok(     $swaprel->source,             '::Release has a ->source'  );
+ok(     $swaprel->source,       '::Release has a ->source'  );
 
 
 #####################################################################
