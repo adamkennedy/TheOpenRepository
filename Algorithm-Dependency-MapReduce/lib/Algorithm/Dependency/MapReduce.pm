@@ -8,7 +8,7 @@ Algorithm::Dependency::MapReduce - A Map/Reduce implementation for Alg:Dep graph
 
 =head1 SYNOPSIS
 
-  
+
 =head1 DESCRIPTION
 
 =cut
@@ -20,7 +20,7 @@ use Carp                  ();
 use Params::Util          qw{ _CODE };
 use Algorithm::Dependency ();
 
-use vars qw{$VERSION @ISA};
+our ($VERSION,@ISA);
 BEGIN {
 	$VERSION = '0.03';
 	@ISA     = 'Algorithm::Dependency';
