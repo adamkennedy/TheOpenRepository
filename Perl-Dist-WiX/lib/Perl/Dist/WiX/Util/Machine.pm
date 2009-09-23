@@ -126,7 +126,7 @@ has skip => (
 	traits   => ['Array'],
 	is       => 'bare',
 	isa      => ArrayRef,
-	default  => sub { return []; },
+	default  => sub { return [ 0 ]; },
 	handles  => {
 		'_get_skip_values' => 'elements',
 	},
