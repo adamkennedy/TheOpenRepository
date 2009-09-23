@@ -1,5 +1,66 @@
 package JSAN::Index;
 
+=pod
+
+=head1 NAME
+
+JSAN::Index - JavaScript Archive Network (JSAN) SQLite/CDBI Index
+
+=head1 DESCRIPTION
+
+JSAN is the JavaScript Archive Network, a port of CPAN to JavaScript.
+
+You can find the JSAN at L<http://openjsan.org>.
+
+As well as a flat text file index like CPAN, the JSAN index is also
+distributed as a L<DBD::SQLite> database.
+
+C<JSAN::Index> is a L<Class::DBI> wrapper built around the JSAN
+SQLite index.
+
+It allow you to easily do all sorts of nifty things with the index in a
+simple and straight forward way.
+
+=head2 Using The JSAN Index / Terminology
+
+Once loaded, most of the functionality of the index is accessed through
+the classes that implement the various objects in the index.
+
+These are:
+
+=over 4
+
+=item L<JSAN::Index::Author>
+
+An author is a single human (or under certain very special circumstances
+a company or mailing list) that creates distributions and uploads them
+to the JSAN.
+
+=item L<JSAN::Index::Distribution>
+
+A distribution is a single software component that may go through a number
+of releases
+
+=item L<JSAN::Index::Release>
+
+A release is a compressed archive file containing a single version of a
+paricular distribution.
+
+=item L<JSAN::Index::Library>
+
+A library is a single class, or rather a "pseudo-namespace", that
+defines an interface to provide some functionality. Distributions often
+contain a number of libraries, making up a complete "API".
+
+=back
+
+=head1 METHODS
+
+There are only a very limited number of utility methods available
+directly from the C<JSAN::Index> class itself.
+
+=cut
+
 use 5.008005;
 use strict;
 use warnings;
