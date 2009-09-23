@@ -95,6 +95,7 @@ use File::Copy::Recursive qw();
 use File::Spec::Functions qw( catdir );
 use File::Remove qw();
 use File::HomeDir qw();
+use List::MoreUtils qw( none );
 use Perl::Dist::WiX::Exceptions;
 
 our $VERSION = '1.090_103';
@@ -118,6 +119,16 @@ has dimensions => (
 		'_get_dimensions' => 'elements',
 
 
+	},
+);
+
+has skip => (
+	traits   => ['Array'],
+	is       => 'bare',
+	isa      => ArrayRef,
+	default  => sub { return []; },
+	handles  => {
+		'_get_skip_values' => 'elements',
 	},
 );
 
@@ -403,20 +414,24 @@ sub run {
 	while ( my $dist = $self->next() ) {
 		$dist->prepare();
 		$num++;
-		$success = eval { $dist->run(); 1; };
+		if (none { $_ == $num } $self->_get_skip_values) {
+			$success = eval { $dist->run(); 1; };
 
-		if ($success) {
+			if ($success) {
 
-			# Copy the output products for this run to the
-			# main output area.
-			foreach my $file ( @{ $dist->output_file() } ) {
-				File::Copy::move( $file, $output_dir );
+				# Copy the output products for this run to the
+				# main output area.
+				foreach my $file ( @{ $dist->output_file() } ) {
+					File::Copy::move( $file, $output_dir );
+				}
+			} else {
+				print $@;
+				File::Copy::Recursive::dircopy( $dist->output_dir(), catdir($output_dir, "error-output-$num") );
 			}
 		} else {
-			print $@;
-			File::Copy::Recursive::dircopy( $dist->output_dir(), catdir($output_dir, "error-output-$num") );
+			print "\n\nSkipping build number $num.";
 		}
-
+		
 		print "\n\n\n\n\n";
 		print q{-} x 60;
 		print "\n\n\n\n\n\n";
