@@ -1395,8 +1395,18 @@ sub install_portable {
 
 	# Install the file that turns on Portability last
 	$self->install_file(
-		share      => 'Perl-Dist-WiX portable.perl',
+		share      => 'Perl-Dist-WiX portable portable.perl',
 		install_to => 'portable.perl',
+	);
+
+	# Install files to help use Strawberry Portable.
+	$self->install_file(
+		share      => 'Perl-Dist-WiX portable README.portable.txt',
+		install_to => 'README.portable.txt',
+	);
+	$self->install_file(
+		share      => 'Perl-Dist-WiX portable portableshell.bat',
+		install_to => 'portableshell.bat',
 	);
 
 	return 1;
