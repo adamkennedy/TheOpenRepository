@@ -1369,8 +1369,10 @@ sub install_portable {
 
 	# Install the regular parts of Portability
 	$self->install_modules( qw(
-		  Sub::Uplevel
 		  Test::Exception
+	) );
+	$self->install_modules( qw(
+		  Sub::Uplevel
 		  Test::Tester
 		  Test::NoWarnings
 		  LWP::Online
@@ -1393,7 +1395,7 @@ sub install_portable {
 
 	# Install the file that turns on Portability last
 	$self->install_file(
-		share      => 'Perl-Dist portable.perl',
+		share      => 'Perl-Dist-WiX portable.perl',
 		install_to => 'portable.perl',
 	);
 
