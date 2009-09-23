@@ -840,6 +840,7 @@ sub final_initialization {
 
 	# Set element collections
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
+	Perl::Dist::WiX::DirectoryTree2->_clear_instance(); 
 	$self->{directories} = Perl::Dist::WiX::DirectoryTree2->new(
 		app_dir  => $self->image_dir,
 		app_name => $self->app_name,
@@ -1531,8 +1532,13 @@ sub regenerate_fragments {
 
 	while ( 0 != scalar @fragment_names ) {
 		foreach my $name (@fragment_names) {
-			push @fragment_names_regenerate,
-			  $self->{fragments}->{$name}->regenerate();
+			my $fragment = $self->{fragments}->{$name};
+			if (defined $fragment) {
+				push @fragment_names_regenerate,
+				  $fragment->regenerate();
+			} else {
+				$self->trace_line(0, "Couldn't regenerate fragment $name because fragment object did not exist.\n");
+			}
 		}
 
 		$#fragment_names = -1;         # clears the array.
