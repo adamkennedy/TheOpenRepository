@@ -2489,7 +2489,6 @@ sub Marpa::Evaluator::value {
 
                     my $or_map =
                         $and_choice->[Marpa::Internal::And_Choice::OR_MAP] = [
-                        [ $or_node_id, $child_and_node_id ],
                         @{  $and_iteration
                                 ->[Marpa::Internal::And_Iteration::OR_MAP]
                             }
@@ -2579,8 +2578,6 @@ sub Marpa::Evaluator::value {
 
                 my $and_node = $and_nodes->[$and_node_id];
 
-                ### defined child-or-nodes: [grep { defined $and_node->[$_] } (2,3)]
-
                 my $and_node_iteration = $and_iterations->[$and_node_id];
                 break if not $and_node_iteration;
 
@@ -2605,6 +2602,9 @@ sub Marpa::Evaluator::value {
                     # If there is a predecessor, but it is
                     # exhausted, this and-node is exhausted.
                     if ( not $cause_or_node_iteration ) {
+
+                        ### Marking and-node exhausted, id: $and_node_id
+
                         $and_iterations->[$and_node_id] = undef;
                         break;
                     }
@@ -2644,6 +2644,9 @@ sub Marpa::Evaluator::value {
                     # If there is a predecessor, but it is
                     # exhausted, this and-node is exhausted.
                     if ( not $predecessor_or_node_iteration ) {
+
+                        ### Marking and-node exhausted, id: $and_node_id
+
                         $and_iterations->[$and_node_id] = undef;
                         break;
                     }
@@ -2675,6 +2678,8 @@ sub Marpa::Evaluator::value {
                         ]
                         ) x $token->[Marpa::Internal::Symbol::NULLABLE];
                 } ## end if ( my $token = $and_node->[...])
+
+                ### Setting SORT_KEY for and-node: $and_node_id
 
                 $and_node_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_KEY] = [
@@ -2851,9 +2856,6 @@ sub Marpa::Evaluator::value {
 
                 my $and_node = $and_nodes->[$and_node_id];
 
-                push @tasks,
-                    [ Marpa::Internal::Task::SETUP_AND_NODE, $and_node_id ];
-
                 # Iteration of and-node without child always results in
                 # exhausted and-node
                 my $current_child_field =
@@ -2861,7 +2863,8 @@ sub Marpa::Evaluator::value {
                     ->[Marpa::Internal::And_Iteration::CURRENT_CHILD];
 
                 # if the current child is not exhausted, the last task
-                # successfully iterated it.  So SETUP_AND_NODE is all
+                # successfully iterated it.  So SETUP_AND_NODE
+                # (which is already on the tasks stack) is all
                 # that is needed.
                 break
                     if defined $or_iterations->[
@@ -2902,9 +2905,6 @@ sub Marpa::Evaluator::value {
 
                 my $and_node = $and_nodes->[$and_node_id];
 
-                push @tasks,
-                    [ Marpa::Internal::Task::SETUP_AND_NODE, $and_node_id ];
-
                 my @exhausted_children = grep {
                     not defined
                         $or_iterations->[ $_->[Marpa::Internal::Or_Node::ID] ]
@@ -2914,7 +2914,8 @@ sub Marpa::Evaluator::value {
                     ];
 
                 # If both children exhausted, this and node is exhausted
-                # Let SETUP_AND_NODE deal with that.
+                # Let SETUP_AND_NODE (which is already on the tasks stack)
+                # deal with that.
                 break if @exhausted_children >= 2;
 
                 push @tasks,
@@ -2942,25 +2943,27 @@ sub Marpa::Evaluator::value {
                 my $current_and_iteration =
                     $and_iterations->[$current_and_node_id];
 
+                ### current-and-node, id: $current_and_node_id
+
                 # If the current and-choice is exhausted ...
                 if ( not defined $current_and_iteration ) {
                     pop @{$and_choices};
 
-                    # If there are no more choices, the or-node is exhausted ...
-                    given ( scalar @{$and_choices} ) {
-                        when (0) {
-                            $or_iterations->[$or_node_id] = undef;
-                        }
-                        default {
+                    ### Popped current-and-node, id: $current_and_node_id
 
-                            # Thaw out the current and-choice,
-                            push @tasks,
-                                [
-                                Marpa::Internal::Task::THAW_TREE,
-                                $and_choices->[-1]
-                                ];
-                        } ## end default
-                    };    ## end given
+                    # If there are no more choices, the or-node is exhausted ...
+                    if ( scalar @{$and_choices} == 0) {
+                        ### Marking or-node exhausted, id: $or_node_id
+                        $or_iterations->[$or_node_id] = undef;
+                        break;
+                    }
+
+                    # Thaw out the current and-choice,
+                    push @tasks,
+                        [
+                        Marpa::Internal::Task::THAW_TREE,
+                        $and_choices->[-1]
+                        ];
 
                     break
 
@@ -2969,6 +2972,8 @@ sub Marpa::Evaluator::value {
                 # If we are here the current and-choice is not exhausted,
                 # but it may have been iterated to the point where it is
                 # no longer the first in sort order.
+
+                ### <where>
 
                 # If only one choice still active,
                 # clearly no need to
@@ -3050,8 +3055,10 @@ sub Marpa::Evaluator::value {
                 my ($and_choice) = @{$task_entry};
 
                 if ($trace_tasks) {
-                    print {$trace_fh} 'Task: FREEZE_TREE; ',
-                        ( scalar @tasks ), " tasks pending\n"
+                    printf {$trace_fh} 'Task: FREEZE_TREE; ',
+                        "Task: FREEZE_TREE; and-node-id: %d; %d tasks pending\n",
+                        $and_choice->[Marpa::Internal::And_Choice::ID],
+                        ( scalar @tasks )
                         or Marpa::exception('print to trace handle failed');
                 }
 
@@ -3075,10 +3082,12 @@ sub Marpa::Evaluator::value {
                 my ($and_choice) = @{$task_entry};
 
                 if ($trace_tasks) {
-                    print {$trace_fh} 'Task: THAW_TREE; ',
-                        ( scalar @tasks ), " tasks pending\n"
+                    printf {$trace_fh}
+                        "Task: THAW_TREE; and-node-id: %d; %d tasks pending\n",
+                        $and_choice->[Marpa::Internal::And_Choice::ID],
+                        ( scalar @tasks )
                         or Marpa::exception('print to trace handle failed');
-                }
+                } ## end if ($trace_tasks)
 
                 # If we are here, the current choice is new
                 # It must be thawed and its frozen iteration thrown away
@@ -3088,6 +3097,10 @@ sub Marpa::Evaluator::value {
                             ->[Marpa::Internal::And_Choice::FROZEN_ITERATION]
                     )
                     };
+
+                ### Thawing and-nodes: join ";", @{$and_slice}
+                ### Thawing or-nodes: join ";", @{$or_slice}
+
                 @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
                 @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
 
@@ -3109,18 +3122,22 @@ sub Marpa::Evaluator::value {
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
 
-                my @or_node_choices;
+                # Initialize with the top or-node's and-choice
+                my $top_and_choice = $or_iterations->[0]->[-1];
+
+                # Position 0 is top and-node id
+                my @or_node_choices = ( $and_nodes->[$top_and_choice->[Marpa::Internal::And_Choice::ID]] );
                 $#or_node_choices = $#{$or_nodes};
+
                 for my $or_mapping (
-                    @{  $or_iterations->[0]->[-1]
-                            ->[Marpa::Internal::And_Choice::OR_MAP]
+                    @{  $top_and_choice->[Marpa::Internal::And_Choice::OR_MAP]
                     }
                     )
                 {
                     my ( $or_node_id, $and_node_id ) = @{$or_mapping};
                     $or_node_choices[$or_node_id] =
                         $and_nodes->[$and_node_id];
-                } ## end for my $or_mapping ( @{ $or_iterations->[0]->[-1]->[...]})
+                } ## end for my $or_mapping ( @{ $top_and_choice->[...]})
 
                 # Write the and-nodes out in preorder
                 my @preorder = ();
