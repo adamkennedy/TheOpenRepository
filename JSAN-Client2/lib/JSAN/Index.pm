@@ -104,7 +104,7 @@ sub schedule {
             $item = JSAN::Index::Library->retrieve( name => $item );
         }
         if ( _INSTANCE($item, 'JSAN::Index::Library') ) {
-            $item = $item->fetch_release;
+            $item = $item->release;
         }
         if ( _INSTANCE($item, 'JSAN::Index::Release') ) {
             $item = $item->source;

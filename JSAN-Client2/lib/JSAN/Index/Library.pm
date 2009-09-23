@@ -9,15 +9,15 @@ use JSAN::Index::Extractable ();
 our $VERSION = '0.20';
 our @ISA     = 'JSAN::Index::Extractable';
 
-sub fetch_distribution {
+sub distribution {
     JSAN::Index::Distribution->retrieve(
-        name => $_[0]->distribution,
+        name => $_[0]->{distribution},
     );
 }
 
-sub fetch_release {
+sub release {
     JSAN::Index::Release->retrieve(
-        id => $_[0]->release,
+        id => $_[0]->{release},
     );
 }
 
@@ -37,7 +37,7 @@ sub retrieve {
 }
 
 sub extract_resource {
-    shift->fetch_release->extract_resource(@_);
+    shift->release->extract_resource(@_);
 }
 
 
@@ -85,13 +85,13 @@ sub name {
     $_[0]->{name};
 }
 
-sub distribution {
-    $_[0]->{distribution};
-}
-
-sub release {
-    $_[0]->{release};
-}
+#sub distribution {
+#    $_[0]->{distribution};
+#}
+#
+#sub release {
+#    $_[0]->{release};
+#}
 
 sub version {
     $_[0]->{version};

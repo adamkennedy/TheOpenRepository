@@ -77,8 +77,8 @@ my $swaprel = JSAN::Index::Release->retrieve(
 	source => '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz',
 );
 isa_ok( $swaprel,                     'JSAN::Index::Release'      );
-isa_ok( $swaprel->fetch_distribution, 'JSAN::Index::Distribution' );
-isa_ok( $swaprel->fetch_author,       'JSAN::Index::Author'       );
+isa_ok( $swaprel->distribution, 'JSAN::Index::Distribution' );
+isa_ok( $swaprel->author,       'JSAN::Index::Author'       );
 ok(     $swaprel->source,             '::Release has a ->source'  );
 
 
@@ -174,14 +174,17 @@ isa_ok( $hasdeps_releases[1], 'JSAN::Index::Release' );
 
 # Find a known library
 my $swaplib = JSAN::Index::Library->retrieve( name => 'Display.Swap' );
+
 isa_ok( $swaplib, 'JSAN::Index::Library' );
-isa_ok( $swaplib->fetch_distribution, 'JSAN::Index::Distribution' );
-isa_ok( $swaplib->fetch_release, 'JSAN::Index::Release' );
+isa_ok( $swaplib->distribution, 'JSAN::Index::Distribution' );
+isa_ok( $swaplib->release, 'JSAN::Index::Release' );
+
 ok( $swaplib->version, 'Library->version returns true' );
 like( $swaplib->doc, qr{^/},  'Library->doc returns a root-relative path' );
-is(
-	$swaplib->distribution, $swaplib->fetch_release->distribution,
-	'->fetch_release->distribution matches ->distribution',
+
+is_deeply(
+	$swaplib->distribution, $swaplib->release->distribution,
+	'->release->distribution matches ->distribution',
 );
 
 # Is extractable
@@ -194,6 +197,6 @@ can_ok( $swaplib, 'extract_libs', 'extract_tests', 'extract_resource' );
 #####################################################################
 # More Interesting Tests
 
-my $file = $swaplib->fetch_release->mirror;
-ok( $file,    'Library->fetch_release->mirror returns true' );
-ok( -f $file, 'Library->fetch_release->mirror exists'       );
+my $file = $swaplib->release->mirror;
+ok( $file,    'Library->release->mirror returns true' );
+ok( -f $file, 'Library->release->mirror exists'       );

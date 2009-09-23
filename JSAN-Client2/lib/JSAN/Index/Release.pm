@@ -27,15 +27,15 @@ BEGIN {
 # Make the tar code read saner below
 use constant COMPRESSED => 1;
 
-sub fetch_distribution {
+sub distribution {
     JSAN::Index::Distribution->retrieve(
-        name => $_[0]->distribution,
+        name => $_[0]->{distribution},
     );
 }
 
-sub fetch_author {
+sub author {
     JSAN::Index::Author->retrieve(
-        login => $_[0]->author,
+        login => $_[0]->{author},
     );
 }
 
@@ -56,9 +56,7 @@ sub retrieve {
 
 
 sub retrieve_all {
-    my $class  = shift;
-    
-    return $class->select()
+    shift->select
 }
 
 
@@ -183,7 +181,7 @@ sub requires_releases {
     my @libraries = $self->requires_libraries;
 
     # Derive a list of releases
-    my @releases = map { $_->fetch_release } @libraries;
+    my @releases = map { $_->release } @libraries;
     return @releases;
 }
 
@@ -192,7 +190,7 @@ sub build_requires_releases {
     my @libraries = $self->build_requires_libraries;
 
     # Derive a list of releases
-    my @releases = map { $_->fetch_release } @libraries;
+    my @releases = map { $_->release } @libraries;
     return @releases;
 }
 
@@ -386,13 +384,13 @@ sub id {
     $_[0]->{id};
 }
 
-sub distribution {
-    $_[0]->{distribution};
-}
+#sub distribution {
+#    $_[0]->{distribution};
+#}
 
-sub author {
-    $_[0]->{author};
-}
+#sub author {
+#    $_[0]->{author};
+#}
 
 sub checksum {
     $_[0]->{checksum};
