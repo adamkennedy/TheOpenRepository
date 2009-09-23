@@ -10,10 +10,10 @@ JSAN::Transport - JavaScript Archive Network Transport and Resources
 
   # Create a client
   JSAN::Transport->init(
-  	verbose       => 1,
-  	mirror_remote => 'http://openjsan.org/',
-  	mirror_local  => '~/.jsan',
-  	);
+      verbose       => 1,
+      mirror_remote => 'http://openjsan.org/',
+      mirror_local  => '~/.jsan',
+  );
   
   # Retrieve a file
   JSAN::Transport->file_get( 'index.sqlite' );
@@ -33,6 +33,7 @@ database connectivity to the JSAN index.
 
 =cut
 
+use 5.008005;
 use strict;
 use Carp           ();
 use Digest::MD5    ();
@@ -44,12 +45,11 @@ use URI::ToDisk    ();
 use LWP::Simple    ();
 use DBI            ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.16';
+our $VERSION = '0.20';
 
-	# Optional prefork.pm support
-	eval "use prefork 'Class::DBI';";
+BEGIN {
+    # Optional prefork.pm support
+    eval "use prefork 'ORLite';";
 }
 
 # The path to the index
@@ -115,49 +115,49 @@ Returns true, or will throw an exception (i.e. die) on error.
 my $SINGLETON = undef;
 
 sub init {
-	Carp::croak("CPAN::Transport already initialized") if $SINGLETON;
-	my $class  = shift;
-	my $params = { @_ };
+    Carp::croak("CPAN::Transport already initialized") if $SINGLETON;
+    my $class  = shift;
+    my $params = { @_ };
 
-	# Create the empty object
-	my $self = bless {
-		verbose => !! $params->{verbose},
-		mirror  => undef,
-		}, $class;
+    # Create the empty object
+    my $self = bless {
+        verbose => !! $params->{verbose},
+        mirror  => undef,
+        }, $class;
 
-	# Apply defaults
-	my $uri  = $params->{mirror_remote} || 'http://openjsan.org';
-	my $path = $params->{mirror_local}  || File::Spec->catdir(
-		File::HomeDir::home(), '.jsan'
-		);
+    # Apply defaults
+    my $uri  = $params->{mirror_remote} || 'http://openjsan.org';
+    my $path = $params->{mirror_local}  || File::Spec->catdir(
+        File::HomeDir::home(), '.jsan'
+        );
 
-	# Strip superfluous trailing slashes
-	$path =~ s/\/+$//;
-	$uri  =~ s/\/+$//;
+    # Strip superfluous trailing slashes
+    $path =~ s/\/+$//;
+    $uri  =~ s/\/+$//;
 
-	# To ensure we don't overwrite cache, hash the uri
-	my $digest = Digest::MD5::md5_hex("$uri");
-	$path = File::Spec->catdir( $path, $digest );
+    # To ensure we don't overwrite cache, hash the uri
+    my $digest = Digest::MD5::md5_hex("$uri");
+    $path = File::Spec->catdir( $path, $digest );
 
-	# Create the mirror_local path if needed
-	-e $path or File::Path::mkpath($path);
-	-d $path or Carp::croak("mirror_local: Path '$path' is not a directory");
-	-w $path or Carp::croak("mirror_local: No write permissions to path '$path'");
+    # Create the mirror_local path if needed
+    -e $path or File::Path::mkpath($path);
+    -d $path or Carp::croak("mirror_local: Path '$path' is not a directory");
+    -w $path or Carp::croak("mirror_local: No write permissions to path '$path'");
 
-	# Create the location object
-	$self->{mirror} = URI::ToDisk->new( $path => $uri )
-		or Carp::croak("Unexpected error creating URI::ToDisk object");
+    # Create the location object
+    $self->{mirror} = URI::ToDisk->new( $path => $uri )
+        or Carp::croak("Unexpected error creating URI::ToDisk object");
 
-	$SINGLETON = $self;
+    $SINGLETON = $self;
 
-	1;
+    1;
 }
 
 sub import { shift->init(@_) }
 
 sub _self {
-	return shift if ref $_[0];
-	$SINGLETON or Carp::croak("JSAN::Transport not intialized");
+    return shift if ref $_[0];
+    $SINGLETON or Carp::croak("JSAN::Transport not intialized");
 }
 
 =pod
@@ -222,16 +222,16 @@ bad path.
 =cut
 
 sub file_location {
-	my $self = shift->_self;
-	my $path = $self->_path(shift);
+    my $self = shift->_self;
+    my $path = $self->_path(shift);
 
-	# Strip any leading slash
-	$path =~ s/^\///;
+    # Strip any leading slash
+    $path =~ s/^\///;
 
-	# Split into parts and find the location for it.
-	my @parts    = split /\//, $path;
-	my $mirror   = $self->mirror_location;
-	$mirror->catfile( @parts );
+    # Split into parts and find the location for it.
+    my @parts    = split /\//, $path;
+    my $mirror   = $self->mirror_location;
+    $mirror->catfile( @parts );
 }
 
 =pod
@@ -252,22 +252,22 @@ on error.
 =cut
 
 sub file_get {
-	my $self     = shift->_self;
-	my $location = $self->file_location(shift);
+    my $self     = shift->_self;
+    my $location = $self->file_location(shift);
 
-	# Check local dir exists
-	my $dir = File::Basename::dirname($location->path);
-	-d $dir or File::Path::mkpath($dir);
+    # Check local dir exists
+    my $dir = File::Basename::dirname($location->path);
+    -d $dir or File::Path::mkpath($dir);
 
-	# Fetch the file from the server
-	my $rc = LWP::Simple::getstore( $location->uri, $location->path );
-	if ( LWP::Simple::is_success($rc) ) {
-		return $location;
-	} elsif ( $rc == LWP::Simple::RC_NOT_FOUND ) {
-		return '';
-	} else {
-		Carp::croak("$rc error retriving file " . $location->uri);
-	}
+    # Fetch the file from the server
+    my $rc = LWP::Simple::getstore( $location->uri, $location->path );
+    if ( LWP::Simple::is_success($rc) ) {
+        return $location;
+    } elsif ( $rc == LWP::Simple::RC_NOT_FOUND ) {
+        return '';
+    } else {
+        Carp::croak("$rc error retriving file " . $location->uri);
+    }
 }
 
 =pod
@@ -292,32 +292,32 @@ C<undef> on error.
 =cut
 
 sub file_mirror {
-	my $self     = shift->_self;
-	my $path     = $self->_path(shift);
-	my $location = $self->file_location($path);
+    my $self     = shift->_self;
+    my $path     = $self->_path(shift);
+    my $location = $self->file_location($path);
 
-	# If any only if a path is "stable" and the file already exists,
-	# it is guarenteed not to change, and we don't have to do the
-	# mirroring operation.
-	if ( $self->_path_stable($path) and -f $location->path ) {
-		return $location;
-	}
+    # If any only if a path is "stable" and the file already exists,
+    # it is guarenteed not to change, and we don't have to do the
+    # mirroring operation.
+    if ( $self->_path_stable($path) and -f $location->path ) {
+        return $location;
+    }
 
-	# Check local dir exists
-	my $dir = File::Basename::dirname($location->path);
-	-d $dir or File::Path::mkpath($dir);
+    # Check local dir exists
+    my $dir = File::Basename::dirname($location->path);
+    -d $dir or File::Path::mkpath($dir);
 
-	# Fetch the file from the server
-	my $rc = LWP::Simple::mirror( $location->uri, $location->path );
-	if ( LWP::Simple::is_success($rc) ) {
-		return $location;
-	} elsif ( $rc == LWP::Simple::RC_NOT_MODIFIED ) {
-		return $location;
-	} elsif ( $rc == LWP::Simple::RC_NOT_FOUND ) {
-		return '';
-	} else {
-		Carp::croak("HTTP error $rc while syncing file " . $location->uri);
-	}
+    # Fetch the file from the server
+    my $rc = LWP::Simple::mirror( $location->uri, $location->path );
+    if ( LWP::Simple::is_success($rc) ) {
+        return $location;
+    } elsif ( $rc == LWP::Simple::RC_NOT_MODIFIED ) {
+        return $location;
+    } elsif ( $rc == LWP::Simple::RC_NOT_FOUND ) {
+        return '';
+    } else {
+        Carp::croak("HTTP error $rc while syncing file " . $location->uri);
+    }
 }
 
 =pod
@@ -330,7 +330,7 @@ returns the path to it on the filesystem.
 =cut
 
 sub index_file {
-	shift->_self->_index_synced->path;
+    shift->_self->_index_synced->path;
 }
 
 =pod
@@ -343,9 +343,9 @@ return the L<DBI> dsn for the index database.
 =cut
 
 sub index_dsn {
-	my $self = shift->_self;
-	my $file = $self->index_file;
-	"dbi:SQLite:dbname=$file";
+    my $self = shift->_self;
+    my $file = $self->index_file;
+    "dbi:SQLite:dbname=$file";
 }
 
 =pod
@@ -358,16 +358,16 @@ return a database connection to the index database.
 =cut
 
 sub index_dbh {
-	my $self = shift->_self;
-	my $DSN  = $self->index_dsn;
+    my $self = shift->_self;
+    my $DSN  = $self->index_dsn;
 
-	# Unless we use Class::DBI's attributes, the whole thing comes
-	# tumbling horribly down around us. Yes, this completely sucks.
-	require Class::DBI;
-	my %attr = Class::DBI->_default_attributes;
+#	# Unless we use Class::DBI's attributes, the whole thing comes
+#	# tumbling horribly down around us. Yes, this completely sucks.
+#	require Class::DBI;
+#	my %attr = Class::DBI->_default_attributes;
 
-	DBI->connect( $DSN, '', '', \%attr )
-		or Carp::croak("Database error connecting to JSAN index at $DSN");
+    DBI->connect( $DSN, '', '', {} )
+        or Carp::croak("Database error connecting to JSAN index at $DSN");
 }
 
 
@@ -379,37 +379,37 @@ sub index_dbh {
 
 # Validate a JSAN file path
 sub _path {
-	my $self = shift->_self;
-	my $path = shift or Carp::croak("No JSAN file path provided");
+    my $self = shift->_self;
+    my $path = shift or Carp::croak("No JSAN file path provided");
 
-	# Strip any leading slash
-	$path =~ s(^\/)();
+    # Strip any leading slash
+    $path =~ s(^\/)();
 
-	$path;
+    $path;
 }
 
 # Is a path considered "stable" (does not change over time)
 sub _path_stable {
-	my $self = shift->_self;
-	my $path = $self->_path(shift);
+    my $self = shift->_self;
+    my $path = $self->_path(shift);
 
-	# Paths under the "dist" path are stable
-	if ( $path =~ m{^dist/} ) {
-		return 1;
-	}
+    # Paths under the "dist" path are stable
+    if ( $path =~ m{^dist/} ) {
+        return 1;
+    }
 
-	'';
+    '';
 }
 
 # Returns the location of the SQLite index, syncronising it if needed
 sub _index_synced {
-	my $self = shift->_self;
-	if ( $self->{index_synced} ) {
-		return $self->file_location($SQLITE_INDEX);
-	}
-	my $location = $self->file_mirror($SQLITE_INDEX);
-	$self->{index_synced}++;
-	$location;
+    my $self = shift->_self;
+    if ( $self->{index_synced} ) {
+        return $self->file_location($SQLITE_INDEX);
+    }
+    my $location = $self->file_mirror($SQLITE_INDEX);
+    $self->{index_synced}++;
+    $location;
 }
 
 =pod

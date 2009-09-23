@@ -1,4 +1,9 @@
-Revision history for Perl extension JSAN::Client
+Revision history for Perl extension JSAN-Client2
+
+0.20 to be released
+	- Updated to Module::Install::DSL
+	- Migrating from Class::DBI to ORLite
+	- Inline all the generated table code to do non-standard things
 
 0.17 Wed 16 Apr 2008
 	- Incremental release to upgrade Module::Install and tests

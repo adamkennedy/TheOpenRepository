@@ -4,15 +4,15 @@ package JSAN::Client;
 
 =head1 NAME
 
-JSAN::Client - The JavaScript Archive Network Client Library
+JSAN::Client - JSAN Client 2.0 (migrated from Class::DBI to ORLite)
 
 =head1 SYNOPSIS
 
   # Create the client object
   my $client = JSAN::Client->new(
-  	prefix  => '/usr/local/js',
-  	verbose => 1,
-  	);
+      prefix  => '/usr/local/js',
+      verbose => 1,
+  );
   
   # Install by library name
   $client->install_library('Display.Swap');
@@ -35,20 +35,14 @@ class, or even more preferably the L<jsan> installer application.
 
 =cut
 
-use 5.005;
+use 5.008005;
 use strict;
+use warnings;
+use Params::Util 1.00 ();
 use JSAN::Transport;
 use JSAN::Index;
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.16';
-}
-
-# Bundled version of Params::Util::_INSTANCE
-sub _INSTANCE ($$) {
-	(Scalar::Util::blessed($_[0]) and $_[0]->isa($_[1])) ? $_[0] : undef;
-}
+our $VERSION = '0.20';
 
 
 
@@ -94,28 +88,28 @@ Returns a new C<JSAN::Client> object, or dies on error.
 =cut
 
 sub new {
-	my $class  = ref $_[0] ? ref shift : shift;
-	if ( scalar(@_) % 2 ) {
-		Carp::croak("Odd number of params passed to JSAN::Client::new");
-	}
-	my %params = @_;
+    my $class  = ref $_[0] ? ref shift : shift;
+    if ( scalar(@_) % 2 ) {
+        Carp::croak("Odd number of params passed to JSAN::Client::new");
+    }
+    my %params = @_;
 
-	# Create the basic object
-	my $self = bless {
-		prefix  =>    $params{prefix},
-		build   => !! $params{build},
-		verbose => !! $params{verbose},
-		}, $class;
+    # Create the basic object
+    my $self = bless {
+        prefix  =>    $params{prefix},
+        build   => !! $params{build},
+        verbose => !! $params{verbose},
+        }, $class;
 
-	# Check the prefix
-	unless ( $self->prefix ) {
-		Carp::croak("No prefix provided to JSAN::Client::new");
-	}
-	unless ( -d $self->prefix and -w $self->prefix ) {
-		Carp::croak("Prefix provided to JSAN::Client::new is not a writable directory");
-	}
+    # Check the prefix
+    unless ( $self->prefix ) {
+        Carp::croak("No prefix provided to JSAN::Client::new");
+    }
+    unless ( -d $self->prefix and -w $self->prefix ) {
+        Carp::croak("Prefix provided to JSAN::Client::new is not a writable directory");
+    }
 
-	$self;
+    $self;
 }
 
 =pod
@@ -177,16 +171,16 @@ up to date and did not need to be installed, or dies on error.
 =cut
 
 sub install_library {
-	my $self = shift;
+    my $self = shift;
 
-	# Take the library as an object or a name
-	my $library = shift;
-	unless ( _INSTANCE($library, 'JSAN::Index::Library') ) {
-		$library = JSAN::Index::Library->retrieve( name => $library )
-			or Carp::croak("The JSAN library '$library' does not exist");
-	}
+    # Take the library as an object or a name
+    my $library = shift;
+    unless ( Params::Util::_INSTANCE($library, 'JSAN::Index::Library') ) {
+        $library = JSAN::Index::Library->retrieve( name => $library )
+            or Carp::croak("The JSAN library '$library' does not exist");
+    }
 
-	$self->_install_release( $library->release, $_[0] );
+    $self->_install_release( $library->release, $_[0] );
 }
 
 =pod
@@ -209,58 +203,58 @@ is already up to date and did not need to be installed, or dies on error.
 =cut
 
 sub install_distribution {
-	my $self = shift;
+    my $self = shift;
 
-	# Take the distribution as an object or a name
-	my $distribution = shift;
-	unless ( _INSTANCE($distribution, 'JSAN::Index::Distribution') ) {
-		$distribution = JSAN::Index::Distribution->retrieve( name => $distribution )
-			or Carp::croak("The JSAN distribution '$distribution' does not exist");
-	}
+    # Take the distribution as an object or a name
+    my $distribution = shift;
+    unless ( Params::Util::_INSTANCE($distribution, 'JSAN::Index::Distribution') ) {
+        $distribution = JSAN::Index::Distribution->retrieve( name => $distribution )
+            or Carp::croak("The JSAN distribution '$distribution' does not exist");
+    }
 
-	$self->_install_release( $distribution->latest_release, $_[0] );
+    $self->_install_release( $distribution->latest_release, $_[0] );
 }
 
 # Takes a JSAN::Index::Release object, and installs it
 sub _install_release {
-	my ($self, $requested, $name ) = @_;
+    my ($self, $requested, $name ) = @_;
 
-	# Find the full schedule
-	$self->_print("Scanning index for dependencies...");
-	my $dependency = JSAN::Index->dependency( build => $self->build );
-	my $schedule   = $dependency->schedule( $requested )
-		or Carp::croak("Error while finding dependencies for '$name'");
-	my @releases = map {
-		JSAN::Index::Release->retrieve( source => $_ )
-			or Carp::croak("Failed to get an object for '$_'")
-		} @$schedule;
+    # Find the full schedule
+    $self->_print("Scanning index for dependencies...");
+    my $dependency = JSAN::Index->dependency( build => $self->build );
+    my $schedule   = $dependency->schedule( $requested )
+        or Carp::croak("Error while finding dependencies for '$name'");
+    my @releases = map {
+        JSAN::Index::Release->retrieve( source => $_ )
+            or Carp::croak("Failed to get an object for '$_'")
+        } @$schedule;
 
-	# Following debian's lead, download all the releases first.
-	# That way if there's a download error we won't be left half-installed.
-	my $total = scalar(@releases);
-	my $count = 0;
-	$self->_print("Fetching releases from JSAN...");
-	foreach my $release ( @releases ) {
-		$count++;
-		$self->_print("$count of $total: Mirroring release " . $release->source);
-		$release->mirror;
-	}
+    # Following debian's lead, download all the releases first.
+    # That way if there's a download error we won't be left half-installed.
+    my $total = scalar(@releases);
+    my $count = 0;
+    $self->_print("Fetching releases from JSAN...");
+    foreach my $release ( @releases ) {
+        $count++;
+        $self->_print("$count of $total: Mirroring release " . $release->source);
+        $release->mirror;
+    }
 
-	# Install each of the releases
-	$count = 0;
-	$self->_print("Installing release to '" . $self->prefix . "'");
-	foreach my $release ( @releases ) {
-		$self->_print("$count of $total: Extracting release " . $release->source);
-		$self->_extract_release( $release );
-	}
+    # Install each of the releases
+    $count = 0;
+    $self->_print("Installing release to '" . $self->prefix . "'");
+    foreach my $release ( @releases ) {
+        $self->_print("$count of $total: Extracting release " . $release->source);
+        $self->_extract_release( $release );
+    }
 
-	1;
+    1;
 }
 
 # Takes a single JSAN::Index::Release object, and extracts its libs to the prefix dir
 sub _extract_release {
-	my ($self, $release) = @_;
-	$release->extract_libs( to => $self->prefix );
+    my ($self, $release) = @_;
+    $release->extract_libs( to => $self->prefix );
 }
 
 
@@ -272,14 +266,14 @@ sub _extract_release {
 
 # Print to screen if in verbose mode
 sub _print {
-	my $self = shift;
-	return 1 unless $self->verbose;
-	while ( @_ ) {
-		my $line = shift;
-		chomp($line);
-		print STDOUT "$line\n";
-	}
-	1;
+    my $self = shift;
+    return 1 unless $self->verbose;
+    while ( @_ ) {
+        my $line = shift;
+        chomp($line);
+        print STDOUT "$line\n";
+    }
+    1;
 }
 
 1;

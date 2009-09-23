@@ -15,10 +15,10 @@ JSAN::URI - A JavaScript Archive Network (JSAN) Validating Mirror URI
   
   # Check the mirror
   if ( ! $mirror->valid ) {
-  	die "The mirror does not exist";
+      die "The mirror does not exist";
   }
   if ( $mirror->age > (3600 * 48) ) {
-  	die "The mirror is too old";
+      die "The mirror is too old";
   }
 
 =head1 DESCRIPTION
@@ -39,16 +39,15 @@ This module implements the logic required to do this in a reusable form
 
 =cut
 
+use 5.008005;
 use strict;
+use warnings;
 use URI              ();
 use LWP::Simple      ();
 use Config::Tiny     ();
 use File::Spec::Unix ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.16';
-}
+our $VERSION = '0.16';
 
 use constant JSAN_MASTER => 'http://master.openjsan.org/';
 
@@ -71,17 +70,17 @@ a valid url path.
 =cut
 
 sub new {
-	my $class = ref $_[0] ? ref shift : shift;
-	my $URI   = URI->new(shift) or return undef;
+    my $class = ref $_[0] ? ref shift : shift;
+    my $URI   = URI->new(shift) or return undef;
 
-	# Create the object
-	my $self = bless {
-		URI    => $URI->canonical,
-		config => undef,
-		master => undef,
-		}, $class;
+    # Create the object
+    my $self = bless {
+        URI    => $URI->canonical,
+        config => undef,
+        master => undef,
+        }, $class;
 
-	$self;
+    $self;
 }
 
 =pod
@@ -125,9 +124,9 @@ Returns true if the mirror is valid, or false otherwise.
 =cut
 
 sub valid {
-	my $self   = shift;
-	my $config = $self->_config or return '';
-	!! (defined $config->{_}->{mirror} and $config->{_}->{mirror} eq 'jsan');
+    my $self   = shift;
+    my $config = $self->_config or return '';
+    !! (defined $config->{_}->{mirror} and $config->{_}->{mirror} eq 'jsan');
 }
 
 
@@ -141,25 +140,25 @@ sub valid {
 
 # Get the Config::Tiny object for the mirror
 sub _config {
-	my $self = shift;
-	$self->{config} or
-	$self->{config} = $self->_get( $self->uri );
+    my $self = shift;
+    $self->{config} or
+    $self->{config} = $self->_get( $self->uri );
 }
 
 # Get the Config::Tiny object for the master
 sub _master {
-	my $self = shift;
-	$self->{master} or
-	$self->{master} = $self->_get( JSAN_MASTER );
+    my $self = shift;
+    $self->{master} or
+    $self->{master} = $self->_get( JSAN_MASTER );
 }
 
 # Takes a URI and returns a Config::Tiny object for it
 sub _get {
-	my ($self, $uri) = @_;
-	$uri =~ s{/?$}{/mirror.conf}s;
-	my $content = LWP::Simple::get($uri);
-	return undef unless defined $content;
-	Config::Tiny->read_string( $content );
+    my ($self, $uri) = @_;
+    $uri =~ s{/?$}{/mirror.conf}s;
+    my $content = LWP::Simple::get($uri);
+    return undef unless defined $content;
+    Config::Tiny->read_string( $content );
 }
 
 1;
