@@ -95,6 +95,76 @@ __END__;
 
 =head1 NAME
 
+JSAN::Index::Author - A JavaScript Archive Network (JSAN) Author
+
+=head1 DESCRIPTION
+
+This class provides objects that represent authors in the L<JSAN::Index>.
+
+=head1 METHODS
+
+In addition to the general methods provided by L<Class::DBI>, this class has
+the following additional methods.
+
+=head2 login
+
+The C<login> accessor returns the JSAN author code/login for the author.
+
+=head2 name
+
+The C<name> accessor returns the full name of the author.
+
+=head2 doc
+
+The C<doc> accessor returns the root-relative documentation path for the
+author on any L<http://openjsan.org/> mirror.
+
+=head2 email
+
+The C<email> accessor returns the public email address for the author.
+
+=head2 url
+
+The C<url> acessor returns the uri for the authors homepage as a string.
+
+=head2 releases
+
+The C<releases> method finds and retrieves all of the releases for an author.
+
+Returns a list of L<JSAN::Index::Release> objects.
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=JSAN-Client>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<JSAN::Index>, L<JSAN::Shell>, L<http://openjsan.org>
+
+=head1 COPYRIGHT
+
+Copyright 2005 - 2007 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
+
+=pod
+
+=head1 NAME
+
 JSAN::Index::Author - JSAN::Index class for the author table
 
 =head1 SYNOPSIS
