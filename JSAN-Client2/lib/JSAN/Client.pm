@@ -35,20 +35,13 @@ class, or even more preferably the L<jsan> installer application.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
+use Params::Util 1.00 ();
 use JSAN::Transport;
 use JSAN::Index;
 
-use vars qw{$VERSION};
-BEGIN {
-    $VERSION = '0.16';
-}
-
-# Bundled version of Params::Util::_INSTANCE
-sub _INSTANCE ($$) {
-    (Scalar::Util::blessed($_[0]) and $_[0]->isa($_[1])) ? $_[0] : undef;
-}
+our $VERSION = '0.20';
 
 
 
@@ -181,7 +174,7 @@ sub install_library {
 
     # Take the library as an object or a name
     my $library = shift;
-    unless ( _INSTANCE($library, 'JSAN::Index::Library') ) {
+    unless ( Params::Util::_INSTANCE($library, 'JSAN::Index::Library') ) {
         $library = JSAN::Index::Library->retrieve( name => $library )
             or Carp::croak("The JSAN library '$library' does not exist");
     }
@@ -213,7 +206,7 @@ sub install_distribution {
 
     # Take the distribution as an object or a name
     my $distribution = shift;
-    unless ( _INSTANCE($distribution, 'JSAN::Index::Distribution') ) {
+    unless ( Params::Util::_INSTANCE($distribution, 'JSAN::Index::Distribution') ) {
         $distribution = JSAN::Index::Distribution->retrieve( name => $distribution )
             or Carp::croak("The JSAN distribution '$distribution' does not exist");
     }
