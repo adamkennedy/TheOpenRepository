@@ -17,8 +17,8 @@ BEGIN {
 }
 
 my $grammar = Marpa::Grammar->new(
-    {   start => 'S',
-        strip => 0,
+    {   start   => 'S',
+        strip   => 0,
         maximal => 1,
 
         # Set max at 10 just in case there's an infinite loop.
