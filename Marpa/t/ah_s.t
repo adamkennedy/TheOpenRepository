@@ -10,8 +10,6 @@ use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
 
-$Marpa::EVALUATOR = 'old';
-
 use Test::More tests => 6;
 
 BEGIN {
@@ -24,6 +22,7 @@ my $source;
 my $grammar = Marpa::Grammar->new(
     {   warnings   => 1,
         code_lines => -1,
+        maximal    => 1,
     }
 );
 
@@ -55,12 +54,7 @@ for my $i ( 0 .. 4 ) {
         }
     );
     my $result = $evaler->value();
-    TODO: {
-        ## no critic (ControlStructures::ProhibitPostfixControls)
-        local $TODO = 'new evaluator not yet written' if $i == 3;
-        ## use critic
-        Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
-    } ## end TODO:
+    Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
 } ## end for my $i ( 0 .. 4 )
 
 # Local Variables:

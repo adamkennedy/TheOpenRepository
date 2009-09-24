@@ -132,6 +132,7 @@ my %expected_value = (
     '(2-((0*3)+1))==1' => 1,
 );
 my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
+Marpa::exception('Parse failed') if not $evaler;
 
 my $i = 0;
 while ( defined( my $value = $evaler->value() ) ) {

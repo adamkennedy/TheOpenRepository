@@ -25,9 +25,9 @@ my $this_perl = $EXECUTABLE_NAME;
 my $script = <<"END_OF_SCRIPT";
 cd bootstrap
 echo Bootstrap 1
-MARPA_EVALUATOR=old $this_perl -I../lib bootstrap.pl self.marpa bootstrap_header.pl bootstrap_trailer.pl >t_bootcopy0.pl
+$this_perl -I../lib bootstrap.pl self.marpa bootstrap_header.pl bootstrap_trailer.pl >t_bootcopy0.pl
 echo Bootstrap 2
-MARPA_EVALUATOR=old $this_perl -I../lib t_bootcopy0.pl self.marpa bootstrap_header.pl bootstrap_trailer.pl >t_bootcopy1.pl
+$this_perl -I../lib t_bootcopy0.pl self.marpa bootstrap_header.pl bootstrap_trailer.pl >t_bootcopy1.pl
 echo Diff
 diff t_bootcopy0.pl t_bootcopy1.pl && echo Test OK
 echo Cleanup

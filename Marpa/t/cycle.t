@@ -7,12 +7,9 @@ use warnings;
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
-$Marpa::EVALUATOR = 'old';
-
 use Test::More tests => 7;
 use lib 'lib';
-use lib 't/lib';
-use Marpa::Test;
+use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');

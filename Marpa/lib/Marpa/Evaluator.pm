@@ -2432,6 +2432,8 @@ sub Marpa::Evaluator::value {
             my $minimal  = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
 
+            ### rule priority: $priority
+
             if ( $maximal or $minimal or $priority ) {
 
                 my $and_node_start_earleme =

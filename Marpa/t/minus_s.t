@@ -8,13 +8,10 @@ use 5.010;
 use strict;
 use warnings;
 use lib 'lib';
-use lib 't/lib';
 use English qw( -no_match_vars );
 
-$Marpa::EVALUATOR = 'old';
-
 use Test::More tests => 10;
-use Marpa::Test;
+use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
@@ -25,18 +22,20 @@ my $grammar_source;
 
 my $text = '6-----1';
 
-my @values = Marpa::mdl( \$grammar_source, \$text, { max_parses => 30 } );
+my @values =
+    Marpa::mdl( \$grammar_source, \$text,
+    { maximal => 1, max_parses => 30 } );
 
 my @expected = (
     #<<< no perltidy
     '(((6--)--)-1)==5',
     '((6--)-(--1))==6',
+    '((6--)-(-(-1)))==5',
     '(6-(--(--1)))==7',
     '(6-(--(-(-1))))==6',
-    '((6--)-(-(-1)))==5',
+    '(6-(-(--(-1))))==4',
     '(6-(-(-(--1))))==6',
     '(6-(-(-(-(-1)))))==5',
-    '(6-(-(--(-1))))==4',
     #>>>
 );
 
@@ -71,6 +70,7 @@ semantics are perl5.  version is 0.001_017.
 the start symbol is E.
 
 E: E, Minus, E.
+priority 50.
 q{
     my ($right_string, $right_value)
         = ($_[2] =~ /^(.*)==(.*)$/);
@@ -81,6 +81,7 @@ q{
 }.
  
 E: E, Minus Minus.
+priority 40.
 q{
     my ($string, $value)
         = ($_[0] =~ /^(.*)==(.*)$/);
@@ -88,6 +89,7 @@ q{
 }.
 
 E: Minus Minus, E.
+priority 30.
 q{
     my ($string, $value)
         = ($_[1] =~ /^(.*)==(.*)$/);
@@ -95,6 +97,7 @@ q{
 }.
 
 E: Minus, E.
+priority 20.
 q{
     my ($string, $value)
         = ($_[1] =~ /^(.*)==(.*)$/);

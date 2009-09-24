@@ -6,7 +6,7 @@
 # then hacking it by hand as needed
 # to bootstrap the new self.marpa.
 
-# This file was automatically generated using Marpa 0.001_014
+# This file was automatically generated using Marpa 0.001_017
 #!perl
 # This is the beginning of bootstrap_header.pl
 
@@ -811,7 +811,7 @@ push @{$new_rules}, {
 ,    rhs => ['optional-rhs-element'],
     action =>$strings{ 'concatenate-lines' },
 ,
-,
+priority => 1000,
 
 };
 push @{$new_rules}, {

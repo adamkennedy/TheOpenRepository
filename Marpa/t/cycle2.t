@@ -5,13 +5,10 @@ use 5.010;
 use strict;
 use warnings;
 use lib 'lib';
-use lib 't/lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 use Test::More tests => 4;
-use Marpa::Test;
-
-$Marpa::EVALUATOR = 'old';
+use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
@@ -21,8 +18,8 @@ my $example_dir = 'example';
 chdir $example_dir;
 
 my @expected_values = split /\n/xms, <<'EOS';
-a
 A(B(a))
+a
 EOS
 
 my $mdl = <<'EOF';

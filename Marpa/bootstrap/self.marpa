@@ -328,7 +328,7 @@ q{
 
 rhs element: mandatory rhs element.  concatenate lines.
 
-rhs element: Optional rhs element. concatenate lines.
+rhs element: Optional rhs element. priority 1000. concatenate lines.
 
 mandatory rhs element: rhs symbol specifier.
 q{ q{'} . $_[0] . q{'} }.
