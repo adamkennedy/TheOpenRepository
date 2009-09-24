@@ -90,6 +90,7 @@ use 5.008001;
 use Moose 0.90;
 use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool );
 use Params::Util qw( _IDENTIFIER _HASH0 _DRIVER );
+use English qw( -no_match_vars );
 use File::Copy qw();
 use File::Copy::Recursive qw();
 use File::Spec::Functions qw( catdir );
@@ -117,19 +118,15 @@ has dimensions => (
 	handles  => {
 		'_add_dimension'  => 'push',
 		'_get_dimensions' => 'elements',
-
-
 	},
 );
 
 has skip => (
-	traits   => ['Array'],
-	is       => 'bare',
-	isa      => ArrayRef,
-	default  => sub { return [ 0 ]; },
-	handles  => {
-		'_get_skip_values' => 'elements',
-	},
+	traits  => ['Array'],
+	is      => 'bare',
+	isa     => ArrayRef,
+	default => sub { return [0]; },
+	handles => { '_get_skip_values' => 'elements', },
 );
 
 has options => (
@@ -409,12 +406,12 @@ sub run {
 	my $self       = shift;
 	my $success    = 0;
 	my $output_dir = $self->_get_output();
-	my $num = 0;
-	
+	my $num        = 0;
+
 	while ( my $dist = $self->next() ) {
 		$dist->prepare();
 		$num++;
-		if (none { $_ == $num } $self->_get_skip_values) {
+		if ( none { $_ == $num } $self->_get_skip_values ) {
 			$success = eval { $dist->run(); 1; };
 
 			if ($success) {
@@ -425,17 +422,18 @@ sub run {
 					File::Copy::move( $file, $output_dir );
 				}
 			} else {
-				print $@;
-				File::Copy::Recursive::dircopy( $dist->output_dir(), catdir($output_dir, "error-output-$num") );
+				print $EVAL_ERROR;
+				File::Copy::Recursive::dircopy( $dist->output_dir(),
+					catdir( $output_dir, "error-output-$num" ) );
 			}
 		} else {
 			print "\n\nSkipping build number $num.";
 		}
-		
+
 		print "\n\n\n\n\n";
 		print q{-} x 60;
 		print "\n\n\n\n\n\n";
-				
+
 		# Flush out the image dir for the next run
 		File::Remove::remove( \1, $dist->image_dir() );
 	} ## end while ( my $dist = $self->next...)

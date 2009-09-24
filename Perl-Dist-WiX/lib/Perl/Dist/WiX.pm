@@ -838,9 +838,10 @@ Readonly my %PACKAGES => (
 sub final_initialization {
 	my $self = shift;
 
+	## no critic(ProtectPrivateSubs)
 	# Set element collections
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
-	Perl::Dist::WiX::DirectoryTree2->_clear_instance(); 
+	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
 	$self->{directories} = Perl::Dist::WiX::DirectoryTree2->new(
 		app_dir  => $self->image_dir,
 		app_name => $self->app_name,
@@ -1545,18 +1546,19 @@ sub regenerate_fragments {
 	while ( 0 != scalar @fragment_names ) {
 		foreach my $name (@fragment_names) {
 			my $fragment = $self->{fragments}->{$name};
-			if (defined $fragment) {
-				push @fragment_names_regenerate,
-				  $fragment->regenerate();
+			if ( defined $fragment ) {
+				push @fragment_names_regenerate, $fragment->regenerate();
 			} else {
-				$self->trace_line(0, "Couldn't regenerate fragment $name because fragment object did not exist.\n");
+				$self->trace_line( 0,
+"Couldn't regenerate fragment $name because fragment object did not exist.\n"
+				);
 			}
 		}
 
 		$#fragment_names = -1;         # clears the array.
 		@fragment_names             = uniq @fragment_names_regenerate;
 		$#fragment_names_regenerate = -1;
-	}
+	} ## end while ( 0 != scalar @fragment_names)
 
 	return 1;
 } ## end sub regenerate_fragments

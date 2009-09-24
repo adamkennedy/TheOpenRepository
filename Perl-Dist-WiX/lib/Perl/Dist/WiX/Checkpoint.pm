@@ -283,7 +283,7 @@ sub checkpoint_load {
 	}
 
 	## no critic(ProtectPrivateSubs)
-	
+
 	# Reload the misc object.
 	WiX3::Trace::Object->_clear_instance();
 	WiX3::Traceable->_clear_instance();
