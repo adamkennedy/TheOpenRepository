@@ -2105,7 +2105,6 @@ sub Marpa::Evaluator::new {
 
     } ## end for my $or_node ( @{$or_nodes} )
 
-
     # TODO: Add code to only attempt rewrite if grammar is cyclical
     rewrite_cycles($self);
 
@@ -3056,7 +3055,8 @@ sub Marpa::Evaluator::value {
             when (Marpa::Internal::Task::FREEZE_TREE) {
                 my ($and_choice) = @{$task_entry};
 
-                my $and_node_id = $and_choice->[Marpa::Internal::And_Choice::ID];
+                my $and_node_id =
+                    $and_choice->[Marpa::Internal::And_Choice::ID];
                 if ($trace_tasks) {
                     printf {$trace_fh}
                         "Task: FREEZE_TREE; and-node-id: %d; %d tasks pending\n",
@@ -3068,8 +3068,8 @@ sub Marpa::Evaluator::value {
                     $and_choice->[Marpa::Internal::And_Choice::OR_MAP];
 
                 # Add frozen iteration
-                my @or_slice  = map { $_->[0] } @{$or_map};
-                my @and_slice = ($and_node_id, map { $_->[1] } @{$or_map});
+                my @or_slice = map { $_->[0] } @{$or_map};
+                my @and_slice = ( $and_node_id, map { $_->[1] } @{$or_map} );
 
                 ### Freezing or-nodes: join ";", @or_slice
                 ### Freezing and-nodes: join ";", @and_slice

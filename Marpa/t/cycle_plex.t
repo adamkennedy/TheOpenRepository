@@ -126,7 +126,7 @@ for my $test_data (@test_data) {
     my $t       = $grammar->get_symbol('t');
 
     close $MEMORY;
-    Marpa::Test::is( $trace, $expected_trace, "$test_name trace");
+    Marpa::Test::is( $trace, $expected_trace, "$test_name trace" );
 
     my $recce = Marpa::Recognizer->new(
         { grammar => $grammar, trace_file_handle => \*STDERR } );
