@@ -3821,16 +3821,12 @@ in_file($_, 't/equation_s.t')
     my $evaler = Marpa::Evaluator->new( { recognizer => $recce } );
     Marpa::exception('Parse failed') if not $evaler;
 
-    my $i = -1;
+    my $i = 0;
     while ( defined( my $value = $evaler->value() ) ) {
+        my $value = ${$value};
+        Test::More::ok( $expected_value{$value}, "Value $i (unspecified order)" );
+        delete $expected_value{$value};
         $i++;
-        if ( $i > $#expected ) {
-            Test::More::fail( 'Ambiguous equation has extra value: ' . ${$value} . "\n" );
-        }
-        else {
-            Marpa::Test::is( ${$value}, $expected[$i],
-                "Ambiguous Equation Value $i" );
-        }
     } ## end while ( defined( my $value = $evaler->value() ) )
 
 =head1 DESCRIPTION

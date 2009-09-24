@@ -55,8 +55,8 @@ TEST: while ( my $test = pop @tests ) {
             @expected_parses = ('division, comment');
         }
         when ('sin') {
-            @expected_parses = ('sin function call, die statement',
-                'division, comment');
+            @expected_parses =
+                ( 'sin function call, die statement', 'division, comment' );
         }
         default {
             Marpa::exception("unexpected test: $test_name");
@@ -68,8 +68,8 @@ TEST: while ( my $test = pop @tests ) {
         "Parse count for $test_name is $parse_count" );
 
     my $expected = join "\n", @expected_parses;
-    my $actual          = join "\n", @parses;
-    Marpa::Test::is( $actual, $expected, "Parses match" );
+    my $actual   = join "\n", @parses;
+    Marpa::Test::is( $actual, $expected, 'Parses match' );
 } ## end while ( my $test = pop @tests )
 
 __DATA__

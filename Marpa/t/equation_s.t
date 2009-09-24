@@ -52,7 +52,9 @@ my %expected_value = (
     '((2-0)*(3+1))==8' => 1,
     '(2-((0*3)+1))==1' => 1,
 );
-my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
+
+# Note: code below used in display
+my $evaler = Marpa::Evaluator->new( { recognizer => $recce } );
 Marpa::exception('Parse failed') if not $evaler;
 
 my $i = 0;
