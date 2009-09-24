@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+1.26_01 Fri 25 Sep 2009
+	- Adding the prune option to have ORLite to track every file and
+	  directory it creates and remove them during END phase.
+	  (This should be especially handy in test scripts)
+
 1.25 Sat 15 Aug 2009
 	- Adding base and table metadata methods to each class to support
 	  the creation of support/extension methods
