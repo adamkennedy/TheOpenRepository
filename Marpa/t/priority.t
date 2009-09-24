@@ -4,17 +4,14 @@ use 5.010;
 use strict;
 use warnings;
 
-$Marpa::EVALUATOR = 'old';
-
 # A test of priorities.
 # Since it's a basic functionality,
 # I bypass MDL.
 
 use lib 'lib';
-use lib 't/lib';
 
 use Test::More tests => 5;
-use Marpa::Test;
+use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
@@ -58,19 +55,16 @@ my $evaler = Marpa::Evaluator->new( { recce => $recce } );
 Marpa::exception('Could not initialize parse') if not $evaler;
 
 my $i = -1;
-TODO: {
-    local $TODO = 'priorities broken';
-    while ( defined( my $value = $evaler->value() ) ) {
-        $i++;
-        if ( $i > $#expected ) {
-            Test::More::fail(
-                'Minuses equation has extra value: ' . ${$value} . "\n" );
-        }
-        else {
-            Marpa::Test::is( ${$value}, $expected[$i], "Priority Value $i" );
-        }
-    } ## end while ( defined( my $value = $evaler->value() ) )
-} ## end TODO:
+while ( defined( my $value = $evaler->value() ) ) {
+    $i++;
+    if ( $i > $#expected ) {
+        Test::More::fail(
+            'Parse has extra value: ' . ${$value} . "\n" );
+    }
+    else {
+        Marpa::Test::is( ${$value}, $expected[$i], "Priority Value $i" );
+    }
+} ## end while ( defined( my $value = $evaler->value() ) )
 
 # Local Variables:
 #   mode: cperl
