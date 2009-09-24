@@ -172,12 +172,19 @@ use Storable;
 use Marpa::Internal;
 our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 
-use constant N_FORMAT_MASK                => 0xffffffff;
+# Perl critic at present is not smart about underscores
+# in hex numbers
+## no critic (ValuesAndExpressions::RequireNumberSeparators)
+use constant N_FORMAT_MASK     => 0xffff_ffff;
+use constant N_FORMAT_HIGH_BIT => 0x8000_0000;
+## use critic
 use constant N_FORMAT_WIDTH               => 4;
 use constant NULL_SORT_ELEMENT_FILL_WIDTH => ( N_FORMAT_WIDTH * 2 );
 
 # Also used as mask, so must be 2**n-1
-use constant N_FORMAT_MAX => 0x7fffffff;
+# Perl critic at present is not smart about underscores
+# in hex numbers
+use constant N_FORMAT_MAX => 0x7fff_ffff;
 
 sub run_preamble {
     my $grammar = shift;
@@ -2138,8 +2145,9 @@ sub Marpa::dump_sort_key {
         )
     {
         $text .= (
-            join " ",
-            map { ( $_ & 0x8000000 ) ? ( '~' . ~$_ ) : "$_" } @{$sort_element}
+            join q{ },
+            map { ( $_ & N_FORMAT_HIGH_BIT ) ? ( q{~} . ~$_ ) : "$_" }
+                @{$sort_element}
         ) . "\n";
     } ## end for my $sort_element ( map { [ unpack 'N*', $_ ] } sort...)
     return $text;
@@ -2149,12 +2157,14 @@ sub Marpa::Evaluator::show_sort_key {
     my ($evaler) = @_;
     my $or_iterations = $evaler->[Marpa::Internal::Evaluator::OR_ITERATIONS];
     my $top_or_iteration = $or_iterations->[0];
-    Marpa::exception("show_sort_key called on exhausted parse") if not $top_or_iteration;
+    Marpa::exception('show_sort_key called on exhausted parse')
+        if not $top_or_iteration;
 
     my $top_and_choice = $top_or_iteration->[-1];
-    my $top_sort_key = $top_and_choice->[Marpa::Internal::And_Choice::SORT_KEY];
+    my $top_sort_key =
+        $top_and_choice->[Marpa::Internal::And_Choice::SORT_KEY];
     return Marpa::dump_sort_key($top_sort_key);
-}
+} ## end sub Marpa::Evaluator::show_sort_key
 
 sub Marpa::show_and_node {
     my ( $and_node, $verbose ) = @_;

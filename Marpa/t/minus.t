@@ -33,10 +33,10 @@ my $grammar = Marpa::Grammar->new(
         max_parses => 20,
 
         rules => [
-            {   lhs    => 'E',
-                rhs    => [qw/E Minus E/],
+            {   lhs      => 'E',
+                rhs      => [qw/E Minus E/],
                 priority => 50,
-                action => <<'EOCODE'
+                action   => <<'EOCODE'
     my ($right_string, $right_value)
         = ($_[2] =~ /^(.*)==(.*)$/);
     my ($left_string, $left_value)
@@ -45,28 +45,28 @@ my $grammar = Marpa::Grammar->new(
     "(" . $left_string . "-" . $right_string . ")==" . $value;
 EOCODE
             },
-            {   lhs    => 'E',
-                rhs    => [qw/E MinusMinus/],
+            {   lhs      => 'E',
+                rhs      => [qw/E MinusMinus/],
                 priority => 40,
-                action => <<'EOCODE'
+                action   => <<'EOCODE'
     my ($string, $value)
         = ($_[0] =~ /^(.*)==(.*)$/);
     "(" . $string . "--" . ")==" . $value--;
 EOCODE
             },
-            {   lhs    => 'E',
-                rhs    => [qw/MinusMinus E/],
+            {   lhs      => 'E',
+                rhs      => [qw/MinusMinus E/],
                 priority => 30,
-                action => <<'EOCODE'
+                action   => <<'EOCODE'
     my ($string, $value)
         = ($_[1] =~ /^(.*)==(.*)$/);
     "(" . "--" . $string . ")==" . --$value;
 EOCODE
             },
-            {   lhs    => 'E',
-                rhs    => [qw/Minus E/],
+            {   lhs      => 'E',
+                rhs      => [qw/Minus E/],
                 priority => 20,
-                action => <<'EOCODE'
+                action   => <<'EOCODE'
     my ($string, $value)
         = ($_[1] =~ /^(.*)==(.*)$/);
     "(" . "-" . $string . ")==" . -$value;
@@ -96,7 +96,8 @@ EOCODE
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-Marpa::Test::is( $grammar->show_rules, <<'END_RULES', 'Minuses Equation Rules' );
+Marpa::Test::is( $grammar->show_rules,
+    <<'END_RULES', 'Minuses Equation Rules' );
 0: E -> E Minus E /* priority=50.0 */
 1: E -> E MinusMinus /* priority=40.0 */
 2: E -> MinusMinus E /* priority=30.0 */
@@ -174,18 +175,19 @@ $recce->end_input();
 my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 Marpa::exception('Could not initialize parse') if not $evaler;
 
-for my $i (0 .. $#expected_values ) {
+for my $i ( 0 .. $#expected_values ) {
     my $value_ref = $evaler->value();
     my $test_name = "Minus Equation Value $i";
-    if (not defined $value_ref) {
+    if ( not defined $value_ref ) {
         Test::More::fail("No value for $test_name");
-    } else {
+    }
+    else {
         Marpa::Test::is( ${$value_ref}, $expected_values[$i], $test_name );
     }
-}
+} ## end for my $i ( 0 .. $#expected_values )
 
 my @extra_values = ();
-while (my $value = $evaler->value()) {
+while ( my $value = $evaler->value() ) {
     push @extra_values, ${$value};
 }
 
