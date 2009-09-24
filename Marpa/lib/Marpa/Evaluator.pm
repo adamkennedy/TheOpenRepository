@@ -2105,9 +2105,6 @@ sub Marpa::Evaluator::new {
 
     } ## end for my $or_node ( @{$or_nodes} )
 
-    ### Bocage: &Marpa'Evaluator'show_bocage($self, 3)
-
-    ### assert: Marpa'Evaluator'audit($self) or 1
 
     # TODO: Add code to only attempt rewrite if grammar is cyclical
     rewrite_cycles($self);
@@ -2116,6 +2113,8 @@ sub Marpa::Evaluator::new {
         @{ $_->[Marpa::Internal::Or_Node::CHILD_IDS] } > 1;
     }
     @{$or_nodes};
+
+    ### assert: Marpa'Evaluator'audit($self) or 1
 
     return $self if not defined $first_ambiguous_or_node;
 
@@ -2812,7 +2811,8 @@ sub Marpa::Evaluator::value {
 
                 my $and_node = $and_nodes->[$and_node_id];
 
-                ### defined child-or-nodes: [grep { defined $and_node->[$_] } (2,3)]
+                ### cause: defined $and_node->[Marpa'Internal'And_Node'CAUSE] ? "YES" : "NO"
+                ### predecessor: defined $and_node->[Marpa'Internal'And_Node'PREDECESSOR] ? "YES" : "NO"
 
                 my $cause = $and_node->[Marpa::Internal::And_Node::CAUSE];
                 my $predecessor =
@@ -3056,11 +3056,11 @@ sub Marpa::Evaluator::value {
             when (Marpa::Internal::Task::FREEZE_TREE) {
                 my ($and_choice) = @{$task_entry};
 
+                my $and_node_id = $and_choice->[Marpa::Internal::And_Choice::ID];
                 if ($trace_tasks) {
-                    printf {$trace_fh} 'Task: FREEZE_TREE; ',
+                    printf {$trace_fh}
                         "Task: FREEZE_TREE; and-node-id: %d; %d tasks pending\n",
-                        $and_choice->[Marpa::Internal::And_Choice::ID],
-                        ( scalar @tasks )
+                        $and_node_id, ( scalar @tasks )
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
 
@@ -3069,7 +3069,10 @@ sub Marpa::Evaluator::value {
 
                 # Add frozen iteration
                 my @or_slice  = map { $_->[0] } @{$or_map};
-                my @and_slice = map { $_->[1] } @{$or_map};
+                my @and_slice = ($and_node_id, map { $_->[1] } @{$or_map});
+
+                ### Freezing or-nodes: join ";", @or_slice
+                ### Freezing and-nodes: join ";", @and_slice
 
                 my @or_values  = @{$or_iterations}[@or_slice];
                 my @and_values = @{$and_iterations}[@and_slice];
@@ -3102,8 +3105,8 @@ sub Marpa::Evaluator::value {
                     )
                     };
 
-                ### Thawing and-nodes: join ";", @{$and_slice}
                 ### Thawing or-nodes: join ";", @{$or_slice}
+                ### Thawing and-nodes: join ";", @{$and_slice}
 
                 @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
                 @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
@@ -3113,6 +3116,8 @@ sub Marpa::Evaluator::value {
                 $and_choice->[Marpa::Internal::And_Choice::SORT_KEY] =
                     $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_KEY];
+
+                ### assert: $current_and_iteration->[Marpa'Internal'And_Iteration'SORT_KEY]
                 $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::OR_MAP];
