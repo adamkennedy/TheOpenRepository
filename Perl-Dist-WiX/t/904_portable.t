@@ -7,7 +7,6 @@ BEGIN {
 }
 
 use Test::Perl::Dist;
-plan(skip_all => 'Portable::Dist 0.03 does not work with this version of Perl-Dist-WiX');
 
 #####################################################################
 # Complete Generation Run
