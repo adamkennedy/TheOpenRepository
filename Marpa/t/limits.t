@@ -10,11 +10,8 @@ use warnings;
 use English qw( -no_match_vars );
 use Test::More tests => 6;
 
-$Marpa::EVALUATOR = 'old';
-
 use lib 'lib';
-use lib 't/lib';
-use Marpa::Test;
+use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');

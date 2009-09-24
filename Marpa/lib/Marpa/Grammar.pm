@@ -244,7 +244,7 @@ package Marpa::Internal::Grammar;
 
 use Carp;
 
-# use Smart::Comments '###';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -844,6 +844,7 @@ sub parse_source_grammar {
         'Marpa Internal error: failed to create evaluator for MDL')
         if not defined $evaler;
     my $value = $evaler->value();
+    ### value of mdl grammar: $value
     raw_grammar_eval( $grammar, $value );
     return;
 } ## end sub parse_source_grammar
@@ -2200,7 +2201,7 @@ sub add_rule {
         $internal_priority;
     $new_rule->[Marpa::Internal::Rule::MINIMAL] = $minimal
         // $grammar->[Marpa::Internal::Grammar::MINIMAL];
-    $new_rule->[Marpa::Internal::Rule::MAXIMAL] = $minimal
+    $new_rule->[Marpa::Internal::Rule::MAXIMAL] = $maximal
         // $grammar->[Marpa::Internal::Grammar::MAXIMAL];
 
     push @{$rules}, $new_rule;
@@ -2877,8 +2878,6 @@ sub nulling {
         @workset = ();
         SYMBOL: for my $symbol ( map { $symbols->[$_] } @symbol_ids ) {
 
-            ### Trying symbol: $symbol->[Marpa'Internal'Symbol'NAME]
-
             # Terminals are never nulling
             next SYMBOL if $symbol->[Marpa::Internal::Symbol::TERMINAL];
 
@@ -2936,8 +2935,6 @@ sub nullable {
     while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#{$symbols} ) ) {
         @workset = ();
         SYMBOL: for my $symbol ( map { $symbols->[$_] } @symbol_ids ) {
-
-            ### Trying symbol: $symbol->[Marpa'Internal'Symbol'NAME]
 
             # Terminals can be nullable
 

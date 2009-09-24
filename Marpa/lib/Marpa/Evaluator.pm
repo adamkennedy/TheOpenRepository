@@ -2589,11 +2589,6 @@ sub Marpa::Evaluator::value {
                     ? Marpa::Internal::And_Node::PREDECESSOR
                     : undef;
 
-                ### TAG1 first() result: List'Util'first { $and_node->[$_] } Marpa'Internal'And_Node'CAUSE, Marpa'Internal'And_Node'PREDECESSOR
-                ### TAG1 defined child-or-nodes: grep { defined $and_node->[$_] } Marpa'Internal'And_Node'CAUSE, Marpa'Internal'And_Node'PREDECESSOR
-
-                ### Setting current-child: $and_node_iteration->[Marpa'Internal'And_Iteration'CURRENT_CHILD]
-
                 push @tasks,
                     [ Marpa::Internal::Task::SETUP_AND_NODE, $and_node_id ];
 

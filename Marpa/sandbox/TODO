@@ -1,5 +1,9 @@
 Add Test::Pod Test::CPAN::Meta Test::MinimumVersion Test::Perl::Critic
 
+Make minimal work for null symbols.
+
+Forbid both MAXIMAL & MINIMAL setting on rules & symbols.
+
 Eliminate internal priority?
     If so, rename user priority to PRIORITY.
 

@@ -9,12 +9,9 @@ use 5.010;
 use strict;
 use warnings;
 use lib 'lib';
-use lib 't/lib';
-
-$Marpa::EVALUATOR = 'old';
 
 use Test::More tests => 8;
-use Marpa::Test;
+use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
