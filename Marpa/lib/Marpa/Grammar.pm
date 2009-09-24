@@ -2263,7 +2263,7 @@ sub add_user_rules {
 
             } ## end when ('ARRAY')
             when ('HASH') {
-                add_rules_from_hash( $grammar, $rule );
+                add_rule_from_hash( $grammar, $rule );
             }
             default {
                 Marpa::exception( 'Invalid rule reftype ',
@@ -2277,7 +2277,7 @@ sub add_user_rules {
 
 } ## end sub add_user_rules
 
-sub add_rules_from_hash {
+sub add_rule_from_hash {
     my $grammar = shift;
     my $options = shift;
 
@@ -2300,7 +2300,7 @@ sub add_rules_from_hash {
             when ('left_associative')  { $left_associative  = $value }
             when ('right_associative') { $left_associative  = !$value }
             when ('priority') {
-                push @rule_options, user_priority => $user_priority
+                push @rule_options, user_priority => $value
             }
             default {
                 push @rule_options, $option => $value;
@@ -2532,7 +2532,7 @@ EO_CODE
 
     return;
 
-} ## end sub add_rules_from_hash
+} ## end sub add_rule_from_hash
 
 sub add_user_terminals {
     my $grammar   = shift;

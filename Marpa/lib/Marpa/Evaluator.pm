@@ -2129,6 +2129,33 @@ sub Marpa::Evaluator::new {
 
 ## use critic
 
+sub Marpa::dump_sort_key {
+    my ($sort_key) = @_;
+    my $text = q{};
+    for my $sort_element (
+        map { [ unpack 'N*', $_ ] }
+        sort map { pack 'N*', @{$_} } @{$sort_key}
+        )
+    {
+        $text .= (
+            join " ",
+            map { ( $_ & 0x8000000 ) ? ( '~' . ~$_ ) : "$_" } @{$sort_element}
+        ) . "\n";
+    } ## end for my $sort_element ( map { [ unpack 'N*', $_ ] } sort...)
+    return $text;
+} ## end sub Marpa::dump_sort_key
+
+sub Marpa::Evaluator::show_sort_key {
+    my ($evaler) = @_;
+    my $or_iterations = $evaler->[Marpa::Internal::Evaluator::OR_ITERATIONS];
+    my $top_or_iteration = $or_iterations->[0];
+    Marpa::exception("show_sort_key called on exhausted parse") if not $top_or_iteration;
+
+    my $top_and_choice = $top_or_iteration->[-1];
+    my $top_sort_key = $top_and_choice->[Marpa::Internal::And_Choice::SORT_KEY];
+    return Marpa::dump_sort_key($top_sort_key);
+}
+
 sub Marpa::show_and_node {
     my ( $and_node, $verbose ) = @_;
     $verbose //= 0;
