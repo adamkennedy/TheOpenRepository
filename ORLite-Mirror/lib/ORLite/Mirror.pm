@@ -9,16 +9,16 @@ use File::Path               2.04 ();
 use File::Remove             1.42 ();
 use File::HomeDir            0.69 ();
 use File::ShareDir           1.00 ();
-use Params::Util             0.33 qw{ _STRING _NONNEGINT _HASH };
+use Params::Util             0.33 ();
 use IO::Uncompress::Gunzip  2.008 ();
 use IO::Uncompress::Bunzip2 2.008 ();
 use LWP::UserAgent          5.806 ();
 use LWP::Online              1.07 ();
-use ORLite                   1.22 ();
+use ORLite                   1.28 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.16';
+	$VERSION = '1.17';
 	@ISA     = 'ORLite';
 }
 
@@ -34,21 +34,21 @@ sub import {
 
 	# Check for debug mode
 	my $DEBUG = 0;
-	if ( defined _STRING($_[-1]) and $_[-1] eq '-DEBUG' ) {
+	if ( defined Params::Util::_STRING($_[-1]) and $_[-1] eq '-DEBUG' ) {
 		$DEBUG = 1;
 		pop @_;
 	}
 
 	# Check params and apply defaults
 	my %params;
-	if ( defined _STRING($_[1]) ) {
+	if ( defined Params::Util::_STRING($_[1]) ) {
 		# Support the short form "use ORLite 'http://.../db.sqlite'"
 		%params = (
 			url      => $_[1],
 			readonly => undef, # Automatic
 			package  => undef, # Automatic
 		);
-	} elsif ( _HASH($_[1]) ) {
+	} elsif ( Params::Util::_HASH($_[1]) ) {
 		%params = %{ $_[1] };
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
@@ -74,7 +74,7 @@ sub import {
 	unless ( defined $maxage ) {
 		$maxage = 86400;
 	}
-	unless ( _NONNEGINT($maxage) ) {
+	unless ( Params::Util::_NONNEGINT($maxage) ) {
 		Carp::croak("Invalid maxage param '$maxage'");
 	}
 	
@@ -107,7 +107,8 @@ sub import {
 
 	# Create it if needed
 	unless ( -e $dir ) {
-		File::Path::mkpath( $dir, { verbose => 0 } );
+		my @dirs = File::Path::mkpath( $dir, { verbose => 0 } );
+		$class->prune(@dirs) if $params{prune};
 	}
 
 	# Determine the mirror database file
@@ -118,6 +119,9 @@ sub import {
 	# Download compressed files with their extention first
 	my $url  = delete $params{url};
 	my $path = ($url =~ /(\.gz|\.bz2)$/) ? "$db$1" : $db;
+	unless ( -f $path ) {
+		$class->prune($path) if $params{prune};
+	}
 
 	# Are we online (fake to true if the URL is local)
 	my $online = !! ( $url =~ /^file:/ or LWP::Online::online() );
@@ -137,7 +141,11 @@ sub import {
 		} else {
 			$update = 'compile';
 		}
+		$class->prune($db) if $params{prune};
 	}
+
+	# We've finished with all the pruning we'll need to do
+	$params{prune} = 0;
 
 	# Don't update if the file is newer than the maxage
 	my $mtime = (stat($path))[9] || 0;
@@ -304,7 +312,7 @@ sub connect {
 END_PERL
 	}
 
-	# Hand off to the main ORLite class.
+	# Hand off to the main ORLite class
 	$class->SUPER::import(
 		\%params,
 		$DEBUG ? '-DEBUG' : ()

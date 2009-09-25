@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite-Mirror
 
+1.17 Fri 25 Sep 2009
+	- Updating ORLite dep to 1.28 to get prune support.
+	- Integrated support for prune to ORLite::Mirror
+	- Switch all tests to use prune
+
 1.16 Tue  7 Jul 2009
 	- Bug fix to the show_progress param
 

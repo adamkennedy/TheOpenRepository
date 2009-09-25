@@ -46,6 +46,7 @@ use ORLite::Mirror {
 	url    => '$url',
 	maxage => 1,
 	index  => [ 'table_one.col2' ],
+	prune  => 1,
 };
 
 1;

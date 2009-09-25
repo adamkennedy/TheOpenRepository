@@ -42,7 +42,11 @@ use vars qw{\$VERSION};
 BEGIN {
 	\$VERSION = '1.00';
 }
-use ORLite::Mirror '$uri';
+
+use ORLite::Mirror {
+	url   => '$uri',
+	prune => 1,
+};
 
 1;
 

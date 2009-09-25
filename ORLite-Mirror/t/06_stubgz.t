@@ -48,6 +48,7 @@ use ORLite::Mirror {
 	stub         => 1,
 	update       => 'connect',
 	user_version => 7,
+	prune        => 1,
 };
 
 1;

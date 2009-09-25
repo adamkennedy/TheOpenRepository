@@ -42,6 +42,7 @@ use ORLite::Mirror {
 	maxage       => 1,
 	index        => [ 'table_one.col2' ],
 	user_version => 7,
+	prune        => 1,
 };
 
 1;
