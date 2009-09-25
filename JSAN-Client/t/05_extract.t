@@ -17,7 +17,7 @@ BEGIN { remove( \1, 'temp' ) if -e 'temp'; }
 END   { remove( \1, 'temp' ) if -e 'temp'; }
 
 use JSAN::Transport mirror_local => 'temp';
-use JSAN::Index;
+use JSAN::Index { prune => 1 };
 
 # Create and/or clear the test directory
 my $testdir = catdir( curdir(), '05_extract' );
@@ -48,5 +48,3 @@ SKIP: {
     my $testfile = catfile( $testdir, 'Display', 'Swap.js' );
     ok( -f $testfile, "->extract_libs created expected file '$testfile'" );
 }
-
-exit(0);

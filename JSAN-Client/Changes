@@ -1,4 +1,12 @@
-Revision history for Perl extension JSAN-Client2
+Revision history for Perl extension JSAN-Client
+
+0.21 Sat 26 Sep 2009
+    - Updated to ORLite::Mirror 1.17 with prune support
+    - Use prune support in the tests to avoid accidentally creating
+      files in the user's directory with root permissions when they install
+      with sudo.
+    - Parameters to JSAN::Client are passed through to JSAN::Index, and
+      thusly to ORLite::Mirror et al.
 
 0.20 Thu 24 Sep 2009
     - Updated to Module::Install::DSL 0.91

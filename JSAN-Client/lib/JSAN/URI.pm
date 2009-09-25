@@ -47,7 +47,7 @@ use LWP::Simple      ();
 use Config::Tiny     ();
 use File::Spec::Unix ();
 
-our $VERSION = '0.16';
+our $VERSION = '0.21';
 
 use constant JSAN_MASTER => 'http://master.openjsan.org/';
 

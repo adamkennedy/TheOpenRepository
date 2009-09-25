@@ -17,7 +17,7 @@ BEGIN { remove( \1, 'temp' ) if -e 'temp'; }
 END   { remove( \1, 'temp' ) if -e 'temp'; }
 
 use JSAN::Transport mirror_local => 'temp';
-use JSAN::Index;
+use JSAN::Index { prune => 1 };
 
 if ( online() ) {
     plan( tests => 52 );

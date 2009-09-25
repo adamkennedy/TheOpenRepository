@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use JSAN::Index::Release     ();
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 sub releases {
     JSAN::Index::Release->select('where distribution = ?', $_[0]->name);

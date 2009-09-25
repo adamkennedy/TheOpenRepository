@@ -23,7 +23,7 @@ if ( online() ) {
 }
 
 use JSAN::Transport mirror_local => 'temp';
-use JSAN::Index;
+use JSAN::Index { prune => 1 };
 
 
 
@@ -49,5 +49,3 @@ my $schedule = $Install->schedule( 'Display.Swap' );
 ok( scalar(@$schedule), 'Got at least one item in the schedule' );
 my @dists = grep { m{^/dist/} } @$schedule;
 is( scalar(@dists), scalar(@$schedule), 'All returned values are dist paths' );
-
-exit(0);

@@ -87,5 +87,3 @@ SKIP: {
     ok( $dbh, '->index_dbh returns true'  );
     isa_ok( $dbh, 'DBI::db' );
 }
-
-exit(0);
