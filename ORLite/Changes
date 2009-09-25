@@ -1,6 +1,12 @@
 Changes for Perl extension ORLite
 
-1.27 Fr 25 Sep 2009
+1.28 Fri 25 Sep 2009
+	- Adding ->prune method that so that pruning can also be done
+	  in subclasses.
+	- Apply rel2abs to pruned directories so they still get deleted
+	  even when our current directory moves.
+
+1.27 Fri 25 Sep 2009
 	- Adding test script for the prune feature
 
 1.26_01 Fri 25 Sep 2009

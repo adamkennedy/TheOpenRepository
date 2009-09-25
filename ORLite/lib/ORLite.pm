@@ -15,7 +15,7 @@ use DBD::SQLite  1.25 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.27';
+	$VERSION = '1.28';
 }
 
 # Support for the 'prune' option
@@ -94,9 +94,9 @@ sub import {
 		my $dir = File::Basename::dirname($file);
 		unless ( -d $dir ) {
 			my @dirs = File::Path::mkpath( $dir, { verbose => 0 } );
-			push @PRUNE, @dirs if $params{prune};
+			$class->prune(@dirs) if $params{prune};
 		}
-		push @PRUNE, $file if $params{prune};
+		$class->prune($file) if $params{prune};
 	}
 	my $pkg      = $params{package};
 	my $readonly = $params{readonly};
@@ -450,6 +450,11 @@ sub dval {
 	# print STDERR @trace, "\nCode saved as $filename\n\n";
 
 	return 1;
+}
+
+sub prune {
+	my $class = shift;
+	push @PRUNE, map { File::Spec->rel2abs($_) } @_;
 }
 
 1;
