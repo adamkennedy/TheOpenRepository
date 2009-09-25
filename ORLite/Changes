@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+1.27 Fr 25 Sep 2009
+	- Adding test script for the prune feature
+
 1.26_01 Fri 25 Sep 2009
 	- Adding the prune option to have ORLite to track every file and
 	  directory it creates and remove them during END phase.
