@@ -9,7 +9,6 @@ source_files: \
     equation_show_QDFA.out \
     equation_show_earley_sets.out \
     equation_show_bocage.out \
-    equation_show_tree.out \
     equation_trace_values.out \
     self_show_rules.out \
     MDL_displays.errs
@@ -46,11 +45,6 @@ equation_show_earley_sets.out:
 equation_show_bocage.out:
 	echo 2+2 | perl -I../lib ../bin/mdl parse -grammar \
         ../example/equation.marpa --bocage=3 | \
-	sed -e '/(2+2)==4/d' > $@
-
-equation_show_tree.out:
-	echo 2+2 | perl -I../lib ../bin/mdl parse -grammar \
-        ../example/equation.marpa --tree=1 | \
 	sed -e '/(2+2)==4/d' > $@
 
 equation_trace_values.out:

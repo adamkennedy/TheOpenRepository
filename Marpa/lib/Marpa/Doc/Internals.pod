@@ -1061,52 +1061,14 @@ with C<e> as its lhs.
 
 =head1 THE PARSE TREES
 
-The parse tree for our example parse is shown in an
-appendix.
-Every node in a Marpa parse tree comes from
-an and-node
-in the parse bocage.
+B<Parse trees have been elminated.  The following
+needs to be rewritten.>
 
-A parse bocage contains all possible parses,
-but a parse tree is for a specific parse.
-Only those and-nodes actually used in the specific
-parse become nodes in the parse tree.
-In the case of an unambiguous parse,
-every parse bocage and-node becomes a tree node.
-In the case of an ambiguous parse,
-some and-nodes will not be used in the parse tree.
-
-=begin Marpa::Test::Display:
-
-## next display
-in_file($_, 'author.t/equation_show_tree.out');
-
-=end Marpa::Test::Display:
-
-    Tree Node #1: S6@0-3L0o1[0]; Parent = 0; Depth = 1; Rhs Length = 3
-        Rule: e -> e op e .
-        Kernel: S5@0-2R0:2o2
-        Closure: S4@2-3L0o3
-        Perl Closure: Y
-    Tree Node #2: S4@2-3L0o3[0]; Parent = 1; Depth = 2; Rhs Length = 1
-        Rule: e -> number .
-        Perl Closure: Y; Token: '2'
-
-Most of the information in the tree nodes is repeated from
-the parse bocage and-nodes.
-The "depth" is the distance of the tree node from the root
-of the tree.
-
-Marpa's parse trees are kept in pre-order.
-They can be traversed as a tree, starting from the root.
-They can also be traversed from the end,
-which is what Marpa does when it evaluates a parse.
-
-Marpa evaluates a parse tree using an evaluation stack,
+Marpa evaluates using an evaluation stack,
 which is initialized to empty.
-Every time Marpa evaluates a tree node,
+Every time Marpa evaluates a node,
 it pushes the result onto the evaluation stack.
-If a tree node needs values as input,
+If a node needs values as input,
 perhaps because a Perl closure requires arguments,
 the values are popped from the evaluation stack.
 When Marpa reaches the root tree-node,
@@ -1618,39 +1580,6 @@ is_file($_, 'author.t/equation_show_bocage.out');
     S4@0-1L0o5a5 -> '2'
         rule 1: e -> number .
         rhs length = 1; closure
-
-=head2 C<show_tree> Output
-
-=begin Marpa::Test::Display:
-
-## next display
-is_file($_, 'author.t/equation_show_tree.out');
-
-=end Marpa::Test::Display:
-
-    Tree Node #0: S2@0-3L3o0[0]; Depth = 0; Rhs Length = 1
-        Rule: e['] -> e .
-        Closure: S6@0-3L0o1
-        Perl Closure: Y
-    Tree Node #1: S6@0-3L0o1[0]; Parent = 0; Depth = 1; Rhs Length = 3
-        Rule: e -> e op e .
-        Kernel: S5@0-2R0:2o2
-        Closure: S4@2-3L0o3
-        Perl Closure: Y
-    Tree Node #2: S4@2-3L0o3[0]; Parent = 1; Depth = 2; Rhs Length = 1
-        Rule: e -> number .
-        Perl Closure: Y; Token: '2'
-    Tree Node #3: S5@0-2R0:2o2[0]; Parent = 1; Depth = 2; Rhs Length = 3
-        Rule: e -> e op . e
-        Kernel: S3@0-1R0:1o4
-        Perl Closure: N; Token: '+'
-    Tree Node #4: S3@0-1R0:1o4[0]; Parent = 3; Depth = 3; Rhs Length = 3
-        Rule: e -> e . op e
-        Closure: S4@0-1L0o5
-        Perl Closure: N
-    Tree Node #5: S4@0-1L0o5[0]; Parent = 4; Depth = 4; Rhs Length = 1
-        Rule: e -> number .
-        Perl Closure: Y; Token: '2'
 
 =head2 C<trace_values> Output
 
