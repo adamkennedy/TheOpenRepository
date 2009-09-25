@@ -49,7 +49,7 @@ use File::Path            1.06  ();
 use File::HomeDir         0.69  ();
 use LWP::Simple           1.41  ();
 use LWP::Online           0.03  ();
-use ORLite::Mirror        1.16  ();
+use ORLite::Mirror        1.17  ();
 use Params::Util          1.00  ();
 use Scalar::Util          1.11  ();
 use URI::ToDisk           1.08  ();
