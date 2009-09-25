@@ -15,7 +15,7 @@ use ORLite       1.28 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 	@ISA     = 'ORLite';
 }
 
@@ -88,15 +88,22 @@ sub import {
 	my $version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
 	$dbh->disconnect;
 
+	# We're done with the prune setting now
+	$params{prune} = 0;
+
 	# Build the migration plan
 	my $timeline = File::Spec->rel2abs($params{timeline});
-	my @plan = plan( $params{timeline}, $version );
+	my @plan     = plan( $params{timeline}, $version );
 
 	# Execute the migration plan
 	if ( @plan ) {
 		# Does the migration plan reach the required destination
 		my $destination = $version + scalar(@plan);
-		if ( exists $params{user_version} and $destination != $params{user_version} ) {
+		if (
+			exists $params{user_version}
+			and
+			$destination != $params{user_version}
+		) {
 			die "Schema migration destination user_version mismatch (got $destination, wanted $params{user_version})";
 		}
 
@@ -126,7 +133,10 @@ sub import {
 	}
 
 	# Hand off to the regular constructor
-	return $class->SUPER::import( \%params, $DEBUG ? '-DEBUG' : () );
+	$class->SUPER::import(
+		\%params,
+		$DEBUG ? '-DEBUG' : ()
+	);
 }
 
 
@@ -245,8 +255,8 @@ provided, which should point to a directory containing standalone
 migration scripts.
 
 These patch scripts are named in the form F<migrate-$version.pl>, where
-C<$version> is the schema version to migrate to. A typical timeline directory
-will look something like the following.
+C<$version> is the schema version to migrate to. A typical timeline
+directory will look something like the following.
 
   migrate-01.pl
   migrate-02.pl
