@@ -86,16 +86,11 @@ use Marpa::Offset qw(
     :package=Marpa::Internal::Or_Node
 
     TAG ID CHILD_IDS
-
-    { Delete this ... }
-    AND_NODES
-    { ... and this }
-    IS_COMPLETED { is this a completed or-node? }
-
     START_EARLEME END_EARLEME
     PARENT_IDS
     DELETED
     CLASS { Equivalence class, for pruning duplicates }
+
     =LAST_GENERAL_EVALUATOR_FIELD
     =LAST_FIELD
 );
@@ -623,18 +618,6 @@ sub audit_or_node {
         }
     } ## end for my $child_id ( @{$child_ids} )
 
-    my $child_and_nodes = $or_node->[Marpa::Internal::Or_Node::AND_NODES];
-    for my $child_ix ( 0 .. $#{$child_and_nodes} ) {
-        my $child_and_node = $child_and_nodes->[$child_ix];
-        my $child_and_node_id =
-            $child_and_node->[Marpa::Internal::And_Node::ID];
-        if ( $child_and_node_id != $child_ids->[$child_ix] ) {
-            Marpa::exception(
-                "or_node #$id, child $child_ix: AND_NODES child does not match CHILD_IDS"
-            );
-        }
-    } ## end for my $child_ix ( 0 .. $#{$child_and_nodes} )
-
     return;
 } ## end sub audit_or_node
 
@@ -675,14 +658,6 @@ sub audit_and_node {
         if ( $audit_and_node_id != $parent_idea_of_child_id ) {
             Marpa::exception(
                 "and_node #$audit_and_node_id does not match its CHILD_IDS entry in its parent"
-            );
-        }
-        my $parent_idea_of_child =
-            $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
-            ->[$parent_choice];
-        if ( $audit_and_node != $parent_idea_of_child ) {
-            Marpa::exception(
-                "and_node #$audit_and_node_id does not match its AND_NODES entry in its parent"
             );
         }
     } ## end if ( not $deleted )
@@ -821,12 +796,6 @@ sub delete_nodes {
 
                 splice @{$parent_child_ids}, $parent_choice, 1;
 
-                splice
-                    @{ $parent_or_node->[Marpa::Internal::Or_Node::AND_NODES]
-                    },
-                    $parent_choice,
-                    1;
-
                 # Eliminating one of the choices means all subsequent ones
                 # are renumbered -- adjust accordingly.
                 for my $choice ( $parent_choice .. $#{$parent_child_ids} ) {
@@ -910,7 +879,6 @@ sub delete_nodes {
             for my $field (
                 Marpa::Internal::Or_Node::PARENT_IDS,
                 Marpa::Internal::Or_Node::CHILD_IDS,
-                Marpa::Internal::Or_Node::AND_NODES,
                 )
             {
                 $or_node->[$field] = [];
@@ -1096,7 +1064,6 @@ sub rewrite_cycles {
                 my $new_or_node;
                 $#{$new_or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
                 for my $field (
-                    Marpa::Internal::Or_Node::IS_COMPLETED,
                     Marpa::Internal::Or_Node::START_EARLEME,
                     Marpa::Internal::Or_Node::END_EARLEME,
                     Marpa::Internal::Or_Node::TAG,
@@ -1129,8 +1096,6 @@ sub rewrite_cycles {
                     push @{$and_nodes}, $new_and_node;
                     $translate_and_node_id{$and_node_id} = $new_and_node_id;
 
-                    $new_or_node->[Marpa::Internal::Or_Node::AND_NODES]
-                        ->[$choice] = $new_and_node;
                     $new_or_node->[Marpa::Internal::Or_Node::CHILD_IDS]
                         ->[$choice] = $new_and_node_id;
                     $new_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
@@ -1319,9 +1284,6 @@ sub rewrite_cycles {
                     ->[Marpa::Internal::Or_Node::CHILD_IDS];
                 my $choice = @{$child_ids_of_grandparent};
                 push @{$child_ids_of_grandparent}, $new_parent_and_node_id;
-                push @{ $grandparent_or_node
-                        ->[Marpa::Internal::Or_Node::AND_NODES] },
-                    $new_parent_and_node;
 
                 # Tell the new cloned and-node about its parent
                 $new_parent_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
@@ -1720,11 +1682,9 @@ sub Marpa::Evaluator::new {
         my $and_node = [];
         $#{$and_node} = Marpa::Internal::And_Node::LAST_FIELD;
 
-        $or_node->[Marpa::Internal::Or_Node::AND_NODES]     = [$and_node];
         $or_node->[Marpa::Internal::Or_Node::CHILD_IDS]     = [0];
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = 0;
         $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = 0;
-        $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED]  = 1;
         my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID] = 0;
         my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
             $start_item->[Marpa::Internal::Earley_Item::NAME]
@@ -1962,7 +1922,6 @@ sub Marpa::Evaluator::new {
             @{$or_nodes};
         my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
             $sapling_name . "o$or_node_id";
-        $or_node->[Marpa::Internal::Or_Node::AND_NODES] = \@child_and_nodes;
         $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] =
             [ map { $_->[Marpa::Internal::And_Node::ID] } @child_and_nodes ];
         for my $and_node_choice ( 0 .. $#child_and_nodes ) {
@@ -1974,8 +1933,6 @@ sub Marpa::Evaluator::new {
             $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
                 $and_node_choice;
         } ## end for my $and_node_choice ( 0 .. $#child_and_nodes )
-        $or_node->[Marpa::Internal::Or_Node::IS_COMPLETED] =
-            not $is_kernel_or_node;
         $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = $start_earleme;
         $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = $end_earleme;
         $or_node->[Marpa::Internal::Or_Node::PARENT_IDS]    = [];
@@ -2060,8 +2017,6 @@ sub Marpa::Evaluator::new {
             $cloned_or_node_tag =~ s/ (o\d+) \z /o$cloned_or_node_id/xms;
             $cloned_or_node->[Marpa::Internal::Or_Node::TAG] =
                 $cloned_or_node_tag;
-            $cloned_or_node->[Marpa::Internal::Or_Node::AND_NODES] =
-                \@cloned_and_nodes;
             $cloned_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] =
                 [ map { $_->[Marpa::Internal::And_Node::ID] }
                     @cloned_and_nodes ];
@@ -2081,7 +2036,6 @@ sub Marpa::Evaluator::new {
             for my $field (
                 Marpa::Internal::Or_Node::START_EARLEME,
                 Marpa::Internal::Or_Node::END_EARLEME,
-                Marpa::Internal::Or_Node::IS_COMPLETED
                 )
             {
                 $cloned_or_node->[$field] = $or_node->[$field];
