@@ -1,6 +1,10 @@
 Changes for Perl extension ORLite-Migrate
 
+1.04 Sat 26 Sep 2009
+	- Upgrade to Module::Install::DSL 0.91
 	- Added missing prereq for Params::Util 0.37
+	- Adding support for ORLite's prune feature
+	- Test scripts now run with prune enabled
 
 0.03 Sun 19 Apr 2009
 	- Updating to Module::Install::DSL 0.83

@@ -11,7 +11,7 @@ use DBI      ();
 
 use vars qw{$VERSION @ISA @EXPORT $FILE};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '1.04';
 	@ISA     = 'Exporter';
 	@EXPORT  = qw{
 		file
@@ -33,7 +33,7 @@ BEGIN {
 }
 
 sub file {
-	unless ($FILE) {
+	unless ( $FILE ) {
 		# The filename is passed on STDIN
 		$FILE = <STDIN>;
 		chomp($FILE);

@@ -42,6 +42,7 @@ use ORLite {
 	file   => '$file',
 	create => 1,
 	tables => 0,
+	prune  => 1,
 };
 
 1;

@@ -11,11 +11,11 @@ use File::Basename    ();
 use Params::Util 0.37 qw{ _STRING _CLASS _HASH };
 use DBI          1.58 ();
 use DBD::SQLite  1.21 ();
-use ORLite       1.20 ();
+use ORLite       1.28 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '1.04';
 	@ISA     = 'ORLite';
 }
 
@@ -78,8 +78,10 @@ sub import {
 		# Create the parent directory
 		my $dir = File::Basename::dirname($file);
 		unless ( -d $dir ) {
-			File::Path::mkpath( $dir, { verbose => 0 } );
+			my @dirs = File::Path::mkpath( $dir, { verbose => 0 } );
+			$class->prune(@dirs) if $params{prune};
 		}
+		$class->prune($file) if $params{prune};
 	}
 	my $dsn      = "dbi:SQLite:$file";
 	my $dbh      = DBI->connect($dsn);

@@ -9,8 +9,8 @@ use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-        $VERSION = '0.03';
-	@ISA     = qw{ Exporter };
+        $VERSION = '1.04';
+	@ISA     = 'Exporter';
 	@EXPORT  = qw{ test_db connect_ok create_ok };
 }
 
