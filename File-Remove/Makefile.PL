@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.83;
+use inc::Module::Install::DSL 0.91;
 
 all_from      lib/File/Remove.pm
 requires_from lib/File/Remove.pm
