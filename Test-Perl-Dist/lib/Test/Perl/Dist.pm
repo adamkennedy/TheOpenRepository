@@ -15,7 +15,7 @@ use Win32 qw();
 use URI qw();
 
 our @EXPORT =
-  qw(test_run_dist test_add test_verify_files_short test_verify_files_medium  test_verify_files_long test_verify_portability );
+  qw(test_run_dist test_add test_verify_files_short test_verify_files_medium test_verify_files_long test_verify_portability );
 push @EXPORT, @Test::More::EXPORT;
 
 our $VERSION = '0.202';
@@ -551,7 +551,7 @@ __END__
 
 =begin readme text
 
-Test::Perl::Dist version 0.200
+Test::Perl::Dist version 0.202
 
 =end readme
 
@@ -563,7 +563,7 @@ Test::Perl::Dist - Test module for Perl::Dist::WiX and subclasses.
 
 =head1 VERSION
 
-This document describes Test::Perl::Dist version 0.200
+This document describes Test::Perl::Dist version 0.202
 
 =begin readme
 
@@ -592,7 +592,31 @@ Alternatively, to install with Module::Build, you can use the following commands
 
 =head1 SYNOPSIS
 
-	TODO
+	# This is the 901_perl_589.t file from Strawberry.
+	#!/usr/bin/perl
+
+	use strict;
+	BEGIN {
+		$|  = 1;
+		$^W = 1;
+	}
+
+	use Test::Perl::Dist;
+
+	#####################################################################
+	# Complete Generation Run
+
+	# Create the dist object
+	my $dist = Test::Perl::Dist->new_test_class_medium(
+		901, '589', 'Perl::Dist::Strawberry', 
+		msi => 0
+	);
+
+	test_run_dist( $dist );
+
+	test_verify_files_medium(901, '58');
+
+	done_testing();
 
 =head1 DESCRIPTION
 
@@ -603,23 +627,109 @@ Using Test::More is not required, as this module re-exports all its functions.
 
 =head1 INTERFACE 
 
+Note that this module exports all routines that are in 
+L<Test::More|Test::More>, in addition to the routines documented here.
 
+The only difference is in L<done_testing|/done_testing>, as documented below.
 
+=head2 new_test_class_short
+=head2 new_test_class_medium
+=head2 new_test_class_long
 
+	my $dist = Test::Perl::Dist->new_test_class_medium(
+		901, '589', 'Perl::Dist::Strawberry', 
+		msi => 0
+	);
+
+Returns a distribution class to run and test against that is a subclass 
+of the class being tested.
+
+The first parameter is the test number, the second refers to the version of 
+perl to build (589 for perl 5.8.9, for instance) and the third is the class 
+being tested.
+
+Any parameters after that are passed to the constructor of the distribution 
+class, which passes them on to the class being tested.
+
+If the constructor of the class being tested returns an exception, that 
+exception is printed, and all testing is stopped.
+
+The difference between "short", "medium", and "long" is the expected length 
+of the test. A "short" test installs the dmake binary and should not take 
+more than 5 minutes, a "medium" test installs perl and one additional module 
+and can take about an hour, and a "long" test completes a full build, which 
+can take 4-8 hours on slow machines.
+
+Medium and long tests are skipped at this point unless $ENV{RELEASE_TESTING} 
+contains a true value.
+
+=head2 test_run_dist
+
+	test_run_dist( $dist );
+
+This runs the distribution class.
+
+If the class being tested returns an exception when ran, that 
+exception is printed, and all testing is stopped.
+
+=head2 test_verify_files_short
+=head2 test_verify_files_medium
+=head2 test_verify_files_long
+
+	test_verify_files_medium(901, '58');
+
+This checks that certain files were created.
+
+The first parameter is the test number, the second parameter refers to the 
+first two parts of the perl version ('58' for 5.8.9, '510' for 5.10.0 or 
+5.10.1).
+
+=head2 test_verify_portability
+
+	test_verify_portability(901, $dist->output_base_filename());
+
+This checks that certain files were created that are required for a 
+portable distribution.
+
+The first parameter is the test number, the second parameter is the base 
+filename of the dist being tested, as returned from output_base_filename.
+
+=head2 done_testing
+
+	done_testing();
+	
+	# If additional tests were completed.
+	done_testing(2);
+
+This tells Test::Perl::Dist that all testing is completed.
+	
+If there is a parameter, it is the number of additional tests that were completed.
+
+Test::Perl::Dist keeps track of the tests that it completed and adds it to this number.
 
 =head1 DIAGNOSTICS
 
-This module implements no diagnostics of its own, but reports .
+This module implements no diagnostics of its own, but reports diagnostics 
+provided to it by the module being tested.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
-There are no conficuration files.
+There are no configuration files.
+
+$ENV{RELEASE_TESTING} is checked for a true value if a medium or long 
+test is requested.
+
+There are other environment variables used - check the source for 
+details.
 
 =for readme continue
 
 =head1 DEPENDENCIES
 
-TODO
+This module requires perl 5.8.1, L<parent|parent> version 0.221,
+L<File::Remove|File::Remove> version 1.42, L<LWP::Online|LWP::Online> version 
+1.07, L<Test::More|Test::More> version 0.88, L<URI|URI> version 1.40, and
+L<Win32|Win32> version 0.39.
 
 =for readme stop
 

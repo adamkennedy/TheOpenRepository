@@ -40,7 +40,7 @@
 \bThumbs\.db$
 
 # Avoid our own built files.
-\APerl-Dist-WiX-
+\ATest-Perl-Dist-
 \bfilelist\.txt$
 
 # Avoid releaserc file
