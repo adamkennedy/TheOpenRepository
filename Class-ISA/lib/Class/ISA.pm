@@ -83,7 +83,7 @@ __END__
 
 =head1 NAME
 
-Class::ISA -- report the search path for a class's ISA tree
+Class::ISA - report the search path for a class's ISA tree
 
 =head1 SYNOPSIS
 
