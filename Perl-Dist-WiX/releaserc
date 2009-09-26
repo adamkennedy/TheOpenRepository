@@ -5,3 +5,4 @@ twit_user CSJewellPerl
 ownsite_ftp_user a3922569
 ownsite_ftp_host csjewell.comyr.com
 ownsite_ftp_upload_dir /public_html/perl
+interactive 1
