@@ -18,7 +18,7 @@ our @EXPORT =
   qw(test_run_dist test_add test_verify_files_short test_verify_files_medium  test_verify_files_long test_verify_portability );
 push @EXPORT, @Test::More::EXPORT;
 
-our $VERSION = '0.201';
+our $VERSION = '0.202';
 $VERSION = eval $VERSION; ##no critic(RequireConstantVersion)
 
 my $tests_completed = 0;
@@ -514,12 +514,13 @@ sub test_verify_files_long {
 } ## end sub test_verify_files_long
 
 sub test_verify_portability {
-	my $test_number = shift;
+	my $test_number   = shift;
+	my $base_filename = shift;
 
 	my $test_dir = catdir( 't', "tmp$test_number" );
 
 	# Did we build the zip file?
-	ok( -f catfile( $test_dir, qw{ output test-perl-5.x.x-alpha-1.zip } ),
+	ok( -f catfile( $test_dir, 'output', "${base_filename}.zip" ),
 		'Found zip file',
 	);
 
