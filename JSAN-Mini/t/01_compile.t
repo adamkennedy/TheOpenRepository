@@ -1,36 +1,23 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Compile testing for minijsan
 
 use strict;
-use lib ();
-use File::Spec::Functions ':ALL';
 BEGIN {
-	$| = 1;
-	unless ( $ENV{HARNESS_ACTIVE} ) {
-		require FindBin;
-		$FindBin::Bin = $FindBin::Bin; # Avoid a warning
-		chdir catdir( $FindBin::Bin, updir() );
-		lib->import(
-			catdir('blib', 'lib'),
-			catdir('blib', 'arch'),
-			'lib',
-			);
-	}
+	$|  = 1;
+	$^W = 1;
 }
 
 use Test::More tests => 4;
-
-# Check their perl version
-ok( $] >= 5.005, "Your perl is new enough" );
+use File::Spec::Functions ':ALL';
 
 # Does the module load
 require_ok('JSAN::Mini'   );
 
 # Does the csync script compile
 my $script = $ENV{HARNESS_ACTIVE}
-	? catfile( 'bin', 'minijsan' )
-	: catfile( updir(), 'bin', 'minijsan' );
+	? catfile( 'script', 'minijsan' )
+	: catfile( updir(), 'script', 'minijsan' );
 ok( -f $script, "Found script minijsan where expected at $script" );
 SKIP: {
 	skip "Can't find minijsan to compile test it", 1 unless -f $script;
@@ -43,5 +30,3 @@ SKIP: {
 	my $rv = system( $cmd );
 	is( $rv, 0, "Script $script compiles cleanly" );
 }
-
-exit(0);
