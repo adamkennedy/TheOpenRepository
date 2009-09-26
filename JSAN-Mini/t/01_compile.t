@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 4;
+use Test::More tests => 3;
 use File::Spec::Functions ':ALL';
 
 # Does the module load
