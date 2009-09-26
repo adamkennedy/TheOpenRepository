@@ -1226,52 +1226,42 @@ Z<>
         non-structural-production-sentences
         production-sentence
         production-paragraph[R11:2][x5f]
-        /* priority=0.54 */
     101: production-paragraph ->
         non-structural-production-sentences[]
         production-sentence
         production-paragraph[R11:2][x5f]
-        /* priority=0.52 */
     102: production-paragraph ->
         non-structural-production-sentences
         production-sentence
         production-paragraph[R11:2][x5f][]
-        /* priority=0.53 */
     103: production-paragraph ->
         non-structural-production-sentences[]
         production-sentence
         production-paragraph[R11:2][x5f][]
-        /* priority=0.51 */
 
 Z<>
 
     104: production-paragraph[R11:2][x5f] ->
         non-structural-production-sentences
         production-paragraph[R11:3][x61]
-        /* priority=0.34 */
     105: production-paragraph[R11:2][x5f] ->
         non-structural-production-sentences[]
         production-paragraph[R11:3][x61]
-        /* priority=0.32 */
     106: production-paragraph[R11:2][x5f] ->
         non-structural-production-sentences
         production-paragraph[R11:3][x61][]
-        /* priority=0.33 */
 
 Z<>
 
     107: production-paragraph[R11:3][x61] ->
         action-sentence:optional
         non-structural-production-sentences
-        /* priority=0.24 */
     108: production-paragraph[R11:3][x61] ->
         action-sentence:optional[]
         non-structural-production-sentences
-        /* priority=0.22 */
     109: production-paragraph[R11:3][x61] ->
         action-sentence:optional
         non-structural-production-sentences[]
-        /* priority=0.23 */
 
 Rule 11 is the original rule.  Because Marpa has rewritten it,
 the rule is marked C<!useful>, telling later stages in the precomputation to ignore it.

@@ -2181,7 +2181,7 @@ sub add_rule {
     $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
     $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
     $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
-    $new_rule->[Marpa::Internal::Rule::MINIMAL] = $minimal
+    $new_rule->[Marpa::Internal::Rule::MINIMAL]       = $minimal
         // $grammar->[Marpa::Internal::Grammar::MINIMAL];
     $new_rule->[Marpa::Internal::Rule::MAXIMAL] = $maximal
         // $grammar->[Marpa::Internal::Grammar::MAXIMAL];
@@ -2208,7 +2208,7 @@ sub add_rule {
 
     push @{ $rule_hash->{$lhs_name} }, $new_rule_id;
     $new_rule->[Marpa::Internal::Rule::NAME] =
-        "$lhs_name" . ':' . $#{ $rule_hash->{$lhs_name} };
+        "$lhs_name" . q{:} . $#{ $rule_hash->{$lhs_name} };
 
     if ($trace_rules) {
         print {$trace_fh} 'Added rule #', $#{$rules}, ': ',
@@ -2385,7 +2385,8 @@ sub add_rule_from_hash {
     # and separator are the same.  I may want to get more fancy, but save that
     # for later.
     {
-        my $rule_hash = $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH];
+        my $rule_hash =
+            $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH];
         my @key_rhs =
             defined $separator ? ( $rhs, $separator, $rhs ) : ($rhs);
         my $rule_signature = join q{,},

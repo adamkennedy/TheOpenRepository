@@ -255,7 +255,7 @@ sub prepare_grammar_for_recognizer {
     my $package = $parse->[Marpa::Internal::Recognizer::PACKAGE] =
         sprintf 'Marpa::P_%x', $parse_number++;
 
-    my $lex_preamble   = $grammar->[Marpa::Internal::Grammar::LEX_PREAMBLE];
+    my $lex_preamble = $grammar->[Marpa::Internal::Grammar::LEX_PREAMBLE];
     my $default_null_value =
         $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
 
