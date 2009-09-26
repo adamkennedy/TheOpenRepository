@@ -58,49 +58,20 @@ CharTokenizeResults OperatorToken::tokenize(Tokenizer *t, Token *token, unsigned
 	return done_it_myself;
 }
 
+// in a heredoc token:
+//   'state' is 0 means that the heredoc is broken, while 1 means it OK.
+//   'modifiers.close_char' is the type of the heredoc, where:
+//		0 - interpolate ( <<HERE or <<"HERE" )
+//		1 - literal ( <<'HERE' or <<\HERE )
+//		2 - command ( <<`HERE` )
+bool detect_heredoc(Tokenizer *t, unsigned long &start_key, unsigned long &stop_key, unsigned long &pos, int &heredoc_type);
 CharTokenizeResults HereDocToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	// we are one the first char after the "<<"
 	// /^( \s* (?: "[^"]*" | '[^']*' | `[^`]*` | \\?\w+ ) )/x 
 	unsigned long pos = t->line_pos;
 	unsigned long start_key = pos, stop_key = pos;
-	bool found = false;
-	PredicateOneOrMore< PredicateFunc< is_word > > regex1;
-	if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
-		found = true;
-		stop_key = pos;
-	} else {
-		PredicateZeroOrMore< PredicateFunc< is_whitespace > > regex2;
-		regex2.test( t->c_line, &pos, t->line_length );
-		start_key = pos;
-
-		PredicateOr<
-			PredicateAnd< 
-				PredicateIsChar< '"' >,
-				PredicateZeroOrMore< PredicateIsNotChar< '"' > >,
-				PredicateIsChar< '"' > >,
-			PredicateAnd< 
-				PredicateIsChar< '\'' >,
-				PredicateZeroOrMore< PredicateIsNotChar< '\'' > >,
-				PredicateIsChar< '\'' > >,
-			PredicateAnd< 
-				PredicateIsChar< '`' >,
-				PredicateZeroOrMore< PredicateIsNotChar< '`' > >,
-				PredicateIsChar< '`' > > > regex3;
-		if ( regex3.test( t->c_line, &pos, t->line_length ) ) {
-			found = true;
-			start_key += 1;
-			stop_key = pos - 1;
-		} else {
-			PredicateAnd< 
-				PredicateIsChar< '\\' >,
-				PredicateOneOrMore< PredicateFunc< is_word > > > regex4;
-			if ( regex4.test( t->c_line, &pos, t->line_length ) ) {
-				found = true;
-				start_key += 1;
-				stop_key = pos;
-			}
-		}
-	}
+	int heredoc_type;
+	bool found = detect_heredoc(t, start_key, stop_key, pos, heredoc_type);
 	if ( !found ) {
 		// fall back to operator
 		t->changeTokenType( Token_Operator );
@@ -119,11 +90,70 @@ CharTokenizeResults HereDocToken::tokenize(Tokenizer *t, Token *token, unsigned 
 	exToken->sections[0].size = exToken->length;
 	exToken->modifiers.position = start_key - (t->line_pos - exToken->length);
 	exToken->modifiers.size = stop_key - start_key;
+	exToken->modifiers.close_char = heredoc_type;
 	exToken->sections[1].position = exToken->length;
 	exToken->sections[1].size = 0;
 	TokenTypeNames zone = t->_pospond_token();
 	t->_new_token( zone );
 	return done_it_myself;
+}
+
+bool detect_heredoc(Tokenizer *t, unsigned long &start_key, unsigned long &stop_key, unsigned long &pos, int &heredoc_type) {
+	PredicateOneOrMore< PredicateFunc< is_word > > regex1;
+	if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
+		stop_key = pos;
+		heredoc_type = 0;
+		return true;
+	}
+
+	PredicateZeroOrMore< PredicateFunc< is_whitespace > > regex2;
+	regex2.test( t->c_line, &pos, t->line_length );
+	start_key = pos;
+
+	PredicateAnd< 
+		PredicateIsChar< '"' >,
+		PredicateZeroOrMore< PredicateIsNotChar< '"' > >,
+		PredicateIsChar< '"' > > regex5;
+	if ( regex5.test( t->c_line, &pos, t->line_length ) ) {
+		start_key += 1;
+		stop_key = pos - 1;
+		heredoc_type = 0;
+		return true;
+	} 
+
+	PredicateAnd< 
+		PredicateIsChar< '\'' >,
+		PredicateZeroOrMore< PredicateIsNotChar< '\'' > >,
+		PredicateIsChar< '\'' > > regex6;
+	if ( regex6.test( t->c_line, &pos, t->line_length ) ) {
+		start_key += 1;
+		stop_key = pos - 1;
+		heredoc_type = 1;
+		return true;
+	}
+
+	PredicateAnd< 
+		PredicateIsChar< '`' >,
+		PredicateZeroOrMore< PredicateIsNotChar< '`' > >,
+		PredicateIsChar< '`' > > regex7;
+	if ( regex7.test( t->c_line, &pos, t->line_length ) ) {
+		start_key += 1;
+		stop_key = pos - 1;
+		heredoc_type = 2;
+		return true;
+	}
+
+	PredicateAnd< 
+		PredicateIsChar< '\\' >,
+		PredicateOneOrMore< PredicateFunc< is_word > > > regex4;
+	if ( regex4.test( t->c_line, &pos, t->line_length ) ) {
+		start_key += 1;
+		stop_key = pos;
+		heredoc_type = 1;
+		return true;
+	}
+
+	return false;
 }
 
 bool inline is_newline( char c ) {

@@ -163,15 +163,25 @@ namespace PPITokenizer {
   void PopulateHeredocObject(ExtendedToken *c_doc, HV* perl_doc) {
     hv_stores( perl_doc, "content", newSVpvn(c_doc->text, c_doc->sections[0].size) );
     hv_stores( perl_doc, "_terminator", newSVpvn(c_doc->text + c_doc->modifiers.position, c_doc->modifiers.size) );
-    // can be: 'interpolate', 'literal', 'command'
-    //hv_stores( perl_doc, "_mode", newSVpvn(c_doc->text, 2) );
+    // mode can be: 'interpolate', 'literal', 'command'
+    switch (c_doc->modifiers.close_char) {
+      case 0:
+        hv_stores( perl_doc, "_mode", newSVpvn("interpolate", 11) );
+        break;
+      case 1:
+        hv_stores( perl_doc, "_mode", newSVpvn("literal", 7) );
+        break;
+      case 2:
+        hv_stores( perl_doc, "_mode", newSVpvn("command", 7) );
+        break;
+    }
     
     // the lines inside the HereDoc. array, each line includes the \n
     AV *lines = newAV();
     unsigned long line_start = c_doc->sections[1].position;
     unsigned long limit = c_doc->length;
     while (line_start < limit) {
-      unsigned long line_end = start;
+      unsigned long line_end = line_start;
       while (( line_end < limit ) && ( line_end != '\n' )) {
         line_end++;
       }
