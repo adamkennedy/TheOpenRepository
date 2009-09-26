@@ -168,7 +168,7 @@ sub _releases {
 	my $self = shift;
 
 	$self->_verbose("Generating JSAN::Index::Release list...");
-	my @libs     = JSAN::Index::Library->retrieve_all;
+	my @libs     = JSAN::Index::Library->select;
 	my @releases = map { $_->release } @libs;
 	my %seen     = ();
 	@releases    = sort { $a->source cmp $b->source }
