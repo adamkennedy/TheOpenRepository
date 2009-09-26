@@ -46,15 +46,15 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 1: A -> a /* maximal */
 2: A -> E /* !useful nullable maximal */
 3: E -> /* !useful empty nullable maximal */
-4: S -> A S[R0:1][x6] /* maximal priority=0.44 */
-5: S -> A[] S[R0:1][x6] /* maximal priority=0.42 */
-6: S -> A S[R0:1][x6][] /* maximal priority=0.43 */
-7: S[R0:1][x6] -> A S[R0:2][x8] /* maximal priority=0.34 */
-8: S[R0:1][x6] -> A[] S[R0:2][x8] /* maximal priority=0.32 */
-9: S[R0:1][x6] -> A S[R0:2][x8][] /* maximal priority=0.33 */
-10: S[R0:2][x8] -> A A /* maximal priority=0.24 */
-11: S[R0:2][x8] -> A[] A /* maximal priority=0.22 */
-12: S[R0:2][x8] -> A A[] /* maximal priority=0.23 */
+4: S -> A S[R0:1][x6] /* maximal */
+5: S -> A[] S[R0:1][x6] /* maximal */
+6: S -> A S[R0:1][x6][] /* maximal */
+7: S[R0:1][x6] -> A S[R0:2][x8] /* maximal */
+8: S[R0:1][x6] -> A[] S[R0:2][x8] /* maximal */
+9: S[R0:1][x6] -> A S[R0:2][x8][] /* maximal */
+10: S[R0:2][x8] -> A A /* maximal */
+11: S[R0:2][x8] -> A[] A /* maximal */
+12: S[R0:2][x8] -> A A[] /* maximal */
 13: S['] -> S /* maximal */
 14: S['][] -> /* empty nullable maximal */
 EOS

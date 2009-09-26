@@ -93,7 +93,6 @@ use Marpa::Offset qw(
     USEFUL ACTION
     CODE CYCLE
     USER_PRIORITY
-    INTERNAL_PRIORITY
     MAXIMAL MINIMAL
     HAS_CHAF_LHS HAS_CHAF_RHS
 
@@ -121,7 +120,6 @@ ORIGINAL_RULE - for a rewritten rule, the original
 HAS_CHAF_LHS  - has CHAF internal symbol as lhs?
 HAS_CHAF_RHS - has CHAF internal symbol on rhs?
 USER_PRIORITY - rule priority, from user
-INTERNAL_PRIORITY - rule priority, set internally by Marpa
 CODE - code used to create closure
 CYCLE - is this rule part of a cycle?
 
@@ -197,12 +195,20 @@ use Marpa::Offset qw(
 
     ID NAME VERSION
     RULES SYMBOLS QDFA
-    PHASE DEFAULT_ACTION
+    PHASE
+    ACTIONS { Default package in which to find actions }
+    INITIAL_ACTION { Action to run at start of evaluation }
+    DEFAULT_ACTION { Action for rules without one }
+    FINAL_ACTION { Action to run at end of evaluation }
     TRACE_FILE_HANDLE TRACING
     STRIP CODE_LINES
     =LAST_BASIC_DATA_FIELD
 
     { === Evaluator Fields === }
+
+    SYMBOL_HASH
+    RULE_HASH
+
     DEFAULT_NULL_VALUE
     CYCLE_ACTION
     TRACE_ITERATIONS
@@ -219,12 +225,11 @@ use Marpa::Offset qw(
     ACADEMIC
     DEFAULT_LEX_PREFIX DEFAULT_LEX_SUFFIX AMBIGUOUS_LEX
     TRACE_LEX_MATCHES TRACE_COMPLETIONS TRACE_LEX_TRIES
-    SYMBOL_HASH
     START_STATES
     LEX_PREAMBLE
     =LAST_RECOGNIZER_FIELD
 
-    RULE_HASH
+    RULE_SIGNATURE_HASH
     START START_NAME
     NFA QDFA_BY_NAME
     NULLABLE_SYMBOL
@@ -675,26 +680,27 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::NAME] = sprintf 'Marpa::G_%x',
         $grammar_number;
 
-    $grammar->[Marpa::Internal::Grammar::ACADEMIC]           = 0;
-    $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX] = q{};
-    $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX] = q{};
-    $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX]      = 1;
-    $grammar->[Marpa::Internal::Grammar::TRACE_RULES]        = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]       = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS]   = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACING]            = 0;
-    $grammar->[Marpa::Internal::Grammar::STRIP]              = 1;
-    $grammar->[Marpa::Internal::Grammar::WARNINGS]           = 1;
-    $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK]    = {};
-    $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK]    = {};
-    $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]       = 'warn';
-    $grammar->[Marpa::Internal::Grammar::CODE_LINES]         = undef;
-    $grammar->[Marpa::Internal::Grammar::SYMBOLS]            = [];
-    $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH]        = {};
-    $grammar->[Marpa::Internal::Grammar::RULES]              = [];
-    $grammar->[Marpa::Internal::Grammar::RULE_HASH]          = {};
-    $grammar->[Marpa::Internal::Grammar::QDFA_BY_NAME]       = {};
-    $grammar->[Marpa::Internal::Grammar::MAX_PARSES]         = -1;
+    $grammar->[Marpa::Internal::Grammar::ACADEMIC]            = 0;
+    $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX]  = q{};
+    $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX]  = q{};
+    $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX]       = 1;
+    $grammar->[Marpa::Internal::Grammar::TRACE_RULES]         = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]        = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS]    = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACING]             = 0;
+    $grammar->[Marpa::Internal::Grammar::STRIP]               = 1;
+    $grammar->[Marpa::Internal::Grammar::WARNINGS]            = 1;
+    $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK]     = {};
+    $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK]     = {};
+    $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]        = 'warn';
+    $grammar->[Marpa::Internal::Grammar::CODE_LINES]          = undef;
+    $grammar->[Marpa::Internal::Grammar::SYMBOLS]             = [];
+    $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH]         = {};
+    $grammar->[Marpa::Internal::Grammar::RULE_HASH]           = {};
+    $grammar->[Marpa::Internal::Grammar::RULES]               = [];
+    $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH] = {};
+    $grammar->[Marpa::Internal::Grammar::QDFA_BY_NAME]        = {};
+    $grammar->[Marpa::Internal::Grammar::MAX_PARSES]          = -1;
     $grammar->[Marpa::Internal::Grammar::PHASE] = Marpa::Internal::Phase::NEW;
 
     $grammar->[Marpa::Internal::Grammar::LOCATION_CALLBACK] =
@@ -1710,16 +1716,10 @@ sub Marpa::show_rule {
         push @comment, $comment;
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
 
-    my $user_priority     = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
-    my $internal_priority = $rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY];
-    if ( $user_priority or $internal_priority ) {
-        push @comment, 'priority='
-            . (
-            join q{.},
-            ( $user_priority // 0 ),
-            ( $internal_priority // 0 )
-            );
-    } ## end if ( $user_priority or $internal_priority )
+    my $user_priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
+    if ($user_priority) {
+        push @comment, "priority=$user_priority";
+    }
 
     my $text = Marpa::brief_rule($rule);
 
@@ -2038,7 +2038,8 @@ sub add_user_rule {
     my $user_priority     = $arg_copy{user_priority};
     my $internal_priority = $arg_copy{internal_priority};
 
-    my ($rule_hash) = @{$grammar}[Marpa::Internal::Grammar::RULE_HASH];
+    my $rule_signature_hash =
+        $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH];
 
     my $lhs_symbol = $arg_copy{lhs} =
         assign_user_symbol( $grammar, $lhs_name );
@@ -2047,12 +2048,12 @@ sub add_user_rule {
         [ map { assign_user_symbol( $grammar, $_ ); } @{$rhs_names} ];
 
     # Don't allow the user to duplicate a rule
-    my $rule_key = join q{,},
+    my $rule_signature = join q{,},
         map { $_->[Marpa::Internal::Symbol::ID] }
         ( $lhs_symbol, @{$rhs_symbols} );
     Marpa::exception( 'Duplicate rule: ',
         $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ) )
-        if exists $rule_hash->{$rule_key};
+        if exists $rule_signature_hash->{$rule_signature};
 
     $user_priority //= 0;
 
@@ -2085,7 +2086,7 @@ sub add_user_rule {
 
     } ## end if ( $user_priority < 0 )
 
-    $rule_hash->{$rule_key} = 1;
+    $rule_signature_hash->{$rule_signature} = 1;
 
     return add_rule( \%arg_copy );
 } ## end sub add_user_rule
@@ -2119,30 +2120,33 @@ sub add_rule {
     } ## end while ( my ( $option, $value ) = each %{$arg_hash} )
 
     my $rules       = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $rule_hash   = $grammar->[Marpa::Internal::Grammar::RULE_HASH];
     my $package     = $grammar->[Marpa::Internal::Grammar::NAME];
     my $trace_rules = $grammar->[Marpa::Internal::Grammar::TRACE_RULES];
     my $trace_fh    = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+
+    my $lhs_name = $lhs->[Marpa::Internal::Symbol::NAME];
 
     {
         my $rhs_length = scalar @{$rhs};
         if ( $rhs_length & Marpa::Internal::Grammar::RHS_LENGTH_MASK ) {
             Marpa::exception(
-                #<<< no perltidy
                 "Rule rhs too long\n",
-                '  Rule #', $#{$rules}, " has $rhs_length symbols\n",
-                '  Rule starts ', $lhs->[Marpa::Internal::Symbol::NAME], ' -> ',
-                    join(
-                        q{ },
-                        map {
-                            $_->[Marpa::Internal::Symbol::NAME]
-                        }
+                '  Rule #',
+                $#{$rules},
+                " has $rhs_length symbols\n",
+                '  Rule starts ',
+                $lhs_name,
+                ' -> ',
+                join(
+                    q{ },
+                    map { $_->[Marpa::Internal::Symbol::NAME] }
                         ## take just the first few, 5 for example
                         ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
-                        @{$rhs}[0 .. 5]
+                        @{$rhs}[ 0 .. 5 ]
                         ## use critic
-                    ),
-                    " ... \n"
-                #>>>
+                ),
+                " ... \n"
             );
         } ## end if ( $rhs_length & Marpa::Internal::Grammar::RHS_LENGTH_MASK)
     }
@@ -2166,39 +2170,17 @@ sub add_rule {
         );
     } ## end if ( $user_priority & Marpa::Internal::Grammar::PRIORITY_MASK)
 
-    $internal_priority //= 0;
-    if ( $internal_priority & Marpa::Internal::Grammar::PRIORITY_MASK ) {
-        Marpa::exception(
-            #<<< no perltidy
-            "Internal Error: Rule internal priority too high\n",
-            '  Rule #', $#{$rules}, " has internal priority $internal_priority\n",
-            '  Rule #', $#{$rules}, ': ',
-                $lhs->[Marpa::Internal::Symbol::NAME], ' -> ',
-                join(
-                    q{ },
-                    map {
-                        $_->[Marpa::Internal::Symbol::NAME]
-                    } @{$rhs}
-                ),
-                "\n"
-            #>>>
-        );
-    } ## end if ( $internal_priority & ...)
+    my $new_rule_id = @{$rules};
+    my $new_rule    = [];
+    my $nulling     = @{$rhs} ? undef : 1;
 
-    my $rule_count = @{$rules};
-    my $new_rule   = [];
-    my $nulling    = @{$rhs} ? undef : 1;
-
-    $new_rule->[Marpa::Internal::Rule::ID]            = $rule_count;
-    $new_rule->[Marpa::Internal::Rule::NAME]          = "rule $rule_count";
+    $new_rule->[Marpa::Internal::Rule::ID]            = $new_rule_id;
     $new_rule->[Marpa::Internal::Rule::LHS]           = $lhs;
     $new_rule->[Marpa::Internal::Rule::RHS]           = $rhs;
     $new_rule->[Marpa::Internal::Rule::NULLABLE]      = $nulling;
     $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
     $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
     $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
-    $new_rule->[Marpa::Internal::Rule::INTERNAL_PRIORITY] =
-        $internal_priority;
     $new_rule->[Marpa::Internal::Rule::MINIMAL] = $minimal
         // $grammar->[Marpa::Internal::Grammar::MINIMAL];
     $new_rule->[Marpa::Internal::Rule::MAXIMAL] = $maximal
@@ -2209,6 +2191,7 @@ sub add_rule {
         my $lhs_rules = $lhs->[Marpa::Internal::Symbol::LHS];
         weaken( $lhs_rules->[ scalar @{$lhs_rules} ] = $new_rule );
     }
+
     if ($nulling) {
         $lhs->[Marpa::Internal::Symbol::NULLABLE]   = 1;
         $lhs->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
@@ -2222,6 +2205,11 @@ sub add_rule {
             $last_symbol = $symbol;
         } ## end for my $symbol ( sort @{$rhs} )
     } ## end else [ if ($nulling) ]
+
+    push @{ $rule_hash->{$lhs_name} }, $new_rule_id;
+    $new_rule->[Marpa::Internal::Rule::NAME] =
+        "$lhs_name" . ':' . $#{ $rule_hash->{$lhs_name} };
+
     if ($trace_rules) {
         print {$trace_fh} 'Added rule #', $#{$rules}, ': ',
             $lhs->[Marpa::Internal::Symbol::NAME], ' -> ',
@@ -2397,15 +2385,15 @@ sub add_rule_from_hash {
     # and separator are the same.  I may want to get more fancy, but save that
     # for later.
     {
-        my $rule_hash = $grammar->[Marpa::Internal::Grammar::RULE_HASH];
+        my $rule_hash = $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH];
         my @key_rhs =
             defined $separator ? ( $rhs, $separator, $rhs ) : ($rhs);
-        my $rule_key = join q{,},
+        my $rule_signature = join q{,},
             map { $_->[Marpa::Internal::Symbol::ID] } ( $lhs, @key_rhs );
         Marpa::exception( 'Duplicate rule: ',
             $lhs_name, q{ -> }, ( join q{,}, @{$rhs_names} ) )
-            if exists $rule_hash->{$rule_key};
-        $rule_hash->{$rule_key} = 1;
+            if exists $rule_hash->{$rule_signature};
+        $rule_hash->{$rule_signature} = 1;
     }
 
     my $rule_action;

@@ -52,12 +52,12 @@ Marpa::Test::is( $grammar->show_rules,
 1: p -> a /* maximal */
 2: p -> /* !useful empty nullable maximal */
 3: n -> a /* maximal */
-4: S -> p p S[R0:2][x5] /* maximal priority=0.44 */
-5: S -> p[] p S[R0:2][x5] /* maximal priority=0.42 */
-6: S -> p p[] S[R0:2][x5] /* maximal priority=0.43 */
-7: S -> p[] p[] S[R0:2][x5] /* maximal priority=0.41 */
-8: S[R0:2][x5] -> p n /* maximal priority=0.24 */
-9: S[R0:2][x5] -> p[] n /* maximal priority=0.22 */
+4: S -> p p S[R0:2][x5] /* maximal */
+5: S -> p[] p S[R0:2][x5] /* maximal */
+6: S -> p p[] S[R0:2][x5] /* maximal */
+7: S -> p[] p[] S[R0:2][x5] /* maximal */
+8: S[R0:2][x5] -> p n /* maximal */
+9: S[R0:2][x5] -> p[] n /* maximal */
 10: S['] -> S /* maximal */
 END_OF_STRING
 
