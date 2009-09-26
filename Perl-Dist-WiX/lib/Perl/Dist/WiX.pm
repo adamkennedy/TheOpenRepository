@@ -1370,10 +1370,12 @@ sub install_portable {
 
 	# Install the regular parts of Portability
 	$self->install_modules( qw(
+		  Sub::Uplevel
+		  ) ) unless $self->isa('Perl::Dist::Strawberry');
+	$self->install_modules( qw(
 		  Test::Exception
 	) );
 	$self->install_modules( qw(
-		  Sub::Uplevel
 		  Test::Tester
 		  Test::NoWarnings
 		  LWP::Online

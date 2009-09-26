@@ -1,14 +1,19 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.090_103   Wed 23 Sep 2009
+1.090_103   Sat 26 Sep 2009
     1. Used to make Strawberry Perl October 2009 Beta 2.
-    2. Major refactoring. (Now uses Moose rather than 
-       Object::InsideOut.)
-    3. 5.10.1 is now supported.
-    4. Perl::Dist is not a dependency anymore.
-    5. Perl::Dist::WiX now installs its non-core modules 
-       into "perl\vendor" as opposed to "perl\site"
+    2. Portability now works.
+    3. Small bug fixes.
 
+1.090_102   Mon 14 Sep 2009
+    1. Major refactoring. (Now uses Moose rather 
+       than Object::InsideOut.)
+    2. 5.10.1 is now supported.
+    3. Perl::Dist is not a dependency anymore.
+    4. Perl::Dist::WiX now installs its non-core 
+       modules into "perl\vendor" as opposed to 
+       "perl\site"
+       
 1.000   Sat 25 Jul 2009.
     1. Used to make "Padre Standalone Plus Six" for the
        Padre Birthday party.
