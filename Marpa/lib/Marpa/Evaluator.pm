@@ -1634,8 +1634,7 @@ sub Marpa::Evaluator::new {
     # deal with a null parse as a special case
     if ($nulling) {
 
-        my $evaluator_data =
-            $evaluator_rules->[$start_rule_id];
+        my $evaluator_data = $evaluator_rules->[$start_rule_id];
 
         my $or_node = [];
         $#{$or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
@@ -1653,11 +1652,12 @@ sub Marpa::Evaluator::new {
 
         $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
             \$start_null_value;
-        $and_node->[Marpa::Internal::And_Node::EVALUATOR_DATA] = $evaluator_data;
+        $and_node->[Marpa::Internal::And_Node::EVALUATOR_DATA] =
+            $evaluator_data;
         $and_node->[Marpa::Internal::And_Node::ARGC] =
             scalar @{ $start_rule->[Marpa::Internal::Rule::RHS] };
-        $and_node->[Marpa::Internal::And_Node::RULE_ID]       = $start_rule_id;
-        $and_node->[Marpa::Internal::And_Node::POSITION]      = -1;
+        $and_node->[Marpa::Internal::And_Node::RULE_ID]  = $start_rule_id;
+        $and_node->[Marpa::Internal::And_Node::POSITION] = -1;
         $and_node->[Marpa::Internal::And_Node::START_EARLEME] = 0;
         $and_node->[Marpa::Internal::And_Node::END_EARLEME]   = 0;
         $and_node->[Marpa::Internal::And_Node::PARENT_ID]     = 0;
@@ -1756,8 +1756,8 @@ sub Marpa::Evaluator::new {
 
         for my $and_sapling (@and_saplings) {
 
-            my ( $sapling_rule, $sapling_position, $symbol, $evaluator_data ) =
-                @{$and_sapling};
+            my ( $sapling_rule, $sapling_position, $symbol, $evaluator_data )
+                = @{$and_sapling};
 
             my ( $rule_id, $rhs ) =
                 @{$sapling_rule}[ Marpa::Internal::Rule::ID,
@@ -2236,7 +2236,7 @@ sub Marpa::Evaluator::value {
 
     my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar    = $recognizer->[Marpa::Internal::Recognizer::GRAMMAR];
-    my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $rules      = $grammar->[Marpa::Internal::Grammar::RULES];
 
     my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
     my $null_values     = $evaler->[Marpa::Internal::Evaluator::NULL_VALUES];
@@ -2264,8 +2264,8 @@ sub Marpa::Evaluator::value {
         # factored out to here.
         for my $and_node ( @{$and_nodes} ) {
 
-            my $rule_id     = $and_node->[Marpa::Internal::And_Node::RULE_ID];
-            my $rule = $rules->[$rule_id];
+            my $rule_id  = $and_node->[Marpa::Internal::And_Node::RULE_ID];
+            my $rule     = $rules->[$rule_id];
             my $maximal  = $rule->[Marpa::Internal::Rule::MAXIMAL];
             my $minimal  = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
