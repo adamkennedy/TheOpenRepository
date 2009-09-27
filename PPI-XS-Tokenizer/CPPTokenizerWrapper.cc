@@ -182,7 +182,7 @@ namespace PPITokenizer {
         return &PL_sv_undef;
       }
     }
-    
+
     // make a Perl PPI::Token
     int ttype = theToken->type->type;
     const char* className = CPPTokenizerWrapper::fgTokenClasses[ttype];
@@ -338,7 +338,7 @@ namespace PPITokenizer {
         hv_stores( objHash, "_mode", newSVpvn("command", 7) );
         break;
     }
-    
+
     // the lines inside the HereDoc. array, each line includes the \n
     AV* lines = (AV*)sv_2mortal((SV*)newAV());
     unsigned long line_start = token->sections[1].position;
@@ -354,10 +354,10 @@ namespace PPITokenizer {
           // uncomplete HereDoc
           av_push( lines, newSVpvn(token->text + line_start, line_end - line_start + 1) );
           hv_stores( objHash, "_damaged", newSViv(1) );
-          hv_stores( objHash, "_terminator_line", &PL_sv_undef ); // undef    
+          hv_stores( objHash, "_terminator_line", &PL_sv_undef ); // undef
         } else {
           // contains the terminator - the last line, (of the stopper) including the '\n'
-          hv_stores( objHash, "_terminator_line", newSVpvn(token->text + line_start, line_end - line_start + 1) );    
+          hv_stores( objHash, "_terminator_line", newSVpvn(token->text + line_start, line_end - line_start + 1) );
         }
         break;
       }
