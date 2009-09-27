@@ -124,12 +124,14 @@ namespace PPITokenizer {
     SV* tmpSv;
     if (!SvOK(source))
       croak("Can't create PPI::XS::Tokenizer from an undefined source");
-    if (SvROK(source)) {
+    if (SvROK(source)) { // it's a reference
       tmpSv = (SV*)SvRV(source);
+      // it's an array reference
       if (SvTYPE(tmpSv) == SVt_PVAV) {
         fLines = (AV*)tmpSv;
         SvREFCNT_inc(fLines);
       }
+      // FIXME Handle \$scalar and $scalar here!
       else
         croak("Can only create PPI::XS::Tokenizer from a string, "
               "a reference to a string or a reference to an array of lines");
