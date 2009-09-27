@@ -177,7 +177,7 @@ namespace PPITokenizer {
     }
     
     // the lines inside the HereDoc. array, each line includes the \n
-    AV *lines = newAV();
+    AV* lines = (AV*)sv_2mortal((SV*)newAV());
     unsigned long line_start = c_doc->sections[1].position;
     unsigned long limit = c_doc->length;
     while (line_start < limit) {
@@ -189,20 +189,21 @@ namespace PPITokenizer {
         // the last line
         if ( c_doc->state == 0 ) {
           // uncomplete HereDoc
-          av_push(lines, newSVpvn(c_doc->text + line_start, line_end - line_start + 1);
+          av_push( lines, newSVpvn(c_doc->text + line_start, line_end - line_start + 1) );
           hv_stores( perl_doc, "_damaged", newSViv(1) );
-          hv_stores( perl_doc, "_terminator_line", newSV() ); // undef    
+          hv_stores( perl_doc, "_terminator_line", &PL_sv_undef ); // undef    
         } else {
           // contains the terminator - the last line, (of the stopper) including the '\n'
           hv_stores( perl_doc, "_terminator_line", newSVpvn(c_doc->text + line_start, line_end - line_start + 1) );    
         }
         break;
       } else {
-        av_push(lines, newSVpvn(c_doc->text + line_start, line_end - line_start + 1);
+        av_push( lines, newSVpvn(c_doc->text + line_start, line_end - line_start + 1) );
         line_start = line_end + 1;
       }
     }
-    hv_stores( perl_doc, "_heredoc", lines );
+    // FIXME check return value of this
+    hv_stores( perl_doc, "_heredoc", newRV((SV*)lines) );
   }
 
   /***********************************************************************/
