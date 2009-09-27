@@ -345,7 +345,7 @@ namespace PPITokenizer {
     unsigned long limit = token->length;
     while (line_start < limit) {
       unsigned long line_end = line_start;
-      while (( line_end < limit ) && ( line_end != '\n' ))
+      while (( line_end < limit ) && ( token->text[line_end] != '\n' ))
         ++line_end;
 
       if (line_end >= limit - 1) {
@@ -366,7 +366,6 @@ namespace PPITokenizer {
         line_start = line_end + 1;
       }
     }
-    cout << av_len(lines) << endl;
     hv_stores( objHash, "_heredoc", newRV((SV*)lines) );
     return;
   }
