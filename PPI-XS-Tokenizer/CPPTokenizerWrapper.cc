@@ -317,15 +317,11 @@ namespace PPITokenizer {
 /* Expected output:
 {'_mode' => 'literal',
  '_heredoc' => [
-  'foo
-',
-  'bar
-'
+  "foo\n", "bar\n"
  ],
- '_terminator' => 'HERE',
- 'content' => '<<\'HERE\'',
- '_terminator_line' => 'HERE
-'
+ '_terminator' => 'HEREDOC',
+ 'content' => "<<'HEREDOC'",
+ '_terminator_line' => "HEREDOC\n"
 }
 */
     hv_stores( objHash, "content", newSVpvn(token->text, token->sections[0].size) );
@@ -349,9 +345,9 @@ namespace PPITokenizer {
     unsigned long limit = token->length;
     while (line_start < limit) {
       unsigned long line_end = line_start;
-      while (( line_end < limit ) && ( line_end != '\n' )) {
-        line_end++;
-      }
+      while (( line_end < limit ) && ( line_end != '\n' ))
+        ++line_end;
+
       if (line_end >= limit - 1) {
         // the last line
         if ( token->state == 0 ) {
@@ -364,12 +360,13 @@ namespace PPITokenizer {
           hv_stores( objHash, "_terminator_line", newSVpvn(token->text + line_start, line_end - line_start + 1) );    
         }
         break;
-      } else {
+      }
+      else {
         av_push( lines, newSVpvn(token->text + line_start, line_end - line_start + 1) );
         line_start = line_end + 1;
       }
     }
-    // FIXME check return value of this
+    cout << av_len(lines) << endl;
     hv_stores( objHash, "_heredoc", newRV((SV*)lines) );
     return;
   }
