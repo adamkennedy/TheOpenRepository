@@ -74,11 +74,13 @@ SCOPE: {
 
 
 SCOPE: {
-  my $t = PPI::XS::Tokenizer->new(<<'HERE');
+  my $text = <<'HERE';
 <<'HEREDOC'
 blah
 HEREDOC
 HERE
+
+  my $t = PPI::XS::Tokenizer->new($text);
   isa_ok($t, 'PPI::XS::Tokenizer');
   my $token = $t->get_token();
   ok(defined $token, "Token defined");
