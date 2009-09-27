@@ -120,6 +120,7 @@ namespace PPITokenizer {
   /***********************************************************************/
   CPPTokenizerWrapper::CPPTokenizerWrapper(SV* source)
   {
+    // Note: This is preprocessed to be \@lines in the Perl-land new()
     fTokenizer = new Tokenizer();
     SV* tmpSv;
     if (!SvOK(source))
@@ -131,7 +132,6 @@ namespace PPITokenizer {
         fLines = (AV*)tmpSv;
         SvREFCNT_inc(fLines);
       }
-      // FIXME Handle \$scalar and $scalar here!
       else
         croak("Can only create PPI::XS::Tokenizer from a string, "
               "a reference to a string or a reference to an array of lines");
@@ -163,7 +163,7 @@ namespace PPITokenizer {
 
         STRLEN len;
         char* lineStr = S_stealPV(line, len);
-        cout << lineStr << endl;
+        //cout << "!"<<lineStr<<"!" << endl;
         LineTokenizeResults res = fTokenizer->tokenizeLine(lineStr, len);
 
         //LineTokenizeResults res = fTokenizer->tokenizeLine(SvPV(line, len), len);
