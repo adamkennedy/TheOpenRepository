@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 26;
+use Test::More tests => 27;
 BEGIN { use_ok('PPI::XS::Tokenizer') };
 require PPI;
 
