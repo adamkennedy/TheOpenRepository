@@ -31,3 +31,8 @@ Test: Are regexes Storable's?
 
 Remove code_diag.t tests for string closures.  Probably can
     remove all of code_diag.t.
+
+Check Parse::Marpa TODO list.
+
+Add arguments for INITIAL_ACTION, FINAL_ACTION, ACTIONS.
+     Make sure there are tests for them.

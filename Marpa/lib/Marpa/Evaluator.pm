@@ -46,7 +46,7 @@ use Marpa::Offset qw(
     TOKEN VALUE_REF
     PERL_CLOSURE
     START_EARLEME END_EARLEME
-    ARGC RULE
+    ARGC RULE_ID
 
     POSITION { Position in an and-node is not the same as
     position in a rule.  Rule positions are locations BETWEEN
@@ -135,7 +135,7 @@ use Marpa::Offset qw(
     AND_NODES
     OR_NODES
     RULE_DATA
-    PACKAGE
+    PACKAGE { Delete after conversion to symrefs }
     NULL_VALUES
     AND_ITERATIONS
     OR_ITERATIONS
@@ -747,7 +747,7 @@ sub clone_and_node {
         Marpa::Internal::And_Node::START_EARLEME,
         Marpa::Internal::And_Node::END_EARLEME,
         Marpa::Internal::And_Node::ARGC,
-        Marpa::Internal::And_Node::RULE,
+        Marpa::Internal::And_Node::RULE_ID,
         Marpa::Internal::And_Node::POSITION,
         )
     {
@@ -1466,7 +1466,7 @@ sub delete_duplicate_nodes {
                 } ## end for my $field ( Marpa::Internal::And_Node::CAUSE, ...)
 
                 my $and_class_signature = join q{,},
-                    $and_node->[Marpa::Internal::And_Node::RULE] + 0,
+                    $and_node->[Marpa::Internal::And_Node::RULE_ID] + 0,
                     $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
                     $and_node->[Marpa::Internal::And_Node::START_EARLEME] + 0,
                     $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
@@ -1653,6 +1653,8 @@ sub Marpa::Evaluator::new {
 
     return if not $start_rule;
 
+    my $start_rule_id = $start_rule->[Marpa::Internal::Rule::ID];
+
     state $parse_number = 0;
     my $package = $self->[Marpa::Internal::Evaluator::PACKAGE] =
         sprintf 'Marpa::E_%x', $parse_number++;
@@ -1673,7 +1675,7 @@ sub Marpa::Evaluator::new {
     if ($nulling) {
 
         my $closure =
-            $rule_data->[ $start_rule->[Marpa::Internal::Rule::ID] ]
+            $rule_data->[$start_rule_id]
             ->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE];
 
         my $or_node = [];
@@ -1695,7 +1697,7 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE] = $closure;
         $and_node->[Marpa::Internal::And_Node::ARGC] =
             scalar @{ $start_rule->[Marpa::Internal::Rule::RHS] };
-        $and_node->[Marpa::Internal::And_Node::RULE]          = $start_rule;
+        $and_node->[Marpa::Internal::And_Node::RULE_ID]       = $start_rule_id;
         $and_node->[Marpa::Internal::And_Node::POSITION]      = -1;
         $and_node->[Marpa::Internal::And_Node::START_EARLEME] = 0;
         $and_node->[Marpa::Internal::And_Node::END_EARLEME]   = 0;
@@ -1897,7 +1899,8 @@ sub Marpa::Evaluator::new {
                 $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE] =
                     $closure;
                 $and_node->[Marpa::Internal::And_Node::ARGC] = $rule_length;
-                $and_node->[Marpa::Internal::And_Node::RULE] = $sapling_rule;
+                $and_node->[Marpa::Internal::And_Node::RULE_ID] =
+                    $sapling_rule->[Marpa::Internal::Rule::ID];
                 $and_node->[Marpa::Internal::And_Node::POSITION] =
                     $sapling_position;
                 $and_node->[Marpa::Internal::And_Node::START_EARLEME] =
@@ -2117,29 +2120,30 @@ sub Marpa::Evaluator::show_sort_key {
     return Marpa::dump_sort_key($top_sort_key);
 } ## end sub Marpa::Evaluator::show_sort_key
 
-sub Marpa::show_and_node {
-    my ( $and_node, $verbose ) = @_;
+sub Marpa::Evaluator::show_and_node {
+    my ( $evaler, $and_node, $verbose ) = @_;
     $verbose //= 0;
 
     return q{} if $and_node->[Marpa::Internal::And_Node::DELETED];
 
     my $return_value = q{};
 
-    my ( $name, $predecessor, $cause, $value_ref, $closure, $argc, $rule,
-        $position, )
-        = @{$and_node}[
-        Marpa::Internal::And_Node::TAG,
-        Marpa::Internal::And_Node::PREDECESSOR,
-        Marpa::Internal::And_Node::CAUSE,
-        Marpa::Internal::And_Node::VALUE_REF,
-        Marpa::Internal::And_Node::PERL_CLOSURE,
-        Marpa::Internal::And_Node::ARGC,
-        Marpa::Internal::And_Node::RULE,
-        Marpa::Internal::And_Node::POSITION,
-        ];
+    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
+
+    my $name        = $and_node->[Marpa::Internal::And_Node::TAG];
+    my $predecessor = $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
+    my $cause       = $and_node->[Marpa::Internal::And_Node::CAUSE];
+    my $value_ref   = $and_node->[Marpa::Internal::And_Node::VALUE_REF];
+    my $closure     = $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE];
+    my $argc        = $and_node->[Marpa::Internal::And_Node::ARGC];
+    my $rule_id     = $and_node->[Marpa::Internal::And_Node::RULE_ID];
+    my $position    = $and_node->[Marpa::Internal::And_Node::POSITION];
 
     my @rhs = ();
 
+    my $rule          = $rules->[$rule_id];
     my $original_rule = $rule->[Marpa::Internal::Rule::ORIGINAL_RULE]
         // $rule;
     my $is_virtual_rule = $rule != $original_rule;
@@ -2190,7 +2194,7 @@ sub Marpa::show_and_node {
 
     return $return_value;
 
-} ## end sub Marpa::show_and_node
+} ## end sub Marpa::Evaluator::show_and_node
 
 sub Marpa::Evaluator::show_or_node {
     my ( $evaler, $or_node, $verbose ) = @_;
@@ -2214,7 +2218,7 @@ sub Marpa::Evaluator::show_or_node {
             $text .= "$or_node_tag -> $and_node_tag\n";
         }
 
-        $text .= Marpa::show_and_node( $and_node, $verbose );
+        $text .= $evaler->show_and_node( $and_node, $verbose );
 
     } ## end for my $index ( 0 .. $#{$and_node_ids} )
 
@@ -2281,6 +2285,10 @@ sub Marpa::Evaluator::value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) if $evaler_class ne $right_class;
 
+    my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+    my $grammar    = $recognizer->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
+
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
 
@@ -2303,7 +2311,8 @@ sub Marpa::Evaluator::value {
         # factored out to here.
         for my $and_node ( @{$and_nodes} ) {
 
-            my $rule     = $and_node->[Marpa::Internal::And_Node::RULE];
+            my $rule_id     = $and_node->[Marpa::Internal::And_Node::RULE_ID];
+            my $rule = $rules->[$rule_id];
             my $maximal  = $rule->[Marpa::Internal::Rule::MAXIMAL];
             my $minimal  = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
@@ -2335,9 +2344,6 @@ sub Marpa::Evaluator::value {
         } ## end for my $and_node ( @{$and_nodes} )
 
     } ## end if ( not defined $and_iterations )
-
-    my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar    = $recognizer->[Marpa::Internal::Recognizer::GRAMMAR];
 
     my $tracing  = $grammar->[Marpa::Internal::Grammar::TRACING];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
@@ -3136,8 +3142,9 @@ sub Marpa::Evaluator::value {
                     next TREE_NODE if not defined $closure;
 
                     if ($trace_values) {
-                        my $rule =
-                            $and_node->[Marpa::Internal::And_Node::RULE];
+                        my $rule_id =
+                            $and_node->[Marpa::Internal::And_Node::RULE_ID];
+                        my $rule = $rules->[$rule_id];
                         say {$trace_fh}
                             'Popping ',
                             $argc,
@@ -3171,11 +3178,11 @@ sub Marpa::Evaluator::value {
 
                         if ( not $eval_ok or @warnings ) {
                             my $fatal_error = $EVAL_ERROR;
-                            my $rule =
-                                $and_node->[Marpa::Internal::And_Node::RULE];
+                            my $rule_id     = $and_node
+                                ->[Marpa::Internal::And_Node::RULE_ID];
+                            my $rule = $rules->[$rule_id];
                             my $code =
-                                $rule_data
-                                ->[ $rule->[Marpa::Internal::Rule::ID] ]
+                                $rule_data->[$rule_id]
                                 ->[Marpa::Internal::Evaluator_Rule::CODE];
                             Marpa::Internal::code_problems(
                                 {   fatal_error => $fatal_error,
