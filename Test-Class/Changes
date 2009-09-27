@@ -1,5 +1,7 @@
 Changes for Perl extension Test-Class
 
+    -   Add "build_requires" (Alexandr Ciornii)
+
 0.33 - or the "ZOMGIBROKECPAN" release
     -   Make the test scripts adaptive to Test::More diagnostic changes in
         version 0.88
