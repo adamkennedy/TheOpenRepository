@@ -18,13 +18,13 @@ sub new {
   my $source = shift;
   my $lines;
   if (!ref($source)) {
-    $lines = [split /\n/, $source]; # FIXME: Copying bad, mkay? Not clear how to fix this
+    $lines = [split /(?<=\n)/, $source]; # FIXME: Copying bad, mkay? Not clear how to fix this
   }
   elsif (ref($source) eq 'ARRAY') {
     $lines = $source; # FIXME: Copy here, too, for safety?
   }
   elsif (ref($source) eq 'SCALAR') {
-    $lines = [split /\n/, $$source]; # FIXME: Copying bad, mkay? Not clear how to fix this
+    $lines = [split /(?<=\n)/, $$source]; # FIXME: Copying bad, mkay? Not clear how to fix this
   }
   else {
     Carp::croak('Need $source, \$source, or \@source');
