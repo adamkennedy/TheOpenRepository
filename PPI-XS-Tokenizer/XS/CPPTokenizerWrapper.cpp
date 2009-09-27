@@ -159,53 +159,6 @@ namespace PPITokenizer {
     SvREFCNT_dec(fLines);
   }
 
-  
-  void PopulateHeredocObject(ExtendedToken *c_doc, HV* perl_doc) {
-    hv_stores( perl_doc, "content", newSVpvn(c_doc->text, c_doc->sections[0].size) );
-    hv_stores( perl_doc, "_terminator", newSVpvn(c_doc->text + c_doc->modifiers.position, c_doc->modifiers.size) );
-    // mode can be: 'interpolate', 'literal', 'command'
-    switch (c_doc->modifiers.close_char) {
-      case 0:
-        hv_stores( perl_doc, "_mode", newSVpvn("interpolate", 11) );
-        break;
-      case 1:
-        hv_stores( perl_doc, "_mode", newSVpvn("literal", 7) );
-        break;
-      case 2:
-        hv_stores( perl_doc, "_mode", newSVpvn("command", 7) );
-        break;
-    }
-    
-    // the lines inside the HereDoc. array, each line includes the \n
-    AV* lines = (AV*)sv_2mortal((SV*)newAV());
-    unsigned long line_start = c_doc->sections[1].position;
-    unsigned long limit = c_doc->length;
-    while (line_start < limit) {
-      unsigned long line_end = line_start;
-      while (( line_end < limit ) && ( line_end != '\n' )) {
-        line_end++;
-      }
-      if (line_end >= limit - 1) {
-        // the last line
-        if ( c_doc->state == 0 ) {
-          // uncomplete HereDoc
-          av_push( lines, newSVpvn(c_doc->text + line_start, line_end - line_start + 1) );
-          hv_stores( perl_doc, "_damaged", newSViv(1) );
-          hv_stores( perl_doc, "_terminator_line", &PL_sv_undef ); // undef    
-        } else {
-          // contains the terminator - the last line, (of the stopper) including the '\n'
-          hv_stores( perl_doc, "_terminator_line", newSVpvn(c_doc->text + line_start, line_end - line_start + 1) );    
-        }
-        break;
-      } else {
-        av_push( lines, newSVpvn(c_doc->text + line_start, line_end - line_start + 1) );
-        line_start = line_end + 1;
-      }
-    }
-    // FIXME check return value of this
-    hv_stores( perl_doc, "_heredoc", newRV((SV*)lines) );
-  }
-
   /***********************************************************************/
   SV*
   CPPTokenizerWrapper::get_token()
@@ -381,6 +334,49 @@ namespace PPITokenizer {
 '
 }
 */
+    hv_stores( objHash, "content", newSVpvn(token->text, token->sections[0].size) );
+    hv_stores( objHash, "_terminator", newSVpvn(token->text + token->modifiers.position, token->modifiers.size) );
+    // mode can be: 'interpolate', 'literal', 'command'
+    switch (token->modifiers.close_char) {
+      case 0:
+        hv_stores( objHash, "_mode", newSVpvn("interpolate", 11) );
+        break;
+      case 1:
+        hv_stores( objHash, "_mode", newSVpvn("literal", 7) );
+        break;
+      case 2:
+        hv_stores( objHash, "_mode", newSVpvn("command", 7) );
+        break;
+    }
+    
+    // the lines inside the HereDoc. array, each line includes the \n
+    AV* lines = (AV*)sv_2mortal((SV*)newAV());
+    unsigned long line_start = token->sections[1].position;
+    unsigned long limit = token->length;
+    while (line_start < limit) {
+      unsigned long line_end = line_start;
+      while (( line_end < limit ) && ( line_end != '\n' )) {
+        line_end++;
+      }
+      if (line_end >= limit - 1) {
+        // the last line
+        if ( token->state == 0 ) {
+          // uncomplete HereDoc
+          av_push( lines, newSVpvn(token->text + line_start, line_end - line_start + 1) );
+          hv_stores( objHash, "_damaged", newSViv(1) );
+          hv_stores( objHash, "_terminator_line", &PL_sv_undef ); // undef    
+        } else {
+          // contains the terminator - the last line, (of the stopper) including the '\n'
+          hv_stores( objHash, "_terminator_line", newSVpvn(token->text + line_start, line_end - line_start + 1) );    
+        }
+        break;
+      } else {
+        av_push( lines, newSVpvn(token->text + line_start, line_end - line_start + 1) );
+        line_start = line_end + 1;
+      }
+    }
+    // FIXME check return value of this
+    hv_stores( objHash, "_heredoc", newRV((SV*)lines) );
     return;
   }
 
