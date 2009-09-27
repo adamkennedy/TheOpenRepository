@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 25;
+use Test::More tests => 26;
 BEGIN { use_ok('PPI::XS::Tokenizer') };
 require PPI;
 
@@ -77,6 +77,7 @@ SCOPE: {
   my $text = <<'HERE';
 <<'HEREDOC'
 blah
+blubb
 HEREDOC
 HERE
 
@@ -85,8 +86,19 @@ HERE
   my $token = $t->get_token();
   ok(defined $token, "Token defined");
   ok($token->isa("PPI::Token::HereDoc"), "Token is a PPI::Token::HereDoc");
-  print $token->content(),"\n";
-  is($token->content, 'Test', "Token contains the word 'Test'");
+  is($token->content, '<<\'HEREDOC\'', "Token 'content' is the heredoc marker");
+  is($token->content, '<<\'HEREDOC\'', "Token 'content' is the heredoc marker");
+  is_deeply(
+    { %$token },
+    {
+      '_mode' => 'literal',
+      '_heredoc' => ["blah\n", "blubb\n"],
+      '_terminator' => 'HEREDOC',
+      'content' => '<<\'HEREDOC\'',
+      '_terminator_line' => "HEREDOC\n",
+    },
+    'Check deep structure of the HEREDOC'
+  );
 }
 
 
