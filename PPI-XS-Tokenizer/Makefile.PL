@@ -26,7 +26,9 @@ WriteMakefile(
     'LD'                => '$(CC)',
 );
 
-if  (eval {require ExtUtils::Constant; 1}) {
+if  (grep $_ eq "--regen-constants", @ARGV) {
+  require ExtUtils::Constant;
+  print "# Regenerating constants...\n";
   # If you edit these definitions to change the constants used by this module,
   # you will need to use the generated const-c.inc and const-xs.inc
   # files to replace their "fallback" counterparts before distributing your
