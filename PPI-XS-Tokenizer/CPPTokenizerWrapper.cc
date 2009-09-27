@@ -154,29 +154,33 @@ namespace PPITokenizer {
   {
     Token* theToken = fTokenizer->pop_one_token();
     if (theToken == NULL) {
-      if (av_len(fLines) < 0)
-        return &PL_sv_undef;
-      SV* line = av_shift(fLines);
-      if (!SvOK(line) || !SvPOK(line)) {
-        SvREFCNT_dec(line); // FIXME check this
-        croak("Trying to tokenize undef line");
+      while (av_len(fLines) >= 0) {
+        SV* line = av_shift(fLines);
+        if (!SvOK(line) || !SvPOK(line)) {
+          SvREFCNT_dec(line); // FIXME check this
+          croak("Trying to tokenize undef line");
+        }
+
+        STRLEN len;
+        char* lineStr = S_stealPV(line, len);
+        cout << lineStr << endl;
+        LineTokenizeResults res = fTokenizer->tokenizeLine(lineStr, len);
+
+        //LineTokenizeResults res = fTokenizer->tokenizeLine(SvPV(line, len), len);
+        if (res == tokenizing_fail)
+          // FIXME: add line to output
+          croak("Failed to tokenize line");
+        //else if (res == reached_eol)
+        //  return &PL_sv_undef;
+        theToken = fTokenizer->pop_one_token();
+        if (theToken != NULL)
+          break;
       }
-      // FIXME how do I take ownership of the contained char*?
-      STRLEN len;
-      char* lineStr = S_stealPV(line, len);
-      LineTokenizeResults res = fTokenizer->tokenizeLine(lineStr, len);
 
-      //LineTokenizeResults res = fTokenizer->tokenizeLine(SvPV(line, len), len);
-      if (res == tokenizing_fail)
-        croak("Failed to tokenize line");
-      //else if (res == reached_eol)
-      //  return &PL_sv_undef;
-      theToken = fTokenizer->pop_one_token();
-    }
-
-    if (theToken == NULL) {
-      cout << "TOKEN IS NULL" << endl;
-      return &PL_sv_undef;
+      if (theToken == NULL) {
+        cout << "TOKEN IS NULL" << endl;
+        return &PL_sv_undef;
+      }
     }
     
     // make a Perl PPI::Token
