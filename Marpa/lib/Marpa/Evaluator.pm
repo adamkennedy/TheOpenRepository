@@ -116,18 +116,6 @@ use Marpa::Offset qw(
 
 use Marpa::Offset qw(
 
-    { Delete this whole thing }
-    :{ Will these be needed? :}
-    :package=Marpa::Internal::Tree_Node
-
-    OR_NODE CHOICE PREDECESSOR
-    CAUSE DEPTH
-    PERL_CLOSURE ARGC VALUE_REF
-    RULE POSITION PARENT
-);
-
-use Marpa::Offset qw(
-
     :package=Marpa::Internal::Evaluator
 
     RECOGNIZER
@@ -146,8 +134,6 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Evaluator_Rule
     CODE PERL_CLOSURE
-    NULL_COUNTS
-    TERMINAL_NULL_COUNT
 
 );
 
@@ -385,7 +371,7 @@ sub set_actions {
         $trace_actions = $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS];
     }
 
-    my $rule_data = [];
+    my $evaluator_rules = [];
 
     RULE: for my $rule ( @{$rules} ) {
 
@@ -452,7 +438,7 @@ sub set_actions {
                 'default to undef';
             $rule_datum->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE] =
                 \undef;
-            $rule_data->[$rule_id] = $rule_datum;
+            $evaluator_rules->[$rule_id] = $rule_datum;
             next RULE;
         } ## end if ( not defined $action )
 
@@ -495,41 +481,13 @@ sub set_actions {
         $rule_datum->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE] =
             $closure;
 
-        $rule_data->[$rule_id] = $rule_datum;
+        $evaluator_rules->[$rule_id] = $rule_datum;
 
     }    # RULE
 
-    return $rule_data;
+    return $evaluator_rules;
 
 }    # set_actions
-
-sub set_null_counts {
-    my ( $grammar, $rule_data ) = @_;
-
-    my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
-
-    RULE: for my $rule ( @{$rules} ) {
-        next RULE if not $rule->[Marpa::Internal::Rule::USEFUL];
-        my $rhs     = $rule->[Marpa::Internal::Rule::RHS];
-        my $rule_id = $rule->[Marpa::Internal::Rule::ID];
-
-        my @rule_null_counts;
-        $#rule_null_counts = $#{$rhs};
-        my $null_sequence_length = 0;
-        for my $rhs_position ( 0 .. $#{$rhs} ) {
-            $rule_null_counts[$rhs_position] = $null_sequence_length =
-                  $rhs->[$rhs_position]->[Marpa::Internal::Symbol::NULLING]
-                ? $null_sequence_length + 1
-                : 0;
-        } ## end for my $rhs_position ( 0 .. $#{$rhs} )
-        $rule_data->[$rule_id]->[Marpa::Internal::Evaluator_Rule::NULL_COUNTS]
-            = \@rule_null_counts;
-        $rule_data->[$rule_id]
-            ->[Marpa::Internal::Evaluator_Rule::TERMINAL_NULL_COUNT] =
-            $rule_null_counts[-1];
-    } ## end for my $rule ( @{$rules} )
-    return;
-} ## end sub set_null_counts
 
 sub audit_or_node {
     my ( $evaler, $or_node ) = @_;
@@ -1661,9 +1619,8 @@ sub Marpa::Evaluator::new {
     run_preamble( $grammar, $package );
     my $null_values = $self->[Marpa::Internal::Evaluator::NULL_VALUES] =
         set_null_values( $grammar, $package );
-    my $rule_data = $self->[Marpa::Internal::Evaluator::RULE_DATA] =
+    my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_DATA] =
         set_actions( $grammar, $package );
-    set_null_counts( $grammar, $rule_data );
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
     my ( $nulling, $symbol_id ) =
@@ -1675,7 +1632,7 @@ sub Marpa::Evaluator::new {
     if ($nulling) {
 
         my $closure =
-            $rule_data->[$start_rule_id]
+            $evaluator_rules->[$start_rule_id]
             ->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE];
 
         my $or_node = [];
@@ -1775,7 +1732,7 @@ sub Marpa::Evaluator::new {
 
                 my $rhs = $rule->[Marpa::Internal::Rule::RHS];
                 my $closure =
-                    $rule_data->[ $rule->[Marpa::Internal::Rule::ID] ]
+                    $evaluator_rules->[ $rule->[Marpa::Internal::Rule::ID] ]
                     ->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE];
 
                 my $last_position = @{$rhs} - 1;
@@ -2136,7 +2093,6 @@ sub Marpa::Evaluator::show_and_node {
     my $predecessor = $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
     my $cause       = $and_node->[Marpa::Internal::And_Node::CAUSE];
     my $value_ref   = $and_node->[Marpa::Internal::And_Node::VALUE_REF];
-    my $closure     = $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE];
     my $argc        = $and_node->[Marpa::Internal::And_Node::ARGC];
     my $rule_id     = $and_node->[Marpa::Internal::And_Node::RULE_ID];
     my $position    = $and_node->[Marpa::Internal::And_Node::POSITION];
@@ -2183,14 +2139,6 @@ sub Marpa::Evaluator::show_and_node {
             . Marpa::brief_virtual_rule( $rule, $position + 1 ) . "\n";
 
     } ## end SHOW_RULE:
-
-    if ( $verbose >= 3 ) {
-        $return_value .= "    rhs length = $argc";
-        if ( defined $closure ) {
-            $return_value .= '; closure';
-        }
-        $return_value .= "\n";
-    } ## end if ( $verbose >= 3 )
 
     return $return_value;
 
@@ -2357,8 +2305,8 @@ sub Marpa::Evaluator::value {
         $trace_tasks = $trace_iterations >= 2;
     } ## end if ($tracing)
 
-    my $rule_data   = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
-    my $null_values = $evaler->[Marpa::Internal::Evaluator::NULL_VALUES];
+    my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
+    my $null_values     = $evaler->[Marpa::Internal::Evaluator::NULL_VALUES];
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
 
     my $max_parses = $grammar->[Marpa::Internal::Grammar::MAX_PARSES];
@@ -3116,11 +3064,14 @@ sub Marpa::Evaluator::value {
                         } ## end for my $i ( reverse 0 .. $#evaluation_stack )
                     } ## end if ( $trace_values >= 3 )
 
-                    my ( $closure, $value_ref, $argc ) = @{$and_node}[
-                        Marpa::Internal::And_Node::PERL_CLOSURE,
-                        Marpa::Internal::And_Node::VALUE_REF,
-                        Marpa::Internal::And_Node::ARGC,
-                    ];
+                    my $value_ref =
+                        $and_node->[Marpa::Internal::And_Node::VALUE_REF];
+                    my $argc = $and_node->[Marpa::Internal::And_Node::ARGC];
+                    my $closure =
+                        $and_node->[Marpa::Internal::And_Node::PERL_CLOSURE];
+                    my $rule_id =
+                        $and_node->[Marpa::Internal::And_Node::RULE_ID];
+                    my $rule = $rules->[$rule_id];
 
                     if ( defined $value_ref ) {
 
@@ -3142,9 +3093,6 @@ sub Marpa::Evaluator::value {
                     next TREE_NODE if not defined $closure;
 
                     if ($trace_values) {
-                        my $rule_id =
-                            $and_node->[Marpa::Internal::And_Node::RULE_ID];
-                        my $rule = $rules->[$rule_id];
                         say {$trace_fh}
                             'Popping ',
                             $argc,
@@ -3178,11 +3126,8 @@ sub Marpa::Evaluator::value {
 
                         if ( not $eval_ok or @warnings ) {
                             my $fatal_error = $EVAL_ERROR;
-                            my $rule_id     = $and_node
-                                ->[Marpa::Internal::And_Node::RULE_ID];
-                            my $rule = $rules->[$rule_id];
                             my $code =
-                                $rule_data->[$rule_id]
+                                $evaluator_rules->[$rule_id]
                                 ->[Marpa::Internal::Evaluator_Rule::CODE];
                             Marpa::Internal::code_problems(
                                 {   fatal_error => $fatal_error,
