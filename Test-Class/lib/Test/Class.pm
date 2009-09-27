@@ -451,12 +451,12 @@ Test::Class - Easily create test classes in an xUnit/JUnit style
       my $array = shift->{test_array};
       diag("array = (@$array) after test(s)");
   };
-  
+
 later in a nearby .t file
 
   #! /usr/bin/perl
   use Example::Test;
-  
+
   # run all the test methods in Example::Test
   Test::Class->runtests;
 
@@ -476,9 +476,9 @@ Outputs:
 
 Test::Class provides a simple way of creating classes and objects to test your code in an xUnit style. 
 
-Built using L<Test::Builder> it is designing to work with other Test::Builder based modules (L<Test::More>, L<Test::Differences>, L<Test::Exception>, etc.)  
+Built using L<Test::Builder>, it was designed to work with other Test::Builder based modules (L<Test::More>, L<Test::Differences>, L<Test::Exception>, etc.).
 
-I<Note:> This module will make more sense if you are already familiar with the "standard" mechanisms for testing perl code. Those unfamiliar  with L<Test::Harness>, L<Test::Simple>, L<Test::More> and friends should go take a look at them now. L<Test::Tutorial> is a good starting point.
+I<Note:> This module will make more sense, if you are already familiar with the "standard" mechanisms for testing perl code. Those unfamiliar with L<Test::Harness>, L<Test::Simple>, L<Test::More> and friends should go take a look at them now. L<Test::Tutorial> is a good starting point.
 
 
 =head1 INTRODUCTION
@@ -493,7 +493,7 @@ Now there are xUnit frameworks for every language from Ada to XSLT. You can find
 
 While xUnit frameworks are traditionally associated with unit testing they are also useful in the creation of functional/acceptance tests.
 
-Test::Class is (yet another) implementation of xUnit style testing in perl. 
+Test::Class is (yet another) implementation of xUnit style testing in Perl. 
 
 
 =head2 Why you should use Test::Class
@@ -605,7 +605,7 @@ If you don't know the number of tests at compile time you can use C<no_plan> lik
       my $objects = shift->{objects};
       isa_ok($_, "Object") foreach @$objects;
   };
-  
+
 or use the :Tests attribute, which acts just like C<:Test> but defaults to C<no_plan> if no number is given:
 
   sub check_class : Tests {
@@ -657,7 +657,7 @@ You can use these to create and destroy expensive objects that you don't want to
   sub db_connect : Test(startup) {
       shift->{dbi} = DBI->connect;
   };
-  
+
   sub db_disconnect : Test(shutdown) {
       shift->{dbi}->disconnect;
   };
@@ -667,7 +667,7 @@ Just like setup and teardown methods you can pass an optional number of tests to
   sub example : Test(startup => 1) {
       ok(1, 'a startup method with one test');
   };
-  
+
 If a startup method has a failing test or throws an exception then all other tests for the current test object are ignored. 
 
 =head1 RUNNING TESTS
