@@ -51,6 +51,7 @@ requires       'LWP::UserAgent::WithCache' => '0.06';
 requires       'LWP::Online'               => '1.07';
 requires       'Module::CoreList'          => '2.18';
 requires       'Moose'                     => '0.90';
+requires       'MooseX::NonMoose'          => '0.05',
 requires       'Object::Tiny'              => '1.06';
 requires       'PAR::Dist'                 => '0.42';
 requires       'Params::Util'              => '0.35';
