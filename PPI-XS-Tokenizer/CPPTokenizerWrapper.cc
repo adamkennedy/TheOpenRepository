@@ -194,8 +194,6 @@ namespace PPITokenizer {
     char open_char;
     unsigned long opNameLength = 0;
     char* opName = NULL;
-    cout << "!"<<eHereDoc << endl;
-    cout << "this: "<<fgSpecialToken[ttype]<< endl;
     switch(fgSpecialToken[ttype]) {
     case eSimple:
       break;
