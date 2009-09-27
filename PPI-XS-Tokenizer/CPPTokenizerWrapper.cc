@@ -1,35 +1,20 @@
 #include <iostream>
+
+#include "CPPTokenizerWrapper.h"
+
+#include "src/tokenizer.cpp"
+#include "src/numbers.cpp"
+#include "src/operator.cpp"
+#include "src/quotes.cpp"
+#include "src/structure.cpp"
+#include "src/symbol.cpp"
+#include "src/unknown.cpp"
+#include "src/whitespace.cpp"
+#include "src/word.cpp"
+
 using namespace std;
+
 namespace PPITokenizer {
-
-  class CPPTokenizerWrapper {
-    public:
-      CPPTokenizerWrapper(SV* source);
-      ~CPPTokenizerWrapper();
-      SV* get_token();
-
-    private:
-      Tokenizer fTokenizer;
-      AV* fLines;
-
-      enum SpecialTokenTypes {
-        eSimple = 0,
-        eExtended,
-        eQuoteSingle,
-        eQuoteDouble,
-        eBacktick,
-        eAttribute,
-        eHereDoc
-      };
-      static const char* fgTokenClasses[43];
-      static const int fgSpecialToken[43];
-
-      static SV* S_newPerlObject(const char* className);
-      static char* S_stealPV(SV* sv, STRLEN& len);
-      static void S_makeSections(ExtendedToken* token, HV* objHash);
-      static void S_handleHereDoc(ExtendedToken* token, HV* objHash);
-      static const char* S_getQuoteOperatorString(Token* token, unsigned long* length);
-  };
 
   /***********************************************************************/
   const char* CPPTokenizerWrapper::fgTokenClasses[43] = {
@@ -135,6 +120,7 @@ namespace PPITokenizer {
   /***********************************************************************/
   CPPTokenizerWrapper::CPPTokenizerWrapper(SV* source)
   {
+    fTokenizer = new Tokenizer();
     SV* tmpSv;
     if (!SvOK(source))
       croak("Can't create PPI::XS::Tokenizer from an undefined source");
@@ -157,13 +143,14 @@ namespace PPITokenizer {
   CPPTokenizerWrapper::~CPPTokenizerWrapper()
   {
     SvREFCNT_dec(fLines);
+    delete fTokenizer;
   }
 
   /***********************************************************************/
   SV*
   CPPTokenizerWrapper::get_token()
   {
-    Token* theToken = fTokenizer.pop_one_token();
+    Token* theToken = fTokenizer->pop_one_token();
     if (theToken == NULL) {
       if (av_len(fLines) < 0)
         return &PL_sv_undef;
@@ -175,17 +162,18 @@ namespace PPITokenizer {
       // FIXME how do I take ownership of the contained char*?
       STRLEN len;
       char* lineStr = S_stealPV(line, len);
-      LineTokenizeResults res = fTokenizer.tokenizeLine(lineStr, len);
+      LineTokenizeResults res = fTokenizer->tokenizeLine(lineStr, len);
 
-      //LineTokenizeResults res = fTokenizer.tokenizeLine(SvPV(line, len), len);
+      //LineTokenizeResults res = fTokenizer->tokenizeLine(SvPV(line, len), len);
       if (res == tokenizing_fail)
         croak("Failed to tokenize line");
       //else if (res == reached_eol)
       //  return &PL_sv_undef;
-      theToken = fTokenizer.pop_one_token();
+      theToken = fTokenizer->pop_one_token();
     }
 
     if (theToken == NULL) {
+      cout << "TOKEN IS NULL" << endl;
       return &PL_sv_undef;
     }
     
@@ -204,6 +192,8 @@ namespace PPITokenizer {
     char open_char;
     unsigned long opNameLength = 0;
     char* opName = NULL;
+    cout << "!"<<eHereDoc << endl;
+    cout << "this: "<<fgSpecialToken[ttype]<< endl;
     switch(fgSpecialToken[ttype]) {
     case eSimple:
       break;
@@ -247,7 +237,7 @@ namespace PPITokenizer {
       printf("UNHANDLED TOKEN TYPE\n");
     };
 
-    fTokenizer.freeToken(theToken);
+    fTokenizer->freeToken(theToken);
 
     return theObject;
   }

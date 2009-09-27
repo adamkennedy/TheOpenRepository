@@ -9,19 +9,13 @@ extern "C" {
 }
 #endif
 
-#include "src/tokenizer.cpp"
-#include "src/numbers.cpp"
-#include "src/operator.cpp"
-#include "src/quotes.cpp"
-#include "src/structure.cpp"
-#include "src/symbol.cpp"
-#include "src/unknown.cpp"
-#include "src/whitespace.cpp"
-#include "src/word.cpp"
+#include "CPPTokenizerWrapper.h"
+
+using namespace PPITokenizer; // is this bad?
+// potentially bad, too:
+#include "src/tokenizer.h"
 
 #include "const-c.inc"
-
-#include "XS/CPPTokenizerWrapper.cpp"
 
 
 MODULE = PPI::XS::Tokenizer		PACKAGE = PPI::XS::Tokenizer
