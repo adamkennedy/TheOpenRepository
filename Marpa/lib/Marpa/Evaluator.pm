@@ -46,7 +46,7 @@ use Marpa::Offset qw(
     TOKEN VALUE_REF
     EVALUATOR_DATA
     START_EARLEME END_EARLEME
-    ARGC RULE_ID
+    RULE_ID
 
     POSITION { Position in an and-node is not the same as
     position in a rule.  Rule positions are locations BETWEEN
@@ -132,11 +132,20 @@ use Marpa::Offset qw(
 
 use Marpa::Offset qw(
 
+    :package=Marpa::Internal::Evaluator_Op
+    ARGC
+    CALL
+    CONSTANT_RESULT
+    LHS_DIVIDED
+    RHS_DIVIDED
+
+);
+
+use Marpa::Offset qw(
+
     :package=Marpa::Internal::Evaluator_Rule
     CODE
-    PRE_PROCESS
-    PERL_CLOSURE
-    POST_PROCESS
+    OPS
 
 );
 
@@ -380,6 +389,15 @@ sub set_actions {
 
         next RULE if not $rule->[Marpa::Internal::Rule::USEFUL];
 
+        my $rule_id = $rule->[Marpa::Internal::Rule::ID];
+        my $rule_data = $evaluator_rules->[$rule_id] = [];
+        my $ops = $rule_data->[Marpa::Internal::Evaluator_Rule::OPS] = [];
+
+        # assignment instead of comparison is deliberate
+        if ( my $argc = scalar @{ $rule->[Marpa::Internal::Rule::RHS] } ) {
+            push @{$ops}, Marpa::Internal::Evaluator_Op::ARGC, $argc;
+        }
+
         my $action = $rule->[Marpa::Internal::Rule::ACTION];
 
         ACTION: {
@@ -426,8 +444,6 @@ sub set_actions {
             #>>>
         }    # ACTION
 
-        my $rule_id = $rule->[Marpa::Internal::Rule::ID];
-
         if ( not defined $action ) {
 
             if ($trace_actions) {
@@ -436,12 +452,10 @@ sub set_actions {
                     or Marpa::exception('Could not print to trace file');
             }
 
-            my $rule_datum;
-            $rule_datum->[Marpa::Internal::Evaluator_Rule::CODE] =
+            $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] =
                 'default to undef';
-            $rule_datum->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE] =
-                \undef;
-            $evaluator_rules->[$rule_id] = $rule_datum;
+            push @{$ops}, Marpa::Internal::Evaluator_Op::CONSTANT_RESULT, \undef;
+
             next RULE;
         } ## end if ( not defined $action )
 
@@ -479,12 +493,8 @@ sub set_actions {
             );
         } ## end if ( not $closure or @warnings )
 
-        my $rule_datum;
-        $rule_datum->[Marpa::Internal::Evaluator_Rule::CODE] = $code;
-        $rule_datum->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE] =
-            $closure;
-
-        $evaluator_rules->[$rule_id] = $rule_datum;
+        $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] = $code;
+        push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
 
     }    # RULE
 
@@ -707,7 +717,6 @@ sub clone_and_node {
         Marpa::Internal::And_Node::EVALUATOR_DATA,
         Marpa::Internal::And_Node::START_EARLEME,
         Marpa::Internal::And_Node::END_EARLEME,
-        Marpa::Internal::And_Node::ARGC,
         Marpa::Internal::And_Node::RULE_ID,
         Marpa::Internal::And_Node::POSITION,
         )
@@ -1654,8 +1663,6 @@ sub Marpa::Evaluator::new {
             \$start_null_value;
         $and_node->[Marpa::Internal::And_Node::EVALUATOR_DATA] =
             $evaluator_data;
-        $and_node->[Marpa::Internal::And_Node::ARGC] =
-            scalar @{ $start_rule->[Marpa::Internal::Rule::RHS] };
         $and_node->[Marpa::Internal::And_Node::RULE_ID]  = $start_rule_id;
         $and_node->[Marpa::Internal::And_Node::POSITION] = -1;
         $and_node->[Marpa::Internal::And_Node::START_EARLEME] = 0;
@@ -1856,7 +1863,6 @@ sub Marpa::Evaluator::new {
                     $value_ref;
                 $and_node->[Marpa::Internal::And_Node::EVALUATOR_DATA] =
                     $evaluator_data;
-                $and_node->[Marpa::Internal::And_Node::ARGC] = $rule_length;
                 $and_node->[Marpa::Internal::And_Node::RULE_ID] =
                     $sapling_rule->[Marpa::Internal::Rule::ID];
                 $and_node->[Marpa::Internal::And_Node::POSITION] =
@@ -2094,7 +2100,6 @@ sub Marpa::Evaluator::show_and_node {
     my $predecessor = $and_node->[Marpa::Internal::And_Node::PREDECESSOR];
     my $cause       = $and_node->[Marpa::Internal::And_Node::CAUSE];
     my $value_ref   = $and_node->[Marpa::Internal::And_Node::VALUE_REF];
-    my $argc        = $and_node->[Marpa::Internal::And_Node::ARGC];
     my $rule_id     = $and_node->[Marpa::Internal::And_Node::RULE_ID];
     my $position    = $and_node->[Marpa::Internal::And_Node::POSITION];
 
@@ -3090,84 +3095,93 @@ sub Marpa::Evaluator::value {
 
                     next TREE_NODE if not defined $evaluator_data;
 
-                    my $argc = $and_node->[Marpa::Internal::And_Node::ARGC];
-                    my $rule_id =
-                        $and_node->[Marpa::Internal::And_Node::RULE_ID];
-                    my $rule    = $rules->[$rule_id];
-                    my $closure = $evaluator_data
-                        ->[Marpa::Internal::Evaluator_Rule::PERL_CLOSURE];
-
-                    if ($trace_values) {
-                        say {$trace_fh}
-                            'Popping ',
-                            $argc,
-                            ' values to evaluate ',
-                            $and_node->[Marpa::Internal::And_Node::TAG],
-                            ', rule: ', Marpa::brief_rule($rule)
-                            or
-                            Marpa::exception('Could not print to trace file');
-                    } ## end if ($trace_values)
-
-                    my $args =
-                        [ map { ${$_} }
-                            ( splice @evaluation_stack, -$argc ) ];
-
+                    my $ops = $evaluator_data->[Marpa::Internal::Evaluator_Rule::OPS];
+                    my $current_data= [];
                     my $result;
+                    my $op_ix = 0;
+                    while ( $op_ix < scalar @{$ops} ) {
+                        given ( $ops->[ $op_ix++ ] ) {
+                            when (Marpa::Internal::Evaluator_Op::ARGC) {
+                                my $argc = $ops->[ $op_ix++ ];
+                                $current_data =
+                                    [ map { ${$_} }
+                                        ( splice @evaluation_stack, -$argc )
+                                    ];
+                                if ($trace_values) {
+                                    my $rule_id = $and_node->[Marpa::Internal::And_Node::RULE_ID];
+                                    my $rule = $rules->[$rule_id];
+                                    say {$trace_fh}
+                                        'Popping ',
+                                        $argc,
+                                        ' values to evaluate ',
+                                        $and_node
+                                        ->[Marpa::Internal::And_Node::TAG],
+                                        ', rule: ', Marpa::brief_rule($rule)
+                                        or Marpa::exception(
+                                        'Could not print to trace file');
+                                } ## end if ($trace_values)
 
-                    my $closure_type = ref $closure;
+                            } ## end when (ARGC)
+                            when (Marpa::Internal::Evaluator_Op::CONSTANT_RESULT) {
+                                my $result = $ops->[ $op_ix++ ];
+                                push @evaluation_stack, $result;
+                            }
+                            when (Marpa::Internal::Evaluator_Op::CALL) {
+                                my $closure = $ops->[ $op_ix++ ];
 
-                    if ( $closure_type eq 'CODE' ) {
+                                my @warnings;
+                                my $eval_ok;
+                                DO_EVAL: {
+                                    local $SIG{__WARN__} = sub {
+                                        push @warnings,
+                                            [ $_[0], ( caller 0 ) ];
+                                    };
 
-                        my @warnings;
-                        my $eval_ok;
-                        DO_EVAL: {
-                            local $SIG{__WARN__} = sub {
-                                push @warnings, [ $_[0], ( caller 0 ) ];
-                            };
+                                    $eval_ok = eval {
+                                        $result = $closure->( @{$current_data} );
+                                        1;
+                                    };
+                                } ## end DO_EVAL:
 
-                            $eval_ok =
-                                eval { $result = $closure->( @{$args} ); 1 };
-                        } ## end DO_EVAL:
+                                if ( not $eval_ok or @warnings ) {
+                                    my $rule_id = $and_node->[Marpa::Internal::And_Node::RULE_ID];
+                                    my $rule = $rules->[$rule_id];
+                                    my $fatal_error = $EVAL_ERROR;
+                                    my $code =
+                                        $evaluator_rules->[$rule_id]->[
+                                        Marpa::Internal::Evaluator_Rule::CODE
+                                        ];
+                                    Marpa::Internal::code_problems(
+                                        {   fatal_error => $fatal_error,
+                                            grammar     => $grammar,
+                                            eval_ok     => $eval_ok,
+                                            warnings    => \@warnings,
+                                            where       => 'computing value',
+                                            long_where =>
+                                                'computing value for rule: '
+                                                . Marpa::brief_rule($rule),
+                                            code => \$code,
+                                        }
+                                    );
+                                } ## end if ( not $eval_ok or @warnings )
 
-                        if ( not $eval_ok or @warnings ) {
-                            my $fatal_error = $EVAL_ERROR;
-                            my $code =
-                                $evaluator_rules->[$rule_id]
-                                ->[Marpa::Internal::Evaluator_Rule::CODE];
-                            Marpa::Internal::code_problems(
-                                {   fatal_error => $fatal_error,
-                                    grammar     => $grammar,
-                                    eval_ok     => $eval_ok,
-                                    warnings    => \@warnings,
-                                    where       => 'computing value',
-                                    long_where => 'computing value for rule: '
-                                        . Marpa::brief_rule($rule),
-                                    code => \$code,
-                                }
-                            );
-                        } ## end if ( not $eval_ok or @warnings )
+                                if ($trace_values) {
+                                    print {$trace_fh}
+                                        'Calculated and pushed value: ',
+                                        Data::Dumper->new( [$result] )
+                                        ->Terse(1)->Dump
+                                        or Marpa::exception(
+                                        'print to trace handle failed');
+                                } ## end if ($trace_values)
 
-                    } ## end if ( $closure_type eq 'CODE' )
+                                push @evaluation_stack, \$result;
 
-                    # don't document this behavior -- I'll probably want to
-                    # use non-reference "closure" values for special hacks
-                    # in the future.
-                    elsif ( $closure_type eq q{} ) {    # when not reference
-                        $result = $closure;
-                    }    # when not reference
-
-                    else {    # when non-code reference
-                        $result = ${$closure};
-                    }    # when non-code reference
-
-                    if ($trace_values) {
-                        print {$trace_fh} 'Calculated and pushed value: ',
-                            Data::Dumper->new( [$result] )->Terse(1)->Dump
-                            or
-                            Marpa::exception('print to trace handle failed');
-                    } ## end if ($trace_values)
-
-                    push @evaluation_stack, \$result;
+                            } ## end when (CALL)
+                            default {
+                                Marpa::Exception("Unknown evaluator Op: $_");
+                            }
+                        } ## end given
+                    } ## end while ( $op_ix < $ops )
 
                 }    # TREE_NODE
 
