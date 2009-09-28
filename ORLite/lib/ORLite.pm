@@ -15,7 +15,7 @@ use DBD::SQLite  1.25 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.28';
+	$VERSION = '1.29_01';
 }
 
 # Support for the 'prune' option
@@ -260,6 +260,7 @@ END_PERL
 
 			# Discover the primary key
 			@{$table->{pk}}  = map($_->{name}, grep { $_->{pk} } @columns);
+			$table->{pks}    = scalar(@{$table->{pk}});
 
 			# What will be the class for this table
 			$table->{class}  = ucfirst lc $table->{name};
@@ -276,6 +277,7 @@ END_PERL
 				"insert into $table->{name}" .
 				"( $table->{sql}->{cols} )"  .
 				" values ( $table->{sql}->{vals} )";
+			$sql->{where_pk}    = join(' and ', map("$_ = ?", @{$table->{pk}}))
 		}
 
 		# Generate the foreign key metadata
@@ -343,17 +345,33 @@ sub iterate {
 
 END_PERL
 
+			# Add the primary key based single object loader
+			if ( $table->{pks} == 1 ) {
+				$code .= <<"END_PERL";
+sub load {
+	my \$class = shift;
+	my \$sql   = '$sql->{select} where $sql->{where_pk}';
+	my \$row   = $pkg->selectall_arrayref( \$sql, { Slice => {} }, \@_ );
+	unless ( \@\$row ) {
+		Carp::croak("$table->{class} with id '\$_[0]' does not exist");
+	}
+	bless( \$row->[0], '$table->{class}' );
+	return \$row->[0];
+}
+	
+END_PERL
+			}
+
 			# Generate the elements for tables with primary keys
 			if ( defined $table->{pk} and ! $readonly ) {
 				my $nattr = join "\n", map { "\t\t$_ => \$attr{$_}," } @names;
 				my $iattr = join "\n", map { "\t\t\$self->{$_},"       } @names;
 				my $fill_pk = scalar @{$table->{pk}} == 1 
-					    ? "\t\$self->{$table->{pk}->[0]} = \$dbh->func('last_insert_rowid') unless \$self->{$table->{pk}->[0]};"
-					    : q{};
+					? "\t\$self->{$table->{pk}->[0]} = \$dbh->func('last_insert_rowid') unless \$self->{$table->{pk}->[0]};"
+					: q{};
 				my $where_pk      = join(' and ', map("$_ = ?", @{$table->{pk}}));
-				my $where_pk_attr = join("\n", map("\t\t\$self->{$_},", @{$table->{pk}}));				
+				my $where_pk_attr = join("\n", map("\t\t\$self->{$_},", @{$table->{pk}}));
 				$code .= <<"END_PERL";
-
 sub new {
 	my \$class = shift;
 	my \%attr  = \@_;

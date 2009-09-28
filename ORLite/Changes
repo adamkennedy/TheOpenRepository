@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+1.29 Mon 28 Sep 2009
+	- Adding first experimental implementation of ->load
+
 1.28 Fri 25 Sep 2009
 	- Adding ->prune method that so that pruning can also be done
 	  in subclasses.

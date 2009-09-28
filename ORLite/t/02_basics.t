@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 65;
+use Test::More tests => 66;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -57,6 +57,7 @@ ok(
 	Foo::Bar::TableOne->create( col1 => 1, col2 => 'foo' ),
 	'Created row 1',
 );
+isa_ok( Foo::Bar::TableOne->load(1), 'Foo::Bar::TableOne' );
 my $new = Foo::Bar::TableOne->create( col2 => 'bar' );
 isa_ok( $new, 'Foo::Bar::TableOne' );
 is( $new->col1, 2,     '->col1 ok' );
@@ -82,7 +83,6 @@ sub test_ones {
 	isa_ok( $ones->[2], 'Foo::Bar::TableOne' );
 	is( $ones->[2]->col1, 3,     '->col1 ok' );
 	is( $ones->[2]->col2, 'bar', '->col2 ok' );
-
 }
 
 # Fetch the rows (list context)
