@@ -14,10 +14,10 @@ source_files: \
     MDL_displays.errs
 
 all_tests:
-	-(cd ..; prove author.t/*.t)
+	-(cd ..; prove author.t/*.t ) 2>&1 | tee all.errs
 
 critic:
-	-(cd ..; prove author.t/critic.t)
+	-(cd ..; prove author.t/critic.t) 2>&1 | tee critic.errs
 
 display:
 	-(cd ..; prove author.t/display.t)

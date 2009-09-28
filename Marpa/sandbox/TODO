@@ -1,5 +1,3 @@
-Add Test::Pod Test::CPAN::Meta Test::MinimumVersion Test::Perl::Critic
-
 Make minimal work for null symbols.
 
 Forbid simulatenous MAXIMAL & MINIMAL setting on rules & symbols.

@@ -5,31 +5,14 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 use Fatal qw( open close );
+use Carp;
+use Perl::Critic;
+use Test::Perl::Critic;
+use Test::More;
 
 # Test that the module passes perlcritic
 BEGIN {
-	$|  = 1;
-	$^W = 1;
-}
-
-my @MODULES = (
-	'Perl::Critic 1.098',
-	'Test::Perl::Critic 1.01',
-);
-
-# Don't run tests during end-user installs
-use Test::More;
-
-# Load the testing modules
-foreach my $MODULE ( @MODULES ) {
-        ## no critic (BuiltinFunctions::ProhibitStringyEval)
-	eval "use $MODULE";
-        ## use critic
-	if ( $@ ) {
-		$ENV{RELEASE_TESTING}
-		? die( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
-	}
+    $OUTPUT_AUTOFLUSH = 1;
 }
 
 my %exclude = map { ( $_, 1 ) } qw(
@@ -50,20 +33,22 @@ my @test_files = ();
 FILE: while ( my $file = <$manifest> ) {
     chomp $file;
     $file =~ s/\s*[#].*\z//xms;
-    next FILE if -d $file;
     next FILE if $exclude{$file};
     my ($ext) = $file =~ / [.] ([^.]+) \z /xms;
-    next FILE if not defined $ext;
-    $ext = lc $ext;
-    next FILE
-        if $ext ne 'pl'
-            and $ext ne 'pm'
-            and $ext ne 't';
+    given ( lc $ext ) {
+        when (undef) {
+            break
+        }
+        when ('pl') { push @test_files, $file }
+        when ('pm') { push @test_files, $file }
+        when ('t')  { push @test_files, $file }
+    } ## end given
+} ## end while ( my $file = <$manifest> )
 
-    push @test_files, $file;
-}    # FILE
 close $manifest;
 
-all_critic_ok(@test_files);
+my $rcfile = File::Spec->catfile( 'author.t', 'perlcriticrc' );
+Test::Perl::Critic->import( -profile => $rcfile );
+Test::Perl::Critic::all_critic_ok(@test_files);
 
 1;

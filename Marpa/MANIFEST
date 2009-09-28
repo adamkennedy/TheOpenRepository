@@ -9,6 +9,7 @@ author.t/minimal.marpa
 author.t/misc.t
 author.t/perlcriticrc
 author.t/perltidyrc
+author.t/pod.t
 author.t/spelling_exceptions.list
 author.t/test_pod
 author.t/tidy1

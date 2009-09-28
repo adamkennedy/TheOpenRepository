@@ -5,31 +5,14 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 use Fatal qw( open close );
+use Carp;
+use Pod::Simple;
+use Test::Pod;
+use Test::More;
 
 # Test that the module passes perlcritic
 BEGIN {
-	$|  = 1;
-	$^W = 1;
-}
-
-my @MODULES = (
-	'Pod::Simple 3.07',
-	'Test::Pod 1.26',
-);
-
-# Don't run tests during end-user installs
-use Test::More;
-
-# Load the testing modules
-foreach my $MODULE ( @MODULES ) {
-        ## no critic (BuiltinFunctions::ProhibitStringyEval)
-	eval "use $MODULE";
-        ## use critic
-	if ( $@ ) {
-		$ENV{RELEASE_TESTING}
-		? die( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
-	}
+    $OUTPUT_AUTOFLUSH = 1;
 }
 
 my %exclude = map { ( $_, 1 ) } qw(
@@ -64,6 +47,6 @@ FILE: while ( my $file = <$manifest> ) {
 }    # FILE
 close $manifest;
 
-all_pod_files_ok();
+Test::Pod::all_pod_files_ok();
 
 1;
