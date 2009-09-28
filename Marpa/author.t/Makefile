@@ -22,6 +22,9 @@ critic:
 display:
 	-(cd ..; prove author.t/display.t)
 
+pod:
+	-(cd ..; prove author.t/pod.t)
+
 equation_show_symbols.out:
 	echo 2+2 | perl -I../lib ../bin/mdl parse -grammar \
         ../example/equation.marpa --symbols | \

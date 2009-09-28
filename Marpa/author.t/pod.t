@@ -13,8 +13,8 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Perl::Critic 1.098',
-	'Test::Perl::Critic 1.01',
+	'Pod::Simple 3.07',
+	'Test::Pod 1.26',
 );
 
 # Don't run tests during end-user installs
@@ -55,15 +55,15 @@ FILE: while ( my $file = <$manifest> ) {
     my ($ext) = $file =~ / [.] ([^.]+) \z /xms;
     next FILE if not defined $ext;
     $ext = lc $ext;
-    next FILE
-        if $ext ne 'pl'
-            and $ext ne 'pm'
-            and $ext ne 't';
-
-    push @test_files, $file;
+    given ($ext) {
+        when ('pl')  { push @test_files, $file }
+        when ('pod') { push @test_files, $file }
+        when ('t')   { push @test_files, $file }
+        when ('pm')  { push @test_files, $file }
+    } ## end given
 }    # FILE
 close $manifest;
 
-all_critic_ok(@test_files);
+all_pod_files_ok();
 
 1;
