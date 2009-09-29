@@ -1919,12 +1919,12 @@ sub add_terminal {
     while ( my ( $key, $value ) = each %{$options} ) {
         given ($key) {
             when ('priority') { $priority = $value; }
-            when ('action')   { $action        = $value; }
-            when ('prefix')   { $prefix        = $value; }
-            when ('suffix')   { $suffix        = $value; }
-            when ('regex')    { $regex         = $value; }
-            when ('maximal')  { $maximal       = $value; }
-            when ('minimal')  { $minimal       = $value; }
+            when ('action')   { $action   = $value; }
+            when ('prefix')   { $prefix   = $value; }
+            when ('suffix')   { $suffix   = $value; }
+            when ('regex')    { $regex    = $value; }
+            when ('maximal')  { $maximal  = $value; }
+            when ('minimal')  { $minimal  = $value; }
             default {
                 Marpa::exception(
                     "Attempt to add terminal named $name with unknown option $key"
@@ -1972,18 +1972,18 @@ sub add_terminal {
     my $symbol_count = @{$symbols};
     my $new_symbol   = [];
     $#{$new_symbol} = Marpa::Internal::Symbol::LAST_FIELD;
-    $new_symbol->[Marpa::Internal::Symbol::ID]            = $symbol_count;
-    $new_symbol->[Marpa::Internal::Symbol::NAME]          = $name;
-    $new_symbol->[Marpa::Internal::Symbol::LHS]           = [];
-    $new_symbol->[Marpa::Internal::Symbol::RHS]           = [];
-    $new_symbol->[Marpa::Internal::Symbol::NULLABLE]      = 0;
-    $new_symbol->[Marpa::Internal::Symbol::PRODUCTIVE]    = 1;
-    $new_symbol->[Marpa::Internal::Symbol::NULLING]       = 0;
-    $new_symbol->[Marpa::Internal::Symbol::REGEX]         = $regex;
-    $new_symbol->[Marpa::Internal::Symbol::ACTION]        = $action;
-    $new_symbol->[Marpa::Internal::Symbol::TERMINAL]      = 1;
-    $new_symbol->[Marpa::Internal::Symbol::PRIORITY] = 0;
-    $new_symbol->[Marpa::Internal::Symbol::MAXIMAL]       = $maximal
+    $new_symbol->[Marpa::Internal::Symbol::ID]         = $symbol_count;
+    $new_symbol->[Marpa::Internal::Symbol::NAME]       = $name;
+    $new_symbol->[Marpa::Internal::Symbol::LHS]        = [];
+    $new_symbol->[Marpa::Internal::Symbol::RHS]        = [];
+    $new_symbol->[Marpa::Internal::Symbol::NULLABLE]   = 0;
+    $new_symbol->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
+    $new_symbol->[Marpa::Internal::Symbol::NULLING]    = 0;
+    $new_symbol->[Marpa::Internal::Symbol::REGEX]      = $regex;
+    $new_symbol->[Marpa::Internal::Symbol::ACTION]     = $action;
+    $new_symbol->[Marpa::Internal::Symbol::TERMINAL]   = 1;
+    $new_symbol->[Marpa::Internal::Symbol::PRIORITY]   = 0;
+    $new_symbol->[Marpa::Internal::Symbol::MAXIMAL]    = $maximal
         // $default_maximal;
     $new_symbol->[Marpa::Internal::Symbol::MINIMAL] = $minimal
         // $default_minimal;
@@ -2004,13 +2004,13 @@ sub assign_symbol {
     my $symbol       = $symbol_hash->{$name};
     if ( not defined $symbol ) {
         $#{$symbol} = Marpa::Internal::Symbol::LAST_FIELD;
-        $symbol->[Marpa::Internal::Symbol::ID]            = $symbol_count;
-        $symbol->[Marpa::Internal::Symbol::NAME]          = $name;
-        $symbol->[Marpa::Internal::Symbol::LHS]           = [];
-        $symbol->[Marpa::Internal::Symbol::RHS]           = [];
+        $symbol->[Marpa::Internal::Symbol::ID]       = $symbol_count;
+        $symbol->[Marpa::Internal::Symbol::NAME]     = $name;
+        $symbol->[Marpa::Internal::Symbol::LHS]      = [];
+        $symbol->[Marpa::Internal::Symbol::RHS]      = [];
         $symbol->[Marpa::Internal::Symbol::PRIORITY] = 0;
-        $symbol->[Marpa::Internal::Symbol::NULLABLE]      = 0;
-        $symbol->[Marpa::Internal::Symbol::NULLING]       = 0;
+        $symbol->[Marpa::Internal::Symbol::NULLABLE] = 0;
+        $symbol->[Marpa::Internal::Symbol::NULLING]  = 0;
         push @{$symbols}, $symbol;
         weaken( $symbol_hash->{$name} = $symbol );
     } ## end if ( not defined $symbol )
@@ -2028,8 +2028,6 @@ sub assign_user_symbol {
         if $name =~ /_\z/xms;
     return assign_symbol( $self, $name );
 } ## end sub assign_user_symbol
-
-
 
 sub add_rule {
 
@@ -2116,14 +2114,14 @@ sub add_rule {
     my $new_rule    = [];
     my $nulling     = @{$rhs} ? undef : 1;
 
-    $new_rule->[Marpa::Internal::Rule::ID]            = $new_rule_id;
-    $new_rule->[Marpa::Internal::Rule::LHS]           = $lhs;
-    $new_rule->[Marpa::Internal::Rule::RHS]           = $rhs;
-    $new_rule->[Marpa::Internal::Rule::NULLABLE]      = $nulling;
-    $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
-    $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
-    $new_rule->[Marpa::Internal::Rule::PRIORITY] = $priority;
-    $new_rule->[Marpa::Internal::Rule::MINIMAL]       = $minimal
+    $new_rule->[Marpa::Internal::Rule::ID]         = $new_rule_id;
+    $new_rule->[Marpa::Internal::Rule::LHS]        = $lhs;
+    $new_rule->[Marpa::Internal::Rule::RHS]        = $rhs;
+    $new_rule->[Marpa::Internal::Rule::NULLABLE]   = $nulling;
+    $new_rule->[Marpa::Internal::Rule::PRODUCTIVE] = $nulling;
+    $new_rule->[Marpa::Internal::Rule::ACTION]     = $action;
+    $new_rule->[Marpa::Internal::Rule::PRIORITY]   = $priority;
+    $new_rule->[Marpa::Internal::Rule::MINIMAL]    = $minimal
         // $grammar->[Marpa::Internal::Grammar::MINIMAL];
     $new_rule->[Marpa::Internal::Rule::MAXIMAL] = $maximal
         // $grammar->[Marpa::Internal::Grammar::MAXIMAL];
@@ -2197,7 +2195,7 @@ sub add_user_rules {
             } ## end when ('ARRAY')
             when ('HASH') {
                 $rule->{grammar} = $grammar;
-                add_user_rule( $rule );
+                add_user_rule($rule);
             }
             default {
                 Marpa::exception( 'Invalid rule reftype ',
@@ -2329,7 +2327,7 @@ sub add_user_rule {
             grammar => $grammar,
             lhs     => $lhs,
             rhs     => [],
-            @rule_options
+            @rule_options,
         );
         if ($action) { push @rule_args, action => $action }
         add_rule( {@rule_args} );
@@ -2365,7 +2363,7 @@ sub add_user_rule {
         grammar => $grammar,
         lhs     => $lhs,
         rhs     => [$sequence],
-        @rule_options
+        @rule_options,
     );
     if ($action) {
         push @rule_args,
@@ -2384,7 +2382,7 @@ sub add_user_rule {
             grammar => $grammar,
             lhs     => $lhs,
             rhs     => [ $sequence, $separator, ],
-            @rule_options
+            @rule_options,
         );
         if ($action) {
             push @rule_args,
@@ -3407,15 +3405,15 @@ sub alias_symbol {
     my $alias_name = $nullable_symbol->[Marpa::Internal::Symbol::NAME] . '[]';
     my $alias      = [];
     $#{$alias} = Marpa::Internal::Symbol::LAST_FIELD;
-    $alias->[Marpa::Internal::Symbol::ID]            = $symbol_count;
-    $alias->[Marpa::Internal::Symbol::NAME]          = $alias_name;
-    $alias->[Marpa::Internal::Symbol::LHS]           = [];
-    $alias->[Marpa::Internal::Symbol::RHS]           = [];
-    $alias->[Marpa::Internal::Symbol::ACCESSIBLE]    = $accessible;
-    $alias->[Marpa::Internal::Symbol::PRODUCTIVE]    = $productive;
-    $alias->[Marpa::Internal::Symbol::NULLING]       = 1;
-    $alias->[Marpa::Internal::Symbol::NULL_VALUE]    = $null_value;
-    $alias->[Marpa::Internal::Symbol::PRIORITY] = 0;
+    $alias->[Marpa::Internal::Symbol::ID]         = $symbol_count;
+    $alias->[Marpa::Internal::Symbol::NAME]       = $alias_name;
+    $alias->[Marpa::Internal::Symbol::LHS]        = [];
+    $alias->[Marpa::Internal::Symbol::RHS]        = [];
+    $alias->[Marpa::Internal::Symbol::ACCESSIBLE] = $accessible;
+    $alias->[Marpa::Internal::Symbol::PRODUCTIVE] = $productive;
+    $alias->[Marpa::Internal::Symbol::NULLING]    = 1;
+    $alias->[Marpa::Internal::Symbol::NULL_VALUE] = $null_value;
+    $alias->[Marpa::Internal::Symbol::PRIORITY]   = 0;
     $alias->[Marpa::Internal::Symbol::NULLABLE] =
         $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE];
     $alias->[Marpa::Internal::Symbol::MINIMAL] =
@@ -3513,8 +3511,8 @@ sub rewrite_as_CHAF {
         # from this one
         my @rule_options = (
             priority => $rule->[Marpa::Internal::Rule::PRIORITY],
-            maximal       => $rule->[Marpa::Internal::Rule::MAXIMAL],
-            minimal       => $rule->[Marpa::Internal::Rule::MINIMAL],
+            maximal  => $rule->[Marpa::Internal::Rule::MAXIMAL],
+            minimal  => $rule->[Marpa::Internal::Rule::MINIMAL],
         );
 
         # Keep track of whether the lhs side of any new rules we create should
@@ -3561,11 +3559,15 @@ sub rewrite_as_CHAF {
         }
 
         # Delete these?  Or turn into smart comment assertions?
-        if ($rule->[Marpa::Internal::Rule::VIRTUAL_LHS]) {
-            Marpa::exception("Internal Error: attempted CHAF rewrite of rule with virtual LHS");
+        if ( $rule->[Marpa::Internal::Rule::VIRTUAL_LHS] ) {
+            Marpa::exception(
+                'Internal Error: attempted CHAF rewrite of rule with virtual LHS'
+            );
         }
-        if ($rule->[Marpa::Internal::Rule::VIRTUAL_RHS]) {
-            Marpa::exception("Internal Error: attempted CHAF rewrite of rule with virtual RHS");
+        if ( $rule->[Marpa::Internal::Rule::VIRTUAL_RHS] ) {
+            Marpa::exception(
+                'Internal Error: attempted CHAF rewrite of rule with virtual RHS'
+            );
         }
 
         # The left hand side of the first subproduction is the lhs of the original rule
@@ -3769,9 +3771,9 @@ sub rewrite_as_CHAF {
                 # highest, last is lowest, but middle two are
                 # reversed.
                 my $new_rule = add_rule(
-                    {   grammar           => $grammar,
-                        lhs               => $subproduction_lhs,
-                        rhs               => $factor_rhs,
+                    {   grammar => $grammar,
+                        lhs     => $subproduction_lhs,
+                        rhs     => $factor_rhs,
                         @rule_options
                     }
                 );

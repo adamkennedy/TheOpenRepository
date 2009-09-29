@@ -399,12 +399,13 @@ sub set_actions {
         }
 
         # assignment instead of comparison is deliberate
-        if (my $rhs_ops = $rule->[Marpa::Internal::Rule::VIRTUAL_RHS] ) {
-            push @{$ops}, Marpa::Internal::Evaluator_Op::VIRTUAL_RHS, $rhs_ops;
+        if ( my $rhs_ops = $rule->[Marpa::Internal::Rule::VIRTUAL_RHS] ) {
+            push @{$ops}, Marpa::Internal::Evaluator_Op::VIRTUAL_RHS,
+                $rhs_ops;
         }
 
         # assignment instead of comparison is deliberate
-        if ($rule->[Marpa::Internal::Rule::VIRTUAL_LHS] ) {
+        if ( $rule->[Marpa::Internal::Rule::VIRTUAL_LHS] ) {
             push @{$ops}, Marpa::Internal::Evaluator_Op::VIRTUAL_LHS;
             next RULE;
         }
@@ -3113,6 +3114,7 @@ sub Marpa::Evaluator::value {
                     my $op_ix        = 0;
                     while ( $op_ix < scalar @{$ops} ) {
                         given ( $ops->[ $op_ix++ ] ) {
+
                             when (Marpa::Internal::Evaluator_Op::ARGC) {
                                 my $argc = $ops->[ $op_ix++ ];
                                 $current_data =
@@ -3137,8 +3139,8 @@ sub Marpa::Evaluator::value {
                                 } ## end if ($trace_values)
 
                             } ## end when (Marpa::Internal::Evaluator_Op::ARGC)
-                            when
-                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_RHS )
+
+                            when (Marpa::Internal::Evaluator_Op::VIRTUAL_RHS)
                             {
                                 my $rhs_ops = $ops->[ $op_ix++ ];
                                 my @new_data;
@@ -3202,9 +3204,9 @@ sub Marpa::Evaluator::value {
                                     } ## end given
                                 } ## end for my $rhs_ix ( 0 .. $#{$rhs_ops} )
                                 $current_data = \@new_data;
-                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_RHS )
-                            when
-                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_LHS )
+                            } ## end when (Marpa::Internal::Evaluator_Op::VIRTUAL_RHS)
+
+                            when (Marpa::Internal::Evaluator_Op::VIRTUAL_LHS)
                             {
 
                                 if ($trace_values) {
@@ -3213,27 +3215,28 @@ sub Marpa::Evaluator::value {
                                     }
                                     'Virtual LHS: Pushing 1 value on stack',
                                         or Marpa::exception(
-                                        'Could not print to trace file' );
+                                        'Could not print to trace file');
                                 } ## end if ($trace_values)
 
                                 push @evaluation_stack, \$current_data;
-                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_LHS )
+                            } ## end when (Marpa::Internal::Evaluator_Op::VIRTUAL_LHS)
+
                             when
                                 ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT
                                 )
                             {
-
                                 if ($trace_values) {
                                     say {
                                         $trace_fh
                                     }
                                     'Constant result: Pushing 1 value on stack',
                                         or Marpa::exception(
-                                        'Could not print to trace file' );
+                                        'Could not print to trace file');
                                 } ## end if ($trace_values)
                                 my $result = $ops->[ $op_ix++ ];
                                 push @evaluation_stack, $result;
                             } ## end when ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT)
+
                             when (Marpa::Internal::Evaluator_Op::CALL) {
                                 my $closure = $ops->[ $op_ix++ ];
                                 my $result;
@@ -3290,9 +3293,11 @@ sub Marpa::Evaluator::value {
                                 push @evaluation_stack, \$result;
 
                             } ## end when (Marpa::Internal::Evaluator_Op::CALL)
+
                             default {
                                 Marpa::Exception("Unknown evaluator Op: $_");
                             }
+
                         } ## end given
                     } ## end while ( $op_ix < scalar @{$ops} )
 
