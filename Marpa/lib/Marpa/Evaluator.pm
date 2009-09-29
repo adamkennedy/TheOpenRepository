@@ -3138,8 +3138,7 @@ sub Marpa::Evaluator::value {
 
                             } ## end when (Marpa::Internal::Evaluator_Op::ARGC)
                             when
-                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_RHS
-                                )
+                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_RHS )
                             {
                                 my $rhs_ops = $ops->[ $op_ix++ ];
                                 my @new_data;
@@ -3149,17 +3148,49 @@ sub Marpa::Evaluator::value {
                                             ( Marpa::Internal::Rhs_Op::DISCARD
                                             )
                                         {
+
+                                            if ($trace_values) {
+                                                say {
+                                                    $trace_fh
+                                                }
+                                                "RHS Op: symbol $rhs_ix; Discard"
+                                                    or Marpa::exception(
+                                                    'Could not print to trace file'
+                                                    );
+                                            } ## end if ($trace_values)
+
                                             break
                                         } ## end when ( Marpa::Internal::Rhs_Op::DISCARD )
-                                        when ( Marpa::Internal::Rhs_Op::REAL )
-                                        {
+                                        when (Marpa::Internal::Rhs_Op::REAL) {
+
+                                            if ($trace_values) {
+                                                say {
+                                                    $trace_fh
+                                                }
+                                                "RHS Op: symbol $rhs_ix; Real"
+                                                    or Marpa::exception(
+                                                    'Could not print to trace file'
+                                                    );
+                                            } ## end if ($trace_values)
+
                                             push @new_data,
                                                 $current_data->[$rhs_ix]
-                                        }
+                                        } ## end when (Marpa::Internal::Rhs_Op::REAL)
                                         when
                                             ( Marpa::Internal::Rhs_Op::VIRTUAL
                                             )
                                         {
+
+                                            if ($trace_values) {
+                                                say {
+                                                    $trace_fh
+                                                }
+                                                "RHS Op: symbol $rhs_ix; VIRTUAL"
+                                                    or Marpa::exception(
+                                                    'Could not print to trace file'
+                                                    );
+                                            } ## end if ($trace_values)
+
                                             push @new_data,
                                                 @{ $current_data->[$rhs_ix] }
                                         } ## end when ( Marpa::Internal::Rhs_Op::VIRTUAL )
@@ -3171,17 +3202,35 @@ sub Marpa::Evaluator::value {
                                     } ## end given
                                 } ## end for my $rhs_ix ( 0 .. $#{$rhs_ops} )
                                 $current_data = \@new_data;
-                            } ## end when ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT)
+                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_RHS )
                             when
-                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_LHS
-                                )
+                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_LHS )
                             {
-                                push @evaluation_stack, $current_data;
-                            } ## end when ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT)
+
+                                if ($trace_values) {
+                                    say {
+                                        $trace_fh
+                                    }
+                                    'Virtual LHS: Pushing 1 value on stack',
+                                        or Marpa::exception(
+                                        'Could not print to trace file' );
+                                } ## end if ($trace_values)
+
+                                push @evaluation_stack, \$current_data;
+                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_LHS )
                             when
                                 ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT
                                 )
                             {
+
+                                if ($trace_values) {
+                                    say {
+                                        $trace_fh
+                                    }
+                                    'Constant result: Pushing 1 value on stack',
+                                        or Marpa::exception(
+                                        'Could not print to trace file' );
+                                } ## end if ($trace_values)
                                 my $result = $ops->[ $op_ix++ ];
                                 push @evaluation_stack, $result;
                             } ## end when ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT)
