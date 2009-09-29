@@ -1,0 +1,139 @@
+=head1 NAME
+
+Parse::Marpa::Doc::To_Do - Marpa's To Do List
+
+=head1 HIGH PRIORITY
+
+=over 4
+
+=item * Make minimal work for null symbols.
+
+=item * Forbid simulatenous MAXIMAL & MINIMAL setting on rules & symbols.
+    Combine them internally as ::GREEDY
+
+=item * Add ah_minimal.t -- ah2.t with minimal set on the grammar
+
+=item * Add optimizations when max_parses <= 1
+    For example, no need to prune duplicate parses
+
+=item * Ensure -ENV is not on for smart comments when I leave alpha
+
+=item * Should or_map's be hashes instead of array?  How many duplicate
+entries are there and what's the cost?
+
+=item * Add MAX_COUNT for rules.  Implement on one of left- and right-
+    recursion only.  No immediate need for both.
+
+=item * Factor out MDL so that it works by calling (or creating options
+    for a call to) Grammar::new or Grammar::set.
+
+=item * Factor out MDL Lexer.
+
+=item * Convert all cloning & stringization to Storable.
+
+=item * Test: Are regexes Storable's?
+
+=item * Remove code_diag.t tests for string closures.  Probably can
+    remove all of code_diag.t.
+
+=item * Check Parse::Marpa TODO list.
+
+=item * Add arguments for INITIAL_ACTION, FINAL_ACTION, ACTIONS.
+     Make sure there are tests for them.
+
+=back
+
+=head1 MEDIUM PRIORITY
+
+=over 4
+
+=item * Allow cloning of unstripped recognizers
+
+=item * Add a SYNOPSIS to the Plumbing document.
+
+=item * Parse bocage creation can probably be made a bit slightly cleaner.
+At least I think so, based on what I found when revising that part of the
+Internals doc.
+
+=item * Make sure that nulling symbols can never be terminals
+
+=back
+
+=head1 LOW PRIORITY
+
+=over 4
+
+=item * Add a trace_choices option.  There was an option to trace
+non-trivial evaluation choices in the old evaluator, and the new trace_iterations
+doesn't entirely replace it.
+
+=item * Add a show_derivation option.
+
+=item * Add to test set: Basic tests of sequences.
+The matrix is separation (none/perl5/proper);
+and minimium count (0 or 1);
+keep vs. no-keep.
+
+=back
+
+=head1 MAYBE, MAYBE NOT
+
+=over 4
+
+=item * Test lexing suffixes?  Remove them?
+
+=item * Speed-up for pre-computing lexables?  Predict lexables based
+on user request?
+
+=item * C<show_tree> before first call to C<value>?  Should
+it cause an error message?  How about after unsuccessful
+call to C<value>?
+
+=back
+
+=head2 Other Changes
+
+=over 4
+
+=item * Allow alternation?
+
+=item * Downgrade version conflict or semantics mismatch to warning?
+
+=item * Add C<{}> and C<[]> syntax to MDL production statements.
+
+=back
+
+=head1 OTHER FROZEN
+
+=head2 Lifting Restrictions on Sequence Productions
+
+The restriction of sequences to sequence productions and of
+sequence productions to a single sequence
+is not the result of any limit of the Marpa parse engine.
+It would not be hard to allow any number of
+sequences and optional sequences on the right hand
+side of any BNF production.
+I'm open to revisiting this issue and lifting the restriction.
+
+The problem is figuring out how to conveniently specify their semantics.
+As the right hand side of a production grows more complex,
+the semantics becomes
+more complex to write, more bug-prone, and harder to debug.
+
+=head1 SUPPORT
+
+See the L<support section|Parse::Marpa/SUPPORT> in the main module.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007 - 2008 Jeffrey Kegler
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl 5.10.0.
+
+=cut
+

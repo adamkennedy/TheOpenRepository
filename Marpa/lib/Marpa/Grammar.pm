@@ -31,7 +31,7 @@ use Marpa::Offset qw(
     IS_CHAF_NULLING
     NULL_ALIAS
     NULLING
-    USER_PRIORITY
+    PRIORITY
 
     MINIMAL MAXIMAL { Maximal (longest possible)
         or minimal (shortest possible) evaluation
@@ -75,7 +75,7 @@ use Marpa::Offset qw(
 #                   otherwise undef
 # TERMINAL        - terminal?
 # CLOSURE         - closure to do lexing
-# USER_PRIORITY        - order, for lexing
+# PRIORITY        - order, for lexing
 # COUNTED         - used on rhs of counted rule?
 # ACTION          - lexing action specified by user
 # PREFIX          - lexing prefix specified by user
@@ -92,9 +92,10 @@ use Marpa::Offset qw(
 
     USEFUL ACTION
     CODE CYCLE
-    USER_PRIORITY
+    PRIORITY
     MAXIMAL MINIMAL
     HAS_CHAF_LHS HAS_CHAF_RHS
+    VIRTUAL_LHS VIRTUAL_RHS
 
     =LAST_EVALUATOR_FIELD
     =LAST_RECOGNIZER_FIELD
@@ -119,13 +120,20 @@ CLOSURE - closure for evaluating this rule
 ORIGINAL_RULE - for a rewritten rule, the original
 HAS_CHAF_LHS  - has CHAF internal symbol as lhs?
 HAS_CHAF_RHS - has CHAF internal symbol on rhs?
-USER_PRIORITY - rule priority, from user
+PRIORITY - rule priority, from user
 CODE - code used to create closure
 CYCLE - is this rule part of a cycle?
 
 =end Implementation:
 
 =cut
+
+use Marpa::Offset qw(
+
+    :package=Marpa::Internal::Rhs_Op
+    DISCARD REAL VIRTUAL
+
+);
 
 use Marpa::Offset qw(
 
@@ -1716,9 +1724,9 @@ sub Marpa::show_rule {
         push @comment, $comment;
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
 
-    my $user_priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
-    if ($user_priority) {
-        push @comment, "priority=$user_priority";
+    my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
+    if ($priority) {
+        push @comment, "priority=$priority";
     }
 
     my $text = Marpa::brief_rule($rule);
@@ -1904,13 +1912,13 @@ sub add_terminal {
     my $options = shift;
     my ( $regex, $prefix, $suffix, );
     my $action;
-    my $user_priority = 0;
+    my $priority = 0;
     my $maximal;
     my $minimal;
 
     while ( my ( $key, $value ) = each %{$options} ) {
         given ($key) {
-            when ('priority') { $user_priority = $value; }
+            when ('priority') { $priority = $value; }
             when ('action')   { $action        = $value; }
             when ('prefix')   { $prefix        = $value; }
             when ('suffix')   { $suffix        = $value; }
@@ -1974,7 +1982,7 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::REGEX]         = $regex;
     $new_symbol->[Marpa::Internal::Symbol::ACTION]        = $action;
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]      = 1;
-    $new_symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
+    $new_symbol->[Marpa::Internal::Symbol::PRIORITY] = 0;
     $new_symbol->[Marpa::Internal::Symbol::MAXIMAL]       = $maximal
         // $default_maximal;
     $new_symbol->[Marpa::Internal::Symbol::MINIMAL] = $minimal
@@ -2000,7 +2008,7 @@ sub assign_symbol {
         $symbol->[Marpa::Internal::Symbol::NAME]          = $name;
         $symbol->[Marpa::Internal::Symbol::LHS]           = [];
         $symbol->[Marpa::Internal::Symbol::RHS]           = [];
-        $symbol->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
+        $symbol->[Marpa::Internal::Symbol::PRIORITY] = 0;
         $symbol->[Marpa::Internal::Symbol::NULLABLE]      = 0;
         $symbol->[Marpa::Internal::Symbol::NULLING]       = 0;
         push @{$symbols}, $symbol;
@@ -2021,75 +2029,7 @@ sub assign_user_symbol {
     return assign_symbol( $self, $name );
 } ## end sub assign_user_symbol
 
-sub add_user_rule {
-    my ($arg_hash) = @_;
-    Marpa::exception('Argument to add_user_rule is not HASH ref')
-        if ref $arg_hash ne 'HASH';
 
-    my %arg_copy = %{$arg_hash};
-    my $grammar  = $arg_copy{grammar};
-    Marpa::exception('Missing grammar argument to add_user_rule')
-        if not defined $grammar;
-    my $lhs_name = $arg_copy{lhs};
-    Marpa::exception('Missing lhs argument to add_user_rule')
-        if not defined $lhs_name;
-    my $rhs_names         = $arg_copy{rhs};
-    my $action            = $arg_copy{action};
-    my $user_priority     = $arg_copy{user_priority};
-    my $internal_priority = $arg_copy{internal_priority};
-
-    my $rule_signature_hash =
-        $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH];
-
-    my $lhs_symbol = $arg_copy{lhs} =
-        assign_user_symbol( $grammar, $lhs_name );
-    $rhs_names //= [];
-    my $rhs_symbols = $arg_copy{rhs} =
-        [ map { assign_user_symbol( $grammar, $_ ); } @{$rhs_names} ];
-
-    # Don't allow the user to duplicate a rule
-    my $rule_signature = join q{,},
-        map { $_->[Marpa::Internal::Symbol::ID] }
-        ( $lhs_symbol, @{$rhs_symbols} );
-    Marpa::exception( 'Duplicate rule: ',
-        $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ) )
-        if exists $rule_signature_hash->{$rule_signature};
-
-    $user_priority //= 0;
-
-    if ( $user_priority & Marpa::Internal::Grammar::PRIORITY_MASK ) {
-        Marpa::exception(
-            #<<< no perltidy
-            "Rule user priority too high\n",
-            "  Rule has user priority $user_priority\n",
-            '  Rule: ',
-                $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ),
-                "\n"
-            #>>>
-        );
-    } ## end if ( $user_priority & Marpa::Internal::Grammar::PRIORITY_MASK)
-
-    if ( $user_priority < 0 ) {
-
-        # Add zero to make sure it gets reported as a negative number
-        $user_priority += 0;
-
-        Marpa::exception(
-            "User priority must be non-negative:\n",
-            " Priority given was $user_priority\n",
-            ' Rule:',
-            $lhs_name,
-            ' -> ',
-            ( join q{ }, @{$rhs_names} ),
-            "\n"
-        );
-
-    } ## end if ( $user_priority < 0 )
-
-    $rule_signature_hash->{$rule_signature} = 1;
-
-    return add_rule( \%arg_copy );
-} ## end sub add_user_rule
 
 sub add_rule {
 
@@ -2098,21 +2038,23 @@ sub add_rule {
     my $lhs;
     my $rhs;
     my $action;
-    my $user_priority;
-    my $internal_priority;
     my $maximal;
     my $minimal;
+    my $priority;
+    my $virtual_lhs;
+    my $virtual_rhs;
 
     while ( my ( $option, $value ) = each %{$arg_hash} ) {
         given ($option) {
-            when ('grammar')           { $grammar           = $value }
-            when ('lhs')               { $lhs               = $value }
-            when ('rhs')               { $rhs               = $value }
-            when ('action')            { $action            = $value }
-            when ('internal_priority') { $internal_priority = $value }
-            when ('user_priority')     { $user_priority     = $value }
-            when ('maximal')           { $maximal           = $value }
-            when ('minimal')           { $minimal           = $value }
+            when ('grammar')     { $grammar     = $value }
+            when ('lhs')         { $lhs         = $value }
+            when ('rhs')         { $rhs         = $value }
+            when ('action')      { $action      = $value }
+            when ('priority')    { $priority    = $value }
+            when ('maximal')     { $maximal     = $value }
+            when ('minimal')     { $minimal     = $value }
+            when ('virtual_lhs') { $virtual_lhs = $value }
+            when ('virtual_rhs') { $virtual_rhs = $value }
             default {
                 Marpa::exception("Unknown option in rule: $option");
             };
@@ -2151,12 +2093,12 @@ sub add_rule {
         } ## end if ( $rhs_length & Marpa::Internal::Grammar::RHS_LENGTH_MASK)
     }
 
-    $user_priority //= 0;
-    if ( $user_priority & Marpa::Internal::Grammar::PRIORITY_MASK ) {
+    $priority //= 0;
+    if ( $priority & Marpa::Internal::Grammar::PRIORITY_MASK ) {
         Marpa::exception(
             #<<< no perltidy
-            "Rule user priority too high\n",
-            '  Rule #', $#{$rules}, " has user priority $user_priority\n",
+            "Rule priority too high\n",
+            '  Rule #', $#{$rules}, " has priority $priority\n",
             '  Rule #', $#{$rules}, ': ',
                 $lhs->[Marpa::Internal::Symbol::NAME], ' -> ',
                 join(
@@ -2168,7 +2110,7 @@ sub add_rule {
                 "\n"
             #>>>
         );
-    } ## end if ( $user_priority & Marpa::Internal::Grammar::PRIORITY_MASK)
+    } ## end if ( $priority & Marpa::Internal::Grammar::PRIORITY_MASK)
 
     my $new_rule_id = @{$rules};
     my $new_rule    = [];
@@ -2180,11 +2122,13 @@ sub add_rule {
     $new_rule->[Marpa::Internal::Rule::NULLABLE]      = $nulling;
     $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = $nulling;
     $new_rule->[Marpa::Internal::Rule::ACTION]        = $action;
-    $new_rule->[Marpa::Internal::Rule::USER_PRIORITY] = $user_priority;
+    $new_rule->[Marpa::Internal::Rule::PRIORITY] = $priority;
     $new_rule->[Marpa::Internal::Rule::MINIMAL]       = $minimal
         // $grammar->[Marpa::Internal::Grammar::MINIMAL];
     $new_rule->[Marpa::Internal::Rule::MAXIMAL] = $maximal
         // $grammar->[Marpa::Internal::Grammar::MAXIMAL];
+    $new_rule->[Marpa::Internal::Rule::VIRTUAL_LHS] = $virtual_lhs;
+    $new_rule->[Marpa::Internal::Rule::VIRTUAL_RHS] = $virtual_rhs;
 
     push @{$rules}, $new_rule;
     {
@@ -2240,19 +2184,20 @@ sub add_user_rules {
                             . 'Rule must have from 1 to 3 arguments'
                     );
                 } ## end if ( $arg_count > 4 or $arg_count < 1 )
-                my ( $lhs, $rhs, $action, $user_priority ) = @{$rule};
+                my ( $lhs, $rhs, $action, $priority ) = @{$rule};
                 add_user_rule(
-                    {   grammar       => $grammar,
-                        lhs           => $lhs,
-                        rhs           => $rhs,
-                        action        => $action,
-                        user_priority => $user_priority
+                    {   grammar  => $grammar,
+                        lhs      => $lhs,
+                        rhs      => $rhs,
+                        action   => $action,
+                        priority => $priority
                     }
                 );
 
             } ## end when ('ARRAY')
             when ('HASH') {
-                add_rule_from_hash( $grammar, $rule );
+                $rule->{grammar} = $grammar;
+                add_user_rule( $rule );
             }
             default {
                 Marpa::exception( 'Invalid rule reftype ',
@@ -2266,39 +2211,88 @@ sub add_user_rules {
 
 } ## end sub add_user_rules
 
-sub add_rule_from_hash {
-    my $grammar = shift;
+sub add_user_rule {
     my $options = shift;
 
+    my $grammar;
     my ( $lhs_name, $rhs_names, $action );
     my ( $min, $separator_name );
     my $proper_separation = 0;
     my $keep_separation   = 0;
-    my $left_associative  = 1;
-    my $user_priority     = 0;
+    my $priority          = 0;
 
     my @rule_options;
     while ( my ( $option, $value ) = each %{$options} ) {
         given ($option) {
-            when ('rhs')               { $rhs_names         = $value }
-            when ('lhs')               { $lhs_name          = $value }
-            when ('action')            { $action            = $value }
-            when ('min')               { $min               = $value }
-            when ('separator')         { $separator_name    = $value }
-            when ('proper_separation') { $proper_separation = $value }
-            when ('left_associative')  { $left_associative  = $value }
-            when ('right_associative') { $left_associative  = !$value }
+            when ('grammar')   { $grammar           = $value }
+            when ('rhs')       { $rhs_names         = $value }
+            when ('lhs')       { $lhs_name          = $value }
+            when ('action')    { $action            = $value }
+            when ('min')       { $min               = $value }
+            when ('separator') { $separator_name    = $value }
+            when ('proper')    { $proper_separation = $value }
+            when ('keep')      { $keep_separation   = $value }
             when ('priority') {
-                push @rule_options, user_priority => $value
+                push @rule_options, priority => $value
             }
             default {
-                push @rule_options, $option => $value;
+                Marpa::exception("Unknown user rule option: $option");
             };
         } ## end given
     } ## end while ( my ( $option, $value ) = each %{$options} )
 
-    Marpa::exception('Only left associative sequences available')
-        if not $left_associative;
+    my $rule_signature_hash =
+        $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH];
+
+    Marpa::exception('Missing grammar argument to add_user_rule')
+        if not defined $grammar;
+    Marpa::exception('Missing lhs argument to add_user_rule')
+        if not defined $lhs_name;
+
+    my $lhs = assign_user_symbol( $grammar, $lhs_name );
+    $rhs_names //= [];
+    my $rhs = [ map { assign_user_symbol( $grammar, $_ ); } @{$rhs_names} ];
+
+    # Don't allow the user to duplicate a rule
+    my $rule_signature = join q{,},
+        map { $_->[Marpa::Internal::Symbol::ID] } ( $lhs, @{$rhs} );
+    Marpa::exception( 'Duplicate rule: ',
+        $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ) )
+        if exists $rule_signature_hash->{$rule_signature};
+
+    $priority //= 0;
+
+    if ( $priority & Marpa::Internal::Grammar::PRIORITY_MASK ) {
+        Marpa::exception(
+            #<<< no perltidy
+            "Rule priority too high\n",
+            "  Rule has priority $priority\n",
+            '  Rule: ',
+                $lhs_name, ' -> ', ( join q{ }, @{$rhs_names} ),
+                "\n"
+            #>>>
+        );
+    } ## end if ( $priority & Marpa::Internal::Grammar::PRIORITY_MASK)
+
+    if ( $priority < 0 ) {
+
+        # Add zero to make sure it gets reported as a negative number
+        $priority += 0;
+
+        Marpa::exception(
+            "Priority must be non-negative:\n",
+            " Priority given was $priority\n",
+            ' Rule:',
+            $lhs_name,
+            ' -> ',
+            ( join q{ }, @{$rhs_names} ),
+            "\n"
+        );
+
+    } ## end if ( $priority < 0 )
+
+    $rule_signature_hash->{$rule_signature} = 1;
+
     Marpa::exception('If min is defined for a rule, it must be 0 or 1')
         if defined $min
             and $min != 0
@@ -2313,10 +2307,10 @@ sub add_rule_from_hash {
 
         # This is an ordinary, non-counted rule,
         # which we'll take care of first as a special case
-        my $ordinary_rule = add_user_rule(
+        my $ordinary_rule = add_rule(
             {   grammar => $grammar,
-                lhs     => $lhs_name,
-                rhs     => $rhs_names,
+                lhs     => $lhs,
+                rhs     => $rhs,
                 action  => $action,
                 @rule_options
             }
@@ -2331,33 +2325,22 @@ sub add_rule_from_hash {
 
     # nulling rule is special case
     if ( $min == 0 ) {
-        my $rule_action;
-        given ($action) {
-            when (undef) { $rule_action = undef }
-            default {
-                ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-                $rule_action = q{ @_ = (); } . $action;
-                ## use critic
-            }
-        } ## end given
-        add_user_rule(
-            {   grammar => $grammar,
-                lhs     => $lhs_name,
-                rhs     => [],
-                action  => $rule_action,
-                @rule_options
-            }
+        my @rule_args = (
+            grammar => $grammar,
+            lhs     => $lhs,
+            rhs     => [],
+            @rule_options
         );
+        if ($action) { push @rule_args, action => $action }
+        add_rule( {@rule_args} );
         $min = 1;
     } ## end if ( $min == 0 )
 
     Marpa::exception('Only one rhs symbol allowed for counted rule')
         if scalar @{$rhs_names} != 1;
 
-    # create the rhs symbol
-    my $rhs_name = pop @{$rhs_names};
-    my $rhs = assign_user_symbol( $grammar, $rhs_name );
-    $rhs->[Marpa::Internal::Symbol::COUNTED] = 1;
+    my $sequence_rhs = $rhs->[0];
+    $sequence_rhs->[Marpa::Internal::Symbol::COUNTED] = 1;
 
     # create the separator symbol, if we're using one
     my $separator;
@@ -2367,7 +2350,7 @@ sub add_rule_from_hash {
     }
 
     # create the sequence symbol
-    my $sequence_name = $rhs_name . "[Seq:$min-*]";
+    my $sequence_name = $rhs_names->[0] . "[Seq:$min-*]";
     if ( defined $separator_name ) {
         my $punctuation_free_separator_name = $separator_name;
         $punctuation_free_separator_name =~ s/[^[:alnum:]]/_/gxms;
@@ -2378,151 +2361,79 @@ sub add_rule_from_hash {
     $sequence_name .= $unique_name_piece;
     my $sequence = assign_symbol( $grammar, $sequence_name );
 
-    my $lhs = assign_user_symbol( $grammar, $lhs_name );
-
-    # Don't allow the user to duplicate a rule
-    # I'm pretty general here -- I consider a sequence rule a duplicate if rhs, lhs
-    # and separator are the same.  I may want to get more fancy, but save that
-    # for later.
-    {
-        my $rule_hash =
-            $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH];
-        my @key_rhs =
-            defined $separator ? ( $rhs, $separator, $rhs ) : ($rhs);
-        my $rule_signature = join q{,},
-            map { $_->[Marpa::Internal::Symbol::ID] } ( $lhs, @key_rhs );
-        Marpa::exception( 'Duplicate rule: ',
-            $lhs_name, q{ -> }, ( join q{,}, @{$rhs_names} ) )
-            if exists $rule_hash->{$rule_signature};
-        $rule_hash->{$rule_signature} = 1;
-    }
-
-    my $rule_action;
-    given ($action) {
-        when (undef) { $rule_action = undef; }
-        default {
-            if ($left_associative) {
-
-                # more efficient way to do this?
-                $rule_action =
-
-                    <<'EO_CODE'
-    HEAD: while (1) {
-        my $head = shift @_;
-        last HEAD if not scalar @{$head};
-        unshift(@_, @{$head});
-    }
-EO_CODE
-
-            } ## end if ($left_associative)
-            else {
-                Marpa::exception('Only left associative sequences available');
-            }
-            $rule_action .= $action;
-        } ## end default
-    } ## end given
-
-    add_rule(
-        {   grammar => $grammar,
-            lhs     => $lhs,
-            rhs     => [$sequence],
-            action  => $rule_action,
-            @rule_options
-        }
+    my @rule_args = (
+        grammar => $grammar,
+        lhs     => $lhs,
+        rhs     => [$sequence],
+        @rule_options
     );
+    if ($action) {
+        push @rule_args,
+            virtual_rhs => [Marpa::Internal::Rhs_Op::VIRTUAL],
+            action      => $action;
+    }
+    add_rule( {@rule_args} );
+
+    my $separator_op =
+        $keep_separation
+        ? Marpa::Internal::Rhs_Op::REAL
+        : Marpa::Internal::Rhs_Op::DISCARD;
 
     if ( defined $separator and not $proper_separation ) {
-        if ( not $keep_separation ) {
-            ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-            $rule_action = q{ pop @_; } . ( $rule_action // q{} );
-            ## use critic
-        }
-        add_rule(
-            {   grammar => $grammar,
-                lhs     => $lhs,
-                rhs     => [ $sequence, $separator, ],
-                action  => $rule_action,
-                @rule_options
-            }
+        @rule_args = (
+            grammar => $grammar,
+            lhs     => $lhs,
+            rhs     => [ $sequence, $separator, ],
+            @rule_options
         );
+        if ($action) {
+            push @rule_args,
+                virtual_rhs =>
+                [ Marpa::Internal::Rhs_Op::VIRTUAL, $separator_op ],
+                action => $action;
+        } ## end if ($action)
+        add_rule( {@rule_args} );
     } ## end if ( defined $separator and not $proper_separation )
 
-    my @separated_rhs = ($rhs);
+    my @separated_rhs     = ($sequence_rhs);
+    my @separated_rhs_ops = (Marpa::Internal::Rhs_Op::REAL);
     if ( defined $separator ) {
-        push @separated_rhs, $separator;
+        push @separated_rhs,     $separator;
+        push @separated_rhs_ops, $separator_op;
     }
 
     # minimal sequence rule
-    my $counted_rhs = [ (@separated_rhs) x ( $min - 1 ), $rhs ];
-
-    if ($left_associative) {
-        if ( defined $separator and not $keep_separation ) {
-            $rule_action =
-
-                <<'EO_CODE'
-    [
-        [],
-        @_[
-            grep { !($_ % 2) } (0 .. $#_)
-        ]
-    ]
-EO_CODE
-
-        } ## end if ( defined $separator and not $keep_separation )
-        else {
-
-            ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-            $rule_action = q{ unshift(@_, []); } . "\n" . q{ \@_ } . "\n";
-            ## use critic
-        } ## end else [ if ( defined $separator and not $keep_separation ) ]
-    } ## end if ($left_associative)
-    else {
-        Marpa::exception('Only left associative sequences available');
-    }
-
+    my $counted_rhs = [ (@separated_rhs) x ( $min - 1 ), $sequence_rhs ];
+    my $counted_rhs_ops =
+        [ (@separated_rhs_ops) x ( $min - 1 ),
+        Marpa::Internal::Rhs_Op::REAL ];
     add_rule(
-        {   grammar => $grammar,
-            lhs     => $sequence,
-            rhs     => $counted_rhs,
-            action  => $rule_action,
+        {   grammar     => $grammar,
+            lhs         => $sequence,
+            rhs         => $counted_rhs,
+            virtual_lhs => 1,
+            virtual_rhs => $counted_rhs_ops,
             @rule_options
         }
     );
 
     # iterating sequence rule
-    if ( defined $separator and not $keep_separation ) {
-        $rule_action =
-
-            <<'EO_CODE'
-    [
-        @_[
-           grep { !($_ % 2) } (0 .. $#_)
-        ],
-    ]
-EO_CODE
-
-    } ## end if ( defined $separator and not $keep_separation )
-    else {
-
-        $rule_action = "\n" . '\@_' . "\n";
-
-    }
     my @iterating_rhs = ( @separated_rhs, $sequence );
-    if ($left_associative) {
-        @iterating_rhs = reverse @iterating_rhs;
-    }
+    my @iterating_rhs_ops =
+        ( @separated_rhs_ops, Marpa::Internal::Rhs_Op::VIRTUAL );
     add_rule(
-        {   grammar => $grammar,
-            lhs     => $sequence,
-            rhs     => \@iterating_rhs,
-            action  => $rule_action,
+        {   grammar     => $grammar,
+            lhs         => $sequence,
+            rhs         => \@iterating_rhs,
+            virtual_lhs => 1,
+            virtual_rhs => \@iterating_rhs_ops,
             @rule_options
         }
     );
 
     return;
 
-} ## end sub add_rule_from_hash
+} ## end sub add_user_rule
 
 sub add_user_terminals {
     my $grammar   = shift;
@@ -3504,7 +3415,7 @@ sub alias_symbol {
     $alias->[Marpa::Internal::Symbol::PRODUCTIVE]    = $productive;
     $alias->[Marpa::Internal::Symbol::NULLING]       = 1;
     $alias->[Marpa::Internal::Symbol::NULL_VALUE]    = $null_value;
-    $alias->[Marpa::Internal::Symbol::USER_PRIORITY] = 0;
+    $alias->[Marpa::Internal::Symbol::PRIORITY] = 0;
     $alias->[Marpa::Internal::Symbol::NULLABLE] =
         $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE];
     $alias->[Marpa::Internal::Symbol::MINIMAL] =
@@ -3601,7 +3512,7 @@ sub rewrite_as_CHAF {
         # options to be "inherited" by all the rules we create
         # from this one
         my @rule_options = (
-            user_priority => $rule->[Marpa::Internal::Rule::USER_PRIORITY],
+            priority => $rule->[Marpa::Internal::Rule::PRIORITY],
             maximal       => $rule->[Marpa::Internal::Rule::MAXIMAL],
             minimal       => $rule->[Marpa::Internal::Rule::MINIMAL],
         );
@@ -3647,6 +3558,14 @@ sub rewrite_as_CHAF {
         if ( not scalar @proper_nullable_ixes ) {
             $rule->[Marpa::Internal::Rule::USEFUL] = 1;
             next RULE;
+        }
+
+        # Delete these?  Or turn into smart comment assertions?
+        if ($rule->[Marpa::Internal::Rule::VIRTUAL_LHS]) {
+            Marpa::exception("Internal Error: attempted CHAF rewrite of rule with virtual LHS");
+        }
+        if ($rule->[Marpa::Internal::Rule::VIRTUAL_RHS]) {
+            Marpa::exception("Internal Error: attempted CHAF rewrite of rule with virtual RHS");
         }
 
         # The left hand side of the first subproduction is the lhs of the original rule
@@ -3849,14 +3768,10 @@ sub rewrite_as_CHAF {
                 # the first factored production is
                 # highest, last is lowest, but middle two are
                 # reversed.
-                my $new_internal_priority =
-                    10 * ( @{$rhs} - $subproduction_start_ix )
-                    + ( qw(4 2 3 1) [$ix] );
                 my $new_rule = add_rule(
                     {   grammar           => $grammar,
                         lhs               => $subproduction_lhs,
                         rhs               => $factor_rhs,
-                        internal_priority => $new_internal_priority,
                         @rule_options
                     }
                 );

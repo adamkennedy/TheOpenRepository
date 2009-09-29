@@ -136,8 +136,8 @@ use Marpa::Offset qw(
     ARGC
     CALL
     CONSTANT_RESULT
-    LHS_DIVIDED
-    RHS_DIVIDED
+    VIRTUAL_LHS
+    VIRTUAL_RHS
 
 );
 
@@ -396,6 +396,17 @@ sub set_actions {
         # assignment instead of comparison is deliberate
         if ( my $argc = scalar @{ $rule->[Marpa::Internal::Rule::RHS] } ) {
             push @{$ops}, Marpa::Internal::Evaluator_Op::ARGC, $argc;
+        }
+
+        # assignment instead of comparison is deliberate
+        if (my $rhs_ops = $rule->[Marpa::Internal::Rule::VIRTUAL_RHS] ) {
+            push @{$ops}, Marpa::Internal::Evaluator_Op::VIRTUAL_RHS, $rhs_ops;
+        }
+
+        # assignment instead of comparison is deliberate
+        if ($rule->[Marpa::Internal::Rule::VIRTUAL_LHS] ) {
+            push @{$ops}, Marpa::Internal::Evaluator_Op::VIRTUAL_LHS;
+            next RULE;
         }
 
         my $action = $rule->[Marpa::Internal::Rule::ACTION];
@@ -2274,7 +2285,7 @@ sub Marpa::Evaluator::value {
             my $rule     = $rules->[$rule_id];
             my $maximal  = $rule->[Marpa::Internal::Rule::MAXIMAL];
             my $minimal  = $rule->[Marpa::Internal::Rule::MINIMAL];
-            my $priority = $rule->[Marpa::Internal::Rule::USER_PRIORITY];
+            my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
 
             ### rule priority: $priority
 
@@ -3126,6 +3137,47 @@ sub Marpa::Evaluator::value {
                                 } ## end if ($trace_values)
 
                             } ## end when (Marpa::Internal::Evaluator_Op::ARGC)
+                            when
+                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_RHS
+                                )
+                            {
+                                my $rhs_ops = $ops->[ $op_ix++ ];
+                                my @new_data;
+                                for my $rhs_ix ( 0 .. $#{$rhs_ops} ) {
+                                    given ( $rhs_ops->[$rhs_ix] ) {
+                                        when
+                                            ( Marpa::Internal::Rhs_Op::DISCARD
+                                            )
+                                        {
+                                            break
+                                        } ## end when ( Marpa::Internal::Rhs_Op::DISCARD )
+                                        when ( Marpa::Internal::Rhs_Op::REAL )
+                                        {
+                                            push @new_data,
+                                                $current_data->[$rhs_ix]
+                                        }
+                                        when
+                                            ( Marpa::Internal::Rhs_Op::VIRTUAL
+                                            )
+                                        {
+                                            push @new_data,
+                                                @{ $current_data->[$rhs_ix] }
+                                        } ## end when ( Marpa::Internal::Rhs_Op::VIRTUAL )
+                                        default {
+                                            Marpa::exception(
+                                                "Internal error: Unknown RHS Op: $_"
+                                                )
+                                        }
+                                    } ## end given
+                                } ## end for my $rhs_ix ( 0 .. $#{$rhs_ops} )
+                                $current_data = \@new_data;
+                            } ## end when ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT)
+                            when
+                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_LHS
+                                )
+                            {
+                                push @evaluation_stack, $current_data;
+                            } ## end when ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT)
                             when
                                 ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT
                                 )
