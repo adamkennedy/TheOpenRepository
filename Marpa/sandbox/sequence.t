@@ -1,8 +1,9 @@
 #!perl
 
-# the example grammar in Aycock/Horspool "Practical Earley Parsing",
-# _The Computer Journal_, Vol. 45, No. 6, pp. 620-630,
-# in its "NNF" form
+# Basic tests of sequences.
+# The matrix is separation (none/perl5/proper);
+# and minimium count (0, 1, 3);
+# keep vs. no-keep.
 
 use 5.010;
 use strict;
@@ -23,22 +24,24 @@ my $default_action     = <<'END_OF_CODE';
      '(' . join(';', @_) . ')';
 END_OF_CODE
 
-
-# Basic tests of sequences.
-# The matrix is separation (none/perl5/proper);
-# and minimium count (0 or 1);
-# keep vs. no-keep.
-
 sub run_sequence_test {
     my ($minimum, $separation, $keep) = @_;
+    say join ';', @_;
 
-    my @separation_args = $separation eq 'none' ? () : ( separator => 'sep' );
-    if ( $separation eq 'proper' ) {
-        push @separation_args, proper_separation => 1;
+    my @terminals = ('A');
+    my @separation_args = ();
+    if ($separation ne 'none') {
+        push @separation_args, separator => 'sep';
+        push @terminals, 'sep';
     }
+    if ( $separation eq 'proper' ) {
+        push @separation_args, proper => 1;
+    }
+
     my $grammar = Marpa::Grammar->new(
         {   precompute => 0,
             start      => 'TOP',
+            trace_lex => 1,
             strip      => 0,
             rules      => [
                 {   lhs        => 'TOP',
@@ -53,26 +56,40 @@ sub run_sequence_test {
         }
     );
 
-    $grammar->set( { terminals => [qw(a sep)] } );
+    $grammar->set( { terminals => \@terminals } );
 
     $grammar->precompute();
+
+    say $grammar->show_rules();
 
     my $A = $grammar->get_symbol('A');
     my $sep = $grammar->get_symbol('sep');
 
-    for my $symbol_count ( 0, 1, 2, 3, 5, 10 ) {
+    SYMBOL_COUNT: for my $symbol_count ( 0, 1, 2, 3, 5, 10 ) {
+        next SYMBOL_COUNT if $symbol_count < $minimum;
+        my $test_name =
+              "min=$minimum;"
+            . ( $keep ? "keep;" : "" )
+            . ( $separation ne 'none' ? "$separation;" : "" )
+            . ";count=$symbol_count";
         my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-        for my $symbol_ix ( 0 .. $symbol_count ) {
+        my @expected = ();
+        my $last_symbol_ix = $symbol_count - 1;
+        for my $symbol_ix ( 0 .. $last_symbol_ix ) {
+            push @expected, 'a';
             $recce->earleme( [ $A, 'a', 1 ] )
                 or Marpa::exception('Parsing exhausted');
-            if (   $separation eq 'proper' and $symbol_ix >= $symbol_count
-                or $separation eq 'perl5' )
+            if ($separation ne 'none'
+                and (  $symbol_ix <= $last_symbol_ix
+                    or $separation eq 'perl5' )
+                )
             {
+                push @expected, '!';
                 $recce->earleme( [ $sep, '!', 1 ] )
                     or Marpa::exception('Parsing exhausted');
-            } ## end if ( $separation eq 'proper' and $symbol_ix >= ...)
-        } ## end for my $symbol_ix ( 0 .. $symbol_count )
+            } ## end if ( $separation ne 'proper' and ( $symbol_ix <= ...))
+        } ## end for my $symbol_ix ( 0 .. $last_symbol_ix )
 
         $recce->end_input();
 
@@ -81,15 +98,26 @@ sub run_sequence_test {
                 clone => 0,
             }
         );
+        if (not $evaler) {
+            Test::More::fail("$test_name: Parse failed");
+            next SYMBOL_COUNT;
+        }
+        say $evaler->show_bocage();
         my $result = $evaler->value();
-        Test::More::is( ${$result}, q{}, "min=$minimum; keep=$keep; $separation; count=$symbol_count" );
+
+        my $expected = join ';', @expected;
+        if (@expected > 1) {
+            $expected = "($expected)";
+        }
+        Test::More::is( ${$result}, $expected, $test_name );
 
     } ## end for my $symbol_count ( 0, 1, 2, 3, 5, 10 )
 } ## end sub run_sequence_test
 
-
+# for my $minimum ( 0, 1, 3 ) {
 for my $minimum ( 0, 1 ) {
-    for my $separation (qw(none proper perl5)) {
+    run_sequence_test( $minimum, 'none', 0 );
+    for my $separation (qw(proper perl5)) {
         for my $keep ( 0, 1 ) {
             run_sequence_test( $minimum, $separation, $keep );
         }

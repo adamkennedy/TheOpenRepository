@@ -2294,10 +2294,15 @@ sub add_user_rule {
 
     $rule_signature_hash->{$rule_signature} = 1;
 
-    Marpa::exception('If min is defined for a rule, it must be 0 or 1')
-        if defined $min
-            and $min != 0
-            and $min != 1;
+    given ($min) {
+        when (undef) {break}
+        when (0)     {break}
+        when (1)     {break}
+        default {
+            Marpa::exception(
+                'If min is defined for a rule, it must be 0 or 1')
+        }
+    } ## end given
 
     if ( scalar @{$rhs_names} == 0 or not defined $min ) {
 
@@ -2386,7 +2391,7 @@ sub add_user_rule {
         if ($action) {
             push @rule_args,
                 virtual_rhs        => 1,
-                real_symbol_count  => 0,
+                real_symbol_count  => 1,
                 discard_separation => !$keep_separation,
                 action             => $action;
         } ## end if ($action)
@@ -2408,7 +2413,7 @@ sub add_user_rule {
             rhs         => $counted_rhs,
             virtual_lhs => 1,
             discard_separation => $discard_separation,
-            real_symbol_count => $min,
+            real_symbol_count => (scalar @{$counted_rhs}),
             @rule_options
         }
     );
@@ -2421,7 +2426,7 @@ sub add_user_rule {
             rhs               => \@iterating_rhs,
             virtual_lhs       => 1,
             virtual_rhs       => 1,
-            real_symbol_count => 1,
+            real_symbol_count => (scalar @separated_rhs),
             discard_separation => $discard_separation,
             @rule_options
         }

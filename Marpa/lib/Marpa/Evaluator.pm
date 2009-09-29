@@ -137,9 +137,9 @@ use Marpa::Offset qw(
     CALL
     CONSTANT_RESULT
     VIRTUAL_HEAD
+    VIRTUAL_HEAD_DISCARDING_SEPARATION
     VIRTUAL_KERNEL
     VIRTUAL_TAIL
-    DISCARD_SEPARATION
 
 );
 
@@ -412,12 +412,13 @@ sub set_actions {
         # If we are here the LHS is real, not virtual
 
         if ($virtual_rhs) {
-            push @{$ops}, Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD,
+            push @{$ops},
+                (
+                $rule->[Marpa::Internal::Rule::DISCARD_SEPARATION]
+                ? Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_DISCARDING_SEPARATION
+                : Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD
+                ),
                 $rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT];
-            if ( $rule->[Marpa::Internal::Rule::DISCARD_SEPARATION] ) {
-                push @{$ops},
-                    Marpa::Internal::Evaluator_Op::DISCARD_SEPARATION;
-            }
 
         } ## end if ($virtual_rhs)
             # assignment instead of comparison is deliberate
@@ -2303,8 +2304,6 @@ sub Marpa::Evaluator::value {
             my $minimal  = $rule->[Marpa::Internal::Rule::MINIMAL];
             my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
 
-            ### rule priority: $priority
-
             if ( $maximal or $minimal or $priority ) {
 
                 my $and_node_start_earleme =
@@ -2422,10 +2421,6 @@ sub Marpa::Evaluator::value {
                         } @and_choices
                 ];
 
-                ### or-node-id, count of and-choices: $or_node_id, scalar @and_choices
-
-                ### sort-keys: map { join ";", map { @{$_} } grep { scalar @{$_} <= 1 } @{$_} } map { $_->[Marpa'Internal'And_Choice'SORT_KEY] } @and_choices
-
                 push @tasks,
                     map { [ Marpa::Internal::Task::FREEZE_TREE, $_ ] }
                     @{$or_iteration}[ 0 .. $#{$or_iteration} - 1 ];
@@ -2499,8 +2494,6 @@ sub Marpa::Evaluator::value {
                     # exhausted, this and-node is exhausted.
                     if ( not $cause_or_node_iteration ) {
 
-                        ### Marking and-node exhausted, id: $and_node_id
-
                         $and_iterations->[$and_node_id] = undef;
                         break;
                     } ## end if ( not $cause_or_node_iteration )
@@ -2512,9 +2505,6 @@ sub Marpa::Evaluator::value {
                         $and_iterations->[$cause_and_node_id];
                     $cause_sort_elements = $cause_and_node_iteration
                         ->[Marpa::Internal::And_Iteration::SORT_KEY];
-
-                    ### cause-and-node-id: $cause_and_node_id
-                    ### assert: defined $cause_sort_elements
 
                 } ## end if ( $cause = $and_node->[...])
 
@@ -2540,8 +2530,6 @@ sub Marpa::Evaluator::value {
                     # If there is a predecessor, but it is
                     # exhausted, this and-node is exhausted.
                     if ( not $predecessor_or_node_iteration ) {
-
-                        ### Marking and-node exhausted, id: $and_node_id
 
                         $and_iterations->[$and_node_id] = undef;
                         break;
@@ -2574,12 +2562,7 @@ sub Marpa::Evaluator::value {
                         ]
                         ) x $token->[Marpa::Internal::Symbol::NULLABLE];
 
-                    ### token name: $token->[Marpa'Internal'Symbol'NAME]
-                    ### assert: defined $token->[Marpa'Internal'Symbol'NULLABLE]
-
                 } ## end if ( my $token = $and_node->[...])
-
-                ### Setting SORT_KEY for and-node: $and_node_id
 
                 $and_node_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_KEY] = [
@@ -2632,8 +2615,6 @@ sub Marpa::Evaluator::value {
                         ? Marpa::Internal::And_Node::CAUSE
                         : Marpa::Internal::And_Node::PREDECESSOR;
 
-                    ### Setting current-child: $and_node_iteration->[Marpa'Internal'And_Iteration'CURRENT_CHILD]
-
                 } ## end if ( defined $cause and defined $predecessor )
 
             } ## end when (Marpa::Internal::Task::SETUP_AND_NODE)
@@ -2666,8 +2647,6 @@ sub Marpa::Evaluator::value {
                 } ## end if ($trace_tasks)
 
                 my $and_node = $and_nodes->[$and_node_id];
-
-                ### defined child-or-nodes: [grep { defined $and_node->[$_] } (2,3)]
 
                 push @tasks,
                     [ Marpa::Internal::Task::RESET_AND_NODE, $and_node_id ],
@@ -2707,9 +2686,6 @@ sub Marpa::Evaluator::value {
                 }
 
                 my $and_node = $and_nodes->[$and_node_id];
-
-                ### cause: defined $and_node->[Marpa'Internal'And_Node'CAUSE] ? "YES" : "NO"
-                ### predecessor: defined $and_node->[Marpa'Internal'And_Node'PREDECESSOR] ? "YES" : "NO"
 
                 my $cause = $and_node->[Marpa::Internal::And_Node::CAUSE];
                 my $predecessor =
@@ -2834,17 +2810,12 @@ sub Marpa::Evaluator::value {
                 my $current_and_iteration =
                     $and_iterations->[$current_and_node_id];
 
-                ### current-and-node, id: $current_and_node_id
-
                 # If the current and-choice is exhausted ...
                 if ( not defined $current_and_iteration ) {
                     pop @{$and_choices};
 
-                    ### Popped current-and-node, id: $current_and_node_id
-
                     # If there are no more choices, the or-node is exhausted ...
                     if ( scalar @{$and_choices} == 0 ) {
-                        ### Marking or-node exhausted, id: $or_node_id
                         $or_iterations->[$or_node_id] = undef;
                         break;
                     }
@@ -2863,8 +2834,6 @@ sub Marpa::Evaluator::value {
                 # If we are here the current and-choice is not exhausted,
                 # but it may have been iterated to the point where it is
                 # no longer the first in sort order.
-
-                ### <where>
 
                 # Refresh and-choice's fields
                 $current_and_choice->[Marpa::Internal::And_Choice::SORT_KEY] =
@@ -2935,8 +2904,6 @@ sub Marpa::Evaluator::value {
                         or Marpa::exception('print to trace handle failed');
                 }
 
-                ### assert: defined $or_node_id
-
                 my $or_node = $or_nodes->[$or_node_id];
 
                 my $current_and_node_id =
@@ -2969,9 +2936,6 @@ sub Marpa::Evaluator::value {
                 my @or_slice = map { $_->[0] } @{$or_map};
                 my @and_slice = ( $and_node_id, map { $_->[1] } @{$or_map} );
 
-                ### Freezing or-nodes: join ";", @or_slice
-                ### Freezing and-nodes: join ";", @and_slice
-
                 my @or_values  = @{$or_iterations}[@or_slice];
                 my @and_values = @{$and_iterations}[@and_slice];
 
@@ -3003,9 +2967,6 @@ sub Marpa::Evaluator::value {
                     )
                     };
 
-                ### Thawing or-nodes: join ";", @{$or_slice}
-                ### Thawing and-nodes: join ";", @{$and_slice}
-
                 @{$and_iterations}[ @{$and_slice} ] = @{$and_values};
                 @{$or_iterations}[ @{$or_slice} ]   = @{$or_values};
 
@@ -3015,7 +2976,6 @@ sub Marpa::Evaluator::value {
                     $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_KEY];
 
-                ### assert: $current_and_iteration->[Marpa'Internal'And_Iteration'SORT_KEY]
                 $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::OR_MAP];
@@ -3190,6 +3150,49 @@ sub Marpa::Evaluator::value {
 
                             } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
 
+                            when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_DISCARDING_SEPARATION
+                                )
+                            {
+                                my $real_symbol_count = $ops->[ $op_ix++ ];
+
+                                if ($trace_values) {
+                                    my $rule_id =
+                                        $and_node
+                                        ->[ Marpa::Internal::And_Node::RULE_ID
+                                        ];
+                                    my $rule = $rules->[$rule_id];
+                                    say {$trace_fh}
+                                        'Head of Virtual Rule (discards separation): ',
+                                        $and_node
+                                        ->[Marpa::Internal::And_Node::TAG],
+                                        ', rule: ', Marpa::brief_rule($rule),
+                                        "\nAdding $real_symbol_count symbols; currently ",
+                                        ( scalar @virtual_rule_stack ),
+                                        ' rules; ',
+                                        $virtual_rule_stack[-1], ' symbols'
+                                        or Marpa::exception(
+                                        'Could not print to trace file');
+                                } ## end if ($trace_values)
+
+                                $real_symbol_count += pop @virtual_rule_stack;
+                                ### real symbol count: $real_symbol_count
+                                my $base = (scalar @evaluation_stack) - $real_symbol_count;
+                                $current_data = [
+                                    map { ${$_} } @evaluation_stack[
+                                        map { $base + 2 * $_ } (
+                                            0 .. ( $real_symbol_count + 1 )
+                                                / 2 - 1
+                                        )
+                                    ]
+                                ];
+
+                                ### length of current data: (scalar @{$current_data})
+
+                                # truncate the evaluation stack
+                                $#evaluation_stack = $base-1;
+
+                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
+
                             when
                                 ( Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL
                                 )
@@ -3244,21 +3247,6 @@ sub Marpa::Evaluator::value {
                                 push @virtual_rule_stack, $real_symbol_count;
 
                             } ## end when (Marpa::Internal::Evaluator_Op::VIRTUAL_TAIL)
-
-                            when
-                                ( Marpa::Internal::Evaluator_Op::DISCARD_SEPARATION
-                                )
-                            {
-                                if ($trace_values) {
-                                    say {$trace_fh} 'Discarding separation'
-                                        or Marpa::exception(
-                                        'Could not print to trace file');
-                                }
-
-                                $current_data =
-                                    [ @{$current_data}[grep { $_ % 2 == 0 } (0 .. $#{$current_data}) ] ];
-
-                            } ## end when ( ...)
 
                             when
                                 ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT
