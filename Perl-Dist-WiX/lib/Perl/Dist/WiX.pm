@@ -123,7 +123,7 @@ require Perl::Dist::WiX::IconArray;
 require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 
-our $VERSION = '1.090_103';
+our $VERSION = '1.090_104';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 use Object::Tiny qw(
@@ -222,7 +222,7 @@ results.
 B<Perl::Dist::WiX> needs a series of temporary directories while
 it is running the build, including places to cache downloaded files,
 somewhere to expand tarballs to build things, and somewhere to put
-debugging output and the final installer zip and exe files.
+debugging output and the final installer zip and msi files.
 
 The C<temp_dir> param specifies the root path for where these
 temporary directories should be created.
@@ -1587,10 +1587,10 @@ sub write { ## no critic 'ProhibitBuiltinHomonyms'
 
 The C<write_zip> method is used to generate a standalone .zip file
 containing the entire distribution, for situations in which a full
-installer executable is not wanted (such as for "Portable Perl"
+installer database is not wanted (such as for "Portable Perl"
 type installations).
 
-The executable file is written to the output directory, and the location
+The .zip file is written to the output directory, and the location
 of the file is printed to STDOUT.
 
 Returns true or throws an exception or error.
