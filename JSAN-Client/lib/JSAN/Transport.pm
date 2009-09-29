@@ -115,7 +115,7 @@ Returns true, or will throw an exception (i.e. die) on error.
 my $SINGLETON = undef;
 
 sub init {
-    Carp::croak("CPAN::Transport already initialized") if $SINGLETON;
+    Carp::croak("JSAN::Transport already initialized") if $SINGLETON;
     my $class  = shift;
     my $params = { @_ };
 
