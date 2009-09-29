@@ -6,6 +6,6 @@
 	"benchmark" : "benchmark/random100k.txt",
 	"mirrors" : [
 		"http://master.openjsan.org",
-	    "http://www.openjsan.org"
+		"http://www.openjsan.org"
 	]
 }

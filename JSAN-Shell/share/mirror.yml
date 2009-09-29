@@ -1,7 +1,0 @@
----
-name: JavaScript Archive Network
-uri: http://openjsan.org/
-timestamp: 2007-01-15T21:17:52Z
-benchmark: benchmark/random100k.txt
-mirrors:
-  - uri: http://mirror.openjsan.net/
