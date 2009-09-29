@@ -136,8 +136,10 @@ use Marpa::Offset qw(
     ARGC
     CALL
     CONSTANT_RESULT
-    VIRTUAL_LHS
-    VIRTUAL_RHS
+    VIRTUAL_HEAD
+    VIRTUAL_KERNEL
+    VIRTUAL_TAIL
+    DISCARD_SEPARATION
 
 );
 
@@ -393,21 +395,34 @@ sub set_actions {
         my $rule_data = $evaluator_rules->[$rule_id] = [];
         my $ops = $rule_data->[Marpa::Internal::Evaluator_Rule::OPS] = [];
 
-        # assignment instead of comparison is deliberate
-        if ( my $argc = scalar @{ $rule->[Marpa::Internal::Rule::RHS] } ) {
-            push @{$ops}, Marpa::Internal::Evaluator_Op::ARGC, $argc;
-        }
+        my $virtual_rhs = $rule->[Marpa::Internal::Rule::VIRTUAL_RHS];
+        my $virtual_lhs = $rule->[Marpa::Internal::Rule::VIRTUAL_LHS];
 
-        # assignment instead of comparison is deliberate
-        if ( my $rhs_ops = $rule->[Marpa::Internal::Rule::VIRTUAL_RHS] ) {
-            push @{$ops}, Marpa::Internal::Evaluator_Op::VIRTUAL_RHS,
-                $rhs_ops;
-        }
-
-        # assignment instead of comparison is deliberate
-        if ( $rule->[Marpa::Internal::Rule::VIRTUAL_LHS] ) {
-            push @{$ops}, Marpa::Internal::Evaluator_Op::VIRTUAL_LHS;
+        if ($virtual_lhs) {
+            push @{$ops},
+                (
+                $virtual_rhs
+                ? Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL
+                : Marpa::Internal::Evaluator_Op::VIRTUAL_TAIL
+                ),
+                $rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT];
             next RULE;
+        } ## end if ($virtual_lhs)
+
+        # If we are here the LHS is real, not virtual
+
+        if ($virtual_rhs) {
+            push @{$ops}, Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD,
+                $rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT];
+            if ( $rule->[Marpa::Internal::Rule::DISCARD_SEPARATION] ) {
+                push @{$ops},
+                    Marpa::Internal::Evaluator_Op::DISCARD_SEPARATION;
+            }
+
+        } ## end if ($virtual_rhs)
+            # assignment instead of comparison is deliberate
+        elsif ( my $argc = scalar @{ $rule->[Marpa::Internal::Rule::RHS] } ) {
+            push @{$ops}, Marpa::Internal::Evaluator_Op::ARGC, $argc;
         }
 
         my $action = $rule->[Marpa::Internal::Rule::ACTION];
@@ -3067,6 +3082,7 @@ sub Marpa::Evaluator::value {
                 } ## end while ( scalar @work_list )
 
                 my @evaluation_stack = ();
+                my @virtual_rule_stack = ();
 
                 TREE_NODE: for my $and_node ( reverse @preorder ) {
 
@@ -3140,86 +3156,109 @@ sub Marpa::Evaluator::value {
 
                             } ## end when (Marpa::Internal::Evaluator_Op::ARGC)
 
-                            when (Marpa::Internal::Evaluator_Op::VIRTUAL_RHS)
+                            when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD
+                                )
                             {
-                                my $rhs_ops = $ops->[ $op_ix++ ];
-                                my @new_data;
-                                for my $rhs_ix ( 0 .. $#{$rhs_ops} ) {
-                                    given ( $rhs_ops->[$rhs_ix] ) {
-                                        when
-                                            ( Marpa::Internal::Rhs_Op::DISCARD
-                                            )
-                                        {
-
-                                            if ($trace_values) {
-                                                say {
-                                                    $trace_fh
-                                                }
-                                                "RHS Op: symbol $rhs_ix; Discard"
-                                                    or Marpa::exception(
-                                                    'Could not print to trace file'
-                                                    );
-                                            } ## end if ($trace_values)
-
-                                            break
-                                        } ## end when ( Marpa::Internal::Rhs_Op::DISCARD )
-                                        when (Marpa::Internal::Rhs_Op::REAL) {
-
-                                            if ($trace_values) {
-                                                say {
-                                                    $trace_fh
-                                                }
-                                                "RHS Op: symbol $rhs_ix; Real"
-                                                    or Marpa::exception(
-                                                    'Could not print to trace file'
-                                                    );
-                                            } ## end if ($trace_values)
-
-                                            push @new_data,
-                                                $current_data->[$rhs_ix]
-                                        } ## end when (Marpa::Internal::Rhs_Op::REAL)
-                                        when
-                                            ( Marpa::Internal::Rhs_Op::VIRTUAL
-                                            )
-                                        {
-
-                                            if ($trace_values) {
-                                                say {
-                                                    $trace_fh
-                                                }
-                                                "RHS Op: symbol $rhs_ix; VIRTUAL"
-                                                    or Marpa::exception(
-                                                    'Could not print to trace file'
-                                                    );
-                                            } ## end if ($trace_values)
-
-                                            push @new_data,
-                                                @{ $current_data->[$rhs_ix] }
-                                        } ## end when ( Marpa::Internal::Rhs_Op::VIRTUAL )
-                                        default {
-                                            Marpa::exception(
-                                                "Internal error: Unknown RHS Op: $_"
-                                                )
-                                        }
-                                    } ## end given
-                                } ## end for my $rhs_ix ( 0 .. $#{$rhs_ops} )
-                                $current_data = \@new_data;
-                            } ## end when (Marpa::Internal::Evaluator_Op::VIRTUAL_RHS)
-
-                            when (Marpa::Internal::Evaluator_Op::VIRTUAL_LHS)
-                            {
+                                my $real_symbol_count = $ops->[ $op_ix++ ];
 
                                 if ($trace_values) {
-                                    say {
-                                        $trace_fh
-                                    }
-                                    'Virtual LHS: Pushing 1 value on stack',
+                                    my $rule_id =
+                                        $and_node
+                                        ->[ Marpa::Internal::And_Node::RULE_ID
+                                        ];
+                                    my $rule = $rules->[$rule_id];
+                                    say {$trace_fh}
+                                        'Head of Virtual Rule: ',
+                                        $and_node
+                                        ->[Marpa::Internal::And_Node::TAG],
+                                        ', rule: ', Marpa::brief_rule($rule),
+                                        "\nAdding $real_symbol_count symbols; currently ",
+                                        ( scalar @virtual_rule_stack ),
+                                        ' rules; ',
+                                        $virtual_rule_stack[-1], ' symbols'
                                         or Marpa::exception(
                                         'Could not print to trace file');
                                 } ## end if ($trace_values)
 
-                                push @evaluation_stack, \$current_data;
-                            } ## end when (Marpa::Internal::Evaluator_Op::VIRTUAL_LHS)
+                                $real_symbol_count += pop @virtual_rule_stack;
+                                $current_data = [
+                                    map { ${$_} } (
+                                        splice @evaluation_stack,
+                                        -$real_symbol_count
+                                    )
+                                ];
+
+                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
+
+                            when
+                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL
+                                )
+                            {
+                                my $real_symbol_count = $ops->[ $op_ix++ ];
+
+                                if ($trace_values) {
+                                    my $rule_id =
+                                        $and_node
+                                        ->[ Marpa::Internal::And_Node::RULE_ID
+                                        ];
+                                    my $rule = $rules->[$rule_id];
+                                    say {$trace_fh}
+                                        'Virtual Rule: ',
+                                        $and_node
+                                        ->[Marpa::Internal::And_Node::TAG],
+                                        ', rule: ', Marpa::brief_rule($rule),
+                                        "\nAdding $real_symbol_count, now ",
+                                        ( scalar @virtual_rule_stack ),
+                                        ' rules; ',
+                                        $virtual_rule_stack[-1], 'symbols'
+                                        or Marpa::exception(
+                                        'Could not print to trace file');
+                                } ## end if ($trace_values)
+
+                                $virtual_rule_stack[-1] += $real_symbol_count;
+
+                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL )
+
+                            when (Marpa::Internal::Evaluator_Op::VIRTUAL_TAIL)
+                            {
+                                my $real_symbol_count = $ops->[ $op_ix++ ];
+
+                                if ($trace_values) {
+                                    my $rule_id =
+                                        $and_node
+                                        ->[ Marpa::Internal::And_Node::RULE_ID
+                                        ];
+                                    my $rule = $rules->[$rule_id];
+                                    say {$trace_fh}
+                                        'New Virtual Rule: ',
+                                        $and_node
+                                        ->[Marpa::Internal::And_Node::TAG],
+                                        ', rule: ', Marpa::brief_rule($rule),
+                                        "\nSymbol count is $real_symbol_count, now ",
+                                        ( scalar @virtual_rule_stack ),
+                                        'rules',
+                                        or Marpa::exception(
+                                        'Could not print to trace file');
+                                } ## end if ($trace_values)
+
+                                push @virtual_rule_stack, $real_symbol_count;
+
+                            } ## end when (Marpa::Internal::Evaluator_Op::VIRTUAL_TAIL)
+
+                            when
+                                ( Marpa::Internal::Evaluator_Op::DISCARD_SEPARATION
+                                )
+                            {
+                                if ($trace_values) {
+                                    say {$trace_fh} 'Discarding separation'
+                                        or Marpa::exception(
+                                        'Could not print to trace file');
+                                }
+
+                                $current_data =
+                                    [ @{$current_data}[grep { $_ % 2 == 0 } (0 .. $#{$current_data}) ] ];
+
+                            } ## end when ( ...)
 
                             when
                                 ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT

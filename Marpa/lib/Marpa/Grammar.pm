@@ -96,6 +96,8 @@ use Marpa::Offset qw(
     MAXIMAL MINIMAL
     HAS_CHAF_LHS HAS_CHAF_RHS
     VIRTUAL_LHS VIRTUAL_RHS
+    DISCARD_SEPARATION
+    REAL_SYMBOL_COUNT
 
     =LAST_EVALUATOR_FIELD
     =LAST_RECOGNIZER_FIELD
@@ -127,13 +129,6 @@ CYCLE - is this rule part of a cycle?
 =end Implementation:
 
 =cut
-
-use Marpa::Offset qw(
-
-    :package=Marpa::Internal::Rhs_Op
-    DISCARD REAL VIRTUAL
-
-);
 
 use Marpa::Offset qw(
 
@@ -2041,18 +2036,22 @@ sub add_rule {
     my $priority;
     my $virtual_lhs;
     my $virtual_rhs;
+    my $discard_separation;
+    my $real_symbol_count;
 
     while ( my ( $option, $value ) = each %{$arg_hash} ) {
         given ($option) {
-            when ('grammar')     { $grammar     = $value }
-            when ('lhs')         { $lhs         = $value }
-            when ('rhs')         { $rhs         = $value }
-            when ('action')      { $action      = $value }
-            when ('priority')    { $priority    = $value }
-            when ('maximal')     { $maximal     = $value }
-            when ('minimal')     { $minimal     = $value }
-            when ('virtual_lhs') { $virtual_lhs = $value }
-            when ('virtual_rhs') { $virtual_rhs = $value }
+            when ('grammar')            { $grammar            = $value }
+            when ('lhs')                { $lhs                = $value }
+            when ('rhs')                { $rhs                = $value }
+            when ('action')             { $action             = $value }
+            when ('priority')           { $priority           = $value }
+            when ('maximal')            { $maximal            = $value }
+            when ('minimal')            { $minimal            = $value }
+            when ('virtual_lhs')        { $virtual_lhs        = $value }
+            when ('virtual_rhs')        { $virtual_rhs        = $value }
+            when ('discard_separation') { $discard_separation = $value }
+            when ('real_symbol_count')  { $real_symbol_count  = $value }
             default {
                 Marpa::exception("Unknown option in rule: $option");
             };
@@ -2127,6 +2126,10 @@ sub add_rule {
         // $grammar->[Marpa::Internal::Grammar::MAXIMAL];
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_LHS] = $virtual_lhs;
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_RHS] = $virtual_rhs;
+    $new_rule->[Marpa::Internal::Rule::DISCARD_SEPARATION] =
+        $discard_separation;
+    $new_rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT] =
+        $real_symbol_count;
 
     push @{$rules}, $new_rule;
     {
@@ -2337,8 +2340,8 @@ sub add_user_rule {
     Marpa::exception('Only one rhs symbol allowed for counted rule')
         if scalar @{$rhs_names} != 1;
 
-    my $sequence_rhs = $rhs->[0];
-    $sequence_rhs->[Marpa::Internal::Symbol::COUNTED] = 1;
+    my $sequence_item = $rhs->[0];
+    $sequence_item->[Marpa::Internal::Symbol::COUNTED] = 1;
 
     # create the separator symbol, if we're using one
     my $separator;
@@ -2367,15 +2370,11 @@ sub add_user_rule {
     );
     if ($action) {
         push @rule_args,
-            virtual_rhs => [Marpa::Internal::Rhs_Op::VIRTUAL],
+            virtual_rhs => 1,
+            real_symbol_count => 0,
             action      => $action;
     }
     add_rule( {@rule_args} );
-
-    my $separator_op =
-        $keep_separation
-        ? Marpa::Internal::Rhs_Op::REAL
-        : Marpa::Internal::Rhs_Op::DISCARD;
 
     if ( defined $separator and not $proper_separation ) {
         @rule_args = (
@@ -2386,45 +2385,44 @@ sub add_user_rule {
         );
         if ($action) {
             push @rule_args,
-                virtual_rhs =>
-                [ Marpa::Internal::Rhs_Op::VIRTUAL, $separator_op ],
-                action => $action;
+                virtual_rhs        => 1,
+                real_symbol_count  => 0,
+                discard_separation => !$keep_separation,
+                action             => $action;
         } ## end if ($action)
         add_rule( {@rule_args} );
     } ## end if ( defined $separator and not $proper_separation )
 
-    my @separated_rhs     = ($sequence_rhs);
-    my @separated_rhs_ops = (Marpa::Internal::Rhs_Op::REAL);
+    my @separated_rhs     = ($sequence_item);
+    my $discard_separation = 0;
     if ( defined $separator ) {
         push @separated_rhs,     $separator;
-        push @separated_rhs_ops, $separator_op;
+        my $discard_separation = !$keep_separation;
     }
 
     # minimal sequence rule
-    my $counted_rhs = [ (@separated_rhs) x ( $min - 1 ), $sequence_rhs ];
-    my $counted_rhs_ops =
-        [ (@separated_rhs_ops) x ( $min - 1 ),
-        Marpa::Internal::Rhs_Op::REAL ];
+    my $counted_rhs = [ (@separated_rhs) x ( $min - 1 ), $sequence_item ];
     add_rule(
         {   grammar     => $grammar,
             lhs         => $sequence,
             rhs         => $counted_rhs,
             virtual_lhs => 1,
-            virtual_rhs => $counted_rhs_ops,
+            discard_separation => $discard_separation,
+            real_symbol_count => $min,
             @rule_options
         }
     );
 
     # iterating sequence rule
     my @iterating_rhs = ( @separated_rhs, $sequence );
-    my @iterating_rhs_ops =
-        ( @separated_rhs_ops, Marpa::Internal::Rhs_Op::VIRTUAL );
     add_rule(
-        {   grammar     => $grammar,
-            lhs         => $sequence,
-            rhs         => \@iterating_rhs,
-            virtual_lhs => 1,
-            virtual_rhs => \@iterating_rhs_ops,
+        {   grammar           => $grammar,
+            lhs               => $sequence,
+            rhs               => \@iterating_rhs,
+            virtual_lhs       => 1,
+            virtual_rhs       => 1,
+            real_symbol_count => 1,
+            discard_separation => $discard_separation,
             @rule_options
         }
     );
