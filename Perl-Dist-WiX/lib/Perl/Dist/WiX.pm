@@ -1280,27 +1280,6 @@ sub run {
 
 =head2 Routines used by C<run>
 
-=head3 install_custom
-
-The C<install_custom> method is an empty install stub provided
-to allow sub-classed distributions to add B<vastly> different
-additional packages on top of Strawberry Perl.
-
-For example, this class is used by the Parrot distribution builder
-(which needs to sit on a full Strawberry install).
-
-Notably, the C<install_custom> method comes AFTER C<remove_waste>, so that the
-file deletion logic in C<remove_waste> won't accidentally delete files that
-may result in a vastly more damaging effect on the custom software.
-
-Returns true, or throws an error on exception.
-
-=cut
-
-sub install_custom {
-	return 1;
-}
-
 =head3 install_c_toolchain
 
 The C<install_c_toolchain> method is used by C<run> to install various
