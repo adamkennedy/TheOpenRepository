@@ -16,4 +16,5 @@ WriteMakefile(
       'if' => '0',
     },
     'dist'        => { COMPRESS => 'gzip -6f', SUFFIX => 'gz', },
+    'INSTALLDIRS' => ((($] >= 5.007003) && ($] < 5.011)) ? 'perl' : 'site'),
 );
