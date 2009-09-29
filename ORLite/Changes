@@ -1,5 +1,14 @@
 Changes for Perl extension ORLite
 
+1.29_02 Tue 29 Sep 2009
+	- Changed ->load to use selectrow_hashref
+	- Allow ->load calls for multiple-columns primary keys
+	- All connections now explicitly RaiseError => 1 for correctness
+	- All connections now explicitly PrintError => 0 to avoid spewing
+	  stuff to STDOUT/STDERR unexpectedly in embedded scenarios.
+	- Remove most explicit error handling and allow the native DBI
+	  errors to cascade upwards instead.
+
 1.29_01 Mon 28 Sep 2009
 	- Adding first experimental implementation of ->load
 

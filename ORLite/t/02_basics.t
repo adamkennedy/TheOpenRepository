@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 66;
+use Test::More tests => 68;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -159,4 +159,20 @@ SCOPE: {
 SCOPE: {
 	ok( Foo::Bar::TableOne->truncate, '->truncate ok' );
 	is( Foo::Bar::TableOne->count, 0, 'Commit ok' );	
+}
+
+
+
+
+
+######################################################################
+# Exceptions
+
+# Load an object that does not exist
+SCOPE: {
+	my @rv = eval {
+		Foo::Bar::TableOne->load(undef);
+	};
+	is( scalar(@rv), 0, 'Exception returns nothing' );
+	like( $@, qr/Foo::Bar::TableOne row does not exist/, 'Foo::Bar::TableOne row does not exist' );
 }

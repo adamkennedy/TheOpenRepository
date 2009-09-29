@@ -15,7 +15,7 @@ use DBD::SQLite  1.25 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.29_01';
+	$VERSION = '1.29_02';
 }
 
 # Support for the 'prune' option
@@ -131,13 +131,14 @@ sub sqlite { '$file' }
 sub dsn { '$dsn' }
 
 sub dbh {
-	\$DBH or
-	\$_[0]->connect or
-	Carp::croak("connect: \$DBI::errstr");
+	\$DBH or \$_[0]->connect;
 }
 
 sub connect {
-	DBI->connect(\$_[0]->dsn);
+	DBI->connect( \$_[0]->dsn, undef, undef, {
+		PrintError => 0,
+		RaiseError => 1,
+	} );
 }
 
 sub prepare {
@@ -194,8 +195,7 @@ END_PERL
 	$code .= <<"END_PERL" unless $readonly;
 sub begin {
 	\$DBH or
-	\$DBH = \$_[0]->connect or
-	Carp::croak("connect: \$DBI::errstr");
+	\$DBH = \$_[0]->connect;
 	\$DBH->begin_work;
 }
 
@@ -346,19 +346,20 @@ sub iterate {
 END_PERL
 
 			# Add the primary key based single object loader
-			if ( $table->{pks} == 1 ) {
+			if ( $table->{pks} ) {
 				$code .= <<"END_PERL";
 sub load {
 	my \$class = shift;
-	my \$sql   = '$sql->{select} where $sql->{where_pk}';
-	my \$row   = $pkg->selectall_arrayref( \$sql, { Slice => {} }, \@_ );
-	unless ( \@\$row ) {
-		Carp::croak("$table->{class} with id '\$_[0]' does not exist");
+	my \$row   = $pkg->selectrow_hashref(
+		'$sql->{select} where $sql->{where_pk}',
+		undef, \@_,
+	);
+	unless ( \$row ) {
+		Carp::croak("$table->{class} row does not exist");
 	}
-	bless( \$row->[0], '$table->{class}' );
-	return \$row->[0];
+	bless( \$row, '$table->{class}' );
 }
-	
+
 END_PERL
 			}
 
