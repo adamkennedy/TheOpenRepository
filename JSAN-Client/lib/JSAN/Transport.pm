@@ -45,7 +45,7 @@ use URI::ToDisk    ();
 use LWP::Simple    ();
 use DBI            ();
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 BEGIN {
     # Optional prefork.pm support

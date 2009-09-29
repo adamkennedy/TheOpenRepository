@@ -1,5 +1,8 @@
 Revision history for Perl extension JSAN-Client
 
+0.22 Tue 29 Sep 2009
+    - Removed redundant JSAN::URI class
+
 0.21 Sat 26 Sep 2009
     - Updated to ORLite::Mirror 1.17 with prune support
     - Use prune support in the tests to avoid accidentally creating

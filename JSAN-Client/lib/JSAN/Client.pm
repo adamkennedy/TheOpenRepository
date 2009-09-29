@@ -57,7 +57,7 @@ use URI::ToDisk           1.08  ();
 use JSAN::Transport;
 use JSAN::Index ();
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 # Pass through any import params
 sub import {
