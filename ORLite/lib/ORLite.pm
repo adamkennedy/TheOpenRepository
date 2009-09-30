@@ -15,16 +15,16 @@ use DBD::SQLite  1.25 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.29_02';
+	$VERSION = '1.29_03';
 }
 
 # Support for the 'prune' option
 my @PRUNE = ();
 END {
-	foreach ( @PRUNE ) {
+	foreach ( reverse @PRUNE ) {
 		next unless -e $_;
 		require File::Remove;
-		File::Remove::remove($_);
+		File::Remove::remove( \1, $_ );
 	}
 }
 
