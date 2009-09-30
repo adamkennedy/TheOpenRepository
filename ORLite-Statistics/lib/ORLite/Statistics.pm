@@ -20,9 +20,9 @@ use strict;
 use warnings;
 use Exporter                 ();
 use ORLite              1.25 ();
-use Statistics::Basic 1.6600 ();
+use Statistics::Basic 1.6600;
 
-our $VERSION   = '0.02';
+our $VERSION   = '0.03';
 our @ISA       = 'Exporter';
 our @EXPORT    = 'vector';
 our @EXPORT_OK = 'vector';
@@ -44,7 +44,7 @@ sub vector {
 	# Generate the vector
 	my @vector = ();
 	$class->iterate( @_, sub {
-
+		push @vector, $_->$method();
 	} );
 
 	Statistics::Basic::vector(\@vector);
