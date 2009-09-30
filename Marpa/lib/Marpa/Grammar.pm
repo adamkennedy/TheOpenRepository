@@ -2136,7 +2136,8 @@ sub add_rule {
         // $grammar->[Marpa::Internal::Grammar::MAXIMAL];
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_LHS] = $virtual_lhs;
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_RHS] = $virtual_rhs;
-    $new_rule->[Marpa::Internal::Rule::DISCARD_SEPARATION] = $discard_separation;
+    $new_rule->[Marpa::Internal::Rule::DISCARD_SEPARATION] =
+        $discard_separation;
     $new_rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT] =
         $real_symbol_count;
 
@@ -2374,8 +2375,8 @@ sub add_user_rule {
             virtual_rhs       => 1,
             real_symbol_count => 0,
             discard_separation =>
-                ( !$keep_separation and defined $separator ),
-            action            => $action,
+                ( not $keep_separation and defined $separator ),
+            action => $action,
             @rule_options,
         }
     );
@@ -2395,18 +2396,19 @@ sub add_user_rule {
         );
     } ## end if ( defined $separator and not $proper_separation )
 
-    my @separated_rhs     = ($sequence_item);
+    my @separated_rhs = ($sequence_item);
     if ( defined $separator ) {
-        push @separated_rhs,     $separator;
+        push @separated_rhs, $separator;
     }
 
     my $counted_rhs = [ (@separated_rhs) x ( $min - 1 ), $sequence_item ];
+
     # Minimal sequence rule
     add_rule(
-        {   grammar     => $grammar,
-            lhs         => $sequence,
-            rhs         => $counted_rhs,
-            virtual_lhs => 1,
+        {   grammar           => $grammar,
+            lhs               => $sequence,
+            rhs               => $counted_rhs,
+            virtual_lhs       => 1,
             real_symbol_count => ( scalar @{$counted_rhs} ),
             @rule_options
         }

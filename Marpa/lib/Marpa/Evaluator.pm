@@ -2493,10 +2493,9 @@ sub Marpa::Evaluator::value {
                     # If there is a predecessor, but it is
                     # exhausted, this and-node is exhausted.
                     if ( not $cause_or_node_iteration ) {
-
                         $and_iterations->[$and_node_id] = undef;
                         break;
-                    } ## end if ( not $cause_or_node_iteration )
+                    }
 
                     $cause_and_node_choice = $cause_or_node_iteration->[-1];
                     my $cause_and_node_id = $cause_and_node_choice
@@ -2530,10 +2529,9 @@ sub Marpa::Evaluator::value {
                     # If there is a predecessor, but it is
                     # exhausted, this and-node is exhausted.
                     if ( not $predecessor_or_node_iteration ) {
-
                         $and_iterations->[$and_node_id] = undef;
                         break;
-                    } ## end if ( not $predecessor_or_node_iteration )
+                    }
 
                     $predecessor_and_node_choice =
                         $predecessor_or_node_iteration->[-1];
@@ -3041,7 +3039,7 @@ sub Marpa::Evaluator::value {
                     push @preorder, $and_node;
                 } ## end while ( scalar @work_list )
 
-                my @evaluation_stack = ();
+                my @evaluation_stack   = ();
                 my @virtual_rule_stack = ();
 
                 TREE_NODE: for my $and_node ( reverse @preorder ) {
@@ -3150,7 +3148,8 @@ sub Marpa::Evaluator::value {
 
                             } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
 
-                            when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_NO_SEP
+                            when
+                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_NO_SEP
                                 )
                             {
                                 my $real_symbol_count = $ops->[ $op_ix++ ];
@@ -3192,7 +3191,7 @@ sub Marpa::Evaluator::value {
                                 # truncate the evaluation stack
                                 $#evaluation_stack = $base - 1;
 
-                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
+                            } ## end when ( ...)
 
                             when
                                 ( Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL
