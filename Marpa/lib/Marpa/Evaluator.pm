@@ -137,7 +137,7 @@ use Marpa::Offset qw(
     CALL
     CONSTANT_RESULT
     VIRTUAL_HEAD
-    VIRTUAL_HEAD_DISCARDING_SEPARATION
+    VIRTUAL_HEAD_NO_SEP
     VIRTUAL_KERNEL
     VIRTUAL_TAIL
 
@@ -415,7 +415,7 @@ sub set_actions {
             push @{$ops},
                 (
                 $rule->[Marpa::Internal::Rule::DISCARD_SEPARATION]
-                ? Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_DISCARDING_SEPARATION
+                ? Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_NO_SEP
                 : Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD
                 ),
                 $rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT];
@@ -3150,7 +3150,7 @@ sub Marpa::Evaluator::value {
 
                             } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
 
-                            when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_DISCARDING_SEPARATION
+                            when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_NO_SEP
                                 )
                             {
                                 my $real_symbol_count = $ops->[ $op_ix++ ];
@@ -3176,7 +3176,8 @@ sub Marpa::Evaluator::value {
 
                                 $real_symbol_count += pop @virtual_rule_stack;
                                 ### real symbol count: $real_symbol_count
-                                my $base = (scalar @evaluation_stack) - $real_symbol_count;
+                                my $base = ( scalar @evaluation_stack )
+                                    - $real_symbol_count;
                                 $current_data = [
                                     map { ${$_} } @evaluation_stack[
                                         map { $base + 2 * $_ } (
@@ -3189,7 +3190,7 @@ sub Marpa::Evaluator::value {
                                 ### length of current data: (scalar @{$current_data})
 
                                 # truncate the evaluation stack
-                                $#evaluation_stack = $base-1;
+                                $#evaluation_stack = $base - 1;
 
                             } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
 
@@ -3198,6 +3199,7 @@ sub Marpa::Evaluator::value {
                                 )
                             {
                                 my $real_symbol_count = $ops->[ $op_ix++ ];
+                                $virtual_rule_stack[-1] += $real_symbol_count;
 
                                 if ($trace_values) {
                                     my $rule_id =
@@ -3213,12 +3215,10 @@ sub Marpa::Evaluator::value {
                                         "\nAdding $real_symbol_count, now ",
                                         ( scalar @virtual_rule_stack ),
                                         ' rules; ',
-                                        $virtual_rule_stack[-1], 'symbols'
+                                        $virtual_rule_stack[-1], ' symbols'
                                         or Marpa::exception(
                                         'Could not print to trace file');
                                 } ## end if ($trace_values)
-
-                                $virtual_rule_stack[-1] += $real_symbol_count;
 
                             } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL )
 
@@ -3238,8 +3238,8 @@ sub Marpa::Evaluator::value {
                                         ->[Marpa::Internal::And_Node::TAG],
                                         ', rule: ', Marpa::brief_rule($rule),
                                         "\nSymbol count is $real_symbol_count, now ",
-                                        ( scalar @virtual_rule_stack ),
-                                        'rules',
+                                        ( scalar @virtual_rule_stack + 1 ),
+                                        ' rules',
                                         or Marpa::exception(
                                         'Could not print to trace file');
                                 } ## end if ($trace_values)

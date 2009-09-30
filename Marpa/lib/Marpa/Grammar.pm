@@ -1708,6 +1708,9 @@ sub Marpa::show_rule {
             [ 0, 'nullable',     Marpa::Internal::Rule::NULLABLE, ],
             [ 0, 'maximal',      Marpa::Internal::Rule::MAXIMAL, ],
             [ 0, 'minimal',      Marpa::Internal::Rule::MINIMAL, ],
+            [ 0, 'vlhs',         Marpa::Internal::Rule::VIRTUAL_LHS, ],
+            [ 0, 'vrhs',         Marpa::Internal::Rule::VIRTUAL_RHS, ],
+            [ 0, 'discard_sep',  Marpa::Internal::Rule::DISCARD_SEPARATION, ],
         )
         )
     {
@@ -1723,6 +1726,13 @@ sub Marpa::show_rule {
     if ($priority) {
         push @comment, "priority=$priority";
     }
+
+    if (   $rule->[Marpa::Internal::Rule::VIRTUAL_RHS]
+        or $rule->[Marpa::Internal::Rule::VIRTUAL_RHS] )
+    {
+        push @comment, sprintf '#real=%d',
+            $rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT];
+    } ## end if ( $rule->[Marpa::Internal::Rule::VIRTUAL_RHS] or ...)
 
     my $text = Marpa::brief_rule($rule);
 
@@ -2126,8 +2136,7 @@ sub add_rule {
         // $grammar->[Marpa::Internal::Grammar::MAXIMAL];
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_LHS] = $virtual_lhs;
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_RHS] = $virtual_rhs;
-    $new_rule->[Marpa::Internal::Rule::DISCARD_SEPARATION] =
-        $discard_separation;
+    $new_rule->[Marpa::Internal::Rule::DISCARD_SEPARATION] = $discard_separation;
     $new_rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT] =
         $real_symbol_count;
 
@@ -2294,16 +2303,6 @@ sub add_user_rule {
 
     $rule_signature_hash->{$rule_signature} = 1;
 
-    given ($min) {
-        when (undef) {break}
-        when (0)     {break}
-        when (1)     {break}
-        default {
-            Marpa::exception(
-                'If min is defined for a rule, it must be 0 or 1')
-        }
-    } ## end given
-
     if ( scalar @{$rhs_names} == 0 or not defined $min ) {
 
         if ( defined $separator_name ) {
@@ -2367,53 +2366,48 @@ sub add_user_rule {
     $sequence_name .= $unique_name_piece;
     my $sequence = assign_symbol( $grammar, $sequence_name );
 
-    my @rule_args = (
-        grammar => $grammar,
-        lhs     => $lhs,
-        rhs     => [$sequence],
-        @rule_options,
-    );
-    if ($action) {
-        push @rule_args,
-            virtual_rhs => 1,
+    # The top sequence rule
+    add_rule(
+        {   grammar           => $grammar,
+            lhs               => $lhs,
+            rhs               => [$sequence],
+            virtual_rhs       => 1,
             real_symbol_count => 0,
-            action      => $action;
-    }
-    add_rule( {@rule_args} );
-
-    if ( defined $separator and not $proper_separation ) {
-        @rule_args = (
-            grammar => $grammar,
-            lhs     => $lhs,
-            rhs     => [ $sequence, $separator, ],
+            discard_separation =>
+                ( !$keep_separation and defined $separator ),
+            action            => $action,
             @rule_options,
-        );
-        if ($action) {
-            push @rule_args,
+        }
+    );
+
+    # An alternative top sequence rule needed for perl5 separation
+    if ( defined $separator and not $proper_separation ) {
+        add_rule(
+            {   grammar            => $grammar,
+                lhs                => $lhs,
+                rhs                => [ $sequence, $separator, ],
                 virtual_rhs        => 1,
                 real_symbol_count  => 1,
                 discard_separation => !$keep_separation,
-                action             => $action;
-        } ## end if ($action)
-        add_rule( {@rule_args} );
+                action             => $action,
+                @rule_options,
+            }
+        );
     } ## end if ( defined $separator and not $proper_separation )
 
     my @separated_rhs     = ($sequence_item);
-    my $discard_separation = 0;
     if ( defined $separator ) {
         push @separated_rhs,     $separator;
-        my $discard_separation = !$keep_separation;
     }
 
-    # minimal sequence rule
     my $counted_rhs = [ (@separated_rhs) x ( $min - 1 ), $sequence_item ];
+    # Minimal sequence rule
     add_rule(
         {   grammar     => $grammar,
             lhs         => $sequence,
             rhs         => $counted_rhs,
             virtual_lhs => 1,
-            discard_separation => $discard_separation,
-            real_symbol_count => (scalar @{$counted_rhs}),
+            real_symbol_count => ( scalar @{$counted_rhs} ),
             @rule_options
         }
     );
@@ -2426,8 +2420,7 @@ sub add_user_rule {
             rhs               => \@iterating_rhs,
             virtual_lhs       => 1,
             virtual_rhs       => 1,
-            real_symbol_count => (scalar @separated_rhs),
-            discard_separation => $discard_separation,
+            real_symbol_count => ( scalar @separated_rhs ),
             @rule_options
         }
     );

@@ -79,6 +79,7 @@ t/minus.t
 t/pascal.t
 t/priority.t
 t/randal.t
+t/sequence.t
 t/stripped.t
 t/synopsis.t
 t/timeflies.t

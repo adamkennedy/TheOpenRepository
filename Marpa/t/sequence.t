@@ -10,8 +10,10 @@ use strict;
 use warnings;
 
 use lib 'lib';
-use Test::More tests => 20;
+use Test::More tests => 71;
 use t::lib::Marpa::Test;
+
+use Smart::Comments '-ENV';
 
 BEGIN {
     Test::More::use_ok('Marpa');
@@ -25,12 +27,11 @@ my $default_action     = <<'END_OF_CODE';
 END_OF_CODE
 
 sub run_sequence_test {
-    my ($minimum, $separation, $keep) = @_;
-    say join ';', @_;
+    my ( $minimum, $separation, $keep ) = @_;
 
-    my @terminals = ('A');
+    my @terminals       = ('A');
     my @separation_args = ();
-    if ($separation ne 'none') {
+    if ( $separation ne 'none' ) {
         push @separation_args, separator => 'sep';
         push @terminals, 'sep';
     }
@@ -41,13 +42,12 @@ sub run_sequence_test {
     my $grammar = Marpa::Grammar->new(
         {   precompute => 0,
             start      => 'TOP',
-            trace_lex => 1,
             strip      => 0,
             rules      => [
-                {   lhs        => 'TOP',
-                    rhs        => [qw/A/],
-                    min        => $minimum,
-                    keep       => $keep,
+                {   lhs  => 'TOP',
+                    rhs  => [qw/A/],
+                    min  => $minimum,
+                    keep => $keep,
                     @separation_args
                 },
             ],
@@ -60,9 +60,9 @@ sub run_sequence_test {
 
     $grammar->precompute();
 
-    say $grammar->show_rules();
+    ### $grammar->show_rules(1);
 
-    my $A = $grammar->get_symbol('A');
+    my $A   = $grammar->get_symbol('A');
     my $sep = $grammar->get_symbol('sep');
 
     SYMBOL_COUNT: for my $symbol_count ( 0, 1, 2, 3, 5, 10 ) {
@@ -74,21 +74,23 @@ sub run_sequence_test {
             . ";count=$symbol_count";
         my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-        my @expected = ();
+        my @expected       = ();
         my $last_symbol_ix = $symbol_count - 1;
-        for my $symbol_ix ( 0 .. $last_symbol_ix ) {
+        SYMBOL_IX: for my $symbol_ix ( 0 .. $last_symbol_ix ) {
             push @expected, 'a';
+            ### Pushing a
             $recce->earleme( [ $A, 'a', 1 ] )
                 or Marpa::exception('Parsing exhausted');
-            if ($separation ne 'none'
-                and (  $symbol_ix <= $last_symbol_ix
-                    or $separation eq 'perl5' )
-                )
-            {
+            next SYMBOL_IX if $separation eq 'none';
+            next SYMBOL_IX
+                if $symbol_ix >= $last_symbol_ix
+                    and $separation ne 'perl5';
+            if ($keep) {
+                ### Pushing bang
                 push @expected, '!';
-                $recce->earleme( [ $sep, '!', 1 ] )
-                    or Marpa::exception('Parsing exhausted');
-            } ## end if ( $separation ne 'proper' and ( $symbol_ix <= ...))
+            }
+            $recce->earleme( [ $sep, '!', 1 ] )
+                or Marpa::exception('Parsing exhausted');
         } ## end for my $symbol_ix ( 0 .. $last_symbol_ix )
 
         $recce->end_input();
@@ -98,24 +100,25 @@ sub run_sequence_test {
                 clone => 0,
             }
         );
-        if (not $evaler) {
+        if ( not $evaler ) {
             Test::More::fail("$test_name: Parse failed");
+            ### assert: 0
             next SYMBOL_COUNT;
         }
-        say $evaler->show_bocage();
+        ### $evaler->show_bocage();
         my $result = $evaler->value();
 
         my $expected = join ';', @expected;
-        if (@expected > 1) {
+        if ( @expected > 1 ) {
             $expected = "($expected)";
         }
         Test::More::is( ${$result}, $expected, $test_name );
+        ### assert: ${$result} eq $expected
 
     } ## end for my $symbol_count ( 0, 1, 2, 3, 5, 10 )
 } ## end sub run_sequence_test
 
-# for my $minimum ( 0, 1, 3 ) {
-for my $minimum ( 0, 1 ) {
+for my $minimum ( 0, 1, 3 ) {
     run_sequence_test( $minimum, 'none', 0 );
     for my $separation (qw(proper perl5)) {
         for my $keep ( 0, 1 ) {
