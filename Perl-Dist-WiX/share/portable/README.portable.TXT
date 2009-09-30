@@ -1,3 +1,6 @@
+Strawberry Perl Portable README
+===============================
+
 What is Strawberry Perl Portable?
 ---------------------------------
 * 'Perl' is a programming language suitable for writing simple scripts as well
@@ -14,7 +17,7 @@ How to use Strawberry Perl Portable?
 ------------------------------------
 
 * Extract strawberry portable ZIP into e.g. c:\myperl\ 
-  Note: choose directory name without spaces
+  Note: choose a directory name without spaces and non us-ascii characters
 
 * Launch c:\myperl\portableshell.bat - it should open a command prompt window
 
@@ -30,5 +33,9 @@ How to use Strawberry Perl Portable?
   
   3. run other tools included in strawberry like: perldoc, gcc, dmake ...
 
-* You can add c:\myperl\perl\bin and c:\myperl\c\bin into your PATH enviroment
-  variable if you want to use it not only from portableshell.bat
+* If you want to use Strawberry Perl Portable not only from portableshell.bat,
+  you need to set the following environmental variables:
+  
+  1. add c:\myperl\perl\bin and c:\myperl\c\bin to PATH variable
+  
+  2. set variable TERM=dumb
