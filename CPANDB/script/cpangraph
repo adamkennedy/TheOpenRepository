@@ -6,10 +6,7 @@ use warnings;
 use Time::HiRes  ();
 use Getopt::Long ();
 
-use vars qw{$VERSION};
-BEGIN {
-	$VERSION = '0.10';
-}
+our $VERSION = '0.11';
 
 use CPANDB ();
 

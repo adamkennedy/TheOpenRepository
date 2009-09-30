@@ -3,9 +3,92 @@ package CPANDB::Distribution;
 use 5.008005;
 use strict;
 use warnings;
+use DateTime ();
 use ORLite::Statistics;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
+
+my $today = DateTime->today( time_zone => 'UTC' );
+
+
+
+
+
+######################################################################
+# DateTime Integration
+
+sub uploaded_datetime {
+	my $self = shift;
+	my @date = split(/-/, $self->uploaded);
+	DateTime->new(
+		year      => $date[0],
+		month     => $date[1],
+		day       => $date[2],
+		locale    => 'C',
+		time_zone => 'UTC',
+	);
+}
+
+sub age {
+	$today - $_[0]->uploaded_datetime;
+}
+
+sub age_months {
+	$_[0]->age->in_units('months');
+}
+
+sub quadrant {
+	my $self = shift;
+
+	# Get the boundary dates
+	my @quadrant = ref($self)->_quadrant;
+
+	# Find which quadrant we are in
+	my $uploaded = $self->uploaded;
+	if ( $uploaded gt $quadrant[0] ) {
+		return 1;
+	} elsif ( $uploaded gt $quadrant[1] ) {
+		return 2;
+	} elsif ( $uploaded gt $quadrant[2] ) {
+		return 3;
+	} else {
+		return 4;
+	}
+}
+
+my @QUADRANT = ();
+
+sub _quadrant {
+	return @QUADRANT if @QUADRANT;
+
+	# Start with the total number of distributions
+	my $class = shift;
+	my $rows  = $class->count;
+	my $mod   = $rows % 4;
+	my $range = ($rows - $mod) / 4;
+
+	# Find the last row in each quadrant
+	foreach ( 1 .. 4 ) {
+		my $offset = ($range * $_) + $mod - 1;
+
+		# Tweak the boundary rows to deal with row totals
+		# that are not divisible by four. By generous about
+		# moving edge cases up if so.
+		if ( $mod - $_ > 0 ) {
+			$offset = $offset - ( $mod - $_ );
+		}
+
+		# Find the upload date for the resulting row
+		my @object = $class->select("order by uploaded desc limit 1 offset $offset");
+		unless ( @object == 1 ) {
+			die("Failed to find edge of quadrant $_");
+		}
+
+		push @QUADRANT, $object[0]->uploaded;
+	}
+
+	return @QUADRANT;
+}
 
 
 
@@ -46,12 +129,16 @@ sub dependants_graphviz {
 
 sub dependency_xgmml {
 	require Graph::XGMML;
-	shift->_dependency( _class => 'Graph::XGMML', @_ );
+	my $self  = shift;
+	my @param = ( @_ == 1 ) ? ( OUTPUT => IO::File->new( shift, 'w' ) ) : ( @_ );
+	$self->_dependency( _class => 'Graph::XGMML', @param );
 }
 
 sub dependants_xgmml {
 	require Graph::XGMML;
-	shift->_dependants( _class => 'Graph::XGMML', @_ );
+	my $self  = shift;
+	my @param = ( @_ == 1 ) ? ( OUTPUT => IO::File->new( shift, 'w' ) ) : ( @_ );
+	$self->_dependants( _class => 'Graph::XGMML', @param );
 }
 
 sub _dependency {

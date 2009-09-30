@@ -8,7 +8,7 @@ use Params::Util         ();
 use ORLite::Mirror       ();
 use CPANDB::Distribution ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 sub import {
 	my $class  = shift;
@@ -66,7 +66,8 @@ sub easy {
 sub xgmml {
 	require Graph::XGMML;
 	my $class = shift;
-	my $graph = Graph::XGMML->new( directed => 1, @_ );
+	my @param = ( @_ == 1 ) ? ( OUTPUT => IO::File->new( shift, 'w' ) ) : ( @_ );
+	my $graph = Graph::XGMML->new( directed => 1, @param );
 	foreach my $vertex ( CPANDB::Distribution->select ) {
 		$graph->add_vertex( $vertex->distribution );
 	}

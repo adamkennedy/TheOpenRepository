@@ -12,7 +12,7 @@ unless ( $ENV{RELEASE_TESTING} ) {
 	exit(0);
 }
 
-plan( tests => 7 );
+plan( tests => 31 );
 
 # Download and load the database
 use_ok( 'CPANDB' );
@@ -24,8 +24,10 @@ use_ok( 'CPANDB' );
 ######################################################################
 # CPANDB shortcuts
 
-my $cpandb = CPANDB->distribution('CPANDB');
-isa_ok( $cpandb, 'CPANDB::Distribution' );
+my $d = CPANDB->distribution('Config-Tiny');
+isa_ok( $d, 'CPANDB::Distribution' );
+isa_ok( $d->uploaded_datetime, 'DateTime' );
+isa_ok( $d->age, 'DateTime::Duration' );
 
 
 
@@ -48,10 +50,10 @@ SKIP: {
 
 	# Graph generation for a single distribution
 	SCOPE: {
-		my $graph1 = $cpandb->dependency_graph;
+		my $graph1 = $d->dependency_graph;
 		isa_ok( $graph1, 'Graph::Directed' );
 
-		my $graph2 = $cpandb->dependency_graph( phase => 'runtime' );
+		my $graph2 = $d->dependency_graph( phase => 'runtime' );
 		isa_ok( $graph2, 'Graph::Directed' );
 	}
 }
@@ -71,7 +73,7 @@ SKIP: {
 
 	# Graph::Easy generation for a single distribution
 	SCOPE: {
-		my $graph = $cpandb->dependency_easy;
+		my $graph = $d->dependency_easy;
 		isa_ok( $graph, 'Graph::Easy' );
 	}
 }
@@ -91,7 +93,37 @@ SKIP: {
 
 	# GraphViz generation for a single distribution
 	SCOPE: {
-		my $graph = $cpandb->dependency_graphviz;
+		my $graph = $d->dependency_graphviz;
 		isa_ok( $graph, 'GraphViz' );
 	}
+}
+
+
+
+
+
+######################################################################
+# Quadrant Support
+
+SCOPE: {
+	my @latest = CPANDB::Distribution->select("order by uploaded desc limit 10");
+	is( scalar(@latest), 10, 'Found the 10 latest results' );
+	foreach ( @latest ) {
+		isa_ok( $_, 'CPANDB::Distribution' );
+		is( $_->quadrant, 1, $_->distribution . ' is in quadrant 1' );
+	}
+}
+
+
+
+
+
+######################################################################
+# Statistics Support
+
+SCOPE: {
+	my $vector = CPANDB::Distribution->vector('weight');
+	isa_ok( $vector, 'Statistics::Basic::Vector' );
+	my $age = CPANDB::Distribution->vector('age_months');
+	isa_ok( $vector, 'Statistics::Basic::Vector' );
 }
