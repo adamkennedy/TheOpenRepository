@@ -12,7 +12,7 @@ unless ( $ENV{RELEASE_TESTING} ) {
 	exit(0);
 }
 
-plan( tests => 31 );
+plan( tests => 32 );
 
 # Download and load the database
 use_ok( 'CPANDB' );
