@@ -40,7 +40,7 @@ eval {
 	require Graph;
 };
 SKIP: {
-	skip("No Graph support available", 2) if $@;
+	skip("No Graph support available", 3) if $@;
 
 	# Graph generation for the entire grap
 	SCOPE: {
