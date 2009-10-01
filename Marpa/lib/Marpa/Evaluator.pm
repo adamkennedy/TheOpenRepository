@@ -215,37 +215,6 @@ sub run_preamble {
 
 }    # run_preamble
 
-# Given symbol, returns null value, calculating it
-# if necessary.
-#
-# Assumes all but CHAF values have already been set
-sub set_null_symbol_value {
-    my $null_values = shift;
-    my $symbol      = shift;
-
-    # if it's not a CHAF nulling symbol,
-    # or the value is already set, use what we have
-    my $chaf_nulling = $symbol->[Marpa::Internal::Symbol::IS_CHAF_NULLING];
-    my $symbol_id    = $symbol->[Marpa::Internal::Symbol::ID];
-    my $null_value   = $null_values->[$symbol_id];
-    if ( not $chaf_nulling or defined $null_value ) {
-        return $null_value;
-    }
-
-    # it is a CHAF nulling symbol, but needs its null value calculated.
-    my @chaf_null_values = ();
-    for my $rhs_symbol ( @{$chaf_nulling} ) {
-        my $nulling_symbol =
-            $rhs_symbol->[Marpa::Internal::Symbol::NULL_ALIAS] // $rhs_symbol;
-        my $value = set_null_symbol_value( $null_values, $nulling_symbol );
-        push @chaf_null_values, $value;
-    } ## end for my $rhs_symbol ( @{$chaf_nulling} )
-    push @chaf_null_values, [];
-
-    return ( $null_values->[$symbol_id] = \@chaf_null_values );
-
-}    # null symbol value
-
 sub set_null_values {
     my $grammar = shift;
     my $package = shift;
@@ -268,13 +237,11 @@ sub set_null_values {
     }
 
     SYMBOL: for my $symbol ( @{$symbols} ) {
-        next SYMBOL
-            if $symbol->[Marpa::Internal::Symbol::IS_CHAF_NULLING];
         my $id = $symbol->[Marpa::Internal::Symbol::ID];
         $null_values->[$id] = $default_null_value;
     } ## end for my $symbol ( @{$symbols} )
 
-    # Before tackling the CHAF symbols, set null values specified in
+    # Set null values specified in
     # empty rules.
     RULE: for my $rule ( @{$rules} ) {
 
@@ -342,17 +309,8 @@ sub set_null_values {
 
     }    # RULE
 
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        next SYMBOL
-            if not $symbol->[Marpa::Internal::Symbol::IS_CHAF_NULLING];
-        set_null_symbol_value( $null_values, $symbol );
-    }
-
     if ($trace_actions) {
         SYMBOL: for my $symbol ( @{$symbols} ) {
-            next SYMBOL
-                if not $symbol->[Marpa::Internal::Symbol::IS_CHAF_NULLING];
-
             my ( $name, $id ) = @{$symbol}[
                 Marpa::Internal::Symbol::NAME, Marpa::Internal::Symbol::ID,
             ];
@@ -426,51 +384,8 @@ sub set_actions {
             push @{$ops}, Marpa::Internal::Evaluator_Op::ARGC, $argc;
         }
 
-        my $action = $rule->[Marpa::Internal::Rule::ACTION];
-
-        ACTION: {
-
-            $action //= $default_action;
-            last ACTION if not defined $action;
-
-            # HAS_CHAF_RHS and HAS_CHAF_LHS would work well as a bit
-            # mask in a C implementation
-            my $has_chaf_lhs = $rule->[Marpa::Internal::Rule::HAS_CHAF_LHS];
-            my $has_chaf_rhs = $rule->[Marpa::Internal::Rule::HAS_CHAF_RHS];
-
-            last ACTION if not $has_chaf_lhs and not $has_chaf_rhs;
-
-            if ( $has_chaf_rhs and $has_chaf_lhs ) {
-                ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-                $action = q{ \@_; };
-                ## use critic
-                last ACTION;
-            } ## end if ( $has_chaf_rhs and $has_chaf_lhs )
-
-            # At this point has chaf rhs or lhs but not both
-            if ($has_chaf_lhs) {
-
-                ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-                $action = q{push @_, [];} . "\n" . q{\@_} . "\n";
-                ## use critic
-                last ACTION;
-
-            } ## end if ($has_chaf_lhs)
-
-            # at this point must have chaf rhs and not a chaf lhs
-
-            #<<< no perltidy
-            $action =
-                  "    TAIL: for (;;) {\n"
-                ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-                . q<        my $tail = pop @_;> . "\n"
-                . q<        last TAIL if not scalar @{$tail};> . "\n"
-                . q<        push @_, @{$tail};> . "\n"
-                ## use critic
-                . "    } # TAIL\n"
-                . $action;
-            #>>>
-        }    # ACTION
+        my $action = $rule->[Marpa::Internal::Rule::ACTION]
+            // $default_action;
 
         if ( not defined $action ) {
 
@@ -2085,33 +2000,35 @@ sub Marpa::Evaluator::new {
 
 sub Marpa::dump_sort_key {
     my ($sort_key) = @_;
-    my $text = q{};
+    my @element_dumps = ();
     for my $sort_element (
         map { [ unpack 'N*', $_ ] }
         sort map { pack 'N*', @{$_} } @{$sort_key}
         )
     {
-        $text .= (
+        push @element_dumps,
+            (
             join q{ },
             map { ( $_ & N_FORMAT_HIGH_BIT ) ? ( q{~} . ~$_ ) : "$_" }
                 @{$sort_element}
-        ) . "\n";
+            );
     } ## end for my $sort_element ( map { [ unpack 'N*', $_ ] } sort...)
-    return $text;
+    return join q{; }, @element_dumps;
 } ## end sub Marpa::dump_sort_key
 
-sub Marpa::Evaluator::show_sort_key {
+sub Marpa::Evaluator::show_sort_keys {
     my ($evaler) = @_;
     my $or_iterations = $evaler->[Marpa::Internal::Evaluator::OR_ITERATIONS];
     my $top_or_iteration = $or_iterations->[0];
-    Marpa::exception('show_sort_key called on exhausted parse')
+    Marpa::exception('show_sort_keys called on exhausted parse')
         if not $top_or_iteration;
 
-    my $top_and_choice = $top_or_iteration->[-1];
-    my $top_sort_key =
-        $top_and_choice->[Marpa::Internal::And_Choice::SORT_KEY];
-    return Marpa::dump_sort_key($top_sort_key);
-} ## end sub Marpa::Evaluator::show_sort_key
+    my $text = q{};
+    for my $and_choice (reverse @{$top_or_iteration}) {
+        $text .= Marpa::dump_sort_key( $and_choice->[Marpa::Internal::And_Choice::SORT_KEY]) . "\n";
+    }
+    return $text;
+} ## end sub Marpa::Evaluator::show_sort_keys
 
 sub Marpa::Evaluator::show_and_node {
     my ( $evaler, $and_node, $verbose ) = @_;
@@ -3138,6 +3055,8 @@ sub Marpa::Evaluator::value {
                                         'Could not print to trace file');
                                 } ## end if ($trace_values)
 
+                                ### assert: scalar @virtual_rule_stack
+
                                 $real_symbol_count += pop @virtual_rule_stack;
                                 $current_data = [
                                     map { ${$_} } (
@@ -3328,6 +3247,8 @@ sub Marpa::Evaluator::value {
                     } ## end while ( $op_ix < scalar @{$ops} )
 
                 }    # TREE_NODE
+
+                ### sort_key: $evaler->show_sort_keys()
 
                 return pop @evaluation_stack;
 
