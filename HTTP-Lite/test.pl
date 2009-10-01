@@ -49,7 +49,7 @@ $testpath = $testpath ? $testpath : "http://www.thetoybox.org/HTTP-Lite-Tests";
 
 if ($testpath =~ /\s*'*none'*\s*/)
 {
-	print STDERR "skipping all tests\n";
+	# print STDERR "skipping all tests\n";
 	$skip=1;
 } else {
 print STDERR <<EOF;
@@ -68,7 +68,7 @@ $proxy = $proxy ? $proxy : "none";
 
 if ($proxy =~ /\s*'*none'*\s*/)
 {
-	print STDERR "skipping proxy testing\n";
+	# print STDERR "skipping proxy testing\n";
 	$skipproxy=1;
 }
 
@@ -81,7 +81,7 @@ $http = new HTTP::Lite;
 
 $http->http11_mode(1);
 
-print "\n\n";
+# print "\n\n";
 $testno = 2;
 
 if (!$skip)

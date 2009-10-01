@@ -1,6 +1,6 @@
 Revision history for Perl extension HTTP::Lite.
 
-3.00 Thu  1 Oct 2009
+2.2 Thu  1 Oct 2009
 	- Moved Lite.pm into lib directory
 	- Reversed the Changes file order to reverse chronological
 	- Moved to Makefile.PL to Module::Install to autodetect more things
@@ -8,7 +8,9 @@ Revision history for Perl extension HTTP::Lite.
 	- Remove reliable on (partially) dead website for testing
 	- Now this module is mature and unlikely to change much, move to
 	  a more stable and less complicated versioning scheme that suffers
-	  less complications in the Perl toolchain.
+	  less complications in the Perl toolchain. Also, dotted integers
+	  without the use of something like version.pm isn't strictly
+	  allowed.
 
 2.1.6 Wed Jan 21 16:54:31 2004
 	- Fixed User-Agent header problem
