@@ -32,7 +32,7 @@ use vars qw(@ISA @EXPORT $FPATH $FBLEVELS $colourblind %POS_1P %POS_2P $BUBBLE_S
              $PI cat_ member difference2 any even odd sqr to_bool to_int if_
              fold_left output append_to_file min max backtrace basename cp_af all);
 
-$FPATH = '@DATADIR@/frozen-bubble';
+$FPATH = '/usr/local/share/frozen-bubble';
 
 %POS_2P = ( p1 => { left_limit => 30,  right_limit => 286, pinguin => { x => 168, 'y' => 437 }, malus_x => 308, scoresx => 293 },
 	    p2 => { left_limit => 354, right_limit => 610, pinguin => { x => 32,  'y' => 437 }, malus_x => 331, scoresx => 341 },

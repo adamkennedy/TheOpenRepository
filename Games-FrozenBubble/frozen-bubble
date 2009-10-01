@@ -191,9 +191,9 @@ sub play_music($;$) {
 	while ($tryanother->() == 0) {};
     } else {
 	$mus = SDL::Music->new("$FPATH$musics{$name}");
-	$mus->{-data} or print STDERR "Warning, could not create new music from `$FPATH$musics{$name}' (reason: ", $app->error, ").\n";
+	$mus or print STDERR "Warning, could not create new music from `$FPATH$musics{$name}' (reason: ", $app->error, ").\n";
 	if ($pos) {
-	    fb_c_stuff::fade_in_music_position($mus->{-data}, -1, 500, $pos);
+	    fb_c_stuff::fade_in_music_position($mus, -1, 500, $pos);
 	} else {
 	    $mixer->play_music($mus, -1);
 	}
@@ -212,7 +212,7 @@ sub init_sound() {
     foreach (@sounds) {
 	my $sound_path = "$FPATH/snd/$_.wav";
 	$sound{$_} = SDL::Sound->new($sound_path);
-	if ($sound{$_}{-data}) {
+	if ($sound{$_}){
 	    $sound{$_}->volume(80);
 	} else {
 	    print STDERR "Warning, could not create new sound from `$sound_path'.\n";
@@ -307,7 +307,7 @@ sub switch_image_on_background($$$;$) {
 sub add_image($) {
     my $file = "$FPATH/gfx/$_[0]";
     my $img = SDL::Surface->new(-name => $file);
-    $img->{-surface} or die "FATAL: Couldn't load `$file' into a SDL::Surface.\n";
+    $img or die "FATAL: Couldn't load `$file' into a SDL::Surface.\n";
     add_default_rect($img);
     return $img;
 }
