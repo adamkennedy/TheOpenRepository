@@ -38,7 +38,7 @@ use FBLE;
 local $_ = "@ARGV";
 
 if ( /-h/ ) { 
-	print <<'END_TEXT';
+    print <<'END_TEXT';
 Usage:  [OPTION]...
 -h, --help                      display this help screen
 -cb, --colourblind              use bubbles for colourblind people
@@ -47,40 +47,40 @@ Usage:  [OPTION]...
 -l<#n>, --level<#n>             directly start the n-th level
 -fs, --fullscreen               start in fullscreen mode
 END_TEXT
-	exit(0);
+    exit(0);
 }
 
 our $colourblind = 0;
 
 if ( /-cb/ or /-co/ ) {
-	$colourblind = 1;
+    $colourblind = 1;
 }
 
 if ( /-ls\s*(\S+)/ or /-levelset\s*(\S+)/ ) {
-	$FBLE::levelset_name = $1;
-	unless ( $FBLE::levelset_name ) {
-		$FBLE::levelset_name = 'default-levelset';
-	}
+    $FBLE::levelset_name = $1;
+    unless ( $FBLE::levelset_name ) {
+        $FBLE::levelset_name = 'default-levelset';
+    }
 }
 
 if ( /-l\s*(\d+)/ or /-level\s*(\d+)/ ) {
-	$FBLE::curr_level = $1;
-	unless ( $FBLE::curr_level ) {
-		$FBLE::curr_level = 1;
-	}
+    $FBLE::curr_level = $1;
+    unless ( $FBLE::curr_level ) {
+        $FBLE::curr_level = 1;
+    }
 }
 
 if ( /-fs/ or /-fullscreen/ ) {
-	$FBLE::command_line_fullscreen = 1;
-	unless ( $FBLE::command_line_fullscreen ) {
-		$FBLE::command_line_fullscreen = 0;
-	}
+    $FBLE::command_line_fullscreen = 1;
+    unless ( $FBLE::command_line_fullscreen ) {
+        $FBLE::command_line_fullscreen = 0;
+    }
 }
 
 my $app = SDL::App->new(
-	-title  => 'frozen-bubble level editor',
-	-width  => 640,
-	-height => 480,
+    -title  => 'frozen-bubble level editor',
+    -width  => 640,
+    -height => 480,
 );
 
 FBLE::init_setup('stand-alone', $app);

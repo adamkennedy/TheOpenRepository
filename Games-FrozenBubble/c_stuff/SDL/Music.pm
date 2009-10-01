@@ -18,18 +18,18 @@ use SDL::sdlpl;
 #
 
 sub new {
-        my $proto = shift;
-        my $class = ref($proto) || $proto;
-        my $self = {};
-        my $filename = shift;
-        $self->{-data} = SDL::sdlpl::sdl_mix_load_music($filename);
-        bless $self,$class;
-        return $self;
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
+    my $self = {};
+    my $filename = shift;
+    $self->{-data} = SDL::sdlpl::sdl_mix_load_music($filename);
+    bless $self,$class;
+    return $self;
 }
 
 sub DESTROY {
-        my $self = shift;
-        SDL::sdlpl::sdl_mix_free_music($self->{-data});
+    my $self = shift;
+    SDL::sdlpl::sdl_mix_free_music($self->{-data});
 }
 
 1;

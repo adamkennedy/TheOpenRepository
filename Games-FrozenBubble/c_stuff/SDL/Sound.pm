@@ -14,18 +14,18 @@ use SDL::sdlpl;
 #
 
 sub new {
-	my $proto = shift;	
-	my $class = ref($proto) || $proto;
-	my $self = {};
-	my $filename = shift;
-	$self->{-data} = SDL::sdlpl::sdl_mix_load_wav($filename);
-	bless $self,$class;
-	return $self;
+    my $proto = shift;	
+    my $class = ref($proto) || $proto;
+    my $self = {};
+    my $filename = shift;
+    $self->{-data} = SDL::sdlpl::sdl_mix_load_wav($filename);
+    bless $self,$class;
+    return $self;
 }
 
 sub DESTROY {
-	my $self = shift;
-	SDL::sdlpl::sdl_mix_free_chunk($self->{-data});
+    my $self = shift;
+    SDL::sdlpl::sdl_mix_free_chunk($self->{-data});
 }
 
 #
@@ -33,9 +33,9 @@ sub DESTROY {
 #
 
 sub volume {
-	my $self = shift;
-	my $volume = shift;
-	return SDL::sdlpl::sdl_mix_chunk_volume($self->{-data},$volume);
+    my $self = shift;
+    my $volume = shift;
+    return SDL::sdlpl::sdl_mix_chunk_volume($self->{-data},$volume);
 }
 
 1;

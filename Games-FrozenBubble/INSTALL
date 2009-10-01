@@ -5,10 +5,10 @@
 
 
 SDL_mixer >= 1.2.2
-	http://www.libsdl.org/projects/SDL_mixer/
+        http://www.libsdl.org/projects/SDL_mixer/
 
 SDL perl >= 1.19.0
-	http://sdlperl.org/
+        http://sdlperl.org/
 
 If you compile by hand, double-check you first compile SDL, then SDL_image
 and SDL_mixer, then SDL perl, otherwise you might get the error that

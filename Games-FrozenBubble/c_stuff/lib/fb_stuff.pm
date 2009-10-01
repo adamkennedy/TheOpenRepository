@@ -35,27 +35,27 @@ use vars qw(@ISA @EXPORT $FPATH $FBLEVELS $colourblind %POS_1P %POS_2P $BUBBLE_S
 $FPATH = '/usr/local/share/frozen-bubble';
 
 %POS_2P = ( p1 => { left_limit => 30,  right_limit => 286, pinguin => { x => 168, 'y' => 437 }, malus_x => 308, scoresx => 293 },
-	    p2 => { left_limit => 354, right_limit => 610, pinguin => { x => 32,  'y' => 437 }, malus_x => 331, scoresx => 341 },
-	    top_limit => 40,
-	    'initial_bubble_y' => 390,
-	    next_bubble => { x => 112, 'y' => 440 },
-	    'malus_y' => 408,
-	    hurry => { x => 10, 'y' => 265 },
-	    centerpanel => { x => 153, 'y' => 190 },
-	    scoresy => 428,
-	  );
+            p2 => { left_limit => 354, right_limit => 610, pinguin => { x => 32,  'y' => 437 }, malus_x => 331, scoresx => 341 },
+            top_limit => 40,
+            'initial_bubble_y' => 390,
+            next_bubble => { x => 112, 'y' => 440 },
+            'malus_y' => 408,
+            hurry => { x => 10, 'y' => 265 },
+            centerpanel => { x => 153, 'y' => 190 },
+            scoresy => 428,
+          );
 
 %POS_1P = ( p1 => { left_limit => 190, right_limit => 446, pinguin => { x => 168, 'y' => 437 }, scoresx => 180 },
-	    init_top_limit => 44,
-	    'initial_bubble_y' => 390,
-	    next_bubble => { x => 112, 'y' => 440 },
-	    'malus_y' => 408,
-	    hurry => { x => 10, 'y' => 265 },
-	    centerpanel => { x => 149, 'y' => 190 },
-	    pause_clip => { x => 263, 'y' => 212 },
-	    scoresy => 432,
-	    compressor_xpos => 321,
-	  );
+            init_top_limit => 44,
+            'initial_bubble_y' => 390,
+            next_bubble => { x => 112, 'y' => 440 },
+            'malus_y' => 408,
+            hurry => { x => 10, 'y' => 265 },
+            centerpanel => { x => 149, 'y' => 190 },
+            pause_clip => { x => 263, 'y' => 212 },
+            scoresy => 432,
+            compressor_xpos => 321,
+          );
 
 $FBLEVELS = "$ENV{HOME}/.fblevels";
 
@@ -113,8 +113,8 @@ sub max { my $n = shift; $_ > $n and $n = $_ foreach @_; $n }
 sub backtrace {
     my $s;
     for (my $i = 1; caller($i); $i++) {
-	my ($package, $file, $line, $func) = caller($i);
-	$s .= "$func() called from $file:$line\n";
+        my ($package, $file, $line, $func) = caller($i);
+        $s .= "$func() called from $file:$line\n";
     }
     $s;
 }
@@ -126,24 +126,24 @@ sub cp_af {
     @_ == 1 || -d $dest or die "cp: copying multiple files, but last argument ($dest) is not a directory\n";
 
     foreach my $src (@_) {
-	my $dest = $dest;
-	-d $dest and $dest .= '/' . basename($src);
+        my $dest = $dest;
+        -d $dest and $dest .= '/' . basename($src);
 
-	unlink $dest;
+        unlink $dest;
 
-	if (-d $src) {
-	    -d $dest or mkdir $dest, (stat($src))[2] or die "mkdir: can't create directory $dest: $!\n";
-	    cp_af(glob_($src), $dest);
-	} elsif (-l $src) {
-	    unless (symlink((readlink($src) || die "readlink failed: $!"), $dest)) {
-		warn "symlink: can't create symlink $dest: $!\n";
-	    }
-	} else {
-	    local *F; open F, $src or die "can't open $src for reading: $!\n";
-	    local *G; open G, "> $dest";
-	    local $_; while (<F>) { print G $_ }
-	    chmod((stat($src))[2], $dest);
-	}
+        if (-d $src) {
+            -d $dest or mkdir $dest, (stat($src))[2] or die "mkdir: can't create directory $dest: $!\n";
+            cp_af(glob_($src), $dest);
+        } elsif (-l $src) {
+            unless (symlink((readlink($src) || die "readlink failed: $!"), $dest)) {
+                warn "symlink: can't create symlink $dest: $!\n";
+            }
+        } else {
+            local *F; open F, $src or die "can't open $src for reading: $!\n";
+            local *G; open G, "> $dest";
+            local $_; while (<F>) { print G $_ }
+            chmod((stat($src))[2], $dest);
+        }
     }
     1;
 }
