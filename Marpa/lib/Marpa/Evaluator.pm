@@ -239,7 +239,7 @@ sub set_null_values {
     SYMBOL: for my $symbol ( @{$symbols} ) {
         my $id = $symbol->[Marpa::Internal::Symbol::ID];
         $null_values->[$id] = $default_null_value;
-    } ## end for my $symbol ( @{$symbols} )
+    }
 
     # Set null values specified in
     # empty rules.
@@ -2024,9 +2024,12 @@ sub Marpa::Evaluator::show_sort_keys {
         if not $top_or_iteration;
 
     my $text = q{};
-    for my $and_choice (reverse @{$top_or_iteration}) {
-        $text .= Marpa::dump_sort_key( $and_choice->[Marpa::Internal::And_Choice::SORT_KEY]) . "\n";
-    }
+    for my $and_choice ( reverse @{$top_or_iteration} ) {
+        $text
+            .= Marpa::dump_sort_key(
+            $and_choice->[Marpa::Internal::And_Choice::SORT_KEY] )
+            . "\n";
+    } ## end for my $and_choice ( reverse @{$top_or_iteration} )
     return $text;
 } ## end sub Marpa::Evaluator::show_sort_keys
 

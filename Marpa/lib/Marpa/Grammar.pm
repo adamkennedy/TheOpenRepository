@@ -1732,7 +1732,7 @@ sub Marpa::show_rule {
     {
         push @comment, sprintf 'real=%d',
             $rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT];
-    } ## end if ( $rule->[Marpa::Internal::Rule::VIRTUAL_RHS] or ...)
+    } ## end if ( $rule->[Marpa::Internal::Rule::VIRTUAL_LHS] or ...)
 
     my $text = Marpa::brief_rule($rule);
 
@@ -3603,11 +3603,11 @@ sub rewrite_as_CHAF {
                         ]
                     ];
                     @proper_nullable_ixes = ();
-                } ## end when ( $_ < 2 )
+                } ## end when ( $_ <= 2 )
 
                 # When there are 3 or more proper nullables
                 default {
-                    $subproduction_end_ix = $proper_nullable_1_ix-1;
+                    $subproduction_end_ix = $proper_nullable_1_ix - 1;
                     shift @proper_nullable_ixes;
 
                     # If the next subproduction is not nullable,
@@ -3646,7 +3646,7 @@ sub rewrite_as_CHAF {
                         ],
                         $next_subproduction_lhs
                     ];
-                } ## end when ( $proper_nullable_1_ix < $last_nonnullable_ix )
+                } ## end default
 
             }    # SETUP_SUBPRODUCTION
 
@@ -3705,7 +3705,7 @@ sub rewrite_as_CHAF {
                 # if nulling anothing symbol would make the whole production
                 # null.
                 my @rh_sides_for_2nd_factoring = ($nothing_nulling_rhs);
-                if (not $nullable) {
+                if ( not $nullable ) {
                     push @rh_sides_for_2nd_factoring, $last_nulling_rhs;
                 }
 
@@ -3717,11 +3717,11 @@ sub rewrite_as_CHAF {
                         ->[Marpa::Internal::Symbol::NULL_ALIAS];
                     push @factored_rh_sides, $new_factored_rhs;
                     ### assert: $new_factored_rhs->[-1]
-                }
+                } ## end for my $rhs_to_refactor (@rh_sides_for_2nd_factoring)
 
             }    # FACTOR
 
-            for my $factor_rhs ( @factored_rh_sides ) {
+            for my $factor_rhs (@factored_rh_sides) {
 
                 # if the LHS is the not LHS of the original rule, we have a
                 # special CHAF header
