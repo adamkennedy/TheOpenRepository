@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+
 #*****************************************************************************
 #
 #                          Frozen-Bubble
@@ -37,14 +38,22 @@
 #use diagnostics;
 #use strict;
 
-use vars qw($TARGET_ANIM_SPEED $BUBBLE_SIZE $ROW_SIZE $LAUNCHER_SPEED $BUBBLE_SPEED $MALUS_BUBBLE_SPEED $TIME_APPEARS_NEW_ROOT
-            %POS %POS_1P %POS_2P $KEYS %actions %angle %pdata $app $font %apprects $event %rects %sticked_bubbles %root_bubbles
-            $background $background_orig @bubbles_images $gcwashere %bubbles_anim %launched_bubble %tobe_launched %next_bubble
-            $shooter $sdl_flags $mixer $mixer_enabled $music_disabled $sfx_disabled @playlist %sound %music %pinguin %canon
-            $graphics_level @update_rects $CANON_ROTATIONS_NB %malus_bubble %falling_bubble %exploding_bubble %malus_gfx
-            %sticking_bubble $version $time %imgbin $TIME_HURRY_WARN $TIME_HURRY_MAX $TIMEOUT_PINGUIN_SLEEP $FREE_FALL_CONSTANT
-            $direct @PLAYERS %levels $display_on_app_disabled $total_time $time_1pgame $fullscreen $rcfile $hiscorefile $HISCORES
-            $lev_number $playermalus $loaded_levelset $direct_levelset $chainreaction %chains %history);
+use vars qw(
+	$BUBBLE_SIZE $ROW_SIZE
+	$TIME_APPEARS_NEW_ROOT %POS %POS_1P %POS_2P
+	%actions %angle %pdata $app $font %apprects $event %rects
+	%sticked_bubbles %root_bubbles $background $background_orig
+	@bubbles_images $gcwashere %bubbles_anim %launched_bubble
+	%tobe_launched %next_bubble $shooter
+	$mixer_enabled $music_disabled $sfx_disabled @playlist %sound
+	%music %pinguin %canon @update_rects
+	%malus_bubble %falling_bubble %exploding_bubble
+	%malus_gfx %sticking_bubble $time %imgbin $TIME_HURRY_WARN
+	$TIME_HURRY_MAX $direct
+	%levels $display_on_app_disabled $total_time $time_1pgame
+	$fullscreen $hiscorefile $HISCORES $lev_number
+	$loaded_levelset $direct_levelset %chains %history
+);
 
 use Data::Dumper;
 
@@ -62,48 +71,69 @@ use FBLE;
 
 $| = 1;
 
-$TARGET_ANIM_SPEED = 20;        # number of milliseconds that should last between two animation frames
-$LAUNCHER_SPEED = 0.03;		# speed of rotation of launchers
-$BUBBLE_SPEED = 10;		# speed of movement of launched bubbles
-$MALUS_BUBBLE_SPEED = 30;	# speed of movement of "malus" launched bubbles
-$CANON_ROTATIONS_NB = 40;       # number of rotations of images for canon (should be consistent with gfx/shoot/Makefile)
+our $TARGET_ANIM_SPEED = 20;  # number of milliseconds that should last between two animation frames
+our $LAUNCHER_SPEED = 0.03;   # speed of rotation of launchers
+our $BUBBLE_SPEED = 10;       # speed of movement of launched bubbles
+our $MALUS_BUBBLE_SPEED = 30; # speed of movement of "malus" launched bubbles
+our $CANON_ROTATIONS_NB = 40;     # number of rotations of images for canon (should be consistent with gfx/shoot/Makefile)
 
-$TIMEOUT_PINGUIN_SLEEP = 200;
-$FREE_FALL_CONSTANT = 0.5;
-$KEYS = { p1 => { left => SDLK_x,    right => SDLK_v,     fire => SDLK_c,  center => SDLK_d },
-	  p2 => { left => SDLK_LEFT, right => SDLK_RIGHT, fire => SDLK_UP, center => SDLK_DOWN },
-	  misc => { fs => SDLK_f } };
+our $TIMEOUT_PINGUIN_SLEEP = 200;
+our $FREE_FALL_CONSTANT = 0.5;
+our $KEYS = {
+    p1 => {
+	left   => SDLK_x,
+	right  => SDLK_v,
+	fire   => SDLK_c,
+	center => SDLK_d
+    },
+    p2 => {
+        left   => SDLK_LEFT,
+        right  => SDLK_RIGHT,
+        fire   => SDLK_UP,
+        center => SDLK_DOWN
+    },
+    misc => {
+	fs => SDLK_f
+    }
+};
 
-$sdl_flags = SDL_ANYFORMAT | SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_HWACCEL | SDL_ASYNCBLIT;
-$mixer = 0;
-$graphics_level = 3;
-@PLAYERS = qw(p1 p2);
-$playermalus = 0;
-$chainreaction = 0;
+our $sdl_flags = SDL_ANYFORMAT
+	| SDL_HWSURFACE
+	| SDL_DOUBLEBUF
+	| SDL_HWACCEL
+	| SDL_ASYNCBLIT;
+our $mixer = 0;
+our $graphics_level = 3;
+our @PLAYERS = qw(p1 p2);
+our $playermalus = 0;
+our $chainreaction = 0;
 
-$rcfile = "$ENV{HOME}/.fbrc";
+our $rcfile = "$ENV{HOME}/.fbrc";
+our $hiscorefile = "$ENV{HOME}/.fbhighscores";
 eval(cat_($rcfile));
-eval(cat_($hiscorefile = "$ENV{HOME}/.fbhighscores"));
+eval(cat_($hiscorefile));
 
-$version = '1.0.0';
+our $version = '1.0.0';
 
-print "        [[ Frozen-Bubble-$version ]]\n\n";
-print '  http://www.frozen-bubble.org/
+print <<"END_TEXT";
+        [[ Frozen-Bubble-$version ]]
 
+  http://www.frozen-bubble.org/
+  
   Copyright (c) 2000, 2001, 2002, 2003 Guillaume Cottenceau.
   Artwork: Alexis Younes <73lab at free.fr>
            Amaury Amblard-Ladurantie <amaury at linuxfr.org>
   Soundtrack: Matthias Le Bidan <matthias.le_bidan at caramail.com>
   Design & Programming: Guillaume Cottenceau <guillaume.cottenceau at free.fr>
   Level Editor: Kim and David Joham <[k|d]joham at yahoo.com>
-
+  
   Sponsored by MandrakeSoft <http://www.mandrakesoft.com/>
-
+  
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License version 2, as
   published by the Free Software Foundation.
 
-';
+END_TEXT
 
 local $_ = "@ARGV";
 
