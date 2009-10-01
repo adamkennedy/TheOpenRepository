@@ -19,11 +19,15 @@ package Games::FrozenBubble::MDKCommon;
 
 use 5.006;
 use strict;
+use warnings;
 
-our @ISA = 'Exporter';
-our @EXPORT =
+our @ISA    = 'Exporter';
+our @EXPORT = qw{
+    $PI cat_ member difference2 any even odd sqr to_bool to_int if_
+    fold_left output append_to_file min max backtrace basename cp_af all
+};
 
-  our $PI = 3.1415926535897932384626433832795028841972;
+our $PI = 3.1415926535897932384626433832795028841972;
 
 sub cat_ {
     local *F;
