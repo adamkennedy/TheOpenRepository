@@ -984,6 +984,7 @@ system choose.
 Explicity set the method.  Using prepare_post or reset overrides this
 setting.  Usual choices are GET, POST, PUT, HEAD
 
+=back
 
 =head1 EXAMPLES
 
