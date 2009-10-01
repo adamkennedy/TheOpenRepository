@@ -171,20 +171,20 @@ sub find {
     $End_Of_String = 0;
     my @regex_tokens =
       map {
-	my $yp = YAPE::Regex->new($_);
-	my $str = '';
-	my $token;
-	while ($token = $yp->next()) {
-		my $tstr = $token->string();
-		if ($self->{die_on_anchors} and $tstr eq '^' or $tstr eq '$') {
-			croak "Invalid use of anchors (here: '$tstr') in a ",
-				"regular expression that will be\n",
-				"applied to a stream";
-		}
-		$str .= $tstr .
-		        '(?:\z(?{$End_Of_String++})(?!)|)';
-	}
-	qr/$str/;
+        my $yp = YAPE::Regex->new($_);
+        my $str = '';
+        my $token;
+        while ($token = $yp->next()) {
+                my $tstr = $token->string();
+                if ($self->{die_on_anchors} and $tstr eq '^' or $tstr eq '$') {
+                        croak "Invalid use of anchors (here: '$tstr') in a ",
+                                "regular expression that will be\n",
+                                "applied to a stream";
+                }
+                $str .= $tstr .
+                        '(?:\z(?{$End_Of_String++})(?!)|)';
+        }
+        qr/$str/;
       }
       map {
         if ( not ref($_) )
@@ -205,11 +205,11 @@ sub find {
 
     while (1) {
         my @matches = $self->{buffer} =~ $compiled;
-	if ($End_Of_String or not @matches) {
-		$End_Of_String = 0;
-		return undef unless $self->fill_buffer();
-		next;
-	}
+        if ($End_Of_String or not @matches) {
+                $End_Of_String = 0;
+                return undef unless $self->fill_buffer();
+                next;
+        }
         else {
             my $index = undef;
             for ( 0 .. $#matches ) {
