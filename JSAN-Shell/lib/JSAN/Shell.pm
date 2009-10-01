@@ -42,7 +42,6 @@ use File::ShareDir   ();
 use File::UserConfig ();
 use Mirror::JSON     ();
 use LWP::Online      ();
-use JSAN::Transport  ();
 use JSAN::Index      ();
 use JSAN::Client     ();
 
@@ -102,16 +101,15 @@ sub new {
 		$self->{config}->{mirror} = $mirror;
 	}
 
-	# Initialise the transport layer
-	JSAN::Transport->import(
-		verbose       => $self->{config}->{verbose},
-		mirror_remote => $self->{config}->{mirror},
-	);
-
-	# Initialise the client/index
-	JSAN::Client->import(
-		url => $self->{config}->{mirror},
-	);
+	# Initialize the Index layer
+	if (JSAN::Index->can('orlite') && $self->{config}->{mirror}) {
+	    Carp::croak("Cannot re-initialize JSAN::Index with different mirror url");
+	} elsif (not JSAN::Index->can('orlite')) {
+        JSAN::Index->init(
+            verbose       => $self->{config}->{verbose},
+            mirror_remote => $self->{config}->{mirror},
+        );
+	}
 
 	$self;
 }

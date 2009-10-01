@@ -10,13 +10,7 @@ BEGIN {
 
 use Test::More tests => 1;
 use File::Spec::Functions ':ALL';
-BEGIN {
-	$DB::single = 1;
-}
 use JSAN::Shell ();
-
-
-
 
 
 #####################################################################
