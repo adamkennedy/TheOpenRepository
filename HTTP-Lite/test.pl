@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+
 #
 # HTTP::Lite - test.pl
 #
@@ -15,8 +16,7 @@
 
 BEGIN { $| = 1; print "1..27\n"; }
 END {print "not ok 1\n" unless $loaded;}
-use lib ".";
-use Lite;
+use HTTP::Lite;
 $loaded = 1;
 
 
@@ -28,22 +28,22 @@ print "ok 1\n";
 # (correspondingly "not ok 13") depending on the success of chunk 13
 # of the test code):
 
-print STDERR <<EOF;
-
-This is HTTP::Lite $HTTP::Lite::VERSION.
-
-This module requires either an internet connection, or access to an Apache
-1.3 server with Perl and the CGI module instaled.
-
-If you wish to perform tests on a local server, you must copy the contents
-of the test-data directory to the apache server (which may be local).  You
-must be using the 'AddHandler cgi-script .cgi' directive in order for tests
-to be successful, as one many tests currently requires a CGI script.
-
-What is the full URL for the above?  Enter 'none' to skip tests.
-EOF
-print STDERR "Location: [http://www.thetoybox.org/HTTP-Lite-Tests] ";
-$testpath = <>;
+#print STDERR <<EOF;
+#
+#This is HTTP::Lite $HTTP::Lite::VERSION.
+#
+#This module requires either an internet connection, or access to an Apache
+#1.3 server with Perl and the CGI module instaled.
+#
+#If you wish to perform tests on a local server, you must copy the contents
+#of the test-data directory to the apache server (which may be local).  You
+#must be using the 'AddHandler cgi-script .cgi' directive in order for tests
+#to be successful, as one many tests currently requires a CGI script.
+#
+#What is the full URL for the above?  Enter 'none' to skip tests.
+#EOF
+#print STDERR "Location: [http://www.thetoybox.org/HTTP-Lite-Tests] ";
+$testpath = 'none';
 chomp($testpath);
 $testpath = $testpath ? $testpath : "http://www.thetoybox.org/HTTP-Lite-Tests";
 

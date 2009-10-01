@@ -1,24 +1,18 @@
-
-#
-# HTTP::Lite.pm
-#
-# $Id: Lite.pm,v 1.11 2002/06/13 19:53:48 rhooper Exp rhooper $
-#
-
 package HTTP::Lite;
 
-use vars qw($VERSION);
-use strict qw(vars);
-
-$VERSION = "2.1.6";
-my $BLOCKSIZE = 65536;
-my $CRLF = "\r\n";
-my $URLENCODE_VALID = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.";
-
-# Required modules for Network I/O
+use strict;
 use Socket 1.3;
 use Fcntl;
 use Errno qw(EAGAIN);
+
+use vars qw($VERSION);
+BEGIN {
+	$VERSION = "3.00";
+}
+
+my $BLOCKSIZE = 65536;
+my $CRLF = "\r\n";
+my $URLENCODE_VALID = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.";
 
 # Forward declarations
 sub prepare_post;

@@ -1,3 +1,4 @@
-use ExtUtils::MakeMaker;
-WriteMakefile( NAME => "HTTP::Lite",
-		VERSION_FROM => 'Lite.pm' );
+use inc::Module::Install::DSL 0.91;
+
+all_from lib/HTTP/Lite.pm
+no_index test-data
