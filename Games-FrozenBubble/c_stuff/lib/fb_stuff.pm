@@ -2,7 +2,8 @@
 #
 #                          Frozen-Bubble
 #
-# Copyright (c) 2000, 2001, 2002, 2003 Guillaume Cottenceau <guillaume.cottenceau at free.fr>
+# Copyright (c) 2000, 2001, 2002, 2003 Guillaume Cottenceau
+# <guillaume.cottenceau at free.fr>
 #
 # Sponsored by MandrakeSoft <http://www.mandrakesoft.com/>
 #
@@ -17,50 +18,78 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-#
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+# USA.
 #
 #******************************************************************************
 
 package fb_stuff;
 
 use fb_c_stuff;
-use vars qw(@ISA @EXPORT $FPATH $FBLEVELS $colourblind %POS_1P %POS_2P $BUBBLE_SIZE $ROW_SIZE
-            $PI);
-@ISA = qw(Exporter);
-@EXPORT = qw($FPATH $colourblind $FBLEVELS %POS_1P %POS_2P $BUBBLE_SIZE $ROW_SIZE
-             $PI cat_ member difference2 any even odd sqr to_bool to_int if_
-             fold_left output append_to_file min max backtrace basename cp_af all);
 
-$FPATH = '/usr/local/share/frozen-bubble';
+use vars qw(
+    $colourblind
+);
 
-%POS_2P = ( p1 => { left_limit => 30,  right_limit => 286, pinguin => { x => 168, 'y' => 437 }, malus_x => 308, scoresx => 293 },
-            p2 => { left_limit => 354, right_limit => 610, pinguin => { x => 32,  'y' => 437 }, malus_x => 331, scoresx => 341 },
-            top_limit => 40,
-            'initial_bubble_y' => 390,
-            next_bubble => { x => 112, 'y' => 440 },
-            'malus_y' => 408,
-            hurry => { x => 10, 'y' => 265 },
-            centerpanel => { x => 153, 'y' => 190 },
-            scoresy => 428,
-          );
+our @ISA = 'Exporter';
 
-%POS_1P = ( p1 => { left_limit => 190, right_limit => 446, pinguin => { x => 168, 'y' => 437 }, scoresx => 180 },
-            init_top_limit => 44,
-            'initial_bubble_y' => 390,
-            next_bubble => { x => 112, 'y' => 440 },
-            'malus_y' => 408,
-            hurry => { x => 10, 'y' => 265 },
-            centerpanel => { x => 149, 'y' => 190 },
-            pause_clip => { x => 263, 'y' => 212 },
-            scoresy => 432,
-            compressor_xpos => 321,
-          );
+our @EXPORT = qw(
+    $FPATH $colourblind $FBLEVELS %POS_1P %POS_2P $BUBBLE_SIZE $ROW_SIZE
+    $PI cat_ member difference2 any even odd sqr to_bool to_int if_
+    fold_left output append_to_file min max backtrace basename cp_af all
+);
 
-$FBLEVELS = "$ENV{HOME}/.fblevels";
+our $FPATH = '/usr/local/share/frozen-bubble';
 
-$BUBBLE_SIZE = 32;
-$ROW_SIZE = $BUBBLE_SIZE * 7/8;
+our %POS_1P = (
+    p1 => {
+        left_limit  => 190,
+        right_limit => 446,
+        pinguin     => { x => 168, 'y' => 437 },
+        scoresx     => 180
+    },
+    init_top_limit     => 44,
+    'initial_bubble_y' => 390,
+    next_bubble        => { x => 112, 'y' => 440 },
+    'malus_y'          => 408,
+    hurry              => { x => 10, 'y' => 265 },
+    centerpanel        => { x => 149, 'y' => 190 },
+    pause_clip         => { x => 263, 'y' => 212 },
+    scoresy            => 432,
+    compressor_xpos    => 321,
+);
+
+our %POS_2P = (
+    p1 => {
+        left_limit  => 30,
+        right_limit => 286,
+        pinguin     => { x => 168, 'y' => 437 },
+        malus_x     => 308,
+        scoresx     => 293
+    },
+    p2 => {
+        left_limit  => 354,
+        right_limit => 610,
+        pinguin     => { x => 32, 'y' => 437 },
+        malus_x     => 331,
+        scoresx     => 341
+    },
+    top_limit          => 40,
+    'initial_bubble_y' => 390,
+    next_bubble        => { x => 112, 'y' => 440 },
+    'malus_y'          => 408,
+    hurry              => { x => 10, 'y' => 265 },
+    centerpanel        => { x => 153, 'y' => 190 },
+    scoresy            => 428,
+);
+
+our $FBLEVELS    = "$ENV{HOME}/.fblevels";
+our $BUBBLE_SIZE = 32;
+our $ROW_SIZE    = $BUBBLE_SIZE * 7 / 8;
+
+
+
+
 
 # -=-=---=-=---=-=---=-=---=-=---=-=---=-=---=-=---=-=---=-=---=-=---=-=---=-=---=-=---=-=--
 # This is extracted from MDK::Common, a helper library that
@@ -79,7 +108,8 @@ $ROW_SIZE = $BUBBLE_SIZE * 7/8;
 #
 # Go to google and type in "perl-MDK-Common" if interested.
 #
-$PI = 3.1415926535897932384626433832795028841972;
+our $PI = 3.1415926535897932384626433832795028841972;
+
 sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray ? @l : join '', @l }
 sub member { my $e = shift; foreach (@_) { $e eq $_ and return 1 } 0 }
 sub difference2 { my %l; @l{@{$_[1]}} = (); grep { !exists $l{$_} } @{$_[0]} }
