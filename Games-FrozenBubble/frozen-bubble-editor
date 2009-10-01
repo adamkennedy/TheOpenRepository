@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+
 # ****************************************************************************
 #
 #                          Frozen-Bubble Level Editor
@@ -28,30 +29,59 @@
 #
 # *****************************************************************************
 
+use strict;
 use fb_stuff;
 use FBLE;
 
-# command line options modified from frozen-bubble code
+
+# Command line options modified from frozen-bubble code
 local $_ = "@ARGV";
 
-/-h/ and die 'Usage:  [OPTION]...
+if ( /-h/ ) { 
+	print <<'END_TEXT';
+Usage:  [OPTION]...
 -h, --help                      display this help screen
 -cb, --colourblind              use bubbles for colourblind people
 -ls<filename>, 
         --levelset<filename>    directly start with the specified levelset name
 -l<#n>, --level<#n>             directly start the n-th level
 -fs, --fullscreen               start in fullscreen mode
-';
+END_TEXT
+	exit(0);
+}
 
-/-cb/ || /-co/ and $colourblind = 1;
-/-ls\s*(\S+)/ || /-levelset\s*(\S+)/ and $FBLE::levelset_name = $1 or $FBLE::levelset_name = 'default-levelset';
-/-l\s*(\d+)/ || /-level\s*(\d+)/ and $FBLE::curr_level = $1 or $FBLE::curr_level = 1;
-/-fs/ || /-fullscreen/ and $FBLE::command_line_fullscreen = 1 or $FBLE::command_line_fullscreen = 0;
+our $colourblind = 0;
 
-my $app = SDL::App->new(-title => 'frozen-bubble level editor', -width => 640, -height => 480);
+if ( /-cb/ or /-co/ ) {
+	$colourblind = 1;
+}
+
+if ( /-ls\s*(\S+)/ or /-levelset\s*(\S+)/ ) {
+	$FBLE::levelset_name = $1;
+	unless ( $FBLE::levelset_name ) {
+		$FBLE::levelset_name = 'default-levelset';
+	}
+}
+
+if ( /-l\s*(\d+)/ or /-level\s*(\d+)/ ) {
+	$FBLE::curr_level = $1;
+	unless ( $FBLE::curr_level ) {
+		$FBLE::curr_level = 1;
+	}
+}
+
+if ( /-fs/ or /-fullscreen/ ) {
+	$FBLE::command_line_fullscreen = 1;
+	unless ( $FBLE::command_line_fullscreen ) {
+		$FBLE::command_line_fullscreen = 0;
+	}
+}
+
+my $app = SDL::App->new(
+	-title  => 'frozen-bubble level editor',
+	-width  => 640,
+	-height => 480,
+);
 
 FBLE::init_setup('stand-alone', $app);
 FBLE::handle_events();
-
-
-
