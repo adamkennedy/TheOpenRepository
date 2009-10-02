@@ -22,6 +22,7 @@ my $trace_actions;
 my $trace_lex;
 my $trace_predefineds;
 my $trace_values;
+my $trace_iterations;
 my $show_NFA;
 my $show_QDFA;
 my $show_bocage_verbosity;
@@ -51,31 +52,33 @@ sub mdl_command
         }
         when ('parse') {
             Marpa::exception
-                unless GetOptionsFromArray( $argvp,
-                'grammar=s'            => \$grammar_file,
-                'stringified_grammar=s'   => \$stringified_grammar_file,
-                'text=s'               => \$text_to_parse,
-                'QDFA'                 => \$show_QDFA,
-                'NFA'                  => \$show_NFA,
-                'bocage:i'             => \$show_bocage_verbosity,
-                'inaccessible_symbols' => \$inaccessible_symbols,
-                'accessible_symbols'   => \$accessible_symbols,
-                'nullable_symbols'     => \$nullable_symbols,
-                'nulling_symbols'      => \$nulling_symbols,
-                'unproductive_symbols' => \$unproductive_symbols,
-                'productive_symbols'   => \$productive_symbols,
-                'trace_actions'        => \$trace_actions,
-                'trace_predefineds'    => \$trace_predefineds,
-                'trace_values'         => \$trace_values,
-                'trace_lex'            => \$trace_lex,
-                'rules'                => \$show_rules,
-                'problems'             => \$show_problems,
-                'symbols'              => \$show_symbols,
-                'earley_sets'          => \$show_earley_sets,
-                'source_option=s'      => \%source_options,
-                'stdout'               => \$stdout,
-                'all_parses'           => \$all_parses,
-                'option=s'             => \%options,
+                unless GetOptionsFromArray(
+                $argvp,
+                'grammar=s'             => \$grammar_file,
+                'stringified_grammar=s' => \$stringified_grammar_file,
+                'text=s'                => \$text_to_parse,
+                'QDFA'                  => \$show_QDFA,
+                'NFA'                   => \$show_NFA,
+                'bocage=i'              => \$show_bocage_verbosity,
+                'inaccessible_symbols'  => \$inaccessible_symbols,
+                'accessible_symbols'    => \$accessible_symbols,
+                'nullable_symbols'      => \$nullable_symbols,
+                'nulling_symbols'       => \$nulling_symbols,
+                'unproductive_symbols'  => \$unproductive_symbols,
+                'productive_symbols'    => \$productive_symbols,
+                'trace_actions'         => \$trace_actions,
+                'trace_predefineds'     => \$trace_predefineds,
+                'trace_values'          => \$trace_values,
+                'trace_iterations=i'    => \$trace_iterations,
+                'trace_lex'             => \$trace_lex,
+                'rules'                 => \$show_rules,
+                'problems'              => \$show_problems,
+                'symbols'               => \$show_symbols,
+                'earley_sets'           => \$show_earley_sets,
+                'source_option=s'       => \%source_options,
+                'stdout'                => \$stdout,
+                'all_parses'            => \$all_parses,
+                'option=s'              => \%options,
                 );
 
             if ($trace_actions) {
@@ -92,6 +95,10 @@ sub mdl_command
 
             if ($trace_values) {
                 $options{trace_values} = 1;
+            }
+
+            if ($trace_iterations) {
+                $options{trace_iterations} = $trace_iterations;
             }
 
             # should I set it up so that it takes effect before other

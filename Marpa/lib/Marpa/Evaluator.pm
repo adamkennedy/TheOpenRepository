@@ -2538,7 +2538,7 @@ sub Marpa::Evaluator::value {
             } ## end when (Marpa::Internal::Task::SETUP_AND_NODE)
 
             when (Marpa::Internal::Task::RESET_OR_TREE) {
-                my ($or_node_id) = @{$task_entry};
+                my ( $or_node_id, $visited ) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -2548,14 +2548,19 @@ sub Marpa::Evaluator::value {
                 } ## end if ($trace_tasks)
 
                 my $or_node = $or_nodes->[$or_node_id];
+                $visited //= {};
+                my @unvisited_children =
+                    grep { !( $visited->{$_}++ ) }
+                    @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
                 push @tasks,
                     [ Marpa::Internal::Task::RESET_OR_NODE, $or_node_id ],
-                    map { [ Marpa::Internal::Task::RESET_AND_TREE, $_ ] }
-                    @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS]; };
+                    map {
+                    [ Marpa::Internal::Task::RESET_AND_TREE, $_, $visited ]
+                    } @unvisited_children;
             } ## end when (Marpa::Internal::Task::RESET_OR_TREE)
 
             when (Marpa::Internal::Task::RESET_AND_TREE) {
-                my ($and_node_id) = @{$task_entry};
+                my ( $and_node_id, $visited ) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -2570,7 +2575,8 @@ sub Marpa::Evaluator::value {
                     [ Marpa::Internal::Task::RESET_AND_NODE, $and_node_id ],
                     map {
                     [   Marpa::Internal::Task::RESET_OR_TREE,
-                        $_->[Marpa::Internal::And_Node::ID]
+                        $_->[Marpa::Internal::Or_Node::ID],
+                        $visited
                     ]
                     }
                     grep { defined $_ } @{$and_node}[
