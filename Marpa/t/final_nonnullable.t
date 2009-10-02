@@ -16,6 +16,18 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
+## no critic (Subroutines::RequireArgUnpacking)
+
+sub default_action {
+    my $v_count = scalar @_;
+    return q{} if $v_count <= 0;
+    my @vals = map { $_ // q{-} } @_;
+    return $vals[0] if $v_count == 1;
+    return '(' . join( q{;}, @vals ) . ')';
+} ## end sub default_action
+
+## use critic
+
 my $grammar = Marpa::Grammar->new(
     {   start   => 'S',
         strip   => 0,
@@ -31,16 +43,8 @@ my $grammar = Marpa::Grammar->new(
             [ 'p', [], ],
             [ 'n', ['a'], ],
         ],
-        terminals => ['a'],
-
-        default_action => <<'EO_CODE',
-     my $v_count = scalar @_;
-     return q{} if $v_count <= 0;
-     my @vals = map { $_ // '-' } @_;
-     return $vals[0] if $v_count == 1;
-     '(' . join(q{;}, @vals) . ')';
-EO_CODE
-
+        terminals      => ['a'],
+        default_action => 'main::default_action',
     }
 );
 
@@ -58,7 +62,7 @@ Marpa::Test::is( $grammar->show_rules,
 7: S -> p[] p[] S[R0:2][x5] /* maximal vrhs real=2 */
 8: S[R0:2][x5] -> p n /* maximal vlhs real=2 */
 9: S[R0:2][x5] -> p[] n /* maximal vlhs real=2 */
-10: S['] -> S /* maximal */
+10: S['] -> S /* maximal vlhs real=1 */
 END_OF_STRING
 
 Marpa::Test::is( $grammar->show_QDFA,

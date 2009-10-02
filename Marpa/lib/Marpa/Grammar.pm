@@ -967,7 +967,7 @@ sub Marpa::Grammar::set {
                     Marpa::Internal::Phase::description($phase) )
                     if $phase >= Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Marpa::Internal::Grammar::ACTIONS] = $value;
-            } ## end when ('default_action')
+            } ## end when ('actions')
             when ('default_action') {
                 Marpa::exception( "$option option not allowed in ",
                     Marpa::Internal::Phase::description($phase) )
@@ -979,13 +979,13 @@ sub Marpa::Grammar::set {
                     Marpa::Internal::Phase::description($phase) )
                     if $phase >= Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Marpa::Internal::Grammar::INITIAL_ACTION] = $value;
-            } ## end when ('default_action')
+            } ## end when ('initial_action')
             when ('final_action') {
                 Marpa::exception( "$option option not allowed in ",
                     Marpa::Internal::Phase::description($phase) )
                     if $phase >= Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Marpa::Internal::Grammar::FINAL_ACTION] = $value;
-            } ## end when ('default_action')
+            } ## end when ('final_action')
             when ('default_lex_prefix') {
                 Marpa::exception(
                     "$option option not allowed after grammar is precomputed")
@@ -3825,12 +3825,11 @@ sub rewrite_as_CHAF {
         }
     );
 
-    $new_start_rule->[Marpa::Internal::Rule::PRODUCTIVE] = $productive;
-    $new_start_rule->[Marpa::Internal::Rule::ACCESSIBLE] = 1;
-    $new_start_rule->[Marpa::Internal::Rule::USEFUL]     = 1;
-    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-    $new_start_rule->[Marpa::Internal::Rule::ACTION] = q{ $_[0] };
-    ## use critic
+    $new_start_rule->[Marpa::Internal::Rule::PRODUCTIVE]        = $productive;
+    $new_start_rule->[Marpa::Internal::Rule::ACCESSIBLE]        = 1;
+    $new_start_rule->[Marpa::Internal::Rule::USEFUL]            = 1;
+    $new_start_rule->[Marpa::Internal::Rule::VIRTUAL_LHS]       = 1;
+    $new_start_rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT] = 1;
 
     # If we created a null alias for the original start symbol, we need
     # to create a nulling start rule

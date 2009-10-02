@@ -330,16 +330,6 @@ sub set_actions {
     my $grammar = shift;
     my $package = shift;
 
-    my $marpa_caller = 'main';
-    PACKAGE: {
-        my $i = 0;
-        LEVEL: while ( my $package = caller( $i++ ) ) {
-            next LEVEL if $package =~ /^Marpa[:][:]/xms;
-            $marpa_caller = $package;
-            last PACKAGE;
-        }
-    } ## end PACKAGE:
-
     my ( $rules, $tracing, $default_action, ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
         Marpa::Internal::Grammar::TRACING,
@@ -415,44 +405,52 @@ sub set_actions {
 
         my $closure;
 
+        my $actions_package = $grammar->[Marpa::Internal::Grammar::ACTIONS];
         my $full_action_name;
         given ($action) {
-            when (/\s/) {break}
-            when (/([:][:])|[']/) {
+            when (/\s/xms) {
+                break;
+            }
+            when (/([:][:])|[']/xms) {
                 $full_action_name = $action;
             }
-            when (
-                defined(
-                    my $actions_package =
-                        $grammar->[Marpa::Internal::Grammar::ACTIONS]
-                )
-                )
-            {
+            when ( defined $actions_package and defined $action ) {
                 $full_action_name = $actions_package . q{::} . $action;
-            } ## end when ( defined( my $actions_package = $grammar->[...]))
-            default {
-                $full_action_name = $marpa_caller . q{::} . $action;
             }
-        } ## end given
+            when ( defined $actions_package ) {
+                $full_action_name =
+                      $actions_package . q{::}
+                    . $rule->[Marpa::Internal::Rule::LHS]
+                    ->[Marpa::Internal::Symbol::NAME];
+            } ## end when ( defined $actions_package )
+            default {break}
+        };    ## end given
 
         if ( defined $full_action_name ) {
-            local *closure_symtab_entry = *$full_action_name;
-            my $closure = *closure_symtab_entry{CODE};
+            no strict 'refs';
+            $closure = *{$full_action_name}{CODE};
+            use strict 'refs';
             Marpa::exception("Action closure '$action' not found")
                 if not defined $closure;
             if ($trace_actions) {
                 print {$trace_fh} 'Setting action for rule ',
-                    Marpa::brief_rule($rule), " to closure named ", $action,
+                    Marpa::brief_rule($rule), ' to closure named ', $action,
                     "\n"
                     or Marpa::exception('Could not print to trace file');
             } ## end if ($trace_actions)
         } ## end if ( defined $full_action_name )
 
-        if (defined $closure) {
-            $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] = "# Closure: $action";
+        if ( defined $closure ) {
+            $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] =
+                "# Closure: $action";
             push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
             next RULE;
-        }
+        } ## end if ( defined $closure )
+        ;    ## end if ( defined $closure )
+
+        $ENV{MARPA_AUTHOR_TEST}
+            and
+            Marpa::exception("Attempt to use code string as action: $action");
 
         my $code =
             "sub {\n" . '    package ' . $package . ";\n" . $action . '}';

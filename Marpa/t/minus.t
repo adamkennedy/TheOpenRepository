@@ -24,6 +24,45 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
+## no critic (Subroutines::RequireArgUnpacking)
+
+sub subtraction {
+    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
+    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
+    my $value = $left_value - $right_value;
+    return '(' . $left_string . q{-} . $right_string . ')==' . $value;
+} ## end sub subtraction
+
+sub postfix_decr {
+    my ( $string, $value ) = ( $_[0] =~ /^(.*)==(.*)$/xms );
+    return '(' . $string . q{--} . ')==' . $value--;
+}
+
+sub prefix_decr {
+    my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
+    return '(' . q{--} . $string . ')==' . --$value;
+}
+
+sub negation {
+    my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
+    return '(' . q{-} . $string . ')==' . -$value;
+}
+
+sub number {
+    my $value = $_[0];
+    return "$value==$value";
+}
+
+sub default_action {
+    given ( scalar @_ ) {
+        when ( $_ <= 0 ) { return q{} }
+        when (1)         { return $_[0] }
+    };
+    return '(' . join( q{;}, @_ ) . ')';
+} ## end sub default_action
+
+## use critic
+
 my $grammar = Marpa::Grammar->new(
     {   start => 'E',
         strip => 0,
@@ -32,52 +71,31 @@ my $grammar = Marpa::Grammar->new(
         # This is for debugging, after all
         max_parses => 20,
 
-        rules => [
+        actions => 'main',
+        rules   => [
             {   lhs      => 'E',
                 rhs      => [qw/E Minus E/],
                 priority => 50,
-                action   => <<'EOCODE'
-    my ($right_string, $right_value)
-        = ($_[2] =~ /^(.*)==(.*)$/);
-    my ($left_string, $left_value)
-        = ($_[0] =~ /^(.*)==(.*)$/);
-    my $value = $left_value - $right_value;
-    "(" . $left_string . "-" . $right_string . ")==" . $value;
-EOCODE
+                action   => 'subtraction',
             },
             {   lhs      => 'E',
                 rhs      => [qw/E MinusMinus/],
                 priority => 40,
-                action   => <<'EOCODE'
-    my ($string, $value)
-        = ($_[0] =~ /^(.*)==(.*)$/);
-    "(" . $string . "--" . ")==" . $value--;
-EOCODE
+                action   => 'postfix_decr',
             },
             {   lhs      => 'E',
                 rhs      => [qw/MinusMinus E/],
                 priority => 30,
-                action   => <<'EOCODE'
-    my ($string, $value)
-        = ($_[1] =~ /^(.*)==(.*)$/);
-    "(" . "--" . $string . ")==" . --$value;
-EOCODE
+                action   => 'prefix_decr',
             },
             {   lhs      => 'E',
                 rhs      => [qw/Minus E/],
                 priority => 20,
-                action   => <<'EOCODE'
-    my ($string, $value)
-        = ($_[1] =~ /^(.*)==(.*)$/);
-    "(" . "-" . $string . ")==" . -$value;
-EOCODE
+                action   => 'negation'
             },
             {   lhs    => 'E',
                 rhs    => [qw/Number/],
-                action => <<'EOCODE'
-    my $value = $_[0];
-    "$value==$value";
-EOCODE
+                action => 'number'
             },
         ],
         terminals => [
@@ -85,12 +103,7 @@ EOCODE
             [ 'Minus'      => { regex => qr/[-]/xms } ],
             [ 'MinusMinus' => { regex => qr/[-][-]/xms } ],
         ],
-        default_action => <<'EOCODE',
-     my $v_count = scalar @_;
-     return "" if $v_count <= 0;
-     return $_[0] if $v_count == 1;
-     "(" . join(";", @_) . ")";
-EOCODE
+        default_action => 'default_action',
     }
 );
 
@@ -103,7 +116,7 @@ Marpa::Test::is( $grammar->show_rules,
 2: E -> MinusMinus E /* priority=30 */
 3: E -> Minus E /* priority=20 */
 4: E -> Number
-5: E['] -> E
+5: E['] -> E /* vlhs real=1 */
 END_RULES
 
 Marpa::Test::is( $grammar->show_QDFA, <<'END_QDFA', 'Minuses Equation QDFA' );

@@ -6,6 +6,13 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =over 4
 
+=item * Allow action options to be changed when evaluator
+is created, but not afterwards.
+
+=item * Add strict actions option.  Action are found only
+in a specified package, or as fully qualified names.  They
+are not looked for in the Marpa caller's package.
+
 =item * Allow multiple hashes as args to Grammar constructor as
 mechanism for specifying an order in which the options should be
 applied.  I hope this will be sufficient as an interface for

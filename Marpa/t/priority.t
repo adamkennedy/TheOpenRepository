@@ -17,6 +17,11 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
+sub str100 { return 100 }
+sub str200 { return 200 }
+sub str300 { return 300 }
+sub str400 { return 400 }
+
 my $g = Marpa::Grammar->new(
     {   start => 'S',
 
@@ -25,10 +30,10 @@ my $g = Marpa::Grammar->new(
         ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
         max_parses => 20,
         rules      => [
-            [ 'S', ['P300'], '300 ', 300 ],
-            [ 'S', ['P200'], '200 ', 200 ],
-            [ 'S', ['P400'], '400 ', 400 ],
-            [ 'S', ['P100'], '100 ', 100 ],
+            [ 'S', ['P300'], 'main::str300', 300 ],
+            [ 'S', ['P200'], 'main::str200', 200 ],
+            [ 'S', ['P400'], 'main::str400', 400 ],
+            [ 'S', ['P100'], 'main::str100', 100 ],
         ],
         ## use critic
         terminals => [

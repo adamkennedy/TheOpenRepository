@@ -1479,7 +1479,7 @@ is_file($_, 'author.t/equation_show_rules.out');
 
     0: e -> e op e
     1: e -> number
-    2: e['] -> e
+    2: e['] -> e /* vlhs real=1 */
 
 =head2 C<show_QDFA> Output
 
@@ -1586,8 +1586,8 @@ is_file($_, 'author.t/equation_trace_values.out');
     Calculated and pushed value: '2==2'
     Popping 3 values to evaluate S6@0-3L0o1a1, rule: 0: e -> e op e
     Calculated and pushed value: '(2+2)==4'
-    Popping 1 values to evaluate S2@0-3L3o0a0, rule: 2: e['] -> e
-    Calculated and pushed value: '(2+2)==4'
+    New Virtual Rule: S2@0-3L3o0a0, rule: 2: e['] -> e
+    Symbol count is 1, now 1 rules
     (2+2)==4
 
 =head1 SUPPORT

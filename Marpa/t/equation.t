@@ -14,6 +14,42 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
+## no critic (Subroutines::RequireArgUnpacking)
+
+sub do_op {
+    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
+    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
+    my $op = $_[1];
+    my $value;
+    if ( $op eq q{+} ) {
+        $value = $left_value + $right_value;
+    }
+    elsif ( $op eq q{*} ) {
+        $value = $left_value * $right_value;
+    }
+    elsif ( $op eq q{-} ) {
+        $value = $left_value - $right_value;
+    }
+    else {
+        Marpa::exception("Unknown op: $op");
+    }
+    return '(' . $left_string . $op . $right_string . ')==' . $value;
+} ## end sub do_op
+
+sub number {
+    my $v0 = pop @_;
+    return $v0 . q{==} . $v0;
+}
+
+sub default_action {
+    my $v_count = scalar @_;
+    return q{}   if $v_count <= 0;
+    return $_[0] if $v_count == 1;
+    return '(' . join( q{;}, @_ ) . ')';
+} ## end sub default_action
+
+## use critic
+
 # The inefficiency (at least some of it) is deliberate.
 # Passing up a duples of [ string, value ] and then
 # assembling a final string at the top would be better
@@ -28,43 +64,12 @@ my $grammar = Marpa::Grammar->new(
         # Set max at 10 just in case there's an infinite loop.
         # This is for debugging, after all
         max_parses => 10,
-
-        rules => [
-            [   'E', [qw/E Op E/],
-                <<'EOCODE'
-            my ($right_string, $right_value)
-                = ($_[2] =~ /^(.*)==(.*)$/);
-            my ($left_string, $left_value)
-                = ($_[0] =~ /^(.*)==(.*)$/);
-            my $op = $_[1];
-            my $value;
-            if ($op eq '+') {
-               $value = $left_value + $right_value;
-            } elsif ($op eq '*') {
-               $value = $left_value * $right_value;
-            } elsif ($op eq '-') {
-               $value = $left_value - $right_value;
-            } else {
-               Marpa::exception("Unknown op: $op");
-            }
-            '(' . $left_string . $op . $right_string . ')==' . $value;
-EOCODE
-            ],
-            [   'E', [qw/Number/],
-                <<'EOCODE'
-           my $v0 = pop @_;
-           $v0 . q{==} . $v0;
-EOCODE
-            ],
+        actions    => 'main',
+        rules      => [
+            [ 'E', [qw/E Op E/], 'do_op' ],
+            [ 'E', [qw/Number/], 'number' ],
         ],
-
-        default_action => <<'EO_CODE',
-     my $v_count = scalar @_;
-     return q{} if $v_count <= 0;
-     return $_[0] if $v_count == 1;
-     '(' . join(q{;}, @_) . ')';
-EO_CODE
-
+        default_action => 'default_action',
     }
 );
 
@@ -74,7 +79,7 @@ Marpa::Test::is( $grammar->show_rules,
     <<'END_RULES', 'Ambiguous Equation Rules' );
 0: E -> E Op E
 1: E -> Number
-2: E['] -> E
+2: E['] -> E /* vlhs real=1 */
 END_RULES
 
 Marpa::Test::is( $grammar->show_QDFA,

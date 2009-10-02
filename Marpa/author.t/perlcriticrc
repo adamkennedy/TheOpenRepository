@@ -283,6 +283,7 @@ terminal_funcs = Marpa::exception
 
 [TestingAndDebugging::ProhibitNoStrict]
 severity=5
+allow = refs
 
 [TestingAndDebugging::ProhibitNoWarnings]
 severity=5

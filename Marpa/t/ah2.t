@@ -16,6 +16,17 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
+## no critic (Subroutines::RequireArgUnpacking)
+
+sub default_action {
+    my $v_count = scalar @_;
+    return q{}   if $v_count <= 0;
+    return $_[0] if $v_count == 1;
+    return '(' . join( q{;}, @_ ) . ')';
+} ## end sub default_action
+
+## use critic
+
 my $grammar = Marpa::Grammar->new(
     {   precompute => 0,
         start      => 'S',
@@ -28,12 +39,7 @@ my $grammar = Marpa::Grammar->new(
             ['E'],
         ],
         default_null_value => q{},
-        default_action     => <<'EOCODE'
-     my $v_count = scalar @_;
-     return q{} if $v_count <= 0;
-     return $_[0] if $v_count == 1;
-     '(' . join(';', @_) . ')';
-EOCODE
+        default_action     => 'main::default_action',
     }
 );
 
@@ -55,7 +61,7 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 10: S[R0:2][x7] -> A A /* maximal vlhs real=2 */
 11: S[R0:2][x7] -> A A[] /* maximal vlhs real=2 */
 12: S[R0:2][x7] -> A[] A /* maximal vlhs real=2 */
-13: S['] -> S /* maximal */
+13: S['] -> S /* maximal vlhs real=1 */
 14: S['][] -> /* empty nullable maximal */
 EOS
 
