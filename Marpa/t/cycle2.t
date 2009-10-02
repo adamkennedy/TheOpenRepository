@@ -23,7 +23,7 @@ a
 EOS
 
 my $mdl = <<'EOF';
-semantics are perl5.  version is 0.001_018.
+semantics are perl5.  version is 0.001_019.
 start symbol is S.
 default action is q{join(q{ }, @_)}.
 
