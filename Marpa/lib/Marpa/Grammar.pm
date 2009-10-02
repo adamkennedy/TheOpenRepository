@@ -252,7 +252,7 @@ package Marpa::Internal::Grammar;
 
 use Carp;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 

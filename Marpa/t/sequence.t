@@ -13,7 +13,7 @@ use lib 'lib';
 use Test::More tests => 71;
 use t::lib::Marpa::Test;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 BEGIN {
     Test::More::use_ok('Marpa');

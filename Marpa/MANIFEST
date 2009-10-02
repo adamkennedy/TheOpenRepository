@@ -55,7 +55,7 @@ Makefile.PL
 MANIFEST
 META.yml
 README
-sandbox/TODO
+sandbox/TODO.pod
 t/00-load.t
 t/ah2.t
 t/ah_s.t
