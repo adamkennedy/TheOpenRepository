@@ -6,6 +6,11 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =over 4
 
+=item * Allow multiple hashes as args to Grammar constructor as
+mechanism for specifying an order in which the options should be
+applied.  I hope this will be sufficient as an interface for
+front-ends to Marpa like MDL.
+
 =item * Create a "stress test" for zero-width and- and or- nodes:
 A grammar with two rules in a cycle.  Each rule is all
 nulling (nullable?) symbols
@@ -27,8 +32,6 @@ up rules into and-nodes with at most two children will not create cycles.
 Rules do not cycle internally.  A sequence of and- and or- nodes will
 descend via predecessors until it hit the beginning of the rule,
 and then stop.
-
-=item * Delete IS_CHAF_{R,L}HS
 
 =item * I should start to assume that anyone explicitly using
 separate recognizer and evaluator stages knows what they are doing.

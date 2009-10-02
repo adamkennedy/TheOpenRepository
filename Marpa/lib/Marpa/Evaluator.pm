@@ -330,6 +330,16 @@ sub set_actions {
     my $grammar = shift;
     my $package = shift;
 
+    my $marpa_caller = 'main';
+    PACKAGE: {
+        my $i = 0;
+        LEVEL: while ( my $package = caller( $i++ ) ) {
+            next LEVEL if $package =~ /^Marpa[:][:]/xms;
+            $marpa_caller = $package;
+            last PACKAGE;
+        }
+    } ## end PACKAGE:
+
     my ( $rules, $tracing, $default_action, ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
         Marpa::Internal::Grammar::TRACING,
@@ -403,6 +413,47 @@ sub set_actions {
             next RULE;
         } ## end if ( not defined $action )
 
+        my $closure;
+
+        my $full_action_name;
+        given ($action) {
+            when (/\s/) {break}
+            when (/([:][:])|[']/) {
+                $full_action_name = $action;
+            }
+            when (
+                defined(
+                    my $actions_package =
+                        $grammar->[Marpa::Internal::Grammar::ACTIONS]
+                )
+                )
+            {
+                $full_action_name = $actions_package . q{::} . $action;
+            } ## end when ( defined( my $actions_package = $grammar->[...]))
+            default {
+                $full_action_name = $marpa_caller . q{::} . $action;
+            }
+        } ## end given
+
+        if ( defined $full_action_name ) {
+            local *closure_symtab_entry = *$full_action_name;
+            my $closure = *closure_symtab_entry{CODE};
+            Marpa::exception("Action closure '$action' not found")
+                if not defined $closure;
+            if ($trace_actions) {
+                print {$trace_fh} 'Setting action for rule ',
+                    Marpa::brief_rule($rule), " to closure named ", $action,
+                    "\n"
+                    or Marpa::exception('Could not print to trace file');
+            } ## end if ($trace_actions)
+        } ## end if ( defined $full_action_name )
+
+        if (defined $closure) {
+            $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] = "# Closure: $action";
+            push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
+            next RULE;
+        }
+
         my $code =
             "sub {\n" . '    package ' . $package . ";\n" . $action . '}';
 
@@ -412,7 +463,6 @@ sub set_actions {
                 or Marpa::exception('Could not print to trace file');
         }
 
-        my $closure;
         my @warnings;
         DO_EVAL: {
             local $SIG{__WARN__} =

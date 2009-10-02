@@ -28,7 +28,6 @@ use Marpa::Offset qw(
     ID NAME
     =LAST_BASIC_DATA_FIELD
 
-    IS_CHAF_NULLING { Delete me }
     NULL_ALIAS
     NULLING
     PRIORITY
@@ -92,8 +91,6 @@ use Marpa::Offset qw(
     CODE CYCLE
     PRIORITY
     MAXIMAL MINIMAL
-    HAS_CHAF_LHS { Delete me }
-    HAS_CHAF_RHS { Delete me }
     VIRTUAL_LHS VIRTUAL_RHS
     DISCARD_SEPARATION
     REAL_SYMBOL_COUNT
@@ -102,8 +99,8 @@ use Marpa::Offset qw(
     =LAST_RECOGNIZER_FIELD
 
     ORIGINAL_RULE
-    CHAF_START { Probably should be renamed VIRTUAL_START }
-    CHAF_END { Probably should be renamed VIRTUAL_END }
+    VIRTUAL_START
+    VIRTUAL_END
     NULLABLE ACCESSIBLE PRODUCTIVE
     =LAST_FIELD
 );
@@ -120,8 +117,6 @@ USEFUL - use this rule in NFA?
 ACTION - action for this rule as specified by user
 CLOSURE - closure for evaluating this rule
 ORIGINAL_RULE - for a rewritten rule, the original
-HAS_CHAF_LHS  - has CHAF internal symbol as lhs?
-HAS_CHAF_RHS - has CHAF internal symbol on rhs?
 PRIORITY - rule priority, from user
 CODE - code used to create closure
 CYCLE - is this rule part of a cycle?
@@ -967,11 +962,29 @@ sub Marpa::Grammar::set {
                 $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE] =
                     $value;
             } ## end when ('default_null_value')
+            when ('actions') {
+                Marpa::exception( "$option option not allowed in ",
+                    Marpa::Internal::Phase::description($phase) )
+                    if $phase >= Marpa::Internal::Phase::RECOGNIZING;
+                $grammar->[Marpa::Internal::Grammar::ACTIONS] = $value;
+            } ## end when ('default_action')
             when ('default_action') {
                 Marpa::exception( "$option option not allowed in ",
                     Marpa::Internal::Phase::description($phase) )
                     if $phase >= Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Marpa::Internal::Grammar::DEFAULT_ACTION] = $value;
+            } ## end when ('default_action')
+            when ('initial_action') {
+                Marpa::exception( "$option option not allowed in ",
+                    Marpa::Internal::Phase::description($phase) )
+                    if $phase >= Marpa::Internal::Phase::RECOGNIZING;
+                $grammar->[Marpa::Internal::Grammar::INITIAL_ACTION] = $value;
+            } ## end when ('default_action')
+            when ('final_action') {
+                Marpa::exception( "$option option not allowed in ",
+                    Marpa::Internal::Phase::description($phase) )
+                    if $phase >= Marpa::Internal::Phase::RECOGNIZING;
+                $grammar->[Marpa::Internal::Grammar::FINAL_ACTION] = $value;
             } ## end when ('default_action')
             when ('default_lex_prefix') {
                 Marpa::exception(
@@ -1637,8 +1650,8 @@ sub Marpa::brief_virtual_rule {
     my $original_lhs     = $original_rule->[Marpa::Internal::Rule::LHS];
     my $chaf_rhs         = $rule->[Marpa::Internal::Rule::RHS];
     my $original_rhs     = $original_rule->[Marpa::Internal::Rule::RHS];
-    my $chaf_start       = $rule->[Marpa::Internal::Rule::CHAF_START];
-    my $chaf_end         = $rule->[Marpa::Internal::Rule::CHAF_END];
+    my $chaf_start       = $rule->[Marpa::Internal::Rule::VIRTUAL_START];
+    my $chaf_end         = $rule->[Marpa::Internal::Rule::VIRTUAL_END];
 
     if ( not defined $chaf_start ) {
         return "dot at $dot_position, virtual "
@@ -3771,9 +3784,9 @@ sub rewrite_as_CHAF {
                 $new_rule->[Marpa::Internal::Rule::PRODUCTIVE]    = 1;
                 $new_rule->[Marpa::Internal::Rule::NULLABLE]      = 0;
                 $new_rule->[Marpa::Internal::Rule::ORIGINAL_RULE] = $rule;
-                $new_rule->[Marpa::Internal::Rule::CHAF_START] =
+                $new_rule->[Marpa::Internal::Rule::VIRTUAL_START] =
                     $subproduction_start_ix;
-                $new_rule->[Marpa::Internal::Rule::CHAF_END] =
+                $new_rule->[Marpa::Internal::Rule::VIRTUAL_END] =
                     $subproduction_end_ix;
 
             }    # for each factored rhs

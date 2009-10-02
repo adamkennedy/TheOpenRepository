@@ -25,10 +25,10 @@ my $g = Marpa::Grammar->new(
         ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
         max_parses => 20,
         rules      => [
-            [ 'S', ['P300'], '300', 300 ],
-            [ 'S', ['P200'], '200', 200 ],
-            [ 'S', ['P400'], '400', 400 ],
-            [ 'S', ['P100'], '100', 100 ],
+            [ 'S', ['P300'], '300 ', 300 ],
+            [ 'S', ['P200'], '200 ', 200 ],
+            [ 'S', ['P400'], '400 ', 400 ],
+            [ 'S', ['P100'], '100 ', 100 ],
         ],
         ## use critic
         terminals => [
