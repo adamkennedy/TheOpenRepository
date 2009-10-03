@@ -21,11 +21,22 @@ BEGIN {
 
 sub make_rule {
     my ( $lhs_symbol_name, $rhs_symbol_name ) = @_;
-    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-    my $action = q{ '<<RULE>>(' . $_[0] . ')' };
-    ## use critic
-    $action =~ s/<<RULE>>/$lhs_symbol_name$rhs_symbol_name/xms;
-    return [ $lhs_symbol_name, [$rhs_symbol_name], $action ];
+    my $action_name = "main::action_$lhs_symbol_name$rhs_symbol_name";
+
+    no strict 'refs';
+    my $closure = *{$action_name}{CODE};
+    use strict;
+
+    if ( not defined $closure ) {
+        my $action =
+            sub { $lhs_symbol_name . $rhs_symbol_name . '(' . $_[0] . ')' };
+
+        no strict 'refs';
+        *{$action_name} = $action;
+        use strict;
+    } ## end if ( not defined $closure )
+
+    return [ $lhs_symbol_name, [$rhs_symbol_name], $action_name ];
 } ## end sub make_rule
 
 sub make_plex_rules {

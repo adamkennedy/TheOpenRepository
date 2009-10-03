@@ -5,7 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 42;
+use Test::More tests => 32;
 
 use lib 'lib';
 use t::lib::Marpa::Test;
@@ -16,7 +16,6 @@ BEGIN {
 }
 
 my @features = qw(
-    preamble lex_preamble
     e_op_action default_action
     lexer
     null_action
@@ -125,8 +124,6 @@ sub run_test {
 
     my $e_op_action        = $good_code{e_op_action};
     my $e_number_action    = $good_code{e_number_action};
-    my $preamble           = q{1};
-    my $lex_preamble       = q{1};
     my $default_action     = $good_code{default_action};
     my $text_lexer         = 'lex_q_quote';
     my $null_action        = q{ '[null]' };
@@ -137,8 +134,6 @@ sub run_test {
             when ('e_op_action')     { $e_op_action     = $value }
             when ('e_number_action') { $e_number_action = $value }
             when ('default_action')  { $default_action  = $value }
-            when ('lex_preamble')    { $lex_preamble    = $value }
-            when ('preamble')        { $preamble        = $value }
             when ('lexer')           { $text_lexer      = $value }
             when ('null_action')     { $null_action     = $value }
             when ('unstringify_grammar') {
@@ -170,8 +165,6 @@ sub run_test {
                 [ 'Text'   => { action => $text_lexer } ],
             ],
             default_action     => $default_action,
-            preamble           => $preamble,
-            lex_preamble       => $lex_preamble,
             default_lex_prefix => '\s*',
             default_null_value => $default_null_value,
         }
@@ -198,8 +191,6 @@ sub run_test {
 run_test( {} );
 
 my %where = (
-    preamble            => 'evaluating preamble',
-    lex_preamble        => 'evaluating lex preamble',
     e_op_action         => 'compiling action',
     default_action      => 'compiling action',
     null_action         => 'evaluating null value',
@@ -209,8 +200,6 @@ my %where = (
 );
 
 my %long_where = (
-    preamble       => 'evaluating preamble',
-    lex_preamble   => 'evaluating lex preamble',
     e_op_action    => 'compiling action for 1: E -> E Op E',
     default_action => 'compiling action for 3: optional_trailer1 -> trailer',
     null_action    => 'evaluating null value for optional_trailer2',
@@ -254,27 +243,6 @@ my $x = 1;
 my $x = 2;
 $x++;
 1;
-__END__
-
-| expected preamble compile phase warning
-| expected lex_preamble compile phase warning
-Fatal problem(s) in <LONG_WHERE>
-2 Warning(s)
-Warning(s) treated as fatal problem
-7 lines in problem code, last warning occurred here:
-2: # this should be a compile phase warning
-3: my $x = 0;
-*4: my $x = 1;
-*5: my $x = 2;
-6: $x++;
-7: 1;
-======
-Warning #0 in <WHERE>:
-"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 4, <DATA> line 1.
-======
-Warning #1 in <WHERE>:
-"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 5, <DATA> line 1.
-======
 __END__
 
 | expected unstringify_grammar compile phase warning
@@ -370,23 +338,6 @@ $x++;
 1;
 __END__
 
-| expected preamble compile phase fatal
-| expected lex_preamble compile phase fatal
-Fatal problem(s) in <LONG_WHERE>
-Fatal Error
-6 lines in problem code, beginning:
-1: package Marpa::<PACKAGE>;
-2: # this should be a compile phase error
-3: my $x = 0;
-4: $x=;
-5: $x++;
-6: 1;
-======
-Error in <WHERE>:
-syntax error at (eval <LINE_NO>) line 4, at EOF
-======
-__END__
-
 | expected unstringify_grammar compile phase fatal
 | expected unstringify_recce compile phase fatal
 Fatal problem(s) in <LONG_WHERE>
@@ -462,27 +413,6 @@ warn "Test Warning 1";
 warn "Test Warning 2";
 $x++;
 1;
-__END__
-
-| expected preamble run phase warning
-| expected lex_preamble run phase warning
-Fatal problem(s) in <LONG_WHERE>
-2 Warning(s)
-Warning(s) treated as fatal problem
-7 lines in problem code, last warning occurred here:
-2: # this should be a run phase warning
-3: my $x = 0;
-*4: warn "Test Warning 1";
-*5: warn "Test Warning 2";
-6: $x++;
-7: 1;
-======
-Warning #0 in <WHERE>:
-Test Warning 1 at (eval <LINE_NO>) line 4, <DATA> line <LINE_NO>.
-======
-Warning #1 in <WHERE>:
-Test Warning 2 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
-======
 __END__
 
 | expected unstringify_grammar run phase warning
@@ -598,23 +528,6 @@ $x++;
 1;
 __END__
 
-| expected preamble run phase error
-| expected lex_preamble run phase error
-Fatal problem(s) in <LONG_WHERE>
-Fatal Error
-6 lines in problem code, beginning:
-1: package Marpa::<PACKAGE>;
-2: # this should be a run phase error
-3: my $x = 0;
-4: $x = 711/0;
-5: $x++;
-6: 1;
-======
-Error in <WHERE>:
-Illegal division by zero at (eval <LINE_NO>) line 4, <DATA> line <LINE_NO>.
-======
-__END__
-
 | expected unstringify_grammar run phase error
 | expected unstringify_recce run phase error
 Fatal problem(s) in <LONG_WHERE>
@@ -705,23 +618,6 @@ my $x = 0;
 die('test call to die');
 $x++;
 1;
-__END__
-
-| expected preamble run phase die
-| expected lex_preamble run phase die
-Fatal problem(s) in <LONG_WHERE>
-Fatal Error
-6 lines in problem code, beginning:
-1: package Marpa::<PACKAGE>;
-2: # this is a call to die()
-3: my $x = 0;
-4: die('test call to die');
-5: $x++;
-6: 1;
-======
-Error in <WHERE>:
-test call to die at (eval <LINE_NO>) line 4, <DATA> line <LINE_NO>.
-======
 __END__
 
 | expected unstringify_grammar run phase die

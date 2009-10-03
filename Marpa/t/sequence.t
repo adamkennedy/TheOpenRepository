@@ -19,12 +19,12 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
-my $default_action = <<'END_OF_CODE';
+sub default_action {
      my $v_count = scalar @_;
      return q{} if $v_count <= 0;
      return $_[0] if $v_count == 1;
-     '(' . join(';', @_) . ')';
-END_OF_CODE
+     return '(' . join(q{;}, @_) . ')';
+}
 
 sub run_sequence_test {
     my ( $minimum, $separation, $keep ) = @_;
@@ -51,7 +51,7 @@ sub run_sequence_test {
                     @separation_args
                 },
             ],
-            default_action     => $default_action,
+            default_action     => 'main::default_action',
             default_null_value => q{},
         }
     );

@@ -33,29 +33,40 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
+## no critic (Subroutines::RequireArgUnpacking)
+
+sub sva_sentence      { return "sva($_[0];$_[1];$_[2])" }
+sub svo_sentence      { return "svo($_[0];$_[1];$_[2])" }
+sub adjunct           { return "adju($_[0];$_[1])" }
+sub adjective         { return "adje($_[0])" }
+sub qualified_subject { return "s($_[0];$_[1])" }
+sub bare_subject      { return "s($_[0])" }
+sub noun              { return "n($_[0])" }
+sub verb              { return "v($_[0])" }
+sub object            { return "o($_[0];$_[1])" }
+sub article           { return "art($_[0])" }
+sub preposition       { return "pr($_[0])" }
+
+## use critic
+
 my $grammar = Marpa::Grammar->new(
     {   start              => 'sentence',
         strip              => 0,
         default_lex_prefix => '\s+|\A',
-        ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-        rules => [
-            [   'sentence', [qw(subject verb adjunct)],
-                q{ "sva($_[0];$_[1];$_[2])" }
-            ],
-            [   'sentence', [qw(subject verb object)],
-                q{ "svo($_[0];$_[1];$_[2])" }
-            ],
-            [ 'adjunct', [qw(preposition object)], q{ "adju($_[0];$_[1])" } ],
-            [ 'adjective', [qw(adjective_noun_lex)], q{ "adje($_[0])" } ],
-            [ 'subject',   [qw(adjective noun)],     q{ "s($_[0];$_[1])" } ],
-            [ 'subject',   [qw(noun)],               q{ "s($_[0])" } ],
-            [ 'noun',      [qw(adjective_noun_lex)], q{ "n($_[0])" } ],
-            [ 'verb',      [qw(verb_lex)],           q{ "v($_[0])" } ],
-            [ 'object',    [qw(article noun)],       q{ "o($_[0];$_[1])" } ],
-            [ 'article',   [qw(article_lex)],        q{ "art($_[0])" } ],
-            [ 'preposition', [qw(preposition_lex)], q{ "pr($_[0])" } ],
+        actions            => 'main',
+        rules              => [
+            [ 'sentence', [qw(subject verb adjunct)], 'sva_sentence' ],
+            [ 'sentence', [qw(subject verb object)],  'svo_sentence' ],
+            [ 'adjunct',  [qw(preposition object)] ],
+            [ 'adjective',   [qw(adjective_noun_lex)] ],
+            [ 'subject',     [qw(adjective noun)], 'qualified_subject' ],
+            [ 'subject',     [qw(noun)], 'bare_subject' ],
+            [ 'noun',        [qw(adjective_noun_lex)] ],
+            [ 'verb',        [qw(verb_lex)] ],
+            [ 'object',      [qw(article noun)] ],
+            [ 'article',     [qw(article_lex)] ],
+            [ 'preposition', [qw(preposition_lex)] ],
         ],
-        ## use critic
         terminals => [
             [ preposition_lex => { regex => qr/like/xms } ],
             [ verb_lex        => { regex => qr/like|flies/xms } ],
