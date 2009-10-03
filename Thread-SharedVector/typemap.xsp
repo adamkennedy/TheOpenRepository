@@ -1,0 +1,3 @@
+// Map the type of our custom classes
+%typemap{SharedVector*}{simple};
+

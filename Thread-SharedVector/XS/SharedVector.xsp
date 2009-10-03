@@ -1,0 +1,10 @@
+
+%module{Thread::SharedVector};
+
+%name{Thread::SharedVector} class SharedVector
+{
+  SharedVector();
+  ~SharedVector();
+};
+
+

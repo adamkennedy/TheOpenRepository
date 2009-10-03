@@ -1,0 +1,3 @@
+TYPEMAP
+SharedVector*             O_OBJECT
+
