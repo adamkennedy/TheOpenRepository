@@ -7,6 +7,7 @@ use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
+use Carp;
 
 use Test::More tests => 6;
 use t::lib::Marpa::Test;
@@ -25,6 +26,8 @@ BEGIN {
 my $example_dir = 'example';
 chdir $example_dir;
 
+use example::equation;
+
 open my $grammar_fh, q{<}, 'equation.marpa';
 my $source;
 { local ($RS) = undef; $source = <$grammar_fh> };
@@ -32,9 +35,14 @@ close $grammar_fh;
 
 # Set max_parses to 10 in case there's an infinite loop.
 # This is for debugging, after all
+my $grammar = Marpa::Grammar->new(
+    {   actions    => 'Marpa::Example::Equation',
+        max_parses => 10,
+        mdl_source => \$source,
+    }
+);
 
-my $grammar =
-    Marpa::Grammar->new( { max_parses => 10, mdl_source => \$source, } );
+Carp::croak('Failed to create grammar') if not defined $grammar;
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 

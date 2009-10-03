@@ -5,48 +5,96 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 32;
+use Test::More tests => 26;
 
 use lib 'lib';
 use t::lib::Marpa::Test;
 use English qw( -no_match_vars );
 
+# use Smart::Comments;
+
 BEGIN {
     Test::More::use_ok('Marpa');
 }
 
-my @features = qw(
+my @uncompiled_features = qw(
     e_op_action default_action
-    lexer
     null_action
+);
+
+my @compiled_features = qw(
+    lexer
     unstringify_grammar
     unstringify_recce
 );
 
-my @tests = (
+my @features = (@compiled_features, @uncompiled_features);
+
+my @compile_tests = (
     'compile phase warning',
     'compile phase fatal',
+);
+my @runtime_tests = (
     'run phase warning',
     'run phase error',
     'run phase die',
 );
 
-my %good_code = (
-    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-    'e op action'     => 'my $error =',
-    'e number action' => 'my $error =',
-    'default action'  => 'my $error =',
-    ## use critic
-);
+my @tests = (@compile_tests, @runtime_tests);
 
-my %test_code;
+my %good_code = (
+    'e_op_action'     => 'main::e_op_action',
+    'e_number_action' => 'main::e_number_action',
+    'default_action'  => 'main::default_action',
+);
+;
+
+# Code to produce a run phase warning
+sub run_phase_warning {
+    my $x;
+    warn "Test Warning 1";
+    warn "Test Warning 2";
+    $x++;
+    return 1;
+} ## end sub run_phase_warning
+
+# Code to produce a run phase error
+sub run_phase_error {
+    my $x = 0;
+    $x = 711/0;
+    return $x++;
+}
+
+# Code to produce a run phase die()
+sub run_phase_die {
+    my $x = 0;
+    die('test call to die');
+    $x++;
+    return 1;
+} ## end sub run_phase_die
+
+my %test_arg;
 my %expected;
 for my $test (@tests) {
-    $test_code{$test} = '1;';
-    for my $feature (@features) {
-        $expected{$test}{$feature} = q{};
+    for my $compiled_feature (@compiled_features) {
+        $test_arg{$test}{$compiled_feature} = '1;';
+        $expected{$test}{$compiled_feature} = q{};
     }
 } ## end for my $test (@tests)
+for my $runtime_test (@runtime_tests) {
+    for my $uncompiled_feature (@uncompiled_features) {
+        $test_arg{$runtime_test}{$uncompiled_feature} = '1;';
+        $expected{$runtime_test}{$uncompiled_feature} = q{};
+    }
+} ## end for my $test (@tests)
+
+for my $uncompiled_feature (@uncompiled_features) {
+    $test_arg{'run phase warning'}{$uncompiled_feature} =
+        'main::run_phase_warning';
+    $test_arg{'run phase error'}{$uncompiled_feature} =
+        'main::run_phase_error';
+    $test_arg{'run phase die'}{$uncompiled_feature} = 'main::run_phase_die';
+} ## end for my $uncompiled_feature (@uncompiled_features)
 
 my $getting_headers = 1;
 my @headers;
@@ -81,15 +129,15 @@ LINE: while ( my $line = <DATA> ) {
                 next HEADER;
             } ## end if ( $header =~ s/\A expected \s //xms )
             if ( $header =~ s/\A good \s code \s //xms ) {
-                chomp $header;
-                $good_code{$header} = $data;
-                next HEADER;
+                Marpa::exception('Good code should no longer be in data section');
             }
             if ( $header =~ s/\A bad \s code \s //xms ) {
                 chomp $header;
                 Marpa::exception("test code given for unknown test: $header")
-                    if not defined $test_code{$header};
-                $test_code{$header} = $data;
+                    if not defined $test_arg{$header};
+                for my $compiled_feature (@compiled_features) {
+                    $test_arg{$header}{$compiled_feature} = $data;
+                }
                 next HEADER;
             } ## end if ( $header =~ s/\A bad \s code \s //xms )
             Marpa::exception("Bad header: $header");
@@ -108,7 +156,7 @@ sub canonical {
     $long_where //= $where;
     $template =~ s{ \b package \s Marpa [:][:] [EP] _ [0-9a-fA-F]+ [;] $
         }{package Marpa::<PACKAGE>;}xms;
-    $template =~ s/ \s* at \s [^\s]* code_diag[.]t \s line  \s \d+\Z//xms;
+    $template =~ s{ \s* at \s  t[/]code_diag[.]t \s line \s \d+}{}gxms;
     $template =~ s/[<]WHERE[>]/$where/xmsg;
     $template =~ s/[<]LONG_WHERE[>]/$long_where/xmsg;
     $template =~ s{ \s [<]DATA[>] \s line \s \d+
@@ -119,6 +167,11 @@ sub canonical {
     return $template;
 } ## end sub canonical
 
+sub null_action { return '[null]' }
+
+### $good_code{e_op_action}: $good_code{e_op_action}
+### $good_code{e_number_action}: $good_code{e_number_action}
+
 sub run_test {
     my $args = shift;
 
@@ -126,8 +179,11 @@ sub run_test {
     my $e_number_action    = $good_code{e_number_action};
     my $default_action     = $good_code{default_action};
     my $text_lexer         = 'lex_q_quote';
-    my $null_action        = q{ '[null]' };
+    my $null_action        = 'main::null_action';
     my $default_null_value = q{[default null]};
+
+    ### e_op_action default: $e_op_action
+    ### e_number_action default: $e_number_action
 
     while ( my ( $arg, $value ) = each %{$args} ) {
         given ( lc $arg ) {
@@ -147,6 +203,9 @@ sub run_test {
             };
         } ## end given
     } ## end while ( my ( $arg, $value ) = each %{$args} )
+
+    ### e_op_action: $e_op_action
+    ### e_number_action: $e_number_action
 
     my $grammar = Marpa::Grammar->new(
         {   start => 'S',
@@ -209,9 +268,10 @@ my %long_where = (
 );
 
 for my $test (@tests) {
-    for my $feature (@features) {
+    FEATURE: for my $feature (@features) {
+        next FEATURE unless defined $expected{$test}{$feature};
         my $test_name = "$test in $feature";
-        if ( eval { run_test( { $feature => $test_code{$test}, } ); } ) {
+        if ( eval { run_test( { $feature => $test_arg{$test}{$feature}, } ); } ) {
             Test::More::fail(
                 "$test_name did not fail -- that shouldn't happen");
         }
@@ -224,9 +284,45 @@ for my $test (@tests) {
                 canonical( $expected{$test}{$feature}, $where, $long_where ),
                 $test_name
             );
-        } ## end else [ if ( eval { run_test( { $feature => $test_code{$test...}})})]
+        } ## end else [ if ( eval { run_test( { $feature => $test_arg{$test...}})})]
     } ## end for my $feature (@features)
 } ## end for my $test (@tests)
+
+## no critic (Subroutines::RequireArgUnpacking)
+
+sub e_op_action {
+    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/ );
+    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/ );
+    my $op = $_[1];
+    my $value;
+    if ( $op eq '+' ) {
+        $value = $left_value + $right_value;
+    }
+    elsif ( $op eq '*' ) {
+        $value = $left_value * $right_value;
+    }
+    elsif ( $op eq '-' ) {
+        $value = $left_value - $right_value;
+    }
+    else {
+        Marpa::exception("Unknown op: $op");
+    }
+    return '(' . $left_string . $op . $right_string . ')==' . $value;
+} ## end sub e_op_action
+
+sub e_number_action {
+    my $v0 = pop @_;
+    return $v0 . q{==} . $v0;
+}
+
+sub default_action {
+    my $v_count = scalar @_;
+    return q{}   if $v_count <= 0;
+    return $_[0] if $v_count == 1;
+    return '(' . join( q{;}, ( map { $_ // 'undef' } @_ ) ) . ')';
+} ## end sub default_action
+
+## use critic
 
 # Local Variables:
 #   mode: cperl
@@ -263,49 +359,6 @@ Warning #0 in <WHERE>:
 ======
 Warning #1 in <WHERE>:
 "my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 4, <DATA> line 1.
-======
-__END__
-
-| expected e_op_action compile phase warning
-| expected default_action compile phase warning
-Fatal problem(s) in <LONG_WHERE>
-2 Warning(s)
-Warning(s) treated as fatal problem
-9 lines in problem code, last warning occurred here:
-3: # this should be a compile phase warning
-4: my $x = 0;
-*5: my $x = 1;
-*6: my $x = 2;
-7: $x++;
-8: 1;
-9: }
-======
-Warning #0 in <WHERE>:
-"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 5, <DATA> line 1.
-======
-Warning #1 in <WHERE>:
-"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 6, <DATA> line 1.
-======
-__END__
-
-| expected null_action compile phase warning
-Fatal problem(s) in <LONG_WHERE>
-2 Warning(s)
-Warning(s) treated as fatal problem
-10 lines in problem code, last warning occurred here:
-3: # this should be a compile phase warning
-4: my $x = 0;
-*5: my $x = 1;
-*6: my $x = 2;
-7: $x++;
-8: 1;
-9: };
-======
-Warning #0 in <WHERE>:
-"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 5, <DATA> line 1.
-======
-Warning #1 in <WHERE>:
-"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 6, <DATA> line 1.
 ======
 __END__
 
@@ -351,41 +404,6 @@ Fatal Error
 ======
 Error in <WHERE>:
 syntax error at (eval <LINE_NO>) line 3, at EOF
-======
-__END__
-
-| expected e_op_action compile phase fatal
-| expected default_action compile phase fatal
-Fatal problem(s) in <LONG_WHERE>
-Fatal Error
-8 lines in problem code, beginning:
-1: sub {
-2:     package Marpa::<PACKAGE>;
-3: # this should be a compile phase error
-4: my $x = 0;
-5: $x=;
-6: $x++;
-7: 1;
-======
-Error in <WHERE>:
-syntax error at (eval <LINE_NO>) line 5, at EOF
-======
-__END__
-
-| expected null_action compile phase fatal
-Fatal problem(s) in <LONG_WHERE>
-Fatal Error
-9 lines in problem code, beginning:
-1: $null_value = do {
-2:     package Marpa::<PACKAGE>;
-3: # this should be a compile phase error
-4: my $x = 0;
-5: $x=;
-6: $x++;
-7: 1;
-======
-Error in <WHERE>:
-syntax error at (eval <LINE_NO>) line 5, at EOF
 ======
 __END__
 
@@ -440,20 +458,11 @@ __END__
 Fatal problem(s) in computing value for rule: 1: E -> E Op E
 2 Warning(s)
 Warning(s) treated as fatal problem
-9 lines in problem code, last warning occurred here:
-3: # this should be a run phase warning
-4: my $x = 0;
-*5: warn "Test Warning 1";
-*6: warn "Test Warning 2";
-7: $x++;
-8: 1;
-9: }
-======
 Warning #0 in computing value:
-Test Warning 1 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+Test Warning 1, <DATA> line <LINE_NO>.
 ======
 Warning #1 in computing value:
-Test Warning 2 at (eval <LINE_NO>) line 6, <DATA> line <LINE_NO>.
+Test Warning 2, <DATA> line <LINE_NO>.
 ======
 __END__
 
@@ -461,20 +470,11 @@ __END__
 Fatal problem(s) in computing value for rule: 6: trailer -> Text
 2 Warning(s)
 Warning(s) treated as fatal problem
-9 lines in problem code, last warning occurred here:
-3: # this should be a run phase warning
-4: my $x = 0;
-*5: warn "Test Warning 1";
-*6: warn "Test Warning 2";
-7: $x++;
-8: 1;
-9: }
-======
 Warning #0 in computing value:
-Test Warning 1 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+Test Warning 1, <DATA> line <LINE_NO>.
 ======
 Warning #1 in computing value:
-Test Warning 2 at (eval <LINE_NO>) line 6, <DATA> line <LINE_NO>.
+Test Warning 2, <DATA> line <LINE_NO>.
 ======
 __END__
 
@@ -482,20 +482,11 @@ __END__
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
-10 lines in problem code, last warning occurred here:
-3: # this should be a run phase warning
-4: my $x = 0;
-*5: warn "Test Warning 1";
-*6: warn "Test Warning 2";
-7: $x++;
-8: 1;
-9: };
-======
 Warning #0 in <WHERE>:
-Test Warning 1 at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+Test Warning 1, <DATA> line <LINE_NO>.
 ======
 Warning #1 in <WHERE>:
-Test Warning 2 at (eval <LINE_NO>) line 6, <DATA> line <LINE_NO>.
+Test Warning 2, <DATA> line <LINE_NO>.
 ======
 __END__
 
@@ -547,51 +538,24 @@ __END__
 | expected e_op_action run phase error
 Fatal problem(s) in computing value for rule: 1: E -> E Op E
 Fatal Error
-8 lines in problem code, beginning:
-1: sub {
-2:     package Marpa::<PACKAGE>;
-3: # this should be a run phase error
-4: my $x = 0;
-5: $x = 711/0;
-6: $x++;
-7: 1;
-======
 Error in computing value:
-Illegal division by zero at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+Illegal division by zero, <DATA> line <LINE_NO>.
 ======
 __END__
 
 | expected default_action run phase error
 Fatal problem(s) in computing value for rule: 6: trailer -> Text
 Fatal Error
-8 lines in problem code, beginning:
-1: sub {
-2:     package Marpa::<PACKAGE>;
-3: # this should be a run phase error
-4: my $x = 0;
-5: $x = 711/0;
-6: $x++;
-7: 1;
-======
 Error in computing value:
-Illegal division by zero at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+Illegal division by zero, <DATA> line <LINE_NO>.
 ======
 __END__
 
 | expected null_action run phase error
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-9 lines in problem code, beginning:
-1: $null_value = do {
-2:     package Marpa::<PACKAGE>;
-3: # this should be a run phase error
-4: my $x = 0;
-5: $x = 711/0;
-6: $x++;
-7: 1;
-======
 Error in <WHERE>:
-Illegal division by zero at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+Illegal division by zero, <DATA> line <LINE_NO>.
 ======
 __END__
 
@@ -639,51 +603,24 @@ __END__
 | expected e_op_action run phase die
 Fatal problem(s) in computing value for rule: 1: E -> E Op E
 Fatal Error
-8 lines in problem code, beginning:
-1: sub {
-2:     package Marpa::<PACKAGE>;
-3: # this is a call to die()
-4: my $x = 0;
-5: die('test call to die');
-6: $x++;
-7: 1;
-======
 Error in computing value:
-test call to die at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+test call to die, <DATA> line <LINE_NO>.
 ======
 __END__
 
 | expected default_action run phase die
 Fatal problem(s) in computing value for rule: 6: trailer -> Text
 Fatal Error
-8 lines in problem code, beginning:
-1: sub {
-2:     package Marpa::<PACKAGE>;
-3: # this is a call to die()
-4: my $x = 0;
-5: die('test call to die');
-6: $x++;
-7: 1;
-======
 Error in computing value:
-test call to die at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+test call to die, <DATA> line <LINE_NO>.
 ======
 __END__
 
 | expected null_action run phase die
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
-9 lines in problem code, beginning:
-1: $null_value = do {
-2:     package Marpa::<PACKAGE>;
-3: # this is a call to die()
-4: my $x = 0;
-5: die('test call to die');
-6: $x++;
-7: 1;
-======
 Error in <WHERE>:
-test call to die at (eval <LINE_NO>) line 5, <DATA> line <LINE_NO>.
+test call to die, <DATA> line <LINE_NO>.
 ======
 __END__
 
@@ -702,37 +639,5 @@ Fatal Error
 Error in user supplied lexer:
 test call to die at (eval <LINE_NO>) line 7, <DATA> line <LINE_NO>.
 ======
-__END__
-
-
-| good code e_op_action
-my ($right_string, $right_value)
-    = ($_[2] =~ /^(.*)==(.*)$/);
-my ($left_string, $left_value)
-    = ($_[0] =~ /^(.*)==(.*)$/);
-my $op = $_[1];
-my $value;
-if ($op eq '+') {
-   $value = $left_value + $right_value;
-} elsif ($op eq '*') {
-   $value = $left_value * $right_value;
-} elsif ($op eq '-') {
-   $value = $left_value - $right_value;
-} else {
-   Marpa::exception("Unknown op: $op");
-}
-'(' . $left_string . $op . $right_string . ')==' . $value;
-__END__
-
-| good code e_number_action
-my $v0 = pop @_;
-$v0 . q{==} . $v0;
-__END__
-
-| good code default_action
-my $v_count = scalar @_;
-return q{} if $v_count <= 0;
-return $_[0] if $v_count == 1;
-'(' . join(q{;}, (map { $_ // 'undef' } @_)) . ')';
 __END__
 

@@ -6,6 +6,9 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =over 4
 
+=item * Factor out the MDL Lexer.
+Remove the PACKAGE field once I have done so.
+
 =item * I've disabled the preambles.
 Remove lex and regular preamble code.
 
@@ -72,10 +75,7 @@ Just abend with an error message.
 =item * Add optimizations when max_parses <= 1
     For example, no need to prune duplicate parses
 
-=item * Ensure -ENV is not on for smart comments when I leave alpha
-
-=item * Should or_map's be hashes instead of array?  How many duplicate
-entries are there and what's the cost?
+=item * Or_map's should be hashes instead of arrays.
 
 =item * Add MAX_COUNT for rules.  Implement on one of left- and right-
     recursion only.  No immediate need for both.
@@ -89,13 +89,9 @@ entries are there and what's the cost?
 
 =item * Test: Are regexes Storable's?
 
-=item * Remove code_diag.t tests for string closures.  Probably can
-    remove all of code_diag.t.
+=item * Remove code_diag.t tests for string closures.
 
-=item * Check Parse::Marpa TODO list.
-
-=item * Add arguments for INITIAL_ACTION, FINAL_ACTION, ACTIONS.
-     Make sure there are tests for them.
+=item * Remove INITIAL_ACTION, FINAL_ACTION.
 
 =back
 
@@ -119,16 +115,11 @@ Internals doc.
 
 =over 4
 
-=item * Add a trace_choices option.  There was an option to trace
+=item * Add a trace_choices option?  There was an option to trace
 non-trivial evaluation choices in the old evaluator, and the new trace_iterations
 doesn't entirely replace it.
 
 =item * Add a show_derivation option.
-
-=item * Add to test set: Basic tests of sequences.
-The matrix is separation (none/perl5/proper);
-and minimium count (0 or 1);
-keep vs. no-keep.
 
 =back
 

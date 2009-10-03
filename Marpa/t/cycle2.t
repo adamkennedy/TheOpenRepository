@@ -22,18 +22,24 @@ A(B(a))
 a
 EOS
 
+## no critic (Subroutines::RequireArgUnpacking)
+sub show_A         { return 'A(' . $_[0] . ')' }
+sub show_B         { return 'B(' . $_[0] . ')' }
+sub default_action { join( q{ }, @_ ) }
+## use critic
+
 my $mdl = <<'EOF';
 semantics are perl5.  version is 0.001_019.
 start symbol is S.
-default action is q{join(q{ }, @_)}.
+default action is 'main::default_action'.
 
 S: A.
 
-A: B. q{ 'A(' . $_[0] . ')' }.
+A: B. 'main::show_A'.
 
 A: /a/.
 
-B: A. q{ 'B(' . $_[0] . ')' }.
+B: A. 'main::show_B'.
 EOF
 
 my $trace;

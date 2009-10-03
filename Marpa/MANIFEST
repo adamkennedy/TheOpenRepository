@@ -27,6 +27,7 @@ etc/Makefile
 etc/not_in_manifest.pl
 etc/perlcriticrc
 example/equation.marpa
+example/equation.pm
 example/null_value.marpa
 example/null_value.pm
 example/synopsis.pl

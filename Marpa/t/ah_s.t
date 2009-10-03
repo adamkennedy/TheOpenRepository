@@ -57,6 +57,17 @@ for my $i ( 0 .. 4 ) {
     Test::More::is( ${$result}, $answer[$i], "parse permutation $i" );
 } ## end for my $i ( 0 .. 4 )
 
+## no critic (Subroutines::RequireArgUnpacking)
+
+sub default_action {
+     my $v_count = scalar @_;
+     return q{} if $v_count <= 0;
+     return $_[0] if $v_count == 1;
+     return '(' . join(q{;}, @_) . ')';
+}
+
+## use critic
+
 # Local Variables:
 #   mode: cperl
 #   cperl-indent-level: 4
@@ -66,12 +77,8 @@ for my $i ( 0 .. 4 ) {
 
 __DATA__
 semantics are perl5.  version is 0.001_019.  the start symbol is
-S.  the default null value is q{}.  the default action is q{
-     my $v_count = scalar @_;
-     return q{} if $v_count <= 0;
-     return $_[0] if $v_count == 1;
-     '(' . join(';', @_) . ')';
-}.
+S.  the default null value is q{}.
+the default action is 'main::default_action'.
 
 S: A, A, A, A.
 

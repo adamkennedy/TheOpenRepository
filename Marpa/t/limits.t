@@ -17,12 +17,12 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
-my $default_action = <<'EOCODE';
-     my $v_count = scalar @_;
-     return q{} if $v_count <= 0;
-     return $_[0] if $v_count == 1;
-     '(' . join(';', @_) . ')';
-EOCODE
+sub default_action {
+    my $v_count = scalar @_;
+    return q{}   if $v_count <= 0;
+    return $_[0] if $v_count == 1;
+    return '(' . join( q{;}, @_ ) . ')';
+} ## end sub default_action
 
 sub test_grammar {
     my ( $grammar_args, $earleme_length ) = @_;
@@ -92,7 +92,7 @@ my $placebo = {
         #>>>
     ],
     default_null_value => q{},
-    default_action     => $default_action,
+    default_action     => 'main::default_action',
 };
 
 sub test_rule_priority {
@@ -106,7 +106,7 @@ sub test_rule_priority {
         #>>>
         ],
         default_null_value => q{},
-        default_action     => $default_action,
+        default_action     => 'main::default_action',
     };
 } ## end sub test_rule_priority
 

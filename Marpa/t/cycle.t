@@ -15,10 +15,16 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
+## no critic (Subroutines::RequireArgUnpacking)
+sub default_action {
+    join( q{ }, grep { defined $_ } @_ );
+}
+## use critic
+
 my $mdl_header = <<'EOF';
 semantics are perl5.  version is 0.001_019.
 start symbol is S.
-default action is q{join(q{ }, grep { defined $_ } @_)}.
+default action is 'main::default_action'.
 
 EOF
 

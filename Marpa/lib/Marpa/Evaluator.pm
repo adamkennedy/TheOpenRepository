@@ -337,8 +337,6 @@ sub set_null_values {
 
         ### Rule: Marpa'brief_rule($rule)
 
-        $ENV{MARPA_AUTHOR_TEST}
-            and
             Marpa::exception("Attempt to use code string as null action: '$action'");
 
             my $lhs            = $rule->[Marpa::Internal::Rule::LHS];
@@ -549,8 +547,6 @@ sub set_actions {
                     last FIND_CLOSURE;
                 }
 
-                last NEW_SEMANTICS if defined $default_action and $default_action =~ /\s/;
-
                 # If there is no default action specified, the fallback
                 # is to return an undef
                 $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] =
@@ -576,8 +572,6 @@ sub set_actions {
 
         } ## end if ( defined $actions_package or not defined $action ...)
 
-        $ENV{MARPA_AUTHOR_TEST}
-            and
             Marpa::exception("Attempt to use code string as action: $action");
 
         $action //= $default_action;
@@ -3427,7 +3421,6 @@ sub Marpa::Evaluator::value {
                                             long_where =>
                                                 'computing value for rule: '
                                                 . Marpa::brief_rule($rule),
-                                            code => \$code,
                                         }
                                     );
                                 } ## end if ( not $eval_ok or @warnings )

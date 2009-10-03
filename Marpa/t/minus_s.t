@@ -24,7 +24,7 @@ my $text = '6-----1';
 
 my @values =
     Marpa::mdl( \$grammar_source, \$text,
-    { maximal => 1, max_parses => 30 } );
+    { actions => 'main', maximal => 1, max_parses => 30 } );
 
 my @expected = (
     #<<< no perltidy
@@ -50,13 +50,6 @@ for my $i ( 0 .. $#expected ) {
         $expected[$i], "Minuses Equation Value $i" );
 }
 
-# Local Variables:
-#   mode: cperl
-#   cperl-indent-level: 4
-#   fill-column: 100
-# End:
-# vim: expandtab shiftwidth=4:
-
 # The inefficiency (at least some of it) is deliberate.
 # Passing up a duples of [ string, value ] and then
 # assembling a final string at the top would be better
@@ -64,51 +57,67 @@ for my $i ( 0 .. $#expected ) {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
+## no critic (Subroutines::RequireArgUnpacking)
+
+sub subtraction {
+    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/ );
+    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/ );
+    my $value = $left_value - $right_value;
+    return '(' . $left_string . q{-} . $right_string . ')==' . $value;
+} ## end sub subtraction
+
+sub postfix_decr {
+    my ( $string, $value ) = ( $_[0] =~ /^(.*)==(.*)$/ );
+    return '(' . $string . '--)==' . $value--;
+}
+
+sub prefix_decr {
+    my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/ );
+    return '(--' . $string . ')==' . --$value;
+}
+
+sub negation {
+    my ($string, $value)
+        = ($_[1] =~ /^(.*)==(.*)$/);
+    return '(-' . $string . ')==' . -$value;
+}
+
+sub number
+{
+    my $value = $_[0];
+    return "$value==$value";
+}
+
+sub default_action {
+     my $v_count = scalar @_;
+     return "" if $v_count <= 0;
+     return $_[0] if $v_count == 1;
+     return "(" . join(q{;}, @_) . ")";
+}
+
+## use critic
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
+
 __DATA__
 semantics are perl5.  version is 0.001_019.
 
 the start symbol is E.
 
-E: E, Minus, E.
-priority 50.
-q{
-    my ($right_string, $right_value)
-        = ($_[2] =~ /^(.*)==(.*)$/);
-    my ($left_string, $left_value)
-        = ($_[0] =~ /^(.*)==(.*)$/);
-    my $value = $left_value - $right_value;
-    "(" . $left_string . "-" . $right_string . ")==" . $value;
-}.
+E: E, Minus, E.  priority 50.  'subtraction'.
  
-E: E, Minus Minus.
-priority 40.
-q{
-    my ($string, $value)
-        = ($_[0] =~ /^(.*)==(.*)$/);
-    "(" . $string . "--" . ")==" . $value--;
-}.
+E: E, Minus Minus.  priority 40.  'postfix_decr'.
 
-E: Minus Minus, E.
-priority 30.
-q{
-    my ($string, $value)
-        = ($_[1] =~ /^(.*)==(.*)$/);
-    "(" . "--" . $string . ")==" . --$value;
-}.
+E: Minus Minus, E.  priority 30.  'prefix_decr'.
 
-E: Minus, E.
-priority 20.
-q{
-    my ($string, $value)
-        = ($_[1] =~ /^(.*)==(.*)$/);
-    "(" . "-" . $string . ")==" . -$value;
-}.
+E: Minus, E.  priority 20.  'negation'.
 
-E: Number.
-q{
-    my $value = $_[0];
-    "$value==$value";
-}.
+E: Number.  'number'.  
 
 Number matches qr/\d+/.
 
