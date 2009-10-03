@@ -1,0 +1,16 @@
+use inc::Module::Install;
+use Config;
+
+($^O eq 'darwin')
+  || die("OS unsupported\n");
+
+all_from        'lib/Mac/SystemDirectory.pm';
+perl_version    '5.006';
+test_requires   'Test::More' => '0.86';
+makemaker_args  LDDLFLAGS => $Config{lddlflags} . '-lobjc -framework CoreFoundation -framework Foundation';
+makemaker_args  DEFINE => '-ObjC';
+
+requires_external_cc;
+
+WriteAll;
+
