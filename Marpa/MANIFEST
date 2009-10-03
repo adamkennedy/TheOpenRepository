@@ -28,6 +28,7 @@ etc/not_in_manifest.pl
 etc/perlcriticrc
 example/equation.marpa
 example/null_value.marpa
+example/null_value.pm
 example/synopsis.pl
 inc/Test/Weaken.pm
 lib/Marpa/Doc/Algorithm.pod
@@ -45,6 +46,7 @@ lib/Marpa/header_Raw_Source.pm
 lib/Marpa/Internal.pm
 lib/Marpa/Lex.pm
 lib/Marpa/MDL.pm
+lib/Marpa/MDL/Internal/Actions.pm
 lib/Marpa/Offset.pm
 lib/Marpa.pm
 lib/Marpa/Raw_Source.pm

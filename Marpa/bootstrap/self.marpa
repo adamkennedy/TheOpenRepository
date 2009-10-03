@@ -3,30 +3,21 @@ grammar.
 
 the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/xms.
 
-concatenate lines is q{
-    (scalar @_) ? (join "\n", (grep { $_ } @_)) : undef;
-}.  # perl5 style comment
+grammar: paragraphs, trailing matter.  'grammar'.
 
-a preamble is q{
-    our $regex_data = [];
-    1;
-}.
-
-grammar: paragraphs, trailing matter.  q{ $_[0] }.
-
-paragraphs: empty line separated paragraph sequence.  concatenate lines.
+paragraphs: empty line separated paragraph sequence.  'concatenate_lines'.
 
 comment: NOT USED: paragraph: empty paragraph.
 
-paragraph: definition paragraph.  concatenate lines.
+paragraph: definition paragraph.  'concatenate_lines'.
 
-paragraph: production paragraph.  concatenate lines.
+paragraph: production paragraph.  'concatenate_lines'.
 
-paragraph: terminal paragraph.  concatenate lines.
+paragraph: terminal paragraph.  'concatenate_lines'.
 
-[ comment paragraph: comment sequence.  concatenate lines. ]
+[ comment paragraph: comment sequence.  'concatenate_lines'. ]
 
-definition paragraph: definition sequence. concatenate lines.
+definition paragraph: definition sequence. 'concatenate_lines'.
 
 production paragraph:
     non structural production sentences,
@@ -34,192 +25,103 @@ production paragraph:
     non structural production sentences,
     optional action sentence,
     non structural production sentences.
-    q{
-        my $action = $_[3];
-        my $other_key_value = join(",\n", map { $_ // q{} } @_[0,2,4]);
-        my $result =
-            'push @{$new_rules}, ' . "{\n"
-             . $_[1] . ",\n"
-             . (defined $action ? ($action . ",\n") : q{})
-             . $other_key_value
-             . "\n};"
-         ;
-         our @implicit_terminals;
-         if (@implicit_terminals) {
-             $result .= "\n" . 'push @{$new_terminals},' . "\n";
-             while (my $implicit_terminal = shift @implicit_terminals) {
-                 $result .= '    [' . $implicit_terminal . "],\n";
-             }
-             $result .= ";\n";
-         }
-         our @implicit_rules;
-         if (@implicit_rules) {
-             $result .= "\n" . 'push @{$new_rules},' . "\n";
-             while (my $implicit_production = shift @implicit_rules) {
-                 $result .= "    {" . $implicit_production . "},\n";
-             }
-             $result .= " ;\n";
-         }
-         $result;
-    }.
+    'production_paragraph'.
 
 non structural production sentences:
 optional non structural production sentence sequence.
-concatenate lines.
+'concatenate_lines'.
 
 non structural production sentence: /priority/, integer, period.
-q{ q{ priority => } . $_[1] }.
+'non_structural_production_sentence'.
 
 action sentence:
 optional /the/, /action/, /is/, action specifier, period.
-q{
-    '    action =>'
-    . $_[3]
-}.
+'long_action_sentence'.
 
 action sentence: action specifier, period.
-the action is q{
-    '    action =>'
-    . $_[0]
-}.
+'short_action_sentence'.
 
-action specifier: string specifier.  concatenate_lines.
+action specifier: string specifier.  'concatenate_lines'.
 
-non-structural production sentence: comment sentence.  concatenate lines.
+non-structural production sentence: comment sentence.  'concatenate_lines'.
 
-non-structural terminal sentence: comment sentence.  concatenate lines.
+non-structural terminal sentence: comment sentence.  'concatenate_lines'.
 
-definition: predefined setting, period.  q{ $_[0] }.  priority 1000.
+definition: predefined setting, period.  'definition_of_predefined'.  priority 1000.
 
 definition: comment sentence.
 
 definition: bracketed comment.
 
-definition: string definition.  concatenate lines.
+definition: string definition.  'concatenate_lines'.
 
-predefined setting: default action setting.  concatenate lines.
+predefined setting: default action setting.  'concatenate_lines'.
 
-predefined setting: default null value setting.  concatenate lines.
+predefined setting: default null value setting.  'concatenate_lines'.
 
-predefined setting: preamble setting.  concatenate lines.
+predefined setting: preamble setting.  'concatenate_lines'.
 
-predefined setting: lex preamble setting.  concatenate lines.
+predefined setting: lex preamble setting.  'concatenate_lines'.
 
-predefined setting: semantics setting.  concatenate lines.
+predefined setting: semantics setting.  'concatenate_lines'.
 
-predefined setting: version setting.  concatenate lines.
+predefined setting: version setting.  'concatenate_lines'.
 
-predefined setting: start symbol setting.  concatenate lines.
+predefined setting: start symbol setting.  'concatenate_lines'.
 
-predefined setting: default lex prefix setting.  concatenate lines.
+predefined setting: default lex prefix setting.  'concatenate_lines'.
 
 semantics setting:  optional /the/, /semantics/, copula, /perl5/.
-     q{
-         q{$new_semantics = '}
-         . $_[3]
-        . qq{';\n}
-}.
+'semantics_predicate'.
 
 semantics setting: /perl5/, copula, optional /the/, /semantics/.
-q{
-    q{$new_semantics = '}
-    . $_[0]
-    . qq{';\n}
-}.
+'semantics_subject'.
 
 version setting: optional /the/, /version/, copula, version number.
-q{
-    q{$new_version = '}
-    . $_[3]
-    . qq{';\n}
-}.
+'version_predicate'.
 
 version setting: /version number/, copula, optional /the/, /version/.
-q{
-    q{$new_version = '}
-    . $_[0]
-    . qq{';\n}
-}.
+'version_subject'.
 
 start symbol setting: optional /the/, /start/, /symbol/, copula,
 symbol phrase.
-q{
-    q{$new_start_symbol = '}
-    . $_[4]
-    . qq{';\n}
-}.
+'start_symbol_predicate'.
 
 start symbol setting: symbol phrase, copula, optional /the/, /start/,
 /symbol/, .
-q{
-    q{$new_start_symbol = }
-    . $_[0]
-    . qq{;\n}
-}.
+'start_symbol_subject'.
 
 default lex prefix setting: regex, copula, optional /the/, /default/,
 /lex/, /prefix/, .
-q{
-             q{$new_default_lex_prefix = }
-             . $_[0]
-             . qq{;\n}
-}.
+'default_lex_prefix_subject'.
 
 default lex prefix setting: optional /the/, /default/, /lex/,
 /prefix/, copula, regex, .
-q{
-    q{$new_default_lex_prefix = }
-    . $_[5]
-    . qq{;\n}
-}.
+'default_lex_prefix_predicate'.
 
 default null value setting: string specifier, copula, optional /the/, /default/,
 /null/, /value/, .
-q{
-             q{$new_default_null_value = }
-             . $_[0]
-             . qq{;\n}
-}.
+'default_null_value_subject'.
 
 default null value setting: optional /the/, /default/, /null/,
 /value/, copula, string specifier, .
-q{
-    q{$new_default_null_value = }
-    . $_[5]
-    . qq{;\n}
-}.
+'default_null_value_predicate'.
 
 preamble setting: /a/, /preamble/, /is/, string specifier.
 priority 1000.
-q{
-    q{$new_preamble .= }
-    . $_[3]
-    . qq{;\n}
-}.
+'preamble_predicate'.
  
 preamble setting: string specifier, /is/, /a/, /preamble/ .
 priority 1000.
-q{
-    q{$new_preamble .= }
-    . $_[0]
-    . qq{;\n}
-}.
+'preamble_subject'.
  
 lex preamble setting: /a/, /lex/, /preamble/, /is/, string specifier.
 priority 1000.
-q{
-    q{$new_lex_preamble .= }
-    . $_[4]
-    . qq{;\n}
-}.
+'lex_preamble_predicate'.
  
 preamble setting: string specifier, /is/, /a/, /lex/, /preamble/ .
 priority 1000.
-q{
-    q{$new_lex_preamble .= }
-    . $_[0]
-    . qq{;\n}
-}.
+'lex_preamble_subject'.
  
 copula: /is/.
 
@@ -227,195 +129,96 @@ copula: /are/.
 
 string definition:
 symbol phrase, /is/, string specifier, period.
-q{
-    '$strings{' . q{'}
-    . $_[0]
-    . q{'} . '}' . q{ = }
-    . $_[2]
-    . qq{;\n}
-}.
+'string_definition'.
 
 default action setting:
 action specifier, /is/, optional /the/, /default/, /action/.
-q{
-    q{ $new_default_action = }
-    . $_[0]
-    . qq{;\n}
-}.
+'default_action_subject'.
 
 default action setting:
 optional /the/, /default/, /action/, /is/, action specifier.
-q{
-    q{ $new_default_action = }
-    . $_[4]
-    . qq{;\n}
-}.
+'default_action_predicate'.
 
 comment sentence: comment tag, /:/, comment words, period.
 
 comment words: comment word sequence.
 
-literal string: q string.  q{ $_[0] }.
+literal string: q string.
+'q_string'.
 
-literal string: double quoted string.  concatenate_lines.
+literal string: double quoted string.  'concatenate_lines'.
 
-literal string: single quoted string.  concatenate_lines.
+literal string: single quoted string.  'concatenate_lines'.
 
 production sentence: lhs, production copula, rhs, period.
-q{
-    $_[0]
-    . "\n,"
-    . $_[2]
-}.
+'production_sentence'.
 
 production copula: /:/.
 
 production copula: /::=/.
 
 symbol phrase: symbol word sequence.
-q{ Marpa::MDL::canonical_symbol_name(join(q{-}, @_)) }.
+'symbol_phrase'.
 
 lhs: symbol phrase.
-q{ '    lhs => ' . q{'} . $_[0] . q{'} }.
+'lhs'.
 
 rhs: .
-q{ '    rhs => []' }.
+'empty_rhs'.
 
 rhs: comma separated rhs element sequence.
-q{ '    rhs => [' . join(q{, }, @_) . ']' }.
+'comma_separated_rhs'.
 
 rhs: symbol phrase, /sequence/.
+'sequence_rhs'.
 priority 1000.
-q{
-    q{rhs => ['}
-    . $_[0]
-    . qq{'],\n}
-    . qq{min => 1,\n}
-}.
 
 rhs: /optional/, symbol phrase, /sequence/.
 priority 2000.
-q{
-    q{rhs => ['}
-    . $_[1]
-    . qq{'],\n}
-    . qq{min => 0,\n}
-}.
+'optional_sequence_rhs'.
 
 rhs: symbol phrase, /separated/, symbol phrase, /sequence/.
 priority 2000.
-q{
-    q{rhs => ['}
-    . $_[2]
-    . qq{'],\n}
-    . q{separator => '}
-    . $_[0]
-    . qq{',\n}
-    . qq{min => 1,\n}
-}.
+'separated_sequence_rhs'.
 
 rhs: /optional/, symbol phrase, /separated/, symbol phrase, /sequence/.
 priority 3000.
-q{
-    q{rhs => ['}
-    . $_[3]
-    . qq{'],\n}
-    . q{separator => '}
-    . $_[1]
-    . qq{',\n}
-    . qq{min => 0,\n}
-}.
+'optional_separated_sequence_rhs'.
 
-rhs element: mandatory rhs element.  concatenate lines.
+rhs element: mandatory rhs element.  'concatenate_lines'.
 
-rhs element: Optional rhs element. priority 1000. concatenate lines.
+rhs element: Optional rhs element. priority 1000. 'concatenate_lines'.
 
 mandatory rhs element: rhs symbol specifier.
-q{ q{'} . $_[0] . q{'} }.
+'mandatory_rhs_element'.
 
 optional rhs element: /optional/, rhs symbol specifier.
-q{
-     my $symbol_phrase = $_[1];
-     my $optional_symbol_phrase = $symbol_phrase . ':optional';
-     our %implicit_rules;
-     if (not defined $implicit_rules{$optional_symbol_phrase}) {
-         $implicit_rules{$optional_symbol_phrase} = 1;
-         our @implicit_rules;
-         push
-             @implicit_rules,
-             q{ lhs => '} . $optional_symbol_phrase . q{', }
-             . q{ rhs => [ '} . $symbol_phrase . q{' ], }
-             . q{ action => q{ $_[0] } }
-         ;
-         push
-             @implicit_rules,
-             q{ lhs => '} . $optional_symbol_phrase . q{', }
-             . q{ rhs => [], }
-             . q{ action => q{ undef } }
-         ;
-     }
-     q{'} . $optional_symbol_phrase . q{'};
-}.
+'optional_rhs_element'.
 
 rhs symbol specifier: symbol phrase.
-q{ $_[0] }.
+'rhs_symbol_phrase_specifier'.
 
 rhs symbol specifier: regex.
-q{
-    our $regex_data;
-    my $regex = $_[0];
-    my ($symbol, $new) = Marpa::MDL::gen_symbol_from_regex($regex, $regex_data);
-    if ($new) {
-        our @implicit_terminals;
-        push @implicit_terminals,
-            q{'}
-            . $symbol
-            . q{' => } . '{' . q{ regex => }
-            . $regex
-            . ' }'
-        ;
-    }
-    $symbol;
-}.
+'rhs_regex_specifier'.
 
 terminal paragraph: non structural terminal sentences, terminal
-sentence, non structural terminal sentences.  concatenate lines.
+sentence, non structural terminal sentences.  'concatenate_lines'.
 
 non structural terminal sentences: optional non structural terminal sentence
-sequence.  concatenate lines.
+sequence.  'concatenate_lines'.
 
 terminal sentence:
 symbol phrase, /matches/, regex, period.
-q{
-    q{push @{$new_terminals}, [ '}
-    . $_[0]
-    . q{' => }
-    . '{ regex => '
-    . $_[2]
-    . '}'
-    . qq{ ] ;\n}
-}.
+'regex_terminal_sentence'.
 
 terminal sentence:
 /match/, symbol phrase, /using/, string specifier, period.
-q{
-    q{push @{$new_terminals}, [ '}
-    . $_[1]
-    . q{' => }
-    . '{ action =>'
-    . $_[3]
-    . '}'
-    . qq{ ];\n}
-}.
+'string_terminal_sentence'.
 
-string specifier: literal string.  concatenate lines.
+string specifier: literal string.  'concatenate_lines'.
 
 string specifier: symbol phrase.
-q{
-    '$strings{ ' . q{'}
-    . $_[0]
-    . q{'} . ' }'
-}.
+'string_name_specifier'.
 
 match q string using 'lex_q_quote'.
 

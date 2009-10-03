@@ -20,6 +20,7 @@ use Marpa::Lex;
 
 # Maybe MDL will be optional someday, but not today
 use Marpa::MDL;
+use Marpa::MDL::Internal::Actions;
 
 =begin Apology:
 

@@ -1,12 +1,4 @@
-#!perl
-
-# Marpa compiling its own specification language
-# New generations of this file will usually be created by
-# replacing everything after this comment with bootcopy1.pl,
-# then hacking it by hand as needed
-# to bootstrap the new self.marpa.
-
-# This file was automatically generated using Marpa 0.001_017
+# This file was automatically generated using Marpa 0.001_019
 #!perl
 # This is the beginning of bootstrap_header.pl
 
@@ -20,13 +12,12 @@ use strict;
 use warnings;
 use Marpa;
 use Marpa::MDL;
+use Marpa::MDL::Internal::Actions;
 use Fatal qw(open close);
 use English qw( -no_match_vars ) ;
 
 my $new_terminals = [];
 my $new_rules = [];
-my $new_preamble;
-my $new_lex_preamble;
 my $new_start_symbol;
 my $new_semantics;
 my $new_version;
@@ -55,19 +46,10 @@ $new_start_symbol = 'grammar';
 
 $new_default_lex_prefix = qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/xms;
 
-$strings{'concatenate-lines'} =  q{
-    (scalar @_) ? (join "\n", (grep { $_ } @_)) : undef;
-};
-
-$new_preamble .=  q{
-    our $regex_data = [];
-    1;
-};
-
 push @{$new_rules}, {
     lhs => 'grammar'
 ,    rhs => ['paragraphs', 'trailing-matter'],
-    action =>  q{ $_[0] },
+    action =>'grammar',
 ,
 ,
 
@@ -78,7 +60,7 @@ push @{$new_rules}, {
 separator => 'empty-line',
 min => 1,
 ,
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -86,7 +68,7 @@ min => 1,
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['definition-paragraph'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -94,7 +76,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['production-paragraph'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -102,7 +84,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['terminal-paragraph'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -112,7 +94,7 @@ push @{$new_rules}, {
 ,rhs => ['definition'],
 min => 1,
 ,
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -120,42 +102,14 @@ min => 1,
 push @{$new_rules}, {
     lhs => 'production-paragraph'
 ,    rhs => ['non-structural-production-sentences', 'production-sentence', 'non-structural-production-sentences', 'action-sentence:optional', 'non-structural-production-sentences'],
-    action =>
-    q{
-        my $action = $_[3];
-        my $other_key_value = join(",\n", map { $_ // q{} } @_[0,2,4]);
-        my $result =
-            'push @{$new_rules}, ' . "{\n"
-             . $_[1] . ",\n"
-             . (defined $action ? ($action . ",\n") : q{})
-             . $other_key_value
-             . "\n};"
-         ;
-         our @implicit_terminals;
-         if (@implicit_terminals) {
-             $result .= "\n" . 'push @{$new_terminals},' . "\n";
-             while (my $implicit_terminal = shift @implicit_terminals) {
-                 $result .= '    [' . $implicit_terminal . "],\n";
-             }
-             $result .= ";\n";
-         }
-         our @implicit_rules;
-         if (@implicit_rules) {
-             $result .= "\n" . 'push @{$new_rules},' . "\n";
-             while (my $implicit_production = shift @implicit_rules) {
-                 $result .= "    {" . $implicit_production . "},\n";
-             }
-             $result .= " ;\n";
-         }
-         $result;
-    },
+    action =>'production_paragraph',
 ,
 ,
 
 };
 push @{$new_rules},
-    { lhs => 'action-sentence:optional',  rhs => [ 'action-sentence' ],  action => q{ $_[0] } },
-    { lhs => 'action-sentence:optional',  rhs => [],  action => q{ undef } },
+    { lhs => 'action-sentence:optional',  rhs => [ 'action-sentence' ],  action => 'first_arg' },
+    { lhs => 'action-sentence:optional',  rhs => [], },
  ;
 
 push @{$new_rules}, {
@@ -163,7 +117,7 @@ push @{$new_rules}, {
 ,rhs => ['non-structural-production-sentence'],
 min => 0,
 ,
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -171,8 +125,7 @@ min => 0,
 push @{$new_rules}, {
     lhs => 'non-structural-production-sentence'
 ,    rhs => ['priority:k0', 'integer', 'period'],
-    action =>
-q{ q{ priority => } . $_[1] },
+    action =>'non_structural_production_sentence',
 ,
 ,
 
@@ -184,11 +137,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'action-sentence'
 ,    rhs => ['the:k1:optional', 'action:k2', 'is:k3', 'action-specifier', 'period'],
-    action =>
-q{
-    '    action =>'
-    . $_[3]
-},
+    action =>'long_action_sentence',
 ,
 ,
 
@@ -200,17 +149,14 @@ push @{$new_terminals},
 ;
 
 push @{$new_rules},
-    { lhs => 'the:k1:optional',  rhs => [ 'the:k1' ],  action => q{ $_[0] } },
-    { lhs => 'the:k1:optional',  rhs => [],  action => q{ undef } },
+    { lhs => 'the:k1:optional',  rhs => [ 'the:k1' ],  action => 'first_arg' },
+    { lhs => 'the:k1:optional',  rhs => [], },
  ;
 
 push @{$new_rules}, {
     lhs => 'action-sentence'
 ,    rhs => ['action-specifier', 'period'],
-    action => q{
-    '    action =>'
-    . $_[0]
-},
+    action =>'short_action_sentence',
 ,
 ,
 
@@ -218,7 +164,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'action-specifier'
 ,    rhs => ['string-specifier'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -226,7 +172,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'non-structural-production-sentence'
 ,    rhs => ['comment-sentence'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -234,7 +180,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'non-structural-terminal-sentence'
 ,    rhs => ['comment-sentence'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -242,7 +188,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'definition'
 ,    rhs => ['predefined-setting', 'period'],
-    action =>  q{ $_[0] },
+    action =>'definition_of_predefined',
 ,
 ,
  priority => 1000
@@ -264,7 +210,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'definition'
 ,    rhs => ['string-definition'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -272,7 +218,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['default-action-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -280,7 +226,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['default-null-value-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -288,7 +234,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['preamble-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -296,7 +242,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['lex-preamble-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -304,7 +250,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['semantics-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -312,7 +258,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['version-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -320,7 +266,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['start-symbol-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -328,7 +274,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'predefined-setting'
 ,    rhs => ['default-lex-prefix-setting'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -336,12 +282,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'semantics-setting'
 ,    rhs => ['the:k1:optional', 'semantics:k4', 'copula', 'perl5:k5'],
-    action =>
-     q{
-         q{$new_semantics = '}
-         . $_[3]
-        . qq{';\n}
-},
+    action =>'semantics_predicate',
 ,
 ,
 
@@ -354,12 +295,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'semantics-setting'
 ,    rhs => ['perl5:k5', 'copula', 'the:k1:optional', 'semantics:k4'],
-    action =>
-q{
-    q{$new_semantics = '}
-    . $_[0]
-    . qq{';\n}
-},
+    action =>'semantics_subject',
 ,
 ,
 
@@ -367,12 +303,7 @@ q{
 push @{$new_rules}, {
     lhs => 'version-setting'
 ,    rhs => ['the:k1:optional', 'version:k6', 'copula', 'version-number'],
-    action =>
-q{
-    q{$new_version = '}
-    . $_[3]
-    . qq{';\n}
-},
+    action =>'version_predicate',
 ,
 ,
 
@@ -384,12 +315,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'version-setting'
 ,    rhs => ['version%20number:k7', 'copula', 'the:k1:optional', 'version:k6'],
-    action =>
-q{
-    q{$new_version = '}
-    . $_[0]
-    . qq{';\n}
-},
+    action =>'version_subject',
 ,
 ,
 
@@ -401,12 +327,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'start-symbol-setting'
 ,    rhs => ['the:k1:optional', 'start:k8', 'symbol:k9', 'copula', 'symbol-phrase'],
-    action =>
-q{
-    q{$new_start_symbol = '}
-    . $_[4]
-    . qq{';\n}
-},
+    action =>'start_symbol_predicate',
 ,
 ,
 
@@ -419,12 +340,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'start-symbol-setting'
 ,    rhs => ['symbol-phrase', 'copula', 'the:k1:optional', 'start:k8', 'symbol:k9'],
-    action =>
-q{
-    q{$new_start_symbol = }
-    . $_[0]
-    . qq{;\n}
-},
+    action =>'start_symbol_subject',
 ,
 ,
 
@@ -432,12 +348,7 @@ q{
 push @{$new_rules}, {
     lhs => 'default-lex-prefix-setting'
 ,    rhs => ['regex', 'copula', 'the:k1:optional', 'default:ka', 'lex:kb', 'prefix:kc'],
-    action =>
-q{
-             q{$new_default_lex_prefix = }
-             . $_[0]
-             . qq{;\n}
-},
+    action =>'default_lex_prefix_subject',
 ,
 ,
 
@@ -451,12 +362,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'default-lex-prefix-setting'
 ,    rhs => ['the:k1:optional', 'default:ka', 'lex:kb', 'prefix:kc', 'copula', 'regex'],
-    action =>
-q{
-    q{$new_default_lex_prefix = }
-    . $_[5]
-    . qq{;\n}
-},
+    action =>'default_lex_prefix_predicate',
 ,
 ,
 
@@ -464,12 +370,7 @@ q{
 push @{$new_rules}, {
     lhs => 'default-null-value-setting'
 ,    rhs => ['string-specifier', 'copula', 'the:k1:optional', 'default:ka', 'null:kd', 'value:ke'],
-    action =>
-q{
-             q{$new_default_null_value = }
-             . $_[0]
-             . qq{;\n}
-},
+    action =>'default_null_value_subject',
 ,
 ,
 
@@ -482,12 +383,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'default-null-value-setting'
 ,    rhs => ['the:k1:optional', 'default:ka', 'null:kd', 'value:ke', 'copula', 'string-specifier'],
-    action =>
-q{
-    q{$new_default_null_value = }
-    . $_[5]
-    . qq{;\n}
-},
+    action =>'default_null_value_predicate',
 ,
 ,
 
@@ -495,12 +391,7 @@ q{
 push @{$new_rules}, {
     lhs => 'preamble-setting'
 ,    rhs => ['a:kf', 'preamble:k10', 'is:k3', 'string-specifier'],
-    action =>
-q{
-    q{$new_preamble .= }
-    . $_[3]
-    . qq{;\n}
-},
+    action =>'preamble_predicate',
 ,
  priority => 1000,
 
@@ -513,12 +404,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'preamble-setting'
 ,    rhs => ['string-specifier', 'is:k3', 'a:kf', 'preamble:k10'],
-    action =>
-q{
-    q{$new_preamble .= }
-    . $_[0]
-    . qq{;\n}
-},
+    action =>'preamble_subject',
 ,
  priority => 1000,
 
@@ -526,12 +412,7 @@ q{
 push @{$new_rules}, {
     lhs => 'lex-preamble-setting'
 ,    rhs => ['a:kf', 'lex:kb', 'preamble:k10', 'is:k3', 'string-specifier'],
-    action =>
-q{
-    q{$new_lex_preamble .= }
-    . $_[4]
-    . qq{;\n}
-},
+    action =>'lex_preamble_predicate',
 ,
  priority => 1000,
 
@@ -539,12 +420,7 @@ q{
 push @{$new_rules}, {
     lhs => 'preamble-setting'
 ,    rhs => ['string-specifier', 'is:k3', 'a:kf', 'lex:kb', 'preamble:k10'],
-    action =>
-q{
-    q{$new_lex_preamble .= }
-    . $_[0]
-    . qq{;\n}
-},
+    action =>'lex_preamble_subject',
 ,
  priority => 1000,
 
@@ -570,14 +446,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'string-definition'
 ,    rhs => ['symbol-phrase', 'is:k3', 'string-specifier', 'period'],
-    action =>
-q{
-    '$strings{' . q{'}
-    . $_[0]
-    . q{'} . '}' . q{ = }
-    . $_[2]
-    . qq{;\n}
-},
+    action =>'string_definition',
 ,
 ,
 
@@ -585,12 +454,7 @@ q{
 push @{$new_rules}, {
     lhs => 'default-action-setting'
 ,    rhs => ['action-specifier', 'is:k3', 'the:k1:optional', 'default:ka', 'action:k2'],
-    action =>
-q{
-    q{ $new_default_action = }
-    . $_[0]
-    . qq{;\n}
-},
+    action =>'default_action_subject',
 ,
 ,
 
@@ -598,12 +462,7 @@ q{
 push @{$new_rules}, {
     lhs => 'default-action-setting'
 ,    rhs => ['the:k1:optional', 'default:ka', 'action:k2', 'is:k3', 'action-specifier'],
-    action =>
-q{
-    q{ $new_default_action = }
-    . $_[4]
-    . qq{;\n}
-},
+    action =>'default_action_predicate',
 ,
 ,
 
@@ -631,7 +490,7 @@ min => 1,
 push @{$new_rules}, {
     lhs => 'literal-string'
 ,    rhs => ['q-string'],
-    action =>  q{ $_[0] },
+    action =>'q_string',
 ,
 ,
 
@@ -639,7 +498,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'literal-string'
 ,    rhs => ['double-quoted-string'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -647,7 +506,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'literal-string'
 ,    rhs => ['single-quoted-string'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -655,12 +514,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'production-sentence'
 ,    rhs => ['lhs', 'production-copula', 'rhs', 'period'],
-    action =>
-q{
-    $_[0]
-    . "\n,"
-    . $_[2]
-},
+    action =>'production_sentence',
 ,
 ,
 
@@ -688,8 +542,7 @@ push @{$new_rules}, {
 ,rhs => ['symbol-word'],
 min => 1,
 ,
-    action =>
-q{ Marpa::MDL::canonical_symbol_name(join(q{-}, @_)) },
+    action =>'symbol_phrase',
 ,
 ,
 
@@ -697,8 +550,7 @@ q{ Marpa::MDL::canonical_symbol_name(join(q{-}, @_)) },
 push @{$new_rules}, {
     lhs => 'lhs'
 ,    rhs => ['symbol-phrase'],
-    action =>
-q{ '    lhs => ' . q{'} . $_[0] . q{'} },
+    action =>'lhs',
 ,
 ,
 
@@ -706,8 +558,7 @@ q{ '    lhs => ' . q{'} . $_[0] . q{'} },
 push @{$new_rules}, {
     lhs => 'rhs'
 ,    rhs => [],
-    action =>
-q{ '    rhs => []' },
+    action =>'empty_rhs',
 ,
 ,
 
@@ -718,8 +569,7 @@ push @{$new_rules}, {
 separator => 'comma',
 min => 1,
 ,
-    action =>
-q{ '    rhs => [' . join(q{, }, @_) . ']' },
+    action =>'comma_separated_rhs',
 ,
 ,
 
@@ -727,16 +577,10 @@ q{ '    rhs => [' . join(q{, }, @_) . ']' },
 push @{$new_rules}, {
     lhs => 'rhs'
 ,    rhs => ['symbol-phrase', 'sequence:k14'],
-    action =>
-q{
-    q{rhs => ['}
-    . $_[0]
-    . qq{'],\n}
-    . qq{min => 1,\n}
-},
+    action =>'sequence_rhs',
 ,
- priority => 1000,
-
+,
+ priority => 1000
 };
 push @{$new_terminals},
     ['sequence:k14' => { regex => qr/sequence/ }],
@@ -745,13 +589,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'rhs'
 ,    rhs => ['optional:k15', 'symbol-phrase', 'sequence:k14'],
-    action =>
-q{
-    q{rhs => ['}
-    . $_[1]
-    . qq{'],\n}
-    . qq{min => 0,\n}
-},
+    action =>'optional_sequence_rhs',
 ,
  priority => 2000,
 
@@ -763,16 +601,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'rhs'
 ,    rhs => ['symbol-phrase', 'separated:k16', 'symbol-phrase', 'sequence:k14'],
-    action =>
-q{
-    q{rhs => ['}
-    . $_[2]
-    . qq{'],\n}
-    . q{separator => '}
-    . $_[0]
-    . qq{',\n}
-    . qq{min => 1,\n}
-},
+    action =>'separated_sequence_rhs',
 ,
  priority => 2000,
 
@@ -784,16 +613,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'rhs'
 ,    rhs => ['optional:k15', 'symbol-phrase', 'separated:k16', 'symbol-phrase', 'sequence:k14'],
-    action =>
-q{
-    q{rhs => ['}
-    . $_[3]
-    . qq{'],\n}
-    . q{separator => '}
-    . $_[1]
-    . qq{',\n}
-    . qq{min => 0,\n}
-},
+    action =>'optional_separated_sequence_rhs',
 ,
  priority => 3000,
 
@@ -801,7 +621,7 @@ q{
 push @{$new_rules}, {
     lhs => 'rhs-element'
 ,    rhs => ['mandatory-rhs-element'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -809,16 +629,15 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'rhs-element'
 ,    rhs => ['optional-rhs-element'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
-priority => 1000,
+ priority => 1000,
 
 };
 push @{$new_rules}, {
     lhs => 'mandatory-rhs-element'
 ,    rhs => ['rhs-symbol-specifier'],
-    action =>
-q{ q{'} . $_[0] . q{'} },
+    action =>'mandatory_rhs_element',
 ,
 ,
 
@@ -826,29 +645,7 @@ q{ q{'} . $_[0] . q{'} },
 push @{$new_rules}, {
     lhs => 'optional-rhs-element'
 ,    rhs => ['optional:k15', 'rhs-symbol-specifier'],
-    action =>
-q{
-     my $symbol_phrase = $_[1];
-     my $optional_symbol_phrase = $symbol_phrase . ':optional';
-     our %implicit_rules;
-     if (not defined $implicit_rules{$optional_symbol_phrase}) {
-         $implicit_rules{$optional_symbol_phrase} = 1;
-         our @implicit_rules;
-         push
-             @implicit_rules,
-             q{ lhs => '} . $optional_symbol_phrase . q{', }
-             . q{ rhs => [ '} . $symbol_phrase . q{' ], }
-             . q{ action => q{ $_[0] } }
-         ;
-         push
-             @implicit_rules,
-             q{ lhs => '} . $optional_symbol_phrase . q{', }
-             . q{ rhs => [], }
-             . q{ action => q{ undef } }
-         ;
-     }
-     q{'} . $optional_symbol_phrase . q{'};
-},
+    action =>'optional_rhs_element',
 ,
 ,
 
@@ -856,8 +653,7 @@ q{
 push @{$new_rules}, {
     lhs => 'rhs-symbol-specifier'
 ,    rhs => ['symbol-phrase'],
-    action =>
-q{ $_[0] },
+    action =>'rhs_symbol_phrase_specifier',
 ,
 ,
 
@@ -865,23 +661,7 @@ q{ $_[0] },
 push @{$new_rules}, {
     lhs => 'rhs-symbol-specifier'
 ,    rhs => ['regex'],
-    action =>
-q{
-    our $regex_data;
-    my $regex = $_[0];
-    my ($symbol, $new) = Marpa::MDL::gen_symbol_from_regex($regex, $regex_data);
-    if ($new) {
-        our @implicit_terminals;
-        push @implicit_terminals,
-            q{'}
-            . $symbol
-            . q{' => } . '{' . q{ regex => }
-            . $regex
-            . ' }'
-        ;
-    }
-    $symbol;
-},
+    action =>'rhs_regex_specifier',
 ,
 ,
 
@@ -889,7 +669,7 @@ q{
 push @{$new_rules}, {
     lhs => 'terminal-paragraph'
 ,    rhs => ['non-structural-terminal-sentences', 'terminal-sentence', 'non-structural-terminal-sentences'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -899,7 +679,7 @@ push @{$new_rules}, {
 ,rhs => ['non-structural-terminal-sentence'],
 min => 0,
 ,
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -907,16 +687,7 @@ min => 0,
 push @{$new_rules}, {
     lhs => 'terminal-sentence'
 ,    rhs => ['symbol-phrase', 'matches:k17', 'regex', 'period'],
-    action =>
-q{
-    q{push @{$new_terminals}, [ '}
-    . $_[0]
-    . q{' => }
-    . '{ regex => '
-    . $_[2]
-    . '}'
-    . qq{ ] ;\n}
-},
+    action =>'regex_terminal_sentence',
 ,
 ,
 
@@ -928,16 +699,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'terminal-sentence'
 ,    rhs => ['match:k18', 'symbol-phrase', 'using:k19', 'string-specifier', 'period'],
-    action =>
-q{
-    q{push @{$new_terminals}, [ '}
-    . $_[1]
-    . q{' => }
-    . '{ action =>'
-    . $_[3]
-    . '}'
-    . qq{ ];\n}
-},
+    action =>'string_terminal_sentence',
 ,
 ,
 
@@ -950,7 +712,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'string-specifier'
 ,    rhs => ['literal-string'],
-    action =>$strings{ 'concatenate-lines' },
+    action =>'concatenate_lines',
 ,
 ,
 
@@ -958,12 +720,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'string-specifier'
 ,    rhs => ['symbol-phrase'],
-    action =>
-q{
-    '$strings{ ' . q{'}
-    . $_[0]
-    . q{'} . ' }'
-},
+    action =>'string_name_specifier',
 ,
 ,
 
@@ -1072,6 +829,7 @@ my $g = new Marpa::Grammar({
     rules => $new_rules,
     terminals => $new_terminals,
     warnings => 1,
+    actions => 'Marpa::MDL::Internal::Actions',
     precompute => 0,
 });
 
@@ -1094,8 +852,6 @@ $g->precompute();
 
 my $recce = new Marpa::Recognizer({
    grammar=> $g,
-   preamble => $new_preamble,
-   lex_preamble => $new_lex_preamble,
 });
 
 sub locator {

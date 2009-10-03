@@ -15,6 +15,7 @@ my $g = new Marpa::Grammar({
     rules => $new_rules,
     terminals => $new_terminals,
     warnings => 1,
+    actions => 'Marpa::MDL::Internal::Actions',
     precompute => 0,
 });
 
@@ -37,8 +38,6 @@ $g->precompute();
 
 my $recce = new Marpa::Recognizer({
    grammar=> $g,
-   preamble => $new_preamble,
-   lex_preamble => $new_lex_preamble,
 });
 
 sub locator {

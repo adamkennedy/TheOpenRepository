@@ -1221,14 +1221,14 @@ sub Marpa::Grammar::set {
             when ('lex_preamble') {
                 Marpa::exception( "$option option not allowed in ",
                     Marpa::Internal::Phase::description($phase) )
-                    if $phase >= Marpa::Internal::Phase::RECOGNIZING;
-                $grammar->[Marpa::Internal::Grammar::LEX_PREAMBLE] = $value;
+                    # if $phase >= Marpa::Internal::Phase::RECOGNIZING;
+                # $grammar->[Marpa::Internal::Grammar::LEX_PREAMBLE] = $value;
             } ## end when ('lex_preamble')
             when ('preamble') {
                 Marpa::exception( "$option option not allowed in ",
                     Marpa::Internal::Phase::description($phase) )
-                    if $phase >= Marpa::Internal::Phase::RECOGNIZING;
-                $grammar->[Marpa::Internal::Grammar::PREAMBLE] = $value;
+                    # if $phase >= Marpa::Internal::Phase::RECOGNIZING;
+                # $grammar->[Marpa::Internal::Grammar::PREAMBLE] = $value;
             } ## end when ('preamble')
             default {
                 Marpa::exception("$_ is not an available Marpa option");
