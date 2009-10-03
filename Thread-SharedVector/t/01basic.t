@@ -2,4 +2,8 @@ use strict;
 use warnings;
 
 use Test::More tests => 1;
-BEGIN { use_ok('Thread::SharedVector'); };
+use Thread::SharedVector;
+pass();
+
+my $sv = Thread::SharedVector->new("double");
+

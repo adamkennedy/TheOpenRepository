@@ -6,8 +6,8 @@ use warnings;
 
 our $VERSION = '0.01';
 
-use Carp ();
-
+require XSLoader;
+XSLoader::load('Thread::SharedVector', $VERSION);
 
 1;
 

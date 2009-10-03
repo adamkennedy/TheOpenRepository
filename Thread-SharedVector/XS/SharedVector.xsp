@@ -3,7 +3,7 @@
 
 %name{Thread::SharedVector} class SharedVector
 {
-  SharedVector();
+  SharedVector(char* type);
   ~SharedVector();
 };
 
