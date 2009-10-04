@@ -351,7 +351,7 @@ sub _try_liblist {
 
 =head1 AUTHOR
 
-Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head2 CONTRIBUTORS
 

@@ -16,7 +16,7 @@ use Env '@PATH';
 my $builder = My::Builder->new(
   module_name           => 'Alien::Libjio',
   license               => 'unrestricted',
-  dist_author           => 'Jonathan Yu <frequency@cpan.org>',
+  dist_author           => 'Jonathan Yu <jawnsy@cpan.org>',
   dist_version_from     => 'lib/Alien/Libjio.pm',
   dynamic_config        => 1,
   create_readme         => 0,

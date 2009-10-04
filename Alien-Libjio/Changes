@@ -1,10 +1,11 @@
-1.003 - XXX - Jonathan Yu <frequency@cpan.org>
+1.003 - XXX - Jonathan Yu <jawnsy@cpan.org>
 
   + Integrate version 1.00 of libjio
   + Builder.pm: minor changes
     o Move File::Spec portability code into _chdir_or_die; call it with a
       list containing the path to traverse
     o Remove requirement for Config; we use notes to determine $(MAKE)
+  + Changed my mail address to jawnsy@cpan.org
 
 1.002 - 18 Aug 2009 - Jonathan Yu <frequency@cpan.org>
 
