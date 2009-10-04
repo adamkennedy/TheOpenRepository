@@ -34,6 +34,13 @@ SharedVectorInstance::Get(index)
     RETVAL = THIS->Get(aTHX_ index);
   OUTPUT:
     RETVAL
+
+void
+SharedVectorInstance::Set(index, value)
+  IV index
+  SV* value
+  CODE:
+    THIS->Set(aTHX_ index, value);
 %}
 
 

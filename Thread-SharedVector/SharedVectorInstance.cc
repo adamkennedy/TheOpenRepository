@@ -52,6 +52,11 @@ namespace svec {
   SharedVectorInstance::Get(pTHX_ IV index) {
     return fVector->Get(aTHX_ index);
   }
+
+  void
+  SharedVectorInstance::Set(pTHX_ IV index, SV* value) {
+    return fVector->Set(aTHX_ index, value);
+  }
 } // end namespace svec
 
 

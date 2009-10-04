@@ -102,6 +102,7 @@ namespace svec {
         size = ((vector<int>*)fContainer)->size();
         break;
       default:
+        fLock.Release(aTHX);
         croak("Invalid shared container type during GetSize");
         break;
       }; // end of container type switch
@@ -129,6 +130,7 @@ namespace svec {
         size = ((vector<int>*)fContainer)->size();
         break;
       default:
+        fLock.Release(aTHX);
         croak("Invalid shared container type during Push");
         break;
       }; // end of container type switch
@@ -162,6 +164,7 @@ namespace svec {
         retval = newSViv( (*(vector<int>*)fContainer)[index] );
       break;
     default:
+      fLock.Release(aTHX);
       croak("Invalid shared container type during Get");
       break;
     }; // end of container type switch
@@ -169,6 +172,40 @@ namespace svec {
     return retval;
   }
 
+  void
+  SharedVector::Set(pTHX_ IV index, SV* value) {
+    if (!SvOK(value))
+      croak("Assigning incompatible type to shared vector");
+    if (SvROK(value)) {
+      croak("Assigning arrays not implemented");
+    }
+    else {
+      unsigned int size;
+      fLock.Acquire(aTHX);
+      switch (fType) {
+      case TDoubleVec:
+        size = ((vector<double>*)fContainer)->size();
+        if (index < 0)
+          index = ((IV)size)+index;
+        if (index >= 0 && index < size)
+          (*(vector<double>*)fContainer)[index] = SvNV(value);
+        break;
+      case TIntVec:
+        size = ((vector<int>*)fContainer)->size();
+        if (index < 0)
+          index = ((IV)size)+index;
+        if (index >= 0 && index < size)
+          (*(vector<int>*)fContainer)[index] = SvIV(value);
+        break;
+      default:
+        fLock.Release(aTHX);
+        croak("Invalid shared container type during Set");
+        break;
+      }; // end of container type switch
+      fLock.Release(aTHX);
+      return;
+    }
+  }
 } // end namespace svec
 
 

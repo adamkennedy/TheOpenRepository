@@ -3,4 +3,5 @@
 %typemap{char*}{simple};
 %typemap{unsigned int}{simple};
 %typemap{IV}{simple};
+%typemap{void}{simple};
 
