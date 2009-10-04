@@ -123,7 +123,6 @@ use Marpa::Offset qw(
     AND_NODES
     OR_NODES
     RULE_DATA
-    PACKAGE { Delete after conversion to symrefs }
     NULL_VALUES
     AND_ITERATIONS
     OR_ITERATIONS
@@ -179,45 +178,8 @@ use constant NULL_SORT_ELEMENT_FILL_WIDTH => ( N_FORMAT_WIDTH * 2 );
 # in hex numbers
 use constant N_FORMAT_MAX => 0x7fff_ffff;
 
-sub run_preamble {
-    my $grammar = shift;
-    my $package = shift;
-
-    my $preamble = $grammar->[Marpa::Internal::Grammar::PREAMBLE];
-    return if not defined $preamble;
-
-    my $code = 'package ' . $package . ";\n" . $preamble;
-    my $eval_ok;
-    my @warnings;
-    DO_EVAL: {
-        local $SIG{__WARN__} =
-            sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-        ## no critic (BuiltinFunctions::ProhibitStringyEval)
-        $eval_ok = eval $code;
-        ## use critic
-    } ## end DO_EVAL:
-
-    if ( not $eval_ok or @warnings ) {
-        my $fatal_error = $EVAL_ERROR;
-        Marpa::Internal::code_problems(
-            {   grammar     => $grammar,
-                eval_ok     => $eval_ok,
-                fatal_error => $fatal_error,
-                warnings    => \@warnings,
-                where       => 'evaluating preamble',
-                code        => \$code,
-            }
-        );
-    } ## end if ( not $eval_ok or @warnings )
-
-    return;
-
-}    # run_preamble
-
 sub set_null_values {
     my $grammar = shift;
-    my $package = shift;
 
     my ( $rules, $symbols, $tracing, $default_null_value ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
@@ -347,7 +309,6 @@ sub set_null_values {
 
 sub set_actions {
     my $grammar = shift;
-    my $package = shift;
 
     my ( $rules, $tracing, $default_action, ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
@@ -1629,13 +1590,10 @@ sub Marpa::Evaluator::new {
     my $start_rule_id = $start_rule->[Marpa::Internal::Rule::ID];
 
     state $parse_number = 0;
-    my $package = $self->[Marpa::Internal::Evaluator::PACKAGE] =
-        sprintf 'Marpa::E_%x', $parse_number++;
-    run_preamble( $grammar, $package );
     my $null_values = $self->[Marpa::Internal::Evaluator::NULL_VALUES] =
-        set_null_values( $grammar, $package );
+        set_null_values($grammar);
     my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_DATA] =
-        set_actions( $grammar, $package );
+        set_actions($grammar);
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
     my ( $nulling, $symbol_id ) =
@@ -2194,10 +2152,8 @@ sub Marpa::Evaluator::show_bocage {
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT];
     my $or_nodes    = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
-    my $package     = $evaler->[Marpa::Internal::Evaluator::PACKAGE];
 
-    my $text =
-        'package: ' . $package . '; parse count: ' . $parse_count . "\n";
+    my $text = 'parse count: ' . $parse_count . "\n";
 
     for my $or_node ( @{$or_nodes} ) {
 

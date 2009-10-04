@@ -43,7 +43,7 @@ use Marpa::Offset qw(
     =LAST_EVALUATOR_FIELD
 
     EARLEY_HASH FURTHEST_EARLEME EXHAUSTED
-    PACKAGE LEXERS LEXABLES_BY_STATE LAST_COMPLETED_SET
+    LEXERS LEXABLES_BY_STATE LAST_COMPLETED_SET
 
 );
 
@@ -57,7 +57,6 @@ use Marpa::Offset qw(
 # FURTHEST_EARLEME   - last earley set with a token
 # EXHAUSTED          - parse can't continue?
 # EVALUATOR          - the current evaluator for this recognizer
-# PACKAGE            - special "safe" namespace
 # LEXERS             - an array, indexed by symbol id,
 #                      of the lexer for each symbol
 # LEXABLES_BY_STATE  - an array, indexed by QDFA state id,
@@ -252,40 +251,10 @@ sub prepare_grammar_for_recognizer {
     my $parse   = shift;
     my $grammar = shift;
 
-    my $package = $parse->[Marpa::Internal::Recognizer::PACKAGE] =
-        sprintf 'Marpa::P_%x', $parse_number++;
+    my $package = sprintf __PACKAGE__ . '::P_%x', $parse_number++;
 
-    my $lex_preamble = $grammar->[Marpa::Internal::Grammar::LEX_PREAMBLE];
     my $default_null_value =
         $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
-
-    if ( defined $lex_preamble ) {
-        my @warnings;
-        my $eval_ok;
-        my $code = 'package ' . $package . ";\n" . $lex_preamble;
-        {
-            local $SIG{__WARN__} =
-                sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-            ## no critic (BuiltinFunctions::ProhibitStringyEval)
-            $eval_ok = eval $code;
-            ## use critic
-
-        }
-
-        if ( not $eval_ok or @warnings ) {
-            my $fatal_error = $EVAL_ERROR;
-            Marpa::Internal::code_problems(
-                {   eval_ok     => $eval_ok,
-                    fatal_error => $fatal_error,
-                    grammar     => $grammar,
-                    warnings    => \@warnings,
-                    where       => 'evaluating lex preamble',
-                    code        => \$code,
-                }
-            );
-        } ## end if ( not $eval_ok or @warnings )
-    } ## end if ( defined $lex_preamble )
 
     compile_regexes($grammar);
     @{$parse}[
@@ -307,7 +276,6 @@ sub Marpa::Recognizer::new {
 
     my $self = [];
     my $ambiguous_lex;
-    my $lex_preamble;
 
     my $clone_arg = $args->{clone};
     delete $args->{clone};

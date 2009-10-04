@@ -195,11 +195,10 @@ use Marpa::Offset qw(
     RULES SYMBOLS QDFA
     PHASE
     ACTIONS { Default package in which to find actions }
-    INITIAL_ACTION { Action to run at start of evaluation }
     DEFAULT_ACTION { Action for rules without one }
-    FINAL_ACTION { Action to run at end of evaluation }
     TRACE_FILE_HANDLE TRACING
-    STRIP CODE_LINES
+    STRIP
+    CODE_LINES
     =LAST_BASIC_DATA_FIELD
 
     { === Evaluator Fields === }
@@ -215,7 +214,7 @@ use Marpa::Offset qw(
     TRACE_VALUES
 
     MAX_PARSES
-    PREAMBLE
+    SELF_ARG { First args to action is parser object }
 
     =LAST_EVALUATOR_FIELD
 
@@ -224,7 +223,6 @@ use Marpa::Offset qw(
     DEFAULT_LEX_PREFIX DEFAULT_LEX_SUFFIX AMBIGUOUS_LEX
     TRACE_LEX_MATCHES TRACE_COMPLETIONS TRACE_LEX_TRIES
     START_STATES
-    LEX_PREAMBLE
     =LAST_RECOGNIZER_FIELD
 
     RULE_SIGNATURE_HASH
@@ -277,8 +275,6 @@ DEFAULT_LEX_SUFFIX - default suffix for lexing
 AMBIGUOUS_LEX      - lex ambiguously?
 LOCATION_CALLBACK  - default callback for showing location
 PROBLEMS - fatal problems
-PREAMBLE - evaluation preamble
-LEX_PREAMBLE - lex preamble
 WARNINGS - print warnings about grammar?
 VERSION - Marpa version this grammar was stringified from
 CODE_LINES - max lines to display on failure
@@ -536,8 +532,6 @@ sub Marpa::Internal::Grammar::raw_grammar_eval {
     my $new_start_symbol;
     my $new_semantics;
     my $new_version;
-    my $new_preamble;
-    my $new_lex_preamble;
     my $new_default_lex_prefix;
     my $new_default_action;
     my $new_default_null_value;
@@ -605,21 +599,6 @@ sub Marpa::Internal::Grammar::raw_grammar_eval {
     if ($trace_predefineds) {
         say {$trace_fh} 'Version set to ', $new_version;
     }
-
-    if ( defined $new_lex_preamble ) {
-        $grammar->[Marpa::Internal::Grammar::LEX_PREAMBLE] =
-            $new_lex_preamble;
-        if ( defined $trace_predefineds ) {
-            say {$trace_fh} q{Lex preamble set to '}, $new_lex_preamble, q{'};
-        }
-    } ## end if ( defined $new_lex_preamble )
-
-    if ( defined $new_preamble ) {
-        $grammar->[Marpa::Internal::Grammar::PREAMBLE] = $new_preamble;
-        if ( defined $trace_predefineds ) {
-            say {$trace_fh} q{Preamble set to '}, $new_preamble, q{'};
-        }
-    } ## end if ( defined $new_preamble )
 
     if ( defined $new_default_lex_prefix ) {
         $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX] =
@@ -974,18 +953,6 @@ sub Marpa::Grammar::set {
                     if $phase >= Marpa::Internal::Phase::RECOGNIZING;
                 $grammar->[Marpa::Internal::Grammar::DEFAULT_ACTION] = $value;
             } ## end when ('default_action')
-            when ('initial_action') {
-                Marpa::exception( "$option option not allowed in ",
-                    Marpa::Internal::Phase::description($phase) )
-                    if $phase >= Marpa::Internal::Phase::RECOGNIZING;
-                $grammar->[Marpa::Internal::Grammar::INITIAL_ACTION] = $value;
-            } ## end when ('initial_action')
-            when ('final_action') {
-                Marpa::exception( "$option option not allowed in ",
-                    Marpa::Internal::Phase::description($phase) )
-                    if $phase >= Marpa::Internal::Phase::RECOGNIZING;
-                $grammar->[Marpa::Internal::Grammar::FINAL_ACTION] = $value;
-            } ## end when ('final_action')
             when ('default_lex_prefix') {
                 Marpa::exception(
                     "$option option not allowed after grammar is precomputed")

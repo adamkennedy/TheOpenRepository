@@ -148,7 +148,10 @@ sub canonical {
     my $where      = shift;
     my $long_where = shift;
     $long_where //= $where;
-    $template =~ s{ \b package \s Marpa [:][:] [EP] _ [0-9a-fA-F]+ [;] $
+    $template =~ s{
+            \b package \s
+            Marpa [:][:] Internal [:][:] Recognizer [:][:]
+            [EP] _ [0-9a-fA-F]+ [;] $
         }{package Marpa::<PACKAGE>;}xms;
     $template =~ s{ \s* at \s  t[/]code_diag[.]t \s line \s \d+}{}gxms;
     $template =~ s/[<]WHERE[>]/$where/xmsg;

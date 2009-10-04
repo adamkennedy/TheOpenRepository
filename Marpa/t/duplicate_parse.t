@@ -144,7 +144,7 @@ my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 my $bocage = $evaler->show_bocage(3);
 
 Marpa::Test::is( $bocage, <<'END_OF_STRING', 'Bocage' );
-package: Marpa::E_0; parse count: 0
+parse count: 0
 S2@0-3L6o0 -> S2@0-3L6o0a0
 S2@0-3L6o0a0 -> S13@0-3L1o1
     rule 10: S['] -> S .
