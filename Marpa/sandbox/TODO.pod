@@ -2,17 +2,54 @@
 
 Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
+=head1 ORDERED TASKS
+
+=over 4
+
+=item * Test: Are regexes Storable's?
+
+=item * Remove lex routines.
+
+=item * Allow cloning of unstripped recognizers.
+
+=item * Convert cloning to Storable.
+
+=item * Remove not longer needed "strip => 0" options.
+
+=item * Add code to abend if SELF_ARG is on.
+
+=item * Change bin/mdl, ::mdl(), all *.t, boostrap to unset SELF_ARG
+
+=item * Default to SELF_ARG on.  Test & fix what breaks.
+
+=item * Implement actions objects, & use of SELF_ARG.
+
+=item * One by one, convert, removing unset of SELF_ARG as I go.
+Do NOT convert bootstrap, ../bin/mdl, or ::mdl().  They will be
+removed after conversion to the new bootstraping, and the
+elimination of MDL.
+
+=item * Factor out MDL so that it works by calling (or creating options
+    for a call to) Grammar::new or Grammar::set.
+
+=item * Convert all stringization to Storable.
+
+=item * After MDL is factored out, create a matrix of tests of 
+valid grammars vs. their result.  Matrix is
+
+    grammars X inputs X clone grammar X clone recognizer X strip grammar X strip recognizer
+
+Do just one or two inputs per grammar.
+
+=item * Factor out MDL Lexer.
+
+=back
+
 =head1 HIGH PRIORITY
 
 =over 4
 
 =item * Factor out the MDL Lexer.
-Remove the PACKAGE field once I have done so.
-
-=item * I've disabled the preambles.
-Remove lex and regular preamble code.
-
-=item * Remove legacy code to allow actions specified as Perl5 code.
 
 =item * Allow action options to be changed when evaluator
 is created, but not afterwards.
@@ -80,32 +117,16 @@ Just abend with an error message.
 =item * Add MAX_COUNT for rules.  Implement on one of left- and right-
     recursion only.  No immediate need for both.
 
-=item * Factor out MDL so that it works by calling (or creating options
-    for a call to) Grammar::new or Grammar::set.
-
-=item * Factor out MDL Lexer.
-
-=item * Convert all cloning & stringization to Storable.
-
-=item * Test: Are regexes Storable's?
-
-=item * Remove code_diag.t tests for string closures.
-
-=item * Remove INITIAL_ACTION, FINAL_ACTION.
-
 =back
 
 =head1 MEDIUM PRIORITY
 
 =over 4
 
-=item * Allow cloning of unstripped recognizers
-
 =item * Add a SYNOPSIS to the Plumbing document.
 
-=item * Parse bocage creation can probably be made a bit slightly cleaner.
-At least I think so, based on what I found when revising that part of the
-Internals doc.
+=item * When rereading Internals doc, check if
+parse bocage creation can probably be made a bit slightly cleaner.
 
 =item * Make sure that nulling symbols can never be terminals
 
@@ -138,19 +159,11 @@ call to C<value>?
 
 =back
 
-=head2 Other Changes
-
-=over 4
-
-=item * Allow alternation?
-
-=item * Downgrade version conflict or semantics mismatch to warning?
-
-=item * Add C<{}> and C<[]> syntax to MDL production statements.
-
-=back
-
 =head1 OTHER FROZEN
+
+=head2 Downgrade MDL version conflict or semantics mismatch to warning?
+
+Probably not.  MDL is EOL'ed.
 
 =head2 Lifting Restrictions on Sequence Productions
 

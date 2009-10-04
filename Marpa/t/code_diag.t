@@ -5,7 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 26;
+use Test::More tests => 21;
 
 use lib 'lib';
 use t::lib::Marpa::Test;
@@ -23,7 +23,6 @@ my @uncompiled_features = qw(
 );
 
 my @compiled_features = qw(
-    lexer
     unstringify_grammar
     unstringify_recce
 );
@@ -172,7 +171,6 @@ sub run_test {
     my $e_op_action        = $good_code{e_op_action};
     my $e_number_action    = $good_code{e_number_action};
     my $default_action     = $good_code{default_action};
-    my $text_lexer         = 'lex_q_quote';
     my $null_action        = 'main::null_action';
     my $default_null_value = q{[default null]};
 
@@ -184,7 +182,6 @@ sub run_test {
             when ('e_op_action')     { $e_op_action     = $value }
             when ('e_number_action') { $e_number_action = $value }
             when ('default_action')  { $default_action  = $value }
-            when ('lexer')           { $text_lexer      = $value }
             when ('null_action')     { $null_action     = $value }
             when ('unstringify_grammar') {
                 return Marpa::Grammar::unstringify( \$value );
@@ -215,7 +212,7 @@ sub run_test {
             terminals => [
                 [ 'Number' => { regex  => qr/\d+/xms } ],
                 [ 'Op'     => { regex  => qr/[-+*]/xms } ],
-                [ 'Text'   => { action => $text_lexer } ],
+                [ 'Text'   => { action => 'lex_q_quote' } ],
             ],
             default_action     => $default_action,
             default_lex_prefix => '\s*',
@@ -247,7 +244,6 @@ my %where = (
     e_op_action         => 'compiling action',
     default_action      => 'compiling action',
     null_action         => 'evaluating null value',
-    lexer               => 'compiling lexer',
     unstringify_grammar => 'unstringifying grammar',
     unstringify_recce   => 'unstringifying recognizer',
 );
@@ -256,7 +252,6 @@ my %long_where = (
     e_op_action    => 'compiling action for 1: E -> E Op E',
     default_action => 'compiling action for 3: optional_trailer1 -> trailer',
     null_action    => 'evaluating null value for optional_trailer2',
-    lexer          => 'compiling lexer for Text',
     unstringify_grammar => 'unstringifying grammar',
     unstringify_recce   => 'unstringifying recognizer',
 );
@@ -358,27 +353,6 @@ Warning #1 in <WHERE>:
 ======
 __END__
 
-| expected lexer compile phase warning
-Fatal problem(s) in <LONG_WHERE>
-2 Warning(s)
-Warning(s) treated as fatal problem
-13 lines in problem code, last warning occurred here:
-5:     # this should be a compile phase warning
-6: my $x = 0;
-*7: my $x = 1;
-*8: my $x = 2;
-9: $x++;
-10: 1;
-11: ;
-======
-Warning #0 in <WHERE>:
-"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 7, <DATA> line 1.
-======
-Warning #1 in <WHERE>:
-"my" variable $x masks earlier declaration in same scope at (eval <LINE_NO>) line 8, <DATA> line 1.
-======
-__END__
-
 | bad code compile phase fatal
 # this should be a compile phase error
 my $x = 0;
@@ -400,23 +374,6 @@ Fatal Error
 ======
 Error in <WHERE>:
 syntax error at (eval <LINE_NO>) line 3, at EOF
-======
-__END__
-
-| expected lexer compile phase fatal
-Fatal problem(s) in <LONG_WHERE>
-Fatal Error
-12 lines in problem code, beginning:
-1: sub {
-2:     my $STRING = shift;
-3:     my $START = shift;
-4:     package Marpa::<PACKAGE>;
-5:     # this should be a compile phase error
-6: my $x = 0;
-7: $x=;
-======
-Error in <WHERE>:
-syntax error at (eval <LINE_NO>) line 7, at EOF
 ======
 __END__
 
@@ -486,27 +443,6 @@ Test Warning 2, <DATA> line <LINE_NO>.
 ======
 __END__
 
-| expected lexer run phase warning
-Fatal problem(s) in user supplied lexer for Text at 1
-2 Warning(s)
-Warning(s) treated as fatal problem
-13 lines in problem code, last warning occurred here:
-5:     # this should be a run phase warning
-6: my $x = 0;
-*7: warn "Test Warning 1";
-*8: warn "Test Warning 2";
-9: $x++;
-10: 1;
-11: ;
-======
-Warning #0 in user supplied lexer:
-Test Warning 1 at (eval <LINE_NO>) line 7, <DATA> line <LINE_NO>.
-======
-Warning #1 in user supplied lexer:
-Test Warning 2 at (eval <LINE_NO>) line 8, <DATA> line <LINE_NO>.
-======
-__END__
-
 | bad code run phase error
 # this should be a run phase error
 my $x = 0;
@@ -555,23 +491,6 @@ Illegal division by zero, <DATA> line <LINE_NO>.
 ======
 __END__
 
-| expected lexer run phase error
-Fatal problem(s) in user supplied lexer for Text at 1
-Fatal Error
-12 lines in problem code, beginning:
-1: sub {
-2:     my $STRING = shift;
-3:     my $START = shift;
-4:     package Marpa::<PACKAGE>;
-5:     # this should be a run phase error
-6: my $x = 0;
-7: $x = 711/0;
-======
-Error in user supplied lexer:
-Illegal division by zero at (eval <LINE_NO>) line 7, <DATA> line <LINE_NO>.
-======
-__END__
-
 | bad code run phase die
 # this is a call to die()
 my $x = 0;
@@ -617,23 +536,6 @@ Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 Error in <WHERE>:
 test call to die, <DATA> line <LINE_NO>.
-======
-__END__
-
-| expected lexer run phase die
-Fatal problem(s) in user supplied lexer for Text at 1
-Fatal Error
-12 lines in problem code, beginning:
-1: sub {
-2:     my $STRING = shift;
-3:     my $START = shift;
-4:     package Marpa::<PACKAGE>;
-5:     # this is a call to die()
-6: my $x = 0;
-7: die('test call to die');
-======
-Error in user supplied lexer:
-test call to die at (eval <LINE_NO>) line 7, <DATA> line <LINE_NO>.
 ======
 __END__
 

@@ -257,45 +257,9 @@ high-level grammar interfaces -- But Marpa self-generates and in
 that self-generation I like to test user-specified lex actions --
 If I internalize them all, I'll lose that test.
 
-match single quoted string using q{
-    my $match_start = pos ${$STRING};
-    state $prefix_regex = qr/\G'/oxms;
-    return unless ${$STRING} =~ /$prefix_regex/gxms;
-    state $regex = qr/\G[^'\0134]*('|\0134')/xms;
-    MATCH: while (${$STRING} =~ /$regex/gcxms) {
-        next MATCH unless defined $1;
-        if ($1 eq q{'}) {
-            my $end_pos = pos ${$STRING};
-            my $match_length = $end_pos - $match_start;
-            my $lex_length = $end_pos - $START;
-            return (
-                substr(${$STRING}, $match_start, $match_length),
-                $lex_length
-            );
-        }
-    }
-    return;
-}.
+match single quoted string using 'lex_single_quote'.
 
-match double quoted string using q{
-    my $match_start = pos $$STRING;
-    state $prefix_regex = qr/\G"/o;
-    return unless $$STRING =~ /$prefix_regex/g;
-    state $regex = qr/\G[^"\0134]*("|\0134")/;
-    MATCH: while ($$STRING =~ /$regex/gc) {
-        next MATCH unless defined $1;
-        if ($1 eq q{"}) {
-            my $end_pos = pos $$STRING;
-            my $match_length = $end_pos - $match_start;
-            my $lex_length = $end_pos - $START;
-            return (
-                substr($$STRING, $match_start, $match_length),
-                $lex_length
-            );
-        }
-    }
-    return;
-}.
+match double quoted string using 'lex_double_quote'.
 
 version number matches qr/\d+\.[\d_.]+\d/.
 

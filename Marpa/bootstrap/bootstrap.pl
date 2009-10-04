@@ -18,6 +18,8 @@ use English qw( -no_match_vars ) ;
 
 my $new_terminals = [];
 my $new_rules = [];
+my $new_preamble;
+my $new_lex_preamble;
 my $new_start_symbol;
 my $new_semantics;
 my $new_version;
@@ -108,7 +110,7 @@ push @{$new_rules}, {
 
 };
 push @{$new_rules},
-    { lhs => 'action-sentence:optional',  rhs => [ 'action-sentence' ],  action => 'first_arg' },
+    { lhs => 'action-sentence:optional',  rhs => [ 'action-sentence' ],  action => 'Marpa::MDL::Internal::Actions::first_arg'},
     { lhs => 'action-sentence:optional',  rhs => [], },
  ;
 
@@ -149,7 +151,7 @@ push @{$new_terminals},
 ;
 
 push @{$new_rules},
-    { lhs => 'the:k1:optional',  rhs => [ 'the:k1' ],  action => 'first_arg' },
+    { lhs => 'the:k1:optional',  rhs => [ 'the:k1' ],  action => 'Marpa::MDL::Internal::Actions::first_arg'},
     { lhs => 'the:k1:optional',  rhs => [], },
  ;
 
@@ -758,45 +760,9 @@ push @{$new_terminals}, [ 'final-whitespace' => { regex => qr/\s\z/xms} ] ;
 
 push @{$new_terminals}, [ 'bracketed-comment' => { regex => qr/\x{5b}[^\x{5d}]*\x{5d}/xms} ] ;
 
-push @{$new_terminals}, [ 'single-quoted-string' => { action => q{
-    my $match_start = pos ${$STRING};
-    state $prefix_regex = qr/\G'/oxms;
-    return unless ${$STRING} =~ /$prefix_regex/gxms;
-    state $regex = qr/\G[^'\0134]*('|\0134')/xms;
-    MATCH: while (${$STRING} =~ /$regex/gcxms) {
-        next MATCH unless defined $1;
-        if ($1 eq q{'}) {
-            my $end_pos = pos ${$STRING};
-            my $match_length = $end_pos - $match_start;
-            my $lex_length = $end_pos - $START;
-            return (
-                substr(${$STRING}, $match_start, $match_length),
-                $lex_length
-            );
-        }
-    }
-    return;
-}} ];
+push @{$new_terminals}, [ 'single-quoted-string' => { action =>'lex_single_quote'} ];
 
-push @{$new_terminals}, [ 'double-quoted-string' => { action => q{
-    my $match_start = pos $$STRING;
-    state $prefix_regex = qr/\G"/o;
-    return unless $$STRING =~ /$prefix_regex/g;
-    state $regex = qr/\G[^"\0134]*("|\0134")/;
-    MATCH: while ($$STRING =~ /$regex/gc) {
-        next MATCH unless defined $1;
-        if ($1 eq q{"}) {
-            my $end_pos = pos $$STRING;
-            my $match_length = $end_pos - $match_start;
-            my $lex_length = $end_pos - $START;
-            return (
-                substr($$STRING, $match_start, $match_length),
-                $lex_length
-            );
-        }
-    }
-    return;
-}} ];
+push @{$new_terminals}, [ 'double-quoted-string' => { action =>'lex_double_quote'} ];
 
 push @{$new_terminals}, [ 'version-number' => { regex => qr/\d+\.[\d_.]+\d/} ] ;
 

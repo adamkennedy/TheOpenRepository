@@ -134,7 +134,14 @@ sub set_lexers {
 
         given ($action) {
             when (undef) {;}    # do nothing
-                                # Right now do nothing but find lex_q_quote
+            when ('lex_single_quote') {
+                $lexers[$ix] =
+                    [ \&Marpa::Lex::lex_single_quote, $prefix, $suffix ];
+            }
+            when ('lex_double_quote') {
+                $lexers[$ix] =
+                    [ \&Marpa::Lex::lex_double_quote, $prefix, $suffix ];
+            }
             when ('lex_q_quote') {
                 $lexers[$ix] =
                     [ \&Marpa::Lex::lex_q_quote, $prefix, $suffix ];
@@ -143,56 +150,8 @@ sub set_lexers {
                 $lexers[$ix] = [ \&Marpa::Lex::lex_regex, $prefix, $suffix ];
             }
             default {
-                my $code = "sub {\n"
-                    #<<< perltidy should leave this alone
-                    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-                    . '    my $STRING = shift;' . "\n"
-                    . '    my $START = shift;' . "\n"
-                    ## use critic
-                    . "    package $package" . qq{;\n}
-                    . qq{    $action} . ";\n"
-                    . "    return\n"
-                    . "}\n";
-                    #>>>
-
-                if ($trace_actions) {
-                    print {$trace_fh} 'Setting action for terminal ', $name,
-                        " to\n", $code, "\n"
-                        or Marpa::exception('Could not print to trace file');
-                }
-
-                my $closure;
-                {
-                    my @warnings;
-                    {
-                        local $SIG{__WARN__} =
-                            sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-                        ## no critic (BuiltinFunctions::ProhibitStringyEval)
-                        $closure = eval $code;
-                        ## use critic
-
-                    }
-
-                    if ( not $closure or @warnings ) {
-                        my $fatal_error = $EVAL_ERROR;
-                        Marpa::Internal::code_problems(
-                            {   eval_ok     => $closure,
-                                fatal_error => $fatal_error,
-                                grammar     => $grammar,
-                                warnings    => \@warnings,
-                                where       => 'compiling lexer',
-                                long_where  => "compiling lexer for $name",
-                                code        => \$code,
-                            }
-                        );
-                    } ## end if ( not $closure or @warnings )
-                }
-
-                $symbol->[Marpa::Internal::Symbol::ACTION] = $code;
-                $lexers[$ix] = [ $closure, $prefix, $suffix ];
-
-            } ## end default
+                Marpa::exception("Unknown lexer: $action");
+            }
         } ## end given
 
     }    # SYMBOL
