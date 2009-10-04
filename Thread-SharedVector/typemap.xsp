@@ -2,4 +2,5 @@
 %typemap{SharedVectorInstance*}{simple};
 %typemap{char*}{simple};
 %typemap{unsigned int}{simple};
+%typemap{IV}{simple};
 

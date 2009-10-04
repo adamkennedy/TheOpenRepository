@@ -20,9 +20,8 @@ namespace svec {
     std::string stype = std::string(type);
     if (stype == string("double"))
       fVector = new SharedVector(TDoubleVec);
-    /*else if (stype == string("int"))
+    else if (stype == string("int"))
       fVector = new SharedVector(TIntVec);
-    */
     else // type presumably the id of an existing SharedVector
       fVector = SharedVector::S_GetNewInstance(type);
   }
@@ -47,6 +46,11 @@ namespace svec {
   unsigned int
   SharedVectorInstance::Push(pTHX_ SV* data) {
     return fVector->Push(aTHX_ data);
+  }
+
+  SV*
+  SharedVectorInstance::Get(pTHX_ IV index) {
+    return fVector->Get(aTHX_ index);
   }
 } // end namespace svec
 

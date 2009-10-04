@@ -137,6 +137,38 @@ namespace svec {
     }
   }
 
+  SV*
+  SharedVector::Get(pTHX_ IV index) {
+    SV* retval;
+    fLock.Acquire(aTHX);
+    unsigned int size;
+    switch (fType) {
+    case TDoubleVec:
+      size = ((vector<double>*)fContainer)->size();
+      if (index < 0)
+        index = ((IV)size)+index;
+      if (index < 0 || index >= size)
+        retval = &PL_sv_undef;
+      else
+        retval = newSVnv( (*(vector<double>*)fContainer)[index] );
+      break;
+    case TIntVec:
+      size = ((vector<int>*)fContainer)->size();
+      if (index < 0)
+        index = ((IV)size)+index;
+      if (index < 0 || index >= size)
+        retval = &PL_sv_undef;
+      else
+        retval = newSViv( (*(vector<int>*)fContainer)[index] );
+      break;
+    default:
+      croak("Invalid shared container type during Push");
+      break;
+    }; // end of container type switch
+    fLock.Release(aTHX);
+    return retval;
+  }
+
 } // end namespace svec
 
 

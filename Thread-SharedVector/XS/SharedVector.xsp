@@ -26,6 +26,14 @@ SharedVectorInstance::Push(data)
     RETVAL = THIS->Push(aTHX_ data);
   OUTPUT:
     RETVAL
+
+SV*
+SharedVectorInstance::Get(index)
+  IV index
+  CODE:
+    RETVAL = THIS->Get(aTHX_ index);
+  OUTPUT:
+    RETVAL
 %}
 
 

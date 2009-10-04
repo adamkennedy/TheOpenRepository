@@ -30,6 +30,7 @@ namespace svec {
 
       unsigned int GetSize(pTHX);
       unsigned int Push(pTHX_ SV* data);
+      SV* Get(pTHX_ IV index);
 
     private:
       unsigned int GetNewId(); // should be called while registry is locked
