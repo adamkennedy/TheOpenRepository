@@ -3,7 +3,7 @@ $Id$
 WebService::UWO::Directory::Student is a Perl module for searching the UWO
 student directory
 
-Copyright 2006-2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
+Copyright 2006-2009 by Jonathan Yu <jawnsy@cpan.org>. All rights reserved.
 
 INSTALLATION
 
