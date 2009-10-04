@@ -162,7 +162,7 @@ namespace svec {
         retval = newSViv( (*(vector<int>*)fContainer)[index] );
       break;
     default:
-      croak("Invalid shared container type during Push");
+      croak("Invalid shared container type during Get");
       break;
     }; // end of container type switch
     fLock.Release(aTHX);
