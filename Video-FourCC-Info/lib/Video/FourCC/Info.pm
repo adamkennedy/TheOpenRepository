@@ -45,11 +45,11 @@ Video::FourCC::Info - Perl module to retrieve information about FourCCs
 
 =head1 VERSION
 
-Version 1.004 ($Id$)
+Version 1.005 ($Id$)
 
 =cut
 
-our $VERSION = '1.004';
+our $VERSION = '1.005';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
@@ -275,7 +275,7 @@ sub code {
 
 =head1 AUTHOR
 
-Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head2 CONTRIBUTORS
 

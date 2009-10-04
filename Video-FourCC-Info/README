@@ -2,7 +2,7 @@ $Id$
 
 Video::FourCC::Info is a Perl module to retrieve information about FourCCs
 
-Copyright 2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
+Copyright 2009 by Jonathan Yu <jawnsy@cpan.org>. All rights reserved.
 
 INSTALLATION
 
