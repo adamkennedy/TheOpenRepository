@@ -9,11 +9,21 @@
 
 };
 
+// FIXME This is TEDIOUS!
+
 %{
 unsigned int
 SharedVectorInstance::GetSize()
   CODE:
     RETVAL = THIS->GetSize(aTHX);
+  OUTPUT:
+    RETVAL
+
+unsigned int
+SharedVectorInstance::Push(data)
+  SV* data
+  CODE:
+    RETVAL = THIS->Push(aTHX_ data);
   OUTPUT:
     RETVAL
 %}

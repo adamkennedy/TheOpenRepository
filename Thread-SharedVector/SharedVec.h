@@ -29,6 +29,7 @@ namespace svec {
       unsigned int GetId() { return fId; }
 
       unsigned int GetSize(pTHX);
+      unsigned int Push(pTHX_ SV* data);
 
     private:
       unsigned int GetNewId(); // should be called while registry is locked

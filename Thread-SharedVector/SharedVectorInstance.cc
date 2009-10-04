@@ -43,6 +43,11 @@ namespace svec {
   SharedVectorInstance::GetSize(pTHX) {
     return fVector->GetSize(aTHX);
   }
+
+  unsigned int
+  SharedVectorInstance::Push(pTHX_ SV* data) {
+    return fVector->Push(aTHX_ data);
+  }
 } // end namespace svec
 
 

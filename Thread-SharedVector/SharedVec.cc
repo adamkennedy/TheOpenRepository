@@ -108,6 +108,35 @@ namespace svec {
     fLock.Release(aTHX);
     return size;
   }
+
+  unsigned int
+  SharedVector::Push(pTHX_ SV* data) {
+    if (!SvOK(data))
+      return GetSize(aTHX);
+    if (SvROK(data)) {
+      croak("Pushing arrays not implemented");
+    }
+    else {
+      unsigned int size;
+      fLock.Acquire(aTHX);
+      switch (fType) {
+      case TDoubleVec:
+        ((vector<double>*)fContainer)->push_back(SvNV(data));
+        size = ((vector<double>*)fContainer)->size();
+        break;
+      case TIntVec:
+        ((vector<int>*)fContainer)->push_back(SvIV(data));
+        size = ((vector<int>*)fContainer)->size();
+        break;
+      default:
+        croak("Invalid shared container type during Push");
+        break;
+      }; // end of container type switch
+      fLock.Release(aTHX);
+      return size;
+    }
+  }
+
 } // end namespace svec
 
 

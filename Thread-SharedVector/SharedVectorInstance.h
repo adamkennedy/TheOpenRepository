@@ -21,6 +21,7 @@ namespace svec {
 
       unsigned int GetId();
       unsigned int GetSize(pTHX);
+      unsigned int Push(pTHX_ SV* data);
 
     private:
       SharedVector* fVector;
