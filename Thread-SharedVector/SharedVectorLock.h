@@ -3,6 +3,7 @@
 
 #ifdef __cplusplus
 extern "C" {
+#define PERL_NO_GET_CONTEXT
 #include "EXTERN.h"
 #include "perl.h"
 }
@@ -13,15 +14,15 @@ namespace svec {
   public:
     SharedVectorLock();
     ~SharedVectorLock();
-    void Release(unsigned int id);
-    void Acquire(unsigned int id);
+    void Release(pTHX);
+    void Acquire(pTHX);
 
     void ReleaseGlobal();
     void AcquireGlobal();
   private:
     perl_mutex fMutex;
     perl_cond fCond;
-    unsigned int fOwner; // shared vector id or undefined for global registry
+    PerlInterpreter* fOwner;
     I32 fLocks;
   };
 } // end namespace svec

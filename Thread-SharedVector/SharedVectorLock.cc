@@ -3,7 +3,7 @@
 
 namespace svec {
   SharedVectorLock::SharedVectorLock()
-  : fOwner(0), fLocks(0) {
+  : fOwner(NULL), fLocks(0) {
     Zero(&fMutex, 1, perl_mutex);
     Zero(&fCond, 1, perl_cond);
     MUTEX_INIT(&fMutex);
@@ -16,11 +16,11 @@ namespace svec {
   }
 
   void
-  SharedVectorLock::Release(unsigned int id) {
+  SharedVectorLock::Release(pTHX) {
     MUTEX_LOCK(&fMutex);
-    if (fOwner == id) {
+    if (fOwner == aTHX) {
       if (--fLocks == 0) {
-        fOwner = 0;
+        fOwner = NULL;
         COND_SIGNAL(&fCond);
       }
     }
@@ -28,16 +28,16 @@ namespace svec {
   }
 
   void
-  SharedVectorLock::Acquire(unsigned int id) {
+  SharedVectorLock::Acquire(pTHX) {
+    assert(aTHX);
     MUTEX_LOCK(&fMutex);
-    if (fOwner == id)
+    if (fOwner == aTHX)
       ++fLocks;
     else {
-      while (fOwner) {
+      while (fOwner)
         COND_WAIT(&fCond, &fMutex);
-      }
       fLocks = 1;
-      fOwner = id;
+      fOwner = aTHX;
     }
     MUTEX_UNLOCK(&fMutex);
   }

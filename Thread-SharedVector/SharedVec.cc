@@ -19,16 +19,17 @@ namespace svec {
   std::map<unsigned int, SharedVector*> SharedVector::fgSharedVectorRegistry;
 
   SharedVector::SharedVector(SharedContainerType_t type) {
-    Zero(&fMutex, 1, perl_mutex);
-    Zero(&fCond, 1, perl_cond);
-    MUTEX_INIT(&fMutex);
-    COND_INIT(&fCond);
     fType = type;
-    if (type == TDoubleVec)
-      fContainer = (SharedContainer*)new SharedDoubleContainer();
-    /*else if (type == TIntVec)*/
-    else
+    switch (type) {
+      case TDoubleVec:
+        fContainer = (void*)new vector<double>();
+        break;
+      case TIntVec:
+        fContainer = (void*)new vector<int>();
+        break;
+      default:
       croak("Invalid shared container type '%u'", type);
+    };
 
     fgRegistryLock.AcquireGlobal();
       fId = GetNewId();
@@ -39,15 +40,15 @@ namespace svec {
   }
 
   SharedVector::~SharedVector() {
-    MUTEX_DESTROY(&fMutex);
-    COND_DESTROY(&fCond);
+    dTHX;
+    fLock.Acquire(aTHX);
     switch (fType) {
     case TDoubleVec:
-      delete (SharedDoubleContainer*)fContainer;
+      delete (vector<double>*)fContainer;
       break;
-    /*case TIntVec:
-      delete (SharedIntContainer*)fContainer;
-      break;*/
+    case TIntVec:
+      delete (vector<int>*)fContainer;
+      break;
     default:
       croak("Invalid shared container type during container destruction");
       break;
@@ -55,6 +56,7 @@ namespace svec {
     fgRegistryLock.AcquireGlobal();
       fgSharedVectorRegistry.erase(GetId());
     fgRegistryLock.ReleaseGlobal();
+    fLock.Release(aTHX);
   }
 
   unsigned int

@@ -16,17 +16,6 @@ extern "C" {
 #include "SharedVectorLock.h"
 
 namespace svec {
-  class SharedContainer {
-  };
-
-  class SharedDoubleContainer :protected SharedContainer {
-    public:
-      SharedDoubleContainer() {}
-      ~SharedDoubleContainer() {}
-    private:
-      std::vector<double> fVec;
-  };
-
   class SharedVector {
     public:
       SharedVector(SharedContainerType_t type);
@@ -42,9 +31,8 @@ namespace svec {
     private:
       unsigned int GetNewId(); // should be called while registry is locked
 
-      perl_mutex fMutex;
-      perl_cond fCond;
-      SharedContainer* fContainer;
+      SharedVectorLock fLock;
+      void* fContainer;
       SharedContainerType_t fType;
       unsigned int fRefCount;
       unsigned int fId;

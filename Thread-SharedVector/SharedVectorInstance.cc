@@ -3,6 +3,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define PERL_NO_GET_CONTEXT
 #include "XSUB.h"
 #include "ppport.h"
 #ifdef __cplusplus
@@ -17,12 +18,11 @@ using namespace std;
 namespace svec {
   SharedVectorInstance::SharedVectorInstance(char* type) {
     std::string stype = std::string(type);
-    if (stype == string("double")) {
+    if (stype == string("double"))
       fVector = new SharedVector(TDoubleVec);
-    }
-    /*else if (stype == string("int")) {
+    /*else if (stype == string("int"))
       fVector = new SharedVector(TIntVec);
-    }*/
+    */
     else // type presumably the id of an existing SharedVector
       fVector = SharedVector::S_GetNewInstance(type);
   }

@@ -1,5 +1,6 @@
 #ifdef __cplusplus
 extern "C" {
+#define PERL_NO_GET_CONTEXT
 #endif
 #include "EXTERN.h"
 #include "perl.h"
