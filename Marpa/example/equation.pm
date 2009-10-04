@@ -1,19 +1,23 @@
 package Marpa::Example::Equation;
 
+use 5.010;
+use strict;
+use warnings;
+
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub op {
-    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/ );
-    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/ );
+    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
+    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $op = $_[1];
     my $value;
-    if ( $op eq "+" ) {
+    if ( $op eq q{+} ) {
         $value = $left_value + $right_value;
     }
-    elsif ( $op eq "*" ) {
+    elsif ( $op eq q{*} ) {
         $value = $left_value * $right_value;
     }
-    elsif ( $op eq "-" ) {
+    elsif ( $op eq q{-} ) {
         $value = $left_value - $right_value;
     }
     else {
@@ -29,7 +33,7 @@ sub number {
 
 sub default_action {
     my $v_count = scalar @_;
-    return "" if $v_count <= 0;
+    return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;
     return '(' . join( q{;}, @_ ) . ')';
 } ## end sub default_action

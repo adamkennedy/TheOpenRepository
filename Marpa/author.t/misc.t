@@ -20,9 +20,11 @@ start symbol is S.
 
 S: Document.
 
-Document: /.+/ .
+Document: Word .
 
 Document: .
+
+Word matches qr/[a-z]+/.
 
 END
 
@@ -47,13 +49,10 @@ $grammar = Marpa::Grammar::unstringify($stringified_grammar);
 
 ## no Marpa::Test::Display
 
-my $new_lex_preamble = q{1};
-
 ## use Marpa::Test::Display new Recognizer snippet
 
 my $recce = Marpa::Recognizer->new(
     {   grammar      => $grammar,
-        lex_preamble => $new_lex_preamble,
     }
 );
 

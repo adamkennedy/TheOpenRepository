@@ -4,6 +4,7 @@ author.t/critic.t
 author.t/display.t
 author.t/Makefile
 author.t/MDL_displays.marpa
+author.t/MDL_displays.pm
 author.t/meta_yaml.t
 author.t/minimal.marpa
 author.t/misc.t
