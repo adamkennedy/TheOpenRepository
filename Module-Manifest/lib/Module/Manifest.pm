@@ -261,8 +261,9 @@ sub skipped {
 
 =pod
 
-=head2 Module::Manifest->normalize( $path, [ $rel ] )
-=head2 $manifest->normalize( $path, [ $rel ] )
+=head2 Module::Manifest->normalize( $path, $rel )
+
+=head2 $manifest->normalize( $path, $rel )
 
 This method takes a given platform-specific path string and converts it
 to a Unix-style string compatible with the MANIFEST and MANIFEST.SKIP
