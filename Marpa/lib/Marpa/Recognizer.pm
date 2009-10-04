@@ -65,7 +65,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Recognizer;
 
-# use Smart::Comments '###';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -220,9 +220,6 @@ sub prepare_grammar_for_recognizer {
     my $grammar = shift;
 
     my $package = sprintf __PACKAGE__ . '::P_%x', $parse_number++;
-
-    my $default_null_value =
-        $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
 
     compile_regexes($grammar);
     @{$parse}[
@@ -972,13 +969,6 @@ sub complete_set {
         Marpa::Internal::Grammar::TRACING,
     ];
 
-    my ( $trace_fh, $trace_completions );
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_completions =
-            $grammar->[Marpa::Internal::Grammar::TRACE_COMPLETIONS];
-    }
-
     my $lexable_seen = [];
     $#{$lexable_seen} = $#{$symbols};
 
@@ -1063,12 +1053,7 @@ sub complete_set {
 
     $parse->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET] = $current_set;
 
-    if ($trace_completions) {
-        print {$trace_fh}
-            "Completing set $current_set:\n",
-            Marpa::show_earley_set($earley_set)
-            or Marpa::exception('Cannot print to trace file');
-    } ## end if ($trace_completions)
+    ### Lexables Predicted: scalar grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
 
     my $lexables = [
         sort {

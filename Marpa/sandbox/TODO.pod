@@ -49,6 +49,10 @@ Do just one or two inputs per grammar.
 
 =over 4
 
+=item * Prediction of lexables seems to have problems.  In particular,
+ah2.t never predicts a lexable, though there should be one at every
+earleme.
+
 =item * Factor out the MDL Lexer.
 
 =item * Allow action options to be changed when evaluator

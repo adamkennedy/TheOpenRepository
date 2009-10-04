@@ -163,22 +163,6 @@ Little or no knowledge of Marpa internals required.
 This option is useless once the recognizer has been created.
 Setting it after that point will result in a warning.
 
-=begin undocumented:
-
-# =item trace_completions
-
-# Traces each Earley set as it is completed.
-# May be set at any point.
-
-#   Add warning if set after recognition?
-
-# I find it better to wait until evaluation time,
-# when there's more information
-# and then use C<Marpa::show_status()>.
-# Requires knowledge of Marpa internals.
-
-=end undocumented:
-
 =item trace_evaluation
 
 =item trace_iterations

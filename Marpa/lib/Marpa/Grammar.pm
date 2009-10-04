@@ -220,8 +220,12 @@ use Marpa::Offset qw(
 
     PROBLEMS
     ACADEMIC
-    DEFAULT_LEX_PREFIX DEFAULT_LEX_SUFFIX AMBIGUOUS_LEX
-    TRACE_LEX_MATCHES TRACE_COMPLETIONS TRACE_LEX_TRIES
+    DEFAULT_LEX_PREFIX { Delete me }
+    DEFAULT_LEX_SUFFIX { Delete me }
+    AMBIGUOUS_LEX { Delete me }
+    TRACE_LEX_MATCHES { Delete me }
+    TRACE_COMPLETIONS { Delete me }
+    TRACE_LEX_TRIES { Delete me }
     START_STATES
     =LAST_RECOGNIZER_FIELD
 
@@ -1091,20 +1095,6 @@ sub Marpa::Grammar::set {
                     $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
                 }
             } ## end when ('trace_evaluation')
-            when ('trace_completions') {
-                $grammar->[Marpa::Internal::Grammar::TRACE_COMPLETIONS] =
-                    $value;
-                if ($value) {
-                    say {$trace_fh} "Setting $option option";
-                    $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
-                }
-            } ## end when ('trace_completions')
-            when ('location_callback') {
-                Marpa::exception('location callback not yet implemented');
-            }
-            when ('opaque') {
-                Marpa::exception('the opaque option has been removed');
-            }
             when ('cycle_action') {
                 #<<< perltidy gets confused
                 if ( $value && $phase >= Marpa::Internal::Phase::PRECOMPUTED )
@@ -1119,9 +1109,6 @@ sub Marpa::Grammar::set {
                         and $value ne 'fatal';
                 $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] = $value;
             } ## end when ('cycle_action')
-            when ('cycle_depth') {
-                Marpa::exception('cycle_depth option no longer implemented');
-            }
             when ('warnings') {
                 #<<< perltidy gets confused
                 if ( $value && $phase >= Marpa::Internal::Phase::PRECOMPUTED )
