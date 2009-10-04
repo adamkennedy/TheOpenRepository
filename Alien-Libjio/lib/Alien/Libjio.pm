@@ -15,11 +15,11 @@ Alien::Libjio - Utility package to install and locate libjio
 
 =head1 VERSION
 
-Version 1.002 ($Id$)
+Version 1.003 ($Id$)
 
 =cut
 
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
