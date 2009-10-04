@@ -37,11 +37,11 @@
 ^Debian_CPANTS\.txt
 
 # Compiled files: libjio
-\.(o|a|so|lib|dll)$
-^libjio/libjio/build-flags$
-^libjio/libjio/libjio.pc$
-^libjio/libjio/jiofsck$
-^libjio/libjio/libjio.so # .so symlink
+\.(o|a|so|lib|dll|mak)$
+^libjio/libjio/build/build-flags$
+^libjio/libjio/build/libjio.pc$
+^libjio/libjio/build/jiofsck$
+^libjio/libjio/build/libjio.so # .so symlink
 
 # Debian package control files
 ^debian/
