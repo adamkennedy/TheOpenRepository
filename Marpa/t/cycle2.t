@@ -23,9 +23,9 @@ a
 EOS
 
 ## no critic (Subroutines::RequireArgUnpacking)
-sub show_A         { return 'A(' . $_[0] . ')' }
-sub show_B         { return 'B(' . $_[0] . ')' }
-sub default_action { join( q{ }, @_ ) }
+sub show_a         { return 'A(' . $_[0] . ')' }
+sub show_b         { return 'B(' . $_[0] . ')' }
+sub default_action { return join q{ }, @_ }
 ## use critic
 
 my $mdl = <<'EOF';
@@ -35,11 +35,11 @@ default action is 'main::default_action'.
 
 S: A.
 
-A: B. 'main::show_A'.
+A: B. 'main::show_a'.
 
 A: /a/.
 
-B: A. 'main::show_B'.
+B: A. 'main::show_b'.
 EOF
 
 my $trace;

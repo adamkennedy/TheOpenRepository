@@ -24,7 +24,7 @@ sub make_rule {
     my $action_name = "main::action_$lhs_symbol_name$rhs_symbol_name";
 
     no strict 'refs';
-    my $closure = *{$action_name}{CODE};
+    my $closure = *{$action_name}{'CODE'};
     use strict;
 
     if ( not defined $closure ) {

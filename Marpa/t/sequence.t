@@ -13,18 +13,18 @@ use lib 'lib';
 use Test::More tests => 71;
 use t::lib::Marpa::Test;
 
-# use Smart::Comments '-ENV';
-
 BEGIN {
     Test::More::use_ok('Marpa');
 }
 
+## no critic (Subroutines::RequireArgUnpacking)
 sub default_action {
-     my $v_count = scalar @_;
-     return q{} if $v_count <= 0;
-     return $_[0] if $v_count == 1;
-     return '(' . join(q{;}, @_) . ')';
-}
+    my $v_count = scalar @_;
+    return q{}   if $v_count <= 0;
+    return $_[0] if $v_count == 1;
+    return '(' . join( q{;}, @_ ) . ')';
+} ## end sub default_action
+## use critic
 
 sub run_sequence_test {
     my ( $minimum, $separation, $keep ) = @_;
@@ -60,8 +60,6 @@ sub run_sequence_test {
 
     $grammar->precompute();
 
-    ### $grammar->show_rules(1);
-
     my $A   = $grammar->get_symbol('A');
     my $sep = $grammar->get_symbol('sep');
 
@@ -85,7 +83,6 @@ sub run_sequence_test {
         my $last_symbol_ix = $symbol_count - 1;
         SYMBOL_IX: for my $symbol_ix ( 0 .. $last_symbol_ix ) {
             push @expected, 'a';
-            ### Pushing a
             $recce->earleme( [ $A, 'a', 1 ] )
                 or Marpa::exception('Parsing exhausted');
             next SYMBOL_IX if $separation eq 'none';
@@ -93,7 +90,6 @@ sub run_sequence_test {
                 if $symbol_ix >= $last_symbol_ix
                     and $separation ne 'perl5';
             if ($keep) {
-                ### Pushing bang
                 push @expected, q{!};
             }
             $recce->earleme( [ $sep, q{!}, 1 ] )
@@ -118,7 +114,6 @@ sub run_sequence_test {
             $expected = "($expected)";
         }
         Test::More::is( ${$result}, $expected, $test_name );
-        ### assert: ${$result} eq $expected
 
     } ## end for my $symbol_count ( 0, 1, 2, 3, 5, 10 )
 

@@ -31,13 +31,11 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub minus {
-    my ($right_string, $right_value)
-        = ($_[2] =~ /^(.*)==(.*)$/xms);
-    my ($left_string, $left_value)
-        = ($_[0] =~ /^(.*)==(.*)$/xms);
+    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
+    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $value = $left_value - $right_value;
     return '(' . $left_string . q{-} . $right_string . ')==' . $value;
-}
+} ## end sub minus
 
 sub postfix_decr {
     my ( $string, $value ) = ( $_[0] =~ /^(.*)==(.*)$/xms );
@@ -45,7 +43,7 @@ sub postfix_decr {
 }
 
 sub prefix_decr {
-    my ($string, $value) = ($_[2] =~ /^(.*)==(.*)$/xms);
+    my ( $string, $value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     return '(' . q{--} . $string . ')==' . --$value;
 }
 
@@ -60,7 +58,7 @@ sub number {
 
 sub default_action {
     my $v_count = scalar @_;
-    return "" if $v_count <= 0;
+    return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;
     return '(' . join( q{;}, @_ ) . ')';
 } ## end sub default_action

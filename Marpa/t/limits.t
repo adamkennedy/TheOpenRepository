@@ -17,12 +17,14 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
+## no critic (Subroutines::RequireArgUnpacking)
 sub default_action {
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;
     return '(' . join( q{;}, @_ ) . ')';
 } ## end sub default_action
+## use critic
 
 sub test_grammar {
     my ( $grammar_args, $earleme_length ) = @_;

@@ -51,10 +51,7 @@ $grammar = Marpa::Grammar::unstringify($stringified_grammar);
 
 ## use Marpa::Test::Display new Recognizer snippet
 
-my $recce = Marpa::Recognizer->new(
-    {   grammar      => $grammar,
-    }
-);
+my $recce = Marpa::Recognizer->new( { grammar => $grammar, } );
 
 ## no Marpa::Test::Display
 

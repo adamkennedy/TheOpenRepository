@@ -60,40 +60,38 @@ for my $i ( 0 .. $#expected ) {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub subtraction {
-    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/ );
-    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/ );
+    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
+    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $value = $left_value - $right_value;
     return '(' . $left_string . q{-} . $right_string . ')==' . $value;
 } ## end sub subtraction
 
 sub postfix_decr {
-    my ( $string, $value ) = ( $_[0] =~ /^(.*)==(.*)$/ );
+    my ( $string, $value ) = ( $_[0] =~ /^(.*)==(.*)$/xms );
     return '(' . $string . '--)==' . $value--;
 }
 
 sub prefix_decr {
-    my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/ );
+    my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
     return '(--' . $string . ')==' . --$value;
 }
 
 sub negation {
-    my ($string, $value)
-        = ($_[1] =~ /^(.*)==(.*)$/);
+    my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
     return '(-' . $string . ')==' . -$value;
 }
 
-sub number
-{
+sub number {
     my $value = $_[0];
     return "$value==$value";
 }
 
 sub default_action {
-     my $v_count = scalar @_;
-     return "" if $v_count <= 0;
-     return $_[0] if $v_count == 1;
-     return "(" . join(q{;}, @_) . ")";
-}
+    my $v_count = scalar @_;
+    return q{}   if $v_count <= 0;
+    return $_[0] if $v_count == 1;
+    return '(' . join( q{;}, @_ ) . ')';
+} ## end sub default_action
 
 ## use critic
 

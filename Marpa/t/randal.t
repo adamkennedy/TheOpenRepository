@@ -32,7 +32,7 @@ my $source;
 my $g = Marpa::Grammar->new(
     {   warnings   => 1,
         code_lines => -1,
-        actions => 'main',
+        actions    => 'main',
     }
 );
 
@@ -77,14 +77,14 @@ TEST: while ( my $test = pop @tests ) {
 
 sub show_perl_line {
     my $result = $_[0];
-    $result .= ", comment"
-        if defined $_[1];
+    defined $_[1]
+        and $result .= ', comment';
     return $result;
 } ## end sub show_perl_line
 
-sub show_statement_sequence { return join( q{, }, @_ ) }
+sub show_statement_sequence { return join q{, }, @_ }
 sub show_division           { return 'division' }
-sub show_function_call      { $_[0] }
+sub show_function_call      { return $_[0] }
 sub show_empty              { return 'empty statement' }
 sub show_die                { return 'die statement' }
 sub show_unary              { return $_[0] . ' function call' }

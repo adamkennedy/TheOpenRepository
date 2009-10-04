@@ -17,7 +17,7 @@ BEGIN {
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub default_action {
-    join( q{ }, grep { defined $_ } @_ );
+    return join q{ }, grep { defined $_ } @_;
 }
 ## use critic
 
