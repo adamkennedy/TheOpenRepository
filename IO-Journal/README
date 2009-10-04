@@ -2,7 +2,7 @@ $Id$
 
 IO::Journal is a Perl module providing durable transaction-oriented I/O
 
-Copyright 2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
+Copyright 2009 by Jonathan Yu <jawnsy@cpan.org>. All rights reserved.
 
 INSTALLATION
 

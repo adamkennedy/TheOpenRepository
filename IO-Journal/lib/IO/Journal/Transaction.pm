@@ -15,11 +15,11 @@ IO::Journal::Transaction - Perl interface to IO::Journal transactions
 
 =head1 VERSION
 
-Version 0.2 ($Id$)
+Version 0.3 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('0.2');
+use version; our $VERSION = qv('0.3');
 
 =head1 DESCRIPTION
 
@@ -51,7 +51,7 @@ XSLoader::load(__PACKAGE__, $VERSION);
 
 =head1 AUTHOR
 
-Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head1 SEE ALSO
 

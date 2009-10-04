@@ -1,0 +1,14 @@
+0.3 - XXX - Jonathan Yu <jawnsy@cpan.org>
+
+  + Change my mail address to jawnsy@cpan.org
+  + Remove generated files
+
+0.2 - 20 Jul 2009 - Jonathan Yu <frequency@cpan.org>   
+
+  + Added actual implementation (the first was just a land grab)
+    for the name
+  + Now uses Alien::Libjio to ensure libjio is present
+
+0.1 - 10 Apr 2009 - Jonathan Yu <frequency@cpan.org>
+
+  + Initial release

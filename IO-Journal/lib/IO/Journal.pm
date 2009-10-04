@@ -25,11 +25,11 @@ IO::Journal - Perl module providing durable transaction-oriented I/O
 
 =head1 VERSION
 
-Version 0.2 ($Id$)
+Version 0.3 ($Id$)
 
 =cut
 
-use version; our $VERSION = qv('0.2');
+use version; our $VERSION = qv('0.3');
 
 =head1 DESCRIPTION
 
@@ -187,7 +187,7 @@ the actual file created will vary based on your running C<umask>.
 
 =head1 AUTHOR
 
-Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head2 CONTRIBUTORS
 
