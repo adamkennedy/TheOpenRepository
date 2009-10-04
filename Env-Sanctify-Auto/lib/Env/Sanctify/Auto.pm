@@ -171,7 +171,7 @@ sub _secure_path {
 
 =head1 AUTHOR
 
-Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head2 CONTRIBUTORS
 
@@ -289,7 +289,7 @@ or know how they work, feel free to send me an e-mail or patch.
 
 =head1 LICENSE
 
-Copyright (C) 2009 by Jonathan Yu <frequency@cpan.org>
+Copyright (C) 2009 by Jonathan Yu <jawnsy@cpan.org>
 
 This package is distributed under the same terms as Perl itself. Please
 see the LICENSE file included in this distribution for full details of

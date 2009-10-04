@@ -2,7 +2,7 @@ $Id$
 
 Env::Sanctify::Auto is a Perl module that cleans up %ENV
 
-Copyright 2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
+Copyright 2009 by Jonathan Yu <jawnsy@cpan.org>. All rights reserved.
 
 INSTALLATION
 
@@ -23,7 +23,7 @@ USAGE AND DOCUMENTATION
   Once installed, you can read that using:
   $ perldoc Env::Sanctify::Auto
 
-COPYRIGHT AND LICENCE
+COPYRIGHT AND LICENSE
   This package is distributed with the same licensing terms as Perl
   itself. At time of writing, this consists of a dual licensing scheme.
   You are entitled to enjoy the covenants of, at your option:

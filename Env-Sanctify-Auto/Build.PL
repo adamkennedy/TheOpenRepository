@@ -17,7 +17,7 @@ use Module::Build;
 my $builder = Module::Build->new(
   module_name           => 'Env::Sanctify::Auto',
   license               => 'perl',
-  dist_author           => 'Jonathan Yu <frequency@cpan.org>',
+  dist_author           => 'Jonathan Yu <jawnsy@cpan.org>',
   dist_version_from     => 'lib/Env/Sanctify/Auto.pm',
   dynamic_config        => 0,
   create_readme         => 0,
