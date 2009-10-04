@@ -15,7 +15,7 @@ extern "C" {
 using namespace std;
 
 namespace svec {
-  svec::SharedVectorLock fgRegistryLock;
+  svec::SharedVectorLock SharedVector::fgRegistryLock;
   std::map<unsigned int, SharedVector*> SharedVector::fgSharedVectorRegistry;
 
   SharedVector::SharedVector(SharedContainerType_t type) {
