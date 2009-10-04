@@ -1,4 +1,4 @@
 TYPEMAP
-SharedVector*           O_OBJECT
-char*                   T_PV
+SharedVectorInstance*           O_OBJECT
+char*                           T_PV
 

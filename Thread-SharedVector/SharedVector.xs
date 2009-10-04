@@ -9,7 +9,7 @@ extern "C" {
 }
 #endif
 
-#include "SharedVec.h"
+#include "SharedVectorInstance.h"
 
 /* is this okay? */
 using namespace svec;

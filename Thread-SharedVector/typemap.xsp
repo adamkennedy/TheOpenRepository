@@ -1,4 +1,4 @@
 // Map the type of our custom classes
-%typemap{SharedVector*}{simple};
+%typemap{SharedVectorInstance*}{simple};
 %typemap{char*}{simple};
 

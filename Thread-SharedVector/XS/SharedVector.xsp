@@ -1,10 +1,10 @@
 
 %module{Thread::SharedVector};
 
-%name{Thread::SharedVector} class SharedVector
+%name{Thread::SharedVector} class SharedVectorInstance
 {
-  SharedVector(char* type);
-  ~SharedVector();
+  SharedVectorInstance(char* type);
+  ~SharedVectorInstance();
 };
 
 
