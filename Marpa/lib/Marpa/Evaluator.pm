@@ -255,14 +255,6 @@ sub set_null_values {
         # Empty rule with action?
         if ( defined $action and @{$rhs} <= 0 ) {
 
-        NEW_SEMANTICS: {
-
-            ### Trying new semantics on: $action
-
-            last NEW_SEMANTICS if $action =~ /\s/;
-
-            ### Using new semantics on: $action
-
             my $closure;
             my $fully_qualified_action;
 
@@ -287,7 +279,7 @@ sub set_null_values {
                 "Action closure '$fully_qualified_action' not found")
                 if not defined $closure;
 
-                    my $lhs = $rule->[Marpa::Internal::Rule::LHS];
+            my $lhs            = $rule->[Marpa::Internal::Rule::LHS];
             my $nulling_symbol = $lhs->[Marpa::Internal::Symbol::NULL_ALIAS]
                 // $lhs;
 
@@ -332,63 +324,6 @@ sub set_null_values {
             } ## end if ($trace_actions)
 
             next RULE;
-
-        } ## end NEW_SEMANTICS:
-
-        ### Rule: Marpa'brief_rule($rule)
-
-            Marpa::exception("Attempt to use code string as null action: '$action'");
-
-            my $lhs            = $rule->[Marpa::Internal::Rule::LHS];
-            my $nulling_symbol = $lhs->[Marpa::Internal::Symbol::NULL_ALIAS]
-                // $lhs;
-
-            my $null_value;
-            my $code =
-                ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-                '$null_value = do {' . "\n"
-                ## use critic
-                . "    package $package;\n" . $action . "};\n" . "1;\n";
-
-            my @warnings;
-            my $eval_ok;
-            DO_EVAL: {
-                local $SIG{__WARN__} =
-                    sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-                ## no critic (BuiltinFunctions::ProhibitStringyEval)
-                $eval_ok = eval $code;
-                ## use critic
-            } ## end DO_EVAL:
-
-            if ( not $eval_ok or @warnings ) {
-                my $fatal_error = $EVAL_ERROR;
-                Marpa::Internal::code_problems(
-                    {   eval_ok     => $eval_ok,
-                        fatal_error => $fatal_error,
-                        grammar     => $grammar,
-                        warnings    => \@warnings,
-                        where       => 'evaluating null value',
-                        long_where  => 'evaluating null value for '
-                            . $nulling_symbol
-                            ->[Marpa::Internal::Symbol::NAME],
-                        code => \$code,
-                    }
-                );
-            } ## end if ( not $eval_ok or @warnings )
-            my $nulling_symbol_id =
-                $nulling_symbol->[Marpa::Internal::Symbol::ID];
-            $null_values->[$nulling_symbol_id] = $null_value;
-
-            if ($trace_actions) {
-                print {$trace_fh} 'Setting null value for symbol ',
-                    $nulling_symbol->[Marpa::Internal::Symbol::NAME],
-                    " from\n", $code, "\n",
-                    ' to ',
-                    Data::Dumper->new( [ \$null_value ] )->Terse(1)->Dump,
-                    "\n"
-                    or Marpa::exception('Could not print to trace file');
-            } ## end if ($trace_actions)
 
         } ## end if ( defined $action and @{$rhs} <= 0 )
 
@@ -487,149 +422,82 @@ sub set_actions {
 
         my $action = $rule->[Marpa::Internal::Rule::ACTION];
 
-        # If there is an action package and
-        # no white space in the action, use
-        # new semantics
-        
-        NEW_SEMANTICS: {
+        my $closure;
+        my $fully_qualified_action;
 
-            last NEW_SEMANTICS if defined $action and $action =~ /\s/;
+        FIND_CLOSURE: {
 
-            my $closure;
-            my $fully_qualified_action;
+            # If action is defined, it is do-or-die.  If we
+            # don't find a properly named closure, we abend.
+            if ( defined $action ) {
+                given ($action) {
+                    when (/([:][:])|[']/xms) {
+                        $fully_qualified_action = $action;
+                    }
+                    when ( defined $actions_package ) {
+                        $fully_qualified_action =
+                            $actions_package . q{::} . $action;
+                    }
+                    default {
+                        $fully_qualified_action = $action;
+                    }
+                } ## end given
+                no strict 'refs';
+                $closure = *{$fully_qualified_action}{CODE};
+                use strict 'refs';
+                last FIND_CLOSURE if defined $closure;
+                Marpa::exception(
+                    "Action closure '$fully_qualified_action' not found");
+            } ## end if ( defined $action )
 
-            FIND_CLOSURE: {
+            # If action is not defined, but the action package is,
+            # then we look for the action closure
+            # under the rule name
+            # (right now, its lhs symbol name)
+            # in that package
+            if ( defined $actions_package ) {
+                $fully_qualified_action =
+                      $actions_package . q{::}
+                    . $rule->[Marpa::Internal::Rule::LHS]
+                    ->[Marpa::Internal::Symbol::NAME];
+                no strict 'refs';
+                $closure = *{$fully_qualified_action}{CODE};
+                use strict 'refs';
+                last FIND_CLOSURE if defined $closure;
+            } ## end if ( defined $actions_package )
 
-                # If action is defined, it is do-or-die.  If we
-                # don't find a properly named closure, we abend.
-                if ( defined $action ) {
-                    given ($action) {
-                        when (/([:][:])|[']/xms) {
-                            $fully_qualified_action = $action;
-                        }
-                        when ( defined $actions_package ) {
-                            $fully_qualified_action =
-                                  $actions_package . q{::} . $action;
-                        } ## end when ( defined $actions_package )
-                        default {
-                            $fully_qualified_action = $action;
-                        }
-                    } ## end given
-                    no strict 'refs';
-                    $closure = *{$fully_qualified_action}{CODE};
-                    use strict 'refs';
-                    last FIND_CLOSURE if defined $closure;
-                    Marpa::exception(
-                        "Action closure '$fully_qualified_action' not found");
-                } ## end if ( defined $action )
-
-                # If action is not defined, but the action package is,
-                # then we look for the action closure
-                # under the rule name
-                # (right now, its lhs symbol name)
-                # in that package
-                if ( defined $actions_package ) {
-                    $fully_qualified_action =
-                          $actions_package . q{::}
-                        . $rule->[Marpa::Internal::Rule::LHS]
-                        ->[Marpa::Internal::Symbol::NAME];
-                    no strict 'refs';
-                    $closure = *{$fully_qualified_action}{CODE};
-                    use strict 'refs';
-                    last FIND_CLOSURE if defined $closure;
-                } ## end if ( defined $actions_package )
-
-                # If we still have not come up with an action
-                # we use the default, if there is one
-                if ( defined $default_action_closure ) {
-                    $closure                = $default_action_closure;
-                    $fully_qualified_action = $fully_qualified_default_action;
-                    last FIND_CLOSURE;
-                }
-
-                # If there is no default action specified, the fallback
-                # is to return an undef
-                $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] =
-                    'default to undef';
-                push @{$ops},
-                    Marpa::Internal::Evaluator_Op::CONSTANT_RESULT,
-                    \undef;
-                next RULE;
-
-            } ## end FIND_CLOSURE:
-
-            if ($trace_actions) {
-                print {$trace_fh} 'Setting action for rule ',
-                    Marpa::brief_rule($rule), ' to closure named ',
-                    $fully_qualified_action, "\n"
-                    or Marpa::exception('Could not print to trace file');
-            } ## end if ($trace_actions)
-
-            $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] =
-                "$fully_qualified_action->()";
-            push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
-            next RULE;
-
-        } ## end if ( defined $actions_package or not defined $action ...)
-
-            Marpa::exception("Attempt to use code string as action: $action");
-
-        $action //= $default_action;
-
-        if ( not defined $action ) {
-
-            if ($trace_actions) {
-                print {$trace_fh} 'Setting action for rule ',
-                    Marpa::brief_rule($rule), " to undef by default\n"
-                    or Marpa::exception('Could not print to trace file');
+            # If we still have not come up with an action
+            # we use the default, if there is one
+            if ( defined $default_action_closure ) {
+                $closure                = $default_action_closure;
+                $fully_qualified_action = $fully_qualified_default_action;
+                last FIND_CLOSURE;
             }
 
+            # If there is no default action specified, the fallback
+            # is to return an undef
             $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] =
                 'default to undef';
-            push @{$ops}, Marpa::Internal::Evaluator_Op::CONSTANT_RESULT,
+            push @{$ops},
+                Marpa::Internal::Evaluator_Op::CONSTANT_RESULT,
                 \undef;
-
             next RULE;
-        } ## end if ( not defined $action )
 
-        my $code =
-            "sub {\n" . '    package ' . $package . ";\n" . $action . '}';
+        } ## end FIND_CLOSURE:
 
         if ($trace_actions) {
             print {$trace_fh} 'Setting action for rule ',
-                Marpa::brief_rule($rule), " to\n", $code, "\n"
+                Marpa::brief_rule($rule), ' to closure named ',
+                $fully_qualified_action, "\n"
                 or Marpa::exception('Could not print to trace file');
-        }
+        } ## end if ($trace_actions)
 
-        my $closure;
-        my @warnings;
-        DO_EVAL: {
-            local $SIG{__WARN__} =
-                sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-            ## no critic (BuiltinFunctions::ProhibitStringyEval)
-            $closure = eval $code;
-            ## use critic
-        } ## end DO_EVAL:
-
-        if ( not $closure or @warnings ) {
-            my $fatal_error = $EVAL_ERROR;
-            Marpa::Internal::code_problems(
-                {   fatal_error => $fatal_error,
-                    grammar     => $grammar,
-                    warnings    => \@warnings,
-                    where       => 'compiling action',
-                    long_where  => 'compiling action for '
-                        . Marpa::brief_rule($rule),
-                    code => \$code,
-                }
-            );
-        } ## end if ( not $closure or @warnings )
-
-        $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] = $code;
+        $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] =
+            "$fully_qualified_action->()";
         push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
+        next RULE;
 
-    }    # RULE
+    } ## end for my $rule ( @{$rules} )
 
     return $evaluator_rules;
 
