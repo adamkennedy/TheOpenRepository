@@ -13,6 +13,7 @@ extern "C" {
 #include <map>
 
 #include "SharedVectorTypes.h"
+#include "SharedVectorLock.h"
 
 namespace svec {
   class SharedContainer {
@@ -47,7 +48,7 @@ namespace svec {
       SharedContainerType_t fType;
       unsigned int fRefCount;
       unsigned int fId;
-      // TODO global mutex for registry
+      static svec::SharedVectorLock fgRegistryLock;
       static std::map<unsigned int, SharedVector*> fgSharedVectorRegistry;
   };
 } // end namespace svec

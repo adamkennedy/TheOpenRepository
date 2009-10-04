@@ -15,6 +15,7 @@ extern "C" {
 using namespace std;
 
 namespace svec {
+  svec::SharedVectorLock fgRegistryLock;
   std::map<unsigned int, SharedVector*> SharedVector::fgSharedVectorRegistry;
 
   SharedVector::SharedVector(SharedContainerType_t type) {
@@ -28,8 +29,12 @@ namespace svec {
     /*else if (type == TIntVec)*/
     else
       croak("Invalid shared container type '%u'", type);
-    fId = GetNewId(); // FIXME lock registry for this
-    fgSharedVectorRegistry[fId] = this;
+
+    fgRegistryLock.AcquireGlobal();
+      fId = GetNewId();
+      fgSharedVectorRegistry[fId] = this;
+    fgRegistryLock.ReleaseGlobal();
+
     fRefCount = 1;
   }
 
@@ -47,7 +52,9 @@ namespace svec {
       croak("Invalid shared container type during container destruction");
       break;
     }; // end of container type switch
-    fgSharedVectorRegistry.erase(GetId());
+    fgRegistryLock.AcquireGlobal();
+      fgSharedVectorRegistry.erase(GetId());
+    fgRegistryLock.ReleaseGlobal();
   }
 
   unsigned int
@@ -57,6 +64,7 @@ namespace svec {
     return fRefCount;
   }
 
+  /// Must be running during registry lock!
   unsigned int
   SharedVector::GetNewId() {
     // TODO optimize
