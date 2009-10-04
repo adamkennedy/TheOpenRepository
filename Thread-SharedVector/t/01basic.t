@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 31;
+use Test::More tests => 32;
 use Thread::SharedVector;
 pass();
 
@@ -15,7 +15,9 @@ foreach my $i (0 .. 4) {
 }
 @svs = ();
 
-isa_ok(Thread::SharedVector->new("int"), 'Thread::SharedVector');
+SCOPE: {
+  isa_ok(Thread::SharedVector->new("int"), 'Thread::SharedVector');
+}
 
 
 sub _approx_eq { $_[0]+1.e-9 > $_[1] && $_[0]-1.e-9 < $_[1] }
@@ -68,6 +70,8 @@ SCOPE: {
 
   identical_sv($sv, $copy);
 }
+
+is(Thread::SharedVector->new("int")->GetId(), 0, "everything gc'd");
 
 __END__
 
