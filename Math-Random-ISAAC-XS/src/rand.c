@@ -10,7 +10,7 @@
  *  980324: make a portable version
  *  010626: Note this is public domain
  *
- * Jonathan Yu <frequency@cpan.org> made some mostly cosmetic changes and
+ * Jonathan Yu <jawnsy@cpan.org> made some mostly cosmetic changes and
  * prepared the file for life as a CPAN XS module.
  *
  * This package and its contents are released by the author into the
