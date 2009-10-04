@@ -5,12 +5,6 @@
 #  other algorithms.
 #
 # $Id$
-#
-# By Jonathan Yu <frequency@cpan.org>, 2009. All rights reversed.
-#
-# This package and its contents are released by the author into the
-# Public Domain, to the full extent permissible by law. For additional
-# information, please see the included `LICENSE' file.
 
 use strict;
 use warnings;
@@ -190,7 +184,7 @@ sub load {
 
 =head1 AUTHOR
 
-Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head1 SUPPORT
 
@@ -199,11 +193,7 @@ use the corresponding support methods.
 
 =head1 LICENSE
 
-Copyleft (C) 2009 by Jonathan Yu <frequency@cpan.org>
-
-This script is distributed with the C<Math::Random::ISAAC> package and
-related packages to provide a simple demonstration of functionality. It is
-hereby released by its author into the public domain.
+This has the same copyright and licensing terms as L<Math::Random::ISAAC>.
 
 =head1 SEE ALSO
 

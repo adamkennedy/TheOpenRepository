@@ -15,11 +15,11 @@ Math::Random::ISAAC::PP - Pure Perl port of the ISAAC PRNG Algorithm
 
 =head1 VERSION
 
-Version 1.001 ($Id$)
+Version 1.002 ($Id$)
 
 =cut
 
-our $VERSION = '1.001';
+our $VERSION = '1.002';
 $VERSION = eval $VERSION;
 
 =head1 SYNOPSIS
@@ -355,7 +355,7 @@ sub _randinit
 
 =head1 AUTHOR
 
-Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head1 SEE ALSO
 

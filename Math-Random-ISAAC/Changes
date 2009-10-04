@@ -1,5 +1,6 @@
-1.002 - XXX - Jonathan Yu <frequency@cpan.org>
+1.002 - XXX - Jonathan Yu <jawnsy@cpan.org>
 
+  + Changed my mail address to jawnsy@cpan.org
   + Updated test sequence
   + Remove modules available in core since Perl 5.6 from requires
 

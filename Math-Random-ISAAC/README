@@ -2,7 +2,7 @@ $Id$
 
 Math::Random::ISAAC is a Perl interface to the ISAAC PRNG Algorithm
 
-Copyright 2009 by Jonathan Yu <frequency@cpan.org>. All rights reserved.
+Copyright 2009 by Jonathan Yu <jawnsy@cpan.org>. All rights reserved.
 
 INSTALLATION
 

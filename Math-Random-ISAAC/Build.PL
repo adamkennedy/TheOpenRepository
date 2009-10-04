@@ -13,7 +13,7 @@ use Module::Build;
 my $builder = Module::Build->new(
   module_name           => 'Math::Random::ISAAC',
   license               => 'unrestricted',
-  dist_author           => 'Jonathan Yu <frequency@cpan.org>',
+  dist_author           => 'Jonathan Yu <jawnsy@cpan.org>',
   dist_version_from     => 'lib/Math/Random/ISAAC.pm',
   dynamic_config        => 0,
   create_readme         => 0,
