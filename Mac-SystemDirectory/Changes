@@ -1,5 +1,8 @@
 Revision history for Perl extension Mac::SystemDirectory.
 
+0.03 2009-10-04 19:40
+    - Fixed lddlflags, reported by zts.
+
 0.02 2009-10-02 18:01
     - Added HomeDirectory()
     - Added TemporaryDirectory()
