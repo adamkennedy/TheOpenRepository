@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 32;
+use Test::More tests => 36;
 use Thread::SharedVector;
 pass();
 
@@ -67,6 +67,13 @@ SCOPE: {
   is($copy->Get(2), 5, 'sv -> copy propagation');
   $copy->Push(8);
   is($sv->Get(3), 8, 'copy -> sv propagation');
+
+  $sv->Set(0, 9);
+  is($sv->Get(0), 9, "simple set");
+  is($copy->Get(0), 9, "simple set (copy)");
+  $sv->Set(-1, 3);
+  is($sv->Get(3), 3, "simple set to back");
+  is($copy->Get(3), 3, "simple set to back (copy)");
 
   identical_sv($sv, $copy);
 }

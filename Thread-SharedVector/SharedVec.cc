@@ -148,7 +148,7 @@ namespace svec {
     case TDoubleVec:
       size = ((vector<double>*)fContainer)->size();
       if (index < 0)
-        index = ((IV)size)+index;
+        index += (IV)size;
       if (index < 0 || index >= size)
         retval = &PL_sv_undef;
       else
@@ -157,7 +157,7 @@ namespace svec {
     case TIntVec:
       size = ((vector<int>*)fContainer)->size();
       if (index < 0)
-        index = ((IV)size)+index;
+        index += (IV)size;
       if (index < 0 || index >= size)
         retval = &PL_sv_undef;
       else
@@ -186,14 +186,14 @@ namespace svec {
       case TDoubleVec:
         size = ((vector<double>*)fContainer)->size();
         if (index < 0)
-          index = ((IV)size)+index;
+          index += (IV)size;
         if (index >= 0 && index < size)
           (*(vector<double>*)fContainer)[index] = SvNV(value);
         break;
       case TIntVec:
         size = ((vector<int>*)fContainer)->size();
         if (index < 0)
-          index = ((IV)size)+index;
+          index += (IV)size;
         if (index >= 0 && index < size)
           (*(vector<int>*)fContainer)[index] = SvIV(value);
         break;
