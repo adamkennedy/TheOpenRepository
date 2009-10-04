@@ -9,7 +9,7 @@
 
 };
 
-// FIXME This is TEDIOUS!
+// FIXME: This is TEDIOUS!
 
 %{
 unsigned int
