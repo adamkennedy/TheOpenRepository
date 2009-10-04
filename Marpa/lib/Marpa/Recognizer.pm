@@ -1407,7 +1407,6 @@ is_file($_, 'author.t/misc.t', 'new Recognizer snippet');
 
     my $recce = Marpa::Recognizer->new(
         {    grammar      => $grammar,
-             lex_preamble => $new_lex_preamble,
         }
     );
 

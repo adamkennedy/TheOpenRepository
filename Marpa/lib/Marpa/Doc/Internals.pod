@@ -1393,6 +1393,9 @@ Below are the MDL grammar and outputs for the example used in this
 document.
 The input text was "C<2+2>".
 
+B<THE FOLLOWING DISPLAY NEEDS TO CHANGE SO THAT IT NO
+LONGER USES MDL.>
+
 =head2 MDL Grammar
 
 =begin Marpa::Test::Display:
@@ -1403,48 +1406,19 @@ is_file($_, 'example/equation.marpa');
 
 =end Marpa::Test::Display:
 
-
     semantics are perl5.  version is 0.001_019.
+
+    default action is 'default_action'.
 
     start symbol is E.
 
-	    E: E, Op, E.
-    q{
-		my ($right_string, $right_value)
-		    = ($_[2] =~ /^(.*)==(.*)$/);
-		my ($left_string, $left_value)
-		    = ($_[0] =~ /^(.*)==(.*)$/);
-		my $op = $_[1];
-		my $value;
-		if ($op eq "+") {
-		   $value = $left_value + $right_value;
-		} elsif ($op eq "*") {
-		   $value = $left_value * $right_value;
-		} elsif ($op eq "-") {
-		   $value = $left_value - $right_value;
-		} else {
-		   Marpa::exception("Unknown op: $op");
-		}
-		"(" . $left_string . $op . $right_string . ")==" . $value;
-    }.
+    E: E, Op, E.  'op'.
 
-    E: Number.
-    q{
-	       my $v0 = pop @_;
-	       $v0 . "==" . $v0;
-    }.
+    E: Number. 'number'.
 
     Number matches qr/\d+/.
-
+ 
     Op matches qr/[-+*]/.
-     
-    the default action is q{
-	     my $v_count = scalar @_;
-	     return "" if $v_count <= 0;
-	     return $_[0] if $v_count == 1;
-	     "(" . join(";", @_) . ")";
-	}.
-
 
 =begin Marpa::Test::Display:
 

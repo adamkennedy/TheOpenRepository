@@ -28,32 +28,26 @@ my @compiled_features = qw(
     unstringify_recce
 );
 
-my @features = (@compiled_features, @uncompiled_features);
+my @features = ( @compiled_features, @uncompiled_features );
 
-my @compile_tests = (
-    'compile phase warning',
-    'compile phase fatal',
-);
-my @runtime_tests = (
-    'run phase warning',
-    'run phase error',
-    'run phase die',
-);
+my @compile_tests = ( 'compile phase warning', 'compile phase fatal', );
+my @runtime_tests =
+    ( 'run phase warning', 'run phase error', 'run phase die', );
 
-my @tests = (@compile_tests, @runtime_tests);
+my @tests = ( @compile_tests, @runtime_tests );
 
 my %good_code = (
     'e_op_action'     => 'main::e_op_action',
     'e_number_action' => 'main::e_number_action',
     'default_action'  => 'main::default_action',
 );
-;
 
 # Code to produce a run phase warning
 sub run_phase_warning {
     my $x;
-    warn "Test Warning 1";
-    warn "Test Warning 2";
+    ## no critic (ErrorHandling::RequireCarping)
+    warn 'Test Warning 1';
+    warn 'Test Warning 2';
     $x++;
     return 1;
 } ## end sub run_phase_warning
@@ -61,17 +55,16 @@ sub run_phase_warning {
 # Code to produce a run phase error
 sub run_phase_error {
     my $x = 0;
-    $x = 711/0;
+    $x = 1 / 0;
     return $x++;
 }
 
 # Code to produce a run phase die()
 sub run_phase_die {
     my $x = 0;
-    die('test call to die');
-    $x++;
-    return 1;
-} ## end sub run_phase_die
+    ## no critic (ErrorHandling::RequireCarping)
+    die 'test call to die';
+}
 
 my %test_arg;
 my %expected;
@@ -86,7 +79,7 @@ for my $runtime_test (@runtime_tests) {
         $test_arg{$runtime_test}{$uncompiled_feature} = '1;';
         $expected{$runtime_test}{$uncompiled_feature} = q{};
     }
-} ## end for my $test (@tests)
+} ## end for my $runtime_test (@runtime_tests)
 
 for my $uncompiled_feature (@uncompiled_features) {
     $test_arg{'run phase warning'}{$uncompiled_feature} =
@@ -129,7 +122,8 @@ LINE: while ( my $line = <DATA> ) {
                 next HEADER;
             } ## end if ( $header =~ s/\A expected \s //xms )
             if ( $header =~ s/\A good \s code \s //xms ) {
-                Marpa::exception('Good code should no longer be in data section');
+                Marpa::exception(
+                    'Good code should no longer be in data section');
             }
             if ( $header =~ s/\A bad \s code \s //xms ) {
                 chomp $header;
@@ -168,9 +162,6 @@ sub canonical {
 } ## end sub canonical
 
 sub null_action { return '[null]' }
-
-### $good_code{e_op_action}: $good_code{e_op_action}
-### $good_code{e_number_action}: $good_code{e_number_action}
 
 sub run_test {
     my $args = shift;
@@ -269,12 +260,14 @@ my %long_where = (
 
 for my $test (@tests) {
     FEATURE: for my $feature (@features) {
-        next FEATURE unless defined $expected{$test}{$feature};
+        next FEATURE if not defined $expected{$test}{$feature};
         my $test_name = "$test in $feature";
-        if ( eval { run_test( { $feature => $test_arg{$test}{$feature}, } ); } ) {
+        if ( eval { run_test( { $feature => $test_arg{$test}{$feature}, } ); }
+            )
+        {
             Test::More::fail(
                 "$test_name did not fail -- that shouldn't happen");
-        }
+        } ## end if ( eval { run_test( { $feature => $test_arg{$test}...})})
         else {
             my $eval_error = $EVAL_ERROR;
             my $where      = $where{$feature};
@@ -284,24 +277,24 @@ for my $test (@tests) {
                 canonical( $expected{$test}{$feature}, $where, $long_where ),
                 $test_name
             );
-        } ## end else [ if ( eval { run_test( { $feature => $test_arg{$test...}})})]
+        } ## end else [ if ( eval { run_test( { $feature => $test_arg{$test}...})})]
     } ## end for my $feature (@features)
 } ## end for my $test (@tests)
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub e_op_action {
-    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/ );
-    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/ );
+    my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
+    my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $op = $_[1];
     my $value;
-    if ( $op eq '+' ) {
+    if ( $op eq q{+} ) {
         $value = $left_value + $right_value;
     }
-    elsif ( $op eq '*' ) {
+    elsif ( $op eq q{*} ) {
         $value = $left_value * $right_value;
     }
-    elsif ( $op eq '-' ) {
+    elsif ( $op eq q{-} ) {
         $value = $left_value - $right_value;
     }
     else {

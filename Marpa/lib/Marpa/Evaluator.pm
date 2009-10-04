@@ -271,10 +271,12 @@ sub set_null_values {
                 default {
                     $fully_qualified_action = $action;
                 }
-            } ## end given
+            };    ## end given
+
             no strict 'refs';
             $closure = *{$fully_qualified_action}{CODE};
             use strict 'refs';
+
             Marpa::exception(
                 "Action closure '$fully_qualified_action' not found")
                 if not defined $closure;
@@ -290,11 +292,8 @@ sub set_null_values {
             DO_EVAL: {
                 local $SIG{__WARN__} =
                     sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-                ## no critic (BuiltinFunctions::ProhibitStringyEval)
-                $eval_ok = eval { $null_value = $closure->(); 1; }
-                    ## use critic
-            } ## end DO_EVAL:
+                $eval_ok = eval { $null_value = $closure->(); 1; };
+            }
 
             if ( not $eval_ok or @warnings ) {
                 my $fatal_error = $EVAL_ERROR;
@@ -377,7 +376,8 @@ sub set_actions {
         no strict 'refs';
         $default_action_closure = *{$fully_qualified_default_action}{CODE};
         use strict 'refs';
-        Marpa::exception("Action closure '$fully_qualified_default_action' not found")
+        Marpa::exception(
+            "Action closure '$fully_qualified_default_action' not found")
             if not defined $default_action_closure;
     } ## end if ( defined $default_action and $default_action !~ ...)
 
@@ -441,10 +441,12 @@ sub set_actions {
                     default {
                         $fully_qualified_action = $action;
                     }
-                } ## end given
+                };    ## end given
+
                 no strict 'refs';
                 $closure = *{$fully_qualified_action}{CODE};
                 use strict 'refs';
+
                 last FIND_CLOSURE if defined $closure;
                 Marpa::exception(
                     "Action closure '$fully_qualified_action' not found");
@@ -3238,10 +3240,8 @@ sub Marpa::Evaluator::value {
                             {
                                 my $result = $ops->[ $op_ix++ ];
                                 if ($trace_values) {
-                                    print {
-                                        $trace_fh
-                                    }
-                                    'Constant result: Pushing 1 value on stack: ',
+                                    print {$trace_fh}
+                                        'Constant result: Pushing 1 value on stack: ',
                                         Data::Dumper->new( [$result] )
                                         ->Terse(1)->Dump
                                         or Marpa::exception(
@@ -3506,6 +3506,8 @@ Suppose a grammar has these rules
 in_file($_, 'example/null_value.marpa');
 
 =end Marpa::Test::Display:
+
+    THIS NEEDS TO CHANGE SO THAT IT NO LONGER USES MDL.
 
     S: A, Y. q{ $_[0] . ", but " . $_[1] }. # Call me the start rule
     note: you can also call me Rule 0.
