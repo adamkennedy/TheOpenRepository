@@ -135,20 +135,29 @@ sub set_lexers {
         given ($action) {
             when (undef) {;}    # do nothing
             when ('lex_single_quote') {
-                $lexers[$ix] =
-                    [ \&Marpa::Lex::lex_single_quote, $prefix, $suffix ];
-            }
+                $lexers[$ix] = [
+                    \&Marpa::MDLex::Internal::Quotes::lex_single_quote,
+                    $prefix, $suffix
+                ];
+            } ## end when ('lex_single_quote')
             when ('lex_double_quote') {
-                $lexers[$ix] =
-                    [ \&Marpa::Lex::lex_double_quote, $prefix, $suffix ];
-            }
+                $lexers[$ix] = [
+                    \&Marpa::MDLex::Internal::Quotes::lex_double_quote,
+                    $prefix, $suffix
+                ];
+            } ## end when ('lex_double_quote')
             when ('lex_q_quote') {
-                $lexers[$ix] =
-                    [ \&Marpa::Lex::lex_q_quote, $prefix, $suffix ];
-            }
+                $lexers[$ix] = [
+                    \&Marpa::MDLex::Internal::Quotes::lex_q_quote, $prefix,
+                    $suffix
+                ];
+            } ## end when ('lex_q_quote')
             when ('lex_regex') {
-                $lexers[$ix] = [ \&Marpa::Lex::lex_regex, $prefix, $suffix ];
-            }
+                $lexers[$ix] = [
+                    \&Marpa::MDLex::Internal::Quotes::lex_regex, $prefix,
+                    $suffix
+                ];
+            } ## end when ('lex_regex')
             default {
                 Marpa::exception("Unknown lexer: $action");
             }

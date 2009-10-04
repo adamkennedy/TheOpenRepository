@@ -16,7 +16,7 @@ use Marpa::Internal;
 use Marpa::Grammar;
 use Marpa::Recognizer;
 use Marpa::Evaluator;
-use Marpa::Lex;
+use Marpa::MDLex::Internal::Quotes;
 
 # Maybe MDL will be optional someday, but not today
 use Marpa::MDL;
