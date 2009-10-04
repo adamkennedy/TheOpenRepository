@@ -21,8 +21,8 @@ SKIP: {
 
   is($builder->notes('build_result'), 0, 'Return code from make is zero ' .
     '(ie, build completed successfully)');
-  ok(-e File::Spec->catfile('libjio', 'libjio', 'libjio.so'), 'Compiled ' .
-    'libjio.so file exists on disk');
-  ok(-e File::Spec->catfile('libjio', 'libjio', 'libjio.a'), 'Compiled ' .
-    'libjio.a file exists on disk');
+  ok(-e File::Spec->catfile('libjio', 'libjio', 'build', 'libjio.so'),
+    'Compiled libjio.so file exists on disk');
+  ok(-e File::Spec->catfile('libjio', 'libjio', 'build', 'libjio.a'),
+    'Compiled libjio.a file exists on disk');
 }
