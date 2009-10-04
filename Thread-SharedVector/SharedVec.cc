@@ -28,6 +28,8 @@ namespace svec {
     /*else if (type == TIntVec)*/
     else
       croak("Invalid shared container type '%u'", type);
+    fId = GetNewId(); // FIXME lock registry for this
+    fgSharedVectorRegistry[fId] = this;
     fRefCount = 1;
   }
 
@@ -45,6 +47,7 @@ namespace svec {
       croak("Invalid shared container type during container destruction");
       break;
     }; // end of container type switch
+    fgSharedVectorRegistry.erase(GetId());
   }
 
   unsigned int
@@ -58,7 +61,6 @@ namespace svec {
   SharedVector::GetNewId() {
     // TODO optimize
     unsigned int id = 0;
-    map<unsigned int, int> f;
     while (fgSharedVectorRegistry.find(id) != fgSharedVectorRegistry.end())
       ++id;
     return id;

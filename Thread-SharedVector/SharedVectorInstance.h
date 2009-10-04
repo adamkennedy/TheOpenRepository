@@ -18,6 +18,8 @@ namespace svec {
       SharedVectorInstance(char* type);
       ~SharedVectorInstance();
 
+      unsigned int GetId();
+
     private:
       SharedVector* fVector;
   };

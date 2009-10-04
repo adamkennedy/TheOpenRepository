@@ -5,5 +5,15 @@ use Test::More tests => 1;
 use Thread::SharedVector;
 pass();
 
-my $sv = Thread::SharedVector->new("double");
+my @svs;
+foreach my $i (0 .. 10) {
+  my $sv = Thread::SharedVector->new("double");
+  push @svs, $sv;
+  print $sv->GetId(), "\n";
+}
 
+my @svs;
+foreach my $i (20 .. 30) {
+  my $sv = Thread::SharedVector->new("double");
+  print $sv->GetId(), "\n";
+}

@@ -34,6 +34,11 @@ namespace svec {
       fVector->DecrementRefCount();
   }
 
+  unsigned int
+  SharedVectorInstance::GetId() {
+    return fVector->GetId();
+  }
+
 } // end namespace svec
 
 

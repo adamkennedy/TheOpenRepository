@@ -5,6 +5,7 @@
 {
   SharedVectorInstance(char* type);
   ~SharedVectorInstance();
+  unsigned int GetId();
 };
 
 

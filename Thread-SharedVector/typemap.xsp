@@ -1,4 +1,5 @@
 // Map the type of our custom classes
 %typemap{SharedVectorInstance*}{simple};
 %typemap{char*}{simple};
+%typemap{unsigned int}{simple};
 

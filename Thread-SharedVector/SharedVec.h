@@ -36,6 +36,7 @@ namespace svec {
       unsigned int DecrementRefCount();
       unsigned int IncrementRefCount() { return ++fRefCount; } // do not call this outside S_GetNewInstance and the constructor
       unsigned int GetRefCount() { return fRefCount; }
+      unsigned int GetId() { return fId; }
 
     private:
       unsigned int GetNewId(); // should be called while registry is locked
@@ -45,6 +46,7 @@ namespace svec {
       SharedContainer* fContainer;
       SharedContainerType_t fType;
       unsigned int fRefCount;
+      unsigned int fId;
       // TODO global mutex for registry
       static std::map<unsigned int, SharedVector*> fgSharedVectorRegistry;
   };
