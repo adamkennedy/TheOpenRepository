@@ -6,6 +6,16 @@
   SharedVectorInstance(char* type);
   ~SharedVectorInstance();
   unsigned int GetId();
+
 };
+
+%{
+unsigned int
+SharedVectorInstance::GetSize()
+  CODE:
+    RETVAL = THIS->GetSize(aTHX);
+  OUTPUT:
+    RETVAL
+%}
 
 

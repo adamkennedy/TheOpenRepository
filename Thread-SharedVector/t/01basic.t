@@ -14,5 +14,5 @@ foreach my $i (0 .. 10) {
 
 foreach my $i (20 .. 30) {
   my $sv = Thread::SharedVector->new("double");
-  print $sv->GetId(), "\n";
+  print $sv->GetId(), " ", $sv->GetSize(), "\n";
 }

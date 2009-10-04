@@ -39,6 +39,10 @@ namespace svec {
     return fVector->GetId();
   }
 
+  unsigned int
+  SharedVectorInstance::GetSize(pTHX) {
+    return fVector->GetSize(aTHX);
+  }
 } // end namespace svec
 
 

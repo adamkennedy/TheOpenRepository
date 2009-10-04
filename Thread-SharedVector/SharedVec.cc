@@ -89,6 +89,25 @@ namespace svec {
     return vec;
   }
 
+
+  unsigned int
+  SharedVector::GetSize(pTHX) {
+    unsigned int size;
+    fLock.Acquire(aTHX);
+      switch (fType) {
+      case TDoubleVec:
+        size = ((vector<double>*)fContainer)->size();
+        break;
+      case TIntVec:
+        size = ((vector<int>*)fContainer)->size();
+        break;
+      default:
+        croak("Invalid shared container type during GetSize");
+        break;
+      }; // end of container type switch
+    fLock.Release(aTHX);
+    return size;
+  }
 } // end namespace svec
 
 

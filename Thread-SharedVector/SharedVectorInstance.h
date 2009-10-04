@@ -20,6 +20,7 @@ namespace svec {
       ~SharedVectorInstance();
 
       unsigned int GetId();
+      unsigned int GetSize(pTHX);
 
     private:
       SharedVector* fVector;

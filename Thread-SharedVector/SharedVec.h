@@ -28,6 +28,8 @@ namespace svec {
       unsigned int GetRefCount() { return fRefCount; }
       unsigned int GetId() { return fId; }
 
+      unsigned int GetSize(pTHX);
+
     private:
       unsigned int GetNewId(); // should be called while registry is locked
 
