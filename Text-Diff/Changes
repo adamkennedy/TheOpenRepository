@@ -1,5 +1,7 @@
 Changes for Perl extension Text-Diff
 
+        - Better META.yml (Alexandr Ciornii)
+
 1.37 Thu 16 Jul 2009
 	- Switching to a production release
 	- Switching to a 1.xx version to indicate this
