@@ -544,7 +544,17 @@ sub Marpa::Recognizer::earleme {
     # lexables not checked -- don't use prediction here
     # maybe add this as an option?
     my ($current_earleme, $lexables) = Marpa::Internal::Recognizer::complete_set($parse);
-    return Marpa::Internal::Recognizer::scan_set( $parse, @_ );
+    Marpa::Internal::Recognizer::scan_set( $parse, @_ );
+
+    my $current_set = $parse->[Marpa::Internal::Recognizer::CURRENT_SET];
+    my $furthest_earleme = $parse->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+    if ( $current_set >= $furthest_earleme ) {
+        $parse->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
+    } else {
+        $parse->[Marpa::Internal::Recognizer::CURRENT_SET]++;
+    }
+
+    return 1;
 } ## end sub Marpa::Recognizer::earleme
 
 # This goes into the lexer
@@ -704,11 +714,19 @@ sub Marpa::Recognizer::text {
 
         }    # LEXABLE
 
-        $active = scan_set( $recce, @alternatives );
+        scan_set( $recce, @alternatives );
+
+        my $exhausted = 0;
+        my $furthest_earleme = $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+        if ( $current_set >= $furthest_earleme ) {
+            $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = $exhausted = 1;
+        } else {
+            $recce->[Marpa::Internal::Recognizer::CURRENT_SET]++;
+        }
 
         $pos++;
 
-        last POS if not $active;
+        last POS if $exhausted;
 
     }    # POS
 
@@ -736,9 +754,10 @@ sub Marpa::Recognizer::end_input {
         $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET];
     my $furthest_earleme =
         $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+
     while ( $last_completed_set++ < $furthest_earleme ) {
         Marpa::Internal::Recognizer::complete_set($self);
-        Marpa::Internal::Recognizer::scan_set($self);
+        $self->[Marpa::Internal::Recognizer::CURRENT_SET]++;
     }
     $self->[Marpa::Internal::Recognizer::CURRENT_SET] = $furthest_earleme;
 
@@ -774,7 +793,11 @@ sub Marpa::Recognizer::end_input {
 
 # Given a parse object and a list of alternative tokens starting at
 # the current earleme, add Earley items to recognize those tokens.
-
+# 
+# NOTE: This adds items to sets for tokens STARTING AT the current
+# set.  Since no zero-length tokens are allowed, all of these
+# tokens will go into sets AFTER the current set.
+# No tokens will be added TO the current set.
 sub scan_set {
 
     my $parse = shift;
@@ -802,7 +825,6 @@ sub scan_set {
     if ( not defined $earley_set ) {
 
         $earley_set_list->[$current_set] = [];
-        $parse->[Marpa::Internal::Recognizer::CURRENT_SET]++;
         return 1;
     }
 
@@ -915,12 +937,6 @@ sub scan_set {
 
     }    # EARLEY_ITEM
 
-    if ( $current_set >= $furthest_earleme ) {
-        $parse->[Marpa::Internal::Recognizer::EXHAUSTED] = $exhausted = 1;
-        return 0;
-    }
-
-    $parse->[Marpa::Internal::Recognizer::CURRENT_SET]++;
     return 1;
 
 }    # sub scan_set
@@ -944,9 +960,8 @@ sub complete_set {
         'Attempt to complete another earley set after parsing was exhausted')
         if $exhausted;
 
+    $earley_set_list->[$current_set] //= [];
     my $earley_set = $earley_set_list->[$current_set];
-
-    $earley_set ||= [];
 
     my ( $QDFA, $symbols, $tracing ) = @{$grammar}[
         Marpa::Internal::Grammar::QDFA,
