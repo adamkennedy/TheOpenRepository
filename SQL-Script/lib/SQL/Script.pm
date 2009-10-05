@@ -237,9 +237,9 @@ sub _INPUT_SCALAR {
 			return undef;
 		}
 		local $/ = undef;
-		open( FILE, $_[0] )          or return undef;
-		defined(my $buffer = <FILE>) or return undef;
-		close( FILE )                or return undef;
+		open( my $file, '<', $_[0] )  or return undef;
+		defined(my $buffer = <$file>) or return undef;
+		close( $file )                or return undef;
 		return \$buffer;
 	}
 	if ( _SCALAR($_[0]) ) {
