@@ -11,6 +11,12 @@ WriteMakefile1(
     },
     'ABSTRACT_FROM' => 'lib/Sub/Assert.pm', # retrieve abstract from module
     'AUTHOR'     => 'Steffen Mueller <smueller@cpan.org>',
+    'MIN_PERL_VERSION' => 5.006,
+    'META_MERGE' => {
+      resources=> {
+        repository => 'http://svn.ali.as/cpan/trunk/Sub-Assert',
+      },
+    },
 );
 
 
