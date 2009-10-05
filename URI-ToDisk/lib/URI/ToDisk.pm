@@ -10,16 +10,16 @@ URI::ToDisk - An object for mapping a URI to an on-disk storage directory
 
   # We have a directory on disk that is accessible via a web server
   my $authors = URI::ToDisk->new( '/var/www/AUTHORS', 'http://ali.as/AUTHORS' );
-  
+
   # We know where a particular generated file needs to go
   my $about = $authors->catfile( 'A', 'AD', 'ADAMK', 'about.html' );
-  
+
   # Save the file to disk
   my $file = $about->path;
-  open( FILE, ">$file" ) or die "open: $!";
-  print FILE, $content;
-  close FILE;
-  
+  open( my $fh, '>', $file ) or die "open: $!";
+  print $fh $content;
+  close $fh;
+
   # Show the user where to see the file
   my $uri = $about->uri;
   print "Author information is at $uri\n";
@@ -48,7 +48,7 @@ This means that it should be used in a somewhat similar way to L<File::Spec>.
   # The File::Spec way
   my $path = '/some/path';
   $path = File::Spec->catfile( $path, 'some', 'file.txt' );
-  
+
   # The URI::ToDisk way
   my $location = URI::ToDisk->new( '/some/path', 'http://foo.com/blah' );
   $location = $location->catfile( 'some', 'file.txt' );
