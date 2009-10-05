@@ -17,6 +17,7 @@ WriteMakefile1(
 	META_MERGE => {
 		build_requires => { Test => 0 }
 	},
+	MIN_PERL_VERSION => 5.005_03,
 );
 
 sub WriteMakefile1 { #Written by Alexandr Ciornii
