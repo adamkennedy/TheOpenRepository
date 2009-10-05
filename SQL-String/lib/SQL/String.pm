@@ -66,7 +66,7 @@ correct order as expected.
 The concatination is completely interpolation-safe. That is you can do
 something like the following.
 
-  my $sql = SQL::String( 'foo = ?', 10 );
+  my $sql = SQL::String->new( 'foo = ?', 10 );
   $sql = "select * from table where $sql";
 
 =head2 Sub-classing
