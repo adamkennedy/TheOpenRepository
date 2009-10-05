@@ -43,7 +43,7 @@ use Marpa::Offset qw(
     GRAMMAR
 
     EARLEY_SETS
-    CURRENT_SET
+    FURTHEST_EARLEME
 
     =LAST_EVALUATOR_FIELD
 
@@ -52,15 +52,14 @@ use Marpa::Offset qw(
     CURRENT_LEXABLES
 
     EARLEY_HASH
-    FURTHEST_EARLEME
     EXHAUSTED
     TERMINALS_BY_STATE
-    LAST_COMPLETED_SET
+    CURRENT_EARLEME
 
 );
 
 # GRAMMAR            - the grammar used
-# CURRENT_SET        - For an active parse, the set scanned items will be added
+# CURRENT_EARLEME    - For an active parse, the set scanned items will be added
 #                      to.  For an exhausted parse, the set at which the parse
 #                      was exhausted.
 # EARLEY_SETS        - the array of the Earley sets
@@ -73,7 +72,6 @@ use Marpa::Offset qw(
 #                      of the lexer for each symbol
 # TERMINALS_BY_STATE - an array, indexed by QDFA state id,
 #                      of the terminals belonging in it
-# LAST_COMPLETED_SET - last earley set completed
 
 package Marpa::Internal::Recognizer;
 
@@ -330,29 +328,24 @@ sub Marpa::Recognizer::new {
             'S%d@%d-%d',
             ## use critic
             $state_id, 0, 0;
+
         my $item;
-        @{$item}[
-            Marpa::Internal::Earley_Item::NAME,
-            Marpa::Internal::Earley_Item::STATE,
-            Marpa::Internal::Earley_Item::PARENT,
-            Marpa::Internal::Earley_Item::TOKENS,
-            Marpa::Internal::Earley_Item::LINKS,
-            Marpa::Internal::Earley_Item::SET
-            ]
-            = ( $name, $state, 0, [], [], 0 );
+        $item->[Marpa::Internal::Earley_Item::NAME]   = $name;
+        $item->[Marpa::Internal::Earley_Item::STATE]  = $state;
+        $item->[Marpa::Internal::Earley_Item::PARENT] = 0;
+        $item->[Marpa::Internal::Earley_Item::TOKENS] = [];
+        $item->[Marpa::Internal::Earley_Item::LINKS]  = [];
+        $item->[ Marpa::Internal::Earley_Item::SET ]  = 0;
+
         push @{$earley_set}, $item;
         $earley_hash->{$name} = $item;
     } ## end for my $state ( @{$start_states} )
 
-    @{$self}[
-        Marpa::Internal::Recognizer::CURRENT_SET,
-        Marpa::Internal::Recognizer::FURTHEST_EARLEME,
-        Marpa::Internal::Recognizer::EARLEY_HASH,
-        Marpa::Internal::Recognizer::GRAMMAR,
-        Marpa::Internal::Recognizer::EARLEY_SETS,
-        Marpa::Internal::Recognizer::LAST_COMPLETED_SET,
-        ]
-        = ( 0, 0, $earley_hash, $grammar, [$earley_set], -1, );
+    $self->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
+        $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = 0;
+    $self->[Marpa::Internal::Recognizer::EARLEY_HASH] = $earley_hash;
+    $self->[Marpa::Internal::Recognizer::GRAMMAR]     = $grammar;
+    $self->[Marpa::Internal::Recognizer::EARLEY_SETS] = [$earley_set];
 
     return $self;
 } ## end sub Marpa::Recognizer::new
@@ -514,18 +507,15 @@ sub Marpa::show_earley_set_list {
 } ## end sub Marpa::show_earley_set_list
 
 sub Marpa::Recognizer::show_earley_sets {
-    my ($recce)          = @_;
-    my $current_set      = $recce->[CURRENT_SET];
+    my ($recce) = @_;
+    my $current_earleme  = $recce->[CURRENT_EARLEME] // 'stripped';
     my $furthest_earleme = $recce->[FURTHEST_EARLEME];
     my $earley_set_list  = $recce->[EARLEY_SETS];
 
-    my $text =
-        defined $furthest_earleme
-        ? "Current Earley Set: $current_set; Furthest: $furthest_earleme\n"
-        : "At End of Input\n";
+    return
+        "Current Earley Set: $current_earleme; Furthest: $furthest_earleme\n"
+        . Marpa::show_earley_set_list($earley_set_list);
 
-    $text .= Marpa::show_earley_set_list($earley_set_list);
-    return $text;
 } ## end sub Marpa::Recognizer::show_earley_sets
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -546,12 +536,10 @@ sub Marpa::Recognizer::earleme {
     my ($current_earleme, $lexables) = Marpa::Internal::Recognizer::complete_set($parse);
     Marpa::Internal::Recognizer::scan_set( $parse, @_ );
 
-    my $current_set = $parse->[Marpa::Internal::Recognizer::CURRENT_SET];
-    my $furthest_earleme = $parse->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
-    if ( $current_set >= $furthest_earleme ) {
+    if ( ++$parse->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
+        > $parse->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] )
+    {
         $parse->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
-    } else {
-        $parse->[Marpa::Internal::Recognizer::CURRENT_SET]++;
     }
 
     return 1;
@@ -717,12 +705,12 @@ sub Marpa::Recognizer::text {
         scan_set( $recce, @alternatives );
 
         my $exhausted = 0;
-        my $furthest_earleme = $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
-        if ( $current_set >= $furthest_earleme ) {
+        if (++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
+            > $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME]
+            )
+        {
             $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = $exhausted = 1;
-        } else {
-            $recce->[Marpa::Internal::Recognizer::CURRENT_SET]++;
-        }
+        } ## end if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME...])
 
         $pos++;
 
@@ -750,16 +738,14 @@ sub Marpa::Recognizer::end_input {
     # without complaint.  In other words, be idempotent.
     return 1 if $phase >= Marpa::Internal::Phase::RECOGNIZED;
 
-    my $last_completed_set =
-        $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET];
     my $furthest_earleme =
         $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
 
-    while ( $last_completed_set++ < $furthest_earleme ) {
+    my $current_earleme = $self->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
+    while ( $current_earleme <= $furthest_earleme ) {
         Marpa::Internal::Recognizer::complete_set($self);
-        $self->[Marpa::Internal::Recognizer::CURRENT_SET]++;
+        $current_earleme = ++$self->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
     }
-    $self->[Marpa::Internal::Recognizer::CURRENT_SET] = $furthest_earleme;
 
     if ( $grammar->[Marpa::Internal::Grammar::STRIP] ) {
 
@@ -812,7 +798,7 @@ sub scan_set {
         Marpa::Internal::Recognizer::EARLEY_SETS,
         Marpa::Internal::Recognizer::EARLEY_HASH,
         Marpa::Internal::Recognizer::GRAMMAR,
-        Marpa::Internal::Recognizer::CURRENT_SET,
+        Marpa::Internal::Recognizer::CURRENT_EARLEME,
         Marpa::Internal::Recognizer::FURTHEST_EARLEME,
         Marpa::Internal::Recognizer::EXHAUSTED
         ];
@@ -951,7 +937,7 @@ sub complete_set {
         Marpa::Internal::Recognizer::EARLEY_SETS,
         Marpa::Internal::Recognizer::EARLEY_HASH,
         Marpa::Internal::Recognizer::GRAMMAR,
-        Marpa::Internal::Recognizer::CURRENT_SET,
+        Marpa::Internal::Recognizer::CURRENT_EARLEME,
         Marpa::Internal::Recognizer::FURTHEST_EARLEME,
         Marpa::Internal::Recognizer::EXHAUSTED,
         Marpa::Internal::Recognizer::TERMINALS_BY_STATE,
@@ -1050,8 +1036,6 @@ sub complete_set {
     }    # EARLEY_ITEM
 
     # TODO: Prove that the completion links are UNIQUE
-
-    $parse->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET] = $current_set;
 
     #### Lexables Predicted: scalar grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
 

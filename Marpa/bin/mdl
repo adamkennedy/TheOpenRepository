@@ -159,6 +159,7 @@ sub do_parse {
         close $grammar_fh;
 
         # don't string data needed for debugging
+        $options{strip} = 0 if $show_earley_sets;
         $options{strip} = 0 if $show_rules;
         $options{strip} = 0 if $show_symbols;
         $options{strip} = 0 if $show_QDFA;

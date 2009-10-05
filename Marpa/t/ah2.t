@@ -383,7 +383,7 @@ $recce->end_input();
 
 Marpa::Test::is(
     $recce->show_earley_sets(1),
-    "Current Earley Set: 4; Furthest: 4\n" . $sets_at_4,
+    "Current Earley Set: 5; Furthest: 4\n" . $sets_at_4,
     'Aycock/Horspool Parse Status at 4'
 );
 

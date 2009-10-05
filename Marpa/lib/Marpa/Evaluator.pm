@@ -1568,7 +1568,7 @@ sub Marpa::Evaluator::new {
     my $and_nodes = $self->[Marpa::Internal::Evaluator::AND_NODES] = [];
 
     my $current_parse_set = $parse_set_arg
-        // $recce->[Marpa::Internal::Recognizer::CURRENT_SET];
+        // $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
 
     # Look for the start item and start rule
     my $earley_set = $earley_sets->[$current_parse_set];
