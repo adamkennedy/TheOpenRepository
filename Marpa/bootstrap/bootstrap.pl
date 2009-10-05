@@ -18,8 +18,6 @@ use English qw( -no_match_vars ) ;
 
 my $new_terminals = [];
 my $new_rules = [];
-my $new_preamble;
-my $new_lex_preamble;
 my $new_start_symbol;
 my $new_semantics;
 my $new_version;
@@ -235,22 +233,6 @@ push @{$new_rules}, {
 };
 push @{$new_rules}, {
     lhs => 'predefined-setting'
-,    rhs => ['preamble-setting'],
-    action =>'concatenate_lines',
-,
-,
-
-};
-push @{$new_rules}, {
-    lhs => 'predefined-setting'
-,    rhs => ['lex-preamble-setting'],
-    action =>'concatenate_lines',
-,
-,
-
-};
-push @{$new_rules}, {
-    lhs => 'predefined-setting'
 ,    rhs => ['semantics-setting'],
     action =>'concatenate_lines',
 ,
@@ -391,43 +373,6 @@ push @{$new_rules}, {
 
 };
 push @{$new_rules}, {
-    lhs => 'preamble-setting'
-,    rhs => ['a:kf', 'preamble:k10', 'is:k3', 'string-specifier'],
-    action =>'preamble_predicate',
-,
- priority => 1000,
-
-};
-push @{$new_terminals},
-    ['a:kf' => { regex => qr/a/ }],
-    ['preamble:k10' => { regex => qr/preamble/ }],
-;
-
-push @{$new_rules}, {
-    lhs => 'preamble-setting'
-,    rhs => ['string-specifier', 'is:k3', 'a:kf', 'preamble:k10'],
-    action =>'preamble_subject',
-,
- priority => 1000,
-
-};
-push @{$new_rules}, {
-    lhs => 'lex-preamble-setting'
-,    rhs => ['a:kf', 'lex:kb', 'preamble:k10', 'is:k3', 'string-specifier'],
-    action =>'lex_preamble_predicate',
-,
- priority => 1000,
-
-};
-push @{$new_rules}, {
-    lhs => 'preamble-setting'
-,    rhs => ['string-specifier', 'is:k3', 'a:kf', 'lex:kb', 'preamble:k10'],
-    action =>'lex_preamble_subject',
-,
- priority => 1000,
-
-};
-push @{$new_rules}, {
     lhs => 'copula'
 ,    rhs => ['is:k3'],
 ,
@@ -436,13 +381,13 @@ push @{$new_rules}, {
 };
 push @{$new_rules}, {
     lhs => 'copula'
-,    rhs => ['are:k11'],
+,    rhs => ['are:kf'],
 ,
 ,
 
 };
 push @{$new_terminals},
-    ['are:k11' => { regex => qr/are/ }],
+    ['are:kf' => { regex => qr/are/ }],
 ;
 
 push @{$new_rules}, {
@@ -471,13 +416,13 @@ push @{$new_rules}, {
 };
 push @{$new_rules}, {
     lhs => 'comment-sentence'
-,    rhs => ['comment-tag', '%3a:k12', 'comment-words', 'period'],
+,    rhs => ['comment-tag', '%3a:k10', 'comment-words', 'period'],
 ,
 ,
 
 };
 push @{$new_terminals},
-    ['%3a:k12' => { regex => qr/:/ }],
+    ['%3a:k10' => { regex => qr/:/ }],
 ;
 
 push @{$new_rules}, {
@@ -523,20 +468,20 @@ push @{$new_rules}, {
 };
 push @{$new_rules}, {
     lhs => 'production-copula'
-,    rhs => ['%3a:k12'],
+,    rhs => ['%3a:k10'],
 ,
 ,
 
 };
 push @{$new_rules}, {
     lhs => 'production-copula'
-,    rhs => ['%3a%3a%3d:k13'],
+,    rhs => ['%3a%3a%3d:k11'],
 ,
 ,
 
 };
 push @{$new_terminals},
-    ['%3a%3a%3d:k13' => { regex => qr/::=/ }],
+    ['%3a%3a%3d:k11' => { regex => qr/::=/ }],
 ;
 
 push @{$new_rules}, {
@@ -578,43 +523,43 @@ min => 1,
 };
 push @{$new_rules}, {
     lhs => 'rhs'
-,    rhs => ['symbol-phrase', 'sequence:k14'],
+,    rhs => ['symbol-phrase', 'sequence:k12'],
     action =>'sequence_rhs',
 ,
 ,
  priority => 1000
 };
 push @{$new_terminals},
-    ['sequence:k14' => { regex => qr/sequence/ }],
+    ['sequence:k12' => { regex => qr/sequence/ }],
 ;
 
 push @{$new_rules}, {
     lhs => 'rhs'
-,    rhs => ['optional:k15', 'symbol-phrase', 'sequence:k14'],
+,    rhs => ['optional:k13', 'symbol-phrase', 'sequence:k12'],
     action =>'optional_sequence_rhs',
 ,
  priority => 2000,
 
 };
 push @{$new_terminals},
-    ['optional:k15' => { regex => qr/optional/ }],
+    ['optional:k13' => { regex => qr/optional/ }],
 ;
 
 push @{$new_rules}, {
     lhs => 'rhs'
-,    rhs => ['symbol-phrase', 'separated:k16', 'symbol-phrase', 'sequence:k14'],
+,    rhs => ['symbol-phrase', 'separated:k14', 'symbol-phrase', 'sequence:k12'],
     action =>'separated_sequence_rhs',
 ,
  priority => 2000,
 
 };
 push @{$new_terminals},
-    ['separated:k16' => { regex => qr/separated/ }],
+    ['separated:k14' => { regex => qr/separated/ }],
 ;
 
 push @{$new_rules}, {
     lhs => 'rhs'
-,    rhs => ['optional:k15', 'symbol-phrase', 'separated:k16', 'symbol-phrase', 'sequence:k14'],
+,    rhs => ['optional:k13', 'symbol-phrase', 'separated:k14', 'symbol-phrase', 'sequence:k12'],
     action =>'optional_separated_sequence_rhs',
 ,
  priority => 3000,
@@ -646,7 +591,7 @@ push @{$new_rules}, {
 };
 push @{$new_rules}, {
     lhs => 'optional-rhs-element'
-,    rhs => ['optional:k15', 'rhs-symbol-specifier'],
+,    rhs => ['optional:k13', 'rhs-symbol-specifier'],
     action =>'optional_rhs_element',
 ,
 ,
@@ -688,27 +633,27 @@ min => 0,
 };
 push @{$new_rules}, {
     lhs => 'terminal-sentence'
-,    rhs => ['symbol-phrase', 'matches:k17', 'regex', 'period'],
+,    rhs => ['symbol-phrase', 'matches:k15', 'regex', 'period'],
     action =>'regex_terminal_sentence',
 ,
 ,
 
 };
 push @{$new_terminals},
-    ['matches:k17' => { regex => qr/matches/ }],
+    ['matches:k15' => { regex => qr/matches/ }],
 ;
 
 push @{$new_rules}, {
     lhs => 'terminal-sentence'
-,    rhs => ['match:k18', 'symbol-phrase', 'using:k19', 'string-specifier', 'period'],
+,    rhs => ['match:k16', 'symbol-phrase', 'using:k17', 'string-specifier', 'period'],
     action =>'string_terminal_sentence',
 ,
 ,
 
 };
 push @{$new_terminals},
-    ['match:k18' => { regex => qr/match/ }],
-    ['using:k19' => { regex => qr/using/ }],
+    ['match:k16' => { regex => qr/match/ }],
+    ['using:k17' => { regex => qr/using/ }],
 ;
 
 push @{$new_rules}, {

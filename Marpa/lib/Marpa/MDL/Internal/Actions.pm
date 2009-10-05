@@ -128,26 +128,6 @@ sub default_null_value_predicate {
     return q{$new_default_null_value = } . $_[5] . qq{;\n};
 }
 
-# preamble setting: /a/, /preamble/, /is/, string specifier.
-sub preamble_predicate {
-    return q{$new_preamble .= } . $_[3] . qq{;\n};
-}
-
-# preamble setting: string specifier, /is/, /a/, /preamble/ .
-sub preamble_subject {
-    return q{$new_preamble .= } . $_[0] . qq{;\n};
-}
-
-# lex preamble setting: /a/, /lex/, /preamble/, /is/, string specifier.
-sub lex_preamble_predicate {
-    return q{$new_lex_preamble .= } . $_[4] . qq{;\n};
-}
-
-# preamble setting: string specifier, /is/, /a/, /lex/, /preamble/ .
-sub lex_preamble_subject {
-    return q{$new_lex_preamble .= } . $_[0] . qq{;\n};
-}
-
 # string definition:
 # symbol phrase, /is/, string specifier, period.
 sub string_definition {

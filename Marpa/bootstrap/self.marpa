@@ -59,10 +59,6 @@ predefined setting: default action setting.  'concatenate_lines'.
 
 predefined setting: default null value setting.  'concatenate_lines'.
 
-predefined setting: preamble setting.  'concatenate_lines'.
-
-predefined setting: lex preamble setting.  'concatenate_lines'.
-
 predefined setting: semantics setting.  'concatenate_lines'.
 
 predefined setting: version setting.  'concatenate_lines'.
@@ -106,22 +102,6 @@ default null value setting: string specifier, copula, optional /the/, /default/,
 default null value setting: optional /the/, /default/, /null/,
 /value/, copula, string specifier, .
 'default_null_value_predicate'.
-
-preamble setting: /a/, /preamble/, /is/, string specifier.
-priority 1000.
-'preamble_predicate'.
- 
-preamble setting: string specifier, /is/, /a/, /preamble/ .
-priority 1000.
-'preamble_subject'.
- 
-lex preamble setting: /a/, /lex/, /preamble/, /is/, string specifier.
-priority 1000.
-'lex_preamble_predicate'.
- 
-preamble setting: string specifier, /is/, /a/, /lex/, /preamble/ .
-priority 1000.
-'lex_preamble_subject'.
  
 copula: /is/.
 
