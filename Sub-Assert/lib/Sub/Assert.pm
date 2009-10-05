@@ -11,8 +11,7 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(
   assert
 );
-use vars qw/$VERSION/;
-$VERSION = '1.22';
+our $VERSION = '1.22';
 
 use Carp qw/croak carp/;
 
