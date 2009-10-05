@@ -49,11 +49,13 @@ Do just one or two inputs per grammar.
 
 =over 4
 
-=item * Prediction of lexables seems to have problems.  In particular,
-ah2.t never predicts a lexable, though there should be one at every
-earleme.
-
-=item * Factor out the MDL Lexer.
+=item * Implement an recognizer option to simply skip
+ahead spans where no terminal can possibly be found.
+This means coming up with some way of passing
+Marpa's idea of where the
+next terminal should be expected to the lexer.
+Also the lexer should be able to inform Marpa
+which earleme a token is at.
 
 =item * Allow action options to be changed when evaluator
 is created, but not afterwards.

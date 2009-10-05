@@ -39,11 +39,23 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Recognizer
 
-    GRAMMAR EARLEY_SETS CURRENT_SET
+    { This both goes in the new Lexer and stay here }
+    GRAMMAR
+
+    EARLEY_SETS
+    CURRENT_SET
+
     =LAST_EVALUATOR_FIELD
 
-    EARLEY_HASH FURTHEST_EARLEME EXHAUSTED
-    LEXERS LEXABLES_BY_STATE LAST_COMPLETED_SET
+    { These are to be moved into the new lexer }
+    LEXERS
+    CURRENT_LEXABLES
+
+    EARLEY_HASH
+    FURTHEST_EARLEME
+    EXHAUSTED
+    TERMINALS_BY_STATE
+    LAST_COMPLETED_SET
 
 );
 
@@ -59,8 +71,8 @@ use Marpa::Offset qw(
 # EVALUATOR          - the current evaluator for this recognizer
 # LEXERS             - an array, indexed by symbol id,
 #                      of the lexer for each symbol
-# LEXABLES_BY_STATE  - an array, indexed by QDFA state id,
-#                      of the lexables belonging in it
+# TERMINALS_BY_STATE - an array, indexed by QDFA state id,
+#                      of the terminals belonging in it
 # LAST_COMPLETED_SET - last earley set completed
 
 package Marpa::Internal::Recognizer;
@@ -163,23 +175,26 @@ sub set_lexers {
             }
         } ## end given
 
+        ##### assert: not $lexers[$ix] or $symbol->[Marpa'Internal'Symbol'TERMINAL]
+
     }    # SYMBOL
 
-    my @lexables_by_state;
-    $#lexables_by_state = $#{$QDFA};
+    my @terminals_by_state;
+    $#terminals_by_state = $#{$QDFA};
 
     for my $state ( @{$QDFA} ) {
         my ( $id, $transition ) =
             @{$state}[ Marpa::Internal::QDFA::ID,
             Marpa::Internal::QDFA::TRANSITION, ];
-        $lexables_by_state[$id] = [
-            grep    { $lexers[$_] }
-                map { $symbol_hash->{$_}->[Marpa::Internal::Symbol::ID] }
+        $terminals_by_state[$id] = [
+            map      { $_->[Marpa::Internal::Symbol::ID] }
+                grep { $_->[Marpa::Internal::Symbol::TERMINAL] }
+                map  { $symbol_hash->{$_} }
                 keys %{$transition}
         ];
     } ## end for my $state ( @{$QDFA} )
 
-    return ( \@lexers, \@lexables_by_state, );
+    return ( \@lexers, \@terminals_by_state, );
 
 }    # sub set_lexers
 
@@ -224,7 +239,7 @@ sub prepare_grammar_for_recognizer {
     compile_regexes($grammar);
     @{$parse}[
         Marpa::Internal::Recognizer::LEXERS,
-        Marpa::Internal::Recognizer::LEXABLES_BY_STATE
+        Marpa::Internal::Recognizer::TERMINALS_BY_STATE
         ]
         = set_lexers( $grammar, $package );
 
@@ -239,7 +254,7 @@ sub Marpa::Recognizer::new {
 
     my $arg_trace_fh = $args->{trace_file_handle};
 
-    my $self = [];
+    my $self = bless [], $class;
     my $ambiguous_lex;
 
     my $clone_arg = $args->{clone};
@@ -339,7 +354,7 @@ sub Marpa::Recognizer::new {
         ]
         = ( 0, 0, $earley_hash, $grammar, [$earley_set], -1, );
 
-    return bless $self, $class;
+    return $self;
 } ## end sub Marpa::Recognizer::new
 
 # Convert Recognizer into string form
@@ -513,12 +528,11 @@ sub Marpa::Recognizer::show_earley_sets {
     return $text;
 } ## end sub Marpa::Recognizer::show_earley_sets
 
-# check class of parse?
-
 ## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::Recognizer::earleme {
 ## use critic
 
+    # check class of parse?
     my $parse = shift;
 
     my $grammar = $parse->[Marpa::Internal::Recognizer::GRAMMAR];
@@ -529,10 +543,11 @@ sub Marpa::Recognizer::earleme {
 
     # lexables not checked -- don't use prediction here
     # maybe add this as an option?
-    my $lexables = Marpa::Internal::Recognizer::complete_set($parse);
+    my ($current_earleme, $lexables) = Marpa::Internal::Recognizer::complete_set($parse);
     return Marpa::Internal::Recognizer::scan_set( $parse, @_ );
 } ## end sub Marpa::Recognizer::earleme
 
+# This goes into the lexer
 # return values for text method
 use Marpa::Offset qw(
     :package=Marpa::Recognizer
@@ -540,12 +555,13 @@ use Marpa::Offset qw(
     PARSING_EXHAUSTED=-1
 );
 
+# This goes into the lexer
 sub Marpa::Recognizer::text {
-    my $parse        = shift;
+    my $recce        = shift;
     my $input        = shift;
     my $input_length = shift;
 
-    return 0 if $parse->[Marpa::Internal::Recognizer::EXHAUSTED];
+    return 0 if $recce->[Marpa::Internal::Recognizer::EXHAUSTED];
 
     Marpa::exception(
         'Marpa::Recognizer::text() third argument not yet implemented')
@@ -561,14 +577,9 @@ sub Marpa::Recognizer::text {
         }
     }    # given ref $input
 
-    my ( $grammar, $earley_sets, $current_set, $lexers ) = @{$parse}[
-        Marpa::Internal::Recognizer::GRAMMAR,
-        Marpa::Internal::Recognizer::EARLEY_SETS,
-        Marpa::Internal::Recognizer::CURRENT_SET,
-        Marpa::Internal::Recognizer::LEXERS,
-    ];
-
-    my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $lexers  = $recce->[Marpa::Internal::Recognizer::LEXERS];
+    my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
     if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
         Marpa::exception('More text not allowed after end of input');
     }
@@ -594,6 +605,7 @@ sub Marpa::Recognizer::text {
 
     my $active = 1;
     my $pos    = 0;
+    my $lexables;
 
     pos ${$input_ref} = 0;
     POS: while ( $pos < $input_length ) {
@@ -603,7 +615,9 @@ sub Marpa::Recognizer::text {
         # lexical position will correspond.  Be careful that Marpa
         # imposes no such requirement, however.
 
-        my $lexables = complete_set($parse);
+        my $current_set;
+        ($current_set, $lexables) = complete_set($recce);
+        $recce->[ Marpa::Internal::Recognizer::CURRENT_LEXABLES ] = $lexables;
 
         if ( $trace_lex_tries and scalar @{$lexables} ) {
             ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
@@ -671,39 +685,7 @@ sub Marpa::Recognizer::text {
                 ${$input_ref} =~ /\G$prefix/xmsg;
             }
 
-            my ( $match, $length );
-            {
-                my @warnings;
-                my $eval_ok;
-                {
-                    local $SIG{__WARN__} =
-                        sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-                    $eval_ok = eval {
-                        ( $match, $length ) =
-                            $lex_closure->( $input_ref, $pos );
-                        1;
-                    };
-                }
-
-                if ( not $eval_ok or @warnings ) {
-                    my $fatal_error = $EVAL_ERROR;
-                    Marpa::Internal::code_problems(
-                        {   eval_ok     => $eval_ok,
-                            fatal_error => $fatal_error,
-                            grammar     => $grammar,
-                            warnings    => \@warnings,
-                            where       => 'user supplied lexer',
-                            long_where  => 'user supplied lexer for '
-                                . $lexable->[Marpa::Internal::Symbol::NAME]
-                                . " at $pos",
-                            code => \(
-                                $lexable->[Marpa::Internal::Symbol::ACTION]
-                            ),
-                        }
-                    );
-                } ## end if ( not $eval_ok or @warnings )
-            }
+            my ( $match, $length ) = $lex_closure->( $input_ref, $pos );
 
             next LEXABLE if not defined $match;
 
@@ -722,13 +704,15 @@ sub Marpa::Recognizer::text {
 
         }    # LEXABLE
 
-        $active = scan_set( $parse, @alternatives );
+        $active = scan_set( $recce, @alternatives );
 
         $pos++;
 
         last POS if not $active;
 
     }    # POS
+
+    $recce->[ Marpa::Internal::Recognizer::CURRENT_LEXABLES ] = $lexables;
 
     return
           $active              ? Marpa::Recognizer::PARSING_STILL_ACTIVE
@@ -816,6 +800,7 @@ sub scan_set {
     my $earley_set = $earley_set_list->[$current_set];
 
     if ( not defined $earley_set ) {
+
         $earley_set_list->[$current_set] = [];
         $parse->[Marpa::Internal::Recognizer::CURRENT_SET]++;
         return 1;
@@ -944,7 +929,7 @@ sub complete_set {
     my $parse = shift;
 
     my ($earley_set_list,  $earley_hash, $grammar, $current_set,
-        $furthest_earleme, $exhausted,   $lexables_by_state
+        $furthest_earleme, $exhausted,   $terminals_by_state
         )
         = @{$parse}[
         Marpa::Internal::Recognizer::EARLEY_SETS,
@@ -953,7 +938,7 @@ sub complete_set {
         Marpa::Internal::Recognizer::CURRENT_SET,
         Marpa::Internal::Recognizer::FURTHEST_EARLEME,
         Marpa::Internal::Recognizer::EXHAUSTED,
-        Marpa::Internal::Recognizer::LEXABLES_BY_STATE,
+        Marpa::Internal::Recognizer::TERMINALS_BY_STATE,
         ];
     Marpa::exception(
         'Attempt to complete another earley set after parsing was exhausted')
@@ -985,7 +970,7 @@ sub complete_set {
         ];
         my $state_id = $state->[Marpa::Internal::QDFA::ID];
 
-        for my $lexable ( @{ $lexables_by_state->[$state_id] } ) {
+        for my $lexable ( @{ $terminals_by_state->[$state_id] } ) {
             $lexable_seen->[$lexable] = 1;
         }
 
@@ -1053,7 +1038,9 @@ sub complete_set {
 
     $parse->[Marpa::Internal::Recognizer::LAST_COMPLETED_SET] = $current_set;
 
-    ### Lexables Predicted: scalar grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
+    #### Lexables Predicted: scalar grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
+
+    return 1 if not wantarray;
 
     my $lexables = [
         sort {
@@ -1063,7 +1050,7 @@ sub complete_set {
             map { $symbols->[$_] }
             grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
     ];
-    return $lexables;
+    return ($current_set, $lexables);
 
 }    # sub complete_set
 
