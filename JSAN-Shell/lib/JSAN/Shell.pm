@@ -493,10 +493,10 @@ sub command_set_verbose {
 	my $self  = shift;
 	my $value = shift;
 	if ( $value =~ /^(?:y|yes|t|true|1|on)$/i ) {
-		$self->{config}->{verbose} = 1;
+		$self->verbose(1);
 		$self->_show("Verbose mode is enabled.");
 	} elsif ( $value =~ /^(?:n|no|f|false|0|off)$/i ) {
-		$self->{config}->{verbose} = '';
+		$self->verbose('');
 		$self->_show("Verbose mode is disabled.");
 	} else {
 		$self->_show("Unknown verbose mode '$value'. Try 'on' or 'off'");
