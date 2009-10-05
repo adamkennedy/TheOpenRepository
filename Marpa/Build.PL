@@ -72,9 +72,9 @@ my $build = $class->new(
             },
         },
     },
-    PL_files  => { 'lib/Marpa/Source.pm.PL' => 'lib/Marpa/Source.pm' },
-    license            => 'perl',
-    create_readme      => 0,
+    PL_files      => { 'lib/Marpa/Source.pm.PL' => 'lib/Marpa/Source.pm' },
+    license       => 'perl',
+    create_readme => 0,
     create_makefile_pl => 'small',
 );
 

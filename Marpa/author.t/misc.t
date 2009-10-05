@@ -87,24 +87,6 @@ $evaler->set( { trace_values => 1 } );
 my $input_string = q{};
 my $lexeme_start = 0;
 
-{
-## use Marpa::Test::Display lex_regex snippet
-
-    my ( $regex, $token_length ) =
-        Marpa::Lex::lex_regex( \$input_string, $lexeme_start );
-
-## no Marpa::Test::Display
-}
-
-{
-## use Marpa::Test::Display lex_q_quote snippet
-
-    my ( $string, $token_length ) =
-        Marpa::Lex::lex_q_quote( \$input_string, $lexeme_start );
-
-## no Marpa::Test::Display
-}
-
 my $g = Marpa::Grammar->new();
 
 $g->set( { start => Marpa::MDL::canonical_symbol_name('Document') } );

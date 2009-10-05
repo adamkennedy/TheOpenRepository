@@ -407,6 +407,7 @@ package main;
 my %exclude = map { ( $_, 1 ) } qw(
     Makefile.PL
     inc/Test/Weaken.pm
+    sandbox/TODO.pod
 );
 
 my @test_files = @ARGV;

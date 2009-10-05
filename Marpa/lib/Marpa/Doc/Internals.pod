@@ -1219,21 +1219,21 @@ in_file($_, 'author.t/self_show_rules.out');
 
 Z<>
 
-    100: production-paragraph ->
+    94: production-paragraph ->
         non-structural-production-sentences
         production-sentence
-        production-paragraph[R11:2][x5f] /* vrhs real=2 */
-    101: production-paragraph ->
+        production-paragraph[R11:2][x5b] /* vrhs real=2 */
+    95: production-paragraph ->
         non-structural-production-sentences
         production-sentence
         non-structural-production-sentences[]
         action-sentence:optional[]
         non-structural-production-sentences[]
-    102: production-paragraph ->
+    96: production-paragraph ->
         non-structural-production-sentences[]
         production-sentence
-        production-paragraph[R11:2][x5f] /* vrhs real=2 */
-    103: production-paragraph ->
+        production-paragraph[R11:2][x5b] /* vrhs real=2 */
+    97: production-paragraph ->
         non-structural-production-sentences[]
         production-sentence
         non-structural-production-sentences[]
@@ -1242,26 +1242,26 @@ Z<>
 
 Z<>
 
-    104: production-paragraph[R11:2][x5f] ->
+    98: production-paragraph[R11:2][x5b] ->
         non-structural-production-sentences
-        production-paragraph[R11:3][x60] /* vlhs vrhs real=1 */
-    105: production-paragraph[R11:2][x5f] ->
+        production-paragraph[R11:3][x5c] /* vlhs vrhs real=1 */
+    99: production-paragraph[R11:2][x5b] ->
         non-structural-production-sentences
         action-sentence:optional[]
         non-structural-production-sentences[] /* vlhs real=3 */
-    106: production-paragraph[R11:2][x5f] ->
+    100: production-paragraph[R11:2][x5b] ->
         non-structural-production-sentences[]
-        production-paragraph[R11:3][x60] /* vlhs vrhs real=1 */
+        production-paragraph[R11:3][x5c] /* vlhs vrhs real=1 */
 
 Z<>
 
-    107: production-paragraph[R11:3][x60] ->
+    101: production-paragraph[R11:3][x5c] ->
         action-sentence:optional
         non-structural-production-sentences /* vlhs real=2 */
-    108: production-paragraph[R11:3][x60] ->
+    102: production-paragraph[R11:3][x5c] ->
         action-sentence:optional
         non-structural-production-sentences[] /* vlhs real=2 */
-    109: production-paragraph[R11:3][x60] ->
+    103: production-paragraph[R11:3][x5c] ->
         action-sentence:optional[]
         non-structural-production-sentences /* vlhs real=2 */
 
@@ -1495,7 +1495,7 @@ is_file($_, 'author.t/equation_show_earley_sets.out');
 
 =end Marpa::Test::Display:
 
-    At End of Input
+    Current Earley Set: 4; Furthest: 3
     Earley Set 0
     S0@0-0
     S1@0-0
@@ -1522,7 +1522,7 @@ is_file($_, 'author.t/equation_show_bocage.out');
 
 =end Marpa::Test::Display:
 
-    package: Marpa::E_1; parse count: 0
+    parse count: 0
     S2@0-3L3o0 -> S2@0-3L3o0a0
     S2@0-3L3o0a0 -> S6@0-3L0o1
         rule 2: e['] -> e .

@@ -335,7 +335,7 @@ sub Marpa::Recognizer::new {
         $item->[Marpa::Internal::Earley_Item::PARENT] = 0;
         $item->[Marpa::Internal::Earley_Item::TOKENS] = [];
         $item->[Marpa::Internal::Earley_Item::LINKS]  = [];
-        $item->[ Marpa::Internal::Earley_Item::SET ]  = 0;
+        $item->[Marpa::Internal::Earley_Item::SET]    = 0;
 
         push @{$earley_set}, $item;
         $earley_hash->{$name} = $item;
@@ -533,7 +533,8 @@ sub Marpa::Recognizer::earleme {
 
     # lexables not checked -- don't use prediction here
     # maybe add this as an option?
-    my ($current_earleme, $lexables) = Marpa::Internal::Recognizer::complete_set($parse);
+    my ( $current_earleme, $lexables ) =
+        Marpa::Internal::Recognizer::complete_set($parse);
     Marpa::Internal::Recognizer::scan_set( $parse, @_ );
 
     if ( ++$parse->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
@@ -614,8 +615,8 @@ sub Marpa::Recognizer::text {
         # imposes no such requirement, however.
 
         my $current_set;
-        ($current_set, $lexables) = complete_set($recce);
-        $recce->[ Marpa::Internal::Recognizer::CURRENT_LEXABLES ] = $lexables;
+        ( $current_set, $lexables ) = complete_set($recce);
+        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] = $lexables;
 
         if ( $trace_lex_tries and scalar @{$lexables} ) {
             ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
@@ -705,12 +706,11 @@ sub Marpa::Recognizer::text {
         scan_set( $recce, @alternatives );
 
         my $exhausted = 0;
-        if (++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
-            > $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME]
-            )
+        if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
+            > $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] )
         {
             $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = $exhausted = 1;
-        } ## end if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME...])
+        }
 
         $pos++;
 
@@ -718,7 +718,7 @@ sub Marpa::Recognizer::text {
 
     }    # POS
 
-    $recce->[ Marpa::Internal::Recognizer::CURRENT_LEXABLES ] = $lexables;
+    $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] = $lexables;
 
     return
           $active              ? Marpa::Recognizer::PARSING_STILL_ACTIVE
@@ -741,10 +741,12 @@ sub Marpa::Recognizer::end_input {
     my $furthest_earleme =
         $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
 
-    my $current_earleme = $self->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
+    my $current_earleme =
+        $self->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
     while ( $current_earleme <= $furthest_earleme ) {
         Marpa::Internal::Recognizer::complete_set($self);
-        $current_earleme = ++$self->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
+        $current_earleme =
+            ++$self->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
     }
 
     if ( $grammar->[Marpa::Internal::Grammar::STRIP] ) {
@@ -779,7 +781,7 @@ sub Marpa::Recognizer::end_input {
 
 # Given a parse object and a list of alternative tokens starting at
 # the current earleme, add Earley items to recognize those tokens.
-# 
+
 # NOTE: This adds items to sets for tokens STARTING AT the current
 # set.  Since no zero-length tokens are allowed, all of these
 # tokens will go into sets AFTER the current set.
@@ -930,8 +932,9 @@ sub scan_set {
 sub complete_set {
     my $parse = shift;
 
-    my ($earley_set_list,  $earley_hash, $grammar, $current_set,
-        $furthest_earleme, $exhausted,   $terminals_by_state
+    my ($earley_set_list, $earley_hash,      $grammar,
+        $current_set,     $furthest_earleme, $exhausted,
+        $terminals_by_state
         )
         = @{$parse}[
         Marpa::Internal::Recognizer::EARLEY_SETS,
@@ -1049,7 +1052,7 @@ sub complete_set {
             map { $symbols->[$_] }
             grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
     ];
-    return ($current_set, $lexables);
+    return ( $current_set, $lexables );
 
 }    # sub complete_set
 

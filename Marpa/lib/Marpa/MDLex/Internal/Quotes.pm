@@ -155,12 +155,12 @@ sub lex_regex {
 sub lex_single_quote {
     my $string       = shift;
     my $lexeme_start = shift;
-    my $match_start = pos ${$string};
+    my $match_start  = pos ${$string};
     state $prefix_regex = qr/\G'/oxms;
-    return unless ${$string} =~ /$prefix_regex/gxms;
+    return if ${$string} !~ /$prefix_regex/gxms;
     state $regex = qr/\G[^'\0134]*('|\0134')/xms;
     MATCH: while ( ${$string} =~ /$regex/gcxms ) {
-        next MATCH unless defined $1;
+        next MATCH if not defined $1;
         if ( $1 eq q{'} ) {
             my $end_pos      = pos ${$string};
             my $match_length = $end_pos - $match_start;
@@ -175,20 +175,20 @@ sub lex_single_quote {
 sub lex_double_quote {
     my $string       = shift;
     my $lexeme_start = shift;
-    my $match_start = pos $$string;
-    state $prefix_regex = qr/\G"/o;
-    return unless $$string =~ /$prefix_regex/g;
-    state $regex = qr/\G[^"\0134]*("|\0134")/;
-    MATCH: while ( $$string =~ /$regex/gc ) {
-        next MATCH unless defined $1;
+    my $match_start  = pos ${$string};
+    state $prefix_regex = qr/\G"/oxms;
+    return if ${$string} !~ /$prefix_regex/gxms;
+    state $regex = qr/\G[^"\0134]*("|\0134")/xms;
+    MATCH: while ( ${$string} =~ /$regex/gxmsc ) {
+        next MATCH if not defined $1;
         if ( $1 eq q{"} ) {
-            my $end_pos      = pos $$string;
+            my $end_pos      = pos ${$string};
             my $match_length = $end_pos - $match_start;
             my $lex_length   = $end_pos - $lexeme_start;
-            return ( substr( $$string, $match_start, $match_length ),
+            return ( substr( ${$string}, $match_start, $match_length ),
                 $lex_length );
         } ## end if ( $1 eq q{"} )
-    } ## end while ( $$string =~ /$regex/gc )
+    } ## end while ( ${$string} =~ /$regex/gxmsc )
     return;
 } ## end sub lex_double_quote
 
