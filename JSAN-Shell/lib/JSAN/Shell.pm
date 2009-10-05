@@ -102,9 +102,9 @@ sub new {
 	}
 
 	# Initialize the Index layer
-	if (JSAN::Index->can('orlite') && $self->{config}->{mirror}) {
+	if (JSAN::Index->self && $self->{config}->{mirror}) {
 	    Carp::croak("Cannot re-initialize JSAN::Index with different mirror url");
-	} elsif (not JSAN::Index->can('orlite')) {
+	} elsif (not JSAN::Index->self) {
         JSAN::Index->init(
             verbose       => $self->{config}->{verbose},
             mirror_remote => $self->{config}->{mirror},
@@ -138,7 +138,13 @@ sub mirror {
 }
 
 sub verbose {
-	$_[0]->{config}->{verbose};
+    my $self = shift;
+    my $config = $self->{config};
+    
+	return $config->{verbose} unless @_;
+	
+	$config->{verbose} = shift;
+	$self->client->verbose($config->{verbose});
 }
 
 sub offline {
