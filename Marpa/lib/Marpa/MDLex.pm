@@ -30,11 +30,12 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::MDLex
 
-    RECCE { The Marpa recognizer used }
+    RECOGNIZER { The Marpa recognizer used }
 
     LEXERS { An array (indexed by symbol id)
     of the lexer for each symbol }
 
+    CURRENT_EARLEME
     CURRENT_LEXABLES
 
     SYMBOLS { array of symbol refs }
@@ -74,9 +75,8 @@ sub Marpa::MDLex::new {
     my $lexer = [];
     bless $lexer, $class;
 
-    # set the defaults and the default defaults
+    # set defaults
     $lexer->[Marpa::Internal::MDLex::TRACE_FILE_HANDLE] = *STDERR;
-
     $lexer->[Marpa::Internal::MDLex::DEFAULT_LEX_PREFIX] = q{};
     $lexer->[Marpa::Internal::MDLex::DEFAULT_LEX_SUFFIX] = q{};
     $lexer->[Marpa::Internal::MDLex::AMBIGUOUS_LEX]      = 1;
@@ -84,6 +84,12 @@ sub Marpa::MDLex::new {
     $lexer->[Marpa::Internal::MDLex::SYMBOLS]            = [];
 
     $lexer->set($args);
+    my $recce = $lexer->[Marpa::Internal::MDLLex::RECOGNIZER];
+    Carp::croak( 'No Recognizer for ' . __PACKAGE__ . ' constructor' )
+        if not $recce;
+    my ($recce->[Marpa::Internal::MDLex::CURRENT_EARLEME],
+        $recce->[Marpa::Internal::MDLex::CURRENT_LEXABLES]
+    ) = $recce->status();
     $lexer->[Marpa::Internal::MDLex::INITIALIZED] = 1;
     return $lexer;
 
@@ -102,6 +108,15 @@ sub Marpa::MDLex::set {
     # Second pass options
     while ( my ( $option, $value ) = each %{$args} ) {
         given ($option) {
+            when (/\A (recce|recognizer) \z/xms) {
+                Marpa::exception(
+                    "$option option not allowed after lexer is initialized")
+                    if $initialized;
+                my $ref = ref $value;
+                Marpa::exception('Not a valid Marpa recognizer')
+                    if not defined $ref or $ref ne "Marpa::Recognizer";
+                $lexer->[Marpa::Internal::MDLex::RECOGNIZER] = $value;
+            } ## end when ('default_lex_prefix')
             when ('default_lex_prefix') {
                 Marpa::exception(
                     "$option option not allowed after lexer is initialized")

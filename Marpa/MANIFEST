@@ -47,6 +47,7 @@ lib/Marpa/Grammar.pm
 lib/Marpa/header_Raw_Source.pm
 lib/Marpa/Internal.pm
 lib/Marpa/MDLex/Internal/Quotes.pm
+lib/Marpa/MDLex.pm
 lib/Marpa/MDL/Internal/Actions.pm
 lib/Marpa/MDL.pm
 lib/Marpa/Offset.pm

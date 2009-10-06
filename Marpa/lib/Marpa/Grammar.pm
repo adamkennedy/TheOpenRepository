@@ -30,7 +30,6 @@ use Marpa::Offset qw(
 
     NULL_ALIAS
     NULLING
-    PRIORITY
 
     MINIMAL MAXIMAL { Maximal (longest possible)
         or minimal (shortest possible) evaluation
@@ -74,7 +73,6 @@ use Marpa::Offset qw(
 #                   otherwise undef
 # TERMINAL        - terminal?
 # CLOSURE         - closure to do lexing
-# PRIORITY        - order, for lexing
 # COUNTED         - used on rhs of counted rule?
 # ACTION          - lexing action specified by user
 # PREFIX          - lexing prefix specified by user
@@ -1405,12 +1403,6 @@ sub Marpa::Grammar::unstringify {
 
     $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
 
-    # Eliminate or weaken all circular references
-    my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
-    while ( my ( $name, $ref ) = each %{$symbol_hash} ) {
-        weaken( $symbol_hash->{$name} = $ref );
-    }
-
     # these were weak references, but aren't used anyway, so
     # free up the memory
     for my $symbol ( @{ $grammar->[Marpa::Internal::Grammar::SYMBOLS] } ) {
@@ -1907,9 +1899,10 @@ sub add_terminal {
     # but sometime should test it again to make sure
     # before removing this comment
 
-    my $symbol = $symbol_hash->{$name};
-    if ( defined $symbol ) {
+    my $symbol_id = $symbol_hash->{$name};
+    if ( defined $symbol_id ) {
 
+        my $symbol = $symbols->[$symbol_id];
         if ( $symbol->[Marpa::Internal::Symbol::TERMINAL] ) {
             Marpa::exception("Attempt to add terminal twice: $name");
         }
@@ -1927,12 +1920,10 @@ sub add_terminal {
             // $default_minimal;
 
         return;
-    } ## end if ( defined $symbol )
+    } ## end if ( defined $symbol_id )
 
-    my $symbol_count = @{$symbols};
     my $new_symbol   = [];
     $#{$new_symbol} = Marpa::Internal::Symbol::LAST_FIELD;
-    $new_symbol->[Marpa::Internal::Symbol::ID]         = $symbol_count;
     $new_symbol->[Marpa::Internal::Symbol::NAME]       = $name;
     $new_symbol->[Marpa::Internal::Symbol::LHS]        = [];
     $new_symbol->[Marpa::Internal::Symbol::RHS]        = [];
@@ -1942,14 +1933,17 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::REGEX]      = $regex;
     $new_symbol->[Marpa::Internal::Symbol::ACTION]     = $action;
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]   = 1;
-    $new_symbol->[Marpa::Internal::Symbol::PRIORITY]   = 0;
     $new_symbol->[Marpa::Internal::Symbol::MAXIMAL]    = $maximal
         // $default_maximal;
     $new_symbol->[Marpa::Internal::Symbol::MINIMAL] = $minimal
         // $default_minimal;
 
+    $symbol_id = @{$symbols};
     push @{$symbols}, $new_symbol;
-    return weaken( $symbol_hash->{$name} = $new_symbol );
+    $new_symbol->[Marpa::Internal::Symbol::ID] = $symbol_id;
+    $symbol_hash->{$name} = $symbol_id;
+    return $new_symbol;
+
 } ## end sub add_terminal
 
 sub assign_symbol {
@@ -1960,19 +1954,24 @@ sub assign_symbol {
     my $default_null_value =
         $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
 
-    my $symbol_count = @{$symbols};
-    my $symbol       = $symbol_hash->{$name};
+    my $symbol;
+    if ( defined( my $symbol_id = $symbol_hash->{$name} ) ) {
+        $symbol = $symbols->[$symbol_id];
+    }
+
     if ( not defined $symbol ) {
         $#{$symbol} = Marpa::Internal::Symbol::LAST_FIELD;
-        $symbol->[Marpa::Internal::Symbol::ID]       = $symbol_count;
         $symbol->[Marpa::Internal::Symbol::NAME]     = $name;
         $symbol->[Marpa::Internal::Symbol::LHS]      = [];
         $symbol->[Marpa::Internal::Symbol::RHS]      = [];
-        $symbol->[Marpa::Internal::Symbol::PRIORITY] = 0;
         $symbol->[Marpa::Internal::Symbol::NULLABLE] = 0;
         $symbol->[Marpa::Internal::Symbol::NULLING]  = 0;
+
+        my $symbol_id = @{$symbols};
         push @{$symbols}, $symbol;
-        weaken( $symbol_hash->{$name} = $symbol );
+        $symbol_hash->{$name} = $symbol->[Marpa::Internal::Symbol::ID] =
+            $symbol_id;
+
     } ## end if ( not defined $symbol )
     return $symbol;
 } ## end sub assign_symbol
@@ -2437,11 +2436,16 @@ sub check_start {
     }
 
     my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
-    my $start       = $symbol_hash->{$start_name};
+    my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
+    my $start_id    = $symbol_hash->{$start_name};
 
-    if ( not defined $start ) {
+    if ( not defined $start_id or not $symbols->[$start_id] ) {
         Marpa::exception( 'Start symbol: ' . $start_name . ' not defined' );
     }
+
+    my $start = $symbols->[$start_id];
+    Marpa::exception( 'Start symbol: ' . $start_name . ' not defined' )
+        if not $start;
 
     my ( $lhs, $rhs, $terminal, $productive ) = @{$start}[
         Marpa::Internal::Symbol::LHS,
@@ -2996,10 +3000,9 @@ sub detect_cycle {
 
 sub create_NFA {
     my $grammar = shift;
-    my ( $rules, $symbols, $symbol_hash, $start, $academic ) = @{$grammar}[
+    my ( $rules, $symbols, $start, $academic ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
         Marpa::Internal::Grammar::SYMBOLS,
-        Marpa::Internal::Grammar::SYMBOL_HASH,
         Marpa::Internal::Grammar::START,
         Marpa::Internal::Grammar::ACADEMIC
     ];
@@ -3260,9 +3263,8 @@ sub assign_QDFA_state_set {
 
 sub create_QDFA {
     my $grammar = shift;
-    my ( $symbols, $symbol_hash, $NFA, $tracing ) = @{$grammar}[
+    my ( $symbols, $NFA, $tracing ) = @{$grammar}[
         Marpa::Internal::Grammar::SYMBOLS,
-        Marpa::Internal::Grammar::SYMBOL_HASH,
         Marpa::Internal::Grammar::NFA,
         Marpa::Internal::Grammar::TRACING,
     ];
@@ -3342,10 +3344,8 @@ sub setup_academic_grammar {
 sub alias_symbol {
     my $grammar         = shift;
     my $nullable_symbol = shift;
-    my ( $symbol, $symbols, ) = @{$grammar}[
-        Marpa::Internal::Grammar::SYMBOL_HASH,
-        Marpa::Internal::Grammar::SYMBOLS,
-    ];
+    my $symbol_hash = $grammar->[ Marpa::Internal::Grammar::SYMBOL_HASH];
+    my $symbols = $grammar->[ Marpa::Internal::Grammar::SYMBOLS];
     my ( $accessible, $productive, $name, $null_value ) = @{$nullable_symbol}[
         Marpa::Internal::Symbol::ACCESSIBLE,
         Marpa::Internal::Symbol::PRODUCTIVE,
@@ -3354,11 +3354,9 @@ sub alias_symbol {
     ];
 
     # create the new, nulling symbol
-    my $symbol_count = @{$symbols};
     my $alias_name = $nullable_symbol->[Marpa::Internal::Symbol::NAME] . '[]';
     my $alias      = [];
     $#{$alias} = Marpa::Internal::Symbol::LAST_FIELD;
-    $alias->[Marpa::Internal::Symbol::ID]         = $symbol_count;
     $alias->[Marpa::Internal::Symbol::NAME]       = $alias_name;
     $alias->[Marpa::Internal::Symbol::LHS]        = [];
     $alias->[Marpa::Internal::Symbol::RHS]        = [];
@@ -3366,15 +3364,17 @@ sub alias_symbol {
     $alias->[Marpa::Internal::Symbol::PRODUCTIVE] = $productive;
     $alias->[Marpa::Internal::Symbol::NULLING]    = 1;
     $alias->[Marpa::Internal::Symbol::NULL_VALUE] = $null_value;
-    $alias->[Marpa::Internal::Symbol::PRIORITY]   = 0;
     $alias->[Marpa::Internal::Symbol::NULLABLE] =
         $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE];
     $alias->[Marpa::Internal::Symbol::MINIMAL] =
         $nullable_symbol->[Marpa::Internal::Symbol::MINIMAL];
     $alias->[Marpa::Internal::Symbol::MAXIMAL] =
         $nullable_symbol->[Marpa::Internal::Symbol::MAXIMAL];
+
+    my $symbol_id = @{$symbols};
     push @{$symbols}, $alias;
-    weaken( $symbol->{$alias_name} = $alias );
+    $alias->[Marpa::Internal::Symbol::ID] = $symbol_hash->{$alias_name} =
+        $symbol_id;
 
     # turn the original symbol into a non-nullable with a reference to the new alias
     @{$nullable_symbol}[

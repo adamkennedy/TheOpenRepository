@@ -95,6 +95,8 @@ use constant EARLEME_MASK => ~(0x7fffffff);
 
 my $parse_number = 0;
 
+# Need to factor out the part which sets the lexers
+# but keep the part which sets up the lexables by state
 sub set_lexers {
 
     my $grammar = shift;
@@ -182,6 +184,14 @@ sub set_lexers {
 
     }    # SYMBOL
 
+    # Pull lookup of terminal flag by symbol ID out of the loop
+    # over the QDFA transitions
+    my @terminal_ids =
+        map  { $_->[Marpa::Internal::Symbol::ID] }
+        grep { $_->[Marpa::Internal::Symbol::TERMINAL] } @{$symbols};
+    my @terminals_by_id;
+    @terminals_by_id[@terminal_ids] = (1) x scalar @terminal_ids;
+
     my @terminals_by_state;
     $#terminals_by_state = $#{$QDFA};
 
@@ -190,8 +200,7 @@ sub set_lexers {
             @{$state}[ Marpa::Internal::QDFA::ID,
             Marpa::Internal::QDFA::TRANSITION, ];
         $terminals_by_state[$id] = [
-            map      { $_->[Marpa::Internal::Symbol::ID] }
-                grep { $_->[Marpa::Internal::Symbol::TERMINAL] }
+                grep { $terminals_by_id[$_] }
                 map  { $symbol_hash->{$_} }
                 keys %{$transition}
         ];
@@ -358,6 +367,18 @@ sub Marpa::Recognizer::new {
 
     return $self;
 } ## end sub Marpa::Recognizer::new
+
+sub Marpa::Recognizer::status {
+    my ($recce) = @_;
+    my $exhausted = $recce->[Marpa::Internal::Recognizer::EXHAUSTED];
+    return if $exhausted;
+    my $current_earleme =
+        $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
+    return ( $current_earleme,
+        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] )
+        if wantarray;
+    return $current_earleme;
+} ## end sub Marpa::Recognizer::status
 
 # Convert Recognizer into string form
 #
@@ -638,15 +659,15 @@ sub Marpa::Recognizer::text {
             say $trace_fh "Match target at $pos: ", $string_to_match;
         } ## end if ( $trace_lex_tries and scalar @{$lexables} )
 
-        LEXABLE: for my $lexable ( @{$lexables} ) {
-            my ($symbol_id) = @{$lexable}[Marpa::Internal::Symbol::ID];
+        LEXABLE: for my $lexable_id ( @{$lexables} ) {
+            my $lexable = $symbols->[$lexable_id];
             if ($trace_lex_tries) {
                 print {$trace_fh} 'Trying to match ',
                     $lexable->[Marpa::Internal::Symbol::NAME], " at $pos\n"
                     or Marpa::exception('Could not print to trace file');
             }
 
-            my $lexer      = $lexers->[$symbol_id];
+            my $lexer      = $lexers->[$lexable_id];
             my $lexer_type = ref $lexer;
             Marpa::exception('Illegal type for lexer: undefined')
                 if not defined $lexer_type;
@@ -669,7 +690,7 @@ sub Marpa::Recognizer::text {
                     Marpa::exception(
                         'Internal error, zero length token -- this is a Marpa bug'
                     ) if not $length;
-                    push @alternatives, [ $lexable, $match, $length ];
+                    push @alternatives, [ $lexable_id, $match, $length ];
                     if ($trace_lex_matches) {
                         print {$trace_fh}
                             'Matched regex for ',
@@ -701,7 +722,7 @@ sub Marpa::Recognizer::text {
 
             $length //= length $match;
 
-            push @alternatives, [ $lexable, $match, $length ];
+            push @alternatives, [ $lexable_id, $match, $length ];
             if ($trace_lex_matches) {
                 print {$trace_fh}
                     'Matched Closure for ',
@@ -794,9 +815,6 @@ sub scan_set {
 
     my $parse = shift;
 
-    # Convert values to value refs
-    my @alternatives = map { [ $_->[0], \( $_->[1] ), $_->[2] ] } @_;
-
     my ($earley_set_list, $earley_hash,      $grammar,
         $current_set,     $furthest_earleme, $exhausted,
         )
@@ -810,7 +828,12 @@ sub scan_set {
         ];
     Marpa::exception('Attempt to scan tokens after parsing was exhausted')
         if $exhausted;
+
     my $QDFA = $grammar->[Marpa::Internal::Grammar::QDFA];
+    my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
+
+    # Convert values to value refs and token ids to symbols
+    my @alternatives = map { [ $symbols->[$_->[0]], \( $_->[1] ), $_->[2] ] } @_;
 
     my $earley_set = $earley_set_list->[$current_set];
 
@@ -836,6 +859,8 @@ sub scan_set {
         # Loop through the alternative tokens.
         ALTERNATIVE: for my $alternative (@alternatives) {
             my ( $token, $value_ref, $length ) = @{$alternative};
+
+            Marpa::exception('Invalid token') if not $token;
 
             if ( $length & Marpa::Internal::Recognizer::EARLEME_MASK ) {
                 Marpa::exception(
@@ -1049,11 +1074,6 @@ sub complete_set {
     return 1 if not wantarray;
 
     my $lexables = [
-        sort {
-            $a->[Marpa::Internal::Symbol::PRIORITY]
-                <=> $b->[Marpa::Internal::Symbol::PRIORITY]
-            }
-            map { $symbols->[$_] }
             grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
     ];
     return ( $current_earleme, $lexables );
