@@ -544,9 +544,9 @@ sub Marpa::Recognizer::earleme {
         return;
     } ## end if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME...])
 
-    ( ( my $current_earleme ),
-        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] )
-        = Marpa::Internal::Recognizer::complete_set($recce);
+    (   ( my $current_earleme ),
+        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES]
+    ) = Marpa::Internal::Recognizer::complete_set($recce);
 
     return ( $current_earleme,
         $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] )
@@ -728,7 +728,6 @@ sub Marpa::Recognizer::text {
         ) = complete_set($recce);
 
     }    # POS
-
 
     return
           $active              ? Marpa::Recognizer::PARSING_STILL_ACTIVE
@@ -942,10 +941,8 @@ sub scan_set {
 sub complete_set {
     my $parse = shift;
 
-    my ($earley_set_list, $earley_hash,      $grammar,
-        $current_earleme,     $furthest_earleme, $exhausted,
-        $terminals_by_state
-        )
+    my ( $earley_set_list, $earley_hash, $grammar, $current_earleme,
+        $furthest_earleme, $exhausted, $terminals_by_state )
         = @{$parse}[
         Marpa::Internal::Recognizer::EARLEY_SETS,
         Marpa::Internal::Recognizer::EARLEY_HASH,

@@ -1495,7 +1495,7 @@ is_file($_, 'author.t/equation_show_earley_sets.out');
 
 =end Marpa::Test::Display:
 
-    Current Earley Set: 4; Furthest: 3
+    Current Earley Set: 5; Furthest: 3
     Earley Set 0
     S0@0-0
     S1@0-0

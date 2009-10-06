@@ -268,7 +268,8 @@ EOS
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
 
-my @set = ( <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3', <<'END_OF_SET4' );
+my @set = (
+    <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3', <<'END_OF_SET4', );
 Earley Set 0
 S0@0-0
 S1@0-0
@@ -313,30 +314,31 @@ S9@0-4 [p=S3@0-1; c=S10@1-4]
 S2@0-4 [p=S0@0-0; c=S9@0-4]
 END_OF_SET4
 
-EARLEME: for my $earleme (0 .. 5) {
-    my $furthest = List::Util::min($earleme, 4);
+my $input_length = 4;
+EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
+    my $furthest = List::Util::min( $earleme, $input_length );
     Marpa::Test::is(
         $recce->show_earley_sets(1),
-        "Current Earley Set: $earleme; Furthest: $furthest\n" .
-        join("", @set[0 .. $furthest]),
+        "Current Earley Set: $earleme; Furthest: $furthest\n"
+            . join( q{}, @set[ 0 .. $furthest ] ),
         'Aycock/Horspool Parse Status at 0'
     );
     given ($earleme) {
-        when (4) {
+        when ($input_length) {
             $recce->end_input();
         }
-        when (5) {break}
+        when ( $input_length + 1 ) {break}
         default {
             my $a = $grammar->get_symbol('a');
             $recce->earleme( [ $a, 'a', 1 ] )
                 or Marpa::exception('Parsing exhausted');
         }
     } ## end given
-}
+} ## end for my $earleme ( 0 .. $input_length + 1 )
 
 my @expected = ( q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)] );
 
-for my $i ( 0 .. 4 ) {
+for my $i ( 0 .. $input_length ) {
     my $evaler = Marpa::Evaluator->new(
         {   recce => $recce,
             end   => $i,
@@ -346,7 +348,7 @@ for my $i ( 0 .. 4 ) {
     my $result = $evaler->value();
     Test::More::is( ${$result}, $expected[$i], "parse permutation $i" );
 
-} ## end for my $i ( 0 .. 4 )
+} ## end for my $i ( 0 .. $input_length )
 
 # Local Variables:
 #   mode: cperl
