@@ -347,6 +347,10 @@ sub Marpa::Recognizer::new {
     $self->[Marpa::Internal::Recognizer::GRAMMAR]     = $grammar;
     $self->[Marpa::Internal::Recognizer::EARLEY_SETS] = [$earley_set];
 
+    (   ( my $current_earleme ),
+        $self->[Marpa::Internal::Recognizer::CURRENT_LEXABLES]
+    ) = complete_set($self);
+
     return $self;
 } ## end sub Marpa::Recognizer::new
 
@@ -523,27 +527,31 @@ sub Marpa::Recognizer::earleme {
 ## use critic
 
     # check class of parse?
-    my $parse = shift;
+    my $recce = shift;
 
-    my $grammar = $parse->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
     if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
         Marpa::exception('New earlemes not allowed after end of input');
     }
 
-    # lexables not checked -- don't use prediction here
-    # maybe add this as an option?
-    my ( $current_earleme, $lexables ) =
-        Marpa::Internal::Recognizer::complete_set($parse);
-    Marpa::Internal::Recognizer::scan_set( $parse, @_ );
+    Marpa::Internal::Recognizer::scan_set( $recce, @_ );
 
-    if ( ++$parse->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
-        > $parse->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] )
+    if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
+        > $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] )
     {
-        $parse->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
-    }
+        $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
+        return;
+    } ## end if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME...])
 
-    return 1;
+    ( ( my $current_earleme ),
+        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] )
+        = Marpa::Internal::Recognizer::complete_set($recce);
+
+    return ( $current_earleme,
+        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] )
+        if wantarray;
+    return $current_earleme;
 } ## end sub Marpa::Recognizer::earleme
 
 # This goes into the lexer
@@ -614,9 +622,7 @@ sub Marpa::Recognizer::text {
         # lexical position will correspond.  Be careful that Marpa
         # imposes no such requirement, however.
 
-        my $current_set;
-        ( $current_set, $lexables ) = complete_set($recce);
-        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] = $lexables;
+        $lexables = $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES];
 
         if ( $trace_lex_tries and scalar @{$lexables} ) {
             ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
@@ -706,19 +712,23 @@ sub Marpa::Recognizer::text {
         scan_set( $recce, @alternatives );
 
         my $exhausted = 0;
+        $pos++;
         if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
             > $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] )
         {
-            $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = $exhausted = 1;
-        }
+            $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] = undef;
+            $recce->[Marpa::Internal::Recognizer::EXHAUSTED]        = 1;
+            last POS;
+        } ## end if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME...])
 
-        $pos++;
-
-        last POS if $exhausted;
+        # Can I use the current earleme to skip ahead here?
+        my $current_earleme;
+        (   $current_earleme,
+            $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES]
+        ) = complete_set($recce);
 
     }    # POS
 
-    $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] = $lexables;
 
     return
           $active              ? Marpa::Recognizer::PARSING_STILL_ACTIVE
@@ -741,13 +751,13 @@ sub Marpa::Recognizer::end_input {
     my $furthest_earleme =
         $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
 
-    my $current_earleme =
-        $self->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
-    while ( $current_earleme <= $furthest_earleme ) {
+    while ( ++$self->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
+        <= $furthest_earleme )
+    {
         Marpa::Internal::Recognizer::complete_set($self);
-        $current_earleme =
-            ++$self->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
     }
+
+    $self->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] = undef;
 
     if ( $grammar->[Marpa::Internal::Grammar::STRIP] ) {
 
@@ -933,7 +943,7 @@ sub complete_set {
     my $parse = shift;
 
     my ($earley_set_list, $earley_hash,      $grammar,
-        $current_set,     $furthest_earleme, $exhausted,
+        $current_earleme,     $furthest_earleme, $exhausted,
         $terminals_by_state
         )
         = @{$parse}[
@@ -949,8 +959,10 @@ sub complete_set {
         'Attempt to complete another earley set after parsing was exhausted')
         if $exhausted;
 
-    $earley_set_list->[$current_set] //= [];
-    my $earley_set = $earley_set_list->[$current_set];
+    ### complete set() called, current earleme: $current_earleme
+
+    $earley_set_list->[$current_earleme] //= [];
+    my $earley_set = $earley_set_list->[$current_earleme];
 
     my ( $QDFA, $symbols, $tracing ) = @{$grammar}[
         Marpa::Internal::Grammar::QDFA,
@@ -978,7 +990,7 @@ sub complete_set {
             $lexable_seen->[$lexable] = 1;
         }
 
-        next EARLEY_ITEM if $current_set == $parent;
+        next EARLEY_ITEM if $current_earleme == $parent;
 
         COMPLETE_RULE:
         for my $complete_symbol_name (
@@ -999,14 +1011,14 @@ sub complete_set {
                 TRANSITION_STATE: for my $transition_state ( @{$states} ) {
                     my $reset = $transition_state
                         ->[Marpa::Internal::QDFA::RESET_ORIGIN];
-                    my $origin = $reset ? $current_set : $grandparent;
+                    my $origin = $reset ? $current_earleme : $grandparent;
                     my $transition_state_id =
                         $transition_state->[Marpa::Internal::QDFA::ID];
                     my $name = sprintf
                         ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
                         'S%d@%d-%d',
                         ## use critic
-                        $transition_state_id, $origin, $current_set;
+                        $transition_state_id, $origin, $current_earleme;
                     my $target_item = $earley_hash->{$name};
                     if ( not defined $target_item ) {
                         $target_item = [];
@@ -1020,7 +1032,7 @@ sub complete_set {
                             ]
                             = (
                             $name, $transition_state, $origin, [], [],
-                            $current_set,
+                            $current_earleme,
                             );
                         $earley_hash->{$name} = $target_item;
                         push @{$earley_set}, $target_item;
@@ -1052,7 +1064,7 @@ sub complete_set {
             map { $symbols->[$_] }
             grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
     ];
-    return ( $current_set, $lexables );
+    return ( $current_earleme, $lexables );
 
 }    # sub complete_set
 

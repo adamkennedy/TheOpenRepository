@@ -268,31 +268,21 @@ EOS
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
 
-my $set0_new = <<'EOS';
+my @set = ( <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3', <<'END_OF_SET4' );
 Earley Set 0
 S0@0-0
 S1@0-0
-EOS
-
-my $set1_at_0 = <<'EOS';
+END_OF_SET0
 Earley Set 1
 S7@0-1 [p=S1@0-0; s=a; t=\'a']
-EOS
-
-my $set1_at_1 = <<'EOS';
 S3@0-1 [p=S1@0-0; c=S7@0-1]
 S4@1-1
 S2@0-1 [p=S0@0-0; c=S3@0-1] [p=S0@0-0; c=S5@0-1]
 S5@0-1 [p=S1@0-0; c=S3@0-1] [p=S1@0-0; c=S6@0-1]
 S6@0-1 [p=S1@0-0; c=S3@0-1]
-EOS
-
-my $set2_at_1 = <<'EOS';
+END_OF_SET1
 Earley Set 2
 S7@1-2 [p=S4@1-1; s=a; t=\'a']
-EOS
-
-my $set2_at_2 = <<'EOS';
 S8@0-2 [p=S3@0-1; c=S7@1-2]
 S11@1-2 [p=S4@1-1; c=S7@1-2]
 S12@2-2
@@ -302,14 +292,9 @@ S10@0-2 [p=S3@0-1; c=S11@1-2]
 S6@1-2 [p=S4@1-1; c=S11@1-2]
 S5@0-2 [p=S1@0-0; c=S6@0-2] [p=S1@0-0; c=S10@0-2]
 S2@0-2 [p=S0@0-0; c=S9@0-2] [p=S0@0-0; c=S5@0-2]
-EOS
-
-my $set3_at_2 = <<'EOS';
+END_OF_SET2
 Earley Set 3
 S7@2-3 [p=S12@2-2; s=a; t=\'a']
-EOS
-
-my $set3_at_3 = <<'EOS';
 S8@1-3 [p=S11@1-2; c=S7@2-3]
 S13@2-3 [p=S12@2-2; c=S7@2-3]
 S14@3-3
@@ -319,73 +304,35 @@ S10@1-3 [p=S11@1-2; c=S13@2-3]
 S5@0-3 [p=S1@0-0; c=S10@0-3]
 S9@0-3 [p=S3@0-1; c=S6@1-3] [p=S3@0-1; c=S10@1-3]
 S2@0-3 [p=S0@0-0; c=S5@0-3] [p=S0@0-0; c=S9@0-3]
-EOS
-
-my $set4_at_3 = <<'EOS';
+END_OF_SET3
 Earley Set 4
 S7@3-4 [p=S14@3-3; s=a; t=\'a']
-EOS
-
-my $set4_at_4 = <<'EOS';
 S8@2-4 [p=S13@2-3; c=S7@3-4]
 S10@1-4 [p=S11@1-2; c=S8@2-4]
 S9@0-4 [p=S3@0-1; c=S10@1-4]
 S2@0-4 [p=S0@0-0; c=S9@0-4]
-EOS
+END_OF_SET4
 
-my $sets_new  = $set0_new;
-my $sets_at_0 = $sets_new . $set1_at_0;
-my $sets_at_1 = $sets_at_0 . $set1_at_1 . $set2_at_1;
-my $sets_at_2 = $sets_at_1 . $set2_at_2 . $set3_at_2;
-my $sets_at_3 = $sets_at_2 . $set3_at_3 . $set4_at_3;
-my $sets_at_4 = $sets_at_3 . $set4_at_4;
-
-Marpa::Test::is(
-    $recce->show_earley_sets(1),
-    "Current Earley Set: 0; Furthest: 0\n" . $sets_new,
-    'Aycock/Horspool Parse Status before parse'
-);
-
-my $a = $grammar->get_symbol('a');
-$recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
-
-Marpa::Test::is(
-    $recce->show_earley_sets(1),
-    "Current Earley Set: 1; Furthest: 1\n" . $sets_at_0,
-    'Aycock/Horspool Parse Status at 0'
-);
-
-$recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
-
-Marpa::Test::is(
-    $recce->show_earley_sets(1),
-    "Current Earley Set: 2; Furthest: 2\n" . $sets_at_1,
-    'Aycock/Horspool Parse Status at 1'
-);
-
-$recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
-
-Marpa::Test::is(
-    $recce->show_earley_sets(1),
-    "Current Earley Set: 3; Furthest: 3\n" . $sets_at_2,
-    'Aycock/Horspool Parse Status at 2'
-);
-
-$recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
-
-Marpa::Test::is(
-    $recce->show_earley_sets(1),
-    "Current Earley Set: 4; Furthest: 4\n" . $sets_at_3,
-    'Aycock/Horspool Parse Status at 3'
-);
-
-$recce->end_input();
-
-Marpa::Test::is(
-    $recce->show_earley_sets(1),
-    "Current Earley Set: 5; Furthest: 4\n" . $sets_at_4,
-    'Aycock/Horspool Parse Status at 4'
-);
+EARLEME: for my $earleme (0 .. 5) {
+    my $furthest = List::Util::min($earleme, 4);
+    Marpa::Test::is(
+        $recce->show_earley_sets(1),
+        "Current Earley Set: $earleme; Furthest: $furthest\n" .
+        join("", @set[0 .. $furthest]),
+        'Aycock/Horspool Parse Status at 0'
+    );
+    given ($earleme) {
+        when (4) {
+            $recce->end_input();
+        }
+        when (5) {break}
+        default {
+            my $a = $grammar->get_symbol('a');
+            $recce->earleme( [ $a, 'a', 1 ] )
+                or Marpa::exception('Parsing exhausted');
+        }
+    } ## end given
+}
 
 my @expected = ( q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)] );
 
