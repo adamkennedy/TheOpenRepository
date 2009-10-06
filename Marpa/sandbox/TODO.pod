@@ -129,6 +129,22 @@ Just abend with an error message.
 
 =over 4
 
+=item * bin/mdl in parsing equation.marpa
+(which is used
+for many examples in the author.t/Makefile) takes a final return
+and parses past it, but does not fail.
+
+The return is NOT
+in the grammar.
+What happens is that the call to ::text() is
+not recognized as a failure, and then the evaluator
+looks at the last successful parse.
+
+What to do here?  It should be failing, probably.
+And does the current behavior of the evaluator,
+(taking the default end as FURTHEST_EARLEME) set
+the user up for spurious successes.
+
 =item * Add a SYNOPSIS to the Plumbing document.
 
 =item * When rereading Internals doc, check if

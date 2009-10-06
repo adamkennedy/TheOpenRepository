@@ -47,8 +47,13 @@ use Marpa::Offset qw(
 
     =LAST_EVALUATOR_FIELD
 
-    { These are to be moved into the new lexer }
+    { This is to be moved into the new lexer }
     LEXERS
+
+    { This is to be renamed to CURRENT_TERMINALS
+      and stays here?  Need way routine to give
+      user access to this value.
+      }
     CURRENT_LEXABLES
 
     EARLEY_HASH
@@ -610,7 +615,7 @@ sub Marpa::Recognizer::text {
 
     $input_length //= length ${$input_ref};
 
-    my $active = 1;
+    my $exhausted = 0;
     my $pos    = 0;
     my $lexables;
 
@@ -709,30 +714,20 @@ sub Marpa::Recognizer::text {
 
         }    # LEXABLE
 
-        scan_set( $recce, @alternatives );
-
-        my $exhausted = 0;
         $pos++;
-        if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME]
-            > $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] )
+        if (not Marpa::Recognizer::earleme($recce, @alternatives ))
         {
             $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] = undef;
-            $recce->[Marpa::Internal::Recognizer::EXHAUSTED]        = 1;
+            $exhausted = 1;
             last POS;
-        } ## end if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME...])
-
-        # Can I use the current earleme to skip ahead here?
-        my $current_earleme;
-        (   $current_earleme,
-            $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES]
-        ) = complete_set($recce);
+        }
 
     }    # POS
 
     return
-          $active              ? Marpa::Recognizer::PARSING_STILL_ACTIVE
+          $exhausted           ? Marpa::Recognizer::PARSING_EXHAUSTED
         : $pos < $input_length ? $pos
-        :                        Marpa::Recognizer::PARSING_EXHAUSTED;
+        :                        Marpa::Recognizer::PARSING_STILL_ACTIVE;
 
 }    # sub text
 
