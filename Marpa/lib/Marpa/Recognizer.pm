@@ -368,6 +368,12 @@ sub Marpa::Recognizer::new {
     return $self;
 } ## end sub Marpa::Recognizer::new
 
+sub Marpa::Recognizer::get_symbol {
+    my ($recce, $name) = @_;
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    return $grammar->get_symbol($name);
+}
+
 sub Marpa::Recognizer::status {
     my ($recce) = @_;
     my $exhausted = $recce->[Marpa::Internal::Recognizer::EXHAUSTED];

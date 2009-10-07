@@ -26,11 +26,12 @@ use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
 
-use Test::More tests => 2;
+use Test::More tests => 3;
 use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDLex');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -52,7 +53,6 @@ sub preposition       { return "pr($_[0])" }
 my $grammar = Marpa::Grammar->new(
     {   start              => 'sentence',
         strip              => 0,
-        default_lex_prefix => '\s+|\A',
         actions            => 'main',
         rules              => [
             [ 'sentence', [qw(subject verb adjunct)], 'sva_sentence' ],
@@ -67,14 +67,6 @@ my $grammar = Marpa::Grammar->new(
             [ 'article',     [qw(article_lex)] ],
             [ 'preposition', [qw(preposition_lex)] ],
         ],
-        terminals => [
-            [ preposition_lex => { regex => qr/like/xms } ],
-            [ verb_lex        => { regex => qr/like|flies/xms } ],
-            [   adjective_noun_lex =>
-                    { regex => qr/fruit|banana|time|arrow|flies/xms }
-            ],
-            [ article_lex => { regex => qr/a\b|an/xms } ],
-        ]
     }
 );
 
@@ -89,7 +81,23 @@ my $actual = q{};
 for my $data ( 'time flies like an arrow.', 'fruit flies like a banana.' ) {
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-    my $fail_offset = $recce->text($data);
+    Carp::croak('Failed to create recognizer') if not $recce;
+
+    my $lexer = Marpa::MDLex->new(
+        {   recognizer     => $recce,
+            default_prefix => '\s+|\A',
+            terminals      => [
+                { name => 'preposition_lex', regex => 'like' },
+                { name => 'verb_lex',        regex => 'like|flies' },
+                {   name  => 'adjective_noun_lex',
+                    regex => 'fruit|banana|time|arrow|flies'
+                },
+                { name => 'article_lex', regex => 'a\b|an' }
+            ]
+        }
+    );
+
+    my $fail_offset = $lexer->text($data);
     if ( $fail_offset >= 0 ) {
         Carp::croak("Parse failed at offset $fail_offset");
     }
