@@ -279,17 +279,15 @@ sub add_user_terminals {
             next TERMINAL;
         } ## end if ( defined $terminal_lexer )
 
-        if (defined $prefix) {
-            $terminal->[Marpa::MDLex::Internal::Terminal::LEXER] = qr{
-                \G
-                (?<mArPa_prefix>$prefix)
-                (?<mArPa_match>$regex)
-            }xms;
-            next TERMINAL;
+        if ( q{} =~ $regex ) {
+            Carp::croak( 'Attempt to add nullable terminal: ',
+                $terminal->[Marpa::MDLex::Internal::Terminal::NAME] );
         }
 
+        $prefix ||= q{};
         $terminal->[Marpa::MDLex::Internal::Terminal::LEXER] = qr{
             \G
+            (?<mArPa_prefix>$prefix)
             (?<mArPa_match>$regex)
         }xms;
 
