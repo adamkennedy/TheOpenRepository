@@ -5,7 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 22;
 
 use lib 'lib';
 use t::lib::Marpa::Test;
@@ -15,6 +15,7 @@ use English qw( -no_match_vars );
 
 BEGIN {
     Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDLex');
 }
 
 my @uncompiled_features = qw(
@@ -152,7 +153,7 @@ sub canonical {
             Marpa [:][:] Internal [:][:] Recognizer [:][:]
             [EP] _ [0-9a-fA-F]+ [;] $
         }{package Marpa::<PACKAGE>;}xms;
-    $template =~ s{ \s* at \s  t[/]code_diag[.]t \s line \s \d+}{}gxms;
+    $template =~ s{ \s* at \s (\S*[/]|)code_diag[.]t \s line \s \d+}{}gxms;
     $template =~ s/[<]WHERE[>]/$where/xmsg;
     $template =~ s/[<]LONG_WHERE[>]/$long_where/xmsg;
     $template =~ s{ \s [<]DATA[>] \s line \s \d+
@@ -209,20 +210,26 @@ sub run_test {
                 [ 'optional_trailer2', [], $null_action ],
                 [ 'trailer',           [qw/Text/], ],
             ],
-            terminals => [
-                [ 'Number' => { regex  => qr/\d+/xms } ],
-                [ 'Op'     => { regex  => qr/[-+*]/xms } ],
-                [ 'Text'   => { action => 'lex_q_quote' } ],
-            ],
             default_action     => $default_action,
-            default_lex_prefix => '\s*',
             default_null_value => $default_null_value,
+            terminals => [qw(Number Op Text)],
         }
     );
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-    my $fail_offset = $recce->text('2 - 0 * 3 + 1 q{trailer}');
+    my $lexer = Marpa::MDLex->new(
+        {   recce     => $recce,
+            default_prefix => '\s*',
+            terminals => [
+                [ 'Number', '\d+' ],
+                [ 'Op',     '[-+*]' ],
+                { name => 'Text', builtin => 'q_quote' },
+            ],
+        }
+    );
+
+    my $fail_offset = $lexer->text('2 - 0 * 3 + 1 q{trailer}');
     if ( $fail_offset >= 0 ) {
         Marpa::exception("Parse failed at offset $fail_offset");
     }
@@ -231,6 +238,7 @@ sub run_test {
 
     my $expected = '((2-(0*(3+1)))==2; q{trailer};[default null];[null])';
     my $evaler   = Marpa::Evaluator->new( { recce => $recce } );
+    Carp::croak('Parse failed') if not defined $evaler;
     my $value    = $evaler->value();
     Marpa::Test::is( ${$value}, $expected, 'Ambiguous Equation Value' );
 

@@ -8,13 +8,14 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 13;
 
 use lib 'lib';
 use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDLex');
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -98,16 +99,19 @@ my $grammar = Marpa::Grammar->new(
                 action => 'number'
             },
         ],
-        terminals => [
-            [ 'Number'     => { regex => qr/\d+/xms } ],
-            [ 'Minus'      => { regex => qr/[-]/xms } ],
-            [ 'MinusMinus' => { regex => qr/[-][-]/xms } ],
-        ],
+        terminals => [qw( Number Minus MinusMinus )],
         default_action => 'default_action',
     }
 );
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+
+my $lexer = Marpa::MDLex->new( { recognizer=>$recce, 
+        terminals => [
+            [ 'Number',  '\d+' ],
+            [ 'Minus'  ,   '[-]' ],
+            [ 'MinusMinus',  '[-][-]' ],
+        ]});
 
 Marpa::Test::is( $grammar->show_rules,
     <<'END_RULES', 'Minuses Equation Rules' );
@@ -177,7 +181,7 @@ my @expected_values = (
 
 # test multiple text calls
 for my $string_piece ( '6', '-----', '1' ) {
-    my $fail_offset = $recce->text($string_piece);
+    my $fail_offset = $lexer->text($string_piece);
     if ( $fail_offset >= 0 ) {
         Marpa::exception("Parse failed at offset $fail_offset");
     }

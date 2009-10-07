@@ -101,6 +101,7 @@ sub set {
             trace_matches
             ambiguous
             default_prefix
+            recce
             recognizer
             terminals
     );
@@ -108,6 +109,13 @@ sub set {
     {
         Carp::croak("Unknown option(s) to Marpa::MDLex::new: ", join q{ }, @bad_options);
     }
+
+    if ( defined $args->{recce} ) {
+        Carp::croak(
+            'recce and recognizer args both passed to Marpa::MDLex::new: use one or the other'
+        ) if defined $args->{recognizer};
+        $args->{recognizer} = $args->{recce};
+    } ## end if ( defined $args->{recce} )
 
     if ( my $value = $args->{trace_file_handle} ) {
         $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_FILE_HANDLE] = $value;
@@ -179,9 +187,6 @@ sub add_user_terminals {
 
     TERMINAL: for my $options ( @{$terminals} ) {
 
-        Carp::croak('Terminal description must be hash')
-            if ref $options ne 'HASH';
-
         my $terminal = [];
         $#{$terminal} = Marpa::MDLex::Internal::Terminal::LAST_FIELD;
 
@@ -191,20 +196,33 @@ sub add_user_terminals {
         my $name;
         my $priority = 0;
 
-        while ( my ( $key, $value ) = each %{$options} ) {
-            given ($key) {
-                when ('priority') { $priority = $value; }
-                when ('prefix')   { $prefix   = $value; }
-                when ('regex')    { $regex    = $value; }
-                when ('builtin')  { $builtin  = $value; }
-                when ('name')     { $name     = $value; }
-                default {
-                    Marpa::exception(
-                        "Attempt to add terminal named $name with unknown option $key"
-                    );
-                }
-            } ## end given
-        } ## end while ( my ( $key, $value ) = each %{$options} )
+        given ( ref $options ) {
+            when ('HASH') {
+                while ( my ( $key, $value ) = each %{$options} ) {
+                    given ($key) {
+                        when ('priority') { $priority = $value; }
+                        when ('prefix')   { $prefix   = $value; }
+                        when ('regex')    { $regex    = $value; }
+                        when ('builtin')  { $builtin  = $value; }
+                        when ('name')     { $name     = $value; }
+                        default {
+                            Marpa::exception(
+                                "Attempt to add terminal named $name with unknown option $key"
+                            );
+                        }
+                    } ## end given
+                } ## end while ( my ( $key, $value ) = each %{$options} )
+            } ## end when ('HASH')
+            when ('ARRAY') {
+                ( $name, $regex, $priority ) = @{$options};
+            }
+            default {
+                Carp::croak(
+                    'Terminal description must be ref to array or hash')
+            }
+        } ## end given
+
+        $priority ||= 0;
 
         Carp::croak('Terminal must have name') if not defined $name;
         my $cookie = $recce->get_symbol($name);
@@ -261,9 +279,17 @@ sub add_user_terminals {
             next TERMINAL;
         } ## end if ( defined $terminal_lexer )
 
+        if (defined $prefix) {
+            $terminal->[Marpa::MDLex::Internal::Terminal::LEXER] = qr{
+                \G
+                (?<mArPa_prefix>$prefix)
+                (?<mArPa_match>$regex)
+            }xms;
+            next TERMINAL;
+        }
+
         $terminal->[Marpa::MDLex::Internal::Terminal::LEXER] = qr{
             \G
-            (?<mArPa_prefix>$prefix)
             (?<mArPa_match>$regex)
         }xms;
 
@@ -418,7 +444,7 @@ sub Marpa::MDLex::text {
             if ($trace_matches) {
                 print {$trace_fh}
                     'Matched Closure for ',
-                    $lexable->[Marpa::MDLex::Internal::Terminal::NAME],
+                    $terminal->[Marpa::MDLex::Internal::Terminal::NAME],
                     " at $pos: ", $match, "\n"
                     or Marpa::exception('Could not print to trace file');
             } ## end if ($trace_matches)

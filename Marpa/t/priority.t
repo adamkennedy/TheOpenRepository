@@ -10,11 +10,12 @@ use warnings;
 
 use lib 'lib';
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDLex');
 }
 
 sub str100 { return 100 }
@@ -36,20 +37,26 @@ my $g = Marpa::Grammar->new(
             [ 'S', ['P100'], 'main::str100', 100 ],
         ],
         ## use critic
-        terminals => [
-            [ 'P200' => { regex => qr/a/xms } ],
-            [ 'P400' => { regex => qr/a/xms } ],
-            [ 'P100' => { regex => qr/a/xms } ],
-            [ 'P300' => { regex => qr/a/xms } ],
-        ],
+        terminals => [qw(P100 P200 P300 P400)],
     }
 );
 
 my $recce = Marpa::Recognizer->new( { grammar => $g, } );
 
+my $lexer = Marpa::MDLex->new(
+    {   recce     => $recce,
+        terminals => [
+            [ 'P200', 'a' ],
+            [ 'P400', 'a' ],
+            [ 'P100', 'a' ],
+            [ 'P300', 'a' ],
+        ]
+    }
+);
+
 my @expected = qw(400 300 200 100);
 
-my $fail_offset = $recce->text( \('a') );
+my $fail_offset = $lexer->text( 'a' );
 if ( $fail_offset >= 0 ) {
     Marpa::exception("Parse failed at offset $fail_offset");
 }
