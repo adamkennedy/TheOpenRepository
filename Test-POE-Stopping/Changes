@@ -1,5 +1,10 @@
 Changes for Perl extension Test-POE-Stopping
 
+1.05 Thu  8 Oct 2009
+	- Adding differentiated queue tracking (from vs to vs total)
+	- Adding a copy of the ref refcount to the diagnostics
+	- Adding detection of attempted shutdown within a nested ->call
+
 1.04 Fri 11 Sep 2009
 	- Adding diagnostics on the state of the various sessions
 	- Updated to Module::Install 0.91

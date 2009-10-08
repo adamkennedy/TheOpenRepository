@@ -55,7 +55,7 @@ use POE::API::Peek 1.34 ();
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	require Exporter;
-	$VERSION = '1.04';
+	$VERSION = '1.05';
 	@ISA     = 'Exporter';
 	@EXPORT  = 'poe_stopping';
 }
@@ -101,11 +101,30 @@ sub poe_stopping {
 
 	# The kernel should be running
 	unless ( $api->is_kernel_running ) {
+		Test::More::diag("POE kernel is not running");
 		return fail();
 	}
 
+	# Get the session information
+	my @sessions = map {
+		session_summary($_)
+	} $api->session_list;
+
+	# Check we aren't trying to terminate POE in a nested event
+	my $i      = 0;
+	my $invoke = 0;
+	while ( my @c = caller($i++) ) {
+		if ( $c[3] eq 'POE::Session::_invoke_state' ) {
+			$invoke++;
+		}
+	}
+	unless ( $invoke == 1 ) {
+		my $rv = fail(@sessions);
+		Test::More::diag("Tried to stop within nested events $invoke deep (probably due to using ->call)");
+		return $rv;
+	}
+
 	# There should only be one session left
-	my @sessions = map { session_summary($_) } $api->session_list;
 	my $session  = $sessions[0];
 	unless ( @sessions == 1 ) {
 		return fail(@sessions);
@@ -132,7 +151,7 @@ sub poe_stopping {
 	}
 
 	# There should be no events left for this session
-	if ( $session->{queue} ) {
+	if ( $session->{queue}->{distinct} ) {
 		return fail(@sessions);
 	}
 
@@ -140,6 +159,19 @@ sub poe_stopping {
 	if ( $session->{signals} ) {
 		return fail(@sessions);
 	}
+
+	# There should be no child sessions
+	if ( $session->{children} ) {
+		return fail(@sessions);
+	}
+
+	# There should be no other kernel events left
+	# (other than maybe a stat tick)
+	my $kqueue = scalar grep {
+		$_->{destination}->isa('POE::Kernel')
+		and
+		$_->{event} ne '_stat_tick'
+	} $api->event_queue_dump;
 
 	# All the evidence says that we are stopping
 	Test::Builder->new->ok( 1, 'POE appears to be stopping cleanly' );
@@ -151,26 +183,46 @@ sub session_summary {
 	my $session = shift;
 	my $api     = POE::API::Peek->new;
 	my $current = $api->current_session;
+
+	my @children = $api->get_session_children($session);
+
 	my %signals = eval {
 		$api->signals_watched_by_session($session);
 	};
 	if ( $@ and $@ =~ /^Can\'t use an undefined value as a HASH reference/ ) {
 		%signals = ();
 	}
+
+	my @queue = $api->event_queue_dump;
+	my @to = grep {
+		$_->{destination}->isa('POE::Session')
+		and
+		$_->{destination}->ID == $current->ID
+	} @queue;
+	my @from = grep {
+		$_->{source}->isa('POE::Session')
+		and
+		$_->{source}->ID == $current->ID
+	} @queue;
+	my @distinct = do {
+		my %seen = ();
+		grep { ! $seen{$_}++ } ( @from, @to )
+	};
+
 	my $summary = {
-		id      => $session->ID,
-		alias   => $api->session_alias_count($session),
-		extra   => $api->get_session_extref_count($session),
-		handles => $api->session_handle_count($session),
-		signals => scalar(keys %signals),
-		current => ($current->ID == $session->ID) ? 1 : 0,
-		queue   => scalar grep { ! (
-			$_->{source}->isa('POE::Kernel')
-			and
-			$_->{destination}->isa('POE::Kernel')
-			and
-			$_->{event} eq '_stat_tick'
-		) } $api->event_queue_dump,
+		id       => $session->ID,
+		alias    => $api->session_alias_count($session),
+		refs     => $api->get_session_refcount($session),
+		extra    => $api->get_session_extref_count($session),
+		handles  => $api->session_handle_count($session),
+		signals  => scalar(keys %signals),
+		current  => ($current->ID == $session->ID) ? 1 : 0,
+		children => scalar(@children),
+		queue    => {
+			distinct => scalar(@distinct),
+			from     => scalar(@from),
+			to       => scalar(@to),
+		},
 	};
 	return $summary;
 }
