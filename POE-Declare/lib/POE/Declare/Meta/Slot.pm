@@ -46,7 +46,7 @@ use warnings;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.23_01';
+	$VERSION = '0.24';
 }
 
 use Class::XSAccessor

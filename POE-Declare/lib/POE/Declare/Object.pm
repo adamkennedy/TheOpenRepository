@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.23_01';
+	$VERSION = '0.24';
 }
 
 # Inside-out storage of internal values

@@ -12,6 +12,6 @@ requires      'POE'                 => '1.003';
 test_requires 'Test::More'          => '0.80';
 test_requires 'Test::Exception'     => '0.27';
 test_requires 'Test::NoWarnings'    => '0.084';
-test_requires 'Test::POE::Stopping' => '0.03';
+test_requires 'Test::POE::Stopping' => '1.05';
 
 WriteAll;
