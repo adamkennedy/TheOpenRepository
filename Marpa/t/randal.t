@@ -6,11 +6,12 @@ use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDLex');
 }
 
 my @tests = split /\n/xms, <<'EO_TESTS';
@@ -30,11 +31,14 @@ my $g = Marpa::Grammar->new(
 
 $g->set( { mdl_source => \$source } );
 
+my $lexer_args = $g->lexer_args();
+
 $g->precompute();
 
 TEST: while ( my $test = pop @tests ) {
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
-    $recce->text( \$test );
+    my $lexer = Marpa::MDLex->new( { recce=>$recce, %{$lexer_args} } );
+    $lexer->text( \$test );
     $recce->end_input();
     my $evaler = Marpa::Evaluator->new( { recce => $recce } );
     my @parses;

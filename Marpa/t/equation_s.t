@@ -9,11 +9,12 @@ use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 use Carp;
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDLex');
 }
 
 # The inefficiency (at least some of it) is deliberate.
@@ -44,9 +45,12 @@ my $grammar = Marpa::Grammar->new(
 
 Carp::croak('Failed to create grammar') if not defined $grammar;
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $lexer_args = $grammar->lexer_args();
 
-my $fail_offset = $recce->text('2-0*3+1');
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
+
+my $fail_offset = $lexer->text('2-0*3+1');
 if ( $fail_offset >= 0 ) {
     Marpa::exception("Parse failed at offset $fail_offset");
 }

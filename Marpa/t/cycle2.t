@@ -7,11 +7,12 @@ use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
-use Test::More tests => 4;
+use Test::More tests => 5;
 use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDLex');
 }
 
 my $example_dir = 'example';
@@ -57,14 +58,17 @@ Cycle found involving rule: 3: b -> a
 Cycle found involving rule: 1: a -> b
 EOS
 
+my $lexer_args = $grammar->lexer_args();
+
 my $recce = Marpa::Recognizer->new(
     {   grammar           => $grammar,
         trace_file_handle => *STDERR,
     }
 );
 
+my $lexer         = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
 my $text          = 'a';
-my $fail_location = $recce->text( \$text );
+my $fail_location = $lexer->text( \$text );
 if ( $fail_location >= 0 ) {
     Marpa::exception(
         Marpa::show_location( 'Parsing failed', \$text, $fail_location ) );

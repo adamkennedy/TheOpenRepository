@@ -57,6 +57,7 @@ use Data::Dumper;
 use English qw( -no_match_vars );
 use List::Util;
 use Carp;
+use Marpa::MDLex::Internal::Quotes;
 
 sub Marpa::MDLex::new {
     my ( $class, $args ) = @_;

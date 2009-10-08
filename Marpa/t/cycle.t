@@ -7,12 +7,13 @@ use warnings;
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use lib 'lib';
 use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDLex');
 }
 
 ## no critic (Subroutines::RequireArgUnpacking)
@@ -130,9 +131,11 @@ for my $test_data (@test_data) {
             trace_file_handle => $MEMORY,
         }
     );
+    my $lexer_args = $grammar->lexer_args();
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-    my $fail_offset = $recce->text($input);
+    my $lexer = Marpa::MDLex->new( { recce=>$recce, %{$lexer_args} } );
+    my $fail_offset = $lexer->text($input);
     my $result;
     given ($fail_offset) {
         when ( $_ < 0 ) {

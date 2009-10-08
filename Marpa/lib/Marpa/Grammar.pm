@@ -1881,10 +1881,7 @@ sub Marpa::Grammar::lexer_args {
         push @{$terminals}, \%symbol_args;
     } ## end for my $symbol ( @{$symbols} )
 
-    my $d = Data::Dumper->new( [$args], [$arg_variable_name] );
-    $d->Purity(1);
-    $d->Deepcopy(1);
-    return $d->Dump();
+    return $args;
 
 } ## end sub Marpa::Grammar::lexer_args
 

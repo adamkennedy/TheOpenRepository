@@ -16,7 +16,7 @@ use Marpa::Internal;
 use Marpa::Grammar;
 use Marpa::Recognizer;
 use Marpa::Evaluator;
-use Marpa::MDLex::Internal::Quotes;
+use Marpa::MDLex;
 
 # Maybe MDL will be optional someday, but not today
 use Marpa::MDL;
@@ -61,7 +61,7 @@ are because I can't agree with Damian.
 
 An example of a deliberate exception I've made to Damian's guidelines:
 I don't append "_ref" to the name references -- almost every variable
-name in the below is a reference.  This may not be easy code to
+name in this code is a reference.  This may not be easy code to
 read, but I can't believe having 90% of the variable names end in
 "_ref" is going to make it any easier.  As Damian notes, his own
 CPAN modules don't follow his guidelines all that closely.
@@ -127,11 +127,13 @@ sub Marpa::mdl {
         if $ref ne 'HASH';
 
     my $g = Marpa::Grammar->new( { mdl_source => $grammar, %{$options} } );
-    my $recce = Marpa::Recognizer->new(
+    my $lexer_args = $g->lexer_args();
+    my $recce      = Marpa::Recognizer->new(
         {   grammar => $g,
             clone   => 0
         }
     );
+    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
 
     my $failed_at_earleme = $recce->text($text);
     if ( $failed_at_earleme >= 0 ) {
