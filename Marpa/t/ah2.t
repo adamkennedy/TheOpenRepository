@@ -51,7 +51,7 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 0: S -> A A A A /* !useful nullable maximal */
 1: A -> a /* maximal */
 2: A -> E /* !useful nullable maximal */
-3: E -> /* !useful empty nullable maximal */
+3: E -> /* empty !useful nullable maximal */
 4: S -> A S[R0:1][x6] /* maximal vrhs real=1 */
 5: S -> A A[] A[] A[] /* maximal */
 6: S -> A[] S[R0:1][x6] /* maximal vrhs real=1 */
@@ -329,7 +329,7 @@ EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
         }
         when ( $input_length + 1 ) {break}
         default {
-            my $a = $grammar->get_symbol('a');
+            my $a = $grammar->get_terminal('a');
             $recce->earleme( [ $a, 'a', 1 ] )
                 or Marpa::exception('Parsing exhausted');
         }

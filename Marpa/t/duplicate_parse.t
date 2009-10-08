@@ -53,7 +53,7 @@ Marpa::Test::is( $grammar->show_rules,
     <<'END_OF_STRING', 'final nonnulling Rules' );
 0: S -> p p p n /* !useful */
 1: p -> a
-2: p -> /* !useful empty nullable */
+2: p -> /* empty !useful nullable */
 3: n -> a
 4: S -> p p S[R0:2][x5] /* vrhs real=2 */
 5: S -> p p[] S[R0:2][x5] /* vrhs real=2 */
@@ -128,7 +128,7 @@ S14: 4
 n -> a .
 END_OF_STRING
 
-my $a = $grammar->get_symbol('a');
+my $a = $grammar->get_terminal('a');
 
 use constant SPACE => 0x60;
 

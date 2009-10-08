@@ -44,7 +44,7 @@ sub test_grammar {
     Marpa::exception("Exception while creating Recognizer:\n$EVAL_ERROR")
         if not $eval_ok;
     Marpa::exception("Recognizer not created\n") if not $recce;
-    my $a = $grammar->get_symbol('a');
+    my $a = $grammar->get_terminal('a');
 
     my $earleme_result;
     $eval_ok =

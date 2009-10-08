@@ -54,7 +54,7 @@ Marpa::Test::is( $grammar->show_rules,
     <<'END_OF_STRING', 'final nonnulling Rules' );
 0: S -> p p p n /* !useful maximal */
 1: p -> a /* maximal */
-2: p -> /* !useful empty nullable maximal */
+2: p -> /* empty !useful nullable maximal */
 3: n -> a /* maximal */
 4: S -> p p S[R0:2][x5] /* maximal vrhs real=2 */
 5: S -> p p[] S[R0:2][x5] /* maximal vrhs real=2 */
@@ -129,7 +129,7 @@ S14: 4
 n -> a .
 END_OF_STRING
 
-my $a = $grammar->get_symbol('a');
+my $a = $grammar->get_terminal('a');
 
 my @results = qw{NA (-;-;-;a) (a;-;-;a) (a;a;-;a) (a;a;a;a)};
 

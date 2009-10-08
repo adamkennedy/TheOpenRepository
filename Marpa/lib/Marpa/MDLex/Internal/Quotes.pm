@@ -5,6 +5,8 @@ use 5.010;
 use warnings;
 use strict;
 
+use Smart::Comments '-ENV';
+
 # It's all integers, except for the version number
 use integer;
 
@@ -90,11 +92,17 @@ sub lex_q_quote {
 sub lex_regex {
     my $string       = shift;
     my $lexeme_start = shift;
-    my $value_start  = pos ${$string};
+
+    my $string_start = pos ${$string}; # for debugging
+
     my ($left_side) = ( ${$string} =~ m{\G(qr$punct|/)}xmsogc );
+    my $value_start  = pos ${$string};
     return if not defined $left_side;
     my $left_bracket = substr $left_side, -1;
     my $prefix = ( $left_side =~ /^qr/xms ) ? q{} : 'qr';
+
+    ### value starts at: substr(${$string}, $value_start, 10)
+    ### string starts at: substr(${$string}, $string_start, 10)
 
     my $regex_data = $regex_data{$left_bracket};
     if ( not defined $regex_data ) {
@@ -119,14 +127,22 @@ sub lex_regex {
             next MATCH if not defined $1;
             if ( $1 eq $left_bracket ) {
 
+                my $before_options = pos ${$string};
+
                 # also take in trailing options
                 ${$string} =~ /\G[msixpo]*/gxms;
-                my $pos = pos ${$string};
-                my $value =
-                    $prefix
-                    . ( substr ${$string}, $value_start,
-                    $pos - $value_start );
-                return ( $value, $pos - $lexeme_start );
+                my $after_options = pos ${$string};
+
+                my $value = q{"}
+                    . (
+                    quotemeta substr ${$string},
+                    $value_start,
+                    ( $before_options - $value_start ) - 1
+                    ) . q{"};
+
+                ### returning: $value
+
+                return ( $value, $after_options - $lexeme_start );
             } ## end if ( $1 eq $left_bracket )
         } ## end while ( ${$string} =~ /$regex/xmsgc )
         return;
@@ -140,12 +156,22 @@ sub lex_regex {
         if ( $right_bracket eq $1 ) { $depth--; }
         if ( $depth <= 0 ) {
 
+            my $before_options = pos ${$string};
+
             # also take in trailing options
             ${$string} =~ /\G[msixpo]*/gxms;
-            my $pos   = pos ${$string};
-            my $value = $prefix
-                . ( substr ${$string}, $value_start, $pos - $value_start );
-            return ( $value, $pos - $lexeme_start );
+            my $after_options = pos ${$string};
+
+            my $value = q{"}
+                . (
+                quotemeta substr ${$string},
+                $value_start,
+                ( $before_options - $value_start ) - 1
+                ) . q{"};
+
+            ### returning: $value
+
+            return ( $value, $after_options - $lexeme_start );
 
         } ## end if ( $depth <= 0 )
     } ## end while ( ${$string} =~ /$regex/gxms )

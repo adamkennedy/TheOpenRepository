@@ -35,10 +35,10 @@ sub canonical_symbol_name {
     return $symbol;
 }
 
-sub get_symbol {
+sub get_terminal {
     my $grammar     = shift;
     my $symbol_name = shift;
-    return Marpa::Grammar::get_symbol( $grammar,
+    return Marpa::Grammar::get_terminal( $grammar,
         canonical_symbol_name($symbol_name) );
 } ## end sub get_symbol
 
@@ -97,16 +97,16 @@ name.
 It returns the canonical MDL name, which is also
 the symbol's plumbing name.
 
-=head2 get_symbol
+=head2 get_terminal
 
 =begin Marpa::Test::Display:
 
 ## next display
-is_file($_, 'author.t/misc.t', 'get_symbol snippet');
+is_file($_, 'author.t/misc.t', 'get_terminal snippet');
 
 =end Marpa::Test::Display:
 
-    my $op = Marpa::MDL::get_symbol( $grammar, 'Op' );
+    my $op = Marpa::MDL::get_terminal( $grammar, 'Op' );
 
 This static method takes a Marpa grammar object as its first argument and an MDL symbol name as its second.
 It returns the symbol's "cookie".

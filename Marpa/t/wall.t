@@ -91,8 +91,8 @@ for my $n ( 1 .. 12 ) {
 ## use critic
 
     my $recce  = Marpa::Recognizer->new( { grammar => $g } );
-    my $minus  = $g->get_symbol('Minus');
-    my $number = $g->get_symbol('Number');
+    my $minus  = $g->get_terminal('Minus');
+    my $number = $g->get_terminal('Number');
     ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
     $recce->earleme( [ $number, 6, 1 ] );
     ## use critic

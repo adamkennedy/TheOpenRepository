@@ -49,7 +49,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::MDLex;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -225,7 +225,7 @@ sub add_user_terminals {
         $priority ||= 0;
 
         Carp::croak('Terminal must have name') if not defined $name;
-        my $cookie = $recce->get_symbol($name);
+        my $cookie = $recce->get_terminal($name);
         if ( not defined $cookie ) {
             Carp::croak("Terminal '$name' not known to Marpa");
         }

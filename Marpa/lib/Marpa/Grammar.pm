@@ -247,7 +247,7 @@ package Marpa::Internal::Grammar;
 
 use Carp;
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -829,7 +829,6 @@ sub parse_source_grammar {
         'Marpa Internal error: failed to create evaluator for MDL')
         if not defined $evaler;
     my $value = $evaler->value();
-    ### value of mdl grammar: $value
     raw_grammar_eval( $grammar, $value );
     return;
 } ## end sub parse_source_grammar
@@ -1222,7 +1221,7 @@ sub Marpa::Grammar::precompute {
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
         Marpa::exception(
-            Marpa::show_problems($grammar),
+            Marpa::Grammar::show_problems($grammar),
             "Second attempt to precompute grammar with fatal problems\n",
             'Marpa cannot proceed'
         );
@@ -1246,14 +1245,10 @@ sub Marpa::Grammar::precompute {
     if ( not terminals_distinguished($grammar) ) {
         mark_all_symbols_terminal($grammar);
     }
-    else {
-        nulling($grammar);
-        nullable($grammar) or return $grammar;
-        productive($grammar);
-    }
-
+    nulling($grammar);
+    nullable($grammar) or return $grammar;
+    productive($grammar);
     check_start($grammar) or return $grammar;
-
     accessible($grammar);
     if ( $grammar->[Marpa::Internal::Grammar::ACADEMIC] ) {
         setup_academic_grammar($grammar);
@@ -1345,7 +1340,7 @@ sub Marpa::Grammar::stringify {
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
         Marpa::exception(
-            Marpa::show_problems($grammar),
+            Marpa::Grammar::show_problems($grammar),
             "Attempt to stringify grammar with fatal problems\n",
             'Marpa cannot proceed'
         );
@@ -1638,19 +1633,17 @@ sub Marpa::show_rule {
     my ($rule) = @_;
 
     my $stripped = $#{$rule} < Marpa::Internal::Rule::LAST_FIELD;
-    my ( $rhs, $useful ) =
-        @{$rule}[ Marpa::Internal::Rule::RHS, Marpa::Internal::Rule::USEFUL,
-        ];
+    my $rhs = $rule->[Marpa::Internal::Rule::RHS];
     my @comment = ();
 
-    if ( not $useful )    { push @comment, '!useful'; }
     if ( not( @{$rhs} ) ) { push @comment, 'empty'; }
 
     if ($stripped) { push @comment, 'stripped'; }
 
     ELEMENT:
     for my $comment_element (
-        (   [ 1, 'unproductive', Marpa::Internal::Rule::PRODUCTIVE, ],
+        (   [ 1, '!useful',      Marpa::Internal::Rule::USEFUL, ],
+            [ 1, 'unproductive', Marpa::Internal::Rule::PRODUCTIVE, ],
             [ 1, 'inaccessible', Marpa::Internal::Rule::ACCESSIBLE, ],
             [ 0, 'nullable',     Marpa::Internal::Rule::NULLABLE, ],
             [ 0, 'maximal',      Marpa::Internal::Rule::MAXIMAL, ],
@@ -1667,7 +1660,7 @@ sub Marpa::show_rule {
         if ($reverse) { $value = !$value }
         next ELEMENT if not $value;
         push @comment, $comment;
-    } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
+    } ## end for my $comment_element ( ( [ 1, '!useful', ...]))
 
     my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
     if ($priority) {
@@ -1851,11 +1844,63 @@ sub Marpa::Grammar::show_QDFA {
     return $text;
 } ## end sub Marpa::Grammar::show_QDFA
 
-sub Marpa::Grammar::get_symbol {
-    my $grammar     = shift;
-    my $name        = shift;
+sub Marpa::Grammar::lexer_args {
+    my ($grammar, $arg_variable_name) = (@_);
+    state $lexer_builtins = {
+         lex_q_quote => 'q_quote',
+         lex_single_quote => 'single_quote',
+         lex_double_quote => 'double_quote',
+         lex_regex => 'regex',
+    };
+    my $args = {};
+    $args->{ambiguous} = $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX];
+    $args->{trace_tries} =
+        $grammar->[Marpa::Internal::Grammar::TRACE_LEX_TRIES];
+    $args->{trace_matches} =
+        $grammar->[Marpa::Internal::Grammar::TRACE_LEX_MATCHES];
+    $args->{default_prefix} =
+        $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX];
+    $args->{terminals} = my $terminals = [];
+
+    my $symbols =
+        $grammar->[Marpa::Internal::Grammar::SYMBOLS];
+    SYMBOL: for my $symbol ( @{$symbols} ) {
+        next SYMBOL if not $symbol->[Marpa::Internal::Symbol::TERMINAL];
+        my %symbol_args = ();
+        $symbol_args{name}   = $symbol->[Marpa::Internal::Symbol::NAME];
+        my $prefix = $symbol->[Marpa::Internal::Symbol::PREFIX];
+        defined $prefix and $symbol_args{prefix} = $prefix;
+        given ( $symbol->[Marpa::Internal::Symbol::REGEX] ) {
+            when ($lexer_builtins) {
+                $symbol_args{builtin} = $lexer_builtins->{$_};
+            }
+            default {
+                $symbol_args{regex} = $_;
+            }
+        } ## end given
+        push @{$terminals}, \%symbol_args;
+    } ## end for my $symbol ( @{$symbols} )
+
+    my $d = Data::Dumper->new( [$args], [$arg_variable_name] );
+    $d->Purity(1);
+    $d->Deepcopy(1);
+    return $d->Dump();
+
+} ## end sub Marpa::Grammar::lexer_args
+
+sub Marpa::Grammar::get_terminal {
+    my ( $grammar, $name ) = @_;
+    Marpa::exception('Attempt to get cookie for undefined name')
+        if not defined $name;
     my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
-    return defined $symbol_hash ? $symbol_hash->{$name} : undef;
+    my $symbol_id   = $symbol_hash->{$name};
+    Marpa::exception("Attempt to get cookie for unknown symbol: $name")
+        if not defined $symbol_id;
+    my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
+    my $symbol  = $symbols->[$symbol_id];
+    Marpa::exception("Attempt to get cookie for non-terminal: $name")
+        if not $symbol->[Marpa::Internal::Symbol::TERMINAL];
+    return $symbol_id;
 } ## end sub Marpa::Grammar::get_symbol
 
 sub add_terminal {
@@ -1907,8 +1952,6 @@ sub add_terminal {
             Marpa::exception("Attempt to add terminal twice: $name");
         }
 
-        $symbol->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
-        $symbol->[Marpa::Internal::Symbol::NULLING]    = 0;
         $symbol->[Marpa::Internal::Symbol::REGEX]      = $regex;
         $symbol->[Marpa::Internal::Symbol::PREFIX]     = $prefix;
         $symbol->[Marpa::Internal::Symbol::SUFFIX]     = $suffix;
@@ -1927,9 +1970,6 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::NAME]       = $name;
     $new_symbol->[Marpa::Internal::Symbol::LHS]        = [];
     $new_symbol->[Marpa::Internal::Symbol::RHS]        = [];
-    $new_symbol->[Marpa::Internal::Symbol::NULLABLE]   = 0;
-    $new_symbol->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
-    $new_symbol->[Marpa::Internal::Symbol::NULLING]    = 0;
     $new_symbol->[Marpa::Internal::Symbol::REGEX]      = $regex;
     $new_symbol->[Marpa::Internal::Symbol::ACTION]     = $action;
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]   = 1;
@@ -1964,8 +2004,6 @@ sub assign_symbol {
         $symbol->[Marpa::Internal::Symbol::NAME]     = $name;
         $symbol->[Marpa::Internal::Symbol::LHS]      = [];
         $symbol->[Marpa::Internal::Symbol::RHS]      = [];
-        $symbol->[Marpa::Internal::Symbol::NULLABLE] = 0;
-        $symbol->[Marpa::Internal::Symbol::NULLING]  = 0;
 
         my $symbol_id = @{$symbols};
         push @{$symbols}, $symbol;
@@ -2075,13 +2113,13 @@ sub add_rule {
 
     my $new_rule_id = @{$rules};
     my $new_rule    = [];
+    $#{$new_rule} = Marpa::Internal::Rule::LAST_FIELD;
+
     my $nulling     = @{$rhs} ? undef : 1;
 
     $new_rule->[Marpa::Internal::Rule::ID]         = $new_rule_id;
     $new_rule->[Marpa::Internal::Rule::LHS]        = $lhs;
     $new_rule->[Marpa::Internal::Rule::RHS]        = $rhs;
-    $new_rule->[Marpa::Internal::Rule::NULLABLE]   = $nulling;
-    $new_rule->[Marpa::Internal::Rule::PRODUCTIVE] = $nulling;
     $new_rule->[Marpa::Internal::Rule::ACTION]     = $action;
     $new_rule->[Marpa::Internal::Rule::PRIORITY]   = $priority;
     $new_rule->[Marpa::Internal::Rule::MINIMAL]    = $minimal
@@ -2101,19 +2139,12 @@ sub add_rule {
         weaken( $lhs_rules->[ scalar @{$lhs_rules} ] = $new_rule );
     }
 
-    if ($nulling) {
-        $lhs->[Marpa::Internal::Symbol::NULLABLE]   = 1;
-        $lhs->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
-    }
-    else {
-        my $last_symbol = [];
-        SYMBOL: for my $symbol ( sort @{$rhs} ) {
-            next SYMBOL if $symbol == $last_symbol;
-            my $rhs_rules = $symbol->[Marpa::Internal::Symbol::RHS];
-            weaken( $rhs_rules->[ scalar @{$rhs_rules} ] = $new_rule );
-            $last_symbol = $symbol;
-        } ## end for my $symbol ( sort @{$rhs} )
-    } ## end else [ if ($nulling) ]
+    my %symbol_seen = ();
+    SYMBOL: for my $symbol ( sort @{$rhs} ) {
+        next SYMBOL if $symbol_seen{$symbol}++;
+        my $rhs_rules = $symbol->[Marpa::Internal::Symbol::RHS];
+        weaken( $rhs_rules->[ scalar @{$rhs_rules} ] = $new_rule );
+    } ## end for my $symbol ( sort @{$rhs} )
 
     push @{ $rule_hash->{$lhs_name} }, $new_rule_id;
     $new_rule->[Marpa::Internal::Rule::NAME] =
@@ -2522,157 +2553,66 @@ sub accessible {
 } ## end sub accessible
 
 sub productive {
-    my $grammar = shift;
+    my ($grammar) = @_;
 
-    my ( $rules, $symbols ) =
-        @{$grammar}[ Marpa::Internal::Grammar::RULES,
-        Marpa::Internal::Grammar::SYMBOLS ];
+    my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
 
-    # If a symbol's nullability could not be determined, it was unproductive.
-    # All nullable symbols are productive.
+    # All nullable and terminal symbols are productive.
     for my $symbol ( @{$symbols} ) {
-        if ( not defined $_->[Marpa::Internal::Symbol::NULLABLE] ) {
-            $_->[Marpa::Internal::Symbol::PRODUCTIVE] = 0;
-        }
-        if ( $_->[Marpa::Internal::Symbol::NULLABLE] ) {
-            $_->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
-        }
+        $symbol->[Marpa::Internal::Symbol::PRODUCTIVE] = 
+            $symbol->[Marpa::Internal::Symbol::TERMINAL]
+            || $symbol->[Marpa::Internal::Symbol::NULLABLE];
     } ## end for my $symbol ( @{$symbols} )
 
-    # If a rule's nullability could not be determined, it was unproductive.
-    # All nullable rules are productive.
-    for my $rule ( @{$rules} ) {
-        if ( not defined $rule->[Marpa::Internal::Rule::NULLABLE] ) {
-            $_->[Marpa::Internal::Symbol::PRODUCTIVE] = 0;
-        }
-        if ( $rule->[Marpa::Internal::Rule::NULLABLE] ) {
-            $_->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
-        }
+    my @workset;
+    my @potential_productive_symbol_ids =
+        ( map { $_->[Marpa::Internal::Symbol::ID] } @{$symbols} );
+    @workset[@potential_productive_symbol_ids] =
+        (1) x scalar @potential_productive_symbol_ids;
+
+    while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#{$symbols} ) ) {
+        @workset = ();
+        SYMBOL: for my $symbol ( map { $symbols->[$_] } @symbol_ids ) {
+
+            # Look for the first rule with no unproductive symbols
+            # on the RHS.  (It could be an empty rule.)
+            # If there is one, this is a productive symbol.
+            # If there is none, we have not yet shown this
+            # symbol to be productive.
+            next SYMBOL if not defined List::Util::first {
+                not defined List::Util::first {
+                    not $_->[Marpa::Internal::Symbol::PRODUCTIVE];
+                }
+                @{ $_->[Marpa::Internal::Rule::RHS] };
+            } ## end List::Util::first
+            @{ $symbol->[Marpa::Internal::Symbol::LHS] };
+
+            $symbol->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
+            my @potential_new_productive_symbol_ids =
+                map  { $_->[Marpa::Internal::Symbol::ID] }
+                grep { not $_->[Marpa::Internal::Symbol::PRODUCTIVE] }
+                map  { $_->[Marpa::Internal::Rule::LHS] }
+                @{ $symbol->[Marpa::Internal::Symbol::RHS] };
+            @workset[@potential_new_productive_symbol_ids] =
+                (1) x scalar @potential_new_productive_symbol_ids;
+        } ## end for my $symbol ( map { $symbols->[$_] } @symbol_ids )
+    } ## end while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#...))
+
+    # Now that we know productivity for all the symbols,
+    # determine it for the rules.
+    # If the are no unproductive symbols on the RHS of
+    # a rule, then the rule is productive.
+    # The double negative catches the vacuous case:
+    # A rule with an empty RHS is productive.
+    RULE: for my $rule ( @{$rules} ) {
+        next RULE
+            if defined List::Util::first {
+                    not $_->[Marpa::Internal::Symbol::PRODUCTIVE];
+            }
+            @{ $rule->[Marpa::Internal::Rule::RHS] };
+        $rule->[Marpa::Internal::Rule::PRODUCTIVE]++;
     } ## end for my $rule ( @{$rules} )
-
-    my $symbol_work_set = [];
-    $#{$symbol_work_set} = $#{$symbols};
-    my $rule_work_set = [];
-    $#{$rule_work_set} = $#{$rules};
-
-    for my $symbol_id (
-        grep { defined $symbols->[$_]->[Marpa::Internal::Symbol::PRODUCTIVE] }
-        ( 0 .. $#{$symbols} )
-        )
-    {
-        $symbol_work_set->[$symbol_id] = 1;
-    } ## end for my $symbol_id ( grep { defined $symbols->[$_]->[...]})
-    for my $rule_id (
-        grep { defined $rules->[$_]->[Marpa::Internal::Rule::PRODUCTIVE] }
-        ( 0 .. $#{$rules} ) )
-    {
-        $rule_work_set->[$rule_id] = 1;
-    } ## end for my $rule_id ( grep { defined $rules->[$_]->[...]})
-    my $work_to_do = 1;
-
-    while ($work_to_do) {
-        $work_to_do = 0;
-
-        SYMBOL_PASS:
-        for my $symbol_id ( grep { $symbol_work_set->[$_] }
-            ( 0 .. $#{$symbol_work_set} ) )
-        {
-            my $work_symbol = $symbols->[$symbol_id];
-            $symbol_work_set->[$symbol_id] = 0;
-
-            my $rules_producing =
-                $work_symbol->[Marpa::Internal::Symbol::RHS];
-            PRODUCING_RULE: for my $rule ( @{$rules_producing} ) {
-
-                # no work to do -- this rule already has productive status marked
-                next PRODUCING_RULE
-                    if defined $rule->[Marpa::Internal::Rule::PRODUCTIVE];
-
-                # assume productive until we hit an unmarked or unproductive symbol
-                my $rule_productive = 1;
-
-                # are all symbols on the RHS of this rule bottom marked?
-                RHS_SYMBOL:
-                for my $rhs_symbol (
-                    @{ $rule->[Marpa::Internal::Rule::RHS] } )
-                {
-                    my $productive =
-                        $rhs_symbol->[Marpa::Internal::Symbol::PRODUCTIVE];
-
-                    # unmarked symbol, change the assumption for rule to undef,
-                    # but keep scanning for unproductive
-                    # symbol, which will override everything else
-                    if ( not defined $productive ) {
-                        $rule_productive = undef;
-                        next RHS_SYMBOL;
-                    }
-
-                    # any unproductive RHS symbol means the rule is unproductive
-                    if ( $productive == 0 ) {
-                        $rule_productive = 0;
-                        last RHS_SYMBOL;
-                    }
-                } ## end for my $rhs_symbol ( @{ $rule->[...]})
-
-                # if this pass found the rule productive or unproductive, mark the rule
-                if ( defined $rule_productive ) {
-                    $rule->[Marpa::Internal::Rule::PRODUCTIVE] =
-                        $rule_productive;
-                    $work_to_do++;
-                    $rule_work_set->[ $rule->[Marpa::Internal::Rule::ID] ] =
-                        1;
-                } ## end if ( defined $rule_productive )
-
-            } ## end for my $rule ( @{$rules_producing} )
-        }    # SYMBOL_PASS
-
-        RULE:
-        for my $rule_id ( grep { $rule_work_set->[$_] }
-            ( 0 .. $#{$rule_work_set} ) )
-        {
-            my $work_rule = $rules->[$rule_id];
-            $rule_work_set->[$rule_id] = 0;
-            my $lhs_symbol = $work_rule->[Marpa::Internal::Rule::LHS];
-
-            # no work to do -- this symbol already has productive status marked
-            next RULE
-                if defined $lhs_symbol->[Marpa::Internal::Symbol::PRODUCTIVE];
-
-            # assume unproductive until we hit an unmarked or non-nullable symbol
-            my $symbol_productive = 0;
-
-            LHS_RULE:
-            for my $rule ( @{ $lhs_symbol->[Marpa::Internal::Symbol::LHS] } )
-            {
-
-                my $productive = $rule->[Marpa::Internal::Rule::PRODUCTIVE];
-
-                # unmarked symbol, change the assumption for rule to undef, but keep scanning for nullable
-                # rule, which will override everything else
-                if ( not defined $productive ) {
-                    $symbol_productive = undef;
-                    next LHS_RULE;
-                }
-
-                # any productive rule means the LHS is productive
-                if ( $productive == 1 ) {
-                    $symbol_productive = 1;
-                    last LHS_RULE;
-                }
-            } ## end for my $rule ( @{ $lhs_symbol->[...]})
-
-            # if this pass found the symbol productive or unproductive, mark the symbol
-            if ( defined $symbol_productive ) {
-                $lhs_symbol->[Marpa::Internal::Symbol::PRODUCTIVE] =
-                    $symbol_productive;
-                $work_to_do++;
-                $symbol_work_set->[ $lhs_symbol->[Marpa::Internal::Symbol::ID]
-                ] = 1;
-            } ## end if ( defined $symbol_productive )
-
-        }    # RULE
-
-    }    # work_to_do loop
 
     return 1;
 
@@ -2698,15 +2638,7 @@ sub mark_all_symbols_terminal {
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     for my $symbol ( @{$symbols} ) {
         $symbol->[Marpa::Internal::Symbol::TERMINAL]   = 1;
-        $symbol->[Marpa::Internal::Symbol::NULLING]    = 0;
-        $symbol->[Marpa::Internal::Symbol::NULLABLE]   = 0;
-        $symbol->[Marpa::Internal::Symbol::PRODUCTIVE] = 1;
     } ## end for my $symbol ( @{$symbols} )
-    my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
-    for my $rule ( @{$rules} ) {
-        $rule->[Marpa::Internal::Rule::NULLABLE]   = 0;
-        $rule->[Marpa::Internal::Rule::PRODUCTIVE] = 1;
-    }
     return 1;
 } ## end sub mark_all_symbols_terminal
 
@@ -2788,8 +2720,13 @@ sub nullable {
         (1) x scalar @potential_nullable_symbol_ids;
 
     while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#{$symbols} ) ) {
+
+        ### workset size: scalar @workset
+
         @workset = ();
         SYMBOL: for my $symbol ( map { $symbols->[$_] } @symbol_ids ) {
+
+            ### Checking for nullable: $symbol->[Marpa'Internal'Symbol'NAME]
 
             # Terminals can be nullable
 
@@ -2809,17 +2746,23 @@ sub nullable {
                 }
                 @{ $_->[Marpa::Internal::Rule::RHS] }
                 } @{ $symbol->[Marpa::Internal::Symbol::LHS] };
+
             next SYMBOL if not $nullable;
 
             my $old_nullable = $symbol->[Marpa::Internal::Symbol::NULLABLE];
-            if ( $old_nullable and $nullable > $old_nullable ) {
-                my $name = $symbol->[Marpa::Internal::Symbol::NAME];
-                my $problem =
-                    "Symbol $name has ambiguous nullable count: $old_nullable vs. $nullable";
-                push @{ $grammar->[Marpa::Internal::Grammar::PROBLEMS] },
-                    $problem;
+
+            ### nullable, old, proposed: $old_nullable, $nullable
+
+            if ( $old_nullable and $nullable >= $old_nullable ) {
+                if ( $nullable > $old_nullable ) {
+                    my $name = $symbol->[Marpa::Internal::Symbol::NAME];
+                    my $problem =
+                        "Symbol $name has ambiguous nullable count: $old_nullable vs. $nullable";
+                    push @{ $grammar->[Marpa::Internal::Grammar::PROBLEMS] },
+                        $problem;
+                } ## end if ( $nullable > $old_nullable )
                 next SYMBOL;
-            } ## end if ( $old_nullable and $nullable > $old_nullable )
+            } ## end if ( $old_nullable and $nullable >= $old_nullable )
 
             $symbol->[Marpa::Internal::Symbol::NULLABLE] = $nullable;
             my @potential_new_nullable_symbol_ids =
@@ -3364,8 +3307,9 @@ sub alias_symbol {
     $alias->[Marpa::Internal::Symbol::PRODUCTIVE] = $productive;
     $alias->[Marpa::Internal::Symbol::NULLING]    = 1;
     $alias->[Marpa::Internal::Symbol::NULL_VALUE] = $null_value;
-    $alias->[Marpa::Internal::Symbol::NULLABLE] =
-        $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE];
+    $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE] //= 0;
+    $alias->[Marpa::Internal::Symbol::NULLABLE] = List::Util::max(
+        $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE], 1 );
     $alias->[Marpa::Internal::Symbol::MINIMAL] =
         $nullable_symbol->[Marpa::Internal::Symbol::MINIMAL];
     $alias->[Marpa::Internal::Symbol::MAXIMAL] =
@@ -3377,13 +3321,10 @@ sub alias_symbol {
         $symbol_id;
 
     # turn the original symbol into a non-nullable with a reference to the new alias
-    @{$nullable_symbol}[
-        Marpa::Internal::Symbol::NULLABLE,
-        Marpa::Internal::Symbol::NULLING,
-        Marpa::Internal::Symbol::NULL_ALIAS,
-        ]
-        = ( 0, 0, $alias, );
-    return $alias;
+    $nullable_symbol->[ Marpa::Internal::Symbol::NULLABLE ] =
+        $nullable_symbol->[ Marpa::Internal::Symbol::NULLING ] = 0;
+    return $nullable_symbol->[ Marpa::Internal::Symbol::NULL_ALIAS ] =
+        $alias;
 } ## end sub alias_symbol
 
 # For efficiency, steps in the CHAF evaluation
@@ -3436,6 +3377,9 @@ sub rewrite_as_CHAF {
     my $rule_count = @{$rules};
     RULE: for my $rule_id ( 0 .. ( $rule_count - 1 ) ) {
         my $rule = $rules->[$rule_id];
+
+        # Rules are useless unless proven otherwise
+        $rule->[Marpa::Internal::Rule::USEFUL] = 0;
 
         # unreachable rules are useless
         my $productive = $rule->[Marpa::Internal::Rule::PRODUCTIVE];
@@ -3583,9 +3527,6 @@ sub rewrite_as_CHAF {
                             . ( $subproduction_end_ix + 1 ) . ']'
                             . $unique_name_piece );
 
-                    ### Subproduction start, end: $subproduction_start_ix, $subproduction_end_ix
-                    ### Created LHS symbol: $next_subproduction_lhs->[Marpa'Internal'Symbol'NAME]
-
                     $next_subproduction_lhs
                         ->[Marpa::Internal::Symbol::NULLABLE] = 0;
                     $next_subproduction_lhs
@@ -3671,7 +3612,6 @@ sub rewrite_as_CHAF {
                         ->[$proper_nullable_0_subproduction_ix]
                         ->[Marpa::Internal::Symbol::NULL_ALIAS];
                     push @factored_rh_sides, $new_factored_rhs;
-                    ### assert: $new_factored_rhs->[-1]
                 } ## end for my $rhs_to_refactor (@rh_sides_for_2nd_factoring)
 
             }    # FACTOR
@@ -3693,8 +3633,6 @@ sub rewrite_as_CHAF {
                 # subproduction, it is not a virtual symbol.
                 my $virtual_rhs       = 0;
                 my $real_symbol_count = scalar @{$factor_rhs};
-
-                ### assert: $factor_rhs->[-1]
 
                 if (    $next_subproduction_lhs
                     and $factor_rhs->[-1] == $next_subproduction_lhs )
@@ -3788,12 +3726,11 @@ sub rewrite_as_CHAF {
         );
 
         # Nulling rules are not considered useful, but the top-level one is an exception
-        @{$new_start_alias_rule}[
-            Marpa::Internal::Rule::PRODUCTIVE,
-            Marpa::Internal::Rule::ACCESSIBLE,
-            Marpa::Internal::Rule::USEFUL,
-            ]
-            = ( $productive, 1, 1, );
+        $new_start_alias_rule->[ Marpa::Internal::Rule::PRODUCTIVE ] =
+            $productive;
+        $new_start_alias_rule->[ Marpa::Internal::Rule::ACCESSIBLE ] = 1;
+        $new_start_alias_rule->[ Marpa::Internal::Rule::USEFUL ]     = 1;
+        $new_start_alias_rule->[ Marpa::Internal::Rule::NULLABLE ]   = 1;
     } ## end if ($old_start_alias)
     $grammar->[Marpa::Internal::Grammar::START] = $new_start_symbol;
     return;

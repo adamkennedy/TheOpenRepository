@@ -80,7 +80,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Recognizer;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -368,10 +368,10 @@ sub Marpa::Recognizer::new {
     return $self;
 } ## end sub Marpa::Recognizer::new
 
-sub Marpa::Recognizer::get_symbol {
+sub Marpa::Recognizer::get_terminal {
     my ($recce, $name) = @_;
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    return $grammar->get_symbol($name);
+    return $grammar->get_terminal($name);
 }
 
 sub Marpa::Recognizer::status {

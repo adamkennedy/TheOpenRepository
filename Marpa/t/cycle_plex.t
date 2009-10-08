@@ -134,7 +134,7 @@ for my $test_data (@test_data) {
         trace_file_handle => $MEMORY,
     );
     my $grammar = Marpa::Grammar->new( \%args );
-    my $t       = $grammar->get_symbol('t');
+    my $t       = $grammar->get_terminal('t');
 
     close $MEMORY;
     Marpa::Test::is( $trace, $expected_trace, "$test_name trace" );

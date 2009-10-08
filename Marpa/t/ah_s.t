@@ -32,7 +32,7 @@ $grammar->precompute();
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-my $lc_a = Marpa::MDL::get_symbol( $grammar, 'lowercase a' );
+my $lc_a = Marpa::MDL::get_terminal( $grammar, 'lowercase a' );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );
 $recce->earleme( [ $lc_a, 'lowercase a', 1 ] );

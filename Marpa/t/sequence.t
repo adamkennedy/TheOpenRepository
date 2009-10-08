@@ -60,8 +60,11 @@ sub run_sequence_test {
 
     $grammar->precompute();
 
-    my $A   = $grammar->get_symbol('A');
-    my $sep = $grammar->get_symbol('sep');
+    my $A = $grammar->get_terminal('A');
+    my $sep;
+    if ( $separation ne 'none' ) {
+        $sep = $grammar->get_terminal('sep');
+    }
 
     # Number of symbols to test at the higher numbers is
     # more or less arbitrary.  You really need to test 0 .. 3.

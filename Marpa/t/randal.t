@@ -18,14 +18,6 @@ sin  / 25 ; # / ; die "this dies!";
 time  / 25 ; # / ; die "this dies!";
 EO_TESTS
 
-# my @tests = split /\n/xms, <<'EO_TESTS';
-# time  / 25 ; # / ; die "this dies!";
-# sin  / 25 ; # / ; die "this dies!";
-# caller  / 25 ; # / ; die "this dies!";
-# eof  / 25 ; # / ; die "this dies!";
-# localtime  / 25 ; # / ; die "this dies!";
-# EO_TESTS
-
 my $source;
 { local ($RS) = undef; $source = <DATA> };
 
@@ -85,7 +77,6 @@ sub show_perl_line {
 sub show_statement_sequence { return join q{, }, @_ }
 sub show_division           { return 'division' }
 sub show_function_call      { return $_[0] }
-sub show_empty              { return 'empty statement' }
 sub show_die                { return 'die statement' }
 sub show_unary              { return $_[0] . ' function call' }
 sub show_nullary            { return $_[0] . ' function call' }
@@ -105,8 +96,6 @@ perl statement: division. 'show_division'.
 
 perl statement: function call.  'show_function_call'.
 
-perl statement: empty statement.  'show_empty'.
-
 perl statement: /die/, string literal.  'show_die'.
 
 division: expr, division sign, expr.
@@ -121,10 +110,6 @@ function call: nullary function name. 'show_nullary'.
 
 argument: pattern match.
 
-empty statement: horizontal whitespace.
-
-horizontal whitespace matches qr/ \t/.
-
 unary function name matches /(caller|eof|sin|localtime)/.
 
 nullary function name matches /(caller|eof|sin|time|localtime)/.
@@ -133,10 +118,10 @@ number matches /\d+/.
 
 semicolon matches /;/.
 
-division sign matches qr{/}.
+division sign matches qr{[/]}.
 
-pattern match matches qr{/[^/]*/}.
+pattern match matches qr{[/][^/]*/}.
 
-comment matches /#.*/.
+comment matches /[#].*/.
 
 string literal matches qr{"[^"]*"}.

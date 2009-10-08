@@ -25,7 +25,7 @@ my $test = sub {
             terminals => ['a'],
         }
     );
-    my $a = $g->get_symbol('a');
+    my $a = $g->get_terminal('a');
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
     $recce->earleme( [ $a, 'a', 1 ] );
     $recce->earleme( [ $a, 'a', 1 ] );

@@ -2485,6 +2485,9 @@ sub Marpa::Evaluator::value {
                     $and_node->[Marpa::Internal::And_Node::TOKEN] )
                 {
 
+                    my $nullable = $token->[Marpa::Internal::Symbol::NULLABLE]
+                        // 0;
+
                     # A null token must start at the end earleme
                     # This will not necessarily be the start earleme
                     # -- there may be a predecessor
@@ -2493,7 +2496,7 @@ sub Marpa::Evaluator::value {
                         [   $and_node
                                 ->[Marpa::Internal::And_Node::END_EARLEME]
                         ]
-                        ) x $token->[Marpa::Internal::Symbol::NULLABLE];
+                        ) x $nullable;
 
                 } ## end if ( my $token = $and_node->[...])
 

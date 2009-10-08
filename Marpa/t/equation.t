@@ -109,8 +109,8 @@ END_QDFA
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-my $op     = $grammar->get_symbol('Op');
-my $number = $grammar->get_symbol('Number');
+my $op     = $grammar->get_terminal('Op');
+my $number = $grammar->get_terminal('Number');
 
 my @tokens = (
     [ $number, 2,    1 ],
