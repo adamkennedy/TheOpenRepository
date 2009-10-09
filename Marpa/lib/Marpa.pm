@@ -168,11 +168,18 @@ Marpa - General BNF Parsing (Experimental version)
 
 =head1 SYNOPSIS
 
-=begin Marpa::Test::Display:
+=begin Marpa::Test::Commented_Out_Display:
 
 ## start display
 ## next display
 is_file($_, 'example/synopsis.pl');
+
+=end Marpa::Test::Commented_Out_Display:
+
+=begin Marpa::Test::Display:
+
+## start display
+## skip display
 
 =end Marpa::Test::Display:
 
@@ -341,16 +348,28 @@ can be used to initialize that namespace.
 The result of an action is the result of running its Perl 5 code string.
 From L<the synopsis|"SYNOPSIS">, here's a rule for an expression that does addition:
 
-=begin Marpa::Test::Display:
+=begin Marpa::Test::Commented_Out_Display:
 
 ## next 2 displays
 in_file($_, 'example/synopsis.pl');
+
+=end Marpa::Test::Commented_Out_Display:
+
+=begin Marpa::Test::Display:
+
+## skip display
 
 =end Marpa::Test::Display:
 
     Expression: Expression, /[+]/, Expression.
 
 and here's its action:
+
+=begin Marpa::Test::Display:
+
+## skip display
+
+=end Marpa::Test::Display:
 
     $_[0] + $_[2]
 

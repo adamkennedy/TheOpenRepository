@@ -3311,7 +3311,7 @@ in_file($_, 't/equation_s.t')
 
 =end Marpa::Test::Display:
 
-    my $fail_offset = $recce->text('2-0*3+1');
+    my $fail_offset = $lexer->text('2-0*3+1');
     if ( $fail_offset >= 0 ) {
         Marpa::exception("Parse failed at offset $fail_offset");
     }
@@ -3361,10 +3361,16 @@ For example, in MDL,
 the following says that whenever the symbol C<A> is nulled,
 its value should be a string that says it is missing.
 
-=begin Marpa::Test::Display:
+=begin Marpa::Test::Commented_out_Display:
 
 ## next display
 in_file($_, 'example/null_value.marpa');
+
+=end Marpa::Test::Commented_out_Display:
+
+=begin Marpa::Test::Display:
+
+## skip display
 
 =end Marpa::Test::Display:
 
@@ -3458,11 +3464,18 @@ and arrange to have that closure run by the parent node.
 
 Suppose a grammar has these rules
 
-=begin Marpa::Test::Display:
+=begin Marpa::Test::Commented_Out_Display:
 
 ## start display
 ## next display
 in_file($_, 'example/null_value.marpa');
+
+=end Marpa::Test::Commented_Out_Display:
+
+=begin Marpa::Test::Display:
+
+## start display
+## skip display
 
 =end Marpa::Test::Display:
 
@@ -3482,7 +3495,6 @@ in_file($_, 'example/null_value.marpa');
     C: Y.  q{'C matches Y'}. # Call me Rule 5
 
     Y: /Z/. q{'Zorro was here'}. # Call me Rule 6
-
 
 =begin Marpa::Test::Display:
 

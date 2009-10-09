@@ -93,7 +93,7 @@ $g->set( { start => Marpa::MDL::canonical_symbol_name('Document') } );
 
 ## use Marpa::Test::Display get_symbol snippet
 
-my $op = Marpa::MDL::get_symbol( $grammar, 'Op' );
+my $op = Marpa::MDL::get_terminal( $grammar, 'Word' );
 
 ## no Marpa::Test::Display
 

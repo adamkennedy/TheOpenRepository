@@ -6,6 +6,7 @@ use warnings;
 
 use Getopt::Long qw(GetOptionsFromArray);
 use Marpa;
+use Marpa::MDLex;
 use English qw( -no_match_vars ) ;
 use Fatal qw(open close);
 
@@ -233,6 +234,8 @@ sub do_parse {
         }
     }
 
+    my $lexer_args = $grammar->lexer_args();
+
     my $recce = new Marpa::Recognizer( {
         grammar => $grammar,
         clone => 0
@@ -242,7 +245,9 @@ sub do_parse {
         $text_to_parse = <ARGV>;
     }
 
-    my $fail_location = $recce->text( \$text_to_parse );
+    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
+
+    my $fail_location = $lexer->text( \$text_to_parse );
 
     if ($show_earley_sets) {
 	$recce->end_input();

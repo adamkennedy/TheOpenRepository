@@ -1100,17 +1100,12 @@ Marpa::Recognizer - Marpa Recognizer Objects
 
 =begin Marpa::Test::Display:
 
-## next 2 displays
+## next display
 in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-
-    my $fail_offset = $recce->text('2-0*3+1');
-    if ( $fail_offset >= 0 ) {
-        Marpa::exception("Parse failed at offset $fail_offset");
-    }
 
 Z<>
 
@@ -1123,8 +1118,8 @@ in_file($_, 't/equation.t');
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-    my $op     = $grammar->get_symbol('Op');
-    my $number = $grammar->get_symbol('Number');
+    my $op     = $grammar->get_terminal('Op');
+    my $number = $grammar->get_terminal('Number');
 
     my @tokens = (
         [ $number, 2,    1 ],
@@ -1392,7 +1387,7 @@ be named arguments to C<new>.
 For details of the Marpa options,
 see L<Marpa::Doc::Options>.
 
-=head2 text
+=head2 text (NO LONGER A RECCE METHOD)
 
 =begin Marpa::Test::Display:
 
@@ -1401,7 +1396,7 @@ in_file($_, 't/equation_s.t');
 
 =end Marpa::Test::Display:
 
-    my $fail_offset = $recce->text('2-0*3+1');
+    my $fail_offset = $lexer->text('2-0*3+1');
     if ( $fail_offset >= 0 ) {
         Marpa::exception("Parse failed at offset $fail_offset");
     }
@@ -1462,7 +1457,7 @@ in_file($_, 't/ah2.t');
 
 =end Marpa::Test::Display:
 
-    my $a = $grammar->get_symbol('a');
+    my $a = $grammar->get_terminal('a');
     $recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
 
 The C<earleme> method takes zero or more arguments.

@@ -1851,6 +1851,10 @@ sub Marpa::Grammar::lexer_args {
          lex_single_quote => 'single_quote',
          lex_double_quote => 'double_quote',
          lex_regex => 'regex',
+         q_quote => 'q_quote',
+         single_quote => 'single_quote',
+         double_quote => 'double_quote',
+         regex => 'regex',
     };
     my $args = {};
     $args->{ambiguous} = $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX];
@@ -1870,14 +1874,21 @@ sub Marpa::Grammar::lexer_args {
         $symbol_args{name}   = $symbol->[Marpa::Internal::Symbol::NAME];
         my $prefix = $symbol->[Marpa::Internal::Symbol::PREFIX];
         defined $prefix and $symbol_args{prefix} = $prefix;
-        given ( $symbol->[Marpa::Internal::Symbol::REGEX] ) {
-            when ($lexer_builtins) {
-                $symbol_args{builtin} = $lexer_builtins->{$_};
-            }
-            default {
-                $symbol_args{regex} = $_;
-            }
-        } ## end given
+
+        ### symbol name: $symbol->[Marpa'Internal'Symbol'NAME]
+        ### symbol fields: join ';', map { $_ // 'undef' } @{$symbol}
+        ### assert: defined $symbol->[Marpa::Internal::Symbol::REGEX]
+
+        if (defined(
+                my $action = $symbol->[Marpa::Internal::Symbol::ACTION]
+            )
+            )
+        {
+            $symbol_args{builtin} = $lexer_builtins->{$action};
+        } ## end if ( defined( my $action = $symbol->[...]))
+        else {
+            $symbol_args{regex} = $symbol->[Marpa::Internal::Symbol::REGEX];
+        }
         push @{$terminals}, \%symbol_args;
     } ## end for my $symbol ( @{$symbols} )
 
@@ -2718,12 +2729,8 @@ sub nullable {
 
     while ( my @symbol_ids = grep { $workset[$_] } ( 0 .. $#{$symbols} ) ) {
 
-        ### workset size: scalar @workset
-
         @workset = ();
         SYMBOL: for my $symbol ( map { $symbols->[$_] } @symbol_ids ) {
-
-            ### Checking for nullable: $symbol->[Marpa'Internal'Symbol'NAME]
 
             # Terminals can be nullable
 
@@ -2747,8 +2754,6 @@ sub nullable {
             next SYMBOL if not $nullable;
 
             my $old_nullable = $symbol->[Marpa::Internal::Symbol::NULLABLE];
-
-            ### nullable, old, proposed: $old_nullable, $nullable
 
             if ( $old_nullable and $nullable >= $old_nullable ) {
                 if ( $nullable > $old_nullable ) {
@@ -3822,10 +3827,16 @@ in_file($_, 'author.t/misc.t');
 
 Z<>
 
-=begin Marpa::Test::Display:
+=begin Marpa::Test::Commented_Out_Display:
 
 ## next display
 in_file($_, 't/equation_s.t');
+
+=end Marpa::Test::Commented_Out_Display:
+
+=begin Marpa::Test::Display:
+
+## skip display
 
 =end Marpa::Test::Display:
 

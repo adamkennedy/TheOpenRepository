@@ -88,9 +88,7 @@ in_file($_, 'author.t/misc.t');
 
 =end Marpa::Test::Display:
 
-    $g->set( {
-        start => Marpa::MDL::canonical_symbol_name('Document')
-    } );
+    $g->set( { start => Marpa::MDL::canonical_symbol_name('Document') } );
 
 This static method takes as its one argument an MDL symbol
 name.
@@ -99,10 +97,16 @@ the symbol's plumbing name.
 
 =head2 get_terminal
 
-=begin Marpa::Test::Display:
+=begin Marpa::Test::Commented_Out_Display:
 
 ## next display
 is_file($_, 'author.t/misc.t', 'get_terminal snippet');
+
+=end Marpa::Test::Commented_Out_Display:
+
+=begin Marpa::Test::Display:
+
+## skip display
 
 =end Marpa::Test::Display:
 

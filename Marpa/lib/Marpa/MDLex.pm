@@ -262,7 +262,7 @@ sub add_user_terminals {
                 $terminal_lexer =
                     \&Marpa::MDLex::Internal::Quotes::lex_q_quote;
             }
-            when ('qr_quote') {
+            when ('regex') {
                 $terminal_lexer = \&Marpa::MDLex::Internal::Quotes::lex_regex;
             }
             default {

@@ -222,6 +222,7 @@ sub test_file {
         {
             my $do_not_add_display = $eval_result->[1];
             if ( not $do_not_add_display ) {
+                $display //= "[undefined]\n";
                 $message .= "\n$display";
             }
             $mismatches .= "=== Line $display_line: $message";
@@ -278,6 +279,10 @@ sub process_instruction {
 
     $instruction =~ s/\s\z//xms;    # eliminate trailing whitespace
     $instruction =~ s/\s/ /gxms;    # normalize whitespace
+
+    if ( $instruction =~ /^ \s* ignore[:] /xms ) {
+        return;
+    }
 
     if ( $instruction =~ /^ next \s+ display $ /xms ) {
         $Marpa::Test::Display::COMMAND_COUNTDOWN = 1;

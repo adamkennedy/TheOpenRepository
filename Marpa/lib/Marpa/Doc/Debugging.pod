@@ -244,6 +244,7 @@ May usefully be set at any point.
 
 =begin Marpa::Test::Display:
 
+## skip display
 ## next display
 in_file($_, 't/equation_s.t');
 
@@ -258,7 +259,7 @@ in_file($_, 'bin/mdl');
 
 =end Marpa::Test::Display:
 
-    my $fail_location = $recce->text( \$text_to_parse );
+    my $fail_location = $lexer->text( \$text_to_parse );
 
     if ( $fail_location >= 0 ) {
         print {*STDERR} Marpa::show_location(
@@ -558,7 +559,7 @@ in_file($_, 'bin/mdl');
 
 =end Marpa::Test::Display:
 
-    my $fail_location = $recce->text( \$text_to_parse );
+    my $fail_location = $lexer->text( \$text_to_parse );
 
     print $recce->show_earley_sets
         or Marpa::exception "print failed: $OS_ERROR";
