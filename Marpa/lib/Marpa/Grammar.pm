@@ -213,6 +213,7 @@ use Marpa::Offset qw(
 
     MAX_PARSES
     SELF_ARG { First args to action is parser object }
+    ACTION_OBJECT
 
     =LAST_EVALUATOR_FIELD
 
@@ -231,13 +232,14 @@ use Marpa::Offset qw(
     START START_NAME
     NFA QDFA_BY_NAME
     NULLABLE_SYMBOL
-    LOCATION_CALLBACK
     WARNINGS
     INACCESSIBLE_OK
     UNPRODUCTIVE_OK
     SEMANTICS
-    TRACE_RULES TRACE_STRINGS TRACE_PREDEFINEDS
-    ALLOW_RAW_SOURCE INTERFACE
+    TRACE_RULES
+    TRACE_STRINGS { Delete when MDL factored? }
+    TRACE_PREDEFINEDS { Delete when MDL factored? }
+    ALLOW_RAW_SOURCE INTERFACE { Delete when MDL factored? }
     MAXIMAL MINIMAL
 
     =LAST_FIELD
@@ -276,7 +278,6 @@ DEFAULT_ACTION     - action for rules without one
 DEFAULT_LEX_PREFIX - default prefix for lexing
 DEFAULT_LEX_SUFFIX - default suffix for lexing
 AMBIGUOUS_LEX      - lex ambiguously?
-LOCATION_CALLBACK  - default callback for showing location
 PROBLEMS - fatal problems
 WARNINGS - print warnings about grammar?
 VERSION - Marpa version this grammar was stringified from
@@ -682,11 +683,6 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::QDFA_BY_NAME]        = {};
     $grammar->[Marpa::Internal::Grammar::MAX_PARSES]          = -1;
     $grammar->[Marpa::Internal::Grammar::PHASE] = Marpa::Internal::Phase::NEW;
-
-    $grammar->[Marpa::Internal::Grammar::LOCATION_CALLBACK] =
-        ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-        q{ 'Earleme ' . $earleme };
-    ## use critic
 
     $grammar->set($args);
     return $grammar;
