@@ -39,23 +39,13 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Recognizer
 
-    { This both goes in the new Lexer and stay here }
     GRAMMAR
-
     EARLEY_SETS
     FURTHEST_EARLEME
 
     =LAST_EVALUATOR_FIELD
 
-    { This is to be moved into the new lexer }
-    LEXERS
-
-    { This is to be renamed to CURRENT_TERMINALS
-      and stays here?  Need way routine to give
-      user access to this value.
-      }
-    CURRENT_LEXABLES
-
+    CURRENT_TERMINALS
     EARLEY_HASH
     EXHAUSTED
     TERMINALS_BY_STATE
@@ -73,8 +63,6 @@ use Marpa::Offset qw(
 # FURTHEST_EARLEME   - last earley set with a token
 # EXHAUSTED          - parse can't continue?
 # EVALUATOR          - the current evaluator for this recognizer
-# LEXERS             - an array, indexed by symbol id,
-#                      of the lexer for each symbol
 # TERMINALS_BY_STATE - an array, indexed by QDFA state id,
 #                      of the terminals belonging in it
 
@@ -94,170 +82,6 @@ our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 use constant EARLEME_MASK => ~(0x7fffffff);
 
 my $parse_number = 0;
-
-# Need to factor out the part which sets the lexers
-# but keep the part which sets up the lexables by state
-sub set_lexers {
-
-    my $grammar = shift;
-    my $package = shift;
-
-    my ( $symbols, $symbol_hash, $QDFA, $tracing, $default_prefix,
-        $default_suffix )
-        = @{$grammar}[
-        Marpa::Internal::Grammar::SYMBOLS,
-        Marpa::Internal::Grammar::SYMBOL_HASH,
-        Marpa::Internal::Grammar::QDFA,
-        Marpa::Internal::Grammar::TRACING,
-        Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX,
-        Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX,
-        ];
-
-    my $trace_fh;
-    my $trace_actions;
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_actions = $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS];
-    }
-
-    my @lexers;
-    $#lexers = $#{$symbols};
-
-    SYMBOL: for my $ix ( 0 .. $#lexers ) {
-
-        my $symbol = $symbols->[$ix];
-        my ( $name, $regex, $action, $symbol_prefix, $symbol_suffix ) =
-            @{$symbol}[
-            Marpa::Internal::Symbol::NAME,
-            Marpa::Internal::Symbol::REGEX,
-            Marpa::Internal::Symbol::ACTION,
-            Marpa::Internal::Symbol::PREFIX,
-            Marpa::Internal::Symbol::SUFFIX,
-            ];
-
-        if ( defined $regex ) {
-            $lexers[$ix] = $regex;
-            next SYMBOL;
-        }
-
-        my $prefix = $symbol_prefix // $default_prefix;
-        if ( defined $prefix ) {
-            $prefix = qr/$prefix/xms;
-        }
-        my $suffix = $symbol_suffix // $default_suffix;
-        if ( defined $suffix ) {
-            $suffix = qr/$suffix/xms;
-        }
-
-        given ($action) {
-            when (undef) {;}    # do nothing
-            when ('lex_single_quote') {
-                $lexers[$ix] = [
-                    \&Marpa::MDLex::Internal::Quotes::lex_single_quote,
-                    $prefix, $suffix
-                ];
-            } ## end when ('lex_single_quote')
-            when ('lex_double_quote') {
-                $lexers[$ix] = [
-                    \&Marpa::MDLex::Internal::Quotes::lex_double_quote,
-                    $prefix, $suffix
-                ];
-            } ## end when ('lex_double_quote')
-            when ('lex_q_quote') {
-                $lexers[$ix] = [
-                    \&Marpa::MDLex::Internal::Quotes::lex_q_quote, $prefix,
-                    $suffix
-                ];
-            } ## end when ('lex_q_quote')
-            when ('lex_regex') {
-                $lexers[$ix] = [
-                    \&Marpa::MDLex::Internal::Quotes::lex_regex, $prefix,
-                    $suffix
-                ];
-            } ## end when ('lex_regex')
-            default {
-                Marpa::exception("Unknown lexer: $action");
-            }
-        } ## end given
-
-        ##### assert: not $lexers[$ix] or $symbol->[Marpa'Internal'Symbol'TERMINAL]
-
-    }    # SYMBOL
-
-    # Pull lookup of terminal flag by symbol ID out of the loop
-    # over the QDFA transitions
-    my @terminal_ids =
-        map  { $_->[Marpa::Internal::Symbol::ID] }
-        grep { $_->[Marpa::Internal::Symbol::TERMINAL] } @{$symbols};
-    my @terminals_by_id;
-    @terminals_by_id[@terminal_ids] = (1) x scalar @terminal_ids;
-
-    my @terminals_by_state;
-    $#terminals_by_state = $#{$QDFA};
-
-    for my $state ( @{$QDFA} ) {
-        my ( $id, $transition ) =
-            @{$state}[ Marpa::Internal::QDFA::ID,
-            Marpa::Internal::QDFA::TRANSITION, ];
-        $terminals_by_state[$id] = [
-                grep { $terminals_by_id[$_] }
-                map  { $symbol_hash->{$_} }
-                keys %{$transition}
-        ];
-    } ## end for my $state ( @{$QDFA} )
-
-    return ( \@lexers, \@terminals_by_state, );
-
-}    # sub set_lexers
-
-sub compile_regexes {
-    my $grammar = shift;
-    my ( $symbols, $default_lex_prefix, $default_lex_suffix, ) = @{$grammar}[
-        Marpa::Internal::Grammar::SYMBOLS,
-        Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX,
-        Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX,
-    ];
-
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $regex = $symbol->[Marpa::Internal::Symbol::REGEX];
-        next SYMBOL if not defined $regex;
-        if ( q{} =~ $regex ) {
-            my $name = $symbol->[Marpa::Internal::Symbol::NAME];
-            Marpa::exception( 'Attempt to add nullable terminal: ', $name );
-        }
-        my $prefix = $symbol->[Marpa::Internal::Symbol::PREFIX]
-            // $default_lex_prefix;
-        my $suffix = $symbol->[Marpa::Internal::Symbol::SUFFIX]
-            // $default_lex_suffix;
-        my $compiled_regex = qr{
-            \G
-            (?<mArPa_prefix>$prefix)
-            (?<mArPa_match>$regex)
-            (?<mArPa_suffix>$suffix)
-        }xms;
-        $symbol->[Marpa::Internal::Symbol::REGEX] = $compiled_regex;
-    }    # SYMBOL
-
-    return;
-
-} ## end sub compile_regexes
-
-sub prepare_grammar_for_recognizer {
-    my $parse   = shift;
-    my $grammar = shift;
-
-    my $package = sprintf __PACKAGE__ . '::P_%x', $parse_number++;
-
-    compile_regexes($grammar);
-    @{$parse}[
-        Marpa::Internal::Recognizer::LEXERS,
-        Marpa::Internal::Recognizer::TERMINALS_BY_STATE
-        ]
-        = set_lexers( $grammar, $package );
-
-    return;
-
-} ## end sub prepare_grammar_for_recognizer
 
 # Returns the new parse object or throws an exception
 sub Marpa::Recognizer::new {
@@ -325,7 +149,33 @@ sub Marpa::Recognizer::new {
     # options are not set until *AFTER* the grammar is cloned
     Marpa::Grammar::set( $grammar, $args );
 
-    prepare_grammar_for_recognizer( $self, $grammar );
+    # Pull lookup of terminal flag by symbol ID out of the loop
+    # over the QDFA transitions
+    my $symbols = $grammar->[ Marpa::Internal::Grammar::SYMBOLS];
+    my @terminal_ids =
+        map  { $_->[Marpa::Internal::Symbol::ID] }
+        grep { $_->[Marpa::Internal::Symbol::TERMINAL] } @{$symbols};
+    my @terminals_by_id;
+    @terminals_by_id[@terminal_ids] = (1) x scalar @terminal_ids;
+
+    my $QDFA        = $grammar->[Marpa::Internal::Grammar::QDFA];
+    my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
+    my @terminals_by_state;
+    $#terminals_by_state = $#{$QDFA};
+
+    for my $state ( @{$QDFA} ) {
+        my ( $id, $transition ) =
+            @{$state}[ Marpa::Internal::QDFA::ID,
+            Marpa::Internal::QDFA::TRANSITION, ];
+        $terminals_by_state[$id] = [
+                grep { $terminals_by_id[$_] }
+                map  { $symbol_hash->{$_} }
+                keys %{$transition}
+        ];
+    } ## end for my $state ( @{$QDFA} )
+
+    $self->[Marpa::Internal::Recognizer::TERMINALS_BY_STATE] =
+        \@terminals_by_state;
 
     $grammar->[Marpa::Internal::Grammar::PHASE] =
         Marpa::Internal::Phase::RECOGNIZING;
@@ -362,7 +212,7 @@ sub Marpa::Recognizer::new {
     $self->[Marpa::Internal::Recognizer::EARLEY_SETS] = [$earley_set];
 
     (   ( my $current_earleme ),
-        $self->[Marpa::Internal::Recognizer::CURRENT_LEXABLES]
+        $self->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
     ) = complete_set($self);
 
     return $self;
@@ -381,7 +231,7 @@ sub Marpa::Recognizer::status {
     my $current_earleme =
         $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
     return ( $current_earleme,
-        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] )
+        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
         if wantarray;
     return $current_earleme;
 } ## end sub Marpa::Recognizer::status
@@ -577,188 +427,14 @@ sub Marpa::Recognizer::earleme {
     } ## end if ( ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME...])
 
     (   ( my $current_earleme ),
-        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES]
+        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
     ) = Marpa::Internal::Recognizer::complete_set($recce);
 
     return ( $current_earleme,
-        $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] )
+        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
         if wantarray;
     return $current_earleme;
 } ## end sub Marpa::Recognizer::earleme
-
-# This goes into the lexer
-# return values for text method
-use Marpa::Offset qw(
-    :package=Marpa::Recognizer
-    PARSING_STILL_ACTIVE=-2
-    PARSING_EXHAUSTED=-1
-);
-
-# This goes into the lexer
-sub Marpa::Recognizer::text {
-    my $recce        = shift;
-    my $input        = shift;
-    my $input_length = shift;
-
-    Carp::confess("Attempt to use old lexer");
-
-    return 0 if $recce->[Marpa::Internal::Recognizer::EXHAUSTED];
-
-    Marpa::exception(
-        'Marpa::Recognizer::text() third argument not yet implemented')
-        if defined $input_length;
-
-    my $input_ref;
-    given ( ref $input ) {
-        when (q{})      { $input_ref = \$input; }
-        when ('SCALAR') { $input_ref = $input; }
-        default {
-            Marpa::exception( 'text argument to Marpa::Recognizer::text() ',
-                'must be string or string ref' );
-        }
-    }    # given ref $input
-
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    my $lexers  = $recce->[Marpa::Internal::Recognizer::LEXERS];
-    my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
-    if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
-        Marpa::exception('More text not allowed after end of input');
-    }
-
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
-    my $trace_fh;
-    my $trace_lex_tries;
-    my $trace_lex_matches;
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_lex_tries =
-            $grammar->[Marpa::Internal::Grammar::TRACE_LEX_TRIES];
-        $trace_lex_matches =
-            $grammar->[Marpa::Internal::Grammar::TRACE_LEX_MATCHES];
-    } ## end if ($tracing)
-
-    my ( $symbols, $ambiguous_lex ) = @{$grammar}[
-        Marpa::Internal::Grammar::SYMBOLS,
-        Marpa::Internal::Grammar::AMBIGUOUS_LEX,
-    ];
-
-    $input_length //= length ${$input_ref};
-
-    my $exhausted = 0;
-    my $pos    = 0;
-    my $lexables;
-
-    pos ${$input_ref} = 0;
-    POS: while ( $pos < $input_length ) {
-        my @alternatives;
-
-        # NOTE: Often the number of the earley set, and the idea of
-        # lexical position will correspond.  Be careful that Marpa
-        # imposes no such requirement, however.
-
-        $lexables = $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES];
-
-        if ( $trace_lex_tries and scalar @{$lexables} ) {
-            ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
-            my $string_to_match = substr ${$input_ref}, $pos, 20;
-            ## use critic
-            $string_to_match
-                =~ s/([\x00-\x1F\x7F-\xFF])/sprintf('{%#.2x}', ord($1))/gexms;
-            say $trace_fh "Match target at $pos: ", $string_to_match;
-        } ## end if ( $trace_lex_tries and scalar @{$lexables} )
-
-        LEXABLE: for my $lexable_id ( @{$lexables} ) {
-            my $lexable = $symbols->[$lexable_id];
-            if ($trace_lex_tries) {
-                print {$trace_fh} 'Trying to match ',
-                    $lexable->[Marpa::Internal::Symbol::NAME], " at $pos\n"
-                    or Marpa::exception('Could not print to trace file');
-            }
-
-            my $lexer      = $lexers->[$lexable_id];
-            my $lexer_type = ref $lexer;
-            Marpa::exception('Illegal type for lexer: undefined')
-                if not defined $lexer_type;
-
-            pos ${$input_ref} = $pos;
-
-            if ( $lexer_type eq 'Regexp' ) {
-
-                if ( ${$input_ref} =~ /$lexer/xmsg ) {
-
-                    ## no critic (Variables::ProhibitPunctuationVars)
-                    my $match = $+{mArPa_match};
-                    ## use critic
-
-                    # my $prefix = $+{mArPa_prefix};
-                    # my $suffix = $+{mArPa_suffix};
-                    # my $length = length(${^MATCH});
-
-                    my $length = ( pos ${$input_ref} ) - $pos;
-                    Marpa::exception(
-                        'Internal error, zero length token -- this is a Marpa bug'
-                    ) if not $length;
-                    push @alternatives, [ $lexable_id, $match, $length ];
-                    if ($trace_lex_matches) {
-                        print {$trace_fh}
-                            'Matched regex for ',
-                            $lexable->[Marpa::Internal::Symbol::NAME],
-                            " at $pos: ", $match, "\n"
-                            or
-                            Marpa::exception('Could not print to trace file');
-                    } ## end if ($trace_lex_matches)
-                    last LEXABLE if not $ambiguous_lex;
-                }    # if match
-
-                next LEXABLE;
-
-            }    # if defined regex
-
-            # If it's a lexable and a regex was not defined, there must be a
-            # closure
-            Marpa::exception("Illegal type for lexer: $lexer_type")
-                if not $lexer_type eq 'ARRAY';
-
-            my ( $lex_closure, $prefix, $suffix ) = @{$lexer};
-            if ( defined $prefix ) {
-                ${$input_ref} =~ /\G$prefix/xmsg;
-            }
-
-            my ( $match, $length ) = $lex_closure->( $input_ref, $pos );
-
-            next LEXABLE if not defined $match;
-
-            $length //= length $match;
-
-            push @alternatives, [ $lexable_id, $match, $length ];
-            if ($trace_lex_matches) {
-                print {$trace_fh}
-                    'Matched Closure for ',
-                    $lexable->[Marpa::Internal::Symbol::NAME],
-                    " at $pos: ", $match, "\n"
-                    or Marpa::exception('Could not print to trace file');
-            } ## end if ($trace_lex_matches)
-
-            last LEXABLE if not $ambiguous_lex;
-
-        }    # LEXABLE
-
-        $pos++;
-        if (not Marpa::Recognizer::earleme($recce, @alternatives ))
-        {
-            $recce->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] = undef;
-            $exhausted = 1;
-            last POS;
-        }
-
-    }    # POS
-
-    return
-          $exhausted           ? Marpa::Recognizer::PARSING_EXHAUSTED
-        : $pos < $input_length ? $pos
-        :                        Marpa::Recognizer::PARSING_STILL_ACTIVE;
-
-}    # sub text
 
 # Always returns success
 sub Marpa::Recognizer::end_input {
@@ -780,7 +456,7 @@ sub Marpa::Recognizer::end_input {
         Marpa::Internal::Recognizer::complete_set($self);
     }
 
-    $self->[Marpa::Internal::Recognizer::CURRENT_LEXABLES] = undef;
+    $self->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] = undef;
 
     if ( $grammar->[Marpa::Internal::Grammar::STRIP] ) {
 

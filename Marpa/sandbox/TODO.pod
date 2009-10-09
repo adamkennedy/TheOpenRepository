@@ -6,9 +6,30 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =over 4
 
-=item * Test: Are regexes Storable's?
+=item * Make SELF_ARG flag operative.
+If on, first arg of actions is
+be the action object, or an unblessed hash if no object.
+Default to off.
 
-=item * Remove lex routines.
+=item * Convert tests, ../bin/mdl, ::mdl(), etc.
+(everything but MDL bootstrap) to use SELF_ARG.
+The MDL will be
+replaced after conversion to the unfactored MDL.
+
+=item * Allow multiple hashes as args to Grammar constructor as
+mechanism for specifying an order in which the options should be
+applied.  I hope this will be sufficient as an interface for
+front-ends to Marpa like MDL.
+
+=item * Factor out MDL so that it works by calling
+(or creating options
+for a call to) Grammar::new or Grammar::set.
+
+=item * Default to SELF_ARG on.
+Add code to abend if SELF_ARG is off.
+Test.  Fix what breaks.
+
+=item * Test: Are regexes Storable's? -- NO
 
 =item * Allow cloning of unstripped recognizers.
 
@@ -16,32 +37,18 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =item * Remove not longer needed "strip => 0" options.
 
-=item * Add code to abend if SELF_ARG is on.
-
-=item * Change bin/mdl, ::mdl(), all *.t, boostrap to unset SELF_ARG
-
-=item * Default to SELF_ARG on.  Test & fix what breaks.
-
-=item * Implement actions objects, & use of SELF_ARG.
-
-=item * One by one, convert, removing unset of SELF_ARG as I go.
-Do NOT convert bootstrap, ../bin/mdl, or ::mdl().  They will be
-removed after conversion to the new bootstraping, and the
-elimination of MDL.
-
-=item * Factor out MDL so that it works by calling (or creating options
-    for a call to) Grammar::new or Grammar::set.
-
 =item * Convert all stringization to Storable.
 
-=item * After MDL is factored out, create a matrix of tests of 
+=item * After MDL is factored out, and stripping & cloning is
+fully functional, create a matrix of tests of 
 valid grammars vs. their result.  Matrix is
 
     grammars X inputs X clone grammar X clone recognizer X strip grammar X strip recognizer
 
 Do just one or two inputs per grammar.
 
-=item * Factor out MDL Lexer.
+=item * MDLex currently does not sort terminals by priority.  This
+means terminal priorities are totally unused.  Change this?
 
 =back
 
@@ -59,11 +66,6 @@ which earleme a token is at.
 
 =item * Allow action options to be changed when evaluator
 is created, but not afterwards.
-
-=item * Allow multiple hashes as args to Grammar constructor as
-mechanism for specifying an order in which the options should be
-applied.  I hope this will be sufficient as an interface for
-front-ends to Marpa like MDL.
 
 =item * Create a "stress test" for zero-width and- and or- nodes:
 A grammar with two rules in a cycle.  Each rule is all
