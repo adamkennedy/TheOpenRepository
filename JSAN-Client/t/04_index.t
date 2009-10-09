@@ -16,8 +16,13 @@ use LWP::Online  'online';
 BEGIN { remove( \1, 'temp' ) if -e 'temp'; }
 END   { remove( \1, 'temp' ) if -e 'temp'; }
 
-use JSAN::Transport mirror_local => 'temp';
-use JSAN::Index { prune => 1 };
+use JSAN::Index;
+
+JSAN::Index->init({
+    mirror_local => 'temp',
+    prune => 1
+});
+
 
 if ( online() ) {
     plan( tests => 52 );

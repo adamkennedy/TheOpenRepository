@@ -6,11 +6,8 @@ BEGIN {
     $^W = 1;
 }
 
-use Test::More tests => 2;
-use File::Remove 'remove';
+use Test::More tests => 3;
 
-BEGIN { remove( \1, 'temp' ) if -e 'temp'; }
-END   { remove( \1, 'temp' ) if -e 'temp'; }
-
-use_ok( 'JSAN::Transport', mirror_local => 'temp' );
-use_ok( 'JSAN::Client', { prune => 1 } );
+use_ok( 'JSAN::Transport' );
+use_ok( 'JSAN::Index' );
+use_ok( 'JSAN::Client' );

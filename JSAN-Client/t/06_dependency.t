@@ -22,8 +22,12 @@ if ( online() ) {
     exit(0);
 }
 
-use JSAN::Transport mirror_local => 'temp';
-use JSAN::Index { prune => 1 };
+use JSAN::Index;
+
+JSAN::Index->init({
+    mirror_local => 'temp',
+    prune => 1
+});
 
 
 
@@ -34,15 +38,15 @@ use JSAN::Index { prune => 1 };
 
 # Can we load the release source?
 foreach my $params ( [], [ build => 1 ] ) {
-    my $Source = JSAN::Index::Release::_Source->new( @$params );
-    isa_ok( $Source, 'JSAN::Index::Release::_Source' );
-    ok( $Source->load, 'JSAN::Index::Release::_Source loads ok' );
+    my $Source = JSAN::Index::Release::Source->new( @$params );
+    isa_ok( $Source, 'JSAN::Index::Release::Source' );
+    ok( $Source->load, 'JSAN::Index::Release::Source loads ok' );
 }
 
 # Get an installation Alg:Dep object
 my $Install = JSAN::Index->dependency;
 isa_ok( $Install, 'Algorithm::Dependency' );
-isa_ok( $Install, 'JSAN::Index::Release::_Dependency' );
+isa_ok( $Install, 'JSAN::Index::Release::Dependency' );
 
 # Test getting a schedule
 my $schedule = $Install->schedule( 'Display.Swap' );

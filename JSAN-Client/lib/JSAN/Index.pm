@@ -65,35 +65,55 @@ use 5.008005;
 use strict;
 use warnings;
 use Params::Util   1.00 ();
-use ORLite::Mirror 1.17 ();
+use Carp                ();
+use DBI                 ();
+
+
+use JSAN::Transport;
+use JSAN::Index::Author                 ();
+use JSAN::Index::Library                ();
+use JSAN::Index::Release                ();
+use JSAN::Index::Release::Dependency    ();
+use JSAN::Index::Release::Source        ();
+use JSAN::Index::Distribution           ();
 
 our $VERSION = '0.22';
 
-sub import {
+my $SINGLETON = undef;
+
+#####################################################################
+# Constructor
+
+=pod
+
+=head2 init param => $value, ...
+
+The C<init> method initializes the JSAN index adapter. It takes a set of
+parameters and initializes the C<JSAN::Index> class. JSAN::Index is a 
+singleton, so only it can initialized only once. Any further attempts 
+to do so will result in an exception being thrown.
+ 
+=cut
+
+
+sub init {
+    Carp::croak("JSAN::Index already initialized") if $SINGLETON;
+    
     my $class  = shift;
     my $params = Params::Util::_HASH(shift) || {};
-
-    # Pass through any params from above
-    $params->{url}    ||= 'http://openjsan.org/index.sqlite';
-    $params->{maxage} ||= 24 * 60 * 60; # One day
-
-    # Don't generate the table classes because we have inlined the
-    # generated code ourself for speed and to make it work a bit more
-    # like Class::DBI
-    $params->{tables} ||= 0;
-
-    # Prevent double-initialisation
-    $class->can('orlite') or
-    ORLite::Mirror->import( $params );
-
-    return 1;
+    
+    my $transport = JSAN::Transport->new(
+        mirror_remote => delete $params->{mirror_remote},
+        mirror_local  => delete $params->{mirror_local},
+        verbose       => $params->{verbose},
+    );
+    
+    $SINGLETON = bless { 
+        transport   => $transport,
+        file        => $transport->index_file,
+        verbose     => delete $params->{verbose}
+    }, $class;
 }
-
-use JSAN::Index::Author       ();
-use JSAN::Index::Library      ();
-use JSAN::Index::Release      ();
-use JSAN::Index::Distribution ();
-
 
 
 
@@ -119,125 +139,112 @@ Returns an L<Algorithm::Dependency> object.
 
 sub dependency {
     my $class  = shift;
-    JSAN::Index::Release::_Dependency->new( @_ );
+    JSAN::Index::Release::Dependency->new( @_ );
 }
 
 
+=pod
+
+=head2 transport
+
+This accessor return an instance of JSAN::Transport, which can be used
+for managing files of current mirror.
+
+=cut
+
+sub transport {
+    Carp::croak("JSAN::Index is not initialized") unless $SINGLETON;
+    $SINGLETON->{transport}
+}
 
 
+=pod
+
+=head2 self
+
+This accessor return a singleton instance of JSAN::Index, or undef is its
+not initialized yet.
+
+=cut
+
+sub self {
+    $SINGLETON
+}
 
 #####################################################################
-# Private Classes
+# Database connectivity
 
-# Algorithm::Dependency::Ordered for the ::Release data
 
-package JSAN::Index::Release::_Dependency;
-
-use Params::Util '_INSTANCE';
-
-use base 'Algorithm::Dependency::Ordered';
-
-sub new {
-    my $class  = ref $_[0] ? ref shift : shift;
-    my %params = @_;
-
-    # Apply defaults
-    $params{source} ||= JSAN::Index::Release::_Source->new( %params );
-
-    # Hand off to superclass constructor
-    my $self = $class->SUPER::new( %params )
-        or Carp::croak("Failed to create JSAN::Index::Release::_Dependency object");
-
-    # Save the type for later
-    $self->{build} = !! $params{build};
-
-    $self;
+sub sqlite {
+    $SINGLETON || Carp::croak('JSAN::Index is not initialized yet');
+    
+    $SINGLETON->{file} 
 }
 
-sub build { $_[0]->{build} }
+sub dsn { 
+    "dbi:SQLite:" . shift->sqlite 
+}
 
-sub schedule {
-    my $self     = shift;
-    my @schedule = @_;
 
-    # Convert things in the schedule from index objects to
-    # release source strings as needed
-    my @cleaned = ();
-    foreach my $item ( @schedule ) {
-        if ( defined $item and ! ref $item and $item =~ /^(?:\w+)(?:\.\w+)*$/ ) {
-            $item = JSAN::Index::Library->retrieve( name => $item );
-        }
-        if ( _INSTANCE($item, 'JSAN::Index::Library') ) {
-            $item = $item->release;
-        }
-        if ( _INSTANCE($item, 'JSAN::Index::Release') ) {
-            $item = $item->source;
-        }
-        push @cleaned, $item;
+sub dbh {
+    $_[0]->connect;
+}
+
+sub connect {
+    DBI->connect( $_[0]->dsn, undef, undef, {
+        PrintError => 0,
+        RaiseError => 1,
+    } );
+}
+
+sub prepare {
+    shift->dbh->prepare(@_);
+}
+
+sub do {
+    shift->dbh->do(@_);
+}
+
+sub selectall_arrayref {
+    shift->dbh->selectall_arrayref(@_);
+}
+
+sub selectall_hashref {
+    shift->dbh->selectall_hashref(@_);
+}
+
+sub selectcol_arrayref {
+    shift->dbh->selectcol_arrayref(@_);
+}
+
+sub selectrow_array {
+    shift->dbh->selectrow_array(@_);
+}
+
+sub selectrow_arrayref {
+    shift->dbh->selectrow_arrayref(@_);
+}
+
+sub selectrow_hashref {
+    shift->dbh->selectrow_hashref(@_);
+}
+
+sub pragma {
+    $_[0]->do("pragma $_[1] = $_[2]") if @_ > 2;
+    $_[0]->selectrow_arrayref("pragma $_[1]")->[0];
+}
+
+sub iterate {
+    my $class = shift;
+    my $call  = pop;
+    my $sth   = $class->prepare( shift );
+    $sth->execute( @_ );
+    while ( $_ = $sth->fetchrow_arrayref ) {
+        $call->() or last;
     }
-
-    $self->SUPER::schedule(@cleaned);
+    $sth->finish;
 }
 
-# Algorithm::Dependency::Source for the ::Release data
-
-package JSAN::Index::Release::_Source;
-
-use Algorithm::Dependency::Item ();
-use base 'Algorithm::Dependency::Source';
-
-sub new {
-    my $class  = ref $_[0] ? ref shift : shift;
-    my %params = @_;
-
-    # Create the basic object
-    my $self = $class->SUPER::new();
-
-    # Set the methods to use
-    $self->{requires_releases} = 1;
-    if ( $params{build} ) {
-        $self->{build_requires_releases} = 1;
-    }
-
-    $self;
-}
-
-sub _load_item_list {
-    my $self = shift;
-
-    ### FIXME: This is crudely effective, but a little innefficient.
-    ###        Later, we should be able to determine which subset of
-    ###        these can never be called, and leave them out of the list.
-
-    # Get every single release in the index
-    my @releases = JSAN::Index::Release->retrieve_all;
-
-    # Wrap the releases in the Adapter objects
-    my @items  = ();
-    foreach my $release ( @releases ) {
-        my $id      = $release->source;
-
-        # Get the list of dependencies
-        my @depends = ();
-        if ( $self->{requires_releases} ) {
-            push @depends, $release->requires_releases;
-        }
-        if ( $self->{build_requires_releases} ) {
-            push @depends, $release->build_requires_releases;
-        }
-
-        # Convert to a distinct source list
-        my %seen = ();
-        @depends = grep { ! $seen{$_} } map { $_->source } @depends;
-
-        # Add the dependency
-        my $item = Algorithm::Dependency::Item->new( $id => @depends )
-            or die "Failed to create Algorithm::Dependency::Item";
-        push @items, $item;
-    }
-
-    \@items;
-}
 
 1;
 

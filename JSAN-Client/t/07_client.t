@@ -17,8 +17,10 @@ use LWP::Online  'online';
 BEGIN { remove( \1, 'temp' ) if -e 'temp'; }
 END   { remove( \1, 'temp' ) if -e 'temp'; }
 
-use JSAN::Transport mirror_local => 'temp';
-use JSAN::Client { prune => 1 };
+use JSAN::Client {
+    mirror_local => 'temp', 
+    prune => 1 
+};
 
 # Create and/or clear the test directory
 my $testdir = catdir( curdir(), '07_client' );

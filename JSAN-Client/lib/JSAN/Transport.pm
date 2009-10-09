@@ -8,26 +8,25 @@ JSAN::Transport - JavaScript Archive Network Transport and Resources
 
 =head1 SYNOPSIS
 
-  # Create a client
-  JSAN::Transport->init(
+  # Create a transport
+  my $transport = JSAN::Transport->new(
       verbose       => 1,
       mirror_remote => 'http://openjsan.org/',
       mirror_local  => '~/.jsan',
   );
   
   # Retrieve a file
-  JSAN::Transport->file_get( 'index.sqlite' );
+  $transport->file_get( 'index.sqlite' );
   
-  # Get an index database connection
-  JSAN::Transport->index_dbh;
+  # Mirror a file
+  $transport->mirror( '/dist/a/ad/adamk/Display.Swap-0.01.tar.gz' );
 
 =head1 DESCRIPTION
 
 C<JSAN::Transport> provides the primary programatic interface for creating
 and manipulating a JSAN client transport and resource manager.
 
-It controls connection to JSAN, retrieval and mirroring of files, and
-database connectivity to the JSAN index.
+It controls connection to JSAN, retrieval and mirroring of files.
 
 =head1 METHODS
 
@@ -43,14 +42,9 @@ use File::HomeDir  ();
 use File::Basename ();
 use URI::ToDisk    ();
 use LWP::Simple    ();
-use DBI            ();
 
 our $VERSION = '0.22';
 
-BEGIN {
-    # Optional prefork.pm support
-    eval "use prefork 'ORLite';";
-}
 
 # The path to the index
 my $SQLITE_INDEX = 'index.sqlite';
@@ -64,21 +58,10 @@ my $SQLITE_INDEX = 'index.sqlite';
 
 =pod
 
-=head2 init param => $value, ...
+=head2 new param => $value, ...
 
-The C<init> method initializes the JSAN client adapter. It takes a set of
+The C<new> method initializes the JSAN client adapter. It takes a set of
 parameters and initializes the C<JSAN::Transport> class.
-
-Once you have initialized C<JSAN::Transport>, any further attempts to do
-so will result in an exception being thrown.
-
-The C<init> method is also aliased to C<import>, so that you can do
-something like the following.
-
-  # Initialize JSAN::Transport at use-time
-  use JSAN::Transport verbose       => 1,
-                      mirror_remote => 'http://openjsan.org',
-                      mirror_local  => '~/.jsan';
 
 =over 4
 
@@ -112,10 +95,8 @@ Returns true, or will throw an exception (i.e. die) on error.
 
 =cut
 
-my $SINGLETON = undef;
 
-sub init {
-    Carp::croak("JSAN::Transport already initialized") if $SINGLETON;
+sub new {
     my $class  = shift;
     my $params = { @_ };
 
@@ -150,24 +131,9 @@ sub init {
     $self->{mirror} = URI::ToDisk->new( $path => $uri )
         or Carp::croak("Unexpected error creating URI::ToDisk object");
 
-    $SINGLETON = $self;
-
-    1;
+    return $self;
 }
 
-sub import {
-    my $class = shift;
-    if ( @_ or not $SINGLETON ) {
-        return $class->init(@_);
-    } else {
-        return 1;
-    }
-}
-
-sub _self {
-    return shift if ref $_[0];
-    $SINGLETON or Carp::croak("JSAN::Transport not intialized");
-}
 
 =pod
 
@@ -176,7 +142,7 @@ L<URI> to local path map.
 
 =cut
 
-sub mirror_location { shift->_self->{mirror} }
+sub mirror_location { shift->{mirror} }
 
 =pod
 
@@ -185,7 +151,7 @@ configured when the object was created.
 
 =cut
 
-sub mirror_remote { shift->_self->{mirror}->uri }
+sub mirror_remote { shift->{mirror}->uri }
 
 =pod
 
@@ -194,7 +160,7 @@ configured when the object was created.
 
 =cut
 
-sub mirror_local { shift->_self->{mirror}->path }
+sub mirror_local { shift->{mirror}->path }
 
 =pod
 
@@ -203,10 +169,7 @@ is running in verbose mode.
 
 =cut
 
-sub verbose { shift->_self->{verbose} }
-
-1;
-
+sub verbose { shift->{verbose} }
 
 
 
@@ -231,7 +194,7 @@ bad path.
 =cut
 
 sub file_location {
-    my $self = shift->_self;
+    my $self = shift;
     my $path = $self->_path(shift);
 
     # Strip any leading slash
@@ -261,7 +224,7 @@ on error.
 =cut
 
 sub file_get {
-    my $self     = shift->_self;
+    my $self     = shift;
     my $location = $self->file_location(shift);
 
     # Check local dir exists
@@ -301,7 +264,7 @@ C<undef> on error.
 =cut
 
 sub file_mirror {
-    my $self     = shift->_self;
+    my $self     = shift;
     my $path     = $self->_path(shift);
     my $location = $self->file_location($path);
 
@@ -339,47 +302,8 @@ returns the path to it on the filesystem.
 =cut
 
 sub index_file {
-    shift->_self->_index_synced->path;
+    shift->_index_synced->path;
 }
-
-=pod
-
-=head2 index_dsn
-
-The C<index_dsn> method checks the SQLite index is up to date, and
-return the L<DBI> dsn for the index database.
-
-=cut
-
-sub index_dsn {
-    my $self = shift->_self;
-    my $file = $self->index_file;
-    "dbi:SQLite:dbname=$file";
-}
-
-=pod
-
-=head2 index_dbh
-
-The C<index_dbh> method check the SQLite index is up to date, and
-return a database connection to the index database.
-
-=cut
-
-sub index_dbh {
-    my $self = shift->_self;
-    my $DSN  = $self->index_dsn;
-
-#	# Unless we use Class::DBI's attributes, the whole thing comes
-#	# tumbling horribly down around us. Yes, this completely sucks.
-#	require Class::DBI;
-#	my %attr = Class::DBI->_default_attributes;
-
-    DBI->connect( $DSN, '', '', {} )
-        or Carp::croak("Database error connecting to JSAN index at $DSN");
-}
-
-
 
 
 
@@ -388,7 +312,7 @@ sub index_dbh {
 
 # Validate a JSAN file path
 sub _path {
-    my $self = shift->_self;
+    my $self = shift;
     my $path = shift or Carp::croak("No JSAN file path provided");
 
     # Strip any leading slash
@@ -399,7 +323,7 @@ sub _path {
 
 # Is a path considered "stable" (does not change over time)
 sub _path_stable {
-    my $self = shift->_self;
+    my $self = shift;
     my $path = $self->_path(shift);
 
     # Paths under the "dist" path are stable
@@ -412,7 +336,7 @@ sub _path_stable {
 
 # Returns the location of the SQLite index, syncronising it if needed
 sub _index_synced {
-    my $self = shift->_self;
+    my $self = shift;
     if ( $self->{index_synced} ) {
         return $self->file_location($SQLITE_INDEX);
     }
@@ -420,6 +344,9 @@ sub _index_synced {
     $self->{index_synced}++;
     $location;
 }
+
+
+1;
 
 =pod
 

@@ -25,7 +25,7 @@ JSAN::Client - JSAN Client 2.0 (migrated from Class::DBI to ORLite)
 The C<JSAN::Client> API intended to provide the highest-possible level
 abstraction for the process of installing JSAN distributions.
 
-However please not this class is still intended for developers, and
+However this class is still intended for developers, and
 won't do things like auto-detect your C<JSAN_PREFIX> and so on.
 
 For more DWIM type functionality aimed at users, see the L<JSAN::Shell>
@@ -49,24 +49,27 @@ use File::Path            1.06  ();
 use File::HomeDir         0.69  ();
 use LWP::Simple           1.41  ();
 use LWP::Online           0.03  ();
-use ORLite::Mirror        1.17  ();
 use Params::Util          1.00  ();
 use Scalar::Util          1.11  ();
 use URI::ToDisk           1.08  ();
 
-use JSAN::Transport;
-use JSAN::Index ();
+use JSAN::Index                 ();
 
 our $VERSION = '0.22';
 
-# Pass through any import params
+# Pass through any import params to JSAN::Index
+# if none params were provided - do nothing
 sub import {
     my $class  = shift;
     my $params = Params::Util::_HASH(shift) || {};
-
-    # Prevent double-initialisation
-    JSAN::Index->can('orlite') or
-    JSAN::Index->import( $params );
+    
+    if (keys(%$params) > 0) {
+        # Prevent double-initialisation
+        Carp::croak("Attempt to re-initialize JSAN::Index via JSAN::Client's import method")
+            if JSAN::Index->self;
+            
+        JSAN::Index->init( $params );
+    }
 
     return 1;
 }
@@ -135,6 +138,10 @@ sub new {
     unless ( -d $self->prefix and -w $self->prefix ) {
         Carp::croak("Prefix provided to JSAN::Client::new is not a writable directory");
     }
+    
+    unless (JSAN::Index->self) {
+        Carp::croak("Cannot instantiate JSAN::Client until JSAN::Index is not initialized");
+    };
 
     $self;
 }
@@ -154,11 +161,18 @@ sub prefix { $_[0]->{prefix} }
 =head2 verbose
 
 The C<verbose> accessor returns the boolean flag indicating whether the
-client is running in verbose mode.
+client is running in verbose mode. If called with argument - modifies the
+current 'verbose' value.
 
 =cut
 
-sub verbose { $_[0]->{verbose} }
+sub verbose { 
+    my $self = shift;
+    
+    return $self->{verbose} unless @_;
+    
+    $self->{verbose} = shift;
+}
 
 =pod
 

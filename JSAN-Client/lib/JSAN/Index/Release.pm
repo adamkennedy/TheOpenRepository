@@ -70,7 +70,7 @@ sub retrieve_all {
 
 
 sub file_path {
-    JSAN::Transport->file_location($_[0]->source)->path;
+    JSAN::Index->transport->file_location($_[0]->source)->path;
 }
 
 sub file_mirrored {
@@ -79,7 +79,7 @@ sub file_mirrored {
 
 sub mirror {
     my $self     = shift;
-    my $location = JSAN::Transport->file_mirror($self->source);
+    my $location = JSAN::Index->transport->file_mirror($self->source);
     $location->path;
 }
 
