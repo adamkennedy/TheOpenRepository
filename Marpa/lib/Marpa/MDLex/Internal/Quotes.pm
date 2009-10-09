@@ -93,16 +93,11 @@ sub lex_regex {
     my $string       = shift;
     my $lexeme_start = shift;
 
-    my $string_start = pos ${$string}; # for debugging
-
     my ($left_side) = ( ${$string} =~ m{\G(qr$punct|/)}xmsogc );
-    my $value_start  = pos ${$string};
+    my $value_start = pos ${$string};
     return if not defined $left_side;
     my $left_bracket = substr $left_side, -1;
     my $prefix = ( $left_side =~ /^qr/xms ) ? q{} : 'qr';
-
-    ### value starts at: substr(${$string}, $value_start, 10)
-    ### string starts at: substr(${$string}, $string_start, 10)
 
     my $regex_data = $regex_data{$left_bracket};
     if ( not defined $regex_data ) {
@@ -136,11 +131,8 @@ sub lex_regex {
                 my $value = q{"}
                     . (
                     quotemeta substr ${$string},
-                    $value_start,
-                    ( $before_options - $value_start ) - 1
+                    $value_start, ( $before_options - $value_start ) - 1
                     ) . q{"};
-
-                ### returning: $value
 
                 return ( $value, $after_options - $lexeme_start );
             } ## end if ( $1 eq $left_bracket )
@@ -165,11 +157,8 @@ sub lex_regex {
             my $value = q{"}
                 . (
                 quotemeta substr ${$string},
-                $value_start,
-                ( $before_options - $value_start ) - 1
+                $value_start, ( $before_options - $value_start ) - 1
                 ) . q{"};
-
-            ### returning: $value
 
             return ( $value, $after_options - $lexeme_start );
 

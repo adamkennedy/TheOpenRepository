@@ -56,7 +56,7 @@ my $lexer = Marpa::MDLex->new(
 
 my @expected = qw(400 300 200 100);
 
-my $fail_offset = $lexer->text( 'a' );
+my $fail_offset = $lexer->text('a');
 if ( $fail_offset >= 0 ) {
     Marpa::exception("Parse failed at offset $fail_offset");
 }

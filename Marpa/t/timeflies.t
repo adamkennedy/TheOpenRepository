@@ -51,10 +51,10 @@ sub preposition       { return "pr($_[0])" }
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
-    {   start              => 'sentence',
-        strip              => 0,
-        actions            => 'main',
-        rules              => [
+    {   start   => 'sentence',
+        strip   => 0,
+        actions => 'main',
+        rules   => [
             [ 'sentence', [qw(subject verb adjunct)], 'sva_sentence' ],
             [ 'sentence', [qw(subject verb object)],  'svo_sentence' ],
             [ 'adjunct',  [qw(preposition object)] ],

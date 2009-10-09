@@ -6,6 +6,8 @@ Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
 =over 4
 
+=item * Add OBJECT flag to Grammar.
+
 =item * Make SELF_ARG flag operative.
 If on, first arg of actions is
 be the action object, or an unblessed hash if no object.

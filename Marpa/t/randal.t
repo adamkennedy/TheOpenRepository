@@ -36,10 +36,12 @@ my $lexer_args = $g->lexer_args();
 $g->precompute();
 
 TEST: while ( my $test = pop @tests ) {
+
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
-    my $lexer = Marpa::MDLex->new( { recce=>$recce, %{$lexer_args} } );
+    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
     $lexer->text( \$test );
     $recce->end_input();
+
     my $evaler = Marpa::Evaluator->new( { recce => $recce } );
     my @parses;
     while ( defined( my $value = $evaler->value ) ) {
