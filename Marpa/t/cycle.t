@@ -134,7 +134,7 @@ for my $test_data (@test_data) {
     my $lexer_args = $grammar->lexer_args();
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-    my $lexer = Marpa::MDLex->new( { recce=>$recce, %{$lexer_args} } );
+    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
     my $fail_offset = $lexer->text($input);
     my $result;
     given ($fail_offset) {

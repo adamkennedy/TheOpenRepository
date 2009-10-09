@@ -40,7 +40,7 @@ sub get_terminal {
     my $symbol_name = shift;
     return Marpa::Grammar::get_terminal( $grammar,
         canonical_symbol_name($symbol_name) );
-} ## end sub get_symbol
+} ## end sub get_terminal
 
 1;
 

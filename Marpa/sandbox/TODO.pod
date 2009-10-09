@@ -2,6 +2,10 @@
 
 Parse::Marpa::Doc::To_Do - Marpa's To Do List
 
+=head1 PRINCIPLES
+
+MDLex and MDL will know about Marpa, but B<not> vice versa.
+
 =head1 ORDERED TASKS
 
 =over 4
@@ -65,6 +69,8 @@ Marpa's idea of where the
 next terminal should be expected to the lexer.
 Also the lexer should be able to inform Marpa
 which earleme a token is at.
+
+Use PREDICTIVE flag to the Recognizer to enable this?
 
 =item * Allow action options to be changed when evaluator
 is created, but not afterwards.

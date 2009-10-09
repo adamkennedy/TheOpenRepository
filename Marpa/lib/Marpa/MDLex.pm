@@ -96,19 +96,20 @@ sub set {
     my $trace_fh = $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_FILE_HANDLE];
 
     my @options = qw(
-            trace_file_handle
-            trace
-            trace_tries
-            trace_matches
-            ambiguous
-            default_prefix
-            recce
-            recognizer
-            terminals
+        trace_file_handle
+        trace
+        trace_tries
+        trace_matches
+        ambiguous
+        default_prefix
+        recce
+        recognizer
+        terminals
     );
-    if (my @bad_options = grep { not @options ~~ $_ } keys %{$args})
-    {
-        Carp::croak("Unknown option(s) to Marpa::MDLex::new: ", join q{ }, @bad_options);
+
+    if ( my @bad_options = grep { not @options ~~ $_ } keys %{$args} ) {
+        Carp::croak( 'Unknown option(s) to Marpa::MDLex::new: ',
+            join q{ }, @bad_options );
     }
 
     if ( defined $args->{recce} ) {
@@ -125,41 +126,41 @@ sub set {
         $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_TRIES] =
             $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_MATCHES] = $value;
         if ($value) {
-            say {$trace_fh} "Setting trace option";
+            say {$trace_fh} 'Setting trace option';
             $lexer->[Marpa::MDLex::Internal::Lexer::TRACING] = 1;
         }
     } ## end if ( my $value = $args->{trace} )
     if ( my $value = $args->{trace_tries} ) {
         $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_TRIES] = $value;
         if ($value) {
-            say {$trace_fh} "Setting trace_tries option";
+            say {$trace_fh} 'Setting trace_tries option';
             $lexer->[Marpa::MDLex::Internal::Lexer::TRACING] = 1;
         }
     } ## end if ( my $value = $args->{trace_tries} )
     if ( my $value = $args->{trace_matches} ) {
         $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_MATCHES] = $value;
         if ($value) {
-            say {$trace_fh} "Setting trace_matches option";
+            say {$trace_fh} 'Setting trace_matches option';
             $lexer->[Marpa::MDLex::Internal::Lexer::TRACING] = 1;
         }
     } ## end if ( my $value = $args->{trace_matches} )
 
     if ( my $value = $args->{default_prefix} ) {
         Marpa::exception(
-            "default_prefix option not allowed after lexer is initialized")
+            'default_prefix option not allowed after lexer is initialized')
             if $initialized;
         $lexer->[Marpa::MDLex::Internal::Lexer::DEFAULT_PREFIX] = $value;
     } ## end if ( my $value = $args->{default_prefix} )
     if ( my $value = $args->{ambiguous} ) {
         Marpa::exception(
-            "ambiguous option not allowed after lexer is initialized")
+            'ambiguous option not allowed after lexer is initialized')
             if $initialized;
         $lexer->[Marpa::MDLex::Internal::Lexer::AMBIGUOUS] = $value;
     } ## end if ( my $value = $args->{ambiguous} )
 
     if ( my $value = $args->{recognizer} ) {
         Marpa::exception(
-            "recognizer option not allowed after lexer is initialized")
+            'recognizer option not allowed after lexer is initialized')
             if $initialized;
         my $ref = ref $value;
         Marpa::exception('Not a valid Marpa recognizer')
@@ -170,7 +171,7 @@ sub set {
 
     if ( my $value = $args->{terminals} ) {
         Marpa::exception(
-            "terminals option not allowed after lexer is initialized")
+            'terminals option not allowed after lexer is initialized')
             if $initialized;
         add_user_terminals( $lexer, $value );
     } ## end if ( my $value = $args->{terminals} )
@@ -335,8 +336,7 @@ sub Marpa::MDLex::text {
     if ($tracing) {
         $trace_fh =
             $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_FILE_HANDLE];
-        $trace_tries =
-            $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_TRIES];
+        $trace_tries = $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_TRIES];
         $trace_matches =
             $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_MATCHES];
     } ## end if ($tracing)

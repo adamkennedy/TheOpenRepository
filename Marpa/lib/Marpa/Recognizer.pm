@@ -91,7 +91,6 @@ sub Marpa::Recognizer::new {
     my $arg_trace_fh = $args->{trace_file_handle};
 
     my $self = bless [], $class;
-    my $ambiguous_lex;
 
     my $clone_arg = $args->{clone};
     delete $args->{clone};
@@ -151,7 +150,7 @@ sub Marpa::Recognizer::new {
 
     # Pull lookup of terminal flag by symbol ID out of the loop
     # over the QDFA transitions
-    my $symbols = $grammar->[ Marpa::Internal::Grammar::SYMBOLS];
+    my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my @terminal_ids =
         map  { $_->[Marpa::Internal::Symbol::ID] }
         grep { $_->[Marpa::Internal::Symbol::TERMINAL] } @{$symbols};
@@ -168,8 +167,8 @@ sub Marpa::Recognizer::new {
             @{$state}[ Marpa::Internal::QDFA::ID,
             Marpa::Internal::QDFA::TRANSITION, ];
         $terminals_by_state[$id] = [
-                grep { $terminals_by_id[$_] }
-                map  { $symbol_hash->{$_} }
+            grep    { $terminals_by_id[$_] }
+                map { $symbol_hash->{$_} }
                 keys %{$transition}
         ];
     } ## end for my $state ( @{$QDFA} )
@@ -219,7 +218,7 @@ sub Marpa::Recognizer::new {
 } ## end sub Marpa::Recognizer::new
 
 sub Marpa::Recognizer::get_terminal {
-    my ($recce, $name) = @_;
+    my ( $recce, $name ) = @_;
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     return $grammar->get_terminal($name);
 }
@@ -513,11 +512,12 @@ sub scan_set {
     Marpa::exception('Attempt to scan tokens after parsing was exhausted')
         if $exhausted;
 
-    my $QDFA = $grammar->[Marpa::Internal::Grammar::QDFA];
+    my $QDFA    = $grammar->[Marpa::Internal::Grammar::QDFA];
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
 
     # Convert values to value refs and token ids to symbols
-    my @alternatives = map { [ $symbols->[$_->[0]], \( $_->[1] ), $_->[2] ] } @_;
+    my @alternatives =
+        map { [ $symbols->[ $_->[0] ], \( $_->[1] ), $_->[2] ] } @_;
 
     my $earley_set = $earley_set_list->[$current_set];
 
@@ -757,9 +757,7 @@ sub complete_set {
 
     return 1 if not wantarray;
 
-    my $lexables = [
-            grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
-    ];
+    my $lexables = [ grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} ) ];
     return ( $current_earleme, $lexables );
 
 }    # sub complete_set

@@ -99,19 +99,22 @@ my $grammar = Marpa::Grammar->new(
                 action => 'number'
             },
         ],
-        terminals => [qw( Number Minus MinusMinus )],
+        terminals      => [qw( Number Minus MinusMinus )],
         default_action => 'default_action',
     }
 );
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-my $lexer = Marpa::MDLex->new( { recognizer=>$recce, 
-        terminals => [
-            [ 'Number',  '\d+' ],
-            [ 'Minus'  ,   '[-]' ],
-            [ 'MinusMinus',  '[-][-]' ],
-        ]});
+my $lexer = Marpa::MDLex->new(
+    {   recognizer => $recce,
+        terminals  => [
+            [ 'Number',     '\d+' ],
+            [ 'Minus',      '[-]' ],
+            [ 'MinusMinus', '[-][-]' ],
+        ]
+    }
+);
 
 Marpa::Test::is( $grammar->show_rules,
     <<'END_RULES', 'Minuses Equation Rules' );

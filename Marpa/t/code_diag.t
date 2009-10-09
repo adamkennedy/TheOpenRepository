@@ -212,16 +212,16 @@ sub run_test {
             ],
             default_action     => $default_action,
             default_null_value => $default_null_value,
-            terminals => [qw(Number Op Text)],
+            terminals          => [qw(Number Op Text)],
         }
     );
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
     my $lexer = Marpa::MDLex->new(
-        {   recce     => $recce,
+        {   recce          => $recce,
             default_prefix => '\s*',
-            terminals => [
+            terminals      => [
                 [ 'Number', '\d+' ],
                 [ 'Op',     '[-+*]' ],
                 { name => 'Text', builtin => 'q_quote' },
@@ -237,9 +237,9 @@ sub run_test {
     $recce->end_input();
 
     my $expected = '((2-(0*(3+1)))==2; q{trailer};[default null];[null])';
-    my $evaler   = Marpa::Evaluator->new( { recce => $recce } );
+    my $evaler = Marpa::Evaluator->new( { recce => $recce } );
     Carp::croak('Parse failed') if not defined $evaler;
-    my $value    = $evaler->value();
+    my $value = $evaler->value();
     Marpa::Test::is( ${$value}, $expected, 'Ambiguous Equation Value' );
 
     return 1;
