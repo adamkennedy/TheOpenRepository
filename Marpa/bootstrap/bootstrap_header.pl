@@ -12,6 +12,7 @@ use warnings;
 use Marpa;
 use Marpa::MDL;
 use Marpa::MDL::Internal::Actions;
+use Marpa::MDLex;
 use Fatal qw(open close);
 use English qw( -no_match_vars ) ;
 

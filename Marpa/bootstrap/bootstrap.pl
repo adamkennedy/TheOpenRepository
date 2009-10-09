@@ -13,6 +13,7 @@ use warnings;
 use Marpa;
 use Marpa::MDL;
 use Marpa::MDL::Internal::Actions;
+use Marpa::MDLex;
 use Fatal qw(open close);
 use English qw( -no_match_vars ) ;
 
@@ -44,7 +45,7 @@ $new_version = '0.001_019';
 
 $new_start_symbol = 'grammar';
 
-$new_default_lex_prefix = qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/xms;
+$new_default_lex_prefix = "\(\?\:\[\ \\t\]\*\(\?\:\\n\|\(\?\:\\\#\[\^\\n\]\*\\n\)\)\)\*\[\ \\t\]\*";
 
 push @{$new_rules}, {
     lhs => 'grammar'
@@ -131,7 +132,7 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['priority:k0' => { regex => qr/priority/ }],
+    ['priority:k0' => { regex => "priority" }],
 ;
 
 push @{$new_rules}, {
@@ -143,9 +144,9 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['the:k1' => { regex => qr/the/ }],
-    ['action:k2' => { regex => qr/action/ }],
-    ['is:k3' => { regex => qr/is/ }],
+    ['the:k1' => { regex => "the" }],
+    ['action:k2' => { regex => "action" }],
+    ['is:k3' => { regex => "is" }],
 ;
 
 push @{$new_rules},
@@ -272,8 +273,8 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['semantics:k4' => { regex => qr/semantics/ }],
-    ['perl5:k5' => { regex => qr/perl5/ }],
+    ['semantics:k4' => { regex => "semantics" }],
+    ['perl5:k5' => { regex => "perl5" }],
 ;
 
 push @{$new_rules}, {
@@ -293,19 +294,19 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['version:k6' => { regex => qr/version/ }],
+    ['version:k6' => { regex => "version" }],
 ;
 
 push @{$new_rules}, {
     lhs => 'version-setting'
-,    rhs => ['version%20number:k7', 'copula', 'the:k1:optional', 'version:k6'],
+,    rhs => ['version%5c%20number:k7', 'copula', 'the:k1:optional', 'version:k6'],
     action =>'version_subject',
 ,
 ,
 
 };
 push @{$new_terminals},
-    ['version%20number:k7' => { regex => qr/version number/ }],
+    ['version%5c%20number:k7' => { regex => "version\ number" }],
 ;
 
 push @{$new_rules}, {
@@ -317,8 +318,8 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['start:k8' => { regex => qr/start/ }],
-    ['symbol:k9' => { regex => qr/symbol/ }],
+    ['start:k8' => { regex => "start" }],
+    ['symbol:k9' => { regex => "symbol" }],
 ;
 
 push @{$new_rules}, {
@@ -338,9 +339,9 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['default:ka' => { regex => qr/default/ }],
-    ['lex:kb' => { regex => qr/lex/ }],
-    ['prefix:kc' => { regex => qr/prefix/ }],
+    ['default:ka' => { regex => "default" }],
+    ['lex:kb' => { regex => "lex" }],
+    ['prefix:kc' => { regex => "prefix" }],
 ;
 
 push @{$new_rules}, {
@@ -360,8 +361,8 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['null:kd' => { regex => qr/null/ }],
-    ['value:ke' => { regex => qr/value/ }],
+    ['null:kd' => { regex => "null" }],
+    ['value:ke' => { regex => "value" }],
 ;
 
 push @{$new_rules}, {
@@ -387,7 +388,7 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['are:kf' => { regex => qr/are/ }],
+    ['are:kf' => { regex => "are" }],
 ;
 
 push @{$new_rules}, {
@@ -416,13 +417,13 @@ push @{$new_rules}, {
 };
 push @{$new_rules}, {
     lhs => 'comment-sentence'
-,    rhs => ['comment-tag', '%3a:k10', 'comment-words', 'period'],
+,    rhs => ['comment-tag', '%5c%3a:k10', 'comment-words', 'period'],
 ,
 ,
 
 };
 push @{$new_terminals},
-    ['%3a:k10' => { regex => qr/:/ }],
+    ['%5c%3a:k10' => { regex => "\:" }],
 ;
 
 push @{$new_rules}, {
@@ -468,20 +469,20 @@ push @{$new_rules}, {
 };
 push @{$new_rules}, {
     lhs => 'production-copula'
-,    rhs => ['%3a:k10'],
+,    rhs => ['%5c%3a:k10'],
 ,
 ,
 
 };
 push @{$new_rules}, {
     lhs => 'production-copula'
-,    rhs => ['%3a%3a%3d:k11'],
+,    rhs => ['%5c%3a%5c%3a%5c%3d:k11'],
 ,
 ,
 
 };
 push @{$new_terminals},
-    ['%3a%3a%3d:k11' => { regex => qr/::=/ }],
+    ['%5c%3a%5c%3a%5c%3d:k11' => { regex => "\:\:\=" }],
 ;
 
 push @{$new_rules}, {
@@ -530,7 +531,7 @@ push @{$new_rules}, {
  priority => 1000
 };
 push @{$new_terminals},
-    ['sequence:k12' => { regex => qr/sequence/ }],
+    ['sequence:k12' => { regex => "sequence" }],
 ;
 
 push @{$new_rules}, {
@@ -542,7 +543,7 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['optional:k13' => { regex => qr/optional/ }],
+    ['optional:k13' => { regex => "optional" }],
 ;
 
 push @{$new_rules}, {
@@ -554,7 +555,7 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['separated:k14' => { regex => qr/separated/ }],
+    ['separated:k14' => { regex => "separated" }],
 ;
 
 push @{$new_rules}, {
@@ -640,7 +641,7 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['matches:k15' => { regex => qr/matches/ }],
+    ['matches:k15' => { regex => "matches" }],
 ;
 
 push @{$new_rules}, {
@@ -652,8 +653,8 @@ push @{$new_rules}, {
 
 };
 push @{$new_terminals},
-    ['match:k16' => { regex => qr/match/ }],
-    ['using:k17' => { regex => qr/using/ }],
+    ['match:k16' => { regex => "match" }],
+    ['using:k17' => { regex => "using" }],
 ;
 
 push @{$new_rules}, {
@@ -676,7 +677,7 @@ push @{$new_terminals}, [ 'q-string' => { action =>'lex_q_quote'} ];
 
 push @{$new_terminals}, [ 'regex' => { action =>'lex_regex'} ];
 
-push @{$new_terminals}, [ 'empty-line' => { regex => qr/^\h*\n/xms} ] ;
+push @{$new_terminals}, [ 'empty-line' => { regex => "\^\\h\*\\n"} ] ;
 
 push @{$new_rules}, {
     lhs => 'trailing-matter'
@@ -699,29 +700,29 @@ push @{$new_rules}, {
 ,
 
 };
-push @{$new_terminals}, [ 'final-comment' => { regex => qr/\#[^\n]*\Z/xms} ] ;
+push @{$new_terminals}, [ 'final-comment' => { regex => "\\\#\[\^\\n\]\*\\Z"} ] ;
 
-push @{$new_terminals}, [ 'final-whitespace' => { regex => qr/\s\z/xms} ] ;
+push @{$new_terminals}, [ 'final-whitespace' => { regex => "\\s\\z"} ] ;
 
-push @{$new_terminals}, [ 'bracketed-comment' => { regex => qr/\x{5b}[^\x{5d}]*\x{5d}/xms} ] ;
+push @{$new_terminals}, [ 'bracketed-comment' => { regex => "\\x\{5b\}\[\^\\x\{5d\}\]\*\\x\{5d\}"} ] ;
 
 push @{$new_terminals}, [ 'single-quoted-string' => { action =>'lex_single_quote'} ];
 
 push @{$new_terminals}, [ 'double-quoted-string' => { action =>'lex_double_quote'} ];
 
-push @{$new_terminals}, [ 'version-number' => { regex => qr/\d+\.[\d_.]+\d/} ] ;
+push @{$new_terminals}, [ 'version-number' => { regex => "\\d\+\\\.\[\\d_\.\]\+\\d"} ] ;
 
-push @{$new_terminals}, [ 'symbol-word' => { regex => qr/[a-zA-Z_][a-zA-Z0-9_-]*/} ] ;
+push @{$new_terminals}, [ 'symbol-word' => { regex => "\[a\-zA\-Z_\]\[a\-zA\-Z0\-9_\-\]\*"} ] ;
 
-push @{$new_terminals}, [ 'period' => { regex => qr/\./} ] ;
+push @{$new_terminals}, [ 'period' => { regex => "\\\."} ] ;
 
-push @{$new_terminals}, [ 'integer' => { regex => qr/\d+/} ] ;
+push @{$new_terminals}, [ 'integer' => { regex => "\\d\+"} ] ;
 
-push @{$new_terminals}, [ 'comment-tag' => { regex => qr/(to\s+do|note|comment)/} ] ;
+push @{$new_terminals}, [ 'comment-tag' => { regex => "\(to\\s\+do\|note\|comment\)"} ] ;
 
-push @{$new_terminals}, [ 'comment-word' => { regex => qr/[\x{21}-\x{2d}\x{2f}-\x{7e}]+/} ] ;
+push @{$new_terminals}, [ 'comment-word' => { regex => "\[\\x\{21\}\-\\x\{2d\}\\x\{2f\}\-\\x\{7e\}\]\+"} ] ;
 
-push @{$new_terminals}, [ 'comma' => { regex => qr/\,/} ] ;
+push @{$new_terminals}, [ 'comma' => { regex => "\\\,"} ] ;
 
 # This is the beginning of bootstrap_trailer.pl
 
@@ -761,9 +762,13 @@ $g->set({
 
 $g->precompute();
 
+my $lexer_args = $g->lexer_args();
+
 my $recce = new Marpa::Recognizer({
    grammar=> $g,
 });
+
+my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
 
 sub locator {
     my $earleme = shift;
@@ -789,7 +794,7 @@ my $spec;
     open my $grammar, '<', $grammar_file_name or Marpa::exception("Cannot open $grammar_file_name: $ERRNO");
     $spec = <$grammar>;
     close $grammar;
-    if ((my $earleme = $recce->text(\$spec)) >= 0) {
+    if ((my $earleme = $lexer->text(\$spec)) >= 0) {
 	# for the editors, line numbering starts at 1
 	# do something about this?
 	my ($line, $line_start) = locator($earleme, \$spec);

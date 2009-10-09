@@ -36,9 +36,13 @@ $g->set({
 
 $g->precompute();
 
+my $lexer_args = $g->lexer_args();
+
 my $recce = new Marpa::Recognizer({
    grammar=> $g,
 });
+
+my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
 
 sub locator {
     my $earleme = shift;
@@ -64,7 +68,7 @@ my $spec;
     open my $grammar, '<', $grammar_file_name or Marpa::exception("Cannot open $grammar_file_name: $ERRNO");
     $spec = <$grammar>;
     close $grammar;
-    if ((my $earleme = $recce->text(\$spec)) >= 0) {
+    if ((my $earleme = $lexer->text(\$spec)) >= 0) {
 	# for the editors, line numbering starts at 1
 	# do something about this?
 	my ($line, $line_start) = locator($earleme, \$spec);
