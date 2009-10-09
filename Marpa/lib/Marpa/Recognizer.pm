@@ -600,6 +600,8 @@ sub Marpa::Recognizer::text {
     my $input        = shift;
     my $input_length = shift;
 
+    Carp::confess("Attempt to use old lexer");
+
     return 0 if $recce->[Marpa::Internal::Recognizer::EXHAUSTED];
 
     Marpa::exception(

@@ -246,6 +246,7 @@ use Marpa::Offset qw(
 package Marpa::Internal::Grammar;
 
 use Carp;
+use Marpa::MDLex; # Remove this when MDL is factored out
 
 use Smart::Comments '-ENV';
 
@@ -811,15 +812,20 @@ sub parse_source_grammar {
 
     $source_options //= {};
 
+    my $destringified_grammar = Marpa::Grammar::unstringify(
+        $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR);
+
+    my $lexer_args = $destringified_grammar->lexer_args();
+
     my $recce = Marpa::Recognizer->new(
-        {   stringified_grammar =>
-                $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR,
+        {   grammar           => $destringified_grammar,
             trace_file_handle => $trace_fh,
             %{$source_options}
         }
     );
 
-    my $failed_at_earleme = $recce->text($source);
+    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
+    my $failed_at_earleme = $lexer->text($source);
     if ( $failed_at_earleme >= 0 ) {
         Marpa::die_with_parse_failure( $source, $failed_at_earleme );
     }

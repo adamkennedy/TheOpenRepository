@@ -135,7 +135,7 @@ sub Marpa::mdl {
     );
     my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
 
-    my $failed_at_earleme = $recce->text($text);
+    my $failed_at_earleme = $lexer->text($text);
     if ( $failed_at_earleme >= 0 ) {
         Marpa::die_with_parse_failure( $text, $failed_at_earleme );
     }
