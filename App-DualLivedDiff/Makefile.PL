@@ -18,6 +18,9 @@ WriteMakefile1(
       'File::Spec' => '0',
       'Digest::MD5' => '0',
     }, # e.g., Module::Name => 1.1
+    BUILD_REQUIRES => {
+      'Test::More' => 0,
+    },
     LICENSE => 'perl',
     ABSTRACT_FROM  => 'lib/App/DualLivedDiff.pm', # retrieve abstract from module
     AUTHOR         => 'Steffen Mueller <smueller@cpan.org>',
