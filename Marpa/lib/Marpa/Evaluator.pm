@@ -126,6 +126,7 @@ use Marpa::Offset qw(
     NULL_VALUES
     AND_ITERATIONS
     OR_ITERATIONS
+    ACTION_OBJECT_CONSTRUCTOR
 
 );
 
@@ -145,7 +146,6 @@ use Marpa::Offset qw(
 use Marpa::Offset qw(
 
     :package=Marpa::Internal::Evaluator_Rule
-    CODE
     OPS
 
 );
@@ -410,16 +410,12 @@ sub set_actions {
                     $evaler, $action);
         $closure //= $default_action_closure;
         if (defined $closure) {
-            $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] =
-                "$action->()";
             push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
             next RULE;
         } ## end if ( defined( my $closure = ...))
 
         # If there is no default action specified, the fallback
         # is to return an undef
-        $rule_data->[Marpa::Internal::Evaluator_Rule::CODE] =
-            'default to undef';
         push @{$ops},
             Marpa::Internal::Evaluator_Op::CONSTANT_RESULT,
             \undef;
@@ -1559,6 +1555,15 @@ sub Marpa::Evaluator::new {
         set_null_values($self);
     my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_DATA] =
         set_actions($self);
+    if (defined(
+            my $action_object =
+                $self->[Marpa::Internal::Grammar::ACTION_OBJECT]
+        )
+        )
+    {
+        $self->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR] =
+            resolve_semantics( $self, $action_object . q{::new} );
+    } ## end if ( defined( my $action_object = $self->[...]))
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
     my ( $nulling, $symbol_id ) =
@@ -2174,6 +2179,8 @@ sub Marpa::Evaluator::value {
 
     my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
     my $null_values     = $evaler->[Marpa::Internal::Evaluator::NULL_VALUES];
+    my $action_object_constructor =
+        $evaler->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR];
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
 
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
@@ -2950,6 +2957,36 @@ sub Marpa::Evaluator::value {
 
                 my @evaluation_stack   = ();
                 my @virtual_rule_stack = ();
+                my $action_object;
+
+                if ($action_object_constructor) {
+                    my @warnings;
+                    my $eval_ok;
+                    DO_EVAL: {
+                        local $SIG{__WARN__} = sub {
+                            push @warnings, [ $_[0], ( caller 0 ) ];
+                        };
+
+                        $eval_ok = eval {
+                            $action_object = $action_object_constructor->();
+                            1;
+                        };
+                    } ## end DO_EVAL:
+
+                    if ( not $eval_ok or @warnings ) {
+                        my $fatal_error = $EVAL_ERROR;
+                        Marpa::Internal::code_problems(
+                            {   fatal_error => $fatal_error,
+                                grammar     => $grammar,
+                                eval_ok     => $eval_ok,
+                                warnings    => \@warnings,
+                                where       => 'constructing action object',
+                            }
+                        );
+                    } ## end if ( not $eval_ok or @warnings )
+                } ## end if ($action_object_constructor)
+
+                $action_object //= {};
 
                 TREE_NODE: for my $and_node ( reverse @preorder ) {
 
@@ -3200,10 +3237,6 @@ sub Marpa::Evaluator::value {
                                         ];
                                     my $rule        = $rules->[$rule_id];
                                     my $fatal_error = $EVAL_ERROR;
-                                    my $code =
-                                        $evaluator_rules->[$rule_id]->[
-                                        Marpa::Internal::Evaluator_Rule::CODE
-                                        ];
                                     Marpa::Internal::code_problems(
                                         {   fatal_error => $fatal_error,
                                             grammar     => $grammar,
