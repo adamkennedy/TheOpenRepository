@@ -1,5 +1,7 @@
 Revision history for Perl extension App-DualLivedDiff
 
+   - Better Makefile.PL and META.yml (Alexandr Ciornii)
+
 1.07  Wed Mar 25 14:10 2009
   - Option to ignore whitespace.
 
