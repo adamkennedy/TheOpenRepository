@@ -35,6 +35,7 @@ sub test_grammar {
     Marpa::exception("Exception while creating Grammar:\n$EVAL_ERROR")
         if not $eval_ok;
     Marpa::exception("Grammar not created\n") if not $grammar;
+    $grammar->precompute();
 
     my $recce;
     $eval_ok = eval {

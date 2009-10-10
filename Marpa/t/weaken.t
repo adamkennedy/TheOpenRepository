@@ -26,6 +26,7 @@ my $test = sub {
         }
     );
     my $a = $g->get_terminal('a');
+    $g->precompute();
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
     $recce->earleme( [ $a, 'a', 1 ] );
     $recce->earleme( [ $a, 'a', 1 ] );

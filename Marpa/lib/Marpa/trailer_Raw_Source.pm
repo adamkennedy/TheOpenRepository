@@ -2,37 +2,33 @@
 sub Marpa::Internal::raw_source_grammar {
 
     my $raw_source_grammar = new Marpa::Grammar(
-        {
-            start => $new_start_symbol,
-            rules => $new_rules,
+        {   start     => $new_start_symbol,
+            rules     => $new_rules,
             terminals => $new_terminals,
-            version => $new_version,
-            actions => 'Marpa::MDL::Internal::Actions',
-            warnings => 1,
-            precompute => 0,
+            version   => $new_version,
+            actions   => 'Marpa::MDL::Internal::Actions',
+            warnings  => 1,
         }
-    );  
-        
-    $raw_source_grammar->set( {
-        default_lex_prefix => $new_default_lex_prefix,
-        precompute => 0,
-    }) if defined $new_default_lex_prefix;
+    );
 
-    $raw_source_grammar->set( {
-        default_action => $new_default_action,
-        precompute => 0,
-    }) if defined $new_default_action;
+    $raw_source_grammar->set(
+        {   default_lex_prefix => $new_default_lex_prefix,
 
-    $raw_source_grammar->set( {
-        default_null_value => $new_default_null_value,
-        precompute => 0,
-    }) if defined $new_default_null_value;
+        }
+    ) if defined $new_default_lex_prefix;
+
+    $raw_source_grammar->set( { default_action => $new_default_action, } )
+        if defined $new_default_action;
+
+    $raw_source_grammar->set(
+        { default_null_value => $new_default_null_value, } )
+        if defined $new_default_null_value;
 
     $raw_source_grammar->precompute();
 
     $raw_source_grammar;
 
-}
+} ## end sub Marpa::Internal::raw_source_grammar
         
 1;
 

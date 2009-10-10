@@ -10,29 +10,23 @@ Marpa::exception('Version requested is ', $new_version, "\nVersion must match ",
 Marpa::exception('Semantics are ', $new_semantics, "\nThe only semantics currently available are perl5.")
    unless $new_semantics eq 'perl5';
 
-my $g = new Marpa::Grammar({
-    start => $new_start_symbol,
-    rules => $new_rules,
-    terminals => $new_terminals,
-    warnings => 1,
-    actions => 'Marpa::MDL::Internal::Actions',
-    precompute => 0,
-});
+my $g = new Marpa::Grammar(
+    {   start     => $new_start_symbol,
+        rules     => $new_rules,
+        terminals => $new_terminals,
+        warnings  => 1,
+        actions   => 'Marpa::MDL::Internal::Actions',
+    }
+);
 
-$g->set({
-    default_lex_prefix => $new_default_lex_prefix,
-    precompute => 0,
-}) if defined $new_default_lex_prefix;
+$g->set( { default_lex_prefix => $new_default_lex_prefix, } )
+    if defined $new_default_lex_prefix;
 
-$g->set({
-    default_action => $new_default_action,
-    precompute => 0,
-}) if defined $new_default_action;
+$g->set( { default_action => $new_default_action, } )
+    if defined $new_default_action;
 
-$g->set({
-    default_null_value => $new_default_null_value,
-    precompute => 0,
-}) if defined $new_default_null_value;
+$g->set( { default_null_value => $new_default_null_value, } )
+    if defined $new_default_null_value;
 
 $g->precompute();
 

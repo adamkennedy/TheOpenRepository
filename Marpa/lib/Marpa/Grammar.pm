@@ -847,12 +847,6 @@ sub Marpa::Grammar::set {
     my $phase     = $grammar->[Marpa::Internal::Grammar::PHASE];
     my $interface = $grammar->[Marpa::Internal::Grammar::INTERFACE];
 
-    my $precompute = 1;
-    if ( exists $args->{precompute} ) {
-        $precompute = $args->{precompute};
-        delete $args->{precompute};
-    }
-
     # value of source needs to be a *REF* to a string
     my $source = $args->{'mdl_source'};
     if ( defined $source ) {
@@ -1176,10 +1170,6 @@ sub Marpa::Grammar::set {
             }
         } ## end given
     } ## end while ( my ( $option, $value ) = each %{$args} )
-
-    if ( $precompute and $phase == Marpa::Internal::Phase::RULES ) {
-        $grammar->precompute();
-    }
 
     return 1;
 } ## end sub Marpa::Grammar::set

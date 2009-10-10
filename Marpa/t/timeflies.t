@@ -78,6 +78,8 @@ svo(s(adje(fruit);n(flies));v(like);o(art(a);n(banana)))
 EOS
 my $actual = q{};
 
+$grammar->precompute();
+
 for my $data ( 'time flies like an arrow.', 'fruit flies like a banana.' ) {
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );

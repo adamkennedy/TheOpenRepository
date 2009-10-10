@@ -103,6 +103,7 @@ my $grammar = Marpa::Grammar->new(
         default_action => 'default_action',
     }
 );
+$grammar->precompute();
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 

@@ -40,8 +40,7 @@ sub run_sequence_test {
     }
 
     my $grammar = Marpa::Grammar->new(
-        {   precompute => 0,
-            start      => 'TOP',
+        {   start      => 'TOP',
             strip      => 0,
             rules      => [
                 {   lhs  => 'TOP',

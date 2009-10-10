@@ -127,7 +127,9 @@ sub Marpa::mdl {
         if $ref ne 'HASH';
 
     my $g = Marpa::Grammar->new( { mdl_source => $grammar, %{$options} } );
+    $g->precompute();
     my $lexer_args = $g->lexer_args();
+
     my $recce      = Marpa::Recognizer->new(
         {   grammar => $g,
             clone   => 0

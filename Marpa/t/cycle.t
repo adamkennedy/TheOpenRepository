@@ -132,6 +132,7 @@ for my $test_data (@test_data) {
         }
     );
     my $lexer_args = $grammar->lexer_args();
+    $grammar->precompute();
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );

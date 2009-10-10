@@ -39,6 +39,7 @@ sub ah_extended {
             warnings => ( $n ? 1 : 0 ),
         }
     );
+    $g->precompute();
 
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
 

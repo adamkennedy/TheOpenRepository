@@ -41,6 +41,8 @@ my $g = Marpa::Grammar->new(
     }
 );
 
+$g->precompute();
+
 my $recce = Marpa::Recognizer->new( { grammar => $g, } );
 
 my $lexer = Marpa::MDLex->new(

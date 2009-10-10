@@ -20,8 +20,7 @@ BEGIN {
 # pp. 248, 250.
 
 my $g = Marpa::Grammar->new(
-    {   precompute => 0,
-        start      => q{S'},
+    {   start      => q{S'},
         strip      => 0,
         rules      => [
             [ q{S'}, [qw/S c/] ],

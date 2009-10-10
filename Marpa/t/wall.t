@@ -86,6 +86,8 @@ my $g = Marpa::Grammar->new(
 
 my @expected = qw(0 1 1 3 4 8 12 21 33 55 88 144 232 );
 
+$g->precompute();
+
 ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
 for my $n ( 1 .. 12 ) {
 ## use critic
@@ -93,6 +95,7 @@ for my $n ( 1 .. 12 ) {
     my $recce  = Marpa::Recognizer->new( { grammar => $g } );
     my $minus  = $g->get_terminal('Minus');
     my $number = $g->get_terminal('Number');
+    $g->precompute();
     ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
     $recce->earleme( [ $number, 6, 1 ] );
     ## use critic

@@ -215,6 +215,7 @@ sub run_test {
             terminals          => [qw(Number Op Text)],
         }
     );
+    $grammar->precompute();
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
