@@ -107,7 +107,7 @@ sub set {
         terminals
     );
 
-    if ( my @bad_options = grep { not @options ~~ $_ } keys %{$args} ) {
+    if ( my @bad_options = grep { not $_ ~~ @options } keys %{$args} ) {
         Carp::croak( 'Unknown option(s) to Marpa::MDLex::new: ',
             join q{ }, @bad_options );
     }
