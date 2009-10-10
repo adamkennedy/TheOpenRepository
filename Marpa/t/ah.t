@@ -23,20 +23,12 @@ my $g = Marpa::Grammar->new(
             [ 'A',   [qw/E/] ],
             ['E'],
         ],
-        academic   => 1,
-        strip      => 0.
+        academic => 1,
+        strip    => 0.
     }
 );
 
-$g->set(
-    {
-    #<<< perltidy flattens this
-    terminals => [
-        [ 'a' => { regex => 'a' } ],
-    ],
-    #>>>
-    }
-);
+$g->set( { terminals => [ [ 'a' => { regex => 'a' } ], ], } );
 
 $g->precompute();
 

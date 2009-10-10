@@ -18,9 +18,9 @@ BEGIN {
 # The book is available on the web.
 
 my $g = Marpa::Grammar->new(
-    {   start      => q{S'},
-        strip      => 0,
-        rules      => [
+    {   start => q{S'},
+        strip => 0,
+        rules => [
             [ q{S'}, [qw/S $/] ],
             [ 'S',   [qw/E/] ],
             [ 'E',   [qw/E - T/] ],

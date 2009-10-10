@@ -37,6 +37,8 @@ my $grammar = Marpa::Grammar->new();
 
 $grammar->set( { mdl_source => \$mdl_source } );
 
+$grammar->precompute();
+
 my $cloned_grammar = $grammar->clone();
 
 my $stringified_grammar = $grammar->stringify();

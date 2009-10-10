@@ -25,19 +25,11 @@ my $g = Marpa::Grammar->new(
             [ 'A',   [qw/E/] ],
             ['E'],
         ],
-        academic   => 1,
+        academic => 1,
     }
 );
 
-$g->set(
-    {
-    #<<<
-    terminals => [
-        [ 'a' => { regex => 'a' } ],
-    ],
-    #>>>
-    }
-);
+$g->set( { terminals => [ [ 'a' => { regex => 'a' } ], ], } );
 
 $g->precompute();
 

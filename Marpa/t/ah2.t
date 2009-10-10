@@ -28,10 +28,10 @@ sub default_action {
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
-    {   start      => 'S',
-        strip      => 0,
-        maximal    => 1,
-        rules      => [
+    {   start   => 'S',
+        strip   => 0,
+        maximal => 1,
+        rules   => [
             [ 'S', [qw/A A A A/] ],
             [ 'A', [qw/a/] ],
             [ 'A', [qw/E/] ],

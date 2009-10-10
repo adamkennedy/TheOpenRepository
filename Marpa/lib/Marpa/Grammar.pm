@@ -835,7 +835,8 @@ sub parse_source_grammar {
     return;
 } ## end sub parse_source_grammar
 
-use constant GRAMMAR_OPTIONS => [qw{
+use constant GRAMMAR_OPTIONS => [
+    qw{
         academic
         actions
         allow_raw_source
@@ -871,7 +872,8 @@ use constant GRAMMAR_OPTIONS => [qw{
         unproductive_ok
         version
         warnings
-    }];
+        }
+];
 
 sub Marpa::Grammar::set {
     my ( $grammar, @arg_hashes ) = @_;
@@ -893,7 +895,7 @@ sub Marpa::Grammar::set {
         {
             Carp::croak( 'Unknown option(s) for Marpa Grammar: ',
                 join q{ }, @bad_options );
-        } ## end if ( my @bad_options = grep { not $_ ~~ @{...}})
+        } ## end if ( my @bad_options = grep { not $_ ~~ ...})
 
         if ( defined( my $value = $args->{'mdl_source'} ) ) {
             Marpa::exception(
@@ -919,10 +921,10 @@ sub Marpa::Grammar::set {
         if ( defined( my $value = $args->{'trace_actions'} ) ) {
             $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS] = $value;
             if ($value) {
-                say {$trace_fh} "Setting trace_actions option";
+                say {$trace_fh} 'Setting trace_actions option';
                 if ( $phase >= Marpa::Internal::Phase::RECOGNIZING ) {
                     say {$trace_fh}
-                        "Warning: setting trace_actions option after semantics were finalized";
+                        'Warning: setting trace_actions option after semantics were finalized';
                 }
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             } ## end if ($value)
@@ -933,7 +935,7 @@ sub Marpa::Grammar::set {
                 $grammar->[Marpa::Internal::Grammar::TRACE_LEX_MATCHES] =
                 $value;
             if ($value) {
-                say {$trace_fh} "Setting trace_lex option";
+                say {$trace_fh} 'Setting trace_lex option';
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_lex'} ) )
@@ -941,7 +943,7 @@ sub Marpa::Grammar::set {
         if ( defined( my $value = $args->{'trace_lex_tries'} ) ) {
             $grammar->[Marpa::Internal::Grammar::TRACE_LEX_TRIES] = $value;
             if ($value) {
-                say {$trace_fh} "Setting trace_lex_tries option";
+                say {$trace_fh} 'Setting trace_lex_tries option';
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_lex_tries'}...))
@@ -949,7 +951,7 @@ sub Marpa::Grammar::set {
         if ( defined( my $value = $args->{'trace_lex_matches'} ) ) {
             $grammar->[Marpa::Internal::Grammar::TRACE_LEX_MATCHES] = $value;
             if ($value) {
-                say {$trace_fh} "Setting trace_lex_matches option";
+                say {$trace_fh} 'Setting trace_lex_matches option';
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             }
         } ## end if ( defined( my $value = $args->{'trace_lex_matches'...}))
@@ -969,7 +971,7 @@ sub Marpa::Grammar::set {
             if ($value) {
                 my $rules      = $grammar->[Marpa::Internal::Grammar::RULES];
                 my $rule_count = @{$rules};
-                say {$trace_fh} "Setting trace_rules";
+                say {$trace_fh} 'Setting trace_rules';
                 if ($rule_count) {
                     say {$trace_fh}
                         "Warning: Setting trace_rules after $rule_count rules have been defined";
@@ -983,7 +985,7 @@ sub Marpa::Grammar::set {
             if ($value) {
                 my $rules      = $grammar->[Marpa::Internal::Grammar::RULES];
                 my $rule_count = @{$rules};
-                say {$trace_fh} "Setting trace_strings";
+                say {$trace_fh} 'Setting trace_strings';
                 if ($rule_count) {
                     say {$trace_fh}
                         "Warning: Setting trace_strings after $rule_count rules have been defined";
@@ -997,7 +999,7 @@ sub Marpa::Grammar::set {
             if ($value) {
                 my $rules      = $grammar->[Marpa::Internal::Grammar::RULES];
                 my $rule_count = @{$rules};
-                say {$trace_fh} "Setting trace_predefineds";
+                say {$trace_fh} 'Setting trace_predefineds';
                 if ($rule_count) {
                     say {$trace_fh}
                         "Warning: Setting trace_predefineds after $rule_count rules have been defined";
@@ -1034,7 +1036,7 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'minimal'} ) ) {
             Marpa::exception(
-                "minimal option not allowed after grammar is precomputed")
+                'minimal option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::MINIMAL] = $value;
             delete $args->{'minimal'};
@@ -1042,7 +1044,7 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'maximal'} ) ) {
             Marpa::exception(
-                "maximal option not allowed after grammar is precomputed")
+                'maximal option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::MAXIMAL] = $value;
             delete $args->{'maximal'};
@@ -1057,7 +1059,7 @@ sub Marpa::Grammar::set {
                 'terminals option only allowed with raw interface')
                 if $interface ne Marpa::Internal::Interface::RAW;
             Marpa::exception(
-                "terminals option not allowed after grammar is precomputed")
+                'terminals option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             add_user_terminals( $grammar, $value );
             $phase = $grammar->[Marpa::Internal::Grammar::PHASE] =
@@ -1066,7 +1068,7 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'start'} ) ) {
             Marpa::exception(
-                "start option not allowed after grammar is precomputed")
+                'start option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::START_NAME] = $value;
         } ## end if ( defined( my $value = $args->{'start'} ) )
@@ -1078,9 +1080,9 @@ sub Marpa::Grammar::set {
             Marpa::exception('rules option only allowed with raw interface')
                 if $interface ne Marpa::Internal::Interface::RAW;
             Marpa::exception(
-                "rules option not allowed after grammar is precomputed")
+                'rules option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
-            Marpa::exception("rules value must be reference to array")
+            Marpa::exception('rules value must be reference to array')
                 if ref $value ne 'ARRAY';
             add_user_rules( $grammar, $value );
             $phase = $grammar->[Marpa::Internal::Grammar::PHASE] =
@@ -1089,21 +1091,21 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'academic'} ) ) {
             Marpa::exception(
-                "academic option not allowed after grammar is precomputed")
+                'academic option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::ACADEMIC] = $value;
         } ## end if ( defined( my $value = $args->{'academic'} ) )
 
         if ( defined( my $value = $args->{'default_null_value'} ) ) {
             Marpa::exception(
-                "default_null_value option not allowed in ",
+                'default_null_value option not allowed in ',
                 Marpa::Internal::Phase::description($phase)
             ) if $phase >= Marpa::Internal::Phase::RECOGNIZING;
             $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE] = $value;
         } ## end if ( defined( my $value = $args->{'default_null_value'...}))
 
         if ( defined( my $value = $args->{'actions'} ) ) {
-            Marpa::exception( "actions option not allowed in ",
+            Marpa::exception( 'actions option not allowed in ',
                 Marpa::Internal::Phase::description($phase) )
                 if $phase >= Marpa::Internal::Phase::RECOGNIZING;
             $grammar->[Marpa::Internal::Grammar::ACTIONS] = $value;
@@ -1111,7 +1113,7 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'default_action'} ) ) {
             Marpa::exception(
-                "default_action option not allowed in ",
+                'default_action option not allowed in ',
                 Marpa::Internal::Phase::description($phase)
             ) if $phase >= Marpa::Internal::Phase::RECOGNIZING;
             $grammar->[Marpa::Internal::Grammar::DEFAULT_ACTION] = $value;
@@ -1119,27 +1121,27 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'default_lex_prefix'} ) ) {
             Marpa::exception(
-                "default_lex_prefix option not allowed after grammar is precomputed"
+                'default_lex_prefix option not allowed after grammar is precomputed'
             ) if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX] = $value;
         } ## end if ( defined( my $value = $args->{'default_lex_prefix'...}))
 
         if ( defined( my $value = $args->{'default_lex_suffix'} ) ) {
             Marpa::exception(
-                "default_lex_suffix option not allowed after grammar is precomputed"
+                'default_lex_suffix option not allowed after grammar is precomputed'
             ) if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX] = $value;
         } ## end if ( defined( my $value = $args->{'default_lex_suffix'...}))
 
         if ( defined( my $value = $args->{'ambiguous_lex'} ) ) {
             Marpa::exception(
-                "ambiguous_lex option not allowed after grammar is precomputed"
+                'ambiguous_lex option not allowed after grammar is precomputed'
             ) if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX] = $value;
         } ## end if ( defined( my $value = $args->{'ambiguous_lex'} ))
 
         if ( defined( my $value = $args->{'strip'} ) ) {
-            Marpa::exception( "strip option not allowed in ",
+            Marpa::exception( 'strip option not allowed in ',
                 Marpa::Internal::Phase::description($phase) )
                 if $phase >= Marpa::Internal::Phase::EVALUATING;
             $grammar->[Marpa::Internal::Grammar::STRIP] = $value;
@@ -1151,7 +1153,7 @@ sub Marpa::Grammar::set {
                     '"cycle_action" option is useless after grammar is precomputed';
             }
             Marpa::exception(
-                "cycle_action must be 'warn', 'quiet' or 'fatal'")
+                q{cycle_action must be 'warn', 'quiet' or 'fatal'})
                 if $value ne 'warn'
                     and $value ne 'quiet'
                     and $value ne 'fatal';
@@ -1196,7 +1198,7 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'allow_raw_source'} ) ) {
             Marpa::exception(
-                "allow_raw_source option not allowed in ",
+                'allow_raw_source option not allowed in ',
                 Marpa::Internal::Phase::description($phase)
             ) if $phase >= Marpa::Internal::Phase::RULES;
             $grammar->[Marpa::Internal::Grammar::ALLOW_RAW_SOURCE] = $value;
@@ -1208,14 +1210,14 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'version'} ) ) {
             Marpa::exception(
-                "version option not allowed after grammar is precomputed")
+                'version option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::VERSION] = $value;
         } ## end if ( defined( my $value = $args->{'version'} ) )
 
         if ( defined( my $value = $args->{'semantics'} ) ) {
             Marpa::exception(
-                "semantics option not allowed after grammar is precomputed")
+                'semantics option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::SEMANTICS] = $value;
         } ## end if ( defined( my $value = $args->{'semantics'} ) )

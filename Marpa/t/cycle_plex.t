@@ -126,6 +126,7 @@ my @test_data = ( $plex1_test, $plex2_test, $plex3_test );
 for my $test_data (@test_data) {
     my ( $test_name, $rules, $expected_values, $expected_trace ) =
         @{$test_data};
+
     my $trace = q{};
     open my $MEMORY, '>', \$trace;
     my %args = (
@@ -135,7 +136,7 @@ for my $test_data (@test_data) {
     );
     my $grammar = Marpa::Grammar->new( \%args );
     $grammar->precompute();
-    my $t       = $grammar->get_terminal('t');
+    my $t = $grammar->get_terminal('t');
 
     close $MEMORY;
     Marpa::Test::is( $trace, $expected_trace, "$test_name trace" );

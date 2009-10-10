@@ -40,9 +40,9 @@ sub run_sequence_test {
     }
 
     my $grammar = Marpa::Grammar->new(
-        {   start      => 'TOP',
-            strip      => 0,
-            rules      => [
+        {   start => 'TOP',
+            strip => 0,
+            rules => [
                 {   lhs  => 'TOP',
                     rhs  => [qw/A/],
                     min  => $minimum,
