@@ -133,7 +133,6 @@ for my $test_data (@test_data) {
         @{$rules},
         cycle_action      => 'warn',
         trace_file_handle => $MEMORY,
-        self_arg          => 1,
     );
     my $grammar = Marpa::Grammar->new( \%args );
     $grammar->precompute();

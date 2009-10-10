@@ -43,7 +43,6 @@ my $grammar = Marpa::Grammar->new(
             [ 'n', ['a'], ],
         ],
         terminals      => ['a'],
-        self_arg       => 1,
         default_action => 'main::default_action',
 
     }

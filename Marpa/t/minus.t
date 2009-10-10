@@ -73,7 +73,6 @@ sub default_action {
 my $grammar = Marpa::Grammar->new(
     {   start => 'E',
         strip => 0,
-        self_arg => 1,
 
         # Set max_parses to 20 in case there's an infinite loop.
         # This is for debugging, after all

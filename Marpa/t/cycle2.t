@@ -63,7 +63,6 @@ my $lexer_args = $grammar->lexer_args();
 my $recce = Marpa::Recognizer->new(
     {   grammar           => $grammar,
         trace_file_handle => *STDERR,
-        self_arg          => 1,
     }
 );
 

@@ -1101,6 +1101,9 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'self_arg'} ) ) {
             Marpa::exception(
+                'self_arg is the default -- explicit setting is prohibited'
+            ) if $value;
+            Marpa::exception(
                 'self_arg option not allowed in ',
                 Marpa::Internal::Phase::description($phase)
             ) if $phase >= Marpa::Internal::Phase::EVALUATING;

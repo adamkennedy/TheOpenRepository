@@ -23,7 +23,6 @@ my $grammar = Marpa::Grammar->new(
     {   warnings   => 1,
         code_lines => -1,
         maximal    => 1,
-        self_arg   => 1,
     }
 );
 

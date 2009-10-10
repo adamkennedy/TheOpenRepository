@@ -210,7 +210,6 @@ sub run_test {
                 [ 'optional_trailer2', [], $null_action ],
                 [ 'trailer',           [qw/Text/], ],
             ],
-            self_arg => 1,
             default_action     => $default_action,
             default_null_value => $default_null_value,
             terminals          => [qw(Number Op Text)],
