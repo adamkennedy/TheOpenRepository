@@ -19,6 +19,7 @@ BEGIN {
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;

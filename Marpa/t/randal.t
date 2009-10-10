@@ -74,18 +74,18 @@ TEST: while ( my $test = pop @tests ) {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub show_perl_line {
-    my $result = $_[0];
-    defined $_[1]
+    my $result = $_[1];
+    defined $_[2]
         and $result .= ', comment';
     return $result;
 } ## end sub show_perl_line
 
-sub show_statement_sequence { return join q{, }, @_ }
+sub show_statement_sequence { shift; return join q{, }, @_ }
 sub show_division           { return 'division' }
-sub show_function_call      { return $_[0] }
+sub show_function_call      { return $_[1] }
 sub show_die                { return 'die statement' }
-sub show_unary              { return $_[0] . ' function call' }
-sub show_nullary            { return $_[0] . ' function call' }
+sub show_unary              { return $_[1] . ' function call' }
+sub show_nullary            { return $_[1] . ' function call' }
 
 ## use critic
 

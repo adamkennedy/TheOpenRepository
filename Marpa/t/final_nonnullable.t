@@ -19,6 +19,7 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{} if $v_count <= 0;
     my @vals = map { $_ // q{-} } @_;

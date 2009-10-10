@@ -682,6 +682,7 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH] = {};
     $grammar->[Marpa::Internal::Grammar::QDFA_BY_NAME]        = {};
     $grammar->[Marpa::Internal::Grammar::MAX_PARSES]          = -1;
+    $grammar->[Marpa::Internal::Grammar::SELF_ARG]            = 1;
     $grammar->[Marpa::Internal::Grammar::PHASE] = Marpa::Internal::Phase::NEW;
 
     $grammar->set($args);
@@ -816,6 +817,7 @@ sub parse_source_grammar {
     my $recce = Marpa::Recognizer->new(
         {   grammar           => $destringified_grammar,
             trace_file_handle => $trace_fh,
+            self_arg          => 0,
             %{$source_options}
         }
     );

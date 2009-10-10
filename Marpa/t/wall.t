@@ -31,6 +31,7 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub minus {
+    shift;
     my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $value = $left_value - $right_value;
@@ -38,25 +39,30 @@ sub minus {
 } ## end sub minus
 
 sub postfix_decr {
+    shift;
     my ( $string, $value ) = ( $_[0] =~ /^(.*)==(.*)$/xms );
     return '(' . $string . q{--} . ')==' . $value--;
 }
 
 sub prefix_decr {
+    shift;
     my ( $string, $value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     return '(' . q{--} . $string . ')==' . --$value;
 }
 
 sub negation {
+    shift;
     my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
     return '(' . q{-} . $string . ')==' . -$value;
 }
 
 sub number {
+    shift;
     return "$_[0]==$_[0]";
 }
 
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;

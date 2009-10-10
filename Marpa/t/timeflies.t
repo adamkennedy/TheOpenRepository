@@ -36,17 +36,17 @@ BEGIN {
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-sub sva_sentence      { return "sva($_[0];$_[1];$_[2])" }
-sub svo_sentence      { return "svo($_[0];$_[1];$_[2])" }
-sub adjunct           { return "adju($_[0];$_[1])" }
-sub adjective         { return "adje($_[0])" }
-sub qualified_subject { return "s($_[0];$_[1])" }
-sub bare_subject      { return "s($_[0])" }
-sub noun              { return "n($_[0])" }
-sub verb              { return "v($_[0])" }
-sub object            { return "o($_[0];$_[1])" }
-sub article           { return "art($_[0])" }
-sub preposition       { return "pr($_[0])" }
+sub sva_sentence      { return "sva($_[1];$_[2];$_[3])" }
+sub svo_sentence      { return "svo($_[1];$_[2];$_[3])" }
+sub adjunct           { return "adju($_[1];$_[2])" }
+sub adjective         { return "adje($_[1])" }
+sub qualified_subject { return "s($_[1];$_[2])" }
+sub bare_subject      { return "s($_[1])" }
+sub noun              { return "n($_[1])" }
+sub verb              { return "v($_[1])" }
+sub object            { return "o($_[1];$_[2])" }
+sub article           { return "art($_[1])" }
+sub preposition       { return "pr($_[1])" }
 
 ## use critic
 
