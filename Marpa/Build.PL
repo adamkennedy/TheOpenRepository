@@ -39,7 +39,8 @@ my $build = $class->new(
     dist_author   => 'Jeffrey Kegler',
     dist_version  => $marpa_version,
     dist_abstract => 'Generate Parsers from any BNF grammar',
-    requires      => { 'Test::More' => 0 },
+    requires      => { 'Scalar::Util' => 0, },
+    build_requires => { 'Test::More' => 0 },
     meta_merge    => {
         no_index => {
             directory => [qw(inc t example bootstrap author.t save)],
