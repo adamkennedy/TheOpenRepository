@@ -741,6 +741,7 @@ my $g = new Marpa::Grammar({
     rules => $new_rules,
     terminals => $new_terminals,
     warnings => 1,
+    self_arg => 0,
     actions => 'Marpa::MDL::Internal::Actions',
 });
 

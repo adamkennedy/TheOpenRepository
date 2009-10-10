@@ -210,6 +210,7 @@ sub run_test {
                 [ 'optional_trailer2', [], $null_action ],
                 [ 'trailer',           [qw/Text/], ],
             ],
+            self_arg => 1,
             default_action     => $default_action,
             default_null_value => $default_null_value,
             terminals          => [qw(Number Op Text)],
@@ -291,6 +292,7 @@ for my $test (@tests) {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub e_op_action {
+    shift;
     my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $op = $_[1];
@@ -311,11 +313,13 @@ sub e_op_action {
 } ## end sub e_op_action
 
 sub e_number_action {
+    shift;
     my $v0 = pop @_;
     return $v0 . q{==} . $v0;
 }
 
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;

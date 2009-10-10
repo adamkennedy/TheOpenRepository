@@ -166,7 +166,7 @@ sub do_parse {
         $options{strip} = 0 if $show_QDFA;
 
         eval {
-            $grammar = new Marpa::Grammar( {%options} );
+            $grammar = new Marpa::Grammar( { self_arg => 1, %options } );
             $grammar->set(
                 {   mdl_source     => \$grammar_source,
                     source_options => \%source_options,

@@ -24,9 +24,9 @@ a
 EOS
 
 ## no critic (Subroutines::RequireArgUnpacking)
-sub show_a         { return 'A(' . $_[0] . ')' }
-sub show_b         { return 'B(' . $_[0] . ')' }
-sub default_action { return join q{ }, @_ }
+sub show_a         { return 'A(' . $_[1] . ')' }
+sub show_b         { return 'B(' . $_[1] . ')' }
+sub default_action { shift; return join q{ }, @_ }
 ## use critic
 
 my $mdl = <<'EOF';
@@ -63,6 +63,7 @@ my $lexer_args = $grammar->lexer_args();
 my $recce = Marpa::Recognizer->new(
     {   grammar           => $grammar,
         trace_file_handle => *STDERR,
+        self_arg          => 1,
     }
 );
 

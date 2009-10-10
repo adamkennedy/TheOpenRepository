@@ -60,6 +60,7 @@ for my $i ( 0 .. $#expected ) {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub subtraction {
+    shift;
     my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $value = $left_value - $right_value;
@@ -67,26 +68,31 @@ sub subtraction {
 } ## end sub subtraction
 
 sub postfix_decr {
+    shift;
     my ( $string, $value ) = ( $_[0] =~ /^(.*)==(.*)$/xms );
     return '(' . $string . '--)==' . $value--;
 }
 
 sub prefix_decr {
+    shift;
     my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
     return '(--' . $string . ')==' . --$value;
 }
 
 sub negation {
+    shift;
     my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
     return '(-' . $string . ')==' . -$value;
 }
 
 sub number {
+    shift;
     my $value = $_[0];
     return "$value==$value";
 }
 
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;

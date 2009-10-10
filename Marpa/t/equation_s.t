@@ -39,6 +39,7 @@ close $grammar_fh;
 my $grammar = Marpa::Grammar->new(
     {   actions    => 'Marpa::Example::Equation',
         max_parses => 10,
+        self_arg   => 1,
         mdl_source => \$source,
     }
 );

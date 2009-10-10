@@ -19,6 +19,7 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;
@@ -31,6 +32,7 @@ my $grammar = Marpa::Grammar->new(
     {   start   => 'S',
         strip   => 0,
         maximal => 1,
+        self_arg => 1,
         rules   => [
             [ 'S', [qw/A A A A/] ],
             [ 'A', [qw/a/] ],

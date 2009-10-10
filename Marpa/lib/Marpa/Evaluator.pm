@@ -2179,6 +2179,7 @@ sub Marpa::Evaluator::value {
 
     my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
     my $null_values     = $evaler->[Marpa::Internal::Evaluator::NULL_VALUES];
+    my $use_self_arg    = $grammar->[Marpa::Internal::Grammar::SELF_ARG];
     my $action_object_constructor =
         $evaler->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR];
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
@@ -3225,9 +3226,15 @@ sub Marpa::Evaluator::value {
 
                                     $eval_ok = eval {
                                         $result =
-                                            $closure->( @{$current_data} );
+                                            $use_self_arg
+                                            ? $closure->(
+                                            $action_object,
+                                            @{$current_data}
+                                            )
+                                            : $closure->( @{$current_data} );
                                         1;
                                     };
+
                                 } ## end DO_EVAL:
 
                                 if ( not $eval_ok or @warnings ) {

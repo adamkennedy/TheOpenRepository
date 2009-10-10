@@ -23,6 +23,7 @@ my $grammar = Marpa::Grammar->new(
     {   warnings   => 1,
         code_lines => -1,
         maximal    => 1,
+        self_arg   => 1,
     }
 );
 
@@ -60,6 +61,7 @@ for my $i ( 0 .. 4 ) {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;

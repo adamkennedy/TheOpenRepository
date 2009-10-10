@@ -29,7 +29,7 @@ sub make_rule {
 
     if ( not defined $closure ) {
         my $action =
-            sub { $lhs_symbol_name . $rhs_symbol_name . '(' . $_[0] . ')' };
+            sub { $lhs_symbol_name . $rhs_symbol_name . '(' . $_[1] . ')' };
 
         no strict 'refs';
         *{$action_name} = $action;
@@ -133,6 +133,7 @@ for my $test_data (@test_data) {
         @{$rules},
         cycle_action      => 'warn',
         trace_file_handle => $MEMORY,
+        self_arg          => 1,
     );
     my $grammar = Marpa::Grammar->new( \%args );
     $grammar->precompute();

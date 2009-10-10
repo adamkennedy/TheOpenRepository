@@ -17,6 +17,7 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub do_op {
+    shift;
     my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $op = $_[1];
@@ -37,11 +38,13 @@ sub do_op {
 } ## end sub do_op
 
 sub number {
+    shift;
     my $v0 = pop @_;
     return $v0 . q{==} . $v0;
 }
 
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;
@@ -60,6 +63,7 @@ sub default_action {
 my $grammar = Marpa::Grammar->new(
     {   start => 'E',
         strip => 0,
+        self_arg => 1,
 
         # Set max at 10 just in case there's an infinite loop.
         # This is for debugging, after all

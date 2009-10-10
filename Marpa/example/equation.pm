@@ -7,6 +7,7 @@ use warnings;
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub op {
+    shift;
     my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $op = $_[1];
@@ -27,11 +28,13 @@ sub op {
 } ## end sub op
 
 sub number {
+    shift;
     my $v0 = pop @_;
     return $v0 . q{==} . $v0;
 }
 
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{}   if $v_count <= 0;
     return $_[0] if $v_count == 1;

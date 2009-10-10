@@ -28,6 +28,7 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub subtraction {
+    shift;
     my ( $right_string, $right_value ) = ( $_[2] =~ /^(.*)==(.*)$/xms );
     my ( $left_string,  $left_value )  = ( $_[0] =~ /^(.*)==(.*)$/xms );
     my $value = $left_value - $right_value;
@@ -35,26 +36,31 @@ sub subtraction {
 } ## end sub subtraction
 
 sub postfix_decr {
+    shift;
     my ( $string, $value ) = ( $_[0] =~ /^(.*)==(.*)$/xms );
     return '(' . $string . q{--} . ')==' . $value--;
 }
 
 sub prefix_decr {
+    shift;
     my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
     return '(' . q{--} . $string . ')==' . --$value;
 }
 
 sub negation {
+    shift;
     my ( $string, $value ) = ( $_[1] =~ /^(.*)==(.*)$/xms );
     return '(' . q{-} . $string . ')==' . -$value;
 }
 
 sub number {
+    shift;
     my $value = $_[0];
     return "$value==$value";
 }
 
 sub default_action {
+    shift;
     given ( scalar @_ ) {
         when ( $_ <= 0 ) { return q{} }
         when (1)         { return $_[0] }
@@ -67,6 +73,7 @@ sub default_action {
 my $grammar = Marpa::Grammar->new(
     {   start => 'E',
         strip => 0,
+        self_arg => 1,
 
         # Set max_parses to 20 in case there's an infinite loop.
         # This is for debugging, after all

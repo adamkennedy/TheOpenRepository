@@ -854,6 +854,7 @@ use constant GRAMMAR_OPTIONS => [
         minimal
         rules
         semantics
+        self_arg
         source_options
         start
         strip
@@ -1095,6 +1096,14 @@ sub Marpa::Grammar::set {
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::ACADEMIC] = $value;
         } ## end if ( defined( my $value = $args->{'academic'} ) )
+
+        if ( defined( my $value = $args->{'self_arg'} ) ) {
+            Marpa::exception(
+                'self_arg option not allowed in ',
+                Marpa::Internal::Phase::description($phase)
+            ) if $phase >= Marpa::Internal::Phase::EVALUATING;
+            $grammar->[Marpa::Internal::Grammar::SELF_ARG] = $value;
+        }
 
         if ( defined( my $value = $args->{'default_null_value'} ) ) {
             Marpa::exception(

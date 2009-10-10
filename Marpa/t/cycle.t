@@ -18,6 +18,7 @@ BEGIN {
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub default_action {
+    shift;
     return join q{ }, grep { defined $_ } @_;
 }
 ## use critic
@@ -127,6 +128,7 @@ for my $test_data (@test_data) {
     open my $MEMORY, '>', \$trace;
     my $grammar = Marpa::Grammar->new(
         {   mdl_source        => $grammar_source,
+            self_arg          => 1,
             cycle_action      => 'warn',
             trace_file_handle => $MEMORY,
         }

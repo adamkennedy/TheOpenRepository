@@ -18,6 +18,7 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub default_action {
+    shift;
     my $v_count = scalar @_;
     return q{} if $v_count <= 0;
     my @vals = map { $_ // q{-} } @_;
@@ -42,6 +43,7 @@ my $grammar = Marpa::Grammar->new(
             [ 'n', ['a'], ],
         ],
         terminals      => ['a'],
+        self_arg       => 1,
         default_action => 'main::default_action',
 
     }

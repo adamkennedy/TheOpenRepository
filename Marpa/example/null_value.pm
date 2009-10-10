@@ -8,7 +8,7 @@ use strict;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub rule0 {
-    return $_[0] . ', but ' . $_[1];
+    return $_[1] . ', but ' . $_[2];
 }
 ## use critic
 

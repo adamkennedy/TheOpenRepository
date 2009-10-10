@@ -16,8 +16,8 @@ say ${$value};
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
-sub add_ops   { return $_[0] * $_[2] }
-sub first_arg { return $_[0] }
+sub add_ops   { return $_[1] * $_[3] }
+sub first_arg { return $_[1] }
 
 ## use critic
 
