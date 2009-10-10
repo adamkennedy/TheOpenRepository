@@ -11,13 +11,20 @@ WriteMakefile(
     PREREQ_PM         => {
       'ExtUtils::XSpp' => '0.04',
     },
-    ABSTRACT_FROM  => 'lib/Thread/SharedVector.pm', # retrieve abstract from module
-    AUTHOR         => 'Steffen Mueller <smueller@cpan.org>',
+    MIN_PERL_VERSION  => 5.006002, 
+    LICENSE           => 'perl',
+    ABSTRACT_FROM     => 'lib/Thread/SharedVector.pm', # retrieve abstract from module
+    AUTHOR            => 'Steffen Mueller <smueller@cpan.org>',
+    META_MERGE => {
+        resources => {
+            repository => 'http://svn.ali.as/cpan/trunk/Thread-SharedVector',
+        },
+    },
     LIBS              => [''], # e.g., '-lm'
     DEFINE            => '-O2', # e.g., '-DHAVE_SOMETHING'
     INC               => '-I. -Isrc', # e.g., '-I. -I/usr/include/other'
 	# Un-comment this if you add C files to link with later:
-     OBJECT            => '$(O_FILES)', # link all the C files too
+    'OBJECT'            => '$(O_FILES)', # link all the C files too
     'XSOPT'             => '-C++ -hiertype',
     'TYPEMAPS'          => ['perlobject.map'],
     'CC'                => $CC,
