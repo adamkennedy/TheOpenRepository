@@ -125,7 +125,7 @@ sub install {
 		my $force = $self->_get_force();
 		if (   ( not $force )
 			&& ( $long_build =~ /\s/ms )
-			&& ( $self->_get_version eq '5.10.0' ) )
+			&& ( $self->_get_pv_human eq '5.10.0' ) )
 		{
 			$force = 1;
 			$self->_trace_line( 0, <<"EOF");
