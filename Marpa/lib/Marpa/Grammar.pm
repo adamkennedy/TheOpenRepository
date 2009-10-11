@@ -841,6 +841,7 @@ use constant GRAMMAR_OPTIONS => [
     qw{
         academic
         actions
+        action_object
         allow_raw_source
         ambiguous_lex
         code_lines
@@ -1121,9 +1122,17 @@ sub Marpa::Grammar::set {
         if ( defined( my $value = $args->{'actions'} ) ) {
             Marpa::exception( 'actions option not allowed in ',
                 Marpa::Internal::Phase::description($phase) )
-                if $phase >= Marpa::Internal::Phase::RECOGNIZING;
+                if $phase >= Marpa::Internal::Phase::EVALUATING;
             $grammar->[Marpa::Internal::Grammar::ACTIONS] = $value;
         } ## end if ( defined( my $value = $args->{'actions'} ) )
+
+        if ( defined( my $value = $args->{'action_object'} ) ) {
+            Marpa::exception(
+                'action_object option not allowed in ',
+                Marpa::Internal::Phase::description($phase)
+            ) if $phase >= Marpa::Internal::Phase::EVALUATING;
+            $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT] = $value;
+        } ## end if ( defined( my $value = $args->{'action_object'} ))
 
         if ( defined( my $value = $args->{'default_action'} ) ) {
             Marpa::exception(

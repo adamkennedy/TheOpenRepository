@@ -339,7 +339,7 @@ sub resolve_semantics {
             $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         print {$trace_fh} ( $closure ? 'Successful' : 'Failed' )
             . qq{ resolution of "$closure_name" },
-            ' to ', $fully_qualified_name, "\n"
+            'to ', $fully_qualified_name, "\n"
             or Marpa::exception('Could not print to trace file');
     } ## end if ( $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS...])
 
@@ -1554,7 +1554,7 @@ sub Marpa::Evaluator::new {
         set_actions($self);
     if (defined(
             my $action_object =
-                $self->[Marpa::Internal::Grammar::ACTION_OBJECT]
+                $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT]
         )
         )
     {
@@ -2177,6 +2177,8 @@ sub Marpa::Evaluator::value {
     my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
     my $null_values     = $evaler->[Marpa::Internal::Evaluator::NULL_VALUES];
     my $use_self_arg    = $grammar->[Marpa::Internal::Grammar::SELF_ARG];
+    my $action_object_class =
+        $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT];
     my $action_object_constructor =
         $evaler->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR];
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
@@ -2966,7 +2968,7 @@ sub Marpa::Evaluator::value {
                         };
 
                         $eval_ok = eval {
-                            $action_object = $action_object_constructor->();
+                            $action_object = $action_object_constructor->($action_object_class);
                             1;
                         };
                     } ## end DO_EVAL:
