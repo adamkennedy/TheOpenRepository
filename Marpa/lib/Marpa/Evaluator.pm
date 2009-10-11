@@ -180,8 +180,8 @@ use constant N_FORMAT_MAX => 0x7fff_ffff;
 
 sub set_null_values {
     my ($evaler) = @_;
-    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $recce    = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+    my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
 
     my ( $rules, $symbols, $tracing, $default_null_value ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
@@ -219,9 +219,10 @@ sub set_null_values {
         # Empty rule with action?
         if ( defined $action and @{$rhs} <= 0 ) {
 
-            my $closure = Marpa::Internal::Evaluator::resolve_semantics($evaler, $action);
-            Marpa::exception(
-                "Action closure '$action' not found")
+            my $closure =
+                Marpa::Internal::Evaluator::resolve_semantics( $evaler,
+                $action );
+            Marpa::exception("Action closure '$action' not found")
                 if not defined $closure;
 
             my $lhs            = $rule->[Marpa::Internal::Rule::LHS];
@@ -311,8 +312,7 @@ sub resolve_semantics {
             )
             )
         {
-            $fully_qualified_name =
-                $actions_package . q{::} . $closure_name;
+            $fully_qualified_name = $actions_package . q{::} . $closure_name;
             last DETERMINE_FULLY_QUALIFIED_NAME;
         } ## end if ( defined( my $actions_package = $grammar->[...]))
 
@@ -322,8 +322,7 @@ sub resolve_semantics {
             )
             )
         {
-            $fully_qualified_name =
-                $action_object . q{::} . $closure_name;
+            $fully_qualified_name = $action_object . q{::} . $closure_name;
         } ## end if ( defined( my $action_object = $grammar->[...]))
     } ## end DETERMINE_FULLY_QUALIFIED_NAME:
 
@@ -332,17 +331,17 @@ sub resolve_semantics {
     return if not defined $fully_qualified_name;
 
     no strict 'refs';
-    my $closure = *{$fully_qualified_name}{CODE};
+    my $closure = *{$fully_qualified_name}{'CODE'};
     use strict 'refs';
 
     if ( $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS] ) {
         my $trace_fh =
             $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         print {$trace_fh} ( $closure ? 'Successful' : 'Failed' )
-            . ' resolution of "$closure_name" ',
+            . qq{ resolution of "$closure_name" },
             ' to ', $fully_qualified_name, "\n"
             or Marpa::exception('Could not print to trace file');
-    } ## end if ( $grammar->[Marpa::Internal::Grammar::TRACE_ACTION...])
+    } ## end if ( $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS...])
 
     return $closure;
 
@@ -350,8 +349,8 @@ sub resolve_semantics {
 
 sub set_actions {
     my ($evaler) = @_;
-    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $recce    = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+    my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
 
     my ( $rules, $tracing, $default_action, ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
@@ -362,7 +361,8 @@ sub set_actions {
     my $evaluator_rules = [];
 
     my $default_action_closure =
-        Marpa::Internal::Evaluator::resolve_semantics( $evaler, $default_action );
+        Marpa::Internal::Evaluator::resolve_semantics( $evaler,
+        $default_action );
 
     RULE: for my $rule ( @{$rules} ) {
 
@@ -396,7 +396,6 @@ sub set_actions {
                 : Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD
                 ),
                 $rule->[Marpa::Internal::Rule::REAL_SYMBOL_COUNT];
-
         } ## end if ($virtual_rhs)
             # assignment instead of comparison is deliberate
         elsif ( my $argc = scalar @{ $rule->[Marpa::Internal::Rule::RHS] } ) {
@@ -406,19 +405,17 @@ sub set_actions {
         my $action = $rule->[Marpa::Internal::Rule::ACTION]
             // $rule->[Marpa::Internal::Rule::LHS]
             ->[Marpa::Internal::Symbol::NAME];
-        my $closure = Marpa::Internal::Evaluator::resolve_semantics(
-                    $evaler, $action);
+        my $closure =
+            Marpa::Internal::Evaluator::resolve_semantics( $evaler, $action );
         $closure //= $default_action_closure;
-        if (defined $closure) {
+        if ( defined $closure ) {
             push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
             next RULE;
-        } ## end if ( defined( my $closure = ...))
+        }
 
         # If there is no default action specified, the fallback
         # is to return an undef
-        push @{$ops},
-            Marpa::Internal::Evaluator_Op::CONSTANT_RESULT,
-            \undef;
+        push @{$ops}, Marpa::Internal::Evaluator_Op::CONSTANT_RESULT, \undef;
         next RULE;
 
     } ## end for my $rule ( @{$rules} )

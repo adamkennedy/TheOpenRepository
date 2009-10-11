@@ -84,8 +84,8 @@ sub show_statement_sequence { shift; return join q{, }, @_ }
 sub show_division           { return 'division' }
 sub show_function_call      { return $_[1] }
 sub show_die                { return 'die statement' }
-sub show_unary              { return $_[1] . ' function call' }
-sub show_nullary            { return $_[1] . ' function call' }
+sub show_unary   { return $_[1] . ' function call' }
+sub show_nullary { return $_[1] . ' function call' }
 
 ## use critic
 

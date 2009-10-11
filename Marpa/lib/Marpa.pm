@@ -126,8 +126,7 @@ sub Marpa::mdl {
         qq{text arg to mdl() was ref type "$ref", must be hash ref})
         if $ref ne 'HASH';
 
-    my $g = Marpa::Grammar->new(
-        { mdl_source => $grammar, %{$options} } );
+    my $g = Marpa::Grammar->new( { mdl_source => $grammar, %{$options} } );
     $g->precompute();
     my $lexer_args = $g->lexer_args();
 
