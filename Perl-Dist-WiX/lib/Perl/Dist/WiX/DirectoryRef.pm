@@ -15,7 +15,7 @@ use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catdir abs2rel );
 use Params::Util qw( _STRING _INSTANCE );
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 extends 'WiX3::XML::DirectoryRef';

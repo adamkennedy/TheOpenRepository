@@ -76,7 +76,6 @@ To install this module, run the following commands:
 use     5.008001;
 use     strict;
 use     warnings;
-use     vars                  qw( $VERSION                      );
 use     parent                qw( Perl::Dist::WiX::Installer 
                                   Perl::Dist::WiX::BuildPerl
                                   Perl::Dist::WiX::Checkpoint
@@ -123,7 +122,7 @@ require Perl::Dist::WiX::IconArray;
 require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 
-our $VERSION = '1.090_104';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 use Object::Tiny qw(

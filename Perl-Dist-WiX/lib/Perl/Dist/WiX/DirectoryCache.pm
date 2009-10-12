@@ -13,7 +13,7 @@ use MooseX::Singleton;
 use WiX3::XML::Directory;
 use MooseX::AttributeHelpers;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 #####################################################################

@@ -20,7 +20,7 @@ require WiX3::XML::RemoveFolder;
 require WiX3::XML::DirectoryRef;
 require WiX3::XML::Shortcut;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 extends 'WiX3::XML::Fragment';

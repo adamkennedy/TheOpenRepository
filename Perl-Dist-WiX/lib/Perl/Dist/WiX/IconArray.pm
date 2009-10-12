@@ -14,7 +14,7 @@ use Params::Util qw( _STRING   );
 use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Icon;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 has _icon => (

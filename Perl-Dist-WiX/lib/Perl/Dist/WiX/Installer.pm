@@ -41,7 +41,7 @@ require Perl::Dist::WiX::Fragment::Environment;
 require Perl::Dist::WiX::Fragment::StartMenu;
 require Perl::Dist::WiX::IconArray;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 =head2 Accessors

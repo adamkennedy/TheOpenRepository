@@ -8,7 +8,7 @@ use Params::Util qw ( _INSTANCE );
 require URI;
 require File::Spec::Unix;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 sub _configure {

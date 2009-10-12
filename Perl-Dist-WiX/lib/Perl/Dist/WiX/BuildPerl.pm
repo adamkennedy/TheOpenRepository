@@ -56,7 +56,7 @@ require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-our $VERSION = '1.090_103';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 Readonly my %CORE_MODULE_FIX => (

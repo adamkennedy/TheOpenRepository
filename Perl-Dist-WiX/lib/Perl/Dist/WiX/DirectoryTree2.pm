@@ -22,7 +22,7 @@ use MooseX::Types::Moose qw( Str );
 use Perl::Dist::WiX::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'WiX3::Role::Traceable';

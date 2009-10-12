@@ -19,7 +19,7 @@ use Params::Util qw( _STRING );
 
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 extends 'WiX3::XML::Directory';

@@ -15,7 +15,7 @@ use 5.008001;
 use strict;
 use warnings;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 

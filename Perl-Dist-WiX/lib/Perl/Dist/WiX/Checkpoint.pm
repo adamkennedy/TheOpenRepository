@@ -118,7 +118,7 @@ use List::Util qw( first          );
 use File::Spec::Functions qw( catdir catfile );
 use File::Remove qw();
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 #####################################################################

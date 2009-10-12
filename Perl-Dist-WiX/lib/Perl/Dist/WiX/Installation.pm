@@ -40,7 +40,7 @@ require Perl::Dist::WiX::Asset::PAR;
 # require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Asset::Website;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 =pod

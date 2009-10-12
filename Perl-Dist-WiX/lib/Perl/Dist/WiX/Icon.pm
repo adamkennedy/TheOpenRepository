@@ -13,7 +13,7 @@ use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str );
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 extends 'WiX3::XML::Icon';

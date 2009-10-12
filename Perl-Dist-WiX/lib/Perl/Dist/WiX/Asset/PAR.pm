@@ -9,7 +9,7 @@ require SelectSaver;
 require PAR::Dist;
 require IO::String;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';

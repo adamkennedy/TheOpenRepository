@@ -26,7 +26,6 @@ make the distributions.txt and the release notes files.
 use 5.008001;
 use strict;
 use warnings;
-use vars qw( $VERSION );
 use English qw( -no_match_vars );
 use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
@@ -38,7 +37,7 @@ use IO::File qw();
 use Template qw();
 use Win32 qw();
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 sub release_notes_filename {

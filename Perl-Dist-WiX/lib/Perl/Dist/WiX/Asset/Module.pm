@@ -9,7 +9,7 @@ require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';

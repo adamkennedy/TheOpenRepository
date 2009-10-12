@@ -11,12 +11,9 @@ use Params::Util qw( _HASH _ARRAY );
 use Module::CoreList 2.18 qw();
 use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
-
-# use Process::Delegatable  qw();
-# use Process               qw();
 use vars qw(@DELEGATE);
 
-our $VERSION = '1.090_102';
+our $VERSION = '1.100';
 $VERSION = eval { return $VERSION };
 
 extends qw(
