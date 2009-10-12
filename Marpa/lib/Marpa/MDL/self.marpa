@@ -5,19 +5,17 @@ the default lex prefix is qr/(?:[ \t]*(?:\n|(?:\#[^\n]*\n)))*[ \t]*/xms.
 
 grammar: paragraphs, trailing matter.  'grammar'.
 
-paragraphs: empty line separated paragraph sequence.  'concatenate_lines'.
+paragraphs: empty line separated paragraph sequence.
 
 comment: NOT USED: paragraph: empty paragraph.
 
-paragraph: definition paragraph.  'concatenate_lines'.
+paragraph: definition paragraph.
 
-paragraph: production paragraph.  'concatenate_lines'.
+paragraph: production paragraph.
 
-paragraph: terminal paragraph.  'concatenate_lines'.
+paragraph: terminal paragraph.
 
-[ comment paragraph: comment sequence.  'concatenate_lines'. ]
-
-definition paragraph: definition sequence. 'concatenate_lines'.
+definition paragraph: definition sequence.
 
 production paragraph:
     non structural production sentences,
@@ -41,11 +39,11 @@ optional /the/, /action/, /is/, action specifier, period.
 action sentence: action specifier, period.
 'short_action_sentence'.
 
-action specifier: string specifier.  'concatenate_lines'.
+action specifier: string specifier.  'first_arg'.
 
-non-structural production sentence: comment sentence.  'concatenate_lines'.
+non-structural production sentence: comment sentence.
 
-non-structural terminal sentence: comment sentence.  'concatenate_lines'.
+non-structural terminal sentence: comment sentence.
 
 definition: predefined setting, period.  'definition_of_predefined'.  priority 1000.
 
@@ -126,9 +124,9 @@ comment words: comment word sequence.
 literal string: q string.
 'q_string'.
 
-literal string: double quoted string.  'concatenate_lines'.
+literal string: double quoted string.  'literal_string'.
 
-literal string: single quoted string.  'concatenate_lines'.
+literal string: single quoted string.  'literal_string'.
 
 production sentence: lhs, production copula, rhs, period.
 'production_sentence'.
@@ -195,7 +193,7 @@ terminal sentence:
 /match/, symbol phrase, /using/, string specifier, period.
 'string_terminal_sentence'.
 
-string specifier: literal string.  'concatenate_lines'.
+string specifier: literal string.  'first_arg'.
 
 string specifier: symbol phrase.
 'string_name_specifier'.

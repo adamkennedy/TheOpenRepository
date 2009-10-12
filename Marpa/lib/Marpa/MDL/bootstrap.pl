@@ -61,7 +61,6 @@ push @{$new_rules}, {
 separator => 'empty-line',
 min => 1,
 ,
-    action =>'concatenate_lines',
 ,
 ,
 
@@ -69,7 +68,6 @@ min => 1,
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['definition-paragraph'],
-    action =>'concatenate_lines',
 ,
 ,
 
@@ -77,7 +75,6 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['production-paragraph'],
-    action =>'concatenate_lines',
 ,
 ,
 
@@ -85,7 +82,6 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'paragraph'
 ,    rhs => ['terminal-paragraph'],
-    action =>'concatenate_lines',
 ,
 ,
 
@@ -95,7 +91,6 @@ push @{$new_rules}, {
 ,rhs => ['definition'],
 min => 1,
 ,
-    action =>'concatenate_lines',
 ,
 ,
 
@@ -165,7 +160,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'action-specifier'
 ,    rhs => ['string-specifier'],
-    action =>'concatenate_lines',
+    action =>'first_arg',
 ,
 ,
 
@@ -173,7 +168,6 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'non-structural-production-sentence'
 ,    rhs => ['comment-sentence'],
-    action =>'concatenate_lines',
 ,
 ,
 
@@ -181,7 +175,6 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'non-structural-terminal-sentence'
 ,    rhs => ['comment-sentence'],
-    action =>'concatenate_lines',
 ,
 ,
 
@@ -446,7 +439,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'literal-string'
 ,    rhs => ['double-quoted-string'],
-    action =>'concatenate_lines',
+    action =>'literal_string',
 ,
 ,
 
@@ -454,7 +447,7 @@ push @{$new_rules}, {
 push @{$new_rules}, {
     lhs => 'literal-string'
 ,    rhs => ['single-quoted-string'],
-    action =>'concatenate_lines',
+    action =>'literal_string',
 ,
 ,
 
@@ -660,7 +653,7 @@ push @{$new_terminals},
 push @{$new_rules}, {
     lhs => 'string-specifier'
 ,    rhs => ['literal-string'],
-    action =>'concatenate_lines',
+    action =>'first_arg',
 ,
 ,
 
@@ -740,7 +733,6 @@ my $g = new Marpa::Grammar(
     {   start     => $new_start_symbol,
         rules     => $new_rules,
         terminals => $new_terminals,
-        trace_actions => 1,
         warnings  => 1,
         action_object => 'Marpa::MDL::Internal::New_Actions',
     }

@@ -1942,10 +1942,6 @@ sub Marpa::Grammar::lexer_args {
         my $prefix = $symbol->[Marpa::Internal::Symbol::PREFIX];
         defined $prefix and $symbol_args{prefix} = $prefix;
 
-        ### symbol name: $symbol->[Marpa'Internal'Symbol'NAME]
-        ### symbol fields: join ';', map { $_ // 'undef' } @{$symbol}
-        ### assert: defined $symbol->[Marpa::Internal::Symbol::REGEX]
-
         if (defined(
                 my $action = $symbol->[Marpa::Internal::Symbol::ACTION]
             )
