@@ -1560,7 +1560,7 @@ sub Marpa::Evaluator::new {
     {
         $self->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR] =
             resolve_semantics( $self, $action_object . q{::new} );
-    } ## end if ( defined( my $action_object = $self->[...]))
+    } ## end if ( defined( my $action_object = $grammar->[...]))
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
     my ( $nulling, $symbol_id ) =
@@ -2968,7 +2968,9 @@ sub Marpa::Evaluator::value {
                         };
 
                         $eval_ok = eval {
-                            $action_object = $action_object_constructor->($action_object_class);
+                            $action_object =
+                                $action_object_constructor->(
+                                $action_object_class);
                             1;
                         };
                     } ## end DO_EVAL:
