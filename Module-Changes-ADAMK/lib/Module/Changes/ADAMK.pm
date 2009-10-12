@@ -15,7 +15,7 @@ Module::Changes::ADAMK - Parse a traditional Changes file (as ADAMK interpretes 
 =head1 DESCRIPTION
 
 This module was written for parsing ADAMK's Changes files (which are a pretty
-traditional format that might be of us to others).
+traditional format that might be of use to others).
 
 It is provided to the CPAN community for discussion and testing purposes.
 
