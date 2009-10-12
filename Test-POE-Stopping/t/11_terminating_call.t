@@ -29,7 +29,7 @@ my $session1 = POE::Session->create(
 		pending_event => \&pending_event1,
 	},
 );
-diag("Parent Session ID: " . $session1->ID . "\n");
+# diag("Parent Session ID: " . $session1->ID . "\n");
 sub _start1 {
 	$poe_kernel->delay_set( intermediate => 0.5 );
 	return;
@@ -38,7 +38,7 @@ sub _start1 {
 sub intermediate1 {
 	# Stop the second session via a call
 	$poe_kernel->call( 'foo', 'shutdown' );
-	$poe_kernel->post( $session1, 'is_stopping' );
+	$poe_kernel->delay_set( is_stopping => 0.5 );
 }
 
 sub is_stopping1 {
@@ -58,7 +58,7 @@ my $session2 = POE::Session->create(
 		shutdown => \&shutdown2,
 	},
 );
-diag("Leaked Session ID: " . $session2->ID . "\n");
+# diag("Leaked Session ID: " . $session2->ID . "\n");
 
 # The ONLY thing keeping this session alive should be it's alias
 sub _start2 {
@@ -77,21 +77,5 @@ sub shutdown2 {
 ######################################################################
 # Test Run
 
-test_out("not ok 1 - POE appears to be stopping cleanly");
-test_fail(37);
 POE::Kernel->run;
-test_err( '# ---'           );
-test_err( '# alias: 0'      );
-test_err( '# children: 0'   );
-test_err( '# current: 1'    );
-test_err( '# extra: 0'      );
-test_err( '# handles: 0'    );
-test_err( '# id: 2'         );
-test_err( '# queue:'        );
-test_err( '#   distinct: 0' );
-test_err( '#   from: 0'     );
-test_err( '#   to: 0'       );
-test_err( '# refs: 0'       );
-test_err( '# signals: 0'    );
-test_test("Fails correctly for pending event");
 pass( 'POE Stopped' );
