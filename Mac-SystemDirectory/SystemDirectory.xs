@@ -7,6 +7,10 @@
 #  undef Move
 #endif Move
 
+#ifdef I_POLL
+#  undef I_POLL
+#endif I_POLL
+
 #import <Foundation/Foundation.h>
 
 #define newSV_NSString(s) \

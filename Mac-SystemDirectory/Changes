@@ -1,5 +1,9 @@
 Revision history for Perl extension Mac::SystemDirectory.
 
+0.04 2009-10-12 11:00
+    - Fix compilation, perl defines I_POLL which causes a conflict with OpenTransportProtocol.h
+    - Silence "bool" redefined warnings
+
 0.03 2009-10-04 19:40
     - Fixed lddlflags, reported by zts.
 
