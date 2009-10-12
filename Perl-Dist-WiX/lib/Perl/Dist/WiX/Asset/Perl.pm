@@ -158,16 +158,18 @@ EOF
 		$self->_make(qw/install UNINST=1/);
 	} ## end SCOPE:
 
-	$self->_trace_line( 2, "Copying sitecustomize.pl...\n" );
-	$self->_copy(
-		catfile(
-			$self->_get_wix_dist_dir,
-			qw(default perl site lib sitecustomize.pl)
-		),
-		catfile(
-			$self->_get_image_dir, qw(perl site lib sitecustomize.pl)
-		),
-	);
+# TODO: Reactivate once the toolchain and p5p people let me
+# do the reordering.
+#	$self->_trace_line( 2, "Copying sitecustomize.pl...\n" );
+#	$self->_copy(
+#		catfile(
+#			$self->_get_wix_dist_dir,
+#			qw(default perl site lib sitecustomize.pl)
+#		),
+#		catfile(
+#			$self->_get_image_dir, qw(perl site lib sitecustomize.pl)
+#		),
+#	);
 
 	my $fl_lic = File::List::Object->new()
 	  ->readdir( catdir( $self->_get_image_dir, 'licenses', 'perl' ) );
