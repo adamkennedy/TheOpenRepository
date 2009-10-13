@@ -119,8 +119,13 @@ sub search_dir {
 	# If we're at the correct path, exit with success!
 	if ( ( defined $path ) && ( $path_to_find eq $path ) ) {
 
-#		$self->trace_line( 4, "Found $path.\n" );
-#print "Found $path.\n" ;
+		$self->trace_line( 4, "Found $path.\n" );
+
+		# TARGETDIR has the path attached, but we really
+		# want INSTALLDIR to be the correct ID.
+		if ('TARGETDIR' eq $self->get_directory_id()) {
+			return $self->get_directory_object('INSTALLDIR');
+		}
 		return $self;
 	}
 
