@@ -11,7 +11,7 @@ use MooseX::Singleton;
 use WiX3::Util::StrictConstructor;
 use WiX3::Trace::Object;
 
-our $VERSION = '0.008';
+our $VERSION = '0.008001';
 $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 with 'WiX3::Role::Traceable';
@@ -26,7 +26,17 @@ sub BUILDARGS {
 		%args = (@_);
 	}
 
-	return { options => WiX3::Trace::Object->new(%args) };
+	my $obj;
+	eval { 
+		$obj = WiX3::Trace::Object->new(%args); 
+		1; 
+	} || eval { 
+		WiX3::Trace::Object->_clear_instance(); 
+		$obj = WiX3::Trace::Object->new(%args); 
+		1; 
+	} || die "Could not create trace object";
+	
+	return { options => $obj };
 } ## end sub BUILDARGS
 
 sub BUILD {
