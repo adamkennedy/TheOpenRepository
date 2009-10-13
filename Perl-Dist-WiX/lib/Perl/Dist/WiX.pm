@@ -427,7 +427,14 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		@_,
 	);
 
-	$params{misc} ||= WiX3::Traceable->new( tracelevel => $params{trace} );
+	eval { 
+		$params{misc} ||= WiX3::Traceable->new( tracelevel => $params{trace} );
+		1;
+	} || eval {
+		WiX3::Trace::Object->_clear_instance();
+		WiX3::Traceable->_clear_instance();
+		$params{misc} ||= WiX3::Traceable->new( tracelevel => $params{trace} );
+	} || die "Could not create trace object";
 
 	# Announce that we're starting.
 	{

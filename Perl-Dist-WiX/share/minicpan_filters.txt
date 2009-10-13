@@ -135,4 +135,5 @@
 /ADAMK/Test-Script-
 /KWILLIAMS/Probe-Perl-
 /(?:RSCHUPP|RJBS)/IPC-Run3-
-
+/SMUELLER/Class-ISA-
+/BINGOS/Object-Accessor-
