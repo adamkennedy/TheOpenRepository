@@ -174,7 +174,7 @@ sub create_distribution_list {
 	$fh->print($dist_txt);
 	$fh->close;
 
-	$self->add_to_fragment( 'perl', [$dist_file] );
+	$self->add_to_fragment( 'perl_licenses', [ $dist_file ] );
 
 	return 1;
 } ## end sub create_distribution_list
