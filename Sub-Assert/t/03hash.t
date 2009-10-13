@@ -1,9 +1,9 @@
 use Test::More tests => 8;
 BEGIN { use_ok('Sub::Assert') };
 
+use 5.006;
 use strict;
 use warnings;
-use 5.006;
 
 sub double {
     my $x = shift;
