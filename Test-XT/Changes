@@ -1,7 +1,11 @@
 Changes for Perl extension Test-XS
 
 0.03 Thu 3 Sep 2009
-	- Adds three new modules
+	- Adds several new modules
+    * Test::DistManifest
+    * Test::CheckChanges
+    * Test::Fixme
+    * Test::Pod::Coverage
 	- More documentation on everything
 	- Add support for RELEASE_TESTING-only modules
 
