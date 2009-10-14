@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.85;
+use inc::Module::Install::DSL 0.91;
 
 all_from      lib/Test/XT.pm
 test_requires Test::More           0.42
