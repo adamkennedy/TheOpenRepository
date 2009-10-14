@@ -17,9 +17,6 @@ Test::XT - Generate best practice author tests
       'Test::MinimumVersion' => 't/minimumversion.t',
       'Test::Perl::Critic'   => 't/critic.t',
   );
-  
-  # Write all available author tests:
-  WriteAll('t');
 
 =head1 DESCRIPTION
 
@@ -278,34 +275,6 @@ sub WriteXT {
 		Test::XT->new(
 			%{$STANDARD{$module}}
 		)->write( $file );
-	}
-}
-
-=pod
-
-=head2 WriteAll( $directory )
-
-This is a convenient way to write all of the available tests in the author
-test collection. You'll need to review each of these for usefulness in your
-package, but it provides some useful tests nonetheless.
-
-The directory part is optional; it will default to the 't/' directory.
-
-Example code:
-
-  WriteAll('t');
-  WriteAll(); # same as above
-
-=cut
-
-sub WriteAll {
-	my $dir = shift || 't';
-	use File::Spec;
-	while (my ($name, $params) = each %STANDARD) {
-		WriteTest(
-			File::Spec->catfile($dir, $params->{default}),
-			%$params,
-		);
 	}
 }
 
