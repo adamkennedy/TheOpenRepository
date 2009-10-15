@@ -822,6 +822,7 @@ if ($header_file_name)
 }
 
 my $value = $evaler->value();
+Carp::croak('evaler returned undef') if not defined $value;
 say ${$value};
 
 if ($trailer_file_name)

@@ -29,13 +29,23 @@ sub first_arg {
 
 sub concatenate_lines {
     shift;
-    say STDERR 'concatenate lines: ', (( scalar @_ ) ? ( join "\n", ( grep {$_} @_ ) ) : 'undef');
     return [ @_ ];
 }
 
 sub grammar {
     my ( $self, $text ) = @_;
 
+    say STDERR __PACKAGE__, __LINE__;
+    TERMINAL: for my $terminal ( @{ $self->{lex_options}->[0]->{terminals} } ) {
+        if ( $terminal->{regex} =~ /^["]/xms ) {
+            $terminal->{regex} = eval $terminal->{regex};
+            next TERMINAL;
+        }
+        $terminal->{builtin} = $terminal->{regex};
+        delete $terminal->{regex};
+    } ## end for my $terminal ( @{ $self->{lex_options}->[0]->{terminals...}})
+    $self->{options}->[0]->{terminals} = [map { $_->{name} } @{$self->{lex_options}->[0]->{terminals}}];
+    say STDERR __PACKAGE__, __LINE__;
     my $d = Data::Dumper->new( [ $self->{options}, $self->{lex_options} ],
         [qw(options lex_options)] );
     $d->Sortkeys(1);
@@ -263,8 +273,8 @@ sub rhs_regex_specifier {
     my ( $symbol, $new ) =
         Marpa::MDL::gen_symbol_from_regex( $regex, $self->{regex_data} );
     if ($new) {
-        push @{ $self->{options}->[0]->{terminals} },
-            { name => '$symbol', regex => $regex };
+        push @{ $self->{lex_options}->[0]->{terminals} },
+            { name => $symbol, regex => $regex };
     }
     return $symbol;
 } ## end sub rhs_regex_specifier
@@ -273,7 +283,7 @@ sub rhs_regex_specifier {
 # symbol phrase, /matches/, regex, period.
 sub regex_terminal_sentence {
     my $self = shift;
-    push @{ $self->{options}->[0]->{terminals} },
+    push @{ $self->{lex_options}->[0]->{terminals} },
         {
         name  => $_[0],
         regex => $_[2]
@@ -285,7 +295,7 @@ sub regex_terminal_sentence {
 # /match/, symbol phrase, /using/, string specifier, period.
 sub string_terminal_sentence {
     my $self = shift;
-    push @{ $self->{options}->[0]->{terminals} },
+    push @{ $self->{lex_options}->[0]->{terminals} },
         {
         name  => $_[1],
         regex => $_[3]
