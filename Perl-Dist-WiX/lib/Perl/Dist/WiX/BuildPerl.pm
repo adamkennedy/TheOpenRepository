@@ -748,7 +748,7 @@ sub install_perl_toolchain {
 			# 1.9402 fails its tests... ANDK says it's a test bug.
 			# Alias agrees that we include 1.94_51 because of the fix
 			# for the Win32 file:// bug.
-			$dist = 'ANDK/CPAN-1.94_51.tar.gz';
+			$dist = 'ANDK/CPAN-1.94_52.tar.gz';
 			$force = 1;
 		}
 		if ( $dist =~ /ExtUtils-ParseXS-2[.]20(?:02)?[.]tar[.]gz/msx ) {
