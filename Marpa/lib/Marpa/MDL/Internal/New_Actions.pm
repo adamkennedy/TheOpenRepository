@@ -35,7 +35,6 @@ sub concatenate_lines {
 sub grammar {
     my ( $self, $text ) = @_;
 
-    say STDERR __PACKAGE__, __LINE__;
     TERMINAL: for my $terminal ( @{ $self->{lex_options}->[0]->{terminals} } ) {
         if ( $terminal->{regex} =~ /^["]/xms ) {
             $terminal->{regex} = eval $terminal->{regex};
@@ -45,15 +44,7 @@ sub grammar {
         delete $terminal->{regex};
     } ## end for my $terminal ( @{ $self->{lex_options}->[0]->{terminals...}})
     $self->{options}->[0]->{terminals} = [map { $_->{name} } @{$self->{lex_options}->[0]->{terminals}}];
-    say STDERR __PACKAGE__, __LINE__;
-    my $d = Data::Dumper->new( [ $self->{options}, $self->{lex_options} ],
-        [qw(options lex_options)] );
-    $d->Sortkeys(1);
-    $d->Purity(1);
-    $d->Deepcopy(1);
-    $d->Indent(1);
-    return $d->Dump();
-
+    return [ $self->{options}, $self->{lex_options} ];
 } ## end sub grammar
 
 # production paragraph:
@@ -64,7 +55,6 @@ sub grammar {
 # non structural production sentences.
 sub production_paragraph {
     my $self = shift;
-    # say STDERR 'production graf args: ', Data::Dumper::Dumper( \@_ );
     push @{ $self->{options}->[0]->{rules} },
         { map { @{$_} }
             grep { defined $_ }
@@ -137,7 +127,8 @@ sub start_symbol_subject {
 # /lex/, /prefix/, .
 sub default_lex_prefix_subject {
     my $self = shift;
-    $self->{lex_options}->[0]->{default_prefix} = $_[0];
+    # The eval is very hack-ish, but I'm throwing this interface away
+    $self->{lex_options}->[0]->{default_prefix} = eval $_[0];
     return '';
 }
 
@@ -145,7 +136,8 @@ sub default_lex_prefix_subject {
 # /prefix/, copula, regex, .
 sub default_lex_prefix_predicate {
     my $self = shift;
-    $self->{lex_options}->[0]->{default_prefix} = $_[5];
+    # The eval is very hack-ish, but I'm throwing this interface away
+    $self->{lex_options}->[0]->{default_prefix} = eval $_[5];
     return '';
 }
 

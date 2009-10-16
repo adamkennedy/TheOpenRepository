@@ -59,9 +59,20 @@ use List::Util;
 use Carp;
 use Marpa::MDLex::Internal::Quotes;
 
+# Static "all-in-one" call, for convenience
+sub Marpa::MDLex::mdlex {
+    my ( $raw_grammar, $lexer_args, $text ) = @_;
+    my $grammar = Marpa::Grammar->new($raw_grammar);
+    $grammar->precompute();
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
+    my $lexer = Marpa::MDLex->new( { recce => $recce }, $lexer_args );
+    $lexer->text($text);
+    my $evaler = Marpa::Evaluator->new( { recce->$recce, clone => 0 } );
+    return $evaler->value();
+} ## end sub Marpa::MDLex::mdlex
+
 sub Marpa::MDLex::new {
-    my ( $class, $args ) = @_;
-    $args //= {};
+    my ( $class, @arg_hashes ) = @_;
 
     my $lexer = [];
     bless $lexer, $class;
@@ -75,7 +86,9 @@ sub Marpa::MDLex::new {
     $lexer->[Marpa::MDLex::Internal::Lexer::TRACE_TRIES]       = 0;
     $lexer->[Marpa::MDLex::Internal::Lexer::TRACING]           = 0;
 
-    set( $lexer, $args );
+    for my $args (@arg_hashes) {
+        set( $lexer, $args );
+    }
     my $recce = $lexer->[Marpa::MDLex::Internal::Lexer::RECOGNIZER];
     Carp::croak( 'No Recognizer for ' . __PACKAGE__ . ' constructor' )
         if not $recce;

@@ -35,8 +35,6 @@ my $argc = @ARGV;
 usage() if $argc < 1 or $argc > 3;
 
 my $grammar_file_name = shift @ARGV;
-my $header_file_name = shift @ARGV;
-my $trailer_file_name = shift @ARGV;
 
 # This is the end of bootstrap_header.pl
 $new_semantics = 'perl5';
@@ -808,32 +806,21 @@ sub slurp {
     return $file;
 }
 
-say '# This file was automatically generated using Marpa ', $Marpa::VERSION;
-
-if ($header_file_name)
-{
-    my $header = slurp($header_file_name);
-    if (defined $header)
-    {
-        # explicit STDOUT is workaround for perlcritic bug
-        print {*STDOUT} $header
-            or Marpa::exception("print failed: $ERRNO");
-    }
-}
-
 my $value = $evaler->value();
 Carp::croak('evaler returned undef') if not defined $value;
-say ${$value};
+my $ref_type = ref $value;
+Carp::croak('not ref to REF') if $ref_type ne 'REF';
+my $ref_ref_type = ref ${$value};
+Carp::croak('not ref to ref to $ref_type, not ARRAY') if $ref_ref_type ne 'ARRAY';
+my ($options, $lex_options) = @{${$value}};
 
-if ($trailer_file_name)
-{
-    my $trailer = slurp($trailer_file_name);
-    if (defined $trailer)
-    {
-        # explicit STDOUT is workaround for perlcritic bug
-        print {*STDOUT} $trailer
-            or Marpa::exception("print failed: $ERRNO");
-    }
-}
+my $d =
+    Data::Dumper->new( [ $options, $lex_options ],
+    [qw(marpa_options mdlex_options)] );
+$d->Sortkeys(1);
+$d->Purity(1);
+$d->Deepcopy(1);
+$d->Indent(1);
+say $d->Dump();
 
-# This is the end of bootstrap_trailer.pl
+
