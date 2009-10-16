@@ -645,8 +645,7 @@ sub Marpa::Internal::Grammar::raw_grammar_eval {
 package Marpa::Internal::Grammar;
 
 sub Marpa::Grammar::new {
-    my ( $class, $args ) = @_;
-    $args //= {};
+    my ( $class, @arg_hashes ) = @_;
 
     my $grammar = [];
     bless $grammar, $class;
@@ -685,7 +684,7 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::SELF_ARG]            = 1;
     $grammar->[Marpa::Internal::Grammar::PHASE] = Marpa::Internal::Phase::NEW;
 
-    $grammar->set($args);
+    $grammar->set(@arg_hashes);
     return $grammar;
 } ## end sub Marpa::Grammar::new
 
@@ -2313,11 +2312,34 @@ sub add_user_rule {
 
     Marpa::exception('Missing grammar argument to add_user_rule')
         if not defined $grammar;
-    Marpa::exception('Missing lhs argument to add_user_rule')
-        if not defined $lhs_name;
 
     my $lhs = assign_user_symbol( $grammar, $lhs_name );
     $rhs_names //= [];
+    CHECK_RULE: {
+        my @problems     = ();
+        my $rhs_ref_type = ref $rhs_names;
+        if ( not $rhs_ref_type or $rhs_ref_type ne 'ARRAY' ) {
+            push @problems,
+                  "RHS is not ref to ARRAY\n"
+                . "rhs is "
+                . ( $rhs_ref_type ? $rhs_ref_type : "not a ref" );
+        } ## end if ( not $rhs_ref_type or $rhs_ref_type ne 'ARRAY' )
+        if (not defined $lhs_name) {
+            push @problems, "Missing LHS\n";
+        }
+        last CHECK_RULE if not scalar @problems;
+        my %dump_options = %{$options};
+        delete $dump_options{grammar};
+        my $msg = ( scalar @problems ) . " problem(s) in the following rule:\n";
+        my $d = Data::Dumper->new( [\%dump_options], ["rule"] );
+        $msg .= $d->Dump();
+        for my $problem_number ( 0 .. $#problems ) {
+            $msg .= 'Problem ' . ($problem_number+1) . q{: }
+                . $problems[$problem_number] . "\n";
+        }
+        Marpa::exception($msg);
+    } ## end CHECK_RULE:
+
     my $rhs = [ map { assign_user_symbol( $grammar, $_ ); } @{$rhs_names} ];
 
     # Don't allow the user to duplicate a rule

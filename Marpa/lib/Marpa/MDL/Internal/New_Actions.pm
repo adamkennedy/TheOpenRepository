@@ -248,7 +248,7 @@ sub optional_rhs_element {
             @{ $self->{options}->[0]->{rules} },
             {
             lhs    => $optional_symbol_phrase,
-            rhs    => $symbol_phrase,
+            rhs    => [ $symbol_phrase ],
             action => __PACKAGE__ . q{::first_arg}
             },
             { lhs => $optional_symbol_phrase, rhs => [], };

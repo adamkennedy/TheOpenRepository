@@ -198,9 +198,9 @@ string specifier: literal string.  'first_arg'.
 string specifier: symbol phrase.
 'string_name_specifier'.
 
-match q string using 'lex_q_quote'.
+match q string using 'q_quote'.
 
-match regex using 'lex_regex'.
+match regex using 'regex'.
 
 empty line matches qr/^\h*\n/xms.
 
@@ -227,17 +227,9 @@ final whitespace matches qr/\s\z/xms.
 
 bracketed comment matches qr/\x{5b}[^\x{5d}]*\x{5d}/xms.
 
-note: change this to use lex_q_quote sometime(?) -- Doing so would
-make this file simpler -- Internalizing the closures used by MDL
-makes sense from a number of points of view -- It's slightly more
-efficient and internalized routines become available to other
-high-level grammar interfaces -- But Marpa self-generates and in
-that self-generation I like to test user-specified lex actions --
-If I internalize them all, I'll lose that test.
+match single quoted string using 'single_quote'.
 
-match single quoted string using 'lex_single_quote'.
-
-match double quoted string using 'lex_double_quote'.
+match double quoted string using 'double_quote'.
 
 version number matches qr/\d+\.[\d_.]+\d/.
 

@@ -664,9 +664,9 @@ push @{$new_rules}, {
 ,
 
 };
-push @{$new_terminals}, [ 'q-string' => { action =>'lex_q_quote'} ];
+push @{$new_terminals}, [ 'q-string' => { action =>'q_quote'} ];
 
-push @{$new_terminals}, [ 'regex' => { action =>'lex_regex'} ];
+push @{$new_terminals}, [ 'regex' => { action =>'regex'} ];
 
 push @{$new_terminals}, [ 'empty-line' => { regex => "\^\\h\*\\n"} ] ;
 
@@ -697,9 +697,9 @@ push @{$new_terminals}, [ 'final-whitespace' => { regex => "\\s\\z"} ] ;
 
 push @{$new_terminals}, [ 'bracketed-comment' => { regex => "\\x\{5b\}\[\^\\x\{5d\}\]\*\\x\{5d\}"} ] ;
 
-push @{$new_terminals}, [ 'single-quoted-string' => { action =>'lex_single_quote'} ];
+push @{$new_terminals}, [ 'single-quoted-string' => { action =>'single_quote'} ];
 
-push @{$new_terminals}, [ 'double-quoted-string' => { action =>'lex_double_quote'} ];
+push @{$new_terminals}, [ 'double-quoted-string' => { action =>'double_quote'} ];
 
 push @{$new_terminals}, [ 'version-number' => { regex => "\\d\+\\\.\[\\d_\.\]\+\\d"} ] ;
 
