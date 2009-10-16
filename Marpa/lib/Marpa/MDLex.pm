@@ -61,13 +61,20 @@ use Marpa::MDLex::Internal::Quotes;
 
 # Static "all-in-one" call, for convenience
 sub Marpa::MDLex::mdlex {
-    my ( $raw_grammar, $lexer_args, $text ) = @_;
-    my $grammar = Marpa::Grammar->new($raw_grammar);
+    my ( $grammar_args, $lexer_args, $text ) = @_;
+    my $grammar_arg_hashes =
+        ( ref $grammar_args eq 'ARRAY' ) ? $grammar_args : [$grammar_args];
+    my $lexer_arg_hashes =
+        ( ref $lexer_args eq 'ARRAY' ) ? $lexer_args : [$lexer_args];
+
+    my $grammar = Marpa::Grammar->new( @{$grammar_arg_hashes} );
     $grammar->precompute();
     my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
-    my $lexer = Marpa::MDLex->new( { recce => $recce }, $lexer_args );
+    my $lexer =
+        Marpa::MDLex->new( { recce => $recce }, @{$lexer_arg_hashes} );
     $lexer->text($text);
-    my $evaler = Marpa::Evaluator->new( { recce->$recce, clone => 0 } );
+    $recce->end_input();
+    my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     return $evaler->value();
 } ## end sub Marpa::MDLex::mdlex
 

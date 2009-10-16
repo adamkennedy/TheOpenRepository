@@ -1,0 +1,95 @@
+#!/usr/bin/perl
+
+use 5.010;
+use strict;
+use warnings;
+use Fatal qw(open);
+use English qw( -no_match_vars ) ; 
+use Data::Dumper;
+use Getopt::Long;
+use Carp;
+
+sub usage {
+    Carp::croak(
+        "$PROGRAM_NAME: usage [-Ilib|-Mpackage] ... [-Oaction_object | -oaction_object] raw_grammar text");
+}
+
+BEGIN {
+
+    my @package_args = ();
+    my @other_args   = ();
+    my @cap_o_args   = ();
+
+    for (@ARGV) {
+        when (/^[-][O]/xms) { push @cap_o_args, $_ }
+        when (/^[-][mMI]/xms) { push @package_args, $_ }
+        default               { push @other_args,   $_ };
+    }
+
+    my @object_args = ();
+    given (scalar @cap_o_args) {
+       when (0) { break }
+       when (1) {
+           my ($cap_o_arg_value) = ($cap_o_args[0] =~ /^[-]O(.*)$/xms);
+           push @package_args, "-M$cap_o_arg_value";
+           push @object_args, "--object", $cap_o_arg_value;
+       }
+       default {
+           Carp::croak("$PROGRAM_NAME: Only one -O argument allowed");
+       }
+    }
+    if ( scalar @package_args) {
+        exec $EXECUTABLE_NAME, @package_args, $PROGRAM_NAME, @object_args, @other_args;
+        die("exec failed: $!");
+    }
+} ## end BEGIN
+
+use Marpa;
+use Marpa::MDLex;
+
+my $object;
+usage() if not GetOptions('object=s' => \$object);
+
+Carp::croak("$PROGRAM_NAME: action object must be specified with either -O or -o option") if not defined $object;
+
+sub slurp {
+    my $file_name = shift;
+    open my $fh, q{<}, $file_name;
+    return do { local $RS = undef; \(<$fh>) };
+};
+
+if (@ARGV != 2) { usage() };
+my $arg_file_name  = shift;
+my $text_file_name = shift;
+my $arg_file       = slurp($arg_file_name);
+my $text           = slurp($text_file_name);
+
+package My::Args;
+our $data;
+my $eval_return = eval ${$arg_file};
+
+package main;
+Carp::croak("eval returned false: $@") if not $eval_return;
+
+my $marpa_options = $data->{marpa_options};
+Carp::croak("No marpa_options in $arg_file_name") if not $marpa_options;
+
+my $mdlex_options = $data->{mdlex_options};
+Carp::croak("No marpa_options in $arg_file_name") if not $mdlex_options;
+
+$data = Marpa::MDLex::mdlex(
+    [   { action_object => $object },
+        @{$marpa_options}
+    ],
+    $mdlex_options,
+    $text
+);
+
+Carp::croak("mdlex returned undef") if not defined $data;
+
+my $d = Data::Dumper->new( [${$data}], [qw(data)] );
+$d->Sortkeys(1);
+$d->Purity(1);
+$d->Deepcopy(1);
+$d->Indent(1);
+say $d->Dump();

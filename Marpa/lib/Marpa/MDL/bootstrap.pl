@@ -807,20 +807,12 @@ sub slurp {
 }
 
 my $value = $evaler->value();
-Carp::croak('evaler returned undef') if not defined $value;
-my $ref_type = ref $value;
-Carp::croak('not ref to REF') if $ref_type ne 'REF';
-my $ref_ref_type = ref ${$value};
-Carp::croak('not ref to ref to $ref_type, not ARRAY') if $ref_ref_type ne 'ARRAY';
-my ($options, $lex_options) = @{${$value}};
+Carp::croak('evaler did not return ref') if not defined ref $value;
 
-my $d =
-    Data::Dumper->new( [ $options, $lex_options ],
-    [qw(marpa_options mdlex_options)] );
+my $d = Data::Dumper->new( [ ${$value} ], [qw(data)] );
 $d->Sortkeys(1);
 $d->Purity(1);
 $d->Deepcopy(1);
 $d->Indent(1);
 say $d->Dump();
-
 

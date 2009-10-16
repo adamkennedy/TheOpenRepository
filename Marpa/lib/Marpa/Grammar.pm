@@ -891,6 +891,14 @@ sub Marpa::Grammar::set {
 
     for my $args (@arg_hashes) {
 
+        my $ref_type = ref $args;
+        if ( not $ref_type or $ref_type ne 'HASH' ) {
+            Carp::croak(
+                'Marpa Grammar expects args as ref to HASH, got ',
+                ( "ref to $ref_type" || 'non-reference' ),
+                ' instead'
+            );
+        } ## end if ( not $ref_type or $ref_type ne 'HASH' )
         if (my @bad_options =
             grep { not $_ ~~ Marpa::Internal::Grammar::GRAMMAR_OPTIONS }
             keys %{$args}

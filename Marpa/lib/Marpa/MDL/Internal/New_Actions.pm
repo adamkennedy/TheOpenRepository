@@ -44,7 +44,10 @@ sub grammar {
         delete $terminal->{regex};
     } ## end for my $terminal ( @{ $self->{lex_options}->[0]->{terminals...}})
     $self->{options}->[0]->{terminals} = [map { $_->{name} } @{$self->{lex_options}->[0]->{terminals}}];
-    return [ $self->{options}, $self->{lex_options} ];
+    return {
+        marpa_options => $self->{options},
+        mdlex_options => $self->{lex_options}
+    };
 } ## end sub grammar
 
 # production paragraph:
