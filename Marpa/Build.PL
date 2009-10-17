@@ -35,16 +35,17 @@ my $class = Module::Build->subclass(
 SUBCLASS
 
 my $build = $class->new(
-    dist_name      => 'Marpa',
-    dist_author    => 'Jeffrey Kegler',
-    dist_version   => $marpa_version,
-    dist_abstract  => 'Generate Parsers from any BNF grammar',
-    requires       => { 'Scalar::Util' => 0, },
-    build_requires => {
-        'Test::More' => 0,
-        'Task::Weaken' => 0, #to be sure to have weaken in Scalar::Util
+    dist_name            => 'Marpa',
+    dist_author          => 'Jeffrey Kegler',
+    dist_version         => $marpa_version,
+    dist_abstract        => 'Generate Parsers from any BNF grammar',
+    requires             => { 'Scalar::Util' => 0, },
+    recursive_test_files => 1,
+    build_requires       => {
+        'Test::More'   => 0,
+        'Task::Weaken' => 0,    #to be sure to have weaken in Scalar::Util
     },
-    meta_merge     => {
+    meta_merge => {
         no_index => {
             directory => [qw(inc t example bootstrap author.t save)],
             namespace => ['Marpa::Internal'],

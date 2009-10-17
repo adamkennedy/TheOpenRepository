@@ -2,7 +2,6 @@
 use 5.010;
 use strict;
 use warnings;
-use lib 'lib';
 use Test::More;
 use Fatal qw(close open waitpid);
 use English qw( -no_match_vars );

@@ -3,31 +3,14 @@ package Marpa::MDL;
 use 5.010;
 use strict;
 use warnings;
-
-sub gen_symbol_from_regex {
-    my $regex = shift;
-    my $data  = shift;
-    if ( scalar @{$data} == 0 ) {
-        my $number = 0;
-        push @{$data}, {}, \$number;
-    }
-    my ( $regex_hash, $uniq_number ) = @{$data};
-    given ($regex) {
-        when (/^qr/xms) { $regex = substr $regex, 3, -1; }
-        default         { $regex = substr $regex, 1, -1; };
-    }
-    my $symbol = $regex_hash->{$regex};
-    return $symbol if defined $symbol;
-
-    ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
-    $symbol = substr $regex, 0, 20;
-    ## use critic
-    $symbol =~ s/%/%%/gxms;
-    $symbol =~ s/([^[:alnum:]_-])/sprintf("%%%.2x", ord($1))/gexms;
-    $symbol .= sprintf ':k%x', ( ${$uniq_number} )++;
-    $regex_hash->{$regex} = $symbol;
-    return ( $symbol, 1 );
-} ## end sub gen_symbol_from_regex
+use Marpa;
+use Marpa::MDLex;
+BEGIN {
+    $Marpa::MDL::Self_Raw::raw_mdl_file = 'Marpa/MDL/self.mdl.raw';
+    package Marpa::MDL::Self_Raw;
+    require $Marpa::MDL::Self_Raw::raw_mdl_file;
+}
+use Marpa::MDL::Internal::Actions;
 
 sub canonical_symbol_name {
     my $symbol = lc shift;
@@ -36,11 +19,35 @@ sub canonical_symbol_name {
 }
 
 sub get_terminal {
-    my $grammar     = shift;
-    my $symbol_name = shift;
+    my ($grammar, $symbol_name) = @_;
     return Marpa::Grammar::get_terminal( $grammar,
         canonical_symbol_name($symbol_name) );
 } ## end sub get_terminal
+
+sub to_raw {
+    my ($mdl_source) = @_;
+    my $marpa_options = $Marpa::MDL::Self_Raw::data->{marpa_options};
+    Carp::croak("No marpa_options in $Marpa::MDL::Self_Raw::raw_mdl_file") if not $marpa_options;
+
+    my $mdlex_options = $Marpa::MDL::Self_Raw::data->{mdlex_options};
+    Carp::croak("No marpa_options in $Marpa::MDL::Self_Raw::raw_mdl_file") if not $mdlex_options;
+
+    my $data = Marpa::MDLex::mdlex(
+        [ { action_object => 'Marpa::MDL::Internal::Actions' }, @{$marpa_options} ],
+        $mdlex_options, $mdl_source );
+
+    Carp::croak("mdlex returned undef") if not defined $data;
+
+    return $data->{marpa_options}, $data->{mdlex_options}
+        if wantarray;
+
+    my $d = Data::Dumper->new( [ ${$data} ], [qw(data)] );
+    $d->Sortkeys(1);
+    $d->Purity(1);
+    $d->Deepcopy(1);
+    $d->Indent(1);
+    return $d->Dump();
+}
 
 1;
 

@@ -237,7 +237,7 @@ sub rhs_symbol_phrase_specifier { return $_[0] }
 sub rhs_regex_specifier {
     my $regex = $_[0];
     my ( $symbol, $new ) =
-        Marpa::MDL::gen_symbol_from_regex( $regex, $regex_data );
+        Marpa::MDL::Internal::Old_Actions::gen_symbol_from_regex( $regex, $regex_data );
     if ($new) {
         our @implicit_terminals;
         push @implicit_terminals,
@@ -275,6 +275,31 @@ sub string_name_specifier {
     return '$strings{ ' . q{'} . $_[0] . q{'} . ' }';
 }
 ## use critic
+
+sub gen_symbol_from_regex {
+    my $regex = shift;
+    my $data  = shift;
+    if ( scalar @{$data} == 0 ) {
+        my $number = 0;
+        push @{$data}, {}, \$number;
+    }
+    my ( $regex_hash, $uniq_number ) = @{$data};
+    given ($regex) {
+        when (/^qr/xms) { $regex = substr $regex, 3, -1; }
+        default         { $regex = substr $regex, 1, -1; };
+    }
+    my $symbol = $regex_hash->{$regex};
+    return $symbol if defined $symbol;
+
+    ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
+    $symbol = substr $regex, 0, 20;
+    ## use critic
+    $symbol =~ s/%/%%/gxms;
+    $symbol =~ s/([^[:alnum:]_-])/sprintf("%%%.2x", ord($1))/gexms;
+    $symbol .= sprintf ':k%x', ( ${$uniq_number} )++;
+    $regex_hash->{$regex} = $symbol;
+    return ( $symbol, 1 );
+} ## end sub gen_symbol_from_regex
 
 1;
 

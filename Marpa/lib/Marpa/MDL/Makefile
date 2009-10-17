@@ -1,18 +1,16 @@
 
 all: test
 
-try1.marpa.raw: self.marpa bootstrap.pl
-	perl -I../../ bootstrap.pl self.marpa > $@
+try1.mdl.raw: self.mdl bootstrap.pl
+	perl -I../../ bootstrap.pl self.mdl > $@
 
-try2.marpa.raw: try1.marpa.raw self.marpa
-	../MDLex/bin/mdlex_dump -I../.. -OMarpa::MDL::Internal::Actions \
-		try1.marpa.raw \
-		self.marpa > $@
+try2.mdl.raw: try1.mdl.raw self.mdl
+	PERL5LIB=$$PERL5LIB:../.. ../MDLex/bin/mdlex_dump -OMarpa::MDL::Internal::Actions \
+		try1.mdl.raw self.mdl > $@
 
-try3.marpa.raw: try2.marpa.raw self.marpa
-	../MDLex/bin/mdlex_dump -I../.. -OMarpa::MDL::Internal::Actions \
-		try2.marpa.raw \
-		self.marpa > $@
+try3.mdl.raw: try2.mdl.raw self.mdl
+	PERL5LIB=$$PERL5LIB:../.. ../MDLex/bin/mdlex_dump -OMarpa::MDL::Internal::Actions \
+		try2.mdl.raw self.mdl > $@
 
-test:  try2.marpa.raw try3.marpa.raw
-	diff try2.marpa.raw try3.marpa.raw
+test:  try2.mdl.raw try3.mdl.raw
+	diff try2.mdl.raw try3.mdl.raw
