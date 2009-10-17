@@ -206,6 +206,20 @@ sub install_cpan_upgrades {
 			next MODULE;
 		}
 
+		if (    ( $module->cpan_file =~ m{/CPANPLUS-\d}msx )
+			and ( $module->cpan_version == 0.88 ) )
+		{
+			# Installing 0.89_02 because of accumulated fixes,
+			# including one in which the config set
+			# by us works better.
+			$self->install_distribution(
+				name  => 'BINGOS/CPANPLUS-0.89_02.tar.gz',
+				makefilepl_param => ['INSTALLDIRS=perl'],
+				buildpl_param => ['--installdirs', 'core'],
+			);
+			next MODULE;
+		}
+
 		if ( $self->_delay_upgrade($module) ) {
 
 			# Delay these module until last.
