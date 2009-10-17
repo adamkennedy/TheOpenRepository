@@ -6,7 +6,7 @@ sub Marpa::Internal::raw_source_grammar {
             rules     => $new_rules,
             terminals => $new_terminals,
             version   => $new_version,
-            actions   => 'Marpa::MDL::Internal::Actions',
+            actions   => 'Marpa::MDL::Internal::Old_Actions',
             warnings  => 1,
         }
     );

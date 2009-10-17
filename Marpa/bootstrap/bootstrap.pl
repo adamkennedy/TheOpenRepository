@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use Marpa;
 use Marpa::MDL;
-use Marpa::MDL::Internal::Actions;
+use Marpa::MDL::Internal::Old_Actions;
 use Marpa::MDLex;
 use Fatal qw(open close);
 use English qw( -no_match_vars ) ;
@@ -109,7 +109,7 @@ push @{$new_rules}, {
 
 };
 push @{$new_rules},
-    { lhs => 'action-sentence:optional',  rhs => [ 'action-sentence' ],  action => 'Marpa::MDL::Internal::Actions::first_arg'},
+    { lhs => 'action-sentence:optional',  rhs => [ 'action-sentence' ],  action => 'Marpa::MDL::Internal::Old_Actions::first_arg'},
     { lhs => 'action-sentence:optional',  rhs => [], },
  ;
 
@@ -150,7 +150,7 @@ push @{$new_terminals},
 ;
 
 push @{$new_rules},
-    { lhs => 'the:k1:optional',  rhs => [ 'the:k1' ],  action => 'Marpa::MDL::Internal::Actions::first_arg'},
+    { lhs => 'the:k1:optional',  rhs => [ 'the:k1' ],  action => 'Marpa::MDL::Internal::Old_Actions::first_arg'},
     { lhs => 'the:k1:optional',  rhs => [], },
  ;
 
@@ -742,7 +742,7 @@ my $g = new Marpa::Grammar({
     terminals => $new_terminals,
     warnings => 1,
     self_arg => 0,
-    actions => 'Marpa::MDL::Internal::Actions',
+    actions => 'Marpa::MDL::Internal::Old_Actions',
 });
 
 $g->set({

@@ -139,6 +139,9 @@ Just abend with an error message.
 
 =over 4
 
+=item * In the MDL grammar, concatenate_lines is called uselessly in a number
+of places.  Eliminate this, for efficiency's sake?
+
 =item * bin/mdl in parsing equation.marpa
 (which is used
 for many examples in the author.t/Makefile) takes a final return

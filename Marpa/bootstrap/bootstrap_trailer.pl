@@ -16,7 +16,7 @@ my $g = new Marpa::Grammar(
         terminals => $new_terminals,
         warnings  => 1,
         self_arg  => 0,
-        actions   => 'Marpa::MDL::Internal::Actions',
+        actions   => 'Marpa::MDL::Internal::Old_Actions',
     }
 );
 

@@ -4,21 +4,51 @@ use 5.010;
 use strict;
 use warnings;
 
-## no critic (Subroutines::RequireArgUnpacking
-## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-## no critic (Variables::ProhibitPackageVars)
+use Data::Dumper;
 
-our $regex_data = [];
+use Smart::Comments '-ENV';
+
+## no critic (Subroutines::RequireArgUnpacking
+## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
+
+sub new {
+    my $class = shift;
+    my $self  = {
+        regex_data  => [],
+        rule_hash   => {},
+        options     => [],
+        lex_options => [],
+        strings     => {},
+    };
+    return bless $self, $class;
+} ## end sub new
 
 sub first_arg {
-    return $_[0];
+    return $_[1];
 }
 
 sub concatenate_lines {
-    return ( scalar @_ ) ? ( join "\n", ( grep {$_} @_ ) ) : undef;
+    shift;
+    return [ @_ ];
 }
 
-sub grammar { return $_[0] }
+sub grammar {
+    my ( $self, $text ) = @_;
+
+    TERMINAL: for my $terminal ( @{ $self->{lex_options}->[0]->{terminals} } ) {
+        if ( $terminal->{regex} =~ /^["]/xms ) {
+            $terminal->{regex} = eval $terminal->{regex};
+            next TERMINAL;
+        }
+        $terminal->{builtin} = $terminal->{regex};
+        delete $terminal->{regex};
+    } ## end for my $terminal ( @{ $self->{lex_options}->[0]->{terminals...}})
+    $self->{options}->[0]->{terminals} = [map { $_->{name} } @{$self->{lex_options}->[0]->{terminals}}];
+    return {
+        marpa_options => $self->{options},
+        mdlex_options => $self->{lex_options}
+    };
+} ## end sub grammar
 
 # production paragraph:
 # non structural production sentences,
@@ -27,221 +57,219 @@ sub grammar { return $_[0] }
 # optional action sentence,
 # non structural production sentences.
 sub production_paragraph {
-    my $action = $_[3];
-    my $other_key_value = join ",\n", map { $_ // q{} } @_[ 0, 2, 4 ];
-    my $result =
-          'push @{$new_rules}, ' . "{\n"
-        . $_[1] . ",\n"
-        . ( defined $action ? ( $action . ",\n" ) : q{} )
-        . $other_key_value . "\n};";
-    our @implicit_terminals;
-    if (@implicit_terminals) {
-        $result .= "\n" . 'push @{$new_terminals},' . "\n";
-        while ( my $implicit_terminal = shift @implicit_terminals ) {
-            $result .= '    [' . $implicit_terminal . "],\n";
-        }
-        $result .= ";\n";
-    } ## end if (@implicit_terminals)
-    our @implicit_rules;
-    if (@implicit_rules) {
-        $result .= "\n" . 'push @{$new_rules},' . "\n";
-        while ( my $implicit_production = shift @implicit_rules ) {
-            $result .= '    {' . $implicit_production . "},\n";
-        }
-        $result .= " ;\n";
-    } ## end if (@implicit_rules)
-    return $result;
+    my $self = shift;
+    push @{ $self->{options}->[0]->{rules} },
+        { map { @{$_} }
+            grep { defined $_ }
+            ( @{ $_[0] }, $_[1], @{ $_[2] }, $_[3], @{ $_[4] } ) };
+    return "";
 } ## end sub production_paragraph
 
 # non structural production sentence: /priority/, integer, period.
-sub non_structural_production_sentence { return q{ priority => } . $_[1] }
+sub non_structural_production_sentence { return [ priority => $_[2] ] }
 
 # action sentence:
 # optional /the/, /action/, /is/, action specifier, period.
 sub long_action_sentence {
-    return '    action =>' . $_[3];
+    return [    action =>  $_[4] ];
 }
 
 # action sentence: action specifier, period.
 sub short_action_sentence {
-    return '    action =>' . $_[0];
+    return [    action =>  $_[1] ];
 }
 
 # definition: predefined setting, period.  q{ $_[0] }.  priority 1000.
-sub definition_of_predefined { return $_[0] }
+sub definition_of_predefined { return $_[1] }
 
 # semantics setting:  optional /the/, /semantics/, copula, /perl5/.
 sub semantics_predicate {
-    return q{$new_semantics = '} . $_[3] . qq{';\n};
+    my $self = shift;
+    $self->{options}->[0]->{semantics} = $_[3];
+    return '';
 }
 
 # semantics setting: /perl5/, copula, optional /the/, /semantics/.
 sub semantics_subject {
-    return q{$new_semantics = '} . $_[0] . qq{';\n};
+    my $self = shift;
+    $self->{options}->[0]->{semantics} = $_[0];
+    return '';
 }
 
 # version setting: optional /the/, /version/, copula, version number.
 sub version_predicate {
-    return q{$new_version = '} . $_[3] . qq{';\n};
+    my $self = shift;
+    $self->{options}->[0]->{version} = $_[3];
+    return '';
 }
 
 # version setting: /version number/, copula, optional /the/, /version/.
 sub version_subject {
-    return q{$new_version = '} . $_[0] . qq{';\n};
+    my $self = shift;
+    $self->{options}->[0]->{version} = $_[1];
+    return '';
 }
 
 # start symbol setting: optional /the/, /start/, /symbol/, copula,
 # symbol phrase.
 sub start_symbol_predicate {
-    return q{$new_start_symbol = '} . $_[4] . qq{';\n};
+    my $self = shift;
+    $self->{options}->[0]->{start} = $_[4];
+    return '';
 }
 
 # start symbol setting: symbol phrase, copula, optional /the/, /start/,
 # /symbol/, .
 sub start_symbol_subject {
-    return q{$new_start_symbol = } . $_[0] . qq{;\n};
+    my $self = shift;
+    $self->{options}->[0]->{start} = $_[1];
+    return '';
 }
 
 # default lex prefix setting: regex, copula, optional /the/, /default/,
 # /lex/, /prefix/, .
 sub default_lex_prefix_subject {
-    return q{$new_default_lex_prefix = } . $_[0] . qq{;\n};
+    my $self = shift;
+    # The eval is very hack-ish, but I'm throwing this interface away
+    $self->{lex_options}->[0]->{default_prefix} = eval $_[0];
+    return '';
 }
 
 # default lex prefix setting: optional /the/, /default/, /lex/,
 # /prefix/, copula, regex, .
 sub default_lex_prefix_predicate {
-    ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
-    return q{$new_default_lex_prefix = } . $_[5] . qq{;\n};
+    my $self = shift;
+    # The eval is very hack-ish, but I'm throwing this interface away
+    $self->{lex_options}->[0]->{default_prefix} = eval $_[5];
+    return '';
 }
 
 # default null value setting: string specifier, copula, optional /the/, /default/,
 # /null/, /value/, .
 sub default_null_value_subject {
-    return q{$new_default_null_value = } . $_[0] . qq{;\n};
+    my $self = shift;
+    $self->{lex_options}->[0]->{default_null_value} = $_[0];
+    return '';
 }
 
 # default null value setting: optional /the/, /default/, /null/,
 # /value/, copula, string specifier, .
 sub default_null_value_predicate {
-    ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
-    return q{$new_default_null_value = } . $_[5] . qq{;\n};
+    my $self = shift;
+    $self->{lex_options}->[0]->{default_null_value} = $_[5];
+    return '';
 }
 
 # string definition:
 # symbol phrase, /is/, string specifier, period.
 sub string_definition {
-    return '$strings{' . q{'} . $_[0] . q{'} . '}' . q{ = } . $_[2] . qq{;\n};
+    my $self = shift;
+    $self->{strings}->{$_[0]} = $_[2];
+    return '';
 }
 
 # default action setting:
 # action specifier, /is/, optional /the/, /default/, /action/.
 sub default_action_subject {
-    return q{ $new_default_action = } . $_[0] . qq{;\n};
+    my $self = shift;
+    $self->{options}->[0]->{default_action} = $_[0];
+    return '';
 }
 
 # default action setting:
 # optional /the/, /default/, /action/, /is/, action specifier.
 sub default_action_predicate {
-    return q{ $new_default_action = } . $_[4] . qq{;\n};
+    my $self = shift;
+    $self->{options}->[0]->{default_action} = $_[4];
+    return '';
 }
 
-# literal string: q string.  q{ $_[0] }.
-sub q_string { return $_[0] }
+# literal string: q string.  q{ $_[1] }.
+sub q_string { return eval $_[1] }
+
+sub literal_string { return eval $_[1] }
 
 # production sentence: lhs, production copula, rhs, period.
 sub production_sentence {
-    return $_[0] . "\n," . $_[2];
+    return [ lhs => $_[1], @{$_[3]} ];
 }
 
 # symbol phrase: symbol word sequence.
 sub symbol_phrase {
+    shift;
     return Marpa::MDL::canonical_symbol_name( join q{-}, @_ );
 }
 
 # lhs: symbol phrase.
-sub lhs { return '    lhs => ' . q{'} . $_[0] . q{'} }
+sub lhs { return $_[1]  }
 
 # rhs: .
-sub empty_rhs { return '    rhs => []' }
+sub empty_rhs { return [ rhs => [] ] }
 
 # rhs: comma separated rhs element sequence.
-sub comma_separated_rhs { return '    rhs => [' . join( q{, }, @_ ) . ']' }
+sub comma_separated_rhs { shift; return [ rhs => [ map { @{$_} } @_ ] ] }
 
 # rhs: symbol phrase, /sequence/.
 sub sequence_rhs {
-    return q{rhs => ['} . $_[0] . qq{'],\n} . qq{min => 1,\n};
+    return [ rhs => [ $_[1] ], min => 1 ];
 }
 
 # rhs: /optional/, symbol phrase, /sequence/.
 sub optional_sequence_rhs {
-    return q{rhs => ['} . $_[1] . qq{'],\n} . qq{min => 0,\n};
+    return [ rhs => [ $_[2] ], min => 0 ];
 }
 
 # rhs: symbol phrase, /separated/, symbol phrase, /sequence/.
 sub separated_sequence_rhs {
-    return
-          q{rhs => ['}
-        . $_[2]
-        . qq{'],\n}
-        . q{separator => '}
-        . $_[0]
-        . qq{',\n}
-        . qq{min => 1,\n};
+    return [
+        rhs       => [ $_[3] ],
+        separator => $_[1],
+        min       => 1
+    ];
 } ## end sub separated_sequence_rhs
 
 # rhs: /optional/, symbol phrase, /separated/, symbol phrase, /sequence/.
 sub optional_separated_sequence_rhs {
-    return
-          q{rhs => ['}
-        . $_[3]
-        . qq{'],\n}
-        . q{separator => '}
-        . $_[1]
-        . qq{',\n}
-        . qq{min => 0,\n};
+    return [
+        rhs       => [ $_[4] ],
+        separator => $_[2],
+        min       => 1
+    ];
 } ## end sub optional_separated_sequence_rhs
 
 # mandatory rhs element: rhs symbol specifier.
-sub mandatory_rhs_element { return q{'} . $_[0] . q{'} }
+sub mandatory_rhs_element { return $_[1] }
 
 # optional rhs element: /optional/, rhs symbol specifier.
 sub optional_rhs_element {
-    my $symbol_phrase          = $_[1];
+    my ( $self, $dummy, $symbol_phrase ) = @_;
     my $optional_symbol_phrase = $symbol_phrase . ':optional';
-    our %implicit_rules;
-    if ( not defined $implicit_rules{$optional_symbol_phrase} ) {
-        $implicit_rules{$optional_symbol_phrase} = 1;
-        our @implicit_rules;
+    my $rule_hash              = $self->{rule_hash};
+    if ( not defined $rule_hash->{$optional_symbol_phrase} ) {
+        $rule_hash->{$optional_symbol_phrase} = 1;
         push
-            @implicit_rules,
-            q{ lhs => '}
-            . $optional_symbol_phrase . q{', }
-            . q{ rhs => [ '}
-            . $symbol_phrase
-            . q{' ], }
-            . q{ action => '}
-            . __PACKAGE__
-            . q{::first_arg'};
-        push
-            @implicit_rules,
-            q{ lhs => '} . $optional_symbol_phrase . q{', } . q{ rhs => [], };
-    } ## end if ( not defined $implicit_rules{$optional_symbol_phrase...})
-    return q{'} . $optional_symbol_phrase . q{'};
+            @{ $self->{options}->[0]->{rules} },
+            {
+            lhs    => $optional_symbol_phrase,
+            rhs    => [ $symbol_phrase ],
+            action => __PACKAGE__ . q{::first_arg}
+            },
+            { lhs => $optional_symbol_phrase, rhs => [], };
+    } ## end if ( not defined $rule_hash->{$optional_symbol_phrase...})
+    return $optional_symbol_phrase;
 } ## end sub optional_rhs_element
 
 # rhs_symbol specifier: symbol phrase.
-sub rhs_symbol_phrase_specifier { return $_[0] }
+sub rhs_symbol_phrase_specifier { return $_[1] }
 
 # rhs symbol specifier: regex.
 sub rhs_regex_specifier {
-    my $regex = $_[0];
+    my ( $self, $regex ) = @_;
     my ( $symbol, $new ) =
-        Marpa::MDL::gen_symbol_from_regex( $regex, $regex_data );
+        Marpa::MDL::gen_symbol_from_regex( $regex, $self->{regex_data} );
     if ($new) {
-        our @implicit_terminals;
-        push @implicit_terminals,
-            q{'} . $symbol . q{' => } . '{' . q{ regex => } . $regex . ' }';
+        push @{ $self->{lex_options}->[0]->{terminals} },
+            { name => $symbol, regex => $regex };
     }
     return $symbol;
 } ## end sub rhs_regex_specifier
@@ -249,30 +277,31 @@ sub rhs_regex_specifier {
 # terminal sentence:
 # symbol phrase, /matches/, regex, period.
 sub regex_terminal_sentence {
-    return
-          q{push @{$new_terminals}, [ '}
-        . $_[0]
-        . q{' => }
-        . '{ regex => '
-        . $_[2] . '}'
-        . qq{ ] ;\n};
+    my $self = shift;
+    push @{ $self->{lex_options}->[0]->{terminals} },
+        {
+        name  => $_[0],
+        regex => $_[2]
+        };
+    return '';
 } ## end sub regex_terminal_sentence
 
 # terminal sentence:
 # /match/, symbol phrase, /using/, string specifier, period.
 sub string_terminal_sentence {
-    return
-          q{push @{$new_terminals}, [ '}
-        . $_[1]
-        . q{' => }
-        . '{ action =>'
-        . $_[3] . '}'
-        . qq{ ];\n};
+    my $self = shift;
+    push @{ $self->{lex_options}->[0]->{terminals} },
+        {
+        name  => $_[1],
+        regex => $_[3]
+        };
+    return '';
 } ## end sub string_terminal_sentence
 
 # string specifier: symbol phrase.
 sub string_name_specifier {
-    return '$strings{ ' . q{'} . $_[0] . q{'} . ' }';
+    my $self = shift;
+    return $self->{strings}->{$_[0]};
 }
 ## use critic
 
