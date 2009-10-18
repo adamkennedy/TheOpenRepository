@@ -7,6 +7,8 @@ use strict;
 # It's all integers, except for the version number
 use integer;
 
+use Marpa;
+
 use Marpa::Offset qw(
 
     :package=Marpa::MDLex::Internal::Terminal
