@@ -15,9 +15,6 @@ BEGIN {
     Test::More::use_ok('Marpa::MDLex');
 }
 
-my $example_dir = 'example';
-chdir $example_dir;
-
 my @expected_values = split /\n/xms, <<'EOS';
 A(B(a))
 a

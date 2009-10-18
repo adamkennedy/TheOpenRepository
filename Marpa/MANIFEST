@@ -27,8 +27,6 @@ etc/check_links.pl
 etc/Makefile
 etc/not_in_manifest.pl
 etc/perlcriticrc
-example/equation.marpa
-example/equation.pm
 inc/Test/Weaken.pm
 lib/Marpa/Doc/Algorithm.pod
 lib/Marpa/Doc/Bibliography.pod
@@ -44,6 +42,8 @@ lib/Marpa/Grammar.pm
 lib/Marpa/header_Raw_Source.pm
 lib/Marpa/Internal.pm
 lib/Marpa/MDL/bin/mdl_to_raw
+lib/Marpa/MDL/example/equation.marpa
+lib/Marpa/MDL/example/equation.pm
 lib/Marpa/MDL/example/null_value.marpa
 lib/Marpa/MDL/example/null_value.pm
 lib/Marpa/MDLex/bin/mdlex_dump
@@ -75,7 +75,6 @@ t/cycle2.t
 t/cycle_plex.t
 t/cycle.t
 t/duplicate_parse.t
-t/equation_s.t
 t/equation.t
 t/final_nonnullable.t
 t/gj.t
@@ -86,6 +85,8 @@ t/limits.t
 t/Makefile
 t/mdl/00-load.t
 t/mdl/bootstrap.t
+t/mdl/equation.t
+t/mdl/randal.t
 t/minus_s.t
 t/minus.t
 t/null_value.t
