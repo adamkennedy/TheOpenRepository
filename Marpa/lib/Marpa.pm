@@ -110,6 +110,8 @@ sub Marpa::mdl {
     my $text    = shift;
     my $options = shift;
 
+    Marpa::exception("Marpa::mdl EOL'ed");
+
     my $ref = ref $grammar;
     Marpa::exception(
         qq{grammar arg to mdl() was ref type "$ref", must be string ref})

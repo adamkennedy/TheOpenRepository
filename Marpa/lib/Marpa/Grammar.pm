@@ -196,7 +196,7 @@ use Marpa::Offset qw(
     DEFAULT_ACTION { Action for rules without one }
     TRACE_FILE_HANDLE TRACING
     STRIP
-    CODE_LINES
+    CODE_LINES { Delete me? }
     =LAST_BASIC_DATA_FIELD
 
     { === Evaluator Fields === }

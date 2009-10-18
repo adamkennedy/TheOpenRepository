@@ -22,23 +22,22 @@ EO_TESTS
 my $source;
 { local ($RS) = undef; $source = <DATA> };
 
+my ($marpa_options, $mdlex_options) = Marpa::MDL::to_raw($source);
+
 my $g = Marpa::Grammar->new(
     {   warnings   => 1,
         code_lines => -1,
         actions    => 'main',
-    }
+    },
+    @{$marpa_options}
 );
-
-$g->set( { mdl_source => \$source } );
-
-my $lexer_args = $g->lexer_args();
 
 $g->precompute();
 
 TEST: while ( my $test = pop @tests ) {
 
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
-    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
+    my $lexer = Marpa::MDLex->new( { recce => $recce}, @{$mdlex_options} );
     $lexer->text( \$test );
     $recce->end_input();
 

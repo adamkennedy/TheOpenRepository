@@ -17,14 +17,32 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
-my $grammar_source;
-{ local ($RS) = undef; $grammar_source = <DATA> };
+my $source = do { local ($RS) = undef; <DATA> };
 
 my $text = '6-----1';
 
-my @values =
-    Marpa::mdl( \$grammar_source, \$text,
-    { actions => 'main', maximal => 1, max_parses => 30 } );
+my ($marpa_options, $mdlex_options) = Marpa::MDL::to_raw($source);
+
+my $g = Marpa::Grammar->new(
+    {   maximal => 1,
+        max_parses => 30,
+        actions    => 'main',
+    },
+    @{$marpa_options}
+);
+
+$g->precompute();
+
+my $recce = Marpa::Recognizer->new( { grammar => $g } );
+my $lexer = Marpa::MDLex->new( { recce => $recce}, @{$mdlex_options} );
+$lexer->text( \$text );
+$recce->end_input();
+
+my $evaler = Marpa::Evaluator->new( { recce => $recce } );
+my @values = ();
+while ( defined( my $value = $evaler->value() ) ) {
+    push @values, $value;
+}
 
 my @expected = (
     #<<< no perltidy
