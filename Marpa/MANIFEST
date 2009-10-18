@@ -42,6 +42,7 @@ lib/Marpa/Grammar.pm
 lib/Marpa/header_Raw_Source.pm
 lib/Marpa/Internal.pm
 lib/Marpa/MDL/bin/mdl_to_raw
+lib/Marpa/MDL/bootstrap.pl
 lib/Marpa/MDL/example/equation.marpa
 lib/Marpa/MDL/example/equation.pm
 lib/Marpa/MDL/example/null_value.marpa
@@ -68,7 +69,6 @@ README
 sandbox/TODO.pod
 t/00-load.t
 t/ah2.t
-t/ah_s.t
 t/ah.t
 t/code_diag.t
 t/cycle2.t
@@ -84,10 +84,11 @@ t/lib/Marpa/Test.pm
 t/limits.t
 t/Makefile
 t/mdl/00-load.t
+t/mdl/ah.t
 t/mdl/bootstrap.t
 t/mdl/equation.t
+t/mdl/minus.t
 t/mdl/randal.t
-t/minus_s.t
 t/minus.t
 t/null_value.t
 t/pascal.t
