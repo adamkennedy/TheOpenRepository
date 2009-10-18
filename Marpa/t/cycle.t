@@ -23,69 +23,131 @@ sub default_action {
 }
 ## use critic
 
-my $mdl_header = <<'EOF';
-semantics are perl5.  version is 0.001_019.
-start symbol is S.
-default action is 'main::default_action'.
+package Test_Grammar;
 
-EOF
+$Test_Grammar::marpa_options_1 = [
+    {   'default_action' => 'main::default_action',
+        'rules'          => [
+            {   'lhs' => 's',
+                'rhs' => [ 's' ]
+            }
+        ],
+        'semantics' => 'perl5',
+        'start'     => 's',
+        'terminals' => [ 's' ],
+        'version'   => '0.001_019'
+    }
+];
 
-my $cycle1_mdl = $mdl_header . <<'EOF';
-S: S.
+$Test_Grammar::mdlex_options_1 = [
+    {   'terminals' => [
+            {   'name'  => 's',
+                'regex' => '.'
+            }
+        ]
+    }
+];
 
-S matches /./.
+$Test_Grammar::marpa_options_2 = [
+    {   'default_action' => 'main::default_action',
+        'rules'          => [
+            {   'lhs' => 's',
+                'rhs' => [ 'a' ]
+            },
+            {   'lhs' => 'a',
+                'rhs' => [ 's' ]
+            }
+        ],
+        'semantics' => 'perl5',
+        'start'     => 's',
+        'terminals' => [ 'a' ],
+        'version'   => '0.001_019'
+    }
+];
 
-EOF
+$Test_Grammar::mdlex_options_2 = [
+    {   'terminals' => [
+            {   'name'  => 'a',
+                'regex' => '.'
+            }
+        ]
+    }
+];
 
-my $cycle2_mdl = $mdl_header . <<'EOF';
-S: A.
+$Test_Grammar::marpa_options_8 = [
+    {   'default_action' => 'main::default_action',
+        'rules'          => [
+            {   'lhs' => 's',
+                'rhs' => [ 'a' ]
+            },
+            {   'lhs' => 'a',
+                'rhs' => [ 'b', 't', 'u' ]
+            },
+            {   'lhs' => 'b',
+                'rhs' => [ 'v', 'c' ]
+            },
+            {   'lhs' => 'c',
+                'rhs' => [ 'w', 'd', 'x' ]
+            },
+            {   'lhs' => 'd',
+                'rhs' => [ 'e' ]
+            },
+            {   'lhs' => 'e',
+                'rhs' => [ 's' ]
+            },
+            {   'lhs' => 't',
+                'rhs' => []
+            },
+            {   'lhs' => 'u',
+                'rhs' => []
+            },
+            {   'lhs' => 'v',
+                'rhs' => []
+            },
+            {   'lhs' => 'w',
+                'rhs' => []
+            },
+            {   'lhs' => 'x',
+                'rhs' => []
+            }
+        ],
+        'semantics' => 'perl5',
+        'start'     => 's',
+        'terminals' => [ 'e', 't', 'u', 'v', 'w', 'x' ],
+        'version'   => '0.001_019'
+    }
+];
 
-A: S.
+$Test_Grammar::mdlex_options_8 = [
+    {   'terminals' => [
+            {   'name'  => 'e',
+                'regex' => '.'
+            },
+            {   'name'  => 't',
+                'regex' => '.'
+            },
+            {   'name'  => 'u',
+                'regex' => '.'
+            },
+            {   'name'  => 'v',
+                'regex' => '.'
+            },
+            {   'name'  => 'w',
+                'regex' => '.'
+            },
+            {   'name'  => 'x',
+                'regex' => '.'
+            }
+        ]
+    }
+];
 
-A matches /./.
-
-EOF
-
-my $cycle8_mdl = $mdl_header . <<'EOF';
-S: A.
-
-A: B, T, U.
-
-B: V, C.
-
-C: W, D, X.
-
-D: E.
-
-E: S.
-
-E matches /./.
-
-T matches /./.
-
-T: .
-
-U matches /./.
-
-U: .
-
-V matches /./.
-
-V: .
-
-W matches /./.
-
-W: .
-
-X matches /./.
-
-X: .
-
-EOF
+package main;
 
 my $cycle1_test = [
     'cycle1',
-    \$cycle1_mdl,
+    $Test_Grammar::marpa_options_1,
+    $Test_Grammar::mdlex_options_1,
     \('1'),
     '1',
     <<'EOS'
@@ -95,7 +157,8 @@ EOS
 
 my $cycle2_test = [
     'cycle2',
-    \$cycle2_mdl,
+    $Test_Grammar::marpa_options_2,
+    $Test_Grammar::mdlex_options_2,
     \('1'),
     '1',
     <<'EOS'
@@ -106,7 +169,8 @@ EOS
 
 my $cycle8_test = [
     'cycle8',
-    \$cycle8_mdl,
+    $Test_Grammar::marpa_options_8,
+    $Test_Grammar::mdlex_options_8,
     \('123456'),
     '1 2 3 4 5 6',
     <<'EOS'
@@ -122,21 +186,20 @@ EOS
 my @test_data = ( $cycle1_test, $cycle2_test, $cycle8_test );
 
 for my $test_data (@test_data) {
-    my ( $test_name, $grammar_source, $input, $expected, $expected_trace ) =
+    my ( $test_name, $marpa_options, $mdlex_options, $input, $expected, $expected_trace ) =
         @{$test_data};
     my $trace = q{};
     open my $MEMORY, '>', \$trace;
     my $grammar = Marpa::Grammar->new(
-        {   mdl_source        => $grammar_source,
-            cycle_action      => 'warn',
+        {   cycle_action      => 'warn',
             trace_file_handle => $MEMORY,
-        }
+        },
+        @{$marpa_options}
     );
-    my $lexer_args = $grammar->lexer_args();
     $grammar->precompute();
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
+    my $lexer = Marpa::MDLex->new( { recce => $recce }, @{$mdlex_options} );
     my $fail_offset = $lexer->text($input);
     my $result;
     given ($fail_offset) {

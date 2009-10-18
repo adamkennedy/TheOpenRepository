@@ -26,27 +26,45 @@ sub show_b         { return 'B(' . $_[1] . ')' }
 sub default_action { shift; return join q{ }, @_ }
 ## use critic
 
-my $mdl = <<'EOF';
-semantics are perl5.  version is 0.001_019.
-start symbol is S.
-default action is 'main::default_action'.
+package Test_Grammar;
 
-S: A.
+$Test_Grammar::marpa_options = [
+    {   'default_action' => 'main::default_action',
+        'rules'          => [
+            {   'lhs' => 's',
+                'rhs' => [ 'a' ]
+            },
+            {   'action' => 'main::show_a',
+                'lhs'    => 'a',
+                'rhs'    => [ 'b' ]
+            },
+            {   'lhs' => 'a',
+                'rhs' => [ 'a:k0' ]
+            },
+            {   'action' => 'main::show_b',
+                'lhs'    => 'b',
+                'rhs'    => [ 'a' ]
+            }
+        ],
+        'start'     => 's',
+        'terminals' => [ 'a:k0' ],
+    }
+];
 
-A: B. 'main::show_a'.
-
-A: /a/.
-
-B: A. 'main::show_b'.
-EOF
+$Test_Grammar::mdlex_options = [
+    {   'terminals' => [
+            {   'name'  => 'a:k0',
+                'regex' => 'a'
+            }
+        ]
+    }
+];
 
 my $trace;
 open my $MEMORY, '>', \$trace;
-my $grammar = Marpa::Grammar->new(
-    {   mdl_source        => \$mdl,
-        trace_file_handle => $MEMORY,
-    }
-);
+my $grammar =
+    Marpa::Grammar->new( { trace_file_handle => $MEMORY },
+    @{$Test_Grammar::marpa_options} );
 $grammar->precompute();
 close $MEMORY;
 
@@ -55,15 +73,13 @@ Cycle found involving rule: 3: b -> a
 Cycle found involving rule: 1: a -> b
 EOS
 
-my $lexer_args = $grammar->lexer_args();
-
 my $recce = Marpa::Recognizer->new(
     {   grammar           => $grammar,
         trace_file_handle => *STDERR,
     }
 );
 
-my $lexer         = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
+my $lexer = Marpa::MDLex->new( { recce => $recce }, @{$Test_Grammar::mdlex_options} );
 my $text          = 'a';
 my $fail_location = $lexer->text( \$text );
 if ( $fail_location >= 0 ) {

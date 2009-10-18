@@ -148,7 +148,7 @@ sub default_lex_prefix_predicate {
 # /null/, /value/, .
 sub default_null_value_subject {
     my $self = shift;
-    $self->{lex_options}->[0]->{default_null_value} = $_[0];
+    $self->{options}->[0]->{default_null_value} = $_[0];
     return '';
 }
 
@@ -156,7 +156,7 @@ sub default_null_value_subject {
 # /value/, copula, string specifier, .
 sub default_null_value_predicate {
     my $self = shift;
-    $self->{lex_options}->[0]->{default_null_value} = $_[5];
+    $self->{options}->[0]->{default_null_value} = $_[5];
     return '';
 }
 

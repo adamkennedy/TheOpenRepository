@@ -1,6 +1,9 @@
 
 all: test
 
+install:
+	cp try3.mdl.raw self.mdl.raw
+
 try1.mdl.raw: self.mdl bootstrap.pl
 	perl -I../../ bootstrap.pl self.mdl > $@
 

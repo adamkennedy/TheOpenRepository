@@ -13,20 +13,18 @@ use English qw( -no_match_vars );
 use Test::More tests => 6;
 
 BEGIN {
-    Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDL');
 }
 
-my $source;
-{ local ($RS) = undef; $source = <DATA> };
+my $source = do { local $RS = undef; <DATA> };
+my ($marpa_options) = Marpa::MDL::to_raw($source);
 
 my $grammar = Marpa::Grammar->new(
     {   warnings   => 1,
-        code_lines => -1,
         maximal    => 1,
-    }
+    },
+    @{$marpa_options}
 );
-
-$grammar->set( { mdl_source => \$source } );
 
 $grammar->precompute();
 
