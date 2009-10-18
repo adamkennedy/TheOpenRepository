@@ -296,8 +296,8 @@ sub resolve_semantics {
     my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
 
-    ### closure name: $closure_name
-    return if not defined $closure_name;
+    Marpa::exception("Trying to resolve 'undef' as closure name")
+        if not defined $closure_name;
 
     my $fully_qualified_name;
     DETERMINE_FULLY_QUALIFIED_NAME: {
@@ -360,9 +360,15 @@ sub set_actions {
 
     my $evaluator_rules = [];
 
-    my $default_action_closure =
-        Marpa::Internal::Evaluator::resolve_semantics( $evaler,
-        $default_action );
+    my $default_action_closure;
+    if ( defined $default_action ) {
+        $default_action_closure =
+            Marpa::Internal::Evaluator::resolve_semantics( $evaler,
+            $default_action );
+        Marpa::exception(
+            "Could not resolve default action named '$default_action'")
+            if not $default_action_closure;
+    } ## end if ( defined $default_action )
 
     RULE: for my $rule ( @{$rules} ) {
 
@@ -1558,8 +1564,12 @@ sub Marpa::Evaluator::new {
         )
         )
     {
+        my $constructor_name = $action_object . q{::new};
+        my $closure = resolve_semantics( $self, $constructor_name );
+        Marpa::exception("Could not find find $constructor_name")
+            if not defined $closure;
         $self->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR] =
-            resolve_semantics( $self, $action_object . q{::new} );
+            $closure;
     } ## end if ( defined( my $action_object = $grammar->[...]))
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];

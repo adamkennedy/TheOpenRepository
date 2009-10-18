@@ -129,9 +129,4 @@ Minus matches qr/[-]/.
 
 Minus Minus matches qr/[-][-]/.
 
-the default action is q{
-     my $v_count = scalar @_;
-     return "" if $v_count <= 0;
-     return $_[0] if $v_count == 1;
-     "(" . join(";", @_) . ")";
-}.
+the default action is 'default_action'.

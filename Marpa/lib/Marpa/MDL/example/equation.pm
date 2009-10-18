@@ -1,10 +1,12 @@
-package Marpa::Example::Equation;
+package Marpa::MDL::Example::Equation;
 
 use 5.010;
 use strict;
 use warnings;
 
 ## no critic (Subroutines::RequireArgUnpacking)
+
+sub new { return bless {}, shift }
 
 sub op {
     shift;

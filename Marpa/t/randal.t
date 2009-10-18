@@ -14,31 +14,175 @@ BEGIN {
     Test::More::use_ok('Marpa::MDLex');
 }
 
+package Test_Grammar;
+
+$Test_Grammar::marpa_options = [
+    {
+      'rules' => [
+        {
+          'action' => 'Marpa::MDL::Internal::Actions::first_arg',
+          'lhs' => 'comment:optional',
+          'rhs' => [
+            'comment'
+          ]
+        },
+        {
+          'lhs' => 'comment:optional',
+          'rhs' => []
+        },
+        {
+          'action' => 'show_perl_line',
+          'lhs' => 'perl-line',
+          'rhs' => [
+            'perl-statements',
+            'comment:optional'
+          ]
+        },
+        {
+          'action' => 'show_statement_sequence',
+          'lhs' => 'perl-statements',
+          'min' => 1,
+          'rhs' => [
+            'perl-statement'
+          ],
+          'separator' => 'semicolon'
+        },
+        {
+          'action' => 'show_division',
+          'lhs' => 'perl-statement',
+          'rhs' => [
+            'division'
+          ]
+        },
+        {
+          'action' => 'show_function_call',
+          'lhs' => 'perl-statement',
+          'rhs' => [
+            'function-call'
+          ]
+        },
+        {
+          'action' => 'show_die',
+          'lhs' => 'perl-statement',
+          'rhs' => [
+            'die:k0',
+            'string-literal'
+          ]
+        },
+        {
+          'lhs' => 'division',
+          'rhs' => [
+            'expr',
+            'division-sign',
+            'expr'
+          ]
+        },
+        {
+          'lhs' => 'expr',
+          'rhs' => [
+            'function-call'
+          ]
+        },
+        {
+          'lhs' => 'expr',
+          'rhs' => [
+            'number'
+          ]
+        },
+        {
+          'action' => 'show_unary',
+          'lhs' => 'function-call',
+          'rhs' => [
+            'unary-function-name',
+            'argument'
+          ]
+        },
+        {
+          'action' => 'show_nullary',
+          'lhs' => 'function-call',
+          'rhs' => [
+            'nullary-function-name'
+          ]
+        },
+        {
+          'lhs' => 'argument',
+          'rhs' => [
+            'pattern-match'
+          ]
+        }
+      ],
+      'semantics' => 'perl5',
+      'start' => 'perl-line',
+      'terminals' => [
+        'die:k0',
+        'unary-function-name',
+        'nullary-function-name',
+        'number',
+        'semicolon',
+        'division-sign',
+        'pattern-match',
+        'comment',
+        'string-literal'
+      ],
+      'version' => '0.001_019'
+    }
+  ];
+
+$Test_Grammar::mdlex_options = [
+    {   'default_prefix' => '\\s*',
+        'terminals'      => [
+            {   'name'  => 'die:k0',
+                'regex' => 'die'
+            },
+            {   'name'  => 'unary-function-name',
+                'regex' => '(caller|eof|sin|localtime)'
+            },
+            {   'name'  => 'nullary-function-name',
+                'regex' => '(caller|eof|sin|time|localtime)'
+            },
+            {   'name'  => 'number',
+                'regex' => '\\d+'
+            },
+            {   'name'  => 'semicolon',
+                'regex' => ';'
+            },
+            {   'name'  => 'division-sign',
+                'regex' => '[/]'
+            },
+            {   'name'  => 'pattern-match',
+                'regex' => '[/][^/]*/'
+            },
+            {   'name'  => 'comment',
+                'regex' => '[#].*'
+            },
+            {   'name'  => 'string-literal',
+                'regex' => '"[^"]*"'
+            }
+        ]
+    }
+];
+
+package main;
+
 my @tests = split /\n/xms, <<'EO_TESTS';
 sin  / 25 ; # / ; die "this dies!";
 time  / 25 ; # / ; die "this dies!";
 EO_TESTS
 
-my $source;
-{ local ($RS) = undef; $source = <DATA> };
-
 my $g = Marpa::Grammar->new(
     {   warnings   => 1,
         code_lines => -1,
         actions    => 'main',
-    }
+    },
+    @{$Test_Grammar::marpa_options}
 );
-
-$g->set( { mdl_source => \$source } );
-
-my $lexer_args = $g->lexer_args();
 
 $g->precompute();
 
 TEST: while ( my $test = pop @tests ) {
 
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
-    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
+    my $lexer = Marpa::MDLex->new( { recce => $recce }, @{$Test_Grammar::mdlex_options } );
     $lexer->text( \$test );
     $recce->end_input();
 
@@ -88,46 +232,3 @@ sub show_unary   { return $_[1] . ' function call' }
 sub show_nullary { return $_[1] . ' function call' }
 
 ## use critic
-
-__DATA__
-semantics are perl5.  version is 0.001_019.  the start symbol is perl line.
-the default lex prefix is qr/\s*/.
-
-perl line: perl statements, optional comment. 'show_perl_line'.
-
-perl statements: semicolon separated perl statement sequence.
-'show_statement_sequence'.
-
-perl statement: division. 'show_division'.
-
-perl statement: function call.  'show_function_call'.
-
-perl statement: /die/, string literal.  'show_die'.
-
-division: expr, division sign, expr.
-
-expr: function call.
-
-expr: number.
-
-function call: unary function name, argument. 'show_unary'.
-
-function call: nullary function name. 'show_nullary'.
-
-argument: pattern match.
-
-unary function name matches /(caller|eof|sin|localtime)/.
-
-nullary function name matches /(caller|eof|sin|time|localtime)/.
-
-number matches /\d+/.
-
-semicolon matches /;/.
-
-division sign matches qr{[/]}.
-
-pattern match matches qr{[/][^/]*/}.
-
-comment matches /[#].*/.
-
-string literal matches qr{"[^"]*"}.
