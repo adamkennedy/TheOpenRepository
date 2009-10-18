@@ -38,7 +38,7 @@ sub to_raw {
 
     Carp::croak("mdlex returned undef") if not defined $data;
 
-    return $data->{marpa_options}, $data->{mdlex_options}
+    return ${$data}->{marpa_options}, ${$data}->{mdlex_options}
         if wantarray;
 
     my $d = Data::Dumper->new( [ ${$data} ], [qw(data)] );

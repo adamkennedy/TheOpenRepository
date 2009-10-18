@@ -2240,8 +2240,7 @@ sub add_rule {
 
 # add one or more rules
 sub add_user_rules {
-    my $grammar = shift;
-    my $rules   = shift;
+    my ($grammar, $rules) = @_;
 
     RULE: for my $rule ( @{$rules} ) {
 
@@ -2259,9 +2258,8 @@ sub add_user_rules {
                     );
                 } ## end if ( $arg_count > 4 or $arg_count < 1 )
                 my ( $lhs, $rhs, $action, $priority ) = @{$rule};
-                add_user_rule(
-                    {   grammar  => $grammar,
-                        lhs      => $lhs,
+                add_user_rule( $grammar,
+                    {   lhs      => $lhs,
                         rhs      => $rhs,
                         action   => $action,
                         priority => $priority
@@ -2270,8 +2268,7 @@ sub add_user_rules {
 
             } ## end when ('ARRAY')
             when ('HASH') {
-                $rule->{grammar} = $grammar;
-                add_user_rule($rule);
+                add_user_rule($grammar, $rule);
             }
             default {
                 Marpa::exception( 'Invalid rule reftype ',
@@ -2286,9 +2283,11 @@ sub add_user_rules {
 } ## end sub add_user_rules
 
 sub add_user_rule {
-    my $options = shift;
+    my ($grammar, $options) = @_;
 
-    my $grammar;
+    Marpa::exception('Missing argument to add_user_rule')
+        if not defined $grammar or not defined $options;
+
     my ( $lhs_name, $rhs_names, $action );
     my ( $min, $separator_name );
     my $proper_separation = 0;
@@ -2298,7 +2297,6 @@ sub add_user_rule {
     my @rule_options;
     while ( my ( $option, $value ) = each %{$options} ) {
         given ($option) {
-            when ('grammar')   { $grammar           = $value }
             when ('rhs')       { $rhs_names         = $value }
             when ('lhs')       { $lhs_name          = $value }
             when ('action')    { $action            = $value }
@@ -2317,9 +2315,6 @@ sub add_user_rule {
 
     my $rule_signature_hash =
         $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH];
-
-    Marpa::exception('Missing grammar argument to add_user_rule')
-        if not defined $grammar;
 
     my $lhs = assign_user_symbol( $grammar, $lhs_name );
     $rhs_names //= [];

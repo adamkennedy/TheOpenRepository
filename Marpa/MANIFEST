@@ -53,7 +53,8 @@ lib/Marpa/MDL/Internal/Actions.pm
 lib/Marpa/MDL/Internal/Old_Actions.pm
 lib/Marpa/MDL/Makefile
 lib/Marpa/MDL.pm
-lib/Marpa/MDL/self.marpa
+lib/Marpa/MDL/self.mdl
+lib/Marpa/MDL/self.mdl.raw
 lib/Marpa/Offset.pm
 lib/Marpa.pm
 lib/Marpa/Raw_Source.pm
@@ -69,7 +70,6 @@ t/00-load.t
 t/ah2.t
 t/ah_s.t
 t/ah.t
-t/bootstrap.t
 t/code_diag.t
 t/cycle2.t
 t/cycle_plex.t
@@ -80,9 +80,12 @@ t/equation.t
 t/final_nonnullable.t
 t/gj.t
 t/hu.t
+t/legacy/bootstrap.t
 t/lib/Marpa/Test.pm
 t/limits.t
 t/Makefile
+t/mdl/00-load.t
+t/mdl/bootstrap.t
 t/minus_s.t
 t/minus.t
 t/pascal.t
