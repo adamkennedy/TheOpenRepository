@@ -45,11 +45,11 @@ lib/Marpa/MDLex/bin/mdlex_dump
 lib/Marpa/MDLex/Internal/Quotes.pm
 lib/Marpa/MDLex.pm
 lib/Marpa/MDL/Internal/Actions.pm
-lib/Marpa/MDL/Internal/Old_Actions.pm
 lib/Marpa/MDL/Makefile
 lib/Marpa/MDL.pm
 lib/Marpa/MDL/self.mdl
 lib/Marpa/MDL/self.mdl.raw
+lib/Marpa/MDL/Symbol.pm
 lib/Marpa/Offset.pm
 lib/Marpa.pm
 lib/Marpa/Recognizer.pm
@@ -70,7 +70,6 @@ t/equation.t
 t/final_nonnullable.t
 t/gj.t
 t/hu.t
-t/legacy/bootstrap.t
 t/lib/Marpa/Test.pm
 t/limits.t
 t/Makefile

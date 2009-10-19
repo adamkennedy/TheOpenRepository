@@ -5,24 +5,13 @@ use strict;
 use warnings;
 use Marpa;
 use Marpa::MDLex;
+use Marpa::MDL::Symbol;
 BEGIN {
     $Marpa::MDL::Self_Raw::raw_mdl_file = 'Marpa/MDL/self.mdl.raw';
     package Marpa::MDL::Self_Raw;
     require $Marpa::MDL::Self_Raw::raw_mdl_file;
 }
 use Marpa::MDL::Internal::Actions;
-
-sub canonical_symbol_name {
-    my $symbol = lc shift;
-    $symbol =~ s/[-_\s]+/-/gxms;
-    return $symbol;
-}
-
-sub get_terminal {
-    my ($grammar, $symbol_name) = @_;
-    return Marpa::Grammar::get_terminal( $grammar,
-        canonical_symbol_name($symbol_name) );
-} ## end sub get_terminal
 
 sub to_raw {
     my ($mdl_source) = @_;

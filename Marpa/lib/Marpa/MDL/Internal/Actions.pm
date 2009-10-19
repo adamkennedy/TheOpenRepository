@@ -4,9 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Data::Dumper;
-
-use Smart::Comments '-ENV';
+use Marpa::MDL::Symbol;
 
 ## no critic (Subroutines::RequireArgUnpacking)
 ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
