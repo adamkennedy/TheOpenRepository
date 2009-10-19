@@ -17,14 +17,14 @@ BEGIN {
     Test::More::use_ok('Marpa::MDL');
 }
 
-my $source = do { local ($RS) = undef; <DATA> };
+my $source = do { local $RS = undef; <main::DATA> };
 
 my $text = '6-----1';
 
-my ($marpa_options, $mdlex_options) = Marpa::MDL::to_raw($source);
+my ( $marpa_options, $mdlex_options ) = Marpa::MDL::to_raw($source);
 
 my $g = Marpa::Grammar->new(
-    {   maximal => 1,
+    {   maximal    => 1,
         max_parses => 30,
         actions    => 'main',
     },
@@ -34,7 +34,7 @@ my $g = Marpa::Grammar->new(
 $g->precompute();
 
 my $recce = Marpa::Recognizer->new( { grammar => $g } );
-my $lexer = Marpa::MDLex->new( { recce => $recce}, @{$mdlex_options} );
+my $lexer = Marpa::MDLex->new( { recce => $recce }, @{$mdlex_options} );
 $lexer->text( \$text );
 $recce->end_input();
 

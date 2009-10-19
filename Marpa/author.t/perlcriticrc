@@ -396,6 +396,9 @@ severity=5
 
 [-Subroutines::ProhibitQualifiedSubDeclarations]
 
+[Subroutines::ProhibitCallsToUndeclaredSubs]
+severity=5
+
 [-Modules::RequireExplicitInclusion]
 
 [Documentation::PodSpelling]

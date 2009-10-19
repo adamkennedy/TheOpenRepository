@@ -1,7 +1,7 @@
 
-.PHONY: all all_tests critic display
+.PHONY: all all_tests critic
 
-all: source_files all_tests
+all: all_tests
 
 source_files: \
     equation_show_symbols.out \

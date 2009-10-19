@@ -31,7 +31,7 @@ sub rule6 { return 'Zorro was here' }
 
 package Test_Grammar;
 
-$Test_Grammar::marpa_options = [
+$Test_Grammar::MARPA_OPTIONS = [
     {   'rules' => [
             {   'action' => 'rule0',
                 'lhs'    => 's',
@@ -68,7 +68,7 @@ $Test_Grammar::marpa_options = [
     }
 ];
 
-$Test_Grammar::mdlex_options = [
+$Test_Grammar::MDLEX_OPTIONS = [
     {   'terminals' => [
             {   'name'  => 'Z',
                 'regex' => 'Z'
@@ -79,12 +79,12 @@ $Test_Grammar::mdlex_options = [
 
 package main;
 
-my $g     = Marpa::Grammar->new( @{$Test_Grammar::marpa_options} );
+my $g     = Marpa::Grammar->new( @{$Test_Grammar::MARPA_OPTIONS} );
 my $cap_z = $g->get_terminal('Z');
 $g->precompute();
 my $recce = Marpa::Recognizer->new( { grammar => $g } );
 my $lexer =
-    Marpa::MDLex->new( { recce => $recce }, @{$Test_Grammar::mdlex_options} );
+    Marpa::MDLex->new( { recce => $recce }, @{$Test_Grammar::MDLEX_OPTIONS} );
 
 my $fail_offset = $lexer->text('Z');
 if ( $fail_offset >= 0 ) {

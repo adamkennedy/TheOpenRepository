@@ -25,7 +25,12 @@ sub default_action {
 
 package Test_Grammar;
 
-$Test_Grammar::marpa_options_1 = [
+# Formatted by Data::Dumper, which disagrees with
+# perltidy and perlcritic about things
+#<<< no perltidy
+##no critic (ValuesAndExpressions::ProhibitNoisyQuotes)
+
+$Test_Grammar::MARPA_OPTIONS_1 = [
     {   'default_action' => 'main::default_action',
         'rules'          => [
             {   'lhs' => 's',
@@ -39,7 +44,7 @@ $Test_Grammar::marpa_options_1 = [
     }
 ];
 
-$Test_Grammar::mdlex_options_1 = [
+$Test_Grammar::MDLEX_OPTIONS_1 = [
     {   'terminals' => [
             {   'name'  => 's',
                 'regex' => '.'
@@ -48,7 +53,7 @@ $Test_Grammar::mdlex_options_1 = [
     }
 ];
 
-$Test_Grammar::marpa_options_2 = [
+$Test_Grammar::MARPA_OPTIONS_2 = [
     {   'default_action' => 'main::default_action',
         'rules'          => [
             {   'lhs' => 's',
@@ -65,7 +70,7 @@ $Test_Grammar::marpa_options_2 = [
     }
 ];
 
-$Test_Grammar::mdlex_options_2 = [
+$Test_Grammar::MDLEX_OPTIONS_2 = [
     {   'terminals' => [
             {   'name'  => 'a',
                 'regex' => '.'
@@ -74,7 +79,7 @@ $Test_Grammar::mdlex_options_2 = [
     }
 ];
 
-$Test_Grammar::marpa_options_8 = [
+$Test_Grammar::MARPA_OPTIONS_8 = [
     {   'default_action' => 'main::default_action',
         'rules'          => [
             {   'lhs' => 's',
@@ -118,7 +123,7 @@ $Test_Grammar::marpa_options_8 = [
     }
 ];
 
-$Test_Grammar::mdlex_options_8 = [
+$Test_Grammar::MDLEX_OPTIONS_8 = [
     {   'terminals' => [
             {   'name'  => 'e',
                 'regex' => '.'
@@ -142,12 +147,15 @@ $Test_Grammar::mdlex_options_8 = [
     }
 ];
 
+#>>>
+## use critic
+
 package main;
 
 my $cycle1_test = [
     'cycle1',
-    $Test_Grammar::marpa_options_1,
-    $Test_Grammar::mdlex_options_1,
+    $Test_Grammar::MARPA_OPTIONS_1,
+    $Test_Grammar::MDLEX_OPTIONS_1,
     \('1'),
     '1',
     <<'EOS'
@@ -157,8 +165,8 @@ EOS
 
 my $cycle2_test = [
     'cycle2',
-    $Test_Grammar::marpa_options_2,
-    $Test_Grammar::mdlex_options_2,
+    $Test_Grammar::MARPA_OPTIONS_2,
+    $Test_Grammar::MDLEX_OPTIONS_2,
     \('1'),
     '1',
     <<'EOS'
@@ -169,8 +177,8 @@ EOS
 
 my $cycle8_test = [
     'cycle8',
-    $Test_Grammar::marpa_options_8,
-    $Test_Grammar::mdlex_options_8,
+    $Test_Grammar::MARPA_OPTIONS_8,
+    $Test_Grammar::MDLEX_OPTIONS_8,
     \('123456'),
     '1 2 3 4 5 6',
     <<'EOS'
@@ -186,8 +194,9 @@ EOS
 my @test_data = ( $cycle1_test, $cycle2_test, $cycle8_test );
 
 for my $test_data (@test_data) {
-    my ( $test_name, $marpa_options, $mdlex_options, $input, $expected, $expected_trace ) =
-        @{$test_data};
+    my ( $test_name, $marpa_options, $mdlex_options, $input, $expected,
+        $expected_trace )
+        = @{$test_data};
     my $trace = q{};
     open my $MEMORY, '>', \$trace;
     my $grammar = Marpa::Grammar->new(

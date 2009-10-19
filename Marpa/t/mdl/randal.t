@@ -21,7 +21,7 @@ EO_TESTS
 my $source;
 { local ($RS) = undef; $source = <DATA> };
 
-my ($marpa_options, $mdlex_options) = Marpa::MDL::to_raw($source);
+my ( $marpa_options, $mdlex_options ) = Marpa::MDL::to_raw($source);
 
 my $g = Marpa::Grammar->new(
     {   warnings   => 1,
@@ -36,7 +36,7 @@ $g->precompute();
 TEST: while ( my $test = pop @tests ) {
 
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
-    my $lexer = Marpa::MDLex->new( { recce => $recce}, @{$mdlex_options} );
+    my $lexer = Marpa::MDLex->new( { recce => $recce }, @{$mdlex_options} );
     $lexer->text( \$test );
     $recce->end_input();
 
@@ -45,8 +45,8 @@ TEST: while ( my $test = pop @tests ) {
     while ( defined( my $value = $evaler->value ) ) {
         push @parses, ${$value};
     }
-    my @expected_parses;
     my ($test_name) = ( $test =~ /\A([a-z]+) /xms );
+    my @expected_parses;
     given ($test_name) {
         when ('time') {
             @expected_parses = ('division, comment');

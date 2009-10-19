@@ -15,7 +15,15 @@ BEGIN {
 
 package Test_Grammar;
 
-$Test_Grammar::marpa_options = [
+# This grammar is from Data::Dumper,
+# which disagrees with Perl::Critic about proper
+# use of quotes and with perltidy about
+# formatting
+
+#<<< no perltidy
+##no critic (ValuesAndExpressions::ProhibitNoisyQuotes)
+
+$Test_Grammar::MARPA_OPTIONS = [
     {
       'rules' => [
         {
@@ -125,7 +133,7 @@ $Test_Grammar::marpa_options = [
     }
   ];
 
-$Test_Grammar::mdlex_options = [
+$Test_Grammar::MDLEX_OPTIONS = [
     {   'default_prefix' => '\\s*',
         'terminals'      => [
             {   'name'  => 'die:k0',
@@ -159,6 +167,10 @@ $Test_Grammar::mdlex_options = [
     }
 ];
 
+## use critic
+#>>>
+#
+
 package main;
 
 my @test_data = (
@@ -174,7 +186,7 @@ my $g = Marpa::Grammar->new(
         code_lines => -1,
         actions    => 'main',
     },
-    @{$Test_Grammar::marpa_options}
+    @{$Test_Grammar::MARPA_OPTIONS}
 );
 
 $g->precompute();
@@ -184,17 +196,15 @@ TEST: for my $test_data (@test_data) {
     my ( $test_name, $test_input, $test_results ) = @{$test_data};
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
     my $lexer = Marpa::MDLex->new( { recce => $recce },
-        @{$Test_Grammar::mdlex_options} );
+        @{$Test_Grammar::MDLEX_OPTIONS} );
     $lexer->text( \$test_input );
     $recce->end_input();
 
-    my $evaler = Marpa::Evaluator->new(
-        { recce => $recce } );
+    my $evaler = Marpa::Evaluator->new( { recce => $recce } );
     my @parses;
     while ( defined( my $value = $evaler->value ) ) {
         push @parses, ${$value};
     }
-    my @expected_parses;
     my $expected_parse_count = scalar @{$test_results};
     my $parse_count          = scalar @parses;
     Marpa::Test::is( $parse_count, $expected_parse_count,
@@ -209,15 +219,15 @@ TEST: for my $test_data (@test_data) {
 
 sub show_perl_line {
     shift;
-    return join ', ', grep { defined } @_;
-} ## end sub show_perl_line
+    return join ', ', grep {defined} @_;
+}
 
 sub comment                 { return 'comment' }
 sub show_statement_sequence { shift; return join q{, }, @_ }
 sub show_division           { return 'division' }
 sub show_function_call      { return $_[1] }
 sub show_die                { return 'die statement' }
-sub show_unary   { return $_[1] . ' function call' }
-sub show_nullary { return $_[1] . ' function call' }
+sub show_unary              { return $_[1] . ' function call' }
+sub show_nullary            { return $_[1] . ' function call' }
 
 ## use critic

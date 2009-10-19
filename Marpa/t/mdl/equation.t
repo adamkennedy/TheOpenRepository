@@ -24,14 +24,15 @@ BEGIN {
 # apart at each step.  But I wanted to test having
 # a start symbol that appears repeatedly on the RHS.
 
-my $source = do {
-    local ($RS) = undef;
+my $source;
+{
+    local $RS = undef;
     open my $fh, q{<}, 'lib/Marpa/MDL/example/equation.marpa';
-    <$fh>;
-};
+    $source = <$fh>;
+    close $fh;
+}
 
-my ($marpa_options, $mdlex_options) = Marpa::MDL::to_raw($source);
-use Data::Dumper;
+my ( $marpa_options, $mdlex_options ) = Marpa::MDL::to_raw($source);
 
 # Set max_parses to 10 in case there's an infinite loop.
 # This is for debugging, after all
