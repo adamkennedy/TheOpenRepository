@@ -5,7 +5,7 @@ use 5.010;
 use warnings;
 use strict;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 # It's all integers, except for the version number
 use integer;

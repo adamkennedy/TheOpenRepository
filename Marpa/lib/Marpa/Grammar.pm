@@ -241,7 +241,7 @@ package Marpa::Internal::Grammar;
 use Carp;
 use Marpa::MDLex;    # Remove this when MDL is factored out
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
