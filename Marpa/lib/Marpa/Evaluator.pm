@@ -2205,7 +2205,6 @@ sub Marpa::Evaluator::value {
 
     my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
     my $null_values     = $evaler->[Marpa::Internal::Evaluator::NULL_VALUES];
-    my $use_self_arg    = $grammar->[Marpa::Internal::Grammar::SELF_ARG];
     my $action_object_class =
         $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT];
     my $action_object_constructor =
@@ -3255,13 +3254,10 @@ sub Marpa::Evaluator::value {
                                     };
 
                                     $eval_ok = eval {
-                                        $result =
-                                            $use_self_arg
-                                            ? $closure->(
+                                        $result = $closure->(
                                             $action_object,
                                             @{$current_data}
-                                            )
-                                            : $closure->( @{$current_data} );
+                                        );
                                         1;
                                     };
 

@@ -212,7 +212,6 @@ use Marpa::Offset qw(
     TRACE_VALUES
 
     MAX_PARSES
-    SELF_ARG { First args to action is parser object }
     ACTION_OBJECT
 
     =LAST_EVALUATOR_FIELD
@@ -333,6 +332,7 @@ package Marpa::Internal::Grammar;
 
 use Scalar::Util qw(weaken);
 use Data::Dumper;
+use Storable;
 use English qw( -no_match_vars );
 use List::Util;
 
@@ -543,7 +543,6 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::RULE_SIGNATURE_HASH] = {};
     $grammar->[Marpa::Internal::Grammar::QDFA_BY_NAME]        = {};
     $grammar->[Marpa::Internal::Grammar::MAX_PARSES]          = -1;
-    $grammar->[Marpa::Internal::Grammar::SELF_ARG]            = 1;
     $grammar->[Marpa::Internal::Grammar::PHASE] = Marpa::Internal::Phase::NEW;
 
     $grammar->set(@arg_hashes);
@@ -601,45 +600,11 @@ sub Marpa::show_location {
     return $result;
 } ## end sub Marpa::show_location
 
-sub Marpa::die_with_parse_failure {
-    my $source  = shift;
-    my $earleme = shift;
-
-    Marpa::exception(
-        Marpa::show_location( 'Parse failed', $source, $earleme ) );
-} ## end sub Marpa::die_with_parse_failure
-
-# The following method fails if "use Marpa::Raw_Source" is not
-# specified by the user.  This is an undocumented bootstrapping routine,
-# not having the "use" in this code saves a few cycles in the normal case.
-# Also, forcing the user to be specific about the fact he's doing bootstrapping,
-# seems like a good idea in itself.
-
-sub Marpa::stringify_source_grammar {
-
-    # Overwrite the existing stringified source grammar, if we already have one
-    # This allows us to bootstrap in a new version
-
-    my $raw_source_grammar = Marpa::Internal::raw_source_grammar();
-    my $raw_source_version =
-        $raw_source_grammar->[Marpa::Internal::Grammar::VERSION];
-    $raw_source_version //= 'not defined';
-    if ( $raw_source_version ne $Marpa::VERSION ) {
-        Marpa::exception(
-            "raw source grammar version ($raw_source_version) does not match Marpa version (",
-            $Marpa::VERSION, ')'
-        );
-    } ## end if ( $raw_source_version ne $Marpa::VERSION )
-    $raw_source_grammar->precompute();
-    return $raw_source_grammar->stringify();
-} ## end sub Marpa::stringify_source_grammar
-
 use constant GRAMMAR_OPTIONS => [
     qw{
         academic
         actions
         action_object
-        ambiguous_lex
         code_lines
         cycle_action
         default_action
@@ -650,7 +615,6 @@ use constant GRAMMAR_OPTIONS => [
         minimal
         rules
         semantics
-        self_arg
         start
         strip
         terminals
@@ -658,12 +622,7 @@ use constant GRAMMAR_OPTIONS => [
         trace_evaluation
         trace_file_handle
         trace_iterations
-        trace_lex
-        trace_lex_matches
-        trace_lex_tries
-        trace_predefineds
         trace_rules
-        trace_strings
         trace_values
         unproductive_ok
         version
@@ -814,17 +773,6 @@ sub Marpa::Grammar::set {
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::ACADEMIC] = $value;
         } ## end if ( defined( my $value = $args->{'academic'} ) )
-
-        if ( defined( my $value = $args->{'self_arg'} ) ) {
-            Marpa::exception(
-                'self_arg is the default -- explicit setting is prohibited')
-                if $value;
-            Marpa::exception(
-                'self_arg option not allowed in ',
-                Marpa::Internal::Phase::description($phase)
-            ) if $phase >= Marpa::Internal::Phase::EVALUATING;
-            $grammar->[Marpa::Internal::Grammar::SELF_ARG] = $value;
-        } ## end if ( defined( my $value = $args->{'self_arg'} ) )
 
         if ( defined( my $value = $args->{'default_null_value'} ) ) {
             Marpa::exception(
@@ -1099,12 +1047,10 @@ sub Marpa::Grammar::stringify {
         );
     } ## end if ($problems)
 
-    my $d = Data::Dumper->new( [$grammar], ['grammar'] );
-    $d->Purity(1);
-    $d->Indent(0);
+    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
 
     # returns a ref -- dumps can be long
-    return \( $d->Dump() );
+    return \Storable::freeze($grammar);
 } ## end sub Marpa::Grammar::stringify
 
 # First arg is stringified grammar
@@ -1122,34 +1068,26 @@ sub Marpa::Grammar::unstringify {
     Marpa::exception('Arg to unstringify must be ref to SCALAR')
         if ref $stringified_grammar ne 'SCALAR';
 
-    my $grammar;
-    my @warnings;
-    my $eval_ok;
-
-    DO_EVAL: {
-        local $SIG{__WARN__} =
-            sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-        ## no critic (BuiltinFunctions::ProhibitStringyEval,TestingAndDebugging::ProhibitNoStrict)
-        no strict 'refs';
-        $eval_ok = eval ${$stringified_grammar};
-        use strict 'refs';
-        ## use critic
-    } ## end DO_EVAL:
-
-    if ( not $eval_ok or @warnings ) {
-        my $fatal_error = $EVAL_ERROR;
-        Marpa::Internal::code_problems(
-            {   eval_ok     => $eval_ok,
-                fatal_error => $fatal_error,
-                warnings    => \@warnings,
-                where       => 'unstringifying grammar',
-                code        => $stringified_grammar,
-            }
-        );
-    } ## end if ( not $eval_ok or @warnings )
-
+    my $grammar = Storable::unfreeze($stringified_grammar);
     $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
+
+    # Reweaken the weak references
+    for my $symbol ( @{ $grammar->[Marpa::Internal::Grammar::SYMBOLS] } ) {
+        weaken( $symbol->[Marpa::Internal::Symbol::LHS] =
+                $symbol->[Marpa::Internal::Symbol::LHS] );
+        weaken( $symbol->[Marpa::Internal::Symbol::RHS] =
+                $symbol->[Marpa::Internal::Symbol::RHS] );
+    } ## end for my $symbol ( @{ $grammar->[Marpa::Internal::Grammar::SYMBOLS...]})
+
+    return $grammar;
+
+} ## end sub Marpa::Grammar::unstringify
+
+sub Marpa::Grammar::clone {
+    my $grammar = shift;
+    my $trace_fh = shift;
+
+    $trace_fh //= $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     # these were weak references, but aren't used anyway, so
     # free up the memory
@@ -1158,17 +1096,11 @@ sub Marpa::Grammar::unstringify {
         $symbol->[Marpa::Internal::Symbol::RHS] = undef;
     }
 
-    return $grammar;
+    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
+    my $cloned_grammar = Storable::dclone($grammar);
+    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
 
-} ## end sub Marpa::Grammar::unstringify
-
-sub Marpa::Grammar::clone {
-    my $grammar  = shift;
-    my $trace_fh = shift;
-
-    my $stringified_grammar = Marpa::Grammar::stringify($grammar);
-    $trace_fh //= $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    return Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
+    return $cloned_grammar;
 } ## end sub Marpa::Grammar::clone
 
 sub Marpa::show_symbol {
