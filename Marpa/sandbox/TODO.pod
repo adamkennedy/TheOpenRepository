@@ -10,30 +10,9 @@ MDLex and MDL will know about Marpa, but B<not> vice versa.
 
 =over 4
 
-=item * Add OBJECT flag to Grammar.
-
-=item * Make SELF_ARG flag operative.
-If on, first arg of actions is
-be the action object, or an unblessed hash if no object.
-Default to off.
-
-=item * Convert tests, ../bin/mdl, ::mdl(), etc.
-(everything but MDL bootstrap) to use SELF_ARG.
-The MDL will be
-replaced after conversion to the unfactored MDL.
-
-=item * Allow multiple hashes as args to Grammar constructor as
-mechanism for specifying an order in which the options should be
-applied.  I hope this will be sufficient as an interface for
-front-ends to Marpa like MDL.
-
-=item * Factor out MDL so that it works by calling
-(or creating options
-for a call to) Grammar::new or Grammar::set.
-
-=item * Default to SELF_ARG on.
-Add code to abend if SELF_ARG is off.
+=item * Add code to abend if SELF_ARG is off.
 Test.  Fix what breaks.
+Then remove SELF_ARG.
 
 =item * Test: Are regexes Storable's? -- NO
 
@@ -183,8 +162,6 @@ doesn't entirely replace it.
 
 =over 4
 
-=item * Test lexing suffixes?  Remove them?
-
 =item * Speed-up for pre-computing lexables?  Predict lexables based
 on user request?
 
@@ -225,7 +202,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2008 Jeffrey Kegler
+Copyright 2007 - 2009 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

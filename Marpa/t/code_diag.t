@@ -5,7 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 22;
+use Test::More tests => 16;
 
 use lib 'lib';
 use t::lib::Marpa::Test;
@@ -14,7 +14,6 @@ use English qw( -no_match_vars );
 # use Smart::Comments;
 
 BEGIN {
-    Test::More::use_ok('Marpa');
     Test::More::use_ok('Marpa::MDLex');
 }
 
@@ -25,7 +24,6 @@ my @uncompiled_features = qw(
 
 my @compiled_features = qw(
     unstringify_grammar
-    unstringify_recce
 );
 
 my @features = ( @compiled_features, @uncompiled_features );
@@ -187,9 +185,6 @@ sub run_test {
             when ('unstringify_grammar') {
                 return Marpa::Grammar::unstringify( \$value );
             }
-            when ('unstringify_recce') {
-                return Marpa::Recognizer::unstringify( \$value );
-            }
             default {
                 Marpa::exception("unknown argument to run_test: $arg");
             };
@@ -254,7 +249,6 @@ my %where = (
     default_action      => 'compiling action',
     null_action         => 'evaluating null value',
     unstringify_grammar => 'unstringifying grammar',
-    unstringify_recce   => 'unstringifying recognizer',
 );
 
 my %long_where = (
@@ -262,7 +256,6 @@ my %long_where = (
     default_action => 'compiling action for 3: optional_trailer1 -> trailer',
     null_action    => 'evaluating null value for optional_trailer2',
     unstringify_grammar => 'unstringifying grammar',
-    unstringify_recce   => 'unstringifying recognizer',
 );
 
 for my $test (@tests) {
@@ -345,7 +338,6 @@ $x++;
 __END__
 
 | expected unstringify_grammar compile phase warning
-| expected unstringify_recce compile phase warning
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
@@ -374,7 +366,6 @@ $x++;
 __END__
 
 | expected unstringify_grammar compile phase fatal
-| expected unstringify_recce compile phase fatal
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 5 lines in problem code, beginning:
@@ -399,7 +390,6 @@ $x++;
 __END__
 
 | expected unstringify_grammar run phase warning
-| expected unstringify_recce run phase warning
 Fatal problem(s) in <LONG_WHERE>
 2 Warning(s)
 Warning(s) treated as fatal problem
@@ -464,7 +454,6 @@ $x++;
 __END__
 
 | expected unstringify_grammar run phase error
-| expected unstringify_recce run phase error
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 5 lines in problem code, beginning:
@@ -512,7 +501,6 @@ $x++;
 __END__
 
 | expected unstringify_grammar run phase die
-| expected unstringify_recce run phase die
 Fatal problem(s) in <LONG_WHERE>
 Fatal Error
 5 lines in problem code, beginning:

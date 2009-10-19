@@ -48,10 +48,13 @@ my $build = $class->new(
     meta_merge => {
         no_index => {
             directory => [qw(inc t author.t save)],
-            namespace => [ 'Marpa::Internal', 'Marpa::MDL::Internal' ],
-            package   => [qw(Marpa::Internal Marpa::Offset)],
+            namespace => [
+                'Marpa::Internal', 'Marpa::MDL::Internal',
+                'Marpa::MDLex::Internal'
+            ],
+            package => [qw(Marpa::Internal Marpa::Offset)],
         },
-    },
+        },
     meta_add => {
         distribution_type => 'module',
         provides          => {
