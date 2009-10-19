@@ -674,12 +674,10 @@ use constant GRAMMAR_OPTIONS => [
 sub Marpa::Grammar::set {
     my ( $grammar, @arg_hashes ) = @_;
 
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
-
     # set trace_fh even if no tracing, because we may turn it on in this method
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-
-    my $phase     = $grammar->[Marpa::Internal::Grammar::PHASE];
+    my $tracing  = $grammar->[Marpa::Internal::Grammar::TRACING];
+    my $phase    = $grammar->[Marpa::Internal::Grammar::PHASE];
 
     for my $args (@arg_hashes) {
 
@@ -1873,7 +1871,7 @@ sub add_rule {
 
 # add one or more rules
 sub add_user_rules {
-    my ($grammar, $rules) = @_;
+    my ( $grammar, $rules ) = @_;
 
     RULE: for my $rule ( @{$rules} ) {
 
@@ -1891,7 +1889,8 @@ sub add_user_rules {
                     );
                 } ## end if ( $arg_count > 4 or $arg_count < 1 )
                 my ( $lhs, $rhs, $action, $priority ) = @{$rule};
-                add_user_rule( $grammar,
+                add_user_rule(
+                    $grammar,
                     {   lhs      => $lhs,
                         rhs      => $rhs,
                         action   => $action,
@@ -1901,7 +1900,7 @@ sub add_user_rules {
 
             } ## end when ('ARRAY')
             when ('HASH') {
-                add_user_rule($grammar, $rule);
+                add_user_rule( $grammar, $rule );
             }
             default {
                 Marpa::exception( 'Invalid rule reftype ',
@@ -1916,10 +1915,11 @@ sub add_user_rules {
 } ## end sub add_user_rules
 
 sub add_user_rule {
-    my ($grammar, $options) = @_;
+    my ( $grammar, $options ) = @_;
 
     Marpa::exception('Missing argument to add_user_rule')
-        if not defined $grammar or not defined $options;
+        if not defined $grammar
+            or not defined $options;
 
     my ( $lhs_name, $rhs_names, $action );
     my ( $min, $separator_name );
@@ -1957,22 +1957,25 @@ sub add_user_rule {
         if ( not $rhs_ref_type or $rhs_ref_type ne 'ARRAY' ) {
             push @problems,
                   "RHS is not ref to ARRAY\n"
-                . "rhs is "
-                . ( $rhs_ref_type ? $rhs_ref_type : "not a ref" );
+                . 'rhs is '
+                . ( $rhs_ref_type ? $rhs_ref_type : 'not a ref' );
         } ## end if ( not $rhs_ref_type or $rhs_ref_type ne 'ARRAY' )
-        if (not defined $lhs_name) {
+        if ( not defined $lhs_name ) {
             push @problems, "Missing LHS\n";
         }
         last CHECK_RULE if not scalar @problems;
         my %dump_options = %{$options};
         delete $dump_options{grammar};
-        my $msg = ( scalar @problems ) . " problem(s) in the following rule:\n";
-        my $d = Data::Dumper->new( [\%dump_options], ["rule"] );
+        my $msg =
+            ( scalar @problems ) . " problem(s) in the following rule:\n";
+        my $d = Data::Dumper->new( [ \%dump_options ], ['rule'] );
         $msg .= $d->Dump();
         for my $problem_number ( 0 .. $#problems ) {
-            $msg .= 'Problem ' . ($problem_number+1) . q{: }
+            $msg
+                .= 'Problem '
+                . ( $problem_number + 1 ) . q{: }
                 . $problems[$problem_number] . "\n";
-        }
+        } ## end for my $problem_number ( 0 .. $#problems )
         Marpa::exception($msg);
     } ## end CHECK_RULE:
 

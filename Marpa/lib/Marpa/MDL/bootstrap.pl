@@ -6,11 +6,15 @@ use warnings;
 use Marpa::MDL;
 use Marpa::MDL::Internal::Actions;
 use Fatal qw(open);
-use English qw( -no_match_vars ) ;
+use English qw( -no_match_vars );
 
 package Bootstrap_Grammar;
 
+## no critic (ValuesAndExpressions::ProhibitNoisyQuotes)
+## no critic (TestingAndDebugging::ProhibitNoStrict)
 no strict 'vars';
+#<<< no perltidy
+
 # To update, copy self.mdl.raw between these two lines
 $data = {
   'marpa_options' => [
@@ -825,20 +829,23 @@ $data = {
 
 # To update, copy self.mdl.raw between these two lines
 
+#>>>
+## use critic
 use strict 'vars';
 
 package main;
 
 my $source = do { local $RS = undef; <> };
 
+## no critic (Variables::ProhibitPackageVars)
 my $value = Marpa::MDLex::mdlex(
-    [ { action_object => 'Marpa::MDL::Internal::Actions',
-    },
-    @{$Bootstrap_Grammar::data->{marpa_options}}
+    [   { action_object => 'Marpa::MDL::Internal::Actions', },
+        @{ $Bootstrap_Grammar::data->{marpa_options} }
     ],
     $Bootstrap_Grammar::data->{mdlex_options},
     $source
 );
+## use critic
 
 my $d = Data::Dumper->new( [ ${$value} ], [qw(data)] );
 $d->Sortkeys(1);

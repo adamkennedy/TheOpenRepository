@@ -296,7 +296,7 @@ sub resolve_semantics {
     my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
 
-    Marpa::exception("Trying to resolve 'undef' as closure name")
+    Marpa::exception(q{Trying to resolve 'undef' as closure name})
         if not defined $closure_name;
 
     my $fully_qualified_name;
@@ -408,29 +408,34 @@ sub set_actions {
             push @{$ops}, Marpa::Internal::Evaluator_Op::ARGC, $argc;
         }
 
-        if ( my $action = $rule->[Marpa::Internal::Rule::ACTION]) {
+        if ( my $action = $rule->[Marpa::Internal::Rule::ACTION] ) {
             my $closure =
-                Marpa::Internal::Evaluator::resolve_semantics( $evaler, $action );
+                Marpa::Internal::Evaluator::resolve_semantics( $evaler,
+                $action );
             Marpa::exception("Could not find find $action")
                 if not defined $closure;
             push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
             next RULE;
-        }
+        } ## end if ( my $action = $rule->[Marpa::Internal::Rule::ACTION...])
 
         # If we can't resolve the LHS as a closure name, it's not
         # a fatal error
-        if ( my $action = $rule->[Marpa::Internal::Rule::LHS]
-            ->[Marpa::Internal::Symbol::NAME]) {
+        if ( my $action =
+            $rule->[Marpa::Internal::Rule::LHS]
+            ->[Marpa::Internal::Symbol::NAME] )
+        {
             my $closure =
-                Marpa::Internal::Evaluator::resolve_semantics( $evaler, $action );
-            if (defined $closure) {
+                Marpa::Internal::Evaluator::resolve_semantics( $evaler,
+                $action );
+            if ( defined $closure ) {
                 push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
                 next RULE;
             }
-        }
+        } ## end if ( my $action = $rule->[Marpa::Internal::Rule::LHS...])
 
         if ( defined $default_action_closure ) {
-            push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $default_action_closure;
+            push @{$ops}, Marpa::Internal::Evaluator_Op::CALL,
+                $default_action_closure;
             next RULE;
         }
 
