@@ -6,11 +6,10 @@ use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
 
-use Test::More tests => 6;
+use Test::More tests => 5;
 use t::lib::Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa');
     Test::More::use_ok('Marpa::MDLex');
 }
 
@@ -20,7 +19,7 @@ $Test_Grammar::marpa_options = [
     {
       'rules' => [
         {
-          'action' => 'Marpa::MDL::Internal::Actions::first_arg',
+          'action' => 'comment',
           'lhs' => 'comment:optional',
           'rhs' => [
             'comment'
@@ -111,7 +110,6 @@ $Test_Grammar::marpa_options = [
           ]
         }
       ],
-      'semantics' => 'perl5',
       'start' => 'perl-line',
       'terminals' => [
         'die:k0',
@@ -124,7 +122,6 @@ $Test_Grammar::marpa_options = [
         'comment',
         'string-literal'
       ],
-      'version' => '0.001_019'
     }
   ];
 
@@ -164,10 +161,13 @@ $Test_Grammar::mdlex_options = [
 
 package main;
 
-my @tests = split /\n/xms, <<'EO_TESTS';
-sin  / 25 ; # / ; die "this dies!";
-time  / 25 ; # / ; die "this dies!";
-EO_TESTS
+my @test_data = (
+    [   'sin',
+        q{sin  / 25 ; # / ; die "this dies!"},
+        [ 'sin function call, die statement', 'division, comment' ]
+    ],
+    [ 'time', q{time  / 25 ; # / ; die "this dies!"}, ['division, comment'] ]
+);
 
 my $g = Marpa::Grammar->new(
     {   warnings   => 1,
@@ -179,51 +179,40 @@ my $g = Marpa::Grammar->new(
 
 $g->precompute();
 
-TEST: while ( my $test = pop @tests ) {
+TEST: for my $test_data (@test_data) {
 
+    my ( $test_name, $test_input, $test_results ) = @{$test_data};
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
-    my $lexer = Marpa::MDLex->new( { recce => $recce }, @{$Test_Grammar::mdlex_options } );
-    $lexer->text( \$test );
+    my $lexer = Marpa::MDLex->new( { recce => $recce },
+        @{$Test_Grammar::mdlex_options} );
+    $lexer->text( \$test_input );
     $recce->end_input();
 
-    my $evaler = Marpa::Evaluator->new( { recce => $recce } );
+    my $evaler = Marpa::Evaluator->new(
+        { recce => $recce } );
     my @parses;
     while ( defined( my $value = $evaler->value ) ) {
         push @parses, ${$value};
     }
     my @expected_parses;
-    my ($test_name) = ( $test =~ /\A([a-z]+) /xms );
-    given ($test_name) {
-        when ('time') {
-            @expected_parses = ('division, comment');
-        }
-        when ('sin') {
-            @expected_parses =
-                ( 'sin function call, die statement', 'division, comment' );
-        }
-        default {
-            Marpa::exception("unexpected test: $test_name");
-        }
-    } ## end given
-    my $expected_parse_count = scalar @expected_parses;
+    my $expected_parse_count = scalar @{$test_results};
     my $parse_count          = scalar @parses;
     Marpa::Test::is( $parse_count, $expected_parse_count,
-        "Parse count for $test_name is $parse_count" );
+        "$test_name: Parse count" );
 
-    my $expected = join "\n", @expected_parses;
+    my $expected = join "\n", @{$test_results};
     my $actual   = join "\n", @parses;
-    Marpa::Test::is( $actual, $expected, 'Parses match' );
-} ## end while ( my $test = pop @tests )
+    Marpa::Test::is( $actual, $expected, "$test_name: Parse match" );
+} ## end for my $test_data (@test_data)
 
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub show_perl_line {
-    my $result = $_[1];
-    defined $_[2]
-        and $result .= ', comment';
-    return $result;
+    shift;
+    return join ', ', grep { defined } @_;
 } ## end sub show_perl_line
 
+sub comment                 { return 'comment' }
 sub show_statement_sequence { shift; return join q{, }, @_ }
 sub show_division           { return 'division' }
 sub show_function_call      { return $_[1] }

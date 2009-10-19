@@ -219,12 +219,6 @@ use Marpa::Offset qw(
 
     PROBLEMS
     ACADEMIC
-    DEFAULT_LEX_PREFIX { Delete me }
-    DEFAULT_LEX_SUFFIX { Delete me }
-    AMBIGUOUS_LEX { Delete me }
-    TRACE_LEX_MATCHES { Delete me }
-    TRACE_COMPLETIONS { Delete me }
-    TRACE_LEX_TRIES { Delete me }
     START_STATES
     =LAST_RECOGNIZER_FIELD
 
@@ -237,9 +231,6 @@ use Marpa::Offset qw(
     UNPRODUCTIVE_OK
     SEMANTICS
     TRACE_RULES
-    TRACE_STRINGS { Delete when MDL factored? }
-    TRACE_PREDEFINEDS { Delete when MDL factored? }
-    ALLOW_RAW_SOURCE INTERFACE { Delete when MDL factored? }
     MAXIMAL MINIMAL
 
     =LAST_FIELD
@@ -289,7 +280,6 @@ TRACING - master flag, set if any tracing is being done
 TRACE_STRINGS - trace strings defined in marpa grammar
 TRACE_PREDEFINEDS - trace predefineds in marpa grammar
 PHASE - the grammar's phase
-INTERFACE - the grammar's interface
 START_STATES - ref to array of the start states
 CYCLE_ACTION - ref to array of the start states
 
@@ -517,131 +507,6 @@ sub Marpa::Internal::code_problems {
     Marpa::exception(@msg);
 } ## end sub Marpa::Internal::code_problems
 
-package Marpa::Internal::Source_Eval;
-
-use English qw( -no_match_vars );
-
-sub Marpa::Internal::Grammar::raw_grammar_eval {
-    my $grammar     = shift;
-    my $raw_grammar = shift;
-
-    my ( $trace_fh, $trace_strings, $trace_predefineds );
-    if ( $grammar->[Marpa::Internal::Grammar::TRACING] ) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_strings = $grammar->[Marpa::Internal::Grammar::TRACE_STRINGS];
-        $trace_predefineds =
-            $grammar->[Marpa::Internal::Grammar::TRACE_PREDEFINEDS];
-    } ## end if ( $grammar->[Marpa::Internal::Grammar::TRACING] )
-
-    my $new_start_symbol;
-    my $new_semantics;
-    my $new_version;
-    my $new_default_lex_prefix;
-    my $new_default_action;
-    my $new_default_null_value;
-    my $new_rules;
-    my $new_terminals;
-    my %strings;
-
-    my @warnings;
-    my $eval_ok;
-    DO_EVAL: {
-        local $SIG{__WARN__} =
-            sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-
-        ## no critic (BuiltinFunctions::ProhibitStringyEval)
-        $eval_ok = eval ${$raw_grammar};
-        ## use critic
-    } ## end DO_EVAL:
-
-    if ( not $eval_ok or @warnings ) {
-        my $fatal_error = $EVAL_ERROR;
-        Marpa::Internal::code_problems(
-            {   grammar     => $grammar,
-                eval_ok     => $eval_ok,
-                fatal_error => $fatal_error,
-                warnings    => \@warnings,
-                where       => 'evaluating gramar',
-                code        => $raw_grammar,
-            }
-        );
-    } ## end if ( not $eval_ok or @warnings )
-
-    if ($trace_strings) {
-        for my $string ( keys %strings ) {
-            say {$trace_fh} qq{String "$string" set to '}, $strings{$string},
-                q{'};
-        }
-    } ## end if ($trace_strings)
-
-    if ( defined $new_start_symbol ) {
-        $grammar->[Marpa::Internal::Grammar::START_NAME] = $new_start_symbol;
-        if ($trace_predefineds) {
-            say {$trace_fh} 'Start symbol set to ', $new_start_symbol;
-        }
-    } ## end if ( defined $new_start_symbol )
-
-    Marpa::exception('Semantics must be set to perl5 in marpa grammar')
-        if not defined $new_semantics
-            or $new_semantics ne 'perl5';
-    $grammar->[Marpa::Internal::Grammar::SEMANTICS] = $new_semantics;
-    if ($trace_predefineds) {
-        say {$trace_fh} 'Semantics set to ', $new_semantics;
-    }
-
-    Marpa::exception('Version must be set in marpa grammar')
-        if not defined $new_version;
-
-    no integer;
-    Marpa::exception(
-        "Version in marpa grammar ($new_version) does not match Marpa (",
-        $Marpa::VERSION, ')' )
-        if $new_version ne $Marpa::VERSION;
-    use integer;
-
-    $grammar->[Marpa::Internal::Grammar::VERSION] = $new_version;
-    if ($trace_predefineds) {
-        say {$trace_fh} 'Version set to ', $new_version;
-    }
-
-    if ( defined $new_default_lex_prefix ) {
-        $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX] =
-            $new_default_lex_prefix;
-        if ( defined $trace_predefineds ) {
-            say {$trace_fh} q{Default lex prefix set to '},
-                $new_default_lex_prefix, q{'};
-        }
-    } ## end if ( defined $new_default_lex_prefix )
-
-    if ( defined $new_default_action ) {
-        $grammar->[Marpa::Internal::Grammar::DEFAULT_ACTION] =
-            $new_default_action;
-        if ($trace_predefineds) {
-            say {$trace_fh} q{Default action set to '}, $new_default_action,
-                q{'};
-        }
-    } ## end if ( defined $new_default_action )
-
-    if ( defined $new_default_null_value ) {
-        $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE] =
-            $new_default_null_value;
-        if ($trace_predefineds) {
-            say {$trace_fh} q{Default null_value set to '},
-                $new_default_null_value, q{'};
-        }
-    } ## end if ( defined $new_default_null_value )
-
-    Marpa::Internal::Grammar::add_user_rules( $grammar, $new_rules );
-    Marpa::Internal::Grammar::add_user_terminals( $grammar, $new_terminals );
-
-    $grammar->[Marpa::Internal::Grammar::PHASE] =
-        Marpa::Internal::Phase::RULES;
-    $grammar->[Marpa::Internal::Grammar::INTERFACE] =
-        Marpa::Internal::Interface::RAW;
-
-    return;
-} ## end sub Marpa::Internal::Grammar::raw_grammar_eval
-
 package Marpa::Internal::Grammar;
 
 sub Marpa::Grammar::new {
@@ -661,9 +526,6 @@ sub Marpa::Grammar::new {
         $grammar_number;
 
     $grammar->[Marpa::Internal::Grammar::ACADEMIC]            = 0;
-    $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX]  = q{};
-    $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX]  = q{};
-    $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX]       = 1;
     $grammar->[Marpa::Internal::Grammar::TRACE_RULES]         = 0;
     $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]        = 0;
     $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS]    = 0;
@@ -687,16 +549,6 @@ sub Marpa::Grammar::new {
     $grammar->set(@arg_hashes);
     return $grammar;
 } ## end sub Marpa::Grammar::new
-
-sub Marpa::show_source_grammar_status {
-    my $status =
-        $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR ? 'Stringified' : 'Raw';
-    if ($Marpa::Internal::STRINGIFIED_EVAL_ERROR) {
-        $status .= "\nStringified source had error:\n"
-            . $Marpa::Internal::STRINGIFIED_EVAL_ERROR;
-    }
-    return $status;
-} ## end sub Marpa::show_source_grammar_status
 
 # For use some day to make locator() more efficient on repeated calls
 sub binary_search {
@@ -782,82 +634,23 @@ sub Marpa::stringify_source_grammar {
     return $raw_source_grammar->stringify();
 } ## end sub Marpa::stringify_source_grammar
 
-# Build a grammar from an MDL description.
-# First arg is the grammar being built.
-# Second arg is ref to string containing the MDL description.
-sub parse_source_grammar {
-    my $grammar        = shift;
-    my $source         = shift;
-    my $source_options = shift;
-
-    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    my $allow_raw_source =
-        $grammar->[Marpa::Internal::Grammar::ALLOW_RAW_SOURCE];
-    if ( not defined $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR ) {
-        if ($allow_raw_source) {
-            $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR =
-                Marpa::stringify_source_grammar();
-        }
-        else {
-            my $eval_error = $Marpa::Internal::STRINGIFIED_EVAL_ERROR
-                // 'no eval error';
-            Marpa::exception( "No stringified source grammar:\n",
-                $eval_error );
-        } ## end else [ if ($allow_raw_source) ]
-    } ## end if ( not defined $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR)
-
-    $source_options //= {};
-
-    my $destringified_grammar = Marpa::Grammar::unstringify(
-        $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR);
-
-    my $lexer_args = $destringified_grammar->lexer_args();
-
-    my $recce = Marpa::Recognizer->new(
-        {   grammar           => $destringified_grammar,
-            trace_file_handle => $trace_fh,
-            self_arg          => 0,
-            %{$source_options}
-        }
-    );
-
-    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
-    my $failed_at_earleme = $lexer->text($source);
-    if ( $failed_at_earleme >= 0 ) {
-        Marpa::die_with_parse_failure( $source, $failed_at_earleme );
-    }
-    $recce->end_input();
-    my $evaler = Marpa::Evaluator->new( { recce => $recce } );
-    Marpa::exception(
-        'Marpa Internal error: failed to create evaluator for MDL')
-        if not defined $evaler;
-    my $value = $evaler->value();
-    raw_grammar_eval( $grammar, $value );
-    return;
-} ## end sub parse_source_grammar
-
 use constant GRAMMAR_OPTIONS => [
     qw{
         academic
         actions
         action_object
-        allow_raw_source
         ambiguous_lex
         code_lines
         cycle_action
         default_action
-        default_lex_prefix
-        default_lex_suffix
         default_null_value
         inaccessible_ok
         maximal
         max_parses
-        mdl_source
         minimal
         rules
         semantics
         self_arg
-        source_options
         start
         strip
         terminals
@@ -887,7 +680,6 @@ sub Marpa::Grammar::set {
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     my $phase     = $grammar->[Marpa::Internal::Grammar::PHASE];
-    my $interface = $grammar->[Marpa::Internal::Grammar::INTERFACE];
 
     for my $args (@arg_hashes) {
 
@@ -908,23 +700,6 @@ sub Marpa::Grammar::set {
                 join q{ }, @bad_options );
         } ## end if ( my @bad_options = grep { not $_ ~~ ...})
 
-        if ( defined( my $value = $args->{'mdl_source'} ) ) {
-            Marpa::exception(
-                'Cannot source grammar with some rules already defined')
-                if $phase != Marpa::Internal::Phase::NEW;
-
-            # value of source needs to be a *REF* to a string
-            Marpa::exception(
-                'Source for grammar must be specified as string ref')
-                if ref $value ne 'SCALAR';
-            Marpa::exception('Source for grammar undefined')
-                if not defined ${$value};
-            parse_source_grammar( $grammar, $value,
-                $args->{'source_options'} );
-            $phase = $grammar->[Marpa::Internal::Grammar::PHASE] =
-                Marpa::Internal::Phase::RULES;
-        } ## end if ( defined( my $value = $args->{'mdl_source'} ) )
-
         if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
             $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $value;
         }
@@ -940,32 +715,6 @@ sub Marpa::Grammar::set {
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             } ## end if ($value)
         } ## end if ( defined( my $value = $args->{'trace_actions'} ))
-
-        if ( defined( my $value = $args->{'trace_lex'} ) ) {
-            $grammar->[Marpa::Internal::Grammar::TRACE_LEX_TRIES] =
-                $grammar->[Marpa::Internal::Grammar::TRACE_LEX_MATCHES] =
-                $value;
-            if ($value) {
-                say {$trace_fh} 'Setting trace_lex option';
-                $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
-            }
-        } ## end if ( defined( my $value = $args->{'trace_lex'} ) )
-
-        if ( defined( my $value = $args->{'trace_lex_tries'} ) ) {
-            $grammar->[Marpa::Internal::Grammar::TRACE_LEX_TRIES] = $value;
-            if ($value) {
-                say {$trace_fh} 'Setting trace_lex_tries option';
-                $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
-            }
-        } ## end if ( defined( my $value = $args->{'trace_lex_tries'}...))
-
-        if ( defined( my $value = $args->{'trace_lex_matches'} ) ) {
-            $grammar->[Marpa::Internal::Grammar::TRACE_LEX_MATCHES] = $value;
-            if ($value) {
-                say {$trace_fh} 'Setting trace_lex_matches option';
-                $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
-            }
-        } ## end if ( defined( my $value = $args->{'trace_lex_matches'...}))
 
         if ( defined( my $value = $args->{'trace_values'} ) ) {
             Marpa::exception('trace_values must be set to a number >= 0')
@@ -990,34 +739,6 @@ sub Marpa::Grammar::set {
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             } ## end if ($value)
         } ## end if ( defined( my $value = $args->{'trace_rules'} ) )
-
-        if ( defined( my $value = $args->{'trace_strings'} ) ) {
-            $grammar->[Marpa::Internal::Grammar::TRACE_STRINGS] = $value;
-            if ($value) {
-                my $rules      = $grammar->[Marpa::Internal::Grammar::RULES];
-                my $rule_count = @{$rules};
-                say {$trace_fh} 'Setting trace_strings';
-                if ($rule_count) {
-                    say {$trace_fh}
-                        "Warning: Setting trace_strings after $rule_count rules have been defined";
-                }
-                $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
-            } ## end if ($value)
-        } ## end if ( defined( my $value = $args->{'trace_strings'} ))
-
-        if ( defined( my $value = $args->{'trace_predefineds'} ) ) {
-            $grammar->[Marpa::Internal::Grammar::TRACE_PREDEFINEDS] = $value;
-            if ($value) {
-                my $rules      = $grammar->[Marpa::Internal::Grammar::RULES];
-                my $rule_count = @{$rules};
-                say {$trace_fh} 'Setting trace_predefineds';
-                if ($rule_count) {
-                    say {$trace_fh}
-                        "Warning: Setting trace_predefineds after $rule_count rules have been defined";
-                }
-                $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
-            } ## end if ($value)
-        } ## end if ( defined( my $value = $args->{'trace_predefineds'...}))
 
         if ( defined( my $value = $args->{'trace_iterations'} ) ) {
             Marpa::exception('trace_iterations must be set to a number >= 0')
@@ -1063,12 +784,6 @@ sub Marpa::Grammar::set {
 
         # Second pass options
         if ( defined( my $value = $args->{'terminals'} ) ) {
-            $grammar->[Marpa::Internal::Grammar::INTERFACE] //=
-                Marpa::Internal::Interface::RAW;
-            $interface = $grammar->[Marpa::Internal::Grammar::INTERFACE];
-            Marpa::exception(
-                'terminals option only allowed with raw interface')
-                if $interface ne Marpa::Internal::Interface::RAW;
             Marpa::exception(
                 'terminals option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
@@ -1085,11 +800,6 @@ sub Marpa::Grammar::set {
         } ## end if ( defined( my $value = $args->{'start'} ) )
 
         if ( defined( my $value = $args->{'rules'} ) ) {
-            $grammar->[Marpa::Internal::Grammar::INTERFACE] //=
-                Marpa::Internal::Interface::RAW;
-            $interface = $grammar->[Marpa::Internal::Grammar::INTERFACE];
-            Marpa::exception('rules option only allowed with raw interface')
-                if $interface ne Marpa::Internal::Interface::RAW;
             Marpa::exception(
                 'rules option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
@@ -1149,27 +859,6 @@ sub Marpa::Grammar::set {
             $grammar->[Marpa::Internal::Grammar::DEFAULT_ACTION] = $value;
         } ## end if ( defined( my $value = $args->{'default_action'} ...))
 
-        if ( defined( my $value = $args->{'default_lex_prefix'} ) ) {
-            Marpa::exception(
-                'default_lex_prefix option not allowed after grammar is precomputed'
-            ) if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
-            $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX] = $value;
-        } ## end if ( defined( my $value = $args->{'default_lex_prefix'...}))
-
-        if ( defined( my $value = $args->{'default_lex_suffix'} ) ) {
-            Marpa::exception(
-                'default_lex_suffix option not allowed after grammar is precomputed'
-            ) if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
-            $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_SUFFIX] = $value;
-        } ## end if ( defined( my $value = $args->{'default_lex_suffix'...}))
-
-        if ( defined( my $value = $args->{'ambiguous_lex'} ) ) {
-            Marpa::exception(
-                'ambiguous_lex option not allowed after grammar is precomputed'
-            ) if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
-            $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX] = $value;
-        } ## end if ( defined( my $value = $args->{'ambiguous_lex'} ))
-
         if ( defined( my $value = $args->{'strip'} ) ) {
             Marpa::exception( 'strip option not allowed in ',
                 Marpa::Internal::Phase::description($phase) )
@@ -1225,14 +914,6 @@ sub Marpa::Grammar::set {
         if ( defined( my $value = $args->{'code_lines'} ) ) {
             $grammar->[Marpa::Internal::Grammar::CODE_LINES] = $value;
         }
-
-        if ( defined( my $value = $args->{'allow_raw_source'} ) ) {
-            Marpa::exception(
-                'allow_raw_source option not allowed in ',
-                Marpa::Internal::Phase::description($phase)
-            ) if $phase >= Marpa::Internal::Phase::RULES;
-            $grammar->[Marpa::Internal::Grammar::ALLOW_RAW_SOURCE] = $value;
-        } ## end if ( defined( my $value = $args->{'allow_raw_source'...}))
 
         if ( defined( my $value = $args->{'max_parses'} ) ) {
             $grammar->[Marpa::Internal::Grammar::MAX_PARSES] = $value;
@@ -1917,54 +1598,6 @@ sub Marpa::Grammar::show_QDFA {
     }
     return $text;
 } ## end sub Marpa::Grammar::show_QDFA
-
-sub Marpa::Grammar::lexer_args {
-    my ( $grammar, $arg_variable_name ) = @_;
-    state $lexer_builtins = {
-        lex_q_quote      => 'q_quote',
-        lex_single_quote => 'single_quote',
-        lex_double_quote => 'double_quote',
-        lex_regex        => 'regex',
-        q_quote          => 'q_quote',
-        single_quote     => 'single_quote',
-        double_quote     => 'double_quote',
-        regex            => 'regex',
-    };
-
-    my $args = {};
-    $args->{ambiguous} = $grammar->[Marpa::Internal::Grammar::AMBIGUOUS_LEX];
-    $args->{trace_tries} =
-        $grammar->[Marpa::Internal::Grammar::TRACE_LEX_TRIES];
-    $args->{trace_matches} =
-        $grammar->[Marpa::Internal::Grammar::TRACE_LEX_MATCHES];
-    $args->{default_prefix} =
-        $grammar->[Marpa::Internal::Grammar::DEFAULT_LEX_PREFIX];
-    $args->{terminals} = my $terminals = [];
-
-    my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        next SYMBOL if not $symbol->[Marpa::Internal::Symbol::TERMINAL];
-        my %symbol_args = ();
-        $symbol_args{name} = $symbol->[Marpa::Internal::Symbol::NAME];
-        my $prefix = $symbol->[Marpa::Internal::Symbol::PREFIX];
-        defined $prefix and $symbol_args{prefix} = $prefix;
-
-        if (defined(
-                my $action = $symbol->[Marpa::Internal::Symbol::ACTION]
-            )
-            )
-        {
-            $symbol_args{builtin} = $lexer_builtins->{$action};
-        } ## end if ( defined( my $action = $symbol->[...]))
-        else {
-            $symbol_args{regex} = $symbol->[Marpa::Internal::Symbol::REGEX];
-        }
-        push @{$terminals}, \%symbol_args;
-    } ## end for my $symbol ( @{$symbols} )
-
-    return $args;
-
-} ## end sub Marpa::Grammar::lexer_args
 
 sub Marpa::Grammar::get_terminal {
     my ( $grammar, $name ) = @_;

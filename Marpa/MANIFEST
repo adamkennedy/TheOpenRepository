@@ -15,11 +15,6 @@ author.t/spelling_exceptions.list
 author.t/test_pod
 author.t/tidy1
 bin/mdl
-bootstrap/bootstrap_header.pl
-bootstrap/bootstrap.pl
-bootstrap/bootstrap_trailer.pl
-bootstrap/Makefile
-bootstrap/self.marpa
 Build.PL
 Changes
 etc/change_version.pl
@@ -39,7 +34,6 @@ lib/Marpa/Doc/Plumbing.pod
 lib/Marpa/Doc/To_Do.pod
 lib/Marpa/Evaluator.pm
 lib/Marpa/Grammar.pm
-lib/Marpa/header_Raw_Source.pm
 lib/Marpa/Internal.pm
 lib/Marpa/MDL/bin/mdl_to_raw
 lib/Marpa/MDL/bootstrap.pl
@@ -58,10 +52,7 @@ lib/Marpa/MDL/self.mdl
 lib/Marpa/MDL/self.mdl.raw
 lib/Marpa/Offset.pm
 lib/Marpa.pm
-lib/Marpa/Raw_Source.pm
 lib/Marpa/Recognizer.pm
-lib/Marpa/Source.pm.PL
-lib/Marpa/trailer_Raw_Source.pm
 Makefile.PL
 MANIFEST
 META.yml

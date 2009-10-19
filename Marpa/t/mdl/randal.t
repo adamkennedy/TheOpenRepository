@@ -6,12 +6,11 @@ use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
 
-use Test::More tests => 6;
+use Test::More tests => 5;
 use t::lib::Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa');
-    Test::More::use_ok('Marpa::MDLex');
+    Test::More::use_ok('Marpa::MDL');
 }
 
 my @tests = split /\n/xms, <<'EO_TESTS';

@@ -8,7 +8,7 @@ use Data::Dumper;
 
 use Smart::Comments '-ENV';
 
-## no critic (Subroutines::RequireArgUnpacking
+## no critic (Subroutines::RequireArgUnpacking)
 ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
 
 sub new {

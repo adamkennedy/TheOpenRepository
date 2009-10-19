@@ -47,8 +47,8 @@ my $build = $class->new(
     },
     meta_merge => {
         no_index => {
-            directory => [qw(inc t example bootstrap author.t save)],
-            namespace => ['Marpa::Internal'],
+            directory => [qw(inc t author.t save)],
+            namespace => ['Marpa::Internal', 'Marpa::MDL::Internal'],
             package   => [qw(Marpa::Internal Marpa::Offset)],
         },
     },
@@ -77,7 +77,6 @@ my $build = $class->new(
             },
         },
     },
-    PL_files      => { 'lib/Marpa/Source.pm.PL' => 'lib/Marpa/Source.pm' },
     license       => 'perl',
     create_readme => 0,
     create_makefile_pl => 'small',

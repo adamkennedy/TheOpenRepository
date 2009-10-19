@@ -408,21 +408,35 @@ sub set_actions {
             push @{$ops}, Marpa::Internal::Evaluator_Op::ARGC, $argc;
         }
 
-        my $action = $rule->[Marpa::Internal::Rule::ACTION]
-            // $rule->[Marpa::Internal::Rule::LHS]
-            ->[Marpa::Internal::Symbol::NAME];
-        my $closure =
-            Marpa::Internal::Evaluator::resolve_semantics( $evaler, $action );
-        $closure //= $default_action_closure;
-        if ( defined $closure ) {
+        if ( my $action = $rule->[Marpa::Internal::Rule::ACTION]) {
+            my $closure =
+                Marpa::Internal::Evaluator::resolve_semantics( $evaler, $action );
+            Marpa::exception("Could not find find $action")
+                if not defined $closure;
             push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
+            next RULE;
+        }
+
+        # If we can't resolve the LHS as a closure name, it's not
+        # a fatal error
+        if ( my $action = $rule->[Marpa::Internal::Rule::LHS]
+            ->[Marpa::Internal::Symbol::NAME]) {
+            my $closure =
+                Marpa::Internal::Evaluator::resolve_semantics( $evaler, $action );
+            if (defined $closure) {
+                push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
+                next RULE;
+            }
+        }
+
+        if ( defined $default_action_closure ) {
+            push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $default_action_closure;
             next RULE;
         }
 
         # If there is no default action specified, the fallback
         # is to return an undef
         push @{$ops}, Marpa::Internal::Evaluator_Op::CONSTANT_RESULT, \undef;
-        next RULE;
 
     } ## end for my $rule ( @{$rules} )
 

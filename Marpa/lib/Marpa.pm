@@ -1,7 +1,6 @@
 package Marpa;
 
 use 5.010;
-
 use warnings;
 no warnings 'recursion';
 use strict;
@@ -16,11 +15,6 @@ use Marpa::Internal;
 use Marpa::Grammar;
 use Marpa::Recognizer;
 use Marpa::Evaluator;
-use Marpa::MDLex;
-
-# Maybe MDL will be optional someday, but not today
-use Marpa::MDL;
-use Marpa::MDL::Internal::Old_Actions;
 
 =begin Apology:
 
@@ -71,96 +65,8 @@ CPAN modules don't follow his guidelines all that closely.
 =cut
 
 package Marpa::Internal;
-use English qw( -no_match_vars );
-use Marpa::Internal;
 
 my @CARP_NOT = @Marpa::Internal::CARP_NOT;
-
-our $STRINGIFIED_EVAL_ERROR;
-
-BEGIN {
-
-## no critic (BuiltinFunctions::ProhibitStringyEval)
-    if ( not eval ' use Marpa::Source ' ) {
-## use critic
-        $STRINGIFIED_EVAL_ERROR = $EVAL_ERROR;
-        my $marpa_version  = $Marpa::VERSION         // 'undef';
-        my $source_version = $Marpa::Source::VERSION // 'undef';
-        if ( $marpa_version ne $source_version ) {
-            $STRINGIFIED_EVAL_ERROR =
-                  'MDL/Marpa version mismatch:'
-                . " Marpa is version '$marpa_version'; "
-                . " MDL source is for version '$source_version'";
-        } ## end if ( $marpa_version ne $source_version )
-    } ## end if ( not eval ' use Marpa::Source ' )
-
-    if ($STRINGIFIED_EVAL_ERROR) {
-        undef $Marpa::Internal::STRINGIFIED_SOURCE_GRAMMAR;
-    }
-
-} ## end BEGIN
-
-package Marpa::Internal;
-
-# Returns failure if no parses.
-# On success, returns first parse in scalar context,
-# all of them in list context.
-sub Marpa::mdl {
-    my $grammar = shift;
-    my $text    = shift;
-    my $options = shift;
-
-    Marpa::exception("Marpa::mdl EOL'ed");
-
-    my $ref = ref $grammar;
-    Marpa::exception(
-        qq{grammar arg to mdl() was ref type "$ref", must be string ref})
-        if $ref ne 'SCALAR';
-
-    $ref = ref $text;
-    Marpa::exception(
-        qq{text arg to mdl() was ref type "$ref", must be string ref})
-        if $ref ne 'SCALAR';
-
-    $options //= {};
-    $ref = ref $options;
-    Marpa::exception(
-        qq{text arg to mdl() was ref type "$ref", must be hash ref})
-        if $ref ne 'HASH';
-
-    my $g = Marpa::Grammar->new( { mdl_source => $grammar, %{$options} } );
-    $g->precompute();
-    my $lexer_args = $g->lexer_args();
-
-    my $recce = Marpa::Recognizer->new(
-        {   grammar => $g,
-            clone   => 0
-        }
-    );
-    my $lexer = Marpa::MDLex->new( { recce => $recce, %{$lexer_args} } );
-
-    my $failed_at_earleme = $lexer->text($text);
-    if ( $failed_at_earleme >= 0 ) {
-        Marpa::die_with_parse_failure( $text, $failed_at_earleme );
-    }
-
-    $recce->end_input();
-
-    my $evaler = Marpa::Evaluator->new(
-        {   recce => $recce,
-            clone => 0,
-        }
-    );
-    if ( not defined $evaler ) {
-        Marpa::die_with_parse_failure( $text, length $text );
-    }
-    return $evaler->value if not wantarray;
-    my @values;
-    while ( defined( my $value = $evaler->value() ) ) {
-        push @values, $value;
-    }
-    return @values;
-} ## end sub Marpa::mdl
 
 1;    # End of Marpa
 

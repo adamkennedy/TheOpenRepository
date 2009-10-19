@@ -14,7 +14,7 @@ use Test::More tests => 10;
 use t::lib::Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::MDL');
 }
 
 my $source = do { local ($RS) = undef; <DATA> };
