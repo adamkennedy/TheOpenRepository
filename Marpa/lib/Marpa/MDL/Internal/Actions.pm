@@ -27,21 +27,24 @@ sub first_arg {
 
 sub concatenate_lines {
     shift;
-    return [ @_ ];
+    return [@_];
 }
 
 sub grammar {
     my ( $self, $text ) = @_;
 
-    TERMINAL: for my $terminal ( @{ $self->{lex_options}->[0]->{terminals} } ) {
+    TERMINAL:
+    for my $terminal ( @{ $self->{lex_options}->[0]->{terminals} } ) {
         if ( $terminal->{regex} =~ /^["]/xms ) {
+            ## no critic (BuiltinFunctions::ProhibitStringyEval)
             $terminal->{regex} = eval $terminal->{regex};
             next TERMINAL;
         }
         $terminal->{builtin} = $terminal->{regex};
         delete $terminal->{regex};
     } ## end for my $terminal ( @{ $self->{lex_options}->[0]->{terminals...}})
-    $self->{options}->[0]->{terminals} = [map { $_->{name} } @{$self->{lex_options}->[0]->{terminals}}];
+    $self->{options}->[0]->{terminals} =
+        [ map { $_->{name} } @{ $self->{lex_options}->[0]->{terminals} } ];
     return {
         marpa_options => $self->{options},
         mdlex_options => $self->{lex_options}
@@ -57,10 +60,12 @@ sub grammar {
 sub production_paragraph {
     my $self = shift;
     push @{ $self->{options}->[0]->{rules} },
-        { map { @{$_} }
+        {
+        map      { @{$_} }
             grep { defined $_ }
-            ( @{ $_[0] }, $_[1], @{ $_[2] }, $_[3], @{ $_[4] } ) };
-    return "";
+            ( @{ $_[0] }, $_[1], @{ $_[2] }, $_[3], @{ $_[4] } )
+        };
+    return q{};
 } ## end sub production_paragraph
 
 # non structural production sentence: /priority/, integer, period.
@@ -69,12 +74,12 @@ sub non_structural_production_sentence { return [ priority => $_[2] ] }
 # action sentence:
 # optional /the/, /action/, /is/, action specifier, period.
 sub long_action_sentence {
-    return [    action =>  $_[4] ];
+    return [ action => $_[4] ];
 }
 
 # action sentence: action specifier, period.
 sub short_action_sentence {
-    return [    action =>  $_[1] ];
+    return [ action => $_[1] ];
 }
 
 # definition: predefined setting, period.  q{ $_[0] }.  priority 1000.
@@ -84,28 +89,28 @@ sub definition_of_predefined { return $_[1] }
 sub semantics_predicate {
     my $self = shift;
     $self->{options}->[0]->{semantics} = $_[3];
-    return '';
+    return q{};
 }
 
 # semantics setting: /perl5/, copula, optional /the/, /semantics/.
 sub semantics_subject {
     my $self = shift;
     $self->{options}->[0]->{semantics} = $_[0];
-    return '';
+    return q{};
 }
 
 # version setting: optional /the/, /version/, copula, version number.
 sub version_predicate {
     my $self = shift;
     $self->{options}->[0]->{version} = $_[3];
-    return '';
+    return q{};
 }
 
 # version setting: /version number/, copula, optional /the/, /version/.
 sub version_subject {
     my $self = shift;
     $self->{options}->[0]->{version} = $_[1];
-    return '';
+    return q{};
 }
 
 # start symbol setting: optional /the/, /start/, /symbol/, copula,
@@ -113,7 +118,7 @@ sub version_subject {
 sub start_symbol_predicate {
     my $self = shift;
     $self->{options}->[0]->{start} = $_[4];
-    return '';
+    return q{};
 }
 
 # start symbol setting: symbol phrase, copula, optional /the/, /start/,
@@ -121,33 +126,40 @@ sub start_symbol_predicate {
 sub start_symbol_subject {
     my $self = shift;
     $self->{options}->[0]->{start} = $_[1];
-    return '';
+    return q{};
 }
 
 # default lex prefix setting: regex, copula, optional /the/, /default/,
 # /lex/, /prefix/, .
 sub default_lex_prefix_subject {
     my $self = shift;
+
     # The eval is very hack-ish, but I'm throwing this interface away
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+
     $self->{lex_options}->[0]->{default_prefix} = eval $_[0];
-    return '';
-}
+    return q{};
+} ## end sub default_lex_prefix_subject
 
 # default lex prefix setting: optional /the/, /default/, /lex/,
 # /prefix/, copula, regex, .
 sub default_lex_prefix_predicate {
+
     my $self = shift;
+
     # The eval is very hack-ish, but I'm throwing this interface away
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+
     $self->{lex_options}->[0]->{default_prefix} = eval $_[5];
-    return '';
-}
+    return q{};
+} ## end sub default_lex_prefix_predicate
 
 # default null value setting: string specifier, copula, optional /the/, /default/,
 # /null/, /value/, .
 sub default_null_value_subject {
     my $self = shift;
     $self->{options}->[0]->{default_null_value} = $_[0];
-    return '';
+    return q{};
 }
 
 # default null value setting: optional /the/, /default/, /null/,
@@ -155,15 +167,15 @@ sub default_null_value_subject {
 sub default_null_value_predicate {
     my $self = shift;
     $self->{options}->[0]->{default_null_value} = $_[5];
-    return '';
+    return q{};
 }
 
 # string definition:
 # symbol phrase, /is/, string specifier, period.
 sub string_definition {
     my $self = shift;
-    $self->{strings}->{$_[0]} = $_[2];
-    return '';
+    $self->{strings}->{ $_[0] } = $_[2];
+    return q{};
 }
 
 # default action setting:
@@ -171,7 +183,7 @@ sub string_definition {
 sub default_action_subject {
     my $self = shift;
     $self->{options}->[0]->{default_action} = $_[0];
-    return '';
+    return q{};
 }
 
 # default action setting:
@@ -179,17 +191,25 @@ sub default_action_subject {
 sub default_action_predicate {
     my $self = shift;
     $self->{options}->[0]->{default_action} = $_[4];
-    return '';
+    return q{};
 }
 
 # literal string: q string.  q{ $_[1] }.
-sub q_string { return eval $_[1] }
+sub q_string {
+## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+## no critic (BuiltinFunctions::ProhibitStringyEval)
+    return eval $_[1];
+}
 
-sub literal_string { return eval $_[1] }
+sub literal_string {
+## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+## no critic (BuiltinFunctions::ProhibitStringyEval)
+    return eval $_[1];
+}
 
 # production sentence: lhs, production copula, rhs, period.
 sub production_sentence {
-    return [ lhs => $_[1], @{$_[3]} ];
+    return [ lhs => $_[1], @{ $_[3] } ];
 }
 
 # symbol phrase: symbol word sequence.
@@ -199,13 +219,16 @@ sub symbol_phrase {
 }
 
 # lhs: symbol phrase.
-sub lhs { return $_[1]  }
+sub lhs { return $_[1] }
 
 # rhs: .
 sub empty_rhs { return [ rhs => [] ] }
 
 # rhs: comma separated rhs element sequence.
-sub comma_separated_rhs { shift; return [ rhs => [ map { @{$_} } @_ ] ] }
+sub comma_separated_rhs {
+    shift;
+    return [ rhs => [ map { @{$_} } @_ ] ];
+}
 
 # rhs: symbol phrase, /sequence/.
 sub sequence_rhs {
@@ -249,7 +272,7 @@ sub optional_rhs_element {
             @{ $self->{options}->[0]->{rules} },
             {
             lhs    => $optional_symbol_phrase,
-            rhs    => [ $symbol_phrase ],
+            rhs    => [$symbol_phrase],
             action => __PACKAGE__ . q{::first_arg}
             },
             { lhs => $optional_symbol_phrase, rhs => [], };
@@ -264,7 +287,8 @@ sub rhs_symbol_phrase_specifier { return $_[1] }
 sub rhs_regex_specifier {
     my ( $self, $regex ) = @_;
     my ( $symbol, $new ) =
-        Marpa::MDL::Internal::Actions::gen_symbol_from_regex( $regex, $self->{regex_data} );
+        Marpa::MDL::Internal::Actions::gen_symbol_from_regex( $regex,
+        $self->{regex_data} );
     if ($new) {
         push @{ $self->{lex_options}->[0]->{terminals} },
             { name => $symbol, regex => $regex };
@@ -281,7 +305,7 @@ sub regex_terminal_sentence {
         name  => $_[0],
         regex => $_[2]
         };
-    return '';
+    return q{};
 } ## end sub regex_terminal_sentence
 
 # terminal sentence:
@@ -293,13 +317,13 @@ sub string_terminal_sentence {
         name  => $_[1],
         regex => $_[3]
         };
-    return '';
+    return q{};
 } ## end sub string_terminal_sentence
 
 # string specifier: symbol phrase.
 sub string_name_specifier {
     my $self = shift;
-    return $self->{strings}->{$_[0]};
+    return $self->{strings}->{ $_[0] };
 }
 ## use critic
 

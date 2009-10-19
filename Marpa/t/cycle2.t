@@ -28,30 +28,30 @@ sub default_action { shift; return join q{ }, @_ }
 
 package Test_Grammar;
 
-$Test_Grammar::marpa_options = [
+$Test_Grammar::MARPA_OPTIONS = [
     {   'default_action' => 'main::default_action',
         'rules'          => [
             {   'lhs' => 's',
-                'rhs' => [ 'a' ]
+                'rhs' => ['a']
             },
             {   'action' => 'main::show_a',
                 'lhs'    => 'a',
-                'rhs'    => [ 'b' ]
+                'rhs'    => ['b']
             },
             {   'lhs' => 'a',
-                'rhs' => [ 'a:k0' ]
+                'rhs' => ['a:k0']
             },
             {   'action' => 'main::show_b',
                 'lhs'    => 'b',
-                'rhs'    => [ 'a' ]
+                'rhs'    => ['a']
             }
         ],
         'start'     => 's',
-        'terminals' => [ 'a:k0' ],
+        'terminals' => ['a:k0'],
     }
 ];
 
-$Test_Grammar::mdlex_options = [
+$Test_Grammar::MDLEX_OPTIONS = [
     {   'terminals' => [
             {   'name'  => 'a:k0',
                 'regex' => 'a'
@@ -62,9 +62,8 @@ $Test_Grammar::mdlex_options = [
 
 my $trace;
 open my $MEMORY, '>', \$trace;
-my $grammar =
-    Marpa::Grammar->new( { trace_file_handle => $MEMORY },
-    @{$Test_Grammar::marpa_options} );
+my $grammar = Marpa::Grammar->new( { trace_file_handle => $MEMORY },
+    @{$Test_Grammar::MARPA_OPTIONS} );
 $grammar->precompute();
 close $MEMORY;
 
@@ -79,7 +78,8 @@ my $recce = Marpa::Recognizer->new(
     }
 );
 
-my $lexer = Marpa::MDLex->new( { recce => $recce }, @{$Test_Grammar::mdlex_options} );
+my $lexer =
+    Marpa::MDLex->new( { recce => $recce }, @{$Test_Grammar::MDLEX_OPTIONS} );
 my $text          = 'a';
 my $fail_location = $lexer->text( \$text );
 if ( $fail_location >= 0 ) {

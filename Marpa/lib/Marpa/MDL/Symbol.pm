@@ -15,9 +15,9 @@ sub Marpa::MDL::canonical_symbol_name {
 }
 
 sub Marpa::MDL::get_terminal {
-    my ($grammar, $symbol_name) = @_;
+    my ( $grammar, $symbol_name ) = @_;
     return Marpa::Grammar::get_terminal( $grammar,
         Marpa::MDL::canonical_symbol_name($symbol_name) );
-} ## end sub get_terminal
+}
 
 1;

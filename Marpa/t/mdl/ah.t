@@ -16,15 +16,10 @@ BEGIN {
     Test::More::use_ok('Marpa::MDL');
 }
 
-my $source = do { local $RS = undef; <DATA> };
+my $source = do { local $RS = undef; <main::DATA> };
 my ($marpa_options) = Marpa::MDL::to_raw($source);
 
-my $grammar = Marpa::Grammar->new(
-    {   warnings   => 1,
-        maximal    => 1,
-    },
-    @{$marpa_options}
-);
+my $grammar = Marpa::Grammar->new( { maximal => 1, }, @{$marpa_options} );
 
 $grammar->precompute();
 
