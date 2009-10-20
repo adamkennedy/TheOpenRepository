@@ -180,7 +180,7 @@ our %STANDARD = (
 		default => 'distmanifest.t',
 	},
 	'Test::Pod::Coverage' => {
-		test    => 'pod_coverage_ok',
+		test    => 'all_pod_coverage_ok',
 		release => 1,
 		comment => 'Ensure pod coverage in your distribution',
 		modules => {
