@@ -256,8 +256,10 @@ sub Marpa::Recognizer::stringify {
     } ## end if ( $phase != Marpa::Internal::Phase::RECOGNIZED )
 
     $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
-    return \Storable::freeze($recce);
+
     # returns a ref -- dumps can be long
+    return \Storable::freeze($recce);
+
 } ## end sub Marpa::Recognizer::stringify
 
 # First arg is stringified recognizer

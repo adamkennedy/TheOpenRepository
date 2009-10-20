@@ -111,10 +111,10 @@ sub update_changes {
     return $text_ref;
 } ## end sub update_changes
 
-change( \&fix_meta_yml,     'META.yml' );
-change( \&fix_build_pl,     'Build.PL' );
-change( \&fix_marpa_pm,     'lib/Marpa.pm' );
-change( \&update_changes,   'Changes' );
+change( \&fix_meta_yml,   'META.yml' );
+change( \&fix_build_pl,   'Build.PL' );
+change( \&fix_marpa_pm,   'lib/Marpa.pm' );
+change( \&update_changes, 'Changes' );
 
 say {*STDERR} 'REMEMBER TO UPDATE Changes file'
     or Marpa::exception("Could not print to STDERR: $ERRNO");

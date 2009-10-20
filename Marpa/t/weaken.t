@@ -9,11 +9,11 @@ use lib 'lib';
 use Test::More;
 
 BEGIN {
-    if ( eval "require Task::Weaken" ) {
-        plan tests => 3;
+    if ( eval { require Task::Weaken } ) {
+        Test::More::plan tests => 3;
     }
     else {
-        plan skip_all => 'Scalar::Util::weaken() not implemented';
+        Test::More::plan skip_all => 'Scalar::Util::weaken() not implemented';
     }
     Test::More::use_ok('Marpa');
     Test::More::use_ok('Test::Weaken');

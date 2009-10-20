@@ -61,7 +61,7 @@ for my $test (@tests) {
         $test_arg{$test}{$feature} = '1;';
         $expected{$test}{$feature} = q{};
     }
-} ## end for my $runtime_test (@runtime_tests)
+} ## end for my $test (@tests)
 
 for my $feature (@features) {
     $test_arg{'run phase warning'}{$feature} = 'main::run_phase_warning';
@@ -221,9 +221,9 @@ sub run_test {
 run_test( {} );
 
 my %where = (
-    e_op_action         => 'running action',
-    default_action      => 'running action',
-    null_action         => 'evaluating null value',
+    e_op_action    => 'running action',
+    default_action => 'running action',
+    null_action    => 'evaluating null value',
 );
 
 my %long_where = (

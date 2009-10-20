@@ -1079,7 +1079,7 @@ sub Marpa::Grammar::unstringify {
 } ## end sub Marpa::Grammar::unstringify
 
 sub Marpa::Grammar::clone {
-    my $grammar = shift;
+    my $grammar  = shift;
     my $trace_fh = shift;
 
     $trace_fh //= $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
@@ -2157,7 +2157,8 @@ sub accessible {
         $work_to_do = 0;
 
         SYMBOL_PASS: while ( my $work_symbol = shift @{$symbol_work_set} ) {
-            my $produced_rule_ids = $work_symbol->[Marpa::Internal::Symbol::LH_RULE_IDS];
+            my $produced_rule_ids =
+                $work_symbol->[Marpa::Internal::Symbol::LH_RULE_IDS];
             PRODUCED_RULE: for my $rule_id ( @{$produced_rule_ids} ) {
 
                 my $rule = $rules->[$rule_id];
@@ -2168,7 +2169,7 @@ sub accessible {
                 $work_to_do++;
                 push @{$rule_work_set}, $rule;
 
-            } ## end for my $rule ( @{$rules_produced} )
+            } ## end for my $rule_id ( @{$produced_rule_ids} )
         }    # SYMBOL_PASS
 
         RULE: while ( my $work_rule = shift @{$rule_work_set} ) {
@@ -2632,7 +2633,8 @@ sub create_NFA {
 
             # start rules are rules with the start symbol
             # or with the start alias on the LHS.
-            my @start_rule_ids = @{ $start->[Marpa::Internal::Symbol::LH_RULE_IDS] };
+            my @start_rule_ids =
+                @{ $start->[Marpa::Internal::Symbol::LH_RULE_IDS] };
             my $start_alias = $start->[Marpa::Internal::Symbol::NULL_ALIAS];
             if ( defined $start_alias ) {
                 push @start_rule_ids,
@@ -2926,13 +2928,13 @@ sub alias_symbol {
     my $alias_name = $nullable_symbol->[Marpa::Internal::Symbol::NAME] . '[]';
     my $alias      = [];
     $#{$alias} = Marpa::Internal::Symbol::LAST_FIELD;
-    $alias->[Marpa::Internal::Symbol::NAME]       = $alias_name;
-    $alias->[Marpa::Internal::Symbol::LH_RULE_IDS]        = [];
-    $alias->[Marpa::Internal::Symbol::RH_RULE_IDS]        = [];
-    $alias->[Marpa::Internal::Symbol::ACCESSIBLE] = $accessible;
-    $alias->[Marpa::Internal::Symbol::PRODUCTIVE] = $productive;
-    $alias->[Marpa::Internal::Symbol::NULLING]    = 1;
-    $alias->[Marpa::Internal::Symbol::NULL_VALUE] = $null_value;
+    $alias->[Marpa::Internal::Symbol::NAME]        = $alias_name;
+    $alias->[Marpa::Internal::Symbol::LH_RULE_IDS] = [];
+    $alias->[Marpa::Internal::Symbol::RH_RULE_IDS] = [];
+    $alias->[Marpa::Internal::Symbol::ACCESSIBLE]  = $accessible;
+    $alias->[Marpa::Internal::Symbol::PRODUCTIVE]  = $productive;
+    $alias->[Marpa::Internal::Symbol::NULLING]     = 1;
+    $alias->[Marpa::Internal::Symbol::NULL_VALUE]  = $null_value;
     $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE] //= 0;
     $alias->[Marpa::Internal::Symbol::NULLABLE] = List::Util::max(
         $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE], 1 );
