@@ -72,7 +72,6 @@ package Marpa::Internal::Recognizer;
 
 ### Using smart comments <where>...
 
-use Scalar::Util qw(weaken);
 use Data::Dumper;
 use Storable;
 use English qw( -no_match_vars );

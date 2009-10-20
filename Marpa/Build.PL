@@ -42,8 +42,9 @@ my $build = $class->new(
     requires             => { 'Scalar::Util' => 0, },
     recursive_test_files => 1,
     build_requires       => {
-        'Test::More'   => 0,
-        'Task::Weaken' => 0,    #to be sure to have weaken in Scalar::Util
+
+        # Scalar::Util::weaken no longer required
+        'Test::More' => 0,
     },
     meta_merge => {
         no_index => {
@@ -54,7 +55,7 @@ my $build = $class->new(
             ],
             package => [qw(Marpa::Internal Marpa::Offset)],
         },
-        },
+    },
     meta_add => {
         distribution_type => 'module',
         provides          => {

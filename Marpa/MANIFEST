@@ -29,7 +29,6 @@ lib/Marpa/Doc/MDL.pod
 lib/Marpa/Doc/Options.pod
 lib/Marpa/Doc/Parse_Terms.pod
 lib/Marpa/Doc/Plumbing.pod
-lib/Marpa/Doc/To_Do.pod
 lib/Marpa/Evaluator.pm
 lib/Marpa/Grammar.pm
 lib/Marpa/Internal.pm
