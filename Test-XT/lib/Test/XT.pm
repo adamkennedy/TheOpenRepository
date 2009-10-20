@@ -76,7 +76,7 @@ use Exporter ();
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
-	$VERSION   = '0.03_01';
+	$VERSION   = '0.03_02';
 	@ISA       = 'Exporter';
 	@EXPORT_OK = qw{
 		WriteTest
@@ -110,10 +110,18 @@ BEGIN {
 
 =back
 
+To programmatically extract a list of the relevant module files, or to get
+informtion about supported modules, you may directly access the underlying
+hash:
+
+  %Test::XT::STANDARD
+
+Please note that this interface is experimental and subject to change.
+
 =cut
 
 # Data for standard tests
-my %STANDARD = (
+our %STANDARD = (
 	'Test::Pod' => {
 		test    => 'all_pod_files_ok',
 		release => 0, # is this a RELEASE test only?
