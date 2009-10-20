@@ -68,7 +68,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Recognizer;
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -141,12 +141,19 @@ sub Marpa::Recognizer::new {
     } ## end if ( $phase != Marpa::Internal::Phase::PRECOMPUTED )
 
     if ($clone) {
+    ### <where>
+    ### trace_fh: $grammar->[Marpa'Internal'Grammar'TRACE_FILE_HANDLE]
         $grammar = $grammar->clone($arg_trace_fh);
+    ### <where>
+    ### trace_fh: $grammar->[Marpa'Internal'Grammar'TRACE_FILE_HANDLE]
         delete $args->{trace_file_handle};
     }
 
     # options are not set until *AFTER* the grammar is cloned
     Marpa::Grammar::set( $grammar, $args );
+
+    ### <where>
+    ### trace_fh: $grammar->[Marpa'Internal'Grammar'TRACE_FILE_HANDLE]
 
     # Pull lookup of terminal flag by symbol ID out of the loop
     # over the QDFA transitions
@@ -287,13 +294,20 @@ sub Marpa::Recognizer::unstringify {
 } ## end sub Marpa::Recognizer::unstringify
 
 sub Marpa::Recognizer::clone {
-    my $recce = shift;
+    my $recce    = shift;
+    my $trace_fh = shift;
 
-    my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    $trace_fh //= $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+ 
+
     $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
     my $cloned_recce = Storable::dclone($recce);
-    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
+    my $cloned_grammar =
+        $cloned_recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    $cloned_grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] =
+        $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
+
     return $cloned_recce;
 
 } ## end sub Marpa::Recognizer::clone

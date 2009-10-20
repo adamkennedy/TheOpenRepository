@@ -209,7 +209,11 @@ use Marpa::Offset qw(
     RULE_HASH
 
     DEFAULT_NULL_VALUE
+
     CYCLE_ACTION
+    CYCLE_SCALE
+    CYCLE_NODES
+
     TRACE_ITERATIONS
     TRACE_EVALUATION { General evaluation trace }
     TRACE_ACTIONS
@@ -242,9 +246,9 @@ use Marpa::Offset qw(
 package Marpa::Internal::Grammar;
 
 use Carp;
-use Marpa::MDLex;    # Remove this when MDL is factored out
+use POSIX qw(ceil);
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -528,16 +532,21 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::NAME] = sprintf 'Marpa::G_%x',
         $grammar_number;
 
-    $grammar->[Marpa::Internal::Grammar::ACADEMIC]            = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_RULES]         = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]        = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS]    = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACING]             = 0;
-    $grammar->[Marpa::Internal::Grammar::STRIP]               = 1;
-    $grammar->[Marpa::Internal::Grammar::WARNINGS]            = 1;
-    $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK]     = {};
-    $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK]     = {};
-    $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]        = 'warn';
+    $grammar->[Marpa::Internal::Grammar::ACADEMIC]         = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_RULES]      = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]     = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS] = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACING]          = 0;
+    $grammar->[Marpa::Internal::Grammar::STRIP]            = 1;
+    $grammar->[Marpa::Internal::Grammar::WARNINGS]         = 1;
+    $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK]  = {};
+    $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK]  = {};
+    $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]     = 'warn';
+    $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]      = 2;
+    {
+        ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
+        $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = 1000;
+    }
     $grammar->[Marpa::Internal::Grammar::CODE_LINES]          = undef;
     $grammar->[Marpa::Internal::Grammar::SYMBOLS]             = [];
     $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH]         = {};
@@ -610,6 +619,8 @@ use constant GRAMMAR_OPTIONS => [
         action_object
         code_lines
         cycle_action
+        cycle_scale
+        cycle_nodes
         default_action
         default_null_value
         inaccessible_ok
@@ -826,6 +837,20 @@ sub Marpa::Grammar::set {
                     and $value ne 'quiet'
                     and $value ne 'fatal';
             $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] = $value;
+        } ## end if ( defined( my $value = $args->{'cycle_action'} ) )
+
+        if ( defined( my $value = $args->{'cycle_scale'} ) ) {
+            no integer;
+            Marpa::exception(q{cycle_scale must be >1})
+                if $value <= 1;
+            $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE] = POSIX::ceil($value);
+            use integer;
+        } ## end if ( defined( my $value = $args->{'cycle_action'} ) )
+
+        if ( defined( my $value = $args->{'cycle_nodes'} ) ) {
+            Marpa::exception(q{cycle_nodes must be >0})
+                if $value <= 0;
+            $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = $value;
         } ## end if ( defined( my $value = $args->{'cycle_action'} ) )
 
         if ( defined( my $value = $args->{'warnings'} ) ) {
@@ -1086,7 +1111,8 @@ sub Marpa::Grammar::clone {
 
     $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
     my $cloned_grammar = Storable::dclone($grammar);
-    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
+    $cloned_grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] =
+        $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
 
     return $cloned_grammar;
 } ## end sub Marpa::Grammar::clone

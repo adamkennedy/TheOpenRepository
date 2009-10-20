@@ -132,6 +132,10 @@ for my $test_data (@test_data) {
     my %args = (
         @{$rules},
         cycle_action      => 'warn',
+
+        # Let the cycles make the parse absurdly large
+        # That's the point of the test
+        cycle_scale       => 200,
         trace_file_handle => $MEMORY,
     );
     my $grammar = Marpa::Grammar->new( \%args );

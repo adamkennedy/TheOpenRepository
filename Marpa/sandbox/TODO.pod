@@ -14,7 +14,7 @@ MDLex and MDL will know about Marpa, but B<not> vice versa.
 
 =item * Make minimal work for null symbols.
 
-=item * Forbid simulatenous MAXIMAL & MINIMAL setting on rules & symbols.
+=item * Forbid simultaneous MAXIMAL & MINIMAL setting on rules & symbols.
 Combine them internally as ::GREEDY
 
 =item * Add ah_minimal.t -- ah2.t with minimal set on the grammar
@@ -47,12 +47,7 @@ assume that the child and-nodes have no cause or predecessor.  I can't
 assume this.  I need to create a work list or or-nodes, and re-add those
 when cloned and-nodes are added to their parent list.
 
-I can assume no cycles.  Reason: Marpa does not allow zero-length rules,
-and cycles in the bocage only occur when rules derive rules.  Breaking
-up rules into and-nodes with at most two children will not create cycles.
-Rules do not cycle internally.  A sequence of and- and or- nodes will
-descend via predecessors until it hit the beginning of the rule,
-and then stop.
+=item * Create HTML Parser.
 
 =head1 HIGH PRIORITY
 
@@ -66,9 +61,6 @@ valid grammars vs. their result.  Matrix is
 
 Do just one or two inputs per grammar.
 
-=item * MDLex currently does not sort terminals by priority.  This
-means terminal priorities are totally unused.  Change this?
-
 =item * Implement an recognizer option to simply skip
 ahead spans where no terminal can possibly be found.
 This means coming up with some way of passing
@@ -81,8 +73,6 @@ Use PREDICTIVE flag to the Recognizer to enable this?
 
 =item * I should start to assume that anyone explicitly using
 separate recognizer and evaluator stages knows what they are doing.
-This means:
-
 Revise the documentation accordingly.  Just because they are
 using the plumbing interface does not mean they want to know about
 the recognizer/evaluator distinction.
@@ -98,25 +88,6 @@ the recognizer/evaluator distinction.
 =head1 MEDIUM PRIORITY
 
 =over 4
-
-=item * In the MDL grammar, concatenate_lines is called uselessly in a number
-of places.  Eliminate this, for efficiency's sake?
-
-=item * [ Note: mdl is EOL'd ] bin/mdl in parsing equation.marpa
-(which is used
-for many examples in the author.t/Makefile) takes a final return
-and parses past it, but does not fail.
-
-The return is NOT
-in the grammar.
-What happens is that the call to ::text() is
-not recognized as a failure, and then the evaluator
-looks at the last successful parse.
-
-What to do here?  It should be failing, probably.
-And does the current behavior of the evaluator,
-(taking the default end as FURTHEST_EARLEME) set
-the user up for spurious successes.
 
 =item * Add a SYNOPSIS to the Plumbing document.
 
@@ -143,32 +114,44 @@ doesn't entirely replace it.
 
 =over 4
 
-=item * C<show_tree> before first call to C<value>?  Should
+=item * Allow call to 
+C<show_tree> before first call to C<value>?  Should
 it cause an error message?  How about after unsuccessful
 call to C<value>?
 
 =back
 
-=head1 OTHER FROZEN
+=head1 MDLex
 
-=head2 Downgrade MDL version conflict or semantics mismatch to warning?
+=over 4
 
-Probably not.  MDL is EOL'ed.
+=item * MDLex currently does not sort terminals by priority.  This
+means terminal priorities are totally unused.  Change this?
 
-=head2 Lifting Restrictions on Sequence Productions
+=head1 MDL
 
-The restriction of sequences to sequence productions and of
-sequence productions to a single sequence
-is not the result of any limit of the Marpa parse engine.
-It would not be hard to allow any number of
-sequences and optional sequences on the right hand
-side of any BNF production.
-I'm open to revisiting this issue and lifting the restriction.
+MDL is EOL'd.
 
-The problem is figuring out how to conveniently specify their semantics.
-As the right hand side of a production grows more complex,
-the semantics becomes
-more complex to write, more bug-prone, and harder to debug.
+=over 4
+
+=item * In the MDL grammar, concatenate_lines is called uselessly in a number
+of places.  Eliminate this, for efficiency's sake?
+
+=item * bin/mdl in parsing equation.marpa
+(which is used
+for many examples in the author.t/Makefile) takes a final return
+and parses past it, but does not fail.
+
+The return is NOT
+in the grammar.
+What happens is that the call to ::text() is
+not recognized as a failure, and then the evaluator
+looks at the last successful parse.
+
+What to do here?  It should be failing, probably.
+And does the current behavior of the evaluator,
+(taking the default end as FURTHEST_EARLEME) set
+the user up for spurious successes.
 
 =head1 SUPPORT
 

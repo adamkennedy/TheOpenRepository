@@ -684,7 +684,7 @@ sub delete_nodes {
     my ( $evaler, $delete_work_list ) = @_;
 
     # Should be deletion-consistent at this point
-    ### assert: Marpa'Evaluator'audit($evaler) or 1
+    #### assert: Marpa'Evaluator'audit($evaler) or 1
 
     my $deleted_count = 0;
 
@@ -836,6 +836,11 @@ sub rewrite_cycles {
             $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
     }
 
+    my $initial_and_nodes = @{$and_nodes};
+    my $maximum_and_nodes = List::Util::max(
+        $initial_and_nodes + $grammar->[Marpa::Internal::Grammar::CYCLE_NODES],
+        $initial_and_nodes * $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]);
+
     # Group or-nodes by span.  Only or-nodes with the same
     # span can be in a cycle.
     my %or_nodes_by_span;
@@ -893,16 +898,16 @@ sub rewrite_cycles {
 
         # Compute transitive closure of matrix of or-node transitions.
         while ( my $work_item = pop @work_list ) {
-            my ( $parent_ix, $child_ix ) = @{$work_item};
+            my ( $from_ix, $to_ix ) = @{$work_item};
             GRAND_CHILD:
-            for my $grandchild_ix ( grep { $transition[$child_ix][$_] }
+            for my $new_to_ix ( grep { $transition[$to_ix][$_] }
                 ( 0 .. $#{$span_set} ) )
             {
-                my $transition_row = $transition[$parent_ix];
-                next GRAND_CHILD if $transition_row->[$grandchild_ix];
-                $transition_row->[$grandchild_ix]++;
-                push @work_list, [ $parent_ix, $grandchild_ix ];
-            } ## end for my $grandchild_ix ( grep { $transition[$child_ix]...})
+                my $transition_row = $transition[$from_ix];
+                next GRAND_CHILD if $transition_row->[$new_to_ix];
+                $transition_row->[$new_to_ix]++;
+                push @work_list, [ $from_ix, $new_to_ix ];
+            } ## end for my $new_to_ix ( grep { $transition[$to_ix][$_] } ...)
         } ## end while ( my $work_item = pop @work_list )
 
         # Use the transitions to find the cycles in the span set
@@ -956,7 +961,7 @@ sub rewrite_cycles {
         } @cycle;
 
         ## deletion-consistent at this point
-        ### assert: Marpa'Evaluator'audit($evaler) or 1
+        #### assert: Marpa'Evaluator'audit($evaler) or 1
 
         my @delete_work_list = ();
 
@@ -1012,6 +1017,10 @@ sub rewrite_cycles {
                     my $new_and_node = clone_and_node( $evaler, $and_node );
                     my $new_and_node_id =
                         $new_and_node->[Marpa::Internal::And_Node::ID];
+                    if ($new_and_node_id > $maximum_and_nodes) {
+                        Marpa::exception("Cycle produced too many nodes: $maximum_and_nodes\n",
+                           "Rewrite grammar or increase cycle_scale\n");
+                    }
                     push @{$and_nodes}, $new_and_node;
                     $translate_and_node_id{$and_node_id} = $new_and_node_id;
 
@@ -1217,7 +1226,7 @@ sub rewrite_cycles {
             push @span_sets, \@copied_cycle;
 
             # Should be deletion-consistent at this point
-            ### assert: Marpa'Evaluator'audit($evaler) or 1
+            #### assert: Marpa'Evaluator'audit($evaler) or 1
 
         } ## end for my $copy ( 1 .. $#root_or_nodes )
 
@@ -1246,7 +1255,7 @@ sub rewrite_cycles {
         delete_nodes( $evaler, \@delete_work_list );
 
         # Should be deletion-consistent at this point
-        ### assert: Marpa'Evaluator'audit($evaler) or 1
+        #### assert: Marpa'Evaluator'audit($evaler) or 1
 
         # Have we deleted the top or-node?
         # If so, there will be no parses.
@@ -1520,6 +1529,8 @@ sub Marpa::Evaluator::new {
         Marpa::Internal::Recognizer::GRAMMAR,
         Marpa::Internal::Recognizer::EARLEY_SETS,
     ];
+    ### <where>
+    ### trace_fh: $grammar->[Marpa'Internal'Grammar'TRACE_FILE_HANDLE]
 
     my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
 
@@ -1549,6 +1560,10 @@ sub Marpa::Evaluator::new {
             $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
+
+    ### <where>
+    ### trace_fh: $trace_fh
+
     } ## end if ($tracing)
 
     $self->[Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
@@ -1898,30 +1913,41 @@ sub Marpa::Evaluator::new {
 
     } ## end for my $and_node ( @{$and_nodes} )
 
-    # We don't allow zero-length or-nodes to have more than one
-    # and-node parent.
-    # We do that to prevent two and-nodes in a
-    # parse from overlapping.
-    # For non-zero-length or-nodes preventing overlap is
-    # easy -- if no and-nodes have overlapping spans
-    # as determined by start and end earleme,
-    # they won't have overlapping non-zero-length or-nodes.
-    # But with zero-length or-nodes, an or-node can
-    # be a trailing or-node and a lead or-node at the same
-    # earleme location.
-    # That means that two adjacent and-nodes can share
-    # the same child or-node -- one which has it as a trailing
-    # or-node, the other which has it as a leading or-node.
-    #
-    # So in the below, we make sure every zero-length or-node
-    # has only one parent.
-    OR_NODE: for my $or_node ( @{$or_nodes} ) {
+=begin Implementation:
+
+We don't allow zero-length or-nodes to have more than one and-node parent.
+We do that to prevent two and-nodes in a parse from overlapping.  For
+non-zero-length or-nodes preventing overlap is easy -- if no and-nodes
+have overlapping spans as determined by start and end earleme, they
+won't have overlapping non-zero-length or-nodes.  But with zero-length
+or-nodes, an or-node can be a trailing or-node and a lead or-node at
+the same earleme location.  That means that two adjacent and-nodes can
+share the same child or-node -- one which has it as a trailing or-node,
+the other which has it as a leading or-node.
+
+So in the below, we make sure every zero-length or-node has only one
+parent.
+
+I can assume no cycles.  Reason: Marpa does not allow zero-length rules,
+and cycles in the bocage can only occur when rules derive rules.  Breaking up
+rules into and-nodes with at most two children will not create cycles.
+It is impossible by breaking a rule up into pieces to make it cycle.
+Any predecessor chain of null symbols must lead back to the beginning
+of the rule, where it will end.
+
+=end
+
+=cut
+
+    my @zero_width_work_list = grep {
+            $_->[Marpa::Internal::Or_Node::START_EARLEME]
+                == $_->[Marpa::Internal::Or_Node::END_EARLEME]
+    } @{$or_nodes};
+
+    OR_NODE: while ( my $or_node = pop @zero_width_work_list ) {
 
         # Don't need to deal with deleted ndoes
         # There aren't any at this point
-        next OR_NODE
-            if $or_node->[Marpa::Internal::Or_Node::START_EARLEME]
-                != $or_node->[Marpa::Internal::Or_Node::END_EARLEME];
 
         my $parent_and_node_ids =
             $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
@@ -1932,14 +1958,34 @@ sub Marpa::Evaluator::new {
         $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] =
             [ $parent_and_node_ids->[0] ];
 
+        my @or_node_children =
+            map { $and_nodes->[$_] }
+            @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
+
+        push @zero_width_work_list, map { $or_nodes->[$_] }
+            grep {defined}
+            map {
+            @{$_}[
+                Marpa::Internal::And_Node::PREDECESSOR_ID,
+                Marpa::Internal::And_Node::CAUSE_ID
+                ]
+            } @or_node_children;
+
+        # Marpa::exception("Zero width and-node has predecessor")
+            # if grep { $_->[Marpa::Internal::And_Node::PREDECESSOR_ID] }
+                # @or_node_children;
+        # Marpa::exception("Zero width and-node has cause")
+            # if grep { $_->[Marpa::Internal::And_Node::CAUSE_ID] }
+                # @or_node_children;
+
         # This or-node needs to be cloned, so that it will be
         # unique to its parent and-node
         for my $parent_and_node_id (
             @{$parent_and_node_ids}[ 1 .. $#{$parent_and_node_ids} ] )
         {
+
             my @cloned_and_nodes =
-                map { clone_and_node( $self, $and_nodes->[$_] ) }
-                @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
+                map { clone_and_node( $self, $_ ) } @or_node_children;
 
             my $cloned_or_node = [];
             $#{$cloned_or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
@@ -2287,6 +2333,10 @@ sub Marpa::Evaluator::value {
 
     my $tracing  = $grammar->[Marpa::Internal::Grammar::TRACING];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+
+    ### <where>
+    ### trace_fh: $trace_fh
+
     my $trace_values     = 0;
     my $trace_iterations = 0;
     my $trace_tasks      = 0;
@@ -3056,12 +3106,17 @@ sub Marpa::Evaluator::value {
 
                         push @evaluation_stack, $value_ref;
 
+                        ### value_ref: $value_ref
+                        ### trace_fh: $trace_fh
+                        ### assert: ref $and_node
+                        ### assert: ref $value_ref
+
                         if ($trace_values) {
                             print {$trace_fh}
                                 'Pushed value from ',
                                 $and_node->[Marpa::Internal::And_Node::TAG],
                                 ': ',
-                                Data::Dumper->new( [ ${$value_ref} ] )
+                                Data::Dumper->new( [ $value_ref ] )
                                 ->Terse(1)->Dump
                                 or Marpa::exception(
                                 'print to trace handle failed');
@@ -3131,6 +3186,7 @@ sub Marpa::Evaluator::value {
                                 } ## end if ($trace_values)
 
                                 $real_symbol_count += pop @virtual_rule_stack;
+                                ### real symbol count: $real_symbol_count
                                 $current_data = [
                                     map { ${$_} } (
                                         splice @evaluation_stack,
