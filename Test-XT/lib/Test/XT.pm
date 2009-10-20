@@ -104,8 +104,6 @@ BEGIN {
 
 =item * L<Test::CheckChanges>
 
-=item * L<Test::Fixme>
-
 =item * L<Test::Pod::Coverage>
 
 =back
@@ -196,15 +194,6 @@ our %STANDARD = (
 			'Test::CheckChanges' => '0.08',
 		},
 		default => 'changes.t',
-	},
-	'Test::Fixme' => {
-		test    => 'run_tests',
-		release => 0,
-		comment => 'Check source files for FIXME statements',
-		modules => {
-			'Test::Fixme' => '0.04',
-		},
-		default => 'fixme.t',
 	},
 );
 
