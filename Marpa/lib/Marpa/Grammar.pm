@@ -31,7 +31,7 @@ use Marpa::Offset qw(
     NULL_ALIAS
     NULLING
 
-    MINIMAL MAXIMAL { Maximal (longest possible)
+    GREED { Maximal (longest possible)
         or minimal (shortest possible) evaluation
         Default is indifferent. }
 
@@ -41,8 +41,6 @@ use Marpa::Offset qw(
 
     =LAST_EVALUATOR_FIELD
 
-    ACTION PREFIX SUFFIX
-    REGEX
     TERMINAL
     =LAST_RECOGNIZER_FIELD
 
@@ -53,7 +51,6 @@ use Marpa::Offset qw(
     START
 
     NULL_VALUE
-    CLOSURE
     COUNTED
     =LAST_FIELD
 );
@@ -92,7 +89,7 @@ use Marpa::Offset qw(
     USEFUL ACTION
     CODE CYCLE
     PRIORITY
-    MAXIMAL MINIMAL
+    GREED
     VIRTUAL_LHS VIRTUAL_RHS
     DISCARD_SEPARATION
     REAL_SYMBOL_COUNT
@@ -238,7 +235,7 @@ use Marpa::Offset qw(
     UNPRODUCTIVE_OK
     SEMANTICS
     TRACE_RULES
-    MAXIMAL MINIMAL
+    GREED
 
     =LAST_FIELD
 );
@@ -741,7 +738,12 @@ sub Marpa::Grammar::set {
             Marpa::exception(
                 'minimal option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
-            $grammar->[Marpa::Internal::Grammar::MINIMAL] = $value;
+            my $greed = $grammar->[Marpa::Internal::Grammar::GREED];
+            Marpa::exception('Cannot unset minimal when maximal is set')
+                if $greed
+                    and $greed > 0
+                    and not $value;
+            $grammar->[Marpa::Internal::Grammar::GREED] = $value ? -1 : 0;
             delete $args->{'minimal'};
         } ## end if ( defined( my $value = $args->{'minimal'} ) )
 
@@ -749,7 +751,12 @@ sub Marpa::Grammar::set {
             Marpa::exception(
                 'maximal option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
-            $grammar->[Marpa::Internal::Grammar::MAXIMAL] = $value;
+            my $greed = $grammar->[Marpa::Internal::Grammar::GREED];
+            Marpa::exception('Cannot unset maximal while minimal is set')
+                if $greed
+                    and $greed < 0
+                    and not $value;
+            $grammar->[Marpa::Internal::Grammar::GREED] = $value ? 1 : 0;
             delete $args->{'maximal'};
         } ## end if ( defined( my $value = $args->{'maximal'} ) )
 
@@ -1147,8 +1154,6 @@ sub Marpa::show_symbol {
             [ 1, 'inaccessible', Marpa::Internal::Symbol::ACCESSIBLE, ],
             [ 0, 'nulling',      Marpa::Internal::Symbol::NULLING, ],
             [ 0, 'terminal',     Marpa::Internal::Symbol::TERMINAL, ],
-            [ 0, 'maximal',      Marpa::Internal::Symbol::MAXIMAL, ],
-            [ 0, 'minimal',      Marpa::Internal::Symbol::MINIMAL, ],
         )
         )
     {
@@ -1158,6 +1163,13 @@ sub Marpa::show_symbol {
         if ($reverse) { $value = !$value }
         if ($value) { $text .= " $comment" }
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
+
+    given ( $symbol->[Marpa::Internal::Symbol::GREED] ) {
+        when (undef) { break }
+        when (0) {break}
+        when ( $_ > 0 ) { $text .= ' maximal' }
+        default         { $text .= ' minimal' }
+    }
 
     $text .= "\n";
     return $text;
@@ -1336,8 +1348,6 @@ sub Marpa::show_rule {
             [ 1, 'unproductive', Marpa::Internal::Rule::PRODUCTIVE, ],
             [ 1, 'inaccessible', Marpa::Internal::Rule::ACCESSIBLE, ],
             [ 0, 'nullable',     Marpa::Internal::Rule::NULLABLE, ],
-            [ 0, 'maximal',      Marpa::Internal::Rule::MAXIMAL, ],
-            [ 0, 'minimal',      Marpa::Internal::Rule::MINIMAL, ],
             [ 0, 'vlhs',         Marpa::Internal::Rule::VIRTUAL_LHS, ],
             [ 0, 'vrhs',         Marpa::Internal::Rule::VIRTUAL_RHS, ],
             [ 0, 'discard_sep',  Marpa::Internal::Rule::DISCARD_SEPARATION, ],
@@ -1351,6 +1361,13 @@ sub Marpa::show_rule {
         next ELEMENT if not $value;
         push @comment, $comment;
     } ## end for my $comment_element ( ( [ 1, '!useful', ...]))
+
+    given ( $rule->[Marpa::Internal::Rule::GREED] ) {
+        when (undef) {break}
+        when (0)     {break}
+        when ( $_ > 0 ) { push @comment, 'maximal' }
+        default         { push @comment, 'minimal' }
+    } ## end given
 
     my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
     if ($priority) {
@@ -1553,21 +1570,13 @@ sub add_terminal {
     my $grammar = shift;
     my $name    = shift;
     my $options = shift;
-    my ( $regex, $prefix, $suffix, );
-    my $action;
     my $priority = 0;
-    my $maximal;
-    my $minimal;
+    my $greed;
 
     while ( my ( $key, $value ) = each %{$options} ) {
         given ($key) {
-            when ('priority') { $priority = $value; }
-            when ('action')   { $action   = $value; }
-            when ('prefix')   { $prefix   = $value; }
-            when ('suffix')   { $suffix   = $value; }
-            when ('regex')    { $regex    = $value; }
-            when ('maximal')  { $maximal  = $value; }
-            when ('minimal')  { $minimal  = $value; }
+            when ('maximal')  { $greed  = 1; }
+            when ('minimal')  { $greed  = -1; }
             default {
                 Marpa::exception(
                     "Attempt to add terminal named $name with unknown option $key"
@@ -1580,8 +1589,7 @@ sub add_terminal {
     my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my $default_null_value =
         $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE];
-    my $default_minimal = $grammar->[Marpa::Internal::Grammar::MINIMAL];
-    my $default_maximal = $grammar->[Marpa::Internal::Grammar::MAXIMAL];
+    my $default_greed = $grammar->[Marpa::Internal::Grammar::GREED];
 
     # I allow redefinition of a LHS symbol as a terminal
     # I need to test that this works, or disallow it
@@ -1598,15 +1606,9 @@ sub add_terminal {
             Marpa::exception("Attempt to add terminal twice: $name");
         }
 
-        $symbol->[Marpa::Internal::Symbol::REGEX]    = $regex;
-        $symbol->[Marpa::Internal::Symbol::PREFIX]   = $prefix;
-        $symbol->[Marpa::Internal::Symbol::SUFFIX]   = $suffix;
-        $symbol->[Marpa::Internal::Symbol::ACTION]   = $action;
         $symbol->[Marpa::Internal::Symbol::TERMINAL] = 1;
-        $symbol->[Marpa::Internal::Symbol::MAXIMAL]  = $maximal
-            // $default_maximal;
-        $symbol->[Marpa::Internal::Symbol::MINIMAL] = $minimal
-            // $default_minimal;
+        $symbol->[Marpa::Internal::Symbol::GREED]  = $greed
+            // $default_greed;
 
         return;
     } ## end if ( defined $symbol_id )
@@ -1616,13 +1618,9 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::NAME]        = $name;
     $new_symbol->[Marpa::Internal::Symbol::LH_RULE_IDS] = [];
     $new_symbol->[Marpa::Internal::Symbol::RH_RULE_IDS] = [];
-    $new_symbol->[Marpa::Internal::Symbol::REGEX]       = $regex;
-    $new_symbol->[Marpa::Internal::Symbol::ACTION]      = $action;
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]    = 1;
-    $new_symbol->[Marpa::Internal::Symbol::MAXIMAL]     = $maximal
-        // $default_maximal;
-    $new_symbol->[Marpa::Internal::Symbol::MINIMAL] = $minimal
-        // $default_minimal;
+    $new_symbol->[Marpa::Internal::Symbol::GREED]     = $greed
+        // $default_greed;
 
     $symbol_id = @{$symbols};
     push @{$symbols}, $new_symbol;
@@ -1679,8 +1677,7 @@ sub add_rule {
     my $lhs;
     my $rhs;
     my $action;
-    my $maximal;
-    my $minimal;
+    my $greed;
     my $priority;
     my $virtual_lhs;
     my $virtual_rhs;
@@ -1689,13 +1686,17 @@ sub add_rule {
 
     while ( my ( $option, $value ) = each %{$arg_hash} ) {
         given ($option) {
-            when ('grammar')            { $grammar            = $value }
-            when ('lhs')                { $lhs                = $value }
-            when ('rhs')                { $rhs                = $value }
-            when ('action')             { $action             = $value }
-            when ('priority')           { $priority           = $value }
-            when ('maximal')            { $maximal            = $value }
-            when ('minimal')            { $minimal            = $value }
+            when ('grammar')  { $grammar  = $value }
+            when ('lhs')      { $lhs      = $value }
+            when ('rhs')      { $rhs      = $value }
+            when ('action')   { $action   = $value }
+            when ('priority') { $priority = $value }
+
+            # greed is an internal option
+            when ('greed')   { $greed = $value }
+            when ('maximal') { $greed = 1 }
+            when ('minimal') { $greed = -1 }
+
             when ('virtual_lhs')        { $virtual_lhs        = $value }
             when ('virtual_rhs')        { $virtual_rhs        = $value }
             when ('discard_separation') { $discard_separation = $value }
@@ -1768,10 +1769,8 @@ sub add_rule {
     $new_rule->[Marpa::Internal::Rule::RHS]      = $rhs;
     $new_rule->[Marpa::Internal::Rule::ACTION]   = $action;
     $new_rule->[Marpa::Internal::Rule::PRIORITY] = $priority;
-    $new_rule->[Marpa::Internal::Rule::MINIMAL]  = $minimal
-        // $grammar->[Marpa::Internal::Grammar::MINIMAL];
-    $new_rule->[Marpa::Internal::Rule::MAXIMAL] = $maximal
-        // $grammar->[Marpa::Internal::Grammar::MAXIMAL];
+    $new_rule->[Marpa::Internal::Rule::GREED] = $greed
+        // $grammar->[Marpa::Internal::Grammar::GREED];
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_LHS] = $virtual_lhs;
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_RHS] = $virtual_rhs;
     $new_rule->[Marpa::Internal::Rule::DISCARD_SEPARATION] =
@@ -2964,10 +2963,8 @@ sub alias_symbol {
     $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE] //= 0;
     $alias->[Marpa::Internal::Symbol::NULLABLE] = List::Util::max(
         $nullable_symbol->[Marpa::Internal::Symbol::NULLABLE], 1 );
-    $alias->[Marpa::Internal::Symbol::MINIMAL] =
-        $nullable_symbol->[Marpa::Internal::Symbol::MINIMAL];
-    $alias->[Marpa::Internal::Symbol::MAXIMAL] =
-        $nullable_symbol->[Marpa::Internal::Symbol::MAXIMAL];
+    $alias->[Marpa::Internal::Symbol::GREED] =
+        $nullable_symbol->[Marpa::Internal::Symbol::GREED];
 
     my $symbol_id = @{$symbols};
     push @{$symbols}, $alias;
@@ -3061,8 +3058,7 @@ sub rewrite_as_CHAF {
         # from this one
         my @rule_options = (
             priority => $rule->[Marpa::Internal::Rule::PRIORITY],
-            maximal  => $rule->[Marpa::Internal::Rule::MAXIMAL],
-            minimal  => $rule->[Marpa::Internal::Rule::MINIMAL],
+            greed  => $rule->[Marpa::Internal::Rule::GREED],
         );
 
         # Keep track of whether the lhs side of any new rules we create should

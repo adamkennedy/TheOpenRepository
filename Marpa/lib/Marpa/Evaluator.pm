@@ -2301,11 +2301,10 @@ sub Marpa::Evaluator::value {
 
             my $rule_id  = $and_node->[Marpa::Internal::And_Node::RULE_ID];
             my $rule     = $rules->[$rule_id];
-            my $maximal  = $rule->[Marpa::Internal::Rule::MAXIMAL];
-            my $minimal  = $rule->[Marpa::Internal::Rule::MINIMAL];
+            my $greed    = $rule->[Marpa::Internal::Rule::GREED];
             my $priority = $rule->[Marpa::Internal::Rule::PRIORITY];
 
-            if ( $maximal or $minimal or $priority ) {
+            if ( $greed or $priority ) {
 
                 my $and_node_start_earleme =
                     $and_node->[Marpa::Internal::And_Node::START_EARLEME];
@@ -2315,17 +2314,26 @@ sub Marpa::Evaluator::value {
                 # compute this and-nodes sort key element
                 # insert it into the predecessor sort key elements
                 my $location = $and_node_start_earleme;
-                my $length =
-                    $maximal
-                    ? ~( ( $and_node_end_earleme - $and_node_start_earleme )
-                    & N_FORMAT_MASK )
-                    : $minimal
-                    ? ( $and_node_end_earleme - $and_node_start_earleme )
-                    : 0;
+                my $length;
+                given ($greed) {
+                    when (undef) { $length = 0 }
+                    when (0)     { $length = 0 }
+                    when ( $_ > 0 ) {
+                        $length = ~(
+                            (         $and_node_end_earleme
+                                    - $and_node_start_earleme
+                            ) & N_FORMAT_MASK
+                            )
+                    } ## end when ( $_ > 0 )
+                    default {
+                        $length = (
+                            $and_node_end_earleme - $and_node_start_earleme );
+                    }
+                } ## end given
                 $and_node->[Marpa::Internal::And_Node::SORT_ELEMENT] =
                     [ $location, ~( $priority & N_FORMAT_MASK ), $length ];
 
-            } ## end if ( $maximal or $minimal or $priority )
+            } ## end if ( $greed or $priority )
 
         } ## end for my $and_node ( @{$and_nodes} )
 

@@ -52,16 +52,16 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 1: A -> a /* maximal */
 2: A -> E /* !useful nullable maximal */
 3: E -> /* empty !useful nullable maximal */
-4: S -> A S[R0:1][x6] /* maximal vrhs real=1 */
+4: S -> A S[R0:1][x6] /* vrhs maximal real=1 */
 5: S -> A A[] A[] A[] /* maximal */
-6: S -> A[] S[R0:1][x6] /* maximal vrhs real=1 */
-7: S[R0:1][x6] -> A S[R0:2][x7] /* maximal vlhs vrhs real=1 */
-8: S[R0:1][x6] -> A A[] A[] /* maximal vlhs real=3 */
-9: S[R0:1][x6] -> A[] S[R0:2][x7] /* maximal vlhs vrhs real=1 */
-10: S[R0:2][x7] -> A A /* maximal vlhs real=2 */
-11: S[R0:2][x7] -> A A[] /* maximal vlhs real=2 */
-12: S[R0:2][x7] -> A[] A /* maximal vlhs real=2 */
-13: S['] -> S /* maximal vlhs real=1 */
+6: S -> A[] S[R0:1][x6] /* vrhs maximal real=1 */
+7: S[R0:1][x6] -> A S[R0:2][x7] /* vlhs vrhs maximal real=1 */
+8: S[R0:1][x6] -> A A[] A[] /* vlhs maximal real=3 */
+9: S[R0:1][x6] -> A[] S[R0:2][x7] /* vlhs vrhs maximal real=1 */
+10: S[R0:2][x7] -> A A /* vlhs maximal real=2 */
+11: S[R0:2][x7] -> A A[] /* vlhs maximal real=2 */
+12: S[R0:2][x7] -> A[] A /* vlhs maximal real=2 */
+13: S['] -> S /* vlhs maximal real=1 */
 14: S['][] -> /* empty nullable maximal */
 EOS
 

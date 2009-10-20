@@ -67,7 +67,6 @@ t/equation.t
 t/final_nonnullable.t
 t/gj.t
 t/hu.t
-t/initial_nulls.t
 t/lib/Marpa/Test.pm
 t/limits.t
 t/Makefile
