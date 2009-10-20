@@ -71,23 +71,23 @@ my $builder = $class->new(
     dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
     dist_version_from   => 'lib/Alien/WiX.pm',
     configure_requires  => {
-		'Win32API::Registry'
-		                => '0.30',
-		'Module::Build'
-		                => '0.280802',
-	},
+        'Win32API::Registry'
+                        => '0.30',
+        'Module::Build'
+                        => '0.280802',
+    },
     build_requires  => {
-		'Module::Build'
-		                => '0.280802',
-		'LWP::UserAgent'
-						=> '5.819',
-	},
-	requires            => {
-		'perl'          => '5.008',
+        'Module::Build'
+                        => '0.280802',
+        'LWP::UserAgent'
+                        => '5.819',
         'Test::More'    => '0',
-		'Readonly'      => '1.03',
+    },
+    requires            => {
+        'perl'          => '5.008',
+        'Readonly'      => '1.03',
         'version'       => '0.76',
-		'Win32API::Registry'
+        'Win32API::Registry'
 		                => '0.30',
 		'Win32::TieRegistry'
 		                => '0.26',
