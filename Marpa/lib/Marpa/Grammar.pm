@@ -850,15 +850,16 @@ sub Marpa::Grammar::set {
             no integer;
             Marpa::exception(q{cycle_scale must be >1})
                 if $value <= 1;
-            $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE] = POSIX::ceil($value);
+            $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE] =
+                POSIX::ceil($value);
             use integer;
-        } ## end if ( defined( my $value = $args->{'cycle_action'} ) )
+        } ## end if ( defined( my $value = $args->{'cycle_scale'} ) )
 
         if ( defined( my $value = $args->{'cycle_nodes'} ) ) {
             Marpa::exception(q{cycle_nodes must be >0})
                 if $value <= 0;
             $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = $value;
-        } ## end if ( defined( my $value = $args->{'cycle_action'} ) )
+        }
 
         if ( defined( my $value = $args->{'warnings'} ) ) {
             if ( $value && $phase >= Marpa::Internal::Phase::PRECOMPUTED ) {
@@ -1165,11 +1166,11 @@ sub Marpa::show_symbol {
     } ## end for my $comment_element ( ( [ 1, 'unproductive', ...]))
 
     given ( $symbol->[Marpa::Internal::Symbol::GREED] ) {
-        when (undef) { break }
-        when (0) {break}
+        when (undef) {break}
+        when (0)     {break}
         when ( $_ > 0 ) { $text .= ' maximal' }
         default         { $text .= ' minimal' }
-    }
+    } ## end given
 
     $text .= "\n";
     return $text;
@@ -1567,16 +1568,16 @@ sub Marpa::Grammar::get_terminal {
 } ## end sub Marpa::Grammar::get_terminal
 
 sub add_terminal {
-    my $grammar = shift;
-    my $name    = shift;
-    my $options = shift;
+    my $grammar  = shift;
+    my $name     = shift;
+    my $options  = shift;
     my $priority = 0;
     my $greed;
 
     while ( my ( $key, $value ) = each %{$options} ) {
         given ($key) {
-            when ('maximal')  { $greed  = 1; }
-            when ('minimal')  { $greed  = -1; }
+            when ('maximal') { $greed = 1; }
+            when ('minimal') { $greed = -1; }
             default {
                 Marpa::exception(
                     "Attempt to add terminal named $name with unknown option $key"
@@ -1607,8 +1608,7 @@ sub add_terminal {
         }
 
         $symbol->[Marpa::Internal::Symbol::TERMINAL] = 1;
-        $symbol->[Marpa::Internal::Symbol::GREED]  = $greed
-            // $default_greed;
+        $symbol->[Marpa::Internal::Symbol::GREED] = $greed // $default_greed;
 
         return;
     } ## end if ( defined $symbol_id )
@@ -1619,8 +1619,7 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::LH_RULE_IDS] = [];
     $new_symbol->[Marpa::Internal::Symbol::RH_RULE_IDS] = [];
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]    = 1;
-    $new_symbol->[Marpa::Internal::Symbol::GREED]     = $greed
-        // $default_greed;
+    $new_symbol->[Marpa::Internal::Symbol::GREED] = $greed // $default_greed;
 
     $symbol_id = @{$symbols};
     push @{$symbols}, $new_symbol;
@@ -1769,7 +1768,7 @@ sub add_rule {
     $new_rule->[Marpa::Internal::Rule::RHS]      = $rhs;
     $new_rule->[Marpa::Internal::Rule::ACTION]   = $action;
     $new_rule->[Marpa::Internal::Rule::PRIORITY] = $priority;
-    $new_rule->[Marpa::Internal::Rule::GREED] = $greed
+    $new_rule->[Marpa::Internal::Rule::GREED]    = $greed
         // $grammar->[Marpa::Internal::Grammar::GREED];
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_LHS] = $virtual_lhs;
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_RHS] = $virtual_rhs;
@@ -3058,7 +3057,7 @@ sub rewrite_as_CHAF {
         # from this one
         my @rule_options = (
             priority => $rule->[Marpa::Internal::Rule::PRIORITY],
-            greed  => $rule->[Marpa::Internal::Rule::GREED],
+            greed    => $rule->[Marpa::Internal::Rule::GREED],
         );
 
         # Keep track of whether the lhs side of any new rules we create should

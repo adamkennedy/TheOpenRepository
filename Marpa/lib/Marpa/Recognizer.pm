@@ -141,11 +141,7 @@ sub Marpa::Recognizer::new {
     } ## end if ( $phase != Marpa::Internal::Phase::PRECOMPUTED )
 
     if ($clone) {
-    ### <where>
-    ### trace_fh: $grammar->[Marpa'Internal'Grammar'TRACE_FILE_HANDLE]
         $grammar = $grammar->clone($arg_trace_fh);
-    ### <where>
-    ### trace_fh: $grammar->[Marpa'Internal'Grammar'TRACE_FILE_HANDLE]
         delete $args->{trace_file_handle};
     }
 
@@ -299,7 +295,6 @@ sub Marpa::Recognizer::clone {
 
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     $trace_fh //= $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
- 
 
     $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
     my $cloned_recce = Storable::dclone($recce);

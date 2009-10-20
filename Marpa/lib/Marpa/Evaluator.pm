@@ -838,8 +838,10 @@ sub rewrite_cycles {
 
     my $initial_and_nodes = @{$and_nodes};
     my $maximum_and_nodes = List::Util::max(
-        $initial_and_nodes + $grammar->[Marpa::Internal::Grammar::CYCLE_NODES],
-        $initial_and_nodes * $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]);
+        $initial_and_nodes
+            + $grammar->[Marpa::Internal::Grammar::CYCLE_NODES],
+        $initial_and_nodes * $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]
+    );
 
     # Group or-nodes by span.  Only or-nodes with the same
     # span can be in a cycle.
@@ -1017,10 +1019,12 @@ sub rewrite_cycles {
                     my $new_and_node = clone_and_node( $evaler, $and_node );
                     my $new_and_node_id =
                         $new_and_node->[Marpa::Internal::And_Node::ID];
-                    if ($new_and_node_id > $maximum_and_nodes) {
-                        Marpa::exception("Cycle produced too many nodes: $maximum_and_nodes\n",
-                           "Rewrite grammar or increase cycle_scale\n");
-                    }
+                    if ( $new_and_node_id > $maximum_and_nodes ) {
+                        Marpa::exception(
+                            "Cycle produced too many nodes: $maximum_and_nodes\n",
+                            "Rewrite grammar or increase cycle_scale\n"
+                        );
+                    } ## end if ( $new_and_node_id > $maximum_and_nodes )
                     push @{$and_nodes}, $new_and_node;
                     $translate_and_node_id{$and_node_id} = $new_and_node_id;
 
@@ -1561,9 +1565,6 @@ sub Marpa::Evaluator::new {
         $trace_iterations =
             $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
 
-    ### <where>
-    ### trace_fh: $trace_fh
-
     } ## end if ($tracing)
 
     $self->[Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
@@ -1935,13 +1936,13 @@ It is impossible by breaking a rule up into pieces to make it cycle.
 Any predecessor chain of null symbols must lead back to the beginning
 of the rule, where it will end.
 
-=end
+=end Implementation:
 
 =cut
 
     my @zero_width_work_list = grep {
-            $_->[Marpa::Internal::Or_Node::START_EARLEME]
-                == $_->[Marpa::Internal::Or_Node::END_EARLEME]
+        $_->[Marpa::Internal::Or_Node::START_EARLEME]
+            == $_->[Marpa::Internal::Or_Node::END_EARLEME]
     } @{$or_nodes};
 
     OR_NODE: while ( my $or_node = pop @zero_width_work_list ) {
@@ -1970,13 +1971,6 @@ of the rule, where it will end.
                 Marpa::Internal::And_Node::CAUSE_ID
                 ]
             } @or_node_children;
-
-        # Marpa::exception("Zero width and-node has predecessor")
-            # if grep { $_->[Marpa::Internal::And_Node::PREDECESSOR_ID] }
-                # @or_node_children;
-        # Marpa::exception("Zero width and-node has cause")
-            # if grep { $_->[Marpa::Internal::And_Node::CAUSE_ID] }
-                # @or_node_children;
 
         # This or-node needs to be cloned, so that it will be
         # unique to its parent and-node
@@ -2042,7 +2036,7 @@ of the rule, where it will end.
             push @{$or_nodes}, $cloned_or_node;
         } ## end for my $parent_and_node_id ( @{$parent_and_node_ids}[...])
 
-    } ## end for my $or_node ( @{$or_nodes} )
+    } ## end while ( my $or_node = pop @zero_width_work_list )
 
     ### assert: Marpa'Evaluator'audit($self) or 1
 
@@ -2627,11 +2621,14 @@ sub Marpa::Evaluator::value {
                         $cause_sort_string ge $predecessor_sort_string
                         ? Marpa::Internal::And_Node::CAUSE_ID
                         : Marpa::Internal::And_Node::PREDECESSOR_ID;
-                    $and_node_iteration
-                        ->[Marpa::Internal::And_Iteration::CURRENT_CHILD_FIELD
-                        ] =
-                        $current_child_field
 
+                    #<<< current version of perltidy cycles on this
+
+                    $and_node_iteration->[
+                        Marpa::Internal::And_Iteration::CURRENT_CHILD_FIELD
+                        ] = $current_child_field;
+
+                    #>>>
                 } ## end if ( defined $cause and defined $predecessor )
 
             } ## end when (Marpa::Internal::Task::SETUP_AND_NODE)
@@ -3114,18 +3111,13 @@ sub Marpa::Evaluator::value {
 
                         push @evaluation_stack, $value_ref;
 
-                        ### value_ref: $value_ref
-                        ### trace_fh: $trace_fh
-                        ### assert: ref $and_node
-                        ### assert: ref $value_ref
-
                         if ($trace_values) {
                             print {$trace_fh}
                                 'Pushed value from ',
                                 $and_node->[Marpa::Internal::And_Node::TAG],
                                 ': ',
-                                Data::Dumper->new( [ $value_ref ] )
-                                ->Terse(1)->Dump
+                                Data::Dumper->new( [$value_ref] )->Terse(1)
+                                ->Dump
                                 or Marpa::exception(
                                 'print to trace handle failed');
                         } ## end if ($trace_values)

@@ -131,7 +131,7 @@ for my $test_data (@test_data) {
     open my $MEMORY, '>', \$trace;
     my %args = (
         @{$rules},
-        cycle_action      => 'warn',
+        cycle_action => 'warn',
 
         # Let the cycles make the parse absurdly large
         # That's the point of the test
