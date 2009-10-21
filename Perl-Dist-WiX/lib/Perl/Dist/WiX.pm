@@ -165,6 +165,7 @@ use Object::Tiny qw(
   perl_config_cf_email
   perl_config_cf_by
   toolchain
+  bits
 );
 #  Don't need to put distributions_installed in here.
 
@@ -411,6 +412,13 @@ C<cf_by> option.
 
 If not defined, this is set to anonymous@unknown.builder.invalid.
 
+=item * bits
+
+The optional C<bits> parameter specifies whether the perl being built is 
+for 32-bit (i386) or 64-bit (referred to as Intel64 / amd-x64) Windows
+
+32-bit (i386) is the default.
+
 =back
 
 The C<new> constructor returns a B<Perl::Dist::WiX> object, which you
@@ -563,6 +571,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		force        => 0,
 		forceperl    => 0,
 		exe          => 0,
+		bits         => 32,
 		msi               => 1,        # Goal of Perl::Dist::WiX is to make an MSI.
 		checkpoint_before => 0,
 		checkpoint_after        => [0],
@@ -570,7 +579,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		output_file             => [],
 		env_path                => [],
 		distributions_installed => [],
-		output_dir              => rel2abs( curdir, ),
+		output_dir              => rel2abs( curdir ),
 		tasklist                => $tasklist,
 		%params,
 	}, $class;
@@ -831,15 +840,41 @@ sub DESTROY {
 #####################################################################
 # Upstream Binary Packages (Mirrored)
 
-Readonly my %PACKAGES => (
-	'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
-	'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
-	'gcc-g++'       => 'gcc-g++-3.4.5-20060117-3.tar.gz',
-	'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
-	'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
-	'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
-	'w32api'        => 'w32api-3.10.tar.gz',
+Readonly my %PACKAGES_X => (
+	32 => {
+		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
+		'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
+		'gcc-g++'       => 'gcc-g++-3.4.5-20060117-3.tar.gz',
+		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
+		'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
+		'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
+		'w32api'        => 'w32api-3.10.tar.gz',
+	},
+	64 => {
+		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
+		'gcc-core'      => undef,
+		'gcc-g++'       => undef,
+		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
+		'binutils'      => undef,
+		'mingw-runtime' => undef,
+		'w32api'        => undef,
+	},
 );
+
+sub get_package_file {
+	my $self = shift;
+	my $package = shift;
+	
+	if (not exists %PACKAGES_X{$self->bits()}) {
+		PDWiX->throw('Can only build 32 or 64-bit versions of perl');
+	}
+	
+	if (not exists %PACKAGES_X{$self->bits()}{$package}) {
+		PDWiX->throw('get_package_file called on a package that was not defined.');
+	}	
+
+	return %PACKAGES_X{$self->bits()}{$package};
+}
 
 sub final_initialization {
 	my $self = shift;
