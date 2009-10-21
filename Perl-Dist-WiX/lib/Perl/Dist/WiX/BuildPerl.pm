@@ -206,20 +206,6 @@ sub install_cpan_upgrades {
 			next MODULE;
 		}
 
-		if (    ( $module->cpan_file =~ m{/CPANPLUS-\d}msx )
-			and ( $module->cpan_version == 0.88 ) )
-		{
-			# Installing 0.89_02 because of accumulated fixes,
-			# including one in which the config set
-			# by us works better.
-			$self->install_distribution(
-				name  => 'BINGOS/CPANPLUS-0.89_02.tar.gz',
-				makefilepl_param => ['INSTALLDIRS=perl'],
-				buildpl_param => ['--installdirs', 'core'],
-			);
-			next MODULE;
-		}
-
 		if ( $self->_delay_upgrade($module) ) {
 
 			# Delay these module until last.
@@ -250,6 +236,17 @@ sub install_cpan_upgrades {
 	  catfile( $self->image_dir, qw(perl lib CPANPLUS Config.pm) );
 
 	if ( -e $cpanp_config_location ) {
+
+		# Installing 0.89_02 because of accumulated fixes,
+		# including one in which the config set
+		# by us works better.
+		$self->install_distribution(
+			name  => 'BINGOS/CPANPLUS-0.89_02.tar.gz',
+			mod_name         => 'CPANPLUS',
+			makefilepl_param => ['INSTALLDIRS=perl'],
+			buildpl_param => ['--installdirs', 'core'],
+		);
+	
 		$self->trace_line( 1,
 			"Getting CPANPLUS config file ready for patching\n" );
 
@@ -258,6 +255,15 @@ sub install_cpan_upgrades {
 			{ dist => $self, } );
 	}
 
+	if (not exists $self->{fragments}->{CPAN}) {
+		$self->install_distribution(
+			name  => 'ANDK/CPAN-1.94_52.tar.gz',
+			mod_name         => 'CPAN',
+			makefilepl_param => ['INSTALLDIRS=perl'],
+			buildpl_param => ['--installdirs', 'core'],
+		);
+	}
+	
 	return $self;
 } ## end sub install_cpan_upgrades
 
