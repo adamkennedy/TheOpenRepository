@@ -1320,9 +1320,9 @@ sub Marpa::brief_virtual_rule {
         : ( $chaf_start + $dot_position );
 
     for ( 0 .. scalar @rhs_names ) {
-        when ( defined $chaf_symbol_end[$_] )   { $text .= ' >>'; continue }
+        when ( defined $chaf_symbol_end[$_] )   { $text .= ' >'; continue }
         when ($dot_position)                    { $text .= q{ .}; continue; }
-        when ( defined $chaf_symbol_start[$_] ) { $text .= ' <<'; continue }
+        when ( defined $chaf_symbol_start[$_] ) { $text .= ' <'; continue }
         when ( $_ < scalar @rhs_names ) {
             $text .= q{ } . $rhs_names[$_]
         }
@@ -1409,6 +1409,21 @@ sub Marpa::show_dotted_rule {
     my $text =
         $rule->[Marpa::Internal::Rule::LHS]->[Marpa::Internal::Symbol::NAME]
         . q{ ->};
+
+    # In the bocage, when we are starting a rule and
+    # there is no current symbol, the position may
+    # be -1.
+    # Position has different semantics in the bocage, than in an LR-item.
+    # In the bocage, the position is *AT* a symbol.
+    # In the bocage the position is the number OF the current symbol.
+    # An LR-item the position how far into the rule parsing has
+    # proceded and is therefore between symbols (or at the end
+    # or beginning or a rule).
+    # Usually bocage position is one less than the analagous
+    # LR-item position.
+    if ($dot_position < 0) {
+        $text .= q{ !};
+    }
 
     my @rhs_names =
         map { $_->[Marpa::Internal::Symbol::NAME] }

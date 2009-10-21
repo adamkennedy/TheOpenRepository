@@ -2149,9 +2149,9 @@ sub Marpa::Evaluator::show_and_node {
             $return_value
                 .= '    rule '
                 . $rule->[Marpa::Internal::Rule::ID] . ': '
-                . Marpa::show_dotted_rule( $rule, $position + 1 )
+                . Marpa::show_dotted_rule( $rule, $position )
                 . "\n    "
-                . Marpa::brief_virtual_rule( $rule, $position + 1 ) . "\n";
+                . Marpa::brief_virtual_rule( $rule, $position ) . "\n";
             last SHOW_RULE;
         } ## end if ( $is_virtual_rule and $verbose >= 2 )
 
@@ -2159,7 +2159,7 @@ sub Marpa::Evaluator::show_and_node {
         $return_value
             .= '    rule '
             . $rule->[Marpa::Internal::Rule::ID] . ': '
-            . Marpa::brief_virtual_rule( $rule, $position + 1 ) . "\n";
+            . Marpa::brief_virtual_rule( $rule, $position ) . "\n";
 
     } ## end SHOW_RULE:
 
@@ -3137,10 +3137,18 @@ sub Marpa::Evaluator::value {
                         push @evaluation_stack, $value_ref;
 
                         if ($trace_values) {
+                            my $token = $and_node
+                                ->[ Marpa::Internal::And_Node::TOKEN ];
                             print {$trace_fh}
                                 'Pushed value from ',
                                 $and_node->[Marpa::Internal::And_Node::TAG],
                                 ': ',
+                                (
+                                $token
+                                ? ( $token->[Marpa::Internal::Symbol::NAME]
+                                        . q{ = } )
+                                : ''
+                                ),
                                 Data::Dumper->new( [$value_ref] )->Terse(1)
                                 ->Dump
                                 or Marpa::exception(
@@ -3162,11 +3170,9 @@ sub Marpa::Evaluator::value {
                         given ( $ops->[ $op_ix++ ] ) {
 
                             when (Marpa::Internal::Evaluator_Op::ARGC) {
+
                                 my $argc = $ops->[ $op_ix++ ];
-                                $current_data =
-                                    [ map { ${$_} }
-                                        ( splice @evaluation_stack, -$argc )
-                                    ];
+
                                 if ($trace_values) {
                                     my $rule_id =
                                         $and_node
@@ -3183,6 +3189,11 @@ sub Marpa::Evaluator::value {
                                         or Marpa::exception(
                                         'Could not print to trace file');
                                 } ## end if ($trace_values)
+
+                                $current_data =
+                                    [ map { ${$_} }
+                                        ( splice @evaluation_stack, -$argc )
+                                    ];
 
                             } ## end when (Marpa::Internal::Evaluator_Op::ARGC)
 
@@ -3202,16 +3213,17 @@ sub Marpa::Evaluator::value {
                                         $and_node
                                         ->[Marpa::Internal::And_Node::TAG],
                                         ', rule: ', Marpa::brief_rule($rule),
-                                        "\nAdding $real_symbol_count symbols; currently ",
+                                        "\n",
+                                        "Incrementing virtual rule by $real_symbol_count symbols\n",
+                                        "Currently ",
                                         ( scalar @virtual_rule_stack ),
                                         ' rules; ',
-                                        $virtual_rule_stack[-1], ' symbols'
+                                        $virtual_rule_stack[-1], ' symbols;',
                                         or Marpa::exception(
                                         'Could not print to trace file');
                                 } ## end if ($trace_values)
 
                                 $real_symbol_count += pop @virtual_rule_stack;
-                                ### real symbol count: $real_symbol_count
                                 $current_data = [
                                     map { ${$_} } (
                                         splice @evaluation_stack,
@@ -3324,7 +3336,8 @@ sub Marpa::Evaluator::value {
                                 my $result = $ops->[ $op_ix++ ];
                                 if ($trace_values) {
                                     print {$trace_fh}
-                                        'Constant result: Pushing 1 value on stack: ',
+                                        'Constant result: ',
+                                        'Pushing 1 value on stack: ',
                                         Data::Dumper->new( [$result] )
                                         ->Terse(1)->Dump
                                         or Marpa::exception(

@@ -10,12 +10,11 @@ MDLex and MDL will know about Marpa, but B<not> vice versa.
 
 =over 4
 
+=item * Duplicate parses in initial_nullalbes.t?
+
 =item * Or_map's should be hashes instead of arrays.
 
 =item * Make minimal work for null symbols.
-
-=item * Forbid simultaneous MAXIMAL & MINIMAL setting on rules & symbols.
-Combine them internally as ::GREEDY
 
 =item * Add ah_minimal.t -- ah2.t with minimal set on the grammar
 
@@ -37,15 +36,10 @@ A grammar with two rules in a cycle.  Each rule is all
 nulling (nullable?) symbols
 except for the last symbol, which must be non-nulling.
 
-I may assume in several places and zero-length and-nodes have
+=item * I may assume in several places and zero-length and-nodes have
 no cause or predecessor.  I have to find any places where this
 assumption is being made, and change it.  In addition to the
 above test, I may want to reread the relevant evaluator code.
-
-=item * Code to ensure zero-width or-nodes have unique parents seems to
-assume that the child and-nodes have no cause or predecessor.  I can't
-assume this.  I need to create a work list or or-nodes, and re-add those
-when cloned and-nodes are added to their parent list.
 
 =item * Create HTML Parser.
 
