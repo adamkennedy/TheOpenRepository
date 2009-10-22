@@ -649,17 +649,23 @@ sub Marpa::Evaluator::audit {
 
 # Internal routine to clone an and-node
 sub clone_and_node {
-    my ( $evaler, $and_node ) = @_;
+    my ( $evaler, $and_node, $new_parent_or_node_id,
+        $child_or_node_id_translation )
+        = @_;
+
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+
     my $new_and_node;
     $#{$new_and_node} = Marpa::Internal::And_Node::LAST_FIELD;
     my $new_and_node_id = $new_and_node->[Marpa::Internal::And_Node::ID] =
         scalar @{$and_nodes};
 
+    ### Cloning and-node, new id: $new_and_node_id
+
     push @{$and_nodes}, $new_and_node;
 
     for my $field (
-        Marpa::Internal::And_Node::TAG,
         Marpa::Internal::And_Node::VALUE_REF,
         Marpa::Internal::And_Node::TOKEN,
         Marpa::Internal::And_Node::EVALUATOR_DATA,
@@ -670,10 +676,46 @@ sub clone_and_node {
         )
     {
         $new_and_node->[$field] = $and_node->[$field];
-    } ## end for my $field ( Marpa::Internal::And_Node::TAG, ...)
-    $new_and_node->[Marpa::Internal::And_Node::TAG] =~ s{
-        [a] \d* \z
-    }{a$new_and_node_id}xms;
+    } ## end for my $field ( Marpa::Internal::And_Node::VALUE_REF,...)
+
+    # link the newly cloned and-node to
+    # its or-node parent
+    $new_parent_or_node_id //=
+        $and_node->[Marpa::Internal::And_Node::PARENT_ID];
+
+    ### Cloning and-node, parent or-node id: $new_parent_or_node_id
+
+    my $new_parent_or_node = $or_nodes->[$new_parent_or_node_id];
+    my $siblings = $new_parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+    $new_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] = @{$siblings};
+    $new_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
+        $new_parent_or_node_id;
+    push @{$siblings}, $new_and_node_id;
+
+    my $tag = $and_node->[Marpa::Internal::And_Node::TAG];
+    $tag =~ s{ [o] \d+ [a] \d+ \z }{}xms;
+    $tag .= 'o' . $new_parent_or_node_id . 'a' . $new_and_node_id;
+    $new_and_node->[Marpa::Internal::And_Node::TAG] = $tag;
+
+    # link the newly cloned and-node
+    # to its or-node children
+    $child_or_node_id_translation //= {};
+    FIELD:
+    for my $field (
+        Marpa::Internal::And_Node::CAUSE_ID,
+        Marpa::Internal::And_Node::PREDECESSOR_ID
+        )
+    {
+        my $old_child_or_node_id = $and_node->[$field];
+        next FIELD if not defined $old_child_or_node_id;
+        my $new_child_or_node_id =
+            $child_or_node_id_translation->{$old_child_or_node_id};
+        $new_child_or_node_id //= $old_child_or_node_id;
+        my $new_or_child = $or_nodes->[$new_child_or_node_id];
+        $new_and_node->[$field] = $new_child_or_node_id;
+        push @{ $new_or_child->[Marpa::Internal::Or_Node::PARENT_IDS] },
+            $new_and_node_id;
+    } ## end for my $field ( Marpa::Internal::And_Node::CAUSE_ID, ...)
 
     return $new_and_node;
 } ## end sub clone_and_node
@@ -1978,6 +2020,7 @@ of the rule, where it will end.
 
         # Don't need to deal with deleted ndoes
         # There aren't any at this point
+        my $or_node_id      = $or_node->[Marpa::Internal::Or_Node::ID];
 
         my $parent_and_node_ids =
             $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
@@ -1988,7 +2031,7 @@ of the rule, where it will end.
         $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] =
             [ $parent_and_node_ids->[0] ];
 
-        my @or_node_children =
+        my @child_and_nodes =
             map { $and_nodes->[$_] }
             @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
 
@@ -1999,7 +2042,7 @@ of the rule, where it will end.
                 Marpa::Internal::And_Node::PREDECESSOR_ID,
                 Marpa::Internal::And_Node::CAUSE_ID
                 ]
-            } @or_node_children;
+            } @child_and_nodes;
 
         # This or-node needs to be cloned, so that it will be
         # unique to its parent and-node
@@ -2007,62 +2050,40 @@ of the rule, where it will end.
             @{$parent_and_node_ids}[ 1 .. $#{$parent_and_node_ids} ] )
         {
 
-            my @cloned_and_nodes =
-                map { old_clone_and_node( $self, $_ ) } @or_node_children;
-
             my $cloned_or_node = [];
             $#{$cloned_or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
             my $cloned_or_node_id =
                 $cloned_or_node->[Marpa::Internal::Or_Node::ID] =
                 @{$or_nodes};
-            my $cloned_or_node_tag =
-                $or_node->[Marpa::Internal::Or_Node::TAG];
-            $cloned_or_node_tag =~ s/ (o\d+) \z /o$cloned_or_node_id/xms;
-            $cloned_or_node->[Marpa::Internal::Or_Node::TAG] =
-                $cloned_or_node_tag;
-            $cloned_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] =
-                [ map { $_->[Marpa::Internal::And_Node::ID] }
-                    @cloned_and_nodes ];
-
-            for my $cloned_and_node_choice ( 0 .. $#cloned_and_nodes ) {
-                my $cloned_and_node =
-                    $cloned_and_nodes[$cloned_and_node_choice];
-                my $cloned_and_node_id =
-                    $cloned_and_node->[Marpa::Internal::And_Node::ID];
-                $cloned_and_node->[Marpa::Internal::And_Node::TAG] =
-                    $cloned_or_node_tag . "a$cloned_and_node_id";
-                $cloned_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
-                    $cloned_or_node_id;
-                $cloned_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] =
-                    $cloned_and_node_choice;
-            } ## end for my $cloned_and_node_choice ( 0 .. $#cloned_and_nodes)
             for my $field (
                 Marpa::Internal::Or_Node::START_EARLEME,
                 Marpa::Internal::Or_Node::END_EARLEME,
+                Marpa::Internal::Or_Node::TAG
                 )
             {
                 $cloned_or_node->[$field] = $or_node->[$field];
             } ## end for my $field ( Marpa::Internal::Or_Node::START_EARLEME...)
-
+            $cloned_or_node->[Marpa::Internal::Or_Node::TAG]
+                =~ s/ (o\d+) \z /o$cloned_or_node_id/xms;
+            push @{$or_nodes}, $cloned_or_node;
             $cloned_or_node->[Marpa::Internal::Or_Node::PARENT_IDS] =
                 [$parent_and_node_id];
+            $cloned_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] = [];
 
-            my $or_node_id      = $or_node->[Marpa::Internal::Or_Node::ID];
-            my $parent_and_node = $and_nodes->[$parent_and_node_id];
-            my $parent_and_node_cause_id =
-                $parent_and_node->[Marpa::Internal::And_Node::CAUSE_ID];
-            if ( defined $parent_and_node_cause_id
-                and $or_node_id == $parent_and_node_cause_id )
-            {
-                $parent_and_node->[Marpa::Internal::And_Node::CAUSE_ID] =
-                    $cloned_or_node_id;
-            } ## end if ( defined $parent_and_node_cause_id and $or_node_id...)
-            else {
-                $parent_and_node->[Marpa::Internal::And_Node::PREDECESSOR_ID]
-                    = $cloned_or_node_id;
+            for my $child_and_node (@child_and_nodes) {
+                clone_and_node( $self, $child_and_node, $cloned_or_node_id );
             }
 
-            push @{$or_nodes}, $cloned_or_node;
+            my $parent_and_node = $and_nodes->[$parent_and_node_id];
+            FIELD: for my $field (
+                Marpa::Internal::And_Node::CAUSE_ID,
+                Marpa::Internal::And_Node::PREDECESSOR_ID) {
+                my $sibling_id = $parent_and_node->[$field];
+                next FIELD if not defined $sibling_id;
+                next FIELD if $sibling_id != $or_node_id;
+                $parent_and_node->[$field] = $cloned_or_node_id;
+            }
+
         } ## end for my $parent_and_node_id ( @{$parent_and_node_ids}[...])
 
     } ## end while ( my $or_node = pop @zero_width_work_list )
