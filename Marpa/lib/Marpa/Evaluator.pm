@@ -653,6 +653,10 @@ sub clone_and_node {
         $child_or_node_id_translation )
         = @_;
 
+    ### clone_and_node(), new_parent_or_node_id: $new_parent_or_node_id
+
+    ### clone_and_node, or-node translation: $child_or_node_id_translation
+
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
 
@@ -687,6 +691,9 @@ sub clone_and_node {
 
     my $new_parent_or_node = $or_nodes->[$new_parent_or_node_id];
     my $siblings = $new_parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+
+    ### siblings: $siblings
+
     $new_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] = @{$siblings};
     $new_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
         $new_parent_or_node_id;
@@ -711,7 +718,13 @@ sub clone_and_node {
         my $new_child_or_node_id =
             $child_or_node_id_translation->{$old_child_or_node_id};
         $new_child_or_node_id //= $old_child_or_node_id;
+
+        ### child or-node to be added, old, new: $old_child_or_node_id, $new_child_or_node_id
+
         my $new_or_child = $or_nodes->[$new_child_or_node_id];
+
+        ### adding child to cloned and-node, and-id, or-id: $new_and_node_id, $new_child_or_node_id
+
         $new_and_node->[$field] = $new_child_or_node_id;
         push @{ $new_or_child->[Marpa::Internal::Or_Node::PARENT_IDS] },
             $new_and_node_id;
@@ -1061,6 +1074,7 @@ sub rewrite_cycles {
             # tables.
             for my $or_node (@cycle) {
                 my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID];
+
                 my $new_or_node;
                 $#{$new_or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
                 for my $field (
@@ -1073,44 +1087,47 @@ sub rewrite_cycles {
                 } ## end for my $field ( ...)
 
                 my $new_or_node_id = @{$or_nodes};
-
+                $new_or_node->[Marpa::Internal::Or_Node::ID] =
+                    $new_or_node_id;
                 $new_or_node->[Marpa::Internal::Or_Node::TAG] =~ s{
                         [o] \d* \z
                     }{o$new_or_node_id}xms;
+                $new_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] = [];
 
-                $new_or_node->[Marpa::Internal::Or_Node::ID] =
-                    $new_or_node_id;
                 push @{$or_nodes}, $new_or_node;
                 push @copied_cycle, $new_or_node;
                 $translate_or_node_id{$or_node_id} = $new_or_node_id;
+            }
 
-                my $child_ids =
-                    $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
-                for my $choice ( 0 .. $#{$child_ids} ) {
-                    my $and_node_id = $child_ids->[$choice];
-                    my $and_node    = $and_nodes->[$and_node_id];
-                    my $new_and_node =
-                        old_clone_and_node( $evaler, $and_node );
-                    my $new_and_node_id =
-                        $new_and_node->[Marpa::Internal::And_Node::ID];
-                    if ( $new_and_node_id > $maximum_and_nodes ) {
+            for my $old_or_node (@cycle) {
+                my $old_or_node_id =
+                    $old_or_node->[Marpa::Internal::Or_Node::ID];
+                my $new_or_node_id = $translate_or_node_id{$old_or_node_id};
+                for my $old_child_and_node_id (
+                    @{ $old_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
+                {
+                    my $old_child_and_node =
+                        $and_nodes->[$old_child_and_node_id];
+
+                    ### cloning and node in cycle rewrite ...
+                    my $new_child_and_node = clone_and_node(
+                        $evaler,         $old_child_and_node,
+                        $new_or_node_id, \%translate_or_node_id
+                    );
+                    my $new_child_and_node_id =
+                        $new_child_and_node->[Marpa::Internal::And_Node::ID];
+                    if ( $new_child_and_node_id > $maximum_and_nodes ) {
                         Marpa::exception(
                             "Cycle produced too many nodes: $maximum_and_nodes\n",
                             "Rewrite grammar or increase cycle_scale\n"
                         );
-                    } ## end if ( $new_and_node_id > $maximum_and_nodes )
-                    push @{$and_nodes}, $new_and_node;
-                    $translate_and_node_id{$and_node_id} = $new_and_node_id;
+                    } ## end if ( $new_child_and_node_id > $maximum_and_nodes )
+                    $translate_and_node_id{$old_child_and_node_id} =
+                        $new_child_and_node_id;
 
-                    $new_or_node->[Marpa::Internal::Or_Node::CHILD_IDS]
-                        ->[$choice] = $new_and_node_id;
-                    $new_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
-                        $new_or_node_id;
-                    $new_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE]
-                        = $choice;
-                } ## end for my $choice ( 0 .. $#{$child_ids} )
+                } ## end for my $old_child_and_node_id ( @{ $old_or_node->[...]})
 
-            } ## end for my $or_node (@cycle)
+            } ## end for my $old_or_node (@cycle)
 
             # Translate the cycle-internal links
             # and duplicate the outgoing external links (which
@@ -1134,57 +1151,6 @@ sub rewrite_cycles {
                             ->[Marpa::Internal::Or_Node::PARENT_IDS]
                         }
                 ];
-
-                for my $original_and_node_id (
-                    @{  $original_or_node
-                            ->[Marpa::Internal::Or_Node::CHILD_IDS]
-                    }
-                    )
-                {
-                    my $original_and_node =
-                        $and_nodes->[$original_and_node_id];
-                    my $new_and_node_id =
-                        $translate_and_node_id{$original_and_node_id};
-
-                    my $new_and_node = $and_nodes->[$new_and_node_id];
-
-                    FIELD:
-                    for my $field (
-                        Marpa::Internal::And_Node::CAUSE_ID,
-                        Marpa::Internal::And_Node::PREDECESSOR_ID
-                        )
-                    {
-                        my $original_or_child_id =
-                            $original_and_node->[$field];
-                        next FIELD if not defined $original_or_child_id;
-                        my $original_or_child =
-                            $or_nodes->[$original_or_child_id];
-                        my $new_or_child_id =
-                            $translate_or_node_id{$original_or_child_id};
-
-                        my $new_or_child;
-                        if ( defined $new_or_child_id ) {
-
-                            $new_or_child = $or_nodes->[$new_or_child_id];
-                            $new_and_node->[$field] = $new_or_child_id;
-
-                            next FIELD;
-
-                        } ## end if ( defined $new_or_child_id )
-
-                        # If here, the or-child is external.
-
-                        $new_and_node->[$field] = $original_or_child_id;
-                        $new_or_child = $or_nodes->[$original_or_child_id];
-
-                        # Since the or-child is external,
-                        # we need to duplicate the link.
-                        push @{ $new_or_child
-                                ->[Marpa::Internal::Or_Node::PARENT_IDS] },
-                            $new_and_node_id;
-
-                    } ## end for my $field ( Marpa::Internal::And_Node::CAUSE_ID,...)
-                } ## end for my $original_and_node_id ( @{ $original_or_node...})
 
             } ## end for my $original_or_node (@cycle)
 
@@ -2087,6 +2053,7 @@ of the rule, where it will end.
             $cloned_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] = [];
 
             for my $child_and_node (@child_and_nodes) {
+                ### cloning and node in zero-width rewrite ...
                 clone_and_node( $self, $child_and_node, $cloned_or_node_id );
             }
 
