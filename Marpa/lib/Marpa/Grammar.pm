@@ -1320,9 +1320,9 @@ sub Marpa::brief_virtual_rule {
         : ( $chaf_start + $dot_position );
 
     for ( 0 .. scalar @rhs_names ) {
-        when ( defined $chaf_symbol_end[$_] )   { $text .= ' >'; continue }
+        when ( defined $chaf_symbol_end[$_] )   { $text .= ' >';  continue }
         when ($dot_position)                    { $text .= q{ .}; continue; }
-        when ( defined $chaf_symbol_start[$_] ) { $text .= ' <'; continue }
+        when ( defined $chaf_symbol_start[$_] ) { $text .= ' <';  continue }
         when ( $_ < scalar @rhs_names ) {
             $text .= q{ } . $rhs_names[$_]
         }
@@ -1421,7 +1421,7 @@ sub Marpa::show_dotted_rule {
     # or beginning or a rule).
     # Usually bocage position is one less than the analagous
     # LR-item position.
-    if ($dot_position < 0) {
+    if ( $dot_position < 0 ) {
         $text .= q{ !};
     }
 

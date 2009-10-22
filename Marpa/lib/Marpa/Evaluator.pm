@@ -678,6 +678,37 @@ sub clone_and_node {
     return $new_and_node;
 } ## end sub clone_and_node
 
+# Internal routine to clone an and-node
+sub old_clone_and_node {
+    my ( $evaler, $and_node ) = @_;
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $new_and_node;
+    $#{$new_and_node} = Marpa::Internal::And_Node::LAST_FIELD;
+    my $new_and_node_id = $new_and_node->[Marpa::Internal::And_Node::ID] =
+        scalar @{$and_nodes};
+
+    push @{$and_nodes}, $new_and_node;
+
+    for my $field (
+        Marpa::Internal::And_Node::TAG,
+        Marpa::Internal::And_Node::VALUE_REF,
+        Marpa::Internal::And_Node::TOKEN,
+        Marpa::Internal::And_Node::EVALUATOR_DATA,
+        Marpa::Internal::And_Node::START_EARLEME,
+        Marpa::Internal::And_Node::END_EARLEME,
+        Marpa::Internal::And_Node::RULE_ID,
+        Marpa::Internal::And_Node::POSITION,
+        )
+    {
+        $new_and_node->[$field] = $and_node->[$field];
+    } ## end for my $field ( Marpa::Internal::And_Node::TAG, ...)
+    $new_and_node->[Marpa::Internal::And_Node::TAG] =~ s{
+        [a] \d* \z
+    }{a$new_and_node_id}xms;
+
+    return $new_and_node;
+} ## end sub old_clone_and_node
+
 # Returns the number of nodes actually deleted
 sub delete_nodes {
     my ( $evaler, $delete_work_list ) = @_;
@@ -1013,9 +1044,10 @@ sub rewrite_cycles {
                 my $child_ids =
                     $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
                 for my $choice ( 0 .. $#{$child_ids} ) {
-                    my $and_node_id  = $child_ids->[$choice];
-                    my $and_node     = $and_nodes->[$and_node_id];
-                    my $new_and_node = clone_and_node( $evaler, $and_node );
+                    my $and_node_id = $child_ids->[$choice];
+                    my $and_node    = $and_nodes->[$and_node_id];
+                    my $new_and_node =
+                        old_clone_and_node( $evaler, $and_node );
                     my $new_and_node_id =
                         $new_and_node->[Marpa::Internal::And_Node::ID];
                     if ( $new_and_node_id > $maximum_and_nodes ) {
@@ -1149,7 +1181,7 @@ sub rewrite_cycles {
                 my $original_parent_and_node =
                     $and_nodes->[$original_parent_and_node_id];
                 my $new_parent_and_node =
-                    clone_and_node( $evaler, $original_parent_and_node );
+                    old_clone_and_node( $evaler, $original_parent_and_node );
                 my $new_parent_and_node_id =
                     $new_parent_and_node->[Marpa::Internal::And_Node::ID];
 
@@ -1976,7 +2008,7 @@ of the rule, where it will end.
         {
 
             my @cloned_and_nodes =
-                map { clone_and_node( $self, $_ ) } @or_node_children;
+                map { old_clone_and_node( $self, $_ ) } @or_node_children;
 
             my $cloned_or_node = [];
             $#{$cloned_or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
@@ -2403,8 +2435,8 @@ sub Marpa::Evaluator::value {
                     map      { $_->[1] }
                         sort { $a->[0] cmp $b->[0] }
                         map {
-                        [   ~(   join q{},
-                                    sort map { pack 'N*', @{$_} } @{
+                        [   ~(  join q{},
+                                sort map { pack 'N*', @{$_} } @{
                                     $_->[
                                         Marpa::Internal::And_Choice::SORT_KEY]
                                     }
@@ -2570,20 +2602,18 @@ sub Marpa::Evaluator::value {
                         : ~( ( $and_node_end_earleme - $token_start_earleme )
                         & N_FORMAT_MASK );
 
-                    push @current_sort_elements, [
-                        $token_start_earleme,
-                        $internal_nulls,
-                        ~0,
-                        $length,
-                    ];
+                    push @current_sort_elements,
+                        [
+                        $token_start_earleme, $internal_nulls,
+                        ~0,                   $length,
+                        ];
 
                 } ## end PROCESS_TOKEN:
 
                 if ($internal_nulls) {
                     my @new_cause_sort_elements = ();
                     SORT_ELEMENT:
-                    for my $cause_sort_element ( @{$cause_sort_elements} )
-                    {
+                    for my $cause_sort_element ( @{$cause_sort_elements} ) {
                         my ($location, $preceding_nulls,
                             $priority, $length
                         ) = @{$cause_sort_element};
@@ -2637,7 +2667,6 @@ sub Marpa::Evaluator::value {
                 $and_node_iteration
                     ->[Marpa::Internal::And_Iteration::TRAILING_NULLS] =
                     $trailing_nulls;
-
 
                 if (    defined $cause
                     and defined $predecessor )
@@ -3137,8 +3166,8 @@ sub Marpa::Evaluator::value {
                         push @evaluation_stack, $value_ref;
 
                         if ($trace_values) {
-                            my $token = $and_node
-                                ->[ Marpa::Internal::And_Node::TOKEN ];
+                            my $token =
+                                $and_node->[Marpa::Internal::And_Node::TOKEN];
                             print {$trace_fh}
                                 'Pushed value from ',
                                 $and_node->[Marpa::Internal::And_Node::TAG],
@@ -3147,7 +3176,7 @@ sub Marpa::Evaluator::value {
                                 $token
                                 ? ( $token->[Marpa::Internal::Symbol::NAME]
                                         . q{ = } )
-                                : ''
+                                : q{}
                                 ),
                                 Data::Dumper->new( [$value_ref] )->Terse(1)
                                 ->Dump
@@ -3215,7 +3244,7 @@ sub Marpa::Evaluator::value {
                                         ', rule: ', Marpa::brief_rule($rule),
                                         "\n",
                                         "Incrementing virtual rule by $real_symbol_count symbols\n",
-                                        "Currently ",
+                                        'Currently ',
                                         ( scalar @virtual_rule_stack ),
                                         ' rules; ',
                                         $virtual_rule_stack[-1], ' symbols;',
