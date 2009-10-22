@@ -122,8 +122,8 @@ require Perl::Dist::WiX::IconArray;
 require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 use Object::Tiny qw(
   perl_version
@@ -837,45 +837,6 @@ sub DESTROY {
 	return;
 } ## end sub DESTROY
 
-#####################################################################
-# Upstream Binary Packages (Mirrored)
-
-Readonly my %PACKAGES_X => (
-	32 => {
-		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
-		'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
-		'gcc-g++'       => 'gcc-g++-3.4.5-20060117-3.tar.gz',
-		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
-		'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
-		'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
-		'w32api'        => 'w32api-3.10.tar.gz',
-	},
-	64 => {
-		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
-		'gcc-core'      => undef,
-		'gcc-g++'       => undef,
-		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
-		'binutils'      => undef,
-		'mingw-runtime' => undef,
-		'w32api'        => undef,
-	},
-);
-
-sub get_package_file {
-	my $self = shift;
-	my $package = shift;
-	
-	if (not exists %PACKAGES_X{$self->bits()}) {
-		PDWiX->throw('Can only build 32 or 64-bit versions of perl');
-	}
-	
-	if (not exists %PACKAGES_X{$self->bits()}{$package}) {
-		PDWiX->throw('get_package_file called on a package that was not defined.');
-	}	
-
-	return %PACKAGES_X{$self->bits()}{$package};
-}
-
 sub final_initialization {
 	my $self = shift;
 
@@ -974,33 +935,6 @@ sub final_initialization {
 
 	return 1;
 } ## end sub final_initialization
-
-sub binary_file {
-	unless ( $PACKAGES{ $_[1] } ) {
-		PDWiX->throw("Unknown package '$_[1]'");
-	}
-	return $PACKAGES{ $_[1] };
-}
-
-sub binary_url {
-	my $self = shift;
-	my $file = shift;
-
-	# Check parameters.
-	unless ( _STRING($file) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'file',
-			where     => '->binary_url'
-		);
-	}
-
-	unless ( $file =~ /[.] (zip | gz | tgz | par) \z/imsx ) {
-
-		# Shorthand, map to full file name
-		$file = $self->binary_file( $file, @_ );
-	}
-	return $self->binary_root . q{/} . $file;
-} ## end sub binary_url
 
 =head2 Accessors
 

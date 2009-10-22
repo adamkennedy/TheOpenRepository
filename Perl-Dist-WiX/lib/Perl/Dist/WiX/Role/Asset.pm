@@ -130,6 +130,8 @@ sub BUILDARGS {
 
 		} elsif ( defined $args{name} ) {
 
+			PDWiX->throw(q{'name' without 'url' is deprecated});
+			
 			# Map name to URL via the default package path
 			$args{url} = $parent->binary_url( $args{name} );
 		}

@@ -28,9 +28,70 @@ use strict;
 use warnings;
 use File::Spec::Functions qw( catfile );
 use Perl::Dist::WiX::Exceptions;
+use Readonly;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
+
+Readonly my %PACKAGES => (
+	32 => {
+		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
+		'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
+		'gcc-g++'       => 'gcc-g++-3.4.5-20060117-3.tar.gz',
+		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
+		'binutils'      => 'binutils-2.17.50-20060824-1.tar.gz',
+		'mingw-runtime' => 'mingw-runtime-3.13.tar.gz',
+		'w32api'        => 'w32api-3.10.tar.gz',
+		'pexports'      => 'pexports-0.43-1.zip',
+	},
+	64 => {
+		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
+		'gcc-core'      => undef,
+		'gcc-g++'       => undef,
+		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
+		'binutils'      => undef,
+		'mingw-runtime' => undef,
+		'w32api'        => undef,
+		'pexports'      => undef, # ???
+	},
+);
+
+sub _binary_file {
+	my $self = shift;
+	my $package = shift;
+	
+	if (not exists %PACKAGES{$self->bits()}) {
+		PDWiX->throw('Can only build 32 or 64-bit versions of perl');
+	}
+	
+	if (not exists %PACKAGES{$self->bits()}{$package}) {
+		PDWiX->throw('get_package_file called on a package that was not defined.');
+	}	
+
+	return %PACKAGES{$self->bits()}{$package};
+}
+
+sub _binary_url {
+	my $self = shift;
+	my $file = shift;
+
+	# Check parameters.
+	unless ( _STRING($file) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'file',
+			where     => '->binary_url'
+		);
+	}
+
+	unless ( $file =~ /[.] (zip | gz | tgz | par) \z/imsx ) {
+
+		# Shorthand, map to full file name
+		$file = $self->_binary_file( $file, @_ );
+	}
+	return $self->binary_root . q{/} . $file;
+} ## end sub binary_url
+
+
 
 #####################################################################
 # Installing C Toolchain and Library Packages
@@ -58,6 +119,7 @@ sub install_dmake {
 	# Install dmake
 	my $filelist = $self->install_binary(
 		name    => 'dmake',
+		url     => $self->_binary_url('dmake'),
 		license => {
 			'dmake/COPYING'            => 'dmake/COPYING',
 			'dmake/readme/license.txt' => 'dmake/license.txt',
@@ -104,6 +166,7 @@ sub install_gcc {
 	# Install the compilers (gcc)
 	my $fl = $self->install_binary(
 		name    => 'gcc-core',
+		url     => $self->_binary_url('gcc-core'),
 		license => {
 			'COPYING'     => 'gcc/COPYING',
 			'COPYING.lib' => 'gcc/COPYING.lib',
@@ -112,7 +175,10 @@ sub install_gcc {
 
 	$self->insert_fragment( 'gcc_core', $fl );
 
-	$fl = $self->install_binary( name => 'gcc-g++', );
+	$fl = $self->install_binary( 
+		name => 'gcc-g++', 
+		url  => $self->_binary_url('gcc-g++'),
+	);
 
 	$self->insert_fragment( 'gcc_gplusplus', $fl );
 
@@ -141,6 +207,7 @@ sub install_binutils {
 
 	my $filelist = $self->install_binary(
 		name    => 'binutils',
+		url     => $self->_binary_url('binutils'),
 		license => {
 			'Copying'     => 'binutils/Copying',
 			'Copying.lib' => 'binutils/Copying.lib',
@@ -178,7 +245,7 @@ sub install_pexports {
 
 	my $filelist = $self->install_binary(
 		name       => 'pexports',
-		url        => $self->binary_url('pexports-0.43-1.zip'),
+		url        => $self->_binary_url('pexports'),
 		license    => { 'pexports-0.43/COPYING' => 'pexports/COPYING', },
 		install_to => { 'pexports-0.43/bin' => 'c/bin', },
 	);
@@ -212,6 +279,7 @@ sub install_mingw_runtime {
 
 	my $filelist = $self->install_binary(
 		name    => 'mingw-runtime',
+		url     => $self->_binary_url('mingw-runtime'),
 		license => {
 			'doc/mingw-runtime/Contributors' => 'mingw/Contributors',
 			'doc/mingw-runtime/Disclaimer'   => 'mingw/Disclaimer',
@@ -239,7 +307,10 @@ Returns true or throws an exception on error.
 sub install_win32api {
 	my $self = shift;
 
-	my $filelist = $self->install_binary( name => 'w32api', );
+	my $filelist = $self->install_binary( 
+		name => 'w32api',
+		url  => $self->_binary_url('w32api'),
+	);
 
 	$self->insert_fragment( 'w32api', $filelist );
 
@@ -266,7 +337,10 @@ Returns true or throws an exception on error.
 sub install_mingw_make {
 	my $self = shift;
 
-	my $filelist = $self->install_binary( name => 'mingw-make', );
+	my $filelist = $self->install_binary( 
+		name => 'mingw-make', 
+		url  => $self->_binary_url('mingw-make'),
+	);
 
 	$self->insert_fragment( 'mingw_make', $filelist );
 
