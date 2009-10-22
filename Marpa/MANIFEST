@@ -29,6 +29,7 @@ lib/Marpa/Doc/MDL.pod
 lib/Marpa/Doc/Options.pod
 lib/Marpa/Doc/Parse_Terms.pod
 lib/Marpa/Doc/Plumbing.pod
+lib/Marpa/Doc/TODO.pod
 lib/Marpa/Evaluator.pm
 lib/Marpa/Grammar.pm
 lib/Marpa/Internal.pm
@@ -54,7 +55,6 @@ Makefile.PL
 MANIFEST
 META.yml
 README
-sandbox/TODO.pod
 t/00-load.t
 t/ah2.t
 t/ah.t

@@ -1016,8 +1016,7 @@ sub rewrite_cycles {
         # on the work list for another pass
         push @span_sets, $span_set;
 
-        # determine which in the original cycle set are
-        # internal and-nodes
+        # Find the internal and-nodes in the cycle
         my %internal_and_nodes = ();
         for my $or_node (@cycle) {
             for my $and_node_id (
@@ -1027,11 +1026,13 @@ sub rewrite_cycles {
             }
         } ## end for my $or_node (@cycle)
 
-        # determine which in the original span set are the
-        # root or-nodes
+        # Find the root or-nodes in the cycle
+        # They are the or-nodes, at least
+        # one of whose parent and-nodes
+        # are external.
         my @root_or_nodes = grep {
-            defined List::Util::first { not defined $internal_and_nodes{$_} }
-            @{ $_->[Marpa::Internal::Or_Node::PARENT_IDS] }
+            grep { not( $_ ~~ \%internal_and_nodes ) }
+                @{ $_->[Marpa::Internal::Or_Node::PARENT_IDS] }
         } @cycle;
 
         ## deletion-consistent at this point
@@ -1227,6 +1228,9 @@ sub rewrite_cycles {
                 my $new_parent_and_node_id =
                     $new_parent_and_node->[Marpa::Internal::And_Node::ID];
 
+                # hack because of problem in code
+                my $translateable_child_of_and_node_seen = 0;
+
                 # Now tell the cloned and-node about its children, one
                 # of which is the new root or-node
                 FIELD:
@@ -1239,6 +1243,13 @@ sub rewrite_cycles {
                         $original_parent_and_node->[$field];
                     next FIELD
                         if not defined $original_root_or_node_sibling_id;
+
+                    if ($translate_or_node_id{$original_root_or_node_sibling_id}) {
+                        Marpa::exception(
+                            'Rewrite of intertwined nulling cycles not yet implemented'
+                        )
+                        if $translateable_child_of_and_node_seen++;
+                    }
 
                     # If this field was the root or node in the old
                     # parent and-node, make it the case that the
@@ -1263,6 +1274,10 @@ sub rewrite_cycles {
                             ->[Marpa::Internal::Or_Node::PARENT_IDS] },
                         $new_parent_and_node_id;
 
+                    # THE ASSUMPTION OUTLINED IN THIS COMMENT IS
+                    # FALSE AND ITS PROOF FALLACIOUS.
+                    # -- JK 2009 Oct 21
+                    #
                     # We assume that a field is either
                     # a clone of the root, or cycle-external.
                     # We can do this because:
@@ -1279,6 +1294,7 @@ sub rewrite_cycles {
                     #   4. Zero-width and-nodes do not have children,
                     #      because of Marpa's assignment of constant
                     #      "null values" to null symbols.
+
                 } ## end for my $field ( Marpa::Internal::And_Node::CAUSE_ID,...)
 
                 # Tell the parent of the newly cloned and-node
