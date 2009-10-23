@@ -1332,10 +1332,10 @@ sub delete_duplicate_nodes {
         };
         my $and_class_by_id =
             [
-            (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x $#{$and_nodes} ];
+            (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x scalar @{$and_nodes} ];
         my $or_class_by_id =
             [
-            (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x $#{$or_nodes} ];
+            (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x scalar @{$or_nodes} ];
 
         REFINE_CLASSES_PASS: while (1) {
 
@@ -1360,12 +1360,14 @@ sub delete_duplicate_nodes {
                     # Deleted nodes should never make it in here
                     my $new_signature =
                         $and_base_signatures[$and_node_id] . q{;}
-                        . join q{,},
+                        . (
+                        join q{,},
                         map { defined $_ ? $or_class_by_id->[$_] : -1 }
-                        @{ $and_nodes->[$and_node_id] }[
-                        Marpa::Internal::And_Node::PREDECESSOR_ID,
+                            @{ $and_nodes->[$and_node_id] }[
+                            Marpa::Internal::And_Node::PREDECESSOR_ID,
                         Marpa::Internal::And_Node::CAUSE_ID
-                        ];
+                            ]
+                        );
                     $changed ||= $new_signature ne $signature;
 
                     my $new_class =
@@ -1393,7 +1395,7 @@ sub delete_duplicate_nodes {
                     # Deleted nodes should never make it in here
                     my $new_signature =
                         join q{,},
-                        sort map { $or_class_by_id->[$_] }
+                        sort map { $and_class_by_id->[$_] }
                         @{ $or_nodes->[$or_node_id]
                             ->[Marpa::Internal::Or_Node::CHILD_IDS] };
                     $changed ||= $new_signature ne $signature;
