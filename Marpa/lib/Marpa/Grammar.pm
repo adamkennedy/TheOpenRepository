@@ -245,7 +245,7 @@ package Marpa::Internal::Grammar;
 use Carp;
 use POSIX qw(ceil);
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 

@@ -5,8 +5,6 @@ use 5.010;
 use strict;
 use warnings;
 
-use Smart::Comments '-ENV';
-
 use Test::More tests => 25;
 
 use lib 'lib';
