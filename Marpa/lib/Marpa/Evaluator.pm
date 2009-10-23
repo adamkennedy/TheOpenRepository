@@ -1466,178 +1466,6 @@ sub delete_duplicate_nodes {
 
 } ## end sub delete_duplicate_nodes
 
-sub old_delete_duplicate_nodes {
-
-    my ($evaler) = @_;
-
-    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
-    my $trace_fh;
-    my $trace_evaluation;
-
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_evaluation =
-            $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
-    }
-
-    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
-    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-
-    # Initialize the work list with the terminal and-nodes
-    my @terminal_nodes =
-        grep {
-                not $_->[Marpa::Internal::And_Node::DELETED]
-            and not $_->[Marpa::Internal::And_Node::PREDECESSOR_ID]
-            and not $_->[Marpa::Internal::And_Node::CAUSE_ID]
-        } @{$and_nodes};
-
-    DELETE_DUPLICATE_PASS: while (1) {
-
-        # Initialize the work list
-        my @work_list =
-            map { [ 'a', $_->[Marpa::Internal::And_Node::ID] ] }
-            @terminal_nodes;
-
-        my %and_class_signature;
-        my %or_class_signature;
-        my %full_signature;
-        my @delete_work_list = ();
-
-        WORK_LIST_ENTRY: while ( my $work_list_entry = pop @work_list ) {
-
-            my ( $node_type, $node_id ) = @{$work_list_entry};
-
-            if ( $node_type eq 'a' ) {
-                my $and_node = $and_nodes->[$node_id];
-
-                next WORK_LIST_ENTRY
-                    if $and_node->[Marpa::Internal::And_Node::DELETED]
-                        or
-                        defined $and_node->[Marpa::Internal::And_Node::CLASS];
-
-                # No check whether there is already a class -- an undeleted
-                # and-node with a class will not be on the work list.
-
-                my @classes;
-                FIELD:
-                for my $field ( Marpa::Internal::And_Node::CAUSE_ID,
-                    Marpa::Internal::And_Node::PREDECESSOR_ID
-                    )
-                {
-                    my $or_child_id = $and_node->[$field];
-                    my $class =
-                        defined $or_child_id
-                        ? $or_nodes->[$or_child_id]
-                        ->[Marpa::Internal::Or_Node::CLASS]
-                        : -1;
-
-                    # If we don't have an equivalence class for a child,
-                    # nothing we can do.
-                    next WORK_LIST_ENTRY if not defined $class;
-
-                    push @classes, $class;
-
-                } ## end for my $field ( Marpa::Internal::And_Node::CAUSE_ID,...)
-
-                my $and_class_signature = join q{,},
-                    $and_node->[Marpa::Internal::And_Node::RULE_ID] + 0,
-                    $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
-                    $and_node->[Marpa::Internal::And_Node::START_EARLEME] + 0,
-                    $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
-                    @classes,
-                    ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 )
-                    + 0,
-                    ;
-
-                ### And-node id, signature: $node_id, $and_class_signature
-
-                my $parent_id =
-                    $and_node->[Marpa::Internal::And_Node::PARENT_ID];
-
-                push @work_list, [ 'o', $parent_id ];
-
-                my $class = $and_class_signature{$and_class_signature};
-                if ( not defined $class ) {
-                    $class = $and_class_signature{$and_class_signature} =
-                        $node_id;
-                }
-                $and_node->[Marpa::Internal::And_Node::CLASS] = $class;
-
-                if ( $full_signature{"$parent_id,$and_class_signature"}++ ) {
-
-                    if ($trace_evaluation) {
-                        print {$trace_fh} "Deleting duplicate and-node:\n",
-                            $and_node->[Marpa::Internal::And_Node::TAG], "\n"
-                            or
-                            Marpa::exception('print to trace handle failed');
-                    } ## end if ($trace_evaluation)
-
-                    push @delete_work_list, [ 'a', $node_id ];
-
-                    next WORK_LIST_ENTRY;
-
-                } ## end if ( $full_signature{...})
-
-                next WORK_LIST_ENTRY;
-
-            } ## end if ( $node_type eq 'a' )
-
-            if ( $node_type eq 'o' ) {
-                my $or_node = $or_nodes->[$node_id];
-
-                next WORK_LIST_ENTRY
-                    if $or_node->[Marpa::Internal::Or_Node::DELETED]
-                        or
-                        defined $or_node->[Marpa::Internal::Or_Node::CLASS];
-
-                my @classes = map {
-                    $and_nodes->[$_]->[Marpa::Internal::And_Node::CLASS]
-                } @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
-
-                # If one of the classes is undefined, nothing we can do
-                next WORK_LIST_ENTRY
-                    if grep { not defined $_ } @classes;
-
-                my $or_class_signature = join q{,}, ( sort @classes );
-                my $class = $or_class_signature{$or_class_signature};
-                if ( not defined $class ) {
-                    $class = $or_class_signature{$or_class_signature} =
-                        $node_id;
-                }
-                $or_node->[Marpa::Internal::Or_Node::CLASS] = $class;
-
-                push @work_list,
-                    map { [ 'a', $_ ] }
-                    @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] };
-
-                next WORK_LIST_ENTRY;
-
-            } ## end if ( $node_type eq 'o' )
-
-            Marpa::exception("Internal error, unknown node type: $node_type");
-
-        } ## end while ( my $work_list_entry = pop @work_list )
-
-        # If no nodes are deleted, we are finished
-        last DELETE_DUPLICATE_PASS
-            if not scalar @delete_work_list
-                or delete_nodes( $evaler, \@delete_work_list ) <= 0;
-
-        # Remove any deleted nodes from the terminal nodes
-        # before looping
-        @terminal_nodes =
-            grep { not $_->[Marpa::Internal::And_Node::DELETED] }
-            @terminal_nodes;
-
-    } ## end while (1)
-
-    return;
-
-} ## end sub old_delete_duplicate_nodes
-
 # Returns false if no parse
 sub Marpa::Evaluator::new {
     my $class = shift;
@@ -2055,6 +1883,17 @@ sub Marpa::Evaluator::new {
 
     } ## end for my $and_node ( @{$and_nodes} )
 
+    my $first_ambiguous_or_node = List::Util::first {
+        @{ $_->[Marpa::Internal::Or_Node::CHILD_IDS] } > 1;
+    }
+    @{$or_nodes};
+
+    ### assert: Marpa'Evaluator'audit($self) or 1
+
+    if (defined $first_ambiguous_or_node) {
+        delete_duplicate_nodes($self);
+    }
+
 =begin Implementation:
 
 We don't allow zero-length or-nodes to have more than one and-node parent.
@@ -2082,14 +1921,13 @@ of the rule, where it will end.
 =cut
 
     my @zero_width_work_list = grep {
-        $_->[Marpa::Internal::Or_Node::START_EARLEME]
+        not $_->[Marpa::Internal::Or_Node::DELETED]
+        and $_->[Marpa::Internal::Or_Node::START_EARLEME]
             == $_->[Marpa::Internal::Or_Node::END_EARLEME]
     } @{$or_nodes};
 
     OR_NODE: while ( my $or_node = pop @zero_width_work_list ) {
 
-        # Don't need to deal with deleted ndoes
-        # There aren't any at this point
         my $or_node_id      = $or_node->[Marpa::Internal::Or_Node::ID];
 
         my $parent_and_node_ids =
@@ -2163,20 +2001,6 @@ of the rule, where it will end.
 
     # TODO: Add code to only attempt rewrite if grammar is cyclical
     rewrite_cycles($self);
-
-    my $first_ambiguous_or_node = List::Util::first {
-        @{ $_->[Marpa::Internal::Or_Node::CHILD_IDS] } > 1;
-    }
-    @{$or_nodes};
-
-    ### assert: Marpa'Evaluator'audit($self) or 1
-
-    return $self if not defined $first_ambiguous_or_node;
-
-    # The rest of the processing only applies to ambiguous grammars.
-
-    # old_delete_duplicate_nodes($self);
-    delete_duplicate_nodes($self);
 
     ### assert: Marpa'Evaluator'audit($self) or 1
 
@@ -3270,7 +3094,7 @@ sub Marpa::Evaluator::value {
                                         . q{ = } )
                                 : q{}
                                 ),
-                                Data::Dumper->new( [$value_ref+0, $value_ref] )->Terse(1)
+                                Data::Dumper->new( [$value_ref] )->Terse(1)
                                 ->Dump
                                 or Marpa::exception(
                                 'print to trace handle failed');
