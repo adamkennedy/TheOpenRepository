@@ -656,7 +656,7 @@ sub clone_and_node {
         = @_;
 
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
 
     my $new_and_node;
     $#{$new_and_node} = Marpa::Internal::And_Node::LAST_FIELD;
@@ -853,8 +853,6 @@ sub delete_nodes {
     } ## end while ( my $delete_work_item = pop @{$delete_work_list})
     return $deleted_count;
 } ## end sub delete_nodes
-
-## no critic (ControlStructures::ProhibitDeepNests)
 
 # Rewrite to eliminate cycles.
 sub rewrite_cycles {
@@ -1054,7 +1052,7 @@ sub rewrite_cycles {
                 push @{$or_nodes}, $new_or_node;
                 push @copied_cycle, $new_or_node;
                 $translate_or_node_id{$or_node_id} = $new_or_node_id;
-            }
+            } ## end for my $or_node (@cycle)
 
             for my $old_or_node (@cycle) {
                 my $old_or_node_id =
@@ -1147,15 +1145,15 @@ sub rewrite_cycles {
                     $and_nodes->[$original_parent_and_node_id];
                 my $new_parent_and_node =
                     clone_and_node( $evaler, $old_parent_and_node, undef,
-                    { $original_root_or_node_id => $new_root_or_node_id });
+                    { $original_root_or_node_id => $new_root_or_node_id } );
 
                 Marpa::exception( 'Rewrite of intertwined nulling cycles',
                     ' not yet implemented' )
                     if grep { defined and defined $translate_or_node_id{$_} }
-                    @{$new_parent_and_node}[
-                    Marpa::Internal::And_Node::CAUSE_ID,
+                        @{$new_parent_and_node}[
+                        Marpa::Internal::And_Node::CAUSE_ID,
                     Marpa::Internal::And_Node::PREDECESSOR_ID
-                    ];
+                        ];
 
             } ## end for my $original_parent_and_node_id ( @{ ...})
 
@@ -1247,7 +1245,7 @@ same, and they will remain together in an EC.
 # Negative so they cannot be the same as the ID of any
 # actual child and-node or or-node.
 use constant CHILD_IS_PRESENT => -2;
-use constant CHILD_IS_ABSENT => -1;
+use constant CHILD_IS_ABSENT  => -1;
 
 # Make sure and-nodes are unique.
 sub delete_duplicate_nodes {
@@ -1278,14 +1276,14 @@ sub delete_duplicate_nodes {
     my @and_base_signatures;
     for my $and_node ( @{$and_nodes} ) {
         my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
-        my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
+        my $token       = $and_node->[Marpa::Internal::And_Node::TOKEN];
         $and_base_signatures[$and_node_id] =
             join q{,},
             $and_node->[Marpa::Internal::And_Node::RULE_ID],
             $and_node->[Marpa::Internal::And_Node::POSITION],
             $and_node->[Marpa::Internal::And_Node::START_EARLEME],
             $and_node->[Marpa::Internal::And_Node::END_EARLEME],
-            ( defined $token ? $token->[Marpa::Internal::Symbol::ID] : -1);
+            ( defined $token ? $token->[Marpa::Internal::Symbol::ID] : -1 );
     } ## end for my $and_node ( @{$and_nodes} )
 
     # As long as duplicates are found, we continue to loop
@@ -1316,8 +1314,8 @@ sub delete_duplicate_nodes {
             ]
         };
         my $or_class_by_id =
-            [
-            (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x scalar @{$or_nodes} ];
+            [ (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x
+                scalar @{$or_nodes} ];
 
         REFINE_CLASSES_PASS: while (1) {
 
@@ -1366,7 +1364,7 @@ sub delete_duplicate_nodes {
                         $and_node_id;
 
                 } ## end for my $and_node_id ( @{$and_node_ids} )
-            } ## end while ( my ( $signature, $and_node_ids ) = %{...})
+            } ## end while ( my ( $signature, $and_node_ids ) = each %{...})
 
             OR_CLASS:
             while ( my ( $signature, $or_node_ids ) =
@@ -1396,7 +1394,7 @@ sub delete_duplicate_nodes {
                         $or_node_id;
 
                 } ## end for my $or_node_id ( @{$or_node_ids} )
-            } ## end while ( my ( $signature, $or_node_ids ) = %{...})
+            } ## end while ( my ( $signature, $or_node_ids ) = each %{...})
 
             last REFINE_CLASSES_PASS if not $changed;
 
@@ -1435,7 +1433,7 @@ sub delete_duplicate_nodes {
                     or Marpa::exception('print to trace handle failed');
 
             } ## end for my $and_node_id ( @{$and_node_ids} )
-        } ## end while ( my ( $signature, $and_node_ids ) = %{...})
+        } ## end while ( my ( $signature, $and_node_ids ) = each %{...})
 
         # If no nodes are deleted, we are finished
         last DELETE_DUPLICATE_PASS
@@ -1546,7 +1544,7 @@ sub Marpa::Evaluator::new {
     my $start_rule_id = $start_rule->[Marpa::Internal::Rule::ID];
 
     state $parse_number = 0;
-    my $null_values = set_null_values($self);
+    my $null_values     = set_null_values($self);
     my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_DATA] =
         set_actions($self);
     if (defined(
@@ -1872,7 +1870,7 @@ sub Marpa::Evaluator::new {
 
     ### assert: Marpa'Evaluator'audit($self) or 1
 
-    if (defined $first_ambiguous_or_node) {
+    if ( defined $first_ambiguous_or_node ) {
         delete_duplicate_nodes($self);
     }
 
@@ -1904,13 +1902,13 @@ of the rule, where it will end.
 
     my @zero_width_work_list = grep {
         not $_->[Marpa::Internal::Or_Node::DELETED]
-        and $_->[Marpa::Internal::Or_Node::START_EARLEME]
+            and $_->[Marpa::Internal::Or_Node::START_EARLEME]
             == $_->[Marpa::Internal::Or_Node::END_EARLEME]
     } @{$or_nodes};
 
     OR_NODE: while ( my $or_node = pop @zero_width_work_list ) {
 
-        my $or_node_id      = $or_node->[Marpa::Internal::Or_Node::ID];
+        my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID];
 
         my $parent_and_node_ids =
             $or_node->[Marpa::Internal::Or_Node::PARENT_IDS];
@@ -1965,14 +1963,17 @@ of the rule, where it will end.
             }
 
             my $parent_and_node = $and_nodes->[$parent_and_node_id];
-            FIELD: for my $field (
+            FIELD:
+            for my $field (
                 Marpa::Internal::And_Node::CAUSE_ID,
-                Marpa::Internal::And_Node::PREDECESSOR_ID) {
+                Marpa::Internal::And_Node::PREDECESSOR_ID
+                )
+            {
                 my $sibling_id = $parent_and_node->[$field];
                 next FIELD if not defined $sibling_id;
                 next FIELD if $sibling_id != $or_node_id;
                 $parent_and_node->[$field] = $cloned_or_node_id;
-            }
+            } ## end for my $field ( Marpa::Internal::And_Node::CAUSE_ID, ...)
 
         } ## end for my $parent_and_node_id ( @{$parent_and_node_ids}[...])
 
@@ -1988,8 +1989,6 @@ of the rule, where it will end.
     return $self;
 
 }    # sub new
-
-## use critic
 
 sub Marpa::dump_sort_key {
     my ($sort_key) = @_;

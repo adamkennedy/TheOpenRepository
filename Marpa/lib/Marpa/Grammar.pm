@@ -1662,7 +1662,8 @@ sub assign_symbol {
         $symbol->[Marpa::Internal::Symbol::NAME]        = $name;
         $symbol->[Marpa::Internal::Symbol::LH_RULE_IDS] = [];
         $symbol->[Marpa::Internal::Symbol::RH_RULE_IDS] = [];
-        # Only becomes effective if the nulling is nullable.
+
+        # Only becomes effective if the symbol is nullable.
         # Right now cannot be set on a per-symbol basis.
         $symbol->[Marpa::Internal::Symbol::GREED] =
             $grammar->[Marpa::Internal::Grammar::GREED];

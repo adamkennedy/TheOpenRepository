@@ -37,6 +37,8 @@ above test, I may want to reread the relevant evaluator code.
 
 =item * Create HTML Parser.
 
+=back
+
 =head1 HIGH PRIORITY
 
 =over 4
@@ -116,6 +118,8 @@ call to C<value>?
 =item * MDLex currently does not sort terminals by priority.  This
 means terminal priorities are totally unused.  Change this?
 
+=back
+
 =head1 MDL
 
 MDL is EOL'd.
@@ -140,6 +144,8 @@ What to do here?  It should be failing, probably.
 And does the current behavior of the evaluator,
 (taking the default end as FURTHEST_EARLEME) set
 the user up for spurious successes.
+
+=back
 
 =head1 SUPPORT
 

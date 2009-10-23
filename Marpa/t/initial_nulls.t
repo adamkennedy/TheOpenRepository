@@ -35,26 +35,26 @@ my $grammar = Marpa::Grammar->new(
         maximal => 1,
 
         rules => [
-            [ 'S', [qw/p p p n/], ],
-            [ 'p', ['t'], ],
-            [ 'p', [], ],
-            [ 'n', ['t'], ],
-            [ 'n', ['r2'], ],
+            [ 'S',  [qw/p p p n/], ],
+            [ 'p',  ['t'], ],
+            [ 'p',  [], ],
+            [ 'n',  ['t'], ],
+            [ 'n',  ['r2'], ],
             [ 'r2', [qw/a b c d e x/], ],
-            [ 'a', [] ],
-            [ 'b', [] ],
-            [ 'c', [] ],
-            [ 'd', [] ],
-            [ 'e', [] ],
-            [ 'a', ['t'] ],
-            [ 'b', ['t'] ],
-            [ 'c', ['t'] ],
-            [ 'd', ['t'] ],
-            [ 'e', ['t'] ],
-            [ 'x', ['t'], ],
+            [ 'a',  [] ],
+            [ 'b',  [] ],
+            [ 'c',  [] ],
+            [ 'd',  [] ],
+            [ 'e',  [] ],
+            [ 'a',  ['t'] ],
+            [ 'b',  ['t'] ],
+            [ 'c',  ['t'] ],
+            [ 'd',  ['t'] ],
+            [ 'e',  ['t'] ],
+            [ 'x',  ['t'], ],
         ],
         terminals      => ['t'],
-        maximal => 1,
+        maximal        => 1,
         default_action => 'main::default_action',
     }
 );
@@ -62,6 +62,8 @@ my $grammar = Marpa::Grammar->new(
 $grammar->precompute();
 
 my $a = $grammar->get_terminal('t');
+
+## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
 
 my @results;
 $results[1][0] = '(-;-;-;(-;-;-;-;-;a))';
@@ -104,7 +106,7 @@ for my $input_length ( 1 .. 9 ) {
             "cycle with initial nullables, input length=$input_length, value #$i"
         );
         $i++;
-    } ## end while ( my $value = $evaler->value() and $i < 3 )
+    } ## end while ( $i < 3 and my $value = $evaler->value() )
 } ## end for my $input_length ( 1 .. 9 )
 
 # Local Variables:

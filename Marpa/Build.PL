@@ -16,6 +16,8 @@ my $class = Module::Build->subclass(
         my $self = shift;
         open( my $manifest_fh, q{<}, 'MANIFEST' )
             or die("Cannot open MANIFEST: $!");
+
+        my @problems;
         FILE: while ( my $file = <$manifest_fh> ) {
             chomp $file;
             next FILE if $file =~ /^\s*[#]/xms;
@@ -26,10 +28,11 @@ my $class = Module::Build->subclass(
                 <$fh>;
             };
             if ( $file_text =~ /^ \s+ use \s+ Smart[:][:]Comments /xms ) {
-                say STDERR "Fatal Error: Smart::Comments enabled in $file";
-                die("dist action abended\n");
+                push @problems, "Smart::Comments enabled in $file";
             }
         } ## end while ( my $file = <$manifest_fh> )
+
+        die(join "\n", @problems, "Fatal Error\n") if @problems;
         $self->SUPER::ACTION_dist;
     } ## end sub ACTION_dist
 SUBCLASS
