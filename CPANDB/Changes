@@ -1,5 +1,8 @@
 Changes for Perl extension CPANDB
 
+0.12
+	- Added documentation for cpangraph (in POD)
+
 0.11 Thu  1 Oct 2009
 	- Updating ORLite::Statistics dependency to 0.03
 	- Adding basic implementation of age quadrants
