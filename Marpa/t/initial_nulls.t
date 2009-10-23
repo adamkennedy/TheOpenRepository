@@ -23,6 +23,7 @@ sub default_action {
     my $v_count = scalar @_;
     return q{} if $v_count <= 0;
     my @vals = map { $_ // q{-} } @_;
+    return $_[0] if scalar @vals == 1;
     return '(' . join( q{;}, @vals ) . ')';
 } ## end sub default_action
 
@@ -63,36 +64,30 @@ $grammar->precompute();
 my $a = $grammar->get_terminal('t');
 
 my @results;
-$results[1][0] = '(-;-;-;(a))';
-$results[1][1] = '(-;-;-;((-;-;-;-;-;(a))))';
-$results[2][0] = '((a);-;-;(a))';
-# same parse twice
-$results[2][1] = '((a);-;-;((-;-;-;-;-;(a))))';
-$results[2][2] = '((a);-;-;((-;-;-;-;-;(a))))';
-$results[3][0] = '((a);(a);-;(a))';
-# same parse twice
-$results[3][1] = '((a);(a);-;((-;-;-;-;-;(a))))';
-$results[3][2] = '((a);(a);-;((-;-;-;-;-;(a))))';
-$results[4][0] = '((a);(a);(a);(a))';
-# same parse twice
-$results[4][1] = '((a);(a);(a);((-;-;-;-;-;(a))))';
-$results[4][2] = '((a);(a);(a);((-;-;-;-;-;(a))))';
-$results[5][0] = '((a);(a);(a);(((a);-;-;-;-;(a))))';
-# same parse twice
-$results[5][1] = '((a);(a);(a);(((a);-;-;-;-;(a))))';
-$results[5][2] = '((a);(a);(a);(((a);-;-;-;-;(a))))';
-$results[6][0] = '((a);(a);(a);(((a);(a);-;-;-;(a))))';
-# same parse twice
-$results[6][1] = '((a);(a);(a);(((a);(a);-;-;-;(a))))';
-$results[6][2] = '((a);(a);(a);(((a);(a);-;-;-;(a))))';
-# same parse twice
-$results[7][0] = '((a);(a);(a);(((a);(a);(a);-;-;(a))))';
-$results[7][1] = '((a);(a);(a);(((a);(a);(a);-;-;(a))))';
-$results[7][2] = '((a);(a);(a);(((a);(a);-;(a);-;(a))))';
-$results[8][0] = '((a);(a);(a);(((a);(a);(a);(a);-;(a))))';
-$results[8][1] = '((a);(a);(a);(((a);(a);(a);-;(a);(a))))';
-$results[8][2] = '((a);(a);(a);(((a);(a);-;(a);(a);(a))))';
-$results[9][0] = '((a);(a);(a);(((a);(a);(a);(a);(a);(a))))';
+$results[1][0] = '(-;-;-;a)';
+$results[1][1] = '(-;-;-;(-;-;-;-;-;a))';
+$results[2][0] = '(a;-;-;a)';
+$results[2][1] = '(a;-;-;(-;-;-;-;-;a))';
+$results[2][2] = '(-;a;-;a)';
+$results[3][0] = '(a;a;-;a)';
+$results[3][1] = '(a;a;-;(-;-;-;-;-;a))';
+$results[3][2] = '(a;-;a;a)';
+$results[4][0] = '(a;a;a;a)';
+$results[4][1] = '(a;a;a;(-;-;-;-;-;a))';
+$results[4][2] = '(a;a;-;(a;-;-;-;-;a))';
+$results[5][0] = '(a;a;a;(a;-;-;-;-;a))';
+$results[5][1] = '(a;a;a;(-;a;-;-;-;a))';
+$results[5][2] = '(a;a;a;(-;-;a;-;-;a))';
+$results[6][0] = '(a;a;a;(a;a;-;-;-;a))';
+$results[6][1] = '(a;a;a;(a;-;a;-;-;a))';
+$results[6][2] = '(a;a;a;(a;-;-;a;-;a))';
+$results[7][0] = '(a;a;a;(a;a;a;-;-;a))';
+$results[7][1] = '(a;a;a;(a;a;-;a;-;a))';
+$results[7][2] = '(a;a;a;(a;a;-;-;a;a))';
+$results[8][0] = '(a;a;a;(a;a;a;a;-;a))';
+$results[8][1] = '(a;a;a;(a;a;a;-;a;a))';
+$results[8][2] = '(a;a;a;(a;a;-;a;a;a))';
+$results[9][0] = '(a;a;a;(a;a;a;a;a;a))';
 
 for my $input_length ( 1 .. 9 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );

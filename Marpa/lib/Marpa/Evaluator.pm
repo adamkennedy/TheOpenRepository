@@ -125,7 +125,6 @@ use Marpa::Offset qw(
     AND_NODES
     OR_NODES
     RULE_DATA
-    NULL_VALUES
     AND_ITERATIONS
     OR_ITERATIONS
     ACTION_OBJECT_CONSTRUCTOR
@@ -1294,13 +1293,14 @@ sub delete_duplicate_nodes {
     my @and_base_signatures;
     for my $and_node ( @{$and_nodes} ) {
         my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
+        my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
         $and_base_signatures[$and_node_id] =
             join q{,},
             $and_node->[Marpa::Internal::And_Node::RULE_ID],
             $and_node->[Marpa::Internal::And_Node::POSITION],
             $and_node->[Marpa::Internal::And_Node::START_EARLEME],
             $and_node->[Marpa::Internal::And_Node::END_EARLEME],
-            ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 ) + 0;
+            ( defined $token ? $token->[Marpa::Internal::Symbol::ID] : -1);
     } ## end for my $and_node ( @{$and_nodes} )
 
     # As long as duplicates are found, we continue to loop
@@ -1330,9 +1330,6 @@ sub delete_duplicate_nodes {
                     } ( 0 .. $#{$or_nodes} )
             ]
         };
-        my $and_class_by_id =
-            [
-            (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x scalar @{$and_nodes} ];
         my $or_class_by_id =
             [
             (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x scalar @{$or_nodes} ];
@@ -1345,14 +1342,15 @@ sub delete_duplicate_nodes {
             my $new_or_class_by_signature     = {};
             my $new_and_node_ids_by_signature = {};
             my $new_or_node_ids_by_signature  = {};
-            my $new_and_class_by_id           = [];
-            my $new_or_class_by_id            = [];
-            $#{$new_and_class_by_id} = $#{$and_nodes};
+
+            my $and_class_by_id = [];
+            $#{$and_class_by_id} = $#{$and_nodes};
+            my $new_or_class_by_id = [];
             $#{$new_or_class_by_id} = $#{$or_nodes};
 
             AND_CLASS:
             while ( my ( $signature, $and_node_ids ) =
-                %{$and_node_ids_by_signature} )
+                each %{$and_node_ids_by_signature} )
             {
 
                 for my $and_node_id ( @{$and_node_ids} ) {
@@ -1370,6 +1368,9 @@ sub delete_duplicate_nodes {
                         );
                     $changed ||= $new_signature ne $signature;
 
+                    ### and-node id: $and_node_id
+                    ### and-node old, new signature: $signature, $new_signature
+
                     my $new_class =
                         $new_and_class_by_signature->{$new_signature};
                     if ( not defined $new_class ) {
@@ -1377,7 +1378,7 @@ sub delete_duplicate_nodes {
                             $new_and_class_by_signature->{$new_signature} =
                             $and_node_id;
                     }
-                    $new_and_class_by_id->[$and_node_id] = $new_class;
+                    $and_class_by_id->[$and_node_id] = $new_class;
                     push
                         @{ $new_and_node_ids_by_signature->{$new_signature} },
                         $and_node_id;
@@ -1387,7 +1388,7 @@ sub delete_duplicate_nodes {
 
             OR_CLASS:
             while ( my ( $signature, $or_node_ids ) =
-                %{$or_node_ids_by_signature} )
+                each %{$or_node_ids_by_signature} )
             {
 
                 for my $or_node_id ( @{$or_node_ids} ) {
@@ -1417,34 +1418,40 @@ sub delete_duplicate_nodes {
 
             last REFINE_CLASSES_PASS if not $changed;
 
-            my $and_class_by_signature    = $new_and_class_by_signature;
-            my $or_class_by_signature     = $new_or_class_by_signature;
-            my $and_node_ids_by_signature = $new_and_node_ids_by_signature;
-            my $or_node_ids_by_signature  = $new_or_node_ids_by_signature;
-            my $and_class_by_id           = $new_and_class_by_id;
-            my $or_class_by_id            = $new_or_class_by_id;
+            $and_class_by_signature    = $new_and_class_by_signature;
+            $or_class_by_signature     = $new_or_class_by_signature;
+            $and_node_ids_by_signature = $new_and_node_ids_by_signature;
+            $or_node_ids_by_signature  = $new_or_node_ids_by_signature;
+            $or_class_by_id            = $new_or_class_by_id;
 
         } ## end while (1)
 
         my @delete_work_list = ();
         AND_CLASS:
         while ( my ( $signature, $and_node_ids ) =
-            %{$and_node_ids_by_signature} )
+            each %{$and_node_ids_by_signature} )
         {
             next AND_CLASS if scalar @{$and_node_ids} <= 1;
 
             # We delete and-nodes in the same equivalence class
             # if they have the same parent
             my %parent;
-            for my $and_node_id ( @{$and_node_ids} ) {
-                if ($parent{
-                        $and_nodes->[$and_node_id]
-                            ->[Marpa::Internal::And_Node::PARENT_ID]
-                    }++
-                    )
-                {
-                    push @delete_work_list, [ 'a', $and_node_id ];
-                } ## end if ( $parent{ $and_nodes->[$and_node_id]->[...]})
+            AND_NODE: for my $and_node_id ( @{$and_node_ids} ) {
+                next AND_NODE
+                    if not $parent{
+                            $and_nodes->[$and_node_id]
+                                ->[Marpa::Internal::And_Node::PARENT_ID]
+                        }++;
+
+                push @delete_work_list, [ 'a', $and_node_id ];
+
+                next AND_NODE if not $trace_evaluation;
+
+                print {$trace_fh} "Deleting duplicate and-node:\n",
+                    $and_nodes->[$and_node_id]
+                    ->[Marpa::Internal::And_Node::TAG], "\n"
+                    or Marpa::exception('print to trace handle failed');
+
             } ## end for my $and_node_id ( @{$and_node_ids} )
         } ## end while ( my ( $signature, $and_node_ids ) = %{...})
 
@@ -1729,8 +1736,7 @@ sub Marpa::Evaluator::new {
     my $start_rule_id = $start_rule->[Marpa::Internal::Rule::ID];
 
     state $parse_number = 0;
-    my $null_values = $self->[Marpa::Internal::Evaluator::NULL_VALUES] =
-        set_null_values($self);
+    my $null_values = set_null_values($self);
     my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_DATA] =
         set_actions($self);
     if (defined(
@@ -2169,7 +2175,8 @@ of the rule, where it will end.
 
     # The rest of the processing only applies to ambiguous grammars.
 
-    old_delete_duplicate_nodes($self);
+    # old_delete_duplicate_nodes($self);
+    delete_duplicate_nodes($self);
 
     ### assert: Marpa'Evaluator'audit($self) or 1
 
@@ -3164,7 +3171,7 @@ sub Marpa::Evaluator::value {
                 );
                 $#or_node_choices = $#{$or_nodes};
 
-                ### top sort key: Marpa'dump_sort_key($top_and_choice->[Marpa'Internal'And_Choice'SORT_KEY])
+                #### top sort key: Marpa'dump_sort_key($top_and_choice->[Marpa'Internal'And_Choice'SORT_KEY])
 
                 for my $or_mapping (
                     @{  $top_and_choice->[Marpa::Internal::And_Choice::OR_MAP]
@@ -3263,7 +3270,7 @@ sub Marpa::Evaluator::value {
                                         . q{ = } )
                                 : q{}
                                 ),
-                                Data::Dumper->new( [$value_ref] )->Terse(1)
+                                Data::Dumper->new( [$value_ref+0, $value_ref] )->Terse(1)
                                 ->Dump
                                 or Marpa::exception(
                                 'print to trace handle failed');
