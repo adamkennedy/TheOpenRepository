@@ -173,7 +173,7 @@ use constant N_FORMAT_MASK     => 0xffff_ffff;
 use constant N_FORMAT_HIGH_BIT => 0x8000_0000;
 ## use critic
 
-use constant DEFAULT_ACTION_VALUE => \undef;
+our $DEFAULT_ACTION_VALUE = \undef;
 
 # Also used as mask, so must be 2**n-1
 # Perl critic at present is not smart about underscores
@@ -441,7 +441,7 @@ sub set_actions {
         # If there is no default action specified, the fallback
         # is to return an undef
         push @{$ops}, Marpa::Internal::Evaluator_Op::CONSTANT_RESULT,
-            Marpa::Internal::Evaluator::DEFAULT_ACTION_VALUE;
+            $Marpa::Internal::Evaluator::DEFAULT_ACTION_VALUE;
 
     } ## end for my $rule ( @{$rules} )
 
@@ -1260,6 +1260,11 @@ same, and they will remain together in an EC.
 
 =cut
 
+# Negative so they cannot be the same as the ID of any
+# actual child and-node or or-node.
+use constant CHILD_IS_PRESENT => -2;
+use constant CHILD_IS_ABSENT => -1;
+
 # Make sure and-nodes are unique.
 sub delete_duplicate_nodes {
 
@@ -1281,151 +1286,170 @@ sub delete_duplicate_nodes {
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
-    # Initialize the work list with the terminal and-nodes
-    my @terminal_nodes =
-        grep {
-                not $_->[Marpa::Internal::And_Node::DELETED]
-            and not $_->[Marpa::Internal::And_Node::PREDECESSOR_ID]
-            and not $_->[Marpa::Internal::And_Node::CAUSE_ID]
-        } @{$and_nodes};
+    # The base signatures
+    # never change except when an and-node is deleted.
+    # In that case the base signature is never examined.
+    # It becomes irrelevant, and the obsolete
+    # entry is harmless.
+    my @and_base_signatures;
+    for my $and_node ( @{$and_nodes} ) {
+        my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID];
+        $and_base_signatures[$and_node_id] =
+            join q{,},
+            $and_node->[Marpa::Internal::And_Node::RULE_ID],
+            $and_node->[Marpa::Internal::And_Node::POSITION],
+            $and_node->[Marpa::Internal::And_Node::START_EARLEME],
+            $and_node->[Marpa::Internal::And_Node::END_EARLEME],
+            ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 ) + 0;
+    } ## end for my $and_node ( @{$and_nodes} )
 
+    # As long as duplicates are found, we continue to loop
     DELETE_DUPLICATE_PASS: while (1) {
 
-        # Initialize the work list
-        my @work_list =
-            map { [ 'a', $_->[Marpa::Internal::And_Node::ID] ] }
-            @terminal_nodes;
+        # We start with a first cut at the equivalence classes,
+        # and refine.  When we can't refine any more, we have
+        # our equivalence classes
 
-        my %and_class_signature;
-        my %or_class_signature;
-        my %full_signature;
+        # Initially, lump everything into one huge proto-equivalence
+        # class.
+        my $and_class_by_signature =
+            { INITIAL => Marpa::Internal::Evaluator::CHILD_IS_PRESENT };
+        my $or_class_by_signature =
+            { INITIAL => Marpa::Internal::Evaluator::CHILD_IS_PRESENT };
+        my $and_node_ids_by_signature = {
+            INITIAL => [
+                grep {
+                    not $and_nodes->[$_]->[Marpa::Internal::And_Node::DELETED]
+                    } ( 0 .. $#{$and_nodes} )
+            ]
+        };
+        my $or_node_ids_by_signature = {
+            INITIAL => [
+                grep {
+                    not $or_nodes->[$_]->[Marpa::Internal::Or_Node::DELETED]
+                    } ( 0 .. $#{$or_nodes} )
+            ]
+        };
+        my $and_class_by_id =
+            [
+            (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x $#{$and_nodes} ];
+        my $or_class_by_id =
+            [
+            (Marpa::Internal::Evaluator::CHILD_IS_PRESENT) x $#{$or_nodes} ];
+
+        REFINE_CLASSES_PASS: while (1) {
+
+            my $changed = 0;
+
+            my $new_and_class_by_signature    = {};
+            my $new_or_class_by_signature     = {};
+            my $new_and_node_ids_by_signature = {};
+            my $new_or_node_ids_by_signature  = {};
+            my $new_and_class_by_id           = [];
+            my $new_or_class_by_id            = [];
+            $#{$new_and_class_by_id} = $#{$and_nodes};
+            $#{$new_or_class_by_id} = $#{$or_nodes};
+
+            AND_CLASS:
+            while ( my ( $signature, $and_node_ids ) =
+                %{$and_node_ids_by_signature} )
+            {
+
+                for my $and_node_id ( @{$and_node_ids} ) {
+
+                    # Deleted nodes should never make it in here
+                    my $new_signature =
+                        $and_base_signatures[$and_node_id] . q{;}
+                        . join q{,},
+                        map { defined $_ ? $or_class_by_id->[$_] : -1 }
+                        @{ $and_nodes->[$and_node_id] }[
+                        Marpa::Internal::And_Node::PREDECESSOR_ID,
+                        Marpa::Internal::And_Node::CAUSE_ID
+                        ];
+                    $changed ||= $new_signature ne $signature;
+
+                    my $new_class =
+                        $new_and_class_by_signature->{$new_signature};
+                    if ( not defined $new_class ) {
+                        $new_class =
+                            $new_and_class_by_signature->{$new_signature} =
+                            $and_node_id;
+                    }
+                    $new_and_class_by_id->[$and_node_id] = $new_class;
+                    push
+                        @{ $new_and_node_ids_by_signature->{$new_signature} },
+                        $and_node_id;
+
+                } ## end for my $and_node_id ( @{$and_node_ids} )
+            } ## end while ( my ( $signature, $and_node_ids ) = %{...})
+
+            OR_CLASS:
+            while ( my ( $signature, $or_node_ids ) =
+                %{$or_node_ids_by_signature} )
+            {
+
+                for my $or_node_id ( @{$or_node_ids} ) {
+
+                    # Deleted nodes should never make it in here
+                    my $new_signature =
+                        join q{,},
+                        sort map { $or_class_by_id->[$_] }
+                        @{ $or_nodes->[$or_node_id]
+                            ->[Marpa::Internal::Or_Node::CHILD_IDS] };
+                    $changed ||= $new_signature ne $signature;
+
+                    my $new_class =
+                        $new_or_class_by_signature->{$new_signature};
+                    if ( not defined $new_class ) {
+                        $new_class =
+                            $new_or_class_by_signature->{$new_signature} =
+                            $or_node_id;
+                    }
+                    $new_or_class_by_id->[$or_node_id] = $new_class;
+                    push
+                        @{ $new_or_node_ids_by_signature->{$new_signature} },
+                        $or_node_id;
+
+                } ## end for my $or_node_id ( @{$or_node_ids} )
+            } ## end while ( my ( $signature, $or_node_ids ) = %{...})
+
+            last REFINE_CLASSES_PASS if not $changed;
+
+            my $and_class_by_signature    = $new_and_class_by_signature;
+            my $or_class_by_signature     = $new_or_class_by_signature;
+            my $and_node_ids_by_signature = $new_and_node_ids_by_signature;
+            my $or_node_ids_by_signature  = $new_or_node_ids_by_signature;
+            my $and_class_by_id           = $new_and_class_by_id;
+            my $or_class_by_id            = $new_or_class_by_id;
+
+        } ## end while (1)
+
         my @delete_work_list = ();
+        AND_CLASS:
+        while ( my ( $signature, $and_node_ids ) =
+            %{$and_node_ids_by_signature} )
+        {
+            next AND_CLASS if scalar @{$and_node_ids} <= 1;
 
-        WORK_LIST_ENTRY: while ( my $work_list_entry = pop @work_list ) {
-
-            my ( $node_type, $node_id ) = @{$work_list_entry};
-
-            if ( $node_type eq 'a' ) {
-                my $and_node = $and_nodes->[$node_id];
-
-                next WORK_LIST_ENTRY
-                    if $and_node->[Marpa::Internal::And_Node::DELETED]
-                        or
-                        defined $and_node->[Marpa::Internal::And_Node::CLASS];
-
-                # No check whether there is already a class -- an undeleted
-                # and-node with a class will not be on the work list.
-
-                my @classes;
-                FIELD:
-                for my $field ( Marpa::Internal::And_Node::CAUSE_ID,
-                    Marpa::Internal::And_Node::PREDECESSOR_ID
+            # We delete and-nodes in the same equivalence class
+            # if they have the same parent
+            my %parent;
+            for my $and_node_id ( @{$and_node_ids} ) {
+                if ($parent{
+                        $and_nodes->[$and_node_id]
+                            ->[Marpa::Internal::And_Node::PARENT_ID]
+                    }++
                     )
                 {
-                    my $or_child_id = $and_node->[$field];
-                    my $class =
-                        defined $or_child_id
-                        ? $or_nodes->[$or_child_id]
-                        ->[Marpa::Internal::Or_Node::CLASS]
-                        : -1;
-
-                    # If we don't have an equivalence class for a child,
-                    # nothing we can do.
-                    next WORK_LIST_ENTRY if not defined $class;
-
-                    push @classes, $class;
-
-                } ## end for my $field ( Marpa::Internal::And_Node::CAUSE_ID,...)
-
-                my $and_class_signature = join q{,},
-                    $and_node->[Marpa::Internal::And_Node::RULE_ID] + 0,
-                    $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
-                    $and_node->[Marpa::Internal::And_Node::START_EARLEME] + 0,
-                    $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
-                    @classes,
-                    ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 )
-                    + 0,
-                    ;
-
-                ### And-node id, signature: $node_id, $and_class_signature
-
-                my $parent_id =
-                    $and_node->[Marpa::Internal::And_Node::PARENT_ID];
-
-                push @work_list, [ 'o', $parent_id ];
-
-                my $class = $and_class_signature{$and_class_signature};
-                if ( not defined $class ) {
-                    $class = $and_class_signature{$and_class_signature} =
-                        $node_id;
-                }
-                $and_node->[Marpa::Internal::And_Node::CLASS] = $class;
-
-                if ( $full_signature{"$parent_id,$and_class_signature"}++ ) {
-
-                    if ($trace_evaluation) {
-                        print {$trace_fh} "Deleting duplicate and-node:\n",
-                            $and_node->[Marpa::Internal::And_Node::TAG], "\n"
-                            or
-                            Marpa::exception('print to trace handle failed');
-                    } ## end if ($trace_evaluation)
-
-                    push @delete_work_list, [ 'a', $node_id ];
-
-                    next WORK_LIST_ENTRY;
-
-                } ## end if ( $full_signature{...})
-
-                next WORK_LIST_ENTRY;
-
-            } ## end if ( $node_type eq 'a' )
-
-            if ( $node_type eq 'o' ) {
-                my $or_node = $or_nodes->[$node_id];
-
-                next WORK_LIST_ENTRY
-                    if $or_node->[Marpa::Internal::Or_Node::DELETED]
-                        or
-                        defined $or_node->[Marpa::Internal::Or_Node::CLASS];
-
-                my @classes = map {
-                    $and_nodes->[$_]->[Marpa::Internal::And_Node::CLASS]
-                } @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
-
-                # If one of the classes is undefined, nothing we can do
-                next WORK_LIST_ENTRY
-                    if grep { not defined $_ } @classes;
-
-                my $or_class_signature = join q{,}, ( sort @classes );
-                my $class = $or_class_signature{$or_class_signature};
-                if ( not defined $class ) {
-                    $class = $or_class_signature{$or_class_signature} =
-                        $node_id;
-                }
-                $or_node->[Marpa::Internal::Or_Node::CLASS] = $class;
-
-                push @work_list,
-                    map { [ 'a', $_ ] }
-                    @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] };
-
-                next WORK_LIST_ENTRY;
-
-            } ## end if ( $node_type eq 'o' )
-
-            Marpa::exception("Internal error, unknown node type: $node_type");
-
-        } ## end while ( my $work_list_entry = pop @work_list )
+                    push @delete_work_list, [ 'a', $and_node_id ];
+                } ## end if ( $parent{ $and_nodes->[$and_node_id]->[...]})
+            } ## end for my $and_node_id ( @{$and_node_ids} )
+        } ## end while ( my ( $signature, $and_node_ids ) = %{...})
 
         # If no nodes are deleted, we are finished
         last DELETE_DUPLICATE_PASS
             if not scalar @delete_work_list
                 or delete_nodes( $evaler, \@delete_work_list ) <= 0;
-
-        # Remove any deleted nodes from the terminal nodes
-        # before looping
-        @terminal_nodes =
-            grep { not $_->[Marpa::Internal::And_Node::DELETED] }
-            @terminal_nodes;
 
     } ## end while (1)
 
