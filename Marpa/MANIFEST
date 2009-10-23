@@ -57,6 +57,7 @@ META.yml
 README
 t/00-load.t
 t/ah2.t
+t/ah_minimal.t
 t/ah.t
 t/code_diag.t
 t/cycle2.t

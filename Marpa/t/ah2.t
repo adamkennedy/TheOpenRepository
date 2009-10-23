@@ -66,16 +66,16 @@ Marpa::Test::is( $grammar->show_rules, <<'EOS', 'Aycock/Horspool Rules' );
 EOS
 
 Marpa::Test::is( $grammar->show_symbols, <<'EOS', 'Aycock/Horspool Symbols' );
-0: S, lhs=[0 4 5 6] rhs=[13]
-1: A, lhs=[1 2] rhs=[0 4 5 7 8 10 11 12]
+0: S, lhs=[0 4 5 6] rhs=[13] maximal
+1: A, lhs=[1 2] rhs=[0 4 5 7 8 10 11 12] maximal
 2: a, lhs=[] rhs=[1] terminal maximal
-3: E, lhs=[3] rhs=[2] nullable=1 nulling
-4: S[], lhs=[] rhs=[] nullable=4 nulling
-5: A[], lhs=[] rhs=[5 6 8 9 11 12] nullable=1 nulling
-6: S[R0:1][x6], lhs=[7 8 9] rhs=[4 6]
-7: S[R0:2][x7], lhs=[10 11 12] rhs=[7 9]
-8: S['], lhs=[13] rhs=[]
-9: S['][], lhs=[14] rhs=[] nullable=1 nulling
+3: E, lhs=[3] rhs=[2] nullable=1 nulling maximal
+4: S[], lhs=[] rhs=[] nullable=4 nulling maximal
+5: A[], lhs=[] rhs=[5 6 8 9 11 12] nullable=1 nulling maximal
+6: S[R0:1][x6], lhs=[7 8 9] rhs=[4 6] maximal
+7: S[R0:2][x7], lhs=[10 11 12] rhs=[7 9] maximal
+8: S['], lhs=[13] rhs=[] maximal
+9: S['][], lhs=[14] rhs=[] nullable=1 nulling maximal
 EOS
 
 Marpa::Test::is(

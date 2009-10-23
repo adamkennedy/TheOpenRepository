@@ -10,16 +10,7 @@ MDLex and MDL will know about Marpa, but B<not> vice versa.
 
 =over 4
 
-=item * Base token equality on symbol name, not token ref
-value?
-
-=item * Duplicate parses in initial_nullalbes.t?
-
 =item * Or_map's should be hashes instead of arrays.
-
-=item * Make minimal work for null symbols.
-
-=item * Add ah_minimal.t -- ah2.t with minimal set on the grammar
 
 =item * Add tokens() call, to allow multiple earlemes
 in cookie/incremental form, to be added at once.

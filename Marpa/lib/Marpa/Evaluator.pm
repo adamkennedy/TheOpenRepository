@@ -655,10 +655,6 @@ sub clone_and_node {
         $child_or_node_id_translation )
         = @_;
 
-    #### clone_and_node(), new_parent_or_node_id: $new_parent_or_node_id
-
-    #### clone_and_node, or-node translation: $child_or_node_id_translation
-
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
 
@@ -666,8 +662,6 @@ sub clone_and_node {
     $#{$new_and_node} = Marpa::Internal::And_Node::LAST_FIELD;
     my $new_and_node_id = $new_and_node->[Marpa::Internal::And_Node::ID] =
         scalar @{$and_nodes};
-
-    #### Cloning and-node, new id: $new_and_node_id
 
     push @{$and_nodes}, $new_and_node;
 
@@ -689,12 +683,8 @@ sub clone_and_node {
     $new_parent_or_node_id //=
         $and_node->[Marpa::Internal::And_Node::PARENT_ID];
 
-    #### Cloning and-node, parent or-node id: $new_parent_or_node_id
-
     my $new_parent_or_node = $or_nodes->[$new_parent_or_node_id];
     my $siblings = $new_parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
-
-    #### siblings: $siblings
 
     $new_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] = @{$siblings};
     $new_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
@@ -721,11 +711,7 @@ sub clone_and_node {
             $child_or_node_id_translation->{$old_child_or_node_id};
         $new_child_or_node_id //= $old_child_or_node_id;
 
-        #### child or-node to be added, old, new: $old_child_or_node_id, $new_child_or_node_id
-
         my $new_or_child = $or_nodes->[$new_child_or_node_id];
-
-        #### adding child to cloned and-node, and-id, or-id: $new_and_node_id, $new_child_or_node_id
 
         $new_and_node->[$field] = $new_child_or_node_id;
         push @{ $new_or_child->[Marpa::Internal::Or_Node::PARENT_IDS] },
@@ -1080,7 +1066,6 @@ sub rewrite_cycles {
                     my $old_child_and_node =
                         $and_nodes->[$old_child_and_node_id];
 
-                    #### cloning and node in cycle rewrite ...
                     my $new_child_and_node = clone_and_node(
                         $evaler,         $old_child_and_node,
                         $new_or_node_id, \%translate_or_node_id
@@ -1367,9 +1352,6 @@ sub delete_duplicate_nodes {
                             ]
                         );
                     $changed ||= $new_signature ne $signature;
-
-                    ### and-node id: $and_node_id
-                    ### and-node old, new signature: $signature, $new_signature
 
                     my $new_class =
                         $new_and_class_by_signature->{$new_signature};
@@ -1979,7 +1961,6 @@ of the rule, where it will end.
             $cloned_or_node->[Marpa::Internal::Or_Node::CHILD_IDS] = [];
 
             for my $child_and_node (@child_and_nodes) {
-                ### cloning and node in zero-width rewrite ...
                 clone_and_node( $self, $child_and_node, $cloned_or_node_id );
             }
 
@@ -2514,9 +2495,9 @@ sub Marpa::Evaluator::value {
                         ->[Marpa::Internal::And_Node::START_EARLEME];
                     my $length =
                         $token->[Marpa::Internal::Symbol::GREED] > 0
-                        ? ( $and_node_end_earleme - $token_start_earleme )
-                        : ~( ( $and_node_end_earleme - $token_start_earleme )
-                        & N_FORMAT_MASK );
+                        ? ~( ( $and_node_end_earleme - $token_start_earleme )
+                        & N_FORMAT_MASK )
+                        : ( $and_node_end_earleme - $token_start_earleme );
 
                     push @current_sort_elements,
                         [
@@ -2995,7 +2976,7 @@ sub Marpa::Evaluator::value {
                 );
                 $#or_node_choices = $#{$or_nodes};
 
-                #### top sort key: Marpa'dump_sort_key($top_and_choice->[Marpa'Internal'And_Choice'SORT_KEY])
+                ### top sort key: Marpa'dump_sort_key($top_and_choice->[Marpa'Internal'And_Choice'SORT_KEY])
 
                 for my $or_mapping (
                     @{  $top_and_choice->[Marpa::Internal::And_Choice::OR_MAP]
