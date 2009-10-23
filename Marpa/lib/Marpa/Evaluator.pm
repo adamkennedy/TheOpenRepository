@@ -173,6 +173,8 @@ use constant N_FORMAT_MASK     => 0xffff_ffff;
 use constant N_FORMAT_HIGH_BIT => 0x8000_0000;
 ## use critic
 
+use constant DEFAULT_ACTION_VALUE => \undef;
+
 # Also used as mask, so must be 2**n-1
 # Perl critic at present is not smart about underscores
 # in hex numbers
@@ -438,7 +440,8 @@ sub set_actions {
 
         # If there is no default action specified, the fallback
         # is to return an undef
-        push @{$ops}, Marpa::Internal::Evaluator_Op::CONSTANT_RESULT, \undef;
+        push @{$ops}, Marpa::Internal::Evaluator_Op::CONSTANT_RESULT,
+            Marpa::Internal::Evaluator::DEFAULT_ACTION_VALUE;
 
     } ## end for my $rule ( @{$rules} )
 
@@ -653,9 +656,9 @@ sub clone_and_node {
         $child_or_node_id_translation )
         = @_;
 
-    ### clone_and_node(), new_parent_or_node_id: $new_parent_or_node_id
+    #### clone_and_node(), new_parent_or_node_id: $new_parent_or_node_id
 
-    ### clone_and_node, or-node translation: $child_or_node_id_translation
+    #### clone_and_node, or-node translation: $child_or_node_id_translation
 
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
@@ -665,7 +668,7 @@ sub clone_and_node {
     my $new_and_node_id = $new_and_node->[Marpa::Internal::And_Node::ID] =
         scalar @{$and_nodes};
 
-    ### Cloning and-node, new id: $new_and_node_id
+    #### Cloning and-node, new id: $new_and_node_id
 
     push @{$and_nodes}, $new_and_node;
 
@@ -687,12 +690,12 @@ sub clone_and_node {
     $new_parent_or_node_id //=
         $and_node->[Marpa::Internal::And_Node::PARENT_ID];
 
-    ### Cloning and-node, parent or-node id: $new_parent_or_node_id
+    #### Cloning and-node, parent or-node id: $new_parent_or_node_id
 
     my $new_parent_or_node = $or_nodes->[$new_parent_or_node_id];
     my $siblings = $new_parent_or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
 
-    ### siblings: $siblings
+    #### siblings: $siblings
 
     $new_and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] = @{$siblings};
     $new_and_node->[Marpa::Internal::And_Node::PARENT_ID] =
@@ -719,11 +722,11 @@ sub clone_and_node {
             $child_or_node_id_translation->{$old_child_or_node_id};
         $new_child_or_node_id //= $old_child_or_node_id;
 
-        ### child or-node to be added, old, new: $old_child_or_node_id, $new_child_or_node_id
+        #### child or-node to be added, old, new: $old_child_or_node_id, $new_child_or_node_id
 
         my $new_or_child = $or_nodes->[$new_child_or_node_id];
 
-        ### adding child to cloned and-node, and-id, or-id: $new_and_node_id, $new_child_or_node_id
+        #### adding child to cloned and-node, and-id, or-id: $new_and_node_id, $new_child_or_node_id
 
         $new_and_node->[$field] = $new_child_or_node_id;
         push @{ $new_or_child->[Marpa::Internal::Or_Node::PARENT_IDS] },
@@ -1078,7 +1081,7 @@ sub rewrite_cycles {
                     my $old_child_and_node =
                         $and_nodes->[$old_child_and_node_id];
 
-                    ### cloning and node in cycle rewrite ...
+                    #### cloning and node in cycle rewrite ...
                     my $new_child_and_node = clone_and_node(
                         $evaler,         $old_child_and_node,
                         $new_or_node_id, \%translate_or_node_id
@@ -1223,6 +1226,40 @@ sub rewrite_cycles {
     return;
 } ## end sub rewrite_cycles
 
+=begin Implementation:
+
+Deleting nodes can change the equivalence classes (EC), so we need
+multiple passes.  In practice two passes should suffice in almost
+all cases.
+
+Deleting nodes combines ECs; never splits them.  You can prove this
+by induction on the node levels, where a level 0 node has no children,
+and a level n+1 node has children of level n or less.
+
+Level 0 nodes (always terminal and-nodes) will always have the same
+signature regardless of node deletions.  So if two level 0 nodes are in
+the same EC before a set of deletions, they will be after.
+
+Induction hypothesis: any two nodes of level n in a common EC before a
+set of deletions, will be in a common EC after the set of deletions.
+
+Two level n+1 or-nodes in the same EC: The EC's of their children must
+have been the same.  Since deletions are based on the EC of the children
+on a per or-node basis, the same deletions will be made in both level n+1
+or-nodes.  And by the induction hypothesis, any node in an EC with one of
+the children before the set of deletions, also shares and EC afterwards.
+So the signature of the two level n+1 or-nodes will remain identical.
+
+Two level n+1 and-nodes: If either child is deleted, the level n+1
+and-node is also deleted and becomes irrelevant.  By the induction
+hypothesis, and following the same argument as for level n+1 or-node
+children, the signatures of the two level n+1 and-nodes will remain the
+same, and they will remain together in an EC.
+
+=end Implementation:
+
+=cut
+
 # Make sure and-nodes are unique.
 sub delete_duplicate_nodes {
 
@@ -1243,51 +1280,6 @@ sub delete_duplicate_nodes {
 
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-
-    # Deleting nodes can change the equivalence classes (EC),
-    # so we need multiple passes.
-    # In practice two passes should suffice
-    # in almost all cases.
-
-    # Deleting nodes combines ECs; never splits them.
-    # You can prove this by induction on the node levels,
-    # where a level 0 node has no children,
-    # and a level n+1 node has
-    # children of level n or less.
-    #
-    # Level 0 nodes (always terminal and-nodes) will
-    # always have the same signature regardless of node
-    # deletions.  So if two level 0 nodes are in the same
-    # EC before a set of deletions, they
-    # will be after.
-    #
-    # Induction hypothesis: any two nodes of level n in
-    # a common EC before a set of deletions, will be in
-    # a common EC after the set of deletions.
-    #
-    # Two level n+1 or-nodes in the same EC:
-    # The EC's of their children must have been
-    # the same.
-    # Since deletions are based on the EC of the
-    # children on a per or-node basis, the same
-    # deletions will be made in both level n+1
-    # or-nodes.
-    # And by the induction hypothesis, any node
-    # in an EC with one of the children before
-    # the set of deletions, also shares and EC
-    # afterwards.
-    # So the signature of the two level n+1
-    # or-nodes will remain identical.
-    #
-    # Two level n+1 and-nodes:
-    # If either child is deleted, the level
-    # n+1 and-node is also deleted and becomes
-    # irrelevant.
-    # By the induction hypothesis, and following
-    # the same argument as for level n+1 or-node
-    # children, the signatures of the two level
-    # n+1 and-nodes will remain the same, and
-    # they will remain together in an EC.
 
     # Initialize the work list with the terminal and-nodes
     my @terminal_nodes =
@@ -1354,6 +1346,8 @@ sub delete_duplicate_nodes {
                     ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 )
                     + 0,
                     ;
+
+                ### And-node id, signature: $node_id, $and_class_signature
 
                 my $parent_id =
                     $and_node->[Marpa::Internal::And_Node::PARENT_ID];
@@ -1438,6 +1432,178 @@ sub delete_duplicate_nodes {
     return;
 
 } ## end sub delete_duplicate_nodes
+
+sub old_delete_duplicate_nodes {
+
+    my ($evaler) = @_;
+
+    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+
+    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
+    my $trace_fh;
+    my $trace_evaluation;
+
+    if ($tracing) {
+        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+        $trace_evaluation =
+            $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
+    }
+
+    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+
+    # Initialize the work list with the terminal and-nodes
+    my @terminal_nodes =
+        grep {
+                not $_->[Marpa::Internal::And_Node::DELETED]
+            and not $_->[Marpa::Internal::And_Node::PREDECESSOR_ID]
+            and not $_->[Marpa::Internal::And_Node::CAUSE_ID]
+        } @{$and_nodes};
+
+    DELETE_DUPLICATE_PASS: while (1) {
+
+        # Initialize the work list
+        my @work_list =
+            map { [ 'a', $_->[Marpa::Internal::And_Node::ID] ] }
+            @terminal_nodes;
+
+        my %and_class_signature;
+        my %or_class_signature;
+        my %full_signature;
+        my @delete_work_list = ();
+
+        WORK_LIST_ENTRY: while ( my $work_list_entry = pop @work_list ) {
+
+            my ( $node_type, $node_id ) = @{$work_list_entry};
+
+            if ( $node_type eq 'a' ) {
+                my $and_node = $and_nodes->[$node_id];
+
+                next WORK_LIST_ENTRY
+                    if $and_node->[Marpa::Internal::And_Node::DELETED]
+                        or
+                        defined $and_node->[Marpa::Internal::And_Node::CLASS];
+
+                # No check whether there is already a class -- an undeleted
+                # and-node with a class will not be on the work list.
+
+                my @classes;
+                FIELD:
+                for my $field ( Marpa::Internal::And_Node::CAUSE_ID,
+                    Marpa::Internal::And_Node::PREDECESSOR_ID
+                    )
+                {
+                    my $or_child_id = $and_node->[$field];
+                    my $class =
+                        defined $or_child_id
+                        ? $or_nodes->[$or_child_id]
+                        ->[Marpa::Internal::Or_Node::CLASS]
+                        : -1;
+
+                    # If we don't have an equivalence class for a child,
+                    # nothing we can do.
+                    next WORK_LIST_ENTRY if not defined $class;
+
+                    push @classes, $class;
+
+                } ## end for my $field ( Marpa::Internal::And_Node::CAUSE_ID,...)
+
+                my $and_class_signature = join q{,},
+                    $and_node->[Marpa::Internal::And_Node::RULE_ID] + 0,
+                    $and_node->[Marpa::Internal::And_Node::POSITION] + 0,
+                    $and_node->[Marpa::Internal::And_Node::START_EARLEME] + 0,
+                    $and_node->[Marpa::Internal::And_Node::END_EARLEME] + 0,
+                    @classes,
+                    ( $and_node->[Marpa::Internal::And_Node::VALUE_REF] // 0 )
+                    + 0,
+                    ;
+
+                ### And-node id, signature: $node_id, $and_class_signature
+
+                my $parent_id =
+                    $and_node->[Marpa::Internal::And_Node::PARENT_ID];
+
+                push @work_list, [ 'o', $parent_id ];
+
+                my $class = $and_class_signature{$and_class_signature};
+                if ( not defined $class ) {
+                    $class = $and_class_signature{$and_class_signature} =
+                        $node_id;
+                }
+                $and_node->[Marpa::Internal::And_Node::CLASS] = $class;
+
+                if ( $full_signature{"$parent_id,$and_class_signature"}++ ) {
+
+                    if ($trace_evaluation) {
+                        print {$trace_fh} "Deleting duplicate and-node:\n",
+                            $and_node->[Marpa::Internal::And_Node::TAG], "\n"
+                            or
+                            Marpa::exception('print to trace handle failed');
+                    } ## end if ($trace_evaluation)
+
+                    push @delete_work_list, [ 'a', $node_id ];
+
+                    next WORK_LIST_ENTRY;
+
+                } ## end if ( $full_signature{...})
+
+                next WORK_LIST_ENTRY;
+
+            } ## end if ( $node_type eq 'a' )
+
+            if ( $node_type eq 'o' ) {
+                my $or_node = $or_nodes->[$node_id];
+
+                next WORK_LIST_ENTRY
+                    if $or_node->[Marpa::Internal::Or_Node::DELETED]
+                        or
+                        defined $or_node->[Marpa::Internal::Or_Node::CLASS];
+
+                my @classes = map {
+                    $and_nodes->[$_]->[Marpa::Internal::And_Node::CLASS]
+                } @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
+
+                # If one of the classes is undefined, nothing we can do
+                next WORK_LIST_ENTRY
+                    if grep { not defined $_ } @classes;
+
+                my $or_class_signature = join q{,}, ( sort @classes );
+                my $class = $or_class_signature{$or_class_signature};
+                if ( not defined $class ) {
+                    $class = $or_class_signature{$or_class_signature} =
+                        $node_id;
+                }
+                $or_node->[Marpa::Internal::Or_Node::CLASS] = $class;
+
+                push @work_list,
+                    map { [ 'a', $_ ] }
+                    @{ $or_node->[Marpa::Internal::Or_Node::PARENT_IDS] };
+
+                next WORK_LIST_ENTRY;
+
+            } ## end if ( $node_type eq 'o' )
+
+            Marpa::exception("Internal error, unknown node type: $node_type");
+
+        } ## end while ( my $work_list_entry = pop @work_list )
+
+        # If no nodes are deleted, we are finished
+        last DELETE_DUPLICATE_PASS
+            if not scalar @delete_work_list
+                or delete_nodes( $evaler, \@delete_work_list ) <= 0;
+
+        # Remove any deleted nodes from the terminal nodes
+        # before looping
+        @terminal_nodes =
+            grep { not $_->[Marpa::Internal::And_Node::DELETED] }
+            @terminal_nodes;
+
+    } ## end while (1)
+
+    return;
+
+} ## end sub old_delete_duplicate_nodes
 
 # Returns false if no parse
 sub Marpa::Evaluator::new {
@@ -1977,7 +2143,7 @@ of the rule, where it will end.
 
     # The rest of the processing only applies to ambiguous grammars.
 
-    delete_duplicate_nodes($self);
+    old_delete_duplicate_nodes($self);
 
     ### assert: Marpa'Evaluator'audit($self) or 1
 
@@ -2185,7 +2351,6 @@ sub Marpa::Evaluator::value {
     my $rules      = $grammar->[Marpa::Internal::Grammar::RULES];
 
     my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
-    my $null_values     = $evaler->[Marpa::Internal::Evaluator::NULL_VALUES];
     my $action_object_class =
         $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT];
     my $action_object_constructor =
