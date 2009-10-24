@@ -1,4 +1,4 @@
-package Marpa::MDL::Symbol;
+package Marpa::MDL::Internal::Symbol;
 
 # These two routines are here, so they can be loaded without
 # the overname and namespace impact from loading all of MDL.

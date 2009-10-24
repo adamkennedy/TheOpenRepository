@@ -58,7 +58,7 @@ __END__
 
 =head1 NAME
 
-Marpa::MDL -- Utility Methods for MDL
+Marpa::MDL -- Marpa Demo Language
 
 =head1 DESCRIPTION
 
