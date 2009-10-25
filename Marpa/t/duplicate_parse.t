@@ -136,7 +136,7 @@ use constant SPACE => 0x60;
 my $input_length = 3;
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 TOKEN: for my $token ( 1 .. $input_length ) {
-    next TOKEN if $recce->earleme( [ $a, chr( SPACE + $token ), 1 ] );
+    next TOKEN if defined $recce->earleme( [ $a, chr( SPACE + $token ), 1 ] );
     Marpa::exception( 'Parsing exhausted at character: ', $token );
 }
 $recce->end_input();

@@ -92,7 +92,7 @@ $results[9][0] = '(a;a;a;(a;a;a;a;a;a))';
 for my $input_length ( 1 .. 9 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     TOKEN: for my $token ( 1 .. $input_length ) {
-        next TOKEN if $recce->earleme( [ $a, 'a', 1 ] );
+        next TOKEN if defined $recce->earleme( [ $a, 'a', 1 ] );
         Marpa::exception( 'Parsing exhausted at character: ', $token );
     }
     $recce->end_input();

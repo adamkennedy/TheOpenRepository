@@ -126,7 +126,7 @@ my @tokens = (
 );
 
 TOKEN: for my $token (@tokens) {
-    next TOKEN if $recce->earleme($token);
+    next TOKEN if defined $recce->earleme($token);
     Marpa::exception( 'Parsing exhausted at character: ', $token->[1] );
 }
 

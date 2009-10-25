@@ -316,8 +316,9 @@ END_OF_SET4
 
 my $input_length = 4;
 EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
-    my $furthest = my $last_completed = my $current_earleme =
+    my $furthest = my $last_completed =
         List::Util::min( $earleme, $input_length );
+    my $current_earleme = $last_completed - 1;
     Marpa::Test::is(
         $recce->show_earley_sets(1),
         "Current Earley Set: $current_earleme; Last Completed: $last_completed; Furthest: $furthest\n"
@@ -331,7 +332,7 @@ EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
         when ( $input_length + 1 ) {break}
         default {
             my $a = $grammar->get_terminal('a');
-            $recce->earleme( [ $a, 'a', 1 ] )
+            defined $recce->earleme( [ $a, 'a', 1 ] )
                 or Marpa::exception('Parsing exhausted');
         }
     } ## end given

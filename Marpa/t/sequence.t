@@ -86,7 +86,7 @@ sub run_sequence_test {
         my $last_symbol_ix = $symbol_count - 1;
         SYMBOL_IX: for my $symbol_ix ( 0 .. $last_symbol_ix ) {
             push @expected, 'a';
-            $recce->earleme( [ $A, 'a', 1 ] )
+            defined $recce->earleme( [ $A, 'a', 1 ] )
                 or Marpa::exception('Parsing exhausted');
             next SYMBOL_IX if $separation eq 'none';
             next SYMBOL_IX
@@ -95,7 +95,7 @@ sub run_sequence_test {
             if ($keep) {
                 push @expected, q{!};
             }
-            $recce->earleme( [ $sep, q{!}, 1 ] )
+            defined $recce->earleme( [ $sep, q{!}, 1 ] )
                 or Marpa::exception('Parsing exhausted');
         } ## end for my $symbol_ix ( 0 .. $last_symbol_ix )
 

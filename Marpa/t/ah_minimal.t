@@ -59,7 +59,7 @@ EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
         when ( $input_length + 1 ) {break}
         default {
             my $a = $grammar->get_terminal('a');
-            $recce->earleme( [ $a, 'a', 1 ] )
+            defined $recce->earleme( [ $a, 'a', 1 ] )
                 or Marpa::exception('Parsing exhausted');
         }
     } ## end given

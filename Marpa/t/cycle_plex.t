@@ -147,7 +147,7 @@ for my $test_data (@test_data) {
 
     my $recce = Marpa::Recognizer->new(
         { grammar => $grammar, trace_file_handle => \*STDERR } );
-    $recce->earleme( [ $t, 't', 1 ] )
+    defined $recce->earleme( [ $t, 't', 1 ] )
         or Marpa::exception('Parsing exhausted');
     $recce->end_input();
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
