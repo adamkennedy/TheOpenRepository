@@ -68,7 +68,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Recognizer;
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -147,9 +147,6 @@ sub Marpa::Recognizer::new {
 
     # options are not set until *AFTER* the grammar is cloned
     Marpa::Grammar::set( $grammar, $args );
-
-    ### <where>
-    ### trace_fh: $grammar->[Marpa'Internal'Grammar'TRACE_FILE_HANDLE]
 
     # Pull lookup of terminal flag by symbol ID out of the loop
     # over the QDFA transitions
@@ -397,6 +394,9 @@ sub ur_token {
         $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
     my $last_completed_earleme =
         $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
+
+    ### tokens: $tokens
+
     TOKEN: for my $token ( @{$tokens} ) {
         my ( $cookie, $value, $length, $offset ) = @{$token};
 
@@ -440,6 +440,15 @@ sub ur_token {
             } ## end when ( $_ <= 0 )
         } ## end given
 
+        Marpa::exception(
+            'Token '
+                . $token->[Marpa::Internal::Symbol::NAME]
+                . " make parse too long\n",
+            "  Token starts at $last_completed_earleme, and its length is $length\n"
+            )
+            if ( $current_token_earleme + $length )
+            & Marpa::Internal::Recognizer::EARLEME_MASK;
+
         my $token_entry = [ $token, $value_ref, $length ];
 
         # This logic is arranged so that non-overlapping tokens do not incur the cost
@@ -460,9 +469,8 @@ sub ur_token {
         if ( not $token_hash_here ) {
             $token_hashes_by_earleme->[$current_token_earleme] =
                 $token_hash_here =
-                map { ( join ';', @{$_}[ 0, 2 ] ) => 1 }
-                @{$tokens_here};
-        } ## end if ( not $token_hash_here )
+                { map { ( join ';', @{$_}[ 0, 2 ] ) => 1 } @{$tokens_here} };
+        }
 
         my $hash_key = join q{;}, $token, $length;
         Marpa::exception( $token->[Marpa::Internal::Symbol::NAME],
@@ -488,7 +496,9 @@ sub Marpa::Recognizer::earleme {
         Marpa::exception('New earlemes not allowed after end of input');
     }
 
-    Marpa::Internal::Recognizer::scan_set( $recce, @_ );
+    Marpa::Internal::Recognizer::ur_token( $recce,
+        [ map { [ @{$_}, 0 ] } @_ ] );
+    Marpa::Internal::Recognizer::scan_set($recce);
 
     if ( ++$recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
         > $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] )
@@ -547,7 +557,8 @@ sub Marpa::Recognizer::end_input {
 
     } ## end if ( $grammar->[Marpa::Internal::Grammar::STRIP] )
 
-    # Hack
+    # Hack!!!
+
     $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = $furthest_earleme;
 
     $grammar->[Marpa::Internal::Grammar::PHASE] =
@@ -587,12 +598,11 @@ sub scan_set {
     Marpa::exception('Attempt to scan tokens after parsing was exhausted')
         if $exhausted;
 
+    my $tokens_by_earleme = $parse->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME];
+    my $tokens_here = $tokens_by_earleme->[$last_completed_earleme] // [];
+
     my $QDFA    = $grammar->[Marpa::Internal::Grammar::QDFA];
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
-
-    # Convert values to value refs and token ids to symbols
-    my @alternatives =
-        map { [ $symbols->[ $_->[0] ], \( $_->[1] ), $_->[2] ] } @_;
 
     my $earley_set = $earley_set_list->[$last_completed_earleme];
 
@@ -616,42 +626,8 @@ sub scan_set {
 
         # I allow ambigious tokenization.
         # Loop through the alternative tokens.
-        ALTERNATIVE: for my $alternative (@alternatives) {
+        ALTERNATIVE: for my $alternative (@{$tokens_here}) {
             my ( $token, $value_ref, $length ) = @{$alternative};
-
-            Marpa::exception('Invalid token') if not $token;
-
-            if ( $length & Marpa::Internal::Recognizer::EARLEME_MASK ) {
-                # Check Moved to token processing
-                Marpa::exception(
-                    'Token '
-                        . $token->[Marpa::Internal::Symbol::NAME]
-                        . " is too long\n",
-                    "  Token starts at $last_completed_earleme, and its length is $length\n"
-                );
-            } ## end if ( $length & Marpa::Internal::Recognizer::EARLEME_MASK)
-
-            if ( $length <= 0 ) {
-                # Check Moved to token processing
-
-                # make sure it gets reported as a negative number
-                $length += 0;
-
-                Marpa::exception( 'Token '
-                        . $token->[Marpa::Internal::Symbol::NAME]
-                        . ' has non-positive length '
-                        . $length );
-
-            } ## end if ( $length <= 0 )
-
-            # Make sure it's an allowed terminal symbol.
-            if ( not $token->[Marpa::Internal::Symbol::TERMINAL] ) {
-                # Check Moved to token processing
-                my $name = $token->[Marpa::Internal::Symbol::NAME];
-                Marpa::exception( 'Non-terminal '
-                        . ( defined $name ? "$name " : q{} )
-                        . 'supplied as token' );
-            } ## end if ( not $token->[Marpa::Internal::Symbol::TERMINAL])
 
             # compute goto(state, token_name)
             my $states =
@@ -662,16 +638,6 @@ sub scan_set {
 
             # Create the kernel item and its link.
             my $target_ix = $last_completed_earleme + $length;
-
-            if ( $target_ix & Marpa::Internal::Recognizer::EARLEME_MASK ) {
-                Marpa::exception(
-                    #<<< no perltidy
-                    'Token ' . $token->[Marpa::Internal::Symbol::NAME] . " make parse too long\n",
-                    "  Token starts at $last_completed_earleme, and its length is $length\n",
-                    "  Its last earleme would be at $target_ix\n"
-                    );
-                    #>>>
-            } ## end if ( $target_ix & ...)
 
             my $target_set = ( $earley_set_list->[$target_ix] //= [] );
             if ( $target_ix > $furthest_earleme ) {
