@@ -1684,8 +1684,8 @@ sub assign_user_symbol {
         Marpa::exception(
             "Symbol name was ref to $type; it must be a scalar string");
     }
-    Marpa::exception("Symbol name $name ends in '_': that's not allowed")
-        if $name =~ /_\z/xms;
+    Marpa::exception("Symbol name $name ends in ']': that's not allowed")
+        if $name =~ /\]\z/xms;
     return assign_symbol( $self, $name );
 } ## end sub assign_user_symbol
 
@@ -2134,8 +2134,8 @@ sub add_user_terminal {
         Marpa::exception(
             "Terminal name was ref to $type; it must be a scalar string");
     }
-    Marpa::exception("Symbol name $name ends in '_': that's not allowed")
-        if $name =~ /_\z/xms;
+    Marpa::exception("Symbol name $name ends in ']': that's not allowed")
+        if $name =~ /\]\z/xms;
     add_terminal( $grammar, $name, $options );
     return;
 } ## end sub add_user_terminal
