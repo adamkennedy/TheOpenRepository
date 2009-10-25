@@ -391,6 +391,119 @@ sub Marpa::Recognizer::show_earley_sets {
 
 } ## end sub Marpa::Recognizer::show_earley_sets
 
+## no critic (Subroutines::RequireArgUnpacking)
+sub Marpa::Recognizer::tokens {
+## use critic
+
+    # check class of parse?
+    my $recce = shift;
+
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
+    if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
+        Marpa::exception('New earlemes not allowed after end of input');
+    }
+
+    my $tokens;
+    my $predict_earleme;
+    my $predict_offset_is_absolute = 0;
+    my $predict_flag = 1;
+    my $continue_earleme;
+    my $continue_offset_is_absolute = 0;
+    my $continue_flag = 0;
+
+    while ( my $arg = shift @_ ) {
+        given ($arg) {
+            when ( ref $_ eq 'ARRAY' ) {
+                Marpa::exception('More than one tokens arg') if $tokens;
+                $tokens = $_;
+            }
+            when ('predict') {
+                Marpa::exception('More than one predict arg')
+                    if defined $predict_earleme;
+                while ( not defined $predict_earleme ) {
+                    given ( shift @_ ) {
+                        when (undef) { $predict_earleme = 0 }
+                        when ('absolute') {
+                            $predict_offset_is_absolute = 1
+                        }
+                        when ( Scalar::Util::looks_like_number($_) ) {
+                            $predict_earleme = $_;
+                        }
+                        default {
+                            Marpa::exception('Bad offset for predict: $_')
+                        }
+                    } ## end given
+                } ## end while ( not defined $predict_earleme )
+            } ## end when ('predict')
+            when ('continue') {
+                Marpa::exception('More than one continue arg')
+                    if defined $continue_earleme;
+                while ( not defined $continue_earleme ) {
+                    given ( shift @_ ) {
+                        when (undef)      { $continue_earleme            = 0 }
+                        when ('absolute') { $continue_offset_is_absolute = 1 }
+                        when ( Scalar::Util::looks_like_number($_) ) {
+                            $continue_earleme = $_;
+                        }
+                        default {
+                            Marpa::exception('Bad offset for continue_')
+                        }
+                    } ## end given
+                } ## end while ( not defined $continue_earleme )
+            } ## end when ('continue')
+        } ## end given
+    } ## end while ( my $arg = shift @_ )
+
+    Marpa::Internal::Recognizer::ur_token( $recce, $tokens );
+    Marpa::Internal::Recognizer::scan_set($recce);
+
+    # Watch this when in-lining
+    my $current_earleme = $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
+
+    if ($continue_flag) {
+        $current_earleme =
+              $continue_offset_is_absolute
+            ? $continue_earleme
+            : $current_earleme + $continue_earleme;
+        return $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
+            $current_earleme
+            if not $predict_flag;
+    } ## end if ($continue_flag)
+
+    # Watch this when in-lining
+    my $last_completed_earleme =
+        ++$recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
+    my $furthest_earleme = $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+
+    if ( $last_completed_earleme > $furthest_earleme ) {
+        $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
+        return;
+    }
+
+    my $earleme_to_complete;
+    if ( defined $predict_earleme ) {
+        $earleme_to_complete =
+              $predict_offset_is_absolute
+            ? $predict_earleme
+            : $current_earleme + $predict_earleme;
+    } ## end if ( defined $predict_earleme )
+
+    # Watch this when in-lining
+    $earleme_to_complete //= $furthest_earleme;
+
+    (   $current_earleme,
+        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
+    ) = Marpa::Internal::Recognizer::complete_set($recce);
+
+    return ( $current_earleme,
+        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
+        if wantarray;
+
+    return $current_earleme;
+
+} ## end sub Marpa::Recognizer::earleme
+
 sub ur_token {
     my ( $recce, $tokens ) = @_;
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
