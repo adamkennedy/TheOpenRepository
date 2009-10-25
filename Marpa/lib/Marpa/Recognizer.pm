@@ -456,7 +456,6 @@ sub Marpa::Recognizer::tokens {
     } ## end while ( my $arg = shift @_ )
 
     Marpa::Internal::Recognizer::ur_token( $recce, $tokens );
-    Marpa::Internal::Recognizer::scan_set($recce);
 
     # Watch this when in-lining
     my $current_earleme = $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
@@ -472,29 +471,38 @@ sub Marpa::Recognizer::tokens {
     } ## end if ($continue_flag)
 
     # Watch this when in-lining
-    my $last_completed_earleme =
-        ++$recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
     my $furthest_earleme = $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
 
-    if ( $last_completed_earleme > $furthest_earleme ) {
+    # Watch this when in-lining
+    my $furthest_earleme_to_complete =
+          defined $predict_earleme
+        ? $predict_offset_is_absolute
+            ? $predict_earleme
+            : $current_earleme + $predict_earleme
+        : $furthest_earleme;
+
+    COMPLETION: while (1) {
+
+        Marpa::Internal::Recognizer::scan_set($recce);
+
+        # Watch this when in-lining
+        last COMPLETION
+            if (
+            ++$recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] )
+            > $furthest_earleme_to_complete;
+
+        (   $current_earleme,
+            $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
+        ) = Marpa::Internal::Recognizer::complete_set($recce);
+
+    } ## end while (1)
+
+    if ( $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
+        > $furthest_earleme )
+    {
         $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
         return;
-    }
-
-    my $earleme_to_complete;
-    if ( defined $predict_earleme ) {
-        $earleme_to_complete =
-              $predict_offset_is_absolute
-            ? $predict_earleme
-            : $current_earleme + $predict_earleme;
-    } ## end if ( defined $predict_earleme )
-
-    # Watch this when in-lining
-    $earleme_to_complete //= $furthest_earleme;
-
-    (   $current_earleme,
-        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
-    ) = Marpa::Internal::Recognizer::complete_set($recce);
+    } ## end if ( $recce->[...])
 
     return ( $current_earleme,
         $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
