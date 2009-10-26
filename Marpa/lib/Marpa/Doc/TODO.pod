@@ -10,6 +10,8 @@ MDLex and MDL will know about Marpa, but B<not> vice versa.
 
 =over 4
 
+=item * Eliminate symbol "cookies".  Just use names.
+
 =item * Or_map's should be hashes instead of arrays.
 
 =item * Add tokens() call, to allow multiple earlemes

@@ -12,6 +12,8 @@ use lib 'lib';
 use Test::More tests => 20;
 use t::lib::Marpa::Test;
 
+use Smart::Comments '-ENV';
+
 BEGIN {
     Test::More::use_ok('Marpa');
 }
@@ -316,23 +318,23 @@ END_OF_SET4
 
 my $input_length = 4;
 EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
-    my $furthest = my $last_completed =
+    my $current_earleme = my $furthest = my $last_completed =
         List::Util::min( $earleme, $input_length );
-    my $current_earleme = $last_completed - 1;
     Marpa::Test::is(
         $recce->show_earley_sets(1),
         "Current Earley Set: $current_earleme; Last Completed: $last_completed; Furthest: $furthest\n"
             . join( q{}, @set[ 0 .. $furthest ] ),
         'Aycock/Horspool Parse Status at 0'
     );
+    ### earleme: $earleme
     given ($earleme) {
         when ($input_length) {
-            $recce->end_input();
+            $recce->tokens();
         }
         when ( $input_length + 1 ) {break}
         default {
             my $a = $grammar->get_terminal('a');
-            defined $recce->earleme( [ $a, 'a', 1 ] )
+            defined $recce->tokens( [ [ $a, 'a', 1 ] ], 'predict' )
                 or Marpa::exception('Parsing exhausted');
         }
     } ## end given

@@ -1448,8 +1448,7 @@ sub delete_duplicate_nodes {
 
 # Returns false if no parse
 sub Marpa::Evaluator::new {
-    my $class = shift;
-    my $args  = shift;
+    my ($class, $args) = @_;
 
     my $self = bless [], $class;
 
@@ -1493,7 +1492,15 @@ sub Marpa::Evaluator::new {
     Marpa::exception(
         'Attempt to evaluate grammar in wrong phase: ',
         Marpa::Internal::Phase::description($phase)
-    ) if $phase < Marpa::Internal::Phase::RECOGNIZED;
+    ) if $phase < Marpa::Internal::Phase::RECOGNIZING;
+
+    my $furthest_earleme = $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+    my $last_completed_earleme = $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
+    Marpa::exception(
+        "Attempt to evaluate incompletely recognized parse:\n",
+        "  Last token ends at location $furthest_earleme\n",
+        "  Recognition done only as far as location $last_completed_earleme\n"
+    ) if $furthest_earleme > $last_completed_earleme;
 
     $self->[Marpa::Internal::Evaluator::RECOGNIZER] = $recce;
 

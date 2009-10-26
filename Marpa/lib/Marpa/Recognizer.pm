@@ -42,6 +42,7 @@ use Marpa::Offset qw(
     GRAMMAR
     EARLEY_SETS
     FURTHEST_EARLEME
+    LAST_COMPLETED_EARLEME
     TOKENS_BY_EARLEME
 
     =LAST_EVALUATOR_FIELD
@@ -51,7 +52,6 @@ use Marpa::Offset qw(
     EXHAUSTED
     TERMINALS_BY_STATE
     CURRENT_EARLEME
-    LAST_COMPLETED_EARLEME
     TOKEN_HASHES_BY_EARLEME
 
 );
@@ -204,28 +204,19 @@ sub Marpa::Recognizer::new {
         $earley_hash->{$name} = $item;
     } ## end for my $state ( @{$start_states} )
 
-    $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] =
-        $self->[Marpa::Internal::Recognizer::CURRENT_EARLEME] = -1;
-    $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = 0;
-    $self->[Marpa::Internal::Recognizer::EARLEY_HASH]       = $earley_hash;
-    $self->[Marpa::Internal::Recognizer::GRAMMAR]           = $grammar;
-    $self->[Marpa::Internal::Recognizer::EARLEY_SETS]       = [$earley_set];
+    $self->[Marpa::Internal::Recognizer::EARLEY_HASH] = $earley_hash;
+    $self->[Marpa::Internal::Recognizer::GRAMMAR]     = $grammar;
+    $self->[Marpa::Internal::Recognizer::EARLEY_SETS] = [$earley_set];
     $self->[Marpa::Internal::Recognizer::TOKEN_HASHES_BY_EARLEME] = [];
+    $self->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME] = [];
 
-    # Set up so we have an empty set of tokens at location -1
-    # A hack so that I don't have to code in the main loop
-    # a special case for an earleme prior to earleme 0.
-    $self->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME] = [[]];
-
-    # A hack until the main tokens routine is written & used here.
-    $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = 0;
+    $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = -1;
+    $self->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
+        $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = 0;
 
     (   ( my $current_earleme ),
         $self->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
-    ) = complete_set($self);
-
-    $self->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME] = [];
-    $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = 0;
+    ) = Marpa::Recognizer::tokens($self, 'predict', 'absolute', 0);
 
     return $self;
 } ## end sub Marpa::Recognizer::new
@@ -261,12 +252,12 @@ sub Marpa::Recognizer::stringify {
     }
 
     my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
-    if ( $phase != Marpa::Internal::Phase::RECOGNIZED ) {
-        Marpa::exception(
-            "Attempt to stringify recognizer in inappropriate state\nAttempt to stringify ",
-            Marpa::Internal::Phase::description($phase)
-        );
-    } ## end if ( $phase != Marpa::Internal::Phase::RECOGNIZED )
+    # if ( $phase != Marpa::Internal::Phase::RECOGNIZED ) {
+        # Marpa::exception(
+            # "Attempt to stringify recognizer in inappropriate state\nAttempt to stringify ",
+            ##  Marpa::Internal::Phase::description($phase)
+        # );
+    # } ## end if ( $phase != Marpa::Internal::Phase::RECOGNIZED )
 
     $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
 
@@ -397,20 +388,26 @@ sub Marpa::Recognizer::tokens {
 
     # check class of parse?
     my $recce = shift;
+    Marpa::exception('No recognizer object for token call')
+        if not defined $recce
+            or ref $recce ne 'Marpa::Recognizer';
+
+    ### calling tokens() ...
+    ### args: @_
 
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
-    if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
-        Marpa::exception('New earlemes not allowed after end of input');
-    }
+    # if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
+        # Marpa::exception('New earlemes not allowed after end of input');
+    # }
 
     my $tokens;
     my $predict_earleme;
     my $predict_offset_is_absolute = 0;
-    my $predict_flag = 1;
+    my $predict_flag               = 1;
     my $continue_earleme;
     my $continue_offset_is_absolute = 0;
-    my $continue_flag = 0;
+    my $continue_flag               = 0;
 
     while ( my $arg = shift @_ ) {
         given ($arg) {
@@ -455,23 +452,34 @@ sub Marpa::Recognizer::tokens {
         } ## end given
     } ## end while ( my $arg = shift @_ )
 
+    Marpa::exception('continue and predict options are mutually exclusive')
+        if defined $continue_earleme and defined $predict_earleme;
+
+    $tokens //= [];
+
+    ### <where>
+
+    Marpa::exception('Attempt to scan tokens after parsing was exhausted')
+        if $recce->[Marpa::Internal::Recognizer::EXHAUSTED] and scalar @{$tokens};
+
     Marpa::Internal::Recognizer::ur_token( $recce, $tokens );
 
     # Watch this when in-lining
-    my $current_earleme = $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
+    my $current_earleme =
+        $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
 
-    if ($continue_flag) {
+    if ( defined $continue_earleme ) {
         $current_earleme =
               $continue_offset_is_absolute
             ? $continue_earleme
             : $current_earleme + $continue_earleme;
         return $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
-            $current_earleme
-            if not $predict_flag;
-    } ## end if ($continue_flag)
+            $current_earleme;
+    } ## end if ( defined $continue_earleme )
 
     # Watch this when in-lining
-    my $furthest_earleme = $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+    my $furthest_earleme =
+        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
 
     # Watch this when in-lining
     my $furthest_earleme_to_complete =
@@ -481,15 +489,29 @@ sub Marpa::Recognizer::tokens {
             : $current_earleme + $predict_earleme
         : $furthest_earleme;
 
+    $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
+        $current_earleme = $furthest_earleme_to_complete;
+
+    ### tokens <where>, furthest earleme to complete: $furthest_earleme_to_complete
+
+    my $last_completed_earleme =
+        $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
+
     COMPLETION: while (1) {
 
         Marpa::Internal::Recognizer::scan_set($recce);
 
+        ### tokens <where>, last completed earleme: $recce->[Marpa'Internal'Recognizer'LAST_COMPLETED_EARLEME]
+        ### tokens <where>, current earleme: $current_earleme
+        ### tokens <where>, furthest earleme: $furthest_earleme
+
         # Watch this when in-lining
         last COMPLETION
-            if (
-            ++$recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] )
-            > $furthest_earleme_to_complete;
+            if $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
+                >= $furthest_earleme_to_complete;
+
+        $last_completed_earleme =
+            ++$recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
 
         (   $current_earleme,
             $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
@@ -497,12 +519,26 @@ sub Marpa::Recognizer::tokens {
 
     } ## end while (1)
 
-    if ( $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
-        > $furthest_earleme )
-    {
+
+    # Watch this when in-lining
+    ### end of tokens, last completed earleme: $last_completed_earleme
+    ### end of tokens, current earleme: $current_earleme
+    ### end of tokens, furthest earleme: $furthest_earleme
+    if ( $last_completed_earleme > $furthest_earleme ) {
+        ### Marking parser exhausted ...
+        ### last completed earleme: $last_completed_earleme
+        ### furthest earleme: $furthest_earleme
         $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
         return;
-    } ## end if ( $recce->[...])
+    }
+
+    # Eliminate RECOGNIZED phase?  Instead have the evaluator test
+    # that the earley sets are completed to furthest earleme?
+    # if ( $last_completed_earleme >= $furthest_earleme ) {
+        # $grammar->[Marpa::Internal::Grammar::PHASE] =
+            # Marpa::Internal::Phase::RECOGNIZED;
+        # return;
+    # }
 
     return ( $current_earleme,
         $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
@@ -510,14 +546,19 @@ sub Marpa::Recognizer::tokens {
 
     return $current_earleme;
 
-} ## end sub Marpa::Recognizer::earleme
+} ## end sub Marpa::Recognizer::tokens
 
 sub ur_token {
     my ( $recce, $tokens ) = @_;
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
 
-    my $current_token_earleme =
+    # Eliminate RECOGNIZED phase?
+    # Marpa::exception('New tokens not allowed after end of input')
+        # if $grammar->[Marpa::Internal::Grammar::PHASE]
+            # >= Marpa::Internal::Phase::RECOGNIZED;
+
+    my $next_token_earleme =
         $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
     my $last_completed_earleme =
         $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
@@ -525,12 +566,22 @@ sub ur_token {
         $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
 
     ### starting ur_token, last completed earleme: $last_completed_earleme
-    ### starting ur_token, current earleme: $current_token_earleme
+    ### starting ur_token, next earleme: $next_token_earleme
     ### starting ur_token, furthest earleme: $furthest_earleme
 
     TOKEN: for my $token ( @{$tokens} ) {
         my ( $cookie, $value, $length, $offset ) = @{$token};
 
+        my $current_token_earleme = $next_token_earleme;
+
+        ### ur_token loop, current earleme: $current_token_earleme
+        ### ur_token loop, furthest earleme: $furthest_earleme
+
+        Marpa::exception(
+            "Attempt to add token at location where processing is complete:\n",
+            "  Add attempted at $current_token_earleme\n",
+            "  Processing complete to $last_completed_earleme\n"
+        ) if $current_token_earleme < $last_completed_earleme;
         my $token = $symbols->[$cookie];
 
         # Make sure it's an allowed terminal symbol.
@@ -544,14 +595,6 @@ sub ur_token {
         } ## end if ( not $token->[Marpa::Internal::Symbol::TERMINAL])
 
         my $value_ref = \($value);
-
-        $offset //= 1;
-        $current_token_earleme += $offset;
-        Marpa::exception(
-            "Attempt to add token at location where processing is complete\n",
-            "Add attempted at $current_token_earleme\n",
-            "Processing complete to $last_completed_earleme\n"
-        ) if $current_token_earleme < $last_completed_earleme;
 
         given ($length) {
             when (undef) { $length = 1; }
@@ -580,9 +623,15 @@ sub ur_token {
             "  Token starts at $last_completed_earleme, and its length is $length\n"
         ) if $end_earleme & Marpa::Internal::Recognizer::EARLEME_MASK;
 
-        if ($end_earleme > $furthest_earleme) {
-           $furthest_earleme = $end_earleme;
+        if ( $end_earleme > $furthest_earleme ) {
+            $furthest_earleme = $end_earleme;
         }
+
+        $offset //= 1;
+        $next_token_earleme += $offset;
+
+        ### end of ur_token loop, offset: $offset
+        ### end of ur_token loop, current_token_earleme: $current_token_earleme
 
         my $token_entry = [ $token, $value_ref, $length ];
 
@@ -618,13 +667,13 @@ sub ur_token {
     } ## end for my $token ( @{$tokens} )
 
     $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
-        $current_token_earleme;
+        $next_token_earleme;
     $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] =
         $furthest_earleme;
 
-    ### end of ur_token, last completed earleme: $last_completed_earleme
-    ### end of ur_token, current earleme: $current_token_earleme
-    ### end of ur_token, furthest earleme: $furthest_earleme
+    ### end of ur_token, last completed earleme: $recce->[Marpa'Internal'Recognizer'LAST_COMPLETED_EARLEME]
+    ### end of ur_token, current earleme: $recce->[Marpa'Internal'Recognizer'CURRENT_EARLEME]
+    ### end of ur_token, furthest earleme: $recce->[Marpa'Internal'Recognizer'FURTHEST_EARLEME]
 
 } ## end sub ur_token
 
@@ -632,100 +681,20 @@ sub ur_token {
 sub Marpa::Recognizer::earleme {
 ## use critic
 
-    # check class of parse?
     my $recce = shift;
 
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
-    if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
-        Marpa::exception('New earlemes not allowed after end of input');
-    }
+    return Marpa::Recognizer::tokens($recce,
+         [ map { [ @{$_}, 0 ] } @_ ],
+     'predict', 1);
 
-    if (scalar @_) {
-        my @tokens;
-        push @tokens, [ @{shift @_}, 1 ], map { [ @{$_}, 0 ] } @_ ;
-        Marpa::Internal::Recognizer::ur_token( $recce, \@tokens );
-        Marpa::Internal::Recognizer::scan_set($recce);
-    } else {
-        ++$recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
-    }
-
-
-    if ( ++$recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
-        > $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] )
-    {
-
-        ### Marking parse exhausted ...
-        ### last completed earleme: $recce->[Marpa'Internal'Recognizer'LAST_COMPLETED_EARLEME]
-        ### furthest earleme: $recce->[Marpa'Internal'Recognizer'FURTHEST_EARLEME]
-
-        $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
-        return;
-    } ## end if ( ++$recce->[...])
-
-    (   ( my $current_earleme ),
-        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
-    ) = Marpa::Internal::Recognizer::complete_set($recce);
-
-    return ( $current_earleme,
-        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
-        if wantarray;
-
-    ### End of earleme() ...
-    ### current earleme: $current_earleme
-
-    return $current_earleme;
 } ## end sub Marpa::Recognizer::earleme
 
 # Always returns success
 sub Marpa::Recognizer::end_input {
-    my $self = shift;
-
-    my $grammar = $self->[Marpa::Internal::Recognizer::GRAMMAR];
-    my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
-
-    # If called repeatedly, just return success,
-    # without complaint.  In other words, be idempotent.
-    return 1 if $phase >= Marpa::Internal::Phase::RECOGNIZED;
-
-    my $furthest_earleme =
-        $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
-
-    while ( ++$self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
-        <= $furthest_earleme )
-    {
-        Marpa::Internal::Recognizer::complete_set($self);
-    }
-
-    $self->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] = undef;
-
-    if ( $grammar->[Marpa::Internal::Grammar::STRIP] ) {
-
-        $#{$self} = Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD;
-
-        $#{$grammar} = Marpa::Internal::Grammar::LAST_EVALUATOR_FIELD;
-        for my $symbol ( @{ $grammar->[Marpa::Internal::Grammar::SYMBOLS] } )
-        {
-            $#{$symbol} = Marpa::Internal::Symbol::LAST_EVALUATOR_FIELD;
-        }
-        for my $rule ( @{ $grammar->[Marpa::Internal::Grammar::RULES] } ) {
-            $#{$rule} = Marpa::Internal::Rule::LAST_EVALUATOR_FIELD;
-        }
-        for my $QDFA ( @{ $grammar->[Marpa::Internal::Grammar::QDFA] } ) {
-            $#{$QDFA} = Marpa::Internal::QDFA::LAST_EVALUATOR_FIELD;
-        }
-
-    } ## end if ( $grammar->[Marpa::Internal::Grammar::STRIP] )
-
-    # Hack!!!
-
-    $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = $furthest_earleme;
-
-    $grammar->[Marpa::Internal::Grammar::PHASE] =
-        Marpa::Internal::Phase::RECOGNIZED;
-
+    my ($recce) = @_;
+    Marpa::Recognizer::tokens($recce);
     return 1;
-} ## end sub Marpa::Recognizer::end_input
+}
 
 # The remaining arguments should be a list of token alternatives, as
 # array references.  The array for each alternative is (token, value,
@@ -754,8 +723,6 @@ sub scan_set {
         Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME,
         Marpa::Internal::Recognizer::EXHAUSTED
         ];
-    Marpa::exception('Attempt to scan tokens after parsing was exhausted')
-        if $exhausted;
 
     my $tokens_by_earleme = $parse->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME];
     my $tokens_here = $tokens_by_earleme->[$last_completed_earleme] // [];
