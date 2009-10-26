@@ -45,7 +45,7 @@
 // The component for TARGET_DIR/perl/bin/perl.exe
 static TCHAR sComponent[41];
 
-// The component for TARGET_DIR/perl/bin/perl.exe
+// The string to be logged to Windows Installer.
 static TCHAR sLogString[513];
 
 // Default DllMain, since nothing special
