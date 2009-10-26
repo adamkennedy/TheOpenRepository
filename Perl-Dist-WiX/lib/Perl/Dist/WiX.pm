@@ -164,8 +164,8 @@ use Object::Tiny qw(
   build_start_time
   perl_config_cf_email
   perl_config_cf_by
-  toolchain
   bits
+  gcc_version
 );
 #  Don't need to put distributions_installed in here.
 
@@ -419,6 +419,15 @@ for 32-bit (i386) or 64-bit (referred to as Intel64 / amd-x64) Windows
 
 32-bit (i386) is the default.
 
+=item * gcc_version
+
+The optional C<gcc_version> parameter specifies whether perl is being built 
+using gcc 3.4.5 from the mingw32 project (by specifying a value of '3'), or 
+using gcc 4.4.3 from the mingw64 project (by specifying a value of '4'). 
+
+'3' (gcc 3.4.5) is the default, and is incompatible with bits => 64.
+'4' is compatible with both 32 and 64-bit.
+
 =back
 
 The C<new> constructor returns a B<Perl::Dist::WiX> object, which you
@@ -530,9 +539,6 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		# Install the core C toolchain
 		'install_c_toolchain',
 
-		# Install any additional C libraries
-		'install_c_libraries',
-
 		# Install the Perl binary
 		'install_perl',
 
@@ -572,6 +578,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		forceperl    => 0,
 		exe          => 0,
 		bits         => 32,
+		gcc_version  => 3,
 		msi               => 1,        # Goal of Perl::Dist::WiX is to make an MSI.
 		checkpoint_before => 0,
 		checkpoint_after        => [0],
@@ -1279,42 +1286,18 @@ sub install_c_toolchain {
 	# The primary make
 	$self->install_dmake;
 
-	# Core compiler
-	$self->install_gcc;
+	# Core compiler and support libraries.
+	$self->install_gcc_toolchain;
 
 	# C Utilities
 	$self->install_mingw_make;
-	$self->install_binutils;
 	$self->install_pexports;
-
-	# Install support libraries
-	$self->install_mingw_runtime;
-	$self->install_win32api;
 
 	# Set up the environment variables for the binaries
 	$self->add_env_path( 'c', 'bin' );
 
 	return 1;
 } ## end sub install_c_toolchain
-
-=head3 install_c_libraries
-
-The C<install_c_libraries> method is an empty install stub provided
-to allow sub-classed distributions to add B<vastly> different
-additional packages on top of Strawberry Perl.
-
-Returns true, or throws an error on exception.
-
-=cut
-
-# No additional modules by default
-sub install_c_libraries {
-	my $class = shift;
-	if ( $class eq __PACKAGE__ ) {
-		$class->trace_line( 1, "install_c_libraries: Nothing to do\n" );
-	}
-	return 1;
-}
 
 # Portability support must be added after modules
 sub install_portable {
