@@ -1,0 +1,40 @@
+Acme-CPANAuthors-Arabic
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Build.PL
+	./Build
+	./Build test
+	./Build install
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc Acme::CPANAuthors::Arabic
+
+You can also look for information at:
+
+    RT, CPAN's request tracker
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Acme-CPANAuthors-Arabic
+
+    AnnoCPAN, Annotated CPAN documentation
+        http://annocpan.org/dist/Acme-CPANAuthors-Arabic
+
+    CPAN Ratings
+        http://cpanratings.perl.org/d/Acme-CPANAuthors-Arabic
+
+    Search CPAN
+        http://search.cpan.org/dist/Acme-CPANAuthors-Arabic/
+
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2009 Ahmad M. Zawawi
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
