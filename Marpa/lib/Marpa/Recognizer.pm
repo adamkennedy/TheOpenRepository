@@ -219,10 +219,10 @@ sub Marpa::Recognizer::new {
     return $self;
 } ## end sub Marpa::Recognizer::new
 
-sub Marpa::Recognizer::get_terminal {
+sub Marpa::Recognizer::check_terminal {
     my ( $recce, $name ) = @_;
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    return $grammar->get_terminal($name);
+    return $grammar->check_terminal($name);
 }
 
 sub Marpa::Recognizer::status {
@@ -454,7 +454,8 @@ sub Marpa::Recognizer::tokens {
 
     # TOKEN PROCESSING PHASE
 
-    my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
+    my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
+    my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
 
     my $next_token_earleme =
         $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
@@ -470,7 +471,7 @@ sub Marpa::Recognizer::tokens {
     ### starting ur_token, furthest earleme: $furthest_earleme
 
     TOKEN: for my $token ( @{$tokens} ) {
-        my ( $cookie, $value, $length, $offset ) = @{$token};
+        my ( $symbol_name, $value, $length, $offset ) = @{$token};
 
         my $current_token_earleme = $next_token_earleme;
 
@@ -478,19 +479,24 @@ sub Marpa::Recognizer::tokens {
         ### ur_token loop, furthest earleme: $furthest_earleme
 
         Marpa::exception(
-            "Attempt to add token at location where processing is complete:\n",
+            "Attempt to add token '$symbol_name' at location where processing is complete:\n",
             "  Add attempted at $current_token_earleme\n",
             "  Processing complete to $last_completed_earleme\n"
         ) if $current_token_earleme < $last_completed_earleme;
-        my $token = $symbols->[$cookie];
+        my $token_id = $symbol_hash->{$symbol_name};
+
+        if ( not defined $token_id ) {
+            Marpa::exception( 'Unknown symbol '
+                    . ( defined $symbol_name ? "$symbol_name " : q{} )
+                    . 'used as token' );
+        }
+
+        my $token = $symbols->[$token_id];
 
         # Make sure it's an allowed terminal symbol.
         if ( not $token->[Marpa::Internal::Symbol::TERMINAL] ) {
-
-            # Check Moved to token processing
-            my $name = $token->[Marpa::Internal::Symbol::NAME];
             Marpa::exception( 'Non-terminal '
-                    . ( defined $name ? "$name " : q{} )
+                    . ( defined $symbol_name ? "$symbol_name " : q{} )
                     . 'supplied as token' );
         } ## end if ( not $token->[Marpa::Internal::Symbol::TERMINAL])
 
@@ -798,7 +804,8 @@ sub Marpa::Recognizer::tokens {
         #### Lexables Predicted: scalar grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
 
         $current_terminals =
-            [ grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} ) ];
+            [ map { $symbols->[$_]->[Marpa::Internal::Symbol::NAME] }
+                    grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} ) ];
 
     } ## end while (1)
 
@@ -854,9 +861,6 @@ in_file($_, 't/equation.t');
 =end Marpa::Test::Display:
 
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-
-    my $op     = $grammar->get_terminal('Op');
-    my $number = $grammar->get_terminal('Number');
 
     my @tokens = (
         [ $number, 2,    1 ],
@@ -1194,7 +1198,6 @@ in_file($_, 't/ah2.t');
 
 =end Marpa::Test::Display:
 
-    my $a = $grammar->get_terminal('a');
     $recce->earleme( [ $a, 'a', 1 ] ) or Marpa::exception('Parsing exhausted');
 
 The C<earleme> method takes zero or more arguments.

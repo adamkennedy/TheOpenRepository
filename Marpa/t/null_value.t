@@ -80,7 +80,6 @@ $Test_Grammar::MDLEX_OPTIONS = [
 package main;
 
 my $g     = Marpa::Grammar->new( @{$Test_Grammar::MARPA_OPTIONS} );
-my $cap_z = $g->get_terminal('Z');
 $g->precompute();
 my $recce = Marpa::Recognizer->new( { grammar => $g } );
 my $lexer =

@@ -333,8 +333,7 @@ EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
         }
         when ( $input_length + 1 ) {break}
         default {
-            my $a = $grammar->get_terminal('a');
-            defined $recce->tokens( [ [ $a, 'a', 1 ] ], 'predict' )
+            defined $recce->tokens( [ [ 'a', 'a', 1 ] ], 'predict' )
                 or Marpa::exception('Parsing exhausted');
         }
     } ## end given

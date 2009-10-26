@@ -31,7 +31,7 @@ use Marpa::Offset qw(
     CURRENT_EARLEME
     CURRENT_LEXABLES
 
-    TERMINAL_HASH { hash of terminals by cookie }
+    TERMINAL_HASH { hash of terminals by name }
 
     DEFAULT_PREFIX { default prefix for lexing }
 
@@ -249,16 +249,15 @@ sub add_user_terminals {
         $priority ||= 0;
 
         Carp::croak('Terminal must have name') if not defined $name;
-        my $cookie = $recce->get_terminal($name);
-        if ( not defined $cookie ) {
+        if ( not $recce->check_terminal($name)) {
             Carp::croak("Terminal '$name' not known to Marpa");
         }
         $terminal->[Marpa::MDLex::Internal::Terminal::NAME] = $name;
 
-        if ( $terminal_hash->{$cookie} ) {
+        if ( $terminal_hash->{$name} ) {
             Carp::croak("Terminal $name already defined");
         }
-        $terminal_hash->{$cookie} = $terminal;
+        $terminal_hash->{$name} = $terminal;
 
         $terminal->[Marpa::MDLex::Internal::Terminal::PRIORITY] = $priority;
 

@@ -99,14 +99,12 @@ for my $n ( 1 .. 12 ) {
 ## use critic
 
     my $recce  = Marpa::Recognizer->new( { grammar => $g } );
-    my $minus  = $g->get_terminal('Minus');
-    my $number = $g->get_terminal('Number');
     $g->precompute();
     ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
     $recce->tokens(
-        [   [ $number, 6, 1 ],
-            ( ( [ $minus, q{-}, 1 ] ) x $n ),
-            [ $number, 1, 1 ]
+        [   [ 'Number', 6, 1 ],
+            ( ( [ 'Minus', q{-}, 1 ] ) x $n ),
+            [ 'Number', 1, 1 ]
         ]
     );
     ## use critic

@@ -12,6 +12,10 @@ MDLex and MDL will know about Marpa, but B<not> vice versa.
 
 =item * Eliminate symbol "cookies".  Just use names.
 
+=item * Eliminate Marpa::get_terminal() and MDL canonical symbol call.
+
+=item * Create HTML Parser.
+
 =item * Or_map's should be hashes instead of arrays.
 
 =item * Allow action options to be changed when evaluator
@@ -22,13 +26,6 @@ and or-nodes:
 A grammar with two rules in a cycle.  Each rule is all
 nulling (nullable?) symbols
 except for the last symbol, which must be non-nulling.
-
-=item * I may assume in several places and zero-length and-nodes have
-no cause or predecessor.  I have to find any places where this
-assumption is being made, and change it.  In addition to the
-above test, I may want to reread the relevant evaluator code.
-
-=item * Create HTML Parser.
 
 =back
 

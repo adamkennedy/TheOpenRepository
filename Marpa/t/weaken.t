@@ -31,10 +31,9 @@ my $test = sub {
             terminals => ['a'],
         }
     );
-    my $a = $g->get_terminal('a');
     $g->precompute();
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
-    $recce->tokens( [ ( [ $a, 'a', 1 ] ) x 4 ] );
+    $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x 4 ] );
     my $evaler = Marpa::Evaluator->new( { recce => $recce } );
     Marpa::exception('No parse found') if not $evaler;
     $evaler->value();

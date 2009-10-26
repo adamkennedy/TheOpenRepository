@@ -60,14 +60,12 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-my $a = $grammar->get_terminal('a');
-
 my @results = qw{NA (-;-;-;a) (a;-;-;a) (a;a;-;a) (a;a;a;a)};
 
 for my $input_length ( 1 .. 8 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     TOKEN: for my $token ( 1 .. $input_length ) {
-        next TOKEN if $recce->earleme( [ $a, 'a', 1 ] );
+        next TOKEN if $recce->earleme( [ 'a', 'a', 1 ] );
         Marpa::exception( 'Parsing exhausted at character: ', $token );
     }
     $recce->end_input();

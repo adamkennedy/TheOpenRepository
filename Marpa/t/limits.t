@@ -46,11 +46,10 @@ sub test_grammar {
     Marpa::exception("Exception while creating Recognizer:\n$EVAL_ERROR")
         if not $eval_ok;
     Marpa::exception("Recognizer not created\n") if not $recce;
-    my $a = $grammar->get_terminal('a');
 
     my $earleme_result;
     $eval_ok = eval {
-        $earleme_result = $recce->tokens( [ [ $a, 'a', 1 ] ], 'continue' );
+        $earleme_result = $recce->tokens( [ [ 'a', 'a', 1 ] ], 'continue' );
         1;
     };
     Marpa::exception("Exception while recognizing earleme:\n$EVAL_ERROR")
@@ -59,7 +58,7 @@ sub test_grammar {
 
     $eval_ok = eval {
         $earleme_result =
-            $recce->tokens( [ [ $a, 'a', $earleme_length ] ], 'continue' );
+            $recce->tokens( [ [ 'a', 'a', $earleme_length ] ], 'continue' );
         1;
     };
     Marpa::exception("Exception while recognizing earleme:\n$EVAL_ERROR")

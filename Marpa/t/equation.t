@@ -112,17 +112,14 @@ END_QDFA
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-my $op     = $grammar->get_terminal('Op');
-my $number = $grammar->get_terminal('Number');
-
 $recce->tokens(
-    [   [ $number, 2,    1 ],
-        [ $op,     q{-}, 1 ],
-        [ $number, 0,    1 ],
-        [ $op,     q{*}, 1 ],
-        [ $number, 3,    1 ],
-        [ $op,     q{+}, 1 ],
-        [ $number, 1,    1 ],
+    [   [ 'Number', 2,    1 ],
+        [ 'Op',     q{-}, 1 ],
+        [ 'Number', 0,    1 ],
+        [ 'Op',     q{*}, 1 ],
+        [ 'Number', 3,    1 ],
+        [ 'Op',     q{+}, 1 ],
+        [ 'Number', 1,    1 ],
     ]
 );
 

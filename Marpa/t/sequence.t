@@ -60,11 +60,7 @@ sub run_sequence_test {
 
     $grammar->precompute();
 
-    my $A = $grammar->get_terminal('A');
     my $sep;
-    if ( $separation ne 'none' ) {
-        $sep = $grammar->get_terminal('sep');
-    }
 
     # Number of symbols to test at the higher numbers is
     # more or less arbitrary.  You really need to test 0 .. 3.
@@ -86,7 +82,7 @@ sub run_sequence_test {
         my $last_symbol_ix = $symbol_count - 1;
         SYMBOL_IX: for my $symbol_ix ( 0 .. $last_symbol_ix ) {
             push @expected, 'a';
-            defined $recce->tokens( [ [ $A, 'a', 1 ] ] )
+            defined $recce->tokens( [ [ 'A', 'a', 1 ] ] )
                 or Marpa::exception('Parsing exhausted');
             next SYMBOL_IX if $separation eq 'none';
             next SYMBOL_IX
@@ -95,7 +91,7 @@ sub run_sequence_test {
             if ($keep) {
                 push @expected, q{!};
             }
-            defined $recce->tokens( [ [ $sep, q{!}, 1 ] ] )
+            defined $recce->tokens( [ [ 'sep', q{!}, 1 ] ] )
                 or Marpa::exception('Parsing exhausted');
         } ## end for my $symbol_ix ( 0 .. $last_symbol_ix )
 

@@ -140,14 +140,13 @@ for my $test_data (@test_data) {
     );
     my $grammar = Marpa::Grammar->new( \%args );
     $grammar->precompute();
-    my $t = $grammar->get_terminal('t');
 
     close $MEMORY;
     Marpa::Test::is( $trace, $expected_trace, "$test_name trace" );
 
     my $recce = Marpa::Recognizer->new(
         { grammar => $grammar, trace_file_handle => \*STDERR } );
-    $recce->tokens( [ [ $t, 't', 1 ] ] );
+    $recce->tokens( [ [ 't', 't', 1 ] ] );
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     if ( not defined $evaler ) {
         Marpa::exception('Input not recognized');

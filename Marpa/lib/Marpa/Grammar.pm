@@ -1565,20 +1565,21 @@ sub Marpa::Grammar::show_QDFA {
     return $text;
 } ## end sub Marpa::Grammar::show_QDFA
 
-sub Marpa::Grammar::get_terminal {
+# Used by lexers to check that symbol is a terminal
+sub Marpa::Grammar::check_terminal {
     my ( $grammar, $name ) = @_;
-    Marpa::exception('Attempt to get cookie for undefined name')
+    Marpa::exception('Attempt to use symbol with undefined name')
         if not defined $name;
     my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
     my $symbol_id   = $symbol_hash->{$name};
-    Marpa::exception("Attempt to get cookie for unknown symbol: $name")
+    Marpa::exception("Attempt to use unknown symbol as terminal: $name")
         if not defined $symbol_id;
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my $symbol  = $symbols->[$symbol_id];
-    Marpa::exception("Attempt to get cookie for non-terminal: $name")
+    Marpa::exception("Attempt to use non-terminal as terminal: $name")
         if not $symbol->[Marpa::Internal::Symbol::TERMINAL];
-    return $symbol_id;
-} ## end sub Marpa::Grammar::get_terminal
+    return 1;
+} ## end sub Marpa::Grammar::check_terminal
 
 sub add_terminal {
     my $grammar  = shift;

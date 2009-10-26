@@ -201,6 +201,7 @@ TEST: for my $test_data (@test_data) {
     $recce->tokens();
 
     my $evaler = Marpa::Evaluator->new( { recce => $recce } );
+    Carp::croak('Parse failed') if not $evaler;
     my @parses;
     while ( defined( my $value = $evaler->value ) ) {
         push @parses, ${$value};
