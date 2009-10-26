@@ -2597,7 +2597,22 @@ sub Marpa::Evaluator::value {
 
             } ## end when (Marpa::Internal::Task::SETUP_AND_NODE)
 
+=begin Implementation:
+
+The visited arguments is needed for RESET_OR_TREE and RESET_AND_TREE
+because otherwise every node will be reset once for every possible
+derivation involving it.  Resets are idempotent, so in one sense this
+is harmless.  But in some cases the number of derivations is O(n!)
+in the size of the input and the CPU time consumed can be staggering.
+
+I need to remember if I ever put in cycle-preventation, then back
+it out, that this use of the visited argument must be preserved.
+
+=end Implementation:
+
+=cut
             when (Marpa::Internal::Task::RESET_OR_TREE) {
+
                 my ( $or_node_id, $visited ) = @{$task_entry};
 
                 if ($trace_tasks) {
