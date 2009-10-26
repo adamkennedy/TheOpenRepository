@@ -450,87 +450,8 @@ sub Marpa::Recognizer::tokens {
     Marpa::exception('Attempt to scan tokens after parsing was exhausted')
         if $recce->[Marpa::Internal::Recognizer::EXHAUSTED] and scalar @{$tokens};
 
-    Marpa::Internal::Recognizer::ur_token( $recce, $tokens );
-
-    # Watch this when in-lining
-    my $current_earleme =
-        $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
-
-    if ( defined $continue_earleme ) {
-        $current_earleme =
-              $continue_offset_is_absolute
-            ? $continue_earleme
-            : $current_earleme + $continue_earleme;
-        return $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
-            $current_earleme;
-    } ## end if ( defined $continue_earleme )
-
-    # Watch this when in-lining
-    my $furthest_earleme =
-        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
-
-    # Watch this when in-lining
-    my $furthest_earleme_to_complete =
-          defined $predict_earleme
-        ? $predict_offset_is_absolute
-            ? $predict_earleme
-            : $current_earleme + $predict_earleme
-        : $furthest_earleme;
-
-    $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
-        $current_earleme = $furthest_earleme_to_complete;
-
-    ### tokens <where>, furthest earleme to complete: $furthest_earleme_to_complete
-
-    my $last_completed_earleme =
-        $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
-
-    COMPLETION: while (1) {
-
-        Marpa::Internal::Recognizer::scan_set($recce);
-
-        ### tokens <where>, last completed earleme: $recce->[Marpa'Internal'Recognizer'LAST_COMPLETED_EARLEME]
-        ### tokens <where>, current earleme: $current_earleme
-        ### tokens <where>, furthest earleme: $furthest_earleme
-
-        # Watch this when in-lining
-        last COMPLETION
-            if $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
-                >= $furthest_earleme_to_complete;
-
-        $last_completed_earleme =
-            ++$recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
-
-        (   $current_earleme,
-            $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
-        ) = Marpa::Internal::Recognizer::complete_set($recce);
-
-    } ## end while (1)
-
-
-    # Watch this when in-lining
-    ### end of tokens, last completed earleme: $last_completed_earleme
-    ### end of tokens, current earleme: $current_earleme
-    ### end of tokens, furthest earleme: $furthest_earleme
-    if ( $last_completed_earleme > $furthest_earleme ) {
-        ### Marking parser exhausted ...
-        ### last completed earleme: $last_completed_earleme
-        ### furthest earleme: $furthest_earleme
-        $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
-        return;
-    }
-
-    return ( $current_earleme,
-        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
-        if wantarray;
-
-    return $current_earleme;
-
-} ## end sub Marpa::Recognizer::tokens
-
-sub ur_token {
-    my ( $recce, $tokens ) = @_;
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    # Marpa::Internal::Recognizer::ur_token( $recce, $tokens );
+    
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
 
     my $next_token_earleme =
@@ -641,7 +562,7 @@ sub ur_token {
 
     } ## end for my $token ( @{$tokens} )
 
-    $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
+    my $current_earleme = $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
         $next_token_earleme;
     $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] =
         $furthest_earleme;
@@ -650,42 +571,74 @@ sub ur_token {
     ### end of ur_token, current earleme: $recce->[Marpa'Internal'Recognizer'CURRENT_EARLEME]
     ### end of ur_token, furthest earleme: $recce->[Marpa'Internal'Recognizer'FURTHEST_EARLEME]
 
-} ## end sub ur_token
+    if ( defined $continue_earleme ) {
+        $current_earleme =
+              $continue_offset_is_absolute
+            ? $continue_earleme
+            : $current_earleme + $continue_earleme;
+        return $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
+            $current_earleme;
+    } ## end if ( defined $continue_earleme )
 
-## no critic (Subroutines::RequireArgUnpacking)
-sub Marpa::Recognizer::earleme {
-## use critic
+    my $furthest_earleme_to_complete =
+          defined $predict_earleme
+        ? $predict_offset_is_absolute
+            ? $predict_earleme
+            : $current_earleme + $predict_earleme
+        : $furthest_earleme;
 
-    Marpa::exception("earleme() disabled");
-    my $recce = shift;
+    $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
+        $current_earleme = $furthest_earleme_to_complete;
 
-    return Marpa::Recognizer::tokens($recce,
-         [ map { [ @{$_}, 0 ] } @_ ],
-     'predict', 1);
+    ### tokens <where>, furthest earleme to complete: $furthest_earleme_to_complete
 
-} ## end sub Marpa::Recognizer::earleme
 
-# Always returns success
-sub Marpa::Recognizer::end_input {
-    Marpa::exception("end_input() disabled");
-    my ($recce) = @_;
-    Marpa::Recognizer::tokens($recce);
-    return 1;
-}
+    COMPLETION: while (1) {
 
-# The remaining arguments should be a list of token alternatives, as
-# array references.  The array for each alternative is (token, value,
-# length), where token is a symbol reference, value can anything
-# meaningful to the user, and length is the length of this token in
-# earlemes.
+        # Hack, until the following is in-lined
+        $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] =
+            $last_completed_earleme;
 
-# Given a parse object and a list of alternative tokens starting at
-# the current earleme, add Earley items to recognize those tokens.
+        Marpa::Internal::Recognizer::scan_set($recce);
 
-# NOTE: This adds items to sets for tokens STARTING AT the current
-# set.  Since no zero-length tokens are allowed, all of these
-# tokens will go into sets AFTER the current set.
-# No tokens will be added TO the current set.
+        ### tokens <where>, last completed earleme: $recce->[Marpa'Internal'Recognizer'LAST_COMPLETED_EARLEME]
+        ### tokens <where>, current earleme: $current_earleme
+        ### tokens <where>, furthest earleme: $furthest_earleme
+
+        last COMPLETION
+            if $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
+                >= $furthest_earleme_to_complete;
+
+        $last_completed_earleme =
+            ++$recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
+
+        (   $current_earleme,
+            $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS]
+        ) = Marpa::Internal::Recognizer::complete_set($recce);
+
+    } ## end while (1)
+
+
+    # Watch this when in-lining
+    ### end of tokens, last completed earleme: $last_completed_earleme
+    ### end of tokens, current earleme: $current_earleme
+    ### end of tokens, furthest earleme: $furthest_earleme
+    if ( $last_completed_earleme > $furthest_earleme ) {
+        ### Marking parser exhausted ...
+        ### last completed earleme: $last_completed_earleme
+        ### furthest earleme: $furthest_earleme
+        $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
+        return;
+    }
+
+    return ( $current_earleme,
+        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
+        if wantarray;
+
+    return $current_earleme;
+
+} ## end sub Marpa::Recognizer::tokens
+
 sub scan_set {
 
     my $parse = shift;

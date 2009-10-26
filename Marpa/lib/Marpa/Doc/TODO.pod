@@ -14,15 +14,6 @@ MDLex and MDL will know about Marpa, but B<not> vice versa.
 
 =item * Or_map's should be hashes instead of arrays.
 
-=item * Add tokens() call, to allow multiple earlemes
-in cookie/incremental form, to be added at once.
-
-Add complete() call, to allow completions up to an
-earleme specified in the arg.  Default is up to the
-furthest earleme, which is identical to the present
-end_input.  In array context, this should return
-the predicted terminals.
-
 =item * Allow action options to be changed when evaluator
 is created, but not afterwards.
 
@@ -52,16 +43,6 @@ valid grammars vs. their result.  Matrix is
     grammars X inputs X clone grammar X clone recognizer X strip grammar X strip recognizer
 
 Do just one or two inputs per grammar.
-
-=item * Implement an recognizer option to simply skip
-ahead spans where no terminal can possibly be found.
-This means coming up with some way of passing
-Marpa's idea of where the
-next terminal should be expected to the lexer.
-Also the lexer should be able to inform Marpa
-which earleme a token is at.
-
-Use PREDICTIVE flag to the Recognizer to enable this?
 
 =item * I should start to assume that anyone explicitly using
 separate recognizer and evaluator stages knows what they are doing.
