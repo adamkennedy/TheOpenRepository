@@ -136,11 +136,7 @@ my @results = qw{NA (-;-;-;a) (a;-;-;a) (a;a;-;a) (a;a;a;a)};
 
 for my $input_length ( 1 .. 4 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-    TOKEN: for my $token ( 1 .. $input_length ) {
-        next TOKEN if defined $recce->earleme( [ $a, 'a', 1 ] );
-        Marpa::exception( 'Parsing exhausted at character: ', $token );
-    }
-    $recce->end_input();
+    $recce->tokens( [ ( [ $a, 'a', 1 ] ) x $input_length ] );
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     my $value = $evaler->value();
     Marpa::Test::is( ${$value}, $results[$input_length],

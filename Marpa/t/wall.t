@@ -103,13 +103,13 @@ for my $n ( 1 .. 12 ) {
     my $number = $g->get_terminal('Number');
     $g->precompute();
     ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
-    $recce->earleme( [ $number, 6, 1 ] );
+    $recce->tokens(
+        [   [ $number, 6, 1 ],
+            ( ( [ $minus, q{-}, 1 ] ) x $n ),
+            [ $number, 1, 1 ]
+        ]
+    );
     ## use critic
-    for my $i ( 1 .. $n ) {
-        $recce->earleme( [ $minus, q{-}, 1 ] );
-    }
-    $recce->earleme( [ $number, 1, 1 ] );
-    $recce->end_input();
 
     my $evaler = Marpa::Evaluator->new( { recce => $recce } );
 

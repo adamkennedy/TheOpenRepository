@@ -115,22 +115,16 @@ my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 my $op     = $grammar->get_terminal('Op');
 my $number = $grammar->get_terminal('Number');
 
-my @tokens = (
-    [ $number, 2,    1 ],
-    [ $op,     q{-}, 1 ],
-    [ $number, 0,    1 ],
-    [ $op,     q{*}, 1 ],
-    [ $number, 3,    1 ],
-    [ $op,     q{+}, 1 ],
-    [ $number, 1,    1 ],
+$recce->tokens(
+    [   [ $number, 2,    1 ],
+        [ $op,     q{-}, 1 ],
+        [ $number, 0,    1 ],
+        [ $op,     q{*}, 1 ],
+        [ $number, 3,    1 ],
+        [ $op,     q{+}, 1 ],
+        [ $number, 1,    1 ],
+    ]
 );
-
-TOKEN: for my $token (@tokens) {
-    next TOKEN if defined $recce->earleme($token);
-    Marpa::exception( 'Parsing exhausted at character: ', $token->[1] );
-}
-
-$recce->end_input();
 
 my %expected_value = (
     '(2-(0*(3+1)))==2' => 1,

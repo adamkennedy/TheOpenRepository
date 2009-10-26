@@ -312,7 +312,7 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Phase
     NEW RULES
-    PRECOMPUTED RECOGNIZING RECOGNIZED EVALUATING
+    PRECOMPUTED RECOGNIZING EVALUATING
 
 );
 
@@ -326,8 +326,6 @@ sub Marpa::Internal::Phase::description {
         if $phase == Marpa::Internal::Phase::PRECOMPUTED;
     return 'grammar being recognized'
         if $phase == Marpa::Internal::Phase::RECOGNIZING;
-    return 'recognized grammar'
-        if $phase == Marpa::Internal::Phase::RECOGNIZED;
     return 'grammar being evaluated'
         if $phase == Marpa::Internal::Phase::EVALUATING;
     return 'unknown phase';

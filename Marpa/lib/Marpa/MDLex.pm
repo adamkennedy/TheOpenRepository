@@ -425,7 +425,7 @@ sub Marpa::MDLex::text {
                     Carp::croak(
                         'Internal error, zero length token -- this is a Marpa bug'
                     ) if not $length;
-                    push @alternatives, [ $lexable, $match, $length ];
+                    push @alternatives, [ $lexable, $match, $length, 0 ];
                     if ($trace_matches) {
                         print {$trace_fh}
                             'Matched regex for ',
@@ -461,7 +461,7 @@ sub Marpa::MDLex::text {
 
             $length //= length $match;
 
-            push @alternatives, [ $lexable, $match, $length ];
+            push @alternatives, [ $lexable, $match, $length, 0 ];
             if ($trace_matches) {
                 print {$trace_fh}
                     'Matched Closure for ',
@@ -477,7 +477,7 @@ sub Marpa::MDLex::text {
         $pos++;
 
         ( $current_earleme, $lexables ) =
-            Marpa::Recognizer::earleme( $recce, @alternatives );
+            Marpa::Recognizer::tokens( $recce, [ @alternatives ], 'predict', 1 );
         return Marpa::MDLex::Internal::PARSING_EXHAUSTED
             if not defined $current_earleme;
 

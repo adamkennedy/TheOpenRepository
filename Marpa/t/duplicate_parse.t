@@ -135,11 +135,8 @@ use constant SPACE => 0x60;
 
 my $input_length = 3;
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-TOKEN: for my $token ( 1 .. $input_length ) {
-    next TOKEN if defined $recce->earleme( [ $a, chr( SPACE + $token ), 1 ] );
-    Marpa::exception( 'Parsing exhausted at character: ', $token );
-}
-$recce->end_input();
+$recce->tokens(
+    [ map { [ $a, chr( SPACE + $_ ), 1 ] } ( 1 .. $input_length ) ] );
 my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
 
 my $bocage = $evaler->show_bocage(3);

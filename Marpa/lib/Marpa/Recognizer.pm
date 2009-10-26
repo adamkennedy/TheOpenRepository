@@ -250,15 +250,6 @@ sub Marpa::Recognizer::stringify {
     if ($tracing) {
         $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     }
-
-    my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
-    # if ( $phase != Marpa::Internal::Phase::RECOGNIZED ) {
-        # Marpa::exception(
-            # "Attempt to stringify recognizer in inappropriate state\nAttempt to stringify ",
-            ##  Marpa::Internal::Phase::description($phase)
-        # );
-    # } ## end if ( $phase != Marpa::Internal::Phase::RECOGNIZED )
-
     $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
 
     # returns a ref -- dumps can be long
@@ -397,9 +388,6 @@ sub Marpa::Recognizer::tokens {
 
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
-    # if ( $phase >= Marpa::Internal::Phase::RECOGNIZED ) {
-        # Marpa::exception('New earlemes not allowed after end of input');
-    # }
 
     my $tokens;
     my $predict_earleme;
@@ -532,14 +520,6 @@ sub Marpa::Recognizer::tokens {
         return;
     }
 
-    # Eliminate RECOGNIZED phase?  Instead have the evaluator test
-    # that the earley sets are completed to furthest earleme?
-    # if ( $last_completed_earleme >= $furthest_earleme ) {
-        # $grammar->[Marpa::Internal::Grammar::PHASE] =
-            # Marpa::Internal::Phase::RECOGNIZED;
-        # return;
-    # }
-
     return ( $current_earleme,
         $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
         if wantarray;
@@ -552,11 +532,6 @@ sub ur_token {
     my ( $recce, $tokens ) = @_;
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
-
-    # Eliminate RECOGNIZED phase?
-    # Marpa::exception('New tokens not allowed after end of input')
-        # if $grammar->[Marpa::Internal::Grammar::PHASE]
-            # >= Marpa::Internal::Phase::RECOGNIZED;
 
     my $next_token_earleme =
         $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];

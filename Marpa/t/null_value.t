@@ -91,7 +91,7 @@ if ( $fail_offset >= 0 ) {
     Carp::croak("Parse failed at offset $fail_offset");
 }
 
-$recce->end_input();
+$recce->tokens();
 my $evaler = Marpa::Evaluator->new( { recce => $recce } );
 Marpa::exception('No parse found') if not $evaler;
 my $value = $evaler->value();
