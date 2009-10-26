@@ -656,6 +656,7 @@ sub ur_token {
 sub Marpa::Recognizer::earleme {
 ## use critic
 
+    Marpa::exception("earleme() disabled");
     my $recce = shift;
 
     return Marpa::Recognizer::tokens($recce,
@@ -666,6 +667,7 @@ sub Marpa::Recognizer::earleme {
 
 # Always returns success
 sub Marpa::Recognizer::end_input {
+    Marpa::exception("end_input() disabled");
     my ($recce) = @_;
     Marpa::Recognizer::tokens($recce);
     return 1;

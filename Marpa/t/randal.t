@@ -198,7 +198,7 @@ TEST: for my $test_data (@test_data) {
     my $lexer = Marpa::MDLex->new( { recce => $recce },
         @{$Test_Grammar::MDLEX_OPTIONS} );
     $lexer->text( \$test_input );
-    $recce->end_input();
+    $recce->tokens();
 
     my $evaler = Marpa::Evaluator->new( { recce => $recce } );
     my @parses;

@@ -210,7 +210,7 @@ for my $test_data (@test_data) {
     my $result;
     given ($fail_offset) {
         when ( $_ < 0 ) {
-            $recce->end_input();
+            $recce->tokens();
             my $evaler =
                 Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
             $result = $evaler->value();

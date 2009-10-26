@@ -75,7 +75,7 @@ sub Marpa::MDLex::mdlex {
     my $lexer =
         Marpa::MDLex->new( { recce => $recce }, @{$lexer_arg_hashes} );
     $lexer->text($text);
-    $recce->end_input();
+    $recce->tokens(); # complete parsing
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     return $evaler->value();
 } ## end sub Marpa::MDLex::mdlex
