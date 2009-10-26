@@ -50,8 +50,8 @@ $grammar->precompute();
 my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
 
 my $input_length = 4;
-my $a = $grammar->get_terminal('a');
-$recce->tokens([ ([ $a, 'a', 1 ]) x $input_length]);
+my $a            = $grammar->get_terminal('a');
+$recce->tokens( [ ( [ $a, 'a', 1 ] ) x $input_length ] );
 
 my @expected = ( q{}, qw[(;;;a) (;;a;a) (;a;a;a) (a;a;a;a)] );
 

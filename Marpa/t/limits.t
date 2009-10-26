@@ -49,14 +49,17 @@ sub test_grammar {
     my $a = $grammar->get_terminal('a');
 
     my $earleme_result;
-    $eval_ok =
-        eval { $earleme_result = $recce->tokens( [ [ $a, 'a', 1 ] ], 'continue' ); 1; };
+    $eval_ok = eval {
+        $earleme_result = $recce->tokens( [ [ $a, 'a', 1 ] ], 'continue' );
+        1;
+    };
     Marpa::exception("Exception while recognizing earleme:\n$EVAL_ERROR")
         if not $eval_ok;
     Marpa::exception("Parsing exhausted\n") if not defined $earleme_result;
 
     $eval_ok = eval {
-        $earleme_result = $recce->tokens( [ [ $a, 'a', $earleme_length ] ], 'continue' );
+        $earleme_result =
+            $recce->tokens( [ [ $a, 'a', $earleme_length ] ], 'continue' );
         1;
     };
     Marpa::exception("Exception while recognizing earleme:\n$EVAL_ERROR")

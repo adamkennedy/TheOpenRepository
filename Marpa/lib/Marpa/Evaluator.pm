@@ -1448,7 +1448,7 @@ sub delete_duplicate_nodes {
 
 # Returns false if no parse
 sub Marpa::Evaluator::new {
-    my ($class, $args) = @_;
+    my ( $class, $args ) = @_;
 
     my $self = bless [], $class;
 
@@ -1494,8 +1494,10 @@ sub Marpa::Evaluator::new {
         Marpa::Internal::Phase::description($phase)
     ) if $phase < Marpa::Internal::Phase::RECOGNIZING;
 
-    my $furthest_earleme = $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
-    my $last_completed_earleme = $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
+    my $furthest_earleme =
+        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+    my $last_completed_earleme =
+        $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
     Marpa::exception(
         "Attempt to evaluate incompletely recognized parse:\n",
         "  Last token ends at location $furthest_earleme\n",

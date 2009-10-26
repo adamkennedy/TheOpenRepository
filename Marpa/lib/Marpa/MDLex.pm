@@ -75,7 +75,7 @@ sub Marpa::MDLex::mdlex {
     my $lexer =
         Marpa::MDLex->new( { recce => $recce }, @{$lexer_arg_hashes} );
     $lexer->text($text);
-    $recce->tokens(); # complete parsing
+    $recce->tokens();    # complete parsing
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     return $evaler->value();
 } ## end sub Marpa::MDLex::mdlex
@@ -477,7 +477,8 @@ sub Marpa::MDLex::text {
         $pos++;
 
         ( $current_earleme, $lexables ) =
-            Marpa::Recognizer::tokens( $recce, [ @alternatives ], 'predict', 1 );
+            Marpa::Recognizer::tokens( $recce, [@alternatives], 'predict',
+            1 );
         return Marpa::MDLex::Internal::PARSING_EXHAUSTED
             if not defined $current_earleme;
 
