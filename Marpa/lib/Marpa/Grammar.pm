@@ -536,7 +536,7 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::WARNINGS]         = 1;
     $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK]  = {};
     $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK]  = {};
-    $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]     = 'warn';
+    $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]     = 'fatal';
     $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]      = 2;
     {
         ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
@@ -838,9 +838,7 @@ sub Marpa::Grammar::set {
             }
             Marpa::exception(
                 q{cycle_action must be 'warn', 'quiet' or 'fatal'})
-                if $value ne 'warn'
-                    and $value ne 'quiet'
-                    and $value ne 'fatal';
+                if not $value ~~ [qw(warn quiet fatal)];
             $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] = $value;
         } ## end if ( defined( my $value = $args->{'cycle_action'} ) )
 

@@ -47,6 +47,7 @@ $Test_Grammar::MARPA_OPTIONS = [
         ],
         'start'     => 's',
         'terminals' => ['a:k0'],
+        'cycle_action' => 'warn'
     }
 ];
 
@@ -61,7 +62,8 @@ $Test_Grammar::MDLEX_OPTIONS = [
 
 my $trace;
 open my $MEMORY, '>', \$trace;
-my $grammar = Marpa::Grammar->new( { trace_file_handle => $MEMORY },
+my $grammar = Marpa::Grammar->new(
+    { trace_file_handle => $MEMORY, cycle_action => 'warn' },
     @{$Test_Grammar::MARPA_OPTIONS} );
 $grammar->precompute();
 close $MEMORY;
