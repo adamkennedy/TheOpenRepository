@@ -1,5 +1,9 @@
 Revision history for Acme-CPANAuthors-Arabic
 
+0.02    2009.10.27
+        POD fixes
+        Moved to svn.ali.as
+
 0.01    2009.8.23
         First version, released on an unsuspecting world.
 
