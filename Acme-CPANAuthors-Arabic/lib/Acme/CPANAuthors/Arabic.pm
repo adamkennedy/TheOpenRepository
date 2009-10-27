@@ -22,7 +22,7 @@ Acme::CPANAuthors::Arabic - We are the Arabic-speaking CPAN authors
 
 =head1 SYNOPSIS
 
-use Acme::CPANAuthors;
+   use Acme::CPANAuthors;
 
    my $authors  = Acme::CPANAuthors->new("Arabic");
 
@@ -32,7 +32,7 @@ use Acme::CPANAuthors;
    my $url      = $authors->avatar_url("nkh");
    my $kwalitee = $authors->kwalitee("nkh");
    my $name     = $authors->name("azawawi");
- 
+
 =head1 DESCRIPTION
 
 This class provides a hash of Arabic CPAN authors' PAUSE ID and name to 
