@@ -1,5 +1,8 @@
 Changes for Perl extension Perl-Dist-Chocolate
 
+2.02 To be released.
+	- Updated version of Strawberry to match January 2010 release.
+
 1.07 Thu 23 Oct 2008
 	- Created as a subclass of Strawberry
 	- Adding a "splat" of initial probably-good module bloat
