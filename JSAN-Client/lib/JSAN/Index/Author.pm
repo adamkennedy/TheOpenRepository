@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use JSAN::Index::Release ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 sub releases {
     JSAN::Index::Release->select( 'where author = ?', $_[0]->login );

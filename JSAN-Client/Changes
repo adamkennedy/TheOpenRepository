@@ -1,5 +1,8 @@
 Revision history for Perl extension JSAN-Client
 
+0.23 Wed 28 Oct 2009
+    - Various structural tidying
+
 0.22 Tue 29 Sep 2009
     - Removed redundant JSAN::URI class
 

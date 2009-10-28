@@ -1,8 +1,14 @@
 package JSAN::Index::Release::Dependency;
 
+use strict;
 use Params::Util '_INSTANCE';
+use Algorithm::Dependency::Ordered;
 
-use base 'Algorithm::Dependency::Ordered';
+use vars qw{$VERSION @ISA};
+BEGIN {
+	$VERSION = '0.23';
+	@ISA     = 'Algorithm::Dependency::Ordered';
+}
 
 sub new {
     my $class  = ref $_[0] ? ref shift : shift;

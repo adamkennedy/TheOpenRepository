@@ -1,7 +1,14 @@
 package JSAN::Index::Release::Source;
 
-use Algorithm::Dependency::Item ();
-use base 'Algorithm::Dependency::Source';
+use strict;
+use Algorithm::Dependency::Item   ();
+use Algorithm::Dependency::Source ();
+
+use vars qw{$VERSION @ISA};
+BEGIN {
+	$VERSION = '0.23';
+	@ISA     = 'Algorithm::Dependency::Source';
+}
 
 sub new {
     my $class  = ref $_[0] ? ref shift : shift;

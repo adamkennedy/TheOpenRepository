@@ -13,7 +13,7 @@ use Params::Util              ();
 use JSAN::Index::Distribution ();
 use JSAN::Index::Author       ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 BEGIN {
     # Optional prefork.pm support
