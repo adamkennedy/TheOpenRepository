@@ -1068,13 +1068,13 @@ sub wix_dist_dir {
 } ## end sub wix_dist_dir
 
 #####################################################################
-# Documentation for accessors
+# Accessors and Documentation for accessors.
 
 =pod
 
 =head3 offline
 
-The B<Perl::Dist> module has limited ability to build offline, if all
+The B<Perl::Dist::WiX> module has limited ability to build offline, if all
 packages have already been downloaded and cached.
 
 The connectedness of the Perl::Dist object is checked automatically
@@ -1136,9 +1136,6 @@ sub output_base_filename {
 	  . $self->perl_version_human . q{-}
 	  . $self->output_date_string;
 }
-
-#####################################################################
-# Perl::Dist::WiX Main Methods
 
 =pod
 
@@ -1259,6 +1256,9 @@ sub run {
 
 	return 1;
 } ## end sub run
+
+#####################################################################
+# Perl::Dist::WiX Main Methods
 
 =head2 Routines used by C<run>
 
