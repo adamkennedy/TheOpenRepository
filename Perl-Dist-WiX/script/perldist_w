@@ -30,9 +30,10 @@ my $PORTABLE     = undef;
 my $PERL_VERSION = undef;
 my $CPAN         = undef;
 my $OUTPUT       = undef;
-my $FORCE        = 0;
+my $FORCE        = undef;
 my $TRACE        = undef;
-my $OFFLINE      = 0;
+my $OFFLINE      = undef;
+my %OPTIONS_IN;
 my $result       = Getopt::Long::GetOptions(
 	"binary_root=s"  => \$BINARY_ROOT,
 	"portable"       => \$PORTABLE,
@@ -42,6 +43,7 @@ my $result       = Getopt::Long::GetOptions(
 	"force!"         => \$FORCE,
 	"trace=i"        => \$TRACE,
 	"offline!"       => \$OFFLINE,
+	"option=s"       => \%OPTIONS_IN,
 	"help|?"         => sub { pod2usage(-exitstatus => 1, -verbose => 0); },
 	"man"            => sub { pod2usage(-exitstatus => 1, -verbose => 2); },
 	"usage"          => sub { usage(); },
@@ -91,8 +93,15 @@ if ( defined $FORCE ) {
 if ( defined $PORTABLE ) {
 	$options{portable} = 1;
 }
+if ( defined $TRACE ) {
+	$options{trace} = $TRACE;
+}
 if ( defined $OFFLINE ) {
 	$options{offline} = 1;
+}
+if ( %OPTIONS_IN ) {
+	print "Additional options added.\n";
+	%options = ( %options, %OPTIONS_IN );
 }
 
 # Run the build
@@ -100,7 +109,7 @@ my $dist = $class->new( %options );
 unless ( $dist ) {
 	die "Failed to create $class";
 }
-unless ( $dist->run ) {
+unless ( $dist->run() ) {
 	die "Failed to run";
 }
 

@@ -1,5 +1,6 @@
 use inc::Module::Install 0.91;
-require File::Spec;
+require File::Spec::Functions;
+File::Spec::Functions->import('catfile');
 
 die "OS unsupported\n" unless win32;
 
@@ -47,7 +48,8 @@ requires       'LWP::UserAgent::WithCache' => '0.06';
 requires       'LWP::Online'               => '1.07';
 requires       'Module::CoreList'          => '2.18';
 requires       'Moose'                     => '0.90';
-requires       'MooseX::NonMoose'          => '0.05',
+requires       'MooseX::NonMoose'          => '0.05';
+requires       'Moose::Tiny'               => '0.04';
 requires       'Object::Tiny'              => '1.06';
 requires       'PAR::Dist'                 => '0.42';
 requires       'Params::Util'              => '0.35';
@@ -77,7 +79,7 @@ resources      'homepage'                  => 'http://csjewell.comyr.com/perl/';
 resources      'IRC'                       => 'irc://irc.perl.org/#win32';
 resources      'DLSIP'                     => 'http://search.cpan.org/dlsip?RpdOp';
 license        'perl';
-install_script File::Spec->catfile('script', 'perldist_w');
+install_script catfile('script', 'perldist_w');
 install_share;
 
 my $answer;
@@ -90,7 +92,7 @@ YN:
 }
 
 if ($answer =~ /^y/i) {
-	my $script_file =  
+	my $script_file = catfile('script', 'minicpan_pdwix');
 	install_script  $script_file;
 	requires       'CPAN::Mini'        => '0.576';
 	requires       'CPAN::Mini::Devel' => '0.03';

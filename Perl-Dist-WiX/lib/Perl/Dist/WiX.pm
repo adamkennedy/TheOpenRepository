@@ -125,7 +125,7 @@ require WiX3::Traceable;
 our $VERSION = '1.100_001';
 $VERSION =~ s/_//;
 
-use Object::Tiny qw(
+use Moose::Tiny qw(
   perl_version
   portable
   exe
@@ -164,6 +164,7 @@ use Object::Tiny qw(
   build_start_time
   perl_config_cf_email
   perl_config_cf_by
+  toolchain
   bits
   gcc_version
 );
