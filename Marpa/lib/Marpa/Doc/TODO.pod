@@ -16,6 +16,9 @@ the documentation, I should think accordingly.
 
 =over 4
 
+=item * Add an enable_buggy_features option (default off).
+Only allow cycles if it is on.
+
 =item * Create HTML Parser.
 
 =item * Or_map's should be hashes instead of arrays.
