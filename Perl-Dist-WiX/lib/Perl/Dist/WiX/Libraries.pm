@@ -27,6 +27,7 @@ use 5.008001;
 use strict;
 use warnings;
 use File::Spec::Functions qw( catfile );
+use Params::Util qw( _STRING );
 use Perl::Dist::WiX::Exceptions;
 use Readonly;
 
@@ -66,6 +67,8 @@ sub _binary_file {
 	
 	my $toolchain = $self->bits() . 'bit-gcc' . $self->gcc_version();	
 	
+	$self->trace_line(3, "Searching for $package in $toolchain\n");
+	
 	if (not exists $PACKAGES{$toolchain}) {
 		PDWiX->throw('Can only build 32 or 64-bit versions of perl');
 	}
@@ -74,7 +77,10 @@ sub _binary_file {
 		PDWiX->throw('get_package_file was called on a package that was not defined.');
 	}	
 
-	return $PACKAGES{$toolchain}{$package};
+	my $package_file = $PACKAGES{$toolchain}{$package};
+	$self->trace_line(3, "Pachage $package is in $package_file\n");
+
+	return $package_file;
 }
 
 sub _binary_url {
