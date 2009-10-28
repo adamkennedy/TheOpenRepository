@@ -548,20 +548,23 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		# Install additional Perl modules
 		'install_cpan_upgrades',
 
-		# Install the Win32 extras
-		'install_win32_extras',
-
 		# Apply optional portability support
 		'install_portable',
 
 		# Remove waste and temporary files
 		'remove_waste',
 
-		# Create the distribution list
-		'create_distribution_list',
-
 		# Regenerate file fragments
 		'regenerate_fragments',
+
+		# Write out the merge module
+		'write_msm',
+
+		# Install the Win32 extras
+		'install_win32_extras',
+
+		# Create the distribution list
+		'create_distribution_list',
 
 		# Write out the distributions
 		'write',
@@ -1132,9 +1135,10 @@ sub output_base_filename {
 		return $self->{output_base_filename};
 	}
 	return
-	    $self->app_id . q{-}
-	  . $self->perl_version_human . q{-}
-	  . $self->output_date_string;
+	    $self->app_id() . q{-}
+	  . $self->perl_version_human() . q{-}
+	  . $self->output_date_string() 
+	  . (64 == $self->bits) ? q{-64bit} : q{};
 }
 
 =pod
@@ -1517,6 +1521,27 @@ sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	}
 	return 1;
 } ## end sub write
+
+sub write_msm {
+	my $self = shift;
+	$self->{output_file} ||= [];
+
+	if ( $self->msi ) {
+		push @{ $self->{output_file} }, $self->write_msm;
+		
+		# Save off the contents of the image directory so that
+		# they can be used later without having to rebuild the
+		# whole distribution.
+		my $file_out =
+		  catfile( $self->output_dir, $self->output_base_filename . '.msm-contents.zip' );
+
+		rename $self->write_zip, $file_out;
+		
+		push @{ $self->{output_file} }, $file_out;
+		  
+	}
+	return 1;
+} ## end sub write_msm
 
 =pod
 

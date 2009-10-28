@@ -498,13 +498,6 @@ sub write_msi {
 
 	$self->trace_line( 1, "Generating msi\n" );
 
-	# Add the path in.
-	foreach my $value ( map { '[INSTALLDIR]' . catdir( @{$_} ) }
-		@{ $self->env_path } )
-	{
-		$self->add_env( 'PATH', $value, 1 );
-	}
-
   FRAGMENT:
 
 	# Write out .wxs files for all the fragments and compile them.
@@ -543,7 +536,7 @@ sub write_msi {
 	  Perl::Dist::WiX::FeatureTree2->new( parent => $self, );
 
 	# Write out the .wxs file
-	my $content = $self->as_string;
+	my $content = $self->as_string('Main.wxs.tt');
 	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
 	$filename_in =
 	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
@@ -616,6 +609,159 @@ sub write_msi {
 
 	return $output_msi;
 } ## end sub write_msi
+
+=pod
+
+=head2 write_msm
+
+  $self->write_msm;
+
+The C<write_msm> method is used to generate the compiled merge module
+used in the installer. It creates the entire installation file tree, and then
+executes WiX to create the merge module.
+
+This method should only be called after all installation phases that 
+install perl modules have been completed and all of the files for the 
+merge module are in place.
+
+The merge module file is written to the output directory, and the location
+of the file is printed to STDOUT.
+
+Returns true or throws an exception or error.
+
+=cut
+
+sub write_msm {
+	my $self = shift;
+
+	my $dir = $self->fragment_dir;
+	my ( $fragment, $fragment_name, $fragment_string );
+	my ( $filename_in, $filename_out );
+	my $fh;
+	my @files;
+
+	$self->trace_line( 1, "Generating msm\n" );
+
+	# Add the path in.
+	foreach my $value ( map { '[INSTALLDIR]' . catdir( @{$_} ) }
+		@{ $self->env_path } )
+	{
+		$self->add_env( 'PATH', $value, 1 );
+	}
+
+  FRAGMENT:
+
+	# Write out .wxs files for all the fragments and compile them.
+	foreach my $key ( keys %{ $self->{fragments} } ) {
+		$fragment        = $self->{fragments}->{$key};
+		$fragment_string = $fragment->as_string;
+		next
+		  if ( ( not defined $fragment_string )
+			or ( $fragment_string eq q{} ) );
+		$fragment_name = $fragment->get_id;
+		$filename_in   = catfile( $dir, $fragment_name . q{.wxs} );
+		$filename_out  = catfile( $dir, $fragment_name . q{.wixout} );
+		$fh            = IO::File->new( $filename_in, 'w' );
+
+		if ( not defined $fh ) {
+			PDWiX->throw(
+"Could not open file $filename_in for writing [$OS_ERROR] [$EXTENDED_OS_ERROR]"
+			);
+		}
+		$fh->print($fragment_string);
+		$fh->close;
+		$self->trace_line( 2, "Compiling $filename_in\n" );
+		$self->compile_wxs( $filename_in, $filename_out )
+		  or PDWiX->throw("WiX could not compile $filename_in");
+
+		unless ( -f $filename_out ) {
+			PDWiX->throw( "Failed to find $filename_out (probably "
+				  . "compilation error in $filename_in)" );
+		}
+
+		push @files, $filename_out;
+	} ## end foreach my $key ( keys %{ $self...})
+
+	# Generate feature tree.
+	$self->{feature_tree_obj} =
+	  Perl::Dist::WiX::FeatureTree2->new( parent => $self, );
+
+	# Write out the .wxs file
+	my $content = $self->as_string('Merge-Module.wxs.tt');
+	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
+	$filename_in =
+	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
+
+	if ( -f $filename_in ) {
+
+		# Had a collision. Yell and scream.
+		PDWiX->throw(
+			"Could not write out $filename_in: File already exists.");
+	}
+	$filename_out =
+	  catfile( $self->fragment_dir, $self->app_name . q{.wixobj} );
+	$fh = IO::File->new( $filename_in, 'w' );
+
+	if ( not defined $fh ) {
+		PDWiX->throw(
+"Could not open file $filename_in for writing [$OS_ERROR] [$EXTENDED_OS_ERROR]"
+		);
+	}
+	$fh->print($content);
+	$fh->close;
+
+	# Compile the main .wxs
+	$self->trace_line( 2, "Compiling $filename_in\n" );
+	$self->compile_wxs( $filename_in, $filename_out )
+	  or PDWiX->throw("WiX could not compile $filename_in");
+	unless ( -f $filename_out ) {
+		PDWiX->throw( "Failed to find $filename_out (probably "
+			  . "compilation error in $filename_in)" );
+	}
+
+# Start linking the msi.
+
+	# Get the parameters for the msi linking.
+	my $output_msi =
+	  catfile( $self->output_dir, $self->output_base_filename . '.msi', );
+	my $input_wixouts = catfile( $self->fragment_dir, '*.wixout' );
+	my $input_wixobj =
+	  catfile( $self->fragment_dir, $self->app_name . '.wixobj' );
+
+	# Link the .wixobj files
+	$self->trace_line( 1, "Linking $output_msi\n" );
+	my $out;
+	my $cmd = [
+		wix_bin_light(),
+		'-sice:ICE38',                 # Gets rid of ICE38 warning.
+		'-sice:ICE43',                 # Gets rid of ICE43 warning.
+		'-sice:ICE47',                 # Gets rid of ICE47 warning.
+		                               # (Too many components in one
+		                               # feature for Win9X)
+		'-sice:ICE48',                 # Gets rid of ICE48 warning.
+		                               # (Hard-coded installation location)
+
+#		'-v',                          # Verbose for the moment.
+		'-out', $output_msi,
+		'-ext', wix_lib_wixui(),
+		$input_wixobj,
+		$input_wixouts,
+	];
+	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
+
+	$self->trace_line( 1, $out );
+
+	# Did everything get done correctly?
+	if ( ( not -f $output_msi ) and ( $out =~ /error|warning/msx ) ) {
+		$self->trace_line( 0, $out );
+		PDWiX->throw(
+			"Failed to find $output_msi (probably compilation error)");
+	}
+
+	return $output_msm;
+} ## end sub write_msm
+
+=pod
 
 =head2 add_env($name, $value I<[, $append]>)
 
@@ -797,15 +943,20 @@ sub add_to_fragment {
 
 =head2 as_string
 
-Loads the main .wxs file template, using this object, and returns 
-it as a string.
+Loads the file template passed in as the parameter, using this object, 
+and returns it as a string.
 
-	$wxs = $self->as_string;
+	# Loads up the merge module template.
+	$wxs = $self->as_string('Merge-Module.wxs.tt');
+
+	# Loads up the main template
+	$wxs = $self->as_string('Main.wxs.tt');
 
 =cut
 
 sub as_string {
 	my $self = shift;
+	my $template_file = shift;
 
 	my $tt = Template->new( {
 			INCLUDE_PATH => [ $self->dist_dir, $self->wix_dist_dir, ],
@@ -823,7 +974,7 @@ sub as_string {
 		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
 	};
 
-	$tt->process( 'Main.wxs.tt', $vars, \$answer )
+	$tt->process( $template_file, $vars, \$answer )
 	  || PDWiX::Caught->throw(
 		message => 'Template error',
 		info    => $tt->error() );
