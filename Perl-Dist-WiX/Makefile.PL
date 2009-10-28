@@ -1,4 +1,5 @@
 use inc::Module::Install 0.91;
+require File::Spec;
 
 die "OS unsupported\n" unless win32;
 
@@ -10,26 +11,21 @@ if (author_context) {
 	$readme->parse_from_file('lib/Perl/Dist/WiX.pm', 'README');
 }
 
-# Cheat to make sure that the module that
-# includes install_script is always
-# copied into the distribution.
-if (is_admin) {
-	admin()->load('install_script', 1);
-}
-
 all_from       'lib/Perl/Dist/WiX.pm';
 requires       'parent'                    => '0.221';
 requires       'Alien::WiX'                => '0.300000';
 requires       'Archive::Tar'              => '1.42';
 requires       'Archive::Zip'              => '1.26';
 # To get minicpans working right, we need the volume fix
-# that's in CPAN 1.94_51.
-#requires       'CPAN'                  => '1.9450';
+# that's in CPAN 1.94_51. But since it does not test 
+# correctly on Windows, nor is there a non-development 
+# version, I really can't require it yet.
+#requires       'CPAN'                      => '1.9452';
 requires       'CPAN'                      => '1.94';
 requires       'Data::Dump::Streamer'      => '2.08';
 requires       'Data::UUID'                => '1.149';
 requires       'Devel::StackTrace'         => '1.20';
-requires       'Exception::Class'           => '1.22';
+requires       'Exception::Class'          => '1.22';
 requires       'File::Copy::Recursive'     => '0.38';
 requires       'File::Find::Rule'          => '0.30';
 requires       'File::HomeDir'             => '0.82';
@@ -81,6 +77,7 @@ resources      'homepage'                  => 'http://csjewell.comyr.com/perl/';
 resources      'IRC'                       => 'irc://irc.perl.org/#win32';
 resources      'DLSIP'                     => 'http://search.cpan.org/dlsip?RpdOp';
 license        'perl';
+install_script File::Spec->catfile('script', 'perldist_w');
 install_share;
 
 my $answer;
@@ -93,8 +90,7 @@ YN:
 }
 
 if ($answer =~ /^y/i) {
-	require File::Spec;
-	my $script_file = File::Spec->catfile('script', 'minicpan_pdwix'); 
+	my $script_file =  
 	install_script  $script_file;
 	requires       'CPAN::Mini'        => '0.576';
 	requires       'CPAN::Mini::Devel' => '0.03';
