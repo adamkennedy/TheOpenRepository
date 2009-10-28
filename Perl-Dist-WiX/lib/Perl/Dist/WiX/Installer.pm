@@ -587,7 +587,7 @@ sub write_msi {
 		'-sice:ICE47',                 # Gets rid of ICE47 warning.
 		                               # (Too many components in one
 		                               # feature for Win9X)
-		'-sice:ICE48',                 # Gets rid of ICE48 warning.
+#		'-sice:ICE48',                 # Gets rid of ICE48 warning.
 		                               # (Hard-coded installation location)
 
 #		'-v',                          # Verbose for the moment.
@@ -722,14 +722,14 @@ sub write_msm {
 # Start linking the msi.
 
 	# Get the parameters for the msi linking.
-	my $output_msi =
-	  catfile( $self->output_dir, $self->output_base_filename . '.msi', );
+	my $output_msm =
+	  catfile( $self->output_dir, $self->output_base_filename . '.msm', );
 	my $input_wixouts = catfile( $self->fragment_dir, '*.wixout' );
 	my $input_wixobj =
 	  catfile( $self->fragment_dir, $self->app_name . '.wixobj' );
 
 	# Link the .wixobj files
-	$self->trace_line( 1, "Linking $output_msi\n" );
+	$self->trace_line( 1, "Linking $output_msm\n" );
 	my $out;
 	my $cmd = [
 		wix_bin_light(),
@@ -738,11 +738,11 @@ sub write_msm {
 		'-sice:ICE47',                 # Gets rid of ICE47 warning.
 		                               # (Too many components in one
 		                               # feature for Win9X)
-		'-sice:ICE48',                 # Gets rid of ICE48 warning.
+#		'-sice:ICE48',                 # Gets rid of ICE48 warning.
 		                               # (Hard-coded installation location)
 
 #		'-v',                          # Verbose for the moment.
-		'-out', $output_msi,
+		'-out', $output_msm,
 		'-ext', wix_lib_wixui(),
 		$input_wixobj,
 		$input_wixouts,
@@ -752,10 +752,10 @@ sub write_msm {
 	$self->trace_line( 1, $out );
 
 	# Did everything get done correctly?
-	if ( ( not -f $output_msi ) and ( $out =~ /error|warning/msx ) ) {
+	if ( ( not -f $output_msm ) and ( $out =~ /error|warning/msx ) ) {
 		$self->trace_line( 0, $out );
 		PDWiX->throw(
-			"Failed to find $output_msi (probably compilation error)");
+			"Failed to find $output_msm (probably compilation error)");
 	}
 
 	return $output_msm;

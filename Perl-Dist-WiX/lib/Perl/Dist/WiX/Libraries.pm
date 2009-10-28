@@ -66,15 +66,15 @@ sub _binary_file {
 	
 	my $toolchain = $self->bits() . 'bit-gcc' . $self->gcc_version();	
 	
-	if (not exists %PACKAGES{$toolchain}) {
+	if (not exists $PACKAGES{$toolchain}) {
 		PDWiX->throw('Can only build 32 or 64-bit versions of perl');
 	}
 	
-	if (not exists %PACKAGES{$toolchain}{$package}) {
+	if (not exists $PACKAGES{$toolchain}{$package}) {
 		PDWiX->throw('get_package_file was called on a package that was not defined.');
 	}	
 
-	return %PACKAGES{$toolchain}{$package};
+	return $PACKAGES{$toolchain}{$package};
 }
 
 sub _binary_url {
@@ -119,12 +119,11 @@ Returns true or throws an exception on error.
 
 =cut
 
-sub install_dmake {
+sub install_gcc_toolchain {
 	my $self = shift;
 
-	# Install dmake
+	# Install the gcc toolchain
 	my $filelist = $self->install_binary(
-	my $fl = $self->install_binary(
 		name    => 'gcc-toolchain',
 		url     => $self->_binary_url('gcc-toolchain'),
 		license => {
@@ -133,14 +132,7 @@ sub install_dmake {
 		},
 	);
 
-	# Initialize the make location
-	$self->{bin_make} =
-	  catfile( $self->image_dir, 'c', 'bin', 'dmake.exe' );
-	unless ( -x $self->bin_make ) {
-		PDWiX->throw(q{Can't execute make});
-	}
-
-	$self->insert_fragment( 'dmake', $filelist );
+	$self->insert_fragment( 'gcc-toolchain', $filelist );
 
 	return 1;
 } ## end sub install_dmake
@@ -186,7 +178,7 @@ sub install_dmake {
 		PDWiX->throw(q{Can't execute make});
 	}
 
-	$self->insert_fragment( 'gcc_toolchain', $filelist );
+	$self->insert_fragment( 'dmake', $filelist );
 
 	return 1;
 } ## end sub install_dmake
