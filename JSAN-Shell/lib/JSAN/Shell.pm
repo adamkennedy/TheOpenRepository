@@ -45,7 +45,7 @@ use LWP::Online      ();
 use JSAN::Index      ();
 use JSAN::Client     ();
 
-our $VERSION = '2.00_06';
+our $VERSION = '2.00_07';
     $VERSION = eval $VERSION;
 
 # Locate the starting mirror.json

@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use JSAN::Shell ();
 
-our $VERSION = '2.00_06';
+our $VERSION = '2.00_07';
     $VERSION = eval $VERSION;
 
 $|  = 1;
