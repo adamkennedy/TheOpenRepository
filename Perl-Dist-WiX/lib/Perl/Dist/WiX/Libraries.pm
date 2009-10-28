@@ -138,7 +138,7 @@ sub install_gcc_toolchain {
 		},
 	);
 
-	$self->insert_fragment( 'gcc-toolchain', $filelist );
+	$self->insert_fragment( 'gcc_toolchain', $filelist );
 
 	return 1;
 } ## end sub install_dmake
