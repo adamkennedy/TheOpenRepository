@@ -90,9 +90,7 @@ sub search_dir {
 	} elsif ( @_ % 2 == 0 ) {
 		%args = @_;
 	} else {
-
-#		print "Argument problem\n";
-		# Throw error.
+		PDWiX->throw("Invalid number of arguments to search_dir");
 	}
 
 	# Set defaults for parameters.
@@ -105,16 +103,11 @@ sub search_dir {
 	my $exact   = $args{exact}   || 0;
 	my $path    = $self->get_path();
 
-#	print "Path problem\n" unless defined $path;
 	return undef unless defined $path;
 
-# TODO: Make trace_line work.
-#	$self->trace_line( 3, "Looking for $path_to_find\n" );
-#	$self->trace_line( 4, "  in:      $path.\n" );
-#	$self->trace_line( 5, "  descend: $descend exact: $exact.\n" );
-#print "Looking for $path_to_find\n" ;
-#print "  in:      $path.\n" ;
-#print "  descend: $descend exact: $exact.\n" ;
+	$self->trace_line( 3, "Looking for $path_to_find\n" );
+	$self->trace_line( 4, "  in:      $path.\n" );
+	$self->trace_line( 5, "  descend: $descend exact: $exact.\n" );
 
 	# If we're at the correct path, exit with success!
 	if ( ( defined $path ) && ( $path_to_find eq $path ) ) {
@@ -135,11 +128,8 @@ sub search_dir {
 	# Do we want to continue searching down this direction?
 	my $subset = "$path_to_find\\" =~ m{\A\Q$path\E\\}msx;
 	if ( not $subset ) {
-
-#		$self->trace_line( 4, "Not a subset in: $path.\n" );
-#		$self->trace_line( 5, "  To find: $path_to_find.\n" );
-#print "Not a subset in: $path.\n" ;
-#print "  To find: $path_to_find.\n" ;
+		$self->trace_line( 4, "Not a subset in: $path.\n" );
+		$self->trace_line( 5, "  To find: $path_to_find.\n" );
 		return undef;
 	}
 
@@ -194,6 +184,9 @@ sub _add_directory_recursive {
 		my $dir =
 		  $self->_add_directory_recursive( $path_to_find_down,
 			$dir_to_add_down );
+		if (!defined $dir) {
+			PDWiX->throw("Could not create directory $path_to_find_down\\$dir_to_add_down");
+		}
 		return $dir->add_directory( name => $dir_to_add );
 
 	}

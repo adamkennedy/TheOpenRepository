@@ -148,6 +148,8 @@ sub initialize_tree {
 	  cpan\\sources
 	);
 
+	$self->trace_line(4, $self->as_string() . "\n\n");
+	
 	foreach my $dir (@list) {
 		$self->add_directory( catdir( $self->_get_app_dir(), $dir ) );
 	}
