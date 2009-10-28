@@ -148,18 +148,18 @@ sub trace_line {
 # These methods are for the convienence of the main template, or of
 # the Perl::Dist::WiX class tree.
 
-sub msi_product_icon_id {
-	my $self = shift;
-
 =item * msi_product_icon_id
 
 Returns the product icon to use in the main template.
 
 =cut
 
+sub msi_product_icon_id {
+	my $self = shift;
+
 	# Get the icon ID if we can.
-	if ( defined $self->msi_product_icon ) {
-		return 'I_' . $self->icons->search_icon( $self->msi_product_icon );
+	if ( defined $self->msi_product_icon() ) {
+		return 'I_' . $self->icons()->search_icon( $self->msi_product_icon );
 	} else {
 		return undef;
 	}
@@ -174,7 +174,7 @@ Returns the application name with the version appended to it.
 # Default the versioned name to an unversioned name
 sub app_ver_name {
 	return $_[0]->{app_ver_name}
-	  or $_[0]->app_name;
+	  or $_[0]->app_name();
 }
 
 =item * output_base_filename
@@ -186,7 +186,7 @@ Returns the base filename that is used to create distributions.
 # Default the output filename to the id plus the current date
 sub output_base_filename {
 	return $_[0]->{output_base_filename}
-	  or $_[0]->app_id . q{-} . $_[0]->output_date_string;
+	  or $_[0]->app_id() . q{-} . $_[0]->output_date_string();
 }
 
 =item * output_date_string
@@ -211,14 +211,28 @@ Returns the UI type that the MSI needs to use.
 # For template
 sub msi_ui_type {
 	my $self = shift;
-	return ( defined $self->msi_feature_tree ) ? 'FeatureTree' : 'Minimal';
+	return ( defined $self->msi_feature_tree() ) ? 'FeatureTree' : 'Minimal';
+}
+
+=item * msi_platform_string
+
+Returns the Platform attribute to the MSI's Package tag.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_package.htm>
+
+=cut
+
+# For template
+sub msi_platform_string {
+	my $self = shift;
+	return ( 64 == $self->bits() ) ? 'x64' : 'x86';
 }
 
 =item * msi_product_id
 
 Returns the Id for the MSI's <Product> tag.
 
-See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm?>
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
 
 =cut
 
@@ -229,17 +243,46 @@ sub msi_product_id {
 	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
 
 	my $product_name =
-	    $self->app_name
-	  . ( $self->portable ? ' Portable ' : q{ } )
-	  . $self->app_publisher_url
+	    $self->app_name()
+	  . ( $self->portable() ? ' Portable ' : q{ } )
+	  . $self->app_publisher_url()
 	  . q{ ver. }
-	  . $self->msi_perl_version;
+	  . $self->msi_perl_version();
 
 	#... then use it to create a GUID out of the ID.
 	my $guid = $generator->generate_guid($product_name);
 
 	return $guid;
 } ## end sub msi_product_id
+
+=item * msm_product_id
+
+Returns the Id for the <Product> tag for the MSI's merge module.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
+
+=cut
+
+# For template
+sub msm_product_id {
+	my $self = shift;
+
+	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
+
+	my $product_name =
+	    $self->app_name()
+	  . ( $self->portable() ? ' Portable ' : q{ } )
+	  . $self->app_publisher_url()
+	  . q{ ver. }
+	  . $self->msi_perl_version()
+	  . q{ merge module.};
+
+	#... then use it to create a GUID out of the ID.
+	my $guid = $generator->generate_guid($product_name);
+
+	return $guid;
+} ## end sub msi_product_id
+
 
 =item * msi_upgrade_code
 
@@ -256,15 +299,42 @@ sub msi_upgrade_code {
 	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
 
 	my $upgrade_ver =
-	    $self->app_name
-	  . ( $self->portable ? ' Portable' : q{} ) . q{ }
-	  . $self->app_publisher_url;
+	    $self->app_name()
+	  . ( $self->portable() ? ' Portable' : q{} ) . q{ }
+	  . $self->app_publisher_url();
 
 	#... then use it to create a GUID out of the ID.
 	my $guid = $generator->generate_guid($upgrade_ver);
 
 	return $guid;
 } ## end sub msi_upgrade_code
+
+=item * msm_package_code
+
+Returns the Id for the MSI's <Package> tag.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_package.htm>
+
+=cut
+
+# For template
+sub msm_package_code {
+	my $self = shift;
+
+	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
+
+	my $upgrade_ver =
+	    $self->app_name()
+	  . ( $self->portable() ? ' Portable' : q{} ) . q{ }
+	  . $self->app_publisher_url()
+	  . q{ merge module.};
+
+	#... then use it to create a GUID out of the ID.
+	my $guid = $generator->generate_guid($upgrade_ver);
+
+	return $guid;
+} ## end sub msi_upgrade_code
+
 
 =item * msi_perl_version
 
@@ -288,7 +358,7 @@ sub msi_perl_version {
 	  || [ 0, 0, 0 ];
 
 	# Merge build number with last part of perl version.
-	$ver->[2] = ( $ver->[2] << 8 ) + $self->build_number;
+	$ver->[2] = ( $ver->[2] << 8 ) + $self->build_number();
 
 	return join q{.}, @{$ver};
 
@@ -309,13 +379,15 @@ Returns the value to be used for perl -V:myuname, which is in this pattern:
 sub perl_config_myuname {
 	my $self = shift;
 
-	my $version = $self->perl_version_human . q{.} . $self->build_number;
-	if ( $self->beta_number > 0 ) {
-		$version .= '.beta_' . $self->beta_number;
+	my $version = $self->perl_version_human() . q{.} . $self->build_number();
+	if ( $self->beta_number() > 0 ) {
+		$version .= '.beta_' . $self->beta_number();
 	}
 
-	return join q{ }, 'Win32', $self->app_id, $version, '#1',
-	  $self->build_start_time, 'i386';
+	my $bits = (64 == $self->bits()) ? 'x86_64' : 'i386';
+	
+	return join q{ }, 'Win32', $self->app_id(), $version, '#1',
+	  $self->build_start_time(), 'i386';
 
 } ## end sub perl_config_myuname
 
