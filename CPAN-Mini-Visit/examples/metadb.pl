@@ -7,6 +7,8 @@ use Parse::CPAN::Meta 'LoadFile';
 use CPAN::Mini::Visit;
 use DBI;
 
+my $minicpan_location='D:\minicpan';
+
 remove('metadb.sqlite');
 
 my $dbh = DBI->connect('DBI:SQLite:metadb.sqlite');
@@ -36,7 +38,7 @@ my $counter   = 0;
 my @meta_dist = ();
 my @meta_deps = ();
 my $visit = CPAN::Mini::Visit->new(
-	minicpan => 'D:\minicpan',
+	minicpan => $minicpan_location,
 	callback => sub {
 		print $_[0]->{dist} . "\n";
 		my $dist = { release => $_[0]->{dist} };
