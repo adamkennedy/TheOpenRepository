@@ -4,13 +4,13 @@ use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str Bool ArrayRef Maybe );
 use File::Spec::Functions qw( catdir catfile );
+use Params::Util qw( _INSTANCE );
 
-# require Data::Dumper;
 require File::Remove;
 require URI;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
@@ -67,13 +67,6 @@ has buildpl_param => (
 	default => sub { return [] },
 );
 
-#has inject => (
-#	is       => 'ro',
-#	isa      => Maybe['URI'],
-#	reader   => '_get_inject',
-#	default  => undef,
-#);
-
 has packlist => (
 	is      => 'ro',
 	isa     => Bool,
@@ -87,6 +80,64 @@ has overwritable => (
 	reader  => '_get_overwritable',
 	default => 0,
 );
+
+sub BUILDARGS {
+	my $class = shift;
+	my %args;
+
+	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
+		%args = %{ $_[0] };
+	} elsif ( 0 == @_ % 2 ) {
+		%args = (@_);
+	} else {
+		PDWiX->throw(
+			'Parameters incorrect (not a hashref or hash) for Perl::Dist::WiX::Asset::Distribution');
+	}
+
+	unless ( defined _INSTANCE( $args{parent}, 'Perl::Dist::WiX' ) ) {
+		PDWiX::Parameter->throw(
+			parameter =>
+			  'parent: missing or not a Perl::Dist::WiX instance',
+			where => '::Asset::Distribution->new',
+		);
+	}
+
+	if (exists $args{url}) {
+		PDWiX::Parameter->throw(
+			parameter => 'url: Passed in (please remove - it will be calculated from name)',
+			where     => '::Asset::Distribution->new',
+		);
+	}
+	
+	if (exists $args{file}) {
+		PDWiX::Parameter->throw(
+			parameter => 'file: Passed in (please remove - it will be calculated from name)',
+			where     => '::Asset::Distribution->new',
+		);
+	}
+
+	# Map CPAN dist path to url
+	my $dist = $args{name};
+	if (!defined $dist) {
+		PDWiX::Parameter->throw(
+			parameter => 'name: Not defined',
+			where     => '::Asset::Distribution->new',
+		);
+	}
+
+	$args{parent}->trace_line( 2, "Using distribution path $dist\n" );
+	my $one = substr $dist, 0, 1;
+	my $two = substr $dist, 1, 1;
+	my $path =
+	  File::Spec::Unix->catfile( 'authors', 'id', $one, "$one$two",
+		$dist, );
+	$args{url} =
+	  URI->new_abs( $path, $args{parent}->cpan() )->as_string;
+	$args{file} = $args{url};
+	$args{file} =~ s{.+/}{}ms;
+
+	return { %args };
+}
 
 sub BUILD {
 	my $self = shift;
@@ -188,6 +239,7 @@ sub install {
 		local $ENV{RELEASE_TESTING} =
 		  $self->_get_release_testing() ? 1 : undef;
 		local $ENV{PERL_MM_USE_DEFAULT} = 1;
+		local $ENV{PERL_MM_NONINTERACTIVE} = 1;
 
 		$self->_configure($buildpl);
 
@@ -233,6 +285,7 @@ Perl::Dist::WiX::Asset::Distribution - "Perl Distribution" asset for a Win32 Per
 
   my $distribution = Perl::Dist::WiX::Asset::Distribution->new(
       name  => 'MSERGEANT/DBD-SQLite-1.14.tar.gz',
+	  mod_name => 'DBD::SQLite',
       force => 1,
   );
 
@@ -256,14 +309,11 @@ or a development release is known to be good.
 
 B<Perl::Dist::WiX::Asset::Distribution> is a data class that provides
 encapsulation and error checking for a "Perl Distribution" to be
-installed in a L<Perl::Dist::WiX>-based Perl distribution using this
+installed in a L<Perl::Dist::WiX>-created installer using this
 secondary method.
 
 It is normally created on the fly by the Perl::Dist::WiX
 C<install_distribution> method (and other things that call it).
-
-The specification of the location to retrieve the package is done via
-the standard mechanism implemented in L<Perl::Dist::WiX::Role::Asset>.
 
 =head1 METHODS
 
@@ -281,16 +331,15 @@ C<new> method documentation, and adds some additional params.
 
 =item name
 
-The required C<name> param is the name of the package for the purposes
-of identification.
-
-This should match the name of the Perl distribution without any version
-numbers. For example, "File-Spec" or "libwww-perl".
-
-Alternatively, the C<name> param can be a CPAN path to the distribution
+The required C<name> param is the CPAN path to the distribution
 such as shown in the synopsis.
 
-In this case, the url to fetch from will be derived from the name.
+The url to fetch from will be derived from the name.
+
+=item mod_name
+
+The required C<mod_name> param is the name of the main module being 
+installed. This is used to create the fragment name.
 
 =item force
 
@@ -340,6 +389,22 @@ parameters when you invoke "perl Build.PL".
 
 The optional C<buildpl_param> param should be a reference to an ARRAY
 where each element contains the argument to pass to the Build.PL.
+
+=item overwritable
+
+Some distributions (ExtUtils::MakeMaker, for example) install files that
+are overwritten by distributions installed after it.
+
+The optional C<overwritable> param lets you spedify that this is the case, 
+and defaults to false.
+
+=item packlist
+
+The optional C<packlist> param lets you specify whether this distribution 
+creates a packlist (which is a quick way to verify which files are installed
+by the distribution).
+
+This parameter defaults to true.
 
 =back
 

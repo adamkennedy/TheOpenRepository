@@ -15,8 +15,8 @@ require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 has parent => (
 	is       => 'ro',
@@ -114,19 +114,6 @@ sub BUILDARGS {
 			}
 			$args{url} = URI::file->new($file)->as_string;
 			$parent->trace_line( 2, " found\n" );
-
-		} elsif ( defined $args{dist} ) {
-
-			# Map CPAN dist path to url
-			my $dist = $args{dist};
-			$parent->trace_line( 2, "Using distribution path $dist\n" );
-			my $one = substr $dist, 0, 1;
-			my $two = substr $dist, 1, 1;
-			my $path =
-			  File::Spec::Unix->catfile( 'authors', 'id', $one, "$one$two",
-				$dist, );
-			$args{url} =
-			  URI->new_abs( $path, $args{parent}->cpan() )->as_string;
 
 		} elsif ( defined $args{name} ) {
 

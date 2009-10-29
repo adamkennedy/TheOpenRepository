@@ -6,8 +6,8 @@ use MooseX::Types::Moose qw( Str Int Maybe );
 use File::Spec::Functions qw( catfile );
 use English qw( -no_match_vars );
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 with 'Perl::Dist::WiX::Role::Asset';
 
