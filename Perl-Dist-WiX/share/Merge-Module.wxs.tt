@@ -6,26 +6,16 @@
     Version="[% dist.msi_perl_version %]" >
 
     [% IF dist.msi_debug %]
-    <Package Description='Perl for Win32 operating systems.' Id='*' Languages='1033'
+    <Package Description='Perl for Win32 operating systems.' Languages='1033'
       Comments='Debug Build.' 
-      Platform="[% dist.msi_platform_string" %]" InstallerVersion='200' InstallPrivileges='elevated' />
-      Id="[% dist.msm_module_id" %] Manufacturer="[% dist.app_publisher %]" />
+      Platform="[% dist.msi_platform_string %]" InstallerVersion='200' InstallPrivileges='elevated' />
+      Id="[% dist.msm_package_id %]" Manufacturer="[% dist.app_publisher %]" />
     <Property Id='MsiLogging'>voIcewarmupx!</Property>
     [% ELSE %]
-    <Package Description='Perl for Win32 operating systems.' Id='*' Languages='1033'
-      Platform="[% dist.msi_platform_string" %]" InstallerVersion='200' InstallPrivileges='elevated' />
-      Id="[% dist.msm_module_id" %] Manufacturer="[% dist.app_publisher %]" />
+    <Package Description='Perl for Win32 operating systems.' Languages='1033'
+      Platform="[% dist.msi_platform_string %]" InstallerVersion='200' InstallPrivileges='elevated' />
+      Id="[% dist.msm_package_id %]" Manufacturer="[% dist.app_publisher %]" />
     [% END %]
-
-    <Media Id="1" Cabinet="Perl.cab" CompressionLevel="high" EmbedCab="yes" />
-
-    <Condition Message="Cannot install on Windows 9x or ME systems.">
-      <![CDATA[VersionNT]]>
-    </Condition>
-    
-    <Condition Message="Cannot install on Windows NT 4.0 or Windows 2000 systems.">
-      <![CDATA[VersionNT > 500]]>
-    </Condition>
 
     <!-- Property Id="INSTALLDIR">[% dist.image_dir %]</Property -->
     

@@ -279,6 +279,7 @@ sub msm_product_id {
 
 	#... then use it to create a GUID out of the ID.
 	my $guid = $generator->generate_guid($product_name);
+	$guid =~ s/_/-/g;
 
 	return $guid;
 } ## end sub msi_product_id
@@ -309,7 +310,7 @@ sub msi_upgrade_code {
 	return $guid;
 } ## end sub msi_upgrade_code
 
-=item * msm_package_code
+=item * msm_package_id
 
 Returns the Id for the MSI's <Package> tag.
 
@@ -318,7 +319,7 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_package.htm>
 =cut
 
 # For template
-sub msm_package_code {
+sub msm_package_id {
 	my $self = shift;
 
 	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
@@ -331,7 +332,8 @@ sub msm_package_code {
 
 	#... then use it to create a GUID out of the ID.
 	my $guid = $generator->generate_guid($upgrade_ver);
-
+	$guid =~ s/_/-/g;
+	
 	return $guid;
 } ## end sub msi_upgrade_code
 
