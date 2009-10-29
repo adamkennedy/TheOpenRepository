@@ -3,7 +3,7 @@ package Perl::Dist::WiX::Asset::Website;
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str Int Maybe );
-use File::Spec::Functions qw( catfile );
+use File::Spec::Functions qw( catfile splitfile );
 use English qw( -no_match_vars );
 
 our $VERSION = '1.100_001';
