@@ -559,7 +559,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		'regenerate_fragments',
 
 		# Write out the merge module
-		'write_msm',
+		'write_merge_module',
 
 		# Install the Win32 extras
 		'install_win32_extras',
@@ -1523,7 +1523,7 @@ sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	return 1;
 } ## end sub write
 
-sub write_msm {
+sub write_merge_module {
 	my $self = shift;
 	$self->{output_file} ||= [];
 

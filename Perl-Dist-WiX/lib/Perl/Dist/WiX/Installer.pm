@@ -41,8 +41,8 @@ require Perl::Dist::WiX::Fragment::Environment;
 require Perl::Dist::WiX::Fragment::StartMenu;
 require Perl::Dist::WiX::IconArray;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 =head2 Accessors
 
@@ -733,9 +733,9 @@ sub write_msm {
 	my $out;
 	my $cmd = [
 		wix_bin_light(),
-		'-sice:ICE38',                 # Gets rid of ICE38 warning.
-		'-sice:ICE43',                 # Gets rid of ICE43 warning.
-		'-sice:ICE47',                 # Gets rid of ICE47 warning.
+#		'-sice:ICE38',                 # Gets rid of ICE38 warning.
+#		'-sice:ICE43',                 # Gets rid of ICE43 warning.
+#		'-sice:ICE47',                 # Gets rid of ICE47 warning.
 		                               # (Too many components in one
 		                               # feature for Win9X)
 #		'-sice:ICE48',                 # Gets rid of ICE48 warning.
