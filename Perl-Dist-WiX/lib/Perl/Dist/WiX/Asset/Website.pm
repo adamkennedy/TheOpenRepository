@@ -38,7 +38,8 @@ has icon_file_to => (
 	reader  => '_get_icon_file_to',
 	lazy    => 1,
 	# Move to a builder routine later.
-	default => sub { 
+	default => sub {
+		my $self = shift;
 		my $file = $self->_get_icon_file();
 		if ( defined $file ) {
 			(undef, undef, $file) = splitfile($file, 0);
