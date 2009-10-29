@@ -10,14 +10,12 @@ use English qw( -no_match_vars ) ;
 
 use Marpa::UrHTML;
 
-my $document = do { local $RS = undef; <main::STDIN> };
+my $document = do { local $RS = undef; <STDIN> };
 
-my $p = Marpa::UrHTML->new(\$document) || Carp::croak( "Can't open: $!" );
+my $p = Marpa::UrHTML->new(\$document);
 
-$p->empty_element_tags(1);  # configure its behaviour
-
-my $marpa_tokens = $p->value();
+my $marpa_tokens = $p->evaluate();
 
 # say Data::Dumper::Dumper($marpa_tokens);
 
-say join "\n", map { $_->[0] } @{$marpa_tokens};
+# say join "\n", map { $_->[0] } @{$marpa_tokens};
