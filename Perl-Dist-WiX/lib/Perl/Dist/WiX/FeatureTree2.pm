@@ -98,6 +98,27 @@ sub as_string {
 	return $answer;
 } ## end sub as_string
 
+sub as_string_msm {
+	my $self = shift;
+
+	# Get the strings for each of our branches.
+	my $spaces = q{    };              # Indent 4 spaces.
+	my $answer = $spaces;
+	foreach my $feature ( $self->_get_feature_array() ) {
+	    # We just want the children for this one.
+		$answer .= $feature->as_string_children;
+	}
+
+	chomp $answer;
+#<<<
+	$answer =~ s{\n}                   # match a newline 
+				{\n$spaces}gxms;       # and add spaces after it.
+									   # (i.e. the beginning of the line.)
+#>>>
+
+	return $answer;
+} ## end sub as_string_msm
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 

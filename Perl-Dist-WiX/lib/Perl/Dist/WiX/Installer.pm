@@ -279,7 +279,7 @@ sub msm_product_id {
 
 	#... then use it to create a GUID out of the ID.
 	my $guid = $generator->generate_guid($product_name);
-	$guid =~ s/_/-/g;
+	$guid =~ s/-/_/g;
 
 	return $guid;
 } ## end sub msi_product_id
@@ -332,7 +332,6 @@ sub msm_package_id {
 
 	#... then use it to create a GUID out of the ID.
 	my $guid = $generator->generate_guid($upgrade_ver);
-	$guid =~ s/_/-/g;
 	
 	return $guid;
 } ## end sub msi_upgrade_code

@@ -8,12 +8,12 @@
     [% IF dist.msi_debug %]
     <Package Description='Perl for Win32 operating systems.' Languages='1033'
       Comments='Debug Build.' 
-      Platform="[% dist.msi_platform_string %]" InstallerVersion='200' InstallPrivileges='elevated' />
+      Platform="[% dist.msi_platform_string %]" InstallerVersion='200' InstallPrivileges='elevated'
       Id="[% dist.msm_package_id %]" Manufacturer="[% dist.app_publisher %]" />
     <Property Id='MsiLogging'>voIcewarmupx!</Property>
     [% ELSE %]
     <Package Description='Perl for Win32 operating systems.' Languages='1033'
-      Platform="[% dist.msi_platform_string %]" InstallerVersion='200' InstallPrivileges='elevated' />
+      Platform="[% dist.msi_platform_string %]" InstallerVersion='200' InstallPrivileges='elevated'
       Id="[% dist.msm_package_id %]" Manufacturer="[% dist.app_publisher %]" />
     [% END %]
 
@@ -21,7 +21,7 @@
     
 [% directory_tree %]
 
-[% dist.feature_tree_obj.as_string %]
+[% dist.feature_tree_obj.as_string_msm %]
 
     <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
     <InstallExecuteSequence>
