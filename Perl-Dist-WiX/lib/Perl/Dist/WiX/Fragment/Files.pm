@@ -285,8 +285,10 @@ sub _add_directory_recursive {
 	}
 
 	foreach my $dir_to_add (@dirs_to_add) {
-		$directory_object =
-		  $directory_object->add_directory( name => $dir_to_add );
+		$directory_object = $directory_object->add_directory( 
+		  name => $dir_to_add,
+		  id => crc32_base64( catdir( $directory_object->get_path(), $dir_to_add ) );
+		);
 		if ( $cache->exists_in_cache($directory_object) ) {
 			$tree->add_directory( $directory_object->get_path() );
 			push @fragment_ids,
@@ -305,7 +307,7 @@ sub _add_file_component {
 	my $tag  = shift;
 	my $file = shift;
 
-	# We need a shorter ID than a GUID. CRC16's do that.
+	# We need a shorter ID than a GUID. CRC32's do that.
 	# it does NOT have to be cryptographically perfect, 
 	# it just has to TRY and be unique over a set of 10,000 
 	# file names and compoments or so.
