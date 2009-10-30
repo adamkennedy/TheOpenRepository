@@ -138,7 +138,7 @@ for my $test_data (@test_data) {
         cycle_scale       => 200,
         trace_file_handle => $MEMORY,
     );
-    my $grammar = Marpa::Grammar->new( \%args );
+    my $grammar = Marpa::Grammar->new( { experimental => 'no warning' }, \%args );
     $grammar->precompute();
 
     close $MEMORY;

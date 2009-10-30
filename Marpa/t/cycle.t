@@ -197,6 +197,7 @@ for my $test_data (@test_data) {
     my $trace = q{};
     open my $MEMORY, '>', \$trace;
     my $grammar = Marpa::Grammar->new(
+        { experimental => 'no warning' },
         {   cycle_action      => 'warn',
             trace_file_handle => $MEMORY,
         },

@@ -56,54 +56,51 @@ sub default_action {
     return join q{}, @_;
 }
 
-=begin Implementation:
-
-The HTML grammar is adapted from <!DOCTYPE HTML PUBLIC "-//W3C//DTD
-HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-An effort is made to preserve naming and capitalization of the DTD,
-while minimizing the use of special characters.
-
-=end Implementation:
-
-=cut
-
-@Marpa::UrHTML::Internal::ELEMENTS = qw(
-    A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE
-    BODY BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR
-    DIV DL DT EM FIELDSET FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD
-    HR HTML I IFRAME IMG INPUT INS ISINDEX KBD LABEL LEGEND LI LINK MAP
-    MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P PARAM PRE
-    Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE
-    TBODY TD TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR
-);
-
-
-%Marpa::UrHTML::Internal::ELEMENTS_CONTAINING_CDATA =
-    map { $_, 1 } qw( script style );
 %Marpa::UrHTML::Internal::EMPTY_ELEMENTS = map { $_, 1 } qw(
     area base basefont br col frame hr
     img input isindex link meta param
 );
 
-%Marpa::UrHTML::Internal::ELEMENTS_WITH_BOTH_TAGS_OPTIONAL =
+%Marpa::UrHTML::Internal::OPTIONAL_ELEMENT =
     map { $_, 1 } qw( html head body tbody );
-%Marpa::UrHTML::Internal::ELEMENTS_WITH_OPTIONAL_END_TAG = map { $_, 1 }
+%Marpa::UrHTML::Internal::OPTIONAL_END_TAG = map { $_, 1 }
     qw(
-    html head body tbody
     area base basefont br col colgroup dd dt frame hr img input isindex
     li link meta option p param td tfoot th thead tr
 );
 
-@Marpa::UrHTML::Internal::RULES     = ();
-@Marpa::UrHTML::Internal::TERMINALS = ();
+@Marpa::UrHTML::Internal::CORE_TERMINALS = (
+    map { ('S_' . $_), ('E' . $_) } (
+        keys %Marpa::UrHTML::Internal::OPTIONAL_ELEMENT,
+        keys %Marpa::UrHTML::Internal::OPTIONAL_END_TAG,
+        key %Marpa::UrHTML::Internal::OPTIONAL_END_TAG
+    )
+);
+%Marpa::UrHTML::Internal::CORE_TERMINALS = map { $_ => 1 } 
+    @Marpa::UrHTML::Internal::CORE_TERMINALS;
 
-$Marpa::UrHTML::Internal::MARPA_GRAMMAR_OPTIONS = {
+# Create ELE_x ::= S_x rules for the empty elements?
+@Marpa::UrHTML::Internal::CORE_RULES = (
+    map {
+        { $lhs     => 'ignored_html_markup', { rhs => [ 'S_' . $_ ] } },
+            { $lhs => 'ignored_html_markup', { rhs => [ 'E_' . $_ ] } }
+        } keys %Marpa::UrHTML::Internal::OPTIONAL_ELEMENT
+    ),
+    (
+    map {
+        { $lhs => 'ignored_html_markup', { rhs => [ 'E_' . $_ ] } }
+        } keys %Marpa::UrHTML::Internal::OPTIONAL_END_TAG
+    ),
+    ;
+
+Marpa::UrHTML::Internal::MARPA_GRAMMAR_OPTIONS = {
     rules => \@Marpa::UrHTML::Internal::RULES,
     start => 'HTML',
     terminals => \@Marpa::UrHTML::Internal::TERMINALS,
 };
 
-my %elements = ();
+my %start_tags = ();
+my %end_tags = ();
 
 sub Marpa::UrHTML::evaluate {
     my ($self) = @_;
@@ -114,20 +111,27 @@ sub Marpa::UrHTML::evaluate {
             when ('T') {
                 my ( $offset, $offset_end, $text, $is_cdata ) = @{$token};
                 say STDERR "$_ $offset $offset_end $text";
-                push @tokens, [ ( $is_cdata ? 'CDATA' : 'PCDATA' ), $text ];
-            }
+                push @tokens,
+                    [
+                    (     $text =~ / \A \s* \z /xms ? 'WHITESPACE'
+                        : $is_cdata ? 'CDATA'
+                        : 'PCDATA'
+                    ),
+                    $text
+                    ];
+            } ## end when ('T')
             when ('S') {
                 my ( $offset, $offset_end, $tag_name, $attr, $attrseq, $text )
                     = @{$token};
                 say STDERR "$_ $offset $offset_end $text";
-                $elements{$tag_name}++;
+                $start_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
                 push @tokens, [ $terminal, $text ];
             } ## end when ('S')
             when ('E') {
                 my ( $offset, $offset_end, $tag_name, $text ) = @{$token};
                 say STDERR "$_ $offset $offset_end $text";
-                $elements{$tag_name}++;
+                $end_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
                 push @tokens, [ $terminal, $text ];
             } ## end when ('E')
@@ -144,6 +148,18 @@ sub Marpa::UrHTML::evaluate {
             default { Carp::croak("Unprovided-for event: $_") }
         } ## end given
     } ## end while ( my $token = $self->get_token )
+
+    my @rules = @Marpa::UrHTML::Internal::CORE_RULES;
+
+    ELEMENT: for my $element (keys %start_tags) {
+        # For some elements the default rule making does not apply
+        next ELEMENT if $Marpa::UrHTML::Internal::SPECIAL_ELEMENT{$element};
+        push @rules,
+            { $lhs => "ELE_$element", rhs => [ "S_$element", "Contents_$element", "E_$element" ] }
+            { $lhs => "UELE_$element", rhs => [ "S_$element", "Contents_$element" ] }
+            { $lhs => "Contents_$element", rhs => [ "S_$element", "Contents_$element" ] }
+            ;
+    }
 
     # my $grammar = Marpa::Grammar->new( $Marpa::UrHTML::Internal::MARPA_GRAMMAR_OPTIONS );
 

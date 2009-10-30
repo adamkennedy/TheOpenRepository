@@ -197,6 +197,7 @@ use Marpa::Offset qw(
     DEFAULT_ACTION { Action for rules without one }
     TRACE_FILE_HANDLE TRACING
     STRIP
+    EXPERIMENTAL
     CODE_LINES { Delete me? }
     =LAST_BASIC_DATA_FIELD
 
@@ -533,6 +534,7 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS] = 0;
     $grammar->[Marpa::Internal::Grammar::TRACING]          = 0;
     $grammar->[Marpa::Internal::Grammar::STRIP]            = 1;
+    $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL]            = 0;
     $grammar->[Marpa::Internal::Grammar::WARNINGS]         = 1;
     $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK]  = {};
     $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK]  = {};
@@ -618,6 +620,7 @@ use constant GRAMMAR_OPTIONS => [
         cycle_nodes
         default_action
         default_null_value
+        experimental
         inaccessible_ok
         maximal
         max_parses
@@ -790,6 +793,9 @@ sub Marpa::Grammar::set {
             Marpa::exception(
                 'academic option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
+            Marpa::exception(
+                'academic option only allowed in experimental mode')
+                if $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] <= 0;
             $grammar->[Marpa::Internal::Grammar::ACADEMIC] = $value;
         } ## end if ( defined( my $value = $args->{'academic'} ) )
 
@@ -839,19 +845,28 @@ sub Marpa::Grammar::set {
             Marpa::exception(
                 q{cycle_action must be 'warn', 'quiet' or 'fatal'})
                 if not $value ~~ [qw(warn quiet fatal)];
+            Marpa::exception(
+                'cycle_action option only allowed in experimental mode')
+                if $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] <= 0;
             $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] = $value;
         } ## end if ( defined( my $value = $args->{'cycle_action'} ) )
 
         if ( defined( my $value = $args->{'cycle_scale'} ) ) {
-            no integer;
+            Marpa::exception(
+                'cycle_scale option only allowed in experimental mode')
+                if $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] <= 0;
             Marpa::exception(q{cycle_scale must be >1})
                 if $value <= 1;
+            no integer;
             $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE] =
                 POSIX::ceil($value);
             use integer;
         } ## end if ( defined( my $value = $args->{'cycle_scale'} ) )
 
         if ( defined( my $value = $args->{'cycle_nodes'} ) ) {
+            Marpa::exception(
+                'cycle_nodes option only allowed in experimental mode')
+                if $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] <= 0;
             Marpa::exception(q{cycle_nodes must be >0})
                 if $value <= 0;
             $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = $value;
@@ -910,6 +925,24 @@ sub Marpa::Grammar::set {
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
             $grammar->[Marpa::Internal::Grammar::SEMANTICS] = $value;
         } ## end if ( defined( my $value = $args->{'semantics'} ) )
+
+        if ( defined( my $value = $args->{'experimental'} ) ) {
+            given ($value) {
+                when (undef) { $value = 0 }
+                when ('no warning') {
+                    $value = 1
+                }
+                default {
+                    say {
+                        $trace_fh
+                    }
+                    'Experimental (in other words, buggy) features enabled';
+                    $value = 1;
+                } ## end default
+            } ## end given
+            $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] = $value;
+        } ## end if ( defined( my $value = $args->{'experimental'} ) )
+
     } ## end for my $args (@arg_hashes)
 
     return 1;

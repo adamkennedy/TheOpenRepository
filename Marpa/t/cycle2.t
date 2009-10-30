@@ -63,8 +63,10 @@ $Test_Grammar::MDLEX_OPTIONS = [
 my $trace;
 open my $MEMORY, '>', \$trace;
 my $grammar = Marpa::Grammar->new(
+    { experimental      => 'no warning' },
     { trace_file_handle => $MEMORY, cycle_action => 'warn' },
-    @{$Test_Grammar::MARPA_OPTIONS} );
+    @{$Test_Grammar::MARPA_OPTIONS}
+);
 $grammar->precompute();
 close $MEMORY;
 

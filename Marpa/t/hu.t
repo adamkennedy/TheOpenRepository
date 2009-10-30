@@ -20,6 +20,7 @@ BEGIN {
 # pp. 248, 250.
 
 my $g = Marpa::Grammar->new(
+    { experimental => 'no warning' },
     {   start => q{S'},
         strip => 0,
         rules => [
@@ -29,7 +30,7 @@ my $g = Marpa::Grammar->new(
             [ 'A',   [qw/a S b/] ],
             [ 'A',   [qw/a b/] ],
         ],
-        academic => 1,
+        academic     => 1,
     }
 );
 
