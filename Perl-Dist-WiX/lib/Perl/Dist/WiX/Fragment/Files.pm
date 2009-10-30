@@ -15,6 +15,7 @@ use MooseX::Types::Moose qw( Bool );
 use Params::Util qw( _INSTANCE );
 use File::Spec::Functions qw( abs2rel splitpath catpath catdir splitdir );
 use List::MoreUtils qw( uniq );
+use Digest::CRC qw( crc32_base64 );
 require Perl::Dist::WiX::Exceptions;
 require Perl::Dist::WiX::DirectoryRef;
 require Perl::Dist::WiX::DirectoryCache;
@@ -306,6 +307,14 @@ sub _add_file_component {
 
 	my $component = WiX3::XML::Component->new( path => $file );
 	my $file_obj;
+	
+	# We need a shorter ID than a GUID. CRC32's do that.
+	# it does NOT have to be cryptographically perfect, 
+	# it just has to TRY and be unique over a set of 10,000 
+	# file names or so.
+	my $fileid = crc32_base64($component->get_id());
+	$fileid =~ s{\+}{_};
+	$fileid =~ s{/}{-};
 
 	# If the file is a .dll or .exe file, check for a version.
 	if (( -r $file )
@@ -320,13 +329,13 @@ sub _add_file_component {
 			$language = hex substr $vi->{'cur_trans'}, 0, 4;
 			$file_obj = WiX3::XML::File->new(
 				source          => $file,
-				id              => $component->get_id(),
+				id              => $fileid,
 				defaultlanguage => $language,
 			);
 		} else {
 			$file_obj = WiX3::XML::File->new(
 				source => $file,
-				id     => $component->get_id(),
+				id     => $fileid,
 			);
 		}
 	} else {
@@ -334,7 +343,7 @@ sub _add_file_component {
 		# If the file doesn't exist, it gets caught later.
 		$file_obj = WiX3::XML::File->new(
 			source => $file,
-			id     => $component->get_id(),
+			id     => $fileid,
 		);
 	}
 

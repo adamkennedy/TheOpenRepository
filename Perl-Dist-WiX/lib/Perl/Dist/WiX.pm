@@ -1135,11 +1135,14 @@ sub output_base_filename {
 	if ( $self->{output_base_filename} ) {
 		return $self->{output_base_filename};
 	}
+	
+	my $bits = (64 == $self->bits) ? q{-64bit} : q{};
+	
 	return
 	    $self->app_id() . q{-}
 	  . $self->perl_version_human() . q{-}
 	  . $self->output_date_string() 
-	  . (64 == $self->bits) ? q{-64bit} : q{};
+	  . $bits;
 }
 
 =pod
