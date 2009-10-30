@@ -68,7 +68,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Recognizer;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 

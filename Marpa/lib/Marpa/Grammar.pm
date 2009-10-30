@@ -211,6 +211,7 @@ use Marpa::Offset qw(
     CYCLE_ACTION
     CYCLE_SCALE
     CYCLE_NODES
+    PARSE_ORDER
 
     TRACE_ITERATIONS
     TRACE_EVALUATION { General evaluation trace }
@@ -534,7 +535,8 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS] = 0;
     $grammar->[Marpa::Internal::Grammar::TRACING]          = 0;
     $grammar->[Marpa::Internal::Grammar::STRIP]            = 1;
-    $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL]            = 0;
+    $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL]     = 0;
+    $grammar->[Marpa::Internal::Grammar::PARSE_ORDER]      = 'original';
     $grammar->[Marpa::Internal::Grammar::WARNINGS]         = 1;
     $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK]  = {};
     $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK]  = {};
@@ -612,12 +614,12 @@ sub Marpa::show_location {
 use constant GRAMMAR_OPTIONS => [
     qw{
         academic
-        actions
         action_object
+        actions
         code_lines
         cycle_action
-        cycle_scale
         cycle_nodes
+        cycle_scale
         default_action
         default_null_value
         experimental
@@ -627,6 +629,7 @@ use constant GRAMMAR_OPTIONS => [
         minimal
         rules
         semantics
+        sort_method
         start
         strip
         terminals
@@ -942,6 +945,12 @@ sub Marpa::Grammar::set {
             } ## end given
             $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] = $value;
         } ## end if ( defined( my $value = $args->{'experimental'} ) )
+
+        if ( defined( my $value = $args->{'parse_order'} ) ) {
+            Marpa::exception(q{parse_order must be 'original' or 'none'})
+                if not $value ~~ [qw(original none)];
+            $grammar->[Marpa::Internal::Grammar::PARSE_ORDER] = $value;
+        }
 
     } ## end for my $args (@arg_hashes)
 

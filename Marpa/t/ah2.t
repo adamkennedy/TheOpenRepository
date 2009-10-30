@@ -324,7 +324,7 @@ EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
         $recce->show_earley_sets(1),
         "Current Earley Set: $current_earleme; Last Completed: $last_completed; Furthest: $furthest\n"
             . join( q{}, @set[ 0 .. $furthest ] ),
-        'Aycock/Horspool Parse Status at 0'
+        "Aycock/Horspool Parse Status at earleme $earleme"
     );
     ### earleme: $earleme
     given ($earleme) {
