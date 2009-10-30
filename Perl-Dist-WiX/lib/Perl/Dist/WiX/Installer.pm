@@ -720,7 +720,7 @@ sub write_msm {
 			  . "compilation error in $filename_in)" );
 	}
 
-# Start linking the msi.
+# Start linking the merge module.
 
 	# Get the parameters for the msi linking.
 	my $output_msm =
@@ -759,6 +759,8 @@ sub write_msm {
 			"Failed to find $output_msm (probably compilation error)");
 	}
 
+	PDWiX->throw('Testing break');
+	
 	return $output_msm;
 } ## end sub write_msm
 

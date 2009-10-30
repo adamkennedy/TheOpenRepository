@@ -305,17 +305,18 @@ sub _add_file_component {
 	my $tag  = shift;
 	my $file = shift;
 
-	my $component = WiX3::XML::Component->new( path => $file );
-	my $file_obj;
-	
-	# We need a shorter ID than a GUID. CRC32's do that.
+	# We need a shorter ID than a GUID. CRC16's do that.
 	# it does NOT have to be cryptographically perfect, 
 	# it just has to TRY and be unique over a set of 10,000 
-	# file names or so.
-	my $fileid = crc32_base64($component->get_id());
-	$fileid =~ s{\+}{_};
-	$fileid =~ s{/}{-};
+	# file names and compoments or so.
 
+	my $component_id = crc32_base64($file);
+	$component_id =~ s{\+}{_};
+	$component_id =~ s{/}{-};
+	
+	my $component = WiX3::XML::Component->new( path => $file, id => $component_id );
+	my $file_obj;
+	
 	# If the file is a .dll or .exe file, check for a version.
 	if (( -r $file )
 		and (  ( $file =~ m{[.] dll\z}smx )
@@ -329,13 +330,13 @@ sub _add_file_component {
 			$language = hex substr $vi->{'cur_trans'}, 0, 4;
 			$file_obj = WiX3::XML::File->new(
 				source          => $file,
-				id              => $fileid,
+				id              => $component_id,
 				defaultlanguage => $language,
 			);
 		} else {
 			$file_obj = WiX3::XML::File->new(
 				source => $file,
-				id     => $fileid,
+				id     => $component_id,
 			);
 		}
 	} else {
@@ -343,7 +344,7 @@ sub _add_file_component {
 		# If the file doesn't exist, it gets caught later.
 		$file_obj = WiX3::XML::File->new(
 			source => $file,
-			id     => $fileid,
+			id     => $component_id,
 		);
 	}
 

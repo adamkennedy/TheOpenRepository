@@ -16,7 +16,7 @@ use Moose;
 # use WiX3::Util::StrictConstructor;
 use File::Spec::Functions qw( catpath catdir splitpath splitdir );
 use Params::Util qw( _STRING );
-
+use Digest::CRC qw( crc32_base64 );
 require Perl::Dist::WiX::Exceptions;
 
 our $VERSION = '1.100';
@@ -173,6 +173,7 @@ sub _add_directory_recursive {
 	if ( defined $directory ) {
 		return $directory->add_directory(
 			name => $dir_to_add,
+			id => crc32_base64( $path_to_find . $dir_to_add ),
 
 			# TODO: Check for other needs.
 		);
@@ -187,7 +188,10 @@ sub _add_directory_recursive {
 		if (!defined $dir) {
 			PDWiX->throw("Could not create directory $path_to_find_down\\$dir_to_add_down");
 		}
-		return $dir->add_directory( name => $dir_to_add );
+		return $dir->add_directory( 
+			name => $dir_to_add, 
+			id => crc32_base64( $path_to_find . $dir_to_add ),
+		);
 
 	}
 } ## end sub _add_directory_recursive
