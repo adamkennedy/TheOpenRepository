@@ -56,12 +56,12 @@ sub default_action {
     return join q{}, @_;
 }
 
-%Marpa::UrHTML::Internal::EMPTY_ELEMENTS = map { $_, 1 } qw(
+%Marpa::UrHTML::Internal::EMPTY_ELEMENT = map { $_, 1 } qw(
     area base basefont br col frame hr
     img input isindex link meta param
 );
 
-%Marpa::UrHTML::Internal::OPTIONAL_ELEMENT =
+%Marpa::UrHTML::Internal::OPTIONAL_TAGS =
     map { $_, 1 } qw( html head body tbody );
 %Marpa::UrHTML::Internal::OPTIONAL_END_TAG = map { $_, 1 }
     qw(
@@ -70,30 +70,47 @@ sub default_action {
 );
 
 @Marpa::UrHTML::Internal::CORE_TERMINALS = (
-    map { ('S_' . $_), ('E' . $_) } (
-        keys %Marpa::UrHTML::Internal::OPTIONAL_ELEMENT,
-        keys %Marpa::UrHTML::Internal::OPTIONAL_END_TAG,
-        key %Marpa::UrHTML::Internal::OPTIONAL_END_TAG
+    map { ( 'S_' . $_ ), ( 'E' . $_ ) } (
+        keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT,
+        keys %Marpa::UrHTML::Internal::OPTIONAL_TAGS,
+        keys %Marpa::UrHTML::Internal::OPTIONAL_END_TAG
     )
 );
 %Marpa::UrHTML::Internal::CORE_TERMINALS = map { $_ => 1 } 
     @Marpa::UrHTML::Internal::CORE_TERMINALS;
 
-# Create ELE_x ::= S_x rules for the empty elements?
 @Marpa::UrHTML::Internal::CORE_RULES = (
-    map {
-        { $lhs     => 'ignored_html_markup', { rhs => [ 'S_' . $_ ] } },
-            { $lhs => 'ignored_html_markup', { rhs => [ 'E_' . $_ ] } }
-        } keys %Marpa::UrHTML::Internal::OPTIONAL_ELEMENT
+    map { ( lhs => 'anywhere_item', rhs => [$_] ) }
+    (
+
+        # Comments, declarations, processing instruction and whitespace
+        # can go anywhere
+        qw(D C PI WHITESPACE),
+
+        # Start and end of optional-tag elements is simply
+        # ignored
+        (   map { 'S_' . $_, 'E_' . $_ }
+                keys %Marpa::UrHTML::Internal::OPTIONAL_TAGS
+        ),
+
+        # End tags for empty elements are ignored
+        (   map { 'E_' . $_ }
+                keys %Marpa::UrHTML::Internal::EMPTY_ELEMENTS
+        )
+    )
+    ),
+    { lhs => 'main_flow', rhs => ['main_flow_item'], min => 0 },
+    { lhs => 'flow',      rhs => ['flow_item'],      min => 0 },
+    (
+    map { lhs => 'main_flow_item', rhs => [$_] },
+    qw(flow_item stray_end_tag)
     ),
     (
-    map {
-        { $lhs => 'ignored_html_markup', { rhs => [ 'E_' . $_ ] } }
-        } keys %Marpa::UrHTML::Internal::OPTIONAL_END_TAG
-    ),
-    ;
+    map { lhs => 'flow_item', rhs => [$_] },
+    qw(CDATA PCDATA anywhere_item block_element inline_element general_element)
+    );
 
-Marpa::UrHTML::Internal::MARPA_GRAMMAR_OPTIONS = {
+%Marpa::UrHTML::Internal::MARPA_GRAMMAR_OPTIONS = {
     rules => \@Marpa::UrHTML::Internal::RULES,
     start => 'HTML',
     terminals => \@Marpa::UrHTML::Internal::TERMINALS,
@@ -151,15 +168,70 @@ sub Marpa::UrHTML::evaluate {
 
     my @rules = @Marpa::UrHTML::Internal::CORE_RULES;
 
-    ELEMENT: for my $element (keys %start_tags) {
-        # For some elements the default rule making does not apply
-        next ELEMENT if $Marpa::UrHTML::Internal::SPECIAL_ELEMENT{$element};
-        push @rules,
-            { $lhs => "ELE_$element", rhs => [ "S_$element", "Contents_$element", "E_$element" ] }
-            { $lhs => "UELE_$element", rhs => [ "S_$element", "Contents_$element" ] }
-            { $lhs => "Contents_$element", rhs => [ "S_$element", "Contents_$element" ] }
-            ;
-    }
+    ELEMENT: for ( keys %start_tags ) {
+        when ( defined $Marpa::UrHTML::Internal::OPTIONAL_TAGS{$_} ) {
+
+            # All these tags are simply ignored
+            say "Ignored: Optional Tag: $_";
+
+            # should be next ELEMENT, but perl bug 65114 causes warning if tag is given
+            next;
+        } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_TAGS...)
+        when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG{$_} ) {
+            say "Optional End Tag: $_";
+
+            # These will need custom solutions
+            # A dummy rule for now
+            push @rules,
+                {
+                hs  => "ELE_$_",
+                rhs => [ "S_$_", "Contents_$_", "E_$_" ]
+                },
+                {
+                lhs => "UELE_$_",
+                rhs => [ "S_$_", "Contents_$_" ]
+                },
+
+                # a rule which will never be satisfied because
+                # there are no unicorns
+                {
+                lhs => "Contents_$_",
+                rhs => [q{!!!unicorn!!!}]
+                }
+        } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG...)
+        when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
+            say "Empty: $_";
+            push @rules,
+                {
+                lhs => "ELE_$_",
+                rhs => ["S_$_"]
+                };
+        } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
+        default {
+            say "Standard: $_";
+            push @rules,
+                {
+                lhs => "ELE_$_",
+                rhs => ["T_ELE_$_"]
+                },
+                {
+                lhs => "ELE_$_",
+                rhs => ["U_ELE_$_"]
+                },
+                {
+                lhs => "T_ELE_$_",
+                rhs => [ "S_$_", "Contents_$_", "E_$_" ]
+                },
+                {
+                lhs => "U_ELE_$_",
+                rhs => [ "S_$_", "Contents_$_" ]
+                },
+                {
+                lhs => "Contents_$_",
+                rhs => ['flow']
+                }
+        } ## end default
+    } ## end for ( keys %start_tags )
 
     # my $grammar = Marpa::Grammar->new( $Marpa::UrHTML::Internal::MARPA_GRAMMAR_OPTIONS );
 
