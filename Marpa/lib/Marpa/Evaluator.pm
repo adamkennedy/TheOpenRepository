@@ -2356,15 +2356,16 @@ sub Marpa::Evaluator::value {
                 }
 
                 # Set up the and-choices from the children
-                my @and_choices;
-                for my $child_and_node_id (
+                my @and_choices = ();
+                AND_CHOICE: for my $child_and_node_id (
                     @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
                 {
+                    my $and_iteration = $and_iterations->[$child_and_node_id];
+                    next AND_CHOICE if not defined $and_iteration;
                     my $and_choice;
                     $#{$and_choice} = Marpa::Internal::And_Choice::LAST_FIELD;
                     $and_choice->[Marpa::Internal::And_Choice::ID] =
                         $child_and_node_id;
-                    my $and_iteration = $and_iterations->[$child_and_node_id];
                     $and_choice->[Marpa::Internal::And_Choice::SORT_DATA] =
                         $and_iteration
                         ->[Marpa::Internal::And_Iteration::SORT_DATA];
@@ -2379,6 +2380,16 @@ sub Marpa::Evaluator::value {
                     push @and_choices, $and_choice;
 
                 } ## end for my $child_and_node_id ( @{ $or_node->[...]})
+
+                # If there are no and_choices, this or-node is
+                # exhausted.
+                # With no choices, there is no need to
+                # sort the choices or to freeze any
+                # of them.
+                if ( not scalar @and_choices ) {
+                    $or_iterations->[$or_node_id] = undef;
+                    break;    # next TASK
+                }
 
                 my $or_iteration;
                 given ($parse_order) {
@@ -2769,7 +2780,7 @@ node appears more than once on the path back to the root node.
                     ->[Marpa::Internal::And_Iteration::CURRENT_CHILD_FIELD];
                 if ( not defined $current_child_field ) {
                     $and_iterations->[$and_node_id] = undef;
-                    break;
+                    break; # next TASK
                 }
 
                 my $and_node = $and_nodes->[$and_node_id];
@@ -2810,8 +2821,6 @@ node appears more than once on the path back to the root node.
 
                 my $and_node = $and_nodes->[$and_node_id];
 
-                # Iteration of and-node without child always results in
-                # exhausted and-node
                 my $current_child_field =
                     $and_iterations->[$and_node_id]
                     ->[Marpa::Internal::And_Iteration::CURRENT_CHILD_FIELD];
@@ -2846,7 +2855,6 @@ node appears more than once on the path back to the root node.
 
                 # We always have both a cause and a predecessor if we are
                 # in this task.
-
                 my ($and_node_id) = @{$task_entry};
 
                 if ($trace_tasks) {
@@ -2869,6 +2877,11 @@ node appears more than once on the path back to the root node.
                 # deal with that.
                 break if @exhausted_children >= 2;
 
+                # The RESET_OR_TREE either will find a valid iteration,
+                # or leave the one exhausted child still exhausted.
+                # Either way SETUP_AND_NODE
+                # (which is already on the tasks stack)
+                # can deal with that.
                 push @tasks,
                     [
                     Marpa::Internal::Task::RESET_OR_TREE,
