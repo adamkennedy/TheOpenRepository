@@ -45,7 +45,8 @@ use Marpa::Offset qw(
     PREDECESSOR_ID
     CAUSE_ID
     TOKEN VALUE_REF
-    EVALUATOR_DATA
+    TREE_PROCESSING
+    VALUE_PROCESSING
     START_EARLEME END_EARLEME
     RULE_ID
 
@@ -130,7 +131,8 @@ use Marpa::Offset qw(
     PARSE_COUNT :{ number of parses in an ambiguous parse :}
     AND_NODES
     OR_NODES
-    RULE_DATA
+    RULE_TREE_PROCESSING
+    RULE_VALUE_PROCESSING
     AND_ITERATIONS
     OR_ITERATIONS
     ACTION_OBJECT_CONSTRUCTOR
@@ -140,6 +142,8 @@ use Marpa::Offset qw(
 use Marpa::Offset qw(
 
     :package=Marpa::Internal::Evaluator_Op
+
+    :{ These are the valuation-time ops }
     ARGC
     CALL
     CONSTANT_RESULT
@@ -147,6 +151,10 @@ use Marpa::Offset qw(
     VIRTUAL_HEAD_NO_SEP
     VIRTUAL_KERNEL
     VIRTUAL_TAIL
+
+    :{ These are the tree-time ops }
+    CYCLE_VIA_CAUSE
+    CYCLE_VIA_PREDECESSOR
 
 );
 
@@ -674,7 +682,8 @@ sub clone_and_node {
     for my $field (
         Marpa::Internal::And_Node::VALUE_REF,
         Marpa::Internal::And_Node::TOKEN,
-        Marpa::Internal::And_Node::EVALUATOR_DATA,
+        Marpa::Internal::And_Node::TREE_PROCESSING,
+        Marpa::Internal::And_Node::VALUE_PROCESSING,
         Marpa::Internal::And_Node::START_EARLEME,
         Marpa::Internal::And_Node::END_EARLEME,
         Marpa::Internal::And_Node::RULE_ID,
@@ -1519,18 +1528,9 @@ sub Marpa::Evaluator::new {
 
     my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
 
-    my $trace_fh;
-    my $trace_iterations;
-    my $trace_evaluation;
-
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_evaluation =
-            $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
-        $trace_iterations =
-            $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
-
-    } ## end if ($tracing)
+    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $trace_iterations = $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
+    my $trace_evaluation = $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
 
     $self->[Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
     my $or_nodes  = $self->[Marpa::Internal::Evaluator::OR_NODES]  = [];
@@ -1560,7 +1560,7 @@ sub Marpa::Evaluator::new {
 
     state $parse_number = 0;
     my $null_values     = set_null_values($self);
-    my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_DATA] =
+    my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_VALUE_PROCESSING] =
         set_actions($self);
     if (defined(
             my $action_object =
@@ -1576,6 +1576,19 @@ sub Marpa::Evaluator::new {
             $closure;
     } ## end if ( defined( my $action_object = $grammar->[...]))
 
+    my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
+
+    my $tree_rules;
+    $#{$tree_rules} = $#{$rules};
+    for my $rule ( @{ Marpa::Internal::Grammar::cycle_rules($grammar) } ) {
+        my $tree_processing_op =
+            $rule->[Marpa::Internal::Rule::RHS]->[-1]
+            ->[Marpa::Internal::Symbol::NULLING]
+            ? Marpa::Internal::Evaluator_Op::CYCLE_VIA_CAUSE
+            : Marpa::Internal::Evaluator_Op::CYCLE_VIA_PREDECESSOR;
+        $tree_rules->[$rule->[Marpa::Internal::Rule::ID]] = [ $tree_processing_op ];
+    } ## end for my $rule ( @{ cycle_rules($grammar) } )
+
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
     my ( $nulling, $symbol_id ) =
         @{$start_symbol}[ Marpa::Internal::Symbol::NULLING,
@@ -1585,7 +1598,6 @@ sub Marpa::Evaluator::new {
     # deal with a null parse as a special case
     if ($nulling) {
 
-        my $evaluator_data = $evaluator_rules->[$start_rule_id];
 
         my $or_node = [];
         $#{$or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
@@ -1603,8 +1615,10 @@ sub Marpa::Evaluator::new {
 
         $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
             \$start_null_value;
-        $and_node->[Marpa::Internal::And_Node::EVALUATOR_DATA] =
-            $evaluator_data;
+        $and_node->[Marpa::Internal::And_Node::TREE_PROCESSING] =
+            $tree_rules->[$start_rule_id];
+        $and_node->[Marpa::Internal::And_Node::VALUE_PROCESSING] =
+            $evaluator_rules->[$start_rule_id];
         $and_node->[Marpa::Internal::And_Node::RULE_ID]  = $start_rule_id;
         $and_node->[Marpa::Internal::And_Node::POSITION] = -1;
         $and_node->[Marpa::Internal::And_Node::START_EARLEME] = 0;
@@ -1621,6 +1635,9 @@ sub Marpa::Evaluator::new {
         return $self;
 
     }    # if $nulling
+
+    # Label and-nodes which have cycles in their rules?
+    # Marpa::Internal::Grammar::cycle_rules($grammar);
 
     my @or_saplings;
     my %or_node_by_name;
@@ -1682,14 +1699,14 @@ sub Marpa::Evaluator::new {
             {
 
                 my $rhs = $rule->[Marpa::Internal::Rule::RHS];
-                my $evaluator_data =
-                    $evaluator_rules->[ $rule->[Marpa::Internal::Rule::ID] ];
 
                 my $last_position = @{$rhs} - 1;
                 push @and_saplings,
                     [
-                    $rule,                  $last_position,
-                    $rhs->[$last_position], $evaluator_data
+                    $rule,
+                    $last_position,
+                    $rhs->[$last_position],
+                    $evaluator_rules->[ $rule->[Marpa::Internal::Rule::ID] ]
                     ];
 
             }    # for my $rule
@@ -1705,7 +1722,7 @@ sub Marpa::Evaluator::new {
 
         for my $and_sapling (@and_saplings) {
 
-            my ( $sapling_rule, $sapling_position, $symbol, $evaluator_data )
+            my ( $sapling_rule, $sapling_position, $symbol, $value_processing )
                 = @{$and_sapling};
 
             my ( $rule_id, $rhs ) =
@@ -1807,10 +1824,18 @@ sub Marpa::Evaluator::new {
                 $and_node->[Marpa::Internal::And_Node::TOKEN] = $token;
                 $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
                     $value_ref;
-                $and_node->[Marpa::Internal::And_Node::EVALUATOR_DATA] =
-                    $evaluator_data;
-                $and_node->[Marpa::Internal::And_Node::RULE_ID] =
+                my $rule_id = $and_node->[Marpa::Internal::And_Node::RULE_ID] =
                     $sapling_rule->[Marpa::Internal::Rule::ID];
+
+                # Value processing is only done on closure and-nodes.
+                # Right now this is all the case with tree processing.
+                $and_node->[Marpa::Internal::And_Node::VALUE_PROCESSING] =
+                    $value_processing;
+                if ($value_processing) {
+                    $and_node->[Marpa::Internal::And_Node::TREE_PROCESSING] =
+                        $tree_rules->[$rule_id];
+                }
+
                 $and_node->[Marpa::Internal::And_Node::POSITION] =
                     $sapling_position;
                 $and_node->[Marpa::Internal::And_Node::START_EARLEME] =
@@ -1996,7 +2021,7 @@ of the rule, where it will end.
 
     ### assert: Marpa'Evaluator'audit($self) or 1
 
-    # TODO: Add code to only attempt rewrite if grammar is cyclical
+    # TODO: Add code to only attempt rewrite if grammar is cyclical?
     rewrite_cycles($self);
 
     ### assert: Marpa'Evaluator'audit($self) or 1
@@ -2218,7 +2243,7 @@ sub Marpa::Evaluator::value {
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
 
-    my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_DATA];
+    my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_VALUE_PROCESSING];
     my $and_nodes       = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes        = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
 
@@ -2248,7 +2273,7 @@ sub Marpa::Evaluator::value {
             # the absence of evaluator data means this is not a closure and-node
             # and does not count in the sort order
             next AND_NODE
-                if not $and_node->[Marpa::Internal::And_Node::EVALUATOR_DATA];
+                if not $and_node->[Marpa::Internal::And_Node::VALUE_PROCESSING];
 
             my $rule_id  = $and_node->[Marpa::Internal::And_Node::RULE_ID];
             my $rule     = $rules->[$rule_id];
@@ -3180,12 +3205,12 @@ node appears more than once on the path back to the root node.
 
                     }    # defined $value_ref
 
-                    my $evaluator_data = $and_node
-                        ->[Marpa::Internal::And_Node::EVALUATOR_DATA];
+                    my $value_processing = $and_node
+                        ->[Marpa::Internal::And_Node::VALUE_PROCESSING];
 
-                    next TREE_NODE if not defined $evaluator_data;
+                    next TREE_NODE if not defined $value_processing;
 
-                    my $ops = $evaluator_data
+                    my $ops = $value_processing
                         ->[Marpa::Internal::Evaluator_Rule::OPS];
                     my $current_data = [];
                     my $op_ix        = 0;
