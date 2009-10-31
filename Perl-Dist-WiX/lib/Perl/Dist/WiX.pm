@@ -126,14 +126,6 @@ our $VERSION = '1.100_001';
 $VERSION =~ s/_//;
 
 use Moose::Tiny qw(
-  perl_version
-  portable
-  exe
-  msi
-  zip
-  binary_root
-  offline
-  temp_dir
   download_dir
   image_dir
   modules_dir
@@ -151,24 +143,252 @@ use Moose::Tiny qw(
   output_file
   perl_version_corelist
   cpan
-  force
-  forceperl
-  checkpoint_before
-  checkpoint_after
-  checkpoint_stop
   tasklist  
   filters
   build_number
   beta_number
   trace
-  build_start_time
-  perl_config_cf_email
-  perl_config_cf_by
   toolchain
   bits
   gcc_version
 );
-#  Don't need to put distributions_installed in here.
+
+has 'perl_version' => (
+	is => 'ro',
+	default => '5101',
+);
+
+has 'portable' => (
+	is => 'ro', # Boolean
+	default => 1,
+);
+
+has 'exe' => (
+	is => 'ro', # Boolean
+	writer => '_set_exe',
+	default => 0,
+);
+
+has 'msi' => (
+	is => 'ro', # Boolean
+	writer => '_set_msi',
+	default => 1,
+);
+
+has 'zip' => (
+	is => 'ro', # Boolean
+	lazy => 1,
+	default => sub { return $self->portable() ? 1 : 0 },
+);
+
+has 'force' => (
+	is => 'ro', # Boolean
+	default => 0,
+);
+
+has 'forceperl' => (
+	is => 'ro', # Boolean
+	default => 0,
+);
+
+has 'trace' => (
+	is => 'ro', # Integer
+	default => 2,
+);
+
+has 'temp_dir' => (
+	is => 'ro',
+	default => sub { return catdir( tmpdir(), 'perldist' ) },
+);
+
+has 'build_start_time' => (
+	is => 'ro', # Integer
+	default => localtime,
+	init_arg => undef, # Cannot set this parameter in new().
+);
+
+has 'binary_root' => (
+	is => 'ro',
+	required => 1,	# Default is provided in BUILDARGS.
+);
+
+has 'offline' => (
+	is => 'ro',
+	builder => sub { return LWP::Online::offline() },
+);
+
+has 'pdw_version' => (
+	is => 'ro', # String
+	default => $Perl::Dist::WiX::VERSION,
+	init_arg => undef, # Cannot set this parameter in new().
+);
+
+# This is set in BUILDARGS.
+has 'pdw_class' => (
+	is => 'ro', # String
+	writer => '_set_pdw_class',
+	init_arg => undef, # Cannot set this parameter in new().
+);
+
+has 'build_number' => (
+	is => 'ro', # Integer
+	required => 1,
+);
+
+has 'beta_number' => (
+	is => 'ro', # Integer
+	default => 0,
+);
+
+has 'bits' => (
+	is => 'ro', # Integer
+	default => 32,
+);
+
+has 'gcc_version' => (
+	is => 'ro', # Integer
+	default => 3,
+);
+
+has 'fragments' => (
+	is => 'ro', # Integer
+	default => sub { return {} },
+);
+
+has 'checkpoint_before' => (
+	is => 'ro', # Integer
+	default => 0,
+);
+
+has 'checkpoint_after' => (
+	is => 'ro', # Array of Integers
+	default => sub { return [0] },
+);
+
+has 'checkpoint_stop' => (
+	is => 'ro', # Integer
+	default => 0,
+);
+
+has 'output_file' => (
+	is => 'ro', # Array of strings
+	default => sub { return [] },
+	init_arg => 0,
+);
+
+has 'env_path' => (
+	is => 'ro', # Array of strings
+	default => sub { return [] },
+	init_arg => 0,
+);
+
+has 'distributions_installed' => (
+	is => 'ro', # Array of strings
+	default => sub { return [] },
+	init_arg => 0,
+);
+
+has 'output_dir' => (
+	is => 'ro', # Array of strings
+	default => sub { rel2abs( curdir() ) },
+);
+
+has '_trace_object' => (
+	is => 'ro', # WiX3::Traceable
+	required => 1,
+);
+
+has 'app_name' => (
+	is => 'ro', # String
+	required => 1,
+);
+
+has 'app_ver_name' => (
+	is => 'ro', # String
+	default => sub { return $self->app_name() . q{ } . $self->perl_version_human(); },
+);
+
+has 'app_publisher' => (
+	is => 'ro', # String
+	required => 1,
+);
+
+has 'app_publisher_url' => (
+	is => 'ro', # String
+	required => 1,
+);
+
+has 'sitename' => (
+	is => 'ro', # String
+	required => 1,	# Default is provided in BUILDARGS.
+);
+
+has '_guidgen' => (
+	is => 'ro', # WiX3::XML::GeneratesGUID::Object
+	required => 1,	# Default is provided in BUILDARGS.
+	init_arg => 0,
+);
+
+has 'perl_config_cf_email' => (
+	is => 'ro', # String
+	default => 'anonymous@unknown.builder.invalid',
+);
+
+has 'perl_config_cf_by' => (
+	is => 'ro', # String
+	lazy => 1,
+	default => sub { return $self->perl_config_cf_email() =~ m/\A(.*)@.*\z/msx },
+);
+
+has 'default_group_name' => (
+	is => 'ro', # String
+	lazy => 1,
+	default => sub { return $self->app_name() },
+);
+
+has 'msi_license_file' => (
+	is => 'ro', # String
+	lazy => 1,
+	default => sub { return catfile( $self->wix_dist_dir(), 'License.rtf' ) },
+);
+
+has 'output_base_filename' => (
+	is => 'ro', # String
+	lazy => 1,
+	builder => '_build_output_base_filename',
+);
+	
+has 'debug_stdout' => (
+	is => 'ro', # String
+	lazy => 1,
+	default => sub { return catfile( $self->output_dir(), 'debug.out' ) },
+);
+
+has 'debug_stderr' => (
+	is => 'ro', # String
+	lazy => 1,
+	default => sub { return catfile( $self->output_dir(), 'debug.err' ) },
+);
+
+
+
+
+	
+# Default the output filename to the id plus the current date
+sub _build_output_base_filename {
+	my $self = shift;
+	
+	my $bits = (64 == $self->bits) ? q{-64bit} : q{};
+	
+	return
+	    $self->app_id() . q{-}
+	  . $self->perl_version_human() . q{-}
+	  . $self->output_date_string() 
+	  . $bits;
+}
+
+
+	#  Don't need to put distributions_installed in here.
 
 #>>>
 
@@ -436,28 +656,23 @@ should then call C<run> on to generate the distribution.
 
 =cut
 
-sub new { ## no critic 'ProhibitExcessComplexity'
+sub BUILDARGS { ## no critic 'ProhibitExcessComplexity'
 	my $class  = shift;
-	my %params = (
-		trace            => 1,
-		build_start_time => localtime,
-		temp_dir         => catdir( tmpdir(), 'perldist' ),
-		@_,
-	);
+	my $params;
 
 	eval { 
-		$params{misc} ||= WiX3::Traceable->new( tracelevel => $params{trace} );
+		$params{_trace_object} ||= WiX3::Traceable->new( tracelevel => $params{trace} );
 		1;
 	} || eval {
 		WiX3::Trace::Object->_clear_instance();
 		WiX3::Traceable->_clear_instance();
-		$params{misc} ||= WiX3::Traceable->new( tracelevel => $params{trace} );
+		$params{_trace_object} ||= WiX3::Traceable->new( tracelevel => $params{trace} );
 	} || die "Could not create trace object";
 
 	# Announce that we're starting.
 	{
 		my $time = scalar localtime;
-		$params{misc}->trace_line( 0, "Starting build at $time.\n" );
+		$params{_trace_object}->trace_line( 0, "Starting build at $time.\n" );
 	}
 
 	# Get the parameters required for the GUID generator set up.
@@ -507,6 +722,8 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	unless ( defined $params{fragment_dir} ) {
 		$params{fragment_dir} =        # To store the WiX fragments in.
 		  catdir( $params{temp_dir}, 'fragments' );
+		$params{misc}->trace_line( 2,
+			"Wait a second while we empty the fragment directory...\n" );
 		$class->remake_path( $params{fragment_dir} );
 	}
 	if ( defined $params{image_dir} ) {
@@ -531,6 +748,21 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 
 		$class->remake_path( $params{image_dir} );
 	} ## end if ( defined $params{image_dir...})
+
+	if ( $params{app_name} =~ m{[\\/:*"<>|]}msx ) {
+		PDWiX::Parameter->throw(
+			parameter => 'app_name: Contains characters invalid '
+			  . 'for Windows file/directory names',
+			where => '->new'
+		);
+	}
+
+	unless ( _IDENTIFIER( $params{app_id} ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'app_id',
+			where     => '->new'
+		);
+	}
 
 	my $tasklist = [
 
@@ -567,75 +799,21 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 		# Create the distribution list
 		'create_distribution_list',
 
+		# Regenerate file fragments again.
+		'regenerate_fragments',
+
 		# Write out the distributions
 		'write',
 	];
 
 	my $self = bless {
-		perl_version => '5101',
-		offline      => LWP::Online::offline(),
-		pdw_version  => $Perl::Dist::WiX::VERSION,
-		pdw_class    => $class,
-		fragments    => {},
-		beta_number  => 0,
-		force        => 0,
-		forceperl    => 0,
-		exe          => 0,
-		bits         => 32,
-		gcc_version  => 3,
-		msi               => 1,        # Goal of Perl::Dist::WiX is to make an MSI.
-		checkpoint_before => 0,
-		checkpoint_after        => [0],
-		checkpoint_stop         => 0,
-		output_file             => [],
-		env_path                => [],
-		distributions_installed => [],
-		output_dir              => rel2abs( curdir ),
 		tasklist                => $tasklist,
 		%params,
 	}, $class;
 
 	# Apply defaults
 
-	unless ( ( defined $self->{perl_config_cf_email} )
-		&& ( $self->{perl_config_cf_email} =~ m/\A.*@.*\z/msx ) )
-	{
-		$self->{perl_config_cf_email} = 'anonymous@unknown.builder.invalid';
-	}
-	( $self->{perl_config_cf_by} ) =
-	  $self->{perl_config_cf_email} =~ m/\A(.*)@.*\z/msx;
-
-	unless ( defined $self->default_group_name ) {
-		$self->{default_group_name} = $self->app_name;
-	}
-	unless ( _STRING( $self->msi_license_file ) ) {
-		$self->{msi_license_file} =
-		  catfile( $self->wix_dist_dir, 'License.rtf' );
-	}
-
 	# Check and default params
-	unless ( _IDENTIFIER( $self->app_id ) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'app_id',
-			where     => '::Installer->new'
-		);
-	}
-	$self->_check_string_parameter( $self->app_name,      'app_name' );
-	$self->_check_string_parameter( $self->app_ver_name,  'app_ver_name' );
-	$self->_check_string_parameter( $self->app_publisher, 'app_publisher' );
-	$self->_check_string_parameter( $self->app_publisher_url,
-		'app_publisher_url' );
-
-	if ( $self->app_name =~ m{[\\/:*"<>|]}msx ) {
-		PDWiX::Parameter->throw(
-			parameter => 'app_name: Contains characters invalid '
-			  . 'for Windows file/directory names',
-			where => '::Installer->new'
-		);
-	}
-
-	$self->_check_string_parameter( $self->default_group_name,
-		'default_group_name' );
 	$self->_check_string_parameter( $self->output_dir, 'output_dir' );
 	unless ( -d $self->output_dir ) {
 		$self->trace_line( 0,
@@ -670,31 +848,25 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	}
 
 	# Check the version of Perl to build
-	unless ( defined $self->build_number ) {
-		PDWiX::Parameter->throw(
-			parameter => 'build_number',
-			where     => '->new'
-		);
-	}
-	unless ( $self->perl_version_literal ) {
+	unless ( $self->perl_version_literal() ) {
 		PDWiX::Parameter->throw(
 			parameter => 'perl_version_literal: Failed to resolve',
 			where     => '->new'
 		);
 	}
-	unless ( $self->perl_version_human ) {
+	unless ( $self->perl_version_human() ) {
 		PDWiX::Parameter->throw(
 			parameter => 'perl_version_human: Failed to resolve',
 			where     => '->new'
 		);
 	}
-	unless ( $self->can( 'install_perl_' . $self->perl_version ) ) {
+	unless ( $self->can( 'install_perl_' . $self->perl_version() ) ) {
 		PDWiX->throw(
-			"$class does not support Perl " . $self->perl_version );
+			"$class does not support Perl " . $self->perl_version() );
 	}
 
 	# Find the core list
-	my $corelist_version = $self->perl_version_literal + 0;
+	my $corelist_version = $self->perl_version_literal() + 0;
 	$self->{perl_version_corelist} =
 	  $Module::CoreList::version{$corelist_version};
 	unless ( _HASH( $self->{perl_version_corelist} ) ) {
@@ -702,34 +874,15 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 			  . $self->perl_version_human );
 	}
 
-	# Apply more defaults
-	unless ( defined $self->debug_stdout ) {
-		$self->{debug_stdout} = catfile( $self->output_dir, 'debug.out' );
-	}
-	unless ( defined $self->debug_stderr ) {
-		$self->{debug_stderr} = catfile( $self->output_dir, 'debug.err' );
-	}
-	unless ( defined $self->zip ) {
-		$self->{zip} = $self->portable ? 1 : 0;
-	}
-
-	# Normalize some params
-	$self->{offline}  = !!$self->offline;
-	$self->{force}    = !!$self->force;
-	$self->{portable} = !!$self->portable;
-	$self->{exe}      = !!$self->exe;
-	$self->{zip}      = !!$self->zip;
-	$self->{msi}      = !!$self->msi;
-
 	# Handle portable special cases
-	if ( $self->portable ) {
-		$self->{exe} = 0;
-		$self->{msi} = 0;
+	if ( $self->portable() ) {
+		$self->_set_exe(0);
+		$self->_set_msi(0);
 	}
 
 	# If we are online and don't have a cpan repository,
 	# use cpan.strawberryperl.com as a default.
-	if ( not $self->cpan ) {
+	if ( not defined $self->cpan() ) {
 		if ( $self->offline ) {
 			PDWiX::Parameter->throw(
 				parameter => 'cpan: Required if offline => 1',
@@ -743,7 +896,7 @@ sub new { ## no critic 'ProhibitExcessComplexity'
 	# If we have a file:// url for the CPAN, move the
 	# sources directory out of the way.
 
-	if ( $self->cpan->as_string =~ m{\Afile://}mxsi ) {
+	if ( $self->cpan()->as_string =~ m{\Afile://}mxsi ) {
 		require CPAN;
 		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
 
@@ -822,8 +975,8 @@ EOF
 	# Clear the previous build
 	if ( -d $self->image_dir ) {
 		$self->trace_line( 1,
-			'Removing previous ' . $self->image_dir . "\n" );
-		File::Remove::remove( \1, $self->image_dir );
+			'Removing previous ' . $self->image_dir() . "\n" );
+		File::Remove::remove( \1, $self->image_dir() );
 	} else {
 		$self->trace_line( 1,
 			'No previous ' . $self->image_dir . " found\n" );
@@ -860,16 +1013,8 @@ sub final_initialization {
 		app_name => $self->app_name,
 	)->initialize_tree( $self->perl_version );
 
-	$self->{fragments}->{StartMenuIcons} =
-	  Perl::Dist::WiX::Fragment::StartMenu->new(
-		directory_id => 'D_App_Menu', );
 	$self->{fragments}->{Environment} =
 	  Perl::Dist::WiX::Fragment::Environment->new();
-	$self->{fragments}->{Win32Extras} =
-	  Perl::Dist::WiX::Fragment::Files->new(
-		id    => 'Win32Extras',
-		files => File::List::Object->new(),
-	  );
 
 	$self->{fragments}->{CreateCpan} =
 	  Perl::Dist::WiX::Fragment::CreateFolder->new(
@@ -881,12 +1026,6 @@ sub final_initialization {
 		directory_id => 'Cpanplus',
 		id           => 'CPANPLUSFolder',
 	  ) if ( 5100 <= $self->perl_version );
-
-	$self->{icons} = $self->{fragments}->{StartMenuIcons}->get_icons();
-
-	if ( defined $self->msi_product_icon ) {
-		$self->icons->add_icon( $self->msi_product_icon );
-	}
 
 	# Clear the par cache, just to be safe.
 	# Sometimes, if not cleared, PAR fails tests.
@@ -1107,43 +1246,8 @@ The C<image_dir> accessor returns the path to the built distribution
 image. That is, the directory in which the build C/Perl code and
 modules will be installed on the build server.
 
-At the present time, this is also the path to which Perl will be
-installed on the user's machine via the C<source_dir> accessor,
-which is an alias to the 
-L<Perl::Dist::WiX::Installer|Perl::Dist::WiX::Installer> method
-C<source_dir>. (although theoretically they can be different,
-this is likely to break the user's Perl install)
-
 =cut
 
-sub source_dir {
-	return $_[0]->image_dir;
-}
-
-# Default the versioned name to an unversioned name
-sub app_ver_name {
-	my $self = shift;
-	if ( $self->{app_ver_name} ) {
-		return $self->{app_ver_name};
-	}
-	return $self->app_name . q{ } . $self->perl_version_human;
-}
-
-# Default the output filename to the id plus the current date
-sub output_base_filename {
-	my $self = shift;
-	if ( $self->{output_base_filename} ) {
-		return $self->{output_base_filename};
-	}
-	
-	my $bits = (64 == $self->bits) ? q{-64bit} : q{};
-	
-	return
-	    $self->app_id() . q{-}
-	  . $self->perl_version_human() . q{-}
-	  . $self->output_date_string() 
-	  . $bits;
-}
 
 =pod
 
@@ -1517,9 +1621,10 @@ sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	my $self = shift;
 	$self->{output_file} ||= [];
 
-	if ( $self->zip ) {
-		push @{ $self->{output_file} }, $self->write_zip;
-	}
+# TODO: Temporarily comment out.
+#	if ( $self->zip ) {
+#		push @{ $self->{output_file} }, $self->write_zip;
+#	}
 	if ( $self->msi ) {
 		push @{ $self->{output_file} }, $self->write_msi;
 	}
@@ -1542,8 +1647,54 @@ sub write_merge_module {
 		rename $self->write_zip, $file_out;
 		
 		push @{ $self->{output_file} }, $file_out;
-		  
+
+		delete $self->{fragments};
+		$self->{fragments} = {};
+		
+		my $file =
+		  catfile( $self->output_dir, 'fragments.zip' );
+		$self->trace_line( 1, "Generating zip at $file\n" );
+
+		# Create the archive
+		my $zip = Archive::Zip->new();
+
+		# Add the fragments directory to the root
+		$zip->addTree( $self->fragment_dir(), q{} );
+
+		my @members = $zip->members();
+
+		# Set max compression for all members, deleting .AAA files.
+		foreach my $member (@members) {
+			next if $member->isDirectory();
+			$member->desiredCompressionLevel(9);
+			if ( $member->fileName =~ m{[.] wixout\z}smx ) {
+				$zip->removeMember($member);
+			}
+		}
+
+		# Write out the file name
+		$zip->writeToFileNamed($file);
+
+		# Remake the fragments directory.
+		$self->remake_path($self->fragment_dir())
+		
+		# TODO: Reset the directory tree.
 	}
+
+	# Start adding the fragments that are only for the .msi.
+	$self->{fragments}->{StartMenuIcons} =
+	  Perl::Dist::WiX::Fragment::StartMenu->new(
+		directory_id => 'D_App_Menu', );
+	$self->{fragments}->{Win32Extras} =
+	  Perl::Dist::WiX::Fragment::Files->new(
+		id    => 'Win32Extras',
+		files => File::List::Object->new(),
+	  );
+	$self->{icons} = $self->{fragments}->{StartMenuIcons}->get_icons();
+	if ( defined $self->msi_product_icon ) {
+		$self->icons()->add_icon( $self->msi_product_icon );
+	}
+	
 	return 1;
 } ## end sub write_msm
 
