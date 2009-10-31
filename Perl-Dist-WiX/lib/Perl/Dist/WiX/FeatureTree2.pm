@@ -12,8 +12,8 @@ use Moose;
 use MooseX::AttributeHelpers;
 require WiX3::XML::Feature;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 #####################################################################
 # Accessors:

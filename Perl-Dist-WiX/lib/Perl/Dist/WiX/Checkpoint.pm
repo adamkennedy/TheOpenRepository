@@ -29,7 +29,7 @@ support checkpointing.
 =head1 INTERFACE
 
 There are 2 portions to the interface to this module - the parameters to 
-L<new()|Perl::Dist::WiX/new> (listed under C<Parameters> below), and the 
+L<new()|Perl::Dist::WiX/new> (documented in that module), and the 
 object calls that Perl::Dist::WiX uses to coordinate checkpointing.
 
 =head2 Parameters
@@ -82,7 +82,8 @@ executed in order, and their task numbers (as used below) will begin with
 1 and increment in sequence.
 
 The default task list for Perl::Dist::WiX is as shown above.  Subclasses should
-insert their tasks in this list, rather than overriding routines shown above.
+proivide their own list and insert their tasks in this list, rather than 
+overriding routines shown above.
 
 =head3 checkpoint_after
 
@@ -111,15 +112,14 @@ in order to load the checkpoint and start on task 6.
 =cut
 
 use 5.008001;
-use strict;
-use warnings;
+use Moose;
 use English qw( -no_match_vars );
-use List::Util qw( first          );
+use List::Util qw( first );
 use File::Spec::Functions qw( catdir catfile );
 use File::Remove qw();
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 #####################################################################
 # Checkpoint Support
@@ -145,12 +145,12 @@ sub checkpoint_task {
 	my $step = shift;
 
 	# Are we loading at this step?
-	if ( $self->checkpoint_before == $step ) {
-		$self->checkpoint_load;
+	if ( $self->checkpoint_before() == $step ) {
+		$self->checkpoint_load();
 	}
 
 	# Skip if we are loading later on
-	if ( $self->checkpoint_before > $step ) {
+	if ( $self->checkpoint_before() > $step ) {
 		$self->trace_line( 0, "Skipping $task (step $step.)\n" );
 	} else {
 		my $t = time;
@@ -162,12 +162,12 @@ sub checkpoint_task {
 	}
 
 	# Are we saving at this step?
-	if ( defined first { $step == $_ } @{ $self->checkpoint_after } ) {
+	if ( defined first { $step == $_ } @{ $self->checkpoint_after() } ) {
 		$self->checkpoint_save;
 	}
 
 	# Are we stopping at this step?
-	if ( $self->checkpoint_stop == $step ) {
+	if ( $self->checkpoint_stop() == $step ) {
 		return 0;
 	}
 

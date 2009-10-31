@@ -27,8 +27,8 @@ require WiX3::Exceptions;
 require File::List::Object;
 require Win32::Exe;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 extends 'WiX3::XML::Fragment';
 with 'WiX3::Role::Traceable';

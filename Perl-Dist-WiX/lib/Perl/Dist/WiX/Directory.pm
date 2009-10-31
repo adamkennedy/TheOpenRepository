@@ -19,8 +19,8 @@ use Params::Util qw( _STRING );
 use Digest::CRC qw( crc32_base64 );
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 extends 'WiX3::XML::Directory';
 

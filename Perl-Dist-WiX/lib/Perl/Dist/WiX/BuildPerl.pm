@@ -24,40 +24,23 @@ build Perl itself.
 =cut
 
 use 5.008001;
-use strict;
-use warnings;
-use Archive::Zip qw( :ERROR_CODES            );
-use English qw( -no_match_vars          );
-use List::MoreUtils qw( any none                );
+use Moose;
+use English qw( -no_match_vars );
+use List::MoreUtils qw( any );
 use Params::Util qw( _HASH _STRING _INSTANCE );
-use Readonly qw( Readonly                );
+use Readonly qw( Readonly );
 use Storable qw( retrieve );
 use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use Archive::Tar 1.42 qw();
 use Module::CoreList 2.18 qw();
-require File::Remove;
-require File::pushd;
-require File::ShareDir;
-require File::Copy::Recursive;
-require File::PathList;
-require HTTP::Status;
-require IO::String;
-require IO::Handle;
-require LWP::UserAgent;
-require LWP::Online;
-require PAR::Dist;
-require Probe::Perl;
-require SelectSaver;
-require Template;
-require Win32;
+# require IO::Handle;
 require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 Readonly my %CORE_MODULE_FIX => (
 	'IO::Compress'        => 'IO::Compress::Base',
@@ -129,7 +112,7 @@ the default tasklist after the "perl toolchain" is installed.
 
 sub install_cpan_upgrades {
 	my $self = shift;
-	unless ( $self->bin_perl ) {
+	unless ( $self->bin_perl() ) {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
@@ -170,8 +153,8 @@ sub install_cpan_upgrades {
 			next MODULE;
 		}
 
-		if (    ( $module->cpan_file =~ m{/Module-Install-\d}msx )
-			and ( $module->cpan_version > 0.79 ) )
+		if (    ( $module->cpan_file() =~ m{/Module-Install-\d}msx )
+			and ( $module->cpan_version() > 0.79 ) )
 		{
 
 			# We need a few more modules.
@@ -347,7 +330,7 @@ unless (%need) {
 	
 END_PERL
 
-	my $cpan_info_file = catfile( $self->output_dir, 'cpan.info' );
+	my $cpan_info_file = catfile( $self->output_dir(), 'cpan.info' );
 	$cpan_string .= <<"END_PERL";
 nstore \\\@toget, '$cpan_info_file';
 print "Completed collecting information on all modules\\n";
@@ -357,7 +340,7 @@ END_PERL
 
 	# Dump the CPAN script to a temp file and execute
 	$self->trace_line( 1, "Running upgrade of all modules\n" );
-	my $cpan_file = catfile( $self->build_dir, 'cpan_string.pl' );
+	my $cpan_file = catfile( $self->build_dir(), 'cpan_string.pl' );
   SCOPE: {
 		my $CPAN_FILE;
 		open $CPAN_FILE, '>', $cpan_file
@@ -367,7 +350,7 @@ END_PERL
 		close $CPAN_FILE
 		  or PDWiX->throw("CPAN script close failed: $OS_ERROR");
 	}
-	$self->_run3( $self->bin_perl, $cpan_file )
+	$self->_run3( $self->bin_perl(), $cpan_file )
 	  or PDWiX->throw('CPAN script execution failed');
 	PDWiX->throw('Failure detected during cpan upgrade, stopping')
 	  if $CHILD_ERROR;
@@ -377,10 +360,10 @@ END_PERL
 
 sub _install_cpan_module {
 	my ( $self, $module, $force ) = @_;
-	$force = $force or $self->force;
-	my $perl_version = $self->perl_version_literal;
-	my $module_id    = $self->_module_fix( $module->id );
-	my $module_file  = substr $module->cpan_file, 5;
+	$force = $force or $self->force();
+	my $perl_version = $self->perl_version_literal();
+	my $module_id    = $self->_module_fix( $module->id() );
+	my $module_file  = substr $module->cpan_file(), 5;
 #<<<
 	my $core =
 	  exists $Module::CoreList::version{ $perl_version }{ $module_id }
@@ -410,18 +393,18 @@ sub _skip_upgrade {
 	my ( $self, $module ) = @_;
 
 	# DON'T try to install Perl.
-	return 1 if $module->cpan_file =~ m{/perl-5 [.]}msx;
+	return 1 if $module->cpan_file() =~ m{/perl-5 [.]}msx;
 
 	# DON'T try to install Term::ReadKey, we
 	# already upgraded it.
-	return 1 if $module->id eq 'Term::ReadKey';
+	return 1 if $module->id() eq 'Term::ReadKey';
 
 	# DON'T try to install Win32API::Registry, we
 	# already upgraded it as far as we can.
-	return 1 if $module->id eq 'Win32API::Registry';
+	return 1 if $module->id() eq 'Win32API::Registry';
 
 	# If the ID is CGI::Carp, there's a bug in the index.
-	return 1 if $module->id eq 'CGI::Carp';
+	return 1 if $module->id() eq 'CGI::Carp';
 
 	# If the ID is ExtUtils::MakeMaker, we've already installed it.
 	# There were some files gotten rid of after 6.50, so
@@ -429,7 +412,7 @@ sub _skip_upgrade {
 	# those files using it.
 
 	# This code is in here for safety as of yet.
-	return 1 if $module->cpan_file =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
+	return 1 if $module->cpan_file() =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
 
 	return 0;
 } ## end sub _skip_upgrade
@@ -453,7 +436,7 @@ the default tasklist after the "c toolchain" is installed.
 # Just hand off to the larger set of Perl install methods.
 sub install_perl {
 	my $self                = shift;
-	my $install_perl_method = 'install_perl_' . $self->perl_version;
+	my $install_perl_method = 'install_perl_' . $self->perl_version();
 	unless ( $self->can($install_perl_method) ) {
 		PDWiX->throw(
 			"Cannot generate perl, missing $install_perl_method method in "
@@ -526,10 +509,10 @@ sub install_perl_589 {
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan->as_string
+		perl_version => $self->perl_version_literal(),
+		cpan         => $self->cpan()->as_string()
 	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate; 1; } ) {
+	unless ( eval { $toolchain->delegate(); 1; } ) {
 		PDWiX::Caught->throw(
 			message => 'Delegation error occured',
 			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
@@ -541,7 +524,7 @@ sub install_perl_589 {
 			info    => $toolchain->get_error() );
 	}
 
-	$self->{toolchain} = $toolchain;
+	$self->_set_toolchain($toolchain);
 
 	# Make the perl directory if it hasn't been made alreafy.
 	$self->make_path( catdir( $self->image_dir, 'perl' ) );
@@ -578,14 +561,14 @@ sub install_perl_bin {
 		@_,
 	);
 
-	unless ( $self->bin_make ) {
+	unless ( $self->bin_make() ) {
 		PDWiX->throw('Cannot build Perl yet, no bin_make defined');
 	}
 
 	$perl->install();
 
 	# Should have a perl to use now.
-	$self->{bin_perl} = catfile( $self->image_dir, qw/perl bin perl.exe/ );
+	$self->{bin_perl} = catfile( $self->image_dir(), qw/perl bin perl.exe/ );
 
 	# Add to the environment variables
 	$self->add_env_path( 'perl', 'bin' );
@@ -604,10 +587,10 @@ sub install_perl_5100 {
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan->as_string
+		perl_version => $self->perl_version_literal(),
+		cpan         => $self->cpan()->as_string()
 	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate; 1; } ) {
+	unless ( eval { $toolchain->delegate(); 1; } ) {
 		PDWiX::Caught->throw(
 			message => 'Delegation error occured',
 			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
@@ -619,7 +602,7 @@ sub install_perl_5100 {
 			info    => $toolchain->get_error() );
 	}
 
-	$self->{toolchain} = $toolchain;
+	$self->_set_toolchain($toolchain);
 
 	# Make the perl directory if it hasn't been made already.
 	$self->make_path( catdir( $self->image_dir, 'perl' ) );
@@ -675,7 +658,7 @@ sub install_perl_5101 {
 	$self->{toolchain} = $toolchain;
 
 	# Make the perl directory if it hasn't been made already.
-	$self->make_path( catdir( $self->image_dir, 'perl' ) );
+	$self->_make_path( catdir( $self->image_dir(), 'perl' ) );
 
 	# Install the main binary
 	$self->install_perl_bin(
@@ -721,7 +704,7 @@ the default tasklist after the perl interpreter is installed.
 
 sub install_perl_toolchain {
 	my $self      = shift;
-	my $toolchain = $self->toolchain;
+	my $toolchain = $self->_get_toolchain();
 
 	if ( 0 == $toolchain->dist_count() ) {
 		PDWiX->throw('Toolchain did not get collected');
@@ -734,7 +717,7 @@ sub install_perl_toolchain {
 		my $automated_testing = 0;
 		my $release_testing   = 0;
 		my $overwritable      = 0;
-		my $force             = $self->force;
+		my $force             = $self->force();
 		if ( $dist =~ /Scalar-List-Util/msx ) {
 
 			# Does something weird with tainting
@@ -783,7 +766,7 @@ sub install_perl_toolchain {
 		}
 		if ( $dist =~ /Module-Build-/msx ) {
 
-			# 0.31 does not include a Makefile.PL.
+			# 
 			$dist = 'DAGOLDEN/Module-Build-0.3500_01.tar.gz';
 		}
 		if ( $dist =~ /ExtUtils-MakeMaker-/msx ) {

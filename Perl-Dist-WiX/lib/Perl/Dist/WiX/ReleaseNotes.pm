@@ -24,21 +24,17 @@ make the distributions.txt and the release notes files.
 =cut
 
 use 5.008001;
-use strict;
-use warnings;
+use Moose;
 use English qw( -no_match_vars );
 use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use File::Remove qw();
-use File::pushd qw();
-use File::ShareDir qw();
-use IO::File qw();
-use Template qw();
-use Win32 qw();
+require IO::File;
+require Template;
+require File::List::Object;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//;
 
 sub release_notes_filename {
 	my $self = shift;

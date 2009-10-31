@@ -74,8 +74,7 @@ To install this module, run the following commands:
 
 #<<<
 use     5.008001;
-use     strict;
-use     warnings;
+use     Moose 0.90;
 use     parent                qw( Perl::Dist::WiX::BuildPerl
                                   Perl::Dist::WiX::Checkpoint
                                   Perl::Dist::WiX::Libraries
@@ -94,6 +93,7 @@ use     File::Spec::Functions qw(
 	catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
 use     Archive::Tar     1.42 qw();
+use     File::HomeDir         qw();
 use     File::Remove          qw();
 use     File::pushd           qw();
 use     File::ShareDir        qw();
@@ -125,42 +125,34 @@ require Perl::Dist::WiX::IconArray;
 require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 
-
-
-
 our $VERSION = '1.100_001';
 $VERSION =~ s/_//;
 
 use Moose::Tiny qw(
-  download_dir
-  modules_dir
-  checkpoint_dir
   bin_perl
   bin_make
   bin_pexports
   bin_dlltool
-  toolchain
   directories
   msi_feature_tree
-  msi_banner_top
-  msi_banner_side
-  msi_help_url
-  msi_debug
-  msi_license_file
-  msi_readme_file
-  msi_product_icon
   feature_tree_obj
-  sitename
   icons
 );
 
-
-
-
-
+has 'toolchain' => (
+	is => 'bare', # Perl::Dist::WiX::Util::Toolchain object
+	reader => '_get_toolchain',
+	writer => '_set_toolchain',	
+	init_arg => undef,
+);
 
 has 'checkpoint_before' => (
 	is => 'ro', # Integer
+	default => 0,
+);
+
+has 'checkpoint_dir' => (
+	is => 'ro', # String
 	default => 0,
 );
 
@@ -179,7 +171,7 @@ has 'checkpoint_stop' => (
 
 has 'build_start_time' => (
 	is => 'ro', # Integer
-	default => localtime,
+	default => time,
 	init_arg => undef, # Cannot set this parameter in new().
 );
 
@@ -210,6 +202,8 @@ has '_filters' => (
 );
 
 sub _build_filters {
+	my $self = shift;
+	
 	# Initialize filters.
 #<<<
 	return [   $self->temp_dir() . q{\\},
@@ -293,6 +287,33 @@ has '_trace_object' => (
 	handles => [ 'trace_line' ],
 );
 
+has _user_agent_directory => (
+	is => 'ro', # Directory that is created in builder, so must exist.
+	lazy => 1,
+	builder => '_build_user_agent_directory',
+	init_arg => undef,
+);
+
+sub _build_user_agent_directory {
+	my $self = shift;
+
+# Create a legal path out of the object's class name under {Application Data}/Perl.
+	my $path = ref $self;
+	$path =~ s{::}{-}gmsx;             # Changes all :: to -.
+	my $dir = File::Spec->catdir( File::HomeDir->my_data(), 'Perl', $path, );
+
+	# Make the directory or die vividly.
+	unless ( -d $dir ) {
+		unless ( File::Path::mkpath( $dir, { verbose => 0 } ) ) {
+			PDWiX->throw("Failed to create $dir");
+		}
+	}
+	unless ( -w $dir ) {
+		PDWiX->throw(
+			"No write permissions for LWP::UserAgent cache '$dir'");
+	}
+	return $dir;
+} ## end sub user_agent_directory
 
 
 
@@ -439,9 +460,19 @@ in which case it defaults to the empty string.
 
 has 'binary_root' => (
 	is => 'ro', # URL
-	required => 1,	# Default is provided in BUILDARGS.
+	lazy => 1,
+	builder => '_build_binary_root',
 );
 
+sub _build_binary_root {
+	my $self = shift;
+
+	if ( $self->offline() ) {
+		return q{};
+	} else {
+		return 'http://strawberryperl.com/package';
+	}
+}
 
 
 =head3 bits
@@ -478,7 +509,7 @@ has 'build_dir' => (
 sub _build_build_dir {
 	my $self = shift;
 	
-	$dir = catdir( $self->temp_dir(), 'build' );
+	my $dir = catdir( $self->temp_dir(), 'build' );
 	$self->_remake_path( $dir );
 	return $dir;
 }
@@ -549,7 +580,10 @@ The default location is in C<debug.err> in the C<output_dir>.
 has 'debug_stderr' => (
 	is => 'ro', # String
 	lazy => 1,
-	default => sub { return catfile( $self->output_dir(), 'debug.err' ) },
+	default => sub { 
+		my $self = shift; 
+		return catfile( $self->output_dir(), 'debug.err' ); 
+	},
 );
 
 
@@ -566,7 +600,10 @@ The default location is in C<debug.out> in the C<output_dir>.
 has 'debug_stdout' => (
 	is => 'ro', # String
 	lazy => 1,
-	default => sub { return catfile( $self->output_dir(), 'debug.out' ) },
+	default => sub { 
+		my $self = shift; 
+		return catfile( $self->output_dir(), 'debug.out' ); 
+	},
 );
 
 
@@ -581,8 +618,36 @@ installs its shortcuts to.  Defaults to C<app_name> if none is provided.
 has 'default_group_name' => (
 	is => 'ro', # String
 	lazy => 1,
-	default => sub { return $self->app_name() },
+	default => sub {
+		my $self = shift;
+		return $self->app_name() 
+	},
 );
+
+
+
+=head3 download_dir 
+
+The optional C<download_dir> parameter sets the location of the directory 
+that packages of various types will be downloaded and cached to.
+
+Defaults to C<temp_dir> . '\download', and must exist if given.
+
+=cut
+
+has 'download_dir' => (
+	is => 'ro', # Directory that must exist.
+	lazy => 1,
+	builder => '_build_download_dir' ,
+);
+
+sub _build_download_dir {
+	my $self = shift;
+	
+	my $dir = catdir( $self->temp_dir(), 'download' );
+	$self->_make_path($dir);
+	return $dir;
+}
 
 
 
@@ -645,7 +710,7 @@ has 'fragment_dir' => (
 	builder => '_build_fragment_dir' ,
 );
 
-sub build_fragment_dir {
+sub _build_fragment_dir {
 	my $self = shift;
 	
 	my $dir = catdir( $self->image_dir(), 'fragments' );
@@ -691,7 +756,7 @@ results, and an attempt is made to prevent this from happening.
 =cut
 
 has 'image_dir' => (
-	is => 'ro', # Directory, but needs to exist.
+	is => 'ro', # Directory, but must exist (will be created in BUILDARGS).
 	required => 1,
 );
 
@@ -712,23 +777,38 @@ has 'license_dir' => (
 	builder => '_build_license_dir' ,
 );
 
-sub build_license_dir {
+sub _build_license_dir {
 	my $self = shift;
 	
 	my $dir = catdir( $self->image_dir(), 'licenses' );
-	$self->_remake_path( $dir );
+	$self->_remake_path($dir);
 	return $dir;
 }
 
 =head3 modules_dir
 
-I<(also C<new> parameter)>
+The optional C<modules_dir> parameter sets the location of the directory 
+that perl modules will be downloaded and cached to.
 
-The directory where the modules for the distribution will be downloaded to. 
-
-Defaults to C<download_dir> . '\modules'.
+Defaults to C<download_dir> . '\modules', and must exist if given.
 
 =cut
+
+has 'modules_dir' => (
+	is => 'ro', # Directory that must exist.
+	lazy => 1,
+	builder => '_build_modules_dir' ,
+);
+
+sub _build_modules_dir {
+	my $self = shift;
+	
+	my $dir = catdir( $self->download_dir(), 'modules' );
+	$self->_make_path($dir);
+	return $dir;
+}
+
+
 
 
 =head3 msi
@@ -742,7 +822,10 @@ be created.
 has 'msi' => (
 	is => 'ro', # Boolean
 	writer => '_set_msi',
-	default => 1,
+	default => sub { 
+		my $self = shift; 
+		return $self->portable() ? 0 : 1;
+	},
 );
 
 
@@ -822,7 +905,10 @@ Perl::Dist::WiX provides a default one if none is supplied here.
 has 'msi_license_file' => (
 	is => 'ro', # File that needs to exist
 	lazy => 1,
-	default => sub { return catfile( $self->wix_dist_dir(), 'License.rtf' ) },
+	default => sub { 
+		my $self = shift;
+		return catfile( $self->wix_dist_dir(), 'License.rtf' );
+	},
 );
 
 
@@ -831,6 +917,14 @@ has 'msi_license_file' => (
 
 The optional C<msi_product_icon> parameter specifies the icon that is 
 used in Add/Remove Programs for this MSI file.
+
+=cut
+
+has 'msi_product_icon' => (
+	is => 'ro', # File that needs to exist
+);
+
+
 
 =head3 msi_readme_file
 
@@ -863,7 +957,7 @@ otherwise.
 
 has 'offline' => (
 	is => 'ro',
-	builder => sub { return LWP::Online::offline() },
+	default => sub { return LWP::Online::offline() },
 );
 
 
@@ -917,8 +1011,8 @@ has 'output_dir' => (
 sub _build_output_dir {
 	my $self = shift;
 	
-	$dir = catdir( $self->temp_dir(), 'output' );
-	$self->_remake_path( $dir );
+	my $dir = catdir( $self->temp_dir(), 'output' );
+	$self->_make_path( $dir );
 	return $dir;
 }
 
@@ -1136,6 +1230,62 @@ has 'trace' => (
 
 
 
+=head3 user_agent
+
+TODO
+
+=cut
+
+has 'user_agent' => (
+	is => 'ro', # LWP::UserAgent instance
+	lazy => 1,
+	builder => '_build_user_agent',
+);
+
+sub _build_user_agent {
+	my $self = shift;
+	my $ua;
+	
+	if ( $self->user_agent_cache() ) {
+	  SCOPE: {
+
+			# Temporarily set $ENV{HOME} to the File::HomeDir
+			# version while loading the module.
+			local $ENV{HOME} ||= File::HomeDir->my_home;
+			require LWP::UserAgent::WithCache;
+		}
+		$ua = LWP::UserAgent::WithCache->new( {
+				agent              => ref($self) . q{/} . ( $VERSION || '0.00' ),
+				namespace          => 'perl-dist',
+				cache_root         => $self->_user_agent_directory(),
+				cache_depth        => 0,
+				default_expires_in => 86_400 * 30,
+				show_progress      => 1,
+			} );
+	} else {
+		$ua = LWP::UserAgent->new(
+			agent         => ref($self) . q{/} . ( $VERSION || '0.00' ),
+			timeout       => 30,
+			show_progress => 1,
+		);
+	}
+
+	return $ua;
+} ## end sub user_agent
+
+
+
+=head3 user_agent_cache
+
+TODO
+
+=cut
+
+has 'user_agent_cache' => (
+	is => 'ro', # Boolean
+	default => 1,
+);
+
 =head3 zip
 
 The optional boolean C<zip> param is used to indicate that a zip
@@ -1146,7 +1296,10 @@ distribution package should be created.
 has 'zip' => (
 	is => 'ro', # Boolean
 	lazy => 1,
-	default => sub { return $self->portable() ? 1 : 0 },
+	default => sub { 
+		my $self = shift; 
+		return $self->portable() ? 1 : 0;
+	},
 );
 
 
@@ -1157,7 +1310,16 @@ has 'zip' => (
 
 sub BUILDARGS {
 	my $class  = shift;
-	my $params;
+	my %params;
+
+	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
+		%params = %{ $_[0] };
+	} elsif ( 0 == @_ % 2 ) {
+		%params = (@_);
+	} else {
+		PDWiX->throw(
+			'Parameters incorrect (not a hashref or hash) for Perl::Dist::WiX->new()');
+	}
 
 	eval { 
 		$params{_trace_object} ||= WiX3::Traceable->new( tracelevel => $params{trace} );
@@ -1189,23 +1351,11 @@ sub BUILDARGS {
 	$params{_guidgen} ||=
 	  WiX3::XML::GeneratesGUID::Object->new(
 		_sitename => $params{sitename} );
-		_sitename => $params{sitename} );
 
-	unless ( defined $params{download_dir} ) {
-		$params{download_dir} = catdir( $params{temp_dir}, 'download' );
-		File::Path::mkpath( $params{download_dir} );
-	}
-	unless ( defined $params{binary_root} ) {
-		if ( $params{offline} ) {
-			$params{binary_root} = q{};
-		} else {
-			$params{binary_root} = 'http://strawberryperl.com/package';
-		}
-	}
 
 	if ( $params{temp_dir} =~ m{[.]}ms ) {
 		PDWiX::Parameter->throw(
-			parameter => 'build_dir: Cannot be '
+			parameter => 'temp_dir: Cannot be '
 			  . 'a directory that has a . in the name.',
 			where => '->new'
 		);
@@ -1219,17 +1369,13 @@ sub BUILDARGS {
 		);
 	}
 	
-	unless ( defined $params{fragment_dir} ) {
-		$params{fragment_dir} =        # To store the WiX fragments in.
-		  catdir( $params{temp_dir}, 'fragments' );
-	}
 	if ( defined $params{image_dir} ) {
 		my $perl_location = lc Probe::Perl->find_perl_interpreter();
-		$params{misc}
+		$params{_trace_object}
 		  ->trace_line( 3, "Currently executing perl: $perl_location\n" );
 		my $our_perl_location =
 		  lc catfile( $params{image_dir}, qw(perl bin perl.exe) );
-		$params{misc}->trace_line( 3,
+		$params{_trace_object}->trace_line( 3,
 			"Our perl to create:       $our_perl_location\n" );
 
 		PDWiX::Parameter->throw(
@@ -1243,14 +1389,20 @@ sub BUILDARGS {
 			where => '->new'
 		) if ( $params{image_dir} =~ m{\\\\}ms );
 
-		$class->remake_path( $params{image_dir} );
+		PDWiX::Parameter->throw(
+			parameter => 'image_dir: Spaces are not allowed',
+			where     => '->new'
+		) if ( $params{image_dir} =~ /\s/ms );
+
+		# We don't want to delete a previous one yet.
+		$class->_make_path( $params{image_dir} );
 	} else {
 		PDWiX::Parameter->throw(
-			parameter => 'image_dir: Does not exist',
+			parameter => 'image_dir: is not defined',
 			where => '->new'
 		)
 	}
-
+	
 	if ( $params{app_name} =~ m{[\\/:*"<>|]}msx ) {
 		PDWiX::Parameter->throw(
 			parameter => 'app_name: Contains characters invalid '
@@ -1268,44 +1420,35 @@ sub BUILDARGS {
 			# where     => '::Installer->new'
 		# );
 	# }
+
+	$params{pdw_class} = $class;
 	
-	$self->_check_string_parameter( $self->fragment_dir, 'fragment_dir' );
-	unless ( -d $self->fragment_dir ) {
-		$self->trace_line( 0,
-			'Directory does not exist: ' . $self->fragment_dir . "\n" );
-		PDWiX::Parameter->throw(
-			parameter => 'fragment_dir: Directory does not exist',
-			where     => '::Installer->new'
-		);
+	return \%params;
+} ## end sub new
+
+# Handle moving the CPAN source files back.
+sub DESTROY {
+	my $self = shift;
+
+	if ( defined $self->{'_cpan_moved'} && $self->{'_cpan_moved'} ) {
+		my $x = eval {
+			File::Remove::remove( \1, $self->{'_cpan_sources_from'} );
+			File::Copy::Recursive::move(
+				$self->{'_cpan_sources_to'},
+				$self->{'_cpan_sources_from'} );
+		};
 	}
 
-	# Check the version of Perl to build
-	unless ( $self->perl_version_human() ) {
-		PDWiX::Parameter->throw(
-			parameter => 'perl_version_human: Failed to resolve',
-			where     => '->new'
-		);
-	}
-	
-	unless ( $self->can( 'install_perl_' . $self->perl_version() ) ) {
-		PDWiX->throw(
-			"$class does not support Perl " . $self->perl_version() );
-	}
+	return;
+} ## end sub DESTROY
 
-	# Handle portable special cases
-	if ( $self->portable() ) {
-		$self->_set_exe(0);
-		$self->_set_msi(0);
-		if ( not $self->zip() ) {
-			PDWiX->throw( 'Cannot be portable and not build a .zip' );
-		}
-	}
-
+sub final_initialization {
+	my $self = shift;
 
 	# If we have a file:// url for the CPAN, move the
 	# sources directory out of the way.
 
-	if ( $self->cpan()->as_string =~ m{\Afile://}mxsi ) {
+	if ( $self->cpan()->as_string() =~ m{\Afile://}mxsi ) {
 		require CPAN;
 		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
 
@@ -1328,37 +1471,6 @@ EOF
 		$self->{'_cpan_moved'} = 0;
 	}
 
-	# Check params
-	$self->_check_string_parameter( $self->download_dir, 'download_dir' );
-	unless ( defined $self->modules_dir ) {
-		$self->{modules_dir} = catdir( $self->download_dir, 'modules' );
-	}
-	unless ( _STRING( $self->modules_dir ) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'modules_dir',
-			where     => '->new'
-		);
-	}
-	$self->_check_string_parameter( $self->image_dir, 'image_dir' );
-	if ( $self->image_dir =~ /\s/ms ) {
-		PDWiX::Parameter->throw(
-			parameter => 'image_dir: Spaces are not allowed',
-			where     => '->new'
-		);
-	}
-	$self->_check_string_parameter( $self->build_dir, 'build_dir' );
-	if ( $self->build_dir =~ /\s/ms ) {
-		PDWiX::Parameter->throw(
-			parameter => 'build_dir: Spaces are not allowed',
-			where     => '->new'
-		);
-	}
-	unless ( _INSTANCE( $self->user_agent, 'LWP::UserAgent' ) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'user_agent',
-			where     => '->new'
-		);
-	}
 	unless ( $self->cpan()->as_string() =~ m{\/\z}ms ) {
 		PDWiX::Parameter->throw(
 			parameter => 'cpan: Missing trailing slash',
@@ -1366,37 +1478,27 @@ EOF
 		);
 	}
 
-	# Clear the previous build
-	if ( -d $self->image_dir() ) {
-		$self->trace_line( 1,
-			'Removing previous ' . $self->image_dir() . "\n" );
-		File::Remove::remove( \1, $self->image_dir() );
-	} else {
-		$self->trace_line( 1,
-			'No previous ' . $self->image_dir() . " found\n" );
+	unless ( $self->can( 'install_perl_' . $self->perl_version() ) ) {
+		my $class = ref $self;
+		PDWiX->throw(
+			"$class does not support Perl " . $self->perl_version() );
 	}
 
-	return $self;
-} ## end sub new
-
-# Handle moving the CPAN source files back.
-sub DESTROY {
-	my $self = shift;
-
-	if ( defined $self->{'_cpan_moved'} && $self->{'_cpan_moved'} ) {
-		my $x = eval {
-			File::Remove::remove( \1, $self->{'_cpan_sources_from'} );
-			File::Copy::Recursive::move(
-				$self->{'_cpan_sources_to'},
-				$self->{'_cpan_sources_from'} );
-		};
+	if ( $self->build_dir() =~ /\s/ms ) {
+		PDWiX::Parameter->throw(
+			parameter => 'build_dir: Spaces are not allowed',
+			where     => '->final_initialization'
+		);
 	}
 
-	return;
-} ## end sub DESTROY
-
-sub final_initialization {
-	my $self = shift;
+	# Handle portable special cases
+	if ( $self->portable() ) {
+		$self->_set_exe(0);
+		$self->_set_msi(0);
+		if ( not $self->zip() ) {
+			PDWiX->throw( 'Cannot be portable and not build a .zip' );
+		}
+	}
 
 	## no critic(ProtectPrivateSubs)
 	# Set element collections
@@ -1429,18 +1531,14 @@ sub final_initialization {
 		File::Remove::remove( \1, $par_temp );
 	}
 
-	my @directories_to_initialize = ( 
-		$self->download_dir(), 
-		$self->image_dir(), 
-		$self->modules_dir(),
-		$self->license_dir(),
-		$self->output_dir(),
+	my @directories_to_make = ( 
 		catdir( $self->image_dir, 'cpan' ),
-		catdir( $self->image_dir, 'cpanplus' ) if ( 5100 <= $self->perl_version ),
-	  );
-	
+	);
+
+	push @directories_to_make, catdir( $self->image_dir, 'cpanplus' ) if ( 5100 <= $self->perl_version );
+
 	# Initialize the build
-	for my $d (@directories_to_initialize)
+	for my $d (@directories_to_make)
 	{
 		next if -d $d;
 		File::Path::mkpath($d);
@@ -1448,12 +1546,16 @@ sub final_initialization {
 
 	# Empty directories that need emptied.
 	$self->trace_line( 1,
+		"Wait a second while we empty the image directory...\n" );
+	$self->_remake_path( $self->image_dir() );
+
+	$self->trace_line( 1,
 		"Wait a second while we empty the output directory...\n" );
-	$self->remake_path( $self->output_dir() );
+	$self->_remake_path( $self->output_dir() );
 
 	$self->trace_line( 2,
 		"Wait a second while we empty the fragment directory...\n" );
-	$self->remake_path( $self->fragment_dir() );
+	$self->_remake_path( $self->fragment_dir() );
 	
 	$self->add_env( 'TERM',        'dumb' );
 	$self->add_env( 'FTP_PASSIVE', '1' );
@@ -1545,13 +1647,20 @@ sub dist_dir {
 
 =head3 wix_dist_dir
 
-Provides a shortcut to the location of the shared files directory.
+Provides a shortcut to the location of the shared files directory for 
+C<Perl::Dist::WiX>.
 
 Returns a directory as a string or throws an exception on error.
 
 =cut
 
-sub wix_dist_dir {
+has 'wix_dist_dir' => (
+	is => 'ro', # String
+	builder => '_build_wix_dist_dir',
+	init_arg => undef,
+);
+
+sub _build_wix_dist_dir {
 	my $dir;
 
 	unless ( eval { $dir = File::ShareDir::dist_dir('Perl-Dist-WiX'); 1; } )
@@ -1568,32 +1677,6 @@ sub wix_dist_dir {
 
 #####################################################################
 # Accessors and Documentation for accessors.
-
-=pod
-
-
-=head3 download_dir 
-
-I<(also C<new> parameter)>
-
-The C<download_dir> accessor returns the path to the directory that
-packages of various types will be downloaded and cached to.
-
-An explicit value can be provided via a C<download_dir> param to the
-constructor. Otherwise the value is derived from C<temp_dir>.
-
-=head3 image_dir
-
-I<(also C<new> parameter)>
-
-The C<image_dir> accessor returns the path to the built distribution
-image. That is, the directory in which the build C/Perl code and
-modules will be installed on the build server.
-
-=cut
-
-
-=pod
 
 =head3 perl_version_literal
 
@@ -1619,7 +1702,7 @@ sub _build_perl_version_literal {
 		589  => '5.008009',
 		5100 => '5.010000',
 		5101 => '5.010001',
-	  }->{ $self->perl_version }
+	  }->{ $self->perl_version() }
 	  || 0;
 	  
 	unless ( $x ) {
@@ -1632,8 +1715,6 @@ sub _build_perl_version_literal {
 	return $x;
 }
 
-=pod
-
 =head3 perl_version_human
 
 The C<perl_version_human> method returns the "marketing" form
@@ -1643,16 +1724,32 @@ This will be either '5.8.9', '5.10.0', or '5.10.1'.
 
 =cut
 
-sub perl_version_human {
-	return {
+has 'perl_version_human' => (
+	is => 'ro', # String
+	lazy => 1,
+	builder => '_build_perl_version_human',
+	init_arg => undef,
+);
+
+sub _build_perl_version_human {
+	my $self = shift;
+	
+	my $x = {
 		589  => '5.8.9',
 		5100 => '5.10.0',
 		5101 => '5.10.1',
-	  }->{ $_[0]->perl_version }
+	  }->{ $self->perl_version() }
 	  || 0;
-}
+	  
+	unless ( $x ) {
+		PDWiX::Parameter->throw(
+			parameter => 'perl_version_human: Failed to resolve',
+			where     => '->(building of accessor)'
+		);
+	}
 
-=pod
+	return $x;
+}
 
 =head3 distribution_version_human
 
@@ -2121,57 +2218,57 @@ sub remove_waste {
 	$self->trace_line( 1, "Removing waste\n" );
 	$self->trace_line( 2,
 		"  Removing doc, man, info and html documentation\n" );
-	$self->remove_dir(qw{ perl man       });
-	$self->remove_dir(qw{ perl html      });
-	$self->remove_dir(qw{ c    man       });
-	$self->remove_dir(qw{ c    doc       });
-	$self->remove_dir(qw{ c    info      });
-	$self->remove_dir(qw{ c    contrib   });
-	$self->remove_dir(qw{ c    html      });
+	$self->_remove_dir(qw{ perl man       });
+	$self->_remove_dir(qw{ perl html      });
+	$self->_remove_dir(qw{ c    man       });
+	$self->_remove_dir(qw{ c    doc       });
+	$self->_remove_dir(qw{ c    info      });
+	$self->_remove_dir(qw{ c    contrib   });
+	$self->_remove_dir(qw{ c    html      });
 
 	$self->trace_line( 2, "  Removing C examples, manifests\n" );
-	$self->remove_dir(qw{ c    examples  });
-	$self->remove_dir(qw{ c    manifest  });
+	$self->_remove_dir(qw{ c    examples  });
+	$self->_remove_dir(qw{ c    manifest  });
 
 	$self->trace_line( 2, "  Removing extra dmake/gcc files\n" );
-	$self->remove_dir(qw{ c    bin         startup mac   });
-	$self->remove_dir(qw{ c    bin         startup msdos });
-	$self->remove_dir(qw{ c    bin         startup os2   });
-	$self->remove_dir(qw{ c    bin         startup qssl  });
-	$self->remove_dir(qw{ c    bin         startup tos   });
-	$self->remove_dir(
+	$self->_remove_dir(qw{ c    bin         startup mac   });
+	$self->_remove_dir(qw{ c    bin         startup msdos });
+	$self->_remove_dir(qw{ c    bin         startup os2   });
+	$self->_remove_dir(qw{ c    bin         startup qssl  });
+	$self->_remove_dir(qw{ c    bin         startup tos   });
+	$self->_remove_dir(
 		qw{ c    libexec     gcc     mingw32 3.4.5 install-tools});
 
 	$self->trace_line( 2, "  Removing redundant files\n" );
-	$self->remove_file(qw{ c COPYING     });
-	$self->remove_file(qw{ c COPYING.LIB });
-	$self->remove_file(qw{ c bin gccbug  });
-	$self->remove_file(qw{ c bin mingw32-gcc-3.4.5 });
+	$self->_remove_file(qw{ c COPYING     });
+	$self->_remove_file(qw{ c COPYING.LIB });
+	$self->_remove_file(qw{ c bin gccbug  });
+	$self->_remove_file(qw{ c bin mingw32-gcc-3.4.5 });
 
 	$self->trace_line( 2,
 		"  Removing CPAN build directories and download caches\n" );
-	$self->remove_dir(qw{ cpan sources  });
-	$self->remove_dir(qw{ cpan build    });
-	$self->remove_file(qw{ cpan cpandb.sql });
-	$self->remove_file(qw{ cpan FTPstats.yml });
-	$self->remove_file(qw{ cpan cpan_sqlite_log.* });
+	$self->_remove_dir(qw{ cpan sources  });
+	$self->_remove_dir(qw{ cpan build    });
+	$self->_remove_file(qw{ cpan cpandb.sql });
+	$self->_remove_file(qw{ cpan FTPstats.yml });
+	$self->_remove_file(qw{ cpan cpan_sqlite_log.* });
 
 	# Readding the cpan directory.
-	$self->remake_path( catdir( $self->build_dir, 'cpan' ) );
+	$self->_remake_path( catdir( $self->build_dir, 'cpan' ) );
 
 	return 1;
 } ## end sub remove_waste
 
-sub remove_dir {
+sub _remove_dir {
 	my $self = shift;
-	my $dir  = $self->dir(@_);
+	my $dir  = $self->_dir(@_);
 	File::Remove::remove( \1, $dir ) if -e $dir;
 	return 1;
 }
 
-sub remove_file {
+sub _remove_file {
 	my $self = shift;
-	my $file = $self->file(@_);
+	my $file = $self->_file(@_);
 	File::Remove::remove( \1, $file ) if -e $file;
 	return 1;
 }
@@ -2241,7 +2338,7 @@ sub write_merge_module {
 		my $file_out =
 		  catfile( $self->output_dir, $self->output_base_filename . '.msm-contents.zip' );
 
-		rename $self->write_zip, $file_out;
+		rename $self->write_zip(), $file_out;
 		
 		push @{ $self->{output_file} }, $file_out;
 
@@ -2273,7 +2370,7 @@ sub write_merge_module {
 		$zip->writeToFileNamed($file);
 
 		# Remake the fragments directory.
-		$self->remake_path($self->fragment_dir())
+		$self->_remake_path($self->fragment_dir())
 		
 		# TODO: Reset the directory tree.
 	}
@@ -3048,18 +3145,18 @@ sub patch_file {
 
 sub image_drive {
 	my $self = shift;
-	return substr rel2abs( $self->image_dir ), 0, 2;
+	return substr rel2abs( $self->image_dir() ), 0, 2;
 }
 
 sub image_dir_url {
 	my $self = shift;
-	return URI::file->new( $self->image_dir )->as_string;
+	return URI::file->new( $self->image_dir() )->as_string;
 }
 
 # This is a temporary hack
 sub image_dir_quotemeta {
 	my $self   = shift;
-	my $string = $self->image_dir;
+	my $string = $self->image_dir();
 	$string =~ s{\\}        # Convert a backslash
 				{\\\\}gmsx; ## to 2 backslashes.
 	return $string;
@@ -3068,67 +3165,13 @@ sub image_dir_quotemeta {
 #####################################################################
 # Support Methods
 
-sub dir {
-	return catdir( shift->image_dir, @_ );
+sub _dir {
+	return catdir( shift->image_dir(), @_ );
 }
 
-sub file {
-	return catfile( shift->image_dir, @_ );
+sub _file {
+	return catfile( shift->image_dir(), @_ );
 }
-
-sub user_agent {
-	my $self = shift;
-	unless ( $self->{user_agent} ) {
-		if ( $self->{user_agent_cache} ) {
-		  SCOPE: {
-
-				# Temporarily set $ENV{HOME} to the File::HomeDir
-				# version while loading the module.
-				local $ENV{HOME} ||= File::HomeDir->my_home;
-				require LWP::UserAgent::WithCache;
-			}
-			$self->{user_agent} = LWP::UserAgent::WithCache->new( {
-					namespace          => 'perl-dist',
-					cache_root         => $self->user_agent_directory,
-					cache_depth        => 0,
-					default_expires_in => 86_400 * 30,
-					show_progress      => 1,
-				} );
-		} else {
-			$self->{user_agent} = LWP::UserAgent->new(
-				agent => ref($self) . q{/} . ( $VERSION || '0.00' ),
-				timeout       => 30,
-				show_progress => 1,
-			);
-		}
-	} ## end unless ( $self->{user_agent...})
-	return $self->{user_agent};
-} ## end sub user_agent
-
-sub user_agent_cache {
-	return $_[0]->{user_agent_cache};
-}
-
-sub user_agent_directory {
-	my $self = shift;
-
-# Create a legal path out of the object's class name under {Application Data}/Perl.
-	my $path = ref $self;
-	$path =~ s{::}{-}gmsx;             # Changes all :: to -.
-	my $dir = File::Spec->catdir( File::HomeDir->my_data, 'Perl', $path, );
-
-	# Make the directory or die vividly.
-	unless ( -d $dir ) {
-		unless ( File::Path::mkpath( $dir, { verbose => 0 } ) ) {
-			PDWiX->throw("Failed to create $dir");
-		}
-	}
-	unless ( -w $dir ) {
-		PDWiX->throw(
-			"No write permissions for LWP::UserAgent cache '$dir'");
-	}
-	return $dir;
-} ## end sub user_agent_directory
 
 sub _mirror {
 	my ( $self, $url, $dir ) = @_;
@@ -3166,8 +3209,7 @@ sub _mirror {
 		}
 	} else {
 
-		# my $ua = $self->user_agent;
-		my $ua = LWP::UserAgent->new;
+		my $ua = $self->user_agent();
 		my $r = $ua->mirror( $url, $target );
 		if ( $r->is_error ) {
 			$self->trace_line( 0,
@@ -3294,7 +3336,7 @@ sub _run3 {
 	local $ENV{LIB}      = undef;
 	local $ENV{INCLUDE}  = undef;
 	local $ENV{PERL5LIB} = undef;
-	local $ENV{PATH}     = $self->get_env_path . q{;} . join q{;}, @keep;
+	local $ENV{PATH}     = $self->get_env_path() . q{;} . join q{;}, @keep;
 
 	$self->trace_line( 3, "Path during _run3: $ENV{PATH}\n" );
 
@@ -3515,27 +3557,25 @@ sub _dll_to_a {
 	return @files;
 } ## end sub _dll_to_a
 
-sub make_path {
+sub _make_path {
 	my $class = shift;
-	my $dir = rel2abs( catdir( curdir, @_, ), );
-	
-	PDWiX->throw('make_path has been called.');
+	my $dir = rel2abs( shift );
 	
 	File::Path::mkpath($dir) unless -d $dir;
 	unless ( -d $dir ) {
-		PDWiX->throw("Failed to make_path for $dir");
+		PDWiX->throw("Failed to create directory $dir");
 	}
 	return $dir;
 }
 
 sub _remake_path {
 	my $class = shift;
-	my $dir = rel2abs( catdir( curdir, @_ ) );
+	my $dir = rel2abs( shift );
 	File::Remove::remove( \1, $dir ) if -d $dir;
 	File::Path::mkpath($dir);
 
 	unless ( -d $dir ) {
-		PDWiX->throw("Failed to remake_path for $dir");
+		PDWiX->throw("Failed to recreate directory $dir");
 	}
 	return $dir;
 }
