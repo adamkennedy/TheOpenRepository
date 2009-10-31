@@ -34,6 +34,7 @@ sub ah_extended {
                 ['E'],
             ],
             terminals => ['a'],
+            parse_order => 'none',
 
             # no warnings for $n equals zero
             warnings => ( $n ? 1 : 0 ),

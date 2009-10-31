@@ -627,6 +627,7 @@ use constant GRAMMAR_OPTIONS => [
         maximal
         max_parses
         minimal
+        parse_order
         rules
         semantics
         sort_method

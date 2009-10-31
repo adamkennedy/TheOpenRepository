@@ -2355,24 +2355,35 @@ sub Marpa::Evaluator::value {
 
                 } ## end for my $child_and_node_id ( @{ $or_node->[...]})
 
-                # Sort and-choices
-                my $or_iteration = $or_iterations->[$or_node_id] = [
-                    map      { $_->[1] }
-                        sort { $a->[0] cmp $b->[0] }
-                        map {
-                        [   ~(  join q{},
-                                sort map { pack 'N*', @{$_} } @{
-                                    $_->[
-                                        Marpa::Internal::And_Choice::SORT_DATA
-                                        ]->[
-                                        Marpa::Internal::Original_Sort_Data::SORT_KEY
-                                        ]
-                                    }
-                            ),
-                            $_
-                        ]
-                        } @and_choices
-                ];
+                my $or_iteration;
+                given ($parse_order) {
+                    when ('original') {
+
+                        # Sort and-choices
+                        $or_iteration = [
+                            map      { $_->[1] }
+                                sort { $a->[0] cmp $b->[0] }
+                                map {
+                                [   ~(  join q{},
+                                        sort map { pack 'N*', @{$_} } @{
+                                            $_->[
+                                                Marpa::Internal::And_Choice::SORT_DATA
+                                                ]->[
+                                                Marpa::Internal::Original_Sort_Data::SORT_KEY
+                                                ]
+                                            }
+                                    ),
+                                    $_
+                                ]
+                                } @and_choices
+                        ];
+                    } ## end when ('original')
+                    default {
+                        $or_iteration = \@and_choices;
+                    }
+                } ## end given
+
+                $or_iterations->[$or_node_id] = $or_iteration;
 
                 push @tasks,
                     map { [ Marpa::Internal::Task::FREEZE_TREE, $_ ] }
@@ -2425,18 +2436,10 @@ sub Marpa::Evaluator::value {
                 my $and_node_iteration = $and_iterations->[$and_node_id];
                 break if not $and_node_iteration;
 
-                my $sort_element =
-                    $and_node->[Marpa::Internal::And_Node::PARSE_ORDER_DATA];
-                my @current_sort_elements =
-                    $sort_element ? ($sort_element) : ();
-                my $trailing_nulls = 0;
-
                 my $cause;
                 my $cause_id;
                 my $cause_or_node_iteration;
                 my $cause_and_node_choice;
-                my $cause_and_node_iteration;
-                my $cause_sort_elements = [];
 
                 # assignment instead of comparison intentional
                 if ( $cause_id =
@@ -2453,9 +2456,78 @@ sub Marpa::Evaluator::value {
                     }
 
                     $cause_and_node_choice = $cause_or_node_iteration->[-1];
+                } ## end if ( $cause_id = $and_node->[...])
+
+                my $predecessor;
+                my $predecessor_id;
+                my $predecessor_or_node_iteration;
+                my $predecessor_and_node_choice;
+
+                # assignment instead of comparison intentional
+                if ( $predecessor_id =
+                    $and_node->[Marpa::Internal::And_Node::PREDECESSOR_ID] )
+                {
+                    $predecessor = $or_nodes->[$predecessor_id];
+                    $predecessor_or_node_iteration =
+                        $or_iterations->[$predecessor_id];
+
+                    # If there is a predecessor, but it is
+                    # exhausted, this and-node is exhausted.
+                    if ( not $predecessor_or_node_iteration ) {
+                        $and_iterations->[$and_node_id] = undef;
+                        break; # next TASK
+                    }
+
+                    $predecessor_and_node_choice =
+                        $predecessor_or_node_iteration->[-1];
+
+                } ## end if ( $predecessor_id = $and_node->[...])
+
+                my @or_map;
+                if ( defined $predecessor ) {
+                    push @or_map,
+                        [
+                        $predecessor_id,
+                        $predecessor_and_node_choice
+                            ->[Marpa::Internal::And_Choice::ID]
+                        ],
+                        @{ $predecessor_and_node_choice
+                            ->[Marpa::Internal::And_Choice::OR_MAP] };
+                } ## end if ( defined $predecessor )
+                if ( defined $cause ) {
+                    push @or_map,
+                        [
+                        $cause_id,
+                        $cause_and_node_choice
+                            ->[Marpa::Internal::And_Choice::ID]
+                        ],
+                        @{ $cause_and_node_choice
+                            ->[Marpa::Internal::And_Choice::OR_MAP] };
+                } ## end if ( defined $cause )
+
+                $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP]
+                    = \@or_map;
+
+                # The rest of the processing is for the original parse
+                # ordering
+                break # next TASK
+                    if $parse_order ne 'original';
+                
+                my $and_node_end_earleme =
+                    $and_node->[Marpa::Internal::And_Node::END_EARLEME];
+
+                my $sort_element =
+                    $and_node->[Marpa::Internal::And_Node::PARSE_ORDER_DATA];
+                my @current_sort_elements =
+                    $sort_element ? ($sort_element) : ();
+                my $trailing_nulls = 0;
+
+                my $cause_sort_elements = [];
+
+                if ( defined $cause_and_node_choice ) {
                     my $cause_and_node_id = $cause_and_node_choice
                         ->[Marpa::Internal::And_Choice::ID];
-                    $cause_and_node_iteration =
+                    my $cause_and_node_iteration =
                         $and_iterations->[$cause_and_node_id];
                     my $cause_sort_data = $cause_and_node_iteration
                         ->[Marpa::Internal::And_Iteration::SORT_DATA];
@@ -2467,64 +2539,38 @@ sub Marpa::Evaluator::value {
 
                     ### assert: $cause_sort_data
 
-                    $trailing_nulls
-                        += $cause_sort_data
-                        ->[Marpa::Internal::Original_Sort_Data::TRAILING_NULLS
-                        ];
+                    $trailing_nulls += $cause_sort_data->[
+                        Marpa::Internal::Original_Sort_Data::TRAILING_NULLS ];
+                } ## end if ( defined $cause_and_node_choice )
 
-                } ## end if ( $cause_id = $and_node->[...])
-
-                my $and_node_end_earleme =
-                    $and_node->[Marpa::Internal::And_Node::END_EARLEME];
-
-                my $predecessor;
-                my $predecessor_id;
-                my $predecessor_or_node_iteration;
-                my $predecessor_and_node_choice;
-                my $predecessor_and_node_iteration;
                 my $predecessor_sort_elements = [];
                 my $predecessor_end_earleme;
                 my $internal_nulls = 0;
 
-                # assignment instead of comparison intentional
-                if ( $predecessor_id =
-                    $and_node->[Marpa::Internal::And_Node::PREDECESSOR_ID] )
-                {
-                    $predecessor = $or_nodes->[$predecessor_id];
-                    $predecessor_or_node_iteration =
-                        $or_iterations->[$predecessor_id];
-                    $predecessor_end_earleme =
-                        $predecessor->[Marpa::Internal::Or_Node::END_EARLEME];
-
-                    # If there is a predecessor, but it is
-                    # exhausted, this and-node is exhausted.
-                    if ( not $predecessor_or_node_iteration ) {
-                        $and_iterations->[$and_node_id] = undef;
-                        break;
-                    }
-
-                    $predecessor_and_node_choice =
-                        $predecessor_or_node_iteration->[-1];
+                if ( defined $predecessor_and_node_choice ) {
                     my $predecessor_and_node_id = $predecessor_and_node_choice
                         ->[Marpa::Internal::And_Choice::ID];
-                    $predecessor_and_node_iteration =
+                    my $predecessor_and_node_iteration =
                         $and_iterations->[$predecessor_and_node_id];
                     my $predecessor_sort_data =
                         $predecessor_and_node_iteration
                         ->[Marpa::Internal::And_Iteration::SORT_DATA];
 
+                    $predecessor_end_earleme =
+                        $predecessor->[Marpa::Internal::Or_Node::END_EARLEME];
+
                     ### assert: $predecessor_sort_data
 
-                    $predecessor_sort_elements =
-                        $predecessor_sort_data
+                    $predecessor_sort_elements = $predecessor_sort_data
                         ->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
-                    $internal_nulls = $predecessor_sort_data
-                        ->[Marpa::Internal::Original_Sort_Data::TRAILING_NULLS];
+                    $internal_nulls =
+                        $predecessor_sort_data
+                        ->[Marpa::Internal::Original_Sort_Data::TRAILING_NULLS
+                        ];
                     if ( $predecessor_end_earleme == $and_node_end_earleme ) {
                         $trailing_nulls += $internal_nulls;
                     }
-
-                } ## end if ( $predecessor_id = $and_node->[...])
+                } ## end if ( defined $predecessor_and_node_choice )
 
                 PROCESS_TOKEN: {
                     my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
@@ -2588,31 +2634,6 @@ sub Marpa::Evaluator::value {
                     @{$cause_sort_elements}
                     ];
 
-                my @or_map;
-                if ( defined $predecessor ) {
-                    push @or_map,
-                        [
-                        $predecessor_id,
-                        $predecessor_and_node_choice
-                            ->[Marpa::Internal::And_Choice::ID]
-                        ],
-                        @{ $predecessor_and_node_choice
-                            ->[Marpa::Internal::And_Choice::OR_MAP] };
-                } ## end if ( defined $predecessor )
-                if ( defined $cause ) {
-                    push @or_map,
-                        [
-                        $cause_id,
-                        $cause_and_node_choice
-                            ->[Marpa::Internal::And_Choice::ID]
-                        ],
-                        @{ $cause_and_node_choice
-                            ->[Marpa::Internal::And_Choice::OR_MAP] };
-                } ## end if ( defined $cause )
-
-                $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP]
-                    = \@or_map;
-
                 $and_node_sort_data
                     ->[Marpa::Internal::Original_Sort_Data::TRAILING_NULLS] =
                     $trailing_nulls;
@@ -2649,8 +2670,9 @@ derivation involving it.  Resets are idempotent, so in one sense this
 is harmless.  But in some cases the number of derivations is O(n!)
 in the size of the input and the CPU time consumed can be staggering.
 
-I need to remember if I ever put in cycle-preventation, then back
-it out, that this use of the visited argument must be preserved.
+Preventing re-visits to reset items is NOT the same as cycle prevention.
+Reset nodes are tracked over the entire tree.  Cycles only occur is a
+node appears more than once on the path back to the root node.
 
 =end Implementation:
 
@@ -2864,9 +2886,15 @@ it out, that this use of the visited argument must be preserved.
                         $and_choices->[-1]
                         ];
 
-                    break
+                    break; # next TASK
 
                 } ## end if ( not defined $current_and_iteration )
+
+                # The rest of the logic is for keeping the order correct
+                # for the "original" parse ordering
+
+                break # next TASK
+                    if $parse_order ne 'original';
 
                 # If we are here the current and-choice is not exhausted,
                 # but it may have been iterated to the point where it is

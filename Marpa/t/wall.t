@@ -79,6 +79,7 @@ my $g = Marpa::Grammar->new(
         max_parses => 300,
 
         actions => 'main',
+        parse_order => 'none',
         rules   => [
             [ 'E', [qw/E Minus E/],     'minus' ],
             [ 'E', [qw/E Minus Minus/], 'postfix_decr' ],
