@@ -174,7 +174,9 @@ sub create_distribution_list {
 	$fh->print($dist_txt);
 	$fh->close;
 
-	$self->add_to_fragment( 'perl_licenses', [ $dist_file ] );
+	# Create a fragment for the distribution list to go into.
+	my $dist_file_list = File::List::Object->new()->add_file($dist_file);
+	$self->insert_fragment( 'perl_dist_list', $dist_file_list );
 
 	return 1;
 } ## end sub create_distribution_list
