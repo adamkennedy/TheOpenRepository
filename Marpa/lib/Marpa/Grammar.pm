@@ -86,8 +86,8 @@ use Marpa::Offset qw(
     ID NAME LHS RHS
     =LAST_BASIC_DATA_FIELD
 
-    USEFUL ACTION
-    CODE CYCLE
+    USEFUL
+    ACTION
     PRIORITY
     GREED
     VIRTUAL_LHS VIRTUAL_RHS
@@ -118,7 +118,6 @@ CLOSURE - closure for evaluating this rule
 ORIGINAL_RULE - for a rewritten rule, the original
 PRIORITY - rule priority, from user
 CODE - code used to create closure
-CYCLE - is this rule part of a cycle?
 
 =end Implementation:
 
@@ -198,7 +197,6 @@ use Marpa::Offset qw(
     TRACE_FILE_HANDLE TRACING
     STRIP
     EXPERIMENTAL
-    CODE_LINES { Delete me? }
     =LAST_BASIC_DATA_FIELD
 
     { === Evaluator Fields === }
@@ -278,7 +276,6 @@ AMBIGUOUS_LEX      - lex ambiguously?
 PROBLEMS - fatal problems
 WARNINGS - print warnings about grammar?
 VERSION - Marpa version this grammar was stringified from
-CODE_LINES - max lines to display on failure
 SEMANTICS - semantics (currently perl5 only)
 STRIP - Boolean.  If true, strip unused data to save space.
 TRACING - master flag, set if any tracing is being done
@@ -358,7 +355,6 @@ sub Marpa::Internal::code_problems {
     my $warnings = [];
     my $where    = '?where?';
     my $long_where;
-    my $code;
     my @msg = ();
     my $eval_value;
     my $eval_given = 0;
@@ -370,7 +366,6 @@ sub Marpa::Internal::code_problems {
             when ('where')       { $where       = $value }
             when ('long_where')  { $long_where  = $value }
             when ('warnings')    { $warnings    = $value }
-            when ('code')        { $code        = $value }
             when ('eval_ok') {
                 $eval_value = $value;
                 $eval_given = 1;
@@ -389,73 +384,6 @@ sub Marpa::Internal::code_problems {
     } ## end for my $warning_data ( @{$warnings} )
 
     $long_where //= $where;
-    my $code_lines;
-    if ( defined $grammar ) {
-        $code_lines = $grammar->[Marpa::Internal::Grammar::CODE_LINES];
-    }
-    $code_lines //= 3;
-
-    # if we have code
-    my $code_to_print;
-    my $code_length;
-
-    # block to look for the code to print
-    CODE_TO_PRINT: {
-
-        last CODE_TO_PRINT if not defined $code;
-        last CODE_TO_PRINT if not defined ${$code};
-
-        my @lines = split /\n/xms, ${$code};
-        $code_length = scalar @lines;
-
-        last CODE_TO_PRINT if $code_lines == 0;
-
-        # which lines to print?
-        my $first_line;
-        my $max_line;
-
-        # if code_lines < 0, print all lines
-        if ( $code_lines < 0 ) {
-            $code_lines = $code_length;
-        }
-
-        # if we know the problem line, print code_lines
-        # worth of context
-        if ( $max_problem_line >= 0 ) {
-            $first_line = $max_problem_line - $code_lines;
-            $first_line = List::Util::max 1, $first_line;
-            $max_line   = $max_problem_line + $code_lines;
-
-            # else print the first 2*code_lines+1 lines
-        } ## end if ( $max_problem_line >= 0 )
-        else {
-            $first_line = 1;
-            $max_line   = $code_lines * 2 + 1;
-            if ( $code_lines > $code_length ) {
-                $max_line = $code_length;
-            }
-        } ## end else [ if ( $max_problem_line >= 0 ) ]
-
-        # now create an array of the lines to print
-        my @lines_to_print = do {
-            my $start_splice = $first_line - 1;
-            my $end_splice   = $max_line - 1;
-            $end_splice = List::Util::min $#lines, $end_splice;
-            @lines[ $start_splice .. $end_splice ];
-        };
-
-        my @labeled_lines = ();
-        LINE: for my $i ( 0 .. $#lines_to_print ) {
-            my $line_number = $first_line + $i;
-            my $marker      = q{};
-            if ( $problem_line[$line_number] ) {
-                $marker = q{*};
-            }
-            push @labeled_lines,
-                "$marker$line_number: " . $lines_to_print[$i];
-        } ## end for my $i ( 0 .. $#lines_to_print )
-        $code_to_print = \( ( join "\n", @labeled_lines ) . "\n" );
-    } ## end CODE_TO_PRINT:
 
     push @msg, 'Fatal problem(s) in ' . $long_where . "\n";
     my $warnings_count = scalar @{$warnings};
@@ -476,20 +404,6 @@ sub Marpa::Internal::code_problems {
         if ( $warnings_count and not $false_eval and not $fatal_error ) {
             push @msg, "Warning(s) treated as fatal problem\n";
         }
-    }
-
-    # If we have a section of code to print
-    if ( defined $code_to_print ) {
-        my $header = "$code_length lines in problem code, beginning:";
-        if ( $max_problem_line >= 0 ) {
-            $header =
-                "$code_length lines in problem code, last warning occurred here:";
-        }
-        push @msg, "$header\n" . ${$code_to_print} . q{======} . "\n";
-    } ## end if ( defined $code_to_print )
-    elsif ( defined $code_length ) {
-        push @msg,
-            "$code_length lines in problem code, code printing disabled\n";
     }
 
     for my $warning_ix ( 0 .. ( $warnings_count - 1 ) ) {
@@ -546,7 +460,6 @@ sub Marpa::Grammar::new {
         ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
         $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = 1000;
     }
-    $grammar->[Marpa::Internal::Grammar::CODE_LINES]          = undef;
     $grammar->[Marpa::Internal::Grammar::SYMBOLS]             = [];
     $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH]         = {};
     $grammar->[Marpa::Internal::Grammar::RULE_HASH]           = {};
@@ -907,10 +820,6 @@ sub Marpa::Grammar::set {
             $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK] =
                 { map { ( $_, 1 ) } @{$value} };
         } ## end if ( defined( my $value = $args->{'unproductive_ok'}...))
-
-        if ( defined( my $value = $args->{'code_lines'} ) ) {
-            $grammar->[Marpa::Internal::Grammar::CODE_LINES] = $value;
-        }
 
         if ( defined( my $value = $args->{'max_parses'} ) ) {
             $grammar->[Marpa::Internal::Grammar::MAX_PARSES] = $value;
@@ -2530,25 +2439,10 @@ sub nullable {
 
 } ## end sub nullable
 
-# This assumes the grammar has been rewritten into CHAF form.
-sub detect_cycle {
-    my $grammar = shift;
-    my ( $rules, $symbols, $cycle_action, $trace_fh ) = @{$grammar}[
-        Marpa::Internal::Grammar::RULES,
-        Marpa::Internal::Grammar::SYMBOLS,
-        Marpa::Internal::Grammar::CYCLE_ACTION,
-        Marpa::Internal::Grammar::TRACE_FILE_HANDLE,
-    ];
-
-    my $cycle_is_fatal = 1;
-    my $warn_on_cycle  = 1;
-    given ($cycle_action) {
-        when ('warn') { $cycle_is_fatal = 0; }
-        when ('quiet') {
-            $cycle_is_fatal = 0;
-            $warn_on_cycle  = 0;
-        }
-    } ## end given
+sub cycle_rules {
+    my ($grammar) = @_;
+    my $rules =  $grammar->[ Marpa::Internal::Grammar::RULES];
+    my $symbols =  $grammar->[ Marpa::Internal::Grammar::SYMBOLS];
 
     my @unit_derivation;         # for the unit derivation matrix
     my @new_unit_derivations;    # a list of new unit derivations
@@ -2615,7 +2509,7 @@ sub detect_cycle {
 
     } ## end while ( my $new_unit_derivation = shift @new_unit_derivations)
 
-    my $cycle_count = 0;
+    my @cycle_rules = ();
 
     # produce a list of the rules which cycle
     RULE: while ( my $unit_rule_data = pop @unit_rules ) {
@@ -2623,38 +2517,47 @@ sub detect_cycle {
         my ( $rule, $start_symbol_id, $derived_symbol_id ) =
             @{$unit_rule_data};
 
-        if (   $start_symbol_id == $derived_symbol_id
-            || $unit_derivation[$derived_symbol_id][$start_symbol_id] )
-        {
-            $cycle_count++;
-            $rule->[Marpa::Internal::Rule::CYCLE] = 1;
-
-            my $warning_rule;
-
-            my $original_rule = $rule->[Marpa::Internal::Rule::ORIGINAL_RULE];
-            if ( defined $original_rule ) {
-                if ( not $original_rule->[Marpa::Internal::Rule::CYCLE] ) {
-                    $original_rule->[Marpa::Internal::Rule::CYCLE] = 1;
-                    $warning_rule = $original_rule;
-                }
-            } ## end if ( defined $original_rule )
-            else {
-
-                # always warn if there's no original rule
-                $warning_rule = $rule;
-            }
-
-            if ( $warn_on_cycle and defined $warning_rule ) {
-                print {$trace_fh}
-                    'Cycle found involving rule: ',
-                    Marpa::brief_rule($warning_rule), "\n"
-                    or Marpa::exception('Could not print to trace file');
-            } ## end if ( $warn_on_cycle and defined $warning_rule )
-        } ## end if ( $start_symbol_id == $derived_symbol_id || ...)
+        next RULE if $start_symbol_id != $derived_symbol_id
+            and not $unit_derivation[$derived_symbol_id][$start_symbol_id];
+        push @cycle_rules, $rule;
     } ## end while ( my $unit_rule_data = pop @unit_rules )
+    return \@cycle_rules;
+}
+
+# This assumes the grammar has been rewritten into CHAF form.
+sub detect_cycle {
+    my $grammar  = shift;
+    my $rules    = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+
+    my $cycle_is_fatal = 1;
+    my $warn_on_cycle  = 1;
+    given ( $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] ) {
+        when ('warn') { $cycle_is_fatal = 0; }
+        when ('quiet') {
+            $cycle_is_fatal = 0;
+            $warn_on_cycle  = 0;
+        }
+    } ## end given
+
+    my $cycle_rules = cycle_rules($grammar);
+
+    # produce a list of the rules which cycle
+    RULE: for my $rule ( @{$cycle_rules} ) {
+
+        my $warning_rule = 
+         $rule->[Marpa::Internal::Rule::ORIGINAL_RULE] // $rule;
+
+        if ( $warn_on_cycle and defined $warning_rule ) {
+            print {$trace_fh}
+                'Cycle found involving rule: ',
+                Marpa::brief_rule($warning_rule), "\n"
+                or Marpa::exception('Could not print to trace file');
+        } ## end if ( $warn_on_cycle and defined $warning_rule )
+    } ## end for my $rule ( @{$cycle_rules} )
 
     Marpa::exception('Cycle in grammar, fatal error')
-        if $cycle_count and $cycle_is_fatal;
+        if scalar @{$cycle_rules} and $cycle_is_fatal;
 
     return 1;
 
