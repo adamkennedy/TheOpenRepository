@@ -571,6 +571,9 @@ sub write_msi {
 
 # Start linking the msi.
 
+# TODO: Take out the stop here.
+	PDWiX->throw("Debugging stop");
+
 	# Get the parameters for the msi linking.
 	my $output_msi =
 	  catfile( $self->output_dir, $self->output_base_filename . '.msi', );
@@ -759,8 +762,6 @@ sub write_msm {
 			"Failed to find $output_msm (probably compilation error)");
 	}
 
-	PDWiX->throw('Testing break');
-	
 	return $output_msm;
 } ## end sub write_msm
 
