@@ -127,7 +127,6 @@ $VERSION =~ s/_//;
 
 use Moose::Tiny qw(
   download_dir
-  image_dir
   modules_dir
   license_dir
   fragment_dir
@@ -138,122 +137,18 @@ use Moose::Tiny qw(
   bin_pexports
   bin_dlltool
   env_path
-  debug_stdout
-  debug_stderr
   output_file
   perl_version_corelist
   cpan
   tasklist  
   filters
-  build_number
-  beta_number
-  trace
   toolchain
-  bits
-  gcc_version
 );
 
-has 'perl_version' => (
-	is => 'ro',
-	default => '5101',
-);
 
-has 'portable' => (
-	is => 'ro', # Boolean
-	default => 1,
-);
 
-has 'exe' => (
-	is => 'ro', # Boolean
-	writer => '_set_exe',
-	default => 0,
-);
 
-has 'msi' => (
-	is => 'ro', # Boolean
-	writer => '_set_msi',
-	default => 1,
-);
 
-has 'zip' => (
-	is => 'ro', # Boolean
-	lazy => 1,
-	default => sub { return $self->portable() ? 1 : 0 },
-);
-
-has 'force' => (
-	is => 'ro', # Boolean
-	default => 0,
-);
-
-has 'forceperl' => (
-	is => 'ro', # Boolean
-	default => 0,
-);
-
-has 'trace' => (
-	is => 'ro', # Integer
-	default => 2,
-);
-
-has 'temp_dir' => (
-	is => 'ro',
-	default => sub { return catdir( tmpdir(), 'perldist' ) },
-);
-
-has 'build_start_time' => (
-	is => 'ro', # Integer
-	default => localtime,
-	init_arg => undef, # Cannot set this parameter in new().
-);
-
-has 'binary_root' => (
-	is => 'ro',
-	required => 1,	# Default is provided in BUILDARGS.
-);
-
-has 'offline' => (
-	is => 'ro',
-	builder => sub { return LWP::Online::offline() },
-);
-
-has 'pdw_version' => (
-	is => 'ro', # String
-	default => $Perl::Dist::WiX::VERSION,
-	init_arg => undef, # Cannot set this parameter in new().
-);
-
-# This is set in BUILDARGS.
-has 'pdw_class' => (
-	is => 'ro', # String
-	writer => '_set_pdw_class',
-	init_arg => undef, # Cannot set this parameter in new().
-);
-
-has 'build_number' => (
-	is => 'ro', # Integer
-	required => 1,
-);
-
-has 'beta_number' => (
-	is => 'ro', # Integer
-	default => 0,
-);
-
-has 'bits' => (
-	is => 'ro', # Integer
-	default => 32,
-);
-
-has 'gcc_version' => (
-	is => 'ro', # Integer
-	default => 3,
-);
-
-has 'fragments' => (
-	is => 'ro', # Integer
-	default => sub { return {} },
-);
 
 has 'checkpoint_before' => (
 	is => 'ro', # Integer
@@ -270,7 +165,21 @@ has 'checkpoint_stop' => (
 	default => 0,
 );
 
-has 'output_file' => (
+# These attributes are either created in BUILDARGS, or are created later, 
+# and cannot be passed to new().
+
+has 'binary_root' => (
+	is => 'ro',
+	required => 1,	# Default is provided in BUILDARGS.
+);
+
+has 'build_start_time' => (
+	is => 'ro', # Integer
+	default => localtime,
+	init_arg => undef, # Cannot set this parameter in new().
+);
+
+has 'distributions_installed' => (
 	is => 'ro', # Array of strings
 	default => sub { return [] },
 	init_arg => 0,
@@ -282,15 +191,32 @@ has 'env_path' => (
 	init_arg => 0,
 );
 
-has 'distributions_installed' => (
+has 'fragments' => (
+	is => 'ro', # Integer
+	default => sub { return {} },
+	init_arg => undef,
+);
+
+has 'output_file' => (
 	is => 'ro', # Array of strings
 	default => sub { return [] },
 	init_arg => 0,
 );
 
-has 'output_dir' => (
-	is => 'ro', # Array of strings
-	default => sub { rel2abs( curdir() ) },
+has 'pdw_class' => (
+	is => 'ro', # String
+	required => 1,	# Default is provided in BUILDARGS.	
+);
+
+has 'pdw_version' => (
+	is => 'ro', # String
+	default => $Perl::Dist::WiX::VERSION,
+	init_arg => undef, # Cannot set this parameter in new().
+);
+
+has '_guidgen' => (
+	is => 'ro', # WiX3::XML::GeneratesGUID::Object
+	required => 1,	# Default is provided in BUILDARGS.
 );
 
 has '_trace_object' => (
@@ -298,94 +224,7 @@ has '_trace_object' => (
 	required => 1,
 );
 
-has 'app_name' => (
-	is => 'ro', # String
-	required => 1,
-);
 
-has 'app_ver_name' => (
-	is => 'ro', # String
-	default => sub { return $self->app_name() . q{ } . $self->perl_version_human(); },
-);
-
-has 'app_publisher' => (
-	is => 'ro', # String
-	required => 1,
-);
-
-has 'app_publisher_url' => (
-	is => 'ro', # String
-	required => 1,
-);
-
-has 'sitename' => (
-	is => 'ro', # String
-	required => 1,	# Default is provided in BUILDARGS.
-);
-
-has '_guidgen' => (
-	is => 'ro', # WiX3::XML::GeneratesGUID::Object
-	required => 1,	# Default is provided in BUILDARGS.
-	init_arg => 0,
-);
-
-has 'perl_config_cf_email' => (
-	is => 'ro', # String
-	default => 'anonymous@unknown.builder.invalid',
-);
-
-has 'perl_config_cf_by' => (
-	is => 'ro', # String
-	lazy => 1,
-	default => sub { return $self->perl_config_cf_email() =~ m/\A(.*)@.*\z/msx },
-);
-
-has 'default_group_name' => (
-	is => 'ro', # String
-	lazy => 1,
-	default => sub { return $self->app_name() },
-);
-
-has 'msi_license_file' => (
-	is => 'ro', # String
-	lazy => 1,
-	default => sub { return catfile( $self->wix_dist_dir(), 'License.rtf' ) },
-);
-
-has 'output_base_filename' => (
-	is => 'ro', # String
-	lazy => 1,
-	builder => '_build_output_base_filename',
-);
-	
-has 'debug_stdout' => (
-	is => 'ro', # String
-	lazy => 1,
-	default => sub { return catfile( $self->output_dir(), 'debug.out' ) },
-);
-
-has 'debug_stderr' => (
-	is => 'ro', # String
-	lazy => 1,
-	default => sub { return catfile( $self->output_dir(), 'debug.err' ) },
-);
-
-
-
-
-	
-# Default the output filename to the id plus the current date
-sub _build_output_base_filename {
-	my $self = shift;
-	
-	my $bits = (64 == $self->bits) ? q{-64bit} : q{};
-	
-	return
-	    $self->app_id() . q{-}
-	  . $self->perl_version_human() . q{-}
-	  . $self->output_date_string() 
-	  . $bits;
-}
 
 
 	#  Don't need to put distributions_installed in here.
@@ -401,10 +240,11 @@ sub _build_output_base_filename {
 
 =head2 new
 
-The B<new> method creates a new Perl Distribution build as an object.
+The B<new> method creates a Perl::Dist::WiX object that describes a 
+distribution of perl.
 
-Each object is used to create a single distribution, and then should be
-discarded.
+Each object is used to create a single distribution by calling C<run()>, 
+and then should be discarded.
 
 Although there are about 30 potential constructor arguments that can be
 provided, most of them are automatically resolved and exist for overloading
@@ -419,26 +259,9 @@ SYNOPSIS.
 Attributes that are required to be set are marked as I<(required)> 
 below.  They may often be set by subclasses.
 
-=over 4
+All attributes below can also be called as accessors on the object created.
 
-=item * image_dir I<(required)>
-
-Perl::Dist::WiX distributions can only be installed to fixed paths
-as of yet.
-
-To facilitate a correctly working CPAN setup, the files that will
-ultimately end up in the installer must also be assembled under the
-same path on the author's machine.
-
-The C<image_dir> method specifies the location of the Perl install,
-both on the author's and end-user's host.
-
-Please note that this directory will be automatically deleted if it
-already exists at object creation time. Trying to build a Perl
-distribution on the SAME distribution can thus have devastating
-results.
-
-=item * temp_dir
+=head3 temp_dir
 
 B<Perl::Dist::WiX> needs a series of temporary directories while
 it is running the build, including places to cache downloaded files,
@@ -453,13 +276,46 @@ names, near the root.
 
 This parameter defaults to a subdirectory of $ENV{TEMP} if not specified.
 
-=item * force
+=cut
+
+has 'temp_dir' => (
+	is => 'ro',
+	default => sub { return catdir( tmpdir(), 'perldist' ) },
+);
+
+=pod
+
+=head3 force
 
 The C<force> parameter determines if perl and perl modules are 
 tested upon installation.  If this parameter is true, then no 
 testing is done.
 
-=item * trace
+=cut
+
+has 'force' => (
+	is => 'ro', # Boolean
+	default => 0,
+);
+
+=pod
+
+=head3 forceperl
+
+The C<force> parameter determines if perl and perl modules are 
+tested upon installation.  If this parameter is true, then testing 
+is done only upon installed modules, not upon perl itself.
+
+=cut
+
+has 'forceperl' => (
+	is => 'ro', # Boolean
+	default => 0,
+);
+
+=pod
+
+=head3 trace
 
 The C<trace> parameter sets the level of tracing that is output.
 
@@ -478,7 +334,16 @@ line number on every line.
 
 Default is 1 if not set.
 
-=item * perl_version
+=cut
+
+has 'trace' => (
+	is => 'ro', # Integer
+	default => 2,
+);
+
+=pod
+
+=head3 perl_version
 
 The C<perl_version> parameter specifies what version of perl is 
 downloaded and built.  Legal values for this parameter are '589', 
@@ -486,7 +351,16 @@ downloaded and built.  Legal values for this parameter are '589',
 
 This parameter defaults to '5101' if not specified.
 
-=item * cpan
+=cut
+
+has 'perl_version' => (
+	is => 'ro',
+	default => '5101',
+);
+
+
+
+=head3 cpan
 
 The C<cpan> param provides a path to a CPAN or minicpan mirror that
 the installer can use to fetch any needed files during the build
@@ -499,67 +373,112 @@ If you are online and no C<cpan> param is provided, the value will
 default to the L<http://cpan.strawberryperl.com> repository as a
 convenience.
 
-=item * portable
+=head3 portable
 
 The optional boolean C<portable> param is used to indicate that the
 distribution is intended for installation on a portable storable
 device. This creates a distribution in zip format.
 
-=item * zip
+=head3 zip
 
 The optional boolean C<zip> param is used to indicate that a zip
 distribution package should be created.
 
-=item * msi
+=cut
 
-The optional boolean C<msi> param is used to indicate that a Windows
-Installer distribution package (otherwise known as an msi file) should 
-be created.
+has 'zip' => (
+	is => 'ro', # Boolean
+	lazy => 1,
+	default => sub { return $self->portable() ? 1 : 0 },
+);
 
-=item * exe
+
+
+=head3 exe
 
 The optional boolean C<exe> param is unused at the moment.
 
-=item * app_id I<(required)>
+=cut
+
+has 'exe' => (
+	is => 'ro', # Boolean
+	writer => '_set_exe',
+	default => 0,
+);
+
+
+
+=head3 app_id I<(required)>
 
 The C<app_id> parameter provides the base identifier of the 
 distribution that is used in constructing filenames.  This 
 must be a legal Perl identifier (no spaces, for example) and 
 is required.
 
-=item * app_name I<(required)>
+=head3 app_name I<(required)>
 
 The C<app_name> parameter provides the name of the distribution. 
 This is required.
 
-=item * app_publisher I<(required)>
+=cut
+
+has 'app_name' => (
+	is => 'ro', # String
+	required => 1,
+);
+
+
+
+=head3 app_publisher I<(required)>
 
 The C<app_publisher> parameter provides the publisher of the 
 distribution. 
 
-=item * app_publisher_url I<(required)>
+=cut
+
+has 'app_publisher' => (
+	is => 'ro', # String
+	required => 1,
+);
+
+
+
+=head3 app_publisher_url I<(required)>
 
 The C<app_publisher_url> parameter provides the URL of the publisher 
 of the distribution.
 
-=item * default_group_name
+=cut
 
-The name for the Start menu group this program 
-installs its shortcuts to.  Defaults to app_name if none is provided.
+has 'app_publisher_url' => (
+	is => 'ro', # URL
+	required => 1,
+);
 
-=item * msi_debug
 
-The optional boolean C<msi_debug> parameter is used to indicate that
-a debugging MSI (one that creates a log in $ENV{TEMP} upon execution
-in Windows Installer 4.0 or above) will be created if C<msi> is also 
-true.
 
-=item * build_number I<(required)>
+=head3 app_ver_name
 
-The required integer C<build_number> parameter is used to set the build number
-portion of the distribution's version number, and is used in constructing filenames.
+The C<app_ver_name> parameter provides the name and version of the distribution. 
 
-=item * beta_number
+This is not required, and is assembled from C<app_name> and C<perl_version_human> if not given.
+
+=cut
+
+has 'app_ver_name' => (
+	is => 'ro', # String
+	lazy => 1,
+	builder => '_build_app_ver_name' ,
+);
+
+sub _build_app_ver_name { 
+	my $self = shift; 
+	return $self->app_name() . q{ } . $self->perl_version_human(); 
+}
+
+
+
+=head3 beta_number
 
 The optional integer C<beta_number> parameter is used to set the beta number
 portion of the distribution's version number (if this is a beta distribution), 
@@ -568,23 +487,155 @@ and is used in constructing filenames.
 It defaults to 0 if not set, which will construct distributions without a beta
 number.
 
-=item * msi_license_file
+=cut
 
-The optional C<msi_license_file> parameter specifies the location of an 
-.rtf or .txt file to be displayed at the point where the MSI asks you 
-to accept a license.
+has 'beta_number' => (
+	is => 'ro', # Integer
+	default => 0,
+);
 
-Perl::Dist::WiX provides a default one if none is supplied here.
 
-=item * msi_banner_top
 
-The optional C<msi_banner_top> parameter specifies the location of a 
-493x58 .bmp file that is  used on the top of most of the dialogs in 
-the MSI file.
+=head3 bits
 
-WiX will use its default if no file is supplied here.
+The optional C<bits> parameter specifies whether the perl being built is 
+for 32-bit (i386) or 64-bit (referred to as Intel64 / amd-x64) Windows
 
-=item * msi_banner_side
+32-bit (i386) is the default.
+
+=cut
+
+has 'bits' => (
+	is => 'ro', # Integer 32/64
+	default => 32,
+);
+
+
+
+=head3 build_number I<(required)>
+
+The required integer C<build_number> parameter is used to set the build number
+portion of the distribution's version number, and is used in constructing filenames.
+
+=cut
+
+has 'build_number' => (
+	is => 'ro', # Integer
+	required => 1,
+);
+
+
+
+=head3 debug_stderr
+
+The optional C<debug_stderr> parameter is used to set the location of the file
+that STDERR is redirected to when the perl tarball and perl modules are built.
+
+The default location is in C<debug.err> in the C<output_dir>.
+
+=cut
+
+has 'debug_stderr' => (
+	is => 'ro', # String
+	lazy => 1,
+	default => sub { return catfile( $self->output_dir(), 'debug.err' ) },
+);
+
+
+
+=head3 debug_stdout
+
+The optional C<debug_stdout> parameter is used to set the location of the file
+that STDOUT is redirected to when the perl tarball and perl modules are built.
+
+The default location is in C<debug.out> in the C<output_dir>.
+
+=cut
+
+has 'debug_stdout' => (
+	is => 'ro', # String
+	lazy => 1,
+	default => sub { return catfile( $self->output_dir(), 'debug.out' ) },
+);
+
+
+
+=head3 default_group_name
+
+The name for the Start menu group that the distribution's installer 
+installs its shortcuts to.  Defaults to C<app_name> if none is provided.
+
+=cut
+
+has 'default_group_name' => (
+	is => 'ro', # String
+	lazy => 1,
+	default => sub { return $self->app_name() },
+);
+
+
+
+=head3 gcc_version
+
+The optional C<gcc_version> parameter specifies whether perl is being built 
+using gcc 3.4.5 from the mingw32 project (by specifying a value of '3'), or 
+using gcc 4.4.3 from the mingw64 project (by specifying a value of '4'). 
+
+'3' (gcc 3.4.5) is the default, and is incompatible with bits => 64.
+'4' is compatible with both 32 and 64-bit.
+
+=cut
+
+has 'gcc_version' => (
+	is => 'ro', # Integer 3-4
+	default => 3,
+);
+
+
+
+=head3 image_dir I<(required)>
+
+Perl::Dist::WiX distributions can only be installed to fixed paths
+as of yet.
+
+To facilitate a correctly working CPAN setup, the files that will
+ultimately end up in the installer must also be assembled under the
+same path on the author's machine.
+
+The C<image_dir> method specifies the location of the Perl install,
+both on the author's and end-user's host.
+
+Please note that this directory will be automatically deleted if it
+already exists at object creation time. Trying to build a Perl
+distribution on the SAME distribution can thus have devastating
+results, and an attempt is made to prevent this from happening.
+
+=cut
+
+has 'image_dir' => (
+	is => 'ro', # Directory, but does not neccessarily need to exist.
+	required => 1,
+);
+
+
+
+=head3 msi
+
+The optional boolean C<msi> param is used to indicate that a Windows
+Installer distribution package (otherwise known as an msi file) should 
+be created.
+
+=cut
+
+has 'msi' => (
+	is => 'ro', # Boolean
+	writer => '_set_msi',
+	default => 1,
+);
+
+
+
+=head3 msi_banner_side
 
 The optional C<msi_banner_side> parameter specifies the location of 
 a 493x312 .bmp file that is used in the introductory dialog in the MSI 
@@ -592,35 +643,164 @@ file.
 
 WiX will use its default if no file is supplied here.
 
-=item * msi_help_url
+=cut
+
+has 'msi_banner_side' => (
+	is => 'ro', # File that needs to exist
+);
+
+
+
+=head3 msi_banner_top
+
+The optional C<msi_banner_top> parameter specifies the location of a 
+493x58 .bmp file that is  used on the top of most of the dialogs in 
+the MSI file.
+
+WiX will use its default if no file is supplied here.
+
+=cut
+
+has 'msi_banner_top' => (
+	is => 'ro', # File that needs to exist
+);
+
+
+
+=head3 msi_debug
+
+The optional boolean C<msi_debug> parameter is used to indicate that
+a debugging MSI (one that creates a log in $ENV{TEMP} upon execution
+in Windows Installer 4.0 or above) will be created if C<msi> is also 
+true.
+
+=cut
+
+has 'msi_debug' => (
+	is => 'ro', # Boolean
+	default => 0,
+);
+
+
+
+=head3 msi_help_url
 
 The optional C<msi_help_url> parameter specifies the URL that 
 Add/Remove Programs directs you to for support when you click 
 the "Click here for support information." text.
 
-=item * msi_readme_file
+=cut
+
+has 'msi_help_url' => (
+	is => 'ro', # URL that is not required
+);
+
+
+
+=head3 msi_license_file
+
+The optional C<msi_license_file> parameter specifies the location of an 
+.rtf or .txt file to be displayed at the point where the MSI asks you 
+to accept a license.
+
+Perl::Dist::WiX provides a default one if none is supplied here.
+
+=cut
+
+has 'msi_license_file' => (
+	is => 'ro', # File that needs to exist
+	lazy => 1,
+	default => sub { return catfile( $self->wix_dist_dir(), 'License.rtf' ) },
+);
+
+
+
+=head3 msi_product_icon
+
+The optional C<msi_product_icon> parameter specifies the icon that is 
+used in Add/Remove Programs for this MSI file.
+
+=head3 msi_readme_file
 
 The optional C<msi_readme_file> parameter specifies a .txt or .rtf file 
 or a URL (TODO: check) that is linked in Add/Remove Programs in the 
 "Click here for support information." text.
 
-=item * msi_product_icon
+=cut
 
-The optional C<msi_product_icon> parameter specifies the icon that is 
-used in Add/Remove Programs for this MSI file.
+has 'msi_readme_file' => (
+	is => 'ro', # File that needs to exist
+);
 
-=item * msi_directory_tree_additions
 
-The optional C<msi_directory_tree_additions> parameter is a reference 
-to an array of directories under image_dir (i.e. perl\lib\Module, as 
-opposed to C:\distribution\perl\lib\module) that need to be in the 
-initial directory tree because they are used by more than one fragment.
 
-If upon running the distribution module, you see LGHT0091 or LGHT0130 
-errors at the end that refer to directories, add the applicable 
-directories to this parameter.
+=head3 offline
 
-=item * perl_config_cf_email
+The optional boolean C<offline> parameter determines whether the Internet 
+or the local disk is used to find the libraries and modules used to build 
+perl.  Setting this to a true value specifies that the libraries and the 
+perl tarball are already in the C<download_dir>, and that a minicpan is 
+being used to download modules from.
+
+The default is determined by calling C<LWP::Online::offline()>.
+
+=cut
+
+has 'offline' => (
+	is => 'ro',
+	builder => sub { return LWP::Online::offline() },
+);
+
+
+
+=head3 output_base_filename
+
+The optional C<output_base_filename> parameter specifies the filename 
+(without extensions) that is used for the installer(s) being generated.
+
+The default is based on C<app_id>, C<perl_version>, C<bits>, and the 
+current date.
+
+=cut
+
+has 'output_base_filename' => (
+	is => 'ro', # String
+	lazy => 1,
+	builder => '_build_output_base_filename',
+);
+	
+# Default the output filename to the id plus the current date
+sub _build_output_base_filename {
+	my $self = shift;
+	
+	my $bits = (64 == $self->bits) ? q{-64bit} : q{};
+	
+	return
+	    $self->app_id() . q{-}
+	  . $self->perl_version_human() . q{-}
+	  . $bits . q{-}
+	  . $self->output_date_string();
+}
+
+
+
+=head3 output_dir
+
+This is the location where the compiled installers and other files 
+neccessary to the build are written.
+
+This parameter defaults to the current directory if not specified.
+
+=cut
+
+has 'output_dir' => (
+	is => 'ro', # Directory that must exist.
+	default => sub { return rel2abs( curdir() ) },
+);
+
+
+
+=head3 perl_config_cf_email
 
 The optional C<perl_config_cf_email> parameter specifies the e-mail
 of the person building the perl distribution defined by this object.
@@ -633,30 +813,77 @@ C<cf_by> option.
 
 If not defined, this is set to anonymous@unknown.builder.invalid.
 
-=item * bits
+=cut
 
-The optional C<bits> parameter specifies whether the perl being built is 
-for 32-bit (i386) or 64-bit (referred to as Intel64 / amd-x64) Windows
+has 'perl_config_cf_email' => (
+	is => 'ro', # E-mail address
+	default => 'anonymous@unknown.builder.invalid',
+);
 
-32-bit (i386) is the default.
 
-=item * gcc_version
 
-The optional C<gcc_version> parameter specifies whether perl is being built 
-using gcc 3.4.5 from the mingw32 project (by specifying a value of '3'), or 
-using gcc 4.4.3 from the mingw64 project (by specifying a value of '4'). 
+=head3 perl_config_cf_by
 
-'3' (gcc 3.4.5) is the default, and is incompatible with bits => 64.
-'4' is compatible with both 32 and 64-bit.
+The optional C<perl_config_cf_email> parameter specifies the username part
+of the e-mail address of the person building the perl distribution defined 
+by this object.
 
-=back
+It is compiled into the perl binary as the C<cf_by> option accessible
+through C<perl -V:cf_by>.
 
-The C<new> constructor returns a B<Perl::Dist::WiX> object, which you
-should then call C<run> on to generate the distribution.
+If not defined, this is set to the username part of C<perl_config_cf_email>.
 
 =cut
 
-sub BUILDARGS { ## no critic 'ProhibitExcessComplexity'
+has 'perl_config_cf_by' => (
+	is => 'ro', # String
+	lazy => 1,
+	builder => '_build_perl_config_cf_by' ,
+);
+
+sub _build_perl_config_cf_by {
+	my $self = shift;
+	return $self->perl_config_cf_email() =~ m/\A(.*)@.*\z/msx 
+};
+
+
+=head3 portable
+
+The optional C<portable> parameter is used to determine whether a portable
+'Perl-on-a-stick' distribution is built with this object.
+
+If set to a true value, C<zip> must also be set to a true value, and C<msi> 
+will be set to a false value.
+
+This defaults to a false value. 
+
+=cut
+
+has 'portable' => (
+	is => 'ro', # Boolean
+	default => 0,
+);
+
+
+
+=head3 sitename
+
+The optional C<sitename> parameter is used to generate the GUID's necessary
+during the process of building the distribution.
+
+This defaults to the host part of C<app_publisher_url>.
+
+=cut
+
+has 'sitename' => (
+	is => 'ro', # Hostname
+	required => 1,	# Default is provided in BUILDARGS.
+);
+
+# Note that new() is actually defined by Moose.  BUILDARGS() is called before
+# new() and processes the arguments for it.
+
+sub BUILDARGS {
 	my $class  = shift;
 	my $params;
 
@@ -715,7 +942,7 @@ sub BUILDARGS { ## no critic 'ProhibitExcessComplexity'
 	}
 	unless ( defined $params{output_dir} ) {
 		$params{output_dir} = catdir( $params{temp_dir}, 'output' );
-		$params{misc}->trace_line( 1,
+		$params{_trace_object}->trace_line( 1,
 			"Wait a second while we empty the output directory...\n" );
 		$class->remake_path( $params{output_dir} );
 	}
