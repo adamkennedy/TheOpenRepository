@@ -153,8 +153,7 @@ use Marpa::Offset qw(
     VIRTUAL_TAIL
 
     :{ These are the tree-time ops }
-    CYCLE_VIA_CAUSE
-    CYCLE_VIA_PREDECESSOR
+    CYCLE
 
 );
 
@@ -1578,15 +1577,16 @@ sub Marpa::Evaluator::new {
 
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
 
-    my $tree_rules;
-    $#{$tree_rules} = $#{$rules};
+    my @tree_rules;
+    $#tree_rules = $#{$rules};
     for my $rule ( @{ Marpa::Internal::Grammar::cycle_rules($grammar) } ) {
-        my $tree_processing_op =
-            $rule->[Marpa::Internal::Rule::RHS]->[-1]
-            ->[Marpa::Internal::Symbol::NULLING]
-            ? Marpa::Internal::Evaluator_Op::CYCLE_VIA_CAUSE
-            : Marpa::Internal::Evaluator_Op::CYCLE_VIA_PREDECESSOR;
-        $tree_rules->[$rule->[Marpa::Internal::Rule::ID]] = [ $tree_processing_op ];
+
+        my $rule_id = $rule->[Marpa::Internal::Rule::ID];
+        $tree_rules[$rule_id] = 1;
+
+        ### cycle rule: Marpa'brief_rule($rule)
+
+        $tree_rules[$rule_id] = [ Marpa::Internal::Evaluator_Op::CYCLE, $rule_id, 1 ];
     } ## end for my $rule ( @{ cycle_rules($grammar) } )
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
@@ -1616,7 +1616,7 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
             \$start_null_value;
         $and_node->[Marpa::Internal::And_Node::TREE_OPS] =
-            $tree_rules->[$start_rule_id];
+            $tree_rules[$start_rule_id];
         $and_node->[Marpa::Internal::And_Node::VALUE_OPS] =
             $evaluator_rules->[$start_rule_id];
         $and_node->[Marpa::Internal::And_Node::RULE_ID]  = $start_rule_id;
@@ -1635,9 +1635,6 @@ sub Marpa::Evaluator::new {
         return $self;
 
     }    # if $nulling
-
-    # Label and-nodes which have cycles in their rules?
-    # Marpa::Internal::Grammar::cycle_rules($grammar);
 
     my @or_saplings;
     my %or_node_by_name;
@@ -1827,14 +1824,16 @@ sub Marpa::Evaluator::new {
                 my $rule_id = $and_node->[Marpa::Internal::And_Node::RULE_ID] =
                     $sapling_rule->[Marpa::Internal::Rule::ID];
 
-                # Value processing is only done on closure and-nodes.
-                # Right now this is all the case with tree processing.
+                # Right now tree processing is only done on
+                # closure and-nodes.
+                if ( $sapling_position
+                    == $#{ $sapling_rule->[Marpa::Internal::Rule::RHS] } )
+                {
+                    $and_node->[Marpa::Internal::And_Node::TREE_OPS] =
+                        $tree_rules[$rule_id];
+                } ## end if ( $sapling_position == $#{ $sapling_rule->[...]})
                 $and_node->[Marpa::Internal::And_Node::VALUE_OPS] =
                     $value_processing;
-                if ($value_processing) {
-                    $and_node->[Marpa::Internal::And_Node::TREE_OPS] =
-                        $tree_rules->[$rule_id];
-                }
 
                 $and_node->[Marpa::Internal::And_Node::POSITION] =
                     $sapling_position;
@@ -2140,6 +2139,19 @@ sub Marpa::Evaluator::show_and_node {
             . Marpa::brief_virtual_rule( $rule, $position ) . "\n";
 
     } ## end SHOW_RULE:
+
+    if ( $verbose >= 2 ) {
+        my @comment = ();
+        if ( $and_node->[Marpa::Internal::And_Node::TREE_OPS] ) {
+            push @comment, "tree_ops";
+        }
+        if ( $and_node->[Marpa::Internal::And_Node::VALUE_OPS] ) {
+            push @comment, "value_ops";
+        }
+        if (scalar @comment) {
+            $return_value .= q{    } . (join ", ", @comment) . "\n";
+        }
+    } ## end if ( $verbose >= 2 )
 
     return $return_value;
 
@@ -2571,12 +2583,8 @@ sub Marpa::Evaluator::value {
                     my $cause_sort_data = $cause_and_node_iteration
                         ->[Marpa::Internal::And_Iteration::SORT_DATA];
 
-                    ### cause sort data: $cause_sort_data
-
                     $cause_sort_elements = $cause_sort_data
                         ->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
-
-                    ### assert: $cause_sort_data
 
                     $trailing_nulls += $cause_sort_data->[
                         Marpa::Internal::Original_Sort_Data::TRAILING_NULLS ];
@@ -2597,8 +2605,6 @@ sub Marpa::Evaluator::value {
 
                     $predecessor_end_earleme =
                         $predecessor->[Marpa::Internal::Or_Node::END_EARLEME];
-
-                    ### assert: $predecessor_sort_data
 
                     $predecessor_sort_elements = $predecessor_sort_data
                         ->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
@@ -2664,8 +2670,6 @@ sub Marpa::Evaluator::value {
 
                 my $and_node_sort_data = $and_node_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_DATA] = [];
-
-                ### assert: $and_node_sort_data
 
                 $and_node_sort_data
                     ->[Marpa::Internal::Original_Sort_Data::SORT_KEY] = [
@@ -2753,32 +2757,36 @@ node appears more than once on the path back to the root node.
                 } ## end if ($trace_tasks)
 
                 my $and_node = $and_nodes->[$and_node_id];
+
                 my $tree_ops =
                     $and_node->[Marpa::Internal::And_Node::TREE_OPS] // [];
-                TREE_OP: for my $op_ix ( 0 .. $#{$tree_ops} ) {
-                    my $tree_op = $tree_ops->[$op_ix];
-                    my $cycle_or_node_id;
+
+                my $op_ix = 0;
+                TREE_OP: while ( $op_ix <= $#{$tree_ops} ) {
+
+                    my $tree_op = $tree_ops->[$op_ix++];
+                    my $rule_id;
+                    my $max_count;
                     given ($tree_op) {
-                        when (Marpa::Internal::Evaluator_Op::CYCLE_VIA_CAUSE)
-                        {
-                            $cycle_or_node_id = $and_node
-                                ->[Marpa::Internal::And_Node::CAUSE_ID];
+                        when ( Marpa::Internal::Evaluator_Op::CYCLE ) {
+                            $rule_id = $tree_ops->[ $op_ix++ ];
+                            $max_count = $tree_ops->[ $op_ix++ ];
                         }
-                        when
-                            ( Marpa::Internal::Evaluator_Op::CYCLE_VIA_PREDECESSOR
-                            )
-                        {
-                            $cycle_or_node_id = $and_node
-                                ->[Marpa::Internal::And_Node::PREDECESSOR_ID];
-                        } ## end when ( ...)
+                        default {
+                            Marpa::exception("Unknown tree op: $_");
+                        }
                     } ## end given
-                    next TREE_OP if not $cycle_or_node_id;
 
                     # This would be a cycle.  Mark the and-node
                     # exhausted and move on.
-                    if ( $path->{$cycle_or_node_id} ) {
+                    # Note we take some care not to modify
+                    # $path until we have to.
+                    my $count = $path->{$rule_id} // 0;
+                    if ( $count >= $max_count ) {
                         $and_iterations->[$and_node_id] = undef;
-                        Marpa::exception('Cycle found');
+
+                        ### breaking potential cycle, and-node-id: $and_node_id
+
                         break;    # next TASK
                     }
 
@@ -2788,10 +2796,10 @@ node appears more than once on the path back to the root node.
                     # incorrect.
                     # For efficiency, we use copy-on-write.
                     my %new_path = %{$path};
-                    $new_path{$cycle_or_node_id} = 1;
+                    $new_path{$rule_id} = $count+1;
                     $path = \%new_path;
 
-                } ## end for my $op_ix ( 0 .. $#{$tree_ops} )
+               } ## end for my $op_ix ( 0 .. $#{$tree_ops} )
 
                 # If there is no $visited argument,
                 # this is an iteration, not a reset

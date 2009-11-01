@@ -5,8 +5,6 @@ use 5.010;
 use strict;
 use warnings;
 
-use Smart::Comments '-ENV';
-
 use Test::More tests => 7;
 
 use lib 'lib';
@@ -30,16 +28,18 @@ sub default_action {
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
+    { experimental=>1 },
     {   start   => 'S',
         strip   => 0,
         maximal => 1,
-        trace_values => 4,
+        cycle_rewrite => 0,
+        cycle_action => 'warn',
 
         rules => [
             [ 'S', [qw/p p p n/], ],
-            [ 'p', ['t'], ],
+            [ 'p', ['a'], ],
             [ 'p', [], ],
-            [ 'n', ['t'], ],
+            [ 'n', ['a'], ],
             [ 'n', ['r2'], ],
             [ 'r2', [qw/a b c d e x/], ],
             [ 'a', [] ],
@@ -47,14 +47,14 @@ my $grammar = Marpa::Grammar->new(
             [ 'c', [] ],
             [ 'd', [] ],
             [ 'e', [] ],
-            [ 'a', ['t'] ],
-            [ 'b', ['t'] ],
-            [ 'c', ['t'] ],
-            [ 'd', ['t'] ],
-            [ 'e', ['t'] ],
+            [ 'a', ['a'] ],
+            [ 'b', ['a'] ],
+            [ 'c', ['a'] ],
+            [ 'd', ['a'] ],
+            [ 'e', ['a'] ],
             [ 'x', ['S'], ],
         ],
-        terminals      => ['t'],
+        terminals      => ['a'],
         maximal => 1,
         default_action => 'main::default_action',
     }
@@ -66,13 +66,8 @@ my @results = qw{NA (-;-;-;a) (a;-;-;a) (a;a;-;a) (a;a;a;a)};
 
 for my $input_length ( 1 .. 8 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
-    TOKEN: for my $token ( 1 .. $input_length ) {
-        next TOKEN if $recce->earleme( [ 'a', 'a', 1 ] );
-        Marpa::exception( 'Parsing exhausted at character: ', $token );
-    }
-    $recce->end_input();
-    ### <where>
-    ### trace_fh: $grammar->[Marpa'Internal'Grammar'TRACE_FILE_HANDLE]
+    defined $recce->tokens( [ ( [ 'a', 'a' ] ) x $input_length ] )
+        or Marpa::exception( 'Parsing exhausted' );
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
     my $i = 0;
     while (my $value = $evaler->value() and $i++ < 3) {
