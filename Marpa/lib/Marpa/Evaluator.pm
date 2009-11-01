@@ -154,6 +154,7 @@ use Marpa::Offset qw(
 
     :{ These are the tree-time ops }
     CYCLE
+    COUNTED_RULE
 
 );
 
@@ -1586,7 +1587,7 @@ sub Marpa::Evaluator::new {
 
         ### cycle rule: Marpa'brief_rule($rule)
 
-        $tree_rules[$rule_id] = [ Marpa::Internal::Evaluator_Op::CYCLE, $rule_id, 1 ];
+        $tree_rules[$rule_id] = [ Marpa::Internal::Evaluator_Op::CYCLE ];
     } ## end for my $rule ( @{ cycle_rules($grammar) } )
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
@@ -2758,48 +2759,89 @@ node appears more than once on the path back to the root node.
 
                 my $and_node = $and_nodes->[$and_node_id];
 
-                my $tree_ops =
-                    $and_node->[Marpa::Internal::And_Node::TREE_OPS] // [];
+                if ( my $tree_ops =
+                    $and_node->[Marpa::Internal::And_Node::TREE_OPS] )
+                {
 
-                my $op_ix = 0;
-                TREE_OP: while ( $op_ix <= $#{$tree_ops} ) {
+                    my $use_this_and_node = 1;
+                    my @add_to_path       = ();
+                    my $op_ix             = 0;
+                    TREE_OP: while ( $op_ix <= $#{$tree_ops} ) {
 
-                    my $tree_op = $tree_ops->[$op_ix++];
-                    my $rule_id;
-                    my $max_count;
-                    given ($tree_op) {
-                        when ( Marpa::Internal::Evaluator_Op::CYCLE ) {
-                            $rule_id = $tree_ops->[ $op_ix++ ];
-                            $max_count = $tree_ops->[ $op_ix++ ];
-                        }
-                        default {
-                            Marpa::exception("Unknown tree op: $_");
-                        }
-                    } ## end given
+                        my $tree_op = $tree_ops->[ $op_ix++ ];
+                        my $rule_id;
+                        my $max_count;
+                        given ($tree_op) {
+                            when (Marpa::Internal::Evaluator_Op::CYCLE) {
+                                my @keys =
+                                    map  { 'o' . $_ }
+                                    grep {defined} @{$and_node}[
+                                    Marpa::Internal::And_Node::CAUSE_ID,
+                                    Marpa::Internal::And_Node::PREDECESSOR_ID
+                                    ];
+
+                                ### Testing for cycle, keys: @keys
+
+                                if ( grep { $path->{$_} } @keys ) {
+                                    $use_this_and_node = 0;
+                                }
+                                else {
+                                    push @add_to_path,
+                                        map { [ $_, 1 ] } @keys;
+                                }
+                            } ## end when (Marpa::Internal::Evaluator_Op::CYCLE)
+                            when ( Marpa::Internal::Evaluator_Op::COUNTED_RULE
+                                )
+                            {
+
+                                # counted rule logic is not fully tested
+                                $rule_id   = $tree_ops->[ $op_ix++ ];
+                                $max_count = $tree_ops->[ $op_ix++ ];
+                                my $key = "r$rule_id";
+                                my $count = $path->{$key} // 0;
+                                if ( ++$count >= $max_count ) {
+                                    $use_this_and_node = 0;
+                                }
+                                else {
+                                    push @add_to_path, [ $key, $count ];
+                                }
+                            } ## end when ( Marpa::Internal::Evaluator_Op::COUNTED_RULE )
+                            default {
+                                Marpa::exception("Unknown tree op: $_");
+                            }
+                        } ## end given
+                    } ## end while ( $op_ix <= $#{$tree_ops} )
 
                     # This would be a cycle.  Mark the and-node
                     # exhausted and move on.
                     # Note we take some care not to modify
                     # $path until we have to.
-                    my $count = $path->{$rule_id} // 0;
-                    if ( $count >= $max_count ) {
+                    if ( not $use_this_and_node ) {
                         $and_iterations->[$and_node_id] = undef;
 
                         ### breaking potential cycle, and-node-id: $and_node_id
 
                         break;    # next TASK
-                    }
+                    } ## end if ( not $use_this_and_node )
 
-                    # Not a cycle (yet).  The path must be
+                    # The path must be
                     # re-copied.  If it is shared
                     # among branches, it will become
                     # incorrect.
                     # For efficiency, we use copy-on-write.
-                    my %new_path = %{$path};
-                    $new_path{$rule_id} = $count+1;
-                    $path = \%new_path;
+                    if ( scalar @add_to_path ) {
+                        my %new_path = %{$path};
+                        for my $add_to_path (@add_to_path) {
+                            my ( $key, $value ) = @{$add_to_path};
 
-               } ## end for my $op_ix ( 0 .. $#{$tree_ops} )
+                            ### Adding to path, key, value: $key, $value
+
+                            $new_path{$key} = $value;
+                        }
+                        $path = \%new_path;
+                    } ## end if ( scalar @add_to_path )
+
+                } ## end if ( my $tree_ops = $and_node->[...])
 
                 # If there is no $visited argument,
                 # this is an iteration, not a reset
@@ -2971,7 +3013,7 @@ node appears more than once on the path back to the root node.
             } ## end when (Marpa::Internal::Task::ITERATE_AND_TREE_3)
 
             when (Marpa::Internal::Task::ITERATE_OR_NODE) {
-                my ($or_node_id) = @{$task_entry};
+                my ($or_node_id, $path) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh} "Task: ITERATE_OR_NODE #$or_node_id; ",
@@ -2996,6 +3038,11 @@ node appears more than once on the path back to the root node.
                         $or_iterations->[$or_node_id] = undef;
                         break;
                     }
+
+                    ### ITERATE_OR_NODE Thawing to replace exhausted and choice
+                    ### ITERATE_OR_NODE or_node, and_choice: $or_node_id, $and_choices->[-1]
+                    ### ITERATE_OR_NODE Thawing and node: $and_choices->[-1]->[Marpa'Internal'And_Choice'ID]
+                    ### ITERATE_OR_NODE Rule: $and_nodes->[$and_choices->[-1]->[Marpa'Internal'And_Choice'ID]]->[ Marpa'Internal'And_Node'RULE_ID]
 
                     # Thaw out the current and-choice,
                     push @tasks,
@@ -3066,6 +3113,9 @@ node appears more than once on the path back to the root node.
                 splice @{$and_choices}, $insert_point, 0,
                     $former_current_choice;
 
+                ### ITERATE_OR_NODE Thawing to exchange and-choice as a result of sort
+                ### ITERATE_OR_NODE Thawing or_node, and_choice: $or_node_id, $and_choices->[-1]
+
                 push @tasks,
                     [ Marpa::Internal::Task::THAW_TREE, $and_choices->[1] ],
                     [
@@ -3090,7 +3140,7 @@ node appears more than once on the path back to the root node.
                     $or_iterations->[$or_node_id]->[-1]
                     ->[Marpa::Internal::And_Choice::ID];
                 push @tasks,
-                    [ Marpa::Internal::Task::ITERATE_OR_NODE, $or_node_id ],
+                    [ Marpa::Internal::Task::ITERATE_OR_NODE, $or_node_id, $path ],
                     [
                     Marpa::Internal::Task::NEXT_AND_TREE,
                     $current_and_node_id,
@@ -3103,6 +3153,9 @@ node appears more than once on the path back to the root node.
 
                 my $and_node_id =
                     $and_choice->[Marpa::Internal::And_Choice::ID];
+
+                ### Freezing and_node, and_choice: $and_node_id, $and_choice
+
                 if ($trace_tasks) {
                     printf {$trace_fh}
                         "Task: FREEZE_TREE; and-node-id: %d; %d tasks pending\n",
@@ -3132,12 +3185,16 @@ node appears more than once on the path back to the root node.
                 my $and_node_id =
                     $and_choice->[Marpa::Internal::And_Choice::ID];
 
+                ### Thawing and_node, and_choice: $and_node_id, $and_choice
+
                 if ($trace_tasks) {
                     printf {$trace_fh}
                         "Task: THAW_TREE; and-node-id: %d; %d tasks pending\n",
                         $and_node_id, ( scalar @tasks )
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
+
+                ### assert: $and_choice->[Marpa'Internal'And_Choice'FROZEN_ITERATION]
 
                 # If we are here, the current choice is new
                 # It must be thawed and its frozen iteration thrown away
