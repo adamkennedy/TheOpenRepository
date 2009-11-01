@@ -16,9 +16,6 @@ the documentation, I should think accordingly.
 
 =over 4
 
-=item * Add an enable_buggy_features option (default off).
-Only allow cycles if it is on.
-
 =item * Create HTML Parser.
 
 =item * Or_map's should be hashes instead of arrays.
@@ -35,6 +32,13 @@ A grammar with two rules in a cycle.  Each rule is all nulling
 =head1 HIGH PRIORITY
 
 =over 4
+
+=item * On ambiguous grammars, it may optimize to save values of reset
+bocage nodes from the first reset, and simply copy them back in
+on subsequent resets.  In particular for the sorted choices.
+Note this optimizes only to the degree the user wants multiple
+parses, or else require multiple interations to get the parse she
+wants.
 
 =item * After MDL is factored out, and stripping & cloning is
 fully functional, create a matrix of tests of 

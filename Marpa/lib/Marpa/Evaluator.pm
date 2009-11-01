@@ -45,8 +45,8 @@ use Marpa::Offset qw(
     PREDECESSOR_ID
     CAUSE_ID
     TOKEN VALUE_REF
-    TREE_PROCESSING
-    VALUE_PROCESSING
+    TREE_OPS
+    VALUE_OPS
     START_EARLEME END_EARLEME
     RULE_ID
 
@@ -131,8 +131,8 @@ use Marpa::Offset qw(
     PARSE_COUNT :{ number of parses in an ambiguous parse :}
     AND_NODES
     OR_NODES
-    RULE_TREE_PROCESSING
-    RULE_VALUE_PROCESSING
+    RULE_TREE_OPS
+    RULE_VALUE_OPS
     AND_ITERATIONS
     OR_ITERATIONS
     ACTION_OBJECT_CONSTRUCTOR
@@ -682,8 +682,8 @@ sub clone_and_node {
     for my $field (
         Marpa::Internal::And_Node::VALUE_REF,
         Marpa::Internal::And_Node::TOKEN,
-        Marpa::Internal::And_Node::TREE_PROCESSING,
-        Marpa::Internal::And_Node::VALUE_PROCESSING,
+        Marpa::Internal::And_Node::TREE_OPS,
+        Marpa::Internal::And_Node::VALUE_OPS,
         Marpa::Internal::And_Node::START_EARLEME,
         Marpa::Internal::And_Node::END_EARLEME,
         Marpa::Internal::And_Node::RULE_ID,
@@ -1560,7 +1560,7 @@ sub Marpa::Evaluator::new {
 
     state $parse_number = 0;
     my $null_values     = set_null_values($self);
-    my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_VALUE_PROCESSING] =
+    my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_VALUE_OPS] =
         set_actions($self);
     if (defined(
             my $action_object =
@@ -1615,9 +1615,9 @@ sub Marpa::Evaluator::new {
 
         $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
             \$start_null_value;
-        $and_node->[Marpa::Internal::And_Node::TREE_PROCESSING] =
+        $and_node->[Marpa::Internal::And_Node::TREE_OPS] =
             $tree_rules->[$start_rule_id];
-        $and_node->[Marpa::Internal::And_Node::VALUE_PROCESSING] =
+        $and_node->[Marpa::Internal::And_Node::VALUE_OPS] =
             $evaluator_rules->[$start_rule_id];
         $and_node->[Marpa::Internal::And_Node::RULE_ID]  = $start_rule_id;
         $and_node->[Marpa::Internal::And_Node::POSITION] = -1;
@@ -1829,10 +1829,10 @@ sub Marpa::Evaluator::new {
 
                 # Value processing is only done on closure and-nodes.
                 # Right now this is all the case with tree processing.
-                $and_node->[Marpa::Internal::And_Node::VALUE_PROCESSING] =
+                $and_node->[Marpa::Internal::And_Node::VALUE_OPS] =
                     $value_processing;
                 if ($value_processing) {
-                    $and_node->[Marpa::Internal::And_Node::TREE_PROCESSING] =
+                    $and_node->[Marpa::Internal::And_Node::TREE_OPS] =
                         $tree_rules->[$rule_id];
                 }
 
@@ -2243,7 +2243,7 @@ sub Marpa::Evaluator::value {
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
 
-    my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_VALUE_PROCESSING];
+    my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_VALUE_OPS];
     my $and_nodes       = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes        = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
 
@@ -2273,7 +2273,7 @@ sub Marpa::Evaluator::value {
             # the absence of evaluator data means this is not a closure and-node
             # and does not count in the sort order
             next AND_NODE
-                if not $and_node->[Marpa::Internal::And_Node::VALUE_PROCESSING];
+                if not $and_node->[Marpa::Internal::And_Node::VALUE_OPS];
 
             my $rule_id  = $and_node->[Marpa::Internal::And_Node::RULE_ID];
             my $rule     = $rules->[$rule_id];
@@ -2335,7 +2335,8 @@ sub Marpa::Evaluator::value {
                 ? Marpa::Internal::Task::ITERATE_OR_TREE
                 : Marpa::Internal::Task::RESET_OR_TREE
             ),
-            0
+            0,
+            {}
         ]
     );
 
@@ -2715,7 +2716,7 @@ node appears more than once on the path back to the root node.
 =cut
             when (Marpa::Internal::Task::RESET_OR_TREE) {
 
-                my ( $or_node_id, $visited ) = @{$task_entry};
+                my ( $or_node_id, $path, $visited ) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -2732,12 +2733,12 @@ node appears more than once on the path back to the root node.
                 push @tasks,
                     [ Marpa::Internal::Task::RESET_OR_NODE, $or_node_id ],
                     map {
-                    [ Marpa::Internal::Task::RESET_AND_TREE, $_, $visited ]
+                    [ Marpa::Internal::Task::RESET_AND_TREE, $_, $path, $visited ]
                     } @unvisited_children;
             } ## end when (Marpa::Internal::Task::RESET_OR_TREE)
 
             when (Marpa::Internal::Task::RESET_AND_TREE) {
-                my ( $and_node_id, $visited ) = @{$task_entry};
+                my ( $and_node_id, $path, $visited ) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -2748,10 +2749,50 @@ node appears more than once on the path back to the root node.
 
                 my $and_node = $and_nodes->[$and_node_id];
 
+                my $tree_ops =
+                    $and_node->[Marpa::Internal::And_Node::TREE_OPS] // [];
+                TREE_OP: for my $op_ix ( 0 .. $#{$tree_ops} ) {
+                    my $tree_op = $tree_ops->[$op_ix];
+                    my $cycle_or_node_id;
+                    given ($tree_op) {
+                        when (Marpa::Internal::Evaluator_Op::CYCLE_VIA_CAUSE)
+                        {
+                            $cycle_or_node_id = $and_node
+                                ->[Marpa::Internal::And_Node::CAUSE_ID];
+                        }
+                        when
+                            ( Marpa::Internal::Evaluator_Op::CYCLE_VIA_PREDECESSOR
+                            )
+                        {
+                            $cycle_or_node_id = $and_node
+                                ->[Marpa::Internal::And_Node::PREDECESSOR_ID];
+                        } ## end when ( ...)
+                    } ## end given
+                    next TREE_OP if not $cycle_or_node_id;
+
+                    # This would be a cycle.  Mark the and-node
+                    # exhausted and move on.
+                    if ( $path->{$cycle_or_node_id} ) {
+                        $and_iterations->[$and_node_id] = undef;
+                        Marpa::exception('Cycle found');
+                        break;    # next TASK
+                    }
+
+                    # Not a cycle (yet).  The path must be
+                    # re-copied.  If it is shared
+                    # among branches, it will become
+                    # incorrect.
+                    # For efficiency, we use copy-on-write.
+                    my %new_path                    = %{$path};
+                    $new_path{$cycle_or_node_id} = 1;
+                    $path                        = \%new_path;
+
+                } ## end for my $op_ix ( 0 .. $#{$tree_ops} )
+
                 push @tasks,
                     [ Marpa::Internal::Task::RESET_AND_NODE, $and_node_id ],
                     map {
-                    [ Marpa::Internal::Task::RESET_OR_TREE, $_, $visited ]
+                    [ Marpa::Internal::Task::RESET_OR_TREE, $_, $path, $visited ]
                     }
                     grep { defined $_ } @{$and_node}[
                     Marpa::Internal::And_Node::CAUSE_ID,
@@ -2761,7 +2802,7 @@ node appears more than once on the path back to the root node.
             } ## end when (Marpa::Internal::Task::RESET_AND_TREE)
 
             when (Marpa::Internal::Task::ITERATE_AND_TREE) {
-                my ($and_node_id) = @{$task_entry};
+                my ($and_node_id, $path) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -2793,14 +2834,14 @@ node appears more than once on the path back to the root node.
                     push @tasks,
                         [
                         Marpa::Internal::Task::ITERATE_AND_TREE_2,
-                        $and_node_id
+                        $and_node_id, $path
                         ];
                 } ## end if ( defined $cause_id and defined $predecessor_id )
 
                 push @tasks,
                     [
                     Marpa::Internal::Task::ITERATE_OR_TREE,
-                    $and_node->[$current_child_field]
+                    $and_node->[$current_child_field], $path
                     ];
 
             } ## end when (Marpa::Internal::Task::ITERATE_AND_TREE)
@@ -2810,7 +2851,7 @@ node appears more than once on the path back to the root node.
                 # We always have both a cause and a predecessor if we are
                 # in this task.
 
-                my ($and_node_id) = @{$task_entry};
+                my ($and_node_id, $path) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -2842,11 +2883,11 @@ node appears more than once on the path back to the root node.
 
                 push @tasks,
                     [
-                    Marpa::Internal::Task::ITERATE_AND_TREE_3, $and_node_id
+                    Marpa::Internal::Task::ITERATE_AND_TREE_3, $and_node_id, $path
                     ],
                     [
                     Marpa::Internal::Task::ITERATE_OR_TREE,
-                    $other_child_id
+                    $other_child_id, $path
                     ];
 
             } ## end when (Marpa::Internal::Task::ITERATE_AND_TREE_2)
@@ -2855,7 +2896,7 @@ node appears more than once on the path back to the root node.
 
                 # We always have both a cause and a predecessor if we are
                 # in this task.
-                my ($and_node_id) = @{$task_entry};
+                my ($and_node_id, $path) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -2885,7 +2926,8 @@ node appears more than once on the path back to the root node.
                 push @tasks,
                     [
                     Marpa::Internal::Task::RESET_OR_TREE,
-                    $exhausted_children[0]
+                    $exhausted_children[0],
+                    $path
                     ];
 
             } ## end when (Marpa::Internal::Task::ITERATE_AND_TREE_3)
@@ -2996,7 +3038,7 @@ node appears more than once on the path back to the root node.
             } ## end when (Marpa::Internal::Task::ITERATE_OR_NODE)
 
             when (Marpa::Internal::Task::ITERATE_OR_TREE) {
-                my ($or_node_id) = @{$task_entry};
+                my ($or_node_id, $path) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh} "Task: ITERATE_OR_TREE #$or_node_id; ",
@@ -3013,7 +3055,8 @@ node appears more than once on the path back to the root node.
                     [ Marpa::Internal::Task::ITERATE_OR_NODE, $or_node_id ],
                     [
                     Marpa::Internal::Task::ITERATE_AND_TREE,
-                    $current_and_node_id
+                    $current_and_node_id,
+                    $path
                     ];
             } ## end when (Marpa::Internal::Task::ITERATE_OR_TREE)
 
@@ -3219,7 +3262,7 @@ node appears more than once on the path back to the root node.
                     }    # defined $value_ref
 
                     my $value_processing = $and_node
-                        ->[Marpa::Internal::And_Node::VALUE_PROCESSING];
+                        ->[Marpa::Internal::And_Node::VALUE_OPS];
 
                     next TREE_NODE if not defined $value_processing;
 
