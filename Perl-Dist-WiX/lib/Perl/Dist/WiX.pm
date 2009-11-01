@@ -59,10 +59,6 @@ To install this module, run the following commands:
 		app_name          => 'My Perl',
 		app_publisher     => 'My Perl Distribution Project',
 		app_publisher_url => 'http:/myperl.invalid/',
-		msi_directory_tree_additions => [ qw(
-		  c\bin\program
-		  perl\lib\Acme
-		)],
 	);
 
 	# Creates the distribution
@@ -133,7 +129,6 @@ use Moose::Tiny qw(
   bin_make
   bin_pexports
   bin_dlltool
-  directories
   msi_feature_tree
   feature_tree_obj
   icons
@@ -173,6 +168,13 @@ has 'build_start_time' => (
 	is => 'ro', # Integer
 	default => time,
 	init_arg => undef, # Cannot set this parameter in new().
+);
+
+has '_directories' => (
+	is => 'bare', # Perl::Dist::WiX::DirectoryTree2
+	writer => '_set_directories',
+	default => undef,
+	init_arg => undef,
 );
 
 has 'distributions_installed' => (
@@ -232,9 +234,11 @@ sub _build_filters {
 #>>>
 }
 
+# TODO: Document get_fragment_object and fragment_exists.
+
 has 'fragments' => (
 	traits   => ['Hash'],
-	is       => 'ro', # Integer
+	is       => 'ro',
 	isa      => 'HashRef', # Hashref[Perl::Dist::WiX::Fragment]
 	default  => sub { return {} },
 	init_arg => undef,
@@ -244,7 +248,6 @@ has 'fragments' => (
 		_add_fragment       => 'set',
 		_clear_fragments    => 'clear',
 		_fragment_keys      => 'keys',
-		_iterate_fragments  => 'kv',
 	},
 );
 
@@ -1513,10 +1516,12 @@ EOF
 	# Set element collections
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
 	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
-	$self->{directories} = Perl::Dist::WiX::DirectoryTree2->new(
-		app_dir  => $self->image_dir(),
-		app_name => $self->app_name(),
-	)->initialize_tree( $self->perl_version );
+	$self->_set_directories(
+		Perl::Dist::WiX::DirectoryTree2->new(
+			app_dir  => $self->image_dir(),
+			app_name => $self->app_name(),
+		)->initialize_tree( $self->perl_version )
+	);
 
 	$self->_add_fragment('Environment', 
 	  Perl::Dist::WiX::Fragment::Environment->new());
@@ -2291,7 +2296,7 @@ sub regenerate_fragments {
 	return 1 unless $self->msi;
 
 	# Add the perllocal.pod here, because apparently it's disappearing.
-	if ($self->fragment_defined('perl')) {	
+	if ($self->fragment_exists('perl')) {	
 		$self->add_to_fragment( 'perl',
 			[ catfile( $self->image_dir(), qw( perl lib perllocal.pod ) ) ] );
 	}
@@ -2380,9 +2385,17 @@ sub write_merge_module {
 		$zip->writeToFileNamed($file);
 
 		# Remake the fragments directory.
-		$self->_remake_path($self->fragment_dir())
+		$self->_remake_path($self->fragment_dir());
 		
-		# TODO: Reset the directory tree.
+		# Reset the directory tree.
+		$self->_set_directories(undef);
+		Perl::Dist::WiX::DirectoryTree2->_clear_instance();
+		$self->_set_directories(
+			Perl::Dist::WiX::DirectoryTree2->new(
+				app_dir  => $self->image_dir(),
+				app_name => $self->app_name(),
+			)->initialize_short_tree( $self->perl_version )
+		);
 	}
 
 	# Start adding the fragments that are only for the .msi.

@@ -157,6 +157,35 @@ sub initialize_tree {
 	return $self;
 } ## end sub initialize_tree
 
+sub initialize_short_tree {
+	my $self = shift;
+
+	$self->trace_line( 2, "Initializing short directory tree.\n" );
+
+	# Create starting directories.
+	my $branch = $self->get_root()->add_directory( {
+			id       => 'INSTALLDIR',
+			noprefix => 1,
+			path     => $self->_get_app_dir(),
+		} );
+	$self->get_root()->add_directory( {
+			id       => 'ProgramMenuFolder',
+			noprefix => 1,
+		}
+	  )->add_directory( {
+			id   => 'App_Menu',
+			name => $self->_get_app_name(),
+		} );
+
+#<<<
+	$branch->add_directories_id(
+		'Win32',     'win32',
+	);
+#>>>
+
+	return $self;
+} ## end sub initialize_tree
+
 sub add_directory {
 	my $self = shift;
 	my $dir  = shift;
