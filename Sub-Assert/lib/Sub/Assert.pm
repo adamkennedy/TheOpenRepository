@@ -11,7 +11,7 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(
   assert
 );
-our $VERSION = '1.22';
+our $VERSION = '1.23';
 
 use Carp qw/croak carp/;
 
@@ -421,7 +421,7 @@ Steffen Mueller E<lt>smueller@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2008 Steffen Mueller
+Copyright (C) 2003-2009 Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 
