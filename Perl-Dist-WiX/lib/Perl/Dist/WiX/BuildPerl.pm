@@ -238,7 +238,7 @@ sub install_cpan_upgrades {
 			{ dist => $self, } );
 	}
 
-	if (not exists $self->{fragments}->{CPAN}) {
+	if (not $self->fragment_exists('CPAN')) {
 		$self->install_distribution(
 			name  => 'ANDK/CPAN-1.94_52.tar.gz',
 			mod_name         => 'CPAN',

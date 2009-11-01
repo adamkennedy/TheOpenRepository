@@ -233,9 +233,19 @@ sub _build_filters {
 }
 
 has 'fragments' => (
-	is => 'ro', # Integer
-	default => sub { return {} },
+	traits   => ['Hash'],
+	is       => 'ro', # Integer
+	isa      => 'HashRef', # Hashref[Perl::Dist::WiX::Fragment]
+	default  => sub { return {} },
 	init_arg => undef,
+    handles   => {
+		get_fragment_object => 'get',
+		fragment_exists     => 'defined',
+		_add_fragment       => 'set',
+		_clear_fragments    => 'clear',
+		_fragment_keys      => 'keys',
+		_iterate_fragments  => 'kv',
+	},
 );
 
 has 'output_file' => (
@@ -260,8 +270,7 @@ sub _build_perl_version_corelist {
 	unless ( _HASH( $hash ) ) {
 		PDWiX->throw( 'Failed to resolve Module::CoreList hash for '
 			  . $self->perl_version_human() );
-	}
-	
+	}	
 	return $hash;
 }
 
@@ -982,12 +991,12 @@ has 'output_base_filename' => (
 sub _build_output_base_filename {
 	my $self = shift;
 	
-	my $bits = (64 == $self->bits) ? q{-64bit} : q{};
+	my $bits = (64 == $self->bits) ? q{64bit-} : q{};
 	
 	return
 	    $self->app_id() . q{-}
 	  . $self->perl_version_human() . q{-}
-	  . $bits . q{-}
+	  . $bits
 	  . $self->output_date_string();
 }
 
@@ -1509,19 +1518,19 @@ EOF
 		app_name => $self->app_name(),
 	)->initialize_tree( $self->perl_version );
 
-	$self->{fragments}->{Environment} =
-	  Perl::Dist::WiX::Fragment::Environment->new();
+	$self->_add_fragment('Environment', 
+	  Perl::Dist::WiX::Fragment::Environment->new());
 
-	$self->{fragments}->{CreateCpan} =
+	$self->_add_fragment('CreateCpan',
 	  Perl::Dist::WiX::Fragment::CreateFolder->new(
 		directory_id => 'Cpan',
 		id           => 'CPANFolder',
-	  );
-	$self->{fragments}->{CreateCpanplus} =
+	  ));
+	$self->_add_fragment('CreateCpanplus', 
 	  Perl::Dist::WiX::Fragment::CreateFolder->new(
 		directory_id => 'Cpanplus',
 		id           => 'CPANPLUSFolder',
-	  ) if ( 5100 <= $self->perl_version );
+	  )) if ( 5100 <= $self->perl_version );
 
 	# Clear the par cache, just to be safe.
 	# Sometimes, if not cleared, PAR fails tests.
@@ -2282,15 +2291,17 @@ sub regenerate_fragments {
 	return 1 unless $self->msi;
 
 	# Add the perllocal.pod here, because apparently it's disappearing.
-	$self->add_to_fragment( 'perl',
-		[ catfile( $self->image_dir(), qw( perl lib perllocal.pod ) ) ] );
-
+	if ($self->fragment_defined('perl')) {	
+		$self->add_to_fragment( 'perl',
+			[ catfile( $self->image_dir(), qw( perl lib perllocal.pod ) ) ] );
+	}
+	
 	my @fragment_names_regenerate;
-	my @fragment_names = keys %{ $self->{fragments} };
+	my @fragment_names = $self->_fragment_keys();
 
 	while ( 0 != scalar @fragment_names ) {
 		foreach my $name (@fragment_names) {
-			my $fragment = $self->{fragments}->{$name};
+			my $fragment = $self->get_fragment_object($name);
 			if ( defined $fragment ) {
 				push @fragment_names_regenerate, $fragment->regenerate();
 			} else {
@@ -2342,8 +2353,7 @@ sub write_merge_module {
 		
 		push @{ $self->{output_file} }, $file_out;
 
-		delete $self->{fragments};
-		$self->{fragments} = {};
+		$self->_clear_fragments();
 		
 		my $file =
 		  catfile( $self->output_dir, 'fragments.zip' );
@@ -2376,17 +2386,17 @@ sub write_merge_module {
 	}
 
 	# Start adding the fragments that are only for the .msi.
-	$self->{fragments}->{StartMenuIcons} =
+	$self->_add_fragment('StartMenuIcons',
 	  Perl::Dist::WiX::Fragment::StartMenu->new(
-		directory_id => 'D_App_Menu', );
-	$self->{fragments}->{Win32Extras} =
+		directory_id => 'D_App_Menu', ));
+	$self->_add_fragment('Win32Extras', 
 	  Perl::Dist::WiX::Fragment::Files->new(
 		id    => 'Win32Extras',
 		files => File::List::Object->new(),
-	  );
-	$self->{icons} = $self->{fragments}->{StartMenuIcons}->get_icons();
-	if ( defined $self->msi_product_icon ) {
-		$self->icons()->add_icon( $self->msi_product_icon );
+	  ));
+	$self->{icons} = $self->get_fragment_object('StartMenuIcons')->get_icons();
+	if ( defined $self->msi_product_icon() ) {
+		$self->icons()->add_icon( $self->msi_product_icon() );
 	}
 	
 	return 1;
@@ -2455,7 +2465,7 @@ sub add_icon {
 	$id =~ s{\s}{_}msxg;               # Convert whitespace to underlines.
 
 	# Add the start menu icon.
-	$self->{fragments}->{StartMenuIcons}->add_shortcut(
+	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
 		name        => $params{name},
 		description => $params{name},
 		target      => "[D_$dir_id]$file",
@@ -2571,8 +2581,8 @@ sub write_msi {
   FRAGMENT:
 
 	# Write out .wxs files for all the fragments and compile them.
-	foreach my $key ( keys %{ $self->{fragments} } ) {
-		$fragment        = $self->{fragments}->{$key};
+	foreach my $key ( $self->_fragment_keys() ) {
+		$fragment        = $self->get_fragment_object($key);
 		$fragment_string = $fragment->as_string;
 		next
 		  if ( ( not defined $fragment_string )
@@ -2725,8 +2735,8 @@ sub write_msm {
   FRAGMENT:
 
 	# Write out .wxs files for all the fragments and compile them.
-	foreach my $key ( keys %{ $self->{fragments} } ) {
-		$fragment        = $self->{fragments}->{$key};
+	foreach my $key ( $self->_fragment_keys() ) {
+		$fragment        = $self->get_fragment_object($key);
 		$fragment_string = $fragment->as_string;
 		next
 		  if ( ( not defined $fragment_string )
@@ -2867,9 +2877,10 @@ sub add_env {
 		);
 	}
 
-	my $num = $self->{fragments}->{Environment}->get_entries_count();
+	my $env_fragment = $self->get_fragment_object('Environment');
+	my $num = $env_fragment->get_entries_count();
 
-	$self->{fragments}->{Environment}->add_entry(
+	$env_fragment->add_entry(
 		id     => "Env_$num",
 		name   => $name,
 		value  => $value,
@@ -2909,11 +2920,11 @@ sub add_file {
 		);
 	}
 
-	unless ( defined $self->{fragments}->{ $params{fragment} } ) {
+	unless ( $self->fragment_exists( $params{fragment} ) ) {
 		PDWiX->throw("Fragment $params{fragment} does not exist");
 	}
 
-	$self->{fragments}->{ $params{fragment} }->add_file( $params{source} );
+	$self->get_fragment_object( $params{fragment} )->add_file( $params{source} );
 
 	return $self;
 } ## end sub add_file
@@ -2949,12 +2960,13 @@ sub insert_fragment {
 
 	$self->trace_line( 2, "Adding fragment $id...\n" );
 
+	my $frag;
   FRAGMENT:
-	foreach my $frag ( keys %{ $self->{fragments} } ) {
+	foreach my $frag_key ( $self->_fragment_keys() ) {
+		$frag = $self->get_fragment_object($frag_key);
 		next FRAGMENT
-		  if not $self->{fragments}->{$frag}
-			  ->isa('Perl::Dist::WiX::Fragment::Files');
-		$self->{fragments}->{$frag}->check_duplicates($files_obj);
+		  if not $frag->isa('Perl::Dist::WiX::Fragment::Files');
+		$frag->check_duplicates($files_obj);
 	}
 
 	my $fragment = Perl::Dist::WiX::Fragment::Files->new(
@@ -2963,7 +2975,7 @@ sub insert_fragment {
 		can_overwrite => $overwritable,
 	);
 
-	$self->{fragments}->{$id} = $fragment;
+	$self->_add_fragment($id, $fragment);
 
 	return $fragment;
 } ## end sub insert_fragment
@@ -2983,17 +2995,17 @@ sub add_to_fragment {
 	unless ( _IDENTIFIER($id) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'id',
-			where     => '::Installer->add_to_fragment'
+			where     => '->add_to_fragment'
 		);
 	}
 	unless ( _ARRAY($files_ref) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'files_ref',
-			where     => '::Installer->add_to_fragment'
+			where     => '->add_to_fragment'
 		);
 	}
 
-	if ( not exists $self->{fragments}->{$id} ) {
+	if ( not $self->fragment_exists($id) ) {
 		PDWiX->throw("Fragment $id does not exist");
 	}
 
@@ -3001,11 +3013,13 @@ sub add_to_fragment {
 
 	my $files_obj = File::List::Object->new()->add_files(@files);
 
-	foreach my $key ( keys %{ $self->{fragments} } ) {
-		$self->{fragments}->{$key}->check_duplicates($files_obj);
+	my $frag;
+	foreach my $frag_key ( $self->_fragment_keys() ) {
+		$frag = $self->get_fragment_object($frag_key);
+		$frag->check_duplicates($files_obj);
 	}
 
-	my $fragment = $self->{fragments}->{$id}->add_files(@files);
+	my $fragment = $self->get_fragment_object($id)->add_files(@files);
 
 	return $fragment;
 } ## end sub add_to_fragment
