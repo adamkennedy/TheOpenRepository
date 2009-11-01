@@ -67,6 +67,9 @@ parse bocage creation can probably be made a bit slightly cleaner.
 
 =item * Make sure that nulling symbols can never be terminals
 
+=item * Add code to do cycle rewrite only if there
+are cycles?
+
 =back
 
 =head1 LOW PRIORITY

@@ -209,6 +209,7 @@ use Marpa::Offset qw(
     CYCLE_ACTION
     CYCLE_SCALE
     CYCLE_NODES
+    CYCLE_REWRITE
     PARSE_ORDER
 
     TRACE_ITERATIONS
@@ -456,6 +457,7 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK]  = {};
     $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]     = 'fatal';
     $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]      = 2;
+    $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE]    = 1;
     {
         ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
         $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = 1000;
@@ -532,6 +534,7 @@ use constant GRAMMAR_OPTIONS => [
         code_lines
         cycle_action
         cycle_nodes
+        cycle_rewrite
         cycle_scale
         default_action
         default_null_value
@@ -787,6 +790,13 @@ sub Marpa::Grammar::set {
             Marpa::exception(q{cycle_nodes must be >0})
                 if $value <= 0;
             $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = $value;
+        }
+
+        if ( defined( my $value = $args->{'cycle_rewrite'} ) ) {
+            Marpa::exception(
+                'cycle_rewrite option only allowed in experimental mode')
+                if $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] <= 0;
+            $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE] = $value;
         }
 
         if ( defined( my $value = $args->{'warnings'} ) ) {

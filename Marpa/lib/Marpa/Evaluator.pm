@@ -2021,8 +2021,9 @@ of the rule, where it will end.
 
     ### assert: Marpa'Evaluator'audit($self) or 1
 
-    # TODO: Add code to only attempt rewrite if grammar is cyclical?
-    rewrite_cycles($self);
+    if ( $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE] ) {
+        rewrite_cycles($self);
+    }
 
     ### assert: Marpa'Evaluator'audit($self) or 1
 
@@ -2207,6 +2208,7 @@ use Marpa::Offset qw(
     :package=Marpa::Internal::Task
     RESET_AND_NODE
     SETUP_AND_NODE
+    NEXT_AND_TREE
     ITERATE_AND_TREE
     ITERATE_AND_TREE_2
     ITERATE_AND_TREE_3
@@ -2733,22 +2735,24 @@ node appears more than once on the path back to the root node.
                 push @tasks,
                     [ Marpa::Internal::Task::RESET_OR_NODE, $or_node_id ],
                     map {
-                    [ Marpa::Internal::Task::RESET_AND_TREE, $_, $path, $visited ]
+                    [ Marpa::Internal::Task::NEXT_AND_TREE, $_, $path, $visited ]
                     } @unvisited_children;
             } ## end when (Marpa::Internal::Task::RESET_OR_TREE)
 
-            when (Marpa::Internal::Task::RESET_AND_TREE) {
+            # This is a bit hack-ish.  It's becomes a reset or
+            # an interate depending on the presence of absence
+            # of the 3rd "visited" argument.
+            when (Marpa::Internal::Task::NEXT_AND_TREE) {
                 my ( $and_node_id, $path, $visited ) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
-                        "Task: RESET_AND_TREE from #$and_node_id; ",
+                        "Task: NEXT_AND_TREE from #$and_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
 
                 my $and_node = $and_nodes->[$and_node_id];
-
                 my $tree_ops =
                     $and_node->[Marpa::Internal::And_Node::TREE_OPS] // [];
                 TREE_OP: for my $op_ix ( 0 .. $#{$tree_ops} ) {
@@ -2783,11 +2787,37 @@ node appears more than once on the path back to the root node.
                     # among branches, it will become
                     # incorrect.
                     # For efficiency, we use copy-on-write.
-                    my %new_path                    = %{$path};
+                    my %new_path = %{$path};
                     $new_path{$cycle_or_node_id} = 1;
-                    $path                        = \%new_path;
+                    $path = \%new_path;
 
                 } ## end for my $op_ix ( 0 .. $#{$tree_ops} )
+
+                # If there is no $visited argument,
+                # this is an iteration, not a reset
+                push @tasks,
+                    [
+                    (   $visited
+                        ? Marpa::Internal::Task::RESET_AND_TREE
+                        : Marpa::Internal::Task::ITERATE_AND_TREE
+                    ),
+                    $and_node_id,
+                    $path, $visited
+                    ];
+
+            } ## end when (Marpa::Internal::Task::NEXT_AND_TREE)
+
+            when (Marpa::Internal::Task::RESET_AND_TREE) {
+                my ( $and_node_id, $path, $visited ) = @{$task_entry};
+
+                if ($trace_tasks) {
+                    print {$trace_fh}
+                        "Task: RESET_AND_TREE from #$and_node_id; ",
+                        ( scalar @tasks ), " tasks pending\n"
+                        or Marpa::exception('print to trace handle failed');
+                } ## end if ($trace_tasks)
+
+                my $and_node = $and_nodes->[$and_node_id];
 
                 push @tasks,
                     [ Marpa::Internal::Task::RESET_AND_NODE, $and_node_id ],
@@ -3054,7 +3084,7 @@ node appears more than once on the path back to the root node.
                 push @tasks,
                     [ Marpa::Internal::Task::ITERATE_OR_NODE, $or_node_id ],
                     [
-                    Marpa::Internal::Task::ITERATE_AND_TREE,
+                    Marpa::Internal::Task::NEXT_AND_TREE,
                     $current_and_node_id,
                     $path
                     ];
