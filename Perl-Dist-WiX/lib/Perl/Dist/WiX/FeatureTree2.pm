@@ -8,8 +8,7 @@ package Perl::Dist::WiX::FeatureTree2;
 # License is the same as perl. See Wix.pm for details.
 #
 use 5.008001;
-use Moose;
-use MooseX::AttributeHelpers;
+use Moose 0.90;
 require WiX3::XML::Feature;
 
 our $VERSION = '1.100_001';
@@ -31,15 +30,15 @@ has parent => (
 );
 
 has features => (
-	metaclass => 'Collection::Array',
+	traits    => ['Array'],
 	is        => 'rw',
 	isa       => 'ArrayRef[WiX3::XML::Feature]',
 	default   => sub { [] },
 	init_arg  => undef,
-	provides  => {
-		'push'     => '_push_feature',
-		'count'    => '_count_features',
-		'elements' => '_get_feature_array',
+	handles  => {
+		'_push_feature'      => 'push',
+		'_count_features'    => 'count',
+		'_get_feature_array' => 'elements',
 	},
 );
 

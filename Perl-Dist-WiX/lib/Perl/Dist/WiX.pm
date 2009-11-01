@@ -251,6 +251,21 @@ has 'fragments' => (
 	},
 );
 
+has 'merge_modules' => (
+	traits   => ['Hash'],
+	is       => 'ro',
+	isa      => 'HashRef', # Hashref[Perl::Dist::WiX::MergeModule]
+	default  => sub { return {} },
+	init_arg => undef,
+    handles   => {
+		get_merge_module_object => 'get',
+		merge_module_exists     => 'defined',
+		_add_merge_module       => 'set',
+		_clear_merge_modules    => 'clear',
+		_merge_module_keys      => 'keys',
+	},
+);
+
 has 'output_file' => (
 	is => 'ro', # Array of strings
 	default => sub { return [] },
@@ -2016,8 +2031,8 @@ sub get_component_array {
 
 	print "Running get_component_array...\n";
 	my @answer;
-	foreach my $key ( keys %{ $self->fragments } ) {
-		push @answer, $self->fragments->{$key}->get_componentref_array();
+	foreach my $key ( $self->_fragment_keys ) {
+		push @answer, $self->get_fragment_object($key)->get_componentref_array();
 	}
 
 	return @answer;
@@ -2467,7 +2482,7 @@ sub add_icon {
 
 	# Get the Id for directory object that stores the filename passed in.
 	( $vol, $dir, $file ) = splitpath( $params{filename} );
-	$dir_id = $self->directories->search_dir(
+	$dir_id = $self->_directories()->search_dir(
 		path_to_find => catdir( $vol, $dir ),
 		exact        => 1,
 		descend      => 1,
