@@ -6,9 +6,10 @@ use Params::Util qw( _STRING _NONNEGINT );
 use WiX3::Exceptions;
 require WiX3::XML::ComponentRef;
 require WiX3::XML::FeatureRef;
+require WiX3::XML::MergeRef;
 
-our $VERSION = '0.007';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.008';
+$VERSION =~ s/_//;
 
 #####################################################################
 # Methods
@@ -71,6 +72,10 @@ sub get_componentref_array {
 
 	if ( $self->isa('WiX3::XML::Feature') ) {
 		return WiX3::XML::FeatureRef->new($self);
+	}
+
+	if ( $self->isa('WiX3::XML::Merge') ) {
+		return WiX3::XML::MergeRef->new($self);
 	}
 
 	if ( 0 == $count ) {
