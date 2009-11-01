@@ -3643,13 +3643,11 @@ L<Win32|Win32> 0.35.
 
 =item 1.
 
-Create a distribution for handling the XML-generating parts 
-of Perl::Dist::WiX and depend on it (1.100? 2.000?)
+Add the ability to build in a 32 or 64 bit toolchain using gcc 4.x.x.
 
 =item 2.
 
-Have an option to have WiX installed non-core modules install in a 
-'vendor path' (1.010)
+Make the perl distribution relocatable.
 
 =back
 
