@@ -30,6 +30,7 @@ sub null_b {'b'}
 sub null_c {'c'}
 sub null_d {'d'}
 sub null_e {'e'}
+sub null_n {'n'}
 sub null_p {'p'}
 
 sub rule_a {
@@ -55,6 +56,11 @@ sub rule_d {
 sub rule_e {
     shift;
     'e(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+}
+
+sub rule_n {
+    shift;
+    'n(' . ( join ';', map { $_ // '-' } @_ ) . ')';
 }
 
 sub rule_p {
@@ -103,6 +109,7 @@ my $grammar = Marpa::Grammar->new(
             { lhs => 'p', rhs => ['a'],         action => 'main::rule_p' },
             { lhs => 'p', rhs => [],            action => 'main::null_p' },
             { lhs => 'n', rhs => ['a'],         action => 'main::rule_n1' },
+            { lhs => 'n', rhs => [],          action => 'main::null_n' },
             { lhs => 'n', rhs => ['r2'],        action => 'main::rule_n2' },
             {   lhs    => 'r2',
                 rhs    => [qw/a x/],
@@ -128,11 +135,12 @@ for my $input_length ( 1 ) {
     defined $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] )
         or Marpa::exception( 'Parsing exhausted' );
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0,
-     trace_values=>2
+     trace_values=>2,
+     trace_tasks=>1
     } );
-    say "Bocage:\n", $evaler->show_bocage(4);
+    # say "Bocage:\n", $evaler->show_bocage(4);
     my $i = 0;
-    while (my $value = $evaler->value() and $i++ < 2) {
+    while (my $value = $evaler->value() and $i++ < 40) {
         say "l=$input_length #$i ", ${$value};
         # Marpa::Test::is( ${$value}, $results[$input_length],
             # "cycle with initial nullables, input length=$input_length, pass $i" );

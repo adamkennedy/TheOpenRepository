@@ -198,10 +198,9 @@ sub set_null_values {
     my $recce    = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
 
-    my ( $rules, $symbols, $tracing, $default_null_value ) = @{$grammar}[
+    my ( $rules, $symbols, $default_null_value ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
         Marpa::Internal::Grammar::SYMBOLS,
-        Marpa::Internal::Grammar::TRACING,
         Marpa::Internal::Grammar::DEFAULT_NULL_VALUE,
     ];
     my $actions_package = $grammar->[Marpa::Internal::Grammar::ACTIONS];
@@ -209,12 +208,8 @@ sub set_null_values {
     my $null_values;
     $#{$null_values} = $#{$symbols};
 
-    my $trace_fh;
-    my $trace_actions;
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_actions = $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS];
-    }
+    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $trace_actions = $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS];
 
     SYMBOL: for my $symbol ( @{$symbols} ) {
         my $id = $symbol->[Marpa::Internal::Symbol::ID];
@@ -364,9 +359,8 @@ sub set_actions {
     my $recce    = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
 
-    my ( $rules, $tracing, $default_action, ) = @{$grammar}[
+    my ( $rules, $default_action, ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
-        Marpa::Internal::Grammar::TRACING,
         Marpa::Internal::Grammar::DEFAULT_ACTION,
     ];
 
@@ -883,13 +877,8 @@ sub rewrite_cycles {
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $warn_on_cycle =
         $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] ne 'quiet';
-    my $tracing = $warn_on_cycle
-        || $grammar->[Marpa::Internal::Grammar::TRACING];
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_evaluation =
-            $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
-    }
+    $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    $trace_evaluation = $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
 
     my $initial_and_nodes = @{$and_nodes};
     my $maximum_and_nodes = List::Util::max(
@@ -1270,15 +1259,9 @@ sub delete_duplicate_nodes {
     my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
 
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
-    my $trace_fh;
-    my $trace_evaluation;
-
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        $trace_evaluation =
-            $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
-    }
+    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $trace_evaluation =
+        $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
 
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
@@ -1526,10 +1509,8 @@ sub Marpa::Evaluator::new {
     $grammar->[Marpa::Internal::Grammar::PHASE] =
         Marpa::Internal::Phase::EVALUATING;
 
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
-
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    my $trace_iterations = $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
+    my $trace_tasks = $grammar->[Marpa::Internal::Grammar::TRACE_TASKS];
     my $trace_evaluation = $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
 
     $self->[Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
@@ -2326,18 +2307,9 @@ sub Marpa::Evaluator::value {
 
     } ## end SET_UP_ITERATIONS:
 
-    my $tracing  = $grammar->[Marpa::Internal::Grammar::TRACING];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-
-    my $trace_values     = 0;
-    my $trace_iterations = 0;
-    my $trace_tasks      = 0;
-    if ($tracing) {
-        $trace_values = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
-        $trace_iterations =
-            $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS];
-        $trace_tasks = $trace_iterations >= 2;
-    } ## end if ($tracing)
+    my $trace_values = $grammar->[Marpa::Internal::Grammar::TRACE_VALUES];
+    my $trace_tasks  = $grammar->[Marpa::Internal::Grammar::TRACE_TASKS];
 
     my $max_parses = $grammar->[Marpa::Internal::Grammar::MAX_PARSES];
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
@@ -2366,7 +2338,7 @@ sub Marpa::Evaluator::value {
                 my $or_node = $or_nodes->[$or_node_id];
 
                 if ($trace_tasks) {
-                    print {$trace_fh} "Task: RESET_OR_NODE #$or_node_id; ",
+                    print {$trace_fh} "Task: RESET_OR_NODE #o$or_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 }
@@ -2448,7 +2420,7 @@ sub Marpa::Evaluator::value {
                 my ($and_node_id) = @{$task_entry};
 
                 if ($trace_tasks) {
-                    print {$trace_fh} "Task: RESET_AND_NODE #$and_node_id; ",
+                    print {$trace_fh} "Task: RESET_AND_NODE #a$and_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 }
@@ -2478,7 +2450,7 @@ sub Marpa::Evaluator::value {
                 my ($and_node_id) = @{$task_entry};
 
                 if ($trace_tasks) {
-                    print {$trace_fh} "Task: SETUP_AND_NODE #$and_node_id; ",
+                    print {$trace_fh} "Task: SETUP_AND_NODE #a$and_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 }
@@ -2727,7 +2699,7 @@ node appears more than once on the path back to the root node.
 
                 if ($trace_tasks) {
                     print {$trace_fh}
-                        "Task: RESET_OR_TREE from #$or_node_id; ",
+                        "Task: RESET_OR_TREE from #o$or_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
@@ -2752,7 +2724,7 @@ node appears more than once on the path back to the root node.
 
                 if ($trace_tasks) {
                     print {$trace_fh}
-                        "Task: NEXT_AND_TREE from #$and_node_id; ",
+                        "Task: NEXT_AND_TREE from #a$and_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
@@ -2779,8 +2751,6 @@ node appears more than once on the path back to the root node.
                                     Marpa::Internal::And_Node::CAUSE_ID,
                                     Marpa::Internal::And_Node::PREDECESSOR_ID
                                     ];
-
-                                ### Testing for cycle, keys: @keys
 
                                 if ( grep { $path->{$_} } @keys ) {
                                     $use_this_and_node = 0;
@@ -2862,7 +2832,7 @@ node appears more than once on the path back to the root node.
 
                 if ($trace_tasks) {
                     print {$trace_fh}
-                        "Task: RESET_AND_TREE from #$and_node_id; ",
+                        "Task: RESET_AND_TREE from #a$and_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
@@ -2886,7 +2856,7 @@ node appears more than once on the path back to the root node.
 
                 if ($trace_tasks) {
                     print {$trace_fh}
-                        "Task: ITERATE_AND_TREE from #$and_node_id; ",
+                        "Task: ITERATE_AND_TREE from #a$and_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
@@ -2935,7 +2905,7 @@ node appears more than once on the path back to the root node.
 
                 if ($trace_tasks) {
                     print {$trace_fh}
-                        "Task: ITERATE_AND_TREE_2 from #$and_node_id; ",
+                        "Task: ITERATE_AND_TREE_2 from #a$and_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
@@ -2980,7 +2950,7 @@ node appears more than once on the path back to the root node.
 
                 if ($trace_tasks) {
                     print {$trace_fh}
-                        "Task: ITERATE_AND_TREE_3 from #$and_node_id; ",
+                        "Task: ITERATE_AND_TREE_3 from #a$and_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
@@ -3016,7 +2986,7 @@ node appears more than once on the path back to the root node.
                 my ($or_node_id) = @{$task_entry};
 
                 if ($trace_tasks) {
-                    print {$trace_fh} "Task: ITERATE_OR_NODE #$or_node_id; ",
+                    print {$trace_fh} "Task: ITERATE_OR_NODE #o$or_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 }
@@ -3033,16 +3003,24 @@ node appears more than once on the path back to the root node.
                 if ( not defined $current_and_iteration ) {
                     pop @{$and_choices};
 
+                    if ($trace_tasks) {
+                        print {$trace_fh}
+                            "...ITERATE_OR_NODE #a$current_and_node_id exhausted\n",
+                            or
+                            Marpa::exception('print to trace handle failed');
+                    } ## end if ($trace_tasks)
+
                     # If there are no more choices, the or-node is exhausted ...
                     if ( scalar @{$and_choices} == 0 ) {
+                        if ($trace_tasks) {
+                            print {$trace_fh}
+                                "...ITERATE_OR_NODE #o$or_node_id exhausted\n",
+                                or Marpa::exception(
+                                'print to trace handle failed');
+                        } ## end if ($trace_tasks)
                         $or_iterations->[$or_node_id] = undef;
                         break;
-                    }
-
-                    ### ITERATE_OR_NODE Thawing to replace exhausted and choice
-                    ### ITERATE_OR_NODE or_node, and_choice: $or_node_id, $and_choices->[-1]
-                    ### ITERATE_OR_NODE Thawing and node: $and_choices->[-1]->[Marpa'Internal'And_Choice'ID]
-                    ### ITERATE_OR_NODE Rule: $and_nodes->[$and_choices->[-1]->[Marpa'Internal'And_Choice'ID]]->[ Marpa'Internal'And_Node'RULE_ID]
+                    } ## end if ( scalar @{$and_choices} == 0 )
 
                     # Thaw out the current and-choice,
                     push @tasks,
@@ -3113,11 +3091,18 @@ node appears more than once on the path back to the root node.
                 splice @{$and_choices}, $insert_point, 0,
                     $former_current_choice;
 
-                ### ITERATE_OR_NODE Thawing to exchange and-choice as a result of sort
-                ### ITERATE_OR_NODE Thawing or_node, and_choice: $or_node_id, $and_choices->[-1]
+                if ($trace_tasks) {
+                    printf {$trace_fh} (
+                        "...ITERATE_OR_NODE Sorting and-choices\n",
+                        "...ITERATE_OR_NODE Replacing #a%d with #a%d\n",
+                        $former_current_choice
+                            ->[Marpa::Internal::And_Choice::ID],
+                        $and_choices->[-1]->[Marpa::Internal::And_Choice::ID],
+                    ) or Marpa::exception('print to trace handle failed');
+                } ## end if ($trace_tasks)
 
                 push @tasks,
-                    [ Marpa::Internal::Task::THAW_TREE, $and_choices->[1] ],
+                    [ Marpa::Internal::Task::THAW_TREE, $and_choices->[-1] ],
                     [
                     Marpa::Internal::Task::FREEZE_TREE,
                     $former_current_choice
@@ -3129,7 +3114,7 @@ node appears more than once on the path back to the root node.
                 my ($or_node_id, $path) = @{$task_entry};
 
                 if ($trace_tasks) {
-                    print {$trace_fh} "Task: ITERATE_OR_TREE #$or_node_id; ",
+                    print {$trace_fh} "Task: ITERATE_OR_TREE #o$or_node_id; ",
                         ( scalar @tasks ), " tasks pending\n"
                         or Marpa::exception('print to trace handle failed');
                 }
@@ -3153,11 +3138,9 @@ node appears more than once on the path back to the root node.
                 my $and_node_id =
                     $and_choice->[Marpa::Internal::And_Choice::ID];
 
-                ### Freezing and_node, and_choice: $and_node_id, $and_choice
-
                 if ($trace_tasks) {
                     printf {$trace_fh}
-                        "Task: FREEZE_TREE; and-node-id: %d; %d tasks pending\n",
+                        "Task: FREEZE_TREE; #a%d; %d tasks pending\n",
                         $and_node_id, ( scalar @tasks )
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
@@ -3184,16 +3167,12 @@ node appears more than once on the path back to the root node.
                 my $and_node_id =
                     $and_choice->[Marpa::Internal::And_Choice::ID];
 
-                ### Thawing and_node, and_choice: $and_node_id, $and_choice
-
                 if ($trace_tasks) {
                     printf {$trace_fh}
-                        "Task: THAW_TREE; and-node-id: %d; %d tasks pending\n",
+                        "Task: THAW_TREE; and-node #a%d; %d tasks pending\n",
                         $and_node_id, ( scalar @tasks )
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
-
-                ### assert: $and_choice->[Marpa'Internal'And_Choice'FROZEN_ITERATION]
 
                 # If we are here, the current choice is new
                 # It must be thawed and its frozen iteration thrown away
@@ -3256,6 +3235,7 @@ node appears more than once on the path back to the root node.
                     )
                 {
                     my ( $or_node_id, $and_node_id ) = @{$or_mapping};
+                    ### Or map at evaluation, or-id, and-id: $or_node_id, $and_node_id
                     $or_node_choices[$or_node_id] =
                         $and_nodes->[$and_node_id];
                 } ## end for my $or_mapping ( @{ $top_and_choice->[...]})

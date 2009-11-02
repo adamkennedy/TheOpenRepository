@@ -140,7 +140,7 @@ for my $test_data (@test_data) {
         # That's the point of the test
         cycle_scale       => 200,
         trace_file_handle => $MEMORY,
-        trace_iterations => 3,
+        trace_tasks => 3,
     );
     my $grammar = Marpa::Grammar->new( { experimental => 'no warning' }, \%args );
     $grammar->precompute();

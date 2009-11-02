@@ -212,7 +212,7 @@ use Marpa::Offset qw(
     CYCLE_REWRITE
     PARSE_ORDER
 
-    TRACE_ITERATIONS
+    TRACE_TASKS
     TRACE_EVALUATION { General evaluation trace }
     TRACE_ACTIONS
     TRACE_VALUES
@@ -444,20 +444,20 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::NAME] = sprintf 'Marpa::G_%x',
         $grammar_number;
 
-    $grammar->[Marpa::Internal::Grammar::ACADEMIC]         = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_RULES]      = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]     = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS] = 0;
-    $grammar->[Marpa::Internal::Grammar::TRACING]          = 0;
-    $grammar->[Marpa::Internal::Grammar::STRIP]            = 1;
-    $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL]     = 0;
-    $grammar->[Marpa::Internal::Grammar::PARSE_ORDER]      = 'original';
-    $grammar->[Marpa::Internal::Grammar::WARNINGS]         = 1;
-    $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK]  = {};
-    $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK]  = {};
-    $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]     = 'fatal';
-    $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]      = 2;
-    $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE]    = 1;
+    $grammar->[Marpa::Internal::Grammar::ACADEMIC]        = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_RULES]     = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_VALUES]    = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACE_TASKS]     = 0;
+    $grammar->[Marpa::Internal::Grammar::TRACING]         = 0;
+    $grammar->[Marpa::Internal::Grammar::STRIP]           = 1;
+    $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL]    = 0;
+    $grammar->[Marpa::Internal::Grammar::PARSE_ORDER]     = 'original';
+    $grammar->[Marpa::Internal::Grammar::WARNINGS]        = 1;
+    $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK] = {};
+    $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK] = {};
+    $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]    = 'fatal';
+    $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]     = 2;
+    $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE]   = 1;
     {
         ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
         $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = 1000;
@@ -553,8 +553,8 @@ use constant GRAMMAR_OPTIONS => [
         trace_actions
         trace_evaluation
         trace_file_handle
-        trace_iterations
         trace_rules
+        trace_tasks
         trace_values
         unproductive_ok
         version
@@ -629,16 +629,16 @@ sub Marpa::Grammar::set {
             } ## end if ($value)
         } ## end if ( defined( my $value = $args->{'trace_rules'} ) )
 
-        if ( defined( my $value = $args->{'trace_iterations'} ) ) {
-            Marpa::exception('trace_iterations must be set to a number >= 0')
+        if ( defined( my $value = $args->{'trace_tasks'} ) ) {
+            Marpa::exception('trace_tasks must be set to a number >= 0')
                 if $value !~ /\A\d+\z/xms;
-            $grammar->[Marpa::Internal::Grammar::TRACE_ITERATIONS] =
+            $grammar->[Marpa::Internal::Grammar::TRACE_TASKS] =
                 $value + 0;
             if ($value) {
-                say {$trace_fh} "Setting trace_iterations option to $value";
+                say {$trace_fh} "Setting trace_tasks option to $value";
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             }
-        } ## end if ( defined( my $value = $args->{'trace_iterations'...}))
+        } ## end if ( defined( my $value = $args->{'trace_tasks'...}))
 
         if ( defined( my $value = $args->{'trace_evaluation'} ) ) {
             Marpa::exception('trace_evaluation must be set to a number >= 0')

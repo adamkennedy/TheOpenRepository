@@ -77,7 +77,7 @@ are cycles?
 =over 4
 
 =item * Add a trace_choices option?  There was an option to trace
-non-trivial evaluation choices in the old evaluator, and the new trace_iterations
+non-trivial evaluation choices in the old evaluator, and the trace_tasks
 doesn't entirely replace it.
 
 =item * Add a show_derivation option.
