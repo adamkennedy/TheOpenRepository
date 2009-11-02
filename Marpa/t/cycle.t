@@ -7,7 +7,7 @@ use warnings;
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
-use Test::More tests => 8;
+use Test::More tests => 14;
 use lib 'lib';
 use t::lib::Marpa::Test;
 
@@ -188,11 +188,26 @@ Cycle found involving rule: 0: s -> a
 EOS
 ];
 
-my @test_data = ( $cycle1_test, $cycle2_test, $cycle8_test );
+my @test_data;
+for my $base_test ( $cycle1_test, $cycle2_test, $cycle8_test ) {
+    my $test_name = $base_test->[0];
+    push @test_data,
+        [
+        "$test_name cycle rewrite",
+        @{$base_test}[ 1 .. $#{$base_test} ],
+        { cycle_rewrite => 0 }
+        ];
+    push @test_data,
+        [
+        "$test_name no cycle rewrite",
+        @{$base_test}[ 1 .. $#{$base_test} ],
+        { cycle_rewrite => 1 }
+        ];
+}
 
 for my $test_data (@test_data) {
     my ( $test_name, $marpa_options, $mdlex_options, $input, $expected,
-        $expected_trace )
+        $expected_trace, $additional_options )
         = @{$test_data};
     my $trace = q{};
     open my $MEMORY, '>', \$trace;
@@ -201,7 +216,8 @@ for my $test_data (@test_data) {
         {   cycle_action      => 'warn',
             trace_file_handle => $MEMORY,
         },
-        @{$marpa_options}
+        @{$marpa_options},
+        $additional_options
     );
     $grammar->precompute();
 

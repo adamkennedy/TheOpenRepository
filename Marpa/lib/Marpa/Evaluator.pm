@@ -3013,7 +3013,7 @@ node appears more than once on the path back to the root node.
             } ## end when (Marpa::Internal::Task::ITERATE_AND_TREE_3)
 
             when (Marpa::Internal::Task::ITERATE_OR_NODE) {
-                my ($or_node_id, $path) = @{$task_entry};
+                my ($or_node_id) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh} "Task: ITERATE_OR_NODE #$or_node_id; ",
@@ -3140,11 +3140,10 @@ node appears more than once on the path back to the root node.
                     $or_iterations->[$or_node_id]->[-1]
                     ->[Marpa::Internal::And_Choice::ID];
                 push @tasks,
-                    [ Marpa::Internal::Task::ITERATE_OR_NODE, $or_node_id, $path ],
+                    [ Marpa::Internal::Task::ITERATE_OR_NODE, $or_node_id ],
                     [
                     Marpa::Internal::Task::NEXT_AND_TREE,
-                    $current_and_node_id,
-                    $path
+                    $current_and_node_id, $path
                     ];
             } ## end when (Marpa::Internal::Task::ITERATE_OR_TREE)
 

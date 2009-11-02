@@ -99,25 +99,17 @@ my $grammar = Marpa::Grammar->new(
         parse_order   => 'none',
 
         rules => [
-            { lhs => 'S', rhs => [qw/p p p n/], action => 'main::rule_S' },
+            { lhs => 'S', rhs => [qw/p n/], action => 'main::rule_S' },
             { lhs => 'p', rhs => ['a'],         action => 'main::rule_p' },
             { lhs => 'p', rhs => [],            action => 'main::null_p' },
             { lhs => 'n', rhs => ['a'],         action => 'main::rule_n1' },
             { lhs => 'n', rhs => ['r2'],        action => 'main::rule_n2' },
             {   lhs    => 'r2',
-                rhs    => [qw/a b c d e x/],
+                rhs    => [qw/a x/],
                 action => 'main::rule_r2'
             },
             { lhs => 'a', rhs => [],    action => 'main::null_a' },
-            { lhs => 'b', rhs => [],    action => 'main::null_b' },
-            { lhs => 'c', rhs => [],    action => 'main::null_c' },
-            { lhs => 'd', rhs => [],    action => 'main::null_d' },
-            { lhs => 'e', rhs => [],    action => 'main::null_e' },
             { lhs => 'a', rhs => ['a'], action => 'main::rule_a' },
-            { lhs => 'b', rhs => ['a'], action => 'main::rule_b' },
-            { lhs => 'c', rhs => ['a'], action => 'main::rule_c' },
-            { lhs => 'd', rhs => ['a'], action => 'main::rule_d' },
-            { lhs => 'e', rhs => ['a'], action => 'main::rule_e' },
             { lhs => 'x', rhs => ['S'], action => 'main::rule_x' },
             ],
         terminals      => ['a'],
@@ -135,7 +127,9 @@ for my $input_length ( 1 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     defined $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] )
         or Marpa::exception( 'Parsing exhausted' );
-    my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0, trace_values=>2 } );
+    my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0,
+     trace_values=>2
+    } );
     say "Bocage:\n", $evaler->show_bocage(4);
     my $i = 0;
     while (my $value = $evaler->value() and $i++ < 2) {

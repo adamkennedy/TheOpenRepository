@@ -7,7 +7,7 @@ use warnings;
 use lib 'lib';
 use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
-use Test::More tests => 4;
+use Test::More tests => 6;
 use t::lib::Marpa::Test;
 
 BEGIN {
@@ -91,8 +91,19 @@ if ( $fail_location >= 0 ) {
 }
 $recce->tokens();
 
-my $evaler = Marpa::Evaluator->new( { recce => $recce } );
+my $evaler = Marpa::Evaluator->new( { recce => $recce, cycle_rewrite=>0 } );
 my $parse_count = 0;
+while ( my $value = $evaler->value() ) {
+    Marpa::Test::is(
+        ${$value},
+        $expected_values[$parse_count],
+        "cycle depth test $parse_count"
+    );
+    $parse_count++;
+} ## end while ( my $value = $evaler->value() )
+
+$evaler = Marpa::Evaluator->new( { recce => $recce, cycle_rewrite=>1 } );
+$parse_count = 0;
 while ( my $value = $evaler->value() ) {
     Marpa::Test::is(
         ${$value},
