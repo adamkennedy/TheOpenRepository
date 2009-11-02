@@ -31,7 +31,7 @@ sub get_merge_reference {
 	my $self = shift;
 	
 	my $primary = $self->_is_primary_reference() ? 'Yes' : 'No';
-	my $merge_ref = WiX3::XML::MergeRef->new( $self, 'primary' => $primary )
+	my $merge_ref = WiX3::XML::MergeRef->new( $self, 'primary' => $primary );
 	
 	return $merge_ref;
 }

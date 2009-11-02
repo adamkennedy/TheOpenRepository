@@ -148,8 +148,6 @@ sub initialize_tree {
 	  cpan\\sources
 	);
 
-	$self->trace_line(4, $self->as_string() . "\n\n");
-	
 	foreach my $dir (@list) {
 		$self->add_directory( catdir( $self->_get_app_dir(), $dir ) );
 	}
@@ -180,8 +178,12 @@ sub initialize_short_tree {
 #<<<
 	$branch->add_directories_id(
 		'Win32',     'win32',
+		'Perl',      'perl',
 	);
 #>>>
+
+	# This is so that the binaries to make icons of can be found.
+	$self->add_directory( catdir( $self->_get_app_dir(), 'perl\\bin' ) );
 
 	return $self;
 } ## end sub initialize_tree
