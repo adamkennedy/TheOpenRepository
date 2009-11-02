@@ -31,28 +31,28 @@ has disk_id => (
 	is       => 'ro',
 	isa      => Maybe[ Str ],
 	reader   => '_get_disk_id',
-	default  => undef;
+	default  => undef,
 );
 
 has file_compression => (
 	is       => 'ro',
 	isa      => Maybe[ Str ],
 	reader   => '_get_file_compression',
-	default  => undef;
+	default  => undef,
 );
 
 has language => (
 	is       => 'ro',
 	isa      => Maybe[ Str ],
 	reader   => '_get_language',
-	default  => undef;
+	default  => undef,
 );
 
 has source_file => (
 	is       => 'ro',
 	isa      => Maybe[ Str ],
 	reader   => '_get_source_file',
-	default  => undef;
+	default  => undef,
 );
 
 
