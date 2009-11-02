@@ -58,6 +58,14 @@ has force => (
 	default => sub { $_[0]->parent->force ? 1 : 0 },
 );
 
+has git => (
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_git',
+	default => undef,
+);
+
+
 sub install {
 	my $self = shift;
 
@@ -66,20 +74,35 @@ sub install {
 	my $fl2 = File::List::Object->new->readdir(
 		catdir( $self->_get_image_dir, 'perl' ) );
 
-	# Download the file
-	my $tgz = $self->_mirror( $self->_get_url, $self->_get_download_dir, );
-
-	# Unpack to the build directory
+	my $git = $self->_get_git();
+	
+	my $tgz;
+	if (not defined $git) {
+		# Download the file
+		$tgz = $self->_mirror( $self->_get_url, $self->_get_download_dir, );
+	}
+	
 	my $unpack_to = catdir( $self->_get_build_dir, $self->_get_unpack_to );
 	if ( -d $unpack_to ) {
 		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
 		File::Remove::remove( \1, $unpack_to );
 	}
-	my @files = $self->_extract( $tgz, $unpack_to );
-
-	# Get the versioned name of the directory
-	( my $perlsrc = $tgz ) =~ s{[.] tar[.] gz\z | [.] tgz\z}{}msx;
-	$perlsrc = File::Basename::basename($perlsrc);
+	
+	my $perlsrc;	
+	if (defined $self->_get_git()) {
+		# Copy to the build directory.
+		$self->_trace_line( 0, "Copying to $unpack_to\n" );
+		$self->_copy( URI->new($self->_get_url)->path(), catdir($unpack_to, 'perl-git'));
+		$perlsrc = $git =~ m/\A(.+?)-/;
+		PDWiX->throw("I want to verify that the copy got to the right place. perlsrc = $perlsrc");
+	} else {
+		# Unpack to the build directory
+		my @files = $self->_extract( $tgz, $unpack_to );
+		
+		# Get the versioned name of the directory
+		( $perlsrc = $tgz ) =~ s{[.] tar[.] gz\z | [.] tgz\z}{}msx;
+		$perlsrc = File::Basename::basename($perlsrc);
+	}
 
 	# Pre-copy updated files over the top of the source
 	my $patch   = $self->_get_patch;

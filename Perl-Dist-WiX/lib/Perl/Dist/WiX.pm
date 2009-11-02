@@ -58,11 +58,11 @@ To install this module, run the following commands:
 		app_id            => 'myperl',
 		app_name          => 'My Perl',
 		app_publisher     => 'My Perl Distribution Project',
-		app_publisher_url => 'http:/myperl.invalid/',
+		app_publisher_url => 'http://test.invalid/',
 	);
 
 	# Creates the distribution
-	$bb->run();
+	$distribution->run();
 
 =head1 INTERFACE
 
@@ -118,6 +118,7 @@ require Perl::Dist::WiX::Fragment::Files;
 require Perl::Dist::WiX::Fragment::Environment;
 require Perl::Dist::WiX::Fragment::StartMenu;
 require Perl::Dist::WiX::IconArray;
+require Perl::Dist::WiX::MergeModule;
 require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 
@@ -171,7 +172,7 @@ has 'build_start_time' => (
 );
 
 has '_directories' => (
-	is => 'bare', # Perl::Dist::WiX::DirectoryTree2
+	is => 'ro', # Perl::Dist::WiX::DirectoryTree2
 	writer => '_set_directories',
 	default => undef,
 	init_arg => undef,
@@ -236,9 +237,9 @@ sub _build_filters {
 
 # TODO: Document get_fragment_object and fragment_exists.
 
-has 'fragments' => (
+has '_fragments' => (
 	traits   => ['Hash'],
-	is       => 'ro',
+	is       => 'bare',
 	isa      => 'HashRef', # Hashref[Perl::Dist::WiX::Fragment]
 	default  => sub { return {} },
 	init_arg => undef,
@@ -251,9 +252,9 @@ has 'fragments' => (
 	},
 );
 
-has 'merge_modules' => (
+has '_merge_modules' => (
 	traits   => ['Hash'],
-	is       => 'ro',
+	is       => 'bare',
 	isa      => 'HashRef', # Hashref[Perl::Dist::WiX::MergeModule]
 	default  => sub { return {} },
 	init_arg => undef,
@@ -266,10 +267,16 @@ has 'merge_modules' => (
 	},
 );
 
-has 'output_file' => (
+has '_output_file' => (
+	traits  => ['Array'],
 	is => 'ro', # Array of strings
 	default => sub { return [] },
 	init_arg => undef,
+    handles   => {
+		add_output_file => 'push',
+		add_output_files => 'push',
+		get_output_files => 'elements',
+	},
 );
 
 has '_perl_version_corelist' => (
@@ -763,6 +770,25 @@ has 'gcc_version' => (
 
 
 
+=head3 git_checkout
+
+The C<git_checkout> parameter is not used unless you specify that 
+C<perl_version> is 'git'. In that event, this parameter should contain 
+a string object pointing to the location of a checkout from 
+L<http://perl5.git.perl.org/>.
+
+The default is 'C:\perl-git\'.
+
+=cut
+
+has 'git_checkout' => (
+	is => 'ro',
+	isa => 'Str',
+	default => qq{C:\\perl-git\\},
+);
+
+
+
 =head3 image_dir I<(required)>
 
 Perl::Dist::WiX distributions can only be installed to fixed paths
@@ -1095,9 +1121,10 @@ sub _build_perl_config_cf_by {
 
 =head3 perl_version
 
-The C<perl_version> parameter specifies what version of perl is 
-downloaded and built.  Legal values for this parameter are '589', 
-'5100', and '5101' (for 5.8.9, 5.10.0, and 5.10.1, respectively.)
+The C<perl_version> parameter specifies what version of perl is downloaded 
+and built.  Legal values for this parameter are 'git', '589', '5100', and 
+'5101' (for a version from perl5.git.perl.org, 5.8.9, 5.10.0, and 5.10.1, 
+respectively.)
 
 This parameter defaults to '5101' if not specified.
 
@@ -1105,6 +1132,7 @@ This parameter defaults to '5101' if not specified.
 
 has 'perl_version' => (
 	is => 'ro',
+	isa => 'Str',
 	default => '5101',
 );
 
@@ -1656,10 +1684,6 @@ are installed.
 An arrayref storing the different directories under C<image_dir> that 
 need to be added to the PATH.
 
-=head3 output_file
-
-The list of distributions created as an array reference.
-
 =head3 dist_dir
 
 Provides a shortcut to the location of the shared files directory.
@@ -1707,6 +1731,36 @@ sub _build_wix_dist_dir {
 #####################################################################
 # Accessors and Documentation for accessors.
 
+=head3 git_describe
+
+The C<git_describe> method returns the output of C<git describe> on the
+directory pointed to by C<git_checkout>.
+
+=cut
+
+has 'git_describe' => (
+	is => 'ro', # String
+	lazy => 1,
+	builder => '_build_git_describe',
+	init_arg => undef,
+);
+
+sub _build_git_describe {
+	my $self = shift;
+	my $checkout = $self->git_checkout();
+	my $describe = qx{cmd.exe /d /e:on /c "pushd $checkout && git describe && popd"};
+	
+	if ($CHILD_ERROR){
+		PDWiX->throw("'git describe' returned an error: $CHILD_ERROR");
+	}
+	
+	$describe =~ s/v5[.]/5./;
+	
+	return $describe;
+}
+
+
+
 =head3 perl_version_literal
 
 The C<perl_version_literal> method returns the literal numeric Perl
@@ -1728,9 +1782,10 @@ sub _build_perl_version_literal {
 	my $self = shift;
 	
 	my $x = {
-		589  => '5.008009',
-		5100 => '5.010000',
-		5101 => '5.010001',
+		'589'  => '5.008009',
+		'5100' => '5.010000',
+		'5101' => '5.010001',
+		'git'  => '5.011001',
 	  }->{ $self->perl_version() }
 	  || 0;
 	  
@@ -1749,7 +1804,7 @@ sub _build_perl_version_literal {
 The C<perl_version_human> method returns the "marketing" form
 of the Perl version.
 
-This will be either '5.8.9', '5.10.0', or '5.10.1'.
+This will be either 'git', '5.8.9', '5.10.0', or '5.10.1'.
 
 =cut
 
@@ -1757,6 +1812,7 @@ has 'perl_version_human' => (
 	is => 'ro', # String
 	lazy => 1,
 	builder => '_build_perl_version_human',
+	writer => '_set_perl_version_human',
 	init_arg => undef,
 );
 
@@ -1764,9 +1820,10 @@ sub _build_perl_version_human {
 	my $self = shift;
 	
 	my $x = {
-		589  => '5.8.9',
-		5100 => '5.10.0',
-		5101 => '5.10.1',
+		'589'  => '5.8.9',
+		'5100' => '5.10.0',
+		'5101' => '5.10.1',
+		'git'  => 'git',
 	  }->{ $self->perl_version() }
 	  || 0;
 	  
@@ -1788,11 +1845,18 @@ of the distribution version.
 =cut
 
 sub distribution_version_human {
+	my $self = shift;
+	
+	my $version = $self->perl_version_human();
+	
+	if ('git' eq $version) {
+		$version = $self->git_describe();
+	}
+
 	return
-	    $_[0]->perl_version_human() . q{.}
-	  . $_[0]->build_number()
-	  . ( $_[0]->portable() ? ' Portable' : q{} )
-	  . ( $_[0]->beta_number() ? ' Beta ' . $_[0]->beta_number() : q{} );
+	    $version . q{.} . $self->build_number()
+	  . ( $self->portable() ? ' Portable' : q{} )
+	  . ( $self->beta_number() ? ' Beta ' . $self->beta_number() : q{} );
 }
 
 =head3 output_date_string
@@ -1975,9 +2039,10 @@ sub msi_perl_version {
 
 	# Get perl version arrayref.
 	my $ver = {
-		589  => [ 5, 8,  9 ],
-		5100 => [ 5, 10, 0 ],
-		5101 => [ 5, 10, 1 ],
+		'589'  => [ 5, 8,  9 ],
+		'5100' => [ 5, 10, 0 ],
+		'5101' => [ 5, 10, 1 ],
+		'git'  => [ 5, 0,  0 ],
 	  }->{ $self->perl_version }
 	  || [ 0, 0, 0 ];
 
@@ -2004,6 +2069,11 @@ sub perl_config_myuname {
 	my $self = shift;
 
 	my $version = $self->perl_version_human() . q{.} . $self->build_number();
+	
+	if ($version =~ m/git/) {
+		$version = $self->git_describe() . q{.} . $self->build_number();
+	}
+	
 	if ( $self->beta_number() > 0 ) {
 		$version .= '.beta_' . $self->beta_number();
 	}
@@ -2085,7 +2155,7 @@ sub run {
 		    'Distribution generation completed in '
 		  . ( time - $start )
 		  . " seconds\n" );
-	foreach my $file ( @{ $self->output_file } ) {
+	foreach my $file ( $self->get_output_files ) {
 		$self->trace_line( 0, "Created distribution $file\n" );
 	}
 
@@ -2344,24 +2414,23 @@ sub regenerate_fragments {
 
 sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	my $self = shift;
-	$self->{output_file} ||= [];
 
 # TODO: Temporarily comment out.
 #	if ( $self->zip ) {
-#		push @{ $self->{output_file} }, $self->write_zip;
+#		$self->add_output_files($self->write_zip);
 #	}
 	if ( $self->msi ) {
-		push @{ $self->{output_file} }, $self->write_msi;
+		$self->add_output_files($self->write_msi);
 	}
 	return 1;
 } ## end sub write
 
 sub write_merge_module {
 	my $self = shift;
-	$self->{output_file} ||= [];
 
 	if ( $self->msi ) {
-		push @{ $self->{output_file} }, $self->write_msm;
+
+		$self->add_output_files($self->write_msm);
 		
 		# Save off the contents of the image directory so that
 		# they can be used later without having to rebuild the
@@ -2371,12 +2440,12 @@ sub write_merge_module {
 
 		rename $self->write_zip(), $file_out;
 		
-		push @{ $self->{output_file} }, $file_out;
+		$self->add_output_file($file_out);
 
 		$self->_clear_fragments();
 		
 		my $file =
-		  catfile( $self->output_dir, 'fragments.zip' );
+		  catfile( $self->output_dir(), 'fragments.zip' );
 		$self->trace_line( 1, "Generating zip at $file\n" );
 
 		# Create the archive
@@ -2482,6 +2551,7 @@ sub add_icon {
 
 	# Get the Id for directory object that stores the filename passed in.
 	( $vol, $dir, $file ) = splitpath( $params{filename} );
+	$self->trace_line(0, "Directory being searched for: $vol $dir\n"); 
 	$dir_id = $self->_directories()->search_dir(
 		path_to_find => catdir( $vol, $dir ),
 		exact        => 1,
