@@ -63,7 +63,7 @@
     <UIRef Id="WixUI_ErrorProgressText" />
     <UIRef Id="WixUI_Common" />
 
-    <!-- Property Id="INSTALLDIR">[% dist.image_dir %]</Property -->
+    <Property Id="INSTALLDIR">[% dist.image_dir %]</Property>
     
 [% directory_tree %]
 
