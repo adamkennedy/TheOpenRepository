@@ -1578,7 +1578,7 @@ EOF
 	  Perl::Dist::WiX::Fragment::CreateFolder->new(
 		directory_id => 'Cpanplus',
 		id           => 'CPANPLUSFolder',
-	  )) if ( 5100 <= $self->perl_version );
+	  )) if ( '589' ne $self->perl_version() );
 
 	# Clear the par cache, just to be safe.
 	# Sometimes, if not cleared, PAR fails tests.
@@ -1592,7 +1592,7 @@ EOF
 		catdir( $self->image_dir, 'cpan' ),
 	);
 
-	push @directories_to_make, catdir( $self->image_dir, 'cpanplus' ) if ( 5100 <= $self->perl_version );
+	push @directories_to_make, catdir( $self->image_dir, 'cpanplus' ) if ( '589' ne $self->perl_version() );
 
 	# Initialize the build
 	for my $d (@directories_to_make)

@@ -130,7 +130,7 @@ sub initialize_tree {
 
 	$branch->add_directories_id(
 		'Cpanplus',  'cpanplus',
-	) if (5100 <= $ver);
+	) if ('589' ne $ver);
 #>>>
 
 	my @list = qw(
