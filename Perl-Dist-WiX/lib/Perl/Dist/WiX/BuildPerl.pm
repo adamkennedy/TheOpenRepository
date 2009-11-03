@@ -568,7 +568,7 @@ sub install_perl_bin {
 	$perl->install();
 
 	# Should have a perl to use now.
-	$self->{bin_perl} = catfile( $self->image_dir(), qw/perl bin perl.exe/ );
+	$self->_set_bin_perl(catfile( $self->image_dir(), qw/perl bin perl.exe/ ));
 
 	# Add to the environment variables
 	$self->add_env_path( 'perl', 'bin' );

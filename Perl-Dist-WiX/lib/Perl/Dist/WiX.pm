@@ -126,14 +126,11 @@ our $VERSION = '1.100_001';
 $VERSION =~ s/_//;
 
 use Moose::Tiny qw(
-  bin_perl
-  bin_make
-  bin_pexports
-  bin_dlltool
   msi_feature_tree
-  feature_tree_obj
   icons
 );
+
+
 
 has 'toolchain' => (
 	is => 'bare', # Perl::Dist::WiX::Util::Toolchain object
@@ -349,7 +346,41 @@ sub _build_user_agent_directory {
 	return $dir;
 } ## end sub user_agent_directory
 
+has '_cpan_moved' => (
+	traits   => ['Bool'],
+	is       => 'bare',
+	isa      => 'Bool',
+	reader   => '_has_moved_cpan',
+	default  => 0,
+	init_arg => undef, # Cannot set this parameter in new().
+	handles  => {
+		'_move_cpan'  => 'set',
+	},
+);
 
+has '_cpan_sources_to' => (
+	is       => 'ro',
+	isa      => 'Str',
+	writer   => '_set_cpan_sources_to',
+	default  => undef,
+	init_arg => undef, # Cannot set this parameter in new().
+);
+
+has '_cpan_sources_from' => (
+	is       => 'ro',
+	isa      => 'Str',
+	writer   => '_set_cpan_sources_from',
+	default  => undef,
+	init_arg => undef, # Cannot set this parameter in new().
+);
+
+has '_portable_dist' => (
+	is => 'ro', # String
+	isa => 'Maybe[Portable::Dist]'
+	writer => '_set_portable_dist',
+	default => undef,
+	init_arg => undef, # Cannot set this parameter in new().
+);
 
 	#  Don't need to put distributions_installed in here.
 
@@ -1513,12 +1544,12 @@ sub BUILDARGS {
 sub DESTROY {
 	my $self = shift;
 
-	if ( defined $self->{'_cpan_moved'} && $self->{'_cpan_moved'} ) {
+	if ( $self->_has_moved_cpan() ) {
 		my $x = eval {
-			File::Remove::remove( \1, $self->{'_cpan_sources_from'} );
+			File::Remove::remove( \1, $self->_cpan_sources_from() );
 			File::Copy::Recursive::move(
-				$self->{'_cpan_sources_to'},
-				$self->{'_cpan_sources_from'} );
+				$self->_cpan_sources_to(),
+				$self->_cpan_sources_from() );
 		};
 	}
 
@@ -1547,11 +1578,9 @@ EOF
 
 		File::Copy::Recursive::move( $cpan_path_from, $cpan_path_to );
 
-		$self->{'_cpan_sources_from'} = $cpan_path_from;
-		$self->{'_cpan_sources_to'}   = $cpan_path_to;
-		$self->{'_cpan_moved'}        = 1;
-	} else {
-		$self->{'_cpan_moved'} = 0;
+		$self->_set_cpan_sources_from($cpan_path_from);
+		$self->_set_cpan_sources_to($cpan_path_to);
+		$self->_move_cpan();
 	}
 
 	unless ( $self->cpan()->as_string() =~ m{\/\z}ms ) {
@@ -1685,6 +1714,15 @@ object associated with this distribution.
 
 =cut
 
+has 'feature_tree_object' => (
+	is => 'ro', # String
+	isa => 'Maybe[Perl::Dist::WiX::FeatureTree2]',
+	writer => '_set_feature_tree_object',
+	default => undef,
+	init_arg => undef,
+);
+
+
 
 =head3 checkpoint_dir
 
@@ -1700,6 +1738,42 @@ The location of perl.exe, dmake.exe, pexports.exe, and dlltool.exe.
 
 These only are available (not undef) once the appropriate packages 
 are installed.
+
+=cut
+
+has 'bin_perl' => (
+	is => 'ro',
+	isa => 'Str',
+	writer => '_set_bin_perl',	
+	init_arg => undef,
+	default => undef,
+);
+
+has 'bin_make' => (
+	is => 'ro',
+	isa => 'Str',
+	writer => '_set_bin_make',	
+	init_arg => undef,
+	default => undef,
+);
+
+has 'bin_pexports' => (
+	is => 'ro',
+	isa => 'Str',
+	writer => '_set_bin_pexports',	
+	init_arg => undef,
+	default => undef,
+);
+
+has 'bin_dlltool' => (
+	is => 'ro',
+	isa => 'Str',
+	writer => '_set_bin_dlltool',	
+	init_arg => undef,
+	default => undef,
+);
+
+
 
 =head3 env_path
 
@@ -2263,11 +2337,11 @@ sub install_portable {
 	# Create the portability object
 	$self->trace_line( 1, "Creating Portable::Dist\n" );
 	require Portable::Dist;
-	$self->{portable_dist} =
+	$self->_set_portable_dist(
 	  Portable::Dist->new( perl_root => catdir( $self->image_dir, 'perl' ),
 	  );
 	$self->trace_line( 1, "Running Portable::Dist\n" );
-	$self->{portable_dist}->run;
+	$self->_portable_dist()->run();
 	$self->trace_line( 1, "Completed Portable::Dist\n" );
 
 	# Install the file that turns on Portability last
@@ -2621,7 +2695,7 @@ sub add_env_path {
 sub get_env_path {
 	my $self = shift;
 	return join q{;},
-	  map { catdir( $self->image_dir, @{$_} ) } @{ $self->env_path };
+	  map { catdir( $self->image_dir(), @{$_} ) } @{ $self->env_path() };
 }
 
 #####################################################################
@@ -2742,14 +2816,13 @@ sub write_msi {
 	} ## end foreach my $key ( keys %{ $self...})
 
 	# Generate feature tree.
-	$self->{feature_tree_obj} =
-	  Perl::Dist::WiX::FeatureTree2->new( parent => $self, );
+	$self->_set_feature_tree_obj(Perl::Dist::WiX::FeatureTree2->new( parent => $self, ));
 
 	# Write out the .wxs file
 	my $content = $self->as_string('Main.wxs.tt');
 	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
 	$filename_in =
-	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
+	  catfile( $self->fragment_dir(), $self->app_name() . q{.wxs} );
 
 	if ( -f $filename_in ) {
 
@@ -2893,8 +2966,7 @@ sub write_msm {
 	} ## end foreach my $key ( keys %{ $self...})
 
 	# Generate feature tree.
-	$self->{feature_tree_obj} =
-	  Perl::Dist::WiX::FeatureTree2->new( parent => $self, );
+	$self->_set_feature_tree_obj(Perl::Dist::WiX::FeatureTree2->new( parent => $self, ));
 
 	# Write out the .wxs file
 	my $content = $self->as_string('Merge-Module.wxs.tt');
