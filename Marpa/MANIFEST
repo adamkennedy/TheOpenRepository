@@ -51,6 +51,7 @@ lib/Marpa/MDL/Symbol.pm
 lib/Marpa/Offset.pm
 lib/Marpa.pm
 lib/Marpa/Recognizer.pm
+lib/Marpa/UrHTML.pm
 Makefile.PL
 MANIFEST
 META.yml

@@ -5,7 +5,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 13;
 
 use lib 'lib';
 use t::lib::Marpa::Test;
@@ -62,9 +62,9 @@ sub rule_p {
     'p(' . ( join ';', map { $_ // '-' } @_ ) . ')';
 }
 
-sub rule_x {
+sub rule_z {
     shift;
-    'x(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    'z(' . ( join ';', map { $_ // '-' } @_ ) . ')';
 }
 
 sub rule_S {
@@ -90,12 +90,12 @@ sub rule_r2 {
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
-    { experimental => 1 },
+    { experimental => 'no warning' },
     {   start         => 'S',
         strip         => 0,
         maximal       => 1,
         cycle_rewrite => 0,
-        cycle_action  => 'warn',
+        cycle_action  => 'quiet',
         parse_order   => 'none',
 
         rules => [
@@ -105,7 +105,7 @@ my $grammar = Marpa::Grammar->new(
             { lhs => 'n', rhs => ['a'],         action => 'main::rule_n1' },
             { lhs => 'n', rhs => ['r2'],        action => 'main::rule_n2' },
             {   lhs    => 'r2',
-                rhs    => [qw/a b c d e x/],
+                rhs    => [qw/a b c d e z/],
                 action => 'main::rule_r2'
             },
             { lhs => 'a', rhs => [],    action => 'main::null_a' },
@@ -118,7 +118,7 @@ my $grammar = Marpa::Grammar->new(
             { lhs => 'c', rhs => ['a'], action => 'main::rule_c' },
             { lhs => 'd', rhs => ['a'], action => 'main::rule_d' },
             { lhs => 'e', rhs => ['a'], action => 'main::rule_e' },
-            { lhs => 'x', rhs => ['S'], action => 'main::rule_x' },
+            { lhs => 'z', rhs => ['S'], action => 'main::rule_z' },
             ],
         terminals      => ['a'],
         maximal        => 1,
@@ -128,26 +128,52 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-my @results = qw{NA (-;-;-;a) (a;-;-;a) (a;a;-;a) (a;a;a;a)};
+my @results;
+$results[1] = [
+    qw{
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;-)))))
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(A);p;p;-)))))
+        S(p;p;p;n2(r2(a;b;c;d;e(a(A));-)))
+        S(p;p;p;n2(r2(a;b;c;d;e(A);-)))
+        }
+];
 
-my %seen;
-for my $input_length ( 1 .. 8 ) {
+$results[2] = [
+    qw{
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;n2(r2(a;b;c;d;e;z(S(p;p(a(A));p;-)))))))))
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;n2(r2(a;b;c;d;e;z(S(p;p(A);p;-)))))))))
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;-)))))))))
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;n2(r2(a;b;c;d;e;z(S(p(A);p;p;-)))))))))
+        }
+];
+
+$results[3] = [
+    qw{
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;n2(r2(a;b;c;d;e;z(S(p;p(a(A));p;n2(r2(a;b;c;d;e;z(S(p;p;p(a(A));-)))))))))))))
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;n2(r2(a;b;c;d;e;z(S(p;p(a(A));p;n2(r2(a;b;c;d;e;z(S(p;p;p(A);-)))))))))))))
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;n2(r2(a;b;c;d;e;z(S(p;p(a(A));p;n2(r2(a;b;c;d;e;z(S(p;p(a(A));p;-)))))))))))))
+        S(p;p;p;n2(r2(a;b;c;d;e;z(S(p(a(A));p;p;n2(r2(a;b;c;d;e;z(S(p;p(a(A));p;n2(r2(a;b;c;d;e;z(S(p;p(A);p;-)))))))))))))
+        }
+];
+
+for my $input_length ( 1 .. 3 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     defined $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] )
-        or Marpa::exception( 'Parsing exhausted' );
-    my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0,
-    # trace_values=>2
-    } );
-    #say "Bocage:\n", $evaler->show_bocage(4);
+        or Marpa::exception('Parsing exhausted');
+    my $evaler = Marpa::Evaluator->new(
+        {   recce => $recce,
+            clone => 0,
+        }
+    );
     my $i = 0;
-    while (my $value = $evaler->value() and $i++ < 4) {
+    while ( my $value = $evaler->value() and $i < 4 ) {
         my $result = ${$value};
-        say "l=$input_length #$i ", ${$value};
-        Carp::croak("Result already seen") if $seen{$result};
-        # Marpa::Test::is( ${$value}, $results[$input_length],
-            # "cycle with initial nullables, input length=$input_length, pass $i" );
-    }
-} ## end for my $input_length ( 1 .. 4 )
+        Marpa::Test::is( ${$value}, $results[$input_length][$i],
+            "cycle with initial nullables, input length=$input_length, pass $i"
+        );
+        $i++;
+    } ## end while ( my $value = $evaler->value() and $i++ < 4 )
+} ## end for my $input_length ( 1 .. 3 )
 
 # Local Variables:
 #   mode: cperl
