@@ -203,7 +203,7 @@ for my $base_test ( $cycle1_test, $cycle2_test, $cycle8_test ) {
         @{$base_test}[ 1 .. $#{$base_test} ],
         { cycle_rewrite => 1 }
         ];
-}
+} ## end for my $base_test ( $cycle1_test, $cycle2_test, $cycle8_test)
 
 for my $test_data (@test_data) {
     my ( $test_name, $marpa_options, $mdlex_options, $input, $expected,

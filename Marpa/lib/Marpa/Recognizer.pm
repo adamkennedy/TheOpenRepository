@@ -498,7 +498,7 @@ sub Marpa::Recognizer::tokens {
             Marpa::exception( 'Non-terminal '
                     . ( defined $symbol_name ? "$symbol_name " : q{} )
                     . 'supplied as token' );
-        } ## end if ( not $token->[Marpa::Internal::Symbol::TERMINAL])
+        }
 
         my $value_ref = \($value);
 
@@ -803,9 +803,10 @@ sub Marpa::Recognizer::tokens {
 
         #### Lexables Predicted: scalar grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
 
-        $current_terminals =
-            [ map { $symbols->[$_]->[Marpa::Internal::Symbol::NAME] }
-                    grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} ) ];
+        $current_terminals = [
+            map { $symbols->[$_]->[Marpa::Internal::Symbol::NAME] }
+            grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
+        ];
 
     } ## end while (1)
 

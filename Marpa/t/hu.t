@@ -30,7 +30,7 @@ my $g = Marpa::Grammar->new(
             [ 'A',   [qw/a S b/] ],
             [ 'A',   [qw/a b/] ],
         ],
-        academic     => 1,
+        academic => 1,
     }
 );
 

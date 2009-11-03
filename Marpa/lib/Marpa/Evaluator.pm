@@ -878,7 +878,8 @@ sub rewrite_cycles {
     my $warn_on_cycle =
         $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] ne 'quiet';
     $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    $trace_evaluation = $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
+    $trace_evaluation =
+        $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
 
     my $initial_and_nodes = @{$and_nodes};
     my $maximum_and_nodes = List::Util::max(
@@ -1509,9 +1510,10 @@ sub Marpa::Evaluator::new {
     $grammar->[Marpa::Internal::Grammar::PHASE] =
         Marpa::Internal::Phase::EVALUATING;
 
-    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $trace_fh    = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $trace_tasks = $grammar->[Marpa::Internal::Grammar::TRACE_TASKS];
-    my $trace_evaluation = $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
+    my $trace_evaluation =
+        $grammar->[Marpa::Internal::Grammar::TRACE_EVALUATION];
 
     $self->[Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
     my $or_nodes  = $self->[Marpa::Internal::Evaluator::OR_NODES]  = [];
@@ -1540,8 +1542,9 @@ sub Marpa::Evaluator::new {
     my $start_rule_id = $start_rule->[Marpa::Internal::Rule::ID];
 
     state $parse_number = 0;
-    my $null_values     = set_null_values($self);
-    my $evaluator_rules = $self->[Marpa::Internal::Evaluator::RULE_VALUE_OPS] =
+    my $null_values = set_null_values($self);
+    my $evaluator_rules =
+        $self->[Marpa::Internal::Evaluator::RULE_VALUE_OPS] =
         set_actions($self);
     if (defined(
             my $action_object =
@@ -1557,7 +1560,7 @@ sub Marpa::Evaluator::new {
             $closure;
     } ## end if ( defined( my $action_object = $grammar->[...]))
 
-    my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
 
     my @tree_rules;
     $#tree_rules = $#{$rules};
@@ -1568,8 +1571,8 @@ sub Marpa::Evaluator::new {
 
         ### cycle rule: Marpa'brief_rule($rule)
 
-        $tree_rules[$rule_id] = [ Marpa::Internal::Evaluator_Op::CYCLE ];
-    } ## end for my $rule ( @{ cycle_rules($grammar) } )
+        $tree_rules[$rule_id] = [Marpa::Internal::Evaluator_Op::CYCLE];
+    } ## end for my $rule ( @{ Marpa::Internal::Grammar::cycle_rules...})
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
     my ( $nulling, $symbol_id ) =
@@ -1579,7 +1582,6 @@ sub Marpa::Evaluator::new {
 
     # deal with a null parse as a special case
     if ($nulling) {
-
 
         my $or_node = [];
         $#{$or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
@@ -1701,12 +1703,12 @@ sub Marpa::Evaluator::new {
 
         for my $and_sapling (@and_saplings) {
 
-            my ( $sapling_rule, $sapling_position, $symbol, $value_processing )
-                = @{$and_sapling};
+            my ($sapling_rule, $sapling_position,
+                $symbol,       $value_processing
+            ) = @{$and_sapling};
 
-            my ( $rule_id, $rhs ) =
-                @{$sapling_rule}[ Marpa::Internal::Rule::ID,
-                Marpa::Internal::Rule::RHS ];
+            my $rule_id     = $sapling_rule->[Marpa::Internal::Rule::ID];
+            my $rhs         = $sapling_rule->[Marpa::Internal::Rule::RHS];
             my $rule_length = @{$rhs};
 
             my @or_bud_list;
@@ -1803,8 +1805,7 @@ sub Marpa::Evaluator::new {
                 $and_node->[Marpa::Internal::And_Node::TOKEN] = $token;
                 $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
                     $value_ref;
-                my $rule_id = $and_node->[Marpa::Internal::And_Node::RULE_ID] =
-                    $sapling_rule->[Marpa::Internal::Rule::ID];
+                $and_node->[Marpa::Internal::And_Node::RULE_ID] = $rule_id;
 
                 # Right now tree processing is only done on
                 # closure and-nodes.
@@ -2029,7 +2030,7 @@ sub Marpa::dump_sort_key {
 } ## end sub Marpa::dump_sort_key
 
 sub Marpa::Evaluator::show_sort_keys {
-    my ($evaler) = @_;
+    my ($evaler)    = @_;
     my $recce       = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar     = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $parse_order = $grammar->[Marpa::Internal::Grammar::PARSE_ORDER];
@@ -2125,13 +2126,13 @@ sub Marpa::Evaluator::show_and_node {
     if ( $verbose >= 2 ) {
         my @comment = ();
         if ( $and_node->[Marpa::Internal::And_Node::TREE_OPS] ) {
-            push @comment, "tree_ops";
+            push @comment, 'tree_ops';
         }
         if ( $and_node->[Marpa::Internal::And_Node::VALUE_OPS] ) {
-            push @comment, "value_ops";
+            push @comment, 'value_ops';
         }
-        if (scalar @comment) {
-            $return_value .= q{    } . (join ", ", @comment) . "\n";
+        if ( scalar @comment ) {
+            $return_value .= q{    } . ( join q{, }, @comment ) . "\n";
         }
     } ## end if ( $verbose >= 2 )
 
@@ -2239,9 +2240,10 @@ sub Marpa::Evaluator::value {
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
 
-    my $evaluator_rules = $evaler->[Marpa::Internal::Evaluator::RULE_VALUE_OPS];
-    my $and_nodes       = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $or_nodes        = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $evaluator_rules =
+        $evaler->[Marpa::Internal::Evaluator::RULE_VALUE_OPS];
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
 
     # If the arrays of iteration data
     # for the and-nodes and or-nodes are undefined,
@@ -2345,7 +2347,8 @@ sub Marpa::Evaluator::value {
 
                 # Set up the and-choices from the children
                 my @and_choices = ();
-                AND_CHOICE: for my $child_and_node_id (
+                AND_CHOICE:
+                for my $child_and_node_id (
                     @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] } )
                 {
                     my $and_iteration = $and_iterations->[$child_and_node_id];
@@ -2362,7 +2365,7 @@ sub Marpa::Evaluator::value {
                         @{  $and_iteration
                                 ->[Marpa::Internal::And_Iteration::OR_MAP]
                             }
-                        ];
+                    ];
 
                     ### RESET_OR_NODE, and-node id, choice or_map: $child_and_node_id, $and_choice->[Marpa'Internal'And_Choice'OR_MAP]
 
@@ -2500,7 +2503,7 @@ sub Marpa::Evaluator::value {
                     # exhausted, this and-node is exhausted.
                     if ( not $predecessor_or_node_iteration ) {
                         $and_iterations->[$and_node_id] = undef;
-                        break; # next TASK
+                        break;    # next TASK
                     }
 
                     $predecessor_and_node_choice =
@@ -2537,9 +2540,9 @@ sub Marpa::Evaluator::value {
 
                 # The rest of the processing is for the original parse
                 # ordering
-                break # next TASK
+                break    # next TASK
                     if $parse_order ne 'original';
-                
+
                 my $and_node_end_earleme =
                     $and_node->[Marpa::Internal::And_Node::END_EARLEME];
 
@@ -2562,8 +2565,10 @@ sub Marpa::Evaluator::value {
                     $cause_sort_elements = $cause_sort_data
                         ->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
 
+                    #<<< As of 2 Nov 2009 perltidy cycles on this
                     $trailing_nulls += $cause_sort_data->[
                         Marpa::Internal::Original_Sort_Data::TRAILING_NULLS ];
+                    #>>>
                 } ## end if ( defined $cause_and_node_choice )
 
                 my $predecessor_sort_elements = [];
@@ -2584,10 +2589,10 @@ sub Marpa::Evaluator::value {
 
                     $predecessor_sort_elements = $predecessor_sort_data
                         ->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
-                    $internal_nulls =
-                        $predecessor_sort_data
-                        ->[Marpa::Internal::Original_Sort_Data::TRAILING_NULLS
-                        ];
+                    #<<< As of 2 Nov 2009 perltidy cycles on this
+                    $internal_nulls = $predecessor_sort_data->[
+                        Marpa::Internal::Original_Sort_Data::TRAILING_NULLS ];
+                    #>>>
                     if ( $predecessor_end_earleme == $and_node_end_earleme ) {
                         $trailing_nulls += $internal_nulls;
                     }
@@ -2696,6 +2701,7 @@ node appears more than once on the path back to the root node.
 =end Implementation:
 
 =cut
+
             when (Marpa::Internal::Task::RESET_OR_TREE) {
 
                 my ( $or_node_id, $path, $visited ) = @{$task_entry};
@@ -2715,7 +2721,9 @@ node appears more than once on the path back to the root node.
                 push @tasks,
                     [ Marpa::Internal::Task::RESET_OR_NODE, $or_node_id ],
                     map {
-                    [ Marpa::Internal::Task::NEXT_AND_TREE, $_, $path, $visited ]
+                    [   Marpa::Internal::Task::NEXT_AND_TREE,
+                        $_, $path, $visited
+                    ]
                     } @unvisited_children;
             } ## end when (Marpa::Internal::Task::RESET_OR_TREE)
 
@@ -2810,7 +2818,7 @@ node appears more than once on the path back to the root node.
                             ### Adding to path, key, value: $key, $value
 
                             $new_path{$key} = $value;
-                        }
+                        } ## end for my $add_to_path (@add_to_path)
                         $path = \%new_path;
                     } ## end if ( scalar @add_to_path )
 
@@ -2845,7 +2853,9 @@ node appears more than once on the path back to the root node.
                 push @tasks,
                     [ Marpa::Internal::Task::RESET_AND_NODE, $and_node_id ],
                     map {
-                    [ Marpa::Internal::Task::RESET_OR_TREE, $_, $path, $visited ]
+                    [   Marpa::Internal::Task::RESET_OR_TREE,
+                        $_, $path, $visited
+                    ]
                     }
                     grep { defined $_ } @{$and_node}[
                     Marpa::Internal::And_Node::CAUSE_ID,
@@ -2855,7 +2865,7 @@ node appears more than once on the path back to the root node.
             } ## end when (Marpa::Internal::Task::RESET_AND_TREE)
 
             when (Marpa::Internal::Task::ITERATE_AND_TREE) {
-                my ($and_node_id, $path) = @{$task_entry};
+                my ( $and_node_id, $path ) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -2874,7 +2884,7 @@ node appears more than once on the path back to the root node.
                     ->[Marpa::Internal::And_Iteration::CURRENT_CHILD_FIELD];
                 if ( not defined $current_child_field ) {
                     $and_iterations->[$and_node_id] = undef;
-                    break; # next TASK
+                    break;    # next TASK
                 }
 
                 my $and_node = $and_nodes->[$and_node_id];
@@ -2894,7 +2904,8 @@ node appears more than once on the path back to the root node.
                 push @tasks,
                     [
                     Marpa::Internal::Task::ITERATE_OR_TREE,
-                    $and_node->[$current_child_field], $path
+                    $and_node->[$current_child_field],
+                    $path
                     ];
 
             } ## end when (Marpa::Internal::Task::ITERATE_AND_TREE)
@@ -2904,7 +2915,7 @@ node appears more than once on the path back to the root node.
                 # We always have both a cause and a predecessor if we are
                 # in this task.
 
-                my ($and_node_id, $path) = @{$task_entry};
+                my ( $and_node_id, $path ) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -2936,11 +2947,12 @@ node appears more than once on the path back to the root node.
 
                 push @tasks,
                     [
-                    Marpa::Internal::Task::ITERATE_AND_TREE_3, $and_node_id, $path
+                    Marpa::Internal::Task::ITERATE_AND_TREE_3, $and_node_id,
+                    $path
                     ],
                     [
-                    Marpa::Internal::Task::ITERATE_OR_TREE,
-                    $other_child_id, $path
+                    Marpa::Internal::Task::ITERATE_OR_TREE, $other_child_id,
+                    $path
                     ];
 
             } ## end when (Marpa::Internal::Task::ITERATE_AND_TREE_2)
@@ -2949,7 +2961,7 @@ node appears more than once on the path back to the root node.
 
                 # We always have both a cause and a predecessor if we are
                 # in this task.
-                my ($and_node_id, $path) = @{$task_entry};
+                my ( $and_node_id, $path ) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh}
@@ -3032,7 +3044,7 @@ node appears more than once on the path back to the root node.
                         $and_choices->[-1]
                         ];
 
-                    break; # next TASK
+                    break;    # next TASK
 
                 } ## end if ( not defined $current_and_iteration )
 
@@ -3041,8 +3053,8 @@ node appears more than once on the path back to the root node.
                 # no longer the first in sort order.
 
                 # Refresh and-choice's fields
-                $current_and_choice->[Marpa::Internal::And_Choice::SORT_DATA] =
-                    $current_and_iteration
+                $current_and_choice->[Marpa::Internal::And_Choice::SORT_DATA]
+                    = $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::SORT_DATA];
                 $current_and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $current_and_iteration
@@ -3053,7 +3065,7 @@ node appears more than once on the path back to the root node.
                 # The rest of the logic is for keeping the order correct
                 # for the "original" parse ordering
 
-                break # next TASK
+                break    # next TASK
                     if $parse_order ne 'original';
 
                 # If only one choice still active,
@@ -3116,7 +3128,7 @@ node appears more than once on the path back to the root node.
             } ## end when (Marpa::Internal::Task::ITERATE_OR_NODE)
 
             when (Marpa::Internal::Task::ITERATE_OR_TREE) {
-                my ($or_node_id, $path) = @{$task_entry};
+                my ( $or_node_id, $path ) = @{$task_entry};
 
                 if ($trace_tasks) {
                     print {$trace_fh} "Task: ITERATE_OR_TREE #o$or_node_id; ",
@@ -3344,8 +3356,8 @@ node appears more than once on the path back to the root node.
 
                     }    # defined $value_ref
 
-                    my $value_processing = $and_node
-                        ->[Marpa::Internal::And_Node::VALUE_OPS];
+                    my $value_processing =
+                        $and_node->[Marpa::Internal::And_Node::VALUE_OPS];
 
                     next TREE_NODE if not defined $value_processing;
 

@@ -78,9 +78,9 @@ my $g = Marpa::Grammar->new(
         # This is for debugging, after all
         max_parses => 300,
 
-        actions => 'main',
+        actions     => 'main',
         parse_order => 'none',
-        rules   => [
+        rules       => [
             [ 'E', [qw/E Minus E/],     'minus' ],
             [ 'E', [qw/E Minus Minus/], 'postfix_decr' ],
             [ 'E', [qw/Minus Minus E/], 'prefix_decr' ],
@@ -99,7 +99,7 @@ $g->precompute();
 for my $n ( 1 .. 12 ) {
 ## use critic
 
-    my $recce  = Marpa::Recognizer->new( { grammar => $g } );
+    my $recce = Marpa::Recognizer->new( { grammar => $g } );
     $g->precompute();
     ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
     $recce->tokens(

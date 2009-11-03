@@ -21,70 +21,69 @@ sub default_action {
     my $v_count = scalar @_;
     return q{} if $v_count <= 0;
     my @vals = map { $_ // q{-} } @_;
-    # return $vals[0] if $v_count == 1;
     return '(' . join( q{;}, @vals ) . ')';
 } ## end sub default_action
 
-sub null_a {'a'}
-sub null_b {'b'}
-sub null_c {'c'}
-sub null_d {'d'}
-sub null_e {'e'}
-sub null_p {'p'}
+sub null_a { return 'a' }
+sub null_b { return 'b' }
+sub null_c { return 'c' }
+sub null_d { return 'd' }
+sub null_e { return 'e' }
+sub null_p { return 'p' }
 
 sub rule_a {
     shift;
-    'a(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'a(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
 sub rule_b {
     shift;
-    'b(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'b(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
 sub rule_c {
     shift;
-    'c(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'c(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
 sub rule_d {
     shift;
-    'd(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'd(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
 sub rule_e {
     shift;
-    'e(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'e(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
 sub rule_p {
     shift;
-    'p(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'p(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
 sub rule_z {
     shift;
-    'z(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'z(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
-sub rule_S {
+sub start_rule {
     shift;
-    'S(' . ( join ';', ( map { $_ // '-' } @_ ) ) . ')';
+    return 'S(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
 
 sub rule_n1 {
     shift;
-    'n1(' . ( join ';', ( map { $_ // '-' } @_ ) ) . ')';
+    return 'n1(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
 
 sub rule_n2 {
     shift;
-    'n2(' . ( join ';', ( map { $_ // '-' } @_ ) ) . ')';
+    return 'n2(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
 
 sub rule_r2 {
     shift;
-    'r2(' . ( join ';', ( map { $_ // '-' } @_ ) ) . ')';
+    return 'r2(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
 
 ## use critic
@@ -99,11 +98,14 @@ my $grammar = Marpa::Grammar->new(
         parse_order   => 'none',
 
         rules => [
-            { lhs => 'S', rhs => [qw/p p p n/], action => 'main::rule_S' },
-            { lhs => 'p', rhs => ['a'],         action => 'main::rule_p' },
-            { lhs => 'p', rhs => [],            action => 'main::null_p' },
-            { lhs => 'n', rhs => ['a'],         action => 'main::rule_n1' },
-            { lhs => 'n', rhs => ['r2'],        action => 'main::rule_n2' },
+            {   lhs    => 'S',
+                rhs    => [qw/p p p n/],
+                action => 'main::start_rule'
+            },
+            { lhs => 'p', rhs => ['a'],  action => 'main::rule_p' },
+            { lhs => 'p', rhs => [],     action => 'main::null_p' },
+            { lhs => 'n', rhs => ['a'],  action => 'main::rule_n1' },
+            { lhs => 'n', rhs => ['r2'], action => 'main::rule_n2' },
             {   lhs    => 'r2',
                 rhs    => [qw/a b c d e z/],
                 action => 'main::rule_r2'
@@ -119,7 +121,7 @@ my $grammar = Marpa::Grammar->new(
             { lhs => 'd', rhs => ['a'], action => 'main::rule_d' },
             { lhs => 'e', rhs => ['a'], action => 'main::rule_e' },
             { lhs => 'z', rhs => ['S'], action => 'main::rule_z' },
-            ],
+        ],
         terminals      => ['a'],
         maximal        => 1,
         default_action => 'main::default_action',
@@ -172,7 +174,7 @@ for my $input_length ( 1 .. 3 ) {
             "cycle with initial nullables, input length=$input_length, pass $i"
         );
         $i++;
-    } ## end while ( my $value = $evaler->value() and $i++ < 4 )
+    } ## end while ( my $value = $evaler->value() and $i < 4 )
 } ## end for my $input_length ( 1 .. 3 )
 
 # Local Variables:

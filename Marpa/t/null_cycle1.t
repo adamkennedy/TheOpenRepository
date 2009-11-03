@@ -24,49 +24,48 @@ sub default_action {
     return '(' . join( q{;}, @vals ) . ')';
 } ## end sub default_action
 
-sub null_a {'a'}
-sub null_n {'n'}
-sub null_p {'p'}
+sub null_a { return 'a' }
+sub null_n { return 'n' }
+sub null_p { return 'p' }
 
 sub rule_a {
     shift;
-    'a(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'a(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
 sub rule_n {
     shift;
-    'n(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'n(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
 sub rule_p {
     shift;
-    'p(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'p(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
 sub rule_z {
     shift;
-    'z(' . ( join ';', map { $_ // '-' } @_ ) . ')';
+    return 'z(' . ( join q{;}, map { $_ // q{-} } @_ ) . ')';
 }
 
-sub rule_S {
+sub start_rule {
     shift;
-    'S(' . ( join ';', ( map { $_ // '-' } @_ ) ) . ')';
+    return 'S(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
-
 
 sub rule_na {
     shift;
-    'na(' . ( join ';', ( map { $_ // '-' } @_ ) ) . ')';
+    return 'na(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
 
 sub rule_nr2 {
     shift;
-    'nr2(' . ( join ';', ( map { $_ // '-' } @_ ) ) . ')';
+    return 'nr2(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
 
 sub rule_r2 {
     shift;
-    'r2(' . ( join ';', ( map { $_ // '-' } @_ ) ) . ')';
+    return 'r2(' . ( join q{;}, ( map { $_ // q{-} } @_ ) ) . ')';
 }
 
 ## use critic
@@ -81,7 +80,7 @@ my $grammar = Marpa::Grammar->new(
         parse_order   => 'none',
 
         rules => [
-            { lhs => 'S', rhs => [qw/p n/], action => 'main::rule_S' },
+            { lhs => 'S', rhs => [qw/p n/], action => 'main::start_rule' },
             { lhs => 'p', rhs => ['a'],     action => 'main::rule_p' },
             { lhs => 'p', rhs => [],        action => 'main::null_p' },
             { lhs => 'n', rhs => ['a'],     action => 'main::rule_na' },
@@ -94,7 +93,7 @@ my $grammar = Marpa::Grammar->new(
             { lhs => 'a', rhs => [],    action => 'main::null_a' },
             { lhs => 'a', rhs => ['a'], action => 'main::rule_a' },
             { lhs => 'z', rhs => ['S'], action => 'main::rule_z' },
-            ],
+        ],
         terminals      => ['a'],
         maximal        => 1,
         default_action => 'main::default_action',
@@ -148,16 +147,20 @@ $results[3] = [
 for my $input_length ( 1 .. 3 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     defined $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] )
-        or Marpa::exception( 'Parsing exhausted' );
-    my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0,
-    } );
+        or Marpa::exception('Parsing exhausted');
+    my $evaler = Marpa::Evaluator->new(
+        {   recce => $recce,
+            clone => 0,
+        }
+    );
     my $i = 0;
-    while (my $value = $evaler->value() and $i < 10) {
+    while ( my $value = $evaler->value() and $i < 10 ) {
         Marpa::Test::is( ${$value}, $results[$input_length][$i],
-            "cycle with initial nullables, input length=$input_length, pass $i" );
+            "cycle with initial nullables, input length=$input_length, pass $i"
+        );
         $i++;
-    }
-} ## end for my $input_length ( 1 .. 4 )
+    } ## end while ( my $value = $evaler->value() and $i < 10 )
+} ## end for my $input_length ( 1 .. 3 )
 
 # Local Variables:
 #   mode: cperl

@@ -33,7 +33,7 @@ sub ah_extended {
                 [ 'A', [qw/E/] ],
                 ['E'],
             ],
-            terminals => ['a'],
+            terminals   => ['a'],
             parse_order => 'none',
 
             # no warnings for $n equals zero

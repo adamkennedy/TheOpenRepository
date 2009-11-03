@@ -79,7 +79,7 @@ $Test_Grammar::MDLEX_OPTIONS = [
 
 package main;
 
-my $g     = Marpa::Grammar->new( @{$Test_Grammar::MARPA_OPTIONS} );
+my $g = Marpa::Grammar->new( @{$Test_Grammar::MARPA_OPTIONS} );
 $g->precompute();
 my $recce = Marpa::Recognizer->new( { grammar => $g } );
 my $lexer =

@@ -60,8 +60,6 @@ sub run_sequence_test {
 
     $grammar->precompute();
 
-    my $sep;
-
     # Number of symbols to test at the higher numbers is
     # more or less arbitrary.  You really need to test 0 .. 3.
     # And you ought to test a couple of higher values,

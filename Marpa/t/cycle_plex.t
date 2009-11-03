@@ -145,11 +145,9 @@ EOS
 ];
 
 for my $test_data ( $plex1_test, $plex2_test, $plex3_test ) {
-    my ( $test_name, $rules,
-    $expected_values_rw,
-    $expected_values_norw,
-    $expected_trace ) =
-        @{$test_data};
+    my ( $test_name, $rules, $expected_values_rw, $expected_values_norw,
+        $expected_trace )
+        = @{$test_data};
 
     my $trace = q{};
     open my $MEMORY, '>', \$trace;
@@ -199,9 +197,9 @@ for my $test_data ( $plex1_test, $plex2_test, $plex3_test ) {
                 "$test_name " . ( $cycle_rewrite ? 'rewrite' : 'no rewrite' )
             )
         );
-    } ## end for my $rewrite ( 0, 1 )
+    } ## end for my $cycle_rewrite ( 0, 1 )
 
-} ## end for my $test_data (@test_data)
+} ## end for my $test_data ( $plex1_test, $plex2_test, $plex3_test)
 
 # Local Variables:
 #   mode: cperl

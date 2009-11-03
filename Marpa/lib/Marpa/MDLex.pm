@@ -249,7 +249,7 @@ sub add_user_terminals {
         $priority ||= 0;
 
         Carp::croak('Terminal must have name') if not defined $name;
-        if ( not $recce->check_terminal($name)) {
+        if ( not $recce->check_terminal($name) ) {
             Carp::croak("Terminal '$name' not known to Marpa");
         }
         $terminal->[Marpa::MDLex::Internal::Terminal::NAME] = $name;

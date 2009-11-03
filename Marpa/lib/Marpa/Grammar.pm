@@ -632,13 +632,12 @@ sub Marpa::Grammar::set {
         if ( defined( my $value = $args->{'trace_tasks'} ) ) {
             Marpa::exception('trace_tasks must be set to a number >= 0')
                 if $value !~ /\A\d+\z/xms;
-            $grammar->[Marpa::Internal::Grammar::TRACE_TASKS] =
-                $value + 0;
+            $grammar->[Marpa::Internal::Grammar::TRACE_TASKS] = $value + 0;
             if ($value) {
                 say {$trace_fh} "Setting trace_tasks option to $value";
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             }
-        } ## end if ( defined( my $value = $args->{'trace_tasks'...}))
+        } ## end if ( defined( my $value = $args->{'trace_tasks'} ) )
 
         if ( defined( my $value = $args->{'trace_evaluation'} ) ) {
             Marpa::exception('trace_evaluation must be set to a number >= 0')
@@ -790,14 +789,14 @@ sub Marpa::Grammar::set {
             Marpa::exception(q{cycle_nodes must be >0})
                 if $value <= 0;
             $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = $value;
-        }
+        } ## end if ( defined( my $value = $args->{'cycle_nodes'} ) )
 
         if ( defined( my $value = $args->{'cycle_rewrite'} ) ) {
             Marpa::exception(
                 'cycle_rewrite option only allowed in experimental mode')
                 if $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] <= 0;
             $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE] = $value;
-        }
+        } ## end if ( defined( my $value = $args->{'cycle_rewrite'} ))
 
         if ( defined( my $value = $args->{'warnings'} ) ) {
             if ( $value && $phase >= Marpa::Internal::Phase::PRECOMPUTED ) {
@@ -2451,8 +2450,8 @@ sub nullable {
 
 sub cycle_rules {
     my ($grammar) = @_;
-    my $rules =  $grammar->[ Marpa::Internal::Grammar::RULES];
-    my $symbols =  $grammar->[ Marpa::Internal::Grammar::SYMBOLS];
+    my $rules     = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $symbols   = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
 
     my @unit_derivation;         # for the unit derivation matrix
     my @new_unit_derivations;    # a list of new unit derivations
@@ -2527,12 +2526,14 @@ sub cycle_rules {
         my ( $rule, $start_symbol_id, $derived_symbol_id ) =
             @{$unit_rule_data};
 
-        next RULE if $start_symbol_id != $derived_symbol_id
-            and not $unit_derivation[$derived_symbol_id][$start_symbol_id];
+        next RULE
+            if $start_symbol_id != $derived_symbol_id
+                and
+                not $unit_derivation[$derived_symbol_id][$start_symbol_id];
         push @cycle_rules, $rule;
     } ## end while ( my $unit_rule_data = pop @unit_rules )
     return \@cycle_rules;
-}
+} ## end sub cycle_rules
 
 # This assumes the grammar has been rewritten into CHAF form.
 sub detect_cycle {
@@ -2555,8 +2556,8 @@ sub detect_cycle {
     # produce a list of the rules which cycle
     RULE: for my $rule ( @{$cycle_rules} ) {
 
-        my $warning_rule = 
-         $rule->[Marpa::Internal::Rule::ORIGINAL_RULE] // $rule;
+        my $warning_rule = $rule->[Marpa::Internal::Rule::ORIGINAL_RULE]
+            // $rule;
 
         if ( $warn_on_cycle and defined $warning_rule ) {
             print {$trace_fh}
