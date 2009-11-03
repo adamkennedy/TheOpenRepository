@@ -747,7 +747,7 @@ has 'fragment_dir' => (
 sub _build_fragment_dir {
 	my $self = shift;
 	
-	my $dir = catdir( $self->image_dir(), 'fragments' );
+	my $dir = catdir( $self->temp_dir(), 'fragments' );
 	$self->_remake_path( $dir );
 	return $dir;
 }
@@ -2778,10 +2778,7 @@ sub write_msi {
 			  . "compilation error in $filename_in)" );
 	}
 
-# Start linking the msi.
-
-# TODO: Take out the stop here.
-	PDWiX->throw("Debugging stop");
+	# Start linking the msi.
 
 	# Get the parameters for the msi linking.
 	my $output_msi =
