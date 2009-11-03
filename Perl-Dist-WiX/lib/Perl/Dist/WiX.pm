@@ -774,7 +774,7 @@ has 'gcc_version' => (
 
 The C<git_checkout> parameter is not used unless you specify that 
 C<perl_version> is 'git'. In that event, this parameter should contain 
-a string object pointing to the location of a checkout from 
+a string pointing to the location of a checkout from 
 L<http://perl5.git.perl.org/>.
 
 The default is 'C:\perl-git\'.
@@ -785,6 +785,34 @@ has 'git_checkout' => (
 	is => 'ro',
 	isa => 'Str',
 	default => qq{C:\\perl-git\\},
+);
+
+
+
+=head3 git_location
+
+The C<git_location> parameter is not used unless you specify that 
+C<perl_version> is 'git'. In that event, this parameter should contain 
+a string pointing to the location of the git.exe binary, as because
+a perl.exe file is in the same directory, it gets removed from the PATH 
+during the execution of programs from Perl::Dist::WiX.
+ 
+The default is 'C:\Program Files\Git\bin\git.exe'>.
+
+People on x64 systems should set this to 
+C<'C:\Program Files (x86)\Git\bin\git.exe'> unless MSysGit is installed 
+in a different location (or a 64-bit version becomes available).
+
+This will be converted to a short name before execution, so this must 
+NOT be on a partition that does not have them, unless the location does
+not have spaces.
+
+=cut
+
+has 'git_location' => (
+	is => 'ro',
+	isa => 'Str',
+	default => 'C:\Program Files\Git\bin\git.exe',
 );
 
 
@@ -1603,15 +1631,9 @@ EOF
 
 	# Empty directories that need emptied.
 	$self->trace_line( 1,
-		"Wait a second while we empty the image directory...\n" );
+		"Wait a second while we empty the image, output, and fragment directories...\n" );
 	$self->_remake_path( $self->image_dir() );
-
-	$self->trace_line( 1,
-		"Wait a second while we empty the output directory...\n" );
 	$self->_remake_path( $self->output_dir() );
-
-	$self->trace_line( 2,
-		"Wait a second while we empty the fragment directory...\n" );
 	$self->_remake_path( $self->fragment_dir() );
 	
 	$self->add_env( 'TERM',        'dumb' );
@@ -1748,13 +1770,23 @@ has 'git_describe' => (
 sub _build_git_describe {
 	my $self = shift;
 	my $checkout = $self->git_checkout();
-	my $describe = qx{cmd.exe /d /e:on /c "pushd $checkout && git describe && popd"};
+	my $location = $self->git_location();
+	if (not -f $location) {
+		PDWiX->throw("Could not find git at $location");
+	}
+	$location = Win32::GetShortPathName($location);
+	if (not defined $location) {
+		PDWiX->throw("Could not convert the location of git.exe to a path with short names");
+	}
+	$self->trace_line(2, "Finding current commit using $location describe\n");
+	my $describe = qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
 	
 	if ($CHILD_ERROR){
 		PDWiX->throw("'git describe' returned an error: $CHILD_ERROR");
 	}
 	
 	$describe =~ s/v5[.]/5./;
+	$describe =~ s/\n//;	
 	
 	return $describe;
 }

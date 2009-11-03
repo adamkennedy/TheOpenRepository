@@ -1,7 +1,7 @@
 package Perl::Dist::WiX::Toolchain;
 
 use 5.008001;
-use Moose;
+use Moose 0.90;
 use MooseX::NonMoose;
 use MooseX::AttributeHelpers;
 use MooseX::Types::Moose qw( Str Int Bool HashRef ArrayRef Maybe );
@@ -183,8 +183,9 @@ sub _modules_build {
 			  }
 		],
 	);
-	$modules{'5.010001'} = $modules{'5.008009'};
 	$modules{'5.010000'} = $modules{'5.008009'};
+	$modules{'5.010001'} = $modules{'5.008009'};
+	$modules{'5.011001'} = $modules{'5.008009'};
 
 	return \%modules;
 } ## end sub _modules_build
@@ -195,6 +196,7 @@ sub _corelist_version_build {
 		'5.008009' => '5.008009',
 		'5.010000' => '5.010000',
 		'5.010001' => '5.010001',
+		'5.011001' => '5.011001',
 	);
 
 	return \%corelist;
@@ -226,14 +228,14 @@ sub BUILD {
 	my $class = ref $self;
 
 	# TODO: Use exceptions instead.
-	unless ( $self->_modules_exists( $self->_get_perl_version ) ) {
+	unless ( $self->_modules_exists( $self->_get_perl_version() ) ) {
 		Carp::croak( q{Perl version '}
-			  . $self->_get_perl_version
+			  . $self->_get_perl_version()
 			  . "' is not supported in $class" );
 	}
-	unless ( $self->_corelist_version_exists( $self->_get_perl_version ) ) {
+	unless ( $self->_corelist_version_exists( $self->_get_perl_version() ) ) {
 		Carp::croak( q{Perl version '}
-			  . $self->_get_perl_version
+			  . $self->_get_perl_version()
 			  . "' is not supported in $class" );
 	}
 
@@ -243,10 +245,10 @@ sub prepare {
 	my $self = shift;
 
 	# Squash all output that CPAN might spew during this process
-	my $stdout = IO::Capture::Stdout->new;
-	my $stderr = IO::Capture::Stderr->new;
-	$stdout->start;
-	$stderr->start;
+	my $stdout = IO::Capture::Stdout->new();
+	my $stderr = IO::Capture::Stderr->new();
+	$stdout->start();
+	$stderr->start();
 
 	# Load the CPAN client
 	require CPAN;
@@ -263,12 +265,12 @@ sub prepare {
 			1;
 		} )
 	{
-		$stdout->stop;
-		$stderr->stop;
+		$stdout->stop();
+		$stderr->stop();
 		return 1;
 	} else {
-		$stdout->stop;
-		$stderr->stop;
+		$stdout->stop();
+		$stderr->stop();
 		return q{};
 	}
 } ## end sub prepare
@@ -277,16 +279,16 @@ sub run {
 	my $self = shift;
 
 	# Squash all output that CPAN might spew during this process
-	my $stdout = IO::Capture::Stdout->new;
-	my $stderr = IO::Capture::Stderr->new;
+	my $stdout = IO::Capture::Stdout->new();
+	my $stderr = IO::Capture::Stderr->new();
 
-	$stdout->start;
-	$stderr->start;
+	$stdout->start();
+	$stderr->start();
 	CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
 	$CPAN::Config->{'urllist'}    = [ $self->_get_cpan() ];
 	$CPAN::Config->{'use_sqlite'} = q[0];
-	$stdout->stop;
-	$stderr->stop;
+	$stdout->stop();
+	$stderr->stop();
 
 	foreach
 	  my $name ( @{ $self->_get_modules( $self->_get_perl_version ) } )
@@ -299,11 +301,11 @@ sub run {
 		}
 
 		# Get the CPAN object for the module, covering any output.
-		$stdout->start;
-		$stderr->start;
+		$stdout->start();
+		$stderr->start();
 		my $module = CPAN::Shell->expand( 'Module', $name );
-		$stdout->stop;
-		$stderr->stop;
+		$stdout->stop();
+		$stderr->stop();
 
 		unless ($module) {
 			## no critic (RequireCarping RequireUseOfExceptions)

@@ -89,12 +89,10 @@ sub install {
 	}
 	
 	my $perlsrc;	
-	if (defined $self->_get_git()) {
+	if (defined $git) {
 		# Copy to the build directory.
-		$self->_trace_line( 0, "Copying to $unpack_to\n" );
-		$self->_copy( URI->new($self->_get_url)->path(), catdir($unpack_to, 'perl-git'));
-		$perlsrc = $git =~ m/\A(.+?)-/;
-		PDWiX->throw("I want to verify that the copy got to the right place. perlsrc = $perlsrc");
+		$self->_copy( URI->new($self->_get_url)->file(), catdir($unpack_to, 'perl-git'));
+		$perlsrc = 'perl-git';
 	} else {
 		# Unpack to the build directory
 		my @files = $self->_extract( $tgz, $unpack_to );
@@ -116,39 +114,53 @@ sub install {
 	}
 
 	# Copy in licenses
-	if ( ref $self->_get_license eq 'HASH' ) {
+	if ( ref $self->_get_license() eq 'HASH' ) {
+		my $licenses = $self->_get_license();
 		my $license_dir = catdir( $self->_get_image_dir, 'licenses' );
-		$self->_extract_filemap( $tgz, $self->_get_license, $license_dir,
-			1 );
+		if (defined $git) {
+			foreach my $key (keys %{$licenses}) {
+				$self->_copy(catfile($unpack_to, $key), catfile($license_dir, $licenses->{$key}));
+			}
+		} else {
+			$self->_extract_filemap( $tgz, $self->_get_license(), $license_dir,
+				1 );
+		}
 	}
 
 	# Build win32 perl
   SCOPE: {
-		my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
-
 		# Prepare to patch
-		my $image_dir = $self->_get_image_dir;
+		my $image_dir = $self->_get_image_dir();
 		my $INST_TOP = catdir( $image_dir, $self->_get_install_to );
 		my ($INST_DRV) = splitpath( $INST_TOP, 1 );
 
+		my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
+
+		my $perldir;
+		if (defined $git) {
+			$perldir = 'perl-git';
+		} else {
+			$perldir = "perl-$version";
+		}
+		
 		$self->_trace_line( 2, "Patching makefile.mk\n" );
 		$self->_patch_file(
-			"perl-$version/win32/makefile.mk" => $unpack_to,
+			"$perldir/win32/makefile.mk" => $unpack_to,
 			{   dist     => $self->_get_parent(),
 				INST_DRV => $INST_DRV,
 				INST_TOP => $INST_TOP,
 			} );
-
+		
 		$self->_trace_line( 1, "Building perl $version...\n" );
 		$self->_make;
 
 		my $long_build =
-		  Win32::GetLongPathName( rel2abs( $self->_get_build_dir ) );
+		  Win32::GetLongPathName( rel2abs( $self->_get_build_dir() ) );
 
 		my $force = $self->_get_force();
 		if (   ( not $force )
 			&& ( $long_build =~ /\s/ms )
-			&& ( $self->_get_pv_human eq '5.10.0' ) )
+			&& ( $self->_get_pv_human() eq '5.10.0' ) )
 		{
 			$force = 1;
 			$self->_trace_line( 0, <<"EOF");
