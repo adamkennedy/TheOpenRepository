@@ -12,8 +12,6 @@ use lib 'lib';
 use Test::More tests => 20;
 use t::lib::Marpa::Test;
 
-use Smart::Comments '-ENV';
-
 BEGIN {
     Test::More::use_ok('Marpa');
 }
@@ -326,7 +324,6 @@ EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
             . join( q{}, @set[ 0 .. $furthest ] ),
         "Aycock/Horspool Parse Status at earleme $earleme"
     );
-    ### earleme: $earleme
     given ($earleme) {
         when ($input_length) {
             $recce->tokens();

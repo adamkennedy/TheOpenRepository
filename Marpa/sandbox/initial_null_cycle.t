@@ -130,6 +130,7 @@ $grammar->precompute();
 
 my @results = qw{NA (-;-;-;a) (a;-;-;a) (a;a;-;a) (a;a;a;a)};
 
+my %seen;
 for my $input_length ( 1 .. 8 ) {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     defined $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] )
@@ -140,7 +141,9 @@ for my $input_length ( 1 .. 8 ) {
     #say "Bocage:\n", $evaler->show_bocage(4);
     my $i = 0;
     while (my $value = $evaler->value() and $i++ < 4) {
+        my $result = ${$value};
         say "l=$input_length #$i ", ${$value};
+        Carp::croak("Result already seen") if $seen{$result};
         # Marpa::Test::is( ${$value}, $results[$input_length],
             # "cycle with initial nullables, input length=$input_length, pass $i" );
     }

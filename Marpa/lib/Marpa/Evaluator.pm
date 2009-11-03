@@ -167,7 +167,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Evaluator;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -2358,12 +2358,13 @@ sub Marpa::Evaluator::value {
                         $and_iteration
                         ->[Marpa::Internal::And_Iteration::SORT_DATA];
 
-                    my $or_map =
-                        $and_choice->[Marpa::Internal::And_Choice::OR_MAP] = [
+                    $and_choice->[Marpa::Internal::And_Choice::OR_MAP] = [
                         @{  $and_iteration
                                 ->[Marpa::Internal::And_Iteration::OR_MAP]
                             }
                         ];
+
+                    ### RESET_OR_NODE, and-node id, choice or_map: $child_and_node_id, $and_choice->[Marpa'Internal'And_Choice'OR_MAP]
 
                     push @and_choices, $and_choice;
 
@@ -2531,6 +2532,8 @@ sub Marpa::Evaluator::value {
 
                 $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP]
                     = \@or_map;
+
+                ### SETUP_AND_NODE, and-node id, iteration or_map: $and_node_id, \@or_map
 
                 # The rest of the processing is for the original parse
                 # ordering
@@ -3033,12 +3036,6 @@ node appears more than once on the path back to the root node.
 
                 } ## end if ( not defined $current_and_iteration )
 
-                # The rest of the logic is for keeping the order correct
-                # for the "original" parse ordering
-
-                break # next TASK
-                    if $parse_order ne 'original';
-
                 # If we are here the current and-choice is not exhausted,
                 # but it may have been iterated to the point where it is
                 # no longer the first in sort order.
@@ -3050,6 +3047,14 @@ node appears more than once on the path back to the root node.
                 $current_and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::OR_MAP];
+
+                ### ITERATE_OR_NODE, and-node id, choice or_map: $current_and_node_id, $current_and_choice->[Marpa'Internal'And_Choice'OR_MAP]
+
+                # The rest of the logic is for keeping the order correct
+                # for the "original" parse ordering
+
+                break # next TASK
+                    if $parse_order ne 'original';
 
                 # If only one choice still active,
                 # clearly no need to
@@ -3148,6 +3153,8 @@ node appears more than once on the path back to the root node.
                 my $or_map =
                     $and_choice->[Marpa::Internal::And_Choice::OR_MAP];
 
+                ### FREEZE_TREE, and-node id, choice or_map: $and_node_id, $or_map
+
                 # Add frozen iteration
                 my @or_slice = map { $_->[0] } @{$or_map};
                 my @and_slice = ( $and_node_id, map { $_->[1] } @{$or_map} );
@@ -3195,6 +3202,8 @@ node appears more than once on the path back to the root node.
                 $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::OR_MAP];
+
+                ### THAW_TREE, and-node id, choice or_map: $and_node_id, $and_choice->[Marpa'Internal'And_Choice'OR_MAP]
 
                 # Once it's unfrozen, it's subject to change, so the
                 # the frozen version will become invalid.

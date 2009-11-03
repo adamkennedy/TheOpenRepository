@@ -135,8 +135,8 @@ for my $input_length ( 1 ) {
     defined $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] )
         or Marpa::exception( 'Parsing exhausted' );
     my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0,
-     trace_values=>2,
-     trace_tasks=>1
+     # trace_values=>2,
+     # trace_tasks=>1
     } );
     # say "Bocage:\n", $evaler->show_bocage(4);
     my $i = 0;
