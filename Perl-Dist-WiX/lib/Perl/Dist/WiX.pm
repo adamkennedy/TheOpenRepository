@@ -2368,6 +2368,13 @@ sub install_c_toolchain {
 	return 1;
 } ## end sub install_c_toolchain
 
+=head3 install_portable
+
+The C<install_portable> method is used by C<run> to install the perl
+modules to make Perl installable on a portable device.
+
+=cut
+
 # Portability support must be added after modules
 sub install_portable {
 	my $self = shift;
@@ -2418,6 +2425,13 @@ sub install_portable {
 
 	return 1;
 } ## end sub install_portable
+
+=head3 install_win32_extras
+
+The C<install_win32_extras> method is used by C<run> to install the links 
+and launchers into the Start menu.
+
+=cut
 
 # Install links and launchers and so on
 sub install_win32_extras {
@@ -2471,6 +2485,13 @@ sub install_win32_extras {
 
 	return $self;
 } ## end sub install_win32_extras
+
+=head3 remove_waste
+
+The C<remove_waste> method is used by C<run> to remove files that the 
+distribution does not need to package.
+
+=cut
 
 # Delete various stuff we won't be needing
 sub remove_waste {
@@ -2537,6 +2558,14 @@ sub _remove_file {
 #####################################################################
 # Package Generation
 
+=head3 regenerate_fragments
+
+The C<regenerate_fragments> method is used by C<run> to fully generate the
+object tree for file-containing fragments, which only contain a list of
+files until their regenerate() routines are run.
+
+=cut
+
 sub regenerate_fragments {
 	my $self = shift;
 
@@ -2574,6 +2603,13 @@ sub regenerate_fragments {
 #####################################################################
 # Package Generation
 
+=head3 write
+
+The C<write> method is used by C<run> to compile the final
+installers for the distribution.
+
+=cut
+
 sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	my $self = shift;
 
@@ -2586,6 +2622,13 @@ sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	}
 	return 1;
 } ## end sub write
+
+=head3 write_merge_module
+
+The C<write_merge_module> method is used by C<run> to compile the merge
+module for the distribution.
+
+=cut
 
 sub write_merge_module {
 	my $self = shift;
@@ -2814,7 +2857,7 @@ sub compile_wxs {
   $self->write_msi;
 
 The C<write_msi> method is used to generate the compiled installer
-executable. It creates the entire installation file tree, and then
+database. It creates the entire installation file tree, and then
 executes WiX to create the final executable.
 
 This method should only be called after all installation phases have
@@ -2960,8 +3003,8 @@ used in the installer. It creates the entire installation file tree, and then
 executes WiX to create the merge module.
 
 This method should only be called after all installation phases that 
-install perl modules have been completed and all of the files for the 
-merge module are in place.
+install perl modules that should be in the .msm have been completed and 
+all of the files for the merge module are in place.
 
 The merge module file is written to the output directory, and the location
 of the file is printed to STDOUT.
