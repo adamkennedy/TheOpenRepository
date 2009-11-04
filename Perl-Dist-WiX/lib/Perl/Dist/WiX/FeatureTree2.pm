@@ -31,13 +31,14 @@ has parent => (
 
 has features => (
 	traits    => ['Array'],
-	is        => 'rw',
+	is        => 'ro',
 	isa       => 'ArrayRef[WiX3::XML::Feature]',
 	default   => sub { [] },
 	init_arg  => undef,
 	handles  => {
 		'_push_feature'      => 'push',
 		'_count_features'    => 'count',
+		'_get_feature'       => 'get'
 		'_get_feature_array' => 'elements',
 	},
 );
@@ -117,6 +118,17 @@ sub as_string_msm {
 
 	return $answer;
 } ## end sub as_string_msm
+
+sub add_merge_module {
+	my $self = shift;
+	my $mm = shift;
+	my $index = shift || 0;
+	
+	my $feature = $self->get_feature($index);
+	$feature->add_child_tag($mm->get_merge_reference());
+	
+	return;
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

@@ -30,7 +30,7 @@ has primary_reference => (
 sub get_merge_reference {
 	my $self = shift;
 	
-	my $primary = $self->_is_primary_reference() ? 'Yes' : 'No';
+	my $primary = $self->_is_primary_reference() ? 'yes' : 'no';
 	my $merge_ref = WiX3::XML::MergeRef->new( $self, 'primary' => $primary );
 	
 	return $merge_ref;

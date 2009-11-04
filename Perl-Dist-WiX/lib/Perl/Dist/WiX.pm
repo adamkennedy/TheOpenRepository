@@ -1773,7 +1773,7 @@ from L</new>. Unused as of yet.
 Specifies the Id for the icon that is used in Add/Remove Programs for 
 this MSI file.
 
-=head3 feature_tree_obj
+=head3 feature_tree_object
 
 Returns the L<Perl::Dist::WiX::FeatureTree|Perl::Dist::WiX::FeatureTree> 
 object associated with this distribution.
@@ -2686,7 +2686,7 @@ sub write_merge_module {
 			)->initialize_short_tree( $self->perl_version )
 		);
 	}
-
+	
 	# Start adding the fragments that are only for the .msi.
 	$self->_add_fragment('StartMenuIcons',
 	  Perl::Dist::WiX::Fragment::StartMenu->new(
@@ -2700,7 +2700,19 @@ sub write_merge_module {
 	if ( defined $self->msi_product_icon() ) {
 		$self->icons()->add_icon( $self->msi_product_icon() );
 	}
+	my $mm = Perl::Dist::WiX::MergeModule->new(
+		id => 'Perl', 
+		disk_id => 1,
+		file_compression => 'yes', 
+		language => 1033,
+		source_file => catfile( $self->output_dir() , $self->output_base_filename() . '.msm'),
+		primary_reference => 1,
+	);
+	$self->_add_merge_module('Perl', $mm); 
+	$self->_directories()->add_merge_module($self->image_dir(), $mm);
+	$self->feature_tree_object()->add_merge_module($mm);
 	
+
 	return 1;
 } ## end sub write_msm
 

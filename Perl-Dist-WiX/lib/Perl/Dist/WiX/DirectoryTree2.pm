@@ -16,7 +16,7 @@ use 5.008001;
 #	error_class => 'WiX3::Util::Error',
 #);
 use MooseX::Singleton;
-use Params::Util qw( _IDENTIFIER _STRING );
+use Params::Util qw( _IDENTIFIER _STRING _INSTANCE );
 use File::Spec::Functions qw( catdir catpath splitdir splitpath );
 use MooseX::Types::Moose qw( Str );
 use Perl::Dist::WiX::Directory;
@@ -236,6 +236,23 @@ sub add_root_directory {
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
+
+sub add_merge_module {
+	my $self = shift;
+	my $dir  = shift;
+	my $mm   = shift;
+
+	my $directory_object = $self->search_dir(path_to_find => $dir);
+	if (not defined $directory_object) {
+		PDWiX->throw("Could not find object for directory $dir");
+	}
+	
+	if (not defined _INSTANCE($mm, 'Perl::Dist::WiX::MergeModule')) {
+		PDWiX->throw("Second parameter not Perl::Dist::WiX::MergeModule object");
+	}
+	
+	$directory_object->add_child_tag($mm);
+}
 
 1;
 
