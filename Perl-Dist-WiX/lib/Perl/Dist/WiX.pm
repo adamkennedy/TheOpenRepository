@@ -139,26 +139,6 @@ has 'toolchain' => (
 	init_arg => undef,
 );
 
-has 'checkpoint_before' => (
-	is => 'ro', # Integer
-	default => 0,
-);
-
-has 'checkpoint_dir' => (
-	is => 'ro', # String
-	default => 0,
-);
-
-has 'checkpoint_after' => (
-	is => 'ro', # Array of Integers
-	default => sub { return [0] },
-);
-
-has 'checkpoint_stop' => (
-	is => 'ro', # Integer
-	default => 0,
-);
-
 # These attributes are either created in BUILDARGS, or are created later, 
 # and cannot be passed to new().
 
@@ -187,11 +167,11 @@ has 'env_path' => (
 	init_arg => undef,
 );
 
-has 'output_file' => (
-	is => 'ro', # Array of strings
-	default => sub { return [] },
-	init_arg => undef,
-);
+#has 'output_file' => (
+#	is => 'ro', # Array of strings
+#	default => sub { return [] },
+#	init_arg => undef,
+#);
 
 
 has '_filters' => (
@@ -309,12 +289,14 @@ has 'pdw_version' => (
 
 has '_guidgen' => (
 	is => 'ro', # WiX3::XML::GeneratesGUID::Object
+	writer => '_set_guidgen',
 	required => 1,	# Default is provided in BUILDARGS.
 );
 
 has '_trace_object' => (
 	is => 'ro', # WiX3::Traceable
 	required => 1,
+	writer => '_set_trace_object',
 	handles => [ 'trace_line' ],
 );
 
@@ -376,7 +358,7 @@ has '_cpan_sources_from' => (
 
 has '_portable_dist' => (
 	is => 'ro', # String
-	isa => 'Maybe[Portable::Dist]'
+	isa => 'Maybe[Portable::Dist]',
 	writer => '_set_portable_dist',
 	default => undef,
 	init_arg => undef, # Cannot set this parameter in new().
@@ -591,6 +573,81 @@ portion of the distribution's version number, and is used in constructing filena
 has 'build_number' => (
 	is => 'ro', # Integer
 	required => 1,
+);
+
+
+
+=head3 checkpoint_after
+
+C<checkpoint_after> is given an arrayref of task numbers.  After each task in 
+the list, Perl::Dist::WiX will stop and save a checkpoint.
+
+[ 0 ] is the default, meaning that you do not wish to save a checkpoint anywhere.
+
+=cut
+
+has 'checkpoint_after' => (
+	is => 'ro', # Array of Integers
+	writer => '_set_checkpoint_after',
+	default => sub { return [0] },
+);
+
+
+
+=head3 checkpoint_before
+
+C<checkpoint_before> is given an integer to know when to load a checkpoint.
+Unlike the other parameters, this is based on the task number that is GOING 
+to execute, rather than the task number that just executed, so that if a 
+checkpoint was saved after (for example) task 5, this parameter should be 6
+in order to load the checkpoint and start on task 6.
+
+0 is the default, meaning that you do not wish to stop unless an error occurs.
+
+=cut
+
+has 'checkpoint_before' => (
+	is => 'ro', # Integer
+	writer => '_set_checkpoint_before',
+	default => 0,
+);
+
+
+
+=head3 checkpoint_dir
+
+The directory where Perl::Dist::WiX will store its checkpoints. 
+
+Defaults to C<temp_dir> . '\checkpoint', and must exist if given.
+
+=cut
+
+has 'checkpoint_dir' => (
+	is => 'ro', # String
+	isa => 'Str',
+	lazy => 1,
+	builder => '_build_checkpoint_dir',
+);
+
+sub _build_checkpoint_dir { 
+	my $self = shift; 
+	return catfile( $self->temp_dir(), 'checkpoint' );
+}
+
+
+=head3 checkpoint_stop
+
+C<checkpoint_stop> stops execution after the specified task if no error has 
+happened before then.
+
+0 is the default, meaning that you do not wish to stop unless an error occurs.
+
+=cut
+
+has 'checkpoint_stop' => (
+	is => 'ro', # Integer
+	writer => '_set_checkpoint_stop',
+	default => 0,
 );
 
 
@@ -1236,14 +1293,23 @@ has 'sitename' => (
 =head3 tasklist
 
 The optional C<tasklist> parameter specifies the list of routines that the 
-object can do.  This is usually set by a subclass, and if one is not set,
-Perl::Dist::WiX provides a default one.
+object can do.  The routines are object methods of Perl::Dist::WiX (or its 
+subclasses) that will be executed in order, and their task numbers (as used 
+below) will begin with 1 and increment in sequence.
+
+Task routines should either return 1, or throw an exception. 
+
+The default task list for Perl::Dist::WiX is as shown below.  Subclasses should
+provide their own list and insert their tasks in this list, rather than 
+overriding routines shown above.
+
+
 
 =cut
 
 has 'tasklist' => (
 	is => 'ro', # Array of strings that the object can do.
-	builder => '_build_tasklist',	# Default is provided in BUILDARGS.
+	builder => '_build_tasklist',
 );
 
 sub _build_tasklist {
@@ -1723,14 +1789,6 @@ has 'feature_tree_object' => (
 );
 
 
-
-=head3 checkpoint_dir
-
-I<(also C<new> parameter)>
-
-The directory where Perl::Dist::WiX will store its checkpoints. 
-
-Defaults to C<temp_dir> . '\checkpoint', and must exist if given.
 
 =head3 bin_perl, bin_make, bin_pexports, bin_dlltool
 
@@ -2337,9 +2395,7 @@ sub install_portable {
 	# Create the portability object
 	$self->trace_line( 1, "Creating Portable::Dist\n" );
 	require Portable::Dist;
-	$self->_set_portable_dist(
-	  Portable::Dist->new( perl_root => catdir( $self->image_dir, 'perl' ),
-	  );
+	$self->_set_portable_dist(Portable::Dist->new( perl_root => catdir( $self->image_dir, 'perl' )));
 	$self->trace_line( 1, "Running Portable::Dist\n" );
 	$self->_portable_dist()->run();
 	$self->trace_line( 1, "Completed Portable::Dist\n" );
@@ -2816,7 +2872,7 @@ sub write_msi {
 	} ## end foreach my $key ( keys %{ $self...})
 
 	# Generate feature tree.
-	$self->_set_feature_tree_obj(Perl::Dist::WiX::FeatureTree2->new( parent => $self, ));
+	$self->_set_feature_tree_object(Perl::Dist::WiX::FeatureTree2->new( parent => $self, ));
 
 	# Write out the .wxs file
 	my $content = $self->as_string('Main.wxs.tt');
@@ -2966,7 +3022,7 @@ sub write_msm {
 	} ## end foreach my $key ( keys %{ $self...})
 
 	# Generate feature tree.
-	$self->_set_feature_tree_obj(Perl::Dist::WiX::FeatureTree2->new( parent => $self, ));
+	$self->_set_feature_tree_object(Perl::Dist::WiX::FeatureTree2->new( parent => $self, ));
 
 	# Write out the .wxs file
 	my $content = $self->as_string('Merge-Module.wxs.tt');
@@ -3300,13 +3356,20 @@ sub patch_pathlist {
 }
 
 # Cache this
-sub patch_template {
-	$_[0]->{template_toolkit} ||= Template->new(
-		INCLUDE_PATH => $_[0]->patch_include_path,
+
+has 'patch_template' => (
+	is => 'ro',
+	isa => 'Maybe[Template]',
+	lazy => 1,
+	builder => '_build_patch_template',
+);
+
+sub _build_patch_template {
+	my $self = shift;
+	return Template->new(
+		INCLUDE_PATH => $self->patch_include_path,
 		ABSOLUTE     => 1,
 	);
-
-	return $_[0]->{template_toolkit};
 }
 
 sub patch_file {
@@ -3315,7 +3378,7 @@ sub patch_file {
 	my $file_tt  = $file . '.tt';
 	my $dir      = shift;
 	my $to       = catfile( $dir, $file );
-	my $pathlist = $self->patch_pathlist;
+	my $pathlist = $self->patch_pathlist();
 
 	# Locate the source file
 	my $from    = $pathlist->find_file($file);
@@ -3334,7 +3397,7 @@ sub patch_file {
 		  File::Temp::tempfile( 'pdwXXXXXX', TMPDIR => 1 );
 		$self->trace_line( 2,
 			"Generating $from_tt into temp file $output\n" );
-		$self->patch_template->process( $from_tt,
+		$self->patch_template()->process( $from_tt,
 			{ %{$hash}, self => $self }, $fh, )
 		  or PDWiX->throw("Template processing failed for $from_tt");
 
