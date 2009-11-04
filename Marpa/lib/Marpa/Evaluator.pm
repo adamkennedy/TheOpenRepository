@@ -63,8 +63,15 @@ use Marpa::Offset qw(
 
     =LAST_GENERAL_EVALUATOR_FIELD
 
-    RANK_DATA
-    RANK_CLOSURE
+    FIXED_RANKING_DATA { Rank for this and-node itself,
+    but not including any of the children.
+    It takes into account the token, if any,
+    but not the rank of any of the children.
+    Once calculated, it's a constant
+    for the life of the and-node.
+    }
+
+    RANKING_CLOSURE
 
     =LAST_PER_METHOD_EVALUATOR_FIELD
     =LAST_FIELD
@@ -82,7 +89,7 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::And_Iteration
 
-    RANK_DATA
+    RANKING_DATA
     OR_MAP
     CURRENT_CHILD_FIELD
 
@@ -119,7 +126,7 @@ use Marpa::Offset qw(
 use Marpa::Offset qw(
     :package=Marpa::Internal::And_Choice
     ID
-    RANK_DATA
+    RANKING_DATA
     OR_MAP
     FROZEN_ITERATION
     =LAST_FIELD
@@ -138,7 +145,8 @@ use Marpa::Offset qw(
     AND_ITERATIONS
     OR_ITERATIONS
     ACTION_OBJECT_CONSTRUCTOR
-    RANK_CLOSURES
+    RANKING_CLOSURES_BY_RULE :{ array, by rule id }
+    RANKING_CLOSURES_BY_SYMBOL :{ array, by symbol id }
 
 );
 
@@ -158,13 +166,6 @@ use Marpa::Offset qw(
     :{ These are the tree-time ops }
     CYCLE
     COUNTED_RULE
-
-);
-
-use Marpa::Offset qw(
-
-    :package=Marpa::Internal::Evaluator_Rule
-    OPS
 
 );
 
@@ -196,7 +197,7 @@ our $DEFAULT_ACTION_VALUE = \undef;
 # in hex numbers
 use constant N_FORMAT_MAX => 0x7fff_ffff;
 
-sub set_symbol_evaluation_data {
+sub set_null_values {
     my ($evaler) = @_;
     my $recce    = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
     my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
@@ -209,8 +210,6 @@ sub set_symbol_evaluation_data {
 
     my $null_values;
     $#{$null_values} = $#{$symbols};
-    my $rank_closures;
-    $#{$rank_closures} = $#{$rank_closures};
 
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $trace_actions = $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS];
@@ -218,13 +217,6 @@ sub set_symbol_evaluation_data {
     SYMBOL: for my $symbol ( @{$symbols} ) {
         my $id = $symbol->[Marpa::Internal::Symbol::ID];
         $null_values->[$id] = $default_null_value;
-        my $ranker = $symbol->[Marpa::Internal::Symbol::RANKER];
-        next SYMBOL if not defined $ranker;
-        my $rank_closure =
-            Marpa::Internal::Evaluator::resolve_semantics( $evaler, $ranker );
-        Marpa::exception("Ranking closure '$ranker' not found")
-            if not defined $rank_closure;
-        $rank_closures->[$id] = $rank_closure;
     } ## end for my $symbol ( @{$symbols} )
 
     # Set null values specified in
@@ -306,7 +298,7 @@ sub set_symbol_evaluation_data {
         } ## end for my $symbol ( @{$symbols} )
     } ## end if ($trace_actions)
 
-    return ( $null_values, $rank_closures );
+    return $null_values;
 
 }    # set_null_values
 
@@ -392,8 +384,7 @@ sub set_actions {
         next RULE if not $rule->[Marpa::Internal::Rule::USEFUL];
 
         my $rule_id = $rule->[Marpa::Internal::Rule::ID];
-        my $rule_data = $evaluator_rules->[$rule_id] = [];
-        my $ops = $rule_data->[Marpa::Internal::Evaluator_Rule::OPS] = [];
+        my $ops = $evaluator_rules->[$rule_id] = [];
 
         my $virtual_rhs = $rule->[Marpa::Internal::Rule::VIRTUAL_RHS];
         my $virtual_lhs = $rule->[Marpa::Internal::Rule::VIRTUAL_LHS];
@@ -1488,12 +1479,12 @@ sub Marpa::Evaluator::new {
         $recce = $recce->clone();
     }
 
-    my ( $grammar, $earley_sets, ) = @{$recce}[
-        Marpa::Internal::Recognizer::GRAMMAR,
-        Marpa::Internal::Recognizer::EARLEY_SETS,
-    ];
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $earley_sets = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
 
     my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
+    my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
 
     # Marpa::exception('Recognizer already in use by Evaluator')
     # if $phase == Marpa::Internal::Phase::EVALUATING;
@@ -1552,11 +1543,54 @@ sub Marpa::Evaluator::new {
 
     state $parse_number = 0;
     my $null_values;
-    ( $null_values, $self->[Marpa::Internal::Evaluator::RANK_CLOSURES] ) =
-        set_symbol_evaluation_data($self);
+    $null_values = set_null_values($self);
+
+    # Set up rank closures by symbol
+    my $ranking_closures_by_symbol =
+        $self->[Marpa::Internal::Evaluator::RANKING_CLOSURES_BY_SYMBOL] = [];
+    $#{$ranking_closures_by_symbol} = $#{$symbols};
+    SYMBOL: for my $symbol ( @{$symbols} ) {
+        my $ranking_action = $symbol->[Marpa::Internal::Symbol::RANKING_ACTION];
+        next SYMBOL if not defined $ranking_action;
+        my $ranking_closure =
+            Marpa::Internal::Evaluator::resolve_semantics( $self, $ranking_action );
+        Marpa::exception("Ranking closure '$ranking_action' not found")
+            if not defined $ranking_closure;
+        $ranking_closures_by_symbol->[ $symbol->[Marpa::Internal::Symbol::ID] ] =
+            $ranking_closure;
+    } ## end for my $symbol ( @{$symbols} )
+
     my $evaluator_rules =
         $self->[Marpa::Internal::Evaluator::RULE_VALUE_OPS] =
         set_actions($self);
+
+    # Get closure used in ranking, by rule
+    my $ranking_closures_by_rule = 
+        $self->[Marpa::Internal::Evaluator::RANKING_CLOSURES_BY_RULE] = [];
+    $#{$ranking_closures_by_rule} = $#{$rules};
+    RULE: for my $rule ( @{$rules} ) {
+        next RULE if not my $ranking_action = $rule->[Marpa::Internal::Rule::RANKING_ACTION];
+
+        # If the RHS is empty ...
+        if ( not scalar @{ $rule->[Marpa::Internal::Rule::RHS] } ) {
+            my $ranking_closure =
+                Marpa::Internal::Evaluator::resolve_semantics( $self,
+                $ranking_action );
+            Marpa::exception("Ranking closure '$ranking_action' not found")
+                if not defined $ranking_closure;
+            $ranking_closures_by_symbol->[ $rule->[Marpa::Internal::Rule::LHS]
+                ->[Marpa::Internal::Symbol::ID] ] = $ranking_closure;
+        } ## end if ( not scalar @{ $rule->[Marpa::Internal::Rule::RHS...]})
+
+        next RULE if not $rule->[Marpa::Internal::Rule::USEFUL];
+        my $ranking_closure =
+            Marpa::Internal::Evaluator::resolve_semantics( $self, $ranking_action );
+        Marpa::exception("Ranking closure '$ranking_action' not found")
+            if not defined $ranking_closure;
+        $ranking_closures_by_rule->[ $rule->[Marpa::Internal::Rule::ID] ] =
+            $ranking_closure;
+    }
+
     if (defined(
             my $action_object =
                 $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT]
@@ -1570,8 +1604,6 @@ sub Marpa::Evaluator::new {
         $self->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR] =
             $closure;
     } ## end if ( defined( my $action_object = $grammar->[...]))
-
-    my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
 
     my @tree_rules;
     $#tree_rules = $#{$rules};
@@ -2057,7 +2089,7 @@ sub Marpa::Evaluator::show_sort_keys {
 
     my $text = q{};
     for my $and_choice ( reverse @{$top_or_iteration} ) {
-        my $sort_data = $and_choice->[Marpa::Internal::And_Choice::RANK_DATA];
+        my $sort_data = $and_choice->[Marpa::Internal::And_Choice::RANKING_DATA];
         my $sort_key =
             $sort_data->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
         $text .= Marpa::dump_sort_key($sort_key) . "\n";
@@ -2255,7 +2287,8 @@ sub Marpa::Evaluator::value {
         $evaler->[Marpa::Internal::Evaluator::RULE_VALUE_OPS];
     my $and_nodes     = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes      = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
-    my $rank_closures = $evaler->[Marpa::Internal::Evaluator::RANK_CLOSURES];
+    my $rank_closures_by_symbol =
+        $evaler->[Marpa::Internal::Evaluator::RANKING_CLOSURES_BY_SYMBOL];
 
     # If the arrays of iteration data
     # for the and-nodes and or-nodes are undefined,
@@ -2279,7 +2312,7 @@ sub Marpa::Evaluator::value {
                     if not my $token =
                         $and_node->[Marpa::Internal::And_Node::TOKEN];
                 next AND_NODE
-                    if not my $ranker = $rank_closures
+                    if not my $ranker = $rank_closures_by_symbol
                         ->[ $token->[Marpa::Internal::Symbol::ID] ];
                 my $rank;
                 my @warnings;
@@ -2303,7 +2336,7 @@ sub Marpa::Evaluator::value {
                         }
                     );
                 } ## end if ( not $eval_ok or @warnings )
-                $and_node->[Marpa::Internal::And_Node::RANK_DATA] = $rank;
+                $and_node->[Marpa::Internal::And_Node::FIXED_RANKING_DATA] = $rank;
             } ## end for my $and_node ( @{$and_nodes} )
             last SET_UP_ITERATIONS;
         } ## end if ( $parse_order eq 'numeric' )
@@ -2349,7 +2382,7 @@ sub Marpa::Evaluator::value {
                         ( $and_node_end_earleme - $and_node_start_earleme );
                 }
             } ## end given
-            $and_node->[Marpa::Internal::And_Node::RANK_DATA] =
+            $and_node->[Marpa::Internal::And_Node::FIXED_RANKING_DATA] =
                 [ $location, 0, ~( $priority & N_FORMAT_MASK ), $length ];
 
         } ## end for my $and_node ( @{$and_nodes} )
@@ -2404,9 +2437,9 @@ sub Marpa::Evaluator::value {
                     $#{$and_choice} = Marpa::Internal::And_Choice::LAST_FIELD;
                     $and_choice->[Marpa::Internal::And_Choice::ID] =
                         $child_and_node_id;
-                    $and_choice->[Marpa::Internal::And_Choice::RANK_DATA] =
+                    $and_choice->[Marpa::Internal::And_Choice::RANKING_DATA] =
                         $and_iteration
-                        ->[Marpa::Internal::And_Iteration::RANK_DATA];
+                        ->[Marpa::Internal::And_Iteration::RANKING_DATA];
 
                     $and_choice->[Marpa::Internal::And_Choice::OR_MAP] = [
                         @{  $and_iteration
@@ -2442,7 +2475,7 @@ sub Marpa::Evaluator::value {
                                 [   ~(  join q{},
                                         sort map { pack 'N*', @{$_} } @{
                                             $_->[
-                                                Marpa::Internal::And_Choice::RANK_DATA
+                                                Marpa::Internal::And_Choice::RANKING_DATA
                                                 ]->[
                                                 Marpa::Internal::Original_Sort_Data::SORT_KEY
                                                 ]
@@ -2590,26 +2623,26 @@ sub Marpa::Evaluator::value {
                     if $parse_order eq 'none';
 
                 if ( $parse_order eq 'numeric' ) {
-                    my $rank_closure =
-                        $and_node->[Marpa::Internal::And_Node::RANK_CLOSURE];
+                    my $rank_closure = $and_node
+                        ->[Marpa::Internal::And_Node::RANKING_CLOSURE];
                     if ( not $rank_closure ) {
 
                         # Initialize with the rank of this node
-                        my $rank =
-                            $and_node->[Marpa::Internal::And_Node::RANK_DATA];
+                        my $rank = $and_node
+                            ->[Marpa::Internal::And_Node::FIXED_RANKING_DATA];
 
                         # Then add cause and predecessor if they exist
                         # if ($cause_and_node_iteration) {
-                            # $rank += $cause_and_node_iteration
-                                # ->[Marpa::Internal::And_Iteration::RANK_DATA];
+                        # $rank += $cause_and_node_iteration
+                        # ->[Marpa::Internal::And_Iteration::RANKING_DATA];
                         # }
                         # if ($predecessor_and_node_iteration) {
-                            # $rank += $predecessor_and_node_iteration
-                                # ->[Marpa::Internal::And_Iteration::RANK_DATA];
+                        # $rank += $predecessor_and_node_iteration
+                        # ->[Marpa::Internal::And_Iteration::RANKING_DATA];
                         # }
 
                         $and_node_iteration
-                            ->[Marpa::Internal::And_Iteration::RANK_DATA] =
+                            ->[Marpa::Internal::And_Iteration::RANKING_DATA] =
                             $rank;
 
                         # With the rank processing finished, the
@@ -2627,8 +2660,8 @@ sub Marpa::Evaluator::value {
                 my $and_node_end_earleme =
                     $and_node->[Marpa::Internal::And_Node::END_EARLEME];
 
-                my $sort_element =
-                    $and_node->[Marpa::Internal::And_Node::RANK_DATA];
+                my $sort_element = $and_node
+                    ->[Marpa::Internal::And_Node::FIXED_RANKING_DATA];
                 my @current_sort_elements =
                     $sort_element ? ($sort_element) : ();
                 my $trailing_nulls = 0;
@@ -2641,7 +2674,7 @@ sub Marpa::Evaluator::value {
                     my $cause_and_node_iteration =
                         $and_iterations->[$cause_and_node_id];
                     my $cause_sort_data = $cause_and_node_iteration
-                        ->[Marpa::Internal::And_Iteration::RANK_DATA];
+                        ->[Marpa::Internal::And_Iteration::RANKING_DATA];
 
                     $cause_sort_elements = $cause_sort_data
                         ->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
@@ -2663,7 +2696,7 @@ sub Marpa::Evaluator::value {
                         $and_iterations->[$predecessor_and_node_id];
                     my $predecessor_sort_data =
                         $predecessor_and_node_iteration
-                        ->[Marpa::Internal::And_Iteration::RANK_DATA];
+                        ->[Marpa::Internal::And_Iteration::RANKING_DATA];
 
                     $predecessor_end_earleme =
                         $predecessor->[Marpa::Internal::Or_Node::END_EARLEME];
@@ -2731,7 +2764,7 @@ sub Marpa::Evaluator::value {
                 } ## end if ($internal_nulls)
 
                 my $and_node_sort_data = $and_node_iteration
-                    ->[Marpa::Internal::And_Iteration::RANK_DATA] = [];
+                    ->[Marpa::Internal::And_Iteration::RANKING_DATA] = [];
 
                 $and_node_sort_data
                     ->[Marpa::Internal::Original_Sort_Data::SORT_KEY] = [
@@ -3134,9 +3167,9 @@ node appears more than once on the path back to the root node.
                 # no longer the first in sort order.
 
                 # Refresh and-choice's fields
-                $current_and_choice->[Marpa::Internal::And_Choice::RANK_DATA]
+                $current_and_choice->[Marpa::Internal::And_Choice::RANKING_DATA]
                     = $current_and_iteration
-                    ->[Marpa::Internal::And_Iteration::RANK_DATA];
+                    ->[Marpa::Internal::And_Iteration::RANKING_DATA];
                 $current_and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::OR_MAP];
@@ -3158,7 +3191,7 @@ node appears more than once on the path back to the root node.
                     join q{},
                     sort map { pack 'N*', @{$_} } @{
                         $current_and_choice
-                            ->[Marpa::Internal::And_Choice::RANK_DATA]
+                            ->[Marpa::Internal::And_Choice::RANKING_DATA]
                             ->[Marpa::Internal::Original_Sort_Data::SORT_KEY]
                         }
                 );
@@ -3168,7 +3201,7 @@ node appears more than once on the path back to the root node.
                         ~(  join q{},
                             sort map { pack 'N*', @{$_} } @{
                                 $current_and_choice
-                                    ->[Marpa::Internal::And_Choice::RANK_DATA]
+                                    ->[Marpa::Internal::And_Choice::RANKING_DATA]
                                     ->[
                                     Marpa::Internal::Original_Sort_Data::SORT_KEY
                                     ]
@@ -3288,9 +3321,9 @@ node appears more than once on the path back to the root node.
 
                 # Refresh and-choice's fields
                 my $current_and_iteration = $and_iterations->[$and_node_id];
-                $and_choice->[Marpa::Internal::And_Choice::RANK_DATA] =
+                $and_choice->[Marpa::Internal::And_Choice::RANKING_DATA] =
                     $current_and_iteration
-                    ->[Marpa::Internal::And_Iteration::RANK_DATA];
+                    ->[Marpa::Internal::And_Iteration::RANKING_DATA];
 
                 $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $current_and_iteration
@@ -3437,13 +3470,11 @@ node appears more than once on the path back to the root node.
 
                     }    # defined $value_ref
 
-                    my $value_processing =
+                    my $ops =
                         $and_node->[Marpa::Internal::And_Node::VALUE_OPS];
 
-                    next TREE_NODE if not defined $value_processing;
+                    next TREE_NODE if not defined $ops;
 
-                    my $ops = $value_processing
-                        ->[Marpa::Internal::Evaluator_Rule::OPS];
                     my $current_data = [];
                     my $op_ix        = 0;
                     while ( $op_ix < scalar @{$ops} ) {

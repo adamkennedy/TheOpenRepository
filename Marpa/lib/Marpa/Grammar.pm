@@ -30,7 +30,7 @@ use Marpa::Offset qw(
 
     NULL_ALIAS
     NULLING
-    RANKER
+    RANKING_ACTION
 
     GREED { Maximal (longest possible)
         or minimal (shortest possible) evaluation
@@ -89,6 +89,7 @@ use Marpa::Offset qw(
 
     USEFUL
     ACTION
+    RANKING_ACTION
     PRIORITY
     GREED
     VIRTUAL_LHS VIRTUAL_RHS
@@ -1655,6 +1656,7 @@ sub add_rule {
     my $lhs;
     my $rhs;
     my $action;
+    my $ranking_action;
     my $greed;
     my $priority;
     my $virtual_lhs;
@@ -1668,6 +1670,7 @@ sub add_rule {
             when ('lhs')      { $lhs      = $value }
             when ('rhs')      { $rhs      = $value }
             when ('action')   { $action   = $value }
+            when ('ranking_action')   { $ranking_action   = $value }
             when ('priority') { $priority = $value }
 
             # greed is an internal option
@@ -1742,12 +1745,13 @@ sub add_rule {
 
     my $nulling = @{$rhs} ? undef : 1;
 
-    $new_rule->[Marpa::Internal::Rule::ID]       = $new_rule_id;
-    $new_rule->[Marpa::Internal::Rule::LHS]      = $lhs;
-    $new_rule->[Marpa::Internal::Rule::RHS]      = $rhs;
-    $new_rule->[Marpa::Internal::Rule::ACTION]   = $action;
-    $new_rule->[Marpa::Internal::Rule::PRIORITY] = $priority;
-    $new_rule->[Marpa::Internal::Rule::GREED]    = $greed
+    $new_rule->[Marpa::Internal::Rule::ID]             = $new_rule_id;
+    $new_rule->[Marpa::Internal::Rule::LHS]            = $lhs;
+    $new_rule->[Marpa::Internal::Rule::RHS]            = $rhs;
+    $new_rule->[Marpa::Internal::Rule::ACTION]         = $action;
+    $new_rule->[Marpa::Internal::Rule::RANKING_ACTION] = $ranking_action;
+    $new_rule->[Marpa::Internal::Rule::PRIORITY]       = $priority;
+    $new_rule->[Marpa::Internal::Rule::GREED]          = $greed
         // $grammar->[Marpa::Internal::Grammar::GREED];
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_LHS] = $virtual_lhs;
     $new_rule->[Marpa::Internal::Rule::VIRTUAL_RHS] = $virtual_rhs;
@@ -3278,6 +3282,8 @@ sub rewrite_as_CHAF {
                         virtual_rhs       => $virtual_rhs,
                         real_symbol_count => $real_symbol_count,
                         action => $rule->[Marpa::Internal::Rule::ACTION],
+                        ranking_action =>
+                            $rule->[Marpa::Internal::Rule::RANKING_ACTION],
                         @rule_options
                     }
                 );
