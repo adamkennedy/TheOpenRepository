@@ -30,6 +30,7 @@ use Marpa::Offset qw(
 
     NULL_ALIAS
     NULLING
+    RANKER
 
     GREED { Maximal (longest possible)
         or minimal (shortest possible) evaluation
