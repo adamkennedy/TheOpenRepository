@@ -29,9 +29,9 @@ has id => (
 
 has disk_id => (
 	is       => 'ro',
-	isa      => Maybe[ Str ],
+	isa      => Maybe[ Int ],
 	reader   => '_get_disk_id',
-	default  => undef,
+	default  => 1,
 );
 
 has file_compression => (
@@ -43,9 +43,8 @@ has file_compression => (
 
 has language => (
 	is       => 'ro',
-	isa      => Maybe[ Str ],
+	isa      => Int,
 	reader   => '_get_language',
-	default  => undef,
 );
 
 has source_file => (
@@ -82,13 +81,13 @@ sub as_string {
 
 	my $tags;
 	
-	$tags .= $self->print_attribute( 'Id',     'Feat_' . $self->get_id() );
-	$tags .= $self->print_attribute( 'DiskID', $self->_get_disk_id() );
+	$tags .= $self->print_attribute( 'Id',     'Merge_' . $self->get_id() );
+	$tags .= $self->print_attribute( 'DiskId', $self->_get_disk_id() );
 	$tags .= $self->print_attribute( 'FileCompression', $self->_get_file_compression() );
 	$tags .= $self->print_attribute( 'Language', $self->_get_language() );
 	$tags .= $self->print_attribute( 'SourceFile', $self->_get_source_file() );
 	
-	return qq{<Feature$tags />\n};
+	return qq{<Merge$tags />\n};
 } ## end sub as_string
 
 sub get_namespace {
