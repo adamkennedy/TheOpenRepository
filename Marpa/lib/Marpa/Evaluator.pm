@@ -306,7 +306,7 @@ sub set_symbol_evaluation_data {
         } ## end for my $symbol ( @{$symbols} )
     } ## end if ($trace_actions)
 
-    return ($null_values, $rank_closures);
+    return ( $null_values, $rank_closures );
 
 }    # set_null_values
 
@@ -2253,8 +2253,8 @@ sub Marpa::Evaluator::value {
 
     my $evaluator_rules =
         $evaler->[Marpa::Internal::Evaluator::RULE_VALUE_OPS];
-    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $and_nodes     = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $or_nodes      = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $rank_closures = $evaler->[Marpa::Internal::Evaluator::RANK_CLOSURES];
 
     # If the arrays of iteration data
@@ -2279,8 +2279,8 @@ sub Marpa::Evaluator::value {
                     if not my $token =
                         $and_node->[Marpa::Internal::And_Node::TOKEN];
                 next AND_NODE
-                    if not my $ranker =
-                        $rank_closures->[$token->[Marpa::Internal::Symbol::ID]];
+                    if not my $ranker = $rank_closures
+                        ->[ $token->[Marpa::Internal::Symbol::ID] ];
                 my $rank;
                 my @warnings;
                 my $eval_ok;
@@ -2299,7 +2299,7 @@ sub Marpa::Evaluator::value {
                             grammar     => $grammar,
                             eval_ok     => $eval_ok,
                             warnings    => \@warnings,
-                            where       => 'ranking symbol $symbol_name',
+                            where       => "ranking symbol $symbol_name",
                         }
                     );
                 } ## end if ( not $eval_ok or @warnings )

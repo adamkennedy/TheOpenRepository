@@ -6,13 +6,13 @@ use warnings;
 
 use Carp;
 use Data::Dumper;
-use English qw( -no_match_vars ) ;
+use English qw( -no_match_vars );
 
 use Marpa::UrHTML;
 
 my $document = do { local $RS = undef; <STDIN> };
 
-my $p = Marpa::UrHTML->new(\$document);
+my $p = Marpa::UrHTML->new( \$document );
 
 my $marpa_tokens = $p->evaluate();
 
