@@ -22,6 +22,7 @@ require Perl::Dist::WiX::DirectoryCache;
 require Perl::Dist::WiX::DirectoryTree2;
 require WiX3::XML::Component;
 require WiX3::XML::Feature;
+require WiX3::XML::FeatureRef;
 require WiX3::XML::File;
 require WiX3::Exceptions;
 require File::List::Object;
@@ -46,6 +47,16 @@ has files => (
 	},
 );
 
+has feature => (
+	is       => 'bare',
+	isa      => 'Maybe[WiX3::XML::Feature]',
+	init_arg => undef,
+	lazy     => 1,
+	reader   => '_get_feature',
+	builder  => '_build_feature',
+);
+
+
 has can_overwrite => (
 	is      => 'ro',
 	isa     => Bool,
@@ -53,26 +64,16 @@ has can_overwrite => (
 	reader  => 'can_overwrite',
 );
 
-# TODO: Uncomment when we figure out how to get feature tags working right.
-#has feature => (
-#	is       => 'ro',
-#	isa      => 'WiX3::XML::Feature',
-#	init_arg => undef,
-#	lazy     => 1,
-#	reader   => '_get_feature',
-#	builder  => '_build_feature',
-#);
-
-#sub _build_feature {
-#	my $self = shift;
-#	my $feat = WiX3::XML::Feature->new(
-#		id => $self->get_id(),
-#		level => 1,
-#		display => 'hidden',
-#	);
-#	$self->add_child_tag($feat);
-#	return $feat;
-#}
+sub _build_feature {
+	my $self = shift;
+	my $feat = WiX3::XML::Feature->new(
+		id => $self->get_id(),
+		level => 1,
+		display => 'hidden',
+	);
+	$self->add_child_tag($feat);
+	return $feat;
+}
 
 # This type of fragment needs regeneration.
 sub regenerate {
@@ -325,7 +326,11 @@ sub _add_file_component {
 	$component_id =~ s{\+}{_};
 	$component_id =~ s{/}{-};
 	
-	my $component = WiX3::XML::Component->new( path => $file, id => $component_id );
+	my $component = WiX3::XML::Component->new( 
+		path => $file,
+		id => $component_id,
+		feature => $self->_get_feature()->get_id();
+	);
 	my $file_obj;
 	
 	# If the file is a .dll or .exe file, check for a version.
@@ -364,6 +369,13 @@ sub _add_file_component {
 
 	return 1;
 } ## end sub _add_file_component
+
+# Deliberate documentation in code.
+override 'get_componentref_array' => sub  {
+	my $self = shift;
+	
+	return $self->_get_feature()->get_componentref_array();
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
