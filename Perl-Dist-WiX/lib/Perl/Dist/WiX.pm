@@ -1912,14 +1912,14 @@ sub _build_git_describe {
 	}
 	$self->trace_line(2, "Finding current commit using $location describe\n");
 	my $describe = qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
-	
+
 	if ($CHILD_ERROR){
 		PDWiX->throw("'git describe' returned an error: $CHILD_ERROR");
 	}
-	
+
 	$describe =~ s/v5[.]/5./;
 	$describe =~ s/\n//;	
-	
+
 	return $describe;
 }
 
@@ -1944,7 +1944,7 @@ has 'perl_version_literal' => (
 
 sub _build_perl_version_literal {
 	my $self = shift;
-	
+
 	my $x = {
 		'589'  => '5.008009',
 		'5100' => '5.010000',
@@ -1952,7 +1952,7 @@ sub _build_perl_version_literal {
 		'git'  => '5.011001',
 	  }->{ $self->perl_version() }
 	  || 0;
-	  
+  
 	unless ( $x ) {
 		PDWiX::Parameter->throw(
 			parameter => 'perl_version_literal: Failed to resolve',
@@ -1982,7 +1982,7 @@ has 'perl_version_human' => (
 
 sub _build_perl_version_human {
 	my $self = shift;
-	
+
 	my $x = {
 		'589'  => '5.8.9',
 		'5100' => '5.10.0',
@@ -1990,7 +1990,7 @@ sub _build_perl_version_human {
 		'git'  => 'git',
 	  }->{ $self->perl_version() }
 	  || 0;
-	  
+  
 	unless ( $x ) {
 		PDWiX::Parameter->throw(
 			parameter => 'perl_version_human: Failed to resolve',
@@ -2010,9 +2010,9 @@ of the distribution version.
 
 sub distribution_version_human {
 	my $self = shift;
-	
+
 	my $version = $self->perl_version_human();
-	
+
 	if ('git' eq $version) {
 		$version = $self->git_describe();
 	}
@@ -2233,17 +2233,17 @@ sub perl_config_myuname {
 	my $self = shift;
 
 	my $version = $self->perl_version_human() . q{.} . $self->build_number();
-	
+
 	if ($version =~ m/git/) {
 		$version = $self->git_describe() . q{.} . $self->build_number();
 	}
-	
+
 	if ( $self->beta_number() > 0 ) {
 		$version .= '.beta_' . $self->beta_number();
 	}
 
 	my $bits = (64 == $self->bits()) ? 'x86_64' : 'i386';
-	
+
 	return join q{ }, 'Win32', $self->app_id(), $version, '#1',
 	  $self->build_start_time(), 'i386';
 
@@ -2685,34 +2685,33 @@ sub write_merge_module {
 				app_name => $self->app_name(),
 			)->initialize_short_tree( $self->perl_version )
 		);
-	}
-	
-	# Start adding the fragments that are only for the .msi.
-	$self->_add_fragment('StartMenuIcons',
-	  Perl::Dist::WiX::Fragment::StartMenu->new(
-		directory_id => 'D_App_Menu', ));
-	$self->_add_fragment('Win32Extras', 
-	  Perl::Dist::WiX::Fragment::Files->new(
-		id    => 'Win32Extras',
-		files => File::List::Object->new(),
-	  ));
-	$self->{icons} = $self->get_fragment_object('StartMenuIcons')->get_icons();
-	if ( defined $self->msi_product_icon() ) {
-		$self->icons()->add_icon( $self->msi_product_icon() );
-	}
-	my $mm = Perl::Dist::WiX::MergeModule->new(
-		id => 'Perl', 
-		disk_id => 1,
-		file_compression => 'yes', 
-		language => 1033,
-		source_file => catfile( $self->output_dir() , $self->output_base_filename() . '.msm'),
-		primary_reference => 1,
-	);
-	$self->_add_merge_module('Perl', $mm); 
-	$self->_directories()->add_merge_module($self->image_dir(), $mm);
-	$self->feature_tree_object()->add_merge_module($mm);
-	
 
+		# Start adding the fragments that are only for the .msi.
+		$self->_add_fragment('StartMenuIcons',
+		  Perl::Dist::WiX::Fragment::StartMenu->new(
+			directory_id => 'D_App_Menu', ));
+		$self->_add_fragment('Win32Extras', 
+		  Perl::Dist::WiX::Fragment::Files->new(
+			id    => 'Win32Extras',
+			files => File::List::Object->new(),
+		  ));
+		  
+		$self->{icons} = $self->get_fragment_object('StartMenuIcons')->get_icons();
+		if ( defined $self->msi_product_icon() ) {
+			$self->icons()->add_icon( $self->msi_product_icon() );
+		}
+		
+		my $mm = Perl::Dist::WiX::MergeModule->new(
+			id => 'Perl',
+			disk_id => 1,
+			language => 1033,
+			source_file => catfile( $self->output_dir() , $self->output_base_filename() . '.msm'),
+			primary_reference => 1,
+		);
+		$self->_add_merge_module('Perl', $mm);
+		$self->_directories()->add_merge_module($self->image_dir(), $mm);
+	}
+	
 	return 1;
 } ## end sub write_msm
 
@@ -2929,6 +2928,14 @@ sub write_msi {
 	# Generate feature tree.
 	$self->_set_feature_tree_object(Perl::Dist::WiX::FeatureTree2->new( parent => $self, ));
 
+	my $mm;
+	# Add merge modules.
+	foreach my $mm_key ($self->_merge_module_keys()) {
+		$mm = $self->get_merge_module_object($mm_key);
+		$self->feature_tree_object()->add_merge_module($mm);
+	}
+
+	
 	# Write out the .wxs file
 	my $content = $self->as_string('Main.wxs.tt');
 	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
@@ -2981,7 +2988,7 @@ sub write_msi {
 		'-sice:ICE47',                 # Gets rid of ICE47 warning.
 		                               # (Too many components in one
 		                               # feature for Win9X)
-#		'-sice:ICE48',                 # Gets rid of ICE48 warning.
+		'-sice:ICE48',                 # Gets rid of ICE48 warning.
 		                               # (Hard-coded installation location)
 
 #		'-v',                          # Verbose for the moment.

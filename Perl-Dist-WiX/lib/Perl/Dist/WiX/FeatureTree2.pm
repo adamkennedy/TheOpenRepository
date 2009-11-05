@@ -38,7 +38,7 @@ has features => (
 	handles  => {
 		'_push_feature'      => 'push',
 		'_count_features'    => 'count',
-		'_get_feature'       => 'get'
+		'_get_feature'       => 'get',
 		'_get_feature_array' => 'elements',
 	},
 );
@@ -124,7 +124,7 @@ sub add_merge_module {
 	my $mm = shift;
 	my $index = shift || 0;
 	
-	my $feature = $self->get_feature($index);
+	my $feature = $self->_get_feature($index);
 	$feature->add_child_tag($mm->get_merge_reference());
 	
 	return;
