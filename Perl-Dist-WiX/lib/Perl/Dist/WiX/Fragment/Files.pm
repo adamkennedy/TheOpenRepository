@@ -312,7 +312,16 @@ sub _add_file_component {
 	# it just has to TRY and be unique over a set of 10,000 
 	# file names and compoments or so.
 
-	my $component_id = crc32_base64($file);
+	my $revext; # Reverse the extension.
+	my (undef, undef, $filename) = splitpath($file);
+	$filename = reverse scalar $filename;
+	($revext) = $filename =~ m{\A(.*?)[.]};
+	if (not defined $revext) {
+		$revext = 'Z';
+	}
+	
+	my $component_id = "${revext}_";
+	$component_id .= crc32_base64($file);
 	$component_id =~ s{\+}{_};
 	$component_id =~ s{/}{-};
 	
