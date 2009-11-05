@@ -9,19 +9,27 @@ use strict;
 use warnings;
 
 use lib 'lib';
-use Test::More tests => 6;
+use Test::More tests => 33;
 use t::lib::Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
 }
 
+use Smart::Comments '-ENV';
+
 ## no critic (Subroutines::RequireArgUnpacking)
 
+# Ranks are in increments to .001
+# to test that integer rounding does
+# not happen anywhere.  It would be
+# pretty obvious
+sub rank_one {
+    return ( $MyTest::UP ? -.001 : .001 ) * ( 2**-$Marpa::LOCATION );
+}
 sub rank_zero { return 0 }
-sub rank_one { return -.01 }
-sub zero { return '0' }
-sub one { return '1' }
+sub zero      { return '0' }
+sub one       { return '1' }
 
 sub start_rule_action {
     shift;
@@ -67,20 +75,26 @@ my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
 my $input_length = 4;
 $recce->tokens( [ ( [ 't' ] ) x $input_length ] );
 
-my @expected = ( q{}, qw[(;;;a) (;;a;a) (;a;a;a) (a;a;a;a)] );
+my @counting_up = qw{ 0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111 };
+my @counting_down = reverse @counting_up;
 
-my $evaler = Marpa::Evaluator->new(
-    {   recce => $recce,
-        clone => 0,
+for my $up ( 1, 0 ) {
+    local $MyTest::UP = $up;
+    my $expected = $up ? ( \@counting_up ) : ( \@counting_down );
+    my $direction = $up ? 'up' : 'down';
+    my $evaler = Marpa::Evaluator->new(
+        {   recce => $recce,
+            clone => 0,
+        }
+    );
+    my $i = 0;
+    while ( my $result = $evaler->value() ) {
+        say ${$result};
+        Test::More::is( ${$result}, $expected->[$i],
+            "counting $direction $i" );
+        $i++;
     }
-);
-
-while ( my $result = $evaler->value() ) {
-    state $i = 0;
-    say ${$result};
-    # Test::More::is( ${$result}, $expected[$i], "counter $i" );
-    $i++;
-}
+} ## end for my $up ( 1, 0 )
 
 # Local Variables:
 #   mode: cperl

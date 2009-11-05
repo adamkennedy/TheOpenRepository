@@ -51,6 +51,7 @@ lib/Marpa/MDL/Symbol.pm
 lib/Marpa/Offset.pm
 lib/Marpa.pm
 lib/Marpa/Recognizer.pm
+lib/Marpa/Tie.pm
 lib/Marpa/UrHTML/dump_html.pl
 lib/Marpa/UrHTML.pm
 Makefile.PL
@@ -62,6 +63,7 @@ t/ah2.t
 t/ah_minimal.t
 t/ah.t
 t/code_diag.t
+t/counter.t
 t/cycle2.t
 t/cycle_plex.t
 t/cycle.t
