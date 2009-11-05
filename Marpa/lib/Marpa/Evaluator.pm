@@ -420,7 +420,7 @@ sub set_actions {
             my $closure =
                 Marpa::Internal::Evaluator::resolve_semantics( $evaler,
                 $action );
-            Marpa::exception("Could not find find $action")
+            Marpa::exception(qq{Could not find action "$action"})
                 if not defined $closure;
             push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
             next RULE;
@@ -1482,9 +1482,10 @@ sub Marpa::Evaluator::new {
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $earley_sets = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
 
-    my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
-    my $rules = $grammar->[Marpa::Internal::Grammar::RULES];
-    my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
+    my $phase       = $grammar->[Marpa::Internal::Grammar::PHASE];
+    my $parse_order = $grammar->[Marpa::Internal::Grammar::PARSE_ORDER];
+    my $rules       = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
 
     # Marpa::exception('Recognizer already in use by Evaluator')
     # if $phase == Marpa::Internal::Phase::EVALUATING;
@@ -1599,7 +1600,7 @@ sub Marpa::Evaluator::new {
     {
         my $constructor_name = $action_object . q{::new};
         my $closure = resolve_semantics( $self, $constructor_name );
-        Marpa::exception("Could not find find $constructor_name")
+        Marpa::exception(qq{Could not find constructor "$constructor_name"})
             if not defined $closure;
         $self->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR] =
             $closure;
@@ -1652,6 +1653,12 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::END_EARLEME]   = 0;
         $and_node->[Marpa::Internal::And_Node::PARENT_ID]     = 0;
         $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] = 0;
+        given ($parse_order) {
+            when ('numeric') {
+                $and_node->[Marpa::Internal::And_Node::FIXED_RANKING_DATA] =
+                    0
+            }
+        } ## end given
         my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID] = 0;
         $and_node->[Marpa::Internal::And_Node::TAG] =
             $or_node_tag . "a$and_node_id";
@@ -1860,6 +1867,13 @@ sub Marpa::Evaluator::new {
                 } ## end if ( $sapling_position == $#{ $sapling_rule->[...]})
                 $and_node->[Marpa::Internal::And_Node::VALUE_OPS] =
                     $value_processing;
+                given ($parse_order) {
+                    when ('numeric') {
+                        $and_node
+                            ->[Marpa::Internal::And_Node::FIXED_RANKING_DATA]
+                            = 0
+                    }
+                } ## end given
 
                 $and_node->[Marpa::Internal::And_Node::POSITION] =
                     $sapling_position;
@@ -2473,11 +2487,11 @@ sub Marpa::Evaluator::value {
                             map      { $_->[1] }
                                 sort { $a->[0] <=> $b->[0] }
                                 map {
-                                (   $_->[
+                                [   $_->[
                                         Marpa::Internal::And_Choice::RANKING_DATA
                                     ],
                                     $_
-                                    )
+                                ]
                                 } @and_choices
                         ];
                     } ## end when ('numeric')

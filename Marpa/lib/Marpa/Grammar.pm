@@ -869,7 +869,7 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'parse_order'} ) ) {
             Marpa::exception(q{parse_order must be 'original' or 'none'})
-                if not $value ~~ [qw(original none)];
+                if not $value ~~ [qw(original numeric none)];
             $grammar->[Marpa::Internal::Grammar::PARSE_ORDER] = $value;
         }
 
