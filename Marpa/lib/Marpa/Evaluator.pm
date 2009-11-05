@@ -2468,6 +2468,7 @@ sub Marpa::Evaluator::value {
                 my $or_iteration;
                 given ($parse_order) {
                     when ('numeric') {
+                        no integer;
                         $or_iteration = [
                             map      { $_->[1] }
                                 sort { $a->[0] <=> $b->[0] }
@@ -2665,6 +2666,8 @@ sub Marpa::Evaluator::value {
                     my $ranking_closure = $and_node
                         ->[Marpa::Internal::And_Node::RANKING_CLOSURE];
                     if ( not $ranking_closure ) {
+
+                        no integer;
 
                         # Initialize with the rank of this node
                         my $rank = $and_node
@@ -3247,16 +3250,27 @@ node appears more than once on the path back to the root node.
                 # worry about sorting alternatives.
                 break if @{$and_choices} <= 1;
 
-                my $first_le_sort_key;
+                my $insert_point;
                 given ($parse_order) {
                     when ('numeric') {
                         my $current_sort_key = $current_and_choice
                             ->[Marpa::Internal::And_Choice::RANKING_DATA];
-                        $first_le_sort_key = List::Util::first {
-                            $_->[Marpa::Internal::And_Choice::RANKING_DATA]
-                                <= $current_sort_key;
-                        }
-                        reverse 0 .. ( $#{$and_choices} - 1 )
+                        no integer;
+                        AND_CHOICE:
+                        for (
+                            my $and_choice_ix = $#{$and_choices} - 1;
+                            $and_choice_ix >= 0;
+                            $and_choice_ix--
+                            )
+                        {
+                            if ( $and_choices->[$and_choice_ix]
+                                ->[Marpa::Internal::And_Choice::RANKING_DATA]
+                                <= $current_sort_key )
+                            {
+                                $insert_point = $and_choice_ix + 1;
+                                last AND_CHOICE;
+                            } ## end if ( $and_choices->[$and_choice_ix]->[...])
+                        } ## end for ( my $and_choice_ix = $#{$and_choices} - 1; ...)
                     } ## end when ('numeric')
                     when ('original') {
                         my $current_sort_key = ~(
@@ -3272,7 +3286,7 @@ node appears more than once on the path back to the root node.
 
                         AND_CHOICE:
                         for (
-                            my $and_choice_ix = $#{$and_choices}-1;
+                            my $and_choice_ix = $#{$and_choices} - 1;
                             $and_choice_ix >= 0;
                             $and_choice_ix--
                             )
@@ -3288,18 +3302,15 @@ node appears more than once on the path back to the root node.
                                 ) le $current_sort_key
                                 )
                             {
-                                $first_le_sort_key = $and_choice_ix;
+                                $insert_point = $and_choice_ix + 1;
                                 last AND_CHOICE;
                             } ## end if ( ~( join q{}, sort map { pack 'N*', @{$_} } @{ ...}))
-                        } ## end for ( my $and_choice_ix = $#{$and_choices}; ...)
+                        } ## end for ( my $and_choice_ix = $#{$and_choices} - 1; ...)
 
                     } ## end when ('original')
                 } ## end given
 
-                my $insert_point =
-                    defined $first_le_sort_key
-                    ? $first_le_sort_key + 1
-                    : 0;
+                $insert_point //= 0;
 
                 # If current choice would be inserted where it already
                 # is now, we're done

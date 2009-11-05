@@ -1548,11 +1548,13 @@ sub add_terminal {
     my $options  = shift;
     my $priority = 0;
     my $greed;
+    my $ranking_action;
 
     while ( my ( $key, $value ) = each %{$options} ) {
         given ($key) {
-            when ('maximal') { $greed = 1; }
-            when ('minimal') { $greed = -1; }
+            when ('maximal')        { $greed          = 1; }
+            when ('minimal')        { $greed          = -1; }
+            when ('ranking_action') { $ranking_action = $value; }
             default {
                 Marpa::exception(
                     "Attempt to add terminal named $name with unknown option $key"
@@ -1595,6 +1597,7 @@ sub add_terminal {
     $new_symbol->[Marpa::Internal::Symbol::RH_RULE_IDS] = [];
     $new_symbol->[Marpa::Internal::Symbol::TERMINAL]    = 1;
     $new_symbol->[Marpa::Internal::Symbol::GREED] = $greed // $default_greed;
+    $new_symbol->[Marpa::Internal::Symbol::RANKING_ACTION] = $ranking_action;
 
     $symbol_id = @{$symbols};
     push @{$symbols}, $new_symbol;
@@ -1666,12 +1669,12 @@ sub add_rule {
 
     while ( my ( $option, $value ) = each %{$arg_hash} ) {
         given ($option) {
-            when ('grammar')  { $grammar  = $value }
-            when ('lhs')      { $lhs      = $value }
-            when ('rhs')      { $rhs      = $value }
-            when ('action')   { $action   = $value }
-            when ('ranking_action')   { $ranking_action   = $value }
-            when ('priority') { $priority = $value }
+            when ('grammar')        { $grammar        = $value }
+            when ('lhs')            { $lhs            = $value }
+            when ('rhs')            { $rhs            = $value }
+            when ('action')         { $action         = $value }
+            when ('ranking_action') { $ranking_action = $value }
+            when ('priority')       { $priority       = $value }
 
             # greed is an internal option
             when ('greed')   { $greed = $value }
@@ -1840,6 +1843,7 @@ sub add_user_rule {
 
     my ( $lhs_name, $rhs_names, $action );
     my ( $min, $separator_name );
+    my $ranking_action;
     my $proper_separation = 0;
     my $keep_separation   = 0;
     my $priority          = 0;
@@ -1847,13 +1851,14 @@ sub add_user_rule {
     my @rule_options;
     while ( my ( $option, $value ) = each %{$options} ) {
         given ($option) {
-            when ('rhs')       { $rhs_names         = $value }
-            when ('lhs')       { $lhs_name          = $value }
-            when ('action')    { $action            = $value }
-            when ('min')       { $min               = $value }
-            when ('separator') { $separator_name    = $value }
-            when ('proper')    { $proper_separation = $value }
-            when ('keep')      { $keep_separation   = $value }
+            when ('rhs')            { $rhs_names         = $value }
+            when ('lhs')            { $lhs_name          = $value }
+            when ('action')         { $action            = $value }
+            when ('ranking_action') { $ranking_action    = $value }
+            when ('min')            { $min               = $value }
+            when ('separator')      { $separator_name    = $value }
+            when ('proper')         { $proper_separation = $value }
+            when ('keep')           { $keep_separation   = $value }
             when ('priority') {
                 push @rule_options, priority => $value
             }
@@ -1948,10 +1953,11 @@ sub add_user_rule {
         # This is an ordinary, non-counted rule,
         # which we'll take care of first as a special case
         my $ordinary_rule = add_rule(
-            {   grammar => $grammar,
-                lhs     => $lhs,
-                rhs     => $rhs,
-                action  => $action,
+            {   grammar        => $grammar,
+                lhs            => $lhs,
+                rhs            => $rhs,
+                action         => $action,
+                ranking_action => $ranking_action,
                 @rule_options
             }
         );
@@ -1972,6 +1978,9 @@ sub add_user_rule {
             @rule_options,
         );
         if ($action) { push @rule_args, action => $action }
+        if ($ranking_action) {
+            push @rule_args, ranking_action => $ranking_action;
+        }
         add_rule( {@rule_args} );
         $min = 1;
     } ## end if ( $min == 0 )
@@ -2010,7 +2019,8 @@ sub add_user_rule {
             real_symbol_count => 0,
             discard_separation =>
                 ( not $keep_separation and defined $separator ),
-            action => $action,
+            action         => $action,
+            ranking_action => $ranking_action,
             @rule_options,
         }
     );
@@ -2025,6 +2035,7 @@ sub add_user_rule {
                 real_symbol_count  => 1,
                 discard_separation => !$keep_separation,
                 action             => $action,
+                ranking_action     => $ranking_action,
                 @rule_options,
             }
         );
@@ -2097,6 +2108,8 @@ sub add_user_terminal {
         Marpa::exception(
             "Terminal name was ref to $type; it must be a scalar string");
     }
+    Marpa::exception('Terminal options must be a hash of named arguments')
+        if defined $options and ref $options ne 'HASH';
     Marpa::exception("Symbol name $name ends in ']': that's not allowed")
         if $name =~ /\]\z/xms;
     add_terminal( $grammar, $name, $options );
