@@ -329,7 +329,7 @@ sub _add_file_component {
 	my $component = WiX3::XML::Component->new( 
 		path => $file,
 		id => $component_id,
-		feature => $self->_get_feature()->get_id();
+		feature => $self->_get_feature()->get_id()
 	);
 	my $file_obj;
 	
@@ -371,11 +371,11 @@ sub _add_file_component {
 } ## end sub _add_file_component
 
 # Deliberate documentation in code.
-override 'get_componentref_array' => sub  {
+override 'get_componentref_array' => sub {
 	my $self = shift;
 	
 	return $self->_get_feature()->get_componentref_array();
-}
+};
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
