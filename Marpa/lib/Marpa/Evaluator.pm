@@ -686,6 +686,8 @@ sub clone_and_node {
         Marpa::Internal::And_Node::END_EARLEME,
         Marpa::Internal::And_Node::RULE_ID,
         Marpa::Internal::And_Node::POSITION,
+        Marpa::Internal::And_Node::FIXED_RANKING_DATA,
+        Marpa::Internal::And_Node::RANKING_CLOSURE,
         )
     {
         $new_and_node->[$field] = $and_node->[$field];
@@ -1583,7 +1585,11 @@ sub Marpa::Evaluator::new {
                 $ranking_action );
             Marpa::exception("Ranking closure '$ranking_action' not found")
                 if not defined $ranking_closure;
+
+            ### Setting Ranking closure for symbol: $rule->[Marpa'Internal'Rule'LHS]->[Marpa'Internal'Symbol'NAME]
+
             $ranking_closures_by_symbol->[ $rule->[Marpa::Internal::Rule::LHS]
+                ->[Marpa::Internal::Symbol::NULL_ALIAS]
                 ->[Marpa::Internal::Symbol::ID] ] = $ranking_closure;
         } ## end if ( not scalar @{ $rule->[Marpa::Internal::Rule::RHS...]})
 
@@ -1660,8 +1666,10 @@ sub Marpa::Evaluator::new {
         given ($parse_order) {
             when ('numeric') {
                 $and_node->[Marpa::Internal::And_Node::FIXED_RANKING_DATA] =
-                    0
-            }
+                    0;
+                $and_node->[Marpa::Internal::And_Node::RANKING_CLOSURE] =
+                    $ranking_closures_by_rule->[$start_rule_id];
+            } ## end when ('numeric')
         } ## end given
         my $and_node_id = $and_node->[Marpa::Internal::And_Node::ID] = 0;
         $and_node->[Marpa::Internal::And_Node::TAG] =
@@ -2310,7 +2318,7 @@ sub Marpa::Evaluator::value {
         $evaler->[Marpa::Internal::Evaluator::RULE_VALUE_OPS];
     my $and_nodes     = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $or_nodes      = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
-    my $rank_closures_by_symbol =
+    my $ranking_closures_by_symbol =
         $evaler->[Marpa::Internal::Evaluator::RANKING_CLOSURES_BY_SYMBOL];
 
     # If the arrays of iteration data
@@ -2334,9 +2342,15 @@ sub Marpa::Evaluator::value {
                 next AND_NODE
                     if not my $token =
                         $and_node->[Marpa::Internal::And_Node::TOKEN];
+
+                ### Ranking token: $token->[Marpa'Internal'Symbol'NAME]
+
                 next AND_NODE
-                    if not my $ranking_closure = $rank_closures_by_symbol
+                    if not my $ranking_closure = $ranking_closures_by_symbol
                         ->[ $token->[Marpa::Internal::Symbol::ID] ];
+
+                ### Found closure for token: $token->[Marpa'Internal'Symbol'NAME]
+
                 my $rank;
                 my @warnings;
                 my $eval_ok;
@@ -2362,6 +2376,9 @@ sub Marpa::Evaluator::value {
                 } ## end if ( not $eval_ok or @warnings )
                 $and_node->[Marpa::Internal::And_Node::FIXED_RANKING_DATA] =
                     $rank;
+
+                ### Token, rank: $token->[Marpa'Internal'Symbol'NAME], $rank
+
             } ## end for my $and_node ( @{$and_nodes} )
             last SET_UP_ITERATIONS;
         } ## end if ( $parse_order eq 'numeric' )
@@ -2670,6 +2687,9 @@ sub Marpa::Evaluator::value {
                         $and_iterations->[$cause_and_node_id];
                     $cause_ranking_data = $cause_and_node_iteration
                         ->[Marpa::Internal::And_Iteration::RANKING_DATA];
+
+                    ### assert: defined $cause_ranking_data
+
                 }
 
                 my $predecessor_ranking_data;
@@ -2682,6 +2702,9 @@ sub Marpa::Evaluator::value {
                     $predecessor_ranking_data =
                         $predecessor_and_node_iteration
                         ->[Marpa::Internal::And_Iteration::RANKING_DATA];
+
+                    ### assert: defined $predecessor_ranking_data
+
                 }
 
                 my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
@@ -2697,20 +2720,22 @@ sub Marpa::Evaluator::value {
                         my $rank = $and_node
                             ->[Marpa::Internal::And_Node::FIXED_RANKING_DATA];
 
+                        ### assert: defined $rank
+
                         #Then add cause and predecessor
                         # if they exist
-                        if ($cause_and_node_iteration) {
+                        if ($cause_and_node_choice) {
                             $rank
                                 += $cause_and_node_iteration->[
                                 Marpa::Internal::And_Iteration::RANKING_DATA
                                 ];
-                        } ## end if ($cause_and_node_iteration)
-                        if ($predecessor_and_node_iteration) {
+                        } ## end if ($cause_and_node_choice)
+                        if ($predecessor_and_node_choice) {
                             $rank
                                 += $predecessor_and_node_iteration->[
                                 Marpa::Internal::And_Iteration::RANKING_DATA
                                 ];
-                        } ## end if ($predecessor_and_node_iteration)
+                        } ## end if ($predecessor_and_node_choice)
 
                         ### Ranking and_node, id, rank: $and_node_id, $rank
 

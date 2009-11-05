@@ -86,6 +86,7 @@ t/minus.t
 t/null_cycle1.t
 t/null_cycle4.t
 t/null_value.t
+t/numeric.t
 t/pascal.t
 t/priority.t
 t/randal.t
