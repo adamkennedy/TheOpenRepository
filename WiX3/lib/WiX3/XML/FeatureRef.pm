@@ -79,7 +79,7 @@ sub as_string {
 	$answer = '<FeatureRef';
 	$answer .= $self->print_attribute( 'Id', $id );
 	$answer .=
-	  $self->print_attribute( 'IgnoreParent', $self->_ignoreparent() );
+	  $self->print_attribute( 'IgnoreParent', $self->_get_ignoreparent() );
 	$answer .= " />\n";
 
 	return $answer;
