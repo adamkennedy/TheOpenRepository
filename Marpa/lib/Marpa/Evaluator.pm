@@ -219,7 +219,7 @@ sub set_null_values {
     SYMBOL: for my $symbol ( @{$symbols} ) {
         my $id = $symbol->[Marpa::Internal::Symbol::ID];
         $null_values->[$id] = $default_null_value;
-    } ## end for my $symbol ( @{$symbols} )
+    }
 
     # Set null values specified in
     # empty rules.
@@ -1485,7 +1485,7 @@ sub Marpa::Evaluator::new {
         $recce = $recce->clone();
     }
 
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar     = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $earley_sets = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
 
     my $phase       = $grammar->[Marpa::Internal::Grammar::PHASE];
@@ -1557,14 +1557,16 @@ sub Marpa::Evaluator::new {
         $self->[Marpa::Internal::Evaluator::RANKING_CLOSURES_BY_SYMBOL] = [];
     $#{$ranking_closures_by_symbol} = $#{$symbols};
     SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $ranking_action = $symbol->[Marpa::Internal::Symbol::RANKING_ACTION];
+        my $ranking_action =
+            $symbol->[Marpa::Internal::Symbol::RANKING_ACTION];
         next SYMBOL if not defined $ranking_action;
         my $ranking_closure =
-            Marpa::Internal::Evaluator::resolve_semantics( $self, $ranking_action );
+            Marpa::Internal::Evaluator::resolve_semantics( $self,
+            $ranking_action );
         Marpa::exception("Ranking closure '$ranking_action' not found")
             if not defined $ranking_closure;
-        $ranking_closures_by_symbol->[ $symbol->[Marpa::Internal::Symbol::ID] ] =
-            $ranking_closure;
+        $ranking_closures_by_symbol->[ $symbol->[Marpa::Internal::Symbol::ID]
+        ] = $ranking_closure;
     } ## end for my $symbol ( @{$symbols} )
 
     my $evaluator_rules =
@@ -1572,11 +1574,13 @@ sub Marpa::Evaluator::new {
         set_actions($self);
 
     # Get closure used in ranking, by rule
-    my $ranking_closures_by_rule = 
+    my $ranking_closures_by_rule =
         $self->[Marpa::Internal::Evaluator::RANKING_CLOSURES_BY_RULE] = [];
     $#{$ranking_closures_by_rule} = $#{$rules};
     RULE: for my $rule ( @{$rules} ) {
-        next RULE if not my $ranking_action = $rule->[Marpa::Internal::Rule::RANKING_ACTION];
+        next RULE
+            if not my $ranking_action =
+                $rule->[Marpa::Internal::Rule::RANKING_ACTION];
 
         # If the RHS is empty ...
         if ( not scalar @{ $rule->[Marpa::Internal::Rule::RHS] } ) {
@@ -1586,8 +1590,6 @@ sub Marpa::Evaluator::new {
             Marpa::exception("Ranking closure '$ranking_action' not found")
                 if not defined $ranking_closure;
 
-            ### Setting Ranking closure for symbol: $rule->[Marpa'Internal'Rule'LHS]->[Marpa'Internal'Symbol'NAME]
-
             $ranking_closures_by_symbol->[ $rule->[Marpa::Internal::Rule::LHS]
                 ->[Marpa::Internal::Symbol::NULL_ALIAS]
                 ->[Marpa::Internal::Symbol::ID] ] = $ranking_closure;
@@ -1595,12 +1597,13 @@ sub Marpa::Evaluator::new {
 
         next RULE if not $rule->[Marpa::Internal::Rule::USEFUL];
         my $ranking_closure =
-            Marpa::Internal::Evaluator::resolve_semantics( $self, $ranking_action );
+            Marpa::Internal::Evaluator::resolve_semantics( $self,
+            $ranking_action );
         Marpa::exception("Ranking closure '$ranking_action' not found")
             if not defined $ranking_closure;
         $ranking_closures_by_rule->[ $rule->[Marpa::Internal::Rule::ID] ] =
             $ranking_closure;
-    }
+    } ## end for my $rule ( @{$rules} )
 
     if (defined(
             my $action_object =
@@ -2118,7 +2121,8 @@ sub Marpa::Evaluator::show_sort_keys {
 
     my $text = q{};
     for my $and_choice ( reverse @{$top_or_iteration} ) {
-        my $sort_data = $and_choice->[Marpa::Internal::And_Choice::RANKING_DATA];
+        my $sort_data =
+            $and_choice->[Marpa::Internal::And_Choice::RANKING_DATA];
         my $sort_key =
             $sort_data->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
         $text .= Marpa::dump_sort_key($sort_key) . "\n";
@@ -2316,8 +2320,8 @@ sub Marpa::Evaluator::value {
 
     my $evaluator_rules =
         $evaler->[Marpa::Internal::Evaluator::RULE_VALUE_OPS];
-    my $and_nodes     = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $or_nodes      = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $ranking_closures_by_symbol =
         $evaler->[Marpa::Internal::Evaluator::RANKING_CLOSURES_BY_SYMBOL];
 
@@ -2687,10 +2691,7 @@ sub Marpa::Evaluator::value {
                         $and_iterations->[$cause_and_node_id];
                     $cause_ranking_data = $cause_and_node_iteration
                         ->[Marpa::Internal::And_Iteration::RANKING_DATA];
-
-                    ### assert: defined $cause_ranking_data
-
-                }
+                } ## end if ( defined $cause_and_node_choice )
 
                 my $predecessor_ranking_data;
                 my $predecessor_and_node_iteration;
@@ -2702,10 +2703,7 @@ sub Marpa::Evaluator::value {
                     $predecessor_ranking_data =
                         $predecessor_and_node_iteration
                         ->[Marpa::Internal::And_Iteration::RANKING_DATA];
-
-                    ### assert: defined $predecessor_ranking_data
-
-                }
+                } ## end if ( defined $predecessor_and_node_choice )
 
                 my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
 
@@ -2762,7 +2760,7 @@ sub Marpa::Evaluator::value {
                     if ( not $eval_ok or @warnings ) {
                         my $fatal_error = $EVAL_ERROR;
                         my $rule_id =
-                            $and_node->[ Marpa::Internal::And_Node::RULE_ID ];
+                            $and_node->[Marpa::Internal::And_Node::RULE_ID];
                         my $rule = $rules->[$rule_id];
                         Marpa::Internal::code_problems(
                             {   fatal_error => $fatal_error,
@@ -2788,8 +2786,8 @@ sub Marpa::Evaluator::value {
 
                 # The rest of the processing is for the original parse
                 # ranking
-                break    # next TASK
-                    if $parse_order ne 'original';
+                #
+                break if $parse_order ne 'original';    # next TASK
 
                 my $and_node_end_earleme =
                     $and_node->[Marpa::Internal::And_Node::END_EARLEME];
@@ -2810,7 +2808,7 @@ sub Marpa::Evaluator::value {
                     $trailing_nulls += $cause_ranking_data->[
                         Marpa::Internal::Original_Sort_Data::TRAILING_NULLS ];
                     #>>>
-                } ## end if ( defined $cause_and_node_choice )
+                } ## end if ( defined $cause_ranking_data )
 
                 my $predecessor_sort_elements = [];
                 my $predecessor_end_earleme;
@@ -2829,7 +2827,7 @@ sub Marpa::Evaluator::value {
                     if ( $predecessor_end_earleme == $and_node_end_earleme ) {
                         $trailing_nulls += $internal_nulls;
                     }
-                } ## end if ( defined $predecessor_and_node_choice )
+                } ## end if ( defined $predecessor_ranking_data )
 
                 PROCESS_TOKEN: {
                     last PROCESS_TOKEN if not defined $token;
@@ -3285,8 +3283,9 @@ node appears more than once on the path back to the root node.
                 # no longer the first in sort order.
 
                 # Refresh and-choice's fields
-                $current_and_choice->[Marpa::Internal::And_Choice::RANKING_DATA]
-                    = $current_and_iteration
+                $current_and_choice
+                    ->[Marpa::Internal::And_Choice::RANKING_DATA] =
+                    $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::RANKING_DATA];
                 $current_and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
                     $current_and_iteration

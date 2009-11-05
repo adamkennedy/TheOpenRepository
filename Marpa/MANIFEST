@@ -61,6 +61,7 @@ README
 t/00-load.t
 t/ah2.t
 t/ah_minimal.t
+t/ah_numeric.t
 t/ah.t
 t/code_diag.t
 t/counter.t
@@ -86,7 +87,6 @@ t/minus.t
 t/null_cycle1.t
 t/null_cycle4.t
 t/null_value.t
-t/numeric.t
 t/pascal.t
 t/priority.t
 t/randal.t

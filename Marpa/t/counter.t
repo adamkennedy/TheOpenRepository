@@ -24,9 +24,14 @@ use Smart::Comments '-ENV';
 # to test that integer rounding does
 # not happen anywhere.  It would be
 # pretty obvious
+use constant TEST_INCREMENT => .001;
+
 sub rank_one {
-    return ( $MyTest::UP ? -.001 : .001 ) * ( 2**-$Marpa::LOCATION );
-}
+    return
+          ( $MyTest::UP ? -1 : 1 )
+        * TEST_INCREMENT
+        * ( 2**-$Marpa::LOCATION );
+} ## end sub rank_one
 sub rank_zero { return 0 }
 sub zero      { return '0' }
 sub one       { return '1' }
@@ -73,9 +78,10 @@ $grammar->precompute();
 my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
 
 my $input_length = 4;
-$recce->tokens( [ ( [ 't' ] ) x $input_length ] );
+$recce->tokens( [ ( ['t'] ) x $input_length ] );
 
-my @counting_up = qw{ 0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111 };
+my @counting_up =
+    qw{ 0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111 };
 my @counting_down = reverse @counting_up;
 
 for my $up ( 1, 0 ) {
@@ -93,7 +99,7 @@ for my $up ( 1, 0 ) {
         Test::More::is( ${$result}, $expected->[$i],
             "counting $direction $i" );
         $i++;
-    }
+    } ## end while ( my $result = $evaler->value() )
 } ## end for my $up ( 1, 0 )
 
 # Local Variables:

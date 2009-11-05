@@ -87,7 +87,7 @@ severity=5
 severity=5
 perltidyrc=author.t/perltidyrc
 
-[ControlStructures::ProhibitCStyleForLoops]
+[-ControlStructures::ProhibitCStyleForLoops]
 severity=5
 
 [ControlStructures::ProhibitCascadingIfElse]
