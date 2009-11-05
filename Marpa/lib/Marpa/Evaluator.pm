@@ -2312,7 +2312,7 @@ sub Marpa::Evaluator::value {
                     if not my $token =
                         $and_node->[Marpa::Internal::And_Node::TOKEN];
                 next AND_NODE
-                    if not my $ranker = $rank_closures_by_symbol
+                    if not my $ranking_closure = $rank_closures_by_symbol
                         ->[ $token->[Marpa::Internal::Symbol::ID] ];
                 my $rank;
                 my @warnings;
@@ -2321,7 +2321,7 @@ sub Marpa::Evaluator::value {
                     local $Marpa::Internal::CONTEXT = $and_node;
                     local $SIG{__WARN__} =
                         sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-                    $eval_ok = eval { $rank = $ranker->(); 1; };
+                    $eval_ok = eval { $rank = $ranking_closure->(); 1; };
                 } ## end DO_EVAL:
 
                 if ( not $eval_ok or @warnings ) {
@@ -2336,7 +2336,8 @@ sub Marpa::Evaluator::value {
                         }
                     );
                 } ## end if ( not $eval_ok or @warnings )
-                $and_node->[Marpa::Internal::And_Node::FIXED_RANKING_DATA] = $rank;
+                $and_node->[Marpa::Internal::And_Node::FIXED_RANKING_DATA] =
+                    $rank;
             } ## end for my $and_node ( @{$and_nodes} )
             last SET_UP_ITERATIONS;
         } ## end if ( $parse_order eq 'numeric' )
@@ -2463,11 +2464,24 @@ sub Marpa::Evaluator::value {
                     break;    # next TASK
                 }
 
+                # Sort and-choices
                 my $or_iteration;
                 given ($parse_order) {
+                    when ('numeric') {
+                        $or_iteration = [
+                            map      { $_->[1] }
+                                sort { $a->[0] <=> $b->[0] }
+                                map {
+                                (   $_->[
+                                        Marpa::Internal::And_Choice::RANKING_DATA
+                                    ],
+                                    $_
+                                    )
+                                } @and_choices
+                        ];
+                    } ## end when ('numeric')
                     when ('original') {
 
-                        # Sort and-choices
                         $or_iteration = [
                             map      { $_->[1] }
                                 sort { $a->[0] cmp $b->[0] }
@@ -2622,24 +2636,54 @@ sub Marpa::Evaluator::value {
                 break    # next TASK
                     if $parse_order eq 'none';
 
+                my $cause_ranking_data;
+                my $cause_and_node_iteration;
+                if ( defined $cause_and_node_choice ) {
+                    my $cause_and_node_id = $cause_and_node_choice
+                        ->[Marpa::Internal::And_Choice::ID];
+                    $cause_and_node_iteration =
+                        $and_iterations->[$cause_and_node_id];
+                    $cause_ranking_data = $cause_and_node_iteration
+                        ->[Marpa::Internal::And_Iteration::RANKING_DATA];
+                }
+
+                my $predecessor_ranking_data;
+                my $predecessor_and_node_iteration;
+                if ( defined $predecessor_and_node_choice ) {
+                    my $predecessor_and_node_id = $predecessor_and_node_choice
+                        ->[Marpa::Internal::And_Choice::ID];
+                    $predecessor_and_node_iteration =
+                        $and_iterations->[$predecessor_and_node_id];
+                    $predecessor_ranking_data =
+                        $predecessor_and_node_iteration
+                        ->[Marpa::Internal::And_Iteration::RANKING_DATA];
+                }
+
+                my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
+
                 if ( $parse_order eq 'numeric' ) {
-                    my $rank_closure = $and_node
+                    my $ranking_closure = $and_node
                         ->[Marpa::Internal::And_Node::RANKING_CLOSURE];
-                    if ( not $rank_closure ) {
+                    if ( not $ranking_closure ) {
 
                         # Initialize with the rank of this node
                         my $rank = $and_node
                             ->[Marpa::Internal::And_Node::FIXED_RANKING_DATA];
 
-                        # Then add cause and predecessor if they exist
-                        # if ($cause_and_node_iteration) {
-                        # $rank += $cause_and_node_iteration
-                        # ->[Marpa::Internal::And_Iteration::RANKING_DATA];
-                        # }
-                        # if ($predecessor_and_node_iteration) {
-                        # $rank += $predecessor_and_node_iteration
-                        # ->[Marpa::Internal::And_Iteration::RANKING_DATA];
-                        # }
+                        #Then add cause and predecessor
+                        # if they exist
+                        if ($cause_and_node_iteration) {
+                            $rank
+                                += $cause_and_node_iteration->[
+                                Marpa::Internal::And_Iteration::RANKING_DATA
+                                ];
+                        } ## end if ($cause_and_node_iteration)
+                        if ($predecessor_and_node_iteration) {
+                            $rank
+                                += $predecessor_and_node_iteration->[
+                                Marpa::Internal::And_Iteration::RANKING_DATA
+                                ];
+                        } ## end if ($predecessor_and_node_iteration)
 
                         $and_node_iteration
                             ->[Marpa::Internal::And_Iteration::RANKING_DATA] =
@@ -2649,11 +2693,43 @@ sub Marpa::Evaluator::value {
                         # SETUP_AND_NODE task is finished
                         break;    # next TASK
 
-                    } ## end if ( not $rank_closure )
+                    } ## end if ( not $ranking_closure )
+                    my $rank;
+                    my @warnings;
+                    my $eval_ok;
+                    DO_EVAL: {
+                        local $Marpa::Internal::CONTEXT = $and_node;
+                        local $SIG{__WARN__} =
+                            sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
+                        $eval_ok = eval { $rank = $ranking_closure->(); 1; };
+                    } ## end DO_EVAL:
+
+                    if ( not $eval_ok or @warnings ) {
+                        my $fatal_error = $EVAL_ERROR;
+                        my $symbol_name =
+                            $token->[Marpa::Internal::Symbol::NAME];
+                        Marpa::Internal::code_problems(
+                            {   fatal_error => $fatal_error,
+                                grammar     => $grammar,
+                                eval_ok     => $eval_ok,
+                                warnings    => \@warnings,
+                                where       => "ranking symbol $symbol_name",
+                            }
+                        );
+                    } ## end if ( not $eval_ok or @warnings )
+
+                    $and_node_iteration
+                        ->[Marpa::Internal::And_Iteration::RANKING_DATA] =
+                        $rank;
+
+                    # With the rank processing finished, the
+                    # SETUP_AND_NODE task is finished
+                    break;    # next TASK
+
                 } ## end if ( $parse_order eq 'numeric' )
 
                 # The rest of the processing is for the original parse
-                # ordering
+                # ranking
                 break    # next TASK
                     if $parse_order ne 'original';
 
@@ -2668,19 +2744,12 @@ sub Marpa::Evaluator::value {
 
                 my $cause_sort_elements = [];
 
-                if ( defined $cause_and_node_choice ) {
-                    my $cause_and_node_id = $cause_and_node_choice
-                        ->[Marpa::Internal::And_Choice::ID];
-                    my $cause_and_node_iteration =
-                        $and_iterations->[$cause_and_node_id];
-                    my $cause_sort_data = $cause_and_node_iteration
-                        ->[Marpa::Internal::And_Iteration::RANKING_DATA];
-
-                    $cause_sort_elements = $cause_sort_data
+                if ( defined $cause_ranking_data ) {
+                    $cause_sort_elements = $cause_ranking_data
                         ->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
 
                     #<<< As of 2 Nov 2009 perltidy cycles on this
-                    $trailing_nulls += $cause_sort_data->[
+                    $trailing_nulls += $cause_ranking_data->[
                         Marpa::Internal::Original_Sort_Data::TRAILING_NULLS ];
                     #>>>
                 } ## end if ( defined $cause_and_node_choice )
@@ -2689,22 +2758,14 @@ sub Marpa::Evaluator::value {
                 my $predecessor_end_earleme;
                 my $internal_nulls = 0;
 
-                if ( defined $predecessor_and_node_choice ) {
-                    my $predecessor_and_node_id = $predecessor_and_node_choice
-                        ->[Marpa::Internal::And_Choice::ID];
-                    my $predecessor_and_node_iteration =
-                        $and_iterations->[$predecessor_and_node_id];
-                    my $predecessor_sort_data =
-                        $predecessor_and_node_iteration
-                        ->[Marpa::Internal::And_Iteration::RANKING_DATA];
-
+                if ( defined $predecessor_ranking_data ) {
                     $predecessor_end_earleme =
                         $predecessor->[Marpa::Internal::Or_Node::END_EARLEME];
 
-                    $predecessor_sort_elements = $predecessor_sort_data
+                    $predecessor_sort_elements = $predecessor_ranking_data
                         ->[Marpa::Internal::Original_Sort_Data::SORT_KEY];
                     #<<< As of 2 Nov 2009 perltidy cycles on this
-                    $internal_nulls = $predecessor_sort_data->[
+                    $internal_nulls = $predecessor_ranking_data->[
                         Marpa::Internal::Original_Sort_Data::TRAILING_NULLS ];
                     #>>>
                     if ( $predecessor_end_earleme == $and_node_end_earleme ) {
@@ -2713,7 +2774,6 @@ sub Marpa::Evaluator::value {
                 } ## end if ( defined $predecessor_and_node_choice )
 
                 PROCESS_TOKEN: {
-                    my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
                     last PROCESS_TOKEN if not defined $token;
 
                     if ( $token->[Marpa::Internal::Symbol::NULLABLE] ) {
@@ -3180,39 +3240,58 @@ node appears more than once on the path back to the root node.
                 # for the "original" parse ordering
 
                 break    # next TASK
-                    if $parse_order ne 'original';
+                    if $parse_order eq 'none';
 
                 # If only one choice still active,
                 # clearly no need to
                 # worry about sorting alternatives.
                 break if @{$and_choices} <= 1;
 
-                my $current_sort_key = ~(
-                    join q{},
-                    sort map { pack 'N*', @{$_} } @{
-                        $current_and_choice
-                            ->[Marpa::Internal::And_Choice::RANKING_DATA]
-                            ->[Marpa::Internal::Original_Sort_Data::SORT_KEY]
+                my $first_le_sort_key;
+                given ($parse_order) {
+                    when ('numeric') {
+                        my $current_sort_key = $current_and_choice
+                            ->[Marpa::Internal::And_Choice::RANKING_DATA];
+                        $first_le_sort_key = List::Util::first {
+                            $_->[Marpa::Internal::And_Choice::RANKING_DATA]
+                                <= $current_sort_key;
                         }
-                );
-
-                my $first_le_sort_key = (
-                    List::Util::first {
-                        ~(  join q{},
+                        reverse 0 .. ( $#{$and_choices} - 1 )
+                    } ## end when ('numeric')
+                    when ('original') {
+                        my $current_sort_key = ~(
+                            join q{},
                             sort map { pack 'N*', @{$_} } @{
-                                $current_and_choice
-                                    ->[Marpa::Internal::And_Choice::RANKING_DATA]
+                                $current_and_choice->[
+                                    Marpa::Internal::And_Choice::RANKING_DATA]
                                     ->[
                                     Marpa::Internal::Original_Sort_Data::SORT_KEY
                                     ]
                                 }
-                        ) le $current_sort_key;
-                    } ## end List::Util::first
-                    reverse 0 .. ( $#{$and_choices} - 1 )
-                );
+                        );
+
+                        $first_le_sort_key = (
+                            List::Util::first {
+                                ~(  join q{},
+                                    sort map { pack 'N*', @{$_} } @{
+                                        $current_and_choice->[
+                                            Marpa::Internal::And_Choice::RANKING_DATA
+                                            ]->[
+                                            Marpa::Internal::Original_Sort_Data::SORT_KEY
+                                            ]
+                                        }
+                                ) le $current_sort_key;
+                            } ## end List::Util::first
+                            reverse 0 .. ( $#{$and_choices} - 1 )
+                        );
+
+                    } ## end when ('original')
+                } ## end given
 
                 my $insert_point =
-                    defined $first_le_sort_key ? $first_le_sort_key + 1 : 0;
+                    defined $first_le_sort_key
+                    ? $first_le_sort_key + 1
+                    : 0;
 
                 # If current choice would be inserted where it already
                 # is now, we're done
