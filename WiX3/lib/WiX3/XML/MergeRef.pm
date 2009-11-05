@@ -45,7 +45,7 @@ sub BUILDARGS {
 		$id = $_[0];
 	} elsif ( _INSTANCE( $_[0], 'WiX3::XML::Merge' ) ) {
 		$id = shift->get_id();
-		return { 'id' => $id, ( \ $class->SUPER::BUILDARGS(@_) ) }
+		return { 'id' => $id, (%{$class->SUPER::BUILDARGS(@_)}) };
 	} else {
 		return $class->SUPER::BUILDARGS(@_);
 	}
@@ -69,7 +69,7 @@ sub BUILDARGS {
 sub as_string {
 	my $self = shift;
 
-	my $id = 'M_' . $self->get_id();
+	my $id = 'Merge_' . $self->get_id();
 
 	# Print tag.
 	my $answer;
