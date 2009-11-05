@@ -3270,20 +3270,28 @@ node appears more than once on the path back to the root node.
                                 }
                         );
 
-                        $first_le_sort_key = (
-                            List::Util::first {
-                                ~(  join q{},
+                        AND_CHOICE:
+                        for (
+                            my $and_choice_ix = $#{$and_choices}-1;
+                            $and_choice_ix >= 0;
+                            $and_choice_ix--
+                            )
+                        {
+                            if (~(  join q{},
                                     sort map { pack 'N*', @{$_} } @{
-                                        $current_and_choice->[
+                                        $and_choices->[$and_choice_ix]->[
                                             Marpa::Internal::And_Choice::RANKING_DATA
                                             ]->[
                                             Marpa::Internal::Original_Sort_Data::SORT_KEY
                                             ]
                                         }
-                                ) le $current_sort_key;
-                            } ## end List::Util::first
-                            reverse 0 .. ( $#{$and_choices} - 1 )
-                        );
+                                ) le $current_sort_key
+                                )
+                            {
+                                $first_le_sort_key = $and_choice_ix;
+                                last AND_CHOICE;
+                            } ## end if ( ~( join q{}, sort map { pack 'N*', @{$_} } @{ ...}))
+                        } ## end for ( my $and_choice_ix = $#{$and_choices}; ...)
 
                     } ## end when ('original')
                 } ## end given
