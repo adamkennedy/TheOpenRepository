@@ -9,3 +9,6 @@ test_requires Test::Pod            1.26
 test_requires Test::CPAN::Meta     0.12
 test_requires Perl::MinimumVersion 1.20
 test_requires Test::MinimumVersion 0.008
+test_requires Test::DistManifest   1.003
+test_requires Test::CheckChanges   0.08
+test_requires Test::Pod::Coverage  1.08
