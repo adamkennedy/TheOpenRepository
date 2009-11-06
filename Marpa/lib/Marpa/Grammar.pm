@@ -1823,8 +1823,10 @@ sub add_user_rules {
                 add_user_rule( $grammar, $rule );
             }
             default {
-                Marpa::exception( 'Invalid rule reftype ',
-                    ( $_ ? $_ : 'undefined' ) );
+                Marpa::exception(
+                    'Invalid rule: ',
+                    Data::Dumper->new([$rule], ['Invalid_Rule'])->Indent(2)->Terse(1)->Maxdepth(2)->Dump,
+                    'Rule must be ref to HASH or ARRAY');
             }
         } ## end given
 
@@ -2132,12 +2134,11 @@ sub check_start {
     my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my $start_id    = $symbol_hash->{$start_name};
 
-    if ( not defined $start_id or not $symbols->[$start_id] ) {
-        Marpa::exception( 'Start symbol: ' . $start_name . ' not defined' );
-    }
+    Marpa::exception(qq{Start symbol "$start_name" not in grammar})
+        if not defined $start_id;
 
     my $start = $symbols->[$start_id];
-    Marpa::exception( 'Start symbol: ' . $start_name . ' not defined' )
+    Marpa::exception( qq{Internal error: Start symbol "$start_name" id not found} )
         if not $start;
 
     my $lh_rule_ids = $start->[Marpa::Internal::Symbol::LH_RULE_IDS];
