@@ -16,6 +16,6 @@ my $p = Marpa::UrHTML->new( \$document );
 
 my $marpa_tokens = $p->evaluate();
 
-# say Data::Dumper::Dumper($marpa_tokens);
+say Data::Dumper::Dumper($marpa_tokens);
 
 # say join "\n", map { $_->[0] } @{$marpa_tokens};

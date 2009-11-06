@@ -151,6 +151,7 @@ sub Marpa::UrHTML::evaluate {
                 my ( $offset, $offset_end, $text, $is_cdata ) = @{$token};
                 # say "$_ $offset $offset_end $text";
                 push @tokens,
+                    [ 'CRUFT', $text, 1, 0 ],
                     [
                     (     $text =~ / \A \s* \z /xms ? 'WHITESPACE'
                         : $is_cdata ? 'CDATA'
@@ -166,7 +167,9 @@ sub Marpa::UrHTML::evaluate {
                 $start_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
                 $terminals{$terminal}++;
-                push @tokens, [ $terminal, $text ];
+                push @tokens,
+                    [ 'CRUFT', $text, 1, 0 ],
+                    [ $terminal, $text ];
             } ## end when ('S')
             when ('E') {
                 my ( $offset, $offset_end, $tag_name, $text ) = @{$token};
@@ -174,17 +177,23 @@ sub Marpa::UrHTML::evaluate {
                 $end_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
                 $terminals{$terminal}++;
-                push @tokens, [ $terminal, $text ];
+                push @tokens,
+                    [ 'CRUFT', $text, 1, 0 ],
+                    [ $terminal, $text ];
             } ## end when ('E')
             when ( [qw(C D)] ) {
                 my ( $offset, $offset_end, $text ) = @{$token};
                 # say "$_ $offset $offset_end $text";
-                push @tokens, [ $_, $text ];
+                push @tokens,
+                    [ 'CRUFT', $text, 1, 0 ],
+                    [ $_, $text ];
             }
             when ( ['PI'] ) {
                 my ( $offset, $offset_end, $token0, $text ) = @{$token};
                 # say "$_ $offset $offset_end $text";
-                push @tokens, [ $_, $text ];
+                push @tokens,
+                    [ 'CRUFT', $text, 1, 0 ],
+                    [ $_, $text ];
             }
             default { Carp::croak("Unprovided-for event: $_") }
         } ## end given
@@ -264,6 +273,9 @@ sub Marpa::UrHTML::evaluate {
     });
     $grammar->precompute();
     say STDERR $grammar->show_rules();
+    my $recce = Marpa::Recognizer->new( { grammar=>$grammar } );
+    say STDERR "token count: ", scalar @tokens;
+    $recce->tokens( \@tokens );
 
     return 1;
 

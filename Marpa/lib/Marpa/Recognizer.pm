@@ -68,7 +68,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Recognizer;
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -614,6 +614,8 @@ sub Marpa::Recognizer::tokens {
         # === SCANNING ===
         # ================
 
+        ### earley_sets: $recce->show_earley_sets()
+
         my $tokens_here = $tokens_by_earleme->[$last_completed_earleme] // [];
 
         my $earley_set = $earley_set_list->[$last_completed_earleme];
@@ -739,6 +741,7 @@ sub Marpa::Recognizer::tokens {
             for my $complete_symbol_name (
                 @{ $state->[Marpa::Internal::QDFA::COMPLETE_LHS] } )
             {
+
                 PARENT_ITEM:
                 for my $parent_item ( @{ $earley_set_list->[$parent] } ) {
                     my ( $parent_state, $grandparent ) = @{$parent_item}[
