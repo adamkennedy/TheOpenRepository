@@ -6,7 +6,7 @@ use MooseX::Types::Moose qw( Str HashRef Maybe );
 use File::Spec::Functions qw( catdir );
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
 

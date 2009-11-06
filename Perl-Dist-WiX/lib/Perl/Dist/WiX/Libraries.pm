@@ -32,7 +32,7 @@ use Perl::Dist::WiX::Exceptions;
 use Readonly;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 Readonly my %PACKAGES => (
 	'32bit-gcc3' => {
@@ -40,6 +40,7 @@ Readonly my %PACKAGES => (
 		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
 		'pexports'      => 'pexports-0.43-1.zip',
 		'gcc-toolchain' => 'mingw32-gcc3-toolchain-20091026-subset.tar.gz',
+
 # Former components of what's now included in gcc-toolchain.
 #		'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
 #		'gcc-g++'       => 'gcc-g++-3.4.5-20060117-3.tar.gz',
@@ -62,26 +63,28 @@ Readonly my %PACKAGES => (
 );
 
 sub _binary_file {
-	my $self = shift;
+	my $self    = shift;
 	my $package = shift;
-	
-	my $toolchain = $self->bits() . 'bit-gcc' . $self->gcc_version();	
-	
-	$self->trace_line(3, "Searching for $package in $toolchain\n");
-	
-	if (not exists $PACKAGES{$toolchain}) {
+
+	my $toolchain = $self->bits() . 'bit-gcc' . $self->gcc_version();
+
+	$self->trace_line( 3, "Searching for $package in $toolchain\n" );
+
+	if ( not exists $PACKAGES{$toolchain} ) {
 		PDWiX->throw('Can only build 32 or 64-bit versions of perl');
 	}
-	
-	if (not exists $PACKAGES{$toolchain}{$package}) {
-		PDWiX->throw('get_package_file was called on a package that was not defined.');
-	}	
+
+	if ( not exists $PACKAGES{$toolchain}{$package} ) {
+		PDWiX->throw(
+			'get_package_file was called on a package that was not defined.'
+		);
+	}
 
 	my $package_file = $PACKAGES{$toolchain}{$package};
-	$self->trace_line(3, "Pachage $package is in $package_file\n");
+	$self->trace_line( 3, "Pachage $package is in $package_file\n" );
 
 	return $package_file;
-}
+} ## end sub _binary_file
 
 sub _binary_url {
 	my $self = shift;
@@ -101,7 +104,7 @@ sub _binary_url {
 		$file = $self->_binary_file( $file, @_ );
 	}
 	return $self->binary_root . q{/} . $file;
-} ## end sub binary_url
+} ## end sub _binary_url
 
 
 
@@ -140,14 +143,15 @@ sub install_gcc_toolchain {
 
 	$self->insert_fragment( 'gcc_toolchain', $filelist );
 
-	$self->_set_bin_dlltool(catfile( $self->image_dir, 'c', 'bin', 'dlltool.exe' ));
+	$self->_set_bin_dlltool(
+		catfile( $self->image_dir, 'c', 'bin', 'dlltool.exe' ) );
 	unless ( -x $self->bin_dlltool() ) {
 		PDWiX->throw(q{Can't execute dlltool});
 	}
 
-	
+
 	return 1;
-} ## end sub install_dmake
+} ## end sub install_gcc_toolchain
 
 =pod
 
@@ -184,7 +188,8 @@ sub install_dmake {
 	);
 
 	# Initialize the make location
-	$self->_set_bin_make(catfile( $self->image_dir, 'c', 'bin', 'dmake.exe' ));
+	$self->_set_bin_make(
+		catfile( $self->image_dir, 'c', 'bin', 'dmake.exe' ) );
 	unless ( -x $self->bin_make() ) {
 		PDWiX->throw(q{Can't execute make});
 	}
@@ -220,7 +225,7 @@ sub install_pexports {
 		install_to => { 'pexports-0.43/bin' => 'c/bin', },
 	);
 	$self->_set_bin_pexports(
-	  catfile( $self->image_dir, 'c', 'bin', 'pexports.exe' ));
+		catfile( $self->image_dir, 'c', 'bin', 'pexports.exe' ) );
 	unless ( -x $self->bin_pexports() ) {
 		PDWiX->throw(q{Can't execute pexports});
 	}
@@ -250,15 +255,15 @@ Returns true or throws an exception on error.
 sub install_mingw_make {
 	my $self = shift;
 
-	my $filelist = $self->install_binary( 
-		name => 'mingw-make', 
+	my $filelist = $self->install_binary(
+		name => 'mingw-make',
 		url  => $self->_binary_url('mingw-make'),
 	);
 
 	$self->insert_fragment( 'mingw_make', $filelist );
 
 	return 1;
-}
+} ## end sub install_mingw_make
 
 1;
 
@@ -337,7 +342,7 @@ sub install_binutils {
 			'Copying.lib' => 'binutils/Copying.lib',
 		},
 	);
-	$self->{bin_dlltool} =
+	$self->bin_dlltool() =
 	  catfile( $self->image_dir, 'c', 'bin', 'dlltool.exe' );
 	unless ( -x $self->bin_dlltool ) {
 		PDWiX->throw(q{Can't execute dlltool});

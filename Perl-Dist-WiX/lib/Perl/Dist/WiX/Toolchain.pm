@@ -13,8 +13,8 @@ use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
 
-our $VERSION = '1.100';
-$VERSION = eval { return $VERSION };
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//ms;
 
 extends qw(
   Process::Delegatable
@@ -233,7 +233,8 @@ sub BUILD {
 			  . $self->_get_perl_version()
 			  . "' is not supported in $class" );
 	}
-	unless ( $self->_corelist_version_exists( $self->_get_perl_version() ) ) {
+	unless ( $self->_corelist_version_exists( $self->_get_perl_version() ) )
+	{
 		Carp::croak( q{Perl version '}
 			  . $self->_get_perl_version()
 			  . "' is not supported in $class" );

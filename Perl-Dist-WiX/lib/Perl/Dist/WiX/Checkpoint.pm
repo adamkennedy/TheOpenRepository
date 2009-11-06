@@ -42,7 +42,7 @@ use File::Spec::Functions qw( catdir catfile );
 use File::Remove qw();
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 #####################################################################
 # Checkpoint Support
@@ -151,7 +151,7 @@ sub checkpoint_save {
 		checkpoint_before => 0,
 		checkpoint_after  => [0],
 		checkpoint_stop   => 0,
-		patch_template   => undef,
+		patch_template    => undef,
 		user_agent        => undef,
 		'_guidgen'        => undef,
 		'_trace_object'   => undef,
@@ -198,12 +198,14 @@ sub checkpoint_load {
 	$self->_set_trace_object(undef);
 	WiX3::Trace::Object->_clear_instance();
 	WiX3::Traceable->_clear_instance();
-	$self->_set_trace_object(WiX3::Traceable->new( tracelevel => $self->{trace} ));
+	$self->_set_trace_object(
+		WiX3::Traceable->new( tracelevel => $self->trace() ) );
 
 	$self->_set_guidgen(undef);
 	WiX3::XML::GeneratesGUID::Object->_clear_instance();
-	$self->_set_guidgen( WiX3::XML::GeneratesGUID::Object->new(
-		_sitename => $self->{sitename} ));
+	$self->_set_guidgen(
+		WiX3::XML::GeneratesGUID::Object->new(
+			_sitename => $self->sitename() ) );
 
 	# Pull all the directories out of the storage.
 	$self->trace_line( 0, "Restoring checkpoint directories...\n" );

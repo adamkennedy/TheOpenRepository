@@ -34,7 +34,7 @@ require Template;
 require File::List::Object;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 sub release_notes_filename {
 	my $self = shift;

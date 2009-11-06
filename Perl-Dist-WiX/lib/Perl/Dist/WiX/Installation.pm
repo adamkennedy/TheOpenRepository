@@ -41,7 +41,7 @@ require Perl::Dist::WiX::Asset::PAR;
 require Perl::Dist::WiX::Asset::Website;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 =pod
 

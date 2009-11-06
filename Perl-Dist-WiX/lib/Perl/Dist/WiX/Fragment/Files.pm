@@ -29,7 +29,7 @@ require File::List::Object;
 require Win32::Exe;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
 with 'WiX3::Role::Traceable';
@@ -56,6 +56,16 @@ has feature => (
 	builder  => '_build_feature',
 );
 
+sub _build_feature {
+	my $self = shift;
+	my $feat = WiX3::XML::Feature->new(
+		id      => $self->get_id(),
+		level   => 1,
+		display => 'hidden',
+	);
+	$self->add_child_tag($feat);
+	return $feat;
+}
 
 has can_overwrite => (
 	is      => 'ro',
@@ -64,16 +74,11 @@ has can_overwrite => (
 	reader  => 'can_overwrite',
 );
 
-sub _build_feature {
-	my $self = shift;
-	my $feat = WiX3::XML::Feature->new(
-		id => $self->get_id(),
-		level => 1,
-		display => 'hidden',
-	);
-	$self->add_child_tag($feat);
-	return $feat;
-}
+has in_merge_module => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
 
 # This type of fragment needs regeneration.
 sub regenerate {
@@ -286,9 +291,11 @@ sub _add_directory_recursive {
 	}
 
 	foreach my $dir_to_add (@dirs_to_add) {
-		$directory_object = $directory_object->add_directory( 
-		  name => $dir_to_add,
-		  id => crc32_base64( catdir( $directory_object->get_path(), $dir_to_add ) ),
+		$directory_object = $directory_object->add_directory(
+			name => $dir_to_add,
+			id   => crc32_base64(
+				catdir( $directory_object->get_path(), $dir_to_add )
+			),
 		);
 		if ( $cache->exists_in_cache($directory_object) ) {
 			$tree->add_directory( $directory_object->get_path() );
@@ -309,30 +316,29 @@ sub _add_file_component {
 	my $file = shift;
 
 	# We need a shorter ID than a GUID. CRC32's do that.
-	# it does NOT have to be cryptographically perfect, 
-	# it just has to TRY and be unique over a set of 10,000 
+	# it does NOT have to be cryptographically perfect,
+	# it just has to TRY and be unique over a set of 10,000
 	# file names and compoments or so.
 
-	my $revext; # Reverse the extension.
-	my (undef, undef, $filename) = splitpath($file);
+	my $revext;                        # Reverse the extension.
+	my ( undef, undef, $filename ) = splitpath($file);
 	$filename = reverse scalar $filename;
-	($revext) = $filename =~ m{\A(.*?)[.]};
-	if (not defined $revext) {
+	($revext) = $filename =~ m{\A(.*?)[.]}msx;
+	if ( not defined $revext ) {
 		$revext = 'Z';
 	}
-	
+
 	my $component_id = "${revext}_";
 	$component_id .= crc32_base64($file);
-	$component_id =~ s{\+}{_};
-	$component_id =~ s{/}{-};
-	
-	my $component = WiX3::XML::Component->new( 
-		path => $file,
-		id => $component_id,
-		feature => $self->_get_feature()->get_id()
-	);
+	$component_id =~ s{[+]}{_}ms;
+	$component_id =~ s{/}{-}ms;
+
+	my $component = WiX3::XML::Component->new(
+		path    => $file,
+		id      => $component_id,
+		feature => $self->_get_feature()->get_id() );
 	my $file_obj;
-	
+
 	# If the file is a .dll or .exe file, check for a version.
 	if (( -r $file )
 		and (  ( $file =~ m{[.] dll\z}smx )
@@ -370,11 +376,15 @@ sub _add_file_component {
 	return 1;
 } ## end sub _add_file_component
 
-# Deliberate documentation in code.
-override 'get_componentref_array' => sub {
+around 'get_componentref_array' => sub {
+	my $orig = shift;
 	my $self = shift;
-	
-	return $self->_get_feature()->get_componentref_array();
+
+	if ( $self->_in_merge_module() ) {
+		return $self->$orig();
+	} else {
+		return $self->_get_feature()->get_componentref_array();
+	}
 };
 
 no Moose;

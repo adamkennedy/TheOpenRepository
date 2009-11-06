@@ -10,7 +10,7 @@ require File::Remove;
 require URI;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
@@ -91,7 +91,8 @@ sub BUILDARGS {
 		%args = (@_);
 	} else {
 		PDWiX->throw(
-			'Parameters incorrect (not a hashref or hash) for Perl::Dist::WiX::Asset::Distribution');
+'Parameters incorrect (not a hashref or hash) for Perl::Dist::WiX::Asset::Distribution'
+		);
 	}
 
 	unless ( defined _INSTANCE( $args{parent}, 'Perl::Dist::WiX' ) ) {
@@ -102,23 +103,25 @@ sub BUILDARGS {
 		);
 	}
 
-	if (exists $args{url}) {
+	if ( exists $args{url} ) {
 		PDWiX::Parameter->throw(
-			parameter => 'url: Passed in (please remove - it will be calculated from name)',
-			where     => '::Asset::Distribution->new',
+			parameter =>
+'url: Passed in (please remove - it will be calculated from name)',
+			where => '::Asset::Distribution->new',
 		);
 	}
-	
-	if (exists $args{file}) {
+
+	if ( exists $args{file} ) {
 		PDWiX::Parameter->throw(
-			parameter => 'file: Passed in (please remove - it will be calculated from name)',
-			where     => '::Asset::Distribution->new',
+			parameter =>
+'file: Passed in (please remove - it will be calculated from name)',
+			where => '::Asset::Distribution->new',
 		);
 	}
 
 	# Map CPAN dist path to url
 	my $dist = $args{name};
-	if (!defined $dist) {
+	if ( !defined $dist ) {
 		PDWiX::Parameter->throw(
 			parameter => 'name: Not defined',
 			where     => '::Asset::Distribution->new',
@@ -129,15 +132,14 @@ sub BUILDARGS {
 	my $one = substr $dist, 0, 1;
 	my $two = substr $dist, 1, 1;
 	my $path =
-	  File::Spec::Unix->catfile( 'authors', 'id', $one, "$one$two",
-		$dist, );
-	$args{url} =
-	  URI->new_abs( $path, $args{parent}->cpan() )->as_string;
+	  File::Spec::Unix->catfile( 'authors', 'id', $one, "$one$two", $dist,
+	  );
+	$args{url} = URI->new_abs( $path, $args{parent}->cpan() )->as_string;
 	$args{file} = $args{url};
 	$args{file} =~ s{.+/}{}ms;
 
-	return { %args };
-}
+	return {%args};
+} ## end sub BUILDARGS
 
 sub BUILD {
 	my $self = shift;
@@ -238,7 +240,7 @@ sub install {
 		  $self->_get_automated_testing() ? 1 : undef;
 		local $ENV{RELEASE_TESTING} =
 		  $self->_get_release_testing() ? 1 : undef;
-		local $ENV{PERL_MM_USE_DEFAULT} = 1;
+		local $ENV{PERL_MM_USE_DEFAULT}    = 1;
 		local $ENV{PERL_MM_NONINTERACTIVE} = 1;
 
 		$self->_configure($buildpl);

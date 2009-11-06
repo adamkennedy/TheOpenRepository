@@ -12,7 +12,7 @@ use Moose 0.90;
 require WiX3::XML::Feature;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 #####################################################################
 # Accessors:
@@ -30,11 +30,11 @@ has parent => (
 );
 
 has features => (
-	traits    => ['Array'],
-	is        => 'ro',
-	isa       => 'ArrayRef[WiX3::XML::Feature]',
-	default   => sub { [] },
-	init_arg  => undef,
+	traits   => ['Array'],
+	is       => 'ro',
+	isa      => 'ArrayRef[WiX3::XML::Feature]',
+	default  => sub { [] },
+	init_arg => undef,
 	handles  => {
 		'_push_feature'      => 'push',
 		'_count_features'    => 'count',
@@ -105,7 +105,8 @@ sub as_string_msm {
 	my $spaces = q{    };              # Indent 4 spaces.
 	my $answer = $spaces;
 	foreach my $feature ( $self->_get_feature_array() ) {
-	    # We just want the children for this one.
+
+		# We just want the children for this one.
 		$answer .= $feature->as_string_children;
 	}
 
@@ -120,13 +121,13 @@ sub as_string_msm {
 } ## end sub as_string_msm
 
 sub add_merge_module {
-	my $self = shift;
-	my $mm = shift;
+	my $self  = shift;
+	my $mm    = shift;
 	my $index = shift || 0;
-	
+
 	my $feature = $self->_get_feature($index);
-	$feature->add_child_tag($mm->get_merge_reference());
-	
+	$feature->add_child_tag( $mm->get_merge_reference() );
+
 	return;
 }
 

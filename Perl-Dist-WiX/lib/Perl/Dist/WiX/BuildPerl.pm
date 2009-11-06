@@ -34,13 +34,14 @@ use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
 use Module::CoreList 2.18 qw();
+
 # require IO::Handle;
 require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//sm;
 
 Readonly my %CORE_MODULE_FIX => (
 	'IO::Compress'        => 'IO::Compress::Base',
@@ -110,7 +111,7 @@ the default tasklist after the "perl toolchain" is installed.
 
 =cut
 
-sub install_cpan_upgrades {
+sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 	my $self = shift;
 	unless ( $self->bin_perl() ) {
 		PDWiX->throw(
@@ -224,29 +225,29 @@ sub install_cpan_upgrades {
 		# including one in which the config set
 		# by us works better.
 		$self->install_distribution(
-			name  => 'BINGOS/CPANPLUS-0.89_02.tar.gz',
+			name             => 'BINGOS/CPANPLUS-0.89_02.tar.gz',
 			mod_name         => 'CPANPLUS',
 			makefilepl_param => ['INSTALLDIRS=perl'],
-			buildpl_param => ['--installdirs', 'core'],
+			buildpl_param    => [ '--installdirs', 'core' ],
 		);
-	
+
 		$self->trace_line( 1,
 			"Getting CPANPLUS config file ready for patching\n" );
 
 		$self->patch_file(
 			'perl/lib/CPANPLUS/Config.pm' => $self->image_dir,
 			{ dist => $self, } );
-	}
+	} ## end if ( -e $cpanp_config_location)
 
-	if (not $self->fragment_exists('CPAN')) {
+	if ( not $self->fragment_exists('CPAN') ) {
 		$self->install_distribution(
-			name  => 'ANDK/CPAN-1.94_52.tar.gz',
+			name             => 'ANDK/CPAN-1.94_52.tar.gz',
 			mod_name         => 'CPAN',
 			makefilepl_param => ['INSTALLDIRS=perl'],
-			buildpl_param => ['--installdirs', 'core'],
+			buildpl_param    => [ '--installdirs', 'core' ],
 		);
 	}
-	
+
 	return $self;
 } ## end sub install_cpan_upgrades
 
@@ -568,7 +569,8 @@ sub install_perl_bin {
 	$perl->install();
 
 	# Should have a perl to use now.
-	$self->_set_bin_perl(catfile( $self->image_dir(), qw/perl bin perl.exe/ ));
+	$self->_set_bin_perl(
+		catfile( $self->image_dir(), qw/perl bin perl.exe/ ) );
 
 	# Add to the environment variables
 	$self->add_env_path( 'perl', 'bin' );
@@ -712,12 +714,12 @@ sub install_perl_git {
 	$self->_make_path( catdir( $self->image_dir(), 'perl' ) );
 
 	my $checkout = $self->git_checkout();
-	
+
 	# Install the main binary
 	$self->install_perl_bin(
-		name      => 'perl',
-		url       => URI::file->new($checkout)->as_string(),
-		unpack_to => 'perl',
+		name       => 'perl',
+		url        => URI::file->new($checkout)->as_string(),
+		unpack_to  => 'perl',
 		install_to => 'perl',
 		toolchain  => $toolchain,
 		patch      => [ qw{
@@ -736,7 +738,7 @@ sub install_perl_git {
 	);
 
 	return 1;
-} ## end sub install_perl_5101
+} ## end sub install_perl_git
 
 #####################################################################
 # Perl Toolchain Support
@@ -804,7 +806,7 @@ sub install_perl_toolchain {
 			# 1.9402 fails its tests... ANDK says it's a test bug.
 			# Alias agrees that we include 1.94_51 because of the fix
 			# for the Win32 file:// bug.
-			$dist = 'ANDK/CPAN-1.94_52.tar.gz';
+			$dist  = 'ANDK/CPAN-1.94_52.tar.gz';
 			$force = 1;
 		}
 		if ( $dist =~ /ExtUtils-ParseXS-2[.]20(?:02)?[.]tar[.]gz/msx ) {
@@ -819,7 +821,7 @@ sub install_perl_toolchain {
 		}
 		if ( $dist =~ /Module-Build-/msx ) {
 
-			# 
+			#
 			$dist = 'DAGOLDEN/Module-Build-0.3500_01.tar.gz';
 		}
 		if ( $dist =~ /ExtUtils-MakeMaker-/msx ) {

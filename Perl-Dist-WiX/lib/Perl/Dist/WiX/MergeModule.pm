@@ -13,15 +13,15 @@ use Moose;
 require WiX3::XML::MergeRef;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Merge';
 
 has primary_reference => (
-	is => 'ro',
-	isa => 'Bool',
+	is      => 'ro',
+	isa     => 'Bool',
 	default => 1,
-	reader => '_is_primary_reference',
+	reader  => '_is_primary_reference',
 );
 
 #####################################################################
@@ -29,10 +29,11 @@ has primary_reference => (
 
 sub get_merge_reference {
 	my $self = shift;
-	
+
 	my $primary = $self->_is_primary_reference() ? 'yes' : 'no';
-	my $merge_ref = WiX3::XML::MergeRef->new( $self, 'primary' => $primary );
-	
+	my $merge_ref =
+	  WiX3::XML::MergeRef->new( $self, 'primary' => $primary );
+
 	return $merge_ref;
 }
 

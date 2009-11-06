@@ -16,7 +16,7 @@ require URI;
 require URI::file;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 has parent => (
 	is       => 'ro',
@@ -118,7 +118,7 @@ sub BUILDARGS {
 		} elsif ( defined $args{name} ) {
 
 			PDWiX->throw(q{'name' without 'url' is deprecated});
-			
+
 			# Map name to URL via the default package path
 			$args{url} = $parent->binary_url( $args{name} );
 		}

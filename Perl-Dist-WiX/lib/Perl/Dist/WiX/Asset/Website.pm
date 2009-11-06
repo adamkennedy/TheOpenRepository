@@ -7,7 +7,7 @@ use File::Spec::Functions qw( catfile splitpath );
 use English qw( -no_match_vars );
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -33,18 +33,21 @@ has icon_file => (
 );
 
 has icon_file_to => (
-	is      => 'ro',
-	isa     => Str,
-	reader  => '_get_icon_file_to',
-	lazy    => 1,
+	is     => 'ro',
+	isa    => Str,
+	reader => '_get_icon_file_to',
+	lazy   => 1,
+
 	# Move to a builder routine later.
 	default => sub {
 		my $self = shift;
 		my $file = $self->_get_icon_file();
 		if ( defined $file ) {
-			(undef, undef, $file) = splitpath($file, 0);
-			$file = catfile($self->_get_image_dir(), 'win32', $file);
-			if (!-f $file) { $self->_copy($self->_get_icon_file() , $file); }
+			( undef, undef, $file ) = splitpath( $file, 0 );
+			$file = catfile( $self->_get_image_dir(), 'win32', $file );
+			if ( !-f $file ) {
+				$self->_copy( $self->_get_icon_file(), $file );
+			}
 			return $file;
 		} else {
 			return undef;
@@ -65,7 +68,7 @@ sub install {
 
 	my $name = $self->get_name();
 	my $filename = catfile( $self->_get_image_dir(), 'win32', "$name.url" );
-	
+
 	my $website;
 
 	# TODO: Use exceptions instead of dieing.

@@ -20,7 +20,7 @@ use Digest::CRC qw( crc32_base64 );
 require Perl::Dist::WiX::Exceptions;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Directory';
 
@@ -90,7 +90,7 @@ sub search_dir {
 	} elsif ( @_ % 2 == 0 ) {
 		%args = @_;
 	} else {
-		PDWiX->throw("Invalid number of arguments to search_dir");
+		PDWiX->throw('Invalid number of arguments to search_dir');
 	}
 
 	# Set defaults for parameters.
@@ -116,7 +116,7 @@ sub search_dir {
 
 		# TARGETDIR has the path attached, but we really
 		# want INSTALLDIR to be the correct ID.
-		if ('TARGETDIR' eq $self->get_directory_id()) {
+		if ( 'TARGETDIR' eq $self->get_directory_id() ) {
 			return $self->get_directory_object('INSTALLDIR');
 		}
 		return $self;
@@ -173,7 +173,7 @@ sub _add_directory_recursive {
 	if ( defined $directory ) {
 		return $directory->add_directory(
 			name => $dir_to_add,
-			id => crc32_base64( $path_to_find . $dir_to_add ),
+			id   => crc32_base64( $path_to_find . $dir_to_add ),
 
 			# TODO: Check for other needs.
 		);
@@ -185,15 +185,18 @@ sub _add_directory_recursive {
 		my $dir =
 		  $self->_add_directory_recursive( $path_to_find_down,
 			$dir_to_add_down );
-		if (!defined $dir) {
-			PDWiX->throw("Could not create directory $path_to_find_down\\$dir_to_add_down");
+
+		if ( !defined $dir ) {
+			PDWiX->throw(
+"Could not create directory $path_to_find_down\\$dir_to_add_down"
+			);
 		}
-		return $dir->add_directory( 
-			name => $dir_to_add, 
-			id => crc32_base64( $path_to_find . $dir_to_add ),
+		return $dir->add_directory(
+			name => $dir_to_add,
+			id   => crc32_base64( $path_to_find . $dir_to_add ),
 		);
 
-	}
+	} ## end else [ if ( defined $directory)]
 } ## end sub _add_directory_recursive
 
 no Moose;

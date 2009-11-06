@@ -23,7 +23,7 @@ use Perl::Dist::WiX::Directory;
 use WiX3::Exceptions;
 
 our $VERSION = '1.100_001';
-$VERSION =~ s/_//;
+$VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';
 
@@ -186,7 +186,7 @@ sub initialize_short_tree {
 	$self->add_directory( catdir( $self->_get_app_dir(), 'perl\\bin' ) );
 
 	return $self;
-} ## end sub initialize_tree
+} ## end sub initialize_short_tree
 
 sub add_directory {
 	my $self = shift;
@@ -242,17 +242,20 @@ sub add_merge_module {
 	my $dir  = shift;
 	my $mm   = shift;
 
-	my $directory_object = $self->search_dir(path_to_find => $dir);
-	if (not defined $directory_object) {
+	my $directory_object = $self->search_dir( path_to_find => $dir );
+	if ( not defined $directory_object ) {
 		PDWiX->throw("Could not find object for directory $dir");
 	}
-	
-	if (not defined _INSTANCE($mm, 'Perl::Dist::WiX::MergeModule')) {
-		PDWiX->throw("Second parameter not Perl::Dist::WiX::MergeModule object");
+
+	if ( not defined _INSTANCE( $mm, 'Perl::Dist::WiX::MergeModule' ) ) {
+		PDWiX->throw(
+			'Second parameter not Perl::Dist::WiX::MergeModule object');
 	}
-	
+
 	$directory_object->add_child_tag($mm);
-}
+
+	return;
+} ## end sub add_merge_module
 
 1;
 
