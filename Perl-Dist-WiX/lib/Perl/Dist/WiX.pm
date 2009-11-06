@@ -121,60 +121,99 @@ require Perl::Dist::WiX::IconArray;
 require Perl::Dist::WiX::MergeModule;
 require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
+#>>>
 
 our $VERSION = '1.100_001';
 $VERSION =~ s/_//ms;
 
-use Moose::Tiny qw(
-  msi_feature_tree
+
+
+################################################################
+#
+# Private attributes. (Ones that have no public accessors or
+# are not valid parameters for new().)
+#
+
+# Reserved for a future parameter to new()
+has 'msi_feature_tree' => (
+	is      => 'ro',
+	isa     => 'Undef',
+	default => undef,
 );
+
+
 
 has '_icons' => (
-	is => 'bare',
-	isa => 'Maybe[Perl::Dist::WiX::IconArray]',
-	writer => '_set_icons',
+	is       => 'ro',
+	isa      => 'Maybe[Perl::Dist::WiX::IconArray]',
+	writer   => '_set_icons',
 	init_arg => undef,
 );
 
-has 'toolchain' => (
-	is => 'bare', # Perl::Dist::WiX::Util::Toolchain object
-	reader => '_get_toolchain',
-	writer => '_set_toolchain',
+
+
+has '_toolchain' => (
+	is       => 'bare',
+	isa      => 'Maybe[Perl::Dist::WiX::Toolchain]',
+	reader   => '_get_toolchain',
+	writer   => '_set_toolchain',
 	init_arg => undef,
 );
 
-# These attributes are either created in BUILDARGS, or are created later, 
-# and cannot be passed to new().
 
-has 'build_start_time' => (
-	is => 'ro', # Integer
-	default => time,
-	init_arg => undef, # Cannot set this parameter in new().
+
+has '_build_start_time' => (
+	is       => 'ro',
+	isa      => 'Int',
+	default  => time,
+	init_arg => undef,                 # Cannot set this parameter in new().
 );
+
+
 
 has '_directories' => (
-	is => 'ro', # Perl::Dist::WiX::DirectoryTree2
-	writer => '_set_directories',
-	default => undef,
+	is       => 'ro',
+	isa      => 'Maybe[Perl::Dist::WiX::DirectoryTree2]',
+	writer   => '_set_directories',
+	default  => undef,
 	init_arg => undef,
 );
 
-has 'distributions_installed' => (
-	is => 'ro', # Array of strings
-	default => sub { return [] },
+
+
+has '_distributions' => (
+	traits   => ['Array'],
+	is       => 'bare',
+	isa      => 'ArrayRef[Str]',
+	default  => sub { return [] },
 	init_arg => undef,
+	handles  => {
+		'_add_distribution'  => 'push',
+		'_get_distributions' => 'elements',
+	},
 );
 
-has 'env_path' => (
-	is => 'ro', # Array of strings
-	default => sub { return [] },
+
+
+has '_env_path' => (
+	traits   => ['Array'],
+	is       => 'bare',
+	isa      => 'ArrayRef[ArrayRef[Str]]',
+	default  => sub { return [] },
 	init_arg => undef,
+	handles  => {
+		'_add_env_path_unchecked' => 'push',
+		'_get_env_path_unchecked' => 'elements',
+	},
 );
+
+
 
 has '_filters' => (
-	is => 'ro', # Array of directories
-	lazy => 1,
-	builder => '_build_filters',
+	is       => 'ro',
+	isa      => 'ArrayRef[Str]',
+	lazy     => 1,
+	builder  => '_build_filters',
 	init_arg => undef,
 );
 
@@ -209,12 +248,14 @@ sub _build_filters {
 #>>>
 } ## end sub _build_filters
 
+
+
 # TODO: Document get_fragment_object and fragment_exists.
 
 has '_fragments' => (
 	traits   => ['Hash'],
 	is       => 'bare',
-	isa      => 'HashRef',             # Hashref[Perl::Dist::WiX::Fragment]
+	isa      => 'HashRef[Perl::Dist::WiX::Fragment]',
 	default  => sub { return {} },
 	init_arg => undef,
 	handles  => {
@@ -226,10 +267,12 @@ has '_fragments' => (
 	},
 );
 
+
+
 has '_merge_modules' => (
 	traits   => ['Hash'],
 	is       => 'bare',
-	isa      => 'HashRef',             # Hashref[Perl::Dist::WiX::MergeModule]
+	isa      => 'HashRef[Perl::Dist::WiX::MergeModule]',
 	default  => sub { return {} },
 	init_arg => undef,
 	handles  => {
@@ -241,6 +284,8 @@ has '_merge_modules' => (
 	},
 );
 
+
+
 has '_in_merge_module' => (
 	is       => 'ro',
 	isa      => 'Bool',
@@ -249,9 +294,12 @@ has '_in_merge_module' => (
 	writer   => '_set_in_merge_module',
 );
 
+
+
 has '_output_file' => (
 	traits   => ['Array'],
-	is       => 'ro',                  # Array of strings
+	is       => 'bare',
+	isa      => 'ArrayRef[Str]',
 	default  => sub { return [] },
 	init_arg => undef,
 	handles  => {
@@ -261,12 +309,17 @@ has '_output_file' => (
 	},
 );
 
+
+
 has '_perl_version_corelist' => (
-	is       => 'ro',                  # Hash
+	is       => 'ro',
+	isa      => 'Maybe[HashRef]',
 	lazy     => 1,
 	builder  => '_build_perl_version_corelist',
 	init_arg => undef,
 );
+
+
 
 sub _build_perl_version_corelist {
 	my $self = shift;
@@ -281,16 +334,24 @@ sub _build_perl_version_corelist {
 	return $hash;
 } ## end sub _build_perl_version_corelist
 
+
+
 has 'pdw_class' => (
-	is       => 'ro',                  # String
+	is       => 'ro',
+	isa      => 'Str',
 	required => 1,                     # Default is provided in BUILDARGS.
 );
 
+
+
 has 'pdw_version' => (
-	is      => 'ro',                   # String
+	is      => 'ro',
+	isa     => 'Str',
 	default => $Perl::Dist::WiX::VERSION,
 	init_arg => undef,                 # Cannot set this parameter in new().
 );
+
+
 
 has '_guidgen' => (
 	is       => 'ro',                  # WiX3::XML::GeneratesGUID::Object
@@ -298,12 +359,17 @@ has '_guidgen' => (
 	required => 1,                     # Default is provided in BUILDARGS.
 );
 
+
+
 has '_trace_object' => (
-	is       => 'ro',                  # WiX3::Traceable
+	is       => 'ro',
+	isa      => 'WiX3::Traceable',
 	required => 1,
 	writer   => '_set_trace_object',
 	handles  => ['trace_line'],
 );
+
+
 
 has _user_agent_directory => (
 	is   => 'ro',                      # Directory that is created in builder, so must exist.
@@ -334,6 +400,8 @@ sub _build_user_agent_directory {
 	return $dir;
 } ## end sub _build_user_agent_directory
 
+
+
 has '_cpan_moved' => (
 	traits   => ['Bool'],
 	is       => 'bare',
@@ -344,6 +412,8 @@ has '_cpan_moved' => (
 	handles => { '_move_cpan' => 'set', },
 );
 
+
+
 has '_cpan_sources_to' => (
 	is       => 'ro',
 	isa      => 'Str',
@@ -351,6 +421,8 @@ has '_cpan_sources_to' => (
 	default  => undef,
 	init_arg => undef,                 # Cannot set this parameter in new().
 );
+
+
 
 has '_cpan_sources_from' => (
 	is      => 'ro',
@@ -360,6 +432,8 @@ has '_cpan_sources_from' => (
 	init_arg => undef,                 # Cannot set this parameter in new().
 );
 
+
+
 has '_portable_dist' => (
 	is      => 'ro',                   # String
 	isa     => 'Maybe[Portable::Dist]',
@@ -368,14 +442,14 @@ has '_portable_dist' => (
 	init_arg => undef,                 # Cannot set this parameter in new().
 );
 
-#  Don't need to put distributions_installed in here.
-
-#>>>
-
 
 
 #####################################################################
 # Constructor
+#
+# (Technically, the definition of the public attributes, and the
+# BUILDARGS routine, as Moose provides our new().)
+#
 
 =pod
 
@@ -1148,7 +1222,8 @@ current date.
 =cut
 
 has 'output_base_filename' => (
-	is      => 'ro',                   # String
+	is      => 'ro',
+	isa     => 'Str',
 	lazy    => 1,
 	builder => '_build_output_base_filename',
 );
@@ -1423,7 +1498,8 @@ TODO
 =cut
 
 has 'user_agent' => (
-	is      => 'ro',                   # LWP::UserAgent instance
+	is      => 'ro',
+	isa     => 'LWP::UserAgent',
 	lazy    => 1,
 	builder => '_build_user_agent',
 );
@@ -1468,9 +1544,12 @@ TODO
 =cut
 
 has 'user_agent_cache' => (
-	is      => 'ro',                   # Boolean
+	is      => 'ro',
+	isa     => 'Bool',
 	default => 1,
 );
+
+
 
 =head3 zip
 
@@ -1489,10 +1568,6 @@ has 'zip' => (
 );
 
 
-
-
-# Note that new() is actually defined by Moose.  BUILDARGS() is called before
-# new() and processes the arguments for it.
 
 sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 	my $class = shift;
@@ -1617,7 +1692,8 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 	return \%params;
 } ## end sub BUILDARGS
 
-# Handle moving the CPAN source files back.
+
+# This is called by Moose's DESTROY, and handles moving the CPAN source files back.
 sub DEMOLISH {
 	my $self = shift;
 
@@ -1631,6 +1707,645 @@ sub DEMOLISH {
 
 	return;
 } ## end sub DEMOLISH
+
+
+
+=head2 Accessors
+
+	$id = $dist->bin_candle(); 
+
+Accessors will return a specified portion of the distribution state.
+
+If it can also be set as a parameter to C<new>, it is marked as I<(also C<new> parameter)> below.
+
+=head3 fragment_dir
+
+The location where this object will write the information for WiX 
+to process to create the MSI. A default is provided if this is not 
+specified.
+
+=head3 directories
+
+Returns the L<Perl::Dist::WiX::DirectoryTree|Perl::Dist::WiX::DirectoryTree> 
+object associated with this distribution.  Created by L</new>
+
+=head3 fragments
+
+Returns a hashref containing the objects subclassed from 
+L<Perl::Dist::WiX::Base::Fragment|Perl::Dist::WiX::Base::Fragment> 
+associated with this distribution. Created as the distribution's 
+L</run> routine progresses.
+
+=head3 msi_feature_tree
+
+Returns the parameter of the same name passed in 
+from L</new>. Unused as of yet.
+
+=head3 msi_product_icon_id
+
+Specifies the Id for the icon that is used in Add/Remove Programs for 
+this MSI file.
+
+=head3 feature_tree_object
+
+Returns the L<Perl::Dist::WiX::FeatureTree|Perl::Dist::WiX::FeatureTree> 
+object associated with this distribution.
+
+=cut
+
+has 'feature_tree_object' => (
+	is       => 'ro',                  # String
+	isa      => 'Maybe[Perl::Dist::WiX::FeatureTree2]',
+	writer   => '_set_feature_tree_object',
+	default  => undef,
+	init_arg => undef,
+);
+
+
+
+=head3 bin_perl, bin_make, bin_pexports, bin_dlltool
+
+The location of perl.exe, dmake.exe, pexports.exe, and dlltool.exe.
+
+These only are available (not undef) once the appropriate packages 
+are installed.
+
+=cut
+
+has 'bin_perl' => (
+	is       => 'ro',
+	isa      => 'Str',
+	writer   => '_set_bin_perl',
+	init_arg => undef,
+	default  => undef,
+);
+
+has 'bin_make' => (
+	is       => 'ro',
+	isa      => 'Str',
+	writer   => '_set_bin_make',
+	init_arg => undef,
+	default  => undef,
+);
+
+has 'bin_pexports' => (
+	is       => 'ro',
+	isa      => 'Str',
+	writer   => '_set_bin_pexports',
+	init_arg => undef,
+	default  => undef,
+);
+
+has 'bin_dlltool' => (
+	is       => 'ro',
+	isa      => 'Str',
+	writer   => '_set_bin_dlltool',
+	init_arg => undef,
+	default  => undef,
+);
+
+
+
+=head3 dist_dir
+
+Provides a shortcut to the location of the shared files directory.
+
+Returns a directory as a string or throws an exception on error.
+
+=cut
+
+sub dist_dir {
+	my $self = shift;
+
+	return $self->wix_dist_dir();
+}
+
+
+
+=head3 wix_dist_dir
+
+Provides a shortcut to the location of the shared files directory for 
+C<Perl::Dist::WiX>.
+
+Returns a directory as a string or throws an exception on error.
+
+=cut
+
+has 'wix_dist_dir' => (
+	is       => 'ro',                  # String
+	builder  => '_build_wix_dist_dir',
+	init_arg => undef,
+);
+
+sub _build_wix_dist_dir {
+	my $dir;
+
+	unless ( eval { $dir = File::ShareDir::dist_dir('Perl-Dist-WiX'); 1; } )
+	{
+		PDWiX::Caught->throw(
+			message =>
+			  'Could not find distribution directory for Perl::Dist::WiX',
+			info => ( defined $EVAL_ERROR ) ? $EVAL_ERROR : 'Unknown error',
+		);
+	}
+
+	return $dir;
+} ## end sub _build_wix_dist_dir
+
+
+
+=head3 git_describe
+
+The C<git_describe> method returns the output of C<git describe> on the
+directory pointed to by C<git_checkout>.
+
+=cut
+
+has 'git_describe' => (
+	is       => 'ro',                  # String
+	lazy     => 1,
+	builder  => '_build_git_describe',
+	init_arg => undef,
+);
+
+sub _build_git_describe {
+	my $self     = shift;
+	my $checkout = $self->git_checkout();
+	my $location = $self->git_location();
+	if ( not -f $location ) {
+		PDWiX->throw("Could not find git at $location");
+	}
+	$location = Win32::GetShortPathName($location);
+	if ( not defined $location ) {
+		PDWiX->throw(
+'Could not convert the location of git.exe to a path with short names'
+		);
+	}
+
+	## no critic(ProhibitBacktickOperators)
+	$self->trace_line( 2,
+		"Finding current commit using $location describe\n" );
+	my $describe =
+qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
+
+	if ($CHILD_ERROR) {
+		PDWiX->throw("'git describe' returned an error: $CHILD_ERROR");
+	}
+
+	$describe =~ s/v5[.]/5./ms;
+	$describe =~ s/\n//ms;
+
+	return $describe;
+} ## end sub _build_git_describe
+
+
+
+=head3 perl_version_literal
+
+The C<perl_version_literal> method returns the literal numeric Perl
+version for the distribution.
+
+For Perl 5.8.8 this will be '5.008008', Perl 5.8.9 will be '5.008009',
+and for Perl 5.10.0 this will be '5.010000'.
+
+=cut
+
+has 'perl_version_literal' => (
+	is       => 'ro',                  # String
+	lazy     => 1,
+	builder  => '_build_perl_version_literal',
+	init_arg => undef,
+);
+
+sub _build_perl_version_literal {
+	my $self = shift;
+
+	my $x = {
+		'589'  => '5.008009',
+		'5100' => '5.010000',
+		'5101' => '5.010001',
+		'git'  => '5.011001',
+	  }->{ $self->perl_version() }
+	  || 0;
+
+	unless ($x) {
+		PDWiX::Parameter->throw(
+			parameter => 'perl_version_literal: Failed to resolve',
+			where     => '->(building of accessor)'
+		);
+	}
+
+	return $x;
+} ## end sub _build_perl_version_literal
+
+
+
+=head3 perl_version_human
+
+The C<perl_version_human> method returns the "marketing" form
+of the Perl version.
+
+This will be either 'git', '5.8.9', '5.10.0', or '5.10.1'.
+
+=cut
+
+has 'perl_version_human' => (
+	is       => 'ro',                  # String
+	lazy     => 1,
+	builder  => '_build_perl_version_human',
+	writer   => '_set_perl_version_human',
+	init_arg => undef,
+);
+
+sub _build_perl_version_human {
+	my $self = shift;
+
+	my $x = {
+		'589'  => '5.8.9',
+		'5100' => '5.10.0',
+		'5101' => '5.10.1',
+		'git'  => 'git',
+	  }->{ $self->perl_version() }
+	  || 0;
+
+	unless ($x) {
+		PDWiX::Parameter->throw(
+			parameter => 'perl_version_human: Failed to resolve',
+			where     => '->(building of accessor)'
+		);
+	}
+
+	return $x;
+} ## end sub _build_perl_version_human
+
+
+
+=head3 distribution_version_human
+
+The C<distribution_version_human> method returns the "marketing" form
+of the distribution version.
+
+=cut
+
+sub distribution_version_human {
+	my $self = shift;
+
+	my $version = $self->perl_version_human();
+
+	if ( 'git' eq $version ) {
+		$version = $self->git_describe();
+	}
+
+	return
+	    $version . q{.}
+	  . $self->build_number()
+	  . ( $self->portable() ? ' Portable' : q{} )
+	  . ( $self->beta_number() ? ' Beta ' . $self->beta_number() : q{} );
+} ## end sub distribution_version_human
+
+
+
+=head3 output_date_string
+
+Returns a stringified date in YYYYMMDD format for the use of other 
+routines.
+
+=cut
+
+# Convenience method
+sub output_date_string {
+	my @t = localtime;
+	return sprintf '%04d%02d%02d', $t[5] + 1900, $t[4] + 1, $t[3];
+}
+
+
+
+=head3 msi_ui_type
+
+Returns the UI type that the MSI needs to use.
+
+=cut
+
+# For template
+sub msi_ui_type {
+	my $self = shift;
+	return ( defined $self->msi_feature_tree() )
+	  ? 'FeatureTree'
+	  : 'Minimal';
+}
+
+
+
+=head3 msi_platform_string
+
+Returns the Platform attribute to the MSI's Package tag.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_package.htm>
+
+=cut
+
+# For template
+sub msi_platform_string {
+	my $self = shift;
+	return ( 64 == $self->bits() ) ? 'x64' : 'x86';
+}
+
+
+
+=head3 msi_product_icon_id
+
+Returns the product icon to use in the main template.
+
+=cut
+
+sub msi_product_icon_id {
+	my $self = shift;
+
+	# Get the icon ID if we can.
+	if ( defined $self->msi_product_icon() ) {
+		return 'I_'
+		  . $self->_icons()->search_icon( $self->msi_product_icon );
+	} else {
+		return undef;
+	}
+}
+
+
+
+=head3 msi_product_id
+
+Returns the Id for the MSI's <Product> tag.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
+
+=cut
+
+# For template
+sub msi_product_id {
+	my $self = shift;
+
+	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
+
+	my $product_name =
+	    $self->app_name()
+	  . ( $self->portable() ? ' Portable ' : q{ } )
+	  . $self->app_publisher_url()
+	  . q{ ver. }
+	  . $self->msi_perl_version();
+
+	#... then use it to create a GUID out of the ID.
+	my $guid = $generator->generate_guid($product_name);
+
+	return $guid;
+} ## end sub msi_product_id
+
+
+
+=head3 msm_product_id
+
+Returns the Id for the <Product> tag for the MSI's merge module.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
+
+=cut
+
+# For template
+sub msm_product_id {
+	my $self = shift;
+
+	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
+
+	my $product_name =
+	    $self->app_name()
+	  . ( $self->portable() ? ' Portable ' : q{ } )
+	  . $self->app_publisher_url()
+	  . q{ ver. }
+	  . $self->msi_perl_version()
+	  . q{ merge module.};
+
+	#... then use it to create a GUID out of the ID.
+	my $guid = $generator->generate_guid($product_name);
+	$guid =~ s/-/_/msg;
+
+	return $guid;
+} ## end sub msm_product_id
+
+
+
+=head3 msi_upgrade_code
+
+Returns the Id for the MSI's <Upgrade> tag.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_upgrade.htm>
+
+=cut
+
+# For template
+sub msi_upgrade_code {
+	my $self = shift;
+
+	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
+
+	my $upgrade_ver =
+	    $self->app_name()
+	  . ( $self->portable() ? ' Portable' : q{} ) . q{ }
+	  . $self->app_publisher_url();
+
+	#... then use it to create a GUID out of the ID.
+	my $guid = $generator->generate_guid($upgrade_ver);
+
+	return $guid;
+} ## end sub msi_upgrade_code
+
+
+
+=head3 msm_package_id
+
+Returns the Id for the MSI's <Package> tag.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_package.htm>
+
+=cut
+
+# For template
+sub msm_package_id {
+	my $self = shift;
+
+	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
+
+	my $upgrade_ver =
+	    $self->app_name()
+	  . ( $self->portable() ? ' Portable' : q{} ) . q{ }
+	  . $self->app_publisher_url()
+	  . q{ merge module.};
+
+	#... then use it to create a GUID out of the ID.
+	my $guid = $generator->generate_guid($upgrade_ver);
+
+	return $guid;
+} ## end sub msm_package_id
+
+
+
+=head3 msi_perl_version
+
+Returns the Version attribute for the MSI's <Product> tag.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
+
+=cut
+
+# For template.
+# MSI versions are 3 part, not 4, with the maximum version being 255.255.65535
+sub msi_perl_version {
+	my $self = shift;
+
+	# Get perl version arrayref.
+	my $ver = {
+		'589'  => [ 5, 8,  9 ],
+		'5100' => [ 5, 10, 0 ],
+		'5101' => [ 5, 10, 1 ],
+		'git'  => [ 5, 0,  0 ],
+	  }->{ $self->perl_version }
+	  || [ 0, 0, 0 ];
+
+	# Merge build number with last part of perl version.
+	$ver->[2] = ( $ver->[2] << 8 ) + $self->build_number();
+
+	return join q{.}, @{$ver};
+
+} ## end sub msi_perl_version
+
+
+
+=head3 perl_config_myuname
+
+Returns the value to be used for perl -V:myuname, which is in this pattern:
+
+	Win32 app_id 5.10.0.1.beta_1 #1 Mon Jun 15 23:11:00 2009 i386
+	
+(the .beta_X is ommitted if the beta_number accessor is not set.)
+
+=cut
+
+# For template.
+# MSI versions are 3 part, not 4, with the maximum version being 255.255.65535
+sub perl_config_myuname {
+	my $self = shift;
+
+	my $version =
+	  $self->perl_version_human() . q{.} . $self->build_number();
+
+	if ( $version =~ m/git/ms ) {
+		$version = $self->git_describe() . q{.} . $self->build_number();
+	}
+
+	if ( $self->beta_number() > 0 ) {
+		$version .= '.beta_' . $self->beta_number();
+	}
+
+	my $bits = ( 64 == $self->bits() ) ? 'x86_64' : 'i386';
+
+	return join q{ }, 'Win32', $self->app_id(), $version, '#1',
+	  $self->_build_start_time(), 'i386';
+
+} ## end sub perl_config_myuname
+
+
+
+=head3 get_component_array
+
+Returns the array of <Component Id>'s required.
+
+See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm>, 
+L<http://wix.sourceforge.net/manual-wix3/wix_xsd_componentref.htm>
+
+=back
+
+=cut
+
+sub get_component_array {
+	my $self = shift;
+
+	print "Running get_component_array...\n";
+	my @answer;
+	foreach my $key ( $self->_fragment_keys ) {
+		push @answer,
+		  $self->get_fragment_object($key)->get_componentref_array();
+	}
+
+	return @answer;
+} ## end sub get_component_array
+
+
+
+#####################################################################
+# Top Level Process Methods
+
+sub prepare { return 1 }
+
+=pod
+
+=head2 run
+
+The C<run> method is the main method for the class.
+
+It does a complete build of a product, spitting out an installer.
+
+Returns true, or throws an exception on error.
+
+This method may take an hour or more to run.
+
+=cut
+
+sub run {
+	my $self  = shift;
+	my $start = time;
+
+	unless ( $self->msi or $self->zip ) {
+		$self->trace_line('No msi or zip target, nothing to do');
+		return 1;
+	}
+
+	# Don't buffer
+	STDOUT->autoflush(1);
+	STDERR->autoflush(1);
+
+	my @task_list   = @{ $self->tasklist() };
+	my $task_number = 1;
+	my $task;
+	my $answer = 1;
+
+	while ( $answer and ( $task = shift @task_list ) ) {
+		$answer = $self->checkpoint_task( $task => $task_number );
+		$task_number++;
+	}
+
+	# Finished
+	$self->trace_line( 0,
+		    'Distribution generation completed in '
+		  . ( time - $start )
+		  . " seconds\n" );
+	foreach my $file ( $self->get_output_files ) {
+		$self->trace_line( 0, "Created distribution $file\n" );
+	}
+
+	return 1;
+} ## end sub run
+
+#####################################################################
+#
+# Perl::Dist::WiX Main Methods
+# (Those referred to in the tasklist.)
+#
+
+=head2 Routines used by C<run>
+
+=head3 final_initialization
+
+TODO
+
+=cut
 
 sub final_initialization {
 	my $self = shift;
@@ -1747,611 +2462,6 @@ EOF
 	return 1;
 } ## end sub final_initialization
 
-=head2 Accessors
-
-	$id = $dist->bin_candle; 
-
-Accessors will return a specified portion of the distribution state.
-
-If it can also be set as a parameter to C<new>, it is marked as I<(also C<new> parameter)> below.
-
-=head3 fragment_dir
-
-The location where this object will write the information for WiX 
-to process to create the MSI. A default is provided if this is not 
-specified.
-
-=head3 directories
-
-Returns the L<Perl::Dist::WiX::DirectoryTree|Perl::Dist::WiX::DirectoryTree> 
-object associated with this distribution.  Created by L</new>
-
-=head3 fragments
-
-Returns a hashref containing the objects subclassed from 
-L<Perl::Dist::WiX::Base::Fragment|Perl::Dist::WiX::Base::Fragment> 
-associated with this distribution. Created as the distribution's 
-L</run> routine progresses.
-
-=head3 msi_feature_tree
-
-Returns the parameter of the same name passed in 
-from L</new>. Unused as of yet.
-
-=head3 msi_product_icon_id
-
-Specifies the Id for the icon that is used in Add/Remove Programs for 
-this MSI file.
-
-=head3 feature_tree_object
-
-Returns the L<Perl::Dist::WiX::FeatureTree|Perl::Dist::WiX::FeatureTree> 
-object associated with this distribution.
-
-=cut
-
-has 'feature_tree_object' => (
-	is       => 'ro',                  # String
-	isa      => 'Maybe[Perl::Dist::WiX::FeatureTree2]',
-	writer   => '_set_feature_tree_object',
-	default  => undef,
-	init_arg => undef,
-);
-
-
-
-=head3 bin_perl, bin_make, bin_pexports, bin_dlltool
-
-The location of perl.exe, dmake.exe, pexports.exe, and dlltool.exe.
-
-These only are available (not undef) once the appropriate packages 
-are installed.
-
-=cut
-
-has 'bin_perl' => (
-	is       => 'ro',
-	isa      => 'Str',
-	writer   => '_set_bin_perl',
-	init_arg => undef,
-	default  => undef,
-);
-
-has 'bin_make' => (
-	is       => 'ro',
-	isa      => 'Str',
-	writer   => '_set_bin_make',
-	init_arg => undef,
-	default  => undef,
-);
-
-has 'bin_pexports' => (
-	is       => 'ro',
-	isa      => 'Str',
-	writer   => '_set_bin_pexports',
-	init_arg => undef,
-	default  => undef,
-);
-
-has 'bin_dlltool' => (
-	is       => 'ro',
-	isa      => 'Str',
-	writer   => '_set_bin_dlltool',
-	init_arg => undef,
-	default  => undef,
-);
-
-
-
-=head3 env_path
-
-An arrayref storing the different directories under C<image_dir> that 
-need to be added to the PATH.
-
-=head3 dist_dir
-
-Provides a shortcut to the location of the shared files directory.
-
-Returns a directory as a string or throws an exception on error.
-
-=cut
-
-sub dist_dir {
-	my $self = shift;
-
-	return $self->wix_dist_dir();
-}
-
-=head3 wix_dist_dir
-
-Provides a shortcut to the location of the shared files directory for 
-C<Perl::Dist::WiX>.
-
-Returns a directory as a string or throws an exception on error.
-
-=cut
-
-has 'wix_dist_dir' => (
-	is       => 'ro',                  # String
-	builder  => '_build_wix_dist_dir',
-	init_arg => undef,
-);
-
-sub _build_wix_dist_dir {
-	my $dir;
-
-	unless ( eval { $dir = File::ShareDir::dist_dir('Perl-Dist-WiX'); 1; } )
-	{
-		PDWiX::Caught->throw(
-			message =>
-			  'Could not find distribution directory for Perl::Dist::WiX',
-			info => ( defined $EVAL_ERROR ) ? $EVAL_ERROR : 'Unknown error',
-		);
-	}
-
-	return $dir;
-} ## end sub _build_wix_dist_dir
-
-#####################################################################
-# Accessors and Documentation for accessors.
-
-=head3 git_describe
-
-The C<git_describe> method returns the output of C<git describe> on the
-directory pointed to by C<git_checkout>.
-
-=cut
-
-has 'git_describe' => (
-	is       => 'ro',                  # String
-	lazy     => 1,
-	builder  => '_build_git_describe',
-	init_arg => undef,
-);
-
-sub _build_git_describe {
-	my $self     = shift;
-	my $checkout = $self->git_checkout();
-	my $location = $self->git_location();
-	if ( not -f $location ) {
-		PDWiX->throw("Could not find git at $location");
-	}
-	$location = Win32::GetShortPathName($location);
-	if ( not defined $location ) {
-		PDWiX->throw(
-'Could not convert the location of git.exe to a path with short names'
-		);
-	}
-
-	## no critic(ProhibitBacktickOperators)
-	$self->trace_line( 2,
-		"Finding current commit using $location describe\n" );
-	my $describe =
-qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
-
-	if ($CHILD_ERROR) {
-		PDWiX->throw("'git describe' returned an error: $CHILD_ERROR");
-	}
-
-	$describe =~ s/v5[.]/5./ms;
-	$describe =~ s/\n//ms;
-
-	return $describe;
-} ## end sub _build_git_describe
-
-
-
-=head3 perl_version_literal
-
-The C<perl_version_literal> method returns the literal numeric Perl
-version for the distribution.
-
-For Perl 5.8.8 this will be '5.008008', Perl 5.8.9 will be '5.008009',
-and for Perl 5.10.0 this will be '5.010000'.
-
-=cut
-
-has 'perl_version_literal' => (
-	is       => 'ro',                  # String
-	lazy     => 1,
-	builder  => '_build_perl_version_literal',
-	init_arg => undef,
-);
-
-sub _build_perl_version_literal {
-	my $self = shift;
-
-	my $x = {
-		'589'  => '5.008009',
-		'5100' => '5.010000',
-		'5101' => '5.010001',
-		'git'  => '5.011001',
-	  }->{ $self->perl_version() }
-	  || 0;
-
-	unless ($x) {
-		PDWiX::Parameter->throw(
-			parameter => 'perl_version_literal: Failed to resolve',
-			where     => '->(building of accessor)'
-		);
-	}
-
-	return $x;
-} ## end sub _build_perl_version_literal
-
-=head3 perl_version_human
-
-The C<perl_version_human> method returns the "marketing" form
-of the Perl version.
-
-This will be either 'git', '5.8.9', '5.10.0', or '5.10.1'.
-
-=cut
-
-has 'perl_version_human' => (
-	is       => 'ro',                  # String
-	lazy     => 1,
-	builder  => '_build_perl_version_human',
-	writer   => '_set_perl_version_human',
-	init_arg => undef,
-);
-
-sub _build_perl_version_human {
-	my $self = shift;
-
-	my $x = {
-		'589'  => '5.8.9',
-		'5100' => '5.10.0',
-		'5101' => '5.10.1',
-		'git'  => 'git',
-	  }->{ $self->perl_version() }
-	  || 0;
-
-	unless ($x) {
-		PDWiX::Parameter->throw(
-			parameter => 'perl_version_human: Failed to resolve',
-			where     => '->(building of accessor)'
-		);
-	}
-
-	return $x;
-} ## end sub _build_perl_version_human
-
-=head3 distribution_version_human
-
-The C<distribution_version_human> method returns the "marketing" form
-of the distribution version.
-
-=cut
-
-sub distribution_version_human {
-	my $self = shift;
-
-	my $version = $self->perl_version_human();
-
-	if ( 'git' eq $version ) {
-		$version = $self->git_describe();
-	}
-
-	return
-	    $version . q{.}
-	  . $self->build_number()
-	  . ( $self->portable() ? ' Portable' : q{} )
-	  . ( $self->beta_number() ? ' Beta ' . $self->beta_number() : q{} );
-} ## end sub distribution_version_human
-
-=head3 output_date_string
-
-Returns a stringified date in YYYYMMDD format for the use of other 
-routines.
-
-=cut
-
-# Convenience method
-sub output_date_string {
-	my @t = localtime;
-	return sprintf '%04d%02d%02d', $t[5] + 1900, $t[4] + 1, $t[3];
-}
-
-=head3 msi_ui_type
-
-Returns the UI type that the MSI needs to use.
-
-=cut
-
-# For template
-sub msi_ui_type {
-	my $self = shift;
-	return ( defined $self->msi_feature_tree() )
-	  ? 'FeatureTree'
-	  : 'Minimal';
-}
-
-=head3 msi_platform_string
-
-Returns the Platform attribute to the MSI's Package tag.
-
-See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_package.htm>
-
-=cut
-
-# For template
-sub msi_platform_string {
-	my $self = shift;
-	return ( 64 == $self->bits() ) ? 'x64' : 'x86';
-}
-
-=head3 msi_product_icon_id
-
-Returns the product icon to use in the main template.
-
-=cut
-
-sub msi_product_icon_id {
-	my $self = shift;
-
-	# Get the icon ID if we can.
-	if ( defined $self->msi_product_icon() ) {
-		return 'I_'
-		  . $self->_icons()->search_icon( $self->msi_product_icon );
-	} else {
-		return undef;
-	}
-}
-
-=head3 msi_product_id
-
-Returns the Id for the MSI's <Product> tag.
-
-See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
-
-=cut
-
-# For template
-sub msi_product_id {
-	my $self = shift;
-
-	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
-
-	my $product_name =
-	    $self->app_name()
-	  . ( $self->portable() ? ' Portable ' : q{ } )
-	  . $self->app_publisher_url()
-	  . q{ ver. }
-	  . $self->msi_perl_version();
-
-	#... then use it to create a GUID out of the ID.
-	my $guid = $generator->generate_guid($product_name);
-
-	return $guid;
-} ## end sub msi_product_id
-
-=head3 msm_product_id
-
-Returns the Id for the <Product> tag for the MSI's merge module.
-
-See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
-
-=cut
-
-# For template
-sub msm_product_id {
-	my $self = shift;
-
-	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
-
-	my $product_name =
-	    $self->app_name()
-	  . ( $self->portable() ? ' Portable ' : q{ } )
-	  . $self->app_publisher_url()
-	  . q{ ver. }
-	  . $self->msi_perl_version()
-	  . q{ merge module.};
-
-	#... then use it to create a GUID out of the ID.
-	my $guid = $generator->generate_guid($product_name);
-	$guid =~ s/-/_/msg;
-
-	return $guid;
-} ## end sub msm_product_id
-
-
-=head3 msi_upgrade_code
-
-Returns the Id for the MSI's <Upgrade> tag.
-
-See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_upgrade.htm>
-
-=cut
-
-# For template
-sub msi_upgrade_code {
-	my $self = shift;
-
-	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
-
-	my $upgrade_ver =
-	    $self->app_name()
-	  . ( $self->portable() ? ' Portable' : q{} ) . q{ }
-	  . $self->app_publisher_url();
-
-	#... then use it to create a GUID out of the ID.
-	my $guid = $generator->generate_guid($upgrade_ver);
-
-	return $guid;
-} ## end sub msi_upgrade_code
-
-=head3 msm_package_id
-
-Returns the Id for the MSI's <Package> tag.
-
-See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_package.htm>
-
-=cut
-
-# For template
-sub msm_package_id {
-	my $self = shift;
-
-	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
-
-	my $upgrade_ver =
-	    $self->app_name()
-	  . ( $self->portable() ? ' Portable' : q{} ) . q{ }
-	  . $self->app_publisher_url()
-	  . q{ merge module.};
-
-	#... then use it to create a GUID out of the ID.
-	my $guid = $generator->generate_guid($upgrade_ver);
-
-	return $guid;
-} ## end sub msm_package_id
-
-
-=head3 msi_perl_version
-
-Returns the Version attribute for the MSI's <Product> tag.
-
-See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
-
-=cut
-
-# For template.
-# MSI versions are 3 part, not 4, with the maximum version being 255.255.65535
-sub msi_perl_version {
-	my $self = shift;
-
-	# Get perl version arrayref.
-	my $ver = {
-		'589'  => [ 5, 8,  9 ],
-		'5100' => [ 5, 10, 0 ],
-		'5101' => [ 5, 10, 1 ],
-		'git'  => [ 5, 0,  0 ],
-	  }->{ $self->perl_version }
-	  || [ 0, 0, 0 ];
-
-	# Merge build number with last part of perl version.
-	$ver->[2] = ( $ver->[2] << 8 ) + $self->build_number();
-
-	return join q{.}, @{$ver};
-
-} ## end sub msi_perl_version
-
-=head3 perl_config_myuname
-
-Returns the value to be used for perl -V:myuname, which is in this pattern:
-
-	Win32 app_id 5.10.0.1.beta_1 #1 Mon Jun 15 23:11:00 2009 i386
-	
-(the .beta_X is ommitted if the beta_number accessor is not set.)
-
-=cut
-
-# For template.
-# MSI versions are 3 part, not 4, with the maximum version being 255.255.65535
-sub perl_config_myuname {
-	my $self = shift;
-
-	my $version =
-	  $self->perl_version_human() . q{.} . $self->build_number();
-
-	if ( $version =~ m/git/ms ) {
-		$version = $self->git_describe() . q{.} . $self->build_number();
-	}
-
-	if ( $self->beta_number() > 0 ) {
-		$version .= '.beta_' . $self->beta_number();
-	}
-
-	my $bits = ( 64 == $self->bits() ) ? 'x86_64' : 'i386';
-
-	return join q{ }, 'Win32', $self->app_id(), $version, '#1',
-	  $self->build_start_time(), 'i386';
-
-} ## end sub perl_config_myuname
-
-=head3 get_component_array
-
-Returns the array of <Component Id>'s required.
-
-See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm>, 
-L<http://wix.sourceforge.net/manual-wix3/wix_xsd_componentref.htm>
-
-=back
-
-=cut
-
-sub get_component_array {
-	my $self = shift;
-
-	print "Running get_component_array...\n";
-	my @answer;
-	foreach my $key ( $self->_fragment_keys ) {
-		push @answer,
-		  $self->get_fragment_object($key)->get_componentref_array();
-	}
-
-	return @answer;
-} ## end sub get_component_array
-
-#####################################################################
-# Top Level Process Methods
-
-sub prepare { return 1 }
-
-=pod
-
-=head2 run
-
-The C<run> method is the main method for the class.
-
-It does a complete build of a product, spitting out an installer.
-
-Returns true, or throws an exception on error.
-
-This method may take an hour or more to run.
-
-=cut
-
-sub run {
-	my $self  = shift;
-	my $start = time;
-
-	unless ( $self->msi or $self->zip ) {
-		$self->trace_line('No msi or zip target, nothing to do');
-		return 1;
-	}
-
-	# Don't buffer
-	STDOUT->autoflush(1);
-	STDERR->autoflush(1);
-
-	my @task_list   = @{ $self->tasklist() };
-	my $task_number = 1;
-	my $task;
-	my $answer = 1;
-
-	while ( $answer and ( $task = shift @task_list ) ) {
-		$answer = $self->checkpoint_task( $task => $task_number );
-		$task_number++;
-	}
-
-	# Finished
-	$self->trace_line( 0,
-		    'Distribution generation completed in '
-		  . ( time - $start )
-		  . " seconds\n" );
-	foreach my $file ( $self->get_output_files ) {
-		$self->trace_line( 0, "Created distribution $file\n" );
-	}
-
-	return 1;
-} ## end sub run
-
-#####################################################################
-# Perl::Dist::WiX Main Methods
-
-=head2 Routines used by C<run>
 
 =head3 install_c_toolchain
 
@@ -2385,7 +2495,7 @@ sub install_c_toolchain {
 	$self->install_pexports;
 
 	# Set up the environment variables for the binaries
-	$self->add_env_path( 'c', 'bin' );
+	$self->_add_env_path( 'c', 'bin' );
 
 	return 1;
 } ## end sub install_c_toolchain
@@ -2464,15 +2574,15 @@ sub install_win32_extras {
 	File::Path::mkpath( catdir( $self->image_dir, 'win32' ) );
 
 	# TODO: Delete next two statements.
-#	my $perldir = $self->{directories}->search_dir(
-#		path_to_find => catdir( $self->image_dir, 'perl' ),
+#	my $perldir = $self->_directories()->search_dir(
+#		path_to_find => catdir( $self->image_dir(), 'perl' ),
 #		exact        => 1,
 #		descend      => 1,
 #	);
 #	$perldir->add_directory(
 #		name => 'bin',
 #		id   => 'PerlBin',
-#		path => catdir( $self->image_dir, qw( perl bin ) ),
+#		path => catdir( $self->image_dir(), qw( perl bin ) ),
 #	);
 
 	$self->install_launcher(
@@ -2579,9 +2689,6 @@ sub _remove_file {
 	return 1;
 }
 
-#####################################################################
-# Package Generation
-
 =head3 regenerate_fragments
 
 The C<regenerate_fragments> method is used by C<run> to fully generate the
@@ -2624,9 +2731,6 @@ sub regenerate_fragments {
 
 	return 1;
 } ## end sub regenerate_fragments
-
-#####################################################################
-# Package Generation
 
 =head3 write
 
@@ -2746,14 +2850,15 @@ sub write_merge_module {
 	return 1;
 } ## end sub write_merge_module
 
-=pod
+#####################################################################
+# Package Generation
 
-=head2 write_zip
+=head2 _write_zip
 
-The C<write_zip> method is used to generate a standalone .zip file
+The C<_write_zip> method is used to generate a standalone .zip file
 containing the entire distribution, for situations in which a full
 installer database is not wanted (such as for "Portable Perl"
-type installations).
+type installations). It is called by C<write> when needed.
 
 The .zip file is written to the output directory, and the location
 of the file is printed to STDOUT.
@@ -2762,7 +2867,7 @@ Returns true or throws an exception or error.
 
 =cut
 
-sub write_zip {
+sub _write_zip {
 	my $self = shift;
 	my $file =
 	  catfile( $self->output_dir, $self->output_base_filename . '.zip' );
@@ -2789,7 +2894,13 @@ sub write_zip {
 	$zip->writeToFileNamed($file);
 
 	return $file;
-} ## end sub write_zip
+} ## end sub _write_zip
+
+=head2 add_icon
+
+TODO
+
+=cut
 
 sub add_icon {
 	my $self   = shift;
@@ -2822,36 +2933,46 @@ sub add_icon {
 	return $self;
 } ## end sub add_icon
 
-sub add_env_path {
+=head2 add_path
+
+TODO
+
+=cut
+
+sub add_path {
 	my $self = shift;
 	my @path = @_;
-	my $dir  = catdir( $self->image_dir, @path );
+	my $dir  = catdir( $self->image_dir(), @path );
 	unless ( -d $dir ) {
 		PDWiX->throw("PATH directory $dir does not exist");
 	}
-	push @{ $self->{env_path} }, [@path];
+	$self->_add_env_path_unchecked( [@path] );
 	return 1;
 }
 
-sub get_env_path {
+=head2 get_path_string
+
+TODO
+
+=cut
+
+sub get_path_string {
 	my $self = shift;
 	return join q{;},
-	  map { catdir( $self->image_dir(), @{$_} ) } @{ $self->env_path() };
+	  map { catdir( $self->image_dir(), @{$_} ) }
+	  $self->_get_env_path_unchecked();
 }
 
-#####################################################################
-# Main Methods
-
-=head2 compile_wxs($filename, $wixobj)
+=head2 _compile_wxs($filename, $wixobj)
 
 Compiles a .wxs file (specified by $filename) into a .wixobj file 
 (specified by $wixobj.)  Both parameters are required.
 
-	$self = $self->compile_wxs("Perl.wxs", "Perl.wixobj");
+	$self = $self->_compile_wxs("Perl.wxs", "Perl.wixobj");
 
 =cut
 
-sub compile_wxs {
+sub _compile_wxs {
 	my ( $self, $filename, $wixobj ) = @_;
 	my @files = @_;
 
@@ -2890,20 +3011,19 @@ sub compile_wxs {
 
 
 	return $rv;
-} ## end sub compile_wxs
+} ## end sub _compile_wxs
 
-=pod
+=head2 _write_msi
 
-=head2 write_msi
+  $self->_write_msi;
 
-  $self->write_msi;
-
-The C<write_msi> method is used to generate the compiled installer
+The C<_write_msi> method is used to generate the compiled installer
 database. It creates the entire installation file tree, and then
 executes WiX to create the final executable.
 
-This method should only be called after all installation phases have
-been completed and all of the files for the distribution are in place.
+This method is called by C<write>, and should only be called after all 
+installation phases have been completed and all of the files for the 
+distribution are in place.
 
 The executable file is written to the output directory, and the location
 of the file is printed to STDOUT.
@@ -3046,17 +3166,18 @@ sub write_msi {
 
 =pod
 
-=head2 write_msm
+=head2 _write_msm
 
-  $self->write_msm;
+  $self->_write_msm;
 
-The C<write_msm> method is used to generate the compiled merge module
+The C<_write_msm> method is used to generate the compiled merge module
 used in the installer. It creates the entire installation file tree, and then
 executes WiX to create the merge module.
 
-This method should only be called after all installation phases that 
-install perl modules that should be in the .msm have been completed and 
-all of the files for the merge module are in place.
+This method is called by C<write_merge_module>, and should only be called 
+after all installation phases that install perl modules that should be in 
+the .msm have been completed and all of the files for the merge module are 
+in place.
 
 The merge module file is written to the output directory, and the location
 of the file is printed to STDOUT.
@@ -3065,7 +3186,7 @@ Returns true or throws an exception or error.
 
 =cut
 
-sub write_msm {
+sub _write_msm {
 	my $self = shift;
 
 	my $dir = $self->fragment_dir;
@@ -3078,7 +3199,7 @@ sub write_msm {
 
 	# Add the path in.
 	foreach my $value ( map { '[INSTALLDIR]' . catdir( @{$_} ) }
-		@{ $self->env_path } )
+		$self->_get_env_path_unchecked() )
 	{
 		$self->add_env( 'PATH', $value, 1 );
 	}
@@ -3194,7 +3315,7 @@ sub write_msm {
 	}
 
 	return $output_msm;
-} ## end sub write_msm
+} ## end sub _write_msm
 
 =pod
 
@@ -3378,18 +3499,20 @@ sub add_to_fragment {
 } ## end sub add_to_fragment
 
 #####################################################################
+#
 # Serialization
+#
 
-=head2 as_string
+=head2 _as_string
 
 Loads the file template passed in as the parameter, using this object, 
 and returns it as a string.
 
 	# Loads up the merge module template.
-	$wxs = $self->as_string('Merge-Module.wxs.tt');
+	$wxs = $self->_as_string('Merge-Module.wxs.tt');
 
 	# Loads up the main template
-	$wxs = $self->as_string('Main.wxs.tt');
+	$wxs = $self->_as_string('Main.wxs.tt');
 
 =cut
 
@@ -3435,7 +3558,20 @@ sub as_string {
 
 
 #####################################################################
+#
 # Patch Support
+#
+# TODO: May be moved to Perl::Dist::WiX::Patching
+#
+
+=head2 File Patching support
+
+=head3 patch_include_path
+
+Returns an array reference containing a list of paths containing files
+that are used to replace or patch files in the distribution.
+
+=cut
 
 # By default only use the default (as a default...)
 sub patch_include_path {
@@ -3448,12 +3584,28 @@ sub patch_include_path {
 	return [$path];
 }
 
+
+
+=head3 patch_pathlist
+
+Returns the list of directories in C<patch_include_path> as a 
+L<File::PathList> object.
+
+=cut
+
 sub patch_pathlist {
 	my $self = shift;
-	return File::PathList->new( paths => $self->patch_include_path, );
+	return File::PathList->new( paths => $self->patch_include_path(), );
 }
 
-# Cache this
+
+
+=head3 patch_template
+
+C<patch_template> returns the L<Template> object that is used to generate 
+patched files.
+
+=cut
 
 has 'patch_template' => (
 	is      => 'ro',
@@ -3469,6 +3621,15 @@ sub _build_patch_template {
 		ABSOLUTE     => 1,
 	);
 }
+
+
+
+=head3 patch_file
+
+C<patch_file> patches an individual file installed in the distribution
+using a file from the directories returned from C<patch_pathlist>.
+
+=cut
 
 sub patch_file {
 	my $self     = shift;
@@ -3517,15 +3678,38 @@ sub patch_file {
 	return 1;
 } ## end sub patch_file
 
+=head3 image_drive
+
+The drive letter of the image directory.  Retrieved from C<image_dir>.
+
+=cut
+
 sub image_drive {
 	my $self = shift;
 	return substr rel2abs( $self->image_dir() ), 0, 2;
 }
 
+
+
+=head3 image_dir_url
+
+Returns a string containing the C<image_dir> as a file: URL.
+
+=cut
+
 sub image_dir_url {
 	my $self = shift;
-	return URI::file->new( $self->image_dir() )->as_string;
+	return URI::file->new( $self->image_dir() )->as_string();
 }
+
+
+
+=head3 image_dir_quotemeta
+
+Returns a string containing the C<image_dir>, with all backslashes
+converted to 2 backslashes.
+
+=cut
 
 # This is a temporary hack
 sub image_dir_quotemeta {
@@ -3537,7 +3721,11 @@ sub image_dir_quotemeta {
 }
 
 #####################################################################
+#
 # Support Methods
+#
+# TODO: Move to Perl::Dist::WiX::Support and document.
+#
 
 sub _dir {
 	return catdir( shift->image_dir(), @_ );
@@ -3710,7 +3898,7 @@ sub _run3 {
 	local $ENV{LIB}      = undef;
 	local $ENV{INCLUDE}  = undef;
 	local $ENV{PERL5LIB} = undef;
-	local $ENV{PATH}     = $self->get_env_path() . q{;} . join q{;}, @keep;
+	local $ENV{PATH} = $self->get_path_string() . q{;} . join q{;}, @keep;
 
 	$self->trace_line( 3, "Path during _run3: $ENV{PATH}\n" );
 

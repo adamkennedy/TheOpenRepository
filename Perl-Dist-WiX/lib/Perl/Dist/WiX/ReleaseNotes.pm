@@ -51,7 +51,7 @@ sub create_release_notes {
 	my $dist_list;
 	my ( $name, $ver );
 
-	foreach my $dist ( @{ $self->{distributions_installed} } ) {
+	foreach my $dist ( $self->_get_distributions() ) {
 		( $name, $ver ) = $dist =~ m{(.*)-(?:v?)([0-9._]*)}msx;
 		$dist_list .= "<tr><td>$name</td><td>$ver</td></tr>\n";
 	}
@@ -97,7 +97,7 @@ sub create_release_notes {
 	$fh->print($dist_txt);
 	$fh->close;
 
-	push @{ $self->{output_file} }, $dist_file;
+	$self->add_output_file($dist_file);
 
 	return 1;
 } ## end sub create_release_notes
@@ -120,8 +120,7 @@ the .msi.
 sub _add_to_distributions_installed {
 	my $self = shift;
 	my $dist = shift;
-	$self->{distributions_installed} =
-	  [ @{ $self->{distributions_installed} }, $dist ];
+	$self->_add_distribution($dist);
 
 	return;
 }
@@ -131,7 +130,7 @@ sub create_distribution_list {
 	my $dist_list;
 	my ( $name, $ver );
 
-	foreach my $dist ( @{ $self->{distributions_installed} } ) {
+	foreach my $dist ( $self->_get_distributions() ) {
 		( $name, $ver ) = $dist =~ m{(.*)-(?:v?)([0-9._]*)}msx;
 		$dist_list .= "    $name $ver\n";
 	}
