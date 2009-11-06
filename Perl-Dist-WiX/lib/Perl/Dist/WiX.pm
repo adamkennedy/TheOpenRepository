@@ -255,7 +255,7 @@ sub _build_filters {
 has '_fragments' => (
 	traits   => ['Hash'],
 	is       => 'bare',
-	isa      => 'HashRef[Perl::Dist::WiX::Fragment]',
+	isa      => 'HashRef[WiX3::XML::Role::Fragment]', # Needs to be Perl::Dist::WiX::Role::Fragment
 	default  => sub { return {} },
 	init_arg => undef,
 	handles  => {
@@ -2269,7 +2269,7 @@ sub get_component_array {
 
 	print "Running get_component_array...\n";
 	my @answer;
-	foreach my $key ( $self->_fragment_keys ) {
+	foreach my $key ( $self->_fragment_keys() ) {
 		push @answer,
 		  $self->get_fragment_object($key)->get_componentref_array();
 	}
@@ -2495,7 +2495,7 @@ sub install_c_toolchain {
 	$self->install_pexports;
 
 	# Set up the environment variables for the binaries
-	$self->_add_env_path( 'c', 'bin' );
+	$self->add_path( 'c', 'bin' );
 
 	return 1;
 } ## end sub install_c_toolchain
@@ -2743,11 +2743,11 @@ sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	my $self = shift;
 
 # TODO: Temporarily comment out.
-#	if ( $self->zip ) {
-#		$self->add_output_files($self->write_zip);
+#	if ( $self->zip() ) {
+#		$self->add_output_files($self->_write_zip());
 #	}
-	if ( $self->msi ) {
-		$self->add_output_files( $self->write_msi );
+	if ( $self->msi() ) {
+		$self->add_output_files( $self->_write_msi() );
 	}
 	return 1;
 } ## end sub write
@@ -2762,15 +2762,15 @@ module for the distribution.
 sub write_merge_module {
 	my $self = shift;
 
-	if ( $self->msi ) {
+	if ( $self->msi() ) {
 
-		$self->add_output_files( $self->write_msm );
+		$self->add_output_files( $self->_write_msm() );
 
 		# Save off the contents of the image directory so that
 		# they can be used later without having to rebuild the
 		# whole distribution.
-		my $file_out = catfile( $self->output_dir,
-			$self->output_base_filename . '.msm-contents.zip' );
+		my $file_out = catfile( $self->output_dir(),
+			$self->output_base_filename() . '.msm-contents.zip' );
 
 		rename $self->write_zip(), $file_out
 		  or PDWiX->throw("Could not rename to $file_out: $OS_ERROR");
@@ -2814,6 +2814,8 @@ sub write_merge_module {
 				app_dir  => $self->image_dir(),
 				app_name => $self->app_name(),
 			  )->initialize_short_tree( $self->perl_version ) );
+
+		$self->_set_in_merge_module(0);
 
 		# Start adding the fragments that are only for the .msi.
 		$self->_add_fragment(
@@ -3048,7 +3050,7 @@ sub write_msi {
 	# Write out .wxs files for all the fragments and compile them.
 	foreach my $key ( $self->_fragment_keys() ) {
 		$fragment        = $self->get_fragment_object($key);
-		$fragment_string = $fragment->as_string;
+		$fragment_string = $fragment->as_string();
 		next
 		  if ( ( not defined $fragment_string )
 			or ( $fragment_string eq q{} ) );
@@ -3065,7 +3067,7 @@ sub write_msi {
 		$fh->print($fragment_string);
 		$fh->close;
 		$self->trace_line( 2, "Compiling $filename_in\n" );
-		$self->compile_wxs( $filename_in, $filename_out )
+		$self->_compile_wxs( $filename_in, $filename_out )
 		  or PDWiX->throw("WiX could not compile $filename_in");
 
 		unless ( -f $filename_out ) {
@@ -3209,11 +3211,11 @@ sub _write_msm {
 	# Write out .wxs files for all the fragments and compile them.
 	foreach my $key ( $self->_fragment_keys() ) {
 		$fragment        = $self->get_fragment_object($key);
-		$fragment_string = $fragment->as_string;
+		$fragment_string = $fragment->as_string();
 		next
 		  if ( ( not defined $fragment_string )
 			or ( $fragment_string eq q{} ) );
-		$fragment_name = $fragment->get_id;
+		$fragment_name = $fragment->get_id();
 		$filename_in   = catfile( $dir, $fragment_name . q{.wxs} );
 		$filename_out  = catfile( $dir, $fragment_name . q{.wixout} );
 		$fh            = IO::File->new( $filename_in, 'w' );
@@ -3226,7 +3228,7 @@ sub _write_msm {
 		$fh->print($fragment_string);
 		$fh->close;
 		$self->trace_line( 2, "Compiling $filename_in\n" );
-		$self->compile_wxs( $filename_in, $filename_out )
+		$self->_compile_wxs( $filename_in, $filename_out )
 		  or PDWiX->throw("WiX could not compile $filename_in");
 
 		unless ( -f $filename_out ) {
@@ -3444,9 +3446,10 @@ sub insert_fragment {
 	}
 
 	my $fragment = Perl::Dist::WiX::Fragment::Files->new(
-		id            => $id,
-		files         => $files_obj,
-		can_overwrite => $overwritable,
+		id              => $id,
+		files           => $files_obj,
+		can_overwrite   => $overwritable,
+		in_merge_module => $self->_in_merge_module(),
 	);
 
 	$self->_add_fragment( $id, $fragment );

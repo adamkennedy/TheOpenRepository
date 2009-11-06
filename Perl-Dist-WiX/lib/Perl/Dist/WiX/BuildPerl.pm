@@ -573,7 +573,7 @@ sub install_perl_bin {
 		catfile( $self->image_dir(), qw/perl bin perl.exe/ ) );
 
 	# Add to the environment variables
-	$self->add_env_path( 'perl', 'bin' );
+	$self->add_path( 'perl', 'bin' );
 
 	return 1;
 } ## end sub install_perl_bin
