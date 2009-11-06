@@ -47,6 +47,7 @@ use Marpa::Offset qw(
 
     =LAST_EVALUATOR_FIELD
 
+    WANTED
     CURRENT_TERMINALS
     EARLEY_HASH
     EXHAUSTED
@@ -387,8 +388,11 @@ sub Marpa::Recognizer::tokens {
     ### calling tokens() ...
     ### args: @_
 
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    my $phase   = $grammar->[Marpa::Internal::Grammar::PHASE];
+    my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $phase    = $grammar->[Marpa::Internal::Grammar::PHASE];
+    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $too_many_earley_items =
+        $grammar->[Marpa::Internal::Grammar::TOO_MANY_EARLEY_ITEMS];
 
     my $tokens;
     my $predict_earleme;
@@ -638,8 +642,6 @@ sub Marpa::Recognizer::tokens {
                 Marpa::Internal::Earley_Item::PARENT
             ];
 
-            # I allow ambigious tokenization.
-            # Loop through the alternative tokens.
             ALTERNATIVE: for my $alternative ( @{$tokens_here} ) {
                 my ( $token, $value_ref, $length ) = @{$alternative};
 
@@ -797,6 +799,16 @@ sub Marpa::Recognizer::tokens {
             }    # COMPLETE_RULE
 
         }    # EARLEY_ITEM
+
+        if ( $too_many_earley_items >= 0
+            and ( my $item_count = scalar @{$earley_set} )
+            >= $too_many_earley_items )
+        {
+            if ( $grammar->[Marpa::Internal::Grammar::WARNINGS] ) {
+                say {$trace_fh}
+                    "Very large earley set: $item_count items at location $last_completed_earleme";
+            }
+        } ## end if ( $too_many_earley_items >= 0 and ( my $item_count...))
 
         # TODO: Prove that the completion links are UNIQUE
         # Update 2009-Oct-25: Doesn't really matter.

@@ -199,6 +199,8 @@ use Marpa::Offset qw(
     TRACE_FILE_HANDLE TRACING
     STRIP
     EXPERIMENTAL
+    WARNINGS
+
     =LAST_BASIC_DATA_FIELD
 
     { === Evaluator Fields === }
@@ -227,13 +229,14 @@ use Marpa::Offset qw(
     PROBLEMS
     ACADEMIC
     START_STATES
+    TOO_MANY_EARLEY_ITEMS
+
     =LAST_RECOGNIZER_FIELD
 
     RULE_SIGNATURE_HASH
     START START_NAME
     NFA QDFA_BY_NAME
     NULLABLE_SYMBOL
-    WARNINGS
     INACCESSIBLE_OK
     UNPRODUCTIVE_OK
     SEMANTICS
@@ -350,6 +353,8 @@ use constant RHS_LENGTH_MASK => ~(0x7ffffff);
 # worry about signedness creeping in.
 use constant PRIORITY_MASK => ~(0x7fffffff);
 
+use constant DEFAULT_TOO_MANY_EARLEY_ITEMS => 100;
+
 sub Marpa::Internal::code_problems {
     my $args = shift;
 
@@ -460,6 +465,9 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]    = 'fatal';
     $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]     = 2;
     $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE]   = 1;
+    $grammar->[Marpa::Internal::Grammar::TOO_MANY_EARLEY_ITEMS] =
+        Marpa::Internal::Grammar::DEFAULT_TOO_MANY_EARLEY_ITEMS;
+
     {
         ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
         $grammar->[Marpa::Internal::Grammar::CYCLE_NODES] = 1000;
@@ -543,6 +551,7 @@ use constant GRAMMAR_OPTIONS => [
         experimental
         inaccessible_ok
         maximal
+        max_earley_items_per_set
         max_parses
         minimal
         parse_order
@@ -835,6 +844,15 @@ sub Marpa::Grammar::set {
         if ( defined( my $value = $args->{'max_parses'} ) ) {
             $grammar->[Marpa::Internal::Grammar::MAX_PARSES] = $value;
         }
+
+        if ( defined( my $value = $args->{'too_many_earley_items'} ) ) {
+            Marpa::exception(
+                q{"max_earley_items_per_set" option not allowed in },
+                Marpa::Internal::Phase::description($phase)
+            ) if $phase >= Marpa::Internal::Phase::RECOGNIZING;
+            $grammar->[Marpa::Internal::Grammar::TOO_MANY_EARLEY_ITEMS] =
+                $value;
+        } ## end if ( defined( my $value = $args->{'max_earley_items_per_set'...}))
 
         if ( defined( my $value = $args->{'version'} ) ) {
             Marpa::exception(
