@@ -82,7 +82,7 @@ sub default_action {
     colgroup dd dt li p td tfoot th thead tr
 );
 
-my @anywhere_rh_sides = qw(D C PI WHITESPACE CRUFT);
+my @anywhere_rh_sides = qw(D C PI WHITESPACE);
 
 # Start and end of optional-tag elements is simply
 # ignored
@@ -103,23 +103,23 @@ my @anywhere_item_rules =
     @anywhere_item_rules,
     { lhs => 'document', rhs => ['flow'] },
     { lhs => 'flow',     rhs => ['terminated_flow_item'], },
-    { lhs => 'flow',     rhs => ['U_ELE_p'], },
-    { lhs => 'flow',     rhs => [qw(terminated_flow_item flow)], },
-    {   lhs => 'flow',
-        rhs => [qw(U_ELE_p block_terminating_flow)],
-    },
-    { lhs => 'block_terminating_flow', rhs => ['block_element'], },
-    { lhs => 'block_terminating_flow', rhs => [ 'block_element', 'flow' ], },
-    { lhs => 'inline_flow',            rhs => ['inline_flow_item'], },
-    { lhs => 'inline_flow',   rhs => [qw(inline_flow_item inline_flow)], },
-    { lhs => 'block_element', rhs => ['ELE_p'] },
-    { lhs => 'ELE_p',         rhs => ['T_ELE_p'] },
-    { lhs => 'ELE_p',         rhs => ['U_ELE_p'] },
-    { lhs => 'T_ELE_p',       rhs => [ 'S_p', 'inline_flow', 'E_p' ] },
-    { lhs => 'U_ELE_p', rhs => [ 'S_p', 'inline_flow' ] },
+    # { lhs => 'flow',     rhs => ['U_ELE_p'], },
+    { lhs => 'flow',     rhs => [qw(flow terminated_flow_item)], },
+    # {   lhs => 'flow',
+        # rhs => [qw(U_ELE_p block_terminating_flow)],
+    # },
+    # { lhs => 'block_terminating_flow', rhs => ['block_element'], },
+    # { lhs => 'block_terminating_flow', rhs => [ 'block_element', 'flow' ], },
+    # { lhs => 'inline_flow',            rhs => ['inline_flow_item'], },
+    # { lhs => 'inline_flow',   rhs => [qw(inline_flow_item inline_flow)], },
+    # { lhs => 'block_element', rhs => ['ELE_p'] },
+    # { lhs => 'ELE_p',         rhs => ['T_ELE_p'] },
+    # { lhs => 'ELE_p',         rhs => ['U_ELE_p'] },
+    # { lhs => 'T_ELE_p',       rhs => [ 'S_p', 'inline_flow', 'E_p' ] },
+    # { lhs => 'U_ELE_p', rhs => [ 'S_p', 'inline_flow' ] },
 );
 
-push @Marpa::UrHTML::Internal::CORE_TERMINALS, qw(S_p E_p);
+# push @Marpa::UrHTML::Internal::CORE_TERMINALS, qw(S_p E_p );
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'terminated_flow_item', rhs => [$_] } }
@@ -144,7 +144,6 @@ sub Marpa::UrHTML::evaluate {
                 my ( $offset, $offset_end, $text, $is_cdata ) = @{$token};
                 # say "$_ $offset $offset_end $text";
                 push @tokens,
-                    [ 'CRUFT', $text, 1, 0 ],
                     [
                     (     $text =~ / \A \s* \z /xms ? 'WHITESPACE'
                         : $is_cdata ? 'CDATA'
@@ -161,7 +160,6 @@ sub Marpa::UrHTML::evaluate {
                 my $terminal = $_ . q{_} . $tag_name;
                 $terminals{$terminal}++;
                 push @tokens,
-                    [ 'CRUFT', $text, 1, 0 ],
                     [ $terminal, $text ];
             } ## end when ('S')
             when ('E') {
@@ -171,21 +169,18 @@ sub Marpa::UrHTML::evaluate {
                 my $terminal = $_ . q{_} . $tag_name;
                 $terminals{$terminal}++;
                 push @tokens,
-                    [ 'CRUFT', $text, 1, 0 ],
                     [ $terminal, $text ];
             } ## end when ('E')
             when ( [qw(C D)] ) {
                 my ( $offset, $offset_end, $text ) = @{$token};
                 # say "$_ $offset $offset_end $text";
                 push @tokens,
-                    [ 'CRUFT', $text, 1, 0 ],
                     [ $_, $text ];
             }
             when ( ['PI'] ) {
                 my ( $offset, $offset_end, $token0, $text ) = @{$token};
                 # say "$_ $offset $offset_end $text";
                 push @tokens,
-                    [ 'CRUFT', $text, 1, 0 ],
                     [ $_, $text ];
             }
             default { Carp::croak("Unprovided-for event: $_") }
@@ -263,12 +258,15 @@ sub Marpa::UrHTML::evaluate {
         rules     => \@rules,
         start     => 'document',
         terminals => \@terminals,
+        strip => 0,
     });
     $grammar->precompute();
     say STDERR $grammar->show_rules();
+    say STDERR $grammar->show_QDFA();
     my $recce = Marpa::Recognizer->new( { grammar=>$grammar } );
     say STDERR "token count: ", scalar @tokens;
     $recce->tokens( \@tokens );
+    say STDERR $recce->show_earley_sets();
 
     return 1;
 
