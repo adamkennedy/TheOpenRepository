@@ -22,6 +22,8 @@ the documentation, I should think accordingly.
 
 =item * Create HTML Parser.
 
+=item * Change default parse_order to 'numeric'.
+
 =item * In rewrite_cycles,
 don't check spans unless and-node can cycle.
 Use cycle_rules to determine this.
