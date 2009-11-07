@@ -8,6 +8,8 @@ use integer;
 
 use English qw( -no_match_vars );
 
+use Marpa::Internal;
+
 # Elements of the EARLEY ITEM structure
 # Note that these are Earley items as modified by Aycock & Horspool, with QDFA states instead of
 # LR(0) items.
@@ -69,6 +71,8 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Recognizer;
 
+use Marpa::Internal;
+
 use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
@@ -76,9 +80,6 @@ use Smart::Comments '-ENV';
 use Data::Dumper;
 use Storable;
 use English qw( -no_match_vars );
-
-use Marpa::Internal;
-our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 
 use constant EARLEME_MASK => ~(0x7fffffff);
 
@@ -184,6 +185,7 @@ sub Marpa::Recognizer::new {
     my $earley_set;
 
     my $start_states = $grammar->[Marpa::Internal::Grammar::START_STATES];
+    my %wanted = ();
 
     for my $state ( @{$start_states} ) {
         my $state_id = $state->[Marpa::Internal::QDFA::ID];
@@ -203,6 +205,17 @@ sub Marpa::Recognizer::new {
 
         push @{$earley_set}, $item;
         $earley_hash->{$name} = $item;
+        while (
+            my ( $wanted_symbol_name, $next_states ) = each %{
+                $QDFA->[ $state->[Marpa::Internal::QDFA::ID] ]
+                    ->[Marpa::Internal::QDFA::TRANSITION]
+            }
+            )
+        {
+            push @{ $wanted{ $wanted_symbol_name . q{@0} } },
+                [ $item, $next_states ];
+        } ## end while ( my ( $wanted_symbol_name, $next_states ) = each...)
+
     } ## end for my $state ( @{$start_states} )
 
     $self->[Marpa::Internal::Recognizer::EARLEY_HASH] = $earley_hash;
@@ -210,6 +223,7 @@ sub Marpa::Recognizer::new {
     $self->[Marpa::Internal::Recognizer::EARLEY_SETS] = [$earley_set];
     $self->[Marpa::Internal::Recognizer::TOKEN_HASHES_BY_EARLEME] = [];
     $self->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME]       = [];
+    $self->[Marpa::Internal::Recognizer::WANTED]                  = \%wanted;
 
     $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = -1;
     $self->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
@@ -610,6 +624,7 @@ sub Marpa::Recognizer::tokens {
     my $earley_set_list = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
     my $earley_hash     = $recce->[Marpa::Internal::Recognizer::EARLEY_HASH];
     my $QDFA            = $grammar->[Marpa::Internal::Grammar::QDFA];
+    my $wanted          = $recce->[Marpa::Internal::Recognizer::WANTED];
     my $current_terminals;
 
     COMPLETION: while (1) {
@@ -683,6 +698,21 @@ sub Marpa::Recognizer::tokens {
                             $target_ix;
                         $earley_hash->{$name} = $target_item;
                         push @{$target_set}, $target_item;
+
+                        while (
+                            my ( $wanted_symbol_name, $next_states ) = each %{
+                                $QDFA->[ $state->[Marpa::Internal::QDFA::ID] ]
+                                    ->[Marpa::Internal::QDFA::TRANSITION]
+                            }
+                            )
+                        {
+                            push @{
+                                $wanted->{
+                                    $wanted_symbol_name . q{@} . $target_ix
+                                    }
+                                },
+                                [ $target_item, $next_states ];
+                        } ## end while ( my ( $wanted_symbol_name, $next_states ) = ...)
                     } ## end if ( not defined $target_item )
 
                     next STATE if $reset;
@@ -746,10 +776,7 @@ sub Marpa::Recognizer::tokens {
 
                 PARENT_ITEM:
                 for my $parent_item ( @{ $earley_set_list->[$parent] } ) {
-                    my ( $parent_state, $grandparent ) = @{$parent_item}[
-                        Marpa::Internal::Earley_Item::STATE,
-                        Marpa::Internal::Earley_Item::PARENT
-                    ];
+                    my $parent_state = $parent_item->[Marpa::Internal::Earley_Item::STATE];
                     my $states =
                         $QDFA->[ $parent_state->[Marpa::Internal::QDFA::ID] ]
                         ->[Marpa::Internal::QDFA::TRANSITION]
@@ -761,7 +788,7 @@ sub Marpa::Recognizer::tokens {
                         my $reset = $transition_state
                             ->[Marpa::Internal::QDFA::RESET_ORIGIN];
                         my $origin =
-                            $reset ? $last_completed_earleme : $grandparent;
+                            $reset ? $last_completed_earleme : $parent_item->[Marpa::Internal::Earley_Item::PARENT];
                         my $transition_state_id =
                             $transition_state->[Marpa::Internal::QDFA::ID];
                         my $name = sprintf
@@ -787,6 +814,26 @@ sub Marpa::Recognizer::tokens {
                                 );
                             $earley_hash->{$name} = $target_item;
                             push @{$earley_set}, $target_item;
+
+                            while (
+                                my ( $wanted_symbol_name, $next_states ) =
+                                each %{
+                                    $QDFA->[
+                                        $transition_state
+                                        ->[Marpa::Internal::QDFA::ID]
+                                        ]->[Marpa::Internal::QDFA::TRANSITION]
+                                }
+                                )
+                            {
+                                push @{
+                                    $wanted->{
+                                              $wanted_symbol_name . q{@}
+                                            . $last_completed_earleme
+                                        }
+                                    },
+                                    [ $target_item, $next_states ];
+                            } ## end while ( my ( $wanted_symbol_name, $next_states ) = ...)
+
                         }    # unless defined $target_item
                         next TRANSITION_STATE if $reset;
                         push @{ $target_item

@@ -11,8 +11,8 @@ use integer;
 
 use English qw( -no_match_vars );
 
+use Marpa::Internal;
 use Marpa::Evaluator;
-our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 
 ## no critic (Miscellanea::ProhibitTies)
 

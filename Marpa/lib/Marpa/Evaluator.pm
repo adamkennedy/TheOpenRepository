@@ -6,6 +6,8 @@ no warnings qw(recursion qw);
 use strict;
 use integer;
 
+use Marpa::Internal;
+
 # The bocage is Marpa's structure for keeping multiple parses.
 # A parse bocage is a list of or-nodes, whose child
 # and-nodes must be (at most) binary.
@@ -183,7 +185,6 @@ use Data::Dumper;
 use Storable;
 use Marpa::Tie;
 use Marpa::Internal;
-our @CARP_NOT = @Marpa::Internal::CARP_NOT;
 
 # Perl critic at present is not smart about underscores
 # in hex numbers

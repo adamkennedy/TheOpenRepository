@@ -16,6 +16,10 @@ use Marpa::Grammar;
 use Marpa::Recognizer;
 use Marpa::Evaluator;
 
+1;    # End of Marpa
+
+__END__
+
 =begin Apology:
 
 The Coding Style of this Module,
@@ -61,16 +65,6 @@ read, but I can't believe having 90% of the variable names end in
 CPAN modules don't follow his guidelines all that closely.
 
 =end Apology:
-
-=cut
-
-package Marpa::Internal;
-
-my @CARP_NOT = @Marpa::Internal::CARP_NOT;
-
-1;    # End of Marpa
-
-__END__
 
 =head1 NAME
 

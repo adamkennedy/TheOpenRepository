@@ -11,18 +11,11 @@ use HTML::PullParser;
 use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
 use Marpa;
-
-BEGIN {
-    *{CARP_NOT} = \@Marpa::Internal::CARP_NOT;
-    push @Marpa::Internal::CARP_NOT, __PACKAGE__;
-}
+use Marpa::Internal;
 
 package Marpa::UrHTML::Internal;
 
-BEGIN {
-    *{CARP_NOT} = \@Marpa::Internal::CARP_NOT;
-    push @Marpa::Internal::CARP_NOT, __PACKAGE__;
-}
+use Marpa::Internal;
 
 my %ARGS = (
     start       => q{'S',offset,offset_end,tagname,attr,attrseq,text},

@@ -9,6 +9,8 @@ use strict;
 # It's all integers, except for the version number
 use integer;
 
+use Marpa::Internal;
+
 =begin Implementation:
 
 Structures and Objects: The design is to present an object-oriented
@@ -343,6 +345,8 @@ use Storable;
 use English qw( -no_match_vars );
 use List::Util;
 
+use Marpa::Internal;
+
 # Longest RHS is 2**28-1.  It's 28 bits, not 32, so
 # it will fit in the internal priorities computed
 # for the CHAF rules
@@ -551,7 +555,7 @@ use constant GRAMMAR_OPTIONS => [
         experimental
         inaccessible_ok
         maximal
-        max_earley_items_per_set
+        too_many_earley_items
         max_parses
         minimal
         parse_order
@@ -847,12 +851,12 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'too_many_earley_items'} ) ) {
             Marpa::exception(
-                q{"max_earley_items_per_set" option not allowed in },
+                q{"too_many_earley_items" option not allowed in },
                 Marpa::Internal::Phase::description($phase)
             ) if $phase >= Marpa::Internal::Phase::RECOGNIZING;
             $grammar->[Marpa::Internal::Grammar::TOO_MANY_EARLEY_ITEMS] =
                 $value;
-        } ## end if ( defined( my $value = $args->{'max_earley_items_per_set'...}))
+        } ## end if ( defined( my $value = $args->{'too_many_earley_items'...}))
 
         if ( defined( my $value = $args->{'version'} ) ) {
             Marpa::exception(
