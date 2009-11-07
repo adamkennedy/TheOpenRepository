@@ -18,6 +18,7 @@ $VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_featureref.htm
 
+with 'WiX3::XML::Role::Tag';
 with 'WiX3::XML::Role::TagAllowsChildTags';
 
 ## Allows Component, ComponentGroupRef, ComponentRef, Feature,
