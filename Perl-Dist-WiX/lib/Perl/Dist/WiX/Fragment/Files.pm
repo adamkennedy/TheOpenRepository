@@ -340,7 +340,7 @@ sub _add_file_component {
 	my @feature_param = ();
 	
 	if (defined $self->_get_feature()) {
-		@feature_param = ( feature => $self->_get_feature()->get_id() );
+		@feature_param = ( feature => 'Feat_' . $self->_get_feature()->get_id() );
 	}
 	
 	my $component = WiX3::XML::Component->new(

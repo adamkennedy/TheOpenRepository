@@ -152,7 +152,7 @@ sub as_string {
 	foreach my $icon ( $self->_get_icon_array() ) {
 		my $id   = $icon->get_id();
 		my $file = $icon->get_sourcefile();
-		$answer .= "  <Icon Id='I_$id' SourceFile='$file' />\n";
+		$answer .= "    <Icon Id='I_$id' SourceFile='$file' />\n";
 	}
 
 	return $answer;
