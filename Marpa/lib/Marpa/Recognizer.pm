@@ -769,81 +769,90 @@ sub Marpa::Recognizer::tokens {
 
             next EARLEY_ITEM if $last_completed_earleme == $parent;
 
-            COMPLETE_RULE:
-            for my $complete_symbol_name (
-                @{ $state->[Marpa::Internal::QDFA::COMPLETE_LHS] } )
+            # COMPLETE_RULE:
+            # for my $complete_symbol_name (
+                # @{ $state->[Marpa::Internal::QDFA::COMPLETE_LHS] } )
+            # {
+
+                # PARENT_ITEM:
+                # for my $parent_item ( @{ $earley_set_list->[$parent] } ) {
+
+            PARENT_ITEM:
+            for my $parent_data (
+                map  { @{$_} }
+                grep {defined}
+                map  { $wanted->{ $_ . q{@} . $parent } }
+                @{ $state->[Marpa::Internal::QDFA::COMPLETE_LHS] }
+                )
             {
+                my ( $parent_item, $states ) = @{$parent_data};
+                my $parent_state =
+                    $parent_item->[Marpa::Internal::Earley_Item::STATE];
 
-                PARENT_ITEM:
-                for my $parent_item ( @{ $earley_set_list->[$parent] } ) {
-                    my $parent_state = $parent_item->[Marpa::Internal::Earley_Item::STATE];
-                    my $states =
-                        $QDFA->[ $parent_state->[Marpa::Internal::QDFA::ID] ]
-                        ->[Marpa::Internal::QDFA::TRANSITION]
-                        ->{$complete_symbol_name};
-                    next PARENT_ITEM if not defined $states;
+                TRANSITION_STATE:
+                for my $transition_state ( @{$states} ) {
+                    my $reset = $transition_state
+                        ->[Marpa::Internal::QDFA::RESET_ORIGIN];
+                    my $origin =
+                          $reset
+                        ? $last_completed_earleme
+                        : $parent_item
+                        ->[Marpa::Internal::Earley_Item::PARENT];
+                    my $transition_state_id =
+                        $transition_state->[Marpa::Internal::QDFA::ID];
+                    my $name = sprintf
+                        ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+                        'S%d@%d-%d',
+                        ## use critic
+                        $transition_state_id, $origin,
+                        $last_completed_earleme;
+                    my $target_item = $earley_hash->{$name};
+                    if ( not defined $target_item ) {
+                        $target_item = [];
+                        @{$target_item}[
+                            Marpa::Internal::Earley_Item::NAME,
+                            Marpa::Internal::Earley_Item::STATE,
+                            Marpa::Internal::Earley_Item::PARENT,
+                            Marpa::Internal::Earley_Item::LINKS,
+                            Marpa::Internal::Earley_Item::TOKENS,
+                            Marpa::Internal::Earley_Item::SET,
+                            ]
+                            = (
+                            $name, $transition_state, $origin, [], [],
+                            $last_completed_earleme,
+                            );
+                        $earley_hash->{$name} = $target_item;
+                        push @{$earley_set}, $target_item;
 
-                    TRANSITION_STATE:
-                    for my $transition_state ( @{$states} ) {
-                        my $reset = $transition_state
-                            ->[Marpa::Internal::QDFA::RESET_ORIGIN];
-                        my $origin =
-                            $reset ? $last_completed_earleme : $parent_item->[Marpa::Internal::Earley_Item::PARENT];
-                        my $transition_state_id =
-                            $transition_state->[Marpa::Internal::QDFA::ID];
-                        my $name = sprintf
-                            ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-                            'S%d@%d-%d',
-                            ## use critic
-                            $transition_state_id, $origin,
-                            $last_completed_earleme;
-                        my $target_item = $earley_hash->{$name};
-                        if ( not defined $target_item ) {
-                            $target_item = [];
-                            @{$target_item}[
-                                Marpa::Internal::Earley_Item::NAME,
-                                Marpa::Internal::Earley_Item::STATE,
-                                Marpa::Internal::Earley_Item::PARENT,
-                                Marpa::Internal::Earley_Item::LINKS,
-                                Marpa::Internal::Earley_Item::TOKENS,
-                                Marpa::Internal::Earley_Item::SET,
-                                ]
-                                = (
-                                $name, $transition_state, $origin, [], [],
-                                $last_completed_earleme,
-                                );
-                            $earley_hash->{$name} = $target_item;
-                            push @{$earley_set}, $target_item;
+                        while (
+                            my ( $wanted_symbol_name, $next_states ) = each %{
+                                $QDFA->[
+                                    $transition_state
+                                    ->[Marpa::Internal::QDFA::ID]
+                                    ]->[Marpa::Internal::QDFA::TRANSITION]
+                            }
+                            )
+                        {
+                            push @{
+                                $wanted->{
+                                          $wanted_symbol_name . q{@}
+                                        . $last_completed_earleme
+                                    }
+                                },
+                                [ $target_item, $next_states ];
+                        } ## end while ( my ( $wanted_symbol_name, $next_states ) = ...)
 
-                            while (
-                                my ( $wanted_symbol_name, $next_states ) =
-                                each %{
-                                    $QDFA->[
-                                        $transition_state
-                                        ->[Marpa::Internal::QDFA::ID]
-                                        ]->[Marpa::Internal::QDFA::TRANSITION]
-                                }
-                                )
-                            {
-                                push @{
-                                    $wanted->{
-                                              $wanted_symbol_name . q{@}
-                                            . $last_completed_earleme
-                                        }
-                                    },
-                                    [ $target_item, $next_states ];
-                            } ## end while ( my ( $wanted_symbol_name, $next_states ) = ...)
+                    }    # unless defined $target_item
+                    next TRANSITION_STATE if $reset;
+                    push
+                        @{ $target_item->[Marpa::Internal::Earley_Item::LINKS]
+                        },
+                        [ $parent_item, $earley_item ];
+                }    # TRANSITION_STATE
 
-                        }    # unless defined $target_item
-                        next TRANSITION_STATE if $reset;
-                        push @{ $target_item
-                                ->[Marpa::Internal::Earley_Item::LINKS] },
-                            [ $parent_item, $earley_item ];
-                    }    # TRANSITION_STATE
+            }    # PARENT_ITEM
 
-                }    # PARENT_ITEM
-
-            }    # COMPLETE_RULE
+            # }    # COMPLETE_RULE
 
         }    # EARLEY_ITEM
 
