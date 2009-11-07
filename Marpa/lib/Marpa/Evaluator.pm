@@ -93,7 +93,6 @@ use Marpa::Offset qw(
     :package=Marpa::Internal::And_Iteration
 
     RANKING_DATA
-    OR_MAP
     CURRENT_CHILD_FIELD
 
     =LAST_FIELD
@@ -130,7 +129,6 @@ use Marpa::Offset qw(
     :package=Marpa::Internal::And_Choice
     ID
     RANKING_DATA
-    OR_MAP
     FROZEN_ITERATION
     =LAST_FIELD
 );
@@ -2488,16 +2486,6 @@ sub Marpa::Evaluator::value {
                         $and_iteration
                         ->[Marpa::Internal::And_Iteration::RANKING_DATA];
 
-                    ### RESET_OR_NODE: Copying or map, length: scalar @{$and_iteration->[Marpa'Internal'And_Iteration'OR_MAP]}
-
-                    $and_choice->[Marpa::Internal::And_Choice::OR_MAP] = [
-                        @{  $and_iteration
-                                ->[Marpa::Internal::And_Iteration::OR_MAP]
-                            }
-                    ];
-
-                    #### RESET_OR_NODE, and-node id, choice or_map: $child_and_node_id, $and_choice->[Marpa'Internal'And_Choice'OR_MAP]
-
                     push @and_choices, $and_choice;
 
                 } ## end for my $child_and_node_id ( @{ $or_node->[...]})
@@ -2653,35 +2641,6 @@ sub Marpa::Evaluator::value {
                         $predecessor_or_node_iteration->[-1];
 
                 } ## end if ( $predecessor_id = $and_node->[...])
-
-                my @or_map;
-                if ( defined $predecessor ) {
-                    push @or_map,
-                        [
-                        $predecessor_id,
-                        $predecessor_and_node_choice
-                            ->[Marpa::Internal::And_Choice::ID]
-                        ],
-                        @{ $predecessor_and_node_choice
-                            ->[Marpa::Internal::And_Choice::OR_MAP] };
-                } ## end if ( defined $predecessor )
-                if ( defined $cause ) {
-                    push @or_map,
-                        [
-                        $cause_id,
-                        $cause_and_node_choice
-                            ->[Marpa::Internal::And_Choice::ID]
-                        ],
-                        @{ $cause_and_node_choice
-                            ->[Marpa::Internal::And_Choice::OR_MAP] };
-                } ## end if ( defined $cause )
-
-                ### SETUP_AND_NODE: Created or-map, length: scalar @or_map
-
-                $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP]
-                    = \@or_map;
-
-                #### SETUP_AND_NODE, and-node id, iteration or_map: $and_node_id, \@or_map
 
                 # The rest of the processing is for ranking parses
                 break    # next TASK
@@ -3292,11 +3251,6 @@ node appears more than once on the path back to the root node.
                     ->[Marpa::Internal::And_Choice::RANKING_DATA] =
                     $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::RANKING_DATA];
-                $current_and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
-                    $current_and_iteration
-                    ->[Marpa::Internal::And_Iteration::OR_MAP];
-
-                #### ITERATE_OR_NODE, and-node id, choice or_map: $current_and_node_id, $current_and_choice->[Marpa'Internal'And_Choice'OR_MAP]
 
                 # The rest of the logic is for keeping the order correct
                 # for the "original" parse ordering
@@ -3433,14 +3387,26 @@ node appears more than once on the path back to the root node.
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
 
-                my $or_map =
-                    $and_choice->[Marpa::Internal::And_Choice::OR_MAP];
+                my @work_list = ( $and_node_id );
+                my @and_slice = ();
+                my @or_slice = ();
+
+                AND_NODE: while ( scalar @work_list ) {
+                    my $descendant_and_node_id = pop @work_list;
+                    push @and_slice, $descendant_and_node_id;
+                    my @descendant_or_node_ids = grep { defined $_ }
+                        map { $and_nodes->[$descendant_and_node_id]->[$_] }
+                        ( Marpa::Internal::And_Node::PREDECESSOR_ID,
+                        Marpa::Internal::And_Node::CAUSE_ID
+                        );
+                    push @or_slice,  @descendant_or_node_ids;
+                    push @work_list, map {
+                        $or_iterations->[$_]->[-1]
+                            ->[Marpa::Internal::And_Choice::ID]
+                    } @descendant_or_node_ids;
+                } ## end while ( scalar @work_list )
 
                 #### FREEZE_TREE, and-node id, choice or_map: $and_node_id, $or_map
-
-                # Add frozen iteration
-                my @or_slice = map { $_->[0] } @{$or_map};
-                my @and_slice = ( $and_node_id, map { $_->[1] } @{$or_map} );
 
                 my @or_values  = @{$or_iterations}[@or_slice];
                 my @and_values = @{$and_iterations}[@and_slice];
@@ -3482,12 +3448,6 @@ node appears more than once on the path back to the root node.
                     $current_and_iteration
                     ->[Marpa::Internal::And_Iteration::RANKING_DATA];
 
-                $and_choice->[Marpa::Internal::And_Choice::OR_MAP] =
-                    $current_and_iteration
-                    ->[Marpa::Internal::And_Iteration::OR_MAP];
-
-                #### THAW_TREE, and-node id, choice or_map: $and_node_id, $and_choice->[Marpa'Internal'And_Choice'OR_MAP]
-
                 # Once it's unfrozen, it's subject to change, so the
                 # the frozen version will become invalid.
                 # We undef it.
@@ -3510,41 +3470,25 @@ node appears more than once on the path back to the root node.
                 my $top_or_iteration = $or_iterations->[0];
                 return if not $top_or_iteration;
 
-                # Initialize with the top or-node's and-choice
-                my $top_and_choice = $top_or_iteration->[-1];
-
-                ### top and choice ranking data: $top_and_choice->[Marpa'Internal'And_Choice'RANKING_DATA]
-
-                # Position 0 is top and-node id
-                my @or_node_choices = (
-                    $and_nodes->[
-                        $top_and_choice->[Marpa::Internal::And_Choice::ID]
-                    ]
-                );
-                $#or_node_choices = $#{$or_nodes};
-
-                for my $or_mapping (
-                    @{  $top_and_choice->[Marpa::Internal::And_Choice::OR_MAP]
-                    }
-                    )
-                {
-                    my ( $or_node_id, $and_node_id ) = @{$or_mapping};
-                    #### Or map at evaluation, or-id, and-id: $or_node_id, $and_node_id
-                    $or_node_choices[$or_node_id] =
-                        $and_nodes->[$and_node_id];
-                } ## end for my $or_mapping ( @{ $top_and_choice->[...]})
-
                 # Write the and-nodes out in preorder
                 my @preorder = ();
 
                 # Initialize the work list to the top and-node
-                my @work_list = ( $or_node_choices[0] );
+                my @work_list = (
+                    $and_nodes->[
+                        $top_or_iteration->[-1]
+                        ->[Marpa::Internal::And_Choice::ID]
+                    ]
+                );
 
                 AND_NODE: while ( scalar @work_list ) {
                     my $and_node = pop @work_list;
-                    push @work_list,
-                        map { $or_node_choices[$_] } grep { defined $_ }
-                        map { $and_node->[$_] }
+                    push @work_list, map {
+                        $and_nodes->[ $or_iterations->[$_]->[-1]
+                            ->[Marpa::Internal::And_Choice::ID] ]
+                        }
+                        grep { defined $_ }
+                        map  { $and_node->[$_] }
                         ( Marpa::Internal::And_Node::PREDECESSOR_ID,
                         Marpa::Internal::And_Node::CAUSE_ID
                         );
