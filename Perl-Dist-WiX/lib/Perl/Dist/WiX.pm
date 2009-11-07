@@ -148,6 +148,9 @@ has '_icons' => (
 	isa      => 'Maybe[Perl::Dist::WiX::IconArray]',
 	writer   => '_set_icons',
 	init_arg => undef,
+	handles  => {
+		'icons_string' => 'as_string',
+	},
 );
 
 
@@ -254,7 +257,7 @@ sub _build_filters {
 
 has '_fragments' => (
 	traits   => ['Hash'],
-	is       => 'bare',
+	is       => 'ro',
 	isa      => 'HashRef[WiX3::XML::Role::Fragment]', # Needs to be Perl::Dist::WiX::Role::Fragment
 	default  => sub { return {} },
 	init_arg => undef,
@@ -2343,7 +2346,9 @@ sub run {
 
 =head3 final_initialization
 
-TODO
+The C<final_initialization> routine does the initialization that is 
+required after the object representing a distribution has been created, but 
+before files can be installed.
 
 =cut
 
@@ -2377,7 +2382,7 @@ EOF
 	unless ( $self->cpan()->as_string() =~ m{\/\z}ms ) {
 		PDWiX::Parameter->throw(
 			parameter => 'cpan: Missing trailing slash',
-			where     => '->new'
+			where     => '->final_initialization'
 		);
 	}
 
@@ -2403,6 +2408,9 @@ EOF
 		}
 	}
 
+	# Making sure that this is set.
+	$self->_set_in_merge_module(1);
+	
 	## no critic(ProtectPrivateSubs)
 	# Set element collections
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
@@ -2772,7 +2780,7 @@ sub write_merge_module {
 		my $file_out = catfile( $self->output_dir(),
 			$self->output_base_filename() . '.msm-contents.zip' );
 
-		rename $self->write_zip(), $file_out
+		rename $self->_write_zip(), $file_out
 		  or PDWiX->throw("Could not rename to $file_out: $OS_ERROR");
 
 		$self->add_output_file($file_out);
@@ -3034,7 +3042,7 @@ Returns true or throws an exception or error.
 
 =cut
 
-sub write_msi {
+sub _write_msi {
 	my $self = shift;
 
 	my $dir = $self->fragment_dir;
@@ -3117,7 +3125,7 @@ sub write_msi {
 
 	# Compile the main .wxs
 	$self->trace_line( 2, "Compiling $filename_in\n" );
-	$self->compile_wxs( $filename_in, $filename_out )
+	$self->_compile_wxs( $filename_in, $filename_out )
 	  or PDWiX->throw("WiX could not compile $filename_in");
 	unless ( -f $filename_out ) {
 		PDWiX->throw( "Failed to find $filename_out (probably "
@@ -3269,7 +3277,7 @@ sub _write_msm {
 
 	# Compile the main .wxs
 	$self->trace_line( 2, "Compiling $filename_in\n" );
-	$self->compile_wxs( $filename_in, $filename_out )
+	$self->_compile_wxs( $filename_in, $filename_out )
 	  or PDWiX->throw("WiX could not compile $filename_in");
 	unless ( -f $filename_out ) {
 		PDWiX->throw( "Failed to find $filename_out (probably "

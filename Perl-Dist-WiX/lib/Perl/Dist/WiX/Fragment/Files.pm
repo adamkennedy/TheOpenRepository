@@ -58,13 +58,17 @@ has feature => (
 
 sub _build_feature {
 	my $self = shift;
-	my $feat = WiX3::XML::Feature->new(
-		id      => $self->get_id(),
-		level   => 1,
-		display => 'hidden',
-	);
-	$self->add_child_tag($feat);
-	return $feat;
+	if (not $self->in_merge_module()) {
+		my $feat = WiX3::XML::Feature->new(
+			id      => $self->get_id(),
+			level   => 1,
+			display => 'hidden',
+		);
+		$self->add_child_tag($feat);
+		return $feat;
+	} else {
+		return undef;
+	}
 }
 
 has can_overwrite => (
@@ -333,10 +337,16 @@ sub _add_file_component {
 	$component_id =~ s{[+]}{_}ms;
 	$component_id =~ s{/}{-}ms;
 
+	my @feature_param = ();
+	
+	if (defined $self->_get_feature()) {
+		@feature_param = ( feature => $self->_get_feature()->get_id() );
+	}
+	
 	my $component = WiX3::XML::Component->new(
 		path    => $file,
 		id      => $component_id,
-		feature => $self->_get_feature()->get_id() );
+		@feature_param );
 	my $file_obj;
 
 	# If the file is a .dll or .exe file, check for a version.
@@ -380,7 +390,7 @@ around 'get_componentref_array' => sub {
 	my $orig = shift;
 	my $self = shift;
 
-	if ( $self->_in_merge_module() ) {
+	if ( $self->in_merge_module() ) {
 		return $self->$orig();
 	} else {
 		return $self->_get_feature()->get_componentref_array();

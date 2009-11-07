@@ -69,7 +69,7 @@
 
 [% dist.feature_tree_object.as_string %]
 
-[% dist.icons.as_string %]
+[% dist.icons_string %]
 
 [% IF dist.msi_feature_tree.defined %]
     <Property Id='ARPNOMODIFY'>1</Property>
