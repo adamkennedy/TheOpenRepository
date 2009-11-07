@@ -226,27 +226,27 @@ sub _build_filters {
 	# Initialize filters.
 #<<<
 	return [   $self->temp_dir() . q{\\},
-	  catdir ( $self->image_dir(), qw{ perl man         } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ perl html        } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    man         } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    doc         } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    info        } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    contrib     } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    html        } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    examples    } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    manifest    } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ cpan sources     } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ cpan build       } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    bin         startup mac   } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    bin         startup msdos } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    bin         startup os2   } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    bin         startup qssl  } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    bin         startup tos   } ) . q{\\},
-	  catdir ( $self->image_dir(), qw{ c    libexec     gcc     mingw32 3.4.5 install-tools}) . q{\\},
-	  catfile( $self->image_dir(), qw{ c    COPYING     } ),
-	  catfile( $self->image_dir(), qw{ c    COPYING.LIB } ),
-	  catfile( $self->image_dir(), qw{ c    bin         gccbug  } ),
-	  catfile( $self->image_dir(), qw{ c    bin         mingw32-gcc-3.4.5  } ),
+	  $self->_dir(  qw{ perl man         } ) . q{\\},
+	  $self->_dir(  qw{ perl html        } ) . q{\\},
+	  $self->_dir(  qw{ c    man         } ) . q{\\},
+	  $self->_dir(  qw{ c    doc         } ) . q{\\},
+	  $self->_dir(  qw{ c    info        } ) . q{\\},
+	  $self->_dir(  qw{ c    contrib     } ) . q{\\},
+	  $self->_dir(  qw{ c    html        } ) . q{\\},
+	  $self->_dir(  qw{ c    examples    } ) . q{\\},
+	  $self->_dir(  qw{ c    manifest    } ) . q{\\},
+	  $self->_dir(  qw{ cpan sources     } ) . q{\\},
+	  $self->_dir(  qw{ cpan build       } ) . q{\\},
+	  $self->_dir(  qw{ c    bin         startup mac   } ) . q{\\},
+	  $self->_dir(  qw{ c    bin         startup msdos } ) . q{\\},
+	  $self->_dir(  qw{ c    bin         startup os2   } ) . q{\\},
+	  $self->_dir(  qw{ c    bin         startup qssl  } ) . q{\\},
+	  $self->_dir(  qw{ c    bin         startup tos   } ) . q{\\},
+	  $self->_dir(  qw{ c    libexec     gcc     mingw32 3.4.5 install-tools}) . q{\\},
+	  $self->_file( qw{ c    COPYING     } ),
+	  $self->_file( qw{ c    COPYING.LIB } ),
+	  $self->_file( qw{ c    bin         gccbug  } ),
+	  $self->_file( qw{ c    bin         mingw32-gcc-3.4.5  } ),
 	  ];
 #>>>
 } ## end sub _build_filters
@@ -1032,7 +1032,7 @@ has 'license_dir' => (
 sub _build_license_dir {
 	my $self = shift;
 
-	my $dir = catdir( $self->image_dir(), 'licenses' );
+	my $dir = $self->_dir( 'licenses' );
 	$self->_remake_path($dir);
 	return $dir;
 }
@@ -2445,9 +2445,9 @@ EOF
 		File::Remove::remove( \1, $par_temp );
 	}
 
-	my @directories_to_make = ( catdir( $self->image_dir, 'cpan' ), );
+	my @directories_to_make = ( $self->_dir( 'cpan' ), );
 
-	push @directories_to_make, catdir( $self->image_dir, 'cpanplus' )
+	push @directories_to_make, $self->_dir( 'cpanplus' )
 	  if ( '589' ne $self->perl_version() );
 
 	# Initialize the build
@@ -2544,7 +2544,7 @@ sub install_portable {
 	require Portable::Dist;
 	$self->_set_portable_dist(
 		Portable::Dist->new(
-			perl_root => catdir( $self->image_dir, 'perl' ) ) );
+			perl_root => $self->_dir( 'perl' ) ) );
 	$self->trace_line( 1, "Running Portable::Dist\n" );
 	$self->_portable_dist()->run();
 	$self->trace_line( 1, "Completed Portable::Dist\n" );
@@ -2579,18 +2579,18 @@ and launchers into the Start menu.
 sub install_win32_extras {
 	my $self = shift;
 
-	File::Path::mkpath( catdir( $self->image_dir, 'win32' ) );
+	File::Path::mkpath( $self->_dir( 'win32' ) );
 
 	# TODO: Delete next two statements.
 #	my $perldir = $self->_directories()->search_dir(
-#		path_to_find => catdir( $self->image_dir(), 'perl' ),
+#		path_to_find => $self->_dir( 'perl' ),
 #		exact        => 1,
 #		descend      => 1,
 #	);
 #	$perldir->add_directory(
 #		name => 'bin',
 #		id   => 'PerlBin',
-#		path => catdir( $self->image_dir(), qw( perl bin ) ),
+#		path => $self->_dir( qw( perl bin ) ),
 #	);
 
 	$self->install_launcher(
@@ -2713,7 +2713,7 @@ sub regenerate_fragments {
 	# Add the perllocal.pod here, because apparently it's disappearing.
 	if ( $self->fragment_exists('perl') ) {
 		$self->add_to_fragment( 'perl',
-			[ catfile( $self->image_dir(), qw( perl lib perllocal.pod ) ) ]
+			[ $self->_file( perl lib perllocal.pod ) ]
 		);
 	}
 
@@ -2750,10 +2750,9 @@ installers for the distribution.
 sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	my $self = shift;
 
-# TODO: Temporarily comment out.
-#	if ( $self->zip() ) {
-#		$self->add_output_files($self->_write_zip());
-#	}
+	if ( $self->zip() ) {
+		$self->add_output_files($self->_write_zip());
+	}
 	if ( $self->msi() ) {
 		$self->add_output_files( $self->_write_msi() );
 	}
@@ -2952,7 +2951,7 @@ TODO
 sub add_path {
 	my $self = shift;
 	my @path = @_;
-	my $dir  = catdir( $self->image_dir(), @path );
+	my $dir  = $self->_dir( @path );
 	unless ( -d $dir ) {
 		PDWiX->throw("PATH directory $dir does not exist");
 	}
@@ -2969,7 +2968,7 @@ TODO
 sub get_path_string {
 	my $self = shift;
 	return join q{;},
-	  map { catdir( $self->image_dir(), @{$_} ) }
+	  map { $self->_dir( @{$_} ) }
 	  $self->_get_env_path_unchecked();
 }
 

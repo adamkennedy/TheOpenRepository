@@ -109,7 +109,7 @@ END_PERL
 	my $filelist_sub;
 	if ( not $self->_get_packlist() ) {
 		$filelist_sub = File::List::Object->new->readdir(
-			catdir( $self->image_dir, 'perl' ) );
+			$self->_dir( 'perl' ) );
 		$self->_trace_line( 5,
 			    "***** Module being installed $name"
 			  . " requires packlist => 0 *****\n" );
@@ -160,7 +160,7 @@ END_PERL
 		$filelist = $self->_search_packlist($name);
 	} else {
 		$filelist = File::List::Object->new()
-		  ->readdir( catdir( $self->image_dir, 'perl' ) );
+		  ->readdir( $self->_dir( 'perl' ) );
 		$filelist->subtract($filelist_sub)->filter( $self->_filters );
 	}
 
