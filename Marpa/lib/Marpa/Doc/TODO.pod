@@ -22,6 +22,10 @@ the documentation, I should think accordingly.
 
 =item * Create HTML Parser.
 
+=item * In rewrite_cycles,
+don't check spans unless and-node can cycle.
+Use cycle_rules to determine this.
+
 =back
 
 =head1 HIGH PRIORITY

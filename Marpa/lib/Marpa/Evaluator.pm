@@ -1627,7 +1627,7 @@ sub Marpa::Evaluator::new {
         my $rule_id = $rule->[Marpa::Internal::Rule::ID];
         $tree_rules[$rule_id] = 1;
 
-        ### cycle rule: Marpa'brief_rule($rule)
+        #### cycle rule: Marpa'brief_rule($rule)
 
         $tree_rules[$rule_id] = [Marpa::Internal::Evaluator_Op::CYCLE];
     } ## end for my $rule ( @{ Marpa::Internal::Grammar::cycle_rules...})
@@ -2488,6 +2488,8 @@ sub Marpa::Evaluator::value {
                         $and_iteration
                         ->[Marpa::Internal::And_Iteration::RANKING_DATA];
 
+                    ### RESET_OR_NODE: Copying or map, length: scalar @{$and_iteration->[Marpa'Internal'And_Iteration'OR_MAP]}
+
                     $and_choice->[Marpa::Internal::And_Choice::OR_MAP] = [
                         @{  $and_iteration
                                 ->[Marpa::Internal::And_Iteration::OR_MAP]
@@ -2673,6 +2675,8 @@ sub Marpa::Evaluator::value {
                         @{ $cause_and_node_choice
                             ->[Marpa::Internal::And_Choice::OR_MAP] };
                 } ## end if ( defined $cause )
+
+                ### SETUP_AND_NODE: Created or-map, length: scalar @or_map
 
                 $and_node_iteration->[Marpa::Internal::And_Iteration::OR_MAP]
                     = \@or_map;

@@ -258,6 +258,7 @@ sub Marpa::UrHTML::evaluate {
         rules     => \@rules,
         start     => 'document',
         terminals => \@terminals,
+        parse_order => 'numeric',
         strip => 0,
     });
     $grammar->precompute();
@@ -266,9 +267,10 @@ sub Marpa::UrHTML::evaluate {
     my $recce = Marpa::Recognizer->new( { grammar=>$grammar } );
     say STDERR "token count: ", scalar @tokens;
     $recce->tokens( \@tokens );
-    say STDERR $recce->show_earley_sets();
-
-    return 1;
+    my $evaler = Marpa::Evaluator->new({recce=>$recce, trace_tasks=>1 });
+    my $value = $evaler->value;
+    Carp::croak('undef returned') if not defined $value;
+    return $value;
 
 } ## end sub Marpa::UrHTML::evaluate
 
