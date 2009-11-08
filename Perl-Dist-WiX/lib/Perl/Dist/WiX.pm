@@ -118,7 +118,7 @@ require Perl::Dist::WiX::Fragment::Files;
 require Perl::Dist::WiX::Fragment::Environment;
 require Perl::Dist::WiX::Fragment::StartMenu;
 require Perl::Dist::WiX::IconArray;
-require Perl::Dist::WiX::MergeModule;
+require Perl::Dist::WiX::Tag::MergeModule;
 require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 #>>>
@@ -274,7 +274,7 @@ has '_fragments' => (
 has '_merge_modules' => (
 	traits   => ['Hash'],
 	is       => 'bare',
-	isa      => 'HashRef[Perl::Dist::WiX::MergeModule]',
+	isa      => 'HashRef[Perl::Dist::WiX::Tag::MergeModule]',
 	default  => sub { return {} },
 	init_arg => undef,
 	handles  => {
@@ -2839,7 +2839,7 @@ sub write_merge_module {
 			$self->_icons()->add_icon( $self->msi_product_icon() );
 		}
 
-		my $mm = Perl::Dist::WiX::MergeModule->new(
+		my $mm = Perl::Dist::WiX::Tag::MergeModule->new(
 			id          => 'Perl',
 			disk_id     => 1,
 			language    => 1033,

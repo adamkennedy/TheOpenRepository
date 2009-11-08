@@ -17,7 +17,7 @@ use File::Spec::Functions qw( abs2rel splitpath catpath catdir splitdir );
 use List::MoreUtils qw( uniq );
 use Digest::CRC qw( crc32_base64 );
 require Perl::Dist::WiX::Exceptions;
-require Perl::Dist::WiX::DirectoryRef;
+require Perl::Dist::WiX::Tag::DirectoryRef;
 require Perl::Dist::WiX::DirectoryCache;
 require Perl::Dist::WiX::DirectoryTree2;
 require WiX3::XML::Component;
@@ -140,8 +140,8 @@ sub _add_file_to_fragment {
 		$i_step1++;
 
 		next STEP1
-		  unless ( $tag_step1->isa('Perl::Dist::WiX::Directory')
-			or $tag_step1->isa('Perl::Dist::WiX::DirectoryRef') );
+		  unless ( $tag_step1->isa('Perl::Dist::WiX::Tag::Directory')
+			or $tag_step1->isa('Perl::Dist::WiX::Tag::DirectoryRef') );
 
 		# Search for directory.
 		$directory_step1 = $tag_step1->search_dir(
@@ -178,12 +178,10 @@ sub _add_file_to_fragment {
 		  Perl::Dist::WiX::DirectoryRef->new(
 			directory_object => $directory_step2 );
 
-# TODO: Wait until feature tags work right...
-#		$self->_get_feature()->add_child_tag($directory_ref_step2);
 		$self->add_child_tag($directory_ref_step2);
 		$self->_add_file_component( $directory_ref_step2, $file_path );
 		return ();
-	} ## end if ( defined $directory_step2)
+	}
 
 # Step 3: Search in our own directories non-exactly.
 #  SUCCESS: Create directories, create component and file.
@@ -201,8 +199,8 @@ sub _add_file_to_fragment {
 		$i_step3++;
 
 		next STEP3
-		  unless ( $tag_step3->isa('Perl::Dist::WiX::Directory')
-			or $tag_step3->isa('Perl::Dist::WiX::DirectoryRef') );
+		  unless ( $tag_step3->isa('Perl::Dist::WiX::Tag::Directory')
+			or $tag_step3->isa('Perl::Dist::WiX::Tag::DirectoryRef') );
 
 		# Search for directory.
 		$directory_step3 = $tag_step3->search_dir(

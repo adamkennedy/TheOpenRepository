@@ -21,11 +21,11 @@ extends qw(
 );
 
 has modules => (
-	traits    => ['Hash'],
-	is        => 'ro',
-	isa       => HashRef [ ArrayRef [Str] ],
-	builder   => '_modules_build',
-	init_arg  => undef,
+	traits   => ['Hash'],
+	is       => 'ro',
+	isa      => HashRef [ ArrayRef [Str] ],
+	builder  => '_modules_build',
+	init_arg => undef,
 	handles  => {
 		'_modules_exists' => 'exists',
 		'_get_modules'    => 'get',
@@ -33,11 +33,11 @@ has modules => (
 );
 
 has corelist_version => (
-	traits    => ['Hash'],
-	is        => 'ro',
-	isa       => HashRef [Str],
-	builder   => '_corelist_version_build',
-	init_arg  => undef,
+	traits   => ['Hash'],
+	is       => 'ro',
+	isa      => HashRef [Str],
+	builder  => '_corelist_version_build',
+	init_arg => undef,
 	handles  => {
 		'_corelist_version_exists' => 'exists',
 		'_get_corelist_version'    => 'get',
@@ -45,12 +45,12 @@ has corelist_version => (
 );
 
 has corelist => (
-	traits    => ['Hash'],
-	is        => 'ro',
-	isa       => HashRef,
-	builder   => '_corelist_build',
-	init_arg  => undef,
-	lazy      => 1,
+	traits   => ['Hash'],
+	is       => 'ro',
+	isa      => HashRef,
+	builder  => '_corelist_build',
+	init_arg => undef,
+	lazy     => 1,
 	handles  => {
 		'_corelist_exists' => 'exists',
 		'_get_corelist'    => 'get',
@@ -58,11 +58,11 @@ has corelist => (
 );
 
 has dists => (
-	traits    => ['Array'],
-	is        => 'ro',
-	isa       => ArrayRef [Str],
-	default   => sub { return [] },
-	init_arg  => undef,
+	traits   => ['Array'],
+	is       => 'ro',
+	isa      => ArrayRef [Str],
+	default  => sub { return [] },
+	init_arg => undef,
 	handles  => {
 		'_push_dists'  => 'push',
 		'get_dists'    => 'elements',
@@ -80,11 +80,11 @@ has perl_version => (
 );
 
 has force => (
-	traits    => ['Hash'],
-	is        => 'ro',
-	isa       => HashRef,
-	default   => sub { return {} },
-	handles  => {
+	traits  => ['Hash'],
+	is      => 'ro',
+	isa     => HashRef,
+	default => sub { return {} },
+	handles => {
 		'_force_exists'    => 'exists',
 		'_get_forced_dist' => 'get',
 	},

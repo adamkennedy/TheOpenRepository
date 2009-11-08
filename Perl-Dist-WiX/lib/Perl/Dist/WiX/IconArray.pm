@@ -12,7 +12,7 @@ use Moose;
 use MooseX::AttributeHelpers;
 use Params::Util qw( _STRING   );
 use File::Spec::Functions qw( splitpath );
-require Perl::Dist::WiX::Icon;
+require Perl::Dist::WiX::Tag::Icon;
 
 our $VERSION = '1.100';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
@@ -20,7 +20,7 @@ $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 has _icon => (
 	metaclass => 'Collection::Array',
 	is        => 'rw',
-	isa       => 'ArrayRef[Perl::Dist::WiX::Icon]',
+	isa       => 'ArrayRef[Perl::Dist::WiX::Tag::Icon]',
 	default   => sub { [] },
 	provides  => {
 		'push'     => '_push_icon',
@@ -52,13 +52,13 @@ sub add_icon {
 	unless ( defined _STRING($pathname_target) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'pathname_target',
-			where     => '::Icons->add_icon'
+			where     => '::IconArray->add_icon'
 		);
 	}
 	unless ( defined _STRING($pathname_icon) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'pathname_icon',
-			where     => '::Icons->add_icon'
+			where     => '::IconArray->add_icon'
 		);
 	}
 
@@ -82,7 +82,7 @@ sub add_icon {
 
 	# Add icon to our list.
 	$self->_push_icon(
-		Perl::Dist::WiX::Icon->new(
+		Perl::Dist::WiX::Tag::Icon->new(
 			sourcefile  => $pathname_icon,
 			target_type => $target_type,
 			id          => $id
@@ -109,13 +109,13 @@ sub search_icon {
 	unless ( defined _STRING($target_type) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'target_type',
-			where     => '::Icons->search_icon'
+			where     => '::IconArray->search_icon'
 		);
 	}
 	unless ( defined _STRING($pathname_icon) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'pathname_icon',
-			where     => '::Icons->search_icon'
+			where     => '::IconArray->search_icon'
 		);
 	}
 

@@ -73,7 +73,7 @@ sub get_directory_object {
 
   SUBDIRECTORY:
 	foreach my $object ( $self->get_child_tags() ) {
-		next SUBDIRECTORY if not $object->isa('Perl::Dist::WiX::Directory');
+		next SUBDIRECTORY if not $object->isa('Perl::Dist::WiX::Tag::Directory');
 		$return = $object->get_directory_object($id);
 		return $return if defined $return;
 	}
@@ -97,7 +97,7 @@ sub search_dir {
 	my $path_to_find = _STRING( $args{'path_to_find'} )
 	  || PDWiX::Parameter->throw(
 		parameter => 'path_to_find',
-		where     => '::Directory->search_dir'
+		where     => '::Tag::Directory->search_dir'
 	  );
 	my $descend = $args{descend} || 1;
 	my $exact   = $args{exact}   || 0;
@@ -141,7 +141,7 @@ sub search_dir {
 
   TAG:
 	foreach my $tag (@tags) {
-		next TAG unless $tag->isa('Perl::Dist::WiX::Directory');
+		next TAG unless $tag->isa('Perl::Dist::WiX::Tag::Directory');
 
 		$answer = $tag->search_dir( \%args );
 		if ( defined $answer ) {

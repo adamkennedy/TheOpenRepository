@@ -19,7 +19,7 @@ use MooseX::Singleton;
 use Params::Util qw( _IDENTIFIER _STRING _INSTANCE );
 use File::Spec::Functions qw( catdir catpath splitdir splitpath );
 use MooseX::Types::Moose qw( Str );
-use Perl::Dist::WiX::Directory;
+use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 
 our $VERSION = '1.100_001';
@@ -33,7 +33,7 @@ with 'WiX3::Role::Traceable';
 
 has root => (
 	is     => 'ro',
-	isa    => 'Perl::Dist::WiX::Directory',
+	isa    => 'Perl::Dist::WiX::Tag::Directory',
 	reader => 'get_root',
 	handles =>
 	  [qw(search_dir get_directory_object _add_directory_recursive)],
@@ -76,7 +76,7 @@ sub BUILDARGS {
 	my $app_dir = $args{'app_dir'}
 	  or PDWiX::Parameter->throw('No app_dir parameter');
 
-	my $root = Perl::Dist::WiX::Directory->new(
+	my $root = Perl::Dist::WiX::Tag::Directory->new(
 		id       => 'TARGETDIR',
 		name     => 'SourceDir',
 		path     => $app_dir,

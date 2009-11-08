@@ -17,11 +17,11 @@ with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
 
 has mod_name => (
-	is       => 'ro',
-	isa      => Maybe [Str],
-	reader   => 'get_name',
-	lazy     => 1,
-	default  => sub { return $_[0]->_name_to_module(); },
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => 'get_name',
+	lazy    => 1,
+	default => sub { return $_[0]->_name_to_module(); },
 );
 
 has force => (

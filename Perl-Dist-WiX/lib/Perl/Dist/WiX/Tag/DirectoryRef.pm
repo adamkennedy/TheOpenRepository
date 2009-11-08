@@ -107,7 +107,7 @@ sub search_dir {
 		if ( defined $answer ) {
 			return $answer;
 		}
-	} ## end foreach my $tag (@tags)
+	}
 
 	# If we get here, we did not find a lower directory.
 	return $exact ? undef : $self;
