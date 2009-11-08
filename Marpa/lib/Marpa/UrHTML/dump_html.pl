@@ -16,4 +16,4 @@ my $p = Marpa::UrHTML->new( \$document );
 
 my $value = $p->evaluate();
 
-say ${$value};
+print ${$value};

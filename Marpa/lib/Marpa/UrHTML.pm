@@ -54,13 +54,6 @@ sub Marpa::UrHTML::new {
 } ## end sub Marpa::UrHTML::new
 ## use critic
 
-## no critic (Subroutines::RequireArgUnpacking)
-sub default_action {
-    shift;
-    return join q{}, @_;
-}
-## use critic
-
 %Marpa::UrHTML::Internal::BLOCK_ELEMENT = map { $_ => 1 } qw(
     h1 h2 h3 h4 h5 h6
     ul ol dir menu
@@ -132,6 +125,10 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 my %start_tags = ();
 my %end_tags   = ();
 
+## no critic (Subroutines::RequireArgUnpacking)
+sub Marpa::UrHTML::Internal::Test::copy_text { shift; return join q{}, @_ }
+## use critic
+
 sub Marpa::UrHTML::evaluate {
     my ($self)      = @_;
     my $pull_parser = $self->{pull_parser};
@@ -142,7 +139,6 @@ sub Marpa::UrHTML::evaluate {
         given ( shift @{$token} ) {
             when ('T') {
                 my ( $offset, $offset_end, $text, $is_cdata ) = @{$token};
-                # say "$_ $offset $offset_end $text";
                 push @tokens,
                     [
                     (     $text =~ / \A \s* \z /xms ? 'WHITESPACE'
@@ -155,7 +151,6 @@ sub Marpa::UrHTML::evaluate {
             when ('S') {
                 my ( $offset, $offset_end, $tag_name, $attr, $attrseq, $text )
                     = @{$token};
-                # say "$_ $offset $offset_end $text";
                 $start_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
                 $terminals{$terminal}++;
@@ -164,7 +159,6 @@ sub Marpa::UrHTML::evaluate {
             } ## end when ('S')
             when ('E') {
                 my ( $offset, $offset_end, $tag_name, $text ) = @{$token};
-                # say "$_ $offset $offset_end $text";
                 $end_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
                 $terminals{$terminal}++;
@@ -173,13 +167,11 @@ sub Marpa::UrHTML::evaluate {
             } ## end when ('E')
             when ( [qw(C D)] ) {
                 my ( $offset, $offset_end, $text ) = @{$token};
-                # say "$_ $offset $offset_end $text";
                 push @tokens,
                     [ $_, $text ];
             }
             when ( ['PI'] ) {
                 my ( $offset, $offset_end, $token0, $text ) = @{$token};
-                # say "$_ $offset $offset_end $text";
                 push @tokens,
                     [ $_, $text ];
             }
@@ -194,15 +186,11 @@ sub Marpa::UrHTML::evaluate {
         when ( defined $Marpa::UrHTML::Internal::OPTIONAL_TAGS{$_} ) {
 
             # All these tags are simply ignored
-            say "Ignored: Optional Tag: $_";
-
             # should be next ELEMENT, but perl bug 65114 causes warning if tag is given
             # next ELEMENT
             next;
         } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_TAGS...)
         when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG{$_} ) {
-            say "Optional End Tag: $_";
-
             # These will need custom solutions
             # A dummy rule for now
             push @rules,
@@ -223,7 +211,6 @@ sub Marpa::UrHTML::evaluate {
                 }
         } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG...)
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
-            say "Empty: $_";
             push @rules,
                 {
                 lhs => "ELE_$_",
@@ -231,7 +218,6 @@ sub Marpa::UrHTML::evaluate {
                 };
         } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
         default {
-            say "Standard: $_";
             my $this_element = "ELE_$_";
             push @rules,
                 {
@@ -259,15 +245,16 @@ sub Marpa::UrHTML::evaluate {
         start     => 'document',
         terminals => \@terminals,
         parse_order => 'numeric',
+        default_action => 'Marpa::UrHTML::Internal::Test::copy_text',
         strip => 0,
     });
     $grammar->precompute();
-    say STDERR $grammar->show_rules();
-    say STDERR $grammar->show_QDFA();
+    # say STDERR $grammar->show_rules();
+    # say STDERR $grammar->show_QDFA();
     my $recce = Marpa::Recognizer->new( { grammar=>$grammar } );
     say STDERR "token count: ", scalar @tokens;
     $recce->tokens( \@tokens );
-    my $evaler = Marpa::Evaluator->new({recce=>$recce, trace_tasks=>1 });
+    my $evaler = Marpa::Evaluator->new( { recce => $recce } );
     my $value = $evaler->value;
     Carp::croak('undef returned') if not defined $value;
     return $value;

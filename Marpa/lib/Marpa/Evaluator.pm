@@ -868,7 +868,7 @@ sub delete_nodes {
 
 # Rewrite to eliminate cycles.
 sub rewrite_cycles {
-    my ($evaler) = @_;
+    my ($evaler, $cycle_rule_ids) = @_;
 
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
@@ -891,10 +891,20 @@ sub rewrite_cycles {
         $initial_and_nodes * $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]
     );
 
+    my @cycle_rules;
+    @cycle_rules[ @{$cycle_rule_ids} ] = (1) x scalar @{$cycle_rule_ids};
+    my @cycle_or_nodes =
+        grep { not $_->[Marpa::Internal::Or_Node::DELETED] }
+        map  { $or_nodes->[ $_->[Marpa::Internal::And_Node::PARENT_ID] ] }
+        grep {
+        not $_->[Marpa::Internal::And_Node::DELETED]
+            and $cycle_rules[ $_->[Marpa::Internal::And_Node::RULE_ID] ]
+        } @{$and_nodes};
+
     # Group or-nodes by span.  Only or-nodes with the same
     # span can be in a cycle.
     my %or_nodes_by_span;
-    for my $or_node ( @{$or_nodes} ) {
+    for my $or_node (@cycle_or_nodes) {
         push @{
             $or_nodes_by_span{
                 join q{,},
@@ -905,7 +915,7 @@ sub rewrite_cycles {
                 }
             },
             $or_node;
-    } ## end for my $or_node ( @{$or_nodes} )
+    } ## end for my $or_node (@cycle_or_nodes)
 
     # Initialize the span sets
     my @span_sets = values %or_nodes_by_span;
@@ -1620,15 +1630,11 @@ sub Marpa::Evaluator::new {
 
     my @tree_rules;
     $#tree_rules = $#{$rules};
-    for my $rule ( @{ Marpa::Internal::Grammar::cycle_rules($grammar) } ) {
-
-        my $rule_id = $rule->[Marpa::Internal::Rule::ID];
-        $tree_rules[$rule_id] = 1;
-
-        #### cycle rule: Marpa'brief_rule($rule)
-
-        $tree_rules[$rule_id] = [Marpa::Internal::Evaluator_Op::CYCLE];
-    } ## end for my $rule ( @{ Marpa::Internal::Grammar::cycle_rules...})
+    my @cycle_rule_ids =
+        map { $_->[Marpa::Internal::Rule::ID] }
+        @{ Marpa::Internal::Grammar::cycle_rules($grammar) };
+    @tree_rules[@cycle_rule_ids] =
+        ( [Marpa::Internal::Evaluator_Op::CYCLE] ) x scalar @cycle_rule_ids;
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
     my ( $nulling, $symbol_id ) =
@@ -2078,7 +2084,7 @@ of the rule, where it will end.
     ### assert: Marpa'Evaluator'audit($self) or 1
 
     if ( $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE] ) {
-        rewrite_cycles($self);
+        rewrite_cycles($self, \@cycle_rule_ids);
     }
 
     ### assert: Marpa'Evaluator'audit($self) or 1
