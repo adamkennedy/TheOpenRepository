@@ -4,7 +4,7 @@ package Perl::Dist::WiX::ReleaseNotes;
 
 =head1 NAME
 
-Perl::Dist::WiX::ReleaseNotes - 4th generation Win32 Perl distribution builder
+Perl::Dist::WiX::ReleaseNotes - Creates accessory files.
 
 =head1 VERSION
 
@@ -18,6 +18,7 @@ make the distributions.txt and the release notes files.
 =head1 SYNOPSIS
 
 	# This module is not to be used independently.
+	# It provides methods to a Perl::Dist::WiX object.
 
 =head1 INTERFACE
 
@@ -26,9 +27,7 @@ make the distributions.txt and the release notes files.
 use 5.008001;
 use Moose;
 use English qw( -no_match_vars );
-use File::Spec::Functions qw(
-  catdir catfile catpath tmpdir splitpath rel2abs curdir
-);
+use File::Spec::Functions qw( catfile );
 require IO::File;
 require Template;
 require File::List::Object;
@@ -36,15 +35,31 @@ require File::List::Object;
 our $VERSION = '1.100_001';
 $VERSION =~ s/_//ms;
 
+=head2 release_notes_filename
+
+The C<release_notes_filename> method returns the name of the release 
+notes framework file.
+
+=cut
+
 sub release_notes_filename {
 	my $self = shift;
 	my $filename =
-	    $self->perl_version_human . q{.}
-	  . $self->build_number
-	  . ( $self->beta_number ? '.beta' : q{} ) . '.html';
+	    $self->perl_version_human() . q{.}
+	  . $self->build_number()
+	  . ( $self->beta_number() ? '.beta' : q{} ) . '.html';
 
 	return $filename;
 }
+
+
+
+=head2 create_release_notes
+
+The C<create_release_notes> method creates the framework file for the 
+release notes to upload to a web site.
+
+=cut
 
 sub create_release_notes {
 	my $self = shift;
@@ -109,14 +124,6 @@ sub create_release_notes {
 # NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX
 # object.
 
-=head2 create_distribution_list
-
-The C<create_distribution_list> method creates the DISTRIBUTIONS.txt file
-that contains the list of distributions that are installed, and adds it to
-the .msi.
-
-=cut
-
 sub _add_to_distributions_installed {
 	my $self = shift;
 	my $dist = shift;
@@ -124,6 +131,16 @@ sub _add_to_distributions_installed {
 
 	return;
 }
+
+
+
+=head2 create_distribution_list
+
+The C<create_distribution_list> method creates the DISTRIBUTIONS.txt file
+that contains the list of distributions that are installed, and adds it to
+the .msi.
+
+=cut
 
 sub create_distribution_list {
 	my $self = shift;
@@ -142,7 +159,7 @@ sub create_distribution_list {
 	};
 
 	my $tt = Template->new(
-		INCLUDE_PATH => [ $self->dist_dir, $self->wix_dist_dir, ],
+		INCLUDE_PATH => [ $self->dist_dir(), $self->wix_dist_dir(), ],
 		ABSOLUTE     => 1,
 	  )
 	  || PDWiX::Caught->throw(

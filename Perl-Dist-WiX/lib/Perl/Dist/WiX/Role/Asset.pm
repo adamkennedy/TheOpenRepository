@@ -306,7 +306,7 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Asset>
+L<Perl::Dist::WiX|Perl::Dist::WiX>
 
 =head1 COPYRIGHT AND LICENSE
 

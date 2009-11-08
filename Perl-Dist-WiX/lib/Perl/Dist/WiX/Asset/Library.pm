@@ -180,25 +180,31 @@ This class inherits from L<Perl::Dist::WiX::Role::Asset> and shares its API.
 
 =head2 new
 
-TO BE COMPLETED
+TODO: TO BE COMPLETED
+
+=head2 install
+
+Installs the library specified by this object. 
 
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 
 For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist>, L<Perl::Dist::Inno>, L<Perl::Dist::Asset>
+L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
+
+Copyright 2009 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 

@@ -51,6 +51,6 @@ foreach my $module (@modules_to_test) {
 	pod_coverage_ok($module, { 
 	  coverage_class => 'Pod::Coverage::Moose', 
 	  also_private => [ qr/^[A-Z_]+$/ ],
-	  trustme => [ qw(prepare) ]
+	  trustme => [ qw(prepare delegate) ]
 	});
 }

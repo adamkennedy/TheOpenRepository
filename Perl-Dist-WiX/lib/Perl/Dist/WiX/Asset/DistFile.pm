@@ -10,17 +10,16 @@ require URI;
 require File::Spec::Unix;
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.100';
+our $VERSION = '1.100_001';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
 
-has module_name => (
+has mod_name => (
 	is       => 'ro',
 	isa      => Maybe [Str],
-	reader   => 'get_module_name',
-	init_arg => 'mod_name',
+	reader   => 'get_name',
 	lazy     => 1,
 	default  => sub { return $_[0]->_name_to_module(); },
 );
@@ -30,7 +29,7 @@ has force => (
 	isa     => Bool,
 	reader  => '_get_force',
 	lazy    => 1,
-	default => sub { !!$_[0]->_get_parent()->force },
+	default => sub { !!$_[0]->_get_parent()->force() },
 );
 
 has automated_testing => (
@@ -61,23 +60,12 @@ has buildpl_param => (
 	default => sub { return [] },
 );
 
-#has inject => (
-#	is       => 'ro',
-#	isa      => Maybe['URI'],
-#	reader   => '_get_inject',
-#	default  => undef,
-#);
-
 has packlist => (
 	is      => 'ro',
 	isa     => Bool,
 	reader  => '_get_packlist',
 	default => 1,
 );
-
-sub get_name {
-	return $_[0]->get_module_name();
-}
 
 sub install {
 	my $self = shift;
@@ -194,7 +182,7 @@ Perl::Dist::WiX::Asset::DistFile - "Perl Distribution" asset for a Win32 Perl
 =head1 SYNOPSIS
 
   # TODO: Update
-  my $distribution = Perl::Dist::WiX::Asset::Distribution->new(
+  my $distribution = Perl::Dist::WiX::Asset::DistFile->new(
       name  => 'MSERGEANT/DBD-SQLite-1.14.tar.gz',
       force => 1,
   );
@@ -265,6 +253,9 @@ it is known that the tests can be safely "forced".
 The optional boolean C<force> param allows you to specify that the tests
 should be skipped and the module installed without validating it.
 
+It defaults to what the C<force()> method on the object passed as the 
+C<parent> parameter returns.
+
 =item automated_testing
 
 Many modules contain additional long-running tests, tests that require
@@ -316,6 +307,11 @@ The install method installs the distribution described by the
 B<Perl::Dist::WiX::Asset::Distribution> object and returns a list of files
 that were installed as a L<File::List::Object> object.
 
+=head2 get_name
+
+This method returns the name of the module being installed, in order to use
+it in filenames.
+
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
@@ -324,7 +320,7 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 
 For other issues, contact the author.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 

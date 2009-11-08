@@ -3,7 +3,6 @@ package Perl::Dist::WiX::Toolchain;
 use 5.008001;
 use Moose 0.90;
 use MooseX::NonMoose;
-use MooseX::AttributeHelpers;
 use MooseX::Types::Moose qw( Str Int Bool HashRef ArrayRef Maybe );
 use English qw( -no_match_vars );
 use Carp qw();
@@ -22,54 +21,54 @@ extends qw(
 );
 
 has modules => (
-	metaclass => 'Collection::ImmutableHash',
+	traits    => ['Hash'],
 	is        => 'ro',
 	isa       => HashRef [ ArrayRef [Str] ],
 	builder   => '_modules_build',
 	init_arg  => undef,
-	provides  => {
-		'exists' => '_modules_exists',
-		'get'    => '_get_modules',
+	handles  => {
+		'_modules_exists' => 'exists',
+		'_get_modules'    => 'get',
 	},
 );
 
 has corelist_version => (
-	metaclass => 'Collection::ImmutableHash',
+	traits    => ['Hash'],
 	is        => 'ro',
 	isa       => HashRef [Str],
 	builder   => '_corelist_version_build',
 	init_arg  => undef,
-	provides  => {
-		'exists' => '_corelist_version_exists',
-		'get'    => '_get_corelist_version',
+	handles  => {
+		'_corelist_version_exists' => 'exists',
+		'_get_corelist_version'    => 'get',
 	},
 );
 
 has corelist => (
-	metaclass => 'Collection::ImmutableHash',
+	traits    => ['Hash'],
 	is        => 'ro',
 	isa       => HashRef,
 	builder   => '_corelist_build',
 	init_arg  => undef,
 	lazy      => 1,
-	provides  => {
-		'exists' => '_corelist_exists',
-		'get'    => '_get_corelist',
+	handles  => {
+		'_corelist_exists' => 'exists',
+		'_get_corelist'    => 'get',
 	},
 );
 
 has dists => (
-	metaclass => 'Collection::Array',
-	is        => 'rw',
+	traits    => ['Array'],
+	is        => 'ro',
 	isa       => ArrayRef [Str],
 	default   => sub { return [] },
 	init_arg  => undef,
-	provides  => {
-		'push'     => '_push_dists',
-		'elements' => 'get_dists',
-		'grep'     => '_grep_dists',
-		'clear'    => '_empty_dists',
-		'count'    => 'dist_count',
+	handles  => {
+		'_push_dists'  => 'push',
+		'get_dists'    => 'elements',
+		'_grep_dists'  => 'grep',
+		'_empty_dists' => 'clear',
+		'dist_count'   => 'count',
 	},
 );
 
@@ -81,13 +80,13 @@ has perl_version => (
 );
 
 has force => (
-	metaclass => 'Collection::ImmutableHash',
+	traits    => ['Hash'],
 	is        => 'ro',
 	isa       => HashRef,
 	default   => sub { return {} },
-	provides  => {
-		'exists' => '_force_exists',
-		'get'    => '_get_forced_dist',
+	handles  => {
+		'_force_exists'    => 'exists',
+		'_get_forced_dist' => 'get',
 	},
 );
 
@@ -99,12 +98,12 @@ has cpan => (
 );
 
 has _delegated => (
-	metaclass => 'Bool',
-	is        => 'rw',
-	isa       => Bool,
-	init_arg  => undef,
-	default   => sub {0},
-	provides  => { 'set' => '_delegate', },
+	traits   => ['Bool'],
+	is       => 'ro',
+	isa      => Bool,
+	init_arg => undef,
+	default  => 0,
+	handles  => { '_delegate' => 'set', },
 );
 
 # Process::Delegatable sets this, this attribute just
@@ -383,90 +382,29 @@ TODO
 
 TODO
 
-This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
-
 =head2 new
 
-The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Asset::Distribution> object.
+TODO
 
-It inherits all the params described in the L<Perl::Dist::WiX::Role::Asset> 
-C<new> method documentation, and adds some additional params.
+=head2 prepare
 
-=over 4
+TODO
 
-=item name
+=head2 run
 
-The required C<name> param is the name of the package for the purposes
-of identification.
+TODO
 
-This should match the name of the Perl distribution without any version
-numbers. For example, "File-Spec" or "libwww-perl".
+=head2 get_dists
 
-Alternatively, the C<name> param can be a CPAN path to the distribution
-such as shown in the synopsis.
+TODO
 
-In this case, the url to fetch from will be derived from the name.
+=head2 dist_count
 
-=item force
+TODO
 
-Unlike in the CPAN client installation, in which all modules MUST pass
-their tests to be added, the secondary method allows for cases where
-it is known that the tests can be safely "forced".
+=head2 get_error
 
-The optional boolean C<force> param allows you to specify that the tests
-should be skipped and the module installed without validating it.
-
-=item automated_testing
-
-Many modules contain additional long-running tests, tests that require
-additional dependencies, or have differing behaviour when installing
-in a non-user automated environment.
-
-The optional C<automated_testing> param lets you specify that the
-module should be installed with the B<AUTOMATED_TESTING> environment
-variable set to true, to make the distribution behave properly in an
-automated environment (in cases where it doesn't otherwise).
-
-=item release_testing
-
-Some modules contain release-time only tests, that require even heavier
-additional dependencies compared to even the C<automated_testing> tests.
-
-The optional C<release_testing> param lets you specify that the module
-tests should be run with the additional C<RELEASE_TESTING> environment
-flag set.
-
-By default, C<release_testing> is set to false to squelch any accidental
-execution of release tests when L<Perl::Dist::WiX> itself is being tested
-under C<RELEASE_TESTING>.
-
-=item makefilepl_param
-
-Some distributions illegally require you to pass additional non-standard
-parameters when you invoke "perl Makefile.PL".
-
-The optional C<makefilepl_param> param should be a reference to an ARRAY
-where each element contains the argument to pass to the Makefile.PL.
-
-=item buildpl_param
-
-Some distributions require you to pass additional non-standard
-parameters when you invoke "perl Build.PL".
-
-The optional C<buildpl_param> param should be a reference to an ARRAY
-where each element contains the argument to pass to the Build.PL.
-
-=back
-
-The C<new> method returns a B<Perl::Dist::WiX::Asset::Distribution> object,
-or throws an exception on error.
-
-=head2 install
-
-The install method installs the website link described by the
-B<Perl::Dist::WiX::Asset::Website> object and returns a file
-that was installed as a L<File::List::Object> object.
+TODO
 
 =head1 SUPPORT
 
@@ -484,7 +422,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
+L<Perl::Dist::WiX>, L<Module::CoreList>
 
 =head1 COPYRIGHT
 
@@ -499,5 +437,3 @@ The full text of the license can be found in the
 LICENSE file included with this module.
 
 =cut
-
-
