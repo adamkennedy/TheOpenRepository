@@ -208,8 +208,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 	# Yes, I know that technically it's a core module with
 	# non-core dependencies, and that's ugly. I've just got
 	# to live with it.
-	my $autodie_location =
-	  $self->_file( qw(perl lib autodie.pm) );
+	my $autodie_location = $self->_file(qw(perl lib autodie.pm));
 
 	if ( -e $autodie_location ) {
 		$self->install_modules(qw( Win32::Process IPC::System::Simple ));
@@ -217,7 +216,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 
 	# Getting CPANPLUS config file installed if required.
 	my $cpanp_config_location =
-	  $self->_file( qw(perl lib CPANPLUS Config.pm) );
+	  $self->_file(qw(perl lib CPANPLUS Config.pm));
 
 	if ( -e $cpanp_config_location ) {
 
@@ -446,7 +445,7 @@ sub install_perl {
 	$self->$install_perl_method(@_);
 
 	$self->add_to_fragment( 'perl',
-		[ $self->_file( qw(perl lib perllocal.pod) ) ] );
+		[ $self->_file(qw(perl lib perllocal.pod)) ] );
 
 	return 1;
 } ## end sub install_perl
@@ -528,7 +527,7 @@ sub install_perl_589 {
 	$self->_set_toolchain($toolchain);
 
 	# Make the perl directory if it hasn't been made alreafy.
-	$self->make_path( $self->_dir( 'perl' ) );
+	$self->make_path( $self->_dir('perl') );
 
 	# Install the main perl distributions
 	$self->install_perl_bin(
@@ -569,8 +568,7 @@ sub install_perl_bin {
 	$perl->install();
 
 	# Should have a perl to use now.
-	$self->_set_bin_perl(
-		$self->_file( qw/perl bin perl.exe/ );
+	$self->_set_bin_perl( $self->_file(qw/perl bin perl.exe/) );
 
 	# Add to the environment variables
 	$self->add_path( 'perl', 'bin' );
@@ -607,7 +605,7 @@ sub install_perl_5100 {
 	$self->_set_toolchain($toolchain);
 
 	# Make the perl directory if it hasn't been made already.
-	$self->make_path( $self->_dir( 'perl' ) );
+	$self->make_path( $self->_dir('perl') );
 
 	# Install the main binary
 	$self->install_perl_bin(
@@ -660,7 +658,7 @@ sub install_perl_5101 {
 	$self->_set_toolchain($toolchain);
 
 	# Make the perl directory if it hasn't been made already.
-	$self->_make_path( $self->_dir( 'perl' ) );
+	$self->_make_path( $self->_dir('perl') );
 
 	# Install the main binary
 	$self->install_perl_bin(
@@ -711,7 +709,7 @@ sub install_perl_git {
 	$self->_set_toolchain($toolchain);
 
 	# Make the perl directory if it hasn't been made already.
-	$self->_make_path( $self->_dir( 'perl' ) );
+	$self->_make_path( $self->_dir('perl') );
 
 	my $checkout = $self->git_checkout();
 

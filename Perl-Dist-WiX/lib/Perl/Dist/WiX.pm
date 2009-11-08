@@ -148,9 +148,7 @@ has '_icons' => (
 	isa      => 'Maybe[Perl::Dist::WiX::IconArray]',
 	writer   => '_set_icons',
 	init_arg => undef,
-	handles  => {
-		'icons_string' => 'as_string',
-	},
+	handles  => { 'icons_string' => 'as_string', },
 );
 
 
@@ -256,9 +254,10 @@ sub _build_filters {
 # TODO: Document get_fragment_object and fragment_exists.
 
 has '_fragments' => (
-	traits   => ['Hash'],
-	is       => 'ro',
-	isa      => 'HashRef[WiX3::XML::Role::Fragment]', # Needs to be Perl::Dist::WiX::Role::Fragment
+	traits => ['Hash'],
+	is     => 'ro',
+	isa    => 'HashRef[WiX3::XML::Role::Fragment]'
+	,                                  # Needs to be Perl::Dist::WiX::Role::Fragment
 	default  => sub { return {} },
 	init_arg => undef,
 	handles  => {
@@ -1032,7 +1031,7 @@ has 'license_dir' => (
 sub _build_license_dir {
 	my $self = shift;
 
-	my $dir = $self->_dir( 'licenses' );
+	my $dir = $self->_dir('licenses');
 	$self->_remake_path($dir);
 	return $dir;
 }
@@ -2410,7 +2409,7 @@ EOF
 
 	# Making sure that this is set.
 	$self->_set_in_merge_module(1);
-	
+
 	## no critic(ProtectPrivateSubs)
 	# Set element collections
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
@@ -2445,9 +2444,9 @@ EOF
 		File::Remove::remove( \1, $par_temp );
 	}
 
-	my @directories_to_make = ( $self->_dir( 'cpan' ), );
+	my @directories_to_make = ( $self->_dir('cpan'), );
 
-	push @directories_to_make, $self->_dir( 'cpanplus' )
+	push @directories_to_make, $self->_dir('cpanplus')
 	  if ( '589' ne $self->perl_version() );
 
 	# Initialize the build
@@ -2543,8 +2542,7 @@ sub install_portable {
 	$self->trace_line( 1, "Creating Portable::Dist\n" );
 	require Portable::Dist;
 	$self->_set_portable_dist(
-		Portable::Dist->new(
-			perl_root => $self->_dir( 'perl' ) ) );
+		Portable::Dist->new( perl_root => $self->_dir('perl') ) );
 	$self->trace_line( 1, "Running Portable::Dist\n" );
 	$self->_portable_dist()->run();
 	$self->trace_line( 1, "Completed Portable::Dist\n" );
@@ -2579,7 +2577,7 @@ and launchers into the Start menu.
 sub install_win32_extras {
 	my $self = shift;
 
-	File::Path::mkpath( $self->_dir( 'win32' ) );
+	File::Path::mkpath( $self->_dir('win32') );
 
 	# TODO: Delete next two statements.
 #	my $perldir = $self->_directories()->search_dir(
@@ -2708,13 +2706,12 @@ files until their regenerate() routines are run.
 sub regenerate_fragments {
 	my $self = shift;
 
-	return 1 unless $self->msi;
+	return 1 unless $self->msi();
 
 	# Add the perllocal.pod here, because apparently it's disappearing.
 	if ( $self->fragment_exists('perl') ) {
 		$self->add_to_fragment( 'perl',
-			[ $self->_file( perl lib perllocal.pod ) ]
-		);
+			[ $self->_file(qw(perl lib perllocal.pod)) ] );
 	}
 
 	my @fragment_names_regenerate;
@@ -2751,13 +2748,13 @@ sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	my $self = shift;
 
 	if ( $self->zip() ) {
-		$self->add_output_files($self->_write_zip());
+		$self->add_output_files( $self->_write_zip() );
 	}
 	if ( $self->msi() ) {
 		$self->add_output_files( $self->_write_msi() );
 	}
 	return 1;
-} ## end sub write
+}
 
 =head3 write_merge_module
 
@@ -2776,7 +2773,8 @@ sub write_merge_module {
 		# Save off the contents of the image directory so that
 		# they can be used later without having to rebuild the
 		# whole distribution.
-		my $file_out = catfile( $self->output_dir(),
+		my $file_out =
+		  catfile( $self->output_dir(),
 			$self->output_base_filename() . '.msm-contents.zip' );
 
 		rename $self->_write_zip(), $file_out
@@ -2854,7 +2852,7 @@ sub write_merge_module {
 		);
 		$self->_add_merge_module( 'Perl', $mm );
 		$self->_directories()->add_merge_module( $self->image_dir(), $mm );
-	} ## end if ( $self->msi )
+	} ## end if ( $self->msi() )
 
 	return 1;
 } ## end sub write_merge_module
@@ -2951,7 +2949,7 @@ TODO
 sub add_path {
 	my $self = shift;
 	my @path = @_;
-	my $dir  = $self->_dir( @path );
+	my $dir  = $self->_dir(@path);
 	unless ( -d $dir ) {
 		PDWiX->throw("PATH directory $dir does not exist");
 	}
@@ -2968,8 +2966,7 @@ TODO
 sub get_path_string {
 	my $self = shift;
 	return join q{;},
-	  map { $self->_dir( @{$_} ) }
-	  $self->_get_env_path_unchecked();
+	  map { $self->_dir( @{$_} ) } $self->_get_env_path_unchecked();
 }
 
 =head2 _compile_wxs($filename, $wixobj)
@@ -3171,7 +3168,7 @@ sub _write_msi {
 	}
 
 	return $output_msi;
-} ## end sub write_msi
+} ## end sub _write_msi
 
 =pod
 

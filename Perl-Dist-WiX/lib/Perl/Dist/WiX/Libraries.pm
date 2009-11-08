@@ -143,8 +143,7 @@ sub install_gcc_toolchain {
 
 	$self->insert_fragment( 'gcc_toolchain', $filelist );
 
-	$self->_set_bin_dlltool(
-		$self->_file( 'c', 'bin', 'dlltool.exe' ) );
+	$self->_set_bin_dlltool( $self->_file( 'c', 'bin', 'dlltool.exe' ) );
 	unless ( -x $self->bin_dlltool() ) {
 		PDWiX->throw(q{Can't execute dlltool});
 	}
@@ -188,8 +187,7 @@ sub install_dmake {
 	);
 
 	# Initialize the make location
-	$self->_set_bin_make(
-		$self->_file( 'c', 'bin', 'dmake.exe' ) );
+	$self->_set_bin_make( $self->_file( 'c', 'bin', 'dmake.exe' ) );
 	unless ( -x $self->bin_make() ) {
 		PDWiX->throw(q{Can't execute make});
 	}
@@ -224,8 +222,7 @@ sub install_pexports {
 		license    => { 'pexports-0.43/COPYING' => 'pexports/COPYING', },
 		install_to => { 'pexports-0.43/bin' => 'c/bin', },
 	);
-	$self->_set_bin_pexports(
-		$self->_file( 'c', 'bin', 'pexports.exe' ) );
+	$self->_set_bin_pexports( $self->_file( 'c', 'bin', 'pexports.exe' ) );
 	unless ( -x $self->bin_pexports() ) {
 		PDWiX->throw(q{Can't execute pexports});
 	}

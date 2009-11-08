@@ -96,8 +96,8 @@ sub install {
 	my $filelist_sub;
 
 	if ( not $self->_get_packlist() ) {
-		$filelist_sub = File::List::Object->new->readdir(
-			$self->_dir( 'perl' ) );
+		$filelist_sub =
+		  File::List::Object->new->readdir( $self->_dir('perl') );
 		$self->_trace_line( 5,
 			    "***** Module being installed $module"
 			  . " requires packlist => 0 *****\n" );

@@ -94,7 +94,7 @@ sub install {
 	# Copy in licenses
 	my $licenses = $self->_get_license();
 	if ( defined $licenses ) {
-		my $license_dir = $self->_dir( 'licenses' );
+		my $license_dir = $self->_dir('licenses');
 		push @files,
 		  $self->_extract_filemap( $tgz, $licenses, $license_dir, 1 );
 	}

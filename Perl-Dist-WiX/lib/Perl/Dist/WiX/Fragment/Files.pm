@@ -58,7 +58,7 @@ has feature => (
 
 sub _build_feature {
 	my $self = shift;
-	if (not $self->in_merge_module()) {
+	if ( not $self->in_merge_module() ) {
 		my $feat = WiX3::XML::Feature->new(
 			id      => $self->get_id(),
 			level   => 1,
@@ -69,7 +69,7 @@ sub _build_feature {
 	} else {
 		return undef;
 	}
-}
+} ## end sub _build_feature
 
 has can_overwrite => (
 	is      => 'ro',
@@ -338,15 +338,17 @@ sub _add_file_component {
 	$component_id =~ s{/}{-}ms;
 
 	my @feature_param = ();
-	
-	if (defined $self->_get_feature()) {
-		@feature_param = ( feature => 'Feat_' . $self->_get_feature()->get_id() );
+
+	if ( defined $self->_get_feature() ) {
+		@feature_param =
+		  ( feature => 'Feat_' . $self->_get_feature()->get_id() );
 	}
-	
+
 	my $component = WiX3::XML::Component->new(
-		path    => $file,
-		id      => $component_id,
-		@feature_param );
+		path => $file,
+		id   => $component_id,
+		@feature_param
+	);
 	my $file_obj;
 
 	# If the file is a .dll or .exe file, check for a version.
