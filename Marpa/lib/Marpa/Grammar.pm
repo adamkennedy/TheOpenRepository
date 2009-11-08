@@ -462,7 +462,7 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::TRACING]         = 0;
     $grammar->[Marpa::Internal::Grammar::STRIP]           = 1;
     $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL]    = 0;
-    $grammar->[Marpa::Internal::Grammar::PARSE_ORDER]     = 'original';
+    $grammar->[Marpa::Internal::Grammar::PARSE_ORDER]     = 'numeric';
     $grammar->[Marpa::Internal::Grammar::WARNINGS]        = 1;
     $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK] = {};
     $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK] = {};
