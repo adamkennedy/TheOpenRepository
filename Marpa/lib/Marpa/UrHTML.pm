@@ -17,11 +17,104 @@ package Marpa::UrHTML::Internal;
 
 use Marpa::Internal;
 
+# Convert a list of text descriptions to text
+sub tdesc_to_text {
+    my ( $self, $tdesc_list ) = @_;
+    my $text;
+    my $tokens     = $self->{tokens};
+    my $doc     = $self->{doc};
+    TDESC: for my $tdesc ( map { @{$_} } @{$tdesc_list} ) {
+        my $ref_type = ref $tdesc;
+        if ( not $ref_type or $ref_type ne 'ARRAY' ) {
+            $text .= $tdesc;
+            next TDESC;
+        }
+        given ( $tdesc->[0] ) {
+            when ('ELE') {
+                my ( $first_token_id, $last_token_id, $value_ref ) =
+                    @{$tdesc}[ 1 .. $#{$tdesc} ];
+                if (    defined $value_ref
+                    and defined( my $value = ${$value_ref} ) )
+                {
+                    $text .= $value;
+                    break;    # next TDESC;
+                } ## end if ( defined $value_ref and defined( my $value = ${...}))
+                my $offset     = $tokens->[$first_token_id]->[1];
+                my $end_offset = $tokens->[$last_token_id]->[2];
+                $text .= \( substr $doc, $offset,
+                    $end_offset - $offset );
+            } ## end when ('ELE')
+            when ('TOKEN_SPAN') {
+                my ( $first_token_id, $last_token_id ) = @{$tdesc}[ 1, 2 ];
+                my $offset     = $tokens->[$first_token_id]->[1];
+                my $end_offset = $tokens->[$last_token_id]->[2];
+                $text .= \( substr $doc, $offset,
+                    $end_offset - $offset );
+            } ## end when ('TOKEN_SPAN')
+            default {
+                ( $offset, $end_offset ) = @{$tdesc}[ 1, 2 ];
+                $text .= \( substr $doc, $offset,
+                    $end_offset - $offset );
+            }
+        } ## end given
+    } ## end for my $tdesc ( map { @{$_} } @{$tdesc_list} )
+    return \$text;
+} ## end sub tdesc_to_text
+
+# Convert a list of text descriptions to a
+# single, shortened text description
+sub tdesc_to_tdesc {
+    my ( $self, $tdesc_list ) = @_;
+    my $text;
+    my $tokens     = $self->{tokens};
+    my $doc     = $self->{doc};
+    my @tdesc_result = ();
+
+    my $last_token;
+    TDESC: for my $tdesc ( map { @{$_} } @{$tdesc_list} ) {
+        my $ref_type = ref $tdesc;
+        if ( $ref_type ne 'ARRAY' ) {
+            push @tdesc_result, $tdesc;
+            $last_token = undef;
+            next TDESC;
+        }
+        given ( $tdesc->[0] ) {
+            when ('ELE') {
+                my ( $first_token_id, $last_token_id, $value_ref ) =
+                    @{$tdesc}[ 1 .. $#{$tdesc} ];
+                if (    defined $value_ref
+                    and defined( my $value = ${$value_ref} ) )
+                {
+                    push @tdesc_result, $tdesc;
+                    break;    # next TDESC;
+                } ## end if ( defined $value_ref and defined( my $value = ${...}))
+                my $offset     = $tokens->[$first_token_id]->[1];
+                my $end_offset = $tokens->[$last_token_id]->[2];
+                $text .= \( substr $doc, $offset,
+                    $end_offset - $offset );
+            } ## end when ('ELE')
+            when ('TOKEN_SPAN') {
+                my ( $first_token_id, $last_token_id ) = @{$tdesc}[ 1, 2 ];
+                my $offset     = $tokens->[$first_token_id]->[1];
+                my $end_offset = $tokens->[$last_token_id]->[2];
+                $text .= \( substr $doc, $offset,
+                    $end_offset - $offset );
+            } ## end when ('TOKEN_SPAN')
+            default {
+                ( $offset, $end_offset ) = @{$tdesc}[ 1, 2 ];
+                $text .= \( substr $doc, $offset,
+                    $end_offset - $offset );
+            }
+        } ## end given
+    } ## end for my $tdesc ( map { @{$_} } @{$tdesc_list} )
+    return \$text;
+} ## end sub tdesc_to_text
+
 my %ARGS = (
-    start       => q{'S',offset,offset_end,tagname,attr,attrseq,text},
-    end         => q{'E',offset,offset_end,tagname,text},
+    start       => q{'S',offset,offset_end,text,tagname},
+    end         => q{'E',offset,offset_end,text,tagname},
     text        => q{'T',offset,offset_end,text,is_cdata},
-    process     => q{'PI',offset,offset_end,token0,text},
+    process     => q{'PI',offset,offset_end,text},
     comment     => q{'C',offset,offset_end,text},
     declaration => q{'D',offset,offset_end,text},
 
@@ -34,22 +127,19 @@ sub Marpa::UrHTML::new {
     my $class = shift;
     my $self = bless {}, $class;
 
-    my %cnf;
-    if ( @_ == 1 ) {
-        Carp::croak('Document is not ref to string')
-            if ref $_[0] ne 'SCALAR';
-        %cnf = ( doc => $_[0] );
-    }
-    else {
-        %cnf = @_;
-    }
+    Marpa::exception(
+        'Arg to ' . __PACKAGE__ . '::new must be ref to string' )
+        if @_ != 1;
 
-    my $textify = delete $cnf{textify} || { img => 'alt', applet => 'alt' };
+    my %pull_parser_args;
+    $pull_parser_args{doc} = $self->{doc} = $_[0];
 
-    $self->{pull_parser} = HTML::PullParser->new( %cnf, %ARGS )
+    # my $textify = delete $cnf{textify} || { img => 'alt', applet => 'alt' };
+
+    $self->{pull_parser} = HTML::PullParser->new( %pull_parser_args, %ARGS )
         || Carp::croak('Could not create pull parser');
 
-    $self->{textify} = $textify;
+    # $self->{textify} = $textify;
     return $self;
 } ## end sub Marpa::UrHTML::new
 ## use critic
@@ -149,7 +239,7 @@ sub Marpa::UrHTML::evaluate {
                     ];
             } ## end when ('T')
             when ('S') {
-                my ( $offset, $offset_end, $tag_name, $attr, $attrseq, $text )
+                my ( $offset, $offset_end, $text, $tag_name )
                     = @{$token};
                 $start_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
@@ -158,7 +248,7 @@ sub Marpa::UrHTML::evaluate {
                     [ $terminal, $text ];
             } ## end when ('S')
             when ('E') {
-                my ( $offset, $offset_end, $tag_name, $text ) = @{$token};
+                my ( $offset, $offset_end, $text, $tag_name) = @{$token};
                 $end_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
                 $terminals{$terminal}++;
@@ -171,7 +261,7 @@ sub Marpa::UrHTML::evaluate {
                     [ $_, $text ];
             }
             when ( ['PI'] ) {
-                my ( $offset, $offset_end, $token0, $text ) = @{$token};
+                my ( $offset, $offset_end, $text ) = @{$token};
                 push @tokens,
                     [ $_, $text ];
             }

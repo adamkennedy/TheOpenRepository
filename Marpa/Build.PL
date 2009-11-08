@@ -91,6 +91,7 @@ my $build = $class->new(
     license            => 'perl',
     create_readme      => 0,
     create_makefile_pl => 'small',
+    test_files => [ map { glob $_ } qw(t/*.t t/*/*.t) ],
 );
 
 $build->create_build_script;
