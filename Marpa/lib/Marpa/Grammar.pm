@@ -2065,12 +2065,12 @@ sub add_user_rule {
         );
     } ## end if ( defined $separator and not $proper_separation )
 
-    my @separated_rhs = ($sequence_item);
-    if ( defined $separator ) {
-        push @separated_rhs, $separator;
-    }
+    my @separated_rhs =
+        defined $separator
+        ? ( $separator, $sequence_item )
+        : ($sequence_item);
 
-    my $counted_rhs = [ (@separated_rhs) x ( $min - 1 ), $sequence_item ];
+    my $counted_rhs = [ $sequence_item, (@separated_rhs) x ( $min - 1 ) ];
 
     # Minimal sequence rule
     add_rule(
@@ -2084,7 +2084,7 @@ sub add_user_rule {
     );
 
     # iterating sequence rule
-    my @iterating_rhs = ( @separated_rhs, $sequence );
+    my @iterating_rhs = ( $sequence, @separated_rhs );
     add_rule(
         {   grammar           => $grammar,
             lhs               => $sequence,
