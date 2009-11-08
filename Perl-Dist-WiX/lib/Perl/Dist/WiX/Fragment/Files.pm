@@ -120,8 +120,6 @@ sub _add_file_to_fragment {
 	my ( $volume, $dirs, $file ) = splitpath( $file_path, 0 );
 	my $path_to_find = catdir( $volume, $dirs );
 
-# TODO: Wait until feature tags working right.
-#	my @child_tags = $self->_get_feature()->get_child_tags();
 	my @child_tags       = $self->get_child_tags();
 	my $child_tags_count = scalar @child_tags;
 
@@ -175,7 +173,7 @@ sub _add_file_to_fragment {
 	if ( defined $directory_step2 ) {
 
 		my $directory_ref_step2 =
-		  Perl::Dist::WiX::DirectoryRef->new(
+		  Perl::Dist::WiX::Tag::DirectoryRef->new(
 			directory_object => $directory_step2 );
 
 		$self->add_child_tag($directory_ref_step2);
@@ -239,11 +237,9 @@ sub _add_file_to_fragment {
 	if ( defined $directory_step4 ) {
 
 		my $directory_ref_step4 =
-		  Perl::Dist::WiX::DirectoryRef->new(
+		  Perl::Dist::WiX::Tag::DirectoryRef->new(
 			directory_object => $directory_step4 );
 
-# TODO: Wait until feature tags work right.
-#		$self->_get_feature()->add_child_tag($directory_ref_step4);
 		$self->add_child_tag($directory_ref_step4);
 		( $directory_final, @fragment_ids ) =
 		  $self->_add_directory_recursive( $directory_ref_step4,

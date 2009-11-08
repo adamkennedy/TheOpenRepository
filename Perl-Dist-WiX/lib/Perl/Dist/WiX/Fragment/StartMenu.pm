@@ -14,14 +14,15 @@ use MooseX::Types::Moose qw( Str Bool );
 use WiX3::Exceptions;
 require Perl::Dist::WiX::IconArray;
 require Perl::Dist::WiX::DirectoryTree2;
+require Perl::Dist::WiX::Tag::DirectoryRef;
 require WiX3::XML::Component;
 require WiX3::XML::CreateFolder;
 require WiX3::XML::RemoveFolder;
 require WiX3::XML::DirectoryRef;
 require WiX3::XML::Shortcut;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
 
@@ -41,7 +42,7 @@ has directory_id => (
 
 has root => (
 	is       => 'ro',
-	isa      => 'Perl::Dist::WiX::DirectoryRef',
+	isa      => 'Perl::Dist::WiX::Tag::DirectoryRef',
 	init_arg => undef,
 	lazy     => 1,
 	builder  => '_build_root',
@@ -90,7 +91,7 @@ sub _build_root {
 	);
 	my $remove_component =
 	  WiX3::XML::Component->new( id => 'RemoveStartMenuFolder', );
-	my $root = Perl::Dist::WiX::DirectoryRef->new($directory);
+	my $root = Perl::Dist::WiX::Tag::DirectoryRef->new($directory);
 
 	$remove_component->add_child_tag($remove);
 	$root->add_child_tag($remove_component);

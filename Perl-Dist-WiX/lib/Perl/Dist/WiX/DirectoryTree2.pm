@@ -234,9 +234,6 @@ sub add_root_directory {
 	return $branch->add_directories_id( $id, $dir );
 }
 
-no Moose;
-__PACKAGE__->meta->make_immutable;
-
 sub add_merge_module {
 	my $self = shift;
 	my $dir  = shift;
@@ -247,15 +244,18 @@ sub add_merge_module {
 		PDWiX->throw("Could not find object for directory $dir");
 	}
 
-	if ( not defined _INSTANCE( $mm, 'Perl::Dist::WiX::MergeModule' ) ) {
+	if ( not defined _INSTANCE( $mm, 'Perl::Dist::WiX::Tag::MergeModule' ) ) {
 		PDWiX->throw(
-			'Second parameter not Perl::Dist::WiX::MergeModule object');
+			'Second parameter not Perl::Dist::WiX::Tag::MergeModule object');
 	}
 
 	$directory_object->add_child_tag($mm);
 
 	return;
 } ## end sub add_merge_module
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 
 1;
 
