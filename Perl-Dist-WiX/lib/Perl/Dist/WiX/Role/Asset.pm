@@ -59,7 +59,7 @@ has parent => (
 );
 
 has url => (
-	is       => 'rw',
+	is       => 'bare',
 	isa      => Str,
 	reader   => '_get_url',
 	writer   => '_set_url',
@@ -67,7 +67,7 @@ has url => (
 );
 
 has file => (
-	is       => 'ro',
+	is       => 'bare',
 	isa      => Str,
 	reader   => '_get_file',
 	required => 1,
@@ -157,7 +157,6 @@ sub BUILDARGS {
 
 sub cpan {
 
-	# TODO: Throw error.
 	WiX3::Exception::Unimplemented->throw(
 		'Perl::Dist::WiX::Role::Asset->cpan');
 
@@ -235,3 +234,88 @@ EOF
 
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Role::Asset - Role for assets.
+
+=head1 SYNOPSIS
+
+	# Since this is a role, it is composed into classes that use it.
+  
+=head1 DESCRIPTION
+
+B<Perl::Dist::WiX::Role::Asset> is a role that provides methods,
+attributes, and error checking for assets to be installed in a 
+L<Perl::Dist::WiX>-based Perl distribution.
+
+=head1 ATTRIBUTES
+
+Attributes of this role also become parameters to the new() constructor for 
+classes that use this role.
+
+=head2 parent
+
+This is the L<Perl::Dist::WiX> object that uses an asset object that uses 
+this role.  The Perl::Dist::WiX object handles a number of private methods 
+for the asset object.
+
+It is required, and has no default, so an error will be thrown if it is not 
+given.
+
+=head2 url
+
+This attribute is the location on the Internet of the thing the asset 
+installs.
+
+=head2 file
+
+This attribute is the location of the file the asset installs. This could be 
+an archive containing multiple files to install.
+
+=head1 METHODS
+
+=head2 cpan
+
+The C<cpan> routine is a stub, as it is not used, and will throw an error.
+
+It will be removed in the future.
+
+=head2 install
+
+This role requires that classes that use it implement an C<install> method
+that installs the asset.
+
+It does not provide the method itself.
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Asset>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2009 Curtis Jewell.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

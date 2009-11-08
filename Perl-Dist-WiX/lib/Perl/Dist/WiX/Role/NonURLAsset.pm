@@ -63,7 +63,10 @@ requires 'install';
 
 sub cpan {
 
-	# Throw error.
+	WiX3::Exception::Unimplemented->throw(
+		'Perl::Dist::WiX::Role::Asset->cpan');
+
+	return;
 }
 
 sub _search_packlist {
@@ -136,3 +139,78 @@ EOF
 } ## end sub _search_packlist
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Role::NonURLAsset - Role for assets that do not require URL's.
+
+=head1 SYNOPSIS
+
+	# Since this is a role, it is composed into classes that use it.
+  
+=head1 DESCRIPTION
+
+B<Perl::Dist::WiX::Role::NonURLAsset> is a role that provides methods,
+attributes, and error checking for assets to be installed in a 
+L<Perl::Dist::WiX>-based Perl distribution.
+
+=head1 ATTRIBUTES
+
+Attributes of this role also become parameters to the new() constructor for 
+classes that use this role.
+
+=head2 parent
+
+This is the L<Perl::Dist::WiX> object that uses an asset object that uses 
+this role.  The Perl::Dist::WiX object handles a number of private methods 
+for the asset object.
+
+It is required, and has no default, so an error will be thrown if it is not 
+given.
+
+=head1 METHODS
+
+=head2 cpan
+
+The C<cpan> routine is a stub, as it is not used, and will throw an error.
+
+It will be removed in the future.
+
+=head2 install
+
+This role requires that classes that use it implement an C<install> method
+that installs the asset.
+
+It does not provide the method itself.
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Asset>, L<Perl::Dist::WiX::Role::Asset>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2009 Curtis Jewell.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

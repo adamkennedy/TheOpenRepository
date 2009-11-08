@@ -111,23 +111,29 @@ entire destination path (including file name).
 The C<new> constructor returns a B<Perl::Dist::Asset::WiX::File> object,
 or throws an exception (dies) if an invalid param is provided.
 
+=head2 install
+
+The C<install> method installs the file in the specified place.
+
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 
 For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
 L<Perl::Dist::WiX>, L<Perl::Dist::Asset>
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2009 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 

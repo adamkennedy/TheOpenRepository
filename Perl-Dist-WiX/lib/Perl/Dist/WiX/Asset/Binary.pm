@@ -97,47 +97,33 @@ Perl::Dist::WiX::Asset::Binary - "Binary Package" asset for a Win32 Perl
           'dmake/startup'   => 'c/bin/startup',
       },
   );
-
-TODO: NEEDS UPDATING AFTER THIS POINT
   
 =head1 DESCRIPTION
 
-B<Perl::Dist::Asset::Binary> is a data class that provides encapsulation
+B<Perl::Dist::WiX::Asset::Binary> is a data class that provides encapsulation
 and error checking for a "binary package" to be installed in a
-L<Perl::Dist>-based Perl distribution.
+L<Perl::Dist::WiX>-based Perl distribution.
 
-It is normally created on the fly by the <Perl::Dist::Inno> C<install_binary>
-method (and other things that call it).
+It is normally created on the fly by the L<Perl::Dist::WiX::Installation> 
+C<install_binary> method (and other things that call it).
 
 These packages will be simple zip or tar.gz files that are local files,
 installed in a CPAN distribution's 'share' directory, or retrieved from
 the internet via a URI.
 
 The specification of the location to retrieve the package is done via
-the standard mechanism implemented in L<Perl::Dist::Asset>.
+the standard mechanism implemented in L<Perl::Dist::WiX::Asset>.
 
 =head1 METHODS
 
-This class inherits from L<Perl::Dist::Asset> and shares its API.
-
-=cut
-
-
-
-
-
-
-#####################################################################
-# Constructor and Accessors
-
-=pod
+This class inherits from L<Perl::Dist::WiX::Asset> and shares its API.
 
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::Asset::Binary> object.
+and returns a new B<Perl::Dist::WiX::Asset::Binary> object.
 
-It inherits all the params described in the L<Perl::Dist::Asset> C<new>
+It inherits all the params described in the L<Perl::Dist::WiX::Asset> C<new>
 method documentation, and adds some additional params.
 
 =over 4
@@ -172,7 +158,7 @@ desired, and the values are the names of the file or directory in the
 final Perl installation.
 
 Although this param does not default when called directly, in practice
-the L<Perl::Dist::Inno> C<install_binary> method will default this value
+the L<Perl::Dist::WiX> C<install_binary> method will default this value
 to "c", as most binary installations are for C toolchain tools or 
 pre-compiled C libraries.
 
@@ -181,28 +167,29 @@ pre-compiled C libraries.
 The C<new> constructor returns a B<Perl::Dist::Asset::Binary> object,
 or throws an exception (dies) if an invalid param is provided.
 
-=cut
+=head2 install
 
-
-=pod
+The C<install> method extracts and installs the archive file.
 
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
 
 For other issues, contact the author.
 
 =head1 AUTHOR
 
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist>, L<Perl::Dist::Inno>, L<Perl::Dist::Asset>
+L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Asset>
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2009 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 

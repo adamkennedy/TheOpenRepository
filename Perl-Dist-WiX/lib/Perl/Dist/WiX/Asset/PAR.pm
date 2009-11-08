@@ -35,7 +35,7 @@ sub install {
 	my $io = IO::String->new($output);
 	my $packlist;
 
-	# When $saved goes out of context, STDOUT will be restored.
+	# When $saved goes out of scope, STDOUT will be restored.
 	{
 		my $saved = SelectSaver->new($io);
 
@@ -181,6 +181,10 @@ the primary Perl module in the package.
 The C<new> constructor returns a B<Perl::Dist::WiX::Asset::PAR> object,
 or throws an exception (dies) if an invalid param is provided.
 
+=head2 install
+
+The C<install> method installs the retrieved .par file.
+
 =head1 PAR FILE FORMAT EXTENSIONS
 
 This concerns packagers of .par binaries only.
@@ -208,7 +212,7 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist>, L<Perl::Dist::Inno>, L<Perl::Dist::Asset>
+L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Asset>
 
 =head1 COPYRIGHT AND LICENSE
 

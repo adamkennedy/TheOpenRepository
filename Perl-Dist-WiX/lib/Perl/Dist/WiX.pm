@@ -2262,8 +2262,6 @@ Returns the array of <Component Id>'s required.
 See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm>, 
 L<http://wix.sourceforge.net/manual-wix3/wix_xsd_componentref.htm>
 
-=back
-
 =cut
 
 sub get_component_array {
