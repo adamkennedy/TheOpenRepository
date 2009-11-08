@@ -1,12 +1,12 @@
-package Perl::Dist::WiX::DirectoryRef;
+package Perl::Dist::WiX::Tag::DirectoryRef;
 
 #####################################################################
-# Perl::Dist::WiX::DirectoryRef - Extends <Directory> tags to make them
+# Perl::Dist::WiX::Tag::DirectoryRef - Extends <DirectoryRef> tags to make them
 # easily searchable.
 #
 # Copyright 2009 Curtis Jewell
 #
-# License is the same as perl. See Wix.pm for details.
+# License is the same as perl. See WiX.pm for details.
 #
 
 use 5.008001;
@@ -14,9 +14,10 @@ use Moose;
 use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catdir abs2rel );
 use Params::Util qw( _STRING _INSTANCE );
+require Perl::Dist::WiX::Tag::Directory;
 
-our $VERSION = '1.100';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.100_001';
+$VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::DirectoryRef';
 
@@ -32,7 +33,7 @@ sub get_directory_object {
   SUBDIRECTORY:
 	foreach my $object ( $self->get_child_tags() ) {
 		next SUBDIRECTORY
-		  if not _INSTANCE( $object, 'Perl::Dist::WiX::Directory' );
+		  if not _INSTANCE( $object, 'Perl::Dist::WiX::Tag::Directory' );
 		$return = $object->get_directory_object($id);
 		return $return if defined $return;
 	}
@@ -58,22 +59,18 @@ sub search_dir {
 	my $path_to_find = _STRING( $args{'path_to_find'} )
 	  || PDWiX::Parameter->throw(
 		parameter => 'path_to_find',
-		where     => '::Directory->search_dir'
+		where     => '::DirectoryRef->search_dir'
 	  );
 	my $descend = $args{descend} || 1;
 	my $exact   = $args{exact}   || 0;
 	my $path    = $self->get_path();
 
-#	print "Path problem\n" unless defined $path;
 	return undef unless defined $path;
 
 # TODO: Make trace_line work.
 #	$self->trace_line( 3, "Looking for $path_to_find\n" );
 #	$self->trace_line( 4, "  in:      $path.\n" );
 #	$self->trace_line( 5, "  descend: $descend exact: $exact.\n" );
-#print "Looking for $path_to_find\n" ;
-#print "  in:      $path.\n" ;
-#print "  descend: $descend exact: $exact.\n" ;
 
 	# If we're at the correct path, exit with success!
 	if ( ( defined $path ) && ( $path_to_find eq $path ) ) {
@@ -92,8 +89,6 @@ sub search_dir {
 
 #		$self->trace_line( 4, "Not a subset in: $path.\n" );
 #		$self->trace_line( 5, "  To find: $path_to_find.\n" );
-#print "Not a subset in: $path.\n" ;
-#print "  To find: $path_to_find.\n" ;
 		return undef;
 	}
 
@@ -101,16 +96,12 @@ sub search_dir {
 	my @tags = $self->get_child_tags();
 	my $answer;
 
-#	print "** Number of child tags: " . scalar @tags . "\n";
-
   TAG:
 	foreach my $tag (@tags) {
-		next TAG unless $tag->isa('Perl::Dist::WiX::Directory');
+		next TAG unless $tag->isa('Perl::Dist::WiX::Tag::Directory');
 
 		my $x = ref $tag;
 		my $y = $tag->get_path();
-
-#		print "Searching in a $x containing $y for $path_to_find\n";
 
 		$answer = $tag->search_dir( \%args );
 		if ( defined $answer ) {
@@ -162,7 +153,7 @@ sub _add_directory_recursive {
 sub add_directory {
 	my $self = shift;
 
-	my $new_dir = Perl::Dist::WiX::Directory->new(
+	my $new_dir = Perl::Dist::WiX::Tag::Directory->new(
 		parent => $self,
 		@_
 	);

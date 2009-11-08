@@ -1,8 +1,7 @@
-package Perl::Dist::WiX::MergeModule;
+package Perl::Dist::WiX::Tag::MergeModule;
 
 ####################################################################
-# Perl::Dist::WiX::MergeModule - <Merge> tag that can create a MergeRef if needed.
-#
+# Perl::Dist::WiX::Tag::MergeModule - <Merge> tag that can create a MergeRef if needed.
 #
 # Copyright 2009 Curtis Jewell
 #
@@ -41,5 +40,4 @@ no Moose;
 __PACKAGE__->meta->make_immutable;
 
 1;
-
 

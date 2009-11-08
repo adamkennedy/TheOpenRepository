@@ -1,7 +1,7 @@
-package Perl::Dist::WiX::Directory;
+package Perl::Dist::WiX::Tag::Directory;
 
 #####################################################################
-# Perl::Dist::WiX::Directory - Extends <Directory> tags to make them
+# Perl::Dist::WiX::Tag::Directory - Extends <Directory> tags to make them
 # easily searchable.
 #
 # Copyright 2009 Curtis Jewell
