@@ -172,7 +172,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Evaluator;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -3412,7 +3412,7 @@ node appears more than once on the path back to the root node.
                     } @descendant_or_node_ids;
                 } ## end while ( scalar @work_list )
 
-                #### FREEZE_TREE, and-node id, choice or_map: $and_node_id, $or_map
+                #### FREEZE_TREE, and-node id: $and_node_id
 
                 my @or_values  = @{$or_iterations}[@or_slice];
                 my @and_values = @{$and_iterations}[@and_slice];
