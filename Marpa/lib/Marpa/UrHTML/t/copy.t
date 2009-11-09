@@ -20,8 +20,7 @@ use Marpa::UrHTML;
 
 my $document = do { local $RS = undef; open my $fh, q{<:utf8}, 'lib/Marpa/UrHTML/t/test.html'; <$fh> };
 
-my $p = Marpa::UrHTML->new();
-$p->document( \$document );
-my $value = $p->value();
+my $p     = Marpa::UrHTML->new();
+my $value = $p->parse( \$document );
 
 Test::More::is(${${$value}}, $document, 'Straight copy using defaults');

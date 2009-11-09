@@ -20,134 +20,145 @@ package Marpa::UrHTML::Internal;
 use Marpa::Internal;
 
 # Convert a list of text descriptions to text
-sub Marpa::UrHTML::Internal::Action::tdesc_to_text {
-    my ( $dummy, @tdesc_list ) = @_;
-    my $text = '';
-    my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    my $tokens     = $self->{tokens};
-    my $document     = $self->{document};
-    TDESC: for my $tdesc ( map { @{$_} } @tdesc_list ) {
-        my $ref_type = ref $tdesc;
-        if ( not $ref_type or $ref_type ne 'ARRAY' ) {
-            $text .= $tdesc;
-            next TDESC;
-        }
-        given ( $tdesc->[0] ) {
-            when ('ELE') {
-                my ( $first_token_id, $last_token_id, $value_ref ) =
-                    @{$tdesc}[ 1 .. $#{$tdesc} ];
-                if (    defined $value_ref
-                    and defined( my $value = ${$value_ref} ) )
-                {
-                    $text .= $value;
-                    break;    # next TDESC;
-                } ## end if ( defined $value_ref and defined( my $value = ${...}))
-                my $offset     = $tokens->[$first_token_id]->[1];
-                my $end_offset = $tokens->[$last_token_id]->[2];
-                $text .= substr ${$document}, $offset, ($end_offset - $offset);
-            } ## end when ('ELE')
-            when ('TOKEN_SPAN') {
-                my ( $first_token_id, $last_token_id ) = @{$tdesc}[ 1, 2 ];
-                my $offset     = $tokens->[$first_token_id]->[1];
-                my $end_offset = $tokens->[$last_token_id]->[2];
-                $text .= substr ${$document}, $offset, $end_offset - $offset;
-            } ## end when ('TOKEN_SPAN')
-            default {
-                my ( $offset, $end_offset ) = @{$tdesc}[ 1, 2 ];
-                $text .= substr ${$document}, $offset, $end_offset - $offset;
-            }
-        } ## end given
-    } ## end for my $tdesc ( map { @{$_} } @{$tdesc_list} )
-    return \$text;
-} ## end sub tdesc_to_text
-
-# Convert a list of text descriptions to a
-# single, shortened text description
-sub Marpa::UrHTML::Internal::Action::tdesc_to_tdesc {
-    my ( $dummy, @tdesc_list ) = @_;
-    my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    my $text;
-    my $tokens       = $self->{tokens};
-    my $doc          = $self->{doc};
-    my @tdesc_result = ();
-
-
-    my $last_token;
-    my $first_token_id_in_current_span;
-    my $last_token_id_in_current_span;
-    TDESC: for my $tdesc ( ( map { @{$_} } @tdesc_list ), ['FINAL'] ) {
-
-        my $next_tdesc;
-        my $first_token_id;
-        my $last_token_id;
-        PARSE_TDESC: {
+sub to_text_handler {
+    my ($user_handlers) = @_;
+    return sub {
+        my ( $dummy, @tdesc_list ) = @_;
+        my $text     = '';
+        my $self     = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+        my $tokens   = $self->{tokens};
+        my $document = $self->{document};
+        TDESC: for my $tdesc ( map { @{$_} } @tdesc_list ) {
             my $ref_type = ref $tdesc;
             if ( not $ref_type or $ref_type ne 'ARRAY' ) {
-                $next_tdesc = $tdesc;
-                last PARSE_TDESC;
+                $text .= $tdesc;
+                next TDESC;
             }
             given ( $tdesc->[0] ) {
                 when ('ELE') {
-                    my $value_ref = $tdesc->[3];
-                    if ( not defined $value_ref ) {
-                        ( $first_token_id, $last_token_id ) =
-                            @{$tdesc}[ 1, 2 ];
-                        break;    # last PARSE_TDESC;
-                    }
-                    continue;
+                    my ( $first_token_id, $last_token_id, $value_ref ) =
+                        @{$tdesc}[ 1 .. $#{$tdesc} ];
+                    if (    defined $value_ref
+                        and defined( my $value = ${$value_ref} ) )
+                    {
+                        $text .= $value;
+                        break;    # next TDESC;
+                    } ## end if ( defined $value_ref and defined( my $value = ${...}))
+                    my $offset     = $tokens->[$first_token_id]->[1];
+                    my $end_offset = $tokens->[$last_token_id]->[2];
+                    $text .= substr ${$document}, $offset,
+                        ( $end_offset - $offset );
                 } ## end when ('ELE')
-                when ('FINAL') {
-                    $next_tdesc = $tdesc;
-                }
                 when ('TOKEN_SPAN') {
-                    ( $first_token_id, $last_token_id ) =
+                    my ( $first_token_id, $last_token_id ) =
                         @{$tdesc}[ 1, 2 ];
-                }
+                    my $offset     = $tokens->[$first_token_id]->[1];
+                    my $end_offset = $tokens->[$last_token_id]->[2];
+                    $text .= substr ${$document}, $offset,
+                        $end_offset - $offset;
+                } ## end when ('TOKEN_SPAN')
                 default {
-                    Marpa::exception("Unknown text description type: $_");
+                    my ( $offset, $end_offset ) = @{$tdesc}[ 1, 2 ];
+                    $text .= substr ${$document}, $offset,
+                        $end_offset - $offset;
                 }
             } ## end given
-        } ## end PARSE_TDESC:
+        } ## end for my $tdesc ( map { @{$_} } @tdesc_list )
+        return \$text;
+        }
+} ## end sub Marpa::UrHTML::Internal::Action::to_text
 
-        if ( defined $first_token_id ) {
-            if ( defined $first_token_id_in_current_span ) {
-                if ( $first_token_id <= $last_token_id_in_current_span + 1 ) {
-                    $last_token_id_in_current_span = $last_token_id;
-                    next TDESC;
+# Convert a list of text descriptions to a
+# single, shortened text description
+sub to_tdesc_handler {
+    my ($user_handlers) = @_;
+    return sub {
+        my ( $dummy, @tdesc_list ) = @_;
+        my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+        my $text;
+        my $tokens       = $self->{tokens};
+        my $doc          = $self->{doc};
+        my @tdesc_result = ();
+
+        my $last_token;
+        my $first_token_id_in_current_span;
+        my $last_token_id_in_current_span;
+        TDESC: for my $tdesc ( ( map { @{$_} } @tdesc_list ), ['FINAL'] ) {
+
+            my $next_tdesc;
+            my $first_token_id;
+            my $last_token_id;
+            PARSE_TDESC: {
+                my $ref_type = ref $tdesc;
+                if ( not $ref_type or $ref_type ne 'ARRAY' ) {
+                    $next_tdesc = $tdesc;
+                    last PARSE_TDESC;
                 }
-                push @tdesc_result,
-                    [
-                    'TOKEN_SPAN',
-                    $first_token_id_in_current_span,
-                    $last_token_id_in_current_span
-                    ];
-            } ## end if ( defined $first_token_id_in_current_span )
-            $first_token_id_in_current_span = $first_token_id;
-            $last_token_id_in_current_span  = $last_token_id;
-            next TDESC;
-        } ## end if ( defined $first_token_id )
+                given ( $tdesc->[0] ) {
+                    when ('ELE') {
+                        my $value_ref = $tdesc->[3];
+                        if ( not defined $value_ref ) {
+                            ( $first_token_id, $last_token_id ) =
+                                @{$tdesc}[ 1, 2 ];
+                            break;    # last PARSE_TDESC;
+                        }
+                        continue;
+                    } ## end when ('ELE')
+                    when ('FINAL') {
+                        $next_tdesc = $tdesc;
+                    }
+                    when ('TOKEN_SPAN') {
+                        ( $first_token_id, $last_token_id ) =
+                            @{$tdesc}[ 1, 2 ];
+                    }
+                    default {
+                        Marpa::exception("Unknown text description type: $_");
+                    }
+                } ## end given
+            } ## end PARSE_TDESC:
 
-        if ( defined $next_tdesc ) {
-            if ( defined $first_token_id_in_current_span ) {
-                push @tdesc_result,
-                    [
-                    'TOKEN_SPAN',
-                    $first_token_id_in_current_span,
-                    $last_token_id_in_current_span
-                    ];
-                $first_token_id_in_current_span =
-                    $last_token_id_in_current_span = undef;
-            } ## end if ( defined $first_token_id_in_current_span )
-            my $ref_type = ref $next_tdesc;
+            if ( defined $first_token_id ) {
+                if ( defined $first_token_id_in_current_span ) {
+                    if ( $first_token_id
+                        <= $last_token_id_in_current_span + 1 )
+                    {
+                        $last_token_id_in_current_span = $last_token_id;
+                        next TDESC;
+                    } ## end if ( $first_token_id <= ...)
+                    push @tdesc_result,
+                        [
+                        'TOKEN_SPAN',
+                        $first_token_id_in_current_span,
+                        $last_token_id_in_current_span
+                        ];
+                } ## end if ( defined $first_token_id_in_current_span )
+                $first_token_id_in_current_span = $first_token_id;
+                $last_token_id_in_current_span  = $last_token_id;
+                next TDESC;
+            } ## end if ( defined $first_token_id )
 
-            last TDESC if $next_tdesc->[0] eq 'FINAL';
-            push @tdesc_result, $next_tdesc;
-        } ## end if ( defined $next_tdesc )
+            if ( defined $next_tdesc ) {
+                if ( defined $first_token_id_in_current_span ) {
+                    push @tdesc_result,
+                        [
+                        'TOKEN_SPAN',
+                        $first_token_id_in_current_span,
+                        $last_token_id_in_current_span
+                        ];
+                    $first_token_id_in_current_span =
+                        $last_token_id_in_current_span = undef;
+                } ## end if ( defined $first_token_id_in_current_span )
+                my $ref_type = ref $next_tdesc;
 
-    } ## end for my $tdesc ( ( map { @{$_} } @{$tdesc_list} ), ['FINAL'...])
+                last TDESC if $next_tdesc->[0] eq 'FINAL';
+                push @tdesc_result, $next_tdesc;
+            } ## end if ( defined $next_tdesc )
 
-    return \@tdesc_result;
-} ## end sub tdesc_to_text
+        } ## end for my $tdesc ( ( map { @{$_} } @tdesc_list ), ['FINAL'...])
+
+        return \@tdesc_result;
+        }
+} ## end sub Marpa::UrHTML::Internal::Action::to_tdesc
 
 my %ARGS = (
     start       => q{'S',offset,offset_end,tagname,attr},
@@ -167,22 +178,6 @@ sub Marpa::UrHTML::new {
     return bless {}, $class;
 };
 
-sub Marpa::UrHTML::document {
-    my ( $self, $document_ref ) = @_;
-    my $ref_type = ref $document_ref;
-    Marpa::exception(
-        'Arg to ' . __PACKAGE__ . '::new must be ref to string' )
-        if not $ref_type
-            or $ref_type ne 'SCALAR';
-
-    my %pull_parser_args;
-    $pull_parser_args{doc} = $self->{document} = $document_ref;
-
-    $self->{pull_parser} = HTML::PullParser->new( %pull_parser_args, %ARGS )
-        || Carp::croak('Could not create pull parser');
-
-    return $self;
-} ## end sub Marpa::UrHTML::new
 ## use critic
 
 %Marpa::UrHTML::Internal::BLOCK_ELEMENT = map { $_ => 1 } qw(
@@ -223,12 +218,15 @@ push @anywhere_rh_sides,
 my @anywhere_item_rules =
     map { { lhs => 'anywhere_item', rhs => [$_] } } @anywhere_rh_sides;
 
+*{Marpa::UrHTML::Internal::tdesc_to_text}  = to_text_handler(  {} );
+*{Marpa::UrHTML::Internal::tdesc_to_tdesc} = to_tdesc_handler( {} );
+
 @Marpa::UrHTML::Internal::CORE_RULES = (
     @anywhere_item_rules,
 
     {   lhs    => 'document',
         rhs    => ['flow'],
-        action => 'Marpa::UrHTML::Internal::Action::tdesc_to_text',
+        action => 'Marpa::UrHTML::Internal::tdesc_to_text',
     },
     { lhs => 'flow', rhs => ['terminated_flow_item'], min => 0 },
 
@@ -260,16 +258,25 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 my %start_tags = ();
 my %end_tags   = ();
 
-sub Marpa::UrHTML::value {
-    my ($self)      = @_;
-    my $pull_parser = $self->{pull_parser};
-    Marpa::exception('No document defined') if not $pull_parser;
-    my $document = $self->{document};
-    my @tokens      = ();
+sub Marpa::UrHTML::parse {
+    my ( $self, $document_ref ) = @_;
+    my $ref_type = ref $document_ref;
+    Marpa::exception(
+        'Arg to ' . __PACKAGE__ . '::new must be ref to string' )
+        if not $ref_type
+            or $ref_type ne 'SCALAR';
+
+    my %pull_parser_args;
+    my $document = $pull_parser_args{doc} = $self->{document} = $document_ref;
+    my $pull_parser = $self->{pull_parser} =
+        HTML::PullParser->new( %pull_parser_args, %ARGS )
+        || Carp::croak('Could not create pull parser');
+
+    my @tokens = ();
 
     my %terminals = map { $_ => 1 } @Marpa::UrHTML::Internal::CORE_TERMINALS;
     my @html_parser_tokens = ();
-    my @marpa_tokens = ();
+    my @marpa_tokens       = ();
     while ( my $html_parser_token = $pull_parser->get_token ) {
         my $token_number = scalar @html_parser_tokens;
         push @html_parser_tokens, $html_parser_token;
@@ -332,9 +339,9 @@ sub Marpa::UrHTML::value {
             default { Carp::croak("Unprovided-for event: $_") }
         } ## end given
         $token_number++;
-    } ## end while ( my $token = $pull_parser->get_token )
+    } ## end while ( my $html_parser_token = $pull_parser->get_token)
 
-    my @rules = @Marpa::UrHTML::Internal::CORE_RULES;
+    my @rules     = @Marpa::UrHTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
 
     ELEMENT: for ( keys %start_tags ) {
@@ -346,31 +353,29 @@ sub Marpa::UrHTML::value {
             next;
         } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_TAGS...)
         when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG{$_} ) {
+
             # These will need custom solutions
             # A dummy rule for now
-            push @rules,
-                {
-                lhs  => "ELE_$_",
-                rhs => [ "S_$_", "Contents_$_", "E_$_" ]
-                },
-                {
-                lhs => "UELE_$_",
-                rhs => [ "S_$_", "Contents_$_" ]
-                },
+            push @rules, {
+                lhs     => "ELE_$_",
+                    rhs => [ "S_$_", "Contents_$_", "E_$_" ]
+            }, {
+                lhs     => "UELE_$_",
+                    rhs => [ "S_$_", "Contents_$_" ]
+            },
 
                 # a rule which will never be satisfied because
                 # there are no unicorns
-                {
-                lhs => "Contents_$_",
-                rhs => [q{!!!unicorn!!!}]
-                }
+            {
+                lhs     => "Contents_$_",
+                    rhs => [q{!!!unicorn!!!}]
+            }
         } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG...)
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
-            push @rules,
-                {
-                lhs => "ELE_$_",
-                rhs => ["S_$_"]
-                };
+            push @rules, {
+                lhs     => "ELE_$_",
+                    rhs => ["S_$_"]
+            };
         } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
         default {
             my $this_element = "ELE_$_";
@@ -395,17 +400,20 @@ sub Marpa::UrHTML::value {
         } ## end default
     } ## end for ( keys %start_tags )
 
-    my $grammar = Marpa::Grammar->new( {
-        rules     => \@rules,
-        start     => 'document',
-        terminals => \@terminals,
-        default_action => 'Marpa::UrHTML::Internal::Action::tdesc_to_tdesc',
-        strip => 0,
-    });
+    my $grammar = Marpa::Grammar->new(
+        {   rules     => \@rules,
+            start     => 'document',
+            terminals => \@terminals,
+            default_action =>
+                'Marpa::UrHTML::Internal::tdesc_to_tdesc',
+            strip => 0,
+        }
+    );
     $grammar->precompute();
+
     # say STDERR $grammar->show_rules();
     # say STDERR $grammar->show_QDFA();
-    my $recce = Marpa::Recognizer->new( { grammar=>$grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     $self->{tokens} = \@html_parser_tokens;
     $recce->tokens( \@marpa_tokens );
     my $value = do {
@@ -416,7 +424,7 @@ sub Marpa::UrHTML::value {
     Marpa::exception('undef returned') if not defined $value;
     return $value;
 
-} ## end sub Marpa::UrHTML::evaluate
+} ## end sub Marpa::UrHTML::parse
 
 1;
 
