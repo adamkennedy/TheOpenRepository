@@ -22,10 +22,6 @@ the documentation, I should think accordingly.
 
 =item * Create HTML Parser.
 
-=item * In rewrite_cycles,
-don't check spans unless and-node can cycle.
-Use cycle_rules to determine this.
-
 =back
 
 =head1 HIGH PRIORITY
@@ -33,6 +29,8 @@ Use cycle_rules to determine this.
 =over 4
 
 =item * Add symbol & rule ranker tests to code_diag.t.
+
+=item * Add a test for cycle_scale & cycle_rules.
 
 =item * On ambiguous grammars, it may optimize to save values of reset
 bocage nodes from the first reset, and simply copy them back in
@@ -67,9 +65,6 @@ Do just one or two inputs per grammar.
 parse bocage creation can probably be made a bit slightly cleaner.
 
 =item * Make sure that nulling symbols can never be terminals
-
-=item * Add code to do cycle rewrite only if there
-are cycles?
 
 =back
 

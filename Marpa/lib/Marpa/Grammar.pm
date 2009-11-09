@@ -727,9 +727,6 @@ sub Marpa::Grammar::set {
             Marpa::exception(
                 'academic option not allowed after grammar is precomputed')
                 if $phase >= Marpa::Internal::Phase::PRECOMPUTED;
-            Marpa::exception(
-                'academic option only allowed in experimental mode')
-                if $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] <= 0;
             $grammar->[Marpa::Internal::Grammar::ACADEMIC] = $value;
         } ## end if ( defined( my $value = $args->{'academic'} ) )
 
@@ -779,9 +776,6 @@ sub Marpa::Grammar::set {
             Marpa::exception(
                 q{cycle_action must be 'warn', 'quiet' or 'fatal'})
                 if not $value ~~ [qw(warn quiet fatal)];
-            Marpa::exception(
-                'cycle_action option only allowed in experimental mode')
-                if $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] <= 0;
             $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] = $value;
         } ## end if ( defined( my $value = $args->{'cycle_action'} ) )
 
@@ -807,9 +801,6 @@ sub Marpa::Grammar::set {
         } ## end if ( defined( my $value = $args->{'cycle_nodes'} ) )
 
         if ( defined( my $value = $args->{'cycle_rewrite'} ) ) {
-            Marpa::exception(
-                'cycle_rewrite option only allowed in experimental mode')
-                if $grammar->[Marpa::Internal::Grammar::EXPERIMENTAL] <= 0;
             $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE] = $value;
         } ## end if ( defined( my $value = $args->{'cycle_rewrite'} ))
 
