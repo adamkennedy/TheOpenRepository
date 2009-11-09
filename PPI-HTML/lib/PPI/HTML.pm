@@ -428,48 +428,51 @@ sub _css_class {
 	if ( $Token->isa('PPI::Token::Word') ) {
 		# There are some words we can be very confident are
 		# being used as keywords
+		my $content = $Token->content;
+
 		unless ( $Token->snext_sibling and $Token->snext_sibling->content eq '=>' ) {
-			if ( $Token->content eq 'sub' ) {
+			if ( $content eq 'sub' ) {
 				return 'keyword';
-			} elsif ( $Token->content eq 'return' ) {
+			} elsif ( $content eq 'return' ) {
 				return 'keyword';
-			} elsif ( $Token->content eq 'undef' ) {
+			} elsif ( $content eq 'undef' ) {
 				return 'core';
-			} elsif ( $Token->content eq 'shift' ) {
+			} elsif ( $content eq 'shift' ) {
 				return 'core';
-			} elsif ( $Token->content eq 'defined' ) {
+			} elsif ( $content eq 'defined' ) {
 				return 'core';
 			}
 		}
 
-		if ( $Token->parent->isa('PPI::Statement::Include') ) {
-			if ( $Token->content =~ /^(?:use|no)$/ ) {
+		my $parent = $Token->parent;
+		if ( $parent->isa('PPI::Statement::Include') ) {
+			if ( $content =~ /^(?:use|no)$/ ) {
 				return 'keyword';
 			}
-			if ( $Token->content eq $Token->parent->pragma ) {
+			if ( $content eq $parent->pragma ) {
 				return 'pragma';
 			}
-		} elsif ( $Token->parent->isa('PPI::Statement::Variable') ) {
-			if ( $Token->content =~ /^(?:my|local|our)$/ ) {
+		} elsif ( $parent->isa('PPI::Statement::Variable') ) {
+			if ( $content =~ /^(?:my|local|our)$/ ) {
 				return 'keyword';
 			}
-		} elsif ( $Token->parent->isa('PPI::Statement::Compound') ) {
-			if ( $Token->content =~ /^(?:if|else|elsif|unless|for|foreach|while|my)$/ ) {
+		} elsif ( $parent->isa('PPI::Statement::Compound') ) {
+			if ( $content =~ /^(?:if|else|elsif|unless|for|foreach|while|my)$/ ) {
 				return 'keyword';
 			}
-		} elsif ( $Token->parent->isa('PPI::Statement::Given') ) {
-			if ( $Token->content eq 'given' ) {
+		} elsif ( $parent->isa('PPI::Statement::Given') ) {
+			if ( $content eq 'given' ) {
 				return 'keyword';
 			}
-		} elsif ( $Token->parent->isa('PPI::Statement::When') ) {
-			if ( $Token->content =~ /^(?:when|default)$/ ) {
+		} elsif ( $parent->isa('PPI::Statement::When') ) {
+			if ( $content =~ /^(?:when|default)$/ ) {
 				return 'keyword';
 			}
-		} elsif ( $Token->parent->isa('PPI::Statement::Package') ) {
-			if ( $Token->content eq 'package' ) {
+		} elsif ( $parent->isa('PPI::Statement::Package') ) {
+			if ( $content eq 'package' ) {
 				return 'keyword';
 			}
-		} elsif ( $Token->parent->isa('PPI::Statement::Scheduled') ) {
+		} elsif ( $parent->isa('PPI::Statement::Scheduled') ) {
 			return 'keyword';
 		}
 	}
