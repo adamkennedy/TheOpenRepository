@@ -148,6 +148,7 @@ use Marpa::Offset qw(
     ACTION_OBJECT_CONSTRUCTOR
     RANKING_CLOSURES_BY_RULE :{ array, by rule id }
     RANKING_CLOSURES_BY_SYMBOL :{ array, by symbol id }
+    EXPLICIT_CLOSURES :{ closures supplied explicitly }
 
 );
 
@@ -312,6 +313,13 @@ sub resolve_semantics {
 
     Marpa::exception(q{Trying to resolve 'undef' as closure name})
         if not defined $closure_name;
+
+    if ( my $closure =
+        $evaler->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES]
+        ->{$closure_name} )
+    {
+        return $closure;
+    } ## end if ( my $closure = $evaler->[...])
 
     my $fully_qualified_name;
     DETERMINE_FULLY_QUALIFIED_NAME: {
@@ -1493,6 +1501,10 @@ sub Marpa::Evaluator::new {
     if ($clone) {
         $recce = $recce->clone();
     }
+
+    my $evaler->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES] =
+        $args->{closures} // {};
+    delete $args->{closures};
 
     my $grammar     = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $earley_sets = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];

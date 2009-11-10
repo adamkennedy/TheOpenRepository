@@ -72,9 +72,6 @@ parse bocage creation can probably be made a bit slightly cleaner.
 
 =over 4
 
-=item * Allow action options to be changed when evaluator
-is created, but not afterwards.
-
 =item * Add a trace_choices option?  There was an option to trace
 non-trivial evaluation choices in the old evaluator, and the trace_tasks
 doesn't entirely replace it.
