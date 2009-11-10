@@ -167,3 +167,106 @@ no Moose;
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Tag::DirectoryRef - <DirectoryRef> tag that knows how to search its children.
+
+=head1 SYNOPSIS
+
+	my $ref_tag = Perl::Dist::WiX::Tag::DirectoryRef->new(
+		id => 'Perl'
+		# TODO.
+	);
+
+	# Parameters can be passed as a hash, or a hashref.
+	# A hashref is shown.
+	my $dir_tag = $ref_tag->add_directory({
+		id => 'Vendor',
+		name => 'vendor',
+		path => 'C:\strawberry\perl\vendor',
+	});
+	
+	my $dir_tag_2 = $ref_tag->get_directory_object('Vendor');
+
+	my $dir_tag = $ref_tag->search_dir({
+		path_to_find => 'C:\strawberry\perl\vendor',
+		descend => 1,
+		exact => 1,
+	});
+	
+=head1 DESCRIPTION
+
+This is an XML tag that refers to a directory that is used in a Perl::Dist::WiX 
+based distribution.
+
+=head1 METHODS
+
+This class is a L<WiX3::XML::DirectoryRef> and inherits its API, so only 
+additional API is documented here.
+
+=head2 new
+
+The C<new> constructor takes a series of parameters, validates then
+and returns a new B<Perl::Dist::WiX::Tag::DirectoryRef> object.
+
+If an error occurs, it throws an exception.
+
+It inherits all the parameters described in the 
+L<WiX3::XML::DirectoryRef> C<new> method documentation.
+
+=head2 get_directory_object
+
+get_directory_object returns the L<Perl::Dist::WiX::Tag::Directory> object
+with the id that was passed in as the only parameter, as long as it is a 
+child tag of this reference, or a grandchild/great-grandchild/etc. tag.
+
+If you pass the ID of THIS object in, it gets returned.
+
+An undefined value is returned if no object with that ID could be found. 
+
+=head2 search_dir
+
+Does the same thing as C<Perl::Dist::WiX::Tag::Directory>'s
+L<search_dir|Perl::Dist::WiX::Tag::Directory/search_dir> method, so see 
+the documentation there.
+
+=head2 add_directory
+
+Returns a L<Perl::Dist::WiX::Tag::Directory|Perl::Dist::WiX::Tag::Directory>
+tag with the given parameters and adds it as a child of this tag.
+
+The C<parent> parameter does not need to be given, as it is added as this object.
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist::WiX>, 
+L<http://wix.sourceforge.net/manual-wix3/wix_xsd_directoryref.htm>,
+
+=head1 COPYRIGHT
+
+Copyright 2009 Curtis Jewell.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut
