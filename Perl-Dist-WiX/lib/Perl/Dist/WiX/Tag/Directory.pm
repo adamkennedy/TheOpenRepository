@@ -73,7 +73,8 @@ sub get_directory_object {
 
   SUBDIRECTORY:
 	foreach my $object ( $self->get_child_tags() ) {
-		next SUBDIRECTORY if not $object->isa('Perl::Dist::WiX::Tag::Directory');
+		next SUBDIRECTORY
+		  if not $object->isa('Perl::Dist::WiX::Tag::Directory');
 		$return = $object->get_directory_object($id);
 		return $return if defined $return;
 	}
@@ -210,11 +211,11 @@ __END__
 
 =head1 NAME
 
-Perl::Dist::WiX::Tag::DirectoryRef - <DirectoryRef> tag that knows how to search its children.
+Perl::Dist::WiX::Tag::Directory - <Directory> tag that knows how to search its children.
 
 =head1 SYNOPSIS
 
-	my $ref_tag = Perl::Dist::WiX::Tag::DirectoryRef->new(
+	my $ref_tag = Perl::Dist::WiX::Tag::Directory->new(
 		id => 'Perl'
 		# TODO.
 	);
@@ -247,13 +248,13 @@ additional API is documented here.
 
 =head2 new
 
-The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Tag::DirectoryRef> object.
+The C<new> constructor takes a series of parameters, validates them
+and returns a new B<Perl::Dist::WiX::Tag::Directory> object.
 
 If an error occurs, it throws an exception.
 
 It inherits all the parameters described in the 
-L<WiX3::XML::DirectoryRef> C<new> method documentation.
+L<WiX3::XML::Directory> C<new> method documentation.
 
 =head2 get_directory_object
 

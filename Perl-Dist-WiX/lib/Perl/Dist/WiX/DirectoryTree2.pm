@@ -244,9 +244,11 @@ sub add_merge_module {
 		PDWiX->throw("Could not find object for directory $dir");
 	}
 
-	if ( not defined _INSTANCE( $mm, 'Perl::Dist::WiX::Tag::MergeModule' ) ) {
+	if ( not defined _INSTANCE( $mm, 'Perl::Dist::WiX::Tag::MergeModule' ) )
+	{
 		PDWiX->throw(
-			'Second parameter not Perl::Dist::WiX::Tag::MergeModule object');
+			'Second parameter not Perl::Dist::WiX::Tag::MergeModule object'
+		);
 	}
 
 	$directory_object->add_child_tag($mm);
