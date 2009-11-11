@@ -25,12 +25,22 @@
 # Avoid temp and backup files.
 ~$
 \.old$
-\.ncb$
 \#$
 \b\.#
 \.bak$
 \btmp[0-9][0-9][0-9]\b
 \bdownload\b
+
+# Avoid Visual Studio generated files.
+\.ncb$
+\.pdb$
+\.idb$
+\.pch$
+\.ilk$
+\.user$
+BuildLog\.htm$
+mt\.dep$
+
 
 # Avoid Devel::Cover files.
 \bcover_db\b
