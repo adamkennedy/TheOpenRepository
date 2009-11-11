@@ -1,9 +1,10 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.100_001   To Be Released
-   1. Split most of the build into a merge module.
-   2. Finished the Moosification.
-   3. Added ability to build off a git checkout.
+1.101_001   Wed 11 Nov 2009
+    1. Split most of the build into a merge module.
+    2. Finished the Moosification.
+    3. Added ability to build off a git checkout.
+    4. Started work on documentation. 
 
 1.100   Wed 11 Nov 2009
     1. Used to make Strawberry Perl October 2009.
