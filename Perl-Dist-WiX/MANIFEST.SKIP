@@ -25,6 +25,7 @@
 # Avoid temp and backup files.
 ~$
 \.old$
+\.ncb$
 \#$
 \b\.#
 \.bak$
