@@ -173,7 +173,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Evaluator;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 

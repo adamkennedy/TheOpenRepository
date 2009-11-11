@@ -16,8 +16,6 @@ BEGIN {
     Test::More::use_ok('Marpa');
 }
 
-use Smart::Comments '-ENV';
-
 ## no critic (Subroutines::RequireArgUnpacking)
 
 # Ranks are in increments to .001
