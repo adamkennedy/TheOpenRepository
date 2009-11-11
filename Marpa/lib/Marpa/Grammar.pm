@@ -319,7 +319,7 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Phase
     NEW RULES
-    PRECOMPUTED RECOGNIZING EVALUATING
+    PRECOMPUTED RECOGNIZING SETTLING_SEMANTICS EVALUATING
 
 );
 
@@ -333,6 +333,8 @@ sub Marpa::Internal::Phase::description {
         if $phase == Marpa::Internal::Phase::PRECOMPUTED;
     return 'grammar being recognized'
         if $phase == Marpa::Internal::Phase::RECOGNIZING;
+    return 'grammar settling semantics'
+        if $phase == Marpa::Internal::Phase::SETTLING_SEMANTICS;
     return 'grammar being evaluated'
         if $phase == Marpa::Internal::Phase::EVALUATING;
     return 'unknown phase';
@@ -612,7 +614,7 @@ sub Marpa::Grammar::set {
             $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS] = $value;
             if ($value) {
                 say {$trace_fh} 'Setting trace_actions option';
-                if ( $phase >= Marpa::Internal::Phase::RECOGNIZING ) {
+                if ( $phase >= Marpa::Internal::Phase::EVALUATING ) {
                     say {$trace_fh}
                         'Warning: setting trace_actions option after semantics were finalized';
                 }
@@ -764,7 +766,7 @@ sub Marpa::Grammar::set {
         if ( defined( my $value = $args->{'strip'} ) ) {
             Marpa::exception( 'strip option not allowed in ',
                 Marpa::Internal::Phase::description($phase) )
-                if $phase >= Marpa::Internal::Phase::EVALUATING;
+                if $phase >= Marpa::Internal::Phase::SETTLING_SEMANTICS;
             $grammar->[Marpa::Internal::Grammar::STRIP] = $value;
         } ## end if ( defined( my $value = $args->{'strip'} ) )
 

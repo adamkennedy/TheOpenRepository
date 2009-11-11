@@ -12,6 +12,7 @@ use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
 use Marpa;
 use Marpa::Internal;
+use Marpa::UrHTML::Tie;
 
 # use Smart::Comments '-ENV';
 
@@ -39,20 +40,24 @@ sub create_text_handler {
         per_element_handlers( $element, $self->{user_handlers_by_id} );
 
     return sub {
-        my ( $dummy, @tdesc_list ) = @_;
+        my ( $dummy, @tdesc_lists ) = @_;
+
         my $self     = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+        my @tdesc_list = map { @{$_} } @tdesc_lists;
+        local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
+
         my $tokens = $self->{tokens};
         if ( my $user_handler = $handlers_by_id->{ $Marpa::UrHTML::ID // q{} }
             || $handlers_by_class->{ $Marpa::UrHTML::CLASS // q{} } )
         {
             my $first_token = $tokens->[0]->[1];
             my $last_token  = $tokens->[-1]->[2];
-            return [ ELE => $first_token, $last_token, $user_handler->() ];
+            return [ [ ELE => $first_token, $last_token, $user_handler->() ] ];
         } ## end if ( my $user_handler = $handlers_by_id->{ ...})
 
         my $text     = '';
         my $document = $self->{document};
-        TDESC: for my $tdesc ( map { @{$_} } @tdesc_list ) {
+        TDESC: for my $tdesc ( @tdesc_list ) {
             my $ref_type = ref $tdesc;
             if ( not $ref_type or $ref_type ne 'ARRAY' ) {
                 $text .= $tdesc;
@@ -60,14 +65,12 @@ sub create_text_handler {
             }
             given ( $tdesc->[0] ) {
                 when ('ELE') {
-                    my ( $first_token_id, $last_token_id, $value_ref ) =
+                    my ( $first_token_id, $last_token_id, $value ) =
                         @{$tdesc}[ 1 .. $#{$tdesc} ];
-                    if (    defined $value_ref
-                        and defined( my $value = ${$value_ref} ) )
-                    {
+                    if ( defined $value ) {
                         $text .= $value;
                         break;    # next TDESC;
-                    } ## end if ( defined $value_ref and defined( my $value = ${...}))
+                    }
                     my $offset     = $tokens->[$first_token_id]->[1];
                     my $end_offset = $tokens->[$last_token_id]->[2];
                     $text .= substr ${$document}, $offset,
@@ -97,20 +100,26 @@ sub create_text_handler {
 sub create_tdesc_handler {
     my ( $self, $element ) = @_;
     my $handlers_by_class =
-        per_element_handlers( $element, $self->{user_handlers_by_class} );
+        per_element_handlers( $element,
+        ( $self ? $self->{user_handlers_by_class} : {} ) );
     my $handlers_by_id =
-        per_element_handlers( $element, $self->{user_handlers_by_id} );
+        per_element_handlers( $element,
+        ( $self ? $self->{user_handlers_by_id} : {} ) );
 
     return sub {
-        my ( $dummy, @tdesc_list ) = @_;
+        my ( $dummy, @tdesc_lists ) = @_;
+
+        my @tdesc_list = map { @{$_} } @tdesc_lists;
+        local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
         my $self   = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+
         my $tokens = $self->{tokens};
         if ( my $user_handler = $handlers_by_id->{ $Marpa::UrHTML::ID // "" }
             || $handlers_by_class->{ $Marpa::UrHTML::CLASS // "" } )
         {
             my $first_token = $tokens->[0]->[1];
             my $last_token  = $tokens->[-1]->[2];
-            return [ ELE => $first_token, $last_token, $user_handler->() ];
+            return [ [ ELE => $first_token, $last_token, $user_handler->() ] ];
         } ## end if ( my $user_handler = $handlers_by_id->{ ...})
 
         my $doc          = $self->{doc};
@@ -119,7 +128,8 @@ sub create_tdesc_handler {
         my $last_token;
         my $first_token_id_in_current_span;
         my $last_token_id_in_current_span;
-        TDESC: for my $tdesc ( ( map { @{$_} } @tdesc_list ), ['FINAL'] ) {
+
+        TDESC: for my $tdesc ( @tdesc_list, ['FINAL'] ) {
 
             my $next_tdesc;
             my $first_token_id;
@@ -132,13 +142,13 @@ sub create_tdesc_handler {
                 }
                 given ( $tdesc->[0] ) {
                     when ('ELE') {
-                        my $value_ref = $tdesc->[3];
-                        if ( not defined $value_ref ) {
+                        my $value = $tdesc->[3];
+                        if ( not defined $value ) {
                             ( $first_token_id, $last_token_id ) =
                                 @{$tdesc}[ 1, 2 ];
                             break;    # last PARSE_TDESC;
                         }
-                        continue;
+                        $next_tdesc = $tdesc;
                     } ## end when ('ELE')
                     when ('FINAL') {
                         $next_tdesc = $tdesc;
@@ -186,7 +196,8 @@ sub create_tdesc_handler {
                 } ## end if ( defined $first_token_id_in_current_span )
                 my $ref_type = ref $next_tdesc;
 
-                last TDESC if $next_tdesc->[0] eq 'FINAL';
+                last TDESC
+                    if $ref_type eq 'ARRAY' and $next_tdesc->[0] eq 'FINAL';
                 push @tdesc_result, $next_tdesc;
             } ## end if ( defined $next_tdesc )
 
@@ -208,13 +219,67 @@ my %ARGS = (
     unbroken_text => 1,
 );
 
-## no critic (Subroutines::RequireArgUnpacking)
-sub Marpa::UrHTML::new {
-    my $class = shift;
-    return bless {}, $class;
-};
+sub add_handlers {
+    my ( $self, $handler_spec_list ) = @_;
+    HANDLER_SPEC: for my $handler_spec ( @{$handler_spec_list} ) {
+        my $ref_type = ref $handler_spec;
+        my $element;
+        my $id;
+        my $class;
+        my $action;
+        given ($ref_type) {
+            when (undef) {
+                Marpa::exception('undefined handler specification');
+            }
+            when ('ARRAY') {
+                my $specifier;
+                ( $specifier, $action ) = @{$handler_spec};
+                ( $element, $id ) =
+                       ( $specifier =~ /\A ([^#]*) [#] (.*) \z/xms )
+                    or ( $element, $class ) =
+                    ( $specifier =~ /\A ([^.]*) [.] (.*) \z/xms )
+                    or $element = $specifier;
+            } ## end when ('ARRAY')
+            when ('HASH') {
+                $element = $handler_spec->{element};
+                $id      = $handler_spec->{id};
+                $class   = $handler_spec->{class};
+                $action  = $handler_spec->{action};
+            } ## end when ('HASH')
+            default {
+                Marpa::exception(
+                    'handler specification must be ref to ARRAY or HASH');
+            }
+        } ## end given
+        $element //= q{};
+        if ( defined $id ) {
+            $self->{user_handlers_by_id}->{ lc $element }->{ lc $id } = $action;
+            next HANDLER_SPEC;
+        }
+        $class //= q{};
+        $self->{user_handlers_by_class}->{ lc $element }->{ lc $class } = $action;
 
-## use critic
+    } ## end for my $handler_spec ( @{$handler_spec_list} )
+} ## end sub add_handlers
+
+sub Marpa::UrHTML::new {
+    my ( $class, @hash_args ) = @_;
+    my $self = bless {}, $class;
+    for my $hash_arg (@hash_args) {
+        for my $key ( keys %{$hash_arg} ) {
+            given ($key) {
+                when ('handlers') {
+                    Marpa::UrHTML::Internal::add_handlers( $self,
+                        $hash_arg->{$_} )
+                }
+                default {
+                    Marpa::exception("Unknown option: $_");
+                }
+            } ## end given
+        } ## end for my $key ( keys %{$hash_arg} )
+    } ## end for my $hash_arg (@hash_args)
+    return $self;
+} ## end sub Marpa::UrHTML::new
 
 %Marpa::UrHTML::Internal::BLOCK_ELEMENT = map { $_ => 1 } qw(
     h1 h2 h3 h4 h5 h6
@@ -298,7 +363,7 @@ sub Marpa::UrHTML::parse {
     my ( $self, $document_ref ) = @_;
     my $ref_type = ref $document_ref;
     Marpa::exception(
-        'Arg to ' . __PACKAGE__ . '::new must be ref to string' )
+        'Arg to ' . __PACKAGE__ . '::parse must be ref to string' )
         if not $ref_type
             or $ref_type ne 'SCALAR';
 
@@ -380,6 +445,7 @@ sub Marpa::UrHTML::parse {
     my @rules     = @Marpa::UrHTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
 
+    my %element_actions = ();
     ELEMENT: for ( keys %start_tags ) {
         when ( defined $Marpa::UrHTML::Internal::OPTIONAL_TAGS{$_} ) {
 
@@ -393,11 +459,13 @@ sub Marpa::UrHTML::parse {
             # These will need custom solutions
             # A dummy rule for now
             push @rules, {
-                lhs     => "ELE_$_",
-                    rhs => [ "S_$_", "Contents_$_", "E_$_" ]
+                lhs        => "ELE_$_",
+                    rhs    => [ "S_$_", "Contents_$_", "E_$_" ],
+                    action => "!ELE_$_",
             }, {
-                lhs     => "UELE_$_",
-                    rhs => [ "S_$_", "Contents_$_" ]
+                lhs        => "UELE_$_",
+                    rhs    => [ "S_$_", "Contents_$_" ],
+                    action => "!ELE_$_",
             },
 
                 # a rule which will never be satisfied because
@@ -405,20 +473,24 @@ sub Marpa::UrHTML::parse {
             {
                 lhs     => "Contents_$_",
                     rhs => [q{!!!unicorn!!!}]
-            }
+            };
+            $element_actions{"!ELE_$_"} = $_;
         } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG...)
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
             push @rules, {
                 lhs     => "ELE_$_",
-                    rhs => ["S_$_"]
+                    rhs => ["S_$_"],
+                    action => "!ELE_$_",
             };
+            $element_actions{"!ELE_$_"} = $_;
         } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
         default {
             my $this_element = "ELE_$_";
             push @rules,
                 {
-                lhs => $this_element,
-                rhs => [ "S_$_", "Contents_$_", "E_$_" ]
+                lhs    => $this_element,
+                rhs    => [ "S_$_", "Contents_$_", "E_$_" ],
+                action => "!ELE_$_",
                 },
                 {
                 lhs => "Contents_$_",
@@ -433,6 +505,7 @@ sub Marpa::UrHTML::parse {
                 lhs => $element_type,
                 rhs => [$this_element],
                 };
+            $element_actions{"!ELE_$_"} = $_;
         } ## end default
     } ## end for ( keys %start_tags )
 
@@ -452,9 +525,21 @@ sub Marpa::UrHTML::parse {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     $self->{tokens} = \@html_parser_tokens;
     $recce->tokens( \@marpa_tokens );
+
+    my %closure = ();
+    ELEMENT:
+    while ( my ( $element_action, $element ) = each %element_actions )
+    {
+        $closure{$element_action} =
+            $element eq 'document'
+            ? create_text_handler($self, $element)
+            : create_tdesc_handler($self, $element);
+    } ## end while ( my ( $element_action, $element ) = each %element_actions)
+
     my $value = do {
         local $Marpa::UrHTML::Internal::PARSE_INSTANCE = $self;
-        my $evaler = Marpa::Evaluator->new( { recce => $recce, } );
+        my $evaler = Marpa::Evaluator->new(
+            { recce => $recce, closures => \%closure } );
         $evaler->value;
     };
     Marpa::exception('undef returned') if not defined $value;

@@ -173,7 +173,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Evaluator;
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -318,6 +318,13 @@ sub resolve_semantics {
         $evaler->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES]
         ->{$closure_name} )
     {
+        if ( $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS] ) {
+            my $trace_fh =
+                $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+            print {$trace_fh} qq{Resolved "$closure_name" to explicit closure\n}
+                or Marpa::exception('Could not print to trace file');
+        } ## end if ( $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS...])
+
         return $closure;
     } ## end if ( my $closure = $evaler->[...])
 
@@ -429,25 +436,37 @@ sub set_actions {
             my $closure =
                 Marpa::Internal::Evaluator::resolve_semantics( $evaler,
                 $action );
-            Marpa::exception(qq{Could not find action "$action"})
+
+            ### Explicit closures: $evaler->[Marpa'Internal'Evaluator'EXPLICIT_CLOSURES]
+
+            Marpa::exception(qq{Could not resolve action name: "$action"})
                 if not defined $closure;
             push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
             next RULE;
         } ## end if ( my $action = $rule->[Marpa::Internal::Rule::ACTION...])
 
-        # If we can't resolve the LHS as a closure name, it's not
-        # a fatal error
+        # Try to resolve the LHS as a closure name,
+        # if it is not internal.
+        # If we can't resolve
+        # the LHS as a closure name, it's not
+        # a fatal error.
         if ( my $action =
             $rule->[Marpa::Internal::Rule::LHS]
             ->[Marpa::Internal::Symbol::NAME] )
         {
-            my $closure =
-                Marpa::Internal::Evaluator::resolve_semantics( $evaler,
-                $action );
-            if ( defined $closure ) {
+            my $closure;
+            if ($action !~ /[\]] \z/xms
+                and defined(
+                    my $closure =
+                        Marpa::Internal::Evaluator::resolve_semantics(
+                        $evaler, $action
+                        )
+                )
+                )
+            {
                 push @{$ops}, Marpa::Internal::Evaluator_Op::CALL, $closure;
                 next RULE;
-            }
+            } ## end if ( $action !~ /[\]] \z/xms and defined( my $closure...)[)
         } ## end if ( my $action = $rule->[Marpa::Internal::Rule::LHS...])
 
         if ( defined $default_action_closure ) {
@@ -1502,20 +1521,22 @@ sub Marpa::Evaluator::new {
         $recce = $recce->clone();
     }
 
-    my $evaler->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES] =
+    $self->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES] =
         $args->{closures} // {};
+
     delete $args->{closures};
 
     my $grammar     = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $earley_sets = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
 
-    my $phase       = $grammar->[Marpa::Internal::Grammar::PHASE];
+    my $phase       = 
+    $grammar->[Marpa::Internal::Grammar::PHASE] =
+        Marpa::Internal::Phase::SETTLING_SEMANTICS;
+
     my $parse_order = $grammar->[Marpa::Internal::Grammar::PARSE_ORDER];
     my $rules       = $grammar->[Marpa::Internal::Grammar::RULES];
     my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
 
-    # Marpa::exception('Recognizer already in use by Evaluator')
-    # if $phase == Marpa::Internal::Phase::EVALUATING;
     Marpa::exception(
         'Attempt to evaluate grammar in wrong phase: ',
         Marpa::Internal::Phase::description($phase)
@@ -3627,6 +3648,8 @@ node appears more than once on the path back to the root node.
                                         ( splice @evaluation_stack, -$argc )
                                     ];
 
+                                ### <where> current_data: $current_data
+
                             } ## end when (Marpa::Internal::Evaluator_Op::ARGC)
 
                             when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD
@@ -3662,6 +3685,8 @@ node appears more than once on the path back to the root node.
                                         -$real_symbol_count
                                     )
                                 ];
+
+                                ### <where> current_data: $current_data
 
                             } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
 
@@ -3701,6 +3726,8 @@ node appears more than once on the path back to the root node.
                                         )
                                     ]
                                 ];
+
+                                ### <where> current_data: $current_data
 
                                 # truncate the evaluation stack
                                 $#evaluation_stack = $base - 1;
@@ -3781,6 +3808,8 @@ node appears more than once on the path back to the root node.
                             when (Marpa::Internal::Evaluator_Op::CALL) {
                                 my $closure = $ops->[ $op_ix++ ];
                                 my $result;
+
+                                ### current_data: $current_data
 
                                 my @warnings;
                                 my $eval_ok;
