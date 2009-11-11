@@ -25,8 +25,14 @@ my $document = do {
     <$fh>;
 };
 
+my $no_tang_document = do {
+    local $RS = undef;
+    open my $fh, q{<:utf8}, 'lib/Marpa/UrHTML/t/no_tang.html';
+    <$fh>;
+};
+
 my $p = Marpa::UrHTML->new(
     { handlers => [ [ '.kTang' => sub { return q{} } ] ] } );
 my $value = $p->parse( \$document );
 
-Marpa::Test::is( ${ ${$value} }, $document, 'Straight copy using defaults' );
+Marpa::Test::is( ${ ${$value} }, $no_tang_document, 'remove kTang class' );

@@ -52,8 +52,12 @@ lib/Marpa/Offset.pm
 lib/Marpa.pm
 lib/Marpa/Recognizer.pm
 lib/Marpa/Tie.pm
-lib/Marpa/UrHTML/dump_html.pl
 lib/Marpa/UrHTML.pm
+lib/Marpa/UrHTML/t/copy.t
+lib/Marpa/UrHTML/Tie.pm
+lib/Marpa/UrHTML/t/no_tang.html
+lib/Marpa/UrHTML/t/tang.t
+lib/Marpa/UrHTML/t/test.html
 Makefile.PL
 MANIFEST
 META.yml
