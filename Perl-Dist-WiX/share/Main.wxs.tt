@@ -76,6 +76,7 @@
 [% END %]
     <Property Id='ARPNOREPAIR'>1</Property>
     <Property Id='MSIFASTINSTALL'>1</Property>
+    <!-- Property Id='MSIDEPLOYMENTCOMPLIANT'>1</Property -->
     <Property Id='ARPCOMMENTS'>[% dist.app_name %] [% dist.perl_version_human %]</Property>
     <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
     <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>
