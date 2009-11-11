@@ -17,11 +17,11 @@ use Marpa::Internal;
 
 sub fetch_attribute {
     my ($attribute) = @_;
-    return undef if not $Marpa::UrHTML::Internal::TDESC_LIST;
-    return undef
+    return if not $Marpa::UrHTML::Internal::TDESC_LIST;
+    return
         if not my $first_tdesc = $Marpa::UrHTML::Internal::TDESC_LIST->[0];
-    return undef if not my $type = $first_tdesc->[0];
-    return undef if $type ne 'TOKEN_SPAN';
+    return if not my $type = $first_tdesc->[0];
+    return if $type ne 'TOKEN_SPAN';
     my $first_token_number = $first_tdesc->[1];
     my $parse_instance     = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     Marpa::exception(
@@ -30,7 +30,7 @@ sub fetch_attribute {
     my $tokens           = $parse_instance->{tokens};
     my $first_token      = $tokens->[$first_token_number];
     my $first_token_type = $first_token->[0];
-    return undef if $first_token_type ne 'S';
+    return if $first_token_type ne 'S';
     my $attribute_value = $first_token->[4]->{$attribute};
     return defined $attribute_value ? lc $attribute_value : undef;
 } ## end sub fetch_attribute

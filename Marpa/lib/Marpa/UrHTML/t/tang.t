@@ -7,6 +7,7 @@ use warnings;
 use Test::More tests => 2;
 use lib 'lib';
 use t::lib::Marpa::Test;
+use Fatal qw(open close);
 
 BEGIN {
     Test::More::use_ok('Marpa');
@@ -19,16 +20,20 @@ use Fatal qw(open);
 
 use Marpa::UrHTML;
 
-my $document = do {
+my $document;
+{
     local $RS = undef;
     open my $fh, q{<:utf8}, 'lib/Marpa/UrHTML/t/test.html';
-    <$fh>;
+    $document = <$fh>;
+    close $fh;
 };
 
-my $no_tang_document = do {
+my $no_tang_document;
+{
     local $RS = undef;
     open my $fh, q{<:utf8}, 'lib/Marpa/UrHTML/t/no_tang.html';
-    <$fh>;
+    $no_tang_document = <$fh>;
+    close $fh;
 };
 
 my $p = Marpa::UrHTML->new(

@@ -27,10 +27,12 @@ use Smart::Comments '-ENV';
 use constant TEST_INCREMENT => .001;
 
 sub rank_one {
+    #<<< perltidy (2009-Nov-11) inserts a trailing space here
     return
-          ( $MyTest::UP ? -1 : 1 )
-        * TEST_INCREMENT
+          TEST_INCREMENT
+        * ( $MyTest::UP ? -1 : 1 )
         * ( 2**-$Marpa::LOCATION );
+    #>>>
 } ## end sub rank_one
 sub rank_zero { return 0 }
 sub zero      { return '0' }

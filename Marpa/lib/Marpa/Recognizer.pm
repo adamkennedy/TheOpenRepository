@@ -185,7 +185,7 @@ sub Marpa::Recognizer::new {
     my $earley_set;
 
     my $start_states = $grammar->[Marpa::Internal::Grammar::START_STATES];
-    my %wanted = ();
+    my %wanted       = ();
 
     for my $state ( @{$start_states} ) {
         my $state_id = $state->[Marpa::Internal::QDFA::ID];
@@ -212,7 +212,7 @@ sub Marpa::Recognizer::new {
             }
             )
         {
-            push @{ $wanted{ $wanted_symbol_name . q{@0} } },
+            push @{ $wanted{ $wanted_symbol_name . q{@} . '0' } },
                 [ $item, $next_states ];
         } ## end while ( my ( $wanted_symbol_name, $next_states ) = each...)
 
@@ -849,7 +849,7 @@ sub Marpa::Recognizer::tokens {
     if ( $last_completed_earleme > $furthest_earleme ) {
         $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
         return;
-    } ## end if ( $last_completed_earleme > $furthest_earleme )
+    }
 
     return ( $current_earleme, $current_terminals ) if wantarray;
 

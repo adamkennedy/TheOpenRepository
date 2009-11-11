@@ -21,15 +21,16 @@ package Marpa::UrHTML::Internal;
 use Marpa::Internal;
 
 sub per_element_handlers {
-    my ($element, $user_handlers) = @_;
+    my ( $element, $user_handlers ) = @_;
     return {} if not $element;
     return {} if not $user_handlers;
-    my $wildcard_handlers = $user_handlers->{q{}} // {};
-    my %handlers = %{$wildcard_handlers};
+    my $wildcard_handlers    = $user_handlers->{q{}} // {};
+    my %handlers             = %{$wildcard_handlers};
     my $per_element_handlers = $user_handlers->{$element} // {};
-    @handlers{keys %{$per_element_handlers}} = values %{$per_element_handlers};
+    @handlers{ keys %{$per_element_handlers} } =
+        values %{$per_element_handlers};
     return \%handlers;
-}
+} ## end sub per_element_handlers
 
 # Convert a list of text descriptions to text
 sub create_text_handler {
@@ -42,7 +43,7 @@ sub create_text_handler {
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
 
-        my $self     = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+        my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
         my @tdesc_list = map { @{$_} } @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
 
@@ -52,12 +53,13 @@ sub create_text_handler {
         {
             my $first_token = $tokens->[0]->[1];
             my $last_token  = $tokens->[-1]->[2];
-            return [ [ ELE => $first_token, $last_token, $user_handler->() ] ];
+            return [
+                [ ELE => $first_token, $last_token, $user_handler->() ] ];
         } ## end if ( my $user_handler = $handlers_by_id->{ ...})
 
-        my $text     = '';
+        my $text     = q{};
         my $document = $self->{document};
-        TDESC: for my $tdesc ( @tdesc_list ) {
+        TDESC: for my $tdesc (@tdesc_list) {
             my $ref_type = ref $tdesc;
             if ( not $ref_type or $ref_type ne 'ARRAY' ) {
                 $text .= $tdesc;
@@ -90,7 +92,7 @@ sub create_text_handler {
                         $end_offset - $offset;
                 }
             } ## end given
-        } ## end for my $tdesc ( map { @{$_} } @tdesc_list )
+        } ## end for my $tdesc (@tdesc_list)
         return \$text;
         }
 } ## end sub create_text_handler
@@ -111,15 +113,16 @@ sub create_tdesc_handler {
 
         my @tdesc_list = map { @{$_} } @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
-        my $self   = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+        my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
 
         my $tokens = $self->{tokens};
-        if ( my $user_handler = $handlers_by_id->{ $Marpa::UrHTML::ID // "" }
-            || $handlers_by_class->{ $Marpa::UrHTML::CLASS // "" } )
+        if ( my $user_handler = $handlers_by_id->{ $Marpa::UrHTML::ID // q{} }
+            || $handlers_by_class->{ $Marpa::UrHTML::CLASS // q{} } )
         {
             my $first_token = $tokens->[0]->[1];
             my $last_token  = $tokens->[-1]->[2];
-            return [ [ ELE => $first_token, $last_token, $user_handler->() ] ];
+            return [
+                [ ELE => $first_token, $last_token, $user_handler->() ] ];
         } ## end if ( my $user_handler = $handlers_by_id->{ ...})
 
         my $doc          = $self->{doc};
@@ -201,7 +204,7 @@ sub create_tdesc_handler {
                 push @tdesc_result, $next_tdesc;
             } ## end if ( defined $next_tdesc )
 
-        } ## end for my $tdesc ( ( map { @{$_} } @tdesc_list ), ['FINAL'...])
+        } ## end for my $tdesc ( @tdesc_list, ['FINAL'] )
 
         return \@tdesc_result;
         }
@@ -253,13 +256,16 @@ sub add_handlers {
         } ## end given
         $element //= q{};
         if ( defined $id ) {
-            $self->{user_handlers_by_id}->{ lc $element }->{ lc $id } = $action;
+            $self->{user_handlers_by_id}->{ lc $element }->{ lc $id } =
+                $action;
             next HANDLER_SPEC;
         }
         $class //= q{};
-        $self->{user_handlers_by_class}->{ lc $element }->{ lc $class } = $action;
+        $self->{user_handlers_by_class}->{ lc $element }->{ lc $class } =
+            $action;
 
     } ## end for my $handler_spec ( @{$handler_spec_list} )
+    return 1;
 } ## end sub add_handlers
 
 sub Marpa::UrHTML::new {
@@ -384,7 +390,7 @@ sub Marpa::UrHTML::parse {
         given ( $html_parser_token->[0] ) {
             when ('T') {
                 my ( $offset, $offset_end, $is_cdata ) =
-                    @{$html_parser_token}[ 1 .. $#$html_parser_token ];
+                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 push @marpa_tokens,
                     [
                     (   substr(
@@ -399,7 +405,7 @@ sub Marpa::UrHTML::parse {
             } ## end when ('T')
             when ('S') {
                 my ( $offset, $offset_end, $tag_name ) =
-                    @{$html_parser_token}[ 1 .. $#$html_parser_token ];
+                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 $start_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
                 $terminals{$terminal}++;
@@ -411,7 +417,7 @@ sub Marpa::UrHTML::parse {
             } ## end when ('S')
             when ('E') {
                 my ( $offset, $offset_end, $tag_name ) =
-                    @{$html_parser_token}[ 1 .. $#$html_parser_token ];
+                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 $end_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
                 $terminals{$terminal}++;
@@ -423,7 +429,7 @@ sub Marpa::UrHTML::parse {
             } ## end when ('E')
             when ( [qw(C D)] ) {
                 my ( $offset, $offset_end ) =
-                    @{$html_parser_token}[ 1 .. $#$html_parser_token ];
+                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 push @marpa_tokens,
                     [
                     $_, [ [ 'TOKEN_SPAN', $token_number, $token_number ] ],
@@ -431,7 +437,7 @@ sub Marpa::UrHTML::parse {
             } ## end when ( [qw(C D)] )
             when ( ['PI'] ) {
                 my ( $offset, $offset_end ) =
-                    @{$html_parser_token}[ 1 .. $#$html_parser_token ];
+                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 push @marpa_tokens,
                     [
                     $_, [ [ 'TOKEN_SPAN', $token_number, $token_number ] ],
@@ -478,8 +484,8 @@ sub Marpa::UrHTML::parse {
         } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG...)
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
             push @rules, {
-                lhs     => "ELE_$_",
-                    rhs => ["S_$_"],
+                lhs        => "ELE_$_",
+                    rhs    => ["S_$_"],
                     action => "!ELE_$_",
             };
             $element_actions{"!ELE_$_"} = $_;
@@ -510,12 +516,11 @@ sub Marpa::UrHTML::parse {
     } ## end for ( keys %start_tags )
 
     my $grammar = Marpa::Grammar->new(
-        {   rules     => \@rules,
-            start     => 'document',
-            terminals => \@terminals,
-            default_action =>
-                'Marpa::UrHTML::Internal::tdesc_to_tdesc',
-            strip => 0,
+        {   rules          => \@rules,
+            start          => 'document',
+            terminals      => \@terminals,
+            default_action => 'Marpa::UrHTML::Internal::tdesc_to_tdesc',
+            strip          => 0,
         }
     );
     $grammar->precompute();
@@ -528,12 +533,11 @@ sub Marpa::UrHTML::parse {
 
     my %closure = ();
     ELEMENT:
-    while ( my ( $element_action, $element ) = each %element_actions )
-    {
+    while ( my ( $element_action, $element ) = each %element_actions ) {
         $closure{$element_action} =
             $element eq 'document'
-            ? create_text_handler($self, $element)
-            : create_tdesc_handler($self, $element);
+            ? create_text_handler( $self, $element )
+            : create_tdesc_handler( $self, $element );
     } ## end while ( my ( $element_action, $element ) = each %element_actions)
 
     my $value = do {

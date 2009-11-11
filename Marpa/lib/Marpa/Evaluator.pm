@@ -321,7 +321,8 @@ sub resolve_semantics {
         if ( $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS] ) {
             my $trace_fh =
                 $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-            print {$trace_fh} qq{Resolved "$closure_name" to explicit closure\n}
+            print {$trace_fh}
+                qq{Resolved "$closure_name" to explicit closure\n}
                 or Marpa::exception('Could not print to trace file');
         } ## end if ( $grammar->[Marpa::Internal::Grammar::TRACE_ACTIONS...])
 
@@ -454,7 +455,6 @@ sub set_actions {
             $rule->[Marpa::Internal::Rule::LHS]
             ->[Marpa::Internal::Symbol::NAME] )
         {
-            my $closure;
             if ($action !~ /[\]] \z/xms
                 and defined(
                     my $closure =
@@ -895,7 +895,7 @@ sub delete_nodes {
 
 # Rewrite to eliminate cycles.
 sub rewrite_cycles {
-    my ($evaler, $cycle_rule_ids) = @_;
+    my ( $evaler, $cycle_rule_ids ) = @_;
 
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
@@ -1521,16 +1521,15 @@ sub Marpa::Evaluator::new {
         $recce = $recce->clone();
     }
 
-    $self->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES] =
-        $args->{closures} // {};
+    $self->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES] = $args->{closures}
+        // {};
 
     delete $args->{closures};
 
     my $grammar     = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $earley_sets = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
 
-    my $phase       = 
-    $grammar->[Marpa::Internal::Grammar::PHASE] =
+    my $phase = $grammar->[Marpa::Internal::Grammar::PHASE] =
         Marpa::Internal::Phase::SETTLING_SEMANTICS;
 
     my $parse_order = $grammar->[Marpa::Internal::Grammar::PARSE_ORDER];
@@ -2117,7 +2116,7 @@ of the rule, where it will end.
     ### assert: Marpa'Evaluator'audit($self) or 1
 
     if ( $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE] ) {
-        rewrite_cycles($self, \@cycle_rule_ids);
+        rewrite_cycles( $self, \@cycle_rule_ids );
     }
 
     ### assert: Marpa'Evaluator'audit($self) or 1
@@ -2682,8 +2681,7 @@ sub Marpa::Evaluator::value {
                 } ## end if ( $predecessor_id = $and_node->[...])
 
                 # The rest of the processing is for ranking parses
-                break    # next TASK
-                    if $parse_order eq 'none';
+                break if $parse_order eq 'none';    # next TASK
 
                 my $cause_ranking_data;
                 my $cause_and_node_iteration;
@@ -3426,9 +3424,9 @@ node appears more than once on the path back to the root node.
                         or Marpa::exception('print to trace handle failed');
                 } ## end if ($trace_tasks)
 
-                my @work_list = ( $and_node_id );
+                my @work_list = ($and_node_id);
                 my @and_slice = ();
-                my @or_slice = ();
+                my @or_slice  = ();
 
                 AND_NODE: while ( scalar @work_list ) {
                     my $descendant_and_node_id = pop @work_list;

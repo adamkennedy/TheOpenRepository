@@ -804,7 +804,7 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'cycle_rewrite'} ) ) {
             $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE] = $value;
-        } ## end if ( defined( my $value = $args->{'cycle_rewrite'} ))
+        }
 
         if ( defined( my $value = $args->{'warnings'} ) ) {
             if ( $value && $phase >= Marpa::Internal::Phase::PRECOMPUTED ) {
@@ -1840,9 +1840,11 @@ sub add_user_rules {
             default {
                 Marpa::exception(
                     'Invalid rule: ',
-                    Data::Dumper->new([$rule], ['Invalid_Rule'])->Indent(2)->Terse(1)->Maxdepth(2)->Dump,
-                    'Rule must be ref to HASH or ARRAY');
-            }
+                    Data::Dumper->new( [$rule], ['Invalid_Rule'] )->Indent(2)
+                        ->Terse(1)->Maxdepth(2)->Dump,
+                    'Rule must be ref to HASH or ARRAY'
+                );
+            } ## end default
         } ## end given
 
     }    # RULE
@@ -2153,7 +2155,8 @@ sub check_start {
         if not defined $start_id;
 
     my $start = $symbols->[$start_id];
-    Marpa::exception( qq{Internal error: Start symbol "$start_name" id not found} )
+    Marpa::exception(
+        qq{Internal error: Start symbol "$start_name" id not found})
         if not $start;
 
     my $lh_rule_ids = $start->[Marpa::Internal::Symbol::LH_RULE_IDS];
