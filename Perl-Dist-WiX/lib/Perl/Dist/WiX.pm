@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.100
+Perl-Dist-WiX version 1.101
 
 =end readme
 
@@ -123,7 +123,7 @@ require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 #>>>
 
-our $VERSION = '1.100_001';
+our $VERSION = '1.101_001';
 $VERSION =~ s/_//ms;
 
 

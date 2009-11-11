@@ -43,7 +43,7 @@ use strict;
 use warnings;
 use parent qw(Perl::Dist::WiX);
 
-our $VERSION = '1.100_001';
+our $VERSION = '1.101_001';
 $VERSION =~ s/_//ms;
 
 #####################################################################
@@ -54,7 +54,7 @@ sub new {
 	my %args;
 
 	# Check for the correct version of Perl::Dist::WiX.
-	Perl::Dist::WiX->VERSION(1.100001);
+	Perl::Dist::WiX->VERSION(1.100);
 
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };

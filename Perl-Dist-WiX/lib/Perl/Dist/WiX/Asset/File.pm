@@ -7,7 +7,7 @@ use File::Spec::Functions qw( catfile );
 require File::Remove;
 require File::List::Object;
 
-our $VERSION = '1.100';
+our $VERSION = '1.101_001';
 $VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
 
 with 'Perl::Dist::WiX::Role::Asset';

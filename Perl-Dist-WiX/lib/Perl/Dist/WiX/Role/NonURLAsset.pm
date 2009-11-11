@@ -15,7 +15,7 @@ require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
-our $VERSION = '1.100_001';
+our $VERSION = '1.101_001';
 $VERSION =~ s/_//sm;
 
 has parent => (
