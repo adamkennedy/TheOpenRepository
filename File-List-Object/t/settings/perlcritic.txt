@@ -35,4 +35,4 @@ allowed_values = -1 0 1 2
 [-NamingConventions::Capitalization]
 
 # I like use version, but not the results of using qv!
-#[-ValuesAndExpressions::RequireConstantVersion]
+[-ValuesAndExpressions::RequireConstantVersion]
