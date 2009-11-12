@@ -4,7 +4,7 @@ package File::List::Object;
 
 =begin readme text
 
-File::List::Object version 0.200
+File::List::Object version 0.201
 
 =end readme
 
@@ -115,15 +115,13 @@ have to be loaded from disk.
 
 #<<<
 use 5.008001;
-use Moose;
-use MooseX::AttributeHelpers;
+use Moose 0.90;
 use File::Spec::Functions
   qw( catdir catfile splitpath splitdir curdir updir     );
-use vars           qw( $VERSION                          );
+use English        qw(-no_match_vars);
 use Params::Util   qw( _INSTANCE _STRING _NONNEGINT      );
 use IO::Dir        qw();
 use IO::File       qw();
-use English qw(-no_match_vars);
 use Exception::Class (
 	'File::List::Object::Exception' => {
 		'description' => 'File::List::Object error',
@@ -136,7 +134,8 @@ use Exception::Class (
 	},
 );
 
-use version; $VERSION = version->new('0.200')->numify;
+our $VERSION = '0.200_001';
+$VERSION =~ s/_//ms;
 
 #
 
@@ -147,17 +146,17 @@ my %sortcache; # Defined at this level so that the cache does not
 # The only attribute of this object.
 
 has '_files' => (
-	metaclass => 'Collection::Hash',
-	is        => 'rw',
+    traits    => ['Hash'],
+	is        => 'bare',
 	isa       => 'HashRef',
-	provides  => {
-		set    => '_add_file',
-		clear  => '_clear',
-		count  => 'count',
-		get    => '_get_file',
-		exists => '_is_file',
-		delete => '_delete_files',
-		keys   => '_get_files_array',
+	handles   => {
+		'_add_file'        => 'set',
+		'_clear'           => 'clear',
+		'count'            => 'count',
+		'_get_file'        => 'get',
+		'_is_file'         => 'exists',
+		'_delete_files'    => 'delete',
+		'_get_files_array' => 'keys',
 	},
 	reader   => '_get_files_hashref',
 	writer   => '_set_files_hashref',
@@ -436,12 +435,17 @@ sub load_file {
 	my @files_list = <$fh>;
 	$fh->close;
 	my $file;
-
+    my $short_file;
+	
 	# Insert list of files read into this object. Chomp on the way.
 	my @files = map { ## no critic 'ProhibitComplexMappings'
+		$short_file = undef;
 		$file = $_;
 		chomp $file;
-		$file;
+		print "Packlist file formatting: $file\n";
+		($short_file) = $file =~ m/\A (.*?) (?:\s+ \w+ = .*?)* \z/msx;
+		print "filtered to: $short_file\n";
+		$short_file || $file;
 	} @files_list;
 	foreach my $file_to_add (@files) {
 		$self->_add_file( $file_to_add, 1 );

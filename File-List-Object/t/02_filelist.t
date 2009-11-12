@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
-use Test::More tests => 14;
+use Test::More tests => 15;
 use File::Spec::Functions qw(catfile curdir catdir rel2abs);
 use File::List::Object;
 
@@ -98,6 +98,25 @@ if ($answer) {
 	fail('reading from packlist file'); 
 	diag("Could not create packlist $packlist_file in test directory: $!.");
 }
+
+# Need to create a second packlist
+my $packlist2_file = catfile(rel2abs(curdir()), qw(t test02 filelist2.txt));
+my $fh2;
+my $answer2 = open $fh2, '>', $packlist_file;
+if ($answer2) {
+	print $fh2 "$file[0] test_attribute=$file[0]\n$file[2] test_attribute=$file[2]\n$file[1]\n";
+	close $fh2;
+
+	is (File::List::Object->new->load_file($packlist2_file)->as_string,
+		"$file[0]\n$file[1]\n$file[2]",
+		'reading from packlist file' );
+
+} else {
+	fail('reading from packlist file'); 
+	diag("Could not create packlist $packlist2_file in test directory: $!.");
+}
+
+
 
 is( File::List::Object->new->load_array(@file[1, 2, 3, 7])->as_string, 
     "$file[7]\n$file[3]\n$file[1]\n$file[2]",

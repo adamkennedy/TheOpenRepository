@@ -51,4 +51,4 @@
 
 # Avoid release files
 \breleaserc$
-\bsite_html_config.yaml$
+\bsite_html_config.yaml$^MYMETA.yml$
