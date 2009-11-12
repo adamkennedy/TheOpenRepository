@@ -118,11 +118,11 @@ use 5.008001;
 use Moose 0.90;
 use File::Spec::Functions
   qw( catdir catfile splitpath splitdir curdir updir     );
-use English        qw(-no_match_vars);
-use Params::Util   qw( _INSTANCE _STRING _NONNEGINT      );
-use IO::Dir        qw();
-use IO::File       qw();
-use Exception::Class (
+use English           qw(-no_match_vars);
+use Params::Util 0.35 qw( _INSTANCE _STRING _NONNEGINT   );
+use IO::Dir           qw();
+use IO::File          qw();
+use Exception::Class 1.29 (
 	'File::List::Object::Exception' => {
 		'description' => 'File::List::Object error',
 	},
@@ -134,7 +134,7 @@ use Exception::Class (
 	},
 );
 
-our $VERSION = '0.200_001';
+our $VERSION = '0.201';
 $VERSION =~ s/_//ms;
 
 #
@@ -146,10 +146,10 @@ my %sortcache; # Defined at this level so that the cache does not
 # The only attribute of this object.
 
 has '_files' => (
-    traits    => ['Hash'],
-	is        => 'bare',
-	isa       => 'HashRef',
-	handles   => {
+	traits  => ['Hash'],
+	is      => 'bare',
+	isa     => 'HashRef',
+	handles => {
 		'_add_file'        => 'set',
 		'_clear'           => 'clear',
 		'count'            => 'count',
@@ -435,12 +435,12 @@ sub load_file {
 	my @files_list = <$fh>;
 	$fh->close;
 	my $file;
-    my $short_file;
-	
+	my $short_file;
+
 	# Insert list of files read into this object. Chomp on the way.
 	my @files = map { ## no critic 'ProhibitComplexMappings'
 		$short_file = undef;
-		$file = $_;
+		$file       = $_;
 		chomp $file;
 		print "Packlist file formatting: $file\n";
 		($short_file) = $file =~ m/\A (.*?) (?:\s+ \w+ = .*?)* \z/msx;
@@ -762,10 +762,8 @@ File::List::Object requires no configuration files or environment variables.
 
 Dependencies of this module that are non-core in perl 5.8.1 (which is the 
 minimum version of Perl required) include 
-L<Moose|Moose> version 0.79, L<Exception::Class|Exception::Class> version 
-1.29, L<Params::Util|Params::Util> version 0.35, 
-L<MooseX::AttributeHelpers|MooseX::AttributeHelpers> version 0.17, and 
-L<version.pm|version> version 0.76.
+L<Moose|Moose> version 0.90, L<Exception::Class|Exception::Class> version 
+1.29, and L<Params::Util|Params::Util> version 0.35.
 
 =for readme stop
 
