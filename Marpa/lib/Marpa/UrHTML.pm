@@ -32,6 +32,39 @@ sub per_element_handlers {
     return \%handlers;
 } ## end sub per_element_handlers
 
+sub tdesc_list_to_text {
+    my ( $self, $tdesc_list ) = @_;
+    my $text     = q{};
+    my $document = $self->{document};
+    my $tokens = $self->{tokens};
+    TDESC: for my $tdesc ( @{$tdesc_list} ) {
+        given ( $tdesc->[0] ) {
+            when ('ELE') {
+                my ( $first_token_id, $last_token_id, $value ) =
+                    @{$tdesc}[ 1 .. $#{$tdesc} ];
+                if ( defined $value ) {
+                    $text .= $value;
+                    break;    # next TDESC;
+                }
+                my $offset     = $tokens->[$first_token_id]->[1];
+                my $end_offset = $tokens->[$last_token_id]->[2];
+                $text .= substr ${$document}, $offset,
+                    ( $end_offset - $offset );
+            } ## end when ('ELE')
+            when ('TOKEN_SPAN') {
+                my ( $first_token_id, $last_token_id ) = @{$tdesc}[ 1, 2 ];
+                my $offset     = $tokens->[$first_token_id]->[1];
+                my $end_offset = $tokens->[$last_token_id]->[2];
+                $text .= substr ${$document}, $offset, $end_offset - $offset;
+            } ## end when ('TOKEN_SPAN')
+            default {
+                Marpa::exception(qq{Internal error: unknown tdesc type "$_"});
+            }
+        } ## end given
+    } ## end for my $tdesc ( @{$tdesc_lists} )
+    return \$text;
+} ## end sub tdesc_to_text
+
 # Convert a list of text descriptions to text
 sub create_text_handler {
     my ( $self, $element ) = @_;
@@ -48,52 +81,26 @@ sub create_text_handler {
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
 
         my $tokens = $self->{tokens};
-        if ( my $user_handler = $handlers_by_id->{ $Marpa::UrHTML::ID // q{} }
-            || $handlers_by_class->{ $Marpa::UrHTML::CLASS // q{} } )
-        {
+        my $user_handler;
+        GET_USER_HANDLER: {
+            if ( my $id = $Marpa::UrHTML::ID ) {
+                $user_handler = $handlers_by_id->{$id};
+                last GET_USER_HANDLER if $user_handler;
+            }
+            if ( my $class = $Marpa::UrHTML::CLASS ) {
+                $user_handler = $handlers_by_class->{$class};
+                last GET_USER_HANDLER if $user_handler;
+            }
+            $user_handler = $handlers_by_class->{q{}};
+        } ## end GET_USER_HANDLER:
+        if ( defined $user_handler ) {
             my $first_token = $tokens->[0]->[1];
             my $last_token  = $tokens->[-1]->[2];
             return [
                 [ ELE => $first_token, $last_token, $user_handler->() ] ];
-        } ## end if ( my $user_handler = $handlers_by_id->{ ...})
+        }
 
-        my $text     = q{};
-        my $document = $self->{document};
-        TDESC: for my $tdesc (@tdesc_list) {
-            my $ref_type = ref $tdesc;
-            if ( not $ref_type or $ref_type ne 'ARRAY' ) {
-                $text .= $tdesc;
-                next TDESC;
-            }
-            given ( $tdesc->[0] ) {
-                when ('ELE') {
-                    my ( $first_token_id, $last_token_id, $value ) =
-                        @{$tdesc}[ 1 .. $#{$tdesc} ];
-                    if ( defined $value ) {
-                        $text .= $value;
-                        break;    # next TDESC;
-                    }
-                    my $offset     = $tokens->[$first_token_id]->[1];
-                    my $end_offset = $tokens->[$last_token_id]->[2];
-                    $text .= substr ${$document}, $offset,
-                        ( $end_offset - $offset );
-                } ## end when ('ELE')
-                when ('TOKEN_SPAN') {
-                    my ( $first_token_id, $last_token_id ) =
-                        @{$tdesc}[ 1, 2 ];
-                    my $offset     = $tokens->[$first_token_id]->[1];
-                    my $end_offset = $tokens->[$last_token_id]->[2];
-                    $text .= substr ${$document}, $offset,
-                        $end_offset - $offset;
-                } ## end when ('TOKEN_SPAN')
-                default {
-                    my ( $offset, $end_offset ) = @{$tdesc}[ 1, 2 ];
-                    $text .= substr ${$document}, $offset,
-                        $end_offset - $offset;
-                }
-            } ## end given
-        } ## end for my $tdesc (@tdesc_list)
-        return \$text;
+        return tdesc_list_to_text( $self, \@tdesc_list );
         }
 } ## end sub create_text_handler
 
@@ -116,14 +123,25 @@ sub create_tdesc_handler {
         my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
 
         my $tokens = $self->{tokens};
-        if ( my $user_handler = $handlers_by_id->{ $Marpa::UrHTML::ID // q{} }
-            || $handlers_by_class->{ $Marpa::UrHTML::CLASS // q{} } )
-        {
+
+        my $user_handler;
+        GET_USER_HANDLER: {
+            if ( my $id = $Marpa::UrHTML::ID ) {
+                $user_handler = $handlers_by_id->{$id};
+                last GET_USER_HANDLER if $user_handler;
+            }
+            if ( my $class = $Marpa::UrHTML::CLASS ) {
+                $user_handler = $handlers_by_class->{$class};
+                last GET_USER_HANDLER if $user_handler;
+            }
+            $user_handler = $handlers_by_class->{q{}}
+        } ## end given
+        if ( defined $user_handler ) {
             my $first_token = $tokens->[0]->[1];
             my $last_token  = $tokens->[-1]->[2];
             return [
                 [ ELE => $first_token, $last_token, $user_handler->() ] ];
-        } ## end if ( my $user_handler = $handlers_by_id->{ ...})
+        } ## end if ( defined $user_handler )
 
         my $doc          = $self->{doc};
         my @tdesc_result = ();
@@ -325,8 +343,10 @@ push @anywhere_rh_sides,
 my @anywhere_item_rules =
     map { { lhs => 'anywhere_item', rhs => [$_] } } @anywhere_rh_sides;
 
-*{Marpa::UrHTML::Internal::tdesc_to_text}  = create_text_handler();
-*{Marpa::UrHTML::Internal::tdesc_to_tdesc} = create_tdesc_handler();
+no strict 'refs';
+*{'Marpa::UrHTML::Internal::tdesc_to_text'}  = create_text_handler();
+*{'Marpa::UrHTML::Internal::tdesc_to_tdesc'} = create_tdesc_handler();
+use strict;
 
 @Marpa::UrHTML::Internal::CORE_RULES = (
     @anywhere_item_rules,
@@ -542,6 +562,7 @@ sub Marpa::UrHTML::parse {
 
     my $value = do {
         local $Marpa::UrHTML::Internal::PARSE_INSTANCE = $self;
+        local $Marpa::UrHTML::INSTANCE = {};
         my $evaler = Marpa::Evaluator->new(
             { recce => $recce, closures => \%closure } );
         $evaler->value;
