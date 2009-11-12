@@ -8,16 +8,16 @@ my $builder = Module::Build->new(
 	dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
 	dist_version_from   => 'lib/File/List/Object.pm',
 	configure_requires  => {
-		'Module::Build'            => 0.32,
+		'Module::Build'    => 0.32,
 	},
 	requires => {
-		'perl'                     => 5.008001,
-		'Exception::Class'         => 1.29,
-		'Moose'                    => 0.90,
-		'Params::Util'             => 0.35,
+		'perl'             => 5.008001,
+		'Exception::Class' => 1.29,
+		'Moose'            => 0.90,
+		'Params::Util'     => 0.35,
 	},
 	build_requires => {
-		'Test::More'               => 0.61,
+		'Test::More'       => 0.61,
 # Build dist requires these.
 #		'Pod::Readme'              => 0,
 #		'Software::License'        => 0,
