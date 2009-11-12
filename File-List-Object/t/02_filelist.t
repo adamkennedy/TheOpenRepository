@@ -102,7 +102,7 @@ if ($answer) {
 # Need to create a second packlist
 my $packlist2_file = catfile(rel2abs(curdir()), qw(t test02 filelist2.txt));
 my $fh2;
-my $answer2 = open $fh2, '>', $packlist_file;
+my $answer2 = open $fh2, '>', $packlist2_file;
 if ($answer2) {
 	print $fh2 "$file[0] test_attribute=$file[0]\n$file[2] test_attribute=$file[2]\n$file[1]\n";
 	close $fh2;
