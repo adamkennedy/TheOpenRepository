@@ -96,6 +96,7 @@ sub create_text_handler {
         if ( defined $user_handler ) {
             my $first_token = $tokens->[0]->[1];
             my $last_token  = $tokens->[-1]->[2];
+            local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
             return [
                 [ ELE => $first_token, $last_token, $user_handler->() ] ];
         }
@@ -139,6 +140,7 @@ sub create_tdesc_handler {
         if ( defined $user_handler ) {
             my $first_token = $tokens->[0]->[1];
             my $last_token  = $tokens->[-1]->[2];
+            local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
             return [
                 [ ELE => $first_token, $last_token, $user_handler->() ] ];
         } ## end if ( defined $user_handler )
