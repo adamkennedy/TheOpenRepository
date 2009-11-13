@@ -4,21 +4,25 @@ use 5.010;
 use strict;
 use warnings;
 
-use Test::More tests => 2;
 use lib 'lib';
+use Test::More;
 use t::lib::Marpa::Test;
-use Fatal qw(open close);
 
 BEGIN {
+    if ( eval { require HTML::PullParser } ) {
+        Test::More::plan tests => 3;
+    }
+    else {
+        Test::More::plan skip_all => 'Scalar::Util::weaken() not implemented';
+    }
     Test::More::use_ok('Marpa');
-}
+    Test::More::use_ok('Marpa::UrHTML');
+} ## end BEGIN
 
 use Carp;
 use Data::Dumper;
 use English qw( -no_match_vars );
-use Fatal qw(open);
-
-use Marpa::UrHTML;
+use Fatal qw(open close);
 
 my $document;
 {

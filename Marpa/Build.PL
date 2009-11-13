@@ -58,7 +58,7 @@ my $build = $class->new(
             ],
             package => [qw(Marpa::Internal Marpa::Offset)],
         },
-        },
+    },
     meta_add => {
         distribution_type => 'module',
         provides          => {

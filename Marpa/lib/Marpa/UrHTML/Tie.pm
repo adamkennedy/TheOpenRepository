@@ -46,19 +46,21 @@ sub tiescalar_stub {
 
 sub create_not_writeable {
     my ($var_name) = @_;
-    return sub { Marpa::exception($var_name . ' is not writeable') }
+    return sub { Marpa::exception( $var_name . ' is not writeable' ) }
 }
 
 sub tie_attribute {
     my ($attribute_name) = @_;
-    my $package_name     = 'Marpa::UrHTML::Internal::Tie::' . ucfirst $attribute_name;
-    my $tied_var_name    = 'Marpa::UrHTML::Attribute::' . uc $attribute_name;
+    my $package_name =
+        'Marpa::UrHTML::Internal::Tie::' . ucfirst $attribute_name;
+    my $tied_var_name = 'Marpa::UrHTML::Attribute::' . uc $attribute_name;
 
     no strict 'refs';
     *{ $package_name . '::TIESCALAR' } =
         *{'Marpa::UrHTML::Internal::Tie::tiescalar_stub'}{'CODE'};
     *{ $package_name . '::FETCH' } =
-        Marpa::UrHTML::Internal::Tie::create_fetch_attribute_closure(lc $attribute_name);
+        Marpa::UrHTML::Internal::Tie::create_fetch_attribute_closure(
+        lc $attribute_name );
     *{ $package_name . '::STORE' } =
         Marpa::UrHTML::Internal::Tie::create_not_writeable(
         uc $attribute_name );
@@ -81,7 +83,7 @@ tie_attribute('title');
 # Allow Short form of the attribute names,
 # when there are no conflicts
 no strict 'refs';
-*{'Marpa::UrHTML::ID'} = *{'Marpa::UrHTML::Attribute::ID'}{'SCALAR'};
+*{'Marpa::UrHTML::ID'}    = *{'Marpa::UrHTML::Attribute::ID'}{'SCALAR'};
 *{'Marpa::UrHTML::CLASS'} = *{'Marpa::UrHTML::Attribute::CLASS'}{'SCALAR'};
 *{'Marpa::UrHTML::TITLE'} = *{'Marpa::UrHTML::Attribute::TITLE'}{'SCALAR'};
 use strict;
@@ -94,11 +96,10 @@ sub set_up_elements {
     # Assume the parent checked to see if this exists
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
     TDESC:
-    for my $tdesc_ix ( 0 .. $#{$Marpa::UrHTML::Internal::TDESC_LIST} )
-    {
+    for my $tdesc_ix ( 0 .. $#{$Marpa::UrHTML::Internal::TDESC_LIST} ) {
         next TDESC if $tdesc_list->[$tdesc_ix]->[0] ne 'ELE';
         push @{$elements}, $tdesc_ix;
-    } ## end for my $tdesc_ix ( 0 .. $#{$Marpa::UrHTML::Internal::TDESC_LIST...})
+    }
     return $elements;
 } ## end sub set_up_elements
 
@@ -117,7 +118,7 @@ sub FETCH {
         if not defined $tdesc_list;
     my $elements = $Marpa::UrHTML::Internal::NODE_SCRATCHPAD->{elements}
         // Marpa::UrHTML::Internal::Tie::set_up_elements();
-    my $element_values = [ map { $_->[3] } @{$tdesc_list}[ @{$elements} ] ];
+    return [ map { $_->[3] } @{$tdesc_list}[ @{$elements} ] ];
 } ## end sub FETCH
 
 tie $Marpa::UrHTML::ELEMENT_VALUES, __PACKAGE__;
@@ -137,9 +138,10 @@ sub FETCH {
         if not defined $tdesc_list;
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     Marpa::exception(
-        qq{Attempt to read element values in undefined parse instance}
-    ) if not defined $parse_instance;
-    return Marpa::UrHTML::Internal::tdesc_list_to_text( $parse_instance, $tdesc_list );
+        'Attempt to read element values in undefined parse instance')
+        if not defined $parse_instance;
+    return Marpa::UrHTML::Internal::tdesc_list_to_text( $parse_instance,
+        $tdesc_list );
 } ## end sub FETCH
 
 tie $Marpa::UrHTML::LITERAL, __PACKAGE__;

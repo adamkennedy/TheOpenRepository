@@ -36,7 +36,7 @@ sub tdesc_list_to_text {
     my ( $self, $tdesc_list ) = @_;
     my $text     = q{};
     my $document = $self->{document};
-    my $tokens = $self->{tokens};
+    my $tokens   = $self->{tokens};
     TDESC: for my $tdesc ( @{$tdesc_list} ) {
         given ( $tdesc->[0] ) {
             when ('ELE') {
@@ -61,9 +61,9 @@ sub tdesc_list_to_text {
                 Marpa::exception(qq{Internal error: unknown tdesc type "$_"});
             }
         } ## end given
-    } ## end for my $tdesc ( @{$tdesc_lists} )
+    } ## end for my $tdesc ( @{$tdesc_list} )
     return \$text;
-} ## end sub tdesc_to_text
+} ## end sub tdesc_list_to_text
 
 # Convert a list of text descriptions to text
 sub default_top_handler {
@@ -91,8 +91,8 @@ sub create_tdesc_handler {
 
         my @tdesc_list = map { @{$_} } @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
-        my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-        my $trace_fh = $self->{trace_fh};
+        my $self           = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+        my $trace_fh       = $self->{trace_fh};
         my $trace_handlers = $self->{trace_handlers};
 
         my $tokens = $self->{tokens};
@@ -122,7 +122,7 @@ sub create_tdesc_handler {
                 say {$trace_fh} +(
                     defined $element
                     ? "Resolved to user handler by element ($element)"
-                    : "Resolved to default user handler"
+                    : 'Resolved to default user handler'
                 );
             } ## end if ( $trace_handlers and $user_handler )
         } ## end GET_USER_HANDLER:
@@ -254,12 +254,12 @@ sub add_handlers {
                     $self->{user_default_handler} = $action;
                     next HANDLER_SPEC;
                 }
-                if ( $specifier =~ /[A-Z]/ ) {
+                if ( $specifier =~ /[A-Z]/xms ) {
                     Marpa::exception(
                         qq{Invalid CSS-style specifier: $specifier\n},
                         'Marpa wants CSS-style specifier to be all lower-case'
                     );
-                } ## end if ( $specifier =~ /[A-Z]/ )
+                } ## end if ( $specifier =~ /[A-Z]/xms )
                 ( $element, $id ) =
                        ( $specifier =~ /\A ([^#]*) [#] (.*) \z/xms )
                     or ( $element, $class ) =
@@ -279,13 +279,11 @@ sub add_handlers {
         } ## end PARSE_HANDLER_SPEC:
         $element = $element ? lc $element : 'ANY';
         if ( defined $id ) {
-            $self->{user_handlers_by_id}->{ $element }->{ lc $id } =
-                $action;
+            $self->{user_handlers_by_id}->{$element}->{ lc $id } = $action;
             next HANDLER_SPEC;
         }
         $class = defined $class ? lc $class : 'ANY';
-        $self->{user_handlers_by_class}->{ $element }->{ $class } =
-            $action;
+        $self->{user_handlers_by_class}->{$element}->{$class} = $action;
 
     } ## end for my $handler_spec ( @{$handler_spec_list} )
 
@@ -573,11 +571,11 @@ sub Marpa::UrHTML::parse {
     ELEMENT:
     while ( my ( $element_action, $element ) = each %element_actions ) {
         $closure{$element_action} = create_tdesc_handler( $self, $element );
-    } ## end while ( my ( $element_action, $element ) = each %element_actions)
+    }
 
     my $value = do {
         local $Marpa::UrHTML::Internal::PARSE_INSTANCE = $self;
-        local $Marpa::UrHTML::INSTANCE = {};
+        local $Marpa::UrHTML::INSTANCE                 = {};
         my $evaler = Marpa::Evaluator->new(
             { recce => $recce, closures => \%closure, } );
         $evaler->value;
