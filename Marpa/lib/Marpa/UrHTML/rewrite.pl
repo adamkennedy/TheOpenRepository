@@ -11,6 +11,7 @@ use Carp;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use Fatal qw(open);
+use Storable;
 
 use Marpa::UrHTML;
 
@@ -21,15 +22,13 @@ my $document;
 };
 
 my @handlers = (
-    [   'document' => sub {
-            say STDERR 'In user document handler ', __LINE__;
+    [   'TOP' => sub {
             return $Marpa::UrHTML::INSTANCE;
             }
     ],
     [   '.codepoint' => sub {
             for my $value ( @{$Marpa::UrHTML::ELEMENT_VALUES} ) {
                 next CHILD if not $value;
-                say STDERR Data::Dumper->Dump([$value], ['value']);
                 my ( $class, $literal, $data ) = @{ $value };
                 if ($class eq 'occurrences') {
                     $Marpa::UrHTML::INSTANCE->{$Marpa::UrHTML::TITLE}->{occurrence_count} = $data;
@@ -45,24 +44,29 @@ push @handlers,
        [   '.occurrences' =>
                 sub {
                 my $literal = $Marpa::UrHTML::LITERAL;
-                my ($occurrence_count) = ($literal =~ / Occurrences \s+ [(] (\d+) [)] [:] /xms);
-                return [ 'occurrences', $Marpa::UrHTML::LITERAL, $occurrence_count ]
+                my ($occurrence_count) = (${$literal} =~ / Occurrences \s+ [(] (\d+) [)] [:] /xms);
+                return [ 'occurrences', $literal, $occurrence_count ]
                 }
         ];
 
-push @handlers, map {
-    my $class = $_;
-    [ ".$class" =>
-            sub { return [ $class, $Marpa::UrHTML::LITERAL ] } ];
-    } qw( cedict_definition glyph kfrequency kgradelevel
+my @short_text_fields;
+my @long_text_fields;
+
+my @text_fields = qw( cedict_definition glyph kfrequency kgradelevel
     kiicore kmandarin kmatthews krskangxi
     krsunicode ktang ktotalstrokes shrift_notes
     shrift_occurrences unicode_value unihan_definition );
 
+push @handlers, map {
+    my $class = $_;
+    [ ".$class" => sub { return [ $class, $Marpa::UrHTML::LITERAL ] } ];
+} @text_fields;
+
 my $p = Marpa::UrHTML->new( { handlers => \@handlers } );
 my $value = $p->parse( \$document );
-say Data::Dumper::Dumper(${$value});
+my $codepoint_hash = ${$value};
 
-# Marpa::Test::is( ${ ${$value} }, $no_tang_document, 'remove kTang class' );
+Storable::store_fd $codepoint_hash, \*STDOUT;
+
 
 __END__

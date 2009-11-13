@@ -234,23 +234,23 @@ my %ARGS = (
 sub add_handlers {
     my ( $self, $handler_spec_list ) = @_;
     HANDLER_SPEC: for my $handler_spec ( @{$handler_spec_list} ) {
-        my $ref_type = ref $handler_spec;
         my $element;
         my $id;
         my $class;
         my $action;
-        given ($ref_type) {
-            when (undef) {
+        PARSE_HANDLER_SPEC: {
+            my $ref_type = ref $handler_spec;
+            if ( not defined $ref_type ) {
                 Marpa::exception('undefined handler specification');
             }
-            when ('ARRAY') {
+            if ( $ref_type eq 'ARRAY' ) {
                 my $specifier;
                 ( $specifier, $action ) = @{$handler_spec};
-                if ($specifier eq 'TOP') {
+                if ( $specifier eq 'TOP' ) {
                     $self->{user_top_handler} = $action;
                     next HANDLER_SPEC;
                 }
-                if ($specifier eq 'DEFAULT') {
+                if ( $specifier eq 'DEFAULT' ) {
                     $self->{user_default_handler} = $action;
                     next HANDLER_SPEC;
                 }
@@ -265,18 +265,18 @@ sub add_handlers {
                     or ( $element, $class ) =
                     ( $specifier =~ /\A ([^.]*) [.] (.*) \z/xms )
                     or $element = $specifier;
-            } ## end when ('ARRAY')
-            when ('HASH') {
+                last PARSE_HANDLER_SPEC;
+            } ## end if ( $ref_type eq 'ARRAY' )
+            if ( $ref_type eq 'HASH' ) {
                 $element = $handler_spec->{element};
                 $id      = $handler_spec->{id};
                 $class   = $handler_spec->{class};
                 $action  = $handler_spec->{action};
-            } ## end when ('HASH')
-            default {
-                Marpa::exception(
-                    'handler specification must be ref to ARRAY or HASH');
-            }
-        } ## end given
+                last PARSE_HANDLER_SPEC;
+            } ## end if ( $ref_type eq 'HASH' )
+            Marpa::exception(
+                'handler specification must be ref to ARRAY or HASH');
+        } ## end PARSE_HANDLER_SPEC:
         $element = $element ? lc $element : 'ANY';
         if ( defined $id ) {
             $self->{user_handlers_by_id}->{ $element }->{ lc $id } =
