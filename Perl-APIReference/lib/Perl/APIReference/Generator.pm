@@ -119,7 +119,9 @@ Perl::APIReference::Generator - Generate an APIReference from a perlapi.pod
 =head1 DESCRIPTION
 
 Generate a perl API reference object from a F<perlapi.pod> file.
-This is a maintainer's tool and requires L<Pod::Eventual::Simple>.
+This is a maintainer's tool and requires L<Pod::Eventual::Simple>
+and a small change to the main F<APIReference.pm> file if the
+perl API version isn't supported yet.
 
 =head1 SEE ALSO
 

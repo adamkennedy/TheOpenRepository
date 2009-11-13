@@ -125,12 +125,46 @@ Perl::APIReference - Programmatically query the perlapi
 
   use Perl::APIReference;
   my $api = Perl::APIReference->new(perl_version => '5.10.0');
+  my $api_index_hash = $api->index;
 
 =head1 DESCRIPTION
+
+This module allows accessing the perlapi documentation for multiple
+releases of perl as an index (a hash).
+
+Currently, perl 5.10.1, 5.10.0, and 5.8.9 are supported. To add support
+for another release, simply send me the release's F<perlapi.pod> via email
+or via an RT ticket and I'll add it in the next release.
+
+=head1 METHODS
+
+=head2 new
+
+Constructor. Takes the C<perl_version> argument which specifies the
+version of the perlapi that you want to use.
+
+=head2 index
+
+Returns the index of perlapi entries and their documentation as a hash
+reference.
+
+=head2 perl_version
+
+Returns the API object's perl version. Possibly normalized to the
+floating point form (C<version-E<gt>new($version)-E<gt>numify()>).
+
+=head2 as_yaml_calltips
+
+Dumps the index as a YAML file in the format used by the Padre calltips.
+Requires L<YAML::Tiny>.
 
 =head1 SEE ALSO
 
 L<perlapi>
+
+L<Perl::APIReference::Generator>
+
+L<Padre>
 
 =head1 AUTHOR
 
