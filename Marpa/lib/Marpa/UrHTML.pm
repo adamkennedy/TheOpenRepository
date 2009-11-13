@@ -24,7 +24,7 @@ sub per_element_handlers {
     my ( $element, $user_handlers ) = @_;
     return {} if not $element;
     return {} if not $user_handlers;
-    my $wildcard_handlers    = $user_handlers->{q{}} // {};
+    my $wildcard_handlers    = $user_handlers->{ANY} // {};
     my %handlers             = %{$wildcard_handlers};
     my $per_element_handlers = $user_handlers->{$element} // {};
     @handlers{ keys %{$per_element_handlers} } =
@@ -66,44 +66,14 @@ sub tdesc_list_to_text {
 } ## end sub tdesc_to_text
 
 # Convert a list of text descriptions to text
-sub create_text_handler {
-    my ( $self, $element ) = @_;
-    my $handlers_by_class =
-        per_element_handlers( $element, $self->{user_handlers_by_class} );
-    my $handlers_by_id =
-        per_element_handlers( $element, $self->{user_handlers_by_id} );
+sub default_top_handler {
+    my ( $dummy, @tdesc_lists ) = @_;
 
-    return sub {
-        my ( $dummy, @tdesc_lists ) = @_;
+    my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+    my @tdesc_list = map { @{$_} } @tdesc_lists;
+    return tdesc_list_to_text( $self, \@tdesc_list );
 
-        my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-        my @tdesc_list = map { @{$_} } @tdesc_lists;
-        local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
-
-        my $tokens = $self->{tokens};
-        my $user_handler;
-        GET_USER_HANDLER: {
-            if ( my $id = $Marpa::UrHTML::ID ) {
-                $user_handler = $handlers_by_id->{$id};
-                last GET_USER_HANDLER if $user_handler;
-            }
-            if ( my $class = $Marpa::UrHTML::CLASS ) {
-                $user_handler = $handlers_by_class->{$class};
-                last GET_USER_HANDLER if $user_handler;
-            }
-            $user_handler = $handlers_by_class->{q{}};
-        } ## end GET_USER_HANDLER:
-        if ( defined $user_handler ) {
-            my $first_token = $tokens->[0]->[1];
-            my $last_token  = $tokens->[-1]->[2];
-            local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
-            return [
-                [ ELE => $first_token, $last_token, $user_handler->() ] ];
-        }
-
-        return tdesc_list_to_text( $self, \@tdesc_list );
-        }
-} ## end sub create_text_handler
+} ## end sub default_top_handler
 
 # Convert a list of text descriptions to a
 # single, shortened text description
@@ -122,21 +92,40 @@ sub create_tdesc_handler {
         my @tdesc_list = map { @{$_} } @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
         my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+        my $trace_fh = $self->{trace_fh};
+        my $trace_handlers = $self->{trace_handlers};
 
         my $tokens = $self->{tokens};
 
         my $user_handler;
         GET_USER_HANDLER: {
             if ( my $id = $Marpa::UrHTML::ID ) {
-                $user_handler = $handlers_by_id->{$id};
-                last GET_USER_HANDLER if $user_handler;
-            }
+                if ( $user_handler = $handlers_by_id->{$id} ) {
+                    if ($trace_handlers) {
+                        say {$trace_fh}
+                            "Resolved to user handler by element ($element) and id ($id)";
+                    }
+                    last GET_USER_HANDLER;
+                } ## end if ( $user_handler = $handlers_by_id->{$id} )
+            } ## end if ( my $id = $Marpa::UrHTML::ID )
             if ( my $class = $Marpa::UrHTML::CLASS ) {
-                $user_handler = $handlers_by_class->{$class};
-                last GET_USER_HANDLER if $user_handler;
-            }
-            $user_handler = $handlers_by_class->{q{}}
-        } ## end given
+                if ( $user_handler = $handlers_by_class->{$class} ) {
+                    if ($trace_handlers) {
+                        say {$trace_fh}
+                            "Resolved to user handler by element ($element) and class ($class)";
+                    }
+                    last GET_USER_HANDLER;
+                } ## end if ( $user_handler = $handlers_by_class->{$class} )
+            } ## end if ( my $class = $Marpa::UrHTML::CLASS )
+            $user_handler = $handlers_by_class->{ANY};
+            if ( $trace_handlers and $user_handler ) {
+                say {$trace_fh} +(
+                    defined $element
+                    ? "Resolved to user handler by element ($element)"
+                    : "Resolved to default user handler"
+                );
+            } ## end if ( $trace_handlers and $user_handler )
+        } ## end GET_USER_HANDLER:
         if ( defined $user_handler ) {
             my $first_token = $tokens->[0]->[1];
             my $last_token  = $tokens->[-1]->[2];
@@ -257,6 +246,20 @@ sub add_handlers {
             when ('ARRAY') {
                 my $specifier;
                 ( $specifier, $action ) = @{$handler_spec};
+                if ($specifier eq 'TOP') {
+                    $self->{user_top_handler} = $action;
+                    next HANDLER_SPEC;
+                }
+                if ($specifier eq 'DEFAULT') {
+                    $self->{user_default_handler} = $action;
+                    next HANDLER_SPEC;
+                }
+                if ( $specifier =~ /[A-Z]/ ) {
+                    Marpa::exception(
+                        qq{Invalid CSS-style specifier: $specifier\n},
+                        'Marpa wants CSS-style specifier to be all lower-case'
+                    );
+                } ## end if ( $specifier =~ /[A-Z]/ )
                 ( $element, $id ) =
                        ( $specifier =~ /\A ([^#]*) [#] (.*) \z/xms )
                     or ( $element, $class ) =
@@ -274,26 +277,31 @@ sub add_handlers {
                     'handler specification must be ref to ARRAY or HASH');
             }
         } ## end given
-        $element //= q{};
+        $element = $element ? lc $element : 'ANY';
         if ( defined $id ) {
-            $self->{user_handlers_by_id}->{ lc $element }->{ lc $id } =
+            $self->{user_handlers_by_id}->{ $element }->{ lc $id } =
                 $action;
             next HANDLER_SPEC;
         }
-        $class //= q{};
-        $self->{user_handlers_by_class}->{ lc $element }->{ lc $class } =
+        $class = defined $class ? lc $class : 'ANY';
+        $self->{user_handlers_by_class}->{ $element }->{ $class } =
             $action;
 
     } ## end for my $handler_spec ( @{$handler_spec_list} )
+
     return 1;
 } ## end sub add_handlers
 
 sub Marpa::UrHTML::new {
     my ( $class, @hash_args ) = @_;
     my $self = bless {}, $class;
+    $self->{trace_fh} = \*STDERR;
     for my $hash_arg (@hash_args) {
         for my $key ( keys %{$hash_arg} ) {
             given ($key) {
+                when ( [qw(trace_fh trace_handlers)] ) {
+                    $self->{$_} = $hash_arg->{$_}
+                }
                 when ('handlers') {
                     Marpa::UrHTML::Internal::add_handlers( $self,
                         $hash_arg->{$_} )
@@ -346,8 +354,7 @@ my @anywhere_item_rules =
     map { { lhs => 'anywhere_item', rhs => [$_] } } @anywhere_rh_sides;
 
 no strict 'refs';
-*{'Marpa::UrHTML::Internal::tdesc_to_text'}  = create_text_handler();
-*{'Marpa::UrHTML::Internal::tdesc_to_tdesc'} = create_tdesc_handler();
+*{'Marpa::UrHTML::Internal::default_action'} = create_tdesc_handler();
 use strict;
 
 @Marpa::UrHTML::Internal::CORE_RULES = (
@@ -355,7 +362,7 @@ use strict;
 
     {   lhs    => 'document',
         rhs    => ['flow'],
-        action => 'Marpa::UrHTML::Internal::tdesc_to_text',
+        action => '!top_handler',
     },
     { lhs => 'flow', rhs => ['terminated_flow_item'], min => 0 },
 
@@ -541,8 +548,11 @@ sub Marpa::UrHTML::parse {
         {   rules          => \@rules,
             start          => 'document',
             terminals      => \@terminals,
-            default_action => 'Marpa::UrHTML::Internal::tdesc_to_tdesc',
-            strip          => 0,
+            default_action => (
+                $self->{user_default_handler}
+                    // 'Marpa::UrHTML::Internal::default_action'
+            ),
+            strip => 0,
         }
     );
     $grammar->precompute();
@@ -553,20 +563,23 @@ sub Marpa::UrHTML::parse {
     $self->{tokens} = \@html_parser_tokens;
     $recce->tokens( \@marpa_tokens );
 
-    my %closure = ();
+    my %closure = (
+        '!top_handler' => (
+            $self->{user_top_handler}
+                // \&Marpa::UrHTML::Internal::default_top_handler
+        )
+    );
+
     ELEMENT:
     while ( my ( $element_action, $element ) = each %element_actions ) {
-        $closure{$element_action} =
-            $element eq 'document'
-            ? create_text_handler( $self, $element )
-            : create_tdesc_handler( $self, $element );
+        $closure{$element_action} = create_tdesc_handler( $self, $element );
     } ## end while ( my ( $element_action, $element ) = each %element_actions)
 
     my $value = do {
         local $Marpa::UrHTML::Internal::PARSE_INSTANCE = $self;
         local $Marpa::UrHTML::INSTANCE = {};
         my $evaler = Marpa::Evaluator->new(
-            { recce => $recce, closures => \%closure } );
+            { recce => $recce, closures => \%closure, } );
         $evaler->value;
     };
     Marpa::exception('undef returned') if not defined $value;

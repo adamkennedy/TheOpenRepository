@@ -26,7 +26,7 @@ my $document;
     close $fh
 };
 
-my $p     = Marpa::UrHTML->new();
+my $p = Marpa::UrHTML->new( );
 my $value = $p->parse( \$document );
 
 Test::More::is( ${ ${$value} }, $document, 'Straight copy using defaults' );

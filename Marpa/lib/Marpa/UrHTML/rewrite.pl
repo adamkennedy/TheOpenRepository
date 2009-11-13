@@ -22,8 +22,9 @@ my $document;
 
 my @handlers = (
     [   'document' => sub {
-        return $Marpa::UrHTML::INSTANCE;
-    }
+            say STDERR 'In user document handler ', __LINE__;
+            return $Marpa::UrHTML::INSTANCE;
+            }
     ],
     [   '.codepoint' => sub {
             for my $value ( @{$Marpa::UrHTML::ELEMENT_VALUES} ) {
@@ -50,7 +51,9 @@ push @handlers,
         ];
 
 push @handlers, map {
-    [ ".$_" => sub { return [ $_, $Marpa::UrHTML::LITERAL ] } ]
+    my $class = $_;
+    [ ".$class" =>
+            sub { return [ $class, $Marpa::UrHTML::LITERAL ] } ];
     } qw( cedict_definition glyph kfrequency kgradelevel
     kiicore kmandarin kmatthews krskangxi
     krsunicode ktang ktotalstrokes shrift_notes
@@ -58,6 +61,7 @@ push @handlers, map {
 
 my $p = Marpa::UrHTML->new( { handlers => \@handlers } );
 my $value = $p->parse( \$document );
+say Data::Dumper::Dumper(${$value});
 
 # Marpa::Test::is( ${ ${$value} }, $no_tang_document, 'remove kTang class' );
 
