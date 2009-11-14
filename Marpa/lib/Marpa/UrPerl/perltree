@@ -10,11 +10,6 @@ use Data::Dumper;
 use lib 'lib';
 use Marpa;
 
-my $source = do { local $RS = undef; <STDIN> };
-my $Tokenizer = PPI::Tokenizer->new( \$source );
-print Data::Dumper::Dumper( $Tokenizer->all_tokens );
-exit 0;
-
 my $draft_grammar = <<'END_OF_GRAMMAR';
 prog  progstart lineseq
 block  LBRACE remember lineseq RBRACE
@@ -85,10 +80,10 @@ startformsub
 subname WORD
 proto
 proto THING
-subattrlist:
+subattrlist
 subattrlist COLONATTR THING
 subattrlist COLONATTR
-myattrlist: COLONATTR THING
+myattrlist COLONATTR THING
 myattrlist COLONATTR
 subbody block
 subbody SEMICOLON
@@ -224,47 +219,128 @@ indirob block
 indirob PRIVATEREF
 END_OF_GRAMMAR
 
+my @terminals = qw(
+ADDOP AMPERSAND ANDAND ANDOP ANONSUB ARROW ASSIGNOP AT_SIGN BANG BITANDOP BITOROP COLON COLONATTR
+COMMA CONTINUE DEFAULT DO DOLLAR_SIGN DOLSHARP DORDOR DOROP DOTDOT ELSE ELSIF EQOP FOR FORMAT FUNC
+FUNC0 FUNC0SUB FUNC1 FUNCMETH GIVEN HASHBRACK IF LABEL LBRACE LOCAL LOOPEX LPAREN LSQUARE LSTOP
+LSTOPSUB MATCHOP METHOD MINUS_SIGN MULOP MY MYSUB NOAMP NOTOP OROP OROR PACKAGE PEG PERCENT_SIGN
+PLUS_SIGN PMFUNC POSTDEC POSTINC POWOP PREDEC PREINC PRIVATEREF QUESTIONMARK RBRACE REFGEN RELOP
+REQUIRE RPAREN RQUARE SEMICOLON SHIFTOP STAR SUB THING TILDE UNIOP UNIOPSUB UNLESS UNTIL USE
+WHEN WHILE WORD
+error
+);
+
+my %word_to_token = (
+);
+
+my %operator_to_token = (
+    'not' => 'NOTOP',
+    '->' => 'ARROW',
+    '=' => 'EQOP',
+    'eq' => 'EQOP',
+    ',' => 'COMMA',
+    '=>' => 'COMMA',
+    '=~' => 'MATCHOP',
+    '+' => 'PLUS_SIGN',
+    '-' => 'MINUS_SIGN',
+);
+
+my %structure_to_token = (
+    ')' => 'RPAREN',
+    '(' => 'LPAREN',
+    ']' => 'RSQUARE',
+    '[' => 'LSQUARE',
+    '}' => 'RBRACE',
+    '{' => 'LBRACE',
+    ';' => 'SEMICOLON',
+    ':' => 'COLON',
+    ',' => 'COMMA',
+);
+
+my %things = (
+    'PPI::Token::HereDoc' => 1,
+    'PPI::Token::Number' => 1,
+    'PPI::Token::Number::Float' => 1,
+    'PPI::Token::Quote::Literal' => 1,
+    'PPI::Token::Quote::Single' => 1,
+    'PPI::Token::Quote::Double' => 1,
+    'PPI::Token::QuoteLike::Words' => 1,
+    'PPI::Token::Regexp::Match' => 1,
+);
+
+my @rules = ();
+for my $draft_rule (split "\n", $draft_grammar)
+{
+    my @symbols = split ' ', $draft_rule;
+    my $lhs = shift @symbols;
+    push @rules, {
+        lhs => $lhs,
+        rhs => [ @symbols ],
+        action => "!$lhs",
+    };
+}
+
 my $grammar = Marpa::Grammar->new(
-    {   start => 'E',
-        strip => 0,
-
-        # Set max_parses to 20 in case there's an infinite loop.
-        # This is for debugging, after all
-        max_parses => 20,
-
+    {   start => 'prog',
         actions => 'main',
-        rules   => [
-            {   lhs      => 'E',
-                rhs      => [qw/E Minus E/],
-                priority => 50,
-                action   => 'subtraction',
-            },
-            {   lhs      => 'E',
-                rhs      => [qw/E MinusMinus/],
-                priority => 40,
-                action   => 'postfix_decr',
-            },
-            {   lhs      => 'E',
-                rhs      => [qw/MinusMinus E/],
-                priority => 30,
-                action   => 'prefix_decr',
-            },
-            {   lhs      => 'E',
-                rhs      => [qw/Minus E/],
-                priority => 20,
-                action   => 'negation'
-            },
-            {   lhs    => 'E',
-                rhs    => [qw/Number/],
-                action => 'number'
-            },
-        ],
-        terminals      => [qw( Number Minus MinusMinus )],
+        rules   => \@rules,
+        terminals      => \@terminals,
         default_action => 'default_action',
-        parse_order    => 'original',
     }
 );
 $grammar->precompute();
+
+my $source = do { local $RS = undef; <STDIN> };
+my $Tokenizer = PPI::Tokenizer->new( \$source );
+my @marpa_tokens = ();
+TOKEN: while ( my $token = $Tokenizer->get_token() ) {
+    next TOKEN if not $token->significant;
+    my $type = ref $token;
+    if ($type eq 'PPI::Token::Symbol') {
+        my $content = $token->content;
+        if ($content =~ /[$][_A-Za-z]/xms) {
+            # This is a non-terminal in Perl,
+            # but a terminal in PPI.
+            push @marpa_tokens, [ 'scalar', $token->content ];
+            next TOKEN;
+        }
+    }
+    if ($things{$type}) {
+        push @marpa_tokens, [ 'THING', $token->content ];
+        next TOKEN;
+    }
+    if ( $type eq 'PPI::Token::Cast'
+        and ( my $content = $token->content ) eq '\\' )
+    {
+        push @marpa_tokens, [ 'REFGEN', $content ];
+        next TOKEN;
+    } ## end if ( $type eq 'PPI::Token::CAST' and ( my $content =...))
+    if ($type eq 'PPI::Token::Operator') {
+        if (defined(
+                my $marpa_token =
+                    $operator_to_token{ my $content = $token->content }
+            )
+            )
+        {
+            push @marpa_tokens, [ $marpa_token, $content ];
+            next TOKEN;
+        } ## end if ( defined( my $marpa_token = $structure_to_token{...}))
+    }
+    if ($type eq 'PPI::Token::Structure') {
+        if (defined(
+                my $marpa_token =
+                    $structure_to_token{ my $content = $token->content }
+            )
+            )
+        {
+            push @marpa_tokens, [ $marpa_token, $content ];
+            next TOKEN;
+        } ## end if ( defined( my $marpa_token = $structure_to_token{...}))
+    }
+    say +(ref $token), q{: }, $token->content;
+}
+
+exit 0;
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
