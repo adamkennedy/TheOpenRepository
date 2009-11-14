@@ -4,16 +4,16 @@ NAME
 SYNOPSIS
       use Parse::ExuberantCTags;
       my $parser = Parse::ExuberantCTags->new( 'tags_filename' );
-      
-  # find a given tag that starts with 'foo' and do not ignore case
+  
+      # find a given tag that starts with 'foo' and do not ignore case
       my $tag = $parser->findTag("foo", ignore_case => 0, partial => 1);
       if (defined $tag) {
         print $tag->{name}, "\n";
       }
       $tag = $parser->findNextTag();
       # ...
-      
-  # iterator interface (use findTag instead, it does a binary search)
+  
+      # iterator interface (use findTag instead, it does a binary search)
       $tag = $parser->firstTag;
       while (defined($tag = $parser->nextTag)) {
         # use the tag structure
