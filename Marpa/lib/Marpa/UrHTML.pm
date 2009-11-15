@@ -70,7 +70,7 @@ sub default_top_handler {
     my ( $dummy, @tdesc_lists ) = @_;
 
     my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    my @tdesc_list = map { @{$_} } @tdesc_lists;
+    my @tdesc_list = map { @{$_} } grep { defined } @tdesc_lists;
     return tdesc_list_to_text( $self, \@tdesc_list );
 
 } ## end sub default_top_handler
@@ -219,6 +219,23 @@ sub create_tdesc_handler {
         }
 } ## end sub create_tdesc_handler
 
+sub wrap_user_tdesc_handler {
+    my ($user_handler) = @_;
+
+    return sub {
+        my ( $dummy, @tdesc_lists ) = @_;
+        my @tdesc_list = map { @{$_} } @tdesc_lists;
+        local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
+        my $self           = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+        my $tokens = $self->{tokens};
+        my $first_token = $tokens->[0]->[1];
+        my $last_token  = $tokens->[-1]->[2];
+        local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
+        return [ [ ELE => $first_token, $last_token, $user_handler->() ] ];
+        }
+} ## end sub wrap_user_tdesc_handler
+        
+
 my %ARGS = (
     start       => q{'S',offset,offset_end,tagname,attr},
     end         => q{'E',offset,offset_end,tagname},
@@ -248,6 +265,26 @@ sub add_handlers {
                 ( $specifier, $action ) = @{$handler_spec};
                 if ( $specifier eq 'TOP' ) {
                     $self->{user_top_handler} = $action;
+                    next HANDLER_SPEC;
+                }
+                if ( $specifier eq 'PROLOG' ) {
+                    $self->{user_prolog_handler} = $action;
+                    next HANDLER_SPEC;
+                }
+                if ( $specifier eq 'ROOT' ) {
+                    $self->{user_root_handler} = $action;
+                    next HANDLER_SPEC;
+                }
+                if ( $specifier eq 'HEAD' ) {
+                    $self->{user_head_handler} = $action;
+                    next HANDLER_SPEC;
+                }
+                if ( $specifier eq 'BODY' ) {
+                    $self->{user_body_handler} = $action;
+                    next HANDLER_SPEC;
+                }
+                if ( $specifier eq 'TRAILER' ) {
+                    $self->{user_trailer_handler} = $action;
                     next HANDLER_SPEC;
                 }
                 if ( $specifier eq 'DEFAULT' ) {
@@ -334,15 +371,18 @@ sub Marpa::UrHTML::new {
     colgroup dd dt li p td tfoot th thead tr
 );
 
-my @anywhere_rh_sides = qw(D C PI WHITESPACE);
+
+my @anywhere_rh_sides = qw(SGML_item);
 
 # Start and end of optional-tag elements is simply
 # ignored
 push @anywhere_rh_sides, map { ( 'S_' . $_, 'E_' . $_ ) }
     keys %Marpa::UrHTML::Internal::OPTIONAL_TAGS;
 
+my @SGML_rh_sides = qw(D C PI WHITESPACE);
+
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
-    ( @anywhere_rh_sides, qw(CDATA PCDATA) );
+    ( @anywhere_rh_sides, @SGML_rh_sides, qw(CDATA PCDATA) );
 
 # End tags for empty elements are ignored
 push @anywhere_rh_sides,
@@ -357,29 +397,26 @@ use strict;
 
 @Marpa::UrHTML::Internal::CORE_RULES = (
     @anywhere_item_rules,
-
     {   lhs    => 'document',
-        rhs    => ['flow'],
+        rhs    => [qw(prolog root_element)],
         action => '!top_handler',
     },
+    {   lhs    => 'prolog',
+        rhs    => ['SGML_item'],
+        min    => 0,
+        action => '!prolog_handler'
+    },
+    {   lhs    => 'root_element',
+        rhs    => ['flow'],
+        action => '!root_handler',
+    },
     { lhs => 'flow', rhs => ['terminated_flow_item'], min => 0 },
-
-    # { lhs => 'flow',     rhs => ['U_ELE_p'], },
-    # {   lhs => 'flow',
-    # rhs => [qw(U_ELE_p block_terminating_flow)],
-    # },
-    # { lhs => 'block_terminating_flow', rhs => ['block_element'], },
-    # { lhs => 'block_terminating_flow', rhs => [ 'block_element', 'flow' ], },
-    # { lhs => 'inline_flow',            rhs => ['inline_flow_item'], },
-    # { lhs => 'inline_flow',   rhs => [qw(inline_flow_item inline_flow)], },
-    # { lhs => 'block_element', rhs => ['ELE_p'] },
-    # { lhs => 'ELE_p',         rhs => ['T_ELE_p'] },
-    # { lhs => 'ELE_p',         rhs => ['U_ELE_p'] },
-    # { lhs => 'T_ELE_p',       rhs => [ 'S_p', 'inline_flow', 'E_p' ] },
-    # { lhs => 'U_ELE_p', rhs => [ 'S_p', 'inline_flow' ] },
 );
 
 # push @Marpa::UrHTML::Internal::CORE_TERMINALS, qw(S_p E_p );
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'terminated_flow_item', rhs => [$_] } }
@@ -510,11 +547,21 @@ sub Marpa::UrHTML::parse {
             $element_actions{"!ELE_$_"} = $_;
         } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG...)
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
+            my $this_element = "ELE_$_";
             push @rules, {
-                lhs        => "ELE_$_",
+                lhs        => $this_element,
                     rhs    => ["S_$_"],
                     action => "!ELE_$_",
             };
+            my $element_type =
+                $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
+                ? 'block_element'
+                : 'anywhere_element';
+            push @rules,
+                {
+                lhs => $element_type,
+                rhs => [$this_element],
+                };
             $element_actions{"!ELE_$_"} = $_;
         } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
         default {
@@ -565,7 +612,32 @@ sub Marpa::UrHTML::parse {
         '!top_handler' => (
             $self->{user_top_handler}
                 // \&Marpa::UrHTML::Internal::default_top_handler
-        )
+        ),
+        '!prolog_handler' => (
+            $self->{user_prolog_handler}
+            ? wrap_user_tdesc_handler( $self->{user_prolog_handler} )
+            : \&Marpa::UrHTML::Internal::default_action
+        ),
+        '!root_handler' => (
+            $self->{user_root_handler}
+            ? wrap_user_tdesc_handler( $self->{user_root_handler} )
+            : \&Marpa::UrHTML::Internal::default_action
+        ),
+        '!head_handler' => (
+            $self->{user_head_handler}
+            ? wrap_user_tdesc_handler( $self->{user_head_handler} )
+            : \&Marpa::UrHTML::Internal::default_action
+        ),
+        '!body_handler' => (
+            $self->{user_body_handler}
+            ? wrap_user_tdesc_handler( $self->{user_body_handler} )
+            : \&Marpa::UrHTML::Internal::default_action
+        ),
+        '!trailer_handler' => (
+            $self->{user_trailer_handler}
+            ? wrap_user_tdesc_handler( $self->{user_trailer_handler} )
+            : \&Marpa::UrHTML::Internal::default_action
+        ),
     );
 
     ELEMENT:

@@ -221,6 +221,8 @@ sub set_null_values {
         $null_values->[$id] = $default_null_value;
     }
 
+    local $Marpa::Internal::SETTING_NULL_VALUES = 1;
+
     # Set null values specified in
     # empty rules.
     RULE: for my $rule ( @{$rules} ) {

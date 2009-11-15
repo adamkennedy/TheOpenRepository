@@ -133,6 +133,7 @@ no strict 'refs';
 use strict;
 
 sub FETCH {
+    return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
     Marpa::exception('Attempt to get element values of non-existent node')
         if not defined $tdesc_list;
