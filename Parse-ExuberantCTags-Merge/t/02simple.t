@@ -133,7 +133,6 @@ SCOPE: {
   is( slurp($tmpfile1), prepend_sorted_tag(slurp($ptags_all_sorted)), "files are equal" );
 }
 
-warn "mixed";
 # test sorting of not-so-tiny unsorted and sorted files
 SCOPE: {
   my $merger = Parse::ExuberantCTags::Merge->new();
