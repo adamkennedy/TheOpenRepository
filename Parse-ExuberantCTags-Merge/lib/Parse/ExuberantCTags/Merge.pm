@@ -64,6 +64,7 @@ sub write {
   Carp::croak("Need input files")
     if not defined $files or @$files == 0;
 
+  # only one sorted input file => copy
   if (@$files == 1 and $files->[0][SORTED]) {
     my $infile = $files->[0][FILENAME];
     open my $fh, '<', $infile
@@ -77,6 +78,8 @@ sub write {
     while (<$fh>) {
       print $ofh $_;
     }
+    close $fh;
+    close $ofh;
     return(1);
   }
   
