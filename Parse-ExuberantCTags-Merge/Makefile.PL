@@ -8,7 +8,6 @@ WriteMakefile(
     PREREQ_PM         => {
       'Class::XSAccessor' => '1.03',
       'Sort::External'    => '0',
-      'File::MergeSort'   => '1.06',
       'File::Copy'        => '0',
       'File::Temp'        => '0',
     }, # e.g., Module::Name => 1.1

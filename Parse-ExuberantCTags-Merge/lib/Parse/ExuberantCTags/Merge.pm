@@ -5,11 +5,18 @@ use strict;
 use warnings;
 
 our $VERSION = '1.00';
+use constant DEBUG => 1;
+
+
 use constant SMALL_DEFAULT       => 2**22;
 use constant SUPER_SMALL_DEFAULT => 2**17;
 
 use constant FILENAME            => 0;
 use constant SORTED              => 1;
+
+use constant MRG_LINE            => 0;
+use constant MRG_FH              => 1;
+
 
 # TODO document these:
 use Class::XSAccessor
@@ -67,6 +74,7 @@ sub write {
 
   # only one sorted input file => copy
   if (@$files == 1 and $files->[0][SORTED]) {
+    warn "Only one sorted input file => copying" if DEBUG;
     my $infile = $files->[0][FILENAME];
     open my $fh, '<', $infile
       or die "Opening input file '$infile' for reading failed: $!";
@@ -113,6 +121,7 @@ sub write {
 
   # everything small, sort all in memory regardless
   if ($total_size < $threshold_super_small) {
+    warn "Total size < super-small-threshold => memory sort" if DEBUG;
     open my $ofh, '>', $outfile
       or die "Could not open output file '$outfile' for writing: $!";
     return $self->_memory_sort($ofh, @sorted, @unsorted);
@@ -120,8 +129,10 @@ sub write {
   
   # This must handle the unsorted files
   if (@unsorted) {
+    warn "There are unsorted files..." if DEBUG;
     if ($unsorted_size < $threshold_small) {
       # unsorted files are small and will be sorted in memory
+      warn "Unsorted files small => memory sort" if DEBUG;
       my ($tfh, $tmpfile);
       if (@sorted) {
         ($tfh, $tmpfile) = File::Temp::tempfile(
@@ -130,7 +141,7 @@ sub write {
         push @tmpfiles, $tmpfile;
       }
       else { # unsorted only
-        open my $tfh, '>', $outfile
+        open $tfh, '>', $outfile
           or die "Could not open output file '$outfile' for writing: $!";
       }
       $self->_memory_sort($tfh, @sorted, @unsorted);
@@ -144,6 +155,7 @@ sub write {
     elsif ($sorted_size < $threshold_small) {
       # handle everything with Sort::External
       # don't bother with merge-sorting the small sorted files
+      warn "Sorted files small or not existant => external sort for all" if DEBUG;
       open my $ofh, '>', $outfile
         or die "Could not open output file '$outfile' for writing: $!";
       return $self->_external_sort($ofh, @unsorted, @sorted);
@@ -151,6 +163,7 @@ sub write {
     else {
       # both are large. First do an external sort on the unsorted files,
       # then do a merge sort
+      warn "potentially large files => external sort for unsorted files" if DEBUG;
       my ($tfh, $tmpfile) = File::Temp::tempfile(
         "ctagsSortXXXXXX", UNLINK => 0, DIR => $tmpdir
       );
@@ -164,14 +177,16 @@ sub write {
 
   # at this point, there should be only sorted files
   # left => merge sort
-  
+  warn "running merge sort" if DEBUG;
   open my $ofh, '>', $outfile
     or die "Could not open output file '$outfile' for writing: $!";
+
   return $self->_merge_sort($ofh, @sorted);
 }
 
 
 sub _merge_sort {
+  warn "running _merge_sort" if DEBUG;
   my $self = shift;
   my $ofh = shift;
   my @infiles = @_;
@@ -180,18 +195,52 @@ sub _merge_sort {
 
   local $/ = "\n";
 
-  require File::MergeSort;
-  # use the whole input line as key
-  my $sort = File::MergeSort->new(
-    \@infiles, sub {$_[0]},
-  );
+#  require File::MergeSort;
+#  # use the whole input line as key
+#  my $sort = File::MergeSort->new(
+#    \@infiles, sub {$_[0]},
+#  );
+#
+#  while (my $line = $sort->next_line) {
+#    print $ofh $line."\n";
+#  }
+#
+#  # TODO using ->dump($filename) would be faster but we need to insert the
+#  #      tags-sorted line at the beginning... dumping to a file handle?
 
-  while (my $line = $sort->next_line) {
-    print $ofh $line;
-  }
+  my @files =
+    map {
+      open my $fh, '<', $_ or die "Can't open input file '$_' for reading: $!";
+      my $first = <$fh>;
+      $first = <$fh> if $first =~ /^!_TAG_FILE_SORTED\t/; # skip magic line
+      [$first, $fh]
+    }
+    @infiles;
 
-  # TODO using ->dump($filename) would be faster but we need to insert the
-  #      tags-sorted line at the beginning... dumping to a file handle?
+  @files = sort {$a->[MRG_LINE] cmp $b->[MRG_LINE]} @files;
+  
+  while (@files) {
+    my $next = $files[0];
+    print $ofh $next->[MRG_LINE];
+    my $fh = $next->[MRG_FH];
+    $next->[MRG_LINE] = <$fh>;
+    if (not defined $next->[MRG_LINE]) {
+      # eof, lose the file
+      splice(@files, 0, 1);
+      next;
+    }
+
+    # on pass of bubble sort
+    for (my $i = 1; $i < @files; ++$i) {
+      if (($files[$i-1][MRG_LINE] cmp $files[$i][MRG_LINE]) == 1) {
+        my $tmp = $files[$i-1];
+        $files[$i-1] = $files[$i];
+        $files[$i] = $tmp;
+      } else {
+        last;
+      }
+    }
+  } # end while there are files
 
   return(1);
 }
@@ -199,6 +248,7 @@ sub _merge_sort {
 
 
 sub _external_sort {
+  warn "running _external_sort" if DEBUG;
   my $self = shift;
   my $ofh = shift;
   my @infiles = @_;
@@ -231,6 +281,7 @@ sub _external_sort {
 
 
 sub _memory_sort {
+  warn "running _memory_sort" if DEBUG;
   my $self = shift;
   my $ofh = shift;
   my @infiles = @_;
@@ -285,7 +336,7 @@ module to process the data. There are a few exceptions:
 =item Pre-sorted input files
 
 If two or more input files contain sorted data, we use the
-L<File::MergeSort> module to efficiently sort them before merging
+a merge sort to efficiently sort them before merging
 with the remaining data.
 
 =item Small input files
@@ -317,7 +368,8 @@ Module that can produce ctags files from Perl code: L<Perl::Tags>
 
 Module that can parse exuberant ctags files: L<Parse::ExuberantCTags>
 
-Sorting modules: L<Sort::External>, L<File::MergeSort>
+Sorting modules: L<Sort::External>, L<File::MergeSort> (though we use
+a home-grown merge-sort)
 
 L<File::PackageIndexer>
 
