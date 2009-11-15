@@ -15,6 +15,8 @@ use Storable;
 
 my $codepoints = Storable::fd_retrieve(\*STDIN);
 
+binmode STDOUT, ':utf8';
+
 my @sorted_codepoints =
     map  { $_->[1] }
     sort { $b->[0] <=> $a->[0] }
@@ -30,8 +32,12 @@ cedict_definition
 );
 
 print <<'EOF';
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <HTML>
 <HEAD>
+<TITLE>Glossary</TITLE>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <STYLE type="text/css">
    .title { border-width: 1; border: solid; text-align: center}
    .content {white-space: pre-wrap; }

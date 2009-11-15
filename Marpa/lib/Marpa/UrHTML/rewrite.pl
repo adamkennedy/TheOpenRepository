@@ -15,6 +15,8 @@ use Storable;
 
 use Marpa::UrHTML;
 
+binmode STDIN, ':utf8';
+
 my $document;
 {
     local $RS = undef;
@@ -67,6 +69,5 @@ my $value = $p->parse( \$document );
 my $codepoint_hash = ${$value};
 
 Storable::store_fd $codepoint_hash, \*STDOUT;
-
 
 __END__
