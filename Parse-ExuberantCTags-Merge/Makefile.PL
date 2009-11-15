@@ -10,6 +10,7 @@ WriteMakefile(
       'Sort::External'    => '0',
       'File::Copy'        => '0',
       'File::Temp'        => '0',
+      'Getopt::Long'      => '0',
     }, # e.g., Module::Name => 1.1
     ABSTRACT_FROM     => 'lib/Parse/ExuberantCTags/Merge.pm', # retrieve abstract from module
     AUTHOR            => 'Steffen Mueller <smueller@cpan.org>',
@@ -18,4 +19,5 @@ WriteMakefile(
     #INC               => '-I.', # e.g., '-I. -I/usr/include/other'
     #OBJECT            => '$(O_FILES)', # link all the C files too
     #'TYPEMAPS'        => ['perlobject.map', 'typemap'],
+    EXE_FILES => [qw(bin/ctags-merger)],
 );
