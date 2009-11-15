@@ -240,6 +240,11 @@ sub Marpa::Recognizer::check_terminal {
     return $grammar->check_terminal($name);
 }
 
+sub Marpa::Recognizer::furthest {
+    my ($recce) = @_;
+    return $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+}
+
 sub Marpa::Recognizer::status {
     my ($recce) = @_;
     my $exhausted = $recce->[Marpa::Internal::Recognizer::EXHAUSTED];

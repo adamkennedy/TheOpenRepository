@@ -19,7 +19,7 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub null_a {
-    return ( $MyTest::MAXIMAL ? -1 : 1 ) * $Marpa::LOCATION;
+    return ( $MyTest::MAXIMAL ? -1 : 1 ) * $Marpa::TOKEN_LOCATION;
 }
 
 sub default_action {

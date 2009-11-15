@@ -606,7 +606,17 @@ sub Marpa::UrHTML::parse {
     # say STDERR $grammar->show_QDFA();
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     $self->{tokens} = \@html_parser_tokens;
-    $recce->tokens( \@marpa_tokens );
+    if ( not $recce->tokens( \@marpa_tokens ) ) {
+        my $last_marpa_token = $recce->furthest();
+        $last_marpa_token =
+              $last_marpa_token > $#marpa_tokens
+            ? $#marpa_tokens
+            : $last_marpa_token;
+        my $offset =
+            $html_parser_tokens[ $marpa_tokens[$last_marpa_token]->[1]->[-1]
+            ->[2] ]->[2];
+        Marpa::exception( 'HTML parse exhausted at location ', $offset );
+    } ## end if ( not $recce->tokens( \@marpa_tokens ) )
 
     my %closure = (
         '!top_handler' => (
@@ -650,6 +660,12 @@ sub Marpa::UrHTML::parse {
         local $Marpa::UrHTML::INSTANCE                 = {};
         my $evaler = Marpa::Evaluator->new(
             { recce => $recce, closures => \%closure, } );
+        if (not $evaler) {
+            my $last_marpa_token = $recce->furthest();
+            $last_marpa_token = $last_marpa_token > $#marpa_tokens ? $#marpa_tokens : $last_marpa_token;
+            my $offset = $html_parser_tokens[$marpa_tokens[$last_marpa_token]->[1]->[-1]->[2]]->[2];
+            Marpa::exception('HTML parse exhausted at location ', $offset);
+        }
         $evaler->value;
     };
     Marpa::exception('undef returned') if not defined $value;

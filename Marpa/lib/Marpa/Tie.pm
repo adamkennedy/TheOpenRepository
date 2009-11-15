@@ -27,34 +27,10 @@ sub TIESCALAR {
 sub FETCH {
     Marpa::exception('No context for location tie')
         if not my $context = $Marpa::Internal::CONTEXT;
-    given ( $context->[0] ) {
-        when ('setup and-node') {
-            my $and_node = $context->[1];
-            my $predecessor_id =
-                $and_node->[Marpa::Internal::And_Node::PREDECESSOR_ID];
-            return $and_node->[Marpa::Internal::And_Node::START_EARLEME]
-                if not defined $predecessor_id;
-            my $eval_instance = $Marpa::Internal::EVAL_INSTANCE;
-            my $or_nodes =
-                $eval_instance->[Marpa::Internal::Evaluator::OR_NODES];
-            return $or_nodes->[$predecessor_id]
-                ->[Marpa::Internal::Or_Node::START_EARLEME]
-        } ## end when ('setup and-node')
-        when ('rank and-node') {
-            my $and_node = $context->[1];
-            return $and_node->[Marpa::Internal::And_Node::START_EARLEME];
-        }
-        default {
-            Marpa::exception(
-                qq{Internal error: Unknown context type "$_" for location tie}
-                )
-        }
-    } ## end given
-    Marpa::exception(
-        'Internal error: should not reach here, line ', __LINE__,
-        q{ },                                           __FILE__
-    );
-    return;
+    my ( $context_type, $and_node ) = @{$context};
+    Marpa::exception('LOCATION called outside and-node context')
+        if not $context_type ~~ [ 'setup and-node', 'rank and-node' ];
+    return $and_node->[Marpa::Internal::And_Node::START_EARLEME];
 } ## end sub FETCH
 
 sub STORE {
@@ -62,5 +38,59 @@ sub STORE {
 }
 
 tie $Marpa::LOCATION, __PACKAGE__;
+
+package Marpa::Internal::Tie::Token_Location;
+
+sub TIESCALAR {
+    my ($class) = @_;
+    my $instance;    # not used for anything
+    return bless \$instance => $class;
+}
+
+sub FETCH {
+    Marpa::exception('No context for TOKEN_LOCATION tie')
+        if not my $context = $Marpa::Internal::CONTEXT;
+    my ( $context_type, $and_node ) = @{$context};
+    Marpa::exception('TOKEN_LOCATION called outside and-node context')
+        if not $context_type ~~ [ 'setup and-node', 'rank and-node' ];
+    my $predecessor_id =
+        $and_node->[Marpa::Internal::And_Node::PREDECESSOR_ID];
+    return $and_node->[Marpa::Internal::And_Node::START_EARLEME]
+        if not defined $predecessor_id;
+    my $eval_instance = $Marpa::Internal::EVAL_INSTANCE;
+    my $or_nodes = $eval_instance->[Marpa::Internal::Evaluator::OR_NODES];
+    return $or_nodes->[$predecessor_id]
+        ->[Marpa::Internal::Or_Node::START_EARLEME];
+} ## end sub FETCH
+
+sub STORE {
+    Marpa::exception('TOKEN_LOCATION tie is not writeable');
+}
+
+tie $Marpa::TOKEN_LOCATION, __PACKAGE__;
+
+package Marpa::Internal::Tie::LENGTH;
+
+sub TIESCALAR {
+    my ($class) = @_;
+    my $instance;    # not used for anything
+    return bless \$instance => $class;
+}
+
+sub FETCH {
+    Marpa::exception('No context for LENGTH tie')
+        if not my $context = $Marpa::Internal::CONTEXT;
+    my ( $context_type, $and_node ) = @{$context};
+    Marpa::exception('LENGTH called outside and-node context')
+        if not $context_type ~~ [ 'setup and-node', 'rank and-node' ];
+    return $and_node->[Marpa::Internal::And_Node::END_EARLEME]
+        - $and_node->[Marpa::Internal::And_Node::START_EARLEME];
+} ## end sub FETCH
+
+sub STORE {
+    Marpa::exception('TOKEN_LOCATION tie is not writeable');
+}
+
+tie $Marpa::TOKEN_LOCATION, __PACKAGE__;
 
 1;
