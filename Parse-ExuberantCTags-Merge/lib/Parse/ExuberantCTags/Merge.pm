@@ -4,7 +4,7 @@ use 5.006001;
 use strict;
 use warnings;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 use constant DEBUG => 0;
 
 use constant SMALL_DEFAULT       => 2**22;
@@ -16,8 +16,6 @@ use constant SORTED              => 1;
 use constant MRG_LINE            => 0;
 use constant MRG_FH              => 1;
 
-
-# TODO document these:
 use Class::XSAccessor
   constructor => 'new',
   accessors => {
