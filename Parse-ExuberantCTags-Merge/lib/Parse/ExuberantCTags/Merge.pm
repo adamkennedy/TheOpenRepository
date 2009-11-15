@@ -23,6 +23,7 @@ use Class::XSAccessor
 use Carp ();
 use File::Temp ();
 use File::Spec ();
+use Parse::ExuberantCTags::Merge::SimpleScopeGuard;
 
 sub add_file {
   my $self = shift;
@@ -106,7 +107,6 @@ sub write {
 
   # storage of temporary files and guard to clean them up on scope exit
   my @tmpfiles;
-  require Parse::ExuberantCTags::Merge::SimpleScopeGuard;
   my $guard = Parse::ExuberantCTags::Merge::SimpleScopeGuard->new(files => \@tmpfiles);
 
   # select sort strategy
