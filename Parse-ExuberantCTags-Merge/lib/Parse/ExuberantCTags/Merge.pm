@@ -195,19 +195,7 @@ sub _merge_sort {
 
   local $/ = "\n";
 
-#  require File::MergeSort;
-#  # use the whole input line as key
-#  my $sort = File::MergeSort->new(
-#    \@infiles, sub {$_[0]},
-#  );
-#
-#  while (my $line = $sort->next_line) {
-#    print $ofh $line."\n";
-#  }
-#
-#  # TODO using ->dump($filename) would be faster but we need to insert the
-#  #      tags-sorted line at the beginning... dumping to a file handle?
-
+  # get the first lines and create a list of simple structs for sorting
   my @files =
     map {
       open my $fh, '<', $_ or die "Can't open input file '$_' for reading: $!";
@@ -217,11 +205,16 @@ sub _merge_sort {
     }
     @infiles;
 
+  # initial sort of the first lines
   @files = sort {$a->[MRG_LINE] cmp $b->[MRG_LINE]} @files;
   
+  # keep sorting until all sources run out
   while (@files) {
+    # first file in the list always has the next "lowest" line
     my $next = $files[0];
     print $ofh $next->[MRG_LINE];
+
+    # fetch a new line for this file handle
     my $fh = $next->[MRG_FH];
     $next->[MRG_LINE] = <$fh>;
     if (not defined $next->[MRG_LINE]) {
@@ -230,7 +223,7 @@ sub _merge_sort {
       next;
     }
 
-    # on pass of bubble sort
+    # one pass of bubble sort to propagate the new line to its place
     for (my $i = 1; $i < @files; ++$i) {
       if (($files[$i-1][MRG_LINE] cmp $files[$i][MRG_LINE]) == 1) {
         my $tmp = $files[$i-1];
