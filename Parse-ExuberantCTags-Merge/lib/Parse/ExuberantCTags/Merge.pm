@@ -217,7 +217,7 @@ sub _merge_sort {
     $next->[MRG_LINE] = <$fh>;
     if (not defined $next->[MRG_LINE]) {
       # eof, lose the file
-      splice(@files, 0, 1);
+      shift @files;
       next;
     }
 
