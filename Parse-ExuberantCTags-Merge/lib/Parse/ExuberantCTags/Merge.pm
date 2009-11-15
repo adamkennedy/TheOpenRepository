@@ -62,7 +62,7 @@ sub write {
   }
 
   my $total_size = 0;
-  my $sorted_size = 0;
+  my $sorted_size   = 0;
   my $unsorted_size = 0;
   my @sorted;
   my @unsorted;
@@ -110,7 +110,7 @@ sub write {
   my $threshold_super_small = $self->super_small_size_threshold();
   $threshold_super_small = SUPER_SMALL_DEFAULT if not defined $threshold_super_small;
   my $threshold_small = $self->small_size_threshold();
-  $threshold_super_small = SMALL_DEFAULT if not defined $threshold_small;
+  $threshold_small = SMALL_DEFAULT if not defined $threshold_small;
   warn "Thresholds: tiny=$threshold_super_small small=$threshold_small" if DEBUG > 1;
 
   # storage of temporary files and guard to clean them up on scope exit
