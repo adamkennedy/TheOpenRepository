@@ -5,8 +5,7 @@ use strict;
 use warnings;
 
 our $VERSION = '1.00';
-use constant DEBUG => 1;
-
+use constant DEBUG => 0;
 
 use constant SMALL_DEFAULT       => 2**22;
 use constant SUPER_SMALL_DEFAULT => 2**17;
@@ -112,6 +111,7 @@ sub write {
   $threshold_super_small = SUPER_SMALL_DEFAULT if not defined $threshold_super_small;
   my $threshold_small = $self->small_size_threshold();
   $threshold_super_small = SMALL_DEFAULT if not defined $threshold_small;
+  warn "Thresholds: tiny=$threshold_super_small small=$threshold_small" if DEBUG > 1;
 
   # storage of temporary files and guard to clean them up on scope exit
   my @tmpfiles;
@@ -134,17 +134,17 @@ sub write {
       # unsorted files are small and will be sorted in memory
       warn "Unsorted files small => memory sort" if DEBUG;
       my ($tfh, $tmpfile);
-      if (@sorted) {
+      if (@sorted) { # if there are sorted files (must be largish), use a tempfile
         ($tfh, $tmpfile) = File::Temp::tempfile(
           "ctagsSortXXXXXX", UNLINK => 0, DIR => $tmpdir
         );
         push @tmpfiles, $tmpfile;
       }
-      else { # unsorted only
+      else { # unsorted only => use real output file
         open $tfh, '>', $outfile
           or die "Could not open output file '$outfile' for writing: $!";
       }
-      $self->_memory_sort($tfh, @sorted, @unsorted);
+      $self->_memory_sort($tfh, @unsorted);
       close $tfh;
       if (not @sorted) { # only unsorted data => done!
         return 1;
