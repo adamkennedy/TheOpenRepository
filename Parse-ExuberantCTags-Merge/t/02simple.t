@@ -1,7 +1,7 @@
 use 5.006;
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 15;
 
 use Parse::ExuberantCTags::Merge;
 chdir('t') if -d 't';
@@ -87,7 +87,116 @@ SCOPE: {
   is( slurp($tmpfile1), prepend_sorted_tag(slurp($ptags_all_sorted)), "files are equal" );
 }
 
+# test sorting of a small unsorted and a small sorted file
+SCOPE: {
+  my $merger = Parse::ExuberantCTags::Merge->new();
+  my ($tfh, $tmpfile1) = File::Temp::tempfile(
+    "ctagsTestXXXXXXX", UNLINK => 1, TMPDIR => 1,
+  );
 
+  $merger->add_file($ptags_sorted, sorted => 1);
+  $merger->add_file($ptags2_unsorted, sorted => 0);
+
+  $merger->write($tmpfile1);
+  is( slurp($tmpfile1), prepend_sorted_tag(slurp($ptags_all_sorted)), "files are equal" );
+}
+
+# test sorting of two not-so-tiny sorted files
+SCOPE: {
+  my $merger = Parse::ExuberantCTags::Merge->new();
+  $merger->super_small_size_threshold(1);
+  $merger->small_size_threshold(1e9);
+  my ($tfh, $tmpfile1) = File::Temp::tempfile(
+    "ctagsTestXXXXXXX", UNLINK => 1, TMPDIR => 1,
+  );
+
+  $merger->add_file($ptags_sorted, sorted => 1);
+  $merger->add_file($ptags2_sorted, sorted => 1);
+
+  $merger->write($tmpfile1);
+  is( slurp($tmpfile1), prepend_sorted_tag(slurp($ptags_all_sorted)), "files are equal" );
+}
+
+# test sorting of two not-so-tiny unsorted files
+SCOPE: {
+  my $merger = Parse::ExuberantCTags::Merge->new();
+  $merger->super_small_size_threshold(1);
+  $merger->small_size_threshold(1e9);
+  my ($tfh, $tmpfile1) = File::Temp::tempfile(
+    "ctagsTestXXXXXXX", UNLINK => 1, TMPDIR => 1,
+  );
+
+  $merger->add_file($ptags_unsorted, sorted => 0);
+  $merger->add_file($ptags2_unsorted, sorted => 0);
+
+  $merger->write($tmpfile1);
+  is( slurp($tmpfile1), prepend_sorted_tag(slurp($ptags_all_sorted)), "files are equal" );
+}
+
+warn "mixed";
+# test sorting of not-so-tiny unsorted and sorted files
+SCOPE: {
+  my $merger = Parse::ExuberantCTags::Merge->new();
+  $merger->super_small_size_threshold(1);
+  $merger->small_size_threshold(1e9);
+  my ($tfh, $tmpfile1) = File::Temp::tempfile(
+    "ctagsTestXXXXXXX", UNLINK => 1, TMPDIR => 1,
+  );
+
+  $merger->add_file($ptags_sorted, sorted => 1);
+  $merger->add_file($ptags2_unsorted, sorted => 0);
+
+  $merger->write($tmpfile1);
+  is( slurp($tmpfile1), prepend_sorted_tag(slurp($ptags_all_sorted)), "files are equal" );
+}
+
+# test sorting of two "large" sorted files
+SCOPE: {
+  my $merger = Parse::ExuberantCTags::Merge->new();
+  $merger->super_small_size_threshold(1);
+  $merger->small_size_threshold(1);
+  my ($tfh, $tmpfile1) = File::Temp::tempfile(
+    "ctagsTestXXXXXXX", UNLINK => 1, TMPDIR => 1,
+  );
+
+  $merger->add_file($ptags_sorted, sorted => 1);
+  $merger->add_file($ptags2_sorted, sorted => 1);
+
+  $merger->write($tmpfile1);
+  is( slurp($tmpfile1), prepend_sorted_tag(slurp($ptags_all_sorted)), "files are equal" );
+}
+
+# test sorting of two "large" unsorted files
+SCOPE: {
+  my $merger = Parse::ExuberantCTags::Merge->new();
+  $merger->super_small_size_threshold(1);
+  $merger->small_size_threshold(1);
+  my ($tfh, $tmpfile1) = File::Temp::tempfile(
+    "ctagsTestXXXXXXX", UNLINK => 1, TMPDIR => 1,
+  );
+
+  $merger->add_file($ptags_unsorted, sorted => 0);
+  $merger->add_file($ptags2_unsorted, sorted => 0);
+
+  $merger->write($tmpfile1);
+  is( slurp($tmpfile1), prepend_sorted_tag(slurp($ptags_all_sorted)), "files are equal" );
+}
+
+# test sorting of "large" sorted and unsorted files
+SCOPE: {
+  my $merger = Parse::ExuberantCTags::Merge->new();
+  $merger->super_small_size_threshold(1);
+  $merger->small_size_threshold(1);
+  my ($tfh, $tmpfile1) = File::Temp::tempfile(
+    "ctagsTestXXXXXXX", UNLINK => 1, TMPDIR => 1,
+  );
+
+  $merger->add_file($ptags_sorted, sorted => 1);
+  $merger->add_file($ptags2_unsorted, sorted => 0);
+
+  $merger->write($tmpfile1);
+  is( slurp($tmpfile1), prepend_sorted_tag(slurp($ptags_all_sorted)), "files are equal" );
+}
 
 sub slurp {
   my $f1 = shift;
