@@ -347,6 +347,44 @@ Default limit: C<2^17B == 128kB>.
 
 The sorting modules are loaded at run-time on demand only.
 
+=head1 METHODS
+
+=head2 new
+
+Creates a new merger object.
+
+=head2 add_file
+
+Adds a file to the merging process. First argument must be the
+file name followed by an optional named argument 'sorted' (default: false)
+which affects the way the data will be merged. Mixing sorted with unsorted
+files is possible and will produce a sorted output.
+
+Pre-sorted files are naturally somewhat faster to merge.
+
+=head2 small_size_threshold
+
+Set this to the threshold under which the total size of the
+input files is to be considered small enough to be sorted in
+memory (see above). The default should be fine.
+
+=head2 super_small_size_threshold
+
+Set this to the threshold under which the total size of the
+input files is to be considered small enough to be sorted in
+memory regardless of whether the input was partly sorted (see above).
+The default should be fine.
+
+This makes more sense than it sounds. Perl's sort function is fast.
+For small amounts of data, its low overhead wins significantly over
+the sort complexity.
+
+=head2 tempdir
+
+You can use this to set the location of the temporary files that are
+used for sorting and merging large files. By default, it goes into
+C<File::Spec->tmpdir()>.
+
 =head1 TODO
 
 Benchmark.
