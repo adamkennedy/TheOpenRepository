@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use integer;
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -55,12 +55,14 @@ sub FETCH {
         if not $context_type ~~ [ 'setup and-node', 'rank and-node' ];
     my $predecessor_id =
         $and_node->[Marpa::Internal::And_Node::PREDECESSOR_ID];
+
     return $and_node->[Marpa::Internal::And_Node::START_EARLEME]
         if not defined $predecessor_id;
     my $eval_instance = $Marpa::Internal::EVAL_INSTANCE;
     my $or_nodes = $eval_instance->[Marpa::Internal::Evaluator::OR_NODES];
+
     return $or_nodes->[$predecessor_id]
-        ->[Marpa::Internal::Or_Node::START_EARLEME];
+        ->[Marpa::Internal::Or_Node::END_EARLEME];
 } ## end sub FETCH
 
 sub STORE {
@@ -91,6 +93,6 @@ sub STORE {
     Marpa::exception('TOKEN_LOCATION tie is not writeable');
 }
 
-tie $Marpa::TOKEN_LOCATION, __PACKAGE__;
+tie $Marpa::LENGTH, __PACKAGE__;
 
 1;

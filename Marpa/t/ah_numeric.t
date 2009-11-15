@@ -19,7 +19,7 @@ BEGIN {
 ## no critic (Subroutines::RequireArgUnpacking)
 
 sub null_a {
-    return ( $MyTest::MAXIMAL ? -1 : 1 ) * $Marpa::TOKEN_LOCATION;
+    return ( $MyTest::MAXIMAL ? -1 : 1 ) * 10**(3-$Marpa::TOKEN_LOCATION);
 }
 
 sub default_action {
@@ -56,20 +56,21 @@ my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
 my $input_length = 4;
 $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x $input_length ] );
 
-my @maximal = ( q{}, qw[(;;;a) (;;a;a) (;a;a;a) (a;a;a;a)] );
-my @minimal = ( q{}, qw[(;;;a) (a;;;a) (a;a;;a) (a;a;a;a)] );
+my @maximal = ( q{}, qw[(a;;;) (a;a;;) (a;a;a;) (a;a;a;a)] );
+my @minimal = ( q{}, qw[(;;;a) (;;a;a) (;a;a;a) (a;a;a;a)] );
 
 for my $i ( 0 .. $input_length ) {
     for my $maximal ( 0, 1 ) {
         local $MyTest::MAXIMAL = $maximal;
         my $expected = $maximal ? \@maximal : \@minimal;
+        my $name = $maximal ? 'maximal': 'minimal';
         my $evaler = Marpa::Evaluator->new(
             {   recce => $recce,
                 end   => $i,
             }
         );
         my $result = $evaler->value();
-        Test::More::is( ${$result}, $expected->[$i], "parse permutation $i" );
+        Test::More::is( ${$result}, $expected->[$i], "$name parse permutation $i" );
 
     } ## end for my $maximal ( 0, 1 )
 } ## end for my $i ( 0 .. $input_length )

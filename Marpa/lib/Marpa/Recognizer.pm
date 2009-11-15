@@ -257,6 +257,77 @@ sub Marpa::Recognizer::status {
     return $current_earleme;
 } ## end sub Marpa::Recognizer::status
 
+sub Marpa::Recognizer::find_parse {
+    my ($recce, $match, $first_earley_ix, $direction) = @_;
+
+    given ($direction) {
+        when (undef)    { $direction = -1 }
+        when ( $_ > 0 ) { $direction = 1 }
+        default { $direction = -1 }    # default direction is last to first
+    }
+    my $earley_set_list = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
+
+    given ($first_earley_ix) {
+        when (undef) {
+            $first_earley_ix = $direction >= 0 ? 0 : $#{$earley_set_list}
+        }
+        when ( $direction == -1 and $first_earley_ix < 0 ) {
+            $first_earley_ix = 0
+        }
+        when (      $direction == 1
+                and $first_earley_ix > scalar @{$earley_set_list} )
+        {
+            $first_earley_ix = scalar @{$earley_set_list}
+        }
+    } ## end given
+    my $last_earley_ix= $direction >= 0 ? scalar @{$earley_set_list} : -1;
+
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my @sought_states = ();
+    if ( not defined $match ) {
+        @sought_states =
+            map { $_ + 0 }    # convert pointers to numeric
+            @{$grammar->[Marpa::Internal::Grammar::START_STATES]};
+    }
+    else {
+        QDFA: for my $qdfa ( $grammar->[Marpa::Internal::Grammar::QDFA] ) {
+            for my $completed_lhs (
+                @{ $qdfa->[Marpa::Internal::QDFA::COMPLETE_LHS] } )
+            {
+                if ( $completed_lhs ~~ $match ) {
+                    push @sought_states, $qdfa + 0;
+                    next QDFA;
+                }
+            } ## end for my $completed_lhs ( @{ $qdfa->[...]})
+        } ## end for my $qdfa ( $grammar->[Marpa::Internal::Grammar::QDFA...])
+    } ## end else [ if ( not defined $match ) ]
+
+    my @found_states  = ();
+    my $earley_set_ix = $first_earley_ix;
+    EARLEY_SET: while ( $earley_set_ix != $last_earley_ix ) {
+        my $earley_set = $earley_set_list->[$earley_set_ix];
+        for my $earley_item ( @{$earley_set} ) {
+            next EARLEY_ITEM
+                if $earley_item->[Marpa::Internal::Earley_Item::PARENT] != 0;
+            my $state = $earley_item->[Marpa::Internal::Earley_Item::STATE];
+            next EARLEY_ITEM if ( $state + 0 ) ~~ \@sought_states;
+            push @found_states, $state;
+        } ## end for my $earley_item ( @{$earley_set} )
+        last EARLEY_SET if @found_states;
+        $earley_set_ix += $direction;
+    } ## end while ( $earley_set_ix != $last_earley_ix )
+
+    return if not @found_states;
+
+    my %lhs_seen;
+    my @found_symbols =
+        grep { ( $_ ~~ $match ) and !( $lhs_seen{$_}++ ) }
+        map { @{ $_->[Marpa::Internal::QDFA::COMPLETE_LHS] } } @found_states;
+
+    return $earley_set_ix if not wantarray;
+    return ( $earley_set_ix, \@found_symbols );
+}
+
 # Convert Recognizer into string form
 #
 sub Marpa::Recognizer::stringify {
