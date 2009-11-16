@@ -1,6 +1,6 @@
 Revision history for Perl extension PPI::HTML
 
-1.xx whenever
+1.08 Mon 16 Nov 2009
 	- Correct spelling of "PPI::Statement::Compond" so that while, for, etc. work.
 	- Add support for given/when/default.
 
