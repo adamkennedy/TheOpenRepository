@@ -613,7 +613,9 @@ sub Marpa::UrHTML::parse {
 
     # say STDERR $grammar->show_rules();
     # say STDERR $grammar->show_QDFA();
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar,
+         # trace_terminals=>1
+    } );
     $self->{recce} = $recce;
     $self->{tokens} = \@html_parser_tokens;
     MARPA_TOKEN: for my $marpa_token (@marpa_tokens) {

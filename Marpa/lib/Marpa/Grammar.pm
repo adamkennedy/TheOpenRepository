@@ -222,6 +222,7 @@ use Marpa::Offset qw(
     TRACE_EVALUATION { General evaluation trace }
     TRACE_ACTIONS
     TRACE_VALUES
+    TRACE_TERMINALS
 
     MAX_PARSES
     ACTION_OBJECT
@@ -572,6 +573,7 @@ use constant GRAMMAR_OPTIONS => [
         trace_file_handle
         trace_rules
         trace_tasks
+        trace_terminals
         trace_values
         unproductive_ok
         version
@@ -621,6 +623,18 @@ sub Marpa::Grammar::set {
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             } ## end if ($value)
         } ## end if ( defined( my $value = $args->{'trace_actions'} ))
+
+        if ( defined( my $value = $args->{'trace_terminals'} ) ) {
+            $grammar->[Marpa::Internal::Grammar::TRACE_TERMINALS] = $value;
+            if ($value) {
+                say {$trace_fh} 'Setting trace_terminals option';
+                if ( $phase > Marpa::Internal::Phase::RECOGNIZING ) {
+                    say {$trace_fh}
+                        'Warning: setting trace_terminals option after recognition';
+                }
+                $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
+            } ## end if ($value)
+        } ## end if ( defined( my $value = $args->{'trace_terminals ))
 
         if ( defined( my $value = $args->{'trace_values'} ) ) {
             Marpa::exception('trace_values must be set to a number >= 0')

@@ -43,7 +43,8 @@ use Marpa::Offset qw(
 
     GRAMMAR
     EARLEY_SETS
-    FURTHEST_EARLEME
+    FURTHEST_EARLEME :{ last earley set with something in it }
+    FURTHEST_TOKEN :{ furthest end of token }
     LAST_COMPLETED_EARLEME
     TOKENS_BY_EARLEME
 
@@ -63,7 +64,6 @@ use Marpa::Offset qw(
 # EARLEY_SETS        - the array of the Earley sets
 # EARLEY_HASH        - hash of the Earley items
 #                      to build the Earley sets
-# FURTHEST_EARLEME   - last earley set with a token
 # EXHAUSTED          - parse can't continue?
 # EVALUATOR          - the current evaluator for this recognizer
 # TERMINALS_BY_STATE - an array, indexed by QDFA state id,
@@ -73,7 +73,7 @@ package Marpa::Internal::Recognizer;
 
 use Marpa::Internal;
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -227,6 +227,7 @@ sub Marpa::Recognizer::new {
 
     $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = -1;
     $self->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
+        $self->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] =
         $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = 0;
 
     Marpa::Recognizer::tokens( $self, 'predict', 'absolute', 0 );
@@ -484,16 +485,16 @@ sub Marpa::Recognizer::tokens {
     my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $phase    = $grammar->[Marpa::Internal::Grammar::PHASE];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $trace_terminals =
+        $grammar->[Marpa::Internal::Grammar::TRACE_TERMINALS];
     my $too_many_earley_items =
         $grammar->[Marpa::Internal::Grammar::TOO_MANY_EARLEY_ITEMS];
 
     my $tokens;
     my $predict_earleme;
     my $predict_offset_is_absolute = 0;
-    my $predict_flag               = 1;
     my $continue_earleme;
     my $continue_offset_is_absolute = 0;
-    my $continue_flag               = 0;
 
     while ( my $arg = shift @_ ) {
         given ($arg) {
@@ -556,8 +557,8 @@ sub Marpa::Recognizer::tokens {
         $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME];
     my $last_completed_earleme =
         $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
-    my $furthest_earleme =
-        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+    my $furthest_token =
+        $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN];
     my $tokens_by_earleme =
         $recce->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME];
 
@@ -617,8 +618,8 @@ sub Marpa::Recognizer::tokens {
             "  Token starts at $last_completed_earleme, and its length is $length\n"
         ) if $end_earleme & Marpa::Internal::Recognizer::EARLEME_MASK;
 
-        if ( $end_earleme > $furthest_earleme ) {
-            $furthest_earleme = $end_earleme;
+        if ( $end_earleme > $furthest_token ) {
+            $furthest_token = $end_earleme;
         }
 
         $offset //= 1;
@@ -658,8 +659,8 @@ sub Marpa::Recognizer::tokens {
     my $current_earleme =
         $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
         $next_token_earleme;
-    $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] =
-        $furthest_earleme;
+    $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] =
+        $furthest_token;
 
     if ( defined $continue_earleme ) {
         $current_earleme =
@@ -675,7 +676,7 @@ sub Marpa::Recognizer::tokens {
         ? $predict_offset_is_absolute
             ? $predict_earleme
             : $current_earleme + $predict_earleme
-        : $furthest_earleme;
+        : $furthest_token;
 
     $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
         $current_earleme = $furthest_earleme_to_complete;
@@ -704,6 +705,11 @@ sub Marpa::Recognizer::tokens {
             return 1;
         }
 
+        my $furthest_earleme =
+            $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+
+        my %accepted = (); # used only if trace_terminals set
+
         # Important: more earley sets can be added in the loop
         my $earley_set_ix = -1;
         EARLEY_ITEM: while (1) {
@@ -720,14 +726,26 @@ sub Marpa::Recognizer::tokens {
                 my ( $token, $value_ref, $length ) = @{$alternative};
 
                 # compute goto(state, token_name)
+                my $token_name = $token->[Marpa::Internal::Symbol::NAME];
+                if ($trace_terminals) {
+                    $accepted{$token_name} //= 0;
+                }
+
                 my $states =
                     $QDFA->[ $state->[Marpa::Internal::QDFA::ID] ]
                     ->[Marpa::Internal::QDFA::TRANSITION]
-                    ->{ $token->[Marpa::Internal::Symbol::NAME] };
+                    ->{ $token_name };
+
                 next ALTERNATIVE if not $states;
+                if ($trace_terminals) {
+                    $accepted{$token_name}++;
+                }
 
                 # Create the kernel item and its link.
                 my $target_ix = $last_completed_earleme + $length;
+                if ( $target_ix > $furthest_earleme ) {
+                    $furthest_earleme = $target_ix;
+                }
 
                 my $target_set = ( $earley_set_list->[$target_ix] //= [] );
                 STATE: for my $state ( @{$states} ) {
@@ -784,6 +802,19 @@ sub Marpa::Recognizer::tokens {
             }    # ALTERNATIVE
 
         }    # EARLEY_ITEM
+
+        if ($trace_terminals) {
+            while ( my ( $token_name, $accepted ) = each %accepted ) {
+                say {$trace_fh} +( $accepted ? 'Accepted' : 'Rejected' ),
+                    qq{ "$token_name" at $last_completed_earleme};
+            }
+        } ## end if ($trace_terminals)
+
+        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = $furthest_earleme;
+        if ( $furthest_earleme < $last_completed_earleme ) {
+            $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
+            return;
+        }
 
         last COMPLETION
             if $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
@@ -914,8 +945,6 @@ sub Marpa::Recognizer::tokens {
         # because the same rule derivation can result from
         # different states.
 
-        # Smart::Comment: Lexables Predicted: scalar grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
-
         ### earley set: Marpa'show_earley_set($earley_set)
 
         $current_terminals = [
@@ -923,15 +952,16 @@ sub Marpa::Recognizer::tokens {
             grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
         ];
 
+        if ($trace_terminals) {
+           for my $terminal (@{$current_terminals}) {
+               say {$trace_fh} qq{Expecting "$terminal" at $last_completed_earleme}
+           }
+        }
+
     } ## end while (1)
 
     $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] =
         $current_terminals;
-
-    if ( $last_completed_earleme > $furthest_earleme ) {
-        $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
-        return;
-    }
 
     return ( $current_earleme, $current_terminals ) if wantarray;
 
