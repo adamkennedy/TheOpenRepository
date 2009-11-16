@@ -14,7 +14,9 @@ use Marpa;
 use Marpa::Internal;
 use Marpa::UrHTML::Tie;
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
+
+### <where> Using smart comments ...
 
 package Marpa::UrHTML::Internal;
 
@@ -235,6 +237,13 @@ sub wrap_user_tdesc_handler {
         }
 } ## end sub wrap_user_tdesc_handler
         
+sub earleme_to_offset {
+    my ($self, $earleme) = @_;
+    my $marpa_tokens_here = $self->{recce}->tokens_at_earleme($earleme);
+    my $html_parser_token_ix = ${$marpa_tokens_here->[0]->[1]}->[-1]->[2];
+    my $html_parser_tokens = $self->{tokens};
+    return $html_parser_tokens->[$html_parser_token_ix]->[2];
+}
 
 my %ARGS = (
     start       => q{'S',offset,offset_end,tagname,attr},
@@ -605,18 +614,25 @@ sub Marpa::UrHTML::parse {
     # say STDERR $grammar->show_rules();
     # say STDERR $grammar->show_QDFA();
     my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+    $self->{recce} = $recce;
     $self->{tokens} = \@html_parser_tokens;
-    if ( not $recce->tokens( \@marpa_tokens ) ) {
-        my $last_marpa_token = $recce->furthest();
-        $last_marpa_token =
-              $last_marpa_token > $#marpa_tokens
-            ? $#marpa_tokens
-            : $last_marpa_token;
-        my $offset =
-            $html_parser_tokens[ $marpa_tokens[$last_marpa_token]->[1]->[-1]
-            ->[2] ]->[2];
-        Marpa::exception( 'HTML parse exhausted at location ', $offset );
-    } ## end if ( not $recce->tokens( \@marpa_tokens ) )
+    MARPA_TOKEN: for my $marpa_token (@marpa_tokens) {
+        my ($current_earleme, $expected_terminals) = $recce->tokens( [$marpa_token], 'predict' );
+        ### Current earleme, expected terminals: Data'Dumper'Dumper($current_earleme, $expected_terminals)
+        if (not defined $current_earleme) {
+            my $last_marpa_token = $recce->furthest();
+            $last_marpa_token =
+                  $last_marpa_token > $#marpa_tokens
+                ? $#marpa_tokens
+                : $last_marpa_token;
+            my $furthest_offset =
+                Marpa::UrHTML::Internal::earleme_to_offset( $self,
+                $last_marpa_token );
+            say Data::Dumper::Dumper( $recce->find_parse() );
+            Marpa::exception( 'HTML parse exhausted at location ',
+                $furthest_offset );
+        } ## end if ( not $recce->tokens( [$marpa_token], 'predict' ))
+    } ## end for my $marpa_token (@marpa_tokens)
 
     my %closure = (
         '!top_handler' => (
@@ -660,12 +676,29 @@ sub Marpa::UrHTML::parse {
         local $Marpa::UrHTML::INSTANCE                 = {};
         my $evaler = Marpa::Evaluator->new(
             { recce => $recce, closures => \%closure, } );
-        if (not $evaler) {
+        if ( not $evaler ) {
             my $last_marpa_token = $recce->furthest();
-            $last_marpa_token = $last_marpa_token > $#marpa_tokens ? $#marpa_tokens : $last_marpa_token;
-            my $offset = $html_parser_tokens[$marpa_tokens[$last_marpa_token]->[1]->[-1]->[2]]->[2];
-            Marpa::exception('HTML parse exhausted at location ', $offset);
-        }
+            $last_marpa_token =
+                  $last_marpa_token > $#marpa_tokens
+                ? $#marpa_tokens
+                : $last_marpa_token;
+            my $furthest_offset =
+                Marpa::UrHTML::Internal::earleme_to_offset( $self,
+                $last_marpa_token );
+
+            my $last_good_earleme = $recce->find_parse();
+            say 'last_good_earleme=', Data::Dumper::Dumper( $last_good_earleme );
+            my $last_good_offset =
+                Marpa::UrHTML::Internal::earleme_to_offset( $self,
+                $last_good_earleme );
+            say 'last_good_offset=', Data::Dumper::Dumper( $last_good_offset );
+            say 'last good at ', substr(${$document}, $last_good_offset, 100);
+
+            say Data::Dumper::Dumper( $recce->find_parse() );
+
+            Marpa::exception( 'HTML parse exhausted at location ',
+                $furthest_offset );
+        } ## end if ( not $evaler )
         $evaler->value;
     };
     Marpa::exception('undef returned') if not defined $value;

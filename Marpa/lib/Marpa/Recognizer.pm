@@ -306,7 +306,7 @@ sub Marpa::Recognizer::find_parse {
     my $earley_set_ix = $first_earley_ix;
     EARLEY_SET: while ( $earley_set_ix != $last_earley_ix ) {
         my $earley_set = $earley_set_list->[$earley_set_ix];
-        for my $earley_item ( @{$earley_set} ) {
+        EARLEY_ITEM: for my $earley_item ( @{$earley_set} ) {
             next EARLEY_ITEM
                 if $earley_item->[Marpa::Internal::Earley_Item::PARENT] != 0;
             my $state = $earley_item->[Marpa::Internal::Earley_Item::STATE];
@@ -461,6 +461,12 @@ sub Marpa::Recognizer::show_earley_sets {
         . Marpa::show_earley_set_list($earley_set_list);
 
 } ## end sub Marpa::Recognizer::show_earley_sets
+
+sub Marpa::Recognizer::tokens_at_earleme {
+    my ( $recce, $earleme ) = @_;
+    return $recce->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME]
+        ->[$earleme];
+}
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::Recognizer::tokens {
