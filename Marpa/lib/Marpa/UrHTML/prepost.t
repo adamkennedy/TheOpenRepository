@@ -32,7 +32,8 @@ my $p = Marpa::UrHTML->new(
                     sub { return 'PROLOG:\n', $Marpa::UrHTML::LITERAL }
             ],
             [ 'ROOT' => sub { return q{} } ],
-        ]
+        ],
+        trace_cruft => 1,
     }
 );
 my $value = $p->parse( \$document );

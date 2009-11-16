@@ -240,9 +240,13 @@ sub wrap_user_tdesc_handler {
 sub earleme_to_offset {
     my ($self, $earleme) = @_;
     my $marpa_tokens_here = $self->{recce}->tokens_at_earleme($earleme);
+    Marpa::exception("Internal error: No tokens at earleme: $earleme")
+        if not $marpa_tokens_here or not @{$marpa_tokens_here};
     my $html_parser_token_ix = ${$marpa_tokens_here->[0]->[1]}->[-1]->[2];
     my $html_parser_tokens = $self->{tokens};
-    return $html_parser_tokens->[$html_parser_token_ix]->[2];
+    my $offset = $html_parser_tokens->[$html_parser_token_ix]->[2];
+    return $offset if not wantarray;
+    return ($offset, (scalar substr(${$self->{document}}, 0, $offset) =~ tr/\n//));
 }
 
 my %ARGS = (
@@ -343,7 +347,7 @@ sub Marpa::UrHTML::new {
     for my $hash_arg (@hash_args) {
         for my $key ( keys %{$hash_arg} ) {
             given ($key) {
-                when ( [qw(trace_fh trace_handlers)] ) {
+                when ( [qw(trace_fh trace_handlers trace_terminals trace_cruft)] ) {
                     $self->{$_} = $hash_arg->{$_}
                 }
                 when ('handlers') {
@@ -381,7 +385,7 @@ sub Marpa::UrHTML::new {
 );
 
 
-my @anywhere_rh_sides = qw(SGML_item);
+my @anywhere_rh_sides = qw(SGML_item CRUFT);
 
 # Start and end of optional-tag elements is simply
 # ignored
@@ -391,7 +395,7 @@ push @anywhere_rh_sides, map { ( 'S_' . $_, 'E_' . $_ ) }
 my @SGML_rh_sides = qw(D C PI WHITESPACE);
 
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
-    ( @anywhere_rh_sides, @SGML_rh_sides, qw(CDATA PCDATA) );
+    ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA) );
 
 # End tags for empty elements are ignored
 push @anywhere_rh_sides,
@@ -440,6 +444,8 @@ my %end_tags   = ();
 
 sub Marpa::UrHTML::parse {
     my ( $self, $document_ref ) = @_;
+    my $trace_cruft = $self->{trace_cruft};
+    my $trace_fh = $self->{trace_fh};
     my $ref_type = ref $document_ref;
     Marpa::exception(
         'Arg to ' . __PACKAGE__ . '::parse must be ref to string' )
@@ -614,14 +620,28 @@ sub Marpa::UrHTML::parse {
     # say STDERR $grammar->show_rules();
     # say STDERR $grammar->show_QDFA();
     my $recce = Marpa::Recognizer->new( { grammar => $grammar,
-         # trace_terminals=>1
+         trace_terminals=>$self->{trace_terminals},
     } );
     $self->{recce} = $recce;
     $self->{tokens} = \@html_parser_tokens;
+    my ($current_earleme, $expected_terminals) = $recce->status();
     MARPA_TOKEN: for my $marpa_token (@marpa_tokens) {
-        my ($current_earleme, $expected_terminals) = $recce->tokens( [$marpa_token], 'predict' );
+        if ( not $marpa_token->[0] ~~ $expected_terminals ) {
+            # say STDERR "Token converted: ",
+                # Data::Dumper::Dumper( $marpa_token->[0] );
+            $marpa_token->[0] = 'CRUFT';
+            if ($trace_cruft) {
+                my ($offset, $line) = earleme_to_offset($self, $current_earleme-1);
+                $line++; # The convention is that line numberint starts at 1
+                say {$trace_fh} qq{Cruft at line $line: "},
+                    ${ tdesc_list_to_text( $self, $marpa_token->[1] ) },
+                    q{"};
+            }
+        } ## end if ( not $marpa_token->[0] ~~ $expected_terminals )
+        ( $current_earleme, $expected_terminals ) =
+            $recce->tokens( [$marpa_token], 'predict' );
         ### Current earleme, expected terminals: Data'Dumper'Dumper($current_earleme, $expected_terminals)
-        if (not defined $current_earleme) {
+        if ( not defined $current_earleme ) {
             my $last_marpa_token = $recce->furthest();
             $last_marpa_token =
                   $last_marpa_token > $#marpa_tokens
@@ -633,7 +653,7 @@ sub Marpa::UrHTML::parse {
             say Data::Dumper::Dumper( $recce->find_parse() );
             Marpa::exception( 'HTML parse exhausted at location ',
                 $furthest_offset );
-        } ## end if ( not $recce->tokens( [$marpa_token], 'predict' ))
+        } ## end if ( not defined $current_earleme )
     } ## end for my $marpa_token (@marpa_tokens)
 
     my %closure = (
