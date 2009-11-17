@@ -24,7 +24,8 @@ my $document;
 };
 
 my @handlers = (
-    [   'TOP' => sub {
+    [   ':TOP' => sub {
+            say STDERR "In User TOP handler";
             return $Marpa::UrHTML::INSTANCE;
             }
     ],

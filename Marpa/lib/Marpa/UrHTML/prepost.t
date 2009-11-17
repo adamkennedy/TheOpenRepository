@@ -28,13 +28,13 @@ my $document = do { local $RS = undef; <STDIN> };
 
 my $p = Marpa::UrHTML->new(
     {   handlers => [
-            [   'PROLOG' => sub {
+            [   ':PROLOG' => sub {
                     say STDERR 'In PROLOG handler';
                     my $literal = Marpa::UrHTML::literal() // q{};
                     return "PROLOG:\n" . ${$literal} . "\n";
                     }
             ],
-            [   'ROOT' => sub {
+            [   ':ROOT' => sub {
                     say STDERR 'In ROOT handler';
                     my $literal = Marpa::UrHTML::literal() // q{};
                     return "ROOT:\n" . ${$literal} . "\n";
@@ -42,6 +42,7 @@ my $p = Marpa::UrHTML->new(
             ],
         ],
         trace_cruft => 1,
+        trace_actions => 1,
     }
 );
 my $value = $p->parse( \$document );

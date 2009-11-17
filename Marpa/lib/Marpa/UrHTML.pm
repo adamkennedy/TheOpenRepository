@@ -226,10 +226,10 @@ sub wrap_user_tdesc_handler {
 
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
-        my @tdesc_list = map { @{$_} } @tdesc_lists;
+        my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
-        my $self           = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-        my $tokens = $self->{tokens};
+        my $self        = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+        my $tokens      = $self->{tokens};
         my $first_token = $tokens->[0]->[1];
         my $last_token  = $tokens->[-1]->[2];
         local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
@@ -267,6 +267,7 @@ sub add_handlers {
         my $element;
         my $id;
         my $class;
+        my $pseudo_class;
         my $action;
         PARSE_HANDLER_SPEC: {
             my $ref_type = ref $handler_spec;
@@ -276,58 +277,47 @@ sub add_handlers {
             if ( $ref_type eq 'ARRAY' ) {
                 my $specifier;
                 ( $specifier, $action ) = @{$handler_spec};
-                if ( $specifier eq 'TOP' ) {
-                    $self->{user_top_handler} = $action;
-                    next HANDLER_SPEC;
-                }
-                if ( $specifier eq 'PROLOG' ) {
-                    $self->{user_prolog_handler} = $action;
-                    next HANDLER_SPEC;
-                }
-                if ( $specifier eq 'ROOT' ) {
-                    $self->{user_root_handler} = $action;
-                    next HANDLER_SPEC;
-                }
-                if ( $specifier eq 'HEAD' ) {
-                    $self->{user_head_handler} = $action;
-                    next HANDLER_SPEC;
-                }
-                if ( $specifier eq 'BODY' ) {
-                    $self->{user_body_handler} = $action;
-                    next HANDLER_SPEC;
-                }
-                if ( $specifier eq 'TRAILER' ) {
-                    $self->{user_trailer_handler} = $action;
-                    next HANDLER_SPEC;
-                }
-                if ( $specifier eq 'DEFAULT' ) {
-                    $self->{user_default_handler} = $action;
-                    next HANDLER_SPEC;
-                }
-                if ( $specifier =~ /[A-Z]/xms ) {
-                    Marpa::exception(
-                        qq{Invalid CSS-style specifier: $specifier\n},
-                        'Marpa wants CSS-style specifier to be all lower-case'
-                    );
-                } ## end if ( $specifier =~ /[A-Z]/xms )
                 ( $element, $id ) =
                        ( $specifier =~ /\A ([^#]*) [#] (.*) \z/xms )
                     or ( $element, $class ) =
-                    ( $specifier =~ /\A ([^.]*) [.] (.*) \z/xms )
+                       ( $specifier =~ /\A ([^.]*) [.] (.*) \z/xms )
+                    or ( $element, $pseudo_class ) =
+                    ( $specifier =~ /\A ([^:]*) [:] (.*) \z/xms )
                     or $element = $specifier;
+                if ($pseudo_class
+                    and not $pseudo_class ~~ [
+                        qw(TOP PROLOG ROOT HEAD BODY TRAILER TERMINATED UNTERMINATED)
+                    ]
+                    )
+                {
+                    Marpa::exception(
+                        qq{pseudoclass "$pseudo_class" is not known:\n},
+                        "Specifier was $specifier\n" );
+                } ## end if ( $pseudo_class and not $pseudo_class ~~ [...])
+                if ( $pseudo_class and $element ) {
+                    Marpa::exception(
+                        qq{pseudoclass "$pseudo_class" may not have an element specified:\n},
+                        "Specifier was $specifier\n"
+                    );
+                } ## end if ( $pseudo_class and defined $element )
                 last PARSE_HANDLER_SPEC;
             } ## end if ( $ref_type eq 'ARRAY' )
             if ( $ref_type eq 'HASH' ) {
-                $element = $handler_spec->{element};
-                $id      = $handler_spec->{id};
-                $class   = $handler_spec->{class};
-                $action  = $handler_spec->{action};
+                $element      = $handler_spec->{element};
+                $id           = $handler_spec->{id};
+                $class        = $handler_spec->{class};
+                $pseudo_class = $handler_spec->{pseudo_class};
+                $action       = $handler_spec->{action};
                 last PARSE_HANDLER_SPEC;
             } ## end if ( $ref_type eq 'HASH' )
             Marpa::exception(
                 'handler specification must be ref to ARRAY or HASH');
         } ## end PARSE_HANDLER_SPEC:
         $element = $element ? lc $element : 'ANY';
+        if ( defined $pseudo_class ) {
+            $self->{user_handlers_by_pseudo_class}->{$element}->{ $pseudo_class } = $action;
+            next HANDLER_SPEC;
+        }
         if ( defined $id ) {
             $self->{user_handlers_by_id}->{$element}->{ lc $id } = $action;
             next HANDLER_SPEC;
@@ -403,16 +393,16 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     (
     {   lhs    => 'document',
         rhs    => [qw(prolog root SGML_flow)],
-        action => '!top_handler',
+        action => '!TOP_handler',
     },
     {   lhs            => 'prolog',
         rhs            => ['SGML_flow'],
-        action         => '!prolog_handler',
+        action         => '!PROLOG_handler',
         ranking_action => '!rank_is_length',
     },
     {   lhs    => 'root',
         rhs    => ['flow'],
-        action => '!root_handler',
+        action => '!ROOT_handler',
     },
     { lhs => 'flow', rhs => ['flow_item'], min => 0 },
     );
@@ -597,7 +587,7 @@ sub Marpa::UrHTML::parse {
             start          => 'document',
             terminals      => \@terminals,
             default_action => (
-                $self->{user_default_handler}
+                $self->{user_handlers_by_pseudo_class}->{ANY}->{DEFAULT}
                     // 'Marpa::UrHTML::Internal::default_action'
             ),
             strip => 0,
@@ -651,39 +641,28 @@ sub Marpa::UrHTML::parse {
     } ## end for my $marpa_token (@marpa_tokens)
 
     my %closure = (
-        '!top_handler' => (
-            $self->{user_top_handler}
-                // \&Marpa::UrHTML::Internal::default_top_handler
-        ),
-        '!prolog_handler' => (
-            $self->{user_prolog_handler}
-            ? wrap_user_tdesc_handler( $self->{user_prolog_handler} )
-            : \&Marpa::UrHTML::Internal::default_action
-        ),
-        '!root_handler' => (
-            $self->{user_root_handler}
-            ? wrap_user_tdesc_handler( $self->{user_root_handler} )
-            : \&Marpa::UrHTML::Internal::default_action
-        ),
-        '!head_handler' => (
-            $self->{user_head_handler}
-            ? wrap_user_tdesc_handler( $self->{user_head_handler} )
-            : \&Marpa::UrHTML::Internal::default_action
-        ),
-        '!body_handler' => (
-            $self->{user_body_handler}
-            ? wrap_user_tdesc_handler( $self->{user_body_handler} )
-            : \&Marpa::UrHTML::Internal::default_action
-        ),
-        '!trailer_handler' => (
-            $self->{user_trailer_handler}
-            ? wrap_user_tdesc_handler( $self->{user_trailer_handler} )
-            : \&Marpa::UrHTML::Internal::default_action
-        ),
         '!rank_is_zero' => sub { 0 },
         '!rank_is_one' => sub { 1 },
         '!rank_is_length' => sub { Marpa::length() },
+        '!TOP_handler' => (
+            $self->{user_handlers_by_pseudo_class}->{ANY}->{TOP} //
+                \&Marpa::UrHTML::Internal::default_top_handler)
     );
+
+    PSEUDO_CLASS: for my $pseudo_class (
+        qw(PROLOG ROOT HEAD BODY TRAILER TERMINATED UNTERMINATED))
+    {
+        my $pseudo_class_action =
+            $self->{user_handlers_by_pseudo_class}->{ANY}->{$pseudo_class};
+        my $pseudo_class_action_name = "!$pseudo_class" . '_handler';
+        if ($pseudo_class_action) {
+            $closure{$pseudo_class_action_name} =
+                wrap_user_tdesc_handler($pseudo_class_action);
+            next PSEUDO_CLASS;
+        }
+        $closure{$pseudo_class_action_name} =
+            \&Marpa::UrHTML::Internal::default_action;
+    } ## end for my $pseudo_class (...)
 
     ELEMENT:
     while ( my ( $element_action, $element ) = each %element_actions ) {
