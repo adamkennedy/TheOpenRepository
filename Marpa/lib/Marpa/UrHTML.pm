@@ -36,9 +36,11 @@ sub per_element_handlers {
 
 sub tdesc_list_to_text {
     my ( $self, $tdesc_list ) = @_;
+    # say STDERR "tdesc_list: ", Data::Dumper::Dumper($tdesc_list);
     my $text     = q{};
     my $document = $self->{document};
     my $tokens   = $self->{tokens};
+    # say STDERR "number of tokens: ", scalar @{$tokens};
     TDESC: for my $tdesc ( @{$tdesc_list} ) {
         given ( $tdesc->[0] ) {
             when ('ELE') {
@@ -56,6 +58,11 @@ sub tdesc_list_to_text {
             when ('TOKEN_SPAN') {
                 my ( $first_token_id, $last_token_id ) = @{$tdesc}[ 1, 2 ];
                 my $offset     = $tokens->[$first_token_id]->[1];
+
+    # say STDERR "first token #$first_token_id: ", Data::Dumper::Dumper($tokens->[$first_token_id]);
+    # say STDERR "last token #$last_token_id: ", Data::Dumper::Dumper($tokens->[$last_token_id]);
+    # say STDERR "number of tokens: ", scalar @{$tokens};
+
                 my $end_offset = $tokens->[$last_token_id]->[2];
                 $text .= substr ${$document}, $offset, $end_offset - $offset;
             } ## end when ('TOKEN_SPAN')
@@ -129,9 +136,13 @@ sub create_tdesc_handler {
             } ## end if ( $trace_handlers and $user_handler )
         } ## end GET_USER_HANDLER:
         if ( defined $user_handler ) {
-            my $first_token = $tokens->[0]->[1];
-            my $last_token  = $tokens->[-1]->[2];
+            my $first_token = $tdesc_list[0]->[1];
+            my $last_token  = $tdesc_list[-1]->[2];
             local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
+
+            # say STDERR __LINE__,
+                # " first_token=$first_token last_token=$last_token";
+
             return [
                 [ ELE => $first_token, $last_token, $user_handler->() ] ];
         } ## end if ( defined $user_handler )
@@ -191,6 +202,7 @@ sub create_tdesc_handler {
                         $first_token_id_in_current_span,
                         $last_token_id_in_current_span
                         ];
+                    # say STDERR __LINE__, Data::Dumper::Dumper( \@tdesc_result );
                 } ## end if ( defined $first_token_id_in_current_span )
                 $first_token_id_in_current_span = $first_token_id;
                 $last_token_id_in_current_span  = $last_token_id;
@@ -205,6 +217,9 @@ sub create_tdesc_handler {
                         $first_token_id_in_current_span,
                         $last_token_id_in_current_span
                         ];
+
+                    # say STDERR __LINE__, Data::Dumper::Dumper( \@tdesc_result );
+
                     $first_token_id_in_current_span =
                         $last_token_id_in_current_span = undef;
                 } ## end if ( defined $first_token_id_in_current_span )
@@ -230,23 +245,61 @@ sub wrap_user_tdesc_handler {
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
         my $self        = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
         my $tokens      = $self->{tokens};
-        my $first_token = $tokens->[0]->[1];
-        my $last_token  = $tokens->[-1]->[2];
+        my $first_token = $tdesc_list[0]->[1];
+        my $last_token  = $tdesc_list[-1]->[2];
         local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
+
+        # say STDERR __LINE__, " first_token=$first_token last_token=$last_token";
+
         return [ [ ELE => $first_token, $last_token, $user_handler->() ] ];
         }
 } ## end sub wrap_user_tdesc_handler
         
+sub setup_offsets {
+    my ($self) = @_;
+    my $document = $self->{document};
+    my @rs_offsets = ();
+    my $rs_offset = 0;
+    while ((my $rs_offset = index ${$document}, "\n", $rs_offset) >= 0) {
+        push @rs_offsets, $rs_offset;
+    }
+    my %offsets = map { $rs_offsets[$_], $_ } ( 0 .. $#rs_offsets );
+    $self->{offset} = \%offsets;
+    return 1;
+}
+
 sub earleme_to_offset {
-    my ($self, $earleme) = @_;
+    my ( $self, $earleme ) = @_;
     my $marpa_tokens_here = $self->{recce}->tokens_at_earleme($earleme);
     Marpa::exception("Internal error: No tokens at earleme: $earleme")
-        if not $marpa_tokens_here or not @{$marpa_tokens_here};
-    my $html_parser_token_ix = ${$marpa_tokens_here->[0]->[1]}->[-1]->[2];
-    my $html_parser_tokens = $self->{tokens};
+        if not $marpa_tokens_here
+            or not @{$marpa_tokens_here};
+    my $html_parser_token_ix = ${ $marpa_tokens_here->[0]->[1] }->[-1]->[2];
+    my $html_parser_tokens   = $self->{tokens};
     my $offset = $html_parser_tokens->[$html_parser_token_ix]->[2];
     return $offset if not wantarray;
-    return ($offset, (scalar substr(${$self->{document}}, 0, $offset) =~ tr/\n//));
+
+    my $last_rs = rindex ${ $self->{document} }, "\n", $offset;
+
+    # lines are numbered starting at 1
+    my $line;
+    given ($last_rs) {
+        when ( $_ <= 0 ) { $line = 1 }
+
+        # if last_rs is the same as the offset, we are in that line
+        when ($offset) { $line = $self->{offset}->{$offset} + 1 }
+
+        # If last_rs is different we are in the line after.
+        # So add 2, because the value in the hash is the
+        # 0-based number of the previous line,
+        # and we want the 1-based number of the
+        # current line.
+        default {
+            $line = $self->{offset}->{$offset} + 2
+        }
+    } ## end given
+
+    return ($offset, $line);
 }
 
 my %ARGS = (
@@ -511,22 +564,24 @@ sub Marpa::UrHTML::parse {
     my @terminals = keys %terminals;
 
     my %element_actions = ();
+    my %pseudo_class_element_actions = ();
     ELEMENT: for ( keys %start_tags ) {
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
             my $this_element = "ELE_$_";
-            push @rules, {
-                lhs        => $this_element,
-                    rhs    => ["S_$_"],
-                    action => "!ELE_$_",
-            };
+            push @rules,
+                {
+                lhs => $this_element,
+                rhs => ["S_$_"],
+                };
             my $element_type =
                 $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
                 ? 'block_element'
                 : 'anywhere_element';
             push @rules,
                 {
-                lhs => $element_type,
-                rhs => [$this_element],
+                lhs    => $element_type,
+                rhs    => [$this_element],
+                action => "!ELE_$_",
                 };
             $element_actions{"!ELE_$_"} = $_;
         } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
@@ -538,14 +593,14 @@ sub Marpa::UrHTML::parse {
                 {
                 lhs    => "$this_element",
                 rhs    => [ "T_$this_element" ],
-                action => "!ELE_$_",
                 ranking_action => '!rank_is_one',
+                action => "!T_ELE_$_",
                 },
                 {
                 lhs    => "$this_element",
                 rhs    => [ "U_$this_element" ],
-                action => "!ELE_$_",
                 ranking_action => '!rank_is_zero',
+                action => "!U_ELE_$_",
                 },
                 {
                 lhs    => "T_$this_element",
@@ -568,6 +623,7 @@ sub Marpa::UrHTML::parse {
                 {
                 lhs => $element_type,
                 rhs => [$this_element],
+                action => "!ELE_$_",
                 };
 
             # There may be no
@@ -578,6 +634,8 @@ sub Marpa::UrHTML::parse {
                 $terminals{$end_tag}++;
             }
 
+            $pseudo_class_element_actions{"!U_ELE_$_"} = [ UNTERMINATED => $_ ];
+            $pseudo_class_element_actions{"!T_ELE_$_"} = [ TERMINATED => $_ ];
             $element_actions{"!ELE_$_"} = $_;
         } ## end default
     } ## end for ( keys %start_tags )
@@ -664,10 +722,26 @@ sub Marpa::UrHTML::parse {
             \&Marpa::UrHTML::Internal::default_action;
     } ## end for my $pseudo_class (...)
 
-    ELEMENT:
     while ( my ( $element_action, $element ) = each %element_actions ) {
         $closure{$element_action} = create_tdesc_handler( $self, $element );
     }
+
+    ELEMENT_ACTION:
+    while ( my ( $element_action, $data ) =
+        each %pseudo_class_element_actions )
+    {
+        my ( $pseudo_class, $element ) = @{$data};
+        my $pseudo_class_action =
+            $self->{user_handlers_by_pseudo_class}->{$element}
+            ->{$pseudo_class}
+            // $self->{user_handlers_by_pseudo_class}->{ANY}->{$pseudo_class};
+        if ( defined $pseudo_class_action ) {
+            $pseudo_class_action =
+                wrap_user_tdesc_handler($pseudo_class_action);
+        }
+        $pseudo_class_action //= \&Marpa::UrHTML::Internal::default_action;
+        $closure{$element_action} = $pseudo_class_action;
+    } ## end while ( my ( $element_action, $data ) = each ...)
 
     my $value = do {
         local $Marpa::UrHTML::Internal::PARSE_INSTANCE = $self;

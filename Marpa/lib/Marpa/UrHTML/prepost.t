@@ -29,24 +29,32 @@ my $document = do { local $RS = undef; <STDIN> };
 my $p = Marpa::UrHTML->new(
     {   handlers => [
             [   ':PROLOG' => sub {
-                    say STDERR 'In PROLOG handler';
-                    my $literal = Marpa::UrHTML::literal() // q{};
+                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     return "PROLOG:\n" . ${$literal} . "\n";
                     }
             ],
             [   ':ROOT' => sub {
-                    say STDERR 'In ROOT handler';
-                    my $literal = Marpa::UrHTML::literal() // q{};
+                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     return "ROOT:\n" . ${$literal} . "\n";
                     }
             ],
+            [   ':UNTERMINATED' => sub {
+                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    say STDERR 'UNTERMINATED element: ', ${$literal};
+                    return;
+                    }
+            ]
         ],
-        trace_cruft => 1,
-        trace_actions => 1,
+        trace_cruft   => 1,
     }
 );
 my $value = $p->parse( \$document );
 
-say Data::Dumper::Dumper($value);
+say ref $value
+    ? ref ${$value}
+        ? ${ ${value} }
+            ? ${ ${ ${value} } }
+            : 'parse was undef'
+        : 'parse returned ref to undef'
+    : 'parse returned undef';
 
-# Marpa::Test::is( ${ ${$value} }, $no_tang_document, 'remove kTang class' );
