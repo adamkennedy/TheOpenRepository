@@ -223,6 +223,7 @@ use Marpa::Offset qw(
     TRACE_ACTIONS
     TRACE_VALUES
     TRACE_TERMINALS
+    TRACE_EARLEY_SETS
 
     MAX_PARSES
     ACTION_OBJECT
@@ -569,6 +570,7 @@ use constant GRAMMAR_OPTIONS => [
         strip
         terminals
         trace_actions
+        trace_earley_sets
         trace_evaluation
         trace_file_handle
         trace_rules
@@ -634,7 +636,19 @@ sub Marpa::Grammar::set {
                 }
                 $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
             } ## end if ($value)
-        } ## end if ( defined( my $value = $args->{'trace_terminals ))
+        } ## end if ( defined( my $value = $args->{'trace_terminals'}...))
+
+        if ( defined( my $value = $args->{'trace_earley_sets'} ) ) {
+            $grammar->[Marpa::Internal::Grammar::TRACE_EARLEY_SETS] = $value;
+            if ($value) {
+                say {$trace_fh} 'Setting trace_earley_sets option';
+                if ( $phase > Marpa::Internal::Phase::RECOGNIZING ) {
+                    say {$trace_fh}
+                        'Warning: setting trace_earley_sets option after recognition';
+                }
+                $grammar->[Marpa::Internal::Grammar::TRACING] = 1;
+            } ## end if ($value)
+        } ## end if ( defined( my $value = $args->{'trace_earley_sets'...}))
 
         if ( defined( my $value = $args->{'trace_values'} ) ) {
             Marpa::exception('trace_values must be set to a number >= 0')

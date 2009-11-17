@@ -13,6 +13,7 @@ use HTML::Tagset ();
 use Marpa;
 use Marpa::Internal;
 use Marpa::UrHTML::Tie;
+use Marpa::UrHTML::Callback;
 
 use Smart::Comments '-ENV';
 
@@ -91,7 +92,7 @@ sub create_tdesc_handler {
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
 
-        my @tdesc_list = map { @{$_} } @tdesc_lists;
+        my @tdesc_list = map { @{$_} } grep { defined } @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
         my $self           = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
         my $trace_fh       = $self->{trace_fh};
@@ -347,9 +348,13 @@ sub Marpa::UrHTML::new {
     for my $hash_arg (@hash_args) {
         for my $key ( keys %{$hash_arg} ) {
             given ($key) {
-                when ( [qw(trace_fh trace_handlers trace_terminals trace_cruft)] ) {
+                when (
+                    [   qw(trace_fh trace_handlers trace_earley_sets trace_terminals trace_cruft)
+                    ]
+                    )
+                {
                     $self->{$_} = $hash_arg->{$_}
-                }
+                } ## end when ( [...])
                 when ('handlers') {
                     Marpa::UrHTML::Internal::add_handlers( $self,
                         $hash_arg->{$_} )
@@ -380,62 +385,45 @@ sub Marpa::UrHTML::new {
 
 %Marpa::UrHTML::Internal::OPTIONAL_TAGS =
     map { ( $_, 1 ) } qw( html head body tbody );
-# %Marpa::UrHTML::Internal::OPTIONAL_END_TAG = map { $_ => 1 } qw( colgroup dd dt li p td tfoot th thead tr);
 
 
-my @anywhere_rh_sides = qw(SGML_item CRUFT);
+my @SGML_rh_sides = qw(D C PI);
+@Marpa::UrHTML::Internal::CORE_RULES = map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
 
-# Start and end of optional-tag elements is simply
-# ignored
-# push @anywhere_rh_sides, map { ( 'S_' . $_, 'E_' . $_ ) }
-    # keys %Marpa::UrHTML::Internal::OPTIONAL_TAGS;
-
-my @SGML_rh_sides = qw(D C PI WHITESPACE);
+push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'SGML_flow', rhs => ['SGML_item'], min => 0 };
 
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
-    ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA) );
-
-# End tags for empty elements are ignored
-push @anywhere_rh_sides,
-    map { 'E_' . $_ } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENTS;
-
-my @anywhere_item_rules =
-    map { { lhs => 'anywhere_item', rhs => [$_] } } @anywhere_rh_sides;
+    ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA WHITESPACE) );
 
 no strict 'refs';
 *{'Marpa::UrHTML::Internal::default_action'} = create_tdesc_handler();
 use strict;
 
-@Marpa::UrHTML::Internal::CORE_RULES = (
-    @anywhere_item_rules,
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    (
     {   lhs    => 'document',
-        rhs    => [qw(prolog root_element)],
+        rhs    => [qw(prolog root SGML_flow)],
         action => '!top_handler',
     },
-    {   lhs    => 'prolog',
-        rhs    => ['SGML_item'],
-        min    => 0,
-        action => '!prolog_handler'
+    {   lhs            => 'prolog',
+        rhs            => ['SGML_flow'],
+        action         => '!prolog_handler',
+        ranking_action => '!rank_is_length',
     },
-    {   lhs    => 'root_element',
+    {   lhs    => 'root',
         rhs    => ['flow'],
         action => '!root_handler',
     },
-    { lhs => 'flow', rhs => ['terminated_flow_item'], min => 0 },
-);
-
-# push @Marpa::UrHTML::Internal::CORE_TERMINALS, qw(S_p E_p );
+    { lhs => 'flow', rhs => ['flow_item'], min => 0 },
+    );
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'terminated_flow_item', rhs => [$_] } }
+    map { { lhs => 'flow_item', rhs => [$_] } }
     qw(inline_flow_item block_element);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'inline_flow_item', rhs => [$_] } }
-    qw(CDATA PCDATA anywhere_item anywhere_element);
+    qw(CDATA PCDATA CRUFT WHITESPACE SGML_item anywhere_element);
 
 my %start_tags = ();
 my %end_tags   = ();
@@ -550,6 +538,8 @@ sub Marpa::UrHTML::parse {
         } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
         default {
             my $this_element = "ELE_$_";
+            my $start_tag = "S_$_";
+            my $end_tag = "E_$_";
             push @rules,
                 {
                 lhs    => "$this_element",
@@ -565,11 +555,11 @@ sub Marpa::UrHTML::parse {
                 },
                 {
                 lhs    => "T_$this_element",
-                rhs    => [ "S_$_", "Contents_$_", "E_$_" ],
+                rhs    => [ $start_tag, "Contents_$_", $end_tag ],
                 },
                 {
                 lhs    => "U_$this_element",
-                rhs    => [ "S_$_", "Contents_$_", ],
+                rhs    => [ $start_tag, "Contents_$_", ],
                 ranking_action => '!rank_is_length',
                 },
                 {
@@ -585,6 +575,15 @@ sub Marpa::UrHTML::parse {
                 lhs => $element_type,
                 rhs => [$this_element],
                 };
+
+            # There may be no
+            # end tag in the input.
+            # This silences the warning.
+            if (not $terminals{$end_tag}) {
+                push @terminals, $end_tag;
+                $terminals{$end_tag}++;
+            }
+
             $element_actions{"!ELE_$_"} = $_;
         } ## end default
     } ## end for ( keys %start_tags )
@@ -606,6 +605,7 @@ sub Marpa::UrHTML::parse {
     # say STDERR $grammar->show_QDFA();
     my $recce = Marpa::Recognizer->new( { grammar => $grammar,
          trace_terminals=>$self->{trace_terminals},
+         trace_earley_sets=>$self->{trace_earley_sets},
     } );
     $self->{recce} = $recce;
     $self->{tokens} = \@html_parser_tokens;
@@ -616,12 +616,15 @@ sub Marpa::UrHTML::parse {
                 # Data::Dumper::Dumper( $marpa_token->[0] );
             $marpa_token->[0] = 'CRUFT';
             if ($trace_cruft) {
-                my ($offset, $line) = earleme_to_offset($self, $current_earleme-1);
-                $line++; # The convention is that line numberint starts at 1
+                my $cruft_earleme = $current_earleme - 1;
+                if ( $cruft_earleme < 0 ) { $cruft_earleme = 0 }
+                my ( $offset, $line ) =
+                    earleme_to_offset( $self, $cruft_earleme );
+                $line++;   # The convention is that line numberint starts at 1
                 say {$trace_fh} qq{Cruft at line $line: "},
                     ${ tdesc_list_to_text( $self, $marpa_token->[1] ) },
                     q{"};
-            }
+            } ## end if ($trace_cruft)
         } ## end if ( not $marpa_token->[0] ~~ $expected_terminals )
         ( $current_earleme, $expected_terminals ) =
             $recce->tokens( [$marpa_token], 'predict' );

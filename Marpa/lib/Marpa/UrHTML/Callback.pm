@@ -1,4 +1,4 @@
-package Marpa::UrHTML::Internal::Tie;
+package Marpa::UrHTML::Internal::Callback;
 
 use 5.010;
 use warnings;
@@ -12,8 +12,6 @@ use integer;
 use English qw( -no_match_vars );
 
 use Marpa::Internal;
-
-## no critic (Miscellanea::ProhibitTies)
 
 sub create_fetch_attribute_closure {
     my ($attribute) = @_;
@@ -38,57 +36,13 @@ sub create_fetch_attribute_closure {
         }
 } ## end sub create_fetch_attribute_closure
 
-sub tiescalar_stub {
-    my ($class) = @_;
-    my $instance;    # not used for anything
-    return bless \$instance => $class;
-}
-
-sub create_not_writeable {
-    my ($var_name) = @_;
-    return sub { Marpa::exception( $var_name . ' is not writeable' ) }
-}
-
-sub tie_attribute {
-    my ($attribute_name) = @_;
-    my $package_name =
-        'Marpa::UrHTML::Internal::Tie::' . ucfirst $attribute_name;
-    my $tied_var_name = 'Marpa::UrHTML::Attribute::' . uc $attribute_name;
-
-    no strict 'refs';
-    *{ $package_name . '::TIESCALAR' } =
-        *{'Marpa::UrHTML::Internal::Tie::tiescalar_stub'}{'CODE'};
-    *{ $package_name . '::FETCH' } =
-        Marpa::UrHTML::Internal::Tie::create_fetch_attribute_closure(
-        lc $attribute_name );
-    *{ $package_name . '::STORE' } =
-        Marpa::UrHTML::Internal::Tie::create_not_writeable(
-        uc $attribute_name );
-    use strict;
-
-    my $var;
-    tie $var, $package_name;
-
-    no strict 'refs';
-    *{$tied_var_name} = \$var;
-    use strict;
-
-    return 1;
-} ## end sub tie_attribute
-
-tie_attribute('id');
-tie_attribute('class');
-tie_attribute('title');
-
-# Allow Short form of the attribute names,
-# when there are no conflicts
 no strict 'refs';
-*{'Marpa::UrHTML::ID'}    = *{'Marpa::UrHTML::Attribute::ID'}{'SCALAR'};
-*{'Marpa::UrHTML::CLASS'} = *{'Marpa::UrHTML::Attribute::CLASS'}{'SCALAR'};
-*{'Marpa::UrHTML::TITLE'} = *{'Marpa::UrHTML::Attribute::TITLE'}{'SCALAR'};
+*{'Marpa::UrHTML::id'}    = create_fetch_attribute_closure('id');
+*{'Marpa::UrHTML::class'} = create_fetch_attribute_closure('class');
+*{'Marpa::UrHTML::title'} = create_fetch_attribute_closure('title');
 use strict;
 
-package Marpa::UrHTML::Internal::Tie;
+package Marpa::UrHTML::Internal::Callback;
 
 sub set_up_elements {
     my $elements = $Marpa::UrHTML::Internal::NODE_SCRATCHPAD->{elements} = [];
@@ -103,16 +57,7 @@ sub set_up_elements {
     return $elements;
 } ## end sub set_up_elements
 
-package Marpa::UrHTML::Internal::Tie::Element_Values;
-
-no strict 'refs';
-*{ __PACKAGE__ . '::TIESCALAR' } =
-    *{'Marpa::UrHTML::Internal::Tie::tiescalar_stub'}{'CODE'};
-*{ __PACKAGE__ . '::STORE' } =
-    Marpa::UrHTML::Internal::Tie::create_not_writeable('ELEMENT_VALUES');
-use strict;
-
-sub FETCH {
+sub Marpa::UrHTML::element_values {
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
     Marpa::exception('Attempt to get element values of non-existent node')
         if not defined $tdesc_list;
@@ -121,18 +66,7 @@ sub FETCH {
     return [ map { $_->[3] } @{$tdesc_list}[ @{$elements} ] ];
 } ## end sub FETCH
 
-tie $Marpa::UrHTML::ELEMENT_VALUES, __PACKAGE__;
-
-package Marpa::UrHTML::Internal::Tie::Literal;
-
-no strict 'refs';
-*{ __PACKAGE__ . '::TIESCALAR' } =
-    *{'Marpa::UrHTML::Internal::Tie::tiescalar_stub'}{'CODE'};
-*{ __PACKAGE__ . '::STORE' } =
-    Marpa::UrHTML::Internal::Tie::create_not_writeable('LITERAL');
-use strict;
-
-sub FETCH {
+sub Marpa::UrHTML::literal {
     say STDERR "Fetch of ", __PACKAGE__;
     return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
@@ -146,7 +80,5 @@ sub FETCH {
     return Marpa::UrHTML::Internal::tdesc_list_to_text( $parse_instance,
         $tdesc_list );
 } ## end sub FETCH
-
-tie $Marpa::UrHTML::LITERAL, __PACKAGE__;
 
 1;

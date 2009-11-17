@@ -485,6 +485,8 @@ sub Marpa::Recognizer::tokens {
     my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $phase    = $grammar->[Marpa::Internal::Grammar::PHASE];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $trace_earley_sets =
+        $grammar->[Marpa::Internal::Grammar::TRACE_EARLEY_SETS];
     my $trace_terminals =
         $grammar->[Marpa::Internal::Grammar::TRACE_TERMINALS];
     my $too_many_earley_items =
@@ -945,7 +947,9 @@ sub Marpa::Recognizer::tokens {
         # because the same rule derivation can result from
         # different states.
 
-        ### earley set: Marpa'show_earley_set($earley_set)
+        if ($trace_earley_sets) {
+            print {$trace_fh} Marpa::show_earley_set($earley_set)
+        }
 
         $current_terminals = [
             map { $symbols->[$_]->[Marpa::Internal::Symbol::NAME] }

@@ -29,13 +29,13 @@ my @handlers = (
             }
     ],
     [   '.codepoint' => sub {
-            for my $value ( @{$Marpa::UrHTML::ELEMENT_VALUES} ) {
+            for my $value ( @{&Marpa::UrHTML::element_values()} ) {
                 next CHILD if not $value;
                 my ( $class, $literal, $data ) = @{ $value };
                 if ($class eq 'occurrences') {
-                    $Marpa::UrHTML::INSTANCE->{$Marpa::UrHTML::TITLE}->{occurrence_count} = $data;
+                    $Marpa::UrHTML::INSTANCE->{Marpa::UrHTML::title()}->{occurrence_count} = $data;
                 }
-                $Marpa::UrHTML::INSTANCE->{$Marpa::UrHTML::TITLE}->{$class} = $literal;
+                $Marpa::UrHTML::INSTANCE->{Marpa::UrHTML::title()}->{$class} = $literal;
             }
             return;
             }
@@ -45,7 +45,7 @@ my @handlers = (
 push @handlers, 
        [   '.occurrences' =>
                 sub {
-                my $literal = $Marpa::UrHTML::LITERAL;
+                my $literal = Marpa::UrHTML::literal();
                 my ($occurrence_count) = (${$literal} =~ / Occurrences \s+ [(] (\d+) [)] [:] /xms);
                 return [ 'occurrences', $literal, $occurrence_count ]
                 }
@@ -61,7 +61,7 @@ my @text_fields = qw( cedict_definition glyph kfrequency kgradelevel
 
 push @handlers, map {
     my $class = $_;
-    [ ".$class" => sub { return [ $class, $Marpa::UrHTML::LITERAL ] } ];
+    [ ".$class" => sub { return [ $class, Marpa::UrHTML::literal() ] } ];
 } @text_fields;
 
 my $p = Marpa::UrHTML->new( { handlers => \@handlers } );
