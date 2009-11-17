@@ -29,7 +29,7 @@ sub rank_one {
     return
           TEST_INCREMENT
         * ( $MyTest::UP ? -1 : 1 )
-        * ( 2**-$Marpa::LOCATION );
+        * ( 2**-Marpa::location() );
     #>>>
 } ## end sub rank_one
 sub rank_zero { return 0 }

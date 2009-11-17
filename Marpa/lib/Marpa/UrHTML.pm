@@ -348,7 +348,7 @@ sub Marpa::UrHTML::new {
         for my $key ( keys %{$hash_arg} ) {
             given ($key) {
                 when (
-                    [   qw(trace_fh trace_values trace_handlers
+                    [   qw(trace_fh trace_values trace_handlers trace_actions
                             trace_earley_sets trace_terminals trace_cruft)
                     ]
                     )
@@ -440,7 +440,7 @@ sub Marpa::UrHTML::parse {
 
     my %pull_parser_args;
     my $document = $pull_parser_args{doc} = $self->{document} = $document_ref;
-    my $pull_parser = $self->{pull_parser} =
+    my $pull_parser =
         HTML::PullParser->new( %pull_parser_args, %ARGS )
         || Carp::croak('Could not create pull parser');
 
@@ -514,6 +514,8 @@ sub Marpa::UrHTML::parse {
         } ## end given
         $token_number++;
     } ## end while ( my $html_parser_token = $pull_parser->get_token)
+
+    $pull_parser = undef; # conserve memory
 
     my @rules     = @Marpa::UrHTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
@@ -609,6 +611,7 @@ sub Marpa::UrHTML::parse {
          trace_terminals=>$self->{trace_terminals},
          trace_earley_sets=>$self->{trace_earley_sets},
          trace_values=>$self->{trace_values},
+         trace_actions=>$self->{trace_actions},
          clone => 0,
     } );
     $self->{recce} = $recce;
@@ -632,7 +635,6 @@ sub Marpa::UrHTML::parse {
         } ## end if ( not $marpa_token->[0] ~~ $expected_terminals )
         ( $current_earleme, $expected_terminals ) =
             $recce->tokens( [$marpa_token], 'predict' );
-        ### Current earleme, expected terminals: Data'Dumper'Dumper($current_earleme, $expected_terminals)
         if ( not defined $current_earleme ) {
             my $last_marpa_token = $recce->furthest();
             $last_marpa_token =
@@ -680,7 +682,7 @@ sub Marpa::UrHTML::parse {
         ),
         '!rank_is_zero' => sub { 0 },
         '!rank_is_one' => sub { 1 },
-        '!rank_is_length' => sub { $Marpa::LENGTH },
+        '!rank_is_length' => sub { Marpa::length() },
     );
 
     ELEMENT:
@@ -694,8 +696,7 @@ sub Marpa::UrHTML::parse {
         my $evaler = Marpa::Evaluator->new(
             { recce => $recce, clone => 0, closures => \%closure, } );
 
-        # undef the recognizer to save memory
-        $recce = undef;
+        $recce = undef; # conserve memory
 
         if ( not $evaler ) {
             my $last_marpa_token = $recce->furthest();

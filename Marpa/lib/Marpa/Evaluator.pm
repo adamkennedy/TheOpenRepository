@@ -173,7 +173,7 @@ use Marpa::Offset qw(
 
 package Marpa::Internal::Evaluator;
 
-# use Smart::Comments '-ENV';
+use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 
@@ -182,7 +182,7 @@ use List::Util;
 use English qw( -no_match_vars );
 use Data::Dumper;
 use Storable;
-use Marpa::Tie;
+use Marpa::Callback;
 use Marpa::Internal;
 
 # Perl critic at present is not smart about underscores
@@ -436,8 +436,6 @@ sub set_actions {
             my $closure =
                 Marpa::Internal::Evaluator::resolve_semantics( $evaler,
                 $action );
-
-            ### Explicit closures: $evaler->[Marpa'Internal'Evaluator'EXPLICIT_CLOSURES]
 
             Marpa::exception(qq{Could not resolve action name: "$action"})
                 if not defined $closure;
@@ -2376,13 +2374,9 @@ sub Marpa::Evaluator::value {
                     if not my $token =
                         $and_node->[Marpa::Internal::And_Node::TOKEN];
 
-                ### Ranking token: $token->[Marpa'Internal'Symbol'NAME]
-
                 next AND_NODE
                     if not my $ranking_closure = $ranking_closures_by_symbol
                         ->[ $token->[Marpa::Internal::Symbol::ID] ];
-
-                ### Found closure for token: $token->[Marpa'Internal'Symbol'NAME]
 
                 my $rank;
                 my @warnings;
@@ -2409,8 +2403,6 @@ sub Marpa::Evaluator::value {
                 } ## end if ( not $eval_ok or @warnings )
                 $and_node->[Marpa::Internal::And_Node::FIXED_RANKING_DATA] =
                     $rank;
-
-                ### Token, rank: $token->[Marpa'Internal'Symbol'NAME], $rank
 
             } ## end for my $and_node ( @{$and_nodes} )
             last SET_UP_ITERATIONS;
@@ -2720,6 +2712,11 @@ sub Marpa::Evaluator::value {
                                 += $cause_and_node_iteration->[
                                 Marpa::Internal::And_Iteration::RANKING_DATA
                                 ];
+
+                            ### and node: Marpa'Evaluator'show_and_node($evaler, $and_nodes->[$cause_and_node_choice->[Marpa'Internal'And_Choice'ID]], 99)
+
+                            ### assert: defined $cause_and_node_iteration->[ Marpa'Internal'And_Iteration'RANKING_DATA ]
+
                         } ## end if ($cause_and_node_choice)
                         if ($predecessor_and_node_choice) {
                             $rank
@@ -2727,8 +2724,6 @@ sub Marpa::Evaluator::value {
                                 Marpa::Internal::And_Iteration::RANKING_DATA
                                 ];
                         } ## end if ($predecessor_and_node_choice)
-
-                        ### Ranking and_node, id, rank: $and_node_id, $rank
 
                         $and_node_iteration
                             ->[Marpa::Internal::And_Iteration::RANKING_DATA] =
@@ -2767,9 +2762,21 @@ sub Marpa::Evaluator::value {
                         );
                     } ## end if ( not $eval_ok or @warnings )
 
+                    if ( not defined $rank ) {
+                        my $rule_id =
+                            $and_node->[Marpa::Internal::And_Node::RULE_ID];
+                        my $rule = $rules->[$rule_id];
+                        Marpa::exception(
+                            'numeric ranking action returned undef, rule: ',
+                            Marpa::brief_rule($rule),
+                        );
+                    } ## end if ( not defined $rank )
+
                     $and_node_iteration
                         ->[Marpa::Internal::And_Iteration::RANKING_DATA] =
                         $rank;
+
+                    ### assert: defined $rank
 
                     # With the rank processing finished, the
                     # SETUP_AND_NODE task is finished
@@ -3023,8 +3030,6 @@ node appears more than once on the path back to the root node.
                     if ( not $use_this_and_node ) {
                         $and_iterations->[$and_node_id] = undef;
 
-                        ### breaking potential cycle, and-node-id: $and_node_id
-
                         break;    # next TASK
                     } ## end if ( not $use_this_and_node )
 
@@ -3037,8 +3042,6 @@ node appears more than once on the path back to the root node.
                         my %new_path = %{$path};
                         for my $add_to_path (@add_to_path) {
                             my ( $key, $value ) = @{$add_to_path};
-
-                            ### Adding to path, key, value: $key, $value
 
                             $new_path{$key} = $value;
                         } ## end for my $add_to_path (@add_to_path)
@@ -3435,8 +3438,6 @@ node appears more than once on the path back to the root node.
                     } @descendant_or_node_ids;
                 } ## end while ( scalar @work_list )
 
-                #### FREEZE_TREE, and-node id: $and_node_id
-
                 my @or_values  = @{$or_iterations}[@or_slice];
                 my @and_values = @{$and_iterations}[@and_slice];
 
@@ -3638,8 +3639,6 @@ node appears more than once on the path back to the root node.
                                         ( splice @evaluation_stack, -$argc )
                                     ];
 
-                                ### <where> current_data: $current_data
-
                             } ## end when (Marpa::Internal::Evaluator_Op::ARGC)
 
                             when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD
@@ -3675,8 +3674,6 @@ node appears more than once on the path back to the root node.
                                         -$real_symbol_count
                                     )
                                 ];
-
-                                ### <where> current_data: $current_data
 
                             } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
 
@@ -3716,8 +3713,6 @@ node appears more than once on the path back to the root node.
                                         )
                                     ]
                                 ];
-
-                                ### <where> current_data: $current_data
 
                                 # truncate the evaluation stack
                                 $#evaluation_stack = $base - 1;
@@ -3798,8 +3793,6 @@ node appears more than once on the path back to the root node.
                             when (Marpa::Internal::Evaluator_Op::CALL) {
                                 my $closure = $ops->[ $op_ix++ ];
                                 my $result;
-
-                                ### current_data: $current_data
 
                                 my @warnings;
                                 my $eval_ok;
