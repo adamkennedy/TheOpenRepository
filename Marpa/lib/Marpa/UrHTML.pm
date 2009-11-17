@@ -380,17 +380,15 @@ sub Marpa::UrHTML::new {
 
 %Marpa::UrHTML::Internal::OPTIONAL_TAGS =
     map { ( $_, 1 ) } qw( html head body tbody );
-%Marpa::UrHTML::Internal::OPTIONAL_END_TAG = map { $_ => 1 } qw(
-    colgroup dd dt li p td tfoot th thead tr
-);
+# %Marpa::UrHTML::Internal::OPTIONAL_END_TAG = map { $_ => 1 } qw( colgroup dd dt li p td tfoot th thead tr);
 
 
 my @anywhere_rh_sides = qw(SGML_item CRUFT);
 
 # Start and end of optional-tag elements is simply
 # ignored
-push @anywhere_rh_sides, map { ( 'S_' . $_, 'E_' . $_ ) }
-    keys %Marpa::UrHTML::Internal::OPTIONAL_TAGS;
+# push @anywhere_rh_sides, map { ( 'S_' . $_, 'E_' . $_ ) }
+    # keys %Marpa::UrHTML::Internal::OPTIONAL_TAGS;
 
 my @SGML_rh_sides = qw(D C PI WHITESPACE);
 
@@ -532,35 +530,6 @@ sub Marpa::UrHTML::parse {
 
     my %element_actions = ();
     ELEMENT: for ( keys %start_tags ) {
-        when ( defined $Marpa::UrHTML::Internal::OPTIONAL_TAGS{$_} ) {
-
-            # All these tags are simply ignored
-            # should be next ELEMENT, but perl bug 65114 causes warning if tag is given
-            # next ELEMENT
-            next;
-        } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_TAGS...)
-        when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG{$_} ) {
-
-            # These will need custom solutions
-            # A dummy rule for now
-            push @rules, {
-                lhs        => "ELE_$_",
-                    rhs    => [ "S_$_", "Contents_$_", "E_$_" ],
-                    action => "!ELE_$_",
-            }, {
-                lhs        => "UELE_$_",
-                    rhs    => [ "S_$_", "Contents_$_" ],
-                    action => "!ELE_$_",
-            },
-
-                # a rule which will never be satisfied because
-                # there are no unicorns
-            {
-                lhs     => "Contents_$_",
-                    rhs => [q{!!!unicorn!!!}]
-            };
-            $element_actions{"!ELE_$_"} = $_;
-        } ## end when ( defined $Marpa::UrHTML::Internal::OPTIONAL_END_TAG...)
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
             my $this_element = "ELE_$_";
             push @rules, {
@@ -583,9 +552,25 @@ sub Marpa::UrHTML::parse {
             my $this_element = "ELE_$_";
             push @rules,
                 {
-                lhs    => $this_element,
-                rhs    => [ "S_$_", "Contents_$_", "E_$_" ],
+                lhs    => "$this_element",
+                rhs    => [ "T_$this_element" ],
                 action => "!ELE_$_",
+                ranking_action => '!rank_is_one',
+                },
+                {
+                lhs    => "$this_element",
+                rhs    => [ "U_$this_element" ],
+                action => "!ELE_$_",
+                ranking_action => '!rank_is_zero',
+                },
+                {
+                lhs    => "T_$this_element",
+                rhs    => [ "S_$_", "Contents_$_", "E_$_" ],
+                },
+                {
+                lhs    => "U_$this_element",
+                rhs    => [ "S_$_", "Contents_$_", ],
+                ranking_action => '!rank_is_length',
                 },
                 {
                 lhs => "Contents_$_",
@@ -686,6 +671,9 @@ sub Marpa::UrHTML::parse {
             ? wrap_user_tdesc_handler( $self->{user_trailer_handler} )
             : \&Marpa::UrHTML::Internal::default_action
         ),
+        '!rank_is_zero' => sub { 0 },
+        '!rank_is_one' => sub { 1 },
+        '!rank_is_length' => sub { $Marpa::LENGTH },
     );
 
     ELEMENT:
