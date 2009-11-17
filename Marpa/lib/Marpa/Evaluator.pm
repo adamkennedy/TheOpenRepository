@@ -137,7 +137,7 @@ use Marpa::Offset qw(
 
     :package=Marpa::Internal::Evaluator
 
-    RECOGNIZER
+    GRAMMAR
     PARSE_COUNT :{ number of parses in an ambiguous parse :}
     AND_NODES
     OR_NODES
@@ -201,8 +201,7 @@ use constant N_FORMAT_MAX => 0x7fff_ffff;
 
 sub set_null_values {
     my ($evaler) = @_;
-    my $recce    = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar  = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
 
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
@@ -310,8 +309,7 @@ sub set_null_values {
 # or return undef
 sub resolve_semantics {
     my ( $evaler, $closure_name ) = @_;
-    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
 
     Marpa::exception(q{Trying to resolve 'undef' as closure name})
         if not defined $closure_name;
@@ -378,8 +376,7 @@ sub resolve_semantics {
 
 sub set_actions {
     my ($evaler) = @_;
-    my $recce    = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar    = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
 
     my ( $rules, $default_action, ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
@@ -905,8 +902,7 @@ sub rewrite_cycles {
     my $trace_fh;
     my $trace_evaluation;
 
-    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     my $warn_on_cycle =
         $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] ne 'quiet';
     $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
@@ -1299,8 +1295,7 @@ sub delete_duplicate_nodes {
 
     my ($evaler) = @_;
 
-    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
 
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $trace_evaluation =
@@ -1519,16 +1514,17 @@ sub Marpa::Evaluator::new {
     delete $args->{clone};
     my $clone = $clone_arg // 1;
 
+    my $grammar     = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     if ($clone) {
-        $recce = $recce->clone();
+        $grammar = $grammar->clone();
     }
+    $self->[Marpa::Internal::Evaluator::GRAMMAR] = $grammar;
 
     $self->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES] = $args->{closures}
         // {};
 
     delete $args->{closures};
 
-    my $grammar     = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my $earley_sets = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
 
     my $phase = $grammar->[Marpa::Internal::Grammar::PHASE] =
@@ -1552,8 +1548,6 @@ sub Marpa::Evaluator::new {
         "  Last token ends at location $furthest_earleme\n",
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
-
-    $self->[Marpa::Internal::Evaluator::RECOGNIZER] = $recce;
 
     $self->set($args);
 
@@ -2145,8 +2139,7 @@ sub Marpa::dump_sort_key {
 
 sub Marpa::Evaluator::show_sort_keys {
     my ($evaler)    = @_;
-    my $recce       = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar     = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar       = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     my $parse_order = $grammar->[Marpa::Internal::Grammar::PARSE_ORDER];
     Marpa::exception(
         "show_sort_keys called when parse order is not original\n",
@@ -2177,8 +2170,7 @@ sub Marpa::Evaluator::show_and_node {
 
     my $return_value = q{};
 
-    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
 
     my $name = $and_node->[Marpa::Internal::And_Node::TAG];
@@ -2307,8 +2299,7 @@ sub Marpa::Evaluator::show_bocage {
 sub Marpa::Evaluator::set {
     my $evaler  = shift;
     my $args    = shift;
-    my $recce   = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     Marpa::Grammar::set( $grammar, $args );
     return 1;
 } ## end sub Marpa::Evaluator::set
@@ -2345,8 +2336,7 @@ sub Marpa::Evaluator::value {
 
     local $Marpa::Internal::EVAL_INSTANCE = $evaler;
 
-    my $recognizer = $evaler->[Marpa::Internal::Evaluator::RECOGNIZER];
-    my $grammar    = $recognizer->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar    = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     my $rules      = $grammar->[Marpa::Internal::Grammar::RULES];
 
     my $action_object_class =

@@ -62,15 +62,13 @@ sub Marpa::UrHTML::element_values {
     Marpa::exception('Attempt to get element values of non-existent node')
         if not defined $tdesc_list;
     my $elements = $Marpa::UrHTML::Internal::NODE_SCRATCHPAD->{elements}
-        // Marpa::UrHTML::Internal::Tie::set_up_elements();
+        // Marpa::UrHTML::Internal::Callback::set_up_elements();
     return [ map { $_->[3] } @{$tdesc_list}[ @{$elements} ] ];
 } ## end sub FETCH
 
 sub Marpa::UrHTML::literal {
-    say STDERR "Fetch of ", __PACKAGE__;
     return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
-    say STDERR "tdesc_list: ", Data::Dumper::Dumper($tdesc_list);
     Marpa::exception('Attempt to get element values of non-existent node')
         if not defined $tdesc_list;
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;

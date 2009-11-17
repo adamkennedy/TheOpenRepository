@@ -12,7 +12,6 @@ use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
 use Marpa;
 use Marpa::Internal;
-use Marpa::UrHTML::Tie;
 use Marpa::UrHTML::Callback;
 
 use Smart::Comments '-ENV';
@@ -102,7 +101,7 @@ sub create_tdesc_handler {
 
         my $user_handler;
         GET_USER_HANDLER: {
-            if ( my $id = $Marpa::UrHTML::ID ) {
+            if ( my $id = Marpa::UrHTML::id() ) {
                 if ( $user_handler = $handlers_by_id->{$id} ) {
                     if ($trace_handlers) {
                         say {$trace_fh}
@@ -110,8 +109,8 @@ sub create_tdesc_handler {
                     }
                     last GET_USER_HANDLER;
                 } ## end if ( $user_handler = $handlers_by_id->{$id} )
-            } ## end if ( my $id = $Marpa::UrHTML::ID )
-            if ( my $class = $Marpa::UrHTML::CLASS ) {
+            } ## end if ( my $id = Marpa::UrHTML::id() )
+            if ( my $class = Marpa::UrHTML::class() ) {
                 if ( $user_handler = $handlers_by_class->{$class} ) {
                     if ($trace_handlers) {
                         say {$trace_fh}
@@ -119,7 +118,7 @@ sub create_tdesc_handler {
                     }
                     last GET_USER_HANDLER;
                 } ## end if ( $user_handler = $handlers_by_class->{$class} )
-            } ## end if ( my $class = $Marpa::UrHTML::CLASS )
+            } ## end if ( my $class = Marpa::UrHTML::class() )
             $user_handler = $handlers_by_class->{ANY};
             if ( $trace_handlers and $user_handler ) {
                 say {$trace_fh} +(
@@ -349,12 +348,13 @@ sub Marpa::UrHTML::new {
         for my $key ( keys %{$hash_arg} ) {
             given ($key) {
                 when (
-                    [   qw(trace_fh trace_handlers trace_earley_sets trace_terminals trace_cruft)
+                    [   qw(trace_fh trace_values trace_handlers
+                            trace_earley_sets trace_terminals trace_cruft)
                     ]
                     )
                 {
                     $self->{$_} = $hash_arg->{$_}
-                } ## end when ( [...])
+                } ## end when ( [ qw(trace_fh trace_values trace_handlers...)])
                 when ('handlers') {
                     Marpa::UrHTML::Internal::add_handlers( $self,
                         $hash_arg->{$_} )
@@ -606,6 +606,8 @@ sub Marpa::UrHTML::parse {
     my $recce = Marpa::Recognizer->new( { grammar => $grammar,
          trace_terminals=>$self->{trace_terminals},
          trace_earley_sets=>$self->{trace_earley_sets},
+         trace_values=>$self->{trace_values},
+         clone => 0,
     } );
     $self->{recce} = $recce;
     $self->{tokens} = \@html_parser_tokens;
@@ -688,7 +690,11 @@ sub Marpa::UrHTML::parse {
         local $Marpa::UrHTML::Internal::PARSE_INSTANCE = $self;
         local $Marpa::UrHTML::INSTANCE                 = {};
         my $evaler = Marpa::Evaluator->new(
-            { recce => $recce, closures => \%closure, } );
+            { recce => $recce, clone => 0, closures => \%closure, } );
+
+        # undef the recognizer to save memory
+        $recce = undef;
+
         if ( not $evaler ) {
             my $last_marpa_token = $recce->furthest();
             $last_marpa_token =
