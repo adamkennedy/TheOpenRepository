@@ -30,16 +30,12 @@ my $p = Marpa::UrHTML->new(
     {   handlers => [
             [   'PROLOG' => sub {
                     say STDERR 'In PROLOG handler';
-                    say STDERR 'LITERAL: ', ${ $Marpa::UrHTML::LITERAL };
-                    say STDERR 'LITERAL: ', ${ (eval { $Marpa::UrHTML::LITERAL}) };
                     my $literal = Marpa::UrHTML::literal() // q{};
                     return "PROLOG:\n" . ${$literal} . "\n";
                     }
             ],
             [   'ROOT' => sub {
                     say STDERR 'In ROOT handler';
-                    say STDERR 'LITERAL: ', ${ $Marpa::UrHTML::LITERAL };
-                    say STDERR 'LITERAL: ', ${ (eval { $Marpa::UrHTML::LITERAL}) };
                     my $literal = Marpa::UrHTML::literal() // q{};
                     return "ROOT:\n" . ${$literal} . "\n";
                     }

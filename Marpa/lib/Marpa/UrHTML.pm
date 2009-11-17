@@ -485,7 +485,9 @@ sub Marpa::UrHTML::parse {
                     @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 $end_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
-                $terminals{$terminal}++;
+                if ( not defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$tag_name} ) {
+                    $terminals{$terminal}++;
+                }
                 push @marpa_tokens,
                     [
                     $terminal,
