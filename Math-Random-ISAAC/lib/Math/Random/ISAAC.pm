@@ -28,14 +28,12 @@ our $DRIVER = 'PP';
 # Try to load the XS version first
 eval {
   require Math::Random::ISAAC::XS;
+  $DRIVER = 'XS';
 };
 
 # Fall back on the Perl version
 if ($@) {
   require Math::Random::ISAAC::PP;
-}
-else {
-  $DRIVER = 'XS';
 }
 
 =head1 DESCRIPTION
