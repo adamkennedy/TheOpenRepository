@@ -26,35 +26,62 @@ use Fatal qw(open close);
 
 my $document = do { local $RS = undef; <STDIN> };
 
+sub begin_and_end {
+    my ($literal) = @_;
+    my $sample_size = 300;
+    my $sample;
+    if (length ${$literal} < $sample_size) {
+        return ${$literal};
+    }
+    my $first = substr(${$literal}, 0, ($sample_size/2));
+    chomp $first;
+    my $last = substr(${$literal}, -($sample_size/2));
+    chomp $last;
+    return "$first\n[ ... ] $last";
+}
+
 my $p = Marpa::UrHTML->new(
     {   handlers => [
             [   ':PROLOG' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
-                    return "PROLOG:\n" . ${$literal} . "\n";
+                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+                    say STDERR "PROLOG stating at line $line:\n" . begin_and_end($literal) . "\n";
+                    return;
                     }
             ],
             [   ':ROOT' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
-                    return "ROOT:\n" . ${$literal} . "\n";
+                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+                    say STDERR "ROOT stating at line $line:\n" . begin_and_end($literal) . "\n";
+                    return;
                     }
             ],
             [   ':UNTERMINATED' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
-                    say STDERR 'UNTERMINATED element: ', ${$literal};
+                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+                    say STDERR
+                        "UNTERMINATED element starting on line $line:\n" .
+                        begin_and_end($literal) . "\n";
                     return;
                     }
-            ]
+            ],
+            [   ':CRUFT' => sub {
+                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+                    say STDERR "CRUFT at line $line:\n" . begin_and_end($literal) . "\n";
+                    return;
+                    }
+            ],
         ],
-        trace_cruft   => 1,
     }
 );
 my $value = $p->parse( \$document );
 
-say ref $value
-    ? ref ${$value}
-        ? ${ ${value} }
-            ? ${ ${ ${value} } }
-            : 'parse was undef'
-        : 'parse returned ref to undef'
-    : 'parse returned undef';
+# say ref $value
+    # ? ref ${$value}
+        # ? ${ ${value} }
+            # ? ${ ${ ${value} } }
+            # : 'parse was undef'
+        # : 'parse returned ref to undef'
+    # : 'parse returned undef';
 

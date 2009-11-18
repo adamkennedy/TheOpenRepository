@@ -36,11 +36,9 @@ sub per_element_handlers {
 
 sub tdesc_list_to_text {
     my ( $self, $tdesc_list ) = @_;
-    # say STDERR "tdesc_list: ", Data::Dumper::Dumper($tdesc_list);
     my $text     = q{};
     my $document = $self->{document};
     my $tokens   = $self->{tokens};
-    # say STDERR "number of tokens: ", scalar @{$tokens};
     TDESC: for my $tdesc ( @{$tdesc_list} ) {
         given ( $tdesc->[0] ) {
             when ('ELE') {
@@ -58,10 +56,6 @@ sub tdesc_list_to_text {
             when ('TOKEN_SPAN') {
                 my ( $first_token_id, $last_token_id ) = @{$tdesc}[ 1, 2 ];
                 my $offset     = $tokens->[$first_token_id]->[1];
-
-    # say STDERR "first token #$first_token_id: ", Data::Dumper::Dumper($tokens->[$first_token_id]);
-    # say STDERR "last token #$last_token_id: ", Data::Dumper::Dumper($tokens->[$last_token_id]);
-    # say STDERR "number of tokens: ", scalar @{$tokens};
 
                 my $end_offset = $tokens->[$last_token_id]->[2];
                 $text .= substr ${$document}, $offset, $end_offset - $offset;
@@ -140,9 +134,6 @@ sub create_tdesc_handler {
             my $last_token  = $tdesc_list[-1]->[2];
             local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
 
-            # say STDERR __LINE__,
-                # " first_token=$first_token last_token=$last_token";
-
             return [
                 [ ELE => $first_token, $last_token, $user_handler->() ] ];
         } ## end if ( defined $user_handler )
@@ -202,7 +193,6 @@ sub create_tdesc_handler {
                         $first_token_id_in_current_span,
                         $last_token_id_in_current_span
                         ];
-                    # say STDERR __LINE__, Data::Dumper::Dumper( \@tdesc_result );
                 } ## end if ( defined $first_token_id_in_current_span )
                 $first_token_id_in_current_span = $first_token_id;
                 $last_token_id_in_current_span  = $last_token_id;
@@ -217,8 +207,6 @@ sub create_tdesc_handler {
                         $first_token_id_in_current_span,
                         $last_token_id_in_current_span
                         ];
-
-                    # say STDERR __LINE__, Data::Dumper::Dumper( \@tdesc_result );
 
                     $first_token_id_in_current_span =
                         $last_token_id_in_current_span = undef;
@@ -249,8 +237,6 @@ sub wrap_user_tdesc_handler {
         my $last_token  = $tdesc_list[-1]->[2];
         local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
 
-        # say STDERR __LINE__, " first_token=$first_token last_token=$last_token";
-
         return [ [ ELE => $first_token, $last_token, $user_handler->() ] ];
         }
 } ## end sub wrap_user_tdesc_handler
@@ -260,10 +246,11 @@ sub setup_offsets {
     my $document = $self->{document};
     my @rs_offsets = ();
     my $rs_offset = 0;
-    while ((my $rs_offset = index ${$document}, "\n", $rs_offset) >= 0) {
+    while (($rs_offset = index ${$document}, "\n", $rs_offset) >= 0) {
         push @rs_offsets, $rs_offset;
+        $rs_offset++;
     }
-    my %offsets = map { $rs_offsets[$_], $_ } ( 0 .. $#rs_offsets );
+    my %offsets = map { ( $rs_offsets[$_] => $_ ) } ( 0 .. $#rs_offsets );
     $self->{offset} = \%offsets;
     return 1;
 }
@@ -287,7 +274,9 @@ sub earleme_to_offset {
         when ( $_ <= 0 ) { $line = 1 }
 
         # if last_rs is the same as the offset, we are in that line
-        when ($offset) { $line = $self->{offset}->{$offset} + 1 }
+        when ($offset) {
+            $line = $self->{offset}->{$last_rs} + 1
+        }
 
         # If last_rs is different we are in the line after.
         # So add 2, because the value in the hash is the
@@ -295,7 +284,7 @@ sub earleme_to_offset {
         # and we want the 1-based number of the
         # current line.
         default {
-            $line = $self->{offset}->{$offset} + 2
+            $line = $self->{offset}->{$last_rs} + 2
         }
     } ## end given
 
@@ -339,7 +328,7 @@ sub add_handlers {
                     or $element = $specifier;
                 if ($pseudo_class
                     and not $pseudo_class ~~ [
-                        qw(TOP PROLOG ROOT HEAD BODY TRAILER TERMINATED UNTERMINATED)
+                        qw(TOP PROLOG ROOT HEAD BODY TRAILER TERMINATED UNTERMINATED CRUFT)
                     ]
                     )
                 {
@@ -458,6 +447,10 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
         action => '!ROOT_handler',
     },
     { lhs => 'flow', rhs => ['flow_item'], min => 0 },
+    {   lhs    => 'cruft',
+        rhs    => ['CRUFT'],
+        action => '!CRUFT_handler',
+    },
     );
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
@@ -466,7 +459,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'inline_flow_item', rhs => [$_] } }
-    qw(CDATA PCDATA CRUFT WHITESPACE SGML_item anywhere_element);
+    qw(CDATA PCDATA cruft WHITESPACE SGML_item anywhere_element);
 
 my %start_tags = ();
 my %end_tags   = ();
@@ -487,6 +480,7 @@ sub Marpa::UrHTML::parse {
         HTML::PullParser->new( %pull_parser_args, %ARGS )
         || Carp::croak('Could not create pull parser');
 
+    Marpa::UrHTML::Internal::setup_offsets($self);
     my @tokens = ();
 
     my %terminals = map { $_ => 1 } @Marpa::UrHTML::Internal::CORE_TERMINALS;
@@ -708,7 +702,7 @@ sub Marpa::UrHTML::parse {
     );
 
     PSEUDO_CLASS: for my $pseudo_class (
-        qw(PROLOG ROOT HEAD BODY TRAILER TERMINATED UNTERMINATED))
+        qw(PROLOG ROOT HEAD BODY TRAILER TERMINATED UNTERMINATED CRUFT))
     {
         my $pseudo_class_action =
             $self->{user_handlers_by_pseudo_class}->{ANY}->{$pseudo_class};

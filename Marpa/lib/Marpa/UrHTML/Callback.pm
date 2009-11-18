@@ -79,4 +79,17 @@ sub Marpa::UrHTML::literal {
         $tdesc_list );
 } ## end sub FETCH
 
+sub Marpa::UrHTML::offset {
+    my $tdesc_list     = $Marpa::UrHTML::Internal::TDESC_LIST;
+    my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+    Marpa::exception('Attempt to read offset from undefined parse instance')
+        if not defined $parse_instance;
+
+    # Start offset in start token of first tdesc
+    my $tokens = $parse_instance->{tokens};
+    my $start_earleme = $tdesc_list->[0]->[1];
+    return Marpa::UrHTML::Internal::earleme_to_offset( $parse_instance,
+        $start_earleme );
+} ## end sub Marpa::UrHTML::offset
+
 1;
