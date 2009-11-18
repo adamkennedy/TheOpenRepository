@@ -371,6 +371,11 @@ sub Marpa::Recognizer::unstringify {
 
 } ## end sub Marpa::Recognizer::unstringify
 
+sub Marpa::Recognizer::strip {
+    my ($recce)    = @_;
+    $#{$recce} = Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD;
+}
+
 sub Marpa::Recognizer::clone {
     my $recce    = shift;
     my $trace_fh = shift;
@@ -462,12 +467,6 @@ sub Marpa::Recognizer::show_earley_sets {
         . Marpa::show_earley_set_list($earley_set_list);
 
 } ## end sub Marpa::Recognizer::show_earley_sets
-
-sub Marpa::Recognizer::tokens_at_earleme {
-    my ( $recce, $earleme ) = @_;
-    return $recce->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME]
-        ->[$earleme];
-}
 
 ## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::Recognizer::tokens {

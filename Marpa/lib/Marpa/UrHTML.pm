@@ -258,13 +258,8 @@ sub setup_offsets {
 
 sub earleme_to_offset {
     my ( $self, $earleme ) = @_;
-    my $marpa_tokens_here = $self->{recce}->tokens_at_earleme($earleme);
-    Marpa::exception("Internal error: No tokens at earleme: $earleme")
-        if not $marpa_tokens_here
-            or not @{$marpa_tokens_here};
-    my $html_parser_token_ix = ${ $marpa_tokens_here->[0]->[1] }->[-1]->[2];
     my $html_parser_tokens   = $self->{tokens};
-    my $offset = $html_parser_tokens->[$html_parser_token_ix]->[2];
+    my $offset = $html_parser_tokens->[$earleme]->[2];
     return $offset if not wantarray;
 
     my $last_rs = rindex ${ $self->{document} }, "\n", $offset;
@@ -382,6 +377,7 @@ sub Marpa::UrHTML::new {
             given ($key) {
                 when (
                     [   qw(trace_fh trace_values trace_handlers trace_actions
+                            trace_ambiguity trace_rules trace_QDFA
                             trace_earley_sets trace_terminals trace_cruft)
                     ]
                     )
@@ -753,8 +749,13 @@ sub Marpa::UrHTML::parse {
     );
     $grammar->precompute();
 
-    # say STDERR $grammar->show_rules();
-    # say STDERR $grammar->show_QDFA();
+    if ($self->{trace_rules}) {
+        say STDERR $grammar->show_rules();
+    }
+    if ($self->{trace_QDFA}) {
+        say STDERR $grammar->show_QDFA();
+    }
+
     my $recce = Marpa::Recognizer->new( { grammar => $grammar,
          trace_terminals=>$self->{trace_terminals},
          trace_earley_sets=>$self->{trace_earley_sets},
@@ -802,6 +803,22 @@ sub Marpa::UrHTML::parse {
                 $furthest_offset );
         } ## end if ( not defined $current_earleme )
     } ## end for my $marpa_token (@marpa_tokens)
+
+
+        if ($ENV{TRACE_SIZE}) {
+            say "pre-strip recce size: ", Devel::Size::total_size($recce);
+            for my $ix (0 .. $#{$recce}) {
+                say "pre-strip recce size, element $ix: ", Devel::Size::total_size($recce->[$ix]);
+            }
+        }
+    $recce->strip(); # Saves lots of memory
+
+        if ($ENV{TRACE_SIZE}) {
+            say "post-strip recce size: ", Devel::Size::total_size($recce);
+            for my $ix (0 .. $#{$recce}) {
+                say "pre-strip recce size, element $ix: ", Devel::Size::total_size($recce->[$ix]);
+            }
+        }
 
     my %closure = (
         '!rank_is_zero'   => sub {0},
@@ -860,6 +877,9 @@ sub Marpa::UrHTML::parse {
 
         if ($ENV{TRACE_SIZE}) {
             say "pre-undef recce size: ", Devel::Size::total_size($recce);
+            for my $ix (0 .. $#{$recce}) {
+                say "pre-undef recce size, element $ix: ", Devel::Size::total_size($recce->[$ix]);
+            }
         }
 
         $recce = undef; # conserve memory
@@ -868,9 +888,8 @@ sub Marpa::UrHTML::parse {
             say "post-undef recce size: ", Devel::Size::total_size($recce);
         }
 
-        if ($ENV{SHOW_AMBIGUITY}) {
-            say $evaler->show_ambiguity(99);
-            exit 0;
+        if (my $verbose = $self->{trace_ambiguity}) {
+            say $evaler->show_ambiguity($verbose);
         }
 
         if ( not $evaler ) {

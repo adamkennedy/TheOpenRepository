@@ -41,7 +41,11 @@ sub begin_and_end {
 }
 
 my $p = Marpa::UrHTML->new(
-    {   handlers => [
+    {   
+    trace_rules => 1,
+    trace_ambiguity => 1,
+    trace_QDFA => 1,
+    handlers => [
             [   ':PROLOG' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
