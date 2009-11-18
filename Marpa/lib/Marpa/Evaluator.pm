@@ -2246,7 +2246,7 @@ sub Marpa::Evaluator::show_and_node {
 } ## end sub Marpa::Evaluator::show_and_node
 
 sub Marpa::Evaluator::show_or_node {
-    my ( $evaler, $or_node, $verbose ) = @_;
+    my ( $evaler, $or_node, $verbose, ) = @_;
     $verbose //= 0;
 
     return q{} if $or_node->[Marpa::Internal::Or_Node::DELETED];
@@ -2276,7 +2276,7 @@ sub Marpa::Evaluator::show_or_node {
 } ## end sub Marpa::Evaluator::show_or_node
 
 sub Marpa::Evaluator::show_bocage {
-    my ( $evaler, $verbose ) = @_;
+    my ( $evaler, $verbose, ) = @_;
     $verbose //= 0;
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT];
@@ -2293,6 +2293,28 @@ sub Marpa::Evaluator::show_bocage {
 
     return $text;
 } ## end sub Marpa::Evaluator::show_bocage
+
+sub Marpa::Evaluator::show_ambiguity {
+    my ( $evaler, $verbose, ) = @_;
+    $verbose //= 0;
+    my $text = q{};
+
+    OR_NODE:
+    for my $or_node ( @{ $evaler->[Marpa::Internal::Evaluator::OR_NODES] } )
+    {
+        my $child_count =
+            scalar @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
+        next OR_NODE if $child_count <= 1;
+        $text
+            .= "Ambiguous Or-node "
+            . $or_node->[Marpa::Internal::Or_Node::TAG]
+            . " has $child_count children\n";
+        $text
+            .= Marpa::Evaluator::show_or_node( $evaler, $or_node, $verbose );
+    } ## end for my $or_node ( @{ $evaler->[...]})
+
+    return $text;
+} ## end sub Marpa::Evaluator::show_ambiguity
 
 sub Marpa::Evaluator::set {
     my $evaler  = shift;

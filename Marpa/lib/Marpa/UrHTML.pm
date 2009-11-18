@@ -13,6 +13,7 @@ use HTML::Tagset ();
 use Marpa;
 use Marpa::Internal;
 use Marpa::UrHTML::Callback;
+use Devel::Size;
 
 use Smart::Comments '-ENV';
 
@@ -761,6 +762,11 @@ sub Marpa::UrHTML::parse {
          trace_actions=>$self->{trace_actions},
          clone => 0,
     } );
+
+    if ($ENV{TRACE_SIZE}) {
+        say "newly created recce size: ", Devel::Size::total_size($recce);
+    }
+
     $self->{recce} = $recce;
     $self->{tokens} = \@html_parser_tokens;
     my ($current_earleme, $expected_terminals) = $recce->status();
@@ -852,7 +858,20 @@ sub Marpa::UrHTML::parse {
         my $evaler = Marpa::Evaluator->new(
             { recce => $recce, clone => 0, closures => \%closure, } );
 
+        if ($ENV{TRACE_SIZE}) {
+            say "pre-undef recce size: ", Devel::Size::total_size($recce);
+        }
+
         $recce = undef; # conserve memory
+
+        if ($ENV{TRACE_SIZE}) {
+            say "post-undef recce size: ", Devel::Size::total_size($recce);
+        }
+
+        if ($ENV{SHOW_AMBIGUITY}) {
+            say $evaler->show_ambiguity(99);
+            exit 0;
+        }
 
         if ( not $evaler ) {
             my $last_marpa_token = $recce->furthest();
