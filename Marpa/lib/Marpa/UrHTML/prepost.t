@@ -45,7 +45,7 @@ my $p = Marpa::UrHTML->new(
             [   ':PROLOG' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
-                    say STDERR "PROLOG stating at line $line:\n" . begin_and_end($literal) . "\n";
+                    say STDERR "PROLOG starting at line $line:\n" . begin_and_end($literal) . "\n";
                     return;
                     }
             ],
@@ -53,6 +53,20 @@ my $p = Marpa::UrHTML->new(
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
                     say STDERR "ROOT stating at line $line:\n" . begin_and_end($literal) . "\n";
+                    return;
+                    }
+            ],
+            [   ':HEAD' => sub {
+                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+                    say STDERR "HEAD stating at line $line:\n" . begin_and_end($literal) . "\n";
+                    return;
+                    }
+            ],
+            [   ':BODY' => sub {
+                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+                    say STDERR "BODY stating at line $line:\n" . begin_and_end($literal) . "\n";
                     return;
                     }
             ],

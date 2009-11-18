@@ -410,6 +410,12 @@ sub Marpa::UrHTML::new {
     table fieldset address
 );
 
+%Marpa::UrHTML::Internal::HEAD_ELEMENT = map { $_ => 1 } qw(
+    script style meta link object title isindex base
+);
+
+
+
 %Marpa::UrHTML::Internal::EMPTY_ELEMENT = map { $_ => 1 } qw(
     area base basefont br col frame hr
     img input isindex link meta param
@@ -418,14 +424,13 @@ sub Marpa::UrHTML::new {
 %Marpa::UrHTML::Internal::OPTIONAL_TAGS =
     map { ( $_, 1 ) } qw( html head body tbody );
 
-
 my @SGML_rh_sides = qw(D C PI);
 @Marpa::UrHTML::Internal::CORE_RULES = map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
 
 push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'SGML_flow', rhs => ['SGML_item'], min => 0 };
 
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
-    ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA WHITESPACE) );
+    ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA WHITESPACE S_html E_html S_head E_head S_title E_title ) );
 
 no strict 'refs';
 *{'Marpa::UrHTML::Internal::default_action'} = create_tdesc_handler();
@@ -434,7 +439,7 @@ use strict;
 push @Marpa::UrHTML::Internal::CORE_RULES,
     (
     {   lhs    => 'document',
-        rhs    => [qw(prolog root SGML_flow)],
+        rhs    => [qw(prolog main_document)],
         action => '!TOP_handler',
     },
     {   lhs            => 'prolog',
@@ -442,10 +447,89 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
         action         => '!PROLOG_handler',
         ranking_action => '!rank_is_length',
     },
-    {   lhs    => 'root',
-        rhs    => ['flow'],
-        action => '!ROOT_handler',
+    {   lhs    => 'main_document',
+        rhs    => [qw(TE_root SGML_flow)],
     },
+    {   lhs    => 'main_document',
+        rhs    => [qw(TI_root SGML_flow)],
+    },
+    {   lhs    => 'main_document',
+        rhs    => [qw(UE_root)],
+    },
+    {   lhs    => 'main_document',
+        rhs    => [qw(UI_root)],
+    },
+    {   lhs    => 'TE_root',
+        rhs    => [qw(S_html Contents_root E_html)],
+        action => '!ROOT_handler',
+        ranking_action => '!rank_is_four',
+    },
+    {   lhs    => 'UE_root',
+        rhs    => [qw(S_html Contents_root)],
+        action => '!ROOT_handler',
+        ranking_action => '!rank_is_three',
+    },
+    {   lhs    => 'TI_root',
+        rhs    => [qw(Contents_root E_html)],
+        action => '!ROOT_handler',
+        ranking_action => '!rank_is_two',
+    },
+    {   lhs    => 'UI_root',
+        rhs    => [qw(Contents_root)],
+        action => '!ROOT_handler',
+        ranking_action => '!rank_is_one',
+    },
+    {   lhs    => 'Contents_root',
+        rhs    => [qw(SGML_flow head SGML_flow body SGML_flow)],
+    },
+    {   lhs    => 'head',
+        rhs    => [qw(S_head Contents_head E_head)],
+        action => '!HEAD_handler',
+        ranking_action => '!rank_is_four',
+    },
+    {   lhs    => 'head',
+        rhs    => [qw(S_head Strict_Contents_head)],
+        action => '!HEAD_handler',
+        ranking_action => '!rank_is_three',
+    },
+    {   lhs    => 'head',
+        rhs    => [qw(Contents_head E_head)],
+        action => '!HEAD_handler',
+        ranking_action => '!rank_is_two',
+    },
+    {   lhs    => 'head',
+        rhs    => [qw(Strict_Contents_head)],
+        action => '!HEAD_handler',
+        ranking_action => '!rank_is_one',
+    },
+    {   lhs    => 'Contents_head',
+        rhs    => [qw(head_item)],
+        min    => 0,
+    },
+    {   lhs    => 'Strict_Contents_head',
+        rhs    => [qw(strict_head_item)],
+        min    => 0,
+    },
+    {   lhs    => 'head_item',
+        rhs    => [qw(strict_head_item)],
+    },
+    {   lhs    => 'head_item',
+        rhs    => [qw(cruft)],
+    },
+    {   lhs    => 'strict_head_item',
+        rhs    => [qw(SGML_item)],
+    },
+    {   lhs    => 'strict_head_item',
+        rhs    => [qw(head_element)],
+    },
+    {   lhs    => 'strict_head_item',
+        rhs    => [qw(WHITESPACE)],
+    },
+    {   lhs    => 'body',
+        rhs    => [qw(flow)],
+        action => '!BODY_handler',
+    },
+
     { lhs => 'flow', rhs => ['flow_item'], min => 0 },
     {   lhs    => 'cruft',
         rhs    => ['CRUFT'],
@@ -559,6 +643,11 @@ sub Marpa::UrHTML::parse {
 
     my %element_actions = ();
     my %pseudo_class_element_actions = ();
+
+    # Seed the list with the "title" tag,
+    # so that head_element is always productive
+    $start_tags{title}++;
+
     ELEMENT: for ( keys %start_tags ) {
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
             my $this_element = "ELE_$_";
@@ -577,6 +666,14 @@ sub Marpa::UrHTML::parse {
                 rhs    => [$this_element],
                 action => "!ELE_$_",
                 };
+            if ( $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ) {
+                push @rules,
+                    {
+                    lhs    => 'head_element',
+                    rhs    => [$this_element],
+                    action => "!ELE_$_",
+                    };
+            } ## end if ( $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} )
             $element_actions{"!ELE_$_"} = $_;
         } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
         default {
@@ -619,6 +716,14 @@ sub Marpa::UrHTML::parse {
                 rhs => [$this_element],
                 action => "!ELE_$_",
                 };
+            if ( $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ) {
+                push @rules,
+                    {
+                    lhs    => 'head_element',
+                    rhs    => [$this_element],
+                    action => "!ELE_$_",
+                    };
+            } ## end if ( $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} )
 
             # There may be no
             # end tag in the input.
@@ -693,12 +798,16 @@ sub Marpa::UrHTML::parse {
     } ## end for my $marpa_token (@marpa_tokens)
 
     my %closure = (
-        '!rank_is_zero' => sub { 0 },
-        '!rank_is_one' => sub { 1 },
+        '!rank_is_zero'   => sub {0},
+        '!rank_is_one'    => sub {1},
+        '!rank_is_two'    => sub {2},
+        '!rank_is_three'  => sub {3},
+        '!rank_is_four'   => sub {4},
         '!rank_is_length' => sub { Marpa::length() },
-        '!TOP_handler' => (
-            $self->{user_handlers_by_pseudo_class}->{ANY}->{TOP} //
-                \&Marpa::UrHTML::Internal::default_top_handler)
+        '!TOP_handler'    => (
+            $self->{user_handlers_by_pseudo_class}->{ANY}->{TOP}
+                // \&Marpa::UrHTML::Internal::default_top_handler
+        )
     );
 
     PSEUDO_CLASS: for my $pseudo_class (
