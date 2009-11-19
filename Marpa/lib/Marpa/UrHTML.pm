@@ -12,8 +12,6 @@ use HTML::Entities qw(decode_entities);
 use HTML::Tagset ();
 use Marpa;
 use Marpa::Internal;
-use Marpa::UrHTML::Callback;
-use Devel::Size;
 
 use Smart::Comments '-ENV';
 
@@ -22,6 +20,42 @@ use Smart::Comments '-ENV';
 package Marpa::UrHTML::Internal;
 
 use Marpa::Internal;
+
+BEGIN {
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+    use Devel::Size;
+}
+
+sub total_size {
+    Marpa::exception('Devel::Size not loaded')
+        if not defined &Devel::Size::total_size;
+    goto &Devel::Size::total_size;
+}
+
+use Marpa::Offset qw(
+   :package=Marpa::UrHTML::Internal::TDesc
+   TYPE
+   START_TOKEN
+   END_TOKEN
+);
+
+use Marpa::Offset qw(
+   :package=Marpa::UrHTML::Internal::TDesc::Element
+   TYPE
+   START_TOKEN
+   END_TOKEN
+   VALUE
+);
+
+use Marpa::Offset qw(
+   :package=Marpa::UrHTML::Internal::Token
+   TYPE
+   START_OFFSET
+   END_OFFSET
+);
+
+use Marpa::UrHTML::Callback;
 
 sub per_element_handlers {
     my ( $element, $user_handlers ) = @_;
@@ -41,25 +75,45 @@ sub tdesc_list_to_text {
     my $document = $self->{document};
     my $tokens   = $self->{tokens};
     TDESC: for my $tdesc ( @{$tdesc_list} ) {
-        given ( $tdesc->[0] ) {
+        given ( $tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] ) {
+            when ('EMPTY') { break; }
             when ('ELE') {
-                my ( $first_token_id, $last_token_id, $value ) =
-                    @{$tdesc}[ 1 .. $#{$tdesc} ];
-                if ( defined $value ) {
+                if (defined(
+                        my $value =
+                            $tdesc
+                            ->[Marpa::UrHTML::Internal::TDesc::Element::VALUE]
+                    )
+                    )
+                {
                     $text .= $value;
                     break;    # next TDESC;
-                }
-                my $offset     = $tokens->[$first_token_id]->[1];
-                my $end_offset = $tokens->[$last_token_id]->[2];
+                } ## end if ( defined( my $value = $tdesc->[...]))
+                my $first_token_id =
+                    $tdesc->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
+                my $last_token_id =
+                    $tdesc->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
+                my $offset =
+                    $tokens->[$first_token_id]
+                    ->[Marpa::UrHTML::Internal::Token::START_OFFSET];
+                my $end_offset =
+                    $tokens->[$last_token_id]
+                    ->[Marpa::UrHTML::Internal::Token::END_OFFSET];
                 $text .= substr ${$document}, $offset,
                     ( $end_offset - $offset );
             } ## end when ('ELE')
             when ('TOKEN_SPAN') {
-                my ( $first_token_id, $last_token_id ) = @{$tdesc}[ 1, 2 ];
-                my $offset     = $tokens->[$first_token_id]->[1];
-
-                my $end_offset = $tokens->[$last_token_id]->[2];
-                $text .= substr ${$document}, $offset, $end_offset - $offset;
+                my $first_token_id =
+                    $tdesc->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
+                my $last_token_id =
+                    $tdesc->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
+                my $offset =
+                    $tokens->[$first_token_id]
+                    ->[Marpa::UrHTML::Internal::Token::START_OFFSET];
+                my $end_offset =
+                    $tokens->[$last_token_id]
+                    ->[Marpa::UrHTML::Internal::Token::END_OFFSET];
+                $text .= substr ${$document}, $offset,
+                    ( $end_offset - $offset );
             } ## end when ('TOKEN_SPAN')
             default {
                 Marpa::exception(qq{Internal error: unknown tdesc type "$_"});
@@ -157,7 +211,7 @@ sub create_tdesc_handler {
                     $next_tdesc = $tdesc;
                     last PARSE_TDESC;
                 }
-                given ( $tdesc->[0] ) {
+                given ( $tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] ) {
                     when ('ELE') {
                         my $value = $tdesc->[3];
                         if ( not defined $value ) {
@@ -257,9 +311,9 @@ sub setup_offsets {
 }
 
 sub earleme_to_offset {
-    my ( $self, $earleme ) = @_;
+    my ( $self, $token_offset ) = @_;
     my $html_parser_tokens   = $self->{tokens};
-    my $offset = $html_parser_tokens->[$earleme]->[2];
+    my $offset = $html_parser_tokens->[$token_offset]->[2];
     return $offset if not wantarray;
 
     my $last_rs = rindex ${ $self->{document} }, "\n", $offset;
@@ -765,7 +819,7 @@ sub Marpa::UrHTML::parse {
     } );
 
     if ($ENV{TRACE_SIZE}) {
-        say "newly created recce size: ", Devel::Size::total_size($recce);
+        say "newly created recce size: ", total_size($recce);
     }
 
     $self->{recce} = $recce;
@@ -806,17 +860,17 @@ sub Marpa::UrHTML::parse {
 
 
         if ($ENV{TRACE_SIZE}) {
-            say "pre-strip recce size: ", Devel::Size::total_size($recce);
+            say "pre-strip recce size: ", total_size($recce);
             for my $ix (0 .. $#{$recce}) {
-                say "pre-strip recce size, element $ix: ", Devel::Size::total_size($recce->[$ix]);
+                say "pre-strip recce size, element $ix: ", total_size($recce->[$ix]);
             }
         }
     $recce->strip(); # Saves lots of memory
 
         if ($ENV{TRACE_SIZE}) {
-            say "post-strip recce size: ", Devel::Size::total_size($recce);
+            say "post-strip recce size: ", total_size($recce);
             for my $ix (0 .. $#{$recce}) {
-                say "pre-strip recce size, element $ix: ", Devel::Size::total_size($recce->[$ix]);
+                say "pre-strip recce size, element $ix: ", total_size($recce->[$ix]);
             }
         }
 
@@ -876,16 +930,16 @@ sub Marpa::UrHTML::parse {
             { recce => $recce, clone => 0, closures => \%closure, } );
 
         if ($ENV{TRACE_SIZE}) {
-            say "pre-undef recce size: ", Devel::Size::total_size($recce);
+            say "pre-undef recce size: ", total_size($recce);
             for my $ix (0 .. $#{$recce}) {
-                say "pre-undef recce size, element $ix: ", Devel::Size::total_size($recce->[$ix]);
+                say "pre-undef recce size, element $ix: ", total_size($recce->[$ix]);
             }
         }
 
         $recce = undef; # conserve memory
 
         if ($ENV{TRACE_SIZE}) {
-            say "post-undef recce size: ", Devel::Size::total_size($recce);
+            say "post-undef recce size: ", total_size($recce);
         }
 
         if (my $verbose = $self->{trace_ambiguity}) {

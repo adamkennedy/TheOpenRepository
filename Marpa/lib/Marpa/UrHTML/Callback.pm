@@ -20,16 +20,16 @@ sub create_fetch_attribute_closure {
         return
             if not my $first_tdesc =
                 $Marpa::UrHTML::Internal::TDESC_LIST->[0];
-        return if not my $type = $first_tdesc->[0];
+        return if not my $type = $first_tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE];
         return if $type ne 'TOKEN_SPAN';
-        my $first_token_number = $first_tdesc->[1];
+        my $first_token_number = $first_tdesc->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
         my $parse_instance     = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
         Marpa::exception(
             qq{Attempt to fetch attribute "$attribute" from undefined parse instance}
         ) if not defined $parse_instance;
         my $tokens           = $parse_instance->{tokens};
         my $first_token      = $tokens->[$first_token_number];
-        my $first_token_type = $first_token->[0];
+        my $first_token_type = $first_token->[Marpa::UrHTML::Internal::Token::TYPE];
         return if $first_token_type ne 'S';
         my $attribute_value = $first_token->[4]->{$attribute};
         return defined $attribute_value ? lc $attribute_value : undef;
@@ -51,9 +51,11 @@ sub set_up_elements {
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
     TDESC:
     for my $tdesc_ix ( 0 .. $#{$Marpa::UrHTML::Internal::TDESC_LIST} ) {
-        next TDESC if $tdesc_list->[$tdesc_ix]->[0] ne 'ELE';
+        next TDESC
+            if $tdesc_list->[$tdesc_ix]
+                ->[Marpa::UrHTML::Internal::TDesc::TYPE] ne 'ELE';
         push @{$elements}, $tdesc_ix;
-    }
+    } ## end for my $tdesc_ix ( 0 .. $#{$Marpa::UrHTML::Internal::TDESC_LIST...})
     return $elements;
 } ## end sub set_up_elements
 
@@ -85,11 +87,11 @@ sub Marpa::UrHTML::offset {
     Marpa::exception('Attempt to read offset from undefined parse instance')
         if not defined $parse_instance;
 
-    # Start offset in start token of first tdesc
-    my $tokens = $parse_instance->{tokens};
-    my $start_earleme = $tdesc_list->[0]->[1];
+    # Start offset is start token of first tdesc
+    my $token_offset =
+        $tdesc_list->[0]->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
     return Marpa::UrHTML::Internal::earleme_to_offset( $parse_instance,
-        $start_earleme );
+        $token_offset );
 } ## end sub Marpa::UrHTML::offset
 
 1;
