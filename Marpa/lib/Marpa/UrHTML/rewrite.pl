@@ -64,7 +64,7 @@ push @handlers, map {
     [ ".$class" => sub { return [ $class, Marpa::UrHTML::literal() ] } ];
 } @text_fields;
 
-my $p = Marpa::UrHTML->new( { handlers => \@handlers, } );
+my $p = Marpa::UrHTML->new( { handlers => \@handlers, trace_terminals=>1, } );
 my $value = $p->parse( \$document );
 my $codepoint_hash = ${$value};
 

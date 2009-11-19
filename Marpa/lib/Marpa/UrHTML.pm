@@ -397,21 +397,25 @@ sub Marpa::UrHTML::new {
     return $self;
 } ## end sub Marpa::UrHTML::new
 
+# These are block-level ONLY elements.
+# Note that isindex can be both a head element and
+# and block level element in the body.
+# It is not present in this list
 %Marpa::UrHTML::Internal::BLOCK_ELEMENT = map { $_ => 1 } qw(
     h1 h2 h3 h4 h5 h6
     ul ol dir menu
     pre
     p dl div center
     noscript noframes
-    blockquote form isindex hr
+    blockquote form hr
     table fieldset address
 );
 
+# Note that isindex can be both a head element and
+# and block level element in the body.
 %Marpa::UrHTML::Internal::HEAD_ELEMENT = map { $_ => 1 } qw(
     script style meta link object title isindex base
 );
-
-
 
 %Marpa::UrHTML::Internal::EMPTY_ELEMENT = map { $_ => 1 } qw(
     area base basefont br col frame hr
@@ -445,34 +449,34 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
         ranking_action => '!rank_is_length',
     },
     {   lhs    => 'main_document',
-        rhs    => [qw(TE_root SGML_flow)],
+        rhs    => [qw(XT_root SGML_flow)],
     },
     {   lhs    => 'main_document',
-        rhs    => [qw(TI_root SGML_flow)],
+        rhs    => [qw(IT_root SGML_flow)],
     },
     {   lhs    => 'main_document',
-        rhs    => [qw(UE_root)],
+        rhs    => [qw(XU_root)],
     },
     {   lhs    => 'main_document',
-        rhs    => [qw(UI_root)],
+        rhs    => [qw(IU_root)],
     },
-    {   lhs    => 'TE_root',
+    {   lhs    => 'XT_root',
         rhs    => [qw(S_html Contents_root E_html)],
         action => '!ROOT_handler',
         ranking_action => '!rank_is_four',
     },
-    {   lhs    => 'UE_root',
+    {   lhs    => 'IT_root',
+        rhs    => [qw(root_content_only_item Contents_root E_html)],
+        action => '!ROOT_handler',
+        ranking_action => '!rank_is_two',
+    },
+    {   lhs    => 'XU_root',
         rhs    => [qw(S_html Contents_root)],
         action => '!ROOT_handler',
         ranking_action => '!rank_is_three',
     },
-    {   lhs    => 'TI_root',
-        rhs    => [qw(Contents_root E_html)],
-        action => '!ROOT_handler',
-        ranking_action => '!rank_is_two',
-    },
-    {   lhs    => 'UI_root',
-        rhs    => [qw(Contents_root)],
+    {   lhs    => 'IU_root',
+        rhs    => [qw(root_content_only_item Contents_root)],
         action => '!ROOT_handler',
         ranking_action => '!rank_is_one',
     },
@@ -536,11 +540,19 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'flow_item', rhs => [$_] } }
-    qw(inline_flow_item block_element);
+    qw(inline_flow_item block_element head_element);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'inline_flow_item', rhs => [$_] } }
-    qw(CDATA PCDATA cruft WHITESPACE SGML_item anywhere_element);
+    qw(CDATA PCDATA cruft WHITESPACE SGML_item inline_element);
+
+# There is no ambiguity here as long as
+# head, block and inline elements are
+# mutually exclusive.
+# Note the handling of ISINDEX.
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'root_content_only_item', rhs => [$_] } }
+    qw(CDATA PCDATA head_element block_element inline_element);
 
 my %start_tags = ();
 my %end_tags   = ();
@@ -645,6 +657,11 @@ sub Marpa::UrHTML::parse {
     # so that head_element is always productive
     $start_tags{title}++;
 
+    # The HTML tag is handled specially
+    delete $start_tags{html};
+
+    say STDERR join " ", keys %start_tags;
+
     ELEMENT: for ( keys %start_tags ) {
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
             my $this_element = "ELE_$_";
@@ -654,23 +671,16 @@ sub Marpa::UrHTML::parse {
                 rhs => ["S_$_"],
                 };
             my $element_type =
-                $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
+                  $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ? 'head_element'
+                : $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
                 ? 'block_element'
-                : 'anywhere_element';
+                : 'inline_element';
             push @rules,
                 {
                 lhs    => $element_type,
                 rhs    => [$this_element],
                 action => "!ELE_$_",
                 };
-            if ( $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ) {
-                push @rules,
-                    {
-                    lhs    => 'head_element',
-                    rhs    => [$this_element],
-                    action => "!ELE_$_",
-                    };
-            } ## end if ( $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} )
             $element_actions{"!ELE_$_"} = $_;
         } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
         default {
@@ -696,31 +706,23 @@ sub Marpa::UrHTML::parse {
                 },
                 {
                 lhs    => "U_$this_element",
-                rhs    => [ $start_tag, "Contents_$_", ],
-                ranking_action => '!rank_is_length',
+                rhs    => [ $start_tag ],
                 },
                 {
                 lhs => "Contents_$_",
                 rhs => ['flow']
                 };
             my $element_type =
-                $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
+                  $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ? 'head_element'
+                : $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
                 ? 'block_element'
-                : 'anywhere_element';
+                : 'inline_element';
             push @rules,
                 {
-                lhs => $element_type,
-                rhs => [$this_element],
+                lhs    => $element_type,
+                rhs    => [$this_element],
                 action => "!ELE_$_",
                 };
-            if ( $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ) {
-                push @rules,
-                    {
-                    lhs    => 'head_element',
-                    rhs    => [$this_element],
-                    action => "!ELE_$_",
-                    };
-            } ## end if ( $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} )
 
             # There may be no
             # end tag in the input.

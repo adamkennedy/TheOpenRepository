@@ -2296,21 +2296,66 @@ sub Marpa::Evaluator::show_bocage {
 
 sub Marpa::Evaluator::show_ambiguity {
     my ( $evaler, $verbose, ) = @_;
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $QDFA = $grammar->[Marpa::Internal::Grammar::QDFA];
     $verbose //= 0;
     my $text = q{};
 
     OR_NODE:
-    for my $or_node ( @{ $evaler->[Marpa::Internal::Evaluator::OR_NODES] } )
+    for my $or_node ( @{ $or_nodes } )
     {
-        my $child_count =
-            scalar @{ $or_node->[Marpa::Internal::Or_Node::CHILD_IDS] };
+        my $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+        my $child_count = scalar @{ $child_ids };
         next OR_NODE if $child_count <= 1;
-        $text
-            .= "Ambiguous Or-node "
-            . $or_node->[Marpa::Internal::Or_Node::TAG]
-            . " has $child_count children\n";
-        $text
-            .= Marpa::Evaluator::show_or_node( $evaler, $or_node, $verbose );
+            my $or_tag =  $or_node->[Marpa::Internal::Or_Node::TAG];
+        $text .= "$or_tag is Ambiguous: $child_count children\n";
+        for my $child_ix ( 0 .. $#{$child_ids} ) {
+            my $child_and_node_id = $child_ids->[$child_ix];
+            my $and_node          = $and_nodes->[$child_and_node_id];
+            my $and_tag = $and_node->[Marpa::Internal::And_Node::TAG];
+            $text .= "  choice #$child_ix: $and_tag ::=";
+            my $detail_text = q{};
+            if (defined(
+                    my $predecessor_id =
+                        $and_node->[Marpa::Internal::And_Node::PREDECESSOR_ID]
+                )
+                )
+            {
+                my $or_grandchild = $or_nodes->[$predecessor_id];
+                my $grandchild_tag =
+                    $or_grandchild->[Marpa::Internal::Or_Node::TAG];
+                my ($state) = ( $grandchild_tag =~ /\A S (\d+) [@]/xms );
+                $text .= " $grandchild_tag";
+                $detail_text .=
+                    Marpa::show_QDFA_state( $QDFA->[ $state + 0 ], 0 );
+            } ## end if ( defined( my $predecessor_id = $and_node->[...]))
+            if (defined(
+                    my $cause_id =
+                        $and_node->[Marpa::Internal::And_Node::CAUSE_ID]
+                )
+                )
+            {
+                my $or_grandchild = $or_nodes->[$cause_id];
+                my $grandchild_tag =
+                    $or_grandchild->[Marpa::Internal::Or_Node::TAG];
+                my ($state) = ( $grandchild_tag =~ /\A S (\d+) [@]/xms );
+                $text .= " $grandchild_tag";
+                $detail_text .= Marpa::show_QDFA_state( $QDFA->[ $state + 0 ], 0 );
+            } ## end if ( defined( my $cause_id = $and_node->[...]))
+            if (defined(
+                    my $value_ref =
+                        $and_node->[Marpa::Internal::And_Node::VALUE_REF]
+                )
+                )
+            {
+                $text .= ' Token';
+                $detail_text .= Data::Dumper->new($value_ref)->Terse(1)->Dump();
+            } ## end if ( defined( my $value_ref = $and_node->[...]))
+            $detail_text =~ s/^/    /gxms;
+            $text .= "\n$detail_text";
+        } ## end for my $child_ix ( 0 .. $#{$child_ids} )
     } ## end for my $or_node ( @{ $evaler->[...]})
 
     return $text;

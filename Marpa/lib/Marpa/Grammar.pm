@@ -1511,12 +1511,13 @@ sub Marpa::brief_QDFA_state {
 }
 
 sub Marpa::show_QDFA_state {
-    my ( $state, $tags ) = @_;
+    my ($state, $verbose) = @_;
+    $verbose //= 1; # legacy is to be verbose, so default to it
 
     my $text     = q{};
     my $stripped = $#{$state} < Marpa::Internal::QDFA::LAST_FIELD;
 
-    $text .= Marpa::brief_QDFA_state( $state, $tags ) . ': ';
+    $text .= Marpa::brief_QDFA_state($state) . ': ';
 
     if ( $state->[Marpa::Internal::QDFA::RESET_ORIGIN] ) {
         $text .= 'predict; ';
@@ -1534,6 +1535,8 @@ sub Marpa::show_QDFA_state {
 
     if ($stripped) { $text .= "stripped\n" }
 
+    return $text if not $verbose;
+
     if ( exists $state->[Marpa::Internal::QDFA::TRANSITION] ) {
         my $transition = $state->[Marpa::Internal::QDFA::TRANSITION];
         for my $symbol_name ( sort keys %{$transition} ) {
@@ -1542,7 +1545,7 @@ sub Marpa::show_QDFA_state {
             for my $to_state ( @{ $transition->{$symbol_name} } ) {
                 my $to_name = $to_state->[Marpa::Internal::QDFA::NAME];
                 push @qdfa_labels,
-                    Marpa::brief_QDFA_state( $to_state, $tags );
+                    Marpa::brief_QDFA_state($to_state);
             }    # for my $to_state
             $text .= join '; ', sort @qdfa_labels;
             $text .= "\n";
@@ -1553,18 +1556,18 @@ sub Marpa::show_QDFA_state {
 } ## end sub Marpa::show_QDFA_state
 
 sub Marpa::Grammar::show_QDFA {
-    my ( $grammar, $tags ) = @_;
+    my ($grammar) = @_;
 
     my $text         = q{};
     my $QDFA         = $grammar->[Marpa::Internal::Grammar::QDFA];
     my $start_states = $grammar->[Marpa::Internal::Grammar::START_STATES];
     $text .= 'Start States: ';
     $text .= join '; ',
-        sort map { Marpa::brief_QDFA_state( $_, $tags ) } @{$start_states};
+        sort map { Marpa::brief_QDFA_state($_) } @{$start_states};
     $text .= "\n";
 
     for my $state ( @{$QDFA} ) {
-        $text .= Marpa::show_QDFA_state( $state, $tags );
+        $text .= Marpa::show_QDFA_state($state);
     }
     return $text;
 } ## end sub Marpa::Grammar::show_QDFA
