@@ -473,8 +473,6 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION]    = 'fatal';
     $grammar->[Marpa::Internal::Grammar::CYCLE_SCALE]     = 2;
     $grammar->[Marpa::Internal::Grammar::CYCLE_REWRITE]   = 1;
-    $grammar->[Marpa::Internal::Grammar::TOO_MANY_EARLEY_ITEMS] =
-        Marpa::Internal::Grammar::DEFAULT_TOO_MANY_EARLEY_ITEMS;
 
     {
         ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
@@ -998,6 +996,25 @@ sub Marpa::Grammar::precompute {
     }
     create_NFA($grammar);
     create_QDFA($grammar);
+
+    my $QDFA_size = scalar @{ $grammar->[Marpa::Internal::Grammar::QDFA] };
+    if (not defined(
+            my $too_many_earley_items =
+                $grammar->[Marpa::Internal::Grammar::TOO_MANY_EARLEY_ITEMS]
+        )
+        )
+    {
+        $too_many_earley_items = 2 * $QDFA_size;
+        if ( $too_many_earley_items
+            < Marpa::Internal::Grammar::DEFAULT_TOO_MANY_EARLEY_ITEMS )
+        {
+            $too_many_earley_items =
+                Marpa::Internal::Grammar::DEFAULT_TOO_MANY_EARLEY_ITEMS;
+        } ## end if ( $too_many_earley_items < ...)
+        $grammar->[Marpa::Internal::Grammar::TOO_MANY_EARLEY_ITEMS] =
+            $too_many_earley_items;
+    } ## end if ( not defined( my $too_many_earley_items = $grammar...))
+
     if ( $grammar->[Marpa::Internal::Grammar::WARNINGS] ) {
         $trace_fh //= $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
         my $ok = $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK];

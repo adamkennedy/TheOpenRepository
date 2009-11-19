@@ -660,8 +660,6 @@ sub Marpa::UrHTML::parse {
     # The HTML tag is handled specially
     delete $start_tags{html};
 
-    say STDERR join " ", keys %start_tags;
-
     ELEMENT: for ( keys %start_tags ) {
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
             my $this_element = "ELE_$_";
