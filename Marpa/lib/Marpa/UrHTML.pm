@@ -88,10 +88,24 @@ sub tdesc_list_to_text {
                     $text .= $value;
                     break;    # next TDESC;
                 } ## end if ( defined( my $value = $tdesc->[...]))
-                my $first_token_id =
-                    $tdesc->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
-                my $last_token_id =
-                    $tdesc->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
+
+                # next TDESC if no first token id
+                break
+                    if not defined(
+                            my $first_token_id =
+                                $tdesc
+                                ->[Marpa::UrHTML::Internal::TDesc::START_TOKEN
+                                ]
+                    );
+
+                # next TDESC if no last token id
+                break
+                    if not defined(
+                            my $last_token_id =
+                                $tdesc
+                                ->[Marpa::UrHTML::Internal::TDesc::END_TOKEN]
+                    );
+
                 my $offset =
                     $tokens->[$first_token_id]
                     ->[Marpa::UrHTML::Internal::Token::START_OFFSET];
@@ -112,6 +126,7 @@ sub tdesc_list_to_text {
                 my $end_offset =
                     $tokens->[$last_token_id]
                     ->[Marpa::UrHTML::Internal::Token::END_OFFSET];
+
                 $text .= substr ${$document}, $offset,
                     ( $end_offset - $offset );
             } ## end when ('TOKEN_SPAN')
@@ -185,12 +200,16 @@ sub create_tdesc_handler {
             } ## end if ( $trace_handlers and $user_handler )
         } ## end GET_USER_HANDLER:
         if ( defined $user_handler ) {
-            my $first_token = $tdesc_list[0]->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
-            my $last_token  = $tdesc_list[-1]->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
+            my @tokens = sort { $a <=> $b } grep {defined} map {
+                @{$_}[
+                    Marpa::UrHTML::Internal::TDesc::START_TOKEN,
+                    Marpa::UrHTML::Internal::TDesc::END_TOKEN
+                    ]
+            } @tdesc_list;
             local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
 
             return [
-                [ ELE => $first_token, $last_token, $user_handler->() ] ];
+                [ ELE => $tokens[0], $tokens[-1], $user_handler->() ] ];
         } ## end if ( defined $user_handler )
 
         my $doc          = $self->{doc};
@@ -246,7 +265,7 @@ sub create_tdesc_handler {
                 } ## end given
             } ## end PARSE_TDESC:
 
-            if ( defined $first_token_id ) {
+            if ( defined $first_token_id and defined $last_token_id ) {
                 if ( defined $first_token_id_in_current_span ) {
                     if ( $first_token_id
                         <= $last_token_id_in_current_span + 1 )
@@ -301,13 +320,15 @@ sub wrap_user_tdesc_handler {
         my ( $dummy, @tdesc_lists ) = @_;
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
-        my $self        = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-        my $tokens      = $self->{tokens};
-        my $first_token = $tdesc_list[0]->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
-        my $last_token  = $tdesc_list[-1]->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
+        my @tokens = sort { $a <=> $b } grep {defined} map {
+                @{$_}[
+                    Marpa::UrHTML::Internal::TDesc::START_TOKEN,
+                    Marpa::UrHTML::Internal::TDesc::END_TOKEN
+                    ]
+            } @tdesc_list;
         local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
 
-        return [ [ ELE => $first_token, $last_token, $user_handler->() ] ];
+        return [ [ ELE => $tokens[0], $tokens[-1], $user_handler->() ] ];
         }
 } ## end sub wrap_user_tdesc_handler
         
@@ -329,10 +350,17 @@ sub earleme_to_offset {
     my ( $self, $token_offset ) = @_;
     my $html_parser_tokens   = $self->{tokens};
 
+    # Special start of file for undefined offset
+    if (not defined $token_offset) {
+        return (0, 1) if wantarray;
+        return 0;
+    }
+
     # Special case needed for a token offset after the last
     # token.  This happens with the EOF.
     my $offset;
-    if ( $token_offset > $#{$html_parser_tokens} ) {
+    if ( $token_offset < 0 or $token_offset > $#{$html_parser_tokens} )
+    {
         $offset = length ${ $self->{document} };
     }
     else {
@@ -529,7 +557,6 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     {   lhs            => 'prolog',
         rhs            => ['SGML_flow'],
         action         => '!PROLOG_handler',
-        ranking_action => '!rank_is_length',
     },
     {   lhs            => 'trailer',
         rhs            => ['SGML_flow'],
@@ -537,20 +564,21 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     {   lhs    => 'root',
         rhs    => [qw(S_html Contents_root E_html)],
         action => '!ROOT_handler',
-        ranking_action => '!rank_is_four',
     },
     {   lhs    => 'Contents_root',
         rhs    => [qw(SGML_flow head SGML_flow body SGML_flow)],
     },
     {   lhs    => 'head',
-        rhs    => [qw(S_head flow E_head)],
+        rhs    => [qw(S_head Contents_head E_head)],
         action => '!HEAD_handler',
-        ranking_action => '!rank_is_four',
+    },
+    {   lhs    => 'Contents_head',
+        rhs    => ['head_item'],
+        min    => 0,
     },
     {   lhs    => 'body',
         rhs    => [qw(S_body flow E_body)],
-        action => '!HEAD_handler',
-        ranking_action => '!rank_is_three',
+        action => '!BODY_handler',
     },
     { lhs => 'flow', rhs => ['flow_item'], min => 0 },
     {   lhs    => 'cruft',
@@ -561,7 +589,11 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'flow_item', rhs => [$_] } }
-    qw(inline_flow_item block_element head_element);
+    qw(block_element head_item inline_element CDATA PCDATA);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'head_item', rhs => [$_] } }
+    qw(cruft WHITESPACE SGML_item);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'inline_flow_item', rhs => [$_] } }
@@ -663,7 +695,7 @@ sub Marpa::UrHTML::parse {
     # Parser token.
     # The other logic needs to be ready for this.
     push @marpa_tokens,
-        [ 'EOF', [ [ 'EMPTY', ( scalar @html_parser_tokens ) ] ] ];
+        [ 'EOF', [ [ 'EMPTY' ] ] ];
 
     $pull_parser = undef;    # conserve memory
 
@@ -672,10 +704,6 @@ sub Marpa::UrHTML::parse {
 
     my %element_actions              = ();
     my %pseudo_class_element_actions = ();
-
-    # Seed the list with the "title" tag,
-    # so that head_element is always productive
-    $start_tags{title}++;
 
     # Some HTML tags are special and
     # are dealt with elsewhere
@@ -692,7 +720,7 @@ sub Marpa::UrHTML::parse {
                 rhs => ["S_$_"],
                 };
             my $element_type =
-                  $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ? 'head_element'
+                  $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ? 'head_item'
                 : $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
                 ? 'block_element'
                 : 'inline_element';
@@ -723,18 +751,14 @@ sub Marpa::UrHTML::parse {
                 },
                 {
                 lhs => "T_$this_element",
-                rhs => [ $start_tag, "Contents_$_", $end_tag ],
+                rhs => [ $start_tag, 'flow', $end_tag ],
                 },
                 {
                 lhs => "U_$this_element",
                 rhs => [$start_tag],
-                },
-                {
-                lhs => "Contents_$_",
-                rhs => ['flow']
                 };
             my $element_type =
-                  $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ? 'head_element'
+                  $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ? 'head_item'
                 : $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
                 ? 'block_element'
                 : 'inline_element';
@@ -774,10 +798,10 @@ sub Marpa::UrHTML::parse {
     $grammar->precompute();
 
     if ( $self->{trace_rules} ) {
-        say STDERR $grammar->show_rules();
+        say {$trace_fh} $grammar->show_rules();
     }
     if ( $self->{trace_QDFA} ) {
-        say STDERR $grammar->show_QDFA();
+        say {$trace_fh} $grammar->show_QDFA();
     }
 
     my $recce = Marpa::Recognizer->new(

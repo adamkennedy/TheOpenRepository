@@ -13,6 +13,8 @@ use English qw( -no_match_vars );
 
 use Marpa::Internal;
 
+# This assumes that a start token, if there is one
+# with attributes, is the first token
 sub create_fetch_attribute_closure {
     my ($attribute) = @_;
     return sub {
@@ -88,8 +90,12 @@ sub Marpa::UrHTML::offset {
         if not defined $parse_instance;
 
     # Start offset is start token of first tdesc
-    my $token_offset =
-        $tdesc_list->[0]->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
+    my $token_offset;
+    TDESC: for my $tdesc ( @{$tdesc_list} ) {
+        last TDESC
+            if defined( $token_offset =
+                $tdesc->[Marpa::UrHTML::Internal::TDesc::START_TOKEN] );
+    }
     return Marpa::UrHTML::Internal::earleme_to_offset( $parse_instance,
         $token_offset );
 } ## end sub Marpa::UrHTML::offset
