@@ -62,8 +62,8 @@ sub new {
   my $perl_version = $args{perl_version};
   croak("Need perl_version")
     if not defined $perl_version;
-  $perl_version = $NewestStableAPI if lc($perl_version) = "newest";
-  $perl_version = $NewestAPI if lc($perl_version) = "newest_devel";
+  $perl_version = $NewestStableAPI if lc($perl_version) eq "newest";
+  $perl_version = $NewestAPI if lc($perl_version) eq "newest_devel";
 
   $perl_version = version->new($perl_version)->numify();
   croak("Bad perl version '$perl_version'")
