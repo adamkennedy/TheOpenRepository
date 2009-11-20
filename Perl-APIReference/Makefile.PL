@@ -8,10 +8,11 @@ WriteMakefile(
     NAME              => 'Perl::APIReference',
     VERSION_FROM      => 'lib/Perl/APIReference.pm', # finds $VERSION
     PREREQ_PM         => {
-      'parent' => '0',
-      'Data::Dumper' => '0',
+      'parent'            => '0',
+      'Data::Dumper'      => '0',
       'Class::XSAccessor' => '1.05',
     }, # e.g., Module::Name => 1.1
+    dist              => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Perl/APIReference.pm', # retrieve abstract from module
        AUTHOR         => 'Steffen Mueller <smueller@cpan.org>') : ()),
