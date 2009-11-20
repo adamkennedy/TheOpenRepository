@@ -20,6 +20,9 @@ sub _par_loader_hint {
 }
 
 our %Perls = (
+  5.011002 => 'V5_011_002',
+  5.011001 => 'V5_011_001',
+  5.011    => 'V5_011_000',
   5.01     => 'V5_010_000',
   5.010001 => 'V5_010_001',
   5.008009 => 'V5_008_009',
@@ -36,10 +39,13 @@ our %Perls = (
   5.006001 => 'V5_006_001',
   5.006    => 'V5_006_000',
 );
-our $NewestAPI = '5.010001';
 
-#$Perls{'5.011000'} = $Perls{5.011};
+our $NewestAPI       = '5.011002';
+our $NewestStableAPI = '5.010001';
+
+$Perls{'5.011000'} = $Perls{5.011};
 $Perls{'5.010000'} = $Perls{5.01};
+$Perls{'5.010'}    = $Perls{5.01};
 $Perls{'5.008000'} = $Perls{5.008};
 $Perls{'5.008000'} = $Perls{5.006};
 #$Perls{'5.000'} = $Perls{5};
@@ -56,6 +62,9 @@ sub new {
   my $perl_version = $args{perl_version};
   croak("Need perl_version")
     if not defined $perl_version;
+  $perl_version = $NewestStableAPI if lc($perl_version) = "newest";
+  $perl_version = $NewestAPI if lc($perl_version) = "newest_devel";
+
   $perl_version = version->new($perl_version)->numify();
   croak("Bad perl version '$perl_version'")
     if not exists $Perls{$perl_version};
@@ -146,16 +155,26 @@ Perl::APIReference - Programmatically query the perlapi
 This module allows accessing the perlapi documentation for multiple
 releases of perl as an index (a hash).
 
-Currently, perl 5.10.1, 5.10.0, 5.8.0-9, and 5.6.0-2 are supported. To add
-support for another release, simply send me the release's F<perlapi.pod>
-via email or via an RT ticket and I'll add it in the next release.
+Currently, the stable releases perl 5.10.1, 5.10.0, 5.8.0-9, and 5.6.0-2
+are supported. To add support for another release, simply send me the
+release's F<perlapi.pod> via email or via an RT ticket and I'll add it
+in the next release.
+
+Additionally, the development releases 5.11.0-2 are included.
 
 =head1 METHODS
 
 =head2 new
 
 Constructor. Takes the C<perl_version> argument which specifies the
-version of the perlapi that you want to use.
+version of the perlapi that you want to use. The version has to be
+in the form C<5.008009> to indicate perl 5.8.9. For the initial
+releases in a new family (5.10.0, etc), the shortened forms
+C<5.010> and C<5.01> can be used.
+
+Special C<perl_version> settings are C<newest> and C<newest_devel>
+which correspond to the newest available stable and experimental
+perl API versions.
 
 =head2 index
 
