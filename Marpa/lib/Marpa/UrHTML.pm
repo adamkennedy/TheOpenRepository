@@ -185,8 +185,8 @@ sub create_tdesc_handler {
             } ## end if ( $trace_handlers and $user_handler )
         } ## end GET_USER_HANDLER:
         if ( defined $user_handler ) {
-            my $first_token = $tdesc_list[0]->[1];
-            my $last_token  = $tdesc_list[-1]->[2];
+            my $first_token = $tdesc_list[0]->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
+            my $last_token  = $tdesc_list[-1]->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
             local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
 
             return [
@@ -213,21 +213,32 @@ sub create_tdesc_handler {
                 }
                 given ( $tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] ) {
                     when ('ELE') {
-                        my $value = $tdesc->[3];
-                        if ( not defined $value ) {
-                            ( $first_token_id, $last_token_id ) =
-                                @{$tdesc}[ 1, 2 ];
+                        if (not defined(
+                                my $value = $tdesc->[
+                                    Marpa::UrHTML::Internal::TDesc::Element::VALUE
+                                ]
+                            )
+                            )
+                        {
+                            $first_token_id = $tdesc->[
+                                Marpa::UrHTML::Internal::TDesc::START_TOKEN ];
+                            $last_token_id =
+                                $tdesc
+                                ->[ Marpa::UrHTML::Internal::TDesc::END_TOKEN
+                                ];
                             break;    # last PARSE_TDESC;
-                        }
+                        } ## end if ( not defined( my $value = $tdesc->[ ...]))
                         $next_tdesc = $tdesc;
                     } ## end when ('ELE')
                     when ('FINAL') {
                         $next_tdesc = $tdesc;
                     }
                     when ('TOKEN_SPAN') {
-                        ( $first_token_id, $last_token_id ) =
-                            @{$tdesc}[ 1, 2 ];
-                    }
+                        $first_token_id = $tdesc
+                            ->[ Marpa::UrHTML::Internal::TDesc::START_TOKEN ];
+                        $last_token_id = $tdesc
+                            ->[ Marpa::UrHTML::Internal::TDesc::END_TOKEN ];
+                    } ## end when ('TOKEN_SPAN')
                     default {
                         Marpa::exception("Unknown text description type: $_");
                     }
@@ -269,7 +280,10 @@ sub create_tdesc_handler {
                 my $ref_type = ref $next_tdesc;
 
                 last TDESC
-                    if $ref_type eq 'ARRAY' and $next_tdesc->[0] eq 'FINAL';
+                    if $ref_type eq 'ARRAY'
+                        and
+                        $next_tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] eq
+                        'FINAL';
                 push @tdesc_result, $next_tdesc;
             } ## end if ( defined $next_tdesc )
 
@@ -288,8 +302,8 @@ sub wrap_user_tdesc_handler {
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
         my $self        = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
         my $tokens      = $self->{tokens};
-        my $first_token = $tdesc_list[0]->[1];
-        my $last_token  = $tdesc_list[-1]->[2];
+        my $first_token = $tdesc_list[0]->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
+        my $last_token  = $tdesc_list[-1]->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
         local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
 
         return [ [ ELE => $first_token, $last_token, $user_handler->() ] ];
@@ -313,7 +327,9 @@ sub setup_offsets {
 sub earleme_to_offset {
     my ( $self, $token_offset ) = @_;
     my $html_parser_tokens   = $self->{tokens};
-    my $offset = $html_parser_tokens->[$token_offset]->[2];
+    my $offset =
+        $html_parser_tokens->[$token_offset]
+        ->[Marpa::UrHTML::Internal::Token::END_OFFSET];
     return $offset if not wantarray;
 
     my $last_rs = rindex ${ $self->{document} }, "\n", $offset;
