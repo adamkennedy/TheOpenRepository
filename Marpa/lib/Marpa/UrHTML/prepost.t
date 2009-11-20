@@ -43,6 +43,8 @@ sub begin_and_end {
 my $p = Marpa::UrHTML->new(
     {   
     trace_rules => 1,
+    trace_terminals => 1,
+    trace_cruft => 1,
     trace_ambiguity => 1,
     trace_QDFA => 1,
     handlers => [
@@ -80,6 +82,14 @@ my $p = Marpa::UrHTML->new(
                     say STDERR
                         "UNTERMINATED element starting on line $line:\n" .
                         begin_and_end($literal) . "\n";
+                    return;
+                    }
+            ],
+            [   'p' => sub {
+                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+                    say STDERR "P at line $line:\n"
+                        . begin_and_end($literal) . "\n";
                     return;
                     }
             ],

@@ -535,9 +535,16 @@ sub Marpa::UrHTML::new {
     map { ( "S_$_" => 1, "E_$_" => 1 ) } qw( html head body );
 
 my @SGML_rh_sides = qw(D C PI);
-@Marpa::UrHTML::Internal::CORE_RULES = map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
 
-push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'SGML_flow', rhs => ['SGML_item'], min => 0 };
+@Marpa::UrHTML::Internal::CORE_RULES =
+    map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'SGML_flow_item', rhs => [$_] } }
+    qw(SGML_item WHITESPACE CRUFT);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'SGML_flow', rhs => ['SGML_flow_item'], min => 0 };
 
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
     ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA WHITESPACE EOF ) );
@@ -596,17 +603,25 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     qw(cruft WHITESPACE SGML_item);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'inline_flow', rhs => ['inline_flow_item'], min => 0 };
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'inline_flow_item', rhs => [$_] } }
     qw(CDATA PCDATA cruft WHITESPACE SGML_item inline_element);
+
+%Marpa::UrHTML::Internal::CONTENTS = (
+   'p' => 'inline_flow'
+);
 
 my %start_tags = ();
 my %end_tags   = ();
 
 sub Marpa::UrHTML::parse {
     my ( $self, $document_ref ) = @_;
-    my $trace_cruft = $self->{trace_cruft};
-    my $trace_fh    = $self->{trace_fh};
-    my $ref_type    = ref $document_ref;
+    my $trace_cruft     = $self->{trace_cruft};
+    my $trace_terminals = $self->{trace_terminals};
+    my $trace_fh        = $self->{trace_fh};
+    my $ref_type        = ref $document_ref;
     Marpa::exception(
         'Arg to ' . __PACKAGE__ . '::parse must be ref to string' )
         if not $ref_type
@@ -736,22 +751,21 @@ sub Marpa::UrHTML::parse {
             my $this_element = "ELE_$_";
             my $start_tag    = "S_$_";
             my $end_tag      = "E_$_";
+            my $contents = $Marpa::UrHTML::Internal::CONTENTS{$_} // 'flow';
             push @rules,
                 {
                 lhs            => "$this_element",
                 rhs            => ["T_$this_element"],
-                ranking_action => '!rank_is_one',
                 action         => "!T_ELE_$_",
                 },
                 {
                 lhs            => "$this_element",
                 rhs            => ["U_$this_element"],
-                ranking_action => '!rank_is_zero',
                 action         => "!U_ELE_$_",
                 },
                 {
                 lhs => "T_$this_element",
-                rhs => [ $start_tag, 'flow', $end_tag ],
+                rhs => [ $start_tag, $contents, $end_tag ],
                 },
                 {
                 lhs => "U_$this_element",
@@ -831,13 +845,15 @@ sub Marpa::UrHTML::parse {
                     $is_virtual_token = 0;
                     last FIND_VIRTUAL_TOKEN;
                 }
-                say STDERR "Converting Token: ",
-                    Data::Dumper::Dumper( $marpa_token->[0] );
                 my @optionals_expected =
                     grep { $Marpa::UrHTML::Internal::OPTIONAL_TERMINALS{$_} }
                     @{$expected_terminals};
-                say STDERR +( scalar @optionals_expected ),
-                    " optionals expected: ", join " ", @optionals_expected;
+                if ($trace_terminals) {
+                    say {$trace_fh} "Converting Token: ", $marpa_token->[0];
+                    say {$trace_fh} +( scalar @optionals_expected ),
+                        " optionals expected: ", join " ",
+                        @optionals_expected;
+                } ## end if ($trace_terminals)
                 if (defined(
                         my $optional_terminal = pop @optionals_expected
                     )
@@ -879,18 +895,19 @@ sub Marpa::UrHTML::parse {
                       $last_marpa_token > $#marpa_tokens
                     ? $#marpa_tokens
                     : $last_marpa_token;
-                my $furthest_offset =
+                my ($furthest_offset, $furthest_offset_line) =
                     Marpa::UrHTML::Internal::earleme_to_offset( $self,
                     $last_marpa_token );
                 say Data::Dumper::Dumper( $recce->find_parse() );
-                Marpa::exception( 'HTML parse exhausted at location ',
-                    $furthest_offset );
+                Marpa::exception( "HTML parse exhausted at location $furthest_offset, line $furthest_offset_line" );
             } ## end if ( not defined $current_earleme )
         } ## end while ($is_virtual_token)
     } ## end for my $marpa_token (@marpa_tokens)
 
-    say STDERR "at end of tokens, expecting: ", join " ",
-        @{$expected_terminals};
+    if ($trace_terminals) {
+        say {$trace_fh} "at end of tokens, expecting: ", join " ",
+            @{$expected_terminals};
+    }
 
     if ( $ENV{TRACE_SIZE} ) {
         say "pre-strip recce size: ", total_size($recce);
