@@ -212,6 +212,7 @@ sub create_tdesc_handler {
                     last PARSE_TDESC;
                 }
                 given ( $tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] ) {
+                    when ('EMPTY') { break; }
                     when ('ELE') {
                         if (not defined(
                                 my $value = $tdesc->[
@@ -327,9 +328,18 @@ sub setup_offsets {
 sub earleme_to_offset {
     my ( $self, $token_offset ) = @_;
     my $html_parser_tokens   = $self->{tokens};
-    my $offset =
-        $html_parser_tokens->[$token_offset]
-        ->[Marpa::UrHTML::Internal::Token::END_OFFSET];
+
+    # Special case needed for a token offset after the last
+    # token.  This happens with the EOF.
+    my $offset;
+    if ( $token_offset > $#{$html_parser_tokens} ) {
+        $offset = length ${ $self->{document} };
+    }
+    else {
+        $offset =
+            $html_parser_tokens->[$token_offset]
+            ->[Marpa::UrHTML::Internal::Token::END_OFFSET];
+    }
     return $offset if not wantarray;
 
     my $last_rs = rindex ${ $self->{document} }, "\n", $offset;
@@ -492,8 +502,9 @@ sub Marpa::UrHTML::new {
     img input isindex link meta param
 );
 
-%Marpa::UrHTML::Internal::OPTIONAL_TAGS =
-    map { ( $_, 1 ) } qw( html head body tbody );
+%Marpa::UrHTML::Internal::OPTIONAL_TERMINALS =
+    # qw( html head body tbody );
+    map { ( "S_$_" => 1, "E_$_" => 1 ) } qw( html head body );
 
 my @SGML_rh_sides = qw(D C PI);
 @Marpa::UrHTML::Internal::CORE_RULES = map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
@@ -501,7 +512,9 @@ my @SGML_rh_sides = qw(D C PI);
 push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'SGML_flow', rhs => ['SGML_item'], min => 0 };
 
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
-    ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA WHITESPACE S_html E_html S_head E_head S_title E_title ) );
+    ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA WHITESPACE EOF ) );
+
+push @Marpa::UrHTML::Internal::CORE_TERMINALS, keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS;
 
 no strict 'refs';
 *{'Marpa::UrHTML::Internal::default_action'} = create_tdesc_handler();
@@ -510,7 +523,7 @@ use strict;
 push @Marpa::UrHTML::Internal::CORE_RULES,
     (
     {   lhs    => 'document',
-        rhs    => [qw(prolog main_document)],
+        rhs    => [qw(prolog root trailer EOF)],
         action => '!TOP_handler',
     },
     {   lhs            => 'prolog',
@@ -518,89 +531,27 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
         action         => '!PROLOG_handler',
         ranking_action => '!rank_is_length',
     },
-    {   lhs    => 'main_document',
-        rhs    => [qw(XT_root SGML_flow)],
+    {   lhs            => 'trailer',
+        rhs            => ['SGML_flow'],
     },
-    {   lhs    => 'main_document',
-        rhs    => [qw(IT_root SGML_flow)],
-    },
-    {   lhs    => 'main_document',
-        rhs    => [qw(XU_root)],
-    },
-    {   lhs    => 'main_document',
-        rhs    => [qw(IU_root)],
-    },
-    {   lhs    => 'XT_root',
+    {   lhs    => 'root',
         rhs    => [qw(S_html Contents_root E_html)],
         action => '!ROOT_handler',
         ranking_action => '!rank_is_four',
-    },
-    {   lhs    => 'IT_root',
-        rhs    => [qw(root_content_only_item Contents_root E_html)],
-        action => '!ROOT_handler',
-        ranking_action => '!rank_is_two',
-    },
-    {   lhs    => 'XU_root',
-        rhs    => [qw(S_html Contents_root)],
-        action => '!ROOT_handler',
-        ranking_action => '!rank_is_three',
-    },
-    {   lhs    => 'IU_root',
-        rhs    => [qw(root_content_only_item Contents_root)],
-        action => '!ROOT_handler',
-        ranking_action => '!rank_is_one',
     },
     {   lhs    => 'Contents_root',
         rhs    => [qw(SGML_flow head SGML_flow body SGML_flow)],
     },
     {   lhs    => 'head',
-        rhs    => [qw(S_head Contents_head E_head)],
+        rhs    => [qw(S_head flow E_head)],
         action => '!HEAD_handler',
         ranking_action => '!rank_is_four',
     },
-    {   lhs    => 'head',
-        rhs    => [qw(S_head Strict_Contents_head)],
+    {   lhs    => 'body',
+        rhs    => [qw(S_body flow E_body)],
         action => '!HEAD_handler',
         ranking_action => '!rank_is_three',
     },
-    {   lhs    => 'head',
-        rhs    => [qw(Contents_head E_head)],
-        action => '!HEAD_handler',
-        ranking_action => '!rank_is_two',
-    },
-    {   lhs    => 'head',
-        rhs    => [qw(Strict_Contents_head)],
-        action => '!HEAD_handler',
-        ranking_action => '!rank_is_one',
-    },
-    {   lhs    => 'Contents_head',
-        rhs    => [qw(head_item)],
-        min    => 0,
-    },
-    {   lhs    => 'Strict_Contents_head',
-        rhs    => [qw(strict_head_item)],
-        min    => 0,
-    },
-    {   lhs    => 'head_item',
-        rhs    => [qw(strict_head_item)],
-    },
-    {   lhs    => 'head_item',
-        rhs    => [qw(cruft)],
-    },
-    {   lhs    => 'strict_head_item',
-        rhs    => [qw(SGML_item)],
-    },
-    {   lhs    => 'strict_head_item',
-        rhs    => [qw(head_element)],
-    },
-    {   lhs    => 'strict_head_item',
-        rhs    => [qw(WHITESPACE)],
-    },
-    {   lhs    => 'body',
-        rhs    => [qw(flow)],
-        action => '!BODY_handler',
-    },
-
     { lhs => 'flow', rhs => ['flow_item'], min => 0 },
     {   lhs    => 'cruft',
         rhs    => ['CRUFT'],
@@ -616,22 +567,14 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'inline_flow_item', rhs => [$_] } }
     qw(CDATA PCDATA cruft WHITESPACE SGML_item inline_element);
 
-# There is no ambiguity here as long as
-# head, block and inline elements are
-# mutually exclusive.
-# Note the handling of ISINDEX.
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'root_content_only_item', rhs => [$_] } }
-    qw(CDATA PCDATA head_element block_element inline_element);
-
 my %start_tags = ();
 my %end_tags   = ();
 
 sub Marpa::UrHTML::parse {
     my ( $self, $document_ref ) = @_;
     my $trace_cruft = $self->{trace_cruft};
-    my $trace_fh = $self->{trace_fh};
-    my $ref_type = ref $document_ref;
+    my $trace_fh    = $self->{trace_fh};
+    my $ref_type    = ref $document_ref;
     Marpa::exception(
         'Arg to ' . __PACKAGE__ . '::parse must be ref to string' )
         if not $ref_type
@@ -639,8 +582,7 @@ sub Marpa::UrHTML::parse {
 
     my %pull_parser_args;
     my $document = $pull_parser_args{doc} = $self->{document} = $document_ref;
-    my $pull_parser =
-        HTML::PullParser->new( %pull_parser_args, %ARGS )
+    my $pull_parser = HTML::PullParser->new( %pull_parser_args, %ARGS )
         || Carp::croak('Could not create pull parser');
 
     Marpa::UrHTML::Internal::setup_offsets($self);
@@ -685,9 +627,12 @@ sub Marpa::UrHTML::parse {
                     @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 $end_tags{$tag_name}++;
                 my $terminal = $_ . q{_} . $tag_name;
-                if ( not defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$tag_name} ) {
+                if (not
+                    defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$tag_name}
+                    )
+                {
                     $terminals{$terminal}++;
-                }
+                } ## end if ( not defined ...)
                 push @marpa_tokens,
                     [
                     $terminal,
@@ -712,23 +657,31 @@ sub Marpa::UrHTML::parse {
             } ## end when ( ['PI'] )
             default { Carp::croak("Unprovided-for event: $_") }
         } ## end given
-        $token_number++;
     } ## end while ( my $html_parser_token = $pull_parser->get_token)
 
-    $pull_parser = undef; # conserve memory
+    # Points AFTER the last HTML
+    # Parser token.
+    # The other logic needs to be ready for this.
+    push @marpa_tokens,
+        [ 'EOF', [ [ 'EMPTY', ( scalar @html_parser_tokens ) ] ] ];
+
+    $pull_parser = undef;    # conserve memory
 
     my @rules     = @Marpa::UrHTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
 
-    my %element_actions = ();
+    my %element_actions              = ();
     my %pseudo_class_element_actions = ();
 
     # Seed the list with the "title" tag,
     # so that head_element is always productive
     $start_tags{title}++;
 
-    # The HTML tag is handled specially
+    # Some HTML tags are special and
+    # are dealt with elsewhere
     delete $start_tags{html};
+    delete $start_tags{head};
+    delete $start_tags{body};
 
     ELEMENT: for ( keys %start_tags ) {
         when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
@@ -753,28 +706,28 @@ sub Marpa::UrHTML::parse {
         } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
         default {
             my $this_element = "ELE_$_";
-            my $start_tag = "S_$_";
-            my $end_tag = "E_$_";
+            my $start_tag    = "S_$_";
+            my $end_tag      = "E_$_";
             push @rules,
                 {
-                lhs    => "$this_element",
-                rhs    => [ "T_$this_element" ],
+                lhs            => "$this_element",
+                rhs            => ["T_$this_element"],
                 ranking_action => '!rank_is_one',
-                action => "!T_ELE_$_",
+                action         => "!T_ELE_$_",
                 },
                 {
-                lhs    => "$this_element",
-                rhs    => [ "U_$this_element" ],
+                lhs            => "$this_element",
+                rhs            => ["U_$this_element"],
                 ranking_action => '!rank_is_zero',
-                action => "!U_ELE_$_",
+                action         => "!U_ELE_$_",
                 },
                 {
-                lhs    => "T_$this_element",
-                rhs    => [ $start_tag, "Contents_$_", $end_tag ],
+                lhs => "T_$this_element",
+                rhs => [ $start_tag, "Contents_$_", $end_tag ],
                 },
                 {
-                lhs    => "U_$this_element",
-                rhs    => [ $start_tag ],
+                lhs => "U_$this_element",
+                rhs => [$start_tag],
                 },
                 {
                 lhs => "Contents_$_",
@@ -795,12 +748,13 @@ sub Marpa::UrHTML::parse {
             # There may be no
             # end tag in the input.
             # This silences the warning.
-            if (not $terminals{$end_tag}) {
+            if ( not $terminals{$end_tag} ) {
                 push @terminals, $end_tag;
                 $terminals{$end_tag}++;
             }
 
-            $pseudo_class_element_actions{"!U_ELE_$_"} = [ UNTERMINATED => $_ ];
+            $pseudo_class_element_actions{"!U_ELE_$_"} =
+                [ UNTERMINATED => $_ ];
             $pseudo_class_element_actions{"!T_ELE_$_"} = [ TERMINATED => $_ ];
             $element_actions{"!ELE_$_"} = $_;
         } ## end default
@@ -819,76 +773,117 @@ sub Marpa::UrHTML::parse {
     );
     $grammar->precompute();
 
-    if ($self->{trace_rules}) {
+    if ( $self->{trace_rules} ) {
         say STDERR $grammar->show_rules();
     }
-    if ($self->{trace_QDFA}) {
+    if ( $self->{trace_QDFA} ) {
         say STDERR $grammar->show_QDFA();
     }
 
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar,
-         trace_terminals=>$self->{trace_terminals},
-         trace_earley_sets=>$self->{trace_earley_sets},
-         trace_values=>$self->{trace_values},
-         trace_actions=>$self->{trace_actions},
-         clone => 0,
-    } );
+    my $recce = Marpa::Recognizer->new(
+        {   grammar           => $grammar,
+            trace_terminals   => $self->{trace_terminals},
+            trace_earley_sets => $self->{trace_earley_sets},
+            trace_values      => $self->{trace_values},
+            trace_actions     => $self->{trace_actions},
+            clone             => 0,
+        }
+    );
 
-    if ($ENV{TRACE_SIZE}) {
+    if ( $ENV{TRACE_SIZE} ) {
         say "newly created recce size: ", total_size($recce);
     }
 
-    $self->{recce} = $recce;
+    $self->{recce}  = $recce;
     $self->{tokens} = \@html_parser_tokens;
-    my ($current_earleme, $expected_terminals) = $recce->status();
+    my ( $current_earleme, $expected_terminals ) = $recce->status();
     MARPA_TOKEN: for my $marpa_token (@marpa_tokens) {
-        if ( not $marpa_token->[0] ~~ $expected_terminals ) {
-            # say STDERR "Token converted: ",
-                # Data::Dumper::Dumper( $marpa_token->[0] );
-            $marpa_token->[0] = 'CRUFT';
-            if ($trace_cruft) {
-                my $cruft_earleme = $current_earleme - 1;
-                if ( $cruft_earleme < 0 ) { $cruft_earleme = 0 }
-                my ( $offset, $line ) =
-                    earleme_to_offset( $self, $cruft_earleme );
-                $line++;   # The convention is that line numberint starts at 1
-                say {$trace_fh} qq{Cruft at line $line: "},
-                    ${ tdesc_list_to_text( $self, $marpa_token->[1] ) },
-                    q{"};
-            } ## end if ($trace_cruft)
-        } ## end if ( not $marpa_token->[0] ~~ $expected_terminals )
-        ( $current_earleme, $expected_terminals ) =
-            $recce->tokens( [$marpa_token], 'predict' );
-        if ( not defined $current_earleme ) {
-            my $last_marpa_token = $recce->furthest();
-            $last_marpa_token =
-                  $last_marpa_token > $#marpa_tokens
-                ? $#marpa_tokens
-                : $last_marpa_token;
-            my $furthest_offset =
-                Marpa::UrHTML::Internal::earleme_to_offset( $self,
-                $last_marpa_token );
-            say Data::Dumper::Dumper( $recce->find_parse() );
-            Marpa::exception( 'HTML parse exhausted at location ',
-                $furthest_offset );
-        } ## end if ( not defined $current_earleme )
+        my $is_virtual_token = 1;
+        VIRTUAL_TOKEN: while ($is_virtual_token) {
+            my $token_to_add;
+            FIND_VIRTUAL_TOKEN: {
+                if ( $marpa_token->[0] ~~ $expected_terminals ) {
+                    $token_to_add     = $marpa_token;
+                    $is_virtual_token = 0;
+                    last FIND_VIRTUAL_TOKEN;
+                }
+                say STDERR "Converting Token: ",
+                    Data::Dumper::Dumper( $marpa_token->[0] );
+                my @optionals_expected =
+                    grep { $Marpa::UrHTML::Internal::OPTIONAL_TERMINALS{$_} }
+                    @{$expected_terminals};
+                say STDERR +( scalar @optionals_expected ),
+                    " optionals expected: ", join " ", @optionals_expected;
+                if (defined(
+                        my $optional_terminal = pop @optionals_expected
+                    )
+                    )
+                {
+                    my $tdesc_list = $marpa_token->[1];
+                    my $first_tdesc_start_token =
+                        $tdesc_list->[0]
+                        ->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
+                    $token_to_add = [
+                        $optional_terminal,
+                        [ [ 'EMPTY', $first_tdesc_start_token ] ]
+                    ];
+                    last FIND_VIRTUAL_TOKEN;
+                } ## end if ( defined( my $optional_terminal = pop ...))
+
+                # Cruft tokens are not virtual.
+                # They are the real things, hacked up.
+                $marpa_token->[0] = 'CRUFT';
+                $token_to_add     = $marpa_token;
+                $is_virtual_token = 0;
+                if ($trace_cruft) {
+                    my $cruft_earleme = $current_earleme - 1;
+                    if ( $cruft_earleme < 0 ) { $cruft_earleme = 0 }
+                    my ( $offset, $line ) =
+                        earleme_to_offset( $self, $cruft_earleme );
+                    $line++
+                        ;  # The convention is that line numbering starts at 1
+                    say {$trace_fh} qq{Cruft at line $line: "},
+                        ${ tdesc_list_to_text( $self, $marpa_token->[1] ) },
+                        q{"};
+                } ## end if ($trace_cruft)
+            } ## end FIND_VIRTUAL_TOKEN:
+            ( $current_earleme, $expected_terminals ) =
+                $recce->tokens( [$token_to_add], 'predict' );
+            if ( not defined $current_earleme ) {
+                my $last_marpa_token = $recce->furthest();
+                $last_marpa_token =
+                      $last_marpa_token > $#marpa_tokens
+                    ? $#marpa_tokens
+                    : $last_marpa_token;
+                my $furthest_offset =
+                    Marpa::UrHTML::Internal::earleme_to_offset( $self,
+                    $last_marpa_token );
+                say Data::Dumper::Dumper( $recce->find_parse() );
+                Marpa::exception( 'HTML parse exhausted at location ',
+                    $furthest_offset );
+            } ## end if ( not defined $current_earleme )
+        } ## end while ($is_virtual_token)
     } ## end for my $marpa_token (@marpa_tokens)
 
+    say STDERR "at end of tokens, expecting: ", join " ",
+        @{$expected_terminals};
 
-        if ($ENV{TRACE_SIZE}) {
-            say "pre-strip recce size: ", total_size($recce);
-            for my $ix (0 .. $#{$recce}) {
-                say "pre-strip recce size, element $ix: ", total_size($recce->[$ix]);
-            }
+    if ( $ENV{TRACE_SIZE} ) {
+        say "pre-strip recce size: ", total_size($recce);
+        for my $ix ( 0 .. $#{$recce} ) {
+            say "pre-strip recce size, element $ix: ",
+                total_size( $recce->[$ix] );
         }
-    $recce->strip(); # Saves lots of memory
+    } ## end if ( $ENV{TRACE_SIZE} )
+    $recce->strip();    # Saves lots of memory
 
-        if ($ENV{TRACE_SIZE}) {
-            say "post-strip recce size: ", total_size($recce);
-            for my $ix (0 .. $#{$recce}) {
-                say "pre-strip recce size, element $ix: ", total_size($recce->[$ix]);
-            }
+    if ( $ENV{TRACE_SIZE} ) {
+        say "post-strip recce size: ", total_size($recce);
+        for my $ix ( 0 .. $#{$recce} ) {
+            say "pre-strip recce size, element $ix: ",
+                total_size( $recce->[$ix] );
         }
+    } ## end if ( $ENV{TRACE_SIZE} )
 
     my %closure = (
         '!rank_is_zero'   => sub {0},
@@ -903,7 +898,8 @@ sub Marpa::UrHTML::parse {
         )
     );
 
-    PSEUDO_CLASS: for my $pseudo_class (
+    PSEUDO_CLASS:
+    for my $pseudo_class (
         qw(PROLOG ROOT HEAD BODY TRAILER TERMINATED UNTERMINATED CRUFT))
     {
         my $pseudo_class_action =
@@ -945,20 +941,23 @@ sub Marpa::UrHTML::parse {
         my $evaler = Marpa::Evaluator->new(
             { recce => $recce, clone => 0, closures => \%closure, } );
 
-        if ($ENV{TRACE_SIZE}) {
+        Marpa::exception('No parse') if not $evaler;
+
+        if ( $ENV{TRACE_SIZE} ) {
             say "pre-undef recce size: ", total_size($recce);
-            for my $ix (0 .. $#{$recce}) {
-                say "pre-undef recce size, element $ix: ", total_size($recce->[$ix]);
+            for my $ix ( 0 .. $#{$recce} ) {
+                say "pre-undef recce size, element $ix: ",
+                    total_size( $recce->[$ix] );
             }
-        }
+        } ## end if ( $ENV{TRACE_SIZE} )
 
-        $recce = undef; # conserve memory
+        $recce = undef;    # conserve memory
 
-        if ($ENV{TRACE_SIZE}) {
+        if ( $ENV{TRACE_SIZE} ) {
             say "post-undef recce size: ", total_size($recce);
         }
 
-        if (my $verbose = $self->{trace_ambiguity}) {
+        if ( my $verbose = $self->{trace_ambiguity} ) {
             say $evaler->show_ambiguity($verbose);
         }
 
@@ -973,12 +972,14 @@ sub Marpa::UrHTML::parse {
                 $last_marpa_token );
 
             my $last_good_earleme = $recce->find_parse();
-            say 'last_good_earleme=', Data::Dumper::Dumper( $last_good_earleme );
+            say 'last_good_earleme=',
+                Data::Dumper::Dumper($last_good_earleme);
             my $last_good_offset =
                 Marpa::UrHTML::Internal::earleme_to_offset( $self,
                 $last_good_earleme );
-            say 'last_good_offset=', Data::Dumper::Dumper( $last_good_offset );
-            say 'last good at ', substr(${$document}, $last_good_offset, 100);
+            say 'last_good_offset=', Data::Dumper::Dumper($last_good_offset);
+            say 'last good at ',
+                substr( ${$document}, $last_good_offset, 100 );
 
             say Data::Dumper::Dumper( $recce->find_parse() );
 
