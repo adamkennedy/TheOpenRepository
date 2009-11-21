@@ -590,7 +590,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'flow_item', rhs => [$_] } }
-    qw(cruft SGML_item block_element inline_element WHITESPACE CDATA PCDATA);
+    qw(cruft SGML_item head_element block_element inline_element WHITESPACE CDATA PCDATA);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'head_item', rhs => [$_] } }
@@ -605,13 +605,13 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'inline_flow_item', rhs => [$_] } }
     qw(CDATA PCDATA cruft WHITESPACE SGML_item inline_element);
 
+%Marpa::UrHTML::Internal::EMPTY_ELEMENT = map { $_ => 1 } qw(
+    area base basefont br col frame hr
+    img input isindex link meta param);
+
 %Marpa::UrHTML::Internal::CONTENTS = (
     'p' => 'inline_flow',
-    (   map { $_ => 'empty' }
-            qw(
-            area base basefont br col frame hr
-            img input isindex link meta param)
-    )
+    ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT )
 );
 
 my %start_tags = ();
@@ -752,41 +752,62 @@ sub Marpa::UrHTML::parse {
     
     my %ok_as_cruft = ();
 
-    OK_AS_CRUFT: for (keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS) {
+    EXPECTED_TERMINAL: for my $expected_terminal (keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS) {
 
         # When expecting start tags nothing is OK as cruft.
-        when (/S_.*/) { ; }
+        next EXPECTED_TERMINAL if $expected_terminal =~ /^S_/xms;
+
+        # When expecting implicit start tags nothing is OK as cruft.
+        next EXPECTED_TERMINAL if $expected_terminal =~ /^IS_/xms;
 
         # When expecting E_head, nothing is OK as cruft
         # When expecting E_p, nothing is OK as cruft
-        when ([qw(E_head E_p)]) { ; }
+        next EXPECTED_TERMINAL if $expected_terminal ~~ [qw(E_head E_p)];
 
-        # When expecting E_html, that is, when in the top root
-        # flow everything but an EOF is fine as cruft
-        when ('E_html') {
-            TERMINAL: for my $actual_terminal (@terminals) {
-                next TERMINAL if $actual_terminal eq 'EOF';
-                $ok_as_cruft{$_}{$actual_terminal}++;
-            }
-        } ## end when ('E_html')
+        next EXPECTED_TERMINAL if $expected_terminal ~~ /^E_/xms and 
+            $Marpa::UrHTML::Internal::EMPTY_ELEMENT{substr $expected_terminal, 2};
 
         # When expecting E_body, that is, when in the top body
         # flow, everything but an EOF or an E_html
         # is fine as cruft
-        when ('E_body') {
+        if ($expected_terminal eq 'E_body') {
             TERMINAL: for my $actual_terminal (@terminals) {
                 next TERMINAL if $actual_terminal ~~ [qw(EOF E_html)];
-                $ok_as_cruft{$_}{$actual_terminal}++;
+                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
             }
+            next EXPECTED_TERMINAL;
         } ## end when ('E_head')
 
-        # Deal with empty tags -- nothing is OK as cruft
+        # TBODY, THEAD, TFOOT
+        # must end at an EOF, at a TABLE end tag
+        # or at the start tag of a table-section-level element
+        # if ($expected_terminal ~~ [qw(E_tbody E_thead E_tfoot)]) {
+            # TERMINAL: for my $actual_terminal (@terminals) {
+                # next TERMINAL if $actual_terminal ~~ [qw(EOF E_table
+                    # S_tbody S_thead S_tfoot S_col S_caption S_colgroup
+                # )];
+                # $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
+            # }
+            # next EXPECTED_TERMINAL;
+        # }
 
-        # Default is to treat the tag as non-empty and block-level:
-        # Everything but E_body, E_html and EOF is OK as cruft.
-        default {
-        ;
+        if ($expected_terminal ~~ /^E_/xms) {
+
+            # Default for end tags
+            # is to treat the element as non-empty,
+            # and with the end tag required
+            TERMINAL: for my $actual_terminal (@terminals) {
+                next TERMINAL if $actual_terminal eq 'EOF';
+                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
+            }
+            next EXPECTED_TERMINAL;
         }
+
+        default {
+            # Should not get here
+            Marpa::exception("Unprovided-for optional terminal: $_");
+        }
+
     } ## end OK_AS_CRUFT:
 
     my $grammar = Marpa::Grammar->new(
