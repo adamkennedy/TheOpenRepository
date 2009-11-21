@@ -432,7 +432,7 @@ sub add_handlers {
                     or $element = $specifier;
                 if ($pseudo_class
                     and not $pseudo_class ~~ [
-                        qw(TOP PROLOG ROOT HEAD BODY TRAILER TERMINATED UNTERMINATED CRUFT)
+                        qw(TOP PROLOG ROOT HEAD BODY TRAILER CRUFT)
                     ]
                     )
                 {
@@ -525,23 +525,21 @@ sub Marpa::UrHTML::new {
     script style meta link object title isindex base
 );
 
-%Marpa::UrHTML::Internal::EMPTY_ELEMENT = map { $_ => 1 } qw(
-    area base basefont br col frame hr
-    img input isindex link meta param
-);
-
-%Marpa::UrHTML::Internal::OPTIONAL_TERMINALS =
-    # qw( html head body tbody );
-    map { ( "S_$_" => 1, "E_$_" => 1 ) } qw( html head body );
+%Marpa::UrHTML::Internal::OPTIONAL_TERMINALS = 
+    map { ( "S_$_" => 1, "E_$_" => 1 ) } qw( html head body tbody );
 
 my @SGML_rh_sides = qw(D C PI);
 
-@Marpa::UrHTML::Internal::CORE_RULES =
+@Marpa::UrHTML::Internal::CORE_RULES = (
+    { lhs => 'cruft', rhs => [ 'CRUFT' ], action => '!CRUFT_handler' }
+);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'SGML_flow_item', rhs => [$_] } }
-    qw(SGML_item WHITESPACE CRUFT);
+    qw(SGML_item WHITESPACE cruft);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     { lhs => 'SGML_flow', rhs => ['SGML_flow_item'], min => 0 };
@@ -588,29 +586,32 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
         action => '!BODY_handler',
     },
     { lhs => 'flow', rhs => ['flow_item'], min => 0 },
-    {   lhs    => 'cruft',
-        rhs    => ['CRUFT'],
-        action => '!CRUFT_handler',
-    },
     );
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'flow_item', rhs => [$_] } }
-    qw(block_element head_item inline_element CDATA PCDATA);
+    qw(cruft SGML_item block_element inline_element WHITESPACE CDATA PCDATA);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'head_item', rhs => [$_] } }
-    qw(cruft WHITESPACE SGML_item);
+    qw(head_element cruft WHITESPACE SGML_item);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     { lhs => 'inline_flow', rhs => ['inline_flow_item'], min => 0 };
+
+push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'inline_flow_item', rhs => [$_] } }
     qw(CDATA PCDATA cruft WHITESPACE SGML_item inline_element);
 
 %Marpa::UrHTML::Internal::CONTENTS = (
-   'p' => 'inline_flow'
+    'p' => 'inline_flow',
+    (   map { $_ => 'empty' }
+            qw(
+            area base basefont br col frame hr
+            img input isindex link meta param)
+    )
 );
 
 my %start_tags = ();
@@ -661,7 +662,7 @@ sub Marpa::UrHTML::parse {
                 my ( $offset, $offset_end, $tag_name ) =
                     @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 $start_tags{$tag_name}++;
-                my $terminal = $_ . q{_} . $tag_name;
+                my $terminal =  "S_$tag_name";
                 $terminals{$terminal}++;
                 push @marpa_tokens,
                     [
@@ -673,13 +674,8 @@ sub Marpa::UrHTML::parse {
                 my ( $offset, $offset_end, $tag_name ) =
                     @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 $end_tags{$tag_name}++;
-                my $terminal = $_ . q{_} . $tag_name;
-                if (not
-                    defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$tag_name}
-                    )
-                {
-                    $terminals{$terminal}++;
-                } ## end if ( not defined ...)
+                my $terminal =  "E_$tag_name";
+                $terminals{$terminal}++;
                 push @marpa_tokens,
                     [
                     $terminal,
@@ -716,6 +712,7 @@ sub Marpa::UrHTML::parse {
 
     my @rules     = @Marpa::UrHTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
+    my @unproductive_ok = ();
 
     my %element_actions              = ();
     my %pseudo_class_element_actions = ();
@@ -727,81 +724,76 @@ sub Marpa::UrHTML::parse {
     delete $start_tags{body};
 
     ELEMENT: for ( keys %start_tags ) {
-        when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$_} ) {
-            my $this_element = "ELE_$_";
-            push @rules,
-                {
-                lhs => $this_element,
-                rhs => ["S_$_"],
-                };
-            my $element_type =
-                  $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ? 'head_item'
-                : $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
-                ? 'block_element'
-                : 'inline_element';
-            push @rules,
-                {
-                lhs    => $element_type,
-                rhs    => [$this_element],
-                action => "!ELE_$_",
-                };
-            $element_actions{"!ELE_$_"} = $_;
-        } ## end when ( defined $Marpa::UrHTML::Internal::EMPTY_ELEMENT...)
-        default {
-            my $this_element = "ELE_$_";
-            my $start_tag    = "S_$_";
-            my $end_tag      = "E_$_";
-            my $contents = $Marpa::UrHTML::Internal::CONTENTS{$_} // 'flow';
-            push @rules,
-                {
-                lhs            => "$this_element",
-                rhs            => ["T_$this_element"],
-                action         => "!T_ELE_$_",
-                },
-                {
-                lhs            => "$this_element",
-                rhs            => ["U_$this_element"],
-                action         => "!U_ELE_$_",
-                },
-                {
-                lhs => "T_$this_element",
-                rhs => [ $start_tag, $contents, $end_tag ],
-                },
-                {
-                lhs => "U_$this_element",
-                rhs => [$start_tag],
-                };
-            my $element_type =
-                  $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_} ? 'head_item'
-                : $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_}
-                ? 'block_element'
-                : 'inline_element';
-            push @rules,
-                {
-                lhs    => $element_type,
-                rhs    => [$this_element],
-                action => "!ELE_$_",
-                };
+        my $start_tag = "S_$_";
+        my $end_tag   = "E_$_";
+        my $contents  = $Marpa::UrHTML::Internal::CONTENTS{$_} // 'flow';
+        my $element_type =
+              $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_}  ? 'head_element'
+            : $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_} ? 'block_element'
+            :                                               'inline_element';
+        push @rules,
+            {
+            lhs    => $element_type,
+            rhs    => [ $start_tag, $contents, $end_tag ],
+            action => "!ELE_$_",
+            };
 
-            # There may be no
-            # end tag in the input.
-            # This silences the warning.
-            if ( not $terminals{$end_tag} ) {
-                push @terminals, $end_tag;
-                $terminals{$end_tag}++;
-            }
+        # There may be no
+        # end tag in the input.
+        # This silences the warning.
+        if ( not $terminals{$end_tag} ) {
+            push @terminals, $end_tag;
+            $terminals{$end_tag}++;
+        }
+        $Marpa::UrHTML::Internal::OPTIONAL_TERMINALS{$end_tag}++;
 
-            $pseudo_class_element_actions{"!U_ELE_$_"} =
-                [ UNTERMINATED => $_ ];
-            $pseudo_class_element_actions{"!T_ELE_$_"} = [ TERMINATED => $_ ];
-            $element_actions{"!ELE_$_"} = $_;
-        } ## end default
+        $element_actions{"!ELE_$_"} = $_;
     } ## end for ( keys %start_tags )
+    
+    my %ok_as_cruft = ();
+
+    OK_AS_CRUFT: for (keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS) {
+
+        # When expecting start tags nothing is OK as cruft.
+        when (/S_.*/) { ; }
+
+        # When expecting E_head, nothing is OK as cruft
+        # When expecting E_p, nothing is OK as cruft
+        when ([qw(E_head E_p)]) { ; }
+
+        # When expecting E_html, that is, when in the top root
+        # flow everything but an EOF is fine as cruft
+        when ('E_html') {
+            TERMINAL: for my $actual_terminal (@terminals) {
+                next TERMINAL if $actual_terminal eq 'EOF';
+                $ok_as_cruft{$_}{$actual_terminal}++;
+            }
+        } ## end when ('E_html')
+
+        # When expecting E_body, that is, when in the top body
+        # flow, everything but an EOF or an E_html
+        # is fine as cruft
+        when ('E_body') {
+            TERMINAL: for my $actual_terminal (@terminals) {
+                next TERMINAL if $actual_terminal ~~ [qw(EOF E_html)];
+                $ok_as_cruft{$_}{$actual_terminal}++;
+            }
+        } ## end when ('E_head')
+
+        # Deal with empty tags -- nothing is OK as cruft
+
+        # Default is to treat the tag as non-empty and block-level:
+        # Everything but E_body, E_html and EOF is OK as cruft.
+        default {
+        ;
+        }
+    } ## end OK_AS_CRUFT:
 
     my $grammar = Marpa::Grammar->new(
         {   rules          => \@rules,
             start          => 'document',
             terminals      => \@terminals,
+            unproductive_ok => \@unproductive_ok,
             default_action => (
                 $self->{user_handlers_by_pseudo_class}->{ANY}->{DEFAULT}
                     // 'Marpa::UrHTML::Internal::default_action'
@@ -837,9 +829,14 @@ sub Marpa::UrHTML::parse {
     my ( $current_earleme, $expected_terminals ) = $recce->status();
     MARPA_TOKEN: for my $marpa_token (@marpa_tokens) {
         my $is_virtual_token = 1;
+        if ($trace_terminals) {
+            say {$trace_fh} "Literal Token: ", $marpa_token->[0];
+        }
+
         VIRTUAL_TOKEN: while ($is_virtual_token) {
             my $token_to_add;
             FIND_VIRTUAL_TOKEN: {
+                my $actual_terminal = $marpa_token->[0];
                 if ( $marpa_token->[0] ~~ $expected_terminals ) {
                     $token_to_add     = $marpa_token;
                     $is_virtual_token = 0;
@@ -848,16 +845,26 @@ sub Marpa::UrHTML::parse {
                 my @optionals_expected =
                     grep { $Marpa::UrHTML::Internal::OPTIONAL_TERMINALS{$_} }
                     @{$expected_terminals};
-                if ($trace_terminals) {
+                my $optionals_expected_count = scalar @optionals_expected;
+                if ( $trace_terminals or $optionals_expected_count > 1 ) {
                     say {$trace_fh} "Converting Token: ", $marpa_token->[0];
                     say {$trace_fh} +( scalar @optionals_expected ),
                         " optionals expected: ", join " ",
                         @optionals_expected;
-                } ## end if ($trace_terminals)
-                if (defined(
-                        my $optional_terminal = pop @optionals_expected
-                    )
-                    )
+                    Marpa::exception(
+                        'Fatal error: More than one optional terminal expected'
+                    ) if $optionals_expected_count > 1;
+                } ## end if ( $trace_terminals or $optionals_expected_count >...)
+
+                # Depending on the expected (optional or virtual)
+                # terminal and the actual
+                # terminal, we either want to add the actual one as cruft, or add
+                # the virtual one to move on in the parse.
+
+                my $optional_terminal = pop @optionals_expected;
+                if ( defined $optional_terminal
+                    and
+                    not $ok_as_cruft{$optional_terminal}{$actual_terminal} )
                 {
                     my $tdesc_list = $marpa_token->[1];
                     my $first_tdesc_start_token =
@@ -868,7 +875,7 @@ sub Marpa::UrHTML::parse {
                         [ [ 'EMPTY', $first_tdesc_start_token ] ]
                     ];
                     last FIND_VIRTUAL_TOKEN;
-                } ## end if ( defined( my $optional_terminal = pop ...))
+                } ## end if ( defined $optional_terminal and not $ok_as_cruft...)
 
                 # Cruft tokens are not virtual.
                 # They are the real things, hacked up.
@@ -887,6 +894,11 @@ sub Marpa::UrHTML::parse {
                         q{"};
                 } ## end if ($trace_cruft)
             } ## end FIND_VIRTUAL_TOKEN:
+
+            if ($trace_terminals) {
+                say {$trace_fh} "Adding Token: ", $token_to_add->[0];
+            }
+
             ( $current_earleme, $expected_terminals ) =
                 $recce->tokens( [$token_to_add], 'predict' );
             if ( not defined $current_earleme ) {

@@ -76,15 +76,6 @@ my $p = Marpa::UrHTML->new(
                     return;
                     }
             ],
-            [   ':UNTERMINATED' => sub {
-                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
-                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
-                    say STDERR
-                        "UNTERMINATED element starting on line $line:\n" .
-                        begin_and_end($literal) . "\n";
-                    return;
-                    }
-            ],
             [   'p' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
