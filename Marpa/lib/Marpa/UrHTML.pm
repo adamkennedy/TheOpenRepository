@@ -505,24 +505,31 @@ sub Marpa::UrHTML::new {
     return $self;
 } ## end sub Marpa::UrHTML::new
 
-# These are block-level ONLY elements.
+# block_element is for block-level ONLY elements.
+# head is for anything legal inside the HTML header.
 # Note that isindex can be both a head element and
 # and block level element in the body.
-# It is not present in this list
-%Marpa::UrHTML::Internal::BLOCK_ELEMENT = map { $_ => 1 } qw(
-    h1 h2 h3 h4 h5 h6
-    ul ol dir menu
-    pre
-    p dl div center
-    noscript noframes
-    blockquote form hr
-    table fieldset address
-);
-
-# Note that isindex can be both a head element and
-# and block level element in the body.
-%Marpa::UrHTML::Internal::HEAD_ELEMENT = map { $_ => 1 } qw(
-    script style meta link object title isindex base
+# ISINDEX is classified as a head_element
+%Marpa::UrHTML::Internal::ELEMENT_TYPE = (
+    (   map { $_ => 'block_element' }
+            qw(
+            h1 h2 h3 h4 h5 h6
+            ul ol dir menu
+            pre
+            p dl div center
+            noscript noframes
+            blockquote form hr
+            table fieldset address
+            )
+    ),
+    (   map { $_ => 'head_element' }
+            qw(
+            script style meta link object title isindex base
+            )
+    ),
+    ( map { $_ => 'list_item_element' } qw( li dd dt ) ),
+    ( map { $_ => 'table_cell_element' } qw( td th ) ),
+    ( map { $_ => 'table_row_element' } qw( tr ) ),
 );
 
 %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS = 
@@ -590,7 +597,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'flow_item', rhs => [$_] } }
-    qw(cruft SGML_item head_element block_element inline_element WHITESPACE CDATA PCDATA);
+    qw(cruft SGML_item list_item_element head_element block_element inline_element WHITESPACE CDATA PCDATA);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'head_item', rhs => [$_] } }
@@ -599,11 +606,63 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 push @Marpa::UrHTML::Internal::CORE_RULES,
     { lhs => 'inline_flow', rhs => ['inline_flow_item'], min => 0 };
 
-push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
-
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'inline_flow_item', rhs => [$_] } }
-    qw(CDATA PCDATA cruft WHITESPACE SGML_item inline_element);
+    qw(pcdata_flow_item inline_element);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'pcdata_flow', rhs => ['pcdata_flow_item'], min => 0 };
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'pcdata_flow_item', rhs => [$_] } }
+    qw(CDATA PCDATA cruft WHITESPACE SGML_item);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'Contents_select', rhs => ['select_flow_item'], min => 0 };
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'select_flow_item', rhs => [$_] } }
+    qw(ELE_optgroup ELE_option SGML_flow_item);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'Contents_optgroup', rhs => ['optgroup_flow_item'], min => 0 };
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'optgroup_flow_item', rhs => [$_] } }
+    qw(ELE_option SGML_flow_item);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'list_item_flow', rhs => ['list_item_flow_item'], min => 0 };
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'list_item_flow_item', rhs => [$_] } }
+    qw(cruft SGML_item head_element block_element inline_element WHITESPACE CDATA PCDATA);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'Contents_colgroup', rhs => ['colgroup_flow_item'], min => 0 };
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'colgroup_flow_item', rhs => [$_] } }
+    qw(ELE_col SGML_flow_item);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'table_row_flow', rhs => ['table_row_flow_item'], min => 0 };
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'table_row_flow_item', rhs => [$_] } }
+    qw(table_cell_element SGML_flow_item);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'table_section_flow', rhs => ['table_section_flow_item'], min => 0 };
+
+# Use ELE_tr directly, instead of table_row_element, for efficiency
+# This makes table_row element always inaccessible, but it keeps
+# ELE_tr from falling into the default category
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'table_section_flow_item', rhs => [$_] } }
+    qw(ELE_tr SGML_flow_item);
+
+push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
 
 %Marpa::UrHTML::Internal::EMPTY_ELEMENT = map { $_ => 1 } qw(
     area base basefont br col frame hr
@@ -611,6 +670,17 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 
 %Marpa::UrHTML::Internal::CONTENTS = (
     'p' => 'inline_flow',
+    'select' => 'Contents_select',
+    'option' => 'pcdata_flow',
+    'optgroup' => 'Contents_optgroup',
+    'dt' => 'inline_flow',
+    'dd' => 'list_item_flow',
+    'li' => 'list_item_flow',
+    'tr' => 'table_row_flow',
+    'colgroup' => 'Contents_colgroup',
+    'thead' => 'table_section_flow',
+    'tfoot' => 'table_section_flow',
+    'tbody' => 'table_section_flow',
     ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT )
 );
 
@@ -724,16 +794,19 @@ sub Marpa::UrHTML::parse {
     delete $start_tags{body};
 
     ELEMENT: for ( keys %start_tags ) {
-        my $start_tag = "S_$_";
-        my $end_tag   = "E_$_";
-        my $contents  = $Marpa::UrHTML::Internal::CONTENTS{$_} // 'flow';
-        my $element_type =
-              $Marpa::UrHTML::Internal::HEAD_ELEMENT{$_}  ? 'head_element'
-            : $Marpa::UrHTML::Internal::BLOCK_ELEMENT{$_} ? 'block_element'
-            :                                               'inline_element';
+        my $start_tag    = "S_$_";
+        my $end_tag      = "E_$_";
+        my $contents     = $Marpa::UrHTML::Internal::CONTENTS{$_} // 'flow';
+        my $element_type = $Marpa::UrHTML::Internal::ELEMENT_TYPE{$_}
+            // 'inline_element';
+
         push @rules,
             {
-            lhs    => $element_type,
+            lhs => $element_type,
+            rhs => ["ELE_$_"],
+            },
+            {
+            lhs    => "ELE_$_",
             rhs    => [ $start_tag, $contents, $end_tag ],
             action => "!ELE_$_",
             };
@@ -760,12 +833,57 @@ sub Marpa::UrHTML::parse {
         # When expecting implicit start tags nothing is OK as cruft.
         next EXPECTED_TERMINAL if $expected_terminal =~ /^IS_/xms;
 
-        # When expecting E_head, nothing is OK as cruft
-        # When expecting E_p, nothing is OK as cruft
-        next EXPECTED_TERMINAL if $expected_terminal ~~ [qw(E_head E_p)];
+        # "Non-structural" elements are OK as cruft.
+        # "Non-structural" means not part of the logic for
+        # those tags.
+        # So for the OPTION elements 
+        # OPTION and OPTIONGROUP tags are structural
+        # and nothing else with one exception:
+        # The EOF tag is always structural.
+        if ($expected_terminal ~~ [qw(E_option)]) {
+            TERMINAL: for my $actual_terminal (@terminals) {
+                next TERMINAL if $actual_terminal ~~ [
+                    qw(EOF
+                    E_optgroup E_option E_select
+                    S_optgroup S_option S_select
+                    )
+                ];
+                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
+            }
+            next EXPECTED_TERMINAL;
+        }
 
+        # For list item elements (LI, DD and DT)
+        # EOF, list element tags
+        # and list item element tags are structural.
+        if ($expected_terminal ~~ [qw(E_li E_dd E_dt)]) {
+            TERMINAL: for my $actual_terminal (@terminals) {
+                next TERMINAL if $actual_terminal ~~ [
+                    qw(EOF
+                        E_li E_dd E_dt
+                        S_li S_dd S_dt
+                        E_ol E_ul E_dl
+                        S_ol S_ul S_dl
+                        )
+                ];
+                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
+            } ## end for my $actual_terminal (@terminals)
+            next EXPECTED_TERMINAL;
+        }
+
+        # Empty elements accept nothing as interior cruft
         next EXPECTED_TERMINAL if $expected_terminal ~~ /^E_/xms and 
             $Marpa::UrHTML::Internal::EMPTY_ELEMENT{substr $expected_terminal, 2};
+
+        # E_head, E_colgroup and E_p do not accept interior cruft, instead
+        # passing it along to the next element
+        next EXPECTED_TERMINAL if $expected_terminal ~~ [
+                    qw(
+                        E_head
+                        E_p
+                        E_colgroup
+                        )
+        ];
 
         # When expecting E_body, that is, when in the top body
         # flow, everything but an EOF or an E_html
@@ -778,18 +896,37 @@ sub Marpa::UrHTML::parse {
             next EXPECTED_TERMINAL;
         } ## end when ('E_head')
 
-        # TBODY, THEAD, TFOOT
+        # TD TH and TR elements accept interior cruft, but since
+        # their end tag is optional, it cannot be "structural".
+        # And EOF is never allowed as cruft.
+        if ($expected_terminal ~~ [qw(E_td E_th E_tr)]) {
+            TERMINAL: for my $actual_terminal (@terminals) {
+                next TERMINAL if $actual_terminal ~~ [qw(EOF E_table
+                    S_td _S_th S_tr S_tbody S_thead S_tfoot S_col S_caption S_colgroup
+                    E_td _E_th E_tr E_tbody E_thead E_tfoot E_col E_caption E_colgroup
+                )];
+                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
+            }
+            next EXPECTED_TERMINAL;
+        }
+
+
+        # TBODY, THEAD, TFOOT elements
         # must end at an EOF, at a TABLE end tag
-        # or at the start tag of a table-section-level element
-        # if ($expected_terminal ~~ [qw(E_tbody E_thead E_tfoot)]) {
-            # TERMINAL: for my $actual_terminal (@terminals) {
-                # next TERMINAL if $actual_terminal ~~ [qw(EOF E_table
-                    # S_tbody S_thead S_tfoot S_col S_caption S_colgroup
-                # )];
-                # $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
-            # }
-            # next EXPECTED_TERMINAL;
-        # }
+        # or at the start tag of another table-section-level element
+        # and will not accept a mismatched end tag as interior
+        # cruft.
+        # Other than that they are happy to accept interior cruft.
+        if ($expected_terminal ~~ [qw(E_tbody E_thead E_tfoot)]) {
+            TERMINAL: for my $actual_terminal (@terminals) {
+                next TERMINAL if $actual_terminal ~~ [qw(EOF E_table
+                    S_tbody S_thead S_tfoot S_col S_caption S_colgroup
+                    E_tbody E_thead E_tfoot E_col E_caption E_colgroup
+                )];
+                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
+            }
+            next EXPECTED_TERMINAL;
+        }
 
         if ($expected_terminal ~~ /^E_/xms) {
 

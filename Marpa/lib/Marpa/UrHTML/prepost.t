@@ -76,10 +76,26 @@ my $p = Marpa::UrHTML->new(
                     return;
                     }
             ],
+            [   'table' => sub {
+                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+                    say STDERR "TABLE at line $line:\n"
+                        . begin_and_end($literal) . "\n";
+                    return;
+                    }
+            ],
             [   'p' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
                     say STDERR "P at line $line:\n"
+                        . begin_and_end($literal) . "\n";
+                    return;
+                    }
+            ],
+            [   'option' => sub {
+                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+                    say STDERR "OPTION at line $line:\n"
                         . begin_and_end($literal) . "\n";
                     return;
                     }
