@@ -592,6 +592,10 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
         rhs    => [qw(S_body flow E_body)],
         action => '!BODY_handler',
     },
+    {   lhs    => 'ELE_tbody',
+        rhs    => [qw(S_tbody table_section_flow E_tbody)],
+        action => '!ELE_tbody',
+    },
     { lhs => 'flow', rhs => ['flow_item'], min => 0 },
     );
 
@@ -662,6 +666,19 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'table_section_flow_item', rhs => [$_] } }
     qw(ELE_tr SGML_flow_item);
 
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'table_flow', rhs => ['table_flow_item'], min => 0 };
+
+# Use ELE_tr directly, instead of table_row_element, for efficiency
+# This makes table_row element always inaccessible, but it keeps
+# ELE_tr from falling into the default category
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    map { { lhs => 'table_flow_item', rhs => [$_] } }
+    qw(
+        ELE_colgroup ELE_thead ELE_tfoot ELE_tbody
+        ELE_caption ELE_col SGML_flow_item
+    );
+
 push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
 
 %Marpa::UrHTML::Internal::EMPTY_ELEMENT = map { $_ => 1 } qw(
@@ -681,6 +698,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
     'thead' => 'table_section_flow',
     'tfoot' => 'table_section_flow',
     'tbody' => 'table_section_flow',
+    'table' => 'table_flow',
     ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT )
 );
 
@@ -785,13 +803,17 @@ sub Marpa::UrHTML::parse {
     my @unproductive_ok = ();
 
     my %element_actions              = ();
+    # Special case
+    $element_actions{'!ELE_tbody'} = 'tbody';
+
     my %pseudo_class_element_actions = ();
 
-    # Some HTML tags are special and
+    # HTML tags with both start and end optional
     # are dealt with elsewhere
     delete $start_tags{html};
     delete $start_tags{head};
     delete $start_tags{body};
+    delete $start_tags{tbody};
 
     ELEMENT: for ( keys %start_tags ) {
         my $start_tag    = "S_$_";
@@ -995,23 +1017,60 @@ sub Marpa::UrHTML::parse {
             my $token_to_add;
             FIND_VIRTUAL_TOKEN: {
                 my $actual_terminal = $marpa_token->[0];
-                if ( $marpa_token->[0] ~~ $expected_terminals ) {
+                if ( $actual_terminal ~~ $expected_terminals ) {
                     $token_to_add     = $marpa_token;
                     $is_virtual_token = 0;
                     last FIND_VIRTUAL_TOKEN;
                 }
-                my @optionals_expected =
-                    grep { $Marpa::UrHTML::Internal::OPTIONAL_TERMINALS{$_} }
-                    @{$expected_terminals};
-                my $optionals_expected_count = scalar @optionals_expected;
-                if ( $trace_terminals or $optionals_expected_count > 1 ) {
-                    say {$trace_fh} "Converting Token: ", $marpa_token->[0];
-                    say {$trace_fh} +( scalar @optionals_expected ),
-                        " optionals expected: ", join " ",
-                        @optionals_expected;
+
+                my $virtual_terminal;
+                PICK_VIRTUAL_TERMINAL: {
+                    my @virtuals_expected =
+                        grep {
+                        $Marpa::UrHTML::Internal::OPTIONAL_TERMINALS{$_}
+                        } @{$expected_terminals};
+                    my $virtuals_count = scalar @virtuals_expected;
+                    last PICK_VIRTUAL_TERMINAL if $virtuals_count <= 0;
+                    if ( $virtuals_count == 1 ) {
+                        $virtual_terminal = $virtuals_expected[0];
+                        last PICK_VIRTUAL_TERMINAL;
+                    }
+
+                    # I could save some code by putting this case earlier,
+                    # but by putting common cases first, I save time
+                    # and that's a lot
+                    # more important than avoiding code
+                    # repetition
+                    if ( 'S_tbody' ~~ \@virtuals_expected ) {
+                        if ( $actual_terminal eq 'S_tr' ) {
+                            $virtual_terminal = 'S_tbody';
+                            last PICK_VIRTUAL_TERMINAL;
+                        }
+                        @virtuals_expected =
+                            grep { $_ ne 'S_tbody' } @virtuals_expected;
+                    } ## end if ( 'S_tbody' ~~ \@virtuals_expected )
+
+                    $virtuals_count = scalar @virtuals_expected;
+                    last PICK_VIRTUAL_TERMINAL if $virtuals_count <= 0;
+                    if ( $virtuals_count == 1 ) {
+                        $virtual_terminal = $virtuals_expected[0];
+                        last PICK_VIRTUAL_TERMINAL;
+                    }
+
+                    say {$trace_fh}
+                        'Fatal internal error: Conflict of virtual choices';
+                    say {$trace_fh} "Actual Token is $actual_terminal";
+                    say {$trace_fh} +( scalar @virtuals_expected ),
+                        " virtual terminals expected: ", join " ",
+                        @virtuals_expected;
                     Marpa::exception(
-                        'Fatal error: More than one optional terminal expected'
-                    ) if $optionals_expected_count > 1;
+                        'Fatal internal error: More than one virtual terminal expected and cannot resolve choice'
+                    );
+
+                };
+
+                if ($trace_terminals) {
+                    say {$trace_fh} "Converting Token: ", $actual_terminal;
                 } ## end if ( $trace_terminals or $optionals_expected_count >...)
 
                 # Depending on the expected (optional or virtual)
@@ -1019,21 +1078,20 @@ sub Marpa::UrHTML::parse {
                 # terminal, we either want to add the actual one as cruft, or add
                 # the virtual one to move on in the parse.
 
-                my $optional_terminal = pop @optionals_expected;
-                if ( defined $optional_terminal
+                if ( defined $virtual_terminal
                     and
-                    not $ok_as_cruft{$optional_terminal}{$actual_terminal} )
+                    not $ok_as_cruft{$virtual_terminal}{$actual_terminal} )
                 {
                     my $tdesc_list = $marpa_token->[1];
                     my $first_tdesc_start_token =
                         $tdesc_list->[0]
                         ->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
                     $token_to_add = [
-                        $optional_terminal,
+                        $virtual_terminal,
                         [ [ 'EMPTY', $first_tdesc_start_token ] ]
                     ];
                     last FIND_VIRTUAL_TOKEN;
-                } ## end if ( defined $optional_terminal and not $ok_as_cruft...)
+                } ## end if ( defined $virtual_terminal and not $ok_as_cruft...)
 
                 # Cruft tokens are not virtual.
                 # They are the real things, hacked up.

@@ -21,6 +21,7 @@ etc/Makefile
 etc/not_in_manifest.pl
 etc/perlcriticrc
 inc/Test/Weaken.pm
+lib/Marpa/Callback.pm
 lib/Marpa/Doc/Algorithm.pod
 lib/Marpa/Doc/Bibliography.pod
 lib/Marpa/Doc/Debugging.pod
@@ -51,10 +52,9 @@ lib/Marpa/MDL/Symbol.pm
 lib/Marpa/Offset.pm
 lib/Marpa.pm
 lib/Marpa/Recognizer.pm
-lib/Marpa/Tie.pm
+lib/Marpa/UrHTML/Callback.pm
 lib/Marpa/UrHTML.pm
 lib/Marpa/UrHTML/t/copy.t
-lib/Marpa/UrHTML/Tie.pm
 lib/Marpa/UrHTML/t/no_tang.html
 lib/Marpa/UrHTML/t/tang.t
 lib/Marpa/UrHTML/t/test.html
