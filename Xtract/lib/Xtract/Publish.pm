@@ -10,7 +10,7 @@ use IO::Compress::Gzip  2.008 ();
 use IO::Compress::Bzip2 2.008 ();
 use Xtract::LZMA              ();
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 use Moose 0.73;
 
@@ -29,7 +29,7 @@ has 'from' => (
 
 sub flag ($$) {
 	has $_[0] => (
-		is       => 'ro',
+		is       => 'rw',
 		isa      => 'Bool',
 		required => 1,
 		default  => $_[1],
@@ -99,7 +99,12 @@ sub run {
 	if ( defined $gz ) {
 		$self->remove($gz);
 		$self->say("Compressing '$sqlite' into '$gz'");
-		unless ( IO::Compress::Gzip::gzip( $sqlite => $gz ) ) {
+		my $rv = IO::Compress::Gzip::gzip(
+			$sqlite   => $gz,
+			AutoClose => 1,
+			BinModeIn => 1,
+		);
+		unless ( $rv ) {
 			croak("Failed to create gzip archive '$gz'");
 		}
 	}
@@ -109,7 +114,12 @@ sub run {
 	if ( defined $bz2 ) {
 		$self->remove($bz2);
 		$self->say("Compressing '$sqlite' into '$bz2'");
-		unless ( IO::Compress::Bzip2::bzip2( $sqlite => $bz2 ) ) {
+		my $rv = IO::Compress::Bzip2::bzip2(
+			$sqlite   => $bz2,
+			AutoClose => 1,
+			BinModeIn => 1,
+		);
+		unless ( $rv ) {
 			croak("Failed to create bzip2 archive '$bz2'");
 		}
 	}

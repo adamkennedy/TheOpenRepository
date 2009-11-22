@@ -37,7 +37,7 @@ use Xtract::Scan                ();
 use Xtract::Scan::SQLite        ();
 use Xtract::Scan::mysql         ();
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 use Moose 0.73;
 use MooseX::Types::Common::Numeric 0.001 'PositiveInt';
@@ -60,6 +60,8 @@ has publish      => ( is => 'rw', isa => 'Xtract::Publish' );
 # Main Function
 
 sub main {
+	my $class = shift || __PACKAGE__;
+
 	# Parse the command line options
 	my $FROM  = '';
 	my $USER  = '';
@@ -84,7 +86,7 @@ sub main {
 	}
 
 	# Create the program instance
-	my $self = Xtract->new(
+	my $self = $class->new(
 		from  => $FROM,
 		user  => $USER,
 		pass  => $PASS,
@@ -94,6 +96,12 @@ sub main {
 		$CACHE ? ( sqlite_cache => $CACHE ) : (),
 		argv  => [ @ARGV ],
 	);
+
+	# Clear the existing output sqlite file
+	if ( defined $self->to and -e $self->to ) {
+		$self->say("Deleting '" . $self->to . "'");
+		File::Remove::remove($self->to);
+	}
 
 	# Run the object
 	$self->run;
@@ -111,36 +119,12 @@ sub run {
 	my $self  = shift;
 	my $start = Time::HiRes::time();
 
-	# Clear the existing output sqlite file
-	if ( defined $self->to and -e $self->to ) {
-		$self->say("Deleting '" . $self->to . "'");
-		File::Remove::remove($self->to);
-	}
-
-	# Check the command
-	my $command = shift(@ARGV) || 'all';
-	unless ( $command eq 'all' ) {
-		die("Unsupported command '$command'");
-	}
-
-	# Shortcut if there's no tables
-	unless ( $self->from_tables ) {
-		print "No tables to export\n";
-		exit(255);
-	}
-
 	# Create the target database
 	$self->say("Creating SQLite database " . $self->to);
 	$self->to_prepare;
 
-	# Push all source tables into the target database
-	foreach my $table ( $self->from_tables ) {
-		$self->say("Publishing table $table");
-		my $tstart = Time::HiRes::time();
-		my $rows   = $self->add_table( $table );
-		my $rate   = int($rows / (Time::HiRes::time() - $tstart));
-		$self->say("Completed  table $table ($rows rows @ $rate/sec)");
-	}
+	# Fill the database
+	$self->add;
 
 	# Generate any required indexes
 	if ( $self->index ) {
@@ -154,6 +138,9 @@ sub run {
 	$self->say("Cleaning up");
 	$self->to_finish;
 	$self->disconnect;
+
+	# Pause, briefly, to allow any disk caching stuff to cach up.
+	# This is a just a speculative attempt to fix a compression problem.
 
 	# Spawn the publisher to prepare the files for the public
 	$self->publish(
@@ -182,6 +169,35 @@ sub run {
 	}
 	if ( -f $self->publish->sqlite_lz ) {
 		$self->say( "Created " . $self->publish->sqlite_lz );
+	}
+
+	return 1;
+}
+
+sub add {
+	my $self = shift;
+
+	# Check the command
+	my $command = shift(@{$self->{argv}}) || 'all';
+	if ( $command eq 'all' ) {
+		# Shortcut if there's no tables
+		unless ( $self->from_tables ) {
+			print "No tables to export\n";
+			exit(255);
+		}
+	} elsif ( $command eq 'null' ) {
+		# Do nothing else special
+	} else {
+		die("Unsupported command '$command'");
+	}
+
+	# Push all source tables into the target database
+	foreach my $table ( $self->from_tables ) {
+		$self->say("Publishing table $table");
+		my $tstart = Time::HiRes::time();
+		my $rows   = $self->add_table( $table );
+		my $rate   = int($rows / (Time::HiRes::time() - $tstart));
+		$self->say("Completed  table $table ($rows rows @ $rate/sec)");
 	}
 
 	return 1;

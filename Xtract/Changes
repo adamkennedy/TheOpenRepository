@@ -1,5 +1,8 @@
 Changes for Perl extension Xtract
 
+0.12 Sun 22 Nov 2009
+	- Fixed some binmode-related bugs on Windows
+
 0.11 Mon  6 Jul 2009
 	- Bug fix to moose flag constructor
 
