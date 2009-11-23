@@ -1,7 +1,8 @@
 Changes for Perl extension Xtract
 
-0.12 Sun 22 Nov 2009
+0.12 Mon 23 Nov 2009
 	- Fixed some binmode-related bugs on Windows
+	- Updated to use DBD::SQLite 1.27
 
 0.11 Mon  6 Jul 2009
 	- Bug fix to moose flag constructor
