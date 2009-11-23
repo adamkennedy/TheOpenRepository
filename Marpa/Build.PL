@@ -43,7 +43,6 @@ my $build = $class->new(
     dist_version         => $marpa_version,
     dist_abstract        => 'Generate Parsers from any BNF grammar',
     requires             => { 'Scalar::Util' => 0, },
-    recursive_test_files => 1,
     build_requires       => {
 
         # Scalar::Util::weaken no longer required
@@ -51,7 +50,7 @@ my $build = $class->new(
     },
     meta_merge => {
         no_index => {
-            directory => [qw(inc t author.t save)],
+            directory => [qw( inc t author.t save lib/Marpa/Doc/Not_Updated )],
             namespace => [
                 'Marpa::Internal',        'Marpa::MDL::Internal',
                 'Marpa::MDLex::Internal', 'Marpa::UrHTML::Internal'
@@ -62,28 +61,8 @@ my $build = $class->new(
     meta_add => {
         distribution_type => 'module',
         provides          => {
-            'Marpa' => {
-                file    => 'lib/Marpa.pm',
-                version => $marpa_version,
-            },
-            'Marpa::Evaluator' => {
-                file    => 'lib/Marpa/Evaluator.pm',
-                version => $marpa_version,
-            },
-            'Marpa::Recognizer' => {
-                file    => 'lib/Marpa/Recognizer.pm',
-                version => $marpa_version,
-            },
-            'Marpa::Grammar' => {
-                file    => 'lib/Marpa/Grammar.pm',
-                version => $marpa_version,
-            },
-            'Marpa::MDL' => {
-                file    => 'lib/Marpa/MDL.pm',
-                version => $marpa_version,
-            },
-            'Marpa::MDLex' => {
-                file    => 'lib/Marpa/MDLex.pm',
+            'Marpa::UrHTML' => {
+                file    => 'lib/Marpa/UrHTML.pm',
                 version => $marpa_version,
             },
         },

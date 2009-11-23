@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use integer;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
 

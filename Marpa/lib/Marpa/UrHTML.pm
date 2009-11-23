@@ -13,7 +13,7 @@ use HTML::Tagset ();
 use Marpa;
 use Marpa::Internal;
 
-use Smart::Comments '-ENV';
+# use Smart::Comments '-ENV';
 
 ### <where> Using smart comments ...
 
