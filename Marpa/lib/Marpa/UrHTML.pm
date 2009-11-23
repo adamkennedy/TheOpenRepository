@@ -707,6 +707,10 @@ my %end_tags   = ();
 
 sub Marpa::UrHTML::parse {
     my ( $self, $document_ref ) = @_;
+
+    Marpa::exception("parse() already run on this object\n", "For a new parse, create a new object")
+        if $self->{document};
+
     my $trace_cruft     = $self->{trace_cruft};
     my $trace_terminals = $self->{trace_terminals};
     my $trace_fh        = $self->{trace_fh};
@@ -800,7 +804,6 @@ sub Marpa::UrHTML::parse {
 
     my @rules     = @Marpa::UrHTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
-    my @unproductive_ok = ();
 
     my %element_actions              = ();
     # Special case
@@ -970,10 +973,34 @@ sub Marpa::UrHTML::parse {
     } ## end OK_AS_CRUFT:
 
     my $grammar = Marpa::Grammar->new(
-        {   rules          => \@rules,
-            start          => 'document',
-            terminals      => \@terminals,
-            unproductive_ok => \@unproductive_ok,
+        {   rules     => \@rules,
+            start     => 'document',
+            terminals => \@terminals,
+
+            inaccessible_ok => [
+                qw(
+                    Contents_colgroup Contents_optgroup Contents_select
+                    ELE_caption ELE_col ELE_colgroup
+                    ELE_optgroup ELE_option
+                    ELE_tbody ELE_tfoot ELE_thead ELE_tr
+                    E_tbody S_tbody
+                    colgroup_flow_item empty inline_flow inline_flow_item
+                    list_item_flow list_item_flow_item optgroup_flow_item
+                    pcdata_flow pcdata_flow_item select_flow_item
+                    table_cell_element table_flow table_flow_item
+                    table_row_flow table_row_flow_item table_section_flow
+                    table_section_flow_item
+                    )
+            ],
+
+            unproductive_ok => [
+                qw(
+                    ELE_caption ELE_col ELE_colgroup ELE_optgroup ELE_option
+                    ELE_tfoot ELE_thead ELE_tr
+                    block_element head_element inline_element list_item_element
+                    table_cell_element)
+            ],
+
             default_action => (
                 $self->{user_handlers_by_pseudo_class}->{ANY}->{DEFAULT}
                     // 'Marpa::UrHTML::Internal::default_action'
@@ -1272,7 +1299,11 @@ Marpa::UrHTML - Element-level HTML Parser
 
 =head1 SYNOPSIS
 
+Coming Soon!
+
 =head1 DESCRIPTION
+
+Coming Soon!
 
 =head1 AUTHOR
 
