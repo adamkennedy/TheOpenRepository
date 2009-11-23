@@ -4,7 +4,6 @@ CVS/.*
 \.sw[a-z]$
 \.tar$
 \.tgz$
-\.tar\.gz$
 \.o$
 \.xsi$
 \.bs$
