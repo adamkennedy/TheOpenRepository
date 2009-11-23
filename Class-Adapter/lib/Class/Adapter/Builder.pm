@@ -379,11 +379,15 @@ END_METHOD
 
 sub _make_OBJECT { <<"END_OBJECT" }
 sub isa {
-	shift->_OBJECT_->isa(\@_);
+	ref(\$_[0])
+	? shift->_OBJECT_->isa(\@_)
+	: shift->isa(\@_);
 }
 
 sub can {
-	shift->_OBJECT_->can(\@_);
+	ref(\$_[0])
+	? shift->_OBJECT_->can(\@_)
+	: shift->can(\@_);
 }
 END_OBJECT
 
@@ -400,7 +404,7 @@ sub _make_ISA {
 		# we should try to require the module (even if it doesn't exist)
 		# so that we can provide an accurate answer in the case where
 		# we are faking a module that exists.
-		( map { "\trequire $_;\n" } @{$self->{fake}} ),
+		( map { "\trequire $_ unless $_->isa('UNIVERSAL');\n" } @{$self->{fake}} ),
 		"\treturn 1 if \$_[0]->SUPER::can(\$_[1]);\n",
 		( map { "\treturn 1 if $_->can(\$_[1]);\n" } @_ ),
 		"\treturn undef;\n",
