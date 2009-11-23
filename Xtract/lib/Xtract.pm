@@ -231,7 +231,7 @@ sub _sqlite_table {
 	# source table directly (hopefully).
 	my $info = eval {
 		$self->from_dbh->column_info(
-			'', '', $from, '%'
+			'', 'main', $from, '%'
 		)->fetchall_arrayref( {} );
 	};
 	unless ( $@ eq '' and $info ) {
