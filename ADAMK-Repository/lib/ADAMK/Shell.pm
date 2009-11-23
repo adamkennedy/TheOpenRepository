@@ -199,8 +199,22 @@ sub report_changed_versions {
 		next unless -f $extract->changes_file;
 
 		# Skip if there's no new significant changes
-		my $trunk   = $dist->changes->current->version;
-		my $release = $extract->changes->current->version;
+		my $trunk = eval {
+			$dist->changes->current->version
+		};
+		if ( $@ ) {
+			print "Failed to parse " . $dist->changes_file . "\n";
+			next;
+		}
+
+		my $release = eval {
+			$extract->changes->current->version
+		};
+		if ( $@ ) {
+			print "Failed to parse " . $extract->changes_file . "\n";
+			next;
+		}
+
 		if ( $trunk eq $release ) {
 			next unless $NOCHANGES;
 		}
