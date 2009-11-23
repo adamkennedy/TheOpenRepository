@@ -1,6 +1,6 @@
 package pip;
 
-use 5.005;
+use 5.00503;
 use strict;
 use File::Spec         ();
 use File::Temp         ();
@@ -11,7 +11,7 @@ use Module::Plan::Base ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.15';
+	$VERSION = '1.16';
 }
 
 
@@ -33,7 +33,7 @@ sub main {
 	}
 
 	# If the first argument is a file, install it
-	if ( $ARGV[0] =~ /^http\:\/\// ) {
+	if ( $ARGV[0] =~ /^https?\:\/\// ) {
 		return fetch_any($ARGV[0]);
 	}
 	if ( -f $ARGV[0] ) {
@@ -48,7 +48,7 @@ sub fetch_any {
 
 	# Handle tarballs via a custom Module::Plan::Lite object.
 	# Also handle PAR archives
-	if ( $uri =~ /\.(?:par|tar\.gz)$/  ) {
+	if ( $uri =~ /\.(?:par|zip|tar\.gz)$/  ) {
 		require Module::Plan::Lite;
 		my $plan = Module::Plan::Lite->new(
 			p5i   => 'default.p5i',
@@ -90,7 +90,7 @@ sub read_any {
 	my $param = $_[0];
 
 	# If the first argument is a tar.gz file, hand off to install
-	if ( $param =~ /\.tar\.gz$/ ) {
+	if ( $param =~ /\.(?:zip|tar\.gz)$/ ) {
 		return read_archive(@_);
 	}
 

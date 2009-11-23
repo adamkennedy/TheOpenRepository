@@ -14,7 +14,7 @@ requires       'File::Spec'     => $WIN32 ? '3.23' : '0.80';
 # This also lets pip package properly on 5.8.5 (specifically RHEL 4)
 requires       'File::Temp'     => $WIN32 ? '0.15' : '0.14';
 
-requires       'File::Which'    => '0.05';
+requires       'File::Which'    => '1.08';
 requires       'File::pushd'    => '0.32';
 requires       'Getopt::Long'   => 0;
 requires       'CPAN'           => '1.76';
@@ -25,11 +25,14 @@ requires       'LWP::Simple'    => 0;
 requires       'PAR::Dist'      => '0.25';
 test_requires  'Test::More'     => '0.42';
 test_requires  'Test::Script'   => '1.02';
-test_requires  'LWP::Online'    => '0.02';
+test_requires  'LWP::Online'    => '1.06';
 install_script 'pip';
 
 # Required for p5z creation and extraction
 requires       'IO::Zlib'       => 0;
 requires       'Archive::Tar'   => 0;
+
+# Zip support
+requires       'Archive::Zip'   => '1.29';
 
 WriteAll;

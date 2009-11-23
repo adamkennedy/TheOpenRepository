@@ -6,10 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 7;
 use Test::Script;
-
-ok( $] >= 5.005, 'Perl version is newer than 5.005' );
 
 use_ok( 'Module::Plan::Base'    );
 use_ok( 'Module::Plan::Lite'    );
