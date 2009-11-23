@@ -2,10 +2,13 @@
 
 ORDB::AU::Census2006 - An ORLite-based ORM Database API
 
+=head1 SYNOPSIS
+
+  TO BE COMPLETED
+
 =head1 DESCRIPTION
 
-ORDB::AU::Census2006 is a Perl interface to the Australian 2006 Census,
-at the most detailed Census District level.
+TO BE COMPLETED
 
 =head1 METHODS
 
@@ -134,8 +137,11 @@ ORDB::AU::Census2006 is based on L<ORLite> 1.28.
 
 Documentation created by L<ORLite::Pod> 0.07.
 
-For general support please see the support section of the main
-project documentation.
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORDB-AU-Census2006>
+
+For other issues, contact the author.
 
 =head1 COPYRIGHT
 
