@@ -22,8 +22,6 @@ package Marpa::UrHTML::Internal;
 use Marpa::Internal;
 
 BEGIN {
-    ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
     use Devel::Size;
 }
 
@@ -215,7 +213,6 @@ sub create_tdesc_handler {
         my $doc          = $self->{doc};
         my @tdesc_result = ();
 
-        my $last_token;
         my $first_token_id_in_current_span;
         my $last_token_id_in_current_span;
 
@@ -331,7 +328,7 @@ sub wrap_user_tdesc_handler {
         return [ [ ELE => $tokens[0], $tokens[-1], $user_handler->() ] ];
         }
 } ## end sub wrap_user_tdesc_handler
-        
+
 sub setup_offsets {
     my ($self) = @_;
     my $document = $self->{document};
@@ -346,7 +343,10 @@ sub setup_offsets {
     return 1;
 }
 
+# Apparently a perlcritic bug as of 2009-11-22
+## no critic (Subroutines::RequireFinalReturn)
 sub earleme_to_offset {
+
     my ( $self, $token_offset ) = @_;
     my $html_parser_tokens   = $self->{tokens};
 
@@ -394,6 +394,7 @@ sub earleme_to_offset {
 
     return ($offset, $line);
 }
+## use critic
 
 my %ARGS = (
     start       => q{'S',offset,offset_end,tagname,attr},
@@ -532,7 +533,7 @@ sub Marpa::UrHTML::new {
     ( map { $_ => 'table_row_element' } qw( tr ) ),
 );
 
-%Marpa::UrHTML::Internal::OPTIONAL_TERMINALS = 
+%Marpa::UrHTML::Internal::OPTIONAL_TERMINALS =
     map { ( "S_$_" => 1, "E_$_" => 1 ) } qw( html head body tbody );
 
 my @SGML_rh_sides = qw(D C PI);
@@ -699,7 +700,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
     'tfoot' => 'table_section_flow',
     'tbody' => 'table_section_flow',
     'table' => 'table_flow',
-    ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT )
+    ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT ),
 );
 
 my %start_tags = ();
@@ -708,8 +709,10 @@ my %end_tags   = ();
 sub Marpa::UrHTML::parse {
     my ( $self, $document_ref ) = @_;
 
-    Marpa::exception("parse() already run on this object\n", "For a new parse, create a new object")
-        if $self->{document};
+    Marpa::exception(
+        "parse() already run on this object\n",
+        'For a new parse, create a new object'
+    ) if $self->{document};
 
     my $trace_cruft     = $self->{trace_cruft};
     my $trace_terminals = $self->{trace_terminals};
@@ -847,7 +850,7 @@ sub Marpa::UrHTML::parse {
 
         $element_actions{"!ELE_$_"} = $_;
     } ## end for ( keys %start_tags )
-    
+
     my %ok_as_cruft = ();
 
     EXPECTED_TERMINAL: for my $expected_terminal (keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS) {
@@ -897,7 +900,7 @@ sub Marpa::UrHTML::parse {
         }
 
         # Empty elements accept nothing as interior cruft
-        next EXPECTED_TERMINAL if $expected_terminal ~~ /^E_/xms and 
+        next EXPECTED_TERMINAL if $expected_terminal ~~ /^E_/xms and
             $Marpa::UrHTML::Internal::EMPTY_ELEMENT{substr $expected_terminal, 2};
 
         # E_head, E_colgroup and E_p do not accept interior cruft, instead
@@ -1028,7 +1031,7 @@ sub Marpa::UrHTML::parse {
     );
 
     if ( $ENV{TRACE_SIZE} ) {
-        say "newly created recce size: ", total_size($recce);
+        say 'newly created recce size: ', total_size($recce);
     }
 
     $self->{recce}  = $recce;
@@ -1037,7 +1040,7 @@ sub Marpa::UrHTML::parse {
     MARPA_TOKEN: for my $marpa_token (@marpa_tokens) {
         my $is_virtual_token = 1;
         if ($trace_terminals) {
-            say {$trace_fh} "Literal Token: ", $marpa_token->[0];
+            say {$trace_fh} 'Literal Token: ', $marpa_token->[0];
         }
 
         VIRTUAL_TOKEN: while ($is_virtual_token) {
@@ -1069,6 +1072,7 @@ sub Marpa::UrHTML::parse {
                     # more important than avoiding code
                     # repetition
                     if ( 'S_tbody' ~~ \@virtuals_expected ) {
+                        ## no critic (ControlStructures::ProhibitDeepNests)
                         if ( $actual_terminal eq 'S_tr' ) {
                             $virtual_terminal = 'S_tbody';
                             last PICK_VIRTUAL_TERMINAL;
@@ -1088,7 +1092,7 @@ sub Marpa::UrHTML::parse {
                         'Fatal internal error: Conflict of virtual choices';
                     say {$trace_fh} "Actual Token is $actual_terminal";
                     say {$trace_fh} +( scalar @virtuals_expected ),
-                        " virtual terminals expected: ", join " ",
+                        ' virtual terminals expected: ', join q{ },
                         @virtuals_expected;
                     Marpa::exception(
                         'Fatal internal error: More than one virtual terminal expected and cannot resolve choice'
@@ -1097,7 +1101,7 @@ sub Marpa::UrHTML::parse {
                 };
 
                 if ($trace_terminals) {
-                    say {$trace_fh} "Converting Token: ", $actual_terminal;
+                    say {$trace_fh} 'Converting Token: ', $actual_terminal;
                 } ## end if ( $trace_terminals or $optionals_expected_count >...)
 
                 # Depending on the expected (optional or virtual)
@@ -1139,7 +1143,7 @@ sub Marpa::UrHTML::parse {
             } ## end FIND_VIRTUAL_TOKEN:
 
             if ($trace_terminals) {
-                say {$trace_fh} "Adding Token: ", $token_to_add->[0];
+                say {$trace_fh} 'Adding Token: ', $token_to_add->[0];
             }
 
             ( $current_earleme, $expected_terminals ) =
@@ -1160,12 +1164,12 @@ sub Marpa::UrHTML::parse {
     } ## end for my $marpa_token (@marpa_tokens)
 
     if ($trace_terminals) {
-        say {$trace_fh} "at end of tokens, expecting: ", join " ",
+        say {$trace_fh} 'at end of tokens, expecting: ', join q{ },
             @{$expected_terminals};
     }
 
     if ( $ENV{TRACE_SIZE} ) {
-        say "pre-strip recce size: ", total_size($recce);
+        say 'pre-strip recce size: ', total_size($recce);
         for my $ix ( 0 .. $#{$recce} ) {
             say "pre-strip recce size, element $ix: ",
                 total_size( $recce->[$ix] );
@@ -1174,7 +1178,7 @@ sub Marpa::UrHTML::parse {
     $recce->strip();    # Saves lots of memory
 
     if ( $ENV{TRACE_SIZE} ) {
-        say "post-strip recce size: ", total_size($recce);
+        say 'post-strip recce size: ', total_size($recce);
         for my $ix ( 0 .. $#{$recce} ) {
             say "pre-strip recce size, element $ix: ",
                 total_size( $recce->[$ix] );
@@ -1191,7 +1195,7 @@ sub Marpa::UrHTML::parse {
         '!TOP_handler'    => (
             $self->{user_handlers_by_pseudo_class}->{ANY}->{TOP}
                 // \&Marpa::UrHTML::Internal::default_top_handler
-        )
+        ),
     );
 
     PSEUDO_CLASS:
@@ -1240,7 +1244,7 @@ sub Marpa::UrHTML::parse {
         Marpa::exception('No parse') if not $evaler;
 
         if ( $ENV{TRACE_SIZE} ) {
-            say "pre-undef recce size: ", total_size($recce);
+            say 'pre-undef recce size: ', total_size($recce);
             for my $ix ( 0 .. $#{$recce} ) {
                 say "pre-undef recce size, element $ix: ",
                     total_size( $recce->[$ix] );
@@ -1250,7 +1254,7 @@ sub Marpa::UrHTML::parse {
         $recce = undef;    # conserve memory
 
         if ( $ENV{TRACE_SIZE} ) {
-            say "post-undef recce size: ", total_size($recce);
+            say 'post-undef recce size: ', total_size($recce);
         }
 
         if ( my $verbose = $self->{trace_ambiguity} ) {
@@ -1274,8 +1278,14 @@ sub Marpa::UrHTML::parse {
                 Marpa::UrHTML::Internal::earleme_to_offset( $self,
                 $last_good_earleme );
             say 'last_good_offset=', Data::Dumper::Dumper($last_good_offset);
+
+            # 100 characters --
+            # the amount of context to put in the error message
+            #
+            ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
             say 'last good at ',
-                substr( ${$document}, $last_good_offset, 100 );
+                ( substr ${$document}, $last_good_offset, 100 );
+            ## use critic
 
             say Data::Dumper::Dumper( $recce->find_parse() );
 

@@ -64,14 +64,15 @@ for my $i ( 0 .. $input_length ) {
     for my $maximal ( 0, 1 ) {
         local $MyTest::MAXIMAL = $maximal;
         my $expected = $maximal ? \@maximal : \@minimal;
-        my $name = $maximal ? 'maximal': 'minimal';
-        my $evaler = Marpa::Evaluator->new(
+        my $name     = $maximal ? 'maximal' : 'minimal';
+        my $evaler   = Marpa::Evaluator->new(
             {   recce => $recce,
                 end   => $i,
             }
         );
         my $result = $evaler->value();
-        Test::More::is( ${$result}, $expected->[$i], "$name parse permutation $i" );
+        Test::More::is( ${$result}, $expected->[$i],
+            "$name parse permutation $i" );
 
     } ## end for my $maximal ( 0, 1 )
 } ## end for my $i ( 0 .. $input_length )

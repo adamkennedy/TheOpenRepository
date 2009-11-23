@@ -322,7 +322,7 @@ sub Marpa::Recognizer::find_parse {
 
     my %lhs_seen;
     my @found_symbols =
-        grep { ( $_ ~~ $match ) and !( $lhs_seen{$_}++ ) }
+        grep { ( $_ ~~ $match ) and not ( $lhs_seen{$_}++ ) }
         map { @{ $_->[Marpa::Internal::QDFA::COMPLETE_LHS] } } @found_states;
 
     return $earley_set_ix if not wantarray;
@@ -374,6 +374,7 @@ sub Marpa::Recognizer::unstringify {
 sub Marpa::Recognizer::strip {
     my ($recce)    = @_;
     $#{$recce} = Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD;
+    return 1;
 }
 
 sub Marpa::Recognizer::clone {
@@ -948,6 +949,7 @@ sub Marpa::Recognizer::tokens {
 
         if ($trace_earley_sets) {
             print {$trace_fh} Marpa::show_earley_set($earley_set)
+                or Marpa::exception("print failed: $!");
         }
 
         $current_terminals = [

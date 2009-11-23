@@ -41,50 +41,50 @@ my @handlers = (
             }
     ],
     [   '.codepoint' => sub {
-            for my $value ( @{&Marpa::UrHTML::element_values()} ) {
+            for my $value ( @{ ( Marpa::UrHTML::element_values() ) } ) {
                 next CHILD if not $value;
-                my ( $class, $literal, $data ) = @{ $value };
-                if ($class eq 'occurrences') {
-                    $Marpa::UrHTML::INSTANCE->{Marpa::UrHTML::title()}->{occurrence_count} = $data;
+                my ( $class, $literal, $data ) = @{$value};
+                if ( $class eq 'occurrences' ) {
+                    $Marpa::UrHTML::INSTANCE->{ Marpa::UrHTML::title() }
+                        ->{occurrence_count} = $data;
                 }
-                $Marpa::UrHTML::INSTANCE->{Marpa::UrHTML::title()}->{$class} = $literal;
-            }
+                $Marpa::UrHTML::INSTANCE->{ Marpa::UrHTML::title() }
+                    ->{$class} = $literal;
+            } ## end for my $value ( @{ ( Marpa::UrHTML::element_values() ...)})
             return;
             }
     ]
 );
 
-push @handlers, 
-       [   '.occurrences' =>
-                sub {
-                my $literal = Marpa::UrHTML::literal();
-                my ($occurrence_count) = (${$literal} =~ / Occurrences \s+ [(] (\d+) [)] [:] /xms);
-                return [ 'occurrences', $literal, $occurrence_count ]
-                }
-        ];
-
-my @short_text_fields;
-my @long_text_fields;
+push @handlers, [
+    '.occurrences' => sub {
+        my $literal = Marpa::UrHTML::literal();
+        my ($occurrence_count) =
+            ( ${$literal} =~ / Occurrences \s+ [(] (\d+) [)] [:] /xms );
+        return [ 'occurrences', $literal, $occurrence_count ];
+        }
+];
 
 my @text_fields = qw( cedict_definition glyph kfrequency kgradelevel
     kiicore kmandarin kmatthews krskangxi
     krsunicode ktang ktotalstrokes shrift_notes
     shrift_occurrences unicode_value unihan_definition );
 
-push @handlers, map {
-    my $class = $_;
-    [ ".$class" => sub { return [ $class, Marpa::UrHTML::literal() ] } ];
-} @text_fields;
+for my $text_field (@text_fields) {
+    push @handlers,
+        [ ".$text_field" =>
+            sub { return [ $text_field, Marpa::UrHTML::literal() ] } ];
+}
 
-my $p = Marpa::UrHTML->new( { handlers => \@handlers, } );
-my $value = $p->parse( \$document );
+my $p              = Marpa::UrHTML->new( { handlers => \@handlers, } );
+my $value          = $p->parse( \$document );
 my $codepoint_hash = ${$value};
 
 my $before = 'lib/Marpa/UrHTML/t/test.storable';
-my $after = 'lib/Marpa/UrHTML/t/test.storable.compare';
+my $after  = 'lib/Marpa/UrHTML/t/test.storable.compare';
 Storable::store $codepoint_hash, $after;
 
-Test::More::ok( (File::Compare::compare( $before, $after ) == 0),
+Test::More::ok( ( File::Compare::compare( $before, $after ) == 0 ),
     'conversion to stored form' );
 
 __END__
