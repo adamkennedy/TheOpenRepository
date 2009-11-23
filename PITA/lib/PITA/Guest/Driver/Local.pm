@@ -29,7 +29,7 @@ use PITA::Guest::Driver ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.40';
+	$VERSION = '0.41';
 	@ISA     = 'PITA::Guest::Driver';
 }
 

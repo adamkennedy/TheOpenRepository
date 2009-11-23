@@ -122,7 +122,7 @@ SCOPE: {
 	# Load the request object
 	my $request = PITA::XML::Request->read( $simple_request );
 	isa_ok( $request, 'PITA::XML::Request' );
-	is( $request->id, 1234, '->id ok' );
+	is( $request->id, 'D7F50D84-7618-11DE-BE94-5E75E19EDF37', '->id ok' );
 
 	# Try to test it
 	my $report = $guest->test( $simple_request );
