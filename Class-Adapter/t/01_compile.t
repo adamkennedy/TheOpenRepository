@@ -8,15 +8,15 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 6;
-
-# Check their perl version
-ok( $] >= 5.005, "Your perl is new enough" );
+use Test::More tests => 5;
 
 # Sometimes it's hard to know when different Scalar::Util tools turned up.
 # So confirm the existance of blessed
 use_ok( 'Scalar::Util' );
-ok( defined(&Scalar::Util::blessed), 'blessed exists in Scalar::Util' );
+ok(
+	defined(&Scalar::Util::blessed),
+	'blessed exists in Scalar::Util',
+);
 
 # Does the module load
 use_ok( 'Class::Adapter'          );

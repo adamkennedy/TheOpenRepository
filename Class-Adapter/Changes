@@ -1,5 +1,9 @@
 Revision history for Perl extension Class-Adapter
 
+1.06 Mon 23 Nov 2009
+	- Upgrading to Module::Install 0.91
+	- Allow class methods to be passed through
+
 1.05 Wed 10 Sep 2008
 	- Upgrading to Module::Install 0.77
 	- Refactoring the DESTROY method to be more paranoidly correct

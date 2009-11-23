@@ -139,7 +139,7 @@ use Class::Adapter::Builder
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 }
 
 1;
