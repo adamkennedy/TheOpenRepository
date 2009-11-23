@@ -201,7 +201,7 @@ use constant N_FORMAT_MAX => 0x7fff_ffff;
 
 sub set_null_values {
     my ($evaler) = @_;
-    my $grammar  = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
 
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
@@ -309,7 +309,7 @@ sub set_null_values {
 # or return undef
 sub resolve_semantics {
     my ( $evaler, $closure_name ) = @_;
-    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
 
     Marpa::exception(q{Trying to resolve 'undef' as closure name})
         if not defined $closure_name;
@@ -376,7 +376,7 @@ sub resolve_semantics {
 
 sub set_actions {
     my ($evaler) = @_;
-    my $grammar    = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
 
     my ( $rules, $default_action, ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
@@ -900,7 +900,7 @@ sub rewrite_cycles {
     my $trace_fh;
     my $trace_evaluation;
 
-    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     my $warn_on_cycle =
         $grammar->[Marpa::Internal::Grammar::CYCLE_ACTION] ne 'quiet';
     $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
@@ -1293,7 +1293,7 @@ sub delete_duplicate_nodes {
 
     my ($evaler) = @_;
 
-    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
 
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
     my $trace_evaluation =
@@ -1512,7 +1512,7 @@ sub Marpa::Evaluator::new {
     delete $args->{clone};
     my $clone = $clone_arg // 1;
 
-    my $grammar     = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     if ($clone) {
         $grammar = $grammar->clone();
     }
@@ -2137,7 +2137,7 @@ sub Marpa::dump_sort_key {
 
 sub Marpa::Evaluator::show_sort_keys {
     my ($evaler)    = @_;
-    my $grammar       = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $grammar     = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     my $parse_order = $grammar->[Marpa::Internal::Grammar::PARSE_ORDER];
     Marpa::exception(
         "show_sort_keys called when parse order is not original\n",
@@ -2168,7 +2168,7 @@ sub Marpa::Evaluator::show_and_node {
 
     my $return_value = q{};
 
-    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
 
     my $name = $and_node->[Marpa::Internal::And_Node::TAG];
@@ -2297,19 +2297,18 @@ sub Marpa::Evaluator::show_bocage {
 sub Marpa::Evaluator::show_ambiguity {
     my ( $evaler, $verbose, ) = @_;
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $or_nodes = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
-    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
-    my $QDFA = $grammar->[Marpa::Internal::Grammar::QDFA];
+    my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
+    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $QDFA      = $grammar->[Marpa::Internal::Grammar::QDFA];
     $verbose //= 0;
     my $text = q{};
 
     OR_NODE:
-    for my $or_node ( @{ $or_nodes } )
-    {
-        my $child_ids = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
-        my $child_count = scalar @{ $child_ids };
+    for my $or_node ( @{$or_nodes} ) {
+        my $child_ids   = $or_node->[Marpa::Internal::Or_Node::CHILD_IDS];
+        my $child_count = scalar @{$child_ids};
         next OR_NODE if $child_count <= 1;
-            my $or_tag =  $or_node->[Marpa::Internal::Or_Node::TAG];
+        my $or_tag = $or_node->[Marpa::Internal::Or_Node::TAG];
         $text .= "$or_tag is Ambiguous: $child_count children\n";
         for my $child_ix ( 0 .. $#{$child_ids} ) {
             my $child_and_node_id = $child_ids->[$child_ix];
@@ -2328,8 +2327,8 @@ sub Marpa::Evaluator::show_ambiguity {
                     $or_grandchild->[Marpa::Internal::Or_Node::TAG];
                 my ($state) = ( $grandchild_tag =~ /\A S (\d+) [@]/xms );
                 $text .= " $grandchild_tag";
-                $detail_text .=
-                    Marpa::show_QDFA_state( $QDFA->[ $state + 0 ], 0 );
+                $detail_text
+                    .= Marpa::show_QDFA_state( $QDFA->[ $state + 0 ], 0 );
             } ## end if ( defined( my $predecessor_id = $and_node->[...]))
             if (defined(
                     my $cause_id =
@@ -2342,7 +2341,8 @@ sub Marpa::Evaluator::show_ambiguity {
                     $or_grandchild->[Marpa::Internal::Or_Node::TAG];
                 my ($state) = ( $grandchild_tag =~ /\A S (\d+) [@]/xms );
                 $text .= " $grandchild_tag";
-                $detail_text .= Marpa::show_QDFA_state( $QDFA->[ $state + 0 ], 0 );
+                $detail_text
+                    .= Marpa::show_QDFA_state( $QDFA->[ $state + 0 ], 0 );
             } ## end if ( defined( my $cause_id = $and_node->[...]))
             if (defined(
                     my $value_ref =
@@ -2351,12 +2351,13 @@ sub Marpa::Evaluator::show_ambiguity {
                 )
             {
                 $text .= ' Token';
-                $detail_text .= Data::Dumper->new($value_ref)->Terse(1)->Dump();
+                $detail_text
+                    .= Data::Dumper->new($value_ref)->Terse(1)->Dump();
             } ## end if ( defined( my $value_ref = $and_node->[...]))
             $detail_text =~ s/^/    /gxms;
             $text .= "\n$detail_text";
         } ## end for my $child_ix ( 0 .. $#{$child_ids} )
-    } ## end for my $or_node ( @{ $evaler->[...]})
+    } ## end for my $or_node ( @{$or_nodes} )
 
     return $text;
 } ## end sub Marpa::Evaluator::show_ambiguity
@@ -2364,7 +2365,7 @@ sub Marpa::Evaluator::show_ambiguity {
 sub Marpa::Evaluator::set {
     my $evaler  = shift;
     my $args    = shift;
-    my $grammar   = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     Marpa::Grammar::set( $grammar, $args );
     return 1;
 } ## end sub Marpa::Evaluator::set
@@ -2401,8 +2402,8 @@ sub Marpa::Evaluator::value {
 
     local $Marpa::Internal::EVAL_INSTANCE = $evaler;
 
-    my $grammar    = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
-    my $rules      = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
 
     my $action_object_class =
         $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT];
@@ -3098,7 +3099,7 @@ node appears more than once on the path back to the root node.
                         $and_iterations->[$and_node_id] = undef;
 
                         break;    # next TASK
-                    } ## end if ( not $use_this_and_node )
+                    }
 
                     # The path must be
                     # re-copied.  If it is shared
@@ -3111,7 +3112,7 @@ node appears more than once on the path back to the root node.
                             my ( $key, $value ) = @{$add_to_path};
 
                             $new_path{$key} = $value;
-                        } ## end for my $add_to_path (@add_to_path)
+                        }
                         $path = \%new_path;
                     } ## end if ( scalar @add_to_path )
 

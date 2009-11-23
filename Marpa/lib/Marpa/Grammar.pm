@@ -1021,30 +1021,32 @@ sub Marpa::Grammar::precompute {
         SYMBOL:
         for my $symbol ( @{ Marpa::Grammar::inaccessible_symbols($grammar) } )
         {
+
             # Inaccessible internal symbols may be created
             # from inaccessible use symbols -- ignore these.
             # This assumes that Marpa's logic
-            # is correct and that 
+            # is correct and that
             # it is not creating inaccessible symbols from
             # accessible ones.
             next SYMBOL if $symbol =~ /\]/xms;
             next SYMBOL if $ok->{$symbol};
             say {$trace_fh} "Inaccessible symbol: $symbol";
-        }
+        } ## end for my $symbol ( @{ Marpa::Grammar::inaccessible_symbols...})
         $ok = $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK];
         SYMBOL:
         for my $symbol ( @{ Marpa::Grammar::unproductive_symbols($grammar) } )
         {
+
             # Unproductive internal symbols may be created
             # from unproductive use symbols -- ignore these.
             # This assumes that Marpa's logic
-            # is correct and that 
+            # is correct and that
             # it is not creating unproductive symbols from
             # productive ones.
             next SYMBOL if $symbol =~ /\]/xms;
             next SYMBOL if $ok->{$symbol};
             say {$trace_fh} "Unproductive symbol: $symbol";
-        }
+        } ## end for my $symbol ( @{ Marpa::Grammar::unproductive_symbols...})
     } ## end if ( $grammar->[Marpa::Internal::Grammar::WARNINGS] )
 
     $grammar->[Marpa::Internal::Grammar::PHASE] =
@@ -1542,8 +1544,8 @@ sub Marpa::brief_QDFA_state {
 }
 
 sub Marpa::show_QDFA_state {
-    my ($state, $verbose) = @_;
-    $verbose //= 1; # legacy is to be verbose, so default to it
+    my ( $state, $verbose ) = @_;
+    $verbose //= 1;    # legacy is to be verbose, so default to it
 
     my $text     = q{};
     my $stripped = $#{$state} < Marpa::Internal::QDFA::LAST_FIELD;
@@ -1575,8 +1577,7 @@ sub Marpa::show_QDFA_state {
             my @qdfa_labels;
             for my $to_state ( @{ $transition->{$symbol_name} } ) {
                 my $to_name = $to_state->[Marpa::Internal::QDFA::NAME];
-                push @qdfa_labels,
-                    Marpa::brief_QDFA_state($to_state);
+                push @qdfa_labels, Marpa::brief_QDFA_state($to_state);
             }    # for my $to_state
             $text .= join '; ', sort @qdfa_labels;
             $text .= "\n";

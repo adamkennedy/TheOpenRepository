@@ -259,7 +259,7 @@ sub Marpa::Recognizer::status {
 } ## end sub Marpa::Recognizer::status
 
 sub Marpa::Recognizer::find_parse {
-    my ($recce, $match, $first_earley_ix, $direction) = @_;
+    my ( $recce, $match, $first_earley_ix, $direction ) = @_;
 
     given ($direction) {
         when (undef)    { $direction = -1 }
@@ -281,14 +281,14 @@ sub Marpa::Recognizer::find_parse {
             $first_earley_ix = scalar @{$earley_set_list}
         }
     } ## end given
-    my $last_earley_ix= $direction >= 0 ? scalar @{$earley_set_list} : -1;
+    my $last_earley_ix = $direction >= 0 ? scalar @{$earley_set_list} : -1;
 
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
+    my $grammar       = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     my @sought_states = ();
     if ( not defined $match ) {
         @sought_states =
             map { $_ + 0 }    # convert pointers to numeric
-            @{$grammar->[Marpa::Internal::Grammar::START_STATES]};
+            @{ $grammar->[Marpa::Internal::Grammar::START_STATES] };
     }
     else {
         QDFA: for my $qdfa ( $grammar->[Marpa::Internal::Grammar::QDFA] ) {
@@ -322,12 +322,12 @@ sub Marpa::Recognizer::find_parse {
 
     my %lhs_seen;
     my @found_symbols =
-        grep { ( $_ ~~ $match ) and not ( $lhs_seen{$_}++ ) }
+        grep { ( $_ ~~ $match ) and not( $lhs_seen{$_}++ ) }
         map { @{ $_->[Marpa::Internal::QDFA::COMPLETE_LHS] } } @found_states;
 
     return $earley_set_ix if not wantarray;
     return ( $earley_set_ix, \@found_symbols );
-}
+} ## end sub Marpa::Recognizer::find_parse
 
 # Convert Recognizer into string form
 #
@@ -372,7 +372,7 @@ sub Marpa::Recognizer::unstringify {
 } ## end sub Marpa::Recognizer::unstringify
 
 sub Marpa::Recognizer::strip {
-    my ($recce)    = @_;
+    my ($recce) = @_;
     $#{$recce} = Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD;
     return 1;
 }
@@ -661,8 +661,7 @@ sub Marpa::Recognizer::tokens {
     my $current_earleme =
         $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
         $next_token_earleme;
-    $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] =
-        $furthest_token;
+    $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] = $furthest_token;
 
     if ( defined $continue_earleme ) {
         $current_earleme =
@@ -710,7 +709,7 @@ sub Marpa::Recognizer::tokens {
         my $furthest_earleme =
             $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
 
-        my %accepted = (); # used only if trace_terminals set
+        my %accepted = ();    # used only if trace_terminals set
 
         # Important: more earley sets can be added in the loop
         my $earley_set_ix = -1;
@@ -735,8 +734,7 @@ sub Marpa::Recognizer::tokens {
 
                 my $states =
                     $QDFA->[ $state->[Marpa::Internal::QDFA::ID] ]
-                    ->[Marpa::Internal::QDFA::TRANSITION]
-                    ->{ $token_name };
+                    ->[Marpa::Internal::QDFA::TRANSITION]->{$token_name};
 
                 next ALTERNATIVE if not $states;
                 if ($trace_terminals) {
@@ -812,7 +810,8 @@ sub Marpa::Recognizer::tokens {
             }
         } ## end if ($trace_terminals)
 
-        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = $furthest_earleme;
+        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] =
+            $furthest_earleme;
         if ( $furthest_earleme < $last_completed_earleme ) {
             $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
             return;
@@ -958,10 +957,11 @@ sub Marpa::Recognizer::tokens {
         ];
 
         if ($trace_terminals) {
-           for my $terminal (@{$current_terminals}) {
-               say {$trace_fh} qq{Expecting "$terminal" at $last_completed_earleme}
-           }
-        }
+            for my $terminal ( @{$current_terminals} ) {
+                say {$trace_fh}
+                    qq{Expecting "$terminal" at $last_completed_earleme};
+            }
+        } ## end if ($trace_terminals)
 
     } ## end while (1)
 

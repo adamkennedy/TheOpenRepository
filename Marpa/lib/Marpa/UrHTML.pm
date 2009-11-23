@@ -32,25 +32,25 @@ sub total_size {
 }
 
 use Marpa::Offset qw(
-   :package=Marpa::UrHTML::Internal::TDesc
-   TYPE
-   START_TOKEN
-   END_TOKEN
+    :package=Marpa::UrHTML::Internal::TDesc
+    TYPE
+    START_TOKEN
+    END_TOKEN
 );
 
 use Marpa::Offset qw(
-   :package=Marpa::UrHTML::Internal::TDesc::Element
-   TYPE
-   START_TOKEN
-   END_TOKEN
-   VALUE
+    :package=Marpa::UrHTML::Internal::TDesc::Element
+    TYPE
+    START_TOKEN
+    END_TOKEN
+    VALUE
 );
 
 use Marpa::Offset qw(
-   :package=Marpa::UrHTML::Internal::Token
-   TYPE
-   START_OFFSET
-   END_OFFSET
+    :package=Marpa::UrHTML::Internal::Token
+    TYPE
+    START_OFFSET
+    END_OFFSET
 );
 
 use Marpa::UrHTML::Callback;
@@ -88,21 +88,18 @@ sub tdesc_list_to_text {
                 } ## end if ( defined( my $value = $tdesc->[...]))
 
                 # next TDESC if no first token id
+                #<<< As of 2009-11-22 perltidy cycles on this code
                 break
-                    if not defined(
-                            my $first_token_id =
-                                $tdesc
-                                ->[Marpa::UrHTML::Internal::TDesc::START_TOKEN
-                                ]
-                    );
+                    if not defined( my $first_token_id = $tdesc
+                        ->[ Marpa::UrHTML::Internal::TDesc::START_TOKEN ] );
+                #>>>
 
                 # next TDESC if no last token id
+                #<<< As of 2009-11-22 perltidy cycles on this code
                 break
-                    if not defined(
-                            my $last_token_id =
-                                $tdesc
-                                ->[Marpa::UrHTML::Internal::TDesc::END_TOKEN]
-                    );
+                    if not defined( my $last_token_id =
+                        $tdesc->[Marpa::UrHTML::Internal::TDesc::END_TOKEN] );
+                #>>>
 
                 my $offset =
                     $tokens->[$first_token_id]
@@ -141,7 +138,7 @@ sub default_top_handler {
     my ( $dummy, @tdesc_lists ) = @_;
 
     my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    my @tdesc_list = map { @{$_} } grep { defined } @tdesc_lists;
+    my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
     return tdesc_list_to_text( $self, \@tdesc_list );
 
 } ## end sub default_top_handler
@@ -160,7 +157,7 @@ sub create_tdesc_handler {
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
 
-        my @tdesc_list = map { @{$_} } grep { defined } @tdesc_lists;
+        my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
         my $self           = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
         my $trace_fh       = $self->{trace_fh};
@@ -206,8 +203,7 @@ sub create_tdesc_handler {
             } @tdesc_list;
             local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
 
-            return [
-                [ ELE => $tokens[0], $tokens[-1], $user_handler->() ] ];
+            return [ [ ELE => $tokens[0], $tokens[-1], $user_handler->() ] ];
         } ## end if ( defined $user_handler )
 
         my $doc          = $self->{doc};
@@ -237,12 +233,14 @@ sub create_tdesc_handler {
                             )
                             )
                         {
+                            #<<< As of 2009-11-22 pertidy cycles on this
                             $first_token_id = $tdesc->[
                                 Marpa::UrHTML::Internal::TDesc::START_TOKEN ];
                             $last_token_id =
                                 $tdesc
                                 ->[ Marpa::UrHTML::Internal::TDesc::END_TOKEN
                                 ];
+                            #>>>
                             break;    # last PARSE_TDESC;
                         } ## end if ( not defined( my $value = $tdesc->[ ...]))
                         $next_tdesc = $tdesc;
@@ -252,9 +250,9 @@ sub create_tdesc_handler {
                     }
                     when ('TOKEN_SPAN') {
                         $first_token_id = $tdesc
-                            ->[ Marpa::UrHTML::Internal::TDesc::START_TOKEN ];
+                            ->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
                         $last_token_id = $tdesc
-                            ->[ Marpa::UrHTML::Internal::TDesc::END_TOKEN ];
+                            ->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
                     } ## end when ('TOKEN_SPAN')
                     default {
                         Marpa::exception("Unknown text description type: $_");
@@ -280,7 +278,7 @@ sub create_tdesc_handler {
                 $first_token_id_in_current_span = $first_token_id;
                 $last_token_id_in_current_span  = $last_token_id;
                 next TDESC;
-            } ## end if ( defined $first_token_id )
+            } ## end if ( defined $first_token_id and defined $last_token_id)
 
             if ( defined $next_tdesc ) {
                 if ( defined $first_token_id_in_current_span ) {
@@ -318,11 +316,11 @@ sub wrap_user_tdesc_handler {
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
         my @tokens = sort { $a <=> $b } grep {defined} map {
-                @{$_}[
-                    Marpa::UrHTML::Internal::TDesc::START_TOKEN,
-                    Marpa::UrHTML::Internal::TDesc::END_TOKEN
-                    ]
-            } @tdesc_list;
+            @{$_}[
+                Marpa::UrHTML::Internal::TDesc::START_TOKEN,
+                Marpa::UrHTML::Internal::TDesc::END_TOKEN
+                ]
+        } @tdesc_list;
         local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
 
         return [ [ ELE => $tokens[0], $tokens[-1], $user_handler->() ] ];
@@ -330,37 +328,36 @@ sub wrap_user_tdesc_handler {
 } ## end sub wrap_user_tdesc_handler
 
 sub setup_offsets {
-    my ($self) = @_;
-    my $document = $self->{document};
+    my ($self)     = @_;
+    my $document   = $self->{document};
     my @rs_offsets = ();
-    my $rs_offset = 0;
-    while (($rs_offset = index ${$document}, "\n", $rs_offset) >= 0) {
+    my $rs_offset  = 0;
+    while ( ( $rs_offset = index ${$document}, "\n", $rs_offset ) >= 0 ) {
         push @rs_offsets, $rs_offset;
         $rs_offset++;
     }
     my %offsets = map { ( $rs_offsets[$_] => $_ ) } ( 0 .. $#rs_offsets );
     $self->{offset} = \%offsets;
     return 1;
-}
+} ## end sub setup_offsets
 
 # Apparently a perlcritic bug as of 2009-11-22
 ## no critic (Subroutines::RequireFinalReturn)
 sub earleme_to_offset {
 
     my ( $self, $token_offset ) = @_;
-    my $html_parser_tokens   = $self->{tokens};
+    my $html_parser_tokens = $self->{tokens};
 
     # Special start of file for undefined offset
-    if (not defined $token_offset) {
-        return (0, 1) if wantarray;
+    if ( not defined $token_offset ) {
+        return ( 0, 1 ) if wantarray;
         return 0;
     }
 
     # Special case needed for a token offset after the last
     # token.  This happens with the EOF.
     my $offset;
-    if ( $token_offset < 0 or $token_offset > $#{$html_parser_tokens} )
-    {
+    if ( $token_offset < 0 or $token_offset > $#{$html_parser_tokens} ) {
         $offset = length ${ $self->{document} };
     }
     else {
@@ -392,8 +389,8 @@ sub earleme_to_offset {
         }
     } ## end given
 
-    return ($offset, $line);
-}
+    return ( $offset, $line );
+} ## end sub earleme_to_offset
 ## use critic
 
 my %ARGS = (
@@ -431,11 +428,9 @@ sub add_handlers {
                     or ( $element, $pseudo_class ) =
                     ( $specifier =~ /\A ([^:]*) [:] (.*) \z/xms )
                     or $element = $specifier;
-                if ($pseudo_class
-                    and not $pseudo_class ~~ [
-                        qw(TOP PROLOG ROOT HEAD BODY TRAILER CRUFT)
-                    ]
-                    )
+                if ( $pseudo_class
+                    and not $pseudo_class ~~
+                    [qw(TOP PROLOG ROOT HEAD BODY TRAILER CRUFT)] )
                 {
                     Marpa::exception(
                         qq{pseudoclass "$pseudo_class" is not known:\n},
@@ -446,7 +441,7 @@ sub add_handlers {
                         qq{pseudoclass "$pseudo_class" may not have an element specified:\n},
                         "Specifier was $specifier\n"
                     );
-                } ## end if ( $pseudo_class and defined $element )
+                } ## end if ( $pseudo_class and $element )
                 last PARSE_HANDLER_SPEC;
             } ## end if ( $ref_type eq 'ARRAY' )
             if ( $ref_type eq 'HASH' ) {
@@ -462,7 +457,8 @@ sub add_handlers {
         } ## end PARSE_HANDLER_SPEC:
         $element = $element ? lc $element : 'ANY';
         if ( defined $pseudo_class ) {
-            $self->{user_handlers_by_pseudo_class}->{$element}->{ $pseudo_class } = $action;
+            $self->{user_handlers_by_pseudo_class}->{$element}
+                ->{$pseudo_class} = $action;
             next HANDLER_SPEC;
         }
         if ( defined $id ) {
@@ -492,7 +488,7 @@ sub Marpa::UrHTML::new {
                     )
                 {
                     $self->{$_} = $hash_arg->{$_}
-                } ## end when ( [ qw(trace_fh trace_values trace_handlers...)])
+                } ## end when ( [ ...])
                 when ('handlers') {
                     Marpa::UrHTML::Internal::add_handlers( $self,
                         $hash_arg->{$_} )
@@ -538,9 +534,8 @@ sub Marpa::UrHTML::new {
 
 my @SGML_rh_sides = qw(D C PI);
 
-@Marpa::UrHTML::Internal::CORE_RULES = (
-    { lhs => 'cruft', rhs => [ 'CRUFT' ], action => '!CRUFT_handler' }
-);
+@Marpa::UrHTML::Internal::CORE_RULES =
+    ( { lhs => 'cruft', rhs => ['CRUFT'], action => '!CRUFT_handler' } );
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
@@ -555,7 +550,8 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
     ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA WHITESPACE EOF ) );
 
-push @Marpa::UrHTML::Internal::CORE_TERMINALS, keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS;
+push @Marpa::UrHTML::Internal::CORE_TERMINALS,
+    keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS;
 
 no strict 'refs';
 *{'Marpa::UrHTML::Internal::default_action'} = create_tdesc_handler();
@@ -567,27 +563,27 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
         rhs    => [qw(prolog root trailer EOF)],
         action => '!TOP_handler',
     },
-    {   lhs            => 'prolog',
-        rhs            => ['SGML_flow'],
-        action         => '!PROLOG_handler',
+    {   lhs    => 'prolog',
+        rhs    => ['SGML_flow'],
+        action => '!PROLOG_handler',
     },
-    {   lhs            => 'trailer',
-        rhs            => ['SGML_flow'],
+    {   lhs => 'trailer',
+        rhs => ['SGML_flow'],
     },
     {   lhs    => 'root',
         rhs    => [qw(S_html Contents_root E_html)],
         action => '!ROOT_handler',
     },
-    {   lhs    => 'Contents_root',
-        rhs    => [qw(SGML_flow head SGML_flow body SGML_flow)],
+    {   lhs => 'Contents_root',
+        rhs => [qw(SGML_flow head SGML_flow body SGML_flow)],
     },
     {   lhs    => 'head',
         rhs    => [qw(S_head Contents_head E_head)],
         action => '!HEAD_handler',
     },
-    {   lhs    => 'Contents_head',
-        rhs    => ['head_item'],
-        min    => 0,
+    {   lhs => 'Contents_head',
+        rhs => ['head_item'],
+        min => 0,
     },
     {   lhs    => 'body',
         rhs    => [qw(S_body flow E_body)],
@@ -658,7 +654,11 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     qw(table_cell_element SGML_flow_item);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'table_section_flow', rhs => ['table_section_flow_item'], min => 0 };
+    {
+    lhs => 'table_section_flow',
+    rhs => ['table_section_flow_item'],
+    min => 0
+    };
 
 # Use ELE_tr directly, instead of table_row_element, for efficiency
 # This makes table_row element always inaccessible, but it keeps
@@ -676,9 +676,9 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'table_flow_item', rhs => [$_] } }
     qw(
-        ELE_colgroup ELE_thead ELE_tfoot ELE_tbody
-        ELE_caption ELE_col SGML_flow_item
-    );
+    ELE_colgroup ELE_thead ELE_tfoot ELE_tbody
+    ELE_caption ELE_col SGML_flow_item
+);
 
 push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
 
@@ -687,19 +687,19 @@ push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
     img input isindex link meta param);
 
 %Marpa::UrHTML::Internal::CONTENTS = (
-    'p' => 'inline_flow',
-    'select' => 'Contents_select',
-    'option' => 'pcdata_flow',
+    'p'        => 'inline_flow',
+    'select'   => 'Contents_select',
+    'option'   => 'pcdata_flow',
     'optgroup' => 'Contents_optgroup',
-    'dt' => 'inline_flow',
-    'dd' => 'list_item_flow',
-    'li' => 'list_item_flow',
-    'tr' => 'table_row_flow',
+    'dt'       => 'inline_flow',
+    'dd'       => 'list_item_flow',
+    'li'       => 'list_item_flow',
+    'tr'       => 'table_row_flow',
     'colgroup' => 'Contents_colgroup',
-    'thead' => 'table_section_flow',
-    'tfoot' => 'table_section_flow',
-    'tbody' => 'table_section_flow',
-    'table' => 'table_flow',
+    'thead'    => 'table_section_flow',
+    'tfoot'    => 'table_section_flow',
+    'tbody'    => 'table_section_flow',
+    'table'    => 'table_flow',
     ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT ),
 );
 
@@ -757,7 +757,7 @@ sub Marpa::UrHTML::parse {
                 my ( $offset, $offset_end, $tag_name ) =
                     @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 $start_tags{$tag_name}++;
-                my $terminal =  "S_$tag_name";
+                my $terminal = "S_$tag_name";
                 $terminals{$terminal}++;
                 push @marpa_tokens,
                     [
@@ -769,7 +769,7 @@ sub Marpa::UrHTML::parse {
                 my ( $offset, $offset_end, $tag_name ) =
                     @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 $end_tags{$tag_name}++;
-                my $terminal =  "E_$tag_name";
+                my $terminal = "E_$tag_name";
                 $terminals{$terminal}++;
                 push @marpa_tokens,
                     [
@@ -800,15 +800,15 @@ sub Marpa::UrHTML::parse {
     # Points AFTER the last HTML
     # Parser token.
     # The other logic needs to be ready for this.
-    push @marpa_tokens,
-        [ 'EOF', [ [ 'EMPTY' ] ] ];
+    push @marpa_tokens, [ 'EOF', [ ['EMPTY'] ] ];
 
     $pull_parser = undef;    # conserve memory
 
     my @rules     = @Marpa::UrHTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
 
-    my %element_actions              = ();
+    my %element_actions = ();
+
     # Special case
     $element_actions{'!ELE_tbody'} = 'tbody';
 
@@ -853,7 +853,10 @@ sub Marpa::UrHTML::parse {
 
     my %ok_as_cruft = ();
 
-    EXPECTED_TERMINAL: for my $expected_terminal (keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS) {
+    EXPECTED_TERMINAL:
+    for my $expected_terminal (
+        keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS )
+    {
 
         # When expecting start tags nothing is OK as cruft.
         next EXPECTED_TERMINAL if $expected_terminal =~ /^S_/xms;
@@ -864,27 +867,27 @@ sub Marpa::UrHTML::parse {
         # "Non-structural" elements are OK as cruft.
         # "Non-structural" means not part of the logic for
         # those tags.
-        # So for the OPTION elements 
+        # So for the OPTION elements
         # OPTION and OPTIONGROUP tags are structural
         # and nothing else with one exception:
         # The EOF tag is always structural.
-        if ($expected_terminal ~~ [qw(E_option)]) {
+        if ( $expected_terminal ~~ [qw(E_option)] ) {
             TERMINAL: for my $actual_terminal (@terminals) {
                 next TERMINAL if $actual_terminal ~~ [
                     qw(EOF
-                    E_optgroup E_option E_select
-                    S_optgroup S_option S_select
-                    )
+                        E_optgroup E_option E_select
+                        S_optgroup S_option S_select
+                        )
                 ];
                 $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
-            }
+            } ## end for my $actual_terminal (@terminals)
             next EXPECTED_TERMINAL;
-        }
+        } ## end if ( $expected_terminal ~~ [qw(E_option)] )
 
         # For list item elements (LI, DD and DT)
         # EOF, list element tags
         # and list item element tags are structural.
-        if ($expected_terminal ~~ [qw(E_li E_dd E_dt)]) {
+        if ( $expected_terminal ~~ [qw(E_li E_dd E_dt)] ) {
             TERMINAL: for my $actual_terminal (@terminals) {
                 next TERMINAL if $actual_terminal ~~ [
                     qw(EOF
@@ -897,47 +900,50 @@ sub Marpa::UrHTML::parse {
                 $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
             } ## end for my $actual_terminal (@terminals)
             next EXPECTED_TERMINAL;
-        }
+        } ## end if ( $expected_terminal ~~ [qw(E_li E_dd E_dt)] )
 
         # Empty elements accept nothing as interior cruft
-        next EXPECTED_TERMINAL if $expected_terminal ~~ /^E_/xms and
-            $Marpa::UrHTML::Internal::EMPTY_ELEMENT{substr $expected_terminal, 2};
+        next EXPECTED_TERMINAL
+            if $expected_terminal ~~ /^E_/xms
+                and $Marpa::UrHTML::Internal::EMPTY_ELEMENT{
+                    substr $expected_terminal, 2 };
 
         # E_head, E_colgroup and E_p do not accept interior cruft, instead
         # passing it along to the next element
         next EXPECTED_TERMINAL if $expected_terminal ~~ [
-                    qw(
-                        E_head
-                        E_p
-                        E_colgroup
-                        )
+            qw(
+                E_head
+                E_p
+                E_colgroup
+                )
         ];
 
         # When expecting E_body, that is, when in the top body
         # flow, everything but an EOF or an E_html
         # is fine as cruft
-        if ($expected_terminal eq 'E_body') {
+        if ( $expected_terminal eq 'E_body' ) {
             TERMINAL: for my $actual_terminal (@terminals) {
                 next TERMINAL if $actual_terminal ~~ [qw(EOF E_html)];
                 $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
             }
             next EXPECTED_TERMINAL;
-        } ## end when ('E_head')
+        } ## end if ( $expected_terminal eq 'E_body' )
 
         # TD TH and TR elements accept interior cruft, but since
         # their end tag is optional, it cannot be "structural".
         # And EOF is never allowed as cruft.
-        if ($expected_terminal ~~ [qw(E_td E_th E_tr)]) {
+        if ( $expected_terminal ~~ [qw(E_td E_th E_tr)] ) {
             TERMINAL: for my $actual_terminal (@terminals) {
-                next TERMINAL if $actual_terminal ~~ [qw(EOF E_table
-                    S_td _S_th S_tr S_tbody S_thead S_tfoot S_col S_caption S_colgroup
-                    E_td _E_th E_tr E_tbody E_thead E_tfoot E_col E_caption E_colgroup
-                )];
+                next TERMINAL if $actual_terminal ~~ [
+                    qw(EOF E_table
+                        S_td _S_th S_tr S_tbody S_thead S_tfoot S_col S_caption S_colgroup
+                        E_td _E_th E_tr E_tbody E_thead E_tfoot E_col E_caption E_colgroup
+                        )
+                ];
                 $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
-            }
+            } ## end for my $actual_terminal (@terminals)
             next EXPECTED_TERMINAL;
-        }
-
+        } ## end if ( $expected_terminal ~~ [qw(E_td E_th E_tr)] )
 
         # TBODY, THEAD, TFOOT elements
         # must end at an EOF, at a TABLE end tag
@@ -945,18 +951,20 @@ sub Marpa::UrHTML::parse {
         # and will not accept a mismatched end tag as interior
         # cruft.
         # Other than that they are happy to accept interior cruft.
-        if ($expected_terminal ~~ [qw(E_tbody E_thead E_tfoot)]) {
+        if ( $expected_terminal ~~ [qw(E_tbody E_thead E_tfoot)] ) {
             TERMINAL: for my $actual_terminal (@terminals) {
-                next TERMINAL if $actual_terminal ~~ [qw(EOF E_table
-                    S_tbody S_thead S_tfoot S_col S_caption S_colgroup
-                    E_tbody E_thead E_tfoot E_col E_caption E_colgroup
-                )];
+                next TERMINAL if $actual_terminal ~~ [
+                    qw(EOF E_table
+                        S_tbody S_thead S_tfoot S_col S_caption S_colgroup
+                        E_tbody E_thead E_tfoot E_col E_caption E_colgroup
+                        )
+                ];
                 $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
-            }
+            } ## end for my $actual_terminal (@terminals)
             next EXPECTED_TERMINAL;
-        }
+        } ## end if ( $expected_terminal ~~ [qw(E_tbody E_thead E_tfoot)...])
 
-        if ($expected_terminal ~~ /^E_/xms) {
+        if ( $expected_terminal ~~ /^E_/xms ) {
 
             # Default for end tags
             # is to treat the element as non-empty,
@@ -966,14 +974,15 @@ sub Marpa::UrHTML::parse {
                 $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
             }
             next EXPECTED_TERMINAL;
-        }
+        } ## end if ( $expected_terminal ~~ /^E_/xms )
 
         default {
+
             # Should not get here
             Marpa::exception("Unprovided-for optional terminal: $_");
         }
 
-    } ## end OK_AS_CRUFT:
+    } ## end for my $expected_terminal ( keys ...)
 
     my $grammar = Marpa::Grammar->new(
         {   rules     => \@rules,
@@ -1055,10 +1064,9 @@ sub Marpa::UrHTML::parse {
 
                 my $virtual_terminal;
                 PICK_VIRTUAL_TERMINAL: {
-                    my @virtuals_expected =
-                        grep {
+                    my @virtuals_expected = grep {
                         $Marpa::UrHTML::Internal::OPTIONAL_TERMINALS{$_}
-                        } @{$expected_terminals};
+                    } @{$expected_terminals};
                     my $virtuals_count = scalar @virtuals_expected;
                     last PICK_VIRTUAL_TERMINAL if $virtuals_count <= 0;
                     if ( $virtuals_count == 1 ) {
@@ -1098,11 +1106,11 @@ sub Marpa::UrHTML::parse {
                         'Fatal internal error: More than one virtual terminal expected and cannot resolve choice'
                     );
 
-                };
+                } ## end PICK_VIRTUAL_TERMINAL:
 
                 if ($trace_terminals) {
                     say {$trace_fh} 'Converting Token: ', $actual_terminal;
-                } ## end if ( $trace_terminals or $optionals_expected_count >...)
+                }
 
                 # Depending on the expected (optional or virtual)
                 # terminal and the actual
@@ -1122,7 +1130,7 @@ sub Marpa::UrHTML::parse {
                         [ [ 'EMPTY', $first_tdesc_start_token ] ]
                     ];
                     last FIND_VIRTUAL_TOKEN;
-                } ## end if ( defined $virtual_terminal and not $ok_as_cruft...)
+                } ## end if ( defined $virtual_terminal and not $ok_as_cruft{...})
 
                 # Cruft tokens are not virtual.
                 # They are the real things, hacked up.
@@ -1154,11 +1162,13 @@ sub Marpa::UrHTML::parse {
                       $last_marpa_token > $#marpa_tokens
                     ? $#marpa_tokens
                     : $last_marpa_token;
-                my ($furthest_offset, $furthest_offset_line) =
+                my ( $furthest_offset, $furthest_offset_line ) =
                     Marpa::UrHTML::Internal::earleme_to_offset( $self,
                     $last_marpa_token );
                 say Data::Dumper::Dumper( $recce->find_parse() );
-                Marpa::exception( "HTML parse exhausted at location $furthest_offset, line $furthest_offset_line" );
+                Marpa::exception(
+                    "HTML parse exhausted at location $furthest_offset, line $furthest_offset_line"
+                );
             } ## end if ( not defined $current_earleme )
         } ## end while ($is_virtual_token)
     } ## end for my $marpa_token (@marpa_tokens)

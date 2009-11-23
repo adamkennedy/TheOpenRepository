@@ -38,19 +38,20 @@ my $class = Module::Build->subclass(
 SUBCLASS
 
 my $build = $class->new(
-    dist_name            => 'Marpa',
-    dist_author          => 'Jeffrey Kegler',
-    dist_version         => $marpa_version,
-    dist_abstract        => 'Generate Parsers from any BNF grammar',
-    requires             => { 'Scalar::Util' => 0, },
-    build_requires       => {
+    dist_name      => 'Marpa',
+    dist_author    => 'Jeffrey Kegler',
+    dist_version   => $marpa_version,
+    dist_abstract  => 'Generate Parsers from any BNF grammar',
+    requires       => { 'Scalar::Util' => 0, },
+    build_requires => {
 
         # Scalar::Util::weaken no longer required
         'Test::More' => 0,
     },
     meta_merge => {
         no_index => {
-            directory => [qw( inc t author.t save lib/Marpa/Doc/Not_Updated )],
+            directory =>
+                [qw( inc t author.t save lib/Marpa/Doc/Not_Updated )],
             namespace => [
                 'Marpa::Internal',        'Marpa::MDL::Internal',
                 'Marpa::MDLex::Internal', 'Marpa::UrHTML::Internal'
