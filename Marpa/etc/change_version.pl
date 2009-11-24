@@ -24,8 +24,7 @@ sub check_version {
         Carp::croak("Bad format in version number: $version");
     }
     if ( $minor1 % 2 and $underscore ne '_' ) {
-        Carp::croak(
-            "No underscore in developer's version number: $version");
+        Carp::croak("No underscore in developer's version number: $version");
     }
     if ( $minor1 % 2 == 0 and $underscore eq '_' ) {
         Carp::croak(
