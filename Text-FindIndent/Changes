@@ -1,5 +1,8 @@
 Changes for Perl extension Text-FindIndent
 
+0.05 
+	- "skip_pod" option to parse() for skipping POD sections.
+
 0.04 
 	- Fix the MANIFEST of the distribution
 
