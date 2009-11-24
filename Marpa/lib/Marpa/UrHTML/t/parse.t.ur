@@ -13,15 +13,19 @@ BEGIN { plan tests => 40 }
 use Marpa::UrHTML;
 
 my $urhtml_args = {
+    trace_handlers => 1,
     handlers => [
-        [   ':DEFAULT' => sub {
-                my $tagname  = Marpa::UrHTML::tagname();
-                my $startTag = Marpa::UrHTML::startTag() // "<$tagname>";
-                my $endTag   = Marpa::UrHTML::endTag() // "</$tagname>";
-                my $contents = Marpa::UrHTML::contents();
+        [   q{*} => sub {
+                my $tagname = Marpa::UrHTML::tagname();
+                say STDERR "In handler for $tagname element";
+                Carp::croak('Not in an element') if not $tagname;
+                my ( $start_tag, $contents, $end_tag ) =
+                    Marpa::UrHTML::element_parts();
+                $start_tag //= "<$tagname>";
+                $end_tag   //= "</$tagname>";
                 $contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
                 $contents =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
-                return join q{}, $startTag, $contents, $endTag;
+                return join q{}, $start_tag, $contents, $end_tag;
                 }
         ]
     ]
@@ -31,7 +35,7 @@ Test::More::ok 1;
 
 {
   my $parse = Marpa::UrHTML->new($urhtml_args);
-  my $value = $parse->parse('<title>foo</title><p>I like pie');
+  my $value = $parse->parse(\'<title>foo</title><p>I like pie');
   Test::More::ok($value,
    "<html><head><title>foo</title></head><body>"
    ."<p>I like pie</p></body></html>\n"
@@ -113,8 +117,17 @@ sub same {
     my $p1 = Marpa::UrHTML->new;
     my $p2 = Marpa::UrHTML->new;
 
-    my $out1 = $p1->parse($code1);
-    my $out2 = $p2->parse($code2);
+    if (ref $code1) { $code1 = ${$code1} }
+    if (ref $code2) { $code2 = ${$code2} }
+
+    my $value1 = $p1->parse(\$code1);
+    my $value2 = $p2->parse(\$code2);
+
+    if ( not defined $value1 ) { print "No parse for $code1"; return $flip; }
+    if ( not defined $value2 ) { print "No parse for $code2"; return $flip; }
+
+    my $out1 = ${${$value1}};
+    my $out2 = ${${$value2}};
 
     my $rv = ( $out1 eq $out2 );
 

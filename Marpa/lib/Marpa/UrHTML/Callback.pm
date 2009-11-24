@@ -13,6 +13,71 @@ use English qw( -no_match_vars );
 
 use Marpa::Internal;
 
+sub Marpa::UrHTML::element_parts {
+
+    my $element = $Marpa::UrHTML::Internal::NODE_SCRATCHPAD->{element};
+    Marpa::exception('The element_parts callback was called on a non-element')
+        if not $element;
+
+    my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+    Marpa::exception(
+        qq{Attempt to fetch element parts from an undefined parse instance}
+    ) if not defined $parse_instance;
+
+    # This routine assumes that it is being called on a newly
+    # assembled element.  That means the start and end tags are
+    # have their own tdesc's at the beginning and end of the
+    # tdesc_list, and that they are either TOKEN_SPAN's with
+    # a single token (explicit tags),
+    # or EMPTY tdesc's (implicit tags).
+
+    my $start_tdesc = $Marpa::UrHTML::Internal::TDESC_LIST->[0];
+    my $start_tag;
+    if ( $start_tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] ne 'EMPTY' ) {
+        my $start_tag_token =
+            $start_tdesc->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
+
+        # Inlining this might be faster, especially since I have to dummy
+        # up a tdesc list to make it work.
+        $start_tag =
+            Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
+            [ [ TOKEN_SPAN => $start_tag_token, $start_tag_token ] ] );
+    } ## end if ( $start_tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE...])
+
+    return $start_tag if not wantarray;
+
+    my $end_tdesc = $Marpa::UrHTML::Internal::TDESC_LIST->[-1];
+    my $end_tag;
+    if ( $end_tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] ne 'EMPTY' ) {
+        my $end_tag_token =
+            $end_tdesc->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
+
+        # Inlining this might be faster, especially since I have to dummy
+        # up a tdesc list to make it work.
+        $end_tag =
+            Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
+            [ [ TOKEN_SPAN => $end_tag_token, $end_tag_token ] ] );
+    } ## end if ( $end_tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE...])
+
+    # While non-existent tags are returned as undef,
+    # content is regarded as always present and
+    # therefore is returned as a zero-length string
+    my @contents_tdesc_list =
+        @{$Marpa::UrHTML::Internal::TDESC_LIST}[ 1, -2 ];
+    my $contents =
+        scalar @contents_tdesc_list
+        ? Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
+        \@contents_tdesc_list )
+        : q{};
+
+    return ($start_tag, $contents, $end_tag);
+
+} ## end sub Marpa::UrHTML::element_parts
+
+no strict 'refs';
+*{'Marpa::UrHTML::start_tag'}    = \&Marpa::UrHTML::parts;
+use strict;
+
 # This assumes that a start token, if there is one
 # with attributes, is the first token
 sub create_fetch_attribute_closure {
@@ -65,6 +130,10 @@ sub set_up_elements {
     return $elements;
 } ## end sub set_up_elements
 
+sub Marpa::UrHTML::tagname {
+    return $Marpa::UrHTML::Internal::NODE_SCRATCHPAD->{element};
+}
+
 sub Marpa::UrHTML::element_values {
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
     Marpa::exception('Attempt to get element values of non-existent node')
@@ -83,7 +152,7 @@ sub Marpa::UrHTML::literal {
     Marpa::exception(
         'Attempt to read element values in undefined parse instance')
         if not defined $parse_instance;
-    return Marpa::UrHTML::Internal::tdesc_list_to_text( $parse_instance,
+    return Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
         $tdesc_list );
 } ## end sub Marpa::UrHTML::literal
 

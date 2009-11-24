@@ -70,7 +70,7 @@ sub per_element_handlers {
     return \%handlers;
 } ## end sub per_element_handlers
 
-sub tdesc_list_to_text {
+sub tdesc_list_to_literal {
     my ( $self, $tdesc_list ) = @_;
     my $text     = q{};
     my $document = $self->{document};
@@ -134,7 +134,7 @@ sub tdesc_list_to_text {
         } ## end given
     } ## end for my $tdesc ( @{$tdesc_list} )
     return \$text;
-} ## end sub tdesc_list_to_text
+} ## end sub tdesc_list_to_literal
 
 # Convert a list of text descriptions to text
 sub default_top_handler {
@@ -142,7 +142,7 @@ sub default_top_handler {
 
     my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
-    return tdesc_list_to_text( $self, \@tdesc_list );
+    return tdesc_list_to_literal( $self, \@tdesc_list );
 
 } ## end sub default_top_handler
 
@@ -204,7 +204,7 @@ sub create_tdesc_handler {
                     Marpa::UrHTML::Internal::TDesc::END_TOKEN
                     ]
             } @tdesc_list;
-            local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
+            local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = { element => $element };
 
             return [ [ ELE => $tokens[0], $tokens[-1], $user_handler->() ] ];
         } ## end if ( defined $user_handler )
@@ -424,6 +424,9 @@ sub add_handlers {
             if ( $ref_type eq 'ARRAY' ) {
                 my $specifier;
                 ( $specifier, $action ) = @{$handler_spec};
+                Marpa::exception('empty handler specification is not allowed')
+                    if not $specifier;
+
                 ( $element, $id ) =
                        ( $specifier =~ /\A ([^#]*) [#] (.*) \z/xms )
                     or ( $element, $class ) =
@@ -433,7 +436,7 @@ sub add_handlers {
                     or $element = $specifier;
                 if ( $pseudo_class
                     and not $pseudo_class ~~
-                    [qw(TOP PROLOG ROOT HEAD BODY TRAILER CRUFT)] )
+                    [qw(TOP PROLOG TRAILER CRUFT)] )
                 {
                     Marpa::exception(
                         qq{pseudoclass "$pseudo_class" is not known:\n},
@@ -458,7 +461,7 @@ sub add_handlers {
             Marpa::exception(
                 'handler specification must be ref to ARRAY or HASH');
         } ## end PARSE_HANDLER_SPEC:
-        $element = $element ? lc $element : 'ANY';
+        $element = (not $element or $element eq q{*}) ? 'ANY' : lc $element;
         if ( defined $pseudo_class ) {
             $self->{user_handlers_by_pseudo_class}->{$element}
                 ->{$pseudo_class} = $action;
@@ -575,14 +578,14 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     },
     {   lhs    => 'root',
         rhs    => [qw(S_html Contents_root E_html)],
-        action => '!ROOT_handler',
+        action => '!ELE_html',
     },
     {   lhs => 'Contents_root',
         rhs => [qw(SGML_flow head SGML_flow body SGML_flow)],
     },
     {   lhs    => 'head',
         rhs    => [qw(S_head Contents_head E_head)],
-        action => '!HEAD_handler',
+        action => '!ELE_head',
     },
     {   lhs => 'Contents_head',
         rhs => ['head_item'],
@@ -590,7 +593,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     },
     {   lhs    => 'body',
         rhs    => [qw(S_body flow E_body)],
-        action => '!BODY_handler',
+        action => '!ELE_body',
     },
     {   lhs    => 'ELE_tbody',
         rhs    => [qw(S_tbody table_section_flow E_tbody)],
@@ -722,7 +725,7 @@ sub Marpa::UrHTML::parse {
     my $trace_fh        = $self->{trace_fh};
     my $ref_type        = ref $document_ref;
     Marpa::exception(
-        'Arg to ' . __PACKAGE__ . '::parse must be ref to string' )
+        'Arg to parse() must be ref to string' )
         if not $ref_type
             or $ref_type ne 'SCALAR';
 
@@ -810,19 +813,16 @@ sub Marpa::UrHTML::parse {
     my @rules     = @Marpa::UrHTML::Internal::CORE_RULES;
     my @terminals = keys %terminals;
 
+    my %pseudo_class_element_actions = ();
     my %element_actions = ();
 
-    # Special case
-    $element_actions{'!ELE_tbody'} = 'tbody';
-
-    my %pseudo_class_element_actions = ();
-
-    # HTML tags with both start and end optional
-    # are dealt with elsewhere
-    delete $start_tags{html};
-    delete $start_tags{head};
-    delete $start_tags{body};
-    delete $start_tags{tbody};
+    # Special cases which are dealt with elsewhere.
+    # As of now the only special cases are elements with optional
+    # start and end tags
+    for my $special_element (qw(html head body tbody)) {
+        delete $start_tags{$special_element};
+        $element_actions{"!ELE_$special_element"} = $special_element;
+    }
 
     ELEMENT: for ( keys %start_tags ) {
         my $start_tag    = "S_$_";
@@ -1017,8 +1017,9 @@ sub Marpa::UrHTML::parse {
             ],
 
             default_action => (
-                $self->{user_handlers_by_pseudo_class}->{ANY}->{DEFAULT}
-                    // 'Marpa::UrHTML::Internal::default_action'
+                $self->{user_handlers_by_class}->{ANY}->{ANY}
+                ? '!DEFAULT_ELE_handler'
+                : 'Marpa::UrHTML::Internal::default_action'
             ),
             strip => 0,
         }
@@ -1148,7 +1149,7 @@ sub Marpa::UrHTML::parse {
                     $line++
                         ;  # The convention is that line numbering starts at 1
                     say {$trace_fh} qq{Cruft at line $line: "},
-                        ${ tdesc_list_to_text( $self, $marpa_token->[1] ) },
+                        ${ tdesc_list_to_literal( $self, $marpa_token->[1] ) },
                         q{"};
                 } ## end if ($trace_cruft)
             } ## end FIND_VIRTUAL_TOKEN:
@@ -1211,9 +1212,14 @@ sub Marpa::UrHTML::parse {
         ),
     );
 
+    if ( defined $self->{user_handlers_by_class}->{ANY}->{ANY} ) {
+        $closure{'!DEFAULT_ELE_handler'} =
+            $self->{user_handlers_by_class}->{ANY}->{ANY};
+    }
+
     PSEUDO_CLASS:
     for my $pseudo_class (
-        qw(PROLOG ROOT HEAD BODY TRAILER TERMINATED UNTERMINATED CRUFT))
+        qw(PROLOG TRAILER CRUFT))
     {
         my $pseudo_class_action =
             $self->{user_handlers_by_pseudo_class}->{ANY}->{$pseudo_class};

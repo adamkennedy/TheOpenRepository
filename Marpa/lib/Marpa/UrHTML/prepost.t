@@ -55,21 +55,21 @@ my $p = Marpa::UrHTML->new(
                     return;
                     }
             ],
-            [   ':ROOT' => sub {
+            [   'html' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
                     say STDERR "ROOT stating at line $line:\n" . begin_and_end($literal) . "\n";
                     return;
                     }
             ],
-            [   ':HEAD' => sub {
+            [   'head' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
                     say STDERR "HEAD stating at line $line:\n" . begin_and_end($literal) . "\n";
                     return;
                     }
             ],
-            [   ':BODY' => sub {
+            [   'body' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
                     say STDERR "BODY stating at line $line:\n" . begin_and_end($literal) . "\n";
