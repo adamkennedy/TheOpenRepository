@@ -9,7 +9,7 @@ Text::FindIndent - Heuristically determine the indent style
 =head1 SYNOPSIS
 
   use Text::FindIndent;
-  my $indentation_type = Text::FindIndent->parse($text);
+  my $indentation_type = Text::FindIndent->parse($text, skip_pod => 1);
   if ($indentation_type =~ /^s(\d+)/) {
     print "Indentation with $1 spaces\n";
   }
@@ -25,7 +25,7 @@ Text::FindIndent - Heuristically determine the indent style
 
 =head1 DESCRIPTION
 
-This is an experimental distribution that attempts to intuit the underlying
+This is a module that attempts to intuit the underlying
 indent "policy" for a text file (most likely a source code file).
 
 =head1 METHODS
@@ -58,6 +58,14 @@ C<parse> use explicit settings to override the heuristics but uses style setting
 only as a fallback. The following options are recognized:
 C<tab-width>, C<indent-tabs-mode>, C<c-basic-offset>, and C<style>.
 
+There is one named option that you can pass to C<parse()>: C<skip_pod>.
+When set to true, any section of POD (see L<perlpod>) will be ignored for
+indentation finding. This is because verbatim paragraphs and examples
+embedded in POD or quite often indented differently from normal Perl code
+around the POD section. Defaults to false. Example:
+
+  my $mode = Text::FindIndent->parse(\$text, skip_pod => 1);
+
 =cut
 
 use 5.00503;
@@ -65,13 +73,17 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-  $VERSION = '0.04';
+  $VERSION = '0.05';
 }
 
 sub parse {
   my $class = shift;
   my $text  = shift;
+
+  my %opts = @_;
   my $textref = ref($text) ? $text : \$text; # accept references, too
+
+  my $skip_pod = $opts{skip_pod};
 
   my %modeline_settings;
 
@@ -79,10 +91,11 @@ sub parse {
   my $lines                 = 0;
   my $prev_indent           = undef;
   my $skip                  = 0;
+  my $in_pod                = 0;
 
   while ($$textref =~ /\G([ \t]*)([^\r\n]*)[\r\n]+/cgs) {
-    my $ws = $1;
-    my $rest = $2;
+    my $ws       = $1;
+    my $rest     = $2;
     my $fullline = "$ws$rest";
     $lines++;
     
@@ -117,6 +130,17 @@ sub parse {
       $skip--;
       next;
     }
+
+    if ($skip_pod and $ws eq '' and substr($rest, 0, 1) eq '=') {
+      if (not $in_pod and $rest =~ /^=(?:head\d|over|item|back|pod|begin|for|end)/ ) {
+        $in_pod = 1;
+      }
+      elsif ($in_pod and $rest =~ /^=cut/) {
+        $in_pod = 0;
+      }
+
+    }
+    next if $in_pod;
 
     next if $rest eq '';
 
@@ -512,10 +536,9 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>, Steffen Mueller E<lt>smueller@cpan.orgE<g
 
 =head1 COPYRIGHT
 
+Copyright 2008-2009 Adam Kennedy,
 
-Copyright 2008 Adam Kennedy,
-
-Copyright 2008 Steffen Mueller.
+Copyright 2008-2009 Steffen Mueller.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
