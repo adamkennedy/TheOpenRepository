@@ -53,7 +53,7 @@ easy ad-hoc computations.
 This improvement in flexibility turns out to be worth the extra computation
 time in almost all cases.
 
-B<CPAN::Mini::Visit> is a simplified and generalised API-based ersion of 
+B<CPAN::Mini::Visit> is a simplified and generalised API-based version of 
 David Golden's L<visitcpan> script.
 
 It implements only the process of discovering, iterating and expanding
