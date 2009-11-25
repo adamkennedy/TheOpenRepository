@@ -72,6 +72,9 @@ sub per_element_handlers {
 
 sub tdesc_list_to_literal {
     my ( $self, $tdesc_list ) = @_;
+    
+    # say STDERR "in tdesc_list_to_literal, tdesc_list=", Data::Dumper::Dumper($tdesc_list);
+
     my $text     = q{};
     my $document = $self->{document};
     my $tokens   = $self->{tokens};
@@ -535,7 +538,7 @@ sub Marpa::UrHTML::new {
     ( map { $_ => 'table_row_element' } qw( tr ) ),
 );
 
-%Marpa::UrHTML::Internal::OPTIONAL_TERMINALS =
+%Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS =
     map { ( "S_$_" => 1, "E_$_" => 1 ) } qw( html head body tbody );
 
 my @SGML_rh_sides = qw(D C PI);
@@ -557,7 +560,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA WHITESPACE EOF ) );
 
 push @Marpa::UrHTML::Internal::CORE_TERMINALS,
-    keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS;
+    keys %Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS;
 
 no strict 'refs';
 *{'Marpa::UrHTML::Internal::default_action'} = create_tdesc_handler();
@@ -709,11 +712,11 @@ push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
     ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT ),
 );
 
-my %start_tags = ();
-my %end_tags   = ();
-
 sub Marpa::UrHTML::parse {
     my ( $self, $document_ref ) = @_;
+
+    my %start_tags = ();
+    my %end_tags   = ();
 
     Marpa::exception(
         "parse() already run on this object\n",
@@ -738,6 +741,7 @@ sub Marpa::UrHTML::parse {
     my @tokens = ();
 
     my %terminals = map { $_ => 1 } @Marpa::UrHTML::Internal::CORE_TERMINALS;
+    my %optional_terminals = %Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS;
     my @html_parser_tokens = ();
     my @marpa_tokens       = ();
     while ( my $html_parser_token = $pull_parser->get_token ) {
@@ -849,7 +853,7 @@ sub Marpa::UrHTML::parse {
             push @terminals, $end_tag;
             $terminals{$end_tag}++;
         }
-        $Marpa::UrHTML::Internal::OPTIONAL_TERMINALS{$end_tag}++;
+        $optional_terminals{$end_tag}++;
 
         $element_actions{"!ELE_$_"} = $_;
     } ## end for ( keys %start_tags )
@@ -858,7 +862,7 @@ sub Marpa::UrHTML::parse {
 
     EXPECTED_TERMINAL:
     for my $expected_terminal (
-        keys %Marpa::UrHTML::Internal::OPTIONAL_TERMINALS )
+        keys %optional_terminals )
     {
 
         # When expecting start tags nothing is OK as cruft.
@@ -1016,11 +1020,7 @@ sub Marpa::UrHTML::parse {
                     table_cell_element)
             ],
 
-            default_action => (
-                $self->{user_handlers_by_class}->{ANY}->{ANY}
-                ? '!DEFAULT_ELE_handler'
-                : 'Marpa::UrHTML::Internal::default_action'
-            ),
+            default_action => 'Marpa::UrHTML::Internal::default_action',
             strip => 0,
         }
     );
@@ -1068,9 +1068,9 @@ sub Marpa::UrHTML::parse {
 
                 my $virtual_terminal;
                 PICK_VIRTUAL_TERMINAL: {
-                    my @virtuals_expected = grep {
-                        $Marpa::UrHTML::Internal::OPTIONAL_TERMINALS{$_}
-                    } @{$expected_terminals};
+                    my @virtuals_expected =
+                        grep { $optional_terminals{$_} }
+                        @{$expected_terminals};
                     my $virtuals_count = scalar @virtuals_expected;
                     last PICK_VIRTUAL_TERMINAL if $virtuals_count <= 0;
                     if ( $virtuals_count == 1 ) {
@@ -1241,17 +1241,23 @@ sub Marpa::UrHTML::parse {
     while ( my ( $element_action, $data ) =
         each %pseudo_class_element_actions )
     {
-        my ( $pseudo_class, $element ) = @{$data};
-        my $pseudo_class_action =
-            $self->{user_handlers_by_pseudo_class}->{$element}
-            ->{$pseudo_class}
-            // $self->{user_handlers_by_pseudo_class}->{ANY}->{$pseudo_class};
-        if ( defined $pseudo_class_action ) {
-            $pseudo_class_action =
-                wrap_user_tdesc_handler($pseudo_class_action);
-        }
-        $pseudo_class_action //= \&Marpa::UrHTML::Internal::default_action;
-        $closure{$element_action} = $pseudo_class_action;
+
+        # As of now, there are
+        # no per-element pseudo-classes, and since I can't regression test
+        # this logic any more, I'm commenting it out.
+        Marpa::exception('per-element pseudo-classes not implemented');
+
+        # my ( $pseudo_class, $element ) = @{$data};
+        # my $pseudo_class_action =
+        #    $self->{user_handlers_by_pseudo_class}->{$element}
+        #    ->{$pseudo_class}
+        #    // $self->{user_handlers_by_pseudo_class}->{ANY}->{$pseudo_class};
+        # if ( defined $pseudo_class_action ) {
+        #    $pseudo_class_action =
+        #        wrap_user_tdesc_handler($pseudo_class_action);
+        # }
+        # $pseudo_class_action //= \&Marpa::UrHTML::Internal::default_action;
+        # $closure{$element_action} = $pseudo_class_action;
     } ## end while ( my ( $element_action, $data ) = each ...)
 
     my $value = do {

@@ -4,25 +4,28 @@ use strict;
 use warnings;
 
 # These tests are based closely on those in the HTML-Tree module,
-# the authors of which I grately acknowledge.
+# the authors of which I gratefully acknowledge.
 
 use Test::More;
-my $DEBUG = 2;
+my $DEBUG = 3;
 BEGIN { plan tests => 40 }
 
 use Marpa::UrHTML;
 
 my $urhtml_args = {
-    trace_handlers => 1,
+    # trace_handlers => 1,
     handlers => [
         [   q{*} => sub {
                 my $tagname = Marpa::UrHTML::tagname();
-                say STDERR "In handler for $tagname element";
+
+                # say STDERR "In handler for $tagname element";
+
                 Carp::croak('Not in an element') if not $tagname;
-                my ( $start_tag, $contents, $end_tag ) =
+                my ( $start_tag_ref, $contents_ref, $end_tag_ref ) =
                     Marpa::UrHTML::element_parts();
-                $start_tag //= "<$tagname>";
-                $end_tag   //= "</$tagname>";
+                my $start_tag = defined $start_tag_ref ? ${$start_tag_ref} : "<$tagname>";
+                my $end_tag = defined $end_tag_ref ? ${$end_tag_ref} : "</$tagname>";
+                my $contents = ${$contents_ref};
                 $contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
                 $contents =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
                 return join q{}, $start_tag, $contents, $end_tag;
@@ -34,12 +37,11 @@ my $urhtml_args = {
 Test::More::ok 1;
 
 {
-  my $parse = Marpa::UrHTML->new($urhtml_args);
-  my $value = $parse->parse(\'<title>foo</title><p>I like pie');
-  Test::More::ok($value,
-   "<html><head><title>foo</title></head><body>"
-   ."<p>I like pie</p></body></html>\n"
-  );
+    my $parse = Marpa::UrHTML->new($urhtml_args);
+    my $value = $parse->parse( \'<title>foo</title><p>I like pie' );
+    Test::More::ok( $value,
+              "<html><head><title>foo</title></head><body>"
+            . "<p>I like pie</p></body></html>\n" );
 }
 
 Test::More::ok !same('x' => 'y', 1);
@@ -114,8 +116,8 @@ Test::More::ok same('<p>x<p>y<p>z'      => \'<head></head><body><p>x</p><p>y</p>
 
 sub same {
     my ( $code1, $code2, $flip ) = @_;
-    my $p1 = Marpa::UrHTML->new;
-    my $p2 = Marpa::UrHTML->new;
+    my $p1 = Marpa::UrHTML->new($urhtml_args);
+    my $p2 = Marpa::UrHTML->new($urhtml_args);
 
     if (ref $code1) { $code1 = ${$code1} }
     if (ref $code2) { $code2 = ${$code2} }

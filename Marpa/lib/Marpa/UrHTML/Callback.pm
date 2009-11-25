@@ -59,16 +59,25 @@ sub Marpa::UrHTML::element_parts {
             [ [ TOKEN_SPAN => $end_tag_token, $end_tag_token ] ] );
     } ## end if ( $end_tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE...])
 
+    # say STDERR "length of TDESC_LIST: ", scalar @{$Marpa::UrHTML::Internal::TDESC_LIST};
+
     # While non-existent tags are returned as undef,
     # content is regarded as always present and
     # therefore is returned as a zero-length string
-    my @contents_tdesc_list =
-        @{$Marpa::UrHTML::Internal::TDESC_LIST}[ 1, -2 ];
+    my $contents_tdesc_list =
+        [ @{$Marpa::UrHTML::Internal::TDESC_LIST}
+            [ 1 .. $#{$Marpa::UrHTML::Internal::TDESC_LIST} - 1 ] ];
+
+    # say STDERR "start_tdesc=", Data::Dumper::Dumper($start_tdesc);
+    # say STDERR "end_tdesc=",   Data::Dumper::Dumper($end_tdesc);
+    # say STDERR "contents_tdesc_list=",
+    #    Data::Dumper::Dumper($contents_tdesc_list);
+
     my $contents =
-        scalar @contents_tdesc_list
+        scalar @{$contents_tdesc_list}
         ? Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
-        \@contents_tdesc_list )
-        : q{};
+        $contents_tdesc_list )
+        : \q{};
 
     return ($start_tag, $contents, $end_tag);
 
@@ -131,6 +140,7 @@ sub set_up_elements {
 } ## end sub set_up_elements
 
 sub Marpa::UrHTML::tagname {
+    # say STDERR join " ", __FILE__, __LINE__, "in tagname()";
     return $Marpa::UrHTML::Internal::NODE_SCRATCHPAD->{element};
 }
 
