@@ -83,6 +83,7 @@ use Object::Tiny 1.06 qw{
 	minicpan
 	authors
 	callback
+	callback_before_extract
 	acme
 	author
 	ignore
@@ -235,6 +236,17 @@ sub run {
 			next if $path =~ /\bBio-Affymetrix\b/;
 			next if $path =~ /\bAlien-MeCab\b/;
 		}
+
+		my $continue=1;
+		if ($self->callback_before_extract) {
+			# Invoke the callback
+			$continue=$self->callback_before_extract->( {
+				archive => $path,
+				dist    => $dist,
+				author  => $author,
+			} );
+		}
+		next unless $continue;
 
 		# Extract the archive
 		local $Archive::Extract::WARN       = !! ($self->warnings > 1);
