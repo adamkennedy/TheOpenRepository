@@ -1,5 +1,7 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+	- Add 'callback_before_extract' optional callback (Alexandr Ciornii)
+
 0.11 Mon 20 Jul 2009
 	- Add Harvey to the module blacklist
 
