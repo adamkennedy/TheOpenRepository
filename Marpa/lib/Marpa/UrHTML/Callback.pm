@@ -83,6 +83,26 @@ sub Marpa::UrHTML::element_parts {
 
 } ## end sub Marpa::UrHTML::element_parts
 
+
+sub Marpa::UrHTML::attributes {
+
+    my $element = $Marpa::UrHTML::Internal::NODE_SCRATCHPAD->{element};
+    Marpa::exception('The element_parts callback was called on a non-element')
+        if not $element;
+
+    my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+    Marpa::exception(
+        qq{Attempt to fetch attributes from an undefined parse instance}
+    ) if not defined $parse_instance;
+    my $tokens      = $parse_instance->{tokens};
+        
+    my $first_tdesc = $Marpa::UrHTML::Internal::TDESC_LIST->[0];
+    return {} if $first_tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] eq 'EMPTY';
+    my $first_token_number = $first_tdesc->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
+    my $start_tag = $tokens->[$first_token_number];
+    return $start_tag->[4];
+}
+
 no strict 'refs';
 *{'Marpa::UrHTML::start_tag'}    = \&Marpa::UrHTML::parts;
 use strict;

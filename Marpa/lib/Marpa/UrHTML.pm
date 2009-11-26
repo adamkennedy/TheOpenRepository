@@ -439,7 +439,7 @@ sub add_handlers {
                     or $element = $specifier;
                 if ( $pseudo_class
                     and not $pseudo_class ~~
-                    [qw(TOP PROLOG TRAILER CRUFT)] )
+                    [qw(TOP COMMENT PROLOG TRAILER PCDATA CRUFT)] )
                 {
                     Marpa::exception(
                         qq{pseudoclass "$pseudo_class" is not known:\n},
@@ -491,6 +491,7 @@ sub Marpa::UrHTML::new {
             given ($key) {
                 when (
                     [   qw(trace_fh trace_values trace_handlers trace_actions
+                            trace_conflicts
                             trace_ambiguity trace_rules trace_QDFA
                             trace_earley_sets trace_terminals trace_cruft)
                     ]
@@ -538,13 +539,35 @@ sub Marpa::UrHTML::new {
     ( map { $_ => 'table_row_element' } qw( tr ) ),
 );
 
-%Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS =
-    map { ( "S_$_" => 1, "E_$_" => 1 ) } qw( html head body tbody );
+@Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS = qw(
+    E_html
+    E_body
+    S_table
+    E_head
+    E_table
+    E_tbody
+    E_tr
+    E_td
+    S_td
+    S_tr
+    S_tbody
+    S_head
+    S_body
+    S_html
+);
+%Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS = ();
+for my $rank ( 0 .. $#Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS ) {
+    $Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS{
+        $Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS[$rank] } = $rank;
+}
 
-my @SGML_rh_sides = qw(D C PI);
+my @SGML_rh_sides = qw(D comment PI);
 
-@Marpa::UrHTML::Internal::CORE_RULES =
-    ( { lhs => 'cruft', rhs => ['CRUFT'], action => '!CRUFT_handler' } );
+@Marpa::UrHTML::Internal::CORE_RULES = (
+    { lhs => 'cruft',   rhs => ['CRUFT'],  action => '!CRUFT_handler' },
+    { lhs => 'comment', rhs => ['C'],      action => '!COMMENT_handler' },
+    { lhs => 'pcdata',  rhs => ['PCDATA'], action => '!PCDATA_handler' },
+);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
@@ -557,7 +580,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     { lhs => 'SGML_flow', rhs => ['SGML_flow_item'], min => 0 };
 
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
-    ( @SGML_rh_sides, qw(CRUFT CDATA PCDATA WHITESPACE EOF ) );
+    qw(C D PI CRUFT CDATA PCDATA WHITESPACE EOF );
 
 push @Marpa::UrHTML::Internal::CORE_TERMINALS,
     keys %Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS;
@@ -598,16 +621,28 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
         rhs    => [qw(S_body flow E_body)],
         action => '!ELE_body',
     },
+    {   lhs    => 'ELE_table',
+        rhs    => [qw(S_table table_flow E_table)],
+        action => '!ELE_table',
+    },
     {   lhs    => 'ELE_tbody',
         rhs    => [qw(S_tbody table_section_flow E_tbody)],
         action => '!ELE_tbody',
+    },
+    {   lhs    => 'ELE_tr',
+        rhs    => [qw(S_tr table_row_flow E_tr)],
+        action => '!ELE_tr',
+    },
+    {   lhs    => 'ELE_td',
+        rhs    => [qw(S_td flow E_td)],
+        action => '!ELE_td',
     },
     { lhs => 'flow', rhs => ['flow_item'], min => 0 },
     );
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'flow_item', rhs => [$_] } }
-    qw(cruft SGML_item list_item_element head_element block_element inline_element WHITESPACE CDATA PCDATA);
+    qw(cruft SGML_item ELE_table list_item_element head_element block_element inline_element WHITESPACE CDATA pcdata);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'head_item', rhs => [$_] } }
@@ -625,7 +660,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'pcdata_flow_item', rhs => [$_] } }
-    qw(CDATA PCDATA cruft WHITESPACE SGML_item);
+    qw(CDATA pcdata cruft WHITESPACE SGML_item);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     { lhs => 'Contents_select', rhs => ['select_flow_item'], min => 0 };
@@ -646,7 +681,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'list_item_flow_item', rhs => [$_] } }
-    qw(cruft SGML_item head_element block_element inline_element WHITESPACE CDATA PCDATA);
+    qw(cruft SGML_item head_element block_element inline_element WHITESPACE CDATA pcdata);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     { lhs => 'Contents_colgroup', rhs => ['colgroup_flow_item'], min => 0 };
@@ -660,7 +695,7 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'table_row_flow_item', rhs => [$_] } }
-    qw(table_cell_element SGML_flow_item);
+    qw(ELE_th ELE_td SGML_flow_item);
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     {
@@ -669,19 +704,16 @@ push @Marpa::UrHTML::Internal::CORE_RULES,
     min => 0
     };
 
-# Use ELE_tr directly, instead of table_row_element, for efficiency
-# This makes table_row element always inaccessible, but it keeps
-# ELE_tr from falling into the default category
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'table_section_flow_item', rhs => [$_] } }
-    qw(ELE_tr SGML_flow_item);
+    qw(table_row_element SGML_flow_item);
+
+push @Marpa::UrHTML::Internal::CORE_RULES,
+    { lhs => 'table_row_element', rhs => ['ELE_tr'] };
 
 push @Marpa::UrHTML::Internal::CORE_RULES,
     { lhs => 'table_flow', rhs => ['table_flow_item'], min => 0 };
 
-# Use ELE_tr directly, instead of table_row_element, for efficiency
-# This makes table_row element always inaccessible, but it keeps
-# ELE_tr from falling into the default category
 push @Marpa::UrHTML::Internal::CORE_RULES,
     map { { lhs => 'table_flow_item', rhs => [$_] } }
     qw(
@@ -703,7 +735,6 @@ push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
     'dt'       => 'inline_flow',
     'dd'       => 'list_item_flow',
     'li'       => 'list_item_flow',
-    'tr'       => 'table_row_flow',
     'colgroup' => 'Contents_colgroup',
     'thead'    => 'table_section_flow',
     'tfoot'    => 'table_section_flow',
@@ -724,7 +755,8 @@ sub Marpa::UrHTML::parse {
     ) if $self->{document};
 
     my $trace_cruft     = $self->{trace_cruft};
-    my $trace_terminals = $self->{trace_terminals};
+    my $trace_terminals = $self->{trace_terminals} // 0;
+    my $trace_conflicts = $self->{trace_conflicts};
     my $trace_fh        = $self->{trace_fh};
     my $ref_type        = ref $document_ref;
     Marpa::exception(
@@ -823,7 +855,7 @@ sub Marpa::UrHTML::parse {
     # Special cases which are dealt with elsewhere.
     # As of now the only special cases are elements with optional
     # start and end tags
-    for my $special_element (qw(html head body tbody)) {
+    for my $special_element (qw(html head body table tbody tr td)) {
         delete $start_tags{$special_element};
         $element_actions{"!ELE_$special_element"} = $special_element;
     }
@@ -853,7 +885,9 @@ sub Marpa::UrHTML::parse {
             push @terminals, $end_tag;
             $terminals{$end_tag}++;
         }
-        $optional_terminals{$end_tag}++;
+
+        # Make each new optional terminal the highest ranking
+        $optional_terminals{$end_tag} = keys %optional_terminals;
 
         $element_actions{"!ELE_$_"} = $_;
     } ## end for ( keys %start_tags )
@@ -894,18 +928,25 @@ sub Marpa::UrHTML::parse {
         # For list item elements (LI, DD and DT)
         # EOF, list element tags
         # and list item element tags are structural.
+        #
+        # 2009-11-25  Changed this so that LI DD and DT
+        # elements do not accept cruft.  This seems to
+        # be better for dealing with crufty pages that
+        # you actually encounter in real life.
         if ( $expected_terminal ~~ [qw(E_li E_dd E_dt)] ) {
-            TERMINAL: for my $actual_terminal (@terminals) {
-                next TERMINAL if $actual_terminal ~~ [
-                    qw(EOF
-                        E_li E_dd E_dt
-                        S_li S_dd S_dt
-                        E_ol E_ul E_dl
-                        S_ol S_ul S_dl
-                        )
-                ];
-                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
-            } ## end for my $actual_terminal (@terminals)
+
+            # TERMINAL: for my $actual_terminal (@terminals) {
+            #    next TERMINAL if $actual_terminal ~~ [
+            #        qw(EOF
+            #            E_li E_dd E_dt
+            #            S_li S_dd S_dt
+            #            E_ol E_ul E_dl
+            #            S_ol S_ul S_dl
+            #            )
+            #    ];
+            #    $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
+            # } ## end for my $actual_terminal (@terminals)
+
             next EXPECTED_TERMINAL;
         } ## end if ( $expected_terminal ~~ [qw(E_li E_dd E_dt)] )
 
@@ -915,12 +956,14 @@ sub Marpa::UrHTML::parse {
                 and $Marpa::UrHTML::Internal::EMPTY_ELEMENT{
                     substr $expected_terminal, 2 };
 
-        # E_head, E_colgroup and E_p do not accept interior cruft, instead
+        # HEAD, COLGROUP and P elements do not accept interior cruft, instead
         # passing it along to the next element
+        # Also don't allow interior cruft in an FONT element.
         next EXPECTED_TERMINAL if $expected_terminal ~~ [
             qw(
                 E_head
                 E_p
+                E_font
                 E_colgroup
                 )
         ];
@@ -986,7 +1029,7 @@ sub Marpa::UrHTML::parse {
         default {
 
             # Should not get here
-            Marpa::exception("Unprovided-for optional terminal: $_");
+            Marpa::exception("Unprovided-for optional terminal: $expected_terminal");
         }
 
     } ## end for my $expected_terminal ( keys ...)
@@ -1001,23 +1044,28 @@ sub Marpa::UrHTML::parse {
                     Contents_colgroup Contents_optgroup Contents_select
                     ELE_caption ELE_col ELE_colgroup
                     ELE_optgroup ELE_option
-                    ELE_tbody ELE_tfoot ELE_thead ELE_tr
-                    E_tbody S_tbody
+                    ELE_tfoot ELE_thead
+                    ELE_tbody E_tbody S_tbody
+                    ELE_table E_table S_table
+                    ELE_tr E_tr S_tr
+                    ELE_td E_td S_td
                     colgroup_flow_item empty inline_flow inline_flow_item
                     list_item_flow list_item_flow_item optgroup_flow_item
-                    pcdata_flow pcdata_flow_item select_flow_item
-                    table_cell_element table_flow table_flow_item
-                    table_row_flow table_row_flow_item table_section_flow
-                    table_section_flow_item
+                    table_row_element 
+                    pcdata_flow pcdata_flow_item
+                    select_flow_item
+                    table_flow table_flow_item
+                    table_row_flow table_row_flow_item
+                    table_section_flow table_section_flow_item
                     )
             ],
 
             unproductive_ok => [
                 qw(
                     ELE_caption ELE_col ELE_colgroup ELE_optgroup ELE_option
-                    ELE_tfoot ELE_thead ELE_tr
+                    ELE_tfoot ELE_thead ELE_tr ELE_th
                     block_element head_element inline_element list_item_element
-                    table_cell_element)
+                    )
             ],
 
             default_action => 'Marpa::UrHTML::Internal::default_action',
@@ -1052,14 +1100,33 @@ sub Marpa::UrHTML::parse {
     my ( $current_earleme, $expected_terminals ) = $recce->status();
     MARPA_TOKEN: for my $marpa_token (@marpa_tokens) {
         my $is_virtual_token = 1;
+        my $actual_terminal = $marpa_token->[0];
         if ($trace_terminals) {
-            say {$trace_fh} 'Literal Token: ', $marpa_token->[0];
+            say {$trace_fh} 'Literal Token: ', $actual_terminal;
         }
 
+        # This counter prevents bugs in the grammar from becoming
+        # infinite loops.  If and when the grammar is settled,
+        # a proof should be made that all cases are accounted for.
+        my $virtual_counter = 0;
+
         VIRTUAL_TOKEN: while ($is_virtual_token) {
+
             my $token_to_add;
             FIND_VIRTUAL_TOKEN: {
-                my $actual_terminal = $marpa_token->[0];
+
+                ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
+                if ( $virtual_counter++ > 10 ) {
+                    say {$trace_fh} 
+                        "Added 100 virtual tokens without adding the real one\n",
+                        qq{The real token is "$actual_terminal"\n},
+                        "This is probably a bug in the grammar for HTML" ;
+                    $token_to_add     = $marpa_token;
+                    $is_virtual_token = 0;
+                    last FIND_VIRTUAL_TOKEN;
+                } ## end if ( $virtual_counter++ > 10 )
+                ## use critic
+
                 if ( $actual_terminal ~~ $expected_terminals ) {
                     $token_to_add     = $marpa_token;
                     $is_virtual_token = 0;
@@ -1067,59 +1134,82 @@ sub Marpa::UrHTML::parse {
                 }
 
                 my $virtual_terminal;
-                PICK_VIRTUAL_TERMINAL: {
-                    my @virtuals_expected =
-                        grep { $optional_terminals{$_} }
-                        @{$expected_terminals};
-                    my $virtuals_count = scalar @virtuals_expected;
-                    last PICK_VIRTUAL_TERMINAL if $virtuals_count <= 0;
-                    if ( $virtuals_count == 1 ) {
-                        $virtual_terminal = $virtuals_expected[0];
-                        last PICK_VIRTUAL_TERMINAL;
+                my @virtuals_expected = sort {
+                    $optional_terminals{$a} <=> $optional_terminals{$b}
                     }
-
-                    # I could save some code by putting this case earlier,
-                    # but by putting common cases first, I save time
-                    # and that's a lot
-                    # more important than avoiding code
-                    # repetition
-                    if ( 'S_tbody' ~~ \@virtuals_expected ) {
-                        ## no critic (ControlStructures::ProhibitDeepNests)
-                        if ( $actual_terminal eq 'S_tr' ) {
-                            $virtual_terminal = 'S_tbody';
-                            last PICK_VIRTUAL_TERMINAL;
-                        }
-                        @virtuals_expected =
-                            grep { $_ ne 'S_tbody' } @virtuals_expected;
-                    } ## end if ( 'S_tbody' ~~ \@virtuals_expected )
-
-                    $virtuals_count = scalar @virtuals_expected;
-                    last PICK_VIRTUAL_TERMINAL if $virtuals_count <= 0;
-                    if ( $virtuals_count == 1 ) {
-                        $virtual_terminal = $virtuals_expected[0];
-                        last PICK_VIRTUAL_TERMINAL;
-                    }
-
-                    say {$trace_fh}
-                        'Fatal internal error: Conflict of virtual choices';
+                    grep { defined $optional_terminals{$_} }
+                    @{$expected_terminals};
+                if ($trace_conflicts) {
+                    say {$trace_fh} 'Conflict of virtual choices';
                     say {$trace_fh} "Actual Token is $actual_terminal";
                     say {$trace_fh} +( scalar @virtuals_expected ),
                         ' virtual terminals expected: ', join q{ },
                         @virtuals_expected;
-                    Marpa::exception(
-                        'Fatal internal error: More than one virtual terminal expected and cannot resolve choice'
-                    );
+                } ## end if ($trace_conflicts)
 
-                } ## end PICK_VIRTUAL_TERMINAL:
+                LOOKAHEAD_VIRTUAL_TERMINAL:
+                while ( my $candidate = pop @virtuals_expected ) {
+
+                    # Don't start a new table cell as a way of dealing with
+                    # A new row or table section
+                    if (    $candidate eq 'S_td'
+                        and $actual_terminal ~~
+                        [qw(S_tr S_thead S_tfoot S_tbody )] )
+                    {
+                        next LOOKAHEAD_VIRTUAL_TERMINAL;
+                    } ## end if ( $candidate eq 'S_td' and $actual_terminal ~~ [...])
+
+                    # and end tag for a row, cell, table section
+                    # or as a way of dealing with EOF
+                    if ($candidate ~~ [qw(S_tr S_td S_tbody)]
+                        and $actual_terminal ~~ [
+                            qw(E_th E_td E_tr E_thead E_tfoot E_tbody E_table EOF)
+                        ]
+                        )
+                    {
+                        next LOOKAHEAD_VIRTUAL_TERMINAL;
+                    } ## end if ( $candidate ~~ [qw(S_tr S_td S_tbody)] and ...)
+
+                    # Start an implied table only if the next token is one which
+                    # can only occur inside a table
+                    if ($candidate eq 'S_table'
+                        and not $actual_terminal ~~ [
+                            qw(
+                                S_caption S_col S_colgroup S_thead S_tfoot
+                                S_tbody S_tr S_th S_td
+                                E_caption E_col E_colgroup E_thead E_tfoot
+                                E_tbody E_tr E_th E_td
+                                E_table
+                                )
+                        ]
+                        )
+                    {
+                        next LOOKAHEAD_VIRTUAL_TERMINAL;
+                    } ## end if ( $candidate eq 'S_table' and not ...)
+
+                    $virtual_terminal = $candidate;
+                    last LOOKAHEAD_VIRTUAL_TERMINAL;
+
+                } ## end while ( my $candidate = pop @virtuals_expected )
 
                 if ($trace_terminals) {
                     say {$trace_fh} 'Converting Token: ', $actual_terminal;
-                }
+                    if ( defined $virtual_terminal ) {
+                        say {$trace_fh} 'Candidate as Virtual Token: ',
+                            $virtual_terminal;
+                    }
+                } ## end if ($trace_terminals)
 
                 # Depending on the expected (optional or virtual)
                 # terminal and the actual
                 # terminal, we either want to add the actual one as cruft, or add
                 # the virtual one to move on in the parse.
+
+                if ( $trace_terminals > 1 and defined $virtual_terminal ) {
+                    say {$trace_fh}
+                        "OK as cruft when expecting $virtual_terminal: ",
+                        join q{ }, keys %{ $ok_as_cruft{$virtual_terminal} };
+                }
 
                 if ( defined $virtual_terminal
                     and
@@ -1136,6 +1226,11 @@ sub Marpa::UrHTML::parse {
                     last FIND_VIRTUAL_TOKEN;
                 } ## end if ( defined $virtual_terminal and not $ok_as_cruft{...})
 
+                if ($trace_terminals) {
+                    say {$trace_fh} 'Adding actual token as cruft: ',
+                        $actual_terminal;
+                }
+
                 # Cruft tokens are not virtual.
                 # They are the real things, hacked up.
                 $marpa_token->[0] = 'CRUFT';
@@ -1149,7 +1244,8 @@ sub Marpa::UrHTML::parse {
                     $line++
                         ;  # The convention is that line numbering starts at 1
                     say {$trace_fh} qq{Cruft at line $line: "},
-                        ${ tdesc_list_to_literal( $self, $marpa_token->[1] ) },
+                        ${ tdesc_list_to_literal( $self, $marpa_token->[1] )
+                        },
                         q{"};
                 } ## end if ($trace_cruft)
             } ## end FIND_VIRTUAL_TOKEN:
@@ -1219,7 +1315,7 @@ sub Marpa::UrHTML::parse {
 
     PSEUDO_CLASS:
     for my $pseudo_class (
-        qw(PROLOG TRAILER CRUFT))
+        qw(COMMENT PROLOG TRAILER PCDATA CRUFT))
     {
         my $pseudo_class_action =
             $self->{user_handlers_by_pseudo_class}->{ANY}->{$pseudo_class};

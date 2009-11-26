@@ -42,11 +42,11 @@ sub begin_and_end {
 
 my $p = Marpa::UrHTML->new(
     {   
-    trace_rules => 1,
-    trace_terminals => 1,
+    # trace_rules => 1,
+    # trace_terminals => 1,
     trace_cruft => 1,
     trace_ambiguity => 1,
-    trace_QDFA => 1,
+    # trace_QDFA => 1,
     handlers => [
             [   ':PROLOG' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};

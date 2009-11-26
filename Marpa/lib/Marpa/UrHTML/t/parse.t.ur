@@ -8,13 +8,50 @@ use warnings;
 
 use Test::More;
 my $DEBUG = 3;
-BEGIN { plan tests => 40 }
+
+BEGIN {
+    ## no critic (BuiltinFunctions::ProhibitStringyEval)
+    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+    eval 'require HTML::Entities';
+    ## use critic
+}
+
+BEGIN {
+    plan tests => 40
+}
 
 use Marpa::UrHTML;
 
 my $urhtml_args = {
-    # trace_handlers => 1,
+    # trace_conflicts => 1,
+    # trace_terminals => 2,
     handlers => [
+        [   ':CRUFT' => sub {
+             my $literal_ref = Marpa::UrHTML::literal();
+             my $literal = ${$literal_ref};
+             say STDERR "Cruft: ", $literal;
+             return qq{<CRUFT literal="$literal">};
+        } ],
+        [   ':PCDATA' => sub {
+                my $literal_ref = Marpa::UrHTML::literal();
+                my $literal = ${$literal_ref};
+                if ( defined &HTML::Entities::decode_entities ) {
+                    $literal =
+                        HTML::Entities::encode_entities(
+                        HTML::Entities::decode_entities($literal) );
+                }
+                return $literal;
+            }
+        ],
+        [   ':PROLOG' => sub {
+                my $literal_ref = Marpa::UrHTML::literal();
+                my $literal = ${$literal_ref};
+                $literal =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
+                $literal =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
+                return $literal;
+                }
+        ],
+        [   ':COMMENT' => sub { return q{} } ],
         [   q{*} => sub {
                 my $tagname = Marpa::UrHTML::tagname();
 
@@ -23,8 +60,20 @@ my $urhtml_args = {
                 Carp::croak('Not in an element') if not $tagname;
                 my ( $start_tag_ref, $contents_ref, $end_tag_ref ) =
                     Marpa::UrHTML::element_parts();
-                my $start_tag = defined $start_tag_ref ? ${$start_tag_ref} : "<$tagname>";
-                my $end_tag = defined $end_tag_ref ? ${$end_tag_ref} : "</$tagname>";
+                my $attributes = Marpa::UrHTML::attributes();
+
+                # Note this logic suffices to get through
+                # the test set but it does not handle
+                # the necessary escaping for a production
+                # version
+                my $start_tag = "<$tagname";
+                for my $attribute ( sort keys %{$attributes} ) {
+                    $start_tag .= qq{ $attribute="}
+                        . $attributes->{$attribute} . q{"};
+                }
+                $start_tag .= '>';
+                my $end_tag =
+                    defined $end_tag_ref ? ${$end_tag_ref} : "</$tagname>";
                 my $contents = ${$contents_ref};
                 $contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
                 $contents =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
@@ -66,14 +115,20 @@ Test::More::ok same( '<img alt="456" src="123">'  => '<img src="123"    alt="456
 
 Test::More::ok !same( '<img alt="456" >'  => '<img src="123"    alt="456"   >', 1 );
 
-Test::More::ok same( 'abc&#32;xyz'   => 'abc xyz' );
-Test::More::ok same( 'abc&#x20;xyz'  => 'abc xyz' );
+SKIP: {
+    skip 'HTML::Entities not installed', 6
+        if not defined &HTML::Entities::decode_entities;
 
-Test::More::ok same( 'abc&#43;xyz'   => 'abc+xyz' );
-Test::More::ok same( 'abc&#x2b;xyz'  => 'abc+xyz' );
+    Test::More::ok same( 'abc&#32;xyz'  => 'abc xyz' );
+    Test::More::ok same( 'abc&#x20;xyz' => 'abc xyz' );
 
-Test::More::ok same( '&#97;bc+xyz'   => 'abc+xyz' );
-Test::More::ok same( '&#x61;bc+xyz'  => 'abc+xyz' );
+    Test::More::ok same( 'abc&#43;xyz'  => 'abc+xyz' );
+    Test::More::ok same( 'abc&#x2b;xyz' => 'abc+xyz' );
+
+    Test::More::ok same( '&#97;bc+xyz'  => 'abc+xyz' );
+    Test::More::ok same( '&#x61;bc+xyz' => 'abc+xyz' );
+
+} ## end SKIP:
 
 print "#\n# Now some list tests.\n#\n";
 
