@@ -7,7 +7,7 @@ use warnings;
 # the authors of which I gratefully acknowledge.
 
 use Test::More;
-my $DEBUG = 3;
+my $DEBUG = 2;
 
 BEGIN {
     ## no critic (BuiltinFunctions::ProhibitStringyEval)
@@ -23,8 +23,6 @@ BEGIN {
 use Marpa::UrHTML;
 
 my $urhtml_args = {
-    # trace_conflicts => 1,
-    # trace_terminals => 2,
     handlers => [
         [   ':CRUFT' => sub {
              my $literal_ref = Marpa::UrHTML::literal();
@@ -74,8 +72,16 @@ my $urhtml_args = {
                     my $end_tag = "</$tagname>";
 
                     my $child_data =
-                        Marpa::UrHTML::child_data('token_type,literal');
-                    my $contents = join q{}, map { $_->[1] }
+                        Marpa::UrHTML::child_data('token_type,literal,element');
+
+                    # For UL element, eliminate all but the LI element children
+                    if ($tagname eq 'ul') {
+                        $child_data = [
+                            grep { defined $_->[2] and $_->[2] eq 'li' } @{$child_data}
+                        ];
+                    }
+
+                    my $contents = join q{}, map { ${$_->[1]} }
                         grep {
                         not defined $_->[0] or not $_->[0] ~~ [qw(S E)]
                         } @{$child_data};
@@ -90,13 +96,10 @@ my $urhtml_args = {
 
 Test::More::ok 1;
 
-{
-    my $parse = Marpa::UrHTML->new($urhtml_args);
-    my $value = $parse->parse( \'<title>foo</title><p>I like pie' );
-    Test::More::ok( $value,
-              "<html><head><title>foo</title></head><body>"
-            . "<p>I like pie</p></body></html>\n" );
-}
+Test::More::ok same(
+    '<title>foo</title><p>I like pie',
+    '<html><head><title>foo</title></head><body><p>I like pie</p></body></html>'
+);
 
 Test::More::ok !same('x' => 'y', 1);
 Test::More::ok !same('<p>' => 'y', 1);
@@ -135,7 +138,7 @@ SKIP: {
 
 } ## end SKIP:
 
-print "#\n# Now some list tests.\n#\n";
+# Now some list tests.
 
 Test::More::ok same('<ul><li>x</ul>after'      => '<ul><li>x</li></ul>after');
 Test::More::ok same('<ul><li>x<li>y</ul>after' => '<ul><li>x</li><li>y</li></ul>after');
@@ -145,7 +148,7 @@ Test::More::ok same('<ul> <li>x</li> <li>y</li> </ul>after' => '<ul><li>x</li><l
 Test::More::ok same('<ul><li>x<li>y</ul>after' => 
  \'<head></head><body><ul><li>x</li><li>y</li></ul>after</body>');
 
-print "#\n# Now some table tests.\n#\n";
+# Now some table tests.
 
 Test::More::ok same('<table>x<td>y<td>z'
         => '<table><tr><td>x</td><td>y</td><td>z</td></table>');
@@ -166,7 +169,7 @@ Test::More::ok same('<table>x'      => '<tr><td>x');
 Test::More::ok same('<table>x'      => '<table><tr>x');
 Test::More::ok same('<table>x'      => '<table><tr><td>x');
 
-print "#\n# Now some p tests.\n#\n";
+# Now some p tests.
 
 Test::More::ok same('<p>x<p>y<p>z'      => '<p>x</p><p>y</p><p>z');
 Test::More::ok same('<p>x<p>y<p>z'      => '<p>x</p><p>y<p>z</p>');

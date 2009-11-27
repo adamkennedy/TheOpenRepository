@@ -153,8 +153,8 @@ sub Marpa::UrHTML::attributes {
 
     # It is OK to call this routine on a non-element -- you'll just
     # get back an empty list of attributes.
-    my $start_tag_token_id = $Marpa::UrHTML::Internal::NODE_SCRATCHPAD->{start_tag_token_id};
-    return {} if not $start_tag_token_id;
+    my $start_tag_token_id = $Marpa::UrHTML::Internal::PER_NODE_DATA->{start_tag_token_id};
+    return {} if not defined $start_tag_token_id;
 
     my $tokens      = $parse_instance->{tokens};
     my $start_tag_token = $tokens->[$start_tag_token_id];

@@ -78,11 +78,11 @@ my $p              = Marpa::UrHTML->new( { handlers => \@handlers, } );
 my $value          = $p->parse( \$document );
 my $codepoint_hash = ${$value};
 
-my $before = 'lib/Marpa/UrHTML/t/test.storable';
-my $after  = 'lib/Marpa/UrHTML/t/test.storable.compare';
-Storable::store $codepoint_hash, $after;
+my $old = 'lib/Marpa/UrHTML/t/test.storable.old';
+my $new = 'lib/Marpa/UrHTML/t/test.storable.new';
+Storable::nstore $codepoint_hash, $new;
 
-Test::More::ok( ( File::Compare::compare( $before, $after ) == 0 ),
+Test::More::ok( ( File::Compare::compare( $old, $new ) == 0 ),
     'conversion to stored form' );
 
 __END__
