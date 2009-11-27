@@ -74,8 +74,6 @@ sub per_element_handlers {
 sub tdesc_list_to_literal {
     my ( $self, $tdesc_list ) = @_;
     
-    # say STDERR "in tdesc_list_to_literal, tdesc_list=", Data::Dumper::Dumper($tdesc_list);
-
     my $text     = q{};
     my $document = $self->{document};
     my $tokens   = $self->{tokens};
@@ -229,9 +227,12 @@ sub create_tdesc_handler {
         } ## end GET_USER_HANDLER:
 
         if ( defined $user_handler ) {
+            # scalar context needed for the user handler
+            # because so that a bare return returns undef
+            # and not an empty list.
             return [
                 [   VALUED_SPAN => $first_token_id,
-                    $last_token_id, $user_handler->(),
+                    $last_token_id, (scalar $user_handler->()),
                     $per_node_data
                 ]
             ];
@@ -360,9 +361,12 @@ sub wrap_user_tdesc_handler {
         $per_node_data->{last_token_id}  = $last_token_id;
         local $Marpa::UrHTML::Internal::PER_NODE_DATA = $per_node_data;
 
+        # scalar context needed for the user handler
+        # because so that a bare return returns undef
+        # and not an empty list.
         return [
             [   VALUED_SPAN => $first_token_id,
-                $last_token_id, $user_handler->(),
+                $last_token_id, (scalar $user_handler->()),
                 $per_node_data
             ]
         ];
@@ -552,7 +556,7 @@ sub Marpa::UrHTML::new {
 # head is for anything legal inside the HTML header.
 # Note that isindex can be both a head element and
 # and block level element in the body.
-# ISINDEX is classified as a head_element
+# ISINDEX is classified as a header_element
 %Marpa::UrHTML::Internal::ELEMENT_TYPE = (
     (   map { $_ => 'block_element' }
             qw(
@@ -565,7 +569,7 @@ sub Marpa::UrHTML::new {
             table fieldset address
             )
     ),
-    (   map { $_ => 'head_element' }
+    (   map { $_ => 'header_element' }
             qw(
             script style meta link object title isindex base
             )
@@ -597,23 +601,130 @@ for my $rank ( 0 .. $#Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS ) {
         $Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS[$rank] } = $rank;
 }
 
-my @SGML_rh_sides = qw(D comment PI);
+my $BNF = <<'END_OF_BNF';
+cruft ::= CRUFT
+comment ::= C
+pcdata ::= PCDATA
+SGML_item ::= D
+SGML_item ::= comment
+SGML_item ::= PI
+SGML_flow_item ::= SGML_item
+SGML_flow_item ::= WHITESPACE
+SGML_flow_item ::= cruft
+SGML_flow ::= SGML_flow_item*
+document ::= prolog ELE_html trailer EOF
+prolog ::= SGML_flow
+trailer ::= SGML_flow
+ELE_html ::= S_html Contents_html E_html
+Contents_html ::= SGML_flow ELE_head SGML_flow body SGML_flow
+ELE_head ::= S_head Contents_head E_head
+Contents_head ::= head_item*
+body ::= S_body flow E_body
+ELE_table ::= S_table table_flow E_table
+ELE_tbody ::= S_tbody table_section_flow E_tbody
+ELE_tr ::= S_tr table_row_flow E_tr
+ELE_td ::= S_td flow E_td
+flow ::= flow_item*
+flow_item ::= cruft
+flow_item ::= SGML_item
+flow_item ::= ELE_table
+flow_item ::= list_item_element
+flow_item ::= header_element
+flow_item ::= block_element
+flow_item ::= inline_element
+flow_item ::= WHITESPACE
+flow_item ::= CDATA
+flow_item ::= pcdata
+head_item ::= header_element
+head_item ::= cruft
+head_item ::= WHITESPACE
+head_item ::= SGML_item
+inline_flow ::= inline_flow_item*
+inline_flow_item ::= pcdata_flow_item
+inline_flow_item ::= inline_element
+pcdata_flow ::= pcdata_flow_item*
+pcdata_flow_item ::= CDATA
+pcdata_flow_item ::= pcdata
+pcdata_flow_item ::= cruft
+pcdata_flow_item ::= WHITESPACE
+pcdata_flow_item ::= SGML_item
+Contents_select ::= select_flow_item*
+select_flow_item ::= ELE_optgroup
+select_flow_item ::= ELE_option
+select_flow_item ::= SGML_flow_item
+Contents_optgroup ::= optgroup_flow_item*
+optgroup_flow_item ::= ELE_option
+optgroup_flow_item ::= SGML_flow_item
+list_item_flow ::= list_item_flow_item*
+list_item_flow_item ::= cruft
+list_item_flow_item ::= SGML_item
+list_item_flow_item ::= header_element
+list_item_flow_item ::= block_element
+list_item_flow_item ::= inline_element
+list_item_flow_item ::= WHITESPACE
+list_item_flow_item ::= CDATA
+list_item_flow_item ::= pcdata
+Contents_colgroup ::= colgroup_flow_item*
+colgroup_flow_item ::= ELE_col
+colgroup_flow_item ::= SGML_flow_item
+table_row_flow ::= table_row_flow_item*
+table_row_flow_item ::= ELE_th
+table_row_flow_item ::= ELE_td
+table_row_flow_item ::= SGML_flow_item
+table_section_flow ::= table_section_flow_item*
+table_section_flow_item ::= table_row_element
+table_section_flow_item ::= SGML_flow_item
+table_row_element ::= ELE_tr
+table_flow ::= table_flow_item*
+table_flow_item ::= ELE_colgroup
+table_flow_item ::= ELE_thead
+table_flow_item ::= ELE_tfoot
+table_flow_item ::= ELE_tbody
+table_flow_item ::= ELE_caption
+table_flow_item ::= ELE_col
+table_flow_item ::= SGML_flow_item
+empty ::=
+END_OF_BNF
 
-@Marpa::UrHTML::Internal::CORE_RULES = (
-    { lhs => 'cruft',   rhs => ['CRUFT'],  action => '!CRUFT_handler' },
-    { lhs => 'comment', rhs => ['C'],      action => '!COMMENT_handler' },
-    { lhs => 'pcdata',  rhs => ['PCDATA'], action => '!PCDATA_handler' },
+@Marpa::UrHTML::Internal::UNPRODUCTIVE_OK = qw(
+    ELE_caption ELE_col ELE_colgroup ELE_head ELE_html ELE_optgroup
+    ELE_option ELE_table ELE_tbody ELE_td ELE_tfoot ELE_th ELE_thead
+    ELE_tr
+    header_element list_item_element
+    inline_element block_element
 );
 
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'SGML_item', rhs => [$_] } } @SGML_rh_sides;
+@Marpa::UrHTML::Internal::INACCESSIBLE_OK = qw( ELE_optgroup ELE_option);
 
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'SGML_flow_item', rhs => [$_] } }
-    qw(SGML_item WHITESPACE cruft);
+@Marpa::UrHTML::Internal::CORE_RULES = ();
 
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'SGML_flow', rhs => ['SGML_flow_item'], min => 0 };
+my %handler = (
+    cruft  => '!CRUFT_handler',
+    comment => '!COMMENT_handler',
+    document => '!TOP_handler',
+    pcdata => '!PCDATA_handler',
+    prolog => '!PROLOG_handler',
+);
+
+for my $bnf_production (split /\n/xms, $BNF) {
+    my $sequence = ($bnf_production =~ s/ [*] \s* $//xms);
+    $bnf_production =~ s/ \s* [:][:][=] \s* / /xms;
+    my @symbols = (split q{ }, $bnf_production);
+    my $lhs = shift @symbols;
+    my %rule_descriptor = (
+        lhs => $lhs,
+        rhs => \@symbols,
+    );
+    if ($sequence) {
+        $rule_descriptor{min} = 0;
+    }
+    if (my $handler = $handler{$lhs}) {
+        $rule_descriptor{action} = $handler;
+    } elsif ($lhs =~ /^ELE_/xms) {
+        $rule_descriptor{action} = "!$lhs";
+    }
+    push @Marpa::UrHTML::Internal::CORE_RULES, \%rule_descriptor
+}
 
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
     qw(C D PI CRUFT CDATA PCDATA WHITESPACE EOF );
@@ -624,140 +735,6 @@ push @Marpa::UrHTML::Internal::CORE_TERMINALS,
 no strict 'refs';
 *{'Marpa::UrHTML::Internal::default_action'} = create_tdesc_handler();
 use strict;
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    (
-    {   lhs    => 'document',
-        rhs    => [qw(prolog root trailer EOF)],
-        action => '!TOP_handler',
-    },
-    {   lhs    => 'prolog',
-        rhs    => ['SGML_flow'],
-        action => '!PROLOG_handler',
-    },
-    {   lhs => 'trailer',
-        rhs => ['SGML_flow'],
-    },
-    {   lhs    => 'root',
-        rhs    => [qw(S_html Contents_root E_html)],
-        action => '!ELE_html',
-    },
-    {   lhs => 'Contents_root',
-        rhs => [qw(SGML_flow head SGML_flow body SGML_flow)],
-    },
-    {   lhs    => 'head',
-        rhs    => [qw(S_head Contents_head E_head)],
-        action => '!ELE_head',
-    },
-    {   lhs => 'Contents_head',
-        rhs => ['head_item'],
-        min => 0,
-    },
-    {   lhs    => 'body',
-        rhs    => [qw(S_body flow E_body)],
-        action => '!ELE_body',
-    },
-    {   lhs    => 'ELE_table',
-        rhs    => [qw(S_table table_flow E_table)],
-        action => '!ELE_table',
-    },
-    {   lhs    => 'ELE_tbody',
-        rhs    => [qw(S_tbody table_section_flow E_tbody)],
-        action => '!ELE_tbody',
-    },
-    {   lhs    => 'ELE_tr',
-        rhs    => [qw(S_tr table_row_flow E_tr)],
-        action => '!ELE_tr',
-    },
-    {   lhs    => 'ELE_td',
-        rhs    => [qw(S_td flow E_td)],
-        action => '!ELE_td',
-    },
-    { lhs => 'flow', rhs => ['flow_item'], min => 0 },
-    );
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'flow_item', rhs => [$_] } }
-    qw(cruft SGML_item ELE_table list_item_element head_element block_element inline_element WHITESPACE CDATA pcdata);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'head_item', rhs => [$_] } }
-    qw(head_element cruft WHITESPACE SGML_item);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'inline_flow', rhs => ['inline_flow_item'], min => 0 };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'inline_flow_item', rhs => [$_] } }
-    qw(pcdata_flow_item inline_element);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'pcdata_flow', rhs => ['pcdata_flow_item'], min => 0 };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'pcdata_flow_item', rhs => [$_] } }
-    qw(CDATA pcdata cruft WHITESPACE SGML_item);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'Contents_select', rhs => ['select_flow_item'], min => 0 };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'select_flow_item', rhs => [$_] } }
-    qw(ELE_optgroup ELE_option SGML_flow_item);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'Contents_optgroup', rhs => ['optgroup_flow_item'], min => 0 };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'optgroup_flow_item', rhs => [$_] } }
-    qw(ELE_option SGML_flow_item);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'list_item_flow', rhs => ['list_item_flow_item'], min => 0 };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'list_item_flow_item', rhs => [$_] } }
-    qw(cruft SGML_item head_element block_element inline_element WHITESPACE CDATA pcdata);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'Contents_colgroup', rhs => ['colgroup_flow_item'], min => 0 };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'colgroup_flow_item', rhs => [$_] } }
-    qw(ELE_col SGML_flow_item);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'table_row_flow', rhs => ['table_row_flow_item'], min => 0 };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'table_row_flow_item', rhs => [$_] } }
-    qw(ELE_th ELE_td SGML_flow_item);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    {
-    lhs => 'table_section_flow',
-    rhs => ['table_section_flow_item'],
-    min => 0
-    };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'table_section_flow_item', rhs => [$_] } }
-    qw(table_row_element SGML_flow_item);
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'table_row_element', rhs => ['ELE_tr'] };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    { lhs => 'table_flow', rhs => ['table_flow_item'], min => 0 };
-
-push @Marpa::UrHTML::Internal::CORE_RULES,
-    map { { lhs => 'table_flow_item', rhs => [$_] } }
-    qw(
-    ELE_colgroup ELE_thead ELE_tfoot ELE_tbody
-    ELE_caption ELE_col SGML_flow_item
-);
-
-push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
 
 %Marpa::UrHTML::Internal::EMPTY_ELEMENT = map { $_ => 1 } qw(
     area base basefont br col frame hr
@@ -777,6 +754,18 @@ push @Marpa::UrHTML::Internal::CORE_RULES, { lhs => 'empty', rhs => [], };
     'tbody'    => 'table_section_flow',
     'table'    => 'table_flow',
     ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT ),
+);
+
+push @Marpa::UrHTML::Internal::INACCESSIBLE_OK, qw(
+    Contents_colgroup Contents_optgroup Contents_select
+    empty inline_flow list_item_flow
+    pcdata_flow table_flow table_section_flow
+    colgroup_flow_item
+    inline_flow_item
+    list_item_flow_item
+    optgroup_flow_item
+    pcdata_flow_item
+    select_flow_item
 );
 
 sub Marpa::UrHTML::parse {
@@ -1075,34 +1064,38 @@ sub Marpa::UrHTML::parse {
             start     => 'document',
             terminals => \@terminals,
 
-            inaccessible_ok => [
-                qw(
-                    Contents_colgroup Contents_optgroup Contents_select
-                    ELE_caption ELE_col ELE_colgroup
-                    ELE_optgroup ELE_option
-                    ELE_tfoot ELE_thead
-                    ELE_tbody E_tbody S_tbody
-                    ELE_table E_table S_table
-                    ELE_tr E_tr S_tr
-                    ELE_td E_td S_td
-                    colgroup_flow_item empty inline_flow inline_flow_item
-                    list_item_flow list_item_flow_item optgroup_flow_item
-                    table_row_element 
-                    pcdata_flow pcdata_flow_item
-                    select_flow_item
-                    table_flow table_flow_item
-                    table_row_flow table_row_flow_item
-                    table_section_flow table_section_flow_item
-                    )
-            ],
+            inaccessible_ok => \@Marpa::UrHTML::Internal::INACCESSIBLE_OK,
 
-            unproductive_ok => [
-                qw(
-                    ELE_caption ELE_col ELE_colgroup ELE_optgroup ELE_option
-                    ELE_tfoot ELE_thead ELE_tr ELE_th
-                    block_element head_element inline_element list_item_element
-                    )
-            ],
+            # inaccessible_ok => [
+            #     qw(
+            #         Contents_colgroup Contents_optgroup Contents_select
+            #         ELE_caption ELE_col ELE_colgroup
+            #         ELE_optgroup ELE_option
+            #         ELE_tfoot ELE_thead
+            #         ELE_tbody E_tbody S_tbody
+            #         ELE_table E_table S_table
+            #         ELE_tr E_tr S_tr
+            #         ELE_td E_td S_td
+            #         colgroup_flow_item empty inline_flow inline_flow_item
+            #         list_item_flow list_item_flow_item optgroup_flow_item
+            #         table_row_element 
+            #         pcdata_flow pcdata_flow_item
+            #         select_flow_item
+            #         table_flow table_flow_item
+            #         table_row_flow table_row_flow_item
+            #         table_section_flow table_section_flow_item
+            #         )
+            # ],
+
+            unproductive_ok => \@Marpa::UrHTML::Internal::UNPRODUCTIVE_OK,
+
+            # unproductive_ok => [
+            #    qw(
+            #        ELE_caption ELE_col ELE_colgroup ELE_optgroup ELE_option
+            #        ELE_tfoot ELE_thead ELE_tr ELE_th
+            #        block_element header_element inline_element list_item_element
+            #        )
+            #],
 
             default_action => 'Marpa::UrHTML::Internal::default_action',
             strip => 0,
