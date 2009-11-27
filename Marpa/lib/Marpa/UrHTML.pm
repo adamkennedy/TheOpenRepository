@@ -47,6 +47,7 @@ use Marpa::Offset qw(
     START_TOKEN
     END_TOKEN
     VALUE
+    NODE_DATA
 );
 
 use Marpa::Offset qw(
@@ -80,8 +81,8 @@ sub tdesc_list_to_literal {
     my $tokens   = $self->{tokens};
     TDESC: for my $tdesc ( @{$tdesc_list} ) {
         given ( $tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] ) {
-            when ('EMPTY') { break; }
-            when ('ELE') {
+            when ('POINT') { break; }
+            when ('VALUED_SPAN') {
                 if (defined(
                         my $value =
                             $tdesc
@@ -115,8 +116,8 @@ sub tdesc_list_to_literal {
                     ->[Marpa::UrHTML::Internal::Token::END_OFFSET];
                 $text .= substr ${$document}, $offset,
                     ( $end_offset - $offset );
-            } ## end when ('ELE')
-            when ('TOKEN_SPAN') {
+            } ## end when ('VALUED_SPAN')
+            when ('UNVALUED_SPAN') {
                 my $first_token_id =
                     $tdesc->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
                 my $last_token_id =
@@ -130,7 +131,7 @@ sub tdesc_list_to_literal {
 
                 $text .= substr ${$document}, $offset,
                     ( $end_offset - $offset );
-            } ## end when ('TOKEN_SPAN')
+            } ## end when ('UNVALUED_SPAN')
             default {
                 Marpa::exception(qq{Internal error: unknown tdesc type "$_"});
             }
@@ -163,8 +164,34 @@ sub create_tdesc_handler {
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
 
-        my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
+        my @tdesc_list =  map { @{$_} } grep {defined} @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
+
+        my @token_ids = sort { $a <=> $b } grep {defined} map {
+            @{$_}[
+                Marpa::UrHTML::Internal::TDesc::START_TOKEN,
+                Marpa::UrHTML::Internal::TDesc::END_TOKEN
+                ]
+        } @tdesc_list;
+        my $first_token_id = $token_ids[0];
+        my $last_token_id  = $token_ids[-1];
+        my $per_node_data  = {
+            element        => $element,
+            first_token_id => $first_token_id,
+            last_token_id  => $last_token_id,
+        };
+        if ( $tdesc_list[0]->[Marpa::UrHTML::Internal::TDesc::TYPE] ne
+            'POINT' )
+        {
+            $per_node_data->{start_tag_token_id} = $first_token_id;
+        }
+        if ( $tdesc_list[-1]->[Marpa::UrHTML::Internal::TDesc::TYPE] ne
+            'POINT' )
+        {
+            $per_node_data->{end_tag_token_id} = $last_token_id;
+        }
+        local $Marpa::UrHTML::Internal::PER_NODE_DATA = $per_node_data;
+
         my $self           = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
         my $trace_fh       = $self->{trace_fh};
         my $trace_handlers = $self->{trace_handlers};
@@ -200,16 +227,14 @@ sub create_tdesc_handler {
                 );
             } ## end if ( $trace_handlers and $user_handler )
         } ## end GET_USER_HANDLER:
-        if ( defined $user_handler ) {
-            my @tokens = sort { $a <=> $b } grep {defined} map {
-                @{$_}[
-                    Marpa::UrHTML::Internal::TDesc::START_TOKEN,
-                    Marpa::UrHTML::Internal::TDesc::END_TOKEN
-                    ]
-            } @tdesc_list;
-            local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = { element => $element };
 
-            return [ [ ELE => $tokens[0], $tokens[-1], $user_handler->() ] ];
+        if ( defined $user_handler ) {
+            return [
+                [   VALUED_SPAN => $first_token_id,
+                    $last_token_id, $user_handler->(),
+                    $per_node_data
+                ]
+            ];
         } ## end if ( defined $user_handler )
 
         my $doc          = $self->{doc};
@@ -230,8 +255,8 @@ sub create_tdesc_handler {
                     last PARSE_TDESC;
                 }
                 given ( $tdesc->[Marpa::UrHTML::Internal::TDesc::TYPE] ) {
-                    when ('EMPTY') { break; }
-                    when ('ELE') {
+                    when ('POINT') { break; }
+                    when ('VALUED_SPAN') {
                         if (not defined(
                                 my $value = $tdesc->[
                                     Marpa::UrHTML::Internal::TDesc::Element::VALUE
@@ -250,16 +275,16 @@ sub create_tdesc_handler {
                             break;    # last PARSE_TDESC;
                         } ## end if ( not defined( my $value = $tdesc->[ ...]))
                         $next_tdesc = $tdesc;
-                    } ## end when ('ELE')
+                    } ## end when ('VALUED_SPAN')
                     when ('FINAL') {
                         $next_tdesc = $tdesc;
                     }
-                    when ('TOKEN_SPAN') {
+                    when ('UNVALUED_SPAN') {
                         $first_token_id = $tdesc
                             ->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
                         $last_token_id = $tdesc
                             ->[Marpa::UrHTML::Internal::TDesc::END_TOKEN];
-                    } ## end when ('TOKEN_SPAN')
+                    } ## end when ('UNVALUED_SPAN')
                     default {
                         Marpa::exception("Unknown text description type: $_");
                     }
@@ -276,7 +301,7 @@ sub create_tdesc_handler {
                     } ## end if ( $first_token_id <= ...)
                     push @tdesc_result,
                         [
-                        'TOKEN_SPAN',
+                        'UNVALUED_SPAN',
                         $first_token_id_in_current_span,
                         $last_token_id_in_current_span
                         ];
@@ -290,7 +315,7 @@ sub create_tdesc_handler {
                 if ( defined $first_token_id_in_current_span ) {
                     push @tdesc_result,
                         [
-                        'TOKEN_SPAN',
+                        'UNVALUED_SPAN',
                         $first_token_id_in_current_span,
                         $last_token_id_in_current_span
                         ];
@@ -311,25 +336,36 @@ sub create_tdesc_handler {
         } ## end for my $tdesc ( @tdesc_list, ['FINAL'] )
 
         return \@tdesc_result;
-        }
+    };
 } ## end sub create_tdesc_handler
 
 sub wrap_user_tdesc_handler {
-    my ($user_handler) = @_;
+    my ( $user_handler, $per_node_data ) = @_;
 
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
-        my @tokens = sort { $a <=> $b } grep {defined} map {
+        my @token_ids = sort { $a <=> $b } grep {defined} map {
             @{$_}[
                 Marpa::UrHTML::Internal::TDesc::START_TOKEN,
                 Marpa::UrHTML::Internal::TDesc::END_TOKEN
                 ]
         } @tdesc_list;
-        local $Marpa::UrHTML::Internal::NODE_SCRATCHPAD = {};
 
-        return [ [ ELE => $tokens[0], $tokens[-1], $user_handler->() ] ];
+        my $first_token_id = $token_ids[0];
+        my $last_token_id  = $token_ids[-1];
+        $per_node_data //= {};
+        $per_node_data->{first_token_id} = $first_token_id;
+        $per_node_data->{last_token_id}  = $last_token_id;
+        local $Marpa::UrHTML::Internal::PER_NODE_DATA = $per_node_data;
+
+        return [
+            [   VALUED_SPAN => $first_token_id,
+                $last_token_id, $user_handler->(),
+                $per_node_data
+            ]
+        ];
         }
 } ## end sub wrap_user_tdesc_handler
 
@@ -792,7 +828,7 @@ sub Marpa::UrHTML::parse {
                         : $is_cdata ? 'CDATA'
                         : 'PCDATA'
                     ),
-                    [ [ 'TOKEN_SPAN', $token_number, $token_number ] ],
+                    [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
                     ];
             } ## end when ('T')
             when ('S') {
@@ -804,7 +840,7 @@ sub Marpa::UrHTML::parse {
                 push @marpa_tokens,
                     [
                     $terminal,
-                    [ [ 'TOKEN_SPAN', $token_number, $token_number ] ],
+                    [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
                     ];
             } ## end when ('S')
             when ('E') {
@@ -816,7 +852,7 @@ sub Marpa::UrHTML::parse {
                 push @marpa_tokens,
                     [
                     $terminal,
-                    [ [ 'TOKEN_SPAN', $token_number, $token_number ] ],
+                    [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
                     ];
             } ## end when ('E')
             when ( [qw(C D)] ) {
@@ -824,7 +860,7 @@ sub Marpa::UrHTML::parse {
                     @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 push @marpa_tokens,
                     [
-                    $_, [ [ 'TOKEN_SPAN', $token_number, $token_number ] ],
+                    $_, [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
                     ];
             } ## end when ( [qw(C D)] )
             when ( ['PI'] ) {
@@ -832,7 +868,7 @@ sub Marpa::UrHTML::parse {
                     @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 push @marpa_tokens,
                     [
-                    $_, [ [ 'TOKEN_SPAN', $token_number, $token_number ] ],
+                    $_, [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
                     ];
             } ## end when ( ['PI'] )
             default { Carp::croak("Unprovided-for event: $_") }
@@ -842,7 +878,7 @@ sub Marpa::UrHTML::parse {
     # Points AFTER the last HTML
     # Parser token.
     # The other logic needs to be ready for this.
-    push @marpa_tokens, [ 'EOF', [ ['EMPTY'] ] ];
+    push @marpa_tokens, [ 'EOF', [ ['POINT'] ] ];
 
     $pull_parser = undef;    # conserve memory
 
@@ -1221,7 +1257,7 @@ sub Marpa::UrHTML::parse {
                         ->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
                     $token_to_add = [
                         $virtual_terminal,
-                        [ [ 'EMPTY', $first_tdesc_start_token ] ]
+                        [ [ 'POINT', $first_tdesc_start_token ] ]
                     ];
                     last FIND_VIRTUAL_TOKEN;
                 } ## end if ( defined $virtual_terminal and not $ok_as_cruft{...})
@@ -1322,7 +1358,7 @@ sub Marpa::UrHTML::parse {
         my $pseudo_class_action_name = "!$pseudo_class" . '_handler';
         if ($pseudo_class_action) {
             $closure{$pseudo_class_action_name} =
-                wrap_user_tdesc_handler($pseudo_class_action);
+                wrap_user_tdesc_handler($pseudo_class_action, { pseudo_class => $pseudo_class } );
             next PSEUDO_CLASS;
         }
         $closure{$pseudo_class_action_name} =

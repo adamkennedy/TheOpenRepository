@@ -52,33 +52,38 @@ my $urhtml_args = {
                 }
         ],
         [   ':COMMENT' => sub { return q{} } ],
-        [   q{*} => sub {
-                my $tagname = Marpa::UrHTML::tagname();
+        [   q{*} => (
+                sub {
+                    my $tagname = Marpa::UrHTML::tagname();
 
-                # say STDERR "In handler for $tagname element";
+                    # say STDERR "In handler for $tagname element";
 
-                Carp::croak('Not in an element') if not $tagname;
-                my ( $start_tag_ref, $contents_ref, $end_tag_ref ) =
-                    Marpa::UrHTML::element_parts();
-                my $attributes = Marpa::UrHTML::attributes();
+                    Carp::croak('Not in an element') if not $tagname;
+                    my $attributes = Marpa::UrHTML::attributes();
 
-                # Note this logic suffices to get through
-                # the test set but it does not handle
-                # the necessary escaping for a production
-                # version
-                my $start_tag = "<$tagname";
-                for my $attribute ( sort keys %{$attributes} ) {
-                    $start_tag .= qq{ $attribute="}
-                        . $attributes->{$attribute} . q{"};
+                    # Note this logic suffices to get through
+                    # the test set but it does not handle
+                    # the necessary escaping for a production
+                    # version
+                    my $start_tag = "<$tagname";
+                    for my $attribute ( sort keys %{$attributes} ) {
+                        $start_tag .= qq{ $attribute="}
+                            . $attributes->{$attribute} . q{"};
+                    }
+                    $start_tag .= '>';
+                    my $end_tag = "</$tagname>";
+
+                    my $child_data =
+                        Marpa::UrHTML::child_data('token_type,literal');
+                    my $contents = join q{}, map { $_->[1] }
+                        grep {
+                        not defined $_->[0] or not $_->[0] ~~ [qw(S E)]
+                        } @{$child_data};
+                    $contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
+                    $contents =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
+                    return join q{}, $start_tag, $contents, $end_tag;
                 }
-                $start_tag .= '>';
-                my $end_tag =
-                    defined $end_tag_ref ? ${$end_tag_ref} : "</$tagname>";
-                my $contents = ${$contents_ref};
-                $contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
-                $contents =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
-                return join q{}, $start_tag, $contents, $end_tag;
-                }
+            )
         ]
     ]
 };

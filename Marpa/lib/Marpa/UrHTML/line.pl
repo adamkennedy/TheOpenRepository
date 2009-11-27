@@ -12,27 +12,39 @@ use Carp;
 use Data::Dumper;
 use English qw( -no_match_vars );
 use Fatal qw(open);
+use JSON::XS;
 use Storable;
+use Fatal qw(open close);
 
+my $tag = shift;
+Carp::croak("usage $0 gua") if not $tag;
+
+my $i;
+{
+    local $RS = undef;
+    open my $fh, q{<}, 'i.json';
+    my $json_i = <$fh>;
+    $i      = JSON::XS::decode_json $json_i;
+    close $fh;
+}
 binmode STDOUT, ':utf8';
+
+my $rtext = $i->{$tag};
+Carp::croak(qq{unknown text: "$tag"}) if not $rtext;
+my $xc_text = $i->{$tag . 'x'};
 
 my %codepoint_in_text = ();
 my @received_text = ();
-RECEIVED_TEXT: while (my $line = <STDIN>) {
-    chomp $line;
-    last RECEIVED_TEXT if not $line;
-    say STDERR $line;
-    push @received_text, $line;
-    $codepoint_in_text{lc $line}++;
+RECEIVED_TEXT: for my $codepoint (@{$rtext}) {
+    push @received_text, $codepoint;
+    $codepoint_in_text{lc $codepoint}++;
 }
-
 my $received_text = join q{ }, map { sprintf '%c', hex(substr($_, 2)) } @received_text;
 
 my @xiang_zhuan = ();
-XIANG_ZHUAN: while (my $line = <STDIN>) {
-    chomp $line;
-    push @xiang_zhuan, $line;
-    $codepoint_in_text{lc $line}++;
+XIANG_ZHUAN: for my $codepoint (@{$xc_text}) {
+    push @xiang_zhuan, $codepoint;
+    $codepoint_in_text{lc $codepoint}++;
 }
 
 my $xiang_zhuan = join q{ }, map { sprintf '%c', hex(substr($_, 2)) } @xiang_zhuan;
