@@ -77,8 +77,8 @@ SCOPE: {
 	};
 	SKIP: {
 		skip( "Current user owns CPAN::Config", 1 ) unless $@;
-		ok(
-			$@ =~ /The sources directory is not owned by the current user/,
+		like($@,
+			qr/The sources directory is not owned by the current user/,
 			'Got expected error',
 		);
 	}
