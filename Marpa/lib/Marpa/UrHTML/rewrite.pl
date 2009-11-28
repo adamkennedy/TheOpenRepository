@@ -29,17 +29,19 @@ my @handlers = (
             }
     ],
     [   '.codepoint' => sub {
-            for my $value ( @{&Marpa::UrHTML::element_values()} ) {
+            for my $value ( @{ &Marpa::UrHTML::child_values() } ) {
                 next CHILD if not $value;
-                my ( $class, $literal, $data ) = @{ $value };
-                if ($class eq 'occurrences') {
-                    $Marpa::UrHTML::INSTANCE->{Marpa::UrHTML::title()}->{occurrence_count} = $data;
+                my ( $class, $literal, $data ) = @{$value};
+                if ( $class eq 'occurrences' ) {
+                    $Marpa::UrHTML::INSTANCE->{ Marpa::UrHTML::title() }
+                        ->{occurrence_count} = $data;
                 }
-                $Marpa::UrHTML::INSTANCE->{Marpa::UrHTML::title()}->{$class} = $literal;
-            }
+                $Marpa::UrHTML::INSTANCE->{ Marpa::UrHTML::title() }
+                    ->{$class} = $literal;
+            } ## end for my $value ( @{ &Marpa::UrHTML::child_values() } )
             return;
-            }
-    ]
+        },
+    ],
 );
 
 push @handlers, 

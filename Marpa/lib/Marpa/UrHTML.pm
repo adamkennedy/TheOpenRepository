@@ -917,186 +917,115 @@ sub Marpa::UrHTML::parse {
         $element_actions{"!ELE_$_"} = $_;
     } ## end for ( keys %start_tags )
 
+    # The question is where to put cruft -- in the current element,
+    # or at a higher level.  As a first step, we set up a system of
+    # levels for specific elements, going from the lowest, where no
+    # cruft is allowed, to the highest, where everything is
+    # acceptable as cruft, if only because it has nowhere else to go.
+
+    # First step, set up the levels, using specific elements.
+    # Some of these elements will are stand-ins for large category.
+    # For example, the HR element stands in for those elements
+    # such as empty elements,
+    # which tolerate zero cruft, while SPAN stands in for 
+    # inline elements and DIV stands in for the class of
+    # block-level elements
+
     my %ok_as_cruft = ();
+    DECIDE_CRUFT_TREATMENT: {
+        my %level             = ();
+        my @elements_by_level = (
+            [qw( HR HEAD )],
+            [qw( SPAN OPTION )],
+            [qw( LI OPTGROUP DD DT )],
+            [qw( DIR MENU )],
+            [qw( DIV )],
+            [qw( UL OL DL )],
+            [qw( TH TD )],
+            [qw( TR )],
+            [qw( COL )],
+            [qw( CAPTION COLGROUP THEAD TFOOT TBODY )],
+            [qw( TABLE )],
+            [qw( BODY )],
+            [qw( HTML )],
+        );
 
-    EXPECTED_TERMINAL:
-    for my $expected_terminal (
-        keys %optional_terminals )
-    {
+        # EOF comes after everything -- it is
+        # the highest level of all
+        $level{EOF} = scalar @elements_by_level;
 
-        # When expecting start tags nothing is OK as cruft.
-        next EXPECTED_TERMINAL if $expected_terminal =~ /^S_/xms;
-
-        # When expecting implicit start tags nothing is OK as cruft.
-        next EXPECTED_TERMINAL if $expected_terminal =~ /^IS_/xms;
-
-        # "Non-structural" elements are OK as cruft.
-        # "Non-structural" means not part of the logic for
-        # those tags.
-        # So for the OPTION elements
-        # OPTION and OPTIONGROUP tags are structural
-        # and nothing else with one exception:
-        # The EOF tag is always structural.
-        if ( $expected_terminal ~~ [qw(E_option)] ) {
-            TERMINAL: for my $actual_terminal (@terminals) {
-                next TERMINAL if $actual_terminal ~~ [
-                    qw(EOF
-                        E_optgroup E_option E_select
-                        S_optgroup S_option S_select
-                        )
-                ];
-                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
-            } ## end for my $actual_terminal (@terminals)
-            next EXPECTED_TERMINAL;
-        } ## end if ( $expected_terminal ~~ [qw(E_option)] )
-
-        # For list item elements (LI, DD and DT)
-        # EOF, list element tags
-        # and list item element tags are structural.
-        #
-        # 2009-11-25  Changed this so that LI DD and DT
-        # elements do not accept cruft.  This seems to
-        # be better for dealing with crufty pages that
-        # you actually encounter in real life.
-        if ( $expected_terminal ~~ [qw(E_li E_dd E_dt)] ) {
-
-            # TERMINAL: for my $actual_terminal (@terminals) {
-            #    next TERMINAL if $actual_terminal ~~ [
-            #        qw(EOF
-            #            E_li E_dd E_dt
-            #            S_li S_dd S_dt
-            #            E_ol E_ul E_dl
-            #            S_ol S_ul S_dl
-            #            )
-            #    ];
-            #    $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
-            # } ## end for my $actual_terminal (@terminals)
-
-            next EXPECTED_TERMINAL;
-        } ## end if ( $expected_terminal ~~ [qw(E_li E_dd E_dt)] )
-
-        # Empty elements accept nothing as interior cruft
-        next EXPECTED_TERMINAL
-            if $expected_terminal ~~ /^E_/xms
-                and $Marpa::UrHTML::Internal::EMPTY_ELEMENT{
-                    substr $expected_terminal, 2 };
-
-        # HEAD, COLGROUP and P elements do not accept interior cruft, instead
-        # passing it along to the next element
-        # Also don't allow interior cruft in an FONT element.
-        next EXPECTED_TERMINAL if $expected_terminal ~~ [
-            qw(
-                E_head
-                E_p
-                E_font
-                E_colgroup
-                )
-        ];
-
-        # When expecting E_body, that is, when in the top body
-        # flow, everything but an EOF or an E_html
-        # is fine as cruft
-        if ( $expected_terminal eq 'E_body' ) {
-            TERMINAL: for my $actual_terminal (@terminals) {
-                next TERMINAL if $actual_terminal ~~ [qw(EOF E_html)];
-                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
+        # Assign levels to the end tags of the elements
+        # in the above table.
+        # (Start tags will be dealt with below.)
+        for my $level ( 0 .. $#elements_by_level ) {
+            for my $element ( @{ $elements_by_level[$level] } ) {
+                $level{ 'S_' . lc $element } = $level{ 'E_' . lc $element } =
+                    $level;
             }
-            next EXPECTED_TERMINAL;
-        } ## end if ( $expected_terminal eq 'E_body' )
+        } ## end for my $level ( 0 .. $#elements_by_level )
 
-        # TD TH and TR elements accept interior cruft, but since
-        # their end tag is optional, it cannot be "structural".
-        # And EOF is never allowed as cruft.
-        if ( $expected_terminal ~~ [qw(E_td E_th E_tr)] ) {
-            TERMINAL: for my $actual_terminal (@terminals) {
-                next TERMINAL if $actual_terminal ~~ [
-                    qw(EOF E_table
-                        S_td _S_th S_tr S_tbody S_thead S_tfoot S_col S_caption S_colgroup
-                        E_td _E_th E_tr E_tbody E_thead E_tfoot E_col E_caption E_colgroup
-                        )
-                ];
-                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
-            } ## end for my $actual_terminal (@terminals)
-            next EXPECTED_TERMINAL;
-        } ## end if ( $expected_terminal ~~ [qw(E_td E_th E_tr)] )
+        my $no_cruft_allowed = $level{E_hr};
+        my $block_level      = $level{E_div};
+        my $inline_level     = $level{E_span};
 
-        # TBODY, THEAD, TFOOT elements
-        # must end at an EOF, at a TABLE end tag
-        # or at the start tag of another table-section-level element
-        # and will not accept a mismatched end tag as interior
-        # cruft.
-        # Other than that they are happy to accept interior cruft.
-        if ( $expected_terminal ~~ [qw(E_tbody E_thead E_tfoot)] ) {
-            TERMINAL: for my $actual_terminal (@terminals) {
-                next TERMINAL if $actual_terminal ~~ [
-                    qw(EOF E_table
-                        S_tbody S_thead S_tfoot S_col S_caption S_colgroup
-                        E_tbody E_thead E_tfoot E_col E_caption E_colgroup
-                        )
-                ];
-                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
-            } ## end for my $actual_terminal (@terminals)
-            next EXPECTED_TERMINAL;
-        } ## end if ( $expected_terminal ~~ [qw(E_tbody E_thead E_tfoot)...])
+        # Now that we have set out the structure of levels
+        # fill it in for all the terminals we have yet to
+        # define.
+        TERMINAL:
+        for my $terminal ( grep { not defined $level{$_} }
+            ( @terminals, keys %optional_terminals ) )
+        {
 
-        if ( $expected_terminal ~~ /^E_/xms ) {
-
-            # Default for end tags
-            # is to treat the element as non-empty,
-            # and with the end tag required
-            TERMINAL: for my $actual_terminal (@terminals) {
-                next TERMINAL if $actual_terminal eq 'EOF';
-                $ok_as_cruft{$expected_terminal}{$actual_terminal}++;
+            # With the exception of EOF,
+            # only tags can have levels because only they really
+            # tell us anyting about "state" --
+            # whether we are awaiting something
+            # or are inside something.
+            if ( $terminal !~ /^[SE]_/ ) {
+                $level{$terminal} = $no_cruft_allowed;
+                next TERMINAL;
             }
-            next EXPECTED_TERMINAL;
-        } ## end if ( $expected_terminal ~~ /^E_/xms )
+            my $element = substr $terminal, 2;
+            if ( $Marpa::UrHTML::Internal::EMPTY_ELEMENT{$element} ) {
+                $level{$terminal} = $no_cruft_allowed;
+                next TERMINAL;
+            }
 
-        default {
+            my $element_type =
+                $Marpa::UrHTML::Internal::ELEMENT_TYPE{$element};
+            if ( defined $element_type
+                and $element_type ~~ [qw(block_element header_element)] )
+            {
+                $level{$terminal} = $block_level;
+                next TERMINAL;
+            } ## end if ( defined $element_type and $element_type ~~ [...])
 
-            # Should not get here
-            Marpa::exception("Unprovided-for optional terminal: $expected_terminal");
-        }
+            $level{$terminal} = $inline_level;
 
-    } ## end for my $expected_terminal ( keys ...)
+        } ## end for my $terminal ( grep { not defined $level{$_} } ( ...))
+
+        EXPECTED_TERMINAL:
+        for my $expected_terminal ( keys %optional_terminals ) {
+
+            # Regardless of levels, allow no cruft before a start tag.
+            # Start whatever it is, then deal with the cruft.
+            next EXPECTED_TERMINAL if $expected_terminal =~ /^S_/;
+
+            # For end tags, use the levels
+            TERMINAL: for my $actual_terminal (@terminals) {
+                $ok_as_cruft{$expected_terminal}{$actual_terminal} =
+                    $level{$actual_terminal} < $level{$expected_terminal};
+            }
+        } ## end for my $expected_terminal ( keys %optional_terminals )
+
+    } ## end DECIDE_CRUFT_TREATMENT:
 
     my $grammar = Marpa::Grammar->new(
         {   rules     => \@rules,
             start     => 'document',
             terminals => \@terminals,
-
             inaccessible_ok => \@Marpa::UrHTML::Internal::INACCESSIBLE_OK,
-
-            # inaccessible_ok => [
-            #     qw(
-            #         Contents_colgroup Contents_optgroup Contents_select
-            #         ELE_caption ELE_col ELE_colgroup
-            #         ELE_optgroup ELE_option
-            #         ELE_tfoot ELE_thead
-            #         ELE_tbody E_tbody S_tbody
-            #         ELE_table E_table S_table
-            #         ELE_tr E_tr S_tr
-            #         ELE_td E_td S_td
-            #         colgroup_flow_item empty inline_flow inline_flow_item
-            #         list_item_flow list_item_flow_item optgroup_flow_item
-            #         table_row_element 
-            #         pcdata_flow pcdata_flow_item
-            #         select_flow_item
-            #         table_flow table_flow_item
-            #         table_row_flow table_row_flow_item
-            #         table_section_flow table_section_flow_item
-            #         )
-            # ],
-
             unproductive_ok => \@Marpa::UrHTML::Internal::UNPRODUCTIVE_OK,
-
-            # unproductive_ok => [
-            #    qw(
-            #        ELE_caption ELE_col ELE_colgroup ELE_optgroup ELE_option
-            #        ELE_tfoot ELE_thead ELE_tr ELE_th
-            #        block_element header_element inline_element list_item_element
-            #        )
-            #],
-
             default_action => 'Marpa::UrHTML::Internal::default_action',
             strip => 0,
         }
@@ -1188,8 +1117,8 @@ sub Marpa::UrHTML::parse {
                         next LOOKAHEAD_VIRTUAL_TERMINAL;
                     } ## end if ( $candidate eq 'S_td' and $actual_terminal ~~ [...])
 
-                    # and end tag for a row, cell, table section
-                    # or as a way of dealing with EOF
+                    # Don't start a new table cell, row or TBODY element
+                    # as a way of dealing one of these end tags
                     if ($candidate ~~ [qw(S_tr S_td S_tbody)]
                         and $actual_terminal ~~ [
                             qw(E_th E_td E_tr E_thead E_tfoot E_tbody E_table EOF)
