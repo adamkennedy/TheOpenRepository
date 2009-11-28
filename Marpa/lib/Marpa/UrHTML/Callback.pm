@@ -16,20 +16,18 @@ use Marpa::Internal;
 sub Marpa::UrHTML::start_tag {
 
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    Marpa::exception( qq{Attempt to fetch element parts outside of a parse} )
+    Marpa::exception(q{Attempt to fetch element parts outside of a parse})
         if not defined $parse_instance;
 
     my $element = $Marpa::UrHTML::Internal::PER_NODE_DATA->{element};
     Marpa::exception('The element_parts callback was called on a non-element')
         if not $element;
 
-    return
-        if not defined(
-                my $start_tag_token_id =
-                    $Marpa::UrHTML::Internal::PER_NODE_DATA
-                    ->{start_tag_token_id}
-        );
-
+    #<<< perltidy cycles on this as of 2009-11-28
+    return if not defined (my $start_tag_token_id =
+            $Marpa::UrHTML::Internal::PER_NODE_DATA->{start_tag_token_id});
+    #>>>
+    #
     # Inlining this might be faster, especially since I have to dummy
     # up a tdesc list to make it work.
     return Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
@@ -39,20 +37,18 @@ sub Marpa::UrHTML::start_tag {
 sub Marpa::UrHTML::end_tag {
 
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    Marpa::exception( qq{Attempt to fetch an end tag outside of a parse} )
+    Marpa::exception(q{Attempt to fetch an end tag outside of a parse})
         if not defined $parse_instance;
 
     my $element = $Marpa::UrHTML::Internal::PER_NODE_DATA->{element};
     Marpa::exception('The end_tag() callback was called on a non-element')
         if not $element;
 
-    return
-        if not defined(
-                my $end_tag_token_id =
-                    $Marpa::UrHTML::Internal::PER_NODE_DATA
-                    ->{end_tag_token_id}
-        );
-
+    #<<< perltidy cycles on this as of 2009-11-28
+    return if not defined (my $end_tag_token_id =
+            $Marpa::UrHTML::Internal::PER_NODE_DATA->{end_tag_token_id});
+    #>>>
+    #
     # Inlining this might be faster, especially since I have to dummy
     # up a tdesc list to make it work.
     return Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
@@ -62,7 +58,7 @@ sub Marpa::UrHTML::end_tag {
 sub Marpa::UrHTML::child_values {
 
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(qq{Attempt to fetch an end tag outside of a parse})
+    Marpa::exception(q{Attempt to fetch an end tag outside of a parse})
         if not defined $parse_instance;
 
     my @values = grep {defined}
@@ -78,12 +74,12 @@ sub Marpa::UrHTML::child_data {
     my ($argspecs) = @_;
 
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(qq{Attempt to fetch an end tag outside of a parse})
+    Marpa::exception(q{Attempt to fetch an end tag outside of a parse})
         if not defined $parse_instance;
     my $tokens = $parse_instance->{tokens};
 
     my @argspecs = ();
-    for my $argspec ( split( /,/xms, $argspecs ) ) {
+    for my $argspec ( split /,/xms, $argspecs ) {
         $argspec =~ s/\A \s* //xms;
         $argspec =~ s/ \s* \z//xms;
         push @argspecs, $argspec;
@@ -142,24 +138,25 @@ sub Marpa::UrHTML::child_data {
     } ## end for my $child (@children)
 
     return \@return;
-} ## end sub Marpa::UrHTML::children
+} ## end sub Marpa::UrHTML::child_data
 
 sub Marpa::UrHTML::attributes {
 
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     Marpa::exception(
-        qq{Attempt to fetch attributes from an undefined parse instance}
-    ) if not defined $parse_instance;
+        q{Attempt to fetch attributes from an undefined parse instance})
+        if not defined $parse_instance;
 
     # It is OK to call this routine on a non-element -- you'll just
     # get back an empty list of attributes.
-    my $start_tag_token_id = $Marpa::UrHTML::Internal::PER_NODE_DATA->{start_tag_token_id};
+    my $start_tag_token_id =
+        $Marpa::UrHTML::Internal::PER_NODE_DATA->{start_tag_token_id};
     return {} if not defined $start_tag_token_id;
 
-    my $tokens      = $parse_instance->{tokens};
+    my $tokens          = $parse_instance->{tokens};
     my $start_tag_token = $tokens->[$start_tag_token_id];
     return $start_tag_token->[4];
-}
+} ## end sub Marpa::UrHTML::attributes
 
 # This assumes that a start token, if there is one
 # with attributes, is the first token
@@ -200,8 +197,7 @@ sub Marpa::UrHTML::tagname {
 sub Marpa::UrHTML::literal {
     return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(
-        'Attempt to get literal value outside of a parse')
+    Marpa::exception('Attempt to get literal value outside of a parse')
         if not defined $parse_instance;
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
     return Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,

@@ -73,7 +73,7 @@ sub per_element_handlers {
 
 sub tdesc_list_to_literal {
     my ( $self, $tdesc_list ) = @_;
-    
+
     my $text     = q{};
     my $document = $self->{document};
     my $tokens   = $self->{tokens};
@@ -162,7 +162,7 @@ sub create_tdesc_handler {
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
 
-        my @tdesc_list =  map { @{$_} } grep {defined} @tdesc_lists;
+        my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
 
         my @token_ids = sort { $a <=> $b } grep {defined} map {
@@ -171,23 +171,27 @@ sub create_tdesc_handler {
                 Marpa::UrHTML::Internal::TDesc::END_TOKEN
                 ]
         } @tdesc_list;
-        my $first_token_id = $token_ids[0];
-        my $last_token_id  = $token_ids[-1];
-        my $per_node_data  = {
+
+        my $first_token_id_in_node = $token_ids[0];
+        my $last_token_id_in_node  = $token_ids[-1];
+        my $per_node_data          = {
             element        => $element,
-            first_token_id => $first_token_id,
-            last_token_id  => $last_token_id,
+            first_token_id => $first_token_id_in_node,
+            last_token_id  => $last_token_id_in_node,
         };
+
         if ( $tdesc_list[0]->[Marpa::UrHTML::Internal::TDesc::TYPE] ne
             'POINT' )
         {
-            $per_node_data->{start_tag_token_id} = $first_token_id;
+            $per_node_data->{start_tag_token_id} = $first_token_id_in_node;
         }
+
         if ( $tdesc_list[-1]->[Marpa::UrHTML::Internal::TDesc::TYPE] ne
             'POINT' )
         {
-            $per_node_data->{end_tag_token_id} = $last_token_id;
+            $per_node_data->{end_tag_token_id} = $last_token_id_in_node;
         }
+
         local $Marpa::UrHTML::Internal::PER_NODE_DATA = $per_node_data;
 
         my $self           = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
@@ -227,12 +231,13 @@ sub create_tdesc_handler {
         } ## end GET_USER_HANDLER:
 
         if ( defined $user_handler ) {
+
             # scalar context needed for the user handler
             # because so that a bare return returns undef
             # and not an empty list.
             return [
-                [   VALUED_SPAN => $first_token_id,
-                    $last_token_id, (scalar $user_handler->()),
+                [   VALUED_SPAN => $first_token_id_in_node,
+                    $last_token_id_in_node, ( scalar $user_handler->() ),
                     $per_node_data
                 ]
             ];
@@ -366,11 +371,12 @@ sub wrap_user_tdesc_handler {
         # and not an empty list.
         return [
             [   VALUED_SPAN => $first_token_id,
-                $last_token_id, (scalar $user_handler->()),
+                $last_token_id, ( scalar $user_handler->() ),
                 $per_node_data
             ]
         ];
-        }
+
+    };
 } ## end sub wrap_user_tdesc_handler
 
 sub setup_offsets {
@@ -504,12 +510,14 @@ sub add_handlers {
             Marpa::exception(
                 'handler specification must be ref to ARRAY or HASH');
         } ## end PARSE_HANDLER_SPEC:
-        $element = (not $element or $element eq q{*}) ? 'ANY' : lc $element;
+
+        $element = ( not $element or $element eq q{*} ) ? 'ANY' : lc $element;
         if ( defined $pseudo_class ) {
             $self->{user_handlers_by_pseudo_class}->{$element}
                 ->{$pseudo_class} = $action;
             next HANDLER_SPEC;
         }
+
         if ( defined $id ) {
             $self->{user_handlers_by_id}->{$element}->{ lc $id } = $action;
             next HANDLER_SPEC;
@@ -595,6 +603,7 @@ sub Marpa::UrHTML::new {
     S_body
     S_html
 );
+
 %Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS = ();
 for my $rank ( 0 .. $#Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS ) {
     $Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS{
@@ -699,18 +708,18 @@ END_OF_BNF
 @Marpa::UrHTML::Internal::CORE_RULES = ();
 
 my %handler = (
-    cruft  => '!CRUFT_handler',
-    comment => '!COMMENT_handler',
+    cruft    => '!CRUFT_handler',
+    comment  => '!COMMENT_handler',
     document => '!TOP_handler',
-    pcdata => '!PCDATA_handler',
-    prolog => '!PROLOG_handler',
+    pcdata   => '!PCDATA_handler',
+    prolog   => '!PROLOG_handler',
 );
 
-for my $bnf_production (split /\n/xms, $BNF) {
-    my $sequence = ($bnf_production =~ s/ [*] \s* $//xms);
+for my $bnf_production ( split /\n/xms, $BNF ) {
+    my $sequence = ( $bnf_production =~ s/ [*] \s* $//xms );
     $bnf_production =~ s/ \s* [:][:][=] \s* / /xms;
-    my @symbols = (split q{ }, $bnf_production);
-    my $lhs = shift @symbols;
+    my @symbols         = ( split q{ }, $bnf_production );
+    my $lhs             = shift @symbols;
     my %rule_descriptor = (
         lhs => $lhs,
         rhs => \@symbols,
@@ -718,13 +727,14 @@ for my $bnf_production (split /\n/xms, $BNF) {
     if ($sequence) {
         $rule_descriptor{min} = 0;
     }
-    if (my $handler = $handler{$lhs}) {
+    if ( my $handler = $handler{$lhs} ) {
         $rule_descriptor{action} = $handler;
-    } elsif ($lhs =~ /^ELE_/xms) {
+    }
+    elsif ( $lhs =~ /^ELE_/xms ) {
         $rule_descriptor{action} = "!$lhs";
     }
-    push @Marpa::UrHTML::Internal::CORE_RULES, \%rule_descriptor
-}
+    push @Marpa::UrHTML::Internal::CORE_RULES, \%rule_descriptor;
+} ## end for my $bnf_production ( split /\n/xms, $BNF )
 
 @Marpa::UrHTML::Internal::CORE_TERMINALS =
     qw(C D PI CRUFT CDATA PCDATA WHITESPACE EOF );
@@ -784,8 +794,7 @@ sub Marpa::UrHTML::parse {
     my $trace_conflicts = $self->{trace_conflicts};
     my $trace_fh        = $self->{trace_fh};
     my $ref_type        = ref $document_ref;
-    Marpa::exception(
-        'Arg to parse() must be ref to string' )
+    Marpa::exception('Arg to parse() must be ref to string')
         if not $ref_type
             or $ref_type ne 'SCALAR';
 
@@ -798,7 +807,8 @@ sub Marpa::UrHTML::parse {
     my @tokens = ();
 
     my %terminals = map { $_ => 1 } @Marpa::UrHTML::Internal::CORE_TERMINALS;
-    my %optional_terminals = %Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS;
+    my %optional_terminals =
+        %Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS;
     my @html_parser_tokens = ();
     my @marpa_tokens       = ();
     while ( my $html_parser_token = $pull_parser->get_token ) {
@@ -875,7 +885,7 @@ sub Marpa::UrHTML::parse {
     my @terminals = keys %terminals;
 
     my %pseudo_class_element_actions = ();
-    my %element_actions = ();
+    my %element_actions              = ();
 
     # Special cases which are dealt with elsewhere.
     # As of now the only special cases are elements with optional
@@ -927,7 +937,7 @@ sub Marpa::UrHTML::parse {
     # Some of these elements will are stand-ins for large category.
     # For example, the HR element stands in for those elements
     # such as empty elements,
-    # which tolerate zero cruft, while SPAN stands in for 
+    # which tolerate zero cruft, while SPAN stands in for
     # inline elements and DIV stands in for the class of
     # block-level elements
 
@@ -981,7 +991,7 @@ sub Marpa::UrHTML::parse {
             # tell us anyting about "state" --
             # whether we are awaiting something
             # or are inside something.
-            if ( $terminal !~ /^[SE]_/ ) {
+            if ( $terminal !~ /^[SE]_/xms ) {
                 $level{$terminal} = $no_cruft_allowed;
                 next TERMINAL;
             }
@@ -1009,7 +1019,7 @@ sub Marpa::UrHTML::parse {
 
             # Regardless of levels, allow no cruft before a start tag.
             # Start whatever it is, then deal with the cruft.
-            next EXPECTED_TERMINAL if $expected_terminal =~ /^S_/;
+            next EXPECTED_TERMINAL if $expected_terminal =~ /^S_/xms;
 
             # For end tags, use the levels
             TERMINAL: for my $actual_terminal (@terminals) {
@@ -1021,13 +1031,13 @@ sub Marpa::UrHTML::parse {
     } ## end DECIDE_CRUFT_TREATMENT:
 
     my $grammar = Marpa::Grammar->new(
-        {   rules     => \@rules,
-            start     => 'document',
-            terminals => \@terminals,
+        {   rules           => \@rules,
+            start           => 'document',
+            terminals       => \@terminals,
             inaccessible_ok => \@Marpa::UrHTML::Internal::INACCESSIBLE_OK,
             unproductive_ok => \@Marpa::UrHTML::Internal::UNPRODUCTIVE_OK,
-            default_action => 'Marpa::UrHTML::Internal::default_action',
-            strip => 0,
+            default_action  => 'Marpa::UrHTML::Internal::default_action',
+            strip           => 0,
         }
     );
     $grammar->precompute();
@@ -1058,7 +1068,7 @@ sub Marpa::UrHTML::parse {
     my ( $current_earleme, $expected_terminals ) = $recce->status();
     MARPA_TOKEN: for my $marpa_token (@marpa_tokens) {
         my $is_virtual_token = 1;
-        my $actual_terminal = $marpa_token->[0];
+        my $actual_terminal  = $marpa_token->[0];
         if ($trace_terminals) {
             say {$trace_fh} 'Literal Token: ', $actual_terminal;
         }
@@ -1073,17 +1083,15 @@ sub Marpa::UrHTML::parse {
             my $token_to_add;
             FIND_VIRTUAL_TOKEN: {
 
-                ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
                 if ( $virtual_counter++ > 10 ) {
-                    say {$trace_fh} 
-                        "Added 100 virtual tokens without adding the real one\n",
+                    say {$trace_fh}
+                        "Added 10 virtual tokens without adding the real one\n",
                         qq{The real token is "$actual_terminal"\n},
-                        "This is probably a bug in the grammar for HTML" ;
+                        'This is probably a bug in the grammar for HTML';
                     $token_to_add     = $marpa_token;
                     $is_virtual_token = 0;
                     last FIND_VIRTUAL_TOKEN;
                 } ## end if ( $virtual_counter++ > 10 )
-                ## use critic
 
                 if ( $actual_terminal ~~ $expected_terminals ) {
                     $token_to_add     = $marpa_token;
@@ -1272,20 +1280,19 @@ sub Marpa::UrHTML::parse {
     }
 
     PSEUDO_CLASS:
-    for my $pseudo_class (
-        qw(COMMENT PROLOG TRAILER PCDATA CRUFT))
-    {
+    for my $pseudo_class (qw(COMMENT PROLOG TRAILER PCDATA CRUFT)) {
         my $pseudo_class_action =
             $self->{user_handlers_by_pseudo_class}->{ANY}->{$pseudo_class};
         my $pseudo_class_action_name = "!$pseudo_class" . '_handler';
         if ($pseudo_class_action) {
             $closure{$pseudo_class_action_name} =
-                wrap_user_tdesc_handler($pseudo_class_action, { pseudo_class => $pseudo_class } );
+                wrap_user_tdesc_handler( $pseudo_class_action,
+                { pseudo_class => $pseudo_class } );
             next PSEUDO_CLASS;
-        }
+        } ## end if ($pseudo_class_action)
         $closure{$pseudo_class_action_name} =
             \&Marpa::UrHTML::Internal::default_action;
-    } ## end for my $pseudo_class (...)
+    } ## end for my $pseudo_class (qw(COMMENT PROLOG TRAILER PCDATA CRUFT))
 
     while ( my ( $element_action, $element ) = each %element_actions ) {
         $closure{$element_action} = create_tdesc_handler( $self, $element );
