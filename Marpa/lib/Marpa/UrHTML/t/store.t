@@ -76,7 +76,7 @@ for my $text_field (@text_fields) {
 
 my $p              = Marpa::UrHTML->new( { handlers => \@handlers, } );
 my $value          = $p->parse( \$document );
-my $codepoint_hash = ${$value};
+my $codepoint_hash = $value;
 
 my $old = 'lib/Marpa/UrHTML/t/test.storable.old';
 my $new = 'lib/Marpa/UrHTML/t/test.storable.new';

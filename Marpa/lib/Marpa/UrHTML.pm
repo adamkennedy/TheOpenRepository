@@ -485,7 +485,7 @@ sub add_handlers {
                     or $element = $specifier;
                 if ( $pseudo_class
                     and not $pseudo_class ~~
-                    [qw(TOP COMMENT PROLOG TRAILER PCDATA CRUFT)] )
+                    [qw(TOP PI COMMENT PROLOG TRAILER PCDATA CRUFT)] )
                 {
                     Marpa::exception(
                         qq{pseudoclass "$pseudo_class" is not known:\n},
@@ -613,10 +613,11 @@ for my $rank ( 0 .. $#Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS ) {
 my $BNF = <<'END_OF_BNF';
 cruft ::= CRUFT
 comment ::= C
+pi ::= PI
 pcdata ::= PCDATA
 SGML_item ::= D
 SGML_item ::= comment
-SGML_item ::= PI
+SGML_item ::= pi
 SGML_flow_item ::= SGML_item
 SGML_flow_item ::= WHITESPACE
 SGML_flow_item ::= cruft
@@ -625,10 +626,10 @@ document ::= prolog ELE_html trailer EOF
 prolog ::= SGML_flow
 trailer ::= SGML_flow
 ELE_html ::= S_html Contents_html E_html
-Contents_html ::= SGML_flow ELE_head SGML_flow body SGML_flow
+Contents_html ::= SGML_flow ELE_head SGML_flow ELE_body SGML_flow
 ELE_head ::= S_head Contents_head E_head
 Contents_head ::= head_item*
-body ::= S_body flow E_body
+ELE_body ::= S_body flow E_body
 ELE_table ::= S_table table_flow E_table
 ELE_tbody ::= S_tbody table_section_flow E_tbody
 ELE_tr ::= S_tr table_row_flow E_tr
@@ -710,6 +711,7 @@ END_OF_BNF
 my %handler = (
     cruft    => '!CRUFT_handler',
     comment  => '!COMMENT_handler',
+    pi       => '!PI_handler',
     document => '!TOP_handler',
     pcdata   => '!PCDATA_handler',
     prolog   => '!PROLOG_handler',
@@ -1280,7 +1282,7 @@ sub Marpa::UrHTML::parse {
     }
 
     PSEUDO_CLASS:
-    for my $pseudo_class (qw(COMMENT PROLOG TRAILER PCDATA CRUFT)) {
+    for my $pseudo_class (qw(PI COMMENT PROLOG TRAILER PCDATA CRUFT)) {
         my $pseudo_class_action =
             $self->{user_handlers_by_pseudo_class}->{ANY}->{$pseudo_class};
         my $pseudo_class_action_name = "!$pseudo_class" . '_handler';
@@ -1292,7 +1294,7 @@ sub Marpa::UrHTML::parse {
         } ## end if ($pseudo_class_action)
         $closure{$pseudo_class_action_name} =
             \&Marpa::UrHTML::Internal::default_action;
-    } ## end for my $pseudo_class (qw(COMMENT PROLOG TRAILER PCDATA CRUFT))
+    } ## end for my $pseudo_class (qw(PI COMMENT PROLOG TRAILER PCDATA CRUFT))
 
     while ( my ( $element_action, $element ) = each %element_actions ) {
         $closure{$element_action} = create_tdesc_handler( $self, $element );
@@ -1381,7 +1383,7 @@ sub Marpa::UrHTML::parse {
         $evaler->value;
     };
     Marpa::exception('undef returned') if not defined $value;
-    return $value;
+    return ${$value};
 
 } ## end sub Marpa::UrHTML::parse
 

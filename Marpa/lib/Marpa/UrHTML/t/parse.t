@@ -191,8 +191,8 @@ sub same {
     if ( not defined $value1 ) { print "No parse for $code1"; return $flip; }
     if ( not defined $value2 ) { print "No parse for $code2"; return $flip; }
 
-    my $out1 = ${${$value1}};
-    my $out2 = ${${$value2}};
+    my $out1 = ${$value1};
+    my $out2 = ${$value2};
 
     my $rv = ( $out1 eq $out2 );
 

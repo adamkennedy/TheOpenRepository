@@ -16,11 +16,11 @@ use Marpa::Internal;
 sub Marpa::UrHTML::start_tag {
 
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
-    Marpa::exception(q{Attempt to fetch element parts outside of a parse})
+    Marpa::exception(q{Attempt to fetch start tag outside of a parse})
         if not defined $parse_instance;
 
     my $element = $Marpa::UrHTML::Internal::PER_NODE_DATA->{element};
-    Marpa::exception('The element_parts callback was called on a non-element')
+    Marpa::exception('The start_tag callback was called on a non-element')
         if not $element;
 
     #<<< perltidy cycles on this as of 2009-11-28
@@ -54,6 +54,33 @@ sub Marpa::UrHTML::end_tag {
     return Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
         [ [ UNVALUED_SPAN => $end_tag_token_id, $end_tag_token_id ] ] );
 } ## end sub Marpa::UrHTML::end_tag
+
+sub Marpa::UrHTML::contents {
+
+    my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+    Marpa::exception(
+        q{Attempt to fetch an element contents outside of a parse})
+        if not defined $parse_instance;
+
+    my $element = $Marpa::UrHTML::Internal::PER_NODE_DATA->{element};
+    Marpa::exception('The contents() callback was called on a non-element')
+        if not $element;
+
+    my $contents_start_tdesc_ix =
+        $Marpa::UrHTML::Internal::PER_NODE_DATA->{start_tag_token_id} ? 1 : 0;
+
+    my $contents_end_tdesc_ix =
+        $Marpa::UrHTML::Internal::PER_NODE_DATA->{end_tag_token_id}
+        ? ( $#{$Marpa::UrHTML::Internal::TDESC_LIST} - 1 )
+        : $#{$Marpa::UrHTML::Internal::TDESC_LIST};
+
+    return Marpa::UrHTML::Internal::tdesc_list_to_literal(
+        $parse_instance,
+        [   @{$Marpa::UrHTML::Internal::TDESC_LIST}
+                [ $contents_start_tdesc_ix .. $contents_end_tdesc_ix ]
+        ]
+    );
+} ## end sub Marpa::UrHTML::contents
 
 sub Marpa::UrHTML::child_values {
 

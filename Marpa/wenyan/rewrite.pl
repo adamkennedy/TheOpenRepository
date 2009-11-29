@@ -67,8 +67,7 @@ push @handlers, map {
 } @text_fields;
 
 my $p = Marpa::UrHTML->new( { handlers => \@handlers, } );
-my $value = $p->parse( \$document );
-my $codepoint_hash = ${$value};
+my $codepoint_hash = $p->parse( \$document );
 
 Storable::store_fd $codepoint_hash, \*STDOUT;
 

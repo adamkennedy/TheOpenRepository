@@ -110,13 +110,5 @@ my $p = Marpa::UrHTML->new(
         ],
     }
 );
-my $value = $p->parse( \$document );
 
-# say ref $value
-    # ? ref ${$value}
-        # ? ${ ${value} }
-            # ? ${ ${ ${value} } }
-            # : 'parse was undef'
-        # : 'parse returned ref to undef'
-    # : 'parse returned undef';
-
+$p->parse( \$document );
