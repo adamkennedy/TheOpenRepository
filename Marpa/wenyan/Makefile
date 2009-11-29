@@ -1,5 +1,19 @@
 
 dummy:
 
-glossary.html: glossary.start.html glossary.body.html glossary.end.html 
-	cat glossary.start.html glossary.body.html glossary.end.html > $@
+test: test.storable
+	cmp test.storable test.storable.save
+	cmp glossary.storable glossary.storable.save
+
+test.storable:
+	perl -I../lib ./rewrite.pl <test.html > $@
+
+test.html: test.storable
+	perl -I../lib ./rewrite2.pl <test.storable > $@
+
+glossary.storable:
+	perl -I../lib ./rewrite.pl < glossary.body.html > $@
+
+glossary.html: glossary.storable
+	perl -I../lib ./rewrite2.pl < glossary.storable > $@
+
