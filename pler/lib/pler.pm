@@ -359,6 +359,22 @@ sub main {
 	handoff( @cmd );
 }
 
+# Encapsulates the smart filtering as a function
+sub filter {
+	my $matches  = shift;
+	my $possible = shift;
+
+	# The first term is somewhat magic
+	my $match = shift @$matches;
+
+	# If the search is purely numeric, attempt a super shortcut
+	if ( $match =~ /^\d+$/ ) {
+		
+	}
+
+	return $possible;
+}
+
 sub help { print <<'END_HELP'; exit(0); }
 Usage:
     pler [options] [file/pattern]
