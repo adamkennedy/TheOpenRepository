@@ -30,8 +30,11 @@ sub Marpa::UrHTML::start_tag {
     #
     # Inlining this might be faster, especially since I have to dummy
     # up a tdesc list to make it work.
-    return Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
-        [ [ UNVALUED_SPAN => $start_tag_token_id, $start_tag_token_id ] ] );
+    return ${
+        Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
+            [ [ UNVALUED_SPAN => $start_tag_token_id, $start_tag_token_id ] ]
+        )
+        };
 } ## end sub Marpa::UrHTML::start_tag
 
 sub Marpa::UrHTML::end_tag {
@@ -51,8 +54,10 @@ sub Marpa::UrHTML::end_tag {
     #
     # Inlining this might be faster, especially since I have to dummy
     # up a tdesc list to make it work.
-    return Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
-        [ [ UNVALUED_SPAN => $end_tag_token_id, $end_tag_token_id ] ] );
+    return ${
+        Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
+            [ [ UNVALUED_SPAN => $end_tag_token_id, $end_tag_token_id ] ] )
+        };
 } ## end sub Marpa::UrHTML::end_tag
 
 sub Marpa::UrHTML::contents {
@@ -74,12 +79,14 @@ sub Marpa::UrHTML::contents {
         ? ( $#{$Marpa::UrHTML::Internal::TDESC_LIST} - 1 )
         : $#{$Marpa::UrHTML::Internal::TDESC_LIST};
 
-    return Marpa::UrHTML::Internal::tdesc_list_to_literal(
-        $parse_instance,
-        [   @{$Marpa::UrHTML::Internal::TDESC_LIST}
-                [ $contents_start_tdesc_ix .. $contents_end_tdesc_ix ]
-        ]
-    );
+    return ${
+        Marpa::UrHTML::Internal::tdesc_list_to_literal(
+            $parse_instance,
+            [   @{$Marpa::UrHTML::Internal::TDESC_LIST}
+                    [ $contents_start_tdesc_ix .. $contents_end_tdesc_ix ]
+            ]
+        )
+        };
 } ## end sub Marpa::UrHTML::contents
 
 sub Marpa::UrHTML::child_values {
@@ -140,6 +147,14 @@ sub Marpa::UrHTML::child_data {
                     ? ( $tokens->[$data]->[0] )
                     : undef;
             } ## end when ('token_type')
+            when ('pseudoclass') {
+                push @values,
+                    ( $child_type eq 'valued_span' ) ?
+                    $data
+                    ->[Marpa::UrHTML::Internal::TDesc::Element::NODE_DATA]
+                    ->{pseudoclass}
+                    : undef;
+            } ## end when ('token_type')
             when ('element') {
                 push @values,
                     ( $child_type eq 'valued_span' )
@@ -148,7 +163,7 @@ sub Marpa::UrHTML::child_data {
                     ->{element}
                     : undef;
             } ## end when ('element')
-            when ('literal') {
+            when ('literal_ref') {
                 my $tdesc =
                     $child_type eq 'token'
                     ? [ 'UNVALUED_SPAN', $data, $data ]
@@ -156,6 +171,17 @@ sub Marpa::UrHTML::child_data {
                 push @values,
                     Marpa::UrHTML::Internal::tdesc_list_to_literal(
                     $parse_instance, [$tdesc] );
+            } ## end when ('literal')
+            when ('literal') {
+                my $tdesc =
+                    $child_type eq 'token'
+                    ? [ 'UNVALUED_SPAN', $data, $data ]
+                    : $data;
+                push @values,
+                    ${
+                    Marpa::UrHTML::Internal::tdesc_list_to_literal(
+                        $parse_instance, [$tdesc] )
+                    };
             } ## end when ('literal')
             when ('value') {
                 push @values,
@@ -227,7 +253,7 @@ sub Marpa::UrHTML::tagname {
     return $Marpa::UrHTML::Internal::PER_NODE_DATA->{element};
 }
 
-sub Marpa::UrHTML::literal {
+sub Marpa::UrHTML::literal_ref {
     return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     Marpa::exception('Attempt to get literal value outside of a parse')
@@ -235,6 +261,18 @@ sub Marpa::UrHTML::literal {
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
     return Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
         $tdesc_list );
+} ## end sub Marpa::UrHTML::literal_ref
+
+sub Marpa::UrHTML::literal {
+    return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
+    my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+    Marpa::exception('Attempt to get literal value outside of a parse')
+        if not defined $parse_instance;
+    my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;
+    return ${
+        Marpa::UrHTML::Internal::tdesc_list_to_literal( $parse_instance,
+            $tdesc_list )
+        };
 } ## end sub Marpa::UrHTML::literal
 
 sub Marpa::UrHTML::offset {

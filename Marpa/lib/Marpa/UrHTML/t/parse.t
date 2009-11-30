@@ -25,14 +25,12 @@ use Marpa::UrHTML;
 my $urhtml_args = {
     handlers => [
         [   ':CRUFT' => sub {
-             my $literal_ref = Marpa::UrHTML::literal();
-             my $literal = ${$literal_ref};
+             my $literal = Marpa::UrHTML::literal();
              say STDERR "Cruft: ", $literal;
              return qq{<CRUFT literal="$literal">};
         } ],
         [   ':PCDATA' => sub {
-                my $literal_ref = Marpa::UrHTML::literal();
-                my $literal = ${$literal_ref};
+                my $literal = Marpa::UrHTML::literal();
                 if ( defined &HTML::Entities::decode_entities ) {
                     $literal =
                         HTML::Entities::encode_entities(
@@ -42,8 +40,7 @@ my $urhtml_args = {
             }
         ],
         [   ':PROLOG' => sub {
-                my $literal_ref = Marpa::UrHTML::literal();
-                my $literal = ${$literal_ref};
+                my $literal = Marpa::UrHTML::literal();
                 $literal =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
                 $literal =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
                 return $literal;
@@ -81,7 +78,7 @@ my $urhtml_args = {
                         ];
                     }
 
-                    my $contents = join q{}, map { ${$_->[1]} }
+                    my $contents = join q{}, map { $_->[1] }
                         grep {
                         not defined $_->[0] or not $_->[0] ~~ [qw(S E)]
                         } @{$child_data};

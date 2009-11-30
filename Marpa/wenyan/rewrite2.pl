@@ -56,33 +56,33 @@ for my $codepoint (@sorted_codepoints) {
     say qq{<div class="codepoint" title="$codepoint">};
     say qq{<table>};
     say qq{<td>};
-    say ${ $codepoints->{$codepoint}->{glyph} };
+    say $codepoints->{$codepoint}->{glyph};
     say qq{</td>};
     say qq{<td>};
     for my $field (qw( unicode_value krskangxi krsunicode )) {
-        if ( my $text_ref = $codepoints->{$codepoint}->{$field} ) {
-            say ${$text_ref};
+        if ( my $text = $codepoints->{$codepoint}->{$field} ) {
+            say $text;
         }
     }
     say qq{</td>};
     say qq{<td>};
     for my $field (qw( kfrequency kgradelevel ktotalstrokes)) {
-        if ( my $text_ref = $codepoints->{$codepoint}->{$field} ) {
-            say ${$text_ref};
+        if ( my $text = $codepoints->{$codepoint}->{$field} ) {
+            say $text;
         }
     }
     say qq{</td>};
     say qq{<td>};
     for my $field (qw( kiicore kmandarin kmatthews)) {
-        if ( my $text_ref = $codepoints->{$codepoint}->{$field} ) {
-            say ${$text_ref};
+        if ( my $text = $codepoints->{$codepoint}->{$field} ) {
+            say $text;
         }
     }
     say qq{</td>};
     say qq{</table>};
     for my $field (@long_fields) {
-        if ( my $text_ref = $codepoints->{$codepoint}->{$field} ) {
-            say ${$text_ref};
+        if ( my $text = $codepoints->{$codepoint}->{$field} ) {
+            say $text;
         }
     }
     say qq{</div>};

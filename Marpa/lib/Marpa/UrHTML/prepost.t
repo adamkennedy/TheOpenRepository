@@ -51,36 +51,36 @@ my $p = Marpa::UrHTML->new(
             [   ':PROLOG' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
-                    say STDERR "PROLOG starting at line $line:\n" . begin_and_end($literal) . "\n";
+                    say STDERR "PROLOG starting at line $line:\n" . begin_and_end(\$literal) . "\n";
                     return;
                     }
             ],
             [   'html' => sub {
-                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    my $literal_ref = Marpa::UrHTML::literal_ref() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
-                    say STDERR "ROOT stating at line $line:\n" . begin_and_end($literal) . "\n";
+                    say STDERR "ROOT stating at line $line:\n" . begin_and_end($literal_ref) . "\n";
                     return;
                     }
             ],
             [   'head' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
-                    say STDERR "HEAD stating at line $line:\n" . begin_and_end($literal) . "\n";
+                    say STDERR "HEAD stating at line $line:\n" . begin_and_end(\$literal) . "\n";
                     return;
                     }
             ],
             [   'body' => sub {
-                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    my $literal_ref = Marpa::UrHTML::literal_ref() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
-                    say STDERR "BODY stating at line $line:\n" . begin_and_end($literal) . "\n";
+                    say STDERR "BODY stating at line $line:\n" . begin_and_end($literal_ref) . "\n";
                     return;
                     }
             ],
             [   'table' => sub {
-                    my $literal = Marpa::UrHTML::literal() // \q{!?!};
+                    my $literal_ref = Marpa::UrHTML::literal_ref() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
                     say STDERR "TABLE at line $line:\n"
-                        . begin_and_end($literal) . "\n";
+                        . begin_and_end($literal_ref) . "\n";
                     return;
                     }
             ],
@@ -88,7 +88,7 @@ my $p = Marpa::UrHTML->new(
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
                     say STDERR "P at line $line:\n"
-                        . begin_and_end($literal) . "\n";
+                        . begin_and_end(\$literal) . "\n";
                     return;
                     }
             ],
@@ -96,14 +96,14 @@ my $p = Marpa::UrHTML->new(
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
                     say STDERR "OPTION at line $line:\n"
-                        . begin_and_end($literal) . "\n";
+                        . begin_and_end(\$literal) . "\n";
                     return;
                     }
             ],
             [   ':CRUFT' => sub {
                     my $literal = Marpa::UrHTML::literal() // \q{!?!};
                     my ( $dummy, $line ) = Marpa::UrHTML::offset();
-                    say STDERR "CRUFT at line $line:\n" . begin_and_end($literal) . "\n";
+                    say STDERR "CRUFT at line $line:\n" . begin_and_end(\$literal) . "\n";
                     return;
                     }
             ],

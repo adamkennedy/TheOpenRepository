@@ -11,7 +11,7 @@ my $example1 = '<?pi><table><?pi><tr><td><table><?pi>x</table></table><?pi>';
 my $example2 = 'I am body text<head attr="I am cruft">I am more body text';
 
 sub mark_cruft {
-    my $literal = ${ Marpa::UrHTML::literal() };
+    my $literal = Marpa::UrHTML::literal();
     my ( $dummy, $line ) = Marpa::UrHTML::offset();
     return
           "\n<!-- "
@@ -27,7 +27,7 @@ sub mark_missing_tags {
         Marpa::UrHTML::start_tag()
         ? q{}
         : qq{\n<!-- Missing start tag for $tagname element -->}
-    ) . ${ Marpa::UrHTML::literal() };
+    ) . Marpa::UrHTML::literal();
     if ( !Marpa::UrHTML::end_tag() ) {
         chomp $literal;
         $literal .= qq{\n<!-- Missing end tag for $tagname element -->};
@@ -36,14 +36,11 @@ sub mark_missing_tags {
 } ## end sub mark_missing_tags
 
 sub comment_out_pi {
-    my $literal = ${Marpa::UrHTML::literal()};
-    $literal =~ s/--/- -/g;
-    return '<!-- removed pi -->';
+    ( my $literal = Marpa::UrHTML::literal() ) =~ s/--/- -/g;
+    return qq{\n<!-- removed pi: "$literal" -->\n};
 }
 
-my $format_args = { handlers => [
-[ q{*} => \&mark_missing_tags ],
-] };
+my $format_args = { handlers => [ [ q{*} => \&mark_missing_tags ], ] };
 
 my $value = Marpa::UrHTML->new($format_args)->parse(\$example1);
 say "Mark Missing Tags:\n", ${$value};
@@ -72,7 +69,40 @@ say "Remove Processing Instructions except inside table:\n", ${$value};
 $value = Marpa::UrHTML->new(
     {   handlers => [
             [   ':PI' => sub {
-                    my $original = ${ Marpa::UrHTML::literal() };
+                    my $original = Marpa::UrHTML::literal();
+                    ( my $commented_out = $original ) =~ s/--/- -/gxms;
+                    $commented_out =
+                        qq{\n<!-- removed pi: "$commented_out" -->\n};
+                    $Marpa::UrHTML::INSTANCE->{original_pi}
+                        ->{$commented_out} = $original;
+                    return $commented_out;
+                },
+            ],
+            [   table => sub {
+                    my $child_data = Marpa::UrHTML::child_data('literal');
+                    return join q{},
+                        map { $_->[0] } @{$child_data};
+                },
+            ],
+            [   ':TOP' => sub {
+                    return join q{}, map {
+                        ( defined $_->[0] && $_->[0] eq 'PI' )
+                            ? $Marpa::UrHTML::INSTANCE->{original_pi}
+                            ->{ $_->[1] }
+                            : $_->[1]
+                        } @{ Marpa::UrHTML::child_data('pseudoclass,literal')
+                        };
+                },
+            ],
+        ],
+    }
+)->parse( \$example1 );
+say "Remove Processing Instructions only inside tables, Solution 1:\n", $value;
+
+$value = Marpa::UrHTML->new(
+    {   handlers => [
+            [   ':PI' => sub {
+                    my $original = Marpa::UrHTML::literal();
                     ( my $commented_out = $original ) =~ s/--/- -/gxms;
                     $commented_out =
                         qq{\n<!-- removed pi: "$commented_out" -->\n};
@@ -83,7 +113,7 @@ $value = Marpa::UrHTML->new(
                     my $child_data =
                         Marpa::UrHTML::child_data('value,literal');
                     return join q{}, map {
-                             !defined $_->[0] ? ${ $_->[1] }
+                             !defined $_->[0] ? $_->[1]
                             : ref $_->[0]     ? $_->[0]->[1]
                             : $_->[0]
                     } @{$child_data};
@@ -93,7 +123,7 @@ $value = Marpa::UrHTML->new(
                     my $child_data =
                         Marpa::UrHTML::child_data('value,literal');
                     return join q{}, map {
-                             !defined $_->[0] ? ${ $_->[1] }
+                             !defined $_->[0] ? $_->[1]
                             : ref $_->[0]     ? $_->[0]->[0]
                             : $_->[0]
                     } @{$child_data};
@@ -102,4 +132,4 @@ $value = Marpa::UrHTML->new(
         ],
     }
 )->parse( \$example1 );
-say "Remove Processing Instructions only if inside table:\n", $value;
+say "Remove Processing Instructions only inside table, Solution 2:\n", $value;

@@ -48,7 +48,7 @@ push @handlers,
        [   '.occurrences' =>
                 sub {
                 my $literal = Marpa::UrHTML::literal();
-                my ($occurrence_count) = (${$literal} =~ / Occurrences \s+ [(] (\d+) [)] [:] /xms);
+                my ($occurrence_count) = ($literal =~ / Occurrences \s+ [(] (\d+) [)] [:] /xms);
                 return [ 'occurrences', $literal, $occurrence_count ]
                 }
         ];

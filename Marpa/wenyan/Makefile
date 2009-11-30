@@ -8,12 +8,12 @@ test: test.storable
 test.storable:
 	perl -I../lib ./rewrite.pl <test.html > $@
 
-test.html: test.storable
+test_out.html: test.storable
 	perl -I../lib ./rewrite2.pl <test.storable > $@
 
 glossary.storable:
 	perl -I../lib ./rewrite.pl < glossary.body.html > $@
 
-glossary.html: glossary.storable
+glossary.body.out.html: glossary.storable
 	perl -I../lib ./rewrite2.pl < glossary.storable > $@
 
