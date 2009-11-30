@@ -7,26 +7,99 @@ use English qw( -no_match_vars );
 use Marpa::UrHTML;
 use HTML::Tagset;
 
-my $example = '<?pi><table><?pi><tr><td><table><?pi></table></table><?pi>';
+my $example1 = '<?pi><table><?pi><tr><td><table><?pi>x</table></table><?pi>';
+my $example2 = 'I am body text<head attr="I am cruft">I am more body text';
 
-sub format_element {
+sub mark_cruft {
+    my $literal = ${ Marpa::UrHTML::literal() };
+    my ( $dummy, $line ) = Marpa::UrHTML::offset();
+    return
+          "\n<!-- "
+        . ( length $literal )
+        . " characters of cruft starting here -->"
+        . $literal;
+} ## end sub mark_cruft
+
+sub mark_missing_tags {
     my $tagname = Marpa::UrHTML::tagname();
-    my $start_tag =
-        ${ Marpa::UrHTML::start_tag()
-            // \(qq{<!-- Missing start tag for $tagname element -->}) };
-    my $end_tag = $HTML::Tagset::emptyElement{$tagname} ? q{}
-        : ${ Marpa::UrHTML::end_tag()
-            // \qq{<!-- Missing end tag for $tagname element -->} };
-    my $contents = ${ Marpa::UrHTML::contents() };
-    $contents =~ s/\A\s*\n//xmsg;
-    $contents =~ s/\s*\z//xms;
-    if ($contents) { $contents =~ s/^/  /xmsg }
-    $contents = join q{}, "\n", $start_tag, "\n",
-        ( $contents ? "$contents\n" : q{} ),
-        ( $end_tag ? "$end_tag\n" : q{} );
-    return $contents;
-} ## end sub format_element
-my $format_args = { handlers => [ [ q{*} => \&format_element ] ] };
+    return if $HTML::Tagset::emptyElement{$tagname};
+    my $literal = (
+        Marpa::UrHTML::start_tag()
+        ? q{}
+        : qq{\n<!-- Missing start tag for $tagname element -->}
+    ) . ${ Marpa::UrHTML::literal() };
+    if ( !Marpa::UrHTML::end_tag() ) {
+        chomp $literal;
+        $literal .= qq{\n<!-- Missing end tag for $tagname element -->};
+    }
+    return $literal;
+} ## end sub mark_missing_tags
 
-my $value = Marpa::UrHTML->new($format_args)->parse(\$example);
-say "Quick 'n Dirty Format:\n", ${$value};
+sub comment_out_pi {
+    my $literal = ${Marpa::UrHTML::literal()};
+    $literal =~ s/--/- -/g;
+    return '<!-- removed pi -->';
+}
+
+my $format_args = { handlers => [
+[ q{*} => \&mark_missing_tags ],
+] };
+
+my $value = Marpa::UrHTML->new($format_args)->parse(\$example1);
+say "Mark Missing Tags:\n", ${$value};
+
+
+$value = Marpa::UrHTML->new(
+    {   handlers => [
+            [ ':CRUFT' => \&mark_cruft ], [ q{*} => \&mark_missing_tags ],
+        ]
+    }
+)->parse( \$example2 );
+say "Mark Cruft:\n", ${$value};
+
+$value =
+    Marpa::UrHTML->new( { handlers => [ [ ':PI' => \&comment_out_pi ], ] } )
+    ->parse( \$example1 );
+say "Remove Processing Instructions:\n", ${$value};
+
+$value = Marpa::UrHTML->new(
+    {   handlers =>
+            [ [ ':PI' => \&comment_out_pi ], [ table => sub {return} ], ]
+    }
+)->parse( \$example1 );
+say "Remove Processing Instructions except inside table:\n", ${$value};
+
+$value = Marpa::UrHTML->new(
+    {   handlers => [
+            [   ':PI' => sub {
+                    my $original = ${ Marpa::UrHTML::literal() };
+                    ( my $commented_out = $original ) =~ s/--/- -/gxms;
+                    $commented_out =
+                        qq{\n<!-- removed pi: "$commented_out" -->\n};
+                    return [ $original, $commented_out ];
+                },
+            ],
+            [   table => sub {
+                    my $child_data =
+                        Marpa::UrHTML::child_data('value,literal');
+                    return join q{}, map {
+                             !defined $_->[0] ? ${ $_->[1] }
+                            : ref $_->[0]     ? $_->[0]->[1]
+                            : $_->[0]
+                    } @{$child_data};
+                },
+            ],
+            [   ':TOP' => sub {
+                    my $child_data =
+                        Marpa::UrHTML::child_data('value,literal');
+                    return join q{}, map {
+                             !defined $_->[0] ? ${ $_->[1] }
+                            : ref $_->[0]     ? $_->[0]->[0]
+                            : $_->[0]
+                    } @{$child_data};
+                },
+            ],
+        ],
+    }
+)->parse( \$example1 );
+say "Remove Processing Instructions only if inside table:\n", $value;

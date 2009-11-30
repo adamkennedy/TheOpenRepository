@@ -157,6 +157,12 @@ sub Marpa::UrHTML::child_data {
                     Marpa::UrHTML::Internal::tdesc_list_to_literal(
                     $parse_instance, [$tdesc] );
             } ## end when ('literal')
+            when ('value') {
+                push @values,
+                    ( $child_type eq 'valued_span' )
+                    ? $data->[Marpa::UrHTML::Internal::TDesc::Element::VALUE]
+                    : undef;
+            } ## end when ('value')
             default {
                 Marpa::exception(qq{Unrecognized argspec: "$_"})
             }

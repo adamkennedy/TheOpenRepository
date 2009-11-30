@@ -141,12 +141,22 @@ sub tdesc_list_to_literal {
 # Convert a list of text descriptions to text
 sub default_top_handler {
     my ( $dummy, @tdesc_lists ) = @_;
-
     my $self = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
     return tdesc_list_to_literal( $self, \@tdesc_list );
 
 } ## end sub default_top_handler
+
+sub wrap_user_top_handler {
+    my ( $user_handler ) = @_;
+    return sub {
+        my ( $dummy, @tdesc_lists ) = @_;
+        my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
+        local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
+        local $Marpa::UrHTML::Internal::PER_NODE_DATA = { pseudo_class => 'TOP' };
+        return scalar $user_handler->();
+    };
+} ## end sub wrap_user_top_handler
 
 # Convert a list of text descriptions to a
 # single, shortened text description
@@ -1263,18 +1273,15 @@ sub Marpa::UrHTML::parse {
         }
     } ## end if ( $ENV{TRACE_SIZE} )
 
-    my %closure = (
-        '!rank_is_zero'   => sub {0},
-        '!rank_is_one'    => sub {1},
-        '!rank_is_two'    => sub {2},
-        '!rank_is_three'  => sub {3},
-        '!rank_is_four'   => sub {4},
-        '!rank_is_length' => sub { Marpa::length() },
-        '!TOP_handler'    => (
-            $self->{user_handlers_by_pseudo_class}->{ANY}->{TOP}
-                // \&Marpa::UrHTML::Internal::default_top_handler
-        ),
-    );
+    my %closure = ();
+    {
+        my $user_top_handler =
+            $self->{user_handlers_by_pseudo_class}->{ANY}->{TOP};
+        $closure{'!TOP_handler'} =
+            defined $user_top_handler
+            ? wrap_user_top_handler($user_top_handler)
+            : \&Marpa::UrHTML::Internal::default_top_handler;
+    } ## end if ( defined( my $user_top_handler = $self->{...}))
 
     if ( defined $self->{user_handlers_by_class}->{ANY}->{ANY} ) {
         $closure{'!DEFAULT_ELE_handler'} =
