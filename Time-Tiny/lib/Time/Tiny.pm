@@ -10,16 +10,16 @@ Time::Tiny - A time object, with as little code as possible
 
   # Create a time manually
   $christmas = Time::Tiny->new(
-      year  => 2006,
-      month => 12,
-      day   => 25,
+      hour   => 10,
+      minute => 45,
+      second => 0,
       );
   
   # Show the current time
-  $today = Time::Tiny->now;
-  print "Year : " . $today->year  . "\n";
-  print "Month: " . $today->month . "\n";
-  print "Day  : " . $today->day   . "\n"; 
+  $now = Time::Tiny->now;
+  print "Hour   : " . $now->hour   . "\n";
+  print "Minute : " . $now->minute . "\n";
+  print "Second : " . $now->second . "\n";
 
 =head1 DESCRIPTION
 
@@ -99,7 +99,7 @@ less of it.
 use strict;
 BEGIN {
 	require 5.004;
-	$Time::Tiny::VERSION = '1.04';
+	$Time::Tiny::VERSION = '1.05';
 }
 use overload 'bool' => sub () { 1 };
 use overload '""'   => 'as_string';
@@ -122,7 +122,7 @@ use overload 'ne'   => sub { "$_[0]" ne "$_[1]" };
       hour   => 0,
       minute => 0,
       second => 0,
-      );
+  );
 
 The C<new> constructor creates a new B<Time::Tiny> object.
 

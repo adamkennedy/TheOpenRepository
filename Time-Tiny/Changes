@@ -1,4 +1,7 @@
-Revision history for Perl extension Time::Tiny
+Revision history for Perl extension Time-Tiny
+
+1.05 Wed  2 Dec 2009
+	- POD fixes (MTROUT)
 
 1.04 Mon 20 Apr 2009
 	- Converting to EU:MM
