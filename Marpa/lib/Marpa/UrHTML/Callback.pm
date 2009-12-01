@@ -183,6 +183,24 @@ sub Marpa::UrHTML::child_data {
                         $parse_instance, [$tdesc] )
                     };
             } ## end when ('literal')
+            when ('original') {
+                my ( $first_token_id, $last_token_id ) =
+                    $child_type eq 'token'
+                    ? ( $data, $data )
+                    : @{$data}[
+                    Marpa::UrHTML::Internal::TDesc::START_TOKEN,
+                    Marpa::UrHTML::Internal::TDesc::END_TOKEN
+                    ];
+                my $start_offset =
+                    $tokens->[$first_token_id]
+                    ->[Marpa::UrHTML::Internal::Token::START_OFFSET];
+                my $end_offset =
+                    $tokens->[$last_token_id]
+                    ->[Marpa::UrHTML::Internal::Token::END_OFFSET];
+                my $document = $parse_instance->{document};
+                push @values, substr ${$document}, $start_offset,
+                    ( $end_offset - $start_offset );
+            } ## end when ('original')
             when ('value') {
                 push @values,
                     ( $child_type eq 'valued_span' )
@@ -282,5 +300,25 @@ sub Marpa::UrHTML::offset {
     return Marpa::UrHTML::Internal::earleme_to_offset( $parse_instance,
         $Marpa::UrHTML::Internal::PER_NODE_DATA->{first_token_id} );
 } ## end sub Marpa::UrHTML::offset
+
+sub Marpa::UrHTML::original {
+    my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+    Marpa::exception('Attempt to read offset outside of a parse instance')
+        if not defined $parse_instance;
+    my $tokens   = $Marpa::UrHTML::Internal::PARSE_INSTANCE->{tokens};
+    my $document = $Marpa::UrHTML::Internal::PARSE_INSTANCE->{document};
+    my $first_token_id =
+        $Marpa::UrHTML::Internal::PER_NODE_DATA->{first_token_id};
+    my $last_token_id =
+        $Marpa::UrHTML::Internal::PER_NODE_DATA->{last_token_id};
+    my $start_offset =
+        $tokens->[$first_token_id]
+        ->[Marpa::UrHTML::Internal::Token::START_OFFSET];
+    my $end_offset =
+        $tokens->[$last_token_id]
+        ->[Marpa::UrHTML::Internal::Token::END_OFFSET];
+    return substr ${$document}, $start_offset,
+        ( $end_offset - $start_offset );
+} ## end sub Marpa::UrHTML::original
 
 1;

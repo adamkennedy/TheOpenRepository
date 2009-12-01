@@ -6,6 +6,7 @@ use warnings;
 use English qw( -no_match_vars );
 use Marpa::UrHTML;
 use HTML::Tagset;
+use List::Util;
 
 my $example1 = '<?pi><table><?pi><tr><td><table><?pi>x</table></table><?pi>';
 my $example2 = 'I am body text<head attr="I am cruft">I am more body text';
@@ -69,67 +70,64 @@ say "Remove Processing Instructions except inside table:\n", ${$value};
 $value = Marpa::UrHTML->new(
     {   handlers => [
             [   ':PI' => sub {
-                    my $original = Marpa::UrHTML::literal();
-                    ( my $commented_out = $original ) =~ s/--/- -/gxms;
-                    $commented_out =
-                        qq{\n<!-- removed pi: "$commented_out" -->\n};
-                    $Marpa::UrHTML::INSTANCE->{original_pi}
-                        ->{$commented_out} = $original;
-                    return $commented_out;
+                    ( my $commented_out = Marpa::UrHTML::literal() )
+                        =~ s/--/- -/gxms;
+                    return qq{\n<!-- removed pi: "$commented_out" -->\n};
                 },
             ],
-            [   table => sub {
-                    my $child_data = Marpa::UrHTML::child_data('literal');
-                    return join q{},
-                        map { $_->[0] } @{$child_data};
-                },
-            ],
+            [ table => sub { return Marpa::UrHTML::literal() }, ],
             [   ':TOP' => sub {
-                    return join q{}, map {
-                        ( defined $_->[0] && $_->[0] eq 'PI' )
-                            ? $Marpa::UrHTML::INSTANCE->{original_pi}
-                            ->{ $_->[1] }
-                            : $_->[1]
-                        } @{ Marpa::UrHTML::child_data('pseudoclass,literal')
-                        };
-                },
+
+                            say STDERR Data::Dumper::Dumper(Marpa::UrHTML::child_data( 'pseudoclass,literal,original'));
+
+                    return join q{},
+                        map { ( $_->[0] // q{} ) eq 'PI' ? $_->[2] : $_->[1] }
+                            @{
+                            Marpa::UrHTML::child_data(
+                                'pseudoclass,literal,original')
+                            };
+                    }
             ],
         ],
     }
 )->parse( \$example1 );
-say "Remove Processing Instructions only inside tables, Solution 1:\n", $value;
+say "Remove Processing Instructions only inside tables:\n", $value;
+
+sub calculate_max_depths {
+    my ($child_data) = @_;
+    my %return_value = ();
+    for my $child_value ( grep { ref $_ } map { $_->[0] } @{$child_data} ) {
+        CHILD_TAGNAME: for my $child_tagname ( keys %{$child_value} ) {
+            my $depth = $child_value->{$child_tagname};
+            next CHILD_TAGNAME
+                if $depth <= ( $return_value{$child_tagname} // 0 );
+            $return_value{$child_tagname} = $depth;
+        } ## end for my $child_tagname ( keys %{$child_value} )
+    } ## end for my $child_value ( grep { ref $_ } map { $_->[0] }...)
+    return \%return_value;
+} ## end sub calculate_max_depths
 
 $value = Marpa::UrHTML->new(
     {   handlers => [
-            [   ':PI' => sub {
-                    my $original = Marpa::UrHTML::literal();
-                    ( my $commented_out = $original ) =~ s/--/- -/gxms;
-                    $commented_out =
-                        qq{\n<!-- removed pi: "$commented_out" -->\n};
-                    return [ $original, $commented_out ];
-                },
-            ],
-            [   table => sub {
-                    my $child_data =
-                        Marpa::UrHTML::child_data('value,literal');
-                    return join q{}, map {
-                             !defined $_->[0] ? $_->[1]
-                            : ref $_->[0]     ? $_->[0]->[1]
-                            : $_->[0]
-                    } @{$child_data};
+            [   'table' => sub {
+                    my $table_depth = List::Util::max(
+                        map { ${$_} } grep { ref $_ }
+                            map { $_->[0] }
+                            @{ Marpa::UrHTML::child_data('value') }
+                    ) // 0;
+                    return \( ++$table_depth );
                 },
             ],
             [   ':TOP' => sub {
-                    my $child_data =
-                        Marpa::UrHTML::child_data('value,literal');
-                    return join q{}, map {
-                             !defined $_->[0] ? $_->[1]
-                            : ref $_->[0]     ? $_->[0]->[0]
-                            : $_->[0]
-                    } @{$child_data};
+                    my $table_depth = List::Util::max(
+                        map { ${$_} } grep { ref $_ }
+                            map { $_->[0] }
+                            @{ Marpa::UrHTML::child_data('value') }
+                    ) // 0;
+                    return "Maximum table depth = $table_depth";
                 },
             ],
         ],
     }
 )->parse( \$example1 );
-say "Remove Processing Instructions only inside table, Solution 2:\n", $value;
+say $value;
