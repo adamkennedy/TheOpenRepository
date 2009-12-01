@@ -1,0 +1,82 @@
+#!perl
+
+use 5.010;
+use strict;
+use warnings;
+use English qw( -no_match_vars );
+use Marpa::UrHTML;
+use List::Util qw(sum);
+use WWW::Mechanize;
+
+my $uri = shift;
+my $mech = WWW::Mechanize->new( autocheck => 1 );
+$mech->get( $uri );
+my $document = $mech->content;
+undef $mech;
+
+sub calculate_max_depths {
+    my ($child_data) = @_;
+    my %return_value = ();
+    for my $child_value ( grep { ref $_ } map { $_->[0] } @{$child_data} ) {
+        CHILD_TAGNAME: for my $child_tagname ( keys %{$child_value} ) {
+            my $depth = $child_value->{$child_tagname};
+            next CHILD_TAGNAME
+                if $depth <= ( $return_value{$child_tagname} // 0 );
+            $return_value{$child_tagname} = $depth;
+        } ## end for my $child_tagname ( keys %{$child_value} )
+    } ## end for my $child_value ( grep { ref $_ } map { $_->[0] }...)
+    return \%return_value;
+} ## end sub calculate_max_depths
+
+my ( $instance, $max_depths ) = @{ Marpa::UrHTML->new(
+        {   handlers => [
+                [   q{*} => sub {
+                        my $child_data = Marpa::UrHTML::child_data('value');
+                        my $tagname    = Marpa::UrHTML::tagname();
+                        $Marpa::UrHTML::INSTANCE->{count}->{$tagname}++;
+                        $Marpa::UrHTML::INSTANCE->{length}->{$tagname}
+                            += ( length Marpa::UrHTML::original() );
+                        my $return_value = calculate_max_depths($child_data);
+                        ( $return_value->{$tagname} //= 0 )++;
+                        return $return_value;
+                    },
+                ],
+                [   ':TOP' => sub {
+                        return [
+                            $Marpa::UrHTML::INSTANCE,
+                            calculate_max_depths(
+                                Marpa::UrHTML::child_data('value')
+                            )
+                        ];
+                    },
+                ],
+            ],
+        }
+        )->parse( \$document )
+    };
+
+my $length_by_element = $instance->{length};
+my $count_by_element = $instance->{count};
+my $html_length = $length_by_element->{html};
+my $total_lengths = List::Util::sum values %{ $length_by_element };
+my $complexity = sprintf "%.3f", ($total_lengths / ($html_length * log ($html_length)));
+
+print qq{<table cellpadding="3" border="1">}
+    . qq{<caption>$uri<br>Complexity = $complexity</caption>\n}
+    . qq{<thead><tr><th>Element<th>Depth<th>Number of<br>Elements}
+    . qq{<th>Size in<br>Characters</th>}
+    . qq{<th>Average<br>Size</th>}
+    . qq{</tr></thead>\n};
+for my $element ( sort keys %{$max_depths} ) {
+    my $count = $count_by_element->{$element};
+    my $size  = $length_by_element->{$element};
+    print join q{},
+        q{<tr>},
+        q{<td>}, $element, q{</td>},
+        q{<td align="right">}, $max_depths->{$element}, q{</td>},
+        q{<td align="right">}, $count, q{</td>},
+        q{<td align="right">}, $size,  q{</td>},
+        q{<td align="right">}, int( $size / $count ), q{</td>},
+        "</tr>\n";
+} ## end for my $element ( sort keys %{$max_depths} )
+print qq{</table>\n};

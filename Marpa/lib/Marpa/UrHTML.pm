@@ -714,7 +714,7 @@ END_OF_BNF
     inline_element block_element
 );
 
-@Marpa::UrHTML::Internal::INACCESSIBLE_OK = qw( ELE_optgroup ELE_option);
+@Marpa::UrHTML::Internal::INACCESSIBLE_OK = qw( ELE_optgroup ELE_option table_cell_element );
 
 @Marpa::UrHTML::Internal::CORE_RULES = ();
 
