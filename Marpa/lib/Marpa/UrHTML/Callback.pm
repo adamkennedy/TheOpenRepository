@@ -149,12 +149,12 @@ sub Marpa::UrHTML::child_data {
             } ## end when ('token_type')
             when ('pseudoclass') {
                 push @values,
-                    ( $child_type eq 'valued_span' ) ?
-                    $data
+                    ( $child_type eq 'valued_span' )
+                    ? $data
                     ->[Marpa::UrHTML::Internal::TDesc::Element::NODE_DATA]
                     ->{pseudoclass}
                     : undef;
-            } ## end when ('token_type')
+            } ## end when ('pseudoclass')
             when ('element') {
                 push @values,
                     ( $child_type eq 'valued_span' )
@@ -171,7 +171,7 @@ sub Marpa::UrHTML::child_data {
                 push @values,
                     Marpa::UrHTML::Internal::tdesc_list_to_literal(
                     $parse_instance, [$tdesc] );
-            } ## end when ('literal')
+            } ## end when ('literal_ref')
             when ('literal') {
                 my $tdesc =
                     $child_type eq 'token'

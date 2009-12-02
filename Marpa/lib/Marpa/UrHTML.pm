@@ -148,12 +148,13 @@ sub default_top_handler {
 } ## end sub default_top_handler
 
 sub wrap_user_top_handler {
-    my ( $user_handler ) = @_;
+    my ($user_handler) = @_;
     return sub {
         my ( $dummy, @tdesc_lists ) = @_;
         my @tdesc_list = map { @{$_} } grep {defined} @tdesc_lists;
         local $Marpa::UrHTML::Internal::TDESC_LIST = \@tdesc_list;
-        local $Marpa::UrHTML::Internal::PER_NODE_DATA = { pseudoclass => 'TOP' };
+        local $Marpa::UrHTML::Internal::PER_NODE_DATA =
+            { pseudoclass => 'TOP' };
         return scalar $user_handler->();
     };
 } ## end sub wrap_user_top_handler
@@ -510,11 +511,11 @@ sub add_handlers {
                 last PARSE_HANDLER_SPEC;
             } ## end if ( $ref_type eq 'ARRAY' )
             if ( $ref_type eq 'HASH' ) {
-                $element      = $handler_spec->{element};
-                $id           = $handler_spec->{id};
-                $class        = $handler_spec->{class};
+                $element     = $handler_spec->{element};
+                $id          = $handler_spec->{id};
+                $class       = $handler_spec->{class};
                 $pseudoclass = $handler_spec->{pseudoclass};
-                $action       = $handler_spec->{action};
+                $action      = $handler_spec->{action};
                 last PARSE_HANDLER_SPEC;
             } ## end if ( $ref_type eq 'HASH' )
             Marpa::exception(
@@ -714,7 +715,8 @@ END_OF_BNF
     inline_element block_element
 );
 
-@Marpa::UrHTML::Internal::INACCESSIBLE_OK = qw( ELE_optgroup ELE_option table_cell_element );
+@Marpa::UrHTML::Internal::INACCESSIBLE_OK =
+    qw( ELE_optgroup ELE_option table_cell_element );
 
 @Marpa::UrHTML::Internal::CORE_RULES = ();
 
@@ -897,7 +899,7 @@ sub Marpa::UrHTML::parse {
     my @terminals = keys %terminals;
 
     my %pseudoclass_element_actions = ();
-    my %element_actions              = ();
+    my %element_actions             = ();
 
     # Special cases which are dealt with elsewhere.
     # As of now the only special cases are elements with optional
