@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/perl
 
 use 5.010;
 use strict;
@@ -63,10 +63,14 @@ my $complexity = sprintf "%.3f", ($total_lengths / ($html_length * log ($html_le
 
 print qq{<table cellpadding="3" border="1">}
     . qq{<caption>$uri<br>Complexity = $complexity</caption>\n}
-    . qq{<thead><tr><th>Element<th>Depth<th>Number of<br>Elements}
+    . qq{<thead><tr>}
+    . qq{<th>Element}
+    . qq{<th>Maximum<br>Nesting}
+    . qq{<th>Number of<br>Elements}
     . qq{<th>Size in<br>Characters</th>}
     . qq{<th>Average<br>Size</th>}
     . qq{</tr></thead>\n};
+
 for my $element ( sort keys %{$max_depths} ) {
     my $count = $count_by_element->{$element};
     my $size  = $length_by_element->{$element};
@@ -79,4 +83,169 @@ for my $element ( sort keys %{$max_depths} ) {
         q{<td align="right">}, int( $size / $count ), q{</td>},
         "</tr>\n";
 } ## end for my $element ( sort keys %{$max_depths} )
+
 print qq{</table>\n};
+
+__END__
+
+=head1 NAME
+
+C<urhtml_stats> - Show complexity metric and other stats for web page
+
+=head1 SYNOPSIS
+
+    ur_html_stats [uri]
+
+=head1 EXAMPLE
+
+    urhtml_stats http://perl.org
+
+=head1 DESCRIPTION
+
+Given a URI, parses it as HTML and prints a complexity metric and other statistics.
+The complexity metric is the average depth (or nesting level), in elements, of a character,
+divided by the logarithm of the length of the HTML.
+
+Other statistics follow, formatted as an HTML table.
+There is a row for each element type,
+with
+
+=over 4
+
+=item *
+The maximum nesting depth of that element (this time only taking into
+account nesting within that particular element).
+
+=item *
+A count of the elements of that kind in the document
+
+=item *
+The total number of character in elements of that type.
+This counts characters in nested elements multiple times.
+For example, if a page contains a table within a table.
+Characters in the inner table will be counted twice, once as
+characters in the outer table and again as characters in the
+inner table.
+
+=item *
+The average size of elements of this type, in characters.
+
+=back
+
+Here is the first part of the output for the C<http://perl.org>.
+
+   http://perl.org
+   Complexity = 0.746
+
+   Element Maximum Number of   Size in   Average
+           Nesting Elements  Characters   Size
+   a             1        56      3634      64
+   body          1         1     12171   12171
+   div           5        30     33605    1120
+   em            1         1        13      13
+   h1            1         1        60      60
+   h4            1        11       932      84
+
+=head1 THE COMPLEXITY METRIC
+
+I originally was tempted to call the complexity metric a "quality metric",
+but decided that was going too far.
+Well designed websites often have low numbers, but high numbers don't
+mean low quality -- it depends on what the mission is, and how well
+complexity is being leveraged to serve that mission.
+
+To obtain the complexity metric,
+the nesting depth of the average character is divided by the logarithm
+of the length of the HTML.
+This the idea is that as a web page grows,
+all else being equal,
+it is reasonable for the
+nesting depth to grow logarithmically, but no
+faster.
+
+How seriously should you take any of this?
+I am frankly not sure.
+The main purpose of this program was not to analyze web pages,
+but to draw attention to the underlying technology.
+Speaking of which ...
+
+=head1 PURPOSE
+
+This program is a demo of a demo.
+It purpose is to show how easy it is to write applications which look
+at the structure of web pages using L<Marpa::UrHTML>.
+
+Determining the structure of an HTML document has in the past
+been considered a very difficult programming task,
+requiring lots of special case coding.
+L<Marpa::UrHTML> was written in a few days,
+and the resulting grammar and code is very natural and straight-forward.
+
+Other parsers may be preferable to L<Marpa::UrHTML> as parsers.
+They had better be perfect,
+because the code in them is excruciatingly difficult.
+The logic in L<Marpa::UrHTML>, as the documentation will
+show, is very straightforward.
+It is much easier to understand,
+and therefore would be much easier to change,
+than previous approaches.
+
+The transparency of L<Marpa::UrHTML>, in turn,
+comes from the flexibility and power of L<Marpa>,
+the underlying parser.
+L<Marpa> is a general BNF parser based on a new algorithm
+derived from Jay Earley's.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 BUGS
+
+Please report any bugs or feature requests to
+C<bug-parse-marpa at rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa>.
+I will be notified, and then you'll automatically be notified of progress on
+your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Marpa
+    
+You can also look for information at:
+
+=over 4
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Marpa>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Marpa>
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Marpa>
+
+=back
+
+=head1 ACKNOWLEDGMENTS
+
+The starting template for this code was
+HTML::TokeParser, by Gisle Aas.
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007-2009 Jeffrey Kegler, all rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl 5.10.0.
+
+=cut
