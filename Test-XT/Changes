@@ -5,6 +5,7 @@ Changes for Perl extension Test-XS
 	- Added various tests for the new modules added in 0.03_01
 	- Fix mistake (pod_coverage_ok -> all_pod_coverage_ok)
 	- Remove Test::Fixme, it's too much of a pain to test
+	- Now throws exceptions using Carp's croak rather than die
 
 0.03_01 Thu 3 Sep 2009
 	- Updating Module::Install to 0.91
