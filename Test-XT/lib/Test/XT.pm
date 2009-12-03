@@ -73,6 +73,7 @@ use 5.008;
 use strict;
 use warnings;
 use Exporter ();
+use Carp ();
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
@@ -276,9 +277,10 @@ sub WriteXT {
 	while ( @_ ) {
 		my $module = shift;
 		my $file   = shift;
-		unless ( $STANDARD{$module} ) {
-			die "Unknown standard test script $module";
-		}
+
+		Carp::croak('Unknown standard test script ' . $module)
+			unless ( $STANDARD{$module} );
+
 		Test::XT->new(
 			%{$STANDARD{$module}}
 		)->write( $file );
@@ -287,6 +289,35 @@ sub WriteXT {
 
 #####################################################################
 # Object Form
+
+=pod
+
+=head1 OBJECT ORIENTED INTERFACE
+
+=head2 Test::XT->new( %info )
+
+This produces a new object that stores information about a given test module.
+It can then be transformed into output suitable for use in a stream (via
+C<write_string>, which returns the test script as a string) or for writing
+directly to a file (using C<write>).
+
+For details on the available options, see B<WriteTest>
+
+Example code:
+
+  my $test = Test::XT->new(
+    test    => 'all_pod_files_ok',
+    release => 0, # is this a RELEASE test only?
+    comment => 'Test that the syntax of our POD documentation is valid',
+    modules => {
+      'Pod::Simple' => '3.07',
+      'Test::Pod'   => '1.26',
+    },
+    default => 'pod.t',
+  );
+  $test->write(File::Spec->catdir('t', 'pod.t'));
+
+=cut
 
 sub new {
 	my $class = shift;
@@ -298,20 +329,57 @@ sub module {
 	$_[0]->{modules}->{$_[1]}->{$_[2]};
 }
 
+=head2 $test->test( $command )
+
+Change the name of the subroutine which is called to actually run the test.
+
+Code example:
+
+  $test->test('all_pod_coverage_ok');
+
+=cut
+
 sub test {
 	$_[0]->{test} = $_[1];
 }
+
+=head2 $test->write( $path )
+
+This method writes the test file to the provided path.
+
+Note that this method throws an exception upon failure to open the file.
+
+Code example:
+
+  eval {
+    $test->write('t/file.t');
+  };
+  print "Failure writing file" if $@;
+
+=cut
 
 sub write {
 	my $self   = shift;
 
 	# Write the file
-	open( FILE, '>', $_[0 ] ) or die "open: $!";
+	open( FILE, '>', $_[0 ] ) or Carp::croak("Failed to open file: $!");
 	print FILE $self->write_string;
 	close FILE;
 
 	return 1;
 }
+
+=head2 $test->write_string()
+
+This method writes the test script as a chunk of text and returns it. Note
+that this is the exact script written out to file via C<write>.
+
+Code example:
+
+  print "Test script:\n";
+  print $test->write_string;
+
+=cut
 
 sub write_string {
 	my $self    = shift;
@@ -402,7 +470,7 @@ address above.
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
-Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
