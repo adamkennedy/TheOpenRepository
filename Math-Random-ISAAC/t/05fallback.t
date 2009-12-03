@@ -39,6 +39,6 @@ my $rng = Math::Random::ISAAC->new();
 isa_ok($rng, 'Math::Random::ISAAC');
 
 ok(defined $Math::Random::ISAAC::DRIVER, 'The DRIVER is defined');
-ok($Math::Random::ISAAC::DRIVER eq 'PP', 'The Pure Perl port is loaded');
+is($Math::Random::ISAAC::DRIVER, 'PP', 'Pure Perl port is loaded');
 ok($rng->irand() > 0, 'Generate first integer in sequence');
 ok($rng->rand()  > 0, 'Generate second number in sequence');
