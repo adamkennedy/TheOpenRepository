@@ -475,9 +475,11 @@ For other issues, for commercial enhancement and support, or to have your
 write access enabled for the repository, contact the author at the email
 address above.
 
-=head1 AUTHORS
+=head1 AUTHOR
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head2 CONTIRBUTORS
 
 Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 

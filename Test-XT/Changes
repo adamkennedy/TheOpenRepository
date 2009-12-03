@@ -1,4 +1,4 @@
-Changes for Perl extension Test-XS
+Changes for Perl extension Test-XT
 
 0.03_02
 	- Allow access to underlying %STANDARDS hash
