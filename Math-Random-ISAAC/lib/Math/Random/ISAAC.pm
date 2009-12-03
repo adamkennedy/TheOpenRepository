@@ -144,7 +144,9 @@ contact the maintainer.
 
 =head1 METHODS
 
-=head2 Math::Random::ISAAC->new( @seeds )
+=head2 new
+
+  Math::Random::ISAAC->new( @seeds )
 
 Creates a C<Math::Random::ISAAC> object, based upon either the optimized
 C/XS version of the algorithm, L<Math::Random::ISAAC::XS>, or falls back
@@ -179,7 +181,9 @@ sub new {
   return $self;
 }
 
-=head2 $rng->rand()
+=head2 rand
+
+  $rng->rand()
 
 Returns a random double-precision floating point number which is normalized
 between 0 and 1 (inclusive; it's a closed interval).
@@ -210,7 +214,9 @@ sub rand {
   return $self->{backend}->rand();
 }
 
-=head2 $rng->irand()
+=head2 irand
+
+  $rng->irand()
 
 Returns the next unsigned 32-bit random integer. It will return a value with
 a value such that: B<0 E<lt>= x E<lt>= 2**32-1>.
@@ -322,6 +328,17 @@ will be used automatically if available.
 L<http://burtleburtle.net/bob/rand/isaacafa.html>, Bob Jenkins' page about
 ISAAC, which explains the algorithm as well as potential attacks.
 
+L<http://eprint.iacr.org/2006/438.pdf>, a paper entitled "On the pseudo-random
+generator ISAAC," which claims there are many seeds which will produce
+non-uniform results. The author, Jean-Philippe Aumasson, argues ISAAC should
+be using rotations (circular shifts) instead of normal shifts to increase
+diffusion of the state, among other things.
+
+L<http://eprint.iacr.org/2001/049.pdf>, a paper by Marina Pudovkina discussing
+plaintext attacks on the ISAAC keystream generator. Among other things, it
+notes that the time complexity is B<Tmet = 4.67*10^1240>, so it remains a
+secure cipher for practical applications.
+
 =head1 CAVEATS
 
 =head2 KNOWN BUGS
@@ -350,6 +367,15 @@ But he also provides a simple workaround:
 There is no way to clone a PRNG instance. I'm not sure why this is might
 even be necessary or useful. File a bug report with an explanation why and
 I'll consider adding it to the next release.
+
+=back
+
+=head2 WEAKNESSES
+
+=over
+
+=item *
+
 
 =back
 

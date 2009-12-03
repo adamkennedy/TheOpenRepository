@@ -61,7 +61,9 @@ See L<Math::Random::ISAAC> for the full description.
 
 =head1 METHODS
 
-=head2 Math::Random::ISAAC::PP->new( @seeds )
+=head2 new
+
+  Math::Random::ISAAC::PP->new( @seeds )
 
 Implements the interface as specified in C<Math::Random::ISAAC>
 
@@ -97,7 +99,9 @@ sub new {
   return $self;
 }
 
-=head2 $rng->rand()
+=head2 rand
+
+  $rng->rand()
 
 Implements the interface as specified in C<Math::Random::ISAAC>
 
@@ -114,7 +118,9 @@ sub rand {
   return ($self->irand() / (2**32-1));
 }
 
-=head2 $rng->irand()
+=head2 irand
+
+  $rng->irand()
 
 Implements the interface as specified in C<Math::Random::ISAAC>
 
