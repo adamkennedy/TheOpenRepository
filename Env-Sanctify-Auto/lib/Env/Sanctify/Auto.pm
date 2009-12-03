@@ -103,9 +103,12 @@ started, which includes whenever a shell script (.sh) is run.
 
 =head1 METHODS
 
-=head2 Env::Sanctify::Auto->new($opts)
+=head2 new
 
-=head2 Env::Sanctify::Auto->sanctify($opts)
+=head2 sanctify
+
+  Env::Sanctify::Auto->new($opts)
+  Env::Sanctify::Auto->sanctify($opts)
 
 Creates a new C<Env::Sanctify::Auto> object, scrubbing the environment to
 remove or pacify potentially dangerous variables. Options may be passed as
