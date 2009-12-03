@@ -207,15 +207,9 @@ our %STANDARD = (
 
 =pod
 
-=head1 EXPORTABLE FUNCTIONS
+=head1 FUNCTIONS
 
-=head2 WriteTest( $file, %test_data )
-
-This function provides a simple way to write a single test to a file,
-following the usual template. The test data is a hash (Note: it's NOT a
-hash reference).
-
-Example code:
+=head2 WriteTest
 
   WriteTest(
     't/somefile.t',
@@ -227,7 +221,11 @@ Example code:
     },
   );
 
-This writes a test to B<t/somefile.t> that loads L<Test::CheckChanges> if
+This function provides a simple way to write a single test to a file,
+following the usual template. The test data is a hash (Note: it's NOT a
+hash reference).
+
+The example above writes a test to B<t/somefile.t> that loads L<Test::CheckChanges> if
 available, calling the C<ok_changes()> function if it is. A few knobs
 control how this works:
 
@@ -256,13 +254,7 @@ sub WriteTest {
 
 =pod
 
-=head2 WriteXT( %tests )
-
-This provides a convenient way to write multiple test files using the default
-profile settings (such as which modules to require, what subroutine to call,
-whether this is a release-only test).
-
-Example code:
+=head2 WriteXT
 
   WriteXT(
       'Test::Pod'            => 't/pod.t',
@@ -270,6 +262,12 @@ Example code:
       'Test::MinimumVersion' => 't/minimumversion.t',
       'Test::Perl::Critic'   => 't/critic.t',
   );
+
+This provides a convenient way to write multiple test files using the default
+profile settings (such as which modules to require, what subroutine to call,
+whether this is a release-only test).
+
+Example code:
 
 =cut
 
@@ -294,16 +292,7 @@ sub WriteXT {
 
 =head1 OBJECT ORIENTED INTERFACE
 
-=head2 Test::XT->new( %info )
-
-This produces a new object that stores information about a given test module.
-It can then be transformed into output suitable for use in a stream (via
-C<write_string>, which returns the test script as a string) or for writing
-directly to a file (using C<write>).
-
-For details on the available options, see B<WriteTest>
-
-Example code:
+=head2 new
 
   my $test = Test::XT->new(
     test    => 'all_pod_files_ok',
@@ -315,7 +304,13 @@ Example code:
     },
     default => 'pod.t',
   );
-  $test->write(File::Spec->catdir('t', 'pod.t'));
+
+This produces a new object that stores information about a given test module.
+It can then be transformed into output suitable for use in a stream (via
+C<write_string>, which returns the test script as a string) or for writing
+directly to a file (using C<write>).
+
+For details on the available options, see B<WriteTest>
 
 =cut
 
@@ -325,11 +320,21 @@ sub new {
 	return $self;
 }
 
+=head2 module
+
+  $test->module( 'Foo::Bar' => '1.23' );
+
+Add a module dependency for the test script.
+
+=cut
+
 sub module {
-	$_[0]->{modules}->{$_[1]}->{$_[2]};
+	$_[0]->{modules}->{$_[1]} = $_[2];
 }
 
-=head2 $test->test( $command )
+=head2 test
+
+  $test->test( $command );
 
 Change the name of the subroutine which is called to actually run the test.
 
@@ -343,7 +348,9 @@ sub test {
 	$_[0]->{test} = $_[1];
 }
 
-=head2 $test->write( $path )
+=head2 write
+
+  $test->write( $path )
 
 This method writes the test file to the provided path.
 
@@ -369,7 +376,9 @@ sub write {
 	return 1;
 }
 
-=head2 $test->write_string()
+=head2 write_string
+
+  $test->write_string()
 
 This method writes the test script as a chunk of text and returns it. Note
 that this is the exact script written out to file via C<write>.
