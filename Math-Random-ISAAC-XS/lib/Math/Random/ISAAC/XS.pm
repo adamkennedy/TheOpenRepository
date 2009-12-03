@@ -59,15 +59,21 @@ See L<Math::Random::ISAAC> for the full description.
 
 =head1 METHODS
 
-=head2 Math::Random::ISAAC::XS->new( @seeds )
+=head2 new
+
+  Math::Random::ISAAC::XS->new( @seeds )
 
 Implements the interface as specified in C<Math::Random::ISAAC>
 
-=head2 $rng->rand()
+=head2 rand
+
+  $rng->rand()
 
 Implements the interface as specified in C<Math::Random::ISAAC>
 
-=head2 $rng->irand()
+=head2 irand
+
+  $rng->irand()
 
 Implements the interface as specified in C<Math::Random::ISAAC>
 
