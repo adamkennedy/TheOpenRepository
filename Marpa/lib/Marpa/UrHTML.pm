@@ -1085,38 +1085,30 @@ sub Marpa::UrHTML::parse {
     $self->{recce}  = $recce;
     $self->{tokens} = \@html_parser_tokens;
     my ( $current_earleme, $expected_terminals ) = $recce->status();
-    MARPA_TOKEN: for my $marpa_token (@marpa_tokens) {
+    for my $marpa_token (@marpa_tokens) {
         my $is_virtual_token = 1;
         my $actual_terminal  = $marpa_token->[0];
         if ($trace_terminals) {
             say {$trace_fh} 'Literal Token: ', $actual_terminal;
         }
 
-        # This counter prevents bugs in the grammar from becoming
-        # infinite loops.  If and when the grammar is settled,
-        # a proof should be made that all cases are accounted for.
-        my $virtual_counter = 0;
+        # These counter prevents bugs in the grammar from becoming
+        # infinite loops.
+        my %start_virtuals_used = ();
 
-        VIRTUAL_TOKEN: while ($is_virtual_token) {
+        while ($is_virtual_token) {
 
             my $token_to_add;
+            if ( $actual_terminal ~~ $expected_terminals ) {
+                    $token_to_add     = $marpa_token;
+                    $is_virtual_token = 0;
+            }
+
             FIND_VIRTUAL_TOKEN: {
 
-                if ( $virtual_counter++ > 10 ) {
-                    say {$trace_fh}
-                        "Added 10 virtual tokens without adding the real one\n",
-                        qq{The real token is "$actual_terminal"\n},
-                        'This is probably a bug in the grammar for HTML';
-                    $token_to_add     = $marpa_token;
-                    $is_virtual_token = 0;
-                    last FIND_VIRTUAL_TOKEN;
-                } ## end if ( $virtual_counter++ > 10 )
-
-                if ( $actual_terminal ~~ $expected_terminals ) {
-                    $token_to_add     = $marpa_token;
-                    $is_virtual_token = 0;
-                    last FIND_VIRTUAL_TOKEN;
-                }
+                # Do not need to find a virtual token if the real one
+                # was OK.
+                last FIND_VIRTUAL_TOKEN if defined $token_to_add;
 
                 my $virtual_terminal;
                 my @virtuals_expected = sort {
@@ -1198,20 +1190,30 @@ sub Marpa::UrHTML::parse {
                         join q{ }, keys %{ $ok_as_cruft{$virtual_terminal} };
                 }
 
-                if ( defined $virtual_terminal
-                    and
-                    not $ok_as_cruft{$virtual_terminal}{$actual_terminal} )
-                {
-                    my $tdesc_list = $marpa_token->[1];
-                    my $first_tdesc_start_token =
-                        $tdesc_list->[0]
-                        ->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
-                    $token_to_add = [
-                        $virtual_terminal,
-                        [ [ 'POINT', $first_tdesc_start_token ] ]
-                    ];
-                    last FIND_VIRTUAL_TOKEN;
-                } ## end if ( defined $virtual_terminal and not $ok_as_cruft{...})
+                last FIND_VIRTUAL_TERMINAL if not defined $virtual_terminal;
+                last FIND_VIRTUAL_TERMINAL
+                    if $ok_as_cruft{$virtual_terminal}{$actual_terminal};
+
+                if ($virtual_terminal =~ /^S_/xms and $start_virtuals_used{$virtual_terminal}++ > 1) {
+                    (my $tagname = $virtual_terminal) =~ s/^S_//xms;
+                    say {$trace_fh} "Warning: attempt to add <$tagname> twice at the same place";
+                    last FIND_VIRTUAL_TERMINAL;
+                }
+
+                my $tdesc_list = $marpa_token->[1];
+                my $first_tdesc_start_token =
+                    $tdesc_list->[0]
+                    ->[Marpa::UrHTML::Internal::TDesc::START_TOKEN];
+                $token_to_add = [
+                    $virtual_terminal,
+                    [ [ 'POINT', $first_tdesc_start_token ] ]
+                ];
+
+            } ## end FIND_VIRTUAL_TOKEN:
+
+            # If we didn't find a token to add, add the
+            # current physical token as CRUFT.
+            if ( not defined $token_to_add ) {
 
                 if ($trace_terminals) {
                     say {$trace_fh} 'Adding actual token as cruft: ',
@@ -1235,7 +1237,7 @@ sub Marpa::UrHTML::parse {
                         },
                         q{"};
                 } ## end if ($trace_cruft)
-            } ## end FIND_VIRTUAL_TOKEN:
+            } ## end if ( not defined $token_to_add )
 
             if ($trace_terminals) {
                 say {$trace_fh} 'Adding Token: ', $token_to_add->[0];
