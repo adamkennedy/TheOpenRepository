@@ -622,7 +622,7 @@ for my $rank ( 0 .. $#Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS ) {
 }
 
 # Marpa::Display
-# name: UrHTMl BNF
+# name: UrHTML BNF
 # start-after-line: END_OF_BNF
 # end-before-line: '^END_OF_BNF$'
 

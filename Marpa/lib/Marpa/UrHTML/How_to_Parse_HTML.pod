@@ -68,7 +68,7 @@ which optimizes for them.)
 
 =for Marpa::Display
 name: UrHTML BNF
-normalize-whitepace: 1
+normalize-whitespace: 1
 
     cruft ::= CRUFT
     comment ::= C

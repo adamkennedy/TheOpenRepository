@@ -11,6 +11,7 @@ use Getopt::Long qw(GetOptions);
 use Test::More;
 use Carp;
 
+use lib 'lib';
 use Marpa::Display;
 
 my $warnings = 0;
@@ -58,8 +59,6 @@ if ( not $debug_mode ) {
     close $manifest;
 } ## end if ( not $debug_mode )
 
-Test::More::plan tests => 1 + scalar @test_files;
-
 my $error_file;
 ## no critic (InputOutput::RequireBriefOpen)
 if ($debug_mode) {
@@ -80,42 +79,64 @@ FILE: for my $file (@test_files) {
         next FILE;
     }
     $display_data->read($file);
-    next FILE;
 
-    my ( $mismatch_count, $mismatches ) =
-        Marpa::Test::Display::test_file($file);
-    my $clean = $mismatch_count == 0;
-
-    my $message =
-        $clean
-        ? "displays match for $file"
-        : "displays in $file has $mismatch_count mismatches";
-
-    Test::More::ok( $clean, $message );
-    next FILE if $clean;
-    print {$error_file} "=== $file ===\n" . ${$mismatches}
-        or Marpa::exception("print failed: $ERRNO");
 } ## end for my $file (@test_files)
 
-__END__
+my @formatting_instructions = qw(normalize-whitespace);
 
-my $unused       = q{};
-my $unused_count = 0;
-while ( my ( $file_name, $displays ) = each %normalized_display_uses ) {
-    DISPLAY: while ( my ( $display_name, $uses ) = each %{$displays} ) {
-        next DISPLAY if $uses > 0;
-        $unused .= "display '$display_name' in $file_name never used\n";
-        $unused_count++;
+sub format_display {
+    my ($text, $instructions) = @_;
+    my $result = ${$text};
+
+    if ($instructions->{'normalize-whitespace'}) {
+       $result =~ s/^\s+//gxms;
+       $result =~ s/\s+$//gxms;
+       $result =~ s/\s+/ /gxms;
+       $result =~ s/\n+/\n/gxms;
     }
-} ## end while ( my ( $file_name, $displays ) = each %normalized_display_uses)
-if ($unused_count) {
-    ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
-    Test::More::fail('$unused count displays not used');
-    ## use critic
-    print {$error_file} "=== UNUSED DISPLAYS ===\n" . $unused
-        or Marpa::exception("print failed: $ERRNO");
-} ## end if ($unused_count)
-else {
-    Test::More::pass('all displays used');
+    return \$result;
 }
-close $error_file;
+
+# reformat two display according to the instructions in the
+# second, and compare.
+sub compare {
+    my ($original, $copy) = @_;
+    my $formatted_original = format_display(\$original->{content}, $copy);
+    my $formatted_copy = format_display(\$copy->{content}, $copy);
+    return 1 if ${$formatted_original} eq ${$formatted_copy};
+    say STDERR Text::Diff::diff $formatted_original, $formatted_copy, { STYLE => 'Table' };
+    return 0;
+}
+
+my $displays_by_name = $display_data->{displays};
+DISPLAY_NAME: for my $display_name ( keys %{$displays_by_name} ) {
+
+    my $displays = $displays_by_name->{$display_name};
+    if ( scalar @{$displays} <= 1 ) {
+        Test::More::fail("Display $display_name has only one instance");
+    }
+
+    # find the "original"
+    my $original_ix;
+    DISPLAY: for my $display_ix ( 0 .. $#{$displays} ) {
+        if ( not grep { $_ ~~ \@formatting_instructions }
+            keys %{ $displays->[$display_ix] } )
+        {
+            $original_ix = $display_ix;
+        }
+    } ## end for my $display_ix ( 0 .. $#{$displays} )
+
+    # Warn if there wasn't a clear original?
+    $original_ix //= 0; # default to the first
+
+    DISPLAY: for my $copy_ix ( 0 .. $#{$displays} ) {
+        next DISPLAY if $copy_ix == $original_ix;
+        Test::More::ok compare( $displays->[$original_ix],
+            $displays->[$copy_ix] ), "$display_name, copy $copy_ix";
+    }
+
+} ## end for my $display_name ( keys %{$displays_by_name} )
+
+Test::More::done_testing();
+
+__END__
