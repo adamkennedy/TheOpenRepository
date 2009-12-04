@@ -370,15 +370,6 @@ I'll consider adding it to the next release.
 
 =back
 
-=head2 WEAKNESSES
-
-=over
-
-=item *
-
-
-=back
-
 =head1 QUALITY ASSURANCE METRICS
 
 =head2 TEST COVERAGE
