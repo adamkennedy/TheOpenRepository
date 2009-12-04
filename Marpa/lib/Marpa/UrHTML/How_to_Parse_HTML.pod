@@ -15,7 +15,7 @@ This document outlines a straightforward, uncomplicated,
 natural and transparent method for extremely liberal parsing
 of arbitrary documents in the HTML family of languages.
 
-=head1 PERFECTLY LIBERAL PARSING
+=head1 EVERYTHING LOOKS LIKE HTML TO ME
 
 L<Marpa::UrHTML> demonstrates this new method of parsing HTML.
 It requires a more general and powerful parsing algorithm
@@ -39,13 +39,211 @@ treated as body text,
 with L<Marpa::UrHTML> trying to make sense of
 anything in the document that looks like markup.
 
-=head1
+=head1 DETAILS (notes)
 
-The parser aims at producing an
-L<Marpa::UrHTML> uses a BNF representation of a simplified grammar for HTML.
-L<Marpa::UrHTML> uses a BNF representation of a simplified grammar for HTML.
+=head2 Virtual Tokens
 
-This simplified grammar expects all elements to have start tags 
+When stumped, the lexer has two choices, add a virtual token,
+or add cruft.
+
+Any end token can be a virtual token.
+In addition, optional start tags can be virtual tokens.
+The HTML DTD specifies four of these:
+
+    <html>
+    <head>
+    <body>
+    <tbody>
+
+L<HTML::Tree> also treats these table start tags as optional.
+
+    <table>
+    <tr>
+    <td>
+
+This is wrong according to the DTD, and unsupported by Mozilla,
+but I decided that it was important for L<Marpa::UrHTML> to pass
+the same tests as L<HTML::Tree>, so these three start tags
+are also virtual terminals.
+
+=head2 Interaction of the wishful-thinking-BNF and the Lexer.
+
+Every once in a while in programming or mathematics you come across
+an moment of real beauty.
+This occurred for me when I combined the Wishful Thinking HTML BNF
+with the predictive lexer.
+
+The interaction is based on this simple rule:
+
+     If you can't give the Wishful Thinking Grammar the token
+     you have, give it the one it wants.
+
+Since Marpa does predictive lexing, the UrHTML lexer can know which
+virtual tokens will work.
+B<It turns out that at almost all points there is almost
+always just one virtual token that
+the Wishful Thinking Grammar will accept.>
+So it goes like this.
+
+=over 4
+
+=item The Wishful Thinking Grammar tells the Lexer what tokens it wants.
+
+=item If the the actual physical token from HTML::TokeParser is the one
+the Wishful Thinking Grammar wanted, the Lexer hands it over.
+
+=item If the real, physical token is not acceptable to the Wishful Thinking Parser,
+the Lexer looks in the list of tokens that the Wishful Thinking Parser will accept
+for virtual tokens.  Usually there will be one and only one.
+
+=item The Lexer gives the Wishful Thinking Grammar the token it wants.
+
+=back
+
+One problem you might see in simply indulging the fantasies of the Wishful
+Thinking Grammar: Don't you run the risk of prematurely ending elements?
+The answer in almost all cases is no.
+Normally, in cases where you want the parsing of an element to continue,
+the token you have is one of the ones that Wishful Thinking Grammar expects.
+And an expected token always takes priority over "wishful", or virtual, tokens.
+
+=head2 Conflicting Wishes
+
+In fact, if we stick to the DTD and ignore the L<HTML::Tree> loosenings of
+the DTD, there is only one case of a conflict between "wishes".  In tables,
+there could be a choice between ending the table and starting the table body:
+between a virtual C<< <tbody> >> and a virtual C<< </table> >>.
+
+What is wanted is to start the table body in preference to ending the table,
+that is to give a virtual C<< <tbody> >> priority over a virtual C<< </table> >>.
+This could have been special cased.
+But
+
+=over 4
+
+=item *
+Conformity with the loosened table parsing of L<HTML::Tree>
+introduced several other conflicts.
+
+=item *
+It seemed desirable to allow for UrHTML someday to be configurable.
+
+=item *
+L<Marpa::UrHTML> is intended to encourage others to "borrow" its logic,
+extend it and change it.  Robustness in the face of change is A Good Thing.
+
+=back
+
+For these reasons
+I implemented
+a more general mechanism for the dealing with conflicts.
+It is not complicated, but for dealing with the single
+conflict created by original DTD's, it is very much overkill.
+
+=head2 Prioritizing of Virtual Terminals
+
+The mechanism for dealing with conflicts is a prioritization scheme,
+and a handful of special cases.
+While this does "fuzz up" the original beauty of the Wishful Thinking
+scheme, the priorities and special cases following naturally from
+the structure of HTML,
+and the logic behind them is intuitive.
+
+The relative priority of the virtual terminals is as follows:
+
+    </html>
+    </body>
+    <table>
+    </head>
+    </table>
+    </tbody>
+    </tr>
+    </td>
+    <td>
+    <tr>
+    <tbody>
+    <head>
+    <body>
+    <html>
+
+With one exception, the order is first start tags, from outermost to innermost;
+then end tags from innermost to outermost.
+These three principles govern:
+
+=over 4
+
+=item * Start an element in preference to ending one 
+
+=item * Start outer, higher level elements before inner, lower level ones.
+
+=item * Start inner, lower level elements before outer, higher level ones.
+
+=back
+
+All this is natural enough.  The one exception is C<< <table> >> which is given
+and low a priority as possible.  The DTD's allow table to be started anywhere,
+including inside other tables.  Virtual table start tags,
+which start tables without the markup explicitly indicating
+they should start, threaten anarchy.
+
+L<Marpa::UrHTML> deals with virtual C<< <table> >> tags by only applying them
+when there is no other choice.  Part of the guarantee these is to put 
+virtual C<< <table> >> tags as low as possible in the priority scheme.
+C<< <table> >> tags are also one of the special cases.
+
+=head2 Virtual tags: The Special Cases
+
+In addition to giving virtual
+C<< <table> >> tags a very low priority, they also 
+are not allowed except directly before markup which can only
+appear inside tables.
+That is, if in a block flow outside a table, L<Marpa::UrHTML>
+encounters a C<< <td> >> tag, the parse cannot continue unless
+a table is created.
+In this case a virtual
+C<< <table> >> tag is allowed.
+If the next token is something that can appear outside a table,
+such as a C<< <p> >> tag, a virtual table start tag will B<not>
+be supplied.
+
+Another special case governs virtual table row start tags ("C<< <tr> >>").
+These are not valid according to the DTD's, but to pass the B<HTML::Tree> test
+suite they are required.
+However, they are not allowed as a way of dealing with an unexpected
+start tag for a higher level table construct, such as
+C<< <tbody> >>,
+C<< <thead> >> or
+C<< <tfoot> >>.
+Usually the preference to start something rather than to end
+something, but when these tags are encountered, starting a virtual
+table row leads to an infinite loop.
+Special case logic, therefore, prevents the virtual starts of table
+rows under these circumstances.
+
+A final special case deals with starting virtual table elements before certain end tags,
+as well as before end of file.
+All such cases arise in files where the HTML is not valid according to the DTD,
+but L<Marpa::UrHTML> keeping with its policy of liberalism, tries to produce valid
+parses when supplying missing tags will do that.
+Ordinarily, virtual start tags are preferred to virtual end tags.
+However starting a table row, cell or body (
+C<< <tr> >>,
+C<< <td> >> or
+C<< <tbody> >>
+)
+directly before end of file,
+C<< </th> >>,
+C<< </td> >>,
+C<< </tr> >>,
+C<< </thead> >>,
+C<< </tbody> >>,
+C<< </table> >>,
+C<< </body> >> and
+C<< </html> >> will cause an
+infinite loop and,
+as a special case, is prevented.
+
+=head1 THE MARPA PARSE ENGINE
 
 Marpa is derived from
 the parser

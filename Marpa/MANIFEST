@@ -1,6 +1,7 @@
 author.t/accept_tidy
 author.t/critic1
 author.t/critic.t
+author.t/display.t
 author.t/Makefile
 author.t/meta_yaml.t
 author.t/minimal.marpa

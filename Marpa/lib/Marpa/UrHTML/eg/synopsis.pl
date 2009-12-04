@@ -8,6 +8,15 @@ use Marpa::UrHTML;
 use HTML::Tagset;
 use List::Util;
 
+# Do:
+#
+# Delete spacer tag (only implemented in Netscape prior to 6.0)
+# Delete everything but title
+# Delete PI's
+# Delete everything but PI's
+# Print links
+# Complexity measure (or approximation?)
+
 my $example1 = '<?pi><table><?pi><tr><td><table><?pi>x</table></table><?pi>';
 my $example2 = 'I am body text<head attr="I am cruft">I am more body text';
 
