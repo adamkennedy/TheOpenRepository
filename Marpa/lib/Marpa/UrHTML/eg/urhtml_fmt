@@ -18,38 +18,130 @@ my $urhtml_args = {
     handlers => [
         [   ':CRUFT' => sub {
                 my $literal = Marpa::UrHTML::literal();
-                my $length  = length $literal;
-                return
-                    qq{\n<!-- The following token ($length characters long) is CRUFT\n}
-                    . qq{-->$literal>};
+                my @new_line_data = ( [ 'cruft', 0, 'following', $literal ] );
+                $literal =~ s/^\s+//gxms;
+                $literal =~ s/\s+$//gxms;
+                $literal =~ s/\s+/ /gxms;
+                push @new_line_data, [ 'line', 0, $literal ];
+                return \@new_line_data;
             },
         ],
         [   q{*} => sub {
                 my $tagname = Marpa::UrHTML::tagname();
-                return if $HTML::Tagset::emptyElement{$tagname};
+                my @new_line_data = ();
+                my @child_data = @{ Marpa::UrHTML::child_data('token_type,value,original') };
+                my $first_child = $child_data[0];
+                my $first_content_child = 0;
 
-                my $start_tag = Marpa::UrHTML::start_tag()
-                    // qq{\n<!-- Following start tag is replacement for a missing one -->\n}
-                    . "<$tagname>";
+                if ( defined $first_child->[0] and $first_child->[0] eq 'S' )
+                {
+                    push @new_line_data, [ 'line', 0, $first_child->[2] ];
+                    $first_content_child = 1;
+                }
+                else {
+                    push @new_line_data, [ 'missing start tag', 0, 'following', $tagname ];
+                } ## end else [ if ( defined $first_child->[0] and $first_child->[0]...)]
 
-                my $end_tag = Marpa::UrHTML::end_tag()
-                    // "</$tagname>\n"
-                    . qq{\n<!-- Preceding end tag is replacement for a missing one -->};
+                my $last_child = $child_data[-1];
+                my $last_content_child = $#child_data;
+                my $end_tag_child;
+                if ( defined $last_child->[0] and $last_child->[0] eq 'E' )
+                {
+                    $end_tag_child = $last_child;
+                    $last_content_child -= 1;
+                }
 
-                my $contents = Marpa::UrHTML::contents();
-                while ( $contents =~ s/\A\s*\n//xms ) {;}
-                $contents =~ s/\s*\z//xms;
-                $contents =~ s/^/  /xmsg;
-                return join q{}, $start_tag, "\n", $contents, "\n", $end_tag,;
+                CHILD:
+                for my $child_data_ix ( $first_content_child .. $last_content_child ) {
+                    my ( $token_type, $value, $original ) =
+                        @{ $child_data[$child_data_ix] };
+                    if ( defined $value ) {
+                        for my $line_data ( @{$value} ) {
+                            my ( $type, $indent, @data ) = @{$line_data};
+                            push @new_line_data, [ $type, $indent + 1, @data ];
+                        }
+                        next CHILD;
+                    } ## end if ( defined $value )
+                    for my $line ( split /\n/xms, $original ) {
+                        $line =~ s/^\s+//gxms;
+                        $line =~ s/\s+$//gxms;
+                        $line =~ s/\s+/ /gxms;
+                        push @new_line_data, [ 'line', 1, $line ];
+                    }
+                } ## end for my $child_data ( @{ Marpa::UrHTML::child_data(...)})
+
+                given (1) {
+                    when ( defined $end_tag_child ) {
+                        push @new_line_data,
+                            [ 'line', 0, $end_tag_child->[2] ];
+                    }
+                    when ( not $HTML::Tagset::emptyElement{$tagname} ) {
+                        push @new_line_data,
+                            [ 'missing end tag', 0, 'preceding', $tagname ];
+                    }
+                } ## end given
+
+                return \@new_line_data;
             },
         ],
         [   ':TOP' => sub {
-                ( my $literal = Marpa::UrHTML::literal() )
-                    =~ s/\n\s*\n/\n/gxms;
-                return $literal;
-                }
+                my $result = q{};
+                CHILD:
+                for my $child_data (
+                    @{ Marpa::UrHTML::child_data('value,original') } )
+                {
+                    my ( $value, $original ) = @{$child_data};
+                    if ( defined $value ) {
+                        LINE: for my $line_data ( @{$value} ) {
+                            my $type = shift @{$line_data};
+                            my $indent = shift @{$line_data};
+                            my $line_prefix = q{  } x $indent;
+                            if ( $type eq 'line' ) {
+                                my ( $line ) = @{$line_data};
+                                next LINE if $line =~ /^\s*$/;
+                                $result .= "$line_prefix$line\n";
+                                next LINE;
+                            } ## end if ( $type eq 'line' )
+                            if ( $type eq 'missing start tag' ) {
+                                my ( $location, $tagname ) = @{$line_data};
+                                $result
+                                    .= $line_prefix
+                                    . qq{<!-- Following start tag is replacement for a missing one -->\n}
+                                    . $line_prefix
+                                    . "<$tagname>\n";
+                                next LINE;
+                            } ## end if ( $type eq 'missing start tag' )
+                            if ( $type eq 'missing end tag' ) {
+                                my ( $location, $tagname ) = @{$line_data};
+                                $result
+                                    .= "$line_prefix</$tagname>\n"
+                                    . $line_prefix
+                                    . qq{<!-- Preceding end tag is replacement for a missing one -->\n};
+                                next LINE;
+                            } ## end if ( $type eq 'missing end tag' )
+                            if ( $type eq 'cruft' ) {
+                                my ( $location, $cruft ) = @{$line_data};
+                                $result
+                                    .= "$line_prefix<-- Next line is cruft -->\n"
+                                    . "$line_prefix$cruft\n";
+                                next LINE;
+                            } ## end if ( $type eq 'cruft' )
+                            Carp::croak(qq{Internal error: unknown line data type: "$type"});
+                        } ## end for my $line_data ( @{$value} )
+                        next CHILD;
+                    } ## end if ( defined $value )
+                    LINE: for my $line ( split /\n/xms, $original ) {
+                        next LINE if $line =~ /^\s*$/;
+                        $line =~ s/^\s+//gxms;
+                        $line =~ s/\s+$//gxms;
+                        $line =~ s/\s+/ /gxms;
+                        $result .= "$line\n";
+                    } ## end for my $line ( split /\n/xms, $original )
+                } ## end for my $child_data ( @{ Marpa::UrHTML::child_data(...)})
+                return $result;
+            },
         ],
-        ]
+    ]
 };
 
 say Marpa::UrHTML->new($urhtml_args)->parse( \$document );

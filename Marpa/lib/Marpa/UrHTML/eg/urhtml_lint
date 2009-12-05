@@ -1,0 +1,55 @@
+#!perl
+
+use 5.010;
+use strict;
+use warnings;
+use English qw( -no_match_vars );
+use Marpa::UrHTML;
+use HTML::Tagset;
+use WWW::Mechanize;
+
+my $uri = shift;
+my $mech = WWW::Mechanize->new( autocheck => 1 );
+$mech->get( $uri );
+my $document = $mech->content;
+undef $mech;
+
+my $urhtml_args = {
+    handlers => [
+        [   ':CRUFT' => sub {
+                my $literal = Marpa::UrHTML::literal();
+                my $length  = length $literal;
+                return
+                    qq{\n<!-- The following token ($length characters long) is CRUFT\n}
+                    . qq{-->$literal>};
+            },
+        ],
+        [   q{*} => sub {
+                my $tagname = Marpa::UrHTML::tagname();
+                return if $HTML::Tagset::emptyElement{$tagname};
+
+                my $start_tag = Marpa::UrHTML::start_tag()
+                    // qq{\n<!-- Following start tag is replacement for a missing one -->\n}
+                    . "<$tagname>";
+
+                my $end_tag = Marpa::UrHTML::end_tag()
+                    // "</$tagname>\n"
+                    . qq{\n<!-- Preceding end tag is replacement for a missing one -->};
+
+                my $contents = Marpa::UrHTML::contents();
+                while ( $contents =~ s/\A\s*\n//xms ) {;}
+                $contents =~ s/\s*\z//xms;
+                $contents =~ s/^/  /xmsg;
+                return join q{}, $start_tag, "\n", $contents, "\n", $end_tag,;
+            },
+        ],
+        [   ':TOP' => sub {
+                ( my $literal = Marpa::UrHTML::literal() )
+                    =~ s/\n\s*\n/\n/gxms;
+                return $literal;
+                }
+        ],
+        ]
+};
+
+say Marpa::UrHTML->new($urhtml_args)->parse( \$document );
