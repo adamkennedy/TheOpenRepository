@@ -621,6 +621,31 @@ for my $rank ( 0 .. $#Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS ) {
         $Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS[$rank] } = $rank;
 }
 
+%Marpa::UrHTML::Internal::VIRTUAL_TOKEN_HIERARCHY = ();
+{
+    my $hierarchy = <<'END_OF_STRING';
+th td
+tr
+col
+caption colgroup tfoot thead tbody
+table
+body head
+html
+END_OF_STRING
+
+    my $iota = 0;
+    my @hierarchy;
+    for my $level ( split /\n/, $hierarchy ) {
+        push @hierarchy,
+            map { ( "S_$_" => $iota, "E_$_" => $iota ) }
+            ( split ' ', $level );
+        $iota++;
+    } ## end for my $level ( split /\n/, $hierarchy )
+    %Marpa::UrHTML::Internal::VIRTUAL_TOKEN_HIERARCHY = @hierarchy;
+    $Marpa::UrHTML::Internal::VIRTUAL_TOKEN_HIERARCHY{EOF} =
+        $Marpa::UrHTML::Internal::VIRTUAL_TOKEN_HIERARCHY{E_tbody};
+}
+
 # Marpa::Display
 # name: UrHTML BNF
 # start-after-line: END_OF_BNF
@@ -1127,44 +1152,71 @@ sub Marpa::UrHTML::parse {
                 LOOKAHEAD_VIRTUAL_TERMINAL:
                 while ( my $candidate = pop @virtuals_expected ) {
 
-                    # Don't start a new table cell as a way of dealing with
-                    # A new row or table section
-                    if (    $candidate eq 'S_td'
-                        and $actual_terminal ~~
-                        [qw(S_tr S_thead S_tfoot S_tbody )] )
-                    {
-                        next LOOKAHEAD_VIRTUAL_TERMINAL;
-                    } ## end if ( $candidate eq 'S_td' and $actual_terminal ~~ [...])
-
-                    # Don't start a new table cell, row or TBODY element
-                    # as a way of dealing one of these end tags
-                    if ($candidate ~~ [qw(S_tr S_td S_tbody)]
-                        and $actual_terminal ~~ [
-                            qw(E_th E_td E_tr
-                                E_thead E_tfoot E_tbody E_table
-                                E_body E_html EOF)
-                        ]
-                        )
-                    {
-                        next LOOKAHEAD_VIRTUAL_TERMINAL;
-                    } ## end if ( $candidate ~~ [qw(S_tr S_td S_tbody)] and ...)
-
                     # Start an implied table only if the next token is one which
                     # can only occur inside a table
-                    if ($candidate eq 'S_table'
-                        and not $actual_terminal ~~ [
-                            qw(
-                                S_caption S_col S_colgroup S_thead S_tfoot
-                                S_tbody S_tr S_th S_td
-                                E_caption E_col E_colgroup E_thead E_tfoot
-                                E_tbody E_tr E_th E_td
-                                E_table
-                                )
-                        ]
-                        )
-                    {
-                        next LOOKAHEAD_VIRTUAL_TERMINAL;
-                    } ## end if ( $candidate eq 'S_table' and not ...)
+                    if ( $candidate eq 'S_table' ) {
+                        if (not $actual_terminal ~~ [
+                                qw(
+                                    S_caption S_col S_colgroup S_thead S_tfoot
+                                    S_tbody S_tr S_th S_td
+                                    E_caption E_col E_colgroup E_thead E_tfoot
+                                    E_tbody E_tr E_th E_td
+                                    E_table
+                                    )
+                            ]
+                            )
+                        {
+                            next LOOKAHEAD_VIRTUAL_TERMINAL;
+                        } ## end if ( $actual_terminal ~~ [ qw(...)])
+
+                        # The above test implies the others below, so
+                        # this virtual table start terminal is OK.
+                        $virtual_terminal = $candidate;
+                        last LOOKAHEAD_VIRTUAL_TERMINAL;
+                    } ## end if ( $candidate eq 'S_table' )
+
+                    # For other than <table>, we are permissive.
+                    # Unless the lookahead gives us
+                    # a specific reason to
+                    # reject the virtual terminal, we accept it.
+
+                    # No need to check lookahead, unless we are starting
+                    # an element
+                    if ($candidate !~ /^S_/) {
+                        $virtual_terminal = $candidate;
+                        last LOOKAHEAD_VIRTUAL_TERMINAL;
+                    }
+
+                    my $candidate_level =
+                        $Marpa::UrHTML::Internal::VIRTUAL_TOKEN_HIERARCHY{$candidate};
+
+                    # If the candidate is not part of the hierarchy, no need to check
+                    # lookahead
+                    if (not defined $candidate_level) {
+                        $virtual_terminal = $candidate;
+                        last LOOKAHEAD_VIRTUAL_TERMINAL;
+                    }
+
+                    my $actual_terminal_level =
+                        $Marpa::UrHTML::Internal::VIRTUAL_TOKEN_HIERARCHY{$actual_terminal};
+
+                    # If the actual terminal is not part of the hierarchy, no need to check
+                    # lookahead, either
+                    if (not defined $actual_terminal_level) {
+                        $virtual_terminal = $candidate;
+                        last LOOKAHEAD_VIRTUAL_TERMINAL;
+                    }
+
+                    # Here we are trying to deal with a higher-level element's
+                    # start or end, by starting a new lower level element.
+                    # This won't work, because we'll have to close it
+                    # immediately with another virtual terminal.
+                    # At best this means useless, empty elements.
+                    # At worst, it means an infinite loop where
+                    # empty lower-level elements are repeatedly added.
+                    #
+                    next LOOKAHEAD_VIRTUAL_TERMINAL 
+                        if $candidate_level <= $actual_terminal_level;
 
                     $virtual_terminal = $candidate;
                     last LOOKAHEAD_VIRTUAL_TERMINAL;
@@ -1190,14 +1242,14 @@ sub Marpa::UrHTML::parse {
                         join q{ }, keys %{ $ok_as_cruft{$virtual_terminal} };
                 }
 
-                last FIND_VIRTUAL_TERMINAL if not defined $virtual_terminal;
-                last FIND_VIRTUAL_TERMINAL
+                last FIND_VIRTUAL_TOKEN if not defined $virtual_terminal;
+                last FIND_VIRTUAL_TOKEN
                     if $ok_as_cruft{$virtual_terminal}{$actual_terminal};
 
                 if ($virtual_terminal =~ /^S_/xms and $start_virtuals_used{$virtual_terminal}++ > 1) {
                     (my $tagname = $virtual_terminal) =~ s/^S_//xms;
                     say {$trace_fh} "Warning: attempt to add <$tagname> twice at the same place";
-                    last FIND_VIRTUAL_TERMINAL;
+                    last FIND_VIRTUAL_TOKEN;
                 }
 
                 my $tdesc_list = $marpa_token->[1];
@@ -1347,7 +1399,7 @@ sub Marpa::UrHTML::parse {
         my $evaler = Marpa::Evaluator->new(
             { recce => $recce, clone => 0, closures => \%closure, } );
 
-        Marpa::exception('No parse') if not $evaler;
+        Marpa::exception('No parse: could not create evaluator') if not $evaler;
 
         if ( $ENV{TRACE_SIZE} ) {
             say 'pre-undef recce size: ', total_size($recce);
@@ -1400,7 +1452,7 @@ sub Marpa::UrHTML::parse {
         } ## end if ( not $evaler )
         $evaler->value;
     };
-    Marpa::exception('undef returned') if not defined $value;
+    Marpa::exception('No parse: evaler returned undef') if not defined $value;
     return ${$value};
 
 } ## end sub Marpa::UrHTML::parse

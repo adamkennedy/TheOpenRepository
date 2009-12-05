@@ -1,5 +1,6 @@
 #!perl
 
+use 5.010;
 use strict;
 use warnings;
 
@@ -193,16 +194,16 @@ sub same {
     if ( ref $code1 ) { $code1 = ${$code1} }
     if ( ref $code2 ) { $code2 = ${$code2} }
 
-    my $value1 = $p1->parse( \$code1 );
-    my $value2 = $p2->parse( \$code2 );
-
-    if ( not defined $value1 ) {
-        print "No parse for $code1"
+    my $value1;
+    if (not eval { $value1 = $p1->parse( \$code1 ); 1 }) {
+        say "No parse for $code1"
             or Carp::croak("Cannot print: $!");
         return $flip;
     }
-    if ( not defined $value2 ) {
-        print "No parse for $code2"
+
+    my $value2;
+    if (not eval { $value2 = $p2->parse( \$code2 ); 1 }) {
+        say "No parse for $code2"
             or Carp::croak("Cannot print: $!");
         return $flip;
     }
@@ -224,26 +225,15 @@ sub same {
         } ## end if ( $DEBUG > 2 )
     } ## end if ( $flip ? ( !$rv ) : $rv )
     else {
-        foreach my $line (
-            q{},
-            'The following failure is at ' . join( ' : ', caller ),
-            'Explanation of failure: '
+        print '# The following failure is at ' . join( ' : ', caller ), "\n",
+              '# Explanation of failure: '
             . ( $flip ? 'same' : 'different' )
-            . ' parse trees!',
-            'Input code 1:',
-            $code1,
-            'Input code 2:',
-            $code2,
-            'Output tree (as XML) 1:',
-            $out1,
-            'Output tree (as XML) 2:',
-            $out2,
-            )
-        {
-            $line =~ s/\n/\n# /gxms;
-            print qq{# $line\n}
-                or Carp::croak("Cannot print: $!");
-        } ## end foreach my $line ( q{}, 'The following failure is at ' . ...)
+            . ' parse trees!', "\n",
+            '# Input code 1:',           $code1, "\n",
+            '# Input code 2:',           $code2, "\n",
+            '# Output tree (as XML) 1:', $out1,  "\n",
+            '# Output tree (as XML) 2:', $out2,  "\n",
+            or Carp::croak("Cannot print: $!");
     } ## end else [ if ( $flip ? ( !$rv ) : $rv ) ]
 
     return $rv;
