@@ -1,4 +1,4 @@
-#!perl
+#!/usr/bin/perl
 
 use 5.010;
 use strict;
@@ -16,6 +16,32 @@ undef $mech;
 
 my $urhtml_args = {
     handlers => [
+        [   'pre' => sub {
+                my @new_line_data      = ();
+                my @following_comments = ();
+                CHILD:
+                for my $child_data ( @{ Marpa::UrHTML::child_data('value') } )
+                {
+                    next CHILD if not defined( my $value = $child_data->[0] );
+                    for my $line_data ( @{$value} ) {
+                        given ( $line_data->[0] ) {    # depending on the type
+                            when ( [ 'cruft', 'missing start tag', 'missing end tag' ] ) {
+                                push @new_line_data,
+                                    [
+                                    $_, 0,
+                                    'following pre',
+                                    @{$line_data}[ 3 .. $#{$line_data} ]
+                                    ];
+                            } ## end when ( [ 'cruft', 'missing start tag' ] )
+                        } ## end given
+                    } ## end for my $line_data ( @{$value} )
+                } ## end for my $child_data ( @{ Marpa::UrHTML::child_data(...)})
+                my $original = Marpa::UrHTML::original();
+                push @new_line_data, [ 'line', 0, $original ];
+                push @new_line_data, @following_comments;
+                return \@new_line_data;
+            },
+        ],
         [   ':CRUFT' => sub {
                 my $literal = Marpa::UrHTML::literal();
                 my @new_line_data = ( [ 'cruft', 0, 'following', $literal ] );
@@ -104,26 +130,75 @@ my $urhtml_args = {
                             } ## end if ( $type eq 'line' )
                             if ( $type eq 'missing start tag' ) {
                                 my ( $location, $tagname ) = @{$line_data};
-                                $result
-                                    .= $line_prefix
-                                    . qq{<!-- Following start tag is replacement for a missing one -->\n}
-                                    . $line_prefix
-                                    . "<$tagname>\n";
+                                given ($location) {
+                                    when ('following') {
+                                        $result
+                                            .= $line_prefix
+                                            . qq{<!-- Following start tag is replacement for a missing one -->\n}
+                                            . $line_prefix
+                                            . "<$tagname>\n";
+                                    } ## end when ('following')
+                                    when ('following pre') {
+                                        $result .= $line_prefix
+                                            . qq{<!-- Inside following <pre>, a start tag is missing: <$tagname> -->\n};
+                                    }
+                                    default {
+                                        Carp::croak(
+                                            "Internal error: unprovided-for missing start tag location: $_"
+                                        );
+                                    }
+                                } ## end given
                                 next LINE;
                             } ## end if ( $type eq 'missing start tag' )
                             if ( $type eq 'missing end tag' ) {
                                 my ( $location, $tagname ) = @{$line_data};
-                                $result
-                                    .= "$line_prefix</$tagname>\n"
-                                    . $line_prefix
-                                    . qq{<!-- Preceding end tag is replacement for a missing one -->\n};
+                                given ($location) {
+                                    when ('preceding') {
+                                        $result
+                                            .= "$line_prefix</$tagname>\n"
+                                            . $line_prefix
+                                            . qq{<!-- Preceding end tag is replacement for a missing one -->\n};
+                                    } ## end when ('preceding')
+                                    when ('following pre') {
+                                        $result .= $line_prefix
+                                            . qq{<!-- Inside following <pre>, an end tag is missing: <$tagname> -->\n};
+                                    }
+                                    default {
+                                        Carp::croak(
+                                            "Internal error: unprovided-for missing end tag location: $_"
+                                        );
+                                    }
+                                } ## end given
                                 next LINE;
                             } ## end if ( $type eq 'missing end tag' )
                             if ( $type eq 'cruft' ) {
                                 my ( $location, $cruft ) = @{$line_data};
-                                $result
-                                    .= "$line_prefix<-- Next line is cruft -->\n"
-                                    . "$line_prefix$cruft\n";
+                                given ($location) {
+                                    when ('following') {
+                                        $result
+                                            .= "$line_prefix<-- Next line is cruft -->\n"
+                                            . "$line_prefix$cruft\n";
+                                    }
+                                    when ('following pre') {
+
+                                        # Make sure the cruft quoted inside
+                                        # the HTML comment does not
+                                        # disrupt the comment.
+                                        ( my $safe_cruft = $cruft )
+                                            =~ s/--/- -/xms;
+                                        $safe_cruft
+                                            =~ s/^/  $line_prefix/gxms;
+                                        $result
+                                            .= qq{$line_prefix<!-- Inside the following <pre>, there is this cruft:\n}
+                                            . qq{$safe_cruft\n}
+                                            . qq{$line_prefix-->\n};
+                                    } ## end when ('following pre')
+                                    default {
+                                        Carp::croak(
+                                            "Internal error: unprovided-for cruft location: $_"
+                                        );
+                                    }
+                                } ## end given
                                 next LINE;
                             } ## end if ( $type eq 'cruft' )
                             Carp::croak(qq{Internal error: unknown line data type: "$type"});

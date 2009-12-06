@@ -16,37 +16,65 @@ undef $mech;
 
 sub calculate_max_depths {
     my ($child_data) = @_;
-    my %return_value = ();
+    my %return_depths = ( ANY => 0 );
     for my $child_value ( grep { ref $_ } map { $_->[0] } @{$child_data} ) {
-        CHILD_TAGNAME: for my $child_tagname ( keys %{$child_value} ) {
-            my $depth = $child_value->{$child_tagname};
-            next CHILD_TAGNAME
-                if $depth <= ( $return_value{$child_tagname} // 0 );
-            $return_value{$child_tagname} = $depth;
-        } ## end for my $child_tagname ( keys %{$child_value} )
+        my $depths = $child_value->{depths};
+        CHILD_TAGNAME: for my $child_tagname ( keys %{$depths} ) {
+            my $depth = $depths->{$child_tagname};
+            if ( $depth > ( $return_depths{$child_tagname} // 0 ) ) {
+                $return_depths{$child_tagname} = $depth;
+            }
+            if ( $depth > $return_depths{ANY} ) {
+                $return_depths{ANY} = $depth;
+            }
+        } ## end for my $child_tagname ( keys %{$depths} )
     } ## end for my $child_value ( grep { ref $_ } map { $_->[0] }...)
-    return \%return_value;
+    return \%return_depths;
 } ## end sub calculate_max_depths
 
-my ( $instance, $max_depths ) = @{ Marpa::UrHTML->new(
+sub calculate_length {
+    my ($child_data) = @_;
+    my $length = 0;
+    CHILD: for my $child_data ( @{$child_data} ) {
+        my ( $value, $literal ) = @{$child_data};
+        if ( defined $value ) {
+            $length += $value->{length};
+            next CHILD;
+        }
+        $length += ( $literal =~ tr/\t\f \x{200B}//c );
+    } ## end for my $child_data ( @{$child_data} )
+    return $length;
+} ## end sub calculate_length
+
+my ( $instance, $value ) = @{ Marpa::UrHTML->new(
         {   handlers => [
+                [ ':COMMENT' => sub { return { depths => {}, length => 0 } }
+                ],
                 [   q{*} => sub {
-                        my $child_data = Marpa::UrHTML::child_data('value');
-                        my $tagname    = Marpa::UrHTML::tagname();
+                        my $child_data =
+                            Marpa::UrHTML::child_data('value,literal');
+                        my $tagname = Marpa::UrHTML::tagname();
+                        my $length  = calculate_length($child_data);
                         $Marpa::UrHTML::INSTANCE->{count}->{$tagname}++;
                         $Marpa::UrHTML::INSTANCE->{length}->{$tagname}
-                            += ( length Marpa::UrHTML::original() );
-                        my $return_value = calculate_max_depths($child_data);
-                        ( $return_value->{$tagname} //= 0 )++;
-                        return $return_value;
+                            += $length;
+                        my $return_depths = calculate_max_depths($child_data);
+                        ( $return_depths->{$tagname} //= 0 )++;
+                        $return_depths->{ANY}++;
+                        return {
+                            depths => $return_depths,
+                            length => $length,
+                        };
                     },
                 ],
                 [   ':TOP' => sub {
+                        my $child_data =
+                            Marpa::UrHTML::child_data('value,literal');
                         return [
                             $Marpa::UrHTML::INSTANCE,
-                            calculate_max_depths(
-                                Marpa::UrHTML::child_data('value')
-                            )
+                            {   depths => calculate_max_depths($child_data),
+                                length => calculate_length($child_data),
+                            },
                         ];
                     },
                 ],
@@ -60,27 +88,35 @@ my $count_by_element = $instance->{count};
 my $html_length = $length_by_element->{html};
 my $total_lengths = List::Util::sum values %{ $length_by_element };
 my $complexity = sprintf "%.3f", ($total_lengths / ($html_length * log ($html_length)));
+my $max_depths = $value->{depths};
+my $max_element_depth = $max_depths->{ANY};
+delete $max_depths->{ANY};
 
 print qq{<table cellpadding="3" border="1">}
-    . qq{<caption>$uri<br>Complexity = $complexity</caption>\n}
-    . qq{<thead><tr>}
+    . qq{<thead>\n}
+    . qq{<tr><th colspan="5">$uri</tr>\n}
+    . qq{<tr><th colspan="5">Complexity Score = $complexity</tr>\n}
+    . qq{<tr><th colspan="5">Maximum Depth = $max_element_depth</tr>\n}
+    . qq{<tr>}
     . qq{<th>Element}
     . qq{<th>Maximum<br>Nesting}
     . qq{<th>Number of<br>Elements}
     . qq{<th>Size in<br>Characters</th>}
     . qq{<th>Average<br>Size</th>}
-    . qq{</tr></thead>\n};
+    . qq{</tr>\n}
+    . qq{</thead>\n};
 
 for my $element ( sort keys %{$max_depths} ) {
     my $count = $count_by_element->{$element};
     my $size  = $length_by_element->{$element};
+    my $average = $count ? int( $size / $count ) : q{-};
     print join q{},
         q{<tr>},
-        q{<td>}, $element, q{</td>},
+        qq{<td>$element</td>},
         q{<td align="right">}, $max_depths->{$element}, q{</td>},
-        q{<td align="right">}, $count, q{</td>},
-        q{<td align="right">}, $size,  q{</td>},
-        q{<td align="right">}, int( $size / $count ), q{</td>},
+        qq{<td align="right">$count</td>},
+        qq{<td align="right">$size</td>},
+        qq{<td align="right">$average</td>},
         "</tr>\n";
 } ## end for my $element ( sort keys %{$max_depths} )
 
