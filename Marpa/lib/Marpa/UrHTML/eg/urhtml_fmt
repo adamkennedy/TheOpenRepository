@@ -219,4 +219,4 @@ my $urhtml_args = {
     ]
 };
 
-say Marpa::UrHTML->new($urhtml_args)->parse( \$document );
+print Marpa::UrHTML->new($urhtml_args)->parse( \$document );

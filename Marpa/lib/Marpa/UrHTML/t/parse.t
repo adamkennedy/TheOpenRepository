@@ -7,14 +7,24 @@ use warnings;
 # These tests are based closely on those in the HTML-Tree module,
 # the authors of which I gratefully acknowledge.
 
-use Test::More tests => 40;
+use Test::More;
 my $DEBUG = 2;
 
 BEGIN {
-    ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
-    eval 'require HTML::Entities';
-    ## use critic
+    my $skipping;
+    if ( not eval { require HTML::PullParser } ) {
+        Test::More::plan skip_all => 'HTML::PullParser not available';
+        $skipping = 1;
+    }
+    if ( not eval { require HTML::Entities } ) {
+        Test::More::plan skip_all => 'HTML::Entities not available';
+        $skipping = 1;
+    }
+    if ( not $skipping ) {
+        Test::More::plan tests => 42;
+    }
+    Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::UrHTML');
 } ## end BEGIN
 
 use Marpa::UrHTML;
