@@ -8,7 +8,7 @@ use warnings;
 use Test::More tests => 29;
 
 use lib 'lib';
-use t::lib::Marpa::Test;
+use Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');

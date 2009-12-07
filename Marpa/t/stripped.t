@@ -4,7 +4,6 @@ use 5.010;
 use strict;
 use warnings;
 use lib 'lib';
-use lib 't/lib';
 use Test::More tests => 8;
 use Marpa::Test;
 

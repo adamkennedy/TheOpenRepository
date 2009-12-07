@@ -11,7 +11,7 @@ use English qw( -no_match_vars );
 use Fatal qw(open close chdir);
 
 use Test::More tests => 10;
-use t::lib::Marpa::Test;
+use Marpa::Test;
 
 use constant A_LOT_OF_VALUES => 25;
 

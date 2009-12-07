@@ -10,7 +10,7 @@ use Fatal qw(open close chdir);
 use Carp;
 
 use Test::More tests => 7;
-use t::lib::Marpa::Test;
+use Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa::MDL');

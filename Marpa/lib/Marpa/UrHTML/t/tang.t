@@ -6,7 +6,7 @@ use warnings;
 
 use lib 'lib';
 use Test::More;
-use t::lib::Marpa::Test;
+use Marpa::Test;
 
 BEGIN {
     if ( eval { require HTML::PullParser } ) {

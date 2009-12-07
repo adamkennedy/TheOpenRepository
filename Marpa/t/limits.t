@@ -11,7 +11,7 @@ use English qw( -no_match_vars );
 use Test::More tests => 6;
 
 use lib 'lib';
-use t::lib::Marpa::Test;
+use Marpa::Test;
 
 BEGIN {
     Test::More::use_ok('Marpa');
