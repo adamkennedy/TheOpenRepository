@@ -6,13 +6,22 @@ use warnings;
 use English qw( -no_match_vars );
 use Marpa::UrHTML;
 use HTML::Tagset;
-use WWW::Mechanize;
+use Fatal qw(open close);
 
-my $uri = shift;
-my $mech = WWW::Mechanize->new( autocheck => 1 );
-$mech->get( $uri );
-my $document = $mech->content;
-undef $mech;
+my $locator = shift;
+my $document;
+if ($locator =~ /^[a-zA-Z0-9]+[:]/) {
+    require WWW::Mechanize;
+    my $mech = WWW::Mechanize->new( autocheck => 1 );
+    $mech->get( $locator );
+    $document = $mech->content;
+    undef $mech;
+} else {
+    local $RS = undef;
+    open my $fh, q{<}, $locator;
+    $document = <$fh>;
+    close $fh;
+}
 
 my $urhtml_args = {
     handlers => [
@@ -176,8 +185,7 @@ my $urhtml_args = {
                                 given ($location) {
                                     when ('following') {
                                         $result
-                                            .= "$line_prefix<-- Next line is cruft -->\n"
-                                            . "$line_prefix$cruft\n";
+                                            .= "$line_prefix<-- Next line is cruft -->\n";
                                     }
                                     when ('following pre') {
 
@@ -220,3 +228,159 @@ my $urhtml_args = {
 };
 
 print Marpa::UrHTML->new($urhtml_args)->parse( \$document );
+
+exit 0;
+
+__END__
+
+=head1 NAME
+
+C<urhtml_fmt> - Format HTML, indented according to its structure
+
+=head1 SYNOPSIS
+
+    ur_html_fmt [uri|file]
+
+=head1 EXAMPLE
+
+    urhtml_fmt http://perl.org
+
+=head1 DESCRIPTION
+
+Given a URI or a file name,
+L<urhtml_fmt>
+parses it as HTML
+and writes to C<STDOUT>
+the HTML rearranged and
+indented according to its structure.
+Missing start and end tags are supplied and
+comments added to indicate this.
+Text inside
+C<< <pre> >> elements 
+is not altered.
+
+L<urhtml_fmt> follows the philosophy behind L<HTML::Parser>,
+which it uses for its low-level parsing (tokenization).
+L<urhtml_fmt> tries to parse everything that is actually out there on the Web.
+In fact,
+L<urhtml_fmt> will return a HTML parse for any byte stream.
+
+L<urhtml_fmt> supplies missing start and end tags
+which are optional according to the DTD's.
+Following the practice of liberal rendering engines,
+it also supplies missing end tags
+and even some missing start tags that are not optional
+according to any of the standards.
+Inside elements, many nestings and other content
+not valid according to the standards
+is accepted.
+If this is still not sufficient to turn
+a document into valid HTML,
+L<urhtml_fmt>
+treats characters as "cruft".
+Sequences of characters recognized as
+"cruft" are treated as equivalent to comments.
+
+For start tags that are added,
+a comment to that effect is also added 
+preceding the new start tag.
+For end tags that are added,
+a comment to that effect is also added 
+following the new end tag.
+Also, where L<urhtml_fmt> find it necessary to treat characters
+as "cruft",
+L<urhtml_fmt> adds a comment to that effect before the "cruft".
+
+C<< <pre> >> elements are honored.
+It is assumed that the user wanted no risks taken with the
+spacing inside them, so the text inside a
+C<< pre >> elements is not touched,
+even to insert comments.
+When missing tags or cruft occur inside a C<< <pre> >> element,
+the comments to that effect are placed 
+before the C<< <pre> >>'s start tag.
+
+=head1 PURPOSE
+
+This program is a demo of a demo.
+It purpose is to show how easy it is to write applications which look
+at the structure of web pages using L<Marpa::UrHTML>.
+And the purpose of L<Marpa::UrHTML>
+is to demonstrate the power of its parse engine,
+L<Marpa>.
+
+Determining the structure of an HTML document has in the past
+been considered a very difficult programming task,
+requiring lots of special case coding.
+L<Marpa::UrHTML> was written in a few days,
+and the resulting grammar and code is natural and straight-forward.
+
+At this stage of its development,
+other parsers have advantages over L<Marpa::UrHTML>.
+But they need to be perfect.
+Because the code in them is an excruciatingly complex set of ad hoc
+solutions to special cases,
+other parsers are very hard to understand,
+and therefore to modify.
+
+As the documentation will show,
+the HTML parsing logic in L<Marpa::UrHTML>,
+is straightforward
+and an extremely natural way of expressing the
+problem.
+The transparency of L<Marpa::UrHTML> is made possible
+by L<Marpa>.
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 BUGS
+
+Please report any bugs or feature requests to
+C<bug-parse-marpa at rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa>.
+I will be notified, and then you'll automatically be notified of progress on
+your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Marpa
+    
+You can also look for information at:
+
+=over 4
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Marpa>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Marpa>
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Marpa>
+
+=back
+
+=head1 ACKNOWLEDGMENTS
+
+The starting template for this code was
+HTML::TokeParser, by Gisle Aas.
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007-2009 Jeffrey Kegler, all rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl 5.10.0.
+
+=cut

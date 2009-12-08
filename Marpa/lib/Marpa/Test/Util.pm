@@ -1,10 +1,15 @@
+package Marpa::Test::Util;
 
-use File::Next ();
-use App::Ack ();
+# The original of this code was copied from Andy Lester's Ack
+# package
 
-sub prep_environment {
-    delete @ENV{qw( ACK_OPTIONS ACKRC ACK_PAGER )};
-}
+use 5.010;
+use strict;
+use warnings;
+
+use Test::More;
+use English qw( -no_match_vars );
+use File::Spec;
 
 # capture stderr output into this file
 my $catcherr_file = 'stderr.log';
@@ -18,7 +23,7 @@ sub is_win32 {
 #
 # The quoting of command line arguments depends on the OS
 sub build_command_line {
-    my @args = @_;
+    my (@args) = @_;
 
     if ( is_win32() ) {
         for ( @args ) {
@@ -31,166 +36,34 @@ sub build_command_line {
         @args = map { quotemeta $_ } @args;
     }
 
-    return "$^X -T ./capture-stderr $catcherr_file @args";
+    return "$^X -Ilib ./lib/Marpa/Test/capture-stderr $catcherr_file @args";
 }
 
-sub build_ack_command_line {
+sub run_command {
+    my ($command, @args) = @_;
+
+    my ($stdout, $stderr) = run_with_stderr( $command, @args );
+
+    Test::More::is( $stderr, q{}, "Should have no output to stderr: $command @args" )
+            or diag( "STDERR:\n$stderr" );
+
+    return $stdout;
+}
+
+sub run_with_stderr {
     my @args = @_;
 
-    return build_command_line( './ack', @args );
-}
+    my $cmd = build_command_line( @args );
 
-sub slurp {
-    my $iter = shift;
-
-    my @files;
-    while ( defined ( my $file = $iter->() ) ) {
-        push( @files, $file );
-    }
-
-    return @files;
-}
-
-sub run_ack {
-    my @args = @_;
-
-    my ($stdout, $stderr) = run_ack_with_stderr( @args );
-
-    if ( $TODO ) {
-        fail( q{Automatically fail stderr check for TODO tests.} );
-    }
-    else {
-        is( scalar @{$stderr}, 0, "Should have no output to stderr: ack @args" )
-            or diag( join( "\n", "STDERR:", @{$stderr} ) );
-    }
-
-    return wantarray ? @{$stdout} : join( "\n", @{$stdout} );
-}
-
-{ # scope for $ack_return_code;
-
-# capture returncode
-our $ack_return_code;
-
-sub run_ack_with_stderr {
-    my @args = @_;
-
-    my @stdout;
-    my @stderr;
-
-    # The --noenv makes sure we don't pull in anything from the user.
-    if ( !grep { $_ =~ /^--(no)?env$/ } @args ) {
-        unshift( @args, '--noenv' );
-    }
-
-    my $cmd = build_ack_command_line( @args );
-
-    @stdout = `$cmd`;
+    my $stdout = `$cmd`;
     my ($sig,$core,$rc) = (($? & 127),  ($? & 128) , ($? >> 8));
-    $ack_return_code = $rc;
-    ## XXX what do do with $core or $sig?
 
     open( my $fh, '<', $catcherr_file ) or die $!;
-    while ( <$fh> ) {
-        push( @stderr, $_ );
-    }
+    my $stderr = do { local $RS = undef; <$fh> };
     close $fh or die $!;
     unlink $catcherr_file;
 
-    chomp @stdout;
-    chomp @stderr;
-    return ( \@stdout, \@stderr );
+    return ( $stdout, $stderr, $rc );
 }
-
-sub get_rc {
-    return $ack_return_code;
-}
-
-} # scope for $ack_return_code
-
-sub pipe_into_ack {
-    my $input = shift;
-    my @args = @_;
-
-    my $cmd = build_ack_command_line( @args );
-    $cmd = "$^X -pe1 $input | $cmd";
-    my @results = `$cmd`;
-    chomp @results;
-
-    unlink $catcherr_file;
-
-    return @results;
-}
-
-# Use this one if order is important
-sub lists_match {
-    my @actual = @{+shift};
-    my @expected = @{+shift};
-    my $msg = shift;
-
-    # Normalize all the paths
-    for my $path ( @expected, @actual ) {
-        $path = File::Next::reslash( $path ); ## no critic (Variables::ProhibitPackageVars)
-    }
-
-    local $Test::Builder::Level = $Test::Builder::Level + 1; ## no critic
-
-    eval 'use Test::Differences';
-    if ( !$@ ) {
-        return eq_or_diff( [@actual], [@expected], $msg );
-    }
-    else {
-        return is_deeply( [@actual], [@expected], $msg );
-    }
-}
-
-sub ack_lists_match {
-    my $args     = shift;
-    my $expected = shift;
-    my $message  = shift;
-    my @args     = @{$args};
-
-    my @results = run_ack( @args );
-    my $ok = lists_match( \@results, $expected, $message );
-    $ok or diag( join( ' ', '$ ack', @args ) );
-
-    return $ok;
-}
-
-# Use this one if you don't care about order of the lines
-sub sets_match {
-    my @actual = @{+shift};
-    my @expected = @{+shift};
-    my $msg = shift;
-
-    local $Test::Builder::Level = $Test::Builder::Level + 1; ## no critic
-    return lists_match( [sort @actual], [sort @expected], $msg );
-}
-
-sub ack_sets_match {
-    my $args     = shift;
-    my $expected = shift;
-    my $message  = shift;
-    my @args     = @{$args};
-
-    my @results = run_ack( @args );
-    my $ok = sets_match( \@results, $expected, $message );
-    $ok or diag( join( ' ', '$ ack', @args ) );
-
-    return $ok;
-}
-
-
-sub is_filetype {
-    my $filename = shift;
-    my $wanted_type = shift;
-
-    for my $maybe_type ( App::Ack::filetypes( $filename ) ) {
-        return 1 if $maybe_type eq $wanted_type;
-    }
-
-    return;
-}
-
 
 1;

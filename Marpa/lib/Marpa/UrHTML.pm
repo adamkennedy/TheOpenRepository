@@ -737,17 +737,6 @@ table_flow_item ::= SGML_flow_item
 empty ::=
 END_OF_BNF
 
-@Marpa::UrHTML::Internal::UNPRODUCTIVE_OK = qw(
-    ELE_caption ELE_col ELE_colgroup ELE_head ELE_html ELE_optgroup
-    ELE_option ELE_table ELE_tbody ELE_td ELE_tfoot ELE_th ELE_thead
-    ELE_tr
-    header_element list_item_element
-    inline_element block_element
-);
-
-@Marpa::UrHTML::Internal::INACCESSIBLE_OK =
-    qw( ELE_optgroup ELE_option table_cell_element );
-
 @Marpa::UrHTML::Internal::CORE_RULES = ();
 
 my %handler = (
@@ -810,18 +799,6 @@ use strict;
     ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT ),
 );
 
-push @Marpa::UrHTML::Internal::INACCESSIBLE_OK, qw(
-    Contents_colgroup Contents_optgroup Contents_select
-    empty inline_flow list_item_flow
-    pcdata_flow table_flow table_section_flow
-    colgroup_flow_item
-    inline_flow_item
-    list_item_flow_item
-    optgroup_flow_item
-    pcdata_flow_item
-    select_flow_item
-);
-
 sub Marpa::UrHTML::parse {
     my ( $self, $document_ref ) = @_;
 
@@ -840,7 +817,8 @@ sub Marpa::UrHTML::parse {
     my $ref_type        = ref $document_ref;
     Marpa::exception('Arg to parse() must be ref to string')
         if not $ref_type
-            or $ref_type ne 'SCALAR';
+            or $ref_type ne 'SCALAR'
+            or not defined ${$document_ref};
 
     my %pull_parser_args;
     my $document = $pull_parser_args{doc} = $self->{document} = $document_ref;
@@ -855,13 +833,21 @@ sub Marpa::UrHTML::parse {
         %Marpa::UrHTML::Internal::CORE_OPTIONAL_TERMINALS;
     my @html_parser_tokens = ();
     my @marpa_tokens       = ();
-    while ( my $html_parser_token = $pull_parser->get_token ) {
+    HTML_PARSER_TOKEN: while ( my $html_parser_token = $pull_parser->get_token ) {
+        my ($token_type, $offset, $offset_end) = @{$html_parser_token};
+
+        # If it's a virtual token from HTML::Parser,
+        # pretend it never existed.
+        # We figure out where the missing tags are,
+        # and HTML::Parser's guesses are not helpful.
+        next HTML_PARSER_TOKEN if $offset_end <= $offset;
+
         my $token_number = scalar @html_parser_tokens;
         push @html_parser_tokens, $html_parser_token;
-        given ( $html_parser_token->[0] ) {
+
+        given ($token_type) {
             when ('T') {
-                my ( $offset, $offset_end, $is_cdata ) =
-                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
+                my $is_cdata = $html_parser_token->[3];
                 push @marpa_tokens,
                     [
                     (   substr(
@@ -875,8 +861,7 @@ sub Marpa::UrHTML::parse {
                     ];
             } ## end when ('T')
             when ('S') {
-                my ( $offset, $offset_end, $tag_name ) =
-                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
+                my $tag_name = $html_parser_token->[3];
                 $start_tags{$tag_name}++;
                 my $terminal = "S_$tag_name";
                 $terminals{$terminal}++;
@@ -887,8 +872,7 @@ sub Marpa::UrHTML::parse {
                     ];
             } ## end when ('S')
             when ('E') {
-                my ( $offset, $offset_end, $tag_name ) =
-                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
+                my $tag_name = $html_parser_token->[3];
                 $end_tags{$tag_name}++;
                 my $terminal = "E_$tag_name";
                 $terminals{$terminal}++;
@@ -899,16 +883,12 @@ sub Marpa::UrHTML::parse {
                     ];
             } ## end when ('E')
             when ( [qw(C D)] ) {
-                my ( $offset, $offset_end ) =
-                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 push @marpa_tokens,
                     [
                     $_, [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
                     ];
             } ## end when ( [qw(C D)] )
             when ( ['PI'] ) {
-                my ( $offset, $offset_end ) =
-                    @{$html_parser_token}[ 1 .. $#{$html_parser_token} ];
                 push @marpa_tokens,
                     [
                     $_, [ [ 'UNVALUED_SPAN', $token_number, $token_number ] ],
@@ -1078,8 +1058,8 @@ sub Marpa::UrHTML::parse {
         {   rules           => \@rules,
             start           => 'document',
             terminals       => \@terminals,
-            inaccessible_ok => \@Marpa::UrHTML::Internal::INACCESSIBLE_OK,
-            unproductive_ok => \@Marpa::UrHTML::Internal::UNPRODUCTIVE_OK,
+            inaccessible_ok => 1,
+            unproductive_ok => 1,
             default_action  => 'Marpa::UrHTML::Internal::default_action',
             strip           => 0,
         }

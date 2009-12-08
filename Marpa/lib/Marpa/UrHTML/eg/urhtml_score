@@ -8,11 +8,20 @@ use Marpa::UrHTML;
 use List::Util qw(sum);
 use WWW::Mechanize;
 
-my $uri = shift;
-my $mech = WWW::Mechanize->new( autocheck => 1 );
-$mech->get( $uri );
-my $document = $mech->content;
-undef $mech;
+my $locator = shift;
+my $document;
+if ($locator =~ /^[a-zA-Z0-9]+[:]/) {
+    require WWW::Mechanize;
+    my $mech = WWW::Mechanize->new( autocheck => 1 );
+    $mech->get( $locator );
+    $document = $mech->content;
+    undef $mech;
+} else {
+    local $RS = undef;
+    open my $fh, q{<}, $locator;
+    $document = <$fh>;
+    close $fh;
+}
 
 sub calculate_max_depths {
     my ($child_data) = @_;
@@ -126,15 +135,15 @@ __END__
 
 =head1 NAME
 
-C<urhtml_stats> - Show complexity metric and other stats for web page
+C<urhtml_score> - Show complexity metric and other stats for web page
 
 =head1 SYNOPSIS
 
-    ur_html_stats [uri]
+    ur_html_score [uri|file]
 
 =head1 EXAMPLE
 
-    urhtml_stats http://perl.org
+    urhtml_score http://perl.org
 
 =head1 DESCRIPTION
 

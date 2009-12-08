@@ -845,11 +845,23 @@ sub Marpa::Grammar::set {
                 say {$trace_fh}
                     q{"inaccessible_ok" option is useless after grammar is precomputed};
             }
-            Marpa::exception(
-                'value of inaccessible_ok option must be an array ref')
-                if not ref $value eq 'ARRAY';
-            $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK] =
-                { map { ( $_, 1 ) } @{$value} };
+            given ( ref $value ) {
+                when ('') {
+                    $value //= {
+                    }
+                }
+                when ('ARRAY') {
+                    $value = {
+                        map { ( $_, 1 ) } @{$value}
+                    }
+                }
+                default {
+                    Marpa::exception(
+                        'value of inaccessible_ok option must be boolean or an array ref'
+                        )
+                }
+            } ## end given
+            $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK] = $value;
         } ## end if ( defined( my $value = $args->{'inaccessible_ok'}...))
 
         if ( defined( my $value = $args->{'unproductive_ok'} ) ) {
@@ -857,11 +869,23 @@ sub Marpa::Grammar::set {
                 say {$trace_fh}
                     q{"unproductive_ok" option is useless after grammar is precomputed};
             }
-            Marpa::exception(
-                'value of unproductive_ok option must be an array ref')
-                if not ref $value eq 'ARRAY';
-            $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK] =
-                { map { ( $_, 1 ) } @{$value} };
+            given ( ref $value ) {
+                when ('') {
+                    $value //= {
+                    };
+                }
+                when ('ARRAY') {
+                    $value = {
+                        map { ( $_, 1 ) } @{$value}
+                    }
+                }
+                default {
+                    Marpa::exception(
+                        'value of unproductive_ok option must be boolean or an array ref'
+                        )
+                }
+            } ## end given
+            $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK] = $value;
         } ## end if ( defined( my $value = $args->{'unproductive_ok'}...))
 
         if ( defined( my $value = $args->{'max_parses'} ) ) {
@@ -950,10 +974,7 @@ sub Marpa::Grammar::precompute {
     my $grammar = shift;
 
     my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
-    my $trace_fh;
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    }
+    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
@@ -1015,9 +1036,11 @@ sub Marpa::Grammar::precompute {
             $too_many_earley_items;
     } ## end if ( not defined( my $too_many_earley_items = $grammar...))
 
-    if ( $grammar->[Marpa::Internal::Grammar::WARNINGS] ) {
-        $trace_fh //= $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-        my $ok = $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK];
+    if ( $grammar->[Marpa::Internal::Grammar::WARNINGS]
+        and
+        ref( my $ok = $grammar->[Marpa::Internal::Grammar::INACCESSIBLE_OK] )
+        eq 'HASH' )
+    {
         SYMBOL:
         for my $symbol ( @{ Marpa::Grammar::inaccessible_symbols($grammar) } )
         {
@@ -1032,7 +1055,13 @@ sub Marpa::Grammar::precompute {
             next SYMBOL if $ok->{$symbol};
             say {$trace_fh} "Inaccessible symbol: $symbol";
         } ## end for my $symbol ( @{ Marpa::Grammar::inaccessible_symbols...})
-        $ok = $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK];
+    } ## end if ( $grammar->[Marpa::Internal::Grammar::WARNINGS] ...)
+
+    if ( $grammar->[Marpa::Internal::Grammar::WARNINGS]
+        and
+        ref( my $ok = $grammar->[Marpa::Internal::Grammar::UNPRODUCTIVE_OK] )
+        eq 'HASH' )
+    {
         SYMBOL:
         for my $symbol ( @{ Marpa::Grammar::unproductive_symbols($grammar) } )
         {
@@ -1047,7 +1076,7 @@ sub Marpa::Grammar::precompute {
             next SYMBOL if $ok->{$symbol};
             say {$trace_fh} "Unproductive symbol: $symbol";
         } ## end for my $symbol ( @{ Marpa::Grammar::unproductive_symbols...})
-    } ## end if ( $grammar->[Marpa::Internal::Grammar::WARNINGS] )
+    } ## end if ( $grammar->[Marpa::Internal::Grammar::WARNINGS] ...)
 
     $grammar->[Marpa::Internal::Grammar::PHASE] =
         Marpa::Internal::Phase::PRECOMPUTED;
