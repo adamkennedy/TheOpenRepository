@@ -33,7 +33,6 @@ sub to_raw {
 
     my $data = Marpa::MDLex::mdlex(
         [   {   action_object => 'Marpa::MDL::Internal::Actions',
-                parse_order   => 'original',
             },
             @{$marpa_options}
         ],

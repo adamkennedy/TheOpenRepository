@@ -97,7 +97,6 @@ sub run_sequence_test {
 
         my $evaler = Marpa::Evaluator->new(
             {   recce => $recce,
-                clone => 0,
             }
         );
         if ( not $evaler ) {

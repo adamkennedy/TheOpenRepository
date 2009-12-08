@@ -71,13 +71,10 @@ sub rule_r2 {
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
-    { experimental => 'no warning' },
     {   start         => 'S',
         strip         => 0,
         maximal       => 1,
-        cycle_rewrite => 0,
         cycle_action  => 'quiet',
-        parse_order   => 'none',
 
         rules => [
             { lhs => 'S', rhs => [qw/p n/], action => 'main::start_rule' },
@@ -149,8 +146,10 @@ for my $input_length ( 1 .. 3 ) {
     defined $recce->tokens( [ ( [ 'a', 'A' ] ) x $input_length ] )
         or Marpa::exception('Parsing exhausted');
     my $evaler = Marpa::Evaluator->new(
-        {   recce => $recce,
-            clone => 0,
+        { experimental => 'no warning' },
+        {   recce         => $recce,
+            cycle_rewrite => 0,
+            parse_order   => 'none',
         }
     );
     my $i = 0;

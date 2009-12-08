@@ -46,7 +46,6 @@ sub start_rule_action {
 my $grammar = Marpa::Grammar->new(
     {   start       => 'S',
         strip       => 0,
-        parse_order => 'numeric',
         rules       => [
             {   lhs    => 'S',
                 rhs    => [qw/digit digit digit digit/],
@@ -88,11 +87,7 @@ for my $up ( 1, 0 ) {
     local $MyTest::UP = $up;
     my $expected = $up ? ( \@counting_up ) : ( \@counting_down );
     my $direction = $up ? 'up' : 'down';
-    my $evaler = Marpa::Evaluator->new(
-        {   recce => $recce,
-            clone => 0,
-        }
-    );
+    my $evaler = Marpa::Evaluator->new( { recce => $recce, } );
     my $i = 0;
     while ( my $result = $evaler->value() ) {
         say ${$result};

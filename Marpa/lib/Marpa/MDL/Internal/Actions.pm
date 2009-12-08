@@ -45,7 +45,7 @@ sub grammar {
     } ## end for my $terminal ( @{ $self->{lex_options}->[0]->{terminals...}})
     $self->{options}->[0]->{terminals} =
         [ map { $_->{name} } @{ $self->{lex_options}->[0]->{terminals} } ];
-    $self->{options}->[0]->{parse_order} = 'original';
+    # $self->{options}->[0]->{parse_order} = 'original';
     return {
         marpa_options => $self->{options},
         mdlex_options => $self->{lex_options}
@@ -87,30 +87,26 @@ sub short_action_sentence {
 sub definition_of_predefined { return $_[1] }
 
 # semantics setting:  optional /the/, /semantics/, copula, /perl5/.
+# semantics no longer supported by Marpa
 sub semantics_predicate {
     my $self = shift;
-    $self->{options}->[0]->{semantics} = $_[3];
-    return q{};
 }
 
 # semantics setting: /perl5/, copula, optional /the/, /semantics/.
+# semantics no longer supported by Marpa
 sub semantics_subject {
-    my $self = shift;
-    $self->{options}->[0]->{semantics} = $_[0];
     return q{};
 }
 
 # version setting: optional /the/, /version/, copula, version number.
+# version no longer supported by Marpa
 sub version_predicate {
-    my $self = shift;
-    $self->{options}->[0]->{version} = $_[3];
     return q{};
 }
 
 # version setting: /version number/, copula, optional /the/, /version/.
+# version no longer supported by Marpa
 sub version_subject {
-    my $self = shift;
-    $self->{options}->[0]->{version} = $_[1];
     return q{};
 }
 

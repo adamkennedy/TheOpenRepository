@@ -25,11 +25,6 @@ sub str400 { return 400 }
 
 my $g = Marpa::Grammar->new(
     {   start => 'S',
-
-        # Set max_parses to 20 in case there's an infinite loop.
-        # This is for debugging, after all
-        ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
-        max_parses => 20,
         rules      => [
             [ 'S', ['P300'], 'main::str300', 300 ],
             [ 'S', ['P200'], 'main::str200', 200 ],
@@ -65,7 +60,15 @@ if ( $fail_offset >= 0 ) {
 
 $recce->tokens();
 
-my $evaler = Marpa::Evaluator->new( { recce => $recce } );
+my $evaler = Marpa::Evaluator->new(
+    {   recce => $recce,
+
+        # Set max_parses to 20 in case there's an infinite loop.
+        # This is for debugging, after all
+        ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
+        max_parses => 20,
+    }
+);
 Marpa::exception('Could not initialize parse') if not $evaler;
 
 my $i = -1;

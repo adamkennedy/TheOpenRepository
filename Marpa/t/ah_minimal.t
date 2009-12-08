@@ -40,7 +40,6 @@ my $grammar = Marpa::Grammar->new(
         ],
         default_null_value => q{},
         default_action     => 'main::default_action',
-        parse_order        => 'original',
     }
 );
 
@@ -57,9 +56,9 @@ my @expected = ( q{}, qw[(;;;a) (;;a;a) (;a;a;a) (a;a;a;a)] );
 
 for my $i ( 0 .. $input_length ) {
     my $evaler = Marpa::Evaluator->new(
-        {   recce => $recce,
-            end   => $i,
-            clone => 0,
+        {   recce       => $recce,
+            end         => $i,
+            parse_order => 'original',
         }
     );
     my $result = $evaler->value();

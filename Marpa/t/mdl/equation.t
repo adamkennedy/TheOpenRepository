@@ -38,7 +38,6 @@ my ( $marpa_options, $mdlex_options ) = Marpa::MDL::to_raw($source);
 # This is for debugging, after all
 my $grammar = Marpa::Grammar->new(
     {   action_object => 'Marpa::MDL::Example::Equation',
-        max_parses    => 10
     },
     @{$marpa_options}
 );
@@ -66,7 +65,8 @@ my %expected_value = (
 );
 
 # Note: code below used in display
-my $evaler = Marpa::Evaluator->new( { recognizer => $recce } );
+my $evaler =
+    Marpa::Evaluator->new( { recognizer => $recce, max_parses => 10 } );
 Marpa::exception('Parse failed') if not $evaler;
 
 my $i = 0;

@@ -15,7 +15,6 @@ BEGIN {
 }
 
 my $g = Marpa::Grammar->new(
-    { experimental => 'no warning' },
     {   start => q{S'},
         rules => [
             [ q{S'}, [qw/S/] ],

@@ -32,10 +32,6 @@ my $grammar = Marpa::Grammar->new(
     {   start => 'S',
         strip => 0,
 
-        # Set max at 10 just in case there's an infinite loop.
-        # This is for debugging, after all
-        max_parses => 10,
-
         rules => [
             [ 'S', [qw/p p p n/], ],
             [ 'p', ['a'], ],
@@ -135,7 +131,15 @@ my $input_length = 3;
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 $recce->tokens(
     [ map { [ 'a', chr( SPACE + $_ ), 1 ] } ( 1 .. $input_length ) ] );
-my $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
+my $evaler = Marpa::Evaluator->new(
+    {   recce => $recce,
+
+        # Set max at 10 just in case there's an infinite loop.
+        # This is for debugging, after all
+        max_parses => 10,
+    }
+);
+
 
 my $bocage = $evaler->show_bocage(3);
 

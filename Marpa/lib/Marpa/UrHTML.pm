@@ -1077,8 +1077,6 @@ sub Marpa::UrHTML::parse {
         {   grammar           => $grammar,
             trace_terminals   => $self->{trace_terminals},
             trace_earley_sets => $self->{trace_earley_sets},
-            trace_values      => $self->{trace_values},
-            trace_actions     => $self->{trace_actions},
             clone             => 0,
         }
     );
@@ -1377,7 +1375,12 @@ sub Marpa::UrHTML::parse {
         local $Marpa::UrHTML::Internal::PARSE_INSTANCE = $self;
         local $Marpa::UrHTML::INSTANCE                 = {};
         my $evaler = Marpa::Evaluator->new(
-            { recce => $recce, clone => 0, closures => \%closure, } );
+            {   recce         => $recce,
+                trace_values  => $self->{trace_values},
+                trace_actions => $self->{trace_actions},
+                closures      => \%closure,
+            }
+        );
 
         Marpa::exception('No parse: could not create evaluator') if not $evaler;
 

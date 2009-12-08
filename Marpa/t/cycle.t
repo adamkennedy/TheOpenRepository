@@ -37,7 +37,6 @@ $Test_Grammar::MARPA_OPTIONS_1 = [
                 'rhs' => [ 's' ]
             }
         ],
-        'semantics' => 'perl5',
         'start'     => 's',
         'terminals' => [ 's' ],
     }
@@ -62,7 +61,6 @@ $Test_Grammar::MARPA_OPTIONS_2 = [
                 'rhs' => [ 's' ]
             }
         ],
-        'semantics' => 'perl5',
         'start'     => 's',
         'terminals' => [ 'a' ],
     }
@@ -114,7 +112,6 @@ $Test_Grammar::MARPA_OPTIONS_8 = [
                 'rhs' => []
             }
         ],
-        'semantics' => 'perl5',
         'start'     => 's',
         'terminals' => [ 'e', 't', 'u', 'v', 'w', 'x' ],
     }
@@ -207,17 +204,15 @@ for my $base_test ( $cycle1_test, $cycle2_test, $cycle8_test ) {
 
 for my $test_data (@test_data) {
     my ( $test_name, $marpa_options, $mdlex_options, $input, $expected,
-        $expected_trace, $additional_options )
+        $expected_trace, $evaler_options )
         = @{$test_data};
     my $trace = q{};
     open my $MEMORY, '>', \$trace;
     my $grammar = Marpa::Grammar->new(
-        { experimental => 'no warning' },
         {   cycle_action      => 'warn',
             trace_file_handle => $MEMORY,
         },
         @{$marpa_options},
-        $additional_options
     );
     $grammar->precompute();
 
@@ -229,7 +224,8 @@ for my $test_data (@test_data) {
         when ( $_ < 0 ) {
             $recce->tokens();
             my $evaler =
-                Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
+                Marpa::Evaluator->new( { recce => $recce, },
+                $evaler_options );
             $result = $evaler->value();
         } ## end when ( $_ < 0 )
         default {

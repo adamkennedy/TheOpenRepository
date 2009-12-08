@@ -74,12 +74,8 @@ sub default_action {
 my $g = Marpa::Grammar->new(
     {   start => 'E',
 
-        # Set max_parses just in case there's an infinite loop.
-        # This is for debugging, after all
-        max_parses => 300,
 
         actions     => 'main',
-        parse_order => 'none',
         rules       => [
             [ 'E', [qw/E Minus E/],     'minus' ],
             [ 'E', [qw/E Minus Minus/], 'postfix_decr' ],
@@ -110,7 +106,10 @@ for my $n ( 1 .. 12 ) {
     );
     ## use critic
 
-    my $evaler = Marpa::Evaluator->new( { recce => $recce } );
+    # Set max_parses just in case there's an infinite loop.
+    # This is for debugging, after all
+    my $evaler = Marpa::Evaluator->new(
+        { recce => $recce, max_parses => 300, parse_order => 'none', } );
 
     my $parse_count = 0;
     while ( $evaler->value() ) { $parse_count++; }

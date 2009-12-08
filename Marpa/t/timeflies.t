@@ -105,8 +105,7 @@ for my $data ( 'time flies like an arrow.', 'fruit flies like a banana.' ) {
     }
     $recce->tokens();
 
-    my $evaler =
-        Marpa::Evaluator->new( { recognizer => $recce, clone => 0 } );
+    my $evaler = Marpa::Evaluator->new( { recognizer => $recce, } );
     Carp::croak('Parse failed') if not $evaler;
 
     while ( defined( my $value = $evaler->value() ) ) {

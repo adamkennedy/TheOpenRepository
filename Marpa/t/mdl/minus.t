@@ -25,7 +25,6 @@ my ( $marpa_options, $mdlex_options ) = Marpa::MDL::to_raw($source);
 
 my $g = Marpa::Grammar->new(
     {   maximal    => 1,
-        max_parses => 30,
         actions    => 'main',
     },
     @{$marpa_options}
@@ -38,7 +37,8 @@ my $lexer = Marpa::MDLex->new( { recce => $recce }, @{$mdlex_options} );
 $lexer->text( \$text );
 $recce->tokens();
 
-my $evaler = Marpa::Evaluator->new( { recce => $recce } );
+my $evaler = Marpa::Evaluator->new(
+    { recce => $recce, max_parses => 30, parse_order => 'original' } );
 my @values = ();
 while ( defined( my $value = $evaler->value() ) ) {
     push @values, $value;

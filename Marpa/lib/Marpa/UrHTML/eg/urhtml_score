@@ -103,7 +103,7 @@ delete $max_depths->{ANY};
 
 print qq{<table cellpadding="3" border="1">}
     . qq{<thead>\n}
-    . qq{<tr><th colspan="5">$uri</tr>\n}
+    . qq{<tr><th colspan="5">$locator</tr>\n}
     . qq{<tr><th colspan="5">Complexity Score = $complexity</tr>\n}
     . qq{<tr><th colspan="5">Maximum Depth = $max_element_depth</tr>\n}
     . qq{<tr>}
@@ -130,6 +130,8 @@ for my $element ( sort keys %{$max_depths} ) {
 } ## end for my $element ( sort keys %{$max_depths} )
 
 print qq{</table>\n};
+
+exit 0;
 
 __END__
 

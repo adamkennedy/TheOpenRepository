@@ -23,10 +23,6 @@ sub ah_extended {
     my $g = Marpa::Grammar->new(
         {   start => 'S',
 
-            # An arbitrary maximum is put on the number of parses -- this is for
-            # debugging, and infinite loops happen.
-            max_parses => 999,
-
             rules => [
                 [ 'S', [ ('A') x $n ] ],
                 [ 'A', [qw/a/] ],
@@ -34,7 +30,6 @@ sub ah_extended {
                 ['E'],
             ],
             terminals   => ['a'],
-            parse_order => 'none',
 
             # no warnings for $n equals zero
             warnings => ( $n ? 1 : 0 ),
@@ -49,9 +44,14 @@ sub ah_extended {
     my @parse_counts;
     for my $loc ( 0 .. $n ) {
         my $parse_number = 0;
-        my $evaler       = Marpa::Evaluator->new(
-            {   recce => $recce,
-                end   => $loc
+        my $evaler = Marpa::Evaluator->new(
+            {   recce       => $recce,
+                end         => $loc,
+                parse_order => 'none',
+
+                # An arbitrary maximum is put on the number of parses -- this is for
+                # debugging, and infinite loops happen.
+                max_parses => 999,
             }
         );
         Marpa::exception("Cannot initialize parse at location $loc")

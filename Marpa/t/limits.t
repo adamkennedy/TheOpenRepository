@@ -71,7 +71,7 @@ sub test_grammar {
 
     my $evaler;
     $eval_ok = eval {
-        $evaler = Marpa::Evaluator->new( { recce => $recce, clone => 0 } );
+        $evaler = Marpa::Evaluator->new( { recce => $recce, } );
         1;
     };
     Marpa::exception("Exception while creating Evaluator:\n$EVAL_ERROR")
@@ -99,7 +99,6 @@ my $placebo = {
     ],
     default_null_value => q{},
     default_action     => 'main::default_action',
-    parse_order        => 'original',
 };
 
 sub test_rule_priority {
@@ -114,7 +113,6 @@ sub test_rule_priority {
         ],
         default_null_value => q{},
         default_action     => 'main::default_action',
-        parse_order        => 'original',
     };
 } ## end sub test_rule_priority
 
