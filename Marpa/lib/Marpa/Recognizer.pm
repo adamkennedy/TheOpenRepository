@@ -603,7 +603,7 @@ sub Marpa::Recognizer::tokens {
         Marpa::exception(
             'Token '
                 . $token->[Marpa::Internal::Symbol::NAME]
-                . " make parse too long\n",
+                . " makes parse too long\n",
             "  Token starts at $last_completed_earleme, and its length is $length\n"
         ) if $end_earleme & Marpa::Internal::Recognizer::EARLEME_MASK;
 
@@ -612,6 +612,13 @@ sub Marpa::Recognizer::tokens {
         }
 
         $offset //= 1;
+        Marpa::exception(
+            'Token '
+                . $token->[Marpa::Internal::Symbol::NAME]
+                . " has negative offset\n",
+            "  Token starts at $last_completed_earleme, and its length is $length\n",
+            "  Tokens are required to in sequence by location\n",
+        ) if $offset < 0;
         $next_token_earleme += $offset;
 
         my $token_entry = [ $token, $value_ref, $length ];
@@ -674,13 +681,8 @@ sub Marpa::Recognizer::tokens {
 
         my $tokens_here = $tokens_by_earleme->[$last_completed_earleme] // [];
 
+        $earley_set_list->[$last_completed_earleme] //= [];
         my $earley_set = $earley_set_list->[$last_completed_earleme];
-
-        if ( not defined $earley_set ) {
-
-            $earley_set_list->[$last_completed_earleme] = [];
-            return 1;
-        }
 
         my $furthest_earleme =
             $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];

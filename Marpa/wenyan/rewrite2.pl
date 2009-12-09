@@ -17,16 +17,23 @@ my $codepoints = Storable::fd_retrieve(\*STDIN);
 
 binmode STDOUT, ':utf8';
 
-my @sorted_codepoints =
-    map  { $_->[1] }
-    sort { $b->[0] <=> $a->[0] }
-    map  { [ $codepoints->{$_}->{occurrence_count}, $_ ] } keys %{$codepoints};
+my @sort_data;
+for my $key (keys %{$codepoints}) {
+    my $codepoint_data = $codepoints->{$key};
+    my $occurrence_count = $codepoint_data->{occurrence_count};
+    (my $kangxi_text = $codepoint_data->{krskangxi}) =~ s/<[^<>]*>//xmsg;
+    my ($radical, $strokes) = $kangxi_text =~ /(\d+)[.](\d+)/xms;
+    my $sort_key = pack 'N*', 0x7FFFFFFF - $occurrence_count, $radical, $strokes;
+    push @sort_data, [ $sort_key, $key ];
+}
+
+my @sorted_codepoints = map { $_->[1] } sort { $a->[0] cmp $b->[0] } @sort_data;
 
 my @long_fields = qw(
-occurrences
+    occurrences
     shrift_occurrences
     shrift_notes
-cedict_definition
+    cedict_definition
     unihan_definition
     ktang
 );
