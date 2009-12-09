@@ -1,30 +1,127 @@
 =head1 NAME
 
-Marpa::Doc::How_to_Parse_HTML - How to Parse HTML
+Marpa::UrHTML::Dao - Finding the Dao of HTML
 
 =head1 SUMMARY
 
-Deriving the element structure of HTML has been considered
-a difficult problem in the past, involving a lot of special
-cases and difficult code.
-This was particularly the case where the requirement was to
-parse not just HTML valid according to one of the standards,
-but any document that found on the web that is intended
-to be HTML and that might have been intended to be HTML.
-This document outlines a straightforward, uncomplicated,
-natural and transparent method for extremely liberal parsing
-of arbitrary documents in the HTML family of languages.
+High-level parsing of
+HTML, that is, determining an HTML
+document's overall structure, has been considered
+a difficult problem in the past.
+This document outlines a straightforward,
+natural and transparent method for parsing
+arbitrary documents in the spirit of
+the HTML family of standards.
 
-=head1 EVERYTHING LOOKS LIKE HTML TO ME
+=head1 THE BASIC IDEA
 
-L<Marpa::UrHTML> demonstrates this new method of parsing HTML.
-It requires a more general and powerful parsing algorithm
-than have been used in the past
-and leverages L<Marpa>,
-a new general BNF parsing package and parsing algorithm.
+L<Marpa::UrHTML> combines two major components.
+It uses what I will call a Wishful Thinking Parser and
+a Wish-Fulfilling Tokenizer.
 
-For L<Marpa::UrHTML> all documents are HTML documents,
-with some being better than others.
+The Wishful Thinking Parser ("Wishful Parser" for short)
+uses L<a grammar|/"APPENDIX: THE GRAMMAR">
+that makes a convenient, but false assumption
+about HTML.
+The Wishful Parser assumes that all elements have start and end tags.
+This assumption is not true of the kind of HTML actually found
+out on the Web, which L<Marpa::UrHTML> will parse.
+In fact,
+this assumption is not even true of HTML strictly valid according to the
+standards.
+
+Paired with the Wishful Parser is a Wish-Granting Tokenizer,
+(Wish-Granter for short).
+It is the job of this Tokenizer to make the Wishful Parser's
+false assumption about HTML look right.
+The Wish-Granting Tokenizer
+creates a virtual
+document that makes the Wishful Parser's wishes come true.
+This virtual document needs to be easily mapped to the
+physical one.
+
+=head1 THE WISHFUL PARSER
+
+The Wishful Parser is not a weak parser.
+It is a general BNF parser, based on a new algorithm
+derived from Earley's.
+It is powerful enough that it could deal with the
+missing start and end tags on its own.
+
+But L<Marpa::UrHTML> takes a different approach.
+Instead of tying the high-level parser up with details,
+it passes these decisions down to the tokenizer,
+so that the high-level, parser can focus on the big
+picture.
+L<Marpa::UrHTML> uses this approach to let each
+of the two components handle what they do best.
+
+Crucial to the workability of this method is that
+L<Marpa> allows predictive lexing.
+In predictive lexing the high-level parser is
+able to tell the lexer
+which tokens will allow the parse to proceed.
+The combination of
+predictive lexing and Earley's
+is new with the L<Marpa> algorithm
+and apparently something of a surprise.
+
+=head1 THE WISH-GRANTING TOKENIZER
+
+This strategy, of trying to isolate the process of parsing
+HTML into nitty low-level details, on one hand,
+and the big picture on the other,
+turns out to be eminently practical.
+A Wish-Granting Tokenizer is not hard to write.
+L<Marpa::UrHTML> uses L<HTML::PullParser> to do most
+of the low-level parsing.
+L<HTML::PullParser> needs to be wrapped with
+other logic
+to implement the wish-granting.
+
+=head1 HOW THE WISH-GRANTING WORKS
+
+First, let's consider the case of HTML valid
+according to one of the standard.
+What the Wish-Granting Tokenizer needs to do for
+each token is
+the following.
+
+=over 4
+
+=item 1.
+Get a list of the token types that the Wishful Thinking Parser
+wants to see at this point.
+
+=item 2.
+If the physical token is one of them, hand it over to the
+Wishful Thinking Parser.
+
+=item 3.
+If the physical token is not one of the token types, then
+look in the list of tokens that the
+Wishful Thinking Parser wants for an end tag, or a
+start tag which is allowed to be optional according to the
+standards.
+
+=item 4.
+Step 3 will always find one and only one token.
+Invent a virtual token of that type and hand it over
+to the Wishful Thinking Parser.
+
+=back
+
+For HTML valid according to the standards, these simple rules are
+all that is needed.
+Click the heels on the ruby slippers three times and you're there.
+
+=head1 EVERYTHING LOOKS LIKE HTML
+
+But L<Marpa::UrHTML> does not require its input document be
+valid according to the HTML standards.
+Far from it.
+For L<Marpa::UrHTML> every document is a valid HTML documents.
+
 For documents which conform to one of the HTML specifications,
 L<Marpa::UrHTML> finds the structure according to the standard.
 For documents which are not strictly conformant,
@@ -38,6 +135,18 @@ Typically, most of a random document will be
 treated as body text,
 with L<Marpa::UrHTML> trying to make sense of
 anything in the document that looks like markup.
+
+=head1 DETAILS
+
+Parsing the things that pass for HTML,
+and making a reasonable guess as to the intent,
+makes things
+more complicated.
+But the logic involved still is straightforward
+and a natural outgrowth of the problem.
+
+The rest of this document describes those additional
+details needed for extremely loose HTML parsing.
 
 =head1 DETAILS (notes)
 
@@ -254,7 +363,7 @@ with the general parsing algorithm
 L<described by Jay
 Earley in 1970|Marpa::Doc::Bibliography/"Earley 1970">.
 
-=head1 The BNF for UrHTML
+=head1 APPENDIX: THE GRAMMAR
 
 This grammar is taken directly from the code.
 The UrHTML grammar is created directly from this.

@@ -6,7 +6,12 @@ use warnings;
 use English qw( -no_match_vars );
 use Marpa::UrHTML;
 use List::Util qw(sum);
+use Fatal qw(open close);
 use WWW::Mechanize;
+use Getopt::Long;
+
+my $html;
+Carp::croak("usage: $0") unless GetOptions( 'html' => \$html );
 
 my $locator = shift;
 my $document;
@@ -101,6 +106,7 @@ my $max_depths = $value->{depths};
 my $max_element_depth = $max_depths->{ANY};
 delete $max_depths->{ANY};
 
+if ($html) {
 print qq{<table cellpadding="3" border="1">}
     . qq{<thead>\n}
     . qq{<tr><th colspan="5">$locator</tr>\n}
@@ -114,11 +120,19 @@ print qq{<table cellpadding="3" border="1">}
     . qq{<th>Average<br>Size</th>}
     . qq{</tr>\n}
     . qq{</thead>\n};
+} else {
+    say $locator;
+    say "Complexity Score = ", $complexity;
+    say "Maximum Depth = ", $max_element_depth;
+    printf "%11s%11s%11s%11s%11s\n", q{}, 'Maximum ', 'Number of', 'Size in  ', 'Average';
+    printf "%11s%11s%11s%11s%11s\n", 'Element ', 'Nesting ', 'Elements ', 'Characters', 'Size  ';
+}
 
 for my $element ( sort keys %{$max_depths} ) {
     my $count = $count_by_element->{$element};
     my $size  = $length_by_element->{$element};
     my $average = $count ? int( $size / $count ) : q{-};
+    if ($html) {
     print join q{},
         q{<tr>},
         qq{<td>$element</td>},
@@ -127,9 +141,12 @@ for my $element ( sort keys %{$max_depths} ) {
         qq{<td align="right">$size</td>},
         qq{<td align="right">$average</td>},
         "</tr>\n";
+    } else {
+        printf "%-11s%11d%11d%11d%11d\n", $element, $max_depths->{$element}, $count, $size, $average;
+    }
 } ## end for my $element ( sort keys %{$max_depths} )
 
-print qq{</table>\n};
+$html and print qq{</table>\n};
 
 exit 0;
 
@@ -141,78 +158,85 @@ C<urhtml_score> - Show complexity metric and other stats for web page
 
 =head1 SYNOPSIS
 
-    ur_html_score [uri|file]
+    urhtml_score [--html] [uri|file]
 
-=head1 EXAMPLE
+=head1 EXAMPLES
 
     urhtml_score http://perl.org
 
+    urhtml_score --html http://perl6.org
+
 =head1 DESCRIPTION
 
-Given a URI, parses it as HTML and prints a complexity metric and other statistics.
+Given a URI or file, treats it as an HTML file
+and prints a complexity metric,
+the maximum element depth and other, per-element, statistics.
 The complexity metric is the average depth (or nesting level), in elements, of a character,
 divided by the logarithm of the length of the HTML.
 
-Other statistics follow, formatted as an HTML table.
-There is a row for each element type,
+The per-element statistics appear in rows, one per element.
+There is a row for each tag name,
 with
 
 =over 4
 
 =item *
-The maximum nesting depth of that element (this time only taking into
-account nesting within that particular element).
+The maximum nesting depth of that tag
+(not taking into account other elements).
 
 =item *
-A count of the elements of that kind in the document
+A count of the tags of that kind in the document.
 
 =item *
-The total number of character in elements of that type.
-This counts characters in nested elements multiple times.
+The total number of characters in elements of that type.
+Characters in nested elements are counted multiple times.
 For example, if a page contains a table within a table,
 characters in the inner table will be counted twice.
 
 =item *
-The average size of elements of this type, in characters.
+The average size of elements of this tag type, in characters.
 
 =back
 
-Here is the first part of the output for the C<http://perl.org>.
+The argument to L<urhtml_score> is treated either as a URI or a file
+name.  If it starts with alphanumerics followed by a colon, it is treated
+as a URI.  Otherwise it is treated as file name.
+If the C<--html> argument is specified, the output is written
+as an HTML table.
 
-   http://perl.org
-   Complexity = 0.746
+=head1 SAMPLE OUTPUT
 
-   Element Maximum Number of   Size in   Average
-           Nesting Elements  Characters   Size
-   a             1        56      3634      64
-   body          1         1     12171   12171
-   div           5        30     33605    1120
-   em            1         1        13      13
-   h1            1         1        60      60
-   h4            1        11       932      84
+Here is the first part of the output for C<http://perl.org>.
+
+    http://perl.org
+    Complexity Score = 0.873
+    Maximum Depth = 12
+                  Maximum   Number of  Size in      Average
+       Element    Nesting   Elements  Characters     Size  
+    a                    1         56       3533         63
+    body                 1          1       7615       7615
+    div                  5         30      24695        823
+    em                   1          1         13         13
+    h1                   1          1         37         37
+    h4                   1         11        559         50
 
 =head1 THE COMPLEXITY METRIC
 
-I originally was tempted to call the complexity metric a "quality metric",
-but decided that was going too far.
-Well designed websites often have low numbers, but high numbers don't
-mean low quality -- it depends on what the mission is, and how well
+Calling this complexity metric a "quality metric",
+would be going too far.
+Well designed websites often have low numbers.
+But high numbers don't necessarily mean low quality --
+it depends on what the mission is, and how well
 complexity is being leveraged to serve that mission.
 
 To obtain the complexity metric,
 the nesting depth of the average character is divided by the logarithm
 of the length of the HTML.
-This the idea is that as a web page grows,
+The idea is that as a web page grows,
 all else being equal,
 it is reasonable for the
 nesting depth to grow logarithmically, but no
 faster.
-
-How seriously should you take any of this?
-I am frankly not sure.
-The main purpose of this program was not to analyze web pages,
-but to draw attention to the underlying technology.
-Speaking of which ...
 
 =head1 PURPOSE
 
@@ -222,28 +246,10 @@ at the structure of web pages using L<Marpa::UrHTML>.
 And the purpose of L<Marpa::UrHTML>
 is to demonstrate the power of its parse engine,
 L<Marpa>.
-
-Determining the structure of an HTML document has in the past
-been considered a very difficult programming task,
-requiring lots of special case coding.
 L<Marpa::UrHTML> was written in a few days,
-and the resulting grammar and code is natural and straight-forward.
-
-At this stage of its development,
-other parsers have advantages over L<Marpa::UrHTML>.
-But they need to be perfect.
-Because the code in them is an excruciatingly complex set of ad hoc
-solutions to special cases,
-other parsers are very hard to understand,
-and therefore to modify.
-
-As the documentation will show,
-the HTML parsing logic in L<Marpa::UrHTML>,
-is straightforward
-and an extremely natural way of expressing the
-problem.
-The transparency of L<Marpa::UrHTML> is made possible
-by L<Marpa>.
+and its logic 
+is a straightforward,
+natural expression of the structure of HTML.
 
 =head1 AUTHOR
 
