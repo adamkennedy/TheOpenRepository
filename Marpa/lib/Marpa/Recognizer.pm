@@ -48,6 +48,8 @@ use Marpa::Offset qw(
     LAST_COMPLETED_EARLEME
     TOKENS_BY_EARLEME
 
+    TRACE_FILE_HANDLE
+
     =LAST_EVALUATOR_FIELD
 
     WANTED
@@ -57,6 +59,12 @@ use Marpa::Offset qw(
     TERMINALS_BY_STATE
     CURRENT_EARLEME
     TOKEN_HASHES_BY_EARLEME
+
+    TOO_MANY_EARLEY_ITEMS
+    TRACE_EARLEY_SETS
+    TRACE_TERMINALS
+    WARNINGS
+    TRACING
 
 );
 
@@ -83,42 +91,30 @@ use English qw( -no_match_vars );
 
 use constant EARLEME_MASK => ~(0x7fffffff);
 
+use constant DEFAULT_TOO_MANY_EARLEY_ITEMS => 100;
+
 my $parse_number = 0;
 
 # Returns the new parse object or throws an exception
 sub Marpa::Recognizer::new {
-    my $class = shift;
-    my $args  = shift;
-
-    my $arg_trace_fh = $args->{trace_file_handle};
-
+    my ($class, @arg_hashes) = @_;
     my $self = bless [], $class;
 
-    my $clone_arg = $args->{clone};
-    delete $args->{clone};
-    my $clone = $clone_arg // 1;
+    my $grammar;
+    ARG_HASH: for my $arg_hash (@arg_hashes) {
+        if ( defined( $grammar = $arg_hash->{grammar} ) ) {
+            delete $arg_hash->{grammar};
+            last ARG_HASH;
+        }
+    } ## end for my $arg_hash (@arg_hashes)
+    Marpa::exception('No grammar specified') if not defined $grammar;
 
-    my $grammar = $args->{grammar};
-    if ( not defined $grammar ) {
-        my $stringified_grammar = $args->{stringified_grammar};
-        Marpa::exception('No grammar specified')
-            if not defined $stringified_grammar;
-        delete $args->{stringified_grammar};
-        my $trace_fh = $arg_trace_fh // (*STDERR);
-        $grammar =
-            Marpa::Grammar::unstringify( $stringified_grammar, $trace_fh );
-        $clone = 0;
-    } ## end if ( not defined $grammar )
-    else {
-        delete $args->{grammar};
-    }
+    $self->[Marpa::Internal::Recognizer::GRAMMAR] = $grammar;
 
     my $grammar_class = ref $grammar;
     Marpa::exception(
         "${class}::new() grammar arg has wrong class: $grammar_class")
         if not $grammar_class eq 'Marpa::Grammar';
-
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
 
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];
     if ($problems) {
@@ -142,13 +138,22 @@ sub Marpa::Recognizer::new {
         );
     } ## end if ( $phase != Marpa::Internal::Phase::PRECOMPUTED )
 
-    if ($clone) {
-        $grammar = $grammar->clone($arg_trace_fh);
-        delete $args->{trace_file_handle};
-    }
+    # set the defaults
+    my $trace_fh = $self->[Marpa::Internal::Recognizer::TRACE_FILE_HANDLE] =
+        $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    $self->[Marpa::Internal::Recognizer::WARNINGS] = 1;
 
-    # options are not set until *AFTER* the grammar is cloned
-    Marpa::Grammar::set( $grammar, $args );
+    $self->set( @arg_hashes );
+
+    if (not
+        defined $self->[Marpa::Internal::Recognizer::TOO_MANY_EARLEY_ITEMS] )
+    {
+        my $QDFA_size =
+            scalar @{ $grammar->[Marpa::Internal::Grammar::QDFA] };
+        $self->[Marpa::Internal::Recognizer::TOO_MANY_EARLEY_ITEMS] =
+            List::Util::max( ( 2 * $QDFA_size ),
+            Marpa::Internal::Recognizer::DEFAULT_TOO_MANY_EARLEY_ITEMS );
+    } ## end if ( not defined $recce->[...])
 
     # Pull lookup of terminal flag by symbol ID out of the loop
     # over the QDFA transitions
@@ -177,9 +182,6 @@ sub Marpa::Recognizer::new {
 
     $self->[Marpa::Internal::Recognizer::TERMINALS_BY_STATE] =
         \@terminals_by_state;
-
-    $grammar->[Marpa::Internal::Grammar::PHASE] =
-        Marpa::Internal::Phase::RECOGNIZING;
 
     my $earley_hash;
     my $earley_set;
@@ -234,6 +236,77 @@ sub Marpa::Recognizer::new {
 
     return $self;
 } ## end sub Marpa::Recognizer::new
+
+use constant RECOGNIZER_OPTIONS => [
+    qw{
+        too_many_earley_items
+        trace_earley_sets
+        trace_file_handle
+        trace_terminals
+        warnings
+        }
+];
+
+sub Marpa::Recognizer::set {
+    my ( $recce, @arg_hashes ) = @_;
+
+    # This may get changed below
+    my $trace_fh = $recce->[Marpa::Internal::Recognizer::TRACE_FILE_HANDLE];
+
+    for my $args (@arg_hashes) {
+
+        my $ref_type = ref $args;
+        if ( not $ref_type or $ref_type ne 'HASH' ) {
+            Carp::croak(
+                'Marpa Recognizer expects args as ref to HASH, got ',
+                ( "ref to $ref_type" || 'non-reference' ),
+                ' instead'
+            );
+        } ## end if ( not $ref_type or $ref_type ne 'HASH' )
+        if (my @bad_options =
+            grep { not $_ ~~ Marpa::Internal::Recognizer::RECOGNIZER_OPTIONS }
+            keys %{$args}
+            )
+        {
+            Carp::croak( 'Unknown option(s) for Marpa Grammar: ',
+                join q{ }, @bad_options );
+        } ## end if ( my @bad_options = grep { not $_ ~~ ...})
+
+        if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
+            $trace_fh =
+                $recce->[Marpa::Internal::Recognizer::TRACE_FILE_HANDLE] =
+                $value;
+        }
+
+        if ( defined( my $value = $args->{'trace_terminals'} ) ) {
+            $recce->[Marpa::Internal::Recognizer::TRACE_TERMINALS] = $value;
+            if ($value) {
+                say {$trace_fh} 'Setting trace_terminals option';
+                $recce->[Marpa::Internal::Recognizer::TRACING] = 1;
+            }
+        } ## end if ( defined( my $value = $args->{'trace_terminals'}...))
+
+        if ( defined( my $value = $args->{'trace_earley_sets'} ) ) {
+            $recce->[Marpa::Internal::Recognizer::TRACE_EARLEY_SETS] = $value;
+            if ($value) {
+                say {$trace_fh} 'Setting trace_earley_sets option';
+                $recce->[Marpa::Internal::Recognizer::TRACING] = 1;
+            }
+        } ## end if ( defined( my $value = $args->{'trace_earley_sets'...}))
+
+        if ( defined( my $value = $args->{'warnings'} ) ) {
+            $recce->[Marpa::Internal::Recognizer::WARNINGS] = $value;
+        }
+
+        if ( defined( my $value = $args->{'too_many_earley_items'} ) ) {
+            $recce->[Marpa::Internal::Recognizer::TOO_MANY_EARLEY_ITEMS] =
+                $value;
+        }
+
+    } ## end for my $args (@arg_hashes)
+
+    return 1;
+} ## end sub Marpa::Recognizer::set
 
 sub Marpa::Recognizer::check_terminal {
     my ( $recce, $name ) = @_;
@@ -329,71 +402,11 @@ sub Marpa::Recognizer::find_parse {
     return ( $earley_set_ix, \@found_symbols );
 } ## end sub Marpa::Recognizer::find_parse
 
-# Convert Recognizer into string form
-#
-sub Marpa::Recognizer::stringify {
-    my $recce   = shift;
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
-    my $trace_fh;
-    if ($tracing) {
-        $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-    }
-    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
-
-    # returns a ref -- dumps can be long
-    return \Storable::freeze($recce);
-
-} ## end sub Marpa::Recognizer::stringify
-
-# First arg is stringified recognizer
-# Second arg (optional) is trace file handle, either saved and restored
-# If not trace file handle supplied, it reverts to the default, STDERR
-#
-# Returns the unstringified recognizer
-sub Marpa::Recognizer::unstringify {
-    my $stringified_recce = shift;
-    my $trace_fh          = shift;
-    $trace_fh //= *STDERR;
-
-    Marpa::exception('Attempt to unstringify undefined recognizer')
-        if not defined $stringified_recce;
-    Marpa::exception('Arg to unstringify must be ref to SCALAR')
-        if ref $stringified_recce ne 'SCALAR';
-
-    my $recce = Storable::unfreeze($stringified_recce);
-
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
-
-    return $recce;
-
-} ## end sub Marpa::Recognizer::unstringify
-
 sub Marpa::Recognizer::strip {
     my ($recce) = @_;
     $#{$recce} = Marpa::Internal::Recognizer::LAST_EVALUATOR_FIELD;
     return 1;
 }
-
-sub Marpa::Recognizer::clone {
-    my $recce    = shift;
-    my $trace_fh = shift;
-
-    my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    $trace_fh //= $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
-
-    $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = undef;
-    my $cloned_recce = Storable::dclone($recce);
-    my $cloned_grammar =
-        $cloned_recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    $cloned_grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] =
-        $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE] = $trace_fh;
-
-    return $cloned_recce;
-
-} ## end sub Marpa::Recognizer::clone
 
 # Viewing methods, for debugging
 
@@ -483,14 +496,13 @@ sub Marpa::Recognizer::tokens {
             or ref $recce ne 'Marpa::Recognizer';
 
     my $grammar  = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
-    my $phase    = $grammar->[Marpa::Internal::Grammar::PHASE];
-    my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
+    my $trace_fh = $recce->[Marpa::Internal::Recognizer::TRACE_FILE_HANDLE];
     my $trace_earley_sets =
-        $grammar->[Marpa::Internal::Grammar::TRACE_EARLEY_SETS];
+        $recce->[Marpa::Internal::Recognizer::TRACE_EARLEY_SETS];
     my $trace_terminals =
-        $grammar->[Marpa::Internal::Grammar::TRACE_TERMINALS];
+        $recce->[Marpa::Internal::Recognizer::TRACE_TERMINALS];
     my $too_many_earley_items =
-        $grammar->[Marpa::Internal::Grammar::TOO_MANY_EARLEY_ITEMS];
+        $recce->[Marpa::Internal::Recognizer::TOO_MANY_EARLEY_ITEMS];
 
     my $tokens;
     my $predict_earleme;
@@ -934,7 +946,7 @@ sub Marpa::Recognizer::tokens {
             and ( my $item_count = scalar @{$earley_set} )
             >= $too_many_earley_items )
         {
-            if ( $grammar->[Marpa::Internal::Grammar::WARNINGS] ) {
+            if ( $recce->[Marpa::Internal::Recognizer::WARNINGS] ) {
                 say {$trace_fh}
                     "Very large earley set: $item_count items at location $last_completed_earleme";
             }

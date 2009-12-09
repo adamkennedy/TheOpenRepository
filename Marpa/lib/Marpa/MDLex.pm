@@ -71,7 +71,7 @@ sub Marpa::MDLex::mdlex {
 
     my $grammar = Marpa::Grammar->new( @{$grammar_arg_hashes} );
     $grammar->precompute();
-    my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
     my $lexer =
         Marpa::MDLex->new( { recce => $recce }, @{$lexer_arg_hashes} );
     $lexer->text($text);

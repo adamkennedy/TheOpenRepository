@@ -266,7 +266,7 @@ A -> . a
  <a> => S7
 EOS
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 my @set = (
     <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3', <<'END_OF_SET4', );

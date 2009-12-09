@@ -990,7 +990,6 @@ sub Marpa::UrHTML::parse {
 
         # Assign levels to the end tags of the elements
         # in the above table.
-        # (Start tags will be dealt with below.)
         for my $level ( 0 .. $#elements_by_level ) {
             for my $element ( @{ $elements_by_level[$level] } ) {
                 $level{ 'S_' . lc $element } = $level{ 'E_' . lc $element } =
@@ -1077,7 +1076,6 @@ sub Marpa::UrHTML::parse {
         {   grammar           => $grammar,
             trace_terminals   => $self->{trace_terminals},
             trace_earley_sets => $self->{trace_earley_sets},
-            clone             => 0,
         }
     );
 

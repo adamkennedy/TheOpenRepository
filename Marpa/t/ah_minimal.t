@@ -47,7 +47,7 @@ $grammar->set( { terminals => ['a'], } );
 
 $grammar->precompute();
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar, } );
 
 my $input_length = 4;
 $recce->tokens( [ ( [ 'a', 'a', 1 ] ) x $input_length ] );

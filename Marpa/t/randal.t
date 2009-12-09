@@ -182,9 +182,8 @@ my @test_data = (
 );
 
 my $g = Marpa::Grammar->new(
-    {   warnings   => 1,
-        code_lines => -1,
-        actions    => 'main',
+    {   warnings => 1,
+        actions  => 'main',
     },
     @{$Test_Grammar::MARPA_OPTIONS}
 );

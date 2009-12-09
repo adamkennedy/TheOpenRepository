@@ -1526,17 +1526,9 @@ sub Marpa::Evaluator::new {
     $self->[Marpa::Internal::Evaluator::GRAMMAR] = $grammar;
 
     local $Marpa::Internal::TRACE_FH = $self->[Marpa::Internal::Evaluator::TRACE_FILE_HANDLE] =
-        $self->[Marpa::Internal::Evaluator::TRACE_FILE_HANDLE];
+        $recce->[Marpa::Internal::Recognizer::TRACE_FILE_HANDLE];
 
     my $earley_sets = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
-
-    {
-        my $phase = $grammar->[Marpa::Internal::Grammar::PHASE];
-        Marpa::exception(
-            'Attempt to evaluate grammar in wrong phase: ',
-            Marpa::Internal::Phase::description($phase)
-        ) if $phase < Marpa::Internal::Phase::RECOGNIZING;
-    }
 
     my $furthest_earleme =
         $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];

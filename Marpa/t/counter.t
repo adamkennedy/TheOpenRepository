@@ -74,7 +74,7 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar, clone => 0 } );
+my $recce = Marpa::Recognizer->new( { grammar => $grammar, } );
 
 my $input_length = 4;
 $recce->tokens( [ ( ['t'] ) x $input_length ] );
