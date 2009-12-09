@@ -1,6 +1,12 @@
 =head1 NAME
 
-Marpa::UrHTML::Dao - Finding the Dao of HTML
+Marpa::UrHTML::How_It_Works - The Dao of HTML
+
+=head1 EPIGRAPH
+
+    And now I see with eye serene
+    The very pulse of the machine
+      -- Wordsworth
 
 =head1 SUMMARY
 

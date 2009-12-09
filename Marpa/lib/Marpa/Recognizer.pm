@@ -232,7 +232,7 @@ sub Marpa::Recognizer::new {
         $self->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] =
         $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = 0;
 
-    Marpa::Recognizer::tokens( $self, 'predict', 'absolute', 0 );
+    Marpa::Recognizer::tokens( $self, 'predict' );
 
     return $self;
 } ## end sub Marpa::Recognizer::new
@@ -506,9 +506,6 @@ sub Marpa::Recognizer::tokens {
 
     my $tokens;
     my $predict_earleme;
-    my $predict_offset_is_absolute = 0;
-    my $continue_earleme;
-    my $continue_offset_is_absolute = 0;
 
     while ( my $arg = shift @_ ) {
         given ($arg) {
@@ -522,9 +519,6 @@ sub Marpa::Recognizer::tokens {
                 while ( not defined $predict_earleme ) {
                     given ( shift @_ ) {
                         when (undef) { $predict_earleme = 0 }
-                        when ('absolute') {
-                            $predict_offset_is_absolute = 1
-                        }
                         when ( Scalar::Util::looks_like_number($_) ) {
                             $predict_earleme = $_;
                         }
@@ -534,27 +528,8 @@ sub Marpa::Recognizer::tokens {
                     } ## end given
                 } ## end while ( not defined $predict_earleme )
             } ## end when ('predict')
-            when ('continue') {
-                Marpa::exception('More than one continue arg')
-                    if defined $continue_earleme;
-                while ( not defined $continue_earleme ) {
-                    given ( shift @_ ) {
-                        when (undef)      { $continue_earleme            = 0 }
-                        when ('absolute') { $continue_offset_is_absolute = 1 }
-                        when ( Scalar::Util::looks_like_number($_) ) {
-                            $continue_earleme = $_;
-                        }
-                        default {
-                            Marpa::exception("Bad offset for continue $_")
-                        }
-                    } ## end given
-                } ## end while ( not defined $continue_earleme )
-            } ## end when ('continue')
         } ## end given
     } ## end while ( my $arg = shift @_ )
-
-    Marpa::exception('continue and predict options are mutually exclusive')
-        if defined $continue_earleme and defined $predict_earleme;
 
     $tokens //= [];
 
@@ -675,20 +650,9 @@ sub Marpa::Recognizer::tokens {
         $next_token_earleme;
     $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] = $furthest_token;
 
-    if ( defined $continue_earleme ) {
-        $current_earleme =
-              $continue_offset_is_absolute
-            ? $continue_earleme
-            : $current_earleme + $continue_earleme;
-        return $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
-            $current_earleme;
-    } ## end if ( defined $continue_earleme )
-
     my $furthest_earleme_to_complete =
           defined $predict_earleme
-        ? $predict_offset_is_absolute
-            ? $predict_earleme
-            : $current_earleme + $predict_earleme
+        ? $current_earleme + $predict_earleme
         : $furthest_token;
 
     $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =

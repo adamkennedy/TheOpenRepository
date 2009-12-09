@@ -49,7 +49,7 @@ sub test_grammar {
 
     my $earleme_result;
     $eval_ok = eval {
-        $earleme_result = $recce->tokens( [ [ 'a', 'a', 1 ] ], 'continue' );
+        $earleme_result = $recce->tokens( [ [ 'a', 'a', 1 ] ], 'predict' );
         1;
     };
     Marpa::exception("Exception while recognizing earleme:\n$EVAL_ERROR")
@@ -58,7 +58,7 @@ sub test_grammar {
 
     $eval_ok = eval {
         $earleme_result =
-            $recce->tokens( [ [ 'a', 'a', $earleme_length ] ], 'continue' );
+            $recce->tokens( [ [ 'a', 'a', $earleme_length ] ], 'predict' );
         1;
     };
     Marpa::exception("Exception while recognizing earleme:\n$EVAL_ERROR")
