@@ -506,6 +506,8 @@ sub Marpa::Recognizer::tokens {
     my $earley_set_list = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
     my $earley_hash     = $recce->[Marpa::Internal::Recognizer::EARLEY_HASH];
     my $QDFA            = $grammar->[Marpa::Internal::Grammar::QDFA];
+    my $wanted          = $recce->[Marpa::Internal::Recognizer::WANTED];
+    my $current_terminals;
 
     my $tokens;
     my $predict_earleme;
@@ -554,7 +556,9 @@ sub Marpa::Recognizer::tokens {
     my $tokens_by_earleme =
         $recce->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME];
 
-    TOKEN: for my $token ( @{$tokens} ) {
+    my $token_ix = 0;
+
+    TOKEN: while (my $token = $tokens->[$token_ix]) {
         my ( $symbol_name, $value, $length, $offset ) = @{$token};
 
         my $current_token_earleme = $next_token_earleme;
@@ -631,6 +635,7 @@ sub Marpa::Recognizer::tokens {
         my $tokens_here = $tokens_by_earleme->[$current_token_earleme];
         if ( not $tokens_here ) {
             $tokens_by_earleme->[$current_token_earleme] = [$token_entry];
+            $token_ix++;
             next TOKEN;
         }
 
@@ -652,6 +657,7 @@ sub Marpa::Recognizer::tokens {
 
         $token_hash_here->{$hash_key} = 1;
         push @{$tokens_here}, $token_entry;
+        $token_ix++;
 
     } ## end for my $token ( @{$tokens} )
 
@@ -667,9 +673,6 @@ sub Marpa::Recognizer::tokens {
 
     $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
         $current_earleme = $furthest_earleme_to_complete;
-
-    my $wanted          = $recce->[Marpa::Internal::Recognizer::WANTED];
-    my $current_terminals;
 
     COMPLETION: while (1) {
 
