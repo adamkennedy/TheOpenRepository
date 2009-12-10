@@ -20,7 +20,7 @@ use Carp                  ();
 use Params::Util          qw{ _CODE };
 use Algorithm::Dependency ();
 
-our ($VERSION,@ISA);
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.03';
 	@ISA     = 'Algorithm::Dependency';
