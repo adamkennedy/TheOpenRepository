@@ -247,39 +247,37 @@ C<urhtml_fmt> - Format HTML, indented according to its structure
 
 =head1 DESCRIPTION
 
-Given a URI or a file name,
-L<urhtml_fmt>
-parses it as HTML
-and writes to C<STDOUT>
-the HTML rearranged and
-indented according to its structure.
+Given a URI or the name of a file,
+writes it to C<STDOUT>
+rearranged and
+indented according to its HTML structure.
 Missing start and end tags are supplied and
 comments added to indicate this.
 Text inside
 C<< <pre> >> elements 
 is not altered.
 
-L<urhtml_fmt> follows the philosophy behind L<HTML::Parser>,
-which it uses for its low-level parsing (tokenization).
 L<urhtml_fmt> tries to parse everything that is actually out there on the Web.
 In fact,
-L<urhtml_fmt> will return a HTML parse for any byte stream.
+For any file,
+L<urhtml_fmt> will assume it was intended to be HTML,
+and parse according to its best guess of that intent.
 
 L<urhtml_fmt> supplies missing start and end tags
 which are optional according to the DTD's.
-Following the practice of liberal rendering engines,
-it also supplies missing end tags
+It also supplies missing end tags
 and even some missing start tags that are not optional
 according to any of the standards.
 Inside elements, many nestings and other content
 not valid according to the standards
-is accepted.
-If this is still not sufficient to turn
+are accepted.
+Where these loosenings of the standards are not sufficient to make
 a document into valid HTML,
 L<urhtml_fmt>
-treats characters as "cruft".
+chooses characters to treat as "cruft".
 Sequences of characters recognized as
-"cruft" are treated as equivalent to comments.
+"cruft" are ignored,
+essentially as if they were comments.
 
 For start tags that are added,
 a comment to that effect is also added 
@@ -300,6 +298,53 @@ When missing tags or cruft occur inside a C<< <pre> >> element,
 the comments to that effect are placed 
 before the C<< <pre> >>'s start tag.
 
+=head1 SAMPLE OUTPUT
+
+Given this file as input
+
+    <title>Test page<tr>x<head attr="I am cruft"><p>Final graf
+
+L<urhtml_fmt> returns
+
+    <!-- Following start tag is replacement for a missing one -->
+    <html>
+      <!-- Following start tag is replacement for a missing one -->
+      <head>
+        <title>
+          Test page
+        </title>
+        <!-- Preceding end tag is replacement for a missing one -->
+      </head>
+      <!-- Preceding end tag is replacement for a missing one -->
+      <!-- Following start tag is replacement for a missing one -->
+      <body>
+        <!-- Following start tag is replacement for a missing one -->
+        <table>
+          <!-- Following start tag is replacement for a missing one -->
+          <tbody>
+            <tr>
+              <!-- Following start tag is replacement for a missing one -->
+              <td>
+                x
+                <-- Next line is cruft -->
+                <head attr="I am cruft">
+                <p>
+                  Final graf
+                </p>
+                <!-- Preceding end tag is replacement for a missing one -->
+              </td>
+              <!-- Preceding end tag is replacement for a missing one -->
+            </tr>
+            <!-- Preceding end tag is replacement for a missing one -->
+          </tbody>
+          <!-- Preceding end tag is replacement for a missing one -->
+        </table>
+        <!-- Preceding end tag is replacement for a missing one -->
+      </body>
+      <!-- Preceding end tag is replacement for a missing one -->
+    </html>
+    <!-- Preceding end tag is replacement for a missing one -->
+
 =head1 PURPOSE
 
 This program is a demo of a demo.
@@ -308,28 +353,10 @@ at the structure of web pages using L<Marpa::UrHTML>.
 And the purpose of L<Marpa::UrHTML>
 is to demonstrate the power of its parse engine,
 L<Marpa>.
-
-Determining the structure of an HTML document has in the past
-been considered a very difficult programming task,
-requiring lots of special case coding.
 L<Marpa::UrHTML> was written in a few days,
-and the resulting grammar and code is natural and straight-forward.
-
-At this stage of its development,
-other parsers have advantages over L<Marpa::UrHTML>.
-But they need to be perfect.
-Because the code in them is an excruciatingly complex set of ad hoc
-solutions to special cases,
-other parsers are very hard to understand,
-and therefore to modify.
-
-As the documentation will show,
-the HTML parsing logic in L<Marpa::UrHTML>,
-is straightforward
-and an extremely natural way of expressing the
-problem.
-The transparency of L<Marpa::UrHTML> is made possible
-by L<Marpa>.
+and its logic 
+is a straightforward,
+natural expression of the structure of HTML.
 
 =head1 AUTHOR
 

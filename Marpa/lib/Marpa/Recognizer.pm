@@ -485,11 +485,8 @@ sub Marpa::Recognizer::show_earley_sets {
 ## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::Recognizer::tokens {
 
-    ## use critic
-
     ## no critic (ControlStructures::ProhibitDeepNests)
 
-    # check class of parse?
     my $recce = shift;
     Marpa::exception('No recognizer object for token call')
         if not defined $recce
@@ -503,6 +500,12 @@ sub Marpa::Recognizer::tokens {
         $recce->[Marpa::Internal::Recognizer::TRACE_TERMINALS];
     my $too_many_earley_items =
         $recce->[Marpa::Internal::Recognizer::TOO_MANY_EARLEY_ITEMS];
+
+    my $terminals_by_state =
+        $recce->[Marpa::Internal::Recognizer::TERMINALS_BY_STATE];
+    my $earley_set_list = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
+    my $earley_hash     = $recce->[Marpa::Internal::Recognizer::EARLEY_HASH];
+    my $QDFA            = $grammar->[Marpa::Internal::Grammar::QDFA];
 
     my $tokens;
     my $predict_earleme;
@@ -665,11 +668,6 @@ sub Marpa::Recognizer::tokens {
     $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
         $current_earleme = $furthest_earleme_to_complete;
 
-    my $terminals_by_state =
-        $recce->[Marpa::Internal::Recognizer::TERMINALS_BY_STATE];
-    my $earley_set_list = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
-    my $earley_hash     = $recce->[Marpa::Internal::Recognizer::EARLEY_HASH];
-    my $QDFA            = $grammar->[Marpa::Internal::Grammar::QDFA];
     my $wanted          = $recce->[Marpa::Internal::Recognizer::WANTED];
     my $current_terminals;
 
