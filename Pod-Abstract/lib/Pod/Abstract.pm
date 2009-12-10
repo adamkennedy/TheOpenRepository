@@ -155,7 +155,7 @@ See L<Pod::Abstract::Node>
 
 L<Pod::Abstract::Path>, the node selection expression language. This
 is generally called by doing
-C<<$node->select(PATH_EXP)>>. Pod::Abstract::Path is the most complex
+C<< $node->select(PATH_EXP) >>. Pod::Abstract::Path is the most complex
 and powerful component of this module, and if you're not using it you
 should be. ;)
 

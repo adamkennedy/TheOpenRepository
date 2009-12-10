@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Pod::Abstract;
 use Pod::Abstract::BuildNode qw(node nodes);
 
@@ -38,5 +38,12 @@ Test Item
 |;
 
 is( $root->pod, $pod, "Generated correct Pod" );
+
+my @nodes = nodes->from_pod($pod);
+my $root_2 = node->root;
+$root_2->nest(@nodes);
+
+my $pod_2 = $root_2->pod;
+is( $pod_2, $pod, "Round tripped same Pod with ->from_pod" );
 
 1;

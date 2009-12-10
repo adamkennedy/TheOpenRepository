@@ -229,7 +229,7 @@ sub pod {
         if($body_attr) {
             $body = $self->param($body_attr)->pod;
         }
-        if(defined $body) {
+        if(defined $body && $body ne '') {
             $r .= "=$type $body$p_break";
         } else {
             $r .= "=$type$p_break";

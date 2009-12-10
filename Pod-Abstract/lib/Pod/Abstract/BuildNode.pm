@@ -75,8 +75,9 @@ sub from_pod {
     my $str = shift;
     
     my $root = Pod::Abstract->load_string($str);
+    return undef unless $root;
     
-    my @r = map { $_->detach } $root->children;
+    my @r = map { $_->detach; $_ } $root->children;
     return @r;
 }
 
@@ -161,6 +162,7 @@ sub paragraph {
         );
     my $parser = Pod::Abstract::Parser->new;
     my $pt = $parser->parse_text($str);
+    
     if($pt) {
         $parser->load_pt($para,$pt);
     } else {

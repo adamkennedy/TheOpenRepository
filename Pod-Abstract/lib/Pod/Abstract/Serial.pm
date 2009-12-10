@@ -18,7 +18,7 @@ This will cause problems with Pod::Abstract documents frozen to disk
 using Data::Dumper etc, unless C<set> is used to bump the number above
 the highest number read.
 
-Or just serialise your document with C<<$node->pod>> instead!
+Or just serialise your document with C<< $node->pod >> instead!
 
 =cut
 
