@@ -66,6 +66,8 @@ use Marpa::Offset qw(
     WARNINGS
     TRACING
 
+    AUTO_INCREMENT
+
 );
 
 # GRAMMAR            - the grammar used
@@ -244,6 +246,7 @@ use constant RECOGNIZER_OPTIONS => [
         trace_file_handle
         trace_terminals
         warnings
+        auto_increment
         }
 ];
 
@@ -268,9 +271,13 @@ sub Marpa::Recognizer::set {
             keys %{$args}
             )
         {
-            Carp::croak( 'Unknown option(s) for Marpa Grammar: ',
+            Carp::croak( 'Unknown option(s) for Marpa Recognizer: ',
                 join q{ }, @bad_options );
         } ## end if ( my @bad_options = grep { not $_ ~~ ...})
+
+        if ( defined( my $value = $args->{'auto_increment'} ) ) {
+            $recce->[Marpa::Internal::Recognizer::AUTO_INCREMENT] = $value;
+        }
 
         if ( defined( my $value = $args->{'trace_file_handle'} ) ) {
             $trace_fh =
@@ -521,20 +528,16 @@ sub Marpa::Recognizer::tokens {
             when ('predict') {
                 Marpa::exception('More than one predict arg')
                     if defined $predict_earleme;
-                while ( not defined $predict_earleme ) {
-                    given ( shift @_ ) {
-                        when (undef) { $predict_earleme = 0 }
-                        when ( Scalar::Util::looks_like_number($_) ) {
-                            $predict_earleme = $_;
-                        }
-                        default {
-                            Marpa::exception("Bad offset for predict: $_")
-                        }
-                    } ## end given
-                } ## end while ( not defined $predict_earleme )
+                $predict_earleme = 0;
             } ## end when ('predict')
+            default {
+                Marpa::exception('Bad arg to Marpa::Recognizer::tokens: ', Data::Dumper::Dumper($_));
+            }
         } ## end given
     } ## end while ( my $arg = shift @_ )
+
+    my $auto_increment = defined $tokens
+        && $recce->[Marpa::Internal::Recognizer::AUTO_INCREMENT];
 
     $tokens //= [];
 
@@ -665,6 +668,10 @@ sub Marpa::Recognizer::tokens {
         $recce->[Marpa::Internal::Recognizer::CURRENT_EARLEME] =
         $next_token_earleme;
     $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] = $furthest_token;
+
+    if ($auto_increment) {
+        $predict_earleme = 1;
+    }
 
     my $furthest_earleme_to_complete =
           defined $predict_earleme
