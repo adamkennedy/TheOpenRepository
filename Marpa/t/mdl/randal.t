@@ -24,8 +24,8 @@ my $source;
 my ( $marpa_options, $mdlex_options ) = Marpa::MDL::to_raw($source);
 
 my $g = Marpa::Grammar->new(
-    {   warnings   => 1,
-        actions    => 'main',
+    {   warnings => 1,
+        actions  => 'main',
     },
     @{$marpa_options}
 );

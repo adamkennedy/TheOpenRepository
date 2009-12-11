@@ -72,11 +72,9 @@ sub default_action {
 ## use critic
 
 my $g = Marpa::Grammar->new(
-    {   start => 'E',
-
-
-        actions     => 'main',
-        rules       => [
+    {   start   => 'E',
+        actions => 'main',
+        rules   => [
             [ 'E', [qw/E Minus E/],     'minus' ],
             [ 'E', [qw/E Minus Minus/], 'postfix_decr' ],
             [ 'E', [qw/Minus Minus E/], 'prefix_decr' ],
@@ -91,20 +89,16 @@ my @expected = qw(0 1 1 3 4 8 12 21 33 55 88 144 232 );
 
 $g->precompute();
 
-## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
 for my $n ( 1 .. 12 ) {
-## use critic
 
     my $recce = Marpa::Recognizer->new( { grammar => $g } );
     $g->precompute();
-    ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
     $recce->tokens(
         [   [ 'Number', 6, 1 ],
             ( ( [ 'Minus', q{-}, 1 ] ) x $n ),
             [ 'Number', 1, 1 ]
         ]
     );
-    ## use critic
 
     # Set max_parses just in case there's an infinite loop.
     # This is for debugging, after all

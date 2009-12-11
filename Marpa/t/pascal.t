@@ -29,7 +29,7 @@ sub ah_extended {
                 [ 'A', [qw/E/] ],
                 ['E'],
             ],
-            terminals   => ['a'],
+            terminals => ['a'],
 
             # no warnings for $n equals zero
             warnings => ( $n ? 1 : 0 ),
@@ -44,7 +44,7 @@ sub ah_extended {
     my @parse_counts;
     for my $loc ( 0 .. $n ) {
         my $parse_number = 0;
-        my $evaler = Marpa::Evaluator->new(
+        my $evaler       = Marpa::Evaluator->new(
             {   recce       => $recce,
                 end         => $loc,
                 parse_order => 'none',

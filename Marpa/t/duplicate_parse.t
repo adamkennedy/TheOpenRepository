@@ -140,7 +140,6 @@ my $evaler = Marpa::Evaluator->new(
     }
 );
 
-
 my $bocage = $evaler->show_bocage(3);
 
 Marpa::Test::is( $bocage, <<'END_OF_STRING', 'Bocage' );

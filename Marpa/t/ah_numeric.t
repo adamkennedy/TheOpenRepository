@@ -34,8 +34,8 @@ sub default_action {
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
-    {   start       => 'S',
-        rules       => [
+    {   start => 'S',
+        rules => [
             [ 'S', [qw/A A A A/] ],
             [ 'A', [qw/a/] ],
             [ 'A', [qw/E/] ],
@@ -64,9 +64,9 @@ for my $i ( 0 .. $input_length ) {
         local $MyTest::MAXIMAL = $maximal;
         my $expected = $maximal ? \@maximal : \@minimal;
         my $name     = $maximal ? 'maximal' : 'minimal';
-        my $evaler = Marpa::Evaluator->new(
-            {   recce       => $recce,
-                end         => $i,
+        my $evaler   = Marpa::Evaluator->new(
+            {   recce => $recce,
+                end   => $i,
             }
         );
         my $result = $evaler->value();

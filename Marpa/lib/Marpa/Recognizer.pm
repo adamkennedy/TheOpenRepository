@@ -501,11 +501,9 @@ sub Marpa::Recognizer::show_earley_sets {
 
 } ## end sub Marpa::Recognizer::show_earley_sets
 
-## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::Recognizer::tokens {
 
     my ($recce, $tokens) = @_;
-    ## no critic (ControlStructures::ProhibitDeepNests)
 
     Marpa::exception('No recognizer object for Marpa::Recognizer::tokens')
         if not defined $recce

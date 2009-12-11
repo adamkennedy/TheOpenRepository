@@ -64,9 +64,7 @@ sub run_sequence_test {
     # more or less arbitrary.  You really need to test 0 .. 3.
     # And you ought to test a couple of higher values,
     # say 5 and 10.
-    ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
     SYMBOL_COUNT: for my $symbol_count ( 0, 1, 2, 3, 5, 10 ) {
-        ## use critic
 
         next SYMBOL_COUNT if $symbol_count < $minimum;
         my $test_name =
@@ -95,10 +93,7 @@ sub run_sequence_test {
 
         $recce->end_input();
 
-        my $evaler = Marpa::Evaluator->new(
-            {   recce => $recce,
-            }
-        );
+        my $evaler = Marpa::Evaluator->new( { recce => $recce } );
         if ( not $evaler ) {
             Test::More::fail("$test_name: Parse failed");
             next SYMBOL_COUNT;

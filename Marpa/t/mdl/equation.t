@@ -34,13 +34,9 @@ my $source;
 
 my ( $marpa_options, $mdlex_options ) = Marpa::MDL::to_raw($source);
 
-# Set max_parses to 10 in case there's an infinite loop.
-# This is for debugging, after all
 my $grammar = Marpa::Grammar->new(
-    {   action_object => 'Marpa::MDL::Example::Equation',
-    },
-    @{$marpa_options}
-);
+    { action_object => 'Marpa::MDL::Example::Equation', },
+    @{$marpa_options} );
 
 Carp::croak('Failed to create grammar') if not defined $grammar;
 
@@ -64,6 +60,8 @@ my %expected_value = (
     '(2-((0*3)+1))==1' => 1,
 );
 
+# Set max_parses to 10 in case there's an infinite loop.
+# This is for debugging, after all
 # Note: code below used in display
 my $evaler =
     Marpa::Evaluator->new( { recognizer => $recce, max_parses => 10 } );

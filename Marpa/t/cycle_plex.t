@@ -160,8 +160,7 @@ for my $test_data ( $plex1_test, $plex2_test, $plex3_test ) {
         # That's the point of the test
         trace_file_handle => $MEMORY,
     );
-    my $grammar =
-        Marpa::Grammar->new( \%args );
+    my $grammar = Marpa::Grammar->new( \%args );
     $grammar->precompute();
 
     close $MEMORY;

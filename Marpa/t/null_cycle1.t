@@ -71,10 +71,10 @@ sub rule_r2 {
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
-    {   start         => 'S',
-        strip         => 0,
-        maximal       => 1,
-        cycle_action  => 'quiet',
+    {   start        => 'S',
+        strip        => 0,
+        maximal      => 1,
+        cycle_action => 'quiet',
 
         rules => [
             { lhs => 'S', rhs => [qw/p n/], action => 'main::start_rule' },

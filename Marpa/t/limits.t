@@ -58,8 +58,7 @@ sub test_grammar {
     Marpa::exception("Parsing exhausted\n") if not defined $earleme_result;
 
     $eval_ok = eval {
-        $earleme_result =
-            $recce->tokens( [ [ 'a', 'a', $earleme_length ] ] );
+        $earleme_result = $recce->tokens( [ [ 'a', 'a', $earleme_length ] ] );
         1;
     };
     Marpa::exception("Exception while recognizing earleme:\n$EVAL_ERROR")
@@ -127,7 +126,6 @@ else { Test::More::is( $value, $result_on_success, 'Placebo grammar' ) }
 
 ## lots of test values in the following, some of them pretty
 ## arbitrary
-## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
 
 $eval_ok =
     eval { $value = test_grammar( test_rule_priority(1_000_000) ); 1; };

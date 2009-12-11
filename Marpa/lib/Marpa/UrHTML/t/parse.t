@@ -205,14 +205,14 @@ sub same {
     if ( ref $code2 ) { $code2 = ${$code2} }
 
     my $value1;
-    if (not eval { $value1 = $p1->parse( \$code1 ); 1 }) {
+    if ( not eval { $value1 = $p1->parse( \$code1 ); 1 } ) {
         say "No parse for $code1"
             or Carp::croak("Cannot print: $!");
         return $flip;
     }
 
     my $value2;
-    if (not eval { $value2 = $p2->parse( \$code2 ); 1 }) {
+    if ( not eval { $value2 = $p2->parse( \$code2 ); 1 } ) {
         say "No parse for $code2"
             or Carp::croak("Cannot print: $!");
         return $flip;

@@ -22,7 +22,7 @@ BEGIN {
     Test::More::use_ok('Marpa::Test::Util');
 } ## end BEGIN
 
-my @eg_dir = qw( lib Marpa UrHTML eg );
+my @eg_dir   = qw( lib Marpa UrHTML eg );
 my @data_dir = qw( lib Marpa UrHTML t fmt_t_data );
 
 for my $test (qw(1 2)) {
@@ -36,6 +36,5 @@ for my $test (qw(1 2)) {
     $expected = <$fh>;
     close $fh;
     Marpa::Test::is( $output, $expected, 'urhtml_fmt test' );
-};
-
+} ## end for my $test (qw(1 2))
 

@@ -24,8 +24,8 @@ my $text = '6-----1';
 my ( $marpa_options, $mdlex_options ) = Marpa::MDL::to_raw($source);
 
 my $g = Marpa::Grammar->new(
-    {   maximal    => 1,
-        actions    => 'main',
+    {   maximal => 1,
+        actions => 'main',
     },
     @{$marpa_options}
 );

@@ -1159,7 +1159,7 @@ sub Marpa::UrHTML::parse {
 
                     # No need to check lookahead, unless we are starting
                     # an element
-                    if ($candidate !~ /^S_/) {
+                    if ($candidate !~ /^S_/xms) {
                         $virtual_terminal = $candidate;
                         last LOOKAHEAD_VIRTUAL_TERMINAL;
                     }
@@ -1192,7 +1192,7 @@ sub Marpa::UrHTML::parse {
                     # At worst, it means an infinite loop where
                     # empty lower-level elements are repeatedly added.
                     #
-                    next LOOKAHEAD_VIRTUAL_TERMINAL 
+                    next LOOKAHEAD_VIRTUAL_TERMINAL
                         if $candidate_level <= $actual_terminal_level;
 
                     $virtual_terminal = $candidate;

@@ -53,19 +53,11 @@ sub default_action {
 
 ## use critic
 
-# The inefficiency (at least some of it) is deliberate.
-# Passing up a duples of [ string, value ] and then
-# assembling a final string at the top would be better
-# than assembling the string then taking it
-# apart at each step.  But I wanted to test having
-# a start symbol that appears repeatedly on the RHS.
-
 my $grammar = Marpa::Grammar->new(
-    {   start => 'E',
-        strip => 0,
-
-        actions    => 'main',
-        rules      => [
+    {   start   => 'E',
+        strip   => 0,
+        actions => 'main',
+        rules   => [
             [ 'E', [qw/E Op E/], 'do_op' ],
             [ 'E', [qw/Number/], 'number' ],
         ],

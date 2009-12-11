@@ -44,9 +44,9 @@ sub start_rule_action {
 ## use critic
 
 my $grammar = Marpa::Grammar->new(
-    {   start       => 'S',
-        strip       => 0,
-        rules       => [
+    {   start => 'S',
+        strip => 0,
+        rules => [
             {   lhs    => 'S',
                 rhs    => [qw/digit digit digit digit/],
                 action => 'main::start_rule_action'

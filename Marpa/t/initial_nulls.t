@@ -59,8 +59,6 @@ my $grammar = Marpa::Grammar->new(
 
 $grammar->precompute();
 
-## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
-
 my @results;
 $results[1][0] = '(-;-;-;(-;-;-;-;-;t))';
 $results[1][1] = '(-;-;-;t)';
