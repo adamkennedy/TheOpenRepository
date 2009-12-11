@@ -1,0 +1,19 @@
+struct ln_date*	O_OBJECT
+struct ln_dms* O_OBJECT
+struct ln_ell_orbit* O_OBJECT
+struct ln_equ_posn* O_OBJECT
+struct ln_gal_posn* O_OBJECT
+struct ln_helio_posn* O_OBJECT
+struct ln_hms* O_OBJECT
+struct ln_hrz_posn* O_OBJECT
+struct ln_hyp_orbit* O_OBJECT
+struct ln_lnlat_posn* O_OBJECT
+struct ln_nutation* O_OBJECT
+struct ln_par_orbit* O_OBJECT
+struct ln_rect_posn* O_OBJECT
+struct ln_rst_time* O_OBJECT
+struct ln_zonedate* O_OBJECT
+struct lnh_equ_posn* O_OBJECT
+struct lnh_hrz_posn* O_OBJECT
+struct lnh_lnlat_posn* O_OBJECT
+
