@@ -30,14 +30,15 @@ in the style of the Python equivalent.
 
 use 5.006;
 use strict;
-use Carp           ();
-use Params::Util   '_INSTANCE';
-use Term::ReadLine ();
-use PPI            ();
+use Carp                 ();
+use Params::Util         '_INSTANCE';
+use Term::ReadLine       ();
+use Lexical::Persistence ();
+use PPI                  ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 }
 
 
@@ -60,6 +61,8 @@ BEGIN {
 =cut
 
 sub shell {
+	my $scope = Lexical::Persistence->new;
+
 	print "\n";
 	my @buffer = ();
 	foreach ( 1 .. 10 ) {    
@@ -75,7 +78,7 @@ sub shell {
 
 		# Execute the code
 		my $code = join "\n", @buffer;
-		my @rv   = eval $code;
+		my @rv   = $scope->do( $code );
 		print "ERROR: $@" if $@;
 		print "\n";
 
@@ -163,7 +166,7 @@ Thanks to Ingy for suggesting that this module should exist.
 
 =head1 COPYRIGHT
 
-Copyright 2008 Adam Kennedy.
+Copyright 2008 - 2009 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

@@ -1,4 +1,7 @@
 Changes for Perl extension Perl-Shell
 
+0.02 Fri 11 Dec 2009
+	- Added persistance of lexicals between statements
+
 0.01 Tue 12 Aug 2008
 	- Creating initial experimental implementation
