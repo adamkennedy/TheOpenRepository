@@ -88,7 +88,7 @@ if ( $fail_location >= 0 ) {
     Marpa::exception(
         Marpa::show_location( 'Parsing failed', \$text, $fail_location ) );
 }
-$recce->tokens();
+$recce->end_input();
 
 my $evaler = Marpa::Evaluator->new( { recce => $recce, cycle_rewrite => 0 } );
 my $parse_count = 0;

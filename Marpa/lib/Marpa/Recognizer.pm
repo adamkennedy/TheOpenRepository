@@ -504,12 +504,15 @@ sub Marpa::Recognizer::show_earley_sets {
 ## no critic (Subroutines::RequireArgUnpacking)
 sub Marpa::Recognizer::tokens {
 
+    my ($recce, $tokens) = @_;
     ## no critic (ControlStructures::ProhibitDeepNests)
 
-    my $recce = shift;
-    Marpa::exception('No recognizer object for token call')
+    Marpa::exception('No recognizer object for Marpa::Recognizer::tokens')
         if not defined $recce
             or ref $recce ne 'Marpa::Recognizer';
+
+    Marpa::exception('No tokens arg for Marpa::Recognizer::tokens')
+        if not defined $tokens;
 
     my $grammar = $recce->[Marpa::Internal::Recognizer::GRAMMAR];
     local $Marpa::Internal::TRACE_FH = my $trace_fh =
@@ -522,25 +525,6 @@ sub Marpa::Recognizer::tokens {
         $recce->[Marpa::Internal::Recognizer::TERMINALS_BY_STATE];
     my $earley_hash     = $recce->[Marpa::Internal::Recognizer::EARLEY_HASH];
     my $wanted          = $recce->[Marpa::Internal::Recognizer::WANTED];
-
-    my $tokens;
-
-    while ( my $arg = shift @_ ) {
-        given ($arg) {
-            when ( ref $_ eq 'ARRAY' ) {
-                Marpa::exception('More than one tokens arg') if $tokens;
-                $tokens = $_;
-            }
-            when ('predict') {
-                $mode = 'stream';
-            } ## end when ('predict')
-            default {
-                Marpa::exception('Bad arg to Marpa::Recognizer::tokens: ', Data::Dumper::Dumper($_));
-            }
-        } ## end given
-    } ## end while ( my $arg = shift @_ )
-
-    $tokens //= [];
 
     Marpa::exception('Attempt to scan tokens after parsing was exhausted')
         if $recce->[Marpa::Internal::Recognizer::EXHAUSTED]
@@ -833,6 +817,22 @@ sub Marpa::Recognizer::tokens {
 }
 
 # Perform the completion step on an earley set
+
+sub Marpa::Recognizer::end_input {
+    my ($recce) = @_;
+    local $Marpa::Internal::TRACE_FH =
+        $recce->[Marpa::Internal::Recognizer::TRACE_FILE_HANDLE];
+    my $last_completed_earleme =
+        $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
+    my $furthest_earleme =
+        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
+    while ( $last_completed_earleme < $furthest_earleme ) {
+        $last_completed_earleme =
+            $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] =
+            Marpa::Internal::Recognizer::complete($recce);
+    }
+    return 1;
+} ## end sub Marpa::Recognizer::end_input
 
 sub complete {
     my ($recce) = @_;

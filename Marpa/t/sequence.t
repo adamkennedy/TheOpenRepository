@@ -93,7 +93,7 @@ sub run_sequence_test {
                 or Marpa::exception('Parsing exhausted');
         } ## end for my $symbol_ix ( 0 .. $last_symbol_ix )
 
-        $recce->tokens();
+        $recce->end_input();
 
         my $evaler = Marpa::Evaluator->new(
             {   recce => $recce,

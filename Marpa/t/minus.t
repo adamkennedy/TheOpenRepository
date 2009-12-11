@@ -193,7 +193,7 @@ for my $string_piece ( '6', '-----', '1' ) {
     }
 } ## end for my $string_piece ( '6', '-----', '1' )
 
-$recce->tokens();
+$recce->end_input();
 
 my $evaler = Marpa::Evaluator->new(
     {   recce       => $recce,

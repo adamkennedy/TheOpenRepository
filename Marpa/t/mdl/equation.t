@@ -54,7 +54,7 @@ if ( $fail_offset >= 0 ) {
     Marpa::exception("Parse failed at offset $fail_offset");
 }
 
-$recce->tokens();
+$recce->end_input();
 
 my %expected_value = (
     '(2-(0*(3+1)))==2' => 1,

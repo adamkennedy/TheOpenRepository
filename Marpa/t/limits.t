@@ -40,7 +40,8 @@ sub test_grammar {
 
     my $recce;
     $eval_ok = eval {
-        $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+        $recce = Marpa::Recognizer->new(
+            { grammar => $grammar, mode => 'stream' } );
         1;
     };
     Marpa::exception("Exception while creating Recognizer:\n$EVAL_ERROR")
@@ -49,7 +50,7 @@ sub test_grammar {
 
     my $earleme_result;
     $eval_ok = eval {
-        $earleme_result = $recce->tokens( [ [ 'a', 'a', 1 ] ], 'predict' );
+        $earleme_result = $recce->tokens( [ [ 'a', 'a', 1 ] ] );
         1;
     };
     Marpa::exception("Exception while recognizing earleme:\n$EVAL_ERROR")
@@ -58,14 +59,14 @@ sub test_grammar {
 
     $eval_ok = eval {
         $earleme_result =
-            $recce->tokens( [ [ 'a', 'a', $earleme_length ] ], 'predict' );
+            $recce->tokens( [ [ 'a', 'a', $earleme_length ] ] );
         1;
     };
     Marpa::exception("Exception while recognizing earleme:\n$EVAL_ERROR")
         if not $eval_ok;
     Marpa::exception("Parsing exhausted\n") if not defined $earleme_result;
 
-    $eval_ok = eval { $recce->tokens(); 1; };
+    $eval_ok = eval { $recce->end_input(); 1; };
     Marpa::exception("Exception while recognizing end of input:\n$EVAL_ERROR")
         if not $eval_ok;
 
@@ -171,7 +172,7 @@ REPORT_RESULT: {
     if ( $EVAL_ERROR
         =~ / \A Exception \s while \s recognizing \s earleme /xms )
     {
-        Test::More::pass('Caught over-high rule priority');
+        Test::More::pass('Caught over-long earleme');
         last REPORT_RESULT;
     } ## end if ( $EVAL_ERROR =~ ...)
     Test::More::is( $EVAL_ERROR, q{}, 'Grammar with earleme too long' );

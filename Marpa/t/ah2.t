@@ -266,7 +266,8 @@ A -> . a
  <a> => S7
 EOS
 
-my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
+my $recce =
+    Marpa::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
 
 my @set = (
     <<'END_OF_SET0', <<'END_OF_SET1', <<'END_OF_SET2', <<'END_OF_SET3', <<'END_OF_SET4', );
@@ -326,11 +327,11 @@ EARLEME: for my $earleme ( 0 .. $input_length + 1 ) {
     );
     given ($earleme) {
         when ($input_length) {
-            $recce->tokens();
+            $recce->end_input();
         }
         when ( $input_length + 1 ) {break}
         default {
-            defined $recce->tokens( [ [ 'a', 'a', 1 ] ], 'predict' )
+            defined $recce->tokens( [ [ 'a', 'a', 1 ] ], )
                 or Marpa::exception('Parsing exhausted');
         }
     } ## end given

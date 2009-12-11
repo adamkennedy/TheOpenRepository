@@ -1076,6 +1076,7 @@ sub Marpa::UrHTML::parse {
         {   grammar           => $grammar,
             trace_terminals   => $self->{trace_terminals},
             trace_earley_sets => $self->{trace_earley_sets},
+            mode => 'stream',
         }
     );
 
@@ -1272,7 +1273,7 @@ sub Marpa::UrHTML::parse {
             }
 
             ( $current_earleme, $expected_terminals ) =
-                $recce->tokens( [$token_to_add], 'predict' );
+                $recce->tokens( [$token_to_add] );
             if ( not defined $current_earleme ) {
                 my $last_marpa_token = $recce->furthest();
                 $last_marpa_token =
