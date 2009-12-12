@@ -132,6 +132,35 @@ The C<ln_> prefix has been stripped.
                                           Astro::Nova::EllOrbit orbit, double horizon,
                                           int day_limit)
     double get_ell_last_perihelion(double epoch_JD, double M, double n)
+  
+  heliocentric_time.h
+    double get_heliocentric_time_diff(double JD, Astro::Nova::EquPosn object)
+  
+  hyperbolic_motion.h
+    double solve_hyp_barker(double Q1, double G, double t)
+    double get_hyp_true_anomaly(double q, double e, double t)
+    double get_hyp_radius_vector(double q, double e, double t)
+    Astro::Nova::RectPosn get_hyp_geo_rect_posn(Astro::Nova::HypOrbit orbit, double JD)
+    Astro::Nova::RectPosn get_hyp_helio_rect_posn(Astro::Nova::HypOrbit orbit, double JD)
+    Astro::Nova::EquPosn get_hyp_body_equ_coords(double JD, Astro::Nova::HypOrbit orbit)
+    double get_hyp_body_earth_dist(double JD, Astro::Nova::HypOrbit orbit)
+    double get_hyp_body_solar_dist(double JD, Astro::Nova::HypOrbit orbit)
+    double get_hyp_body_phase_angle(double JD, Astro::Nova::HypOrbit orbit)
+    double get_hyp_body_elong(double JD, Astro::Nova::HypOrbit orbit)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_hyp_body_rst(double JD, Astro::Nova::LnLatPosn observer, Astro::Nova::HypOrbit orbit)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_hyp_body_rst_horizon(double JD, Astro::Nova::LnLatPosn observer,
+                               Astro::Nova::HypOrbit orbit, double horizon)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_hyp_body_next_rst(double JD, Astro::Nova::LnLatPosn observer, Astro::Nova::HypOrbit orbit)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_hyp_body_next_rst_horizon(double JD, Astro::Nova::LnLatPosn observer,
+                                    Astro::Nova::HypOrbit orbit, double horizon)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_hyp_body_next_rst_horizon_future(double JD, Astro::Nova::LnLatPosn observer,
+                                           Astro::Nova::HypOrbit orbit, double horizon,
+                                           int day_limit)
 
 =head2 STRUCTS
 

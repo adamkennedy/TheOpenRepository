@@ -1543,5 +1543,11 @@ INCLUDE: XS/Earth.xs
 
 INCLUDE: XS/EllipticMotion.xs
 
+#### heliocentric_time.h
+double
+ln_get_heliocentric_time_diff(double JD, struct ln_equ_posn* object)
+
+INCLUDE: XS/HyperbolicMotion.xs
+
 INCLUDE: XS/Sidereal.xs
 
