@@ -44,7 +44,6 @@ use Marpa::Offset qw(
     GRAMMAR
     EARLEY_SETS
     FURTHEST_EARLEME :{ last earley set with something in it }
-    FURTHEST_TOKEN :{ furthest end of token }
     LAST_COMPLETED_EARLEME
     TOKENS_BY_EARLEME
 
@@ -232,8 +231,7 @@ sub Marpa::Recognizer::new {
     $self->[Marpa::Internal::Recognizer::WANTED]                  = \%wanted;
 
     $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = -1;
-    $self->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] =
-        $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = 0;
+    $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = 0;
 
     $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = 
         Marpa::Internal::Recognizer::complete( $self );
@@ -538,8 +536,6 @@ sub Marpa::Recognizer::tokens {
         my $last_completed_earleme =
         $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
     my $furthest_earleme = $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
-    my $furthest_token =
-        $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN];
     my $tokens_by_earleme =
         $recce->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME];
     my $earley_set_list = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
@@ -606,10 +602,6 @@ sub Marpa::Recognizer::tokens {
             "  Token starts at $last_completed_earleme, and its length is $length\n"
         ) if $end_earleme & Marpa::Internal::Recognizer::EARLEME_MASK;
 
-        if ( $end_earleme > $furthest_token ) {
-            $furthest_token = $end_earleme;
-        }
-
         $offset //= 1;
         Marpa::exception(
             'Token '
@@ -653,21 +645,8 @@ sub Marpa::Recognizer::tokens {
 
     } ## end for my $token ( @{$tokens} )
 
-    $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] = $furthest_token;
-
-    given ($mode) {
-        when ('default') {
-            $next_token_earleme = $furthest_token;
-        }
-        when ('stream') 
-        {
-            $current_token_earleme++;
-            $next_token_earleme < $current_token_earleme and $next_token_earleme = $current_token_earleme;
-        }
-        default {
-            Marpa::exception("Internal error: Unknown recognizer mode: $mode");
-        }
-    } ## end given
+    $current_token_earleme++;
+    $next_token_earleme < $current_token_earleme and $next_token_earleme = $current_token_earleme;
 
     COMPLETION: while (1) {
 
@@ -796,8 +775,13 @@ sub Marpa::Recognizer::tokens {
 
     $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = $furthest_earleme;
 
-    $mode eq 'default'
-        and $recce->[Marpa::Internal::Recognizer::FINISHED] = 1;
+    if ( $mode eq 'default' ) {
+        while ( $last_completed_earleme < $furthest_earleme ) {
+            $last_completed_earleme =
+                Marpa::Internal::Recognizer::complete($recce);
+        }
+        $recce->[Marpa::Internal::Recognizer::FINISHED] = 1;
+    } ## end if ( $mode eq 'default' )
 
     return ( $last_completed_earleme,
         $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
