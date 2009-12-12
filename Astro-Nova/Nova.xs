@@ -101,5 +101,7 @@ ln_get_nutation(double JD)
 
 INCLUDE: XS/ParabolicMotion.xs
 
+INCLUDE: XS/Parallax.xs
+
 INCLUDE: XS/Sidereal.xs
 

@@ -244,6 +244,12 @@ The C<ln_> prefix has been stripped.
     (int $status, Astro::Nova::RstTime $rst) =
       get_par_body_next_rst_horizon_future(double JD, Astro::Nova::LnLatPosn observer,
                                            double horizon, int day_limit)
+  
+  parallax.h
+    Astro::Nova::EquPosn get_parallax(Astro::Nova::EquPosn object, double au_distance,
+                                      Astro::Nova::LnLatPosn observer, double height, double JD)
+    Astro::Nova::EquPosn get_parallax_ha(Astro::Nova::EquPosn object, double au_distance,
+                                         Astro::Nova::LnLatPosn observer, double height, double H)
 
 =head2 STRUCTS / CLASSES
 
