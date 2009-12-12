@@ -3,22 +3,22 @@ MODULE = Astro::Nova		PACKAGE = Astro::Nova		PREFIX=ln_
 
 
 const char*
-get_version()
+ln_get_version()
 
 double
-get_dec_location(char* s)
+ln_get_dec_location(char* s)
 
 const char*
-get_humanr_location(double location)
+ln_get_humanr_location(double location)
 
 double
-get_rect_distance(struct ln_rect_posn* a, struct ln_rect_posn* b)
+ln_get_rect_distance(struct ln_rect_posn* a, struct ln_rect_posn* b)
 
 double
-rad_to_deg(double radians)
+ln_rad_to_deg(double radians)
 
 double
-deg_to_rad(double degrees)
+ln_deg_to_rad(double degrees)
 
 double
 ln_hms_to_deg(struct ln_hms* hms)
