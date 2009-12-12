@@ -76,5 +76,9 @@ INCLUDE: XS/HyperbolicMotion.xs
 
 INCLUDE: XS/JulianDay.xs
 
+INCLUDE: XS/Jupiter.xs
+
+INCLUDE: XS/Lunar.xs
+
 INCLUDE: XS/Sidereal.xs
 

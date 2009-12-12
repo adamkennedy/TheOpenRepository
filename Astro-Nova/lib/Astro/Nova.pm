@@ -175,6 +175,33 @@ The C<ln_> prefix has been stripped.
     double get_julian_local_date(Astro::Nova::ZoneDate zonedate)
     Astro::Nova::ZoneDate date_to_zonedate(Astro::Nova::Date date, long gmtoff)
     Astro::Nova::Date zonedate_to_date(Astro::Nova::ZoneDate zonedate)
+  
+  jupiter.h
+    double get_jupiter_equ_sdiam(double JD)
+    double get_jupiter_pol_sdiam(double JD)
+    Astro::Nova::RstTime get_jupiter_rst(double JD)
+    Astro::Nova::HelioPosn get_jupiter_helio_coords(double JD)
+    Astro::Nova::EquPosn get_jupiter_equ_coords(double JD)
+    double get_jupiter_earth_dist(double JD)
+    double get_jupiter_solar_dist(double JD)
+    double get_jupiter_magnitude(double JD)
+    double get_jupiter_disk(double JD)
+    double get_jupiter_phase(double JD)
+    Astro::Nova::RectPosn get_jupiter_rect_helio(double JD)
+  
+  lunar.h
+    double get_lunar_sdiam(double JD)
+    Astro::Nova::RstTime get_lunar_rst(double JD, Astro::Nova::LnLatPosn observer)
+    Astro::Nova::RectPosn get_lunar_geo_posn(double JD, double precision)
+    Astro::Nova::EquPosn get_lunar_equ_coords_prec(double JD, double precision)
+    Astro::Nova::EquPosn get_lunar_equ_coords(double JD)
+    Astro::Nova::LnLatPosn get_lunar_ecl_coords(double JD, double precision)
+    double get_lunar_phase(double JD)
+    double get_lunar_disk(double JD)
+    double get_lunar_earth_dist(double JD)
+    double get_lunar_bright_limb(double JD)
+    double get_lunar_long_asc_node(double JD)
+    double get_lunar_long_perigee(double JD)
 
 =head2 STRUCTS
 
