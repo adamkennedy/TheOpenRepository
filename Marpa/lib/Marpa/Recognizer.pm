@@ -45,7 +45,6 @@ use Marpa::Offset qw(
     EARLEY_SETS
     FURTHEST_EARLEME :{ last earley set with something in it }
     LAST_COMPLETED_EARLEME
-    TOKENS_BY_EARLEME
 
     TRACE_FILE_HANDLE
 
@@ -57,7 +56,6 @@ use Marpa::Offset qw(
     EXHAUSTED
     FINISHED
     TERMINALS_BY_STATE
-    TOKEN_HASHES_BY_EARLEME
 
     TOO_MANY_EARLEY_ITEMS
     TRACE_EARLEY_SETS
@@ -226,8 +224,6 @@ sub Marpa::Recognizer::new {
     $self->[Marpa::Internal::Recognizer::EARLEY_HASH] = $earley_hash;
     $self->[Marpa::Internal::Recognizer::GRAMMAR]     = $grammar;
     $self->[Marpa::Internal::Recognizer::EARLEY_SETS] = [$earley_set];
-    $self->[Marpa::Internal::Recognizer::TOKEN_HASHES_BY_EARLEME] = [];
-    $self->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME]       = [];
     $self->[Marpa::Internal::Recognizer::WANTED]                  = \%wanted;
 
     $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = -1;
@@ -500,6 +496,8 @@ sub Marpa::Recognizer::tokens {
 
     my ($recce, $tokens) = @_;
 
+    # say STDERR "Calling tokens(): ", Data::Dumper::Dumper($tokens);
+
     Marpa::exception('No recognizer object for Marpa::Recognizer::tokens')
         if not defined $recce
             or ref $recce ne 'Marpa::Recognizer';
@@ -514,8 +512,6 @@ sub Marpa::Recognizer::tokens {
         $recce->[Marpa::Internal::Recognizer::TRACE_TERMINALS];
     my $mode = $recce->[Marpa::Internal::Recognizer::MODE];
 
-    my $terminals_by_state =
-        $recce->[Marpa::Internal::Recognizer::TERMINALS_BY_STATE];
     my $earley_hash     = $recce->[Marpa::Internal::Recognizer::EARLEY_HASH];
     my $wanted          = $recce->[Marpa::Internal::Recognizer::WANTED];
 
@@ -532,129 +528,132 @@ sub Marpa::Recognizer::tokens {
     my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
 
-    my $current_token_earleme = my $next_token_earleme =
+    my $next_token_earleme =
         my $last_completed_earleme =
         $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
     my $furthest_earleme = $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
-    my $tokens_by_earleme =
-        $recce->[Marpa::Internal::Recognizer::TOKENS_BY_EARLEME];
     my $earley_set_list = $recce->[Marpa::Internal::Recognizer::EARLEY_SETS];
     my $QDFA            = $grammar->[Marpa::Internal::Grammar::QDFA];
 
     my $token_ix = 0;
 
-    TOKEN: while ( 1 ) {
+    # say STDERR __LINE__, " last_completed_earleme: $last_completed_earleme";
 
-        last TOKEN if not my $token_args = $tokens->[$token_ix];
+    my $token_args = $tokens->[$token_ix];
 
-        my ( $symbol_name, $value, $length, $offset ) = @{$token_args};
+    $next_token_earleme++ if not scalar @{$tokens};
 
-        $current_token_earleme = $next_token_earleme;
+    EARLEME: while ($token_ix < scalar @{$tokens}) {
 
-        Marpa::exception(
-            "Attempt to add token '$symbol_name' at location where processing is complete:\n",
-            "  Add attempted at $current_token_earleme\n",
-            "  Processing complete to $last_completed_earleme\n"
-        ) if $current_token_earleme < $last_completed_earleme;
-        my $token_id = $symbol_hash->{$symbol_name};
+        my $tokens_here;
+        my $token_hash_here;
 
-        if ( not defined $token_id ) {
-            Marpa::exception( 'Unknown symbol '
-                    . ( defined $symbol_name ? "$symbol_name " : q{} )
-                    . 'used as token' );
-        }
+        my $current_token_earleme = $last_completed_earleme;
 
-        my $token = $symbols->[$token_id];
+        # say STDERR __LINE__, " current_token_earleme: $current_token_earleme";
+        # say STDERR __LINE__, " next_token_earleme: $next_token_earleme";
+        # say STDERR __LINE__, " last_completed_earleme: $last_completed_earleme";
 
-        # Make sure it's an allowed terminal symbol.
-        if ( not $token->[Marpa::Internal::Symbol::TERMINAL] ) {
-            Marpa::exception( 'Non-terminal '
-                    . ( defined $symbol_name ? "$symbol_name " : q{} )
-                    . 'supplied as token' );
-        }
+        TOKEN: while ( $current_token_earleme == $next_token_earleme ) {
 
-        my $value_ref = \($value);
-
-        given ($length) {
-            when (undef) { $length = 1; }
-            when ( $_ & Marpa::Internal::Recognizer::EARLEME_MASK ) {
-                Marpa::exception(
-                    'Token '
-                        . $token->[Marpa::Internal::Symbol::NAME]
-                        . " is too long\n",
-                    "  Token starts at $last_completed_earleme, and its length is $length\n"
-                    )
-            } ## end when ( $_ & Marpa::Internal::Recognizer::EARLEME_MASK )
-            when ( $_ <= 0 ) {
-                Marpa::exception( 'Token '
-                        . $token->[Marpa::Internal::Symbol::NAME]
-                        . ' has non-positive length '
-                        . $length );
-            } ## end when ( $_ <= 0 )
-        } ## end given
-
-        my $end_earleme = $current_token_earleme + $length;
-
-        Marpa::exception(
-            'Token '
-                . $token->[Marpa::Internal::Symbol::NAME]
-                . " makes parse too long\n",
-            "  Token starts at $last_completed_earleme, and its length is $length\n"
-        ) if $end_earleme & Marpa::Internal::Recognizer::EARLEME_MASK;
-
-        $offset //= 1;
-        Marpa::exception(
-            'Token '
-                . $token->[Marpa::Internal::Symbol::NAME]
-                . " has negative offset\n",
-            "  Token starts at $last_completed_earleme, and its length is $length\n",
-            "  Tokens are required to in sequence by location\n",
-        ) if $offset < 0;
-        $next_token_earleme += $offset;
-
-        my $token_entry = [ $token, $value_ref, $length ];
-
-        # This logic is arranged so that non-overlapping tokens do not incur the cost
-        # of the checks for duplicates
-        my $tokens_here = $tokens_by_earleme->[$current_token_earleme];
-        if ( not $tokens_here ) {
-            $tokens_by_earleme->[$current_token_earleme] = [$token_entry];
+            last TOKEN if not my $token_args = $tokens->[$token_ix];
             $token_ix++;
-            next TOKEN;
-        }
+            my ( $symbol_name, $value, $length, $offset ) = @{$token_args};
 
-        my $token_hashes_by_earleme =
-            $recce->[Marpa::Internal::Recognizer::TOKEN_HASHES_BY_EARLEME];
-        my $token_hash_here =
-            $token_hashes_by_earleme->[$current_token_earleme];
+            Marpa::exception(
+                "Attempt to add token '$symbol_name' at location where processing is complete:\n",
+                "  Add attempted at $current_token_earleme\n",
+                "  Processing complete to $last_completed_earleme\n"
+            ) if $current_token_earleme < $last_completed_earleme;
+            my $token_id = $symbol_hash->{$symbol_name};
 
-        if ( not $token_hash_here ) {
-            $token_hashes_by_earleme->[$current_token_earleme] =
+            if ( not defined $token_id ) {
+                Marpa::exception( 'Unknown symbol '
+                        . ( defined $symbol_name ? "$symbol_name " : q{} )
+                        . 'used as token' );
+            }
+
+            my $token = $symbols->[$token_id];
+
+            # Make sure it's an allowed terminal symbol.
+            if ( not $token->[Marpa::Internal::Symbol::TERMINAL] ) {
+                Marpa::exception( 'Non-terminal '
+                        . ( defined $symbol_name ? "$symbol_name " : q{} )
+                        . 'supplied as token' );
+            }
+
+            my $value_ref = \($value);
+
+            given ($length) {
+                when (undef) { $length = 1; }
+                when ( $_ & Marpa::Internal::Recognizer::EARLEME_MASK ) {
+                    Marpa::exception(
+                        'Token '
+                            . $token->[Marpa::Internal::Symbol::NAME]
+                            . " is too long\n",
+                        "  Token starts at $last_completed_earleme, and its length is $length\n"
+                        )
+                } ## end when ( $_ & Marpa::Internal::Recognizer::EARLEME_MASK)
+                when ( $_ <= 0 ) {
+                    Marpa::exception( 'Token '
+                            . $token->[Marpa::Internal::Symbol::NAME]
+                            . ' has non-positive length '
+                            . $length );
+                } ## end when ( $_ <= 0 )
+            } ## end given
+
+            my $end_earleme = $current_token_earleme + $length;
+
+            Marpa::exception(
+                'Token '
+                    . $token->[Marpa::Internal::Symbol::NAME]
+                    . " makes parse too long\n",
+                "  Token starts at $last_completed_earleme, and its length is $length\n"
+            ) if $end_earleme & Marpa::Internal::Recognizer::EARLEME_MASK;
+
+            $offset //= 1;
+            Marpa::exception(
+                'Token '
+                    . $token->[Marpa::Internal::Symbol::NAME]
+                    . " has negative offset\n",
+                "  Token starts at $last_completed_earleme, and its length is $length\n",
+                "  Tokens are required to in sequence by location\n",
+            ) if $offset < 0;
+            $next_token_earleme += $offset;
+
+            # say STDERR __LINE__, " offset: $offset";
+            # say STDERR __LINE__, " next_token_earleme: $next_token_earleme";
+
+            my $token_entry = [ $token, $value_ref, $length ];
+
+            # This logic is arranged so that non-overlapping tokens do not incur the cost
+            # of the checks for duplicates
+            if ( not $tokens_here ) {
+                $tokens_here = [$token_entry];
+                next TOKEN;
+            }
+
+            if ( not $token_hash_here ) {
                 $token_hash_here =
-                { map { ( join q{;}, @{$_}[ 0, 2 ] ) => 1 } @{$tokens_here} };
-        }
+                    { map { ( join q{;}, @{$_}[ 0, 2 ] ) => 1 }
+                        @{$tokens_here} };
+            }
 
-        my $hash_key = join q{;}, $token, $length;
-        Marpa::exception( $token->[Marpa::Internal::Symbol::NAME],
-            " already exists with length $length at location $current_token_earleme"
-        ) if $token_hash_here->{$hash_key};
+            my $hash_key = join q{;}, $token, $length;
+            Marpa::exception( $token->[Marpa::Internal::Symbol::NAME],
+                " already exists with length $length at location $current_token_earleme"
+            ) if $token_hash_here->{$hash_key};
 
-        $token_hash_here->{$hash_key} = 1;
-        push @{$tokens_here}, $token_entry;
-        $token_ix++;
+            $token_hash_here->{$hash_key} = 1;
+            push @{$tokens_here}, $token_entry;
 
-    } ## end for my $token ( @{$tokens} )
+        } ## end while ( $current_token_earleme == $next_token_earleme )
 
-    $current_token_earleme++;
-    $next_token_earleme < $current_token_earleme and $next_token_earleme = $current_token_earleme;
+        $current_token_earleme++;
+        # say STDERR __LINE__, " current_token_earleme: $current_token_earleme";
+        # say STDERR __LINE__, " next_token_earleme: $next_token_earleme";
 
-    COMPLETION: while (1) {
-
-        # ================
-        # === SCANNING ===
-        # ================
-
-        my $tokens_here = $tokens_by_earleme->[$last_completed_earleme] // [];
+        $tokens_here //= [];
 
         $earley_set_list->[$last_completed_earleme] //= [];
         my $earley_set = $earley_set_list->[$last_completed_earleme];
@@ -760,20 +759,27 @@ sub Marpa::Recognizer::tokens {
             }
         } ## end if ($trace_terminals)
 
-        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = $furthest_earleme;
+        $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] =
+            $furthest_earleme;
         if ( $furthest_earleme < $last_completed_earleme ) {
-            $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = $furthest_earleme;
+            $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] =
+                $furthest_earleme;
             $recce->[Marpa::Internal::Recognizer::EXHAUSTED] = 1;
             return;
-        }
+        } ## end if ( $furthest_earleme < $last_completed_earleme )
 
-        last COMPLETION if $last_completed_earleme >= $next_token_earleme;
+        $last_completed_earleme = Marpa::Internal::Recognizer::complete($recce);
 
-        $last_completed_earleme =
-            Marpa::Internal::Recognizer::complete( $recce );
-    }
+    } ## end while (1)
 
     $recce->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = $furthest_earleme;
+
+    if ( $mode eq 'stream' ) {
+        while ( $last_completed_earleme < $next_token_earleme ) {
+            $last_completed_earleme =
+                Marpa::Internal::Recognizer::complete($recce);
+        }
+    }
 
     if ( $mode eq 'default' ) {
         while ( $last_completed_earleme < $furthest_earleme ) {
@@ -782,6 +788,8 @@ sub Marpa::Recognizer::tokens {
         }
         $recce->[Marpa::Internal::Recognizer::FINISHED] = 1;
     } ## end if ( $mode eq 'default' )
+
+    # say STDERR __LINE__, " current terminals: ", Data::Dumper::Dumper( $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] );
 
     return ( $last_completed_earleme,
         $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
@@ -945,6 +953,8 @@ sub complete {
     # different states.
 
     if ($trace_earley_sets) {
+        print {$Marpa::Internal::TRACE_FH} "=== Earley set $earleme_to_complete\n"
+            or Marpa::exception("print failed: $!");
         print {$Marpa::Internal::TRACE_FH} Marpa::show_earley_set($earley_set)
             or Marpa::exception("print failed: $!");
     }
