@@ -67,6 +67,27 @@ The C<ln_> prefix has been stripped.
     Astro::Nova::EquPosn get_equ_aber(Astro::Nova::EquPosn mean_position, double JD)
     Astro::Nova::LnLatPosn get_ecl_aber(Astro::Nova::LnLatPosn mean_position, double JD)
 
+  airmass.h
+    double get_airmass(double alt, double airmass_scale)
+
+  angular_separation.h
+    double get_angular_separation(Astro::Nova::EquPosn posn1, Astro::Nova::EquPosn posn2)
+    double get_rel_posn_angle(Astro::Nova::EquPosn posn1, Astro::Nova::EquPosn posn2)
+
+  apparent_position.h
+    Astro::Nova::EquPosn get_apparent_posn(Astro::Nova::EquPosn mean_position,
+                                           Astro::Nova::EquPosn proper_motion,
+                                           double JD)
+
+  asteroid.h
+    double get_asteroid_mag(double JD, Astro::Nova::EllOrbit orbit, double H, double G)
+    double get_asteroid_sdiam_km(double H, double A)
+    double get_asteroid_sdiam_arc(double JD, Astro::Nova::EllOrbit orbit, double H, double A)
+
+  comet.h
+    double get_ell_comet_mag(double JD, Astro::Nova::EllOrbit orbit, double g, double k)
+    double get_par_comet_mag(double JD, Astro::Nova::ParOrbit orbit, double g, double k)
+
 =head2 STRUCTS
 
 libnova defines several structs for passing data to or receiving results from the

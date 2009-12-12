@@ -1517,12 +1517,27 @@ ln_get_ell_body_earth_dist(JD, orbit)
 	struct ln_ell_orbit *	orbit
 */
 
-MODULE = Astro::Nova		PACKAGE = Astro::Nova	
+MODULE = Astro::Nova		PACKAGE = Astro::Nova	PREFIX=ln_
 
 INCLUDE: XS/Structs.xs
 
-INCLUDE: XS/Sidereal.xs
-
 INCLUDE: XS/Abberation.xs
 
+#### airmass.h
+double
+ln_get_airmass(alt, airmass_scale)
+  double alt
+  double airmass_scale
+
+INCLUDE: XS/AngularSeparation.xs
+
+INCLUDE: XS/ApparentPosition.xs
+
+INCLUDE: XS/Asteroid.xs
+
+INCLUDE: XS/Comet.xs
+
+
+
+INCLUDE: XS/Sidereal.xs
 
