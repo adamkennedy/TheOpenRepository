@@ -161,6 +161,20 @@ The C<ln_> prefix has been stripped.
       get_hyp_body_next_rst_horizon_future(double JD, Astro::Nova::LnLatPosn observer,
                                            Astro::Nova::HypOrbit orbit, double horizon,
                                            int day_limit)
+  
+  julian_day.h
+    double get_julian_day(Astro::Nova::Date date)
+    Astro::Nova::Date get_date(double JD)
+    Astro::Nova::Date get_date_from_timet(time_t t) (time_t is an integer)
+    Astro::Nova::ZoneDate get_local_date(double JD)
+    unsigned int get_day_of_week(Astro::Nova::Date date)
+    double get_julian_from_sys()
+    Astro::Nova::Date get_date_from_sys()
+    double get_julian_from_timet(time_t t) (time_t is an integer)
+    time_t get_timet_from_julian(double JD) (time_t is an integer)
+    double get_julian_local_date(Astro::Nova::ZoneDate zonedate)
+    Astro::Nova::ZoneDate date_to_zonedate(Astro::Nova::Date date, long gmtoff)
+    Astro::Nova::Date zonedate_to_date(Astro::Nova::ZoneDate zonedate)
 
 =head2 STRUCTS
 

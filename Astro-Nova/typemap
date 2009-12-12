@@ -17,3 +17,4 @@ struct lnh_equ_posn* O_OBJECT
 struct lnh_hrz_posn* O_OBJECT
 struct lnh_lnlat_posn* O_OBJECT
 
+time_t	T_IV
