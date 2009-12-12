@@ -253,7 +253,7 @@ use constant RECOGNIZER_OPTIONS => [
 ];
 
 use constant RECOGNIZER_MODES => [
-  qw(earleme default stream)
+  qw(default stream)
 ];
 
 sub Marpa::Recognizer::set {
@@ -534,7 +534,8 @@ sub Marpa::Recognizer::tokens {
     my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
 
-    my $next_token_earleme = my $last_completed_earleme =
+    my $current_token_earleme = my $next_token_earleme =
+        my $last_completed_earleme =
         $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
     my $furthest_token =
         $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN];
@@ -551,7 +552,7 @@ sub Marpa::Recognizer::tokens {
 
         my ( $symbol_name, $value, $length, $offset ) = @{$token_args};
 
-        my $current_token_earleme = $next_token_earleme;
+        $current_token_earleme = $next_token_earleme;
 
         Marpa::exception(
             "Attempt to add token '$symbol_name' at location where processing is complete:\n",
@@ -609,17 +610,15 @@ sub Marpa::Recognizer::tokens {
         }
 
         # Offsets are ignored in earleme mode
-        if ( $mode ne 'earleme' ) {
-            $offset //= 1;
-            Marpa::exception(
-                'Token '
-                    . $token->[Marpa::Internal::Symbol::NAME]
-                    . " has negative offset\n",
-                "  Token starts at $last_completed_earleme, and its length is $length\n",
-                "  Tokens are required to in sequence by location\n",
-            ) if $offset < 0;
-            $next_token_earleme += $offset;
-        } ## end if ( $mode ne 'earleme' )
+        $offset //= 1;
+        Marpa::exception(
+            'Token '
+                . $token->[Marpa::Internal::Symbol::NAME]
+                . " has negative offset\n",
+            "  Token starts at $last_completed_earleme, and its length is $length\n",
+            "  Tokens are required to in sequence by location\n",
+        ) if $offset < 0;
+        $next_token_earleme += $offset;
 
         my $token_entry = [ $token, $value_ref, $length ];
 
@@ -660,10 +659,11 @@ sub Marpa::Recognizer::tokens {
         when ('default') {
             $next_token_earleme = $furthest_token;
         }
-        when ('earleme') {
-            ++$next_token_earleme;
+        when ('stream') 
+        {
+            $current_token_earleme++;
+            $next_token_earleme < $current_token_earleme and $next_token_earleme = $current_token_earleme;
         }
-        when ('stream') { ; }
         default {
             Marpa::exception("Internal error: Unknown recognizer mode: $mode");
         }

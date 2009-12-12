@@ -72,7 +72,7 @@ sub Marpa::MDLex::mdlex {
     my $grammar = Marpa::Grammar->new( @{$grammar_arg_hashes} );
     $grammar->precompute();
     my $recce = Marpa::Recognizer->new(
-        { grammar => $grammar, mode => 'earleme' } );
+        { grammar => $grammar, mode => 'stream' } );
     my $lexer = Marpa::MDLex->new( { recce => $recce, },
         @{$lexer_arg_hashes} );
     $lexer->text($text);
@@ -103,7 +103,7 @@ sub Marpa::MDLex::new {
     my $recce = $lexer->[Marpa::MDLex::Internal::Lexer::RECOGNIZER];
     Carp::croak( 'No Recognizer for ' . __PACKAGE__ . ' constructor' )
         if not $recce;
-    $recce->set( { mode => 'earleme' } );
+    $recce->set( { mode => 'stream' } );
     $lexer->[Marpa::MDLex::Internal::Lexer::INITIALIZED] = 1;
     return $lexer;
 
