@@ -202,6 +202,18 @@ The C<ln_> prefix has been stripped.
     double get_lunar_bright_limb(double JD)
     double get_lunar_long_asc_node(double JD)
     double get_lunar_long_perigee(double JD)
+  
+  mars.h
+    double get_mars_sdiam(double JD)
+    Astro::Nova::RstTime get_mars_rst(double JD)
+    Astro::Nova::HelioPosn get_mars_helio_coords(double JD)
+    Astro::Nova::EquPosn get_mars_equ_coords(double JD)
+    double get_mars_earth_dist(double JD)
+    double get_mars_solar_dist(double JD)
+    double get_mars_magnitude(double JD)
+    double get_mars_disk(double JD)
+    double get_mars_phase(double JD)
+    Astro::Nova::RectPosn get_mars_rect_helio(double JD)
 
 =head2 STRUCTS
 

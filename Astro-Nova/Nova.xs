@@ -80,5 +80,7 @@ INCLUDE: XS/Jupiter.xs
 
 INCLUDE: XS/Lunar.xs
 
+INCLUDE: XS/Mars.xs
+
 INCLUDE: XS/Sidereal.xs
 
