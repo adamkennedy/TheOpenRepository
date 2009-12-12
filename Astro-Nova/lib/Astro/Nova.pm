@@ -250,6 +250,17 @@ The C<ln_> prefix has been stripped.
                                       Astro::Nova::LnLatPosn observer, double height, double JD)
     Astro::Nova::EquPosn get_parallax_ha(Astro::Nova::EquPosn object, double au_distance,
                                          Astro::Nova::LnLatPosn observer, double height, double H)
+  
+  precession.h
+    Astro::Nova::EquPosn get_equ_prec(Astro::Nova::EquPosn mean_position, double JD)
+    Astro::Nova::EquPosn get_equ_prec2(Astro::Nova::EquPosn mean_position, double fromJD, double toJD)
+    Astro::Nova::LnLatPosn get_ecl_prec(Astro::Nova::LnLatPosn mean_position, double JD)
+  
+  proper_motion.h
+    Astro::Nova::EquPosn get_equ_pm(Astro::Nova::EquPosn mean_position,
+                                    Astro::Nova::EquPosn proper_motion, double JD)
+    Astro::Nova::EquPosn get_equ_pm(Astro::Nova::EquPosn mean_position,
+                                    Astro::Nova::EquPosn proper_motion, double JD, double epoch_JD)
 
 =head2 STRUCTS / CLASSES
 

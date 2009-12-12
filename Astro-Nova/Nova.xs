@@ -80,7 +80,7 @@ INCLUDE: XS/Jupiter.xs
 
 INCLUDE: XS/Lunar.xs
 
-#### Note: Mars Mercury Neptune are really the same (apart from s/mars/mercury/g). Jupiter is only slightly different
+#### Note: Mars, Mercury, Neptune, Pluto are really the same (apart from s/mars/mercury/g). Jupiter is only slightly different
 
 INCLUDE: XS/Mars.xs
 
@@ -102,6 +102,12 @@ ln_get_nutation(double JD)
 INCLUDE: XS/ParabolicMotion.xs
 
 INCLUDE: XS/Parallax.xs
+
+INCLUDE: XS/Pluto.xs
+
+INCLUDE: XS/Precession.xs
+
+INCLUDE: XS/ProperMotion.xs
 
 INCLUDE: XS/Sidereal.xs
 
