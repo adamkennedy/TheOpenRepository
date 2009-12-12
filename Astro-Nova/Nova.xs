@@ -109,5 +109,20 @@ INCLUDE: XS/Precession.xs
 
 INCLUDE: XS/ProperMotion.xs
 
+#### refraction.h
+double
+ln_get_refraction_adj(double altitude, double atm_pres, double temp)
+
+INCLUDE: XS/RiseSet.xs
+
+INCLUDE: XS/Saturn.xs
+
 INCLUDE: XS/Sidereal.xs
+
+INCLUDE: XS/Solar.xs
+
+INCLUDE: XS/Uranus.xs
+
+INCLUDE: XS/Venus.xs
+
 

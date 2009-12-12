@@ -217,6 +217,8 @@ The C<ln_> prefix has been stripped.
   
   mercury.h
   neptune.h
+  uranus.h
+  venus.h
     Same as mars, except the planet name is replaced in the method names.
   
   nutation.h
@@ -261,6 +263,35 @@ The C<ln_> prefix has been stripped.
                                     Astro::Nova::EquPosn proper_motion, double JD)
     Astro::Nova::EquPosn get_equ_pm(Astro::Nova::EquPosn mean_position,
                                     Astro::Nova::EquPosn proper_motion, double JD, double epoch_JD)
+  
+  refraction.h
+    double get_refraction_adj(double altitude, double atm_pres, double temp)
+  
+  rise_set.h
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_object_rst(double JD, Astro::Nova::LnLatPosn observer, Astro::Nova::EquPosn object)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_object_rst_horizon(double JD, Astro::Nova::LnLatPosn observer,
+                             Astro::Nova::EquPosn object, double horizon)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_object_next_rst(double JD, Astro::Nova::LnLatPosn observer, Astro::Nova::EquPosn object)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_object_next_rst_horizon(double JD, Astro::Nova::LnLatPosn observer,
+                                  Astro::Nova::EquPosn object, double horizon)
+  
+  saturn.h
+    Same as jupiter, except the planet name is replaced in the method names.
+  
+  solar.h
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_solar_rst(double JD, Astro::Nova::LnLatPosn observer)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_solar_rst_horizon(double JD, Astro::Nova::LnLatPosn observer, double horizon)
+    Astro::Nova::HelioPosn get_solar_geom_coords(double JD)
+    Astro::Nova::EquPosn get_solar_equ_coords(double JD)
+    Astro::Nova::LnLatPosn get_solar_ecl_coords(double JD)
+    Astro::Nova::RectPosn get_solar_geo_coords(double JD)
+    double get_solar_sdiam(double JD)
 
 =head2 STRUCTS / CLASSES
 
