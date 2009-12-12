@@ -214,8 +214,38 @@ The C<ln_> prefix has been stripped.
     double get_mars_disk(double JD)
     double get_mars_phase(double JD)
     Astro::Nova::RectPosn get_mars_rect_helio(double JD)
+  
+  mercury.h
+  neptune.h
+    Same as mars, except the planet name is replaced in the method names.
+  
+  nutation.h
+    Astro::Nova::Nutation get_nutation(double JD)
+  
+  parabolic_motion.h
+    double solve_barker(double q, double t)
+    double get_par_true_anomaly(double q, double t)
+    double get_par_radius_vector(double q, double t)
+    Astro::Nova::RectPosn get_par_geo_rect_posn(Astro::Nova::ParOrbit orbit, double JD)
+    Astro::Nova::RectPosn get_par_helio_rect_posn(Astro::Nova::ParOrbit orbit, double JD)
+    Astro::Nova::EquPosn get_par_body_equ_coords(double JD, Astro::Nova::ParOrbit orbit)
+    double get_par_body_earth_dist(double JD, Astro::Nova::ParOrbit orbit)
+    double get_par_body_solar_dist(double JD, Astro::Nova::ParOrbit orbit)
+    double get_par_body_phase_angle(double JD, Astro::Nova::ParOrbit orbit)
+    double get_par_body_elong(double JD, Astro::Nova::ParOrbit orbit)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_par_body_rst(double JD, Astro::Nova::LnLatPosn observer)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_par_body_rst_horizon(double JD, Astro::Nova::LnLatPosn observer, double horizon)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_par_body_next_rst(double JD, Astro::Nova::LnLatPosn observer)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_par_body_next_rst_horizon(double JD, Astro::Nova::LnLatPosn observer, double horizon)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_par_body_next_rst_horizon_future(double JD, Astro::Nova::LnLatPosn observer,
+                                           double horizon, int day_limit)
 
-=head2 STRUCTS
+=head2 STRUCTS / CLASSES
 
 libnova defines several structs for passing data to or receiving results from the
 functions. These have been wrapped as Perl classes. Below is a list of the struct names,

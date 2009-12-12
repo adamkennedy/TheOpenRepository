@@ -80,7 +80,26 @@ INCLUDE: XS/Jupiter.xs
 
 INCLUDE: XS/Lunar.xs
 
+#### Note: Mars Mercury Neptune are really the same (apart from s/mars/mercury/g). Jupiter is only slightly different
+
 INCLUDE: XS/Mars.xs
+
+INCLUDE: XS/Mercury.xs
+
+INCLUDE: XS/Neptune.xs
+
+#### nutation.h
+struct ln_nutation*
+ln_get_nutation(double JD)
+    INIT:
+      const char* CLASS = "Astro::Nova::Nutation";
+    CODE:
+      Newx(RETVAL, 1, struct ln_nutation);
+      ln_get_nutation(JD, RETVAL);
+    OUTPUT:
+      RETVAL
+
+INCLUDE: XS/ParabolicMotion.xs
 
 INCLUDE: XS/Sidereal.xs
 
