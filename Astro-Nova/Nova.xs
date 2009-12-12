@@ -284,12 +284,6 @@ ln_get_earth_solar_dist(JD)
 	double	JD
 
 void
-ln_get_ecl_aber(mean_position, JD, position)
-	struct ln_lnlat_posn *	mean_position
-	double	JD
-	struct ln_lnlat_posn *	position
-
-void
 ln_get_ecl_from_equ(object, JD, position)
 	struct ln_equ_posn *	object
 	double	JD
@@ -447,12 +441,6 @@ void
 ln_get_equ2000_from_gal(gal, equ)
 	struct ln_gal_posn *	gal
 	struct ln_equ_posn *	equ
-
-void
-ln_get_equ_aber(mean_position, JD, position)
-	struct ln_equ_posn *	mean_position
-	double	JD
-	struct ln_equ_posn *	position
 
 void
 ln_get_equ_from_ecl(object, JD, position)
@@ -1534,5 +1522,7 @@ MODULE = Astro::Nova		PACKAGE = Astro::Nova
 INCLUDE: XS/Structs.xs
 
 INCLUDE: XS/Sidereal.xs
+
+INCLUDE: XS/Abberation.xs
 
 

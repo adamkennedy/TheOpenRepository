@@ -2,6 +2,12 @@ use 5.008;
 use strict;
 use warnings;
 use File::Spec; # todo configure_requires...
+use Getopt::Long qw/GetOptions/;
+
+my $no_compile_libnova = 0;
+GetOptions(
+  'no-compile' => \$no_compile_libnova,
+);
 
 my $novadir = 'libnova-0.13.0';
 my $novadir_static_lib = File::Spec->catfile($novadir, 'src', '.libs', 'libnova.a');
@@ -24,6 +30,7 @@ WriteMakefile(
 
 
 sub MY::postamble {
+  if ($no_compile_libnova) {
 "
 \$(MYEXTLIB): generate_structs
 	#cd $novadir && ./configure --with-pic && \$(MAKE) \$(PASSTHRU)
@@ -31,5 +38,15 @@ sub MY::postamble {
 generate_structs:
 	\$(PERL) buildtools\$(DFSEP)makeNovaClass.pl
 "
+  }
+  else {
+"
+\$(MYEXTLIB): generate_structs
+	cd $novadir && ./configure --with-pic && \$(MAKE) \$(PASSTHRU)
+
+generate_structs:
+	\$(PERL) buildtools\$(DFSEP)makeNovaClass.pl
+"
+  }
 }
 
