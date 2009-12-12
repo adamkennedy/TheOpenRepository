@@ -1541,6 +1541,7 @@ INCLUDE: XS/DynamicalTime.xs
 
 INCLUDE: XS/Earth.xs
 
+INCLUDE: XS/EllipticMotion.xs
 
 INCLUDE: XS/Sidereal.xs
 

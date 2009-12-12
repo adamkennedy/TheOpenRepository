@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 17;
 use Astro::Nova;
 
 SCOPE: {
@@ -34,3 +34,14 @@ SCOPE: {
 }
 
 pass();
+
+SCOPE: {
+  my $orbit = Astro::Nova::EllOrbit->new();
+  my $observer = Astro::Nova::LnLatPosn->new();
+  my @res = Astro::Nova::get_ell_body_rst(0, $observer, $orbit);
+  ok(@res == 2);
+  isa_ok($res[1], 'Astro::Nova::RstTime');
+}
+
+pass();
+

@@ -97,6 +97,41 @@ The C<ln_> prefix has been stripped.
     double get_earth_solar_dist(double JD)
     Astro::Nova::RectPosn get_earth_rect_helio(double JD)
     (double $p_sin_o, double $p_cos_o) = get_earth_centre_dist(float height, double latitude)
+  
+  elliptic_motion.h
+    double solve_kepler(double e, double M)
+    double get_ell_mean_anomaly(double n, double delta_JD)
+    double get_ell_true_anomaly(double e, double E)
+    double get_ell_radius_vector(double a, double e, double E)
+    double get_ell_smajor_diam(double e, double q)
+    double get_ell_sminor_diam(double e, double a)
+    double get_ell_mean_motion(double a)
+    Astro::Nova::RectPosn get_ell_geo_rect_posn(Astro::Nova::EllOrbit orbit, double JD)
+    Astro::Nova::RectPosn get_ell_helio_rect_posn(Astro::Nova::EllOrbit orbit, double JD)
+    double get_ell_orbit_len(Astro::Nova::EllOrbit orbit)
+    double get_ell_orbit_vel(double JD, Astro::Nova::EllOrbit orbit)
+    double get_ell_orbit_pvel(Astro::Nova::EllOrbit orbit)
+    double get_ell_orbit_avel(Astro::Nova::EllOrbit orbit)
+    double get_ell_body_phase_angle(double JD, Astro::Nova::EllOrbit orbit)
+    double get_ell_body_elong(double JD, Astro::Nova::EllOrbit orbit)
+    double get_ell_body_solar_dist(double JD, Astro::Nova::EllOrbit orbit)
+    double get_ell_body_earth_dist(double JD, Astro::Nova::EllOrbit orbit)
+    Astro::Nova::EquPosn get_ell_body_equ_coords(double JD, Astro::Nova::EllOrbit orbit)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_ell_body_rst(double JD, Astro::Nova::LnLatPosn observer, Astro::Nova::EllOrbit orbit)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_ell_body_rst_horizon(double JD, Astro::Nova::LnLatPosn observer,
+                               Astro::Nova::EllOrbit orbit, double horizon)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_ell_body_next_rst(double JD, Astro::Nova::LnLatPosn observer, Astro::Nova::EllOrbit orbit)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_ell_body_next_rst_horizon(double JD, Astro::Nova::LnLatPosn observer,
+                                    Astro::Nova::EllOrbit orbit, double horizon)
+    (int $status, Astro::Nova::RstTime $rst) =
+      get_ell_body_next_rst_horizon_futur(double JD, Astro::Nova::LnLatPosn observer,
+                                          Astro::Nova::EllOrbit orbit, double horizon,
+                                          int day_limit)
+    double get_ell_last_perihelion(double epoch_JD, double M, double n)
 
 =head2 STRUCTS
 
