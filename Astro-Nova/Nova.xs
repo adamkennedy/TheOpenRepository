@@ -1537,6 +1537,9 @@ INCLUDE: XS/Asteroid.xs
 
 INCLUDE: XS/Comet.xs
 
+INCLUDE: XS/DynamicalTime.xs
+
+INCLUDE: XS/Earth.xs
 
 
 INCLUDE: XS/Sidereal.xs

@@ -1,9 +1,9 @@
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 14;
 use Astro::Nova;
 
-{
+SCOPE: {
   pass();
   ok(Astro::Nova::get_apparent_sidereal_time(0) > 1., "apparent sidereal time is there");
   my $date = Astro::Nova::Date->new();
@@ -24,6 +24,13 @@ use Astro::Nova;
   my $mean_pos = Astro::Nova::EquPosn->new();
   my $res = Astro::Nova::get_equ_aber($mean_pos, 0);
   isa_ok($res, 'Astro::Nova::EquPosn');
+}
+
+pass();
+
+SCOPE: {
+  my @res = Astro::Nova::get_earth_centre_dist(0., 0.);
+  ok(@res == 2);
 }
 
 pass();
