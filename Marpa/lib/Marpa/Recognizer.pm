@@ -46,7 +46,6 @@ use Marpa::Offset qw(
     FURTHEST_EARLEME :{ last earley set with something in it }
     FURTHEST_TOKEN :{ furthest end of token }
     LAST_COMPLETED_EARLEME
-    NEXT_TOKEN_EARLEME
     TOKENS_BY_EARLEME
 
     TRACE_FILE_HANDLE
@@ -233,8 +232,7 @@ sub Marpa::Recognizer::new {
     $self->[Marpa::Internal::Recognizer::WANTED]                  = \%wanted;
 
     $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = -1;
-    $self->[Marpa::Internal::Recognizer::NEXT_TOKEN_EARLEME] =
-        $self->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] =
+    $self->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] =
         $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME] = 0;
 
     $self->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] = 
@@ -341,12 +339,12 @@ sub Marpa::Recognizer::status {
     my ($recce) = @_;
     my $exhausted = $recce->[Marpa::Internal::Recognizer::EXHAUSTED];
     return if $exhausted;
-    my $next_token_earleme =
-        $recce->[Marpa::Internal::Recognizer::NEXT_TOKEN_EARLEME];
-    return ( $next_token_earleme,
+    my $last_completed_earleme =
+        $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
+    return ( $last_completed_earleme,
         $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
         if wantarray;
-    return $next_token_earleme;
+    return $last_completed_earleme;
 } ## end sub Marpa::Recognizer::status
 
 sub Marpa::Recognizer::find_parse {
@@ -488,15 +486,13 @@ sub Marpa::show_earley_set_list {
 
 sub Marpa::Recognizer::show_earley_sets {
     my ($recce) = @_;
-    my $next_token_earleme = $recce->[NEXT_TOKEN_EARLEME] // 'stripped';
     my $last_completed_earleme = $recce->[LAST_COMPLETED_EARLEME]
         // 'stripped';
     my $furthest_earleme = $recce->[FURTHEST_EARLEME];
     my $earley_set_list  = $recce->[EARLEY_SETS];
 
     return
-        "Next Token Earley Set: $next_token_earleme; "
-        . "Last Completed: $last_completed_earleme; "
+        "Last Completed: $last_completed_earleme; "
         . "Furthest: $furthest_earleme\n"
         . Marpa::show_earley_set_list($earley_set_list);
 
@@ -538,9 +534,7 @@ sub Marpa::Recognizer::tokens {
     my $symbols     = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
     my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
 
-    my $next_token_earleme =
-        $recce->[Marpa::Internal::Recognizer::NEXT_TOKEN_EARLEME];
-    my $last_completed_earleme =
+    my $next_token_earleme = my $last_completed_earleme =
         $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
     my $furthest_token =
         $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN];
@@ -662,23 +656,18 @@ sub Marpa::Recognizer::tokens {
 
     $recce->[Marpa::Internal::Recognizer::FURTHEST_TOKEN] = $furthest_token;
 
-    my $furthest_earleme_to_complete;
     given ($mode) {
         when ('default') {
-            $furthest_earleme_to_complete = $furthest_token;
+            $next_token_earleme = $furthest_token;
         }
         when ('earleme') {
-            $furthest_earleme_to_complete = ++$next_token_earleme;
+            ++$next_token_earleme;
         }
-        when ('stream') {
-            $furthest_earleme_to_complete = $next_token_earleme;
-        }
+        when ('stream') { ; }
         default {
             Marpa::exception("Internal error: Unknown recognizer mode: $mode");
         }
     } ## end given
-
-    $recce->[Marpa::Internal::Recognizer::NEXT_TOKEN_EARLEME] = $next_token_earleme;
 
     COMPLETION: while (1) {
 
@@ -804,7 +793,7 @@ sub Marpa::Recognizer::tokens {
 
         last COMPLETION
             if $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME]
-                >= $furthest_earleme_to_complete;
+                >= $next_token_earleme;
 
         $last_completed_earleme =
             $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] =
@@ -837,7 +826,6 @@ sub Marpa::Recognizer::end_input {
             $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] =
             Marpa::Internal::Recognizer::complete($recce);
     }
-    $recce->[Marpa::Internal::Recognizer::NEXT_TOKEN_EARLEME] = $last_completed_earleme;
     $recce->[Marpa::Internal::Recognizer::FINISHED] = 1;
     return 1;
 } ## end sub Marpa::Recognizer::end_input
