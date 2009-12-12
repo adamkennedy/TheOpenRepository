@@ -57,6 +57,7 @@ use Marpa::Offset qw(
     CURRENT_TERMINALS
     EARLEY_HASH
     EXHAUSTED
+    FINISHED
     TERMINALS_BY_STATE
     TOKEN_HASHES_BY_EARLEME
 
@@ -524,7 +525,11 @@ sub Marpa::Recognizer::tokens {
     my $earley_hash     = $recce->[Marpa::Internal::Recognizer::EARLEY_HASH];
     my $wanted          = $recce->[Marpa::Internal::Recognizer::WANTED];
 
-    Marpa::exception('Attempt to scan tokens after parsing was exhausted')
+    Marpa::exception('Attempt to scan tokens after parsing is finished')
+        if $recce->[Marpa::Internal::Recognizer::FINISHED]
+            and scalar @{$tokens};
+
+    Marpa::exception('Attempt to scan tokens when parsing is exhausted')
         if $recce->[Marpa::Internal::Recognizer::EXHAUSTED]
             and scalar @{$tokens};
 
@@ -806,6 +811,9 @@ sub Marpa::Recognizer::tokens {
             Marpa::Internal::Recognizer::complete( $recce );
     }
 
+    $mode eq 'default'
+        and $recce->[Marpa::Internal::Recognizer::FINISHED] = 1;
+
     return ( $next_token_earleme,
         $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
         if wantarray;
@@ -829,6 +837,8 @@ sub Marpa::Recognizer::end_input {
             $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME] =
             Marpa::Internal::Recognizer::complete($recce);
     }
+    $recce->[Marpa::Internal::Recognizer::NEXT_TOKEN_EARLEME] = $last_completed_earleme;
+    $recce->[Marpa::Internal::Recognizer::FINISHED] = 1;
     return 1;
 } ## end sub Marpa::Recognizer::end_input
 
@@ -960,8 +970,8 @@ sub complete {
         }
     } ## end if ( $too_many_earley_items >= 0 and ( my $item_count...))
 
-    # TODO: Prove that the completion links are UNIQUE
-    # Update 2009-Oct-25: Doesn't really matter.
+    # Are the completion links unique?
+    # It doesn't matter a lot.
     # I have to remove duplicates anyway
     # because the same rule derivation can result from
     # different states.

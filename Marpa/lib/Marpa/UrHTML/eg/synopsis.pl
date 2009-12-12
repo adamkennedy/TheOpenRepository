@@ -8,13 +8,14 @@ use Marpa::UrHTML;
 use HTML::Tagset;
 use List::Util;
 
-# Do:
+# Possible to do:
 #
 # Delete spacer tag (only implemented in Netscape prior to 6.0)
 # Delete everything but title
 # Delete PI's
 # Delete everything but PI's
 # Print links
+# Print title
 # Complexity measure (or approximation?)
 
 my $example1 = '<?pi><table><?pi><tr><td><table><?pi>x</table></table><?pi>';
@@ -36,12 +37,9 @@ sub mark_missing_tags {
     my $literal = (
         Marpa::UrHTML::start_tag()
         ? q{}
-        : qq{\n<!-- Missing start tag for $tagname element -->}
+        : qq{\n<!-- Missing start tag for $tagname element -->\n}
     ) . Marpa::UrHTML::literal();
-    if ( !Marpa::UrHTML::end_tag() ) {
-        chomp $literal;
-        $literal .= qq{\n<!-- Missing end tag for $tagname element -->};
-    }
+    !Marpa::UrHTML::end_tag() and $literal .= qq{\n<!-- Missing end tag for $tagname element -->\n};
     return $literal;
 } ## end sub mark_missing_tags
 
@@ -101,20 +99,6 @@ $value = Marpa::UrHTML->new(
     }
 )->parse( \$example1 );
 say "Remove Processing Instructions only inside tables:\n", $value;
-
-sub calculate_max_depths {
-    my ($child_data) = @_;
-    my %return_value = ();
-    for my $child_value ( grep { ref $_ } map { $_->[0] } @{$child_data} ) {
-        CHILD_TAGNAME: for my $child_tagname ( keys %{$child_value} ) {
-            my $depth = $child_value->{$child_tagname};
-            next CHILD_TAGNAME
-                if $depth <= ( $return_value{$child_tagname} // 0 );
-            $return_value{$child_tagname} = $depth;
-        } ## end for my $child_tagname ( keys %{$child_value} )
-    } ## end for my $child_value ( grep { ref $_ } map { $_->[0] }...)
-    return \%return_value;
-} ## end sub calculate_max_depths
 
 $value = Marpa::UrHTML->new(
     {   handlers => [

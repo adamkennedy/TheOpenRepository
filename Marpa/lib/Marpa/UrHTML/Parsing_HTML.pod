@@ -1,6 +1,6 @@
 =head1 NAME
 
-Marpa::UrHTML::How_It_Works - The Dao of HTML
+Marpa::UrHTML::Parsing_HTML - A Strategy for "Natural" HTML Parsing
 
 =head1 EPIGRAPH
 
@@ -11,40 +11,40 @@ Marpa::UrHTML::How_It_Works - The Dao of HTML
 =head1 SUMMARY
 
 High-level parsing of
-HTML, that is, determining an HTML
-document's overall structure, has been considered
-a difficult problem in the past.
+HTML means determining an HTML
+document's overall structure.
+This has been considered
+a difficult problem in the past,
+especially for invalid and broken
+HTML.
 This document outlines a straightforward,
 natural and transparent method for parsing
-arbitrary documents in the spirit of
-the HTML family of standards.
+arbitrary documents according to the Dao
+of HTML.
 
 =head1 THE BASIC IDEA
 
-L<Marpa::UrHTML> combines two major components.
-It uses what I will call a Wishful Thinking Parser and
-a Wish-Fulfilling Tokenizer.
+L<Marpa::UrHTML> combines two major components:
+a Wishful Thinking Parser and a Ruby Slippers Tokenizer.
 
 The Wishful Thinking Parser ("Wishful Parser" for short)
 uses L<a grammar|/"APPENDIX: THE GRAMMAR">
-that makes a convenient, but false assumption
-about HTML.
-The Wishful Parser assumes that all elements have start and end tags.
-This assumption is not true of the kind of HTML actually found
-out on the Web, which L<Marpa::UrHTML> will parse.
-In fact,
-this assumption is not even true of HTML strictly valid according to the
-standards.
+that assumes its input is a language
+like HTML, but nicer.
+In particular, it assumes that its input is not real
+HTML, but a "virtual HTML" where all elements
+have start and end tags.
 
-Paired with the Wishful Parser is a Wish-Granting Tokenizer,
-(Wish-Granter for short).
-It is the job of this Tokenizer to make the Wishful Parser's
-false assumption about HTML look right.
-The Wish-Granting Tokenizer
-creates a virtual
-document that makes the Wishful Parser's wishes come true.
-This virtual document needs to be easily mapped to the
-physical one.
+The Ruby Slippers Tokenizer ("Ruby Slippers" for short)
+is in charge of prettying up the input so that
+the Wishful Parser sees the kind of world it wants to see.
+This turns out to be easy to do for valid HTML,
+and not hard for invalid and/or broken HTML.
+
+The parse that the Wishful Parser produces is
+of a cleaned-up virtual HTML document, not the real one.
+But the parse of the virtual document easily maps
+back to a parse of the physical document.
 
 =head1 THE WISHFUL PARSER
 
@@ -62,71 +62,102 @@ picture.
 L<Marpa::UrHTML> uses this approach to let each
 of the two components handle what they do best.
 
-Crucial to the workability of this method is that
-L<Marpa> allows predictive lexing.
-In predictive lexing the high-level parser is
-able to tell the lexer
-which tokens will allow the parse to proceed.
-The combination of
-predictive lexing and Earley's
-is new with the L<Marpa> algorithm
-and apparently something of a surprise.
+The L<Marpa> parse engine,
+on which L<Marpa::UrHTML> is based,
+allows predictive lexing.
+Predictive lexing is an essential part of the
+strategy for parsing HTML described in this document.
+In predictive lexing the high-level parser tells
+the low-level parser (or tokenizer) what tokens it
+needs in order for the parse to proceed.
 
-=head1 THE WISH-GRANTING TOKENIZER
+=head1 THE RUBY SLIPPERS TOKENIZER
 
 This strategy, of trying to isolate the process of parsing
 HTML into nitty low-level details, on one hand,
 and the big picture on the other,
 turns out to be eminently practical.
-A Wish-Granting Tokenizer is not hard to write.
-L<Marpa::UrHTML> uses L<HTML::PullParser> to do most
-of the low-level parsing.
-L<HTML::PullParser> needs to be wrapped with
-other logic
-to implement the wish-granting.
+A Ruby Slippers Tokenizer is not at all hard to write.
+L<Marpa::UrHTML> uses L<HTML::PullParser> to handle most
+of the low-level details.
+A thin layer of logic is wrapped around
+L<HTML::PullParser> 
+to implement the wish-granting abilities of the Ruby Slippers.
 
-=head1 HOW THE WISH-GRANTING WORKS
+=head1 HOW THE RUBY SLIPPERS WORK
 
-First, let's consider the case of HTML valid
-according to one of the standard.
-What the Wish-Granting Tokenizer needs to do for
-each token is
-the following.
+For simplicity, let's consider the case of HTML valid
+according to one of the standards first.
+What the Ruby Slippers needs to do for
+each token it sees in the physical document is
+the following:
 
-=over 4
+=head2 Step 1: Get The List of Acceptable Tokens
 
-=item 1.
-Get a list of the token types that the Wishful Thinking Parser
-wants to see at this point.
+Since the Wishful Thinking Parser is predictive,
+it knows at any point what tokens will allow the parse
+to continue.
+The Ruby Slippers gets this list.
 
-=item 2.
-If the physical token is one of them, hand it over to the
-Wishful Thinking Parser.
+=head2 Step 2: Compare the Physical Token
 
-=item 3.
-If the physical token is not one of the token types, then
-look in the list of tokens that the
-Wishful Thinking Parser wants for an end tag, or a
-start tag which is allowed to be optional according to the
-standards.
+Is the physical token that the Ruby Slippers
+one of the tokens that the Wishful
+Thinking Parser is looking for?
+If so, great.  The Ruby Slippers
+just hand the physical
+token over, as is, to the Wishful Parser.
+Otherwise, the Ruby Slippers proceed to Step 3.
 
-=item 4.
-Step 3 will always find one and only one token.
-Invent a virtual token of that type and hand it over
-to the Wishful Thinking Parser.
+=head2 Step 3: Which of the Acceptable Tokens are Optional Tokens?
 
-=back
+What if
+the physical token is not one of the tokens acceptable
+to the Wishful Parser?
+In that case, the Ruby Slippers examines the list
+of tokens the Wishful Parser does find acceptable
+at this point in the parse.
+The Ruby Slippers looks among
+tokens acceptable to the Wishful Parser
+for tokens which are allowed
+to be optional in the physical document.
+Optional tokens are always start or end tokens.
 
-For HTML valid according to the standards, these simple rules are
-all that is needed.
-Click the heels on the ruby slippers three times and you're there.
+=head2 Step 4: Create a Virtual Token
+
+The Ruby Slippers
+pick one of the optional tokens that are acceptable to the Wishful
+Parse at this point in the parse.
+The Ruby Slippers invent a virtual token of that type, and hand
+it over to the Wishful Parser.
+
+For HTML valid according to the standards, this step is
+surprisingly easy.
+There is always one and only one token which is both
+optional and acceptable to the Wishful Parser.
+No decision has to be made.
+
+=head1 THAT'S IT
+
+What I have described to this point
+is sufficient to parse valid HTML.
+Parsing broken and invalid HTML is a bit more
+complicated.
+Even those additional details
+are straightforward and intuitive.
+The test of this document is about those details.
 
 =head1 EVERYTHING LOOKS LIKE HTML
 
-But L<Marpa::UrHTML> does not require its input document be
+L<Marpa::UrHTML> does not require its input document be
 valid according to the HTML standards.
 Far from it.
 For L<Marpa::UrHTML> every document is a valid HTML documents.
+L<Marpa::UrHTML> accepts that a document might be invalid or
+broken, but
+L<Marpa::UrHTML>
+assumes that there is an HTML structure in there somewhere,
+and does its best to find it.
 
 For documents which conform to one of the HTML specifications,
 L<Marpa::UrHTML> finds the structure according to the standard.
@@ -142,120 +173,26 @@ treated as body text,
 with L<Marpa::UrHTML> trying to make sense of
 anything in the document that looks like markup.
 
-=head1 DETAILS
+=head1 OPTIONAL START AND END TAGS
 
-Parsing the things that pass for HTML,
-and making a reasonable guess as to the intent,
-makes things
-more complicated.
-But the logic involved still is straightforward
-and a natural outgrowth of the problem.
+What determines whether a start or end tag is optional?
+Some end tokens, and a few start tokens,
+are optional because the standards say they
+can be.
+The practice of liberal parsers in current
+is to allow other start and end tags to be
+optional.
 
-The rest of this document describes those additional
-details needed for extremely loose HTML parsing.
+L<Marpa::UrHTML> is completely liberal
+in what it accepts.
+Since in broken HTML any end tag could be
+missing, 
+L<Marpa::UrHTML> is be prepared as a last resort
+to supply a virtual replacement for any end tag.
+This means that for
+L<Marpa::UrHTML> all end tags are in effect optional.
 
-=head1 DETAILS (notes)
-
-=head2 Virtual Tokens
-
-When stumped, the lexer has two choices, add a virtual token,
-or add cruft.
-
-Any end token can be a virtual token.
-In addition, optional start tags can be virtual tokens.
-The HTML DTD specifies four of these:
-
-    <html>
-    <head>
-    <body>
-    <tbody>
-
-L<HTML::Tree> also treats these table start tags as optional.
-
-    <table>
-    <tr>
-    <td>
-
-This is wrong according to the DTD, and unsupported by Mozilla,
-but I decided that it was important for L<Marpa::UrHTML> to pass
-the same tests as L<HTML::Tree>, so these three start tags
-are also virtual terminals.
-
-=head2 Interaction of the wishful-thinking-BNF and the Lexer.
-
-Every once in a while in programming or mathematics you come across
-an moment of real beauty.
-This occurred for me when I combined the Wishful Thinking HTML BNF
-with the predictive lexer.
-
-The interaction is based on this simple rule:
-
-     If you can't give the Wishful Thinking Grammar the token
-     you have, give it the one it wants.
-
-Since Marpa does predictive lexing, the UrHTML lexer can know which
-virtual tokens will work.
-B<It turns out that at almost all points there is almost
-always just one virtual token that
-the Wishful Thinking Grammar will accept.>
-So it goes like this.
-
-=over 4
-
-=item The Wishful Thinking Grammar tells the Lexer what tokens it wants.
-
-=item If the the actual physical token from HTML::TokeParser is the one
-the Wishful Thinking Grammar wanted, the Lexer hands it over.
-
-=item If the real, physical token is not acceptable to the Wishful Thinking Parser,
-the Lexer looks in the list of tokens that the Wishful Thinking Parser will accept
-for virtual tokens.  Usually there will be one and only one.
-
-=item The Lexer gives the Wishful Thinking Grammar the token it wants.
-
-=back
-
-One problem you might see in simply indulging the fantasies of the Wishful
-Thinking Grammar: Don't you run the risk of prematurely ending elements?
-The answer in almost all cases is no.
-Normally, in cases where you want the parsing of an element to continue,
-the token you have is one of the ones that Wishful Thinking Grammar expects.
-And an expected token always takes priority over "wishful", or virtual, tokens.
-
-=head2 Conflicting Wishes
-
-In fact, if we stick to the DTD and ignore the L<HTML::Tree> loosenings of
-the DTD, there is only one case of a conflict between "wishes".  In tables,
-there could be a choice between ending the table and starting the table body:
-between a virtual C<< <tbody> >> and a virtual C<< </table> >>.
-
-What is wanted is to start the table body in preference to ending the table,
-that is to give a virtual C<< <tbody> >> priority over a virtual C<< </table> >>.
-This could have been special cased.
-But
-
-=over 4
-
-=item *
-Conformity with the loosened table parsing of L<HTML::Tree>
-introduced several other conflicts.
-
-=item *
-It seemed desirable to allow for UrHTML someday to be configurable.
-
-=item *
-L<Marpa::UrHTML> is intended to encourage others to "borrow" its logic,
-extend it and change it.  Robustness in the face of change is A Good Thing.
-
-=back
-
-For these reasons
-I implemented
-a more general mechanism for the dealing with conflicts.
-It is not complicated, but for dealing with the single
-conflict created by original DTD's, it is very much overkill.
-
-=head2 Prioritizing of Virtual Terminals
+=head2 CONFLICTS: PRIORITIZING TOKENS
 
 The mechanism for dealing with conflicts is a prioritization scheme,
 and a handful of special cases.
@@ -306,7 +243,7 @@ when there is no other choice.  Part of the guarantee these is to put
 virtual C<< <table> >> tags as low as possible in the priority scheme.
 C<< <table> >> tags are also one of the special cases.
 
-=head2 Virtual tags: The Special Cases
+=head2 CONFLICTS: SPECIAL CASES
 
 In addition to giving virtual
 C<< <table> >> tags a very low priority, they also 
@@ -358,7 +295,76 @@ C<< </html> >> will cause an
 infinite loop and,
 as a special case, is prevented.
 
+=head1 DETAILS (notes)
+
+=head2 Virtual Tokens
+
+When stumped, the lexer has two choices, add a virtual token,
+or add cruft.
+
+Any end token can be a virtual token.
+In addition, optional start tags can be virtual tokens.
+The HTML DTD specifies four of these:
+
+    <html>
+    <head>
+    <body>
+    <tbody>
+
+L<HTML::Tree> also treats these table start tags as optional.
+
+    <table>
+    <tr>
+    <td>
+
+This is wrong according to the DTD, and unsupported by Mozilla,
+but I decided that it was important for L<Marpa::UrHTML> to pass
+the same tests as L<HTML::Tree>, so these three start tags
+are also virtual terminals.
+
+One problem you might see in simply indulging the fantasies of the Wishful
+Thinking Grammar: Don't you run the risk of prematurely ending elements?
+The answer in almost all cases is no.
+Normally, in cases where you want the parsing of an element to continue,
+the token you have is one of the ones that Wishful Thinking Grammar expects.
+And an expected token always takes priority over "wishful", or virtual, tokens.
+
+=head2 Conflicting Wishes
+
+In fact, if we stick to the DTD and ignore the L<HTML::Tree> loosenings of
+the DTD, there is only one case of a conflict between "wishes".  In tables,
+there could be a choice between ending the table and starting the table body:
+between a virtual C<< <tbody> >> and a virtual C<< </table> >>.
+
+What is wanted is to start the table body in preference to ending the table,
+that is to give a virtual C<< <tbody> >> priority over a virtual C<< </table> >>.
+This could have been special cased.
+But
+
+=over 4
+
+=item *
+Conformity with the loosened table parsing of L<HTML::Tree>
+introduced several other conflicts.
+
+=item *
+It seemed desirable to allow for UrHTML someday to be configurable.
+
+=item *
+L<Marpa::UrHTML> is intended to encourage others to "borrow" its logic,
+extend it and change it.  Robustness in the face of change is A Good Thing.
+
+=back
+
+For these reasons
+I implemented
+a more general mechanism for the dealing with conflicts.
+It is not complicated, but for dealing with the single
+conflict created by original DTD's, it is very much overkill.
+
 =head1 THE MARPA PARSE ENGINE
+
+    Rewrite?  Delete?
 
 Marpa is derived from
 the parser
@@ -370,6 +376,8 @@ L<described by Jay
 Earley in 1970|Marpa::Doc::Bibliography/"Earley 1970">.
 
 =head1 APPENDIX: THE GRAMMAR
+
+    Also, Productions created on the fly.
 
 This grammar is taken directly from the code.
 The UrHTML grammar is created directly from this.

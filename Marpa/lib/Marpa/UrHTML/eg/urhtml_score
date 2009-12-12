@@ -168,41 +168,50 @@ C<urhtml_score> - Show complexity metric and other stats for web page
 
 =head1 DESCRIPTION
 
-Given a URI or file, treats it as an HTML file
+Given a URI or a file name,
+treats its referent as HTML
 and prints a complexity metric,
-the maximum element depth and other, per-element, statistics.
-The complexity metric is the average depth (or nesting level), in elements, of a character,
-divided by the logarithm of the length of the HTML.
-
-The per-element statistics appear in rows, one per element.
-There is a row for each tag name,
-with
+the maximum element depth, and per-element statistics.
+The per-element statistics appear in rows, one per tag name.
+For each tag name, its row contains:
 
 =over 4
 
 =item *
-The maximum nesting depth of that tag
-(not taking into account other elements).
+The maximum nesting depth of elements with
+that tag name.
+This is per-tag-name nesting depth,
+and does not take
+into account nesting within other elements with
+other tag names.
 
 =item *
-A count of the tags of that kind in the document.
+A count of the elements with that tag name in the document.
 
 =item *
-The total number of characters in elements of that type.
+The total number of characters in elements with that tag name.
 Characters in nested elements are counted multiple times.
 For example, if a page contains a table within a table,
 characters in the inner table will be counted twice.
 
 =item *
-The average size of elements of this tag type, in characters.
+The average size of elements with this tag name, in characters.
 
 =back
 
-The argument to L<urhtml_score> is treated either as a URI or a file
+The argument to L<urhtml_score> can be either a URI or a file
 name.  If it starts with alphanumerics followed by a colon, it is treated
 as a URI.  Otherwise it is treated as file name.
-If the C<--html> argument is specified, the output is written
+If the C<--html> option is specified, the output is written
 as an HTML table.
+
+The complexity metric is the average depth (or nesting level), in elements, of a character,
+divided by the logarithm of the length of the HTML.
+Whitespace and comments are ignored in calculating the complexity metric.
+The division by the logarithm of the HTML length is based on the idea that,
+all else being equal,
+it is reasonable for the nesting to increase logarithmically as
+a web page grows in length.
 
 =head1 SAMPLE OUTPUT
 
@@ -220,23 +229,16 @@ Here is the first part of the output for C<http://perl.org>.
     h1                   1          1         37         37
     h4                   1         11        559         50
 
-=head1 THE COMPLEXITY METRIC
+=head1 INTERPRETING THE COMPLEXITY METRIC
 
-Calling this complexity metric a "quality metric",
-would be going too far.
-Well designed websites often have low numbers.
-But high numbers don't necessarily mean low quality --
-it depends on what the mission is, and how well
-complexity is being leveraged to serve that mission.
-
-To obtain the complexity metric,
-the nesting depth of the average character is divided by the logarithm
-of the length of the HTML.
-The idea is that as a web page grows,
-all else being equal,
-it is reasonable for the
-nesting depth to grow logarithmically, but no
-faster.
+With caution,
+the complexity metric can be used as a self-assessment
+of website quality.
+Well designed websites often have low numbers,
+particularly if fast loading is an important goal.
+But high values of the complexity metric do not necessarily mean low quality.
+Everything depends on what the mission is, and how well
+complexity is being used to serve the site's mission.
 
 =head1 PURPOSE
 
