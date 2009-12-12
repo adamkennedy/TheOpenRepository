@@ -46,3 +46,27 @@ XS/Struct\.pm$
 
 # Avoid libnova archives
 \blibnova-\d+\.\d+\.\d+\.tar\.gz$
+
+libnova-0.13.0\/config.log
+libnova-0.13.0\/config.status
+libnova-0.13.0\/stamp-h1
+libnova-0.13.0\/config.h
+libnova-0.13.0\/libtool
+libnova-0.13.0\/Makefile
+libnova-0.13.0\/src\/.deps
+libnova-0.13.0\/src\/Makefile
+libnova-0.13.0\/src\/libnova\/Makefile
+libnova-0.13.0\/doc\/Makefile
+libnova-0.13.0\/lntest\/libnovaconfig
+libnova-0.13.0\/lntest\/.deps
+libnova-0.13.0\/lntest\/lntest
+libnova-0.13.0\/lntest\/Makefile
+libnova-0.13.0\/examples\/lunar
+libnova-0.13.0\/examples\/transforms
+libnova-0.13.0\/examples\/mars
+libnova-0.13.0\/examples\/sun
+libnova-0.13.0\/examples\/comet
+libnova-0.13.0\/examples\/.deps
+libnova-0.13.0\/examples\/asteroid
+libnova-0.13.0\/examples\/Makefile
+

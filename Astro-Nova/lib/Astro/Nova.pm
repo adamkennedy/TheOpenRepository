@@ -265,7 +265,9 @@ Astro::Nova - Perl interface to libnova
 
 =head1 DESCRIPTION
 
-A libnova wrapper. The goal of this documentation is to document the Perl wrapper,
+A libnova wrapper that includes a copy of libnova 0.13.0 itself for static linking.
+See L</COPYRIGHT AND LICENSE> for licensing details.
+The goal of this documentation is to document the Perl wrapper,
 not to reproduce the entire libnova documentation. Please find the documentation
 at L<http://libnova.sourceforge.net/>.
 
@@ -684,10 +686,15 @@ Steffen Mueller, E<lt>smueller@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by Steffen Mueller
+The Astro::Nova wrapper of libnova is copyright (C) 2009 by Steffen Mueller.
 
-This library is free software; you can redistribute it and/or modify
+The wrapper code is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.0 or,
 at your option, any later version of Perl 5 you may have available.
+
+libnova is maintained by Liam Girdwood and Petr Kubanek.
+
+libnova is released under the GNU LGPL. This may limit the licensing
+terms of the wrapper code. If in doubt, ask a lawyer.
 
 =cut
