@@ -121,7 +121,11 @@ INCLUDE: XS/Sidereal.xs
 
 INCLUDE: XS/Solar.xs
 
+INCLUDE: XS/Transform.xs
+
 INCLUDE: XS/Uranus.xs
+
+INCLUDE: XS/Utility.xs
 
 INCLUDE: XS/Venus.xs
 

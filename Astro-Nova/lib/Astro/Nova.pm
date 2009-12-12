@@ -9,6 +9,235 @@ require Exporter;
 our @ISA = qw(Exporter);
 
 our %EXPORT_TAGS = ( 'all' => [ qw(
+    get_equ_aber
+    get_ecl_aber
+    get_airmass
+    get_angular_separation
+    get_rel_posn_angle
+    get_apparent_posn
+    get_asteroid_mag
+    get_asteroid_sdiam_km
+    get_asteroid_sdiam_arc
+    get_ell_comet_mag
+    get_par_comet_mag
+    get_dynamical_time_diff
+    get_jde
+    get_mean_sidereal_time
+    get_apparent_sidereal_time
+    get_earth_helio_coords
+    get_earth_solar_dist
+    get_earth_rect_helio
+    get_earth_centre_dist
+    solve_kepler
+    get_ell_mean_anomaly
+    get_ell_true_anomaly
+    get_ell_radius_vector
+    get_ell_smajor_diam
+    get_ell_sminor_diam
+    get_ell_mean_motion
+    get_ell_geo_rect_posn
+    get_ell_helio_rect_posn
+    get_ell_orbit_len
+    get_ell_orbit_vel
+    get_ell_orbit_pvel
+    get_ell_orbit_avel
+    get_ell_body_phase_angle
+    get_ell_body_elong
+    get_ell_body_solar_dist
+    get_ell_body_earth_dist
+    get_ell_body_equ_coords
+    get_ell_body_rst
+    get_ell_body_rst_horizon
+    get_ell_body_next_rst
+    get_ell_body_next_rst_horizon
+    get_ell_body_next_rst_horizon_future
+    get_ell_last_perihelion
+    get_heliocentric_time_diff
+    solve_hyp_barker
+    get_hyp_true_anomaly
+    get_hyp_radius_vector
+    get_hyp_geo_rect_posn
+    get_hyp_helio_rect_posn
+    get_hyp_body_equ_coords
+    get_hyp_body_earth_dist
+    get_hyp_body_solar_dist
+    get_hyp_body_phase_angle
+    get_hyp_body_elong
+    get_hyp_body_rst
+    get_hyp_body_rst_horizon
+    get_hyp_body_next_rst
+    get_hyp_body_next_rst_horizon
+    get_hyp_body_next_rst_horizon_future
+    get_julian_day
+    get_date
+    get_date_from_timet
+    get_local_date
+    get_day_of_week
+    get_julian_from_sys
+    get_date_from_sys
+    get_julian_from_timet
+    get_timet_from_julian
+    get_julian_local_date
+    date_to_zonedate
+    zonedate_to_date
+    get_jupiter_equ_sdiam
+    get_jupiter_pol_sdiam
+    get_jupiter_rst
+    get_jupiter_helio_coords
+    get_jupiter_equ_coords
+    get_jupiter_earth_dist
+    get_jupiter_solar_dist
+    get_jupiter_magnitude
+    get_jupiter_disk
+    get_jupiter_phase
+    get_jupiter_rect_helio
+    get_saturn_equ_sdiam
+    get_saturn_pol_sdiam
+    get_saturn_rst
+    get_saturn_helio_coords
+    get_saturn_equ_coords
+    get_saturn_earth_dist
+    get_saturn_solar_dist
+    get_saturn_magnitude
+    get_saturn_disk
+    get_saturn_phase
+    get_saturn_rect_helio
+    get_lunar_sdiam
+    get_lunar_rst
+    get_lunar_geo_posn
+    get_lunar_equ_coords_prec
+    get_lunar_equ_coords
+    get_lunar_ecl_coords
+    get_lunar_phase
+    get_lunar_disk
+    get_lunar_earth_dist
+    get_lunar_bright_limb
+    get_lunar_long_asc_node
+    get_lunar_long_perigee
+
+    get_mars_sdiam
+    get_mars_rst
+    get_mars_helio_coords
+    get_mars_equ_coords
+    get_mars_earth_dist
+    get_mars_solar_dist
+    get_mars_magnitude
+    get_mars_disk
+    get_mars_phase
+    get_mars_rect_helio
+  
+    get_mercury_sdiam
+    get_mercury_rst
+    get_mercury_helio_coords
+    get_mercury_equ_coords
+    get_mercury_earth_dist
+    get_mercury_solar_dist
+    get_mercury_magnitude
+    get_mercury_disk
+    get_mercury_phase
+    get_mercury_rect_helio
+    get_neptune_sdiam
+    get_neptune_rst
+    get_neptune_helio_coords
+    get_neptune_equ_coords
+    get_neptune_earth_dist
+    get_neptune_solar_dist
+    get_neptune_magnitude
+    get_neptune_disk
+    get_neptune_phase
+    get_neptune_rect_helio
+  
+    get_uranus_sdiam
+    get_uranus_rst
+    get_uranus_helio_coords
+    get_uranus_equ_coords
+    get_uranus_earth_dist
+    get_uranus_solar_dist
+    get_uranus_magnitude
+    get_uranus_disk
+    get_uranus_phase
+    get_uranus_rect_helio
+    get_venus_sdiam
+    get_venus_rst
+    get_venus_helio_coords
+    get_venus_equ_coords
+    get_venus_earth_dist
+    get_venus_solar_dist
+    get_venus_magnitude
+    get_venus_disk
+    get_venus_phase
+    get_venus_rect_helio
+
+    get_nutation
+  
+    solve_barker
+    get_par_true_anomaly
+    get_par_radius_vector
+    get_par_geo_rect_posn
+    get_par_helio_rect_posn
+    get_par_body_equ_coords
+    get_par_body_earth_dist
+    get_par_body_solar_dist
+    get_par_body_phase_angle
+    get_par_body_elong
+    get_par_body_rst
+    get_par_body_rst_horizon
+    get_par_body_next_rst
+    get_par_body_next_rst_horizon
+    get_par_body_next_rst_horizon_future
+    get_parallax
+    get_parallax_ha
+    get_equ_prec
+    get_equ_prec2
+    get_ecl_prec
+    get_equ_pm
+    get_equ_pm
+    get_refraction_adj
+    get_object_rst
+    get_object_rst_horizon
+    get_object_next_rst
+    get_object_next_rst_horizon
+    get_solar_rst
+    get_solar_rst_horizon
+    get_solar_geom_coords
+    get_solar_equ_coords
+    get_solar_ecl_coords
+    get_solar_geo_coords
+    get_solar_sdiam
+    get_hrz_from_equ
+    get_hrz_from_equ_sidereal_time
+    get_equ_from_ecl
+    get_ecl_from_equ
+    get_equ_from_hrz
+    get_rect_from_helio
+    get_ecl_from_rect
+    get_equ_from_gal
+    get_equ2000_from_gal
+    get_gal_from_equ
+    get_gal_from_equ2000
+    get_version
+    get_dec_location
+    get_humanr_location
+    get_rect_distance
+    rad_to_deg
+    deg_to_rad
+    hms_to_deg
+    deg_to_hms
+    hms_to_rad
+    rad_to_hms
+    dms_to_deg
+    deg_to_dms
+    dms_to_rad
+    rad_to_dms
+    hequ_to_equ
+    equ_to_hequ
+    hhrz_to_hrz
+    hrz_to_hhrz
+    hlnlat_to_lnlat
+    lnlat_to_hlnlat
+    add_secs_hms
+    add_hms
+    get_light_time
 ) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -128,9 +357,9 @@ The C<ln_> prefix has been stripped.
       get_ell_body_next_rst_horizon(double JD, Astro::Nova::LnLatPosn observer,
                                     Astro::Nova::EllOrbit orbit, double horizon)
     (int $status, Astro::Nova::RstTime $rst) =
-      get_ell_body_next_rst_horizon_futur(double JD, Astro::Nova::LnLatPosn observer,
-                                          Astro::Nova::EllOrbit orbit, double horizon,
-                                          int day_limit)
+      get_ell_body_next_rst_horizon_future(double JD, Astro::Nova::LnLatPosn observer,
+                                           Astro::Nova::EllOrbit orbit, double horizon,
+                                           int day_limit)
     double get_ell_last_perihelion(double epoch_JD, double M, double n)
   
   heliocentric_time.h
@@ -292,6 +521,44 @@ The C<ln_> prefix has been stripped.
     Astro::Nova::LnLatPosn get_solar_ecl_coords(double JD)
     Astro::Nova::RectPosn get_solar_geo_coords(double JD)
     double get_solar_sdiam(double JD)
+  
+  transform.h
+    Astro::Nova::HrzPosn get_hrz_from_equ(Astro::Nova::EquPosn object, Astro::Nova::LnLatPosn observer, double JD)
+    Astro::Nova::HrzPosn get_hrz_from_equ_sidereal_time(Astro::Nova::EquPosn object, Astro::Nova::LnLatPosn observer, double sidereal)
+    Astro::Nova::EquPosn get_equ_from_ecl(Astro::Nova::LnLatPosn object, double JD)
+    Astro::Nova::LnLatPosn get_ecl_from_equ(Astro::Nova::EquPosn object, double JD)
+    Astro::Nova::EquPosn get_equ_from_hrz(Astro::Nova::HrzPosn object, Astro::Nova::LnLatPosn observer, double JD)
+    Astro::Nova::RectPosn get_rect_from_helio(Astro::Nova::HelioPosn helio)
+    Astro::Nova::LnLatPosn get_ecl_from_rect(Astro::Nova::RectPosn rect)
+    Astro::Nova::EquPosn get_equ_from_gal(Astro::Nova::GalPosn gal)
+    Astro::Nova::EquPosn get_equ2000_from_gal(Astro::Nova::GalPosn gal)
+    Astro::Nova::GalPosn get_gal_from_equ(Astro::Nova::EquPosn equ)
+    Astro::Nova::GalPosn get_gal_from_equ2000(Astro::Nova::EquPosn equ)
+  
+  utility.h
+    const char* get_version()
+    double get_dec_location(char* s)
+    const char* get_humanr_location(double location)
+    double get_rect_distance(Astro::Nova::RectPosn a, Astro::Nova::RectPosn b)
+    double rad_to_deg(double radians)
+    double deg_to_rad(double degrees)
+    double hms_to_deg(Astro::Nova::HMS hms)
+    Astro::Nova::HMS deg_to_hms(double degrees)
+    double hms_to_rad(Astro::Nova::HMS hms)
+    Astro::Nova::HMS rad_to_hms(double radians)
+    double dms_to_deg(Astro::Nova::DMS dms)
+    Astro::Nova::DMS deg_to_dms(double degrees)
+    double dms_to_rad(Astro::Nova::DMS dms)
+    Astro::Nova::DMS rad_to_dms(double radians)
+    Astro::Nova::EquPosn hequ_to_equ(Astro::Nova::HEquPosn hpos)
+    Astro::Nova::HEquPosn equ_to_hequ(Astro::Nova::EquPosn pos)
+    Astro::Nova::HrzPosn hhrz_to_hrz(Astro::Nova::HHrzPosn hpos)
+    Astro::Nova::HHrzPosn hrz_to_hhrz(Astro::Nova::HrzPosn pos)
+    Astro::Nova::LnLatPosn hlnlat_to_lnlat(Astro::Nova::HLnLatPosn hpos)
+    Astro::Nova::HLnLatPosn lnlat_to_hlnlat(Astro::Nova::hLnLatPosn pos)
+    void add_secs_hms(Astro::Nova::HMS hms, double seconds)
+    void add_hms(Astro::Nova::HMS source, Astro::Nova::HMS dest)
+    double get_light_time(double dist)
 
 =head2 STRUCTS / CLASSES
 
