@@ -50,7 +50,7 @@ my $trailer_file_name = shift @ARGV;
 # This is the end of bootstrap_header.pl
 $new_semantics = 'perl5';
 
-$new_version = '1.004000';
+$new_version = '1.005_000';
 
 $new_start_symbol = 'grammar';
 

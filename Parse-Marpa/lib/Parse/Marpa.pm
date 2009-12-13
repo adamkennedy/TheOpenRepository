@@ -7,7 +7,7 @@ no warnings 'recursion';
 use strict;
 
 BEGIN {
-    our $VERSION = '1.004000';
+    our $VERSION = '1.005_000';
 }
 
 use integer;
@@ -157,7 +157,7 @@ sub Parse::Marpa::mdl {
 
     my $failed_at_earleme = $recce->text($text);
     if ( $failed_at_earleme >= 0 ) {
-        Parse::Marpa::Grammar::die_with_parse_failure( $text,
+        Parse::Marpa::Internal::Grammar::die_with_parse_failure( $text,
             $failed_at_earleme );
     }
 
@@ -169,7 +169,8 @@ sub Parse::Marpa::mdl {
         }
     );
     if ( not defined $evaler ) {
-        Parse::Marpa::Grammar::die_with_parse_failure( $text, length $text );
+        Parse::Marpa::Internal::Grammar::die_with_parse_failure( $text,
+            length $text );
     }
     return $evaler->value if not wantarray;
     my @values;
@@ -214,7 +215,7 @@ is_file($_, 'example/synopsis.pl');
     say ${$value};
 
     __DATA__
-    semantics are perl5.  version is 1.004000.  start symbol is Expression.
+    semantics are perl5.  version is 1.005_000.  start symbol is Expression.
 
     Expression: Expression, /[*]/, Expression.  priority 200.  q{
         $_[0] * $_[2]

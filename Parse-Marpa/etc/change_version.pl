@@ -18,6 +18,7 @@ my @test_files = qw(
 ./t/cycle2.t
 ./t/minus_s.t
 ./t/randal.t
+./t/rt_52724.t
 ./author.t/MDL_displays.marpa
 ./author.t/minimal.marpa
 ./author.t/misc.t
