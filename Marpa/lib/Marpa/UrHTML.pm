@@ -1093,12 +1093,12 @@ sub Marpa::UrHTML::parse {
     my %start_virtuals_used = ();
     my $earleme_of_last_start_virtual = -1;
 
-    RECCE_RESPONSE:
-    for ( my $token_ix = 0; $token_ix < scalar @marpa_tokens; )
-    {
+    RECCE_RESPONSE: for ( my $token_ix = 0;; ) {
 
         my ( $current_earleme, $expected_terminals ) =
             $recce->tokens( \@marpa_tokens, \$token_ix );
+
+        last RECCE_RESPONSE if $token_ix > $#marpa_tokens;
 
         my $marpa_token = $marpa_tokens[$token_ix];
         my $actual_terminal = $marpa_token->[0];
@@ -1221,13 +1221,33 @@ sub Marpa::UrHTML::parse {
             last FIND_VIRTUAL_TOKEN
                 if $ok_as_cruft{$virtual_terminal}{$actual_terminal};
 
-            if (    $virtual_terminal =~ /^S_/xms
-                and $start_virtuals_used{$virtual_terminal}++ > 1 )
-            {
+            CHECK_FOR_INFINITE_LOOP: {
+                # It is sufficient to check for start tags.
+                # Just ending things will never cause an infinite loop.
+                last CHECK_FOR_INFINITE_LOOP if  $virtual_terminal !~ /^S_/xms;
+
+                # Are we at the same earleme as we were when the last
+                # virtual start was added?  If not, no problem.
+                # But we need to reinitialize.
+                if ( $current_earleme != $earleme_of_last_start_virtual ) {
+                    $earleme_of_last_start_virtual = $current_earleme;
+                    %start_virtuals_used = ();
+                    last CHECK_FOR_INFINITE_LOOP;
+                }
+
+                # Is this the first time we've added this start
+                # terminal?  If so, we're OK.
+                last CHECK_FOR_INFINITE_LOOP
+                    if $start_virtuals_used{$virtual_terminal}++ <= 1;
+
+                # Attempt to add duplicate.
+                # Give up on adding virtual at this location,
+                # and warn the user.
                 ( my $tagname = $virtual_terminal ) =~ s/^S_//xms;
                 say {$trace_fh}
                     "Warning: attempt to add <$tagname> twice at the same place";
                 last FIND_VIRTUAL_TOKEN;
+
             } ## end if ( $virtual_terminal =~ /^S_/xms and ...)
 
             my $tdesc_list = $marpa_token->[1];

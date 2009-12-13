@@ -1,8 +1,9 @@
 
 dummy:
 
-test: test.storable
+test: test_out.html
 	cmp test.storable test.storable.save
+	cmp test.html test_out.html
 
 test.storable:
 	perl -I../lib ./rewrite.pl <test.html > $@
