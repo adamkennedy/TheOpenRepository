@@ -585,7 +585,8 @@ is intialized to zero.
     int minutes
     double seconds
   
-  Astro::Nova::DMS, ln_dms
+L<Astro::Nova::DMS>, C<ln_dms>
+
     unsigned short  neg
     unsigned short  degrees
     unsigned short  minutes
@@ -630,7 +631,8 @@ is intialized to zero.
     double  omega
     double  JD
   
-  Astro::Nova::LnLatPosn, ln_lnlat_posn
+L<Astro::Nova::LnLatPosn>, C<ln_lnlat_posn>
+
     double  lng
     double  lat
   
@@ -656,7 +658,7 @@ is intialized to zero.
     double  set
     double  transit
   
-L<Astro::Nova::ZoneDate>, C<ln_zonedate >
+L<Astro::Nova::ZoneDate>, C<ln_zonedate>
 
     int  years
     int  months
