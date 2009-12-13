@@ -71,10 +71,10 @@ sub Marpa::MDLex::mdlex {
 
     my $grammar = Marpa::Grammar->new( @{$grammar_arg_hashes} );
     $grammar->precompute();
-    my $recce = Marpa::Recognizer->new(
-        { grammar => $grammar, mode => 'stream' } );
-    my $lexer = Marpa::MDLex->new( { recce => $recce, },
-        @{$lexer_arg_hashes} );
+    my $recce =
+        Marpa::Recognizer->new( { grammar => $grammar, mode => 'stream' } );
+    my $lexer =
+        Marpa::MDLex->new( { recce => $recce, }, @{$lexer_arg_hashes} );
     $lexer->text($text);
     $recce->end_input();    # complete parsing
     my $evaler = Marpa::Evaluator->new(
@@ -385,9 +385,7 @@ sub Marpa::MDLex::text {
         # imposes no such requirement, however.
 
         if ( $trace_tries and scalar @{$lexables} ) {
-            ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
             my $string_to_match = substr ${$input_ref}, $pos, 20;
-            ## use critic
             $string_to_match
                 =~ s/([\x00-\x1F\x7F-\xFF])/sprintf('{%#.2x}', ord($1))/gexms;
             say $trace_fh "Match target at $pos: ", $string_to_match;

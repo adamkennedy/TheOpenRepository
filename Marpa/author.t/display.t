@@ -21,8 +21,8 @@ Marpa::exception("$PROGRAM_NAME options parsing failed")
     if not $options_result;
 
 sub normalize_whitespace {
-    my $ref = shift;
-    my $text    = ${$ref};
+    my $ref  = shift;
+    my $text = ${$ref};
     $text =~ s/\A\s*//xms;
     $text =~ s/\s*\z//xms;
     $text =~ s/\s+/ /gxms;
@@ -85,28 +85,29 @@ FILE: for my $file (@test_files) {
 my @formatting_instructions = qw(normalize-whitespace);
 
 sub format_display {
-    my ($text, $instructions) = @_;
+    my ( $text, $instructions ) = @_;
     my $result = ${$text};
 
-    if ($instructions->{'normalize-whitespace'}) {
-       $result =~ s/^\s+//gxms;
-       $result =~ s/\s+$//gxms;
-       $result =~ s/\s+/ /gxms;
-       $result =~ s/\n+/\n/gxms;
-    }
+    if ( $instructions->{'normalize-whitespace'} ) {
+        $result =~ s/^\s+//gxms;
+        $result =~ s/\s+$//gxms;
+        $result =~ s/\s+/ /gxms;
+        $result =~ s/\n+/\n/gxms;
+    } ## end if ( $instructions->{'normalize-whitespace'} )
     return \$result;
-}
+} ## end sub format_display
 
 # reformat two display according to the instructions in the
 # second, and compare.
 sub compare {
-    my ($original, $copy) = @_;
-    my $formatted_original = format_display(\$original->{content}, $copy);
-    my $formatted_copy = format_display(\$copy->{content}, $copy);
+    my ( $original, $copy ) = @_;
+    my $formatted_original = format_display( \$original->{content}, $copy );
+    my $formatted_copy     = format_display( \$copy->{content},     $copy );
     return 1 if ${$formatted_original} eq ${$formatted_copy};
-    say STDERR Text::Diff::diff $formatted_original, $formatted_copy, { STYLE => 'Table' };
+    say STDERR Text::Diff::diff $formatted_original, $formatted_copy,
+        { STYLE => 'Table' };
     return 0;
-}
+} ## end sub compare
 
 my $displays_by_name = $display_data->{displays};
 DISPLAY_NAME: for my $display_name ( keys %{$displays_by_name} ) {
@@ -119,15 +120,16 @@ DISPLAY_NAME: for my $display_name ( keys %{$displays_by_name} ) {
     # find the "original"
     my $original_ix;
     DISPLAY: for my $display_ix ( 0 .. $#{$displays} ) {
-        if ( not grep { $_ ~~ \@formatting_instructions }
-            keys %{ $displays->[$display_ix] } )
+        if (not grep { $_ ~~ \@formatting_instructions }
+            keys %{ $displays->[$display_ix] }
+            )
         {
             $original_ix = $display_ix;
-        }
+        } ## end if ( not grep { $_ ~~ \@formatting_instructions } keys...)
     } ## end for my $display_ix ( 0 .. $#{$displays} )
 
     # Warn if there wasn't a clear original?
-    $original_ix //= 0; # default to the first
+    $original_ix //= 0;    # default to the first
 
     DISPLAY: for my $copy_ix ( 0 .. $#{$displays} ) {
         next DISPLAY if $copy_ix == $original_ix;

@@ -837,8 +837,7 @@ my $source = do { local $RS = undef; <> };
 
 ## no critic (Variables::ProhibitPackageVars)
 my $value = Marpa::MDLex::mdlex(
-    [   {   action_object => 'Marpa::MDL::Internal::Actions',
-        },
+    [   { action_object => 'Marpa::MDL::Internal::Actions', },
         @{ $Bootstrap_Grammar::data->{marpa_options} }
     ],
     $Bootstrap_Grammar::data->{mdlex_options},

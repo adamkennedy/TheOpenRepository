@@ -436,7 +436,6 @@ sub Marpa::Grammar::new {
     $grammar->[Marpa::Internal::Grammar::QDFA_BY_NAME]        = {};
     $grammar->[Marpa::Internal::Grammar::PHASE] = Marpa::Internal::Phase::NEW;
 
-
     $grammar->set(@arg_hashes);
     return $grammar;
 } ## end sub Marpa::Grammar::new
@@ -627,23 +626,23 @@ sub Marpa::Grammar::set {
 
         if ( defined( my $value = $args->{'default_null_value'} ) ) {
             $grammar->[Marpa::Internal::Grammar::DEFAULT_NULL_VALUE] = $value;
-        } ## end if ( defined( my $value = $args->{'default_null_value'...}))
+        }
 
         if ( defined( my $value = $args->{'actions'} ) ) {
             $grammar->[Marpa::Internal::Grammar::ACTIONS] = $value;
-        } ## end if ( defined( my $value = $args->{'actions'} ) )
+        }
 
         if ( defined( my $value = $args->{'action_object'} ) ) {
             $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT] = $value;
-        } ## end if ( defined( my $value = $args->{'action_object'} ))
+        }
 
         if ( defined( my $value = $args->{'default_action'} ) ) {
             $grammar->[Marpa::Internal::Grammar::DEFAULT_ACTION] = $value;
-        } ## end if ( defined( my $value = $args->{'default_action'} ...))
+        }
 
         if ( defined( my $value = $args->{'strip'} ) ) {
             $grammar->[Marpa::Internal::Grammar::STRIP] = $value;
-        } ## end if ( defined( my $value = $args->{'strip'} ) )
+        }
 
         if ( defined( my $value = $args->{'cycle_action'} ) ) {
             if ( $value && $phase >= Marpa::Internal::Phase::PRECOMPUTED ) {
@@ -670,7 +669,7 @@ sub Marpa::Grammar::set {
                     q{"inaccessible_ok" option is useless after grammar is precomputed};
             }
             given ( ref $value ) {
-                when ('') {
+                when (q{}) {
                     $value //= {
                     }
                 }
@@ -694,7 +693,7 @@ sub Marpa::Grammar::set {
                     q{"unproductive_ok" option is useless after grammar is precomputed};
             }
             given ( ref $value ) {
-                when ('') {
+                when (q{}) {
                     $value //= {
                     };
                 }
@@ -747,7 +746,7 @@ users will.
 sub Marpa::Grammar::precompute {
     my $grammar = shift;
 
-    my $tracing = $grammar->[Marpa::Internal::Grammar::TRACING];
+    my $tracing  = $grammar->[Marpa::Internal::Grammar::TRACING];
     my $trace_fh = $grammar->[Marpa::Internal::Grammar::TRACE_FILE_HANDLE];
 
     my $problems = $grammar->[Marpa::Internal::Grammar::PROBLEMS];

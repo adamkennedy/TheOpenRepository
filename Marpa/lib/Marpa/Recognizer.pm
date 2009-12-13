@@ -243,7 +243,7 @@ use constant RECOGNIZER_OPTIONS => [
         }
 ];
 
-use constant RECOGNIZER_MODES => [ qw(default stream) ];
+use constant RECOGNIZER_MODES => [qw(default stream)];
 
 sub Marpa::Recognizer::set {
     my ( $recce, @arg_hashes ) = @_;
@@ -508,9 +508,8 @@ sub Marpa::Recognizer::tokens {
         $recce->[Marpa::Internal::Recognizer::TRACE_FILE_HANDLE];
     my $trace_terminals =
         $recce->[Marpa::Internal::Recognizer::TRACE_TERMINALS];
-    my $warnings =
-        $recce->[Marpa::Internal::Recognizer::WARNINGS];
-    my $mode = $recce->[Marpa::Internal::Recognizer::MODE];
+    my $warnings = $recce->[Marpa::Internal::Recognizer::WARNINGS];
+    my $mode     = $recce->[Marpa::Internal::Recognizer::MODE];
 
     my $earley_hash = $recce->[Marpa::Internal::Recognizer::EARLEY_HASH];
     my $wanted      = $recce->[Marpa::Internal::Recognizer::WANTED];
@@ -541,7 +540,7 @@ sub Marpa::Recognizer::tokens {
 
     my $token_args = $tokens->[$token_ix];
 
-    $next_token_earleme++ if not scalar @{$tokens};
+    if ( not scalar @{$tokens} ) { $next_token_earleme++ }
 
     EARLEME: while ( $token_ix < scalar @{$tokens} ) {
 
@@ -550,7 +549,8 @@ sub Marpa::Recognizer::tokens {
 
         my $current_token_earleme = $last_completed_earleme;
 
-        my $current_terminals = $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS];
+        my $current_terminals =
+            $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS];
 
         TOKEN: while ( $current_token_earleme == $next_token_earleme ) {
 
@@ -662,7 +662,8 @@ sub Marpa::Recognizer::tokens {
         my %accepted = ();    # used only if trace_terminals set
 
         ALTERNATIVE: for my $alternative ( @{$tokens_here} ) {
-            my ( $token, $value_ref, $length, $earley_items ) = @{$alternative};
+            my ( $token, $value_ref, $length, $earley_items ) =
+                @{$alternative};
 
             # compute goto(state, token_name)
             my $token_name = $token->[Marpa::Internal::Symbol::NAME];
@@ -670,7 +671,7 @@ sub Marpa::Recognizer::tokens {
                 $accepted{$token_name} //= 0;
             }
 
-            EARLEY_ITEM: for my $earley_item (@{$earley_items}) {
+            EARLEY_ITEM: for my $earley_item ( @{$earley_items} ) {
 
                 my ( $state, $parent ) = @{$earley_item}[
                     Marpa::Internal::Earley_Item::STATE,
@@ -856,7 +857,7 @@ sub complete {
         my $state_id = $state->[Marpa::Internal::QDFA::ID];
 
         for my $lexable ( @{ $terminals_by_state->[$state_id] } ) {
-            push @{$lexable_seen{$lexable}}, $earley_item;
+            push @{ $lexable_seen{$lexable} }, $earley_item;
         }
 
         next EARLEY_ITEM if $earleme_to_complete == $parent;
@@ -961,11 +962,12 @@ sub complete {
 
     if ($trace_terminals) {
         for my $terminal (
-            keys %{ $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] } )
+            keys %{ $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] }
+            )
         {
             say {$Marpa::Internal::TRACE_FH}
                 qq{Expecting "$terminal" at $earleme_to_complete};
-        } ## end for my $terminal ( @{ $recce->[...]})
+        } ## end for my $terminal ( keys %{ $recce->[...]})
     } ## end if ($trace_terminals)
 
     return $earleme_to_complete;
