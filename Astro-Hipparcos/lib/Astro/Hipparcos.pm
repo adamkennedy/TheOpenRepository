@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp 'croak';
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use constant LINE_LENGTH => 451; # I wish they were using a modern file format.
 
