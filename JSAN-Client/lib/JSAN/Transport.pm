@@ -43,7 +43,7 @@ use File::Basename ();
 use URI::ToDisk    ();
 use LWP::Simple    ();
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 
 # The path to the index

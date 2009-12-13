@@ -55,7 +55,7 @@ use URI::ToDisk           1.08  ();
 
 use JSAN::Index                 ();
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 # Pass through any import params to JSAN::Index
 # if none params were provided - do nothing

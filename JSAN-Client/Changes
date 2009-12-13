@@ -1,5 +1,8 @@
 Revision history for Perl extension JSAN-Client
 
+0.24 Mon 14 Dec 2009
+    - Adding missing DBI dependency
+
 0.23 Wed 28 Oct 2009
     - Various structural tidying
 

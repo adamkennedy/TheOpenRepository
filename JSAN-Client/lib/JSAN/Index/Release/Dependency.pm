@@ -6,7 +6,7 @@ use Algorithm::Dependency::Ordered;
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.23';
+	$VERSION = '0.24';
 	@ISA     = 'Algorithm::Dependency::Ordered';
 }
 
