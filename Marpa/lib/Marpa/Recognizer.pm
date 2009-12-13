@@ -627,7 +627,7 @@ sub Marpa::Recognizer::tokens {
             # say STDERR __LINE__, " offset: $offset";
             # say STDERR __LINE__, " next_token_earleme: $next_token_earleme";
 
-            my $token_entry = [ $token, $value_ref, $length ];
+            my $token_entry = [ $token, $value_ref, $length, $earley_items ];
 
             # This logic is arranged so that non-overlapping tokens do not incur the cost
             # of the checks for duplicates
@@ -654,9 +654,6 @@ sub Marpa::Recognizer::tokens {
 
         $current_token_earleme++;
 
-        # say STDERR __LINE__, " current_token_earleme: $current_token_earleme";
-        # say STDERR __LINE__, " next_token_earleme: $next_token_earleme";
-
         $tokens_here //= [];
 
         $earley_set_list->[$last_completed_earleme] //= [];
@@ -665,7 +662,7 @@ sub Marpa::Recognizer::tokens {
         my %accepted = ();    # used only if trace_terminals set
 
         ALTERNATIVE: for my $alternative ( @{$tokens_here} ) {
-            my ( $token, $value_ref, $length ) = @{$alternative};
+            my ( $token, $value_ref, $length, $earley_items ) = @{$alternative};
 
             # compute goto(state, token_name)
             my $token_name = $token->[Marpa::Internal::Symbol::NAME];
@@ -673,12 +670,7 @@ sub Marpa::Recognizer::tokens {
                 $accepted{$token_name} //= 0;
             }
 
-            # Important: more earley sets can be added in the loop
-            my $earley_set_ix = -1;
-            EARLEY_ITEM: while (1) {
-
-                my $earley_item = $earley_set->[ ++$earley_set_ix ];
-                last EARLEY_ITEM if not defined $earley_item;
+            EARLEY_ITEM: for my $earley_item (@{$earley_items}) {
 
                 my ( $state, $parent ) = @{$earley_item}[
                     Marpa::Internal::Earley_Item::STATE,
