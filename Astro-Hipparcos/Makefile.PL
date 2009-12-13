@@ -23,6 +23,11 @@ WriteMakefile(
     'TYPEMAPS'          => ['perlobject.map'],
     'CC'                => $CC,
     'LD'                => '$(CC)',
+    META_MERGE => { no_index => { directory => 'buildtools', }, },
+    clean => {
+      FILES => "HipRecord.* lib/Astro/Hipparcos/Record.pm",
+    },
 );
 
-system($^X, File::Spec->catfile("buildtools", "gen_hip_struct.pl"), "HipRecord.h");
+system($^X, File::Spec->catfile("buildtools", "gen_hip_struct.pl"));
+
