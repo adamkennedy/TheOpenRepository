@@ -1,5 +1,10 @@
 Revision history for Perl extension Astro::Nova.
 
-0.01  Fri Dec 11 16:58:20 2009
-	- original version
+0.02  Sun Dec 13 17:42 2009
+  - Much improved.
+  - Examples
+  - Wrapper classes for some structs
+
+0.01  Fri Dec 11 16:58 2009
+  - original version
 
