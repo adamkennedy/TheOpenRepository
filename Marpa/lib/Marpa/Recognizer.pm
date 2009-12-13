@@ -331,9 +331,11 @@ sub Marpa::Recognizer::status {
     return if $exhausted;
     my $last_completed_earleme =
         $recce->[Marpa::Internal::Recognizer::LAST_COMPLETED_EARLEME];
-    return ( $last_completed_earleme,
-        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
-        if wantarray;
+    return (
+        $last_completed_earleme,
+        [   keys %{ $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] }
+        ]
+    ) if wantarray;
     return $last_completed_earleme;
 } ## end sub Marpa::Recognizer::status
 
@@ -506,6 +508,8 @@ sub Marpa::Recognizer::tokens {
         $recce->[Marpa::Internal::Recognizer::TRACE_FILE_HANDLE];
     my $trace_terminals =
         $recce->[Marpa::Internal::Recognizer::TRACE_TERMINALS];
+    my $warnings =
+        $recce->[Marpa::Internal::Recognizer::WARNINGS];
     my $mode = $recce->[Marpa::Internal::Recognizer::MODE];
 
     my $earley_hash = $recce->[Marpa::Internal::Recognizer::EARLEY_HASH];
@@ -546,9 +550,7 @@ sub Marpa::Recognizer::tokens {
 
         my $current_token_earleme = $last_completed_earleme;
 
-        # say STDERR __LINE__, " current_token_earleme: $current_token_earleme";
-        # say STDERR __LINE__, " next_token_earleme: $next_token_earleme";
-        # say STDERR __LINE__, " last_completed_earleme: $last_completed_earleme";
+        my $current_terminals = $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS];
 
         TOKEN: while ( $current_token_earleme == $next_token_earleme ) {
 
@@ -577,6 +579,11 @@ sub Marpa::Recognizer::tokens {
                         . ( defined $symbol_name ? "$symbol_name " : q{} )
                         . 'supplied as token' );
             }
+
+            my $earley_items = $current_terminals->{$symbol_name};
+            Marpa::exception(
+                qq{Terminal "$symbol_name" received when not expected})
+                if not $earley_items;
 
             my $value_ref = \($value);
 
@@ -788,11 +795,11 @@ sub Marpa::Recognizer::tokens {
         $recce->[Marpa::Internal::Recognizer::FINISHED] = 1;
     } ## end if ( $mode eq 'default' )
 
-    # say STDERR __LINE__, " current terminals: ", Data::Dumper::Dumper( $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] );
-
-    return ( $last_completed_earleme,
-        $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] )
-        if wantarray;
+    return (
+        $last_completed_earleme,
+        [   keys %{ $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] }
+        ]
+    ) if wantarray;
 
     return $last_completed_earleme;
 
@@ -857,7 +864,7 @@ sub complete {
         my $state_id = $state->[Marpa::Internal::QDFA::ID];
 
         for my $lexable ( @{ $terminals_by_state->[$state_id] } ) {
-            $lexable_seen{$lexable} = 1;
+            push @{$lexable_seen{$lexable}}, $earley_item;
         }
 
         next EARLEY_ITEM if $earleme_to_complete == $parent;
@@ -958,12 +965,11 @@ sub complete {
             or Marpa::exception("print failed: $!");
     } ## end if ($trace_earley_sets)
 
-    $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] =
-        [ keys %lexable_seen ];
+    $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] = \%lexable_seen;
 
     if ($trace_terminals) {
         for my $terminal (
-            @{ $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] } )
+            keys %{ $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] } )
         {
             say {$Marpa::Internal::TRACE_FH}
                 qq{Expecting "$terminal" at $earleme_to_complete};
