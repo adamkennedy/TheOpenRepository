@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Compile testing for jsan2
+# Compile testing for jsan
 
 use strict;
 BEGIN {

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Compile testing for jsan2
+# Compile testing for jsan
 
 use strict;
 BEGIN {
@@ -14,5 +14,5 @@ use Test::Script;
 # Does the module load
 use_ok('JSAN::Shell');
 
-# Does the jsan2 script compile
-script_compiles( 'script/jsan2' );
+# Does the jsan script compile
+script_compiles( 'script/jsan' );

@@ -13,5 +13,5 @@ requires       JSAN::Client         0.23
 test_requires  File::Spec           0.80
 test_requires  Test::More           0.47
 test_requires  Test::Script         1.05
-install_script jsan2
+install_script jsan
 install_share

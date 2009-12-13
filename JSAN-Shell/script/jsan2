@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use JSAN::Shell ();
 
-our $VERSION = '2.00_07';
+our $VERSION = '2.01';
     $VERSION = eval $VERSION;
 
 $|  = 1;
@@ -21,11 +21,11 @@ __END__
 
 =head1 NAME
 
-jsan2 - The JavaScript Archive Network (JSAN) Shell
+jsan - The JavaScript Archive Network (JSAN) Shell
 
 =head1 SYNOPSIS
 
-  adam@red:~$ jsan2
+  adam@red:~$ jsan
   
   jsan shell -- JSAN exploration and library installation (v2.00_04)
              -- Copyright 2005 - 2007 Adam Kennedy.
@@ -120,7 +120,7 @@ jsan2 - The JavaScript Archive Network (JSAN) Shell
 
 =head1 DESCRIPTION
 
-C<jsan2> is a rewrite of the JavaScript Archive Network shell. Once
+C<jsan> is a rewrite of the JavaScript Archive Network shell. Once
 completed it will replace the current shell L<jsan>. For now it is being
 released with the "2" so people can test it out and make suggestions.
 
@@ -130,7 +130,7 @@ The synopsis above pretty much covers everything that has been implemented
 at the present time, with the "help" content what is planned to be added
 before it is completed.
 
-Please note at this time the C<jsan2> script will B<only> use the default
+Please note at this time the C<jsan> script will B<only> use the default
 L<http://opanjsan.org> site, and does not work with mirrors. (only because
 I haven't gotten around to it yet).
 

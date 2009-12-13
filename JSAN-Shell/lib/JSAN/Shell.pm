@@ -8,7 +8,7 @@ JSAN::Shell - JavaScript Archive Network Client Shell
 
 =head1 DESCRIPTION
 
-C<JSAN::Shell> provides command handling and dispatch for the L<jsan2>
+C<JSAN::Shell> provides command handling and dispatch for the L<jsan>
 user application. It interprates these commands and provides the
 appropriate instructions to the L<JSAN::Client> and L<JSAN::Transport>
 APIs to download and install JSAN modules.
@@ -45,7 +45,7 @@ use LWP::Online      ();
 use JSAN::Index      ();
 use JSAN::Client     ();
 
-our $VERSION = '2.00_07';
+our $VERSION = '2.01';
     $VERSION = eval $VERSION;
 
 # Locate the starting mirror.json
@@ -888,7 +888,7 @@ Adam Kennedy E<lt>adam@ali.asE<gt>
 
 =head1 SEE ALSO
 
-L<jsan2>, L<JSAN::Client>, L<http://openjsan.org>
+L<jsan>, L<JSAN::Client>, L<http://openjsan.org>
 
 =head1 COPYRIGHT
 
