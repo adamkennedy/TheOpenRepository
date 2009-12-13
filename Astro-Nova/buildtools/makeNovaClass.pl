@@ -242,7 +242,7 @@ Astro::Nova::RstTime	struct ln_rst_time
   double 	set
   double 	transit
 
-Astro::Nova::Zonedate	struct ln_zonedate
+Astro::Nova::ZoneDate	struct ln_zonedate
   int 	years
   int 	months
   int 	days
