@@ -252,6 +252,7 @@ require XSLoader;
 XSLoader::load('Astro::Nova', $VERSION);
 
 require Astro::Nova::ZoneDate;
+require Astro::Nova::DMS;
 
 1;
 __END__
