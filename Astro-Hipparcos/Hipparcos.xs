@@ -10,7 +10,8 @@ extern "C" {
 }
 #endif
 
-#include "HipRecord.h"
+/* fixme, this is a hack: */
+#include "HipRecord.cc"
 
 MODULE = Astro::Hipparcos		PACKAGE = Astro::Hipparcos		
 
