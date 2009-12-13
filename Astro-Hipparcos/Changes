@@ -1,7 +1,9 @@
 Revision history for Perl extension Astro::Hipparcos.
 
-0.01  Sun Dec 13 10:25 2009
-	- original version
+	- Fetching numbered records
 
 0.02  Sun Dec 13 14:45 2009
 	- distribution fixes
+
+0.01  Sun Dec 13 10:25 2009
+	- original version
