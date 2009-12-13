@@ -1,6 +1,10 @@
 buildtools/makeNovaClass.pl
 Changes
+examples/moon.pl
 lib/Astro/Nova.pm
+lib/Astro/Nova/DMS.pm
+lib/Astro/Nova/LnLatPosn.pm
+lib/Astro/Nova/ZoneDate.pm
 libnova-0.13.0/aclocal.m4
 libnova-0.13.0/AUTHORS
 libnova-0.13.0/ChangeLog
@@ -114,6 +118,8 @@ Nova.xs
 perlobject.map
 ppport.h
 t/01basic.t
+t/02zonedate.t
+t/03dms.t
 typemap
 XS/Abberation.xs
 XS/AngularSeparation.xs
