@@ -68,6 +68,18 @@ sub set_all {
   return 1;
 }
 
+sub to_degrees {
+  Astro::Nova::dms_to_deg(shift)
+}
+
+sub to_radians {
+  Astro::Nova::dms_to_rad(shift)
+}
+
+sub to_hms {
+  Astro::Nova::deg_to_hms(Astro::Nova::dms_to_deg(shift))
+}
+
 1;
 __END__
 
@@ -134,6 +146,12 @@ Returns a human-readable ASCII table of the date information.
 =head2 members
 
 Returns a list of all members in order.
+
+=head2 to_degrees / to_radians / to_hms
+
+Convert to degrees or radians (returns a number).
+
+C<to_hms> Converts to L<Astro::Nova::HMS> (hours).
 
 =head1 SEE ALSO
 
