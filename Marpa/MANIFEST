@@ -21,6 +21,7 @@ etc/not_in_manifest.pl
 etc/perlcriticrc
 inc/Test/Weaken.pm
 lib/Marpa/Callback.pm
+lib/Marpa/Display.pm
 lib/Marpa/Doc/Bibliography.pod
 lib/Marpa/Doc/Marpa.pod
 lib/Marpa/Doc/Not_Updated/Algorithm.pod
@@ -66,8 +67,8 @@ lib/Marpa/UrHTML.pm
 lib/Marpa/UrHTML/t/copy.t
 lib/Marpa/UrHTML/t/fmt.t
 lib/Marpa/UrHTML/t/fmt_t_data/expected1.html
-lib/Marpa/UrHTML/t/fmt_t_data/input1.html
 lib/Marpa/UrHTML/t/fmt_t_data/expected2.html
+lib/Marpa/UrHTML/t/fmt_t_data/input1.html
 lib/Marpa/UrHTML/t/fmt_t_data/input2.html
 lib/Marpa/UrHTML/t/no_tang.html
 lib/Marpa/UrHTML/t/parse.t
