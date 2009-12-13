@@ -4,6 +4,10 @@ use 5.008;
 use strict;
 use warnings;
 
+# note: internal modules loaded after XS below.
+
+our $VERSION = '0.01';
+
 require Exporter;
 
 our @ISA = qw(Exporter);
@@ -244,10 +248,10 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 our @EXPORT = qw();
 
-our $VERSION = '0.01';
-
 require XSLoader;
 XSLoader::load('Astro::Nova', $VERSION);
+
+require Astro::Nova::ZoneDate;
 
 1;
 __END__
@@ -651,7 +655,8 @@ is intialized to zero.
     double  set
     double  transit
   
-  Astro::Nova::Zonedate, ln_zonedate
+L<Astro::Nova::ZoneDate>, C<ln_zonedate >
+
     int  years
     int  months
     int  days
