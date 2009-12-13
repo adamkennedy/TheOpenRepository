@@ -159,11 +159,9 @@ sub Marpa::Recognizer::new {
     # Pull lookup of terminal flag by symbol ID out of the loop
     # over the QDFA transitions
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
-    my @terminal_ids =
-        map  { $_->[Marpa::Internal::Symbol::ID] }
+    my %terminal_names =
+        map  { $_->[Marpa::Internal::Symbol::NAME] => 1 }
         grep { $_->[Marpa::Internal::Symbol::TERMINAL] } @{$symbols};
-    my @terminals_by_id;
-    @terminals_by_id[@terminal_ids] = (1) x scalar @terminal_ids;
 
     my $QDFA        = $grammar->[Marpa::Internal::Grammar::QDFA];
     my $symbol_hash = $grammar->[Marpa::Internal::Grammar::SYMBOL_HASH];
@@ -175,8 +173,7 @@ sub Marpa::Recognizer::new {
             @{$state}[ Marpa::Internal::QDFA::ID,
             Marpa::Internal::QDFA::TRANSITION, ];
         $terminals_by_state[$id] = [
-            grep    { $terminals_by_id[$_] }
-                map { $symbol_hash->{$_} }
+            grep    { $terminal_names{$_} }
                 keys %{$transition}
         ];
     } ## end for my $state ( @{$QDFA} )
@@ -842,8 +839,7 @@ sub complete {
     $earley_set_list->[$earleme_to_complete] //= [];
     my $earley_set = $earley_set_list->[$earleme_to_complete];
 
-    my $lexable_seen = [];
-    $#{$lexable_seen} = $#{$symbols};
+    my %lexable_seen = ();
 
     # Important: more earley sets can be added in the loop
     my $earley_set_ix = -1;
@@ -859,7 +855,7 @@ sub complete {
         my $state_id = $state->[Marpa::Internal::QDFA::ID];
 
         for my $lexable ( @{ $terminals_by_state->[$state_id] } ) {
-            $lexable_seen->[$lexable] = 1;
+            $lexable_seen{$lexable} = 1;
         }
 
         next EARLEY_ITEM if $earleme_to_complete == $parent;
@@ -959,10 +955,8 @@ sub complete {
             or Marpa::exception("print failed: $!");
     }
 
-    $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] = [
-        map { $symbols->[$_]->[Marpa::Internal::Symbol::NAME] }
-        grep { $lexable_seen->[$_] } ( 0 .. $#{$symbols} )
-    ];
+    $recce->[Marpa::Internal::Recognizer::CURRENT_TERMINALS] =
+        [ keys %lexable_seen ];
 
     if ($trace_terminals) {
         for my $terminal (
