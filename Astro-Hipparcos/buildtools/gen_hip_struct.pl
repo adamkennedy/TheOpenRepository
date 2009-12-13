@@ -11,6 +11,8 @@ open my $c_fh, '>', $c_file or die $!;
 my $xsp_file = 'HipRecord.xsp';
 open my $xsp_fh, '>', $xsp_file or die $!;
 
+my $pod_dir = File::Spec->catdir('lib', 'Astro', 'Hipparcos');
+mkdir($pod_dir);
 my $pod_file = File::Spec->catfile('lib', 'Astro', 'Hipparcos', 'Record.pod');
 open my $pod_fh, '>', $pod_file or die $!;
 
