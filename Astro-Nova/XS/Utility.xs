@@ -78,7 +78,7 @@ ln_hequ_to_equ(struct lnh_equ_posn* hpos);
       const char* CLASS = "Astro::Nova::EquPosn";
     CODE:
       Newx(RETVAL, 1, struct ln_equ_posn);
-      ln_hequ_to_equ(hpos , RETVAL);
+      ln_hequ_to_equ(hpos, RETVAL);
     OUTPUT:
       RETVAL
 
@@ -88,7 +88,7 @@ ln_equ_to_hequ(struct ln_equ_posn* pos);
       const char* CLASS = "Astro::Nova::HEquPosn";
     CODE:
       Newx(RETVAL, 1, struct lnh_equ_posn);
-      ln_hequ_to_equ(pos, RETVAL);
+      ln_equ_to_hequ(pos, RETVAL);
     OUTPUT:
       RETVAL
         
