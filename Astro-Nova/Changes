@@ -1,5 +1,11 @@
 Revision history for Perl extension Astro::Nova.
 
+0.04  Mon Dec 14 22:02 2009
+  - Convert to Module::Build to fix the annoying re-compilation of
+    libnova and other stuff.
+  - Add some new dependencies in this context.
+  - Wrestled typemaps into submission.
+
 0.03  Mon Dec 14 17:47 2009
   - XS constructors now take optional key/value pairs for initialization.
   - Fix wrong order of arguments in equ_to_hequ
