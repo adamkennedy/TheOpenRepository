@@ -44,9 +44,9 @@
 
 MODULE = Astro::Nova		PACKAGE = Astro::Nova	PREFIX=ln_
 
-INCLUDE: XS/Structs.xs
+INCLUDE: ../../XS/Structs.xs
 
-INCLUDE: XS/Abberation.xs
+INCLUDE: ../../XS/Abberation.xs
 
 #### airmass.h
 double
@@ -54,39 +54,39 @@ ln_get_airmass(alt, airmass_scale)
   double alt
   double airmass_scale
 
-INCLUDE: XS/AngularSeparation.xs
+INCLUDE: ../../XS/AngularSeparation.xs
 
-INCLUDE: XS/ApparentPosition.xs
+INCLUDE: ../../XS/ApparentPosition.xs
 
-INCLUDE: XS/Asteroid.xs
+INCLUDE: ../../XS/Asteroid.xs
 
-INCLUDE: XS/Comet.xs
+INCLUDE: ../../XS/Comet.xs
 
-INCLUDE: XS/DynamicalTime.xs
+INCLUDE: ../../XS/DynamicalTime.xs
 
-INCLUDE: XS/Earth.xs
+INCLUDE: ../../XS/Earth.xs
 
-INCLUDE: XS/EllipticMotion.xs
+INCLUDE: ../../XS/EllipticMotion.xs
 
 #### heliocentric_time.h
 double
 ln_get_heliocentric_time_diff(double JD, struct ln_equ_posn* object)
 
-INCLUDE: XS/HyperbolicMotion.xs
+INCLUDE: ../../XS/HyperbolicMotion.xs
 
-INCLUDE: XS/JulianDay.xs
+INCLUDE: ../../XS/JulianDay.xs
 
-INCLUDE: XS/Jupiter.xs
+INCLUDE: ../../XS/Jupiter.xs
 
-INCLUDE: XS/Lunar.xs
+INCLUDE: ../../XS/Lunar.xs
 
 #### Note: Mars, Mercury, Neptune, Pluto are really the same (apart from s/mars/mercury/g). Jupiter is only slightly different
 
-INCLUDE: XS/Mars.xs
+INCLUDE: ../../XS/Mars.xs
 
-INCLUDE: XS/Mercury.xs
+INCLUDE: ../../XS/Mercury.xs
 
-INCLUDE: XS/Neptune.xs
+INCLUDE: ../../XS/Neptune.xs
 
 #### nutation.h
 struct ln_nutation*
@@ -99,34 +99,34 @@ ln_get_nutation(double JD)
     OUTPUT:
       RETVAL
 
-INCLUDE: XS/ParabolicMotion.xs
+INCLUDE: ../../XS/ParabolicMotion.xs
 
-INCLUDE: XS/Parallax.xs
+INCLUDE: ../../XS/Parallax.xs
 
-INCLUDE: XS/Pluto.xs
+INCLUDE: ../../XS/Pluto.xs
 
-INCLUDE: XS/Precession.xs
+INCLUDE: ../../XS/Precession.xs
 
-INCLUDE: XS/ProperMotion.xs
+INCLUDE: ../../XS/ProperMotion.xs
 
 #### refraction.h
 double
 ln_get_refraction_adj(double altitude, double atm_pres, double temp)
 
-INCLUDE: XS/RiseSet.xs
+INCLUDE: ../../XS/RiseSet.xs
 
-INCLUDE: XS/Saturn.xs
+INCLUDE: ../../XS/Saturn.xs
 
-INCLUDE: XS/Sidereal.xs
+INCLUDE: ../../XS/Sidereal.xs
 
-INCLUDE: XS/Solar.xs
+INCLUDE: ../../XS/Solar.xs
 
-INCLUDE: XS/Transform.xs
+INCLUDE: ../../XS/Transform.xs
 
-INCLUDE: XS/Uranus.xs
+INCLUDE: ../../XS/Uranus.xs
 
-INCLUDE: XS/Utility.xs
+INCLUDE: ../../XS/Utility.xs
 
-INCLUDE: XS/Venus.xs
+INCLUDE: ../../XS/Venus.xs
 
 
