@@ -2,10 +2,11 @@ use strict;
 use warnings;
 use Astro::Nova qw/:all/;
 
-my $observer = Astro::Nova::LnLatPosn->new();
 # observer location: Karlsruhe, for rst 
-$observer->set_lat( Astro::Nova::DMS->from_string("49°00' N")->to_degrees );
-$observer->set_lng( Astro::Nova::DMS->from_string("8°23' E")->to_degrees );
+my $observer = Astro::Nova::LnLatPosn->new(
+  lat => Astro::Nova::DMS->from_string("49°00' N")->to_degrees,
+  lng => Astro::Nova::DMS->from_string("8°23' E")->to_degrees,
+);
 
 my $now = get_julian_from_sys(); # current julian date
 
