@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 19;
+use Test::More tests => 29;
 use Astro::Nova;
 
 my $zd = Astro::Nova::DMS->new();
@@ -33,3 +33,20 @@ is($zd->get_neg(), 0);
 is($zd->get_degrees(), 2);
 is($zd->get_minutes(), 10);
 is($zd->get_seconds(), 0);
+
+$zd = Astro::Nova::DMS->new(neg => 0, minutes => 1, seconds => 5, degrees => 12);
+isa_ok($zd, 'Astro::Nova::DMS');
+is($zd->get_neg(), 0);
+is($zd->get_degrees(), 12);
+is($zd->get_minutes(), 1);
+is($zd->get_seconds(), 5);
+
+$zd = Astro::Nova::DMS->new(blah => "blah");
+isa_ok($zd, 'Astro::Nova::DMS');
+is($zd->get_neg(), 0);
+is($zd->get_degrees(), 0);
+is($zd->get_minutes(), 0);
+is($zd->get_seconds(), 0);
+
+
+

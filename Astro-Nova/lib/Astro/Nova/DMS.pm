@@ -114,8 +114,9 @@ This class represents a libnova C<ln_dms> struct. The struct has the following l
 
 =head2 new
 
-Constructor returns a new C<Astro::Nova::DMS>. Doesn't take any arguments
-at the moment.
+Constructor returns a new C<Astro::Nova::DMS>.
+Optionally takes key/value pairs for setting the struct members.
+Extra arguments are ignored. Uninitialized struct members are set to zero.
 
 =head2 get_... / set_...
 

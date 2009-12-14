@@ -125,39 +125,102 @@ HERE
 sub constructor {
   my ($struct) = @_;
   my $name = $struct->{name};
+  my $package = $struct->{package};
   my $initsection = '';
+  my $assignsection = '';
   my @init = (
-    [qr/^\s*(?:unsigned\s+)?(?:int|long\s*long|long|short|char)\s*$/, '0'],
-    [qr/^\s*(?:double|float)\s*$/, '0.'],
-    [qr/^\s*struct\b/, sub {my ($f, $t) = @_; "Zero(&(RETVAL->$f), 1, $t);"}], # hack
+    {re     => qr/^\s*(?:unsigned\s+)?(?:int|long\s*long|long|short|char)\s*$/,
+     init   => '0',
+     assign => 'SvIV(*saveSV)',
+    },
+    {re     => qr/^\s*(?:double|float)\s*$/,
+     init   => '0.',
+     assign => 'SvNV(*saveSV)',
+    },
+    {re     => qr/^\s*struct\b/,
+     init   => sub {my ($f, $t) = @_; "Zero(&(RETVAL->$f), 1, $t);" }, # hack
+     assign => sub { # hack
+        my ($f, $t) = @_;
+        "if ( sv_isobject(*saveSV) && (SvTYPE(SvRV(*saveSV)) == SVt_PVMG) ) {
+          $t* original = ($t*)SvIV((SV*)SvRV( *saveSV )); 
+          Copy(original, &(RETVAL->$f), 1, $t);
+        }
+        else {
+          warn(\"Invalid argument passed to constructor\");
+          XSRETURN_UNDEF;
+        }
+        "
+      },
+    },
   );
 
   foreach my $field (keys %{$struct->{members}}) {
     my $type = $struct->{members}{$field};
     foreach my $init (@init) {
-      if ($type =~ $init->[0]) {
-        if (ref($init->[1])) {
-          $initsection .= "\n        " . $init->[1]->($field, $type);
+      my $re = $init->{re};
+
+      if ($type =~ $re) {
+        if (ref($init->{init})) {
+          $initsection   .= "\n        " . $init->{init}->($field, $type);
         }
         else {
-          $initsection .= "\n        RETVAL->$field = ".$init->[1].";";
+          $initsection .= "\n        RETVAL->$field = " . $init->{init} . ";";
         }
+        
+        if (ref($init->{assign})) {
+          $assignsection .= "\n        saveSV = hv_fetchs(tmphash, \"$field\", 0);" .
+                            "\n        if (saveSV != NULL && SvOK(*saveSV)) {\n          " . $init->{assign}->($field, $type) .
+                            "\n        }\n";
+        }
+        else {
+          $assignsection .= "\n        saveSV = hv_fetchs(tmphash, \"$field\", 0);" .
+                            "\n        if (saveSV != NULL && SvOK(*saveSV)) {\n          RETVAL->$field = $init->{assign};" . 
+                            "\n        }\n";
+        }
+
         last;
       }
     }
   }
   return <<HERE;
 $name*
-new(CLASS)
-	char *CLASS
+new(class, ...)
+        SV* class
+    PREINIT:
+        char* CLASS;
+        HV* tmphash;
+        int iStack;
+        SV** saveSV;
     CODE:
-	RETVAL = ($name*)safemalloc( sizeof( $name ) );
-	if( RETVAL == NULL ){
-		warn("unable to malloc $name");
-		XSRETURN_UNDEF;
-	}$initsection
+        if (sv_isobject(class)) {
+          CLASS = (char*)sv_reftype(SvRV(class), 1);
+        }
+        else {
+          if (!SvPOK(class))
+            croak("Need an object or class name as first argument to the constructor of $package");
+          CLASS = (char*)SvPV_nolen(class);
+        }
+        RETVAL = ($name*)safemalloc( sizeof($name) );
+        if (RETVAL == NULL) {
+          warn("unable to malloc $name");
+          XSRETURN_UNDEF;
+        }$initsection
+        if (items > 1) {
+          if (!(items % 2)) {
+            safefree(RETVAL);
+            croak("Uneven number of arguments to constructor of $package");
+          }
+          tmphash = (HV*)sv_2mortal((SV*)newHV());
+          for (iStack = 1; iStack < items; iStack += 2) {
+            HE *he;
+            he = hv_store_ent(tmphash, ST(iStack), newSVsv(ST(iStack+1)), 0);
+            if (!he)
+              croak("Failed to write value to hash.");
+          }$assignsection
+        }
     OUTPUT:
-	RETVAL
+        RETVAL
+        
 HERE
 }
 

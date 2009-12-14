@@ -573,8 +573,11 @@ The C<ln_> prefix has been stripped.
 libnova defines several structs for passing data to or receiving results from the
 functions. These have been wrapped as Perl classes. Below is a list of the struct names,
 their Perl class names, and their data members (including the C types). The class
-constructors currently, do B<not> take arguments. Instead, you need to use the accessors
-for the individual data members. If a member is called C<L>, then there will be
+constructors optionally take key/value pairs as argument that correspond to the
+struct members. Any extra parameters that aren't struct members are currently simply
+ignored. Any struct members that aren't explicitly set will be set to zero.
+
+If a member is called C<L>, then there will be
 two methods C<get_L> and C<set_L> for getting/setting the data. All numeric data
 is intialized to zero.
 

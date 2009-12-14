@@ -1,5 +1,8 @@
 Revision history for Perl extension Astro::Nova.
 
+  - Fix wrong order of arguments in equ_to_hequ
+  - XS constructors now take optional key/value pairs for initialization.
+
 0.02  Sun Dec 13 17:42 2009
   - Much improved.
   - Examples
