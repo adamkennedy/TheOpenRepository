@@ -589,7 +589,7 @@ is intialized to zero.
     int hours
     int minutes
     double seconds
-  
+
 L<Astro::Nova::DMS>, C<ln_dms>
 
     unsigned short  neg
@@ -618,8 +618,9 @@ L<Astro::Nova::DMS>, C<ln_dms>
     double  L
     double  B
     double  R
-  
-  Astro::Nova::HMS, ln_hms
+
+L<Astro::Nova::HMS>, ln_hms
+
     unsigned short  hours
     unsigned short  minutes
     double  seconds
@@ -635,7 +636,7 @@ L<Astro::Nova::DMS>, C<ln_dms>
     double  w
     double  omega
     double  JD
-  
+
 L<Astro::Nova::LnLatPosn>, C<ln_lnlat_posn>
 
     double  lng
@@ -662,7 +663,7 @@ L<Astro::Nova::LnLatPosn>, C<ln_lnlat_posn>
     double  rise
     double  set
     double  transit
-  
+
 L<Astro::Nova::ZoneDate>, C<ln_zonedate>
 
     int  years
