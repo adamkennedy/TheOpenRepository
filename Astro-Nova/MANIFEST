@@ -1,8 +1,12 @@
+Build.PL
 buildtools/makeNovaClass.pl
 Changes
 examples/moon.pl
+inc/Module/Build/AstroNova.pm
 lib/Astro/Nova.pm
+lib/Astro/Nova.xs
 lib/Astro/Nova/DMS.pm
+lib/Astro/Nova/HMS.pm
 lib/Astro/Nova/LnLatPosn.pm
 lib/Astro/Nova/ZoneDate.pm
 libnova-0.13.0/aclocal.m4
@@ -112,15 +116,13 @@ libnova-0.13.0/src/uranus.c
 libnova-0.13.0/src/utility.c
 libnova-0.13.0/src/venus.c
 libnova-0.13.0/src/vsop87.c
-Makefile.PL
 MANIFEST			This list of files
-Nova.xs
+mytype.map
 perlobject.map
 ppport.h
 t/01basic.t
 t/02zonedate.t
 t/03dms.t
-typemap
 XS/Abberation.xs
 XS/AngularSeparation.xs
 XS/ApparentPosition.xs
@@ -145,7 +147,6 @@ XS/RiseSet.xs
 XS/Saturn.xs
 XS/Sidereal.xs
 XS/Solar.xs
-XS/Structs.xs
 XS/Transform.xs
 XS/Uranus.xs
 XS/Utility.xs
