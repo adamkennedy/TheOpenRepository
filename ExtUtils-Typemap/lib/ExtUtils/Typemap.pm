@@ -2,7 +2,7 @@ package ExtUtils::Typemap;
 use 5.006001;
 use strict;
 use warnings;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 use Carp qw(croak);
 
 our $Proto_Regexp = "[" . quotemeta('\$%&*@;[]') . "]";
@@ -376,8 +376,9 @@ sub validate {
     croak("Multiple definition of ctype '$ctype' in TYPEMAP section")
       if exists $ctypes{$ctype};
     my $xstype = $map->{xstype};
-    croak("Multiple definition of xstype '$xstype' in TYPEMAP section")
-      if exists $xstypes{$xstype};
+    # TODO check this: We shouldn't complain about reusing XS types in TYPEMAP.
+    #croak("Multiple definition of xstype '$xstype' in TYPEMAP section")
+    #  if exists $xstypes{$xstype};
     $xstypes{$xstype}++;
     $ctypes{$ctype}++;
   }

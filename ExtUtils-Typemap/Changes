@@ -1,5 +1,8 @@
 Revision history for Perl extension ExtUtils::Typemap
 
+0.04 Mon 14 Dec 2009
+  - Fix hairy validation bug for duplicate XS types in TYPEMAP.
+
 0.03 Mon 14 Dec 2009
   - Typemap merging
 
