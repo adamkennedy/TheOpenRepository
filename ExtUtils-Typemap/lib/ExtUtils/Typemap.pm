@@ -28,6 +28,9 @@ ExtUtils::Typemap - Read/Write/Modify Perl/XS typemap files
   
   # save a typemap to a file
   $typemap->write(file => 'anotherfile.map');
+  
+  # merge the other typemap into this one
+  $typemap->merge(typemap => $another_typemap);
 
 =head1 DESCRIPTION
 
@@ -111,8 +114,12 @@ sub add_typemap {
     $self->validate(typemap_xstype => $xstype, ctype => $ctype);
   }
   my $proto = $args{"prototype"} || '';
-  push @{$self->{typemap_section}},
-    {tidy_ctype=>_tidy_type($ctype), xstype=>$xstype, proto=>$proto, ctype=>$ctype};
+  push @{$self->{typemap_section}}, {
+    tidy_ctype => _tidy_type($ctype),
+    xstype     => $xstype,
+    proto      => $proto,
+    ctype      => $ctype,
+  };
   return 1;
 }
 
@@ -300,6 +307,58 @@ sub as_string {
     }
   }
   return join '', @code;
+}
+
+=head2 merge
+
+Merges a given typemap into the object. Note that a failed merge
+operation leaves the object in an inconsistent state so clone if necessary.
+
+Mandatory named argument: C<typemap =E<gt> $another_typemap>
+
+Optional argument: C<replace =E<gt> 1> to force replacement
+of existing typemap entries without warning.
+
+=cut
+
+sub merge {
+  my $self = shift;
+  my %args = @_;
+  my $typemap = $args{typemap};
+  croak("Need ExtUtils::Typemap as argument")
+    if not ref $typemap or not $typemap->isa('ExtUtils::Typemap');
+
+  my $replace = $args{replace};
+
+  # FIXME breaking encapsulation. Add accessor code.
+  #
+  foreach my $entry (@{$typemap->{typemap_section}}) {
+    my $ctype = defined($entry->{ctype}) ? $entry->{ctype} : $entry->{tidy_ctype};
+    $self->add_typemap(
+      ctype       => $ctype,
+      xstype      => $entry->{xstype},
+      "prototype" => $entry->{proto},
+      replace     => $replace,
+    );
+  }
+
+  foreach my $entry (@{$typemap->{input_section}}) {
+    $self->add_inputmap(
+      code        => $entry->{code},
+      xstype      => $entry->{xstype},
+      replace     => $replace,
+    );
+  }
+
+  foreach my $entry (@{$typemap->{output_section}}) {
+    $self->add_outputmap(
+      code        => $entry->{code},
+      xstype      => $entry->{xstype},
+      replace     => $replace,
+    );
+  }
+
+  return 1;
 }
 
 # Note: This is really inefficient. One could keep a hash to start with.
