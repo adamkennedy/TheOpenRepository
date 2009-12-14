@@ -15,5 +15,5 @@ extern "C" {
 
 MODULE = Astro::Hipparcos		PACKAGE = Astro::Hipparcos		
 
-INCLUDE: xspp --typemap=typemap.xsp HipRecord.xsp |
+INCLUDE: perl -MExtUtils::XSpp::Cmd -e xspp -- -t typemap.xsp XS/HipRecord.xsp |
 

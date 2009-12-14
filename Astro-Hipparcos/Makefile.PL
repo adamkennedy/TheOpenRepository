@@ -10,7 +10,7 @@ WriteMakefile(
     NAME              => 'Astro::Hipparcos',
     VERSION_FROM      => 'lib/Astro/Hipparcos.pm', # finds $VERSION
     PREREQ_PM         => {
-      'ExtUtils::XSpp' => '0.04',
+      'ExtUtils::XSpp' => '0.05',
     },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Astro/Hipparcos.pm', # retrieve abstract from module
