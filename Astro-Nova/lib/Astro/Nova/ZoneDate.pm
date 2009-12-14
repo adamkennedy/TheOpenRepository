@@ -103,6 +103,8 @@ Returns a list of all members in order.
 
 =head1 SEE ALSO
 
+L<Astro::Nova>
+
 libnova website: L<http://libnova.sourceforge.net/>
 
 =head1 AUTHOR

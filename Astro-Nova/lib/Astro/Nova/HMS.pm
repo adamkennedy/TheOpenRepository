@@ -1,4 +1,4 @@
-package Astro::Nova::DMS;
+package Astro::Nova::HMS;
 
 use 5.008;
 use strict;
@@ -9,43 +9,42 @@ use Astro::Nova;
 # basic stuff is in Astro::Nova's XS!
 
 sub members {
-  return qw/neg degrees minutes seconds/
+  return qw/hours minutes seconds/
 }
 
-my $FLOAT = qr/(?:[+-]?)(?=\d|\.\d)\d*(?:\.\d*)?(?:[Ee]([+-]?\d+))?/;
-sub from_string {
-  my $class = shift;
-  my $self = ref($class) ? $class : $class->new();
-  my $string = shift;
-  $string =~ m{
-      ^\s*
-      ([+-]?)\s*
-      (?:(\d+)\s*°)?
-      \s*
-      (?:(\d+)\s*')?
-      \s*
-      (?:($FLOAT)\s*'')?
-      \s*(?:([eEwWnNsS]))?\s*$
-    }x or return();
-  my ($sign, $deg, $min, $sec, $dir) = ($1, $2, $3, $4, $5);
-  if (not grep {defined($_)} ($deg, $min, $sec)) {
-    return();
-  }
-  $sign = 1 if not defined $sign;
-  $sign = ($sign eq '-' ? -1 : 1);
-  $sign *= -1 if $dir and $dir =~ /^[wW]$/;
-  $self->set_neg($sign < 0 ? 1 : 0);
-  $self->set_degrees(defined $deg ? $deg : 0);
-  $self->set_minutes(defined $min ? $min : 0);
-  $self->set_seconds(defined $sec ? $sec : 0);
-  return $self;
-}
+#my $FLOAT = qr/(?:[+-]?)(?=\d|\.\d)\d*(?:\.\d*)?(?:[Ee]([+-]?\d+))?/;
+#sub from_string {
+#  my $class = shift;
+#  my $self = ref($class) ? $class : $class->new();
+#  my $string = shift;
+#  $string =~ m{
+#      ^\s*
+#      ([+-]?)\s*
+#      (?:(\d+)\s*°)?
+#      \s*
+#      (?:(\d+)\s*')?
+#      \s*
+#      (?:($FLOAT)\s*'')?
+#      \s*(?:([eEwWnNsS]))?\s*$
+#    }x or return();
+#  my ($sign, $deg, $min, $sec, $dir) = ($1, $2, $3, $4, $5);
+#  if (not grep {defined($_)} ($deg, $min, $sec)) {
+#    return();
+#  }
+#  $sign = 1 if not defined $sign;
+#  $sign = ($sign eq '-' ? -1 : 1);
+#  $sign *= -1 if $dir and $dir =~ /^[wW]$/;
+#  $self->set_neg($sign < 0 ? 1 : 0);
+#  $self->set_degrees(defined $deg ? $deg : 0);
+#  $self->set_minutes(defined $min ? $min : 0);
+#  $self->set_seconds(defined $sec ? $sec : 0);
+#  return $self;
+#}
 
 sub as_ascii {
   my $self = shift;
   my $template = <<'HERE';
-Negative:   %d
-Degrees:    %d
+Hours:      %d
 Minutes:    %d
 Seconds:    %f
 HERE
@@ -69,20 +68,20 @@ sub set_all {
 }
 
 sub to_degrees {
-  Astro::Nova::dms_to_deg(shift)
+  Astro::Nova::hms_to_deg(shift)
 }
 
 sub to_radians {
-  Astro::Nova::dms_to_rad(shift)
+  Astro::Nova::hms_to_rad(shift)
 }
 
-sub to_hms {
-  Astro::Nova::deg_to_hms(Astro::Nova::dms_to_deg(shift))
+sub to_dms {
+  Astro::Nova::deg_to_dms(Astro::Nova::hms_to_deg(shift))
 }
 
 sub from_degrees {
   my $class = shift;
-  my $obj = Astro::Nova::deg_to_dms(shift);
+  my $obj = Astro::Nova::deg_to_hms(shift);
   return $obj if not ref $class;
   $class->set_all($obj->get_all());
   return $class;
@@ -90,15 +89,15 @@ sub from_degrees {
 
 sub from_radians {
   my $class = shift;
-  my $obj = Astro::Nova::rad_to_dms(shift);
+  my $obj = Astro::Nova::rad_to_hms(shift);
   return $obj if not ref $class;
   $class->set_all($obj->get_all());
   return $class;
 }
 
-sub from_hms {
+sub from_dms {
   my $class = shift;
-  my $obj = shift->to_dms();
+  my $obj = shift->to_hms();
   return $obj if not ref $class;
   $class->set_all($obj->get_all());
   return $class;
@@ -110,27 +109,23 @@ __END__
 
 =head1 NAME
 
-Astro::Nova::DMS - Perl representation of a libnova ln_dms (degrees, minutes, seconds)
+Astro::Nova::HMS - Perl representation of a libnova ln_hms (hours, minutes, seconds)
 
 =head1 SYNOPSIS
 
   use Astro::Nova qw(functions ...);
-  my $date = Astro::Nova::DMS->new();
+  my $date = Astro::Nova::HMS->new();
   $date->set_year(...);
   # ...
   print $date->as_ascii(), "\n";
   my @members = $date->get_all();
 
-  my $dms = Astro::Nova::DMS->from_string("4°50'2'' W"); # sgn=-1, degrees=4, minutes=50, seconds=2
-  $dms = Astro::Nova::DMS->from_string("-4°50'"); # sgn=-1, degrees=4, minutes=50, seconds=0
-
 =head1 DESCRIPTION
 
-This class represents a libnova C<ln_dms> struct. The struct has the following layout:
+This class represents a libnova C<ln_hms> struct. The struct has the following layout:
 
-  ln_dms {
-    unsigned short  neg
-    unsigned short  degrees
+  ln_hms {
+    unsigned short  hours
     unsigned short  minutes
     double          seconds
   }
@@ -139,7 +134,7 @@ This class represents a libnova C<ln_dms> struct. The struct has the following l
 
 =head2 new
 
-Constructor returns a new C<Astro::Nova::DMS>.
+Constructor returns a new C<Astro::Nova::HMS>.
 Optionally takes key/value pairs for setting the struct members.
 Extra arguments are ignored. Uninitialized struct members are set to zero.
 
@@ -156,15 +151,6 @@ Returns all members as a list.
 Sets all members. Takes a list of values which must be in the order shown above.
 Any missing values are ignored, undefs are skipped.
 
-=head2 from_string
-
-Parses a string of the form C<X°Y'Z'' DIR> where X, Y, Z are numbers
-and DIR may be a direction [EWNS] (W sets sign to negative).
-Omitted parts are set to zero.
-
-If called as a class methods, returns a new DMS. If called on an
-existing object, that object is modified.
-
 =head2 as_ascii
 
 Returns a human-readable ASCII table of the date information.
@@ -173,11 +159,11 @@ Returns a human-readable ASCII table of the date information.
 
 Returns a list of all members in order.
 
-=head2 to_degrees / to_radians / to_hms
+=head2 to_degrees / to_radians / to_dms
 
 Convert to degrees or radians (returns a number).
 
-C<to_hms> Converts to L<Astro::Nova::HMS> (hours).
+C<to_dms> Converts to L<Astro::Nova::DMS> (degrees, minutes, seconds).
 
 =head2 from_degrees / from_radians / from_dms
 
