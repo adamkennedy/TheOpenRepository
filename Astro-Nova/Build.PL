@@ -35,7 +35,7 @@ Module::Build::AstroNova->new(
   dynamic_config => 0,
   meta_add => { distribution_type => "module" },
   create_makefile_pl => "passthrough",
-  #add_to_cleanup => [ qw() ],
+  add_to_cleanup => [ qw(XS/Structs.xs) ],
   create_readme => 1,
   include_dirs => ['.', File::Spec->catdir($Module::Build::AstroNova::NovaDir, 'src')],
   extra_linker_flags => [$Module::Build::AstroNova::NovaDirStaticLib],
