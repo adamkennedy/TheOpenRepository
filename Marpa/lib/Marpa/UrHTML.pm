@@ -746,6 +746,7 @@ my %handler = (
     document => '!TOP_handler',
     pcdata   => '!PCDATA_handler',
     prolog   => '!PROLOG_handler',
+    trailer  => '!TRAILER_handler',
 );
 
 for my $bnf_production ( split /\n/xms, $BNF ) {

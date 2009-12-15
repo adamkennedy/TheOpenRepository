@@ -1,0 +1,205 @@
+=head1 NAME
+
+Marpa::UrHTML - High-level HTML Parser
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head2 Handler Specs
+
+Handler specs can be either array pointers (short form),
+or hash pointers (long form).
+The short, array form is the usual form.
+The long, hash form can be useful for dealing when
+element or class names with unusual characters.
+
+A short (or array) form handler spec is a pointer to
+an array of two elements.
+The first is a string containing
+a CSS-style specification.
+The second element is the handler closure.
+Here's an example:
+
+    Marpa::UrHTML->new( { handlers => [ 'spacer' => \&delete_spacers ] } );
+
+In this example, the specifier is C<spacer>.
+When the specifier is a lowercase bareword,
+it's taken as a tag name.
+The C<spacer> specification indicates
+that the closure should be called on all elements with the C<spacer> tagname.
+The above code tells L<Marpa::UrHTML> to delete all C<spacer> elements.
+(C<spacer> was a tag to add white space supported by
+older versions of the Netscape browser.)
+
+The handler specifications follow CSS B<style>, because it is handy
+and likely to be familiar to the user.
+The syntax is outlined in detail below, but
+the following two rules sum it up:
+
+    Use lowercase except for syntax special to L<Marpa::UrHTML>.
+    Simple things work, irrelevant and complicated things don't.
+
+HTML class names can also be in specifiers.  For example
+
+    [ '.zipcode' => \&normalize_zipcode } ]
+
+indicates that the C<normalize_zipcode> subroutine is the handler for
+all elements whose class is zipcode.
+
+A dotted pair of lowercase names specifies a handler that applies only
+to elements with a specific tag name and class name.
+For example,
+
+    [ 'span.zipcode' => \&normalize_zipcode ]
+
+indicates that C<normalize_zipcode> is the handler
+for C<span> elements whose class attribute is "C<zipcode>".
+
+As a special case, a handler specifier consisting of just an asterisk
+is a wildcard matching all elements.
+
+    [ q{*} => \&normalize_whitespace ]
+
+It is important to remember that HTML elements have
+both element and non-element children.
+The most conspicuous example of non-element content in an
+element is text which occurs directly inside that element.
+Other important non-elements are
+SGML comments and processing instructions.
+L<UrHTML::Marpa> allows the user to specify handlers
+for non-elements with pseudo-classes.
+
+As an illustration in the following HTML
+
+    <p>I say <q>hello</q>, I don't know why you say <q>goodbye</q></p>
+
+The C<p> element of the examples contains two child elements,
+both C<q> elements.  It also contains two stretches of non-element
+text: "C<I say >" and "C<, I don't know why you say >".
+
+L<Marpa::UrHTML> pseudo specifiers use the same syntax
+except that lowercase is reserved for CSS pseudo-classes,
+none of which 
+L<Marpa::UrHTML> supports as of this version.
+L<Marpa::UrHTML>'s pseudo-classes must always be specified in upper-case.
+
+=over 4
+
+=item :COMMENT
+This non-element handler is called for
+each comment, with that comment
+as its contents.
+
+=item :CRUFT
+
+=item :PCDATA
+This non-element handler is called for PCDATA,
+with a series of characters of PCDATA
+as its content.
+L<Marpa::UrHTML> relies on L<HTML::Parser> to
+determine which PCDATA to include in a "stretch".
+Most text in HTML documents is PCDATA.
+each comment, with that comment
+as its contents.
+
+    Rephrase above.  Refer to tokens?  YES!
+
+=item :PI
+
+=item :PROLOG
+The contents for this non-element handler
+are the prolog
+-- the text in the physical
+document before the html.
+This can include whitespace
+and SGML markup.
+
+=item :TOP
+The contents for this
+non-element handler
+are the entire
+physical document, including the prolog,
+all of the html, and the trailer.
+This handler will always be
+called last,
+after all other element and non-element handlers.
+
+=item :TRAILER
+The contents for this non-element handler
+are the trailer -- the text in the physical
+document after the html.
+In a valid document this can include whitespace
+and SGML commments.
+In invalid or broken documents,
+there may also be cruft.
+
+=back
+
+     Precedence?
+
+     Discuss special handling of html, head, body
+
+     Discuss special handling of other elements with virtual start tags
+
+     Casing:
+     HTML elements NOT case-sensitive.
+     XML elements case-sensitive.
+     class names case-sensitive.
+     CSS pseudo-classes NOT case-sensitive.
+
+
+     
+
+=head1 AUTHOR
+
+Jeffrey Kegler
+
+=head1 BUGS
+
+Please report any bugs or feature requests to
+C<bug-marpa at rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa>.
+I will be notified, and then you'll automatically be notified of progress on
+your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+=begin Marpa::Test::Display:
+
+## skip display
+
+=end Marpa::Test::Display:
+
+    perldoc Marpa
+    
+You can also look for information at:
+
+=over 4
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Marpa>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Marpa>
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Marpa>
+
+=back
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007-2009 Jeffrey Kegler, all rights reserved.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl 5.10.0.
