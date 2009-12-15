@@ -52,6 +52,7 @@ t/minus_s.t
 t/pascal.t
 t/priority.t
 t/randal.t
+t/rt_52724.t
 t/stripped.t
 t/synopsis.t
 t/wall.t
