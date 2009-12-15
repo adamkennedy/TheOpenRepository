@@ -10,8 +10,9 @@ WriteMakefile1(
             repository => 'http://svn.ali.as/cpan/trunk/AutoXS-Header',
         },
     },
-    #BUILD_REQUIRES => {
-    #},
+    BUILD_REQUIRES => {
+        'Test::More' => 0,
+    },
     NAME              => 'AutoXS::Header',
     VERSION_FROM      => 'lib/AutoXS/Header.pm', # finds $VERSION
     PREREQ_PM         => {}, # e.g., Module::Name => 1.1
