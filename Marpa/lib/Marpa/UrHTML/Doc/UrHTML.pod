@@ -4,9 +4,36 @@ Marpa::UrHTML - High-level HTML Parser
 
 =head1 SYNOPSIS
 
+    use Marpa::UrHTML;
+    my $p1 = Marpa::UrHTML->new($urhtml_args);
+    print Marpa::UrHTML->new($urhtml_args)->parse( \$document );
+    my $p = Marpa::UrHTML->new( { handlers => \@handlers, } );
+
 =head1 DESCRIPTION
 
-=head2 Handler Specs
+=head1 METHODS
+
+=over
+
+=item new
+
+=item parse
+
+=back
+
+=head2 Options
+
+=over
+
+=item C<handlers>
+
+=item C<trace_conflicts>
+
+=item C<trace_terminals>
+
+=back
+
+=head2 Handler Declarations (Short Form)
 
 Handler specs can be either array pointers (short form),
 or hash pointers (long form).
@@ -160,6 +187,54 @@ The handler specifiers do not support
      XML elements case-sensitive.
      class names case-sensitive.
      CSS pseudo-classes NOT case-sensitive.
+
+=head2 Handler Declarations (Long Form)
+
+=head2 How to Write I<Marpa::UrHTML> Handlers
+
+=head3 Handler Utilities
+
+=over
+
+=item C<Marpa::UrHTML::child_data>
+
+    Marpa::UrHTML::child_data('value,literal');
+
+=item C<Marpa::UrHTML::child_values()>
+
+=item C<$Marpa::UrHTML::INSTANCE>
+
+=item C<Marpa::UrHTML::title()>
+
+=item C<Marpa::UrHTML::attributes()>
+
+=item C<Marpa::UrHTML::literal()>
+
+=item C<Marpa::UrHTML::literal_ref()>
+
+=item C<Marpa::UrHTML::original()>
+
+=item C<Marpa::UrHTML::tagname()>
+
+=back
+
+=head4 The C<child_data> Argspec
+
+=over
+
+=item C<element>
+
+=item C<value>
+
+=item C<literal>
+
+=item C<original>
+
+=item C<pseudoclass>
+
+=item C<token_type>
+
+=back
 
 =head1 AUTHOR
 

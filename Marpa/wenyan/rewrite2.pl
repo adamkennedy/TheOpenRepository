@@ -59,7 +59,15 @@ print <<'EOF';
 <BODY>
 EOF
 
+my $default_shrift_notes = <<'EOF';
+<div class="shrift_notes">
+<span class="codepoint_datum_label">Notes</span>:
+</div>
+EOF
+chomp $default_shrift_notes;
+
 for my $codepoint (@sorted_codepoints) {
+    $codepoints->{$codepoint}->{shrift_notes} //= $default_shrift_notes;
     say qq{<div class="codepoint" title="$codepoint">};
     say qq{<table>};
     say qq{<td>};

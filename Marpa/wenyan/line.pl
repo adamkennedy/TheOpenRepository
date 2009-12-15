@@ -49,7 +49,7 @@ XIANG_ZHUAN: for my $codepoint (@{$xc_text}) {
 
 my $xiang_zhuan = join q{ }, map { sprintf '%c', hex(substr($_, 2)) } @xiang_zhuan;
 
-my $codepoints = Storable::retrieve('wenyan.storable');
+my $codepoints = Storable::retrieve('glossary.storable');
 
 my @sorted_codepoints =
     map  { $_->[1] }
@@ -94,33 +94,33 @@ for my $codepoint (@sorted_codepoints) {
     say qq{<div class="codepoint" title="$codepoint">};
     say qq{<table>};
     say qq{<td>};
-    say ${ $codepoints->{$codepoint}->{glyph} };
+    say $codepoints->{$codepoint}->{glyph};
     say qq{</td>};
     say qq{<td>};
     for my $field (qw( unicode_value krskangxi krsunicode )) {
         if ( my $text_ref = $codepoints->{$codepoint}->{$field} ) {
-            say ${$text_ref};
+            say $text_ref;
         }
     }
     say qq{</td>};
     say qq{<td>};
     for my $field (qw( kfrequency kgradelevel ktotalstrokes)) {
         if ( my $text_ref = $codepoints->{$codepoint}->{$field} ) {
-            say ${$text_ref};
+            say $text_ref;
         }
     }
     say qq{</td>};
     say qq{<td>};
     for my $field (qw( kiicore kmandarin kmatthews)) {
         if ( my $text_ref = $codepoints->{$codepoint}->{$field} ) {
-            say ${$text_ref};
+            say $text_ref;
         }
     }
     say qq{</td>};
     say qq{</table>};
     for my $field (@long_fields) {
         if ( my $text_ref = $codepoints->{$codepoint}->{$field} ) {
-            say ${$text_ref};
+            say $text_ref;
         }
     }
     say qq{</div>};

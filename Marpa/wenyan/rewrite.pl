@@ -16,6 +16,7 @@ use Storable;
 use Marpa::UrHTML;
 
 binmode STDIN, ':utf8';
+binmode STDERR, ':utf8';
 
 my $document;
 {
@@ -41,6 +42,11 @@ my @handlers = (
             } ## end for my $value ( @{ &Marpa::UrHTML::child_values() } )
             return;
         },
+    ],
+    [   'div' => sub {
+            my $class = Marpa::UrHTML::attributes()->{class};
+            Carp::croak(qq{WARNING: Unknown class for div: "$class"});
+            }
     ],
 );
 
