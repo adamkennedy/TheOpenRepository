@@ -72,11 +72,12 @@ for non-elements with pseudo-classes.
 
 As an illustration in the following HTML
 
-    <p>I say <q>hello</q>, I don't know why you say <q>goodbye</q></p>
+    <p>I say<q>hello</q>I don't know why you say<q>goodbye</q></p>
 
-The C<p> element of the examples contains two child elements,
+The C<p> element of this example contains two child elements,
 both C<q> elements.  It also contains two stretches of non-element
-text: "C<I say >" and "C<, I don't know why you say >".
+text, both of which begin with the word "C<I>" and end with the word
+"C<say>".
 
 L<Marpa::UrHTML> pseudo specifiers use the same syntax
 except that lowercase is reserved for CSS pseudo-classes,
@@ -84,57 +85,69 @@ none of which
 L<Marpa::UrHTML> supports as of this version.
 L<Marpa::UrHTML>'s pseudo-classes must always be specified in upper-case.
 
-=over 4
+L<Marpa::UrHTML>'s initially receives its input as tokens
+from L<HTML::Parser>.
+The following
+L<Marpa::UrHTML>'s pseudo-classes allow handlers to be assigned
+to deal with certain
+L<HTML::Parser> tokens as they come in:
+C<:COMMENT>,
+C<:PCDATA>
+and C<:PI>.
+These pseudo-classes assign handlers for HTML (and SGML) comments,
+PCDATA and SGML processing instructions, respectively.
 
-=item :COMMENT
-This non-element handler is called for
-each comment, with that comment
-as its contents.
+Intuitively, PCDATA is any document text which is not explicitly
+marked as literal.
+(The name stood for "parsed character data" until some
+pedants have pointed out that all characters in an HTML document
+are in some sense parsed, so that the name is not in the strictest sense
+correct.
+The acronym was kept for historical reasons and it is still a good
+mnemonic.)
+In L<Marpa::UrHTML>,
+a PCDATA token is a any token returned as a
+C<text> event by L<HTML::Parser>
+which has a false C<is_cdata> attribute.
+Division of PCDATA text is according to the default behavior 
+of L<HTML::Parser>.
 
-=item :CRUFT
+The C<:CRUFT> pseudo-class allows a handler to be specified
+for tokens which are classed as cruft.
+See L<the discussion of cruft later in this document|//"Cruft">.
+In the phyiscal document,
+non-elements can occur before the html as a B<prolog>,
+or after the html, as a B<trailer>.
+The C<:PROLOG> and C<:TRAILER> pseudo-classes allow
+handlers to be assigned for these.
 
-=item :PCDATA
-This non-element handler is called for PCDATA,
-with a series of characters of PCDATA
-as its content.
-L<Marpa::UrHTML> relies on L<HTML::Parser> to
-determine which PCDATA to include in a "stretch".
-Most text in HTML documents is PCDATA.
-each comment, with that comment
-as its contents.
+   Supply pseudo-class examples.
 
-    Rephrase above.  Refer to tokens?  YES!
+The "top" handler is always the last to be called in any parse.
+The "top" of the parse deals with a non-element -- the entire
+physical document, including
+the prolog, the trailer and the html element.
+The default top handler takes the literal values of all of its
+children and returns them as text.
+It is very often useful for the user
+to assign their own top handler.
+The user can do this with the
+C<:TOP> pseudo-class.
 
-=item :PI
+In L<Marpa::UrHTML> handler specifiers,
+elements and class names should be all alphanumerics, hyphens
+and underscores.
+Other characters are reserved for future syntax extensions.
+If you need class or tag names with other characters,
+you should use the hash form of handler specification,
+where arbitrary characters can be put into either a class
+or element name, with one restriction:
+L<Marpa::UrHTML> currently restricts itself to L<HTML::Parser>'s
+default handling of element tag names.
+This follows the HTML standards (but B<not> the XML standards)
+and treats tag names as case insensitive.
 
-=item :PROLOG
-The contents for this non-element handler
-are the prolog
--- the text in the physical
-document before the html.
-This can include whitespace
-and SGML markup.
-
-=item :TOP
-The contents for this
-non-element handler
-are the entire
-physical document, including the prolog,
-all of the html, and the trailer.
-This handler will always be
-called last,
-after all other element and non-element handlers.
-
-=item :TRAILER
-The contents for this non-element handler
-are the trailer -- the text in the physical
-document after the html.
-In a valid document this can include whitespace
-and SGML commments.
-In invalid or broken documents,
-there may also be cruft.
-
-=back
+The handler specifiers do not support 
 
      Precedence?
 
@@ -147,9 +160,6 @@ there may also be cruft.
      XML elements case-sensitive.
      class names case-sensitive.
      CSS pseudo-classes NOT case-sensitive.
-
-
-     
 
 =head1 AUTHOR
 
