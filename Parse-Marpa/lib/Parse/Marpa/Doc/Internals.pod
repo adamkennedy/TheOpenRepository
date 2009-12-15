@@ -1447,7 +1447,7 @@ is_file($_, 'example/equation.marpa');
 =end Marpa::Test::Display:
 
 
-    semantics are perl5.  version is 1.005_000.
+    semantics are perl5.  version is 1.005_001.
 
     start symbol is E.
 
