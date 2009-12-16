@@ -151,3 +151,6 @@ XS/Transform.xs
 XS/Uranus.xs
 XS/Utility.xs
 XS/Venus.xs
+Makefile.PL
+README
+META.yml
