@@ -7,7 +7,6 @@ use English qw( -no_match_vars );
 use Marpa::UrHTML;
 use List::Util qw(sum);
 use Fatal qw(open close);
-use WWW::Mechanize;
 use Getopt::Long;
 
 my $html;

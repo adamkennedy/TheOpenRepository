@@ -11,6 +11,79 @@ Marpa::UrHTML - High-level HTML Parser
 
 =head1 DESCRIPTION
 
+L<Marpa::UrHTML> does "high-level" parsing of HTML:
+that is, it determines the full parse tree of the HTML document.
+Instead it allows the user to specify handlers to be called on the various
+HTML elements and HTML and SGML non-elements.
+L<Marpa::UrHTML> does not produce a parse tree, but it is straightforward
+to write handlers to do that.
+
+=head2 How L<Marpa::UrHMTL> looks at HTML
+
+L<Marpa::UrHTML> is an extremely liberal HTML parser.
+L<Marpa::UrHTML> will treat any document as HTML, if perhaps
+invalid or broken HTML, and parse accordingly.
+
+Every SGML/HTML document contains an SGML prolog, an C<html> element,
+and an SGML trailer.  The SGML prologs and trailer can be zero length.
+The C<html> element consists of a start tag C<< <html> >>,
+an end tag C<< </html> >>
+and the text between them, called the "contents".
+in which case they are also said to be "virtual" tags.
+The contents of the C<html> element may be zero length.
+
+In the contents of the C<html> element can be other elements.
+Capitalization is significant here,
+The "C<html> element" is not the same as an "HTML element".
+The B<html element> is the top-level element in any HTML document,
+and will be unique in a valid document.
+Contained in the C<html> element can be many B<HTML elements>.
+
+Every element has a B<tagname>.
+In a valid HTML document,
+only the C<html> element will have the tagname "C<html>".
+
+Start tags and end tags may be missing.
+This is legal for the many HTML elements,
+including the C<html> element itself.
+B<Missing tags> are also called B<implicit> or B<virtual tags>.
+An tag which is not missing is an B<explicit tag>.
+
+The contents of HTML elements,
+in addition to other HTML elements,
+can include B<non-elements>.
+The trailer and prolog will be entirely non-elements.
+HTML elements can contain both elements and non-elements.
+In the following HTML fragment
+
+    <p>I say<q>hello</q>I don't know why you say<q>goodbye</q></p>
+
+the C<p> element contains two child elements,
+both C<q> elements.  It also contains two stretches of non-element
+text, both of which begin with the word "C<I>" and end with the word
+"C<say>".
+
+L<Marpa::UrHTML>'s uses L<HTML::Parser> to do its low-level parsing,
+or tokenization.
+L<HTML::Parser> returns six kinds of token.
+B<start tag tokens> and B<end tag tokens> (or "start tokens"
+and "end tokens") are always part of elements.
+The non-element tokens are text, processing instructions, SGML declarations
+and comments.
+
+For liberal high-level parsing, L<Marpa::UrHTML> introduces a token type of its
+own: cruft.
+Cruft tokens are tokens which even L<Marpa::UrHTML>'s liberal
+parsing standards cannot work into a reasonable HTML-like
+structure.
+L<Marpa::UrHTML> ignores cruft in determining the structure of
+an HTML document, much as it the cruft were comments.
+
+Text tokens can be of two types: CDATA and PCDATA.
+A PCDATA token is any text token
+returned by L<HTML::Parser>
+with a false C<is_cdata> attribute.
+
 =head1 METHODS
 
 =over
@@ -88,24 +161,6 @@ is a wildcard matching all elements.
 
     [ q{*} => \&normalize_whitespace ]
 
-It is important to remember that HTML elements have
-both element and non-element children.
-The most conspicuous example of non-element content in an
-element is text which occurs directly inside that element.
-Other important non-elements are
-SGML comments and processing instructions.
-L<UrHTML::Marpa> allows the user to specify handlers
-for non-elements with pseudo-classes.
-
-As an illustration in the following HTML
-
-    <p>I say<q>hello</q>I don't know why you say<q>goodbye</q></p>
-
-The C<p> element of this example contains two child elements,
-both C<q> elements.  It also contains two stretches of non-element
-text, both of which begin with the word "C<I>" and end with the word
-"C<say>".
-
 L<Marpa::UrHTML> pseudo specifiers use the same syntax
 except that lowercase is reserved for CSS pseudo-classes,
 none of which 
@@ -120,33 +175,10 @@ to deal with certain
 L<HTML::Parser> tokens as they come in:
 C<:COMMENT>,
 C<:PCDATA>
-and C<:PI>.
-These pseudo-classes assign handlers for HTML (and SGML) comments,
-PCDATA and SGML processing instructions, respectively.
-
-Intuitively, PCDATA is any document text which is not explicitly
-marked as literal.
-(The name stood for "parsed character data" until some
-pedants have pointed out that all characters in an HTML document
-are in some sense parsed, so that the name is not in the strictest sense
-correct.
-The acronym was kept for historical reasons and it is still a good
-mnemonic.)
-In L<Marpa::UrHTML>,
-a PCDATA token is a any token returned as a
-C<text> event by L<HTML::Parser>
-which has a false C<is_cdata> attribute.
-Division of PCDATA text is according to the default behavior 
-of L<HTML::Parser>.
-
-The C<:CRUFT> pseudo-class allows a handler to be specified
-for tokens which are classed as cruft.
-See L<the discussion of cruft later in this document|//"Cruft">.
-In the phyiscal document,
-non-elements can occur before the html as a B<prolog>,
-or after the html, as a B<trailer>.
-The C<:PROLOG> and C<:TRAILER> pseudo-classes allow
-handlers to be assigned for these.
+C<:PI>
+and C<:CRUFT>.
+These pseudo-classes assign handlers for comments,
+PCDATA, SGML processing instructions, and cruft tokens, respectively.
 
    Supply pseudo-class examples.
 

@@ -1,0 +1,11 @@
+\.swp$
+\.tar.gz$
+^_build
+^Build$
+^blib
+\/\.svn\/
+^\.svn\/
+^MANIFEST\.SKIP$
+^Makefile
+^wenyan/
+^save/
