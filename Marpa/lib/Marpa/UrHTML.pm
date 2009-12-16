@@ -1088,10 +1088,10 @@ sub Marpa::UrHTML::parse {
 
     $self->{recce}  = $recce;
     $self->{tokens} = \@html_parser_tokens;
- 
+
     # These variables track virtual start tokens as
     # a protection against infinite loops.
-    my %start_virtuals_used = ();
+    my %start_virtuals_used           = ();
     my $earleme_of_last_start_virtual = -1;
 
     RECCE_RESPONSE: for ( my $token_ix = 0;; ) {
@@ -1101,7 +1101,7 @@ sub Marpa::UrHTML::parse {
 
         last RECCE_RESPONSE if $token_ix > $#marpa_tokens;
 
-        my $marpa_token = $marpa_tokens[$token_ix];
+        my $marpa_token     = $marpa_tokens[$token_ix];
         my $actual_terminal = $marpa_token->[0];
         if ($trace_terminals) {
             say {$trace_fh} 'Literal Token not accepted: ', $actual_terminal;
@@ -1223,16 +1223,17 @@ sub Marpa::UrHTML::parse {
                 if $ok_as_cruft{$virtual_terminal}{$actual_terminal};
 
             CHECK_FOR_INFINITE_LOOP: {
+
                 # It is sufficient to check for start tags.
                 # Just ending things will never cause an infinite loop.
-                last CHECK_FOR_INFINITE_LOOP if  $virtual_terminal !~ /^S_/xms;
+                last CHECK_FOR_INFINITE_LOOP if $virtual_terminal !~ /^S_/xms;
 
                 # Are we at the same earleme as we were when the last
                 # virtual start was added?  If not, no problem.
                 # But we need to reinitialize.
                 if ( $current_earleme != $earleme_of_last_start_virtual ) {
                     $earleme_of_last_start_virtual = $current_earleme;
-                    %start_virtuals_used = ();
+                    %start_virtuals_used           = ();
                     last CHECK_FOR_INFINITE_LOOP;
                 }
 
@@ -1249,7 +1250,7 @@ sub Marpa::UrHTML::parse {
                     "Warning: attempt to add <$tagname> twice at the same place";
                 last FIND_VIRTUAL_TOKEN;
 
-            } ## end if ( $virtual_terminal =~ /^S_/xms and ...)
+            } ## end CHECK_FOR_INFINITE_LOOP:
 
             my $tdesc_list = $marpa_token->[1];
             my $first_tdesc_start_token =
@@ -1288,7 +1289,7 @@ sub Marpa::UrHTML::parse {
                 q{"};
         } ## end if ($trace_cruft)
 
-    } ## end for ( my $token_ix = 0; my $token_ix < scalar @marpa_tokens...)
+    } ## end for ( my $token_ix = 0;; )
 
     if ($trace_terminals) {
         say {$trace_fh} 'at end of tokens';
