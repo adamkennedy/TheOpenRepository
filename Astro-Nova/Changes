@@ -1,5 +1,8 @@
 Revision history for Perl extension Astro::Nova.
 
+0.05  Wed Dec 16 22:00 2009
+  - Attempt band-aid fix for building libnova on Solaris and BSD.
+
 0.04  Mon Dec 14 22:02 2009
   - Convert to Module::Build to fix the annoying re-compilation of
     libnova and other stuff.

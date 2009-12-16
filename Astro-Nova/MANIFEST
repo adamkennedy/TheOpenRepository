@@ -151,7 +151,6 @@ XS/RiseSet.xs
 XS/Saturn.xs
 XS/Sidereal.xs
 XS/Solar.xs
-XS/Structs.xs
 XS/Transform.xs
 XS/Uranus.xs
 XS/Utility.xs
