@@ -11,12 +11,11 @@ Marpa::UrHTML - High-level HTML Parser
 
 =head1 DESCRIPTION
 
-L<Marpa::UrHTML> does "high-level" parsing of HTML:
-that is, it determines the full parse tree of the HTML document.
-Instead it allows the user to specify handlers to be called on the various
-HTML elements and HTML and SGML non-elements.
-L<Marpa::UrHTML> does not produce a parse tree, but it is straightforward
-to write handlers to do that.
+L<Marpa::UrHTML> does "high-level" parsing of HTML.
+Low-level HTML parsing is converting an HTML document into a series of tokens.
+High-level HTML parsing is determining the overall structure of the document.
+L<Marpa::UrHTML> allows the user to specify handlers to be called on the various
+elements and non-elements of an HTML document.
 
 =head2 How L<Marpa::UrHMTL> looks at HTML
 
@@ -90,19 +89,52 @@ with a false C<is_cdata> attribute.
 
 =item new
 
+    my $urhtml = Marpa::UrHTML->new($urhtml_args);
+
+The C<new> method returns a new L<Marpa::UrHTML> document.
+Its optional arguments are referencess to hashes of named arguments.
+Handlers and other options may be specified,
+L<as described below|//"Options>.
+
+     What happens if no args?  A copy?
+
 =item parse
+
+    print $urhtml->parse( \$document );
+
+The C<parse> method takes a reference to a string as its only,
+required,
+argument.
+This string will be treated as HTML and parsed.
+L<Marpa::UrHTML> objects are good for one parse only --
+for a new parse, a
+new L<Marpa::UrHTML> object should be created.
 
 =back
 
-=head2 Options
+=head2 Options to the C<new> method
 
 =over
 
 =item C<handlers>
 
+The most important L<Marpa::UrHTML> option is the handlers option.
+It is a reference to an array of handler declarations.
+The handler declaration may either be short form (references to arrays of two elements)
+or long form (hash refs).
+
 =item C<trace_conflicts>
 
+A boolean which turns on tracing of parse conflicts.
+These should not be of interest to the average user.
+
 =item C<trace_terminals>
+
+A boolean which turns on tracing of terminals.
+
+=item C<trace_fh>
+
+A file handle.  Warning and diagnostics are printed to C<trace_fh>.
 
 =back
 
@@ -193,6 +225,47 @@ to assign their own top handler.
 The user can do this with the
 C<:TOP> pseudo-class.
 
+If a handler is specified for a tagname, it is called
+whenever that element is found,
+regardless of whether it has an explicit start
+tag or an explicit end tag.
+Elements that might be recognized by L<Marpa::UrHTML>
+even when there are no explicit tags for them are 
+C<html>,
+C<head>,
+C<body>,
+C<table>,
+C<tbody>,
+C<tr>,
+and C<td>.
+L<Marpa::UrHTML> is even more liberal in placing virtual end tags.
+At the end of they physical file, for example,
+L<Marpa::UrHTML> will create a virtual end tag for any element
+which remains open.
+
+On the other hand, any misplaced
+start tag or end tags which end up being classified
+as cruft will not cause the handler for that tagname
+to be called.
+
+A consequence of the these rules and the structure of
+HTML is that in every parse,
+the handler for the C<html>, C<head>, and <body> elements
+will be called once and only once.
+For example, in the following HTML,
+
+     <title>Title</title><p>some text<head>
+
+a handler for the head element will be called just once,
+with "C<< <title>Title</title><p>some text<head> >>"
+as its contents.
+The misplaced "C<< <head> >>" start tag will be classified
+as cruft.
+It will be part of the original contents for a C<html>
+and a C<body> handler, but
+will not be in contents of any call to a handler for
+a C<head> element.
+
 In L<Marpa::UrHTML> handler specifiers,
 elements and class names should be all alphanumerics, hyphens
 and underscores.
@@ -206,13 +279,36 @@ default handling of element tag names.
 This follows the HTML standards (but B<not> the XML standards)
 and treats tag names as case insensitive.
 
-The handler specifiers do not support 
+For elements, multiple specifiers can match.
+When they do,
+More narrowly targeted specifiers take precedence over less
+narrowly targeted ones, with class taking precedence over tag name.
+This means that a handler specifier for a specific tagname and
+class takes precedence over one which is just for the class.
+A handler specifier only specifying the class will take precedence
+over one specifying only the tagname.
+And a handler specifiying only the tagname takes precedence over
+the wildcard handler for all elements.
 
-     Precedence?
+For example, suppose a L<Marpa::UrHTML> object, is created as follows
 
-     Discuss special handling of html, head, body
+    $urhtml = Marpa::UrHTML->new(
+        {   handlers => [ q{*} => \&wildcard_handler ],
+            [ 'div'        => \&div_handler ],
+            [ '.class1'    => \&class1_handler ],
+            [ 'div.class1' => \&div_class1_handler ]
+        }
+    );
 
-     Discuss special handling of other elements with virtual start tags
+handlers would be assigned as in this table.
+
+    Element   Class       Handler
+    'span'    'class1'    class1_handler1
+    'span'    'class2'    wildcard_handler1
+    'div'     'class1'    div_class1_handler1
+    'div'     'class2'    div_handler1
+
+    Actually write code for the above and create a test case.
 
      Casing:
      HTML elements NOT case-sensitive.
@@ -221,6 +317,27 @@ The handler specifiers do not support
      CSS pseudo-classes NOT case-sensitive.
 
 =head2 Handler Declarations (Long Form)
+
+The action specifiers do not accept the CSS syntax escaping of characters.
+Whatever merits would be alleged for this, it would be very awkward when combined with
+Perl's own string escapes.
+In the specifiers, all characters except alphanumerics, hyphen and underscore are
+reserved for future extensions.
+
+For elements and classnames with arbitrary names, or for any purpose
+where it is convenient, there is a "long form"
+for handler declarations.
+The long form is a hash reference with these named args:
+
+    element
+    class
+    pseudoclass
+    action
+
+Here's an example of a L<Marpa::UrHTML> object being created with
+handlers declarations in the long form:
+
+     Add example here.
 
 =head2 How to Write I<Marpa::UrHTML> Handlers
 
