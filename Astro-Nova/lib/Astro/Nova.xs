@@ -3,6 +3,10 @@
 #include "XSUB.h"
 
 #include "ppport.h"
+/* cargo-cult fix for clashes */
+#undef do_open
+#undef do_close
+
 
 #include <libnova/aberration.h>
 #include <libnova/airmass.h>
