@@ -6,6 +6,8 @@ extern "C" {
 #include "perl.h"
 #include "XSUB.h"
 #include "ppport.h"
+#undef do_open
+#undef do_close
 #ifdef __cplusplus
 }
 #endif
