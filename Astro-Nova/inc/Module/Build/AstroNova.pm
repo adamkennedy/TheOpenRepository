@@ -23,7 +23,7 @@ sub ACTION_code {
 
 sub ACTION_patchlibnova {
   my $self = shift;
-  if (1 or $^O =~ /bsd/i or $^O =~ /solaris/i) {
+  if ($^O =~ /bsd/i or $^O =~ /solaris/i) {
     if (not -e File::Spec->catfile($NovaDir, '.cosl_patched')) {
       $self->log_info("Patching libnova with cosl patch...\n");
       system($^X, File::Spec->catdir("buildtools", "cosl_patch.pl"), $NovaDir)
