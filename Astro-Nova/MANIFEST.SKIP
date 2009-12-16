@@ -42,7 +42,9 @@
 \B\._
 
 # Avoid auto-generated files
-XS/Struct\.pm$
+XS/Structs?\.pm$
+\btypemap$
+lib\/Astro\/Nova\.[oc]$
 
 # Avoid libnova archives
 \blibnova-\d+\.\d+\.\d+\.tar\.gz$
