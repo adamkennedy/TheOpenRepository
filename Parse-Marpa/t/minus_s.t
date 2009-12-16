@@ -60,7 +60,7 @@ for my $i ( 0 .. $#expected ) {
 # a start symbol that appears repeatedly on the RHS.
 
 __DATA__
-semantics are perl5.  version is 1.005_001.
+semantics are perl5.  version is 1.005_002.
 
 the start symbol is E.
 

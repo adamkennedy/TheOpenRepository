@@ -1,6 +1,8 @@
 Revision history for Parse::Marpa
 
+1.005_002 Wed Dec 16 09:46:04 PST 2009
 1.005_001 Mon Dec 14 19:05:04 PST 2009
+    Making sure cpantesters is happy with the new regression test.
 
 1.005_000 Sun Dec 13 09:48:34 PST 2009
     RT#52724: Same as RT#45136.
