@@ -21,13 +21,34 @@ sub ACTION_code {
   return $self->SUPER::ACTION_code(@_);
 }
 
+sub ACTION_patchlibnova {
+  my $self = shift;
+  if (1 or $^O =~ /bsd/i or $^O =~ /solaris/i) {
+    if (not -e File::Spec->catfile($NovaDir, '.cosl_patched')) {
+      $self->log_info("Patching libnova with cosl patch...\n");
+      system($^X, File::Spec->catdir("buildtools", "cosl_patch.pl"), $NovaDir)
+        and die "Failed to patch libnova";
+    }
+    else {
+      $self->log_info("libnova cosl patch already applied\n");
+    }
+  }
+  else {
+    $self->log_info("Not patching libnova with cosl patch: Likely not necessary on this OS\n");
+  }
+}
+
 sub ACTION_libnova {
   my $self = shift;
+
   if (-f $NovaDirStaticLib) {
     $self->log_info("libnova already built, skipping re-build.\n");
     return 1;
   }
   $self->log_info("Building libnova for static linking...\n");
+  
+  $self->depends_on("patchlibnova");
+ 
   my $oldcwd = Cwd::cwd();
   chdir($NovaDir) or die "Failed to chdir to '$NovaDir'";
   system("./configure", "--with-pic") and die "Failed to configure libnova";
