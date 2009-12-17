@@ -1,5 +1,8 @@
 Revision history for Perl extension JSAN-Client
 
+0.25 Thu 17 Dec 2009
+    - Adding missing DBD::SQLite dependency
+
 0.24 Mon 14 Dec 2009
     - Adding missing DBI dependency
 

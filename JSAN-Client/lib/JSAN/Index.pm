@@ -77,7 +77,7 @@ use JSAN::Index::Release::Dependency    ();
 use JSAN::Index::Release::Source        ();
 use JSAN::Index::Distribution           ();
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 my $SINGLETON = undef;
 
