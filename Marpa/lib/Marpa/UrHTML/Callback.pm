@@ -272,8 +272,9 @@ sub Marpa::UrHTML::literal_ref {
     # The next line 
     # ties Marpa::UrHTML inappropriately to Marpa's
     # internals
-    # Find another solution.
-    return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
+    # Is this needed?
+    # I've commented it out and all regression tests pass.
+    # return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     Marpa::exception('Attempt to get literal value outside of a parse')
         if not defined $parse_instance;
@@ -287,7 +288,9 @@ sub Marpa::UrHTML::literal {
     # ties Marpa::UrHTML inappropriately to Marpa's
     # internals.
     # Find another solution.
-    return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
+    # return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
+    # Is this needed?
+    # I've commented it out and all regression tests pass.
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     Marpa::exception('Attempt to get literal value outside of a parse')
         if not defined $parse_instance;

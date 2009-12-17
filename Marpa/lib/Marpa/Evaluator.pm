@@ -233,8 +233,6 @@ sub set_null_values {
         $null_values->[$id] = $default_null_value;
     }
 
-    local $Marpa::Internal::SETTING_NULL_VALUES = 1;
-
     # Set null values specified in
     # empty rules.
     RULE: for my $rule ( @{$rules} ) {
@@ -260,19 +258,22 @@ sub set_null_values {
 
             my $null_value;
 
-            my @warnings;
-            my $eval_ok;
             DO_EVAL: {
-                local $SIG{__WARN__} =
-                    sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
-                $eval_ok = eval { $null_value = $closure->(); 1; };
-            }
+                my @warnings;
+                my $eval_ret;
+                my $eval_error;
+                {
+                    local $EVAL_ERROR;
+                    local $SIG{__WARN__} =
+                        sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
+                    $eval_ret = eval { $null_value = $closure->(); 1; };
+                    $eval_error = $EVAL_ERROR;
+                }
 
-            if ( not $eval_ok or @warnings ) {
-                my $fatal_error = $EVAL_ERROR;
+                last DO_EVAL if $eval_ret and not scalar @warnings;
                 Marpa::Internal::code_problems(
-                    {   eval_ok     => $eval_ok,
-                        fatal_error => $fatal_error,
+                    {   eval_ok     => $eval_ret,
+                        fatal_error => $eval_error,
                         grammar     => $grammar,
                         warnings    => \@warnings,
                         where       => 'evaluating null value',
@@ -281,7 +282,7 @@ sub set_null_values {
                             ->[Marpa::Internal::Symbol::NAME],
                     }
                 );
-            } ## end if ( not $eval_ok or @warnings )
+            } ## end DO_EVAL:
             my $nulling_symbol_id =
                 $nulling_symbol->[Marpa::Internal::Symbol::ID];
             $null_values->[$nulling_symbol_id] = $null_value;
