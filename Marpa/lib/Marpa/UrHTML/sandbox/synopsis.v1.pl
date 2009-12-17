@@ -18,6 +18,12 @@ use List::Util;
 # Print title
 # Complexity measure (or approximation?)
 
+# From notes:
+#
+# 'delete_me' class
+# 'keep_me' class
+# copy (no args)
+
 my $example1 = '<?pi><table><?pi><tr><td><table><?pi>x</table></table><?pi>';
 my $example2 = 'I am body text<head attr="I am cruft">I am more body text';
 

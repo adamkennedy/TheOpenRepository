@@ -97,6 +97,7 @@ my $build = $class->new(
         },
     },
     license            => 'perl',
+    create_license     => 1,
     create_readme      => 0,
     create_makefile_pl => 'small',
     test_files =>

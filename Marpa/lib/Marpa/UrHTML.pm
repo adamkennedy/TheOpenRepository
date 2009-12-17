@@ -21,19 +21,6 @@ package Marpa::UrHTML::Internal;
 
 use Marpa::Internal;
 
-BEGIN {
-    ## no critic (BuiltinFunctions::ProhibitStringyEval)
-    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
-    eval 'use Devel::Size';
-    ## use critic
-} ## end BEGIN
-
-sub total_size {
-    Marpa::exception('Devel::Size not loaded')
-        if not defined &Devel::Size::total_size;
-    goto &Devel::Size::total_size;
-}
-
 use Marpa::Offset qw(
     :package=Marpa::UrHTML::Internal::TDesc
     TYPE
@@ -1087,10 +1074,6 @@ sub Marpa::UrHTML::parse {
             mode              => 'stream',
         }
     );
-
-    if ( $ENV{TRACE_SIZE} ) {
-        say 'newly created recce size: ', total_size($recce);
-    }
 
     $self->{recce}  = $recce;
     $self->{tokens} = \@html_parser_tokens;

@@ -78,10 +78,18 @@ structure.
 L<Marpa::UrHTML> ignores cruft in determining the structure of
 an HTML document, much as it the cruft were comments.
 
-Text tokens can be of two types: CDATA and PCDATA.
-A PCDATA token is any text token
+Text tokens are of three types: WHITESPACE, CDATA and PCDATA.
+WHITESPACE is any text token composed entirely of whitespace
+as defined in the HTML 4.01 specification
+(L<http://www.w3.org/TR/html4/struct/text.html#h-9.1>).
+A CDATA token is any non-WHITESPACE text token
 returned by L<HTML::Parser>
-with a false C<is_cdata> attribute.
+with a true C<is_cdata> attribute.
+All other tokens are PCDATA.
+L<HTML::Parser> does not distinguish whitespace,
+but L<Marpa::UrHTML> does because in the high-level
+structure, whitespace is acceptable in places
+where other text is not.
 
 =head1 METHODS
 
@@ -92,11 +100,11 @@ with a false C<is_cdata> attribute.
     my $urhtml = Marpa::UrHTML->new($urhtml_args);
 
 The C<new> method returns a new L<Marpa::UrHTML> document.
-Its optional arguments are referencess to hashes of named arguments.
+Its arguments are references to hashes of named arguments.
 Handlers and other options may be specified,
 L<as described below|//"Options>.
-
-     What happens if no args?  A copy?
+If no arguments are supplied, the result of the parse
+will be a copy of the input.
 
 =item parse
 
@@ -339,35 +347,120 @@ handlers declarations in the long form:
 
      Add example here.
 
-=head2 How to Write I<Marpa::UrHTML> Handlers
+=head2 How to Write I<Marpa::UrHTML> Actions
 
-=head3 Handler Utilities
+L<Marpa::UrHTML>'s actions get their data from calls to
+the L<Marpa::UrHTML> API.
+Each L<Marpa::UrHTML> object
+also makes available to its handlers
+a special variable for
+data special to that object:
+C<$Marpa::UrHTML::INSTANCE>.
+C<$Marpa::UrHTML::INSTANCE> is initialized to
+an empty hash.
+Otherwise, what is done with it is completely up
+to the user.
+For example, where programming via side effects
+is more natural that passing data up the parse
+tree, 
+C<$Marpa::UrHTML::INSTANCE> can be used to
+store the data,
+and the handler for the C<:TOP> pseudoclass
+can return it as the value of the parse.
+
+     Mention an example of this technique.
+
+=head3 Nodes and Children
+
+Actions can be called on elements and non-elements.
+Collectively these are the B<nodes> of parse.
+
+To keep the API model simple, 
+L<Marpa::UrHTML> makes it appear to all actions
+as if their nodes had at least one child node.
+Even the actions for the token pseudoclasses,
+like C<:PCDATA>,
+appear to have a single child node -- the token.
+
+=head3 Literal and Original Contents
+
+The children of an action may be either B<evaluated>
+or B<unevaluated>.
+A child is evaluated if another handler 
+was called on it and that 
+other handler returned something other
+than undef.
+In any other case, the child is unevaluated.
+
+=head3 The Action API: Simple Utilities
+
+The C<child_data> API call, discussed below,
+is the Swiss Army knife of the L<Marpa::UrHTML>
+API, but much work can be done using 
+the simpler utilites described in this section.
 
 =over
 
-=item C<Marpa::UrHTML::child_data>
+=item C<attributes>
 
-    Marpa::UrHTML::child_data('value,literal');
+Returns a hash ref to the attributes of the start token.
+This hash ref is exactly the hash ref returned
+for the C<attr> arg specification of L<HTML::Parser>.
+The C<attributes> API call
+returns an empty hash
+if there were no attributes,
+if there was no start token for this element,
+or if this handler is being called on a non-element.
 
-=item C<Marpa::UrHTML::child_values()>
+=item C<child_values>
 
-=item C<$Marpa::UrHTML::INSTANCE>
+The C<child_values> call is for those cases where
+only children with values are of interest.
+It returns a pointer to an array of those values.
+No elements of this array will be undefined --
+children which did not have values are simply ignored.
 
-=item C<Marpa::UrHTML::title()>
+=item C<contents>
 
-=item C<Marpa::UrHTML::attributes()>
+For an element, returns its literal contents.
+For an non-element, returns undef.
 
-=item C<Marpa::UrHTML::literal()>
+=item C<end_tag>
 
-=item C<Marpa::UrHTML::literal_ref()>
+For an element with an explicit end tag,
+returns the original text of the end tag.
+Otherwise, returns undef.
 
-=item C<Marpa::UrHTML::original()>
+=item C<literal>
 
-=item C<Marpa::UrHTML::tagname()>
+Returns a string containing the literal contents
+of the element or non-element.
+
+=item C<literal_ref>
+
+Returns a string containing a reference
+to the literal contents
+of the element or non-element.
+
+=item C<offset>
+
+=item C<original>
+
+=item C<start_tag>
+
+For an element with an explicit start tag,
+returns the original text of the start tag.
+Otherwise, returns undef.
+
+=item C<tagname>
+
+=item C<title>
 
 =back
 
-=head4 The C<child_data> Argspec
+=head4 The C<child_data> API call.
+
+    Marpa::UrHTML::child_data('value,literal');
 
 =over
 

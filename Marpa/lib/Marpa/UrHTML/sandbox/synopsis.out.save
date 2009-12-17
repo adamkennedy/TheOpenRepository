@@ -1,0 +1,55 @@
+Mark Missing Tags:
+<?pi>
+<!-- Missing start tag for html element -->
+<!-- Missing start tag for head element -->
+<!-- Missing end tag for head element -->
+<!-- Missing start tag for body element --><table><?pi>
+<!-- Missing start tag for tbody element --><tr><td><table><?pi>
+<!-- Missing start tag for tbody element -->
+<!-- Missing start tag for tr element -->
+<!-- Missing start tag for td element -->x
+<!-- Missing end tag for td element -->
+<!-- Missing end tag for tr element -->
+<!-- Missing end tag for tbody element --></table>
+<!-- Missing end tag for td element -->
+<!-- Missing end tag for tr element -->
+<!-- Missing end tag for tbody element --></table><?pi>
+<!-- Missing end tag for body element -->
+<!-- Missing end tag for html element -->
+Mark Cruft:
+
+<!-- Missing start tag for html element -->
+<!-- Missing start tag for head element -->
+<!-- Missing end tag for head element -->
+<!-- Missing start tag for body element -->I am body text
+<!-- 24 characters of cruft starting here --><head attr="I am cruft">I am more body text
+<!-- Missing end tag for body element -->
+<!-- Missing end tag for html element -->
+Remove Processing Instructions:
+
+<!-- removed pi: "<?pi>" -->
+<table>
+<!-- removed pi: "<?pi>" -->
+<tr><td><table>
+<!-- removed pi: "<?pi>" -->
+x</table></table>
+<!-- removed pi: "<?pi>" -->
+
+Remove Processing Instructions except inside table:
+
+<!-- removed pi: "<?pi>" -->
+<table><?pi><tr><td><table><?pi>x</table></table>
+<!-- removed pi: "<?pi>" -->
+
+Remove Processing Instructions only inside tables, Solution 1:
+<?pi><table>
+<!-- removed pi: "<?pi>" -->
+<tr><td><table>
+<!-- removed pi: "<?pi>" -->
+x</table></table><?pi>
+Remove Processing Instructions only inside table, Solution 2:
+<?pi><table>
+<!-- removed pi: "<?pi>" -->
+<tr><td><table>
+<!-- removed pi: "<?pi>" -->
+x</table></table><?pi>
