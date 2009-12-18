@@ -263,7 +263,7 @@ sub set_null_values {
                 my $eval_ret;
                 my $eval_error;
                 {
-                    local $EVAL_ERROR;
+                    local $EVAL_ERROR = undef;
                     local $SIG{__WARN__} =
                         sub { push @warnings, [ $_[0], ( caller 0 ) ]; };
                     $eval_ret = eval { $null_value = $closure->(); 1; };
@@ -1022,7 +1022,8 @@ sub rewrite_cycles {
 
         if ($trace_evaluation) {
             say {$Marpa::Internal::TRACE_FH} 'Found cycle of length ',
-                ( scalar @cycle );
+                ( scalar @cycle )
+                or Marpa::exception("Cannot print: $ERRNO");
             for my $ix ( 0 .. $#cycle ) {
                 my $or_node = $cycle[$ix];
                 print {$Marpa::Internal::TRACE_FH} "Node $ix in cycle: ",
@@ -2401,7 +2402,7 @@ sub Marpa::Evaluator::set {
 
         my $ref_type = ref $args;
         if ( not $ref_type or $ref_type ne 'HASH' ) {
-            Carp::croak(
+            Marpa::exception(
                 'Marpa expects args as ref to HASH, got ',
                 ( "ref to $ref_type" || 'non-reference' ),
                 ' instead'
@@ -2412,7 +2413,7 @@ sub Marpa::Evaluator::set {
             keys %{$args}
             )
         {
-            Carp::croak( 'Unknown option(s) for Marpa Evaluator: ',
+            Marpa::exception( 'Unknown option(s) for Marpa Evaluator: ',
                 join q{ }, @bad_options );
         } ## end if ( my @bad_options = grep { not $_ ~~ ...})
 
@@ -2424,12 +2425,14 @@ sub Marpa::Evaluator::set {
             $evaler->[Marpa::Internal::Evaluator::TRACE_ACTIONS] = $value;
             if ($value) {
                 say {$Marpa::Internal::TRACE_FH}
-                    'Setting trace_actions option';
+                    'Setting trace_actions option'
+                    or Marpa::exception("Cannot print: $ERRNO");
                 if ($evaler->[Marpa::Internal::Evaluator::SEMANTICS_SETTLED] )
                 {
                     say {$Marpa::Internal::TRACE_FH}
-                        'Warning: setting trace_actions option after semantics were finalized';
-                }
+                        'Warning: setting trace_actions option after semantics were finalized'
+                        or Marpa::exception("Cannot print: $ERRNO");
+                } ## end if ( $evaler->[...])
                 $evaler->[Marpa::Internal::Evaluator::TRACING] = 1;
             } ## end if ($value)
         } ## end if ( defined( my $value = $args->{'trace_actions'} ))
@@ -2442,9 +2445,10 @@ sub Marpa::Evaluator::set {
             $evaler->[Marpa::Internal::Evaluator::TRACE_VALUES] = $value + 0;
             if ($value) {
                 say {$Marpa::Internal::TRACE_FH}
-                    "Setting trace_values option to $value";
+                    "Setting trace_values option to $value"
+                    or Marpa::exception("Cannot print: $ERRNO");
                 $evaler->[Marpa::Internal::Evaluator::TRACING] = 1;
-            }
+            } ## end if ($value)
         } ## end if ( defined( my $value = $args->{'trace_values'} ) )
 
         if ( defined( my $value = $args->{'trace_tasks'} ) ) {
@@ -2453,9 +2457,10 @@ sub Marpa::Evaluator::set {
             $evaler->[Marpa::Internal::Evaluator::TRACE_TASKS] = $value + 0;
             if ($value) {
                 say {$Marpa::Internal::TRACE_FH}
-                    "Setting trace_tasks option to $value";
+                    "Setting trace_tasks option to $value"
+                    or Marpa::exception("Cannot print: $ERRNO");
                 $evaler->[Marpa::Internal::Evaluator::TRACING] = 1;
-            }
+            } ## end if ($value)
         } ## end if ( defined( my $value = $args->{'trace_tasks'} ) )
 
         if ( defined( my $value = $args->{'trace_evaluation'} ) ) {
@@ -2465,9 +2470,10 @@ sub Marpa::Evaluator::set {
                 $value + 0;
             if ($value) {
                 say {$Marpa::Internal::TRACE_FH}
-                    "Setting trace_evaluation option to $value";
+                    "Setting trace_evaluation option to $value"
+                    or Marpa::exception("Cannot print: $ERRNO");
                 $evaler->[Marpa::Internal::Evaluator::TRACING] = 1;
-            }
+            } ## end if ($value)
         } ## end if ( defined( my $value = $args->{'trace_evaluation'...}))
 
         if ( defined( my $value = $args->{'cycle_scale'} ) ) {
@@ -2509,7 +2515,8 @@ sub Marpa::Evaluator::set {
                     say {
                         $Marpa::Internal::TRACE_FH
                     }
-                    'Experimental (in other words, buggy) features enabled';
+                    'Experimental (in other words, buggy) features enabled'
+                        or Marpa::exception("Cannot print: $ERRNO");
                     $value = 1;
                 } ## end default
             } ## end given

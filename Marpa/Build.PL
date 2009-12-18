@@ -56,6 +56,8 @@ my $build = $class->new(
         'lib/Marpa/Doc/Bibliography.pod' => 'lib/Marpa/Bibliography.pod',
         'lib/Marpa/Doc/Marpa.pod'        => 'lib/Marpa.pod',
         'lib/Marpa/Doc/Parse_Terms.pod'  => 'lib/Marpa/Parse_Terms.pod',
+        'lib/Marpa/Doc/Support.pod'      => 'lib/Marpa/Support.pod',
+
         # 'lib/Marpa/Doc/TODO.pod'         => 'lib/Marpa/TODO.pod',
         # 'lib/Marpa/UrHTML/Doc/Parsing_HTML.pod' => 'lib/Marpa/Parsing_HTML.pod',
         # 'lib/Marpa/UrHTML/Doc/UrHTML.pod' => 'lib/Marpa/UrHTML.pod',
