@@ -114,9 +114,12 @@ class HipRecord {
   public:
     HipRecord() {}
     bool ParseRecord(const std::string& line);
+    std::string get_line() { return fLine; }
+    void set_line(const std::string& line) { fLine = line; }
 HIPCLASS_BEGIN
 
   private:
+    std::string fLine;
 HIPCLASS_MID
 }; // end class HipRecord
 
@@ -134,6 +137,8 @@ my $xsp_code = <<'HIPCLASS_BEGIN' . join('', @get_set_xsp) . <<'HIPCLASS_END';
     %name{new} HipRecord();
     ~HipRecord();
     bool ParseRecord(const std::string& line);
+    std::string get_line();
+    void set_line(const std::string& line);
 HIPCLASS_BEGIN
 };
 HIPCLASS_END
@@ -148,8 +153,9 @@ my $c_code = <<"PARSERECORD_BEGIN" . join('', @parser_code) . <<'HIPCLASS_PARSER
 
 bool
 HipRecord::ParseRecord(const std::string& line) {
+  fLine = line;
 PARSERECORD_BEGIN
-  return true;     
+  return true;
 }
 
 HIPCLASS_PARSERCODEEND
@@ -185,12 +191,16 @@ Returns a new record object.
 
 =head2 ParseRecord
 
-Sort of internal method that may SEGFAULT if you use it wrong.
+Somewhat internal method that may SEGFAULT if you use it wrong.
 
 Given a string that MUST contain a full line from the record file,
 fills the object with data from that line.
 
-=head1 ACCESSOR METHODS
+=head2 get_line
+
+Returns the full original catalog line.
+
+=head1 GENERATED ACCESSOR METHODS
 
 Each of these methods descriptions have the following format:
 
