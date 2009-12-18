@@ -6,7 +6,7 @@ use warnings;
 use Carp 'croak';
 use File::Spec;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use constant LINE_LENGTH => 451; # I wish they were using a modern file format.
 
