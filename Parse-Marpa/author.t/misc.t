@@ -15,7 +15,7 @@ Test::More::pass('misc.t compiled');
 
 my $mdl_source = <<'END';
 semantics are perl5.
-version is 1.005_002.
+version is 1.005_003.
 start symbol is S.
 
 S: Document.

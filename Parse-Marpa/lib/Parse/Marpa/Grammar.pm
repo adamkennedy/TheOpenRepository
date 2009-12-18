@@ -771,7 +771,7 @@ sub Parse::Marpa::show_location {
     my ( $line, $line_start ) = locator( $earleme, $source );
     $result .= $msg . ' at line ' . ( $line + 1 ) . ", earleme $earleme\n";
     given ( index ${$source}, "\n", $line_start ) {
-        when (undef) {
+        when (-1) {
             $result .= ( substr ${$source}, $line_start ) . "\n";
         }
         default {

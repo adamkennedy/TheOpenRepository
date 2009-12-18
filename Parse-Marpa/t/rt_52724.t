@@ -21,13 +21,13 @@ my $eval_error = q{};
 }
  
 my $expected = <<'END_OF_EXPECTED';
-Parse failed at line 1, earleme <<LINE_NUMBER>>
-
-                 ^
+Parse failed at line 1, earleme <<EARLEME_NUMBER>>
+2
+ ^
  at t/rt_52724.t line 14
 END_OF_EXPECTED
 
-$eval_error =~ s/, \s+ earleme \s+ (\d+)$/, earleme <<LINE_NUMBER>>/xms;
+$eval_error =~ s/, \s+ earleme \s+ (\d+)$/, earleme <<EARLEME_NUMBER>>/xms;
 
 Test::More::is($eval_error, $expected, 'RT 52724');
 
@@ -35,7 +35,7 @@ exit 0;
 
 __DATA__
 semantics are perl5.
-version is 1.005_002.
+version is 1.005_003.
 start symbol is Expression.
 
 Expression: /\d+/, /[+]/, /\d+/. q{$_[0] + $_[2]}.
