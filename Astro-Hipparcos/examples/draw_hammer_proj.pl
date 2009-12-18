@@ -14,8 +14,8 @@ use Astro::Hipparcos;
 # - Astro::Nova
 #
 # You can find the full EPS output of this program at
-#   http://steffen-mueller.net/hipparcos/hipparcos.eps
-# Warning: It's a 13MB EPS
+#   http://steffen-mueller.net/hipparcos/hipparcos.eps.bz2
+# Warning: It's a 2MB archive containing a 13MB EPS
 
 use constant PI      => atan2(1,0)*2;
 use constant DEG2RAD => PI/180;
