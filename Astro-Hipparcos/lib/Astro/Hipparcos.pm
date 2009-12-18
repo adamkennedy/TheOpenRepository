@@ -112,6 +112,11 @@ Confer the example in this distribution F<examples/simple_selection.pl>.
 
 =head1 SEE ALSO
 
+For an example what you can produce with this little tool,
+have a look at L<http://steffen-mueller.net/hipparcos/hipparcos.eps.bz2>.
+This is implemented in the F<examples/draw_hammer_proj.pl> example in this
+distribution.
+
 L<Astro::Hipparcos::Record>
 
 L<http://en.wikipedia.org/wiki/Hipparcos_Catalogue>
