@@ -102,19 +102,36 @@ sub plot_axes {
   my $ps = shift;
 
   $ps->setcolour(100,100,100); # grey
+  $ps->setlinewidth(0.05);
   # plot longitude axes
-  for (my $long = -180*DEG2RAD; $long <= 180*DEG2RAD; $long += 0.5*45*DEG2RAD) {
-    for (my $lat = -90*DEG2RAD; $lat <= 90*DEG2RAD; $lat += 1.5*DEG2RAD) {
+  for (my $long = -180*DEG2RAD; $long <= 180.001*DEG2RAD; $long += 45*DEG2RAD) {
+    my $first = 1;
+    for (my $lat = -90*DEG2RAD; $lat <= 90.001*DEG2RAD; $lat += 3.0*DEG2RAD) {
       my ($x, $y) = hammer_projection($lat, $long);
-      $ps->circle({filled=>1}, ps_coord_trafo($x, $y), 0.15);
+      ($x, $y) = ps_coord_trafo($x, $y);
+      if ($first) {
+        $ps->line($x, $y, $x, $y);
+        $first = 0;
+      }
+      else {
+        $ps->linextend($x, $y);
+      }
     }
   }
-        
+
   # plot lat axes
   for (my $lat = -90*DEG2RAD; $lat <= 90*DEG2RAD; $lat += 10*DEG2RAD) {
-    for (my $long = -180*DEG2RAD; $long <= 180*DEG2RAD; $long += 2.5*DEG2RAD) {
+    my $first = 1;
+    for (my $long = -180*DEG2RAD; $long <= 180*DEG2RAD; $long += 5.0*DEG2RAD) {
       my ($x, $y) = hammer_projection($lat, $long);
-      $ps->circle({filled=>1}, ps_coord_trafo($x, $y), 0.15);
+      ($x, $y) = ps_coord_trafo($x, $y);
+      if ($first) {
+        $ps->line($x, $y, $x, $y);
+        $first = 0;
+      }
+      else {
+        $ps->linextend($x, $y);
+      }
     }
   }
 }
