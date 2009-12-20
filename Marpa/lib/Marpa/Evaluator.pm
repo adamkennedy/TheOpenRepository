@@ -2553,6 +2553,317 @@ use Marpa::Offset qw(
     EVALUATE
 );
 
+sub evaluate {
+    my ( $evaler, $top_and_node, $or_iterations ) = @_;
+
+    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
+    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
+    my $action_object_class =
+        $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT];
+    my $action_object_constructor =
+        $evaler->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR];
+    my $trace_values = $evaler->[Marpa::Internal::Evaluator::TRACE_VALUES];
+
+    # Write the and-nodes out in preorder
+    my @preorder = ();
+
+    # Initialize the work list to the top and-node
+    my @work_list = ($top_and_node);
+
+    AND_NODE: while ( scalar @work_list ) {
+        my $and_node = pop @work_list;
+        push @work_list, map {
+            $and_nodes->[ $or_iterations->[$_]->[-1]
+                ->[Marpa::Internal::And_Choice::ID] ]
+            }
+            grep { defined $_ }
+            map  { $and_node->[$_] }
+            ( Marpa::Internal::And_Node::PREDECESSOR_ID,
+            Marpa::Internal::And_Node::CAUSE_ID
+            );
+        push @preorder, $and_node;
+    } ## end while ( scalar @work_list )
+
+    my @evaluation_stack   = ();
+    my @virtual_rule_stack = ();
+    my $action_object;
+
+    if ($action_object_constructor) {
+        my @warnings;
+        my $eval_ok;
+        DO_EVAL: {
+            local $SIG{__WARN__} = sub {
+                push @warnings, [ $_[0], ( caller 0 ) ];
+            };
+
+            $eval_ok = eval {
+                $action_object =
+                    $action_object_constructor->($action_object_class);
+                1;
+            };
+        } ## end DO_EVAL:
+
+        if ( not $eval_ok or @warnings ) {
+            my $fatal_error = $EVAL_ERROR;
+            Marpa::Internal::code_problems(
+                {   fatal_error => $fatal_error,
+                    grammar     => $grammar,
+                    eval_ok     => $eval_ok,
+                    warnings    => \@warnings,
+                    where       => 'constructing action object',
+                }
+            );
+        } ## end if ( not $eval_ok or @warnings )
+    } ## end if ($action_object_constructor)
+
+    $action_object //= {};
+
+    TREE_NODE: for my $and_node ( reverse @preorder ) {
+
+        if ( $trace_values >= 3 ) {
+            for my $i ( reverse 0 .. $#evaluation_stack ) {
+                printf {$Marpa::Internal::TRACE_FH} 'Stack position %3d:', $i
+                    or Marpa::exception('print to trace handle failed');
+                print {$Marpa::Internal::TRACE_FH} q{ },
+                    Data::Dumper->new( [ $evaluation_stack[$i] ] )->Terse(1)
+                    ->Dump
+                    or Marpa::exception('print to trace handle failed');
+            } ## end for my $i ( reverse 0 .. $#evaluation_stack )
+        } ## end if ( $trace_values >= 3 )
+
+        my $value_ref = $and_node->[Marpa::Internal::And_Node::VALUE_REF];
+
+        if ( defined $value_ref ) {
+
+            push @evaluation_stack, $value_ref;
+
+            if ($trace_values) {
+                my $token = $and_node->[Marpa::Internal::And_Node::TOKEN];
+                print {$Marpa::Internal::TRACE_FH}
+                    'Pushed value from ',
+                    $and_node->[Marpa::Internal::And_Node::TAG], ': ',
+                    (
+                    $token
+                    ? ( $token->[Marpa::Internal::Symbol::NAME] . q{ = } )
+                    : q{}
+                    ),
+                    Data::Dumper->new( [$value_ref] )->Terse(1)->Dump
+                    or Marpa::exception('print to trace handle failed');
+            } ## end if ($trace_values)
+
+        }    # defined $value_ref
+
+        my $ops = $and_node->[Marpa::Internal::And_Node::VALUE_OPS];
+
+        next TREE_NODE if not defined $ops;
+
+        my $current_data = [];
+        my $op_ix        = 0;
+        while ( $op_ix < scalar @{$ops} ) {
+            given ( $ops->[ $op_ix++ ] ) {
+
+                when (Marpa::Internal::Evaluator_Op::ARGC) {
+
+                    my $argc = $ops->[ $op_ix++ ];
+
+                    if ($trace_values) {
+                        my $rule_id =
+                            $and_node->[ Marpa::Internal::And_Node::RULE_ID ];
+                        my $rule = $rules->[$rule_id];
+                        say {$Marpa::Internal::TRACE_FH}
+                            'Popping ',
+                            $argc,
+                            ' values to evaluate ',
+                            $and_node->[Marpa::Internal::And_Node::TAG],
+                            ', rule: ', Marpa::brief_rule($rule)
+                            or
+                            Marpa::exception('Could not print to trace file');
+                    } ## end if ($trace_values)
+
+                    $current_data =
+                        [ map { ${$_} }
+                            ( splice @evaluation_stack, -$argc ) ];
+
+                } ## end when (Marpa::Internal::Evaluator_Op::ARGC)
+
+                when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD ) {
+                    my $real_symbol_count = $ops->[ $op_ix++ ];
+
+                    if ($trace_values) {
+                        my $rule_id =
+                            $and_node->[ Marpa::Internal::And_Node::RULE_ID ];
+                        my $rule = $rules->[$rule_id];
+                        say {$Marpa::Internal::TRACE_FH}
+                            'Head of Virtual Rule: ',
+                            $and_node->[Marpa::Internal::And_Node::TAG],
+                            ', rule: ', Marpa::brief_rule($rule),
+                            "\n",
+                            "Incrementing virtual rule by $real_symbol_count symbols\n",
+                            'Currently ',
+                            ( scalar @virtual_rule_stack ),
+                            ' rules; ', $virtual_rule_stack[-1], ' symbols;',
+                            or
+                            Marpa::exception('Could not print to trace file');
+                    } ## end if ($trace_values)
+
+                    $real_symbol_count += pop @virtual_rule_stack;
+                    $current_data =
+                        [ map { ${$_} }
+                            ( splice @evaluation_stack, -$real_symbol_count )
+                        ];
+
+                } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
+
+                when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_NO_SEP ) {
+                    my $real_symbol_count = $ops->[ $op_ix++ ];
+
+                    if ($trace_values) {
+                        my $rule_id =
+                            $and_node->[ Marpa::Internal::And_Node::RULE_ID ];
+                        my $rule = $rules->[$rule_id];
+                        say {$Marpa::Internal::TRACE_FH}
+                            'Head of Virtual Rule (discards separation): ',
+                            $and_node->[Marpa::Internal::And_Node::TAG],
+                            ', rule: ', Marpa::brief_rule($rule),
+                            "\nAdding $real_symbol_count symbols; currently ",
+                            ( scalar @virtual_rule_stack ),
+                            ' rules; ', $virtual_rule_stack[-1], ' symbols'
+                            or
+                            Marpa::exception('Could not print to trace file');
+                    } ## end if ($trace_values)
+
+                    $real_symbol_count += pop @virtual_rule_stack;
+                    my $base =
+                        ( scalar @evaluation_stack ) - $real_symbol_count;
+                    $current_data = [
+                        map { ${$_} } @evaluation_stack[
+                            map { $base + 2 * $_ }
+                            ( 0 .. ( $real_symbol_count + 1 ) / 2 - 1 )
+                        ]
+                    ];
+
+                    # truncate the evaluation stack
+                    $#evaluation_stack = $base - 1;
+
+                } ## end when ( ...)
+
+                when ( Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL ) {
+                    my $real_symbol_count = $ops->[ $op_ix++ ];
+                    $virtual_rule_stack[-1] += $real_symbol_count;
+
+                    if ($trace_values) {
+                        my $rule_id =
+                            $and_node->[ Marpa::Internal::And_Node::RULE_ID ];
+                        my $rule = $rules->[$rule_id];
+                        say {$Marpa::Internal::TRACE_FH}
+                            'Virtual Rule: ',
+                            $and_node->[Marpa::Internal::And_Node::TAG],
+                            ', rule: ', Marpa::brief_rule($rule),
+                            "\nAdding $real_symbol_count, now ",
+                            ( scalar @virtual_rule_stack ),
+                            ' rules; ', $virtual_rule_stack[-1], ' symbols'
+                            or
+                            Marpa::exception('Could not print to trace file');
+                    } ## end if ($trace_values)
+
+                } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL )
+
+                when (Marpa::Internal::Evaluator_Op::VIRTUAL_TAIL) {
+                    my $real_symbol_count = $ops->[ $op_ix++ ];
+
+                    if ($trace_values) {
+                        my $rule_id =
+                            $and_node->[ Marpa::Internal::And_Node::RULE_ID ];
+                        my $rule = $rules->[$rule_id];
+                        say {$Marpa::Internal::TRACE_FH}
+                            'New Virtual Rule: ',
+                            $and_node->[Marpa::Internal::And_Node::TAG],
+                            ', rule: ', Marpa::brief_rule($rule),
+                            "\nSymbol count is $real_symbol_count, now ",
+                            ( scalar @virtual_rule_stack + 1 ), ' rules',
+                            or
+                            Marpa::exception('Could not print to trace file');
+                    } ## end if ($trace_values)
+
+                    push @virtual_rule_stack, $real_symbol_count;
+
+                } ## end when (Marpa::Internal::Evaluator_Op::VIRTUAL_TAIL)
+
+                when ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT ) {
+                    my $result = $ops->[ $op_ix++ ];
+                    if ($trace_values) {
+                        print {$Marpa::Internal::TRACE_FH}
+                            'Constant result: ',
+                            'Pushing 1 value on stack: ',
+                            Data::Dumper->new( [$result] )->Terse(1)->Dump
+                            or
+                            Marpa::exception('Could not print to trace file');
+                    } ## end if ($trace_values)
+                    push @evaluation_stack, $result;
+                } ## end when ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT)
+
+                when (Marpa::Internal::Evaluator_Op::CALL) {
+                    my $closure = $ops->[ $op_ix++ ];
+                    my $result;
+
+                    my @warnings;
+                    my $eval_ok;
+                    DO_EVAL: {
+                        local $SIG{__WARN__} = sub {
+                            push @warnings, [ $_[0], ( caller 0 ) ];
+                        };
+
+                        $eval_ok = eval {
+                            $result =
+                                $closure->( $action_object,
+                                @{$current_data} );
+                            1;
+                        };
+
+                    } ## end DO_EVAL:
+
+                    if ( not $eval_ok or @warnings ) {
+                        my $rule_id =
+                            $and_node->[ Marpa::Internal::And_Node::RULE_ID ];
+                        my $rule        = $rules->[$rule_id];
+                        my $fatal_error = $EVAL_ERROR;
+                        Marpa::Internal::code_problems(
+                            {   fatal_error => $fatal_error,
+                                grammar     => $grammar,
+                                eval_ok     => $eval_ok,
+                                warnings    => \@warnings,
+                                where       => 'computing value',
+                                long_where  => 'computing value for rule: '
+                                    . Marpa::brief_rule($rule),
+                            }
+                        );
+                    } ## end if ( not $eval_ok or @warnings )
+
+                    if ($trace_values) {
+                        print {$Marpa::Internal::TRACE_FH}
+                            'Calculated and pushed value: ',
+                            Data::Dumper->new( [$result] )->Terse(1)->Dump
+                            or
+                            Marpa::exception('print to trace handle failed');
+                    } ## end if ($trace_values)
+
+                    push @evaluation_stack, \$result;
+
+                } ## end when (Marpa::Internal::Evaluator_Op::CALL)
+
+                default {
+                    Marpa::Exception("Unknown evaluator Op: $_");
+                }
+
+            } ## end given
+        } ## end while ( $op_ix < scalar @{$ops} )
+
+    }    # TREE_NODE
+
+    return pop @evaluation_stack;
+} ## end sub evaluate
+
 # This will replace the old value method
 sub Marpa::Evaluator::value {
     my ($evaler) = @_;
@@ -2571,10 +2882,6 @@ sub Marpa::Evaluator::value {
     my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
 
-    my $action_object_class =
-        $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT];
-    my $action_object_constructor =
-        $evaler->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR];
     my $parse_order = $evaler->[Marpa::Internal::Evaluator::PARSE_ORDER];
 
     my $parse_count = $evaler->[Marpa::Internal::Evaluator::PARSE_COUNT]++;
@@ -2690,9 +2997,6 @@ sub Marpa::Evaluator::value {
 
     } ## end SET_UP_ITERATIONS:
 
-    my $trace_values = $evaler->[Marpa::Internal::Evaluator::TRACE_VALUES];
-    my $trace_tasks  = $evaler->[Marpa::Internal::Evaluator::TRACE_TASKS];
-
     my $max_parses = $evaler->[Marpa::Internal::Evaluator::MAX_PARSES];
     if ( $max_parses > 0 && $parse_count >= $max_parses ) {
         Marpa::exception("Maximum parse count ($max_parses) exceeded");
@@ -2708,6 +3012,8 @@ sub Marpa::Evaluator::value {
             {}
         ]
     );
+
+    my $trace_tasks  = $evaler->[Marpa::Internal::Evaluator::TRACE_TASKS];
 
     while (1) {
 
@@ -3738,362 +4044,14 @@ node appears more than once on the path back to the root node.
                 my $top_or_iteration = $or_iterations->[0];
                 return if not $top_or_iteration;
 
-                # Write the and-nodes out in preorder
-                my @preorder = ();
-
-                # Initialize the work list to the top and-node
-                my @work_list = (
+                return Marpa::Internal::Evaluator::evaluate(
+                    $evaler,
                     $and_nodes->[
                         $top_or_iteration->[-1]
                         ->[Marpa::Internal::And_Choice::ID]
-                    ]
+                    ],
+                    $or_iterations
                 );
-
-                AND_NODE: while ( scalar @work_list ) {
-                    my $and_node = pop @work_list;
-                    push @work_list, map {
-                        $and_nodes->[ $or_iterations->[$_]->[-1]
-                            ->[Marpa::Internal::And_Choice::ID] ]
-                        }
-                        grep { defined $_ }
-                        map  { $and_node->[$_] }
-                        ( Marpa::Internal::And_Node::PREDECESSOR_ID,
-                        Marpa::Internal::And_Node::CAUSE_ID
-                        );
-                    push @preorder, $and_node;
-                } ## end while ( scalar @work_list )
-
-                my @evaluation_stack   = ();
-                my @virtual_rule_stack = ();
-                my $action_object;
-
-                if ($action_object_constructor) {
-                    my @warnings;
-                    my $eval_ok;
-                    DO_EVAL: {
-                        local $SIG{__WARN__} = sub {
-                            push @warnings, [ $_[0], ( caller 0 ) ];
-                        };
-
-                        $eval_ok = eval {
-                            $action_object =
-                                $action_object_constructor->(
-                                $action_object_class);
-                            1;
-                        };
-                    } ## end DO_EVAL:
-
-                    if ( not $eval_ok or @warnings ) {
-                        my $fatal_error = $EVAL_ERROR;
-                        Marpa::Internal::code_problems(
-                            {   fatal_error => $fatal_error,
-                                grammar     => $grammar,
-                                eval_ok     => $eval_ok,
-                                warnings    => \@warnings,
-                                where       => 'constructing action object',
-                            }
-                        );
-                    } ## end if ( not $eval_ok or @warnings )
-                } ## end if ($action_object_constructor)
-
-                $action_object //= {};
-
-                TREE_NODE: for my $and_node ( reverse @preorder ) {
-
-                    if ( $trace_values >= 3 ) {
-                        for my $i ( reverse 0 .. $#evaluation_stack ) {
-                            printf {$Marpa::Internal::TRACE_FH}
-                                'Stack position %3d:', $i
-                                or Marpa::exception(
-                                'print to trace handle failed');
-                            print {$Marpa::Internal::TRACE_FH} q{ },
-                                Data::Dumper->new( [ $evaluation_stack[$i] ] )
-                                ->Terse(1)->Dump
-                                or Marpa::exception(
-                                'print to trace handle failed');
-                        } ## end for my $i ( reverse 0 .. $#evaluation_stack )
-                    } ## end if ( $trace_values >= 3 )
-
-                    my $value_ref =
-                        $and_node->[Marpa::Internal::And_Node::VALUE_REF];
-
-                    if ( defined $value_ref ) {
-
-                        push @evaluation_stack, $value_ref;
-
-                        if ($trace_values) {
-                            my $token =
-                                $and_node->[Marpa::Internal::And_Node::TOKEN];
-                            print {$Marpa::Internal::TRACE_FH}
-                                'Pushed value from ',
-                                $and_node->[Marpa::Internal::And_Node::TAG],
-                                ': ',
-                                (
-                                $token
-                                ? ( $token->[Marpa::Internal::Symbol::NAME]
-                                        . q{ = } )
-                                : q{}
-                                ),
-                                Data::Dumper->new( [$value_ref] )->Terse(1)
-                                ->Dump
-                                or Marpa::exception(
-                                'print to trace handle failed');
-                        } ## end if ($trace_values)
-
-                    }    # defined $value_ref
-
-                    my $ops =
-                        $and_node->[Marpa::Internal::And_Node::VALUE_OPS];
-
-                    next TREE_NODE if not defined $ops;
-
-                    my $current_data = [];
-                    my $op_ix        = 0;
-                    while ( $op_ix < scalar @{$ops} ) {
-                        given ( $ops->[ $op_ix++ ] ) {
-
-                            when (Marpa::Internal::Evaluator_Op::ARGC) {
-
-                                my $argc = $ops->[ $op_ix++ ];
-
-                                if ($trace_values) {
-                                    my $rule_id =
-                                        $and_node
-                                        ->[ Marpa::Internal::And_Node::RULE_ID
-                                        ];
-                                    my $rule = $rules->[$rule_id];
-                                    say {$Marpa::Internal::TRACE_FH}
-                                        'Popping ',
-                                        $argc,
-                                        ' values to evaluate ',
-                                        $and_node
-                                        ->[Marpa::Internal::And_Node::TAG],
-                                        ', rule: ', Marpa::brief_rule($rule)
-                                        or Marpa::exception(
-                                        'Could not print to trace file');
-                                } ## end if ($trace_values)
-
-                                $current_data =
-                                    [ map { ${$_} }
-                                        ( splice @evaluation_stack, -$argc )
-                                    ];
-
-                            } ## end when (Marpa::Internal::Evaluator_Op::ARGC)
-
-                            when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD
-                                )
-                            {
-                                my $real_symbol_count = $ops->[ $op_ix++ ];
-
-                                if ($trace_values) {
-                                    my $rule_id =
-                                        $and_node
-                                        ->[ Marpa::Internal::And_Node::RULE_ID
-                                        ];
-                                    my $rule = $rules->[$rule_id];
-                                    say {$Marpa::Internal::TRACE_FH}
-                                        'Head of Virtual Rule: ',
-                                        $and_node
-                                        ->[Marpa::Internal::And_Node::TAG],
-                                        ', rule: ', Marpa::brief_rule($rule),
-                                        "\n",
-                                        "Incrementing virtual rule by $real_symbol_count symbols\n",
-                                        'Currently ',
-                                        ( scalar @virtual_rule_stack ),
-                                        ' rules; ',
-                                        $virtual_rule_stack[-1], ' symbols;',
-                                        or Marpa::exception(
-                                        'Could not print to trace file');
-                                } ## end if ($trace_values)
-
-                                $real_symbol_count += pop @virtual_rule_stack;
-                                $current_data = [
-                                    map { ${$_} } (
-                                        splice @evaluation_stack,
-                                        -$real_symbol_count
-                                    )
-                                ];
-
-                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD )
-
-                            when
-                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_HEAD_NO_SEP
-                                )
-                            {
-                                my $real_symbol_count = $ops->[ $op_ix++ ];
-
-                                if ($trace_values) {
-                                    my $rule_id =
-                                        $and_node
-                                        ->[ Marpa::Internal::And_Node::RULE_ID
-                                        ];
-                                    my $rule = $rules->[$rule_id];
-                                    say {$Marpa::Internal::TRACE_FH}
-                                        'Head of Virtual Rule (discards separation): ',
-                                        $and_node
-                                        ->[Marpa::Internal::And_Node::TAG],
-                                        ', rule: ', Marpa::brief_rule($rule),
-                                        "\nAdding $real_symbol_count symbols; currently ",
-                                        ( scalar @virtual_rule_stack ),
-                                        ' rules; ',
-                                        $virtual_rule_stack[-1], ' symbols'
-                                        or Marpa::exception(
-                                        'Could not print to trace file');
-                                } ## end if ($trace_values)
-
-                                $real_symbol_count += pop @virtual_rule_stack;
-                                my $base = ( scalar @evaluation_stack )
-                                    - $real_symbol_count;
-                                $current_data = [
-                                    map { ${$_} } @evaluation_stack[
-                                        map { $base + 2 * $_ } (
-                                            0 .. ( $real_symbol_count + 1 )
-                                                / 2 - 1
-                                        )
-                                    ]
-                                ];
-
-                                # truncate the evaluation stack
-                                $#evaluation_stack = $base - 1;
-
-                            } ## end when ( ...)
-
-                            when
-                                ( Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL
-                                )
-                            {
-                                my $real_symbol_count = $ops->[ $op_ix++ ];
-                                $virtual_rule_stack[-1] += $real_symbol_count;
-
-                                if ($trace_values) {
-                                    my $rule_id =
-                                        $and_node
-                                        ->[ Marpa::Internal::And_Node::RULE_ID
-                                        ];
-                                    my $rule = $rules->[$rule_id];
-                                    say {$Marpa::Internal::TRACE_FH}
-                                        'Virtual Rule: ',
-                                        $and_node
-                                        ->[Marpa::Internal::And_Node::TAG],
-                                        ', rule: ', Marpa::brief_rule($rule),
-                                        "\nAdding $real_symbol_count, now ",
-                                        ( scalar @virtual_rule_stack ),
-                                        ' rules; ',
-                                        $virtual_rule_stack[-1], ' symbols'
-                                        or Marpa::exception(
-                                        'Could not print to trace file');
-                                } ## end if ($trace_values)
-
-                            } ## end when ( Marpa::Internal::Evaluator_Op::VIRTUAL_KERNEL )
-
-                            when (Marpa::Internal::Evaluator_Op::VIRTUAL_TAIL)
-                            {
-                                my $real_symbol_count = $ops->[ $op_ix++ ];
-
-                                if ($trace_values) {
-                                    my $rule_id =
-                                        $and_node
-                                        ->[ Marpa::Internal::And_Node::RULE_ID
-                                        ];
-                                    my $rule = $rules->[$rule_id];
-                                    say {$Marpa::Internal::TRACE_FH}
-                                        'New Virtual Rule: ',
-                                        $and_node
-                                        ->[Marpa::Internal::And_Node::TAG],
-                                        ', rule: ', Marpa::brief_rule($rule),
-                                        "\nSymbol count is $real_symbol_count, now ",
-                                        ( scalar @virtual_rule_stack + 1 ),
-                                        ' rules',
-                                        or Marpa::exception(
-                                        'Could not print to trace file');
-                                } ## end if ($trace_values)
-
-                                push @virtual_rule_stack, $real_symbol_count;
-
-                            } ## end when (Marpa::Internal::Evaluator_Op::VIRTUAL_TAIL)
-
-                            when
-                                ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT
-                                )
-                            {
-                                my $result = $ops->[ $op_ix++ ];
-                                if ($trace_values) {
-                                    print {$Marpa::Internal::TRACE_FH}
-                                        'Constant result: ',
-                                        'Pushing 1 value on stack: ',
-                                        Data::Dumper->new( [$result] )
-                                        ->Terse(1)->Dump
-                                        or Marpa::exception(
-                                        'Could not print to trace file');
-                                } ## end if ($trace_values)
-                                push @evaluation_stack, $result;
-                            } ## end when ( Marpa::Internal::Evaluator_Op::CONSTANT_RESULT)
-
-                            when (Marpa::Internal::Evaluator_Op::CALL) {
-                                my $closure = $ops->[ $op_ix++ ];
-                                my $result;
-
-                                my @warnings;
-                                my $eval_ok;
-                                DO_EVAL: {
-                                    local $SIG{__WARN__} = sub {
-                                        push @warnings,
-                                            [ $_[0], ( caller 0 ) ];
-                                    };
-
-                                    $eval_ok = eval {
-                                        $result = $closure->(
-                                            $action_object,
-                                            @{$current_data}
-                                        );
-                                        1;
-                                    };
-
-                                } ## end DO_EVAL:
-
-                                if ( not $eval_ok or @warnings ) {
-                                    my $rule_id =
-                                        $and_node
-                                        ->[ Marpa::Internal::And_Node::RULE_ID
-                                        ];
-                                    my $rule        = $rules->[$rule_id];
-                                    my $fatal_error = $EVAL_ERROR;
-                                    Marpa::Internal::code_problems(
-                                        {   fatal_error => $fatal_error,
-                                            grammar     => $grammar,
-                                            eval_ok     => $eval_ok,
-                                            warnings    => \@warnings,
-                                            where       => 'computing value',
-                                            long_where =>
-                                                'computing value for rule: '
-                                                . Marpa::brief_rule($rule),
-                                        }
-                                    );
-                                } ## end if ( not $eval_ok or @warnings )
-
-                                if ($trace_values) {
-                                    print {$Marpa::Internal::TRACE_FH}
-                                        'Calculated and pushed value: ',
-                                        Data::Dumper->new( [$result] )
-                                        ->Terse(1)->Dump
-                                        or Marpa::exception(
-                                        'print to trace handle failed');
-                                } ## end if ($trace_values)
-
-                                push @evaluation_stack, \$result;
-
-                            } ## end when (Marpa::Internal::Evaluator_Op::CALL)
-
-                            default {
-                                Marpa::Exception("Unknown evaluator Op: $_");
-                            }
-
-                        } ## end given
-                    } ## end while ( $op_ix < scalar @{$ops} )
-
-                }    # TREE_NODE
-
-                return pop @evaluation_stack;
 
             } ## end when (Marpa::Internal::Task::EVALUATE)
             ## End EVALUATE
