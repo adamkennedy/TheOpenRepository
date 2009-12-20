@@ -11,7 +11,7 @@ BEGIN {
 }
 
 sub import {
-   goto &Marpa::UrHTML::VERSION;
+    goto &Marpa::UrHTML::VERSION;
 }
 
 package Marpa::UrHTML::Internal;
@@ -38,7 +38,7 @@ because while Marpa::UrHTML remains alpha,
 THE INTERFACE CAN CHANGE even between minor versions.
 ====================================
 END_OF_MESSAGE
-    $message =~ s/<<VERSION>>/$Marpa::UrHTML::VERSION/;
+    $message =~ s/<<VERSION>>/$Marpa::UrHTML::VERSION/xms;
     Marpa::exception($message);
 } ## end sub version_error
 
@@ -47,7 +47,7 @@ sub Marpa::UrHTML::VERSION {
     given ($require) {
         when (undef) { version_error() }
         when ( lc $_ eq 'alpha' ) { return $Marpa::UrHTML::VERSION }
-        when (/^[0-9]/) {
+        when (/^[0-9]/xms) {
             return $Marpa::UrHTML::VERSION if $Marpa::UrHTML::VERSION eq $_;
             Marpa::exception(
                 "Marpa is still alpha\n",
@@ -55,9 +55,9 @@ sub Marpa::UrHTML::VERSION {
                 "  You asked for $_\n",
                 "  Actual version is $Marpa::UrHTML::VERSION\n"
                 )
-        } ## end when (/^[0-9]/)
-        default { version_error() }
+        } ## end when (/^[0-9]/xms)
     } ## end given
+    return version_error();    # return is to fool perlcritic
 } ## end sub Marpa::UrHTML::VERSION
 
 use Carp ();
