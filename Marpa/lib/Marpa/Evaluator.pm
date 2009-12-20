@@ -1853,6 +1853,8 @@ sub Marpa::Evaluator::new {
                         $predecessor->[Marpa::Internal::Earley_Item::NAME]
                         . "R$rule_id:$sapling_position";
 
+                    # We check that the predecessor has not already been
+                    # processed so that cycles don't put us into a loop
                     if ( not $predecessor_name ~~ %or_node_by_name ) {
 
                         $or_node_by_name{$predecessor_name} = [];
@@ -1886,6 +1888,8 @@ sub Marpa::Evaluator::new {
                           $cause->[Marpa::Internal::Earley_Item::NAME] . 'L'
                         . $cause_symbol_id;
 
+                    # We check that the cause has not already been
+                    # processed so that cycles don't put us into a loop
                     if ( not $cause_name ~~ %or_node_by_name ) {
 
                         $or_node_by_name{$cause_name} = [];
@@ -2554,7 +2558,7 @@ use Marpa::Offset qw(
 );
 
 sub evaluate {
-    my ( $evaler, $top_and_node, $or_iterations ) = @_;
+    my ( $evaler, $stack ) = @_;
 
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
     my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
@@ -2564,26 +2568,6 @@ sub evaluate {
     my $action_object_constructor =
         $evaler->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR];
     my $trace_values = $evaler->[Marpa::Internal::Evaluator::TRACE_VALUES];
-
-    # Write the and-nodes out in preorder
-    my @preorder = ();
-
-    # Initialize the work list to the top and-node
-    my @work_list = ($top_and_node);
-
-    AND_NODE: while ( scalar @work_list ) {
-        my $and_node = pop @work_list;
-        push @work_list, map {
-            $and_nodes->[ $or_iterations->[$_]->[-1]
-                ->[Marpa::Internal::And_Choice::ID] ]
-            }
-            grep { defined $_ }
-            map  { $and_node->[$_] }
-            ( Marpa::Internal::And_Node::PREDECESSOR_ID,
-            Marpa::Internal::And_Node::CAUSE_ID
-            );
-        push @preorder, $and_node;
-    } ## end while ( scalar @work_list )
 
     my @evaluation_stack   = ();
     my @virtual_rule_stack = ();
@@ -2619,7 +2603,7 @@ sub evaluate {
 
     $action_object //= {};
 
-    TREE_NODE: for my $and_node ( reverse @preorder ) {
+    TREE_NODE: for my $and_node ( reverse @{$stack} ) {
 
         if ( $trace_values >= 3 ) {
             for my $i ( reverse 0 .. $#evaluation_stack ) {
@@ -4044,14 +4028,33 @@ node appears more than once on the path back to the root node.
                 my $top_or_iteration = $or_iterations->[0];
                 return if not $top_or_iteration;
 
-                return Marpa::Internal::Evaluator::evaluate(
-                    $evaler,
+                # Write the and-nodes out in preorder
+                my @preorder = ();
+
+                # Initialize the work list to the top and-node
+                my @work_list = (
                     $and_nodes->[
                         $top_or_iteration->[-1]
                         ->[Marpa::Internal::And_Choice::ID]
-                    ],
-                    $or_iterations
+                    ]
                 );
+
+                AND_NODE: while ( scalar @work_list ) {
+                    my $and_node = pop @work_list;
+                    push @work_list, map {
+                        $and_nodes->[ $or_iterations->[$_]->[-1]
+                            ->[Marpa::Internal::And_Choice::ID] ]
+                        }
+                        grep { defined $_ }
+                        map  { $and_node->[$_] }
+                        ( Marpa::Internal::And_Node::PREDECESSOR_ID,
+                        Marpa::Internal::And_Node::CAUSE_ID
+                        );
+                    push @preorder, $and_node;
+                } ## end while ( scalar @work_list )
+
+                return Marpa::Internal::Evaluator::evaluate( $evaler,
+                    \@preorder, );
 
             } ## end when (Marpa::Internal::Task::EVALUATE)
             ## End EVALUATE
