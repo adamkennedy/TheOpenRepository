@@ -30,7 +30,7 @@ sub Marpa::cause_location {
     Marpa::exception('cause_location() called outside and-node context')
         if not $context_type ~~ [ 'setup and-node', 'rank and-node' ];
     return $and_node->[Marpa::Internal::And_Node::CAUSE_EARLEME];
-} ## end sub Marpa::token_location
+} ## end sub Marpa::cause_location
 
 sub Marpa::length {
     Marpa::exception('No context for LENGTH tie')

@@ -5,6 +5,7 @@ use warnings;
 no warnings qw(recursion qw);
 use strict;
 use integer;
+
 # use Smart::Comments '-ENV';
 
 ### Using smart comments <where>...
@@ -24,7 +25,7 @@ sub Marpa::Recognizer::value {
 
     # default settings
     local $Marpa::Internal::EXPLICIT_CLOSURES = {};
-    local $Marpa::Internal::TRACE_ACTIONS = 0;
+    local $Marpa::Internal::TRACE_ACTIONS     = 0;
 
     for my $arg_hash (@arg_hashes) {
 
@@ -53,6 +54,11 @@ sub Marpa::Recognizer::value {
     my $action_object_class =
         $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT];
     my $earley_sets = $self->[Marpa::Internal::Recognizer::EARLEY_SETS];
+    Marpa::exception(
+        "Attempt to use quick evaluator on parse with cycles\n",
+        "  Rewrite to remove cycles, or\n",
+        "  Use the power evaluator\n"
+    ) if $grammar->[Marpa::Internal::Grammar::HAS_CYCLE];
 
     my $furthest_earleme =
         $self->[Marpa::Internal::Recognizer::FURTHEST_EARLEME];
@@ -105,7 +111,8 @@ sub Marpa::Recognizer::value {
         )
     {
         my $constructor_name = $action_object . q{::new};
-        my $closure = resolve_semantics( $self, $constructor_name );
+        my $closure = Marpa::Internal::Evaluator::resolve_semantics( $grammar,
+            $constructor_name );
         Marpa::exception(qq{Could not find constructor "$constructor_name"})
             if not defined $closure;
         $action_object_constructor = $closure;
@@ -119,25 +126,17 @@ sub Marpa::Recognizer::value {
 
     # null parse as special case?
 
-    my %or_node_by_name;
     my $start_sapling = [];
-    {
-        my $start_name = $start_item->[Marpa::Internal::Earley_Item::NAME];
-        my $start_symbol_id = $start_symbol->[Marpa::Internal::Symbol::ID];
-        $start_name .= 'L' . $start_symbol_id;
-        $start_sapling->[Marpa::Internal::Or_Sapling::NAME] = $start_name;
-    }
     $start_sapling->[Marpa::Internal::Or_Sapling::ITEM] = $start_item;
     $start_sapling->[Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL] =
         $start_symbol;
 
-    my @or_saplings =($start_sapling);
-    my @stack = ();
+    my @or_saplings = ($start_sapling);
+    my @stack       = ();
 
     OR_SAPLING: while ( my $or_sapling = pop @or_saplings ) {
 
-        my $sapling_name = $or_sapling->[Marpa::Internal::Or_Sapling::NAME];
-        my $item         = $or_sapling->[Marpa::Internal::Or_Sapling::ITEM];
+        my $item = $or_sapling->[Marpa::Internal::Or_Sapling::ITEM];
         my $child_lhs_symbol =
             $or_sapling->[Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL];
         my $rule     = $or_sapling->[Marpa::Internal::Or_Sapling::RULE];
@@ -152,7 +151,7 @@ sub Marpa::Recognizer::value {
         my $symbol;
         my $value_processing;
 
-        if ($is_kernel_or_node) {
+        if ( defined $position ) {
 
             # Kernel or-node: We have a rule and a position.
             # get the current symbol
@@ -163,7 +162,7 @@ sub Marpa::Recognizer::value {
             $sapling_rule     = $rule;
             $sapling_position = $position;
 
-        } ## end if ($is_kernel_or_node)
+        } ## end if ( defined $position )
         else {    # Closure or-node.
 
             my $child_lhs_id =
@@ -184,7 +183,7 @@ sub Marpa::Recognizer::value {
             my $rhs = $sapling_rule->[Marpa::Internal::Rule::RHS];
 
             $sapling_position = @{$rhs} - 1;
-            $symbol = $rhs->[$sapling_position];
+            $symbol           = $rhs->[$sapling_position];
             $value_processing =
                 $evaluator_rules->[ $sapling_rule->[Marpa::Internal::Rule::ID]
                 ];
@@ -193,10 +192,6 @@ sub Marpa::Recognizer::value {
 
         my $start_earleme = $item->[Marpa::Internal::Earley_Item::PARENT];
         my $end_earleme   = $item->[Marpa::Internal::Earley_Item::SET];
-
-        my @child_and_nodes;
-
-        my $item_name = $item->[Marpa::Internal::Earley_Item::NAME];
 
         my $rule_id     = $sapling_rule->[Marpa::Internal::Rule::ID];
         my $rhs         = $sapling_rule->[Marpa::Internal::Rule::RHS];
@@ -234,65 +229,30 @@ sub Marpa::Recognizer::value {
                 @{ $item->[Marpa::Internal::Earley_Item::LINKS]->[0] };
         } ## end FIND_OR_BUDS:
 
-        my $predecessor_name;
-
         if ( $sapling_position > 0 ) {
 
-            $predecessor_name =
-                $predecessor->[Marpa::Internal::Earley_Item::NAME]
-                . "R$rule_id:$sapling_position";
+            my $sapling = [];
+            @{$sapling}[
+                Marpa::Internal::Or_Sapling::RULE,
+                Marpa::Internal::Or_Sapling::POSITION,
+                Marpa::Internal::Or_Sapling::ITEM,
+                ]
+                = ( $sapling_rule, $sapling_position, $predecessor, );
 
-            # We check that the predecessor has not already been
-            # processed so that cycles don't put us into a loop
-            if ( not $predecessor_name ~~ %or_node_by_name ) {
-
-                $or_node_by_name{$predecessor_name} = [];
-
-                my $sapling = [];
-                @{$sapling}[
-                    Marpa::Internal::Or_Sapling::NAME,
-                    Marpa::Internal::Or_Sapling::RULE,
-                    Marpa::Internal::Or_Sapling::POSITION,
-                    Marpa::Internal::Or_Sapling::ITEM,
-                    ]
-                    = (
-                    $predecessor_name, $sapling_rule,
-                    $sapling_position, $predecessor,
-                    );
-
-                push @or_saplings, $sapling;
-
-            }    # $predecessor_name ~~ %or_node_by_name
+            push @or_saplings, $sapling;
 
         }    # if sapling_position > 0
 
-        my $cause_name;
-
         if ( defined $cause ) {
 
-            my $cause_symbol_id = $symbol->[Marpa::Internal::Symbol::ID];
+            my $sapling = [];
+            @{$sapling}[
+                Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL,
+                Marpa::Internal::Or_Sapling::ITEM,
+                ]
+                = ( $symbol, $cause, );
 
-            $cause_name =
-                  $cause->[Marpa::Internal::Earley_Item::NAME] . 'L'
-                . $cause_symbol_id;
-
-            # We check that the cause has not already been
-            # processed so that cycles don't put us into a loop
-            if ( not $cause_name ~~ %or_node_by_name ) {
-
-                $or_node_by_name{$cause_name} = [];
-
-                my $sapling = [];
-                @{$sapling}[
-                    Marpa::Internal::Or_Sapling::NAME,
-                    Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL,
-                    Marpa::Internal::Or_Sapling::ITEM,
-                    ]
-                    = ( $cause_name, $symbol, $cause, );
-
-                push @or_saplings, $sapling;
-
-            }    # $cause_name ~~ %or_node_by_name
+            push @or_saplings, $sapling;
 
         }    # if cause
 
@@ -308,6 +268,10 @@ sub Marpa::Recognizer::value {
         $and_node->[Marpa::Internal::And_Node::POSITION] = $sapling_position;
         $and_node->[Marpa::Internal::And_Node::START_EARLEME] =
             $start_earleme;
+        $and_node->[Marpa::Internal::And_Node::CAUSE_EARLEME] =
+              $predecessor
+            ? $item->[Marpa::Internal::Earley_Item::SET]
+            : $start_earleme;
         $and_node->[Marpa::Internal::And_Node::END_EARLEME] = $end_earleme;
         my $id = $and_node->[Marpa::Internal::And_Node::ID] = scalar @stack;
         Marpa::exception("Too many and-nodes for evaluator: $id")
@@ -351,11 +315,7 @@ sub Marpa::Recognizer::value {
     $action_object //= {};
 
     return Marpa::Internal::Evaluator::evaluate( $grammar, $action_object,
-        \@stack,
-        undef # add trace_values arg
-        );
-
-    return $self;
+        \@stack, $trace_values );
 
 } ## end sub Marpa::Recognizer::value
 

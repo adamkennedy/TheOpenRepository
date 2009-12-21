@@ -6,6 +6,7 @@
 ^_build
 ^Build$
 ^lib/Marpa/Doc/Not_Updated/
+^Marpa-0.\d{3}[_.]\d{3}/
 ^lib/Marpa/MDL/try1.mdl.raw$
 ^lib/Marpa/MDL/try2.mdl.raw$
 ^lib/Marpa/MDL/try3.mdl.raw$

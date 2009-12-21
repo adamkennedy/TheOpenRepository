@@ -1415,8 +1415,7 @@ sub Marpa::UrHTML::parse {
         local $Marpa::UrHTML::Internal::PARSE_INSTANCE = $self;
         local $Marpa::UrHTML::INSTANCE                 = {};
         $recce->value(
-            {
-                trace_values  => $self->{trace_values},
+            {   trace_values  => $self->{trace_values},
                 trace_actions => $self->{trace_actions},
                 closures      => \%closure,
             }
