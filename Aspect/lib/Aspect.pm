@@ -3,19 +3,19 @@ package Aspect;
 use 5.008002;
 use strict;
 use warnings;
-use Carp                    'croak';
+use Carp                    ();
 use Exporter                ();
 use Aspect::Advice          ();
 use Aspect::Pointcut::Call  ();
 use Aspect::Pointcut::Cflow ();
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 our @ISA     = 'Exporter';
-our @EXPORT  = qw(aspect before after call cflow);
+our @EXPORT  = qw{ aspect before after call cflow };
 
 # Internal data storage
-my @Aspect_Store = undef;
-my @Advice_Store = undef;
+my @ASPECT = undef;
+my @ADVICE = undef;
 
 sub aspect {
 	my ($name, @params) = @_;
@@ -24,7 +24,7 @@ sub aspect {
 	my $aspect = $name->new(@params);
 
 	# If called in void context, aspect is for life
-	push @Aspect_Store, $aspect unless defined wantarray;
+	push @ASPECT, $aspect unless defined wantarray;
 
 	return $aspect;
 }
@@ -49,14 +49,15 @@ sub advice {
 	my $advice = Aspect::Advice->new(@_);
 
 	# If called in void context, advice is for life
-	push @Advice_Store, $advice unless defined wantarray;
+	push @ADVICE, $advice unless defined wantarray;
+
 	return $advice;
 }
 
 sub runtime_use {
 	my $package = shift;
 	eval "use $package;";
-	croak "Cannot use [$package]: $@" if $@;
+	Carp::croak("Cannot use [$package]: $@") if $@;
 }
 
 1;
@@ -72,32 +73,33 @@ Aspect - Aspect-oriented programming (AOP) for Perl
 =head1 SYNOPSIS
 
   package Person;
+  
   sub create      { ... }
   sub set_name    { ... }
   sub get_address { ... }
-
+  
   package main;
   use Aspect;
-
+  
   # using reusable aspects
   aspect Singleton => 'Person::create';        # let there be only one Person
   aspect Profiled  => call qr/^Person::set_/;  # profile calls to setters
-
+  
   # append extra argument when Person::get_address is called:
   # the instance of the calling Company object, iff get_address
   # is in the call flow of Company::get_employee_addresses.
   # aspect will live as long as $wormhole reference is in scope
   $aspect = aspect Wormhole => 'Company::make_report', 'Person::get_address';
-
+  
   # writing your own advice
   $pointcut = call qr/^Person::[gs]et_/; # defines a collection of events
-
+  
   # advice will live as long as $before is in scope
   $before = before { print "g/set will soon be called"  } $pointcut;
-
+  
   # advice will live forever, because it is created in void context 
   after { print "g/set has just been called" } $pointcut;
-
+  
   before
      { print "get will soon be called, if in call flow of Tester::run_tests" }
      call qr/^Person::get_/ & cflow tester => 'Tester::run_tests';
@@ -404,7 +406,7 @@ Support for inheritance is lacking. Consider the following two classes:
   package Automobile;
   ...
   sub compute_mileage { ... }
-
+  
   package Van;
   use base 'Automobile';
 

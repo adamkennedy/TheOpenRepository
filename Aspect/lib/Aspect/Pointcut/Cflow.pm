@@ -6,7 +6,7 @@ use Carp;
 use Aspect::AdviceContext;
 
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 
 use base 'Aspect::Pointcut';

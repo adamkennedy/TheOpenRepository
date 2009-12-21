@@ -1,38 +1,42 @@
 package Aspect::Weaver;
 
+use 5.006;
 use strict;
 use warnings;
-use Carp;
-use Aspect::Hook::LexWrap;
-use Devel::Symdump;
+use Carp                  ();
+use Devel::Symdump        ();
+use Aspect::Hook::LexWrap ();
 
-
-our $VERSION = '0.21';
-
+our $VERSION = '0.22';
 
 my %UNTOUCHABLES = map { $_ => 1 } qw(
 	attributes base fields lib strict warnings Carp Carp::Heavy Config CORE
 	CORE::GLOBAL DB DynaLoader Exporter Exporter::Heavy IO IO::Handle UNIVERSAL
 );
 
-sub new { bless {}, shift }
+sub new {
+	bless {}, shift;
+}
 
 sub get_sub_names {
 	local $_;
-	# TODO: need to filter Aspect exportable functions!
-	return
-		map  { Devel::Symdump->new($_)->functions }
-		grep { !/^Aspect::/ }
-		grep { !$UNTOUCHABLES{$_} }
-		(Devel::Symdump->rnew->packages, 'main');
+	# TODO: Need to filter Aspect exportable functions!
+	return map {
+		Devel::Symdump->new($_)->functions
+	} grep {
+		! /^Aspect::/
+	} grep {
+		! $UNTOUCHABLES{$_}
+	} ( Devel::Symdump->rnew->packages, 'main' );
 }
 
 sub install {
-	my ($self, $type, $sub_name, $code) = @_;
-	return wrap
-		$sub_name,
-		($type eq 'before'? 'pre': 'post'),
-		$code;
+	my ($self, $type, $name, $code) = @_;
+	if ( $type eq 'before' ) {
+		return Aspect::Hook::LexWrap::wrap( $name, $code, undef );
+	} else {
+		return Aspect::Hook::LexWrap::wrap( $name, undef, $code );
+	}
 }
 
 1;
