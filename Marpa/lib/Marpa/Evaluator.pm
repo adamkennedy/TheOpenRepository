@@ -51,6 +51,7 @@ use Marpa::Offset qw(
     VALUE_OPS
     START_EARLEME
     END_EARLEME
+    CAUSE_EARLEME
     RULE_ID
 
     POSITION { Position in an and-node is not the same as
@@ -149,7 +150,6 @@ use Marpa::Offset qw(
     ACTION_OBJECT_CONSTRUCTOR
     RANKING_CLOSURES_BY_RULE :{ array, by rule id }
     RANKING_CLOSURES_BY_SYMBOL :{ array, by symbol id }
-    EXPLICIT_CLOSURES :{ closures supplied explicitly }
 
     CYCLE_NODES
     CYCLE_REWRITE
@@ -199,23 +199,10 @@ use Storable;
 use Marpa::Callback;
 use Marpa::Internal;
 
-# Perl critic at present is not smart about underscores
-# in hex numbers
-## no critic (ValuesAndExpressions::RequireNumberSeparators)
-use constant N_FORMAT_MASK     => 0xffff_ffff;
-use constant N_FORMAT_HIGH_BIT => 0x8000_0000;
-## use critic
-
 our $DEFAULT_ACTION_VALUE = \undef;
 
-# Also used as mask, so must be 2**n-1
-# Perl critic at present is not smart about underscores
-# in hex numbers
-use constant N_FORMAT_MAX => 0x7fff_ffff;
-
 sub set_null_values {
-    my ($evaler) = @_;
-    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my ($grammar) = @_;
 
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
@@ -225,8 +212,6 @@ sub set_null_values {
 
     my $null_values;
     $#{$null_values} = $#{$symbols};
-
-    my $trace_actions = $evaler->[Marpa::Internal::Evaluator::TRACE_ACTIONS];
 
     SYMBOL: for my $symbol ( @{$symbols} ) {
         my $id = $symbol->[Marpa::Internal::Symbol::ID];
@@ -247,7 +232,7 @@ sub set_null_values {
         if ( defined $action and @{$rhs} <= 0 ) {
 
             my $closure =
-                Marpa::Internal::Evaluator::resolve_semantics( $evaler,
+                Marpa::Internal::Evaluator::resolve_semantics( $grammar,
                 $action );
             Marpa::exception("Action closure '$action' not found")
                 if not defined $closure;
@@ -287,7 +272,7 @@ sub set_null_values {
                 $nulling_symbol->[Marpa::Internal::Symbol::ID];
             $null_values->[$nulling_symbol_id] = $null_value;
 
-            if ($trace_actions) {
+            if ($Marpa::Internal::TRACE_ACTIONS) {
                 print {$Marpa::Internal::TRACE_FH}
                     'Setting null value for symbol ',
                     $nulling_symbol->[Marpa::Internal::Symbol::NAME],
@@ -295,7 +280,7 @@ sub set_null_values {
                     Data::Dumper->new( [ \$null_value ] )->Terse(1)->Dump,
                     "\n"
                     or Marpa::exception('Could not print to trace file');
-            } ## end if ($trace_actions)
+            } ## end if ($Marpa::Internal::TRACE_ACTIONS)
 
             next RULE;
 
@@ -303,7 +288,7 @@ sub set_null_values {
 
     }    # RULE
 
-    if ($trace_actions) {
+    if ($Marpa::Internal::TRACE_ACTIONS) {
         SYMBOL: for my $symbol ( @{$symbols} ) {
             my ( $name, $id ) = @{$symbol}[
                 Marpa::Internal::Symbol::NAME, Marpa::Internal::Symbol::ID,
@@ -323,17 +308,14 @@ sub set_null_values {
 # Given the grammar and an action name, resolve it to a closure,
 # or return undef
 sub resolve_semantics {
-    my ( $evaler, $closure_name ) = @_;
-    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my ( $grammar, $closure_name ) = @_;
 
     Marpa::exception(q{Trying to resolve 'undef' as closure name})
         if not defined $closure_name;
 
-    if ( my $closure =
-        $evaler->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES]
-        ->{$closure_name} )
+    if ( my $closure = $Marpa::Internal::EXPLICIT_CLOSURES->{$closure_name} )
     {
-        if ( $evaler->[Marpa::Internal::Evaluator::TRACE_ACTIONS] ) {
+        if ($Marpa::Internal::TRACE_ACTIONS) {
             print {$Marpa::Internal::TRACE_FH}
                 qq{Resolved "$closure_name" to explicit closure\n}
                 or Marpa::exception('Could not print to trace file');
@@ -374,21 +356,20 @@ sub resolve_semantics {
     my $closure = *{$fully_qualified_name}{'CODE'};
     use strict 'refs';
 
-    if ( $evaler->[Marpa::Internal::Evaluator::TRACE_ACTIONS] ) {
+    if ($Marpa::Internal::TRACE_ACTIONS) {
         print {$Marpa::Internal::TRACE_FH}
             ( $closure ? 'Successful' : 'Failed' )
             . qq{ resolution of "$closure_name" },
             'to ', $fully_qualified_name, "\n"
             or Marpa::exception('Could not print to trace file');
-    } ## end if ( $evaler->[Marpa::Internal::Evaluator::TRACE_ACTIONS...])
+    } ## end if ($Marpa::Internal::TRACE_ACTIONS)
 
     return $closure;
 
 } ## end sub resolve_semantics
 
 sub set_actions {
-    my ($evaler) = @_;
-    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
+    my ($grammar) = @_;
 
     my ( $rules, $default_action, ) = @{$grammar}[
         Marpa::Internal::Grammar::RULES,
@@ -400,8 +381,7 @@ sub set_actions {
     my $default_action_closure;
     if ( defined $default_action ) {
         $default_action_closure =
-            Marpa::Internal::Evaluator::resolve_semantics( $evaler,
-            $default_action );
+            Marpa::Internal::Evaluator::resolve_semantics( $grammar, $default_action );
         Marpa::exception(
             "Could not resolve default action named '$default_action'")
             if not $default_action_closure;
@@ -446,7 +426,7 @@ sub set_actions {
 
         if ( my $action = $rule->[Marpa::Internal::Rule::ACTION] ) {
             my $closure =
-                Marpa::Internal::Evaluator::resolve_semantics( $evaler,
+                Marpa::Internal::Evaluator::resolve_semantics( $grammar,
                 $action );
 
             Marpa::exception(qq{Could not resolve action name: "$action"})
@@ -468,7 +448,7 @@ sub set_actions {
                 and defined(
                     my $closure =
                         Marpa::Internal::Evaluator::resolve_semantics(
-                        $evaler, $action
+                        $grammar, $action
                         )
                 )
                 )
@@ -719,6 +699,7 @@ sub clone_and_node {
         Marpa::Internal::And_Node::VALUE_OPS,
         Marpa::Internal::And_Node::START_EARLEME,
         Marpa::Internal::And_Node::END_EARLEME,
+        Marpa::Internal::And_Node::CAUSE_EARLEME,
         Marpa::Internal::And_Node::RULE_ID,
         Marpa::Internal::And_Node::POSITION,
         Marpa::Internal::And_Node::FIXED_RANKING_DATA,
@@ -1313,6 +1294,8 @@ sub delete_duplicate_nodes {
     my $or_nodes  = $evaler->[Marpa::Internal::Evaluator::OR_NODES];
     my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
 
+    # Should the CAUSE_EARLEME be added to the base signature?
+
     # The base signatures
     # never change except when an and-node is deleted.
     # In that case the base signature is never examined.
@@ -1498,10 +1481,11 @@ sub Marpa::Evaluator::new {
 
     ### Constructing new evaluator
     my $self = bless [], $class;
-    local $Marpa::Internal::EVAL_INSTANCE = $self;
 
     my $recce;
     my $parse_set_arg;
+
+    local $Marpa::Internal::EXPLICIT_CLOSURES = {};
 
     for my $arg_hash (@arg_hashes) {
 
@@ -1518,12 +1502,15 @@ sub Marpa::Evaluator::new {
         }
         delete @{$arg_hash}{qw(recognizer recce)};
 
-        $parse_set_arg = $arg_hash->{end};
-        delete $arg_hash->{end};
+        if (defined $arg_hash->{end}) {
+            $parse_set_arg = $arg_hash->{end};
+            delete $arg_hash->{end};
+        }
 
-        $self->[Marpa::Internal::Evaluator::EXPLICIT_CLOSURES] =
-            $arg_hash->{closures} // {};
-        delete $arg_hash->{closures};
+        if (defined $arg_hash->{closures}) {
+            $Marpa::Internal::EXPLICIT_CLOSURES = $arg_hash->{closures};
+            delete $arg_hash->{closures};
+        }
 
     } ## end for my $arg_hash (@arg_hashes)
 
@@ -1595,8 +1582,11 @@ sub Marpa::Evaluator::new {
 
     my $start_rule_id = $start_rule->[Marpa::Internal::Rule::ID];
 
+    local $Marpa::Internal::TRACE_ACTIONS =
+        $self->[Marpa::Internal::Evaluator::TRACE_ACTIONS];
+
     my $null_values;
-    $null_values = set_null_values($self);
+    $null_values = set_null_values($grammar);
 
     # Set up rank closures by symbol
     my $ranking_closures_by_symbol =
@@ -1607,7 +1597,7 @@ sub Marpa::Evaluator::new {
             $symbol->[Marpa::Internal::Symbol::RANKING_ACTION];
         next SYMBOL if not defined $ranking_action;
         my $ranking_closure =
-            Marpa::Internal::Evaluator::resolve_semantics( $self,
+            Marpa::Internal::Evaluator::resolve_semantics( $grammar,
             $ranking_action );
         Marpa::exception("Ranking closure '$ranking_action' not found")
             if not defined $ranking_closure;
@@ -1617,7 +1607,7 @@ sub Marpa::Evaluator::new {
 
     my $evaluator_rules =
         $self->[Marpa::Internal::Evaluator::RULE_VALUE_OPS] =
-        set_actions($self);
+        set_actions($grammar);
 
     # Get closure used in ranking, by rule
     my $ranking_closures_by_rule =
@@ -1631,7 +1621,7 @@ sub Marpa::Evaluator::new {
         # If the RHS is empty ...
         if ( not scalar @{ $rule->[Marpa::Internal::Rule::RHS] } ) {
             my $ranking_closure =
-                Marpa::Internal::Evaluator::resolve_semantics( $self,
+                Marpa::Internal::Evaluator::resolve_semantics( $grammar,
                 $ranking_action );
             Marpa::exception("Ranking closure '$ranking_action' not found")
                 if not defined $ranking_closure;
@@ -1643,7 +1633,7 @@ sub Marpa::Evaluator::new {
 
         next RULE if not $rule->[Marpa::Internal::Rule::USEFUL];
         my $ranking_closure =
-            Marpa::Internal::Evaluator::resolve_semantics( $self,
+            Marpa::Internal::Evaluator::resolve_semantics( $grammar,
             $ranking_action );
         Marpa::exception("Ranking closure '$ranking_action' not found")
             if not defined $ranking_closure;
@@ -1658,7 +1648,7 @@ sub Marpa::Evaluator::new {
         )
     {
         my $constructor_name = $action_object . q{::new};
-        my $closure = resolve_semantics( $self, $constructor_name );
+        my $closure = resolve_semantics( $grammar, $constructor_name );
         Marpa::exception(qq{Could not find constructor "$constructor_name"})
             if not defined $closure;
         $self->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR] =
@@ -1708,6 +1698,7 @@ sub Marpa::Evaluator::new {
         $and_node->[Marpa::Internal::And_Node::POSITION] = -1;
         $and_node->[Marpa::Internal::And_Node::START_EARLEME] = 0;
         $and_node->[Marpa::Internal::And_Node::END_EARLEME]   = 0;
+        $and_node->[Marpa::Internal::And_Node::CAUSE_EARLEME]   = 0;
         $and_node->[Marpa::Internal::And_Node::PARENT_ID]     = 0;
         $and_node->[Marpa::Internal::And_Node::PARENT_CHOICE] = 0;
         given ($parse_order) {
@@ -1940,12 +1931,15 @@ sub Marpa::Evaluator::new {
                     $sapling_position;
                 $and_node->[Marpa::Internal::And_Node::START_EARLEME] =
                     $start_earleme;
+                $and_node->[Marpa::Internal::And_Node::CAUSE_EARLEME] =
+                    $predecessor ? $item->[Marpa::Internal::Earley_Item::SET] :
+                    $start_earleme;
                 $and_node->[Marpa::Internal::And_Node::END_EARLEME] =
                     $end_earleme;
                 my $id = $and_node->[Marpa::Internal::And_Node::ID] =
                     @{$and_nodes};
                 Marpa::exception("Too many and-nodes for evaluator: $id")
-                    if $id & ~(N_FORMAT_MAX);
+                    if $id & ~(Marpa::Internal::N_FORMAT_MAX);
                 push @{$and_nodes}, $and_node;
 
                 push @child_and_nodes, $and_node;
@@ -1978,8 +1972,6 @@ sub Marpa::Evaluator::new {
         $or_node_by_name{$sapling_name} = $or_node;
 
     }    # OR_SAPLING
-
-    my $and_node_counter = 0;
 
     # resolve links in the bocage
     for my $and_node ( @{$and_nodes} ) {
@@ -2141,7 +2133,7 @@ sub Marpa::dump_sort_key {
     {
         push @element_dumps,
             join q{ },
-            map { ( $_ & N_FORMAT_HIGH_BIT ) ? ( q{~} . ~$_ ) : "$_" }
+            map { ( $_ & Marpa::Internal::N_FORMAT_HIGH_BIT ) ? ( q{~} . ~$_ ) : "$_" }
             @{$sort_element};
     } ## end for my $sort_element ( map { [ unpack 'N*', $_ ] } sort...)
     return join q{ }, map { '<' . $_ . '>' } @element_dumps;
@@ -2552,6 +2544,7 @@ use Marpa::Offset qw(
 sub evaluate {
     my ( $grammar, $action_object, $stack, $trace_values ) = @_;
 
+    $trace_values //= 0;
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
 
     my @evaluation_stack   = ();
@@ -2812,7 +2805,6 @@ sub Marpa::Evaluator::value {
         "Don't parse argument is class: $evaler_class; should be: $right_class"
     ) if $evaler_class ne $right_class;
 
-    local $Marpa::Internal::EVAL_INSTANCE = $evaler;
     local $Marpa::Internal::TRACE_FH =
         $evaler->[Marpa::Internal::Evaluator::TRACE_FILE_HANDLE];
 
@@ -2920,7 +2912,7 @@ sub Marpa::Evaluator::value {
                 when ( $_ > 0 ) {
                     $length =
                         ~( ( $and_node_end_earleme - $and_node_start_earleme )
-                        & N_FORMAT_MASK )
+                        & Marpa::Internal::N_FORMAT_MASK )
                 }
                 default {
                     $length =
@@ -2928,7 +2920,7 @@ sub Marpa::Evaluator::value {
                 }
             } ## end given
             $and_node->[Marpa::Internal::And_Node::FIXED_RANKING_DATA] =
-                [ $location, 0, ~( $priority & N_FORMAT_MASK ), $length ];
+                [ $location, 0, ~( $priority & Marpa::Internal::N_FORMAT_MASK ), $length ];
 
         } ## end for my $and_node ( @{$and_nodes} )
 
@@ -3324,7 +3316,7 @@ sub Marpa::Evaluator::value {
                     my $length =
                         $token->[Marpa::Internal::Symbol::GREED] > 0
                         ? ~( ( $and_node_end_earleme - $token_start_earleme )
-                        & N_FORMAT_MASK )
+                        & Marpa::Internal::N_FORMAT_MASK )
                         : ( $and_node_end_earleme - $token_start_earleme );
 
                     push @current_sort_elements,

@@ -12,6 +12,7 @@ use Marpa::Internal;
 use Marpa::Grammar;
 use Marpa::Recognizer;
 use Marpa::Evaluator;
+use Marpa::Recce_Value;
 
 sub import {
     goto &Marpa::VERSION;

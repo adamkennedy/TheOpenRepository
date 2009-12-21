@@ -20,7 +20,7 @@ BEGIN {
 
 sub null_a {
     return ( $MyTest::MAXIMAL ? -1 : 1 )
-        * 10**( 3 - Marpa::token_location() );
+        * 10**( 3 - Marpa::cause_location() );
 }
 
 sub default_action {

@@ -1414,56 +1414,13 @@ sub Marpa::UrHTML::parse {
     my $value = do {
         local $Marpa::UrHTML::Internal::PARSE_INSTANCE = $self;
         local $Marpa::UrHTML::INSTANCE                 = {};
-        my $evaler = Marpa::Evaluator->new(
-            {   recce         => $recce,
+        $recce->value(
+            {
                 trace_values  => $self->{trace_values},
                 trace_actions => $self->{trace_actions},
                 closures      => \%closure,
             }
         );
-
-        Marpa::exception('No parse: could not create evaluator')
-            if not $evaler;
-
-        $recce = undef;    # conserve memory
-
-        if ( my $verbose = $self->{trace_ambiguity} ) {
-            say $evaler->show_ambiguity($verbose)
-                or Carp::croak("Cannot print: $ERRNO");
-        }
-
-        if ( not $evaler ) {
-            my $last_marpa_token = $recce->furthest();
-            $last_marpa_token =
-                  $last_marpa_token > $#marpa_tokens
-                ? $#marpa_tokens
-                : $last_marpa_token;
-            my $furthest_offset =
-                Marpa::UrHTML::Internal::earleme_to_offset( $self,
-                $last_marpa_token );
-
-            my $last_good_earleme = $recce->find_parse();
-            say 'last_good_earleme=', Data::Dumper::Dumper($last_good_earleme)
-                or Carp::croak("Cannot print: $ERRNO");
-            my $last_good_offset =
-                Marpa::UrHTML::Internal::earleme_to_offset( $self,
-                $last_good_earleme );
-            say 'last_good_offset=', Data::Dumper::Dumper($last_good_offset)
-                or Carp::croak("Cannot print: $ERRNO");
-
-            # 100 characters --
-            # the amount of context to put in the error message
-            say 'last good at ',
-                ( substr ${$document}, $last_good_offset, 100 )
-                or Carp::croak("Cannot print: $ERRNO");
-
-            say Data::Dumper::Dumper( $recce->find_parse() )
-                or Carp::croak("Cannot print: $ERRNO");
-
-            Marpa::exception( 'HTML parse exhausted at location ',
-                $furthest_offset );
-        } ## end if ( not $evaler )
-        $evaler->value;
     };
     Marpa::exception('No parse: evaler returned undef') if not defined $value;
     return ${$value};
