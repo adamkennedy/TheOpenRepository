@@ -4,12 +4,10 @@ use strict;
 use warnings;
 use Carp;
 use Aspect;
-
+use Aspect::Modular ();
 
 our $VERSION = '0.22';
-
-
-use base 'Aspect::Modular';
+our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
 	my ($self, $source, $target) = @_;

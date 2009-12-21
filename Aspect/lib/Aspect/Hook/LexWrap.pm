@@ -9,8 +9,8 @@ use Sub::Uplevel ();
 
 our $VERSION = '0.22';
 
-sub wrap {
-	my ($typeglob, $pre, $post) = @_;
+sub pre {
+	my ($typeglob, $code) = @_;
 
 	# Check and normalise the typeglob
 	no strict 'refs';
@@ -20,11 +20,76 @@ sub wrap {
 	}
 
 	# Check the wrappers
-	if ( $pre and ref $pre ne 'CODE' ) {
-		Carp::croak("'pre' value is not a subroutine reference");
+	unless ( ref $code eq 'CODE' ) {
+		Carp::croak("Code value is not a subroutine reference");
 	}
-	if ( $post and ref $post ne 'CODE' ) {
-		Carp::croak("'post' value is not a subroutine reference");
+
+	# State variable for use in the closure (eep)
+	my $unwrap = undef;
+
+	# Any way to set prototypes other than eval?
+	my $prototype = prototype($original);
+	   $prototype = defined($prototype) ? "($prototype)" : '';
+
+	# Generate the new function
+	no warnings 'redefine';
+	eval "sub $typeglob $prototype " . q{{
+			if ( $unwrap ) { goto &$original }
+			my ($return, $prereturn);
+			if ( wantarray ) {
+				$prereturn = $return = [];
+				() = $code->( \@_, $original, $return );
+				unless (
+					# It's still an array
+					ref $return eq 'ARRAY'
+					and
+					# It's still the SAME array
+					$return == $prereturn
+					and
+					# It's still empty
+					! @$return
+				) {
+					return ref $return eq 'ARRAY'
+						? @$return
+						: ( $return );
+				}
+
+			} elsif ( defined wantarray ) {
+				$return = bless sub {
+					$prereturn = 1
+				}, 'Aspect::Hook::LexWrap::Cleanup';
+				my $dummy = $code->( \@_, $original, $return );
+				return $return if $prereturn;
+
+			} else {
+				$return = bless sub {
+					$prereturn = 1
+				}, 'Aspect::Hook::LexWrap::Cleanup';
+				$code->( \@_, $original, $return );
+				return if $prereturn;
+			}
+
+			goto &$original;
+	}};
+	die $@ if $@;
+	return bless sub {
+		$unwrap = 1
+	}, 'Aspect::Hook::LexWrap::Cleanup';
+}
+
+sub post {
+	my ($typeglob, $post) = @_;
+
+	# Check and normalise the typeglob
+	no strict 'refs';
+	my $original = *$typeglob{CODE};
+	unless ( $original ) {
+		Carp::croak("Can't wrap non-existent subroutine ", $typeglob);
+	}
+
+	# Check the wrappers
+	if ( ref $post ne 'CODE' ) {
+		Carp::croak("Code is not a subroutine reference");
 	}
 
 	# State variable for use in the closure (eep)
@@ -38,65 +103,32 @@ sub wrap {
 			if ( $unwrap ) { goto &$original }
 			my ($return, $prereturn);
 			if ( wantarray ) {
-				$prereturn = $return = [];
-				() = $pre->(
+				$return = [
+					Sub::Uplevel::uplevel(
+						1, $original, @_,
+					)
+				];
+				() = $post->(
 					\@_, $original, $return
-				) if $pre;
-				if (
-					# It's still an array
-					ref $return eq 'ARRAY'
-					and
-					# It's still the SAME array
-					$return == $prereturn
-					and
-					# It's still empty
-					! @$return
-				) {
-					$return = [
-						Sub::Uplevel::uplevel(
-							1, $original, @_,
-						)
-					];
-					() = $post->(
-						\@_, $original, $return
-					) if $post;
-				}
+				);
 				return ref $return eq 'ARRAY'
 					? @$return
 					: ( $return );
 
 			} elsif ( defined wantarray ) {
-				$return = bless sub {
-					$prereturn = 1
-				}, 'Aspect::Hook::LexWrap::Cleanup';
-				my $dummy = $pre->(
+				$return = Sub::Uplevel::uplevel(
+					1, $original, @_,
+				);
+				my $dummy = scalar $post->(
 					\@_, $original, $return
-				) if $pre;
-				unless ( $prereturn ) {
-					$return = Sub::Uplevel::uplevel(
-						1, $original, @_,
-					);
-					$dummy = scalar $post->(
-						\@_, $original, $return
-					) if $post;
-				}
+				);
 				return $return;
 
 			} else {
-				$return = bless sub {
-					$prereturn = 1
-				}, 'Aspect::Hook::LexWrap::Cleanup';
-				$pre->(
-					\@_, $original, $return
-				) if $pre;
-				unless ( $prereturn ) {
-					Sub::Uplevel::uplevel(
-						1, $original, @_,
-					);
-					$post->(
-						\@_, $original, $return
-					) if $post;
-				}
+				Sub::Uplevel::uplevel(
+					1, $original, @_,
+				);
+				$post->( \@_, $original, [] );
 				return;
 			}
 	}};

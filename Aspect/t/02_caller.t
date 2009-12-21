@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Aspect;
 
 my @CALLER = ();
@@ -29,6 +29,7 @@ SCOPE: {
 # Set up the Aspect
 my $aspect = before { $BEFORE++ } call 'Bar::bar';
 isa_ok( $aspect, 'Aspect::Advice' );
+isa_ok( $aspect, 'Aspect::Advice::Before' );
 is( $BEFORE,         0, '$BEFORE is false' );
 is( scalar(@CALLER), 0, '@CALLER is empty' );
 

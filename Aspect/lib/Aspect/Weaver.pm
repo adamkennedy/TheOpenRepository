@@ -33,9 +33,9 @@ sub get_sub_names {
 sub install {
 	my ($self, $type, $name, $code) = @_;
 	if ( $type eq 'before' ) {
-		return Aspect::Hook::LexWrap::wrap( $name, $code, undef );
+		return Aspect::Hook::LexWrap::pre( $name, $code );
 	} else {
-		return Aspect::Hook::LexWrap::wrap( $name, undef, $code );
+		return Aspect::Hook::LexWrap::post( $name, $code );
 	}
 }
 

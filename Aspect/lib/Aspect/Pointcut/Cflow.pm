@@ -4,12 +4,10 @@ use strict;
 use warnings;
 use Carp;
 use Aspect::AdviceContext;
-
+use Aspect::Pointcut ();
 
 our $VERSION = '0.22';
-
-
-use base 'Aspect::Pointcut';
+our @ISA     = 'Aspect::Pointcut';
 
 sub init {
 	my $self = shift;

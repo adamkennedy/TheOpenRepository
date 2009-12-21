@@ -3,6 +3,8 @@ package Aspect::Advice;
 use strict;
 use warnings;
 use Carp;
+use Aspect::Advice::Before ();
+use Aspect::Advice::After  ();
 use Aspect::AdviceContext;
 use Aspect::Weaver;
 
@@ -10,13 +12,22 @@ our $VERSION = '0.22';
 
 sub new {
 	my ($class, $type, $code, $pointcut) = @_;
-	my $self = bless {
-		weaver   => Aspect::Weaver->new, # a weaver that will install advice code
-		hooks    => undef,               # list of Hook::LexWrap hooks
-		type     => $type,               # before or after
-		code     => $code,               # the advice code
-		pointcut => $pointcut,           # the advice pointcut
-	}, $class;
+	my $self;
+	if ( $type eq 'before' ) {
+		$self = Aspect::Advice::Before->new(
+			weaver   => Aspect::Weaver->new,
+			hooks    => undef,     # list of Hook::LexWrap hooks
+			code     => $code,     # the advice code
+			pointcut => $pointcut, # the advice pointcut
+		);
+	} else {
+		$self = Aspect::Advice::After->new(
+			weaver   => Aspect::Weaver->new,
+			hooks    => undef,
+			code     => $code,
+			pointcut => $pointcut,
+		);
+	}
 	$self->install;
 	return $self;
 }
@@ -32,7 +43,7 @@ sub install {
 
 	# Find all pointcuts that are statically matched
 	# wrap the method with advice code and install the wrapper
-	foreach my $sub_name ($weaver->get_sub_names) {
+	foreach my $sub_name ( $weaver->get_sub_names ) {
 		next unless $pointcut->match_define($sub_name);
 		my $wrapped_code = $self->wrap_code($type, $code, $pointcut, $sub_name);
 		$self->add_hooks(
@@ -63,20 +74,22 @@ sub wrap_code {
 			original       => $original,
 			%$runtime_context,
 		);
-		
+
 		# Execute advice code with its context
-		if (wantarray)
-			{ () = &$code($advice_context) }
-		elsif (defined wantarray)
-			{ my $dummy = &$code($advice_context) }
-		else
-			{ &$code($advice_context) }
+		if ( wantarray ) {
+			() = &$code($advice_context)
+		} elsif ( defined wantarray ) {
+			my $dummy = &$code($advice_context);
+		} else {
+			&$code($advice_context);
+		}
 
 		# If proceeding to original, modify params, else modify return value
-		if ($type eq 'before' && $advice_context->proceed)
-			{ @$params = $advice_context->params }
-		else
-			{ $_[-1] = $advice_context->return_value }
+		if ( $type eq 'before' && $advice_context->proceed ) {
+			@$params = $advice_context->params;
+		} else {
+			$_[-1] = $advice_context->return_value;
+		}
 	};
 }
 

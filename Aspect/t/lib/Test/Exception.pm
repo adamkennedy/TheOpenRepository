@@ -3,9 +3,11 @@
 package Test::Exception;
 use 5.005;
 use strict;
+use Exporter ();
 use Test::Builder;
 use Sub::Uplevel;
-use base qw(Exporter);
+
+our @ISA = 'Exporter';
 
 use vars qw($VERSION @EXPORT @EXPORT_OK);
 

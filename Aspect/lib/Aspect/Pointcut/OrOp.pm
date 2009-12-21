@@ -3,18 +3,14 @@ package Aspect::Pointcut::OrOp;
 use strict;
 use warnings;
 use Carp;
-
+use Aspect::Pointcut::BinOp ();
 
 our $VERSION = '0.22';
-
-
-use base 'Aspect::Pointcut::BinOp';
+our @ISA     = 'Aspect::Pointcut::BinOp';
 
 sub binop { $_[1] || $_[2] }
 
-
 1;
-
 
 __END__
 

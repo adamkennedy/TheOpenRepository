@@ -6,16 +6,14 @@ package Aspect::Library::Listenable;
 use strict;
 use warnings;
 use Carp;
+use Exporter ();
 use Scalar::Util qw(weaken);
 use Aspect;
-
+use Aspect::Modular ();
 
 our $VERSION = '0.22';
-
-
-use base qw(Aspect::Modular Exporter);
-
-our @EXPORT = qw(add_listener remove_listener);
+our @ISA     = qw{Aspect::Modular Exporter};
+our @EXPORT  = qw{add_listener remove_listener};
 
 sub get_advice {
 	my ($self, $event_name, $pointcut, %event_params) = @_;

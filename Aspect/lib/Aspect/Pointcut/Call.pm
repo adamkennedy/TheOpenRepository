@@ -3,23 +3,21 @@ package Aspect::Pointcut::Call;
 use strict;
 use warnings;
 use Carp;
-
+use Aspect::Pointcut ();
 
 our $VERSION = '0.22';
+our @ISA     = 'Aspect::Pointcut';
 
-
-use base 'Aspect::Pointcut';
-
-sub init { shift->{spec} = pop }
+sub init {
+	shift->{spec} = pop;
+}
 
 sub match_define {
 	my ($self, $sub_name) = @_;
 	return $self->match($self->{spec}, $sub_name);
 }
 
-
 1;
-
 
 __END__
 
