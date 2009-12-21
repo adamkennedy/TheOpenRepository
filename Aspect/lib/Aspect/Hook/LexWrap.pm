@@ -13,11 +13,8 @@ sub wrap {
 	my ($typeglob, $pre, $post) = @_;
 
 	# Check and normalise the typeglob
-	$typeglob = (ref $typeglob || $typeglob =~ /::/)
-		? $typeglob
-		: caller()."::$typeglob";
 	no strict 'refs';
-	my $original = ref $typeglob eq 'CODE' ? $typeglob : *$typeglob{CODE};
+	my $original = *$typeglob{CODE};
 	unless ( $original ) {
 		Carp::croak("Can't wrap non-existent subroutine ", $typeglob);
 	}
@@ -103,14 +100,7 @@ sub wrap {
 				return;
 			}
 	}};
-	if ( ref $typeglob eq 'CODE' ) {
-		unless ( defined wantarray ) {
-			Carp::carp("Uselessly wrapped subroutine reference in void context");
-		}
-		return $imposter;
-	}
-	*{$typeglob} = $imposter;
-	return unless defined wantarray;
+	*$typeglob = $imposter;
 	return bless sub {
 		$unwrap = 1
 	}, 'Aspect::Hook::LexWrap::Cleanup';
