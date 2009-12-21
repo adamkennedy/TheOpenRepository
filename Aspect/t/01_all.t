@@ -18,7 +18,7 @@ sub runtime_use {
 	croak "Cannot use [$package]: $@" if $@;
 }
 
-my @test_class_names;
+my @classes;
 
 BEGIN {
 	my @ALL_TESTS = qw(
@@ -39,14 +39,18 @@ BEGIN {
 		\( $2 || '')
 	}/;
 
-	@test_class_names = $thing eq 'Aspect::tests::'? @ALL_TESTS: ($thing);
+	@classes = $thing eq 'Aspect::tests::' ? @ALL_TESTS : ($thing);
 
-	runtime_use $_ for @test_class_names;
+	runtime_use $_ for @classes;
 }
 
-Test::Class->runtests(@test_class_names);
+Test::Class->runtests(@classes);
 
 1;
+
+__END__
+
+=pod
 
 =head1 NAME
 
@@ -56,7 +60,7 @@ run_tests.pl - run Aspect unit tests
 
   # run all tests
   perl run_tests.pl
-
+  
   # a specific test case, no need to prefix with Aspect:: or add the tests:: part
   perl run_tests.pl Weaver
   perl run_tests.pl Pointcut::Call
