@@ -29,6 +29,8 @@ sub Marpa::Recognizer::value {
     my $recce;
     my $parse_set_arg;
 
+    # default settings
+
     for my $arg_hash (@arg_hashes) {
 
         $parse_set_arg = $arg_hash->{end};
@@ -58,17 +60,8 @@ sub Marpa::Recognizer::value {
         "  Recognition done only as far as location $last_completed_earleme\n"
     ) if $furthest_earleme > $last_completed_earleme;
 
-    # default settings
-    $self->[Marpa::Internal::Recognizer::TRACE_VALUES]  = 0;
-
-    $self->set(@arg_hashes);
-
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
     my $symbols = $grammar->[Marpa::Internal::Grammar::SYMBOLS];
-
-    my $trace_tasks = $self->[Marpa::Internal::Recognizer::TRACE_TASKS];
-    my $trace_evaluation =
-        $self->[Marpa::Internal::Recognizer::TRACE_EVALUATION];
 
     my $and_nodes = [];
 
@@ -94,59 +87,10 @@ sub Marpa::Recognizer::value {
 
     my $start_rule_id = $start_rule->[Marpa::Internal::Rule::ID];
 
-    state $parse_number = 0;
     my $null_values;
     $null_values = set_null_values($self);
 
-    # Set up rank closures by symbol
-    my $ranking_closures_by_symbol = [];
-    $#{$ranking_closures_by_symbol} = $#{$symbols};
-    SYMBOL: for my $symbol ( @{$symbols} ) {
-        my $ranking_action =
-            $symbol->[Marpa::Internal::Symbol::RANKING_ACTION];
-        next SYMBOL if not defined $ranking_action;
-        my $ranking_closure =
-            Marpa::Internal::Evaluator::resolve_semantics( $self,
-            $ranking_action );
-        Marpa::exception("Ranking closure '$ranking_action' not found")
-            if not defined $ranking_closure;
-        $ranking_closures_by_symbol->[ $symbol->[Marpa::Internal::Symbol::ID]
-        ] = $ranking_closure;
-    } ## end for my $symbol ( @{$symbols} )
-
-    my $evaluator_rules =
-        set_actions($self);
-
-    # Get closure used in ranking, by rule
-    my $ranking_closures_by_rule = [];
-    $#{$ranking_closures_by_rule} = $#{$rules};
-    RULE: for my $rule ( @{$rules} ) {
-        next RULE
-            if not my $ranking_action =
-                $rule->[Marpa::Internal::Rule::RANKING_ACTION];
-
-        # If the RHS is empty ...
-        if ( not scalar @{ $rule->[Marpa::Internal::Rule::RHS] } ) {
-            my $ranking_closure =
-                Marpa::Internal::Evaluator::resolve_semantics( $self,
-                $ranking_action );
-            Marpa::exception("Ranking closure '$ranking_action' not found")
-                if not defined $ranking_closure;
-
-            $ranking_closures_by_symbol->[ $rule->[Marpa::Internal::Rule::LHS]
-                ->[Marpa::Internal::Symbol::NULL_ALIAS]
-                ->[Marpa::Internal::Symbol::ID] ] = $ranking_closure;
-        } ## end if ( not scalar @{ $rule->[Marpa::Internal::Rule::RHS...]})
-
-        next RULE if not $rule->[Marpa::Internal::Rule::USEFUL];
-        my $ranking_closure =
-            Marpa::Internal::Evaluator::resolve_semantics( $self,
-            $ranking_action );
-        Marpa::exception("Ranking closure '$ranking_action' not found")
-            if not defined $ranking_closure;
-        $ranking_closures_by_rule->[ $rule->[Marpa::Internal::Rule::ID] ] =
-            $ranking_closure;
-    } ## end for my $rule ( @{$rules} )
+    my $evaluator_rules = set_actions($self);
 
     my $action_object_constructor;
 
@@ -160,11 +104,8 @@ sub Marpa::Recognizer::value {
         my $closure = resolve_semantics( $self, $constructor_name );
         Marpa::exception(qq{Could not find constructor "$constructor_name"})
             if not defined $closure;
-	Marpa::exception(q{!!! need to call this before evaluation !!!});
         $action_object_constructor = $closure;
     } ## end if ( defined( my $action_object = $grammar->[...]))
-
-    Marpa::exception(q{!!! What to do?  I won't handle cycles !!!});
 
     my $start_symbol = $start_rule->[Marpa::Internal::Rule::LHS];
     my ( $nulling, $symbol_id ) =
@@ -175,19 +116,12 @@ sub Marpa::Recognizer::value {
     # deal with a null parse as a special case
     if ($nulling) {
 
-        my $or_node = [];
-        $#{$or_node} = Marpa::Internal::Or_Node::LAST_FIELD;
+        # Do I need this special case?
+        # Won't the regular logic work?
+        Marpa::exception('Fast valuation of null parse not implemented');
 
         my $and_node = [];
         $#{$and_node} = Marpa::Internal::And_Node::LAST_FIELD;
-
-        $or_node->[Marpa::Internal::Or_Node::CHILD_IDS]     = [0];
-        $or_node->[Marpa::Internal::Or_Node::START_EARLEME] = 0;
-        $or_node->[Marpa::Internal::Or_Node::END_EARLEME]   = 0;
-        my $or_node_id = $or_node->[Marpa::Internal::Or_Node::ID] = 0;
-        my $or_node_tag = $or_node->[Marpa::Internal::Or_Node::TAG] =
-            $start_item->[Marpa::Internal::Earley_Item::NAME]
-            . "o$or_node_id";
 
         $and_node->[Marpa::Internal::And_Node::VALUE_REF] =
             \$start_null_value;
@@ -205,8 +139,6 @@ sub Marpa::Recognizer::value {
             $or_node_tag . "a$and_node_id";
 
         push @{$and_nodes}, $and_node;
-
-        return $self;
 
     }    # if $nulling
 
@@ -453,7 +385,9 @@ sub Marpa::Recognizer::value {
     if ($action_object_constructor) {
         my @warnings;
         my $eval_ok;
+        my $fatal_error;
         DO_EVAL: {
+            local $EVAL_ERROR = undef;
             local $SIG{__WARN__} = sub {
                 push @warnings, [ $_[0], ( caller 0 ) ];
             };
@@ -463,10 +397,10 @@ sub Marpa::Recognizer::value {
                     $action_object_constructor->($action_object_class);
                 1;
             };
+            $fatal_error = $EVAL_ERROR;
         } ## end DO_EVAL:
 
         if ( not $eval_ok or @warnings ) {
-            my $fatal_error = $EVAL_ERROR;
             Marpa::Internal::code_problems(
                 {   fatal_error => $fatal_error,
                     grammar     => $grammar,
@@ -480,10 +414,13 @@ sub Marpa::Recognizer::value {
 
     $action_object //= {};
 
-    Marpa::exception('Add call to evaluation here!!!');
+    return Marpa::Internal::Evaluator::evaluate( $grammar, $action_object,
+        $stack,
+        undef # add trace_values arg
+        );
 
     return $self;
 
-}    # sub new
+} ## end sub Marpa::Recognizer::value
 
 1;

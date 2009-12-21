@@ -1568,8 +1568,6 @@ sub Marpa::Evaluator::new {
     my $parse_order = $self->[Marpa::Internal::Evaluator::PARSE_ORDER];
 
     my $trace_tasks = $self->[Marpa::Internal::Evaluator::TRACE_TASKS];
-    my $trace_evaluation =
-        $self->[Marpa::Internal::Evaluator::TRACE_EVALUATION];
 
     $self->[Marpa::Internal::Evaluator::PARSE_COUNT] = 0;
     my $or_nodes  = $self->[Marpa::Internal::Evaluator::OR_NODES]  = [];
@@ -1597,7 +1595,6 @@ sub Marpa::Evaluator::new {
 
     my $start_rule_id = $start_rule->[Marpa::Internal::Rule::ID];
 
-    state $parse_number = 0;
     my $null_values;
     $null_values = set_null_values($self);
 
@@ -1746,19 +1743,14 @@ sub Marpa::Evaluator::new {
         $start_symbol;
     push @or_saplings, $start_sapling;
 
-    my $i = 0;
-    OR_SAPLING: while (1) {
+    OR_SAPLING: while (my $or_sapling = pop @or_saplings) {
 
-        my ( $sapling_name, $item, $child_lhs_symbol, $rule, $position ) =
-            @{ $or_saplings[ $i++ ] }[
-            Marpa::Internal::Or_Sapling::NAME,
-            Marpa::Internal::Or_Sapling::ITEM,
-            Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL,
-            Marpa::Internal::Or_Sapling::RULE,
-            Marpa::Internal::Or_Sapling::POSITION,
-            ];
-
-        last OR_SAPLING if not defined $item;
+        my $sapling_name = $or_sapling->[Marpa::Internal::Or_Sapling::NAME];
+        my $item         = $or_sapling->[Marpa::Internal::Or_Sapling::ITEM];
+        my $child_lhs_symbol =
+            $or_sapling->[Marpa::Internal::Or_Sapling::CHILD_LHS_SYMBOL];
+        my $rule     = $or_sapling->[Marpa::Internal::Or_Sapling::RULE];
+        my $position = $or_sapling->[Marpa::Internal::Or_Sapling::POSITION];
 
         # If we don't have a current rule, we need to get one or
         # more rules, and deduce the position and a new symbol from
@@ -2558,51 +2550,12 @@ use Marpa::Offset qw(
 );
 
 sub evaluate {
-    my ( $evaler, $stack ) = @_;
+    my ( $grammar, $action_object, $stack, $trace_values ) = @_;
 
-    my $and_nodes = $evaler->[Marpa::Internal::Evaluator::AND_NODES];
-    my $grammar = $evaler->[Marpa::Internal::Evaluator::GRAMMAR];
     my $rules   = $grammar->[Marpa::Internal::Grammar::RULES];
-    my $action_object_class =
-        $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT];
-    my $action_object_constructor =
-        $evaler->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR];
-    my $trace_values = $evaler->[Marpa::Internal::Evaluator::TRACE_VALUES];
 
     my @evaluation_stack   = ();
     my @virtual_rule_stack = ();
-    my $action_object;
-
-    if ($action_object_constructor) {
-        my @warnings;
-        my $eval_ok;
-        DO_EVAL: {
-            local $SIG{__WARN__} = sub {
-                push @warnings, [ $_[0], ( caller 0 ) ];
-            };
-
-            $eval_ok = eval {
-                $action_object =
-                    $action_object_constructor->($action_object_class);
-                1;
-            };
-        } ## end DO_EVAL:
-
-        if ( not $eval_ok or @warnings ) {
-            my $fatal_error = $EVAL_ERROR;
-            Marpa::Internal::code_problems(
-                {   fatal_error => $fatal_error,
-                    grammar     => $grammar,
-                    eval_ok     => $eval_ok,
-                    warnings    => \@warnings,
-                    where       => 'constructing action object',
-                }
-            );
-        } ## end if ( not $eval_ok or @warnings )
-    } ## end if ($action_object_constructor)
-
-    $action_object //= {};
-
     TREE_NODE: for my $and_node ( reverse @{$stack} ) {
 
         if ( $trace_values >= 3 ) {
@@ -4053,8 +4006,49 @@ node appears more than once on the path back to the root node.
                     push @preorder, $and_node;
                 } ## end while ( scalar @work_list )
 
-                return Marpa::Internal::Evaluator::evaluate( $evaler,
-                    \@preorder, );
+                my $action_object_class =
+                    $grammar->[Marpa::Internal::Grammar::ACTION_OBJECT];
+                my $action_object_constructor = $evaler
+                    ->[Marpa::Internal::Evaluator::ACTION_OBJECT_CONSTRUCTOR];
+
+                my $action_object;
+
+                if ($action_object_constructor) {
+                    my @warnings;
+                    my $eval_ok;
+                    my $fatal_error;
+                    DO_EVAL: {
+                        local $EVAL_ERROR;
+                        local $SIG{__WARN__} = sub {
+                            push @warnings, [ $_[0], ( caller 0 ) ];
+                        };
+
+                        $eval_ok = eval {
+                            $action_object =
+                                $action_object_constructor->(
+                                $action_object_class);
+                            1;
+                        };
+                        $fatal_error = $EVAL_ERROR;
+                    } ## end DO_EVAL:
+
+                    if ( not $eval_ok or @warnings ) {
+                        Marpa::Internal::code_problems(
+                            {   fatal_error => $fatal_error,
+                                grammar     => $grammar,
+                                eval_ok     => $eval_ok,
+                                warnings    => \@warnings,
+                                where       => 'constructing action object',
+                            }
+                        );
+                    } ## end if ( not $eval_ok or @warnings )
+                } ## end if ($action_object_constructor)
+
+                $action_object //= {};
+
+                return Marpa::Internal::Evaluator::evaluate( $grammar,
+                    $action_object, \@preorder,
+                    $evaler->[Marpa::Internal::Evaluator::TRACE_VALUES] );
 
             } ## end when (Marpa::Internal::Task::EVALUATE)
             ## End EVALUATE
