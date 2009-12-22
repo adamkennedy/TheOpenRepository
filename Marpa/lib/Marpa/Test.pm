@@ -16,7 +16,7 @@ BEGIN {
 use Data::Dumper;
 
 ## no critic (Subroutines::RequireArgUnpacking)
-sub is {
+sub Marpa::Test::is {
 ## use critic
     goto &Test::Differences::eq_or_diff
         if defined &Test::Differences::eq_or_diff && @_ > 1;
