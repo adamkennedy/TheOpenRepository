@@ -12,10 +12,11 @@ Marpa::UrHTML - High-level HTML Parser
 =head1 DESCRIPTION
 
 L<Marpa::UrHTML> does "high-level" parsing of HTML.
-Low-level HTML parsing is converting an HTML document into a series of tokens.
-High-level HTML parsing is determining the overall structure of the document.
-L<Marpa::UrHTML> allows the user to specify handlers to be called on the various
-elements and non-elements of an HTML document.
+It allows handlers to be specified for elements and other other major components
+of an HMTL document, as well as its tokens.
+
+     Perhaps the rest, or much of the rest, of this
+     should go later.
 
 =head2 How L<Marpa::UrHMTL> looks at HTML
 
@@ -23,28 +24,25 @@ L<Marpa::UrHTML> is an extremely liberal HTML parser.
 L<Marpa::UrHTML> will treat any document as HTML, if perhaps
 invalid or broken HTML, and parse accordingly.
 
-Every SGML/HTML document contains an SGML prolog, an C<html> element,
+Every SGML/HTML document contains an SGML prolog, an B<root element>,
 and an SGML trailer.  The SGML prologs and trailer can be zero length.
-The C<html> element consists of a start tag C<< <html> >>,
-an end tag C<< </html> >>
-and the text between them, called the "contents".
-in which case they are also said to be "virtual" tags.
-The contents of the C<html> element may be zero length.
+The root element consists of an optional start tag C<< <html> >>,
+an optional end tag C<< </html> >>,
+and the text and markup between the two tags, called the "contents".
+The root element is not optional, but
+its contents may be zero length.
 
-In the contents of the C<html> element can be other elements.
-Capitalization is significant here,
-The "C<html> element" is not the same as an "HTML element".
-The B<html element> is the top-level element in any HTML document,
-and will be unique in a valid document.
-Contained in the C<html> element can be many B<HTML elements>.
-
+In the contents of the root element can be other elements.
 Every element has a B<tagname>.
-In a valid HTML document,
-only the C<html> element will have the tagname "C<html>".
+The root element has the tagname "C<html>".
 
 Start tags and end tags may be missing.
-This is legal for the many HTML elements,
-including the C<html> element itself.
+This is legal for the root element, and several others,
+as specified in the standards (for example,
+L<http://www.w3.org/TR/html4/>).
+L<Marpa::UrHTML> tolerates missing end tags, and some missing start tags,
+even when this is forbidden by the
+standards.
 B<Missing tags> are also called B<implicit> or B<virtual tags>.
 An tag which is not missing is an B<explicit tag>.
 
@@ -62,34 +60,47 @@ both C<q> elements.  It also contains two stretches of non-element
 text, both of which begin with the word "C<I>" and end with the word
 "C<say>".
 
-L<Marpa::UrHTML>'s uses L<HTML::Parser> to do its low-level parsing,
-or tokenization.
+=head2 Non-elements and Tokens
+
+L<Marpa::UrHTML>'s low-level parsing
+uses L<HTML::Parser> to do its low-level parsing.
 L<HTML::Parser> returns six kinds of token.
 B<start tag tokens> and B<end tag tokens> (or "start tokens"
 and "end tokens") are always part of elements.
-The non-element tokens are text, processing instructions, SGML declarations
+L<HTML::Parser>'s non-element tokens are text, processing instructions, SGML declarations
 and comments.
 
-For liberal high-level parsing, L<Marpa::UrHTML> introduces a token type of its
-own: cruft.
+To meet L<Marpa::UrHTML>'s requirements for high-level parsing,
+it introduces four new element tokens:
+"cruft",
+C<WHITESPACE>, C<CDATA> and C<PCDATA>.
+
+The "cruft" token is introduced to allow liberal parsing,
+in particular to ensure that 
+L<Marpa::UrHTML> will make its best effort to find an HTML
+structure in any document.
 Cruft tokens are tokens which even L<Marpa::UrHTML>'s liberal
 parsing standards cannot work into a reasonable HTML-like
 structure.
-L<Marpa::UrHTML> ignores cruft in determining the structure of
-an HTML document, much as it the cruft were comments.
+In determining the structure of an HTML document,
+L<Marpa::UrHTML> ignores cruft much as it was a
+comment.
 
-Text tokens are of three types: WHITESPACE, CDATA and PCDATA.
+L<Marpa::UrHTML>'s replaces
+L<HTML::Parser> text tokens
+with one of its three text tokens:
+B<WHITESPACE>, B<CDATA> and B<PCDATA>.
 WHITESPACE is any text token composed entirely of whitespace
 as defined in the HTML 4.01 specification
 (L<http://www.w3.org/TR/html4/struct/text.html#h-9.1>).
+In the high-level parse,
+C<WHITESPACE> is acceptable in some places
+where other text is not, so 
+L<Marpa::UrHTML>'s needs to distinguish it.
 A CDATA token is any non-WHITESPACE text token
 returned by L<HTML::Parser>
 with a true C<is_cdata> attribute.
-All other tokens are PCDATA.
-L<HTML::Parser> does not distinguish whitespace,
-but L<Marpa::UrHTML> does because in the high-level
-structure, whitespace is acceptable in places
-where other text is not.
+All other text tokens are PCDATA.
 
 =head1 METHODS
 
@@ -100,9 +111,9 @@ where other text is not.
     my $urhtml = Marpa::UrHTML->new($urhtml_args);
 
 The C<new> method returns a new L<Marpa::UrHTML> document.
-Its arguments are references to hashes of named arguments.
+Its arguments are zero or more references to hashes of named arguments.
 Handlers and other options may be specified,
-L<as described below|//"Options>.
+L<as described below|//"OPTIONS">.
 If no arguments are supplied, the result of the parse
 will be a copy of the input.
 
@@ -120,7 +131,7 @@ new L<Marpa::UrHTML> object should be created.
 
 =back
 
-=head2 Options to the C<new> method
+=head1 OPTIONS
 
 =over
 
@@ -172,14 +183,7 @@ The above code tells L<Marpa::UrHTML> to delete all C<spacer> elements.
 (C<spacer> was a tag to add white space supported by
 older versions of the Netscape browser.)
 
-The handler specifications follow CSS B<style>, because it is handy
-and likely to be familiar to the user.
-The syntax is outlined in detail below, but
-the following two rules sum it up:
-
-    Use lowercase except for syntax special to L<Marpa::UrHTML>.
-    Simple things work, irrelevant and complicated things don't.
-
+Handler specifiers follow a format similar to CSS specifiers.
 HTML class names can also be in specifiers.  For example
 
     [ '.zipcode' => \&normalize_zipcode } ]
@@ -201,11 +205,13 @@ is a wildcard matching all elements.
 
     [ q{*} => \&normalize_whitespace ]
 
-L<Marpa::UrHTML> pseudo specifiers use the same syntax
-except that lowercase is reserved for CSS pseudo-classes,
-none of which 
-L<Marpa::UrHTML> supports as of this version.
-L<Marpa::UrHTML>'s pseudo-classes must always be specified in upper-case.
+L<Marpa::UrHTML> pseudoclass specifiers are similar to CSS pseudo-class
+specifiers -- they begin with a colon.
+L<Marpa::UrHTML>'s own pseudoclasses must always be specified in upper-case.
+Lowercase is reserved for CSS pseudoclasses,
+none of which are currently supported.
+
+    [ ':COMMENT' => \&delete_it ]
 
 L<Marpa::UrHTML>'s initially receives its input as tokens
 from L<HTML::Parser>.

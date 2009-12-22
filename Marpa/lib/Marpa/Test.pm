@@ -22,7 +22,7 @@ sub Marpa::Test::is {
         if defined &Test::Differences::eq_or_diff && @_ > 1;
     @_ = map { ref $_ ? Data::Dumper::Dumper(@_) : $_ } @_;
     goto &Test::More::is;
-} ## end sub is
+} ## end sub Marpa::Test::is
 
 1;
 
