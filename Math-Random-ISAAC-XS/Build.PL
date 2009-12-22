@@ -53,9 +53,6 @@ my $builder = Module::Build->new(
   sign                  => 1,
   create_packlist       => 1,
 
-  # Maintain compatibility with ExtUtils::MakeMaker installations
-  create_makefile_pl    => 'passthrough',
-
   # Location of our special C and XS source files
   c_source => 'src',
   xs_files => {
