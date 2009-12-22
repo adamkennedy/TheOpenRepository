@@ -4,6 +4,7 @@
   + Update MANIFEST.SKIP according to new defaults provided by
     ExtUtils::Manifest
   + Remove pass-through Build.PL
+  + Updates to POD formatting style
 
 1.004 - 29 Aug 2009 - Jonathan Yu <frequency@cpan.org>
 
