@@ -346,7 +346,6 @@ sub _grok_indent_diff {
 #   /* vim: set ai tw=75: */ ~
 #
    
-    my $changed = 0;
     my @options;
     if ($line =~ $VimModeLineStart) {
       if ($line =~ $VimModelineTypeOne) {
@@ -365,6 +364,7 @@ sub _grok_indent_diff {
 
     return if not @options;
 
+    my $changed = 0;
     foreach (@options) {
       /s(?:ts|ofttabstop)=(\d+)/i and $settings->{softtabstop} = $1, $changed = 1, next;
       /t(?:s|abstop)=(\d+)/i and $settings->{tabstop} = $1, $changed = 1,  next;
