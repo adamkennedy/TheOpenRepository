@@ -10,7 +10,7 @@ use Marpa::Test;
 use Test::More;
 
 BEGIN {
-    Test::More::use_ok( 'Marpa::UrHTML', 'alpha' );
+    Test::More::use_ok('Marpa::UrHTML');
 }
 
 # This is just a dummy value for the synopsis

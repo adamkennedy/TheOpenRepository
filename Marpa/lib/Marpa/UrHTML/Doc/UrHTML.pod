@@ -6,7 +6,7 @@ Marpa::UrHTML - High-level HTML Parser
 
 =for Marpa::Display
 name: UrHTML Synopsis
-normalize-whitespace: 1
+perltidy: '-dcsc -sil=0'
 
     # Delete tables
     my $with_table = 'Text<table><tr><td>I am a cell</table> More Text';

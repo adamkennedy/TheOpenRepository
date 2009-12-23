@@ -10,13 +10,12 @@ use Marpa::Test;
 
 BEGIN {
     if ( eval { require HTML::PullParser } ) {
-        Test::More::plan tests => 3;
+        Test::More::plan tests => 2;
     }
     else {
         Test::More::plan skip_all => 'HTML::PullParser not available';
     }
-    Test::More::use_ok( 'Marpa',         'alpha' );
-    Test::More::use_ok( 'Marpa::UrHTML', 'alpha' );
+    Test::More::use_ok('Marpa::UrHTML');
 } ## end BEGIN
 
 use Carp;

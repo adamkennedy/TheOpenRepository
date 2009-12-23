@@ -10,6 +10,7 @@ use Text::Diff;
 use Getopt::Long qw(GetOptions);
 use Test::More 0.94;
 use Carp;
+use Perl::Tidy;
 
 use lib 'lib';
 use Marpa::Display;
@@ -91,7 +92,7 @@ FILE: for my $file (@test_files) {
 
 } ## end for my $file (@test_files)
 
-my @formatting_instructions = qw(normalize-whitespace);
+my @formatting_instructions = qw(perltidy normalize-whitespace);
 
 sub format_display {
     my ( $text, $instructions ) = @_;
@@ -103,6 +104,15 @@ sub format_display {
         $result =~ s/[ \f\t]+/ /gxms;
         $result =~ s/\n+/\n/gxms;
     } ## end if ( $instructions->{'normalize-whitespace'} )
+    if ( defined( my $tidy_options = $instructions->{'perltidy'} ) ) {
+        my $tidied;
+        Perl::Tidy::perltidy(
+            source       => \$result,
+            destination  => \$tidied,
+            perltidyrc => \$tidy_options
+        );
+        $result = $tidied;
+    } ## end if ( defined( my $tidy_options = $instructions->{'perltidy'...}))
     return \$result;
 } ## end sub format_display
 

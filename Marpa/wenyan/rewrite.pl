@@ -13,7 +13,7 @@ use English qw( -no_match_vars );
 use Fatal qw(open);
 use Storable;
 
-use Marpa::UrHTML 'alpha';
+use Marpa::UrHTML;
 
 binmode STDIN, ':utf8';
 binmode STDERR, ':utf8';

@@ -19,7 +19,7 @@ sub Marpa::Display::new {
 }
 
 @Marpa::Display::Internal::DISPLAY_SPECS = qw(
-    start-after-line end-before-line normalize-whitespace name
+    start-after-line end-before-line perltidy normalize-whitespace name
 );
 
 sub Marpa::Display::read {
