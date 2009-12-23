@@ -76,6 +76,8 @@ BEGIN {
   $VERSION = '0.06';
 }
 
+use constant MAX_LINES => 500;
+
 sub parse {
   my $class = shift;
   my $text  = shift;
@@ -142,6 +144,10 @@ sub parse {
       elsif (exists $modeline_settings{tabstop} and exists $modeline_settings{usetabs}) {
         return( "s" . $modeline_settings{tabstop} );
       }
+    }
+
+    if ($lines > MAX_LINES) {
+      next;
     }
 
     if ($skip) {
