@@ -140,9 +140,7 @@ sub parse {
       }
 
     }
-    next if $in_pod;
-
-    next if $rest eq '';
+    next if $in_pod or $rest eq '';
 
     if ($ws eq '') {
       $prev_indent = $ws;
@@ -171,7 +169,6 @@ sub parse {
       $prev_indent = $ws;
       next;
     }
-
 
     # at this point, we're desperate!
     my $prev_spaces = $prev_indent;
@@ -255,35 +252,38 @@ sub _grok_indent_diff {
 
 {
   # the vim modeline regexes
-    my $VimTag = qr/(?:vi(?:m(?:[<=>]\d+)?)?|ex):/;
-    my $OptionArg = qr/[^\s\\]*(?:\\[\s\\][^\s\\]*)*/;
-    my $VimOption = qr/
-      \w+(?:=)?$OptionArg
-    /x;
-    my $VimModelineTypeOne = qr/
-      \s+
-      $VimTag
-      \s*
-      ($VimOption
-        (?:
-          (?:\s*:\s*|\s+)
-          $VimOption
-        )*
-      )
-      \s*$
-    /x;
-    
-    my $VimModelineTypeTwo = qr/
-      \s+
-      $VimTag
-      \s*
-      set?\s+
-      ($VimOption
-        (?:\s+$VimOption)*
-      )
-      \s*
-      :
-    /x;
+  my $VimTag = qr/(?:ex|vi(?:m(?:[<=>]\d+)?)?):/;
+  my $OptionArg = qr/[^\s\\]*(?:\\[\s\\][^\s\\]*)*/;
+  my $VimOption = qr/
+    \w+(?:=)?$OptionArg
+  /xo;
+
+  my $VimModeLineStart = qr/(?:^|\s+)$VimTag/o;
+
+  # while technically, we match against $VimModeLineStart before,
+  # IF there is a vim modeline, we don't need to optimize
+  my $VimModelineTypeOne = qr/
+    $VimModeLineStart
+    \s*
+    ($VimOption
+      (?:
+        (?:\s*:\s*|\s+)
+        $VimOption
+      )*
+    )
+    \s*$
+  /xo;
+  
+  my $VimModelineTypeTwo = qr/
+    $VimModeLineStart
+    \s*
+    set?\s+
+    ($VimOption
+      (?:\s+$VimOption)*
+    )
+    \s*
+    :
+  /xo;
 
   sub _check_vim_modeline {
     my $class = shift;
@@ -324,11 +324,16 @@ sub _grok_indent_diff {
    
 
     my @options;
-    if ($line =~ $VimModelineTypeOne) {
-      push @options, split /(?!<\\)[:\s]+/, $1;
-    }
-    elsif ($line =~ $VimModelineTypeTwo) {
-      push @options, split /(?!<\\)\s+/, $1;
+    if ($line =~ $VimModeLineStart) {
+      if ($line =~ $VimModelineTypeOne) {
+        push @options, split /(?!<\\)[:\s]+/, $1;
+      }
+      elsif ($line =~ $VimModelineTypeTwo) {
+        push @options, split /(?!<\\)\s+/, $1;
+      }
+      else {
+        return;
+      }
     }
     else {
       return;
@@ -398,6 +403,10 @@ sub _grok_indent_diff {
   $stylelookup{'whitesmith'} = $stylelookup{kr};
   $stylelookup{'stroustrup'} = $stylelookup{kr};
 
+  my $FirstLineVar = qr/[^\s:]+/;
+  my $FirstLineValue = qr/[^;]+/; # dumb
+  my $FirstLinePair = qr/\s*$FirstLineVar\s*:\s*$FirstLineValue;/o;
+  my $FirstLineRegexp = qr/-\*-\s*mode:\s*[^\s;]+;\s*($FirstLinePair+)\s*-\*-/o;
   
   
   sub _check_emacs_local_variables_first_line {
@@ -412,11 +421,7 @@ sub _grok_indent_diff {
 # ;; -*- mode: Lisp; fill-column: 75; comment-column: 50; -*-
 
 
-    my $var = qr/[^\s:]+/;
-    my $value = qr/[^;]+/; # dumb
-    my $pair = qr/\s*$var\s*:\s*$value;/;
-    my $firstline = qr/-\*-\s*mode:\s*[^\s;]+;\s*($pair+)\s*-\*-/;
-    if ($line =~ $firstline) {
+    if ($line =~ $FirstLineRegexp) {
       my @pairs = split /\s*;\s*/, $1;
       foreach my $pair (@pairs) {
         my ($key, $value) = split /\s*:\s*/, $pair, 2;
