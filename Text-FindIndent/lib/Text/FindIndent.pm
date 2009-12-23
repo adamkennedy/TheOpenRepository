@@ -253,10 +253,42 @@ sub _grok_indent_diff {
   }
 }
 
-sub _check_vim_modeline {
-  my $class = shift;
-  my $line = shift;
-  my $settings = shift;
+{
+  # the vim modeline regexes
+    my $VimTag = qr/(?:vi(?:m(?:[<=>]\d+)?)?|ex):/;
+    my $OptionArg = qr/[^\s\\]*(?:\\[\s\\][^\s\\]*)*/;
+    my $VimOption = qr/
+      \w+(?:=)?$OptionArg
+    /x;
+    my $VimModelineTypeOne = qr/
+      \s+
+      $VimTag
+      \s*
+      ($VimOption
+        (?:
+          (?:\s*:\s*|\s+)
+          $VimOption
+        )*
+      )
+      \s*$
+    /x;
+    
+    my $VimModelineTypeTwo = qr/
+      \s+
+      $VimTag
+      \s*
+      set?\s+
+      ($VimOption
+        (?:\s+$VimOption)*
+      )
+      \s*
+      :
+    /x;
+
+  sub _check_vim_modeline {
+    my $class = shift;
+    my $line = shift;
+    my $settings = shift;
 
 # Quoting the vim docs:
 # There are two forms of modelines.  The first form:
@@ -289,59 +321,29 @@ sub _check_vim_modeline {
 #Example:
 #   /* vim: set ai tw=75: */ ~
 #
- 
-  my $vimtag = qr/(?:vi(?:m(?:[<=>]\d+)?)?|ex):/;
-  my $option_arg = qr/[^\s\\]*(?:\\[\s\\][^\s\\]*)*/;
-  my $option = qr/
-    \w+(?:=)?$option_arg
-  /x;
-  my $modeline_type_one = qr/
-    \s+
-    $vimtag
-    \s*
-    ($option
-      (?:
-        (?:\s*:\s*|\s+)
-        $option
-      )*
-    )
-    \s*$
-  /x;
-  
-  my $modeline_type_two = qr/
-    \s+
-    $vimtag
-    \s*
-    set?\s+
-    ($option
-      (?:\s+$option)*
-    )
-    \s*
-    :
-  /x;
+   
 
+    my @options;
+    if ($line =~ $VimModelineTypeOne) {
+      push @options, split /(?!<\\)[:\s]+/, $1;
+    }
+    elsif ($line =~ $VimModelineTypeTwo) {
+      push @options, split /(?!<\\)\s+/, $1;
+    }
+    else {
+      return;
+    }
 
-  my @options;
-  if ($line =~ $modeline_type_one) {
-    push @options, split /(?!<\\)[:\s]+/, $1;
-  }
-  elsif ($line =~ $modeline_type_two) {
-    push @options, split /(?!<\\)\s+/, $1;
-  }
-  else {
+    return if not @options;
+
+    foreach (@options) {
+      /s(?:ts|ofttabstop)=(\d+)/i and $settings->{softtabstop} = $1, next;
+      /t(?:s|abstop)=(\d+)/i and $settings->{tabstop} = $1, next;
+      /((?:no)?)(?:expandtab|et)/i and $settings->{usetabs} = (defined $1 and $1 =~ /no/i ? 1 : 0), next;
+    }
     return;
   }
-
-  return if not @options;
-
-  foreach (@options) {
-    /s(?:ts|ofttabstop)=(\d+)/i and $settings->{softtabstop} = $1, next;
-    /t(?:s|abstop)=(\d+)/i and $settings->{tabstop} = $1, next;
-    /((?:no)?)(?:expandtab|et)/i and $settings->{usetabs} = (defined $1 and $1 =~ /no/i ? 1 : 0), next;
-  }
-  return;
 }
-
 
 
 
