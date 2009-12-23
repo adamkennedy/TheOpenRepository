@@ -1,5 +1,8 @@
 Changes for Perl extension Text-FindIndent
 
+0.06 
+	- ~20-25% faster
+
 0.05 
 	- "skip_pod" option to parse() for skipping POD sections.
 
