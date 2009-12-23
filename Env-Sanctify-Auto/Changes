@@ -2,6 +2,9 @@
 
   + Changed my mail address to jawnsy@cpan.org
   + Fixed POD
+  + Update MANIFEST.SKIP according to new defaults provided by
+    ExtUtils::Manifest
+  + Remove pass-through Build.PL
 
 1.001 - 17 Aug 2009 - Jonathan Yu <frequency@cpan.org>
 

@@ -25,9 +25,6 @@ my $builder = Module::Build->new(
   sign                  => 1,
   create_packlist       => 1,
 
-  # Maintain compatibility with ExtUtils::MakeMaker installations
-  create_makefile_pl    => 'passthrough',
-
   requires => {
     'perl'              => 5.006,
     'Env::Sanctify'     => 0,
@@ -35,8 +32,6 @@ my $builder = Module::Build->new(
     # Pragmatic and special modules
     'Carp'              => 1.04,
     'version'           => 0.74,
-    'warnings'          => 0,
-    'strict'            => 0,
   },
   build_requires => {
     # User tests for good functionality
