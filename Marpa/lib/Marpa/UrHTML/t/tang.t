@@ -40,7 +40,9 @@ my $no_tang_document;
 };
 
 my $p = Marpa::UrHTML->new(
-    { handlers => [ [ '.ktang' => sub { return q{}; } ] ] } );
+    {   '.ktang' => sub { return q{}; }
+    }
+);
 my $value = $p->parse( \$document );
 
 Marpa::Test::is( ${$value}, $no_tang_document, 'remove kTang class' );

@@ -60,38 +60,30 @@ sub calculate_length {
 } ## end sub calculate_length
 
 my ( $instance, $value ) = @{ Marpa::UrHTML->new(
-        {   handlers => [
-                [ ':COMMENT' => sub { return { depths => {}, length => 0 } }
-                ],
-                [   q{*} => sub {
-                        my $child_data =
-                            Marpa::UrHTML::child_data('value,literal');
-                        my $tagname = Marpa::UrHTML::tagname();
-                        my $length  = calculate_length($child_data);
-                        $Marpa::UrHTML::INSTANCE->{count}->{$tagname}++;
-                        $Marpa::UrHTML::INSTANCE->{length}->{$tagname}
-                            += $length;
-                        my $return_depths = calculate_max_depths($child_data);
-                        ( $return_depths->{$tagname} //= 0 )++;
-                        $return_depths->{ANY}++;
-                        return {
-                            depths => $return_depths,
-                            length => $length,
-                        };
+        {   ':COMMENT' => sub { return { depths => {}, length => 0 } },
+            q{*}       => sub {
+                my $child_data = Marpa::UrHTML::child_data('value,literal');
+                my $tagname    = Marpa::UrHTML::tagname();
+                my $length     = calculate_length($child_data);
+                $Marpa::UrHTML::INSTANCE->{count}->{$tagname}++;
+                $Marpa::UrHTML::INSTANCE->{length}->{$tagname} += $length;
+                my $return_depths = calculate_max_depths($child_data);
+                ( $return_depths->{$tagname} //= 0 )++;
+                $return_depths->{ANY}++;
+                return {
+                    depths => $return_depths,
+                    length => $length,
+                };
+            },
+            ':TOP' => sub {
+                my $child_data = Marpa::UrHTML::child_data('value,literal');
+                return [
+                    $Marpa::UrHTML::INSTANCE,
+                    {   depths => calculate_max_depths($child_data),
+                        length => calculate_length($child_data),
                     },
-                ],
-                [   ':TOP' => sub {
-                        my $child_data =
-                            Marpa::UrHTML::child_data('value,literal');
-                        return [
-                            $Marpa::UrHTML::INSTANCE,
-                            {   depths => calculate_max_depths($child_data),
-                                length => calculate_length($child_data),
-                            },
-                        ];
-                    },
-                ],
-            ],
+                ];
+            },
         }
         )->parse( \$document )
     };

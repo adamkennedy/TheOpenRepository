@@ -455,108 +455,125 @@ my %ARGS = (
     unbroken_text => 1,
 );
 
+sub add_handler {
+    my ( $self, $handler_description ) = @_;
+    my $ref_type = ref $handler_description || 'not a reference';
+    Marpa::exception(
+        "Long form handler description should be ref to hash, but it is $ref_type"
+    ) if $ref_type ne 'HASH';
+    my $element = delete $handler_description->{element};
+    my $id = delete $handler_description->{id};
+    my $class = delete $handler_description->{class};
+    my $pseudoclass = delete $handler_description->{pseudoclass};
+    my $action = delete $handler_description->{action};
+    Marpa::exception(
+        'Unknown option(s) in Long form handler description: ',
+        ( join q{ }, keys %{$handler_description} )
+    ) if scalar keys %{$handler_description};
+
+    Marpa::exception('Handler action must be CODE ref')
+        if ref $action ne 'CODE';
+
+    $element = ( not $element or $element eq q{*} ) ? 'ANY' : lc $element;
+    if ( defined $pseudoclass ) {
+        $self->{user_handlers_by_pseudoclass}->{$element}->{$pseudoclass} =
+            $action;
+        return 1;
+    }
+
+    if ( defined $id ) {
+        $self->{user_handlers_by_id}->{$element}->{ lc $id } = $action;
+        return 1;
+    }
+    $class = defined $class ? lc $class : 'ANY';
+    $self->{user_handlers_by_class}->{$element}->{$class} = $action;
+    return 1;
+} ## end sub add_handler
+
+sub add_handlers_from_hashes {
+    my ( $self, $handler_specs ) = @_;
+    my $ref_type = ref $handler_specs || 'not a reference';
+    Marpa::exception(
+        "handlers arg must must be ref to ARRAY, it is $ref_type")
+        if $ref_type ne 'ARRAY';
+    for my $handler_spec ( keys %{$handler_specs} ) {
+        add_handler( $self, $handler_spec );
+    }
+} ## end add_handlers_from_hashes
+
 sub add_handlers {
-    my ( $self, $handler_spec_list ) = @_;
-    HANDLER_SPEC: for my $handler_spec ( @{$handler_spec_list} ) {
-        my $element;
-        my $id;
-        my $class;
-        my $pseudoclass;
-        my $action;
-        PARSE_HANDLER_SPEC: {
-            my $ref_type = ref $handler_spec;
-            if ( not defined $ref_type ) {
-                Marpa::exception('undefined handler specification');
-            }
-            if ( $ref_type eq 'ARRAY' ) {
-                my $specifier;
-                ( $specifier, $action ) = @{$handler_spec};
-                Marpa::exception('empty handler specification is not allowed')
-                    if not $specifier;
-
-                ( $element, $id ) =
-                       ( $specifier =~ /\A ([^#]*) [#] (.*) \z/xms )
-                    or ( $element, $class ) =
-                       ( $specifier =~ /\A ([^.]*) [.] (.*) \z/xms )
-                    or ( $element, $pseudoclass ) =
-                    ( $specifier =~ /\A ([^:]*) [:] (.*) \z/xms )
-                    or $element = $specifier;
-                if ($pseudoclass
-                    and not $pseudoclass ~~ [
-                        qw(TOP PI DECL COMMENT PROLOG TRAILER WHITESPACE CDATA PCDATA CRUFT)
-                    ]
-                    )
-                {
-                    Marpa::exception(
-                        qq{pseudoclass "$pseudoclass" is not known:\n},
-                        "Specifier was $specifier\n" );
-                } ## end if ( $pseudoclass and not $pseudoclass ~~ [ ...])
-                if ( $pseudoclass and $element ) {
-                    Marpa::exception(
-                        qq{pseudoclass "$pseudoclass" may not have an element specified:\n},
-                        "Specifier was $specifier\n"
-                    );
-                } ## end if ( $pseudoclass and $element )
-                last PARSE_HANDLER_SPEC;
-            } ## end if ( $ref_type eq 'ARRAY' )
-            if ( $ref_type eq 'HASH' ) {
-                $element     = $handler_spec->{element};
-                $id          = $handler_spec->{id};
-                $class       = $handler_spec->{class};
-                $pseudoclass = $handler_spec->{pseudoclass};
-                $action      = $handler_spec->{action};
-                last PARSE_HANDLER_SPEC;
-            } ## end if ( $ref_type eq 'HASH' )
+    my ( $self, $handler_specs ) = @_;
+    HANDLER_SPEC: for my $specifier ( keys %{$handler_specs} ) {
+        my ( $element, $id, $class, $pseudoclass );
+        my $action = $handler_specs->{$specifier};
+        ( $element, $id ) = ( $specifier =~ /\A ([^#]*) [#] (.*) \z/xms )
+            or ( $element, $class ) =
+               ( $specifier =~ /\A ([^.]*) [.] (.*) \z/xms )
+            or ( $element, $pseudoclass ) =
+            ( $specifier =~ /\A ([^:]*) [:] (.*) \z/xms )
+            or $element = $specifier;
+        if ($pseudoclass
+            and not $pseudoclass ~~ [
+                qw(TOP PI DECL COMMENT PROLOG TRAILER WHITESPACE CDATA PCDATA CRUFT)
+            ]
+            )
+        {
+            Marpa::exception( qq{pseudoclass "$pseudoclass" is not known:\n},
+                "Specifier was $specifier\n" );
+        } ## end if ( $pseudoclass and not $pseudoclass ~~ [ ...])
+        if ( $pseudoclass and $element ) {
             Marpa::exception(
-                'handler specification must be ref to ARRAY or HASH');
-        } ## end PARSE_HANDLER_SPEC:
-
-        $element = ( not $element or $element eq q{*} ) ? 'ANY' : lc $element;
-        if ( defined $pseudoclass ) {
-            $self->{user_handlers_by_pseudoclass}->{$element}
-                ->{$pseudoclass} = $action;
-            next HANDLER_SPEC;
-        }
-
-        if ( defined $id ) {
-            $self->{user_handlers_by_id}->{$element}->{ lc $id } = $action;
-            next HANDLER_SPEC;
-        }
-        $class = defined $class ? lc $class : 'ANY';
-        $self->{user_handlers_by_class}->{$element}->{$class} = $action;
-
-    } ## end for my $handler_spec ( @{$handler_spec_list} )
+                qq{pseudoclass "$pseudoclass" may not have an element specified:\n},
+                "Specifier was $specifier\n"
+            );
+        } ## end if ( $pseudoclass and $element )
+        add_handler(
+            $self,
+            {   element     => $element,
+                id          => $id,
+                class       => $class,
+                pseudoclass => $pseudoclass,
+                action      => $action
+            }
+        );
+    } ## end for my $specifier ( keys %{$handler_specs} )
 
     return 1;
 } ## end sub add_handlers
 
 sub Marpa::UrHTML::new {
-    my ( $class, @hash_args ) = @_;
+    my ( $class, @args ) = @_;
     my $self = bless {}, $class;
     $self->{trace_fh} = \*STDERR;
-    for my $hash_arg (@hash_args) {
-        for my $key ( keys %{$hash_arg} ) {
-            given ($key) {
-                when (
-                    [   qw(trace_fh trace_values trace_handlers trace_actions
-                            trace_conflicts
-                            trace_ambiguity trace_rules trace_QDFA
-                            trace_earley_sets trace_terminals trace_cruft)
-                    ]
-                    )
-                {
-                    $self->{$_} = $hash_arg->{$_}
-                } ## end when ( [ ...])
-                when ('handlers') {
-                    Marpa::UrHTML::Internal::add_handlers( $self,
-                        $hash_arg->{$_} )
-                }
-                default {
-                    Marpa::exception("Unknown option: $_");
-                }
-            } ## end given
-        } ## end for my $key ( keys %{$hash_arg} )
-    } ## end for my $hash_arg (@hash_args)
+    ARG: for my $arg (@args) {
+        my $ref_type = ref $arg || 'not a reference';
+        if ( $ref_type eq 'HASH' ) {
+            Marpa::UrHTML::Internal::add_handlers( $self, $arg );
+            next ARG;
+        }
+        Marpa::exception("Argument must be hash or refs to hash: it is $ref_type")
+            if $ref_type ne 'REF';
+        my $option_hash = ${$arg};
+        $ref_type = ref $option_hash || 'not a reference';
+        Marpa::exception(
+            "Argument must be hash or refs to hash: it is ref to $ref_type")
+            if $ref_type ne 'HASH';
+        OPTION: for my $option ( keys %{$option_hash} ) {
+            if ($option eq 'handlers') {
+                add_handlers_from_hashes($self, $option_hash->{$option});
+            }
+            if (not $option ~~ [
+                    qw(trace_fh trace_values trace_handlers trace_actions
+                        trace_conflicts trace_ambiguity trace_rules trace_QDFA
+                        trace_earley_sets trace_terminals trace_cruft)
+                ]
+                )
+            {
+                Marpa::exception("unknown option: $option");
+            } ## end if ( not $option ~~ [ ...])
+            $self->{$option} = $option_hash->{$option};
+        } ## end for my $option ( keys %{$option_hash} )
+    } ## end for my $arg (@args)
     return $self;
 } ## end sub Marpa::UrHTML::new
 

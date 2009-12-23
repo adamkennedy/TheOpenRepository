@@ -28,76 +28,65 @@ BEGIN {
 } ## end BEGIN
 
 my $urhtml_args = {
-    handlers => [
-        [   ':CRUFT' => sub {
-                my $literal = Marpa::UrHTML::literal();
-                say STDERR 'Cruft: ', $literal
-                    or Carp::croak("Cannot print: $ERRNO");
-                return qq{<CRUFT literal="$literal">};
-                }
-        ],
-        [   ':PCDATA' => sub {
-                my $literal = Marpa::UrHTML::literal();
-                if ( defined &HTML::Entities::decode_entities ) {
-                    $literal =
-                        HTML::Entities::encode_entities(
-                        HTML::Entities::decode_entities($literal) );
-                }
-                return $literal;
-                }
-        ],
-        [   ':PROLOG' => sub {
-                my $literal = Marpa::UrHTML::literal();
-                $literal =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
-                $literal =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
-                return $literal;
-                }
-        ],
-        [ ':COMMENT' => sub { return q{} } ],
-        [   q{*} => (
-                sub {
-                    my $tagname = Marpa::UrHTML::tagname();
+    ':CRUFT' => sub {
+        my $literal = Marpa::UrHTML::literal();
+        say STDERR 'Cruft: ', $literal
+            or Carp::croak("Cannot print: $ERRNO");
+        return qq{<CRUFT literal="$literal">};
+    },
+    ':PCDATA' => sub {
+        my $literal = Marpa::UrHTML::literal();
+        if ( defined &HTML::Entities::decode_entities ) {
+            $literal =
+                HTML::Entities::encode_entities(
+                HTML::Entities::decode_entities($literal) );
+        }
+        return $literal;
+    },
+    ':PROLOG' => sub {
+        my $literal = Marpa::UrHTML::literal();
+        $literal =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
+        $literal =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
+        return $literal;
+    },
+    ':COMMENT' => sub { return q{} },
+    q{*}       => sub {
+        my $tagname = Marpa::UrHTML::tagname();
 
-                    # say STDERR "In handler for $tagname element";
+        # say STDERR "In handler for $tagname element";
 
-                    Carp::croak('Not in an element') if not $tagname;
-                    my $attributes = Marpa::UrHTML::attributes();
+        Carp::croak('Not in an element') if not $tagname;
+        my $attributes = Marpa::UrHTML::attributes();
 
-                    # Note this logic suffices to get through
-                    # the test set but it does not handle
-                    # the necessary escaping for a production
-                    # version
-                    my $start_tag = "<$tagname";
-                    for my $attribute ( sort keys %{$attributes} ) {
-                        $start_tag .= qq{ $attribute="}
-                            . $attributes->{$attribute} . q{"};
-                    }
-                    $start_tag .= '>';
-                    my $end_tag = "</$tagname>";
+        # Note this logic suffices to get through
+        # the test set but it does not handle
+        # the necessary escaping for a production
+        # version
+        my $start_tag = "<$tagname";
+        for my $attribute ( sort keys %{$attributes} ) {
+            $start_tag
+                .= qq{ $attribute="} . $attributes->{$attribute} . q{"};
+        }
+        $start_tag .= '>';
+        my $end_tag = "</$tagname>";
 
-                    my $child_data = Marpa::UrHTML::child_data(
-                        'token_type,literal,element');
+        my $child_data =
+            Marpa::UrHTML::child_data('token_type,literal,element');
 
-                    # For UL element, eliminate all but the LI element children
-                    if ( $tagname eq 'ul' ) {
-                        $child_data =
-                            [ grep { defined $_->[2] and $_->[2] eq 'li' }
-                                @{$child_data} ];
-                    }
+        # For UL element, eliminate all but the LI element children
+        if ( $tagname eq 'ul' ) {
+            $child_data =
+                [ grep { defined $_->[2] and $_->[2] eq 'li' }
+                    @{$child_data} ];
+        }
 
-                    my $contents = join q{}, map { $_->[1] }
-                        grep {
-                               not defined $_->[0]
-                            or not $_->[0] ~~
-                            [qw(S E)]
-                        } @{$child_data};
-                    $contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
-                    $contents =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
-                    return join q{}, $start_tag, $contents, $end_tag;
-                }
-            )
-        ]
-    ]
+        my $contents = join q{}, map { $_->[1] }
+            grep { not defined $_->[0] or not $_->[0] ~~ [qw(S E)] }
+            @{$child_data};
+        $contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
+        $contents =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
+        return join q{}, $start_tag, $contents, $end_tag;
+    },
 };
 
 Test::More::ok 1;
