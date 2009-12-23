@@ -19,11 +19,11 @@ student directory
 
 =head1 VERSION
 
-Version 1.003 ($Id$)
+Version 1.004 ($Id$)
 
 =cut
 
-our $VERSION = '1.003';
+our $VERSION = '1.004';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
@@ -437,7 +437,8 @@ so.
 
 =head1 SEE ALSO
 
-L<http://uwo.ca/westerndir/index-student.html>
+L<http://uwo.ca/westerndir/index-student.html>, the site this module uses
+to query the database
 
 =head1 CAVEATS
 
@@ -453,7 +454,7 @@ There are no known bugs as of this release.
 
 This module is only able to access partial student records since students must
 give consent for their contact information to be published on the web. For
-details, see L<http://uwo.ca/westerndir/index-student.html>.
+more, see L<http://www3.registrar.uwo.ca/InfoServices/DirectoryRemoval.cfm>.
 
 =item *
 

@@ -11,7 +11,7 @@ use warnings;
 use Module::Build;
 
 my $builder = Module::Build->new(
-  module_name           => 'WebService::UWO::Directory::Service',
+  module_name           => 'WebService::UWO::Directory::Student',
   license               => 'unrestricted',
   dist_author           => 'Jonathan Yu <jawnsy@cpan.org>',
   dist_version_from     => 'lib/WebService/UWO/Directory/Student.pm',

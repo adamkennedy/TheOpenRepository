@@ -1,3 +1,7 @@
+1.004 - 23 Dec 2009 - Jonathan Yu <jawnsy@cpan.org>
+
+  + "oops" release to fix name of tarball
+
 1.003 - 22 Dec 2009 - Jonathan Yu <jawnsy@cpan.org>
 
   + Use a simple string version, per David Golden's article:
