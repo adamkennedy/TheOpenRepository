@@ -1,4 +1,4 @@
-1.001 - XXX - Jonathan Yu <jawnsy@cpan.org>
+1.003 - XXX - Jonathan Yu <jawnsy@cpan.org>
 
   + Use a simple string version, per David Golden's article:
     http://www.dagolden.com/index.php/369/version-numbers-should-be-boring/
@@ -6,6 +6,7 @@
   + Remove modules available in core since Perl 5.6 from
     requires
   + Changed my mail address to jawnsy@cpan.org
+  + Update POD
 
 1.0.2 - 25 Jul 2009 - Jonathan Yu <frequency@cpan.org>
 

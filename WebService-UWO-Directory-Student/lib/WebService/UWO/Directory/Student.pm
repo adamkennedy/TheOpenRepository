@@ -19,11 +19,11 @@ student directory
 
 =head1 VERSION
 
-Version 1.001 ($Id$)
+Version 1.003 ($Id$)
 
 =cut
 
-our $VERSION = '1.001';
+our $VERSION = '1.003';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
@@ -72,7 +72,9 @@ contact the maintainer.
 
 =head1 METHODS
 
-=head2 WebService::UWO::Directory::Student->new([ \%params ])
+=head2 new
+
+  WebService::UWO::Directory::Student->new( \%params )
 
 Creates a C<UWO::Directory::Student> search object, which uses a given web page
 and server. Being that this module is developed to target UWO's in-house
@@ -101,7 +103,9 @@ sub new {
   return bless($self, $class);
 }
 
-=head2 $dir->lookup(\%params)
+=head2 lookup
+
+  $dir->lookup( \%params )
 
 Uses a C<WebService::UWO::Directory::Student> search object to locate a given
 person based on either their name (C<first> and/or C<last>) or their e-mail
@@ -281,7 +285,9 @@ C<WebService::UWO::Directory::Student> provides access to some internal
 methods used to retrieve and process raw data from the directory server. Its
 behaviour is subject to change and may be finalized later as the need arises.
 
-=head2 $dir->_query($query, [ $ua ])
+=head2 _query
+
+  $dir->_query( $query, $ua )
 
 This method performs an HTTP lookup using C<LWP::UserAgent> and returns a
 SCALAR reference to the returned page content. A C<LWP::UserAgent> object may
@@ -316,7 +322,9 @@ sub _query {
   return \$r->content;
 }
 
-=head2 WebService::UWO::Directory::Student::_parse($response)
+=head2 _parse
+
+  WebService::UWO::Directory::Student::_parse( $response )
 
 This method processes the HTML content retrieved by _query method and returns
 an ARRAY reference containing HASH references to the result set. This is most
@@ -368,7 +376,7 @@ sub _parse {
 
 =head1 AUTHOR
 
-Jonathan Yu E<lt>frequency@cpan.orgE<gt>
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head1 SUPPORT
 
