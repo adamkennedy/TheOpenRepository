@@ -1,6 +1,8 @@
 Changes for Perl extension CPAN-Mini-Visit
 
+0.11_02
 	- Add 'callback_before_extract' optional callback (Alexandr Ciornii)
+	- Move sorting into separate sub to allow subclassing (Alexandr Ciornii)
 
 0.11 Mon 20 Jul 2009
 	- Add Harvey to the module blacklist

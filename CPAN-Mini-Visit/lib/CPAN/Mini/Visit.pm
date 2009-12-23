@@ -22,7 +22,7 @@ CPAN::Mini::Visit - A generalised API version of David Golden's visitcpan
           print "# author:  $_[0]->{author}\n";
       }
   )->run;
-  
+
   # counter: 1234
   # archive: /minicpan/authors/id/A/AD/ADAMK/Config-Tiny-1.00.tar.gz
   # tempdir: /tmp/1a4YRmFAJ3/Config-Tiny-1.00
@@ -77,7 +77,7 @@ use Params::Util      1.00 qw{
 	_HASH _STRING _ARRAYLIKE _CODELIKE _REGEX
 };
 
-our $VERSION = '0.11';
+our $VERSION = '0.11_02';
 
 use Object::Tiny 1.06 qw{
 	minicpan
@@ -173,6 +173,17 @@ sub new {
 	return $self;
 }
 
+sub _sort {
+	my $self = shift;
+	my $files = shift;
+
+	# Randomise if needed
+	if ( $self->random ) {
+		@$files = sort { rand() <=> rand() } @$files;
+	}
+
+}
+
 =pod
 
 =head2 run
@@ -214,10 +225,7 @@ sub run {
 		}
 	}
 
-	# Randomise if needed
-	if ( $self->random ) {
-		@files = sort { rand() <=> rand() } @files;
-	}
+	$self->_sort(\@files);
 
 	# Extract the archive
 	my $counter = 0;
