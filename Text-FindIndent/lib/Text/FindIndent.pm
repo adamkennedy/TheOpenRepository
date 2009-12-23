@@ -276,7 +276,7 @@ sub _grok_indent_diff {
 
 {
   # the vim modeline regexes
-  my $VimTag = qr/(?:ex|vi(?:m(?:[<=>]\d+)?)?):/;
+  my $VimTag = qr/(?:ex|vim?(?:[<=>]\d+)?):/;
   my $OptionArg = qr/[^\s\\]*(?:\\[\s\\][^\s\\]*)*/;
   my $VimOption = qr/
     \w+(?:=)?$OptionArg
@@ -347,16 +347,13 @@ sub _grok_indent_diff {
 #
    
     my @options;
-    if ($line =~ $VimModeLineStart) {
-      if ($line =~ $VimModelineTypeOne) {
-        push @options, split /(?!<\\)[:\s]+/, $1;
-      }
-      elsif ($line =~ $VimModelineTypeTwo) {
-        push @options, split /(?!<\\)\s+/, $1;
-      }
-      else {
-        return;
-      }
+    return if $line !~ $VimModeLineStart;
+
+    if ($line =~ $VimModelineTypeOne) {
+      push @options, split /(?!<\\)[:\s]+/, $1;
+    }
+    elsif ($line =~ $VimModelineTypeTwo) {
+      push @options, split /(?!<\\)\s+/, $1;
     }
     else {
       return;
