@@ -93,6 +93,23 @@ sub parse {
   my $skip                  = 0;
   my $in_pod                = 0;
 
+  # Do we have emacs smart comments?
+  $class->_check_emacs_local_variables_at_file_end($textref, \%modeline_settings);
+  if (exists $modeline_settings{softtabstop} and exists $modeline_settings{usetabs}) {
+    $modeline_settings{mixedmode} = $modeline_settings{usetabs}
+      if not defined $modeline_settings{mixedmode};
+    return(
+      ($modeline_settings{mixedmode} ? "m" : "s")
+      . $modeline_settings{softtabstop}
+    );
+  }
+  elsif (exists $modeline_settings{tabstop} and $modeline_settings{usetabs}) {
+    return( ($modeline_settings{mixedmode} ? "m" : "t") . $modeline_settings{tabstop} );
+  }
+  elsif (exists $modeline_settings{tabstop} and exists $modeline_settings{usetabs}) {
+    return( "s" . $modeline_settings{tabstop} );
+  }
+
   while ($$textref =~ /\G([ \t]*)([^\r\n]*)[\r\n]+/cgs) {
     my $ws       = $1;
     my $rest     = $2;
@@ -100,31 +117,32 @@ sub parse {
     $lines++;
     
     # check emacs start line stuff with some slack (shebang)
+    my $changed_modelines;
     if ($lines < 3) {
-      $class->_check_emacs_local_variables_first_line($fullline, \%modeline_settings);
+      $changed_modelines = $class->_check_emacs_local_variables_first_line($fullline, \%modeline_settings);
     }
-
-    # Do we have vim smart comments?
-    $class->_check_vim_modeline($fullline, \%modeline_settings);
 
     # Do we have emacs smart comments?
-    $class->_check_emacs_local_variables($fullline, \%modeline_settings);
+    # ==> Done once at start
+    #$class->_check_emacs_local_variables($fullline, \%modeline_settings);
 
-    if (exists $modeline_settings{softtabstop} and exists $modeline_settings{usetabs}) {
-      $modeline_settings{mixedmode} = $modeline_settings{usetabs}
-        if not defined $modeline_settings{mixedmode};
-      return(
-        ($modeline_settings{mixedmode} ? "m" : "s")
-        . $modeline_settings{softtabstop}
-      );
+    # Do we have vim smart comments?
+    if ($class->_check_vim_modeline($fullline, \%modeline_settings) || $changed_modelines) {
+      if (exists $modeline_settings{softtabstop} and exists $modeline_settings{usetabs}) {
+        $modeline_settings{mixedmode} = $modeline_settings{usetabs}
+          if not defined $modeline_settings{mixedmode};
+        return(
+          ($modeline_settings{mixedmode} ? "m" : "s")
+          . $modeline_settings{softtabstop}
+        );
+      }
+      elsif (exists $modeline_settings{tabstop} and $modeline_settings{usetabs}) {
+        return( ($modeline_settings{mixedmode} ? "m" : "t") . $modeline_settings{tabstop} );
+      }
+      elsif (exists $modeline_settings{tabstop} and exists $modeline_settings{usetabs}) {
+        return( "s" . $modeline_settings{tabstop} );
+      }
     }
-    elsif (exists $modeline_settings{tabstop} and $modeline_settings{usetabs}) {
-      return( ($modeline_settings{mixedmode} ? "m" : "t") . $modeline_settings{tabstop} );
-    }
-    elsif (exists $modeline_settings{tabstop} and exists $modeline_settings{usetabs}) {
-      return( "s" . $modeline_settings{tabstop} );
-    }
-
 
     if ($skip) {
       $skip--;
@@ -322,7 +340,7 @@ sub _grok_indent_diff {
 #   /* vim: set ai tw=75: */ ~
 #
    
-
+    my $changed = 0;
     my @options;
     if ($line =~ $VimModeLineStart) {
       if ($line =~ $VimModelineTypeOne) {
@@ -342,11 +360,11 @@ sub _grok_indent_diff {
     return if not @options;
 
     foreach (@options) {
-      /s(?:ts|ofttabstop)=(\d+)/i and $settings->{softtabstop} = $1, next;
-      /t(?:s|abstop)=(\d+)/i and $settings->{tabstop} = $1, next;
-      /((?:no)?)(?:expandtab|et)/i and $settings->{usetabs} = (defined $1 and $1 =~ /no/i ? 1 : 0), next;
+      /s(?:ts|ofttabstop)=(\d+)/i and $settings->{softtabstop} = $1, $changed = 1, next;
+      /t(?:s|abstop)=(\d+)/i and $settings->{tabstop} = $1, $changed = 1,  next;
+      /((?:no)?)(?:expandtab|et)/i and $settings->{usetabs} = (defined $1 and $1 =~ /no/i ? 1 : 0), $changed = 1, next;
     }
-    return;
+    return $changed;
   }
 }
 
@@ -421,21 +439,24 @@ sub _grok_indent_diff {
 # ;; -*- mode: Lisp; fill-column: 75; comment-column: 50; -*-
 
 
+    my $changed = 0;
     if ($line =~ $FirstLineRegexp) {
       my @pairs = split /\s*;\s*/, $1;
       foreach my $pair (@pairs) {
         my ($key, $value) = split /\s*:\s*/, $pair, 2;
         if ($key eq 'tab-width') {
           $settings->{tabstop} = $value;# FIXME: check var
+          $changed = 1;
         }
         elsif ($key eq 'indent-tabs-mode') {
-          $tabmodelookup{$value}->($settings) if defined $tabmodelookup{$value};
+          $tabmodelookup{$value}->($settings), $changed = 1 if defined $tabmodelookup{$value};
         }
         elsif ($key eq 'c-basic-offset') {
           $settings->{tabstop} ||= $value; # tab-width takes precedence!?
+          $changed = 1;
         }
         elsif ($key eq 'style') { # this is quite questionable practice...
-          $stylelookup{$value}->($settings) if defined $stylelookup{$value};
+          $stylelookup{$value}->($settings), $changed = 1 if defined $stylelookup{$value};
         }
       }
     }
@@ -445,7 +466,7 @@ sub _grok_indent_diff {
     #$settings->{softtabstop} = $settings->{style_softtabstop} if not exists $settings->{softtabstop};
     #$settings->{usetabs}     = $settings->{style_usetabs}     if not exists $settings->{usetabs};
 
-    return();
+    return $changed;
   }
 
   sub _check_emacs_local_variables {
@@ -522,6 +543,20 @@ sub _grok_indent_diff {
     }
   }
 
+  sub _check_emacs_local_variables_at_file_end {
+    my $class = shift;
+    my $textref = shift;
+    my $settings = shift;
+    my $len = length($$textref);
+    my $start = $len-3000;
+    $start = 0 if $start < 0;
+    my $text = substr($$textref, $start);
+
+    while ($text =~ /\G[ \t]*([^\r\n]*)[\r\n]+/cgs) {
+      $class->_check_emacs_local_variables($1, $settings);
+    }
+    return;
+  }
 } # end lexical block for emacs lookups
 
 
