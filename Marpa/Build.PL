@@ -52,7 +52,7 @@ my $build = $class->new(
     build_requires => {
 
         # Scalar::Util::weaken no longer required
-        'Test::More' => 0,
+        'Test::More' => 0.94,
     },
     script_files => [
         'lib/Marpa/UrHTML/script/urhtml_fmt',
