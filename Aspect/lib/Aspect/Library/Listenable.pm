@@ -11,7 +11,7 @@ use Scalar::Util qw(weaken);
 use Aspect;
 use Aspect::Modular ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 our @ISA     = qw{Aspect::Modular Exporter};
 our @EXPORT  = qw{add_listener remove_listener};
 

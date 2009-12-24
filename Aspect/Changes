@@ -1,5 +1,16 @@
 Revision history for Perl extension Aspect
 
+0.23 Thu 24 Dec 2009
+     - Removed the concept of a standalone Aspect::Weaver class
+     - Each Aspect::Advice:: subclass now does most of the setup for the weaving
+       individually, with similar but slightly different implementations.
+       This adds some duplication of code, but removes a lot of architectural
+       complexity. It should make the creation of new types of Advice simpler.
+     - Corrected the versions of the test libs (which went out of sync)
+     - The Hook::LexWrap wrap function is now split into Advice-specific hooks
+       before and after, duplicating some code but making each type simpler and
+       faster.
+
 0.22 Mon 21 Dec 2009
      - Part one of an upcoming series of major upgrades
      - Migrating to Sub::Uplevel to remove our custom CORE::GLOBAL::caller

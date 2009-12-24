@@ -3,8 +3,12 @@
 # Validates some assumptions by the author about how context and return work
 
 use strict;
-use warnings;
-use Test::More tests => 27;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+use Test::More tests => 28;
+use Test::NoWarnings;
 
 my $array  = 0;
 my $scalar = 0;

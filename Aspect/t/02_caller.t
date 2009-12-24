@@ -1,8 +1,12 @@
 #!/usr/bin/perl
 
 use strict;
-use warnings;
-use Test::More tests => 9;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+use Test::More tests => 10;
+use Test::NoWarnings;
 use Aspect;
 
 my @CALLER = ();

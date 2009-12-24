@@ -7,7 +7,7 @@ use Test::Class;
 use Aspect;
 use Aspect::Modular ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 our @ISA     = 'Aspect::Modular';
 
 sub Test::Class::make_subject {

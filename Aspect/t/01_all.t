@@ -3,13 +3,16 @@
 require 5.008;
 
 use strict;
-use warnings;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 use Carp;
 use FindBin;
 use lib ("$FindBin::Bin/../lib", "$FindBin::Bin/lib");
 use Test::Class;
+# use Test::NoWarnings;
 
-$| = 1;
 $ENV{TEST_VERBOSE} = 0;
 
 sub runtime_use {
@@ -24,7 +27,6 @@ BEGIN {
 	my @ALL_TESTS = qw(
  		Aspect::Pointcut::tests::Call
  		Aspect::Pointcut::tests::Cflow
- 		Aspect::tests::Weaver
  		Aspect::tests::AdviceContext
 		Aspect::tests::Advice
  		Aspect::Library::tests::Singleton

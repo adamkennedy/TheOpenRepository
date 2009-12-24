@@ -3,20 +3,20 @@ package Aspect::Pointcut;
 use strict;
 use warnings;
 use Carp;
+use Data::Dumper   ();
+use Devel::Symdump ();
 use Aspect::Pointcut::AndOp;
 use Aspect::Pointcut::OrOp;
 use Aspect::Pointcut::NotOp;
-use Data::Dumper;
 
-
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 
 use overload
 	'&'  => sub { Aspect::Pointcut::AndOp->new(@_) },
 	'|'  => sub { Aspect::Pointcut::OrOp ->new(@_) },
 	'!'  => sub { Aspect::Pointcut::NotOp->new(@_) },
-	'""' => sub { Dumper shift };
+	'""' => sub { Data::Dumper::Dumper shift };
 
 sub new {
 	my ($class, @spec) = @_;
@@ -35,6 +35,28 @@ sub match {
 }
 
 sub init {}
+
+# weaving methods -------------------------------------------------------------
+
+my %UNTOUCHABLE = map { $_ => 1 } qw(
+	attributes base fields lib strict warnings Carp Carp::Heavy Config CORE
+	CORE::GLOBAL DB DynaLoader Exporter Exporter::Heavy IO IO::Handle UNIVERSAL
+);
+
+# Find the list of all matching subs
+sub match_all {
+	my $self    = shift;
+	my @matches = ();
+	foreach my $package ( Devel::Symdump->rnew->packages, 'main' ) {
+		next if $UNTOUCHABLE{$package};
+		next if $package =~ /^Aspect::/;
+		foreach my $name ( Devel::Symdump->new($package)->functions ) {
+			# TODO: Need to filter Aspect exportable functions!
+			push @matches, $name if $self->match_define($name);
+		}
+	}
+	return @matches;
+}
 
 # template methods ------------------------------------------------------------
 

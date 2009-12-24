@@ -9,7 +9,7 @@ use Aspect::Advice          ();
 use Aspect::Pointcut::Call  ();
 use Aspect::Pointcut::Cflow ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ aspect before after call cflow };
 

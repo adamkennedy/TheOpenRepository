@@ -7,9 +7,9 @@ use Carp::Heavy  (); # added by eilara as hack around caller() core dump
 use Carp         ();
 use Sub::Uplevel ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
-sub pre {
+sub before {
 	my ($typeglob, $code) = @_;
 
 	# Check and normalise the typeglob
@@ -77,7 +77,7 @@ sub pre {
 	}, 'Aspect::Hook::LexWrap::Cleanup';
 }
 
-sub post {
+sub after {
 	my ($typeglob, $post) = @_;
 
 	# Check and normalise the typeglob
