@@ -123,7 +123,7 @@ sub poll {
     unless $r->is_success;
 
   if ($r->content =~ m{
-        ([0-9]+),?([0-9]+)</span><span class='wht'>\ MW</span>
+        ([0-9]+),?([0-9]+)</span><span\ class='wht'>\ MW</span>
       }x)
     {
     $self->{power} = $1 . $2;
@@ -132,11 +132,19 @@ sub poll {
         Last\ updated:\ (\d+)/(\d+)/(\d+)\ (\d+):(\d+):(\d+)\ (AM|PM)  
       }x)
     {
+      my $hour = $4;
+      if ($7 eq 'PM') {
+        $hour += 12;
+        # Special case for 12:00pm
+        if ($hour == 24) {
+          $hour = 12;
+        }
+      }
       my $dt = DateTime->new(
         month     => $1,
         day       => $2,
         year      => $3,
-        hour      => ($7 eq 'PM') ? ($4+12) : $4,
+        hour      => $hour, # derived from $4
         minute    => $5,
         second    => $6,
         time_zone => 'America/Toronto',
@@ -191,7 +199,7 @@ Example code:
 
 =cut
 
-sub updated {
+sub last_updated {
   my ($self) = @_;
 
   return unless exists $self->{updated};
