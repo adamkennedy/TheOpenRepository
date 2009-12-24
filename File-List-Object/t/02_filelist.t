@@ -118,7 +118,7 @@ if ($answer2) {
 
 SKIP: {
 
-	skip 1, "Not on a Windows system" if $^O ne 'MSWin32';
+	skip "Not on a Windows system", 1 if $^O ne 'MSWin32';
 
 	# Need to create a third packlist
 	my $packlist3_file = catfile(rel2abs(curdir()), qw(t test02 filelist3.txt));
