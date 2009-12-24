@@ -1,10 +1,9 @@
-# Math::Random::ISAAC
-#  An interface that automagically selects the XS or Pure Perl port of the
-#  ISAAC Pseudo-Random Number Generator
+# WWW::OPG
+#  Perl interface to Ontario Power Generation's site
 #
 # $Id$
 
-package Math::Random::ISAAC;
+package WWW::OPG;
 
 use strict;
 use warnings;
@@ -51,38 +50,78 @@ contact the maintainer.
 
 =head2 new
 
-  WWW::OPG->new()
+  WWW::OPG->new( \%params )
 
-Initialize a C<WWW::OPG> object, setting up the user agent.
+Initialize a C<WWW::OPG> object, setting up the user agent and preparing
+for a transaction. Note that you can pass a L<LWP::UserAgent> object or a
+subclass thereof, which can include your proxy or UserAgent settings.
 
 Example code:
 
-  my $rng = Math::Random::ISAAC->new(time);
+  my $opg = WWW::OPG->new();
+  # or, with some parameters:
+  my $opg = WWW::OPG->new({
+    useragent => LWP::UserAgent->new()
+  });
 
-This method will return an appropriate B<Math::Random::ISAAC> object or
-throw an exception on error.
+This method will return an appropriate B<WWW::OPG> object or throw an
+exception on error.
 
 =cut
 
-# Wrappers around the actual methods
 sub new {
-  my ($class, @seed) = @_;
+  my ($class, $params) = @_;
 
   Carp::croak('You must call this as a class method') if ref($class);
 
   my $self = {
   };
 
-  if ($DRIVER eq 'XS') {
-    $self->{backend} = Math::Random::ISAAC::XS->new(@seed);
+  if (exists $params->{useragent}) {
+    $self->{useragent} = $params->{useragent};
   }
   else {
-    $self->{backend} = Math::Random::ISAAC::PP->new(@seed);
+    my $ua = LWP::UserAgent->new;
+    $ua->agent(__PACKAGE__ . '/' . $VERSION);
+    $self->{useragent} = $ua;
   }
 
   bless($self, $class);
   return $self;
 }
+
+=head2 poll
+
+  $opg->poll()
+
+Update data in the C<WWW::OPG> object, C<$obj>, by connecting to the OPG
+site and scraping data. The data can then be extracted using the other
+methods available in this class.
+
+Example code:
+
+  $opg->poll();
+
+This method will return a true value if an update has been performed, a
+false value if the data is unchanged since the last update, or throw an
+exception on error.
+
+=cut
+
+sub poll {
+  my ($self) = @_;
+
+  Carp::croak('You must call this method as an object') unless ref($self);
+
+  my $ua = $self->{useragent};
+  my $r = $ua->get('http://opg.com');
+
+  Carp::croak('Error reading response: ' . $r->status_line)
+    unless $r->is_success;
+
+  print "Output:\n\n", $r->content;  
+}
+
 
 =head1 AUTHOR
 
