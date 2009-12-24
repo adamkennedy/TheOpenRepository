@@ -4,7 +4,7 @@ package File::List::Object;
 
 =begin readme text
 
-File::List::Object version 0.201
+File::List::Object version 0.202
 
 =end readme
 
@@ -134,7 +134,7 @@ use Exception::Class 1.29 (
 	},
 );
 
-our $VERSION = '0.201';
+our $VERSION = '0.202';
 $VERSION =~ s/_//ms;
 
 #
@@ -295,6 +295,24 @@ sub File::List::Object::Exception::Parameter::full_message {
 	return $string;
 } ## end sub File::List::Object::Exception::Parameter::full_message
 
+
+=head2 debug
+
+	$filelist->debug();
+
+Sets the "debug state" of the object (currently only used in load_file).
+
+=cut
+
+has debug => (
+	is => 'bare',
+	isa => 'Bool',
+	reader => '_debug',
+	writer => 'debug',
+	init_arg => undef,
+	default => 0,
+);
+
 #####################################################################
 # Main Methods
 
@@ -438,15 +456,27 @@ sub load_file {
 	my $short_file;
 
 	# Insert list of files read into this object. Chomp on the way.
-	my @files = map { ## no critic 'ProhibitComplexMappings'
+	my @files_intermediate = map { ## no critic 'ProhibitComplexMappings'
 		$short_file = undef;
 		$file       = $_;
 		chomp $file;
-		print "Packlist file formatting: $file\n";
+		print "Packlist file formatting: $file\n" if $self->_debug();
 		($short_file) = $file =~ m/\A (.*?) (?:\s+ \w+ = .*?)* \z/msx;
-		print "filtered to: $short_file\n";
+		print "filtered to: $short_file\n" if $self->_debug();
 		$short_file || $file;
 	} @files_list;
+
+	my @files;
+	if ($OSNAME eq 'MSWin32') {
+		@files = map { ## no critic 'ProhibitComplexMappings'
+			$file       = $_;
+			$file       =~ s{/}{\\}gmsx;
+			$file;
+		} @files_intermediate; 
+	} else { 
+		@files = @files_intermediate; 
+	}
+
 	foreach my $file_to_add (@files) {
 		$self->_add_file( $file_to_add, 1 );
 	}

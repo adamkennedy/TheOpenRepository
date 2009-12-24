@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
-use Test::More tests => 15;
+use Test::More tests => 16;
 use File::Spec::Functions qw(catfile curdir catdir rel2abs);
 use File::List::Object;
 
@@ -109,14 +109,35 @@ if ($answer2) {
 
 	is (File::List::Object->new->load_file($packlist2_file)->as_string,
 		"$file[0]\n$file[1]\n$file[2]",
-		'reading from packlist file' );
+		'reading from packlist file (with attributes)' );
 
 } else {
-	fail('reading from packlist file'); 
+	fail('reading from packlist file (with attributes)'); 
 	diag("Could not create packlist $packlist2_file in test directory: $!.");
 }
 
+SKIP: {
 
+	skip 1, "Not on a Windows system" if $^O ne 'MSWin32';
+
+	# Need to create a third packlist
+	my $packlist3_file = catfile(rel2abs(curdir()), qw(t test02 filelist3.txt));
+	my $fh3;
+	my $answer3 = open $fh3, '>', $packlist3_file;
+	my $filetest = $file[1];
+	$filetest =~ s{\\}{/}g;
+	if ($answer3) {
+		print $fh3 "$file[0] test_attribute=$file[0]\n$file[2] test_attribute=$file[2]\n${filetest}\n";
+		close $fh3;
+
+		is (File::List::Object->new->load_file($packlist3_file)->as_string,
+			"$file[0]\n$file[1]\n$file[2]",
+			'reading from packlist file (with Win32 filename fixes)' );
+	} else {
+		fail('reading from packlist file (with Win32 filename fixes)'); 
+		diag("Could not create packlist $packlist3_file in test directory: $!.");
+	}
+}
 
 is( File::List::Object->new->load_array(@file[1, 2, 3, 7])->as_string, 
     "$file[7]\n$file[3]\n$file[1]\n$file[2]",
