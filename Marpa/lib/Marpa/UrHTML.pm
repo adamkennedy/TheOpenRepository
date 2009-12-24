@@ -4,12 +4,9 @@ use 5.010;
 use strict;
 use warnings;
 
-our (@ISA, @EXPORT_OK);
-BEGIN {
-   require Exporter;
-   @ISA = qw(Exporter);
-   @EXPORT_OK = qw(urhtml);
-}
+our @EXPORT_OK;
+use base qw(Exporter);
+BEGIN { @EXPORT_OK = qw(urhtml); }
 
 package Marpa::UrHTML::Internal;
 
@@ -398,8 +395,6 @@ sub setup_offsets {
     return 1;
 } ## end sub setup_offsets
 
-# Apparently a perlcritic bug as of 2009-11-22
-## no critic (Subroutines::RequireFinalReturn)
 sub earleme_to_offset {
 
     my ( $self, $token_offset ) = @_;
@@ -448,7 +443,6 @@ sub earleme_to_offset {
 
     return ( $offset, $line );
 } ## end sub earleme_to_offset
-## use critic
 
 my %ARGS = (
     start       => q{'S',offset,offset_end,tagname,attr},
@@ -468,11 +462,11 @@ sub add_handler {
     Marpa::exception(
         "Long form handler description should be ref to hash, but it is $ref_type"
     ) if $ref_type ne 'HASH';
-    my $element = delete $handler_description->{element};
-    my $id = delete $handler_description->{id};
-    my $class = delete $handler_description->{class};
+    my $element     = delete $handler_description->{element};
+    my $id          = delete $handler_description->{id};
+    my $class       = delete $handler_description->{class};
     my $pseudoclass = delete $handler_description->{pseudoclass};
-    my $action = delete $handler_description->{action};
+    my $action      = delete $handler_description->{action};
     Marpa::exception(
         'Unknown option(s) in Long form handler description: ',
         ( join q{ }, keys %{$handler_description} )
@@ -506,7 +500,8 @@ sub add_handlers_from_hashes {
     for my $handler_spec ( keys %{$handler_specs} ) {
         add_handler( $self, $handler_spec );
     }
-} ## end add_handlers_from_hashes
+    return 1;
+} ## end sub add_handlers_from_hashes
 
 sub add_handlers {
     my ( $self, $handler_specs ) = @_;
@@ -1399,12 +1394,12 @@ sub parse {
     Marpa::exception('No parse: evaler returned undef') if not defined $value;
     return ${$value};
 
-} ## end sub Marpa::UrHTML::parse
+} ## end sub parse
 
 sub Marpa::UrHTML::urhtml {
     my ( $document_ref, @args ) = @_;
     my $urhtml = Marpa::UrHTML::Internal::create(@args);
-    return Marpa::UrHTML::Internal::parse($urhtml, $document_ref);
+    return Marpa::UrHTML::Internal::parse( $urhtml, $document_ref );
 }
 
 1;

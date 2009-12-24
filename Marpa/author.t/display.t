@@ -61,10 +61,10 @@ if ( not $debug_mode ) {
     FILE: for my $test_file (@test_files) {
         next FILE if $exclude{$test_file};
         next FILE if -d $test_file;
-        if ($file_seen{$test_file}++) {
-            Test::More::diag( "Duplicate file: $test_file");
+        if ( $file_seen{$test_file}++ ) {
+            Test::More::diag("Duplicate file: $test_file");
         }
-    }
+    } ## end for my $test_file (@test_files)
     @test_files = keys %file_seen;
 
 } ## end if ( not $debug_mode )
@@ -107,9 +107,9 @@ sub format_display {
     if ( defined( my $tidy_options = $instructions->{'perltidy'} ) ) {
         my $tidied;
         Perl::Tidy::perltidy(
-            source       => \$result,
-            destination  => \$tidied,
-            perltidyrc => \$tidy_options
+            source      => \$result,
+            destination => \$tidied,
+            perltidyrc  => \$tidy_options
         );
         $result = $tidied;
     } ## end if ( defined( my $tidy_options = $instructions->{'perltidy'...}))
@@ -124,7 +124,7 @@ sub compare {
     my $formatted_copy     = format_display( \$copy->{content},     $copy );
     return 1 if ${$formatted_original} eq ${$formatted_copy};
     Test::More::diag(
-        "Differences: ", $original->{filename},
+        'Differences: ', $original->{filename},
         ' vs. ',         $copy->{filename},
         "\n",            Text::Diff::diff $formatted_original,
         $formatted_copy, { STYLE => 'Table' }
@@ -132,7 +132,7 @@ sub compare {
     return 0;
 } ## end sub compare
 
-my $tests_run = 0;
+my $tests_run        = 0;
 my $displays_by_name = $display_data->{displays};
 DISPLAY_NAME: for my $display_name ( keys %{$displays_by_name} ) {
 
@@ -142,7 +142,7 @@ DISPLAY_NAME: for my $display_name ( keys %{$displays_by_name} ) {
             "Display $display_name has only one instance, in file "
                 . $displays->[0]->{filename} );
         $tests_run++;
-    }
+    } ## end if ( scalar @{$displays} <= 1 )
 
     # find the "original"
     my $original_ix;
@@ -163,7 +163,7 @@ DISPLAY_NAME: for my $display_name ( keys %{$displays_by_name} ) {
         Test::More::ok compare( $displays->[$original_ix],
             $displays->[$copy_ix] ), "$display_name, copy $copy_ix";
         $tests_run++;
-    }
+    } ## end for my $copy_ix ( 0 .. $#{$displays} )
 
 } ## end for my $display_name ( keys %{$displays_by_name} )
 

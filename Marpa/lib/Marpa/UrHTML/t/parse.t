@@ -24,7 +24,7 @@ BEGIN {
     if ( not $skipping ) {
         Test::More::plan tests => 41;
     }
-    Test::More::use_ok( 'Marpa::UrHTML' );
+    Test::More::use_ok('Marpa::UrHTML');
 } ## end BEGIN
 
 my $urhtml_args = {

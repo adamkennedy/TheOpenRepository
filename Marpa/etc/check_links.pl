@@ -23,7 +23,6 @@ if ( not $most_recent_distribution ) {
     my @distributions =
         sort map { $_->[2] }
         CPAN::Shell->expand( 'Author', 'JKEGL' )->ls( 'Marpa-*', 2 );
-    say STDERR join " ", @distributions;
     $most_recent_distribution = pop @distributions;
     $most_recent_distribution =~ s/\.tar\.gz$//xms;
 } ## end if ( not $most_recent_distribution )
