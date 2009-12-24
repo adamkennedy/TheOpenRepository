@@ -221,7 +221,7 @@ my $urhtml_args = {
     },
 };
 
-print Marpa::UrHTML->new($urhtml_args)->parse( \$document );
+print Marpa::UrHTML::urhtml( \$document, $urhtml_args );
 
 exit 0;
 

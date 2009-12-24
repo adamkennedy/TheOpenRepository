@@ -186,33 +186,32 @@ Test::More::ok same(
 
 sub same {
     my ( $code1, $code2, $flip ) = @_;
-    my $p1 = Marpa::UrHTML->new($urhtml_args);
-    my $p2 = Marpa::UrHTML->new($urhtml_args);
 
     if ( ref $code1 ) { $code1 = ${$code1} }
     if ( ref $code2 ) { $code2 = ${$code2} }
 
     my $value1;
-    if ( not eval { $value1 = $p1->parse( \$code1 ); 1 } ) {
+    if (not
+        eval { $value1 = Marpa::UrHTML::urhtml( \$code1, $urhtml_args ); 1 } )
+    {
         say "No parse for $code1"
             or Carp::croak("Cannot print: $ERRNO");
         return $flip;
-    }
+    } ## end if ( not eval { $value1 = Marpa::UrHTML::urhtml( \$code1...)})
 
     my $value2;
-    if ( not eval { $value2 = $p2->parse( \$code2 ); 1 } ) {
+    if (not
+        eval { $value2 = Marpa::UrHTML::urhtml( \$code2, $urhtml_args ); 1 } )
+    {
         say "No parse for $code2"
             or Carp::croak("Cannot print: $ERRNO");
         return $flip;
-    }
+    } ## end if ( not eval { $value2 = Marpa::UrHTML::urhtml( \$code2...)})
 
     my $out1 = ${$value1};
     my $out2 = ${$value2};
 
     my $rv = ( $out1 eq $out2 );
-
-    #print $rv? "RV TRUE\n" : "RV FALSE\n";
-    #print $flip? "FLIP TRUE\n" : "FLIP FALSE\n";
 
     if ( $flip ? ( !$rv ) : $rv ) {
         if ( $DEBUG > 2 ) {

@@ -71,8 +71,7 @@ for my $text_field (@text_fields) {
         sub { return [ $text_field, Marpa::UrHTML::literal_ref() ] };
 }
 
-my $p = Marpa::UrHTML->new( \%handlers );
-my $value = $p->parse( \$document );
+my $value = Marpa::UrHTML::urhtml( \$document, \%handlers );
 
 my $old = 'lib/Marpa/UrHTML/t/test.storable.old';
 my $new = 'lib/Marpa/UrHTML/t/test.storable.new';

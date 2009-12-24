@@ -59,7 +59,9 @@ sub calculate_length {
     return $length;
 } ## end sub calculate_length
 
-my ( $instance, $value ) = @{ Marpa::UrHTML->new(
+my ( $instance, $value ) = @{
+    Marpa::UrHTML::urhtml(
+        \$document,
         {   ':COMMENT' => sub { return { depths => {}, length => 0 } },
             q{*}       => sub {
                 my $child_data = Marpa::UrHTML::child_data('value,literal');
@@ -84,8 +86,8 @@ my ( $instance, $value ) = @{ Marpa::UrHTML->new(
                     },
                 ];
             },
-        }
-        )->parse( \$document )
+        },
+    )
     };
 
 my $length_by_element = $instance->{length};

@@ -4,6 +4,13 @@ use 5.010;
 use strict;
 use warnings;
 
+our (@ISA, @EXPORT_OK);
+BEGIN {
+   require Exporter;
+   @ISA = qw(Exporter);
+   @EXPORT_OK = qw(urhtml);
+}
+
 package Marpa::UrHTML::Internal;
 
 use Carp ();
@@ -541,17 +548,21 @@ sub add_handlers {
     return 1;
 } ## end sub add_handlers
 
-sub Marpa::UrHTML::new {
-    my ( $class, @args ) = @_;
-    my $self = bless {}, $class;
+# If we factor this package, this will be the constructor.
+## no critic (Subroutines::RequireArgUnpacking)
+sub create {
+
+    ## use critic
+    my $self = {};
     $self->{trace_fh} = \*STDERR;
-    ARG: for my $arg (@args) {
+    ARG: for my $arg (@_) {
         my $ref_type = ref $arg || 'not a reference';
         if ( $ref_type eq 'HASH' ) {
             Marpa::UrHTML::Internal::add_handlers( $self, $arg );
             next ARG;
         }
-        Marpa::exception("Argument must be hash or refs to hash: it is $ref_type")
+        Marpa::exception(
+            "Argument must be hash or refs to hash: it is $ref_type")
             if $ref_type ne 'REF';
         my $option_hash = ${$arg};
         $ref_type = ref $option_hash || 'not a reference';
@@ -559,8 +570,8 @@ sub Marpa::UrHTML::new {
             "Argument must be hash or refs to hash: it is ref to $ref_type")
             if $ref_type ne 'HASH';
         OPTION: for my $option ( keys %{$option_hash} ) {
-            if ($option eq 'handlers') {
-                add_handlers_from_hashes($self, $option_hash->{$option});
+            if ( $option eq 'handlers' ) {
+                add_handlers_from_hashes( $self, $option_hash->{$option} );
             }
             if (not $option ~~ [
                     qw(trace_fh trace_values trace_handlers trace_actions
@@ -573,9 +584,9 @@ sub Marpa::UrHTML::new {
             } ## end if ( not $option ~~ [ ...])
             $self->{$option} = $option_hash->{$option};
         } ## end for my $option ( keys %{$option_hash} )
-    } ## end for my $arg (@args)
+    } ## end for my $arg (@_)
     return $self;
-} ## end sub Marpa::UrHTML::new
+} ## end sub create
 
 # block_element is for block-level ONLY elements.
 # head is for anything legal inside the HTML header.
@@ -812,7 +823,7 @@ use strict;
     ( map { $_ => 'empty' } keys %Marpa::UrHTML::Internal::EMPTY_ELEMENT ),
 );
 
-sub Marpa::UrHTML::parse {
+sub parse {
     my ( $self, $document_ref ) = @_;
 
     my %start_tags = ();
@@ -1389,5 +1400,11 @@ sub Marpa::UrHTML::parse {
     return ${$value};
 
 } ## end sub Marpa::UrHTML::parse
+
+sub Marpa::UrHTML::urhtml {
+    my ( $document_ref, @args ) = @_;
+    my $urhtml = Marpa::UrHTML::Internal::create(@args);
+    return Marpa::UrHTML::Internal::parse($urhtml, $document_ref);
+}
 
 1;

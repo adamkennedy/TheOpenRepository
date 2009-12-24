@@ -20,47 +20,50 @@ my %empty_elements = ();
 # name: UrHTML Synopsis
 
 # Delete tables
+use Marpa::UrHTML qw(urhtml);
+
 my $with_table = 'Text<table><tr><td>I am a cell</table> More Text';
-my $no_table = Marpa::UrHTML->new(
+my $no_table   = urhtml(
+    \$with_table,
     {   table => sub { return q{} }
     }
-)->parse( \$with_table );
+);
 
 # Delete everything but tables
 my %handlers_to_keep_only_tables = (
     table  => sub { return Marpa::UrHTML::original() },
     ':TOP' => sub { return \( join q{}, @{ Marpa::UrHTML::child_values() } ) }
 );
-my $only_table =
-    Marpa::UrHTML->new( \%handlers_to_keep_only_tables )
-    ->parse( \$with_table );
+my $only_table = urhtml( \$with_table, \%handlers_to_keep_only_tables );
 
 # Marpa::UrHTML is smart about defective tables
 my $with_bad_table = 'Text<tr>I am a cell</table> More Text';
 my $only_bad_table =
-    Marpa::UrHTML->new( \%handlers_to_keep_only_tables )
-    ->parse( \$with_bad_table );
+    urhtml( \$with_bad_table, \%handlers_to_keep_only_tables );
 
 # Delete all comments
 my $with_comment = 'Text <!-- I am a comment --> I am not a comment';
-my $no_comment = Marpa::UrHTML->new(
+my $no_comment   = urhtml(
+    \$with_comment,
     {   ':COMMENT' => sub { return q{} }
     }
-)->parse( \$with_comment );
+);
 
 # Change the title
 my $old_title = '<title>Old Title</title>A little html text';
-my $new_title = Marpa::UrHTML->new(
+my $new_title = urhtml(
+    \$old_title,
     {   'title' => sub { return '<title>New Title</title>' }
     }
-)->parse( \$old_title );
+);
 
 # Delete all elements in the class 'delete_me'
 my $stuff_to_be_edited = '<p>A<p class="delete_me">B<p>C';
-my $edited_stuff = Marpa::UrHTML->new(
+my $edited_stuff       = urhtml(
+    \$stuff_to_be_edited,
     {   '.delete_me' => sub { return q{} }
     }
-)->parse( \$stuff_to_be_edited );
+);
 
 # Marpa::UrHTML knows about missing tags and can supply them
 sub supply_missing_tags {
@@ -73,8 +76,7 @@ sub supply_missing_tags {
 } ## end sub supply_missing_tags
 my $html_with_just_a_title = '<title>I am a title and That is IT!';
 my $valid_html_with_all_tags =
-    Marpa::UrHTML->new( { q{*} => \&supply_missing_tags } )
-    ->parse( \$html_with_just_a_title );
+    urhtml( \$html_with_just_a_title, { q{*} => \&supply_missing_tags } );
 
 # How deeply nested are the elements in this HTML?
 sub depth_below_me {
@@ -82,11 +84,12 @@ sub depth_below_me {
 }
 
 my @depths = map {
-    Marpa::UrHTML->new(
+    urhtml(
+        \$_,
         {   q{*}   => sub { return 1 + depth_below_me() },
             ':TOP' => sub { return depth_below_me() },
         }
-        )->parse( \$_ )
+        )
 } ( $html_with_just_a_title, ${$valid_html_with_all_tags} );
 
 # Marpa::UrHTML counts elements whether with tags or not,
