@@ -86,7 +86,7 @@ sub Marpa::UrHTML::contents {
         };
 } ## end sub Marpa::UrHTML::contents
 
-sub Marpa::UrHTML::child_values {
+sub Marpa::UrHTML::descendant_values {
 
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     Marpa::exception(q{Attempt to fetch an end tag outside of a parse})
@@ -98,9 +98,9 @@ sub Marpa::UrHTML::child_values {
         @{$Marpa::UrHTML::Internal::TDESC_LIST};
 
     return \@values;
-} ## end sub Marpa::UrHTML::child_values
+} ## end sub Marpa::UrHTML::descendant_values
 
-sub Marpa::UrHTML::child_data {
+sub Marpa::UrHTML::descendant_data {
 
     my ($argspecs) = @_;
 
@@ -212,7 +212,7 @@ sub Marpa::UrHTML::child_data {
     } ## end for my $child (@children)
 
     return \@return;
-} ## end sub Marpa::UrHTML::child_data
+} ## end sub Marpa::UrHTML::descendant_data
 
 sub Marpa::UrHTML::attributes {
 
@@ -293,6 +293,8 @@ sub Marpa::UrHTML::literal {
     # return q{} if $Marpa::Internal::SETTING_NULL_VALUES;
 
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
+    Carp::confess('Attempt to get literal value outside of a parse')
+        if not defined $parse_instance;
     Marpa::exception('Attempt to get literal value outside of a parse')
         if not defined $parse_instance;
     my $tdesc_list = $Marpa::UrHTML::Internal::TDESC_LIST;

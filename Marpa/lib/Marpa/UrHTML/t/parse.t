@@ -70,19 +70,19 @@ my $urhtml_args = {
         $start_tag .= '>';
         my $end_tag = "</$tagname>";
 
-        my $child_data =
-            Marpa::UrHTML::child_data('token_type,literal,element');
+        my $descendant_data =
+            Marpa::UrHTML::descendant_data('token_type,literal,element');
 
         # For UL element, eliminate all but the LI element children
         if ( $tagname eq 'ul' ) {
-            $child_data =
+            $descendant_data =
                 [ grep { defined $_->[2] and $_->[2] eq 'li' }
-                    @{$child_data} ];
+                    @{$descendant_data} ];
         }
 
         my $contents = join q{}, map { $_->[1] }
             grep { not defined $_->[0] or not $_->[0] ~~ [qw(S E)] }
-            @{$child_data};
+            @{$descendant_data};
         $contents =~ s/\A [\x{20}\t\f\x{200B}]+ //xms;
         $contents =~ s/ [\x{20}\t\f\x{200B}]+ \z//xms;
         return join q{}, $start_tag, $contents, $end_tag;

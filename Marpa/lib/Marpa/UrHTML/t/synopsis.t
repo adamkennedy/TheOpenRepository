@@ -5,21 +5,26 @@ use strict;
 use warnings;
 use English qw( -no_match_vars );
 use List::Util;
-use Test::More tests => 10;
-use Marpa::Test;
 use Test::More;
+use Marpa::Test;
 
 BEGIN {
-    Test::More::use_ok('Marpa::UrHTML');
-}
+    if ( eval { require HTML::PullParser } ) {
+        Test::More::plan tests => 11;
+    }
+    else {
+        Test::More::plan skip_all => 'HTML::PullParser not available';
+    }
+    Test::More::use_ok('Marpa');
+    Test::More::use_ok('Marpa::UrHTML', 'urhtml');
+} ## end BEGIN
 
 # This is just a dummy value for the synopsis
 my %empty_elements = ();
 
 # Marpa::Display
-# name: UrHTML Synopsis
+# name: 'UrHTML Synopsis: Delete Tables'
 
-# Delete tables
 use Marpa::UrHTML qw(urhtml);
 
 my $with_table = 'Text<table><tr><td>I am a cell</table> More Text';
@@ -29,19 +34,31 @@ my $no_table   = urhtml(
     }
 );
 
-# Delete everything but tables
+# Marpa::Display::End
+
+# Marpa::Display
+# name: 'UrHTML Synopsis: Delete Everything But Tables'
+
 my %handlers_to_keep_only_tables = (
     table  => sub { return Marpa::UrHTML::original() },
-    ':TOP' => sub { return \( join q{}, @{ Marpa::UrHTML::child_values() } ) }
+    ':TOP' => sub { return \( join q{}, @{ Marpa::UrHTML::descendant_values() } ) }
 );
 my $only_table = urhtml( \$with_table, \%handlers_to_keep_only_tables );
 
-# Marpa::UrHTML is smart about defective tables
+# Marpa::Display::End
+
+# Marpa::Display
+# name: 'UrHTML Synopsis: Defective Tables'
+
 my $with_bad_table = 'Text<tr>I am a cell</table> More Text';
 my $only_bad_table =
     urhtml( \$with_bad_table, \%handlers_to_keep_only_tables );
 
-# Delete all comments
+# Marpa::Display::End
+
+# Marpa::Display
+# name: 'UrHTML Synopsis: Delete Comments'
+
 my $with_comment = 'Text <!-- I am a comment --> I am not a comment';
 my $no_comment   = urhtml(
     \$with_comment,
@@ -49,7 +66,11 @@ my $no_comment   = urhtml(
     }
 );
 
-# Change the title
+# Marpa::Display::End
+
+# Marpa::Display
+# name: 'UrHTML Synopsis: Change Title'
+
 my $old_title = '<title>Old Title</title>A little html text';
 my $new_title = urhtml(
     \$old_title,
@@ -57,7 +78,11 @@ my $new_title = urhtml(
     }
 );
 
-# Delete all elements in the class 'delete_me'
+# Marpa::Display::End
+
+# Marpa::Display
+# name: 'UrHTML Synopsis: Delete by Class'
+
 my $stuff_to_be_edited = '<p>A<p class="delete_me">B<p>C';
 my $edited_stuff       = urhtml(
     \$stuff_to_be_edited,
@@ -65,7 +90,11 @@ my $edited_stuff       = urhtml(
     }
 );
 
-# Marpa::UrHTML knows about missing tags and can supply them
+# Marpa::Display::End
+
+# Marpa::Display
+# name: 'UrHTML Synopsis: Supply Missing Tags'
+
 sub supply_missing_tags {
     my $tagname = Marpa::UrHTML::tagname();
     return if $empty_elements{$tagname};
@@ -78,25 +107,32 @@ my $html_with_just_a_title = '<title>I am a title and That is IT!';
 my $valid_html_with_all_tags =
     urhtml( \$html_with_just_a_title, { q{*} => \&supply_missing_tags } );
 
-# How deeply nested are the elements in this HTML?
+# Marpa::Display::End
+
+# Marpa::Display
+# name: 'UrHTML Synopsis: Maximum Element Depth'
+
 sub depth_below_me {
-    return List::Util::max( 0, @{ Marpa::UrHTML::child_values() } );
+    return List::Util::max( 0, @{ Marpa::UrHTML::descendant_values() } );
 }
-
-my @depths = map {
-    urhtml(
-        \$_,
-        {   q{*}   => sub { return 1 + depth_below_me() },
-            ':TOP' => sub { return depth_below_me() },
-        }
-        )
-} ( $html_with_just_a_title, ${$valid_html_with_all_tags} );
-
-# Marpa::UrHTML counts elements whether with tags or not,
-# both depths should be the same
-my $depths_match = $depths[0] == $depths[1];
+my %handlers_to_calculate_maximum_element_depth = (
+    q{*}   => sub { return 1 + depth_below_me() },
+    ':TOP' => sub { return depth_below_me() },
+);
+my $maximum_depth_with_just_a_title = urhtml( \$html_with_just_a_title,
+    \%handlers_to_calculate_maximum_element_depth );
 
 # Marpa::Display::End
+
+my $maximum_depth_with_all_tags_supplied = urhtml( $valid_html_with_all_tags,
+    \%handlers_to_calculate_maximum_element_depth );
+Marpa::Test::is( $maximum_depth_with_just_a_title,
+    3, 'compute maximum depth' );
+Marpa::Test::is(
+    $maximum_depth_with_just_a_title,
+    $maximum_depth_with_all_tags_supplied,
+    'compare maximum depths'
+);
 
 my $expected_valid_html_with_all_tags = <<'END_OF_EXPECTED';
 <html>
@@ -135,5 +171,3 @@ Marpa::Test::is(
     $expected_valid_html_with_all_tags,
     'supply tags'
 );
-Marpa::Test::is( $depths[0], 3,          'compute maximum depth' );
-Marpa::Test::is( $depths[0], $depths[1], 'depths match' );

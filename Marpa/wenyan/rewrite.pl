@@ -18,46 +18,37 @@ use Marpa::UrHTML;
 binmode STDIN, ':utf8';
 binmode STDERR, ':utf8';
 
-my $document;
-{
-    local $RS = undef;
-    $document = <STDIN>;
-};
+my $document = do { local $RS = undef; \(<STDIN>) };
 
-my @handlers = (
-    [   ':TOP' => sub {
-            return $Marpa::UrHTML::INSTANCE;
-            }
-    ],
-    [   '.codepoint' => sub {
-            for my $value ( @{ &Marpa::UrHTML::child_values() } ) {
-                next CHILD if not $value;
-                my ( $class, $literal, $data ) = @{$value};
-                if ( $class eq 'occurrences' ) {
-                    $Marpa::UrHTML::INSTANCE->{ Marpa::UrHTML::title() }
-                        ->{occurrence_count} = $data;
-                }
+my %handlers = (
+    ':TOP' => sub {
+        return $Marpa::UrHTML::INSTANCE;
+    },
+    '.codepoint' => sub {
+        for my $value ( @{ &Marpa::UrHTML::descendant_values() } ) {
+            next CHILD if not $value;
+            my ( $class, $literal, $data ) = @{$value};
+            if ( $class eq 'occurrences' ) {
                 $Marpa::UrHTML::INSTANCE->{ Marpa::UrHTML::title() }
-                    ->{$class} = $literal;
-            } ## end for my $value ( @{ &Marpa::UrHTML::child_values() } )
-            return;
-        },
-    ],
-    [   'div' => sub {
-            my $class = Marpa::UrHTML::attributes()->{class};
-            Carp::croak(qq{WARNING: Unknown class for div: "$class"});
+                    ->{occurrence_count} = $data;
             }
-    ],
+            $Marpa::UrHTML::INSTANCE->{ Marpa::UrHTML::title() }->{$class} =
+                $literal;
+        } ## end for my $value ( @{ &Marpa::UrHTML::descendant_values(...)})
+        return;
+    },
+    'div' => sub {
+        my $class = Marpa::UrHTML::attributes()->{class};
+        Carp::croak(qq{WARNING: Unknown class for div: "$class"});
+    },
 );
 
-push @handlers, 
-       [   '.occurrences' =>
-                sub {
-                my $literal = Marpa::UrHTML::literal();
-                my ($occurrence_count) = ($literal =~ / Occurrences \s+ [(] (\d+) [)] [:] /xms);
-                return [ 'occurrences', $literal, $occurrence_count ]
-                }
-        ];
+$handlers{'.occurrences'} = sub {
+    my $literal = Marpa::UrHTML::literal();
+    my ($occurrence_count) =
+        ( $literal =~ / Occurrences \s+ [(] (\d+) [)] [:] /xms );
+    return [ 'occurrences', $literal, $occurrence_count ];
+};
 
 my @short_text_fields;
 my @long_text_fields;
@@ -67,13 +58,11 @@ my @text_fields = qw( cedict_definition glyph kfrequency kgradelevel
     krsunicode ktang ktotalstrokes shrift_notes
     shrift_occurrences unicode_value unihan_definition );
 
-push @handlers, map {
-    my $class = $_;
-    [ ".$class" => sub { return [ $class, Marpa::UrHTML::literal() ] } ];
-} @text_fields;
+for my $class (@text_fields) {
+    $handlers{".$class"} = sub { return [ $class, Marpa::UrHTML::literal() ] }
+}
 
-my $p = Marpa::UrHTML->new( { handlers => \@handlers, } );
-my $codepoint_hash = $p->parse( \$document );
+my $codepoint_hash = Marpa::UrHTML::urhtml( $document, \%handlers );
 
 Storable::store_fd $codepoint_hash, \*STDOUT;
 

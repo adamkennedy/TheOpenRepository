@@ -4,140 +4,307 @@ Marpa::UrHTML - High-level HTML Parser
 
 =head1 SYNOPSIS
 
+Delete all tables:
+
 =for Marpa::Display
-name: UrHTML Synopsis
+name: 'UrHTML Synopsis: Delete Tables'
 perltidy: '-dcsc -sil=0'
 
-    # Delete tables
+    use Marpa::UrHTML qw(urhtml);
+
     my $with_table = 'Text<table><tr><td>I am a cell</table> More Text';
-    my $no_table = Marpa::UrHTML->new(
-            { handlers => [ [ table => sub { return q{} } ] ] } )
-            ->parse( \$with_table );
+    my $no_table   = urhtml( \$with_table, { table => sub { return q{} } });
 
-    # Delete everything but tables
-    my @handlers_to_keep_only_tables = (
-        [ table => sub { return Marpa::UrHTML::original() } ],
-        [   ':TOP' =>
-                sub { return \( join q{}, @{ Marpa::UrHTML::child_values() } ) }
-        ]
+=for Marpa::Display::End
+
+Delete everything B<but> tables:
+
+=for Marpa::Display
+name: 'UrHTML Synopsis: Delete Everything But Tables'
+perltidy: '-dcsc -sil=0'
+
+    my %handlers_to_keep_only_tables = (
+        table  => sub { return Marpa::UrHTML::original() },
+        ':TOP' => sub { return \( join q{}, @{ Marpa::UrHTML::descendant_values() } ) }
     );
-    my $only_table =
-        Marpa::UrHTML->new( { handlers => \@handlers_to_keep_only_tables } )
-        ->parse( \$with_table );
+    my $only_table = urhtml( \$with_table, \%handlers_to_keep_only_tables );
 
-    # Marpa::UrHTML is smart about defective tables
+=for Marpa::Display::End
+
+The same logic works even if a table is very defective:
+
+=for Marpa::Display
+name: 'UrHTML Synopsis: Defective Tables'
+perltidy: '-dcsc -sil=0'
+
     my $with_bad_table = 'Text<tr>I am a cell</table> More Text';
     my $only_bad_table =
-        Marpa::UrHTML->new( { handlers => \@handlers_to_keep_only_tables } )
-        ->parse( \$with_bad_table );
+        urhtml( \$with_bad_table, \%handlers_to_keep_only_tables );
 
-    # Delete all comments
+=for Marpa::Display::End
+
+Delete all comments:
+
+=for Marpa::Display
+name: 'UrHTML Synopsis: Delete Comments'
+perltidy: '-dcsc -sil=0'
+
     my $with_comment = 'Text <!-- I am a comment --> I am not a comment';
-    my $no_comment = Marpa::UrHTML->new(
-            { handlers => [ [ ':COMMENT' => sub { return q{} } ] ] } )
-            ->parse( \$with_comment );
+    my $no_comment   = urhtml( \$with_comment,
+        { ':COMMENT' => sub { return q{} } });
 
-    # Change the title
+=for Marpa::Display::End
+
+Change the title:
+
+=for Marpa::Display
+name: 'UrHTML Synopsis: Change Title'
+perltidy: '-dcsc -sil=0'
+
     my $old_title = '<title>Old Title</title>A little html text';
-    my $new_title = Marpa::UrHTML->new(
-        {   handlers =>
-                [ [ 'title' => sub { return '<title>New Title</title>' } ] ]
+    my $new_title = urhtml(
+        \$old_title,
+        {   'title' => sub { return '<title>New Title</title>' }
         }
-    )->parse( \$old_title );
+    );
 
-    # Delete all elements in the class 'delete_me'
+=for Marpa::Display::End
+
+Delete all elements in with a class attribute
+of "C<delete_me>":
+
+=for Marpa::Display
+name: 'UrHTML Synopsis: Delete by Class'
+perltidy: '-dcsc -sil=0'
+
     my $stuff_to_be_edited = '<p>A<p class="delete_me">B<p>C';
-    my $edited_stuff = Marpa::UrHTML->new(
-            { handlers => [ [ '.delete_me' => sub { return q{} } ] ] } )
-            ->parse( \$stuff_to_be_edited );
+    my $edited_stuff       = urhtml( \$stuff_to_be_edited,
+        { '.delete_me' => sub { return q{} } });
 
-    # Marpa::UrHTML knows about missing tags and can supply them
+=for Marpa::Display::End
+
+L<Marpa::UrHTML> recognizes elements even if they have missing
+start and/or end tags.
+Since it knows about missing tags, it can add them:
+
+=for Marpa::Display
+name: 'UrHTML Synopsis: Supply Missing Tags'
+perltidy: '-dcsc -sil=0'
+
     sub supply_missing_tags {
         my $tagname = Marpa::UrHTML::tagname();
         return if $empty_elements{$tagname};
-        return
-              ( Marpa::UrHTML::start_tag() // "<$tagname>\n" )
-            . Marpa::UrHTML::contents()
-            . ( Marpa::UrHTML::end_tag() // "</$tagname>\n" );
-    } ## end sub supply_missing_tags
-    my $html_with_just_a_title = '<title>I am a title and That is IT!';
-    my $valid_html_with_all_tags = Marpa::UrHTML->new(
-        { handlers => [ [ q{*} => \&supply_missing_tags ] ] } )
-        ->parse( \$html_with_just_a_title );
-
-    # How deeply nested are the elements in this HTML?
-    my @depths;
-    sub depth_below_me {
-        return List::Util::max( 0, @{ Marpa::UrHTML::child_values() } );
+        return ( Marpa::UrHTML::start_tag() // "<$tagname>\n" )
+            . Marpa::UrHTML::contents() .
+            ( Marpa::UrHTML::end_tag() // "</$tagname>\n" );
     }
-
-    for my $html ($html_with_just_a_title, ${$valid_html_with_all_tags}) {
-        push @depths,
-            Marpa::UrHTML->new(
-            {   handlers => [
-                    [ q{*}   => sub { return 1 + depth_below_me() }, ],
-                    [ ':TOP' => sub { return depth_below_me() } ],
-                ]
-            }
-            )->parse( \$html );
-    } ## end for my $html ($html_with_just_a_title)
-
-    # Marpa::UrHTML counts elements whether with tags or not,
-    # both depths should be the same
-    my $depths_match = $depths[0] == $depths[1];
+    my $html_with_just_a_title = '<title>I am a title and That is IT!';
+    my $valid_html_with_all_tags =
+        urhtml( \$html_with_just_a_title, { q{*} => \&supply_missing_tags } );
 
 =for Marpa::Display::End
+
+L<Marpa::UrHTML> understands the hierarchical structure of HTML elements,
+and calls its handlers recursively.
+Finding the maximum nesting depth of the elements is straightforward:
+
+=for Marpa::Display
+name: 'UrHTML Synopsis: Maximum Element Depth'
+perltidy: '-dcsc -sil=0'
+
+    sub depth_below_me {
+        return List::Util::max( 0, @{ Marpa::UrHTML::descendant_values() } );
+    }
+    my %handlers_to_calculate_maximum_element_depth = (
+        q{*}   => sub { return 1 + depth_below_me() },
+        ':TOP' => sub { return depth_below_me() },
+    );
+    my $maximum_depth_with_just_a_title = urhtml( \$html_with_just_a_title,
+        \%handlers_to_calculate_maximum_element_depth );
+
+=for Marpa::Display::End
+
+Since L<Marpa::UrHTML> tracks actual elements, however tagged, the maximum
+depth in elements is the same for C<$valid_html_with_all_tags>
+and C<$html_with_just_a_title>.
 
 =head1 DESCRIPTION
 
 L<Marpa::UrHTML> does "high-level" parsing of HTML.
-It allows handlers to be specified for elements and other other major components
-of an HMTL document, as well as its tokens.
-
-     Perhaps the rest, or much of the rest, of this
-     should go later.
-
-=head2 How L<Marpa::UrHMTL> looks at HTML
-
+It allows handlers to be specified for elements, tokens and other
+components in the hierarchical structure of an HMTL document.
 L<Marpa::UrHTML> is an extremely liberal HTML parser.
-L<Marpa::UrHTML> will treat any document as HTML, if perhaps
-invalid or broken HTML, and parse accordingly.
+L<Marpa::UrHTML> will treat all documents as HTML.
+If they are not valid HTML according to any of the standards,
+invalid or broken HTML, and does its best to organize
+the document into
+a reasonable parse structure.
 
-Every SGML/HTML document contains an SGML prolog, an B<root element>,
-and an SGML trailer.  The SGML prologs and trailer can be zero length.
-The root element consists of an optional start tag C<< <html> >>,
-an optional end tag C<< </html> >>,
-and the text and markup between the two tags, called the "contents".
-The root element is not optional, but
-its contents may be zero length.
+=head1 THE C<urhtml> STATIC METHOD
 
-In the contents of the root element can be other elements.
-Every element has a B<tagname>.
-The root element has the tagname "C<html>".
+There is only one, static, method in L<Marpa::UrHMTL>:
+C<Marpa::UrHMTL::urhtml>.
+C<urhtml> takes one or more arguments.
+The first argument is required, and must be a pointer to
+a string to be parsed as HTML.
+The second and
+subsequent arguments (all optional) are hash references
+with handler descriptions.
+(See L<the synopsis|//"SYNOPSIS"> for several examples of
+calls using the C<urhtml> method.)
 
-Start tags and end tags may be missing.
-This is legal for the root element, and several others,
-as specified in the standards (for example,
-L<http://www.w3.org/TR/html4/>).
-L<Marpa::UrHTML> tolerates missing end tags, and some missing start tags,
-even when this is forbidden by the
-standards.
-B<Missing tags> are also called B<implicit> or B<virtual tags>.
-An tag which is not missing is an B<explicit tag>.
+=head2 CSS-style Handler Options
 
-The contents of HTML elements,
-in addition to other HTML elements,
-can include B<non-elements>.
-The trailer and prolog will be entirely non-elements.
-HTML elements can contain both elements and non-elements.
-In the following HTML fragment
+Handler descriptions in L<Marpa::UrHTML> are key-value pairs
+in a hash.
+In each pair, the key is a CSS-style handler specifier,
+and the value is a closure,
+which is called the B<action> for the
+handler.
 
-    <p>I say<q>hello</q>I don't know why you say<q>goodbye</q></p>
+Specifiers are "CSS-style" in the sense that they follow the syntax
+of CSS in its most basic cases.  No attempt is made or is planned
+to implement the full CSS specifier syntax, much of which is
+irrelevant to L<Marpa::UrHTML>.
 
-the C<p> element contains two child elements,
-both C<q> elements.  It also contains two stretches of non-element
-text, both of which begin with the word "C<I>" and end with the word
-"C<say>".
+Specifier syntaxes that are supported are as follows:
+
+=over
+
+=item Element Specifiers
+
+    head
+
+If a specifier contains no special characters (meaning
+anything except alphanumerics, hyphens and underscores, it is taken
+as the name of an element.
+Consistent with L<HTML::Parser>'s default behavior,
+element names must be specified in lowercase.
+
+In a defective HTML document, tags for an element may be missing,
+of tags for an element may be found where the element cannot not exist
+even by L<HTML::Parser>'s very liberal standards.
+Where actual structure and tagging conflict,
+L<HTML::Parser> follows the structure.
+Following the structure means, for example,
+that handlers for the C<html>, C<head>,
+and C<body> elements will be called once and only once for every
+document.
+
+For example, Suppose that
+a document starts with an untagged header,
+but has a C<< <head> >> tag may come in the
+middle of its C<< <body> >> element.
+The action for a C<head> specifier, will be called on
+the untagged header
+The action for a C<head> specifier will
+B<not> be called for any component
+containing the stray
+C<< <head> >> tag.
+
+=item Class Specifiers
+
+A specifier which begins with a dot or period (such as "C<.delete_me>")
+will match any element whose class attribute is 
+"C<delete_me>".
+
+=item Element and Class Specifiers
+
+A specifier which contains a dot or period somewhere other than
+the first position (such as "C<span.label>")
+is treated as a dotted tagname-class pair.
+Its action will be called for
+any component whose tagname and class attribute both match.
+
+=item The Element Wildcard Specifier
+
+A specifier of just an asterisk ("C<*>") matches all elements.
+Be careful to note that matching all elements is B<not> the same
+as matching all components.
+The element wildcard specifier will not match any pseudoclasses.
+
+=item Pseudoclass Specifiers
+
+    ':COMMENT' => \&delete_it
+
+A specifier which begins with a colon ("C<:>") is a pseudoclass.
+L<Marpa::UrHTML> defines
+pseudoclasses to deal with tokens and other non-element
+components of the HTML hierarchy.
+
+=back
+
+=head3 Conflicting Specifiers
+
+Specifiers for elements can conflict.
+For example, suppose an element has the start tag C<< <div class="high"> >>.
+Suppose further that 
+the handler descriptions include these:
+
+      div => \&div_action,
+      high => \&high_class_action,
+      'div.high' => \&div_high_action,
+      q{*} => \&wildcard_action,
+
+=for Marpa::Display
+name: 'UrHTML Pod: Handler Precedence'
+perltidy: '-dcsc -sil=0'
+
+my $html = <<'END_OF_HTML';
+<span class="high">High Span</span>
+<span class="low">Low Span</span>
+<div class="high">High Div</span>
+<div class="low">Low Div</span>
+END_OF_HTML
+
+my $result = Marpa::UrHTML::urhtml( \$html,
+    {   q{*} => sub {
+            return "Wildcard handled: " . Marpa::UrHTML::contents() . "\n";
+        },
+        'html' => { return Marpa::UrHTML::literal() },
+        'body' => { return Marpa::UrHTML::literal() },
+        'div' => sub {
+            return "Element handled: " . Marpa::UrHTML::contents() . "\n";
+        },
+        '.high' => sub {
+            return "High Class handled: " . Marpa::UrHTML::contents() . "\n";
+        },
+        'div.high' => sub {
+            return "Element.High handler: "
+                . Marpa::UrHTML::contents() . "\n";
+        },
+    }
+);
+
+=for Marpa::Display::End
+
+=for Marpa::Display
+name: 'UrHTML Pod: Handler Precedence Result'
+
+
+=for Marpa::Display::End
+
+=head3 Gritty Details of the Handler Specifier Syntax
+
+For elements and class names only alphanumerics, hyphens and underscores are supported.
+Elements must be specified in lowercase, but will match any casing in the original
+document.
+
+Forcing element names to be lowercase follows the default behavior of
+L<HTML::Parser>, which coerces all tagnames to lowercase.
+This means tagnames matching is case-indifferent.
+This is consistent with the HTML standards.
+However, it is B<not> consistent with the XML standards,
+and an option to change this behavior may be added in
+the future.
+
+Pseudoclass names special to
+L<Marpa::UrHTML> are case-sensitive, and must be all uppercase.
+Lowercase is reserved for CSS pseudoclasses.
+The CSS standard specifies that its pseudoclass names are case-indifferent.
+It does not at present seem useful to support any CSS pseudoclasses.
+
+=head1 HOW TO WRITE ACTIONS
 
 =head2 Non-elements and Tokens
 
@@ -181,116 +348,8 @@ returned by L<HTML::Parser>
 with a true C<is_cdata> attribute.
 All other text tokens are PCDATA.
 
-=head1 METHODS
+=head2 Handler Declarations
 
-=over
-
-=item new
-
-    my $urhtml = Marpa::UrHTML->new($urhtml_args);
-
-The C<new> method returns a new L<Marpa::UrHTML> document.
-Its arguments are zero or more references to hashes of named arguments.
-Handlers and other options may be specified,
-L<as described below|//"OPTIONS">.
-If no arguments are supplied, the result of the parse
-will be a copy of the input.
-
-=item parse
-
-    print $urhtml->parse( \$document );
-
-The C<parse> method takes a reference to a string as its only,
-required,
-argument.
-This string will be treated as HTML and parsed.
-L<Marpa::UrHTML> objects are good for one parse only --
-for a new parse, a
-new L<Marpa::UrHTML> object should be created.
-
-=back
-
-=head1 OPTIONS
-
-=over
-
-=item C<handlers>
-
-The most important L<Marpa::UrHTML> option is the handlers option.
-It is a reference to an array of handler declarations.
-The handler declaration may either be short form (references to arrays of two elements)
-or long form (hash refs).
-
-=item C<trace_conflicts>
-
-A boolean which turns on tracing of parse conflicts.
-These should not be of interest to the average user.
-
-=item C<trace_terminals>
-
-A boolean which turns on tracing of terminals.
-
-=item C<trace_fh>
-
-A file handle.  Warning and diagnostics are printed to C<trace_fh>.
-
-=back
-
-=head2 Handler Declarations (Short Form)
-
-Handler specs can be either array pointers (short form),
-or hash pointers (long form).
-The short, array form is the usual form.
-The long, hash form can be useful for dealing when
-element or class names with unusual characters.
-
-A short (or array) form handler spec is a pointer to
-an array of two elements.
-The first is a string containing
-a CSS-style specification.
-The second element is the handler closure.
-Here's an example:
-
-    Marpa::UrHTML->new( { handlers => [ 'spacer' => \&delete_spacers ] } );
-
-In this example, the specifier is C<spacer>.
-When the specifier is a lowercase bareword,
-it's taken as a tag name.
-The C<spacer> specification indicates
-that the closure should be called on all elements with the C<spacer> tagname.
-The above code tells L<Marpa::UrHTML> to delete all C<spacer> elements.
-(C<spacer> was a tag to add white space supported by
-older versions of the Netscape browser.)
-
-Handler specifiers follow a format similar to CSS specifiers.
-HTML class names can also be in specifiers.  For example
-
-    [ '.zipcode' => \&normalize_zipcode } ]
-
-indicates that the C<normalize_zipcode> subroutine is the handler for
-all elements whose class is zipcode.
-
-A dotted pair of lowercase names specifies a handler that applies only
-to elements with a specific tag name and class name.
-For example,
-
-    [ 'span.zipcode' => \&normalize_zipcode ]
-
-indicates that C<normalize_zipcode> is the handler
-for C<span> elements whose class attribute is "C<zipcode>".
-
-As a special case, a handler specifier consisting of just an asterisk
-is a wildcard matching all elements.
-
-    [ q{*} => \&normalize_whitespace ]
-
-L<Marpa::UrHTML> pseudoclass specifiers are similar to CSS pseudo-class
-specifiers -- they begin with a colon.
-L<Marpa::UrHTML>'s own pseudoclasses must always be specified in upper-case.
-Lowercase is reserved for CSS pseudoclasses,
-none of which are currently supported.
-
-    [ ':COMMENT' => \&delete_it ]
 
 L<Marpa::UrHTML>'s initially receives its input as tokens
 from L<HTML::Parser>.
@@ -402,35 +461,6 @@ handlers would be assigned as in this table.
     'div'     'class2'    div_handler1
 
     Actually write code for the above and create a test case.
-
-     Casing:
-     HTML elements NOT case-sensitive.
-     XML elements case-sensitive.
-     class names case-sensitive.
-     CSS pseudo-classes NOT case-sensitive.
-
-=head2 Handler Declarations (Long Form)
-
-The action specifiers do not accept the CSS syntax escaping of characters.
-Whatever merits would be alleged for this, it would be very awkward when combined with
-Perl's own string escapes.
-In the specifiers, all characters except alphanumerics, hyphen and underscore are
-reserved for future extensions.
-
-For elements and classnames with arbitrary names, or for any purpose
-where it is convenient, there is a "long form"
-for handler declarations.
-The long form is a hash reference with these named args:
-
-    element
-    class
-    pseudoclass
-    action
-
-Here's an example of a L<Marpa::UrHTML> object being created with
-handlers declarations in the long form:
-
-     Add example here.
 
 =head2 How to Write I<Marpa::UrHTML> Actions
 
@@ -553,7 +583,7 @@ In any other case, the child is unevaluated.
 
 =head3 The Action API: Simple Utilities
 
-The C<child_data> API call, discussed below,
+The C<descendant_data> API call, discussed below,
 is the Swiss Army knife of the L<Marpa::UrHTML>
 API, but much work can be done using 
 the simpler utilites described in this section.
@@ -571,9 +601,9 @@ if there were no attributes,
 if there was no start token for this element,
 or if this handler is being called on a non-element.
 
-=item C<child_values>
+=item C<descendant_values>
 
-The C<child_values> call is for those cases where
+The C<descendant_values> call is for those cases where
 only children with values are of interest.
 It returns a pointer to an array of those values.
 No elements of this array will be undefined --
@@ -617,9 +647,9 @@ Otherwise, returns undef.
 
 =back
 
-=head4 The C<child_data> API call.
+=head4 The C<descendant_data> API call.
 
-    Marpa::UrHTML::child_data('value,literal');
+    Marpa::UrHTML::descendant_data('value,literal');
 
 =over
 
@@ -637,51 +667,50 @@ Otherwise, returns undef.
 
 =back
 
-=head1 AUTHOR
+=head2 How L<Marpa::UrHMTL> looks at HTML
 
-Jeffrey Kegler
+    Put this section later.
 
-=head1 BUGS
+Every SGML/HTML document contains an SGML prolog, an B<root element>,
+and an SGML trailer.  The SGML prologs and trailer can be zero length.
+The root element consists of an optional start tag C<< <html> >>,
+an optional end tag C<< </html> >>,
+and the text and markup between the two tags, called the "contents".
+The root element is not optional, but
+its contents may be zero length.
 
-Please report any bugs or feature requests to
-C<bug-marpa at rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Marpa>.
-I will be notified, and then you'll automatically be notified of progress on
-your bug as I make changes.
+In the contents of the root element can be other elements.
+Every element has a B<tagname>.
+The root element has the tagname "C<html>".
 
-=head1 SUPPORT
+Start tags and end tags may be missing.
+This is legal for the root element, and several others,
+as specified in the standards (for example,
+L<http://www.w3.org/TR/html4/>).
+L<Marpa::UrHTML> tolerates missing end tags, and some missing start tags,
+even when this is forbidden by the
+standards.
+B<Missing tags> are also called B<implicit> or B<virtual tags>.
+An tag which is not missing is an B<explicit tag>.
 
-You can find documentation for this module with the perldoc command.
+The contents of HTML elements,
+in addition to other HTML elements,
+can include B<non-elements>.
+The trailer and prolog will be entirely non-elements.
+HTML elements can contain both elements and non-elements.
+In the following HTML fragment
 
-=begin Marpa::Test::Display:
+    <p>I say<q>hello</q>I don't know why you say<q>goodbye</q></p>
 
-## skip display
+the C<p> element contains two child elements,
+both C<q> elements.  It also contains two stretches of non-element
+text, both of which begin with the word "C<I>" and end with the word
+"C<say>".
 
-=end Marpa::Test::Display:
+=head1 EXPORTS
 
-    perldoc Marpa
-    
-You can also look for information at:
-
-=over 4
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/Marpa>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/Marpa>
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Marpa>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/Marpa>
-
-=back
+L<Marpa::UrHTML> exports nothing by default.
+Optionally, L<Marpa::UrHTML::urhtml> may be exported.
 
 =head1 LICENSE AND COPYRIGHT
 

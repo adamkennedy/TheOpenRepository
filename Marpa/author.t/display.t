@@ -139,7 +139,7 @@ DISPLAY_NAME: for my $display_name ( keys %{$displays_by_name} ) {
     my $displays = $displays_by_name->{$display_name};
     if ( scalar @{$displays} <= 1 ) {
         Test::More::fail(
-            "Display $display_name has only one instance, in file "
+            qq{Display "$display_name" has only one instance, in file }
                 . $displays->[0]->{filename} );
         $tests_run++;
     } ## end if ( scalar @{$displays} <= 1 )

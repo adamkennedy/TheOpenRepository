@@ -41,7 +41,7 @@ my %handlers = (
         return $Marpa::UrHTML::INSTANCE;
     },
     '.codepoint' => sub {
-        CHILD: for my $value ( @{ ( Marpa::UrHTML::child_values() ) } ) {
+        CHILD: for my $value ( @{ ( Marpa::UrHTML::descendant_values() ) } ) {
             next CHILD if not $value;
             my ( $class, $literal, $data ) = @{$value};
             if ( $class eq 'occurrences' ) {
@@ -50,7 +50,7 @@ my %handlers = (
             }
             $Marpa::UrHTML::INSTANCE->{ Marpa::UrHTML::title() }->{$class} =
                 $literal;
-        } ## end for my $value ( @{ ( Marpa::UrHTML::child_values() ) ...})
+        } ## end for my $value ( @{ ( Marpa::UrHTML::descendant_values() ) ...})
         return;
     },
     '.occurrences' => sub {
