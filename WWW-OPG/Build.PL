@@ -26,6 +26,7 @@ my $builder = Module::Build->new(
 
     # The tests are based on Test::More
     'Test::More'        => 0.62,
+    'DateTime'          => 0.4305,
   },
   build_requires => {
     # User tests for good functionality

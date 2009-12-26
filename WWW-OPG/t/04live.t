@@ -9,6 +9,7 @@ use strict;
 use warnings;
 
 use Test::More;
+require Test::NoWarnings;
 
 use WWW::OPG;
 
@@ -16,7 +17,9 @@ unless ($ENV{HAS_INTERNET}) {
   plan skip_all => 'Set HAS_INTERNET to enable tests requiring Internet';
 }
 
-plan tests => 6;
+plan tests => 7;
+
+Test::NoWarnings->import();
 
 my $opg = WWW::OPG->new;
 
@@ -29,19 +32,20 @@ diag($@) if $@;
 
 diag('Power: ', $opg->power, ' MW as at ', $opg->last_updated);
 
-ok($opg->last_updated <= DateTime->now, 'Last updated timestamp is ' .
-  'earlier than or equal to current time');
-ok($opg->last_updated >= DateTime->now->subtract(hours => 5),
-  'Last update time is less than 5 hours ago');
-ok($opg->power > 5_000, 'Generated power is greater than 5,000 MW');
-ok($opg->power < 20_000, 'Generated power is greater than 20,000 MW');
+ok($opg->last_updated <= DateTime->now, '->last_updated earlier than ' .
+  'current time');
+ok($opg->last_updated >= DateTime->now->subtract(minutes => 40),
+  '->last_updated less than 40 minutes ago');
+ok($opg->power > 5_000, '->power greater than 5,000 MW');
+ok($opg->power < 20_000, '->power greater than 20,000 MW');
 
-my ($rc1, $rc2);
+my $rc = 0;
 eval {
-  $rc1 = $opg->poll();
-  $rc2 = $opg->poll();
+  $rc += !!( $opg->poll() );
+  $rc += !!( $opg->poll() );
 };
 
 diag ($@) if $@;
 
-ok($rc1 == 0 || $rc2 == 0, '->poll returns 0 on no update');
+# Either zero or one of the polls can return true (not two)
+ok($rc <= 1, '->poll returns 0 with no update');
