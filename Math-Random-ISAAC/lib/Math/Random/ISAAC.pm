@@ -374,7 +374,6 @@ I'll consider adding it to the next release.
 
 =head2 TEST COVERAGE
 
-  ----------------------- ------ ------ ------ ------ ------ ------
   File                     stmt   bran   cond   sub    pod   total
   ----------------------- ------ ------ ------ ------ ------ ------
   Math/Random/ISAAC.pm    100.0  100.0  n/a    100.0  100.0  100.0
