@@ -239,6 +239,7 @@ Here's an example:
 =for Marpa::Display
 name: 'UrHTML Pod: Handler Precedence'
 perltidy: '-dcsc -sil=0'
+remove-display-indent: 1
 
     my $html = <<'END_OF_HTML';
     <span class="high">High Span</span>
@@ -251,7 +252,7 @@ perltidy: '-dcsc -sil=0'
     my $result = Marpa::UrHTML::urhtml(
         \$html,
         {   q{*} => sub {
-                return "wildcard handler: " . Marpa::UrHTML::contents();
+                return 'wildcard handler: ' . Marpa::UrHTML::contents();
             },
             'head' => sub { return Marpa::UrHTML::literal() },
             'html' => sub { return Marpa::UrHTML::literal() },
