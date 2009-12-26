@@ -28,7 +28,7 @@ my $urhtml_args = {
         my @new_line_data      = ();
         my @following_comments = ();
         CHILD:
-        for my $descendant_data ( @{ Marpa::UrHTML::descendant_data('value') } ) {
+        for my $descendant_data ( @{ Marpa::UrHTML::descendants('value') } ) {
             next CHILD if not defined( my $value = $descendant_data->[0] );
             for my $line_data ( @{$value} ) {
                 given ( $line_data->[0] ) {    # depending on the type
@@ -44,7 +44,7 @@ my $urhtml_args = {
                     } ## end when ( [ 'cruft', 'missing start tag', ...])
                 } ## end given
             } ## end for my $line_data ( @{$value} )
-        } ## end for my $descendant_data ( @{ Marpa::UrHTML::descendant_data('value'...)})
+        } ## end for my $descendant_data ( @{ Marpa::UrHTML::descendants('value'...)})
         my $original = Marpa::UrHTML::original();
         push @new_line_data, [ 'line', 0, $original ];
         push @new_line_data, @following_comments;
@@ -63,7 +63,7 @@ my $urhtml_args = {
         my $tagname       = Marpa::UrHTML::tagname();
         my @new_line_data = ();
         my @descendant_data =
-            @{ Marpa::UrHTML::descendant_data('token_type,value,original') };
+            @{ Marpa::UrHTML::descendants('token_type,value,original') };
         my $first_child         = $descendant_data[0];
         my $first_content_child = 0;
 
@@ -120,7 +120,7 @@ my $urhtml_args = {
         my $result = q{};
         CHILD:
         for my $descendant_data (
-            @{ Marpa::UrHTML::descendant_data('value,original') } )
+            @{ Marpa::UrHTML::descendants('value,original') } )
         {
             my ( $value, $original ) = @{$descendant_data};
             if ( defined $value ) {

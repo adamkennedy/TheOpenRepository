@@ -1,0 +1,244 @@
+
+=head2 The Tree Method: It doesn't Fit HTML Very Well
+
+The typical method of evaluating high-level parses
+is to view the parse structure as an upside down
+tree, with the root node at the top and the leaf nodes
+at the bottom.
+Leaf nodes have no children, but all others do.
+The root node has no parent, but all the others do.
+
+In the tree method the actions are assigned to nodes.
+The actions are called recursively.
+The result of each action becomes one of the arguments
+to its parent node.
+The result of the root node is the value of the whole parse.
+
+What's the problem?  Consider this HTML fragment, an C<< <p> >> element:
+
+     <p> I am&nbsp;text<br>
+     </p><strong>more &nbsp;text </strong><br>
+     Even&nbsp;more text<br>
+     Yet more text
+     </p>
+
+From the point of view of a handler for the C<< <p> >> element,
+how many children are there?
+In the tradtional method, one part of the answer seems easy.
+The C<< <strong> >> element should be a single child.
+But even that is dubious.  The handler may be interested in a series
+of text characters.
+That the text characters are inside a 
+C<< <strong> >> element may be useful information, but
+the handler may want to conveniently subject both to the same kind
+of processing?
+
+And how should the non-element text be dealt with?
+Is it two tokens?
+Should an effort be made to keep consecutive stretches of text
+in a single child.
+By default, L<HTML::Parser> does not do so.
+What about the whitespace?
+And does the C< &amp;nbsp; > markup count as whitespace?
+
+There is no one answer to questions like these that works
+for all actions.
+Evaluating HTML parses requires
+an evaluation method more flexible than
+the tree method.
+Evaluating HTML parses requires
+a method where the tree method is just one point of view.
+
+=head3 The Domain Method
+
+L<Marpa::UrHTML>'s actions have a domain.
+The Domain API allows points of view to be taken of this domain.
+Each domain corresponds to one or more consective characters of text in
+the original document, and that is one point of view
+-- the B<original text> point of view.
+
+Domains are never zero-length, and they never overlap.
+But a domain can contained another domain.
+The containing domain is the B<parent domain>,
+and the contained domain is a B<subdomain>
+or B<child domain>.
+
+A subdomain which has an action which returns a defined value
+is an B<evaluated subdomain>.
+The B<literal text> point of view is the same as the B<original text>
+point of view, except where it contains an evaluated subdomain it replaces
+the characters of the original text with the stringified value of that subdomain.
+This means, for example, that actions which return a zero-length string have
+the effect of deleting their domain from the literal text.
+
+    After here -- left over from previous drafts
+
+L<Marpa::UrHTML>'s actions get their data from calls to
+the L<Marpa::UrHTML> API.
+Each L<Marpa::UrHTML> object
+also makes available to its handlers
+a special variable for
+data special to that object:
+C<$Marpa::UrHTML::INSTANCE>.
+C<$Marpa::UrHTML::INSTANCE> is initialized to
+an empty hash.
+Otherwise, what is done with it is completely up
+to the user.
+For example, where programming via side effects
+is more natural that passing data up the parse
+tree, 
+C<$Marpa::UrHTML::INSTANCE> can be used to
+store the data,
+and the handler for the C<:TOP> pseudoclass
+can return it as the value of the parse.
+
+     Mention an example of this technique.
+
+=head3 Nodes and Children
+
+Actions can be called on elements and non-elements.
+Collectively these are the B<nodes> of parse.
+
+To keep the API model simple, 
+L<Marpa::UrHTML> makes it appear to all actions
+as if their nodes had at least one child node.
+Even the actions for the token pseudoclasses,
+like C<:PCDATA>,
+appear to have a single child node -- the token.
+
+=head3 Literal and Original Contents
+
+The children of an action may be either B<evaluated>
+or B<unevaluated>.
+A child is evaluated if another handler 
+was called on it and that 
+other handler returned something other
+than undef.
+In any other case, the child is unevaluated.
+
+=head3 The Action API: Simple Utilities
+
+The C<descendant_data> API call, discussed below,
+is the Swiss Army knife of the L<Marpa::UrHTML>
+API, but much work can be done using 
+the simpler utilites described in this section.
+
+=over
+
+=item C<attributes>
+
+Returns a hash ref to the attributes of the start token.
+This hash ref is exactly the hash ref returned
+for the C<attr> arg specification of L<HTML::Parser>.
+The C<attributes> API call
+returns an empty hash
+if there were no attributes,
+if there was no start token for this element,
+or if this handler is being called on a non-element.
+
+=item C<values>
+
+The C<values> call is for those cases where
+only children with values are of interest.
+It returns a pointer to an array of those values.
+No elements of this array will be undefined --
+children which did not have values are simply ignored.
+
+=item C<contents>
+
+For an element, returns its literal contents.
+For an non-element, returns undef.
+
+=item C<end_tag>
+
+For an element with an explicit end tag,
+returns the original text of the end tag.
+Otherwise, returns undef.
+
+=item C<literal>
+
+Returns a string containing the literal contents
+of the element or non-element.
+
+=item C<literal_ref>
+
+Returns a string containing a reference
+to the literal contents
+of the element or non-element.
+
+=item C<offset>
+
+=item C<original>
+
+=item C<start_tag>
+
+For an element with an explicit start tag,
+returns the original text of the start tag.
+Otherwise, returns undef.
+
+=item C<tagname>
+
+=item C<title>
+
+=back
+
+=head4 The C<descendant_data> API call.
+
+    Marpa::UrHTML::descendant_data('value,literal');
+
+=over
+
+=item C<element>
+
+=item C<value>
+
+=item C<literal>
+
+=item C<original>
+
+=item C<pseudoclass>
+
+=item C<token_type>
+
+=back
+
+=head2 How L<Marpa::UrHMTL> looks at HTML
+
+    Put this section later.
+
+Every SGML/HTML document contains an SGML prolog, an B<root element>,
+and an SGML trailer.  The SGML prologs and trailer can be zero length.
+The root element consists of an optional start tag C<< <html> >>,
+an optional end tag C<< </html> >>,
+and the text and markup between the two tags, called the "contents".
+The root element is not optional, but
+its contents may be zero length.
+
+In the contents of the root element can be other elements.
+Every element has a B<tagname>.
+The root element has the tagname "C<html>".
+
+Start tags and end tags may be missing.
+This is legal for the root element, and several others,
+as specified in the standards (for example,
+L<http://www.w3.org/TR/html4/>).
+L<Marpa::UrHTML> tolerates missing end tags, and some missing start tags,
+even when this is forbidden by the
+standards.
+B<Missing tags> are also called B<implicit> or B<virtual tags>.
+An tag which is not missing is an B<explicit tag>.
+
+The contents of HTML elements,
+in addition to other HTML elements,
+can include B<non-elements>.
+The trailer and prolog will be entirely non-elements.
+HTML elements can contain both elements and non-elements.
+In the following HTML fragment
+
+    <p>I say<q>hello</q>I don't know why you say<q>goodbye</q></p>
+
+the C<p> element contains two child elements,
+both C<q> elements.  It also contains two stretches of non-element
+text, both of which begin with the word "C<I>" and end with the word
+"C<say>".
+

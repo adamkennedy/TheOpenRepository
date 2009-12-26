@@ -100,7 +100,7 @@ sub Marpa::UrHTML::values {
     return \@values;
 } ## end sub Marpa::UrHTML::values
 
-sub Marpa::UrHTML::descendant_data {
+sub Marpa::UrHTML::descendants {
 
     my ($argspecs) = @_;
 
@@ -212,7 +212,7 @@ sub Marpa::UrHTML::descendant_data {
     } ## end for my $child (@children)
 
     return \@return;
-} ## end sub Marpa::UrHTML::descendant_data
+} ## end sub Marpa::UrHTML::descendants
 
 sub Marpa::UrHTML::attributes {
 

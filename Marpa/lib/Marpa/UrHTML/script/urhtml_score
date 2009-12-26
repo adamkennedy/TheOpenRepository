@@ -64,7 +64,7 @@ my ( $instance, $value ) = @{
         \$document,
         {   ':COMMENT' => sub { return { depths => {}, length => 0 } },
             q{*}       => sub {
-                my $descendant_data = Marpa::UrHTML::descendant_data('value,literal');
+                my $descendant_data = Marpa::UrHTML::descendants('value,literal');
                 my $tagname    = Marpa::UrHTML::tagname();
                 my $length     = calculate_length($descendant_data);
                 $Marpa::UrHTML::INSTANCE->{count}->{$tagname}++;
@@ -78,7 +78,7 @@ my ( $instance, $value ) = @{
                 };
             },
             ':TOP' => sub {
-                my $descendant_data = Marpa::UrHTML::descendant_data('value,literal');
+                my $descendant_data = Marpa::UrHTML::descendants('value,literal');
                 return [
                     $Marpa::UrHTML::INSTANCE,
                     {   depths => calculate_max_depths($descendant_data),

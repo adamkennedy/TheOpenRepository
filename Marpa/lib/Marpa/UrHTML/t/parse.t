@@ -71,7 +71,7 @@ my $urhtml_args = {
         my $end_tag = "</$tagname>";
 
         my $descendant_data =
-            Marpa::UrHTML::descendant_data('token_type,literal,element');
+            Marpa::UrHTML::descendants('token_type,literal,element');
 
         # For UL element, eliminate all but the LI element children
         if ( $tagname eq 'ul' ) {
