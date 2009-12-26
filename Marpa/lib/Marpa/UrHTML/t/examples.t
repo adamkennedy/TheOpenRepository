@@ -12,7 +12,7 @@ use Marpa::Test;
 
 BEGIN {
     if ( eval { require HTML::PullParser } ) {
-        Test::More::plan tests => 11;
+        Test::More::plan tests => 3;
     }
     else {
         Test::More::plan skip_all => 'HTML::PullParser not available';
@@ -29,29 +29,28 @@ my $html = <<'END_OF_HTML';
 <span class="low">Low Span</span>
 <div class="high">High Div</div>
 <div class="low">Low Div</div>
+<div class="oddball">Oddball Div</div>
 END_OF_HTML
 
-my $result = Marpa::UrHTML::urhtml( \$html,
+my $result = Marpa::UrHTML::urhtml(
+    \$html,
     {   q{*} => sub {
-            return
-            "wildcard handler, tagname: "
-            . Marpa::UrHTML::tagname() . '; contents="'
-            . Marpa::UrHTML::contents() . qq{"\n};
+            return "wildcard handler: " . Marpa::UrHTML::contents();
         },
         'head' => sub { return Marpa::UrHTML::literal() },
         'html' => sub { return Marpa::UrHTML::literal() },
         'body' => sub { return Marpa::UrHTML::literal() },
-        'div' => sub {
-            return '"div" handler: contents="' . Marpa::UrHTML::contents() . qq{"\n};
+        'div'  => sub {
+            return '"div" handler: ' . Marpa::UrHTML::contents();
         },
         '.high' => sub {
-            return '".high" handler, tagname: '
-            . Marpa::UrHTML::tagname() . '; contents= "'
-            . Marpa::UrHTML::contents() . qq{"\n};
+            return '".high" handler: ' . Marpa::UrHTML::contents();
         },
         'div.high' => sub {
-            return '"div.high" handler, contents="'
-                . Marpa::UrHTML::contents() . qq{"\n};
+            return '"div.high" handler: ' . Marpa::UrHTML::contents();
+        },
+        '.oddball' => sub {
+            return '".oddball" handler: ' . Marpa::UrHTML::contents();
         },
     }
 );
@@ -64,6 +63,11 @@ my $result = Marpa::UrHTML::urhtml( \$html,
 # end-before-line: '^EXPECTED_RESULT$'
 
 my $expected_result = <<'EXPECTED_RESULT';
+".high" handler: High Span
+wildcard handler: Low Span
+"div.high" handler: High Div
+"div" handler: Low Div
+".oddball" handler: Oddball Div
 EXPECTED_RESULT
 
 # Marpa::Display::End

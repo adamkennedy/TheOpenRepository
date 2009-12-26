@@ -69,10 +69,10 @@ sub Marpa::UrHTML::contents {
     return if not $element;
 
     my $contents_start_tdesc_ix =
-        $Marpa::UrHTML::Internal::PER_NODE_DATA->{start_tag_token_id} ? 1 : 0;
+        defined $Marpa::UrHTML::Internal::PER_NODE_DATA->{start_tag_token_id} ? 1 : 0;
 
     my $contents_end_tdesc_ix =
-        $Marpa::UrHTML::Internal::PER_NODE_DATA->{end_tag_token_id}
+        defined $Marpa::UrHTML::Internal::PER_NODE_DATA->{end_tag_token_id}
         ? ( $#{$Marpa::UrHTML::Internal::TDESC_LIST} - 1 )
         : $#{$Marpa::UrHTML::Internal::TDESC_LIST};
 
@@ -86,7 +86,7 @@ sub Marpa::UrHTML::contents {
         };
 } ## end sub Marpa::UrHTML::contents
 
-sub Marpa::UrHTML::descendant_values {
+sub Marpa::UrHTML::values {
 
     my $parse_instance = $Marpa::UrHTML::Internal::PARSE_INSTANCE;
     Marpa::exception(q{Attempt to fetch an end tag outside of a parse})
@@ -98,7 +98,7 @@ sub Marpa::UrHTML::descendant_values {
         @{$Marpa::UrHTML::Internal::TDESC_LIST};
 
     return \@values;
-} ## end sub Marpa::UrHTML::descendant_values
+} ## end sub Marpa::UrHTML::values
 
 sub Marpa::UrHTML::descendant_data {
 

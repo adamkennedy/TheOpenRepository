@@ -25,7 +25,7 @@ perltidy: '-dcsc -sil=0'
 
     my %handlers_to_keep_only_tables = (
         table  => sub { return Marpa::UrHTML::original() },
-        ':TOP' => sub { return \( join q{}, @{ Marpa::UrHTML::descendant_values() } ) }
+        ':TOP' => sub { return \( join q{}, @{ Marpa::UrHTML::values() } ) }
     );
     my $only_table = urhtml( \$with_table, \%handlers_to_keep_only_tables );
 
@@ -70,7 +70,7 @@ perltidy: '-dcsc -sil=0'
 
 =for Marpa::Display::End
 
-Delete all elements in with a class attribute
+Delete all elements with a class attribute
 of "C<delete_me>":
 
 =for Marpa::Display
@@ -85,7 +85,7 @@ perltidy: '-dcsc -sil=0'
 
 L<Marpa::UrHTML> recognizes elements even if they have missing
 start and/or end tags.
-Since it knows about missing tags, it can add them:
+Since it knows about missing tags, it can supply them:
 
 =for Marpa::Display
 name: 'UrHTML Synopsis: Supply Missing Tags'
@@ -113,7 +113,7 @@ name: 'UrHTML Synopsis: Maximum Element Depth'
 perltidy: '-dcsc -sil=0'
 
     sub depth_below_me {
-        return List::Util::max( 0, @{ Marpa::UrHTML::descendant_values() } );
+        return List::Util::max( 0, @{ Marpa::UrHTML::values() } );
     }
     my %handlers_to_calculate_maximum_element_depth = (
         q{*}   => sub { return 1 + depth_below_me() },
@@ -134,16 +134,16 @@ L<Marpa::UrHTML> does "high-level" parsing of HTML.
 It allows handlers to be specified for elements, tokens and other
 components in the hierarchical structure of an HMTL document.
 L<Marpa::UrHTML> is an extremely liberal HTML parser.
-L<Marpa::UrHTML> will treat all documents as HTML.
-If they are not valid HTML according to any of the standards,
-invalid or broken HTML, and does its best to organize
-the document into
-a reasonable parse structure.
+L<Marpa::UrHTML> does not reject any documents,
+no mater how poorly they fit the HTML standards.
+L<Marpa::UrHTML> will work with any document,
+parsing according to
+as reasonable an HTML parse structure as it can find.
 
 =head1 THE C<urhtml> STATIC METHOD
 
 There is only one, static, method in L<Marpa::UrHMTL>:
-C<Marpa::UrHMTL::urhtml>.
+C<Marpa::UrHMTL::urhtml>.S<  >
 C<urhtml> takes one or more arguments.
 The first argument is required, and must be a pointer to
 a string to be parsed as HTML.
@@ -162,45 +162,26 @@ and the value is a closure,
 which is called the B<action> for the
 handler.
 
-Specifiers are "CSS-style" in the sense that they follow the syntax
-of CSS in its most basic cases.  No attempt is made or is planned
-to implement the full CSS specifier syntax, much of which is
-irrelevant to L<Marpa::UrHTML>.
+Specifiers are "CSS-style" in their syntax copies some of the most basic cases
+of CSS specifiers.
+No attempt is planned
+to implement the full CSS specifier syntax,
+much of which is irrelevant.
 
-Specifier syntaxes that are supported are as follows:
+Supported specifier syntaxes are as follows:
 
 =over
 
-=item Element Specifiers
+=item Tagname Specifiers
 
-    head
+        table  => sub { return Marpa::UrHTML::original() },
 
-If a specifier contains no special characters (meaning
+If a specifier contains no special characters ("special"
+meaning
 anything except alphanumerics, hyphens and underscores, it is taken
 as the name of an element.
 Consistent with L<HTML::Parser>'s default behavior,
 element names must be specified in lowercase.
-
-In a defective HTML document, tags for an element may be missing,
-of tags for an element may be found where the element cannot not exist
-even by L<HTML::Parser>'s very liberal standards.
-Where actual structure and tagging conflict,
-L<HTML::Parser> follows the structure.
-Following the structure means, for example,
-that handlers for the C<html>, C<head>,
-and C<body> elements will be called once and only once for every
-document.
-
-For example, Suppose that
-a document starts with an untagged header,
-but has a C<< <head> >> tag may come in the
-middle of its C<< <body> >> element.
-The action for a C<head> specifier, will be called on
-the untagged header
-The action for a C<head> specifier will
-B<not> be called for any component
-containing the stray
-C<< <head> >> tag.
 
 =item Class Specifiers
 
@@ -208,7 +189,7 @@ A specifier which begins with a dot or period (such as "C<.delete_me>")
 will match any element whose class attribute is 
 "C<delete_me>".
 
-=item Element and Class Specifiers
+=item Tagname-Class Pair Specifiers
 
 A specifier which contains a dot or period somewhere other than
 the first position (such as "C<span.label>")
@@ -216,7 +197,7 @@ is treated as a dotted tagname-class pair.
 Its action will be called for
 any component whose tagname and class attribute both match.
 
-=item The Element Wildcard Specifier
+=item The Tagname Wildcard Specifier
 
 A specifier of just an asterisk ("C<*>") matches all elements.
 Be careful to note that matching all elements is B<not> the same
@@ -236,66 +217,124 @@ components of the HTML hierarchy.
 
 =head3 Conflicting Specifiers
 
-Specifiers for elements can conflict.
-For example, suppose an element has the start tag C<< <div class="high"> >>.
-Suppose further that 
-the handler descriptions include these:
+Only one handler is called for each component.
+An element component may match several specifiers.
+An element component can match handlers specified by tagname,
+specified by class,
+and specified by tagname-class pair.
+In addition, every element matches the wildcard specifier.
 
-      div => \&div_action,
-      high => \&high_class_action,
-      'div.high' => \&div_high_action,
-      q{*} => \&wildcard_action,
+Where an element component matches several specifiers,
+the action is picked based on the B<most specific match>,
+with class being consider more specific than tagname.
+Here's the order from most specific to least specific:
+
+    Matches by tagname-class pair
+    Matches by class
+    Matches by tagname
+    The wildcard match
+
+Here's an example:
 
 =for Marpa::Display
 name: 'UrHTML Pod: Handler Precedence'
 perltidy: '-dcsc -sil=0'
 
-my $html = <<'END_OF_HTML';
-<span class="high">High Span</span>
-<span class="low">Low Span</span>
-<div class="high">High Div</span>
-<div class="low">Low Div</span>
-END_OF_HTML
+    my $html = <<'END_OF_HTML';
+    <span class="high">High Span</span>
+    <span class="low">Low Span</span>
+    <div class="high">High Div</div>
+    <div class="low">Low Div</div>
+    <div class="oddball">Oddball Div</div>
+    END_OF_HTML
 
-my $result = Marpa::UrHTML::urhtml( \$html,
-    {   q{*} => sub {
-            return "Wildcard handled: " . Marpa::UrHTML::contents() . "\n";
-        },
-        'html' => { return Marpa::UrHTML::literal() },
-        'body' => { return Marpa::UrHTML::literal() },
-        'div' => sub {
-            return "Element handled: " . Marpa::UrHTML::contents() . "\n";
-        },
-        '.high' => sub {
-            return "High Class handled: " . Marpa::UrHTML::contents() . "\n";
-        },
-        'div.high' => sub {
-            return "Element.High handler: "
-                . Marpa::UrHTML::contents() . "\n";
-        },
-    }
-);
+    my $result = Marpa::UrHTML::urhtml(
+        \$html,
+        {   q{*} => sub {
+                return "wildcard handler: " . Marpa::UrHTML::contents();
+            },
+            'head' => sub { return Marpa::UrHTML::literal() },
+            'html' => sub { return Marpa::UrHTML::literal() },
+            'body' => sub { return Marpa::UrHTML::literal() },
+            'div'  => sub {
+                return '"div" handler: ' . Marpa::UrHTML::contents();
+            },
+            '.high' => sub {
+                return '".high" handler: ' . Marpa::UrHTML::contents();
+            },
+            'div.high' => sub {
+                return '"div.high" handler: ' . Marpa::UrHTML::contents();
+            },
+            '.oddball' => sub {
+                return '".oddball" handler: ' . Marpa::UrHTML::contents();
+            },
+        }
+    );
 
 =for Marpa::Display::End
 
 =for Marpa::Display
 name: 'UrHTML Pod: Handler Precedence Result'
+normalize-whitespace: 1
 
+    ".high" handler: High Span
+    wildcard handler: Low Span
+    "div.high" handler: High Div
+    "div" handler: Low Div
+    ".oddball" handler: Oddball Div
 
 =for Marpa::Display::End
 
-=head3 Gritty Details of the Handler Specifier Syntax
+=head3 Actual Structure vs. Element Tags
+
+In a defective HTML document, tags for an element may be missing.
+Also, tags for an element may exist
+that did not fit into
+the structure of an HTML document,
+even by
+L<HTML::Parser>'s very liberal standards.
+Where structure and tagging conflict,
+L<HTML::Parser> follows structure.
+Following the structure means, for example,
+that handlers for the C<html>, C<head>,
+and C<body> elements will be called once and only once for every
+document.
+
+For example, consider this short and very defective HTML document:
+
+=for Marpa::Display
+name: 'UrHTML Pod: Structure vs. Element Example'
+normalize-whitespace: 1
+
+    <title>Short</title><p>Text</head><head>
+
+=for Marpa::Display::End
+
+The document starts with an untagged header,
+then has start and end tags in its body,
+in reverse order.
+L<HTML::Parser>'s is very liberal in its parsing,
+but the two C<head> tags cannot fit into any reasonable parse
+structure.
+If an action is specified for the C<head> element,
+it will be called for actual header,
+when consists of the text "C<< <title>Short</title> >>".
+The action for the C<head> element will not be called again,
+and the two stray tags, C<< </head> >> and C<< <head> >>,
+will be treated as "cruft" tokens in the C<body> element.
+(More on L<cruft|//"Cruft"> below.)
+
+=head3 Details of the Specifier Syntax
 
 For elements and class names only alphanumerics, hyphens and underscores are supported.
-Elements must be specified in lowercase, but will match any casing in the original
-document.
+Elements must be specified in lowercase, but they will match tagnames in the original
+document on a case-insensitive basis.
 
 Forcing element names to be lowercase follows the default behavior of
 L<HTML::Parser>, which coerces all tagnames to lowercase.
-This means tagnames matching is case-indifferent.
 This is consistent with the HTML standards.
-However, it is B<not> consistent with the XML standards,
-and an option to change this behavior may be added in
+It is B<not> consistent with the XML standards,
+and an option to configure this behavior may be added in
 the future.
 
 Pseudoclass names special to
@@ -304,78 +343,182 @@ Lowercase is reserved for CSS pseudoclasses.
 The CSS standard specifies that its pseudoclass names are case-indifferent.
 It does not at present seem useful to support any CSS pseudoclasses.
 
-=head1 HOW TO WRITE ACTIONS
+=head1 PSEUDOCLASSES
 
-=head2 Non-elements and Tokens
+L<Marpa::UrHTML> uses
+L<HTML::Parser> to do its low-level parsing.
+L<Marpa::UrHTML>'s parsing therefore begins
+where L<HTML::Parser> leaves off.
+L<HTML::Parser>'s "events".
+become the tokens for L<Marpa::UrHTML>'s parser.
 
-L<Marpa::UrHTML>'s low-level parsing
-uses L<HTML::Parser> to do its low-level parsing.
-L<HTML::Parser> returns six kinds of token.
-B<start tag tokens> and B<end tag tokens> (or "start tokens"
-and "end tokens") are always part of elements.
-L<HTML::Parser>'s non-element tokens are text, processing instructions, SGML declarations
-and comments.
+Besides tokens and elements,
+three other HTML components are of interest,
+and have corresponding pseudoclasses:
+the physical document's SGML prolog (C<:PROLOG>),
+the physical document's SGML trailer (C<:TRAILER>),
+and the HTML document as a whole (C<:TOP>).
 
-To meet L<Marpa::UrHTML>'s requirements for high-level parsing,
-it introduces four new element tokens:
-"cruft",
-C<WHITESPACE>, C<CDATA> and C<PCDATA>.
+=head2 :CDATA
 
-The "cruft" token is introduced to allow liberal parsing,
-in particular to ensure that 
-L<Marpa::UrHTML> will make its best effort to find an HTML
-structure in any document.
-Cruft tokens are tokens which even L<Marpa::UrHTML>'s liberal
-parsing standards cannot work into a reasonable HTML-like
-structure.
-In determining the structure of an HTML document,
-L<Marpa::UrHTML> ignores cruft much as it was a
-comment.
+The C<:CDATA> pseudoclass specifies the action for
+CDATA tokens.
+Its action is called once for each non-whitespace raw C<text> event.
+(Raw text is text in which any markup and entities should be left as is.)
 
-L<Marpa::UrHTML>'s replaces
-L<HTML::Parser> text tokens
-with one of its three text tokens:
-B<WHITESPACE>, B<CDATA> and B<PCDATA>.
-WHITESPACE is any text token composed entirely of whitespace
+More precisely,
+a C<:CDATA> token is created from any
+L<HTML::Parser> C<text> event that has the C<is_cdata> flag on,
+and that contains a non-whitespace character as
 as defined in the HTML 4.01 specification
 (L<http://www.w3.org/TR/html4/struct/text.html#h-9.1>).
-In the high-level parse,
-C<WHITESPACE> is acceptable in some places
-where other text is not, so 
-L<Marpa::UrHTML>'s needs to distinguish it.
-A CDATA token is any non-WHITESPACE text token
-returned by L<HTML::Parser>
-with a true C<is_cdata> attribute.
-All other text tokens are PCDATA.
+L<Marpa::UrHTML> has separate tokens because
+the distinction between C<:PCDATA> and C<:CDATA>
+is often important.
+It is also avoids trying to track a C<is_cdata> flag
+as text, values and tokens are created, reassembled and destroyed.
+
+=head2 :COMMENT
+
+The C<:COMMENT> pseudoclass specifies the action for HTML comments.
+Its action is called once for every C<HTML::Parser> C<comment> event that
+is not reclassed as cruft.
+
+=head2 :CRUFT
+
+The C<:COMMENT> pseudoclass specifies the action for cruft.
+Its action is called once for every C<HTML::Parser> event that
+L<Marpa::UrHTML> reclasses as cruft.
+
+L<Marpa::UrHTML> reclasses tokens as cruft when
+they do not fit the structure of an HTML document.
+One example of a token 
+L<Marpa::UrHTML> would reclass as cruft is a
+stray C<< </head> >> end tag in the HTML body.
+
+Reclassing tokens as cruft is only done as the last resort.
+L<HTML::Parser> prefers to forgive
+violations of the HTML standards when it can.
+
+Cruft is preserved in the original text view.
+It is treated in much the same way as comments.
+
+=head2 :DECL
+
+The C<:DECL> pseudoclass specifies the action for SGML declarations.
+Its action is called once for every C<HTML::Parser> C<declaration> event that
+is not reclassed as cruft.
+
+=head2 :PCDATA
+
+The C<:PCDATA> pseudoclass specifies the action for
+PCDATA tokens.
+Its action is called once for each non-whitespace non-raw C<text> event.
+
+More precisely,
+a C<:PCDATA> token is created from any
+L<HTML::Parser> C<text> event that has the C<is_cdata> flag B<off>,
+and that contains a non-whitespace character as
+as defined in the HTML 4.01 specification
+(L<http://www.w3.org/TR/html4/struct/text.html#h-9.1>).
+
+Markup and entities
+C<:PCDATA> text
+are expected to be intrepreted eventually,
+but it can be counter-productive to do this
+during parsing.
+For example an user may be rewriting a document for display on the web,
+and may need to leave markup and entities exactly as they are for the client browser's
+rendering to interpret.
+
+To allow flexibility,
+L<Marpa::UrHTML> leaves interpretation of markup and entities entirely to
+the user.
+A user who does choose to do the interpretation herself
+may do it in the actions,
+or deal with it in post-processing.
+CPAN has excellent tools for this,
+some of which are part of L<HTML::Parser>.
+
+=head2 :PI
+
+The C<:PI> pseudoclass specifies the action for SGML processing instructions.
+Its action is called once for every L<HTML::Parser> C<process> event that
+is not reclassed as cruft.
+
+=head2 :PROLOG
+
+The C<:PROLOG> pseudoclass specifies the action for SGML prolog.
+This is the part of the HTML document which precedes the HTML root element.
+Components valid in the
+prolog include SGML comments, processing instructions and whitespace.
+
+=head2 :TOP
+
+The action specified for the C<:TOP> pseudoclass will be called
+one and only once in every parse,
+and will be the last action called in every parse.
+The C<:TOP> component is the the entire
+physical document, including
+the SGML prolog,
+the root element,
+and the SGML trailer.
+All the other HTML components in a document
+will be descendants of the C<:TOP> component.
+
+The C<:TOP> action is unique, in that there is always an action
+for it, even if one is not specified.
+The default C<:TOP> action returns a reference to a string
+with the literal text value of all
+of its descendants.
+
+=head3 Root Element vs. TOP Component
+
+It is important to distinguish the C<:TOP>
+component from the root element.
+The root element is the HTML element whose tagname is "C<html>", though
+its start and end tags are optional
+and can be omitted even in strictly valid HTML.
+The root element is always present
+The C<:TOP> component is a non-element, so it never has tags.
+Tags for the root element are optional.
+
+The distinction is that the root element is a descendant of the C<:TOP>
+component, and not vice versa.
+Also, the SGML prolog and SGML trailer are descendants of the C<:TOP>
+component and they are never descendants of the root element.
+The C<:TOP> action will be called once and only once in every parse.
+
+If an action for the root element is specified it will also be called
+once and only once in every parse.
+An action for the root element can be specified in same way as actions
+for other elements, by using its tagname of "C<html>".
+Any element wildcard action also applies to the root element.
+
+=head2 :TRAILER
+
+The C<:TRAILER> pseudoclass specifies the action for SGML trailer.
+This is the part of the HTML document which precedes the HTML root element.
+Components valid in the
+prolog include SGML comments, processing instructions, and whitespace.
+Cruft can also be found here, though for L<Marpa::UrHTML> that is an
+last resort.
+
+=head2 :WHITESPACE
+
+A L<Marpa::UrHTML> token is created for every
+L<HTML::Parser> C<text> event which is entirely whitespace
+as defined in the HTML 4.01 specification
+(L<http://www.w3.org/TR/html4/struct/text.html#h-9.1>).
+To do high-level parsing,
+L<Marpa::UrHTML> needs to
+distinguishes whitespace text from other text.
+Whitespace is acceptable in places where non-whitespace is not,
+and the difference can be very significant structurally.
+
+=head1 HOW TO WRITE ACTIONS
 
 =head2 Handler Declarations
-
-
-L<Marpa::UrHTML>'s initially receives its input as tokens
-from L<HTML::Parser>.
-The following
-L<Marpa::UrHTML>'s pseudo-classes allow handlers to be assigned
-to deal with certain
-L<HTML::Parser> tokens as they come in:
-C<:COMMENT>,
-C<:PCDATA>
-C<:PI>
-and C<:CRUFT>.
-These pseudo-classes assign handlers for comments,
-PCDATA, SGML processing instructions, and cruft tokens, respectively.
-
-   Supply pseudo-class examples.
-
-The "top" handler is always the last to be called in any parse.
-The "top" of the parse deals with a non-element -- the entire
-physical document, including
-the prolog, the trailer and the html element.
-The default top handler takes the literal values of all of its
-children and returns them as text.
-It is very often useful for the user
-to assign their own top handler.
-The user can do this with the
-C<:TOP> pseudo-class.
 
 If a handler is specified for a tagname, it is called
 whenever that element is found,
@@ -395,76 +538,11 @@ At the end of they physical file, for example,
 L<Marpa::UrHTML> will create a virtual end tag for any element
 which remains open.
 
-On the other hand, any misplaced
-start tag or end tags which end up being classified
-as cruft will not cause the handler for that tagname
-to be called.
+=head1 ACTIONS
 
-A consequence of the these rules and the structure of
-HTML is that in every parse,
-the handler for the C<html>, C<head>, and <body> elements
-will be called once and only once.
-For example, in the following HTML,
+=head1 INCLUDE?
 
-     <title>Title</title><p>some text<head>
-
-a handler for the head element will be called just once,
-with "C<< <title>Title</title><p>some text<head> >>"
-as its contents.
-The misplaced "C<< <head> >>" start tag will be classified
-as cruft.
-It will be part of the original contents for a C<html>
-and a C<body> handler, but
-will not be in contents of any call to a handler for
-a C<head> element.
-
-In L<Marpa::UrHTML> handler specifiers,
-elements and class names should be all alphanumerics, hyphens
-and underscores.
-Other characters are reserved for future syntax extensions.
-If you need class or tag names with other characters,
-you should use the hash form of handler specification,
-where arbitrary characters can be put into either a class
-or element name, with one restriction:
-L<Marpa::UrHTML> currently restricts itself to L<HTML::Parser>'s
-default handling of element tag names.
-This follows the HTML standards (but B<not> the XML standards)
-and treats tag names as case insensitive.
-
-For elements, multiple specifiers can match.
-When they do,
-More narrowly targeted specifiers take precedence over less
-narrowly targeted ones, with class taking precedence over tag name.
-This means that a handler specifier for a specific tagname and
-class takes precedence over one which is just for the class.
-A handler specifier only specifying the class will take precedence
-over one specifying only the tagname.
-And a handler specifiying only the tagname takes precedence over
-the wildcard handler for all elements.
-
-For example, suppose a L<Marpa::UrHTML> object, is created as follows
-
-    $urhtml = Marpa::UrHTML->new(
-        {   handlers => [ q{*} => \&wildcard_handler ],
-            [ 'div'        => \&div_handler ],
-            [ '.class1'    => \&class1_handler ],
-            [ 'div.class1' => \&div_class1_handler ]
-        }
-    );
-
-handlers would be assigned as in this table.
-
-    Element   Class       Handler
-    'span'    'class1'    class1_handler1
-    'span'    'class2'    wildcard_handler1
-    'div'     'class1'    div_class1_handler1
-    'div'     'class2'    div_handler1
-
-    Actually write code for the above and create a test case.
-
-=head2 How to Write I<Marpa::UrHTML> Actions
-
-=head3 The Tree Method: It doesn't Fit HTML Very Well
+=head2 The Tree Method: It doesn't Fit HTML Very Well
 
 The typical method of evaluating high-level parses
 is to view the parse structure as an upside down
@@ -601,9 +679,9 @@ if there were no attributes,
 if there was no start token for this element,
 or if this handler is being called on a non-element.
 
-=item C<descendant_values>
+=item C<values>
 
-The C<descendant_values> call is for those cases where
+The C<values> call is for those cases where
 only children with values are of interest.
 It returns a pointer to an array of those values.
 No elements of this array will be undefined --

@@ -41,7 +41,7 @@ my $no_table   = urhtml(
 
 my %handlers_to_keep_only_tables = (
     table  => sub { return Marpa::UrHTML::original() },
-    ':TOP' => sub { return \( join q{}, @{ Marpa::UrHTML::descendant_values() } ) }
+    ':TOP' => sub { return \( join q{}, @{ Marpa::UrHTML::values() } ) }
 );
 my $only_table = urhtml( \$with_table, \%handlers_to_keep_only_tables );
 
@@ -113,7 +113,7 @@ my $valid_html_with_all_tags =
 # name: 'UrHTML Synopsis: Maximum Element Depth'
 
 sub depth_below_me {
-    return List::Util::max( 0, @{ Marpa::UrHTML::descendant_values() } );
+    return List::Util::max( 0, @{ Marpa::UrHTML::values() } );
 }
 my %handlers_to_calculate_maximum_element_depth = (
     q{*}   => sub { return 1 + depth_below_me() },
@@ -137,7 +137,7 @@ Marpa::Test::is(
 my $expected_valid_html_with_all_tags = <<'END_OF_EXPECTED';
 <html>
 <head>
-<title><title>I am a title and That is IT!</title>
+<title>I am a title and That is IT!</title>
 </head>
 <body>
 </body>
