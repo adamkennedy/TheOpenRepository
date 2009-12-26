@@ -69,7 +69,9 @@ sub Marpa::UrHTML::contents {
     return if not $element;
 
     my $contents_start_tdesc_ix =
-        defined $Marpa::UrHTML::Internal::PER_NODE_DATA->{start_tag_token_id} ? 1 : 0;
+        defined $Marpa::UrHTML::Internal::PER_NODE_DATA->{start_tag_token_id}
+        ? 1
+        : 0;
 
     my $contents_end_tdesc_ix =
         defined $Marpa::UrHTML::Internal::PER_NODE_DATA->{end_tag_token_id}

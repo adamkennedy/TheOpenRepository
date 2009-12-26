@@ -16,7 +16,7 @@ BEGIN {
         Test::More::plan skip_all => 'HTML::PullParser not available';
     }
     Test::More::use_ok('Marpa');
-    Test::More::use_ok('Marpa::UrHTML', 'urhtml');
+    Test::More::use_ok( 'Marpa::UrHTML', 'urhtml' );
 } ## end BEGIN
 
 # This is just a dummy value for the synopsis

@@ -35,7 +35,7 @@ END_OF_HTML
 my $result = Marpa::UrHTML::urhtml(
     \$html,
     {   q{*} => sub {
-            return "wildcard handler: " . Marpa::UrHTML::contents();
+            return 'wildcard handler: ' . Marpa::UrHTML::contents();
         },
         'head' => sub { return Marpa::UrHTML::literal() },
         'html' => sub { return Marpa::UrHTML::literal() },
@@ -72,7 +72,4 @@ EXPECTED_RESULT
 
 # Marpa::Display::End
 
-Marpa::Test::is(
-    ${$result}, $expected_result,
-    'handler precedence example'
-);
+Marpa::Test::is( ${$result}, $expected_result, 'handler precedence example' );

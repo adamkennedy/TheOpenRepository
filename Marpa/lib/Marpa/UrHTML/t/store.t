@@ -50,7 +50,7 @@ my %handlers = (
             }
             $Marpa::UrHTML::INSTANCE->{ Marpa::UrHTML::title() }->{$class} =
                 $literal;
-        } ## end for my $value ( @{ ( Marpa::UrHTML::values() ) ...})
+        } ## end for my $value ( @{ ( Marpa::UrHTML::values() ) } )
         return;
     },
     '.occurrences' => sub {
