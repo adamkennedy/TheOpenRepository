@@ -3,7 +3,10 @@
 # examples/lookup.pl
 #  Look up a user
 #
-# $Id: 03live.t 6960 2009-05-08 03:31:28Z FREQUENCY@cpan.org $
+# $Id$
+
+use strict;
+use warnings;
 
 use Getopt::Long;
 use Pod::Usage;
@@ -61,3 +64,19 @@ foreach my $user (@{$res}) {
 
 This doesn't support e-mail lookups, though the module itself does. I was
 too lazy to write a file showing that functionality.
+
+=head1 AUTHOR
+
+Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
+
+=head1 SUPPORT
+
+For support details, see C<perldoc WebService::UWO::Directory::Student> and
+use the corresponding support methods.
+
+=head1 LICENSE
+
+This utility is provided under identical copyright and licensing terms as
+L<WebService::UWO::Directory::Student>.
+
+=cut

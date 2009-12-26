@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/02core.t
+# t/03core.t
 #  Core functionality tests that do not require Internet connectivity
 #
 # $Id$

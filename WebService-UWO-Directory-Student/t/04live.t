@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/03live.t
+# t/04live.t
 #  Module live functionality tests (requires Internet connectivity)
 #
 # $Id$

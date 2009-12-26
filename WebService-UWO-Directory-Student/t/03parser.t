@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/02parser.t
+# t/03parser.t
 #  Tries to parse a sample page
 #
 # $Id$

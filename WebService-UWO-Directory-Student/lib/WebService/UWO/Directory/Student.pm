@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use Carp ();
 
-use LWP::UserAgent;
+use LWP::UserAgent ();
 use HTML::Entities ();
 
 =head1 NAME
@@ -19,11 +19,11 @@ student directory
 
 =head1 VERSION
 
-Version 1.004 ($Id$)
+Version 1.005 ($Id$)
 
 =cut
 
-our $VERSION = '1.004';
+our $VERSION = '1.005';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
@@ -307,7 +307,7 @@ sub _query {
 
   if (!defined $ua) {
     $ua = LWP::UserAgent->new;
-    $ua->agent(__PACKAGE__ . '/' . $VERSION);
+    $ua->agent(__PACKAGE__ . '/' . $VERSION . ' ' . $ua->_agent);
   }
 
   my $r = $ua->post($self->{'url'},
