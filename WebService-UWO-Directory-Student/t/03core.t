@@ -9,6 +9,7 @@ use strict;
 use warnings;
 
 use Test::More;
+use Test::NoWarnings; # 1 test
 
 use WebService::UWO::Directory::Student;
 
@@ -24,8 +25,8 @@ my @methods = (
   '_parse',
 );
 
-# There is 1 non-method test
-plan tests => (1 + scalar(@methods));
+# There are 2 non-method tests
+plan tests => (2 + scalar(@methods));
 
 foreach my $meth (@methods) {
   ok(WebService::UWO::Directory::Student->can($meth),

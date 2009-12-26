@@ -1,6 +1,7 @@
 1.005 - XXX - Jonathan Yu <jawnsy@cpan.org>
 
   + Change sequence of some tests
+  + Fix core tests to fail on warnings
 
 1.004 - 23 Dec 2009 - Jonathan Yu <jawnsy@cpan.org>
 
