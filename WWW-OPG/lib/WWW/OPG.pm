@@ -9,8 +9,8 @@ use strict;
 use warnings;
 use Carp ();
 
-use LWP::UserAgent ();
-use DateTime ();
+use LWP::UserAgent;
+use DateTime;
 
 =head1 NAME
 
@@ -85,7 +85,7 @@ sub new {
   }
   else {
     my $ua = LWP::UserAgent->new;
-    $ua->agent(__PACKAGE__ . '/' . $VERSION);
+    $ua->agent(__PACKAGE__ . '/' . $VERSION . ' ' . $ua->_agent);
     $self->{useragent} = $ua;
   }
 
