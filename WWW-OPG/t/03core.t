@@ -22,7 +22,7 @@ my @methods = (
 );
 
 # There are 2 non-method tests
-plan tests => (2 + scalar(@methods));
+plan tests => (4 + scalar(@methods));
 
 foreach my $meth (@methods) {
   ok(WWW::OPG->can($meth), 'Method "' . $meth . '" exists.');
@@ -31,3 +31,7 @@ foreach my $meth (@methods) {
 # Test the constructor initialization
 my $opg = WWW::OPG->new;
 isa_ok($opg, 'WWW::OPG');
+
+# If no data is retrieved, the answers should be undefined
+ok(!defined $opg->power, 'Power is not defined');
+ok(!defined $opg->last_updated, 'Last updated timestamp is not defined');

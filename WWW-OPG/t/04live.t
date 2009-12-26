@@ -27,6 +27,8 @@ eval {
 ok(!$@, 'No errors during retrieval');
 diag($@) if $@;
 
+diag('Power: ', $opg->power, ' MW as at ', $opg->last_updated);
+
 ok($opg->last_updated <= DateTime->now, 'Last updated timestamp is ' .
   'earlier than or equal to current time');
 ok($opg->last_updated >= DateTime->now->subtract(hours => 5),
