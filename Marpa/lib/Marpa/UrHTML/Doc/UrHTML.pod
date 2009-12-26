@@ -31,6 +31,8 @@ perltidy: '-dcsc -sil=0'
 
 =for Marpa::Display::End
 
+The above works by turning the original text of the HTML into values,
+and at the top concatenating all values.
 The same logic works even if a table is very defective:
 
 =for Marpa::Display
@@ -55,7 +57,10 @@ perltidy: '-dcsc -sil=0'
 
 =for Marpa::Display::End
 
-Change the title:
+By default text is passed through unchanged, so the user
+need only specify semantic actions for those components she
+wants changed.
+Here's how to change the title of a document:
 
 =for Marpa::Display
 name: 'UrHTML Synopsis: Change Title'
@@ -104,8 +109,7 @@ perltidy: '-dcsc -sil=0'
 
 =for Marpa::Display::End
 
-L<Marpa::UrHTML> understands the hierarchical structure of HTML elements,
-and calls its handlers recursively.
+L<Marpa::UrHTML> understands the hierarchical structure of an HTML document.
 Finding the maximum nesting depth of the elements is straightforward:
 
 =for Marpa::Display
@@ -215,7 +219,7 @@ components of the HTML hierarchy.
 
 =back
 
-=head3 Conflicting Specifiers
+=head2 Conflicting Specifiers
 
 Only one handler is called for each component.
 An element component may match several specifiers.
@@ -286,7 +290,7 @@ normalize-whitespace: 1
 
 =for Marpa::Display::End
 
-=head3 Actual Structure vs. Element Tags
+=head2 Actual Structure vs. Element Tags
 
 In a defective HTML document, tags for an element may be missing.
 Also, tags for an element may exist
@@ -325,7 +329,7 @@ and the two stray tags, C<< </head> >> and C<< <head> >>,
 will be treated as "cruft" tokens in the C<body> element.
 (More on L<cruft|//"Cruft"> below.)
 
-=head3 Details of the Specifier Syntax
+=head2 Details of the Specifier Syntax
 
 For elements and class names only alphanumerics, hyphens and underscores are supported.
 Elements must be specified in lowercase, but they will match tagnames in the original
@@ -473,29 +477,6 @@ The default C<:TOP> action returns a reference to a string
 with the literal text value of all
 of its descendants.
 
-=head3 Root Element vs. TOP Component
-
-It is important to distinguish the C<:TOP>
-component from the root element.
-The root element is the HTML element whose tagname is "C<html>", though
-its start and end tags are optional
-and can be omitted even in strictly valid HTML.
-The root element is always present
-The C<:TOP> component is a non-element, so it never has tags.
-Tags for the root element are optional.
-
-The distinction is that the root element is a descendant of the C<:TOP>
-component, and not vice versa.
-Also, the SGML prolog and SGML trailer are descendants of the C<:TOP>
-component and they are never descendants of the root element.
-The C<:TOP> action will be called once and only once in every parse.
-
-If an action for the root element is specified it will also be called
-once and only once in every parse.
-An action for the root element can be specified in same way as actions
-for other elements, by using its tagname of "C<html>".
-Any element wildcard action also applies to the root element.
-
 =head2 :TRAILER
 
 The C<:TRAILER> pseudoclass specifies the action for SGML trailer.
@@ -519,25 +500,28 @@ and the difference can be very significant structurally.
 
 =head1 VIEWS
 
-I hope L<the synopsis|//"SYNOPSIS"> persuades the reader
-that the semantics of L<Marpa::UrHTML> are natural.
+I hope L<the synopsis|//"SYNOPSIS"> convinces the reader
+that the action semantics of L<Marpa::UrHTML> are natural.
 This naturalness is achieved at the price of some novelty.
-Some readers may want to skip this section and go straight to
+This section explains the ideas behind the action API.
+Depending on taste,
+readers may want to skip this section and go straight to
 the API.
-Other will prefer to have the background of this section
-first.
 
-This section (and for that matter, this whole document)
-treats the components of an HTML document as a hierarchy,
+The components of an HTML document form a hierarchy,
 with the TOP component on top, and the tokens on the bottom.
-L<Marpa::UrHTML>'s processing model does not force
-each handlers to know precise what children it will have
-or even how many there will be.
-Given the nature of HTML, this would not be reasonable.
+The traditional method requires semantic actions
+to know precisely
+what children every component will have.
+This is processing model is not a good fit to HTML.
+L<Marpa::UrHTML> gives the writer of semantics actions
+"views" of each component which are natural
+even when the number and types of whose
+children is unknown or vague.
 
-L<Marpa::UrHTML>'s semantics place little emphasis on what
-a components direct children are.
-It focuses instead on descendants.
+L<Marpa::UrHTML>'s action semantics therefore
+often focus more on a components descendants than its
+direct children.
 The terms ancestor and descendant are used in the standard way:
 A component is
 an B<ancestor> of a second component if it is above that second
@@ -618,7 +602,7 @@ The descendants view is not a textual view.  It sees Perl data for each of the
 descendants.  It is implemented via the L<//"Marpa::UrHTML::descendants"> method,
 which allows the most detailed view of any of the action API calls.
 
-=head3 The Values View and the Traditional Tree Semantics
+=head2 Views versus the Traditional Tree Semantics
 
 For those used to the the traditional tree processing semantics,
 the values view resembles it, but with a major difference.
@@ -649,20 +633,38 @@ for all the semantic processing.
 
 =head2 Views and Efficiency
 
-Views are more efficient than the traditional tree processing
-semantics, because values do not need
-to be computed for components which are not of interest.
+In most applications,
+views are more efficient than the traditional tree semantics.
+In efficiency terms, the traditional model corresponds to a
+situation where all components have handlers which return values,
+and this is the view methods worst case, or close to it.
 
-=head1 ACTIONS
+L<Marpa::UrHTML> optimizes for unvalued components.
+Unvalued components are represented as token spans.
+Adjacent descendant spans are merged as processing proceeds up the
+hierarchy.
+This means the size and time required do not increase as 
+processing rises up the component hierarchy.
 
-=head3 Nodes and Children
+The original and token views
+are calculated on a just-time-time basis
+when they are requested through the action API.
+The token view is produced from the token span.
 
-=head3 The Action API: Simple Utilities
+Similarly, each token tracks the text it represents as a
+character span.
+The original text is calculated on a just-in-time basis
+using the first character location of the first token and
+the last character location of the last token.
 
-The C<descendants> API call, discussed below,
-is the Swiss Army knife of the L<Marpa::UrHTML>
-API, but much work can be done using 
-the simpler utilites described in this section.
+When a handler does not need to return a value,
+the most efficient thing for it to do is return C<undef>.
+This allows that component and all its descendants to revert
+to the efficient unvalued representation.
+
+=head1 THE ACTION API
+
+=head2 API Methods
 
 =over
 
@@ -677,6 +679,18 @@ if there were no attributes,
 if there was no start token for this element,
 or if this handler is being called on a non-element.
 
+=item C<contents>
+
+For an element, returns its literal contents.
+For an non-element, returns undef.
+
+=item C<descendants>
+
+The C<descendants> API call, discussed below,
+is the Swiss Army knife of the L<Marpa::UrHTML>
+API, but much work can be done using 
+the simpler utilites described in this section.
+
 =item C<values>
 
 The C<values> call is for those cases where
@@ -684,11 +698,6 @@ only children with values are of interest.
 It returns a pointer to an array of those values.
 No elements of this array will be undefined --
 children which did not have values are simply ignored.
-
-=item C<contents>
-
-For an element, returns its literal contents.
-For an non-element, returns undef.
 
 =item C<end_tag>
 
@@ -723,9 +732,7 @@ Otherwise, returns undef.
 
 =back
 
-=head4 The C<descendants> API call.
-
-    Marpa::UrHTML::descendants('value,literal');
+=head2 Argspecs
 
 =over
 
@@ -743,28 +750,93 @@ Otherwise, returns undef.
 
 =back
 
-=head1 THE INSTANCE HASH
+=head2 The Instance Hash
 
-L<Marpa::UrHTML>'s actions get their data from calls to
-the L<Marpa::UrHTML> API.
-Each L<Marpa::UrHTML> object
-also makes available to its handlers
-a special variable for
-data special to that object:
+Each L<Marpa::UrHTML> instance
+makes available
+a variable for
+data special to that instance:
 C<$Marpa::UrHTML::INSTANCE>.
 C<$Marpa::UrHTML::INSTANCE> is initialized to
-an empty hash.
-Otherwise, what is done with it is completely up
+an empty hash and the rest is left 
+completely up
 to the user.
-For example, where programming via side effects
+When programming via side effects
 is more natural that passing data up the parse
-tree, 
+tree (and it often is), 
 C<$Marpa::UrHTML::INSTANCE> can be used to
-store the data,
-and the handler for the C<:TOP> pseudoclass
-can return it as the value of the parse.
+store the data.
+It is often useful to have the action for the C<:TOP> pseudoclass
+return
+C<$Marpa::UrHTML::INSTANCE> as
+the value of the parse.
 
-=head1 EXPLICIT AND IMPLICIT ELEMENTS
+=head2 Undefined Actions versus Actions Which Return C<undef>
+
+Where no action is defined for a component, that component leaves the status quo intact.
+That is, all values which were visible remain visible.
+No new values become visible.
+
+When an action is defined for a component, but that action returns undef,
+all descendant values which were visible B<become invisible>.
+In other words, all descendant values are destroyed.
+Undefined actions do resemble actions which return C<undef> in one sense:
+No new values become visible.
+
+=head2 Root Element versus :TOP Pseudoclass
+
+It is important not to confuse the C<:TOP>
+component with the HTML root element.
+The most important distinctions are that
+
+=over
+
+=item *
+
+The action
+for C<:TOP> psuedoclass is always the last action to be called.
+
+=item *
+
+The C<:TOP> component is B<always> the entire HTML document.
+
+=item *
+
+The value that the action for the C<:TOP> component
+returns becomes the value of the parse.
+It will be the value the C<Marpa::UrHTML::urhtml> method returns.
+
+=back
+
+None of these things are true of the root element.
+The root element is the HTML element whose tagname is "C<html>", though
+its start and end tags are optional
+and can be omitted even in strictly valid HTML.
+Tags or not tags, every HTML document has a 
+root element.
+(The C<:TOP> component is not an element, so it does not have a tagname and
+never has tags.)
+
+The root element is always a descendant of the C<:TOP>
+component.
+The SGML prolog and SGML trailer are always descendants of the C<:TOP>
+component.
+They are never descendants of the root element.
+
+If an action for the root element is specified,
+it will also be called
+once and only once in every parse.
+An action for the root element can be specified in same way as actions
+for other elements, by using its tagname of "C<html>".
+An element wildcard action also becomes the action for the root element,
+if no more specific action takes precedence.
+
+A C<:TOP> action will be called once and only once in every parse.
+The C<:TOP> action is unique in that there is a default action -- that is,
+an action is run whether the user specifies it or not.
+No other component has a default action.
+
+=head2 Explicit and Implicit Elements
 
 If a handler is specified for a tagname, it is called
 whenever that element is found,
