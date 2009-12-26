@@ -133,13 +133,17 @@ sub poll {
       }x)
     {
       my $hour = $4;
-      if ($7 eq 'PM') {
-        $hour += 12;
-        # Special case for 12:00pm
-        if ($hour == 24) {
-          $hour = 12;
+      # 12:00 noon and midnight are a special case
+      if ($hour == 12) {
+        # 12am is midnight
+        if ($7 eq 'AM') {
+          $hour = 0;
         }
       }
+      elsif ($7 eq 'PM') {
+        $hour += 12;
+      }
+
       my $dt = DateTime->new(
         month     => $1,
         day       => $2,
@@ -181,6 +185,8 @@ or if there was a failure polling.
 sub power {
   my ($self) = @_;
 
+  Carp::croak('You must call this method as an object') unless ref($self);
+
   return unless exists $self->{power};
   return $self->{power};
 }
@@ -201,6 +207,8 @@ Example code:
 
 sub last_updated {
   my ($self) = @_;
+
+  Carp::croak('You must call this method as an object') unless ref($self);
 
   return unless exists $self->{updated};
   return $self->{updated};

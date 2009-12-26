@@ -21,8 +21,8 @@ my @methods = (
   'power',
 );
 
-# There is 1 non-method test
-plan tests => (1 + scalar(@methods));
+# There are 2 non-method tests
+plan tests => (2 + scalar(@methods));
 
 foreach my $meth (@methods) {
   ok(WWW::OPG->can($meth), 'Method "' . $meth . '" exists.');
