@@ -18,11 +18,11 @@ WWW::OPG - Perl interface to Ontario Power Generation's site
 
 =head1 VERSION
 
-Version 1.000 ($Id$)
+Version 1.001 ($Id$)
 
 =cut
 
-our $VERSION = '1.000';
+our $VERSION = '1.001';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
@@ -306,6 +306,12 @@ minutes.
 
 =head2 TEST COVERAGE
 
+  ----------------------- ------ ------ ------ ------ ------ ------
+  File                     stmt   bran   cond   sub    pod   total
+  ----------------------- ------ ------ ------ ------ ------ ------
+  lib/WWW/OPG.pm           92.9   71.4   66.7  100.0  100.0   87.1
+  Total                    92.9   71.4   66.7  100.0  100.0   87.1
+  ----------------------- ------ ------ ------ ------ ------ ------
 
 =head1 LICENSE
 

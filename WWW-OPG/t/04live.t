@@ -16,7 +16,7 @@ unless ($ENV{HAS_INTERNET}) {
   plan skip_all => 'Set HAS_INTERNET to enable tests requiring Internet';
 }
 
-plan tests => 5;
+plan tests => 6;
 
 my $opg = WWW::OPG->new;
 
@@ -35,3 +35,13 @@ ok($opg->last_updated >= DateTime->now->subtract(hours => 5),
   'Last update time is less than 5 hours ago');
 ok($opg->power > 5_000, 'Generated power is greater than 5,000 MW');
 ok($opg->power < 20_000, 'Generated power is greater than 20,000 MW');
+
+my ($rc1, $rc2);
+eval {
+  $rc1 = $opg->poll();
+  $rc2 = $opg->poll();
+};
+
+diag ($@) if $@;
+
+ok($rc1 == 0 || $rc2 == 0, '->poll returns 0 on no update');
