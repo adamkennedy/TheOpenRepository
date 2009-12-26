@@ -45,11 +45,11 @@ Video::FourCC::Info - Perl module to retrieve information about FourCCs
 
 =head1 VERSION
 
-Version 1.005 ($Id$)
+Version 1.006 ($Id$)
 
 =cut
 
-our $VERSION = '1.005';
+our $VERSION = '1.006';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION
@@ -372,6 +372,14 @@ The FourCC database of owner and descriptions come from data extracted from
 GSpot v2.70a, a freeware Codec Information utility. The registration dates
 come courtesy of Microsoft Corporation, accessed online at:
 L<http://msdn.microsoft.com/en-us/library/ms867195.aspx#fourcccodes>
+
+=head1 QUALITY ASSURANCE METRICS
+
+=head2 TEST COVERAGE
+
+  File                       stmt   bran   cond   sub    pod   total
+  ------------------------- ------ ------ ------ ------ ------ ------
+  lib/Video/FourCC/Info.pm  100.0  100.0    n/a  100.0  100.0  100.0  100.0
 
 =head1 LICENSE
 
