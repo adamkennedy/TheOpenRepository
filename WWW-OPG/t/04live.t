@@ -19,7 +19,7 @@ unless ($ENV{HAS_INTERNET}) {
 
 plan tests => 7;
 
-Test::NoWarnings->import();
+Test::NoWarnings->import(); # 1 test
 
 my $opg = WWW::OPG->new;
 
