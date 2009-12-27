@@ -43,6 +43,7 @@ sub plot {
     height         => 150,
     watermark      => 'by Jonathan Yu <http://luminescent.ca>',
     slope_mode     => undef,
+    alt_autoscale  => undef,
 
     start          => $now->clone->subtract( seconds => $period ),
     end            => $now,
@@ -97,7 +98,7 @@ sub plot {
     },
     gprint => {
       draw      => '95percent',
-      format    => '%0.2lf\l',
+      format    => '%0.2lf MWe\l',
     },
   );
 }
