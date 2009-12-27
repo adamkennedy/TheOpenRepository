@@ -40,16 +40,19 @@ It's an interesting number.
 
 =back
 
-These scripts are demos of Marpa::UrHTML,
+These scripts are demos of L<Marpa::UrHTML>,
 which is a high level HTML parser.
 "High level" means that it
 finds the structure of an HTML document,
 as opposed to L<HTML::Parser> which does tokenization
 or "low level parsing".
-(Marpa::UrHTML uses L<HTML::Parser>
+(L<Marpa::UrHTML> uses L<HTML::Parser>
 as its low-level parser.)
 
 =head1 GUIDE TO THE MARPA DOCUMENTATION
+
+An incomplete user document for
+L<Marpa::UrHTML> is now available.
 
 Marpa's documentation is being brought up to date.
 What is ready at the moment is only of interest
