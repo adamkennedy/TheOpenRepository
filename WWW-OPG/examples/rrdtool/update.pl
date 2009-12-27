@@ -30,8 +30,8 @@ my $filename = $ARGV[0] || 'opg.rrd';
 my $rrd = RRDTool::OO->new( file => $filename );
 my $opg = WWW::OPG->new();
 
-# Update 24 times (for one hour runtime)
-for (1..24) {
+# Update 12 times (for one hour runtime)
+for (1..12) {
   eval {
     # Only update if the data has been updated
     if ( $opg->poll() ) {
@@ -43,14 +43,12 @@ for (1..24) {
         value   => $opg->power,
       );
     }
-
-    # Nyquist Sampling Rate is 2 times maximum update frequency; we want to
-    # update at twice the rate of the signal (1 event/5 minutes)
-    sleep(2.5*60);
   };
   if ($@) {
     print STDERR $@;
   }
+
+  sleep(5*60);
 }
 
 =head1 AUTHOR
