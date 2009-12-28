@@ -140,11 +140,12 @@ L<Marpa::UrHTML> is an extremely liberal HTML parser.
 L<Marpa::UrHTML> does not reject any documents,
 no mater how poorly they fit the HTML standards.
 
-=head1 THE C<urhtml> STATIC METHOD
+=head1 THE Marpa::UrHTML::urhtml STATIC METHOD
 
 The interface to 
 L<Marpa::UrHTML> is through the
-C<Marpa::UrHTML::urhtml> static method.
+C<Marpa::UrHTML::urhtml>
+static method.
 It is
 the only
 L<Marpa::UrHTML>
@@ -157,7 +158,7 @@ a string to be parsed as HTML.
 The second and
 subsequent arguments (all optional) are hash references
 with handler descriptions.
-(See L<the synopsis|//"SYNOPSIS"> for several examples of
+(See L<the synopsis|/"SYNOPSIS"> for several examples of
 calls using the C<urhtml> method.)
 
 =head2 CSS-style Handler Options
@@ -467,7 +468,7 @@ and the difference can be very significant structurally.
 
 =head1 VIEWS
 
-I hope L<the synopsis|//"SYNOPSIS"> convinces the reader
+I hope L<the synopsis|/"SYNOPSIS"> convinces the reader
 that the action semantics of L<Marpa::UrHTML> are natural.
 This naturalness is achieved at the price of some novelty.
 This section explains the ideas behind the semantic action API.
@@ -502,7 +503,7 @@ The B<original view> sees the text of a component as it was
 originally passed to the parser.
 The original view never changes.
 The original view is seen
-through the L<Marpa::UrHTML::original> API method.
+through the L</"Marpa::UrHTML::original"> API method.
 
 =head2 The Terminals View
 
@@ -515,7 +516,7 @@ At this writing the API does not contain a "pure" terminals view method.
 For a terminals view of the whole HTML document,
 L<HTML::PullParser> does the job with significantly lower overhead.
 For a terminals view of the sections with no values defined,
-the descendants view (L<described below|//"The Descendants View">)
+the descendants view (L<described below|/"The Descendants View">)
 is equivalent to the terminals view.
 
 =head2 The Values View
@@ -554,7 +555,7 @@ the component for the action also will not appear in the values view.
 When its semantic action returns C<undef>, a component permanently "drops out" of the values view
 taking all descendants with it.
 The original view is seen
-through the L<Marpa::UrHTML::values> API method.
+through the L</"Marpa::UrHTML::values"> API method.
 
 =head2 The Literal View
 
@@ -572,7 +573,7 @@ whether descendants are seen as text or values,
 they
 are seen in the original lexical order.
 The literal view is seen
-through the L<Marpa::UrHTML::literal> API method.
+through the L</"Marpa::UrHTML::literal"> API method.
 
 =head2 The Descendants View
 
@@ -702,7 +703,7 @@ the per-descendant data requested in the string.
 
 The descendant data specification string has a syntax
 similar to that of the C<argspec> strings of L<HTML::Parser>.
-Details of that syntax L<are given below|Dataspecs>
+Details of that syntax L<are given below|/"Dataspecs">
 
 =item Marpa::UrHTML::values
 
@@ -837,10 +838,13 @@ makes available
 a per-instance variable
 as a scratchpad for the application:
 C<$Marpa::UrHTML::INSTANCE>.
-Each call to L<Marpa::UrHTML::urhtml> creates a C<$Marpa::UrHTML::INSTANCE>
+Each call to
+L<Marpa::UrHTML::urhtml|/"THE Marpa::UrHTML::urhtml STATIC METHOD">
+creates a C<$Marpa::UrHTML::INSTANCE>
 variable which is
 reserved for that application using the C<local> keyword.
-L<Marpa::UrHTML::urhtml> initializes it to an empty hash,
+L<Marpa::UrHTML::urhtml|/"THE Marpa::UrHTML::urhtml STATIC METHOD">
+initializes it to an empty hash,
 but after that does not touch it.
 When programming via side effects
 is more natural than
@@ -900,7 +904,9 @@ all cases.
 
 The value that the action for the C<:TOP> component
 returns becomes the value that
-the C<Marpa::UrHTML::urhtml> method returns.
+the
+L<Marpa::UrHTML::urhtml|/"THE Marpa::UrHTML::urhtml STATIC METHOD">
+method returns.
 
 =back
 
@@ -1003,7 +1009,9 @@ currently active elements.
 =head1 EXPORTS
 
 L<Marpa::UrHTML> exports nothing by default.
-Optionally, L<Marpa::UrHTML::urhtml> may be exported.
+Optionally,
+L<Marpa::UrHTML::urhtml|/"THE Marpa::UrHTML::urhtml STATIC METHOD">
+may be exported.
 
 =head1 LICENSE AND COPYRIGHT
 
