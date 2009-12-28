@@ -53,7 +53,15 @@ sub plot {
       name      => 'opg',
       dsname    => 'opg', 
       type      => 'area',
-      color     => '00CB33',
+      color     => '00BFFF88',
+    },
+
+    draw => {
+      name      => 'opg-line',
+      dsname    => 'opg',
+      type      => 'line',
+      thickness => 2,
+      color     => '00BFFF',
       legend    => 'Power Generation',
     },
 
@@ -95,6 +103,8 @@ sub plot {
       type      => 'line',
       name      => '95percent',
       vdef      => 'opg,95,PERCENT',
+      color     => '191970',
+      thickness => 1.5,
       legend    => '95% utilisation',
     },
     gprint => {

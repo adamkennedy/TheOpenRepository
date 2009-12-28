@@ -10,9 +10,9 @@ set -e
 
 # Change this to the path where your files are stored (your database,
 # and either symlinks to files or the files themselves)
-DATAPATH = /home/jon/rrdtool
+DATAPATH=/home/jon/rrdtool
 # Path to Perl binary
-PERL ?= /usr/bin/perl
+PERL=/usr/bin/perl
 
 # If WWW::OPG isn't system-installed, you need PERL5LIB
 export PERL5LIB=/home/jon/cpan/WWW-OPG/lib
@@ -27,6 +27,6 @@ if [ -z $1 ]; then
   exit
 fi
 
-cd $(DATAPATH)
+cd $DATAPATH
 
-$(PERL) $1 >/dev/null
+$PERL $1 >/dev/null
