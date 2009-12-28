@@ -35,7 +35,7 @@ exit 0;
 
 __DATA__
 semantics are perl5.
-version is 1.005_003.
+version is 1.006000.
 start symbol is Expression.
 
 Expression: /\d+/, /[+]/, /\d+/. q{$_[0] + $_[2]}.
