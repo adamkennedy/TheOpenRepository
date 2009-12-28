@@ -44,6 +44,7 @@ sub plot {
     watermark      => 'by Jonathan Yu <http://luminescent.ca>',
     slope_mode     => undef,
     alt_autoscale  => undef,
+    interlaced     => undef,
 
     start          => $now->clone->subtract( seconds => $period ),
     end            => $now,
@@ -52,7 +53,7 @@ sub plot {
       name      => 'opg',
       dsname    => 'opg', 
       type      => 'area',
-      color     => '00FF00',
+      color     => '00CB33',
       legend    => 'Power Generation',
     },
 
