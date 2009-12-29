@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
+	<object class="wxDialog" name="MyDialog2">
+		<style>wxDEFAULT_DIALOG_STYLE</style>
+		<size>170,101</size>
+		<title></title>
+		<object class="wxBoxSizer">
+			<orient>wxHORIZONTAL</orient>
+		</object>
+	</object>
+</resource>
