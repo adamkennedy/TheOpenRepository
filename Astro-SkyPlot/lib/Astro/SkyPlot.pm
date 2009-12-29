@@ -39,6 +39,8 @@ use constant {
   MARK_TRIANGLE_FILLED  => 5,
   MARK_DTRIANGLE        => 6,
   MARK_DTRIANGLE_FILLED => 7,
+  MARK_CROSS            => 8,
+  MARK_DIAG_CROSS       => 9,
 };
 
 require Exporter;
@@ -53,6 +55,8 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
   MARK_TRIANGLE_FILLED
   MARK_DTRIANGLE
   MARK_DTRIANGLE_FILLED
+  MARK_CROSS
+  MARK_DIAG_CROSS
 ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
@@ -96,6 +100,8 @@ These are defined through constants that can be exported from the module:
   MARK_TRIANGLE_FILLED  => filled triangular markers
   MARK_DTRIANGLE        => downward triangular markers
   MARK_DTRIANGLE_FILLED => filled downward triangular markers
+  MARK_CROSS            => cross shaped markers
+  MARK_DIAGCROSS        => diagonal cross shaped markers
 
 =head1 METHODS
 
@@ -130,8 +136,8 @@ sub new {
   my $ps = PostScript::Simple->new(
     eps    => 1,
     units  => "mm",
-    xsize  => $self->{xsize},
-    ysize  => $self->{ysize},
+    xsize  => $self->xsize,
+    ysize  => $self->ysize,
     colour => 1,
   );
   $self->{ps} = $ps;
@@ -263,7 +269,7 @@ sub _restore_color {
 
 =head2 _plot_axis
 
-Plot the sky plot axis.
+Plot the sky-plot axis.
 
 =cut
 
@@ -318,7 +324,7 @@ sub _plot_axis {
 
 =head2 _project
 
-Projects given lat/long to x/y to screen coordinates.
+Projects given lat/long to x/y to plot coordinates.
 
 =cut
 
@@ -332,7 +338,8 @@ sub _project {
 
 =head2 _draw_marker
 
-Draws a marker at the given coordinates. Arguments C<$x, $y, $markerno, $size>.
+Draws a marker at the given plot coordinates. Arguments C<$x, $y, $markerno, $size>.
+
 =cut
 
 sub _draw_marker {
@@ -371,6 +378,22 @@ sub _draw_marker {
       $x+$size, $highy,
       $x, $y-$size,
       $x-$size, $highy,
+    );
+  }
+  elsif ($marker == MARK_CROSS) {
+    $ps->line(
+      $x-$size, $y, $x+$size, $y
+    );
+    $ps->line(
+      $x, $y-$size, $x, $y+$size
+    );
+  }
+  elsif ($marker == MARK_DIAG_CROSS) {
+    $ps->line(
+      $x-$size, $y-$size, $x+$size, $y+$size
+    );
+    $ps->line(
+      $x-$size, $y+$size, $x+$size, $y-$size
     );
   }
   else {
