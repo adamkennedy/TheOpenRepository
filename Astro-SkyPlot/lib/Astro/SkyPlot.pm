@@ -8,7 +8,7 @@ use Carp 'croak';
 use Astro::MapProjection;
 use PostScript::Simple;
 use Class::XSAccessor
-  accessors => [qw/xsize ysize/];
+  getters => [qw/xsize ysize ps/];
 
 use constant HAMMER_PROJ => 0;
 
@@ -49,7 +49,7 @@ Astro::SkyPlot - Create very basic sky plots
   $plot->setcolor(255, 0, 0); # RGB => red
   $plot->plot_lat_long(1, 1); # units: radians
   $plot->plot_lat_long(1, 1, size => 0.2); # units: radians, radians, mm
-  $plot->write("skyplot.eps");
+  $plot->write(file => "skyplot.eps");
 
 =head1 DESCRIPTION
 
@@ -164,6 +164,24 @@ sub write {
   $ps->output($_[0]);
   return $self;
 }
+
+=head1 ACCESSOR METHODS
+
+The following are read only accessors:
+
+=head2 ps
+
+Returns the internals C<PostScript::Simple> object.
+
+=head2 xsize
+
+Returns the image's width (in mm).
+
+=head2 ysize
+
+Returns the image's height (in mm).
+
+=cut
 
 =head1 PRIVATE METHODS
 
