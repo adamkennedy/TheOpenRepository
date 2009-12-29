@@ -156,7 +156,7 @@ Supported options:
 
 C<size>: the size (radius) of the point (default: 0.1mm)
 
-C<filled>: whether the point should be filled or not (default: 1)
+C<marker>: The type of marker to use (see L</MARKERS>).
 
 =cut
 
@@ -168,7 +168,6 @@ sub plot_lat_long {
   my $long = shift;
   my %opt = @_;
   my $size = $opt{size}||0.1;
-  my $filled = exists($opt{filled}) ? $opt{filled} : 1;
   my $ps = $self->{ps};
   my ($x, $y) = $self->_project($lat, $long);
   my $marker = exists($opt{marker}) ? $opt{marker} : $self->{marker};
