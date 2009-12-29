@@ -7,17 +7,21 @@ our $VERSION = '0.01';
 use Carp 'croak';
 use Astro::MapProjection;
 use PostScript::Simple;
+use Class::XSAccessor
+  accessors => [qw/xsize ysize/];
 
 use constant HAMMER_PROJ => 0;
-use constant PROJECTIONS => [
+
+use constant PROJ_COORD_TRAFO => [
   \&Astro::MapProjection::hammer_projection,
 ];
-use constant PROJ_COORD_TRAFO => [
+use constant PROJ_CANVAS_TRAFO => [
   sub {return( $_[0]*$_[2]/6 + $_[2]/2, $_[1]*$_[3]/6 + $_[3]/2 )},
 ];
-use constant PROJECTION_NAMES => {
+use constant PROJ_NAMES => {
   'hammer' => HAMMER_PROJ,
 };
+
 use constant PI      => atan2(1,0)*2;
 use constant DEG2RAD => PI/180;
 use constant RAD2DEG => 180/PI;
@@ -43,8 +47,8 @@ Astro::SkyPlot - Create very basic sky plots
   );
   
   $plot->setcolor(255, 0, 0); # RGB => red
-  $plot->plot_lat_long(1, 1, $size); # units: radians
-  $plot->plot_lat_long(1, 1, $size); # units: radians
+  $plot->plot_lat_long(1, 1); # units: radians
+  $plot->plot_lat_long(1, 1, size => 0.2); # units: radians, radians, mm
   $plot->write("skyplot.eps");
 
 =head1 DESCRIPTION
@@ -92,11 +96,12 @@ sub new {
   $self->setcolor(255, 255, 255);
 
   my $proj_name = $self->{projection};
-  $self->{projection} = PROJECTION_NAMES->{$proj_name};
+  $self->{projection} = PROJ_NAMES->{$proj_name};
   croak("Unknown projection '$proj_name'")
     if not defined $self->{projection};
 
   $self->_draw_bg();
+  $self->_plot_axis();
 
   return $self;
 }
@@ -172,7 +177,7 @@ sub _draw_bg {
   my $self = shift;
   my $ps = $self->{ps};
   $ps->setcolour(0, 0, 0);
-  $ps->box({filled=>1}, 0, 0, $xsize, $ysize);
+  $ps->box({filled=>1}, 0, 0, $self->xsize, $self->ysize);
   $ps->setcolour(255, 255, 255);
   return $self->_restore_color();
 }
@@ -186,7 +191,7 @@ Restores the previously saved color.
 sub _restore_color {
   my $self = shift;
   my $ps = $self->{ps};
-  $ps->set_color(@{$self->{color}});
+  $ps->setcolour(@{$self->{color}});
   return $self;
 }
 
@@ -204,8 +209,8 @@ sub _plot_axis {
   my $ysize = $self->{ysize};
   
   if ($projection == HAMMER_PROJ) {
-    my $ps_trafo = PROJ_COORD_TRAFO[$projection];
-    my $projector = PROJECTIONS[$projection];
+    my $ps_trafo = PROJ_CANVAS_TRAFO->[$projection];
+    my $projector = PROJ_COORD_TRAFO->[$projection];
 
     $ps->setlinewidth(0.05);
     # plot longitude axes
@@ -250,8 +255,8 @@ sub _plot_axis {
 sub _project {
   my $self = shift;
   my $projection = $self->{projection};
-  my $ps_trafo = PROJ_COORD_TRAFO[$projection];
-  my $projector = PROJECTIONS[$projection];
+  my $ps_trafo = PROJ_CANVAS_TRAFO->[$projection];
+  my $projector = PROJ_COORD_TRAFO->[$projection];
   return $ps_trafo->( $projector->(@_), $self->{xsize}, $self->{ysize} );
 }
 
