@@ -31,8 +31,12 @@ use constant DEG2RAD => PI/180;
 use constant RAD2DEG => 180/PI;
 
 use constant {
-  MARK_CIRCLE => 0,
-  MARK_CIRCLE_FILLED => 1,
+  MARK_CIRCLE          => 0,
+  MARK_CIRCLE_FILLED   => 1,
+  MARK_BOX             => 2,
+  MARK_BOX_FILLED      => 3,
+  MARK_TRIANGLE        => 4,
+  MARK_TRIANGLE_FILLED => 5,
 };
 
 require Exporter;
@@ -41,6 +45,10 @@ our @EXPORT;
 our %EXPORT_TAGS = ( 'all' => [ qw(
   MARK_CIRCLE
   MARK_CIRCLE_FILLED
+  MARK_BOX
+  MARK_BOX_FILLED
+  MARK_TRIANGLE
+  MARK_TRIANGLE_FILLED
 ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
@@ -76,8 +84,12 @@ A module to create very basic sky plots as EPS documents.
 There are multiple types of markers that can be plotted into the sky plot.
 These are defined through constants that can be exported from the module:
 
-  MARK_CIRCLE => Draws circular markers
-  MARK_CIRCLE_FILLED => Draws filled circular markers
+  MARK_CIRCLE          => Draws circular markers
+  MARK_CIRCLE_FILLED   => Draws filled circular markers
+  MARK_BOX             => Draws square markers
+  MARK_BOX_FILLED      => Draws filled square markers
+  MARK_TRIANGLE        => Draws triangularmarkers
+  MARK_TRIANGLE_FILLED => Draws filled triangularmarkers  markers
 
 =head1 METHODS
 
@@ -328,6 +340,22 @@ sub _draw_marker {
   }
   elsif ($marker == MARK_CIRCLE_FILLED) {
     $ps->circle({filled=>1}, $x, $y, $size);
+  }
+  elsif ($marker == MARK_BOX || $marker == MARK_BOX_FILLED) {
+    $ps->box(
+      {filled => ($marker==MARK_BOX_FILLED)},
+      $x-$size, $y-$size, $x+$size, $y+$size
+    );
+  }
+  elsif ($marker == MARK_TRIANGLE || $marker == MARK_TRIANGLE_FILLED) {
+    my $lowy = $y-$size;
+    $ps->polygon(
+      {filled => ($marker == MARK_TRIANGLE_FILLED)},
+      $x-$size, $lowy,
+      $x+$size, $lowy,
+      $x, $y+$size,
+      $x-$size, $lowy,
+    );
   }
   else {
     die('Invalid marker no. ' . $marker);
