@@ -31,12 +31,14 @@ use constant DEG2RAD => PI/180;
 use constant RAD2DEG => 180/PI;
 
 use constant {
-  MARK_CIRCLE          => 0,
-  MARK_CIRCLE_FILLED   => 1,
-  MARK_BOX             => 2,
-  MARK_BOX_FILLED      => 3,
-  MARK_TRIANGLE        => 4,
-  MARK_TRIANGLE_FILLED => 5,
+  MARK_CIRCLE           => 0,
+  MARK_CIRCLE_FILLED    => 1,
+  MARK_BOX              => 2,
+  MARK_BOX_FILLED       => 3,
+  MARK_TRIANGLE         => 4,
+  MARK_TRIANGLE_FILLED  => 5,
+  MARK_DTRIANGLE        => 6,
+  MARK_DTRIANGLE_FILLED => 7,
 };
 
 require Exporter;
@@ -49,6 +51,8 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
   MARK_BOX_FILLED
   MARK_TRIANGLE
   MARK_TRIANGLE_FILLED
+  MARK_DTRIANGLE
+  MARK_DTRIANGLE_FILLED
 ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
@@ -84,12 +88,14 @@ A module to create very basic sky plots as EPS documents.
 There are multiple types of markers that can be plotted into the sky plot.
 These are defined through constants that can be exported from the module:
 
-  MARK_CIRCLE          => Draws circular markers
-  MARK_CIRCLE_FILLED   => Draws filled circular markers
-  MARK_BOX             => Draws square markers
-  MARK_BOX_FILLED      => Draws filled square markers
-  MARK_TRIANGLE        => Draws triangularmarkers
-  MARK_TRIANGLE_FILLED => Draws filled triangularmarkers  markers
+  MARK_CIRCLE           => circular markers
+  MARK_CIRCLE_FILLED    => filled circular markers
+  MARK_BOX              => square markers
+  MARK_BOX_FILLED       => filled square markers
+  MARK_TRIANGLE         => triangularmarkers
+  MARK_TRIANGLE_FILLED  => filled triangular markers
+  MARK_DTRIANGLE        => downward triangular markers
+  MARK_DTRIANGLE_FILLED => filled downward triangular markers
 
 =head1 METHODS
 
@@ -335,19 +341,19 @@ sub _draw_marker {
     if not @_ == 4;
   my ($x, $y, $marker, $size) = @_;
   my $ps = $self->{ps};
-  if ($marker == MARK_CIRCLE) {
-    $ps->circle($x, $y, $size);
+  if ($marker <= MARK_CIRCLE_FILLED) {
+    $ps->circle(
+      {filled => ($marker==MARK_CIRCLE_FILLED)},
+      $x, $y, $size
+    );
   }
-  elsif ($marker == MARK_CIRCLE_FILLED) {
-    $ps->circle({filled=>1}, $x, $y, $size);
-  }
-  elsif ($marker == MARK_BOX || $marker == MARK_BOX_FILLED) {
+  elsif ($marker <= MARK_BOX_FILLED) {
     $ps->box(
       {filled => ($marker==MARK_BOX_FILLED)},
       $x-$size, $y-$size, $x+$size, $y+$size
     );
   }
-  elsif ($marker == MARK_TRIANGLE || $marker == MARK_TRIANGLE_FILLED) {
+  elsif ($marker <= MARK_TRIANGLE_FILLED) {
     my $lowy = $y-$size;
     $ps->polygon(
       {filled => ($marker == MARK_TRIANGLE_FILLED)},
@@ -355,6 +361,16 @@ sub _draw_marker {
       $x+$size, $lowy,
       $x, $y+$size,
       $x-$size, $lowy,
+    );
+  }
+  elsif ($marker <= MARK_DTRIANGLE_FILLED) {
+    my $highy = $y+$size;
+    $ps->polygon(
+      {filled => ($marker == MARK_DTRIANGLE_FILLED)},
+      $x-$size, $highy,
+      $x+$size, $highy,
+      $x, $y-$size,
+      $x-$size, $highy,
     );
   }
   else {
