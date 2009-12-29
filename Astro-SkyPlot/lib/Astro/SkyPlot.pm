@@ -7,10 +7,14 @@ our $VERSION = '0.01';
 use Carp 'croak';
 use Astro::MapProjection;
 use PostScript::Simple;
-use Class::XSAccessor
-  getters => [qw/xsize ysize ps/];
+use Class::XSAccessor {
+  getters   => [qw/xsize ysize ps/],
+  accessors => [qw/marker/]
+};
 
-use constant HAMMER_PROJ => 0;
+use constant {
+  HAMMER_PROJ => 0,
+};
 
 use constant PROJ_COORD_TRAFO => [
   \&Astro::MapProjection::hammer_projection,
@@ -26,7 +30,19 @@ use constant PI      => atan2(1,0)*2;
 use constant DEG2RAD => PI/180;
 use constant RAD2DEG => 180/PI;
 
+use constant {
+  MARK_CIRCLE => 0,
+  MARK_CIRCLE_FILLED => 1,
+};
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT;
+our %EXPORT_TAGS = ( 'all' => [ qw(
+  MARK_CIRCLE
+  MARK_CIRCLE_FILLED
+) ] );
+our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 =head1 NAME
 
@@ -34,7 +50,7 @@ Astro::SkyPlot - Create very basic sky plots
 
 =head1 SYNOPSIS
 
-  use Astro::SkyPlot;
+  use Astro::SkyPlot qw/:all/; # export the markers
   my $plot = Astro::SkyPlot->new(); # use defaults (see below)
   
   # specify options yourself:
@@ -48,12 +64,20 @@ Astro::SkyPlot - Create very basic sky plots
   
   $plot->setcolor(255, 0, 0); # RGB => red
   $plot->plot_lat_long(1, 1); # units: radians
-  $plot->plot_lat_long(1, 1, size => 0.2); # units: radians, radians, mm
+  $plot->plot_lat_long(1, 1, size => 0.2, marker => MARK_CIRCLE); # units: radians, radians, mm
   $plot->write(file => "skyplot.eps");
 
 =head1 DESCRIPTION
 
 A module to create very basic sky plots as EPS documents.
+
+=head1 MARKERS
+
+There are multiple types of markers that can be plotted into the sky plot.
+These are defined through constants that can be exported from the module:
+
+  MARK_CIRCLE => Draws circular markers
+  MARK_CIRCLE_FILLED => Draws filled circular markers
 
 =head1 METHODS
 
@@ -81,6 +105,7 @@ sub new {
     bgcolor     => [0, 0, 0], # RGB => black
     projection  => 'hammer',
     axiscolor   => [100, 100, 100], # RGB => grey
+    marker      => MARK_CIRCLE_FILLED,
     @_,
   } => $class;
 
@@ -146,7 +171,8 @@ sub plot_lat_long {
   my $filled = exists($opt{filled}) ? $opt{filled} : 1;
   my $ps = $self->{ps};
   my ($x, $y) = $self->_project($lat, $long);
-  $ps->circle({filled=>$filled}, $x, $y);
+  my $marker = exists($opt{marker}) ? $opt{marker} : $self->{marker};
+  $self->_draw_marker($x, $y, $marker, $size);
 }
 
 =head2 write
@@ -167,7 +193,12 @@ sub write {
 
 =head1 ACCESSOR METHODS
 
-The following are read only accessors:
+The following are read only accessors unless otherwise noted.
+
+=head2 marker
+
+Get/Set the default marker type. The marker type for a single
+plot operation can be specified as an option to C<plot_lat_long>.
 
 =head2 ps
 
@@ -214,6 +245,8 @@ sub _restore_color {
 }
 
 =head2 _plot_axis
+
+Plot the sky plot axis.
 
 =cut
 
@@ -268,6 +301,8 @@ sub _plot_axis {
 
 =head2 _project
 
+Projects given lat/long to x/y to screen coordinates.
+
 =cut
 
 sub _project {
@@ -276,6 +311,28 @@ sub _project {
   my $ps_trafo = PROJ_CANVAS_TRAFO->[$projection];
   my $projector = PROJ_COORD_TRAFO->[$projection];
   return $ps_trafo->( $projector->(@_), $self->{xsize}, $self->{ysize} );
+}
+
+=head2 _draw_marker
+
+Draws a marker at the given coordinates. Arguments C<$x, $y, $markerno, $size>.
+=cut
+
+sub _draw_marker {
+  my $self = shift;
+  die('Need $x, $y, $marker, $size')
+    if not @_ == 4;
+  my ($x, $y, $marker, $size) = @_;
+  my $ps = $self->{ps};
+  if ($marker == MARK_CIRCLE) {
+    $ps->circle($x, $y, $size);
+  }
+  elsif ($marker == MARK_CIRCLE_FILLED) {
+    $ps->circle({filled=>1}, $x, $y, $size);
+  }
+  else {
+    die('Invalid marker no. ' . $marker);
+  }
 }
 
 1;
