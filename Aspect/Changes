@@ -1,6 +1,6 @@
 Revision history for Perl extension Aspect
 
-0.24 to be released
+0.24 Wed 30 Dec 2009 - Adam Kennedy
 	- Changes file now uses tabs (to make it less annoying for me) :)
 	- Moved the inline Aspect::Hook::LexWrap::Cleanup class into it's
 	  own dedicated Aspect::Cleanup class.
@@ -19,7 +19,7 @@ Revision history for Perl extension Aspect
 	- Only call wantarray once per hook execution and share the result
 	  therafter as a variable. Saves two function calls per hook.
 
-0.23 Thu 24 Dec 2009 Adam Kennedy
+0.23 Thu 24 Dec 2009 - Adam Kennedy
 	- Removed the concept of a standalone Aspect::Weaver class
 	- Each Aspect::Advice:: subclass now does most of the setup for the weaving
 	  individually, with similar but slightly different implementations.
@@ -30,14 +30,14 @@ Revision history for Perl extension Aspect
 	  before and after, duplicating some code but making each type simpler and
 	  faster.
 
-0.22 Mon 21 Dec 2009 Adam Kennedy
+0.22 Mon 21 Dec 2009 - Adam Kennedy
 	- Part one of an upcoming series of major upgrades
 	- Migrating to Sub::Uplevel to remove our custom CORE::GLOBAL::caller
 
-0.21 Tue 21 Jul 2009 Adam Kennedy
+0.21 Tue 21 Jul 2009 - Adam Kennedy
 	- Bumped the version to 0.21 so the Hook::LexWrap module indexes
 
-0.16 Tue 19 May 2009 Adam Kennedy
+0.16 Tue 19 May 2009 - Adam Kennedy
 	- Moved out Aspect::Library::Profiler into a standalone distribution
 
 0.15 Thu Jul 24 23:02:11 CEST 2008 (Marcel Gruenauer <marcel@cpan.org>)

@@ -5,7 +5,7 @@ use warnings;
 use Carp;
 use Aspect::Pointcut::BinOp ();
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 our @ISA     = 'Aspect::Pointcut::BinOp';
 
 sub binop { $_[1] && $_[2] }

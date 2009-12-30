@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 sub is_method_type { 
 	my ($self, $type) = @_;
