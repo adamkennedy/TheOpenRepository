@@ -40,7 +40,7 @@ use File::Temp ();
 
 use vars qw{$VERSION @ISA @EXPORT $TRACE $UNLINK};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 	@ISA     = 'Exporter';
 	@EXPORT  = 'dval';
 	$TRACE   = '' unless defined $TRACE;
@@ -61,17 +61,30 @@ true).
 =cut
 
 sub dval ($) {
+	if ( $^V >= 5.008009 ) {
+		pval(@_);
+	} else {
+		fval(@_);
+	}
+}
+
+sub pval ($) {
+	local $^P = $^P | 0x800;
+	eval $_[0];
+}
+
+sub fval ($) {
 	my ($fh, $filename) = File::Temp::tempfile();
 	$fh->print("$_[0]") or die "print: $!";
 	close( $fh )        or die "close: $!";
-	my $message = "# require $filename\n";
+	my $message = "# do $filename\n";
 	if ( defined $TRACE and not ref $TRACE ) {
 		print STDOUT $message if $TRACE eq 'STDOUT';
 		print STDERR $message if $TRACE eq 'STDERR';
 	} elsif ( $TRACE ) {
 		$TRACE->print($message);
 	}
-	require $filename;
+	do $filename;
 	unlink $filename if $UNLINK;
 	return 1;
 }
