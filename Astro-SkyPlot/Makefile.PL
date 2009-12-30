@@ -8,6 +8,7 @@ WriteMakefile(
     PREREQ_PM         => {
       'Astro::MapProjection' => '0.01',
       'PostScript::Simple' => '0.07',
+      'Class::XSAccessor' => '1.05',
     }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Astro/SkyPlot.pm', # retrieve abstract from module
