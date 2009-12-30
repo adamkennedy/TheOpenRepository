@@ -3,7 +3,7 @@ use 5.006001;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 use Carp 'croak';
 use Astro::MapProjection;
 use PostScript::Simple;
