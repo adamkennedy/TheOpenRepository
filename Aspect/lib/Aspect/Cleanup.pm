@@ -6,13 +6,13 @@ package Aspect::Cleanup;
 use strict;
 use warnings;
 
-use overload
-	q{""}   => sub { undef },
-	q{0+}   => sub { undef },
-	q{bool} => sub { undef };
+use overload 'bool'   => sub () { 1     };
+use overload '""'     => sub () { ''    };
+use overload '+0'     => sub () { 1     };
+use overload nomethod => sub () { undef };
 
 sub new { bless $_[1], $_[0] }
 
-sub DESTROY { $_[0]->() }
+sub DESTROY { local $main::FOO = 6; $_[0]->() }
 
 1;

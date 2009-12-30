@@ -43,7 +43,9 @@ BEGIN {
 
 	@classes = $thing eq 'Aspect::tests::' ? @ALL_TESTS : ($thing);
 
-	runtime_use $_ for @classes;
+	foreach my $class ( @classes ) {
+		runtime_use($class);
+	}
 }
 
 Test::Class->runtests(@classes);

@@ -47,6 +47,10 @@ my %UNTOUCHABLE = map { $_ => 1 } qw(
 sub match_all {
 	my $self    = shift;
 	my @matches = ();
+
+	# Temporary hack to evade a ton of warnings
+	local $^W = 0;
+
 	foreach my $package ( Devel::Symdump->rnew->packages, 'main' ) {
 		next if $UNTOUCHABLE{$package};
 		next if $package =~ /^Aspect::/;
@@ -55,6 +59,7 @@ sub match_all {
 			push @matches, $name if $self->match_define($name);
 		}
 	}
+
 	return @matches;
 }
 

@@ -2,8 +2,14 @@ package Aspect::Advice::After;
 
 use strict;
 use warnings;
-use Aspect::Advice        ();
-use Aspect::Hook::LexWrap ();
+
+# Added by eilara as hack around caller() core dump
+# NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
+use Carp::Heavy     (); 
+use Carp            ();
+use Sub::Uplevel    ();
+use Aspect::Cleanup ();
+use Aspect::Advice  ();
 
 our $VERSION = '0.23';
 our @ISA     = 'Aspect::Advice';
@@ -57,9 +63,74 @@ sub install {
 			$_[-1] = $advice_context->return_value;
 		};
  		$self->add_hooks(
-			Aspect::Hook::LexWrap::after( $name, $wrapped )
+			$self->hook( $name, $wrapped )
 		);
 	}
+}
+
+sub hook {
+	my $self = shift;
+
+	# Check and normalise the typeglob
+	no strict 'refs';
+	my $typeglob = shift;
+	my $original = *$typeglob{CODE};
+	unless ( $original ) {
+		Carp::croak("Can't wrap non-existent subroutine ", $typeglob);
+	}
+
+	# Check the wrappers
+	my $code = shift;
+	unless ( ref $code eq 'CODE' ) {
+		Carp::croak("Code value is not a subroutine reference");
+	}
+
+	# State variable for use in the closure (eep)
+	my $unwrap = undef;
+
+	# Any way to set prototypes other than eval?
+	my $prototype = prototype($original);
+	   $prototype = defined($prototype) ? "($prototype)" : '';
+
+	# Generate the new function
+	no warnings 'redefine';
+	eval "sub $typeglob $prototype " . q{{
+			if ( $unwrap ) { goto &$original }
+			my ($return, $prereturn);
+			if ( wantarray ) {
+				$return = [
+					Sub::Uplevel::uplevel(
+						1, $original, @_,
+					)
+				];
+				() = $code->(
+					\@_, $original, $return
+				);
+				return ref $return eq 'ARRAY'
+					? @$return
+					: ( $return );
+
+			} elsif ( defined wantarray ) {
+				$return = Sub::Uplevel::uplevel(
+					1, $original, @_,
+				);
+				my $dummy = scalar $code->(
+					\@_, $original, $return
+				);
+				return $return;
+
+			} else {
+				Sub::Uplevel::uplevel(
+					1, $original, @_,
+				);
+				$code->( \@_, $original, [] );
+				return;
+			}
+	}};
+	die $@ if $@;
+	return bless sub {
+		$unwrap = 1
+	}, 'Aspect::Cleanup';
 }
 
 1;

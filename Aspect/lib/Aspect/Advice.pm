@@ -30,6 +30,10 @@ sub add_hooks {
 	push @{shift->{hooks}}, shift;
 }
 
+sub hook {
+	die("Method 'hook' is not implemented by " . ref($_[0]));
+}
+
 sub type {
 	die("Method 'type' is not implemented by " . ref($_[0]));
 }
