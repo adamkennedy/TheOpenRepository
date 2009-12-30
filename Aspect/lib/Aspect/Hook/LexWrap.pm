@@ -3,9 +3,14 @@ package Aspect::Hook::LexWrap;
 use 5.006;
 use strict;
 use warnings;
-use Carp::Heavy  (); # added by eilara as hack around caller() core dump
-use Carp         ();
-use Sub::Uplevel ();
+
+# Added by eilara as hack around caller() core dump
+# NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
+use Carp::Heavy (); 
+
+use Carp            ();
+use Sub::Uplevel    ();
+use Aspect::Cleanup ();
 
 our $VERSION = '0.23';
 
@@ -57,14 +62,14 @@ sub before {
 			} elsif ( defined wantarray ) {
 				$return = bless sub {
 					$prereturn = 1
-				}, 'Aspect::Hook::LexWrap::Cleanup';
+				}, 'Aspect::Cleanup';
 				my $dummy = $code->( \@_, $original, $return );
 				return $return if $prereturn;
 
 			} else {
 				$return = bless sub {
 					$prereturn = 1
-				}, 'Aspect::Hook::LexWrap::Cleanup';
+				}, 'Aspect::Cleanup';
 				$code->( \@_, $original, $return );
 				return if $prereturn;
 			}
@@ -74,7 +79,7 @@ sub before {
 	die $@ if $@;
 	return bless sub {
 		$unwrap = 1
-	}, 'Aspect::Hook::LexWrap::Cleanup';
+	}, 'Aspect::Cleanup';
 }
 
 sub after {
@@ -135,17 +140,8 @@ sub after {
 	*$typeglob = $imposter;
 	return bless sub {
 		$unwrap = 1
-	}, 'Aspect::Hook::LexWrap::Cleanup';
+	}, 'Aspect::Cleanup';
 }
-
-package Aspect::Hook::LexWrap::Cleanup;
-
-sub DESTROY { $_[0]->() }
-
-use overload
-	q{""}   => sub { undef },
-	q{0+}   => sub { undef },
-	q{bool} => sub { undef };
 
 1;
 
