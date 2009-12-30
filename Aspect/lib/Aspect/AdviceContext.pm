@@ -2,19 +2,16 @@ package Aspect::AdviceContext;
 
 use strict;
 use warnings;
-use Carp;
-
+use Carp ();
 
 our $VERSION = '0.23';
 
-
 sub new {
-	my ($class, %spec) = @_;
-	croak "cannot create with no sub_name" unless $spec{sub_name};
-	my $self = bless {
-		(map { $_ => $spec{$_} } keys %spec),
-		proceed => 1,
-	}, $class;
+	my $class = shift;
+	my $self  = bless { @_, proceed => 1 }, $class;
+	unless ( $self->{sub_name} ) {
+		Carp::croak("Cannot create Aspect::AdviceContext without sub_name");
+	}
 	return $self;
 }
 
@@ -23,10 +20,11 @@ sub run_original {
 	my $original = $self->original;
 	my @params   = $self->params;
 	my $return_value;
-	if (wantarray)
-		{ $return_value = [$original->(@params)] }
-	else
-		{ $return_value = $original->(@params) }
+	if ( wantarray ) {
+		$return_value = [ $original->(@params) ];
+	} else {
+		$return_value = $original->(@params);
+	}
 	$self->return_value($return_value);
 	return $self->return_value;
 }
@@ -44,7 +42,9 @@ sub append_param {
 	return $self;
 }
 
-sub append_params { shift->append_param(@_) }
+sub append_params {
+	shift->append_param(@_);
+}
 
 sub params {
 	my ($self, @value) = @_;
@@ -53,9 +53,13 @@ sub params {
 	return $self;
 }
 
-sub params_ref { shift->{'params'} }
+sub params_ref {
+	$_[0]->{params};
+}
 
-sub self { shift->{params}->[0] }
+sub self {
+	$_[0]->{params}->[0];
+}
 
 sub package_name {
 	my $self = shift;
@@ -95,7 +99,7 @@ sub AUTOLOAD {
 
 sub get_value {
 	my ($self, $key) = @_;
-	croak "Key does not exist: [$key]" unless exists $self->{$key};
+	Carp::croak "Key does not exist: [$key]" unless exists $self->{$key};
 	my $value = $self->{$key};
 	return wantarray && ref $value eq 'ARRAY'? @$value: $value;
 }

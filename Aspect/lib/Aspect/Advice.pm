@@ -12,11 +12,13 @@ our $VERSION = '0.23';
 sub new {
 	my $class = "Aspect::Advice::" . ucfirst($_[1]); # Yes, a bit hacky
 	my $self  = $class->new(
-		hooks    => undef, # List of symbol table hooks
-		code     => $_[2], # the advice code
-		pointcut => $_[3], # the advice pointcut
+		code     => $_[2], # The advice code
+		pointcut => $_[3], # The advice pointcut
 	);
-	$self->install;
+
+	# Install and save the lexical hook
+	$self->{hook} = $self->install;
+
 	return $self;
 }
 
@@ -24,14 +26,6 @@ sub new {
 
 sub install {
 	die("Method 'install' is not implemented by " . ref($_[0]));
-}
-
-sub add_hooks {
-	push @{shift->{hooks}}, shift;
-}
-
-sub hook {
-	die("Method 'hook' is not implemented by " . ref($_[0]));
 }
 
 sub type {

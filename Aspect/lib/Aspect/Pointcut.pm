@@ -48,7 +48,8 @@ sub match_all {
 	my $self    = shift;
 	my @matches = ();
 
-	# Temporary hack to evade a ton of warnings
+	# Temporary hack to avoid a ton of warnings.
+	# Remove when Devel::Symdump stops throwing warnings.
 	local $^W = 0;
 
 	foreach my $package ( Devel::Symdump->rnew->packages, 'main' ) {

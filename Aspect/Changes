@@ -7,6 +7,17 @@ Revision history for Perl extension Aspect
 	- Merged Advice-specific hooks from Aspect::Hook::Lexwrap into the
 	  advice classes.
 	- Removed the now-redundant Aspect::Hook::Lexwrap entirely
+	- Simplified the Aspect::AdviceContext constructor to make it faster
+	- Logically merged the code-generated functionality from ->install
+	  and the Hook::LexWrap-inspired ->hook methods for each Advice
+	  class. This removes a lot of guess work and double handling from
+	  the main execution path, and should be significantly faster.
+	- With the code merged, pushed the scope exit flag outside the
+	  symbol table iteration in the installer. Instead of a large array
+	  of separate exit-tracking objects, we can instead use one single
+	  shared lexical hook that works via mixed depth closure Magick.
+	- Only call wantarray once per hook execution and share the result
+	  therafter as a variable. Saves two function calls per hook.
 
 0.23 Thu 24 Dec 2009 Adam Kennedy
 	- Removed the concept of a standalone Aspect::Weaver class
