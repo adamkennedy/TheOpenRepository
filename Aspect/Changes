@@ -1,5 +1,11 @@
 Revision history for Perl extension Aspect
 
+0.27 to be released
+	- Various micro-optimisation of Aspect::AdviceContext which would
+	  normally be somewhat pointless, but is useful in this case when
+	  an Aspect hook is applied to something which is in the hot loop
+	  for some program.
+
 0.26 Thu 31 Dec 2009 - Adam Kennedy
 	- With the primary internals refactoring completely, we now start
 	  a series of commits to remove excessive abstractions, and to alter

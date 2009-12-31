@@ -6,6 +6,13 @@ use Carp ();
 
 our $VERSION = '0.26';
 
+
+
+
+
+######################################################################
+# Constructor and Built-In Accessors
+
 sub new {
 	my $class = shift;
 	my $self  = bless { @_, proceed => 1 }, $class;
@@ -15,42 +22,17 @@ sub new {
 	return $self;
 }
 
-sub run_original {
-	my $self     = shift;
-	my $original = $self->original;
-	my @params   = $self->params;
-	my $return_value;
-	if ( wantarray ) {
-		$return_value = [ $original->(@params) ];
-	} else {
-		$return_value = $original->(@params);
-	}
-	$self->return_value($return_value);
-	return $self->return_value;
+sub sub_name {
+	$_[0]->{sub_name};
+}
+
+sub wantarray {
+	$_[0]->{wantarray};
 }
 
 sub proceed {
-	my ($self, $value) = @_;
-	return $self->get_value('proceed') if @_ == 1;
-	$self->{proceed} = $value;
-	return $self;
-}
-
-sub append_param {
-	my ($self, @param) = @_;
-	push @{$self->params}, @param;
-	return $self;
-}
-
-sub append_params {
-	shift->append_param(@_);
-}
-
-sub params {
-	my ($self, @value) = @_;
-	return $self->get_value('params') if @_ == 1;
-	$self->{params} = \@value;
-	return $self;
+	$_[0]->{proceed} = $_[1] if @_ > 1;
+	$_[0]->{proceed};
 }
 
 sub params_ref {
@@ -61,9 +43,33 @@ sub self {
 	$_[0]->{params}->[0];
 }
 
+sub params {
+	$_[0]->{params} = [ @_[1..$#_] ] if @_ > 1;
+	return CORE::wantarray
+		? @{$_[0]->{params}}
+		: $_[0]->{params};
+}
+
+sub append_param {
+	my $self = shift;
+	push @{$self->{params}}, @_;
+	return 1;
+}
+
+sub append_params {
+	shift->append_param(@_);
+}
+
+
+
+
+
+######################################################################
+# Higher Level Methods
+
 sub package_name {
 	my $self = shift;
-	my $name = $self->sub_name;
+	my $name = $self->{sub_name};
 	return '' unless $name =~ /::/;
 	$name =~ s/::[^:]+$//;
 	return $name;
@@ -71,22 +77,44 @@ sub package_name {
 
 sub short_sub_name {
 	my $self = shift;
-	my $name = $self->sub_name;
+	my $name = $self->{sub_name};
 	return $name unless $name =~ /::/;
 	$name =~ /::([^:]+)$/;
 	return $1;
 }
 
+sub run_original {
+	my $self     = shift;
+	my $original = $self->original;
+	my @params   = $self->params;
+	my $return_value;
+	if ( CORE::wantarray ) {
+		$return_value = [ $original->(@params) ];
+	} else {
+		$return_value = $original->(@params);
+	}
+	return $self->return_value($return_value);
+}
+
 sub return_value {
 	my ($self, $value) = @_;
-	if (@_ == 1) {
-		my $return_value = $self->get_value('return_value');
-		return wantarray && ref $return_value eq 'ARRAY'?
-			@$return_value: $return_value;
+	if ( @_ > 1 ) {
+		$self->{return_value} = $value;
+		$self->{proceed} = 0;
 	}
-	$self->{return_value} = $value;
-	$self->{proceed} = 0;
-	return $self;
+	my $return_value = $self->get_value('return_value');
+	return (CORE::wantarray && ref $return_value eq 'ARRAY')
+		? @$return_value
+		: $return_value;
+}
+
+sub get_value {
+	my ($self, $key) = @_;
+	Carp::croak "Key does not exist: [$key]" unless exists $self->{$key};
+	my $value = $self->{$key};
+	return (CORE::wantarray && ref $value eq 'ARRAY')
+		? @$value
+		: $value;
 }
 
 sub AUTOLOAD {
@@ -94,13 +122,6 @@ sub AUTOLOAD {
 	my $key  = our $AUTOLOAD;
 	$key =~ s/^.*:://;
 	return $self->get_value($key);
-}
-
-sub get_value {
-	my ($self, $key) = @_;
-	Carp::croak "Key does not exist: [$key]" unless exists $self->{$key};
-	my $value = $self->{$key};
-	return wantarray && ref $value eq 'ARRAY'? @$value: $value;
 }
 
 # Improves performance by not having to send DESTROY calls
