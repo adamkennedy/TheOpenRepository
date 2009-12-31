@@ -5,24 +5,13 @@ use warnings;
 
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
-use Carp::Heavy     (); 
-use Carp            ();
-use Sub::Uplevel    ();
-use Aspect::Advice  ();
+use Carp::Heavy    (); 
+use Carp           ();
+use Sub::Uplevel   ();
+use Aspect::Advice ();
 
 our $VERSION = '0.25';
 our @ISA     = 'Aspect::Advice';
-
-sub new {
-	my $class = shift;
-	return bless { @_ }, $class;
-}
-
-# This should never be called by our own code.
-# It only exists for back-compatibility purposes.
-sub type {
-	return 'after';
-}
 
 sub _install {
 	my $self     = shift;

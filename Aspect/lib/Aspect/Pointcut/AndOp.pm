@@ -2,13 +2,29 @@ package Aspect::Pointcut::AndOp;
 
 use strict;
 use warnings;
-use Carp;
-use Aspect::Pointcut::BinOp ();
+use Aspect::Pointcut ();
 
 our $VERSION = '0.25';
-our @ISA     = 'Aspect::Pointcut::BinOp';
+our @ISA     = 'Aspect::Pointcut';
 
-sub binop { $_[1] && $_[2] }
+sub new {
+	my $class = shift;
+	bless [ @_ ], $class;
+}
+
+sub match_define {
+	my $self = shift;
+	$self->[0]->match_define(@_)
+	&&
+	$self->[1]->match_define(@_)
+}
+
+sub match_run {
+	my $self = shift;
+	$self->[0]->match_run(@_)
+	&&
+	$self->[1]->match_run(@_);
+}
 
 1;
 

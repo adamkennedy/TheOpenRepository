@@ -10,11 +10,10 @@ use Aspect::Advice::Before ();
 our $VERSION = '0.25';
 
 sub new {
-	my $class = "Aspect::Advice::" . ucfirst($_[1]); # Yes, a bit hacky
-	my $self  = $class->new(
-		code     => $_[2], # The advice code
-		pointcut => $_[3], # The advice pointcut
-	);
+	my $self = bless {
+		code     => $_[1], # The advice code
+		pointcut => $_[2], # The advice pointcut
+	}, $_[0];
 
 	# Install and save the lexical hook
 	$self->{hook} = $self->_install;
@@ -23,14 +22,6 @@ sub new {
 }
 
 # private ---------------------------------------------------------------------
-
-sub _install {
-	die("Method 'install' is not implemented by " . ref($_[0]));
-}
-
-sub type {
-	die("Method 'type' is not implemented by " . ref($_[0]));
-}
 
 sub code {
 	$_[0]->{code};
@@ -111,9 +102,9 @@ site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
 
 =head1 AUTHORS
 
-Marcel GrE<uuml>nauer, C<< <marcel@cpan.org> >>
+Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
 
-Ran Eilam C<< <eilara@cpan.org> >>
+Ran Eilam E<lt>eilara@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

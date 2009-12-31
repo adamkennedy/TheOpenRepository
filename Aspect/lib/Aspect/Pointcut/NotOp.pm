@@ -2,27 +2,24 @@ package Aspect::Pointcut::NotOp;
 
 use strict;
 use warnings;
-use Carp;
 use Aspect::Pointcut ();
 
 our $VERSION = '0.25';
 our @ISA     = 'Aspect::Pointcut';
 
-sub init { shift->{op} = pop }
+sub new {
+	bless [ $_[1] ], $_[0];
+}
 
 sub match_define {
-	my ($self, $sub_name) = @_;
-	return !$self->{op}->match_define($sub_name);
+	return ! shift->[0]->match_define(@_);
 }
 
 sub match_run {
-	my ($self, $sub_name) = @_;
-	return !$self->{op}->match_run($sub_name);
+	return ! shift->[0]->match_run(@_);
 }
 
-
 1;
-
 
 __END__
 

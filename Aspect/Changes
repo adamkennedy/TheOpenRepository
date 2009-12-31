@@ -1,5 +1,30 @@
 Revision history for Perl extension Aspect
 
+0.26 Thu 31 Dec 2009 - Adam Kennedy
+	- With the primary internals refactoring completely, we now start
+	  a series of commits to remove excessive abstractions, and to alter
+	  others to more appropriate abstractions (still without changing
+	  any of the APIs)
+	- Cleaning up and refactoring the Aspect/Advice constructor code in
+	  Aspect.pm
+	- Removed the weird Aspect::Advice->new( type, code, pointcut ) for
+	  a more conventional ->new setup.
+	- Attempt to load Sub::Uplevel earlier (before we load Exporter) so
+	  there is an increased likelyhood that we don't have to reload
+	  Exporter later.
+	- Removed redundant references to Hook::LexWrap from the POD, and
+	  removed the "Convert to Sub::Uplevel" item from the TO DO list.
+	- Rewrote the Pointcut family of classes to have a simpler structure
+	  which should be faster. Some now use blessed ARRAYs as a
+	  preparatory step for allowing the AndOp/OrOp pointcuts to have
+	  more than just two elements (and to allow enable certain
+	  optimisation strategies down the line).
+	- Removed the faulty Aspect::Pointcut::BinOp abstraction entirely.
+	  It was causing boolean and/or operations to always run both sides,
+	  so unlike the overloaded expression they were created from, they
+	  would never shortcut. This is now resolved, and the an/or pointcut
+	  elements now shortcut properly.
+
 0.25 Thu 31 Dec 2009 - Adam Kennedy
 	- Debundled various out-of-date testing libraries, and reverted
 	  to more conventional build_requires dependencies now that our

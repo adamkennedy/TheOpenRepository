@@ -3,7 +3,19 @@ package Aspect;
 use 5.008002;
 use strict;
 use warnings;
-use Carp                    ();
+
+# Added by eilara as hack around caller() core dump
+# NOTE: Now we've switched to Sub::Uplevel can this be removed?
+# -- ADAMK
+use Carp::Heavy (); 
+use Carp        ();
+
+# NOTE: According to the Sub::UpLevel docs, we should load it before
+# we load Exporter. But that's a pretty difficult thing.
+# So we'll do the best we can here, and then in the future we might
+# want to consider switching to "use Sub::UpLevel ':aggressive';"
+# -- ADAMK
+use Sub::Uplevel            ();
 use Exporter                ();
 use Aspect::Advice          ();
 use Aspect::Pointcut::Call  ();
@@ -14,19 +26,43 @@ our @ISA     = 'Exporter';
 our @EXPORT  = qw{ aspect before after call cflow };
 
 # Internal data storage
-my @ASPECT = undef;
-my @ADVICE = undef;
+my @FOREVER = ();
+
+
+
+
+
+######################################################################
+# Public (Exported) Functions
 
 sub aspect {
-	my ($name, @params) = @_;
-	$name = "Aspect::Library::$name";
-	runtime_use($name);
-	my $aspect = $name->new(@params);
+	my $name   = _LOAD('Aspect::Library::' . shift);
+	my $aspect = $name->new(@_);
 
 	# If called in void context, aspect is for life
-	push @ASPECT, $aspect unless defined wantarray;
+	push @FOREVER, $aspect unless defined wantarray;
 
 	return $aspect;
+}
+
+sub before (&$) {
+	require Aspect::Advice::Before;
+	my $advice = Aspect::Advice::Before->new(@_);
+
+	# If called in void context, advice is for life
+	push @FOREVER, $advice unless defined wantarray;
+
+	return $advice;
+}
+
+sub after (&$) {
+	require Aspect::Advice::After;
+	my $advice = Aspect::Advice::After->new(@_);
+
+	# If called in void context, advice is for life
+	push @FOREVER, $advice unless defined wantarray;
+
+	return $advice;
 }
 
 sub call ($) {
@@ -37,27 +73,21 @@ sub cflow ($$) {
 	Aspect::Pointcut::Cflow->new(@_);
 }
 
-sub before (&$) {
-	advice( before => @_ );
-}
 
-sub after (&$) {
-	advice( after  => @_ );
-}
 
-sub advice {
-	my $advice = Aspect::Advice->new(@_);
 
-	# If called in void context, advice is for life
-	push @ADVICE, $advice unless defined wantarray;
 
-	return $advice;
-}
+######################################################################
+# Private Functions
 
-sub runtime_use {
+# Run-time use call
+# NOTE: Do we REALLY need to do this as a use?
+#       If the ->import method isn't important, change to native require.
+sub _LOAD {
 	my $package = shift;
 	eval "use $package;";
 	Carp::croak("Cannot use [$package]: $@") if $@;
+	return $package;
 }
 
 1;
@@ -377,15 +407,14 @@ Such aspects, like advice, are enabled as long as they are in scope.
 
 =head1 INTERNALS
 
-Due to the dynamic nature of Perl, and thanks to C<Hook::LexWrap>, there is no
-need for processing of source or byte code, as required in the Java and .NET
-worlds.
+Due to the dynamic nature of Perl, there is no need for processing of source
+or byte code, as required in the Java and .NET worlds.
 
 The implementation is very simple: when you create advice, its pointcut is
 matched using C<match_define()>. Every sub defined in the symbol table is
 matched against the pointcut. Those that match, will get a special wrapper
-installed, using C<Hook::LexWrap>. The wrapper only runs if during run-time,
-the C<match_run()> of the pointcut returns true.
+installed. The wrapper only runs if during run-time, the C<match_run()> of
+the pointcut returns true.
 
 The wrapper code creates an advice context, and gives it to the advice code.
 
@@ -484,10 +513,6 @@ in contributing to the project.
   need to mess with caller, and could add many more pointcut types. All
   we need to do for sub pointcuts is add 2 gotos to selected subs.
 
-* use Sub::Uplevel instead of Hook::LexWrap caller trick, thus we will
-  will play nice with other modules that use Sub::Uplevel (e.g. all the
-  test modules seem to use it)
-
 * a debug flag to print out subs that were matched on match_define
 
 * warnings when over 1000 methods wrapped
@@ -569,11 +594,11 @@ site near you. Or see L<http://search.cpan.org/perldoc?Aspsect.pm>.
 
 =head1 AUTHORS
 
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
 Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
 
 Ran Eilam E<lt>eilara@cpan.orgE<gt>
-
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
@@ -590,4 +615,3 @@ This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
-

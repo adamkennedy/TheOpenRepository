@@ -91,8 +91,7 @@ sub return_value {
 
 sub AUTOLOAD {
 	my $self = shift;
-	my $key = our $AUTOLOAD;
-	return if $key =~ /DESTROY$/;
+	my $key  = our $AUTOLOAD;
 	$key =~ s/^.*:://;
 	return $self->get_value($key);
 }
@@ -103,6 +102,10 @@ sub get_value {
 	my $value = $self->{$key};
 	return wantarray && ref $value eq 'ARRAY'? @$value: $value;
 }
+
+# Improves performance by not having to send DESTROY calls
+# through AUTOLOAD, and not having to check for DESTROY in AUTOLOAD.
+sub DESTROY () { }
 
 1;
 

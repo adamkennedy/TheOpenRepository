@@ -3,26 +3,25 @@ package Aspect::Pointcut;
 use strict;
 use warnings;
 use Carp;
-use Data::Dumper   ();
-use Devel::Symdump ();
-use Aspect::Pointcut::AndOp;
-use Aspect::Pointcut::OrOp;
-use Aspect::Pointcut::NotOp;
+use Data::Dumper            ();
+use Devel::Symdump          ();
+use Aspect::Pointcut::OrOp  ();
+use Aspect::Pointcut::AndOp ();
+use Aspect::Pointcut::NotOp ();
 
 our $VERSION = '0.25';
 
-
-use overload
+use overload (
+	'|'  => sub { Aspect::Pointcut::OrOp->new(@_)  },
 	'&'  => sub { Aspect::Pointcut::AndOp->new(@_) },
-	'|'  => sub { Aspect::Pointcut::OrOp ->new(@_) },
 	'!'  => sub { Aspect::Pointcut::NotOp->new(@_) },
-	'""' => sub { Data::Dumper::Dumper shift };
+	'""' => sub { Data::Dumper::Dumper shift       },
+);
 
+# Default constructor takes a simple list of params
 sub new {
-	my ($class, @spec) = @_;
-	my $self = bless {}, $class;
-	$self->init(@spec);
-	return $self;
+	my $class = shift;
+	bless [ @_ ], $class;
 }
 
 # TODO: if it is 'eq' we can jusy grab it
@@ -33,8 +32,6 @@ sub match {
 		ref $spec eq 'CODE'  ? $spec->($sub_name):
 		$spec eq $sub_name;
 }
-
-sub init {}
 
 # weaving methods -------------------------------------------------------------
 
@@ -67,6 +64,7 @@ sub match_all {
 # template methods ------------------------------------------------------------
 
 sub match_define { 1 }
+
 sub match_run    { 1 }
 
 1;

@@ -2,18 +2,23 @@ package Aspect::Pointcut::Cflow;
 
 use strict;
 use warnings;
-use Carp;
-use Aspect::AdviceContext;
-use Aspect::Pointcut ();
+use Carp                  ();
+use Aspect::Pointcut      ();
+use Aspect::AdviceContext ();
 
 our $VERSION = '0.25';
 our @ISA     = 'Aspect::Pointcut';
 
-sub init {
-	my $self = shift;
-	carp 'Cflow must be created with 2 parameters' unless @_ == 2;
-	$self->{runtime_context_key} = shift;
-	$self->{spec} = shift;
+sub new {
+	my $class = shift;
+	unless ( @_ == 2 ) {
+		Carp::carp 'Cflow must be created with 2 parameters';
+	}
+
+	return bless {
+		runtime_context_key => $_[0],
+		spec                => $_[1],
+	}, $class;
 }
 
 sub match_run {
@@ -34,7 +39,7 @@ sub find_caller {
 	my $self  = shift;
 	my $level = 2;
 	my $caller_info;
-	while (1) {
+	while ( 1 ) {
 		$caller_info = $self->caller_info($level++);
 		last if
 			!$caller_info ||
@@ -53,9 +58,7 @@ sub caller_info {
 		{ %call_info, params => [$call_info{has_params}? @DB::args: ()] }: 0;
 }
 
-
 1;
-
 
 __END__
 
