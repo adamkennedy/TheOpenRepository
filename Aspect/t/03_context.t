@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-# Validates some assumptions by the author about how context and return work
+# Validates some assumptions built into the Aspect code about how context
+# and return work.
 
 use strict;
 BEGIN {

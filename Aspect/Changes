@@ -10,6 +10,13 @@ Revision history for Perl extension Aspect
 	- Now that the descope execution of the closure hook is able to be
 	  trusted, we no longer need the Aspect::Cleanup DESTROY-time
 	  self-execution magick.
+	- Added the ->wantarray property to the AdviceContext object.
+	  This is provided as a convenience to the user (since the wantarray)
+	  function works properly inside the advice code. It's main use is
+	  for some AspectContext internals.
+	- Added wantarray context test, which uncovered a bug where
+	  void-context calls were incorrectly running the advice in scalar
+	  context.
 
 0.24 Wed 30 Dec 2009 - Adam Kennedy
 	- Changes file now uses tabs (to make it less annoying for me) :)

@@ -138,7 +138,7 @@ sub _install {
 				);
 
 				# Execute the advice code
-				my $dummy = &$code($context);
+				&$code($context);
 				return;
 			}
 		}};
