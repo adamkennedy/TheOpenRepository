@@ -7,7 +7,7 @@ use Aspect::AdviceContext  ();
 use Aspect::Advice::After  ();
 use Aspect::Advice::Before ();
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 sub new {
 	my $class = "Aspect::Advice::" . ucfirst($_[1]); # Yes, a bit hacky

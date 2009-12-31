@@ -10,7 +10,7 @@ use Carp            ();
 use Sub::Uplevel    ();
 use Aspect::Advice  ();
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 our @ISA     = 'Aspect::Advice';
 
 sub new {
