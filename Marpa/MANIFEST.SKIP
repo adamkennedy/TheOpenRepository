@@ -1,3 +1,4 @@
+/errs$
 ^author.t/all.errs$
 ^lib/Marpa/UrHTML/t/test.storable.new$
 ^author.t/display.errs$
@@ -6,7 +7,8 @@
 ^_build
 ^Build$
 ^lib/Marpa/Doc/Not_Updated/
-^Marpa-0.\d{3}[_.]\d{3}/
+^Marpa-0.\d{3}_\d{3}/
+^Marpa-0.\d{6}/
 ^lib/Marpa/MDL/try1.mdl.raw$
 ^lib/Marpa/MDL/try2.mdl.raw$
 ^lib/Marpa/MDL/try3.mdl.raw$
@@ -17,6 +19,8 @@
 ^save/
 ^\.svn\/
 \/\.svn\/
+^\.git\/
+\/\.git\/
 \.swp$
 \.tar.gz$
 ^wenyan/

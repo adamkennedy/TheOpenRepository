@@ -10,33 +10,42 @@ expectation for BNF.
 Write your language in BNF, you got a parser.
 But it hasn't been that simple.
 
-<p>The guys who write the textbooks had pushed
+<p>The guys who write the textbooks have pushed
 general BNF parsing for years.
-Improvements in these algorithms pushed
+Improvements in these algorithms have pushed
 the speeds down to linear or close to it
 for the kinds of language in practical use.
 
-<p>But the general parsing algorithms had languished
+<p>But the general parsing algorithms have languished
 on the textbook pages.
-And it wasn't as easy as the academics suggested.
+And I did find it wasn't quite
+as easy as the academics suggested.
 There were some obstacles that they didn't forsee.
 But bottom line, they were right.
 General BNF parsing is practical.
 
-<p>To show this, I've written Marpa,
-a general BNF parser
-generator in pure-Perl.
-Once Marpa looked good,
-I used to write a practial parser
+<p>Marpa is practical (if at this poit alpha)
+general BNF parser
+generator.
+I have used Marpa to write a practial parser
 for a non-trivial task -- HTML parsing.
 That HTML parser is Marpa::UrHTML,
-and I've put it
-to use in tasks I do routinely.
+and I now use
+Marpa::UrHTML
+in tasks I do routinely.
 
 <p>Over the next weeks, I will do phased releases of Marpa.
-The HTML parser is documented in the first release.
+The HTML parser, Marpa::UrHTML, is 
+is documented and ready to use in the first release.
 Over the next few weeks,
 I will document Marpa,
 the parse engine itself.
+
+Right now the Marpa parse engine is "pure Perl", and speeds
+are on the order of PPI.
+This is acceptable for many applications,
+but Marpa can do better.
+Marpa has as its parse engine a mathematical algorithm
+that lends itself to conversion to C.
 Further down the road, I'll write a Marpa C library,
 and an XS wrapper.

@@ -59,7 +59,6 @@ my @sorted_codepoints =
 
 my @long_fields = qw(
 occurrences
-    shrift_occurrences
     shrift_notes
 cedict_definition
     unihan_definition
