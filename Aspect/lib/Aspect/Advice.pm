@@ -40,6 +40,11 @@ sub pointcut {
 	$_[0]->{pointcut};
 }
 
+# Release the symbol table hooks via the closure controller
+sub DESTROY {
+	$_[0]->{hook}->() if $_[0]->{hook};
+}
+
 1;
 
 __END__

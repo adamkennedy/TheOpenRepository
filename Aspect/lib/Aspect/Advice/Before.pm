@@ -7,7 +7,6 @@ use warnings;
 # NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
 use Carp::Heavy     (); 
 use Carp            ();
-use Aspect::Cleanup ();
 use Aspect::Advice  ();
 
 our $VERSION = '0.24';
@@ -118,8 +117,11 @@ sub _install {
 		die $@ if $@;
 	}
 
-	# Return the lexical hook
-	return Aspect::Cleanup->new( sub { $out_of_scope = 1 } );
+	# Return the lexical descoping hook.
+	# This MUST be stored and run at DESTROY-time by the
+	# parent object calling _install. This is less bullet-proof
+	# than the DESTROY-time self-executing blessed coderef
+	return sub { $out_of_scope = 1 };
 }
 
 1;
