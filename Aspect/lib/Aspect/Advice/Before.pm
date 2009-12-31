@@ -72,7 +72,7 @@ sub install {
 				type         => 'before',
 				pointcut     => $pointcut,
 				sub_name     => $name,
-				# wantarray    => $wantarray,
+				wantarray    => $wantarray,
 				params       => \@_,
 				return_value => $wantarray ? [ ] : undef,
 				original     => $original,

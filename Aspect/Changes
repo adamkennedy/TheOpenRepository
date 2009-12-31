@@ -1,5 +1,10 @@
 Revision history for Perl extension Aspect
 
+0.25 Thu 31 Dec 2009 - Adam Kennedy
+	- Debundled various out-of-date testing libraries, and reverted
+	  to more conventional build_requires dependencies now that our
+	  downstream packaging systems have the ability to consume them.
+
 0.24 Wed 30 Dec 2009 - Adam Kennedy
 	- Changes file now uses tabs (to make it less annoying for me) :)
 	- Moved the inline Aspect::Hook::LexWrap::Cleanup class into it's
