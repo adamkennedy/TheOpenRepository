@@ -17,14 +17,14 @@ sub new {
 	);
 
 	# Install and save the lexical hook
-	$self->{hook} = $self->install;
+	$self->{hook} = $self->_install;
 
 	return $self;
 }
 
 # private ---------------------------------------------------------------------
 
-sub install {
+sub _install {
 	die("Method 'install' is not implemented by " . ref($_[0]));
 }
 

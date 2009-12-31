@@ -4,6 +4,9 @@ Revision history for Perl extension Aspect
 	- Debundled various out-of-date testing libraries, and reverted
 	  to more conventional build_requires dependencies now that our
 	  downstream packaging systems have the ability to consume them.
+	- Since the code documents the Aspect::Advice->install method as
+	  private (and it is undocumented) rename to ->_install as a
+	  precursor to changing it's behaviour at an API level.
 
 0.24 Wed 30 Dec 2009 - Adam Kennedy
 	- Changes file now uses tabs (to make it less annoying for me) :)

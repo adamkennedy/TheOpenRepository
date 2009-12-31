@@ -25,7 +25,7 @@ sub type {
 	return 'after';
 }
 
-sub install {
+sub _install {
 	my $self     = shift;
 	my $pointcut = $self->pointcut;
 	my $code     = $self->code;
