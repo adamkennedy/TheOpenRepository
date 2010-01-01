@@ -18,11 +18,11 @@ WWW::OPG - Perl interface to Ontario Power Generation's site
 
 =head1 VERSION
 
-Version 1.000 ($Id$)
+Version 1.003 ($Id$)
 
 =cut
 
-our $VERSION = '1.000';
+our $VERSION = '1.003';
 $VERSION = eval $VERSION;
 
 =head1 DESCRIPTION

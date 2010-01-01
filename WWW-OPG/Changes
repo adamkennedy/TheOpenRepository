@@ -1,3 +1,9 @@
-1.000 - XXX - Jonathan Yu <jawnsy@cpan.org>
+1.003 - 31 Dec 2009 - Jonathan Yu <jawnsy@cpan.org>
 
-  + Initial release
+  + First proper release of WWW::OPG, fixes dependencies,
+    provides many more working examples, better tests
+
+1.000 - 25 Dec 2009 - Jonathan Yu <jawnsy@cpan.org>
+
+  + Initial release (note: this release was broken and
+    withdrawn from CPAN shortly thereafter)

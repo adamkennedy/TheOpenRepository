@@ -23,6 +23,7 @@ my $builder = Module::Build->new(
 
   requires => {
     'perl'              => 5.006,
+    'LWP::UserAgent'    => 0,
 
     # The tests are based on Test::More
     'Test::More'        => 0.62,
