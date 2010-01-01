@@ -180,13 +180,13 @@ sub parse {
     next if $rest =~ /^(?:#|\/\/|\/\*)/; # TODO: parse /* ... */!
 
     if ($next_line_braces_pos_plus_1) {
-      if ($next_line_braces_pos_plus_1==length($ws)) {
+      if ($next_line_braces_pos_plus_1==_length_with_tabs_converted($ws)) {
         next;
       }
       $next_line_braces_pos_plus_1=0;
     } else {
       if ($rest=~/=> {$/) { #handle case where hash keys and values are indented by braces pos + 1
-        $next_line_braces_pos_plus_1=length($fullline);
+        $next_line_braces_pos_plus_1=_length_with_tabs_converted($ws)+length($rest);
       }
     }
 
@@ -266,6 +266,15 @@ sub parse {
   }
 
   return $maxkey;
+}
+
+sub _length_with_tabs_converted {
+    my $str=shift;
+    my $tablen=shift || 8;
+    $str =~ s/( +)$//;
+    my $trailing_spaces = $1;
+    $str =~ s/ +//g; #  assume the spaces are all contained in tabs!
+    return length($str)*$tablen+length($trailing_spaces);
 }
 
 sub _grok_indent_diff {
