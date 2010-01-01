@@ -73,7 +73,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-  $VERSION = '0.07';
+  $VERSION = '0.07_01';
 }
 
 use constant MAX_LINES => 500;
@@ -112,6 +112,7 @@ sub parse {
     return( "s" . $modeline_settings{tabstop} );
   }
 
+  my $next_line_braces_pos_plus_1;
   while ($$textref =~ /\G([ \t]*)([^\r\n]*)[\r\n]+/cgs) {
     my $ws       = $1;
     my $rest     = $2;
@@ -177,6 +178,17 @@ sub parse {
     
     # skip single-line comments
     next if $rest =~ /^(?:#|\/\/|\/\*)/; # TODO: parse /* ... */!
+
+    if ($next_line_braces_pos_plus_1) {
+      if ($next_line_braces_pos_plus_1==length($ws)) {
+        next;
+      }
+      $next_line_braces_pos_plus_1=0;
+    } else {
+      if ($rest=~/=> {$/) { #handle case where hash keys and values are indented by braces pos + 1
+        $next_line_braces_pos_plus_1=length($fullline);
+      }
+    }
 
     # prefix-matching higher indentation level
     if ($ws =~ /^\Q$prev_indent\E(.+)$/) {
