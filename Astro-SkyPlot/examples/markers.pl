@@ -15,5 +15,5 @@ $sp->plot_lat_long(0.2, 0.1, size => .5, marker => MARK_DTRIANGLE);
 $sp->plot_lat_long(0.3, 0.1, size => .5, marker => MARK_DTRIANGLE_FILLED);
 $sp->plot_lat_long(0, 0.2, size => .5, marker => MARK_CROSS);
 $sp->plot_lat_long(0.1, 0.2, size => .5, marker => MARK_DIAG_CROSS);
-$sp->write(file => "t.eps");
+$sp->write(file => "markers.eps");
 
