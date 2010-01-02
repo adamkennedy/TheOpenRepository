@@ -1,5 +1,10 @@
 Revision history for Perl extension pler
 
+1.00 Sun  3 Jan 2010
+	- Switching to a production version
+	- Added support for the xt directory
+	- Upgraded to Module::Install::DSL 0.91
+
 0.34 Mon 30 Jun 2008
 	- Optimising file search to half the number of stat
 	  calls that need to be made to the system.

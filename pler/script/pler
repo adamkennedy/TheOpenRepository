@@ -13,7 +13,7 @@ BEGIN {
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.34';
+	$VERSION = '1.00';
 }
 
 use pler ();
