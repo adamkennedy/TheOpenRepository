@@ -2,7 +2,7 @@ package pler;
 
 # See 'sub main' for main functionality
 
-use 5.005;
+use 5.00503;
 use strict;
 use Config;
 use Carp                     0 ();
@@ -311,15 +311,11 @@ sub main {
 		my @directory = ( 't', has_xt ? 'xt' : () );
 		my @possible  = File::Find::Rule->name('*.t')->file->in(@directory);
 
-		# Look for a naive string match
-		my $pattern = quotemeta $script;
-		my @matches = grep { /$pattern/i } @possible;
-
-		# If there are subfilters, apply them as well
-		while ( @ARGV ) {
-			my $subpattern = quotemeta shift @ARGV;
-			@matches = grep { /$subpattern/i } @matches;
-		}
+		# Filter by the search terms to find matching tests
+		my @matches = filter(
+			[ $script, @ARGV ],
+			[ @possible ],
+		);
 		unless ( @matches ) {
 			error "No tests match '$script'";
 		}
@@ -371,18 +367,28 @@ sub main {
 
 # Encapsulates the smart filtering as a function
 sub filter {
-	my $matches  = shift;
+	my $terms    = shift;
 	my $possible = shift;
+	my @matches  = @$possible;
 
-	# The first term is somewhat magic
-	my $match = shift @$matches;
+	while ( @$terms ) {
+		my $term = shift @$terms;
 
-	# If the search is purely numeric, attempt a super shortcut
-	if ( $match =~ /^\d+$/ ) {
-		
+		if ( ref $term eq 'Regexp' ) {
+			# If the term is a regexp apply it directly
+			@matches = grep { $_ =~ $term } @matches;
+		} elsif ( $term =~ /^[1-9]\d*$/ ) {
+			# If the search is a pure integer (without leading
+			# zeros) attempt a specialised numeric filter.
+			@matches = grep { /\b0*${term}_/ } @matches;
+		} else {
+			# Otherwise treat it as a naive string match
+			$term = quotemeta $term;
+			@matches = grep { /$term/i } @matches;
+		}
 	}
 
-	return $possible;
+	return \@matches;
 }
 
 sub help { print <<'END_HELP'; exit(0); }

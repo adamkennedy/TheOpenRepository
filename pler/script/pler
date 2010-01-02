@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+use 5.00503;
 use strict;
 
 # On some platforms (mostly Windows), we get errors because

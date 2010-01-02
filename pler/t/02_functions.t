@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 11;
 use File::Spec::Functions ':ALL';
 use pler;
 
