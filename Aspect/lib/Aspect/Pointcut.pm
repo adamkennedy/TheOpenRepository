@@ -9,7 +9,7 @@ use Aspect::Pointcut::OrOp  ();
 use Aspect::Pointcut::AndOp ();
 use Aspect::Pointcut::NotOp ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 use overload (
 	'|'  => sub { Aspect::Pointcut::OrOp->new(@_)  },
