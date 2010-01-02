@@ -1,5 +1,15 @@
 Changes for Perl extension ORLite
 
+1.30 Sat  2 Jan 2010
+	- Switching to a production release, CPAN Testers looks ok
+	- Update DBD::SQLite dependency to 1.27. Some of the metadata pragmas
+	  have changed, and we don't want to have to support both the old and
+	  new versions.
+	- ORLite will now correctly use RaiseError => 1, PrintError => 0 when
+	  itself introspecting the schema, so a corrupted SQLite database
+	  won't result in silent failure and the larger parent application
+	  won't crash in unpredictable ways.
+
 1.29_03 Thu  1 Oct 2009
 	- Reverse the prune deletion order
 	- Apply recursive delete flag

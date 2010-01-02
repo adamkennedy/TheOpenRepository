@@ -11,11 +11,11 @@ use File::Path   2.04 ();
 use File::Basename  0 ();
 use Params::Util 0.33 ();
 use DBI         1.607 ();
-use DBD::SQLite  1.25 ();
+use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.29_03';
+	$VERSION = '1.29_04';
 }
 
 # Support for the 'prune' option
@@ -101,7 +101,10 @@ sub import {
 	my $pkg      = $params{package};
 	my $readonly = $params{readonly};
 	my $dsn      = "dbi:SQLite:$file";
-	my $dbh      = DBI->connect($dsn);
+	my $dbh      = DBI->connect( $dsn, undef, undef, {
+		PrintError => 0,
+		RaiseError => 1,
+	} );
 
 	# Schema creation support
 	if ( $created and Params::Util::_CODELIKE($params{create}) ) {
@@ -111,7 +114,7 @@ sub import {
 	# Check the schema version before generating
 	my $version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
 	if ( exists $params{user_version} and $version != $params{user_version} ) {
-		die "Schema user_version mismatch (got $version, wanted $params{user_version})";
+		Carp::croak("Schema user_version mismatch (got $version, wanted $params{user_version})");
 	}
 
 	# Generate the support package code
