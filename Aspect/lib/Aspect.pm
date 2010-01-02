@@ -113,7 +113,7 @@ Aspect - Aspect-oriented programming (AOP) for Perl
   
   # using reusable aspects
   aspect Singleton => 'Person::create';        # let there be only one Person
-  aspect Profiled  => call qr/^Person::set_/;  # profile calls to setters
+  aspect Profiler  => call qr/^Person::set_/;  # profile calls to setters
   
   # append extra argument when Person::get_address is called:
   # the instance of the calling Company object, iff get_address
