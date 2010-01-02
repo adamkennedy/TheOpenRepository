@@ -4,7 +4,7 @@
 
 use strict;
 
-our $VERSION = '1.29_04';
+our $VERSION = '1.30';
 
 unless ( $ORLite::VERSION eq $VERSION ) {
 	die('Failed to load correct ORLite version');
