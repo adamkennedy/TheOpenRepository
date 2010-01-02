@@ -1,10 +1,12 @@
 Revision history for Perl extension Aspect
 
-0.27 to be released
+0.27 Sun  3 Jan 2010
 	- Various micro-optimisation of Aspect::AdviceContext which would
 	  normally be somewhat pointless, but is useful in this case when
 	  an Aspect hook is applied to something which is in the hot loop
 	  for some program.
+	- Added a test script to specifically hunt down the problems with
+	  variable sharing in string-eval'ed closures.
 
 0.26 Thu 31 Dec 2009 - Adam Kennedy
 	- With the primary internals refactoring completely, we now start
