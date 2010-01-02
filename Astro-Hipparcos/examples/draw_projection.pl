@@ -3,15 +3,18 @@ use warnings;
 use Astro::Hipparcos;
 
 # An example of drawing the data in the Hipparcos catalog
-# (or any subset) into a 2D plot using a Hammer projection.
+# (or any subset) into a 2D plot using Astro::SkyPlot
+# and a Hammer, Sinusoidal or Miller projection.
+# 
+# This is virtually the same as the draw_hammer_proj.pl example,
+# except it uses Astro::SkyPlot to do the actual drawing and thus
+# supports multiple projections.
 #
-# Have a look at draw_projection.pl instead. That's the good
-# version. This is the limited, manual one.
-#
-# Usage: draw_hammer_proj.pl datafile.dat
-# Will produce hippa.eps
+# Usage: draw_projection.pl datafile.dat [hammer|sinusoidal|miller]
+# Will produce proj.eps
 #
 # Note: This example requires several extra modules:
+# - Astro::SkyPlot
 # - PostScript::Simple
 # - Astro::MapProjection
 # - Astro::Nova
@@ -22,14 +25,11 @@ use Astro::Hipparcos;
 
 use constant PI      => atan2(1,0)*2;
 use constant DEG2RAD => PI/180;
-use constant RAD2DEG => 180/PI;
-
-use PostScript::Simple;
 
 # this will convert from equatorial coordinates to galactic coordinates
 use Astro::Nova qw/get_gal_from_equ/;
-# this will go from galactic longitude/latitude to 2D coords
-use Astro::MapProjection qw/hammer_projection/;
+# this handles the actual plotting
+use Astro::SkyPlot qw/:all/;
 
 
 # open the input file
@@ -37,20 +37,19 @@ my $catalog_file = shift;
 $catalog_file = "hip_main.dat" if not defined $catalog_file;
 my $catalog = Astro::Hipparcos->new($catalog_file);
 
-# create the image
-my ($xsize, $ysize) = (200, 200);
-my $ps = PostScript::Simple->new(
-  eps    => 1,
-  units  => "mm",
-  xsize  => $xsize,
-  ysize  => $ysize,
-  colour => 1,
-  clip   => 1,
-);
+# create the plot object
+my $proj = shift;
+$proj = 'hammer' if not defined $proj;
 
-# background
-$ps->setcolour(0, 0, 0);
-$ps->box({filled=>1}, 0, 0, $xsize, $ysize);
+my $size = 200; # in mm
+my $xsize = $size;
+my $ysize = $size; # let's stay symmetric
+my $sp = Astro::SkyPlot->new(
+  projection => $proj,
+  xsize => $xsize,
+  ysize => $ysize,
+);
+$sp->marker(MARK_CIRCLE_FILLED);
 
 
 my $min_magnitude = -1.441; # determined with a "grep" over the catalog
@@ -62,7 +61,7 @@ while (defined(my $record = $catalog->get_record())) {
 
   # fetch color from color scale (see below)
   my $color = color($mag, $min_magnitude, $max_magnitude);
-  $ps->setcolour(map {255*$_} @$color);
+  $sp->setcolor(map {255*$_} @$color);
 
   # convert to galactic coords
   my $equ_posn = Astro::Nova::EquPosn->new(ra => $record->get_RAdeg, dec => $record->get_DEdeg);
@@ -70,18 +69,11 @@ while (defined(my $record = $catalog->get_record())) {
   my ($b, $l) = ($gal_posn->get_b, $gal_posn->get_l);
   $l -= 360 while $l > 180;
 
-  #print "$b $l\n";
-  
-  # project to x/y for plotting
-  my ($x, $y) = hammer_projection($b*DEG2RAD, $l*DEG2RAD);
-
-  # still have to shift the origin to the lower left (ps_coord_trafo)
-  $ps->circle({filled=>1}, ps_coord_trafo($x, $y), 0.1);
+  $sp->plot_lat_long($b*DEG2RAD, $l*DEG2RAD);
 }
 
-plot_axes($ps);
-
 # draw scale
+# => This should be part of Astro::SkyPlot?
 my $scale_miny    = $ysize*0.85;
 my $scale_maxy    = $ysize*0.92;
 my $scale_minx    = $xsize*0.05;
@@ -94,60 +86,15 @@ foreach my $i (0..$scale_steps-1) {
   my $x = $scale_minx + $scale_step*$i;
   my $mag = $min_magnitude+$scale_magstep*$i;
   my $color = color($mag, $min_magnitude, $max_magnitude);
-  $ps->setcolour(map {255*$_} @$color);
-  $ps->box({filled=>1}, $x, $scale_miny, $x+$scale_step*1.1, $scale_maxy);
+  $sp->setcolor(map {255*$_} @$color);
+  $sp->ps->box({filled=>1}, $x, $scale_miny, $x+$scale_step*1.1, $scale_maxy);
 }
 
-$ps->output("hippa.eps");
+$sp->write(file => "proj.eps");
 
-# plots the grey axes into the image
-sub plot_axes {
-  my $ps = shift;
 
-  $ps->setcolour(100,100,100); # grey
-  $ps->setlinewidth(0.05);
-  # plot longitude axes
-  for (my $long = -180*DEG2RAD; $long <= 180.001*DEG2RAD; $long += 45*DEG2RAD) {
-    my $first = 1;
-    for (my $lat = -90*DEG2RAD; $lat <= 90.001*DEG2RAD; $lat += 3.0*DEG2RAD) {
-      my ($x, $y) = hammer_projection($lat, $long);
-      ($x, $y) = ps_coord_trafo($x, $y);
-      if ($first) {
-        $ps->line($x, $y, $x, $y);
-        $first = 0;
-      }
-      else {
-        $ps->linextend($x, $y);
-      }
-    }
-  }
-
-  # plot lat axes
-  for (my $lat = -90*DEG2RAD; $lat <= 90*DEG2RAD; $lat += 10*DEG2RAD) {
-    my $first = 1;
-    for (my $long = -180*DEG2RAD; $long <= 180*DEG2RAD; $long += 5.0*DEG2RAD) {
-      my ($x, $y) = hammer_projection($lat, $long);
-      ($x, $y) = ps_coord_trafo($x, $y);
-      if ($first) {
-        $ps->line($x, $y, $x, $y);
-        $first = 0;
-      }
-      else {
-        $ps->linextend($x, $y);
-      }
-    }
-  }
-}
-
-# convert the logical x/y coordinates with origin at center to
-# screen/ps coordinates with origin at lower left
-sub ps_coord_trafo {
- return(
-   $_[0]*$xsize/6 + $xsize/2,
-   $_[1]*$ysize/6 + $ysize/2,
- );
-}
-
+# all that's following is for the color scales. Should be done
+# in a module...
 
 sub linear_interpolate {
   my ($x, $x1, $x2, $y1, $y2) = @_;
