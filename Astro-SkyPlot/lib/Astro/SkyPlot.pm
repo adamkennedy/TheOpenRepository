@@ -3,7 +3,7 @@ use 5.006001;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 use Carp 'croak';
 use Astro::MapProjection;
 use PostScript::Simple;
@@ -13,17 +13,25 @@ use Class::XSAccessor {
 };
 
 use constant {
-  HAMMER_PROJ => 0,
+  HAMMER_PROJ     => 0,
+  SINUSOIDAL_PROJ => 1,
+  MILLER_PROJ     => 2,
 };
 
 use constant PROJ_COORD_TRAFO => [
   \&Astro::MapProjection::hammer_projection,
+  \&Astro::MapProjection::sinusoidal_projection,
+  \&Astro::MapProjection::miller_projection,
 ];
 use constant PROJ_CANVAS_TRAFO => [
   sub {return( $_[0]*$_[2]/6 + $_[2]/2, $_[1]*$_[3]/6 + $_[3]/2 )},
+  sub {return( $_[0]*$_[2]/6.5 + $_[2]/2, $_[1]*$_[3]/6.5 + $_[3]/2 )},
+  sub {return( $_[0]*$_[2]/6.5 + $_[2]/2, $_[1]*$_[3]/6.5 + $_[3]/2 )},
 ];
 use constant PROJ_NAMES => {
-  'hammer' => HAMMER_PROJ,
+  'hammer'     => HAMMER_PROJ,
+  'sinusoidal' => SINUSOIDAL_PROJ,
+  'miller'     => MILLER_PROJ,
 };
 
 use constant PI      => atan2(1,0)*2;
@@ -102,6 +110,15 @@ These are defined through constants that can be exported from the module:
   MARK_DTRIANGLE_FILLED => filled downward triangular markers
   MARK_CROSS            => cross shaped markers
   MARK_DIAGCROSS        => diagonal cross shaped markers
+
+=head1 PROJECTIONS
+
+You can use the Hammer projection (C<"hammer">), the Sinusoidal projection
+(C<"sinusoidal">), and the Miller projection (C<"miller">). Default is C<"hammer">.
+You can use the C<projection> argument to the constructor to change this.
+
+Cf. L<Astro::MapProjection> for details on these projections and have a look at
+the default axes by running the F<examples/projections.pl> example.
 
 =head1 METHODS
 
@@ -281,12 +298,13 @@ sub _plot_axis {
   $self->setcolor(@{$self->{axiscolor}});
   my $xsize = $self->{xsize};
   my $ysize = $self->{ysize};
-  
-  if ($projection == HAMMER_PROJ) {
-    my $ps_trafo = PROJ_CANVAS_TRAFO->[$projection];
-    my $projector = PROJ_COORD_TRAFO->[$projection];
 
-    $ps->setlinewidth(0.05);
+  my $ps_trafo = PROJ_CANVAS_TRAFO->[$projection];
+  my $projector = PROJ_COORD_TRAFO->[$projection];
+
+  $ps->setlinewidth(0.05);
+  
+  if ($projection == HAMMER_PROJ || $projection == SINUSOIDAL_PROJ) {
     # plot longitude axes
     for (my $long = -180*DEG2RAD; $long <= 180.001*DEG2RAD; $long += 45*DEG2RAD) {
       my $first = 1;
@@ -303,9 +321,9 @@ sub _plot_axis {
     }
 
     # plot lat axes
-    for (my $lat = -90*DEG2RAD; $lat <= 90*DEG2RAD; $lat += 10*DEG2RAD) {
+    for (my $lat = -90*DEG2RAD; $lat <= 90.001*DEG2RAD; $lat += 10*DEG2RAD) {
       my $first = 1;
-      for (my $long = -180*DEG2RAD; $long <= 180*DEG2RAD; $long += 5.0*DEG2RAD) {
+      for (my $long = -180*DEG2RAD; $long <= 180.001*DEG2RAD; $long += 5.0*DEG2RAD) {
         my ($x, $y) = $ps_trafo->( $projector->($lat, $long), $xsize, $ysize );
         if ($first) {
           $ps->line($x, $y, $x, $y);
@@ -316,6 +334,25 @@ sub _plot_axis {
         }
       }
     }
+  }
+  elsif ($projection == MILLER_PROJ) {
+    # much, much less steps required ==> special case
+    # plot longitude axes
+    for (my $long = -180*DEG2RAD; $long <= 180.001*DEG2RAD; $long += 45*DEG2RAD) {
+      my ($xs, $ys) = $ps_trafo->( $projector->(-90*DEG2RAD, $long), $xsize, $ysize );
+      my ($xe, $ye) = $ps_trafo->( $projector->(90*DEG2RAD, $long), $xsize, $ysize );
+      $ps->line($xs, $ys, $xe, $ye);
+    }
+
+    # plot lat axes
+    for (my $lat = -90*DEG2RAD; $lat <= 90.001*DEG2RAD; $lat += 10*DEG2RAD) {
+      my ($xs, $ys) = $ps_trafo->( $projector->($lat, -180*DEG2RAD), $xsize, $ysize );
+      my ($xe, $ye) = $ps_trafo->( $projector->($lat, 180*DEG2RAD), $xsize, $ysize );
+      $ps->line($xs, $ys, $xe, $ye);
+    }
+  }
+  else {
+    die "Invalid projection type $projection";
   }
 
   $self->{color} = $old_color;
@@ -350,13 +387,13 @@ sub _draw_marker {
   my $ps = $self->{ps};
   if ($marker <= MARK_CIRCLE_FILLED) {
     $ps->circle(
-      {filled => ($marker==MARK_CIRCLE_FILLED)},
+      {filled => ($marker == MARK_CIRCLE_FILLED)},
       $x, $y, $size
     );
   }
   elsif ($marker <= MARK_BOX_FILLED) {
     $ps->box(
-      {filled => ($marker==MARK_BOX_FILLED)},
+      {filled => ($marker == MARK_BOX_FILLED)},
       $x-$size, $y-$size, $x+$size, $y+$size
     );
   }
