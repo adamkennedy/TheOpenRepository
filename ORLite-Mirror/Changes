@@ -1,7 +1,11 @@
 Changes for Perl extension ORLite-Mirror
 
+1.18 Sat  2 Jan 2010
+	- Upgrading ORLite dependency to 1.30 to get improved startup
+	  error handling, and new DBD::SQLite 1.27
+
 1.17 Fri 25 Sep 2009
-	- Updating ORLite dep to 1.28 to get prune support.
+	- Updating ORLite dep to 1.28 to get prune support
 	- Integrated support for prune to ORLite::Mirror
 	- Switch all tests to use prune
 

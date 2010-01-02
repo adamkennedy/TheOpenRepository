@@ -14,11 +14,11 @@ use IO::Uncompress::Gunzip  2.008 ();
 use IO::Uncompress::Bunzip2 2.008 ();
 use LWP::UserAgent          5.806 ();
 use LWP::Online              1.07 ();
-use ORLite                   1.28 ();
+use ORLite                   1.30 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.17';
+	$VERSION = '1.18';
 	@ISA     = 'ORLite';
 }
 
@@ -189,7 +189,7 @@ sub import {
 
 		# If we updated the file, add any extra indexes that we need
 		if ( $refreshed and $params{index} ) {
-			my $dbh = DBI->connect("DBI:SQLite:$db", undef, undef, {
+			my $dbh = DBI->connect( "DBI:SQLite:$db", undef, undef, {
 				RaiseError => 1,
 				PrintError => 1,
 			} );
@@ -271,8 +271,9 @@ my \$URL  = '$url';
 my \$PATH = '$path';
 
 sub refresh {
-	my \$class     = shift;
-	my \%param     = \@_;
+	my \$class = shift;
+	my \%param = \@_;
+
 	require LWP::UserAgent;
 	my \$useragent = LWP::UserAgent->new(
 		agent         => '$agent',
@@ -307,7 +308,10 @@ sub connect {
 			show_progress => $show_progress,
 		);
 	}
-	DBI->connect(\$class->dsn);
+	DBI->connect( \$class->dsn, undef, undef {
+		RaiseError => 1,
+		PrintError => 0,
+	} );
 }
 END_PERL
 	}
@@ -370,7 +374,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2008 - 2009 Adam Kennedy.
+Copyright 2008 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
