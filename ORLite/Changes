@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.31 Sat  2 Jan 2010
+	- Adding explicit versioned-use lines to the generated code (in case
+	  the generated code is used independantly to its creation)
+
 1.30 Sat  2 Jan 2010
 	- Switching to a production release, CPAN Testers looks ok
 	- Update DBD::SQLite dependency to 1.27. Some of the metadata pragmas

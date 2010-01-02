@@ -15,7 +15,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.30';
+	$VERSION = '1.31';
 }
 
 # Support for the 'prune' option
@@ -122,8 +122,9 @@ sub import {
 package $pkg;
 
 use strict;
-use Carp ();
-use DBI  ();
+use Carp              ();
+use DBI         1.607 ();
+use DBD::SQLite  1.27 ();
 
 my \$DBH = undef;
 
@@ -391,7 +392,7 @@ sub create {
 sub insert {
 	my \$self = shift;
 	my \$dbh  = $pkg->dbh;
-	\$dbh->do('$sql->{insert}', {},
+	\$dbh->do( '$sql->{insert}', {},
 $iattr
 	);
 $fill_pk	
