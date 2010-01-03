@@ -12,35 +12,6 @@ sub members {
   return qw/hours minutes seconds/
 }
 
-#my $FLOAT = qr/(?:[+-]?)(?=\d|\.\d)\d*(?:\.\d*)?(?:[Ee]([+-]?\d+))?/;
-#sub from_string {
-#  my $class = shift;
-#  my $self = ref($class) ? $class : $class->new();
-#  my $string = shift;
-#  $string =~ m{
-#      ^\s*
-#      ([+-]?)\s*
-#      (?:(\d+)\s*°)?
-#      \s*
-#      (?:(\d+)\s*')?
-#      \s*
-#      (?:($FLOAT)\s*'')?
-#      \s*(?:([eEwWnNsS]))?\s*$
-#    }x or return();
-#  my ($sign, $deg, $min, $sec, $dir) = ($1, $2, $3, $4, $5);
-#  if (not grep {defined($_)} ($deg, $min, $sec)) {
-#    return();
-#  }
-#  $sign = 1 if not defined $sign;
-#  $sign = ($sign eq '-' ? -1 : 1);
-#  $sign *= -1 if $dir and $dir =~ /^[wW]$/;
-#  $self->set_neg($sign < 0 ? 1 : 0);
-#  $self->set_degrees(defined $deg ? $deg : 0);
-#  $self->set_minutes(defined $min ? $min : 0);
-#  $self->set_seconds(defined $sec ? $sec : 0);
-#  return $self;
-#}
-
 sub as_ascii {
   my $self = shift;
   my $template = <<'HERE';
