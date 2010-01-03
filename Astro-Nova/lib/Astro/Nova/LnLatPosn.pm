@@ -103,7 +103,7 @@ Steffen Mueller, E<lt>smueller@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-The Astro::Nova wrapper of libnova is copyright (C) 2009 by Steffen Mueller.
+The Astro::Nova wrapper of libnova is copyright (C) 2009-2010 by Steffen Mueller.
 
 The wrapper code is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.0 or,
