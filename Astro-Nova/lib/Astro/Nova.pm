@@ -255,6 +255,8 @@ require Astro::Nova::ZoneDate;
 require Astro::Nova::DMS;
 require Astro::Nova::HMS;
 require Astro::Nova::LnLatPosn;
+require Astro::Nova::GalPosn;
+require Astro::Nova::EquPosn;
 
 1;
 __END__
