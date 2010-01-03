@@ -1,5 +1,7 @@
 Revision history for Perl extension Astro::Hipparcos.
 
+  - Updated, improved draw_projection.pl example.
+
 0.08  Sat Jan  2 22:30 2010
   - Better projection example using Astro::SkyPlot.
     (examples/draw_projection.pl)
