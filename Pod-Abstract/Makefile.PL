@@ -14,7 +14,7 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
-	    'Pod::Parser' => 0,
+        'Pod::Parser' => 0,
         'IO::String' => 0,
         'File::Temp' => 0,
         'Scalar::Util' => 0,
