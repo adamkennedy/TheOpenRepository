@@ -113,6 +113,7 @@ sub parse {
   }
 
   my $next_line_braces_pos_plus_1;
+  my $prev_indent_type = undef;
   while ($$textref =~ /\G([ \t]*)([^\r\n]*)[\r\n]+/cgs) {
     my $ws       = $1;
     my $rest     = $2;
@@ -190,10 +191,19 @@ sub parse {
       }
     }
 
+    if ($prev_indent eq $ws) {
+      if ($prev_indent_type) {
+        $indentdiffs{$prev_indent_type}+=0.01;
+      }
+      next;
+    }
+
     # prefix-matching higher indentation level
     if ($ws =~ /^\Q$prev_indent\E(.+)$/) {
       my $diff = $1;
-      _grok_indent_diff($diff, \%indentdiffs);
+      my $indent_type=_analyse_indent_diff($diff);
+      $indentdiffs{$indent_type}++;
+      $prev_indent_type=$indent_type;
       $prev_indent = $ws;
       next;
     }
@@ -201,7 +211,10 @@ sub parse {
     # prefix-matching lower indentation level
     if ($prev_indent =~ /^\Q$ws\E(.+)$/) {
       my $diff = $1;
-      _grok_indent_diff($diff, \%indentdiffs);
+      #_grok_indent_diff($diff, \%indentdiffs);
+      my $indent_type=_analyse_indent_diff($diff);
+      $indentdiffs{$indent_type}++;
+      $prev_indent_type=$indent_type;
       $prev_indent = $ws;
       next;
     }
@@ -292,6 +305,23 @@ sub _grok_indent_diff {
     my $trailing_spaces = $1;
     $diff =~ s/ +//g; #  assume the spaces are all contained in tabs!
     $indentdiffs->{"m" . (length($diff)*8+length($trailing_spaces))}++;
+  }
+}
+
+sub _analyse_indent_diff {
+  my $diff = shift;
+
+  if ($diff =~ /^ +$/) {
+    return "s" . length($diff);
+  }
+  elsif ($diff =~ /^\t+$/) {
+    return "t8"; # we can't infer what a tab means. Or rather, we need smarter code to do it
+  }
+  else { # mixed!
+    $diff =~ s/( +)$//;
+    my $trailing_spaces = $1;
+    $diff =~ s/ +//g; #  assume the spaces are all contained in tabs!
+    return "m" . (length($diff)*8+length($trailing_spaces));
   }
 }
 
