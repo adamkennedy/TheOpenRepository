@@ -16,7 +16,7 @@ use Probe::Perl           0.01 ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '1.00';
+        $VERSION = '1.01';
 }
 
 # Does exec work on this platform
@@ -312,20 +312,20 @@ sub main {
 		my @possible  = File::Find::Rule->name('*.t')->file->in(@directory);
 
 		# Filter by the search terms to find matching tests
-		my @matches = filter(
+		my $matches = filter(
 			[ $script, @ARGV ],
 			[ @possible ],
 		);
-		unless ( @matches ) {
+		unless ( @$matches ) {
 			error "No tests match '$script'";
 		}
-		if ( @matches > 1 ) {
+		if ( @$matches > 1 ) {
 			error(
 			        "More than one possible test",
-		        	map { "  $_" } sort @matches,
+		        	map { "  $_" } sort @$matches,
 			);
 		}
-		$script = $matches[0];
+		$script = $matches->[0];
 
 		# Localize the path
 		$script = File::Spec->catfile( split /\//, $script );

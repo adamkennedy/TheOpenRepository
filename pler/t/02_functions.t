@@ -30,6 +30,7 @@ my @tests = qw{
 	t/02_functions.t
 	t/22_something.t
 };
+
 is_deeply(
 	pler::filter(
 		[ 'functions' ],
@@ -38,6 +39,7 @@ is_deeply(
 	[ 't/02_functions.t' ],
 	'Simple term ok',
 );
+
 is_deeply(
 	pler::filter(
 		[ '22' ],
@@ -45,6 +47,7 @@ is_deeply(
 	),
 	[ 't/22_something.t' ],
 );
+
 is_deeply(
 	pler::filter(
 		[ '2' ],
@@ -52,5 +55,3 @@ is_deeply(
 	),
 	[ 't/02_functions.t' ],
 );
-	
-exit(0);

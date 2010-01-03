@@ -1,5 +1,8 @@
 Revision history for Perl extension pler
 
+1.01 Sun  3 Jan 2010
+	- Fixed a silly typo
+
 1.00 Sun  3 Jan 2010
 	- Switching to a production version
 	- Upgraded to Module::Install::DSL 0.91
