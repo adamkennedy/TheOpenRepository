@@ -17,7 +17,7 @@ use Astro::Hipparcos;
 # - Astro::SkyPlot
 # - PostScript::Simple
 # - Astro::MapProjection
-# - Astro::Nova
+# - Astro::Nova (version 0.06 and up)
 #
 # You can find the full EPS output of this program at
 #   http://steffen-mueller.net/hipparcos/hipparcos.eps.bz2
@@ -27,7 +27,7 @@ use constant PI      => atan2(1,0)*2;
 use constant DEG2RAD => PI/180;
 
 # this will convert from equatorial coordinates to galactic coordinates
-use Astro::Nova qw/get_gal_from_equ/;
+use Astro::Nova;
 # this handles the actual plotting
 use Astro::SkyPlot qw/:all/;
 
@@ -65,7 +65,7 @@ while (defined(my $record = $catalog->get_record())) {
 
   # convert to galactic coords
   my $equ_posn = Astro::Nova::EquPosn->new(ra => $record->get_RAdeg, dec => $record->get_DEdeg);
-  my $gal_posn = get_gal_from_equ($equ_posn);
+  my $gal_posn = $equ_posn->to_galactic_J2000();
   my ($b, $l) = ($gal_posn->get_b, $gal_posn->get_l);
   $l -= 360 while $l > 180;
 
