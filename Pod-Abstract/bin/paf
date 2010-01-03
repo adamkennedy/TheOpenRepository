@@ -6,7 +6,6 @@ use warnings;
 
 use Pod::Abstract;
 use Pod::Abstract::Filter;
-use UNIVERSAL qw(isa);
 
 use File::Temp qw(tempfile tempdir);
 
@@ -207,7 +206,7 @@ sub main {
         ($out, $tmpfilename) = tempfile;
     }
 
-    if(isa($next, 'Pod::Abstract::Node')) {
+    if(eval { $next->isa( 'Pod::Abstract::Node' ) }) {
         if($flags{d}) {
             print $out $next->ptree;
         } else {

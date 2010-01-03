@@ -368,7 +368,7 @@ sub duplicate {
     my %new_params = ( );
     foreach my $param (keys %$params) {
         my $pv = $params->{$param};
-        if(ref $pv && UNIVERSAL::can($pv, 'duplicate')) {
+        if(ref $pv && eval { $pv->can('duplicate') } ) {
             $new_params{$param} = $pv->duplicate;
         } elsif(! ref $pv) {
             $new_params{$param} = $pv;

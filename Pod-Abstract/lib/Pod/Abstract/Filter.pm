@@ -3,7 +3,6 @@ use strict;
 use warnings;
 
 use Pod::Abstract;
-use UNIVERSAL qw(isa);
 
 our $VERSION = '0.19';
 
@@ -108,7 +107,7 @@ sub run {
     my $self = shift;
     my $arg = shift;
     
-    if( isa($arg, 'Pod::Abstract::Node') ) {
+    if( eval { $arg->isa( 'Pod::Abstract::Node' ) } ) {
         return $self->filter($arg);
     } else {
         my $pa = Pod::Abstract->load_string($arg);

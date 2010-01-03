@@ -4,7 +4,6 @@ use warnings;
 
 use Data::Dumper;
 
-use UNIVERSAL qw(isa can);
 use Pod::Abstract::BuildNode qw(node);
 
 $Data::Dumper::Indent = 1;
@@ -469,7 +468,7 @@ sub match_expression {
         my $t_result;
         # Allow for r_exp to be another expression - generate both
         # node lists if required.
-        if(can($r_exp, 'process')) {
+        if( eval { $r_exp->can('process') } ) {
             my @r_list = $r_exp->process($n);
             $t_result = $self->$test_action(\@t_list, \@r_list, $op);
         } else {
@@ -489,7 +488,7 @@ sub test_cmp_op {
     my $r_exp = shift;
     my $op = shift;
     
-    if(scalar(@$r_exp) == 0 || isa($r_exp->[0],'Pod::Abstract::Node')) {
+    if(scalar(@$r_exp) == 0 || eval { $r_exp->[0]->isa('Pod::Abstract::Node') }) {
         # combination test
         my $match = 0;
         foreach my $l (@$l_list) {
