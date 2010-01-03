@@ -584,7 +584,12 @@ If a member is called C<L>, then there will be
 two methods C<get_L> and C<set_L> for getting/setting the data. All numeric data
 is intialized to zero.
 
-  Astro::Nova::Date, ln_date
+=over 2
+
+=item C<ln_date>
+
+Implemented as C<Astro::Nova::Date>.
+
     int years
     int months
     int days
@@ -592,14 +597,19 @@ is intialized to zero.
     int minutes
     double seconds
 
-L<Astro::Nova::DMS>, C<ln_dms>
+=item C<ln_dms>
+
+Implemented as L<Astro::Nova::DMS>.
 
     unsigned short  neg
     unsigned short  degrees
     unsigned short  minutes
     double  seconds
-  
-  Astro::Nova::EllOrbit, ln_ell_orbit
+
+=item C<ln_ell_orbit>
+
+Implemented as C<Astro::Nova::EllOrbit>.
+
     double  a
     double  e
     double  i
@@ -607,31 +617,48 @@ L<Astro::Nova::DMS>, C<ln_dms>
     double  omega
     double  n
     double  JD
-  
-  Astro::Nova::EquPosn, ln_equ_posn
+
+=item C<ln_equ_posn>
+
+Implemented as L<Astro::Nova::EquPosn>.
+
     double  ra
     double  dec
-  
-  Astro::Nova::GalPosn, ln_gal_posn
+
+=item C<ln_gal_posn>
+
+Implemented as L<Astro::Nova::GalPosn>.
+
     double  l
     double  b
-  
-  Astro::Nova::HelioPosn, ln_helio_posn
+
+=item C<ln_helio_posn>
+
+Implemented as C<Astro::Nova::HelioPosn>.
+
     double  L
     double  B
     double  R
 
-L<Astro::Nova::HMS>, ln_hms
+=item C<ln_hms>
+
+Implemented as L<Astro::Nova::HMS>.
 
     unsigned short  hours
     unsigned short  minutes
     double  seconds
-  
-  Astro::Nova::HrzPosn, ln_hrz_posn
+
+=item C<ln_hrz_posn>
+
+Implemented as C<Astro::Nova::HrzPosn>.
+
     double  az
     double  alt
-  
-  Astro::Nova::HypOrbit, ln_hyp_orbit
+
+=item C<ln_hyp_orbit>
+
+Implemented as C<Astro::Nova::HypOrbit>.
+
     double  q
     double  e
     double  i
@@ -639,34 +666,50 @@ L<Astro::Nova::HMS>, ln_hms
     double  omega
     double  JD
 
-L<Astro::Nova::LnLatPosn>, C<ln_lnlat_posn>
+=item C<ln_lnlat_posn>
+
+Implemented as L<Astro::Nova::LnLatPosn>.
 
     double  lng
     double  lat
-  
-  Astro::Nova::Nutation, ln_nutation
+
+=item C<ln_nutation>
+
+Implemented as C<Astro::Nova::Nutation>.
+
     double  longitude
     double  obliquity
     double  ecliptic
-  
-  Astro::Nova::ParOrbit, ln_par_orbit
+
+=item C<ln_par_orbit>
+
+Implemented as C<Astro::Nova::ParOrbit>.
+
     double  q
     double  i
     double  w
     double  omega
     double  JD
-  
-  Astro::Nova::RectPosn, ln_rect_posn
+
+=item C<ln_rect_posn>
+
+Implemented as C<Astro::Nova::RectPosn>.
+
     double  X
     double  Y
     double  Z
-  
-  Astro::Nova::RstTime, ln_rst_time
+
+=item C<ln_rst_time>
+
+Implemented as C<Astro::Nova::RstTime>.
+
     double  rise
     double  set
     double  transit
 
-L<Astro::Nova::ZoneDate>, C<ln_zonedate>
+=item C<ln_zonedate>
+
+Implemented as L<Astro::Nova::ZoneDate>.
 
     int  years
     int  months
@@ -676,21 +719,36 @@ L<Astro::Nova::ZoneDate>, C<ln_zonedate>
     double  seconds
     long  gmtoff
 
+=back
+
 These are "human readable" composite structs that contain
 others. Accessing their memebers with a getter method will
 return a B<new copy> of the contained structure.
 
-  Astro::Nova::HEquPosn, lnh_equ_posn
+=over 2
+
+=item C<lnh_equ_posn>
+
+Implemented as C<Astro::Nova::HEquPosn>.
+
     struct ln_hms ra
     struct ln_dms dec
-  
-  Astro::Nova::HHrzPosn, lnh_hrz_posn
+
+=item C<lnh_hrz_posn>
+
+Implemented as C<Astro::Nova::HHrzPosn>.
+
     struct ln_dms az
     struct ln_dms alt
-  
-  Astro::Nova::HLnLatPosn, lnh_lnlat_posn
+
+=item C<lnh_lnlat_posn>
+
+Implemented as C<Astro::Nova::HLnLatPosn>.
+
     struct ln_dms lng
     struct ln_dms lat
+
+=back
 
 =head1 SEE ALSO
 
