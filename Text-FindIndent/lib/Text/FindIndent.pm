@@ -73,7 +73,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-  $VERSION = '0.07_01';
+  $VERSION = '0.07_02';
 }
 
 use constant MAX_LINES => 500;
@@ -86,6 +86,7 @@ sub parse {
   my $textref = ref($text) ? $text : \$text; # accept references, too
 
   my $skip_pod = $opts{skip_pod};
+  my $first_level_indent_only = $opts{first_level_indent_only}?1:0;
 
   my %modeline_settings;
 
@@ -189,6 +190,10 @@ sub parse {
       if ($rest=~/=> {$/) { #handle case where hash keys and values are indented by braces pos + 1
         $next_line_braces_pos_plus_1=_length_with_tabs_converted($ws)+length($rest);
       }
+    }
+
+    if ($first_level_indent_only and $prev_indent ne '') {
+      next;
     }
 
     if ($prev_indent eq $ws) {
