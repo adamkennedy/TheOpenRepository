@@ -3,13 +3,13 @@ package ORDB::CPANUploads;
 use 5.008005;
 use strict;
 use warnings;
-use Params::Util   0.38 ();
-use ORLite::Mirror 1.12 ();
+use Params::Util   1.00 ();
+use ORLite::Mirror 1.18 ();
 
-our $VERSION = '0.04';
+our $VERSION = '1.05';
 
 sub import {
-	my $class = shift;
+	my $class  = shift;
 	my $params = Params::Util::_HASH(shift) || {};
 
 	# Pass through any params from above
@@ -167,7 +167,6 @@ for a datase. See the SQLite documentation for more details.
 ORDB::CPANUploads is based on L<ORLite> 1.20.
 
 Documentation created by L<ORLite::Pod> 0.06.
-
 
 Bugs should be reported via the CPAN bug tracker at
 

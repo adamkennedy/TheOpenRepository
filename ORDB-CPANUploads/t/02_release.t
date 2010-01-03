@@ -17,6 +17,4 @@ unless ( $ENV{RELEASE_TESTING} ) {
 
 plan( tests => 2 );
 
-ok( $] >= 5.008005, 'Perl version is new enough' );
-
 use_ok( 'ORDB::CPANUploads' );
