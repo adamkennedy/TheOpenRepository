@@ -38,7 +38,7 @@ sub set_all {
 }
 
 sub from_galactic_B1950 {
-  my $self = shift;
+  my $class = shift;
   my $obj = shift->to_equatorial_B1950();
   return $obj if not ref $class;
   $class->set_all($obj->get_all());
@@ -46,7 +46,7 @@ sub from_galactic_B1950 {
 }
 
 sub from_galactic_J2000 {
-  my $self = shift;
+  my $class = shift;
   my $obj = shift->to_equatorial_J2000();
   return $obj if not ref $class;
   $class->set_all($obj->get_all());
