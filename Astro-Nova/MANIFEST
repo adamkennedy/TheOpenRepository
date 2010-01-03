@@ -7,6 +7,8 @@ inc/Module/Build/AstroNova.pm
 lib/Astro/Nova.pm
 lib/Astro/Nova.xs
 lib/Astro/Nova/DMS.pm
+lib/Astro/Nova/EquPosn.pm
+lib/Astro/Nova/GalPosn.pm
 lib/Astro/Nova/HMS.pm
 lib/Astro/Nova/LnLatPosn.pm
 lib/Astro/Nova/ZoneDate.pm
@@ -151,6 +153,7 @@ XS/RiseSet.xs
 XS/Saturn.xs
 XS/Sidereal.xs
 XS/Solar.xs
+XS/Structs.xs
 XS/Transform.xs
 XS/Uranus.xs
 XS/Utility.xs
