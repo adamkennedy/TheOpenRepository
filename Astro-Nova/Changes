@@ -1,6 +1,7 @@
 Revision history for Perl extension Astro::Nova.
 
 0.06  Sun Jan  3 13:50 2010
+  - Better diagnostics during libnova patching for funny OS's.
   - New classes (with docs) for galactic cooridnates
     (Astro::Nova::GalPosn) and equatorial coordinates
     (Astro::Nova::EquPosn) with the necessary logic for conversion
