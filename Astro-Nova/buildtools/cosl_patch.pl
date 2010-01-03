@@ -15,10 +15,14 @@ find(
   sub {
     my $file = $_;
     return if not -f $file or not $file =~ /\.(?:hh?|cc?|cpp)$/i;
-    my $contents = do {local $/=undef; open my $fh, "<", $file or die $!; <$fh>};
+    my $contents = do {
+      local $/=undef;
+      open my $fh, "<", $file or die "Cannot open file '$file' for reading: $!";
+      <$fh>
+    };
 
     if ($contents =~ s/(\#ifdef\s*HAVE_LIBsunmath.*)\#endif/$1$code/s) {
-      open my $fh, '>', $file or die $!;
+      open my $fh, '>', $file or die "Cannot open file '$file' for writing: $!";
       print $fh $contents;
       close $fh;
     }
