@@ -7,7 +7,7 @@ use Pod::Abstract::Parser;
 use Pod::Abstract::Node;
 use base qw(Exporter);
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 our @EXPORT_OK = qw(node nodes);
 

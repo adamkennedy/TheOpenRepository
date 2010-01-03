@@ -4,7 +4,7 @@ use warnings;
 
 use base qw(Pod::Abstract::Filter);
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 =head1 NAME
 

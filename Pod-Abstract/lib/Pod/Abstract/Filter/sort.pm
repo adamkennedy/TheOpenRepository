@@ -13,7 +13,7 @@ sub-sections within a Pod section
 
 =cut
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 sub filter {
     my $self = shift;

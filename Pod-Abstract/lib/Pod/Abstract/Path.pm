@@ -8,7 +8,7 @@ use Pod::Abstract::BuildNode qw(node);
 
 $Data::Dumper::Indent = 1;
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 use constant CHILDREN  => 1;  # /
 use constant ALL       => 2;  # //
