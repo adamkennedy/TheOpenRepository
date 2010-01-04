@@ -15,7 +15,7 @@ sub is_complete {
 	my $string = shift;
 	my $name   = shift || "Document is complete";
 	ok(
-		Perl::Shell::_is_complete($string),
+		Perl::Shell::complete($string),
 		$name,
 	);
 }
@@ -24,7 +24,7 @@ sub no_complete {
 	my $string = shift;
 	my $name   = shift || "Document is not complete";
 	ok(
-		! Perl::Shell::_is_complete($string),
+		! Perl::Shell::complete($string),
 		$name,
 	);
 }
