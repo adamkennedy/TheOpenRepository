@@ -5,11 +5,12 @@ package Aspect::Library::Listenable;
 
 use strict;
 use warnings;
-use Carp;
-use Exporter ();
-use Scalar::Util qw(weaken);
-use Aspect;
-use Aspect::Modular ();
+use Carp                               ();
+use Exporter                           ();
+use Scalar::Util                       ();
+use Aspect                             ();
+use Aspect::Modular                    ();
+use Aspect::Library::Listenable::Event ();
 
 our $VERSION = '0.27';
 our @ISA     = qw{Aspect::Modular Exporter};
@@ -17,7 +18,7 @@ our @EXPORT  = qw{add_listener remove_listener};
 
 sub get_advice {
 	my ($self, $event_name, $pointcut, %event_params) = @_;
-	before {
+	Aspect::before {
 		local $_;
 
 		my $context    = shift;
@@ -53,23 +54,23 @@ sub get_advice {
 
 sub add_listener ($$$) {
 	my ($listenable, $event_name, $listener) = @_;
-	croak "listenable is not a hash based object: [$listenable]"
+	Carp::croak "listenable is not a hash based object: [$listenable]"
 		unless is_hash($listenable);
 	my $key = get_listener_key($event_name);
 	$listenable->{$key} = [] unless exists $listenable->{$key};
 	my $listeners = get_listeners($listenable, $event_name);
 	my $lastIndex = (push @$listeners, $listener) - 1;
-	if (ref $listener eq 'ARRAY') { # type 3 listener
-		weaken $listeners->[$lastIndex]->[1];
-	} elsif (ref $listener ne 'CODE') { # type 2 listener
-		weaken $listeners->[$lastIndex];
+	if ( ref $listener eq 'ARRAY' ) { # type 3 listener
+		Scalar::Util::weaken( $listeners->[$lastIndex]->[1] );
+	} elsif ( ref $listener ne 'CODE' ) { # type 2 listener
+		Scalar::Util::weaken( $listeners->[$lastIndex] );
 	}
 }
 
 sub remove_listener ($$$) {
 	my ($listenable, $event_name, $listener) = @_;
 	my $listeners = get_listeners($listenable, $event_name);
-	croak "listenable has no listeners for event: [$event_name]"
+	Carp::croak "listenable has no listeners for event: [$event_name]"
 		unless $listeners;
 	my $oldSize = @$listeners;
 	foreach my $i (0..@$listeners - 1) {
@@ -79,7 +80,7 @@ sub remove_listener ($$$) {
 			last;
 		}
 	}
-	croak "listener not found: [$event_name, $listener]"
+	Carp::croak "listener not found: [$event_name, $listener]"
 		if $oldSize == @$listeners;
 }
 
@@ -160,38 +161,6 @@ sub is_equal_value {
 sub is_hash {
 	shift =~ /=?([A-Z]+)\(/;
 	return $1 eq 'HASH';
-}
-
-
-# event class -----------------------------------------------------------------
-
-package Aspect::Library::Listenable::Event;
-
-sub new {
-	my ($class, %params) = @_;
-	return bless { %params }, $class;
-}
-
-sub AUTOLOAD {
-	my ($self, $value) = @_;
-	my $key  = our $AUTOLOAD;
-	return if $key =~ /DESTROY$/;
-	$key =~ s/^.*:://;
-	return @_ == 1? $self->{$key}: ($self->{$key} = $value);
-}
-
-sub clone { 
-	my $self = shift;
-	my $class = ref $self;
-	my $clone = $class->new;
-	while (my ($key, $value) = each %$self) { $clone->{$key} = $value }
-	return $clone;
-}
-
-sub as_string {
-	my $self = shift;
-	local $_;
-	return join ', ', map { "$_:$self->{$_}" } sort keys %$self;
 }
 
 1;
