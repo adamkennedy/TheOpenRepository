@@ -2,8 +2,7 @@ package Aspect::Library::Wormhole;
 
 use strict;
 use warnings;
-use Carp;
-use Aspect;
+use Aspect          ();
 use Aspect::Modular ();
 
 our $VERSION = '0.27';
@@ -11,8 +10,11 @@ our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
 	my ($self, $source, $target) = @_;
-	before { my $c = shift; $c->append_param($c->source->self) }
-		call $target & cflow source => $source;
+	Aspect::before {
+		my $c = shift;
+		$c->append_param($c->source->self);
+	} Aspect::call $target
+	& Aspect::cflow source => $source;
 }
 
 1;
