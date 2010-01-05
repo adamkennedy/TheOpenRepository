@@ -1,5 +1,9 @@
 Revision history for Perl extension pler
 
+1.02 Tue  5 Jan 2010
+	- Make the integer shortcut more flexible, so it can handle
+	  more than just an underscore after the numbers.
+
 1.01 Sun  3 Jan 2010
 	- Fixed a silly typo
 

@@ -16,7 +16,7 @@ use Probe::Perl           0.01 ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '1.01';
+        $VERSION = '1.02';
 }
 
 # Does exec work on this platform
@@ -380,7 +380,7 @@ sub filter {
 		} elsif ( $term =~ /^[1-9]\d*$/ ) {
 			# If the search is a pure integer (without leading
 			# zeros) attempt a specialised numeric filter.
-			@matches = grep { /\b0*${term}_/ } @matches;
+			@matches = grep { /\b0*${term}[^0-9]/ } @matches;
 		} else {
 			# Otherwise treat it as a naive string match
 			$term = quotemeta $term;
