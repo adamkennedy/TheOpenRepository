@@ -7,3 +7,5 @@ test_requires Test::More       0.70
 test_requires Test::Class      0.33
 test_requires Test::NoWarnings 0.084
 test_requires Test::Exception  0.27
+
+tests_recursive

@@ -2,28 +2,26 @@ package Aspect::Library::Singleton;
 
 use strict;
 use warnings;
-use Carp;
-use Aspect;
+use Aspect          ();
 use Aspect::Modular ();
 
 our $VERSION = '0.27';
 our @ISA     = 'Aspect::Modular';
 
-my %Cache;
+my %CACHE = ();
 
 sub get_advice {
-	my ($self, $constructor_matcher) = @_;
-	return before {
+	my ($self, $constructor) = @_;
+	return Aspect::before {
 		my $context = shift;
 		my $class   = $context->self;
 		$class      = ref $class || $class;
-
-		if (exists $Cache{$class})
-			{ $context->return_value($Cache{$class}) }
-		else
-			{ $Cache{$class} = $context->run_original }
-
-	} call $constructor_matcher;
+		if ( exists $CACHE{$class} ) {
+			$context->return_value($CACHE{$class});
+		} else {
+			$CACHE{$class} = $context->run_original;
+		}
+	} Aspect::call $constructor;
 }
 
 1;

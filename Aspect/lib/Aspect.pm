@@ -7,7 +7,7 @@ use warnings;
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed?
 # -- ADAMK
-use Carp::Heavy (); 
+use Carp::Heavy ();
 use Carp        ();
 
 # NOTE: According to the Sub::UpLevel docs, we should load it before
@@ -18,12 +18,19 @@ use Carp        ();
 use Sub::Uplevel            ();
 use Exporter                ();
 use Aspect::Advice          ();
+use Aspect::AdviceContext   ();
+use Aspect::Advice::Before  ();
+use Aspect::Advice::After   ();
+use Aspect::Advice::Around  ();
 use Aspect::Pointcut::Call  ();
 use Aspect::Pointcut::Cflow ();
+use Aspect::Pointcut::AndOp ();
+use Aspect::Pointcut::OrOp  ();
+use Aspect::Pointcut::NotOp ();
 
 our $VERSION = '0.27';
 our @ISA     = 'Exporter';
-our @EXPORT  = qw{ aspect before after call cflow };
+our @EXPORT  = qw{ aspect around before after call cflow };
 
 # Internal data storage
 my @FOREVER = ();
@@ -45,8 +52,16 @@ sub aspect {
 	return $aspect;
 }
 
+sub around (&$) {
+	my $advice = Aspect::Advice::Around->new(@_);
+
+	# If called in void context, advice is for life
+	push @FOREVER, $advice unless defined wantarray;
+
+	return $advice;
+}
+
 sub before (&$) {
-	require Aspect::Advice::Before;
 	my $advice = Aspect::Advice::Before->new(@_);
 
 	# If called in void context, advice is for life
@@ -56,7 +71,6 @@ sub before (&$) {
 }
 
 sub after (&$) {
-	require Aspect::Advice::After;
 	my $advice = Aspect::Advice::After->new(@_);
 
 	# If called in void context, advice is for life

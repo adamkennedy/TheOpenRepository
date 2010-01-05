@@ -42,7 +42,7 @@ sub _install {
 
 		# Generate the new function
 		no warnings 'redefine';
-		eval "sub $name $prototype " . q{{
+		eval "*$name = sub $prototype " . q{{
 			if ( $out_of_scope ) {
 				# Lexical Aspect is out of scope
 				goto &$original;

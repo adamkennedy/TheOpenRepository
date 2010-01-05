@@ -1,14 +1,13 @@
-package Aspect::Advice::After;
+package Aspect::Advice::Around;
 
 use strict;
 use warnings;
 
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
-use Carp::Heavy    (); 
-use Carp           ();
-use Sub::Uplevel   ();
-use Aspect::Advice ();
+use Carp::Heavy     (); 
+use Carp            ();
+use Aspect::Advice  ();
 
 our $VERSION = '0.27';
 our @ISA     = 'Aspect::Advice';
@@ -49,87 +48,48 @@ sub _install {
 				goto &$original;
 			}
 
-			my $runtime   = {};
+			# Apply any runtime-specific context checks
+			my $runtime = {};
+			unless ( $pointcut->match_run($name, $runtime) ) {
+				goto &$original;
+			}
+
+			# Prepare the context object
 			my $wantarray = wantarray;
+			my $context   = Aspect::AdviceContext->new(
+				type         => 'around',
+				pointcut     => $pointcut,
+				sub_name     => $name,
+				wantarray    => $wantarray,
+				params       => \@_,
+				return_value => $wantarray ? [ ] : undef,
+				original     => $original,
+				%$runtime,
+			);
+
+			# Array context needs some special return handling
 			if ( $wantarray ) {
-				my $return = [
-					Sub::Uplevel::uplevel(
-						1, $original, @_,
-					)
-				];
-				unless ( $pointcut->match_run($name, $runtime) ) {
-					return @$return;
-				}
-
-				# Create the context
-				my $context = Aspect::AdviceContext->new(
-					type         => 'after',
-					pointcut     => $pointcut,
-					sub_name     => $name,
-					wantarray    => $wantarray,
-					params       => \@_,
-					return_value => $return,
-					original     => $original,
-				);
-
-				# Execute the advice code
+				# Run the advice code
 				() = &$code($context);
 
-				# Get the (potentially) modified return value
-				$return = $context->return_value;
-				if ( ref $return eq 'ARRAY' ) {
-					return @$return;
+				# Don't run the original
+				my $rv = $context->return_value;
+				if ( $rv eq 'ARRAY' ) {
+					return @$rv;
 				} else {
-					return ( $return );
+					return ( $rv );
 				}
 			}
 
+			# Scalar and void have the same return handling.
+			# Just run the advice code differently.
 			if ( defined $wantarray ) {
-				my $return = Sub::Uplevel::uplevel(
-					1, $original, @_,
-				);
-				unless ( $pointcut->match_run($name, $runtime) ) {
-					return $return;
-				}
-
-				# Create the context
-				my $context = Aspect::AdviceContext->new(
-					type         => 'after',
-					pointcut     => $pointcut,
-					sub_name     => $name,
-					wantarray    => $wantarray,
-					params       => \@_,
-					return_value => $return,
-					original     => $original,
-				);
-
-				# Execute the advice code
 				my $dummy = &$code($context);
-				return $context->return_value;
-
 			} else {
-				Sub::Uplevel::uplevel(
-					1, $original, @_,
-				);
-				unless ( $pointcut->match_run($name, $runtime) ) {
-					return;
-				}
-
-				# Create the context
-				my $context = Aspect::AdviceContext->new(
-					type         => 'after',
-					pointcut     => $pointcut,
-					sub_name     => $name,
-					wantarray    => $wantarray,
-					params       => \@_,
-					return_value => undef,
-					original     => $original,
-				);
-
-				# Execute the advice code
 				&$code($context);
-				return;
 			}
+
+			return $context->return_value;
 		}};
 		die $@ if $@;
 	}
