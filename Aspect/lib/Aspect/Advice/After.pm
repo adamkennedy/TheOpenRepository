@@ -10,7 +10,7 @@ use Carp           ();
 use Sub::Uplevel   ();
 use Aspect::Advice ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string

@@ -7,7 +7,7 @@ use Memoize;
 use Aspect;
 use Aspect::Modular ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
