@@ -199,6 +199,7 @@ sub parse {
     if ($prev_indent eq $ws) {
       if ($prev_indent_type) {
         $indentdiffs{$prev_indent_type}+=0.01;
+        #coefficient is not based on data, so change if you think it should be different
       }
       next;
     }
