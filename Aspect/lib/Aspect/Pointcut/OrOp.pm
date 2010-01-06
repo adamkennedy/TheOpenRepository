@@ -8,22 +8,23 @@ our $VERSION = '0.27';
 our @ISA     = 'Aspect::Pointcut';
 
 sub new {
-	my $class = shift;
-	bless [ @_ ], $class;
+	bless [ $_[1], $_[2] ], $_[0];
 }
 
 sub match_define {
 	my $self = shift;
-	$self->[0]->match_define(@_)
-	||
-	$self->[1]->match_define(@_)
+	foreach ( @$self ) {
+		return 1 if $_->match_define(@_);
+	}
+	return;
 }
 
 sub match_run {
 	my $self = shift;
-	$self->[0]->match_run(@_)
-	||
-	$self->[1]->match_run(@_);
+	foreach ( @$self ) {
+		return 1 if $_->match_run(@_);
+	}
+	return;
 }
 
 1;
