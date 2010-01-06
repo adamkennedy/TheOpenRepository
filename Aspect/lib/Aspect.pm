@@ -22,13 +22,14 @@ use Aspect::AdviceContext   ();
 use Aspect::Advice::Before  ();
 use Aspect::Advice::After   ();
 use Aspect::Advice::Around  ();
+use Aspect::Pointcut        ();
 use Aspect::Pointcut::Call  ();
 use Aspect::Pointcut::Cflow ();
 use Aspect::Pointcut::AndOp ();
 use Aspect::Pointcut::OrOp  ();
 use Aspect::Pointcut::NotOp ();
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ aspect around before after call cflow };
 
@@ -53,30 +54,27 @@ sub aspect {
 }
 
 sub around (&$) {
-	my $advice = Aspect::Advice::Around->new(@_);
-
-	# If called in void context, advice is for life
-	push @FOREVER, $advice unless defined wantarray;
-
-	return $advice;
+	Aspect::Advice::Around->new(
+		code     => $_[0],
+		pointcut => $_[1],
+		forever  => ! defined wantarray,
+	);
 }
 
 sub before (&$) {
-	my $advice = Aspect::Advice::Before->new(@_);
-
-	# If called in void context, advice is for life
-	push @FOREVER, $advice unless defined wantarray;
-
-	return $advice;
+	Aspect::Advice::Before->new(
+		code     => $_[0],
+		pointcut => $_[1],
+		forever  => ! defined wantarray,
+	);
 }
 
 sub after (&$) {
-	my $advice = Aspect::Advice::After->new(@_);
-
-	# If called in void context, advice is for life
-	push @FOREVER, $advice unless defined wantarray;
-
-	return $advice;
+	Aspect::Advice::After->new(
+		code     => $_[0],
+		pointcut => $_[1],
+		forever  => ! defined wantarray,
+	);
 }
 
 sub call ($) {

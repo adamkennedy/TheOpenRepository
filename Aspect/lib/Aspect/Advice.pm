@@ -2,26 +2,18 @@ package Aspect::Advice;
 
 use strict;
 use warnings;
-use Carp;
-use Aspect::AdviceContext  ();
-use Aspect::Advice::After  ();
-use Aspect::Advice::Before ();
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 sub new {
-	my $self = bless {
-		code     => $_[1], # The advice code
-		pointcut => $_[2], # The advice pointcut
-	}, $_[0];
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
 
 	# Install and save the lexical hook
 	$self->{hook} = $self->_install;
 
 	return $self;
 }
-
-# private ---------------------------------------------------------------------
 
 sub code {
 	$_[0]->{code};
@@ -31,7 +23,10 @@ sub pointcut {
 	$_[0]->{pointcut};
 }
 
-# Release the symbol table hooks via the closure controller
+sub forever {
+	$_[0]->{forever};
+}
+
 sub DESTROY {
 	$_[0]->{hook}->() if $_[0]->{hook};
 }
@@ -44,7 +39,7 @@ __END__
 
 =head1 NAME
 
-Aspect::Advice - change how Perl code is run at a pointcut
+Aspect::Advice - Change how Perl code is run at a pointcut
 
 =head1 SYNOPSIS
 

@@ -5,17 +5,19 @@ use warnings;
 
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
-use Carp::Heavy     (); 
-use Carp            ();
-use Aspect::Advice  ();
+use Carp::Heavy           (); 
+use Carp                  ();
+use Aspect::Advice        ();
+use Aspect::AdviceContext ();
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
 	my $self     = shift;
 	my $pointcut = $self->pointcut;
 	my $code     = $self->code;
+	my $forever  = $self->forever;
 
 	# Get the curried version of the pointcut we will use for the
 	# runtime checks instead of the original.
@@ -32,7 +34,10 @@ sub _install {
 	# past the hook as quickely as possible.
 	# This flag is shared between all the generated hooks for each
 	# installed Aspect.
-	my $out_of_scope = undef;
+	# If the advice is going to last forever then we don't need to
+	# check or use the $out_of_scope variable.
+	my $out_of_scope   = undef;
+	my $MATCH_DISABLED = $forever ? '0' : '$out_of_scope';
 
 	# Find all pointcuts that are statically matched
 	# wrap the method with advice code and install the wrapper
@@ -53,10 +58,8 @@ sub _install {
 		no warnings 'redefine';
 		eval <<"END_PERL"; die $@ if $@;
 		*$NAME = sub $PROTOTYPE {
-			if ( \$out_of_scope ) {
-				# Lexical Aspect is out of scope
-				goto &\$original;
-			}
+			# Is this a lexically scoped hook that has finished
+			goto &\$original if $MATCH_DISABLED;
 
 			# Apply any runtime-specific context checks
 			my \$runtime = {};
@@ -101,6 +104,9 @@ sub _install {
 		};
 END_PERL
 	}
+
+	# If this will run forever we don't need a descoping hook
+	return if $forever;
 
 	# Return the lexical descoping hook.
 	# This MUST be stored and run at DESTROY-time by the
