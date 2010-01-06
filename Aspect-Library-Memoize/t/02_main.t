@@ -24,23 +24,33 @@ SCOPE: {
 }
 
 # Repeat as a lexical to ensure it handles global vs lexical properly
+my ($bar1, $bar2);
 SCOPE: {
 	my $aspect = aspect Memoize => call 'Bar::new';
 	isa_ok( $aspect, 'Aspect::Library::Memoize' );
 
 	# No param case should return the same object twice
-	my $bar1 = Bar->new;
-	my $bar2 = Bar->new;
+	$bar1 = Bar->new;
+	$bar2 = Bar->new;
+	isa_ok( $bar1, 'Bar' );
+	isa_ok( $bar2, 'Bar' );
 	is( ref($bar1), ref($bar2), 'null: There can only be one' );
 
 	# Since param case should also return the same object twice
-	my $bar3 = Bar->new('foo');
+	my $bar3 = Bar->new('foo'); isa_ok( $bar1, 'Bar' );
 	my $bar4 = Bar->new('foo');
+	isa_ok( $bar3, 'Bar' );
+	isa_ok( $bar4, 'Bar' );
 	is( ref($bar3), ref($bar4), 'foo: There can only be one' );
 
 	# But they shouldn't be the same as the null ones
 	is( ref($bar1), ref($bar3), 'null and foo do not match' );
 }
+
+# Now we have left the lexical scope, does it work normally again
+my $bar5 = Bar->new;
+isa_ok( $bar5, 'Bar' );
+ok( ref($bar1) ne ref($bar5), 'Method stops memoizing on scope exit' );
 
 
 

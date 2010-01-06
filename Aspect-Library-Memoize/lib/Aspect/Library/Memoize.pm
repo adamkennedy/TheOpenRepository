@@ -1,9 +1,10 @@
 package Aspect::Library::Memoize;
 
+use 5.008002;
 use strict;
 use warnings;
-use Memoize                ();
-use Aspect::Modular        ();
+use Memoize           1.01 ();
+use Aspect::Modular   0.30 ();
 use Aspect::Advice::Before ();
 
 our $VERSION = '0.30';
