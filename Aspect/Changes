@@ -4,6 +4,8 @@ Revision history for Perl extension Aspect
 	- Extended the forever currying support to the overall Aspect itself,
 	  and upgraded the regular Library classes to implement it properly.
 	- Renamed the term "forever" to a more simple "global" name.
+	- Moved Aspect::Library::Memoize into a seperate distribution to
+	  remove the Memoize dependency, which isn't 100% reliable.
 
 0.29 Wed  6 Jan 2010 - Adam Kennedy
 	- Added "forever currying" support. If advice is created in
