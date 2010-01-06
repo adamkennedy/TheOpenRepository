@@ -2,23 +2,51 @@
 
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 2;
 use Aspect;
 
-my $aspect = aspect Wormhole => "ClassA::a", "ClassC::c";
-my $object = ClassA->new;
-is( $object->a, $object, 'C::c returns instance of calling A' );
+# Do a lexical and make sure it produces lexical advice
+SCOPE: {
+	my $aspect = aspect Wormhole => 'One::a', 'Three::a';
+	my $object = One->new;
+	is( $object->a, $object, 'One::a returns instance of calling object' );
+}
 
-package ClassA;
+# Repeat using a global aspect and make sure it produces global advice
+aspect Wormhole => 'One::b', 'Three::b';
+my $object = One->new;
+is( $object->b, $object, 'One::b returns instance of calling object' );
 
-sub new { bless {}, shift }
+package One;
 
-sub a { ClassB->b }
+sub new {
+	bless {}, shift;
+}
 
-package ClassB;
+sub a {
+	Two->a;
+}
 
-sub b { ClassC->c }
+sub b {
+	Two->b;
+}
 
-package ClassC;
+package Two;
 
-sub c { pop }
+sub a {
+	Three->a;
+}
+
+sub b {
+	Three->b;
+}
+
+package Three;
+
+sub a {
+	pop;
+}
+
+sub b {
+	pop;
+}

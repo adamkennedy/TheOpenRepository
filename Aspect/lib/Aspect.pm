@@ -29,7 +29,7 @@ use Aspect::Pointcut::AndOp ();
 use Aspect::Pointcut::OrOp  ();
 use Aspect::Pointcut::NotOp ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ aspect around before after call cflow };
 
@@ -44,8 +44,11 @@ my @FOREVER = ();
 # Public (Exported) Functions
 
 sub aspect {
-	my $name   = _LOAD('Aspect::Library::' . shift);
-	my $aspect = $name->new(@_);
+	my $class  = _LOAD('Aspect::Library::' . shift);
+	my $aspect = $class->new(
+		forever => ! defined wantarray,
+		params  => [ @_ ],
+	);
 
 	# If called in void context, aspect is for life
 	push @FOREVER, $aspect unless defined wantarray;
@@ -97,7 +100,7 @@ sub cflow ($$) {
 #       If the ->import method isn't important, change to native require.
 sub _LOAD {
 	my $package = shift;
-	eval "use $package;";
+	eval "require $package;";
 	Carp::croak("Cannot use [$package]: $@") if $@;
 	return $package;
 }

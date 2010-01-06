@@ -2,19 +2,28 @@ package Aspect::Library::Wormhole;
 
 use strict;
 use warnings;
-use Aspect          ();
-use Aspect::Modular ();
+use Aspect::Modular         ();
+use Aspect::Advice::Before  ();
+use Aspect::Pointcut::Call  ();
+use Aspect::Pointcut::Cflow ();
+use Aspect::Pointcut::AndOp ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
-	my ($self, $source, $target) = @_;
-	Aspect::before {
-		my $c = shift;
-		$c->append_param($c->source->self);
-	} Aspect::call $target
-	& Aspect::cflow source => $source;
+	my $self = shift;
+	Aspect::Advice::Before->new(
+		forever  => $self->forever,
+		pointcut => Aspect::Pointcut::AndOp->new(
+			Aspect::Pointcut::Call->new( $_[1] ),
+			Aspect::Pointcut::Cflow->new( source => $_[0] ),
+		),
+		code => sub {
+			my $c = shift;
+			$c->append_param( $c->source->self );
+		},
+	);
 }
 
 1;
@@ -32,19 +41,19 @@ Aspect::Library::Wormhole - A wormhole between call frames
   package A;
   sub new { bless {}, shift }
   sub a { B->new->b }
-
+  
   package B;
   sub new { bless {}, shift }
   sub b { C->new->c }
-
+  
   package C;
   sub new { bless {}, shift }
   sub c { ref pop }
-
+  
   package main;
-
+  
   print ref A->new->a; # without aspect, prints C
-
+  
   use Aspect::Library::Wormhole;
   aspect Wormhole => 'A::a', 'C::c';
   print ref A->new->a; # with aspect, prints A

@@ -2,26 +2,31 @@ package Aspect::Library::Singleton;
 
 use strict;
 use warnings;
-use Aspect          ();
-use Aspect::Modular ();
+use Aspect::Modular        ();
+use Aspect::Advice::Before ();
+use Aspect::Pointcut::Call ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 our @ISA     = 'Aspect::Modular';
 
 my %CACHE = ();
 
 sub get_advice {
-	my ($self, $constructor) = @_;
-	return Aspect::before {
-		my $context = shift;
-		my $class   = $context->self;
-		$class      = ref $class || $class;
-		if ( exists $CACHE{$class} ) {
-			$context->return_value($CACHE{$class});
-		} else {
-			$CACHE{$class} = $context->run_original;
-		}
-	} Aspect::call $constructor;
+	my $self = shift;
+	Aspect::Advice::Before->new(
+		forever  => $self->forever,
+		pointcut => Aspect::Pointcut::Call->new($_[0]),
+		code     => sub {
+			my $context = shift;
+			my $class   = $context->self;
+			$class      = ref $class || $class;
+			if ( exists $CACHE{$class} ) {
+				$context->return_value($CACHE{$class});
+			} else {
+				$CACHE{$class} = $context->run_original;
+			}
+		},
+	);
 }
 
 1;

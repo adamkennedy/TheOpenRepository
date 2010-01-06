@@ -2,23 +2,45 @@ package Aspect::Modular;
 
 use strict;
 use warnings;
-use Carp;
 
-
-our $VERSION = '0.29';
-
-
-# creating --------------------------------------------------------------------
+our $VERSION = '0.30';
 
 sub new {
-	my $self = bless {}, shift;
-	$self->{advice} = [$self->get_advice(@_)];
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
+
+	# Generate the appropriate advice
+	$self->{advice} = [
+		$self->get_advice( $self->params )
+	];
+
+	# Warn if the aspect is supposed to be permanent,
+	# but the advice isn't created as permanent.
+	if ( $self->forever ) {
+		if ( grep { not $_->forever } @{$self->{advice}} ) {
+			warn("$class creates lexical advice for global aspects");
+		}
+	} else {
+		if ( grep { $_->forever } @{$self->{advice}} ) {
+			warn("$class creates global advice for lexical aspects");
+		}
+	}
+
 	return $self;
 }
 
-# template methods ------------------------------------------------------------
+sub params {
+	@{$_[0]->{params}};
+}
 
-sub get_advice {}
+sub forever {
+	$_[0]->{forever};
+}
+
+sub get_advice {
+	my $class = ref $_[0] || $_[0];
+	die("Method 'get_advice' is not implemented by class '$class'");
+}
 
 1;
 
@@ -28,34 +50,46 @@ __END__
 
 =head1 NAME
 
-Aspect::Modular - base class for reusable aspects
+Aspect::Modular - Base class for reusable aspects
 
 =head1 SYNOPSIS
 
-  # subclassing to create a reusable aspect
+  # Subclassing to create a reusable aspect
   package Aspect::Library::ConstructorTracer;
-  use Aspect;
+  
+  use strict;
   use base 'Aspect::Modular';
+  use Aspect::Advice::After ();
+  
   sub get_advice {
-     my ($self, $pointcut) = @_;
-     after
-        { print 'created object: '. shift->return_value. "\n" }
-        $pointcut;
+     my $self     = shift;
+     my $pointcut = shift;
+     return Aspect::Advice::After->new(
+         forever  => $self->forever,
+         pointcut => $pointcut,
+         code     => sub {
+             print 'Created object: ' . shift->return_value . "\n";
+         },
+     );
   }
-
-  # using the new aspect
+  
+  # Using the new aspect
   package main;
+  
   use Aspect;
-  # print message when constructing new Person
+  
+  # Print message when constructing new Person
   aspect ConstructorTracer => call 'Person::new';
 
 =head1 DESCRIPTION
 
-All reusable aspect inherit from this class. Such aspects are created in
-user code, using the C<aspect()> sub exported by L<Aspect|::Aspect>. You
-call C<aspect()> with the class name of the reusable aspect (it must
-exist in the package C<Aspect::Library>), and any parameters (pointcuts,
-class names, code to run, etc.) the specific aspect may require.
+All reusable aspect inherit from this class.
+
+Such aspects are created in user code, using the C<aspect()> sub exported
+by L<Aspect|::Aspect>. You call C<aspect()> with the class name of the
+reusable aspect (it must exist in the package C<Aspect::Library>), and any
+parameters (pointcuts, class names, code to run, etc.) the specific aspect
+may require.
 
 The L<Wormhole|Aspect::Library::Wormhole> aspect, for example, expects 2
 pointcut specs for the wormhole source and target, while the

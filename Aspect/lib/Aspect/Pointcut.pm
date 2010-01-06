@@ -7,7 +7,7 @@ use Aspect::Pointcut::OrOp  ();
 use Aspect::Pointcut::AndOp ();
 use Aspect::Pointcut::NotOp ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 use overload (
 	# Keep traditional boolification and stringification

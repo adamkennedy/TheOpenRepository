@@ -2,19 +2,27 @@
 
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 23;
 use Test::Exception;
 use Aspect;
 use Aspect::Library::Listenable;
 
-# Set up the Listenable relationship type
+# Set up the Listenable relationship types
 aspect Listenable => (
-	Erase => call "Foo::set_erased"
+	Erase => call "Foo::set_erased",
 );
 aspect Listenable => (
 	Color => call "Foo::set_color",
 	color => 'get_color',
 );
+
+# Create a temporary lexical aspect to make sure we create lexical advice
+SCOPE: {
+	my $lexical = aspect Listenable => (
+		Foo => call 'Baz::one',
+	);
+	isa_ok( $lexical, 'Aspect::Library::Listenable' );
+}
 
 
 
@@ -136,10 +144,21 @@ sub new {
 	}, shift;
 }
 
-sub get_erased { shift->{erased} }
-sub set_erased { shift->{erased} = 1 }
-sub get_color  { shift->{color} }
-sub set_color  { shift->{color} = pop }
+sub get_erased {
+	shift->{erased}
+}
+
+sub set_erased {
+	shift->{erased} = 1;
+}
+
+sub get_color {
+	shift->{color};
+}
+
+sub set_color {
+	shift->{color} = pop;
+}
 
 package Bar;
 
@@ -148,5 +167,17 @@ sub new {
 		has_been_called => 0,
 	}, shift;
 }
-sub do_call         { shift->{has_been_called} = pop }
-sub has_been_called { shift->{has_been_called} }
+
+sub do_call {
+	shift->{has_been_called} = pop;
+}
+
+sub has_been_called {
+	shift->{has_been_called};
+}
+
+package Baz;
+
+sub one {
+	return 'one';
+}

@@ -8,48 +8,51 @@ use warnings;
 use Carp                               ();
 use Exporter                           ();
 use Scalar::Util                       ();
-use Aspect                             ();
 use Aspect::Modular                    ();
+use Aspect::Advice::Before             ();
 use Aspect::Library::Listenable::Event ();
 
-our $VERSION = '0.29';
-our @ISA     = qw{Aspect::Modular Exporter};
-our @EXPORT  = qw{add_listener remove_listener};
+our $VERSION = '0.30';
+our @ISA     = qw{ Aspect::Modular Exporter     };
+our @EXPORT  = qw{ add_listener remove_listener };
 
 sub get_advice {
 	my ($self, $event_name, $pointcut, %event_params) = @_;
-	Aspect::before {
-		local $_;
+	Aspect::Advice::Before->new(
+		forever  => $self->forever,
+		pointcut => $pointcut,
+		code     => sub {
+			local $_;
 
-		my $context    = shift;
-		my $listenable = $context->self;
-		my %params     = %event_params;
+			my $context    = shift;
+			my $listenable = $context->self;
+			my %params     = %event_params;
 
-		return unless has_listeners($listenable, $event_name);
+			return unless has_listeners($listenable, $event_name);
 
-		my $always_fire = delete $params{__always_fire};
-		my %old_state = get_listenable_state($listenable, \%params);
-		$context->run_original($context->params);
-		my %new_state = get_listenable_state($listenable, \%params);
+			my $always_fire = delete $params{__always_fire};
+			my %old_state = get_listenable_state($listenable, \%params);
+			$context->run_original($context->params);
+			my %new_state = get_listenable_state($listenable, \%params);
 
-		return if
-			!$always_fire &&
-			keys %old_state &&
-			is_equal_state(\%old_state, \%new_state);
+			return if
+				!$always_fire &&
+				keys %old_state &&
+				is_equal_state(\%old_state, \%new_state);
 
-		my @params = $context->params;
-		shift @params; # remove $self
-		my $event = Aspect::Library::Listenable::Event->new(
-			name   => $event_name,
-			source => $listenable,
-			params => \@params,
-			%new_state,
-			map {("old_$_" => $old_state{$_})} keys %old_state,
-		);
+			my @params = $context->params;
+			shift @params; # remove $self
+			my $event = Aspect::Library::Listenable::Event->new(
+				name   => $event_name,
+				source => $listenable,
+				params => \@params,
+				%new_state,
+				map {("old_$_" => $old_state{$_})} keys %old_state,
+			);
 
-		fire_event($event);
-		
-	} $pointcut;
+			fire_event($event);	
+		},
+	);
 }
 
 sub add_listener ($$$) {

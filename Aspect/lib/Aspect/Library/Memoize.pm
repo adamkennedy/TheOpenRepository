@@ -2,27 +2,40 @@ package Aspect::Library::Memoize;
 
 use strict;
 use warnings;
-use Carp;
-use Memoize;
-use Aspect;
-use Aspect::Modular ();
+use Memoize                ();
+use Aspect::Modular        ();
+use Aspect::Advice::Before ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
-	my ($self, $pointcut) = @_;
-	my %wrappers;
-	before {
-		my $context  = shift;
-		my $sub_name = $context->sub_name;
-		# would be difficult if Memoize did not have INSTALL => undef option
-		$wrappers{$sub_name} ||= memoize($context->original, INSTALL => undef);
-		my $wrapper = $wrappers{$sub_name};
-		my @params  = $context->params;
-		$context->return_value
-			(wantarray? [$wrapper->(@params)]: $wrapper->(@params));
-	} $pointcut; 
+	my $self     = shift;
+	my $pointcut = shift;
+	my %wrappers = ();
+	Aspect::Advice::Before->new(
+		forever  => $self->forever,
+		pointcut => $pointcut,
+		code     => sub {
+			my $context = shift;
+			my $name    = $context->sub_name;
+
+			# Would be difficult if Memoize did not have INSTALL => undef option
+			$wrappers{$name} ||= Memoize::memoize(
+				$context->original,
+				INSTALL => undef,
+			);
+
+			# Set the correct return value
+			# NOTE: This seems overly complicated, refactor?
+			$context->return_value(
+				wantarray ? [
+					$wrappers{$name}->($context->params)
+				]
+				: $wrappers{$name}->($context->params)
+			);
+		},
+	);
 }
 
 1;
@@ -33,7 +46,7 @@ __END__
 
 =head1 NAME
 
-Aspect::Library::Memoize - cross-cutting memoization
+Aspect::Library::Memoize - Cross-cutting memoization
 
 =head1 SYNOPSIS
 
