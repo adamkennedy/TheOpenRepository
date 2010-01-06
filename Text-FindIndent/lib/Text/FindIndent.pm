@@ -73,7 +73,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-  $VERSION = '0.07_02';
+  $VERSION = '0.08';
 }
 
 use constant MAX_LINES => 500;
