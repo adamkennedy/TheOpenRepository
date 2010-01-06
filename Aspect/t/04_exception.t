@@ -4,6 +4,7 @@
 # point function throws an exception.
 
 use strict;
+use Test::More skip_all => 'Exceptions are not implemented yet';
 use Test::More tests => 4;
 use Aspect;
 

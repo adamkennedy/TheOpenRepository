@@ -10,10 +10,14 @@ use Aspect::Pointcut::NotOp ();
 our $VERSION = '0.27';
 
 use overload (
-	'|'  => sub { Aspect::Pointcut::OrOp->new($_[0],  $_[1]) },
-	'&'  => sub { Aspect::Pointcut::AndOp->new($_[0], $_[1]) },
-	'!'  => sub { Aspect::Pointcut::NotOp->new($_[0])        },
-	'""' => sub { ref $_[0]                                  },
+	# Keep traditional boolification and stringification
+	'bool' => sub () { 1 },
+	'""'   => sub { ref $_[0] },
+
+	# Overload bitwise boolean operators to perform logical transformations.
+	'|'    => sub { Aspect::Pointcut::OrOp->new($_[0],  $_[1]) },
+	'&'    => sub { Aspect::Pointcut::AndOp->new($_[0], $_[1]) },
+	'!'    => sub { Aspect::Pointcut::NotOp->new($_[0])        },
 );
 
 # Default constructor takes a simple list of params
@@ -79,11 +83,20 @@ sub match_all {
 	return @matches;
 }
 
-# template methods ------------------------------------------------------------
+sub match_define {
+	my $class = ref $_[0] || $_[0];
+	die("Method 'match_define' not implemented in class '$class'");
+}
 
-sub match_define { 1 }
+sub match_run {
+	my $class = ref $_[0] || $_[0];
+	die("Method 'match_run' not implemented in class '$class'");
+}
 
-sub match_run    { 1 }
+sub curry_run {
+	my $class = ref $_[0] || $_[0];
+	die("Method 'curry' not implemented in class '$class'");
+}
 
 1;
 

@@ -13,10 +13,20 @@ use Aspect::Advice ();
 our $VERSION = '0.27';
 our @ISA     = 'Aspect::Advice';
 
+# NOTE: To simplify debugging of the generated code, all injected string
+# fragments will be defined in $UPPERCASE, and all lexical variables to be
+# accessed via the closure will be in $lowercase.
 sub _install {
 	my $self     = shift;
 	my $pointcut = $self->pointcut;
 	my $code     = $self->code;
+
+	# Get the curried version of the pointcut we will use for the
+	# runtime checks instead of the original.
+	# Because $MATCH_RUN is used in boolean conditionals, if there
+	# is nothing to do the compiler will optimise away the code entirely.
+	my $curried   = $pointcut->curry_run;
+	my $MATCH_RUN = $curried ? '$curried->match_run($name, $runtime)' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
 	# the generated hook code, because it might (for reasons potentially
@@ -31,6 +41,8 @@ sub _install {
 	# Find all pointcuts that are statically matched
 	# wrap the method with advice code and install the wrapper
 	foreach my $name ( $pointcut->match_all ) {
+		my $NAME = $name; # For completeness
+
 		no strict 'refs';
 		my $original = *$name{CODE};
 		unless ( $original ) {
@@ -38,100 +50,98 @@ sub _install {
 		}
 
 		# Any way to set prototypes other than eval?
-		my $prototype = prototype($original);
-		   $prototype = defined($prototype) ? "($prototype)" : '';
+		my $PROTOTYPE = prototype($original);
+		   $PROTOTYPE = defined($PROTOTYPE) ? "($PROTOTYPE)" : '';
 
 		# Generate the new function
 		no warnings 'redefine';
-		eval "*$name = sub $prototype " . q{{
-			if ( $out_of_scope ) {
+		eval <<"END_PERL"; die $@ if $@;
+		*$NAME = sub $PROTOTYPE {
+			if ( \$out_of_scope ) {
 				# Lexical Aspect is out of scope
-				goto &$original;
+				goto &\$original;
 			}
 
-			my $runtime   = {};
-			my $wantarray = wantarray;
-			if ( $wantarray ) {
-				my $return = [
+			my \$runtime   = {};
+			my \$wantarray = wantarray;
+			if ( \$wantarray ) {
+				my \$return = [
 					Sub::Uplevel::uplevel(
-						1, $original, @_,
+						1, \$original, \@_,
 					)
 				];
-				unless ( $pointcut->match_run($name, $runtime) ) {
-					return @$return;
-				}
+				return \@\$return unless $MATCH_RUN;
 
 				# Create the context
-				my $context = Aspect::AdviceContext->new(
+				my \$context = Aspect::AdviceContext->new(
 					type         => 'after',
-					pointcut     => $pointcut,
-					sub_name     => $name,
-					wantarray    => $wantarray,
-					params       => \@_,
-					return_value => $return,
-					original     => $original,
+					pointcut     => \$pointcut,
+					sub_name     => \$name,
+					wantarray    => \$wantarray,
+					params       => \\\@_,
+					return_value => \$return,
+					original     => \$original,
+					\%\$runtime,
 				);
 
 				# Execute the advice code
-				() = &$code($context);
+				() = &\$code(\$context);
 
 				# Get the (potentially) modified return value
-				$return = $context->return_value;
-				if ( ref $return eq 'ARRAY' ) {
-					return @$return;
+				\$return = \$context->return_value;
+				if ( ref \$return eq 'ARRAY' ) {
+					return \@\$return;
 				} else {
-					return ( $return );
+					return ( \$return );
 				}
 			}
 
-			if ( defined $wantarray ) {
-				my $return = Sub::Uplevel::uplevel(
-					1, $original, @_,
+			if ( defined \$wantarray ) {
+				my \$return = Sub::Uplevel::uplevel(
+					1, \$original, \@_,
 				);
-				unless ( $pointcut->match_run($name, $runtime) ) {
-					return $return;
-				}
+				return \$return unless $MATCH_RUN;
 
 				# Create the context
-				my $context = Aspect::AdviceContext->new(
+				my \$context = Aspect::AdviceContext->new(
 					type         => 'after',
-					pointcut     => $pointcut,
-					sub_name     => $name,
-					wantarray    => $wantarray,
-					params       => \@_,
-					return_value => $return,
-					original     => $original,
+					pointcut     => \$pointcut,
+					sub_name     => \$name,
+					wantarray    => \$wantarray,
+					params       => \\\@_,
+					return_value => \$return,
+					original     => \$original,
+					\%\$runtime,
 				);
 
 				# Execute the advice code
-				my $dummy = &$code($context);
-				return $context->return_value;
+				my \$dummy = &\$code(\$context);
+				return \$context->return_value;
 
 			} else {
 				Sub::Uplevel::uplevel(
-					1, $original, @_,
+					1, \$original, \@_,
 				);
-				unless ( $pointcut->match_run($name, $runtime) ) {
-					return;
-				}
+				return unless $MATCH_RUN;
 
 				# Create the context
-				my $context = Aspect::AdviceContext->new(
+				my \$context = Aspect::AdviceContext->new(
 					type         => 'after',
-					pointcut     => $pointcut,
-					sub_name     => $name,
-					wantarray    => $wantarray,
-					params       => \@_,
+					pointcut     => \$pointcut,
+					sub_name     => \$name,
+					wantarray    => \$wantarray,
+					params       => \\\@_,
 					return_value => undef,
-					original     => $original,
+					original     => \$original,
+					\%\$runtime,
 				);
 
 				# Execute the advice code
-				&$code($context);
+				&\$code(\$context);
 				return;
 			}
-		}};
-		die $@ if $@;
+		};
+END_PERL
 	}
 
 	# Return the lexical descoping hook.

@@ -21,6 +21,17 @@ sub new {
 	}, $class;
 }
 
+# The cflow pointcuts do not curry at all.
+# So they don't need to clone, and can be used directly.
+sub curry_run {
+	return $_[0];
+}
+
+# To make cflow work we need to hook (sadly) everything
+sub match_define {
+	return 1;
+}
+
 sub match_run {
 	my ($self, $sub_name, $runtime_context) = @_;
 	my $caller_info = $self->find_caller;

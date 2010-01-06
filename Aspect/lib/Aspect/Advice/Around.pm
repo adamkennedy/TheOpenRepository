@@ -17,6 +17,13 @@ sub _install {
 	my $pointcut = $self->pointcut;
 	my $code     = $self->code;
 
+	# Get the curried version of the pointcut we will use for the
+	# runtime checks instead of the original.
+	# Because $MATCH_RUN is used in boolean conditionals, if there
+	# is nothing to do the compiler will optimise away the code entirely.
+	my $curried   = $pointcut->curry_run;
+	my $MATCH_RUN = $curried ? '$curried->match_run($name, $runtime)' : 1;
+
 	# When an aspect falls out of scope, we don't attempt to remove
 	# the generated hook code, because it might (for reasons potentially
 	# outside our control) have been recursively hooked several times
@@ -30,6 +37,8 @@ sub _install {
 	# Find all pointcuts that are statically matched
 	# wrap the method with advice code and install the wrapper
 	foreach my $name ( $pointcut->match_all ) {
+		my $NAME = $name; # For completeness
+
 		no strict 'refs';
 		my $original = *$name{CODE};
 		unless ( $original ) {
@@ -37,61 +46,60 @@ sub _install {
 		}
 
 		# Any way to set prototypes other than eval?
-		my $prototype = prototype($original);
-		   $prototype = defined($prototype) ? "($prototype)" : '';
+		my $PROTOTYPE = prototype($original);
+		   $PROTOTYPE = defined($PROTOTYPE) ? "($PROTOTYPE)" : '';
 
 		# Generate the new function
 		no warnings 'redefine';
-		eval "*$name = sub $prototype " . q{{
-			if ( $out_of_scope ) {
+		eval <<"END_PERL"; die $@ if $@;
+		*$NAME = sub $PROTOTYPE {
+			if ( \$out_of_scope ) {
 				# Lexical Aspect is out of scope
-				goto &$original;
+				goto &\$original;
 			}
 
 			# Apply any runtime-specific context checks
-			my $runtime = {};
-			unless ( $pointcut->match_run($name, $runtime) ) {
-				goto &$original;
-			}
+			my \$runtime = {};
+			goto &\$original unless $MATCH_RUN;
 
 			# Prepare the context object
-			my $wantarray = wantarray;
-			my $context   = Aspect::AdviceContext->new(
+			my \$wantarray = wantarray;
+			my \$context   = Aspect::AdviceContext->new(
 				type         => 'around',
-				pointcut     => $pointcut,
-				sub_name     => $name,
-				wantarray    => $wantarray,
-				params       => \@_,
-				return_value => $wantarray ? [ ] : undef,
-				original     => $original,
-				%$runtime,
+				pointcut     => \$pointcut,
+				sub_name     => \$name,
+				wantarray    => \$wantarray,
+				params       => \\\@_,
+				return_value => \$wantarray ? [ ] : undef,
+				original     => \$original,
+				\%\$runtime,
 			);
 
 			# Array context needs some special return handling
-			if ( $wantarray ) {
+			if ( \$wantarray ) {
 				# Run the advice code
-				() = &$code($context);
+				() = &\$code(\$context);
 
 				# Don't run the original
-				my $rv = $context->return_value;
-				if ( $rv eq 'ARRAY' ) {
-					return @$rv;
+				my \$rv = \$context->return_value;
+				if ( ref \$rv eq 'ARRAY' ) {
+					return \@\$rv;
 				} else {
-					return ( $rv );
+					return ( \$rv );
 				}
 			}
 
 			# Scalar and void have the same return handling.
 			# Just run the advice code differently.
-			if ( defined $wantarray ) {
-				my $dummy = &$code($context);
+			if ( defined \$wantarray ) {
+				my \$dummy = &\$code(\$context);
 			} else {
-				&$code($context);
+				&\$code(\$context);
 			}
 
-			return $context->return_value;
-		}};
-		die $@ if $@;
+			return \$context->return_value;
+		};
+END_PERL
 	}
 
 	# Return the lexical descoping hook.

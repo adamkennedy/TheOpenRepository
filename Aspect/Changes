@@ -1,11 +1,20 @@
 Revision history for Perl extension Aspect
 
 0.28 to be released
+	- Implemented Pointcut currying. The pointcut objects will
+	  optimise themselves down to just the section that should run
+	  if we assume the function was hooked correctly.
+	  This not only makes the hooks much more efficient in working
+	  out if they need to fire, but it also fixes a major bug with
+	  negative call pointcuts always causing all functions to not fire.
 	- Resolved RT #36527 - Minor doc bug s/Profiled/Profiler/
 	- Moved Aspect::Library::Listenable into it's own distribution
 	- Migrated all the tests from Test::Class to normal Test::More
 	- Various code clean up and simplification, with less exporting
 	- Added missing Task::Weaken dependency
+	- Fixed, hopefully, the "variables will not remain shared" but
+	  by moving from using pure named hook functions to assigning
+	  anonymous subroutines to the typeglob instead.
 
 0.27 Sun  3 Jan 2010
 	- Various micro-optimisation of Aspect::AdviceContext which would

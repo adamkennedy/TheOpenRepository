@@ -17,6 +17,21 @@ sub match_define {
 	return $self->match( $self->[0], @_ );
 }
 
+# Call pointcuts curry away to null, because they are the basis
+# for which methods to hook in the first place. Any method called
+# at run-time has already been checked.
+sub curry_run {
+	return;
+}
+
+# Because we now curry away this pointcut, theoretically we should just
+# return true. But if it is ever run inside a negation it returns false
+# results. So since this should never be run due to currying leave the
+# method resolving to the parent class die'ing stub.
+# Having this method die will allow us to more easily catch places where
+# this method is being called incorrectly.
+# sub match_run { 1 }
+
 1;
 
 __END__
