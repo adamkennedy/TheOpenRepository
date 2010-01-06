@@ -654,6 +654,12 @@ Ran Eilam E<lt>eilara@cpan.orgE<gt>
 You can find AOP examples in the C<examples/> directory of the
 distribution.
 
+L<Aspect::Library::Memoize>
+
+L<Aspect::Library::Profiler>
+
+L<Aspect::Library::Trace>
+
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2001 by Marcel GrE<uuml>nauer
