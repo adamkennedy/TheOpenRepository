@@ -1,6 +1,6 @@
 Revision history for Perl extension Aspect
 
-0.28 to be released
+0.28 Wed  6 Jan 2010 - Adam Kennedy
 	- Implemented Pointcut currying. The pointcut objects will
 	  optimise themselves down to just the section that should run
 	  if we assume the function was hooked correctly.
@@ -15,8 +15,14 @@ Revision history for Perl extension Aspect
 	- Fixed, hopefully, the "variables will not remain shared" but
 	  by moving from using pure named hook functions to assigning
 	  anonymous subroutines to the typeglob instead.
+	- Pointcuts now boolify (quickly) to true, and don't stringify to
+	  a Data::Dumper debugging spew any more.
+	- Implemted the internals needed to support AndOp and OrOp pointcuts
+	  with more than 2 elements, so that in future long chained
+	  collections of & or | pointcuts will collapse down into a single
+	  object, instead of building as giant nested trees of boolean pairs.
 
-0.27 Sun  3 Jan 2010
+0.27 Sun  3 Jan 2010 - Adam Kennedy
 	- Various micro-optimisation of Aspect::AdviceContext which would
 	  normally be somewhat pointless, but is useful in this case when
 	  an Aspect hook is applied to something which is in the hot loop

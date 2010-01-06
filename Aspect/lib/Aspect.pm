@@ -125,28 +125,43 @@ Aspect - Aspect-oriented programming (AOP) for Perl
   package main;
   use Aspect;
   
-  # using reusable aspects
+  # Using reusable aspects
   aspect Singleton => 'Person::create';        # let there be only one Person
   aspect Profiler  => call qr/^Person::set_/;  # profile calls to setters
   
-  # append extra argument when Person::get_address is called:
+  # Append extra argument when Person::get_address is called:
   # the instance of the calling Company object, iff get_address
   # is in the call flow of Company::get_employee_addresses.
   # aspect will live as long as $wormhole reference is in scope
   $aspect = aspect Wormhole => 'Company::make_report', 'Person::get_address';
   
-  # writing your own advice
+  # Writing your own advice
   $pointcut = call qr/^Person::[gs]et_/; # defines a collection of events
   
-  # advice will live as long as $before is in scope
-  $before = before { print "g/set will soon be called"  } $pointcut;
+  # Advice will live as long as $before is in scope
+  $before = before {
+      print "g/set will soon be called";
+  } $pointcut;
   
-  # advice will live forever, because it is created in void context 
-  after { print "g/set has just been called" } $pointcut;
+  # Advice will live forever, because it is created in void context 
+  after {
+      print "g/set has just been called";
+  } $pointcut;
   
-  before
-     { print "get will soon be called, if in call flow of Tester::run_tests" }
-     call qr/^Person::get_/ & cflow tester => 'Tester::run_tests';
+  before {
+      print "get will soon be called, if in call flow of Tester::run_tests";
+  } call qr/^Person::get_/
+  & cflow tester => 'Tester::run_tests';
+  
+  # Conditionally hijack a method if some condition is true
+  around {
+      my $context = shift;
+      if ( $context->self->customer_name eq 'Adam Kennedy' ) {
+          $context->return_value('One meeeelion dollars');
+      } else {
+          $context->run_original;
+      }
+  } call 'Bank::Account::balance';
 
 =head1 DESCRIPTION
 
@@ -369,12 +384,13 @@ See the L<Aspect::Pointcut> docs for more info.
 
 An advice is just some definition of code that will run on a match of some
 pointcut. An advice can run before the pointcut matched sub is run, or after.
-You create advice using C<before()>, and C<after()>. These take a C<CODE> ref,
-and a pointcut, and install the code on the subs that match the pointcut.  For
-example:
+You create advice using C<before()>, C<after()>, or C<around()>.
+These take a C<CODE> ref, and a pointcut, and install the code on the subs
+that match the pointcut.  For example:
 
-  after { print "Person::get_address has returned!\n" }
-     call 'Person::get_address';
+  after {
+      print "Person::get_address has returned!\n";
+  } call 'Person::get_address';
 
 The advice code is run with one parameter: the advice context. You use it to
 learn how the matched sub was run, modify parameters, return value, and if it
@@ -383,8 +399,10 @@ that were created by any matching C<cflow()> pointcuts.  This will print the
 name of the C<Company> that started the call flow which eventually reached
 C<Person::get_address()>:
 
-  before { print shift->company->name }
-     call 'Person::get_address' & cflow company => qr/^Company::w+$/;
+  before {
+      print shift->company->name;
+  } call 'Person::get_address'
+  & cflow company => qr/^Company::w+$/;
 
 See the L<Aspect::AdviceContext> docs for some more examples of advice code.
 
@@ -392,7 +410,7 @@ Advice code is applied to matching pointcuts (i.e. the advice is enabled) as
 long as the advice object is in scope. This allows you to neatly control
 enabling and disabling of advice:
 
-  {
+  SCOPE: {
      my $advice = before { print "called!\n" } $pointcut;
      # do something while the device is enabled
   }
@@ -440,6 +458,19 @@ The C<cflow()> pointcut is dynamic, so C<match_define()> always returns
 true, but C<match_run()> return true only if some frame in the call flow
 matches the pointcut spec.
 
+To make this process faster, when the advice is installed, the pointcut
+will not use itself directly for the C<match_run()> but will generate
+a "curried" (optimised) version of itself. This curried version uses the
+fact that C<match_run()> will only be called if it matches the C<call()>
+pointcut pattern, and so no C<call()> pointcuts needed to be tested at
+run-time. It also handles collapsing any boolean logic impacted by the
+removal of the C<call()> pointcuts.
+
+If you use only C<call()> pointcuts (alone or in boolean combinations)
+the currying results in a null case (the pointcut is optimised away
+entirely) and so the call to C<match_run()> will be removed altogether
+from the generated advice hooks, reducing the overhead significantly.
+
 =head1 LIMITATIONS
 
 =head2 Inheritance Support
@@ -476,20 +507,23 @@ thinking about inheritance yourself.
 You may find it very easy to shoot yourself in the foot with this module.
 Consider this advice:
 
-  # do not do this!
-  before { print shift->sub_name }
-     cflow company => 'MyApp::Company::make_report';
+  # Do not do this!
+  before {
+      print shift->sub_name;
+  } cflow company => 'MyApp::Company::make_report';
 
-The advice code will be installed on every sub loaded. The advice code
+The advice code will be installed on B<every> sub loaded. The advice code
 will only run when in the specified call flow, which is the correct
 behavior, but it will be I<installed> on every sub in the system. This
 can be slow. It happens because the C<cflow()> pointcut matches I<all>
 subs during weave-time. It matches the correct sub during run-time. The
 solution is to narrow the pointcut:
 
-  # much better
-  before { print shift->sub_name }
-     call qr/^MyApp::/ & cflow company => 'MyApp::Company::make_report';
+  # Much better
+  before {
+      print shift->sub_name;
+  } call qr/^MyApp::/
+  & cflow company => 'MyApp::Company::make_report';
 
 =head1 TO DO
 
