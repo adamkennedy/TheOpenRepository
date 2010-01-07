@@ -4,6 +4,11 @@
 # point function throws an exception.
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use Test::More skip_all => 'Exceptions are not implemented yet';
 use Test::More tests => 4;
 use Aspect;

@@ -29,7 +29,7 @@ use Aspect::Pointcut::AndOp ();
 use Aspect::Pointcut::OrOp  ();
 use Aspect::Pointcut::NotOp ();
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ aspect around before after call cflow };
 

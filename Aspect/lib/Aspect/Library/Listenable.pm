@@ -12,7 +12,7 @@ use Aspect::Modular                    ();
 use Aspect::Advice::Before             ();
 use Aspect::Library::Listenable::Event ();
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 our @ISA     = qw{ Aspect::Modular Exporter     };
 our @EXPORT  = qw{ add_listener remove_listener };
 

@@ -1,5 +1,10 @@
 Revision history for Perl extension Aspect
 
+0.31 Thu  7 Jan 2010 - Adam Kennedy
+	- Removed the loading of Aspect::Library::Memoize and
+	  Aspect::Library::TestClass in 01_compile.t which was causing
+	  installation failure.
+
 0.30 Thu  7 Jan 2010 - Adam Kennedy
 	- Extended the forever currying support to the overall Aspect itself,
 	  and upgraded the regular Library classes to implement it properly.
