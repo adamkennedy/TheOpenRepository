@@ -3,12 +3,14 @@ package Aspect::Library::Trace;
 use 5.006;
 use strict;
 use warnings;
-use Aspect          0.16 ();
-use Aspect::Modular 0.16 ();
+use Aspect            0.31 ();
+use Aspect::Modular        ();
+use Aspect::Advice::Before ();
+use Aspect::Advice::After  ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.16';
+	$VERSION = '0.31';
 	@ISA     = 'Aspect::Modular';
 }
 
@@ -22,28 +24,26 @@ sub import {
 	return 1;
 }
 
-sub new {
-	my $self = shift->SUPER::new(@_);
-
-	# Track our depth
-	$self->{depth} = 0;
-
-	return $self;
-}
-
 sub get_advice {
-	my $self   = shift;
-	my $cut    = shift;
-
-	my $before = Aspect::before {
-		print STDERR '  ' x $self->{depth}++ . $_[0]->sub_name . "\n";
-	} $cut;
-
-	my $after  = Aspect::after {
-		$self->{depth}--;
-	} $cut;
-
-	return ( $before, $after );
+	my $self     = shift;
+	my $pointcut = shift;
+	my $depth    = 0;
+	return (
+		Aspect::Advice::Before->new(
+			forever  => $self->forever,
+			pointcut => $pointcut,
+			code     => sub {
+				print STDERR '  ' x $depth++ . $_[0]->sub_name . "\n";
+			},
+		),
+		Aspect::Advice::After->new(
+			forever  => $self->forever,
+			pointcut => $pointcut,
+			code     => sub {
+				$depth--;
+			},
+		),
+	);
 }
 
 1;

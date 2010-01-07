@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.88;
+use inc::Module::Install::DSL 0.91;
 
 all_from      lib/Aspect/Library/Trace.pm
 requires_from lib/Aspect/Library/Trace.pm
