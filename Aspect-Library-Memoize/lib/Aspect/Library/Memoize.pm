@@ -11,12 +11,10 @@ our $VERSION = '0.30';
 our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
-	my $self     = shift;
-	my $pointcut = shift;
 	my %wrappers = ();
 	Aspect::Advice::Before->new(
-		forever  => $self->forever,
-		pointcut => $pointcut,
+		forever  => $_[0]->forever,
+		pointcut => $_[1],
 		code     => sub {
 			my $context = shift;
 			my $name    = $context->sub_name;
