@@ -6,7 +6,7 @@ use Aspect::Modular        ();
 use Aspect::Advice::Before ();
 use Aspect::Pointcut::Call ();
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 our @ISA     = 'Aspect::Modular';
 
 my %CACHE = ();
@@ -14,7 +14,7 @@ my %CACHE = ();
 sub get_advice {
 	my $self = shift;
 	Aspect::Advice::Before->new(
-		forever  => $self->forever,
+		lexical  => $self->lexical,
 		pointcut => Aspect::Pointcut::Call->new($_[0]),
 		code     => sub {
 			my $context = shift;

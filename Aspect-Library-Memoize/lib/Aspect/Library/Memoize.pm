@@ -4,7 +4,7 @@ use 5.008002;
 use strict;
 use warnings;
 use Memoize           1.01 ();
-use Aspect::Modular   0.30 ();
+use Aspect::Modular   0.32 ();
 use Aspect::Advice::Before ();
 
 our $VERSION = '0.30';
@@ -13,7 +13,7 @@ our @ISA     = 'Aspect::Modular';
 sub get_advice {
 	my %wrappers = ();
 	Aspect::Advice::Before->new(
-		forever  => $_[0]->forever,
+		lexical  => $_[0]->lexical,
 		pointcut => $_[1],
 		code     => sub {
 			my $context = shift;

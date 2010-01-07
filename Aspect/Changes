@@ -1,5 +1,9 @@
 Revision history for Perl extension Aspect
 
+0.32 Thu  7 Jan 2010 - Adam Kennedy
+	- The actual term "forever" is meaningless. Reversed the flag to
+	  be used as "lexical" instead.
+
 0.31 Thu  7 Jan 2010 - Adam Kennedy
 	- Removed the loading of Aspect::Library::Memoize and
 	  Aspect::Library::TestClass in 01_compile.t which was causing

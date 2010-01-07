@@ -3,7 +3,7 @@ package Aspect::Modular;
 use strict;
 use warnings;
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 sub new {
 	my $class = shift;
@@ -16,12 +16,12 @@ sub new {
 
 	# Warn if the aspect is supposed to be permanent,
 	# but the advice isn't created as permanent.
-	if ( $self->forever ) {
-		if ( grep { not $_->forever } @{$self->{advice}} ) {
+	if ( $self->lexical ) {
+		if ( grep { not $_->lexical } @{$self->{advice}} ) {
 			warn("$class creates lexical advice for global aspects");
 		}
 	} else {
-		if ( grep { $_->forever } @{$self->{advice}} ) {
+		if ( grep { $_->lexical } @{$self->{advice}} ) {
 			warn("$class creates global advice for lexical aspects");
 		}
 	}
@@ -33,8 +33,8 @@ sub params {
 	@{$_[0]->{params}};
 }
 
-sub forever {
-	$_[0]->{forever};
+sub lexical {
+	$_[0]->{lexical};
 }
 
 sub get_advice {
@@ -65,7 +65,7 @@ Aspect::Modular - Base class for reusable aspects
      my $self     = shift;
      my $pointcut = shift;
      return Aspect::Advice::After->new(
-         forever  => $self->forever,
+         lexical  => $self->lexical,
          pointcut => $pointcut,
          code     => sub {
              print 'Created object: ' . shift->return_value . "\n";

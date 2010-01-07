@@ -3,35 +3,37 @@ package Aspect::Library::Profiler;
 use 5.008002;
 use strict;
 use warnings;
-use Carp;
-use Aspect           0.16;
-use Aspect::Modular  0.16;
-use Benchmark::Timer 0.7101;
+use Aspect::Modular               0.32 ();
+use Benchmark::Timer            0.7101 ();
+use Aspect::Library::Profiler::Cleanup ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.16';
+	$VERSION = '0.32';
 	@ISA     = 'Aspect::Modular';
 }
 
-my $Timer = Aspect::Benchmark::Timer::ReportOnDestroy->new;
+my $TIMER = Aspect::Library::Profiler::Cleanup->new;
 
 sub get_advice {
-	my ($self, $pointcut) = @_;
-	my $before = before { $Timer->start(shift->sub_name) } $pointcut;
-	my $after  = after  { $Timer->stop (shift->sub_name) } $pointcut;
-	return ($before, $after);
-}
-
-package Aspect::Benchmark::Timer::ReportOnDestroy;
-
-use vars qw{@ISA};
-BEGIN {
-	@ISA = 'Benchmark::Timer';
-}
-
-sub DESTROY {
-	print scalar $_[0]->reports;
+	my $self     = shift;
+	my $pointcut = shift;
+	return (
+		Aspect::Advice::Before->new(
+			lexical  => $self->lexical,
+			pointcut => $pointcut,
+			code     => sub {
+				$TIMER->start(shift->sub_name);
+			},
+		),
+		Aspect::Advice::After->new(
+			lexical  => $self->lexical,
+			pointcut => $pointcut,
+			code     => sub {
+				$TIMER->stop(shift->sub_name);
+			},
+		),
+	);
 }
 
 1;

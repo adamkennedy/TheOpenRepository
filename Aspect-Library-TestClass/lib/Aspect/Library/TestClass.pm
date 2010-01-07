@@ -3,12 +3,14 @@ package Aspect::Library::TestClass;
 use 5.006;
 use strict;
 use warnings;
-use Test::Class     0.33;
-use Params::Util    1.00 ();
-use Aspect          0.21 ();
-use Aspect::Modular      ();
+use Test::Class        0.33 ();
+use Params::Util       1.00 ();
+use Aspect::Modular    0.32 ();
+use Aspect::Advice::Before  ();
+use Aspect::Pointcut::Call  ();
+use Aspect::Pointcut::AndOp ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.32';
 our @ISA     = 'Aspect::Modular';
 
 sub Test::Class::make_subject {
@@ -16,16 +18,24 @@ sub Test::Class::make_subject {
 }
 
 sub get_advice {
-	my ($self, $pointcut) = @_;
-	Aspect::before {
-		my $context = shift;
-		my $self    = $context->self; # the Test::Class object
-		return unless is_test_method_with_subject($context);
-		my (@params) = $self->subject_params if $self->can('subject_params');
-		my $subject = $self->make_subject(@params);
-		$self->init_subject_state($subject) if $self->can('init_subject_state');
-		$context->append_param($subject);
-	} Aspect::call qr/::[a-z][^:]*$/ & $pointcut;
+	my $self     = shift;
+	my $pointcut = shift;
+	Aspect::Advice::Before->new(
+		lexical => $self->lexical,
+		pointcut => Aspect::Pointcut::AndOp->new(
+			Aspect::Pointcut::Call->new(qr/::[a-z][^:]*$/),
+			$pointcut,
+		),
+		code => sub {
+			my $context = shift;
+			my $self    = $context->self; # the Test::Class object
+			return unless is_test_method_with_subject($context);
+			my (@params) = $self->subject_params if $self->can('subject_params');
+			my $subject = $self->make_subject(@params);
+			$self->init_subject_state($subject) if $self->can('init_subject_state');
+			$context->append_param($subject);
+		},
+	);
 }
 
 # true if we are in a test class, in a test method, and we can get a
@@ -36,10 +46,9 @@ sub is_test_method_with_subject {
 	my $context = shift;
 	my $self    = $context->self; # the Test::Class object
 	my @method  = ($context->package_name, $context->short_sub_name);
-	return
-		Params::Util::_INSTANCE($self, 'Test::Class') &&
-		$self->_method_info(@method) &&
-		$self->can('subject_class');
+	return Params::Util::_INSTANCE($self, 'Test::Class')
+	    && $self->_method_info(@method)
+	    && $self->can('subject_class');
 }
 
 1;

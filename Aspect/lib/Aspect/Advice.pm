@@ -3,7 +3,7 @@ package Aspect::Advice;
 use strict;
 use warnings;
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 sub new {
 	my $class = shift;
@@ -23,8 +23,8 @@ sub pointcut {
 	$_[0]->{pointcut};
 }
 
-sub forever {
-	$_[0]->{forever};
+sub lexical {
+	$_[0]->{lexical};
 }
 
 sub DESTROY {

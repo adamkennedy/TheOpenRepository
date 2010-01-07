@@ -6,7 +6,7 @@ use Carp                  ();
 use Aspect::Pointcut      ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 our @ISA     = 'Aspect::Pointcut';
 
 sub new {

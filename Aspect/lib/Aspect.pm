@@ -29,7 +29,7 @@ use Aspect::Pointcut::AndOp ();
 use Aspect::Pointcut::OrOp  ();
 use Aspect::Pointcut::NotOp ();
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{ aspect around before after call cflow };
 
@@ -46,7 +46,7 @@ my @FOREVER = ();
 sub aspect {
 	my $class  = _LOAD('Aspect::Library::' . shift);
 	my $aspect = $class->new(
-		forever => ! defined wantarray,
+		lexical => defined wantarray,
 		params  => [ @_ ],
 	);
 
@@ -60,7 +60,7 @@ sub around (&$) {
 	Aspect::Advice::Around->new(
 		code     => $_[0],
 		pointcut => $_[1],
-		forever  => ! defined wantarray,
+		lexical  => defined wantarray,
 	);
 }
 
@@ -68,7 +68,7 @@ sub before (&$) {
 	Aspect::Advice::Before->new(
 		code     => $_[0],
 		pointcut => $_[1],
-		forever  => ! defined wantarray,
+		lexical  => defined wantarray,
 	);
 }
 
@@ -76,7 +76,7 @@ sub after (&$) {
 	Aspect::Advice::After->new(
 		code     => $_[0],
 		pointcut => $_[1],
-		forever  => ! defined wantarray,
+		lexical  => defined wantarray,
 	);
 }
 
@@ -147,7 +147,7 @@ Aspect - Aspect-Oriented Programming (AOP) for Perl
       print "g/set will soon be called";
   } $pointcut;
   
-  # Advice will live forever, because it is created in void context 
+  # Advice will live lexical, because it is created in void context 
   after {
       print "g/set has just been called";
   } $pointcut;

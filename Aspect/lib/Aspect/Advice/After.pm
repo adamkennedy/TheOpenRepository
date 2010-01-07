@@ -11,7 +11,7 @@ use Sub::Uplevel          ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -21,7 +21,7 @@ sub _install {
 	my $self     = shift;
 	my $pointcut = $self->pointcut;
 	my $code     = $self->code;
-	my $forever  = $self->forever;
+	my $lexical  = $self->lexical;
 
 	# Get the curried version of the pointcut we will use for the
 	# runtime checks instead of the original.
@@ -38,10 +38,10 @@ sub _install {
 	# past the hook as quickely as possible.
 	# This flag is shared between all the generated hooks for each
 	# installed Aspect.
-	# If the advice is going to last forever then we don't need to
+	# If the advice is going to last lexical then we don't need to
 	# check or use the $out_of_scope variable.
-	my $out_of_scope = undef;
-	my $MATCH_DISABLED = $forever ? '0' : '$out_of_scope';
+	my $out_of_scope   = undef;
+	my $MATCH_DISABLED = $lexical ? '$out_of_scope' : '0';
 
 	# Find all pointcuts that are statically matched
 	# wrap the method with advice code and install the wrapper
@@ -147,8 +147,8 @@ sub _install {
 END_PERL
 	}
 
-	# If this will run forever we don't need a descoping hook
-	return if $forever;
+	# If this will run lexical we don't need a descoping hook
+	return unless $lexical;
 
 	# Return the lexical descoping hook.
 	# This MUST be stored and run at DESTROY-time by the

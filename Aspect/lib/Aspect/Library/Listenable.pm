@@ -12,14 +12,14 @@ use Aspect::Modular                    ();
 use Aspect::Advice::Before             ();
 use Aspect::Library::Listenable::Event ();
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 our @ISA     = qw{ Aspect::Modular Exporter     };
 our @EXPORT  = qw{ add_listener remove_listener };
 
 sub get_advice {
 	my ($self, $event_name, $pointcut, %event_params) = @_;
 	Aspect::Advice::Before->new(
-		forever  => $self->forever,
+		lexical  => $self->lexical,
 		pointcut => $pointcut,
 		code     => sub {
 			local $_;
