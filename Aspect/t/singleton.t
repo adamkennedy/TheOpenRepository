@@ -14,7 +14,7 @@ aspect Singleton => 'Foo::new';
 
 my $foo1 = Foo->new;
 my $foo2 = Foo->new;
-is( ref($foo1), ref($foo2), 'there can only be one' );
+is( "$foo1", "$foo2", 'there can only be one' );
 
 # Create a lexical singleton to ensure it handles global vs lexical properly
 SCOPE: {
