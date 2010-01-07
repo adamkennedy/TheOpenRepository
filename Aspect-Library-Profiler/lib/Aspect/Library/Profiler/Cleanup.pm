@@ -7,7 +7,7 @@ use Benchmark::Timer ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.31';
+	$VERSION = '0.32';
 	@ISA     = 'Benchmark::Timer';
 }
 
