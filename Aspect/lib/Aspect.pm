@@ -113,17 +113,20 @@ __END__
 
 =head1 NAME
 
-Aspect - Aspect-oriented programming (AOP) for Perl
+Aspect - Aspect-Oriented Programming (AOP) for Perl
 
 =head1 SYNOPSIS
 
   package Person;
   
   sub create      { ... }
+  
   sub set_name    { ... }
+  
   sub get_address { ... }
   
   package main;
+  
   use Aspect;
   
   # Using reusable aspects
@@ -166,7 +169,7 @@ Aspect - Aspect-oriented programming (AOP) for Perl
 
 =head1 DESCRIPTION
 
-Aspect-oriented Programming (AOP) is a programming method developed by Xerox
+Aspect-Oriented Programming (AOP) is a programming method developed by Xerox
 PARC and others. The basic idea is that in complex class systems there are
 certain aspects or behaviors that cannot normally be expressed in a coherent,
 concise and precise way. One example of such aspects are design
@@ -220,7 +223,7 @@ goes out of scope.
 =item The Aspect
 
 An object that installs advice. A way to package advice and other Perl code,
-   so that it is reusable.
+so that it is reusable.
 
 =back
 
