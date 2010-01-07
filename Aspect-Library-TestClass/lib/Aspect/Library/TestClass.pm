@@ -113,6 +113,14 @@ No bugs have been reported.
 Please report any bugs or feature requests through the web interface at
 L<http://rt.cpan.org>.
 
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Aspect-Library-TestClass>
+
+For other issues, contact the author.
+
 =head1 INSTALLATION
 
 See perlmodinstall for information and options on installing Perl modules.
