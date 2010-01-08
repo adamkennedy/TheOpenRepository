@@ -163,7 +163,9 @@ Aspect - Aspect-Oriented Programming (AOP) for Perl
       if ( $context->self->customer_name eq 'Adam Kennedy' ) {
           $context->return_value('One meeeelion dollars');
       } else {
+          # Take a dollar off everyone else
           $context->run_original;
+          $context->return_value( $context->return_value - 1 );
       }
   } call 'Bank::Account::balance';
 
