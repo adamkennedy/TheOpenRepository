@@ -220,16 +220,6 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 
 	if ( -e $cpanp_config_location ) {
 
-		# Installing 0.89_02 because of accumulated fixes,
-		# including one in which the config set
-		# by us works better.
-		$self->install_distribution(
-			name             => 'BINGOS/CPANPLUS-0.89_02.tar.gz',
-			mod_name         => 'CPANPLUS',
-			makefilepl_param => ['INSTALLDIRS=perl'],
-			buildpl_param    => [ '--installdirs', 'core' ],
-		);
-
 		$self->trace_line( 1,
 			"Getting CPANPLUS config file ready for patching\n" );
 
@@ -240,7 +230,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 
 	if ( not $self->fragment_exists('CPAN') ) {
 		$self->install_distribution(
-			name             => 'ANDK/CPAN-1.94_52.tar.gz',
+			name             => 'ANDK/CPAN-1.94_53.tar.gz',
 			mod_name         => 'CPAN',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
@@ -805,7 +795,7 @@ sub install_perl_toolchain {
 			# 1.9402 fails its tests... ANDK says it's a test bug.
 			# Alias agrees that we include 1.94_51 because of the fix
 			# for the Win32 file:// bug.
-			$dist  = 'ANDK/CPAN-1.94_52.tar.gz';
+			$dist  = 'ANDK/CPAN-1.94_53.tar.gz';
 			$force = 1;
 		}
 		if ( $dist =~ /ExtUtils-ParseXS-2[.]20(?:02)?[.]tar[.]gz/msx ) {
