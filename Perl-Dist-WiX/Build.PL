@@ -57,7 +57,7 @@ my $requires = {
 	'Probe::Perl'               => '0.01',
 	'Process'                   => '0.26',
 	'Readonly'                  => '1.03',
-	'Template'                  => '2.20, !2.21',
+	'Template'                  => '>= 2.20, != 2.21',
 	'URI'                       => '1.35',
 	'WiX3'                      => '0.008',
 	'YAML::Tiny'                => '1.36',

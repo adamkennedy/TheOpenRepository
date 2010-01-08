@@ -20,6 +20,7 @@
 
 # Avoid Module::Build generated and utility files.
 \bBuild$
+\bBuild\.bat$
 \b_build/
 
 # Avoid temp and backup files.
@@ -56,3 +57,6 @@ mt\.dep$
 # Avoid release files
 \breleaserc$
 \bsite_html_config.yaml$
+
+# Avoid MYMETA.yml
+^MYMETA.yml$
