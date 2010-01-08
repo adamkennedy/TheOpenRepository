@@ -1000,16 +1000,28 @@ C<perl_version> is 'git'. In that event, this parameter should contain
 a string pointing to the location of a checkout from 
 L<http://perl5.git.perl.org/>.
 
-The default is 'C:\perl-git'.
+The default is 'C:\perl-git', if it exists.
 
 =cut
 
 has 'git_checkout' => (
 	is      => 'ro',
-	isa     => ExistingDirectory,
-	default => q{C:\\perl-git},
+	isa     => MaybeExistingDirectory,
+	builder => '_build_git_checkout',
 );
 
+sub _build_git_checkout {
+	my $self = shift;
+
+	my $dir = q{C:\\perl-git};
+	
+	if (-d $dir) { 
+		return $dir;
+	} else { 
+		return undef;
+	}
+	
+}
 
 
 =head3 git_location

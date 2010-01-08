@@ -57,6 +57,22 @@ subtype ExistingDirectory,
 	where { -d $_ },
 	message { 'Directory does not exist' };
 
+=head2 ExistingDirectory
+
+	has bar => (
+		is => 'ro',
+		isa => ExistingDirectory,
+		#...
+	);
+
+
+=cut
+
+subtype MaybeExistingDirectory,
+	as Directory,
+	where { not defined $_ or -d $_ },
+	message { 'Directory does not exist when given' };
+
 =head2 ExistingFile
 
 	has bar => (
