@@ -1,5 +1,8 @@
 Changes for Perl extension Aspect-Library-Trace
 
+0.34 Fri  8 Jan 2010
+	- Added missing Test::NoWarnings dependency
+
 0.33 Fri  8 Jan 2010
 	- Moved from dual before/after advice to a single around advice
 	- Adding Test::NoWarnings to all tests, now that Aspect uses it
