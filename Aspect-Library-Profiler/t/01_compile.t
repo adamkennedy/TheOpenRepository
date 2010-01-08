@@ -7,7 +7,6 @@ BEGIN {
 }
 
 use Test::More tests => 2;
-
-ok( $] >= 5.008002, 'Perl version ok' );
+use Test::NoWarnings;
 
 use_ok( 'Aspect::Library::Profiler' );

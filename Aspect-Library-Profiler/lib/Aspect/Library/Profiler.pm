@@ -3,36 +3,31 @@ package Aspect::Library::Profiler;
 use 5.008002;
 use strict;
 use warnings;
-use Aspect::Modular               0.32 ();
-use Benchmark::Timer            0.7101 ();
-use Aspect::Library::Profiler::Cleanup ();
+use Aspect::Modular    0.32 ();
+use Benchmark::Timer 0.7101 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.32';
+	$VERSION = '0.33';
 	@ISA     = 'Aspect::Modular';
 }
 
-my $TIMER = Aspect::Library::Profiler::Cleanup->new;
+my $TIMER = Benchmark::Timer->new;
+
+END {
+	print scalar $TIMER->reports;
+}
 
 sub get_advice {
-	my $self     = shift;
-	my $pointcut = shift;
-	return (
-		Aspect::Advice::Before->new(
-			lexical  => $self->lexical,
-			pointcut => $pointcut,
-			code     => sub {
-				$TIMER->start(shift->sub_name);
-			},
-		),
-		Aspect::Advice::After->new(
-			lexical  => $self->lexical,
-			pointcut => $pointcut,
-			code     => sub {
-				$TIMER->stop(shift->sub_name);
-			},
-		),
+	Aspect::Advice::Around->new(
+		lexical  => $_[0]->lexical,
+		pointcut => $_[1],
+		code     => sub {
+			my $name = $_[0]->sub_name;
+			$TIMER->start($name);
+			$_[0]->run_original;
+			$TIMER->stop($name);
+		},
 	);
 }
 
