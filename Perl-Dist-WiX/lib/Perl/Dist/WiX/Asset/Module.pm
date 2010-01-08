@@ -49,18 +49,18 @@ sub install {
 
 	my $packlist_flag = $self->_get_packlist();
 
-	unless ( $self->_get_bin_perl ) {
+	unless ( $self->_get_bin_perl() ) {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
-	my $dist_file = catfile( $self->_get_output_dir, 'cpan_distro.txt' );
+	my $dist_file = catfile( $self->_get_output_dir(), 'cpan_distro.txt' );
 
 	# Generate the CPAN installation script.
 	# Fix url's for minicpans until 1.9403 is released.
 	my $url = $self->_get_cpan()->as_string();
 	$url =~ s{\Afile:///C:/}{file://C:/}msx;
 
-	my $dp_dir = catdir( $self->_get_wix_dist_dir, 'distroprefs' );
+	my $dp_dir = catdir( $self->_get_wix_dist_dir(), 'distroprefs' );
 	my $internet_available = ( $url =~ m{ \A file://}msx ) ? 1 : 0;
 
 	my $cpan_string = <<"END_PERL";
@@ -109,7 +109,7 @@ END_PERL
 	my $filelist_sub;
 	if ( not $self->_get_packlist() ) {
 		$filelist_sub =
-		  File::List::Object->new->readdir( $self->_dir('perl') );
+		  File::List::Object->new()->readdir( $self->_dir('perl') );
 		$self->_trace_line( 5,
 			    "***** Module being installed $name"
 			  . " requires packlist => 0 *****\n" );
@@ -131,7 +131,7 @@ END_PERL
 	local $ENV{PERL_MM_USE_DEFAULT} = 1;
 	local $ENV{AUTOMATED_TESTING}   = undef;
 	local $ENV{RELEASE_TESTING}     = undef;
-	$self->_run3( $self->_get_bin_perl, $cpan_file )
+	$self->_run3( $self->_get_bin_perl(), $cpan_file )
 	  or PDWiX->throw('CPAN script execution failed');
 	PDWiX->throw(
 		"Failure detected installing $name, stopping [$CHILD_ERROR]")
@@ -161,7 +161,7 @@ END_PERL
 	} else {
 		$filelist =
 		  File::List::Object->new()->readdir( $self->_dir('perl') );
-		$filelist->subtract($filelist_sub)->filter( $self->_filters );
+		$filelist->subtract($filelist_sub)->filter( $self->_filters() );
 	}
 
 	return $filelist;

@@ -132,7 +132,13 @@ sub initialize_tree {
 		'Cpanplus',  'cpanplus',
 	) if ('589' ne $ver);
 #>>>
+	
+	my $perl = $self->get_directory_object('D_Perl');
+	$perl->add_directories_id('PerlSite', 'site');
 
+	my $cpan = $self->get_directory_object('D_Cpan');
+	$cpan->add_directories_id('CpanSources', 'sources');
+	
 	my @list = qw(
 	  c\\bin
 	  c\\include
@@ -145,7 +151,6 @@ sub initialize_tree {
 	  perl\\site\\lib\\auto
 	  perl\\vendor\\lib\\auto\\share\\dist
 	  perl\\vendor\\lib\\auto\\share\\module
-	  cpan\\sources
 	);
 
 	foreach my $dir (@list) {

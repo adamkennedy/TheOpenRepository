@@ -40,7 +40,8 @@
 \.user$
 BuildLog\.htm$
 mt\.dep$
-
+\bClearFolderCA/Debug\b
+\bClearFolderCA/Release\b
 
 # Avoid Devel::Cover files.
 \bcover_db\b

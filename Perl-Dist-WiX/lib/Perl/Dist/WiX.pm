@@ -71,6 +71,8 @@ To install this module, run the following commands:
 #<<<
 use     5.008001;
 use     Moose 0.90;
+use     Moose::Util::TypeConstraints;
+use     MooseX::Meta::TypeConstraint::Intersection;
 use     parent                qw( Perl::Dist::WiX::BuildPerl
                                   Perl::Dist::WiX::Checkpoint
                                   Perl::Dist::WiX::Libraries
@@ -80,8 +82,17 @@ use     Alien::WiX            qw( :ALL                          );
 use     Archive::Zip          qw( :ERROR_CODES                  );
 use     English               qw( -no_match_vars                );
 use     List::MoreUtils       qw( any none uniq                 );
-use     Params::Util          qw( 
-	_HASH _STRING _INSTANCE _IDENTIFIER _ARRAY0 _ARRAY     
+use     MooseX::Types::Moose  qw(
+	Int Str Maybe Bool Undef ArrayRef Maybe HashRef
+);
+use     Perl::Dist::WiX::Types qw(
+	Directory ExistingDirectory ExistingFile
+);
+use     Perl::Dist::WiX::PrivateTypes qw(
+	_NoDoubleSlashes _NoSpaces
+);
+use     Params::Util          qw(
+	_HASH _STRING _INSTANCE _IDENTIFIER _ARRAY0 _ARRAY
 );
 use     Readonly              qw( Readonly                      );
 use     Storable              qw( retrieve                      );
@@ -137,7 +148,7 @@ $VERSION =~ s/_//ms;
 # Reserved for a future parameter to new()
 has 'msi_feature_tree' => (
 	is      => 'ro',
-	isa     => 'Undef',
+	isa     => Undef,
 	default => undef,
 );
 
@@ -165,7 +176,7 @@ has '_toolchain' => (
 
 has '_build_start_time' => (
 	is       => 'ro',
-	isa      => 'Int',
+	isa      => Int,
 	default  => time,
 	init_arg => undef,                 # Cannot set this parameter in new().
 );
@@ -185,7 +196,7 @@ has '_directories' => (
 has '_distributions' => (
 	traits   => ['Array'],
 	is       => 'bare',
-	isa      => 'ArrayRef[Str]',
+	isa      => ArrayRef[Str],
 	default  => sub { return [] },
 	init_arg => undef,
 	handles  => {
@@ -199,7 +210,7 @@ has '_distributions' => (
 has '_env_path' => (
 	traits   => ['Array'],
 	is       => 'bare',
-	isa      => 'ArrayRef[ArrayRef[Str]]',
+	isa      => ArrayRef[ArrayRef[Str]],
 	default  => sub { return [] },
 	init_arg => undef,
 	handles  => {
@@ -212,7 +223,7 @@ has '_env_path' => (
 
 has '_filters' => (
 	is       => 'ro',
-	isa      => 'ArrayRef[Str]',
+	isa      => ArrayRef[Str],
 	lazy     => 1,
 	builder  => '_build_filters',
 	init_arg => undef,
@@ -290,7 +301,7 @@ has '_merge_modules' => (
 
 has '_in_merge_module' => (
 	is       => 'ro',
-	isa      => 'Bool',
+	isa      => Bool,
 	default  => 1,
 	init_arg => undef,
 	writer   => '_set_in_merge_module',
@@ -301,7 +312,7 @@ has '_in_merge_module' => (
 has '_output_file' => (
 	traits   => ['Array'],
 	is       => 'bare',
-	isa      => 'ArrayRef[Str]',
+	isa      => ArrayRef[Str],
 	default  => sub { return [] },
 	init_arg => undef,
 	handles  => {
@@ -315,7 +326,7 @@ has '_output_file' => (
 
 has '_perl_version_corelist' => (
 	is       => 'ro',
-	isa      => 'Maybe[HashRef]',
+	isa      => Maybe[HashRef],
 	lazy     => 1,
 	builder  => '_build_perl_version_corelist',
 	init_arg => undef,
@@ -340,16 +351,16 @@ sub _build_perl_version_corelist {
 
 has 'pdw_class' => (
 	is       => 'ro',
-	isa      => 'Str',
+	isa      => Str,
 	required => 1,                     # Default is provided in BUILDARGS.
 );
 
 
 
 has 'pdw_version' => (
-	is      => 'ro',
-	isa     => 'Str',
-	default => $Perl::Dist::WiX::VERSION,
+	is       => 'ro',
+	isa      => Str,
+	default  => $Perl::Dist::WiX::VERSION,
 	init_arg => undef,                 # Cannot set this parameter in new().
 );
 
@@ -374,7 +385,8 @@ has '_trace_object' => (
 
 
 has _user_agent_directory => (
-	is   => 'ro',                      # Directory that is created in builder, so must exist.
+	is   => 'ro',
+	isa  => ExistingDirectory,
 	lazy => 1,
 	builder  => '_build_user_agent_directory',
 	init_arg => undef,
@@ -383,7 +395,8 @@ has _user_agent_directory => (
 sub _build_user_agent_directory {
 	my $self = shift;
 
-# Create a legal path out of the object's class name under {Application Data}/Perl.
+# Create a legal path out of the object's class name under 
+# {Application Data}/Perl.
 	my $path = ref $self;
 	$path =~ s{::}{-}gmsx;             # Changes all :: to -.
 	my $dir =
@@ -407,7 +420,7 @@ sub _build_user_agent_directory {
 has '_cpan_moved' => (
 	traits   => ['Bool'],
 	is       => 'bare',
-	isa      => 'Bool',
+	isa      => Bool,
 	reader   => '_has_moved_cpan',
 	default  => 0,
 	init_arg => undef,                 # Cannot set this parameter in new().
@@ -418,7 +431,7 @@ has '_cpan_moved' => (
 
 has '_cpan_sources_to' => (
 	is       => 'ro',
-	isa      => 'Str',
+	isa      => Str,
 	writer   => '_set_cpan_sources_to',
 	default  => undef,
 	init_arg => undef,                 # Cannot set this parameter in new().
@@ -428,7 +441,7 @@ has '_cpan_sources_to' => (
 
 has '_cpan_sources_from' => (
 	is      => 'ro',
-	isa     => 'Str',
+	isa     => Str,
 	writer  => '_set_cpan_sources_from',
 	default => undef,
 	init_arg => undef,                 # Cannot set this parameter in new().
@@ -515,7 +528,8 @@ The C<app_publisher> parameter provides the publisher of the distribution.
 =cut
 
 has 'app_publisher' => (
-	is       => 'ro',                  # String
+	is       => 'ro',
+	isa      => Str,
 	required => 1,
 );
 
@@ -537,7 +551,8 @@ has 'app_publisher_url' => (
 
 =head3 app_ver_name
 
-The C<app_ver_name> parameter provides the name and version of the distribution. 
+The C<app_ver_name> parameter provides the name and version of the 
+distribution. 
 
 This is not required, and is assembled from C<app_name> and 
 C<perl_version_human> if not given.
@@ -545,7 +560,8 @@ C<perl_version_human> if not given.
 =cut
 
 has 'app_ver_name' => (
-	is      => 'ro',                   # String
+	is      => 'ro',
+	isa      => Str,
 	lazy    => 1,
 	builder => '_build_app_ver_name',
 );
@@ -569,7 +585,8 @@ number.
 =cut
 
 has 'beta_number' => (
-	is      => 'ro',                   # Integer
+	is      => 'ro',
+	isa     => Int,
 	default => 0,
 );
 
@@ -613,6 +630,16 @@ for 32-bit (i386) or 64-bit (referred to as Intel64 / amd-x64) Windows
 
 has 'bits' => (
 	is      => 'ro',                   # Integer 32/64
+	isa     => subtype('Int' => 
+		where { 
+			if (not defined $_) { 
+				$_ = 32;
+			}
+			
+			$_ == 32 or $_ == 64; 
+		},
+		message { 'Not 32 or 64-bit' },
+	),
 	default => 32,
 );
 
@@ -628,7 +655,8 @@ Defaults to C<temp_dir> . '\build', and must exist if given.
 =cut
 
 has 'build_dir' => (
-	is      => 'ro',                   # Directory that must exist.
+	is      => 'ro',
+	isa     => ExistingDirectory,
 	lazy    => 1,
 	builder => '_build_build_dir',
 );
@@ -645,13 +673,18 @@ sub _build_build_dir {
 
 =head3 build_number I<(required)>
 
-The required integer C<build_number> parameter is used to set the build number
-portion of the distribution's version number, and is used in constructing filenames.
+The required integer C<build_number> parameter is used to set the build 
+number portion of the distribution's version number, and is used in 
+constructing filenames.
 
 =cut
 
 has 'build_number' => (
-	is       => 'ro',                  # Integer
+	is       => 'ro',
+	isa      => subtype('Int' => 
+		where { $_ < 256 and $_ >= 0 },
+		message { 'Build number must be between 0 and 255' }
+	),
 	required => 1,
 );
 
@@ -659,15 +692,16 @@ has 'build_number' => (
 
 =head3 checkpoint_after
 
-C<checkpoint_after> is given an arrayref of task numbers.  After each task in 
-the list, Perl::Dist::WiX will stop and save a checkpoint.
+C<checkpoint_after> is given an arrayref of task numbers.  After each task
+in the list, Perl::Dist::WiX will stop and save a checkpoint.
 
 [ 0 ] is the default, meaning that you do not wish to save a checkpoint anywhere.
 
 =cut
 
 has 'checkpoint_after' => (
-	is      => 'ro',                   # Array of Integers
+	is      => 'ro',
+	isa     => ArrayRef[Int],
 	writer  => '_set_checkpoint_after',
 	default => sub { return [0] },
 );
@@ -682,12 +716,14 @@ to execute, rather than the task number that just executed, so that if a
 checkpoint was saved after (for example) task 5, this parameter should be 6
 in order to load the checkpoint and start on task 6.
 
-0 is the default, meaning that you do not wish to stop unless an error occurs.
+0 is the default, meaning that you do not wish to stop unless an error 
+occurs.
 
 =cut
 
 has 'checkpoint_before' => (
-	is      => 'ro',                   # Integer
+	is      => 'ro',
+	isa     => Int,
 	writer  => '_set_checkpoint_before',
 	default => 0,
 );
@@ -703,8 +739,8 @@ Defaults to C<temp_dir> . '\checkpoint', and must exist if given.
 =cut
 
 has 'checkpoint_dir' => (
-	is      => 'ro',                   # String
-	isa     => 'Str',
+	is      => 'ro',
+	isa     => Directory,
 	lazy    => 1,
 	builder => '_build_checkpoint_dir',
 );
@@ -720,12 +756,14 @@ sub _build_checkpoint_dir {
 C<checkpoint_stop> stops execution after the specified task if no error has 
 happened before then.
 
-0 is the default, meaning that you do not wish to stop unless an error occurs.
+0 is the default, meaning that you do not wish to stop unless an error 
+occurs.
 
 =cut
 
 has 'checkpoint_stop' => (
-	is      => 'ro',                   # Integer
+	is      => 'ro',
+	isa     => Int,
 	writer  => '_set_checkpoint_stop',
 	default => 0,
 );
@@ -748,7 +786,8 @@ convenience.
 =cut
 
 has 'cpan' => (
-	is      => 'ro',                   # URI object
+	is      => 'ro',
+	isa     => 'URI',
 	lazy    => 1,
 	builder => '_build_cpan',
 );
@@ -774,15 +813,17 @@ sub _build_cpan {
 
 =head3 debug_stderr
 
-The optional C<debug_stderr> parameter is used to set the location of the file
-that STDERR is redirected to when the perl tarball and perl modules are built.
+The optional C<debug_stderr> parameter is used to set the location of the 
+file that STDERR is redirected to when the perl tarball and perl modules 
+are built.
 
 The default location is in C<debug.err> in the C<output_dir>.
 
 =cut
 
 has 'debug_stderr' => (
-	is      => 'ro',                   # String
+	is      => 'ro',
+	isa     => Str,
 	lazy    => 1,
 	default => sub {
 		my $self = shift;
@@ -794,15 +835,17 @@ has 'debug_stderr' => (
 
 =head3 debug_stdout
 
-The optional C<debug_stdout> parameter is used to set the location of the file
-that STDOUT is redirected to when the perl tarball and perl modules are built.
+The optional C<debug_stdout> parameter is used to set the location of the
+file that STDOUT is redirected to when the perl tarball and perl modules
+are built.
 
 The default location is in C<debug.out> in the C<output_dir>.
 
 =cut
 
 has 'debug_stdout' => (
-	is      => 'ro',                   # String
+	is      => 'ro',
+	isa     => Str,
 	lazy    => 1,
 	default => sub {
 		my $self = shift;
@@ -820,7 +863,8 @@ installs its shortcuts to.  Defaults to C<app_name> if none is provided.
 =cut
 
 has 'default_group_name' => (
-	is      => 'ro',                   # String
+	is      => 'ro',
+	isa     => Str,
 	lazy    => 1,
 	default => sub {
 		my $self = shift;
@@ -840,7 +884,8 @@ Defaults to C<temp_dir> . '\download', and must exist if given.
 =cut
 
 has 'download_dir' => (
-	is      => 'ro',                   # Directory that must exist.
+	is      => 'ro',
+	isa     => ExistingDirectory,
 	lazy    => 1,
 	builder => '_build_download_dir',
 );
@@ -862,7 +907,8 @@ The optional boolean C<exe> param is unused at the moment.
 =cut
 
 has 'exe' => (
-	is      => 'ro',                   # Boolean
+	is      => 'ro',
+	isa     => Bool,
 	writer  => '_set_exe',
 	default => 0,
 );
@@ -878,7 +924,8 @@ testing is done.
 =cut
 
 has 'force' => (
-	is      => 'ro',                   # Boolean
+	is      => 'ro',
+	isa     => Bool,
 	default => 0,
 );
 
@@ -893,7 +940,8 @@ is done only upon installed modules, not upon perl itself.
 =cut
 
 has 'forceperl' => (
-	is      => 'ro',                   # Boolean
+	is      => 'ro',
+	isa     => Bool,
 	default => 0,
 );
 
@@ -909,7 +957,8 @@ Defaults to C<temp_dir> . '\fragments', and needs to exist if given.
 =cut
 
 has 'fragment_dir' => (
-	is      => 'ro',                   # Directory that must exist.
+	is      => 'ro',
+	isa     => ExistingDirectory,
 	lazy    => 1,
 	builder => '_build_fragment_dir',
 );
@@ -934,7 +983,11 @@ using gcc 4.4.3 from the mingw64 project (by specifying a value of '4').
 =cut
 
 has 'gcc_version' => (
-	is      => 'ro',                   # Integer 3-4
+	is      => 'ro',
+	isa     => subtype('Int' => 
+		where { $_ == 3 or $_ == 4 },
+		message { 'Not 3 or 4' }
+	),
 	default => 3,
 );
 
@@ -947,14 +1000,14 @@ C<perl_version> is 'git'. In that event, this parameter should contain
 a string pointing to the location of a checkout from 
 L<http://perl5.git.perl.org/>.
 
-The default is 'C:\perl-git\'.
+The default is 'C:\perl-git'.
 
 =cut
 
 has 'git_checkout' => (
 	is      => 'ro',
-	isa     => 'Str',
-	default => q{C:\\perl-git\\},
+	isa     => ExistingDirectory,
+	default => q{C:\\perl-git},
 );
 
 
@@ -981,7 +1034,7 @@ not have spaces.
 
 has 'git_location' => (
 	is      => 'ro',
-	isa     => 'Str',
+	isa     => ExistingFile,
 	default => 'C:\Program Files\Git\bin\git.exe',
 );
 
@@ -1007,7 +1060,14 @@ results, and an attempt is made to prevent this from happening.
 =cut
 
 has 'image_dir' => (
-	is => 'ro',                        # Directory, but must exist (will be created in BUILDARGS).
+	is => 'ro',
+	isa => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent => ExistingDirectory,
+		type_constraints => [
+			_NoDoubleSlashes,
+			_NoSpaces,
+		],
+	  ),
 	required => 1,
 );
 
@@ -1382,16 +1442,17 @@ below) will begin with 1 and increment in sequence.
 
 Task routines should either return 1, or throw an exception. 
 
-The default task list for Perl::Dist::WiX is as shown below.  Subclasses should
-provide their own list and insert their tasks in this list, rather than 
-overriding routines shown above.
+The default task list for Perl::Dist::WiX is as shown below.  Subclasses 
+should provide their own list and insert their tasks in this list, rather 
+than overriding routines shown above.
 
 
 
 =cut
 
 has 'tasklist' => (
-	is      => 'ro',                   # Array of strings that the object can do.
+	is      => 'ro',
+	isa     => ArrayRef[Str],
 	builder => '_build_tasklist',
 );
 
@@ -1460,6 +1521,7 @@ This parameter defaults to a subdirectory of $ENV{TEMP} if not specified.
 
 has 'temp_dir' => (
 	is      => 'ro',
+	isa     => Directory,
 	default => sub { return catdir( tmpdir(), 'perldist' ) },
 );
 
@@ -1487,7 +1549,8 @@ Default is 1 if not set.
 =cut
 
 has 'trace' => (
-	is      => 'ro',                   # Integer
+	is      => 'ro',
+	isa     => Int,
 	default => 1,
 );
 
@@ -1495,7 +1558,12 @@ has 'trace' => (
 
 =head3 user_agent
 
-TODO
+The C<user_agent> parameter stores the L<LWP::UserAgent|LWP::UserAgent> 
+object (or an object of a subclass of LWP::UserAgent) that Perl::Dist::WiX 
+uses to download files.
+
+The default depends on the L<user_agent_cache|/user_agent_cache>
+parameter.
 
 =cut
 
@@ -1541,13 +1609,18 @@ sub _build_user_agent {
 
 =head3 user_agent_cache
 
-TODO
+The boolean C<user_agent_cache> parameter specifies whether the default 
+L<user_cache|/user_cache> object is a 
+L<LWP::UserAgent::WithCache|LWP::UserAgent::WithCache> (true) or a
+L<LWP::UserAgent|LWP::UserAgent> object (false).
+
+Defaults to a true value if not specified.
 
 =cut
 
 has 'user_agent_cache' => (
 	is      => 'ro',
-	isa     => 'Bool',
+	isa     => Bool,
 	default => 1,
 );
 
@@ -1561,7 +1634,8 @@ distribution package should be created.
 =cut
 
 has 'zip' => (
-	is      => 'ro',                   # Boolean
+	is      => 'ro',
+	isa     => Bool,
 	lazy    => 1,
 	default => sub {
 		my $self = shift;
@@ -1695,7 +1769,8 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 } ## end sub BUILDARGS
 
 
-# This is called by Moose's DESTROY, and handles moving the CPAN source files back.
+# This is called by Moose's DESTROY, and handles moving the CPAN source 
+# files back.
 sub DEMOLISH {
 	my $self = shift;
 
@@ -1776,7 +1851,7 @@ are installed.
 
 has 'bin_perl' => (
 	is       => 'ro',
-	isa      => 'Str',
+	isa      => Maybe[Str],
 	writer   => '_set_bin_perl',
 	init_arg => undef,
 	default  => undef,
@@ -1784,7 +1859,7 @@ has 'bin_perl' => (
 
 has 'bin_make' => (
 	is       => 'ro',
-	isa      => 'Str',
+	isa      => Maybe[Str],
 	writer   => '_set_bin_make',
 	init_arg => undef,
 	default  => undef,
@@ -1792,7 +1867,7 @@ has 'bin_make' => (
 
 has 'bin_pexports' => (
 	is       => 'ro',
-	isa      => 'Str',
+	isa      => Maybe[Str],
 	writer   => '_set_bin_pexports',
 	init_arg => undef,
 	default  => undef,
@@ -1800,7 +1875,7 @@ has 'bin_pexports' => (
 
 has 'bin_dlltool' => (
 	is       => 'ro',
-	isa      => 'Str',
+	isa      => Maybe[Str],
 	writer   => '_set_bin_dlltool',
 	init_arg => undef,
 	default  => undef,
@@ -1834,7 +1909,8 @@ Returns a directory as a string or throws an exception on error.
 =cut
 
 has 'wix_dist_dir' => (
-	is       => 'ro',                  # String
+	is       => 'ro',
+	isa      => ExistingDirectory,
 	builder  => '_build_wix_dist_dir',
 	init_arg => undef,
 );
@@ -1864,7 +1940,8 @@ directory pointed to by C<git_checkout>.
 =cut
 
 has 'git_describe' => (
-	is       => 'ro',                  # String
+	is       => 'ro',
+	isa      => Str,
 	lazy     => 1,
 	builder  => '_build_git_describe',
 	init_arg => undef,
@@ -2189,6 +2266,24 @@ sub msm_package_id {
 
 
 
+=head3 msm_package_id_property
+
+Returns the Id for the MSI's <Package> tag, as the merge module would append it.
+
+This is used in the main object 
+
+=cut
+
+# For template.
+sub msm_package_id_property {
+	my $self = shift;
+	
+	my $guid = $self->msm_package_id();
+	$guid =~ s/-/_/msg;
+	
+	return $guid;
+}
+
 =head3 msi_perl_version
 
 Returns the Version attribute for the MSI's <Product> tag.
@@ -2208,7 +2303,7 @@ sub msi_perl_version {
 		'5100' => [ 5, 10, 0 ],
 		'5101' => [ 5, 10, 1 ],
 		'git'  => [ 5, 0,  0 ],
-	  }->{ $self->perl_version }
+	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
 
 	# Merge build number with last part of perl version.
@@ -2218,6 +2313,39 @@ sub msi_perl_version {
 
 } ## end sub msi_perl_version
 
+=head3 msi_perl_major_version
+
+Returns the major perl version so that upgrades that jump delete the
+site directory.
+
+=cut
+
+# For template.
+# MSI versions are 3 part, not 4, with the maximum version being 255.255.65535
+sub msi_perl_major_version {
+	my $self = shift;
+
+	# Get perl version arrayref.
+	my $ver = {
+		'589'  => [ 5, 8, 0 ],
+		'5100' => [ 5, 9, 255 ],
+		'5101' => [ 5, 10, 0 ],
+		'git'  => [ 5, 0,  0 ],
+	  }->{ $self->perl_version() }
+	  || [ 0, 0, 0 ];
+
+	# Shift the third portion over to match msi_perl_version.
+	$ver->[2] <<= 8;
+	$ver->[2] += 255;
+
+	# Correct to the build number (minus 1 so as not to duplicate) for git	
+	if ('git' eq $self->perl_version()) { 
+		$ver->[2] = $self->build_number() - 1; 
+	}
+	
+	return join q{.}, @{$ver};
+
+} ## end sub msi_next_perl_version
 
 
 =head3 perl_config_myuname
@@ -2421,11 +2549,30 @@ EOF
 	$self->_add_fragment( 'Environment',
 		Perl::Dist::WiX::Fragment::Environment->new() );
 
+	# Add directories that need created.
 	$self->_add_fragment(
 		'CreateCpan',
 		Perl::Dist::WiX::Fragment::CreateFolder->new(
 			directory_id => 'Cpan',
 			id           => 'CPANFolder',
+		) );
+	$self->_add_fragment(
+		'CreateCpanSources',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'CpanSources',
+			id           => 'CPANSourcesFolder',
+		) );
+	$self->_add_fragment(
+		'CreatePerl',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'Perl',
+			id           => 'PerlFolder',
+		) );
+	$self->_add_fragment(
+		'CreatePerlSite',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'PerlSite',
+			id           => 'PerlSiteFolder',
 		) );
 	$self->_add_fragment(
 		'CreateCpanplus',

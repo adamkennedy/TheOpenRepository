@@ -80,10 +80,10 @@ sub install {
 	if ( not defined $git ) {
 
 		# Download the file
-		$tgz = $self->_mirror( $self->_get_url, $self->_get_download_dir, );
+		$tgz = $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
 	}
 
-	my $unpack_to = catdir( $self->_get_build_dir, $self->_get_unpack_to );
+	my $unpack_to = catdir( $self->_get_build_dir(), $self->_get_unpack_to() );
 	if ( -d $unpack_to ) {
 		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
 		File::Remove::remove( \1, $unpack_to );
@@ -94,7 +94,7 @@ sub install {
 
 		# Copy to the build directory.
 		$self->_copy(
-			URI->new( $self->_get_url )->file(),
+			URI->new( $self->_get_url() )->file(),
 			catdir( $unpack_to, 'perl-git' ) );
 		$perlsrc = 'perl-git';
 	} else {
@@ -121,7 +121,7 @@ sub install {
 	# Copy in licenses
 	if ( ref $self->_get_license() eq 'HASH' ) {
 		my $licenses = $self->_get_license();
-		my $license_dir = catdir( $self->_get_image_dir, 'licenses' );
+		my $license_dir = catdir( $self->_get_image_dir(), 'licenses' );
 		if ( defined $git ) {
 			foreach my $key ( keys %{$licenses} ) {
 				$self->_copy( catfile( $unpack_to, $key ),
@@ -138,7 +138,7 @@ sub install {
 
 		# Prepare to patch
 		my $image_dir = $self->_get_image_dir();
-		my $INST_TOP = catdir( $image_dir, $self->_get_install_to );
+		my $INST_TOP = catdir( $image_dir, $self->_get_install_to() );
 		my ($INST_DRV) = splitpath( $INST_TOP, 1 );
 
 		my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );

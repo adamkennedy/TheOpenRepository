@@ -30,7 +30,7 @@ requires       'Exception::Class'          => '1.22';
 requires       'File::Copy::Recursive'     => '0.38';
 requires       'File::Find::Rule'          => '0.30';
 requires       'File::HomeDir'             => '0.82';
-requires       'File::List::Object'        => '0.189';
+requires       'File::List::Object'        => '0.201';
 requires       'File::Path'                => '2.07';
 requires       'File::PathList'            => '1.04';
 requires       'File::pushd'               => '1.00';
@@ -73,11 +73,14 @@ requires       'Win32'                     => '0.35';
 requires       'Win32::Exe'                => '0.11';
 requires       'Win32::File::Object'       => '0.01';
 requires       'Win32API::File'            => '0.1001';
-resources      'repository'                => 'http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/';
-resources      'bugtracker'                => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX';
-resources      'homepage'                  => 'http://csjewell.comyr.com/perl/';
-resources      'IRC'                       => 'irc://irc.perl.org/#win32';
-resources      'DLSIP'                     => 'http://search.cpan.org/dlsip?RpdOp';
+resources      'repository'                => 
+	'http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/';
+resources      'bugtracker'                => 
+	'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX';
+resources      'homepage'                  => 
+	'http://csjewell.comyr.com/perl/';
+resources      'IRC'                       => 
+	'irc://irc.perl.org/#win32';
 license        'perl';
 install_script catfile('script', 'perldist_w');
 install_share;

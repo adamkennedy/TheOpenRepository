@@ -327,7 +327,8 @@ UINT IsFileInstalled(
 	return uiAnswer;
 }
 
-// Adds a record to remove all files in the directory referred to by sDirectoryID.
+// Adds a record to remove a file in the directory referred to by sDirectoryID.
+// (The filename can be *.* to remove all files.)
 
 UINT AddRemoveFileRecord(
 	MSIHANDLE hModule,    // Handle of MSI being installed. [in]
@@ -424,6 +425,7 @@ UINT AddRemoveDirectoryRecord(
 	return uiAnswer;	
 }
 
+
 // Adds a record to reference the directory referred to by sParentDirID and sName
 // in sDirectoryID.
 // sDirectoryID will need free()'d when done.
@@ -473,14 +475,12 @@ UINT AddDirectoryRecord(
 	return uiAnswer;	
 }
 
-// The main routine
+// The main routine used for new directories.
 
-UINT AddDirectory(
+UINT AddDirectoryQuick(
 	MSIHANDLE hModule,         // Handle of MSI being installed. [in]
 	LPCTSTR sCurrentDir,       // Directory being searched. [in]
-	LPCTSTR sCurrentDirID,     // ID of directory being searched. [in]
-	bool bCurrentIDExisted,    // Did current ID exist in the MSI originally? [in]
-	bool& bDeleteEntryCreated) // Was a delete-directory entry created by this call? [out]
+	LPCTSTR sCurrentDirID)     // ID of directory being searched. [in]
 {
 	// Set up the wildcard for the files to find.
 	TCHAR sFind[MAX_PATH + 1];
@@ -490,20 +490,17 @@ UINT AddDirectory(
 	// Set up other variables.
 	TCHAR sSubDir[MAX_PATH + 1];
 	WIN32_FIND_DATA found;
-	TCHAR* sSubDirID = NULL;
-	bool bDeleteEntryCreatedBelow = false;
 
 	HANDLE hFindHandle;
 
 	BOOL bFileFound = FALSE;
 	UINT uiAnswer = ERROR_SUCCESS;
-	bool bDirectoryFound = false;
-	bool bInstalled = false;
-
-	LPTSTR sID = CreateDirectoryGUID();
+	UINT uiCounter = 0;
+	LPCTSTR sID = NULL;
 
 	// Start finding files and directories.
 	hFindHandle = ::FindFirstFile(sFind, &found);
+
 	if (hFindHandle != INVALID_HANDLE_VALUE) {
 		bFileFound = TRUE;
 	}
@@ -527,20 +524,137 @@ UINT AddDirectory(
 			_tcscat_s(sSubDir, MAX_PATH, found.cFileName);
 			_tcscat_s(sSubDir, MAX_PATH, TEXT("\\"));
 
-			if (bCurrentIDExisted) {
-				// Try and get the ID that already exists.
-				uiAnswer = GetDirectoryID(hModule, 
-					sCurrentDirID, 
-					found.cFileName, 
-					sSubDirID);
-				MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+			// We need to get a directory ID, add the property, then go down 
+			// into this directory.
+			sID = CreateDirectoryGUID(); 
+			uiAnswer = ::MsiSetProperty(hModule, sID, sSubDir); 
+			MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+
+			StartLogString(TEXT("MSPQ: Added directory property with ID string: "));
+			AppendLogString(sID);
+			AppendLogString(TEXT(" and name: "));
+			AppendLogString(sSubDir);
+			uiAnswer = LogString(hModule);
+			MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+			
+			uiAnswer = AddDirectoryQuick(hModule, sSubDir, sID);
+			MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+
+			free((LPTSTR)sID);	
+		}
+	
+		// Check and see if there is another file to process.
+		bFileFound = ::FindNextFile(hFindHandle, &found);
+	}
+	
+	// Close the find handle.
+	::FindClose(hFindHandle);
+	
+	// add an entry to delete ourselves.
+	uiAnswer = AddRemoveDirectoryRecord(hModule, sCurrentDirID);
+	MSI_OK(uiAnswer)
+
+	StartLogString(TEXT("ARDR: Added remove directory entry with ID string: "));
+	AppendLogString(sCurrentDirID);
+	AppendLogString(TEXT(" and name: "));
+	AppendLogString(sCurrentDir);
+	AppendLogString(TEXT("\n"));
+	uiAnswer = LogString(hModule);
+	MSI_OK(uiAnswer)		
+
+	uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID, _T("*.*"));
+	MSI_OK(uiAnswer)
+
+	StartLogString(TEXT("ARFR3: Added remove file record entry with ID string: "));
+	AppendLogString(sCurrentDirID);
+	AppendLogString(TEXT(" for all files."));
+	uiAnswer = LogString(hModule);
+	MSI_OK(uiAnswer)
+
+	return uiAnswer;
+}
+
+// The main routine used for previously existing directories.
+
+UINT AddDirectory(
+	MSIHANDLE hModule,         // Handle of MSI being installed. [in]
+	LPCTSTR sCurrentDir,       // Directory being searched. [in]
+	LPCTSTR sCurrentDirID,     // ID of directory being searched. [in]
+	bool bUninstallSite,       // Do we uninstall the site directory? [in]
+	bool& bDeleteEntryCreated) // Was a delete-directory entry created by this call? [out]
+{
+	// Set up the wildcard for the files to find.
+	TCHAR sFind[MAX_PATH + 1];
+	_tcscpy_s(sFind, MAX_PATH, sCurrentDir);
+	_tcscat_s(sFind, MAX_PATH, TEXT("\\*"));
+
+	// Set up other variables.
+	TCHAR sSubDir[MAX_PATH + 1];
+	TCHAR sCurrentIDCheck[7];
+	WIN32_FIND_DATA found;
+	TCHAR* sSubDirID = NULL;
+	bool bDeleteEntryCreatedBelow = false;
+
+	HANDLE hFindHandle;
+
+	BOOL bFileFound = FALSE;
+	UINT uiAnswer = ERROR_SUCCESS;
+	bool bDirectoryFound = false;
+	bool bInstalled = false;
+
+	LPTSTR sID = CreateDirectoryGUID();
+
+	// We need to copy the first part of sCurrentDirID so
+	// we can make the "Do we uninstall site?" check.
+	_tcsncpy_s(sCurrentIDCheck, 6, sCurrentDirID, _TRUNCATE);
+
+	// Start finding files and directories.
+	hFindHandle = ::FindFirstFile(sFind, &found);
+	if (hFindHandle != INVALID_HANDLE_VALUE) {
+		bFileFound = TRUE;
+	}
+
+	while (bFileFound & (uiAnswer == ERROR_SUCCESS)) {
+		if ((found.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY) {
+
+			// Handle . and ..
+			if (0 == _tcscmp(found.cFileName, TEXT("."))) {
+				bFileFound = ::FindNextFile(hFindHandle, &found);
+				continue;
 			}
 
-			if (bCurrentIDExisted && (sSubDirID != NULL)) {
+			if (0 == _tcscmp(found.cFileName, TEXT(".."))) {
+				bFileFound = ::FindNextFile(hFindHandle, &found);
+				continue;
+			}
+
+			// If we're not supposed to uninstall the site directory,
+			// skip it.
+			if ((!bUninstallSite) &&
+				(0 == _tcscmp(found.cFileName, TEXT("site"))) &&
+				(0 == _tcscmp(sCurrentIDCheck, TEXT("D_Perl")))) {
+				bFileFound = ::FindNextFile(hFindHandle, &found);
+				continue;
+			}
+
+			// Create a new directory spec to recurse into.
+			_tcscpy_s(sSubDir, MAX_PATH, sCurrentDir);
+			_tcscat_s(sSubDir, MAX_PATH, found.cFileName);
+			_tcscat_s(sSubDir, MAX_PATH, TEXT("\\"));
+
+			// Try and get the ID that already exists.
+			uiAnswer = GetDirectoryID(hModule, 
+				sCurrentDirID, 
+				found.cFileName, 
+				sSubDirID);
+			MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+
+			if (sSubDirID != NULL) {
 				// We have an existing directory ID.
 				uiAnswer = AddDirectory(
-					hModule, sSubDir, sSubDirID, true, bDeleteEntryCreatedBelow);
+					hModule, sSubDir, sSubDirID, bUninstallSite, bDeleteEntryCreatedBelow);
 				MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sSubDirID)
+				free(sSubDirID);
 			} else {
 				// We need to get a directory ID, add the property, then go down 
 				// into this directory.
@@ -555,35 +669,23 @@ UINT AddDirectory(
 				uiAnswer = LogString(hModule);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 				
-				uiAnswer = AddDirectory(
-					hModule, sSubDir, sID, false, bDeleteEntryCreatedBelow);
+				uiAnswer = AddDirectoryQuick(hModule, sSubDir, sID);
+				bDeleteEntryCreatedBelow = true;
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 			}
 		} else {
 			// Verify that the file wasn't installed by this MSI.
-			if (bCurrentIDExisted) {
-				bInstalled = false;
+			bInstalled = false;
 
-				uiAnswer = IsFileInstalled(hModule, sCurrentDirID, 
-					found.cFileName, bInstalled);
-				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+			uiAnswer = IsFileInstalled(hModule, sCurrentDirID, 
+				found.cFileName, bInstalled);
+			MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 
-				if (!bInstalled) {
-					uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID, found.cFileName);
-					MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-
-					StartLogString(TEXT("ARFR1: Added remove file record entry with ID string: "));
-					AppendLogString(sCurrentDirID);
-					AppendLogString(TEXT(" and name: "));
-					AppendLogString(found.cFileName);
-					uiAnswer = LogString(hModule);
-					MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
-				}
-			} else {
+			if (!bInstalled) {
 				uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID, found.cFileName);
 				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
 
-				StartLogString(TEXT("ARFR2: Added remove file record entry with ID string: "));
+				StartLogString(TEXT("ARFR1: Added remove file record entry with ID string: "));
 				AppendLogString(sCurrentDirID);
 				AppendLogString(TEXT(" and name: "));
 				AppendLogString(found.cFileName);
@@ -600,7 +702,7 @@ UINT AddDirectory(
 	::FindClose(hFindHandle);
 	
 	// If we are an extra directory, add an entry to delete ourselves.
-	if ((!bCurrentIDExisted) || (bDeleteEntryCreatedBelow)){
+	if (bDeleteEntryCreatedBelow){
 		uiAnswer = AddRemoveDirectoryRecord(hModule, sCurrentDirID);
 		bDeleteEntryCreated = true;
 		MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
@@ -614,17 +716,14 @@ UINT AddDirectory(
 		MSI_OK_FREE(uiAnswer, (LPTSTR)sID)		
 	} 
 
-	if (sSubDirID != NULL) {
-		free(sSubDirID);
-	}
-
 	// Clean up after ourselves.
 	free((LPTSTR)sID);	
 	return uiAnswer;
 }
 
 UINT GetComponent(
-	MSIHANDLE hModule ) // Database Handle of MSI being installed. [in]
+	MSIHANDLE hModule,       // Database Handle of MSI being installed. [in]
+	LPCTSTR sMergeModuleID ) // ID of merge module being uninstalled. [in]
 {
 	LPCTSTR sSQL = 
 		TEXT("SELECT `Directory` FROM `Directory` WHERE `Directory_Parent`= ? AND `DefaultDir` = ?");
@@ -642,7 +741,14 @@ UINT GetComponent(
 	PMSIHANDLE phRecord = ::MsiCreateRecord(2);
 	HANDLE_OK(phRecord)
 
-	uiAnswer = ::MsiRecordSetString(phRecord, 1, TEXT("D_Perl"));
+	TCHAR sPerlID[46];
+	_tcscpy_s(sPerlID, 45, TEXT("D_Perl"));
+	if (_tcscmp(sMergeModuleID, TEXT("")) != 0) {
+		_tcscat_s(sPerlID, 45, TEXT("."));
+		_tcscat_s(sPerlID, 45, sMergeModuleID);
+	}
+
+	uiAnswer = ::MsiRecordSetString(phRecord, 1, sPerlID);
 	MSI_OK(uiAnswer)
 
 	uiAnswer = ::MsiRecordSetString(phRecord, 2, TEXT("bin"));
@@ -658,8 +764,8 @@ UINT GetComponent(
 	MSI_OK(uiAnswer)
 	
 	// Get the ID.
-	TCHAR sID[40];
-	DWORD dwLengthID = 39;
+	TCHAR sID[60];
+	DWORD dwLengthID = 59;
 	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sID, &dwLengthID);
 	MSI_OK(uiAnswer);
 		
@@ -685,7 +791,7 @@ UINT GetComponent(
 	MSI_OK(uiAnswer)
 	
 	// Get the ID.
-	dwLengthID = 39;
+	dwLengthID = 59;
 	uiAnswer = ::MsiRecordGetString(phAnswerRecord, 1, sComponent, &dwLengthID);
 	MSI_OK(uiAnswer);
 	
@@ -698,22 +804,113 @@ UINT __stdcall ClearFolder(
 	                   // Passed to most other routines.
 {
 	TCHAR sInstallDirectory[MAX_PATH + 1];
+	TCHAR sPerlModuleID[40];
+	TCHAR sQuick[6];
 	UINT uiAnswer;
-	DWORD dwPropLength = MAX_PATH; 
+	DWORD dwPropLength;
+	bool bUninstallSite = false;
 
 	// Get directory to search.
+	dwPropLength = 5; 
+	uiAnswer = ::MsiGetProperty(hModule, TEXT("UNINSTALL_QUICK"), sQuick, &dwPropLength); 
+	if (ERROR_MORE_DATA == uiAnswer) {
+		uiAnswer = ERROR_SUCCESS;
+	}
+	MSI_OK(uiAnswer)
+
+	if (0 != _tcscmp(sQuick, _T(""))) {
+		return ERROR_SUCCESS;
+	}
+
+	dwPropLength = 5; 
+	uiAnswer = ::MsiGetProperty(hModule, TEXT("UNINSTALL_SITE"), sQuick, &dwPropLength); 
+	if (ERROR_MORE_DATA == uiAnswer) {
+		uiAnswer = ERROR_SUCCESS;
+	}
+	MSI_OK(uiAnswer)
+
+	if (0 != _tcscmp(sQuick, _T(""))) {
+		bUninstallSite = true;
+	}
+
+	// Get directory to search.
+	dwPropLength = MAX_PATH; 
 	uiAnswer = ::MsiGetProperty(hModule, TEXT("INSTALLDIR"), sInstallDirectory, &dwPropLength); 
 	MSI_OK(uiAnswer)
 
+	dwPropLength = 39; 
+	uiAnswer = ::MsiGetProperty(hModule, TEXT("PerlModuleID"), sPerlModuleID, &dwPropLength); 
+	MSI_OK(uiAnswer)
+
 	// Get component to add files to delete to.
-	uiAnswer = GetComponent(hModule);
+	uiAnswer = GetComponent(hModule, sPerlModuleID);
 	MSI_OK(uiAnswer)
 	
+	TCHAR sInstallDirID[51];
+	_tcscpy_s(sInstallDirID, 50, TEXT("INSTALLDIR"));
+	if (_tcscmp(sPerlModuleID, TEXT("")) != 0) {
+		_tcscat_s(sInstallDirID, 50, TEXT("."));
+		_tcscat_s(sInstallDirID, 50, sPerlModuleID);
+	}
+
 	// Start getting files to delete (recursive)
 	bool bDeleteEntryCreated = false;
 	uiAnswer = AddDirectory(
-		hModule, sInstallDirectory, TEXT("INSTALLDIR"), true, bDeleteEntryCreated);	
-	
+		hModule, sInstallDirectory, sInstallDirID, bUninstallSite, bDeleteEntryCreated);
+
     return uiAnswer;
 }
 
+UINT __stdcall ClearSiteFolder(
+	MSIHANDLE hModule) // Handle of MSI being installed. [in]
+	                   // Passed to most other routines.
+{
+	TCHAR sInstallDirectory[MAX_PATH + 1];
+	TCHAR sSiteDirectory[MAX_PATH + 1];
+	TCHAR sPerlModuleID[40];
+	TCHAR sQuick[6];
+	UINT uiAnswer;
+	DWORD dwPropLength;
+
+	// Get directory to search.
+	dwPropLength = 5; 
+	uiAnswer = ::MsiGetProperty(hModule, TEXT("UNINSTALL_QUICK"), sQuick, &dwPropLength); 
+	if (ERROR_MORE_DATA == uiAnswer) {
+		uiAnswer = ERROR_SUCCESS;
+	}
+	MSI_OK(uiAnswer)
+
+	if (0 != _tcscmp(sQuick, _T(""))) {
+		return ERROR_SUCCESS;
+	}
+
+	dwPropLength = 39; 
+	uiAnswer = ::MsiGetProperty(hModule, TEXT("PerlModuleID"), sPerlModuleID, &dwPropLength); 
+	MSI_OK(uiAnswer)
+
+	// Get directory to search.
+	dwPropLength = MAX_PATH; 
+	uiAnswer = ::MsiGetProperty(hModule, TEXT("INSTALLDIR"), sInstallDirectory, &dwPropLength); 
+	MSI_OK(uiAnswer)
+
+	_tcscpy_s(sSiteDirectory, MAX_PATH, sInstallDirectory);
+	_tcscat_s(sSiteDirectory, MAX_PATH, TEXT("perl\\site\\"));
+
+	// Get component to add files to delete to.
+	uiAnswer = GetComponent(hModule, sPerlModuleID);
+	MSI_OK(uiAnswer)
+	
+	TCHAR sSiteDirID[51];
+	_tcscpy_s(sSiteDirID, 50, TEXT("D_PerlSite"));
+	if (_tcscmp(sPerlModuleID, TEXT("")) != 0) {
+		_tcscat_s(sSiteDirID, 50, TEXT("."));
+		_tcscat_s(sSiteDirID, 50, sPerlModuleID);
+	}
+
+	// Start getting files to delete (recursive)
+	bool bDeleteEntryCreated = false;
+	uiAnswer = AddDirectory(
+		hModule, sSiteDirectory, sSiteDirID, true, bDeleteEntryCreated);
+
+    return uiAnswer;
+}

@@ -83,19 +83,23 @@ sub new {
 sub _build_app_ver_name {
 	my $self = shift;
 
-	return $self->{app_ver_name} =
-	  'Vanilla Perl version ' . $self->build_number();
+	my $string = 'Vanilla Perl version ' . $self->build_number();
+
+	print $string;
 }
 
 # Default the output filename to the id plus the current date
 sub _build_output_base_filename {
 	my $self = shift;
 
-	return $self->{output_base_filename} =
-	    $self->app_id() . q{-}
+	my $bits = ( 64 == $self->bits() ) ? q{-64bit} : q{};
+
+	my $string = $self->app_id() . q{-}
 	  . $self->build_number() . q{-}
 	  . $self->output_date_string()
-	  . ( 64 == $self->bits ) ? q{-64bit} : q{};
+	  . $bits;
+
+	return $string;
 }
 
 1;

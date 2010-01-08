@@ -40,8 +40,8 @@ has files => (
 	required => 1,
 	reader   => 'get_files',
 	handles  => {
-		'add_files'  => 'add_files',
-		'add_file'   => 'add_file',
+		'_add_files'  => 'add_files',
+		'_add_file'   => 'add_file',
 		'_subtract'  => 'subtract',
 		'_get_files' => 'files',
 	},
@@ -87,14 +87,14 @@ has in_merge_module => (
 # This type of fragment needs regeneration.
 sub regenerate {
 	my $self = shift;
-	my @fragment_ids;
+	my @fragment_ids;		
 	my @files = @{ $self->_get_files() };
 
 	my $id = $self->get_id();
 	$self->trace_line( 2, "Regenerating $id\n" );
 
 	$self->clear_child_tags();
-
+	
   FILE:
 	foreach my $file (@files) {
 		push @fragment_ids, $self->_add_file_to_fragment($file);
@@ -112,7 +112,7 @@ sub _add_file_to_fragment {
 	my $file_path = shift;
 	my $tree      = Perl::Dist::WiX::DirectoryTree2->instance();
 
-	$self->trace_line( 3, "Adding $file_path\n" );
+	$self->trace_line( 3, "Adding file $file_path\n" );
 
 # return () or any fragments that need regeneration retrieved from the cache.
 	my ( $directory_final, @fragment_ids );
@@ -150,6 +150,8 @@ sub _add_file_to_fragment {
 
 		if ( defined $directory_step1 ) {
 
+			$self->trace_line( 4, "Directory search for step 1 successful.\n" );
+
 			$found_step1 = 1;
 			$self->_add_file_component( $directory_step1, $file_path );
 			return ();
@@ -171,6 +173,8 @@ sub _add_file_to_fragment {
 	);
 
 	if ( defined $directory_step2 ) {
+
+		$self->trace_line( 4, "Directory search for step 2 successful.\n" );
 
 		my $directory_ref_step2 =
 		  Perl::Dist::WiX::Tag::DirectoryRef->new(
@@ -209,7 +213,10 @@ sub _add_file_to_fragment {
 
 		if ( defined $directory_step3 ) {
 
+			$self->trace_line( 4, "Directory search for step 3 successful.\n" );
+		
 			$found_step3 = 1;
+
 			( $directory_final, @fragment_ids ) =
 			  $self->_add_directory_recursive( $directory_step3,
 				$path_to_find );
@@ -236,6 +243,8 @@ sub _add_file_to_fragment {
 
 	if ( defined $directory_step4 ) {
 
+		$self->trace_line( 4, "Directory search for step 4 successful.\n" );
+			
 		my $directory_ref_step4 =
 		  Perl::Dist::WiX::Tag::DirectoryRef->new(
 			directory_object => $directory_step4 );
@@ -391,6 +400,24 @@ around 'get_componentref_array' => sub {
 	} else {
 		return $self->_get_feature()->get_componentref_array();
 	}
+};
+
+sub add_file {
+	my $self = shift;
+	my @files = map { my $file = $_; $file =~ s{/}{\\}gmx; $file || $_  } @_;
+	
+	print "Hit Fragment::Files->add_file\n";
+	
+	return $self->_add_file(@files);
+};
+
+sub add_files {
+	my $self = shift;
+	my @files = map { my $file = $_; $file =~ s{/}{\\}gmx; $file || $_  } @_;
+
+	print "Hit Fragment::Files->add_files\n";
+	
+	return $self->_add_files(@files);
 };
 
 no Moose;

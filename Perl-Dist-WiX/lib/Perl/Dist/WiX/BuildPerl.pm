@@ -717,6 +717,7 @@ sub install_perl_git {
 	$self->install_perl_bin(
 		name       => 'perl',
 		url        => URI::file->new($checkout)->as_string(),
+		file       => $checkout,
 		unpack_to  => 'perl',
 		install_to => 'perl',
 		toolchain  => $toolchain,

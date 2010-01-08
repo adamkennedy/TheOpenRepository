@@ -9,4 +9,5 @@ LIBRARY	"ClearFolderCA"
 VERSION 0.172
 EXPORTS
     ClearFolder
+	ClearSiteFolder
     

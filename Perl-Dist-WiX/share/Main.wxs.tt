@@ -32,6 +32,13 @@
 		Language='1033'
 		Property='NEWERVERSIONDETECTED' />
 	  <UpgradeVersion
+	    Minimum='5.0.0'
+		IncludeMinimum='yes'
+		Maximum='[% dist.msi_perl_major_version %]'
+	 	IncludeMaximum='yes'
+		Language='1033'
+		Property='UNINSTALL_SITE' />
+	  <UpgradeVersion
 		Minimum='5.0.0'
 		IncludeMinimum='yes'
 		Maximum='[% dist.msi_perl_version %]'
@@ -71,12 +78,25 @@
 
 [% dist.icons_string %]
 
+    <CustomAction Id='CA_ClearSiteFolder' BinaryKey='B_ClearFolder' DllEntry='ClearSiteFolder' />
+    <InstallExecuteSequence>
+      <Custom Action='CA_ClearSiteFolder' Before='InstallInitialize'>
+        <![CDATA[UNINSTALL_SITE OR (Installed AND NOT OLDERVERSIONBEINGUPGRADED)]]>
+      </Custom>
+    </InstallExecuteSequence>
+
+    <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\ClearFolderCA.dll' />
+    <UI>
+   	  <ProgressText Action="CA_ClearSiteFolder">Preparing the site folder for cleaning... (please wait a while)</ProgressText>
+    </UI>
+
 [% IF dist.msi_feature_tree.defined %]
     <Property Id='ARPNOMODIFY'>1</Property>
 [% END %]
     <Property Id='ARPNOREPAIR'>1</Property>
     <Property Id='MSIFASTINSTALL'>1</Property>
     <!-- Property Id='MSIDEPLOYMENTCOMPLIANT'>1</Property -->
+	<Property Id='PerlModuleID'>[% dist.msm_package_id_property %]</Property>
     <Property Id='ARPCOMMENTS'>[% dist.app_name %] [% dist.perl_version_human %]</Property>
     <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
     <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>

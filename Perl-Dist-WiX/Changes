@@ -1,5 +1,10 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.101_002   To be released
+    1. Fix problems with merge module
+    2. Make updating "smart" - don't delete the site
+       directory unless doing a major upgrade.
+
 1.101_001   Wed 11 Nov 2009
     1. Split most of the build into a merge module.
     2. Finished the Moosification.
