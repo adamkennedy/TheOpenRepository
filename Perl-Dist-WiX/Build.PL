@@ -1,10 +1,9 @@
-use Module::Build;
+use inc::latest Module::Build;
 
 print <<'EOF';
 To install the true prerequisites, you may wish to run
 
-    cpan DAGOLDEN\Module-Build-0.35_05.tar.gz
-	cpan ANDK\CPAN-1.94_52.tar.gz
+	cpan ANDK/CPAN-1.94_53.tar.gz
 
 or their equivalents before running this, if you haven't 
 (or haven't installed later versions) already.
@@ -15,11 +14,9 @@ If you're in CPAN, 'reload cpan' afterwards.
 EOF
 
 require CPAN;
-die "Please upgrade CPAN as instructed above.\n\n" unless $CPAN::VERSION > 1.9451;
+die "Please upgrade CPAN as instructed above.\n\n" unless $CPAN::VERSION > 1.9452;
 
-die "Please upgrade Module::Build as instructed above.\n" unless $Module::Build::VERSION > 0.35;
-
-die "OS unsupported\n" unless 'MSWin32' eq ^O;
+die "OS unsupported\n" unless 'MSWin32' eq $^O;
 
 # These are the main requirements.
 my $requires = {
@@ -81,10 +78,10 @@ my $builder = Module::Build->new(
 # Will do this soon, but I have to get a key first.
 #	sign                => 1,
 	configure_requires => {
-		'Module::Build'             => '0.3501',
-		'CPAN'                      => '1.9451',
+		'Module::Build'             => '0.36',
+		'CPAN'                      => '1.9453',
 	},
-	requires => $requires;
+	requires => $requires,
 	build_requires => {
 		'Test::LongString'          => '0.11',
 		'Test::More'                => '0.86',
