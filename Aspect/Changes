@@ -1,5 +1,16 @@
 Revision history for Perl extension Aspect
 
+0.33 Fri  8 Jan 2010 - Adam Kennedy
+	- Added Test::NoWarnings to all of the tests
+	- Refactoring advice testing into one test per advice type
+	- Testing now covers more combinations of cases, including for around()
+	- Fixed bug in return values for listwise before () calls
+	- Calls to run_original for advice called in void context now
+	  correctly runs the underlying hooked method in void context as well.
+	- When called in after() or around() advice, proceed will throw an
+	  exception.
+	- Removed some of the author tests I don't care about as much.
+
 0.32 Thu  7 Jan 2010 - Adam Kennedy
 	- The actual term "forever" is meaningless. Reversed the flag to
 	  be used as "lexical" instead.

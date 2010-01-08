@@ -6,7 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 4;
+use Test::More tests => 5;
+use Test::NoWarnings;
 
 use_ok( 'Aspect'                      );
 use_ok( 'Aspect::Library::Listenable' );

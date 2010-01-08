@@ -6,7 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 12;
+use Test::More tests => 13;
+use Test::NoWarnings;
 use Aspect;
 
 my $good = 'SomePackage::some_method';

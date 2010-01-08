@@ -7,10 +7,11 @@ use warnings;
 # NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
 use Carp::Heavy           (); 
 use Carp                  ();
+use Sub::Uplevel          ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -81,7 +82,9 @@ sub _install {
 			# Array context needs some special return handling
 			if ( \$wantarray ) {
 				# Run the advice code
-				() = &\$code(\$context);
+				() = Sub::Uplevel::uplevel(
+					1, \$code, \$context,
+				);
 
 				# Don't run the original
 				my \$rv = \$context->return_value;
@@ -95,9 +98,13 @@ sub _install {
 			# Scalar and void have the same return handling.
 			# Just run the advice code differently.
 			if ( defined \$wantarray ) {
-				my \$dummy = &\$code(\$context);
+				my \$dummy = Sub::Uplevel::uplevel(
+					1, \$code, \$context,
+				);
 			} else {
-				&\$code(\$context);
+				Sub::Uplevel::uplevel(
+					1, \$code, \$context,
+				);
 			}
 
 			return \$context->return_value;

@@ -10,7 +10,7 @@ use Carp                  ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -75,6 +75,7 @@ sub _install {
 				params       => \\\@_,
 				return_value => \$wantarray ? [ ] : undef,
 				original     => \$original,
+				proceed      => 1,
 				\%\$runtime,
 			);
 
@@ -90,7 +91,7 @@ sub _install {
 
 				# Don't run the original
 				my \$rv = \$context->return_value;
-				if ( \$rv eq 'ARRAY' ) {
+				if ( ref \$rv eq 'ARRAY' ) {
 					return \@\$rv;
 				} else {
 					return ( \$rv );

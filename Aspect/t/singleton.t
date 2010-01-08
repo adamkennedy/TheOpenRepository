@@ -6,7 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 3;
+use Test::NoWarnings;
 use Aspect;
 
 # Convert Foo into a singleton class

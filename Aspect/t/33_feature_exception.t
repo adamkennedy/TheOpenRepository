@@ -10,7 +10,8 @@ BEGIN {
 }
 
 use Test::More skip_all => 'Exceptions are not implemented yet';
-use Test::More tests => 4;
+use Test::More tests => 5;
+use Test::NoWarnings;
 use Aspect;
 
 # Test package containing methods that work or don't

@@ -6,7 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 13;
+use Test::More tests => 14;
+use Test::NoWarnings;
 use Aspect::AdviceContext;
 
 my $runtime_context = { foo => 'FOO' };

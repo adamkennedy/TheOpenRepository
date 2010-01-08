@@ -2,9 +2,10 @@ package Aspect::AdviceContext;
 
 use strict;
 use warnings;
-use Carp ();
+use Carp         ();
+use Sub::Uplevel ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 
 
@@ -15,11 +16,7 @@ our $VERSION = '0.32';
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_, proceed => 1 }, $class;
-	unless ( $self->{sub_name} ) {
-		Carp::croak("Cannot create Aspect::AdviceContext without sub_name");
-	}
-	return $self;
+	bless { @_ }, $class;
 }
 
 sub sub_name {
@@ -31,8 +28,10 @@ sub wantarray {
 }
 
 sub proceed {
-	$_[0]->{proceed} = $_[1] if @_ > 1;
-	$_[0]->{proceed};
+	unless ( defined $_[0]->{proceed} ) {
+		Carp::croak("The use of 'proceed' is meaningless in this advice");
+	}
+	@_ > 1 ? $_[0]->{proceed} = $_[1] : $_[0]->{proceed};
 }
 
 sub params_ref {
@@ -84,16 +83,29 @@ sub short_sub_name {
 }
 
 sub run_original {
-	my $self     = shift;
-	my $original = $self->original;
-	my @params   = $self->params;
-	my $return_value;
-	if ( CORE::wantarray ) {
-		$return_value = [ $original->(@params) ];
+	my $self = shift;
+	if ( $self->{wantarray} ) {
+		my $rv = [ Sub::Uplevel::uplevel(
+			2,
+			$self->original,
+			$self->params,
+		) ];
+		return $self->return_value($rv);
+	} elsif ( defined $self->{wantarray} ) {
+		my $rv = Sub::Uplevel::uplevel(
+			2,
+			$self->original,
+			$self->params,
+		);
+		return $self->return_value($rv);
 	} else {
-		$return_value = $original->(@params);
+		Sub::Uplevel::uplevel(
+			2,
+			$self->original,
+			$self->params,
+		);
+		return;
 	}
-	return $self->return_value($return_value);
 }
 
 sub return_value {

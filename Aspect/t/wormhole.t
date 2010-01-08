@@ -1,8 +1,13 @@
 #!/usr/bin/perl
 
 use strict;
-use warnings;
-use Test::More tests => 2;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 3;
+use Test::NoWarnings;
 use Aspect;
 
 # Do a lexical and make sure it produces lexical advice
