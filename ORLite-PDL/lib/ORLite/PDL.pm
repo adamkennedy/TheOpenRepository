@@ -1,61 +1,13 @@
 package ORLite::PDL;
 
-=pod
-
-=head1 NAME
-
-ORLite::PDL - PDL integration for ORLite
-
-=head1 SYNOPSIS
-
-  package Foo;
-  
-  # Load database and add statistics package
-  use ORLite 'statistics.db';
-  use ORLite::PDL;
-  
-  my $pdl = Foo->selectcol_pdl('select column from table');
-
-=head1 DESCRIPTION
-
-Compressed SQLite database files are a handy format for the distribution of
-bulk data, including statistical data.
-
-The L<ORLite> Object-Relational Model provides a convenient way to create
-client APIs on top of these databases. However, its numberical analysis
-ability is limited to that provided by native SQLite.
-
-The Perl Database Language (L<PDL>) is a high-performance library for
-numerical analysis in Perl.
-
-B<ORLite::PDL> provides convenient integration between L<ORLite> and L<PDL>.
-
-=head1 METHODS
-
-=head2 selectcol_pdl
-
-  my $pdl = Foo->selectcol_pdl(
-      'select col from table where country = ?', {},
-      'Australia',
-  );
-
-The C<selectcol_pdl> method is added to the root namespace of your ORLite
-module tree.
-
-It takes the same parameters and returns the same results as
-C<selectcol_arrayref>, but automatically converts the result to a
-L<PDL> "piddle" object.
-
-Returns a L<PDL> object, or throws an exception on error.
-
-=cut
+# See POD at the end of the file for documentation
 
 use 5.006;
 use strict;
 use warnings;
 use Carp ();
 
-# Load the big main package, and import everything
+# Load both the main and statistics PDL packages
 use PDL;
 use PDL::Stats;
 
@@ -88,13 +40,64 @@ END_PERL
 
 1;
 
+__END__
+
 =pod
+
+=head1 NAME
+
+ORLite::PDL - PDL integration for ORLite
+
+=head1 SYNOPSIS
+
+  package Foo;
+  
+  # Load database and add statistics package
+  use ORLite 'statistics.db';
+  use ORLite::PDL;
+  
+  my $pdl = Foo->selectcol_pdl('select column from table');
+
+=head1 DESCRIPTION
+
+B<Note: This is a very simple initial implementation, more functionality
+to come in the future.>
+
+Compressed SQLite database files are a handy format for the distribution of
+bulk data, including statistical data.
+
+The L<ORLite> Object-Relational Model provides a convenient way to create
+client APIs on top of these databases. However, its numberical analysis
+ability is limited to that provided by native SQLite.
+
+The Perl Database Language (L<PDL>) is a high-performance library for
+numerical analysis in Perl.
+
+B<ORLite::PDL> provides convenient integration between L<ORLite> and L<PDL>.
+
+=head1 METHODS
+
+=head2 selectcol_pdl
+
+  my $pdl = Foo->selectcol_pdl(
+      'select col from table where country = ?', {},
+      'Australia',
+  );
+
+The C<selectcol_pdl> method is added to the root namespace of your ORLite
+module tree.
+
+It takes the same parameters and returns the same results as
+C<selectcol_arrayref>, but automatically converts the result to a
+L<PDL> "piddle" object.
+
+Returns a L<PDL> object, or throws an exception on error.
 
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORLite>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=ORLite-PDL>
 
 For other issues, contact the author.
 
@@ -108,7 +111,7 @@ L<ORLite>, L<ORLite::Mirror>
 
 =head1 COPYRIGHT
 
-Copyright 2008 - 2010 Adam Kennedy.
+Copyright 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
