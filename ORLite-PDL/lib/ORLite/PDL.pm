@@ -57,6 +57,7 @@ use Carp ();
 
 # Load the big main package, and import everything
 use PDL;
+use PDL::Stats;
 
 our $VERSION = '0.01';
 
@@ -65,18 +66,18 @@ sub import {
 	my $pkg   = caller();
 
 	# Verify the caller is an ORLite package
-	unless ( $pkg->isa('orlite') ) {
+	unless ( $pkg->can('orlite') ) {
 		Carp::croak('$pkg does not appear to be an ORLite root class');
 	}
 
 	# Add the additional DBI-like root method
-	eval <<'END_PERL'; die $@ if $@;
+	eval <<"END_PERL"; die $@ if $@;
 package $pkg;
 
 sub selectcol_pdl {
-	my $class = shift;
-	my $array = $class->selectcol_arrayref(@_);
-	ORLite::PDL::pdl( $array );
+	my \$class = shift;
+	my \$array = \$class->selectcol_arrayref(\@_);
+	ORLite::PDL::pdl( \$array );
 }
 
 1;
