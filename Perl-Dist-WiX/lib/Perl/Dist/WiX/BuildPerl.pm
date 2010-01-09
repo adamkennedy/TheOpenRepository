@@ -411,7 +411,7 @@ sub _skip_upgrade {
 	return 1 if $module->cpan_file() =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
 
 	# Skip B::C, it does not install on 5.8.9.
-	return 1 if $module->cpan_file() =~ m{/B-C-1 [.] 15}msx;
+	return 1 if $module->cpan_file() =~ m{/B-C-1 [.]}msx;
 	
 	return 0;
 } ## end sub _skip_upgrade

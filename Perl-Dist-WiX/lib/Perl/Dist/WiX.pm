@@ -184,9 +184,10 @@ has '_build_start_time' => (
 
 
 has '_directories' => (
-	is       => 'ro',
+	is       => 'bare',
 	isa      => 'Maybe[Perl::Dist::WiX::DirectoryTree2]',
 	writer   => '_set_directories',
+	reader   => 'get_directory_tree',
 	default  => undef,
 	init_arg => undef,
 );
