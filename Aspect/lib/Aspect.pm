@@ -15,23 +15,24 @@ use Carp        ();
 # So we'll do the best we can here, and then in the future we might
 # want to consider switching to "use Sub::UpLevel ':aggressive';"
 # -- ADAMK
-use Sub::Uplevel            ();
-use Exporter                ();
-use Aspect::Advice          ();
-use Aspect::AdviceContext   ();
-use Aspect::Advice::Before  ();
-use Aspect::Advice::After   ();
-use Aspect::Advice::Around  ();
-use Aspect::Pointcut        ();
-use Aspect::Pointcut::Call  ();
-use Aspect::Pointcut::Cflow ();
-use Aspect::Pointcut::AndOp ();
-use Aspect::Pointcut::OrOp  ();
-use Aspect::Pointcut::NotOp ();
+use Sub::Uplevel                   ();
+use Exporter                       ();
+use Aspect::Advice                 ();
+use Aspect::AdviceContext          ();
+use Aspect::Advice::Around         ();
+use Aspect::Advice::Before         ();
+use Aspect::Advice::After          ();
+use Aspect::Advice::AfterReturning ();
+use Aspect::Pointcut               ();
+use Aspect::Pointcut::Call         ();
+use Aspect::Pointcut::Cflow        ();
+use Aspect::Pointcut::AndOp        ();
+use Aspect::Pointcut::OrOp         ();
+use Aspect::Pointcut::NotOp        ();
 
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 our @ISA     = 'Exporter';
-our @EXPORT  = qw{ aspect around before after call cflow };
+our @EXPORT  = qw{ aspect around before after after_returning call cflow };
 
 # Internal data storage
 my @FOREVER = ();
@@ -74,6 +75,14 @@ sub before (&$) {
 
 sub after (&$) {
 	Aspect::Advice::After->new(
+		code     => $_[0],
+		pointcut => $_[1],
+		lexical  => defined wantarray,
+	);
+}
+
+sub after_returning (&$) {
+	Aspect::Advice::AfterReturning->new(
 		code     => $_[0],
 		pointcut => $_[1],
 		lexical  => defined wantarray,

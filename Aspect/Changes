@@ -1,5 +1,9 @@
 Revision history for Perl extension Aspect
 
+0.34 Sun 10 Jan 2010 - Adam Kennedy
+	- Adding Aspect::Advice::AfterReturning before we implement exception
+	  support in the main ::After advice.
+
 0.33 Fri  8 Jan 2010 - Adam Kennedy
 	- Added Test::NoWarnings to all of the tests
 	- Refactoring advice testing into one test per advice type
