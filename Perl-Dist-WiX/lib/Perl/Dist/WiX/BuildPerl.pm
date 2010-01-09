@@ -817,11 +817,6 @@ sub install_perl_toolchain {
 			# 0.31 does not include a Makefile.PL.
 			$dist = 'BLM/Win32API-Registry-0.30.tar.gz';
 		}
-		if ( $dist =~ /Module-Build-/msx ) {
-
-			#
-			$dist = 'DAGOLDEN/Module-Build-0.3500_01.tar.gz';
-		}
 		if ( $dist =~ /ExtUtils-MakeMaker-/msx ) {
 
 			# There are modules that overwrite portions of this one.

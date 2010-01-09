@@ -2790,6 +2790,15 @@ sub install_win32_extras {
 		url       => 'http://win32.perl.org/',
 		icon_file => catfile( $self->wix_dist_dir(), 'win32.ico' ) );
 
+	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
+		name        => 'Perl (command line)',
+		description => 'Quick way to get to the command line in order to use Perl',
+		target      => '[SystemFolder]cmd.exe',
+		id          => 'PerlCmdLine',
+		working_dir => 'PersonalFolder',
+	);
+
+		
 	return $self;
 } ## end sub install_win32_extras
 
