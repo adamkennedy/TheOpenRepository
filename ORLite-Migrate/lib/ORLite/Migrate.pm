@@ -8,14 +8,14 @@ use Carp              ();
 use File::Spec 3.2701 ();
 use File::Path   2.04 ();
 use File::Basename    ();
-use Params::Util 0.37 qw{ _STRING _CLASS _HASH };
+use Params::Util 0.37 ();
 use DBI          1.58 ();
 use DBD::SQLite  1.21 ();
 use ORLite       1.28 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.05';
+	$VERSION = '1.06';
 	@ISA     = 'ORLite';
 }
 
@@ -24,24 +24,24 @@ sub import {
 
 	# Check for debug mode
 	my $DEBUG = 0;
-	if ( defined _STRING($_[-1]) and $_[-1] eq '-DEBUG' ) {
+	if ( defined Params::Util::_STRING($_[-1]) and $_[-1] eq '-DEBUG' ) {
 		$DEBUG = 1;
 		pop @_;
 	}
 
 	# Check params and apply defaults
 	my %params;
-	if ( defined _STRING($_[1]) ) {
+	if ( defined Params::Util::_STRING($_[1]) ) {
 		# Migrate needs at least two params
 		Carp::croak("ORLite::Migrate must be invoked in HASH form");
-	} elsif ( _HASH($_[1]) ) {
+	} elsif ( Params::Util::_HASH($_[1]) ) {
 		%params = %{ $_[1] };
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
 	}
 	$params{create} = $params{create} ? 1 : 0;
 	unless (
-		defined _STRING($params{file})
+		defined Params::Util::_STRING($params{file})
 		and (
 			$params{create}
 			or
@@ -59,7 +59,7 @@ sub import {
 	unless ( defined $params{package} ) {
 		$params{package} = scalar caller;
 	}
-	unless ( _CLASS($params{package}) ) {
+	unless ( Params::Util::_CLASS($params{package}) ) {
 		Carp::croak("Missing or invalid package class");
 	}
 	unless ( $params{timeline} and -d $params{timeline} and -r $params{timeline} ) {
@@ -108,12 +108,12 @@ sub import {
 		}
 
 		# Load the modules needed for the migration
-		require Probe::Perl;
+		require ORLite::Migrate::Perl;
 		require File::pushd;
 		require IPC::Run3;
 
 		# Execute each script
-		my $perl  = Probe::Perl->find_perl_interpreter;
+		my $perl  = ORLite::Migrate::Perl::cperl();
 		my $pushd = File::pushd::pushd($timeline);
 		foreach my $patch ( @plan ) {
 			my $stdin = "$file\n";

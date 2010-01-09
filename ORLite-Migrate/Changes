@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite-Migrate
 
+1.06 Sat  9 Jan 2010
+	- Cloned in a copy of Padre::Perl as ORLite::Migrate::Perl
+	- Switch to using cperl
+	
 1.05 Sat 26 Sep 2009
 	- Some additional tweaks to the prune support
 
