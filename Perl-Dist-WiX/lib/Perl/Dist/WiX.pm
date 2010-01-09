@@ -86,7 +86,7 @@ use     MooseX::Types::Moose  qw(
 	Int Str Maybe Bool Undef ArrayRef Maybe HashRef
 );
 use     Perl::Dist::WiX::Types qw(
-	Directory ExistingDirectory ExistingFile
+	Directory ExistingDirectory ExistingFile MaybeExistingDirectory
 );
 use     Perl::Dist::WiX::PrivateTypes qw(
 	_NoDoubleSlashes _NoSpaces
@@ -1006,22 +1006,20 @@ The default is 'C:\perl-git', if it exists.
 
 has 'git_checkout' => (
 	is      => 'ro',
-	isa     => MaybeExistingDirectory,
+	isa     => Maybe[ExistingDirectory],
 	builder => '_build_git_checkout',
 );
 
 sub _build_git_checkout {
-	my $self = shift;
-
 	my $dir = q{C:\\perl-git};
 	
 	if (-d $dir) { 
 		return $dir;
 	} else { 
 		return undef;
-	}
-	
+	}	
 }
+
 
 
 =head3 git_location
@@ -1032,7 +1030,8 @@ a string pointing to the location of the git.exe binary, as because
 a perl.exe file is in the same directory, it gets removed from the PATH 
 during the execution of programs from Perl::Dist::WiX.
  
-The default is 'C:\Program Files\Git\bin\git.exe'>.
+The default is 'C:\Program Files\Git\bin\git.exe', if it exists.  Otherwise,
+the default is undef.
 
 People on x64 systems should set this to 
 C<'C:\Program Files (x86)\Git\bin\git.exe'> unless MSysGit is installed 
@@ -1046,9 +1045,19 @@ not have spaces.
 
 has 'git_location' => (
 	is      => 'ro',
-	isa     => ExistingFile,
-	default => 'C:\Program Files\Git\bin\git.exe',
+	isa     => Maybe[ExistingFile],
+	builder => '_build_git_location',
 );
+
+sub _build_git_location {
+	my $file = 'C:\Program Files\Git\bin\git.exe';
+	
+	if (-f $file) { 
+		return $file;
+	} else { 
+		return undef;
+	}	
+}
 
 
 

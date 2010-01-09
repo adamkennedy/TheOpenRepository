@@ -154,6 +154,12 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 			next MODULE;
 		}
 
+		# IPC-System-Simple's t\win32.t has the wrong number of tests.
+		if ( $module->cpan_file =~ m{/IPC-System-Simple-1 [.] 19\d}msx ) {
+			$self->_install_cpan_module( $module, 1 );
+			next MODULE;
+		}
+		
 		if (    ( $module->cpan_file() =~ m{/Module-Install-\d}msx )
 			and ( $module->cpan_version() > 0.79 ) )
 		{
@@ -404,6 +410,9 @@ sub _skip_upgrade {
 	# This code is in here for safety as of yet.
 	return 1 if $module->cpan_file() =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
 
+	# Skip B::C, it does not install on 5.8.9.
+	return 1 if $module->cpan_file() =~ m{/B-C-1 [.] 15}msx;
+	
 	return 0;
 } ## end sub _skip_upgrade
 
@@ -517,7 +526,7 @@ sub install_perl_589 {
 	$self->_set_toolchain($toolchain);
 
 	# Make the perl directory if it hasn't been made alreafy.
-	$self->make_path( $self->_dir('perl') );
+	$self->_make_path( $self->_dir('perl') );
 
 	# Install the main perl distributions
 	$self->install_perl_bin(
@@ -595,7 +604,7 @@ sub install_perl_5100 {
 	$self->_set_toolchain($toolchain);
 
 	# Make the perl directory if it hasn't been made already.
-	$self->make_path( $self->_dir('perl') );
+	$self->_make_path( $self->_dir('perl') );
 
 	# Install the main binary
 	$self->install_perl_bin(

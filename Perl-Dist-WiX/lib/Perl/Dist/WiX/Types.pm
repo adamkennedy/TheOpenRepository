@@ -10,7 +10,7 @@ Perl::Dist::WiX::Types - Public types used in Perl::Dist::WiX.
 
 =head1 DESCRIPTION
 
-The author was too lazy to write a description.
+This module exists to provide Moose types that Perl::Dist::WiX and subclasses can use.
 
 =head1 TYPES PROVIDED
 
@@ -18,7 +18,7 @@ The author was too lazy to write a description.
 
 use 5.008001;
 use MooseX::Types
-  -declare => [ qw( Directory ExistingDirectory ExistingFile ) ];
+  -declare => [ qw( Directory ExistingDirectory ExistingFile MaybeExistingDirectory ) ];
 use MooseX::Types::Moose qw( Str );
 
 our $VERSION = '0.01';
@@ -57,22 +57,6 @@ subtype ExistingDirectory,
 	where { -d $_ },
 	message { 'Directory does not exist' };
 
-=head2 ExistingDirectory
-
-	has bar => (
-		is => 'ro',
-		isa => ExistingDirectory,
-		#...
-	);
-
-
-=cut
-
-subtype MaybeExistingDirectory,
-	as Directory,
-	where { not defined $_ or -d $_ },
-	message { 'Directory does not exist when given' };
-
 =head2 ExistingFile
 
 	has bar => (
@@ -99,6 +83,6 @@ No support is available
 
 =head1 AUTHOR
 
-Copyright 2009 Curtis Jewell.
+Copyright 2009, 2010 Curtis Jewell.
 
 =cut
