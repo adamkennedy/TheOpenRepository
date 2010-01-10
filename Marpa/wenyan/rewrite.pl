@@ -50,12 +50,9 @@ $handlers{'.occurrences'} = sub {
     return [ 'occurrences', $literal, $occurrence_count ];
 };
 
-my @short_text_fields;
-my @long_text_fields;
-
 my @text_fields = qw( cedict_definition glyph kfrequency kgradelevel
     kiicore kmandarin kmatthews krskangxi
-    krsunicode ktang ktotalstrokes shrift_notes
+    krsunicode ktang ktotalstrokes shrift_notes laozi
     shrift_occurrences unicode_value unihan_definition );
 
 for my $class (@text_fields) {

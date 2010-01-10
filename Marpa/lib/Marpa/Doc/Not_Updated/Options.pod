@@ -76,7 +76,7 @@ The C<code_lines> option can be changed at any point in a parse.
 If the line with the problem cannot be determined, the first lines
 of code are printed, up to a maximum of twice C<code_lines>, plus one.
 
-=item cycle_action
+=item infinite_action
 
 The value will be treated as a string
 that describes what to do with cycles.
@@ -92,7 +92,7 @@ no warnings will be written,
 and parsing will be allowed to proceed.
 
 The default value is "C<warn>".
-C<cycle_action> cannot be changed after the grammar is precomputed.
+C<infinite_action> cannot be changed after the grammar is precomputed.
 
 Recursion is a case where a symbol produces itself, usually as part of a larger
 string.

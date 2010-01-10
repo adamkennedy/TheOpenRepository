@@ -35,6 +35,7 @@ my @long_fields = qw(
     shrift_notes
     cedict_definition
     unihan_definition
+    laozi
     ktang
 );
 

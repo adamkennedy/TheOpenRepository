@@ -60,9 +60,9 @@ my @sorted_codepoints =
 my @long_fields = qw(
 occurrences
     shrift_notes
+    laozi
 cedict_definition
     unihan_definition
-    ktang
 );
 
 print <<'EOF';
@@ -110,7 +110,7 @@ for my $codepoint (@sorted_codepoints) {
     }
     say qq{</td>};
     say qq{<td>};
-    for my $field (qw( kiicore kmandarin kmatthews)) {
+    for my $field (qw( kmandarin kmatthews)) {
         if ( my $text_ref = $codepoints->{$codepoint}->{$field} ) {
             say $text_ref;
         }
