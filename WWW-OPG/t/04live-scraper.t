@@ -1,6 +1,6 @@
 #!/usr/bin/perl -T
 
-# t/04live.t
+# t/04live-scraper.t
 #  Module live functionality tests (requires Internet connectivity)
 #
 # $Id: 04live.t 10632 2009-12-26 03:17:29Z FREQUENCY@cpan.org $
@@ -11,7 +11,7 @@ use warnings;
 use Test::More;
 require Test::NoWarnings;
 
-use WWW::OPG;
+use WWW::OPG::Scraper;
 
 unless ($ENV{HAS_INTERNET}) {
   plan skip_all => 'Set HAS_INTERNET to enable tests requiring Internet';
@@ -21,7 +21,7 @@ plan tests => 7;
 
 Test::NoWarnings->import(); # 1 test
 
-my $opg = WWW::OPG->new;
+my $opg = WWW::OPG::Scraper->new;
 
 eval {
   $opg->poll();
