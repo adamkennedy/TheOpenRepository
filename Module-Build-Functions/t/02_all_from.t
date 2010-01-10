@@ -1,6 +1,5 @@
 use Test::More tests => 8;
 use File::Spec::Functions qw(catdir catfile);
-use Module::Build::Functions;
 use Module::Build;
 use Cwd;
 use Capture::Tiny qw(capture);
@@ -8,14 +7,12 @@ use Capture::Tiny qw(capture);
 my $debug = 0;
 
 my $original_dir = cwd();
+my $blib_dir = catdir qw(.. .. blib lib);
 
 chdir(catdir(qw(t MBF-Test2)));
-if ($debug) {
-	bundler(); 
-	system($^X, 'Build.PL');
-} else {
-	(undef, undef) = capture { bundler(); system($^X, 'Build.PL'); };
-}
+
+(undef, undef) = capture { system($^X, "-I$blib_dir", 'Build.PL'); } unless $debug;
+system($^X, "-I$blib_dir", 'Build.PL') if $debug;
 
 my $build = Module::Build->current();
 

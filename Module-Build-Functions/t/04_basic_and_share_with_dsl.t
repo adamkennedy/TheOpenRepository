@@ -1,7 +1,7 @@
 BEGIN {
 	$| = 1;
 }
-use Test::More tests => 14;
+use Test::More tests => 15;
 use File::Spec::Functions qw(catdir catfile);
 use Module::Build;
 use Cwd;
@@ -13,7 +13,7 @@ my $debug = 0;
 my $original_dir = cwd();
 my $blib_dir = catdir qw(.. .. blib lib);
 
-chdir(catdir(qw(t MBF-Test)));
+chdir(catdir(qw(t MBF-Test5)));
 
 
 (undef, undef) = capture { system($^X, "-I$blib_dir", 'Build.PL'); } unless $debug;
@@ -21,6 +21,7 @@ system($^X, "-I$blib_dir", 'Build.PL') if $debug;
 ok(-e '_build', 'Build.PL appeared to execute correctly');
 ok(-e 'Build', 'Building script was created');
 ok(-e catfile(qw(inc Module Build Functions.pm)), 'Build.PL appeared to bundle itself into ./inc');
+ok(-e catfile(qw(inc Module Build Functions DSL.pm)), 'Build.PL appeared to bundle DSL class into ./inc');
 
 my $build = Module::Build->current();
 
@@ -99,6 +100,9 @@ if (not $debug) {
 	unlink('Build.bat') if -e 'Build.bat';
 	unlink('Build.com') if -e 'Build.com';
 }
+
+unlink(catfile(qw(inc Module Build Functions DSL.pm)));
+rmdir(catfile(qw(inc Module Build Functions)));
 unlink(catfile(qw(inc Module Build Functions.pm)));
 rmdir(catdir(qw(inc Module Build)));
 rmdir(catdir(qw(inc Module)));

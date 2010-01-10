@@ -7,7 +7,6 @@ license             'perl';
 perl_version        '5.00503';
 dist_author         'Curtis Jewell <csjewell@cpan.org>';
 dist_version_from   'lib/Module/Build/Functions.pm';
-autosplit           'lib/Module/Build/Functions.pm';
 requires 		    'File::Slurp';
 requires            'Module::Build' => 0.07;
 test_requires       'Test::More';
@@ -17,5 +16,5 @@ add_to_cleanup      'Module-Build-Functions-*';
 create_makefile_pl  'passthrough';
 create_readme       1;
 create_license      1;
-functions_self_bundler;
+
 create_build_script;

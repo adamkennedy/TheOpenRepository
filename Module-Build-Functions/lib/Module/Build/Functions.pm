@@ -5,25 +5,172 @@ use     strict;
 use     5.00503;
 use     vars                  qw( $VERSION @EXPORT $AUTOLOAD %ARGS);
 use     Carp                  qw( croak carp confess              );
-use     Exporter              qw( import                          );
 use     File::Spec::Functions qw( catdir catfile                  );
+use     Exporter              qw();
+use     Cwd                   qw();
+use     File::Find            qw();
+use     File::Path            qw();
+use     FindBin;
 use     Config;
-use     AutoLoader;
 
 # The equivalent of "use warnings" pre-5.006.
-local $^W             = 1;
-my    $object         = undef;
-my    $class          = undef;
-my    $mb_required    = 0;
-my    $autoload       = 1;
-my    $object_created = 0;
-my    $sharemod_used  = 1;
+local $^W                 = 1;
+my    $object             = undef;
+my    $class              = 'Module::Build';
+my    $mb_required        = 0;
+my    $object_created     = 0;
+my    $export_to          = undef;
+my    $sharemod_used      = 1;
 my    (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
 my    @install_types;
+my    %config;
 #>>>
 
+# Whether or not inc::Module::Build::Functions is actually loaded, the
+# $INC{inc/Module/Build/Functions.pm} is what will still get set as long as
+# the caller loaded this module in the documented manner.
+# If not set, the caller may NOT have loaded the bundled version, and thus
+# they may not have a MBF version that works with the Build.PL. This would
+# result in false errors or unexpected behaviour. And we don't want that.
+my $file = join( '/', 'inc', split /::/, __PACKAGE__ ) . '.pm';
+unless ( $INC{$file} ) {
+	die <<"END_DIE" }
+
+Please invoke ${\__PACKAGE__} with:
+
+    use inc::${\__PACKAGE__};
+
+not:
+
+    use ${\__PACKAGE__};
+
+END_DIE
+
+# To save some more typing in Module::Build::Functions installers, every...
+# use inc::Module::Build::Functions
+# ...also acts as an implicit use strict.
+$^H |= strict::bits(qw(refs subs vars));
+
+# import which will also perform self-bundling
+sub import {
+	$export_to = caller;
+	
+	my $class = shift;
+
+	%config = @_;
+
+	$config{prefix} ||= 'inc';
+	$config{author} ||= ( $^O eq 'VMS' ? '_author' : '.author' );
+	$config{base}   ||= Cwd::abs_path($FindBin::Bin);
+
+  # Stripping leading prefix, if this import was called
+  # from loader (inc::Module::Build::Functions)
+	$class =~ s/^\Q$config{prefix}\E:://;
+
+	$config{name} ||= $class;
+	$config{version} ||= $class->VERSION;
+
+	unless ( $config{path} ) {
+		$config{path} = $config{name};
+		$config{path} =~ s!::!/!g;
+	}
+	$config{file} ||= "$config{base}/$config{prefix}/$config{path}.pm";
+
+	unless ( -f $config{file} || $0 ne 'Build.PL' && $0 ne 'Makefile.PL' ) {
+		File::Path::mkpath("$config{prefix}/$config{author}");
+
+		# Bundling its own copy to ./inc
+		_copy( $INC{"$config{path}.pm"} => $config{file} );
+
+		unless ( grep { $_ eq $config{prefix} } @INC ) {
+			unshift @INC, $config{prefix};
+		}
+	}
+	
+	if (defined $config{build_class}) {
+	    $DB::single = 1;
+	    
+	    build_class($config{build_class});
+	}
+
+	{
+		# The export should be performed 1 level up, since we call 
+		# Exporter's 'import' from our 'import'
+		local $Exporter::ExportLevel = 1;
+
+		# Delegating back to Exporter's import
+		&Exporter::import($class);
+	}
+} ## end sub import
+
+
+# Copy a single package to inc/, with its @ISA tree (note, dependencies are skipped)
+sub copy_package {
+	my ( $pkg, $skip_isa ) = @_;
+
+	my $file = $pkg;
+	$file =~ s!::!/!g;
+
+	my $pathname = "$file.pm";
+
+	# Do not re-require packages
+	eval "require $pkg" unless $INC{$pathname};
+	die "The package [$pkg] not found and cannot be added to ./inc" if $@;
+
+	$file = "$config{prefix}/$file.pm";
+	return if -f $file;                # prevents infinite recursion
+
+	_copy( $INC{$pathname} => $file );
+
+	unless ($skip_isa) {
+		my @isa = eval '@' . $pkg . '::ISA';
+
+		copy_package($_) foreach (@isa);
+	}
+} ## end sub copy_package
+
+# POD-stripping enabled copy function
+sub _copy {
+	my ( $from, $to ) = @_;
+
+	my @parts = split( '/', $to );
+	File::Path::mkpath( [ join( '/', @parts[ 0 .. $#parts - 1 ] ) ] );
+
+	chomp $to;
+
+	local ( *FROM, *TO, $_ );
+	open FROM, "< $from" or die "Can't open $from for input:\n$!";
+	open TO,   "> $to"   or die "Can't open $to for output:\n$!";
+	print TO "#line 1\n";
+
+	my $content;
+	my $in_pod;
+
+	while (<FROM>) {
+		if (/^=(?:b(?:egin|ack)|head\d|(?:po|en)d|item|(?:ove|fo)r)/) {
+			$in_pod = 1;
+		} elsif ( /^=cut\s*\z/ and $in_pod ) {
+			$in_pod = 0;
+			print TO "#line $.\n";
+		} elsif ( !$in_pod ) {
+			print TO $_;
+		}
+	}
+
+	close FROM;
+	close TO;
+
+	print "include $to\n";
+} ## end sub _copy
+
 BEGIN {
-	$VERSION = '0.001_010';
+	$VERSION = '0.001_011';
+
+	*inc::Module::Build::Functions::VERSION = *VERSION;
+
+  # Very important line which turns a loader (inc::Module::Build::Functions)
+  # into our subclass, thus provides an 'import' function to it
+	@inc::Module::Build::Functions::ISA = __PACKAGE__;
 
 	require Module::Build;
 
@@ -36,7 +183,6 @@ BEGIN {
 	}
 
 	%FLAGS = (
-		'build_class'          => [ '0.28', 0 ],
 		'create_makefile_pl'   => [ '0.19', 0 ],
 		'c_source'             => [ '0.04', 0 ],
 		'dist_abstract'        => [ '0.20', 0 ],
@@ -96,6 +242,7 @@ BEGIN {
 	);
 
 	@AUTOLOADED = ( keys %HASH, keys %ARRAY, keys %ALIASES, keys %FLAGS );
+
 	@DEFINED = qw(
 	  all_from abstract_from author_from license_from perl_version
 	  perl_version_from install_script install_as_core install_as_cpan
@@ -105,13 +252,13 @@ BEGIN {
 	  interactive release_testing automated_testing win32 winlike
 	  author_context install_share auto_features extra_compiler_flags
 	  extra_linker_flags module_name no_index PL_files script_files test_files
-	  tap_harness_args subclass create_build_script get_builder
-	  functions_self_bundler bundler repository bugtracker meta_merge
-	  cygwin
+	  tap_harness_args subclass create_build_script get_builder build_class
+	  repository bugtracker meta_merge cygwin
 	);
-	@EXPORT = ( @DEFINED, @AUTOLOADED );
+	@EXPORT = ( 'AUTOLOAD', @DEFINED, @AUTOLOADED );
+	
+	$DB::single = 1;
 
-	# print join ' ', 'Exported:', @EXPORT, "\n";
 } ## end BEGIN
 
 # The autoload handles 4 types of "similar" routines, for 45 names.
@@ -143,11 +290,10 @@ sub $full_sub {
 }
 END_OF_CODE
 		goto &{$full_sub};
-	} ## end if ( exists $FLAGS{$sub...
+	} ## end if ( exists $FLAGS{$sub...})
 
 	if ( exists $ARRAY{$sub} ) {
 
-#		_create_arrayref($sub);
 		my $array_version = $ARRAY{$sub};
 		my $code_array    = <<"END_OF_CODE";
 sub $full_sub {
@@ -171,7 +317,7 @@ sub $full_sub {
 END_OF_CODE
 		eval $code_array;
 		goto &{$full_sub};
-	} ## end if ( exists $ARRAY{$sub...
+	} ## end if ( exists $ARRAY{$sub...})
 
 	if ( exists $HASH{$sub} ) {
 		_create_hashref($sub);
@@ -196,14 +342,9 @@ sub $full_sub {
 END_OF_CODE
 		eval $code_hash;
 		goto &{$full_sub};
-	} ## end if ( exists $HASH{$sub...
+	} ## end if ( exists $HASH{$sub...})
 
-	if ( $autoload == 1 ) {
-		$AutoLoader::AUTOLOAD = $full_sub;
-		goto &AutoLoader::AUTOLOAD;
-	} else {
-		croak "$sub cannot be found";
-	}
+	croak "$sub cannot be found";
 } ## end sub AUTOLOAD
 
 sub _mb_required {
@@ -221,6 +362,15 @@ sub _installdir {
 	return $Config{'vendorlibexp'} if ( 'vendor' eq $ARGS{install_type} );
 	croak 'Invalid install type';
 }
+
+sub _create_arrayref {
+    my $name = shift;
+    unless ( exists $ARGS{$name} ) {
+        $ARGS{$name} = [];
+    }
+    return;
+}
+
 
 sub _create_hashref {
 	my $name = shift;
@@ -383,7 +533,7 @@ sub license_from {
 				return;
 			}
 		}
-	} ## end if ( $content =~ m{ )
+	} ## end if ( $content =~ m{ ) (})
 
 	carp "Cannot determine license info from $file";
 	license('unknown');
@@ -642,6 +792,7 @@ sub winlike {
 
 sub author_context {
 	return 1 if -d 'inc/.author';
+	return 1 if -d 'inc/_author';
 	return 1 if -d '.svn';
 	return 1 if -f '.cvsignore';
 	return 1 if -f '.gitignore';
@@ -687,7 +838,7 @@ sub _scan_dir {
 				  catfile( $destdir, $direntry );
 			}
 		}
-	} ## end foreach my $direntry ( readdir...
+	} ## end foreach my $direntry ( readdir...)
 
 	closedir $dir_handle;
 
@@ -710,7 +861,7 @@ sub install_share {
 	require File::Spec::Unix;
 	require ExtUtils::Manifest;
 	my $files = ExtUtils::Manifest::maniread();
-	if (0 == scalar (%files)) {
+	if ( 0 == scalar(%$files) ) {
 		croak 'Empty or no MANIFEST file';
 	}
 	my $installation_path;
@@ -740,7 +891,7 @@ sub install_share {
 		_scan_dir( $dir, $sharecode, $dir, $sharecode, $files );
 		push @install_types, $sharecode;
 		$sharemod_used++;
-	} ## end else [ if ( $type eq 'dist' )
+	} ## end else [ if ( $type eq 'dist' )]
 
 	# Set the path to install to.
 	install_path( $sharecode, $installation_path );
@@ -988,8 +1139,23 @@ sub tap_harness_args {
 	return;
 }
 
+sub build_class {
+	my $further_class = $ARGS{build_class} = shift;
+	
+    eval "require $further_class;";
+    die "Can't find custom build class '$further_class'" if $@;
+    
+    copy_package($further_class, 'true');
+    
+    sync_interface($further_class);
+	
+	_mb_required('0.28');
+	return;
+}
+
 sub subclass {
-	$class = Module::Build->subclass(@_);
+    # '$class->' will enable the further subclassing of custom subclass
+	sync_interface($class->subclass(@_));
 	return;
 }
 
@@ -1010,11 +1176,7 @@ sub get_builder {
 	}
 
 	unless ( defined $object ) {
-		if ( defined $class ) {
-			$object = $class->new(%ARGS);
-		} else {
-			$object = Module::Build->new(%ARGS);
-		}
+		$object = $class->new(%ARGS);
 		$object_created = 1;
 	}
 
@@ -1025,23 +1187,85 @@ sub get_builder {
 	return $object;
 } ## end sub get_builder
 
-sub functions_self_bundler {
-	my $code = <<'END_OF_CODE';
-sub ACTION_distmeta {
-	my $self = shift;
-	require Module::Build::Functions;
-	Module::Build::Functions::bundler();
-    $self->SUPER::ACTION_distmeta();
+
+sub sync_interface {
+    # subclass needs be already 'required', as it will be introspected 
+    my $subclass = shift;
+    
+    # Properties of current builder class
+    my @current_all_properties      = $class->valid_properties;
+    
+    # Hashed variant for convenient checking of presense
+    my %current_all_properties      = map { $_ => '' } @current_all_properties;
+    
+    
+    # Properties of subclass
+    my @all_properties      = $subclass->valid_properties;
+    my %array_properties    = map { $_ => '' } $subclass->array_properties;
+    my %hash_properties     = map { $_ => '' } $subclass->hash_properties;
+    
+    $class = $subclass;
+    
+    foreach my $property (@all_properties) {
+        # Skipping already presented properties
+        next if defined $current_all_properties{$property};
+        
+        if (defined $hash_properties{$property}) {
+            additional_hash($property)
+        } elsif (defined $array_properties{$property}) {
+            additional_array($property)
+        } else {
+            additional_flag($property)
+        }
+    }
 }
-END_OF_CODE
 
-	subclass(
-		class => 'ModuleBuildFunctions::SelfBundler',
-		code  => $code
-	);
 
-	return;
-} ## end sub functions_self_bundler
+sub additional {
+	my ($additional_type, $additional_name) = @_;
+	if (not defined $additional_name) {
+		croak 'additional requires a name.';
+	}
+	
+	unless($class->valid_property($additional_name)) {
+		croak "Property '$additional_name' not found in $class";
+	}
+	
+	if ( 'array' eq lc $additional_type ) {
+		$ARRAY{$additional_name} = 0.07;
+	} elsif ( 'hash' eq lc $additional_type ) {
+		$HASH{$additional_name} = [ 0.07, 0 ];	
+	} elsif ( 'flag' eq lc $additional_type ) {
+		$FLAGS{$additional_name} = [ 0.07, 0 ];
+	} else {
+		croak 'additional requires two parameters: a type (array, hash, or flag) and a name.';
+	}
+	
+	no strict 'refs';
+	
+	my $symbol = "${export_to}::$additional_name";
+	
+	# Create a stub in the caller package
+	\&{$symbol};
+}
+
+sub additional_array {
+	my $additional_name = shift;
+	croak 'additional_array needs a name to define' if not defined $additional_name;
+	additional('array', $additional_name);
+}
+
+sub additional_flag {
+	my $additional_name = shift;
+	croak 'additional_flag needs a name to define' if not defined $additional_name;
+	additional('flag', $additional_name);
+}
+
+sub additional_hash {
+	my $additional_name = shift;
+	croak 'additional_hash needs a name to define' if not defined $additional_name;
+	additional('hash', $additional_name);
+}
 
 sub _debug_print {
 	require Data::Dumper;
@@ -1052,43 +1276,3 @@ sub _debug_print {
 }
 
 1;
-
-__END__
-
-sub bundler {
-	require File::Slurp;
-	require File::Spec;
-	require File::Path;
-	File::Slurp->import(qw(read_file write_file));
-	File::Path->import(qw(mkpath));
-	my ( $fulldir, $file, $text, $outfile );
-  DIRLOOP:
-
-	foreach my $dir ( $Config{'sitelibexp'}, $Config{'vendorlibexp'},
-		$Config{'privlibexp'} )
-	{
-		$fulldir = File::Spec->catdir( $dir, qw(Module Build) );
-		$file = File::Spec->catfile( $fulldir, 'Functions.pm' );
-		if ( -f $file ) {
-			$text = read_file($file);
-			$text =~ s/package [ ] Module/package inc::Module/msx;
-			$text =~ s/use [ ]* AutoLoader;//msx;
-			$text =~
-			  s/my [ ] \$autoload [ ]* = [ ] 1/my \$autoload =       0/msx;
-			$text =~ s/__END__.*/\n/ms;
-			$text =~ s/__END__.*/\n/msx;
-			$fulldir = File::Spec->catdir(qw(inc Module Build));
-			$outfile = File::Spec->catfile( $fulldir, 'Functions.pm' );
-			mkpath( $fulldir, 0, 0644 );
-			print "Writing $outfile\n";
-			write_file( $outfile, $text );
-			last DIRLOOP;
-		} ## end if ( -f $file )
-	} ## end foreach my $dir ( $Config{'sitelibexp'...
-	mkdir File::Spec->catdir(qw(inc .author));
-	return;
-} ## end sub bundler
-
-1;                                     # Magic true value required at end of module
-
-__END__

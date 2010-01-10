@@ -1,10 +1,15 @@
-use Test::More tests => 2;
-use Test::Compile;
+use Test::More tests => 3;
 use File::Spec::Functions qw(catdir catfile);
+use File::Path;
+use Cwd;
 
 BEGIN {
-	use_ok( 'Module::Build::Functions' );
+    my $original_dir = cwd();
+    my $littered_file = catfile($original_dir, qw(t inc Module Build Functions.pm));
+    
+    ok(! -e $littered_file, 'Build.PL has not littered');
+    
+	use_ok( 'inc::Module::Build::Functions' );
+	
+	ok(! -e $littered_file, 'Build.PL does not litter');
 }
-
-diag( "Testing Module::Build::Functions $Module::Build::Functions::VERSION" );
-pl_file_ok(catfile(catdir(qw(blib lib auto Module Build Functions)), 'bundler.al'), 'bundler() compiles correctly.')

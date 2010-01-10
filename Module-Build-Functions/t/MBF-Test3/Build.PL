@@ -13,5 +13,5 @@ repository          'http://svn.ali.as/cpan/trunk/Module-Build-Functions/';
 bugtracker          'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Module-Build-Functions';
 meta_merge          'resources', 'MailingList' => 'mailto:module-build@perl.org';
 add_to_cleanup      'MBF-Test3-*';
-functions_self_bundler;
+
 create_build_script;

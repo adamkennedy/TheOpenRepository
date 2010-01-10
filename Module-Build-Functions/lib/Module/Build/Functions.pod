@@ -24,8 +24,7 @@ This document describes Module::Build::Functions version 0.001_010.
 =head1 SYNOPSIS
 
 	# Our own Build.PL.
-	use strict;
-	$^W = 1; # Can't use "use warnings", see perl_version below.
+	# $^W = 1; # Can't use "use warnings", see perl_version below.
 	use inc::Module::Build::Functions;
 	
 	module_name         'Module::Build::Functions';
@@ -40,21 +39,36 @@ This document describes Module::Build::Functions version 0.001_010.
 	test_requires       'Capture::Tiny' => 0.06;
 	add_to_cleanup      'Module-Build-Functions-*';
 	create_makefile_pl  'passthrough';
-	functions_self_bundler;
+	
 	create_build_script;
 
-	# To bundle Module::Build::Functions as above.
-	# (Only needs to be ran once if functions_self_bundler is used)
-	perl -MModule::Build::Functions -e bundler
+or in more relaxed DSL notation:
+	
+    use inc::Module::Build::Functions::DSL;
+    
+    module_name         MBF::Test
+    license             perl
+    perl_version        5.005
+    dist_author         'Curtis Jewell <csjewell@cpan.org>'
+    dist_version_from   lib/Module/Build/Functions.pm
+    autosplit           'lib/Module/Build/Functions.pm
+    requires            File::Slurp
+    test_requires       Test::More
+    test_requires       Test::Compile
+    test_requires       Capture::Tiny   0.06
+    add_to_cleanup      Module-Build-Functions-*
+    create_makefile_pl  passthrough
+	
 
 =for readme continue
+
 	
 =head1 DESCRIPTION
 
 This module gives a Module::Install-like syntax to Module::Build, using 
 modules (other than Module::Build itself) that are in the core in 5.006.
 
-Most commands from Module::Install will be supported, and most parameters to
+Most commands from Module::Install are supported, and most parameters to
 Module::Build's C<new> routine are supported as commands. This includes 
 the share directory implementation that L<Module::Install::Share> and 
 L<File::ShareDir> implements.
@@ -62,13 +76,11 @@ L<File::ShareDir> implements.
 This means that using this module instead of Module::Install can be as easy 
 as replacing the C<use inc::Module::Install> line by 
 C<use inc::Module::Build::Functions>, and renaming the resulting file to 
-Build.PL.
+Build.PL. Module::Install::DSL syntax is also supported with 
+L<Module::Build::Functions::DSL>.
 
-Unfortunately, Module::Install extensions are not supported, nor is the 
-L<Module::Install::DSL> syntax.
 
-You may wish to look at the code for documentation at this point, as not 
-all functions are documented yet. B<This will be corrected, I promise.>
+Unfortunately, Module::Install extensions are not supported.
 
 =begin readme
 
@@ -105,31 +117,6 @@ Unless specified otherwise, a function is accumulative - it can be
 called more that once to add to a list.
 
 =head2 Functions unique to Module::Build::Functions
-
-=head3 bundler
-
-	perl -MModule::Build::Functions -e bundler
-
-Writes out a copy of the installed version of Module::Build::Functions in 
-the inc directory of your distribution.
-
-=head3 functions_self_bundler
-
-	functions_self_bundler;
-
-Calls the L<bundler> function when Module::Build's C<dist> action (actually 
-the C<distmeta> action) is called.
-
-This function is incompatible with the use of C<subclass> in the Build.PL. 
-If you need to use subclass for other purposes, add the code below to 
-your subclass:
-
-	sub ACTION_distmeta {
-		my $self = shift;
-		require Module::Build::Functions;
-		Module::Build::Functions::bundler();
-		$self->SUPER::ACTION_distmeta();
-	}
 
 =head3 cygwin
 
@@ -201,6 +188,16 @@ B<Note:> Module::Build does not need to be added to this list, as
 Module::Build::Functions will determine the version of Module::Build
 required for the functions used.
 
+=head4 test_requires
+
+    test_requires       'Test::More';
+    test_requires       'Test::Compile' => 0.01;
+    test_requires       'Capture::Tiny' => 0.06;
+
+Modules listed using this function are required for running the 
+distribution's test suite.
+
+
 =head4 conflicts
 
 	conflicts 'Acme' => '1.11111';
@@ -249,21 +246,99 @@ new type, defined by L</install_path>.
 
 =head4 PL_files
 
+=head4 pl_files
+
+=head4 Pl_file
+
 =head4 pl_file
+
+An optional parameter specifying a set of C<.PL> files in your
+distribution.  These will be run as Perl scripts prior to processing
+the rest of the files in your distribution with the name of the file
+they're generating as an argument.  They are usually used as templates
+for creating other files dynamically, so that a file like
+C<lib/Foo/Bar.pm.PL> might create the file C<lib/Foo/Bar.pm>.
+
+The files are specified with the C<.PL> files as hash keys, and the
+file(s) they generate as hash values, like so:
+
+  my $build = Module::Build->new
+    (
+     module_name => 'Foo::Bar',
+     ...
+     PL_files => { 'lib/Foo/Bar.pm.PL' => 'lib/Foo/Bar.pm' },
+    );
+
+Note that the path specifications are I<always> given in Unix-like
+format, not in the style of the local system.
+
+If your C<.PL> scripts don't create any files, or if they create files
+with unexpected names, or even if they create multiple files, you can
+indicate that so that Module::Build can properly handle these created
+files:
+
+  PL_files => {
+               'lib/Foo/Bar.pm.PL' => 'lib/Foo/Bar.pm',
+               'lib/something.PL'  => ['/lib/something', '/lib/else'],
+               'lib/funny.PL'      => [],
+              }
+
+Here's an example of a simple PL file.
+
+    my $output_file = shift;
+    open my $fh, ">", $output_file or die "Can't open $output_file: $!";
+
+    print $fh <<'END';
+    #!/usr/bin/perl
+
+    print "Hello, world!\n";
+    END
+
+PL files are not installed by default, so its safe to put them in
+F<lib/> and F<bin/>.
+
 
 =head4 pm_files
 
-=head4 pm_file
+An optional parameter specifying the set of C<.pm> files in this
+distribution, specified as a hash reference whose keys are the files'
+locations in the distributions, and whose values are their logical
+locations based on their package name, i.e. where they would be found
+in a "normal" Module::Build-style distribution.  This parameter is
+mainly intended to support alternative layouts of files.
+
+For instance, if you have an old-style C<MakeMaker> distribution for a
+module called C<Foo::Bar> and a F<Bar.pm> file at the top level of the
+distribution, you could specify your layout in your C<Build.PL> like
+this:
+
+  my $build = Module::Build->new
+    (
+     module_name => 'Foo::Bar',
+     ...
+     pm_files => { 'Bar.pm' => 'lib/Foo/Bar.pm' },
+    );
+
+Note that the values should include C<lib/>, because this is where
+they would be found in a "normal" Module::Build-style distribution.
+
+Note also that the path specifications are I<always> given in
+Unix-like format, not in the style of the local system.
 
 =head4 pod_files
 
 =head4 pod_file
 
-=head4 xs_files
+Just like C<pm_files>, but used for specifying the set of C<.pod>
+files in your distribution.
 
 =head4 xs_file
 
-Will be documented soon.
+=head4 xs_files
+
+Just like C<pm_files>, but used for specifying the set of C<.xs>
+files in your distribution.
+
 
 =head3 Metadata
 
@@ -335,6 +410,8 @@ this directly, they can use L<module_name|/module_name> to set C<dist_name>
 to a reasonable default. However, some agglomerative distributions like 
 I<libwww-perl> or I<bioperl> have names that don't correspond directly to 
 a module name, so C<dist_name> can be set independently.
+
+=head4 name (Module::Install synonym)
 
 =head4 module_name
 
@@ -409,7 +486,38 @@ Also, meta_merge allows a hashref to be ommitted if it contains only one value.
 
 =head4 no_index
 
-To be documented soon.
+  no_index directory => 'examples';
+  no_index package   => 'DB';
+
+Quite often a distrubition will provide example scripts or testing
+modules (.pm files) as well as the actual library modules.
+
+In almost all situations, you do B<not> want these indexed in the CPAN
+index, the master Perl packages list, or displayed on the
+L<http://search.cpan.org/> website, you just want them along for the
+ride.
+
+The C<no_index> command is used to indicate directories or files where
+there might be non-library .pm files or other files that the CPAN
+indexer and websites such as L<http://search.cpan.org/> should
+explicitly ignore.
+
+The most common situation is to ignore example or demo directories,
+but a variety of different situations may require a C<no_index> entry.
+
+Another common use for C<no_index> is to prevent the PAUSE indexer
+complaining when your module makes changes inside a "package DB" block.
+This is used to interact with the debugger in some specific ways.
+
+See the F<META.yml> documentation for more details on what C<no_index>
+values are allowed.
+
+The F<inc>, F<t> and F<share> (if C<install_share> is used) directories
+are automatically C<no_index>'ed for you if found and do not require
+an explicit command.
+
+To summarize, if you can see it on L<http://search.cpan.org/> and you
+shouldn't be able to, you need a C<no_index> entry to remove it.
 
 =head3 Flags
 
@@ -566,6 +674,47 @@ This is used if the subclass has requirements that are satisfied by
 L</build_requires>, but are not neccessarily installed when Build.PL 
 will be executed.
 
+If the subclass, specified with this directive, define some additional propeties, 
+helper functions for them will be exported in the building script automatically.
+However, if this will happened at run-time, they should be used with parenthesis:
+
+    use inc::Module::Build::Functions;
+    
+    build_class 'Module::Build::SubClass';
+    
+    custom_flag('flag_set');
+    
+    custom_array(1);
+    custom_array(10);
+    
+    custom_hash(key1 => 'value1');
+    custom_hash(key2 => 'value2');
+    
+    module_name         'MBF::Test';
+    dist_version_from   'lib/MBF/Test.pm';
+    
+    create_build_script; 
+
+To use new helper functions without parenthesis, specify the 'build_class' in the
+parameters for 'import' method:
+
+    use inc::Module::Build::Functions( build_class => 'Module::Build::SubClass' );
+    
+    custom_flag 'flag_set';
+    
+    custom_array    1;
+    custom_array    10;
+    
+    custom_hash     key1 => 'value1';
+    custom_hash     key2 => 'value2';
+    
+    module_name         'MBF::Test';
+    dist_version_from   'lib/MBF/Test.pm';
+    
+    create_build_script; 
+  
+See also L</additional_hash>, L</additional_array>, L</additional_flag>.
+  
 =head4 extra_compiler_flags 
 
 =head4 extra_linker_flags
@@ -595,8 +744,12 @@ L<Module::Build::API documentation|Module::Build::API#get_options>.)
 
 =head4 subclass
 
-To be documented soon.
-
+This creates a new C<Module::Build> subclass on the fly, as described
+in the L<Module::Build::Authoring/"SUBCLASSING"> section.  The caller
+must provide either a C<class> or C<code> parameter, or both.  The
+C<class> parameter indicates the name to use for the new subclass, and
+defaults to C<MyModuleBuilder>.  The C<code> parameter specifies Perl
+code to use as the body of the subclass.
 
 
 =head4 create_build_script
@@ -723,15 +876,33 @@ Alias for C<< meta_merge 'resources', 'bugtracker' => $url >>.
 L<http://search.cpan.org/> will use this instead of its usual link to 
 rt.cpan.org to report bugs from the repository's main page.
 
-=head4 install_script
+=head4 script_files
+
+=head4 script_file
+
+=head4 install_script (Module::Install synonym)
 
 	# The following are equivalent
 	install_script 'foo';
 	install_script 'script/foo';
 
-The install_script command provides support for the installation of scripts that will become available at the console on both Unix and Windows (in the later case by wrapping it up as a .bat file).
+XXX
 
+The 'script_files' command provides support for the installation of scripts that will become available at the 
+console on both Unix and Windows (in the later case by wrapping it up as a .bat file).
 To support less typing, if a script is located in the C</script> directory, you need refer to it by name only.
+
+XXX
+
+An optional parameter specifying a set of files that should be installed as executable 
+Perl scripts when the module is installed. May be given as an array reference of the 
+files, as a hash reference whose keys are the files (and whose values will currently be ignored), 
+as a string giving the name of a directory in which to find scripts, or as a string 
+giving the name of a single script file.
+
+The default is to install any scripts found in a 'bin' directory at the top level of 
+the distribution, minus any keys of PL_files.
+
 
 =head4 interactive
 
@@ -781,6 +952,89 @@ to alter your I<MANIFEST> or I<MANIFEST.SKIP> files to let certain files
 through if they would ordinarily be skipped. If the C<MANIFEST> file cannot
 be read, then no files are copied, and the C<Build.PL> script stops.  You 
 have been warned.
+
+
+=head3 Additional properties definition
+
+This group of directives is mostly required for non-trivial subclassing of 
+Module::Build. Module::Build::Functions do its best to find new properties 
+from subclasses transparently.
+
+Every directive in this group accepts a single argument - the name of new
+property. The helper function with corresponding name will be exported to the
+script's scope. See also L</build_class> for additional details.
+
+=head4 additional_hash
+
+This directive define a new "hash" property. Property will be accumulative:
+
+    use inc::Module::Build::Functions;
+    
+    additional_hash 'custom_hash';
+    
+    custom_hash(key1 => 'value1');
+    custom_hash(key2 => 'value2');
+    ...
+
+=head4 additional_array
+
+This directive define a new "array" property. Property will be accumulative:
+
+    use inc::Module::Build::Functions;
+    
+    additional_hash 'custom_array';
+    
+    custom_array('value1');
+    custom_array('value2');
+    ...
+
+=head4 additional_flag
+
+This directive define a new "flag" (non-accumulative) property.
+
+    use inc::Module::Build::Functions;
+    
+    additional_flag 'custom_custom';
+    
+    custom_flag('value');
+    ...
+
+=head3 Deprecated directives
+
+=head4 auto_bundle
+
+=head4 auto_bundle_deps
+
+=head4 bundle
+
+=head4 bundle_deps
+
+This directives comes from Module::Install::Bundle. The author has deliberately 
+chosen to drop support for bundling at this point, since Module::Build
+quite probably will have native bundling capabilities soon.
+
+=head4 auto_install
+
+This directive comes from Module::Install::AutoInstall and is deprecated,
+as its support in the Module::Install::AutoInstall itself may be dropped 
+soon.
+
+=head4 check_nmake
+
+This directive is deprecated in the Module::Install itself.
+
+=head4 get_file
+
+
+=head3 Directives to be documented
+
+=head4 test_file
+
+=head4 test_files
+
+
+
+
 
 =head1 DIAGNOSTICS
 
@@ -894,12 +1148,16 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =for readme continue
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself. See L<perlartistic>.
+modify it under the same terms as Perl itself, either version
+5.005_04 or any later version. See L<perlartistic> and L<perlgpl>.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
 
 =for readme stop
 
