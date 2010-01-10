@@ -3,7 +3,7 @@
 # t/03core.t
 #  Core functionality tests that do not require Internet connectivity
 #
-# $Id: 03core.t 10632 2009-12-26 03:17:29Z FREQUENCY@cpan.org $
+# $Id$
 
 use strict;
 use warnings;

@@ -3,7 +3,7 @@
 # t/04live-scraper.t
 #  Module live functionality tests (requires Internet connectivity)
 #
-# $Id: 04live.t 10632 2009-12-26 03:17:29Z FREQUENCY@cpan.org $
+# $Id$
 
 use strict;
 use warnings;

@@ -3,7 +3,7 @@
 # t/05exceptions.t
 #  Tests fast errors produced with obvious mistakes
 #
-# $Id: 06exceptions.t 8614 2009-08-18 03:19:57Z FREQUENCY@cpan.org $
+# $Id$
 
 use strict;
 use warnings;
