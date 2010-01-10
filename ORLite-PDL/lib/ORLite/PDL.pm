@@ -5,26 +5,31 @@ package ORLite::PDL;
 use 5.006;
 use strict;
 use warnings;
-use Carp ();
+use Carp              ();
+use Params::Util 1.00 ();
 
 # Load both the main and statistics PDL packages
-use PDL;
-use PDL::Stats;
+use PDL        2.004005;
+use PDL::Stats 0.003002;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub import {
-	my $class = shift;
-	my $pkg   = caller();
+	my $class  = shift;
+	my $params = Params::Util::_HASHLIKE($_[0]) ? $_[0]
+		: { package => scalar(caller()) };
 
 	# Verify the caller is an ORLite package
-	unless ( $pkg->can('orlite') ) {
-		Carp::croak('$pkg does not appear to be an ORLite root class');
+	unless ( Params::Util::_CLASS($params->{package}) ) {
+		Carp::croak("Missing or invalid ORLite package name");
+	}
+	unless ( $params->{package}->can('orlite') ) {
+		Carp::croak("$params->{package} does not appear to be an ORLite root class");
 	}
 
 	# Add the additional DBI-like root method
 	eval <<"END_PERL"; die $@ if $@;
-package $pkg;
+package $params->{package};
 
 sub selectcol_pdl {
 	my \$class = shift;
