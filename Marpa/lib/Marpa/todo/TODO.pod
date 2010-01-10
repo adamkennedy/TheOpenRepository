@@ -8,7 +8,7 @@ ToDo - Marpa's To Do List
 
 =item * Add symbol & rule ranker tests to code_diag.t.
 
-=item * Add a test for cycle_scale & cycle_rules.
+=item * Add a test for infinite_scale & infinite_rules.
 
 =item * On ambiguous grammars, it may optimize to save values of reset
 bocage nodes from the first reset, and simply copy them back in
@@ -22,8 +22,6 @@ wants.
 
 =item * Add MAX_COUNT for rules.  Implement on one of left- and right-
     recursion only.  No immediate need for both.
-
-=item * Add a SYNOPSIS to the Plumbing document.
 
 =item * When rereading Internals doc, check if
 parse bocage creation can probably be made cleaner.
@@ -65,7 +63,7 @@ Jeffrey Kegler
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2009 Jeffrey Kegler
+Copyright 2007 - 2010 Jeffrey Kegler
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl 5.10.0.

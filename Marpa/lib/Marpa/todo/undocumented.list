@@ -1,0 +1,15 @@
+Marpa::Grammar::clone
+Marpa::Grammar::stringify
+Marpa::Grammar::unstringify
+
+Terminal Property: maximal
+Terminal Property: minimal
+Terminal Property: ranking_action
+
+Grammar Named Argument: maximal
+Grammar Named Argument: minimal
+
+Marpa::Evaluator Named Argument: infinite_nodes
+Marpa::Evaluator Named Argument: infinite_scale
+Marpa::Evaluator Named Argument: experimental
+

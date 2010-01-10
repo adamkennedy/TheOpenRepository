@@ -1,0 +1,385 @@
+=head1 NAME
+
+Marpa::Semantics - How Marpa Evaluates Parses
+
+=head1 DESCRIPTION
+
+This document describes
+the way in which Marpa applies semantics to parse trees
+and produces a value from them.
+The two evaluators (the Single Parse Evaluator and
+the Multi-parse Evaluator)
+use the same code evaluate parse trees.
+
+   Rewrite above.
+
+=head2 Summary of Marpa's Semantics
+
+Marpa's default
+semantics are relatively standard -- it creates parse trees
+and evaluates them using traditional methods.
+Parsing and evaluation of parses,
+is dealt with in many places.
+The 8th Chapter of Mark Dominus's excellent book, I<Higher Order Perl> is an
+excellent description of this process in a Perl context and is
+available on-line
+L<http://hop.perl.plover.com/book/pdf/08Parsing.pdf>.
+Among textbooks completely devoted to parsing,
+my own favorite is L<"Grune and Jacobs 2008">.
+
+Marpa's parse tree have two kinds of leaf node:
+tokens and nulled symbols.
+Tokens can be assigned a B<token value> at lexing time.
+All nullable symbols can
+have a B<null value> assigned to
+them when the grammar is created.
+
+B<Interior nodes> are nodes which are not leaf nodes.
+Every interior node corresponds to a rule.
+Interior nodes implement their semantics with Perl closures which are
+specified on a per-rule basis.
+
+The value of a token leaf node is the token value.
+If a token value was not specified for a token at lex time,
+the token value defaults to a Perl C<undef>.
+
+The value of a nulled-symbol leaf node is the nulled value
+of the symbol.
+If a nullable symbol was not assigned a nulled value,
+the null value defaults to a Perl C<undef>.
+
+Parse trees are evaluated recursively, bottom-up.
+When the values of all child nodes have been computed,
+an interior node is ready to be valued.
+At this point,
+a Perl closure is called based on the rule for that interior
+node.
+The arguments to the interior node's Perl closure are a
+per-instance variable followed by,
+in lexical order,
+the values of its child nodes.
+
+The value returned by the interior node's Perl closure becomes
+the value of the interior node.
+If no closure was specified to implement the semantics for an
+interior node's rule,
+the value of the interior node is
+a Perl C<undef>.
+The value of a parse is the value of the top node 
+of the parse tree.
+
+=head2 Null Values
+
+A "null value" is the value used for a symbol when it is nulled in a parse.
+By default, the null value is a Perl undefined.
+The default null value can be reset to with the 
+L<C<default_null_value> named argument|Marpa::Grammar/default_null_value>.
+
+Each symbol can have its own null symbol value.
+The null symbol value for any symbol is calculated using the null symbol action.
+The B<null symbol action> for a symbol is the action
+specified for the empty rule with that symbol on its left hand side.
+The null symbol action is B<not> a rule action.
+It's a property of the symbol, and applies whenever the symbol is nulled,
+even when the symbol's empty rule is not involved.
+
+For example,
+the following rule descriptor specified
+that, whenever the symbol C<A> is nulled,
+its value should be a string that reports it missing.
+
+    { lhs=>'A', action => sub {return 'A is missing'}, }
+
+Null symbol actions are evaluated differently from rule actions.
+Null symbol actions are run at evaluator creation time and the value of the result
+at that point
+becomes fixed as the null symbol value.
+This is not the case with rule actions.
+During the creation of the evaluator object,
+rule actions are B<compiled into closures>.
+During parse evaluation,
+whenever a node for that rule needs its value recalculated,
+the compiled rule closure is run.
+A compiled rule closure
+can produce a different value every time it runs.
+
+I treat null symbol actions differently for efficiency.
+They have no child values,
+and a fixed value is usually what is wanted.
+If you want to calculate a symbol's null value with a closure run at parse evaluation time,
+the null symbol action can return a reference to a closure.
+Rules with that nullable symbol in their right hand side
+can then be set up to run that closure.
+
+=head3 Evaluating Null Derivations
+
+A null derivation may consist of many steps and may contain many symbols.
+Marpa's rule is that the value of a null derivation is
+the null symbol value of the B<highest null symbol> in that
+derivation.
+This section describes in detail how a parse is evaluated,
+focusing on what happens when nulled symbols are involved.
+
+The first step in evaluating a parse is to determine which nodes
+B<count> for the purpose of evaluation, and which do not.
+Marpa follows these principles:
+
+=over 4
+
+=item 1
+
+The start node always counts.
+
+=item 2
+
+Nodes count if they derive a non-empty sentence.
+
+=item 3
+
+All other nodes do not count.
+
+=item 4
+
+In evaluating a parse, Marpa uses only nodes that count.
+
+=back
+
+These are all consequences of the principles above:
+
+=over 4
+
+=item 1
+
+The value of null derivation is the value of the highest null symbol in it.
+
+=item 2
+
+A nulled node counts only if it is the start node.
+
+=item 3
+
+The value of a null parse is the null value of the start symbol.
+
+=back
+
+If you think some of the rules or symbols represented by nodes that don't count
+are important in your grammar,
+Marpa can probably accommodate your ideas.
+First,
+for every nullable symbol,
+determine how to calculate the value which your semantics produces
+when that nullable symbol is a "highest null symbol".
+If it's a constant, write a null action for that symbol which returns that constant.
+If your semantics do not produce a constant value by evaluator creation time,
+write a null action which returns a reference to a closure
+and arrange to have that closure run by the parent node.
+
+=head3 Example
+
+Suppose a grammar has these rules
+
+=begin Marpa::Test::Display:
+
+## start display
+## next display
+in_file($_, 'example/null_value.marpa');
+
+=end Marpa::Test::Display:
+
+    S: A, Y. q{ $_[0] . ", but " . $_[1] }. # Call me the start rule
+    note: you can also call me Rule 0.
+
+    A: . q{'A is missing'}. # Call me Rule 1
+
+    A: B, C. q{"I'm sometimes null and sometimes not"}. # Call me Rule 2
+
+    B: . q{'B is missing'}. # Call me Rule 3
+
+    C: . q{'C is missing'}. # Call me Rule 4
+
+    C: Y.  q{'C matches Y'}. # Call me Rule 5
+
+    Y: /Z/. q{'Zorro was here'}. # Call me Rule 6
+
+
+=begin Marpa::Test::Display:
+
+## end display
+
+=end Marpa::Test::Display:
+
+In the above MDL, the Perl 5 regex "C</Z/>" occurs on the rhs of Rule 6.
+Where a regex is on the rhs of a rule, MDL internally creates a terminal symbol
+to match that regex in the input text.
+In this example, the MDL internal terminal symbol that
+matches input text using the regex
+C</Z/> will be called C<Z>.
+
+If the input text is the Perl 5 string "C<Z>",
+the derivation is as follows:
+
+=begin Marpa::Test::Display:
+
+## skip 2 displays
+
+=end Marpa::Test::Display:
+
+    S -> A Y      (Rule 0)
+      -> A "Z"    (Y produces "Z", by Rule 6)
+      -> B C "Z"  (A produces B C, by Rule 2)
+      -> B "Z"    (C produces the empty string, by Rule 4)
+      -> "Z"      (B produces the empty string, by Rule 3)
+
+The parse tree can be described as follows:
+
+    Node 0 (root): S (2 children, nodes 1 and 4)
+        Node 1: A (2 children, nodes 2 and 3)
+	    Node 2: B (matches empty string)
+	    Node 3: C (matches empty string)
+	Node 4: Y (1 child, node 5)
+	    Node 5: "Z" (terminal node)
+
+Here's a table showing, for each node, its lhs symbol,
+the sentence it derives, and
+its value.
+
+=begin Marpa::Test::Display:
+
+## skip 2 displays
+
+=end Marpa::Test::Display:
+
+                        Symbol      Sentence     Value
+                                    Derived
+
+    Node 0:                S         "Z"         "A is missing, but Zorro is here"
+        Node 1:            A         empty       "A is missing"
+	    Node 2:        B         empty       No value
+	    Node 3:        C         empty       No value
+	Node 4:            Y         "Z"         "Zorro was here"
+	    Node 5:        -         "Z"         "Z"
+
+In this derivation,
+nodes 1, 2 and 3 derive the empty sentence.
+None of them are the start node so that none of them count.
+
+Nodes 0, 4 and 5 all derive the same non-empty sentence, C<Z>,
+so they all count.
+Node 0 is the start node, so it would have counted in any case.
+
+Since node 5 is a terminal node, it's value comes from the lexer.
+Where the lexing is done with a Perl 5 regex,
+the value will be the Perl 5 string that the regex matched.
+In this case it's the string "C<Z>".
+
+Node 4 is not nulled,
+so it is evaluated normally, using the rule it represents.
+That is rule 6.
+The action for rule 6 returns "C<Zorro was here>", so that
+is the value of node 4.
+Node 4 has a child node, node 5, but rule 6's action pays no
+attention to child values.
+The action for each rule is free to use or not use child values.
+
+Nodes 1, 2 and 3 don't count and will all remain unevaluated.
+The only rule left to be evaluated
+is node 0, the start node.
+It is not nulled, so
+its value is calculated using the action for the rule it
+represents (rule 0).
+
+Rule 0's action uses the values of its child nodes.
+There are two child nodes and their values are
+elements 0 and 1 in the C<@_> array of the action.
+The child value represented by the symbol C<Y>,
+C<< $_[1] >>, comes from node 4.
+From the table above, we can see that that value was
+"C<Zorro was here>".
+
+The first child value is represented by the symbol C<A>,
+which is nulled.
+For nulled symbols, we must use the null symbol value.
+Null symbol values for each symbol can be explicitly set
+by specifying an rule action for an empty rule with that symbol
+as its lhs.
+For symbol C<A>,
+this was done in Rule 1.
+Rule 1's action evaluates to the Perl 5 string
+"C<A is missing>".
+
+Even though rule 1's action plays a role in calculating the value of this parse,
+rule 1 is not actually used in the derivation.
+No node in the derivation represents rule 1.
+Rule 1's action is used because it is the null symbol action for
+the symbol C<A>.
+
+Now that we have both child values, we can use rule 0's action
+to calculate the value of node 0.
+That value is "C<A is missing, but Zorro was here>",
+This becomes the value of C<S>, rule 0's left hand side symbol and
+the start symbol of the grammar.
+A parse has the value of its start symbol,
+so "C<A is missing, but Zorro was here>" is also
+the value of the parse.
+
+==head1 Sequences 
+
+The value of the child symbols at the node
+for a sequence rule are available
+to semantic actions
+after the per-instance variable
+in the
+C<@_> array,
+just as they would be for an ordinary
+rule with that number of sequence items on its right hand side.
+The difference is that in an ordinary rule, the right hand side
+is fixed in length, so that you know the number of symbols.
+In a sequence sentence
+you don't know in advance the number of right hand side symbols.
+
+Perl closures implementing sequence semantics can use the
+same techniques that any Perl closure would use when it
+does not know in advance the number of arguments it will get.
+These techniques include
+using operations like C<join> or C<map> on the C<@_>
+array.
+(Remember to shift the per-instance symbol off first.)
+You can also obtain a count of the symbols on the right side
+in the usual way,
+with C<scalar @_>,
+of find index of the last symbol as C<$#_>.
+
+Sequence sentences work best where the semantics really is that of a sequence
+of semantically equivalent items.
+Where that's not the case, writing that section of the grammar as
+ordinary non-sequence rules should be thought of as preferable to
+an over-complicated sequence semantics.
+
+By default, if a sequence rule has separators,
+the separators are thrown away before
+the semantics are applied.
+They do not appear in the C<@_> array.
+
+But if the value of the C<keep> rule property
+is a Perl true, separators are kept.
+If the application decides to keep separators
+for a rule,
+it is up to
+the Perl closure implementing the semantics to figure out
+which of the arguments in the C<@_>
+array are separators and which are sequence items.
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007-2010 Jeffrey Kegler, all rights reserved.
+Marpa is free software under the Perl license.
+For details see the LICENSE file in the Marpa distribution.
+
+=cut
+
+# Local Variables:
+#   mode: cperl
+#   cperl-indent-level: 4
+#   fill-column: 100
+# End:
+# vim: expandtab shiftwidth=4:
