@@ -3027,7 +3027,7 @@ sub write_merge_module {
 			primary_reference => 1,
 		);
 		$self->_add_merge_module( 'Perl', $mm );
-		$self->_directories()->add_merge_module( $self->image_dir(), $mm );
+		$self->get_directory_tree()->add_merge_module( $self->image_dir(), $mm );
 	} ## end if ( $self->msi() )
 
 	return 1;
@@ -3092,8 +3092,8 @@ sub add_icon {
 
 	# Get the Id for directory object that stores the filename passed in.
 	( $vol, $dir, $file ) = splitpath( $params{filename} );
-	$self->trace_line( 0, "Directory being searched for: $vol $dir\n" );
-	$dir_id = $self->_directories()->search_dir(
+	$self->trace_line( 4, "Directory being searched for: $vol $dir\n" );
+	$dir_id = $self->get_directory_tree()->search_dir(
 		path_to_find => catdir( $vol, $dir ),
 		exact        => 1,
 		descend      => 1,

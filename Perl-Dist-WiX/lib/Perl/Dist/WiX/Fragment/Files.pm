@@ -406,8 +406,6 @@ sub add_file {
 	my $self = shift;
 	my @files = map { my $file = $_; $file =~ s{/}{\\}gmx; $file || $_  } @_;
 	
-	print "Hit Fragment::Files->add_file\n";
-	
 	return $self->_add_file(@files);
 };
 
@@ -415,8 +413,6 @@ sub add_files {
 	my $self = shift;
 	my @files = map { my $file = $_; $file =~ s{/}{\\}gmx; $file || $_  } @_;
 
-	print "Hit Fragment::Files->add_files\n";
-	
 	return $self->_add_files(@files);
 };
 

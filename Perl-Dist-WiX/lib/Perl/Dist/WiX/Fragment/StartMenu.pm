@@ -108,14 +108,19 @@ sub add_shortcut {
 	# TODO: Validate arguments.
 
 	$args{id} =~ s{[^A-Za-z0-9]}{_}msgx;
-
+	
+	my $icon_id = undef;
+	if (defined $args{icon_id}) {
+		$icon_id = "I_$args{icon_id}"; 
+	}
+	
 	my $component = WiX3::XML::Component->new( id => "S_$args{id}" );
 	my $shortcut = WiX3::XML::Shortcut->new(
 		id               => "$args{id}",
 		name             => $args{name},
 		description      => $args{description},
 		target           => $args{target},
-		icon             => "I_$args{icon_id}",
+		icon             => $icon_id,
 		workingdirectory => "D_$args{working_dir}",
 	);
 
