@@ -1,6 +1,6 @@
 Changes for Perl extension ORLite-PDL
 
-0.03 Sun 10 Jan 2010
+0.02 Sun 10 Jan 2010
 	- Adding support for retrofitting ORLite::PDL over external classes
 	- Adding missing dependencies
 
