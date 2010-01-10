@@ -7,7 +7,7 @@ use Cwd;
 use Capture::Tiny qw(capture);
 
 
-eval "use Test::Prereq::Build";
+eval "use Test::Prereq::Build;";
 if ($@) {
     plan skip_all => "Test::Prereq::Build required to test dependencies";
     
@@ -15,7 +15,7 @@ if ($@) {
 }
 
 
-eval "use Path::Class";
+eval "use Path::Class;";
 if ($@) {
     plan skip_all => "Path::Class required to test dependencies";
     

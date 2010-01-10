@@ -1,9 +1,7 @@
 use Test::More;
 use File::Spec::Functions qw(catfile);
 
-eval "use Test::Prereq::Build";
-
-plan skip_all => "Test::Prereq::Build required to test dependencies" if $@;
+use Test::Prereq::Build;
 
 plan tests => 1;
 
