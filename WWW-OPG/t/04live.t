@@ -37,7 +37,7 @@ ok($opg->last_updated <= DateTime->now, '->last_updated earlier than ' .
 ok($opg->last_updated >= DateTime->now->subtract(minutes => 40),
   '->last_updated less than 40 minutes ago');
 ok($opg->power > 5_000, '->power greater than 5,000 MW');
-ok($opg->power < 20_000, '->power greater than 20,000 MW');
+ok($opg->power < 20_000, '->power less than 20,000 MW');
 
 my $rc = 0;
 eval {

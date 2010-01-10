@@ -122,7 +122,7 @@ sub poll {
   Carp::croak('Error reading response: ' . $r->status_line)
     unless $r->is_success;
 
-  my ($power, $date) = split("\n", $r->content);
+  my ($power, $date) = split(chr(13) . chr(10), $r->content);
 
   if ($power =~ m{^([0-9]+),?([0-9]+)$})
   {
