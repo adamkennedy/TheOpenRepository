@@ -1,5 +1,15 @@
 Revision history for Module-Build-Functions
 
+
+0.01    Sun Jan 10 2010
+    First prod release
+    - Implemented self-bundling functionality 
+      (borrowed directly from Module::Install)
+    - Fixed several small bugs
+    - Improved test coverage
+    - Improved documentation
+
+
 0.001_010  Thu Jun 18 2009
     1. Fixing and adding documentation (I never 
        can get POD right on the first pass!)
