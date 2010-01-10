@@ -418,7 +418,7 @@ sub run {
 
 				# Copy the output products for this run to the
 				# main output area.
-				foreach my $file ( @{ $dist->output_file() } ) {
+				foreach my $file ( @{ $dist->get_output_files() } ) {
 					File::Copy::move( $file, $output_dir );
 				}
 			} else {
