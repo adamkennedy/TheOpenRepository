@@ -18,17 +18,12 @@ WWW::OPG - Perl interface to Ontario Power Generation's site
 
 =head1 VERSION
 
-Version 1.003 ($Id$)
+Version 1.004 ($Id$)
 
 =cut
 
-our $VERSION = '1.003';
+our $VERSION = '1.004';
 $VERSION = eval $VERSION;
-
-=head1 DESCRIPTION
-
-This module provides a Perl interface to information published on Ontario
-Power Generation's web site at L<http://www.opg.com>.
 
 =head1 SYNOPSIS
 
@@ -39,6 +34,11 @@ Power Generation's web site at L<http://www.opg.com>.
     $opg->poll();
   };
   print "Currently generating ", $opg->power, "MW of electricity\n";
+
+=head1 DESCRIPTION
+
+This module provides a Perl interface to information published on Ontario
+Power Generation's web site at L<http://www.opg.com>.
 
 =head1 COMPATIBILITY
 
@@ -117,20 +117,18 @@ sub poll {
   Carp::croak('You must call this method as an object') unless ref($self);
 
   my $ua = $self->{useragent};
-  my $r = $ua->get('http://www.opg.com/');
+  my $r = $ua->get('http://www.opg.com/megafile.txt');
 
   Carp::croak('Error reading response: ' . $r->status_line)
     unless $r->is_success;
 
-  if ($r->content =~ m{
-      ([0-9]+),?([0-9]+)</span><span\ class='wht'>\ MW</span>
-    }x)
+  my ($power, $date) = split("\n", $r->content);
+
+  if ($power =~ m{^([0-9]+),?([0-9]+)$})
   {
     $self->{power} = $1 . $2;
 
-    if ($r->content =~ m{
-        Last\ updated:\ (\d+)/(\d+)/(\d+)\ (\d+):(\d+):(\d+)\ (AM|PM)  
-      }x)
+    if ($date =~ m{^(\d+)/(\d+)/(\d+) (\d+):(\d+):(\d+) (AM|PM)})
     {
       my $hour = $4;
       # 12:00 noon and midnight are a special case
@@ -223,6 +221,8 @@ Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 =head2 CONTRIBUTORS
 
 Your name here ;-)
+
+=head1 ACKNOWLEDGEMENTS
 
 =head1 SUPPORT
 
