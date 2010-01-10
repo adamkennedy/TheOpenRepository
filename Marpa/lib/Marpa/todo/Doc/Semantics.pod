@@ -7,11 +7,10 @@ Marpa::Semantics - How Marpa Evaluates Parses
 This document describes
 the way in which Marpa applies semantics to parse trees
 and produces a value from them.
-The two evaluators (the Single Parse Evaluator and
-the Multi-parse Evaluator)
-use the same code evaluate parse trees.
-
-   Rewrite above.
+It describes Marpa's "original semantics",
+the semantics shared by
+its two evaluators (the Single Parse Evaluator and
+the Multi-parse Evaluator).
 
 =head2 Summary of Marpa's Semantics
 
@@ -322,32 +321,20 @@ A parse has the value of its start symbol,
 so "C<A is missing, but Zorro was here>" is also
 the value of the parse.
 
-==head1 Sequences 
+=head1 Sequences 
 
-The value of the child symbols at the node
-for a sequence rule are available
-to semantic actions
-after the per-instance variable
-in the
-C<@_> array,
-just as they would be for an ordinary
-rule with that number of sequence items on its right hand side.
-The difference is that in an ordinary rule, the right hand side
-is fixed in length, so that you know the number of symbols.
-In a sequence sentence
-you don't know in advance the number of right hand side symbols.
+The arguments to closures for sequence rules behave similarly
+to the arguments for ordinary, non-sequence, rules.
+The value of the node's child symbols
+immediately follow
+the per-instance variable,
+in lexical order.
 
-Perl closures implementing sequence semantics can use the
-same techniques that any Perl closure would use when it
-does not know in advance the number of arguments it will get.
-These techniques include
-using operations like C<join> or C<map> on the C<@_>
-array.
-(Remember to shift the per-instance symbol off first.)
-You can also obtain a count of the symbols on the right side
-in the usual way,
-with C<scalar @_>,
-of find index of the last symbol as C<$#_>.
+The only difference (but it is a big one)
+is that in an ordinary rule, the right hand side
+is fixed in length.
+In a sequence rule,
+the application does not know in advance the number of right hand side symbols.
 
 Sequence sentences work best where the semantics really is that of a sequence
 of semantically equivalent items.
@@ -360,14 +347,13 @@ the separators are thrown away before
 the semantics are applied.
 They do not appear in the C<@_> array.
 
-But if the value of the C<keep> rule property
+If the value of the C<keep> rule property
 is a Perl true, separators are kept.
-If the application decides to keep separators
-for a rule,
+When separators are kept in the C<@_> array,
 it is up to
 the Perl closure implementing the semantics to figure out
-which of the arguments in the C<@_>
-array are separators and which are sequence items.
+which of its arguments 
+are separators and which are sequence items.
 
 =head1 LICENSE AND COPYRIGHT
 
