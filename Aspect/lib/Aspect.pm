@@ -31,7 +31,7 @@ use Aspect::Pointcut::AndOp        ();
 use Aspect::Pointcut::OrOp         ();
 use Aspect::Pointcut::NotOp        ();
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{
 	aspect

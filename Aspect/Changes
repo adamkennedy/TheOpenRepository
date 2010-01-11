@@ -1,5 +1,8 @@
 Revision history for Perl extension Aspect
 
+0.35 Mon 11 Jan 2010 - Adam Kennedy
+	- Adding initial support for exceptions, with after_throwing
+
 0.34 Sun 10 Jan 2010 - Adam Kennedy
 	- Adding Aspect::Advice::AfterReturning before we implement exception
 	  support in the main ::After advice.

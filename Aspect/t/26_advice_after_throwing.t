@@ -6,16 +6,18 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 57;
+use Test::More tests => 73;
 use Test::NoWarnings;
 use Test::Exception;
 use Aspect;
 
 # Lexicals to track call counts in the support class
-my $new = 0;
-my $foo = 0;
-my $bar = 0;
-my $inc = 0;
+my $new  = 0;
+my $foo  = 0;
+my $bar  = 0;
+my $inc  = 0;
+my $boom = 0;
+my $bang = 0;
 
 # Create the test object
 my $object = My::One->new;
@@ -32,101 +34,121 @@ is( $new, 1, '->new 1' );
 # Do the methods act as normal
 is( $object->foo, 'foo', 'foo not yet installed' );
 is( $object->inc(2), 3,  'inc not yet installed' );
-is( $foo, 1, '->foo is called' );
-is( $inc, 1, '->inc is called' );
+eval { $object->boom };
+my $error   = $@;
+my $qerror  = quotemeta $error;
+my $qrerror = qr/^$qerror\z/;
+is( $foo,  1, '->foo is called'  );
+is( $inc,  1, '->inc is called'  );
+is( $boom, 1, '->boom is called' );
 
 # Check that the null case does nothing
 SCOPE: {
 	my $aspect = after_throwing {
 		# It's oh so quiet...
-	} call 'My::One::foo';
+	} call qr/^My::One::(?:foo|boom)$/;
 	is( $object->foo, 'foo', 'Null case does not change anything' );
-	is( $foo, 2, '->foo is called' );
+	throws_ok(
+		sub { $object->boom },
+		$qrerror,
+		'Null case does not trap exceptions',
+	);
+	is( $foo, 2,  '->foo is called'  );
+	is( $boom, 2, '->boom is called' );
 }
 
 # ... and uninstalls properly
 is( $object->foo, 'foo', 'foo uninstalled' );
-is( $foo, 3, '->foo is called' );
+throws_ok( sub { $object->boom }, $qrerror, 'boom uninstalled' );
+is( $foo,  3, '->foo is called'  );
+is( $boom, 3, '->boom is called' );
 
 # Check that return_value works as expected and does not pass through
 SCOPE: {
 	my $aspect = after_throwing {
 		shift->return_value('bar')
-	} call "My::One::foo";
-	is( $object->foo, 'bar', 'after_throwing changing return_value' );
-	is( $foo, 4, '->foo is called' );
+	} call qr/^My::One::(?:foo|boom)$/;
+	is(
+		$object->foo => 'foo',
+		'after_throwing does not change return_value',
+	);
+	is(
+		$object->boom => 'bar',
+		'after_throwing changes return_value for exception',
+	);
+	is( $foo,  4, '->foo is called'  );
+	is( $boom, 4, '->boom is called' );
 }
 
 # ... and uninstalls properly
 is( $object->foo, 'foo', 'foo uninstalled' );
-is( $foo, 5, '->foo is called' );
+throws_ok( sub { $object->boom }, $qrerror, 'boom uninstalled' );
+is( $foo,  5, '->foo is called'  );
+is( $boom, 5, '->boom is called' );
 
 # Check that proceed fails as expected (reading)
 SCOPE: {
 	my $aspect = after_throwing {
 		shift->proceed;
-	} call "My::One::foo";
+	} call "My::One::boom";
 	throws_ok(
-		sub { $object->foo },
+		sub { $object->boom },
 		qr/meaningless/,
 		'Throws correct error when process is read from',
 	);
-	is( $foo, 6, '->foo is called' );
+	is( $boom, 6, '->boom is called' );
 }
 
 # Check that proceed fails as expected (writing)
 SCOPE: {
 	my $aspect = after_throwing {
 		shift->proceed(0);
-	} call "My::One::foo";
+	} call "My::One::boom";
 	throws_ok(
-		sub { $object->foo },
+		sub { $object->boom },
 		qr/meaningless/,
 		'Throws correct error when process is written to',
 	);
-	is( $foo, 7, '->foo is called' );
+	is( $boom, 7, '->boom is called' );
 }
 
 # ... and uninstalls properly
-is( $object->foo, 'foo', 'foo uninstalled' );
-is( $foo, 8, '->foo is called' );
-
-# Check that params works as expected and does pass through
-SCOPE: {
-	my $aspect = after_throwing {
-		my $p = shift->params;
-		splice @$p, 1, 1, $p->[1] + 1;
-	} call qr/My::One::inc/;
-	is( $object->inc(2), 3, 'after_throwing advice changing params does nothing' );
-	is( $inc, 2, '->inc is called' );
-}
+throws_ok( sub { $object->boom }, $qrerror, 'boom uninstalled' );
+is( $boom, 8, '->boom is called' );
 
 # Check that we can rehook the same function.
 # Check that we can run several simultaneous hooks.
 SCOPE: {
 	my $aspect1 = after_throwing {
-		$_[0]->return_value( $_[0]->return_value + 1 );
-	} call qr/My::One::inc/;
+		$_[0]->exception( 'one ' . $_[0]->exception );
+	} call qr/My::One::boom/;
 	my $aspect2 = after_throwing {
-		$_[0]->return_value( $_[0]->return_value + 1 );
-	} call qr/My::One::inc/;
+		$_[0]->exception( 'two ' . $_[0]->exception );
+	} call qr/My::One::boom/;
 	my $aspect3 = after_throwing {
-		$_[0]->return_value( $_[0]->return_value + 1 );
-	} call qr/My::One::inc/;
-	is( $object->inc(2), 6, 'after_throwing advice changing params' );
-	is( $inc, 3, '->inc is called' );
+		$_[0]->exception( 'three ' . $_[0]->exception );
+	} call qr/My::One::boom/;
+	throws_ok(
+		sub { $object->boom },
+		qr/^three two one $qerror$/,
+		'boom multi-wrapped',
+	);
+	is( $boom, 9, '->boom is called' );
 }
 
-# Were the hooks removed cleanly?
-is( $object->inc(3), 4, 'inc uninstalled' );
-is( $inc, 4, '->inc is called' );
+# ... and uninstalls properly
+throws_ok( sub { $object->boom }, $qrerror, 'boom uninstalled' );
+is( $boom, 10, '->boom is called' );
 
-# Check the introduction of a permanent hook
-after_throwing {
-	shift->return_value('forever');
-} call 'My::One::inc';
-is( $object->inc(1), 'forever', '->inc hooked forever' );
-is( $inc, 5, '->inc is called' );
+# Check the introduction of a permanent hook.
+# Check alteration of the exception.
+SCOPE: {
+	after_throwing {
+		shift->exception('blah');
+	} call 'My::One::boom';
+}
+throws_ok( sub { $object->boom }, qr/blah/, 'boom permanently hooked' );
+is( $boom, 11, '->boom is called' );
 
 
 
@@ -136,31 +158,35 @@ is( $inc, 5, '->inc is called' );
 # Usage with Cflow
 
 # Check before hook installation
-is( $object->bar, 'foo', 'bar cflow not yet installed' );
-is( $object->foo, 'foo', 'foo cflow not yet installed' );
-is( $bar, 1,  '->bar is called' );
-is( $foo, 10, '->foo is called for both ->bar and ->foo' );
+throws_ok( sub { $object->boom }, qr/blah/, 'boom cflow is not installed' );
+throws_ok( sub { $object->bang }, qr/blah/, 'bang cflow is not installed' );
+is( $bang, 1,  '->bang is called' );
+is( $boom, 13, '->boom is called for both' );
 
 SCOPE: {
 	my $advice = after_throwing {
 		my $c = shift;
 		$c->return_value($c->my_key->self);
-	} call "My::One::foo"
-	& cflow my_key => "My::One::bar";
+	} call "My::One::boom"
+	& cflow my_key => "My::One::bang";
 
-	# ->foo is hooked when called via ->bar, but not directly
-	is( $object->bar, $object, 'foo cflow installed' );
-	is( $bar, 2,  '->bar is called' );
-	is( $foo, 11, '->foo is not called' );
-	is( $object->foo, 'foo', 'foo called out of the cflow' );
-	is( $foo, 12, '->foo is called' );
+	# ->boom is hooked when called via ->bang, but not directly
+	is( $object->bang, $object, 'boom cflow installed' );
+	is( $bang, 2,  '->bang is called' );
+	is( $boom, 14, '->boom is called' );
+	throws_ok(
+		sub { $object->boom },
+		qr/blah/,
+		'boom called out of the cflow',
+	);
+	is( $boom, 15, '->boom is called' );
 }
 
 # Confirm original behaviour on uninstallation
-is( $object->bar, 'foo', 'bar cflow uninstalled' );
-is( $object->foo, 'foo', 'foo cflow uninstalled' );
-is( $bar, 3,  '->bar is called' );
-is( $foo, 14, '->foo is called for both' );
+throws_ok( sub { $object->boom }, qr/blah/, 'boom cflow is not installed' );
+throws_ok( sub { $object->bang }, qr/blah/, 'bang cflow is not installed' );
+is( $bang, 3,  '->bang is called' );
+is( $boom, 17, '->boom is called for both' );
 
 
 
@@ -169,8 +195,8 @@ is( $foo, 14, '->foo is called for both' );
 ######################################################################
 # Prototype Support
 
-sub main::no_proto       { shift }
-sub main::with_proto ($) { shift }
+sub main::no_proto       { die shift }
+sub main::with_proto ($) { die shift }
 
 # Control case
 SCOPE: {
@@ -225,8 +251,7 @@ SCOPE: {
 	is( scalar(@CALLER), 0, '@CALLER is empty' );
 
 	# Call a method above the wrapped method
-	my $rv = My::Two->foo;
-	is( $rv, 'value', '->foo is ok' );
+	throws_ok( sub { My::Two->foo }, qr/value/, '->foo is ok' );
 	is( $AFTER,          1, '$AFTER is true' );
 	is( scalar(@CALLER), 2, '@CALLER is full' );
 	is( $CALLER[0]->[0], 'My::Two', 'First caller is My::Two' );
@@ -247,7 +272,7 @@ SCOPE: {
 			[ caller(0) ],
 			[ caller(1) ],
 		);
-		return 'value';
+		die 'value';
 	}
 }
 
@@ -262,9 +287,21 @@ my @CONTEXT = ();
 
 # Before the aspects
 SCOPE: {
-	() = Foo->after_throwing;
-	my $dummy = Foo->after_throwing;
-	Foo->after_throwing;
+	throws_ok(
+		sub { () = Foo->after_throwing },
+		qr/bang/,
+		'after_throwing before throws ok',
+	);
+	throws_ok(
+		sub { my $dummy = Foo->after_throwing },
+		qr/bang/,
+		'after_throwing before throws ok',
+	);
+	throws_ok(
+		sub { Foo->after_throwing },
+		qr/bang/,
+		'after_throwing before throws ok',
+	);
 }
 
 SCOPE: {
@@ -286,16 +323,40 @@ SCOPE: {
 	} call 'Foo::after_throwing';
 
 	# During the aspects
-	() = Foo->after_throwing;
-	my $dummy = Foo->after_throwing;
-	Foo->after_throwing;
+	throws_ok(
+		sub { () = Foo->after_throwing },
+		qr/bang/,
+		'after_throwing before throws ok',
+	);
+	throws_ok(
+		sub { my $dummy = Foo->after_throwing },
+		qr/bang/,
+		'after_throwing before throws ok',
+	);
+	throws_ok(
+		sub { Foo->after_throwing },
+		qr/bang/,
+		'after_throwing before throws ok',
+	);
 }
 
 # After the aspects
 SCOPE: {
-	() = Foo->after_throwing;
-	my $dummy = Foo->after_throwing;
-	Foo->after_throwing;
+	throws_ok(
+		sub { () = Foo->after_throwing },
+		qr/bang/,
+		'after_throwing before throws ok',
+	);
+	throws_ok(
+		sub { my $dummy = Foo->after_throwing },
+		qr/bang/,
+		'after_throwing before throws ok',
+	);
+	throws_ok(
+		sub { Foo->after_throwing },
+		qr/bang/,
+		'after_throwing before throws ok',
+	);
 }
 
 # Check the results in aggregate
@@ -326,6 +387,7 @@ SCOPE: {
 		} else {
 			push @CONTEXT, 'void';
 		}
+		die 'bang';
 	}
 }
 
@@ -358,3 +420,12 @@ sub inc {
 	return $_[1] + 1;
 }
 
+sub boom {
+	$boom++;
+	die $_[1] || 'explosion';
+}
+
+sub bang {
+	$bang++;
+	return shift->boom;
+}

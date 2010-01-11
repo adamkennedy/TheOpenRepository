@@ -5,7 +5,7 @@ use warnings;
 use Carp         ();
 use Sub::Uplevel ();
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 
 
@@ -109,15 +109,27 @@ sub run_original {
 }
 
 sub return_value {
-	my ($self, $value) = @_;
-	if ( @_ > 1 ) {
-		$self->{return_value} = $value;
+	my $self = shift;
+	if ( @_ ) {
+		$self->{return_value} = shift;
+		if ( defined $self->{exception} ) {
+			$self->{exception} = '';
+		}
 		$self->{proceed} = 0;
 	}
 	my $return_value = $self->get_value('return_value');
 	return (CORE::wantarray && ref $return_value eq 'ARRAY')
 		? @$return_value
 		: $return_value;
+}
+
+sub exception {
+	my $self = shift;
+	if ( @_ ) {
+		$self->{exception} = shift;
+		$self->{proceed}   = 0;
+	}
+	return $self->get_value('exception');
 }
 
 sub get_value {

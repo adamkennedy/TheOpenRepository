@@ -11,7 +11,7 @@ use Sub::Uplevel          ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -65,15 +65,20 @@ sub _install {
 			# Is this a lexically scoped hook that has finished
 			goto &\$original if $MATCH_DISABLED;
 
-			my \$runtime   = {};
 			my \$wantarray = wantarray;
 			if ( \$wantarray ) {
-				my \$return = [
+				my \$return = eval { [
 					Sub::Uplevel::uplevel(
-						1, \$original, \@_,
+						2, \$original, \@_,
 					)
-				];
-				return \@\$return unless $MATCH_RUN;
+				] };
+				return \@\$return unless \$\@;
+
+				my \$runtime = {
+					return_value => \$return,
+					exception    => \$\@,
+				};
+				die \$runtime->{exception} unless $MATCH_RUN;
 
 				# Create the context
 				my \$context = Aspect::AdviceContext->new(
@@ -82,13 +87,16 @@ sub _install {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
-					return_value => \$return,
 					original     => \$original,
 					\%\$runtime,
 				);
 
 				# Execute the advice code
 				() = &\$code(\$context);
+
+				# Throw the same (or modified) exception
+				my \$exception = \$context->exception;
+				die \$exception if \$exception;
 
 				# Get the (potentially) modified return value
 				\$return = \$context->return_value;
@@ -100,10 +108,18 @@ sub _install {
 			}
 
 			if ( defined \$wantarray ) {
-				my \$return = Sub::Uplevel::uplevel(
-					1, \$original, \@_,
-				);
-				return \$return unless $MATCH_RUN;
+				my \$return = eval {
+					Sub::Uplevel::uplevel(
+						2, \$original, \@_,
+					)
+				};
+				return \$return unless \$\@;
+
+				my \$runtime = {
+					return_value => \$return,
+					exception    => \$\@,
+				};
+				die \$runtime->{exception} unless $MATCH_RUN;
 
 				# Create the context
 				my \$context = Aspect::AdviceContext->new(
@@ -112,20 +128,33 @@ sub _install {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
-					return_value => \$return,
 					original     => \$original,
 					\%\$runtime,
 				);
 
 				# Execute the advice code
 				my \$dummy = &\$code(\$context);
+
+				# Throw the same (or modified) exception
+				my \$exception = \$context->exception;
+				die \$exception if \$exception;
+
+				# Return the potentially-modified return value
 				return \$context->return_value;
 
 			} else {
-				Sub::Uplevel::uplevel(
-					1, \$original, \@_,
-				);
-				return unless $MATCH_RUN;
+				eval {
+					Sub::Uplevel::uplevel(
+						2, \$original, \@_,
+					)
+				};
+				return unless \$\@;
+
+				my \$runtime = {
+					return_value => undef,
+					exception    => \$\@,
+				};
+				die \$runtime->{exception} unless $MATCH_RUN;
 
 				# Create the context
 				my \$context = Aspect::AdviceContext->new(
@@ -134,13 +163,17 @@ sub _install {
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
-					return_value => undef,
 					original     => \$original,
 					\%\$runtime,
 				);
 
 				# Execute the advice code
 				&\$code(\$context);
+
+				# Throw the same (or modified) exception
+				my \$exception = \$context->exception;
+				die \$exception if \$exception;
+
 				return;
 			}
 		};
