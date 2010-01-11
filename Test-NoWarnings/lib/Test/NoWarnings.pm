@@ -280,7 +280,7 @@ Fergal Daly E<lt>fergal@esatclear.ieE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2003 by Fergal Daly.
+Copyright 2003 - 2007 Fergal Daly.
 
 Some parts copyright 2010 Adam Kennedy.
 
