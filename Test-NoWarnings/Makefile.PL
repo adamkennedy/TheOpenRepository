@@ -15,7 +15,7 @@ WriteMakefile1(
 		'Test::More'   => '0.47',
 	},
 	PREREQ_PM        => {
-		'Test::Tester' => '0.103',
+		'Test::Tester' => '0.104',
 	},
 	META_MERGE => {
 		resources => {
