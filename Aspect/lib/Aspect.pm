@@ -23,6 +23,7 @@ use Aspect::Advice::Around         ();
 use Aspect::Advice::Before         ();
 use Aspect::Advice::After          ();
 use Aspect::Advice::AfterReturning ();
+use Aspect::Advice::AfterThrowing  ();
 use Aspect::Pointcut               ();
 use Aspect::Pointcut::Call         ();
 use Aspect::Pointcut::Cflow        ();
@@ -32,7 +33,16 @@ use Aspect::Pointcut::NotOp        ();
 
 our $VERSION = '0.34';
 our @ISA     = 'Exporter';
-our @EXPORT  = qw{ aspect around before after after_returning call cflow };
+our @EXPORT  = qw{
+	aspect
+	around
+	before
+	after
+	after_returning
+	after_throwing
+	call
+	cflow
+};
 
 # Internal data storage
 my @FOREVER = ();
@@ -83,6 +93,14 @@ sub after (&$) {
 
 sub after_returning (&$) {
 	Aspect::Advice::AfterReturning->new(
+		code     => $_[0],
+		pointcut => $_[1],
+		lexical  => defined wantarray,
+	);
+}
+
+sub after_throwing (&$) {
+	Aspect::Advice::AfterThrowing->new(
 		code     => $_[0],
 		pointcut => $_[1],
 		lexical  => defined wantarray,
