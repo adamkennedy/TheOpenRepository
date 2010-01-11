@@ -38,7 +38,9 @@ $VERSION = eval $VERSION;
 =head1 DESCRIPTION
 
 This module provides a Perl interface to information published on Ontario
-Power Generation's web site at L<http://www.opg.com>.
+Power Generation's web site at L<http://www.opg.com>. This module provides
+very quick and low-bandwidth queries using the special machine-readable file
+proffered by OPG; see L<http://www.opg.com/megafile.txt>.
 
 =head1 COMPATIBILITY
 
@@ -223,6 +225,18 @@ Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 Your name here ;-)
 
 =head1 ACKNOWLEDGEMENTS
+
+=over
+
+=item *
+
+Thanks to the kind folks at OPG and in particular someone I know only as
+"Rose" E<lt>webmaster@opg.comE<gt> for providing me with an API in the form
+of a small text file which provides the same data as that scraped from the
+web page itself. This cuts down significantly on bandwidth costs and the
+time it takes to check the data.
+
+=back
 
 =head1 SUPPORT
 

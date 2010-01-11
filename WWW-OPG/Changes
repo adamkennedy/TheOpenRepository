@@ -1,7 +1,7 @@
-1.004 - XXX - Jonathan Yu <jawnsy@cpan.org>
+1.004 - 10 Jan 2010 - Jonathan Yu <jawnsy@cpan.org>
 
   + Replace the WWW::OPG implementation with one based
-    on an API graciously offered by OPG.
+    on an API graciously offered by OPG
   + Rename the old implementation to WWW::OPG::Scraper
 
 1.003 - 31 Dec 2009 - Jonathan Yu <jawnsy@cpan.org>
