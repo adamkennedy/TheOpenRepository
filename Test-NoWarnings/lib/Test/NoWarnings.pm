@@ -1,5 +1,6 @@
 package Test::NoWarnings;
 
+use 5.006;
 use strict;
 use warnings;
 use Carp;

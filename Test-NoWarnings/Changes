@@ -3,6 +3,8 @@ Changes for Perl extension Test-NoWarnings
 1.00 11 Jan 2010
 	- Cleaned and updated the packaging of the module, the dependencies
 	  and the Makefile.PL contents, but otherwise remains unchanged (ADAMK)
+	- Now makes explicit the Perl 5.006 dependency that was previously
+	  an undocumented implicit dependency (ADAMK)
 
 0.084 20 Oct 2007
 	- Perl 5.005 throws a warning when accessing $Carp::VERSION and was

@@ -10,7 +10,7 @@ WriteMakefile1(
 	VERSION_FROM     => 'lib/Test/NoWarnings.pm',
 	AUTHOR           => 'Fergal Daly <fergal@esatclear.ie>',
 	LICENSE          => 'perl',
-	MIN_PERL_VERSION => '5.004',
+	MIN_PERL_VERSION => '5.006',
 	BUILD_REQUIRES   => {
 		'Test::More'    => '0.47',
 		'Test::Builder' => '0.86',
