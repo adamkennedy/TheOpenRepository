@@ -67,7 +67,8 @@ multiple evaluators do not interfere with each other.
 
 A "null value" is the value used for a symbol when it is nulled in a parse.
 By default, the null value is a Perl undefined.
-The default null value is a Marpa option (C<default_null_value>) and can be reset.
+The default null action
+is a Marpa option (C<default_null_action>) and can be reset.
 
 Each symbol can have its own null symbol value.
 The null symbol value for any symbol is calculated using the null symbol action.

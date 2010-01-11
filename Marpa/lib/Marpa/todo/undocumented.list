@@ -1,15 +1,21 @@
 Marpa::Grammar::clone
+Marpa::Grammar::inaccessible_symbols
+Marpa::Grammar::show_accessible_symbols
+Marpa::Grammar::show_nullable_symbols
+Marpa::Grammar::show_nulling_symbols
+Marpa::Grammar::show_productive_symbols
 Marpa::Grammar::stringify
+Marpa::Grammar::unproductive_symbols
 Marpa::Grammar::unstringify
 
 Terminal Property: maximal
 Terminal Property: minimal
 Terminal Property: ranking_action
 
+Grammar Named Argument: academic
 Grammar Named Argument: maximal
 Grammar Named Argument: minimal
 
 Marpa::Evaluator Named Argument: infinite_nodes
 Marpa::Evaluator Named Argument: infinite_scale
 Marpa::Evaluator Named Argument: experimental
-

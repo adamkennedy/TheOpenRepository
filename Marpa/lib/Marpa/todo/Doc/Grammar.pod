@@ -4,31 +4,36 @@ Marpa::Grammar - Marpa Grammar Objects
 
 =head1 DESCRIPTION
 
-The package L<Marpa::Grammar> deals with Marpa's grammar objects.
-Grammars are created with the C<new> method.
-Rules and options may be specified when the grammar is created, or later using
+Marpa's grammar objects are
+are created with the C<new> method.
+Rules may be specified and
+other named arguments used
+when the grammar is created, or later using
 the C<set> method.
 
-When the C<precompute> is called,
+When the C<precompute> method is called,
 it adds data structures that the recognizer will need
 to the grammar object.
 After precomputation
 a grammar is "frozen".
 The C<set> method and some tracing accessors may be called after 
 precomputation, but
-no new rules may added and most other options are invalid.
+no new rules may added and
+most other named arguments are no longer valid.
 
 =head2 Symbol Names
 
 Any valid Perl string not ending in a right square bracket is an acceptable
 symbol name.
-Symbol names which end in right square brackets are reserved for Marpa internal use.
+Marpa reserves
+for its internal use those
+symbol names which end in right square brackets
 
 =head2 Terminals
 
-B<Terminals> are symbols which are acceptable in the input --
-as <token symbols>.
-Marpa is unusual in allowing terminals to appear on the left
+B<Terminals> are symbols which are acceptable as token symbols.
+In other words, terminals are symbols which are valid in the input.
+Marpa allows terminals to appear on the left
 hand side of rules.
 In most grammars, a symbol which appears on the left hand side
 of a rule cannot also be a terminal.
@@ -43,10 +48,12 @@ A grammar has the option of explicitly marking its terminals
 with the L<C<terminals> named argument|//terminals>.
 A grammar with empty rules must explicitly mark its terminals.
 
-If the C<terminals> named argument explicitly marks
-any symbol as a terminal, then
-B<all its terminals> must be explicitly listed
-in one of the C<terminals> named arguments.
+If C<terminals> named argument explicitly marks
+any symbol in a grammar as a terminal,
+then B<all> terminals
+in that grammar
+are required to be explicitly marked with
+a C<terminals> named argument.
 
 Precomputation is slightly more efficient for grammars
 which distinquishes their tokens.
@@ -98,15 +105,11 @@ normalize-whitespace: 1
 
 =for Marpa::Display::End
 
-Marpa grammars are L<Marpa::Grammar> objects.
-They are created
-with the C<Marpa::Grammar::new> constructor.
 C<Parse::Marpa::Grammar::new> 
-returns a new grammar object or throws an exception.
-
+returns a new Marpa grammar object or throws an exception.
 The arguments to
 C<Parse::Marpa::Grammar::new> are
-references to a hashes of named arguments.
+references to hashes of named arguments.
 In the key/value pairs of these hashes,
 the name of the argument is the hash key,
 and the value of the argument is the hash value.
@@ -150,27 +153,20 @@ Returns 0, otherwise.
 Not usually needed, but in unusual sitations a lexer may find this
 the easiest way to determine if a symbol actually is a terminal.
 
-=head1 TRACE ACCESSOR METHODS
+=head1 TRACE METHODS
 
-=head2 inaccessible_symbols
-
-    for my $symbol ( @{ $grammar->inaccessible_symbols() } ) {
-	say 'Inaccessible symbol: ', $symbol;
-    }
-
-Returns the
-names of the
-inaccessible symbols.
-Not useful before the grammar is precomputed.
-Used for test scripts.
-For debugging and tracing,
-the C<warnings> option is usually the most convenient
-way to obtain the same information.
+All the trace methods are accessors.
 
 =head2 show_NFA
 
-    print $grammar->show_NFA
+=for Marpa::Display
+name: show_NFA Synopsis
+perltidy: '-dcsc -sil=0'
+
+    print $grammar->show_NFA()
         or Carp::croak "print failed: $OS_ERROR";
+
+=for Marpa::Display::End
 
 Returns a multi-line string listing the states of the NFA
 with the LR(0) items and transitions for each.
@@ -180,54 +176,30 @@ and requires very deep knowledge of Marpa internals.
 
 =head2 show_QDFA
 
-    print $grammar->show_QDFA
+=for Marpa::Display
+name: show_QDFA Synopsis
+perltidy: '-dcsc -sil=0'
+
+    print $grammar->show_QDFA()
         or Carp::croak "print failed: $OS_ERROR";
+
+=for Marpa::Display::End
 
 Returns a multi-line string listing the states of the QDFA
 with the LR(0) items, NFA states, and transitions for each.
 Not useful before the grammar is precomputed.
 Very useful in debugging, but requires knowledge of Marpa internals.
 
-=head2 show_accessible_symbols
-
-    say 'Accessible symbols: ',
-        $grammar->show_accessible_symbols;
-
-Returns a one-line string with the names
-of the accessible symbols of the grammar,
-space-separated.
-Useful in test scripts.
-Not useful before the grammar is precomputed.
-Not very useful for debugging.
-
-=head2 show_nullable_symbols
-
-    say 'Nullable symbols: ',
-        $grammar->show_nullable_symbols;
-
-Returns a one-line string with the names
-of the nullable symbols of the grammar,
-space-separated.
-Useful in test scripts.
-Not useful before the grammar is precomputed.
-Not very useful for debugging.
-
-=head2 show_nulling_symbols
-
-    say 'Nulling symbols: ',
-        $grammar->show_nulling_symbols;
-
-Returns a one-line string with the names
-of the nulling symbols of the grammar,
-space-separated.
-Useful in test scripts.
-Not useful before the grammar is precomputed.
-Not very useful for debugging.
-
 =head2 show_problems
 
-    print $grammar->show_problems
+=for Marpa::Display
+name: show_problems Synopsis
+perltidy: '-dcsc -sil=0'
+
+    print $grammar->show_problems()
         or Carp::croak "print failed: $OS_ERROR";
+
+=for Marpa::Display::End
 
 Returns a string describing the problems a grammar had in the precomputation phase.
 For many precomputation problems, Marpa
@@ -246,22 +218,16 @@ a grammar with problems.
 The string returned by C<show_problems> will be part of the exception's
 error message.
 
-=head2 show_productive_symbols
-
-    say 'Productive symbols: ',
-        $grammar->show_productive_symbols;
-
-Returns a one-line string with the names
-of the productive symbols of the grammar,
-space-separated.
-Useful in test scripts.
-Not useful before the grammar is precomputed.
-Not very useful for debugging.
-
 =head2 show_rules
 
-    print $grammar->show_rules
+=for Marpa::Display
+name: show_rules Synopsis
+perltidy: '-dcsc -sil=0'
+
+    print $grammar->show_rules()
         or Carp::croak "print failed: $OS_ERROR";
+
+=for Marpa::Display::End
 
 Returns a string listing the rules, each commented as to whether it
 was nullable, nulling, unproductive, inaccessible, empty or not useful.
@@ -280,8 +246,14 @@ replaced by one of Marpa's grammar rewrites.
 
 =head2 show_symbols
 
-    print $grammar->show_symbols
+=for Marpa::Display
+name: show_symbols Synopsis
+perltidy: '-dcsc -sil=0'
+
+    print $grammar->show_symbols()
         or Carp::croak "print failed: $OS_ERROR";
+
+=for Marpa::Display::End
 
 Returns a string listing the symbols, along with whether they were
 nulling, nullable, unproductive or inaccessible.
@@ -290,19 +262,13 @@ and a list of rules which have that symbol anywhere on the right hand side.
 Often useful and much of the information requires no knowledge of
 the Marpa internals to interpret.
 
-=head2 unproductive_symbols
-
-    for my $symbol ( @{ $grammar->unproductive_symbols } ) {
-        say 'Unproductive symbol: ', $symbol;
-    }
-
 Given a precomputed grammar, returns the
 names of the
 unproductive symbols.
 Not useful before the grammar is precomputed.
 Used in test scripts.
 For debugging and tracing,
-the C<warnings> option is usually a more convenient
+the C<warnings> named argument is usually a more convenient
 way to obtain the same information.
 
 =head1 NAMED ARGUMENTS
@@ -417,9 +383,9 @@ explicitly specified semantics of their own.
 Details are given in
 L<the document on semantics|Marpa::Semantics>.
 
-=head2 default_null_value
+=head2 default_null_action
 
-The C<default_null_value> named argument expresses semantics.
+The C<default_null_action> named argument expresses semantics.
 Its standard use is to specify the name of
 a Perl closure which is called to calculate a value for
 null symbols which have no explicitly set null value of their
@@ -432,7 +398,7 @@ L<the document on semantics|Marpa::Semantics>.
 The value must be a reference to an array of symbol names.
 By default, Marpa warns if a symbol is inaccessible, but
 the warning is suppressed for any symbol named in the array.
-Setting the C<inaccessible_ok> option
+Setting the C<inaccessible_ok> named argument
 after grammar precomputation is useless,
 and itself results in a warning.
 
@@ -489,6 +455,23 @@ normalize-whitespace: 1
 
 =for Marpa::Display::End
 
+=head2 strip
+
+The value is a Boolean.
+If true, Marpa "strips" the grammar during precomputation
+of all data structures that are
+not needed for further processing.
+This saves space and time.
+This is the default behavior.
+
+If C<strip> is set to false, all data in the grammar
+even data no longer needed for parsing,
+is left in place for the entire life of the object.
+This leftover data can be very
+important for tracing and debugging.
+
+=head2 symbols
+
 =head2 terminals
 
 The value of the C<terminals> name argument
@@ -531,12 +514,24 @@ The trace file handle is also used for warning messages.
 (Arguably, its name is slightly misleading.)
 By default the trace file handle is C<STDERR>.
 
+=head2 trace_rules
+
+Traces rules as they are added to the grammar.
+Useful, but you may prefer the C<show_rules()> method.
+Doesn't require knowledge of Marpa internals.
+
+A C<trace_rules> setting becomes effective
+within the named argument hash which sets it.
+A trace message warns the user if he turns
+on rule tracing after
+rules have already been added.
+
 =head2 unproductive_ok
 
 The value must be a reference to an array of symbol names.
 By default, Marpa warns if a symbol is unproductive, but
 the warning is suppressed for any symbol named in the array.
-Setting the C<unproductive_ok> option
+Setting the C<unproductive_ok> named argument
 after grammar precomputation is useless,
 and itself results in a warning.
 
@@ -563,59 +558,14 @@ But a user may have plans for these rules,
 may wish to keep them as notes,
 or may simply wish to deal with them later.
 
-=head2 Named Arguments for Tracing
-
-=over
-
-=item academic
-
-The academic option turns off all grammar rewriting.
-The resulting grammar is useless for recognition and parsing.
-The purpose of the C<academic> argument is allow the
-testing of Marpa's precomputations
-against examples from textbooks.
-This is handy for testing the internals.
-An exception is thrown if the user attempts to create
-a recognizer from a grammar marked academic.
-The C<academic> option
-cannot be set after the grammar is precomputed.
-
-=item strip
-
-The value is a Boolean.
-If true, Marpa "strips" the grammar during precomputation
-of all data structures that are
-not needed for further processing.
-This saves space and time.
-This is the default behavior.
-
-If C<strip> is set to false, all data in the grammar
-even data no longer needed for parsing,
-is left in place for the entire life of the object.
-This leftover data can be very
-important for tracing and debugging.
-
-=item trace_rules
-
-Traces rules as they are added to the grammar.
-Useful, but you may prefer the C<show_rules()> method.
-Doesn't require knowledge of Marpa internals.
-
-A trace message warns the user if he sets this option
-when rules have already been added.
-A C<trace_rules> setting becomes effective
-in the named argument hash in which it is set.
-
-=back
-
 =head1 RULE DESCRIPTORS
 
 =head2 Long Form
 
 The long form description of a rule is a hash
-of B<rule options>,
-with the option names as the hash keys,
-and the option values as the hash values.
+of B<rule properties>,
+with the property names as the hash keys,
+and the property values as the hash values.
 
 =head2 Sequence Rules
 
@@ -704,7 +654,7 @@ The ban on nullables in sequences only applies to sequences in sequence producti
 Nothing prevents you from specifying a sequence of nullables with BNF productions,
 for stress testing, or for any other use you can find.
 
-=head2 The action Rule Property
+=head3 The action Rule Property
 
 The value of the C<action> rule property is a string.
 What the string means is up to the evaluator.
@@ -714,24 +664,24 @@ Each of those Perl closures will become
 the semantic action for its rule.
 If the action for a rule is not explicitly set,
 its semantics will be based on
-the value of Marpa's C<default_action> option.
-If the C<default_action> option is not
+the value of Marpa's C<default_action> named argument.
+If the C<default_action> named argument is not
 set, a rule's value will always be a Perl C<undef>.
 
-=head2 keep Rule Property
+=head3 The keep Rule Property
 
 By default, sequence rules with separators throw them away before
 the semantics are applied.
 But if the value of the C<keep> rule property
 is a Perl true, separators are kept.
 
-=head2 The lhs Rule Property
+=head3 The lhs Rule Property
 
 The value of the C<lhs> rule property must be a string containing
 the name of the rule's left hand side symbol.
 Every Marpa rule must have a left hand side symbol.
 
-=head2 The min Rule Property
+=head3 The min Rule Property
 
 C<min> must be undefined, 0 or 1.
 If C<min> is 0 or 1, 
@@ -744,7 +694,7 @@ The input will be required to match
 the rhs symbol at least C<min> times
 and will be allowed to match an unlimited number of times.
 
-=head2 proper Rule Property
+=head3 The proper Rule Property
 
 By default, sequence rules with separators allow trailing
 separators,
@@ -755,7 +705,7 @@ In proper separation,
 separation must actually separate sequence items,
 and trailing separators are not acceptable.
 
-=head2 priority Rule Property
+=head3 The priority Rule Property
 
 The C<priority> rule property expresses semantics.
 Its standard use is to ordering parses,
@@ -764,7 +714,7 @@ The L<document for the Multi-parse
 Evaluator|Marpa::Evaluator//>
 describes its semantics in that evaluator.
 
-=head2 rhs Rule Property
+=head3 The rhs Rule Property
 
 The value of the C<rhs> property is a reference to
 an array of strings containing
@@ -777,7 +727,7 @@ A rule is also empty if
 there is no C<rhs> specifier in its description.
 There are no empty rules in this example.
 
-=head2 The ranking_action Rule Property
+=head3 The ranking_action Rule Property
 
 The C<ranking_action> rule property expresses semantics.
 Its standard use is to order parses,
@@ -786,7 +736,7 @@ The L<document for the Multi-parse
 Evaluator|Marpa::Evaluator//>
 describes its semantics in that evaluator.
 
-=head2 separator Rule Property
+=head3 The separator Rule Property
 
 Any sequence production may have a C<separator> defined.
 The value must be a symbol name.

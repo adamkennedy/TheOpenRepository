@@ -14,18 +14,19 @@ the Multi-parse Evaluator).
 
 =head2 Summary of Marpa's Semantics
 
-Marpa's default
-semantics are relatively standard -- it creates parse trees
-and evaluates them using traditional methods.
-Parsing and evaluation of parses,
-is dealt with in many places.
-The 8th Chapter of Mark Dominus's excellent book, I<Higher Order Perl> is an
-excellent description of this process in a Perl context and is
-available on-line
-L<http://hop.perl.plover.com/book/pdf/08Parsing.pdf>.
-Among textbooks completely devoted to parsing,
-my own favorite is L<"Grune and Jacobs 2008">.
+Marpa's semantics are traditional.
+A parse is seen as a tree.
+Nodes on the tree are evaluated recursively, bottom-up.
+When the values of all child nodes have been computed,
+an interior node is ready to be valued.
+At this point,
+a Perl closure is called based on the rule for that interior
+node.
 
+The arguments to the interior node's Perl closure are a
+per-instance variable followed by,
+in lexical order,
+the values of its child nodes.
 Marpa's parse tree have two kinds of leaf node:
 tokens and nulled symbols.
 Tokens can be assigned a B<token value> at lexing time.
@@ -47,17 +48,6 @@ of the symbol.
 If a nullable symbol was not assigned a nulled value,
 the null value defaults to a Perl C<undef>.
 
-Parse trees are evaluated recursively, bottom-up.
-When the values of all child nodes have been computed,
-an interior node is ready to be valued.
-At this point,
-a Perl closure is called based on the rule for that interior
-node.
-The arguments to the interior node's Perl closure are a
-per-instance variable followed by,
-in lexical order,
-the values of its child nodes.
-
 The value returned by the interior node's Perl closure becomes
 the value of the interior node.
 If no closure was specified to implement the semantics for an
@@ -71,14 +61,16 @@ of the parse tree.
 
 A "null value" is the value used for a symbol when it is nulled in a parse.
 By default, the null value is a Perl undefined.
-The default null value can be reset to with the 
-L<C<default_null_value> named argument|Marpa::Grammar/default_null_value>.
+The default null action can be reset with the 
+L<C<default_null_action> named argument|Marpa::Grammar/default_null_action>.
 
 Each symbol can have its own null symbol value.
-The null symbol value for any symbol is calculated using the null symbol action.
-The B<null symbol action> for a symbol is the action
+The null value for any symbol is calculated using that symbol's null action.
+The B<null action> for a symbol is the action
 specified for the empty rule with that symbol on its left hand side.
-The null symbol action is B<not> a rule action.
+
+Even though it is expressed as a rule property,
+the null symbol action is B<not> a rule action.
 It's a property of the symbol, and applies whenever the symbol is nulled,
 even when the symbol's empty rule is not involved.
 
@@ -118,60 +110,6 @@ the null symbol value of the B<highest null symbol> in that
 derivation.
 This section describes in detail how a parse is evaluated,
 focusing on what happens when nulled symbols are involved.
-
-The first step in evaluating a parse is to determine which nodes
-B<count> for the purpose of evaluation, and which do not.
-Marpa follows these principles:
-
-=over 4
-
-=item 1
-
-The start node always counts.
-
-=item 2
-
-Nodes count if they derive a non-empty sentence.
-
-=item 3
-
-All other nodes do not count.
-
-=item 4
-
-In evaluating a parse, Marpa uses only nodes that count.
-
-=back
-
-These are all consequences of the principles above:
-
-=over 4
-
-=item 1
-
-The value of null derivation is the value of the highest null symbol in it.
-
-=item 2
-
-A nulled node counts only if it is the start node.
-
-=item 3
-
-The value of a null parse is the null value of the start symbol.
-
-=back
-
-If you think some of the rules or symbols represented by nodes that don't count
-are important in your grammar,
-Marpa can probably accommodate your ideas.
-First,
-for every nullable symbol,
-determine how to calculate the value which your semantics produces
-when that nullable symbol is a "highest null symbol".
-If it's a constant, write a null action for that symbol which returns that constant.
-If your semantics do not produce a constant value by evaluator creation time,
-write a null action which returns a reference to a closure
-and arrange to have that closure run by the parent node.
 
 =head3 Example
 
@@ -354,6 +292,33 @@ it is up to
 the Perl closure implementing the semantics to figure out
 which of its arguments 
 are separators and which are sequence items.
+
+=head2 Actions for Zero Length Sequences
+
+One "corner case" should be noted in the semantics of sequences.
+Actions for nulled symbols and actions for non-null rules are
+dealt with differently.
+Actions for nulled symbols are only once,
+at the beginning of evaluation, even when there are
+multiple parses, and they do not get any arguments.
+The per-parse variable does not yet exist when
+the actions for nulled symbols are run.
+
+Actions for non-null rules are run again each time 
+a new node for that rule needs a value computed.
+They always have a per-parse variable, as well
+as arguments for the value of each of their child nodes.
+
+An action which is specified for a sequence with a C<min>
+property of zero must be prepared to be run either as
+the action for a nulled symbol, or as the action for
+a non-null rule.
+Alternatively, a null action can be set up for the symbol
+on the left hand side of the sequence.
+In the zero-length case,
+the lhs symbol's null action will be used.
+In non-zero length cases
+the action for the sequence rule will be used.
 
 =head1 LICENSE AND COPYRIGHT
 
