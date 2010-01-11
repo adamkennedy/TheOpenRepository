@@ -1,24 +1,21 @@
+#!/usr/bin/perl
+
 use strict;
-
 use Test::Tester;
-
 use Test::More qw(no_plan);
-
 use Test::NoWarnings qw( had_no_warnings warnings clear_warnings );
 
 Test::NoWarnings::builder(Test::Tester::capture());
 
-sub a
-{
+sub a {
 	&b;
 }
 
-sub b
-{
+sub b {
 	warn shift;
 }
 
-{
+SCOPE: {
 	check_test(
 		sub {
 			had_no_warnings("check warns");
@@ -47,12 +44,10 @@ sub b
 	my ($warn) = warnings();
 
 	# 5.8.5 changed Carp's behaviour when the string ends in a \n
-  # the monkey business is because 5.005 throws a "used only
-  # once" warning for $Carp::VERSION
-  my $cv = do { no warnings; $Carp::VERSION };
-
+	# the monkey business is because 5.005 throws a "used only
+	# once" warning for $Carp::VERSION
+	my $cv   = do { no warnings; $Carp::VERSION };
 	my $base = $cv >= 1.03; 
-
 	my @carp = split("\n", $warn->getCarp);
 
 	like($carp[$base+1], '/main::b/', "carp level b");
@@ -66,7 +61,7 @@ sub b
 	}
 }
 
-{
+SCOPE: {
 	clear_warnings();
 	check_test(
 		sub {
@@ -100,4 +95,3 @@ sub b
 	like($result->{diag}, "/Previous test 1 'check warns empty'/", "2 warn diag test num");
 	like($result->{diag}, '/hello once.*hello twice/s', "2 warn diag has warn");
 }
-

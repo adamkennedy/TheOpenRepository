@@ -1,7 +1,7 @@
+#!/usr/bin/perl
+
 use strict;
-
 use Test::Tester;
-
 use Test::More tests => 6;
 
 my $cap = Test::Tester::capture();
@@ -31,7 +31,7 @@ END {
 
 use Test::NoWarnings;
 
-{
+SCOPE: {
 	# TB things never expect to be called directly by the test script
 	local($Test::Builder::Level) = $Test::Builder::Level - 1;
 
