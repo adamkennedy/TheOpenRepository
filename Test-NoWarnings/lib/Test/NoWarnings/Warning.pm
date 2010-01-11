@@ -3,6 +3,11 @@ package Test::NoWarnings::Warning;
 use strict;
 use Carp;
 
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '1.00';
+}
+
 my $has_st = eval "require Devel::StackTrace" || 0;
 
 sub new {
@@ -29,10 +34,10 @@ sub getCarp {
 sub fillCarp {
 	my $self = shift;
 	my $msg  = shift;
-	$Carp::Internal{__PACKAGE__.""}++;
+	$Carp::Internal{ __PACKAGE__ . "" }++;
 	local $Carp::CarpLevel = $Carp::CarpLevel + 1;
 	$self->{Carp} = Carp::longmess($msg);
-	$Carp::Internal{__PACKAGE__.""}--;
+	$Carp::Internal{ __PACKAGE__ . "" }--;
 }
 
 sub getMessage {
@@ -44,14 +49,13 @@ sub setMessage {
 }
 
 sub fillTest {
-	my $self      = shift;
-	my $builder   = shift;
-	my $prev_test = $builder->current_test;
-	$self->{Test} = $prev_test;
-
-	my @tests = $builder->details;
+	my $self           = shift;
+	my $builder        = shift;
+	my $prev_test      = $builder->current_test;
+	$self->{Test}      = $prev_test;
+	my @tests          = $builder->details;
 	my $prev_test_name = $prev_test ? $tests[$prev_test - 1]->{name} : "";
-	$self->{TestName} =  $prev_test_name;
+	$self->{TestName}  =  $prev_test_name;
 }
 
 sub getTest {
