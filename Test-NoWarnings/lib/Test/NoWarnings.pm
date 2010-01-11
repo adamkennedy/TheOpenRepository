@@ -276,11 +276,13 @@ L<Test::Builder>, L<Test::Warn>
 
 =head1 AUTHOR
 
-Written by Fergal Daly <fergal@esatclear.ie>.
+Fergal Daly E<lt>fergal@esatclear.ieE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2003 by Fergal Daly E<lt>fergal@esatclear.ieE<gt>.
+Copyright 2003 by Fergal Daly.
+
+Some parts copyright 2010 Adam Kennedy.
 
 This program is free software and comes with no warranty. It is distributed
 under the LGPL license
