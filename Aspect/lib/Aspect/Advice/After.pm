@@ -11,7 +11,7 @@ use Sub::Uplevel          ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -65,30 +65,40 @@ sub _install {
 			# Is this a lexically scoped hook that has finished
 			goto &\$original if $MATCH_DISABLED;
 
-			my \$runtime   = {};
 			my \$wantarray = wantarray;
 			if ( \$wantarray ) {
-				my \$return = [
+				my \$return = eval { [
 					Sub::Uplevel::uplevel(
-						1, \$original, \@_,
+						2, \$original, \@_,
 					)
-				];
-				return \@\$return unless $MATCH_RUN;
+				] };
+
+				my \$runtime = {
+					return_value => \$return,
+					exception    => \$\@,
+				};
+				unless ( $MATCH_RUN ) {
+					return \@\$return unless \$runtime->{exception};
+					die \$runtime->{exception};
+				}
 
 				# Create the context
 				my \$context = Aspect::AdviceContext->new(
-					type         => 'after',
-					pointcut     => \$pointcut,
-					sub_name     => \$name,
-					wantarray    => \$wantarray,
-					params       => \\\@_,
-					return_value => \$return,
-					original     => \$original,
+					type      => 'after',
+					pointcut  => \$pointcut,
+					sub_name  => \$name,
+					wantarray => \$wantarray,
+					params    => \\\@_,
+					original  => \$original,
 					\%\$runtime,
 				);
 
 				# Execute the advice code
 				() = &\$code(\$context);
+
+				# Throw the same (or modified) exception
+				my \$exception = \$context->exception;
+				die \$exception if \$exception;
 
 				# Get the (potentially) modified return value
 				\$return = \$context->return_value;
@@ -100,47 +110,76 @@ sub _install {
 			}
 
 			if ( defined \$wantarray ) {
-				my \$return = Sub::Uplevel::uplevel(
-					1, \$original, \@_,
-				);
-				return \$return unless $MATCH_RUN;
+				my \$return = eval {
+					Sub::Uplevel::uplevel(
+						2, \$original, \@_,
+					)
+				};
+
+				my \$runtime = {
+					return_value => \$return,
+					exception    => \$\@,
+				};
+				unless ( $MATCH_RUN ) {
+					return \$return unless \$runtime->{exception};
+					die \$runtime->{exception};
+				}
 
 				# Create the context
 				my \$context = Aspect::AdviceContext->new(
-					type         => 'after',
-					pointcut     => \$pointcut,
-					sub_name     => \$name,
-					wantarray    => \$wantarray,
-					params       => \\\@_,
-					return_value => \$return,
-					original     => \$original,
+					type      => 'after',
+					pointcut  => \$pointcut,
+					sub_name  => \$name,
+					wantarray => \$wantarray,
+					params    => \\\@_,
+					original  => \$original,
 					\%\$runtime,
 				);
 
 				# Execute the advice code
 				my \$dummy = &\$code(\$context);
+				
+				# Throw the same (or modified) exception
+				my \$exception = \$context->exception;
+				die \$exception if \$exception;
+
+				# Return the potentially-modified value
 				return \$context->return_value;
 
 			} else {
-				Sub::Uplevel::uplevel(
-					1, \$original, \@_,
-				);
-				return unless $MATCH_RUN;
+				eval {
+					Sub::Uplevel::uplevel(
+						2, \$original, \@_,
+					)
+				};
+
+				my \$runtime = {
+					return_value => undef,
+					exception    => \$\@,
+				};
+				unless ( $MATCH_RUN ) {
+					return unless \$runtime->{exception};
+					die \$runtime->{exception};
+				}
 
 				# Create the context
 				my \$context = Aspect::AdviceContext->new(
-					type         => 'after',
-					pointcut     => \$pointcut,
-					sub_name     => \$name,
-					wantarray    => \$wantarray,
-					params       => \\\@_,
-					return_value => undef,
-					original     => \$original,
+					type      => 'after',
+					pointcut  => \$pointcut,
+					sub_name  => \$name,
+					wantarray => \$wantarray,
+					params    => \\\@_,
+					original  => \$original,
 					\%\$runtime,
 				);
 
 				# Execute the advice code
 				&\$code(\$context);
+				
+				# Throw the same (or modified) exception
+				my \$exception = \$context->exception;
+				die \$exception if \$exception;
+
 				return;
 			}
 		};

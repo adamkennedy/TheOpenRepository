@@ -1,44 +1,50 @@
-package Aspect::Pointcut::NotOp;
+package Aspect::Pointcut::Or;
 
 use strict;
 use warnings;
 use Aspect::Pointcut ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 our @ISA     = 'Aspect::Pointcut';
 
 sub new {
-	bless [ $_[1] ], $_[0];
+	my $class = shift;
+	bless [ @_ ], $class;
 }
 
-# Logical not inherits it's curryability from the element contained
-# within it. We continue to be needed if and only if something below us
-# continues to be needed as well.
-# For cleanliness (and to avoid accidents) we make a copy of ourself
-# in case our child curries to something other than it's pure self.
 sub curry_run {
-	my $self  = shift;
-	my $child = $self->[0]->curry_run;
-	return unless $child;
+	my $self = shift;
 
-	# Handle the special case where the collapsing pointcut results
-	# in a "double not". Fetch the child of our child not and return
-	# it directly.
-	if ( $child->isa('Aspect::Pointcut::NotOp') ) {
-		return $child->[0];
+	# Reduce our children to the subset which themselves do not curry
+	my @children = grep { $_->curry_run } @$self;
+
+	# If none are left, curry us away to nothing
+	return unless @children;
+
+	# If only one remains, curry us away to just that child
+	if ( @children == 1 ) {
+		return $children[0];
 	}
 
-	# Return our clone with the curried child
+	# Create our clone to hold the curried subset
 	my $class = ref($self);
-	return $class->new( $child );
+	return $class->new( @children );
 }
 
 sub match_define {
-	return ! shift->[0]->match_define(@_);
+	my $self = shift;
+	foreach ( @$self ) {
+		return 1 if $_->match_define(@_);
+	}
+	return;
 }
 
 sub match_run {
-	return ! shift->[0]->match_run(@_);
+	my $self = shift;
+	foreach ( @$self ) {
+		return 1 if $_->match_run(@_);
+	}
+	return;
 }
 
 1;
@@ -49,11 +55,11 @@ __END__
 
 =head1 NAME
 
-Aspect::Pointcut::NotOp - Logical 'not' operation pointcut
+Aspect::Pointcut::Or - Logical 'or' operation pointcut
 
 =head1 SYNOPSIS
 
-    Aspect::Pointcut::NotOp->new;
+    Aspect::Pointcut::Or->new;
 
 =head1 DESCRIPTION
 

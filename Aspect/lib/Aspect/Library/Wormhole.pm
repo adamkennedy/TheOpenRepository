@@ -6,16 +6,16 @@ use Aspect::Modular         ();
 use Aspect::Advice::Before  ();
 use Aspect::Pointcut::Call  ();
 use Aspect::Pointcut::Cflow ();
-use Aspect::Pointcut::AndOp ();
+use Aspect::Pointcut::And   ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
 	my $self = shift;
 	Aspect::Advice::Before->new(
 		lexical  => $self->lexical,
-		pointcut => Aspect::Pointcut::AndOp->new(
+		pointcut => Aspect::Pointcut::And->new(
 			Aspect::Pointcut::Call->new( $_[1] ),
 			Aspect::Pointcut::Cflow->new( source => $_[0] ),
 		),

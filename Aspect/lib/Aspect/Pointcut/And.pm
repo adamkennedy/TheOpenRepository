@@ -1,10 +1,10 @@
-package Aspect::Pointcut::AndOp;
+package Aspect::Pointcut::And;
 
 use strict;
 use warnings;
 use Aspect::Pointcut ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 our @ISA     = 'Aspect::Pointcut';
 
 sub new {
@@ -55,11 +55,11 @@ __END__
 
 =head1 NAME
 
-Aspect::Pointcut::AndOp - Logical 'and' operation pointcut
+Aspect::Pointcut::And - Logical 'and' operation pointcut
 
 =head1 SYNOPSIS
 
-    Aspect::Pointcut::AndOp->new;
+    Aspect::Pointcut::And->new;
 
 =head1 DESCRIPTION
 

@@ -11,7 +11,7 @@ use Sub::Uplevel          ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -139,7 +139,7 @@ sub _install {
 				my \$exception = \$context->exception;
 				die \$exception if \$exception;
 
-				# Return the potentially-modified return value
+				# Return the potentially-modified value
 				return \$context->return_value;
 
 			} else {

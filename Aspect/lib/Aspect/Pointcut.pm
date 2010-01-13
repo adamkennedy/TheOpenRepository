@@ -2,12 +2,12 @@ package Aspect::Pointcut;
 
 use strict;
 use warnings;
-use Devel::Symdump          ();
-use Aspect::Pointcut::OrOp  ();
-use Aspect::Pointcut::AndOp ();
-use Aspect::Pointcut::NotOp ();
+use Devel::Symdump        ();
+use Aspect::Pointcut::Or  ();
+use Aspect::Pointcut::And ();
+use Aspect::Pointcut::Not ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 
 use overload (
 	# Keep traditional boolification and stringification
@@ -15,9 +15,9 @@ use overload (
 	'""'   => sub { ref $_[0] },
 
 	# Overload bitwise boolean operators to perform logical transformations.
-	'|'    => sub { Aspect::Pointcut::OrOp->new($_[0],  $_[1]) },
-	'&'    => sub { Aspect::Pointcut::AndOp->new($_[0], $_[1]) },
-	'!'    => sub { Aspect::Pointcut::NotOp->new($_[0])        },
+	'|'    => sub { Aspect::Pointcut::Or->new($_[0],  $_[1]) },
+	'&'    => sub { Aspect::Pointcut::And->new($_[0], $_[1]) },
+	'!'    => sub { Aspect::Pointcut::Not->new($_[0])        },
 );
 
 # Default constructor takes a simple list of params

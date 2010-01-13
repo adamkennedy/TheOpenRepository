@@ -42,7 +42,7 @@ is( $foo,  1, '->foo is called'  );
 is( $inc,  1, '->inc is called'  );
 is( $boom, 1, '->boom is called' );
 
-# Check that the null case does nothing
+# Check that the null case does nothing with exceptions
 SCOPE: {
 	my $aspect = after_throwing {
 		# It's oh so quiet...

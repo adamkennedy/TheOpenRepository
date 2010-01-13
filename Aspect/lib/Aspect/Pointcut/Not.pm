@@ -1,50 +1,44 @@
-package Aspect::Pointcut::OrOp;
+package Aspect::Pointcut::Not;
 
 use strict;
 use warnings;
 use Aspect::Pointcut ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 our @ISA     = 'Aspect::Pointcut';
 
 sub new {
-	my $class = shift;
-	bless [ @_ ], $class;
+	bless [ $_[1] ], $_[0];
 }
 
+# Logical not inherits it's curryability from the element contained
+# within it. We continue to be needed if and only if something below us
+# continues to be needed as well.
+# For cleanliness (and to avoid accidents) we make a copy of ourself
+# in case our child curries to something other than it's pure self.
 sub curry_run {
-	my $self = shift;
+	my $self  = shift;
+	my $child = $self->[0]->curry_run;
+	return unless $child;
 
-	# Reduce our children to the subset which themselves do not curry
-	my @children = grep { $_->curry_run } @$self;
-
-	# If none are left, curry us away to nothing
-	return unless @children;
-
-	# If only one remains, curry us away to just that child
-	if ( @children == 1 ) {
-		return $children[0];
+	# Handle the special case where the collapsing pointcut results
+	# in a "double not". Fetch the child of our child not and return
+	# it directly.
+	if ( $child->isa('Aspect::Pointcut::Not') ) {
+		return $child->[0];
 	}
 
-	# Create our clone to hold the curried subset
+	# Return our clone with the curried child
 	my $class = ref($self);
-	return $class->new( @children );
+	return $class->new( $child );
 }
 
 sub match_define {
-	my $self = shift;
-	foreach ( @$self ) {
-		return 1 if $_->match_define(@_);
-	}
-	return;
+	return ! shift->[0]->match_define(@_);
 }
 
 sub match_run {
-	my $self = shift;
-	foreach ( @$self ) {
-		return 1 if $_->match_run(@_);
-	}
-	return;
+	return ! shift->[0]->match_run(@_);
 }
 
 1;
@@ -55,11 +49,11 @@ __END__
 
 =head1 NAME
 
-Aspect::Pointcut::OrOp - Logical 'or' operation pointcut
+Aspect::Pointcut::Not - Logical 'not' operation pointcut
 
 =head1 SYNOPSIS
 
-    Aspect::Pointcut::OrOp->new;
+    Aspect::Pointcut::Not->new;
 
 =head1 DESCRIPTION
 

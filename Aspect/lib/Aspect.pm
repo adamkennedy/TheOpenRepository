@@ -27,11 +27,11 @@ use Aspect::Advice::AfterThrowing  ();
 use Aspect::Pointcut               ();
 use Aspect::Pointcut::Call         ();
 use Aspect::Pointcut::Cflow        ();
-use Aspect::Pointcut::AndOp        ();
-use Aspect::Pointcut::OrOp         ();
-use Aspect::Pointcut::NotOp        ();
+use Aspect::Pointcut::And          ();
+use Aspect::Pointcut::Or           ();
+use Aspect::Pointcut::Not          ();
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw{
 	aspect

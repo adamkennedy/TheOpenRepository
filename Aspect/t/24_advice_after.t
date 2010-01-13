@@ -6,16 +6,18 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 57;
+use Test::More tests => 101;
 use Test::NoWarnings;
 use Test::Exception;
 use Aspect;
 
 # Lexicals to track call counts in the support class
-my $new = 0;
-my $foo = 0;
-my $bar = 0;
-my $inc = 0;
+my $new  = 0;
+my $foo  = 0;
+my $bar  = 0;
+my $inc  = 0;
+my $boom = 0;
+my $bang = 0;
 
 # Create the test object
 my $object = My::One->new;
@@ -32,8 +34,13 @@ is( $new, 1, '->new 1' );
 # Do the methods act as normal
 is( $object->foo, 'foo', 'foo not yet installed' );
 is( $object->inc(2), 3,  'inc not yet installed' );
-is( $foo, 1, '->foo is called' );
-is( $inc, 1, '->inc is called' );
+eval { $object->boom };
+my $error   = $@;
+my $qerror  = quotemeta $error;
+my $qrerror = qr/^$qerror\z/;
+is( $foo,  1, '->foo is called' );
+is( $inc,  1, '->inc is called' );
+is( $boom, 1, '->boom is called' );
 
 # Check that the null case does nothing
 SCOPE: {
@@ -44,52 +51,97 @@ SCOPE: {
 	is( $foo, 2, '->foo is called' );
 }
 
-# ... and uninstalls properly
-is( $object->foo, 'foo', 'foo uninstalled' );
-is( $foo, 3, '->foo is called' );
+# Check that the null case does nothing with exceptions
+my $null = 0;
+SCOPE: {
+	my $aspect = after {
+		# It's oh so quiet...
+		$null++;
+	} call qr/^My::One::(?:foo|boom)$/;
+	is( $object->foo, 'foo', 'Null case does not change anything' );
+	throws_ok(
+		sub { $object->boom },
+		$qrerror,
+		'Null case does not trap exceptions',
+	);
+	is( $null, 2, 'null advice called twice' );
+	is( $foo,  3, '->foo is called'         );
+	is( $boom, 2, '->boom is called'        );
+}
 
-# Check that return_value works as expected and does not pass through
+# ... and uninstalls properly
+is( $null, 2, 'null advice not called' );
+is( $object->foo, 'foo', 'foo uninstalled' );
+is( $foo, 4, '->foo is called' );
+
+# Check that return_value works as expected with and without exceptions
 SCOPE: {
 	my $aspect = after {
 		shift->return_value('bar')
-	} call "My::One::foo";
-	is( $object->foo, 'bar', 'after changing return_value' );
-	is( $foo, 4, '->foo is called' );
+	} call qr/^My::One::(?:foo|boom)$/;
+	is(
+		$object->foo => 'bar',
+		'after changes return_value for non-exception',
+	);
+	is(
+		$object->boom => 'bar',
+		'after changes return_value for exception',
+	);
+	is( $foo,  5, '->foo is called'  );
+	is( $boom, 3, '->boom is called' );
 }
 
 # ... and uninstalls properly
 is( $object->foo, 'foo', 'foo uninstalled' );
-is( $foo, 5, '->foo is called' );
+throws_ok(
+	sub { $object->boom },
+	$qrerror,
+	'Null case does not trap exceptions',
+);
+is( $foo,  6, '->foo is called'  );
+is( $boom, 4, '->boom is called' );
 
 # Check that proceed fails as expected (reading)
 SCOPE: {
 	my $aspect = after {
 		shift->proceed;
-	} call "My::One::foo";
+	} call qr/^My::One::(?:foo|boom)$/;
 	throws_ok(
 		sub { $object->foo },
 		qr/meaningless/,
 		'Throws correct error when process is read from',
 	);
-	is( $foo, 6, '->foo is called' );
+	throws_ok(
+		sub { $object->boom },
+		qr/meaningless/,
+		'Throws correct error when process is read from during exception',
+	);
+	is( $foo, 7,  '->foo is called'  );
+	is( $boom, 5, '->boom is called' );
 }
 
 # Check that proceed fails as expected (writing)
 SCOPE: {
 	my $aspect = after {
 		shift->proceed(0);
-	} call "My::One::foo";
+	} call qr/^My::One::(?:foo|boom)$/;
 	throws_ok(
 		sub { $object->foo },
 		qr/meaningless/,
 		'Throws correct error when process is written to',
 	);
-	is( $foo, 7, '->foo is called' );
+	throws_ok(
+		sub { $object->boom },
+		qr/meaningless/,
+		'Throws correct error when process is read from during exception',
+	);
+	is( $foo,  8, '->foo is called'  );
+	is( $boom, 6, '->boom is called' );
 }
 
 # ... and uninstalls properly
 is( $object->foo, 'foo', 'foo uninstalled' );
-is( $foo, 8, '->foo is called' );
+is( $foo, 9, '->foo is called' );
 
 # Check that params works as expected and does pass through
 SCOPE: {
@@ -105,15 +157,17 @@ SCOPE: {
 # Check that we can run several simultaneous hooks.
 SCOPE: {
 	my $aspect1 = after {
-		$_[0]->return_value( $_[0]->return_value + 1 );
+		$_[0]->return_value( $_[0]->return_value + 2 );
 	} call qr/My::One::inc/;
 	my $aspect2 = after {
-		$_[0]->return_value( $_[0]->return_value + 1 );
+		$_[0]->exception( $_[0]->return_value + 3 );
 	} call qr/My::One::inc/;
 	my $aspect3 = after {
-		$_[0]->return_value( $_[0]->return_value + 1 );
+		my $e = $_[0]->exception;
+		$e =~ s/\D.+//;
+		$_[0]->return_value( $e + 4 );
 	} call qr/My::One::inc/;
-	is( $object->inc(2), 6, 'after advice changing params' );
+	is( $object->inc(2), 12, 'after advice changing params' );
 	is( $inc, 3, '->inc is called' );
 }
 
@@ -122,11 +176,23 @@ is( $object->inc(3), 4, 'inc uninstalled' );
 is( $inc, 4, '->inc is called' );
 
 # Check the introduction of a permanent hook
-after {
-	shift->return_value('forever');
-} call 'My::One::inc';
-is( $object->inc(1), 'forever', '->inc hooked forever' );
-is( $inc, 5, '->inc is called' );
+SCOPE: {
+	after {
+		shift->exception('forever');
+	} call qr/^My::One::(?:inc|boom)$/;
+}
+throws_ok(
+	sub { $object->inc(1) },
+	qr/forever/,
+	'->inc hooked forever',
+);
+throws_ok(
+	sub { $object->boom },
+	qr/forever/,
+	'->boom hooked forever',
+);
+is( $inc,  5, '->inc is called'  );
+is( $boom, 7, '->boom is called' );
 
 
 
@@ -138,29 +204,48 @@ is( $inc, 5, '->inc is called' );
 # Check before hook installation
 is( $object->bar, 'foo', 'bar cflow not yet installed' );
 is( $object->foo, 'foo', 'foo cflow not yet installed' );
+throws_ok( sub { $object->boom }, qr/forever/, 'boom cflow is not installed' );
+throws_ok( sub { $object->bang }, qr/forever/, 'bang cflow is not installed' );
 is( $bar, 1,  '->bar is called' );
-is( $foo, 10, '->foo is called for both ->bar and ->foo' );
+is( $foo, 11, '->foo is called for both ->bar and ->foo' );
+is( $bang, 1,  '->bang is called' );
+is( $boom, 9, '->boom is called for both' );
 
 SCOPE: {
 	my $advice = after {
 		my $c = shift;
 		$c->return_value($c->my_key->self);
-	} call "My::One::foo"
-	& cflow my_key => "My::One::bar";
+	} call qr/^My::One::(?:foo|boom)$/
+	& cflow my_key => qr/^My::One::(?:bar|bang)$/;
 
 	# ->foo is hooked when called via ->bar, but not directly
 	is( $object->bar, $object, 'foo cflow installed' );
 	is( $bar, 2,  '->bar is called' );
-	is( $foo, 11, '->foo is not called' );
-	is( $object->foo, 'foo', 'foo called out of the cflow' );
 	is( $foo, 12, '->foo is called' );
+	is( $object->foo, 'foo', 'foo called out of the cflow' );
+	is( $foo, 13, '->foo is called' );
+
+	# ->boom is hooked when called via ->bang, but not directly
+	is( $object->bang, $object, 'boom cflow installed' );
+	is( $bang, 2,  '->bang is called' );
+	is( $boom, 10, '->boom is called' );
+	throws_ok(
+		sub { $object->boom },
+		qr/forever/,
+		'boom called out of the cflow',
+	);
+	is( $boom, 11, '->boom is called' );
 }
 
 # Confirm original behaviour on uninstallation
 is( $object->bar, 'foo', 'bar cflow uninstalled' );
 is( $object->foo, 'foo', 'foo cflow uninstalled' );
+throws_ok( sub { $object->boom }, qr/forever/, 'boom cflow is not installed' );
+throws_ok( sub { $object->bang }, qr/forever/, 'bang cflow is not installed' );
 is( $bar, 3,  '->bar is called' );
-is( $foo, 14, '->foo is called for both' );
+is( $foo, 15, '->foo is called for both' );
+is( $bang, 3,  '->bang is called' );
+is( $boom, 13, '->boom is called for both' );
 
 
 
@@ -218,7 +303,7 @@ my $AFTER  = 0;
 
 SCOPE: {
 	# Set up the Aspect
-	my $aspect = after { $AFTER++ } call 'My::Three::bar';
+	my $aspect = after { $AFTER++ } call qr/^My::Three::d?bar$/;
 	isa_ok( $aspect, 'Aspect::Advice' );
 	isa_ok( $aspect, 'Aspect::Advice::After' );
 	is( $AFTER,          0, '$AFTER is false' );
@@ -231,6 +316,13 @@ SCOPE: {
 	is( scalar(@CALLER), 2, '@CALLER is full' );
 	is( $CALLER[0]->[0], 'My::Two', 'First caller is My::Two' );
 	is( $CALLER[1]->[0], 'main', 'Second caller is main' );
+
+	# Call a method above the wrapped method
+	throws_ok( sub { My::Two->dfoo }, qr/value/, '->foo is ok' );
+	is( $AFTER,          2, '$AFTER is true' );
+	is( scalar(@CALLER), 2, '@CALLER is full' );
+	is( $CALLER[0]->[0], 'My::Two', 'First caller is My::Two' );
+	is( $CALLER[1]->[0], 'main', 'Second caller is main' );
 }
 
 SCOPE: {
@@ -238,6 +330,10 @@ SCOPE: {
 
 	sub foo {
 		My::Three->bar;
+	}
+
+	sub dfoo {
+		My::Three->dbar;
 	}
 
 	package My::Three;
@@ -249,6 +345,14 @@ SCOPE: {
 		);
 		return 'value';
 	}
+
+	sub dbar {
+		@CALLER = (
+			[ caller(0) ],
+			[ caller(1) ],
+		);
+		die 'value';
+	}
 }
 
 
@@ -258,6 +362,7 @@ SCOPE: {
 ######################################################################
 # Wantarray Support
 
+our $THROW   = 0;
 my @CONTEXT = ();
 
 # Before the aspects
@@ -265,6 +370,24 @@ SCOPE: {
 	() = Foo->after;
 	my $dummy = Foo->after;
 	Foo->after;
+
+	local $THROW = 1;
+
+	throws_ok(
+		sub { () = Foo->after },
+		qr/bang/,
+		'after before throws ok',
+	);
+	throws_ok(
+		sub { my $dummy = Foo->after },
+		qr/bang/,
+		'after before throws ok',
+	);
+	throws_ok(
+		sub { Foo->after },
+		qr/bang/,
+		'after before throws ok',
+	);
 }
 
 SCOPE: {
@@ -289,6 +412,24 @@ SCOPE: {
 	() = Foo->after;
 	my $dummy = Foo->after;
 	Foo->after;
+
+	local $THROW = 1;
+
+	throws_ok(
+		sub { () = Foo->after },
+		qr/bang/,
+		'after before throws ok',
+	);
+	throws_ok(
+		sub { my $dummy = Foo->after },
+		qr/bang/,
+		'after before throws ok',
+	);
+	throws_ok(
+		sub { Foo->after },
+		qr/bang/,
+		'after before throws ok',
+	);
 }
 
 # After the aspects
@@ -296,6 +437,24 @@ SCOPE: {
 	() = Foo->after;
 	my $dummy = Foo->after;
 	Foo->after;
+
+	local $THROW = 1;
+
+	throws_ok(
+		sub { () = Foo->after },
+		qr/bang/,
+		'after before throws ok',
+	);
+	throws_ok(
+		sub { my $dummy = Foo->after },
+		qr/bang/,
+		'after before throws ok',
+	);
+	throws_ok(
+		sub { Foo->after },
+		qr/bang/,
+		'after before throws ok',
+	);
 }
 
 # Check the results in aggregate
@@ -305,9 +464,18 @@ is_deeply(
 		array
 		scalar
 		void
+		array
+		scalar
+		void
 		array ARRAY ARRAY
 		scalar SCALAR SCALAR
 		void VOID VOID
+		array ARRAY ARRAY
+		scalar SCALAR SCALAR
+		void VOID VOID
+		array
+		scalar
+		void
 		array
 		scalar
 		void
@@ -326,6 +494,7 @@ SCOPE: {
 		} else {
 			push @CONTEXT, 'void';
 		}
+		die 'bang' if $THROW;
 	}
 }
 
@@ -358,3 +527,12 @@ sub inc {
 	return $_[1] + 1;
 }
 
+sub boom {
+	$boom++;
+	die $_[1] || 'explosion';
+}
+
+sub bang {
+	$bang++;
+	return shift->boom;
+}

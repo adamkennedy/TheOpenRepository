@@ -40,7 +40,7 @@ isa_ok( $pointcut, 'Aspect::Pointcut::Call' );
 ok( $pointcut, 'Pointcut is usable in boolean context' );
 
 # Test that negation creates a not pointcut
-isa_ok( ! $pointcut, 'Aspect::Pointcut::NotOp' );
+isa_ok( ! $pointcut, 'Aspect::Pointcut::Not' );
 
 
 
@@ -62,7 +62,7 @@ SCOPE: {
 }
 
 my $not_call_and_call = ! call('One::one') & call(qr/^One::/);
-isa_ok( $not_call_and_call, 'Aspect::Pointcut::AndOp' );
+isa_ok( $not_call_and_call, 'Aspect::Pointcut::And' );
 
 # Does match_all find only the second method?
 is_deeply(

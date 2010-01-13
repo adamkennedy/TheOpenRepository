@@ -1,5 +1,17 @@
 Revision history for Perl extension Aspect
 
+0.36 Wed 13 Jan 2010 - Adam Kennedy
+	- WARNING: THIS RELEASE CONTAINS API CHANGES.
+	  To retain compatibility with previous releases, you should change
+	  all of your after() calls to after_returning() calls.
+	- The after () advice now traps BOTH orginary return values and
+	  exceptions, as per the AspectJ implementation.
+	- To provide a more consistent naming of pointcuts (in preparation
+	  for adding more of them) renamed the logical pointcut classes
+	  to remove the "Op" part of the class name.
+	- Bumped Test::Exception dependency to 0.29, since it has some
+	  Sub::Uplevel fixes, and we use that heavily.
+
 0.35 Mon 11 Jan 2010 - Adam Kennedy
 	- Adding initial support for exceptions, with after_throwing
 
