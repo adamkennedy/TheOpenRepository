@@ -2,23 +2,43 @@ package Aspect::Pointcut::Cflow;
 
 use strict;
 use warnings;
-use Carp                  ();
-use Aspect::Pointcut      ();
-use Aspect::AdviceContext ();
+use Carp                   ();
+use Params::Util           ();
+use Aspect::Pointcut       ();
+use Aspect::Pointcut::Call ();
+use Aspect::AdviceContext  ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 our @ISA     = 'Aspect::Pointcut';
+
+use constant KEY  => 0;
+use constant SPEC => 1;
+
+
+
+
+
+######################################################################
+# Constructor Methods
 
 sub new {
 	my $class = shift;
-	unless ( @_ == 2 ) {
-		Carp::carp 'Cflow must be created with 2 parameters';
+	unless ( Params::Util::_IDENTIFIER($_[0]) ) {
+		Carp::croak('Invalid runtime context key');
 	}
+	bless [ $_[0], Aspect::Pointcut::Call->spec($_[1]) ], $class;
+}
 
-	return bless {
-		runtime_context_key => $_[0],
-		spec                => $_[1],
-	}, $class;
+
+
+
+
+######################################################################
+# Weaving Methods
+
+# To make cflow work we need to hook (sadly) everything
+sub match_define {
+	return 1;
 }
 
 # The cflow pointcuts do not curry at all.
@@ -27,46 +47,55 @@ sub curry_run {
 	return $_[0];
 }
 
-# To make cflow work we need to hook (sadly) everything
-sub match_define {
-	return 1;
-}
+
+
+
+
+######################################################################
+# Runtime Methods
 
 sub match_run {
 	my ($self, $sub_name, $runtime_context) = @_;
 	my $caller_info = $self->find_caller;
 	return 0 unless $caller_info;
-	
 	my $advice_context = Aspect::AdviceContext->new(
 		sub_name => $caller_info->{sub_name},
 		pointcut => $self,
 		params   => $caller_info->{params},
 	);
-	$runtime_context->{$self->{runtime_context_key}} = $advice_context;
+	$runtime_context->{$self->[KEY]} = $advice_context;
 	return 1;
 }
 
 sub find_caller {
 	my $self  = shift;
 	my $level = 2;
-	my $caller_info;
-	while ( 1 ) {
-		$caller_info = $self->caller_info($level++);
-		last if
-			!$caller_info ||
-			$self->match($self->{spec}, $caller_info->{sub_name});
+	while ( my $context = $self->caller_info($level++) ) {
+		return $context if $self->[SPEC]->( $context->{sub_name} );
 	}
-	return $caller_info;
+	return undef;
 }
 
 sub caller_info {
-	my ($self, $level) = @_;
+	my $self  = shift;
+	my $level = shift;
+
 	package DB;
+
 	my %call_info;
-	@call_info {qw(calling_package sub_name has_params)} =
-		(CORE::caller($level))[0, 3, 4];
-	return defined $call_info{calling_package}?
-		{ %call_info, params => [$call_info{has_params}? @DB::args: ()] }: 0;
+	@call_info{qw(
+		calling_package
+		sub_name
+		has_params
+	)} = (CORE::caller($level))[0, 3, 4];
+
+	return defined $call_info{calling_package}
+		? {
+			%call_info,
+			params => [
+				$call_info{has_params} ? @DB::args : ()
+			],
+		} : 0;
 }
 
 1;

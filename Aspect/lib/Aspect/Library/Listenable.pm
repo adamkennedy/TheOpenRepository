@@ -6,15 +6,25 @@ package Aspect::Library::Listenable;
 use strict;
 use warnings;
 use Carp                               ();
-use Exporter                           ();
 use Scalar::Util                       ();
+use Sub::Install                       ();
 use Aspect::Modular                    ();
 use Aspect::Advice::Before             ();
 use Aspect::Library::Listenable::Event ();
 
-our $VERSION = '0.36';
-our @ISA     = qw{ Aspect::Modular Exporter     };
-our @EXPORT  = qw{ add_listener remove_listener };
+our $VERSION = '0.37';
+our @ISA     = qw{ Aspect::Modular };
+
+sub import {
+	my $into = caller();
+	foreach ( qw{ add_listener remove_listener } ) {
+		Sub::Install::install_sub( {
+			code => $_,
+			into => $into,
+		} );
+	}
+	return 1;
+}
 
 sub get_advice {
 	my ($self, $event_name, $pointcut, %event_params) = @_;

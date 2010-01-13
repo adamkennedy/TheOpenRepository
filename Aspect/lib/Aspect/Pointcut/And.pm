@@ -4,12 +4,22 @@ use strict;
 use warnings;
 use Aspect::Pointcut ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 our @ISA     = 'Aspect::Pointcut';
 
-sub new {
-	my $class = shift;
-	bless [ @_ ], $class;
+
+
+
+
+######################################################################
+# Weaving Methods
+
+sub match_define {
+	my $self = shift;
+	foreach ( @$self ) {
+		return unless $_->match_define(@_);
+	}
+	return 1;
 }
 
 sub curry_run {
@@ -31,13 +41,12 @@ sub curry_run {
 	return $class->new( @children );
 }
 
-sub match_define {
-	my $self = shift;
-	foreach ( @$self ) {
-		return unless $_->match_define(@_);
-	}
-	return 1;
-}
+
+
+
+
+######################################################################
+# Runtime Methods
 
 sub match_run {
 	my $self = shift;

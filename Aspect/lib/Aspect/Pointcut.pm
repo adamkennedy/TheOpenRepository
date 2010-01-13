@@ -7,35 +7,39 @@ use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 use overload (
-	# Keep traditional boolification and stringification
+	# Keep traditional Perl boolification and stringification
 	'bool' => sub () { 1 },
 	'""'   => sub { ref $_[0] },
 
 	# Overload bitwise boolean operators to perform logical transformations.
-	'|'    => sub { Aspect::Pointcut::Or->new($_[0],  $_[1]) },
-	'&'    => sub { Aspect::Pointcut::And->new($_[0], $_[1]) },
-	'!'    => sub { Aspect::Pointcut::Not->new($_[0])        },
+	'|'    => sub { Aspect::Pointcut::Or ->new( $_[0], $_[1] ) },
+	'&'    => sub { Aspect::Pointcut::And->new( $_[0], $_[1] ) },
+	'!'    => sub { Aspect::Pointcut::Not->new( $_[0]        ) },
+
+	# Everything else is free to throw an exception
 );
 
-# Default constructor takes a simple list of params
+
+
+
+
+######################################################################
+# Constructor
+
 sub new {
 	my $class = shift;
 	bless [ @_ ], $class;
 }
 
-# TODO: if it is 'eq' we can jusy grab it
-sub match {
-	my ($self, $spec, $sub_name) = @_;
-	return
-		ref $spec eq 'Regexp'? $sub_name =~ $spec:
-		ref $spec eq 'CODE'  ? $spec->($sub_name):
-		$spec eq $sub_name;
-}
 
-# weaving methods -------------------------------------------------------------
+
+
+
+######################################################################
+# Weaving Methods
 
 my %UNTOUCHABLE = map { $_ => 1 } qw(
 	Carp
@@ -88,14 +92,21 @@ sub match_define {
 	die("Method 'match_define' not implemented in class '$class'");
 }
 
-sub match_run {
-	my $class = ref $_[0] || $_[0];
-	die("Method 'match_run' not implemented in class '$class'");
-}
-
 sub curry_run {
 	my $class = ref $_[0] || $_[0];
 	die("Method 'curry' not implemented in class '$class'");
+}
+
+
+
+
+
+######################################################################
+# Runtime Methods
+
+sub match_run {
+	my $class = ref $_[0] || $_[0];
+	die("Method 'match_run' not implemented in class '$class'");
 }
 
 1;

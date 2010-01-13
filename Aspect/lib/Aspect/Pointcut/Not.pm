@@ -4,11 +4,18 @@ use strict;
 use warnings;
 use Aspect::Pointcut ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 our @ISA     = 'Aspect::Pointcut';
 
-sub new {
-	bless [ $_[1] ], $_[0];
+
+
+
+
+######################################################################
+# Weaving Methods
+
+sub match_define {
+	return ! shift->[0]->match_define(@_);
 }
 
 # Logical not inherits it's curryability from the element contained
@@ -33,9 +40,12 @@ sub curry_run {
 	return $class->new( $child );
 }
 
-sub match_define {
-	return ! shift->[0]->match_define(@_);
-}
+
+
+
+
+######################################################################
+# Runtime Methods
 
 sub match_run {
 	return ! shift->[0]->match_run(@_);

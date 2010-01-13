@@ -7,16 +7,17 @@ use warnings;
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed?
 # -- ADAMK
-use Carp::Heavy ();
-use Carp        ();
-
-# NOTE: According to the Sub::UpLevel docs, we should load it before
-# we load Exporter. But that's a pretty difficult thing.
-# So we'll do the best we can here, and then in the future we might
-# want to consider switching to "use Sub::UpLevel ':aggressive';"
-# -- ADAMK
+use Carp::Heavy                    ();
+use Carp                           ();
+use Sub::Install                   ();
 use Sub::Uplevel                   ();
-use Exporter                       ();
+use Aspect::Pointcut               ();
+use Aspect::Pointcut::If           ();
+use Aspect::Pointcut::Or           ();
+use Aspect::Pointcut::And          ();
+use Aspect::Pointcut::Not          ();
+use Aspect::Pointcut::Call         ();
+use Aspect::Pointcut::Cflow        ();
 use Aspect::Advice                 ();
 use Aspect::AdviceContext          ();
 use Aspect::Advice::Around         ();
@@ -24,25 +25,9 @@ use Aspect::Advice::Before         ();
 use Aspect::Advice::After          ();
 use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
-use Aspect::Pointcut               ();
-use Aspect::Pointcut::Call         ();
-use Aspect::Pointcut::Cflow        ();
-use Aspect::Pointcut::And          ();
-use Aspect::Pointcut::Or           ();
-use Aspect::Pointcut::Not          ();
+use Aspect::AdviceContext          ();
 
-our $VERSION = '0.36';
-our @ISA     = 'Exporter';
-our @EXPORT  = qw{
-	aspect
-	around
-	before
-	after
-	after_returning
-	after_throwing
-	call
-	cflow
-};
+our $VERSION = '0.37';
 
 # Internal data storage
 my @FOREVER = ();
@@ -107,12 +92,67 @@ sub after_throwing (&$) {
 	);
 }
 
+sub if_true (&) {
+	Aspect::Pointcut::If->new(@_);
+}
+
 sub call ($) {
 	Aspect::Pointcut::Call->new(@_);
 }
 
 sub cflow ($$) {
 	Aspect::Pointcut::Cflow->new(@_);
+}
+
+
+
+
+
+######################################################################
+# Import Logic
+
+sub import {
+	my $class  = shift;
+	my $legacy = 0;
+	my $into   = caller();
+	while ( @_ ) {
+		my $value = shift;
+		if ( $value eq ':legacy' ) {
+			$legacy = 1;
+		} else {
+			Carp::croak("Unknown or unsupported import param '$value'");
+		}
+	}
+
+	# Install unchanged legacy functions
+	foreach ( qw{ aspect before call cflow } ) {
+		Sub::Install::install_sub( {
+			code => $_,
+			into => $into,
+		} );
+	}
+
+	# Install functions that change between API versions
+	Sub::Install::install_sub( {
+		code => $legacy ? 'after_returning' : 'after',
+		as   => 'after',
+		into => $into,
+	} );
+
+	unless ( $legacy ) {
+		# Install new generation API functions
+		foreach ( qw{
+			around after_returning after_throwing
+			if_true
+		} ) {
+			Sub::Install::install_sub( {
+				code => $_,
+				into => $into,
+			} );
+		}
+	}
+
+	return 1;
 }
 
 

@@ -11,7 +11,7 @@ use Sub::Uplevel          ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string

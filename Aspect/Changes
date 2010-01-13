@@ -1,5 +1,19 @@
 Revision history for Perl extension Aspect
 
+0.37 Wed 13 Jan 2010 - Adam Kennedy
+	- Added support for "Aspect ':legacy'", which will cause the Aspect
+	  module to export functions with their original behaviours.
+	  Only the original aspect/before/after/call/cflow functions are
+	  exported and after() advice applies the same behaviour as the
+	  equivalent new-API advice function after_returning().
+	- To prevent hassles with Exporter (and since we need Sub::Install
+	  anyway to implement :legacy) replace all uses of Exporter with
+	  a trivial hand-rolled equivalent using Sub::Install.
+	- Added the Aspect::Pointcut::If pointcut to match Java's equivalent
+	  if PointCut primitive. Unfortunately, since it's going to be a bit
+	  to hard to actually use "if" in a function, we will use "if_true"
+	  instead.
+
 0.36 Wed 13 Jan 2010 - Adam Kennedy
 	- WARNING: THIS RELEASE CONTAINS API CHANGES.
 	  To retain compatibility with previous releases, you should change

@@ -2,19 +2,42 @@ package Aspect::Pointcut::Call;
 
 use strict;
 use warnings;
-use Carp;
+use Carp             ();
+use Params::Util     ();
 use Aspect::Pointcut ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 our @ISA     = 'Aspect::Pointcut';
 
+
+
+
+
+######################################################################
+# Constructor Methods
+
 sub new {
-	bless [ $_[1] ], $_[0];
+	bless [ $_[0]->spec($_[1]) ], $_[0];
 }
 
+# Generate a match specification
+sub spec {
+	my $it = $_[1];
+	Params::Util::_STRING($it)   and return sub { $_[0] eq $it };
+	Params::Util::_REGEX($it)    and return sub { $_[0] =~ $it };
+	Params::Util::_CODELIKE($it) and return $it;
+	Carp::croak("Invalid function call specification");
+}
+
+
+
+
+
+######################################################################
+# Weaving Methods
+
 sub match_define {
-	my $self = shift;
-	return $self->match( $self->[0], @_ );
+	$_[0]->[0]->($_[1]);
 }
 
 # Call pointcuts curry away to null, because they are the basis
@@ -23,6 +46,13 @@ sub match_define {
 sub curry_run {
 	return;
 }
+
+
+
+
+
+######################################################################
+# Runtime Methods
 
 # Because we now curry away this pointcut, theoretically we should just
 # return true. But if it is ever run inside a negation it returns false

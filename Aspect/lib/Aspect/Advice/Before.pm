@@ -10,7 +10,7 @@ use Carp                  ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
