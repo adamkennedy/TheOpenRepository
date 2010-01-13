@@ -41,30 +41,34 @@ sub new {
 ######################################################################
 # Weaving Methods
 
-my %UNTOUCHABLE = map { $_ => 1 } qw(
-	Carp
-	Carp::Heavy
-	Config
-	CORE
-	CORE::GLOBAL
-	DB
-	DB::fake
-	DynaLoader
-	Exporter
-	Exporter::Heavy
-	IO
-	IO::Handle
-	Regexp
-	UNIVERSAL
-	attributes
-	base
-	feature
-	fields
-	lib
-	strict
-	warnings
-	warnings::register
-);
+my %UNTOUCHABLE;
+BEGIN {
+	%UNTOUCHABLE = map { $_ => 1 } qw(
+		Carp
+		Carp::Heavy
+		Config
+		CORE
+		CORE::GLOBAL
+		DB
+		DB::fake
+		DynaLoader
+		Exporter
+		Exporter::Heavy
+		IO
+		IO::Handle
+		Regexp
+		Sub::Uplevel
+		UNIVERSAL
+		attributes
+		base
+		feature
+		fields
+		lib
+		strict
+		warnings
+		warnings::register
+	);
+}
 
 # Find the list of all matching subs
 sub match_all {

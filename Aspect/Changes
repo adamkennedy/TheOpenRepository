@@ -13,6 +13,8 @@ Revision history for Perl extension Aspect
 	  if PointCut primitive. Unfortunately, since it's going to be a bit
 	  to hard to actually use "if" in a function, we will use "if_true"
 	  instead.
+	- Added Sub::Uplevel to the list of untouchables to prevent infinite
+	  circular loops.
 
 0.36 Wed 13 Jan 2010 - Adam Kennedy
 	- WARNING: THIS RELEASE CONTAINS API CHANGES.
