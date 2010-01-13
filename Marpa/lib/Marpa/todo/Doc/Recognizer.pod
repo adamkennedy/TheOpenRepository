@@ -145,6 +145,9 @@ tokens and earlemes.
 
 =head2 warnings
 
+    Value Inherited from Grammar?
+    I don't think so.
+
 =head1 AFTER HERE FROM PREVIOUS DOC
 
 =head2 Tokens and Earlemes

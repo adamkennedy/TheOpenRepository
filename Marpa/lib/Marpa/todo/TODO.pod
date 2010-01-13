@@ -26,8 +26,6 @@ wants.
 =item * When rereading Internals doc, check if
 parse bocage creation can probably be made cleaner.
 
-=item * Make sure that nulling symbols can never be terminals
-
 =back
 
 =head1 LOW PRIORITY

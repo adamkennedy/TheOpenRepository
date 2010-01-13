@@ -31,6 +31,9 @@ my %exclude = map { ( $_, 1 ) } qw(
 my @additional_files = qw(
     lib/Marpa/UrHTML/todo/Implementation.pod
     lib/Marpa/todo/Doc/Grammar.pod
+    lib/Marpa/todo/Doc/Evaluator.pod
+    lib/Marpa/todo/Doc/Recognizer.pod
+    lib/Marpa/todo/Doc/Semantics.pod
 );
 
 my @test_files = @ARGV;
@@ -137,6 +140,8 @@ sub compare {
     if ( $copy->{partial} ) {
         return 1 if -1 != index ${$formatted_original}, ${$formatted_copy};
         Test::More::diag(
+            $copy->{filename},
+            ' vs. ',
             $original->{filename},
             "\n",
             "Sought Substring:\n",

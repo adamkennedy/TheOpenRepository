@@ -32,18 +32,21 @@ no_index:
     - Marpa::Grammar
     - Marpa::Recognizer
     - Marpa::Evaluator
-    - Marpa::MDL
-    - Marpa::MDLex
     - Marpa::Offset
     - Marpa::Test
     - Marpa::Display
+    - Marpa::MDL
+    - Marpa::MDLex
     - Marpa::Internal
 provides:
+  Marpa:
+    file: lib/Marpa.pm
+    version: 0.003_005
   Marpa::UrHTML:
     file: lib/Marpa/UrHTML.pm
-    version: 0.003_003
+    version: 0.003_005
 requires:
   Scalar::Util: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.003_003
+version: 0.003_005

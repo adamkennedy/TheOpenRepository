@@ -5,14 +5,14 @@ Marpa::Grammar - Marpa Grammar Objects
 =head1 DESCRIPTION
 
 Marpa's grammar objects are
-are created with the C<new> method.
+created with the C<new> method.
 Rules may be specified and
 other named arguments used
 when the grammar is created, or later using
 the C<set> method.
 
-When the C<precompute> method is called,
-it adds data structures that the recognizer will need
+The C<precompute> method
+adds data structures that the recognizer will need
 to the grammar object.
 After precomputation
 a grammar is "frozen".
@@ -35,47 +35,42 @@ B<Terminals> are symbols which are acceptable as token symbols.
 In other words, terminals are symbols which are valid in the input.
 Marpa allows terminals to appear on the left
 hand side of rules.
-In most grammars, a symbol which appears on the left hand side
-of a rule cannot also be a terminal.
-Marpa will allow the same symbol to be produced by a rule,
-and to be
-a token symbol.
+Most parser generators do not allow terminals
+on the left hand side of a rule.
 
-By default,
-unless a Marpa grammar has empty rules,
-all valid symbols are also valid as terminals.
-A grammar has the option of explicitly marking its terminals
-with the L<C<terminals> named argument|//terminals>.
-A grammar with empty rules must explicitly mark its terminals.
+If a Marpa grammar has no empty rules,
+by default all valid symbols are also valid as terminals.
+A grammar has the option of explicitly marking its terminals.
+Terminals can be explicitly marked using
+the
+L<C<terminals> named argument|//"terminals">,
+or the 
+L<C<terminal> property|//"The terminal Symbol Property">,
+of the
+L<C<symbols> named argument|//"symbols">.
 
-If C<terminals> named argument explicitly marks
-any symbol in a grammar as a terminal,
-then B<all> terminals
-in that grammar
-are required to be explicitly marked with
-a C<terminals> named argument.
+If a Marpa grammar has no empty rules and no
+terminals are explicitly marked,
+all symbols are valid as terminals.
+If a Marpa grammar has no empty rules,
+but some terminals are explicitly marked,
+only explicitly marked terminals are
+valid as terminals.
 
-Precomputation is slightly more efficient for grammars
-which distinquishes their tokens.
-Also, Marpa does check that all names specified as
-the symbol names of tokens
-are valid names of terminals.
-Where all symbols are terminals, this is simply equivalent
-to checking that the token name is a valid symbol name.
-Severely restricting the symbols which are valid as tokens
-is traditional,
-and an application may want Marpa to be more fussy.
+If a Marpa grammar has empty rules,
+only explicitly marked terminals are
+valid as terminals.
+When a Marpa grammar has empty rules
+but there are no explicitly marked terminals,
+an exception is thrown at precomputation time.
 
-Grammars with empty rules are required to specify their terminals
-to avoid confusion.
-Marpa tokens cannot be zero length.
-This is not a issue in grammars
-where there are no empty rules,
-because in such grammars no symbols can be zero length.
-In grammar with empty rules, however,
-it becomes useful to distinguish clearly between
-those symbols which can be zero length (non-terminals),
-and those which are never allowed to be zero length (terminals).
+Precomputation can be more efficient for grammars
+which explicitly mark their terminals.
+Marpa checks that all token names are valid terminals,
+and explicitly marking terminals allows the recognizer
+to check the input more strictly.
+Severely restricting the symbols which are valid as terminals
+is traditional.
 
 =head1 CONSTRUCTOR METHOD
 
@@ -116,7 +111,7 @@ and the value of the argument is the hash value.
 The available named arguments are described
 L<below|//"Named Arguments">.
 
-=head1 MUTATOR METHODS
+=head1 MUTATORS
 
 =head2 precompute
 
@@ -129,10 +124,8 @@ normalize-whitespace: 1
 
 =for Marpa::Display::End
 
-Before a Marpa grammar object can be used by a Marpa recognizer,
-it must be B<precomputed>.
-Precomputation compiles data structures that the recognizer will need.
 The C<precompute> method precomputes a Marpa grammar.
+Precomputation compiles data structures that the recognizer will need.
 It returns the grammar object or throws an exception.
 
 =head2 set
@@ -144,16 +137,16 @@ The available named arguments are described
 L<below|//"Named Arguments">.
 C<set> either returns true or throws an exception.
 
-=head1 ACCESSOR METHODS
+=head1 ACCESSORS
 
 =head2 check_terminal
 
-Returns 1 if given a argument which is the name of a terminal symbol.
-Returns 0, otherwise.
+Returns a Perl true when its argument is the name of a terminal symbol.
+Otherwise, returns a Perl false.
 Not usually needed, but in unusual sitations a lexer may find this
-the easiest way to determine if a symbol actually is a terminal.
+the easiest way to determine if a symbol is a terminal.
 
-=head1 TRACE METHODS
+=head1 TRACE ACCESSORS
 
 All the trace methods are accessors.
 
@@ -215,7 +208,7 @@ throw an exception
 if the user attempts
 to create a parse from
 a grammar with problems.
-The string returned by C<show_problems> will be part of the exception's
+The string returned by C<show_problems> will be part of that exception's
 error message.
 
 =head2 show_rules
@@ -229,20 +222,39 @@ perltidy: '-dcsc -sil=0'
 
 =for Marpa::Display::End
 
-Returns a string listing the rules, each commented as to whether it
-was nullable, nulling, unproductive, inaccessible, empty or not useful.
-If a rule had a non-zero priority, that is also shown.
-Often useful and much of the information requires no knowledge of
+Returns a string listing the rules.
+Marpa does extensive rewriting of its grammar,
+and the rules are shown in their rewritten form.
+C<show_rules> is often useful in debugging grammars
+and much of the information requires no knowledge of
 the Marpa internals to interpret.
 
-C<show_rules> shows a rule as not used ("C<!used>")
-if it decides not to use it
-for any reason.
-Rules marked "C<!used>" include far more than just
-the inaccessible and unproductive rules
-that standard parsing terminology calls "useless".
-Rules are marked "C<!used>" whenever they are
-replaced by one of Marpa's grammar rewrites.
+Each rule is shown with B<comments> which
+indicate either rule properties
+or internal settings.
+Comments for the rules indicate
+whether they
+were nullable, unproductive, inaccessible, empty,
+or had a non-zero priority.
+
+When Marpa rewrites a rule, it often marks
+the original rule "do not use".
+Inaccessible and unproductive rules are also
+marked "do not use".
+C<show_rules> shows a "do not use" marking
+as an "C<!used>" comment for that rule.
+
+Many of the comments show
+rule settings relevant to the
+semantics.
+For example,
+the "<discard_sep"> comment indicates that the rule
+discards separators
+(something which is only
+relevant for sequence rules).
+For more details,
+see
+L<the implementation document|Marpa::Implementation>.
 
 =head2 show_symbols
 
@@ -255,21 +267,13 @@ perltidy: '-dcsc -sil=0'
 
 =for Marpa::Display::End
 
-Returns a string listing the symbols, along with whether they were
-nulling, nullable, unproductive or inaccessible.
+Returns a string listing the symbols, along with comments
+indicating whether they were
+terminal, nulling, nullable, unproductive or inaccessible.
 Also shown is a list of rules with that symbol on the left hand side,
 and a list of rules which have that symbol anywhere on the right hand side.
 Often useful and much of the information requires no knowledge of
 the Marpa internals to interpret.
-
-Given a precomputed grammar, returns the
-names of the
-unproductive symbols.
-Not useful before the grammar is precomputed.
-Used in test scripts.
-For debugging and tracing,
-the C<warnings> named argument is usually a more convenient
-way to obtain the same information.
 
 =head1 NAMED ARGUMENTS
 
@@ -277,11 +281,9 @@ way to obtain the same information.
 
 The C<action_object> named argument expresses semantics.
 Its standard use is as a class name to be used
-in resolving
-closure names from other semantics properties and named arguments.
-The C<action_object> is treated as a class for the actions,
-and, if a C<new> constructor is defined in C<action_object>,
-that constructor is used to create the per-instance variable for the evaluation.
+in resolving action names to Perl closures.
+If a C<new> constructor is defined in C<action_object>,
+that constructor is used to create the per-parse variables.
 Details are given in
 L<the document on semantics|Marpa::Semantics>.
 
@@ -293,14 +295,13 @@ partial: 1
 normalize-whitespace: 1
 
             actions => 'My_Actions',
-            default_action => 'first_arg',
 
 =for Marpa::Display::End
 
 The C<actions> named argument expresses semantics.
-Its standard use is specify the name of
-a Perl package in which Marpa should use in resolving
-closure names from other semantics properties and named arguments.
+Its standard use is specify
+a Perl package in which Marpa should use when resolving
+action names to Perl closures.
 If both an 
 C<actions> named argument and an
 C<action_object> named argument are specified,
@@ -316,51 +317,35 @@ L<the document on semantics|Marpa::Semantics>.
 
 Takes as its value a string specifying what Marpa
 should do if it discovers its grammar is infinitely
-ambigious -- that is, capable of producing an endless
-number of parses for a single input.
+ambigious.
 The value must be one of
 "C<fatal>",
 "C<warn>" or
 "C<quiet>".
+A grammar is B<infinitely ambiguous> if there
+is some input for which it produces an
+an endless number of parses.
 
-"C<fatal>"
-indicates that an infinitely ambiguous grammar is
-to be treated as a fatal error,
-and an exception thrown.
-This is the default and will usually be what the user
-wants.
-Infinite ambiguity has (at least so far) no known use.
-In most cases, an user who has created an infinitely
-ambiguous grammar has done so by mistake,
-and want to be informed so that he can fix it.
+If the value is "C<fatal>",
+Marpa throws an exception when it encounters
+an infinitely ambiguous grammar.
+This is the default.
+It will usually be what the user wants.
+In most cases,
+an infinitely ambiguous grammar is simply a mistake.
 
-"C<quiet>" indicates the user wants to allows
+"C<quiet>" indicates the user wants to allow
 infinitely ambiguous grammars.
-"C<warn>" indicates the user wants to allows
+"C<warn>" indicates the user wants to allow
 infinitely ambiguous grammars, but
 wants a warning message to be printed
 to the trace file handle.
 
-When a
-grammar actually is infinitely ambiguous,
-the evaluator must check for
-infinite loops as it
-traverses the parse tree.
-For efficiency,
-the Single Parse Evaluator does not check for
-infinite loops and so it cannot be used
-with an infinitely ambiguous grammar,
-even if the actual parse is not ambiguous.
-For any parse using an infinitely ambiguous grammar,
-the user must use the Multi-parse
-Evaluator.
-
-Even when "C<quiet>" or "C<warn>" is specified,
-the user may still use the Single Parse Evaluator
-on grammars which are not infinitely ambiguous.
+The setting of the C<infinite_action> property and
+the choice of evaluators are independent of each other.
 The Single Parse Evaluator will detect attempts to
 use it with an infinitely ambiguous grammar
-and throw an exception.
+and throw an exception at evaluator setup time.
 
 =head2 default_action
 
@@ -369,27 +354,24 @@ name: Engine Synopsis Unambiguous Parse
 partial: 1
 normalize-whitespace: 1
 
-            actions => 'My_Actions',
             default_action => 'first_arg',
 
 =for Marpa::Display::End
 
 The C<default_action> named argument expresses semantics.
-Its standard use is to specify the name of
-a Perl closure to implement
-the semantics
-for rules which have no
-explicitly specified semantics of their own.
+Its standard use is to specify the semantic action
+for rules when no per-rule semantic action is
+defined.
 Details are given in
 L<the document on semantics|Marpa::Semantics>.
 
 =head2 default_null_action
 
 The C<default_null_action> named argument expresses semantics.
-Its standard use is to specify the name of
-a Perl closure which is called to calculate a value for
-null symbols which have no explicitly set null value of their
-own.
+Its standard use is to specify the action used
+to calculate the null value for
+those symbols
+which do not have a per-symbol null action defined.
 Details are given in
 L<the document on semantics|Marpa::Semantics>.
 
@@ -430,15 +412,12 @@ normalize-whitespace: 1
 
 The value of the
 C<rules> named argument is a reference to an array of
-B<rule descriptions>.
+B<rule descriptors>.
 The C<rules> named argument may be specified multiple times,
 adding new rules to the grammar each time.
 New rules may be added until the grammar is precomputed.
-
-The value of the C<rules> named argument must be a reference
-to an array of B<rule descriptors>.
 The format of rule descriptors is L<explained
-below|//"RULE DESCRIPTIONS">.
+below|//"RULE DESCRIPTORS">.
 
 =head2 start
 
@@ -464,54 +443,64 @@ not needed for further processing.
 This saves space and time.
 This is the default behavior.
 
-If C<strip> is set to false, all data in the grammar
-even data no longer needed for parsing,
-is left in place for the entire life of the object.
-This leftover data can be very
-important for tracing and debugging.
+If C<strip> is set to false, data in the grammar object
+is not stripped.
+It is kept available
+for tracing and debugging.
 
 =head2 symbols
 
+=for Marpa::Display
+name: Null Value Example
+partial: 1
+normalize-whitespace: 1
+
+    symbols        => {
+        L => { null_action => 'null_L' },
+        R => { null_action => 'null_R' },
+        A => { null_action => 'null_A' },
+        B => { null_action => 'null_B' },
+        X => { null_action => 'null_X', terminal => 1 },
+        Y => { null_action => 'null_Y', terminal => 1 },
+    },
+
+=for Marpa::Display::End
+
+The value of the C<symbols> named
+arguments must a a reference to a hash.
+In the key/values pairs of this hash,
+the keys are symbol names
+and the values are symbol descriptors.
+Symbol descriptors are described L<below|SYMBOL DESCRIPTORS>.
+
+The value of C<symbols> named argument is a hash
+while the value of the C<rules> named argument.
+This could be seen as non-orthogonal, but
+there's a reason.
+Symbols are uniquely idenitifed by name
+and that name makes a convenient hash key.
+Rules have no
+convenient and obvious candidate for a hash key,
+so it makes more sense to define them in arrays.
+
 =head2 terminals
 
-The value of the C<terminals> name argument
+The value of the C<terminals> named argument
 must be a reference to an array of symbol names.
-Symbols specified in a C<terminals> named argument
-will be acceptable as token names.
-Where a grammar has no empty rules,
-the C<terminals> named argument is not necessary,
-but including it provides allows better
-checking of the input.
-
-If a Marpa grammar has no empty rules and no
-symbol names are specified in a 
-C<terminals> named argument,
-all symbol names will be acceptable as 
-tokens names.
-If a Marpa grammar has no empty rules, but at
-least one symbol name is specified in a 
-C<terminals> named argument,
-only those symbol names specified in
-C<terminals> named arguments
-will be acceptable as 
-token names.
-
-If a Marpa grammar has empty rules,
-only symbol names specified in
-C<terminals> named arguments
-will be acceptable as 
-tokens names.
-If a Marpa grammar has empty rules,
-and no symbol names are specified in
-C<terminals> named arguments,
-an exception will be thrown.
+Specifying symbols in a
+a C<terminals> named argument
+is one way of
+explicitly marking them as terminals.
+Explicity marking of terminals is not necessary
+when unless a grammar has empty rules.
+For more, see
+L<the discussion of terminals above|//Terminals>.
 
 =head2 trace_file_handle
 
 The value is a file handle.
-Trace output goes to the trace file handle.
-The trace file handle is also used for warning messages.
-(Arguably, its name is slightly misleading.)
+Trace output and warning messages
+go to the trace file handle.
 By default the trace file handle is C<STDERR>.
 
 =head2 trace_rules
@@ -523,7 +512,7 @@ Doesn't require knowledge of Marpa internals.
 A C<trace_rules> setting becomes effective
 within the named argument hash which sets it.
 A trace message warns the user if he turns
-on rule tracing after
+on rule tracing when
 rules have already been added.
 
 =head2 unproductive_ok
@@ -544,66 +533,53 @@ or may simply wish to deal with them later.
 =head2 warnings
 
 The value is a boolean.
-If true, it enables warnings
-about inaccessible and unproductive symbols in the grammar.
 Warnings are written to the trace file handle.
 By default, warnings are on.
-Turning warnings on
+Usually, an application will want to leave them on.
+If warnings are turned off,
+turning them back on
 after grammar precomputation is useless,
 and itself results in a warning.
-
-Inaccessible and unproductive rules sometimes indicate errors in the grammar
-design.
-But a user may have plans for these rules,
-may wish to keep them as notes,
-or may simply wish to deal with them later.
 
 =head1 RULE DESCRIPTORS
 
 =head2 Long Form
 
-The long form description of a rule is a hash
-of B<rule properties>,
-with the property names as the hash keys,
-and the property values as the hash values.
+The long form descriptor of a rule is a hash
+of B<rule properties>.
+The property names are the hash keys,
+and the property values are the hash values.
 
 =head2 Sequence Rules
 
-It is very common is a grammar to specify the one symbol is a
+It is very common in a grammar for one symbol to derive a
 sequence of other symbols.
-These can be done as ordinary BNF rules,
-but Marpa allows shorthand form for B<sequence rules>,
-and when sequence rules are specified in that form,
-it optimizes for them.
+Marpa allows sequence rules as a shorthand for this.
 
 A rule is a sequence rule if the C<min> rule property is defined.
 C<min> can be 0 or 1, and indicates the minimum length of the
 sequence.
 As of this writing, the maximum length is always infinite.
-A C<min> of zero means a sequence of 0 or more symbols,
-which in regular expressions is often expression with the star
-notation:
 
-    Sequence ::= Item*
+    { lhs => 'sequence', rhs => [qw(sequence_item)], min => 0 }
 
-A C<min> of one means a sequence of 1 or more symbols,
-which in regular expressions is often expression with the plus
-symbol (C<+>):
+A C<min> of zero means a sequence of 0 or more symbols.
+In regular expressions the standard notation
+for this uses the star symbol: "I<item*>".
 
-    Sequence ::= Item+
+    { lhs => 'sequence', rhs => [qw(sequence_item)], min => 1 }
 
-To keep the semantics and other matter simple,
+A C<min> of one means a sequence of 1 or more symbols.
+In regular expressions the standard notation
+for this uses the plus symbol: "I<item+>".
+
+To keep things simple,
 the right hand side of a sequence rule must a single symbol.
-Of course, applications will want to repeat sequences of multiple symbols,
-but that is easy to do by indirectly.
-So, while can't express
+Of course, applications will often want to repeat sequences of multiple symbols,
+but that is easy to do indirectly:
 
-     Sequence ::= (Item_Part_1 Item_Part_2 )*
-
-directly as a sequence, what you can do is this:
-
-     Sequence ::= Item*
-     Item     ::= (Item_Part_1 Item_Part_2 )
+    { lhs => 'sequence', rhs => [qw(sequence_item)], min => 0 },
+    { lhs => 'sequence_item', rhs => [qw(part1 part2)], },
 
 Sequences can have a separator, specified
 with the C<separator> rule property.
@@ -613,67 +589,55 @@ If you prefer "proper" separaration,
 where separator symbols must actually separate symbols
 and cannot come
 after the last item of a sequence,
-you can use
-the C<proper> rule property to specify this.
+you can set
+the C<proper> rule property.
 
 You are never forced to use sequence rules.
-Most parser generators don't have sequence rules,
-and require you to write your sequences out in BNF form.
-Marpa gives you the choice.
-But it's good to use the sequence rules where you can.
-Marpa optimizes for sequences,
-and the Perl closures which implement the semantics
-for a sequence can be written more naturally.
+But it's usually better to use the sequence rules where you can.
+Marpa optimizes for sequences.
 
-On writing the semantics for a sequence rule,
-see L<the section on sequences in the semantics
+The semantics for a sequence rule
+are implemented by a single Perl closure.
+This is often more natural than spreading
+the sequence's semantics out over two or more Perl closures,
+which is usually necessary when a sequence is written out
+as non-sequence rules.
+See L<the section on sequences in the semantics
 document|Marpa::Semantics//Sequences>.
-One hint here:
-Sequence sentences work best where the sequence
-is of semantically equivalent items.
-Where that's not the case,
-ordinary non-sequence rules will usually allow
-the semantics to be expressed more naturally.
 
-Having nullable symbols (symbols which might match the empty string) in a sequence
-confuses things.
-When nullable symbols can be items in a sequence,
-it becomes very complicated to determine, for a given input,
-exactly how many items are in a sequence.
-Rather than deal with this,
 Marpa throws an exception if you try to use a nullable symbol
 as the right hand side of a sequence rule,
 or as the separator for a sequence rule.
-
-A nullable in a sequence is probably an error in grammar design,
-but not always.
-Marpa's most basic test case for the iteration
-of ambiguous grammars is exactly that:
-creation of a sequence of nullables and a tally of the exponentially increasing results.
 The ban on nullables in sequences only applies to sequences in sequence productions.
-Nothing prevents you from specifying a sequence of nullables with BNF productions,
-for stress testing, or for any other use you can find.
+Nothing prevents you from specifying a sequence of nullables using non-sequence rules.
 
 =head3 The action Rule Property
 
-The value of the C<action> rule property is a string.
-What the string means is up to the evaluator.
-Peeking ahead, these strings will be interpreted
-as the names of Perl closures.
-Each of those Perl closures will become 
-the semantic action for its rule.
-If the action for a rule is not explicitly set,
-its semantics will be based on
-the value of Marpa's C<default_action> named argument.
-If the C<default_action> named argument is not
-set, a rule's value will always be a Perl C<undef>.
+The value of the C<action> rule property is a string which
+expresses semantics.
+Its standard use is as the name of
+a Perl closure implementing the semantics for a rule.
 
 =head3 The keep Rule Property
 
-By default, sequence rules with separators throw them away before
-the semantics are applied.
-But if the value of the C<keep> rule property
-is a Perl true, separators are kept.
+Separators in sequence rules
+are usually not semantically
+significant.
+By default,
+Marpa throws away
+separators during parse tree traversal and
+before node evaluation time,
+so that the semantic actions
+do not see the separators.
+
+If the value of the C<keep> rule property
+is a Perl true, Marpa keeps separators.
+This allows the semantic actions to examine them.
+The downside
+is that the
+work of distinguishing
+sequence separators from sequence items
+is pushed into the semantic actions.
 
 =head3 The lhs Rule Property
 
@@ -686,7 +650,7 @@ Every Marpa rule must have a left hand side symbol.
 C<min> must be undefined, 0 or 1.
 If C<min> is 0 or 1, 
 the rule is a B<sequence production>.
-If C<min> is undefined, the rule is an ordinary, B<BNF production>.
+If C<min> is undefined, the rule is an ordinary, B<non-sequence production>.
 
 Only one symbol is allowed on the right hand side of a sequence production,
 and the right hand side symbol may not be a nullable symbol.
@@ -708,8 +672,8 @@ and trailing separators are not acceptable.
 =head3 The priority Rule Property
 
 The C<priority> rule property expresses semantics.
-Its standard use is to ordering parses,
-and the Single Parse Evaluator simply ignores it.
+Its standard use is for ordering parses,
+The Single Parse Evaluator simply ignores it.
 The L<document for the Multi-parse
 Evaluator|Marpa::Evaluator//>
 describes its semantics in that evaluator.
@@ -718,20 +682,19 @@ describes its semantics in that evaluator.
 
 The value of the C<rhs> property is a reference to
 an array of strings containing
-names of the rule's right hand symbols,
+the names of the rule's right hand symbols,
 in order.
 This array may be zero length, in which case
 this is an B<empty rule> --
 a rule with no symbols on the right hand side.
 A rule is also empty if
-there is no C<rhs> specifier in its description.
-There are no empty rules in this example.
+there is no C<rhs> specifier in its descriptor.
 
 =head3 The ranking_action Rule Property
 
 The C<ranking_action> rule property expresses semantics.
-Its standard use is to order parses,
-and the Single Parse Evaluator simply ignores it.
+Its standard use is to order parses.
+The Single Parse Evaluator simply ignores it.
 The L<document for the Multi-parse
 Evaluator|Marpa::Evaluator//>
 describes its semantics in that evaluator.
@@ -740,7 +703,8 @@ describes its semantics in that evaluator.
 
 Any sequence production may have a C<separator> defined.
 The value must be a symbol name.
-Marpa allows trailing separators, Perl style.
+By default, Marpa allows trailing separators.
+This is the usual style in Perl.
 The separator must not be a nullable symbol.
 
 =head2 Short Form Rule Descriptors
@@ -758,18 +722,21 @@ normalize-whitespace: 1
 
 =for Marpa::Display::End
 
-Rule descriptors may be given in "short form",
+Rule descriptors may be given in "short form" --
 as references to arrays.
-The elements of the array will be interpreted as,
+The elements of the array,
 in order,
+are
 the C<lhs> property,
 the C<rhs> property,
 the C<action> property
 and the C<priority> property.
-The last three are optional,
-and omission of a property in short form
-descriptors has the same effect that
-it does in the long form.
+The last three are optional.
+Omission of an optional
+property in a short form descriptor
+has the same effect 
+that omitting the same optional property would have
+in the long form.
 
 =head2 Duplicate Rules
 
@@ -780,6 +747,12 @@ and the same symbols in the same order on the right hand side.
 For sequences, a rule is considered a duplicate if it has the same
 left hand symbol, the same right hand side symbol,
 and the same separator.
+
+=head1 SYMBOLS
+
+=head2 The null_action Symbol Property
+
+=head2 The terminal Symbol Property
 
 =head1 LICENSE AND COPYRIGHT
 

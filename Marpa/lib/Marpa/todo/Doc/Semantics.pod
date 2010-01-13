@@ -12,6 +12,24 @@ the semantics shared by
 its two evaluators (the Single Parse Evaluator and
 the Multi-parse Evaluator).
 
+=head2 Times
+
+=head3 Evaluator Setup
+
+=head3 Parse Setup
+
+=head3 Parse Tree Traversal
+
+Parse tree traversal is when Marpa traverses the parse tree,
+evaluating each of its nodes.
+
+=head3 Node Evaluation
+
+Node evaluation time occurs for each parse tree node
+during parse tree traversal.
+Node evaluation time is parse tree traversal,
+from the point of view of an individual node of the parse tree.
+
 =head2 Summary of Marpa's Semantics
 
 Marpa's semantics are traditional.
@@ -57,6 +75,10 @@ a Perl C<undef>.
 The value of a parse is the value of the top node 
 of the parse tree.
 
+=head2 Resolving Actions into Closures
+
+=head3 The Bang Convention
+
 =head2 Null Values
 
 A "null value" is the value used for a symbol when it is nulled in a parse.
@@ -94,20 +116,20 @@ the compiled rule closure is run.
 A compiled rule closure
 can produce a different value every time it runs.
 
-I treat null symbol actions differently for efficiency.
-They have no child values,
-and a fixed value is usually what is wanted.
-If you want to calculate a symbol's null value with a closure run at parse evaluation time,
+Null actions are treated differently
+because they always have no child values,
+so that a fixed value is almost always what is wanted.
+If you want to calculate a symbol's null value at node evaluation time,
 the null symbol action can return a reference to a closure.
-Rules with that nullable symbol in their right hand side
+Any rules with that nullable symbol in their right hand side
 can then be set up to run that closure.
 
-=head3 Evaluating Null Derivations
+=head3 Evaluating Null Subtrees
 
-A null derivation may consist of many steps and may contain many symbols.
-Marpa's rule is that the value of a null derivation is
-the null symbol value of the B<highest null symbol> in that
-derivation.
+A null subtree may contain of many nodes, but all of them
+must always be nulled.
+B<The value of a null subtree is the null value of the
+left hand symbol for its topmost node.>
 This section describes in detail how a parse is evaluated,
 focusing on what happens when nulled symbols are involved.
 
@@ -115,35 +137,52 @@ focusing on what happens when nulled symbols are involved.
 
 Suppose a grammar has these rules
 
-=begin Marpa::Test::Display:
+=for Marpa::Display
+name: Null Value Example
+perltidy: '-dcsc -sil=0'
 
-## start display
-## next display
-in_file($_, 'example/null_value.marpa');
+    sub default_action {
+        shift;
+        my $v_count = scalar @_;
+        return q{}   if $v_count <= 0;
+        return $_[0] if $v_count == 1;
+        return '(' . ( join q{;}, ( map { $_ // 'undef' } @_ ) ) . ')';
+    } ## end sub default_action
 
-=end Marpa::Test::Display:
+    sub null_A { return 'null A' }
+    sub null_B { return 'null B' }
+    sub null_R { return 'null R' }
+    sub null_L { return 'null L' }
+    sub null_X { return 'null X' }
+    sub null_Y { return 'null Y' }
 
-    S: A, Y. q{ $_[0] . ", but " . $_[1] }. # Call me the start rule
-    note: you can also call me Rule 0.
+    my $grammar = Marpa::Grammar->new(
+        {   start   => 'S',
+            actions => 'main',
+            rules   => [
+                [ 'S', [qw/L R/] ],
+                [ 'L', [qw/A B X/] ],
+                [ 'L', [] ],
+                [ 'R', [qw/A B Y/] ],
+                [ 'R', [] ],
+                [ 'A', [] ],
+                [ 'B', [] ],
+                [ 'X', [] ],
+                [ 'Y', [] ],
+            ],
+            default_action => 'default_action',
+            symbols        => {
+                L => { null_action => 'null_L' },
+                R => { null_action => 'null_R' },
+                A => { null_action => 'null_A' },
+                B => { null_action => 'null_B' },
+                X => { null_action => 'null_X', terminal => 1 },
+                Y => { null_action => 'null_Y', terminal => 1 },
+            },
+        }
+    );
 
-    A: . q{'A is missing'}. # Call me Rule 1
-
-    A: B, C. q{"I'm sometimes null and sometimes not"}. # Call me Rule 2
-
-    B: . q{'B is missing'}. # Call me Rule 3
-
-    C: . q{'C is missing'}. # Call me Rule 4
-
-    C: Y.  q{'C matches Y'}. # Call me Rule 5
-
-    Y: /Z/. q{'Zorro was here'}. # Call me Rule 6
-
-
-=begin Marpa::Test::Display:
-
-## end display
-
-=end Marpa::Test::Display:
+=for Marpa::Display::End
 
 In the above MDL, the Perl 5 regex "C</Z/>" occurs on the rhs of Rule 6.
 Where a regex is on the rhs of a rule, MDL internally creates a terminal symbol
@@ -154,12 +193,6 @@ C</Z/> will be called C<Z>.
 
 If the input text is the Perl 5 string "C<Z>",
 the derivation is as follows:
-
-=begin Marpa::Test::Display:
-
-## skip 2 displays
-
-=end Marpa::Test::Display:
 
     S -> A Y      (Rule 0)
       -> A "Z"    (Y produces "Z", by Rule 6)
@@ -179,12 +212,6 @@ The parse tree can be described as follows:
 Here's a table showing, for each node, its lhs symbol,
 the sentence it derives, and
 its value.
-
-=begin Marpa::Test::Display:
-
-## skip 2 displays
-
-=end Marpa::Test::Display:
 
                         Symbol      Sentence     Value
                                     Derived
