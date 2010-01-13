@@ -43,11 +43,11 @@ by default all valid symbols are also valid as terminals.
 A grammar has the option of explicitly marking its terminals.
 Terminals can be explicitly marked using
 the
-L<C<terminals> named argument|//"terminals">,
+L<C<terminals> named argument|/"terminals">,
 or the 
-L<C<terminal> property|//"The terminal Symbol Property">,
+L<C<terminal> property|/"The terminal Symbol Property">
 of the
-L<C<symbols> named argument|//"symbols">.
+L<C<symbols> named argument|/"symbols">.
 
 If a Marpa grammar has no empty rules and no
 terminals are explicitly marked,
@@ -105,11 +105,12 @@ returns a new Marpa grammar object or throws an exception.
 The arguments to
 C<Parse::Marpa::Grammar::new> are
 references to hashes of named arguments.
-In the key/value pairs of these hashes,
-the name of the argument is the hash key,
-and the value of the argument is the hash value.
+In the key/value pairs of this hash,
+the hash key is the argument name
+and the hash value is the value of
+the named argument.
 The available named arguments are described
-L<below|//"Named Arguments">.
+L<below|/"Named Arguments">.
 
 =head1 MUTATORS
 
@@ -134,7 +135,7 @@ The arguments to the
 C<set> method are
 references to hashes of named arguments.
 The available named arguments are described
-L<below|//"Named Arguments">.
+L<below|/"Named Arguments">.
 C<set> either returns true or throws an exception.
 
 =head1 ACCESSORS
@@ -417,7 +418,7 @@ The C<rules> named argument may be specified multiple times,
 adding new rules to the grammar each time.
 New rules may be added until the grammar is precomputed.
 The format of rule descriptors is L<explained
-below|//"RULE DESCRIPTORS">.
+below|/"RULE DESCRIPTORS">.
 
 =head2 start
 
@@ -450,38 +451,20 @@ for tracing and debugging.
 
 =head2 symbols
 
-=for Marpa::Display
-name: Null Value Example
-partial: 1
-normalize-whitespace: 1
-
-    symbols        => {
-        L => { null_action => 'null_L' },
-        R => { null_action => 'null_R' },
-        A => { null_action => 'null_A' },
-        B => { null_action => 'null_B' },
-        X => { null_action => 'null_X', terminal => 1 },
-        Y => { null_action => 'null_Y', terminal => 1 },
-    },
-
-=for Marpa::Display::End
-
 The value of the C<symbols> named
 arguments must a a reference to a hash.
-In the key/values pairs of this hash,
-the keys are symbol names
-and the values are symbol descriptors.
+In the key/value pairs of this hash,
+the hash key is the symbol property names
+and the hash value is the value of
+that property.
 Symbol descriptors are described L<below|SYMBOL DESCRIPTORS>.
 
 The value of C<symbols> named argument is a hash
-while the value of the C<rules> named argument.
-This could be seen as non-orthogonal, but
-there's a reason.
-Symbols are uniquely idenitifed by name
-and that name makes a convenient hash key.
-Rules have no
-convenient and obvious candidate for a hash key,
-so it makes more sense to define them in arrays.
+while the value of the C<rules> named argument is an array,
+because symbols are uniquely idenitifed by name
+which makes a convenient hash key.
+For rules, there is
+no convenient and obvious candidate for a hash key.
 
 =head2 terminals
 
@@ -494,7 +477,7 @@ explicitly marking them as terminals.
 Explicity marking of terminals is not necessary
 when unless a grammar has empty rules.
 For more, see
-L<the discussion of terminals above|//Terminals>.
+L<the discussion of terminals above|/"Terminals">.
 
 =head2 trace_file_handle
 
@@ -547,8 +530,10 @@ and itself results in a warning.
 
 The long form descriptor of a rule is a hash
 of B<rule properties>.
-The property names are the hash keys,
-and the property values are the hash values.
+In the key/value pairs of this hash,
+the hash key is the rule property names
+and the hash value is the value of
+that property.
 
 =head2 Sequence Rules
 
@@ -603,7 +588,7 @@ the sequence's semantics out over two or more Perl closures,
 which is usually necessary when a sequence is written out
 as non-sequence rules.
 See L<the section on sequences in the semantics
-document|Marpa::Semantics//Sequences>.
+document|Marpa::Semantics/Sequences>.
 
 Marpa throws an exception if you try to use a nullable symbol
 as the right hand side of a sequence rule,
@@ -672,11 +657,22 @@ and trailing separators are not acceptable.
 =head3 The priority Rule Property
 
 The C<priority> rule property expresses semantics.
-Its standard use is for ordering parses,
-The Single Parse Evaluator simply ignores it.
-The L<document for the Multi-parse
-Evaluator|Marpa::Evaluator//>
-describes its semantics in that evaluator.
+Its standard use is to control the order
+of the parses.
+The Single Parse Evaluator ignores it.
+For its semantics in the Multi-parse Evaluator,
+see
+L<that evaluator's documentation|Marpa::Evaluator>
+
+=head3 The ranking_action Rule Property
+
+The C<ranking_action> rule property expresses semantics.
+Its standard use is to control the order
+of the parses.
+The Single Parse Evaluator ignores it.
+For its semantics in the Multi-parse Evaluator,
+see
+L<that evaluator's documentation|Marpa::Evaluator>
 
 =head3 The rhs Rule Property
 
@@ -689,15 +685,6 @@ this is an B<empty rule> --
 a rule with no symbols on the right hand side.
 A rule is also empty if
 there is no C<rhs> specifier in its descriptor.
-
-=head3 The ranking_action Rule Property
-
-The C<ranking_action> rule property expresses semantics.
-Its standard use is to order parses.
-The Single Parse Evaluator simply ignores it.
-The L<document for the Multi-parse
-Evaluator|Marpa::Evaluator//>
-describes its semantics in that evaluator.
 
 =head3 The separator Rule Property
 
@@ -748,11 +735,48 @@ For sequences, a rule is considered a duplicate if it has the same
 left hand symbol, the same right hand side symbol,
 and the same separator.
 
-=head1 SYMBOLS
+=head1 SYMBOL DESCRIPTORS
+
+=for Marpa::Display
+name: Null Value Example
+partial: 1
+normalize-whitespace: 1
+
+    symbols        => {
+        L => { null_action => 'null_L' },
+        R => { null_action => 'null_R' },
+        A => { null_action => 'null_A' },
+        B => { null_action => 'null_B' },
+        X => { null_action => 'null_X', terminal => 1 },
+        Y => { null_action => 'null_Y', terminal => 1 },
+    },
+
+=for Marpa::Display::End
+
+A symbol descriptor is a hash.
+In the key/value pairs of this hash,
+the hash key is the symbol property names
+and the hash value is the value of
+that property.
 
 =head2 The null_action Symbol Property
 
+The C<null_action> symbol property expresses semantics.
+Its standard use is as the name of an action which
+resolves to a Perl closure.
+The C<null_action> Perl closure is
+used at evaluation setup time to calculate the
+null value of the symbol.
+Details are given in
+L<the document on semantics|Marpa::Semantics>.
+
 =head2 The terminal Symbol Property
+
+A boolean, used for the explicit marking of terminals.
+If true, it marks the symbol as a terminal.
+If false, it unmarks the symbol as a terminal.
+For details, see
+L<the section on terminals|/"Terminals">.
 
 =head1 LICENSE AND COPYRIGHT
 

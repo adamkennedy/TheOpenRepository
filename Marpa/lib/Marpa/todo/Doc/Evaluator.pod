@@ -337,26 +337,6 @@ A parse has the value of its start symbol,
 so "C<A is missing, but Zorro was here>" is also
 the value of the parse.
 
-=head2 Cloning
-
-The C<new> constructor requires a recognizer object to be one of its arguments.
-By default, the C<new> constructor clones the recognizer object.
-This is done so that evaluators do not interfere with each other by
-modifying the same data.
-Cloning is the default behavior, and is always safe.
-
-While safe, cloning does impose an overhead in memory and time.
-This can be avoided by using the C<clone> option with the C<new>
-constructor.
-Not cloning is safe if you know that the recognizer object will not be shared by another evaluator.
-You must also be sure that the
-underlying grammar object is not being shared by multiple recognizers.
-
-It is very common for a Marpa program to have a simple
-structure, where no more than one recognizer is created from any grammar,
-and no more than one evaluator is created from any recognizer.
-When this is the case, cloning is unnecessary.
-
 =head1 METHODS
 
 =head2 new
@@ -461,6 +441,23 @@ Just because the recognizer was active when it was used to create
 the evaluator, does not mean that the input matches the grammar.
 If it does not match, there will be no parses and the C<value> method will
 return undefined the first time it is called.
+
+=head1 CONTEXT-AWARE STATIC METHODS
+
+    Only available to ranking actions!
+
+Perl closures that run at node evaluation time have
+available a set of B<context-aware static methods>.
+A closure can use these methods to obtain various
+data about the context in which it is called.
+
+=head2 Marpa::cause_location
+
+=head2 Marpa::length
+
+=head2 Marpa::location
+
+=head2 Marpa::token_location
 
 =head1 Appendix: Infinitely Ambiguous Grammars
 
