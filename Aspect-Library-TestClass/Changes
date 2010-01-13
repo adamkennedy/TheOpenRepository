@@ -1,5 +1,8 @@
 Changes for Perl extensions Aspect-Library-TestClass
 
+0.36 Wed 13 Jan 2010 - Adam Kennedy
+	- Updated to match API changes in Aspect 0.36
+
 0.32 Thu  7 Jan 2010 - Adam Kennedy
 	- Extracted from the main Aspect distribution to allow the removal
 	  of the Test::Class dependency, now we are no longer using Test::Class

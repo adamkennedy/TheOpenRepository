@@ -3,14 +3,14 @@ package Aspect::Library::TestClass;
 use 5.006;
 use strict;
 use warnings;
-use Test::Class        0.33 ();
-use Params::Util       1.00 ();
-use Aspect::Modular    0.32 ();
-use Aspect::Advice::Before  ();
-use Aspect::Pointcut::Call  ();
-use Aspect::Pointcut::AndOp ();
+use Test::Class       0.33 ();
+use Params::Util      1.00 ();
+use Aspect::Modular   0.36 ();
+use Aspect::Advice::Before ();
+use Aspect::Pointcut::Call ();
+use Aspect::Pointcut::And  ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.36';
 our @ISA     = 'Aspect::Modular';
 
 sub Test::Class::make_subject {
@@ -22,7 +22,7 @@ sub get_advice {
 	my $pointcut = shift;
 	Aspect::Advice::Before->new(
 		lexical => $self->lexical,
-		pointcut => Aspect::Pointcut::AndOp->new(
+		pointcut => Aspect::Pointcut::And->new(
 			Aspect::Pointcut::Call->new(qr/::[a-z][^:]*$/),
 			$pointcut,
 		),
