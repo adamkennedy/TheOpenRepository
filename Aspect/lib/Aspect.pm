@@ -12,7 +12,7 @@ use Carp                           ();
 use Params::Util              1.00 ();
 use Devel::Symdump            2.04 ();
 use Sub::Install              0.92 ();
-use Sub::Uplevel             2.002 ();
+use Sub::Uplevel            0.2002 ();
 use Aspect::Pointcut               ();
 use Aspect::Pointcut::If           ();
 use Aspect::Pointcut::Or           ();
