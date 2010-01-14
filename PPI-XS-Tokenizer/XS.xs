@@ -20,9 +20,8 @@ using namespace PPITokenizer; // is this bad?
 
 MODULE = PPI::XS::Tokenizer		PACKAGE = PPI::XS::Tokenizer
 
-INCLUDE: xspp --typemap=typemap.xsp XS/Tokenizer.xsp |
-INCLUDE: xspp --typemap=typemap.xsp XS/Token.xsp |
-
+INCLUDE_COMMAND: $^X -MExtUtils::XSpp::Cmd -e xspp -- -t typemap.xsp XS/Tokenizer.xsp
+INCLUDE_COMMAND: $^X -MExtUtils::XSpp::Cmd -e xspp -- -t typemap.xsp XS/Token.xsp
 
 MODULE = PPI::XS::Tokenizer		PACKAGE = PPI::XS::Tokenizer::Constants
 
