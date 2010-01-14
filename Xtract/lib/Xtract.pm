@@ -332,7 +332,7 @@ sub add_select {
 	# classification of the data in each column.
 	my @names = ();
 	my @type  = ();
-	my @blob  = [];
+	my @blob  = ();
 	SCOPE: {
 		my $sth = $self->from_dbh->prepare($select);
 		unless ( $sth ) {
@@ -349,6 +349,7 @@ sub add_select {
 				INTMIN  => undef,
 				INTMAX  => undef,
 				TEXT    => 0,
+				UNIQUE  => {},
 			};
 		}
 		my $rows = 0;
@@ -359,21 +360,27 @@ sub add_select {
 				my $hash  = $type[$i];
 				if ( defined $value ) {
 					$hash->{NOTNULL}++;
+					if ( $i == 0 and $hash->{UNIQUE} ) {
+						$hash->{UNIQUE}->{$value}++;
+					}
 				} else {
 					$hash->{NULL}++;
+					delete $hash->{UNIQUE};
 					next;
 				}
-				if ( Params::Util::_NUMBER($value) ) {
-					$hash->{NUMBER}++;
-				} elsif ( Params::Util::_NONNEGINT($value) ) {
+				if ( Params::Util::_NONNEGINT($value) ) {
 					$hash->{INTEGER}++;
 					if ( not defined $hash->{INTMIN} or $value < $hash->{INTMIN} ) {
 						$hash->{INTMIN} = $value;
 					}
 					if ( not defined $hash->{INTMAX} or $value > $hash->{INTMAX} ) {
 						$hash->{INTMAX} = $value;
-					}					
-				} elsif ( length $value <= 255 ) {
+					}
+				}
+				if ( defined Params::Util::_NUMBER($value) ) {
+					$hash->{NUMBER}++;					
+				}
+				if ( length($value) <= 255 ) {
 					$hash->{TEXT}++;
 				}
 			}
@@ -390,6 +397,12 @@ sub add_select {
 				$type[$i] = "$names[$i] NONE NULL";
 			} elsif ( $hash->{INTEGER} == $hash->{NOTNULL} ) {
 				$type[$i] = "$names[$i] INTEGER $notnull";
+				if ( $i == 0 and $hash->{UNIQUE} ) {
+					my $d = scalar keys %{$hash->{UNIQUE}};
+					if ( $d == $hash->{NOTNULL} ) {
+						$type[$i] .= ' PRIMARY KEY';
+					}
+				}
 			} elsif ( $hash->{NUMBER} == $hash->{NOTNULL} ) {
 				# This isn't entirely accurate but should be close enough
 				$type[$i] = "$names[$i] REAL $notnull";
