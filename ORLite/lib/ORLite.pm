@@ -15,7 +15,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.31';
+	$VERSION = '1.32';
 }
 
 # Support for the 'prune' option
@@ -76,6 +76,9 @@ sub import {
 	unless ( defined $params{readonly} ) {
 		$params{readonly} = $params{create} ? 0 : ! -w $params{file};
 	}
+	unless ( defined $params{transaction} ) {
+		$params{transaction} = ! $params{readonly};
+	}
 	unless ( defined $params{tables} ) {
 		$params{tables} = 1;
 	}
@@ -98,10 +101,11 @@ sub import {
 		}
 		$class->prune($file) if $params{prune};
 	}
-	my $pkg      = $params{package};
-	my $readonly = $params{readonly};
-	my $dsn      = "dbi:SQLite:$file";
-	my $dbh      = DBI->connect( $dsn, undef, undef, {
+	my $pkg         = $params{package};
+	my $readonly    = $params{readonly};
+	my $transaction = $params{transaction};
+	my $dsn         = "dbi:SQLite:$file";
+	my $dbh         = DBI->connect( $dsn, undef, undef, {
 		PrintError => 0,
 		RaiseError => 1,
 	} );
@@ -195,30 +199,13 @@ sub iterate {
 
 END_PERL
 
-	# Add transaction support if not readonly
-	$code .= <<"END_PERL" unless $readonly;
+	# Add transaction support if needed
+	if ( $transaction ) {
+		$code .= <<"END_PERL";
 sub begin {
 	\$DBH or
 	\$DBH = \$_[0]->connect;
 	\$DBH->begin_work;
-}
-
-sub commit {
-	\$DBH or return 1;
-	\$DBH->commit;
-	\$DBH->disconnect;
-	undef \$DBH;
-	return 1;
-}
-
-sub commit_begin {
-	if ( \$DBH ) {
-		\$DBH->commit;
-		\$DBH->begin_work;
-	} else {
-		\$_[0]->begin;
-	}
-	return 1;
 }
 
 sub rollback {
@@ -240,6 +227,30 @@ sub rollback_begin {
 }
 
 END_PERL
+
+		# And add the even more useful ability to commit
+		# if the database isn't readonly.
+		$code .= <<"END_PERL" unless $readonly;
+sub commit {
+	\$DBH or return 1;
+	\$DBH->commit;
+	\$DBH->disconnect;
+	undef \$DBH;
+	return 1;
+}
+
+sub commit_begin {
+	if ( \$DBH ) {
+		\$DBH->commit;
+		\$DBH->begin_work;
+	} else {
+		\$_[0]->begin;
+	}
+	return 1;
+}
+
+END_PERL
+	}
 
 	# Optionally generate the table classes
 	if ( $params{tables} ) {

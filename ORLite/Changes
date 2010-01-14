@@ -1,5 +1,11 @@
 Changes for Perl extension ORLite
 
+1.32 Fri 15 Jan 2010
+	- Added separate control of transaction support via the transaction
+	  param instead of making it entirely dependent on readonly.
+	- This allows transactions on readonly database, and disabling
+	  transaction support on readwrite databases (for completeness)
+
 1.31 Sat  2 Jan 2010
 	- Adding explicit versioned-use lines to the generated code (in case
 	  the generated code is used independantly to its creation)
