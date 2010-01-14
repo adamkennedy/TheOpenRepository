@@ -75,7 +75,7 @@ The L<ORLite> Object-Relational Model provides a convenient way to create
 client APIs on top of these databases. However, its numberical analysis
 ability is limited to that provided by native SQLite.
 
-The Perl Database Language (L<PDL>) is a high-performance library for
+The Perl Data Language (L<PDL>) is a high-performance library for
 numerical analysis in Perl.
 
 B<ORLite::PDL> provides convenient integration between L<ORLite> and L<PDL>.
