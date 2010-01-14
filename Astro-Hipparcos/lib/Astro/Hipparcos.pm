@@ -6,7 +6,7 @@ use warnings;
 use Carp 'croak';
 use File::Spec;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use constant LINE_LENGTH => 451; # I wish they were using a modern file format.
 
@@ -130,7 +130,7 @@ Steffen Mueller, E<lt>smueller@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by Steffen Mueller
+Copyright (C) 2009-2010 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.0 or,

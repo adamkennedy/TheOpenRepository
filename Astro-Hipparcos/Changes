@@ -1,5 +1,8 @@
 Revision history for Perl extension Astro::Hipparcos.
 
+0.09  Thu Jan 14 22:30 2010
+  - Require ExtUtils::XSpp 0.06 for more portability
+    via INCLUDE_COMMAND.
   - Updated, improved draw_projection.pl example.
 
 0.08  Sat Jan  2 22:30 2010
