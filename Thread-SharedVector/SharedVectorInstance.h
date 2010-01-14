@@ -1,6 +1,8 @@
 #ifndef _svec_SharedVectorInstance_h_
 #define _svec_SharedVectorInstance_h_
 
+#include "SharedVectorDebug.h"
+
 #ifdef __cplusplus
 extern "C" {
 #define PERL_NO_GET_CONTEXT
@@ -9,8 +11,6 @@ extern "C" {
 }
 #endif
 
-#include <string>
-
 namespace svec {
   class SharedVector;
 
@@ -18,8 +18,9 @@ namespace svec {
     public:
       SharedVectorInstance(char* type);
       ~SharedVectorInstance();
+      SharedVectorInstance(const SharedVectorInstance& that);
 
-      unsigned int GetId();
+      unsigned int GetId(pTHX) const;
       unsigned int GetSize(pTHX);
       unsigned int Push(pTHX_ SV* data);
       SV* Get(pTHX_ IV index);

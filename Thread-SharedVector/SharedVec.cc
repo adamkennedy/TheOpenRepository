@@ -31,12 +31,12 @@ namespace svec {
       croak("Invalid shared container type '%u'", type);
     };
 
+    fRefCount = 1;
+
     fgRegistryLock.AcquireGlobal();
       fId = GetNewId();
       fgSharedVectorRegistry[fId] = this;
     fgRegistryLock.ReleaseGlobal();
-
-    fRefCount = 1;
   }
 
   SharedVector::~SharedVector() {
@@ -54,16 +54,22 @@ namespace svec {
       break;
     }; // end of container type switch
     fgRegistryLock.AcquireGlobal();
-      fgSharedVectorRegistry.erase(GetId());
+      fgSharedVectorRegistry.erase(GetId(aTHX));
     fgRegistryLock.ReleaseGlobal();
     fLock.Release(aTHX);
   }
 
   unsigned int
-  SharedVector::DecrementRefCount() {
+  SharedVector::DecrementRefCount(pTHX) {
+    fLock.Acquire(aTHX);
+#ifdef SHAREDVECDEBUG
+    cout << "decrementing refcount. New refcount: " << fRefCount-1 << endl;
+#endif
     if (fRefCount != 0)
       fRefCount--;
-    return fRefCount;
+    const unsigned int retval = fRefCount;
+    fLock.Release(aTHX);
+    return retval;
   }
 
   /// Must be running during registry lock!
@@ -81,14 +87,19 @@ namespace svec {
     istringstream input(idStr);
     unsigned int id;
     input >> id;
-    if (fgSharedVectorRegistry.find(id) == fgSharedVectorRegistry.end()) {
-      croak("Cannot find shared vector of id '%s'", idStr.c_str());
-    }
-    SharedVector* vec = fgSharedVectorRegistry.find(id)->second;
-    vec->IncrementRefCount();
-    return vec;
+    return S_GetNewInstance(id);
   }
 
+  SharedVector*
+  SharedVector::S_GetNewInstance(const unsigned int id) {
+    dTHX;
+    if (fgSharedVectorRegistry.find(id) == fgSharedVectorRegistry.end()) {
+      croak("Cannot find shared vector of id '%u'", id);
+    }
+    SharedVector* vec = fgSharedVectorRegistry.find(id)->second;
+    vec->IncrementRefCount(aTHX);
+    return vec;
+  }
 
   unsigned int
   SharedVector::GetSize(pTHX) {
@@ -118,8 +129,14 @@ namespace svec {
       croak("Pushing arrays not implemented");
     }
     else {
+#ifdef SHAREDVECDEBUG
+      cout << "Push: got data" << endl;
+#endif
       unsigned int size;
       fLock.Acquire(aTHX);
+#ifdef SHAREDVECDEBUG
+      cout << "Push: got lock" << endl;
+#endif
       switch (fType) {
       case TDoubleVec:
         ((vector<double>*)fContainer)->push_back(SvNV(data));
@@ -134,7 +151,13 @@ namespace svec {
         croak("Invalid shared container type during Push");
         break;
       }; // end of container type switch
+#ifdef SHAREDVECDEBUG
+      cout << "Push: pushed" << endl;
+#endif
       fLock.Release(aTHX);
+#ifdef SHAREDVECDEBUG
+      cout << "Push: released lock" << endl;
+#endif
       return size;
     }
   }
@@ -205,6 +228,31 @@ namespace svec {
       fLock.Release(aTHX);
       return;
     }
+  }
+
+  unsigned int
+  SharedVector::IncrementRefCount(pTHX) {
+    fLock.Acquire(aTHX);
+    cout << "incrementing refcount. New refcount: " << fRefCount+1 << endl;
+    unsigned int retval = ++fRefCount;
+    fLock.Release(aTHX);
+    return retval;
+  }
+
+  unsigned int
+  SharedVector::GetRefCount(pTHX) {
+    fLock.Acquire(aTHX);
+    unsigned int retval = fRefCount;
+    fLock.Release(aTHX);
+    return retval;
+  }
+
+  unsigned int
+  SharedVector::GetId(pTHX) {
+    fLock.Acquire(aTHX);
+    const unsigned int retval = fId;
+    fLock.Release(aTHX);
+    return retval;
   }
 } // end namespace svec
 

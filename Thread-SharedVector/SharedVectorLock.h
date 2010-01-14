@@ -1,6 +1,8 @@
 #ifndef _svec_SharedVectorLock_h_
 #define _svec_SharedVectorLock_h_
 
+#include "SharedVectorDebug.h"
+
 #ifdef __cplusplus
 extern "C" {
 #define PERL_NO_GET_CONTEXT

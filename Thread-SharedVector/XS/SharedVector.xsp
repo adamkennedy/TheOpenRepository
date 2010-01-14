@@ -5,13 +5,18 @@
 {
   SharedVectorInstance(char* type);
   ~SharedVectorInstance();
-  unsigned int GetId();
-
 };
 
 // FIXME: This is TEDIOUS!
 
 %{
+unsigned int
+SharedVectorInstance::GetId()
+  CODE:
+    RETVAL = THIS->GetId(aTHX);
+  OUTPUT:
+    RETVAL
+
 unsigned int
 SharedVectorInstance::GetSize()
   CODE:

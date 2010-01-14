@@ -13,10 +13,19 @@ extern "C" {
 #include "SharedVectorTypes.h"
 #include "SharedVec.h"
 
+#include <string>
+
+#ifdef SHAREDVECDEBUG
+#include <iostream>
+#endif
+
 using namespace std;
 
 namespace svec {
   SharedVectorInstance::SharedVectorInstance(char* type) {
+#ifdef SHAREDVECDEBUG
+    cout << "Creating new SharedVectorInstance of type '" << type << "'" << endl;
+#endif
     std::string stype = std::string(type);
     if (stype == string("double"))
       fVector = new SharedVector(TDoubleVec);
@@ -27,15 +36,28 @@ namespace svec {
   }
 
   SharedVectorInstance::~SharedVectorInstance() {
-    if (fVector->GetRefCount() == 1)
+    dTHX;
+#ifdef SHAREDVECDEBUG
+    cout << "Destructing SharedVectorInstance with id '" << GetId(aTHX) << "'";
+#endif
+    const unsigned int refCount = fVector->GetRefCount(aTHX);
+    if (refCount == 1) {
+#ifdef SHAREDVECDEBUG
+      cout << " (Refcount == 1, deleting shared data)" << endl;
+#endif
       delete fVector;
-    else
-      fVector->DecrementRefCount();
+    }
+    else {
+#ifdef SHAREDVECDEBUG
+      cout << " (Refcount == "<< refCount << ", decrementing it)" << endl;
+#endif
+      fVector->DecrementRefCount(aTHX);
+    }
   }
 
   unsigned int
-  SharedVectorInstance::GetId() {
-    return fVector->GetId();
+  SharedVectorInstance::GetId(pTHX) const {
+    return fVector->GetId(aTHX);
   }
 
   unsigned int
@@ -56,6 +78,15 @@ namespace svec {
   void
   SharedVectorInstance::Set(pTHX_ IV index, SV* value) {
     return fVector->Set(aTHX_ index, value);
+  }
+
+  SharedVectorInstance::SharedVectorInstance(const SharedVectorInstance& that) {
+    dTHX;
+#ifdef SHAREDVECDEBUG
+    cout << "SharedVectorInstance copy constructor" << endl;
+#endif
+    const unsigned int id = that.GetId(aTHX);
+    fVector = SharedVector::S_GetNewInstance(id);
   }
 } // end namespace svec
 

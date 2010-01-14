@@ -9,7 +9,7 @@ WriteMakefile(
     NAME              => 'Thread::SharedVector',
     VERSION_FROM      => 'lib/Thread/SharedVector.pm', # finds $VERSION
     PREREQ_PM         => {
-      'ExtUtils::XSpp' => '0.04',
+      'ExtUtils::XSpp' => '0.06',
     },
     MIN_PERL_VERSION  => 5.006002, 
     LICENSE           => 'perl',

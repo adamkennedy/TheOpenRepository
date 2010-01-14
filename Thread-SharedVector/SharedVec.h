@@ -1,6 +1,8 @@
 #ifndef _svec_SharedVector_h_
 #define _svec_SharedVector_h_
 
+#include "SharedVectorDebug.h"
+
 #ifdef __cplusplus
 extern "C" {
 #include "EXTERN.h"
@@ -22,11 +24,12 @@ namespace svec {
       ~SharedVector();
 
       static SharedVector* S_GetNewInstance(const std::string& idStr);
+      static SharedVector* S_GetNewInstance(const unsigned int id);
 
-      unsigned int DecrementRefCount();
-      unsigned int IncrementRefCount() { return ++fRefCount; } // do not call this outside S_GetNewInstance and the constructor
-      unsigned int GetRefCount() { return fRefCount; }
-      unsigned int GetId() { return fId; }
+      unsigned int DecrementRefCount(pTHX);
+      unsigned int IncrementRefCount(pTHX); // do not call this outside S_GetNewInstance and the constructor
+      unsigned int GetRefCount(pTHX);
+      unsigned int GetId(pTHX);
 
       unsigned int GetSize(pTHX);
       unsigned int Push(pTHX_ SV* data);

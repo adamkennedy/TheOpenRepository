@@ -10,6 +10,8 @@ extern "C" {
 }
 #endif
 
+#include "SharedVectorDebug.h"
+
 #include "SharedVectorInstance.h"
 
 /* is this okay? */
@@ -17,6 +19,6 @@ using namespace svec;
 
 MODULE = Thread::SharedVector		PACKAGE = Thread::SharedVector
 
-INCLUDE: xspp --typemap=typemap.xsp XS/SharedVector.xsp |
+INCLUDE_COMMAND: $^X -MExtUtils::XSpp::Cmd -e xspp -- -t typemap.xsp XS/SharedVector.xsp
 
 
