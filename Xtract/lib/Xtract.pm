@@ -37,7 +37,7 @@ use Xtract::Scan                ();
 use Xtract::Scan::SQLite        ();
 use Xtract::Scan::mysql         ();
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 use Moose 0.73;
 use MooseX::Types::Common::Numeric 0.001 'PositiveInt';
@@ -681,7 +681,7 @@ L<DBI>
 
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy.
+Copyright 2009 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

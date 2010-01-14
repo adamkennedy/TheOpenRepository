@@ -18,7 +18,7 @@ if ( $^O eq 'MSWin32' ) {
 	$LZMA = 'unix';
 }
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 
 
