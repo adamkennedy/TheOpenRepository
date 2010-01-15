@@ -268,6 +268,14 @@ runs automatically when your script ends.
 
 None that I know of.
 
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-NoWarnings>
+
+For other issues, contact the author.
+
 =head1 HISTORY
 
 This was previously known as L<Test::Warn::None>
@@ -276,9 +284,11 @@ This was previously known as L<Test::Warn::None>
 
 L<Test::Builder>, L<Test::Warn>
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Fergal Daly E<lt>fergal@esatclear.ieE<gt>
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
