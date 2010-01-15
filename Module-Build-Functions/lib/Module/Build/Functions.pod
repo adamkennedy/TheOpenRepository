@@ -7,7 +7,7 @@
 
 =begin readme text
 
-Module-Build-Functions version 0.001_010
+Module-Build-Functions version 0.02
 
 =end readme
 

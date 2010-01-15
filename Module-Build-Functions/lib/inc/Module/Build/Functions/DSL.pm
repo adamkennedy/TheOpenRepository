@@ -31,6 +31,10 @@ package inc::Module::Build::Functions::DSL;
 require inc::Module::Build::Functions;
 require Module::Build::Functions::DSL;
 
+BEGIN {
+    $VERSION = '0.02';
+}
+
 1;
 
 # </ShamelessPlagiat>
