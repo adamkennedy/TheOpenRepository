@@ -1,6 +1,11 @@
 Revision history for Module-Build-Functions
 
 
+0.02    Fri Jan 15 2010
+
+    - added missed inc::Module::Build::Functions
+    
+
 0.01    Sun Jan 10 2010
     First prod release
     - Implemented self-bundling functionality 
