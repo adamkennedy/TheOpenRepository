@@ -9,7 +9,7 @@ WriteMakefile1(
 	ABSTRACT         => "Make sure you didn't emit any warnings while testing",
 	VERSION_FROM     => 'lib/Test/NoWarnings.pm',
 	AUTHOR           => 'Fergal Daly <fergal@esatclear.ie>',
-	LICENSE          => 'perl',
+        LICENSE          => 'lgpl',
 	MIN_PERL_VERSION => '5.006',
 	BUILD_REQUIRES   => {
 		'Test::More'    => '0.47',

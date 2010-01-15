@@ -1,14 +1,16 @@
 package Test::NoWarnings::Warning;
 
+use 5.006;
 use strict;
-use Carp;
+use warnings;
+use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.00';
+	$VERSION = '1.01';
 }
 
-my $has_st = eval "require Devel::StackTrace" || 0;
+my $STACKTRACE = eval "require Devel::StackTrace" || 0;
 
 sub new {
 	my $class = shift;
@@ -24,7 +26,7 @@ sub fillTrace {
 	my $self = shift;
 	$self->{Trace} = Devel::StackTrace->new(
 		ignore_class => [__PACKAGE__, @_],
-	) if $has_st;
+	) if $STACKTRACE;
 }
 
 sub getCarp {

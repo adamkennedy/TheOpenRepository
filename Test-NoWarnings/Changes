@@ -1,6 +1,11 @@
 Changes for Perl extension Test-NoWarnings
 
-1.00 11 Jan 2010
+1.01 15 Jan 2010 - Adam Kennedy
+	- My release automation accidentally decided that Test::NoWarnings
+	  was a Perl licensed distribution. Added in the appropriate changes
+	  to make sure it is correctly built with the LGPL license.
+
+1.00 11 Jan 2010 - Adam Kennedy
 	- Cleaned and updated the packaging of the module, the dependencies
 	  and the Makefile.PL contents, but otherwise remains unchanged (ADAMK)
 	- Now makes explicit the Perl 5.006 dependency that was previously

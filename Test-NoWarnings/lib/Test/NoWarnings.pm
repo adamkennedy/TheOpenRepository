@@ -6,24 +6,25 @@ use warnings;
 use Carp;
 use Exporter ();
 use Test::Builder;
-use Test::NoWarnings::Warning;
+use Test::NoWarnings::Warning ();
 
 use vars qw( $VERSION @EXPORT_OK @ISA $do_end_test );
 BEGIN {
-	$VERSION   = '1.00';
+	$VERSION   = '1.01';
 	@ISA       = 'Exporter';
 	@EXPORT_OK = qw(
 		clear_warnings had_no_warnings warnings
 	);
+
+	# Do we add the warning test at the end?
+	$do_end_test = 0;
 }
 
-my $Test = Test::Builder->new;
-my $PID = $$;
-my @warnings;
+my $TEST     = Test::Builder->new;
+my $PID      = $$;
+my @WARNINGS = ();
 
-$SIG{__WARN__} = make_catcher(\@warnings);
-
-$do_end_test = 0;
+$SIG{__WARN__} = make_catcher(\@WARNINGS);
 
 sub import {
 	$do_end_test = 1;
@@ -44,7 +45,7 @@ sub make_warning {
 	my $warning = Test::NoWarnings::Warning->new;
 
 	$warning->setMessage($msg);
-	$warning->fillTest($Test);
+	$warning->fillTest($TEST);
 	$warning->fillTrace(__PACKAGE__);
 
 	$Carp::Internal{__PACKAGE__.""}++;
@@ -80,35 +81,35 @@ sub had_no_warnings {
 
 	my $ok;
 	my $diag;
-	if ( @warnings == 0 ) {
+	if ( @WARNINGS == 0 ) {
 		$ok = 1;
 	} else {
 		$ok = 0;
-		$diag = "There were ".@warnings." warning(s)\n";
-		$diag .= join "----------\n", map { $_->toString } @warnings;
+		$diag = "There were ".@WARNINGS." warning(s)\n";
+		$diag .= join "----------\n", map { $_->toString } @WARNINGS;
 	}
 
-	$Test->ok($ok, $name) || $Test->diag($diag);
+	$TEST->ok($ok, $name) || $TEST->diag($diag);
 
 	return $ok;
 }
 
 sub clear_warnings {
 	local $SIG{__WARN__};
-	@warnings = ();
+	@WARNINGS = ();
 }
 
 sub warnings {
 	local $SIG{__WARN__};
-	return @warnings;
+	return @WARNINGS;
 }
 
 sub builder {
 	local $SIG{__WARN__};
 	if ( @_ ) {
-		$Test = shift;
+		$TEST = shift;
 	}
-	return $Test;
+	return $TEST;
 }
 
 1;
