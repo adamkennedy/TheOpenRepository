@@ -9,18 +9,18 @@ WriteMakefile1(
 	ABSTRACT         => "Make sure you didn't emit any warnings while testing",
 	VERSION_FROM     => 'lib/Test/NoWarnings.pm',
 	AUTHOR           => 'Fergal Daly <fergal@esatclear.ie>',
-        LICENSE          => 'lgpl',
+	LICENSE          => 'lgpl',
 	MIN_PERL_VERSION => '5.006',
 	BUILD_REQUIRES   => {
-		'Test::More'    => '0.47',
-		'Test::Builder' => '0.86',
+		'Test::More'     => '0.47',
+		'Test::Builder'  => '0.86',
 	},
 	PREREQ_PM        => {
-		'Test::Tester' => '0.107',
+		'Test::Tester'   => '0.107',
 	},
-	META_MERGE => {
-		resources => {
-			repository => 'http://svn.ali.as/cpan/trunk/Config-Tiny',
+	META_MERGE       => {
+		resources        => {
+			repository       => 'http://svn.ali.as/cpan/trunk/Test-NoWarnings',
 		},
 	},
 );
