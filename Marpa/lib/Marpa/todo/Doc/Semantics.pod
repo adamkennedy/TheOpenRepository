@@ -12,39 +12,9 @@ shared by Marpa's
 Single Parse Evaluator and
 Multi-parse Evaluator.
 
-=head2 Times
-
-=head3 Evaluator Setup
-
-Before any processing of the actual parse.
-Null values are computed at this point.
-No context and
-Context-aware static methods available at this point.
-
-=head3 Bocage Setup
-
-Bocage has been set up.
-Multi-parse evaluator calls ranking actions at this point.
-Context-aware static methods available at this point.
-
-=head3 Parse Setup
-
-=head3 Parse Tree Traversal
-
-Parse tree traversal is when Marpa traverses the parse tree,
-evaluating each of its nodes.
-
-=head3 Node Evaluation
-
-Node evaluation time occurs for each parse tree node
-during parse tree traversal.
-Rule actions are called at this point.
-Node evaluation time is parse tree traversal,
-from the point of view of an individual node of the parse tree.
-
-=head2 Summary of Marpa's Semantics
-
-Marpa's semantics are traditional.
+To those who have used traditional
+methods to evaluate parse tress,
+Marpa's semantics will sound familiar.
 A parse is seen as a tree.
 Nodes on the tree are evaluated recursively, bottom-up.
 Once the values of all its child nodes are known,
@@ -87,18 +57,11 @@ left hand side symbol
 for the rule associated with the topmost node
 of the nulled subtree.
 
-The null value of a symbol is computed at evaluation setup
-time from the null action for that symbol.
-A null action can be specified on a per-symbol basis.
-If a null action is specified, it is resolved to a Perl
-closure.
-At evaluation setup time,
-the null action Perl closure is called to calculate
-the symbol's B<null value>.
-If a symbol does have a per-symbol null action,
-it the default null action is used to calculate
-that symbol's B<null value>.
-If there is no default null action,
+A null value can be specified on a per-symbol basis.
+If a symbol does have a per-symbol null value,
+the symbol's null value is the
+default null value for the grammar.
+If the grammar has no default null value,
 the symbol's null value defaults to a Perl C<undef>.
 
 If no closure was specified to implement the semantics for an
@@ -108,56 +71,46 @@ a Perl C<undef>.
 The value of a parse is the value of the top node 
 of the parse tree.
 
-=head2 Resolving Actions into Closures
+=head1 TIMES
 
-=head3 The Bang Convention
+=head2 Evaluator Setup
 
-=head2 Null Values
+Before any processing of the actual parse.
+Null values are computed at this point.
+No context and
+Context-aware static methods available at this point.
+
+=head2 Bocage Setup
+
+Bocage has been set up.
+Multi-parse evaluator calls ranking actions at this point.
+Context-aware static methods available at this point.
+
+=head2 Parse Setup
+
+=head2 Parse Tree Traversal
+
+Parse tree traversal is when Marpa traverses the parse tree,
+evaluating each of its nodes.
+
+=head2 Node Evaluation
+
+Node evaluation time occurs for each parse tree node
+during parse tree traversal.
+Rule actions are called at this point.
+Node evaluation time is parse tree traversal,
+from the point of view of an individual node of the parse tree.
+
+=head1 RESOLVING ACTIONS
+
+=head2 The Bang Convention
+
+=head1 NULL SUBTREES
 
 A "null value" is the value used for a symbol when it is nulled in a parse.
 By default, the null value is a Perl undefined.
-The default null action can be reset with the 
-L<C<default_null_action> named argument|Marpa::Grammar/default_null_action>.
-
-Each symbol can have its own null symbol value.
-The null value for any symbol is calculated using that symbol's null action.
-The B<null action> for a symbol is the action
-specified for the empty rule with that symbol on its left hand side.
-
-Even though it is expressed as a rule property,
-the null symbol action is B<not> a rule action.
-It's a property of the symbol, and applies whenever the symbol is nulled,
-even when the symbol's empty rule is not involved.
-
-For example,
-the following rule descriptor specified
-that, whenever the symbol C<A> is nulled,
-its value should be a string that reports it missing.
-
-    { lhs=>'A', action => sub {return 'A is missing'}, }
-
-Null symbol actions are evaluated differently from rule actions.
-Null symbol actions are run at evaluator creation time and the value of the result
-at that point
-becomes fixed as the null symbol value.
-This is not the case with rule actions.
-During the creation of the evaluator object,
-rule actions are B<compiled into closures>.
-During parse evaluation,
-whenever a node for that rule needs its value recalculated,
-the compiled rule closure is run.
-A compiled rule closure
-can produce a different value every time it runs.
-
-Null actions are treated differently
-because they always have no child values,
-so that a fixed value is almost always what is wanted.
-If you want to calculate a symbol's null value at node evaluation time,
-the null symbol action can return a reference to a closure.
-Any rules with that nullable symbol in their right hand side
-can then be set up to run that closure.
-
-=head3 Evaluating Null Subtrees
+The default null value can be reset with the 
+L<C<default_null_value> named argument|Marpa::Grammar/default_null_value>.
 
 A null subtree may contain of many nodes, but all of them
 must always be nulled.
@@ -166,7 +119,7 @@ left hand symbol for its topmost node.>
 This section describes in detail how a parse is evaluated,
 focusing on what happens when nulled symbols are involved.
 
-=head3 Example
+=head2 Example
 
 Suppose a grammar has these rules
 
@@ -181,13 +134,6 @@ perltidy: '-dcsc -sil=0'
         return $_[0] if $v_count == 1;
         return '(' . ( join q{;}, ( map { $_ // 'undef' } @_ ) ) . ')';
     } ## end sub default_action
-
-    sub null_A { return 'null A' }
-    sub null_B { return 'null B' }
-    sub null_R { return 'null R' }
-    sub null_L { return 'null L' }
-    sub null_X { return 'null X' }
-    sub null_Y { return 'null Y' }
 
     my $grammar = Marpa::Grammar->new(
         {   start   => 'S',
@@ -205,12 +151,12 @@ perltidy: '-dcsc -sil=0'
             ],
             default_action => 'default_action',
             symbols        => {
-                L => { null_action => 'null_L' },
-                R => { null_action => 'null_R' },
-                A => { null_action => 'null_A' },
-                B => { null_action => 'null_B' },
-                X => { null_action => 'null_X', terminal => 1 },
-                Y => { null_action => 'null_Y', terminal => 1 },
+                L => { null_value => 'null L' },
+                R => { null_value => 'null R' },
+                A => { null_value => 'null A' },
+                B => { null_value => 'null B' },
+                X => { null_value => 'null X', terminal => 1 },
+                Y => { null_value => 'null Y', terminal => 1 },
             },
         }
     );
@@ -224,7 +170,7 @@ with the token name "C<X>".
 
     Show output of above.
 
-=head1 Sequences 
+=head1 SEQUENCES
 
 The arguments to closures for sequence rules behave similarly
 to the arguments for ordinary, non-sequence, rules.
@@ -258,32 +204,46 @@ the Perl closure implementing the semantics to figure out
 which of its arguments 
 are separators and which are sequence items.
 
-=head2 Actions for Zero Length Sequences
+=head2 Zero-length Sequences
 
 One "corner case" should be noted in the semantics of sequences.
-Actions for nulled symbols and actions for non-null rules are
-dealt with differently.
-Actions for nulled symbols are only once,
-at the beginning of evaluation, even when there are
-multiple parses, and they do not get any arguments.
-The per-parse variable does not yet exist when
-the actions for nulled symbols are run.
+In Marpa, in most cases,
+a rule is always zero length or it is never zero length.
+Coordinating null value semantics with the semantics for
+rules is usually not an issue.
 
-Actions for non-null rules are run again each time 
-a new node for that rule needs a value computed.
-They always have a per-parse variable, as well
-as arguments for the value of each of their child nodes.
+Sequence rules with a
+C<min> rule property of 0 are an exception.
+They can be any length, including zero length.
+And when they are zero length, they use the standard semantics for zero length,
+or nulled, rules.
 
-An action which is specified for a sequence with a C<min>
-property of zero must be prepared to be run either as
-the action for a nulled symbol, or as the action for
-a non-null rule.
-Alternatively, a null action can be set up for the symbol
-on the left hand side of the sequence.
-In the zero-length case,
-the lhs symbol's null action will be used.
-In non-zero length cases
-the action for the sequence rule will be used.
+When a rule is not zero length,
+its value is the value returned by the semantic action for its rule,
+or C<undef> if no semantic action is defined.
+When a rule is zero length,
+its value will be the null value of the left hand
+side symbol of the rule.
+
+It's up to the
+application to make sure that null value of the left hand side
+of the sequence rules "makes sense"
+as the value of a zero length sequence.
+Where the correct semantics do not fall out of a "natural" approach
+to the grammar,
+a special symbol may need to be
+dedicated to serving as the left hand side
+symbol for the sequence, so that it can carry the
+correct semantics.
+
+The rules for nodes in nulled subtrees apply with equal force
+to nodes for sequence rules.
+In a nulled subtree, the only node whose semantics matters
+is the root node of that subtree.
+If a zero-length sequence is in a nulled subtree,
+and that zero-length sequence
+is not the root node of that subtree,
+its semantics will be completely ignored.
 
 =head1 LICENSE AND COPYRIGHT
 

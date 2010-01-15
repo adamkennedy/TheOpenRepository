@@ -1,80 +1,146 @@
 =head1 NAME
 
-Marpa::Recognizer - Marpa Recognizers
+Marpa::API::Recognizer - Marpa Recognizer Objects
 
 =head1 DESCRIPTION
 
-L<Marpa::Recognizer> is the package which creates a recognizer from a
-precomputed Marpa Grammar and recognizes tokens with it.
-Technically, recognition is finding the parse,
-and evaluation is determining its value, but
-L<Marpa::Recognizer> has a built-in "speed evaluator"
+The L<C<Marpa::Recognizer::new> constructor|/new>
+creates a recognizer object from a
+precomputed Marpa grammar object.
+The L<C<Marpa::Recognizer::tokens>|/tokens>
+method recognizes tokens.
+
+Pedantically, recognition and evaluation are distinct things.
+Recognition is determining whether there is a parse.
+Evaluation is determining the value of a parse.
+But recognition in its pedantic sense is of little
+practical interest.
+L<Marpa::Recognizer> incorporates many evaluation functions.
+
+In particular,
+L<Marpa::Recognizer> has a built-in "Single Parse Evaluator",
 which works on unambiguous grammars.
-The speed evaluator also works for
+The Single Parse Evaluator also works for
 ambiguous parses if the grammar is not
 infinitely ambiguous.
-For ambiguous parses, 
-L<Marpa::Recognizer>'s
-returns one parse, picked at random.
-This is fine when there is only one parse,
-or when the application only requires one parse,
+The Single Parse Evaluator only return one parse.
+For ambiguous grammars,
+The Single Parse Evaluator returns one of the parses,
+selected arbitrarily.
+The Single Parse Evaluator 
+is a good choice when there is only one parse,
+or for an application that only needs one parse,
 and is not fussy about which one.
 
-=head1 CONSTRUCTOR METHOD
+=head2 Location
+
+In traditional parsing, location is position in a token stream.
+This is often the case in Marpa, but Marpa allows
+other input models.
+This document will assume
+that Marpa is using the traditional, token-stream,
+model of the input,
+unless it states otherwise.
+
+The B<current parse location>, or B<current earleme>
+is the location at which the next input is expected.
+Intuitively, the current earleme can be thought of as
+the recognizer's current position.
+Marpa will have completed its tables (or Earley sets)
+out to the current earleme,
+so the current earleme is often referred to as the 
+B<last completed earleme>.
+
+At times, this document will also refer to the
+B<furthest earleme>.
+The B<furthest earleme>.
+is only significant when input models other than
+the token-stream model are used.
+
+The reason for the term I<earleme>,
+and Marpa's ability to support other input models,
+are discussed
+L<in their own section|//"EARLEMES">.
+
+=head1 CONSTRUCTOR
 
 =head2 new
 
-The C<new> method's one, required, argument is a hash reference of named
+The C<new> method's arguments are references to hashes of named
 arguments.
+In the key/value pairs of these hashes, the key is the argument name,
+and the hash value is the value of the argument.
 The C<new> method either returns a new parse object or throws an exception.
-The C<grammar> named argument must be specified.
-If the C<grammar> named argument is specified, 
-its value must be a grammar object with rules defined.
 
-=head1 MUTATOR METHODS
+The C<grammar> named argument must be specified and its value must be
+a precomputed Marpa grammar object.
+Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
+
+=head1 MUTATORS
 
 =head2 end_input
 
-Used to indicate the end of input.
-Tells the recognizer that
-no new tokens will be added,
-or, in other words,
-that no tokens will start at
-or after the current earleme.
+Indicate that input is finished.
 The C<end_input> method takes no arguments.
+Calling C<end_input> is not necessary in the recognizer's
+C<default> mode.
 
-The C<end_input> method
-does not change the location of the furthest earleme.
 After a successful call to 
 the C<end_input> method,
-the current earleme will be positioned at the furthest earleme.
-Since positioning the current earleme at the furthest
-earleme leaves the recognizer exhausted,
-any further calls to C<text> will return 0,
-and any further calls to C<earleme> will throw an
-exception.
+the current earleme will be the same as the furthest earleme.
+Any further calls to C<tokens> will cause an
+exception to be thrown.
 
 The C<end_input> method returns a Perl true value on success.
 On failure, it throws an exception.
 The C<end_input> method can only usefully be called once
 per recognizer, but the method is idempotent.
 Subsequent calls to the C<end_input> method
-will have no effect and will return a Perl true.
+have no effect and return a Perl true.
 
 =head2 set
 
+The C<set> method's arguments are references to hashes of named
+arguments.
+It can be used to set or change named arguments after the recognizer
+has been created.
+Details of the named arguments are L<below|/"NAMED ARGUMENTS">.
+
 =head2 strip
+
+The C<strip> method removes recognizer data that is
+not needed once input is finished.
+This greatly reduces the amount of memory the recognizer uses.
+An attempt to strip a recognizer before input is finished
+will cause an exception.
 
 =head2 tokens
 
-The C<earleme> method takes zero or more arguments.
-Each argument represents a token which starts at the B<current earleme>.
-Because ambiguous lexing is allowed.
-more than one token may start at each earleme,
-in which case, there will be one argument per token.
-Because tokens can span earlemes,
-no tokens may start at an earleme
-in which case the call to C<earleme> will have zero arguments.
+The C<tokens> method takes two arguments.
+The first is a reference to an array of token descriptors.
+The second, optional, argument is a B<reference> to an index into that array,
+used when the call is B<interactive>.
+
+Tokens descriptors are references to arrays.
+The elements of the token descriptor array are, in order,
+the token name, the token value, the token length
+and the token offset.
+The token name must be the name of a symbol which is valid as a terminal
+in the grammar.
+Only the token name is required --
+the other elements may omitted.
+
+The token value can be any Perl scalar.
+If omitted, the token value is a Perl C<undef>.
+
+The token length and the token offset arguments are
+not used in the traditional, token-stream, model of the input.
+Their use is described in L<the discussion of alternative input
+models, below|/"EARLEMES">.
+
+If the second, array index, argument is given,
+the call to C<tokens> is B<interactive>.
+Interactive calls to the C<tokens> are only allowed in C<stream> mode.
 
 After adding the tokens to the recognizer,
 the C<earleme> method determines whether the recognizer is active or exhausted.
@@ -110,20 +176,17 @@ C<earleme> is called
 with zero arguments when the current earleme reaches 
 the furthest earleme.
 
-C<earleme> is the low-level token input method.
-Unlike C<text>, the C<earleme> method assumes no particular model of the input.
-It is up to the user to define the relationship between
-tokens and earlemes.
+=head2 value
 
-=head1 ACCESSOR METHODS
+The value mutator implements
+L<the Single Parse Evaluator|/"SINGLE PARSE EVALUATOR">.
+It is described in L<its own section|/"SINGLE PARSE EVALUATOR">.
+
+=head1 ACCESSOR
 
 =head2 check_terminal
 
-=head2 furthest
-
-=head2 status
-
-=head2 find_parse
+=head1 TRACE ACCESSORS
 
 =head2 show_earley_sets
 
@@ -148,9 +211,33 @@ tokens and earlemes.
     Value Inherited from Grammar?
     I don't think so.
 
-=head1 AFTER HERE FROM PREVIOUS DOC
+=head1 SINGLE PARSE EVALUATOR
 
-=head2 Tokens and Earlemes
+=head2 end
+
+=head2 closure
+
+=head2 trace_actions
+
+=head2 trace_values
+
+=head1 INPUT MODELS
+
+The standard model of input is a token stream, and the rest of this
+document assumes the token-stream model.
+Marpa allows other input models.
+Readers not interested in alternatives to the token-stream model
+may skip this section.
+
+    From the earleme description:
+
+    Each argument represents a token which starts at the B<current earleme>.
+    Because ambiguous lexing is allowed.
+    more than one token may start at each earleme,
+    in which case, there will be one argument per token.
+    Because tokens can span earlemes,
+    no tokens may start at an earleme
+    in which case the call to C<earleme> will have zero arguments.
 
 Marpa allows ambiguous tokens.
 Several Marpa tokens can start at a single parsing location.
@@ -192,42 +279,29 @@ If the length of the token is I<L>,
 and the number of the current earleme is I<C>,
 the end of the token will be at the earleme number I<C+L>.
 
-=head3 The One-Character-Per-Earleme Model
+=head2 The One-Character-Per-Earleme Model
 
 Many different models of the relationship between tokens and earlemes
 are possible, but two are particularly important.
 One is the one-token-per-earleme model.
 The other is the one-character-per-earleme model.
-If you do your lexing with the C<text> method,
-you will use a
-one-character-per-earleme model.
-
-Using the C<text> method, Marpa receives the input as the series
-of strings and string reference.
-provided in the one or more calls to the C<text> method.
-The B<raw input> can be thought of the concatenation of these
-strings,
-even though the strings are not physically concatenated.
-When the C<text> method is used,
-character position in this raw input will 
-correspond exactly one-to-one with the earleme position.
 
 Every character will be treated as being exactly one
 earleme in length.
 Any tokens which are more than one several character in length,
 will span earlemes.
 
-It is common, when a one-character-per-earleme model of input is used,
-for there to be many earlemes at which no tokens start.
-For example,
-in a standard implementation
+When a one-character-per-earleme model of input is used,
+there will be many earlemes at which no tokens start.
+In a standard implementation
 of a grammar for a language which allows
 comments,
+for example,
 no tokens will start at
 any earlemes which corresponds to character locations inside
 a comment.
 
-=head3 Other Models
+=head2 Other Models
 
 Marpa is not restricted to the one-character-per-earleme model.
 Most parser generators treat location as position in a token stream.
@@ -264,41 +338,6 @@ With every token, a length in earlemes must be given,
 and this length cannot be zero or negative.
 
 =back
-
-=head2 Exhaustion
-
-At the start of parsing,
-the B<furthest earleme> is earleme 0.
-When a token is recognized, its end earleme is determined by
-adding the token length to the current earleme.
-If the new token's end earleme is after the furthest earleme,
-the furthest earleme is set at the new token's end earleme.
-
-If, after scanning all the tokens at an earleme,
-the current earleme
-has reached the furthest earleme,
-no more successful parses are possible.
-At this point, the recognizer is said to
-be B<exhausted>.
-A recognizer is B<active>
-if and only if it is not exhausted.
-
-Parsing is said to be exhausted,
-when the recognizer is exhausted.
-Parsing is said to be active,
-when the recognizer is active.
-
-Exhausted parsing does not mean failed parsing.
-In particular,
-parsing is often exhausted at the point of a successful parse.
-An exhausted recognizer
-may also contain successful parses
-both prior to the current earleme.
-
-Conversely, active parsing does not mean successful parsing.
-A recognizer remains active as long as some potential input
-I<might> produce a successful parse.
-This does not mean that it ever will.
 
 Marpa parsing can remain active even if
 no token is found at the current earleme.

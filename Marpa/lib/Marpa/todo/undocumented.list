@@ -7,6 +7,13 @@ Marpa::Grammar::show_productive_symbols
 Marpa::Grammar::stringify
 Marpa::Grammar::unproductive_symbols
 Marpa::Grammar::unstringify
+Marpa::Grammar::show_NFA
+
+Marpa::Grammar: The priority Rule Property
+
+Marpa::Recognizer::furthest
+Marpa::Recognizer::status
+Marpa::Recognizer::find_parse
 
 Terminal Property: maximal
 Terminal Property: minimal
