@@ -1,10 +1,20 @@
 Changes for Perl extension ORLite
 
 1.32 Fri 15 Jan 2010
-	- Added separate control of transaction support via the transaction
-	  param instead of making it entirely dependent on readonly.
-	- This allows transactions on readonly database, and disabling
-	  transaction support on readwrite databases (for completeness)
+	- Each generated class now cleans up its own persistant
+	  connection, rather than allowing it to fall through to the
+	  deeper DBI cleanup.
+	- To allow for persistant connections to readonly database,
+	  we now always built transaction support for all databases.
+	  However, for readonly databases we do not build the commit
+	  method and you may only use the rollback method to end them.
+	- Significantly expanded the Pod documentation to provide
+	  documentation on all of the import options.
+	- Add support for a cleanup option to import, which is single
+	  explicit statement to be called on the database when the
+	  process is shutting down. This should typically be used
+	  ensure that a SQLite database is VACUUM'ed regularly (and at
+	  a time when it hopefully won't impact the user much).
 
 1.31 Sat  2 Jan 2010
 	- Adding explicit versioned-use lines to the generated code (in case
