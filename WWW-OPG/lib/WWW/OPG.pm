@@ -18,11 +18,11 @@ WWW::OPG - Perl interface to Ontario Power Generation's site
 
 =head1 VERSION
 
-Version 1.004 ($Id$)
+Version 1.005 ($Id$)
 
 =cut
 
-our $VERSION = '1.004';
+our $VERSION = '1.005';
 $VERSION = eval $VERSION;
 
 =head1 SYNOPSIS
@@ -126,7 +126,7 @@ sub poll {
 
   my ($power, $date) = split(chr(13) . chr(10), $r->content);
 
-  if ($power =~ m{^([0-9]+),?([0-9]+)$})
+  if ($power =~ m{^\s*([0-9]+),?([0-9]+)$})
   {
     $self->{power} = $1 . $2;
 
