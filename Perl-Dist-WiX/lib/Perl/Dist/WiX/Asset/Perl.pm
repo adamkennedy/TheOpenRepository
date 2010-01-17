@@ -80,10 +80,12 @@ sub install {
 	if ( not defined $git ) {
 
 		# Download the file
-		$tgz = $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
+		$tgz =
+		  $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
 	}
 
-	my $unpack_to = catdir( $self->_get_build_dir(), $self->_get_unpack_to() );
+	my $unpack_to =
+	  catdir( $self->_get_build_dir(), $self->_get_unpack_to() );
 	if ( -d $unpack_to ) {
 		$self->_trace_line( 2, "Removing previous $unpack_to\n" );
 		File::Remove::remove( \1, $unpack_to );

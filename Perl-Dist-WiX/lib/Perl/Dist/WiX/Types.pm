@@ -17,8 +17,8 @@ This module exists to provide Moose types that Perl::Dist::WiX and subclasses ca
 =cut
 
 use 5.008001;
-use MooseX::Types
-  -declare => [ qw( Directory ExistingDirectory ExistingFile MaybeExistingDirectory ) ];
+use MooseX::Types -declare =>
+  [qw( Directory ExistingDirectory ExistingFile MaybeExistingDirectory )];
 use MooseX::Types::Moose qw( Str );
 
 our $VERSION = '0.01';
@@ -37,9 +37,9 @@ its drive exists.)
 =cut
 
 subtype Directory,
-	as Str,
-	where { ($_ =~ m{\\}ms) or ($_ =~  m{\w*}) },
-	message { 'Not a valid directory' };
+  as Str,
+  where { ( $_ =~ m{\\}ms ) or ( $_ =~ m{\w*}ms ) },
+  message {'Not a valid directory'};
 
 =head2 ExistingDirectory
 
@@ -53,9 +53,9 @@ subtype Directory,
 =cut
 
 subtype ExistingDirectory,
-	as Directory,
-	where { -d $_ },
-	message { 'Directory does not exist' };
+  as Directory,
+  where { -d $_ },
+  message {'Directory does not exist'};
 
 =head2 ExistingFile
 
@@ -69,9 +69,9 @@ subtype ExistingDirectory,
 =cut
 
 subtype ExistingFile,
-	as Str,
-	where { -f $_ },
-	message { 'File does not exist' };
+  as Str,
+  where { -f $_ },
+  message {'File does not exist'};
 
 1;
 

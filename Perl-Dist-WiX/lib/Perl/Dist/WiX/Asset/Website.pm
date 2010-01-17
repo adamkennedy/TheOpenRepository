@@ -50,6 +50,7 @@ has icon_file_to => (
 			}
 			return $file;
 		} else {
+			## no critic (ProhibitExplicitReturnUndef)
 			return undef;
 		}
 	},

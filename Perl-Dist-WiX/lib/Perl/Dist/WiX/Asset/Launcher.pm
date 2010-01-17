@@ -37,13 +37,15 @@ sub install {
 		PDWiX->throw(qq{The script "$bin" does not exist});
 	}
 
-	my $icons = $self->_get_icons();
+	my $icons     = $self->_get_icons();
 	my $icon_type = ref $icons;
 	$icon_type ||= 'undefined type';
-	if ('Perl::Dist::WiX::IconArray' ne $icon_type) {
-		PDWiX->throw("Icons array is of type $icon_type, not a Perl::Dist::WiX::IconArray");
+	if ( 'Perl::Dist::WiX::IconArray' ne $icon_type ) {
+		PDWiX->throw(
+"Icons array is of type $icon_type, not a Perl::Dist::WiX::IconArray"
+		);
 	}
-	
+
 	my $icon_id =
 	  $self->_get_icons()
 	  ->add_icon( catfile( $self->_get_dist_dir(), "$bin.ico" ),

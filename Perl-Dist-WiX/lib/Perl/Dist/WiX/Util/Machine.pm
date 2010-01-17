@@ -193,9 +193,8 @@ sub BUILDARGS {
 	} elsif ( 0 == @_ % 2 ) {
 		%args = (@_);
 	} else {
-		PDWiX->throw(
-'Parameters incorrect (not a hashref or hash) for Perl::Dist::WiX::Util::Machine'
-		);
+		PDWiX->throw( 'Parameters incorrect (not a hashref or hash)'
+			  . 'for Perl::Dist::WiX::Util::Machine' );
 	}
 
 	if ( _HASH0( $args{common} ) ) {
@@ -328,6 +327,7 @@ distribution that is configured for this machine.
 =cut
 
 sub next { ## no critic (ProhibitBuiltinHomonyms)
+	## no critic (ProhibitExplicitReturnUndef)
 	my $self = shift;
 	if ( $self->_get_eos() ) {
 

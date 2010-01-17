@@ -197,7 +197,7 @@ has '_directories' => (
 has '_distributions' => (
 	traits   => ['Array'],
 	is       => 'bare',
-	isa      => ArrayRef[Str],
+	isa      => ArrayRef [Str],
 	default  => sub { return [] },
 	init_arg => undef,
 	handles  => {
@@ -211,7 +211,7 @@ has '_distributions' => (
 has '_env_path' => (
 	traits   => ['Array'],
 	is       => 'bare',
-	isa      => ArrayRef[ArrayRef[Str]],
+	isa      => ArrayRef [ ArrayRef [Str] ],
 	default  => sub { return [] },
 	init_arg => undef,
 	handles  => {
@@ -224,7 +224,7 @@ has '_env_path' => (
 
 has '_filters' => (
 	is       => 'ro',
-	isa      => ArrayRef[Str],
+	isa      => ArrayRef [Str],
 	lazy     => 1,
 	builder  => '_build_filters',
 	init_arg => undef,
@@ -313,7 +313,7 @@ has '_in_merge_module' => (
 has '_output_file' => (
 	traits   => ['Array'],
 	is       => 'bare',
-	isa      => ArrayRef[Str],
+	isa      => ArrayRef [Str],
 	default  => sub { return [] },
 	init_arg => undef,
 	handles  => {
@@ -327,7 +327,7 @@ has '_output_file' => (
 
 has '_perl_version_corelist' => (
 	is       => 'ro',
-	isa      => Maybe[HashRef],
+	isa      => Maybe [HashRef],
 	lazy     => 1,
 	builder  => '_build_perl_version_corelist',
 	init_arg => undef,
@@ -359,9 +359,9 @@ has 'pdw_class' => (
 
 
 has 'pdw_version' => (
-	is       => 'ro',
-	isa      => Str,
-	default  => $Perl::Dist::WiX::VERSION,
+	is      => 'ro',
+	isa     => Str,
+	default => $Perl::Dist::WiX::VERSION,
 	init_arg => undef,                 # Cannot set this parameter in new().
 );
 
@@ -386,9 +386,9 @@ has '_trace_object' => (
 
 
 has _user_agent_directory => (
-	is   => 'ro',
-	isa  => ExistingDirectory,
-	lazy => 1,
+	is       => 'ro',
+	isa      => ExistingDirectory,
+	lazy     => 1,
 	builder  => '_build_user_agent_directory',
 	init_arg => undef,
 );
@@ -396,7 +396,7 @@ has _user_agent_directory => (
 sub _build_user_agent_directory {
 	my $self = shift;
 
-# Create a legal path out of the object's class name under 
+# Create a legal path out of the object's class name under
 # {Application Data}/Perl.
 	my $path = ref $self;
 	$path =~ s{::}{-}gmsx;             # Changes all :: to -.
@@ -562,7 +562,7 @@ C<perl_version_human> if not given.
 
 has 'app_ver_name' => (
 	is      => 'ro',
-	isa      => Str,
+	isa     => Str,
 	lazy    => 1,
 	builder => '_build_app_ver_name',
 );
@@ -630,16 +630,18 @@ for 32-bit (i386) or 64-bit (referred to as Intel64 / amd-x64) Windows
 =cut
 
 has 'bits' => (
-	is      => 'ro',                   # Integer 32/64
-	isa     => subtype('Int' => 
-		where { 
-			if (not defined $_) { 
+	is  => 'ro',                       # Integer 32/64
+	isa => subtype(
+		'Int' => where {
+			if ( not defined $_ ) {
 				$_ = 32;
 			}
-			
-			$_ == 32 or $_ == 64; 
+
+			$_ == 32 or $_ == 64;
 		},
-		message { 'Not 32 or 64-bit' },
+		message {
+			'Not 32 or 64-bit';
+		},
 	),
 	default => 32,
 );
@@ -681,10 +683,10 @@ constructing filenames.
 =cut
 
 has 'build_number' => (
-	is       => 'ro',
-	isa      => subtype('Int' => 
-		where { $_ < 256 and $_ >= 0 },
-		message { 'Build number must be between 0 and 255' }
+	is  => 'ro',
+	isa => subtype(
+		'Int' => where { $_ < 256 and $_ >= 0 },
+		message {'Build number must be between 0 and 255'}
 	),
 	required => 1,
 );
@@ -702,7 +704,7 @@ in the list, Perl::Dist::WiX will stop and save a checkpoint.
 
 has 'checkpoint_after' => (
 	is      => 'ro',
-	isa     => ArrayRef[Int],
+	isa     => ArrayRef [Int],
 	writer  => '_set_checkpoint_after',
 	default => sub { return [0] },
 );
@@ -984,10 +986,10 @@ using gcc 4.4.3 from the mingw64 project (by specifying a value of '4').
 =cut
 
 has 'gcc_version' => (
-	is      => 'ro',
-	isa     => subtype('Int' => 
-		where { $_ == 3 or $_ == 4 },
-		message { 'Not 3 or 4' }
+	is  => 'ro',
+	isa => subtype(
+		'Int' => where { $_ == 3 or $_ == 4 },
+		message {'Not 3 or 4'}
 	),
 	default => 3,
 );
@@ -1007,18 +1009,19 @@ The default is 'C:\perl-git', if it exists.
 
 has 'git_checkout' => (
 	is      => 'ro',
-	isa     => Maybe[ExistingDirectory],
+	isa     => Maybe [ExistingDirectory],
 	builder => '_build_git_checkout',
 );
 
 sub _build_git_checkout {
 	my $dir = q{C:\\perl-git};
-	
-	if (-d $dir) { 
+
+	if ( -d $dir ) {
 		return $dir;
-	} else { 
+	} else {
+		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
-	}	
+	}
 }
 
 
@@ -1046,18 +1049,19 @@ not have spaces.
 
 has 'git_location' => (
 	is      => 'ro',
-	isa     => Maybe[ExistingFile],
+	isa     => Maybe [ExistingFile],
 	builder => '_build_git_location',
 );
 
 sub _build_git_location {
 	my $file = 'C:\Program Files\Git\bin\git.exe';
-	
-	if (-f $file) { 
+
+	if ( -f $file ) {
 		return $file;
-	} else { 
+	} else {
+		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
-	}	
+	}
 }
 
 
@@ -1082,14 +1086,11 @@ results, and an attempt is made to prevent this from happening.
 =cut
 
 has 'image_dir' => (
-	is => 'ro',
+	is  => 'ro',
 	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent => ExistingDirectory,
-		type_constraints => [
-			_NoDoubleSlashes,
-			_NoSpaces,
-		],
-	  ),
+		parent           => ExistingDirectory,
+		type_constraints => [ _NoDoubleSlashes, _NoSpaces, ],
+	),
 	required => 1,
 );
 
@@ -1474,7 +1475,7 @@ than overriding routines shown above.
 
 has 'tasklist' => (
 	is      => 'ro',
-	isa     => ArrayRef[Str],
+	isa     => ArrayRef [Str],
 	builder => '_build_tasklist',
 );
 
@@ -1791,7 +1792,7 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 } ## end sub BUILDARGS
 
 
-# This is called by Moose's DESTROY, and handles moving the CPAN source 
+# This is called by Moose's DESTROY, and handles moving the CPAN source
 # files back.
 sub DEMOLISH {
 	my $self = shift;
@@ -1873,7 +1874,7 @@ are installed.
 
 has 'bin_perl' => (
 	is       => 'ro',
-	isa      => Maybe[Str],
+	isa      => Maybe [Str],
 	writer   => '_set_bin_perl',
 	init_arg => undef,
 	default  => undef,
@@ -1881,7 +1882,7 @@ has 'bin_perl' => (
 
 has 'bin_make' => (
 	is       => 'ro',
-	isa      => Maybe[Str],
+	isa      => Maybe [Str],
 	writer   => '_set_bin_make',
 	init_arg => undef,
 	default  => undef,
@@ -1889,7 +1890,7 @@ has 'bin_make' => (
 
 has 'bin_pexports' => (
 	is       => 'ro',
-	isa      => Maybe[Str],
+	isa      => Maybe [Str],
 	writer   => '_set_bin_pexports',
 	init_arg => undef,
 	default  => undef,
@@ -1897,7 +1898,7 @@ has 'bin_pexports' => (
 
 has 'bin_dlltool' => (
 	is       => 'ro',
-	isa      => Maybe[Str],
+	isa      => Maybe [Str],
 	writer   => '_set_bin_dlltool',
 	init_arg => undef,
 	default  => undef,
@@ -2167,9 +2168,10 @@ sub msi_product_icon_id {
 		return 'I_'
 		  . $self->_icons()->search_icon( $self->msi_product_icon );
 	} else {
+		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
 	}
-}
+} ## end sub msi_product_icon_id
 
 
 
@@ -2299,10 +2301,10 @@ This is used in the main object
 # For template.
 sub msm_package_id_property {
 	my $self = shift;
-	
+
 	my $guid = $self->msm_package_id();
 	$guid =~ s/-/_/msg;
-	
+
 	return $guid;
 }
 
@@ -2349,8 +2351,8 @@ sub msi_perl_major_version {
 
 	# Get perl version arrayref.
 	my $ver = {
-		'589'  => [ 5, 8, 0 ],
-		'5100' => [ 5, 9, 255 ],
+		'589'  => [ 5, 8,  0 ],
+		'5100' => [ 5, 9,  255 ],
 		'5101' => [ 5, 10, 0 ],
 		'git'  => [ 5, 0,  0 ],
 	  }->{ $self->perl_version() }
@@ -2360,14 +2362,14 @@ sub msi_perl_major_version {
 	$ver->[2] <<= 8;
 	$ver->[2] += 255;
 
-	# Correct to the build number (minus 1 so as not to duplicate) for git	
-	if ('git' eq $self->perl_version()) { 
-		$ver->[2] = $self->build_number() - 1; 
+	# Correct to the build number (minus 1 so as not to duplicate) for git
+	if ( 'git' eq $self->perl_version() ) {
+		$ver->[2] = $self->build_number() - 1;
 	}
-	
+
 	return join q{.}, @{$ver};
 
-} ## end sub msi_next_perl_version
+} ## end sub msi_perl_major_version
 
 
 =head3 perl_config_myuname
@@ -2791,14 +2793,15 @@ sub install_win32_extras {
 		icon_file => catfile( $self->wix_dist_dir(), 'win32.ico' ) );
 
 	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
-		name        => 'Perl (command line)',
-		description => 'Quick way to get to the command line in order to use Perl',
+		name => 'Perl (command line)',
+		description =>
+		  'Quick way to get to the command line in order to use Perl',
 		target      => '[SystemFolder]cmd.exe',
 		id          => 'PerlCmdLine',
 		working_dir => 'PersonalFolder',
 	);
 
-		
+
 	return $self;
 } ## end sub install_win32_extras
 
@@ -3027,7 +3030,8 @@ sub write_merge_module {
 			primary_reference => 1,
 		);
 		$self->_add_merge_module( 'Perl', $mm );
-		$self->get_directory_tree()->add_merge_module( $self->image_dir(), $mm );
+		$self->get_directory_tree()
+		  ->add_merge_module( $self->image_dir(), $mm );
 	} ## end if ( $self->msi() )
 
 	return 1;

@@ -67,19 +67,20 @@ This is an XML tag that links a Merge Module into a Perl::Dist::WiX based distri
 
 =head1 METHODS
 
-This class is a L<WiX3::XML::Merge> and inherits its API, so only additional 
-API is documented here.
+This class is a L<WiX3::XML::Merge|WiX3::XML::Merge> and inherits its API, so 
+only additional API is documented here.
 
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Tag::MergeModule> object.
+and returns a new B<Perl::Dist::WiX::Tag::MergeModule|Perl::Dist::WiX::Tag::MergeModule> 
+object.
 
 If an error occurs, it throws an exception.
 
 It inherits all the parameters described in the 
-L<WiX3::XML::Merge> C<new> method documentation, and adds one additional 
-parameter.
+L<WiX3::XML::Merge|WiX3::XML::Merge> C<new> method documentation, and adds 
+one additional parameter.
 
 =over 4
 
@@ -94,7 +95,7 @@ reference is set to "yes") to the contents of the merge module.
 
 =head2 get_merge_reference
 
-The C<get_merge_reference> method returns the L<WiX3::XML::MergeRef>
+The C<get_merge_reference> method returns the L<WiX3::XML::MergeRef|WiX3::XML::MergeRef>
 defined by the L<new|/new> method's id and primary_reference parameters.
 
 =head1 SUPPORT
@@ -111,7 +112,7 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, 
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
 L<http://wix.sourceforge.net/manual-wix3/wix_xsd_merge.htm>,
 L<http://wix.sourceforge.net/manual-wix3/wix_xsd_mergeref.htm>
 

@@ -159,7 +159,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 			$self->_install_cpan_module( $module, 1 );
 			next MODULE;
 		}
-		
+
 		if (    ( $module->cpan_file() =~ m{/Module-Install-\d}msx )
 			and ( $module->cpan_version() > 0.79 ) )
 		{
@@ -232,7 +232,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 		$self->patch_file(
 			'perl/lib/CPANPLUS/Config.pm' => $self->image_dir(),
 			{ dist => $self, } );
-	} ## end if ( -e $cpanp_config_location)
+	}
 
 	if ( not $self->fragment_exists('CPAN') ) {
 		$self->install_distribution(
@@ -412,7 +412,7 @@ sub _skip_upgrade {
 
 	# Skip B::C, it does not install on 5.8.9.
 	return 1 if $module->cpan_file() =~ m{/B-C-1 [.]}msx;
-	
+
 	return 0;
 } ## end sub _skip_upgrade
 

@@ -111,6 +111,7 @@ sub _abs_uri {
 # Support Methods
 
 sub _DIST {
+	## no critic (ProhibitExplicitReturnUndef)
 	my $it = shift;
 	if ( not( defined $it and not ref $it ) ) {
 		return undef;

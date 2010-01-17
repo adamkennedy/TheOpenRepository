@@ -40,8 +40,8 @@ has files => (
 	required => 1,
 	reader   => 'get_files',
 	handles  => {
-		'_add_files'  => 'add_files',
-		'_add_file'   => 'add_file',
+		'_add_files' => 'add_files',
+		'_add_file'  => 'add_file',
 		'_subtract'  => 'subtract',
 		'_get_files' => 'files',
 	},
@@ -67,6 +67,7 @@ sub _build_feature {
 		$self->add_child_tag($feat);
 		return $feat;
 	} else {
+		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
 	}
 } ## end sub _build_feature
@@ -87,14 +88,14 @@ has in_merge_module => (
 # This type of fragment needs regeneration.
 sub regenerate {
 	my $self = shift;
-	my @fragment_ids;		
+	my @fragment_ids;
 	my @files = @{ $self->_get_files() };
 
 	my $id = $self->get_id();
 	$self->trace_line( 2, "Regenerating $id\n" );
 
 	$self->clear_child_tags();
-	
+
   FILE:
 	foreach my $file (@files) {
 		push @fragment_ids, $self->_add_file_to_fragment($file);
@@ -150,7 +151,8 @@ sub _add_file_to_fragment {
 
 		if ( defined $directory_step1 ) {
 
-			$self->trace_line( 4, "Directory search for step 1 successful.\n" );
+			$self->trace_line( 4,
+				"Directory search for step 1 successful.\n" );
 
 			$found_step1 = 1;
 			$self->_add_file_component( $directory_step1, $file_path );
@@ -183,7 +185,7 @@ sub _add_file_to_fragment {
 		$self->add_child_tag($directory_ref_step2);
 		$self->_add_file_component( $directory_ref_step2, $file_path );
 		return ();
-	}
+	} ## end if ( defined $directory_step2)
 
 # Step 3: Search in our own directories non-exactly.
 #  SUCCESS: Create directories, create component and file.
@@ -213,8 +215,9 @@ sub _add_file_to_fragment {
 
 		if ( defined $directory_step3 ) {
 
-			$self->trace_line( 4, "Directory search for step 3 successful.\n" );
-		
+			$self->trace_line( 4,
+				"Directory search for step 3 successful.\n" );
+
 			$found_step3 = 1;
 
 			( $directory_final, @fragment_ids ) =
@@ -222,7 +225,7 @@ sub _add_file_to_fragment {
 				$path_to_find );
 			$self->_add_file_component( $directory_final, $file_path );
 			return @fragment_ids;
-		}
+		} ## end if ( defined $directory_step3)
 	} ## end while ( $i_step3 < $child_tags_count...)
 
 
@@ -244,7 +247,7 @@ sub _add_file_to_fragment {
 	if ( defined $directory_step4 ) {
 
 		$self->trace_line( 4, "Directory search for step 4 successful.\n" );
-			
+
 		my $directory_ref_step4 =
 		  Perl::Dist::WiX::Tag::DirectoryRef->new(
 			directory_object => $directory_step4 );
@@ -404,17 +407,19 @@ around 'get_componentref_array' => sub {
 
 sub add_file {
 	my $self = shift;
-	my @files = map { my $file = $_; $file =~ s{/}{\\}gmx; $file || $_  } @_;
-	
+	## no critic qw(ProhibitComplexMappings)
+	my @files = map { my $file = $_; $file =~ s{/}{\\}gms; $file || $_ } @_;
+
 	return $self->_add_file(@files);
-};
+}
 
 sub add_files {
 	my $self = shift;
-	my @files = map { my $file = $_; $file =~ s{/}{\\}gmx; $file || $_  } @_;
+	## no critic qw(ProhibitComplexMappings)
+	my @files = map { my $file = $_; $file =~ s{/}{\\}gms; $file || $_ } @_;
 
 	return $self->_add_files(@files);
-};
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

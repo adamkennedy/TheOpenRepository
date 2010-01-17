@@ -100,6 +100,7 @@ sub add_icon {
 #   Id of icon.
 
 sub search_icon {
+	## no critic (ProhibitExplicitReturnUndef)
 	my ( $self, $pathname_icon, $target_type ) = @_;
 
 	# Check parameters

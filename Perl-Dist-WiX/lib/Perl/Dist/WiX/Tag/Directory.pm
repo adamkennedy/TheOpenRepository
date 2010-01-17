@@ -79,10 +79,12 @@ sub get_directory_object {
 		return $return if defined $return;
 	}
 
+	## no critic (ProhibitExplicitReturnUndef)
 	return undef;
 } ## end sub get_directory_object
 
 sub search_dir {
+	## no critic (ProhibitExplicitReturnUndef)
 	my $self = shift;
 	my %args;
 
@@ -162,6 +164,7 @@ sub _add_directory_recursive {
 	# Should not happen, but checking to make sure we bottom out,
 	# rather than going into infinite recursion.
 	if ( length $path_to_find < 4 ) {
+		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
 	}
 

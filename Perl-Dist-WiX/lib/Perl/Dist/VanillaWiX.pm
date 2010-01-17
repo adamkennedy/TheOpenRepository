@@ -85,7 +85,7 @@ sub _build_app_ver_name {
 
 	my $string = 'Vanilla Perl version ' . $self->build_number();
 
-	print $string;
+	return $string;
 }
 
 # Default the output filename to the id plus the current date
@@ -94,13 +94,14 @@ sub _build_output_base_filename {
 
 	my $bits = ( 64 == $self->bits() ) ? q{-64bit} : q{};
 
-	my $string = $self->app_id() . q{-}
+	my $string =
+	    $self->app_id() . q{-}
 	  . $self->build_number() . q{-}
 	  . $self->output_date_string()
 	  . $bits;
 
 	return $string;
-}
+} ## end sub _build_output_base_filename
 
 1;
 

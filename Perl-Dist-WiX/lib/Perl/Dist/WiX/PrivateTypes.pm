@@ -17,23 +17,22 @@ This module contains types private to Perl::Dist::WiX.
 =cut
 
 use 5.008001;
-use MooseX::Types -declare => [ 
-	qw( _NoDoubleSlashes _NoSpaces ) 
-];
+use MooseX::Types -declare => [qw( _NoDoubleSlashes _NoSpaces )];
 use MooseX::Types::Moose qw( Str );
+
 # use Perl::Dist::WiX::Types;
 
 our $VERSION = '0.01';
 
 subtype _NoDoubleSlashes,
-	as Str,
-	where { $_ !~ m{\\\\}ms },
-	message { 'cannot contain two consecutive slashes' };
+  as Str,
+  where { $_ !~ m{\\\\}ms },
+  message {'cannot contain two consecutive slashes'};
 
 subtype _NoSpaces,
-	as Str,
-	where { $_ !~ m{\s}ms },
-	message { 'Spaces are not allowed' };
+  as Str,
+  where { $_ !~ m{\s}ms },
+  message {'Spaces are not allowed'};
 
 
 1;

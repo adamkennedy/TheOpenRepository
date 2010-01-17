@@ -90,9 +90,8 @@ sub BUILDARGS {
 	} elsif ( 0 == @_ % 2 ) {
 		%args = (@_);
 	} else {
-		PDWiX->throw(
-'Parameters incorrect (not a hashref or hash) for Perl::Dist::WiX::Asset::Distribution'
-		);
+		PDWiX->throw( 'Parameters incorrect (not a hashref or hash) '
+			  . 'for Perl::Dist::WiX::Asset::Distribution' );
 	}
 
 	unless ( defined _INSTANCE( $args{parent}, 'Perl::Dist::WiX' ) ) {
