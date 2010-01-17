@@ -40,7 +40,7 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-plan( skip_all => "It's worked so far, but we're not out yet." );
+# plan( skip_all => "It's worked so far, but we're not out yet." );
 
 my @modules = all_modules();
 my @modules_to_test = grep { filter($_) } @modules;
@@ -50,7 +50,7 @@ plan( tests => $test_count );
 foreach my $module (@modules_to_test) {
 	pod_coverage_ok($module, { 
 	  coverage_class => 'Pod::Coverage::Moose', 
-	  also_private => [ qr/^[A-Z_]+$/ ],
+	  also_private => [ qr/^[A-Z_]+$/ , qr/^install_perl_/ ],
 	  trustme => [ qw(prepare delegate) ]
 	});
 }

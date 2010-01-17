@@ -163,7 +163,7 @@ sub checkpoint_save {
 	return 1;
 } ## end sub checkpoint_save
 
-=head2 checkpoint_save
+=head2 checkpoint_load
 
 Restores a checkpoint saved to the checkpoint subdirectory of 
 L<Perl::Dist::WiX-E<gt>temp_dir|Perl::Dist::WiX/temp_dir> with 

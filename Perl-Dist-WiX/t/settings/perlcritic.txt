@@ -27,18 +27,40 @@ version = 5.008001
 #[-CodeLayout::RequireTidyCode]
 #[-CodeLayout::ProhibitTrailingWhitespace]
 
-# Exclusions
-[-ControlStructures::ProhibitUnlessBlocks]
+# TODO: Fix these later.
 [-RegularExpressions::ProhibitEnumeratedClasses]
-[-ValuesAndExpressions::RequireConstantVersion]
+# This one is still buggy on weird construction.
+[-Documentation::RequirePodLinksIncludeText]
+
+# Exclusions
+#
+# I disagree with this one.
 [-ValuesAndExpressions::ProhibitMagicNumbers]
-[-CodeLayout::ProhibitHardTabs]
-[-Miscellanea::RequireRcsKeywords]
+
+# I have some 'passthrough subroutines.'
 [-Subroutines::RequireArgUnpacking]
-[-Subroutines::ProhibitExplicitReturnUndef]
+
+# I'm fine with unless blocks.
+[-ControlStructures::ProhibitUnlessBlocks]
+
+# I don't use RCS keywords.
+[-Miscellanea::RequireRcsKeywords]
+
+# Excluded because File::List::Object stuff expects to be chained.
+[-ValuesAndExpressions::ProhibitLongChainsOfMethodCalls]
+
+# Excluded because we filter out development versions.
+[-ValuesAndExpressions::RequireConstantVersion]
+
+# Excluded because we use 4-space tabs as our standard. 
+[-CodeLayout::ProhibitHardTabs]
+
+# Excluded because I do my pod my own way.
 [-Documentation::RequirePodAtEnd]
 [-Documentation::RequirePodSections]
-[-ValuesAndExpressions::ProhibitCommaSeparatedStatements]
-[-ValuesAndExpressions::ProhibitLongChainsOfMethodCalls]
-[-ValuesAndExpressions::RestrictLongStrings]
+
+# I don't use Emacs, why use this?
 [-Editor::RequireEmacsFileVariables]
+
+# Excluded because Moose builder subroutines get hit by this.
+[-Subroutines::ProhibitUnusedPrivateSubroutines]

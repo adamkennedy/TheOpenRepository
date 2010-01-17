@@ -12,11 +12,7 @@ This document describes Perl::Dist::VanillaWiX version 1.101.
 
 =head1 DESCRIPTION
 
-This package is the upgrade to Perl::Dist based on Windows Installer XML 
-technology, instead of Inno Setup.
-
-Perl distributions built with this module have the option of being created
-as Windows Installer databases (otherwise known as .msi files)
+This package is a basic test of Perl::Dist::WiX functionality.
 
 =head1 SYNOPSIS
 
@@ -48,6 +44,14 @@ $VERSION =~ s/_//ms;
 
 #####################################################################
 # Constructor
+
+=pod
+
+=head2 new
+
+See L<Perl::Dist::WiX-E<gt>new|Perl::Dist::WiX/new>.
+
+=cut
 
 sub new {
 	my $class = shift;
@@ -142,7 +146,7 @@ L<Perl::Dist::WiX|Perl::Dist::WiX>, L<http://csjewell.comyr.com/perl/>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2009 Curtis Jewell.
+Copyright 2009, 2010 Curtis Jewell.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
