@@ -1,20 +1,21 @@
 use inc::latest Module::Build;
 
-print <<'EOF';
-To install the true prerequisites, you really need to run
+# CPAN version test.
+require CPAN;
+if ($CPAN::VERSION < 1.9454) {
+	print <<'EOF';
+To install the rest of the prerequisites, you need to run
 
-	cpan ANDK/CPAN-1.94_53.tar.gz
+	cpan ANDK/CPAN-1.94_54.tar.gz
 
-or their equivalents before running this, if you haven't 
-(or haven't installed later versions) already.
+before installing this. 
 
 If you're already in CPAN or CPANPLUS, replace 'cpan' with 'install'.
 If you're in CPAN, 'reload cpan' afterwards.
 
 EOF
-
-require CPAN;
-die "Please upgrade CPAN as instructed above.\n\n" unless $CPAN::VERSION > 1.9452;
+	die "Please upgrade CPAN as instructed above.\n\n";
+}
 
 die "OS unsupported\n" unless 'MSWin32' eq $^O;
 
@@ -24,7 +25,7 @@ my $requires = {
 	'Alien::WiX'                => '0.300000',
 	'Archive::Tar'              => '1.42',
 	'Archive::Zip'              => '1.26',
-	'CPAN'                      => '1.9452',
+	'CPAN'                      => '1.9454',
 	'Data::Dump::Streamer'      => '2.08',
 	'Data::UUID'                => '1.149',
 	'Digest::CRC'               => '0.14',
@@ -62,6 +63,7 @@ my $requires = {
 	'Probe::Perl'               => '0.01',
 	'Process'                   => '0.26',
 	'Readonly'                  => '1.03',
+	# Template 2.21 will not install on Windows, anyway.
 	'Template'                  => '>= 2.20, != 2.21',
 	'URI'                       => '1.35',
 	'WiX3'                      => '0.008',
@@ -84,7 +86,7 @@ my $builder = Module::Build->new(
 #	sign                => 1,
 	configure_requires => {
 		'Module::Build'             => '0.36',
-		'CPAN'                      => '1.9453',
+		'CPAN'                      => '1.9454',
 	},
 	requires => $requires,
 	build_requires => {

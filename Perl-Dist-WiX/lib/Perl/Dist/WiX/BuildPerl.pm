@@ -236,7 +236,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 
 	if ( not $self->fragment_exists('CPAN') ) {
 		$self->install_distribution(
-			name             => 'ANDK/CPAN-1.94_53.tar.gz',
+			name             => 'ANDK/CPAN-1.94_54.tar.gz',
 			mod_name         => 'CPAN',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
