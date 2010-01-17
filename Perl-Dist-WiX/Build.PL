@@ -1,7 +1,7 @@
 use inc::latest Module::Build;
 
 print <<'EOF';
-To install the true prerequisites, you may wish to run
+To install the true prerequisites, you really need to run
 
 	cpan ANDK/CPAN-1.94_53.tar.gz
 
@@ -52,6 +52,9 @@ my $requires = {
 	'Module::CoreList'          => '2.18',
 	'Moose'                     => '0.90',
 	'MooseX::NonMoose'          => '0.05',
+	'MooseX::AttributeHelpers'  => '0',
+	'MooseX::Singleton'         => '0',
+	'MooseX::Types'             => '0',
 	'MooseX::Meta::TypeConstraint::Intersection' => '0.01',
 	'PAR::Dist'                 => '0.42',
 	'Params::Util'              => '0.35',
@@ -111,16 +114,19 @@ my $builder = Module::Build->new(
 	],
 );
 
-my $answer = $builder->y_n('Do you want to install the minimal minicpan script?', 'n');
+# To support our 899_prereq test, we have to wrap this.
+unless ('Test::Prereq::Build' eq ref $builder) {
+	my $answer = $builder->y_n('Do you want to install the minimal minicpan script?', 'n');
 
-if ($answer) {
-	$builder->script_files(['script\minicpan_pdwix', 'script\perldist_w']);
-	$builder->requires({
-		'CPAN::Mini'        => '0.576',
-		'CPAN::Mini::Devel' => '0.03',
-		'File::Slurp'       => '9999.13',
-		( %{$requires} )
-	});
+	if ($answer) {
+		$builder->script_files(['script\minicpan_pdwix', 'script\perldist_w']);
+		$builder->requires({
+			'CPAN::Mini'        => '0.576',
+			'CPAN::Mini::Devel' => '0.03',
+			'File::Slurp'       => '9999.13',
+			( %{$requires} )
+		});
+	}
 }
 
 $builder->create_build_script();

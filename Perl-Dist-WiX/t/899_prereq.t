@@ -11,7 +11,7 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Test::Prereq 1.036',
+	'Test::Prereq::Build 1.036',
 );
 
 # Don't run tests for installs
@@ -20,7 +20,7 @@ unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
 	plan( skip_all => "Author tests not required for installation" );
 }
 
-plan( skip_all => "Module::Install and Test::Prereq do not go together." );
+# plan( skip_all => "Module::Install and Test::Prereq do not go together." );
 
 # Load the testing modules
 foreach my $MODULE ( @MODULES ) {
@@ -47,15 +47,25 @@ foreach my $dir ( 't\tmp500', 't\tmp900', 't\tmp901', 't\tmp902', 't\tmp903' ) {
 
 my @modules_skip = (
 # Needed only for AUTHOR_TEST tests
-       'Perl::Critic::More',
-       'Test::HasVersion',
-       'Test::MinimumVersion',
-       'Test::Perl::Critic',
-       'Test::Prereq',
+		'Perl::Critic::More',
+		'Test::HasVersion',
+		'Test::MinimumVersion',
+		'Test::Perl::Critic',
+		'Test::Prereq',
 # Needed only for the optional script
-	   'CPAN::Mini::Devel',
-	   'File::Slurp',
-	   'feature'
+		'CPAN::Mini::Devel',
+		'File::Slurp',
+		'feature',
+# Find out where these are needed.
+		'MooseX::AttributeHelpers',
+		'MooseX::Singleton',
+# Covered by MooseX::Types
+		'MooseX::Types::Moose',
+# Covered by WiX3.
+		'WiX3::XML::GeneratesGUID::Object',
+		'WiX3::XML::MergeRef',
+# Where is this?
+		't::lib::MachineTest',
 );
 
 prereq_ok(5.008001, 'Check prerequisites', \@modules_skip);
