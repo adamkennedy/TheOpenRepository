@@ -5,7 +5,7 @@ package pler;
 use 5.00503;
 use strict;
 use Config;
-use Carp                     0 ();
+use Carp                       ();
 use Cwd                   3.00 ();
 use File::Which           0.05 ();
 use File::Spec            0.80 ();
@@ -16,7 +16,7 @@ use Probe::Perl           0.01 ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '1.02';
+        $VERSION = '1.03';
 }
 
 # Does exec work on this platform
