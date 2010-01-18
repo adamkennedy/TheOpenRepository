@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.90;
+use inc::Module::Install::DSL 0.91;
 
 all_from      lib/Devel/Dumpvar.pm
 requires_from lib/Devel/Dumpvar.pm

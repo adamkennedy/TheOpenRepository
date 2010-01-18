@@ -1,5 +1,9 @@
 Revision history for Perl extension Devel-Dumpvar
 
+1.06 Tue 19 Jan 2010
+	- Updating to Module::Install::DSL 0.91
+	- Added missing requires_from in Makefile.PL
+
 1.05 Tue 19 May 2009
 	- Updating to Module::Install::DSL 0.88
 	- Updating Perl version to 5.006 (we use qr)
