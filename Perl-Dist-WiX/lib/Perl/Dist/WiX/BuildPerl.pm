@@ -8,7 +8,7 @@ Perl::Dist::WiX::BuildPerl - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::BuildPerl version 1.090.
+This document describes Perl::Dist::WiX::BuildPerl version 1.101.
 
 =head1 DESCRIPTION
 
