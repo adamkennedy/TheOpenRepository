@@ -1,8 +1,12 @@
 Revision history for Module-Build-Functions
 
 
-0.02    Fri Jan 15 2010
+0.03    01/19/2010
+    - added 'auto_configure_requires' flag
+    - fixed several test failures which were relying on examination of
+    the Module::Build internals, which slightly changed after 0.35_01
 
+0.02    Fri Jan 15 2010
     - added missed inc::Module::Build::Functions
     
 

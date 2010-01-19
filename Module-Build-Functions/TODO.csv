@@ -9,6 +9,7 @@
 "(all_from)",2,,"author_from",,,"author_from"
 ,,,"auto_bundle","*",,"auto_bundle"
 ,,,"auto_bundle_deps","*",,"auto_bundle_deps"
+"auto_configure_requires",,,,,,"auto_configure_requires"
 ,,,"auto_features",,,"auto_features"
 ,,,"auto_install","*",,"auto_install"
 ,,,"automated_testing",,,"automated_testing"

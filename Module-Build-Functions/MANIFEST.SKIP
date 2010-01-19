@@ -47,3 +47,4 @@
 # Avoid archives of this distribution
 \bModule-Build-Functions-[\d\.\_]+
 \.project\b
+\bMYMETA\.yml\b

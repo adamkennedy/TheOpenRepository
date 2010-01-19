@@ -641,6 +641,15 @@ B<WARNING>: May change to a accumulative function in future versions.
 Adds a file specification (or an arrayref of file specifications) to the 
 list of files to cleanup when the C<clean> action is performed.
 
+=head4 auto_configure_requires
+
+    auto_configure_requires 0;
+    auto_configure_requires 1;
+
+This parameter determines whether Module::Build will be added to 'configure_requires' (and 'build_requires') if Module::Build is not already there. 
+The required version will be the last 'major' release, as defined by the decimal version truncated to two decimal places (e.g. 0.34, instead of 0.3402). 
+The default value is true.
+
 =head4 auto_features
 
 	auto_features 'pg_support',    'description' => 'Interface with Postgres databases';
