@@ -32,7 +32,7 @@ require inc::Module::Build::Functions;
 require Module::Build::Functions::DSL;
 
 BEGIN {
-    $VERSION = '0.02';
+    $VERSION = '0.03';
 }
 
 1;

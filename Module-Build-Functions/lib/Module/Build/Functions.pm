@@ -164,7 +164,7 @@ sub _copy {
 } ## end sub _copy
 
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 
 	*inc::Module::Build::Functions::VERSION = *VERSION;
 
