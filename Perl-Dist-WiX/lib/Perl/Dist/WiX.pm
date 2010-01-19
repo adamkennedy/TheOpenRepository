@@ -1625,6 +1625,8 @@ sub _build_user_agent {
 		);
 	}
 
+	$ENV{HTTP_PROXY} and $ua->proxy( http => $ENV{HTTP_PROXY} );
+	
 	return $ua;
 } ## end sub _build_user_agent
 
