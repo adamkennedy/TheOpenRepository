@@ -3,7 +3,8 @@ package Aspect::Library::NYTProf;
 use 5.008002;
 use strict;
 use warnings;
-use Aspect::Modular ();
+use Aspect::Modular 0.40 ();
+use Devel::NYTProf  3.01 ();
 
 our $VERSION = '0.01';
 our @ISA     = 'Aspect::Modular';
