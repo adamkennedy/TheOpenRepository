@@ -72,16 +72,17 @@ sub _install {
 			goto &\$original if $MATCH_DISABLED;
 
 			# Apply any runtime-specific context checks
-			my \$runtime = {};
+			my \$wantarray = wantarray;
+			my \$runtime   = {
+				wantarray => \$wantarray,
+			};
 			goto &\$original unless $MATCH_RUN;
 
 			# Prepare the context object
-			my \$wantarray = wantarray;
-			my \$context   = Aspect::AdviceContext->new(
+			my \$context = Aspect::AdviceContext->new(
 				type         => 'before',
 				pointcut     => \$pointcut,
 				sub_name     => \$name,
-				wantarray    => \$wantarray,
 				params       => \\\@_,
 				return_value => \$wantarray ? [ ] : undef,
 				original     => \$original,

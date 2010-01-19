@@ -21,6 +21,7 @@ use Aspect::Pointcut::Not          ();
 use Aspect::Pointcut::Call         ();
 use Aspect::Pointcut::Cflow        ();
 use Aspect::Pointcut::Highest      ();
+use Aspect::Pointcut::Wantarray    ();
 use Aspect::Advice                 ();
 use Aspect::AdviceContext          ();
 use Aspect::Advice::Around         ();
@@ -111,6 +112,18 @@ sub cflow ($$) {
 	Aspect::Pointcut::Cflow->new(@_);
 }
 
+sub wantlist () {
+	Aspect::Pointcut::Wantarray->new(1);
+}
+
+sub wantscalar () {
+	Aspect::Pointcut::Wantarray->new('');
+}
+
+sub wantvoid () {
+	Aspect::Pointcut::Wantarray->new(undef);
+}
+
 
 
 
@@ -151,6 +164,7 @@ sub import {
 		foreach ( qw{
 			around after_returning after_throwing
 			if_true highest
+			wantlist wantscalar wantvoid
 		} ) {
 			Sub::Install::install_sub( {
 				code => $_,

@@ -68,8 +68,10 @@ sub _install {
 			# Is this a lexically scoped hook that has finished
 			goto &\$original if $MATCH_DISABLED;
 
-			my \$runtime   = {};
 			my \$wantarray = wantarray;
+			my \$runtime   = {
+				wantarray => \$wantarray,
+			};
 			if ( \$wantarray ) {
 				my \$return = [
 					Sub::Uplevel::uplevel(
@@ -83,7 +85,6 @@ sub _install {
 					type         => 'after_returning',
 					pointcut     => \$pointcut,
 					sub_name     => \$name,
-					wantarray    => \$wantarray,
 					params       => \\\@_,
 					return_value => \$return,
 					original     => \$original,

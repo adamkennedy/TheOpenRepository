@@ -78,6 +78,7 @@ sub _install {
 				return \@\$return unless \$\@;
 
 				my \$runtime = {
+					wantarray    => \$wantarray,
 					return_value => \$return,
 					exception    => \$\@,
 				};
@@ -85,12 +86,11 @@ sub _install {
 
 				# Create the context
 				my \$context = Aspect::AdviceContext->new(
-					type         => 'after_throwing',
-					pointcut     => \$pointcut,
-					sub_name     => \$name,
-					wantarray    => \$wantarray,
-					params       => \\\@_,
-					original     => \$original,
+					type     => 'after_throwing',
+					pointcut => \$pointcut,
+					sub_name => \$name,
+					params   => \\\@_,
+					original => \$original,
 					\%\$runtime,
 				);
 
@@ -119,6 +119,7 @@ sub _install {
 				return \$return unless \$\@;
 
 				my \$runtime = {
+					wantarray    => \$wantarray,
 					return_value => \$return,
 					exception    => \$\@,
 				};
@@ -126,12 +127,11 @@ sub _install {
 
 				# Create the context
 				my \$context = Aspect::AdviceContext->new(
-					type         => 'after_throwing',
-					pointcut     => \$pointcut,
-					sub_name     => \$name,
-					wantarray    => \$wantarray,
-					params       => \\\@_,
-					original     => \$original,
+					type     => 'after_throwing',
+					pointcut => \$pointcut,
+					sub_name => \$name,
+					params   => \\\@_,
+					original => \$original,
 					\%\$runtime,
 				);
 
@@ -154,6 +154,7 @@ sub _install {
 				return unless \$\@;
 
 				my \$runtime = {
+					wantarray    => \$wantarray,
 					return_value => undef,
 					exception    => \$\@,
 				};
@@ -161,12 +162,11 @@ sub _install {
 
 				# Create the context
 				my \$context = Aspect::AdviceContext->new(
-					type         => 'after_throwing',
-					pointcut     => \$pointcut,
-					sub_name     => \$name,
-					wantarray    => \$wantarray,
-					params       => \\\@_,
-					original     => \$original,
+					type     => 'after_throwing',
+					pointcut => \$pointcut,
+					sub_name => \$name,
+					params   => \\\@_,
+					original => \$original,
 					\%\$runtime,
 				);
 

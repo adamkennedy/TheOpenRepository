@@ -2,6 +2,7 @@ Revision history for Perl extension Aspect
 
 0.39 Tue 19 Jan 2010 - Adam Kennedy
 	- All hook code is now generated in a single namespace
+	- Added the Aspect::Library::Wantarray pointcut
 
 0.38 Tue 19 Jan 2010 - Adam Kennedy
 	- Added experimental support for the "highest" pointcut.
