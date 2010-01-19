@@ -1,5 +1,11 @@
 Revision history for Perl extension Aspect
 
+0.40 Tue 19 Jan 2010 - Adam Kennedy
+	- Added experimental Aspect::Library::Throwing pointcut
+	- Only nested pointcuts containing only call() would curry away.
+	  Now nested mixed pointcuts curry out as well.
+	- Nested And|Or pointcuts curry to faster flat 3+ element And|Or
+
 0.39 Tue 19 Jan 2010 - Adam Kennedy
 	- All hook code is now generated in a single namespace
 	- Added the Aspect::Library::Wantarray pointcut

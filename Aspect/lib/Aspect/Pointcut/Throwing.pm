@@ -1,7 +1,9 @@
-package Aspect::Pointcut::Or;
+package Aspect::Pointcut::Throwing;
 
 use strict;
 use warnings;
+use Carp             ();
+use Params::Util     ('_STRING', '_INSTANCE');
 use Aspect::Pointcut ();
 
 our $VERSION = '0.40';
@@ -15,44 +17,14 @@ our @ISA     = 'Aspect::Pointcut';
 # Weaving Methods
 
 sub match_define {
-	my $self = shift;
-	foreach ( @$self ) {
-		return 1 if $_->match_define(@_);
-	}
-	return;
+	return 1;
 }
 
-sub match_contains {
-	my $self = shift;
-	return 1 if $self->isa($_[0]);
-	foreach my $child ( @$self ) {
-		return 1 if $child->match_contains($_[0]);
-	}
-	return '';
-}
-
+# Call pointcuts curry away to null, because they are the basis
+# for which methods to hook in the first place. Any method called
+# at run-time has already been checked.
 sub curry_run {
-	my $self = shift;
-	my @list = @$self;
-
-	# Collapse nested And clauses
-	while ( scalar grep { $_->isa('Aspect::Pointcut::Or') } @list ) {
-		@list = map {
-			$_->isa('Aspect::Pointcut::Or') ? @$_ : $_
-		} @list;
-	}
-
-	# Curry down our children
-	@list = grep { defined $_ } map { $_->curry_run } @list;
-
-	# If none are left, curry us away to nothing
-	return unless @list;
-
-	# If only one remains, curry us away to just that child
-	return $list[0] if @list == 1;
-
-	# Create our clone to hold the curried subset
-	return ref($self)->new( @list );
+	return $_[0];
 }
 
 
@@ -63,11 +35,26 @@ sub curry_run {
 # Runtime Methods
 
 sub match_run {
-	my $self = shift;
-	foreach ( @$self ) {
-		return 1 if $_->match_run(@_);
+	my ($self, undef, $runtime) = @_;
+	unless ( exists $runtime->{exception} ) {
+		# We are not in an exception
+		return 0;
 	}
-	return;
+	my $spec      = $self->[0];
+	my $exception = $runtime->{exception};
+	if ( ref $spec eq 'Regexp' ) {
+		if ( defined _STRING($exception) ) {
+			return $exception =~ $spec ? 1 : 0;
+		} else {
+			return 0;
+		}
+	} else {
+		if ( defined _INSTANCE($exception, $spec) ) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
 }
 
 1;
@@ -78,15 +65,18 @@ __END__
 
 =head1 NAME
 
-Aspect::Pointcut::Or - Logical 'or' operation pointcut
+Aspect::Pointcut::Throwing - Exception typing pointcut
 
-=head1 SYNOPSIS
-
-    Aspect::Pointcut::Or->new;
+  use Aspect;
+  
+  # Catch Foo exceptions and return true instead
+  after { $_[0]->return_value(1) } throwing 'Foo::Exception';
 
 =head1 DESCRIPTION
 
-None yet.
+The B<Aspect::Pointcut::Throwing> pointcut is used to match situations
+in which an after() or after_throwing() advice returns a specific
+exception string or object.
 
 =head1 BUGS AND LIMITATIONS
 

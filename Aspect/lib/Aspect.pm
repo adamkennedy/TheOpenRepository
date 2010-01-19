@@ -22,6 +22,7 @@ use Aspect::Pointcut::Call         ();
 use Aspect::Pointcut::Cflow        ();
 use Aspect::Pointcut::Highest      ();
 use Aspect::Pointcut::Wantarray    ();
+use Aspect::Pointcut::Throwing     ();
 use Aspect::Advice                 ();
 use Aspect::AdviceContext          ();
 use Aspect::Advice::Around         ();
@@ -31,7 +32,7 @@ use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
 use Aspect::AdviceContext          ();
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 # Internal data storage
 my @FOREVER = ();
@@ -124,6 +125,10 @@ sub wantvoid () {
 	Aspect::Pointcut::Wantarray->new(undef);
 }
 
+sub throwing ($) {
+	Aspect::Pointcut::Throwing->new(@_);
+}
+
 
 
 
@@ -163,7 +168,7 @@ sub import {
 		# Install new generation API functions
 		foreach ( qw{
 			around after_returning after_throwing
-			if_true highest
+			if_true highest throwing
 			wantlist wantscalar wantvoid
 		} ) {
 			Sub::Install::install_sub( {

@@ -5,7 +5,7 @@ package Aspect::Advice::Hook;
 
 use strict;
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 our @ISA     = 'Aspect::Advice';
 
 1;

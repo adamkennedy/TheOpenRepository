@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Aspect::Pointcut ();
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 our @ISA     = 'Aspect::Pointcut';
 
 
@@ -33,21 +33,26 @@ sub match_contains {
 
 sub curry_run {
 	my $self = shift;
+	my @list = @$self;
 
-	# Reduce our children to the subset which themselves do not curry
-	my @children = grep { $_->curry_run } @$self;
-
-	# If none are left, curry us away to nothing
-	return unless @children;
-
-	# If only one remains, curry us away to just that child
-	if ( @children == 1 ) {
-		return $children[0];
+	# Collapse nested And clauses
+	while ( scalar grep { $_->isa('Aspect::Pointcut::And') } @list ) {
+		@list = map {
+			$_->isa('Aspect::Pointcut::And') ? @$_ : $_
+		} @list;
 	}
 
+	# Curry down our children
+	@list = grep { defined $_ } map { $_->curry_run } @list;
+
+	# If none are left, curry us away to nothing
+	return unless @list;
+
+	# If only one remains, curry us away to just that child
+	return $list[0] if @list == 1;
+
 	# Create our clone to hold the curried subset
-	my $class = ref($self);
-	return $class->new( @children );
+	return ref($self)->new( @list );
 }
 
 
