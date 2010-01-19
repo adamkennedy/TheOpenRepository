@@ -8,7 +8,7 @@ use Aspect::Pointcut::Call  ();
 use Aspect::Pointcut::Cflow ();
 use Aspect::Pointcut::And   ();
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 our @ISA     = 'Aspect::Modular';
 
 sub get_advice {

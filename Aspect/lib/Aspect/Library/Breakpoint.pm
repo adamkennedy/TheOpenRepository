@@ -5,7 +5,7 @@ use warnings;
 use Aspect::Modular        ();
 use Aspect::Advice::Before ();
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
@@ -15,6 +15,8 @@ sub get_advice {
 		pointcut => $_[0],
 		code     => sub {
 			$DB::single = 1;
+			1;
+			DB->skippkg('Aspect::Advice::Hook');
 		},
 	);
 }

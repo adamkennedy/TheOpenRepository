@@ -9,9 +9,10 @@ use Carp::Heavy           ();
 use Carp                  ();
 use Sub::Uplevel          ();
 use Aspect::Advice        ();
+use Aspect::Advice::Hook  ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -58,6 +59,8 @@ sub _install {
 		# Generate the new function
 		no warnings 'redefine';
 		eval <<"END_PERL"; die $@ if $@;
+		package Aspect::Advice::Hook;
+
 		*$NAME = sub $PROTOTYPE {
 			# Is this a lexically scoped hook that has finished
 			goto &\$original if $MATCH_DISABLED;
