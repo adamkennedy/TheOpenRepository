@@ -183,21 +183,22 @@ BEGIN {
 	}
 
 	%FLAGS = (
-		'create_makefile_pl'   => [ '0.19', 0 ],
-		'c_source'             => [ '0.04', 0 ],
-		'dist_abstract'        => [ '0.20', 0 ],
-		'dist_name'            => [ '0.11', 0 ],
-		'dist_version'         => [ '0.11', 0 ],
-		'dist_version_from'    => [ '0.11', 0 ],
-		'installdirs'          => [ '0.19', 0 ],
-		'license'              => [ '0.11', 0 ],
-		'create_packlist'      => [ '0.28', 1 ],
-		'create_readme'        => [ '0.22', 1 ],
-		'create_license'       => [ '0.31', 1 ],
-		'dynamic_config'       => [ '0.07', 1 ],
-		'use_tap_harness'      => [ '0.30', 1 ],
-		'sign'                 => [ '0.16', 1 ],
-		'recursive_test_files' => [ '0.28', 1 ],
+		'create_makefile_pl'          => [ '0.19', 0 ],
+		'c_source'                    => [ '0.04', 0 ],
+		'dist_abstract'               => [ '0.20', 0 ],
+		'dist_name'                   => [ '0.11', 0 ],
+		'dist_version'                => [ '0.11', 0 ],
+		'dist_version_from'           => [ '0.11', 0 ],
+		'installdirs'                 => [ '0.19', 0 ],
+		'license'                     => [ '0.11', 0 ],
+		'create_packlist'             => [ '0.28', 1 ],
+		'create_readme'               => [ '0.22', 1 ],
+		'create_license'              => [ '0.31', 1 ],
+		'dynamic_config'              => [ '0.07', 1 ],
+		'use_tap_harness'             => [ '0.30', 1 ],
+		'sign'                        => [ '0.16', 1 ],
+		'recursive_test_files'        => [ '0.28', 1 ],
+		'auto_configure_requires'     => [ '0.34', 1 ],
 	);
 
 	%ALIASES = (
