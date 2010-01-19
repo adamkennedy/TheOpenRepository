@@ -1,7 +1,8 @@
 Revision history for Perl extension Aspect
 
 0.38 Tue 19 Jan 2010 - Adam Kennedy
-	- Added support for the "highest" pointcut.
+	- Added experimental support for the "highest" pointcut.
+	- Added experimental support for the Breakpoint reusable library.
 
 0.37 Wed 13 Jan 2010 - Adam Kennedy
 	- Added support for "Aspect ':legacy'", which will cause the Aspect

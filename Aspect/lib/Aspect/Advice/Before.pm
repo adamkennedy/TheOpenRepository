@@ -10,7 +10,7 @@ use Carp                  ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -18,6 +18,13 @@ sub _install {
 	my $pointcut = $self->pointcut;
 	my $code     = $self->code;
 	my $lexical  = $self->lexical;
+
+	# Special case.
+	# The method used by the Highest pointcut is incompatible
+	# with the goto optimisation used by the before() advice.
+	if ( $pointcut->match_contains('Aspect::Pointcut::Highest') ) {
+		Carp::croak("The highest pointcut is not currently supported by this advice");
+	}
 
 	# Get the curried version of the pointcut we will use for the
 	# runtime checks instead of the original.

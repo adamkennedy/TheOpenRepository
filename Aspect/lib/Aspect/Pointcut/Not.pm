@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Aspect::Pointcut ();
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 our @ISA     = 'Aspect::Pointcut';
 
 
@@ -16,6 +16,13 @@ our @ISA     = 'Aspect::Pointcut';
 
 sub match_define {
 	return ! shift->[0]->match_define(@_);
+}
+
+sub match_contains {
+	my $self = shift;
+	return 1 if $self->isa($_[0]);
+	return 1 if $self->[0]->match_contains($_[0]);
+	return '';
 }
 
 # Logical not inherits it's curryability from the element contained

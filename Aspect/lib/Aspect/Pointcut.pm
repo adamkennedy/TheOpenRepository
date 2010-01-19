@@ -7,7 +7,7 @@ use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 use overload (
 	# Keep traditional Perl boolification and stringification
@@ -94,6 +94,12 @@ sub match_all {
 sub match_define {
 	my $class = ref $_[0] || $_[0];
 	die("Method 'match_define' not implemented in class '$class'");
+}
+
+sub match_contains {
+	my $self = shift;
+	return 1 if $self->isa($_[0]);
+	return '';
 }
 
 sub curry_run {

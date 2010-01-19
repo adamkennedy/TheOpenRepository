@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Aspect::Pointcut ();
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 our @ISA     = 'Aspect::Pointcut';
 
 
@@ -20,6 +20,15 @@ sub match_define {
 		return unless $_->match_define(@_);
 	}
 	return 1;
+}
+
+sub match_contains {
+	my $self = shift;
+	return 1 if $self->isa($_[0]);
+	foreach my $child ( @$self ) {
+		return 1 if $child->match_contains($_[0]);
+	}
+	return '';
 }
 
 sub curry_run {

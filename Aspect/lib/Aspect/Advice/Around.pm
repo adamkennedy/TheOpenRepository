@@ -11,7 +11,7 @@ use Sub::Uplevel          ();
 use Aspect::Advice        ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
