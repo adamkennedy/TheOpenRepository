@@ -89,7 +89,7 @@ use     Perl::Dist::WiX::Types qw(
 	Directory ExistingDirectory ExistingFile MaybeExistingDirectory
 );
 use     Perl::Dist::WiX::PrivateTypes qw(
-	_NoDoubleSlashes _NoSpaces
+	_NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd
 );
 use     Params::Util          qw(
 	_HASH _STRING _INSTANCE _IDENTIFIER _ARRAY0 _ARRAY
@@ -134,7 +134,7 @@ require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 #>>>
 
-our $VERSION = '1.101_001';
+our $VERSION = '1.101_002';
 $VERSION =~ s/_//ms;
 
 
@@ -659,7 +659,10 @@ Defaults to C<temp_dir> . '\build', and must exist if given.
 
 has 'build_dir' => (
 	is      => 'ro',
-	isa     => ExistingDirectory,
+	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent           => ExistingDirectory,
+		type_constraints => [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
+	),
 	lazy    => 1,
 	builder => '_build_build_dir',
 );
@@ -743,14 +746,16 @@ Defaults to C<temp_dir> . '\checkpoint', and must exist if given.
 
 has 'checkpoint_dir' => (
 	is      => 'ro',
-	isa     => Directory,
+	isa     => Maybe[ExistingDirectory],
 	lazy    => 1,
 	builder => '_build_checkpoint_dir',
 );
 
 sub _build_checkpoint_dir {
 	my $self = shift;
-	return catfile( $self->temp_dir(), 'checkpoint' );
+	my $dir = catdir( $self->temp_dir(), 'checkpoint' );
+	$self->_remake_path($dir);
+	return $dir;
 }
 
 
@@ -888,7 +893,10 @@ Defaults to C<temp_dir> . '\download', and must exist if given.
 
 has 'download_dir' => (
 	is      => 'ro',
-	isa     => ExistingDirectory,
+	isa => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent           => ExistingDirectory,
+		type_constraints => [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
+	),
 	lazy    => 1,
 	builder => '_build_download_dir',
 );
@@ -1089,7 +1097,10 @@ has 'image_dir' => (
 	is  => 'ro',
 	isa => MooseX::Meta::TypeConstraint::Intersection->new(
 		parent           => ExistingDirectory,
-		type_constraints => [ _NoDoubleSlashes, _NoSpaces, ],
+		type_constraints => [ 
+			_NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd, 
+			_NotRootDir,
+		],
 	),
 	required => 1,
 );
@@ -1107,6 +1118,10 @@ Defaults to C<image_dir> . '\licenses', and needs to exist if given.
 
 has 'license_dir' => (
 	is      => 'ro',                   # Directory that must exist.
+	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent           => ExistingDirectory,
+		type_constraints => [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
+	),
 	lazy    => 1,
 	builder => '_build_license_dir',
 );
@@ -1130,6 +1145,10 @@ Defaults to C<download_dir> . '\modules', and must exist if given.
 
 has 'modules_dir' => (
 	is      => 'ro',                   # Directory that must exist.
+	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent           => ExistingDirectory,
+		type_constraints => [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
+	),
 	lazy    => 1,
 	builder => '_build_modules_dir',
 );
@@ -1339,6 +1358,10 @@ Defaults to C<temp_dir> . '\output', and must exist when given.
 
 has 'output_dir' => (
 	is      => 'ro',                   # Directory that must exist.
+	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent           => ExistingDirectory,
+		type_constraints => [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
+	),
 	lazy    => 1,
 	builder => '_build_output_dir',
 );
@@ -1544,7 +1567,10 @@ This parameter defaults to a subdirectory of $ENV{TEMP} if not specified.
 
 has 'temp_dir' => (
 	is      => 'ro',
-	isa     => Directory,
+	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent           => Directory,
+		type_constraints => [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
+	),
 	default => sub { return catdir( tmpdir(), 'perldist' ) },
 );
 

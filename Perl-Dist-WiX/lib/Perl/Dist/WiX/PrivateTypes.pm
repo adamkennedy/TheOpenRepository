@@ -17,12 +17,12 @@ This module contains types private to Perl::Dist::WiX.
 =cut
 
 use 5.008001;
-use MooseX::Types -declare => [qw( _NoDoubleSlashes _NoSpaces )];
+use MooseX::Types -declare => [qw( _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd )];
 use MooseX::Types::Moose qw( Str );
 
 # use Perl::Dist::WiX::Types;
 
-our $VERSION = '0.01';
+our $VERSION = '1.101_002';
 
 subtype _NoDoubleSlashes,
   as Str,
@@ -34,7 +34,21 @@ subtype _NoSpaces,
   where { $_ !~ m{\s}ms },
   message {'Spaces are not allowed'};
 
+subtype _NoForwardSlashes,
+  as Str,
+  where { $_ !~ m{/}ms },
+  message {'Forward slashes are not allowed'};
 
+subtype _NoSlashAtEnd,
+  as Str,
+  where { $_ !~ m{\\\z}ms },
+  message {'Cannot have a slash at the end'};
+
+subtype _NotRootDir,
+  as Str,
+  where { $_ !~ m{:\z}ms },
+  message {'Cannot be a root directory'};
+  
 1;
 
 __END__
