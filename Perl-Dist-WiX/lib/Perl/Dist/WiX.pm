@@ -2760,47 +2760,48 @@ sub install_win32_extras {
 #		path => $self->_dir( qw( perl bin ) ),
 #	);
 
-	$self->install_launcher(
-		name => 'CPAN Client',
-		bin  => 'cpan',
-	);
-	$self->install_website(
-		name      => 'CPAN Search',
-		url       => 'http://search.cpan.org/',
-		icon_file => catfile( $self->wix_dist_dir(), 'cpan.ico' ) );
-
-	if ( $self->perl_version_human eq '5.8.9' ) {
+	if ($self->msi()) {
+		$self->install_launcher(
+			name => 'CPAN Client',
+			bin  => 'cpan',
+		);
 		$self->install_website(
-			name      => 'Perl 5.8.9 Documentation',
-			url       => 'http://perldoc.perl.org/5.8.9/',
-			icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
-	}
-	if ( $self->perl_version_human eq '5.10.0' ) {
-		$self->install_website(
-			name      => 'Perl 5.10.0 Documentation',
-			url       => 'http://perldoc.perl.org/5.10.0/',
-			icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
-	}
-	if ( $self->perl_version_human eq '5.10.1' ) {
-		$self->install_website(
-			name      => 'Perl 5.10.1 Documentation',
-			url       => 'http://perldoc.perl.org/',
-			icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
-	}
-	$self->install_website(
-		name      => 'Win32 Perl Wiki',
-		url       => 'http://win32.perl.org/',
-		icon_file => catfile( $self->wix_dist_dir(), 'win32.ico' ) );
+			name      => 'CPAN Search',
+			url       => 'http://search.cpan.org/',
+			icon_file => catfile( $self->wix_dist_dir(), 'cpan.ico' ) );
 
-	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
-		name => 'Perl (command line)',
-		description =>
-		  'Quick way to get to the command line in order to use Perl',
-		target      => '[SystemFolder]cmd.exe',
-		id          => 'PerlCmdLine',
-		working_dir => 'PersonalFolder',
-	);
+		if ( $self->perl_version_human eq '5.8.9' ) {
+			$self->install_website(
+				name      => 'Perl 5.8.9 Documentation',
+				url       => 'http://perldoc.perl.org/5.8.9/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
+		}
+		if ( $self->perl_version_human eq '5.10.0' ) {
+			$self->install_website(
+				name      => 'Perl 5.10.0 Documentation',
+				url       => 'http://perldoc.perl.org/5.10.0/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
+		}
+		if ( $self->perl_version_human eq '5.10.1' ) {
+			$self->install_website(
+				name      => 'Perl 5.10.1 Documentation',
+				url       => 'http://perldoc.perl.org/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
+		}
+		$self->install_website(
+			name      => 'Win32 Perl Wiki',
+			url       => 'http://win32.perl.org/',
+			icon_file => catfile( $self->wix_dist_dir(), 'win32.ico' ) );
 
+		$self->get_fragment_object('StartMenuIcons')->add_shortcut(
+			name => 'Perl (command line)',
+			description =>
+			  'Quick way to get to the command line in order to use Perl',
+			target      => '[SystemFolder]cmd.exe',
+			id          => 'PerlCmdLine',
+			working_dir => 'PersonalFolder',
+		);
+	}
 
 	return $self;
 } ## end sub install_win32_extras
@@ -3690,16 +3691,16 @@ sub add_to_fragment {
 # Serialization
 #
 
-=head2 _as_string
+=head2 as_string
 
 Loads the file template passed in as the parameter, using this object, 
 and returns it as a string.
 
 	# Loads up the merge module template.
-	$wxs = $self->_as_string('Merge-Module.wxs.tt');
+	$wxs = $self->as_string('Merge-Module.wxs.tt');
 
 	# Loads up the main template
-	$wxs = $self->_as_string('Main.wxs.tt');
+	$wxs = $self->as_string('Main.wxs.tt');
 
 =cut
 
