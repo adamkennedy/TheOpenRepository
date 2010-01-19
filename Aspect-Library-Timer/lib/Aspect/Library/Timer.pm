@@ -6,11 +6,10 @@ use warnings;
 use Aspect::Modular 0.38 ();
 use Time::HiRes   1.9718 ();
 
-use vars qw{$VERSION @ISA $DEPTH};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.01';
+	$VERSION = '0.02';
 	@ISA     = 'Aspect::Modular';
-	$DEPTH   = 0;
 }
 
 sub get_advice {
@@ -43,8 +42,8 @@ sub get_advice {
 }
 
 sub handler {
-	my ( $name, $start, $stop, $interval );
-	printf STDDERR "%s - %s\n", $name, $interval;
+	my ( $name, $start, $stop, $interval ) = @_;
+	printf STDERR "%s - %s\n", $interval, $name;
 }
 
 1;
