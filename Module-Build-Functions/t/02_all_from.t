@@ -16,9 +16,11 @@ system($^X, "-I$blib_dir", 'Build.PL') if $debug;
 
 my $build = Module::Build->current();
 
-my $test1 = { };
-
-is_deeply($build->configure_requires(), $test1, 'configure_requires is empty');
+if ($Module::Build::VERSION ge '0.34') {
+    ok(exists $build->configure_requires()->{'Module::Build'}, "Module::Build was added to 'configure_requires'"); 
+} else {
+    is_deeply($build->configure_requires(), {}, 'configure_requires is empty');
+}
 
 my $test2 = [
 	'Curtis Jewell <perl@csjewell.fastmail.us>',

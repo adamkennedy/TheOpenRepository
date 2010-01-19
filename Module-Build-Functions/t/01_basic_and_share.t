@@ -37,7 +37,10 @@ my $test2 = [
 
 is_deeply($build->dist_author(), $test2, 'dist_author is correct (multiple)');
 
-my $test3 = [qw(PL support pm xs pod script share share_d1 share_d2)];
+my $test3 = $Module::Build::VERSION ge '0.35_01' ? 
+    [qw(PL support pm xs share_dir pod script share share_d1 share_d2)] 
+    : 
+    [qw(PL support pm xs pod script share share_d1 share_d2)];
 
 is_deeply($build->build_elements(), $test3, 'build_elements list is correct');
 
