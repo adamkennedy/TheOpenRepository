@@ -36,7 +36,7 @@ our $VERSION = '0.42';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
-our %EXPORTER;
+our %EXPORTED;
 
 
 
@@ -173,7 +173,7 @@ sub import {
 				code => $_,
 				into => $into,
 			} );
-			$EXPORTED{"${info}::$_"} = 1;
+			$EXPORTED{"${into}::$_"} = 1;
 		}
 	}
 
