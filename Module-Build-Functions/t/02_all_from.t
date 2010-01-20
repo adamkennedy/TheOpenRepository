@@ -16,7 +16,9 @@ system($^X, "-I$blib_dir", 'Build.PL') if $debug;
 
 my $build = Module::Build->current();
 
-if ($Module::Build::VERSION ge '0.34') {
+
+# documentation states, that this behavior started from 0.34, but practice shows the other (?)
+if ($Module::Build::VERSION ge '0.35') {
     ok(exists $build->configure_requires()->{'Module::Build'}, "Module::Build was added to 'configure_requires'"); 
 } else {
     is_deeply($build->configure_requires(), {}, 'configure_requires is empty');
