@@ -7,8 +7,8 @@ use warnings;
 # NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
 use Carp::Heavy             (); 
 use Carp                    ();
+use Aspect::Hook            ();
 use Aspect::Advice          ();
-use Aspect::Advice::Hook    ();
 use Aspect::Context::Before ();
 
 our $VERSION = '0.42';
@@ -65,7 +65,7 @@ sub _install {
 		# Generate the new function
 		no warnings 'redefine';
 		eval <<"END_PERL"; die $@ if $@;
-		package Aspect::Advice::Hook;
+		package Aspect::Hook;
 
 		*$NAME = sub $PROTOTYPE {
 			# Is this a lexically scoped hook that has finished

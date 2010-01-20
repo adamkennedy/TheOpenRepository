@@ -8,8 +8,8 @@ use warnings;
 use Carp::Heavy             (); 
 use Carp                    ();
 use Sub::Uplevel            ();
+use Aspect::Hook            ();
 use Aspect::Advice          ();
-use Aspect::Advice::Hook    ();
 use Aspect::Context::Around ();
 
 our $VERSION = '0.42';
@@ -59,7 +59,7 @@ sub _install {
 		# Generate the new function
 		no warnings 'redefine';
 		eval <<"END_PERL"; die $@ if $@;
-		package Aspect::Advice::Hook;
+		package Aspect::Hook;
 
 		*$NAME = sub $PROTOTYPE {
 			# Is this a lexically scoped hook that has finished

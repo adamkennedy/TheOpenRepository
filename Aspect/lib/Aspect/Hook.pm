@@ -1,4 +1,4 @@
-package Aspect::Advice::Hook;
+package Aspect::Hook;
 
 # This class exists only to provide a known-good empty
 # class that the code for Advice hooks can be generated into.
@@ -6,6 +6,5 @@ package Aspect::Advice::Hook;
 use strict;
 
 our $VERSION = '0.42';
-our @ISA     = 'Aspect::Advice';
 
 1;

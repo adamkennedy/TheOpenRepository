@@ -15,8 +15,6 @@ sub get_advice {
 		pointcut => $_[0],
 		code     => sub {
 			$DB::single = 1;
-			1;
-			DB->skippkg('Aspect::Advice::Hook');
 		},
 	);
 }

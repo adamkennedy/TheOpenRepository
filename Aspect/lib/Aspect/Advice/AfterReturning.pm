@@ -8,11 +8,11 @@ use warnings;
 use Carp::Heavy                     (); 
 use Carp                            ();
 use Sub::Uplevel                    ();
+use Aspect::Hook                    ();
 use Aspect::Advice                  ();
-use Aspect::Advice::Hook            ();
 use Aspect::Context::AfterReturning ();
 
-our $VERSION = '0.42';
+our $VERSION = '0.41';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -62,7 +62,7 @@ sub _install {
 		# Generate the new function
 		no warnings 'redefine';
 		eval <<"END_PERL"; die $@ if $@;
-		package Aspect::Advice::Hook;
+		package Aspect::Hook;
 
 		*$NAME = sub $PROTOTYPE {
 			# Is this a lexically scoped hook that has finished
