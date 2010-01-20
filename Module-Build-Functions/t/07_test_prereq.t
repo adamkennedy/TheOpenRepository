@@ -1,7 +1,7 @@
 BEGIN {
 	$| = 1;
 }
-use Test::More tests => 6;
+use Test::More;
 use File::Spec::Functions qw(catdir catfile);
 use Cwd;
 use Capture::Tiny qw(capture);
@@ -22,6 +22,7 @@ if ($@) {
     exit(0);
 }
 
+plan tests => 6;
 
 
 my $original_dir = cwd();
