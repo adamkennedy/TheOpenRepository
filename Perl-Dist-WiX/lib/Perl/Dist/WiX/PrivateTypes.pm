@@ -17,7 +17,8 @@ This module contains types private to Perl::Dist::WiX.
 =cut
 
 use 5.008001;
-use MooseX::Types -declare => [qw( _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd )];
+use MooseX::Types -declare => 
+	[qw( _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir )];
 use MooseX::Types::Moose qw( Str );
 
 # use Perl::Dist::WiX::Types;

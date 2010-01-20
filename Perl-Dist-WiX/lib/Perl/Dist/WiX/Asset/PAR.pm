@@ -23,11 +23,12 @@ has name => (
 
 sub install {
 	my $self = shift;
-
+	
 	my $name         = $self->get_name();
 	my $image_dir    = $self->_get_image_dir();
 	my $download_dir = $self->_get_download_dir();
 	my $url          = $self->_get_url();
+	my $portable     = $self->_get_parent()->portable();
 
 	$self->_trace_line( 1, "Preparing $name\n" );
 
@@ -51,6 +52,10 @@ sub install {
 		$packlist = catfile( $libdir, 'auto', @module_dirs, '.packlist' );
 		my $cdir = catdir( $image_dir, 'c' );
 
+		if ($portable) {
+			$libdir  = catdir( $perldir, 'site', 'lib' );
+		}
+		
 		# Suppress warnings for resources that don't exist
 		local $WARNING = 0;
 

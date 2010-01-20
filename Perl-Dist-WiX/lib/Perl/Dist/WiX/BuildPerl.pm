@@ -354,6 +354,27 @@ END_PERL
 	return $cpan_info_file;
 } ## end sub _get_cpan_upgrades_list
 
+sub _install_location {
+	my ($self, $core) = @_;
+	my $portable = $self->portable();
+	if ($core) {
+		return (
+		    makefilepl_param => ['INSTALLDIRS=perl'],
+			buildpl_param => ['--installdirs', 'core'],
+		);
+	} elsif ($portable) {
+		return (
+			makefilepl_param => ['INSTALLDIRS=site'],
+			buildpl_param => ['--installdirs', 'site'],
+		);
+	} else {
+		return (
+			makefilepl_param => ['INSTALLDIRS=vendor'],
+			buildpl_param => ['--installdirs', 'vendor'],
+		);
+	}
+}
+
 sub _install_cpan_module {
 	my ( $self, $module, $force ) = @_;
 	$force = $force or $self->force();
@@ -368,15 +389,7 @@ sub _install_cpan_module {
 	$self->install_distribution(
 		name     => $module_file,
 		mod_name => $module_id,
-		$core
-		  ? (
-		      makefilepl_param => ['INSTALLDIRS=perl'],
-			  buildpl_param => ['--installdirs', 'core'],
-		    )
-		  : (
-		      makefilepl_param => ['INSTALLDIRS=vendor'],
-			  buildpl_param => ['--installdirs', 'vendor'],
-		    ),
+		$self->_install_location($core),
 		$force
 		  ? ( force => 1 )
 		  : (),
@@ -845,15 +858,7 @@ sub install_perl_toolchain {
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
 			overwritable      => $overwritable,
-			$core
-			  ? (
-				  makefilepl_param => ['INSTALLDIRS=perl'],
-				  buildpl_param => ['--installdirs', 'core'],
-				)
-			  : (
-				  makefilepl_param => ['INSTALLDIRS=vendor'],
-				  buildpl_param => ['--installdirs', 'vendor'],
-			    ),
+			$self->_install_location($core),
 		);
 #>>>
 	} ## end foreach my $dist ( $toolchain...)

@@ -36,17 +36,12 @@ has packlist => (
 	default => 1,
 );
 
-# Don't know what these are for. TODO: Delete.
-#use Object::Tiny qw{
-#	type
-#	extras
-#};
-
 sub install {
 	my $self  = shift;
 	my $name  = $self->get_name();
 	my $force = $self->_get_force();
-
+	my $vendor = $self->_get_parent()->portable() ? 0 : 1;
+	
 	my $packlist_flag = $self->_get_packlist();
 
 	unless ( $self->_get_bin_perl() ) {
@@ -58,7 +53,7 @@ sub install {
 	# Generate the CPAN installation script.
 	# Fix url's for minicpans until 1.9403 is released.
 	my $url = $self->_get_cpan()->as_string();
-	$url =~ s{\Afile:///C:/}{file://C:/}msx;
+#	$url =~ s{\Afile:///C:/}{file://C:/}msx;
 
 	my $dp_dir = catdir( $self->_get_wix_dist_dir(), 'distroprefs' );
 	my $internet_available = ( $url =~ m{ \A file://}msx ) ? 1 : 0;
@@ -73,10 +68,12 @@ CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'prerequisites_policy'} = q[ignore];
 \$CPAN::Config->{'connect_to_internet_ok'} = q[$internet_available];
 \$CPAN::Config->{'ftp'} = q[];
-\$CPAN::Config->{'makepl_arg'} = q[INSTALLDIRS=vendor];
-\$CPAN::Config->{'make_install_arg'} = q[INSTALLDIRS=vendor];
-\$CPAN::Config->{'mbuildpl_arg'} = q[--installdirs vendor];
-\$CPAN::Config->{'mbuild_install_arg'} = q[--installdirs vendor];
+if ($vendor) {
+	\$CPAN::Config->{'makepl_arg'} = q[INSTALLDIRS=vendor];
+	\$CPAN::Config->{'make_install_arg'} = q[INSTALLDIRS=vendor];
+	\$CPAN::Config->{'mbuildpl_arg'} = q[--installdirs vendor];
+	\$CPAN::Config->{'mbuild_install_arg'} = q[--installdirs vendor];
+}
 print "Installing $name from CPAN...\\n";
 my \$module = CPAN::Shell->expandany( "$name" ) 
 	or die "CPAN.pm couldn't locate $name";

@@ -89,7 +89,7 @@ use     Perl::Dist::WiX::Types qw(
 	Directory ExistingDirectory ExistingFile MaybeExistingDirectory
 );
 use     Perl::Dist::WiX::PrivateTypes qw(
-	_NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd
+	_NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir
 );
 use     Params::Util          qw(
 	_HASH _STRING _INSTANCE _IDENTIFIER _ARRAY0 _ARRAY
@@ -1437,7 +1437,7 @@ This parameter defaults to '5101' if not specified.
 
 has 'perl_version' => (
 	is      => 'ro',
-	isa     => 'Str',
+	isa     => Str,
 	default => '5101',
 );
 
@@ -1458,6 +1458,7 @@ This defaults to a false value.
 
 has 'portable' => (
 	is      => 'ro',                   # Boolean
+	isa     => Bool,
 	default => 0,
 );
 
