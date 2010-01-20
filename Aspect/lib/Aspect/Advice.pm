@@ -3,7 +3,7 @@ package Aspect::Advice;
 use strict;
 use warnings;
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 sub new {
 	my $class = shift;

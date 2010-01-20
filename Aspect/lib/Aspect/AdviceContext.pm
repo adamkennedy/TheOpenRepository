@@ -5,7 +5,7 @@ use warnings;
 use Carp         ();
 use Sub::Uplevel ();
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 
 
@@ -111,7 +111,17 @@ sub run_original {
 sub return_value {
 	my $self = shift;
 	if ( @_ ) {
-		$self->{return_value} = shift;
+		if ( $self->{wantarray} ) {
+			# Normalise list-wise return behaviour
+			# at mutation time, rather than everywhere else.
+			# NOTE: Reuse the current array reference. This
+			# causes the original return values to be cleaned
+			# up immediately, and allows for a small
+			# optimisation in the surrounding advice hook code.
+			$self->{return_value} = \@_;
+		} else {
+			$self->{return_value} = shift;
+		}
 		if ( defined $self->{exception} ) {
 			$self->{exception} = '';
 		}

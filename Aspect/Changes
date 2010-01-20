@@ -4,6 +4,11 @@ Revision history for Perl extension Aspect
 	- So few pointcuts care about the sub name at run-time that
 	  it doesn't make sense to pass it as a separate parameter
 	  to match_run. Include it in the run-time HASH instead.
+	- Normalise changes to return_value inside the advice code,
+	  rather than after it by using the ->{wantarray} context attribute
+	  to know when that normalisation is needed. This allows us to cheat
+	  in the hook code and use ->{return_value} directly, which is
+	  significantly faster than calling ->return_value.
 
 0.40 Tue 19 Jan 2010 - Adam Kennedy
 	- Added experimental Aspect::Library::Throwing pointcut

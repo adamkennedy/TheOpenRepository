@@ -32,7 +32,7 @@ use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
 use Aspect::AdviceContext          ();
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 # Internal data storage
 my @FOREVER = ();

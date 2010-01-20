@@ -11,7 +11,7 @@ use Aspect::Advice        ();
 use Aspect::Advice::Hook  ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -101,12 +101,7 @@ sub _install {
 				}
 
 				# Don't run the original
-				my \$rv = \$context->return_value;
-				if ( ref \$rv eq 'ARRAY' ) {
-					return \@\$rv;
-				} else {
-					return ( \$rv );
-				}
+				return \@{\$context->{return_value}};
 			}
 
 			# Scalar and void have the same return handling.
@@ -119,7 +114,7 @@ sub _install {
 
 			# Do they want to shortcut?
 			unless ( \$context->proceed ) {
-				return \$context->return_value;
+				return \$context->{return_value};
 			}
 
 			# Continue onwards to the original function

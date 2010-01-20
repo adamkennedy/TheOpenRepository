@@ -12,7 +12,7 @@ use Aspect::Advice        ();
 use Aspect::Advice::Hook  ();
 use Aspect::AdviceContext ();
 
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -104,12 +104,7 @@ sub _install {
 				die \$exception if \$exception;
 
 				# Get the (potentially) modified return value
-				\$return = \$context->return_value;
-				if ( ref \$return eq 'ARRAY' ) {
-					return \@\$return;
-				} else {
-					return ( \$return );
-				}
+				return \@{\$context->{return_value}};
 			}
 
 			if ( defined \$wantarray ) {
@@ -147,7 +142,7 @@ sub _install {
 				die \$exception if \$exception;
 
 				# Return the potentially-modified value
-				return \$context->return_value;
+				return \$context->{return_value};
 
 			} else {
 				eval {
