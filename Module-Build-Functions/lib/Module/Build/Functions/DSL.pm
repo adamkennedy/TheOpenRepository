@@ -4,7 +4,7 @@ use strict;
 use vars qw( $VERSION );
 
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 
 	*inc::Module::Build::Functions::DSL::VERSION = *VERSION;
 	@inc::Module::Build::Functions::DSL::ISA     = __PACKAGE__;
