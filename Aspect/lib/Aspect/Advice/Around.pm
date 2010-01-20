@@ -12,7 +12,7 @@ use Aspect::Advice          ();
 use Aspect::Advice::Hook    ();
 use Aspect::Context::Around ();
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -74,14 +74,14 @@ sub _install {
 			goto &\$original unless $MATCH_RUN;
 
 			# Prepare the context object
-			my \$context = Aspect::Context::Around->new(
+			my \$context = bless {
 				type         => 'around',
 				pointcut     => \$pointcut,
 				params       => \\\@_,
 				return_value => \$wantarray ? [ ] : undef,
 				original     => \$original,
 				\%\$runtime,
-			);
+			}, 'Aspect::Context::Around';
 
 			# Array context needs some special return handling
 			if ( \$wantarray ) {

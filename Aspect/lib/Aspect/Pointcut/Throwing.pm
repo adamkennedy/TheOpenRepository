@@ -6,7 +6,7 @@ use Carp             ();
 use Params::Util     ('_STRING', '_INSTANCE');
 use Aspect::Pointcut ();
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 our @ISA     = 'Aspect::Pointcut';
 
 

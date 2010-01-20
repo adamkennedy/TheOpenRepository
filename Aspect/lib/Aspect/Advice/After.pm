@@ -12,7 +12,7 @@ use Aspect::Advice         ();
 use Aspect::Advice::Hook   ();
 use Aspect::Context::After ();
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -88,13 +88,13 @@ sub _install {
 				}
 
 				# Create the context
-				my \$context = Aspect::Context::After->new(
+				my \$context = bless {
 					type     => 'after',
 					pointcut => \$pointcut,
 					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
-				);
+				}, 'Aspect::Context::After';
 
 				# Execute the advice code
 				() = &\$code(\$context);
@@ -126,13 +126,13 @@ sub _install {
 				}
 
 				# Create the context
-				my \$context = Aspect::Context::After->new(
+				my \$context = bless {
 					type     => 'after',
 					pointcut => \$pointcut,
 					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
-				);
+				}, 'Aspect::Context::After';
 
 				# Execute the advice code
 				my \$dummy = &\$code(\$context);
@@ -163,13 +163,13 @@ sub _install {
 				}
 
 				# Create the context
-				my \$context = Aspect::Context::After->new(
+				my \$context = bless {
 					type     => 'after',
 					pointcut => \$pointcut,
 					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
-				);
+				}, 'Aspect::Context::After';
 
 				# Execute the advice code
 				&\$code(\$context);

@@ -12,7 +12,7 @@ use Aspect::Advice                  ();
 use Aspect::Advice::Hook            ();
 use Aspect::Context::AfterReturning ();
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -82,14 +82,14 @@ sub _install {
 				return \@\$return unless $MATCH_RUN;
 
 				# Create the context
-				my \$context = Aspect::Context::AfterReturning->new(
+				my \$context = bless {
 					type         => 'after_returning',
 					pointcut     => \$pointcut,
 					params       => \\\@_,
 					return_value => \$return,
 					original     => \$original,
 					\%\$runtime,
-				);
+				}, 'Aspect::Context::AfterReturning';
 
 				# Execute the advice code
 				() = &\$code(\$context);
@@ -105,7 +105,7 @@ sub _install {
 				return \$return unless $MATCH_RUN;
 
 				# Create the context
-				my \$context = Aspect::Context::AfterReturning->new(
+				my \$context = bless {
 					type         => 'after_returning',
 					pointcut     => \$pointcut,
 					wantarray    => \$wantarray,
@@ -113,7 +113,7 @@ sub _install {
 					return_value => \$return,
 					original     => \$original,
 					\%\$runtime,
-				);
+				}, 'Aspect::Context::AfterReturning';
 
 				# Execute the advice code
 				my \$dummy = &\$code(\$context);
@@ -126,7 +126,7 @@ sub _install {
 				return unless $MATCH_RUN;
 
 				# Create the context
-				my \$context = Aspect::Context::AfterReturning->new(
+				my \$context = bless {
 					type         => 'after_returning',
 					pointcut     => \$pointcut,
 					wantarray    => \$wantarray,
@@ -134,7 +134,7 @@ sub _install {
 					return_value => undef,
 					original     => \$original,
 					\%\$runtime,
-				);
+				}, 'Aspect::Context::AfterReturning';
 
 				# Execute the advice code
 				&\$code(\$context);

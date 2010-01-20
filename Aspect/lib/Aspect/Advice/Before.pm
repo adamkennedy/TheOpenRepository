@@ -11,7 +11,7 @@ use Aspect::Advice          ();
 use Aspect::Advice::Hook    ();
 use Aspect::Context::Before ();
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -80,7 +80,7 @@ sub _install {
 			goto &\$original unless $MATCH_RUN;
 
 			# Prepare the context object
-			my \$context = Aspect::Context::Before->new(
+			my \$context = bless {
 				type         => 'before',
 				pointcut     => \$pointcut,
 				params       => \\\@_,
@@ -88,7 +88,7 @@ sub _install {
 				original     => \$original,
 				proceed      => 1,
 				\%\$runtime,
-			);
+			}, 'Aspect::Context::Before';
 
 			# Array context needs some special return handling
 			if ( \$wantarray ) {

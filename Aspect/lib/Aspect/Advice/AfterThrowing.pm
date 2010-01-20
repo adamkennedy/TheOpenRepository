@@ -12,7 +12,7 @@ use Aspect::Advice                 ();
 use Aspect::Advice::Hook           ();
 use Aspect::Context::AfterThrowing ();
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string
@@ -86,14 +86,14 @@ sub _install {
 				die \$runtime->{exception} unless $MATCH_RUN;
 
 				# Create the context
-				my \$context = Aspect::Context::AfterThrowing->new(
+				my \$context = bless {
 					type     => 'after_throwing',
 					pointcut => \$pointcut,
 					sub_name => \$name,
 					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
-				);
+				}, 'Aspect::Context::AfterThrowing';
 
 				# Execute the advice code
 				() = &\$code(\$context);
@@ -123,14 +123,14 @@ sub _install {
 				die \$runtime->{exception} unless $MATCH_RUN;
 
 				# Create the context
-				my \$context = Aspect::Context::AfterThrowing->new(
+				my \$context = bless {
 					type     => 'after_throwing',
 					pointcut => \$pointcut,
 					sub_name => \$name,
 					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
-				);
+				}, 'Aspect::Context::AfterThrowing';
 
 				# Execute the advice code
 				my \$dummy = &\$code(\$context);
@@ -159,13 +159,13 @@ sub _install {
 				die \$runtime->{exception} unless $MATCH_RUN;
 
 				# Create the context
-				my \$context = Aspect::Context::AfterThrowing->new(
+				my \$context = bless {
 					type     => 'after_throwing',
 					pointcut => \$pointcut,
 					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
-				);
+				}, 'Aspect::Context::AfterThrowing';
 
 				# Execute the advice code
 				&\$code(\$context);
