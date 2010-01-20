@@ -5,11 +5,11 @@ use warnings;
 
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
-use Carp::Heavy           (); 
-use Carp                  ();
-use Aspect::Advice        ();
-use Aspect::Advice::Hook  ();
-use Aspect::AdviceContext ();
+use Carp::Heavy             (); 
+use Carp                    ();
+use Aspect::Advice          ();
+use Aspect::Advice::Hook    ();
+use Aspect::Context::Before ();
 
 our $VERSION = '0.41';
 our @ISA     = 'Aspect::Advice';
@@ -80,7 +80,7 @@ sub _install {
 			goto &\$original unless $MATCH_RUN;
 
 			# Prepare the context object
-			my \$context = Aspect::AdviceContext->new(
+			my \$context = Aspect::Context::Before->new(
 				type         => 'before',
 				pointcut     => \$pointcut,
 				params       => \\\@_,
