@@ -35,7 +35,8 @@ sub curry_run {
 # Runtime Methods
 
 sub match_run {
-	my ($self, undef, $runtime) = @_;
+	my $self    = shift;
+	my $runtime = shift;
 	unless ( exists $runtime->{exception} ) {
 		# We are not in an exception
 		return 0;

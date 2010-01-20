@@ -29,7 +29,7 @@ sub _install {
 	# Because $MATCH_RUN is used in boolean conditionals, if there
 	# is nothing to do the compiler will optimise away the code entirely.
 	my $curried   = $pointcut->curry_run;
-	my $MATCH_RUN = $curried ? '$curried->match_run($name, $runtime)' : 1;
+	my $MATCH_RUN = $curried ? '$curried->match_run($runtime)' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
 	# the generated hook code, because it might (for reasons potentially
@@ -77,6 +77,7 @@ sub _install {
 				] };
 
 				my \$runtime = {
+					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					return_value => \$return,
 					exception    => \$\@,
@@ -90,7 +91,6 @@ sub _install {
 				my \$context = Aspect::AdviceContext->new(
 					type     => 'after',
 					pointcut => \$pointcut,
-					sub_name => \$name,
 					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
@@ -120,6 +120,7 @@ sub _install {
 				};
 
 				my \$runtime = {
+					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					return_value => \$return,
 					exception    => \$\@,
@@ -133,7 +134,6 @@ sub _install {
 				my \$context = Aspect::AdviceContext->new(
 					type     => 'after',
 					pointcut => \$pointcut,
-					sub_name => \$name,
 					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
@@ -157,6 +157,7 @@ sub _install {
 				};
 
 				my \$runtime = {
+					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					return_value => undef,
 					exception    => \$\@,
@@ -170,7 +171,6 @@ sub _install {
 				my \$context = Aspect::AdviceContext->new(
 					type     => 'after',
 					pointcut => \$pointcut,
-					sub_name => \$name,
 					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,

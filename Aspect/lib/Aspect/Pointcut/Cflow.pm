@@ -55,15 +55,15 @@ sub curry_run {
 # Runtime Methods
 
 sub match_run {
-	my ($self, $sub_name, $runtime_context) = @_;
-	my $caller_info = $self->find_caller;
-	return 0 unless $caller_info;
-	my $advice_context = Aspect::AdviceContext->new(
-		sub_name => $caller_info->{sub_name},
+	my $self    = shift;
+	my $runtime = shift;
+	my $caller  = $self->find_caller or return 0;
+	my $context = Aspect::AdviceContext->new(
+		sub_name => $caller->{sub_name},
 		pointcut => $self,
-		params   => $caller_info->{params},
+		params   => $caller->{params},
 	);
-	$runtime_context->{$self->[KEY]} = $advice_context;
+	$runtime->{$self->[KEY]} = $context;
 	return 1;
 }
 

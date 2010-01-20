@@ -49,7 +49,7 @@ sub match_run {
 	my $self    = shift;
 	my $cleanup = sub { $self->[0]-- };
 	bless $cleanup, 'Aspect::Pointcut::Highest::Cleanup';
-	$_[1]->{highest} = $cleanup;
+	$_[0]->{highest} = $cleanup;
 	return ! $self->[0]++;
 }
 

@@ -29,7 +29,9 @@ sub sub_to_match { shift->foo(pop) }
 
 sub foo {
 	my ($self, $subject) = @_;
-	my $runtime_context = {};
-	my $match = $subject->match_run(foo => $runtime_context);
-	return ($match, $runtime_context);
+	my $runtime = {
+		sub_name => 'foo',
+	};
+	my $match = $subject->match_run($runtime);
+	return ($match, $runtime);
 }

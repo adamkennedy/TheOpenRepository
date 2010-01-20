@@ -51,7 +51,8 @@ sub curry_run {
 # Runtime Methods
 
 sub match_run {
-	my ($self, undef, $runtime) = @_;
+	my $self    = shift;
+	my $runtime = shift;
 	unless ( exists $runtime->{wantarray} ) {
 		Carp::croak("The wantarray field in the runtime state does not exist");
 	}
