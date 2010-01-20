@@ -34,8 +34,9 @@ use Aspect::AdviceContext          ();
 
 our $VERSION = '0.42';
 
-# Internal data storage
-my @FOREVER = ();
+# Track the location of exported functions so that pointcuts
+# can avoid accidentally binding them.
+our %EXPORTER;
 
 
 
@@ -46,15 +47,10 @@ my @FOREVER = ();
 
 sub aspect {
 	my $class  = _LOAD('Aspect::Library::' . shift);
-	my $aspect = $class->new(
+	return $class->new(
 		lexical => defined wantarray,
 		params  => [ @_ ],
 	);
-
-	# If called in void context, aspect is for life
-	push @FOREVER, $aspect unless defined wantarray;
-
-	return $aspect;
 }
 
 sub around (&$) {
@@ -155,6 +151,7 @@ sub import {
 			code => $_,
 			into => $into,
 		} );
+		$EXPORTED{"${into}::$_"} = 1;
 	}
 
 	# Install functions that change between API versions
@@ -163,6 +160,7 @@ sub import {
 		as   => 'after',
 		into => $into,
 	} );
+	$EXPORTED{"${into}::after"} = 1;
 
 	unless ( $legacy ) {
 		# Install new generation API functions
@@ -175,6 +173,7 @@ sub import {
 				code => $_,
 				into => $into,
 			} );
+			$EXPORTED{"${info}::$_"} = 1;
 		}
 	}
 
@@ -670,16 +669,11 @@ in contributing to the project.
 * add whatever constructs required for mocking packages, objects,
   builtins
 
-* debugger support: break on pointcut
-
 * allow finer control of advice execution order
 
 =head2 Reusable Aspects
 
 * need better example for wormhole- something less tedius
-
-* bring back Marcel's tracing aspect and example, class invariants
-  example
 
 * use Scalar-Footnote for adding aspect state to objects, e.g. in
   Listenable. Problem is it is still in developer release state
