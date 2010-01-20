@@ -16,7 +16,7 @@ use Probe::Perl           0.01 ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '1.03';
+        $VERSION = '1.04';
 }
 
 # Does exec work on this platform
@@ -67,6 +67,10 @@ sub blib () {
 	catdir( curdir(), 'blib' );
 }
 
+sub inc () {
+	catdir( curdir(), 'inc' );
+}
+
 sub lib () {
 	catdir( curdir(), 'lib' );
 }
@@ -111,6 +115,10 @@ sub blibpm () {
 		require blib;
 	};
 	return ! $@;
+}
+
+sub has_inc () {
+	!! -f inc;
 }
 
 sub has_lib () {
@@ -348,13 +356,27 @@ sub main {
 		}
 	}
 
+	# Passing includes via -I params is not good enough
+	# because you can't subshell them, and it's also not
+	# how MakeMaker does it anyway.
+	# We need to hack/extend PERL5LIB instead.
+	my $path_sep = $Config{path_sep};
+	my @PERL5LIB = ();
+
 	# Build the command to execute
 	my @flags = @SWITCHES;
 	if ( has_blib ) {
-		push @flags, '-Mblib';
-
+		if ( has_inc ) {
+			push @PERL5LIB, inc;
+		}
+		push @PERL5LIB, File::Spec->catdir(
+			blib, 'lib',
+		);
+		push @PERL5LIB, File::Spec->catdir(
+			blib, 'arch',
+		);
 	} elsif ( has_lib ) {
-		push @flags, '-Ilib';
+		push @PERL5LIB, lib;
 	}
 
 	# Hand off to the perl debugger
@@ -362,6 +384,9 @@ sub main {
 		message( "# Debugging $script...\n" );
 	}
 	my @cmd = ( perl, @flags, '-d', $script );
+	local $ENV{PERL5LIB} = defined($ENV{PERL5LIB})
+		? join( $path_sep, @PERL5LIB, $ENV{PERL5LIB} )
+		: join( $path_sep, @PERL5LIB );
 	handoff( @cmd );
 }
 

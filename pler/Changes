@@ -1,5 +1,10 @@
 Revision history for Perl extension pler
 
+1.04 Wed 20 Jan 2010
+	- Use a -I to PERL5LIB conversion trick similar to the it is done
+	  by TAP::Parser::Source::Perl.
+	- Add the inc directory to the -I list, as MakeMaker does.
+
 1.03 Tue 19 Jan 2010
 	- Removing the destructive Carp 0 dependency
 
