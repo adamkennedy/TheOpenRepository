@@ -3792,13 +3792,21 @@ that are used to replace or patch files in the distribution.
 
 # By default only use the default (as a default...)
 sub patch_include_path {
-	my $self  = shift;
-	my $share = File::ShareDir::dist_dir('Perl-Dist-WiX');
-	my $path  = catdir( $share, 'default', );
+	my $self     = shift;
+	my $share    = File::ShareDir::dist_dir('Perl-Dist-WiX');
+	my $path     = catdir( $share, 'default', );
+	my $portable = catdir( $share, 'portable', );
 	unless ( -d $path ) {
 		PDWiX->throw("Directory $path does not exist");
 	}
-	return [$path];
+	if ($self->portable()) {
+		unless ( -d $portable ) {
+			PDWiX->throw("Directory $path does not exist");
+		}
+		return [$portable, $path];
+	} else {
+		return [$path];
+	}
 }
 
 
