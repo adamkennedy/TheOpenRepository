@@ -4153,6 +4153,10 @@ sub _extract {
 	$self->trace_line( 2, "Extracting $from...\n" );
 	if ( $from =~ m{[.] zip\z}msx ) {
 		my $zip = Archive::Zip->new($from);
+		
+		if (not defined $zip) {
+			PDWiX->throw('Could not extract archive $from');
+		}
 
 # I can't just do an extractTree here, as I'm trying to
 # keep track of what got extracted.
