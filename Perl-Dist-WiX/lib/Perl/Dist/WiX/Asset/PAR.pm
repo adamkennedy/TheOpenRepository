@@ -49,12 +49,12 @@ sub install {
 		my $perldir = catdir( $image_dir, 'perl' );
 		my $libdir  = catdir( $perldir,   'vendor', 'lib' );
 		my $bindir  = catdir( $perldir,   'bin' );
-		$packlist = catfile( $libdir, 'auto', @module_dirs, '.packlist' );
 		my $cdir = catdir( $image_dir, 'c' );
 
 		if ($portable) {
 			$libdir  = catdir( $perldir, 'site', 'lib' );
 		}
+		$packlist = catfile( $libdir, 'auto', @module_dirs, '.packlist' );
 		
 		# Suppress warnings for resources that don't exist
 		local $WARNING = 0;
