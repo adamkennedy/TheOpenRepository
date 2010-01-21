@@ -38,7 +38,7 @@ Readonly my %PACKAGES => (
 	'32bit-gcc3' => {
 		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
 		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
-		'pexports'      => 'pexports-0.43-1.zip',
+		'pexports'      => '32bit-gcc3/pexports-0.43-1.zip',
 		'gcc-toolchain' => 'mingw32-gcc3-toolchain-20091026-subset.tar.gz',
 
 # Former components of what's now included in gcc-toolchain.
@@ -49,10 +49,10 @@ Readonly my %PACKAGES => (
 #		'w32api'        => 'w32api-3.10.tar.gz',
 	},
 	'32bit-gcc4' => {
-		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
-		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
-		'pexports'      => 'pexports-0.43-1.zip',
-		'gcc-toolchain' => 'mingw-w32-20091019_subset.7z',
+		'dmake'         => '32bit-gcc4/dmake-SVN20091127-bin_20100120.zip',
+		'mingw-make'    => '32bit-gcc4/gmake-3.81-20090914-bin_20010120.zip',
+		'pexports'      => '32bit-gcc4/pexports-0.43-1.zip',
+		'gcc-toolchain' => '32bit-gcc4/mingw-w32-20091019_subset.7z',
 	},
 	'64bit-gcc4' => {
 		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
@@ -219,8 +219,7 @@ sub install_pexports {
 	my $filelist = $self->install_binary(
 		name       => 'pexports',
 		url        => $self->_binary_url('pexports'),
-		license    => { 'pexports-0.43/COPYING' => 'pexports/COPYING', },
-		install_to => { 'pexports-0.43/bin' => 'c/bin', },
+		location   => '.',
 	);
 	$self->_set_bin_pexports( $self->_file( 'c', 'bin', 'pexports.exe' ) );
 	unless ( -x $self->bin_pexports() ) {
