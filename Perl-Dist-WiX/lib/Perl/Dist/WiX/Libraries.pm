@@ -62,11 +62,31 @@ Readonly my %PACKAGES => (
 	},
 );
 
+=pod
+
+=head2 library_directory
+
+  $dist->library_directory()
+
+The C<library_directory> method returns the correct directory on the
+strawberryperl.com server for libraries, given the L<bits()|Perl::Dist::WiX/bits> 
+and L<gcc-version()|Perl::Dist::WiX/gcc_version> values.
+
+=cut
+
+sub library_directory() {
+	my $self = shift;
+	
+	my $answer = $self->bits() . 'bit-gcc' . $self->gcc_version();
+
+	return $answer;
+}
+
 sub _binary_file {
 	my $self    = shift;
 	my $package = shift;
 
-	my $toolchain = $self->bits() . 'bit-gcc' . $self->gcc_version();
+	my $toolchain = $self->library_directory();
 
 	$self->trace_line( 3, "Searching for $package in $toolchain\n" );
 
@@ -115,7 +135,7 @@ sub _binary_url {
 
 =head2 install_gcc_toolchain
 
-  $dist->install_gcc_toolchain
+  $dist->install_gcc_toolchain()
 
 The C<install_dmake> method installs the corrent gcc toolchain into the
 distribution, and is typically installed during "C toolchain" build

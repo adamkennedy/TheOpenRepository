@@ -3801,7 +3801,7 @@ sub patch_include_path {
 	}
 	if ($self->portable()) {
 		unless ( -d $portable ) {
-			PDWiX->throw("Directory $path does not exist");
+			PDWiX->throw("Directory $portable does not exist");
 		}
 		return [$portable, $path];
 	} else {
