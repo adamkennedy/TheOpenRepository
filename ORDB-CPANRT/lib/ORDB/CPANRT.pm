@@ -1,10 +1,12 @@
 package ORDB::CPANRT;
 
+# See CPANRT.pod for docs
+
 use 5.008005;
 use strict;
 use warnings;
 use Params::Util   1.00 ();
-use ORLite::Mirror 1.16 ();
+use ORLite::Mirror 1.18 ();
 
 our $VERSION = '0.01';
 
