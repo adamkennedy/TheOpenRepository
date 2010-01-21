@@ -38,7 +38,7 @@ Readonly my %PACKAGES => (
 	'32bit-gcc3' => {
 		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
 		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
-		'pexports'      => '32bit-gcc3/pexports-0.43-1.zip',
+		'pexports'      => '32bit-gcc3/pexports-0.43-1-20100120.zip',
 		'gcc-toolchain' => 'mingw32-gcc3-toolchain-20091026-subset.tar.gz',
 
 # Former components of what's now included in gcc-toolchain.
@@ -219,7 +219,7 @@ sub install_pexports {
 	my $filelist = $self->install_binary(
 		name       => 'pexports',
 		url        => $self->_binary_url('pexports'),
-		location   => '.',
+		install_to => q{.},
 	);
 	$self->_set_bin_pexports( $self->_file( 'c', 'bin', 'pexports.exe' ) );
 	unless ( -x $self->bin_pexports() ) {
