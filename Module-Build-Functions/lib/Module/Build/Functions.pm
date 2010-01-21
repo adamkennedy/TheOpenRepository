@@ -81,15 +81,13 @@ sub import {
 
 		# Bundling its own copy to ./inc
 		_copy( $INC{"$config{path}.pm"} => $config{file} );
-
+		
 		unless ( grep { $_ eq $config{prefix} } @INC ) {
 			unshift @INC, $config{prefix};
 		}
 	}
 	
 	if (defined $config{build_class}) {
-	    $DB::single = 1;
-	    
 	    build_class($config{build_class});
 	}
 
@@ -257,8 +255,6 @@ BEGIN {
 	  repository bugtracker meta_merge cygwin
 	);
 	@EXPORT = ( 'AUTOLOAD', @DEFINED, @AUTOLOADED );
-	
-	$DB::single = 1;
 
 } ## end BEGIN
 
