@@ -423,6 +423,9 @@ sub _skip_upgrade {
 	# This code is in here for safety as of yet.
 	return 1 if $module->cpan_file() =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
 
+	# Skip Test-Harness 3.19, waiting on RT#53912.
+	return 1 if $module->cpan_file() =~ m{/Test-Harness-3 [.] 19}msx;
+
 	# Skip B::C, it does not install on 5.8.9.
 	return 1 if $module->cpan_file() =~ m{/B-C-1 [.]}msx;
 
@@ -811,6 +814,12 @@ sub install_perl_toolchain {
 
 			# Upgrading to this version, instead...
 			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
+		}
+		if ( $dist =~ /Test-Harness-3 [.] 19/msx ) {
+
+			# 3.19 fails its tests... waiting for RT#53912
+			$dist  = 'ANDYA/Test-Harness-3.17.tar.gz';
+			$force = 1;
 		}
 		if ( $dist =~ /CPAN-1 [.] 9402/msx ) {
 
