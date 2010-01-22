@@ -81,7 +81,7 @@
 /RMBARKER/Pod-Plainer-
 /LETO/Math-BigRat-
 /SMPETERS/Net-Ping-
-/SKIMO/FCGI-\d
+/(?:SKIMO|MSTROUT)/FCGI-\d
 /JESSE/Locale-Maketext-Simple-
 /BINGOS/Module-Loaded-
 
