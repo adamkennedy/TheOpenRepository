@@ -99,8 +99,8 @@ use File::HomeDir qw();
 use List::MoreUtils qw( none );
 use Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.101_001';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '1.101_002';
+$VERSION =~ s/_//ms;
 
 has class => (
 	is       => 'ro',
@@ -411,7 +411,7 @@ sub run {
 	while ( my $dist = $self->next() ) {
 		$dist->prepare();
 		$num++;
-		if ( none { $_ == $num } $self->_get_skip_values ) {
+		if ( none { $_ == $num } $self->_get_skip_values() ) {
 			$success = eval { $dist->run(); 1; };
 
 			if ($success) {
@@ -421,6 +421,10 @@ sub run {
 				foreach my $file ( $dist->get_output_files() ) {
 					File::Copy::move( $file, $output_dir );
 				}
+				File::Copy::Recursive::dircopy( $dist->output_dir(),
+					catdir( $output_dir, "success-output-$num" ) );
+				File::Copy::Recursive::dircopy( $dist->fragment_dir(),
+					catdir( $output_dir, "success-fragments-$num" ) );
 			} else {
 				print $EVAL_ERROR;
 				File::Copy::Recursive::dircopy( $dist->output_dir(),
@@ -432,7 +436,7 @@ sub run {
 
 		print "\n\n\n\n\n";
 		print q{-} x 60;
-		print "\n\n\n\n\n\n";
+		print "\n\n\n\n\n";
 
 		# Flush out the image dir for the next run
 		File::Remove::remove( \1, $dist->image_dir() );
