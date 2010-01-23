@@ -15,7 +15,7 @@ use CPAN::Mini::Devel 0.03 qw(                       );
 use LWP::UserAgent         qw(                       ); 
 use File::Spec::Functions  qw( catdir                );
 
-our $VERSION = '1.090_103';
+our $VERSION = '1.110';
 $VERSION = eval $VERSION;
 
 sub filters;

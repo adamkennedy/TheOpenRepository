@@ -4,6 +4,10 @@ Changes for Perl extension Perl-Dist-WiX
     1. Fix problems with merge module
     2. Make updating "smart" - don't delete the site
        directory unless doing a major upgrade.
+    3. Bring Portable back (install all modules into
+       "perl/site" for it only.)
+    4. Work on "gcc-4" toolchains (not done yet)
+    5. Change to building with Module::Build.	
 
 1.101_001   Wed 11 Nov 2009
     1. Split most of the build into a merge module.
