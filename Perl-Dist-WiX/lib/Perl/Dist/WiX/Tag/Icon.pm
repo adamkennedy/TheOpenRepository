@@ -1,19 +1,10 @@
 package Perl::Dist::WiX::Tag::Icon;
 
-#####################################################################
-# Perl::Dist::WiX::Tag::Icon - Extends <Icon> tags to make them searchable
-# easily by Perl::Dist::WiX::IconArray.
-#
-# Copyright 2009 Curtis Jewell
-#
-# License is the same as perl. See Wix.pm for details.
-#
-#<<<
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str );
 
-our $VERSION = '1.101_001';
+our $VERSION = '1.101_002';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Icon';
@@ -95,7 +86,7 @@ L<http://wix.sourceforge.net/manual-wix3/wix_xsd_icon.htm>,
 
 =head1 COPYRIGHT
 
-Copyright 2009 Curtis Jewell.
+Copyright 2009 - 2010 Curtis Jewell.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

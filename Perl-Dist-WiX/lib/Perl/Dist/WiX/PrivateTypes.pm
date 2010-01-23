@@ -24,6 +24,7 @@ use MooseX::Types::Moose qw( Str );
 # use Perl::Dist::WiX::Types;
 
 our $VERSION = '1.101_002';
+$VERSION =~ s/_//ms;
 
 subtype _NoDoubleSlashes,
   as Str,
@@ -62,6 +63,6 @@ No support is available
 
 =head1 AUTHOR
 
-Copyright 2009 Curtis Jewell.
+Copyright 2009 - 2010 Curtis Jewell.
 
 =cut

@@ -12,7 +12,7 @@ use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
 
-our $VERSION = '1.101_001';
+our $VERSION = '1.101_002';
 $VERSION =~ s/_//ms;
 
 extends qw(
@@ -426,7 +426,7 @@ L<Perl::Dist::WiX>, L<Module::CoreList>
 
 =head1 COPYRIGHT
 
-Copyright 2009 Curtis Jewell.
+Copyright 2009 - 2010 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 

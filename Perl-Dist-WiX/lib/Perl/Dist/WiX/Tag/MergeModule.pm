@@ -1,12 +1,5 @@
 package Perl::Dist::WiX::Tag::MergeModule;
 
-####################################################################
-# Perl::Dist::WiX::Tag::MergeModule - <Merge> tag that can create a MergeRef if needed.
-#
-# Copyright 2009 Curtis Jewell
-#
-# License is the same as perl. See WiX.pm for details.
-#
 use 5.008001;
 use Moose;
 require WiX3::XML::MergeRef;
@@ -118,7 +111,7 @@ L<http://wix.sourceforge.net/manual-wix3/wix_xsd_mergeref.htm>
 
 =head1 COPYRIGHT
 
-Copyright 2009 Curtis Jewell.
+Copyright 2009 - 2010 Curtis Jewell.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

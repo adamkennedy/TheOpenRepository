@@ -6,8 +6,8 @@ use MooseX::Types::Moose qw( Str );
 use File::Spec::Functions qw( catfile );
 use Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.101_001';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.101_002';
+$VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';
 
@@ -194,7 +194,7 @@ L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
 
-Copyright 2009 Curtis Jewell.
+Copyright 2009 - 2010 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 

@@ -21,7 +21,7 @@ require WiX3::XML::RemoveFolder;
 require WiX3::XML::DirectoryRef;
 require WiX3::XML::Shortcut;
 
-our $VERSION = '1.101_001';
+our $VERSION = '1.101_002';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';

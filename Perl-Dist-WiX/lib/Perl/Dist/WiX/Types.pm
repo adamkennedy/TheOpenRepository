@@ -21,7 +21,8 @@ use MooseX::Types -declare =>
   [qw( Directory ExistingDirectory ExistingFile MaybeExistingDirectory )];
 use MooseX::Types::Moose qw( Str );
 
-our $VERSION = '0.01';
+our $VERSION = '1.101_002';
+$VERSION =~ s/_//ms;
 
 =head2 Directory
 
@@ -83,6 +84,6 @@ No support is available
 
 =head1 AUTHOR
 
-Copyright 2009, 2010 Curtis Jewell.
+Copyright 2009 - 2010 Curtis Jewell.
 
 =cut

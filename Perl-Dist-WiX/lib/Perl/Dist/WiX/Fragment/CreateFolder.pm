@@ -16,8 +16,8 @@ use WiX3::XML::CreateFolder;
 use WiX3::XML::DirectoryRef;
 use WiX3::XML::Component;
 
-our $VERSION = '1.101_001';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.101_002';
+$VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
 

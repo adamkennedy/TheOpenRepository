@@ -31,8 +31,8 @@ use Params::Util qw( _STRING   );
 use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Tag::Icon;
 
-our $VERSION = '1.101_001';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.101_002';
+$VERSION =~ s/_//ms;
 
 has _icon => (
 	metaclass => 'Collection::Array',

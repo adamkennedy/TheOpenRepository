@@ -4,8 +4,8 @@ use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str Maybe HashRef );
 
-our $VERSION = '1.101_001';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.101_002';
+$VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
 
@@ -204,7 +204,7 @@ L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
 
-Copyright 2009 Curtis Jewell.
+Copyright 2009 - 2010 Curtis Jewell.
 
 Copyright 2007 - 2009 Adam Kennedy.
 

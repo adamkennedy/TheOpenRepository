@@ -1,22 +1,11 @@
 package Perl::Dist::WiX::Exceptions;
 
-####################################################################
-# Perl::Dist::WiX::Exceptions - Exception classes for Perl::Dist::WiX.
-#
-# Copyright 2009 Curtis Jewell
-#
-# License is the same as perl. See WiX.pm for details.
-#
-# NOTE: This is a base class with miscellaneous routines.  It is
-# meant to be subclassed, as opposed to creating objects of this
-# class directly.
-
 use 5.008001;
 use strict;
 use warnings;
 
-our $VERSION = '1.101_001';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.101_002';
+$VERSION =~ s/_//ms;
 
 
 #####################################################################

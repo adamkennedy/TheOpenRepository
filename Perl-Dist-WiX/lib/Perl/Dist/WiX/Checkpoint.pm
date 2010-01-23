@@ -41,7 +41,7 @@ use List::Util qw( first );
 use File::Spec::Functions qw( catdir catfile );
 use File::Remove qw();
 
-our $VERSION = '1.101_001';
+our $VERSION = '1.101_002';
 $VERSION =~ s/_//ms;
 
 #####################################################################

@@ -29,8 +29,8 @@ use MooseX::Singleton;
 use WiX3::XML::Directory;
 use MooseX::AttributeHelpers;
 
-our $VERSION = '1.101_001';
-$VERSION = eval $VERSION; ## no critic (ProhibitStringyEval)
+our $VERSION = '1.101_002';
+$VERSION =~ s/_//ms;
 
 #####################################################################
 # Accessors:
