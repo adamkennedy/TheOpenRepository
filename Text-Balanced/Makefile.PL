@@ -1,13 +1,13 @@
 use strict;
 use vars qw{$VERSION};
 BEGIN {
-	require 5.003_96;
+	require 5.00503; #for CPAN/CPANPLUS
 	$VERSION = '2.02';
 }
 use ExtUtils::MakeMaker;
 
 WriteMakefile1(
-	MIN_PERL_VERSION => '5.005',
+	MIN_PERL_VERSION => '5.00503', #for META.yml
 	META_MERGE => {
 		resources => {
 			repository => 'http://svn.ali.as/cpan/trunk/Text-Balanced',

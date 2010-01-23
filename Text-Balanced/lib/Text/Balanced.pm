@@ -3,7 +3,7 @@ package Text::Balanced;
 # EXTRACT VARIOUSLY DELIMITED TEXT SEQUENCES FROM STRINGS.
 # FOR FULL DOCUMENTATION SEE Balanced.pod
 
-use 5.005;
+use 5.00503;
 use strict;
 use Exporter ();
 use SelfLoader;
