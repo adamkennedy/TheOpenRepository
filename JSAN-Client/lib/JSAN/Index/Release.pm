@@ -254,6 +254,16 @@ sub extract_libs {
     $self->extract_resource('lib', @_);
 }
 
+
+sub extract_static_files {
+    my $self = shift;
+    
+    my $static_dir = $self->meta_data->{static_dir} || 'static';
+    
+    $self->extract_resource($static_dir, @_, is_static => 1);
+}
+
+
 sub extract_tests {
     my $self = shift;
     $self->extract_resource('tests', @_);
@@ -311,6 +321,9 @@ sub _extract_resource_from_tar {
         # Also skips all root-level files
         my $res = shift(@dirs) or next;
         next unless $res eq $resource;
+        
+        # Static files are put into the library, so /static/all.css becomes /lib/Dist/Name/static/all.css
+        @dirs = (split(/\./, $self->distribution->name), $res, @dirs) if $params{is_static};
 
         # These are STILL relative, but we'll deal with that later.
         my $write_dir = File::Spec->catfile($params{to}, @dirs);
@@ -323,12 +336,15 @@ sub _extract_resource_from_tar {
     # Return the number of files, or error if none
     return $extracted_files if $extracted_files;
     my $path = $self->source;
-    Carp::croak("Tarball '$path' does not contain resource '$resource'");
+    
+    # Only resource 'static' is optional 
+    Carp::croak("Tarball '$path' does not contain resource '$resource'") unless $params{is_static};
 }
 
 sub _extract_resource_from_zip {
     Carp::croak("Zip support not yet completed");
 }
+
 
 sub _write {
     my ($self, $dir, $file, $content) = @_;

@@ -297,6 +297,7 @@ sub _install_release {
 sub _extract_release {
     my ($self, $release) = @_;
     $release->extract_libs( to => $self->prefix );
+    $release->extract_static_files( to => $self->prefix );
 }
 
 

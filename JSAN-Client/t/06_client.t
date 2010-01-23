@@ -23,7 +23,7 @@ use JSAN::Client {
 };
 
 # Create and/or clear the test directory
-my $testdir = catdir( curdir(), '07_client' );
+my $testdir = catdir( curdir(), '06_client' );
 remove \1, $testdir if -e $testdir;
 ok( ! -e $testdir, "Test directory '$testdir' does not exist" );
 ok( mkdir($testdir), "Create test directory '$testdir'" );
