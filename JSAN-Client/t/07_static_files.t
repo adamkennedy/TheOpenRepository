@@ -50,7 +50,7 @@ my $Client = JSAN::Client->new(
 # Install a known library
 
 SKIP: {
-    skip( "Skipping online tests", 10 ) unless online();
+    skip( "Skipping online tests", 3 ) unless online();
 
     is( $Client->install_library('OpenJSAN.Test.StaticFiles'), 1, '->install_library for distribution with static files' );
     
