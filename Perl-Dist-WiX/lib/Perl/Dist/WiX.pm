@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.000.
+This document describes Perl::Dist::WiX version 1.101.
 
 =for readme continue
 
