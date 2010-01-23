@@ -25,9 +25,9 @@ WriteMakefile1(
     LICENSE => 'perl',
     MIN_PERL_VERSION => '5.008001',
     META_MERGE => {
-      resources => {
-        repository => 'http://svn.ali.as/cpan/trunk/App-FQStat',
-      },
+        resources => {
+            repository => 'http://svn.ali.as/cpan/trunk/App-FQStat',
+        },
     },
 );
 
@@ -37,9 +37,7 @@ sub WriteMakefile1 {  #Written by Alexandr Ciornii, version 0.20
   $eumm_version=eval $eumm_version;
   die "EXTRA_META is deprecated" if exists $params{EXTRA_META};
   die "License not specified" if not exists $params{LICENSE};
-  if ($params{BUILD_REQUIRES}) { #and $eumm_version < 6.5503
-    #Should be modified in future when EUMM will
-    #correctly support BUILD_REQUIRES.
+  if ($params{BUILD_REQUIRES} and $eumm_version < 6.5503) {
     #EUMM 6.5502 has problems with BUILD_REQUIRES
     $params{PREREQ_PM}={ %{$params{PREREQ_PM} || {}} , %{$params{BUILD_REQUIRES}} };
     delete $params{BUILD_REQUIRES};
