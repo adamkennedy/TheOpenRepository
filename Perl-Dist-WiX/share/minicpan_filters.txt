@@ -46,7 +46,7 @@
 /KANE/Object-Accessor-
 /MAREKR/Pod-Parser-
 /FERREIRA/Pod-Perldoc-
-/ARANDAL/Pod-Simple-
+/(?:ARANDAL|DWHEELER)/Pod-Simple-
 /RGARCIA/Safe-
 /SMUELLER/SelfLoader-
 /AMS/Storable-
