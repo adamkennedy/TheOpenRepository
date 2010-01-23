@@ -224,7 +224,7 @@ sub _archive {
     my $self = shift;
 
     # Load tarballs
-    if ( $self->source =~ /\.tar\.gz/ ) {
+    if ( $self->source =~ /\.tar\.gz$/ ) {
         require Archive::Tar;
         my $tar  = Archive::Tar->new;
         my $path = $self->mirror;
@@ -262,7 +262,7 @@ sub extract_tests {
 sub extract_resource {
     my $self     = shift;
     my $resource = shift
-        or Carp::croak("No resource name provided to _extract_resource");
+        or Carp::croak("No resource name provided to extract_resource");
     my %params   = @_;
 
     # Check the extraction destination
@@ -308,6 +308,7 @@ sub _extract_resource_from_tar {
         shift @dirs;
 
         # Is this file in the resource directory
+        # Also skips all root-level files
         my $res = shift(@dirs) or next;
         next unless $res eq $resource;
 
