@@ -286,6 +286,7 @@ sub _install_release {
     $count = 0;
     $self->_print("Installing release to '" . $self->prefix . "'");
     foreach my $release ( @releases ) {
+        $count++;
         $self->_print("$count of $total: Extracting release " . $release->source);
         $self->_extract_release( $release );
     }
