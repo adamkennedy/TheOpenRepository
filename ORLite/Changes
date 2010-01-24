@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+1.33 Sun 24 Jan 2010
+	- When in the Perl debugger and on Perl 5.8.9 or newer,
+	  use the $^P | 0800 in preference to dval (and always
+	  use it even when $DEBUG is off).
+
 1.32 Fri 15 Jan 2010
 	- Each generated class now cleans up its own persistant
 	  connection, rather than allowing it to fall through to the

@@ -15,7 +15,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.32';
+	$VERSION = '1.33';
 }
 
 # Support for the 'prune' option
@@ -464,12 +464,18 @@ END_ACCESSOR
 		$code .= "\npackage $pkg;\n" if $params{tables};
 		$code .= "\n$params{append}";
 	}
+	$code .= "\n\n1;\n";
 
-	# Load the code
-	if ( $DEBUG ) {
-		dval("$code\n\n1;\n");
+	# Compile the code
+	local $@;
+	if ( $^P and $^V >= 5.008009 ) {
+		local $^P = $^P | 0x800;
+		eval $code;
+		die $@ if $@;
+	} elsif ( $DEBUG ) {
+		dval($code);
 	} else {
-		eval("$code\n\n1;\n");
+		eval $code;
 		die $@ if $@;
 	}
 
