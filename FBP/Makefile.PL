@@ -1,4 +1,7 @@
-use inc::Module::Install::DSL 0.91;
+use inc::Module::Install::DSL 0.92;
 
 all_from      lib/FBP.pm
-test_requires Test::More 0.47
+requires_from lib/FBP.pm
+test_requires File::Spec       0.80
+test_requires Test::More       0.47
+test_requires Test::NoWarnings 0.084

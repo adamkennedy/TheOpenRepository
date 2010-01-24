@@ -1,4 +1,4 @@
-package FBP.pm;
+package FBP;
 
 =pod
 
@@ -24,46 +24,70 @@ The author was too lazy to write a description.
 =cut
 
 use 5.008005;
-use strict;
-use warnings;
-use XML::SAX 
+use Moose        0.92;
+use Params::Util 1.00 ();
+use IO::File     1.14 ();
+use XML::SAX     0.96 ();
+use FBP::Parser       ();
+use FBP::Project      ();
+use FBP::Dialog       ();
+use FBP::BoxSizer     ();
+use FBP::Button       ();
+use FBP::SizerItem    ();
+use FBP::StaticText   ();
+use FBP::StaticLine   ();
 
 our $VERSION = '0.01';
 
-=pod
+has children => (
+	is      => 'rw',
+	isa     => "ArrayRef[FBP::Object]",
+	default => sub { [ ] },
+);
 
-=head2 new
 
-  my $object = FBP.pm->new(
-      foo => 'bar',
-  );
 
-The C<new> constructor lets you create a new B<FBP.pm> object.
 
-So no big surprises there...
 
-Returns a new B<FBP.pm> or dies on error.
+######################################################################
+# Parsing Code
 
-=cut
-
-sub new {
-	my $class = shift;
-	my $self  = bless { @_ }, $class;
-	return $self;
+sub add_object {
+	my $self = shift;
+	unless ( Params::Util::_INSTANCE($_[0], 'FBP::Object') ) {
+		die("Can only add a 'FBP::Object' object");
+	}
+	my $objects = $self->children;
+	push @$objects, shift;
+	return 1;
 }
 
-=pod
-
-=head2 dummy
-
-This method does something... apparently.
-
-=cut
-
-sub dummy {
+sub parse_file {
 	my $self = shift;
+	my $file = shift;
+	unless ( -f $file and -r $file ) {
+		die("Missing or unreadable file '$file'");
+	}
 
-	# Do something here
+	# Open the file
+	my $fh = IO::File->new( $file );
+	unless ( $fh ) {
+		die("Failed to open file '$file'");
+	}
+
+	# Create the parser
+	my $handler = FBP::Parser->new($self);
+	my $parser  = XML::SAX::ParserFactory->parser(
+		Handler => $handler,
+	);
+
+	# Parse the file
+	eval {
+		$parser->parse_file( $fh );
+	};
+	if ( $@ ) {
+		die("Error while parsing '$file': $@");
+	}
 
 	return 1;
 }
@@ -74,10 +98,24 @@ sub dummy {
 
 =head1 SUPPORT
 
-No support is available
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=FBP>
+
+For other issues, or commercial enhancement or support, contact the author.
 
 =head1 AUTHOR
 
-Copyright 2009 Anonymous.
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2009 - 2010 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
 
 =cut
