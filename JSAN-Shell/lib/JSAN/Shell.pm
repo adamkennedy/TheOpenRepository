@@ -143,7 +143,7 @@ sub read_config {
         close $fh;
     }
     
-    return JSON::decode_json($config_content);
+    return JSON->new->relaxed->decode($config_content);
 } 
 
 
@@ -170,7 +170,7 @@ sub write_config {
     unless ( open( CONFIG, '>', $filename ) ) {
         Carp::croak( "Failed to open '$filename' for writing: $!" );
     }
-    unless ( print CONFIG JSON::encode_json($config) ) {
+    unless ( print CONFIG JSON->new->pretty(1)->encode($config) ) {
         Carp::croak( "Failed to write to '$filename'" );
     }
     unless ( close CONFIG ) {
