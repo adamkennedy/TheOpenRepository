@@ -37,6 +37,8 @@ use strict;
 use warnings;
 use Params::Util     qw{ _IDENTIFIER _INSTANCE };
 use Term::ReadLine   ();
+use File::Spec       ();
+use File::Path       ();
 use File::HomeDir    ();
 use File::ShareDir   ();
 use File::UserConfig ();
@@ -44,6 +46,7 @@ use Mirror::JSON     ();
 use LWP::Online      ();
 use JSAN::Index      ();
 use JSAN::Client     ();
+use JSON             ();
 
 our $VERSION = '2.01';
     $VERSION = eval $VERSION;
@@ -77,6 +80,10 @@ sub new {
 		configdir => File::UserConfig->configdir,
 		config    => undef,
 	}, $class;
+	
+	
+	$self->{config} = $self->read_config();
+	
 
 	# Are we online?
 	unless ( $self->{config}->{offline} ) {
@@ -113,6 +120,77 @@ sub new {
 
 	$self;
 }
+
+sub config_file {
+    File::Spec->catfile($_[0]->{configdir}, 'config.json')
+}
+
+
+sub read_config {
+    my $self = shift;
+    
+    my $filename = $self->config_file;
+    
+    return {} unless -e $filename;
+    
+    my $config_content;
+    
+    #slurping
+    {
+        local($/);
+        open(my $fh, $filename) or Carp::croak("Cannot open config file: $filename");
+        $config_content = <$fh>;
+        close $fh;
+    }
+    
+    return JSON::decode_json($config_content);
+} 
+
+
+sub write_config {
+    my ($self, $config)        = @_;
+    
+    my $filename = $self->config_file;
+    
+    my ($vol, $dir, $file) = File::Spec->splitpath($filename);
+    
+    my $directory = File::Spec::Unix->catpath($vol, $dir, '');
+    
+    
+    if (-d $directory) {
+        unless (-w $directory) {
+            Carp::croak("No permissions to write to config file directory '$directory'");
+        }
+    } else {
+        File::Path::mkpath($directory, 0, 0755) or die "Couldn't create config file directory '$directory'";
+    }
+    
+
+    # Save it
+    unless ( open( CONFIG, '>', $filename ) ) {
+        Carp::croak( "Failed to open '$filename' for writing: $!" );
+    }
+    unless ( print CONFIG JSON::encode_json($config) ) {
+        Carp::croak( "Failed to write to '$filename'" );
+    }
+    unless ( close CONFIG ) {
+        Carp::croak( "Failed to close '$filename' after writing" );
+    }
+    
+    return 1;
+}
+
+
+sub remember_config_option {
+    my ($self, $option, $value) = @_;
+    
+    my $current_config = $self->read_config();
+    
+    $current_config->{ $option } = $value;
+    
+    $self->write_config($current_config);
+}
+
 
 sub term {
 	$_[0]->{term};
@@ -546,6 +624,12 @@ sub command_set_prefix {
 	$self->{client} = undef;
 
 	$self->_show("prefix changed to '$value'");
+	
+	my $remember = $self->term->readline("Remember this setting? [Y/n]");
+	
+	if (!$remember || $remember =~ /^y(es)?/i) {
+	    $self->remember_config_option('prefix', $value);
+	}
 }
 
 sub help_p    { shift->help_pull(@_) }
