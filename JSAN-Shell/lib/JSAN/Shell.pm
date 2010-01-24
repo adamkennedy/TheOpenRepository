@@ -77,7 +77,7 @@ sub new {
 		prompt    => 'jsan> ',
 		term      => $term,
 		client    => undef,          # Create this later
-		configdir => File::UserConfig->configdir,
+		configdir => $params{configdir} || File::UserConfig->configdir,
 		config    => undef,
 	}, $class;
 	
@@ -207,9 +207,19 @@ sub client {
 	$self->{client} = JSAN::Client->new( %{$self->{config}} );
 }
 
+
 sub prefix {
-	$_[0]->{config}->{prefix};
+    my ($self, $value) = @_;
+	
+	return $self->{config}->{prefix} unless defined $value;
+	
+    # Change the prefix and flush the client
+	$self->{config}->{prefix} = $value;
+	$self->{client} = undef;
+	
+	return $value;
 }
+
 
 sub mirror {
 	$_[0]->{config}->{mirror};
@@ -620,9 +630,8 @@ sub command_set_prefix {
 		return $self->_show("You do not have write permissions to '$value'.");
 	}
 
-	# Change the prefix and flush the client
-	$self->{config}->{prefix} = $value;
-	$self->{client} = undef;
+	# Change the prefix
+	$self->prefix($value);
 
 	$self->_show("prefix changed to '$value'");
 	
