@@ -4,8 +4,7 @@ use 5.008001;
 use strict;
 use warnings;
 use Perl::Dist::WiX::Util::Machine;
-
-our @ISA = qw( Perl::Dist::WiX );
+use parent qw(Perl::Dist::WiX);
 
 sub default_machine {
 	my $class = shift;
@@ -45,14 +44,14 @@ sub default_machine {
 	return $machine;
 }
 
-sub new {
-	my $class = shift;
-	my $self = bless { @_ }, $class;
-
-	mkdir $self->{image_dir};
-	
-	return $self;
-}
+#sub new {
+#	my $class = shift;
+#	my $self = bless { @_ }, $class;
+#
+#	mkdir $self->image_dir();
+#	
+#	return $self;
+#}
 
 sub prepare { 1; };
 
@@ -64,13 +63,8 @@ sub run {
 	print "Object number $num ran.\n";
 }
 
-sub image_dir {
-	my $self = shift;
-	return $self->{image_dir};
-}
-
-sub output_file {
-	return [];
+sub get_output_files {
+	return ();
 }
 
 1;
