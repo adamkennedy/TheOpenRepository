@@ -609,9 +609,10 @@ sub command_set_mirror {
 
 sub command_set_prefix {
 	my $self  = shift;
+    my $value = (glob shift)[0];
 
 	# Check the prefix directory
-	my $value = glob shift;
+	
 	unless ( -d $value ) {
 		return $self->_show("The directory '$value' does not exist.");
 	}
@@ -629,6 +630,8 @@ sub command_set_prefix {
 	
 	if (!$remember || $remember =~ /^y(es)?/i) {
 	    $self->remember_config_option('prefix', $value);
+	    
+	    $self->_show("prefix saved to configuration file: " . $self->config_file);
 	}
 }
 
