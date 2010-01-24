@@ -322,7 +322,7 @@ sub _extract_resource_from_tar {
         my $res = shift(@dirs) or next;
         next unless $res eq $resource;
         
-        # Static files are put into the library, so /static/all.css becomes /lib/Dist/Name/static/all.css
+        # Static files are put into the library, so /static/all.css becomes /Dist/Name/static/all.css
         @dirs = (split(/\./, $self->distribution->name), $res, @dirs) if $params{is_static};
 
         # These are STILL relative, but we'll deal with that later.
