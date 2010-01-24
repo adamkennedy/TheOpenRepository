@@ -1,13 +1,9 @@
 package FBP::Project;
 
 use Moose;
-use Moose::Util::TypeConstraints;
+
+our $VERSION = '0.01';
 
 extends 'FBP::Parent';
-
-has expanded => (
-	is  => 'ro',
-	isa => 'Bool',
-);
 
 1;

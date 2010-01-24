@@ -1,7 +1,8 @@
 package FBP::StaticText;
 
 use Moose;
-use Moose::Util::TypeConstraints;
+
+our $VERSION = '0.01';
 
 extends 'FBP::Parent';
 

@@ -144,19 +144,22 @@ sub start_element_object {
 	my $attr = shift;
 
 	# Identify the type of object to create
-	my $class = delete $attr->{class};
-	unless ( $OBJECT_CLASS{$class} ) {
-		die("Unknown or unsupported object class '$class'");
+	unless ( $OBJECT_CLASS{$attr->{class}} ) {
+		die("Unknown or unsupported object class '$attr->{class}'");
 	}
 
-	# Create the object
-	push @{$self->{stack}}, $OBJECT_CLASS{$class}->new(%$attr);
+	# Store the raw hash until the closing tag
+	$attr->{class} = $OBJECT_CLASS{$attr->{class}};
+	push @{$self->{stack}}, $attr;
 }
 
 sub end_element_object {
 	my $self   = shift;
-	my $object = pop @{$self->{stack}};
-	$self->parent->add_object( $object );
+	my $attr   = pop @{$self->{stack}};
+	my $class  = delete $attr->{class};
+	my $object = $class->new( %$attr );
+	$self->parent->{children} ||= [ ];
+	push @{$self->parent->{children}}, $object;
 }
 
 # <property>
@@ -168,16 +171,13 @@ sub start_element_property {
 	# Add a naked atribute hash to the stack
 	$self->{character_buffer} = '';
 	push @{$self->{stack}}, $attr->{name};
-
-	return 1;
 }
 
 sub end_element_property {
 	my $self  = shift;
 	my $name  = pop @{$self->{stack}};
 	my $value = $self->{character_buffer};
-	$self->parent->add_property( $name => $value );
-	return 1;
+	$self->parent->{$name} = $value;
 }
 
 # <event>
@@ -189,16 +189,13 @@ sub start_element_event {
 	# Add a naked atribute hash to the stack
 	$self->{character_buffer} = '';
 	push @{$self->{stack}}, $attr->{name};
-
-	return 1;
 }
 
 sub end_element_event {
 	my $self  = shift;
 	my $name  = pop @{$self->{stack}};
 	my $value = $self->{character_buffer};
-	$self->parent->add_event( $name => $value );
-	return 1;
+	$self->parent->{$name} = $value if length $value;
 }
 
 1;
