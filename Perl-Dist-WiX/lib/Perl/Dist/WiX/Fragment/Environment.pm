@@ -10,7 +10,9 @@ package Perl::Dist::WiX::Fragment::Environment;
 #
 use 5.008001;
 use Moose;
-use WiX3::XML::Environment;
+require WiX3::XML::Environment;
+require WiX3::XML::Component;
+require WiX3::XML::DirectoryRef;
 
 our $VERSION = '1.101_002';
 $VERSION =~ s/_//ms;

@@ -37,11 +37,11 @@ has packlist => (
 );
 
 sub install {
-	my $self  = shift;
-	my $name  = $self->get_name();
-	my $force = $self->_get_force();
+	my $self   = shift;
+	my $name   = $self->get_name();
+	my $force  = $self->_get_force();
 	my $vendor = $self->_get_parent()->portable() ? 0 : 1;
-	
+
 	my $packlist_flag = $self->_get_packlist();
 
 	unless ( $self->_get_bin_perl() ) {
@@ -53,6 +53,7 @@ sub install {
 	# Generate the CPAN installation script.
 	# Fix url's for minicpans until 1.9403 is released.
 	my $url = $self->_get_cpan()->as_string();
+
 #	$url =~ s{\Afile:///C:/}{file://C:/}msx;
 
 	my $dp_dir = catdir( $self->_get_wix_dist_dir(), 'distroprefs' );

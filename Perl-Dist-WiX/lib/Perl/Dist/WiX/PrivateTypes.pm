@@ -17,8 +17,9 @@ This module contains types private to Perl::Dist::WiX.
 =cut
 
 use 5.008001;
-use MooseX::Types -declare => 
-	[qw( _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir )];
+use MooseX::Types -declare => [
+	qw( _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir )
+];
 use MooseX::Types::Moose qw( Str );
 
 # use Perl::Dist::WiX::Types;
@@ -50,7 +51,7 @@ subtype _NotRootDir,
   as Str,
   where { $_ !~ m{:\z}ms },
   message {'Cannot be a root directory'};
-  
+
 1;
 
 __END__

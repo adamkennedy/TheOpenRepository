@@ -3,6 +3,7 @@ package Perl::Dist::WiX::Exceptions;
 use 5.008001;
 use strict;
 use warnings;
+require WiX3::Traceable;
 
 our $VERSION = '1.101_002';
 $VERSION =~ s/_//ms;

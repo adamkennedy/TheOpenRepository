@@ -40,7 +40,7 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-# plan( skip_all => "It's worked so far, but we're not out yet." );
+plan( skip_all => "It's worked so far, but we're not out yet." ) unless $ENV{RELEASE_TESTING};
 
 my @modules = all_modules();
 my @modules_to_test = grep { filter($_) } @modules;

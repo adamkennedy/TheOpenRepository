@@ -23,7 +23,7 @@ has name => (
 
 sub install {
 	my $self = shift;
-	
+
 	my $name         = $self->get_name();
 	my $image_dir    = $self->_get_image_dir();
 	my $download_dir = $self->_get_download_dir();
@@ -49,13 +49,13 @@ sub install {
 		my $perldir = catdir( $image_dir, 'perl' );
 		my $libdir  = catdir( $perldir,   'vendor', 'lib' );
 		my $bindir  = catdir( $perldir,   'bin' );
-		my $cdir = catdir( $image_dir, 'c' );
+		my $cdir    = catdir( $image_dir, 'c' );
 
 		if ($portable) {
-			$libdir  = catdir( $perldir, 'site', 'lib' );
+			$libdir = catdir( $perldir, 'site', 'lib' );
 		}
 		$packlist = catfile( $libdir, 'auto', @module_dirs, '.packlist' );
-		
+
 		# Suppress warnings for resources that don't exist
 		local $WARNING = 0;
 

@@ -355,25 +355,25 @@ END_PERL
 } ## end sub _get_cpan_upgrades_list
 
 sub _install_location {
-	my ($self, $core) = @_;
+	my ( $self, $core ) = @_;
 	my $portable = $self->portable();
 	if ($core) {
 		return (
-		    makefilepl_param => ['INSTALLDIRS=perl'],
-			buildpl_param => ['--installdirs', 'core'],
+			makefilepl_param => ['INSTALLDIRS=perl'],
+			buildpl_param    => [ '--installdirs', 'core' ],
 		);
 	} elsif ($portable) {
 		return (
 			makefilepl_param => ['INSTALLDIRS=site'],
-			buildpl_param => ['--installdirs', 'site'],
+			buildpl_param    => [ '--installdirs', 'site' ],
 		);
 	} else {
 		return (
 			makefilepl_param => ['INSTALLDIRS=vendor'],
-			buildpl_param => ['--installdirs', 'vendor'],
+			buildpl_param    => [ '--installdirs', 'vendor' ],
 		);
 	}
-}
+} ## end sub _install_location
 
 sub _install_cpan_module {
 	my ( $self, $module, $force ) = @_;

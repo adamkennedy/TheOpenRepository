@@ -10,9 +10,9 @@ $VERSION =~ s/_//ms;
 extends 'WiX3::XML::Icon';
 
 has target_type => (
-	is => 'bare',
-	isa => Str,
-	reader => 'get_target_type',
+	is       => 'bare',
+	isa      => Str,
+	reader   => 'get_target_type',
 	required => 1,
 );
 

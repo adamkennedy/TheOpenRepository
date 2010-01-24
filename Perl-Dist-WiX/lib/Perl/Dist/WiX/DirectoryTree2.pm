@@ -66,7 +66,10 @@ sub BUILDARGS {
 	}
 
 	my $app_dir = $args{'app_dir'}
-	  or PDWiX::Parameter->throw('No app_dir parameter');
+	  or PDWiX::Parameter->throw(
+		parameter => 'app_dir',
+		where     => 'Perl::Dist::WiX::DirectoryTree2->new'
+	  );
 
 	my $root = Perl::Dist::WiX::Tag::Directory->new(
 		id       => 'TARGETDIR',

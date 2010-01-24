@@ -658,10 +658,11 @@ Defaults to C<temp_dir> . '\build', and must exist if given.
 =cut
 
 has 'build_dir' => (
-	is      => 'ro',
-	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent           => ExistingDirectory,
-		type_constraints => [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
+	is  => 'ro',
+	isa => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent => ExistingDirectory,
+		type_constraints =>
+		  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
 	),
 	lazy    => 1,
 	builder => '_build_build_dir',
@@ -746,7 +747,7 @@ Defaults to C<temp_dir> . '\checkpoint', and must exist if given.
 
 has 'checkpoint_dir' => (
 	is      => 'ro',
-	isa     => Maybe[ExistingDirectory],
+	isa     => Maybe [ExistingDirectory],
 	lazy    => 1,
 	builder => '_build_checkpoint_dir',
 );
@@ -892,10 +893,11 @@ Defaults to C<temp_dir> . '\download', and must exist if given.
 =cut
 
 has 'download_dir' => (
-	is      => 'ro',
+	is  => 'ro',
 	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent           => ExistingDirectory,
-		type_constraints => [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
+		parent => ExistingDirectory,
+		type_constraints =>
+		  [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
 	),
 	lazy    => 1,
 	builder => '_build_download_dir',
@@ -1097,8 +1099,9 @@ has 'image_dir' => (
 	is  => 'ro',
 	isa => MooseX::Meta::TypeConstraint::Intersection->new(
 		parent           => ExistingDirectory,
-		type_constraints => [ 
-			_NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd, 
+		type_constraints => [
+			_NoDoubleSlashes,  _NoSpaces,
+			_NoForwardSlashes, _NoSlashAtEnd,
 			_NotRootDir,
 		],
 	),
@@ -1117,10 +1120,11 @@ Defaults to C<image_dir> . '\licenses', and needs to exist if given.
 =cut
 
 has 'license_dir' => (
-	is      => 'ro',                   # Directory that must exist.
-	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent           => ExistingDirectory,
-		type_constraints => [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
+	is => 'ro',                        # Directory that must exist.
+	isa => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent => ExistingDirectory,
+		type_constraints =>
+		  [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
 	),
 	lazy    => 1,
 	builder => '_build_license_dir',
@@ -1144,10 +1148,11 @@ Defaults to C<download_dir> . '\modules', and must exist if given.
 =cut
 
 has 'modules_dir' => (
-	is      => 'ro',                   # Directory that must exist.
-	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent           => ExistingDirectory,
-		type_constraints => [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
+	is => 'ro',                        # Directory that must exist.
+	isa => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent => ExistingDirectory,
+		type_constraints =>
+		  [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
 	),
 	lazy    => 1,
 	builder => '_build_modules_dir',
@@ -1357,10 +1362,11 @@ Defaults to C<temp_dir> . '\output', and must exist when given.
 =cut
 
 has 'output_dir' => (
-	is      => 'ro',                   # Directory that must exist.
-	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent           => ExistingDirectory,
-		type_constraints => [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
+	is => 'ro',                        # Directory that must exist.
+	isa => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent => ExistingDirectory,
+		type_constraints =>
+		  [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
 	),
 	lazy    => 1,
 	builder => '_build_output_dir',
@@ -1567,10 +1573,11 @@ This parameter defaults to a subdirectory of $ENV{TEMP} if not specified.
 =cut
 
 has 'temp_dir' => (
-	is      => 'ro',
-	isa     => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent           => Directory,
-		type_constraints => [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
+	is  => 'ro',
+	isa => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent => Directory,
+		type_constraints =>
+		  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
 	),
 	default => sub { return catdir( tmpdir(), 'perldist' ) },
 );
@@ -1653,7 +1660,7 @@ sub _build_user_agent {
 	}
 
 	$ENV{HTTP_PROXY} and $ua->proxy( http => $ENV{HTTP_PROXY} );
-	
+
 	return $ua;
 } ## end sub _build_user_agent
 
@@ -2789,7 +2796,7 @@ sub install_win32_extras {
 #		path => $self->_dir( qw( perl bin ) ),
 #	);
 
-	if ($self->msi()) {
+	if ( $self->msi() ) {
 		$self->install_launcher(
 			name => 'CPAN Client',
 			bin  => 'cpan',
@@ -2803,19 +2810,22 @@ sub install_win32_extras {
 			$self->install_website(
 				name      => 'Perl 5.8.9 Documentation',
 				url       => 'http://perldoc.perl.org/5.8.9/',
-				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
 		}
 		if ( $self->perl_version_human eq '5.10.0' ) {
 			$self->install_website(
 				name      => 'Perl 5.10.0 Documentation',
 				url       => 'http://perldoc.perl.org/5.10.0/',
-				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
 		}
 		if ( $self->perl_version_human eq '5.10.1' ) {
 			$self->install_website(
 				name      => 'Perl 5.10.1 Documentation',
 				url       => 'http://perldoc.perl.org/',
-				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' ) );
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
 		}
 		$self->install_website(
 			name      => 'Win32 Perl Wiki',
@@ -2830,7 +2840,7 @@ sub install_win32_extras {
 			id          => 'PerlCmdLine',
 			working_dir => 'PersonalFolder',
 		);
-	}
+	} ## end if ( $self->msi() )
 
 	return $self;
 } ## end sub install_win32_extras
@@ -3799,15 +3809,15 @@ sub patch_include_path {
 	unless ( -d $path ) {
 		PDWiX->throw("Directory $path does not exist");
 	}
-	if ($self->portable()) {
+	if ( $self->portable() ) {
 		unless ( -d $portable ) {
 			PDWiX->throw("Directory $portable does not exist");
 		}
-		return [$portable, $path];
+		return [ $portable, $path ];
 	} else {
 		return [$path];
 	}
-}
+} ## end sub patch_include_path
 
 
 
@@ -4153,9 +4163,9 @@ sub _extract {
 	$self->trace_line( 2, "Extracting $from...\n" );
 	if ( $from =~ m{[.] zip\z}msx ) {
 		my $zip = Archive::Zip->new($from);
-		
-		if (not defined $zip) {
-			PDWiX->throw('Could not extract archive $from');
+
+		if ( not defined $zip ) {
+			PDWiX->throw("Could not open archive $from for extraction");
 		}
 
 # I can't just do an extractTree here, as I'm trying to

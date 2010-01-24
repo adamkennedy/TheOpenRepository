@@ -49,9 +49,9 @@ Readonly my %PACKAGES => (
 #		'w32api'        => 'w32api-3.10.tar.gz',
 	},
 	'32bit-gcc4' => {
-		'dmake'         => '32bit-gcc4/dmake-SVN20091127-bin_20100120.zip',
-		'mingw-make'    => '32bit-gcc4/gmake-3.81-20090914-bin_20010120.zip',
-		'pexports'      => '32bit-gcc4/pexports-0.43-1.zip',
+		'dmake'      => '32bit-gcc4/dmake-SVN20091127-bin_20100120.zip',
+		'mingw-make' => '32bit-gcc4/gmake-3.81-20090914-bin_20010120.zip',
+		'pexports'   => '32bit-gcc4/pexports-0.43-1.zip',
 		'gcc-toolchain' => '32bit-gcc4/mingw-w32-20091019_subset.7z',
 	},
 	'64bit-gcc4' => {
@@ -74,9 +74,9 @@ and L<gcc-version()|Perl::Dist::WiX/gcc_version> values.
 
 =cut
 
-sub library_directory() {
+sub library_directory {
 	my $self = shift;
-	
+
 	my $answer = $self->bits() . 'bit-gcc' . $self->gcc_version();
 
 	return $answer;
