@@ -16,7 +16,7 @@ use Probe::Perl           0.01 ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '1.04';
+        $VERSION = '1.05';
 }
 
 # Does exec work on this platform
@@ -214,7 +214,8 @@ sub run ($) {
 sub handoff (@) {
 	my $cmd = join ' ', @_;
 	verbose( "> $cmd" );
-	$ENV{HARNESS_ACTIVE} = 1;
+	$ENV{HARNESS_ACTIVE}  = 1;
+	$ENV{RELEASE_TESTING} = 1;
 	if ( EXEC_OK ) {
 		exec( @_ ) or Carp::croak("Failed to exec '$cmd'");
 	} else {

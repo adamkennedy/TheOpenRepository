@@ -1,5 +1,8 @@
 Revision history for Perl extension pler
 
+1.05 Sun 24 Jan 2010
+	- When executing the test script, enable RELEASE_TESTING
+
 1.04 Wed 20 Jan 2010
 	- Use a -I to PERL5LIB conversion trick similar to the it is done
 	  by TAP::Parser::Source::Perl.
