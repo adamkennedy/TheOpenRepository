@@ -44,5 +44,3 @@ is( $t1[2]->delete(), 1, 'One entry deleted');
 is( scalar(@t1), 2, 'Got 2 table_one objects' );
 @t1 = Foo::Bar::TableOne->select('where col1 = ? and col2 = ?', 1, 2);
 is( $t1[0]->col3, 'b', 'Got line with col3 = b');
-
-1;

@@ -16,7 +16,7 @@ use DBD::SQLite    1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.34';
+	$VERSION = '1.35';
 }
 
 # Support for the 'prune' option
@@ -85,6 +85,9 @@ sub import {
 	unless ( defined $params{cleanup} ) {
 		$params{cleanup} = '';
 	}
+	unless ( defined $params{xsaccessor} ) {
+		$params{xsaccessor} = 0;
+	}
 	unless ( defined $params{tables} ) {
 		$params{tables} = 1;
 	}
@@ -113,11 +116,11 @@ sub import {
 
 	# Schema creation support
 	if ( $created and Params::Util::_CODELIKE($params{create}) ) {
-		$params{create}->( $dbh );
+		$params{create}->($dbh);
 	}
 
 	# Check the schema version before generating
-	my $user_version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
+	my $user_version = $dbh->selectrow_arrayref('pragma user_version')->[0];
 	if ( exists $params{user_version} and $user_version != $params{user_version} ) {
 		Carp::croak("Schema user_version mismatch (got $user_version, wanted $params{user_version})");
 	}
@@ -184,6 +187,8 @@ sub import {
 			foreach ( @{ $table->{columns} } ) {
 				$_->{fk} = $fk{$_->{name}};
 			}
+			$table->{fkcolumns} = [ grep {   $_->{fk} } @{$table->{columns}} ];
+			$table->{accolumns} = [ grep { ! $_->{fk} } @{$table->{columns}} ];
 		}
 
 		# Generate the per-table code
@@ -202,7 +207,7 @@ sub import {
 	$dbh->disconnect;
 
 	# Generate as a template.
-	my $code2 = Template::Tiny->new->process( \<<'END_PERL', \%params );
+	my $code = Template::Tiny->new->process( \<<'END_PERL', \%params );
 package [% package %];
 
 use strict;
@@ -425,13 +430,24 @@ sub truncate {
 	[% package %]->do( 'delete from [% table.name %]', {} );
 }
 [% END %]
-[%- FOREACH column IN table.columns %]
-sub [% column.name %] {
-[%- IF column.fk %]
-	([% column.fk.1.class %]->select('where [% column.fk.1.pk.0 %] = ?', $_[0]->{[% column.name %]}))[0];
-[%- ELSE %]
-	$_[0]->{[% column.name %]};
+[% IF xsaccessor %]
+use Class::XSAccessor 1.05 {
+	getters => [ qw{
+[%- FOREACH column IN table.accolumns %]
+		[% column.name %]
 [%- END %]
+	} ],
+};
+[% ELSE %]
+[%- FOREACH column IN table.accolumns %]
+sub [% column.name %] {
+	$_[0]->{[% column.name %]};
+}
+[% END %]
+[% END %]
+[%- FOREACH column IN table.fkcolumns %]
+sub [% column.name %] {
+	([% column.fk.1.class %]->select('where [% column.fk.1.pk.0 %] = ?', $_[0]->{[% column.name %]}))[0];
 }
 [% END %]
 [%- END %]
@@ -457,12 +473,12 @@ END_PERL
 	local $@;
 	if ( $^P and $^V >= 5.008009 ) {
 		local $^P = $^P | 0x800;
-		eval $code2;
+		eval $code;
 		die $@ if $@;
 	} elsif ( $DEBUG ) {
-		dval($code2);
+		dval($code);
 	} else {
-		eval $code2;
+		eval $code;
 		die $@ if $@;
 	}
 

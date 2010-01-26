@@ -7,7 +7,17 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 5;
+use Test::More;
+
+# Only run this test if we have Class::XSAccessor
+BEGIN {
+	eval { require Class::XSAccessor };
+	if ( ! $@ and Class::XSAccessor->VERSION and Class::XSAccessor->VERSION > 1.05 ) {
+		plan( skip_all => 'Class::XSAccessor 1.05 is not installed' );
+	} else {
+		plan( tests => 7 );
+	}
+}
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -30,7 +40,10 @@ eval <<"END_PERL"; die $@ if $@;
 package Foo::Bar;
 
 use strict;
-use ORLite '$file';
+use ORLite {
+	file       => '$file',
+	xsaccessor => 1,
+};
 
 1;
 END_PERL
@@ -48,3 +61,5 @@ isa_ok( $t2[0], 'Foo::Bar::TableTwo' );
 
 is( $t2[0]->col1, 1, '->col1 ok' );
 isa_ok( $t2[0]->col2, 'Foo::Bar::TableOne' );
+is( $t2[0]->col2->col1, 1, '->col1 of fk ok' );
+is( $t2[0]->col2->col2, 2, '->col2 of fk ok' );
