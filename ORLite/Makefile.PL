@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.91;
+use inc::Module::Install::DSL 0.92;
 
 all_from      lib/ORLite.pm
 requires_from lib/ORLite.pm

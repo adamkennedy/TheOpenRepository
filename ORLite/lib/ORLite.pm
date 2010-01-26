@@ -4,18 +4,19 @@ package ORLite;
 
 use 5.006;
 use strict;
-use Carp              ();
-use File::Spec   0.80 ();
-use File::Temp   0.20 ();
-use File::Path   2.04 ();
-use File::Basename  0 ();
-use Params::Util 0.33 ();
-use DBI         1.607 ();
-use DBD::SQLite  1.27 ();
+use Carp                ();
+use File::Spec     0.80 ();
+use File::Temp     0.20 ();
+use File::Path     2.04 ();
+use File::Basename    0 ();
+use Params::Util   0.33 ();
+use Template::Tiny 0.09 ();
+use DBI           1.607 ();
+use DBD::SQLite    1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.33';
+	$VERSION = '1.34';
 }
 
 # Support for the 'prune' option
@@ -45,7 +46,7 @@ sub import {
 		pop @_;
 	}
 
-	# Check params and apply defaults
+	# Handle param formatting
 	my %params;
 	if ( defined Params::Util::_STRING($_[1]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
@@ -60,6 +61,11 @@ sub import {
 	} else {
 		Carp::croak("Missing, empty or invalid params HASH");
 	}
+
+	# Check params and apply defaults
+	$params{orlite} = $VERSION;
+	$params{file}   = File::Spec->rel2abs($params{file});
+	$params{dsn}    = "dbi:SQLite:$params{file}";
 	unless ( defined $params{create} ) {
 		$params{create} = 0;
 	}
@@ -90,22 +96,17 @@ sub import {
 	}
 
 	# Connect to the database
-	my $file     = File::Spec->rel2abs($params{file});
 	my $created  = ! -f $params{file};
 	if ( $created ) {
 		# Create the parent directory
-		my $dir = File::Basename::dirname($file);
+		my $dir = File::Basename::dirname($params{file});
 		unless ( -d $dir ) {
 			my @dirs = File::Path::mkpath( $dir, { verbose => 0 } );
 			$class->prune(@dirs) if $params{prune};
 		}
-		$class->prune($file) if $params{prune};
+		$class->prune($params{file}) if $params{prune};
 	}
-	my $pkg         = $params{package};
-	my $readonly    = $params{readonly};
-	my $cleanup     = $params{cleanup};
-	my $dsn         = "dbi:SQLite:$file";
-	my $dbh         = DBI->connect( $dsn, undef, undef, {
+	my $dbh = DBI->connect( $params{dsn}, undef, undef, {
 		PrintError => 0,
 		RaiseError => 1,
 	} );
@@ -116,158 +117,15 @@ sub import {
 	}
 
 	# Check the schema version before generating
-	my $version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
-	if ( exists $params{user_version} and $version != $params{user_version} ) {
-		Carp::croak("Schema user_version mismatch (got $version, wanted $params{user_version})");
-	}
-
-	# Generate the support package code
-	my $code = <<"END_PERL";
-package $pkg;
-
-use strict;
-use Carp              ();
-use DBI         1.607 ();
-use DBD::SQLite  1.27 ();
-
-my \$DBH = undef;
-
-sub orlite { '$VERSION' }
-
-sub sqlite { '$file' }
-
-sub dsn { '$dsn' }
-
-sub dbh {
-	\$DBH or \$_[0]->connect;
-}
-
-sub connect {
-	DBI->connect( \$_[0]->dsn, undef, undef, {
-		PrintError => 0,
-		RaiseError => 1,
-	} );
-}
-
-sub prepare {
-	shift->dbh->prepare(\@_);
-}
-
-sub do {
-	shift->dbh->do(\@_);
-}
-
-sub selectall_arrayref {
-	shift->dbh->selectall_arrayref(\@_);
-}
-
-sub selectall_hashref {
-	shift->dbh->selectall_hashref(\@_);
-}
-
-sub selectcol_arrayref {
-	shift->dbh->selectcol_arrayref(\@_);
-}
-
-sub selectrow_array {
-	shift->dbh->selectrow_array(\@_);
-}
-
-sub selectrow_arrayref {
-	shift->dbh->selectrow_arrayref(\@_);
-}
-
-sub selectrow_hashref {
-	shift->dbh->selectrow_hashref(\@_);
-}
-
-sub pragma {
-	\$_[0]->do("pragma \$_[1] = \$_[2]") if \@_ > 2;
-	\$_[0]->selectrow_arrayref("pragma \$_[1]")->[0];
-}
-
-sub iterate {
-	my \$class = shift;
-	my \$call  = pop;
-	my \$sth   = \$class->prepare( shift );
-	\$sth->execute( \@_ );
-	while ( \$_ = \$sth->fetchrow_arrayref ) {
-		\$call->() or last;
-	}
-	\$sth->finish;
-}
-
-sub begin {
-	\$DBH or
-	\$DBH = \$_[0]->connect;
-	\$DBH->begin_work;
-}
-
-sub rollback {
-	\$DBH or return 1;
-	\$DBH->rollback;
-	\$DBH->disconnect;
-	undef \$DBH;
-	return 1;
-}
-
-sub rollback_begin {
-	if ( \$DBH ) {
-		\$DBH->rollback;
-		\$DBH->begin_work;
-	} else {
-		\$_[0]->begin;
-	}
-	return 1;
-}
-
-END_PERL
-
-	# If you are a read-write database, we even allow you
-	# to commit your transactions.
-	$code .= <<"END_PERL" unless $readonly;
-sub commit {
-	\$DBH or return 1;
-	\$DBH->commit;
-	\$DBH->disconnect;
-	undef \$DBH;
-	return 1;
-}
-
-sub commit_begin {
-	if ( \$DBH ) {
-		\$DBH->commit;
-		\$DBH->begin_work;
-	} else {
-		\$_[0]->begin;
-	}
-	return 1;
-}
-
-END_PERL
-
-	# Cleanup and shutdown operations
-	if ( $cleanup ) {
-		$code .= <<"END_PERL";
-END {
-	\$dbh->rollback if \$DBH;
-	$pkg->dbh->do('$cleanup');
-}
-
-END_PERL
-	} else {
-		$code .= <<"END_PERL";
-END {
-	$pkg->rollback if \$DBH;
-}
-
-END_PERL
+	my $user_version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
+	if ( exists $params{user_version} and $user_version != $params{user_version} ) {
+		Carp::croak("Schema user_version mismatch (got $user_version, wanted $params{user_version})");
 	}
 
 	# Optionally generate the table classes
 	if ( $params{tables} ) {
 		# Capture the raw schema information
-		my $tables = $dbh->selectall_arrayref(
+		my $tables = $params{tables} = $dbh->selectall_arrayref(
 			'select * from sqlite_master where name not like ? and type = ?',
 			{ Slice => {} }, 'sqlite_%', 'table',
 		);
@@ -289,29 +147,32 @@ END_PERL
 			@{$table->{pk}}  = map($_->{name}, grep { $_->{pk} } @columns);
 			$table->{pks}    = scalar(@{$table->{pk}});
 
+			# Will this table be read-write?
+			$table->{readwrite} = !! ( $table->{pks} and ! $params{readonly} );
+
 			# What will be the class for this table
 			$table->{class}  = ucfirst lc $table->{name};
 			$table->{class}  =~ s/_([a-z])/uc($1)/ge;
-			$table->{class}  = "${pkg}::$table->{class}";
+			$table->{class}  = "$params{package}::$table->{class}";
 
 			# Generate various SQL fragments
-			my $sql = $table->{sql} = { create => $table->{sql} };
-			$sql->{cols}     = join ', ', map { '"' . $_ . '"' } @names;
-			$sql->{vals}     = join ', ', ('?') x scalar @columns;
-			$sql->{select}   = "select $table->{sql}->{cols} from $table->{name}";
-			$sql->{count}    = "select count(*) from $table->{name}";
-			$sql->{insert}   = join ' ',
+			$table->{sql_create}  = $table->{sql};
+			$table->{sql_cols}    = join ', ', map { '"' . $_ . '"' } @names;
+			$table->{sql_vals}    = join ', ', ('?') x scalar @columns;
+			$table->{sql_select}  = "select $table->{sql_cols} from $table->{name}";
+			$table->{sql_count}   = "select count(*) from $table->{name}";
+			$table->{sql_insert}  = join ' ',
 				"insert into $table->{name}" .
-				"( $table->{sql}->{cols} )"  .
-				" values ( $table->{sql}->{vals} )";
-			$sql->{where_pk}    = join(' and ', map("$_ = ?", @{$table->{pk}}))
+				"( $table->{sql_cols} )"  .
+				" values ( $table->{sql_vals} )";
+			$table->{sql_where_pk} = join(' and ', map("$_ = ?", @{$table->{pk}}))
 		}
 
-		# Generate the foreign key metadata
+		# Generate the foreign key metadata once all the basic table data is complete
 		foreach my $table ( @$tables ) {
 			# Locate the foreign keys
 			my %fk     = ();
-			my @fk_sql = $table->{sql}->{create} =~ /[(,]\s*(.+?REFERENCES.+?)\s*[,)]/g;
+			my @fk_sql = $table->{sql_create} =~ /[(,]\s*(.+?REFERENCES.+?)\s*[,)]/g;
 
 			# Extract the details
 			foreach ( @fk_sql ) {
@@ -326,156 +187,282 @@ END_PERL
 		}
 
 		# Generate the per-table code
-		foreach my $table ( @$tables ) {
-			# Generate the accessors
-			my $sql     = $table->{sql};
-			my @columns = @{ $table->{columns} };
-			my @names   = map { $_->{name} } @columns;
-
-			# Generate the elements in all packages
-			$code .= <<"END_PERL";
-package $table->{class};
-
-sub base { '$pkg' }
-
-sub table { '$table->{name}' }
-
-sub select {
-	my \$class = shift;
-	my \$sql   = '$sql->{select} ';
-	   \$sql  .= shift if \@_;
-	my \$rows  = $pkg->selectall_arrayref( \$sql, { Slice => {} }, \@_ );
-	bless( \$_, '$table->{class}' ) foreach \@\$rows;
-	wantarray ? \@\$rows : \$rows;
-}
-
-sub count {
-	my \$class = shift;
-	my \$sql   = '$sql->{count} ';
-	   \$sql  .= shift if \@_;
-	$pkg->selectrow_array( \$sql, {}, \@_ );
-}
-
-sub iterate {
-	my \$class = shift;
-	my \$call  = pop;
-	my \$sql   = '$sql->{select} ';
-	   \$sql  .= shift if \@_;
-	my \$sth   = $pkg->prepare( \$sql );
-	\$sth->execute( \@_ );
-	while ( \$_ = \$sth->fetchrow_hashref ) {
-		bless( \$_, '$table->{class}' );
-		\$call->() or last;
-	}
-	\$sth->finish;
-}
-
-END_PERL
-
-			# Add the primary key based single object loader
-			if ( $table->{pks} ) {
-				$code .= <<"END_PERL";
-sub load {
-	my \$class = shift;
-	my \$row   = $pkg->selectrow_hashref(
-		'$sql->{select} where $sql->{where_pk}',
-		undef, \@_,
-	);
-	unless ( \$row ) {
-		Carp::croak("$table->{class} row does not exist");
-	}
-	bless( \$row, '$table->{class}' );
-}
-
-END_PERL
-			}
-
+		foreach my $table ( grep { $_->{readwrite} } @$tables ) {
 			# Generate the elements for tables with primary keys
-			if ( defined $table->{pk} and ! $readonly ) {
-				my $nattr = join "\n", map { "\t\t$_ => \$attr{$_}," } @names;
-				my $iattr = join "\n", map { "\t\t\$self->{$_},"       } @names;
-				my $fill_pk = scalar @{$table->{pk}} == 1 
-					? "\t\$self->{$table->{pk}->[0]} = \$dbh->func('last_insert_rowid') unless \$self->{$table->{pk}->[0]};"
-					: q{};
-				my $where_pk      = join(' and ', map("$_ = ?", @{$table->{pk}}));
-				my $where_pk_attr = join("\n", map("\t\t\$self->{$_},", @{$table->{pk}}));
-				$code .= <<"END_PERL";
-sub new {
-	my \$class = shift;
-	my \%attr  = \@_;
-	bless {
-$nattr
-	}, \$class;
-}
-
-sub create {
-	shift->new(\@_)->insert;
-}
-
-sub insert {
-	my \$self = shift;
-	my \$dbh  = $pkg->dbh;
-	\$dbh->do( '$sql->{insert}', {},
-$iattr
-	);
-$fill_pk	
-	return \$self;
-}
-
-sub delete {
-	my \$self = shift;
-	return $pkg->do(
-		'delete from $table->{name} where $where_pk',
-		{}, 
-$where_pk_attr		
-	) if ref \$self;
-	Carp::croak("Must use truncate to delete all rows") unless \@_;
-	return $pkg->do(
-		'delete from $table->{name} ' . shift,
-		{}, \@_,
-	);
-}
-
-sub truncate {
-	$pkg->do( 'delete from $table->{name}', {} );
-}
-
-END_PERL
-
-			}
-
-		# Generate the accessors
-		$code .= join "\n\n", map { $_->{fk} ? <<"END_DIRECT" : <<"END_ACCESSOR" } @columns;
-sub $_->{name} {
-	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk}->[0] = ?', \$_[0]->{$_->{name}}))[0];
-}
-END_DIRECT
-sub $_->{name} {
-	\$_[0]->{$_->{name}};
-}
-END_ACCESSOR
-
+			my @names = map { $_->{name} } @{ $table->{columns} };
+			$table->{nattr}   = join "\n", map { "\t\t$_ => \$attr{$_}," } @names;
+			$table->{iattr}   = join "\n", map { "\t\t\$self->{$_},"     } @names;
+			$table->{fill_pk} = scalar @{$table->{pk}} == 1 
+				? "\t\$self->{$table->{pk}->[0]} = \$dbh->func('last_insert_rowid') unless \$self->{$table->{pk}->[0]};"
+				: q{};
+			$table->{where_pk} = join(' and ', map("$_ = ?", @{$table->{pk}}));
+			$table->{where_pk_attr} = join("\n", map("\t\t\$self->{$_},", @{$table->{pk}}));
 		}
 	}
 	$dbh->disconnect;
 
-	# Add any custom code to the end
-	if ( defined $params{append} ) {
-		$code .= "\npackage $pkg;\n" if $params{tables};
-		$code .= "\n$params{append}";
+	# Generate as a template.
+	my $code2 = Template::Tiny->new->process( \<<'END_PERL', \%params );
+package [% package %];
+
+use strict;
+use Carp             ();
+use DBI        1.607 ();
+use DBD::SQLite 1.27 ();
+
+my $DBH = undef;
+
+sub orlite { '[% orlite %]' }
+
+sub sqlite { '[% file %]' }
+
+sub dsn { 'dbi:SQLite:[% file %]' }
+
+sub dbh {
+	$DBH or $_[0]->connect;
+}
+
+sub connect {
+	DBI->connect( $_[0]->dsn, undef, undef, {
+		PrintError => 0,
+		RaiseError => 1,
+	} );
+}
+
+sub prepare {
+	shift->dbh->prepare(@_);
+}
+
+sub do {
+	shift->dbh->do(@_);
+}
+
+sub selectall_arrayref {
+	shift->dbh->selectall_arrayref(@_);
+}
+
+sub selectall_hashref {
+	shift->dbh->selectall_hashref(@_);
+}
+
+sub selectcol_arrayref {
+	shift->dbh->selectcol_arrayref(@_);
+}
+
+sub selectrow_array {
+	shift->dbh->selectrow_array(@_);
+}
+
+sub selectrow_arrayref {
+	shift->dbh->selectrow_arrayref(@_);
+}
+
+sub selectrow_hashref {
+	shift->dbh->selectrow_hashref(@_);
+}
+
+sub pragma {
+	$_[0]->do("pragma $_[1] = $_[2]") if @_ > 2;
+	$_[0]->selectrow_arrayref("pragma $_[1]")->[0];
+}
+
+sub iterate {
+	my $class = shift;
+	my $call  = pop;
+	my $sth   = $class->prepare(shift);
+	$sth->execute(@_);
+	while ( $_ = $sth->fetchrow_arrayref ) {
+		$call->() or last;
 	}
-	$code .= "\n\n1;\n";
+	$sth->finish;
+}
+
+sub begin {
+	$DBH or
+	$DBH = $_[0]->connect;
+	$DBH->begin_work;
+}
+
+sub rollback {
+	$DBH or return 1;
+	$DBH->rollback;
+	$DBH->disconnect;
+	undef $DBH;
+	return 1;
+}
+
+sub rollback_begin {
+	if ( $DBH ) {
+		$DBH->rollback;
+		$DBH->begin_work;
+	} else {
+		$_[0]->begin;
+	}
+	return 1;
+}
+[% UNLESS readonly %]
+sub commit {
+	$DBH or return 1;
+	$DBH->commit;
+	$DBH->disconnect;
+	undef $DBH;
+	return 1;
+}
+
+sub commit_begin {
+	if ( $DBH ) {
+		$DBH->commit;
+		$DBH->begin_work;
+	} else {
+		$_[0]->begin;
+	}
+	return 1;
+}
+[% END %]
+[%- IF cleanup %]
+END {
+	if ( $DBH ) {
+		$DBH->rollback;
+		$DBH->do('[% cleanup %]');
+		$DBH->disconnect;
+		undef $DBH;
+	} else {
+		[% package %]->do('[% cleanup %]');
+	}
+}
+[%- ELSE %]
+END {
+	[% package %]->rollback if $DBH;
+}
+[%- END %]
+[% FOREACH table IN tables %]
+package [% table.class %];
+
+sub base { '[% package %]' }
+
+sub table { '[% table.name %]' }
+
+sub select {
+	my $class = shift;
+	my $sql   = '[% table.sql_select %] ';
+	   $sql  .= shift if @_;
+	my $rows  = [% package %]->selectall_arrayref( $sql, { Slice => {} }, @_ );
+	bless( $_, '[% table.class %]' ) foreach @$rows;
+	wantarray ? @$rows : $rows;
+}
+
+sub count {
+	my $class = shift;
+	my $sql   = '[% table.sql_count %] ';
+	   $sql  .= shift if @_;
+	[% package %]->selectrow_array( $sql, {}, @_ );
+}
+
+sub iterate {
+	my $class = shift;
+	my $call  = pop;
+	my $sql   = '[% table.sql_select %] ';
+	   $sql  .= shift if @_;
+	my $sth   = [% package %]->prepare( $sql );
+	$sth->execute( @_ );
+	while ( $_ = $sth->fetchrow_hashref ) {
+		bless( $_, '[% table.class %]' );
+		$call->() or last;
+	}
+	$sth->finish;
+}
+[% IF table.pks %]
+sub load {
+	my $class = shift;
+	my $row   = [% package %]->selectrow_hashref(
+		'[% table.sql_select %] where [% table.sql_where_pk %]',
+		undef, @_,
+	);
+	unless ( $row ) {
+		Carp::croak("[% table.class %] row does not exist");
+	}
+	bless( $row, '[% table.class %]' );
+}
+[% END %]
+[%- IF table.readwrite %]
+sub new {
+	my $class = shift;
+	my %attr  = @_;
+	bless {
+[% table.nattr %]
+	}, $class;
+}
+
+sub create {
+	shift->new(@_)->insert;
+}
+
+sub insert {
+	my $self = shift;
+	my $dbh  = [% package %]->dbh;
+	$dbh->do( '[% table.sql_insert %]', {},
+[% table.iattr %]
+	);
+[% table.fill_pk %]
+	return $self;
+}
+
+sub delete {
+	my $self = shift;
+	return [% package %]->do(
+		'delete from [% table.name %] where [% table.where_pk %]',
+		{}, 
+[% table.where_pk_attr %]
+	) if ref $self;
+	Carp::croak("Must use truncate to delete all rows") unless @_;
+	return [% package %]->do(
+		'delete from [% table.name %] ' . shift,
+		{}, @_,
+	);
+}
+
+sub truncate {
+	[% package %]->do( 'delete from [% table.name %]', {} );
+}
+[% END %]
+[%- FOREACH column IN table.columns %]
+sub [% column.name %] {
+[%- IF column.fk %]
+	([% column.fk.1.class %]->select('where [% column.fk.1.pk.0 %] = ?', $_[0]->{[% column.name %]}))[0];
+[%- ELSE %]
+	$_[0]->{[% column.name %]};
+[%- END %]
+}
+[% END %]
+[%- END %]
+[%- IF append %]
+[%- IF tables %]
+package [% package %];
+[% END %]
+[% append %]
+[% END %]
+1;
+END_PERL
+
+	# Comparative testing
+#	if ( $ENV{HARNESS_ACTIVE} ) {
+#		require Test::LongString;
+#		Test::LongString::is_string(
+#			$code2 => $code,
+#			"Templated code matches string-append code",
+#		);
+#	}
 
 	# Compile the code
 	local $@;
 	if ( $^P and $^V >= 5.008009 ) {
 		local $^P = $^P | 0x800;
-		eval $code;
+		eval $code2;
 		die $@ if $@;
 	} elsif ( $DEBUG ) {
-		dval($code);
+		dval($code2);
 	} else {
-		eval $code;
+		eval $code2;
 		die $@ if $@;
 	}
 

@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 20;
+use Test::More tests => 25;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -111,4 +111,41 @@ END_PERL
 	my $create = My::Test2::Foo->create( bar => 3 );
 	isa_ok( $create, 'My::Test2::Foo' );
 	is( $create->bar, 3, '->bar ok' );
+}
+
+
+
+
+
+######################################################################
+# Appending with tables
+
+SCOPE: {
+	# Set up the file
+	my $file = test_db();
+	my $dbh  = create_ok(
+		file    => catfile(qw{ t 02_basics.sql }),
+		connect => [ "dbi:SQLite:$file" ],
+	);
+
+	# Create the second test package (with tables)
+	eval <<"END_PERL"; die $@ if $@;
+package My::Test3;
+
+use strict;
+use ORLite {
+	file   => '$file',
+	create => 1,
+	append => 'sub append { 2 }',
+};
+
+1;
+END_PERL
+
+	ok( My::Test3->can('connect'), 'Created read code'  );
+	ok( My::Test3->can('begin'),   'Created write code' );
+	ok( My::Test3::TableOne->can('select'), 'Created table code' );
+
+	# When generating tables, we still append to the right place
+	is( My::Test3->append, 2, 'append params works as expected' );
 }

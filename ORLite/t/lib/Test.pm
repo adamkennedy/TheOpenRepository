@@ -1,14 +1,15 @@
 package t::lib::Test;
 
 use strict;
-use Exporter   ();
-use ORLite     ();
-use Test::More ();
+use Exporter     ();
+use ORLite       ();
+use Test::More   ();
+use File::Remove ();
 use File::Spec::Functions ':ALL';
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.33';
+	$VERSION = '1.34';
 	@ISA     = 'Exporter';
 	@EXPORT  = qw{ test_db connect_ok create_ok };
 }
@@ -23,7 +24,7 @@ BEGIN {
 my %to_delete = ();
 END {
 	foreach my $file ( sort keys %to_delete ) {
-		unlink $file;
+		File::Remove::remove($file);
 	}
 }
 
