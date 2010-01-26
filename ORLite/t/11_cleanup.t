@@ -7,7 +7,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 4;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -40,5 +40,6 @@ END_PERL
 # Run the tests
 
 ok( Foo::Bar->can('orlite'), 'Created the ORLite class' );
-
 ok( Foo::Bar->begin, 'Created the transaction' );
+ok( ! Foo::Bar->dbh->{AutoCommit}, '->{AutoCommit} is off' );
+
