@@ -815,10 +815,9 @@ sub install_perl_toolchain {
 			# Upgrading to this version, instead...
 			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
 		}
-		if ( $dist =~ /Test-Harness-3 [.] 19/msx ) {
+		if ( $dist =~ /Test-Harness-3 [.] 20/msx ) {
 
-			# 3.19 fails its tests... waiting for RT#53912
-			$dist  = 'ANDYA/Test-Harness-3.17.tar.gz';
+			# 3.20 has a test bug... waiting for RT#54028
 			$force = 1;
 		}
 		if ( $dist =~ /CPAN-1 [.] 9402/msx ) {
