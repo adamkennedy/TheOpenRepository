@@ -160,6 +160,12 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 			next MODULE;
 		}
 
+		# Time-HiRes is timing-dependent, of course.
+		if ( $module->cpan_file =~ m{/Time-HiRes-}msx ) {
+			$self->_install_cpan_module( $module, 1 );
+			next MODULE;
+		}
+		
 		if (    ( $module->cpan_file() =~ m{/Module-Install-\d}msx )
 			and ( $module->cpan_version() > 0.79 ) )
 		{
