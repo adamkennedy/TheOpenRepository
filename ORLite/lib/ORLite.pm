@@ -15,7 +15,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.36';
+	$VERSION = '1.37';
 }
 
 # Support for the 'prune' option
