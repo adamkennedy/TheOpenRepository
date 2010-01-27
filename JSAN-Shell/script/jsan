@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use JSAN::Shell ();
 
-our $VERSION = '2.02';
+our $VERSION = '2.03';
     $VERSION = eval $VERSION;
 
 $|  = 1;
@@ -27,8 +27,8 @@ jsan - The JavaScript Archive Network (JSAN) Shell
 
   adam@red:~$ jsan
   
-  jsan shell -- JSAN exploration and library installation (v2.02)
-             -- Copyright 2005 - 2007 Adam Kennedy.
+  jsan shell -- JSAN exploration and library installation (v2.03)
+             -- Copyright 2005 - 2010 Adam Kennedy.
              -- Type 'help' for a summary of available commands.
   
   jsan> help
