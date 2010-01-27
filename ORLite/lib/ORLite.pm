@@ -49,12 +49,7 @@ sub import {
 	my %params;
 	if ( defined Params::Util::_STRING($_[1]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
-		%params = (
-			file     => $_[1],
-			readonly => undef, # Automatic
-			package  => undef, # Automatic
-			tables   => 1,
-		);
+		%params = ( file => $_[1] );
 	} elsif ( Params::Util::_HASHLIKE($_[1]) ) {
 		%params = %{ $_[1] };
 	} else {
@@ -79,6 +74,9 @@ sub import {
 	unless ( defined $params{cleanup} ) {
 		$params{cleanup} = '';
 	}
+	unless ( defined $params{array} ) {
+		$params{array} = 0;
+	}
 	unless ( defined $params{xsaccessor} ) {
 		$params{xsaccessor} = 0;
 	}
@@ -93,8 +91,8 @@ sub import {
 	}
 
 	# Connect to the database
-	my $file     = File::Spec->rel2abs($params{file});
-	my $created  = ! -f $params{file};
+	my $file    = File::Spec->rel2abs($params{file});
+	my $created = ! -f $params{file};
 	if ( $created ) {
 		# Create the parent directory
 		my $dir = File::Basename::dirname($file);
@@ -104,12 +102,18 @@ sub import {
 		}
 		$class->prune($file) if $params{prune};
 	}
-	my $pkg         = $params{package};
-	my $readonly    = $params{readonly};
-	my $cleanup     = $params{cleanup};
-	my $xsaccessor  = $params{xsaccessor};
-	my $dsn         = "dbi:SQLite:$file";
-	my $dbh         = DBI->connect( $dsn, undef, undef, {
+	my $pkg        = $params{package};
+	my $readonly   = $params{readonly};
+	my $cleanup    = $params{cleanup};
+	my $xsaccessor = $params{xsaccessor};
+	my $array      = $params{array};
+	my $xsclass    = $array ? 'Class::XSAccessor::Array' : 'Class::XSAccessor';
+	my $l          = $array ? '['  : '{';
+	my $r          = $array ? ']'  : '}';
+	my $slice      = $array ? '{}' : '{ Slice => {} }';
+	my $rowref     = $array ? 'arrayref' : 'hashref';
+	my $dsn        = "dbi:SQLite:$file";
+	my $dbh        = DBI->connect( $dsn, undef, undef, {
 		PrintError => 0,
 		RaiseError => 1,
 	} );
@@ -120,9 +124,9 @@ sub import {
 	}
 
 	# Check the schema version before generating
-	my $version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
-	if ( exists $params{user_version} and $version != $params{user_version} ) {
-		Carp::croak("Schema user_version mismatch (got $version, wanted $params{user_version})");
+	my $user_version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
+	if ( exists $params{user_version} and $user_version != $params{user_version} ) {
+		Carp::croak("Schema user_version mismatch (got $user_version, wanted $params{user_version})");
 	}
 
 	# Generate the support package code
@@ -193,8 +197,8 @@ sub pragma {
 sub iterate {
 	my \$class = shift;
 	my \$call  = pop;
-	my \$sth   = \$class->prepare( shift );
-	\$sth->execute( \@_ );
+	my \$sth   = \$class->prepare(shift);
+	\$sth->execute(\@_);
 	while ( \$_ = \$sth->fetchrow_arrayref ) {
 		\$call->() or last;
 	}
@@ -276,52 +280,84 @@ END_PERL
 
 	# Optionally generate the table classes
 	if ( $params{tables} ) {
-		# Capture the raw schema information
+		# Capture the raw schema table information
 		my $tables = $dbh->selectall_arrayref(
 			'select * from sqlite_master where name not like ? and type = ?',
 			{ Slice => {} }, 'sqlite_%', 'table',
 		);
+		my %tindex = map { $_->{name} => $_ } @$tables;
+
+		# Capture the raw schema column information
 		foreach my $table ( @$tables ) {
-			$table->{columns} = $dbh->selectall_arrayref(
+			# What will be the class for this table
+			$table->{class} = ucfirst lc $table->{name};
+			$table->{class} =~ s/_([a-z])/uc($1)/ge;
+			$table->{class} = "${pkg}::$table->{class}";
+
+			# Load the column data
+			my $columns = $table->{columns} = $dbh->selectall_arrayref(
 				"pragma table_info('$table->{name}')",
 			 	{ Slice => {} },
 			);
-		}
 
-		# Generate the main additional table level metadata
-		my %tindex = map { $_->{name} => $_ } @$tables;
-		foreach my $table ( @$tables ) {
-			my @columns      = @{ $table->{columns} };
-			my @names        = map { $_->{name} } @columns;
-			$table->{cindex} = map { $_->{name} => $_ } @columns;
+			# Generate the object keys for the columns
+			if ( $array ) {
+				foreach my $i ( 0 .. $#$columns ) {
+					$columns->[$i]->{xs}  = $i;
+					$columns->[$i]->{key} = "[$i]";
+				}
+			} else {
+				foreach my $c ( @$columns ) {
+					$c->{xs}  = "'$c->{name}'";
+					$c->{key} = "{$c->{name}}";
+				}
+			}
 
-			# Discover the primary key
-			@{$table->{pk}}  = map($_->{name}, grep { $_->{pk} } @columns);
-			$table->{pks}    = scalar(@{$table->{pk}});
+			# Generate the primary key list
+			$table->{pk}     = [ grep { $_->{pk} } @$columns ];
+			$table->{pks}    = scalar @{$table->{pk}};
+			$table->{create} = !! ( $table->{pks} and ! $readonly );
 
-			# What will be the class for this table
-			$table->{class}  = ucfirst lc $table->{name};
-			$table->{class}  =~ s/_([a-z])/uc($1)/ge;
-			$table->{class}  = "${pkg}::$table->{class}";
+			# Generate the main SQL fragments
+			$table->{sql_cols}   = join ', ', map { '"' . $_->{name} . '"' } @$columns;
+			$table->{sql_vals}   = join ', ', ('?') x scalar @$columns;
+			$table->{sql_select} = "select $table->{sql_cols} from $table->{name}";
+			$table->{sql_count}  = "select count(*) from $table->{name}";
+			$table->{sql_insert} =
+				"insert into $table->{name} " .
+				"( $table->{sql_cols} ) " .
+				"values ( $table->{sql_vals} )";
+			$table->{sql_where} = join ' and ',
+				map { "$_->{name} = ?" } @{$table->{pk}};	
 
-			# Generate various SQL fragments
-			my $sql = $table->{sql} = { create => $table->{sql} };
-			$sql->{cols}     = join ', ', map { '"' . $_ . '"' } @names;
-			$sql->{vals}     = join ', ', ('?') x scalar @columns;
-			$sql->{select}   = "select $table->{sql}->{cols} from $table->{name}";
-			$sql->{count}    = "select count(*) from $table->{name}";
-			$sql->{insert}   = join ' ',
-				"insert into $table->{name}" .
-				"( $table->{sql}->{cols} )"  .
-				" values ( $table->{sql}->{vals} )";
-			$sql->{where_pk}    = join(' and ', map("$_ = ?", @{$table->{pk}}))
+			# Generate the new Perl fragments
+			$table->{pl_new} = join "\n", map {
+				$array ? "\t\t\$attr{$_->{name}},"
+				       : "\t\t$_->{name} => \$attr{$_->{name}},"
+			} @$columns;
+
+			$table->{pl_insert} = join "\n", map {
+				"\t\t\$self->$_->{key},"
+			} @$columns;
+
+			if ( $table->{pks} == 1 ) {
+				$table->{pl_fill} = "\t\$self->$table->{pk}->[0]->{key} " .
+					"= \$dbh->func('last_insert_rowid') " .
+					"unless \$self->$table->{pk}->[0]->{key};";
+			} else {
+				$table->{pl_fill} = '';
+			}
+
+			$table->{pl_where} = join "\n", map {
+				"\t\t\$self->$_->{key},"
+			} @{$table->{pk}};
 		}
 
 		# Generate the foreign key metadata
 		foreach my $table ( @$tables ) {
 			# Locate the foreign keys
 			my %fk     = ();
-			my @fk_sql = $table->{sql}->{create} =~ /[(,]\s*(.+?REFERENCES.+?)\s*[,)]/g;
+			my @fk_sql = $table->{sql} =~ /[(,]\s*(.+?REFERENCES.+?)\s*[,)]/g;
 
 			# Extract the details
 			foreach ( @fk_sql ) {
@@ -337,10 +373,7 @@ END_PERL
 
 		# Generate the per-table code
 		foreach my $table ( @$tables ) {
-			# Generate the accessors
-			my $sql     = $table->{sql};
-			my @columns = @{ $table->{columns} };
-			my @names   = map { $_->{name} } @columns;
+			my @columns = @{$table->{columns}};
 
 			# Generate the elements in all packages
 			$code .= <<"END_PERL";
@@ -352,70 +385,103 @@ sub table { '$table->{name}' }
 
 sub select {
 	my \$class = shift;
-	my \$sql   = '$sql->{select} ';
+	my \$sql   = '$table->{sql_select} ';
 	   \$sql  .= shift if \@_;
-	my \$rows  = $pkg->selectall_arrayref( \$sql, { Slice => {} }, \@_ );
-	bless( \$_, '$table->{class}' ) foreach \@\$rows;
+	my \$rows  = $pkg->selectall_arrayref( \$sql, $slice, \@_ );
+	bless \$_, '$table->{class}' foreach \@\$rows;
 	wantarray ? \@\$rows : \$rows;
 }
 
 sub count {
 	my \$class = shift;
-	my \$sql   = '$sql->{count} ';
+	my \$sql   = '$table->{sql_count} ';
 	   \$sql  .= shift if \@_;
 	$pkg->selectrow_array( \$sql, {}, \@_ );
 }
 
+END_PERL
+
+			# Handle different versions, because arrayref acts funny
+			if ( $array ) {
+				$code .= <<"END_PERL";
 sub iterate {
 	my \$class = shift;
 	my \$call  = pop;
-	my \$sql   = '$sql->{select} ';
+	my \$sql   = '$table->{sql_select} ';
 	   \$sql  .= shift if \@_;
-	my \$sth   = $pkg->prepare( \$sql );
-	\$sth->execute( \@_ );
-	while ( \$_ = \$sth->fetchrow_hashref ) {
-		bless( \$_, '$table->{class}' );
+	my \$sth   = $pkg->prepare(\$sql);
+	\$sth->execute(\@_);
+	while ( \$_ = \$sth->fetchrow_arrayref ) {
+		\$_ = bless [ \@\$_ ], '$table->{class}';
 		\$call->() or last;
 	}
 	\$sth->finish;
 }
 
 END_PERL
-
-			# Add the primary key based single object loader
-			if ( $table->{pks} ) {
+			} else {
 				$code .= <<"END_PERL";
-sub load {
+sub iterate {
 	my \$class = shift;
-	my \$row   = $pkg->selectrow_hashref(
-		'$sql->{select} where $sql->{where_pk}',
-		undef, \@_,
-	);
-	unless ( \$row ) {
-		Carp::croak("$table->{class} row does not exist");
+	my \$call  = pop;
+	my \$sql   = '$table->{sql_select} ';
+	   \$sql  .= shift if \@_;
+	my \$sth   = $pkg->prepare(\$sql);
+	\$sth->execute(\@_);
+	while ( \$_ = \$sth->fetchrow_hashref ) {
+		bless \$_, '$table->{class}';
+		\$call->() or last;
 	}
-	bless( \$row, '$table->{class}' );
+	\$sth->finish;
 }
 
 END_PERL
 			}
 
+			# Add the primary key based single object loader
+			if ( $table->{pks} ) {
+				if ( $array ) {
+					$code .= <<"END_PERL";
+sub load {
+	my \$class = shift;
+	my \@row   = $pkg->selectrow_array(
+		'$table->{sql_select} where $table->{sql_where}',
+		undef, \@_,
+	);
+	unless ( \@row ) {
+		Carp::croak("$table->{class} row does not exist");
+	}
+	bless \\\@row, '$table->{class}';
+}
+
+END_PERL
+				} else {
+					$code .= <<"END_PERL";
+sub load {
+	my \$class = shift;
+	my \$row   = $pkg->selectrow_hashref(
+		'$table->{sql_select} where $table->{sql_where}',
+		undef, \@_,
+	);
+	unless ( \$row ) {
+		Carp::croak("$table->{class} row does not exist");
+	}
+	bless \$row, '$table->{class}';
+}
+
+END_PERL
+				}
+			}
+
 			# Generate the elements for tables with primary keys
-			if ( defined $table->{pk} and ! $readonly ) {
-				my $nattr = join "\n", map { "\t\t$_ => \$attr{$_}," } @names;
-				my $iattr = join "\n", map { "\t\t\$self->{$_},"       } @names;
-				my $fill_pk = scalar @{$table->{pk}} == 1 
-					? "\t\$self->{$table->{pk}->[0]} = \$dbh->func('last_insert_rowid') unless \$self->{$table->{pk}->[0]};"
-					: q{};
-				my $where_pk      = join(' and ', map("$_ = ?", @{$table->{pk}}));
-				my $where_pk_attr = join("\n", map("\t\t\$self->{$_},", @{$table->{pk}}));
+			if ( $table->{create} ) {
 				$code .= <<"END_PERL";
 sub new {
 	my \$class = shift;
 	my \%attr  = \@_;
-	bless {
-$nattr
-	}, \$class;
+	bless $l
+$table->{pl_new}
+	$r, \$class;
 }
 
 sub create {
@@ -425,19 +491,19 @@ sub create {
 sub insert {
 	my \$self = shift;
 	my \$dbh  = $pkg->dbh;
-	\$dbh->do( '$sql->{insert}', {},
-$iattr
+	\$dbh->do( '$table->{sql_insert}', {},
+$table->{pl_insert}
 	);
-$fill_pk	
+$table->{pl_fill}
 	return \$self;
 }
 
 sub delete {
 	my \$self = shift;
 	return $pkg->do(
-		'delete from $table->{name} where $where_pk',
-		{}, 
-$where_pk_attr		
+		'delete from $table->{name} where $table->{sql_where}',
+		{},
+$table->{pl_where}
 	) if ref \$self;
 	Carp::croak("Must use truncate to delete all rows") unless \@_;
 	return $pkg->do(
@@ -447,7 +513,7 @@ $where_pk_attr
 }
 
 sub truncate {
-	$pkg->do( 'delete from $table->{name}', {} );
+	$pkg->do('delete from $table->{name}');
 }
 
 END_PERL
@@ -456,13 +522,13 @@ END_PERL
 
 		# Generate the boring accessors
 		if ( $xsaccessor ) {
-			my $attrs = join( "\n",
-				map { "\t\t$_->{name} => '$_->{name}'," } grep { ! $_->{fk} } @columns
-			);
+			my $getters = join "\n",
+				map { "\t\t$_->{name} => $_->{xs}," }
+				grep { ! $_->{fk} } @columns;
 			$code .= <<"END_PERL";
-use Class::XSAccessor 1.05 {
+use $xsclass 1.05 {
 	getters => {
-$attrs
+$getters
 	},
 };
 
@@ -470,7 +536,7 @@ END_PERL
 		} else {
 			$code .= join "\n\n", map { <<"END_PERL" } grep { ! $_->{fk} } @columns;
 sub $_->{name} {
-	\$_[0]->{$_->{name}};
+	\$_[0]->$_->{key};
 }
 END_PERL
 		}
@@ -478,7 +544,7 @@ END_PERL
 		# Generate the foreign key accessors
 		$code .= join "\n\n", map { <<"END_PERL" } grep { $_->{fk} } @columns;
 sub $_->{name} {
-	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk}->[0] = ?', \$_[0]->{$_->{name}}))[0];
+	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk}->[0]->{name} = ?', \$_[0]->$_->{key}))[0];
 }
 END_PERL
 		}

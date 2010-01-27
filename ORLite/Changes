@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+1.37 Thu 28 Jan 2010
+	- Adding experimental support for the array => 1 option.
+
 1.36 Wed 27 Jan 2010
 	- Rolled back the Template::Tiny conversion as it ended up slowing
 	  down the code generation too much. I shall struggle on under the
