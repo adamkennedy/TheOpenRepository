@@ -48,7 +48,7 @@ use JSAN::Index      ();
 use JSAN::Client     ();
 use JSON             ();
 
-our $VERSION = '2.01';
+our $VERSION = '2.02';
     $VERSION = eval $VERSION;
 
 # Locate the starting mirror.json
