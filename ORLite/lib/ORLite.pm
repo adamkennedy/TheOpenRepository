@@ -79,6 +79,9 @@ sub import {
 	unless ( defined $params{cleanup} ) {
 		$params{cleanup} = '';
 	}
+	unless ( defined $params{xsaccessor} ) {
+		$params{xsaccessor} = 0;
+	}
 	unless ( defined $params{tables} ) {
 		$params{tables} = 1;
 	}
@@ -104,6 +107,7 @@ sub import {
 	my $pkg         = $params{package};
 	my $readonly    = $params{readonly};
 	my $cleanup     = $params{cleanup};
+	my $xsaccessor  = $params{xsaccessor};
 	my $dsn         = "dbi:SQLite:$file";
 	my $dbh         = DBI->connect( $dsn, undef, undef, {
 		PrintError => 0,
@@ -450,17 +454,33 @@ END_PERL
 
 			}
 
-		# Generate the accessors
-		$code .= join "\n\n", map { $_->{fk} ? <<"END_DIRECT" : <<"END_ACCESSOR" } @columns;
-sub $_->{name} {
-	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk}->[0] = ?', \$_[0]->{$_->{name}}))[0];
-}
-END_DIRECT
+		# Generate the boring accessors
+		if ( $xsaccessor ) {
+			my $attrs = join( "\n",
+				map { "\t\t$_->{name} => '$_->{name}'," } grep { ! $_->{fk} } @columns
+			);
+			$code .= <<"END_PERL";
+use Class::XSAccessor 1.05 {
+	getters => {
+$attrs
+	},
+};
+
+END_PERL
+		} else {
+			$code .= join "\n\n", map { <<"END_PERL" } grep { ! $_->{fk} } @columns;
 sub $_->{name} {
 	\$_[0]->{$_->{name}};
 }
-END_ACCESSOR
+END_PERL
+		}
 
+		# Generate the foreign key accessors
+		$code .= join "\n\n", map { <<"END_PERL" } grep { $_->{fk} } @columns;
+sub $_->{name} {
+	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk}->[0] = ?', \$_[0]->{$_->{name}}))[0];
+}
+END_PERL
 		}
 	}
 	$dbh->disconnect;
