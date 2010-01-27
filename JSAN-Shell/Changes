@@ -1,6 +1,6 @@
 Revision history for Perl extension JSAN::Shell2
 
-2.02 Wed 27 Dec 2010
+2.02 Wed 27 Jan 2010
     - Initial implementation of configuration file saving/reading
     - Now suggest to remember the 'prefix' setting
 
