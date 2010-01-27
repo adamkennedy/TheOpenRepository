@@ -978,6 +978,14 @@ sub _show {
 
 =pod
 
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=JSAN-Shell>
+
+For other issues, contact the author.
+
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adam@ali.asE<gt>
