@@ -46,14 +46,6 @@ Config:
   installsitescript: ''
   installstyle: perl/lib
   installusrbinperl: ~
-  installvendorarch: 'perl/vendor/lib'
-  installvendorbin: 'perl/bin'
-  installvendorhtml1dir: ''
-  installvendorhtml3dir: ''
-  installvendorlib: 'perl/vendor/lib'
-  installvendorman1dir: ''
-  installvendorman3dir: ''
-  installvendorscript: ''
   ld: g++.exe
   lddlflags: '-mdll -s -L"$archlib\CORE" -L"$libpth"'
   ldflags: '-s -L"$archlib\CORE" -L"$libpth"'
@@ -78,19 +70,6 @@ Config:
   man1direxp: ''
   man3dir: ''
   man3direxp: ''
-  vendorarch: perl/vendor/lib
-  vendorarchexp: perl/vendor/lib
-  vendorbin: perl/bin
-  vendorbinexp: perl/bin
-  vendorhtml1dir: ''
-  vendorhtml3dir: ''
-  vendorlib: perl/vendor/lib
-  vendorlibexp: perl/vendor/lib
-  vendorman1dir: ''
-  vendorman3dir: ''
-  vendorprefix: perl/vendor
-  vendorprefixexp: perl/vendor
-  vendorscript: ''
 Env:
   PATH:
     - c/bin
