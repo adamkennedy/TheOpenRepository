@@ -104,10 +104,10 @@ sub regenerate {
 		push @fragment_ids, $id;
 	} else {
 		if ( not $self->in_merge_module() ) {
-			$self->add_child_tag($self->_get_feature());
+			$self->add_child_tag( $self->_get_feature() );
 		}
 	}
-	
+
 	return uniq @fragment_ids;
 } ## end sub regenerate
 
