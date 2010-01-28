@@ -50,7 +50,7 @@ use ORLite::Mirror {
 END_PERL
 
 ok( ORLite::Mirror::Test->can('dbh'), 'Created database methods' );
-ok( ! ORLite::Mirror::Test->can('begin'), 'Did not create transaction methods' );
+ok( ! ORLite::Mirror::Test->can('commit'), 'Did not create transaction methods' );
 is( ORLite::Mirror::Test->pragma('user_version'), 7, '->user_version ok' );
 
 # Check the ->count method

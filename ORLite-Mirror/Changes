@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite-Mirror
 
+1.19 Thu 28 Jan 2010
+	- Upgrading ORLite dependency to 1.37 to get array support.
+	- Changed the "no transactions" test from begin to commit
+
 1.18 Sat  2 Jan 2010
 	- Upgrading ORLite dependency to 1.30 to get improved startup
 	  error handling, and new DBD::SQLite 1.27

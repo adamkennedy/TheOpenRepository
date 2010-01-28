@@ -54,7 +54,7 @@ use ORLite::Mirror {
 END_PERL
 
 ok( ORLite::Mirror::Test->can('dbh'), 'Created database methods' );
-ok( ! ORLite::Mirror::Test->can('begin'), 'Did not create transaction methods' );
+ok( ! ORLite::Mirror::Test->can('commit'), 'Did not create transaction methods' );
 
 # Check the ->count method
 is( ORLite::Mirror::Test::TableOne->count, 3, 'Found 3 rows' );

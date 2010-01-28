@@ -14,11 +14,11 @@ use IO::Uncompress::Gunzip  2.008 ();
 use IO::Uncompress::Bunzip2 2.008 ();
 use LWP::UserAgent          5.806 ();
 use LWP::Online              1.07 ();
-use ORLite                   1.30 ();
+use ORLite                   1.37 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.18';
+	$VERSION = '1.19';
 	@ISA     = 'ORLite';
 }
 

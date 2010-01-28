@@ -9,11 +9,10 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 26;
+use Test::More tests => 27;
 use File::Spec::Functions ':ALL';
 use File::Remove 'clear';
-use IO::Compress::Bzip2 ();
-use URI::file           ();
+use URI::file ();
 use t::lib::Test;
 
 # Flush any existing mirror database file
@@ -25,13 +24,9 @@ my $dbh  = create_ok(
 	catfile(qw{ t 02_basics.sql }),
 	"dbi:SQLite:$file",
 );
-my $archive = $file . '.bz2';
-clear($archive);
-IO::Compress::Bzip2::bzip2( $file => $archive )
-	or die('Failed to compress test script');
 
 # Convert the file into a URI
-my $uri = URI::file->new_abs($archive)->as_string;
+my $url = URI::file->new_abs($file)->as_string;
 
 # Create the test package
 eval <<"END_PERL"; die $@ if $@;
@@ -42,10 +37,13 @@ use vars qw{\$VERSION};
 BEGIN {
 	\$VERSION = '1.00';
 }
-
 use ORLite::Mirror {
-	url   => '$uri',
-	prune => 1,
+	url          => '$url',
+	maxage       => 1,
+	index        => [ 'table_one.col2' ],
+	user_version => 7,
+	prune        => 1,
+	array        => 1,
 };
 
 1;
@@ -54,6 +52,7 @@ END_PERL
 
 ok( ORLite::Mirror::Test->can('dbh'), 'Created database methods' );
 ok( ! ORLite::Mirror::Test->can('commit'), 'Did not create transaction methods' );
+is( ORLite::Mirror::Test->pragma('user_version'), 7, '->user_version ok' );
 
 # Check the ->count method
 is( ORLite::Mirror::Test::TableOne->count, 3, 'Found 3 rows' );
