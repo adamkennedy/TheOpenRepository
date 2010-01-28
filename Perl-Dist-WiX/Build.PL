@@ -21,6 +21,7 @@ die "OS unsupported\n" unless 'MSWin32' eq $^O;
 
 # These are the main requirements.
 my $requires = {
+	'perl'                      => '5.008001',
 	'parent'                    => '0.221',
 	'Alien::WiX'                => '0.300000',
 	'Archive::Tar'              => '1.42',
@@ -64,7 +65,7 @@ my $requires = {
 	'Process'                   => '0.26',
 	'Readonly'                  => '1.03',
 	# Template 2.21 will not install on Windows, anyway.
-	'Template'                  => '>= 2.20, != 2.21',
+	'Template'                  => '2.22',
 	'URI'                       => '1.35',
 	'WiX3'                      => '0.008',
 	'YAML::Tiny'                => '1.36',
@@ -79,7 +80,7 @@ my $builder = Module::Build->new(
 	license             => 'perl',
 	dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
 	dist_version_from   => 'lib/Perl/Dist/WiX.pm',
-	create_makefile_pl  => 'passthrough',
+	create_makefile_pl  => 'small',
 	create_license      => 1,
 	create_readme       => 1,
 # Will do this soon, but I have to get a key first.

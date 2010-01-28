@@ -106,19 +106,31 @@ sub add_shortcut {
 	my %args = @_;
 
 	if ( not defined $args{id} ) {
-		PDWiX::Parameter->throw(parameter => 'id' , where =>'P::D::W::Fragment::StartMenu->add_shortcut');
+		PDWiX::Parameter->throw(
+			parameter => 'id',
+			where     => 'P::D::W::Fragment::StartMenu->add_shortcut'
+		);
 	}
 
 	if ( not defined $args{name} ) {
-		PDWiX::Parameter->throw(parameter => 'name' , where =>'P::D::W::Fragment::StartMenu->add_shortcut');
+		PDWiX::Parameter->throw(
+			parameter => 'name',
+			where     => 'P::D::W::Fragment::StartMenu->add_shortcut'
+		);
 	}
-	
+
 	if ( not defined $args{target} ) {
-		PDWiX::Parameter->throw(parameter => 'target' , where =>'P::D::W::Fragment::StartMenu->add_shortcut');
+		PDWiX::Parameter->throw(
+			parameter => 'target',
+			where     => 'P::D::W::Fragment::StartMenu->add_shortcut'
+		);
 	}
 
 	if ( not defined $args{working_dir} ) {
-		PDWiX::Parameter->throw(parameter => 'working_dir' , where =>'P::D::W::Fragment::StartMenu->add_shortcut');
+		PDWiX::Parameter->throw(
+			parameter => 'working_dir',
+			where     => 'P::D::W::Fragment::StartMenu->add_shortcut'
+		);
 	}
 
 	# TODO: Validate arguments.

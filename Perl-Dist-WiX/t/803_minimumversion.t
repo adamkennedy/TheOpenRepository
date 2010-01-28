@@ -33,7 +33,7 @@ foreach my $MODULE ( @MODULES ) {
 
 # Terminate leftovers with prejudice aforethought.
 require File::Remove;
-foreach my $dir ( 't\tmp50', 't\tmp904', 't\tmp901', 't\tmp902', 't\tmp903' ) {
+foreach my $dir ( 't\tmp500', 't\tmp904', 't\tmp901', 't\tmp902', 't\tmp903' ) {
 	File::Remove::remove( \1, $dir ) if -d $dir;
 }
 
