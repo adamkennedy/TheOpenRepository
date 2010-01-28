@@ -15,7 +15,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.37';
+	$VERSION = '1.38';
 }
 
 # Support for the 'prune' option
@@ -366,9 +366,14 @@ END_PERL
 				}
 				$fk{"$1"} = [ "$2", $tindex{"$2"}, "$3" ];
 			}
-			foreach ( @{ $table->{columns} } ) {
+			foreach ( @{$table->{columns}} ) {
 				$_->{fk} = $fk{$_->{name}};
 			}
+
+			# One final code fragment we need the fk for
+			$table->{pl_accessor} = join "\n",
+				map { "\t\t$_->{name} => $_->{xs}," }
+				grep { ! $_->{fk} } @{$table->{columns}};
 		}
 
 		# Generate the per-table code
@@ -518,17 +523,30 @@ sub truncate {
 
 END_PERL
 
+		if ( $table->{create} and $array ) {
+			# Add an additional set method to avoid having
+			# the user have to enter manual positions.
+			$code .= <<"END_PERL";
+sub set {
+	my \$self = shift;
+	my \$i    = {
+$table->{pl_accessor}
+	}->{\$_[0]};
+	die "Bad name '\$_[0]'" unless defined \$i;
+	\$self->[\$i] = \$_[1];
+}
+
+END_PERL
+		}
 			}
 
 		# Generate the boring accessors
 		if ( $xsaccessor ) {
-			my $getters = join "\n",
-				map { "\t\t$_->{name} => $_->{xs}," }
-				grep { ! $_->{fk} } @columns;
+			my $type = $table->{create} ? 'accessors' : 'getters';
 			$code .= <<"END_PERL";
 use $xsclass 1.05 {
 	getters => {
-$getters
+$table->{pl_accessor}
 	},
 };
 

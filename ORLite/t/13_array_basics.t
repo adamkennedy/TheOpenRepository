@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 68;
+use Test::More tests => 71;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -155,6 +155,14 @@ SCOPE: {
 	is( Foo::Bar::TableOne->count, 1, 'One row created' );
 	ok( Foo::Bar->commit, '->commit' );
 	is( Foo::Bar::TableOne->count, 1, 'Commit ok' );
+}
+
+# Test the set method
+SCOPE: {
+	my @one = Foo::Bar::TableOne->select;
+	isa_ok( $one[0], 'Foo::Bar::TableOne' );
+	is( $one[0]->set( col1 => '10' ), 10, '->set ok' );
+	is( $one[0]->col1, 10, '->set worked' );
 }
 
 # Truncate

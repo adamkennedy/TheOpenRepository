@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.38 Thu 28 Jan 2010
+	- When using array => 1 on classes that we can create, add a ->set
+	  method for setting parameters in the object safely.
+
 1.37 Thu 28 Jan 2010
 	- Adding experimental support for the array => 1 option.
 
