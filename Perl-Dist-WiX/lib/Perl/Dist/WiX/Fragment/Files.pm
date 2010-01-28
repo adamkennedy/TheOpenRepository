@@ -64,7 +64,6 @@ sub _build_feature {
 			level   => 1,
 			display => 'hidden',
 		);
-		$self->add_child_tag($feat);
 		return $feat;
 	} else {
 		## no critic (ProhibitExplicitReturnUndef)
@@ -103,8 +102,10 @@ sub regenerate {
 
 	if ( 0 < scalar @fragment_ids ) {
 		push @fragment_ids, $id;
+	} else {
+		$self->add_child_tag($feat);
 	}
-
+	
 	return uniq @fragment_ids;
 } ## end sub regenerate
 
