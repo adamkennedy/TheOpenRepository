@@ -103,7 +103,7 @@ sub match_contains {
 	return '';
 }
 
-sub curry_run {
+sub match_curry {
 	my $class = ref $_[0] || $_[0];
 	die("Method 'curry' not implemented in class '$class'");
 }

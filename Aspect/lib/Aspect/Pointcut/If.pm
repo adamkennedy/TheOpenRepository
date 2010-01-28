@@ -21,7 +21,7 @@ sub match_define {
 
 # The condition pointcut contains no state and doesn't need to be curried.
 # Simply return it as-is and reuse it everywhere.
-sub curry_run {
+sub match_curry {
 	return $_[0];
 }
 

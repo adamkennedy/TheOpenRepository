@@ -31,7 +31,7 @@ sub match_contains {
 	return '';
 }
 
-sub curry_run {
+sub match_curry {
 	my $self = shift;
 	my @list = @$self;
 
@@ -43,7 +43,7 @@ sub curry_run {
 	}
 
 	# Curry down our children
-	@list = grep { defined $_ } map { $_->curry_run } @list;
+	@list = grep { defined $_ } map { $_->match_curry } @list;
 
 	# If none are left, curry us away to nothing
 	return unless @list;

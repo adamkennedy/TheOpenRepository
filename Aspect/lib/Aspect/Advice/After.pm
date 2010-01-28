@@ -28,7 +28,7 @@ sub _install {
 	# runtime checks instead of the original.
 	# Because $MATCH_RUN is used in boolean conditionals, if there
 	# is nothing to do the compiler will optimise away the code entirely.
-	my $curried   = $pointcut->curry_run;
+	my $curried   = $pointcut->match_curry;
 	my $MATCH_RUN = $curried ? '$curried->match_run($runtime)' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
@@ -77,8 +77,10 @@ sub _install {
 				] };
 
 				my \$runtime = {
+					type         => 'after',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
+					params       => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
 				};
@@ -89,9 +91,7 @@ sub _install {
 
 				# Create the context
 				my \$context = bless {
-					type     => 'after',
 					pointcut => \$pointcut,
-					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
 				}, 'Aspect::Context::After';
@@ -115,8 +115,10 @@ sub _install {
 				};
 
 				my \$runtime = {
+					type         => 'after',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
+					params       => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
 				};
@@ -127,16 +129,14 @@ sub _install {
 
 				# Create the context
 				my \$context = bless {
-					type     => 'after',
 					pointcut => \$pointcut,
-					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
 				}, 'Aspect::Context::After';
 
 				# Execute the advice code
 				my \$dummy = &\$code(\$context);
-				
+
 				# Throw the same (or modified) exception
 				my \$exception = \$context->exception;
 				die \$exception if \$exception;
@@ -152,8 +152,10 @@ sub _install {
 				};
 
 				my \$runtime = {
+					type         => 'after',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
+					params       => \\\@_,
 					return_value => undef,
 					exception    => \$\@,
 				};
@@ -164,16 +166,14 @@ sub _install {
 
 				# Create the context
 				my \$context = bless {
-					type     => 'after',
 					pointcut => \$pointcut,
-					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
 				}, 'Aspect::Context::After';
 
 				# Execute the advice code
 				&\$code(\$context);
-				
+
 				# Throw the same (or modified) exception
 				my \$exception = \$context->exception;
 				die \$exception if \$exception;

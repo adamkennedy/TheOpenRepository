@@ -28,7 +28,7 @@ sub _install {
 	# runtime checks instead of the original.
 	# Because $MATCH_RUN is used in boolean conditionals, if there
 	# is nothing to do the compiler will optimise away the code entirely.
-	my $curried   = $pointcut->curry_run;
+	my $curried   = $pointcut->match_curry;
 	my $MATCH_RUN = $curried ? '$curried->match_run($runtime)' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
@@ -78,8 +78,10 @@ sub _install {
 				return \@\$return unless \$\@;
 
 				my \$runtime = {
+					type         => 'after_throwing',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
+					params       => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
 				};
@@ -87,10 +89,7 @@ sub _install {
 
 				# Create the context
 				my \$context = bless {
-					type     => 'after_throwing',
 					pointcut => \$pointcut,
-					sub_name => \$name,
-					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
 				}, 'Aspect::Context::AfterThrowing';
@@ -115,8 +114,10 @@ sub _install {
 				return \$return unless \$\@;
 
 				my \$runtime = {
+					type         => 'after_throwing',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
+					params       => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
 				};
@@ -124,10 +125,7 @@ sub _install {
 
 				# Create the context
 				my \$context = bless {
-					type     => 'after_throwing',
 					pointcut => \$pointcut,
-					sub_name => \$name,
-					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
 				}, 'Aspect::Context::AfterThrowing';
@@ -151,8 +149,10 @@ sub _install {
 				return unless \$\@;
 
 				my \$runtime = {
+					type         => 'after_throwing',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
+					params       => \\\@_,
 					return_value => undef,
 					exception    => \$\@,
 				};
@@ -160,9 +160,7 @@ sub _install {
 
 				# Create the context
 				my \$context = bless {
-					type     => 'after_throwing',
 					pointcut => \$pointcut,
-					params   => \\\@_,
 					original => \$original,
 					\%\$runtime,
 				}, 'Aspect::Context::AfterThrowing';

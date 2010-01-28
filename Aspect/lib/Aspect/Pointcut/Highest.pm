@@ -34,7 +34,7 @@ sub match_define {
 # Call pointcuts curry away to null, because they are the basis
 # for which methods to hook in the first place. Any method called
 # at run-time has already been checked.
-sub curry_run {
+sub match_curry {
 	bless [ 0 ], $_[0];
 }
 

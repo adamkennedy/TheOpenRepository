@@ -28,7 +28,7 @@ sub _install {
 	# runtime checks instead of the original.
 	# Because $MATCH_RUN is used in boolean conditionals, if there
 	# is nothing to do the compiler will optimise away the code entirely.
-	my $curried   = $pointcut->curry_run;
+	my $curried   = $pointcut->match_curry;
 	my $MATCH_RUN = $curried ? '$curried->match_run($runtime)' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
@@ -69,25 +69,26 @@ sub _install {
 			goto &\$original if $MATCH_DISABLED;
 
 			my \$wantarray = wantarray;
-			my \$runtime   = {
-				sub_name  => \$name,
-				wantarray => \$wantarray,
-			};
 			if ( \$wantarray ) {
 				my \$return = [
 					Sub::Uplevel::uplevel(
 						1, \$original, \@_,
 					)
 				];
+				my \$runtime = {
+					type         => 'after_returning',
+					sub_name     => \$name,
+					wantarray    => \$wantarray,
+					params       => \\\@_,
+					return_value => \$return,
+					exception    => undef,
+				};
 				return \@\$return unless $MATCH_RUN;
 
 				# Create the context
 				my \$context = bless {
-					type         => 'after_returning',
-					pointcut     => \$pointcut,
-					params       => \\\@_,
-					return_value => \$return,
-					original     => \$original,
+					pointcut => \$pointcut,
+					original => \$original,
 					\%\$runtime,
 				}, 'Aspect::Context::AfterReturning';
 
@@ -102,16 +103,20 @@ sub _install {
 				my \$return = Sub::Uplevel::uplevel(
 					1, \$original, \@_,
 				);
+				my \$runtime = {
+					type         => 'after_returning',
+					sub_name     => \$name,
+					wantarray    => \$wantarray,
+					params       => \\\@_,
+					return_value => \$return,
+					exception    => undef,
+				};
 				return \$return unless $MATCH_RUN;
 
 				# Create the context
 				my \$context = bless {
-					type         => 'after_returning',
-					pointcut     => \$pointcut,
-					wantarray    => \$wantarray,
-					params       => \\\@_,
-					return_value => \$return,
-					original     => \$original,
+					pointcut => \$pointcut,
+					original => \$original,
 					\%\$runtime,
 				}, 'Aspect::Context::AfterReturning';
 
@@ -123,16 +128,20 @@ sub _install {
 				Sub::Uplevel::uplevel(
 					1, \$original, \@_,
 				);
+				my \$runtime = {
+					type         => 'after_returning',
+					sub_name     => \$name,
+					wantarray    => \$wantarray,
+					params       => \\\@_,
+					return_value => undef,
+					exception    => undef,
+				};
 				return unless $MATCH_RUN;
 
 				# Create the context
 				my \$context = bless {
-					type         => 'after_returning',
-					pointcut     => \$pointcut,
-					wantarray    => \$wantarray,
-					params       => \\\@_,
-					return_value => undef,
-					original     => \$original,
+					pointcut => \$pointcut,
+					original => \$original,
 					\%\$runtime,
 				}, 'Aspect::Context::AfterReturning';
 

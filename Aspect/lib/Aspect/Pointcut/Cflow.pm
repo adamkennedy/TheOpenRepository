@@ -12,7 +12,7 @@ our $VERSION = '0.42';
 our @ISA     = 'Aspect::Pointcut';
 
 use constant KEY  => 0;
-use constant SPEC => 1;
+use constant SPEC => 2;
 
 
 
@@ -26,7 +26,10 @@ sub new {
 	unless ( Params::Util::_IDENTIFIER($_[0]) ) {
 		Carp::croak('Invalid runtime context key');
 	}
-	bless [ $_[0], Aspect::Pointcut::Call->spec($_[1]) ], $class;
+
+	# Generate it via call
+	my $call = Aspect::Pointcut::Call->new($_[1]);
+	return bless [ $_[0], @$call ], $class;
 }
 
 
@@ -43,7 +46,7 @@ sub match_define {
 
 # The cflow pointcuts do not curry at all.
 # So they don't need to clone, and can be used directly.
-sub curry_run {
+sub match_curry {
 	return $_[0];
 }
 

@@ -31,7 +31,7 @@ sub _install {
 	# runtime checks instead of the original.
 	# Because $MATCH_RUN is used in boolean conditionals, if there
 	# is nothing to do the compiler will optimise away the code entirely.
-	my $curried   = $pointcut->curry_run;
+	my $curried   = $pointcut->match_curry;
 	my $MATCH_RUN = $curried ? '$curried->match_run($runtime)' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
@@ -74,16 +74,16 @@ sub _install {
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
 			my \$runtime   = {
+				type      => 'before',
 				sub_name  => \$name,
 				wantarray => \$wantarray,
+				params    => \\\@_,
 			};
 			goto &\$original unless $MATCH_RUN;
 
 			# Prepare the context object
 			my \$context = bless {
-				type         => 'before',
 				pointcut     => \$pointcut,
-				params       => \\\@_,
 				return_value => \$wantarray ? [ ] : undef,
 				original     => \$original,
 				proceed      => 1,

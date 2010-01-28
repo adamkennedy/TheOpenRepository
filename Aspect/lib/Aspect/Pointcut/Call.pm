@@ -17,16 +17,23 @@ our @ISA     = 'Aspect::Pointcut';
 # Constructor Methods
 
 sub new {
-	bless [ $_[0]->spec($_[1]) ], $_[0];
-}
+	my $class = shift;
+	my $spec  = shift;
+	if ( Params::Util::_STRING($spec) ) {
+		my $perl = '$_->{sub_name} eq "' . quotemeta($spec) . '"';
+		return bless [ $spec, sub { $_[0] eq $spec }, $perl ], $class;
+	}
+	if ( Params::Util::_CODELIKE($spec) ) {
+		return bless [ $spec, $spec, $spec ], $class;
+	}
+	unless ( Params::Util::_REGEX($spec) ) {
+		Carp::croak("Invalid function call specification");
+	}
 
-# Generate a match specification
-sub spec {
-	my $it = $_[1];
-	Params::Util::_STRING($it)   and return sub { $_[0] eq $it };
-	Params::Util::_REGEX($it)    and return sub { $_[0] =~ $it };
-	Params::Util::_CODELIKE($it) and return $it;
-	Carp::croak("Invalid function call specification");
+	# Special case serialisation of regexs
+	my $perl = "$spec";
+	$perl =~ s|^\(\?([xism]*)-[xism]*:(.*)\)\z|\$_->{sub_name} =~ m/$2/$1|s;
+	return bless [ $spec, sub { $_[0] =~ $spec }, $perl ], $class;
 }
 
 
@@ -37,14 +44,19 @@ sub spec {
 # Weaving Methods
 
 sub match_define {
-	$_[0]->[0]->($_[1]);
+	$_[0]->[1]->($_[1]);
 }
 
 # Call pointcuts curry away to null, because they are the basis
 # for which methods to hook in the first place. Any method called
 # at run-time has already been checked.
-sub curry_run {
+sub match_curry {
 	return;
+}
+
+# Compiled string form of the pointcut
+sub match_compile {
+	$_[0]->[2];
 }
 
 
@@ -60,7 +72,9 @@ sub curry_run {
 # method resolving to the parent class die'ing stub.
 # Having this method die will allow us to more easily catch places where
 # this method is being called incorrectly.
-# sub match_run { 1 }
+sub match_run {
+	$_[0]->[2]->( $_[1]->{sub_name} );
+}
 
 1;
 

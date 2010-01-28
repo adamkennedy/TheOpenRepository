@@ -72,5 +72,5 @@ is_deeply(
 );
 
 # Create the runtime-curried pointcut
-my $curried = $not_call_and_call->curry_run;
+my $curried = $not_call_and_call->match_curry;
 is( $curried, undef, 'A call-only pointcut curries away to nothing' );

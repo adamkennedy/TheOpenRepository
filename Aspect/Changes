@@ -1,5 +1,11 @@
 Revision history for Perl extension Aspect
 
+0.43 Thu 28 Jan 2010 - Adam Kennedy
+	- More elements of what will ultimately become the pointcut context
+	  are passed through to the curried pointcut tests (in preparation
+	  for moving to a File::Find::Rule-like string-eval-compiled form
+	  of the pointcut.
+
 0.42 Wed 20 Jan 2010 - Adam Kennedy
 	- Began the implementation of the new Aspect::Context tree
 	- Generated advice hook code now cheats for speed and blesses

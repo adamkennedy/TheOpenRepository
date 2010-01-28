@@ -39,7 +39,7 @@ sub match_define {
 }
 
 # For wantarray pointcuts we keep the original
-sub curry_run {
+sub match_curry {
 	return $_[0];
 }
 
