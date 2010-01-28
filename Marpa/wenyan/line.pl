@@ -29,6 +29,13 @@ my $i;
 }
 binmode STDOUT, ':utf8';
 
+{
+    Carp::croak("Misformed tag: $tag")
+        if $tag !~ / \A [0-9]{1,2} [.] [1-6] \z /xms;
+    my ( $hex, $line ) =
+        split /[.]/xms, $tag;
+    $tag = sprintf '%02d.%1d', $hex, $line;
+}
 my $rtext = $i->{$tag};
 Carp::croak(qq{unknown text: "$tag"}) if not $rtext;
 my $xc_text = $i->{$tag . 'x'};

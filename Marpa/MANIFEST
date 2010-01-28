@@ -28,6 +28,7 @@ lib/Marpa/Doc/Evaluator.pod
 lib/Marpa/Doc/Grammar.pod
 lib/Marpa/Doc/Implementation.pod
 lib/Marpa/Doc/Marpa.pod
+lib/Marpa/Doc/Models.pod
 lib/Marpa/Doc/Parse_Terms.pod
 lib/Marpa/Doc/Recognizer.pod
 lib/Marpa/Doc/Semantics.pod
@@ -73,15 +74,12 @@ lib/Marpa/UrHTML/t/fmt_t_data/input1.html
 lib/Marpa/UrHTML/t/fmt_t_data/input2.html
 lib/Marpa/UrHTML/t/fmt_t_data/score_expected1.html
 lib/Marpa/UrHTML/t/fmt_t_data/score_expected2.html
-lib/Marpa/UrHTML/t/.gitignore
 lib/Marpa/UrHTML/t/no_tang.html
 lib/Marpa/UrHTML/t/parse.t
 lib/Marpa/UrHTML/t/score.t
-lib/Marpa/UrHTML/t/store.t
 lib/Marpa/UrHTML/t/synopsis.t
 lib/Marpa/UrHTML/t/tang.t
 lib/Marpa/UrHTML/t/test.html
-lib/Marpa/UrHTML/t/test.storable.old
 LICENSE
 Makefile.PL
 MANIFEST
@@ -99,6 +97,7 @@ t/equation.t
 t/final_nonnullable.t
 t/gj.t
 t/hu.t
+t/implementation.t
 t/infinite2.t
 t/infinite_plex.t
 t/infinite.t

@@ -14,9 +14,9 @@
 ^lib/Marpa/MDL/try1.mdl.raw$
 ^lib/Marpa/MDL/try2.mdl.raw$
 ^lib/Marpa/MDL/try3.mdl.raw$
-^lib/Marpa/todo/
+^lib/Marpa/drafts/
 ^lib/Marpa/UrHTML/sandbox/
-^lib/Marpa/UrHTML/todo/
+^lib/Marpa/UrHTML/drafts/
 ^lib/Marpa/UrHTML/t/test.storable.new$
 ^lib/Marpa/UrPerl/
 ^Makefile$

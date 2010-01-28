@@ -1,3 +1,5 @@
+Marpa::show_location
+
 Marpa::Grammar::clone
 Marpa::Grammar::inaccessible_symbols
 Marpa::Grammar::show_accessible_symbols

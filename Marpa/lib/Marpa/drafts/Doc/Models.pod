@@ -1,0 +1,152 @@
+=head1 NAME
+
+Marpa::API::Models - Alternative Input Models
+
+=head1 DESCRIPTION
+
+The standard model of input is as stream of tokens.
+Marpa implements the token-stream model,
+and the rest of the documents assume that
+the token-stream model is the one in use.
+
+But Marpa also allows other input models.
+These are the subject of this document.
+Readers not interested in alternatives to the token-stream model
+may skip this section.
+
+=head1 STUFF TO WORK IN
+
+    From the earleme description:
+
+    Each argument represents a token which starts at the B<current earleme>.
+    Because ambiguous lexing is allowed.
+    more than one token may start at each earleme,
+    in which case, there will be one argument per token.
+    Because tokens can span earlemes,
+    no tokens may start at an earleme
+    in which case the call to C<earleme> will have zero arguments.
+
+Marpa allows ambiguous tokens.
+Several Marpa tokens can start at a single parsing location.
+Marpa tokens can be of various lengths.
+Marpa tokens can even overlap.
+
+For most parsers, position is location in a token stream.
+To deal with variable-length and overlapping tokens,
+Marpa needs a more flexible idea of location.
+Marpa's idea of position is location in an B<earleme> stream.
+B<Earlemes> are named after Jay Earley, the inventor of the first algorithm
+in Marpa's lineage.
+
+While scanning, Marpa keeps track of the B<current earleme>.
+Earlemes in an earleme start at earleme 0 and increase numerically.
+The earleme immediately following earleme 0 is earleme 1,
+the earleme immediately following earleme 1 is earleme 2,
+and so on.
+The earleme immediately following earleme I<N> is always earleme I<N+1>.
+
+B<Distance> in the earleme stream are what you'd expect.
+The distance between earleme I<X> and earleme I<Y> is
+the absolute value of the difference between I<X> and I<Y>,
+I<|X-Y|>.
+The distance from earleme 3 to earleme 6,
+for example, is 3 earlemes.
+
+Whenever a token is given to Marpa to be scanned,
+it starts at the current earleme.
+In addition to the type and value of the token,
+Marpa must be told token's B<length> in earlemes.
+The length of a Marpa token must be greater than zero.
+This earleme length will become
+the distance from the start of the
+token to the end of the token.
+
+The start of the token is put at the current earleme.
+If the length of the token is I<L>,
+and the number of the current earleme is I<C>,
+the end of the token will be at the earleme number I<C+L>.
+
+=head2 The One-Character-Per-Earleme Model
+
+Many different models of the relationship between tokens and earlemes
+are possible, but two are particularly important.
+One is the one-token-per-earleme model.
+The other is the one-character-per-earleme model.
+
+Every character will be treated as being exactly one
+earleme in length.
+Any tokens which are more than one several character in length,
+will span earlemes.
+
+When a one-character-per-earleme model of input is used,
+there will be many earlemes at which no tokens start.
+In a standard implementation
+of a grammar for a language which allows
+comments,
+for example,
+no tokens will start at
+any earlemes which corresponds to character locations inside
+a comment.
+
+=head2 Other Models
+
+Marpa is not restricted to the one-character-per-earleme model.
+Most parser generators treat location as position in a token stream.
+In Marpa, this correspoind to a
+one-token-per-earleme model.
+
+If you use the C<earleme> method, you can structure your input in almost any way you like.
+There are only four restrictions:
+
+=over 4
+
+=item 1
+
+Scanning always starts at earleme 0.
+
+=item 2
+
+Earleme I<N> is always scanned immediately before earleme I<N+1>.
+In other words, the earlemes are scanned one by one in increasing numerical order.
+
+=item 3
+
+When an earleme is scanned, all tokens starting at that earleme must be
+added.
+It is perfectly acceptable for there to be no tokens
+starting at a given earleme.
+However, once earleme I<N> is scanned,
+it is no longer possible to add a token starting at any of the earlemes
+from 0 to I<N>.
+
+=item 4
+
+With every token, a length in earlemes must be given,
+and this length cannot be zero or negative.
+
+=back
+
+Marpa parsing can remain active even if
+no token is found at the current earleme.
+In the one-character-per-earleme model,
+the current earleme might fall in the middle of a
+previously recognized token
+and parsing will remain active at least until the end of that
+token is reached.
+In the one-character-per-earleme model,
+stretches where no token either starts or ends
+can be many earlemes in length.
+
+=head2 Earlemes
+
+A recognizer is created with
+the current earleme
+set at earleme 0.
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2007-2010 Jeffrey Kegler, all rights reserved.
+Marpa is free software under the Perl license.
+For details see the LICENSE file in the Marpa distribution.
+
+=cut

@@ -29,10 +29,9 @@ my %exclude = map { ( $_, 1 ) } qw(
 );
 
 my @additional_files = qw(
-    lib/Marpa/UrHTML/todo/Implementation.pod
-    lib/Marpa/todo/Doc/Evaluator.pod
-    lib/Marpa/todo/Doc/Recognizer.pod
-    lib/Marpa/todo/Doc/Semantics.pod
+    lib/Marpa/UrHTML/drafts/Implementation.pod
+    lib/Marpa/drafts/Doc/Evaluator.pod
+    lib/Marpa/drafts/Doc/Implementation.pod
 );
 
 my @test_files = @ARGV;
@@ -96,7 +95,9 @@ FILE: for my $file (@test_files) {
 
 } ## end for my $file (@test_files)
 
-my @formatting_instructions = qw(perltidy remove-display-indent
+my @formatting_instructions = qw(perltidy
+    remove-display-indent
+    remove-blank-last-line
     partial flatten normalize-whitespace);
 
 sub format_display {
@@ -107,6 +108,9 @@ sub format_display {
         my ($first_line_spaces) = ( $result =~ /^ (\s+) \S/xms );
         $first_line_spaces = quotemeta $first_line_spaces;
         $result =~ s/^$first_line_spaces//gxms;
+    }
+    if ( $instructions->{'remove-blank-last-line'} ) {
+        $result =~ s/^[ \t]*\n\z//xms;
     }
     if ( $instructions->{'flatten'} ) {
         $result =~ s/[\n\r]/ /gxms;

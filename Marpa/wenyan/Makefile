@@ -11,7 +11,7 @@ test.storable:
 test_out.html: test.storable
 	perl -I../lib ./rewrite2.pl <test.storable > $@
 
-glossary.storable:
+glossary.storable: glossary.html
 	perl -I../lib ./rewrite.pl < glossary.html > $@
 
 glossary_out.html: glossary.storable

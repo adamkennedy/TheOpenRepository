@@ -1,6 +1,6 @@
 =head1 NAME
 
-Marpa::Evaluator - Marpa Evaluator Objects
+Marpa::API::Evaluator - Marpa Evaluator Objects
 
 =head1 SYNOPSIS
 
@@ -48,6 +48,8 @@ in_file($_, 't/equation_s.t')
         trace_file_handle
         trace_tasks
         trace_values
+
+     Remember that symbol ranking_action's are used for null values.
 
 Parses are found and evaluated by Marpa's evaluator objects.
 Evaluators are created with the C<new> constructor,
@@ -300,7 +302,7 @@ If your parse
 has any of the above three requirements,
 you will need
 the more powerful evaluator:
-L<Marpa::Evaluator>.
+L<Marpa::API::Evaluator>.
 
 =head1 LICENSE AND COPYRIGHT
 

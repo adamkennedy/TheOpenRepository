@@ -39,13 +39,20 @@ sub restore_stdout {
 # Marpa::Display
 # name: Null Value Example
 
-sub default_action {
+sub L {
     shift;
-    my $v_count = scalar @_;
-    return q{}   if $v_count <= 0;
-    return $_[0] if $v_count == 1;
-    return '(' . ( join q{;}, ( map { $_ // 'undef' } @_ ) ) . ')';
-} ## end sub default_action
+    return 'L(' . ( join q{;}, @_ ) . ')';
+}
+
+sub R {
+    shift;
+    return 'R(' . ( join q{;}, @_ ) . ')';
+}
+
+sub S {
+    shift;
+    return 'S(' . ( join q{;}, @_ ) . ')';
+}
 
 my $grammar = Marpa::Grammar->new(
     {   start   => 'S',
@@ -61,8 +68,7 @@ my $grammar = Marpa::Grammar->new(
             [ 'X', [] ],
             [ 'Y', [] ],
         ],
-        default_action => 'default_action',
-        symbols        => {
+        symbols => {
             L => { null_value => 'null L' },
             R => { null_value => 'null R' },
             A => { null_value => 'null A' },
@@ -73,17 +79,29 @@ my $grammar = Marpa::Grammar->new(
     }
 );
 
-# Marpa::Display::End
-
-## use critic
 $grammar->precompute();
 
 my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
 $recce->tokens( [ [ 'X', 'x' ], ] );
 
+# Marpa::Display::End
+
+## use critic
+
+# Marpa::Display
+# name: Null Value Example Output
+# start-after-line: END_OF_OUTPUT
+# end-before-line: '^END_OF_OUTPUT$'
+
+chomp( my $expected = <<'END_OF_OUTPUT');
+S(L(null A;null B;x);null R)
+END_OF_OUTPUT
+
+# Marpa::Display::End
+
 my $value = $recce->value();
-Marpa::Test::is( ${$value}, q{((null A;null B;x);null R)}, 'Null example' );
+Marpa::Test::is( ${$value}, $expected, 'Null example' );
 
 # Local Variables:
 #   mode: cperl

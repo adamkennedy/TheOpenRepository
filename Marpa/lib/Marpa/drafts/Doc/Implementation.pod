@@ -1,17 +1,18 @@
 =head1 NAME
 
-Marpa::Doc::Internals - Marpa Internals
+Marpa::API::Implementation - Marpa Implementation
 
 =head1 OVERVIEW
 
-Knowledge of Marpa internals is not necessary to use Marpa.
-But you can make better use
-of Marpa if you
-understand how it works.
-This document assumes that you
-have read the other Marpa documentation,
-and that you
-have a general knowledge of parsing.
+This document describes implementation details of
+Marpa, in particular those data structure which
+are useful to users who need to
+trace and debug
+their grammar.
+It assumes that the reader
+has read the other Marpa API documentation,
+and that she
+has a general knowledge of parsing.
 All the examples of diagnostic output
 in this document
 assume that
@@ -539,557 +540,6 @@ in_file($_, 'author.t/equation_show_earley_sets.out');
 
     S2@0-3 [p=S0@0-0; c=S6@0-3]
       
-=head1 THE PARSE BOCAGE
-
-After a successful parse has been recognized,
-it can be evaluated.
-The main data structure of a Marpa evaluator is
-a parse bocage.
-
-Each Marpa evaluator is created with parse criteria.
-The parse criteria are
-the start and end earlemes of the parse,
-and the parse's top symbol.
-
-Default values
-are often used for these parse criteria.
-The default start earleme is earleme 0.
-The default end earleme
-is the recognizer's current earleme.
-This will usually be
-the furthest earleme reached by any token in
-the parse.
-The default top symbol is the start
-symbol of the grammar.
-
-The parse bocage stores all parses meeting the
-evaluator's parse criteria.
-In other general parsers,
-a parse forest has been used to store ambiguous parses.
-Marpa's parse bocage is an adaptation of a parse forest.
-Parse bocages differ from parse forests in three ways.
-First, parse bocages may contain cycles.
-Second, and-nodes and or-nodes strictly alternate in a parse bocage.
-That is, every direct child of an and-node is an or-node,
-and every direct child of an or-node is an and-node.
-Third,
-and-nodes in a parse bocage have at most two rhs symbols.
-
-Parse forests and parse bocages both 
-consist of and-nodes and or-nodes.
-In both parse forests and parse bocages,
-and-nodes contain pieces of parse trees,
-while or-nodes represent choices among the pieces.
-
-In parse forests, the and-nodes directly
-represent productions of
-the original grammar.
-Marpa's parse bocages contain
-the original grammar in
-B<Marpa Bocage Form> (B<MBF>),
-which represents
-the original grammar's productions
-in pieces
-with at most
-two symbols on the rhs.
-In restricting the rhs to at most two symbols,
-MBF is very similar to Chomsky Normal Form (CNF).
-
-Marpa uses MBF for four reasons.
-First, MBF can handle parses with cycles.
-
-Second, MBF is essentially the form in which the grammar
-is found in the Earley items.
-Every source choice of an Earley item contains at most two links.
-These links can be treated as symbols on the rhs of a production.
-So the parse as found in the Earley items is
-in a form with at most two symbols on the right hand side.
-
-Third, MBF easily produces binary trees.
-Binary trees are fast and easy
-to traverse and manipulate.
-The effort spent to rewrite the parse data found in the Earley
-sets back into the productions of the original grammar
-would
-result in a slower and more cumbersome data structure.
-
-=head2 Or-Nodes and And-Nodes
-
-Or-nodes and and-nodes strictly alternate in MBF.
-An or-node, called the B<start or-node>, is always at the top
-of a Marpa bocage.
-Every child of an or-node is an and-node.
-Every child of an and-node is an or-node.
-
-An or-node is B<trivial> if it has
-only one child and-node.
-A trivial or-node represents
-a choice from a list containing
-only a single alternative.
-Marpa or-nodes are often trivial.
-
-In MBF, an or-node represents a decision point in the parse,
-even though often it's a trivial decision point.
-There is an or-node for every symbol of every rule that
-might be used in a parse.
-
-Every and-node represents either a production of the original grammar,
-or a piece of a production of the original grammar.
-And-nodes represent specific alternatives.
-
-Every or-node is a parent of one or more and-nodes.
-Every and-node either has a token value or is the parent of a B<cause or-node>.
-Any and-node may also be the parent of a B<predecessor or-node>.
-When there is a predecessor child or-node, it always comes first,
-before the token or the cause or-node.
-
-=head2 Or-Nodes and their Child Criteria
-
-Each or-node corresponds to an Earley item
-and child criteria.
-The or-node's corresponding Earley item is determined when the or-node is created.
-The child criteria for the or-node are set at the same time.
-The or-node's child criteria determine which and-nodes can be 
-children of the or-node.
-
-There are two kinds of or-node, each with different child criteria.
-The start or-node, and all cause or-nodes, are B<closure or-nodes>.
-All other or-nodes are B<kernel or-nodes>.
-All kernel or-nodes are predecessor or-nodes, and vice versa.
-
-Closure or-nodes are so called because they represent points at which a
-complete rule or rules have been recognized.
-That is, they represent the "closing" of a rule.
-The child criterion for a closure or-node is a symbol,
-called its B<child lhs symbol>.
-
-Kernel or-nodes represent decision points in the interior of a rule.
-The child criteria for a kernel or-node are a rule and dot position
-in that rule.
-
-No or-nodes represent the beginning of a rule.
-Because Marpa rewrites grammars so that there are no empty rules,
-no closure or-nodes can represent a point at the beginning of a rule.
-And kernel or-nodes are not created for the dot position at the beginning of
-a rule.
-
-The symbol before the dot position in a kernel or-node's rule
-is the or-node's B<pre-dot symbol>.
-The symbol after the dot position in a kernel or-nodes's rule
-is the or-node's B<post-dot symbol>.
-Since kernel or-nodes never have dot positions at the end or
-the beginning of their rules, they always have both a pre-dot
-and post-dot symbol.
-
-=head2 The Relationship between Or-Nodes and Earley Items
-
-If the post-dot symbol of a kernel or-node is
-nulling, it is a B<mortar or-node>.
-Every other kernel or-node,
-and every closure or-node,
-is a B<brick or-node>.
-
-Marpa has no LR(0) items with nulling post-dot symbols.
-But Marpa requires there to be an or-node
-for every symbol in every rule that might be
-used in any possible parse, including nulling symbols
-and the symbols before nulling symbols.
-This is why there are mortar or-nodes.
-The idea behind mortar or-nodes is that
-they fill the cracks in between brick or-nodes.
-
-For brick kernel or-nodes
-the QDFA state of the corresponding Earley item will have an
-LR(0) item with a rule and dot position
-which exactly match the rule and dot position of the kernel
-or-node's child criteria.
-For mortar or-nodes,
-the QDFA state of the corresponding Earley item will have an
-LR(0) item with a rule which is the same as the rule
-in the or-node's child criteria,
-and the only symbols between the dot position
-of the or-node and the dot position of that LR(0) item
-will be nulling symbols.
-
-=head2 How the Parse Bocage is Built
-
-=head3 Initializing the Parse Bocage
-
-Creation of a parse bocage starts with the creation of the start or-node.
-The start or-node is a closure or-node.
-The child lhs symbol of the start or-node
-will be the top symbol in the parse.
-For the parse to proceed,
-the start or-node's corresponding Earley item needs to contain a
-QDFA state which contains at least one completed rule
-which has the child lhs symbol as its lhs.
-The parse will start at the origin of the Earley item,
-and the parse will end at the current earleme
-of the Earley item.
-
-In normal use,
-the child lhs symbol of the start or-node is set to the start
-symbol of the grammar.
-The corresponding Earley item for the start or-node normally is set to
-be the Earley item which has its current earleme at the end of parsing,
-which has its origin at earleme 0,
-and which has a completed start rule state.
-
-The parse bocage is created by processing or-nodes recursively.
-At each step there is a list of or-nodes
-remaining to be processed.
-At the first step, the list of unprocessed or-nodes contains
-only the start or-node.
-
-=head3 Creating the And-Node Children for a Parent Or-Node
-
-The loop that creates a
-parse bocage repeatedly takes an or-node from a list
-of or-nodes yet to be processed,
-and adds that or-node to the parse bocage.
-It then creates that or-node's and-node children
-and links them into the parse bocage.
-The and-node children will often have
-their own child or-nodes.
-These new cause and predecessor or-nodes must be
-added to the list of or-nodes yet to be processed.
-
-In describing the construction of the parse bocage,
-I'll call the or-node currently being processed,
-the parent or-node, or simply the B<parent>.
-I'll call any and-node child that is created for this parent, an and-node child,
-or where it's clear, simply a B<child>.
-I'll call an or-node child of an and-node child, a B<grandchild>.
-An and-node child may have a B<predecessor grandchild> and a B<cause grandchild>.
-
-For every or-node there is a set of B<applicable rules>,
-which are determined by the or-node's Earley item and its child criteria.
-For kernel or-nodes there is only one applicable rule, the rule in the child criteria.
-For closure or-nodes, the applicable rules are taken from the QDFA state of the corresponding
-Earley item.
-A rule is applicable if it is a rule in a completed LR(0) item
-in the QDFA state of the corresponding Earley item,
-and if the rule's lhs is the
-same as the child lhs symbol of the or-node's child criteria.
-There is always at least one applicable rule.
-
-For a parent or-node,
-an child and-node is created for every pairing of an applicable rule with a source choice
-of the corresponding Earley item.
-This means that the number of and-node children will be the number of applicable rules,
-times the number of source choices.
-There is always at least one and-node child for any parent or-node.
-
-In addition to an applicable rule and a source choice,
-every and-node corresponds to a dot position.
-If the parent or-node was a kernel or-node, the dot position will be the
-same as the
-dot position of the parent or-node's child criteria.
-If the parent or-node was a closure or-node,
-the dot position will be at the end of the applicable rule.
-
-Every and-node has a pre-dot symbol.
-Where the parent or-node is a kernel or-node,
-this is because kernel or-nodes are never positioned at the beginning of rules.
-Where the parent or-node is a closure or-node,
-this is because there are no empty rules after Marpa rewrites its grammar.
-
-If the and-node's pre-dot symbol is nulling,
-the and-node is created with a token
-and a predecessor grandchild.
-The value of the token is the null value of the pre-dot symbol.
-The predecessor grandchild will be a mortar or-node.
-The corresponding Earley item of the predecessor grandchild
-will be the Earley item of the parent or-node.
-The child criteria for the predecessor grandchild will be
-the and-node's rule,
-with a dot position before the and-node's pre-dot symbol.
-
-If the and-node's pre-dot symbol is non-nulling,
-its token, cause and predecessor are created
-based on the and-node's corresponding source choice.
-If it was a token source choice, the and-node will have
-a token, which will take its value from the source choice token.
-If it was a completion source choice, the and-node will have
-a cause grandchild.
-The corresponding Earley item for the cause grandchild will be
-the Earley item which was the cause in the source choice.
-The child lhs symbol for the cause grandchild will be the pre-dot
-symbol of the and-node.
-
-If the and-node's pre-dot symbol is non-nulling,
-a predecessor grandchild or-node is created
-if and only if its corresponding source choice
-had a predecessor item.
-The predecessor grandchild will be created
-as an or-node child of the and-node child.
-If a predecessor grandchild is created,
-its corresponding Earley item will be the predecessor
-item of the and-node child's corresponding source choice.
-The child criteria for the predecessor grandchild will be
-the and-node child's rule,
-with a dot position before the and-node child's pre-dot symbol.
-
-=head3 Completing the Parse Bocage
-
-Once an or-node has been processed,
-and its and-node children created and linked into the parse bocage,
-Marpa checks to see if any more or-nodes remain on the list
-to be processed.
-As the last section showed,
-when Marpa creates and-node children,
-it often creates predecessor and cause grandchildren.
-These grandchild or-nodes must be added to the list of or-nodes yet to be processed.
-Or-nodes are pulled from the list and processed until there are no more.
-
-Even when the parse is infinitely ambiguous, Marpa is guaranteed to reach
-a point were there are no more or-nodes on the list of unprocessed or-nodes.
-Token and-nodes without predecessors are called B<leaf and-nodes>.
-Leaf and-nodes do not have any child nodes.
-Eventually every recursion through the Earley sets reaches a leaf and-node.
-At this point, the parse bocage has been successfully created.
-
-=head2 Naming Or-Nodes
-
-The name of an or-node is the name of its
-corresponding Earley item,
-followed by a label describing its child criteria.
-For a kernel or-node,
-the label consists of
-the letter "R",
-and the number of the or-node's rule
-and its dot position,
-colon-separated.
-The "R" in the label is a mnemonic for "rule".
-
-For example,
-S3@0-1R0:1 is the name of a kernel or-node.
-The corresponding Earley item is S3@0-1.
-The child criteria are rule 0 at dot position 1
-(C<< e -> e . op e >>).
-
-For closure or-nodes,
-the child criteria label is the
-letter "L", followed by the number of the child lhs symbol.
-The "L" in the symbol or-node's label is a mnemonic
-for "left hand side".
-An example of a closure or-node is S6@0-3L0.
-In this case the matching Earley item is S6@0-3,
-and the child lhs symbol is
-C<e>, which was symbol 0.
-(Symbol numbers for the example
-may be found in the appendix,
-in the C<show_symbols> output.)
-
-=head2 Naming And-Nodes
-
-An and-node is always a child of exactly one or-node.
-The name of an and-node is the name of the parent or-node,
-followed by a numerical index in square brackets.
-The child and-nodes are numbered starting at 0.
-For example, S6@0-3L0[0] is the first child
-of the or-node named S6@0-3L0.
-
-=head2 The Parse Bocage Grammar
-
-Marpa typically displays a parse bocage as a B<parse bocage grammar>
-(B<PBG>).
-It may seem pointless to have come this far in the
-parsing, only to write out another grammar.
-But there is a big difference between the original grammar and
-the parse bocage grammar.
-The original grammar describes all parses which are possible for
-I<any input>.
-The PBG describes only those parses which are possible
-for I<the specific input>
-that was accepted by the recognizer.
-
-=head2 Examples of Parse Bocage Productions
-
-=begin Marpa::Test::Display:
-
-## next display
-in_file($_, 'author.t/equation_show_bocage.out');
-
-=end Marpa::Test::Display:
-
-    S2@0-3L3o0 -> S2@0-3L3o0a0
-
-A parse bocage grammar always starts with the start or-production.
-The above is the start production for our example.
-The left hand side is an or-node which matches
-a start rule completion item.
-The completion start rule state in our example is
-QDFA state 2 and the input in our example was
-3 earlemes long.
-So the start Earley item is S2@0-3.
-The start symbol is C<e[']>,
-which is symbol number 3.
-So the child criterion label is "L3".
-
-Start or-productions are always trivial.
-The rhs of the start or-production is the and-node
-which is its first and only child.
-It has index 0.
-
-Or-nodes appear in the PBG as one or more or-productions.
-Each or-production has the name of an or-node as its lhs.
-Also, each or-production has the name 
-of one of the or-node's child and-nodes
-as the only symbol on its rhs.
-
-In many cases, the or-nodes are trivial -- they have
-exactly one child.
-Trivial or-nodes have only one or-production in the PBG.
-In an unambiguous parse, like the parse of our example,
-I<all> the or-nodes are trivial.
-
-Even when they are non-trivial,
-or-productions contain little information,
-and C<show_bocage> does not show or-productions
-unless called with the verbose option.
-Or-productions are necessary for the PBG to be a real
-BNF grammar,
-but all the information in them is easily deduced from
-the names of the and-nodes on the lhs of the and-productions.
-
-For every and-node on the lhs of an and-production,
-there will be always be an or-production with the
-unbracketed name of the and-node node as the or-production's lhs,
-and with the and-node itself as the or-production's only rhs symbol.
-For example, from the name of the and-node S2@0-3L3[0],
-we can deduce the existence of the or-production in the example above.
-
-Here is the and-production which is the start or-node's only child:
-
-Z<>
-
-=begin Marpa::Test::Display:
-
-## next display
-in_file($_, 'author.t/equation_show_bocage.out');
-
-=end Marpa::Test::Display:
-
-    S2@0-3L3o0a0 -> S6@0-3L0o1
-        rule 2: e['] -> e .
-
-Parse bocage and-productions always have one or two rhs symbols.
-Either a token or a closure or-node will be on the right hand side.
-One or the other will always be present, but never both.
-Additionally, there may be a 
-kernel or-node.
-If a kernel or-node is present,
-its name is always the first symbol on the rhs.
-
-In this example, the only symbol on the rhs is
-a closure or-node: S6@0-3L0.
-The next line contains a dotted rule which shows the rule
-and dot position for this and-node.
-    
-The last line tells
-us the length of the rule's rhs, and that there is
-a Perl closure corresponding to this rule.
-Perl closures and closure or-nodes are not to be confused.
-The word "closure" in "closure or-node" refers to
-its being the last in a rule.
-That is to say,
-the or-node "closes" the rule.
-A closure or-node
-may or may not have
-a corresponding Perl closure.
-
-=begin Marpa::Test::Display:
-
-## next display
-in_file($_, 'author.t/equation_show_bocage.out');
-
-=end Marpa::Test::Display:
-
-    S5@0-2R0:2o2 -> S5@0-2R0:2o2a2
-    S5@0-2R0:2o2a2 -> S3@0-1R0:1o4 '+'
-        rule 0: e -> e op . e
-
-Z<>
-
-This example shows an and-node with a kernel or-node
-and a token on the rhs of its rule.
-The and-node is at position 2 of rule 0,
-as shown by its child criteria label ("C<R0:2>")
-and in the dotted rule on the third line.
-The pre-dot symbol ("C<op>") matched the token
-("C<+>").
-The kernel or-node (S3@0-1R0:1)
-points to the part of the bocage which
-derives the symbols
-before the pre-dot symbol
-in rule 0.
-In this case there is only one symbol
-("C<e>")
-before the pre-dot symbol.
-
-=begin Marpa::Test::Display:
-
-## next display
-in_file($_, 'author.t/equation_show_bocage.out');
-
-=end Marpa::Test::Display:
-
-    S4@0-1L0o5 -> S4@0-1L0o5a5
-    S4@0-1L0o5a5 -> '2'
-        rule 1: e -> number .
-
-The and-production above has only a token on its rhs.
-There is no kernel or-node, because the pre-dot
-symbol for this and-production is the first one of
-its rule -- in fact, it is the only symbol in its rule.
-
-S4@0-1L0 is a closure or-node with "C<L0>" as its child
-criteria.
-Applicable rules
-will be found in QDFA state 4,
-and must be completed rules with
-symbol number 0 on the lhs.
-Symbol number 0 is C<e>.
-There is only one
-LR(0) item in QDFA state 4,
-but it is, as required, a completed rule
-with C<e> as its lhs.
-
-=head1 THE PARSE TREES
-
-B<Parse trees have been elminated.  The following
-needs to be rewritten.>
-
-Marpa evaluates using an evaluation stack,
-which is initialized to empty.
-Every time Marpa evaluates a node,
-it pushes the result onto the evaluation stack.
-If a node needs values as input,
-perhaps because a Perl closure requires arguments,
-the values are popped from the evaluation stack.
-When Marpa reaches the root tree-node,
-computes its value and pushes it onto the stack,
-that value will be the only item on the stack.
-That one remaining stack item becomes the value of the parse.
-
-The evaluation process can be followed by setting the C<trace_values>
-option.
-The C<trace_values> output for our example is in an appendix.
-Here's the section that evaluates the tree nodes shown above:
-
-=begin Marpa::Test::Display:
-
-## next display
-in_file($_, 'author.t/equation_trace_values.out');
-
-=end Marpa::Test::Display:
-
-    Popping 1 values to evaluate S4@2-3L0o3a3, rule: 1: e -> number
-    Calculated and pushed value: '2==2'
-    Popping 3 values to evaluate S6@0-3L0o1a1, rule: 0: e -> e op e
-    Calculated and pushed value: '(2+2)==4'
-
 =head1 GRAMMAR REWRITING
 
 Marpa rewrites grammars,
@@ -1387,197 +837,212 @@ The grammar's ambiguity reveals itself when there is more than one operation in 
 Get the C<show_earley_sets> output from any one of the ambiguous parses and reason out how
 all of its Earley items came to be.
 
-=head1 APPENDIX: DATA FOR THE EXAMPLE
+=head1 APPENDIX: THE EXAMPLE
 
-Below are the MDL grammar and outputs for the example used in this
+Below are the code and the trace outputs
+for the example used in this
 document.
-The input text was "C<2+2>".
 
-B<THE FOLLOWING DISPLAY NEEDS TO CHANGE SO THAT IT NO
-LONGER USES MDL.>
+=head2 Code for the example
 
-=head2 MDL Grammar
+=for Marpa::Display:
+name: Implementation Example
+perltidy: '-dcsc -sil=0'
 
-=begin Marpa::Test::Display:
+    my $grammar = Marpa::Grammar->new(
+        {   start          => 'Expression',
+            actions        => 'My_Actions',
+            default_action => 'first_arg',
+            strip          => 0,
+            rules          => [
+                { lhs => 'Expression', rhs => [qw/Term/] },
+                { lhs => 'Term',       rhs => [qw/Factor/] },
+                { lhs => 'Factor',     rhs => [qw/Number/] },
+                { lhs => 'Term', rhs => [qw/Term Add Term/], action => 'do_add' },
+                {   lhs    => 'Factor',
+                    rhs    => [qw/Factor Multiply Factor/],
+                    action => 'do_multiply'
+                },
+            ],
+        }
+    );
 
-## next display
-## start display
-is_file($_, 'example/equation.marpa');
+    $grammar->precompute();
 
-=end Marpa::Test::Display:
+    my $recce = Marpa::Recognizer->new( { grammar => $grammar } );
 
-    semantics are perl5.
+    my @tokens = (
+        [ 'Number', 42 ],
+        [ 'Multiply', ],
+        [ 'Number', 1 ],
+        [ 'Add', ],
+        [ 'Number', 7 ],
+    );
 
-    default action is 'default_action'.
+    $recce->tokens( \@tokens );
 
-    start symbol is E.
+    sub My_Actions::do_add {
+        my ( undef, $t1, undef, $t2 ) = @_;
+        return $t1 + $t2;
+    }
 
-    E: E, Op, E.  'op'.
+    sub My_Actions::do_multiply {
+        my ( undef, $t1, undef, $t2 ) = @_;
+        return $t1 * $t2;
+    }
 
-    E: Number. 'number'.
+    sub My_Actions::first_arg { shift; return shift; }
 
-    Number matches qr/\d+/.
- 
-    Op matches qr/[-+*]/.
+    my $value_ref = $recce->value;
+    my $value = $value_ref ? ${$value_ref} : 'No Parse';
 
-=begin Marpa::Test::Display:
-
-## end display
-## next display
-in_file($_, 'author.t/equation_show_QDFA.out');
-
-=end Marpa::Test::Display:
+=for Marpa::Display::End
 
 =head2 C<show_symbols> Output
 
-=begin Marpa::Test::Display:
+=for Marpa::Display
+name: Synopsis show_symbols Output
+remove-display-indent: 1
+remove-blank-last-line: 1
 
-## next display
-is_file($_, 'author.t/equation_show_symbols.out');
+    0: Expression, lhs=[0] rhs=[5] terminal
+    1: Term, lhs=[1 3] rhs=[0 3] terminal
+    2: Factor, lhs=[2 4] rhs=[1 4] terminal
+    3: Number, lhs=[] rhs=[2] terminal
+    4: Add, lhs=[] rhs=[3] terminal
+    5: Multiply, lhs=[] rhs=[4] terminal
+    6: Expression['], lhs=[5] rhs=[]
 
-=end Marpa::Test::Display:
-
-    0: e, lhs=[0 1] rhs=[0 2]
-    1: op, lhs=[] rhs=[0] terminal
-    2: number, lhs=[] rhs=[1] terminal
-    3: e['], lhs=[2] rhs=[]
+=for Marpa::Display::End
 
 =head2 C<show_rules> Output
 
-=begin Marpa::Test::Display:
+=for Marpa::Display
+name: Synopsis show_rules Output
+remove-display-indent: 1
+remove-blank-last-line: 1
 
-## next display
-is_file($_, 'author.t/equation_show_rules.out');
+    0: Expression -> Term
+    1: Term -> Factor
+    2: Factor -> Number
+    3: Term -> Term Add Term
+    4: Factor -> Factor Multiply Factor
+    5: Expression['] -> Expression /* vlhs real=1 */
 
-=end Marpa::Test::Display:
-
-    0: e -> e op e
-    1: e -> number
-    2: e['] -> e /* vlhs real=1 */
+=for Marpa::Display::End
 
 =head2 C<show_QDFA> Output
 
-=begin Marpa::Test::Display:
-
-## next display
-in_file($_, 'author.t/equation_show_QDFA.out');
-
-=end Marpa::Test::Display:
+=for Marpa::Display:
+name: Synopsis show_QDFA Output
+remove-display-indent: 1
+remove-blank-last-line: 1
 
     Start States: S0; S1
-    S0: 7
-    e['] -> . e
-     <e> => S2
-    S1: predict; 1,5
-    e -> . e op e
-    e -> . number
-     <e> => S3
-     <number> => S4
-    S2: 8
-    e['] -> e .
-    S3: 2
-    e -> e . op e
-     <op> => S1; S5
+    S0: 15
+    Expression['] -> . Expression
+     <Expression> => S2
+    S1: predict; 1,3,5,7,11
+    Expression -> . Term
+    Term -> . Factor
+    Factor -> . Number
+    Term -> . Term Add Term
+    Factor -> . Factor Multiply Factor
+     <Factor> => S3
+     <Number> => S4
+     <Term> => S5
+    S2: 16
+    Expression['] -> Expression .
+    S3: 4,12
+    Term -> Factor .
+    Factor -> Factor . Multiply Factor
+     <Multiply> => S6; S7
     S4: 6
-    e -> number .
-    S5: 3
-    e -> e op . e
-     <e> => S6
-    S6: 4
-    e -> e op e .
+    Factor -> Number .
+    S5: 2,8
+    Expression -> Term .
+    Term -> Term . Add Term
+     <Add> => S8; S9
+    S6: 13
+    Factor -> Factor Multiply . Factor
+     <Factor> => S10
+    S7: predict; 5,11
+    Factor -> . Number
+    Factor -> . Factor Multiply Factor
+     <Factor> => S11
+     <Number> => S4
+    S8: 9
+    Term -> Term Add . Term
+     <Term> => S12
+    S9: predict; 3,5,7,11
+    Term -> . Factor
+    Factor -> . Number
+    Term -> . Term Add Term
+    Factor -> . Factor Multiply Factor
+     <Factor> => S3
+     <Number> => S4
+     <Term> => S13
+    S10: 14
+    Factor -> Factor Multiply Factor .
+    S11: 12
+    Factor -> Factor . Multiply Factor
+     <Multiply> => S6; S7
+    S12: 10
+    Term -> Term Add Term .
+    S13: 8
+    Term -> Term . Add Term
+     <Add> => S8; S9
+
+=for Marpa::Display::End
 
 =head2 C<show_earley_sets> Output
 
-=begin Marpa::Test::Display:
+=for Marpa::Display:
+name: Synopsis show_earley_sets Output
+remove-display-indent: 1
+remove-blank-last-line: 1
 
-## next display
-is_file($_, 'author.t/equation_show_earley_sets.out');
-
-=end Marpa::Test::Display:
-
-    Current Earley Set: 5; Furthest: 3
+    Last Completed: 5; Furthest: 5
     Earley Set 0
     S0@0-0
     S1@0-0
     Earley Set 1
-    S4@0-1 [p=S1@0-0; s=number; t=\'2']
-    S2@0-1 [p=S0@0-0; c=S4@0-1]
+    S4@0-1 [p=S1@0-0; s=Number; t=\42]
     S3@0-1 [p=S1@0-0; c=S4@0-1]
+    S5@0-1 [p=S1@0-0; c=S3@0-1]
+    S2@0-1 [p=S0@0-0; c=S5@0-1]
     Earley Set 2
-    S5@0-2 [p=S3@0-1; s=op; t=\'+']
-    S1@2-2
+    S6@0-2 [p=S3@0-1; s=Multiply; t=\undef]
+    S7@2-2
     Earley Set 3
-    S4@2-3 [p=S1@2-2; s=number; t=\'2']
-    S6@0-3 [p=S5@0-2; c=S4@2-3]
-    S3@2-3 [p=S1@2-2; c=S4@2-3]
-    S2@0-3 [p=S0@0-0; c=S6@0-3]
-    S3@0-3 [p=S1@0-0; c=S6@0-3]
+    S4@2-3 [p=S7@2-2; s=Number; t=\1]
+    S10@0-3 [p=S6@0-2; c=S4@2-3]
+    S11@2-3 [p=S7@2-2; c=S4@2-3]
+    S3@0-3 [p=S1@0-0; c=S10@0-3]
+    S5@0-3 [p=S1@0-0; c=S3@0-3]
+    S2@0-3 [p=S0@0-0; c=S5@0-3]
+    Earley Set 4
+    S8@0-4 [p=S5@0-3; s=Add; t=\undef]
+    S9@4-4
+    Earley Set 5
+    S4@4-5 [p=S9@4-4; s=Number; t=\7]
+    S3@4-5 [p=S9@4-4; c=S4@4-5]
+    S12@0-5 [p=S8@0-4; c=S3@4-5]
+    S13@4-5 [p=S9@4-4; c=S3@4-5]
+    S5@0-5 [p=S1@0-0; c=S12@0-5]
+    S2@0-5 [p=S0@0-0; c=S5@0-5]
 
-=head2 C<show_bocage> Output
-
-=begin Marpa::Test::Display:
-
-## next display
-is_file($_, 'author.t/equation_show_bocage.out');
-
-=end Marpa::Test::Display:
-
-    parse count: 0
-    S2@0-3L3o0 -> S2@0-3L3o0a0
-    S2@0-3L3o0a0 -> S6@0-3L0o1
-        rule 2: e['] -> e .
-    S6@0-3L0o1 -> S6@0-3L0o1a1
-    S6@0-3L0o1a1 -> S5@0-2R0:2o2 S4@2-3L0o3
-        rule 0: e -> e op e .
-    S5@0-2R0:2o2 -> S5@0-2R0:2o2a2
-    S5@0-2R0:2o2a2 -> S3@0-1R0:1o4 '+'
-        rule 0: e -> e op . e
-    S4@2-3L0o3 -> S4@2-3L0o3a3
-    S4@2-3L0o3a3 -> '2'
-        rule 1: e -> number .
-    S3@0-1R0:1o4 -> S3@0-1R0:1o4a4
-    S3@0-1R0:1o4a4 -> S4@0-1L0o5
-        rule 0: e -> e . op e
-    S4@0-1L0o5 -> S4@0-1L0o5a5
-    S4@0-1L0o5a5 -> '2'
-        rule 1: e -> number .
+=for Marpa::Display::End
 
 =head2 C<trace_values> Output
 
-=begin Marpa::Test::Display:
-
-## next display
-is_file($_, 'author.t/equation_trace_values.out');
-
-=end Marpa::Test::Display:
-
-    Pushed value from S4@0-1L0o5a5: '2'
-    Popping 1 values to evaluate S4@0-1L0o5a5, rule: 1: e -> number
-    Calculated and pushed value: '2==2'
-    Pushed value from S5@0-2R0:2o2a2: '+'
-    Pushed value from S4@2-3L0o3a3: '2'
-    Popping 1 values to evaluate S4@2-3L0o3a3, rule: 1: e -> number
-    Calculated and pushed value: '2==2'
-    Popping 3 values to evaluate S6@0-3L0o1a1, rule: 0: e -> e op e
-    Calculated and pushed value: '(2+2)==4'
-    New Virtual Rule: S2@0-3L3o0a0, rule: 2: e['] -> e
-    Symbol count is 1, now 1 rules
-    (2+2)==4
-
-=head1 SUPPORT
-
-See the L<support section|Marpa/SUPPORT> in the main module.
-
-=head1 AUTHOR
-
-Jeffrey Kegler
+    NEED NEW OUTPUT HERE 
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2007 - 2009 Jeffrey Kegler
-
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl 5.10.0.
+Copyright 2007-2010 Jeffrey Kegler, all rights reserved.
+Marpa is free software under the Perl license.
+For details see the LICENSE file in the Marpa distribution.
 
 =cut
 
