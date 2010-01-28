@@ -10,7 +10,7 @@ use Params::Util qw( _STRING );
 use Digest::CRC qw( crc32_base64 );
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Directory';

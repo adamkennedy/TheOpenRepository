@@ -8,7 +8,7 @@ Perl::Dist::WiX::BuildPerl - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::BuildPerl version 1.101.
+This document describes Perl::Dist::WiX::BuildPerl version 1.102.
 
 =head1 DESCRIPTION
 
@@ -40,7 +40,7 @@ require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//sm;
 
 Readonly my %CORE_MODULE_FIX => (

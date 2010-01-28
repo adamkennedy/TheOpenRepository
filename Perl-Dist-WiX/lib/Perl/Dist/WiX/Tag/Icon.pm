@@ -4,7 +4,7 @@ use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str );
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Icon';

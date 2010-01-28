@@ -8,7 +8,7 @@ Perl::Dist::WiX::Checkpoint - Checkpoint support for Perl::Dist::WiX
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Checkpoint version 1.101.
+This document describes Perl::Dist::WiX::Checkpoint version 1.102.
 
 =head1 DESCRIPTION
 
@@ -41,7 +41,7 @@ use List::Util qw( first );
 use File::Spec::Functions qw( catdir catfile );
 use File::Remove qw();
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 #####################################################################

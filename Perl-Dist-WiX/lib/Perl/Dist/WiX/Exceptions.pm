@@ -5,7 +5,7 @@ use strict;
 use warnings;
 require WiX3::Traceable;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 
@@ -102,7 +102,7 @@ Perl::Dist::WiX::Exceptions - Exception classes for Perl::Dist::WiX
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Exceptions version 1.101.
+This document describes Perl::Dist::WiX::Exceptions version 1.102.
 
 =head1 DESCRIPTION
 

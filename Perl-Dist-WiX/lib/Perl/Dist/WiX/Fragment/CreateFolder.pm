@@ -4,9 +4,9 @@ package Perl::Dist::WiX::Fragment::CreateFolder;
 # Perl::Dist::WiX::Fragment::CreateFolder - A <Fragment> and <DirectoryRef> tag that
 # contains a <CreateFolder> element.
 #
-# Copyright 2009 Curtis Jewell
+# Copyright 2009 - 2010 Curtis Jewell
 #
-# License is the same as perl. See Wix.pm for details.
+# License is the same as perl. See WiX.pm for details.
 #
 use 5.008001;
 use Moose;
@@ -16,7 +16,7 @@ use WiX3::XML::CreateFolder;
 use WiX3::XML::DirectoryRef;
 use WiX3::XML::Component;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';

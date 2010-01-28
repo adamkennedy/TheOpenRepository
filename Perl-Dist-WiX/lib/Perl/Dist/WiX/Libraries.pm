@@ -8,7 +8,7 @@ Perl::Dist::WiX::Libraries - Library installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Libraries version 1.101.
+This document describes Perl::Dist::WiX::Libraries version 1.102.
 
 =head1 DESCRIPTION
 
@@ -31,7 +31,7 @@ use Params::Util qw( _STRING );
 use Perl::Dist::WiX::Exceptions;
 use Readonly;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 Readonly my %PACKAGES => (

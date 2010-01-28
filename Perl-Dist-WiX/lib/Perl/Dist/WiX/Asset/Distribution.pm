@@ -9,7 +9,7 @@ use Params::Util qw( _INSTANCE );
 require File::Remove;
 require URI;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';

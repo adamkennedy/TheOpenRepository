@@ -99,7 +99,7 @@ use File::HomeDir qw();
 use List::MoreUtils qw( none );
 use Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 has class => (

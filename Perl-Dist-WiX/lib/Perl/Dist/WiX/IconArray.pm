@@ -8,7 +8,7 @@ Perl::Dist::WiX::IconArray - A list of <Icon> tags.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::IconArray version 1.101.
+This document describes Perl::Dist::WiX::IconArray version 1.102.
 
 =head1 DESCRIPTION
 
@@ -31,7 +31,7 @@ use Params::Util qw( _STRING   );
 use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Tag::Icon;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 has _icon => (

@@ -4,7 +4,7 @@ use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str Maybe HashRef );
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';

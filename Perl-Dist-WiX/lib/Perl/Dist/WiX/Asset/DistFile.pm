@@ -10,7 +10,7 @@ require URI;
 require File::Spec::Unix;
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';

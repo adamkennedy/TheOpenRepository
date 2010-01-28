@@ -24,7 +24,7 @@ use MooseX::Types::Moose qw( Str );
 
 # use Perl::Dist::WiX::Types;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 subtype _NoDoubleSlashes,

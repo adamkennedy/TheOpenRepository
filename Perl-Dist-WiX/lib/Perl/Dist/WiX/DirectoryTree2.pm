@@ -14,7 +14,7 @@ use MooseX::Types::Moose qw( Str );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';

@@ -8,7 +8,7 @@ Perl::Dist::WiX::ReleaseNotes - Creates accessory files.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::ReleaseNotes version 1.101.
+This document describes Perl::Dist::WiX::ReleaseNotes version 1.102.
 
 =head1 DESCRIPTION
 
@@ -32,7 +32,7 @@ require IO::File;
 require Template;
 require File::List::Object;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 =head2 release_notes_filename

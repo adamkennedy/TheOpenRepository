@@ -4,7 +4,7 @@ package Perl::Dist::WiX::Fragment::StartMenu;
 # Perl::Dist::WiX::Fragment::StartMenu - A <Fragment> and <DirectoryRef> tag that
 # contains <Icon> elements.
 #
-# Copyright 2009 Curtis Jewell
+# Copyright 2009 - 2010 Curtis Jewell
 #
 # License is the same as perl. See WiX.pm for details.
 #
@@ -21,7 +21,7 @@ require WiX3::XML::RemoveFolder;
 require WiX3::XML::DirectoryRef;
 require WiX3::XML::Shortcut;
 
-our $VERSION = '1.101_002';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';

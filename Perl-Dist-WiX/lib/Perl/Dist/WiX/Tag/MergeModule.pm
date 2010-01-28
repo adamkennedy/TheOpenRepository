@@ -4,7 +4,7 @@ use 5.008001;
 use Moose;
 require WiX3::XML::MergeRef;
 
-our $VERSION = '1.101_001';
+our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Merge';
