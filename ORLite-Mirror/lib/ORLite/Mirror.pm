@@ -18,7 +18,7 @@ use ORLite                   1.37 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.19';
+	$VERSION = '1.20';
 	@ISA     = 'ORLite';
 }
 
@@ -68,6 +68,11 @@ sub import {
 
 	# Normalise boolean settings
 	my $show_progress = $params{show_progress} ? 1 : 0;
+
+	# Use array-based objects by default, they are smaller and faster
+	unless ( defined $params{array} ) {
+		$params{array} = 1;
+	}
 
 	# Find the maximum age for the local database copy
 	my $maxage = delete $params{maxage};

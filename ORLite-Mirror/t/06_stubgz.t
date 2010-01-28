@@ -49,6 +49,7 @@ use ORLite::Mirror {
 	update       => 'connect',
 	user_version => 7,
 	prune        => 1,
+	array        => 0,
 };
 
 1;

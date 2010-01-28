@@ -51,6 +51,7 @@ SCOPE: {
 	use ORLite::Mirror {
 		url   => '$broken_url',
 		prune => 1,
+		array => 0,
 	};
 
 	1;

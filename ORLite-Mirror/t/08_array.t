@@ -9,10 +9,11 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 27;
+use Test::More tests => 28;
 use File::Spec::Functions ':ALL';
 use File::Remove 'clear';
-use URI::file ();
+use Params::Util ();
+use URI::file    ();
 use t::lib::Test;
 
 # Flush any existing mirror database file
@@ -43,7 +44,6 @@ use ORLite::Mirror {
 	index        => [ 'table_one.col2' ],
 	user_version => 7,
 	prune        => 1,
-	array        => 1,
 };
 
 1;
@@ -65,6 +65,10 @@ SCOPE: {
 	isa_ok( $ones[0], 'ORLite::Mirror::Test::TableOne' );
 	isa_ok( $ones[1], 'ORLite::Mirror::Test::TableOne' );
 	isa_ok( $ones[2], 'ORLite::Mirror::Test::TableOne' );
+	ok(
+		Params::Util::_ARRAYLIKE($ones[0]),
+		'Default return type is an ARRAY',
+	);
 	is( $ones[0]->col1, 1,     '->col1 ok' );
 	is( $ones[1]->col1, 2,     '->col1 ok' );
 	is( $ones[2]->col1, 3,     '->col1 ok' );

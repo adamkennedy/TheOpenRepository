@@ -46,6 +46,7 @@ BEGIN {
 use ORLite::Mirror {
 	url   => '$uri',
 	prune => 1,
+	array => 0,
 };
 
 1;
