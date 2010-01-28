@@ -103,7 +103,7 @@ sub regenerate {
 	if ( 0 < scalar @fragment_ids ) {
 		push @fragment_ids, $id;
 	} else {
-		$self->add_child_tag($feat);
+		$self->add_child_tag($self->_get_feature());
 	}
 	
 	return uniq @fragment_ids;
