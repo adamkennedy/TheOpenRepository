@@ -28,6 +28,7 @@
 \#$
 \b\.#
 \.bak$
+\.tdy$
 \btmp[0-9][0-9][0-9]\b
 \bdownload\b
 
@@ -38,7 +39,7 @@
 \bThumbs\.db$
 
 # Avoid our own built files.
-\APerl-Dist-Strawberry-
+\bModule-Install-PerlTar-
 \bfilelist\.txt$
 
 # Avoid release files

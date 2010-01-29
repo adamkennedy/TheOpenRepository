@@ -5,28 +5,30 @@ use strict;
 use warnings;
 use Module::Install::Base ();
 
-our @ISA = qw(Module::Install::Base);
+our @ISA     = qw(Module::Install::Base);
 our $VERSION = '1.000';
 $VERSION =~ s/_//ms;
 
 sub use_ptar {
-    my $self = shift;
+	my $self = shift;
 
-    return unless $Module::Install::AUTHOR;
+	return if not $Module::Install::AUTHOR;
 
 	eval { require Archive::Tar; 1; } or warn "Cannot find Archive::Tar\n";
-	eval { require IO::Compress::Gzip; 1; } or warn "Cannot find IO::Compress::Gzip\n";
+	eval { require IO::Compress::Gzip; 1; }
+	  or warn "Cannot find IO::Compress::Gzip\n";
 
 	my %args = (
-		TAR => 'ptar',
+		TAR      => 'ptar',
 		TARFLAGS => '-c -f',
-		COMPRESS => q{perl -MIO::Compress::Gzip=gzip -e"my $$in = $$ARGV[0]; gzip $$in => qq($$in.gz) or die q(gzip failed); unlink $$in;"},
+		COMPRESS =>
+q{perl -MIO::Compress::Gzip=gzip -e"my $$in = $$ARGV[0]; gzip $$in => qq($$in.gz) or die q(gzip failed); unlink $$in;"},
 	);
 
 	$self->makemaker_args( dist => \%args );
-	
+
 	return 1;
-}
+} ## end sub use_ptar
 
 1;
 __END__
@@ -62,6 +64,6 @@ it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
-L<Module::Install>
+L<Module::Install|Module::Install>
 
 =cut

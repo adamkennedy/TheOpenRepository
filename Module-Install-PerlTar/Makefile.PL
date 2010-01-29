@@ -1,6 +1,6 @@
 use inc::Module::Install::DSL 0.92;
 
-all_from       lib/Perl/Dist/PerlTar.pm
+all_from       lib/Module/Install/PerlTar.pm
 requires       Archive::Tar       1.34
 requires       IO::Compress::Gzip 2.005
 requires       Module::Install    0.92
