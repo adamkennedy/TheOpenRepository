@@ -8,7 +8,7 @@ Perl::Dist::WiX::Installation - Basic installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Installation version 1.102.
+This document describes Perl::Dist::WiX::Installation version 1.102001.
 
 =head1 DESCRIPTION
 
@@ -36,11 +36,9 @@ require Perl::Dist::WiX::Asset::Launcher;
 require Perl::Dist::WiX::Asset::Library;
 require Perl::Dist::WiX::Asset::Module;
 require Perl::Dist::WiX::Asset::PAR;
-
-# require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Asset::Website;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102001';
 $VERSION =~ s/_//ms;
 
 =pod
@@ -210,7 +208,7 @@ sub install_distribution_from_file {
 	);
 
 	my $filelist = $dist->install();
-	my $mod_id   = $dist->get_module_name();
+	my $mod_id   = $dist->get_name();
 
 	$mod_id =~ s{::}{_}msg;
 	$mod_id =~ s{-}{_}msg;

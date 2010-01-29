@@ -1,13 +1,17 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.102001   Fri 29 Jan 2010
+    1. Changes to get Bootstrap to build.
+
 1.102   Thu 28 Jan 2010
-    1. Fix problems with merge module
-    2. Make updating "smart" - don't delete the site
+    1. Used to build Strawberry Perl January 2010.
+    2. Fix problems with merge module
+    3. Make updating "smart" - don't delete the site
        directory unless doing a major upgrade.
-    3. Bring Portable back (install all modules into
+    4. Bring Portable back (install all modules into
        "perl/site" for it only.)
-    4. Work on "gcc-4" toolchains (not done yet)
-    5. Change to building with Module::Build.	
+    5. Work on "gcc-4" toolchains (not done yet)
+    6. Change to building with Module::Build.	
 
 1.101_001   Wed 11 Nov 2009
     1. Split most of the build into a merge module.

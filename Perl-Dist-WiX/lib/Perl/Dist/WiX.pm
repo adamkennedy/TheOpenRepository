@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.102
+Perl-Dist-WiX version 1.102001
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.102.
+This document describes Perl::Dist::WiX version 1.102001.
 
 =for readme continue
 
@@ -134,7 +134,7 @@ require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 #>>>
 
-our $VERSION = '1.102';
+our $VERSION = '1.102001';
 $VERSION =~ s/_//ms;
 
 
@@ -516,7 +516,8 @@ required.
 =cut
 
 has 'app_name' => (
-	is       => 'ro',                  # String
+	is       => 'ro',
+	isa      => Str,
 	required => 1,
 );
 
@@ -1178,7 +1179,8 @@ be created.
 =cut
 
 has 'msi' => (
-	is      => 'ro',                   # Boolean
+	is      => 'ro',
+	isa     => Bool,
 	writer  => '_set_msi',
 	default => sub {
 		my $self = shift;
@@ -1230,7 +1232,8 @@ true.
 =cut
 
 has 'msi_debug' => (
-	is      => 'ro',                   # Boolean
+	is      => 'ro',
+	isa     => Bool,
 	default => 0,
 );
 
@@ -1298,6 +1301,22 @@ has 'msi_readme_file' => (
 
 
 
+=head3 msm
+
+The optional boolean C<msi> param is used to indicate that a Windows
+Installer distribution package (otherwise known as an msi file) should 
+be created.
+
+=cut
+
+has 'msm' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 1,
+);
+
+
+
 =head3 offline
 
 The B<Perl::Dist::WiX> module has limited ability to build offline, if all
@@ -1315,7 +1334,8 @@ otherwise.
 
 has 'offline' => (
 	is      => 'ro',
-	default => sub { return LWP::Online::offline() },
+	isa     => Bool,
+	default => sub { return !!LWP::Online::offline() },
 );
 
 
@@ -1332,7 +1352,7 @@ current date.
 
 has 'output_base_filename' => (
 	is      => 'ro',
-	isa     => 'Str',
+	isa     => Str,
 	lazy    => 1,
 	builder => '_build_output_base_filename',
 );
@@ -1419,6 +1439,7 @@ If not defined, this is set to the username part of C<perl_config_cf_email>.
 
 has 'perl_config_cf_by' => (
 	is      => 'ro',                   # String
+	isa     => Str,
 	lazy    => 1,
 	builder => '_build_perl_config_cf_by',
 );
@@ -1463,7 +1484,7 @@ This defaults to a false value.
 =cut
 
 has 'portable' => (
-	is      => 'ro',                   # Boolean
+	is      => 'ro',
 	isa     => Bool,
 	default => 0,
 );
@@ -2521,6 +2542,8 @@ sub run {
 	return 1;
 } ## end sub run
 
+
+
 #####################################################################
 #
 # Perl::Dist::WiX Main Methods
@@ -2675,6 +2698,45 @@ EOF
 } ## end sub final_initialization
 
 
+
+=head3 initialize_nomsm
+
+The C<initialize_nomsm> routine does the initialization that is 
+required after C<final_initialization> has been called, but 
+before files can be installed if C<msm> is 0.
+
+=cut
+
+sub initialize_nomsm {
+	my $self = shift;
+
+	# Making sure that this is unset.
+	$self->_set_in_merge_module(0);
+
+	# Add fragments that otherwise would be after the merge module is done.
+	$self->_add_fragment(
+		'StartMenuIcons',
+		Perl::Dist::WiX::Fragment::StartMenu->new(
+			directory_id => 'D_App_Menu',
+		) );
+	$self->_add_fragment(
+		'Win32Extras',
+		Perl::Dist::WiX::Fragment::Files->new(
+			id    => 'Win32Extras',
+			files => File::List::Object->new(),
+		) );
+
+	$self->_set_icons(
+		$self->get_fragment_object('StartMenuIcons')->get_icons() );
+	if ( defined $self->msi_product_icon() ) {
+		$self->_icons()->add_icon( $self->msi_product_icon() );
+	}
+
+	return 1;
+} ## end sub initialize_nomsm
+
+
+
 =head3 install_c_toolchain
 
 The C<install_c_toolchain> method is used by C<run> to install various
@@ -2711,6 +2773,8 @@ sub install_c_toolchain {
 
 	return 1;
 } ## end sub install_c_toolchain
+
+
 
 =head3 install_portable
 
@@ -2771,6 +2835,8 @@ sub install_portable {
 	return 1;
 } ## end sub install_portable
 
+
+
 =head3 install_win32_extras
 
 The C<install_win32_extras> method is used by C<run> to install the links 
@@ -2783,18 +2849,6 @@ sub install_win32_extras {
 	my $self = shift;
 
 	File::Path::mkpath( $self->_dir('win32') );
-
-	# TODO: Delete next two statements.
-#	my $perldir = $self->_directories()->search_dir(
-#		path_to_find => $self->_dir( 'perl' ),
-#		exact        => 1,
-#		descend      => 1,
-#	);
-#	$perldir->add_directory(
-#		name => 'bin',
-#		id   => 'PerlBin',
-#		path => $self->_dir( qw( perl bin ) ),
-#	);
 
 	if ( $self->msi() ) {
 		$self->install_launcher(
@@ -2844,6 +2898,8 @@ sub install_win32_extras {
 
 	return $self;
 } ## end sub install_win32_extras
+
+
 
 =head3 remove_waste
 
@@ -2914,6 +2970,8 @@ sub _remove_file {
 	return 1;
 }
 
+
+
 =head3 regenerate_fragments
 
 The C<regenerate_fragments> method is used by C<run> to fully generate the
@@ -2956,6 +3014,8 @@ sub regenerate_fragments {
 	return 1;
 } ## end sub regenerate_fragments
 
+
+
 =head3 write
 
 The C<write> method is used by C<run> to compile the final
@@ -2974,6 +3034,8 @@ sub write { ## no critic 'ProhibitBuiltinHomonyms'
 	}
 	return 1;
 }
+
+
 
 =head3 write_merge_module
 
@@ -3077,6 +3139,8 @@ sub write_merge_module {
 	return 1;
 } ## end sub write_merge_module
 
+
+
 #####################################################################
 # Package Generation
 
@@ -3123,6 +3187,8 @@ sub _write_zip {
 	return $file;
 } ## end sub _write_zip
 
+
+
 =head2 add_icon
 
 TODO
@@ -3160,6 +3226,8 @@ sub add_icon {
 	return $self;
 } ## end sub add_icon
 
+
+
 =head2 add_path
 
 TODO
@@ -3177,6 +3245,8 @@ sub add_path {
 	return 1;
 }
 
+
+
 =head2 get_path_string
 
 TODO
@@ -3188,6 +3258,8 @@ sub get_path_string {
 	return join q{;},
 	  map { $self->_dir( @{$_} ) } $self->_get_env_path_unchecked();
 }
+
+
 
 =head2 _compile_wxs($filename, $wixobj)
 
@@ -3238,6 +3310,8 @@ sub _compile_wxs {
 
 	return $rv;
 } ## end sub _compile_wxs
+
+
 
 =head2 _write_msi
 
@@ -3390,6 +3464,8 @@ sub _write_msi {
 	return $output_msi;
 } ## end sub _write_msi
 
+
+
 =pod
 
 =head2 _write_msm
@@ -3513,21 +3589,8 @@ sub _write_msm {
 	$self->trace_line( 1, "Linking $output_msm\n" );
 	my $out;
 	my $cmd = [
-		wix_bin_light(),
-
-#		'-sice:ICE38',                 # Gets rid of ICE38 warning.
-#		'-sice:ICE43',                 # Gets rid of ICE43 warning.
-#		'-sice:ICE47',                 # Gets rid of ICE47 warning.
-		# (Too many components in one
-		# feature for Win9X)
-#		'-sice:ICE48',                 # Gets rid of ICE48 warning.
-		# (Hard-coded installation location)
-
-#		'-v',                          # Verbose for the moment.
-		'-out', $output_msm,
-		'-ext', wix_lib_wixui(),
-		$input_wixobj,
-		$input_wixouts,
+		wix_bin_light(), '-out',        $output_msm, '-ext',
+		wix_lib_wixui(), $input_wixobj, $input_wixouts,
 	];
 	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
 
@@ -3542,6 +3605,8 @@ sub _write_msm {
 
 	return $output_msm;
 } ## end sub _write_msm
+
+
 
 =pod
 
@@ -3590,6 +3655,8 @@ sub add_env {
 	return $self;
 } ## end sub add_env
 
+
+
 =head2 add_file({source => $filename, fragment => $fragment_name})
 
 Adds the file C<$filename> to the fragment named by C<$fragment_name>.
@@ -3628,6 +3695,8 @@ sub add_file {
 
 	return $self;
 } ## end sub add_file
+
+
 
 =head2 insert_fragment($id, $files_ref)
 
@@ -3681,6 +3750,8 @@ sub insert_fragment {
 	return $fragment;
 } ## end sub insert_fragment
 
+
+
 =head2 add_to_fragment($id, $files_ref)
 
 Adds the list of files C<$files_ref> to the fragment named by C<$id>.
@@ -3724,6 +3795,8 @@ sub add_to_fragment {
 
 	return $fragment;
 } ## end sub add_to_fragment
+
+
 
 #####################################################################
 #
@@ -3782,6 +3855,7 @@ sub as_string {
 	# Combine it all
 	return $answer;
 } ## end sub as_string
+
 
 
 #####################################################################
@@ -3913,6 +3987,8 @@ sub patch_file {
 	return 1;
 } ## end sub patch_file
 
+
+
 =head3 image_drive
 
 The drive letter of the image directory.  Retrieved from C<image_dir>.
@@ -3954,6 +4030,8 @@ sub image_dir_quotemeta {
 				{\\\\}gmsx; ## to 2 backslashes.
 	return $string;
 }
+
+
 
 #####################################################################
 #

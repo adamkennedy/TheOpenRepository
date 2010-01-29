@@ -83,6 +83,9 @@
       <Custom Action='CA_ClearSiteFolder' Before='InstallInitialize'>
         <![CDATA[UNINSTALL_SITE OR (Installed AND NOT OLDERVERSIONBEINGUPGRADED)]]>
       </Custom>
+[% IF not dist.msm %]
+      <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL"</Custom>
+[% END %]
     </InstallExecuteSequence>
 
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\ClearFolderCA.dll' />
