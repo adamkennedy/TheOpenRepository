@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+1.40 Mon  1 Fed 2010
+	- Fixed backwards test skipping logic
+
 1.39 Fri 29 Jan 2010
 	- Typo in the tests, they now run >= instead of > 1.05
 
