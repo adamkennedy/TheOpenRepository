@@ -13,9 +13,9 @@ use Test::More;
 BEGIN {
 	eval { require Class::XSAccessor };
 	if ( ! $@ and Class::XSAccessor->VERSION and Class::XSAccessor->VERSION >= 1.05 ) {
-		plan( skip_all => 'Class::XSAccessor 1.05 is not installed' );
-	} else {
 		plan( tests => 7 );
+	} else {
+		plan( skip_all => 'Class::XSAccessor 1.05 is not installed' );
 	}
 }
 use File::Spec::Functions ':ALL';
