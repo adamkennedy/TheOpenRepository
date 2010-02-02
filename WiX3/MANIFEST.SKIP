@@ -25,6 +25,7 @@
 \bBuild.COM$
 \bBUILD.COM$
 \bbuild.com$
+^MYMETA.yml$
 
 # Avoid Devel::Cover generated files
 \bcover_db
