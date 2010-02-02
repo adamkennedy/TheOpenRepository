@@ -8,8 +8,8 @@ use Moose::Util::MetaRole;
 use WiX3::Util::Role::StrictConstructor;
 use WiX3::Util::Role::StrictConstructorMeta;
 
-our $VERSION = '0.007';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.009';
+$VERSION =~ s/_//ms;
 
 Moose::Exporter->setup_import_methods();
 

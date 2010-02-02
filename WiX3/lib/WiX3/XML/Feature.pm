@@ -1,12 +1,5 @@
 package WiX3::XML::Feature;
 
-####################################################################
-# WiX3::XML::Feature - Object that represents a <Feature> tag.
-#
-# Copyright 2009 Curtis Jewell
-#
-# License is the same as perl. See Wix3.pm for details.
-
 use 5.008001;
 
 # Must be done before Moose, or it won't get picked up.
@@ -20,8 +13,8 @@ use WiX3::Types qw( YesNoType );
 use MooseX::Types::Moose qw( Str Int Maybe );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.007';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.009';
+$VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
 
@@ -177,7 +170,7 @@ WiX3::XML::Feature - Defines a Feature tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Feature version 0.005
+This document describes WiX3::XML::Feature version 0.009
 
 =head1 SYNOPSIS
 
@@ -222,10 +215,10 @@ L<http://wix.sourceforge.net/>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
+Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

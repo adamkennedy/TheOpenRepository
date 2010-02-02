@@ -7,8 +7,8 @@ use warnings;
 use Moose::Role;
 use WiX3::Exceptions;
 
-our $VERSION = '0.007';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.009';
+$VERSION =~ s/_//ms;
 
 after 'BUILDALL' => sub {
 	my $self   = shift;

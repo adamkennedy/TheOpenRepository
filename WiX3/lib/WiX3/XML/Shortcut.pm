@@ -13,8 +13,8 @@ use MooseX::Types::Moose qw( Str Int Maybe );
 use WiX3::Types qw( YesNoType );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.007';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.009';
+$VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_shortcut.htm
 
@@ -204,7 +204,7 @@ WiX3::XML::Shortcut - Defines a Shortcut tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Shortcut version 0.006
+This document describes WiX3::XML::Shortcut version 0.009
 
 =head1 SYNOPSIS
 
@@ -249,10 +249,10 @@ L<http://wix.sourceforge.net/>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
+Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

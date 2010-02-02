@@ -4,8 +4,8 @@ use 5.008001;
 use warnings;
 use strict;
 
-our $VERSION = '0.008001';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.009';
+$VERSION =~ s/_//ms;
 
 1;                                     # Magic true value required at end of module
 
@@ -13,7 +13,7 @@ __END__
 
 =begin readme text
 
-WiX3 Version 0.008001
+WiX3 Version 0.009
 
 =end readme
 
@@ -25,7 +25,7 @@ WiX3 - Objects useful for generating Windows Installer XML files.
 
 =head1 VERSION
 
-This document describes WiX3 version 0.008001
+This document describes WiX3 version 0.009
 
 =for readme continue
 
@@ -140,10 +140,10 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
+Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
 
 =for readme stop
 

@@ -13,7 +13,7 @@ use Data::UUID qw( NameSpace_DNS );
 use WiX3::Types qw( Host );
 require WiX3::Exceptions;
 
-our $VERSION = '0.008001';
+our $VERSION = '0.009';
 $VERSION =~ s/_//ms;
 
 

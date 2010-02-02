@@ -105,7 +105,7 @@ WiX3::XML::Role::TagAllowsChildTags - Base role for XML tags that have children.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Role::TagAllowsChildTags version 0.005
+This document describes WiX3::XML::Role::TagAllowsChildTags version 0.009
 
 =head1 SYNOPSIS
 
@@ -147,10 +147,11 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
+Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+
 
 =head1 DISCLAIMER OF WARRANTY
 

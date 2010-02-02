@@ -4,8 +4,8 @@ use 5.008001;
 use strict;
 use warnings;
 
-our $VERSION = '0.007';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.009';
+$VERSION =~ s/_//ms;
 
 use Exception::Class 1.29 (
 	'WiX3::Exception' => {
@@ -173,7 +173,7 @@ WiX3::Exceptions - Exceptions used in the WiX3 distribution.
 
 =head1 VERSION
 
-This document describes WiX3::Exceptions version 0.005
+This document describes WiX3::Exceptions version 0.009
 
 =head1 SYNOPSIS
 
@@ -254,10 +254,10 @@ L<Exception::Class>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2009, Curtis Jewell C<< <csjewell@cpan.org> >>. All rights reserved.
+Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

@@ -3,9 +3,9 @@ package WiX3::XML::Environment;
 ####################################################################
 # WiX3::XML::Environment - Object that represents an <Environment> tag.
 #
-# Copyright 2009 Curtis Jewell
+# Copyright 2009, 2010 Curtis Jewell
 #
-# License is the same as perl. See Wix3.pm for details.
+# License is the same as perl. See WiX3.pm for details.
 #
 use 5.008001;
 
@@ -20,8 +20,8 @@ use WiX3::Types qw( YesNoType );
 use MooseX::Types::Moose qw( Str Maybe );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.007';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.009';
+$VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_environment.htm
 
