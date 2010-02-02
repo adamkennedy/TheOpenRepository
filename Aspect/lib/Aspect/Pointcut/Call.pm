@@ -6,7 +6,7 @@ use Carp             ();
 use Params::Util     ();
 use Aspect::Pointcut ();
 
-our $VERSION = '0.42';
+our $VERSION = '0.43';
 our @ISA     = 'Aspect::Pointcut';
 
 
@@ -47,6 +47,10 @@ sub match_define {
 	$_[0]->[1]->($_[1]);
 }
 
+sub match_runtime {
+	return 0;
+}
+
 # Call pointcuts curry away to null, because they are the basis
 # for which methods to hook in the first place. Any method called
 # at run-time has already been checked.
@@ -73,7 +77,7 @@ sub match_compile {
 # Having this method die will allow us to more easily catch places where
 # this method is being called incorrectly.
 sub match_run {
-	$_[0]->[2]->( $_[1]->{sub_name} );
+	$_[0]->[1]->( $_[1]->{sub_name} );
 }
 
 1;

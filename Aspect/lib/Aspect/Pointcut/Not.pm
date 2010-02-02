@@ -2,10 +2,14 @@ package Aspect::Pointcut::Not;
 
 use strict;
 use warnings;
-use Aspect::Pointcut ();
+use Aspect::Pointcut        ();
+use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.42';
-our @ISA     = 'Aspect::Pointcut';
+our $VERSION = '0.43';
+our @ISA     = qw{
+	Aspect::Pointcut::Logic
+	Aspect::Pointcut
+};
 
 
 
@@ -23,6 +27,10 @@ sub match_contains {
 	return 1 if $self->isa($_[0]);
 	return 1 if $self->[0]->match_contains($_[0]);
 	return '';
+}
+
+sub match_runtime {
+	$_[0]->[0]->match_runtime;
 }
 
 # Logical not inherits it's curryability from the element contained

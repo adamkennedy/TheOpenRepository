@@ -2,10 +2,14 @@ package Aspect::Pointcut::And;
 
 use strict;
 use warnings;
-use Aspect::Pointcut ();
+use Aspect::Pointcut        ();
+use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.42';
-our @ISA     = 'Aspect::Pointcut';
+our $VERSION = '0.43';
+our @ISA     = qw{
+	Aspect::Pointcut::Logic
+	Aspect::Pointcut
+};
 
 
 
@@ -31,6 +35,14 @@ sub match_contains {
 	return '';
 }
 
+sub match_runtime {
+	my $self = shift;
+	foreach my $child ( @$self ) {
+		return 1 if $child->match_runtime;
+	}
+	return 0;
+}
+
 sub match_curry {
 	my $self = shift;
 	my @list = @$self;
@@ -42,8 +54,32 @@ sub match_curry {
 		} @list;
 	}
 
+	# Should we strip out the call pointcuts
+	my $strip = shift;
+	unless ( defined $strip ) {
+		# Are there any elements that MUST exist at run-time?
+		if ( $self->match_runtime ) {
+			# If we have any nested logic that themselves contain
+			# call pointcuts, we can't strip.
+			$strip = not scalar grep {
+				$_->isa('Aspect::Pointcut::Logic')
+				and
+				$_->match_contains('Aspect::Pointcut::Call')
+			} @list;
+		} else {
+			# Nothing at runtime, so we can strip
+			$strip = 1;
+		}
+	}
+
 	# Curry down our children
-	@list = grep { defined $_ } map { $_->match_curry } @list;
+	@list = grep { defined $_ } map {
+		$_->isa('Aspect::Pointcut::Call')
+		? $strip
+			? $_->match_curry($strip)
+			: $_
+		: $_->match_curry($strip)
+	} @list;
 
 	# If none are left, curry us away to nothing
 	return unless @list;

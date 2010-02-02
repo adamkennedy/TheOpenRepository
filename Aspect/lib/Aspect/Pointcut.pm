@@ -7,7 +7,7 @@ use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();
 
-our $VERSION = '0.42';
+our $VERSION = '0.43';
 
 use overload (
 	# Keep traditional Perl boolification and stringification
@@ -68,6 +68,10 @@ BEGIN {
 		warnings
 		warnings::register
 	);
+}
+
+sub match_runtime {
+	return 1;
 }
 
 # Find the list of all matching subs

@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 13;
+use Test::More tests => 20;
 use Test::NoWarnings;
 use Aspect;
 
@@ -47,7 +47,7 @@ isa_ok( ! $pointcut, 'Aspect::Pointcut::Not' );
 
 
 ######################################################################
-# Regresion: Validate that the "not call and call" pattern works.
+# Regression: Validate that the "not call and call" pattern works.
 
 # The following package has two methods.
 # A pointcut that defines "Not one and any method" should match two but
@@ -74,3 +74,55 @@ is_deeply(
 # Create the runtime-curried pointcut
 my $curried = $not_call_and_call->match_curry;
 is( $curried, undef, 'A call-only pointcut curries away to nothing' );
+
+
+
+
+
+######################################################################
+# Regression: Nested logic and nested call and run-time
+
+# Combining nested logic with a mix of call and non-call pointcuts
+# results in a situation where call pointcuts need to be retained
+# at run-time so that we can limit calls to run-time pointcuts to the
+# correct subset of cases to apply the run-time tests to.
+SCOPE: {
+	package Two;
+
+	sub one { 1 }
+
+	sub two { 2 }
+}
+
+my $complex = call qr/^Two::/ & (
+	call qr/::one\z/
+	| (
+		wantscalar & call qr/::two\z/
+	)
+);
+isa_ok( $complex, 'Aspect::Pointcut' );
+
+ok(
+	scalar $complex->match_contains('Aspect::Pointcut::Wantarray'),
+	'Pointcut contains the Wantarray pointcut',
+);
+
+# We should match_all both functions
+is_deeply(
+	[ $complex->match_all ],
+	[ 'Two::one', 'Two::two' ],
+	'->match_all works as expected',
+);
+
+# Bind the aspect
+before {
+	$_[0]->return_value(0);
+} $complex;
+
+# Both functions should match in scalar context
+is( scalar(Two::one()), 0, 'Scalar one matches' );
+is( scalar(Two::two()), 0, 'Scalar two matches' );
+
+# Only one should match in list context
+is_deeply( [ Two::one() ], [ 0 ], 'List one matches' );
+is_deeply( [ Two::two() ], [ 2 ], 'List two does not match' );
