@@ -1,15 +1,14 @@
 package WiX3::XML::Role::TagAllowsChildTags;
 
 use 5.008001;
-use Moose::Role;
+use Moose::Role 0.90;
 use WiX3::Exceptions;
 use WiX3::Types qw(IsTag);
-use MooseX::AttributeHelpers;
 use MooseX::Types::Moose qw(ArrayRef);
 use List::MoreUtils qw( uniq );
 
-our $VERSION = '0.007';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.009';
+$VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::Tag';
 
@@ -18,19 +17,19 @@ with 'WiX3::XML::Role::Tag';
 
 # A tag can contain other tags.
 has child_tags => (
-	metaclass => 'Collection::Array',
+	traits    => ['Array'],
 	is        => 'rw',
 	isa       => ArrayRef [IsTag],
 	init_arg  => undef,
 	default   => sub { return []; },
-	provides  => {
-		'elements' => 'get_child_tags',
-		'push'     => 'add_child_tag',
-		'get'      => 'get_child_tag',
-		'empty'    => 'has_child_tags',
-		'count'    => 'count_child_tags',
-		'delete'   => 'delete_child_tag',
-		'clear'    => 'clear_child_tags',
+	handles  => {
+		'get_child_tags'   => 'elements',
+		'add_child_tag'    => 'push',
+		'get_child_tag'    => 'get',
+		'has_child_tags'   => 'count',
+		'count_child_tags' => 'count',
+		'delete_child_tag' => 'delete',
+		'clear_child_tags' => 'clear',
 	},
 );
 

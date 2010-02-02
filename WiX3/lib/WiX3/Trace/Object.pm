@@ -7,8 +7,8 @@ use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( Tracelevel );
 use MooseX::Types::Moose qw( Bool );
 
-our $VERSION = '0.008';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.008001';
+$VERSION =~ s/_//ms;
 
 has tracelevel => (
 	is      => 'rw',

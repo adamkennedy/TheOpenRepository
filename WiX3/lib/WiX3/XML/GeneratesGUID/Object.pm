@@ -13,8 +13,8 @@ use Data::UUID qw( NameSpace_DNS );
 use WiX3::Types qw( Host );
 require WiX3::Exceptions;
 
-our $VERSION = '0.008';
-$VERSION = eval $VERSION; ## no critic(ProhibitStringyEval)
+our $VERSION = '0.008001';
+$VERSION =~ s/_//ms;
 
 
 #####################################################################
