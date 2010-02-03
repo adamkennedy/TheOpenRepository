@@ -17,11 +17,11 @@ with 'WiX3::XML::Role::Tag';
 
 # A tag can contain other tags.
 has child_tags => (
-	traits    => ['Array'],
-	is        => 'rw',
-	isa       => ArrayRef [IsTag],
-	init_arg  => undef,
-	default   => sub { return []; },
+	traits   => ['Array'],
+	is       => 'rw',
+	isa      => ArrayRef [IsTag],
+	init_arg => undef,
+	default  => sub { return []; },
 	handles  => {
 		'get_child_tags'   => 'elements',
 		'add_child_tag'    => 'push',
@@ -122,7 +122,7 @@ This is the base class for all WiX3 classes that represent XML tags.
 	$string = $tag->as_string_children();
 
 This routine returns a string of XML that contains the tag defined by this 
-object and all child tags, and is used by L<as_string>.
+object and all child tags, and is used by C<as_string>.
 
 =head1 DIAGNOSTICS
 
@@ -150,7 +150,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

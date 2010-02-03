@@ -26,16 +26,17 @@ sub BUILDARGS {
 		%args = (@_);
 	}
 
+	##no critic ( RequireCarping RequireUseOfExceptions ProtectPrivateSubs )
 	my $obj;
-	eval { 
-		$obj = WiX3::Trace::Object->new(%args); 
-		1; 
-	} || eval { 
-		WiX3::Trace::Object->_clear_instance(); 
-		$obj = WiX3::Trace::Object->new(%args); 
-		1; 
-	} || die "Could not create trace object";
-	
+	eval {
+		$obj = WiX3::Trace::Object->new(%args);
+		1;
+	} || eval {
+		WiX3::Trace::Object->_clear_instance();
+		$obj = WiX3::Trace::Object->new(%args);
+		1;
+	} || die 'Could not create trace object';
+
 	return { options => $obj };
 } ## end sub BUILDARGS
 
@@ -102,14 +103,14 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 SEE ALSO
 
-L<Exception::Class>
+L<Exception::Class|Exception::Class>
 
 =head1 LICENCE AND COPYRIGHT
 
 Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

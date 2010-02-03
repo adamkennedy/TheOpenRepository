@@ -252,7 +252,8 @@ All attributes are lowercased when passed as a parameter.
 
 =head1 INTERFACE 
 
-This class implementes all methods of the L<XML::WiX3::Classes::Role::Tag> role.
+This class implementes all methods of the 
+L<XML::WiX3::Classes::Role::Tag|XML::WiX3::Classes::Role::Tag> role.
 
 =head2 Other parameters to new
 
@@ -308,7 +309,7 @@ L<http://wix.sourceforge.net/manual-wix3/wix_xsd_directory.htm>
 Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

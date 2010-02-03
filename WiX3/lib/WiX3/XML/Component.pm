@@ -326,7 +326,7 @@ L<http://wix.sourceforge.net/>
 Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

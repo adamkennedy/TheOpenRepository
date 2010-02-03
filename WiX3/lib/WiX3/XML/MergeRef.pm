@@ -45,7 +45,10 @@ sub BUILDARGS {
 		$id = $_[0];
 	} elsif ( _INSTANCE( $_[0], 'WiX3::XML::Merge' ) ) {
 		$id = shift->get_id();
-		return { 'id' => $id, (%{$class->SUPER::BUILDARGS(@_)}) };
+		## no critic (ProhibitCommaSeparatedStatements)
+		return {
+			'id' => $id,
+			%{ $class->SUPER::BUILDARGS(@_) } };
 	} else {
 		return $class->SUPER::BUILDARGS(@_);
 	}
@@ -74,9 +77,8 @@ sub as_string {
 	# Print tag.
 	my $answer;
 	$answer = '<MergeRef';
-	$answer .= $self->print_attribute( 'Id', $id );
-	$answer .=
-	  $self->print_attribute( 'Primary', $self->_get_primary() );
+	$answer .= $self->print_attribute( 'Id',      $id );
+	$answer .= $self->print_attribute( 'Primary', $self->_get_primary() );
 	$answer .= " />\n";
 
 	return $answer;
@@ -147,7 +149,7 @@ L<http://wix.sourceforge.net/>
 Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

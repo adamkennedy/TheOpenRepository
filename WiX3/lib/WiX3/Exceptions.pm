@@ -188,7 +188,7 @@ This document describes WiX3::Exceptions version 0.009
 =head1 DESCRIPTION
 
 This module defines the exceptions used by the WiX3 distribution.  All 
-exceptions used are L<Exception::Class> objects.
+exceptions used are L<Exception::Class|Exception::Class> objects.
 
 Note that uncaught exceptions will try to print out an understandable
 error message, and if a high enough tracelevel is available, will print
@@ -230,7 +230,7 @@ XML::WiX3::Classes::Exceptions requires no configuration files or environment va
 
 =head1 DEPENDENCIES
 
-L<Exception::Class> version 1.22 or later.
+L<Exception::Class|Exception::Class> version 1.22 or later.
 
 =head1 INCOMPATIBILITIES
 
@@ -250,14 +250,14 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 SEE ALSO
 
-L<Exception::Class>
+L<Exception::Class|Exception::Class>
 
 =head1 LICENCE AND COPYRIGHT
 
 Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

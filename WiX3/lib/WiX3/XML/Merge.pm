@@ -28,30 +28,30 @@ has id => (
 );
 
 has disk_id => (
-	is       => 'ro',
-	isa      => Maybe[ Int ],
-	reader   => '_get_disk_id',
-	default  => 1,
+	is      => 'ro',
+	isa     => Maybe [Int],
+	reader  => '_get_disk_id',
+	default => 1,
 );
 
 has file_compression => (
-	is       => 'ro',
-	isa      => Maybe[ Str ],
-	reader   => '_get_file_compression',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_file_compression',
+	default => undef,
 );
 
 has language => (
-	is       => 'ro',
-	isa      => Int,
-	reader   => '_get_language',
+	is     => 'ro',
+	isa    => Int,
+	reader => '_get_language',
 );
 
 has source_file => (
-	is       => 'ro',
-	isa      => Maybe[ Str ],
-	reader   => '_get_source_file',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_source_file',
+	default => undef,
 );
 
 
@@ -80,13 +80,16 @@ sub as_string {
 	my $self = shift;
 
 	my $tags;
-	
+
 	$tags .= $self->print_attribute( 'Id',     'Merge_' . $self->get_id() );
 	$tags .= $self->print_attribute( 'DiskId', $self->_get_disk_id() );
-	$tags .= $self->print_attribute( 'FileCompression', $self->_get_file_compression() );
+	$tags .=
+	  $self->print_attribute( 'FileCompression',
+		$self->_get_file_compression() );
 	$tags .= $self->print_attribute( 'Language', $self->_get_language() );
-	$tags .= $self->print_attribute( 'SourceFile', $self->_get_source_file() );
-	
+	$tags .=
+	  $self->print_attribute( 'SourceFile', $self->_get_source_file() );
+
 	return qq{<Merge$tags />\n};
 } ## end sub as_string
 
@@ -150,14 +153,14 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 SEE ALSO
 
-L<Exception::Class>
+L<Exception::Class|Exception::Class>
 
 =head1 LICENCE AND COPYRIGHT
 
 Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY

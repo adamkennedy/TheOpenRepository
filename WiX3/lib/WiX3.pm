@@ -108,7 +108,7 @@ WiX3 requires no configuration files or environment variables.
 
 =head1 DEPENDENCIES
 
-L<Moose>, L<Exception::Class> (more to add later)
+L<Moose|Moose>, L<Exception::Class|Exception::Class> (more to add later)
 
 =head1 WARNING
 
@@ -130,7 +130,7 @@ L<http://rt.cpan.org>.
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Alien::WiX>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, L<Alien::WiX|Alien::WiX>
 
 =head1 AUTHOR
 
@@ -143,7 +143,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
 
 =for readme stop
 

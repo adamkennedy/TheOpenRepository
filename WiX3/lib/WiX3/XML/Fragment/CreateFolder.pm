@@ -131,7 +131,7 @@ the parent tags required to implement it.
 =head1 INTERFACE 
 
 All callable routines other than new() are provided by 
-L<WiX3::XML::Fragment>, and are documented there.
+L<WiX3::XML::Fragment|WiX3::XML::Fragment>, and are documented there.
 
 =head2 new()
 
@@ -145,7 +145,7 @@ directory_id parameter) or via hash or hashref, as shown in the L<SYNOPSIS|#SYNO
 
 This module throws WiX3::Exception::Parameter,  
 WiX3::Exception::Parameter::Missing, and WiX3::Exception::Parameter::Invalid 
-objects, which are documented in L<WiX3::Exceptions>.
+objects, which are documented in L<WiX3::Exceptions|WiX3::Exceptions>.
 
 =head1 BUGS AND LIMITATIONS
 
@@ -164,7 +164,7 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic>.
+modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
 
 
 =head1 DISCLAIMER OF WARRANTY
