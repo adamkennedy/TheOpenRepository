@@ -1,0 +1,17 @@
+
+
+%module{Math::ThinPlateSpline};
+
+%name{Math::ThinPlateSpline} class ThinPlateSpline
+{
+  %name{new} ThinPlateSpline(const std::vector<Vec>& controlPoints, double regularization = 0.)
+    %cleanup{%delete controlPoints;%}; // FIXME This must not be necessary...
+
+  %name{newFromString} ThinPlateSpline(std::istream& input);
+  ~ThinPlateSpline();
+
+  %name{evaluate} double Evaluate(double x, double y);
+  %name{get_bending_energy} double GetBendingEnergy();
+};
+
+

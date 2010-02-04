@@ -1,0 +1,4 @@
+%typemap{std::istream&}{reference};
+%typemap{const std::vector<Vec>&}{reference};
+%typemap{const double}{simple};
+
