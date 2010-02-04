@@ -20,11 +20,58 @@ Math::ThinPlateSpline - Calculate and evaluate thin plate splines
 
 =head1 SYNOPSIS
 
+  my @control_points = (
+      [$x, $y, $z],
+      [$x2, $y2, $z2],
+      ...
+  );
+  my $regularization = 0.; # default, follow control points slavishly
+  
+  my $tps = Math::ThinPlateSpline->new(
+    \@control_points,
+    $regularization
+  );
+  
+  my $height = $tps->evaluate($x, $y);
+  my $bending_energy = $tps->get_bending_energy();
+
 =head1 DESCRIPTION
+
+This is a small Perl/XS module for calculating and evaluating thin plate splines.
+If you don't know what thin plate splines are, check out the links in the L</SEE ALSO>
+section. In a nutshell, it's ordinary splines generalized to two dimensions.
+
+The module includes a copy of the C<tpsfit> C++ library that was created on the basis
+of the C<tpsdemo> program by Jarno Elonen.
 
 =head1 METHODS
 
+=head2 new
+
+(class method)
+
+Creates a new thin plate spline. Takes one mandatory parameter: A reference
+to an array of control points (at least three). Each control point has to be
+a reference to an array of three numbers (X, Y, Z coordinates). See SYNOPSIS.
+
+The second parameter is optional: A measure for the regularization.
+See Jarno Elonen's page for details.
+
+=head2 evaluate
+
+Takes an x and y coordinate as arguments. Returns the z coordinate of the
+thin plate spline at the specified point.
+
+=head2 get_bending_energy
+
+Calculates and returns the thin plate spline's bending energy. Again, Jarno Elonen
+explains this well on his C<tpsdemo> page.
+
 =head1 SEE ALSO
+
+Jarno Elonen's page about thin plate splines: L<http://elonen.iki.fi/code/tpsdemo/>
+
+Wikipedia on thin plate splines: L<http://en.wikipedia.org/wiki/Thin_plate_spline>
 
 =head1 AUTHOR
 
