@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp 'croak';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 require XSLoader;
 XSLoader::load('Math::ThinPlateSpline', $VERSION);
@@ -66,6 +66,11 @@ thin plate spline at the specified point.
 
 Calculates and returns the thin plate spline's bending energy. Again, Jarno Elonen
 explains this well on his C<tpsdemo> page.
+
+=head1 DEPENDENCIES
+
+Apart from Perl modules (see F<META.yml> or F<Makefile.PL>), this module needs
+the boost:ublas library to build (including headers).
 
 =head1 SEE ALSO
 
