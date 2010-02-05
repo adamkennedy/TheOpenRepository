@@ -10,7 +10,7 @@ WriteMakefile(
     NAME              => 'Math::ThinPlateSpline',
     VERSION_FROM      => 'lib/Math/ThinPlateSpline.pm', # finds $VERSION
     PREREQ_PM         => {
-      'ExtUtils::XSpp' => '0.07',
+      'ExtUtils::XSpp' => '0.08',
     },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Math/ThinPlateSpline.pm', # retrieve abstract from module
