@@ -108,7 +108,7 @@ use Params::Util 0.37 qw{ _SCALAR0 _HASH0 _CODE _INSTANCE };
 
 use vars qw{$VERSION $DEPARSE};
 BEGIN {
-	$VERSION = '1.13';
+	$VERSION = '1.14';
 }
 
 use CGI::Capture::TieSTDIN ();
@@ -488,7 +488,9 @@ sub _check {
 	}
 
 	# Didn't match
-	die "Current $name does not match the captured CGI call";
+	my $current = defined $value ? '"' . quotemeta($value) . '"' : 'undef';
+	my $cgi = defined $self->{$name} ? '"' . quotemeta($self->{$name}) . '"' : 'undef';
+	die "Current $name $current does not match the captured CGI call $cgi";
 }
 
 # Takes a scalar reference and sets STDIN to read from it
