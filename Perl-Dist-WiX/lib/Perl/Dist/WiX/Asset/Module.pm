@@ -66,6 +66,7 @@ CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'urllist'} = [ '$url' ];
 \$CPAN::Config->{'use_sqlite'} = q[0];
 \$CPAN::Config->{'prefs_dir'} = q[$dp_dir];
+\$CPAN::Config->{'patches_dir'} = q[$dp_dir];
 \$CPAN::Config->{'prerequisites_policy'} = q[ignore];
 \$CPAN::Config->{'connect_to_internet_ok'} = q[$internet_available];
 \$CPAN::Config->{'ftp'} = q[];
