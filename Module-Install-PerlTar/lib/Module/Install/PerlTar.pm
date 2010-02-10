@@ -22,7 +22,7 @@ sub use_ptar {
 		TAR      => 'ptar',
 		TARFLAGS => '-c -f',
 		COMPRESS =>
-q{perl -MIO::Compress::Gzip=gzip -e"my $$in = $$ARGV[0]; gzip $$in => qq($$in.gz) or die q(gzip failed); unlink $$in;"},
+q{perl -MIO::Compress::Gzip=gzip,:constants -e"my $$in = $$ARGV[0]; gzip($$in => qq($$in.gz), q(Level) => Z_BEST_COMPRESSION, q(BinModeIn) => 1) or die q(gzip failed); unlink $$in;"},
 	);
 
 	$self->makemaker_args( dist => \%args );
