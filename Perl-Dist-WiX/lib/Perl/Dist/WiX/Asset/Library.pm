@@ -180,7 +180,7 @@ This class inherits from L<Perl::Dist::WiX::Role::Asset> and shares its API.
 
 =head2 new
 
-TODO: TO BE COMPLETED
+TODO: Document
 
 =head2 install
 

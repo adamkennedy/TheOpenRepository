@@ -12,22 +12,22 @@ This document describes Perl::Dist::WiX::DirectoryCache version 1.102.
 
 =head1 DESCRIPTION
 
-	# TODO.
+	# TODO: Document
 
 =head1 SYNOPSIS
 
-	# TODO.
+	# TODO: Document
 
 =head1 INTERFACE
 
-	# TODO.
+	# TODO: Document
 	
 =cut
 
 use 5.008001;
+use Moose 0.90;
 use MooseX::Singleton;
 use WiX3::XML::Directory;
-use MooseX::AttributeHelpers;
 
 our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
@@ -37,15 +37,15 @@ $VERSION =~ s/_//ms;
 #   root: Returns the root of the directory tree created by new.
 
 has _cache => (
-	metaclass => 'Collection::Hash',
+	traits    => ['Hash'],
 	is        => 'rw',
 	isa       => 'HashRef[Str]',
 	default   => sub { {} },
-	provides  => {
-		'set'    => '_set_cache_entry',
-		'get'    => '_get_cache_entry',
-		'exists' => '_exists_cache_entry',
-		'delete' => '_delete_cache_entry',
+	handles  => {
+		'_set_cache_entry'    => 'set',
+		'_get_cache_entry'    => 'get',
+		'_exists_cache_entry' => 'exists',
+		'_delete_cache_entry' => 'delete',
 	},
 );
 

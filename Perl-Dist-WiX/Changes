@@ -1,5 +1,10 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.102002   Sat 30 Jan 2010
+    1. Allow use of previously created merge modules.
+    2. Removal of MooseX::AttributeHelpers as a
+       prerequisite.
+
 1.102001   Fri 29 Jan 2010
     1. Changes to get Bootstrap to build.
 

@@ -248,11 +248,11 @@ Perl::Dist::WiX::Asset::Perl - "Perl core" asset for a Win32 Perl
 
 =head1 DESCRIPTION
 
-TODO
+TODO: Document
 
 =head1 METHODS
 
-TODO
+TODO: Document
 
 This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
 

@@ -12,37 +12,36 @@ This document describes Perl::Dist::WiX::IconArray version 1.102.
 
 =head1 DESCRIPTION
 
-	# TODO.
+	# TODO: Document
 
 =head1 SYNOPSIS
 
-	# TODO.
+	# TODO: Document
 
 =head1 INTERFACE
 
-	# TODO.
+	# TODO: Document
 	
 =cut
 
 use 5.008001;
-use Moose;
-use MooseX::AttributeHelpers;
+use Moose 0.90;
 use Params::Util qw( _STRING   );
 use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Tag::Icon;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102002';
 $VERSION =~ s/_//ms;
 
 has _icon => (
-	metaclass => 'Collection::Array',
+	traits    => ['Array'],
 	is        => 'rw',
 	isa       => 'ArrayRef[Perl::Dist::WiX::Tag::Icon]',
 	default   => sub { [] },
-	provides  => {
-		'push'     => '_push_icon',
-		'count'    => '_count_icons',
-		'elements' => '_get_icon_array',
+	handles  => {
+		'_push_icon'      => 'push',
+		'_count_icons'    => 'count',
+		'_get_icon_array' => 'elements',
 	},
 );
 

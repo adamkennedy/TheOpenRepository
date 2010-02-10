@@ -376,35 +376,35 @@ Perl::Dist::WiX::Toolchain - TO BE DOCUMENTED
 
 =head1 DESCRIPTION
 
-TODO
+TODO: Document
 
 =head1 METHODS
 
-TODO
+TODO: Document
 
 =head2 new
 
-TODO
+TODO: Document
 
 =head2 prepare
 
-TODO
+TODO: Document
 
 =head2 run
 
-TODO
+TODO: Document
 
 =head2 get_dists
 
-TODO
+TODO: Document
 
 =head2 dist_count
 
-TODO
+TODO: Document
 
 =head2 get_error
 
-TODO
+TODO: Document
 
 =head1 SUPPORT
 

@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.102001
+Perl-Dist-WiX version 1.102002
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.102001.
+This document describes Perl::Dist::WiX version 1.102002.
 
 =for readme continue
 
@@ -85,6 +85,7 @@ use     List::MoreUtils       qw( any none uniq                 );
 use     MooseX::Types::Moose  qw(
 	Int Str Maybe Bool Undef ArrayRef Maybe HashRef
 );
+use     MooseX::Types::URI    qw( Uri                           );
 use     Perl::Dist::WiX::Types qw(
 	Directory ExistingDirectory ExistingFile MaybeExistingDirectory
 );
@@ -134,7 +135,7 @@ require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 #>>>
 
-our $VERSION = '1.102001';
+our $VERSION = '1.102002';
 $VERSION =~ s/_//ms;
 
 
@@ -542,10 +543,14 @@ has 'app_publisher' => (
 The C<app_publisher_url> parameter provides the URL of the publisher of 
 the distribution.
 
+It can be a string or a URI object.
+
 =cut
 
 has 'app_publisher_url' => (
-	is       => 'ro',                  # URL
+	is       => 'ro',
+	isa      => Uri,
+	coerce   => 1,
 	required => 1,
 );
 
@@ -605,7 +610,9 @@ in which case it defaults to the empty string.
 =cut
 
 has 'binary_root' => (
-	is      => 'ro',                   # URL
+	is      => 'ro',
+	isa     => Uri,
+	coerce  => 1,
 	lazy    => 1,
 	builder => '_build_binary_root',
 );
@@ -614,7 +621,7 @@ sub _build_binary_root {
 	my $self = shift;
 
 	if ( $self->offline() ) {
-		return q{};
+		return undef;
 	} else {
 		return 'http://strawberryperl.com/package';
 	}
@@ -787,7 +794,7 @@ the installer can use to fetch any needed files during the build
 process.
 
 The param should be a L<URI> object to the root of the CPAN repository,
-including trailing slash.
+including trailing slash.  Strings will be coerced to URI objects.
 
 If you are online and no C<cpan> param is provided, the value will
 default to the L<http://cpan.strawberryperl.com> repository as a
@@ -797,8 +804,9 @@ convenience.
 
 has 'cpan' => (
 	is      => 'ro',
-	isa     => 'URI',
+	isa     => Uri,
 	lazy    => 1,
+	coerce  => 1,
 	builder => '_build_cpan',
 );
 
@@ -1248,7 +1256,10 @@ the "Click here for support information." text.
 =cut
 
 has 'msi_help_url' => (
-	is => 'ro',                        # URL that is not required
+	is      => 'ro',
+	isa     => Uri | Undef, # Maybe[ Uri ] will not work. Unions inherit coercions, parameterized types don't.
+	coerce  => 1,
+	default => undef,
 );
 
 
@@ -1303,8 +1314,8 @@ has 'msi_readme_file' => (
 
 =head3 msm
 
-The optional boolean C<msi> param is used to indicate that a Windows
-Installer distribution package (otherwise known as an msi file) should 
+The optional boolean C<msm> param is used to indicate that a Windows
+Installer merge module (otherwise known as an msm file) should 
 be created.
 
 =cut
@@ -1316,7 +1327,78 @@ has 'msm' => (
 );
 
 
+=head3 Using a merge module
 
+Subclasses can start building a perl distribution from a merge module, 
+instead of having to build perl from scratch.
+
+This means that the distribution can:
+
+1) update the version of Perl installed using the merge module.
+
+2) be installed on top of another distribution using that merge module (or 
+an earlier version of it).
+
+The next 3 options specify the information required to use a merge module.
+
+=head4 msm_code
+
+The optional C<msm_code> param is used to specify the product code
+for the merge module referred to in C<msm_to_use>.
+
+C<msm_to_use>, C<msm_zip>, and this parameter must either be all unset, 
+or all set. They must be all set if C<initialize_using_msm> is in the 
+tasklist.
+
+=cut
+
+has 'msm_code' => (
+	is      => 'ro',
+	isa     => Maybe [Str],
+	default => undef,
+);
+
+
+
+=head4 msm_to_use
+
+The optional C<msm_to_use> ...
+
+It can be specified as a string, a L<Path::Class::File|Path::Class::File> 
+object, or a L<URI|URI> object. 
+
+=cut
+
+has 'msm_to_use' => (
+	is      => 'ro',
+	isa     => Uri | Undef,
+	default => undef,
+	coerce  => 1,
+);
+
+
+
+=head4 msm_zip
+
+The optional C<msm_zip> refers to where the .zip version of Strawberry Perl 
+that matches the merge module specified in C<msm_to_use> 
+
+It can be a file:// URL if it's already downloaded.
+
+It can be specified as a string, a L<Path::Class::File|Path::Class::File> 
+object, or a L<URI|URI> object. 
+
+=cut
+
+has 'msm_zip' => (
+	is      => 'ro',
+	isa     => Uri | Undef,
+	default => undef,
+	coerce  => 1,
+);
+
+
+		
 =head3 offline
 
 The B<Perl::Dist::WiX> module has limited ability to build offline, if all
@@ -1759,6 +1841,7 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 	}
 
 	# Get the parameters required for the GUID generator set up.
+	# TODO: This can be a URI object, as well.
 	unless ( _STRING( $params{app_publisher_url} ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'app_publisher_url',
@@ -1847,6 +1930,7 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 
 	return \%params;
 } ## end sub BUILDARGS
+
 
 
 # This is called by Moose's DESTROY, and handles moving the CPAN source
@@ -2064,8 +2148,8 @@ qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
 The C<perl_version_literal> method returns the literal numeric Perl
 version for the distribution.
 
-For Perl 5.8.8 this will be '5.008008', Perl 5.8.9 will be '5.008009',
-and for Perl 5.10.0 this will be '5.010000'.
+For Perl 5.8.9 this will be '5.008009', Perl 5.10.0 will be '5.010000',
+and for Perl 5.10.1 this will be '5.010001'.
 
 =cut
 
@@ -2321,7 +2405,7 @@ sub msi_upgrade_code {
 
 =head3 msm_package_id
 
-Returns the Id for the MSI's <Package> tag.
+Returns the Id for the MSM's <Package> tag.
 
 See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_package.htm>
 
@@ -2349,9 +2433,9 @@ sub msm_package_id {
 
 =head3 msm_package_id_property
 
-Returns the Id for the MSI's <Package> tag, as the merge module would append it.
+Returns the Id for the MSM's <Package> tag, as the merge module would append it.
 
-This is used in the main object 
+This is used in the main .wxs file.
 
 =cut
 
@@ -2364,6 +2448,28 @@ sub msm_package_id_property {
 
 	return $guid;
 }
+
+
+
+=head3 msm_code_property
+
+Returns the Id passed in as C<msm_code>, as the merge module would append it.
+
+This is used in the main .wxs file for subclasses.
+
+=cut
+
+# For template.
+sub msm_code_property {
+	my $self = shift;
+
+	my $guid = $self->msm_code();
+	$guid =~ s/-/_/msg;
+
+	return $guid;
+}
+
+
 
 =head3 msi_perl_version
 
@@ -2737,6 +2843,75 @@ sub initialize_nomsm {
 
 
 
+=head3 initialize_using_msm
+
+The C<initialize_using_msm> routine does the initialization that is 
+required after C<final_initialization> has been called, but 
+before files can be installed if a merge module is to be used.
+
+(see L</Using a merge module> for more information.)
+
+=cut
+
+sub initialize_using_msm {
+	my $self = shift;
+
+	# Making sure that this is unset.
+	$self->_set_in_merge_module(0);
+
+	# Download and extract the image.
+	my $tgz = $self->_mirror( $self->msm_zip(), $self->download_dir() );	
+	$self->_extract($tgz, $self->image_dir());
+	
+	# Start adding the fragments that are only for an .msi.
+	$self->_add_fragment(
+		'StartMenuIcons',
+		Perl::Dist::WiX::Fragment::StartMenu->new(
+			directory_id => 'D_App_Menu',
+		) );
+	$self->_add_fragment(
+		'Win32Extras',
+		Perl::Dist::WiX::Fragment::Files->new(
+			id    => 'Win32Extras',
+			files => File::List::Object->new(),
+		) );
+
+	$self->_set_icons(
+		$self->get_fragment_object('StartMenuIcons')->get_icons() );
+	if ( defined $self->msi_product_icon() ) {
+		$self->_icons()->add_icon( $self->msi_product_icon() );
+	}
+
+	# Download the merge module.
+	my $msm = $self->_mirror( $self->msm_to_use(), $self->download_dir() );
+	
+	# Connect the Merge Module tag.
+	my $mm = Perl::Dist::WiX::Tag::MergeModule->new(
+		id          => 'Perl',
+		disk_id     => 1,
+		language    => 1033,
+		source_file => $msm,
+		primary_reference => 1,
+	);
+	$self->_add_merge_module( 'Perl', $mm );
+	$self->get_directory_tree()
+	  ->add_merge_module( $self->image_dir(), $mm );
+
+	# Set the file paths that the first portion of the build otherwise would.
+	$self->_set_bin_perl( $self->_file(qw/perl bin perl.exe/) );
+	$self->_set_bin_make( $self->_file(qw/c bin dmake.exe/) );
+	$self->_set_bin_pexports( $self->_file(qw/c bin pexports.exe/) );
+	$self->_set_bin_dlltool( $self->_file(qw/c bin dlltool.exe/) );
+
+	# Do the same for the environment variables
+	$self->add_path( 'perl', 'bin' );
+	$self->add_path( 'c', 'bin' );
+	
+	return 1;
+}
+
+
+
 =head3 install_c_toolchain
 
 The C<install_c_toolchain> method is used by C<run> to install various
@@ -3051,18 +3226,6 @@ sub write_merge_module {
 
 		$self->add_output_files( $self->_write_msm() );
 
-		# Save off the contents of the image directory so that
-		# they can be used later without having to rebuild the
-		# whole distribution.
-		my $file_out =
-		  catfile( $self->output_dir(),
-			$self->output_base_filename() . '.msm-contents.zip' );
-
-		rename $self->_write_zip(), $file_out
-		  or PDWiX->throw("Could not rename to $file_out: $OS_ERROR");
-
-		$self->add_output_file($file_out);
-
 		$self->_clear_fragments();
 
 		my $file = catfile( $self->output_dir(), 'fragments.zip' );
@@ -3191,7 +3354,7 @@ sub _write_zip {
 
 =head2 add_icon
 
-TODO
+TODO: Document
 
 =cut
 
@@ -3230,7 +3393,7 @@ sub add_icon {
 
 =head2 add_path
 
-TODO
+TODO: Document
 
 =cut
 
@@ -3249,7 +3412,7 @@ sub add_path {
 
 =head2 get_path_string
 
-TODO
+TODO: Document
 
 =cut
 
@@ -4169,13 +4332,13 @@ sub _perl {
 	my $self   = shift;
 	my @params = @_;
 
-	unless ( -x $self->bin_perl ) {
-		PDWiX->throw( q{Can't execute } . $self->bin_perl );
+	unless ( -x $self->bin_perl() ) {
+		PDWiX->throw( q{Can't execute } . $self->bin_perl() );
 	}
 
 	$self->trace_line( 2,
-		join( q{ }, '>', $self->bin_perl, @params ) . qq{\n} );
-	$self->_run3( $self->bin_perl, @params )
+		join( q{ }, '>', $self->bin_perl(), @params ) . qq{\n} );
+	$self->_run3( $self->bin_perl(), @params )
 	  or PDWiX->throw('perl failed');
 	PDWiX->throw('perl failed (OS error)') if ( $CHILD_ERROR >> 8 );
 	return 1;

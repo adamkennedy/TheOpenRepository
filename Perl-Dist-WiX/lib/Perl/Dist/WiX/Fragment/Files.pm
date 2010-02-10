@@ -28,7 +28,7 @@ require WiX3::Exceptions;
 require File::List::Object;
 require Win32::Exe;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102002';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
@@ -107,7 +107,7 @@ sub regenerate {
 			$self->add_child_tag( $self->_get_feature() );
 		}
 	}
-
+	
 	return uniq @fragment_ids;
 } ## end sub regenerate
 
@@ -159,6 +159,7 @@ sub _add_file_to_fragment {
 
 			$found_step1 = 1;
 			$self->_add_file_component( $directory_step1, $file_path );
+
 			return ();
 		}
 	} ## end while ( $i_step1 < $child_tags_count...)
@@ -186,7 +187,9 @@ sub _add_file_to_fragment {
 			directory_object => $directory_step2 );
 
 		$self->add_child_tag($directory_ref_step2);
+
 		$self->_add_file_component( $directory_ref_step2, $file_path );
+
 		return ();
 	} ## end if ( defined $directory_step2)
 
@@ -226,7 +229,9 @@ sub _add_file_to_fragment {
 			( $directory_final, @fragment_ids ) =
 			  $self->_add_directory_recursive( $directory_step3,
 				$path_to_find );
+			
 			$self->_add_file_component( $directory_final, $file_path );
+			
 			return @fragment_ids;
 		} ## end if ( defined $directory_step3)
 	} ## end while ( $i_step3 < $child_tags_count...)
@@ -259,7 +264,9 @@ sub _add_file_to_fragment {
 		( $directory_final, @fragment_ids ) =
 		  $self->_add_directory_recursive( $directory_ref_step4,
 			$path_to_find );
+
 		$self->_add_file_component( $directory_final, $file_path );
+
 		return @fragment_ids;
 	} ## end if ( defined $directory_step4)
 
@@ -391,7 +398,7 @@ sub _add_file_component {
 		);
 	}
 
-	$component->add_child_tag($file_obj);
+	$component->add_child_tag($file_obj);	
 	$tag->add_child_tag($component);
 
 	return 1;

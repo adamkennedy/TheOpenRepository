@@ -211,7 +211,7 @@ Perl::Dist::WiX::Tag::Directory - <Directory> tag that knows how to search its c
 
 	my $ref_tag = Perl::Dist::WiX::Tag::Directory->new(
 		id => 'Perl'
-		# TODO.
+		# TODO: Finish documenting
 	);
 
 	# Parameters can be passed as a hash, or a hashref.
@@ -262,7 +262,7 @@ An undefined value is returned if no object with that ID could be found.
 
 =head2 search_dir
 
-TODO
+TODO: Document
 
 =head2 add_directories_id
 

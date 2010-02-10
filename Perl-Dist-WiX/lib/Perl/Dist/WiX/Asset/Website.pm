@@ -72,11 +72,9 @@ sub install {
 
 	my $website;
 
-	# TODO: Use exceptions instead of dieing.
-	## no critic (RequireCarping RequireUseOfExceptions)
-	open $website, q{>}, $filename or die "open($filename): $OS_ERROR";
-	print {$website} $self->_content() or die "print($filename): $OS_ERROR";
-	close $website or die "close($filename): $OS_ERROR";
+	open $website, q{>}, $filename or PDWiX->throw("open($filename): $OS_ERROR");
+	print {$website} $self->_content() or PDWiX->throw("print($filename): $OS_ERROR");
+	close $website or PDWiX->throw("close($filename): $OS_ERROR");
 
 	# Add the file.
 	$self->_add_file(
@@ -137,11 +135,11 @@ Perl::Dist::WiX::Asset::Website - Website link asset for a Win32 Perl
 
 =head1 DESCRIPTION
 
-TODO
+TODO: Document
 
 =head1 METHODS
 
-TODO
+TODO: Document
 
 This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
 

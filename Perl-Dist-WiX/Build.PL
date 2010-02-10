@@ -54,9 +54,9 @@ my $requires = {
 	'Module::CoreList'          => '2.18',
 	'Moose'                     => '0.90',
 	'MooseX::NonMoose'          => '0.05',
-	'MooseX::AttributeHelpers'  => '0',
 	'MooseX::Singleton'         => '0',
 	'MooseX::Types'             => '0',
+	'MooseX::Types::URI'        => '0',
 	'MooseX::Meta::TypeConstraint::Intersection' => '0.01',
 	'PAR::Dist'                 => '0.42',
 	'Params::Util'              => '0.35',
@@ -101,7 +101,12 @@ my $builder = Module::Build->new(
 	recommends => {
 		'Readonly::XS'              => '1.05',
 	},
-	meta_merge     => {
+	meta_add => {
+		no_index => {
+			directory => [qw(inc share t)],
+		},
+	}, 
+	meta_merge => {
 		resources => {
 			homepage    => 'http://csjewell.comyr.com/perl/',
 			bugtracker  => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX',

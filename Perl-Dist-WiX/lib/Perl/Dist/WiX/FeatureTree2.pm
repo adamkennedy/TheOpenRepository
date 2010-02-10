@@ -12,15 +12,15 @@ This document describes Perl::Dist::WiX::FeatureTree2 version 1.102.
 
 =head1 DESCRIPTION
 
-	# TODO.
+	# TODO: Document
 
 =head1 SYNOPSIS
 
-	# TODO.
+	# TODO: Document
 
 =head1 INTERFACE
 
-	# TODO.
+	# TODO: Document
 	
 =cut
 

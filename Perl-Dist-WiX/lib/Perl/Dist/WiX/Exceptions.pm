@@ -111,11 +111,11 @@ the user about errors.
 
 =head1 SYNOPSIS
 
-	# TODO.
+	# TODO: Document
 
 =head1 INTERFACE
 
-	# TODO.
+	# TODO: Document
 
 =head1 DIAGNOSTICS
 
