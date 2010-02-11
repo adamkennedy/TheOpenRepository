@@ -192,7 +192,6 @@ sub install_padre_prereq_modules_2 {
 		  Test::Most
 		  Parse::ExuberantCTags
 		  CPAN::Mini
-		  Portable
 		  Capture::Tiny
 		  prefork
 		  PPIx::EditorTools
@@ -251,6 +250,16 @@ sub install_padre_modules {
 #		force => 1,
 	);
 
+	# Requested plugins.
+	$self->install_modules( qw{
+		Perl::Tidy
+		Perl::Critic
+		Perl::Critic::More
+		Padre::Plugin::PerlTidy
+		Padre::Plugin::PerlCritic
+	} );
+
+	
 	return 1;
 } ## end sub install_padre_modules
 
@@ -263,6 +272,9 @@ sub install_satori_modules_1 {
 	$self->install_modules( qw{	
 		PadWalker
 		Devel::Cycle
+		CSS::Tiny
+		PPI::HTML
+		Template
 	} );
 	
 	# Testing: Test::Simple is already installed in Strawberry.
@@ -381,9 +393,6 @@ sub install_satori_modules_2 {
 		Dist::Zilla
 		Module::Install
 		Devel::NYTProf
-		Perl::Tidy
-		Perl::Critic
-		Perl::Critic::More
 		Carp::Always
 		Modern::Perl
 		Perl::Version
@@ -478,7 +487,6 @@ sub install_satori_modules_3 {
 		Catalyst::Action::RenderView
 		File::Copy::Recursive
 		AppConfig
-		Template
 		Mouse
 		Any::Moose
 		Catalyst::Plugin::ConfigLoader
@@ -675,6 +683,12 @@ sub install_other_modules_1 {
 		Bio::ASN1::EntrezGene
 	} );
 
+	# This makes a circular dependency if I put it before Bio::Perl.
+	$self->install_modules( qw{
+		Padre::Plugin::Catalyst
+	} );
+
+	
 	return 1;
 }
 
@@ -705,7 +719,9 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2007 - 2009 Adam Kennedy.  Copyright 2009 Curtis Jewell.
+Copyright 2007 - 2009 Adam Kennedy.  
+
+Copyright 2009 - 2010 Curtis Jewell.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
