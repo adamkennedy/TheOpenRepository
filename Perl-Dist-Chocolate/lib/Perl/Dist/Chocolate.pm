@@ -28,7 +28,7 @@ use parent                  qw( Perl::Dist::Strawberry );
 use File::Spec::Functions   qw( catfile catdir         );
 use File::ShareDir          qw();
 
-our $VERSION = '2.02';
+our $VERSION = '2.03';
 $VERSION = eval $VERSION;
 
 
@@ -41,7 +41,7 @@ $VERSION = eval $VERSION;
 # Apply some default paths
 sub new {
 
-	if ($Perl::Dist::Strawberry::VERSION < 2.00_02) {
+	if ($Perl::Dist::Strawberry::VERSION < 2.0201) {
 		PDWiX->throw('Perl::Dist::Strawberry version is not high enough.')
 	}
 
@@ -55,17 +55,8 @@ sub new {
 		# Tasks to complete to create Chocolate
 		tasklist => [
 			'final_initialization',
-			'install_c_toolchain',
-			'install_strawberry_c_toolchain',
-			'install_c_libraries',
-			'install_strawberry_c_libraries',
-			'install_perl',
-			'install_perl_toolchain',
-			'install_cpan_upgrades',
-			'install_strawberry_modules_1',
-			'install_strawberry_modules_2',
-			'install_strawberry_modules_3',
-			'install_strawberry_modules_4',
+			'initialize_using_msm',
+			'install_strawberry_modules_5',   # Remove when using final MSM for April.
 			'install_padre_prereq_modules_1',
 			'install_padre_prereq_modules_2',
 			'install_padre_modules',
@@ -88,6 +79,21 @@ sub new {
 		msi               => 1,
 		zip               => 1,
 
+		# Perl version
+		perl_version => '5101',
+
+		# Program version.
+		build_number => 2,
+		beta_number  => 1,
+
+		# Trace level.
+		trace => 1,
+
+		# These are the locations to pull down the msm.
+		msm_to_use => 'http://strawberryperl.com/download/strawberry-msm/strawberry-perl-5.10.1.1.msm',
+		msm_zip    => 'http://strawberryperl.com/download/strawberry-perl-5.10.1.1.zip',
+		msm_code   => 'BC4B680E-4871-31E7-9883-3E2C74EA4F3C',
+		
 		@_,
 	);
 }
@@ -96,9 +102,9 @@ sub new {
 # Supports building multiple versions of Perl.
 sub output_base_filename {
 	$_[0]->{output_base_filename} or
-	'strawberry-perl-' . $_[0]->perl_version_human 
+	'strawberry-perl-professional-' . $_[0]->perl_version_human 
 	. '.' . $_[0]->build_number
-	. ($_[0]->beta_number ? '-beta-' . $_[0]->beta_number : '');
+	. ($_[0]->beta_number ? '-alpha-' . $_[0]->beta_number : '');
 }
 
 
@@ -151,7 +157,8 @@ sub install_padre_prereq_modules_1 {
 	} );
 
 	return 1;
-}
+} ## end sub install_padre_prereq_modules_1
+
 
 
 sub install_padre_prereq_modules_2 {
@@ -159,6 +166,8 @@ sub install_padre_prereq_modules_2 {
 
 	# Manually install our non-Wx dependencies first to isolate
 	# them from the Wx problems
+	# NOTE: ORLite::Migrate goes after ORLite once they don't clone it privately.
+	# NOTE: Test::Exception goes before Test::Most when it's not in Strawberry.
 	$self->install_modules( qw{
 		  Test::SubCalls
 		  List::MoreUtils
@@ -171,9 +180,6 @@ sub install_padre_prereq_modules_2 {
 		  Test::Pod
 		  Module::Starter
 		  ORLite
-		  ORLite::Migrate
-		  Algorithm::Diff
-		  Text::Diff
 		  Test::Differences
 		  File::Slurp
 		  Pod::POM
@@ -183,12 +189,10 @@ sub install_padre_prereq_modules_2 {
 		  Devel::StackTrace
 		  Class::Data::Inheritable
 		  Exception::Class
-		  Test::Exception
 		  Test::Most
-		  Class::XSAccessor::Array
 		  Parse::ExuberantCTags
 		  CPAN::Mini
-		  Win32API::File
+		  Portable
 		  Capture::Tiny
 		  prefork
 		  PPIx::EditorTools
@@ -198,42 +202,53 @@ sub install_padre_prereq_modules_2 {
 		  Locale::Msgfmt
 	} );
 
-# Does Padre still need Portable? If so, put it after CPAN::Mini.
-
-	return 1;
-}
+	# These were new between 0.50 and 0.55
+	$self->install_modules( qw{
+		  Module::ScanDeps
+		  Module::Install
+		  Format::Human::Bytes
+		  Template::Tiny
+		  Win32::Shortcut
+		  Debug::Client
+	} );
 	
+	# These were new between 0.55 and svn trunk, AFAICT.
+	$self->install_modules( qw{
+		  Devel::Refactor
+	} );
+	
+	return 1;
+} ## end sub install_padre_prereq_modules_2
+
+
+
 sub install_padre_modules {
 	my $self = shift;
 
 	# The rest of the modules are order-specific,
-	# for reasons maybe involving CPAN.pm but not fully understodd.
+	# for reasons maybe involving CPAN.pm but not fully understood.
 
-	# Install the Alien module
-	if ( defined $ENV{PERL_DIST_PADRE_ALIENWXWIDGETS_PAR_LOCATION} ) {
-		my $filelist = $self->install_par(
-			name => 'Alien_wxWidgets',
-			url  => URI::file->new(
-				$ENV{PERL_DIST_PADRE_ALIENWXWIDGETS_PAR_LOCATION}
-			  )->as_string(),
-		);
-	} else {
-		$self->install_module( name => 'Alien::wxWidgets' );
-	}
+	# Install the Alien::wxWidgets module from a precompiled .par
+	my $par_url = 
+		'http://www.strawberryperl.com/download/padre/Alien-wxWidgets-0.50-MSWin32-x86-multi-thread-5.10.1.par';
+	my $filelist = $self->install_par(
+		name => 'Alien_wxWidgets',
+		url  => $par_url,
+	);
 
 	# Install the Wx module over the top of alien module
 	$self->install_module( name => 'Wx' );
 
 	# Install modules that add more Wx functionality
-	$self->install_module( 
-		name => 'Wx::Perl::ProcessStream',
-		force => 1 # since it fails on vista
+	$self->install_module(
+		name  => 'Wx::Perl::ProcessStream',
+		force => 1                     # since it fails on vista
 	);
 
 	# And finally, install Padre itself
 	$self->install_module(
 		name  => 'Padre',
-		force => 1,
+#		force => 1,
 	);
 
 	return 1;
@@ -255,8 +270,15 @@ sub install_satori_modules_1 {
 	# Test::Pod and Test::Pod::Coverage are also above.
 	$self->install_modules( qw{
 		Test::Memory::Cycle
+		Devel::Cover
 	} );
 
+	# Exception Handling
+	$self->install_modules( qw{
+		Try::Tiny
+		TryCatch
+	} );
+		
 	# Config Modules and prerequisites
 	$self->install_modules( qw{
 		JSON::Syck
@@ -317,7 +339,7 @@ sub install_satori_modules_1 {
 	# Object Oriented Programming (MooseX::Types needs to be before Test::TempDir.)
 	$self->install_modules( qw{
 		Moose::Autobox
-		MooseX::AttributeHelpers
+		MooseX::Aliases
 		MooseX::Storage
 		MooseX::Getopt
 		MooseX::SimpleConfig
@@ -356,11 +378,12 @@ sub install_satori_modules_2 {
 	
 	# Module Development
 	$self->install_modules( qw{
-		Module::Starter
-		Module::Starter::CSJEWELL
+		Dist::Zilla
 		Module::Install
 		Devel::NYTProf
 		Perl::Tidy
+		Perl::Critic
+		Perl::Critic::More
 		Carp::Always
 		Modern::Perl
 		Perl::Version
@@ -414,6 +437,14 @@ sub install_satori_modules_3 {
 		DBIx::Class::Schema::Loader
 	} );
 
+	# Excel/CSV
+	$self->install_modules( qw{
+		Text::CSV_XS
+		Spreadsheet::ParseExcel::Simple
+		Spreadsheet::WriteExcel::Simple
+	} );
+	
+	
 	# Web Development
 
 	# Catalyst::Runtime and prerequisites
@@ -481,6 +512,16 @@ sub install_satori_modules_4 {
 		Catalyst::Plugin::Session
 		Catalyst::Plugin::Authentication
 		Catalyst::Plugin::StackTrace
+		Catalyst::Plugin::FillInForm
+		Catalyst::Controller::FormBuilder
+		Catalyst::Plugin::Session::State::Cookie
+		Catalyst::Plugin::Session::Store::DBIC
+		Catalyst::Plugin::Static::Simple
+		Catalyst::View::JSON
+		CGI::FormBuilder::Source::Perl
+		XML::RSS
+		XML::Atom
+		MIME::Types
 	} );
 
 	# Web Crawling and prereqs: LWP::Simple and everything 
@@ -499,13 +540,17 @@ sub install_satori_modules_4 {
 
 	# Date Modules
 	$self->install_modules( qw{
-		DateTime
-		Date::Tiny
+		Email::Valid
+		Email::Sender
 	} );
 
-	# Time::y2038 fails to build on Strawberry. 
-	# It's a Strawberry bug, not a bug of the module.
-	# Fix before January 2010 Chocolate release.
+	# Date Modules
+	$self->install_modules( qw{
+		DateTime
+		Date::Tiny
+		Time::Tiny
+		DateTime::Tiny
+	} );
 	
 	# Localizing changes to environment for building purposes.
 	{
@@ -551,6 +596,7 @@ sub install_satori_modules_4 {
 	# Script Hackery
 	$self->install_modules( qw{
 		Smart::Comments
+		Term::ProgressBar::Simple
 		IO::All
 	} );
 
@@ -571,10 +617,63 @@ sub install_satori_modules_4 {
 sub install_other_modules_1 {
 	my $self = shift;
 
+	# Graphical libraries (move to .par files)
 	$self->install_modules( qw{
-		Perl::Critic
-		Perl::Critic::More
-	} ); # 185
+		Tk
+	} );
+	$self->install_module(
+		name  => 'Win32::GUI',
+		force => 1,   # Fails a pod test.
+	);
+	
+	# Tkx needs Tcl, which needs a 'tclsh' binary.
+	# Gtk2 requires binaries
+
+	# CPAN helper.
+	$self->install_modules( qw{
+		CPANPLUS::Shell::Wx
+		
+	} );
+
+	# BioPerl and as many of its optionals as possible.
+	# GraphViz is a known problem - Beta 2?	
+	$self->install_modules( qw{
+		Data::Stag
+		Ace
+		Math::Random
+		Math::Derivative
+		SVG
+		Graph
+		SVG::Graph
+		OLE::Storage_Lite
+		Spreadsheet::ParseExcel
+		Parse::RecDescent
+		Spreadsheet::WriteExcel
+		Algorithm::MunkRes
+		XML::Writer
+		XML::DOM
+		XML::XPathEngine
+		XML::DOM::XPath
+		XML::Simple
+		Tie::IxHash
+		XML::XPath
+		HTML::TreeBuilder
+		XML::Twig
+		XML::Parser::PerlSAX
+		Text::Iconv
+		XML::Filter::BufferText
+		XML::SAX::Writer
+		PostScript::TextBlock
+		Array::Compare
+		Convert::Binary::C
+		Set::Scalar
+		Clone
+		Bio::Perl
+	} );
+	# This makes a circular dependency if I put it before Bio::Perl.
+	$self->install_modules( qw{
+		Bio::ASN1::EntrezGene
+	} );
 
 	return 1;
 }
