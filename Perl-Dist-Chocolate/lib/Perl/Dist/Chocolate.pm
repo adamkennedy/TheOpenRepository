@@ -249,16 +249,6 @@ sub install_padre_modules {
 		name  => 'Padre',
 #		force => 1,
 	);
-
-	# Requested plugins.
-	$self->install_modules( qw{
-		Perl::Tidy
-		Perl::Critic
-		Perl::Critic::More
-		Padre::Plugin::PerlTidy
-		Padre::Plugin::PerlCritic
-	} );
-
 	
 	return 1;
 } ## end sub install_padre_modules
@@ -274,6 +264,7 @@ sub install_satori_modules_1 {
 		Devel::Cycle
 		CSS::Tiny
 		PPI::HTML
+		AppConfig
 		Template
 	} );
 	
@@ -386,6 +377,13 @@ sub install_satori_modules_2 {
 		Software::License
 		Module::ScanDeps
 		File::Slurp
+		B::Keywords
+		String::Format
+		Email::Address
+		Pod::Spell
+		Readonly
+		Readonly::XS
+		Regexp::Parser
 	} );
 	
 	# Module Development
@@ -393,6 +391,9 @@ sub install_satori_modules_2 {
 		Dist::Zilla
 		Module::Install
 		Devel::NYTProf
+		Perl::Tidy
+		Perl::Critic
+		Perl::Critic::More
 		Carp::Always
 		Modern::Perl
 		Perl::Version
@@ -576,7 +577,6 @@ sub install_satori_modules_4 {
 		Devel::LexAlias
 		Lexical::Persistence
 		Test::Object
-		B::Keywords
 		WWW::Pastebin::PastebinCom::Create
 		WWW::Pastebin::RafbNet::Create
 		Win32::Clipboard
@@ -675,7 +675,6 @@ sub install_other_modules_1 {
 		Array::Compare
 		Convert::Binary::C
 		Set::Scalar
-		Clone
 		Bio::Perl
 	} );
 	# This makes a circular dependency if I put it before Bio::Perl.
@@ -683,16 +682,40 @@ sub install_other_modules_1 {
 		Bio::ASN1::EntrezGene
 	} );
 
-	# This makes a circular dependency if I put it before Bio::Perl.
+	# Padre Plugins.
 	$self->install_modules( qw{
+		Padre::Plugin::PerlTidy
+		Padre::Plugin::PerlCritic
 		Padre::Plugin::Catalyst
 	} );
 
+	# Plack & PSGI (may be removed later)
+	$self->install_modules( qw{
+		Pod::Usage
+		Devel::StackTrace::AsHTML
+		Filesys::Notify::Simple
+		Test::TCP
+		Test::Requires
+		PSGI
+		CGI::PSGI
+		CGI::Emulate::PSGI
+		Plack
+		HTTP::Server::Simple::PSGI
+		HTTP::Parser::XS
+	} );
+
+	# Plack::Server::ReverseHTTP
+	# Plack::Request
+	# Parallel::Prefork
+	# FCGI::Client
+	# FCGI::ProcManager
+	# Sys::Sendfile
+	# Devel::StackTrace::WithLexicals
+	# Task::Plack
+	# Plack::Server::POE
 	
 	return 1;
 }
-
-	
 	
 1;
 
