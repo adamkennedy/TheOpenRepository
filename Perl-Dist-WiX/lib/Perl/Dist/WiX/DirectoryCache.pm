@@ -29,7 +29,7 @@ use Moose 0.90;
 use MooseX::Singleton;
 use WiX3::XML::Directory;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_100';
 $VERSION =~ s/_//ms;
 
 #####################################################################

@@ -30,7 +30,7 @@ use Params::Util qw( _STRING   );
 use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Tag::Icon;
 
-our $VERSION = '1.102002';
+our $VERSION = '1.102_100';
 $VERSION =~ s/_//ms;
 
 has _icon => (

@@ -28,7 +28,7 @@ require WiX3::Exceptions;
 require File::List::Object;
 require Win32::Exe;
 
-our $VERSION = '1.102002';
+our $VERSION = '1.102_100';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
