@@ -171,7 +171,6 @@ sub install_padre_prereq_modules_2 {
 	$self->install_modules( qw{
 		  Test::SubCalls
 		  List::MoreUtils
-		  Task::Weaken
 		  PPI
 		  Module::Refresh
 		  Devel::Symdump
@@ -266,6 +265,7 @@ sub install_satori_modules_1 {
 		PPI::HTML
 		AppConfig
 		Template
+		Perl::Tidy
 	} );
 	
 	# Testing: Test::Simple is already installed in Strawberry.
@@ -276,10 +276,10 @@ sub install_satori_modules_1 {
 		Devel::Cover
 	} );
 
-	# Exception Handling
+	# Exception Handling, part 1.
+	# TryCatch needs delayed until after Moose.
 	$self->install_modules( qw{
 		Try::Tiny
-		TryCatch
 	} );
 		
 	# Config Modules and prerequisites
@@ -303,7 +303,6 @@ sub install_satori_modules_1 {
 		Devel::GlobalDestruction
 		Sub::Name
 		Class::MOP
-		Try::Tiny
 		Moose
 	} );
 	
@@ -317,12 +316,41 @@ sub install_satori_modules_1 {
 		Getopt::Long::Descriptive
 		Variable::Magic
 		B::Hooks::EndOfScope
+		Sub::Identify
 		namespace::clean
 		Carp::Clan
+		Set::Object
+		Hash::Util::FieldHash::Compat
 		MooseX::Types
-		MooseX::Types::Path::Class
-		MooseX::ConfigFromFile
 	} );
+	
+	# MooseX::GlobRef needs Symbol::Util, constant::boolean, Test::Assert, Test::Unit::Lite
+	# MooseX::Declare needs:
+	#   B::Hooks::Op::Check, Devel::Declare
+	#   MooseX::LazyRequire
+	#   Context::Preserve
+	#   Text::Balanced
+	#   MooseX::Meta::TypeConstraint::ForceCoercion
+	#   aliased
+	#   Devel::PartialDump, MooseX::Types::Structured
+	#   Parse::Method::Signatures
+	#   MooseX::Method::Signatures
+	# MooseX::Method::Signatures
+	
+	# MooseX::Types::Structured needs Devel::PartialDump
+	
+	# MooseX::App::Cmd needs IO::TieCombine, Module::Pluggable::Object, App::Cmd
+	# MooseX::LogDispatch
+	# MooseX::LazyLogDispatch
+	# MooseX::Log::Log4perl
+	# MooseX::POE will wait until updated for 0.90.
+	# MooseX::Workers will wait until updated for 0.90.
+	# MooseX::Iterator
+	# Pod::Coverage::Moose
+
+	# Task::Moose
+
+	
 	
 	# File::NFSLock fails tests. 
 	# Considering the name, should this really
@@ -336,18 +364,38 @@ sub install_satori_modules_1 {
 		Best
 		JSON::Any
 		Test::JSON
+		YAML::XS
 		Test::YAML::Valid
+		String::RewritePrefix
+		Test::Moose
+		URI::FromHash
 	} );
 	
 	# Object Oriented Programming (MooseX::Types needs to be before Test::TempDir.)
 	$self->install_modules( qw{
+		MooseX::Types::Path::Class
+		MooseX::ConfigFromFile
+		MooseX::NonMoose
 		Moose::Autobox
 		MooseX::Aliases
 		MooseX::Storage
 		MooseX::Getopt
 		MooseX::SimpleConfig
 		MooseX::StrictConstructor
+		MooseX::Role::TraitConstructor
 		namespace::autoclean
+		MooseX::Traits
+		MooseX::Role::Parameterized
+		MooseX::Singleton
+		MooseX::Types::Set::Object
+		MooseX::Types::URI
+		MooseX::Role::Cmd
+		MooseX::Daemonize
+		MooseX::Param
+		MooseX::InsideOut
+		MooseX::Clone
+		MooseX::ClassAttribute
+		MooseX::Iterator
 	} );
 
 	return 1;
@@ -355,6 +403,11 @@ sub install_satori_modules_1 {
 	
 sub install_satori_modules_2 {
 	my $self = shift;
+
+	# Exception Handling, part 2.
+	$self->install_modules( qw{
+		TryCatch
+	} );
 
 	# XML development prerequisites
 	$self->install_modules( qw{
@@ -391,7 +444,6 @@ sub install_satori_modules_2 {
 		Dist::Zilla
 		Module::Install
 		Devel::NYTProf
-		Perl::Tidy
 		Perl::Critic
 		Perl::Critic::More
 		Carp::Always
@@ -556,6 +608,7 @@ sub install_satori_modules_4 {
 	# Date Modules
 	$self->install_modules( qw{
 		DateTime
+		MooseX::Types::DateTime
 		Date::Tiny
 		Time::Tiny
 		DateTime::Tiny
@@ -618,7 +671,12 @@ sub install_satori_modules_4 {
 		POE::Test::Loops
 		POE
 	} );
-
+	
+	# Final tasks
+	$self->install_modules( qw{
+		Task::Moose
+	} );
+	
 	return 1;
 }
 	
@@ -663,12 +721,10 @@ sub install_other_modules_1 {
 		XML::XPathEngine
 		XML::DOM::XPath
 		XML::Simple
-		Tie::IxHash
 		XML::XPath
 		HTML::TreeBuilder
 		XML::Twig
 		XML::Parser::PerlSAX
-		Text::Iconv
 		XML::Filter::BufferText
 		XML::SAX::Writer
 		PostScript::TextBlock
