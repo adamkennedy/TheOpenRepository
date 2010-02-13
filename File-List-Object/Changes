@@ -1,10 +1,10 @@
 Revision history for File-List-Object
 
-0.202  Thu 24 Dec 2009
+0.202  Fri 12 Feb 2009
      - Updated to make all files in the list on 
        Win32 systems have backslashes instead of
        forward slashes (fixes bug in Perl::Dist::WiX)
-	 - Added debug flag. (documented as write only)
+     - Added debug flag. (documented as write only)
 
 0.201  Thu 12 Nov 2009
      - Updated to use new Moose 0.90 syntax
