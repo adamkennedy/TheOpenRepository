@@ -472,8 +472,6 @@ sub install_satori_modules_2 {
 		Config::INI::MVP::Reader
 		Pod::Eventual
 		String::Flogger
-		Text::Glob
-		File::Find::Rule
 		Mixin::ExtraFields
 		Mixin::ExtraFields::Param
 		CPAN::Uploader
@@ -519,7 +517,7 @@ sub install_satori_modules_2 {
 
 	return 1;
 }
-	
+
 sub install_satori_modules_3 {
 	my $self = shift;
 
@@ -623,6 +621,7 @@ sub install_satori_modules_4 {
 	$self->{force} = 0;
 
 	$self->install_modules( qw{
+		Sub::Override
 		HTML::TokeParser::Simple
 		Tree::Simple::VisitorFactory
 		Locale::Maketext::Lexicon
@@ -639,7 +638,6 @@ sub install_satori_modules_4 {
 		Class::Factory::Util
 		DateTime::Format::Strptime
 		DateTime::Format::Builder
-		Sub::Override
 		Time::Piece
 		Test::MockTime
 		boolean
@@ -836,6 +834,11 @@ sub install_other_modules_1 {
 		Perldoc::Server
 	} ); # 2 (34)
 	
+	# PerlDoc::Server and prereqs.
+	$self->install_modules( qw{
+		Test::Script
+		Perl::Shell
+	} ); # 2 (36)
 	
 	# Plack & PSGI (may be removed later)
 #	$self->install_modules( qw{
@@ -864,6 +867,128 @@ sub install_other_modules_1 {
 	
 	return 1;
 }
+
+sub install_chocolate_extras {
+	my $self = shift;
+
+	my $dist_dir = File::ShareDir::dist_dir('Perl-Dist-Strawberry');
+	
+	# Links to the Strawberry Perl website.
+	# Don't include this for non-Strawberry sub-classes
+	if ( ref($self) eq 'Perl::Dist::Chocolate' ) {
+		# I'm not building this portable.
+		$self->install_website(
+			name       => 'Strawberry Perl Website',
+			url        => $self->strawberry_url(),
+			icon_file  => catfile($dist_dir, 'strawberry.ico')
+		);
+		$self->install_website(
+			name       => 'Strawberry Perl Professional Release Notes',
+			url        => $self->chocolate_release_notes_url(),
+			icon_file  => catfile($dist_dir, 'strawberry.ico')
+		);
+		# Link to IRC.
+		$self->install_website(
+			name       => 'Live Support',
+			url        => 'http://widget.mibbit.com/?server=irc.perl.org&channel=%23win32',
+			icon_file  => catfile($dist_dir, 'onion.ico')
+		);
+		$self->patch_file( 'README.txt' => $self->image_dir(), { dist => $self } );
+	}
+
+	# Check that the padre.exe exists
+	my $to = catfile( $self->image_dir(), 'perl', 'bin', 'padre.exe' );
+	if ( not -f $to ) {
+		PDWiX->throw(q{The "padre.exe" file does not exist});
+	}
+
+	# Get the Id for directory object that stores the filename passed in.
+	my $dir_id = $self->get_directory_tree()->search_dir(
+		path_to_find => catdir( $self->image_dir(), 'perl', 'bin' ),
+		exact        => 1,
+		descend      => 1,
+	)->get_id();
+
+	my $icon_id =
+	  $self->_icons()
+	  ->add_icon( catfile( $self->dist_dir(), 'padre.ico' ), 'padre.exe' );
+
+	# Add the start menu icon.
+	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
+		name => 'Padre',
+		description =>
+'Perl Application Development and Refactoring Environment - a Perl IDE',
+		target      => "[D_$dir_id]padre.exe",
+		id          => 'Padre',
+		working_dir => $dir_id,
+		icon_id     => $icon_id,
+	);
+
+	$self->install_launcher(
+		name => 'Graphical CPAN Client (TODO - needs work)',
+		bin  => 'wxcpan',
+	);
+
+	$self->install_launcher(
+		name => 'Perl Shell (TODO - needs work)',
+		bin  => 'perlthon',
+	);
+	
+	$self->install_launcher(
+		name => 'Devel-REPL Shell',
+		bin  => 'perl -S re.pl',
+	);
+
+	$self->install_launcher(
+		name => 'Local Perl Documentation web server',
+		bin  => 'perldoc-server',
+	);
+
+	$self->install_website(
+		name       => 'Local Perl Documentation (start web server first)',
+		url        => 'http://localhost:7375/',
+		icon_file  => catfile($dist_dir, 'strawberry.ico')
+	);
+	
+	$self->install_website(
+		name       => 'Catalyst Web Framework',
+		url        => 'http://www.catalystframework.org/',
+		icon_file  => catfile($dist_dir, 'strawberry.ico')
+	);
+	
+	$self->install_website(
+		name       => 'Moose Web Framework',
+		url        => 'http://moose.perl.org/',
+		icon_file  => catfile($dist_dir, 'strawberry.ico')
+	);
+	
+	$self->install_website(
+		name       => 'BioPerl wiki',
+		url        => 'http://www.bioperl.org/wiki/Main_Page',
+		icon_file  => catfile($dist_dir, 'strawberry.ico')
+	);
+
+	$self->install_website(
+		name       => 'Information about learning Perl',
+		url        => 'http://learn.perl.org/',
+		icon_file  => catfile($dist_dir, 'strawberry.ico')
+	);
+
+	$self->install_website(
+		name       => 'Information about learning Perl',
+		url        => 'http://learn.perl.org/',
+		icon_file  => catfile($dist_dir, 'strawberry.ico')
+	);
+
+	$self->install_website(
+		name       => 'Beginning Perl book',
+		url        => 'http://learn.perl.org/books/beginning-perl/',
+		icon_file  => catfile($dist_dir, 'strawberry.ico')
+	);
+	
+	return 1;
+}
+
 	
 1;
 
