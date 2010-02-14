@@ -502,7 +502,6 @@ sub install_satori_modules_2 {
 	
 	# DBIx::Class and prerequisites.
 	$self->install_modules( qw{
-		Class::Inspector
 		Class::Accessor::Grouped
 		SQL::Abstract
 		SQL::Abstract::Limit
@@ -603,7 +602,7 @@ sub install_satori_modules_3 {
 	
 sub install_satori_modules_4 {
 	my $self = shift;
-	
+
 	# Prerequisites for the rest of web development
 	$self->install_modules( qw{
 		Template::Timer
@@ -617,8 +616,6 @@ sub install_satori_modules_4 {
 		URI::Find
 		HTML::Tagset
 	} ); # 10 (10)
-
-	$self->{force} = 0;
 
 	$self->install_modules( qw{
 		Sub::Override
@@ -638,11 +635,12 @@ sub install_satori_modules_4 {
 		Class::Factory::Util
 		DateTime::Format::Strptime
 		DateTime::Format::Builder
-		Time::Piece
+		HTML::FillInForm
 		Test::MockTime
 		boolean
 		DateTime::Format::Natural
-	} ); # 21 (31...)
+		Class::Throwable
+	} ); # 22 (32...)
 
 	# Most of the rest of Web Development
 	$self->install_modules( qw{
@@ -658,21 +656,13 @@ sub install_satori_modules_4 {
 		Catalyst::Plugin::I18N
 		Catalyst::Plugin::Session::State::Cookie
 		Catalyst::Plugin::Session::Store::File
+		Catalyst::Plugin::Session::Store::Delegate
 		Catalyst::Plugin::Session::Store::DBIC
 		Catalyst::Plugin::Session::State::URI
 		Catalyst::Plugin::Static::Simple
 		Catalyst::Plugin::Authorization::Roles
-		Catalyst::Plugin::Authorization::ACL
-		Catalyst::Controller::FormBuilder
-		Catalyst::Component::InstancePerContext
-		Catalyst::Authentication::Store::DBIx::Class
-		FCGI::ProcManager
-		CGI::FormBuilder::Source::Perl
-		XML::RSS
-		XML::Atom
-		MIME::Types
-	} ); # 23 (54)
-		
+	} ); # 23 (53)
+
 	# Web Crawling and prereqs: LWP::Simple and everything 
 	# in Bundle::LWP are already installed.
 	# WWW::Mechanize is forced because the back test fails on the 
@@ -683,24 +673,39 @@ sub install_satori_modules_4 {
 	# In Web Devel, but needed a prereq first.
 	$self->install_module( name => 'Test::WWW::Mechanize::Catalyst', force => 1, );
 	
+	$self->{force} = 0;
+
+	# More of web development (C::P::A::ACL requires Test::WWW::Mech::Cat, and may need forced.)
+	$self->install_modules( qw{
+		Catalyst::Plugin::Authorization::ACL
+		Catalyst::Controller::FormBuilder
+		Catalyst::Component::InstancePerContext
+		Catalyst::Authentication::Store::DBIx::Class
+		FCGI::ProcManager
+		CGI::FormBuilder::Source::Perl
+		XML::RSS
+		XML::Atom
+		MIME::Types
+	} ); # 23 (53)
+			
 	# E-mail Modules
 	$self->install_modules( qw{
 		Email::Valid
 		Email::Sender
-	} ); # 1 + 1 + 1 + 2 (59)
+	} ); # 1 + 1 + 1 + 2 (58)
 
 	# Localizing changes to environment for building purposes.
 	{
 		local $ENV{TZ} = 'PST8PDT';
 		$self->install_module( name => 'Time::ParseDate' );
-	} # 1 (60)
+	} # 1 (59)
 	
 	# Last of Web Development
 	# (HTML::FormFu requires the Email:: stuff.)
 	$self->install_modules( qw{
 		HTML::FormFu
 		Catalyst::Controller::HTML::FormFu
-	} ); # 2 (62)
+	} ); # 2 (61)
 
 	# Useful Command-line Tools prerequisites
 	$self->install_modules( qw{
@@ -719,27 +724,27 @@ sub install_satori_modules_4 {
 		Mixin::Linewise
 		App::Nopaste
 		Module::Refresh
-	} ); # 15 (77)
+	} ); # 15 (76)
 
 	# Useful Command-line Tools: Module::CoreList is 
 	# already installed by Strawberry, and App::Ack 
 	# is above.
 	$self->install_modules( qw{
 		Devel::REPL
-	} ); # 1 (78)
+	} ); # 1 (77)
 
 	# Script Hackery prerequisites
 	$self->install_modules( qw{
 		File::ReadBackwards
 		MLDBM
-	} ); # 2 (80)
+	} ); # 2 (79)
 
 	# Script Hackery
 	$self->install_modules( qw{
 		Smart::Comments
 		Term::ProgressBar::Simple
 		IO::All
-	} ); # 3 (83)
+	} ); # 3 (82)
 
 	# Socket6 would be nice to include, but it 
 	# doesn't build due to referring to ws2_32.lib 
@@ -750,14 +755,14 @@ sub install_satori_modules_4 {
 		Win32::Console
 		POE::Test::Loops
 		POE
-	} ); # 3 (86)
+	} ); # 3 (85)
 
 	# Final tasks
 	$self->install_modules( qw{
 		Task::Moose
 		Task::Catalyst
 		Task::Kensho
-	} ); # 3 (89)
+	} ); # 3 (88)
 	
 	return 1;
 }
@@ -768,26 +773,31 @@ sub install_other_modules_1 {
 	# Graphical libraries (move to .par files)
 	$self->install_modules( qw{
 		Tk
+		Prima
 	} );
 	$self->install_module(
 		name  => 'Win32::GUI',
 		force => 1,   # Fails a pod test.
-	); # 2 (2)
+	); # 3 (3)
 	
 	# Tkx needs Tcl, which needs a 'tclsh' binary.
 	# Gtk2 requires binaries
 
 	# CPAN helper.
 	$self->install_modules( qw{
-		CPANPLUS::Shell::Wx
-		
-	} ); # 1 (3)
+		CPANPLUS::Shell::Wx		
+	} ); # 1 (4)
+
+	# Pod Browser.
+	$self->install_modules( qw{
+		Tk::Pod		
+	} ); # 1 (5)
 
 	# Catalyst manual.
 	$self->install_modules( qw{
 		File::Monitor
 		Catalyst::Manual		
-	} ); # 2 (5)
+	} ); # 2 (7)
 	
 	# BioPerl and as many of its optionals as possible.
 	# GraphViz is a known problem - Beta 2?	
@@ -815,31 +825,30 @@ sub install_other_modules_1 {
 		Convert::Binary::C
 		Set::Scalar
 		Bio::Perl
-	} ); # 23 (28)
+	} ); # 23 (30)
 	# This makes a circular dependency if I put it before Bio::Perl.
 	$self->install_modules( qw{
 		Bio::ASN1::EntrezGene
-	} ); # 1 (29)
+	} ); # 1 (31)
 
 	# Padre Plugins.
 	$self->install_modules( qw{
 		Padre::Plugin::PerlTidy
 		Padre::Plugin::PerlCritic
 		Padre::Plugin::Catalyst
-	} ); # 3 (32)
+	} ); # 3 (34)
 
-	# PerlDoc::Server and prereqs.
-	$self->install_modules( qw{
-		OpenThought
-		Perldoc::Server
-	} ); # 2 (34)
-	
-	# PerlDoc::Server and prereqs.
+	# Perl::Shell and prereqs.
 	$self->install_modules( qw{
 		Test::Script
 		Perl::Shell
 	} ); # 2 (36)
 	
+	# The "pmtools".
+	$self->install_modules( qw{
+		Devel::Loaded
+	} ); # 2 (36)
+
 	# Plack & PSGI (may be removed later)
 #	$self->install_modules( qw{
 #		Pod::Usage
@@ -909,7 +918,7 @@ sub install_chocolate_extras {
 		descend      => 1,
 	)->get_id();
 
-	my $icon_id =
+	my $padre_icon_id =
 	  $self->_icons()
 	  ->add_icon( catfile( $self->dist_dir(), 'padre.ico' ), 'padre.exe' );
 
@@ -921,7 +930,7 @@ sub install_chocolate_extras {
 		target      => "[D_$dir_id]padre.exe",
 		id          => 'Padre',
 		working_dir => $dir_id,
-		icon_id     => $icon_id,
+		icon_id     => $padre_icon_id,
 	);
 
 	$self->install_launcher(
@@ -930,25 +939,29 @@ sub install_chocolate_extras {
 	);
 
 	$self->install_launcher(
+		name => 'Graphical Documentation Browser',
+		bin  => 'tkpod',
+	);
+
+	$self->install_launcher(
 		name => 'Perl Shell (TODO - needs work)',
 		bin  => 'perlthon',
 	);
-	
-	$self->install_launcher(
-		name => 'Devel-REPL Shell',
-		bin  => 'perl -S re.pl',
+
+	my $strawberry_icon_id =
+	  $self->_icons()
+	  ->add_icon( catfile( $self->dist_dir(), 'strawberry.ico' ), 'perl.exe' );
+
+	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
+		name => 'Devel-REPL Shell (may need work)',
+		description => 'Perl shell using Devel::REPL',
+		target      => "[D_$dir_id]perl.exe",
+		arguments   => '-S re.pl',
+		id          => 'Devel_REPL',
+		working_dir => $dir_id,
+		icon_id     => $strawberry_icon_id,
 	);
 
-	$self->install_launcher(
-		name => 'Local Perl Documentation web server',
-		bin  => 'perldoc-server',
-	);
-
-	$self->install_website(
-		name       => 'Local Perl Documentation (start web server first)',
-		url        => 'http://localhost:7375/',
-		icon_file  => catfile($dist_dir, 'strawberry.ico')
-	);
 	
 	$self->install_website(
 		name       => 'Catalyst Web Framework',
