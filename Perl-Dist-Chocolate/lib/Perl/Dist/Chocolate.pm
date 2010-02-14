@@ -640,7 +640,10 @@ sub install_satori_modules_4 {
 		boolean
 		DateTime::Format::Natural
 		Class::Throwable
-	} ); # 22 (32...)
+		HTML::Template
+		CGI::FastTemplate
+		CGI::FormBuilder
+	} ); # 25 (35...)
 
 	# Most of the rest of Web Development
 	$self->install_modules( qw{
@@ -661,7 +664,7 @@ sub install_satori_modules_4 {
 		Catalyst::Plugin::Session::State::URI
 		Catalyst::Plugin::Static::Simple
 		Catalyst::Plugin::Authorization::Roles
-	} ); # 23 (53)
+	} ); # 17 (52)
 
 	# Web Crawling and prereqs: LWP::Simple and everything 
 	# in Bundle::LWP are already installed.
@@ -669,9 +672,11 @@ sub install_satori_modules_4 {
 	# '404 check' test if the firewall is too severe.
 	$self->install_module( name => 'HTTP::Server::Simple', );
 	$self->install_module( name => 'WWW::Mechanize', force => 1, );
+	$self->install_module( name => 'Test::WWW::Mechanize', force => 1, );
 
 	# In Web Devel, but needed a prereq first.
 	$self->install_module( name => 'Test::WWW::Mechanize::Catalyst', force => 1, );
+	# 4 (56)
 	
 	$self->{force} = 0;
 
@@ -686,26 +691,26 @@ sub install_satori_modules_4 {
 		XML::RSS
 		XML::Atom
 		MIME::Types
-	} ); # 23 (53)
-			
+	} ); # 9 (65)
+
 	# E-mail Modules
 	$self->install_modules( qw{
 		Email::Valid
 		Email::Sender
-	} ); # 1 + 1 + 1 + 2 (58)
+	} ); # 2 (67)
 
 	# Localizing changes to environment for building purposes.
 	{
 		local $ENV{TZ} = 'PST8PDT';
 		$self->install_module( name => 'Time::ParseDate' );
-	} # 1 (59)
+	} # 1 (68)
 	
 	# Last of Web Development
 	# (HTML::FormFu requires the Email:: stuff.)
 	$self->install_modules( qw{
 		HTML::FormFu
 		Catalyst::Controller::HTML::FormFu
-	} ); # 2 (61)
+	} ); # 2 (70)
 
 	# Useful Command-line Tools prerequisites
 	$self->install_modules( qw{
@@ -724,27 +729,27 @@ sub install_satori_modules_4 {
 		Mixin::Linewise
 		App::Nopaste
 		Module::Refresh
-	} ); # 15 (76)
+	} ); # 15 (85)
 
 	# Useful Command-line Tools: Module::CoreList is 
 	# already installed by Strawberry, and App::Ack 
 	# is above.
 	$self->install_modules( qw{
 		Devel::REPL
-	} ); # 1 (77)
+	} ); # 1 (86)
 
 	# Script Hackery prerequisites
 	$self->install_modules( qw{
 		File::ReadBackwards
 		MLDBM
-	} ); # 2 (79)
+	} ); # 2 (88)
 
 	# Script Hackery
 	$self->install_modules( qw{
 		Smart::Comments
 		Term::ProgressBar::Simple
 		IO::All
-	} ); # 3 (82)
+	} ); # 3 (91)
 
 	# Socket6 would be nice to include, but it 
 	# doesn't build due to referring to ws2_32.lib 
@@ -755,14 +760,14 @@ sub install_satori_modules_4 {
 		Win32::Console
 		POE::Test::Loops
 		POE
-	} ); # 3 (85)
+	} ); # 3 (94)
 
 	# Final tasks
 	$self->install_modules( qw{
 		Task::Moose
 		Task::Catalyst
 		Task::Kensho
-	} ); # 3 (88)
+	} ); # 3 (97)
 	
 	return 1;
 }
