@@ -1,4 +1,4 @@
-use inc::Module::Install 0.91;
+use inc::Module::Install 0.92;
 
 die "OS unsupported\n" unless win32;
 
@@ -24,5 +24,6 @@ resources     'IRC'                    => 'irc://irc.perl.org/#win32';
 resources     'WebIRC'                 => 'http://widget.mibbit.com/?server=irc.perl.org&channel=%23win32';
 # Requires Module::Install::AutoLicense on the author end.
 auto_license;
+install_share;
 
 WriteAll;

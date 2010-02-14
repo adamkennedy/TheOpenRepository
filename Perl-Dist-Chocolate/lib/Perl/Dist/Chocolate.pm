@@ -880,7 +880,8 @@ sub install_other_modules_1 {
 sub install_chocolate_extras {
 	my $self = shift;
 
-	my $dist_dir = File::ShareDir::dist_dir('Perl-Dist-Strawberry');
+	my $sb_dist_dir = File::ShareDir::dist_dir('Perl-Dist-Strawberry');
+	my $dist_dir = File::ShareDir::dist_dir('Perl-Dist-Chocolate');
 	
 	# Links to the Strawberry Perl website.
 	# Don't include this for non-Strawberry sub-classes
@@ -889,18 +890,18 @@ sub install_chocolate_extras {
 		$self->install_website(
 			name       => 'Strawberry Perl Website',
 			url        => $self->strawberry_url(),
-			icon_file  => catfile($dist_dir, 'strawberry.ico')
+			icon_file  => catfile($sb_dist_dir, 'strawberry.ico')
 		);
 		$self->install_website(
 			name       => 'Strawberry Perl Professional Release Notes',
 			url        => $self->chocolate_release_notes_url(),
-			icon_file  => catfile($dist_dir, 'strawberry.ico')
+			icon_file  => catfile($dist_dir, 'chocolate.ico')
 		);
 		# Link to IRC.
 		$self->install_website(
 			name       => 'Live Support',
 			url        => 'http://widget.mibbit.com/?server=irc.perl.org&channel=%23win32',
-			icon_file  => catfile($dist_dir, 'onion.ico')
+			icon_file  => catfile($sb_dist_dir, 'onion.ico')
 		);
 		$self->patch_file( 'README.txt' => $self->image_dir(), { dist => $self } );
 	}
@@ -920,7 +921,7 @@ sub install_chocolate_extras {
 
 	my $padre_icon_id =
 	  $self->_icons()
-	  ->add_icon( catfile( $self->dist_dir(), 'padre.ico' ), 'padre.exe' );
+	  ->add_icon( catfile( $sb_dist_dir, 'padre.ico' ), 'padre.exe' );
 
 	# Add the start menu icon.
 	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
@@ -948,9 +949,9 @@ sub install_chocolate_extras {
 		bin  => 'perlthon',
 	);
 
-	my $strawberry_icon_id =
+	my $chocolate_icon_id =
 	  $self->_icons()
-	  ->add_icon( catfile( $self->dist_dir(), 'strawberry.ico' ), 'perl.exe' );
+	  ->add_icon( catfile( $dist_dir, 'chocolate.ico' ), 'perl.exe' );
 
 	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
 		name => 'Devel-REPL Shell (may need work)',
@@ -959,44 +960,44 @@ sub install_chocolate_extras {
 		arguments   => '-S re.pl',
 		id          => 'Devel_REPL',
 		working_dir => $dir_id,
-		icon_id     => $strawberry_icon_id,
+		icon_id     => $chocolate_icon_id,
 	);
 
 	
 	$self->install_website(
 		name       => 'Catalyst Web Framework',
 		url        => 'http://www.catalystframework.org/',
-		icon_file  => catfile($dist_dir, 'strawberry.ico')
+		icon_file  => catfile($dist_dir, 'chocolate.ico')
 	);
 	
 	$self->install_website(
 		name       => 'Moose Web Framework',
 		url        => 'http://moose.perl.org/',
-		icon_file  => catfile($dist_dir, 'strawberry.ico')
+		icon_file  => catfile($dist_dir, 'chocolate.ico')
 	);
 	
 	$self->install_website(
 		name       => 'BioPerl wiki',
 		url        => 'http://www.bioperl.org/wiki/Main_Page',
-		icon_file  => catfile($dist_dir, 'strawberry.ico')
+		icon_file  => catfile($dist_dir, 'chocolate.ico')
 	);
 
 	$self->install_website(
 		name       => 'Information about learning Perl',
 		url        => 'http://learn.perl.org/',
-		icon_file  => catfile($dist_dir, 'strawberry.ico')
+		icon_file  => catfile($dist_dir, 'chocolate.ico')
 	);
 
 	$self->install_website(
 		name       => 'Information about learning Perl',
 		url        => 'http://learn.perl.org/',
-		icon_file  => catfile($dist_dir, 'strawberry.ico')
+		icon_file  => catfile($dist_dir, 'chocolate.ico')
 	);
 
 	$self->install_website(
 		name       => 'Beginning Perl book',
 		url        => 'http://learn.perl.org/books/beginning-perl/',
-		icon_file  => catfile($dist_dir, 'strawberry.ico')
+		icon_file  => catfile($dist_dir, 'chocolate.ico')
 	);
 	
 	return 1;
