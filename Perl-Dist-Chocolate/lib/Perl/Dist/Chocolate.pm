@@ -64,7 +64,7 @@ sub new {
 			'install_satori_modules_2',
 			'install_satori_modules_3',
 			'install_satori_modules_4',
-			'install_other_modules_4',
+			'install_other_modules_1',
 			'install_win32_extras',
 			'install_strawberry_extras',
 			'install_chocolate_extras',
@@ -131,9 +131,11 @@ sub patch_include_path {
 	];
 }
 
-sub install_padre_prereq_modules_1 {
+sub install_padre_prereq_modules_1 { # 27 modules
 	my $self = shift;
 
+	$self->{force} = 1;
+	
 	# Manually install our non-Wx dependencies first to isolate
 	# them from the Wx problems
 	$self->install_modules( qw{
@@ -154,6 +156,16 @@ sub install_padre_prereq_modules_1 {
 		  Test::ClassAPI
 		  Clone
 		  Hook::LexWrap
+		  Test::SubCalls
+		  List::MoreUtils
+		  PPI
+		  Module::Locate
+		  Perl::Tags
+		  Module::Refresh
+		  Devel::Symdump
+		  Pod::Coverage
+		  Test::Pod::Coverage
+		  Test::Pod
 	} );
 
 	return 1;
@@ -161,22 +173,12 @@ sub install_padre_prereq_modules_1 {
 
 
 
-sub install_padre_prereq_modules_2 {
+sub install_padre_prereq_modules_2 { # 28 modules
 	my $self = shift;
 
-	# Manually install our non-Wx dependencies first to isolate
-	# them from the Wx problems
 	# NOTE: ORLite::Migrate goes after ORLite once they don't clone it privately.
 	# NOTE: Test::Exception goes before Test::Most when it's not in Strawberry.
 	$self->install_modules( qw{
-		  Test::SubCalls
-		  List::MoreUtils
-		  PPI
-		  Module::Refresh
-		  Devel::Symdump
-		  Pod::Coverage
-		  Test::Pod::Coverage
-		  Test::Pod
 		  Module::Starter
 		  ORLite
 		  Test::Differences
@@ -198,20 +200,12 @@ sub install_padre_prereq_modules_2 {
 		  Test::Base
 		  ExtUtils::XSpp
 		  Locale::Msgfmt
-	} );
-
-	# These were new between 0.50 and 0.55
-	$self->install_modules( qw{
 		  Module::ScanDeps
 		  Module::Install
 		  Format::Human::Bytes
 		  Template::Tiny
 		  Win32::Shortcut
 		  Debug::Client
-	} );
-	
-	# These were new between 0.55 and svn trunk, AFAICT.
-	$self->install_modules( qw{
 		  Devel::Refactor
 	} );
 	
@@ -220,7 +214,7 @@ sub install_padre_prereq_modules_2 {
 
 
 
-sub install_padre_modules {
+sub install_padre_modules { # 4 modules
 	my $self = shift;
 
 	# The rest of the modules are order-specific,
@@ -228,7 +222,7 @@ sub install_padre_modules {
 
 	# Install the Alien::wxWidgets module from a precompiled .par
 	my $par_url = 
-		'http://www.strawberryperl.com/download/padre/Alien-wxWidgets-0.50-MSWin32-x86-multi-thread-5.10.1.par';
+		'http://strawberryperl.com/download/padre/Alien-wxWidgets-0.50-MSWin32-x86-multi-thread-5.10.1.par';
 	my $filelist = $self->install_par(
 		name => 'Alien_wxWidgets',
 		url  => $par_url,
@@ -266,7 +260,7 @@ sub install_satori_modules_1 {
 		AppConfig
 		Template
 		Perl::Tidy
-	} );
+	} ); # 7 (7)
 	
 	# Testing: Test::Simple is already installed in Strawberry.
 	# Test::Exception and Test::Most are above.
@@ -274,20 +268,20 @@ sub install_satori_modules_1 {
 	$self->install_modules( qw{
 		Test::Memory::Cycle
 		Devel::Cover
-	} );
+	} ); # 2 (9)
 
 	# Exception Handling, part 1.
 	# TryCatch needs delayed until after Moose.
 	$self->install_modules( qw{
 		Try::Tiny
-	} );
+	} ); # 1 (10)
 		
 	# Config Modules and prerequisites
 	$self->install_modules( qw{
 		JSON::Syck
 		Config::General
 		Config::Any
-	} );
+	} ); # 3 (13)
 
 	# Object Oriented Programming
 	
@@ -304,7 +298,7 @@ sub install_satori_modules_1 {
 		Sub::Name
 		Class::MOP
 		Moose
-	} );
+	} ); # 11 (24)
 	
 	# Other Object Oriented Programming prereqs.
 	$self->install_modules( qw{
@@ -321,44 +315,33 @@ sub install_satori_modules_1 {
 		Carp::Clan
 		Set::Object
 		Hash::Util::FieldHash::Compat
+		Log::Log4perl
+		Symbol::Util
+		constant::boolean
+		Test::Unit::Lite
+		Exception::Base
+		Test::Assert
+		IO::TieCombine
+		App::Cmd
+	} ); # 21 (45)
+	
+	# First part of Object Oriented Programming 
+	# (MooseX::Types and MooseX::Types::Path::Class 
+	#  needs to be before Test::TempDir.)
+	$self->install_modules( qw{
 		MooseX::Types
-	} );
+		MooseX::Types::Path::Class
+	} ); # 2 (47)
 	
-	# MooseX::GlobRef needs Symbol::Util, constant::boolean, Test::Assert, Test::Unit::Lite
-	# MooseX::Declare needs:
-	#   B::Hooks::Op::Check, Devel::Declare
-	#   MooseX::LazyRequire
-	#   Context::Preserve
-	#   Text::Balanced
-	#   MooseX::Meta::TypeConstraint::ForceCoercion
-	#   aliased
-	#   Devel::PartialDump, MooseX::Types::Structured
-	#   Parse::Method::Signatures
-	#   MooseX::Method::Signatures
-	# MooseX::Method::Signatures
-	
-	# MooseX::Types::Structured needs Devel::PartialDump
-	
-	# MooseX::App::Cmd needs IO::TieCombine, Module::Pluggable::Object, App::Cmd
-	# MooseX::LogDispatch
-	# MooseX::LazyLogDispatch
-	# MooseX::Log::Log4perl
-	# MooseX::POE will wait until updated for 0.90.
-	# MooseX::Workers will wait until updated for 0.90.
-	# MooseX::Iterator
-	# Pod::Coverage::Moose
+	# More Object Oriented Programming prereqs.
 
-	# Task::Moose
-
-	
-	
 	# File::NFSLock fails tests. 
 	# Considering the name, should this really
 	# be required by Temp::TempDir on Win32?
 	$self->install_module(
 		name => 'File::NFSLock',
 		force => 1,
-	);
+	); # 1 (48)
 	$self->install_modules( qw{
 		Test::TempDir
 		Best
@@ -366,15 +349,26 @@ sub install_satori_modules_1 {
 		Test::JSON
 		YAML::XS
 		Test::YAML::Valid
+		namespace::autoclean
 		String::RewritePrefix
-		Test::Moose
 		URI::FromHash
-	} );
+		Devel::PartialDump
+		Tie::ToObject
+		Data::Visitor
+	} ); # 12 (60)
 	
-	# Object Oriented Programming (MooseX::Types needs to be before Test::TempDir.)
+	# Main section of Object Oriented Programming 
+	# MooseX::LogDispatch needs a prerequisite (Log::Dispatch::Configurator) forced.
+	# MooseX::LazyLogDispatch needs a prerequisite (Log::Dispatch::Configurator) forced.
+	# MooseX::POE will wait until updated for 0.90.
+	# MooseX::Workers will wait until updated for 0.90.
+	# MooseX::Role::TraitConstructor is ommitted because of RT#53070.
+	# MooseX::Role::Cmd relies on IPC::Run, which is problematic (t\parallel.t stalls).
+	# MooseX::Daemonize was stalled the first time I tried it -
+	#   maybe timing/OS-dependent?
 	$self->install_modules( qw{
-		MooseX::Types::Path::Class
 		MooseX::ConfigFromFile
+		MooseX::GlobRef
 		MooseX::NonMoose
 		Moose::Autobox
 		MooseX::Aliases
@@ -382,21 +376,22 @@ sub install_satori_modules_1 {
 		MooseX::Getopt
 		MooseX::SimpleConfig
 		MooseX::StrictConstructor
-		MooseX::Role::TraitConstructor
-		namespace::autoclean
 		MooseX::Traits
 		MooseX::Role::Parameterized
 		MooseX::Singleton
 		MooseX::Types::Set::Object
+		MooseX::Types::Structured
 		MooseX::Types::URI
-		MooseX::Role::Cmd
-		MooseX::Daemonize
 		MooseX::Param
 		MooseX::InsideOut
 		MooseX::Clone
 		MooseX::ClassAttribute
 		MooseX::Iterator
-	} );
+		MooseX::Log::Log4perl
+		MooseX::App::Cmd
+		MooseX::Meta::TypeConstraint::ForceCoercion
+		Pod::Coverage::Moose
+	} ); # 24 (84)
 
 	return 1;
 }
@@ -404,23 +399,58 @@ sub install_satori_modules_1 {
 sub install_satori_modules_2 {
 	my $self = shift;
 
+	# TryCatch prerequisites
+	$self->install_modules( qw{
+		aliased
+		Parse::Method::Signatures
+		Scope::Upper
+		ExtUtils::Depends
+		B::Hooks::OP::Check
+		B::Hooks::OP::PPAddr
+		Devel::Declare
+	} ); # 7 (7)
+
+	# Last part of OOP.
+	$self->install_modules( qw{
+		Context::Preserve
+		MooseX::LazyRequire
+		MooseX::Method::Signatures
+		MooseX::Declare
+	} ); # 4 (11)
+
 	# Exception Handling, part 2.
 	$self->install_modules( qw{
 		TryCatch
-	} );
+	} ); # 1 (12)
 
 	# XML development prerequisites
 	$self->install_modules( qw{
 		XML::Filter::BufferText
 		Text::Iconv
-	} );
+	} ); # 2 (14)
 
 	# XML Development: XML::LibXML and XML::SAX are already installed.
 	$self->install_modules( qw{
 		XML::Generator::PerlData
 		XML::SAX::Writer
-	} );
+	} ); # 2 (16)
 
+	# Date Modules prerequisites
+	$self->install_modules( qw{
+		Class::Singleton
+		DateTime::TimeZone
+		DateTime::Locale
+	} ); # 3 (19)
+
+	# Date Modules (plus MooseX::Types::DateTime)
+	$self->install_modules( qw{
+		DateTime
+		MooseX::Types::DateTime
+		Date::Tiny
+		Time::Tiny
+		DateTime::Tiny
+	} ); # 5 (24)
+	
 	# Module Development prerequisites
 	$self->install_modules( qw{
 		Regexp::Common
@@ -428,8 +458,6 @@ sub install_satori_modules_2 {
 		Data::Section
 		Text::Template
 		Software::License
-		Module::ScanDeps
-		File::Slurp
 		B::Keywords
 		String::Format
 		Email::Address
@@ -437,19 +465,38 @@ sub install_satori_modules_2 {
 		Readonly
 		Readonly::XS
 		Regexp::Parser
-	} );
+		Mixin::Linewise::Readers
+		Tie::IxHash
+		Config::MVP
+		Config::INI
+		Config::INI::MVP::Reader
+		Pod::Eventual
+		String::Flogger
+		Text::Glob
+		File::Find::Rule
+		Mixin::ExtraFields
+		Mixin::ExtraFields::Param
+		CPAN::Uploader
+		Hash::Merge::Simple
+		String::Formatter
+		File::ShareDir::Install
+		File::chdir
+	} );  # 29 (53)
 	
 	# Module Development
 	$self->install_modules( qw{
+		Perl::Version
 		Dist::Zilla
 		Module::Install
-		Devel::NYTProf
 		Perl::Critic
 		Perl::Critic::More
 		Carp::Always
 		Modern::Perl
-		Perl::Version
-	} );
+	} ); # 7 (60)
+	$self->install_module(
+		name => 'Devel::NYTProf',
+		force => 1,
+	); # 1 (61)
 
 	# Database Development: DBI and DBD::SQLite are already installed.
 	# Because of the large numbers of prerequisites, I'm
@@ -457,10 +504,8 @@ sub install_satori_modules_2 {
 	
 	# DBIx::Class and prerequisites.
 	$self->install_modules( qw{
-		Sub::Identify
 		Class::Inspector
 		Class::Accessor::Grouped
-		Clone
 		SQL::Abstract
 		SQL::Abstract::Limit
 		Class::Accessor
@@ -468,8 +513,9 @@ sub install_satori_modules_2 {
 		Data::Page
 		Class::C3::Componentised
 		Module::Find
+		Data::Dumper::Concise
 		DBIx::Class
-	} );
+	} ); # 11 (72)
 
 	return 1;
 }
@@ -485,7 +531,7 @@ sub install_satori_modules_3 {
 		XML::Writer
 		File::ShareDir
 		SQL::Translator
-	} );
+	} ); # 6 (6)
 
 	# DBIx::Class::Schema::Loader and prereqs
 	# Note: DBD::Oracle and DBD::DB2 you're 
@@ -497,15 +543,24 @@ sub install_satori_modules_3 {
 		UNIVERSAL::require
 		Data::Dump
 		DBIx::Class::Schema::Loader
-	} );
+	} ); # 6 (12)
 
 	# Excel/CSV
 	$self->install_modules( qw{
 		Text::CSV_XS
+		OLE::Storage_Lite
+		Spreadsheet::ParseExcel
+		Spreadsheet::WriteExcel
 		Spreadsheet::ParseExcel::Simple
 		Spreadsheet::WriteExcel::Simple
-	} );
-	
+	} ); # 3 (15)
+		
+	# Adding DBD's to the list.
+	$self->install_modules( qw{
+		SQL::Statement
+		DBD::CSV
+		DBD::Excel
+	} ); # 3 (18)
 	
 	# Web Development
 
@@ -521,9 +576,11 @@ sub install_satori_modules_3 {
 		CGI::Simple::Cookie
 		HTTP::Body
 		MooseX::Emulate::Class::Accessor::Fast
+		MooseX::Role::WithOverloading
+		MooseX::Types::Common
 		Catalyst::Runtime
-	} );
-		
+	} ); # 13 (31)
+
 	# Catalyst::Devel and prerequisites
 	$self->install_modules( qw{
 		MIME::Types
@@ -535,17 +592,13 @@ sub install_satori_modules_3 {
 		UNIVERSAL::isa
 		UNIVERSAL::can
 		Test::MockObject
-		Tie::ToObject
-		Data::Visitor
 		Catalyst::Action::RenderView
-		File::Copy::Recursive
-		AppConfig
 		Mouse
 		Any::Moose
 		Catalyst::Plugin::ConfigLoader
 		Proc::Background
 		Catalyst::Devel
-	} );
+	} ); # 15 (46)
 
 	return 1;
 }
@@ -556,7 +609,6 @@ sub install_satori_modules_4 {
 	# Prerequisites for the rest of web development
 	$self->install_modules( qw{
 		Template::Timer
-		Tie::IxHash
 		MooseX::Traits::Pluggable
 		CatalystX::Component::Traits
 		Error
@@ -564,62 +616,94 @@ sub install_satori_modules_4 {
 		DBIx::Class::Cursor::Cached
 		Hash::Merge
 		Object::Signature
-	} );
+		URI::Find
+		HTML::Tagset
+	} ); # 10 (10)
 
-	# The rest of Web Development
+	$self->{force} = 0;
+
 	$self->install_modules( qw{
+		HTML::TokeParser::Simple
+		Tree::Simple::VisitorFactory
+		Locale::Maketext::Lexicon
+		Regexp::Assemble
+		Log::Trace
+		Test::Assertions
+		Hash::Flatten
+		Regexp::Copy
+		HTML::Tiny
+		Captcha::reCAPTCHA
+		Bit::Vector
+		Date::Calc
+		HTML::Scrubber
+		Class::Factory::Util
+		DateTime::Format::Strptime
+		DateTime::Format::Builder
+		Sub::Override
+		Time::Piece
+		Test::MockTime
+		boolean
+		DateTime::Format::Natural
+	} ); # 21 (31...)
+
+	# Most of the rest of Web Development
+	$self->install_modules( qw{
+		Catalyst::Engine::Apache
+		Catalyst::Log::Log4perl
 		Catalyst::View::TT
+		Catalyst::View::JSON
 		Catalyst::Model::DBIC::Schema
 		Catalyst::Plugin::Session
 		Catalyst::Plugin::Authentication
 		Catalyst::Plugin::StackTrace
 		Catalyst::Plugin::FillInForm
-		Catalyst::Controller::FormBuilder
+		Catalyst::Plugin::I18N
 		Catalyst::Plugin::Session::State::Cookie
+		Catalyst::Plugin::Session::Store::File
 		Catalyst::Plugin::Session::Store::DBIC
+		Catalyst::Plugin::Session::State::URI
 		Catalyst::Plugin::Static::Simple
-		Catalyst::View::JSON
+		Catalyst::Plugin::Authorization::Roles
+		Catalyst::Plugin::Authorization::ACL
+		Catalyst::Controller::FormBuilder
+		Catalyst::Component::InstancePerContext
+		Catalyst::Authentication::Store::DBIx::Class
+		FCGI::ProcManager
 		CGI::FormBuilder::Source::Perl
 		XML::RSS
 		XML::Atom
 		MIME::Types
-	} );
-
+	} ); # 23 (54)
+		
 	# Web Crawling and prereqs: LWP::Simple and everything 
 	# in Bundle::LWP are already installed.
 	# WWW::Mechanize is forced because the back test fails on the 
 	# '404 check' test if the firewall is too severe.
 	$self->install_module( name => 'HTTP::Server::Simple', );
 	$self->install_module( name => 'WWW::Mechanize', force => 1, );
-	
-	# Date Modules prerequisites
-	$self->install_modules( qw{
-		Class::Singleton
-		DateTime::TimeZone
-		DateTime::Locale
-	} );
 
-	# Date Modules
+	# In Web Devel, but needed a prereq first.
+	$self->install_module( name => 'Test::WWW::Mechanize::Catalyst', force => 1, );
+	
+	# E-mail Modules
 	$self->install_modules( qw{
 		Email::Valid
 		Email::Sender
-	} );
+	} ); # 1 + 1 + 1 + 2 (59)
 
-	# Date Modules
-	$self->install_modules( qw{
-		DateTime
-		MooseX::Types::DateTime
-		Date::Tiny
-		Time::Tiny
-		DateTime::Tiny
-	} );
-	
 	# Localizing changes to environment for building purposes.
 	{
 		local $ENV{TZ} = 'PST8PDT';
 		$self->install_module( name => 'Time::ParseDate' );
-	}
+	} # 1 (60)
 	
+	# Last of Web Development
+	# (HTML::FormFu requires the Email:: stuff.)
+	$self->install_modules( qw{
+		HTML::FormFu
+		Catalyst::Controller::HTML::FormFu
+	} ); # 2 (62)
+
 	# Useful Command-line Tools prerequisites
 	$self->install_modules( qw{
 		File::Next
@@ -633,33 +717,31 @@ sub install_satori_modules_4 {
 		WWW::Pastebin::PastebinCom::Create
 		WWW::Pastebin::RafbNet::Create
 		Win32::Clipboard
-		Spiffy
 		Clipboard
 		Mixin::Linewise
-		Config::INI::Reader
 		App::Nopaste
 		Module::Refresh
-	} );
+	} ); # 15 (77)
 
 	# Useful Command-line Tools: Module::CoreList is 
 	# already installed by Strawberry, and App::Ack 
 	# is above.
 	$self->install_modules( qw{
 		Devel::REPL
-	} );
+	} ); # 1 (78)
 
 	# Script Hackery prerequisites
 	$self->install_modules( qw{
 		File::ReadBackwards
 		MLDBM
-	} );
+	} ); # 2 (80)
 
 	# Script Hackery
 	$self->install_modules( qw{
 		Smart::Comments
 		Term::ProgressBar::Simple
 		IO::All
-	} );
+	} ); # 3 (83)
 
 	# Socket6 would be nice to include, but it 
 	# doesn't build due to referring to ws2_32.lib 
@@ -670,12 +752,14 @@ sub install_satori_modules_4 {
 		Win32::Console
 		POE::Test::Loops
 		POE
-	} );
-	
+	} ); # 3 (86)
+
 	# Final tasks
 	$self->install_modules( qw{
 		Task::Moose
-	} );
+		Task::Catalyst
+		Task::Kensho
+	} ); # 3 (89)
 	
 	return 1;
 }
@@ -690,7 +774,7 @@ sub install_other_modules_1 {
 	$self->install_module(
 		name  => 'Win32::GUI',
 		force => 1,   # Fails a pod test.
-	);
+	); # 2 (2)
 	
 	# Tkx needs Tcl, which needs a 'tclsh' binary.
 	# Gtk2 requires binaries
@@ -699,8 +783,14 @@ sub install_other_modules_1 {
 	$self->install_modules( qw{
 		CPANPLUS::Shell::Wx
 		
-	} );
+	} ); # 1 (3)
 
+	# Catalyst manual.
+	$self->install_modules( qw{
+		File::Monitor
+		Catalyst::Manual		
+	} ); # 2 (5)
+	
 	# BioPerl and as many of its optionals as possible.
 	# GraphViz is a known problem - Beta 2?	
 	$self->install_modules( qw{
@@ -711,10 +801,7 @@ sub install_other_modules_1 {
 		SVG
 		Graph
 		SVG::Graph
-		OLE::Storage_Lite
-		Spreadsheet::ParseExcel
 		Parse::RecDescent
-		Spreadsheet::WriteExcel
 		Algorithm::MunkRes
 		XML::Writer
 		XML::DOM
@@ -725,40 +812,45 @@ sub install_other_modules_1 {
 		HTML::TreeBuilder
 		XML::Twig
 		XML::Parser::PerlSAX
-		XML::Filter::BufferText
-		XML::SAX::Writer
 		PostScript::TextBlock
 		Array::Compare
 		Convert::Binary::C
 		Set::Scalar
 		Bio::Perl
-	} );
+	} ); # 23 (28)
 	# This makes a circular dependency if I put it before Bio::Perl.
 	$self->install_modules( qw{
 		Bio::ASN1::EntrezGene
-	} );
+	} ); # 1 (29)
 
 	# Padre Plugins.
 	$self->install_modules( qw{
 		Padre::Plugin::PerlTidy
 		Padre::Plugin::PerlCritic
 		Padre::Plugin::Catalyst
-	} );
+	} ); # 3 (32)
 
-	# Plack & PSGI (may be removed later)
+	# PerlDoc::Server and prereqs.
 	$self->install_modules( qw{
-		Pod::Usage
-		Devel::StackTrace::AsHTML
-		Filesys::Notify::Simple
-		Test::TCP
-		Test::Requires
-		PSGI
-		CGI::PSGI
-		CGI::Emulate::PSGI
-		Plack
-		HTTP::Server::Simple::PSGI
-		HTTP::Parser::XS
-	} );
+		OpenThought
+		Perldoc::Server
+	} ); # 2 (34)
+	
+	
+	# Plack & PSGI (may be removed later)
+#	$self->install_modules( qw{
+#		Pod::Usage
+#		Devel::StackTrace::AsHTML
+#		Filesys::Notify::Simple
+#		Test::TCP
+#		Test::Requires
+#		PSGI
+#		CGI::PSGI
+#		CGI::Emulate::PSGI
+#		Plack
+#		HTTP::Server::Simple::PSGI
+#		HTTP::Parser::XS
+#	} );
 
 	# Plack::Server::ReverseHTTP
 	# Plack::Request
