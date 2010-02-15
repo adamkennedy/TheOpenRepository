@@ -93,17 +93,17 @@ sub match_all {
 	my @search = ();
 	my ($key,$value);
 	while ( ($key,$value) = each %{*{"::"}} ) {
-		local (*ENTRY) = $value;
 		next unless defined $value;
-		next unless $key =~ s/^([^\W\d]\w*)::\z/$1/;
+		local (*ENTRY) = $value;
 		next unless defined *ENTRY{HASH};
+		next unless $key =~ /^([^\W\d]\w*)::\z/;
 
 		# Suppress aggressively ignored things
-		if ( $IGNORE{$key} and $PRUNE{$key} ) {
+		if ( $IGNORE{$1} and $PRUNE{$1} ) {
 			next;
 		}
 
-		push @search, $key;
+		push @search, $1;
 	}
 
 	# Search using a simple package list-recursion
@@ -111,7 +111,7 @@ sub match_all {
 		no strict 'refs';
 		my ($key,$value);
 		while ( ($key,$value) = each %{*{"$package\::"}} ) {
-			next unless $key =~ /^\w+(?:::)?\z/;
+			next if $key =~ /[^\w:]/;
 			next unless defined $value;
 			my $name = "$package\::$key";
 			local(*ENTRY) = $value;

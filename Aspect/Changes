@@ -1,5 +1,8 @@
 Revision history for Perl extension Aspect
 
+0.45 to be released
+	- More performance tuning of the namespace scanner in match_all.
+
 0.44 Mon 15 Feb 2010 - Adam Kennedy
 	- Inlined and reimplemented a stripped down and faster replacement
 	  for the functionality provided by Devel::Symdump to make match_all
