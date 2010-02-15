@@ -568,7 +568,6 @@ sub install_satori_modules_3 {
 		MooseX::MethodAttributes::Inheritable
 		HTTP::Request::AsCGI
 		Tree::Simple
-		String::RewritePrefix
 		Tree::Simple::Visitor::FindByPath
 		CGI::Simple::Cookie
 		HTTP::Body
@@ -576,7 +575,7 @@ sub install_satori_modules_3 {
 		MooseX::Role::WithOverloading
 		MooseX::Types::Common
 		Catalyst::Runtime
-	} ); # 13 (31)
+	} ); # 12 (30)
 
 	# Catalyst::Devel and prerequisites
 	$self->install_modules( qw{
@@ -595,7 +594,7 @@ sub install_satori_modules_3 {
 		Catalyst::Plugin::ConfigLoader
 		Proc::Background
 		Catalyst::Devel
-	} ); # 15 (46)
+	} ); # 15 (45)
 
 	return 1;
 }
@@ -643,7 +642,10 @@ sub install_satori_modules_4 {
 		HTML::Template
 		CGI::FastTemplate
 		CGI::FormBuilder
-	} ); # 25 (35...)
+		Carp::Assert
+		Carp::Assert::More
+		Test::LongString
+	} ); # 28 (38...)
 
 	# Most of the rest of Web Development
 	$self->install_modules( qw{
@@ -657,6 +659,7 @@ sub install_satori_modules_4 {
 		Catalyst::Plugin::StackTrace
 		Catalyst::Plugin::FillInForm
 		Catalyst::Plugin::I18N
+		Catalyst::Plugin::Compress::Zlib
 		Catalyst::Plugin::Session::State::Cookie
 		Catalyst::Plugin::Session::Store::File
 		Catalyst::Plugin::Session::Store::Delegate
@@ -664,7 +667,7 @@ sub install_satori_modules_4 {
 		Catalyst::Plugin::Session::State::URI
 		Catalyst::Plugin::Static::Simple
 		Catalyst::Plugin::Authorization::Roles
-	} ); # 17 (52)
+	} ); # 17 (55)
 
 	# Web Crawling and prereqs: LWP::Simple and everything 
 	# in Bundle::LWP are already installed.
@@ -676,7 +679,7 @@ sub install_satori_modules_4 {
 
 	# In Web Devel, but needed a prereq first.
 	$self->install_module( name => 'Test::WWW::Mechanize::Catalyst', force => 1, );
-	# 4 (56)
+	# 4 (59)
 	
 	$self->{force} = 0;
 
@@ -691,26 +694,26 @@ sub install_satori_modules_4 {
 		XML::RSS
 		XML::Atom
 		MIME::Types
-	} ); # 9 (65)
+	} ); # 9 (68)
 
 	# E-mail Modules
 	$self->install_modules( qw{
 		Email::Valid
 		Email::Sender
-	} ); # 2 (67)
+	} ); # 2 (70)
 
 	# Localizing changes to environment for building purposes.
 	{
 		local $ENV{TZ} = 'PST8PDT';
 		$self->install_module( name => 'Time::ParseDate' );
-	} # 1 (68)
+	} # 1 (71)
 	
 	# Last of Web Development
 	# (HTML::FormFu requires the Email:: stuff.)
 	$self->install_modules( qw{
 		HTML::FormFu
 		Catalyst::Controller::HTML::FormFu
-	} ); # 2 (70)
+	} ); # 2 (73)
 
 	# Useful Command-line Tools prerequisites
 	$self->install_modules( qw{
@@ -729,27 +732,27 @@ sub install_satori_modules_4 {
 		Mixin::Linewise
 		App::Nopaste
 		Module::Refresh
-	} ); # 15 (85)
+	} ); # 15 (88)
 
 	# Useful Command-line Tools: Module::CoreList is 
 	# already installed by Strawberry, and App::Ack 
 	# is above.
 	$self->install_modules( qw{
 		Devel::REPL
-	} ); # 1 (86)
+	} ); # 1 (89)
 
 	# Script Hackery prerequisites
 	$self->install_modules( qw{
 		File::ReadBackwards
 		MLDBM
-	} ); # 2 (88)
+	} ); # 2 (91)
 
 	# Script Hackery
 	$self->install_modules( qw{
 		Smart::Comments
 		Term::ProgressBar::Simple
 		IO::All
-	} ); # 3 (91)
+	} ); # 3 (94)
 
 	# Socket6 would be nice to include, but it 
 	# doesn't build due to referring to ws2_32.lib 
@@ -760,14 +763,14 @@ sub install_satori_modules_4 {
 		Win32::Console
 		POE::Test::Loops
 		POE
-	} ); # 3 (94)
+	} ); # 3 (97)
 
 	# Final tasks
 	$self->install_modules( qw{
 		Task::Moose
 		Task::Catalyst
 		Task::Kensho
-	} ); # 3 (97)
+	} ); # 3 (100)
 	
 	return 1;
 }
