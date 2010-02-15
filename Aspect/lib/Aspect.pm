@@ -10,7 +10,6 @@ use warnings;
 use Carp::Heavy                    ();
 use Carp                           ();
 use Params::Util              1.00 ();
-use Devel::Symdump            2.04 ();
 use Sub::Install              0.92 ();
 use Sub::Uplevel            0.2002 ();
 use Aspect::Pointcut               ();

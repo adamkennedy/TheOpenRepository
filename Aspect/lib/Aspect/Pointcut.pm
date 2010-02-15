@@ -2,7 +2,6 @@ package Aspect::Pointcut;
 
 use strict;
 use warnings;
-use Devel::Symdump        ();
 use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();
@@ -41,16 +40,25 @@ sub new {
 ######################################################################
 # Weaving Methods
 
-my %UNTOUCHABLE;
+my %PRUNE;
+my %IGNORE;
 BEGIN {
-	%UNTOUCHABLE = map { $_ => 1 } qw(
+	# Classes we should not recurse down into
+	%PRUNE  = map { $_ => 1 } qw{
+		main
+		CORE
+		DB
+		Aspect
+	};
+
+	# Classes we should not hook functions in
+	%IGNORE = map { $_ => 1 } qw{
+		Aspect
 		Carp
 		Carp::Heavy
 		Config
 		CORE
-		CORE::GLOBAL
 		DB
-		DB::fake
 		DynaLoader
 		Exporter
 		Exporter::Heavy
@@ -67,7 +75,7 @@ BEGIN {
 		strict
 		warnings
 		warnings::register
-	);
+	};
 }
 
 sub match_runtime {
@@ -79,17 +87,58 @@ sub match_all {
 	my $self    = shift;
 	my @matches = ();
 
-	# Temporary hack to avoid a ton of warnings.
-	# Remove when Devel::Symdump stops throwing warnings.
-	local $^W = 0;
+	# Quick initial root package scan to remove the need
+	# for special-casing of main:: in the recursive scan.
+	no strict 'refs';
+	my @search = ();
+	my ($key,$value);
+	while ( ($key,$value) = each %{*{"::"}} ) {
+		local (*ENTRY) = $value;
+		next unless defined $value;
+		next unless $key =~ s/^([^\W\d]\w*)::\z/$1/;
+		next unless defined *ENTRY{HASH};
 
-	foreach my $package ( Devel::Symdump->rnew->packages, 'main' ) {
-		next if $UNTOUCHABLE{$package};
-		next if $package =~ /^Aspect\b/;
-		foreach my $name ( Devel::Symdump->new($package)->functions ) {
-			# Filter Aspect exportable functions
-			next if $Aspect::EXPORTED{$name};
-			push @matches, $name if $self->match_define($name);
+		# Suppress aggressively ignored things
+		if ( $IGNORE{$key} and $PRUNE{$key} ) {
+			next;
+		}
+
+		push @search, $key;
+	}
+
+	# Search using a simple package list-recursion
+	while ( my $package = shift @search ) {
+		no strict 'refs';
+		my ($key,$value);
+		while ( ($key,$value) = each %{*{"$package\::"}} ) {
+			next unless $key =~ /^\w+(?:::)?\z/;
+			next unless defined $value;
+			my $name = "$package\::$key";
+			local(*ENTRY) = $value;
+
+			# Is this a matched function?
+			if (
+				defined *ENTRY{CODE}
+				and
+				not $IGNORE{$package}
+				and
+				not $Aspect::EXPORTED{$name}
+				and
+				$self->match_define($name)
+			) {
+				push @matches, $name;
+			}
+
+			# Is this a package we should recurse into?
+			if (
+				not $PRUNE{$package}
+				and
+				$name =~ s/::\z//
+				and
+				defined *ENTRY{HASH}
+			) {
+				push @search, $name;
+			}
 		}
 	}
 
