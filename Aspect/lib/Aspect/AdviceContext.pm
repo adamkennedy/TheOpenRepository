@@ -5,7 +5,7 @@ use warnings;
 use Carp         ();
 use Sub::Uplevel ();
 
-our $VERSION = '0.43';
+our $VERSION = '0.44';
 
 
 

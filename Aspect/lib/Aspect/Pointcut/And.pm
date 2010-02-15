@@ -5,7 +5,7 @@ use warnings;
 use Aspect::Pointcut        ();
 use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.43';
+our $VERSION = '0.44';
 our @ISA     = qw{
 	Aspect::Pointcut::Logic
 	Aspect::Pointcut
