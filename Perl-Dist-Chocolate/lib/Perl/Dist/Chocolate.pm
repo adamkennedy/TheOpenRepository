@@ -60,18 +60,16 @@ sub new {
 			'install_padre_prereq_modules_1',
 			'install_padre_prereq_modules_2',
 			'install_padre_modules',
-			'install_satori_modules_1',
-			'install_satori_modules_2',
-			'install_satori_modules_3',
-			'install_satori_modules_4',
-			'install_satori_modules_5',
+#			'install_satori_modules_1',
+#			'install_satori_modules_2',
+#			'install_satori_modules_3',
+#			'install_satori_modules_4',
+#			'install_satori_modules_5',
 			'install_other_modules_1',
 			'install_win32_extras',
-			'install_strawberry_extras',
 			'install_chocolate_extras',
 			'remove_waste',
-			'add_forgotten_files',
-			'create_distribution_list',
+			'create_professional_distribution_list',
 			'regenerate_fragments',
 			'write',
 		],
@@ -135,6 +133,8 @@ sub patch_include_path {
 sub install_padre_prereq_modules_1 { # 27 modules
 	my $self = shift;
 
+	$self->{force} = 1;
+	
 	# Manually install our non-Wx dependencies first to isolate
 	# them from the Wx problems
 	$self->install_modules( qw{
@@ -225,7 +225,12 @@ sub install_padre_modules { # 4 modules
 	);
 
 	# Install the Wx module over the top of alien module
-	$self->install_module( name => 'Wx' );
+	$par_url = 
+		'http://strawberryperl.com/download/padre/Wx-0.9701-MSWin32-x86-multi-thread-5.10.1.par';
+	$filelist = $self->install_par(
+		name => 'Wx',
+		url  => $par_url,
+	);
 
 	# Install modules that add more Wx functionality
 	$self->install_module(
@@ -818,11 +823,14 @@ sub install_satori_modules_5 {
 sub install_other_modules_1 {
 	my $self = shift;
 
-	# Graphical libraries (move to .par files)
-	$self->install_modules( qw{
-		Tk
-		Prima
-	} );
+	# Install the Tk module from a precompiled .par
+	my $par_url = 
+		'http://strawberryperl.com/download/professional/Tk-804.028502-MSWin32-x86-multi-thread-5.10.1.par';
+	my $filelist = $self->install_par(
+		name => 'Tk',
+		url  => $par_url,
+	);
+	
 	$self->install_module(
 		name  => 'Win32::GUI',
 		force => 1,   # Fails a pod test.
@@ -841,6 +849,7 @@ sub install_other_modules_1 {
 		Tk::Pod		
 	} ); # 1 (5)
 
+if (0) {
 	# Catalyst manual.
 	$self->install_modules( qw{
 		File::Monitor
@@ -863,13 +872,13 @@ sub install_other_modules_1 {
 		name  => 'Statistics::Descriptive',
 		force => 1,   # Fails a test OCCASIONALLY.
 	); # 1 (15)
-		
+
 	$self->install_modules( qw{
 		SVG::Graph
 		Parse::RecDescent
 		Algorithm::Munkres
 		XML::Parser::PerlSAX
-		XML::Regexp
+		XML::RegExp
 		XML::DOM
 		XML::XPathEngine
 		XML::DOM::XPath
@@ -893,7 +902,15 @@ sub install_other_modules_1 {
 		Padre::Plugin::PerlCritic
 		Padre::Plugin::Catalyst
 	} ); # 3 (35)
-
+} else {
+	# Perl::Shell and prereqs.
+	$self->install_modules( qw{
+		PadWalker
+		Devel::Caller
+		Devel::LexAlias
+		Lexical::Persistence
+	} ); # 1 (35)
+}	
 	# Perl::Shell and prereqs.
 	$self->install_modules( qw{
 		Perl::Shell
@@ -947,18 +964,18 @@ sub install_chocolate_extras {
 			url        => $self->strawberry_url(),
 			icon_file  => catfile($sb_dist_dir, 'strawberry.ico')
 		);
-		$self->install_website(
-			name       => 'Strawberry Perl Professional Release Notes',
-			url        => $self->chocolate_release_notes_url(),
-			icon_file  => catfile($dist_dir, 'chocolate.ico')
-		);
+#		$self->install_website(
+#			name       => 'Strawberry Perl Professional Release Notes',
+#			url        => $self->chocolate_release_notes_url(),
+#			icon_file  => catfile($dist_dir, 'chocolate.ico')
+#		);
 		# Link to IRC.
 		$self->install_website(
 			name       => 'Live Support',
 			url        => 'http://widget.mibbit.com/?server=irc.perl.org&channel=%23win32',
 			icon_file  => catfile($sb_dist_dir, 'onion.ico')
 		);
-		$self->patch_file( 'README.txt' => $self->image_dir(), { dist => $self } );
+		$self->patch_file( 'README.professional.txt' => $self->image_dir(), { dist => $self } );
 	}
 
 	# Check that the padre.exe exists
@@ -1057,10 +1074,41 @@ sub install_chocolate_extras {
 		icon_file  => catfile($dist_dir, 'chocolate.ico')
 	);
 	
+	my $license_file_from = catfile($sb_dist_dir, 'License.rtf');
+	my $license_file_to = catfile($self->license_dir(), 'License.rtf');
+	my $readme_file = catfile($self->image_dir(), 'README.professional.txt');
+
+	$self->_copy($license_file_from, $license_file_to);	
+	if (not $self->portable()) {
+		$self->add_to_fragment( 'Win32Extras',
+			[ $license_file_to, $readme_file ] );
+	}
+	
 	return 1;
 }
 
+
+sub strawberry_url {
+	my $self = shift;
+	my $path = $self->output_base_filename();
+
+	# Strip off anything post-version
+	unless ( $path =~ s/^(strawberry-perl-professional-\d+(?:\.\d+)+).*$/$1/ ) {
+		PDWiX->throw("Failed to generate the strawberry subpath");
+	}
+
+	return "http://strawberryperl.com/$path";
+}
+
+
+sub create_professional_distribution_list {
+	my $self = shift;
 	
+	$self->create_distribution_list_file('DISTRIBUTIONS.professional.txt');
+}
+
+
+
 1;
 
 =pod

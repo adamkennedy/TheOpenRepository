@@ -1,0 +1,4 @@
+[% dist.app_name %] [% dist.distribution_version_human %] includes these distributions installed
+on top of Strawberry Perl 5.10.1.1:
+
+[% dist_list %]
