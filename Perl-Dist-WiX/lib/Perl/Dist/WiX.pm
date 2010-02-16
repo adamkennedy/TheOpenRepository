@@ -4379,8 +4379,8 @@ sub _run3 {
 	$self->trace_line( 3, "Path during _run3: $ENV{PATH}\n" );
 
 	# Execute the child process
-	return IPC::Run3::run3( [@_], \undef, $self->debug_stdout,
-		$self->debug_stderr, );
+	return IPC::Run3::run3( [@_], \undef, $self->debug_stdout(),
+		$self->debug_stderr(), );
 } ## end sub _run3
 
 sub _convert_name {

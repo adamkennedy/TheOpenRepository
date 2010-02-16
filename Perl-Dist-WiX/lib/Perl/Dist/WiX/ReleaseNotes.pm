@@ -32,7 +32,7 @@ require IO::File;
 require Template;
 require File::List::Object;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_100';
 $VERSION =~ s/_//ms;
 
 =head2 release_notes_filename
@@ -136,14 +136,29 @@ sub _add_to_distributions_installed {
 
 =head2 create_distribution_list
 
-The C<create_distribution_list> method creates the DISTRIBUTIONS.txt file
-that contains the list of distributions that are installed, and adds it to
-the .msi.
+The C<create_distribution_list> method creates the DISTRIBUTIONS.txt file.
 
 =cut
 
 sub create_distribution_list {
 	my $self = shift;
+	
+	$self->create_distribution_list_file('DISTRIBUTIONS.txt');
+}
+
+
+
+=head2 create_distribution_list_file
+
+The C<create_distribution_list_file> method creates a distribution list file
+(like DISTRIBUTIONS.txt) that contains the list of distributions that are 
+installed, and adds it to the .msi.
+
+=cut
+
+sub create_distribution_list_file {
+	my $self = shift;
+	my $dist_file_name = shift;
 	my $dist_list;
 	my ( $name, $ver );
 
@@ -167,13 +182,13 @@ sub create_distribution_list {
 		info    => Template->error(),
 	  );
 
-	$tt->process( 'DISTRIBUTIONS.txt.tt', $vars, \$dist_txt )
+	$tt->process( "${dist_file_name}.tt", $vars, \$dist_txt )
 	  || PDWiX::Caught->throw(
 		message => 'Template error',
 		info    => $tt->error(),
 	  );
 
-	my $dist_file = catfile( $self->image_dir, q{DISTRIBUTIONS.txt} );
+	my $dist_file = catfile( $self->image_dir, $dist_file_name );
 	my $fh = IO::File->new( $dist_file, 'w' );
 
 	$self->trace_line( 2, "Creating distribution list at $dist_file\n" );
