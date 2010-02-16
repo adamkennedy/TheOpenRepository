@@ -28,8 +28,8 @@ use parent                  qw( Perl::Dist::Strawberry );
 use File::Spec::Functions   qw( catfile catdir         );
 use File::ShareDir          qw();
 
-our $VERSION = '2.03';
-$VERSION = eval $VERSION;
+our $VERSION = '2.02_01';
+$VERSION =~ s/_//ms;
 
 
 
@@ -64,6 +64,7 @@ sub new {
 			'install_satori_modules_2',
 			'install_satori_modules_3',
 			'install_satori_modules_4',
+			'install_satori_modules_5',
 			'install_other_modules_1',
 			'install_win32_extras',
 			'install_strawberry_extras',
@@ -134,8 +135,6 @@ sub patch_include_path {
 sub install_padre_prereq_modules_1 { # 27 modules
 	my $self = shift;
 
-	$self->{force} = 1;
-	
 	# Manually install our non-Wx dependencies first to isolate
 	# them from the Wx problems
 	$self->install_modules( qw{
@@ -217,9 +216,6 @@ sub install_padre_prereq_modules_2 { # 28 modules
 sub install_padre_modules { # 4 modules
 	my $self = shift;
 
-	# The rest of the modules are order-specific,
-	# for reasons maybe involving CPAN.pm but not fully understood.
-
 	# Install the Alien::wxWidgets module from a precompiled .par
 	my $par_url = 
 		'http://strawberryperl.com/download/padre/Alien-wxWidgets-0.50-MSWin32-x86-multi-thread-5.10.1.par';
@@ -240,7 +236,7 @@ sub install_padre_modules { # 4 modules
 	# And finally, install Padre itself
 	$self->install_module(
 		name  => 'Padre',
-#		force => 1,
+		force => 1,
 	);
 	
 	return 1;
@@ -365,7 +361,7 @@ sub install_satori_modules_1 {
 	# MooseX::Role::TraitConstructor is ommitted because of RT#53070.
 	# MooseX::Role::Cmd relies on IPC::Run, which is problematic (t\parallel.t stalls).
 	# MooseX::Daemonize was stalled the first time I tried it -
-	#   maybe timing/OS-dependent?
+	#   maybe timing/OS-dependent? It also fails tests.
 	$self->install_modules( qw{
 		MooseX::ConfigFromFile
 		MooseX::GlobRef
@@ -614,9 +610,6 @@ sub install_satori_modules_4 {
 		Object::Signature
 		URI::Find
 		HTML::Tagset
-	} ); # 10 (10)
-
-	$self->install_modules( qw{
 		Sub::Override
 		HTML::TokeParser::Simple
 		Tree::Simple::VisitorFactory
@@ -645,7 +638,12 @@ sub install_satori_modules_4 {
 		Carp::Assert
 		Carp::Assert::More
 		Test::LongString
-	} ); # 28 (38...)
+		Test::Manifest
+		DateTime::Format::W3CDTF
+		DateTime::Format::Mail
+		XML::XPath
+		Number::Format
+	} ); # 43 (43)
 
 	# Most of the rest of Web Development
 	$self->install_modules( qw{
@@ -667,7 +665,14 @@ sub install_satori_modules_4 {
 		Catalyst::Plugin::Session::State::URI
 		Catalyst::Plugin::Static::Simple
 		Catalyst::Plugin::Authorization::Roles
-	} ); # 17 (55)
+	} ); # 18 (61)
+
+
+	return 1;
+}
+	
+sub install_satori_modules_5 {
+	my $self = shift;
 
 	# Web Crawling and prereqs: LWP::Simple and everything 
 	# in Bundle::LWP are already installed.
@@ -679,47 +684,69 @@ sub install_satori_modules_4 {
 
 	# In Web Devel, but needed a prereq first.
 	$self->install_module( name => 'Test::WWW::Mechanize::Catalyst', force => 1, );
-	# 4 (59)
+	# 4 (4)
 	
-	$self->{force} = 0;
-
 	# More of web development (C::P::A::ACL requires Test::WWW::Mech::Cat, and may need forced.)
 	$self->install_modules( qw{
 		Catalyst::Plugin::Authorization::ACL
-		Catalyst::Controller::FormBuilder
 		Catalyst::Component::InstancePerContext
 		Catalyst::Authentication::Store::DBIx::Class
-		FCGI::ProcManager
+	} ); # 3 (7)
+
+	# Could not install FCGI::ProcManager due to POSIX error.
+	$self->install_modules( qw{
 		CGI::FormBuilder::Source::Perl
 		XML::RSS
 		XML::Atom
 		MIME::Types
-	} ); # 9 (68)
+	} ); # 4 (11)
+
+	# E-mail Modules prerequisites
+	$self->install_modules( qw{
+		IO::CaptureOutput
+		Email::Date::Format
+		Email::Simple
+		Email::Abstract
+		Throwable::Error
+		Sys::Hostname::Long
+		Net::SMTP::SSL
+		File::Find::Rule::Perl
+		Perl::MinimumVersion
+		Test::MinimumVersion
+		Date::Format
+		Mail::Address
+	} ); # 10 (21)
 
 	# E-mail Modules
 	$self->install_modules( qw{
 		Email::Valid
-		Email::Sender
-	} ); # 2 (70)
+	} ); # 1 (22)
+
+	# 0.100450 depends on modules that weren't on CPAN as of 2/15/2010,
+	# so we're forcing the version for a little while.
+	$self->install_distribution(
+		name     => 'RJBS/Email-Sender-0.100460.tar.gz',
+		mod_name => 'Email::Sender',
+		makefilepl_param => ['INSTALLDIRS=vendor'],
+	); # 1 (23)
 
 	# Localizing changes to environment for building purposes.
 	{
 		local $ENV{TZ} = 'PST8PDT';
 		$self->install_module( name => 'Time::ParseDate' );
-	} # 1 (71)
+	} # 1 (24)
 	
 	# Last of Web Development
 	# (HTML::FormFu requires the Email:: stuff.)
 	$self->install_modules( qw{
 		HTML::FormFu
 		Catalyst::Controller::HTML::FormFu
-	} ); # 2 (73)
+	} ); # 2 (26)
 
 	# Useful Command-line Tools prerequisites
 	$self->install_modules( qw{
 		File::Next
 		MooseX::Object::Pluggable
-		ExtUtils::Depends
 		B::Utils
 		Data::Dump::Streamer
 		Devel::LexAlias
@@ -732,45 +759,58 @@ sub install_satori_modules_4 {
 		Mixin::Linewise
 		App::Nopaste
 		Module::Refresh
-	} ); # 15 (88)
+	} ); # 15 (41)
 
+# Needed for Devel::REPL, so commenting for now.
+#	$self->install_modules( qw{
+#		MooseX::AttributeHelpers
+#	} ); # 1 (42)
+	
 	# Useful Command-line Tools: Module::CoreList is 
 	# already installed by Strawberry, and App::Ack 
 	# is above.
-	$self->install_modules( qw{
-		Devel::REPL
-	} ); # 1 (89)
+# Devel::REPL 1.003007 does not work with Moose 0.98, so commenting for now. RT#54579
+#	$self->install_modules( qw{
+#		Devel::REPL
+#	} ); # 1 (43)
 
 	# Script Hackery prerequisites
+	# These 2 have a signature test, which fails atm.
+	$self->install_module( name => 'Class::MethodMaker', force => 1, );
+	$self->install_module( name => 'Term::ProgressBar', force => 1, );
 	$self->install_modules( qw{
 		File::ReadBackwards
 		MLDBM
-	} ); # 2 (91)
+		IO::Interactive
+		Term::ProgressBar::Quiet
+	} ); # 2 (45)
 
 	# Script Hackery
 	$self->install_modules( qw{
 		Smart::Comments
 		Term::ProgressBar::Simple
 		IO::All
-	} ); # 3 (94)
+	} ); # 3 (48)
 
 	# Socket6 would be nice to include, but it 
 	# doesn't build due to referring to ws2_32.lib 
 	# directly. A patch will be offered.
 	
 	# Asynchronous Programming and prerequisites
-	$self->install_modules( qw{
-		Win32::Console
-		POE::Test::Loops
-		POE
-	} ); # 3 (97)
+# POE 1.286 fails a test.
+#	$self->install_modules( qw{
+#		Win32::Console
+#		Win32::Job
+#		POE::Test::Loops
+#		POE
+#	} ); # 3 (49)
 
 	# Final tasks
-	$self->install_modules( qw{
-		Task::Moose
-		Task::Catalyst
-		Task::Kensho
-	} ); # 3 (100)
+#	$self->install_modules( qw{
+#		Task::Moose
+#		Task::Catalyst
+#		Task::Kensho
+#	} ); # 3 (51)
 	
 	return 1;
 }
@@ -816,46 +856,53 @@ sub install_other_modules_1 {
 		Math::Derivative
 		SVG
 		Graph
+		Math::Spline
+	} ); # 7 (14)
+		
+	$self->install_module(
+		name  => 'Statistics::Descriptive',
+		force => 1,   # Fails a test OCCASIONALLY.
+	); # 1 (15)
+		
+	$self->install_modules( qw{
 		SVG::Graph
 		Parse::RecDescent
-		Algorithm::MunkRes
-		XML::Writer
+		Algorithm::Munkres
+		XML::Parser::PerlSAX
+		XML::Regexp
 		XML::DOM
 		XML::XPathEngine
 		XML::DOM::XPath
 		XML::Simple
-		XML::XPath
 		HTML::TreeBuilder
 		XML::Twig
-		XML::Parser::PerlSAX
 		PostScript::TextBlock
 		Array::Compare
 		Convert::Binary::C
 		Set::Scalar
 		Bio::Perl
-	} ); # 23 (30)
+	} ); # 16 (31)
 	# This makes a circular dependency if I put it before Bio::Perl.
 	$self->install_modules( qw{
 		Bio::ASN1::EntrezGene
-	} ); # 1 (31)
+	} ); # 1 (32)
 
 	# Padre Plugins.
 	$self->install_modules( qw{
 		Padre::Plugin::PerlTidy
 		Padre::Plugin::PerlCritic
 		Padre::Plugin::Catalyst
-	} ); # 3 (34)
+	} ); # 3 (35)
 
 	# Perl::Shell and prereqs.
 	$self->install_modules( qw{
-		Test::Script
 		Perl::Shell
-	} ); # 2 (36)
+	} ); # 1 (35)
 	
-	# The "pmtools".
-	$self->install_modules( qw{
-		Devel::Loaded
-	} ); # 2 (36)
+	# The "pmtools". Bad tar file.
+#	$self->install_modules( qw{
+#		Devel::Loaded
+#	} ); # 1 (36)
 
 	# Plack & PSGI (may be removed later)
 #	$self->install_modules( qw{
@@ -957,19 +1004,21 @@ sub install_chocolate_extras {
 		bin  => 'perlthon',
 	);
 
-	my $chocolate_icon_id =
-	  $self->_icons()
-	  ->add_icon( catfile( $dist_dir, 'chocolate.ico' ), 'perl.exe' );
+# Uncommenting when Devel::REPL gets fixed.
+	
+#	my $chocolate_icon_id =
+#	  $self->_icons()
+#	  ->add_icon( catfile( $dist_dir, 'chocolate.ico' ), 'perl.exe' );
 
-	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
-		name => 'Devel-REPL Shell (may need work)',
-		description => 'Perl shell using Devel::REPL',
-		target      => "[D_$dir_id]perl.exe",
-		arguments   => '-S re.pl',
-		id          => 'Devel_REPL',
-		working_dir => $dir_id,
-		icon_id     => $chocolate_icon_id,
-	);
+#	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
+#		name => 'Devel-REPL Shell (may need work)',
+#		description => 'Perl shell using Devel::REPL',
+#		target      => "[D_$dir_id]perl.exe",
+#		arguments   => '-MDevel::REPL::Script -e run',
+#		id          => 'Devel_REPL',
+#		working_dir => $dir_id,
+#		icon_id     => $chocolate_icon_id,
+#	);
 
 	
 	$self->install_website(
