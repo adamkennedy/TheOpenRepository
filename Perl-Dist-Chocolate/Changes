@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-Chocolate
 
-2.03_01 Wed 17 Feb 2010.
+2.02_01 Wed 17 Feb 2010.
     - Updated version of Strawberry to match January 2010 release.
     - Adding most of Task::Kensho, Padre, Bio::Perl, and a few
       graphical helpers.
