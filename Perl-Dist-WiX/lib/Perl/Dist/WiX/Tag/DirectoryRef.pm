@@ -60,14 +60,14 @@ sub search_dir {
 
 	return undef unless defined $path;
 
-	$self->trace_line( 3, "Looking for $path_to_find\n" );
-	$self->trace_line( 4, "  in:      $path.\n" );
-	$self->trace_line( 5, "  descend: $descend exact: $exact.\n" );
+#	$self->trace_line( 3, "Looking for $path_to_find\n" );
+#	$self->trace_line( 4, "  in:      $path.\n" );
+#	$self->trace_line( 5, "  descend: $descend exact: $exact.\n" );
 
 	# If we're at the correct path, exit with success!
 	if ( ( defined $path ) && ( $path_to_find eq $path ) ) {
 
-		$self->trace_line( 4, "Found $path.\n" );
+#		$self->trace_line( 4, "Found $path.\n" );
 		return $self;
 	}
 
@@ -78,8 +78,8 @@ sub search_dir {
 	my $subset = "$path_to_find\\" =~ m{\A\Q$path\E\\}msx;
 	if ( not $subset ) {
 
-		$self->trace_line( 4, "Not a subset in: $path.\n" );
-		$self->trace_line( 5, "  To find: $path_to_find.\n" );
+#		$self->trace_line( 4, "Not a subset in: $path.\n" );
+#		$self->trace_line( 5, "  To find: $path_to_find.\n" );
 		return undef;
 	}
 
