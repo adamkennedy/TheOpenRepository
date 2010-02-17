@@ -822,7 +822,7 @@ sub install_other_modules_1 {
 	$self->install_module(
 		name  => 'Win32::GUI',
 		force => 1,   # Fails a pod test.
-	); # 3 (3)
+	); # 2 (2)
 	
 	# Tkx needs Tcl, which needs a 'tclsh' binary.
 	# Gtk2 requires binaries
@@ -830,18 +830,18 @@ sub install_other_modules_1 {
 	# CPAN helper.
 	$self->install_modules( qw{
 		CPANPLUS::Shell::Wx		
-	} ); # 1 (4)
+	} ); # 1 (3)
 
 	# Pod Browser.
 	$self->install_modules( qw{
 		Tk::Pod		
-	} ); # 1 (5)
+	} ); # 1 (4)
 
 	# Catalyst manual.
 	$self->install_modules( qw{
 		File::Monitor
 		Catalyst::Manual		
-	} ); # 2 (7)
+	} ); # 2 (6)
 	
 	# BioPerl and as many of its optionals as possible.
 	# GraphViz is a known problem - Beta 2?	
@@ -853,12 +853,12 @@ sub install_other_modules_1 {
 		SVG
 		Graph
 		Math::Spline
-	} ); # 7 (14)
+	} ); # 7 (13)
 		
 	$self->install_module(
 		name  => 'Statistics::Descriptive',
 		force => 1,   # Fails a test OCCASIONALLY.
-	); # 1 (15)
+	); # 1 (14)
 
 	$self->install_modules( qw{
 		SVG::Graph
@@ -875,30 +875,34 @@ sub install_other_modules_1 {
 		Array::Compare
 		Convert::Binary::C
 		Set::Scalar
-		Bio::Perl
-	} ); # 16 (31)
+	} ); # 14 (28)
+
+	$self->install_module(
+		name  => 'Bio::Perl',
+		assume_installed => 1,   # CPAN can't verify whether it's up to date once successfully installed.
+	); # 1 (29)
 
 	# This makes a circular dependency if I put it before Bio::Perl.
 	$self->install_modules( qw{
 		Bio::ASN1::EntrezGene
-	} ); # 1 (32)
+	} ); # 1 (30)
 
 	# Padre Plugins.
 	$self->install_modules( qw{
 		Padre::Plugin::PerlTidy
 		Padre::Plugin::PerlCritic
 		Padre::Plugin::Catalyst
-	} ); # 3 (35)
+	} ); # 3 (33)
 
 	# Perl::Shell and prereqs.
 	$self->install_modules( qw{
 		Perl::Shell
-	} ); # 1 (35)
+	} ); # 1 (34)
 	
-	# The "pmtools". Bad tar file.
+	# The "pmtools". Bad tar file. May redo for Alpha 2.
 #	$self->install_modules( qw{
 #		Devel::Loaded
-#	} ); # 1 (36)
+#	} ); # 1 (35)
 
 	# Plack & PSGI (may be removed later)
 #	$self->install_modules( qw{
