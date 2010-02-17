@@ -1,4 +1,4 @@
-use inc::Module::Install 0.92;
+use inc::Module::Install 0.93;
 
 die "OS unsupported\n" unless win32;
 
@@ -11,6 +11,7 @@ if (author_context) {
 }
 
 all_from      'lib/Perl/Dist/Chocolate.pm';
+# Really, 2.02_01, but I can't do that.
 requires      'Perl::Dist::Strawberry' => '2.02';
 requires      'parent'                 => '0.221';
 requires      'URI::file'              => '4.20'; # From URI 1.36 or better.
@@ -24,6 +25,7 @@ resources     'IRC'                    => 'irc://irc.perl.org/#win32';
 resources     'WebIRC'                 => 'http://widget.mibbit.com/?server=irc.perl.org&channel=%23win32';
 # Requires Module::Install::AutoLicense on the author end.
 auto_license;
+use_ptar;
 install_share;
 
 WriteAll;

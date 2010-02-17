@@ -60,11 +60,11 @@ sub new {
 			'install_padre_prereq_modules_1',
 			'install_padre_prereq_modules_2',
 			'install_padre_modules',
-#			'install_satori_modules_1',
-#			'install_satori_modules_2',
-#			'install_satori_modules_3',
-#			'install_satori_modules_4',
-#			'install_satori_modules_5',
+			'install_satori_modules_1',
+			'install_satori_modules_2',
+			'install_satori_modules_3',
+			'install_satori_modules_4',
+			'install_satori_modules_5',
 			'install_other_modules_1',
 			'install_win32_extras',
 			'install_chocolate_extras',
@@ -133,8 +133,6 @@ sub patch_include_path {
 sub install_padre_prereq_modules_1 { # 27 modules
 	my $self = shift;
 
-	$self->{force} = 1;
-	
 	# Manually install our non-Wx dependencies first to isolate
 	# them from the Wx problems
 	$self->install_modules( qw{
@@ -849,7 +847,6 @@ sub install_other_modules_1 {
 		Tk::Pod		
 	} ); # 1 (5)
 
-if (0) {
 	# Catalyst manual.
 	$self->install_modules( qw{
 		File::Monitor
@@ -902,15 +899,7 @@ if (0) {
 		Padre::Plugin::PerlCritic
 		Padre::Plugin::Catalyst
 	} ); # 3 (35)
-} else {
-	# Perl::Shell and prereqs.
-	$self->install_modules( qw{
-		PadWalker
-		Devel::Caller
-		Devel::LexAlias
-		Lexical::Persistence
-	} ); # 1 (35)
-}	
+
 	# Perl::Shell and prereqs.
 	$self->install_modules( qw{
 		Perl::Shell
