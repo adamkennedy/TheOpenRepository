@@ -82,7 +82,7 @@ sub new {
 		perl_version => '5101',
 
 		# Program version.
-		build_number => 2,
+		build_number => 1,
 		beta_number  => 1,
 
 		# Trace level.
@@ -993,7 +993,7 @@ sub install_chocolate_extras {
 
 	my $padre_icon_id =
 	  $self->_icons()
-	  ->add_icon( catfile( $sb_dist_dir, 'padre.ico' ), 'padre.exe' );
+	  ->add_icon( catfile( $dist_dir, 'padre.ico' ), 'padre.exe' );
 
 	# Add the start menu icon.
 	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
@@ -1007,7 +1007,7 @@ sub install_chocolate_extras {
 	);
 
 	$self->install_launcher(
-		name => 'Graphical CPAN Client (TODO - needs work)',
+		name => 'Graphical CPAN Client (needs work)',
 		bin  => 'wxcpan',
 	);
 
@@ -1017,7 +1017,7 @@ sub install_chocolate_extras {
 	);
 
 	$self->install_launcher(
-		name => 'Perl Shell (TODO - needs work)',
+		name => 'Perl Shell (needs work)',
 		bin  => 'perlthon',
 	);
 
@@ -1053,12 +1053,6 @@ sub install_chocolate_extras {
 	$self->install_website(
 		name       => 'BioPerl wiki',
 		url        => 'http://www.bioperl.org/wiki/Main_Page',
-		icon_file  => catfile($dist_dir, 'chocolate.ico')
-	);
-
-	$self->install_website(
-		name       => 'Information about learning Perl',
-		url        => 'http://learn.perl.org/',
 		icon_file  => catfile($dist_dir, 'chocolate.ico')
 	);
 
@@ -1108,6 +1102,9 @@ sub create_professional_distribution_list {
 }
 
 
+sub dist_dir {
+	return File::ShareDir::dist_dir('Perl-Dist-Chocolate');
+}
 
 1;
 

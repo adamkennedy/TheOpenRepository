@@ -1,8 +1,11 @@
 Changes for Perl extension Perl-Dist-Chocolate
 
-2.02 To be released.
-	- Updated version of Strawberry to match January 2010 release.
+2.03_01 Wed 17 Feb 2010.
+    - Updated version of Strawberry to match January 2010 release.
+    - Adding most of Task::Kensho, Padre, Bio::Perl, and a few
+      graphical helpers.
+    - "Strawberry Perl Professional" 5.10.1.1 Alpha 1 release.
 
 1.07 Thu 23 Oct 2008
-	- Created as a subclass of Strawberry
-	- Adding a "splat" of initial probably-good module bloat
+    - Created as a subclass of Strawberry
+    - Adding a "splat" of initial probably-good module bloat
