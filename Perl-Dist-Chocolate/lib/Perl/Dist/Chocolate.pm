@@ -484,16 +484,15 @@ sub install_satori_modules_2 {
 	$self->install_modules( qw{
 		Perl::Version
 		Dist::Zilla
-		Module::Install
 		Perl::Critic
 		Perl::Critic::More
 		Carp::Always
 		Modern::Perl
-	} ); # 7 (60)
+	} ); # 6 (59)
 	$self->install_module(
 		name => 'Devel::NYTProf',
 		force => 1,
-	); # 1 (61)
+	); # 1 (60)
 
 	# Database Development: DBI and DBD::SQLite are already installed.
 	# Because of the large numbers of prerequisites, I'm
@@ -511,7 +510,7 @@ sub install_satori_modules_2 {
 		Module::Find
 		Data::Dumper::Concise
 		DBIx::Class
-	} ); # 11 (72)
+	} ); # 11 (71)
 
 	return 1;
 }
@@ -525,9 +524,8 @@ sub install_satori_modules_3 {
 		Parse::RecDescent
 		Class::MakeMethods
 		XML::Writer
-		File::ShareDir
 		SQL::Translator
-	} ); # 6 (6)
+	} ); # 5 (5)
 
 	# DBIx::Class::Schema::Loader and prereqs
 	# Note: DBD::Oracle and DBD::DB2 you're 
@@ -539,7 +537,7 @@ sub install_satori_modules_3 {
 		UNIVERSAL::require
 		Data::Dump
 		DBIx::Class::Schema::Loader
-	} ); # 6 (12)
+	} ); # 6 (11)
 
 	# Excel/CSV
 	$self->install_modules( qw{
@@ -549,14 +547,14 @@ sub install_satori_modules_3 {
 		Spreadsheet::WriteExcel
 		Spreadsheet::ParseExcel::Simple
 		Spreadsheet::WriteExcel::Simple
-	} ); # 3 (15)
+	} ); # 6 (17)
 		
 	# Adding DBD's to the list.
 	$self->install_modules( qw{
 		SQL::Statement
 		DBD::CSV
 		DBD::Excel
-	} ); # 3 (18)
+	} ); # 3 (20)
 	
 	# Web Development
 
@@ -574,7 +572,7 @@ sub install_satori_modules_3 {
 		MooseX::Role::WithOverloading
 		MooseX::Types::Common
 		Catalyst::Runtime
-	} ); # 12 (30)
+	} ); # 12 (32)
 
 	# Catalyst::Devel and prerequisites
 	$self->install_modules( qw{
@@ -593,7 +591,7 @@ sub install_satori_modules_3 {
 		Catalyst::Plugin::ConfigLoader
 		Proc::Background
 		Catalyst::Devel
-	} ); # 15 (45)
+	} ); # 15 (47)
 
 	return 1;
 }
@@ -612,10 +610,8 @@ sub install_satori_modules_4 {
 		Hash::Merge
 		Object::Signature
 		URI::Find
-		HTML::Tagset
 		Sub::Override
 		HTML::TokeParser::Simple
-		Tree::Simple::VisitorFactory
 		Locale::Maketext::Lexicon
 		Regexp::Assemble
 		Log::Trace
@@ -641,12 +637,11 @@ sub install_satori_modules_4 {
 		Carp::Assert
 		Carp::Assert::More
 		Test::LongString
-		Test::Manifest
 		DateTime::Format::W3CDTF
 		DateTime::Format::Mail
 		XML::XPath
 		Number::Format
-	} ); # 43 (43)
+	} ); # 41 (41)
 
 	# Most of the rest of Web Development
 	$self->install_modules( qw{
@@ -666,9 +661,8 @@ sub install_satori_modules_4 {
 		Catalyst::Plugin::Session::Store::Delegate
 		Catalyst::Plugin::Session::Store::DBIC
 		Catalyst::Plugin::Session::State::URI
-		Catalyst::Plugin::Static::Simple
 		Catalyst::Plugin::Authorization::Roles
-	} ); # 18 (61)
+	} ); # 17 (58)
 
 
 	return 1;
@@ -697,12 +691,12 @@ sub install_satori_modules_5 {
 	} ); # 3 (7)
 
 	# Could not install FCGI::ProcManager due to POSIX error.
+	# (MIME::Types was needed for Catalyst::Devel.)
 	$self->install_modules( qw{
 		CGI::FormBuilder::Source::Perl
 		XML::RSS
 		XML::Atom
-		MIME::Types
-	} ); # 4 (11)
+	} ); # 3 (10)
 
 	# E-mail Modules prerequisites
 	$self->install_modules( qw{
@@ -718,12 +712,12 @@ sub install_satori_modules_5 {
 		Test::MinimumVersion
 		Date::Format
 		Mail::Address
-	} ); # 10 (21)
+	} ); # 10 (20)
 
 	# E-mail Modules
 	$self->install_modules( qw{
 		Email::Valid
-	} ); # 1 (22)
+	} ); # 1 (21)
 
 	# 0.100450 depends on modules that weren't on CPAN as of 2/15/2010,
 	# so we're forcing the version for a little while.
@@ -731,43 +725,39 @@ sub install_satori_modules_5 {
 		name     => 'RJBS/Email-Sender-0.100460.tar.gz',
 		mod_name => 'Email::Sender',
 		makefilepl_param => ['INSTALLDIRS=vendor'],
-	); # 1 (23)
+	); # 1 (22)
 
 	# Localizing changes to environment for building purposes.
 	{
 		local $ENV{TZ} = 'PST8PDT';
 		$self->install_module( name => 'Time::ParseDate' );
-	} # 1 (24)
+	} # 1 (23)
 	
 	# Last of Web Development
 	# (HTML::FormFu requires the Email:: stuff.)
 	$self->install_modules( qw{
 		HTML::FormFu
 		Catalyst::Controller::HTML::FormFu
-	} ); # 2 (26)
+	} ); # 2 (25)
 
 	# Useful Command-line Tools prerequisites
 	$self->install_modules( qw{
-		File::Next
 		MooseX::Object::Pluggable
 		B::Utils
 		Data::Dump::Streamer
 		Devel::LexAlias
 		Lexical::Persistence
-		Test::Object
 		WWW::Pastebin::PastebinCom::Create
 		WWW::Pastebin::RafbNet::Create
 		Win32::Clipboard
 		Clipboard
-		Mixin::Linewise
 		App::Nopaste
-		Module::Refresh
-	} ); # 15 (41)
+	} ); # 10 (35)
 
 # Needed for Devel::REPL, so commenting for now.
 #	$self->install_modules( qw{
 #		MooseX::AttributeHelpers
-#	} ); # 1 (42)
+#	} ); # 1 (36)
 	
 	# Useful Command-line Tools: Module::CoreList is 
 	# already installed by Strawberry, and App::Ack 
@@ -775,7 +765,7 @@ sub install_satori_modules_5 {
 # Devel::REPL 1.003007 does not work with Moose 0.98, so commenting for now. RT#54579
 #	$self->install_modules( qw{
 #		Devel::REPL
-#	} ); # 1 (43)
+#	} ); # 1 (37)
 
 	# Script Hackery prerequisites
 	# These 2 have a signature test, which fails atm.
@@ -786,14 +776,14 @@ sub install_satori_modules_5 {
 		MLDBM
 		IO::Interactive
 		Term::ProgressBar::Quiet
-	} ); # 2 (45)
+	} ); # 6 (43)
 
 	# Script Hackery
 	$self->install_modules( qw{
 		Smart::Comments
 		Term::ProgressBar::Simple
 		IO::All
-	} ); # 3 (48)
+	} ); # 3 (46)
 
 	# Socket6 would be nice to include, but it 
 	# doesn't build due to referring to ws2_32.lib 
@@ -806,14 +796,14 @@ sub install_satori_modules_5 {
 #		Win32::Job
 #		POE::Test::Loops
 #		POE
-#	} ); # 3 (49)
+#	} ); # 4 (50)
 
 	# Final tasks
 #	$self->install_modules( qw{
 #		Task::Moose
 #		Task::Catalyst
 #		Task::Kensho
-#	} ); # 3 (51)
+#	} ); # 3 (53)
 	
 	return 1;
 }
@@ -872,7 +862,6 @@ sub install_other_modules_1 {
 
 	$self->install_modules( qw{
 		SVG::Graph
-		Parse::RecDescent
 		Algorithm::Munkres
 		XML::Parser::PerlSAX
 		XML::RegExp
@@ -888,6 +877,7 @@ sub install_other_modules_1 {
 		Set::Scalar
 		Bio::Perl
 	} ); # 16 (31)
+
 	# This makes a circular dependency if I put it before Bio::Perl.
 	$self->install_modules( qw{
 		Bio::ASN1::EntrezGene
