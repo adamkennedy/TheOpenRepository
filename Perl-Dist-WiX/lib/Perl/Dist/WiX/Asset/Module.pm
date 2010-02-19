@@ -36,10 +36,18 @@ has packlist => (
 	default => 1,
 );
 
+has assume_installed => (
+	is      => 'ro',
+	isa     => Bool,
+	reader  => '_get_assume',
+	default => 0,
+);
+
 sub install {
 	my $self   = shift;
 	my $name   = $self->get_name();
 	my $force  = $self->_get_force();
+	my $assume = $self->_get_assume();
 	my $vendor = $self->_get_parent()->portable() ? 0 : 1;
 
 	my $packlist_flag = $self->_get_packlist();
@@ -99,7 +107,7 @@ if ( $force ) {
 	CPAN::Shell->install('$name');
 }
 print "Completed install of $name\\n";
-unless ( \$module->uptodate ) {
+unless ( $assume or \$module->uptodate() ) {
 	die "Installation of $name appears to have failed";
 }
 exit(0);
@@ -266,6 +274,15 @@ parameters when you invoke "perl Build.PL".
 
 The optional C<buildpl_param> param should be a reference to an ARRAY
 where each element contains the argument to pass to the Build.PL.
+
+=item assume_installed
+
+Some distributions (Bio::Perl, for example) do not include their version 
+numbers in such a way that CPAN can tell whether they are up to date after 
+installation via the CPAN::Module->uptodate() call.
+
+This parameter, when set to 1, tells Perl::Dist::WiX to skip that 
+verification step.
 
 =back
 
