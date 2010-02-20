@@ -81,7 +81,7 @@ use Params::Util    1.00 '_INSTANCE';
 use Term::ReadLine     0 ();
 use PPI            1.205 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 
@@ -214,8 +214,11 @@ sub shell {
 		next unless complete( @buffer );
 
 		# Execute the code
+		local $@;
 		my $code = join "\n", @buffer;
-		my @rv   = $state->do($code);
+		my @rv   = eval {
+			$state->do($code);
+		};
 		print "ERROR: $@" if $@;
 		print "\n";
 

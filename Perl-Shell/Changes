@@ -1,5 +1,8 @@
 Changes for Perl extension Perl-Shell
 
+0.04 Sun 10 Jan 2010
+	- Added support for catching exceptions properly.
+
 0.03 Mon  4 Jan 2010
 	- Persist the package context correctly
 	- Add some functions for copyright and license command,

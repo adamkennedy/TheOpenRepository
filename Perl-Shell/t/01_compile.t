@@ -13,4 +13,4 @@ ok( $] >= 5.006, 'Perl version is new enough' );
 
 use_ok( 'Perl::Shell' );
 
-script_compiles( 'blib/script/perlthon' );
+script_compiles( 'blib/script/perlcmd' );
