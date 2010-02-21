@@ -14,7 +14,7 @@ use MooseX::Types::Moose qw( Str );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';
@@ -143,6 +143,7 @@ sub initialize_tree {
 	  c\\share
 	  perl\\bin
 	  perl\\lib\\auto
+	  perl\\site\\bin
 	  perl\\site\\lib\\auto
 	  perl\\vendor\\lib\\auto\\share\\dist
 	  perl\\vendor\\lib\\auto\\share\\module
