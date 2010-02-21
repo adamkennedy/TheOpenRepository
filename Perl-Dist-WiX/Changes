@@ -1,5 +1,9 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.102_101   Fri 19 Feb 2010
+    1. Change $Config{installsitebin} from perl/bin to perl/site/bin,
+       and add perl/site/bin to the path.
+
 1.102_100   Fri 19 Feb 2010
     1. Used to build Strawberry Perl Professional 5.10.1.1 Alpha 1.
     2. Allow more than one DISTRIBUTIONS.txt file.

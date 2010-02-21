@@ -40,7 +40,7 @@ require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//sm;
 
 Readonly my %CORE_MODULE_FIX => (
@@ -593,6 +593,7 @@ sub install_perl_bin {
 
 	# Add to the environment variables
 	$self->add_path( 'perl', 'bin' );
+	$self->add_path( 'perl', 'site', 'bin' );
 
 	return 1;
 } ## end sub install_perl_bin

@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.102_100
+Perl-Dist-WiX version 1.102_101
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.102002.
+This document describes Perl::Dist::WiX version 1.102_101.
 
 =for readme continue
 
@@ -135,7 +135,7 @@ require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 #>>>
 
-our $VERSION = '1.102_100';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 
@@ -2905,6 +2905,7 @@ sub initialize_using_msm {
 
 	# Do the same for the environment variables
 	$self->add_path( 'perl', 'bin' );
+	$self->add_path( 'perl', 'site', 'bin' );
 	$self->add_path( 'c', 'bin' );
 	
 	return 1;
