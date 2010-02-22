@@ -166,9 +166,9 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 			next MODULE;
 		}
 
-		# autodie 2.08 has a failing test (RT#54525).
+		# autodie 2.08/2.09 has a failing test (RT#54525).
 		# It's skipped on 5.10.1+, which already has this version.
-		if ( $module->cpan_file() =~ m{/autodie-2 [.] 08}msx ) {
+		if ( $module->cpan_file() =~ m{/autodie-2 [.] 0 [89]}msx ) {
 			$self->install_distribution(
 				name             => 'PJF/autodie-2.06_01.tar.gz',
 				mod_name         => 'autodie',
@@ -452,8 +452,8 @@ sub _skip_upgrade {
 	# Skip B::C, it does not install on 5.8.9.
 	return 1 if $module->cpan_file() =~ m{/B-C-1 [.]}msx;
 
-	# Skip autodie 2.08, waiting on RT#54525.
-	if (($module->cpan_file() =~ m{/autodie-2 [.] 08}msx) and
+	# Skip autodie 2.08 and 2.09, waiting on RT#54525.
+	if (($module->cpan_file() =~ m{/autodie-2 [.] 0 [89]}msx) and
 	    (($self->perl_version() eq '5101') or 
 		 ($self->perl_version() eq 'git'))) {
 		return 1;
