@@ -591,6 +591,9 @@ sub install_perl_bin {
 	# Should have a perl to use now.
 	$self->_set_bin_perl( $self->_file(qw/perl bin perl.exe/) );
 
+	# Create the site/bin path so we can add it to the PATH.
+	$self->_make_path(catdir($self->image_dir(), qw(perl site bin)));
+	
 	# Add to the environment variables
 	$self->add_path( 'perl', 'bin' );
 	$self->add_path( 'perl', 'site', 'bin' );
