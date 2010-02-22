@@ -843,6 +843,11 @@ sub install_perl_toolchain {
 			# 2.20 and 2.2002 are buggy on 5.8.9.
 			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_05.tar.gz';
 		}
+		if ( $dist =~ /ExtUtils-CBuilder-0[.]2701[.]tar[.]gz/msx ) {
+
+			# 0.2701 does not pass tests on 5.10.1.
+			$dist = 'DAGOLDEN/ExtUtils-CBuilder-0.27.tar.gz';
+		}
 		if ( $dist =~ /Win32API-Registry-0 [.] 31/msx ) {
 
 			# 0.31 does not include a Makefile.PL.
