@@ -426,6 +426,10 @@ sub _skip_upgrade {
 	# install_cpan_upgrades thinks that it needs to upgrade
 	# those files using it.
 
+	# DON'T try to install ExtUtils::CBuilder, we
+	# already upgraded it as far as we can. RT#54728.
+	return 1 if $module->cpan_file() =~ m{/ExtUtils-CBuilder-0 [.] 2701}msx;
+
 	# This code is in here for safety as of yet.
 	return 1 if $module->cpan_file() =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
 
@@ -845,7 +849,7 @@ sub install_perl_toolchain {
 		}
 		if ( $dist =~ /ExtUtils-CBuilder-0[.]2701[.]tar[.]gz/msx ) {
 
-			# 0.2701 does not pass tests on 5.10.1.
+			# 0.2701 does not pass tests on 5.10.1. RT#54728.
 			$dist = 'DAGOLDEN/ExtUtils-CBuilder-0.27.tar.gz';
 		}
 		if ( $dist =~ /Win32API-Registry-0 [.] 31/msx ) {
