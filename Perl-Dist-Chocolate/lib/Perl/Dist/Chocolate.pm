@@ -28,7 +28,7 @@ use parent                  qw( Perl::Dist::Strawberry );
 use File::Spec::Functions   qw( catfile catdir         );
 use File::ShareDir          qw();
 
-our $VERSION = '2.02_01';
+our $VERSION = '2.02_02';
 $VERSION =~ s/_//ms;
 
 
@@ -748,7 +748,6 @@ sub install_satori_modules_5 {
 		Devel::LexAlias
 		Lexical::Persistence
 		WWW::Pastebin::PastebinCom::Create
-		WWW::Pastebin::RafbNet::Create
 		Win32::Clipboard
 		Clipboard
 		App::Nopaste
