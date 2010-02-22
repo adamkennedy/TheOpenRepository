@@ -488,11 +488,12 @@ sub install_satori_modules_2 {
 		Perl::Critic::More
 		Carp::Always
 		Modern::Perl
-	} ); # 6 (59)
+		CPAN::Uploader
+	} ); # 7 (60)
 	$self->install_module(
 		name => 'Devel::NYTProf',
 		force => 1,
-	); # 1 (60)
+	); # 1 (61)
 
 	# Database Development: DBI and DBD::SQLite are already installed.
 	# Because of the large numbers of prerequisites, I'm
@@ -510,7 +511,7 @@ sub install_satori_modules_2 {
 		Module::Find
 		Data::Dumper::Concise
 		DBIx::Class
-	} ); # 11 (71)
+	} ); # 11 (72)
 
 	return 1;
 }
@@ -641,7 +642,8 @@ sub install_satori_modules_4 {
 		DateTime::Format::Mail
 		XML::XPath
 		Number::Format
-	} ); # 41 (41)
+		HTML::TreeBuilder
+	} ); # 42 (42)
 
 	# Most of the rest of Web Development
 	$self->install_modules( qw{
@@ -662,7 +664,7 @@ sub install_satori_modules_4 {
 		Catalyst::Plugin::Session::Store::DBIC
 		Catalyst::Plugin::Session::State::URI
 		Catalyst::Plugin::Authorization::Roles
-	} ); # 17 (58)
+	} ); # 17 (59)
 
 
 	return 1;
@@ -680,15 +682,16 @@ sub install_satori_modules_5 {
 	$self->install_module( name => 'Test::WWW::Mechanize', force => 1, );
 
 	# In Web Devel, but needed a prereq first.
+	$self->install_module( name => 'WWW::Mechanize::TreeBuilder', force => 1, );
 	$self->install_module( name => 'Test::WWW::Mechanize::Catalyst', force => 1, );
-	# 4 (4)
+	# 5 (5)
 	
 	# More of web development (C::P::A::ACL requires Test::WWW::Mech::Cat, and may need forced.)
 	$self->install_modules( qw{
 		Catalyst::Plugin::Authorization::ACL
 		Catalyst::Component::InstancePerContext
 		Catalyst::Authentication::Store::DBIx::Class
-	} ); # 3 (7)
+	} ); # 3 (8)
 
 	# Could not install FCGI::ProcManager due to POSIX error.
 	# (MIME::Types was needed for Catalyst::Devel.)
@@ -696,7 +699,7 @@ sub install_satori_modules_5 {
 		CGI::FormBuilder::Source::Perl
 		XML::RSS
 		XML::Atom
-	} ); # 3 (10)
+	} ); # 3 (11)
 
 	# E-mail Modules prerequisites
 	$self->install_modules( qw{
@@ -712,12 +715,12 @@ sub install_satori_modules_5 {
 		Test::MinimumVersion
 		Date::Format
 		Mail::Address
-	} ); # 10 (20)
+	} ); # 10 (21)
 
 	# E-mail Modules
 	$self->install_modules( qw{
 		Email::Valid
-	} ); # 1 (21)
+	} ); # 1 (22)
 
 	# 0.100450 depends on modules that weren't on CPAN as of 2/15/2010,
 	# so we're forcing the version for a little while.
@@ -725,20 +728,20 @@ sub install_satori_modules_5 {
 		name     => 'RJBS/Email-Sender-0.100460.tar.gz',
 		mod_name => 'Email::Sender',
 		makefilepl_param => ['INSTALLDIRS=vendor'],
-	); # 1 (22)
+	); # 1 (23)
 
 	# Localizing changes to environment for building purposes.
 	{
 		local $ENV{TZ} = 'PST8PDT';
 		$self->install_module( name => 'Time::ParseDate' );
-	} # 1 (23)
+	} # 1 (24)
 	
 	# Last of Web Development
 	# (HTML::FormFu requires the Email:: stuff.)
 	$self->install_modules( qw{
 		HTML::FormFu
 		Catalyst::Controller::HTML::FormFu
-	} ); # 2 (25)
+	} ); # 2 (26)
 
 	# Useful Command-line Tools prerequisites
 	$self->install_modules( qw{
@@ -868,7 +871,6 @@ sub install_other_modules_1 {
 		XML::XPathEngine
 		XML::DOM::XPath
 		XML::Simple
-		HTML::TreeBuilder
 		XML::Twig
 		PostScript::TextBlock
 		Array::Compare
