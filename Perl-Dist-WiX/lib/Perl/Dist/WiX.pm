@@ -2764,6 +2764,12 @@ EOF
 			id           => 'PerlSiteFolder',
 		) );
 	$self->_add_fragment(
+		'CreatePerlSiteBin',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'PerlSiteBin',
+			id           => 'PerlSiteBinFolder',
+		) );
+	$self->_add_fragment(
 		'CreateCpanplus',
 		Perl::Dist::WiX::Fragment::CreateFolder->new(
 			directory_id => 'Cpanplus',

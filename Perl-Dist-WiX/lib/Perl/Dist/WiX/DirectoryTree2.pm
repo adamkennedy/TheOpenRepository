@@ -131,6 +131,9 @@ sub initialize_tree {
 	my $perl = $self->get_directory_object('D_Perl');
 	$perl->add_directories_id( 'PerlSite', 'site' );
 
+	my $perlsite = $self->get_directory_object('D_PerlSite');
+	$perlsite->add_directories_id( 'PerlSiteBin', 'bin' );
+
 	my $cpan = $self->get_directory_object('D_Cpan');
 	$cpan->add_directories_id( 'CpanSources', 'sources' );
 
@@ -143,7 +146,6 @@ sub initialize_tree {
 	  c\\share
 	  perl\\bin
 	  perl\\lib\\auto
-	  perl\\site\\bin
 	  perl\\site\\lib\\auto
 	  perl\\vendor\\lib\\auto\\share\\dist
 	  perl\\vendor\\lib\\auto\\share\\module
