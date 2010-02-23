@@ -2167,7 +2167,8 @@ sub _build_perl_version_literal {
 		'589'  => '5.008009',
 		'5100' => '5.010000',
 		'5101' => '5.010001',
-		'git'  => '5.011001',
+		'5115' => '5.011005',
+		'git'  => '5.011005',
 	  }->{ $self->perl_version() }
 	  || 0;
 
@@ -2207,6 +2208,7 @@ sub _build_perl_version_human {
 		'589'  => '5.8.9',
 		'5100' => '5.10.0',
 		'5101' => '5.10.1',
+		'5115' => '5.11.5',
 		'git'  => 'git',
 	  }->{ $self->perl_version() }
 	  || 0;
@@ -2489,6 +2491,7 @@ sub msi_perl_version {
 		'589'  => [ 5, 8,  9 ],
 		'5100' => [ 5, 10, 0 ],
 		'5101' => [ 5, 10, 1 ],
+		'5115' => [ 5, 11, 5 ],
 		'git'  => [ 5, 0,  0 ],
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
@@ -2517,6 +2520,7 @@ sub msi_perl_major_version {
 		'589'  => [ 5, 8,  0 ],
 		'5100' => [ 5, 9,  255 ],
 		'5101' => [ 5, 10, 0 ],
+		'5115' => [ 5, 11, 5 ],
 		'git'  => [ 5, 0,  0 ],
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
@@ -3269,7 +3273,7 @@ sub write_merge_module {
 			Perl::Dist::WiX::DirectoryTree2->new(
 				app_dir  => $self->image_dir(),
 				app_name => $self->app_name(),
-			  )->initialize_short_tree( $self->perl_version ) );
+			  )->initialize_short_tree( $self->perl_version() ) );
 
 		$self->_set_in_merge_module(0);
 

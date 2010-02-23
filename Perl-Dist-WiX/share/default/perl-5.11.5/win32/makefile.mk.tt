@@ -1555,7 +1555,7 @@ distclean: realclean
 	-if exist $(LIBDIR)\Module\Pluggable rmdir /s /q $(LIBDIR)\Module\Pluggable
 	-if exist $(LIBDIR)\IO rmdir /s /q $(LIBDIR)\IO
 	-if exist $(LIBDIR)\IPC rmdir /s /q $(LIBDIR)\IPC
- 	-if exist $(LIBDIR)\List rmdir /s /q $(LIBDIR)\List
+	-if exist $(LIBDIR)\List rmdir /s /q $(LIBDIR)\List
 	-if exist $(LIBDIR)\Locale rmdir /s /q $(LIBDIR)\Locale
 	-if exist $(LIBDIR)\Log rmdir /s /q $(LIBDIR)\Log
 	-if exist $(LIBDIR)\Math rmdir /s /q $(LIBDIR)\Math
@@ -1579,7 +1579,7 @@ distclean: realclean
 	-if exist $(LIBDIR)\Term\UI rmdir /s /q $(LIBDIR)\Term\UI
 	-if exist $(LIBDIR)\Test rmdir /s /q $(LIBDIR)\Test
 	-if exist $(LIBDIR)\Thread rmdir /s /q $(LIBDIR)\Thread
- 	-if exist $(LIBDIR)\threads rmdir /s /q $(LIBDIR)\threads
+	-if exist $(LIBDIR)\threads rmdir /s /q $(LIBDIR)\threads
 	-if exist $(LIBDIR)\Unicode\Collate rmdir /s /q $(LIBDIR)\Unicode\Collate
 	-if exist $(LIBDIR)\XS rmdir /s /q $(LIBDIR)\XS
 	-if exist $(LIBDIR)\Win32API rmdir /s /q $(LIBDIR)\Win32API

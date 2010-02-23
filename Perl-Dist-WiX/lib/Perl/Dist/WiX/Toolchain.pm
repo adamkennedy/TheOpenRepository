@@ -12,7 +12,7 @@ use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_100';
 $VERSION =~ s/_//ms;
 
 extends qw(
@@ -185,6 +185,7 @@ sub _modules_build {
 	$modules{'5.010000'} = $modules{'5.008009'};
 	$modules{'5.010001'} = $modules{'5.008009'};
 	$modules{'5.011001'} = $modules{'5.008009'};
+	$modules{'5.011005'} = $modules{'5.008009'};
 
 	return \%modules;
 } ## end sub _modules_build
@@ -196,6 +197,7 @@ sub _corelist_version_build {
 		'5.010000' => '5.010000',
 		'5.010001' => '5.010001',
 		'5.011001' => '5.011001',
+		'5.011005' => '5.011005',
 	);
 
 	return \%corelist;
