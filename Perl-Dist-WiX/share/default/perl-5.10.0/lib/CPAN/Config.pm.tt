@@ -23,6 +23,7 @@ $CPAN::Config = {
   'unzip' => q[ ],
   'wget' => q[ ],
   'load_module_verbosity' => 'none',
+  'yaml_module' => 'YAML::Syck',
 };
 1;
 __END__

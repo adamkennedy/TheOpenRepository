@@ -179,6 +179,7 @@ sub _modules_build {
 			  HTML::Tagset
 			  HTML::Parser
 			  LWP::UserAgent
+			  YAML::Syck
 			  }
 		],
 	);
