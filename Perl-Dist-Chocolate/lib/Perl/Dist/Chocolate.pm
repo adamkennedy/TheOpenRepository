@@ -478,22 +478,28 @@ sub install_satori_modules_2 {
 		String::Formatter
 		File::ShareDir::Install
 		File::chdir
-	} );  # 29 (53)
+		Sub::Exporter::ForMethods
+		String::Truncate
+		Pod::Elemental
+		Pod::Weaver
+		Pod::Elemental::PerlMunger
+	} );  # 31 (55)
 	
 	# Module Development
 	$self->install_modules( qw{
 		Perl::Version
 		Dist::Zilla
+		Dist::Zilla::Plugin::PodWeaver
 		Perl::Critic
 		Perl::Critic::More
 		Carp::Always
 		Modern::Perl
 		CPAN::Uploader
-	} ); # 7 (60)
+	} ); # 8 (63)
 	$self->install_module(
 		name => 'Devel::NYTProf',
 		force => 1,
-	); # 1 (61)
+	); # 1 (64)
 
 	# Database Development: DBI and DBD::SQLite are already installed.
 	# Because of the large numbers of prerequisites, I'm
@@ -511,7 +517,7 @@ sub install_satori_modules_2 {
 		Module::Find
 		Data::Dumper::Concise
 		DBIx::Class
-	} ); # 11 (72)
+	} ); # 11 (75)
 
 	return 1;
 }
@@ -792,13 +798,12 @@ sub install_satori_modules_5 {
 	# directly. A patch will be offered.
 	
 	# Asynchronous Programming and prerequisites
-# POE 1.286 fails a test.
-#	$self->install_modules( qw{
-#		Win32::Console
-#		Win32::Job
-#		POE::Test::Loops
-#		POE
-#	} ); # 4 (50)
+	$self->install_modules( qw{
+		Win32::Console
+		Win32::Job
+		POE::Test::Loops
+		POE
+	} ); # 4 (50)
 
 	# Final tasks
 #	$self->install_modules( qw{
