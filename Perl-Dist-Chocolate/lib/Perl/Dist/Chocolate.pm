@@ -1020,7 +1020,6 @@ sub install_chocolate_extras {
 #		working_dir => $dir_id,
 #		icon_id     => $chocolate_icon_id,
 #	);
-
 	
 	$self->install_website(
 		name       => 'Catalyst Web Framework',
@@ -1029,7 +1028,7 @@ sub install_chocolate_extras {
 	);
 	
 	$self->install_website(
-		name       => 'Moose Web Framework',
+		name       => 'Moose - Object Orientation for Perl',
 		url        => 'http://moose.perl.org/',
 		icon_file  => catfile($dist_dir, 'chocolate.ico')
 	);
