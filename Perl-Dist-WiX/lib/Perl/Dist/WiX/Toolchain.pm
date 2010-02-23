@@ -12,7 +12,7 @@ use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
 
-our $VERSION = '1.102_100';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 extends qw(
