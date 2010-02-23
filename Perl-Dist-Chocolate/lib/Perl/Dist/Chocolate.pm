@@ -276,6 +276,7 @@ sub install_satori_modules_1 {
 	} ); # 1 (10)
 		
 	# Config Modules and prerequisites
+	# TODO: Take out JSON::Syck once using 5.10.1.2.
 	$self->install_modules( qw{
 		JSON::Syck
 		Config::General
