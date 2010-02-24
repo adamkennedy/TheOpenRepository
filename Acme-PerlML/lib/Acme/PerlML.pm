@@ -80,6 +80,12 @@ well... 1998 to... erm... 2002... ish. :/
 The code continues to work exactly as it did before, but now it looks
 like this:
 
+    use Acme::PerlML;
+    <document><token_whitespace>
+    </token_whitespace><statement><token_word>print</token_word><token_whitespace>
+    </token_whitespace><token_quote_double>&quot;Hello
+    World!\n&quot;</token_quote_double><token_structure>;</token_structure></statement><token_whitespace>
+
 =head1 SEE ALSO
 
 L<Acme::Bleach>, L<Acme::Pony>, L<PPI>, L<Perl::SAX>, L<http://ali.as/>
