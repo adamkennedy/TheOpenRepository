@@ -276,7 +276,6 @@ sub install_satori_modules_1 {
 	} ); # 1 (10)
 		
 	# Config Modules and prerequisites
-	# TODO: Take out JSON::Syck once using 5.10.1.2.
 	$self->install_modules( qw{
 		JSON::Syck
 		Config::General
@@ -342,6 +341,7 @@ sub install_satori_modules_1 {
 		name => 'File::NFSLock',
 		force => 1,
 	); # 1 (48)
+	# TODO: Take out YAML::XS once we're based on 5.10.1.2
 	$self->install_modules( qw{
 		Test::TempDir
 		Best
@@ -905,6 +905,12 @@ sub install_other_modules_1 {
 	$self->install_modules( qw{
 		Perl::Shell
 	} ); # 1 (34)
+	
+	# Colorize the CPAN shell.
+	$self->install_modules( qw{
+		Win32::Pipe
+		Win32::Console::ANSI
+	} ); # 2 (36)
 	
 	# The "pmtools". Bad tar file. May redo for Alpha 2.
 #	$self->install_modules( qw{
