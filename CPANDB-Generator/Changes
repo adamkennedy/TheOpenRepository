@@ -1,5 +1,9 @@
 Changes for Perl extension CPANDB-Generator
 
+0.20 Sun 24 Jan 2010
+	- Integrating initial support for ORDB::CPANRT
+	- Bug fix in foreign reference for dependency table.
+
 0.19 Sat 29 Aug 2009
 	- Removed Acme:: from the Heavy 100, which should make the
 	  graph actually useful.

@@ -53,7 +53,7 @@ use Algorithm::Dependency             1.108 ();
 use Algorithm::Dependency::Weight           ();
 use Algorithm::Dependency::Source::DBI 1.06 ();
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 use Object::Tiny 1.06 qw{
 	cpan
@@ -238,6 +238,13 @@ sub run {
 		show_progress => 1,
 	} );
 
+	# Load the CPAN RT database
+	$self->say("Fetching CPAN RT...");
+	require ORDB::CPANRT;
+	ORDB::CPANRT->import( {
+		show_progress => 1,
+	} );
+
 	# Load the CPAN Testers database
 	$self->say("Fetching CPAN Testers... (This may take a while)");
 	require ORDB::CPANTesters;
@@ -273,6 +280,7 @@ sub run {
 	$self->do( "ATTACH DATABASE ? AS cpan",    {}, $self->cpan_sql           );
 	$self->do( "ATTACH DATABASE ? AS upload",  {}, ORDB::CPANUploads->sqlite );
 	$self->do( "ATTACH DATABASE ? AS testers", {}, ORDB::CPANTesters->sqlite );
+	$self->do( "ATTACH DATABASE ? AS rt",      {}, ORDB::CPANRT->sqlite      );
 
 	# Pre-process the cpan data to produce cleaner intermediate
 	# temp tables that produce better joins later on.
@@ -554,7 +562,7 @@ CREATE TABLE dependency (
 	phase TEXT NOT NULL,
 	core REAL NULL,
 	PRIMARY KEY ( distribution, dependency, phase ),
-	FOREIGN KEY ( distribution ) REFERENCES distribition ( distribution ),
+	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution ),
 	FOREIGN KEY ( dependency ) REFERENCES distribution ( distribution )
 )
 END_SQL

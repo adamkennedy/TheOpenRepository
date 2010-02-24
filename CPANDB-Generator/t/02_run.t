@@ -13,7 +13,7 @@ use File::Remove          'clear';
 use CPANDB::Generator     ();
 BEGIN {
 	unless ( $ENV{ADAMK_CHECKOUT} ) {
-		plan( skip_all => 'Only run by the author' );
+		plan( skip_all => 'Only run by the author: No ADAMK_CHECKOUT variable' );
 	}
 	unless ( $^O eq 'MSWin32' ) {
 		plan( skip_all => 'Only runs on Win32' );
