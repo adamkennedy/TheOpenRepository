@@ -49,10 +49,10 @@ Readonly my %PACKAGES => (
 #		'w32api'        => 'w32api-3.10.tar.gz',
 	},
 	'32bit-gcc4' => {
-		'dmake'      => '32bit-gcc4/dmake-SVN20091127-bin_20100120.zip',
-		'mingw-make' => '32bit-gcc4/gmake-3.81-20090914-bin_20010120.zip',
-		'pexports'   => '32bit-gcc4/pexports-0.43-1.zip',
-		'gcc-toolchain' => '32bit-gcc4/mingw-w32-20091019_subset.7z',
+		'dmake'         => '32bit-gcc4/dmake-SVN20091127-bin_20100120.zip',
+		'mingw-make'    => '32bit-gcc4/gmake-3.81-20090914-bin_20010120.zip',
+		'pexports'      => '32bit-gcc4/pexports-0.44-bin_20100120.zip',
+		'gcc-toolchain' => '32bit-gcc4/mingw64-w32-20100123-kmx.zip',
 	},
 	'64bit-gcc4' => {
 		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
@@ -155,10 +155,12 @@ sub install_gcc_toolchain {
 	my $filelist = $self->install_binary(
 		name    => 'gcc-toolchain',
 		url     => $self->_binary_url('gcc-toolchain'),
-		license => {
-			'COPYING'     => 'gcc/COPYING',
-			'COPYING.lib' => 'gcc/COPYING.lib',
-		},
+		(32 == $self->bits()) ? (
+			license => {
+				'COPYING'     => 'gcc/COPYING',
+				'COPYING.lib' => 'gcc/COPYING.lib',
+			},
+		) : (),
 	);
 
 	$self->insert_fragment( 'gcc_toolchain', $filelist );

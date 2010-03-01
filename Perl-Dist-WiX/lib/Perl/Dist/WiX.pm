@@ -2620,7 +2620,7 @@ Used in the makefile.mk template for 5.11.5+ to activate Win64 building.
 
 =cut
 
-sub mk_win64
+sub mk_win64 {
 	my $self = shift;
 
 	return ( 64 == $self->bits() ) ? 'WIN64' : '#WIN64';
@@ -2634,7 +2634,7 @@ Used in the makefile.mk template for 5.11.5+ to activate building a debugging pe
 
 =cut
 
-sub mk_debug
+sub mk_debug {
 	my $self = shift;
 
 	return ( $self->perl_debug() ) ? 'CFG' : '#CFG';
@@ -2648,7 +2648,7 @@ Used in the makefile.mk template for 5.11.5+ to activate building with gcc4.
 
 =cut
 
-sub mk_gcc4
+sub mk_gcc4 {
 	my $self = shift;
 
 	return ( 4 == $self->gcc_version() ) ? 'GCC_4XX' : '#GCC_4XX';
@@ -2662,7 +2662,7 @@ helper dll for our gcc4 packs.
 
 =cut
 
-sub mk_gcc4_dll
+sub mk_gcc4_dll {
 	my $self = shift;
 
 	return ( 4 == $self->gcc_version() ) ? 'GCCHELPERDLL' : '#GCCHELPERDLL';
