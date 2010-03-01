@@ -28,7 +28,7 @@ INST_TOP	*= [% INST_TOP %]
 #
 # Uncomment if you want to build a 32-bit Perl using a 32-bit compiler
 # on a 64-bit version of Windows.
-#WIN64     *= undef
+[% dist.mk_win64 %]	*= undef
 
 #
 # Comment this out if you DON'T want your perl installation to be versioned.
@@ -137,7 +137,7 @@ CCTYPE		*= GCC
 # If not enabled, we automatically try to use maximum optimization
 # with all compilers that are known to have a working optimizer.
 #
-#CFG		*= Debug
+[% dist.mk_debug %]	*= Debug
 
 #
 # uncomment to enable use of PerlCRT.DLL when using the Visual C compiler.
@@ -190,7 +190,7 @@ CRYPT_SRC	*= fcrypt.c
 #DEBUG_MSTATS	*= define
 
 #
-# set this to additionally provide a statically linked perl-static.exe.
+ set this to additionally provide a statically linked perl-static.exe.
 # Note that dynamic loading will not work with this perl, so you must
 # include required modules statically using the STATIC_EXT or ALL_STATIC
 # variables below. A static library perl511s.lib will also be created.
@@ -235,8 +235,8 @@ CCLIBDIR	*= $(CCHOME)\lib
 # unsure about the correct name.)
 # Without these corrections, the op/taint.t test script will fail.
 #
-#GCC_4XX       *= define
-#GCCHELPERDLL  *= $(CCHOME)\bin\libgcc_s_sjlj-1.dll
+[% dist.mk_gcc4 %]	*= define
+[% dist.mk_gcc4_dll %]	*= $(CCHOME)\bin\libgcc_s_sjlj-1.dll
 #GCCHELPERDLL  *= $(CCHOME)\bin\libgcc_s_dw2-1.dll
 #GCCHELPERDLL  *= $(CCHOME)\bin\libgcc_s_1.dll
 

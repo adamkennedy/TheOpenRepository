@@ -471,7 +471,7 @@ The C<install_perl> method is a minimal routine provided to call the
 correct L<install_perl_*|/install_perl_*> routine for the version of perl 
 being created.
 
-Returns true (technically, the object that called it), or throws an exception.
+Returns true or throws an exception.
 
 This is recommended to be used as a task in the tasklist, and is in 
 the default tasklist after the "c toolchain" is installed.

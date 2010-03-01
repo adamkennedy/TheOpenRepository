@@ -1533,6 +1533,23 @@ sub _build_perl_config_cf_by {
 
 
 
+=head3 perl_debug
+
+The optional boolean C<perl_debug> parameter is used to indicate that
+a debugging perl interpreter will be created.
+
+This only applies to 5.11.5 as of yet.
+
+=cut
+
+has 'perl_debug' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
 =head3 perl_version
 
 The C<perl_version> parameter specifies what version of perl is downloaded 
@@ -2594,6 +2611,62 @@ sub get_component_array {
 
 	return @answer;
 } ## end sub get_component_array
+
+
+
+=head3 mk_win64 {
+
+Used in the makefile.mk template for 5.11.5+ to activate Win64 building. 
+
+=cut
+
+sub mk_win64
+	my $self = shift;
+
+	return ( 64 == $self->bits() ) ? 'WIN64' : '#WIN64';
+}
+
+
+
+=head3 mk_debug {
+
+Used in the makefile.mk template for 5.11.5+ to activate building a debugging perl. 
+
+=cut
+
+sub mk_debug
+	my $self = shift;
+
+	return ( $self->perl_debug() ) ? 'CFG' : '#CFG';
+}
+
+
+
+=head3 mk_gcc4 {
+
+Used in the makefile.mk template for 5.11.5+ to activate building with gcc4. 
+
+=cut
+
+sub mk_gcc4
+	my $self = shift;
+
+	return ( 4 == $self->gcc_version() ) ? 'GCC_4XX' : '#GCC_4XX';
+}
+
+
+=head3 mk_gcc4_dll {
+
+Used in the makefile.mk template for 5.11.5+ to activate using the correct 
+helper dll for our gcc4 packs. 
+
+=cut
+
+sub mk_gcc4_dll
+	my $self = shift;
+
+	return ( 4 == $self->gcc_version() ) ? 'GCCHELPERDLL' : '#GCCHELPERDLL';
+}
 
 
 
