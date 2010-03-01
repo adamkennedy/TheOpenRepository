@@ -2550,7 +2550,6 @@ Returns the value to be used for perl -V:myuname, which is in this pattern:
 =cut
 
 # For template.
-# MSI versions are 3 part, not 4, with the maximum version being 255.255.65535
 sub perl_config_myuname {
 	my $self = shift;
 
@@ -2568,7 +2567,7 @@ sub perl_config_myuname {
 	my $bits = ( 64 == $self->bits() ) ? 'x86_64' : 'i386';
 
 	return join q{ }, 'Win32', $self->app_id(), $version, '#1',
-	  $self->_build_start_time(), 'i386';
+	  scalar localtime $self->_build_start_time(), $bits;
 
 } ## end sub perl_config_myuname
 
