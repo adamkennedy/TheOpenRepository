@@ -202,25 +202,17 @@ EOF
 		$self->_make(qw/install UNINST=1/);
 	} ## end SCOPE:
 
-# TODO: Reactivate once the toolchain and p5p people let me
-# do the reordering.
-#	$self->_trace_line( 2, "Copying sitecustomize.pl...\n" );
-#	$self->_copy(
-#		catfile(
-#			$self->_get_wix_dist_dir,
-#			qw(default perl site lib sitecustomize.pl)
-#		),
-#		catfile(
-#			$self->_get_image_dir, qw(perl site lib sitecustomize.pl)
-#		),
-#	);
-
+	$self->_copy(
+		catdir ($self->_get_image_dir(), 'c',    'bin', 'libgcc_s_sjlj-1.dll'),
+		catdir ($self->_get_image_dir(), 'perl', 'bin', 'libgcc_s_sjlj-1.dll'),
+	);
+		
 	my $fl_lic = File::List::Object->new()
-	  ->readdir( catdir( $self->_get_image_dir, 'licenses', 'perl' ) );
+	  ->readdir( catdir( $self->_get_image_dir(), 'licenses', 'perl' ) );
 	$self->_insert_fragment( 'perl_licenses', $fl_lic );
 
 	my $fl = File::List::Object->new()
-	  ->readdir( catdir( $self->_get_image_dir, 'perl' ) );
+	  ->readdir( catdir( $self->_get_image_dir(), 'perl' ) );
 	$fl->subtract($fl2)->filter( $self->_filters );
 	$self->_insert_fragment( 'perl', $fl, 1 );
 

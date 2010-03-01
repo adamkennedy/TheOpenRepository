@@ -895,11 +895,12 @@ sub install_perl_toolchain {
 			# so testing cannot be automated.
 			$automated_testing = 1;
 		}
-		if ( $dist =~ /TermReadKey-2 [.] 30/msx ) {
-
-			# Upgrading to this version, instead...
-			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
-		}
+# TODO: Remove this code.
+#		if ( $dist =~ /TermReadKey-2 [.] 30/msx ) {
+#
+#			# Upgrading to this version, instead...
+#			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
+#		}
 		if ( $dist =~ /Test-Harness-3 [.] 20/msx ) {
 
 			# 3.20 has a test bug... waiting for RT#54028
