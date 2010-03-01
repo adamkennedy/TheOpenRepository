@@ -1,6 +1,7 @@
 Revision history for Perl extension Class-Autouse
+
 1.99_04 Mon  8 Jun 2009
-	- Upgrading to Module::Install 0.91
+	- Upgrading to Module::Install::DSL 0.94
 	- Bumping minimum version of Perl to 5.006
 	- Fixing indenting, style and layout issues.
 	- Added debugging entries to all the new code.
