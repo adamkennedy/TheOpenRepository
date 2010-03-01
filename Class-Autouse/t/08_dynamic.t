@@ -52,17 +52,17 @@ sub failed_test {
 # Try all possible combinations of use cases.
 # Number the use case.  
 # Make a fresh set of classes for each case using the case number in the names.
-my $n = 0;
-my @file_types = qw/use_file autouse_file autouse_callback autouse_regex/;
-my @uses = qw/can isa regular_method autoload_method/; 
-my @targets = qw/self parent grandparent/;
 my $retval;
-for my $class_type (@file_types) {
-	for my $parent_class_type (@file_types) {
-		for my $grandparent_class_type (@file_types) {
-			for my $first_use (@uses) {
-				for my $first_use_target (@targets) {
-
+my $n          = 0;
+my @file_types = qw/ use_file autouse_file autouse_callback autouse_regex /;
+my @uses       = qw/ can isa regular_method autoload_method /; 
+my @targets    = qw/ self parent grandparent /;
+my %statistics = ();
+for my $class_type ( @file_types ) {
+	for my $parent_class_type ( @file_types ) {
+		for my $grandparent_class_type ( @file_types ) {
+			for my $first_use ( @uses ) {
+				for my $first_use_target ( @targets ) {
 					$n++;
 					my $cname = "C$n"; # child
 					my $pname = "P$n"; # parent
@@ -137,7 +137,7 @@ for my $class_type (@file_types) {
 							}
 						}
 
-						# target one of the levels of the inheritance hierarchy
+						# Target one of the levels of the inheritance hierarchy
 						# some test will try each of these
 						my $target_class_name;
 						if ($first_use_target eq 'self') {
@@ -152,12 +152,22 @@ for my $class_type (@file_types) {
 						else {
 							die "unknown first use target $first_use_target";
 						}
-					
-					  
-						# attempt the given use case
+
+						# Attempt the given use case
 						if ($first_use eq 'isa') {
-							class_isa_ok($cname,$target_class_name,"$cname isa $target_class_name for $msg")
-								or failed_test();
+							unless ( class_isa_ok($cname,$target_class_name,"$cname isa $target_class_name for $msg") ) {
+								failed_test();
+								$statistics{all}++;
+								$statistics{$class_type}++;
+								$statistics{$parent_class_type}++;
+								$statistics{$grandparent_class_type}++;
+								$statistics{"isa.$class_type"}++;
+								$statistics{"isa.$parent_class_type"}++;
+								$statistics{"isa.$grandparent_class_type"}++;
+								$statistics{"isa.class.$class_type"}++;
+								$statistics{"isa.parent.$parent_class_type"}++;
+								$statistics{"isa.grand.$grandparent_class_type"}++;
+							}
 						}
 						else {
 							if ($first_use eq 'can') {
@@ -168,12 +178,25 @@ for my $class_type (@file_types) {
 								if ($code) {
 									no strict 'refs';
 									no strict 'subs';
-									is($code->(), $cname->$target_method_name(), "values match for $msg")
-										or failed_test();
+									is(
+										$code->(),
+										$cname->$target_method_name(),
+										"values match for $msg",
+									) or failed_test();
 								}   
 								else {
 									fail("got method $target_method_name for $msg");
 									failed_test();
+									$statistics{all}++;
+									$statistics{$class_type}++;
+									$statistics{$parent_class_type}++;
+									$statistics{$grandparent_class_type}++;
+									$statistics{"can.$class_type"}++;
+									$statistics{"can.$parent_class_type"}++;
+									$statistics{"can.$grandparent_class_type"}++;
+									$statistics{"can.class.$class_type"}++;
+									$statistics{"can.parent.$parent_class_type"}++;
+									$statistics{"can.grand.$grandparent_class_type"}++;
 								}
 							}
 							elsif ($first_use eq 'regular_method' or $first_use eq 'autoload_method') {
@@ -223,6 +246,8 @@ for my $class_type (@file_types) {
 		}
 	}
 }
+
+$DB::single = 1;
 
 sub mkfile {
 	my (%args) = @_;

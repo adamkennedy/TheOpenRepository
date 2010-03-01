@@ -15,17 +15,16 @@ use File::Spec 0.80 ();
 use List::Util 1.18 ();
 use Scalar::Util    ();
 
-# Avoid a 5.6 bug where a constant set to undef throws a "useless use of
-# constant in void context" warning.
-use vars qw{$DEBUG};
+# Handle optimisation switches via constants to allow debugging and
+# similar functions to be optimised out at compile time if not in use.
+use vars qw{$DB $DEBUG};
 BEGIN {
-	$DEBUG ||= 0;
+	$DB    = 0 unless defined &DB::DB;
+	$DEBUG = 0 unless defined $DEBUG;
 }
-
-# Handle the debugging switch via a constant to allow debugging
-# to be optimised out at compile time if not needed.
-use constant DEBUG => $DEBUG;
-print "Class::Autouse::autoload -> Debugging Activated.\n" if DEBUG;
+use constant DB    => !! $DB;
+use constant DEBUG => !! $DEBUG;
+print "Class::Autouse -> Debugging Activated.\n" if DEBUG;
 
 # Globals
 use vars qw{ $VERSION @ISA };
@@ -35,7 +34,7 @@ use vars qw{ @LOADERS @SUGAR $HOOKS $ORIGINAL_CAN $ORIGINAL_ISA }; # Working inf
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
-	$VERSION = '1.99_03';
+	$VERSION = '1.99_04';
 
 	# Become an exporter so we don't get complaints when we act as a pragma.
 	# I don't fully understand the reason for this, but it works and I can't
@@ -267,7 +266,7 @@ sub load {
 	my $class = $_[1] or _cry('No class name specified to load');
 	return 1 if $LOADED{$class};
 
-	my @search = _load_super( $class, \&_load );
+	my @search = _super( $class, \&_load );
 
 	# If called an an array context, return the ISA tree.
 	# In scalar context, just return true.
@@ -367,7 +366,7 @@ sub _AUTOLOAD {
 # This is a special version of the above for use in UNIVERSAL
 # It does the :superloader, and/or also any regex or callback (code ref) loaders
 sub _UNIVERSAL_AUTOLOAD {
-	_debug(\@_, 0, ", AUTOLOAD = '$Class::Autouse::_UNIVERSAL_AUTOLOAD'") if DEBUG;
+	_debug(\@_, 0, ", \$AUTOLOAD = '$Class::Autouse::AUTOLOAD'") if DEBUG;
 
 	# Loop detection ( Just in case )
 	my $method = $Class::Autouse::AUTOLOAD or _cry('Missing method name');
@@ -394,7 +393,7 @@ sub _UNIVERSAL_AUTOLOAD {
 			if ( $fref ) {
 				goto $fref;
 			} else {
-				@search = _load_super($class);
+				@search = _super($class);
 			}
 		}
 	}
@@ -434,7 +433,7 @@ sub _isa {
 	# Load the class, unless we are sure it is already
 	my $class = ref $_[0] || $_[0] || return undef;
 	unless ( $TRIED_CLASS{$class} or $LOADED{$class} ) {
-		_preload_class($_[0]);
+		_preload($_[0]);
 	}
 
 	goto &{$ORIGINAL_ISA};
@@ -448,7 +447,7 @@ sub _can {
 	# Load the class, unless we are sure it is already
 	my $class = ref $_[0] || $_[0] || return undef;
 	unless ( $TRIED_CLASS{$class} or $LOADED{$class} ) {
-		_preload_class($_[0]);
+		_preload($_[0]);
 	}
 
 	goto &{$ORIGINAL_CAN};
@@ -461,7 +460,7 @@ sub _can {
 #####################################################################
 # Support Functions
 
-sub _preload_class {
+sub _preload {
 	_debug(\@_) if DEBUG;
 
 	# Does it look like a package?
@@ -558,12 +557,12 @@ sub _try_loaders {
 sub _load_ancestors {
 	_debug(\@_, 0) if DEBUG;
 	my $class = $_[0];
-	my ($this_class,@ancestors) = _load_super($class);
+	my ($this_class,@ancestors) = _super($class);
 	for my $ancestor ( @ancestors ) {
-		# this is a bit ugly, _preload_class presumes either isa or can is being called,
+		# this is a bit ugly, _preload presumes either isa or can is being called,
 		# and does a goto at the end of it, we just want the core logic, not the redirection
 		# so we pass undef as the subref parameter
-		_preload_class($ancestor);
+		_preload($ancestor);
 	}
 	if ( $STATICISA ) {
 		# Optional performance optimization.
@@ -580,7 +579,7 @@ sub _load_ancestors {
 
 # This walks the @ISA tree, optionally calling a subref on each class
 # and returns the inherited classes in a list, including $class itself.
-sub _load_super {
+sub _super {
 	_debug(\@_) if DEBUG;
 	my $class  = shift;
 	my $load   = shift;
@@ -621,10 +620,8 @@ sub _load ($) {
 	if ( defined $INC{$file} ) {
 		# If the %INC lock is set to any other value, the file is
 		# already loaded. We do not need to do anything.
-		if ($INC{$file} ne 'Class::Autouse') {
-			$LOADED{$class} = 1;
-			_load_ancestors($class);
-			return 1;
+		if ( $INC{$file} ne 'Class::Autouse') {
+			return $LOADED{$class} = 1;
 		}
 
 		# Because we autoused it earlier, we know the file for this
@@ -633,21 +630,26 @@ sub _load ($) {
 		delete ${"${class}::"}{'AUTOLOAD'};
 		delete $INC{$file};
 
-	} elsif ( ! _file_exists($file) ) {
-		# File doesn't exist. We might still be OK, if the class was
-		# defined in some other module that got loaded a different way.
-		return $LOADED{$class} = 1 if _namespace_occupied($class);
+	} elsif ( not _file_exists($file) ) {
+		# We might still be loaded, if the class was defined
+		# in some other module without it's own file.
+		if ( _namespace_occupied($class) ) {
+			return $LOADED{$class} = 1;
+		}
 
+		# Not loaded and no file either.
+		# Try to generate the class instead.
 		if ( _try_loaders($class) ) {
 			return 1;
 		}
 
+		# We've run out of options, it just doesn't exist
 		my $inc = join ', ', @INC;
 		_cry("Can't locate $file in \@INC (\@INC contains: $inc)");
 	}
 
-	# Load the file
-	print _depth(1) . "  Class::Autouse -> Loading in $file\n" if DEBUG;
+	# Load the file for this class
+	print _depth(1) . "  Class::Autouse::load -> Loading in $file\n" if DEBUG;
 	eval {
 		CORE::require($file);
 	};
@@ -657,7 +659,7 @@ sub _load ($) {
 	--$HOOKS or _UPDATE_HOOKS();
 
 	$LOADED{$class} = 1;
-	_load_ancestors($class);
+	# _load_ancestors($class);
 	return 1;
 }
 
