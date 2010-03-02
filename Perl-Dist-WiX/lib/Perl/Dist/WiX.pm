@@ -2670,6 +2670,23 @@ sub mk_gcc4_dll {
 
 
 
+=head3 mk_extralibs {
+
+Used in the makefile.mk template for 5.11.5+ to activate using the correct 
+extra library directory for our gcc4 packs. 
+
+=cut
+
+sub mk_extralibs {
+	my $self = shift;
+
+	return ( 3 == $self->gcc_version() ) ? '' 
+	     : ( 64 == $self->bits() )       ? catdir ($self->image_dir, qw(c i686-w64-mingw32 lib))
+		 :                                 catdir ($self->image_dir, qw(c i686-w64-mingw32 lib));
+}
+
+
+
 #####################################################################
 # Top Level Process Methods
 

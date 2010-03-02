@@ -287,7 +287,7 @@ BUILDOPT	*= $(BUILDOPTEXTRA)
 # specify semicolon-separated list of extra directories that modules will
 # look for libraries (spaces in path names need not be quoted)
 #
-EXTRALIBDIRS	*=
+EXTRALIBDIRS	*= [% dist.mk_extralibs %]
 
 #
 # set this to point to cmd.exe (only needed if you use some
