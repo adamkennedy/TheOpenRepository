@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use base qw(Class::Accessor Class::Data::Inheritable);
 use Carp qw(croak confess);
-our $VERSION = '1.40';
+our $VERSION = '1.41';
 
 sub _mk_accessors {
     my ( $self, $maker, @fields ) = @_;
