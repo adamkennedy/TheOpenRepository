@@ -38,6 +38,7 @@ SCOPE: {
 			LICENSE
 			README
 			pm_to_blib
+                        MYMETA.yml
 		};
 		my @files = sort grep {
 			! /^debian\b/
