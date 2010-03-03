@@ -202,11 +202,13 @@ EOF
 		$self->_make(qw/install UNINST=1/);
 	} ## end SCOPE:
 
-	$self->_copy(
-		catdir ($self->_get_image_dir(), 'c',    'bin', 'libgcc_s_sjlj-1.dll'),
-		catdir ($self->_get_image_dir(), 'perl', 'bin', 'libgcc_s_sjlj-1.dll'),
-	);
-		
+	if (4 == $self->_gcc_version()) {
+		$self->_copy(
+			catdir ($self->_get_image_dir(), 'c',    'bin', 'libgcc_s_sjlj-1.dll'),
+			catdir ($self->_get_image_dir(), 'perl', 'bin', 'libgcc_s_sjlj-1.dll'),
+		);
+	}
+	
 	my $fl_lic = File::List::Object->new()
 	  ->readdir( catdir( $self->_get_image_dir(), 'licenses', 'perl' ) );
 	$self->_insert_fragment( 'perl_licenses', $fl_lic );

@@ -52,6 +52,7 @@ has parent => (
 		'_patch_file'       => 'patch_file',
 		'_build'            => '_build',
 		'_make'             => '_make',
+		'_gcc_version'      => 'gcc_version',
 		'_add_to_distributions_installed' =>
 		  '_add_to_distributions_installed',
 	},
