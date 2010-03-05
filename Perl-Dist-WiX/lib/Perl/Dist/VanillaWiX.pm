@@ -39,7 +39,7 @@ use strict;
 use warnings;
 use parent qw(Perl::Dist::WiX);
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 #####################################################################
@@ -66,7 +66,7 @@ sub new {
 		%args = (@_);
 	} else {
 		PDWiX->throw(
-			'Parameters incorrect (not a hashref or hash) for ::Asset::*');
+			'Parameters incorrect (not a hashref or hash) for Perl::Dist::VanillaWiX->new');
 	}
 
 	%args = (
@@ -75,7 +75,7 @@ sub new {
 		app_id            => 'vanilla-perl',
 		app_name          => 'Vanilla Perl',
 		app_publisher     => 'Vanilla Perl Project',
-		image_dir         => 'C:\WiXTest',
+		image_dir         => 'C:\vanilla',
 		build_number      => 20,
 		%args,
 	);
