@@ -2581,7 +2581,7 @@ sub perl_config_myuname {
 		$version .= '.beta_' . $self->beta_number();
 	}
 
-	my $bits = ( 64 == $self->bits() ) ? 'x86_64' : 'i386';
+	my $bits = ( 64 == $self->bits() ) ? 'x64' : 'i386';
 
 	return join q{ }, 'Win32', $self->app_id(), $version, '#1',
 	  scalar localtime $self->_build_start_time(), $bits;
