@@ -55,10 +55,10 @@ Readonly my %PACKAGES => (
 		'gcc-toolchain' => '32bit-gcc4/mingw64-w32-20100123-kmx.zip',
 	},
 	'64bit-gcc4' => {
-		'dmake'         => 'dmake-4.8-20070327-SHAY.zip',
-		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
-		'pexports'      => 'pexports-0.43-1.zip',
-		'gcc-toolchain' => 'mingw-w32-20091019_subset.7z',
+		'dmake'         => '64bit-gcc4/dmake-SVN20091127-bin_20100305.zip',
+		'mingw-make'    => '64bit-gcc4/gmake-3.81.90_20100127_20100305.zip',
+		'pexports'      => '64bit-gcc4/pexports-0.44-bin_20100110.zip',
+		'gcc-toolchain' => '64bit-gcc4/mingw64-w64-20100123-kmx.zip',
 	},
 );
 
