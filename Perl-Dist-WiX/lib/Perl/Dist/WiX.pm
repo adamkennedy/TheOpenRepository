@@ -2614,20 +2614,6 @@ sub get_component_array {
 
 
 
-=head3 mk_win64 {
-
-Used in the makefile.mk template for 5.11.5+ to activate Win64 building. 
-
-=cut
-
-sub mk_win64 {
-	my $self = shift;
-
-	return ( 64 == $self->bits() ) ? 'WIN64' : '#WIN64';
-}
-
-
-
 =head3 mk_debug {
 
 Used in the makefile.mk template for 5.11.5+ to activate building a debugging perl. 

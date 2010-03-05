@@ -770,8 +770,10 @@ sub install_perl_5115 {
 		patch      => [ qw{
 			  lib/CPAN/Config.pm
 			  win32/config.gc
+			  win32/config.gc64nox
 			  win32/config_sh.PL
 			  win32/config_H.gc
+			  win32/config_H.gc64nox
 			  }
 		],
 		license => {

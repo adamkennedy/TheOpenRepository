@@ -160,6 +160,8 @@ sub install {
 				INST_TOP => $INST_TOP,
 			} );
 
+		PDWiX->throw('Debugging stop');
+			
 		$self->_trace_line( 1, "Building perl $version...\n" );
 		$self->_make;
 
