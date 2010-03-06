@@ -555,7 +555,8 @@ sub install_perl_589 {
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal(),
-		cpan         => $self->cpan()->as_string()
+		cpan         => $self->cpan()->as_string(),
+		bits         => $self->bits(),
 	) or PDWiX->throw('Failed to resolve toolchain modules');
 	unless ( eval { $toolchain->delegate(); 1; } ) {
 		PDWiX::Caught->throw(
@@ -637,7 +638,8 @@ sub install_perl_5100 {
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal(),
-		cpan         => $self->cpan()->as_string()
+		cpan         => $self->cpan()->as_string(),
+		bits         => $self->bits(),
 	) or PDWiX->throw('Failed to resolve toolchain modules');
 	unless ( eval { $toolchain->delegate(); 1; } ) {
 		PDWiX::Caught->throw(
@@ -690,7 +692,8 @@ sub install_perl_5101 {
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan->as_string
+		cpan         => $self->cpan->as_string,
+		bits         => $self->bits(),
 	) or PDWiX->throw('Failed to resolve toolchain modules');
 	unless ( eval { $toolchain->delegate; 1; } ) {
 		PDWiX::Caught->throw(
@@ -741,7 +744,8 @@ sub install_perl_5115 {
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan->as_string
+		cpan         => $self->cpan->as_string,
+		bits         => $self->bits(),
 	) or PDWiX->throw('Failed to resolve toolchain modules');
 	unless ( eval { $toolchain->delegate; 1; } ) {
 		PDWiX::Caught->throw(
@@ -794,7 +798,8 @@ sub install_perl_git {
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan->as_string
+		cpan         => $self->cpan->as_string,
+		bits         => $self->bits(),
 	) or PDWiX->throw('Failed to resolve toolchain modules');
 	unless ( eval { $toolchain->delegate; 1; } ) {
 		PDWiX::Caught->throw(

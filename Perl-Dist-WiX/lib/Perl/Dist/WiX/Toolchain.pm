@@ -4,6 +4,7 @@ use 5.008001;
 use Moose 0.90;
 use MooseX::NonMoose;
 use MooseX::Types::Moose qw( Str Int Bool HashRef ArrayRef Maybe );
+use Moose::Util::TypeConstraints;
 use English qw( -no_match_vars );
 use Carp qw();
 use Params::Util qw( _HASH _ARRAY );
@@ -25,6 +26,7 @@ has modules => (
 	is       => 'ro',
 	isa      => HashRef [ ArrayRef [Str] ],
 	builder  => '_modules_build',
+	lazy     => 1,
 	init_arg => undef,
 	handles  => {
 		'_modules_exists' => 'exists',
@@ -97,6 +99,19 @@ has cpan => (
 	required => 1,
 );
 
+has bits => (
+	is  => 'ro',                       # Integer 32/64
+	isa => subtype(
+		'Int' => where {
+			$_ == 32 or $_ == 64;
+		},
+		message {
+			'Must be a 32 or 64-bit perl';
+		},
+	),
+	required => 1,
+);
+
 has _delegated => (
 	traits   => ['Bool'],
 	is       => 'ro',
@@ -127,60 +142,64 @@ BEGIN {
 }
 
 sub _modules_build {
+	my $self = shift;
+
+	my @modules_list = (qw {
+		ExtUtils::MakeMaker
+		File::Path
+		ExtUtils::Command
+		Win32API::File
+		ExtUtils::Install
+		ExtUtils::Manifest
+		Test::Harness
+		Test::Simple
+		ExtUtils::CBuilder
+		ExtUtils::ParseXS
+		version
+		Scalar::Util
+		Compress::Raw::Zlib
+		Compress::Raw::Bzip2
+		IO::Compress::Base
+		Compress::Bzip2
+		IO::Zlib
+		File::Spec
+		File::Temp
+		Win32::WinError
+		Win32API::Registry
+		Win32::TieRegistry
+		File::HomeDir
+		IPC::Run3
+		Probe::Perl
+		Test::Script
+		File::Which
+		Archive::Zip
+		Package::Constants
+		IO::String
+		Archive::Tar}); 
+
+	push @modules_list, 'Compress::unLZMA' if 32 == $self->bits();
+	
+	push @modules_list, qw{
+		Parse::CPAN::Meta
+		YAML
+		Net::FTP
+		Digest::MD5
+		Digest::SHA1
+		Digest::SHA
+		Module::Build
+		Term::Cap
+		CPAN
+		Term::ReadKey
+		Term::ReadLine::Perl
+		Text::Glob
+		Data::Dumper
+		URI
+		HTML::Tagset
+		HTML::Parser
+		LWP::UserAgent};
 
 	my %modules = (
-		'5.008009' => [ qw{
-			  ExtUtils::MakeMaker
-			  File::Path
-			  ExtUtils::Command
-			  Win32API::File
-			  ExtUtils::Install
-			  ExtUtils::Manifest
-			  Test::Harness
-			  Test::Simple
-			  ExtUtils::CBuilder
-			  ExtUtils::ParseXS
-			  version
-			  Scalar::Util
-			  Compress::Raw::Zlib
-			  Compress::Raw::Bzip2
-			  IO::Compress::Base
-			  Compress::Bzip2
-			  IO::Zlib
-			  File::Spec
-			  File::Temp
-			  Win32::WinError
-			  Win32API::Registry
-			  Win32::TieRegistry
-			  File::HomeDir
-			  IPC::Run3
-			  Probe::Perl
-			  Test::Script
-			  File::Which
-			  Archive::Zip
-			  Package::Constants
-			  IO::String
-			  Archive::Tar
-			  Compress::unLZMA
-			  Parse::CPAN::Meta
-			  YAML
-			  Net::FTP
-			  Digest::MD5
-			  Digest::SHA1
-			  Digest::SHA
-			  Module::Build
-			  Term::Cap
-			  CPAN
-			  Term::ReadKey
-			  Term::ReadLine::Perl
-			  Text::Glob
-			  Data::Dumper
-			  URI
-			  HTML::Tagset
-			  HTML::Parser
-			  LWP::UserAgent
-			  }
-		],
+		'5.008009' => \@modules_list,
 	);
 	$modules{'5.010000'} = $modules{'5.008009'};
 	$modules{'5.010001'} = $modules{'5.008009'};
