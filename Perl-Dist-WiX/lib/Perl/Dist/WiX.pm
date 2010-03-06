@@ -2667,7 +2667,7 @@ sub mk_extralibs {
 	my $self = shift;
 
 	return ( 3 == $self->gcc_version() ) ? '' 
-	     : ( 64 == $self->bits() )       ? catdir ($self->image_dir, qw(c i686-w64-mingw32 lib))
+	     : ( 64 == $self->bits() )       ? catdir ($self->image_dir, qw(c x86_64-w64-mingw32 lib))
 		 :                                 catdir ($self->image_dir, qw(c i686-w64-mingw32 lib));
 }
 
