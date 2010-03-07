@@ -180,6 +180,7 @@ sub _modules_build {
 	push @modules_list, 'Compress::unLZMA' if 32 == $self->bits();
 	
 	push @modules_list, qw{
+		Win32::UTCFileTime
 		Parse::CPAN::Meta
 		YAML
 		Net::FTP
