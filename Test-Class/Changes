@@ -1,5 +1,9 @@
 Changes for Perl extension Test-Class
 
+0.34 - or the "Abandon ship!" release
+    -   Harmonised $VERSION to the same value (Adam Kennedy)
+    -   Devel::Symdump has a bug which is really a bug in core and won't be fixed.
+        Dumped it and switched to MRO::Compat instead (tokuhirom)
     -   Add "build_requires" (Alexandr Ciornii)
 
 0.33 - or the "ZOMGIBROKECPAN" release
