@@ -6,8 +6,7 @@ package Test::Class;
 
 use Attribute::Handlers;
 use Carp;
-use Class::ISA;
-use Devel::Symdump;
+use MRO::Compat;
 use Storable qw(dclone);
 use Test::Builder;
 use Test::Class::MethodInfo;
@@ -83,7 +82,9 @@ sub _parse_attribute_args {
 
 sub _is_public_method {
     my ($class, $name) = @_;
-    foreach my $parent_class ( Class::ISA::super_path( $class ) ) {
+    my @parents = @{mro::get_linear_isa($class)};
+    shift @parents;
+    foreach my $parent_class ( @parents ) {
         return unless $parent_class->can( $name );
         return if _method_info( $class, $parent_class, $name );
     }
@@ -141,7 +142,7 @@ sub _get_methods {
     die "TEST_METHOD ($test_method_regexp) is not a valid regexp: $@" if $@;
 	
 	my %methods = ();
-	foreach my $class ( Class::ISA::self_and_super_path( $test_class ) ) {
+	foreach my $class ( @{mro::get_linear_isa( $test_class )} ) {
 		foreach my $info ( _methods_of_class( $self, $class ) ) {
 		    my $name = $info->name;
 			foreach my $type ( @types ) {
@@ -197,7 +198,7 @@ sub _total_num_tests {
 	my $class = _class_of( $self );
 	my $total_num_tests = 0;
 	foreach my $method (@methods) {
-		foreach my $class (Class::ISA::self_and_super_path($class)) {
+		foreach my $class (@{mro::get_linear_isa($class)}) {
 			my $info = _method_info($self, $class, $method);
 			next unless $info;
 			my $num_tests = $info->num_tests;
@@ -309,7 +310,7 @@ sub _isa_class {
 
 sub _test_classes {
 	my $class = shift;
-	return grep { _isa_class( $class, $_ ) } Devel::Symdump->rnew->packages;
+	return( @{mro::get_isarev($class)}, $class );
 };
 
 sub runtests {
