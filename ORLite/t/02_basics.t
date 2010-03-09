@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 68;
+use Test::More tests => 71;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -142,10 +142,13 @@ SCOPE: {
 
 # Transaction testing
 SCOPE: {
+	is( Foo::Bar->connected, !1, '->connected is false' );
 	ok( Foo::Bar->begin, '->begin' );
+	is( Foo::Bar->connected, 1,  '->connected is true' );
 	isa_ok( Foo::Bar::TableOne->create, 'Foo::Bar::TableOne' );
 	is( Foo::Bar::TableOne->count, 1, 'One row created' );
 	ok( Foo::Bar->rollback, '->rollback' );
+	is( Foo::Bar->connected, !1, '->connected is false' );
 	is( Foo::Bar::TableOne->count, 0, 'Commit ok' );
 
 	ok( Foo::Bar->begin, '->begin' );

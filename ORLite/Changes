@@ -1,5 +1,13 @@
 Changes for Perl extension ORLite
 
+1.41 Tue  9 Mar 2010
+	- Added the root ->connected method to allow for some
+	  light introspection in unusual situations (such as
+	  knowing if it's safe to spawn an off-the-books
+	  ->connect'tion, or to detect if we are in a transaction).
+	- Added documentation for the ->connect method, with suitably
+	  strident warnings about the dangers of deadlocking.
+
 1.40 Mon  1 Fed 2010
 	- Fixed backwards test skipping logic
 

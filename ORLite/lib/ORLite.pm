@@ -15,7 +15,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.40';
+	$VERSION = '1.41';
 }
 
 # Support for the 'prune' option
@@ -155,6 +155,10 @@ sub connect {
 		PrintError => 0,
 		RaiseError => 1,
 	} );
+}
+
+sub connected {
+	defined \$DBH;
 }
 
 sub prepare {
@@ -937,6 +941,31 @@ string provided by the C<dsn> method.
 
 The C<dbh> method returns a L<DBI::db> object, or throws an exception on
 error.
+
+=head2 connect
+
+  my $dbh = Foo::Bar->connect;
+
+The C<connect> method is provided for the (extremely rare) situation in
+which you need a raw connection to the database, evading the normal tracking
+and management provided of the ORM.
+
+The use of raw connections in this manner is strongly discouraged, as you
+can create fatal deadlocks in SQLite if either the core ORM or the raw
+connection uses a transaction at any time.
+
+To summarise, do not use this method unless you B<REALLY> know what you are
+doing.
+
+B<YOU HAVE BEEN WARNED!>
+
+=head2 connected
+
+  my $active = Foo::Bar->connected;
+
+The C<connected> method provides introspection of the connection status
+of the library. It returns true if there is any connection or transaction
+open to the database, or false otherwise.
 
 =head2 begin
 
