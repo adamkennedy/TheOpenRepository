@@ -5,10 +5,12 @@
 use strict;
 use warnings;
 use Test::More;
+use File::Path qw();
 $| = 1;
 
 my @MODULES = (
 	'Test::Prereq 1.036',
+	'File::Copy::Recursive 0.38'
 );
 
 # Load the testing modules
@@ -21,22 +23,23 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
+if (not $ENV{RELEASE_TESTING}) {
+	plan( skip_all => "Test::Prereq and Module::Install do not work well together." );
+}
+
 local $ENV{PERL_MM_USE_DEFAULT} = 1;
 
 diag('Takes a few minutes...');
 
 my @modules_skip = (
 # Needed only for AUTHOR_TEST tests
-		'Perl::Critic::More',
-		'Test::HasVersion',
-		'Test::MinimumVersion',
-		'Test::Perl::Critic',
-		'Test::Prereq',
+		'Test::More',
+		'Test::UseAllModules',
 );
+
+File::Copy::Recursive::dircopy( 'inc', 'xt\inc' );
 
 prereq_ok(5.006, 'Check prerequisites', \@modules_skip);
 
-use File::Copy qw();
-
-File::Copy::move( 't\inc\Module\Install.pm', 'inc\Module\Install.pm' );
-File::Remove::remove( \1, 't\inc' );
+File::Copy::copy( 'xt\inc\Module\Install.pm', 'inc\Module\Install.pm' );
+File::Path::rmtree( 'xt\inc', 0, 1 );
