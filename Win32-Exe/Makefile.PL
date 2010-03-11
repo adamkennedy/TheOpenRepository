@@ -13,6 +13,4 @@ repository      'http://svn.ali.as/cpan/trunk/Win32-Exe';
 requires        'perl'	        => 5.006;
 requires        'Parse::Binary' => 0.05;
 build_requires	'Test::More'    => 0.47;
-
-auto_include;
 WriteAll;

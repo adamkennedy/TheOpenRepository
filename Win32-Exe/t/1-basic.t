@@ -1,12 +1,8 @@
-#!/usr/bin/perl -w
-# $File: /local/member/autrijus/Win32-Exe//t/1-basic.t $ $Author: autrijus $
-# $Revision: #12 $ $Change: 3628 $ $DateTime: 2004-03-16T13:12:33.854545Z $
+#!perl
 
 use strict;
+use warnings;
 use FindBin;
-use lib "$FindBin::Bin/../inc";
-use lib "$FindBin::Bin/../lib";
-use lib "$FindBin::Bin/../../Parse-Binary/lib";
 use Test::More tests => 21;
 
 $SIG{__DIE__} = sub { use Carp; Carp::confess(@_) };
