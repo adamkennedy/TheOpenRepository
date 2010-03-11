@@ -1,0 +1,20 @@
+--- 
+abstract: Manipulate Win32 executable files
+author: Audrey Tang <cpan@audreyt.org>
+build_requires: 
+  Test::More: 0
+distribution_type: module
+generated_by: Module::Install version 0.64
+license: perl
+meta-spec: 
+  url: http://module-build.sourceforge.net/META-spec-v1.3.html
+  version: 1.3
+name: Win32-Exe
+no_index: 
+  directory: 
+    - inc
+    - t
+requires: 
+  Parse::Binary: 0.05
+  perl: 5.6.0
+version: 0.10
