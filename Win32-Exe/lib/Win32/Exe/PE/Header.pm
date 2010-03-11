@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/PE/Header.pm $ $Author: autrijus $
-# $Revision: #5 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::PE::Header;
 
 use strict;
@@ -22,5 +19,8 @@ use constant DISPATCH_TABLE => (
     0x20b   => 'PE::Header::PE32Plus',
     '*'     => 'PE::Header::PE32',
 );
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 1;

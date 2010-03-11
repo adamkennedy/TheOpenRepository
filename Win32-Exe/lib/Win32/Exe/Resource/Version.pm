@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/Resource/Version.pm $ $Author: autrijus $
-# $Revision: #6 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::Resource::Version;
 
 use strict;
@@ -25,6 +22,9 @@ use constant LC_TO_SI => {
     (map { (lc($_) => $_) } @{+STRING_INFO}, keys %{+FI_TO_ID}),
     (map { (lc($_) => $_) } map { /^(.+)MS$/ ? $1 : () } keys %{+FI_TO_ID}),
 };
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub fi_to_id {
     my ($self, $name) = @_;

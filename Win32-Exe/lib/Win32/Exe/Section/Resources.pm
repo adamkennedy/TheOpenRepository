@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/Section/Resources.pm $ $Author: autrijus $
-# $Revision: #10 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::Section::Resources;
 
 use strict;
@@ -9,6 +6,9 @@ use constant DELEGATE_SUBS => (
     'ResourceEntry'	=> [ 'high_bit' ],
     'ResourceEntry::Id'	=> [ 'rt_to_id', 'id_to_rt' ],
 );
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub initialize {
     my $self = shift;

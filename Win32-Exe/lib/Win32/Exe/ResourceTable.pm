@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/ResourceTable.pm $ $Author: autrijus $
-# $Revision: #5 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::ResourceTable;
 
 use strict;
@@ -15,6 +12,9 @@ use constant FORMAT => (
     'ResourceEntry::Name'   => [ 'a8', '{$NumNameEntry}', 1 ],
     'ResourceEntry::Id'	    => [ 'a8', '{$NumIdEntry}', 1 ],
 );
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub set_path {
     my ($self, $path) = @_;

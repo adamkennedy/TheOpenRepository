@@ -6,6 +6,9 @@ use constant FORMAT => (
     Data        => 'a*',
 );
 
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
+
 sub get_manifest {
     my ($self ) = @_;
     return $self->dump;    

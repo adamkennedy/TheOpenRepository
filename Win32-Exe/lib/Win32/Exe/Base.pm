@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/Base.pm $ $Author: autrijus $
-# $Revision: #8 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::Base;
 
 use strict;
@@ -9,6 +6,9 @@ use constant BASE_CLASS => 'Win32::Exe';
 use constant FORMAT => (
     Data	    => 'a',
 );
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub align {
     my ($self, $value, $boundary) = @_;

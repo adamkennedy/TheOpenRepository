@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/ResourceEntry.pm $ $Author: autrijus $
-# $Revision: #7 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::ResourceEntry;
 
 use strict;
@@ -11,6 +8,9 @@ use constant FORMAT => (
 );
 use constant HIGH_BIT => 0x80_00_00_00;
 use Win32::Exe::ResourceData;
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub high_bit {
     my ($self) = @_;

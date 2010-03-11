@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/IconFile.pm $ $Author: autrijus $
-# $Revision: #9 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::IconFile;
 
 use strict;
@@ -24,6 +21,9 @@ use constant DISPATCH_TABLE => (
     "MZ"    => '__BASE__',
     '*'	    => sub { die "Invalid icon file header: $_[1]" },
 );
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub icons {
     my $self = shift;

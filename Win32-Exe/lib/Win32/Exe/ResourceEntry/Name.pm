@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/ResourceEntry/Name.pm $ $Author: autrijus $
-# $Revision: #6 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::ResourceEntry::Name;
 
 use strict;
@@ -8,6 +5,9 @@ use base 'Win32::Exe::ResourceEntry';
 use constant SUBFORMAT => (
     N_RVA	    => 'V',
 );
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub NameAddress {
     my ($self) = @_;

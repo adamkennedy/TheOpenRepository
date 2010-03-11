@@ -56,6 +56,9 @@ use constant ST_TO_ID => {
 };
 use constant ID_TO_ST => { reverse %{+ST_TO_ID} };
 
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
+
 sub st_to_id {
     my ($self, $name) = @_;
     return $name unless $name =~ /\D/;

@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/Section.pm $ $Author: autrijus $
-# $Revision: #9 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::Section;
 
 use strict;
@@ -32,6 +29,9 @@ use constant DISPATCH_TABLE => (
 use constant CONTAINS_CODE  => 0x20;
 use constant CONTAINS_IDATA => 0x40;
 use constant CONTAINS_UDATA => 0x80;
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub Data {
     my ($self) = @_;

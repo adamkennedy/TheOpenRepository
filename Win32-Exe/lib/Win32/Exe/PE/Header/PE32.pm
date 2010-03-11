@@ -1,6 +1,3 @@
-# $File: //local/member/autrijus/Win32-Exe/lib/Win32/Exe/PE/Header/PE32.pm $ $Author: autrijus $
-# $Revision: #8 $ $Change: 1130 $ $Date: 2004-02-17T15:40:29.640821Z $
-
 package Win32::Exe::PE::Header::PE32;
 
 use strict;
@@ -44,6 +41,9 @@ use constant ST_TO_ID => {
     map { (SUBSYSTEM_TYPES->[$_] => $_) } (0 .. $#{+SUBSYSTEM_TYPES})
 };
 use constant ID_TO_ST => { reverse %{+ST_TO_ID} };
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub st_to_id {
     my ($self, $name) = @_;

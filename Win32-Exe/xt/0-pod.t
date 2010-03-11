@@ -1,9 +1,24 @@
 #!perl
 
+use strict;
+use warnings;
 use Test::More;
+$| = 1;
 
-eval "use Test::Pod 1.00";
+my @MODULES = (
+	'Pod::Simple 3.07',
+	'Test::Pod 1.26',
+);
 
-plan skip_all => "Test::Pod 1.00 required for testing POD" if $@;
+# Load the testing modules
+foreach my $MODULE ( @MODULES ) {
+	eval "use $MODULE";
+	if ( $@ ) {
+		$ENV{RELEASE_TESTING}
+		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
+		: plan( skip_all => "$MODULE not available for testing" );
+	}
+}
+
 all_pod_files_ok();
 

@@ -1,5 +1,4 @@
 package Win32::Exe;
-$Win32::Exe::VERSION = '0.11';
 
 =head1 NAME
 
@@ -7,8 +6,7 @@ Win32::Exe - Manipulate Win32 executable files
 
 =head1 VERSION
 
-This document describes version 0.10 of Win32::Exe, released
-January 14, 2007.
+This document describes version 0.11_01 of Win32::Exe.
 
 =head1 SYNOPSIS
 
@@ -73,6 +71,9 @@ use constant DEBUG_ENTRY_SIZE    => 28;
 use File::Basename ();
 use Win32::Exe::IconFile;
 use Win32::Exe::DebugTable;
+
+our $VERSION = '0.11_01';
+$VERSION =~ s/_//ms;
 
 sub resource_section {
     my ($self) = @_;
@@ -296,9 +297,13 @@ Mark Dootson
 
 Steffen Mueller E<lt>smueller@cpan.orgE<gt>
 
-=head1 COPYRIGHT
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
 
 Copyright 2004-2007 by Audrey Tang E<lt>cpan@audreyt.orgE<gt>.
+
+Copyright 2010 by Curtis Jewell E<lt>csjewell@cpan.orgE<gt>.
 
 This program is free software; you can redistribute it and/or 
 modify it under the same terms as Perl itself.
