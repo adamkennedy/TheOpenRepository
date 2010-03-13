@@ -11,11 +11,11 @@
     [% IF dist.msi_debug %]
     <Package Description='Perl for Win32 operating systems.' Id='*' Languages='1033'
       Comments='Debug Build.' 
-      Platform='x86' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
+      Platform='[% dist.msi_platform_string %]' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
     <Property Id='MsiLogging'>voIcewarmupx!</Property>
     [% ELSE %]
     <Package Description='Perl for Win32 operating systems.' Id='*' Languages='1033'
-      Platform='x86' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
+      Platform='[% dist.msi_platform_string %]' InstallerVersion='200' Compressed='yes' InstallPrivileges='elevated' />
     [% END %]
 
     <Media Id='1' Cabinet='Perl.cab' CompressionLevel='high' EmbedCab='yes' />
