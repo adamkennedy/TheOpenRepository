@@ -2641,6 +2641,29 @@ sub mk_gcc4 {
 }
 
 
+
+=head3 mk_bits {
+
+Used in the makefile.mk template for 5.11.5+ to activate building 64 or 32-bit 
+versions. (Actually, this turns off the fact that we're building a 64-bit 
+version of perl when we want a 32-bit version on 64-bit processors)
+
+=cut
+
+sub mk_bits {
+	my $self = shift;
+
+	my $bits = 1;
+	$bits &= (4 == $self->gcc_version());
+	$bits &= (32 == $self->bits());
+	$bits &= ('x86' ne ( lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' )));
+	$bits &= ('x86' ne ( lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' )));
+	
+	return $bits ? 'WIN64' : '#WIN64';
+}
+
+
+
 =head3 mk_gcc4_dll {
 
 Used in the makefile.mk template for 5.11.5+ to activate using the correct 
@@ -2747,6 +2770,18 @@ before files can be installed.
 
 sub final_initialization {
 	my $self = shift;
+
+	if ('ix86' eq (lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' ))) {
+		if (64 == $self->bits()) {
+			PDWiX->throw('We do not support building 64-bit Perl on Itanium architectures');
+		}
+	}
+	
+	if ('ix86' eq (lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' ))) {
+		if (64 == $self->bits()) {
+			PDWiX->throw('We do not support building 64-bit Perl on Itanium architectures');
+		}
+	}
 
 	# If we have a file:// url for the CPAN, move the
 	# sources directory out of the way.
