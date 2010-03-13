@@ -28,7 +28,7 @@ INST_TOP	*= [% INST_TOP %]
 #
 # Uncomment if you want to build a 32-bit Perl using a 32-bit compiler
 # on a 64-bit version of Windows.
-[% dist.mk_debug %]	*= undef
+[% dist.mk_bits %]	*= undef
 
 #
 # Comment this out if you DON'T want your perl installation to be versioned.
