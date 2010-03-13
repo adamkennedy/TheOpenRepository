@@ -2656,8 +2656,8 @@ sub mk_bits {
 	my $bits = 1;
 	$bits &= (4 == $self->gcc_version());
 	$bits &= (32 == $self->bits());
-	$bits &= ('x86' ne ( lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' )));
-	$bits &= ('x86' ne ( lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' )));
+	$bits &= ('x86' ne ( lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' )) or
+	          'x86' ne ( lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' )));
 	
 	return $bits ? 'WIN64' : '#WIN64';
 }
