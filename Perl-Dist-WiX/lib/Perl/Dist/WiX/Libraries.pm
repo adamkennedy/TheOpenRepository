@@ -49,13 +49,13 @@ Readonly my %PACKAGES => (
 #		'w32api'        => 'w32api-3.10.tar.gz',
 	},
 	'32bit-gcc4' => {
-		'dmake'         => 'dmake-4.8-20070327-SHAY.zip', # '32bit-gcc4/dmake-SVN20091127-bin_20100120.zip',
+		'dmake'         => '32bit-gcc4/dmake-SVN20091127-bin_20100308.zip',
 		'mingw-make'    => '32bit-gcc4/gmake-3.81-20090914-bin_20100120.zip',
 		'pexports'      => '32bit-gcc4/pexports-0.44-bin_20100120.zip',
-		'gcc-toolchain' => '32bit-gcc4/mingw64-w32-20100123-kmx.zip',
+		'gcc-toolchain' => '32bit-gcc4/mingw64-w32-20100123-kmx-v2.zip',
 	},
 	'64bit-gcc4' => {
-		'dmake'         => 'dmake-4.8-20070327-SHAY.zip', # '64bit-gcc4/dmake-SVN20091127-bin_20100305.zip',
+		'dmake'         => '64bit-gcc4/dmake-SVN20091127-bin_20100308.zip',
 		'mingw-make'    => '64bit-gcc4/gmake-3.81.90_20100127_20100305.zip',
 		'pexports'      => '64bit-gcc4/pexports-0.44-bin_20100110.zip',
 		'gcc-toolchain' => '64bit-gcc4/mingw64-w64-20100123-kmx.zip',
