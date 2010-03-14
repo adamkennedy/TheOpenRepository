@@ -1590,6 +1590,23 @@ has 'portable' => (
 
 
 
+=head3 relocatable
+
+The optional C<relocatable> parameter is used to determine whether the 
+distribution is meant to be relocatable.
+
+This defaults to a false value. 
+
+=cut
+
+has 'portable' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
 =head3 sitename
 
 The optional C<sitename> parameter is used to generate the GUID's necessary
@@ -2291,9 +2308,14 @@ Returns the UI type that the MSI needs to use.
 # For template
 sub msi_ui_type {
 	my $self = shift;
-	return ( defined $self->msi_feature_tree() )
-	  ? 'FeatureTree'
-	  : 'Minimal';
+	
+	if ( defined $self->msi_feature_tree() ) {
+		return 'FeatureTree'
+	} elsif ( $self->relocatable() ) {
+		return 'InstallDir'
+	} else {
+		return 'Minimal';
+	}
 }
 
 

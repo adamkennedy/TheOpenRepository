@@ -96,6 +96,9 @@
    	  <ProgressText Action="CA_ClearSiteFolder">Preparing the site folder for cleaning... (please wait a while)</ProgressText>
     </UI>
 
+[% IF dist.relocatable %]
+	<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+[% END %]
 [% IF dist.msi_feature_tree.defined %]
     <Property Id='ARPNOMODIFY'>1</Property>
 [% END %]
