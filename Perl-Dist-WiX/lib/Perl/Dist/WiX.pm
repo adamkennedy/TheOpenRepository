@@ -2312,7 +2312,7 @@ sub msi_ui_type {
 	if ( defined $self->msi_feature_tree() ) {
 		return 'FeatureTree'
 	} elsif ( $self->relocatable() ) {
-		return 'InstallDir'
+		return 'MyInstallDir'
 	} else {
 		return 'Minimal';
 	}
