@@ -1599,7 +1599,7 @@ This defaults to a false value.
 
 =cut
 
-has 'portable' => (
+has 'relocatable' => (
 	is      => 'ro',
 	isa     => Bool,
 	default => 0,
