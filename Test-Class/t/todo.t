@@ -23,11 +23,11 @@ $ENV{TEST_VERBOSE}=0;
 
 my $filename = sub { return (caller)[1] }->();
 
-my $test_more_version = eval($Test::More::VERSION);
-diag "Test::More: $test_more_version";
+my $test_builder_tester_version = eval($Test::Builder::Tester::VERSION);
+diag "Test::More: $test_builder_tester_version";
 
 test_out( "not ok 1 - object live # TODO unimplemented" );
-if ($test_more_version >= 0.9501) {
+if ($test_builder_tester_version >= 1.1901) {
     # Test-Simple-0.95_01 or later output TODO message to output handle.
     # see http://cpansearch.perl.org/src/MSCHWERN/Test-Simple-0.95_01/Changes
     #    Test::Builder::Tester now sets $tb->todo_output to the output handle and
