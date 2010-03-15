@@ -2638,7 +2638,7 @@
  *	in programs that are not prepared to deal with ~ expansion at run-time.
  */
 #define PRIVLIB "c:\\perl\\lib"		/**/
-#define PRIVLIB_EXP (win32_get_privlib("5.11.0"))	/**/
+#define PRIVLIB_EXP (win32_get_privlib("5.10.1"))	/**/
 
 /* CAN_PROTOTYPE:
  *	If defined, this macro indicates that the C compiler can handle
@@ -2754,7 +2754,7 @@
  *	be tacked onto this variable to generate a list of directories to search.
  */
 #define SITELIB "c:\\perl\\site\\lib"		/**/
-#define SITELIB_EXP (win32_get_sitelib("5.11.0"))	/**/
+#define SITELIB_EXP (win32_get_sitelib("5.10.1"))	/**/
 #define SITELIB_STEM ""		/**/
 
 /* Size_t_size:
@@ -2858,7 +2858,7 @@
  *	removed.  The elements in inc_version_list (inc_version_list.U) can
  *	be tacked onto this variable to generate a list of directories to search.
  */
-#define PERL_VENDORLIB_EXP (win32_get_vendorlib("5.11.0"))		/**/
+#define PERL_VENDORLIB_EXP (win32_get_vendorlib("5.10.1"))		/**/
 #define PERL_VENDORLIB_STEM ""		/**/
 
 /* VOIDFLAGS:
