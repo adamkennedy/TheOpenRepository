@@ -15,7 +15,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.41';
+	$VERSION = '1.42';
 }
 
 # Support for the 'prune' option
@@ -1082,7 +1082,9 @@ C<commit> call.
 
 =head2 do
 
-  Foo::Bar->do('insert into table (foo, bar) values (?, ?)', {},
+  Foo::Bar->do(
+      'insert into table (foo, bar) values (?, ?)',
+      {},
       $foo_value,
       $bar_value,
   );
@@ -1170,9 +1172,224 @@ for a datase. See the SQLite documentation for more details.
 
 =head1 TABLE PACKAGE METHODS
 
-The example root package Foo::Bar::TableName is used in any examples.
+When you use ORLite, your database tables will be available as 
+objects named in a camel-cased fashion. So, if your model name
+is Foo::Bar...
 
-B<TO BE COMPLETED>
+  use ORLite {
+      package => 'Foo::Bar',
+      file    => 'data/sqlite.db',
+  };
+
+... then a table named 'user' would be accessed as C<Foo::Bar::User>,
+while a table named 'user_data' would become C<Foo::Bar::UserData>.
+
+=head2 base
+
+  my $namespace = Foo::Bar::User->base; # Returns 'Foo::Bar'
+
+Normally you will only need to work directly with a table class,
+and only with one ORLite package.
+
+However, if for some reason you need to work with multiple ORLite packages
+at the same time without hardcoding the root namespace all the time, you
+can determine the root namespace from an object or table class with the
+C<base> method.
+
+=head2 table
+
+  print Foo::Bar::UserData->table; # 'user_data'
+
+While you should not need the name of table for any simple operations,
+from time to time you may need it programatically. If you do need it,
+you can use the C<table> method to get the table name.
+
+=head2 new
+
+  my $user = Foo::Bar::User->new(
+      name => 'Your Name',
+      age  => 23,
+  );
+
+The C<new> constructor creates an anonymous object, without reading it
+from or writing it to the database. It also won't do validation of any
+kind, since ORLite is designed for use with embedded databases and
+presumes that you know what you are doing.
+
+=head2 insert
+
+  my $user = Foo::Bar::User->new(
+      name => 'Your Name',
+      age  => 23,
+  )->insert;
+
+The C<insert> method takes an existing anonymous object and inserts it
+into the database, returning the object as a convenience.
+
+It provides the second half of the slower manual two-phase object
+construction process.
+
+If the table has an auto-incrementing primary key (and you have not
+provided a value for it yourself) the identifier for the new record
+will be fetched back from the database and set in your object.
+
+  my $object = Foo::Bar::User->new( name => 'Foo' )->insert;
+  
+  print "Created new user with id " . $user->id . "\n";
+
+=head2 create
+
+  my $user = Foo::Bar::User->create(
+      name => 'Your Name',
+      age  => 23,
+  );
+
+While the C<new> + C<insert> methods are useful when you need to do
+interesting constructor mechanisms, for most situations you already
+have all the attributes ready and just want to create and insert the
+record in a single step.
+
+The C<create> method provides this shorthand mechanism and is just
+the functional equivalent of the following.
+
+  sub create {
+      shift->new(@_)->insert;
+  }
+
+It returns the newly created object after it has been inserted.
+
+=head2 load
+
+  my $user = Foo::Bar::User->load( $id );
+
+If your table has single column primary key, a C<load> method will be
+generated in the class. If there is no primary key, the method is not
+created.
+
+The C<load> method provides a shortcut mechanism for fetching a single
+object based on the value of the primary key. However it should only
+be used for cases where your code trusts the record to already exists.
+
+It returns a C<Foo::Bar::User> object, or throws an exception if the
+object does not exist.
+
+=head2 select
+
+  my @users = Foo::Bar::User->select;
+  
+  my $users = Foo::Bar::User->select( 'where name = ?', @args );
+
+The C<select> method is used to retrieve objects from the database.
+
+In list context, returns an array with all matching elements.
+In scalar context an array reference is returned with that same data.
+
+You can filter the results or order them by passing SQL code to the method.
+
+    my @users = DB::User->select( 'where name = ?', $name );
+
+    my $users = DB::User->select( 'order by name' );
+
+Because C<select> provides only the thinnest of layers around pure SQL
+(it merely generates the "SELECT ... FROM table_name") you are free to use
+anything you wish in your query, including subselects and function calls.
+
+If called without any arguments, it will return all rows of the table in
+the natural sort order of SQLite.
+
+=head2 iterate
+
+  Foo::Bar::User->iterate( sub {
+      print $_->name . "\n";
+  } );
+
+The C<iterate> method enables the processing of large tables one record at
+a time without loading having to them all into memory in advance.
+
+This plays well to the strength of SQLite, allowing it to do the work of
+loading arbitrarily large stream of records from disk while retaining the
+full power of Perl when processing the records.
+
+The last argument to C<iterate> must be a subroutine reference that will be
+called for each element in the list, with the object provided in the topic
+variable C<$_>.
+
+This makes the C<iterate> code fragment above functionally equivalent to the
+following, except with an O(1) memory cost instead of O(n).
+
+    foreach ( Foo::Bar::User->select ) {
+        print $_->name . "\n";
+    }
+
+You can filter the list via SQL in the same way you can with C<select>.
+
+  Foo::Bar::User->iterate(
+      'order by ?', 'name',
+      sub {
+          print $_->name . "\n";
+      }
+  );
+
+You can also use it in raw form from the root namespace for better control.
+Using this form also allows for the use of arbitrarily complex queries,
+including joins. Instead of being objects, rows are provided as ARRAY
+references when used in this form.
+
+  Foo::Bar->iterate(
+      'select name from user order by name',
+      sub {
+          print $_->[0] . "\n";
+      }
+  );
+
+=head2 count
+
+  my $everyone = Foo::Bar::User->count;
+  
+  my $young = Foo::Bar::User->count( 'where age <= ?', 13 );
+
+You can count the total number of elements in a table by calling 
+the C<count> method with no arguments. You can also narrow your
+count by passing sql conditions to the method in the same manner
+as with the C<select> method.
+
+=head2 delete
+
+  # Delete a single object from the database
+  $user->delete;
+  
+  # Delete a range of rows from the database
+  Foo::Bar::User->delete( 'where age <= ?', 13 );
+
+The C<delete> method comes in two variations, depending on whether
+you call it on a single object or an entire class.
+
+When called as an instance methods C<delete> will delete the single
+row representing that object, based on the primary key of that object.
+
+The object that you delete will be left intact and untouched, and you
+remain free to do with it whatever you wish.
+
+When called as a static method on the class name C<delete> allows
+the deletion of a range of zero or more records from that table.
+
+It takes the same parameters for deleting as the C<select> method,
+with the exception that you B<MUST> provide a condition parameter
+and can B<NOT> use a conditionless C<delete> call to clear out the
+entire table. This is done to limit accidental deletion.
+
+=head2 truncate
+
+  # Clear out all records from the table
+  Foo::Bar::User->truncate;
+
+The C<truncate> method takes no parameters and is used for only one
+purpose, to completely empty a table of all rows.
+
+Having a separate method from C<delete> not only prevents accidents,
+but will also do the deletion via the direct SQLite C<TRUNCATE TABLE>
+query. This uses a different deletion mechanism, and is
+B<significantly> faster than a plain SQL C<DELETE>.
 
 =head1 TO DO
 

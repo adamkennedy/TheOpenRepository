@@ -1,5 +1,9 @@
 Changes for Perl extension ORLite
 
+1.42 Tue 16 Mar 2010
+	- Signficantly expanded documentation on the per-table class
+	  and the methods created for it (Breno G. de Oliveira)
+
 1.41 Tue  9 Mar 2010
 	- Added the root ->connected method to allow for some
 	  light introspection in unusual situations (such as
