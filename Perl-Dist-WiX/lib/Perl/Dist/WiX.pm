@@ -1741,7 +1741,7 @@ has 'tempenv_dir' => (
 		  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
 	),
 	lazy => 1,
-	builder => '_build_build_dir',
+	builder => '_build_tempenv_dir',
 );
 
 sub _build_tempenv_dir {
@@ -2830,9 +2830,10 @@ sub final_initialization {
 		}
 	}
 	
-	$self->trace_line( 1, "Emptying the redirected \$ENV{TEMP}...\n" );
-	$self->_remake_path( $self->image_dir() );
+	$self->trace_line( 1, "Emptying the directory to redirect \$ENV{TEMP} to...\n" );
+	$self->_remake_path( $self->tempenv_dir() );
 	$ENV{TEMP} = $self->tempenv_dir();
+	$self->trace_line( 5, "Emptied: " . $self->tempenv_dir() . "\n" );
 	
 	# If we have a file:// url for the CPAN, move the
 	# sources directory out of the way.
@@ -2940,14 +2941,6 @@ EOF
 			directory_id => 'Cpanplus',
 			id           => 'CPANPLUSFolder',
 		) ) if ( '589' ne $self->perl_version() );
-
-	# Clear the par cache, just to be safe.
-	# Sometimes, if not cleared, PAR fails tests.
-	my $par_temp = catdir( $ENV{TEMP}, 'par-' . Win32::LoginName() );
-	if ( -d $par_temp ) {
-		$self->trace_line( 1, 'Removing ' . $par_temp . "\n" );
-		File::Remove::remove( \1, $par_temp );
-	}
 
 	my @directories_to_make = ( $self->_dir('cpan'), );
 
