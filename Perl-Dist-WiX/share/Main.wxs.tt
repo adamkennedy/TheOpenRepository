@@ -136,7 +136,7 @@
 		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">NOT WIXUI_DONTVALIDATEPATH</Publish>
 		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
 		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="DoAction" Value="CA_CheckForSpaces" Order="4">NOT WIXUI_DONTVALIDATEPATH</Publish>
-		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="SpawnDialog" Value="D_BadLocationDialog" Order="5"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
+		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="SpawnDialog" Value="D_BadLocationDlg" Order="5"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
 		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="6">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
 		<Publish Dialog="D_MyInstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
 		<Publish Dialog="D_MyInstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
