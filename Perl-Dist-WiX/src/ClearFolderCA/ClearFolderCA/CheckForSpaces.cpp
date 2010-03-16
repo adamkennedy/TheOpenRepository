@@ -75,7 +75,7 @@ UINT __stdcall CheckForSpaces(
 	// Check the "long name" of that directory.
 	TCHAR sInstallDirWork[MAX_PATH + 1];
 	TCHAR sInstallDirLong[MAX_PATH + 1];
-	_tcscpy_s(sInstallDir, MAX_PATH, sInstallDirWork);
+	_tcscpy_s(sInstallDirWork, MAX_PATH, sInstallDir);
 	DWORD dwAnswer = ::GetLongPathName(sInstallDirWork, sInstallDirLong, MAX_PATH);
 
 	TCHAR* pcSlash;
@@ -83,6 +83,8 @@ UINT __stdcall CheckForSpaces(
 	while (0 == dwAnswer) {
 
 		dwError = ::GetLastError();
+		if (ERROR_FILE_NOT_FOUND != dwError)
+			break;
 
 		// Keep working backwards until we get it right, or until there are no more backslashes.
 		pcSlash = _tcsrchr(sInstallDirWork, _T('\\'));
@@ -93,32 +95,9 @@ UINT __stdcall CheckForSpaces(
 		dwAnswer = ::GetLongPathName(sInstallDirWork, sInstallDirLong, MAX_PATH);
 	}
 
-	if (NULL != _tcschr(sInstallDir, _T(' '))) {
+	if (NULL != _tcschr(sInstallDirLong, _T(' '))) {
 		return ::MsiSetProperty(hModule, TEXT("WIXUI_INSTALLDIR_VALID"), TEXT("-2"));
 	}
 
 	return ::MsiSetProperty(hModule, TEXT("WIXUI_INSTALLDIR_VALID"), TEXT("1"));
-
-
-/*
-	_tcscpy_s(sSiteDirectory, MAX_PATH, sInstallDirectory);
-	_tcscat_s(sSiteDirectory, MAX_PATH, TEXT("perl\\site\\"));
-
-	// Get component to add files to delete to.
-	uiAnswer = GetComponent(hModule, sPerlModuleID);
-	MSI_OK(uiAnswer)
-	
-	TCHAR sSiteDirID[51];
-	_tcscpy_s(sSiteDirID, 50, TEXT("D_PerlSite"));
-	if (_tcscmp(sPerlModuleID, TEXT("")) != 0) {
-		_tcscat_s(sSiteDirID, 50, TEXT("."));
-		_tcscat_s(sSiteDirID, 50, sPerlModuleID);
-	}
-
-	// Start getting files to delete (recursive)
-	bool bDeleteEntryCreated = false;
-	uiAnswer = AddDirectory(
-		hModule, sSiteDirectory, sSiteDirID, true, bDeleteEntryCreated);
-*/
-    return uiAnswer;
 }
