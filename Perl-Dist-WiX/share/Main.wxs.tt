@@ -91,7 +91,11 @@
 [% END %]
     </InstallExecuteSequence>
 
+[% IF dist.msi_debug %]
+    <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\debug_dll\ClearFolderCA.dll' />
+[% ELSE %]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\ClearFolderCA.dll' />
+[% END %]
     <UI>
    	  <ProgressText Action="CA_ClearSiteFolder">Preparing the site folder for cleaning... (please wait a while)</ProgressText>
     </UI>
