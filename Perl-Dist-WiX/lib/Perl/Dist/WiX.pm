@@ -1721,6 +1721,39 @@ has 'temp_dir' => (
 
 
 
+=head3 tempenv_dir
+
+The processes that B<Perl::Dist::WiX> executes sometimes need
+a place to put their temporary files, usually in $ENV{TEMP}.
+
+In order to avoid leaving detritus behind in that directory,
+that environment variable is redirected early, to this directory.
+
+This parameter defaults to a subdirectory of temp_dir() if not specified.
+
+=cut
+
+has 'tempenv_dir' => (
+	is  => 'ro',
+	isa => MooseX::Meta::TypeConstraint::Intersection->new(
+		parent => Directory,
+		type_constraints =>
+		  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
+	),
+	lazy => 1,
+	builder => '_build_build_dir',
+);
+
+sub _build_tempenv_dir {
+	my $self = shift;
+
+	my $dir = catdir( $self->temp_dir(), 'tempenv' );
+	$self->_remake_path($dir);
+	return $dir;
+}
+
+
+
 =head3 trace
 
 The C<trace> parameter sets the level of tracing that is output.
@@ -1949,16 +1982,6 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 			where => '->new'
 		);
 	}
-
-# TODO: Use this as the type checker for output_dir, image_dir, and fragment_dir.
-# unless ( -w $self->output_dir() && -d $self->output_dir() ) {
-# $self->trace_line( 0,
-# 'Directory does not exist or is not writable: ' . $self->output_dir . "\n" );
-# PDWiX::Parameter->throw(
-# parameter => 'output_dir: Directory does not exist or is not writable',
-# where     => '::Installer->new'
-# );
-# }
 
 	$params{pdw_class} = $class;
 
@@ -2793,18 +2816,24 @@ before files can be installed.
 sub final_initialization {
 	my $self = shift;
 
-	if ('ix86' eq (lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' ))) {
-		if (64 == $self->bits()) {
-			PDWiX->throw('We do not support building 64-bit Perl on Itanium architectures');
+	# Check for architectures we can't build 64-bit on.
+	if (64 == $self->bits()) {
+		if (('ix86' eq (lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' ))) or 
+		    ('ix86' eq (lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' )))) {
+			PDWiX->throw('We do not support building 64-bit Perl on Itanium architectures.');
+		}
+
+		if (('x86' eq (lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' ))) and 
+			('x86' eq (lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' ))))
+		{
+			PDWiX->throw('We do not support building 64-bit Perl on 32-bit machines.');
 		}
 	}
 	
-	if ('ix86' eq (lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' ))) {
-		if (64 == $self->bits()) {
-			PDWiX->throw('We do not support building 64-bit Perl on Itanium architectures');
-		}
-	}
-
+	$self->trace_line( 1, "Emptying the redirected \$ENV{TEMP}...\n" );
+	$self->_remake_path( $self->image_dir() );
+	$ENV{TEMP} = $self->tempenv_dir();
+	
 	# If we have a file:// url for the CPAN, move the
 	# sources directory out of the way.
 
