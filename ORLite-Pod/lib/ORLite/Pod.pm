@@ -71,6 +71,12 @@ sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 
+	# Normalise flags
+	unless ( defined $self->trace ) {
+		$self->{trace} = 1;
+	}
+	$self->{trace} = !! $self->{trace};
+
 	# Check params
 	unless (
 		Params::Util::_CLASS($self->from)
@@ -167,7 +173,7 @@ sub run {
 	my $pkg  = $self->from;
 
 	# Capture the raw schema information
-	print( "Analyzing " . $pkg->dsn . "...\n" );
+	$self->trace("Analyzing " . $pkg->dsn . "...\n");
 	my $dbh    = $pkg->dbh;
 	my $tables = $dbh->selectall_arrayref(
 		'select * from sqlite_master where type = ?',
@@ -253,7 +259,7 @@ sub run {
 #####################################################################
 # Generation of Base Documentation
 
-sub _write {
+sub write {
 	my $self  = shift;
 	my $file  = shift;
 	my $input = shift;
@@ -265,7 +271,10 @@ sub _write {
 	# Process the template
 	my $template = $self->template;
 	my $output   = '';
-	$template->process(\$input, $hash, \$output) or die $template->error;
+	my $rv       = $template->process(\$input, $hash, \$output);
+	unless ( $rv ) {
+		die $template->error;
+	}
 
 	# Write the file
 	local *FILE;
@@ -274,6 +283,14 @@ sub _write {
 	close FILE;
 
 	return 1;	
+}
+
+sub trace {
+	my $self = shift;
+	if ( $self->{trace} ) {
+		print @_;
+	}
+	return 1;
 }
 
 sub write_db {
@@ -289,8 +306,8 @@ sub write_db {
 	) . '.pod';
 
 	# Generate and write the file
-	print "Generating $file...\n";
-	$self->_write( $file, template_db(), {
+	$self->trace("Generating $file...\n");
+	$self->write( $file, template_db(), {
 		self   => $self,
 		pkg    => $pkg,
 		tables => $tables,
@@ -328,8 +345,8 @@ sub write_table {
 	}
 
 	# Generate and write the file
-	print "Generating $file...\n";
-	$self->_write( $file, template_table(), {
+	$self->trace("Generating $file...\n");
+	$self->write( $file, template_table(), {
 		self   => $self,
 		pkg    => $pkg,
 		root   => $root,
@@ -348,7 +365,7 @@ sub write_table {
 #####################################################################
 # Root Template
 
-sub template_db { <<"END_TT" }
+sub template_db { <<'END_TT' }
 |=head1 NAME
 |
 |[%+ pkg %] - An ORLite-based ORM Database API
@@ -366,7 +383,7 @@ sub template_db { <<"END_TT" }
 [% IF method.dsn %]
 |=head2 dsn
 |
-|  my \$string = [%+ pkg %]->dsn;
+|  my $string = [%+ pkg %]->dsn;
 |
 |The C<dsn> accessor returns the L<DBI> connection string used to connect
 |to the SQLite database as a string.
@@ -375,7 +392,7 @@ sub template_db { <<"END_TT" }
 [% IF method.dbh %]
 |=head2 dbh
 |
-|  my \$handle = [%+ pkg %]->dbh;
+|  my $handle = [%+ pkg %]->dbh;
 |
 |To reliably prevent potential L<SQLite> deadlocks resulting from multiple
 |connections in a single process, each ORLite package will only ever
@@ -558,7 +575,7 @@ sub template_db { <<"END_TT" }
 |=head2 pragma
 |
 |  # Get the user_version for the schema
-|  my \$version = [% pkg %]->pragma('user_version');
+|  my $version = [% pkg %]->pragma('user_version');
 |
 |The C<pragma> method provides a convenient method for fetching a pragma
 |for a datase. See the SQLite documentation for more details.
@@ -634,6 +651,7 @@ sub template_table { <<'END_TT' }
 |C<base> method.
 |
 [% END %]
+[% IF method.table %]
 |=head2 table
 |
 |  print [% pkg %]->table; # Returns '[% table.name %]'

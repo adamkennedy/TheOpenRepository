@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 71;
+use Test::More tests => 5;
 use File::Spec::Functions ':ALL';
 use File::pushd;
 use t::lib::Test;
@@ -42,11 +42,15 @@ SCOPE: {
 
 	# Check for the files we expect to be created
 	ok(
-		-f catfile( $dist, 'lib', 'Foo', 'Bar.pod' ),
+		-f catfile( 'lib', 'Foo', 'Bar.pod' ),
 		'Created Foo/Bar.pod',
 	);
 	ok(
-		-f catfile( $dist, 'lib', 'Foo', 'Bar', 'TableOne.pm' ),
-		'Create Foo/Bar/TableOne.pod',
+		-f catfile( 'lib', 'Foo', 'Bar', 'TableOne.pod' ),
+		'Created Foo/Bar/TableOne.pod',
+	);
+	ok(
+		-f catfile( 't', 'pod.t' ),
+		'Created t/pod.t',
 	);
 }
