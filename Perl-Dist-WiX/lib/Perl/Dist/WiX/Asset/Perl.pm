@@ -69,13 +69,15 @@ has git => (
 sub install {
 	my $self = shift;
 
+	# Get the initial directory contents to compare against later.
 	$self->_trace_line( 0, 'Preparing ' . $self->_get_name . "\n" );
-
 	my $fl2 = File::List::Object->new->readdir(
 		catdir( $self->_get_image_dir, 'perl' ) );
 
+	# Are we building from a git snapshot?
 	my $git = $self->_get_git();
 
+	# Download the perl tarball if needed.
 	my $tgz;
 	if ( not defined $git ) {
 
@@ -84,6 +86,7 @@ sub install {
 		  $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
 	}
 
+	# Prepare for building.
 	my $unpack_to =
 	  catdir( $self->_get_build_dir(), $self->_get_unpack_to() );
 	if ( -d $unpack_to ) {
@@ -152,6 +155,7 @@ sub install {
 			$perldir = "perl-$version";
 		}
 
+		# Patch the makefile.
 		$self->_trace_line( 2, "Patching makefile.mk\n" );
 		$self->_patch_file(
 			"$perldir/win32/makefile.mk" => $unpack_to,
@@ -160,13 +164,16 @@ sub install {
 				INST_TOP => $INST_TOP,
 			} );
 
+		# Compile perl.
 		$self->_trace_line( 1, "Building perl $version...\n" );
 		$self->_make;
 
+		# Get information required for testing and perl.
+		my $force = $self->_get_force();
 		my $long_build =
 		  Win32::GetLongPathName( rel2abs( $self->_get_build_dir() ) );
 
-		my $force = $self->_get_force();
+		# Warn about problem with testing perl 5.10.0
 		if (   ( not $force )
 			&& ( $long_build =~ /\s/ms )
 			&& ( $self->_get_pv_human() eq '5.10.0' ) )
@@ -192,27 +199,37 @@ sub install {
 EOF
 		} ## end if ( ( not $force ) &&...)
 
+		# Testing perl if requested.
 		unless ($force) {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
 			$self->_trace_line( 1, "Testing perl...\n" );
 			$self->_make('test');
 		}
 
+		# Installing perl.
 		$self->_trace_line( 1, "Installing perl...\n" );
 		$self->_make(qw/install UNINST=1/);
 	} ## end SCOPE:
 
+	# If using gcc4, copy the helper dll into perl's bin directory.
 	if (4 == $self->_gcc_version()) {
 		$self->_copy(
-			catdir ($self->_get_image_dir(), 'c',    'bin', 'libgcc_s_sjlj-1.dll'),
-			catdir ($self->_get_image_dir(), 'perl', 'bin', 'libgcc_s_sjlj-1.dll'),
+			catfile($self->_get_image_dir(), 'c',    'bin', 'libgcc_s_sjlj-1.dll'),
+			catfile($self->_get_image_dir(), 'perl', 'bin', 'libgcc_s_sjlj-1.dll'),
 		);
 	}
 	
+	# Delete a2p.exe if relocatable (Can't relocate a binary).
+	if ($self->_relocatable()) {
+		unlink catfile($self->_get_image_dir(), 'perl', 'bin', 'a2p.exe');
+	}
+
+	# Create the perl_licenses fragment.
 	my $fl_lic = File::List::Object->new()
 	  ->readdir( catdir( $self->_get_image_dir(), 'licenses', 'perl' ) );
 	$self->_insert_fragment( 'perl_licenses', $fl_lic );
 
+	# Now create the perl fragment.
 	my $fl = File::List::Object->new()
 	  ->readdir( catdir( $self->_get_image_dir(), 'perl' ) );
 	$fl->subtract($fl2)->filter( $self->_filters );

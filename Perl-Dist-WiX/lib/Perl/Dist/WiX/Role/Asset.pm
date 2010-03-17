@@ -53,6 +53,7 @@ has parent => (
 		'_build'            => '_build',
 		'_make'             => '_make',
 		'_gcc_version'      => 'gcc_version',
+		'_relocatable'      => 'relocatable',
 		'_add_to_distributions_installed' =>
 		  '_add_to_distributions_installed',
 	},
