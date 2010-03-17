@@ -44,7 +44,7 @@ TO BE COMPLETED
 
 =cut
 
-use 5.006;
+use 5.008;
 use strict;
 use Carp             ();
 use File::Spec       ();
@@ -605,7 +605,7 @@ END_TT
 #####################################################################
 # Table Template
 
-sub template_table { <<"END_TT" }
+sub template_table { <<'END_TT' }
 |=head1 NAME
 |
 |[%+ pkg %] - [% root %] class for the [% table.name %] table
@@ -620,14 +620,53 @@ sub template_table { <<"END_TT" }
 |
 |=head1 METHODS
 |
+[% IF method.base %]
+|=head2 base
+|
+|  my $namespace = [% pkg %]->base; # Returns '[% root %]'
+|
+|Normally you will only need to work directly with a table class,
+|and only with one ORLite package.
+|
+|However, if for some reason you need to work with multiple ORLite packages
+|at the same time without hardcoding the root namespace all the time, you
+|can determine the root namespace from an object or table class with the
+|C<base> method.
+|
+[% END %]
+|=head2 table
+|
+|  print [% pkg %]->table; # Returns '[% table.name %]'
+|
+|While you should not need the name of table for any simple operations,
+|from time to time you may need it programatically. If you do need it,
+|you can use the C<table> method to get the table name.
+|
+[% END %]
+[% IF method.load %]
+|=head2 load
+|
+|  my $object = [% pkg %]->load( $[% table.pk %] );
+|
+|If your table has single column primary key, a C<load> method will be
+|generated in the class. If there is no primary key, the method is not
+|created.
+|
+|The C<load> method provides a shortcut mechanism for fetching a single
+|object based on the value of the primary key. However it should only
+|be used for cases where your code trusts the record to already exists.
+|
+|It returns a C<[% pkg %]> object, or throws an exception if the
+|object does not exist.
+[% END %]
 [% IF method.select %]
 |=head2 select
 |
 |  # Get all objects in list context
-|  my \@list = [% pkg %]->select;
+|  my @list = [% pkg %]->select;
 |  
 |  # Get a subset of objects in scalar context
-|  my \$array_ref = [% pkg %]->select(
+|  my $array_ref = [% pkg %]->select(
 |      'where [% table.pk %] > ? order by [% table.pk %]',
 |      1000,
 |  );
@@ -647,14 +686,61 @@ sub template_table { <<"END_TT" }
 |Throws an exception on error, typically directly from the L<DBI> layer.
 |
 [% END %]
+[% IF method.iterate %]
+|=head2 iterate
+|
+|  [% pkg %]->iterate( sub {
+|      print $_->[% table.pk %] . "\n";
+|  } );
+|
+|The C<iterate> method enables the processing of large tables one record at
+|a time without loading having to them all into memory in advance.
+|
+|This plays well to the strength of SQLite, allowing it to do the work of
+|loading arbitrarily large stream of records from disk while retaining the
+|full power of Perl when processing the records.
+|
+|The last argument to C<iterate> must be a subroutine reference that will be
+|called for each element in the list, with the object provided in the topic
+|variable C<$_>.
+|
+|This makes the C<iterate> code fragment above functionally equivalent to the
+|following, except with an O(1) memory cost instead of O(n).
+|
+|    foreach ( [% pkg %]->select ) {
+|        print $_->[% table.pk %] . "\n";
+|    }
+|
+|You can filter the list via SQL in the same way you can with C<select>.
+|
+|  [% pkg %]->iterate(
+|      'order by ?', '[% table.pk %]',
+|      sub {
+|          print $_->[% table.pk %] . "\n";
+|      }
+|  );
+|
+|You can also use it in raw form from the root namespace for better control.
+|Using this form also allows for the use of arbitrarily complex queries,
+|including joins. Instead of being objects, rows are provided as C<ARRAY>
+|references when used in this form.
+|
+|  [% root %]->iterate(
+|      'select name from [% table.name %] order by [% table.pk %]',
+|      sub {
+|          print $_->[0] . "\n";
+|      }
+|  );
+|
+[% END %]
 [% IF method.count %]
 |=head2 count
 |
 |  # How many objects are in the table
-|  my \$rows = [% pkg %]->count;
+|  my $rows = [% pkg %]->count;
 |  
 |  # How many objects 
-|  my \$small = [% pkg %]->count(
+|  my $small = [% pkg %]->count(
 |      'where [% table.pk %] > ?',
 |      1000,
 |  );
@@ -686,7 +772,7 @@ sub template_table { <<"END_TT" }
 [% IF method.create %]
 |=head2 create
 |
-|  my \$object = [% pkg %]->create(
+|  my $object = [% pkg %]->create(
 |[%+ FOREACH column IN table.columns %]
 |      [%+ column.name %] => 'value',
 |[%+ END %]
@@ -708,7 +794,7 @@ sub template_table { <<"END_TT" }
 [% IF method.insert %]
 |=head2 insert
 |
-|  \$object->insert;
+|  $object->insert;
 |
 |The C<insert> method commits a new object (created with the C<new> method)
 |into the database.
@@ -725,7 +811,7 @@ sub template_table { <<"END_TT" }
 |=head2 delete
 |
 |  # Delete a single instantiated object
-|  \$object->delete;
+|  $object->delete;
 |  
 |  # Delete multiple rows from the [% table.name %] table
 |  [%+ pkg %]->delete('where [% table.pk %] > ?', 1000);
@@ -766,10 +852,10 @@ sub template_table { <<"END_TT" }
 |=head1 ACCESSORS
 |
 [% pk = table.pk %]
-[% IF method.\$pk %]
+[% IF method.$pk %]
 |=head2 [% pk %]
 |
-|  if ( \$object->[% pk %] ) {
+|  if ( $object->[% pk %] ) {
 |      print "Object has been inserted\\n";
 |  } else {
 |      print "Object has not been inserted\\n";
