@@ -937,6 +937,44 @@ has 'exe' => (
 
 
 
+=head3 fileid_perl
+
+The C<fileid_perl> parameter helps the relocation find the perl executable.
+
+If the merge module is being built, this is set by install_relocatable().
+
+If the merge module is being used, it needs to be passed in to new().
+
+=cut
+
+has 'fileid_perl' => (
+	is      => 'ro',
+	isa     => Str,
+	writer  => '_set_fileid_perl',
+	default => undef,
+);
+
+
+
+=head3 fileid_relocation_pl
+
+The C<fileid_relocation_pl> parameter helps the relocation find the relocation script.
+
+If the merge module is being built, this is set by install_relocatable().
+
+If the merge module is being used, it needs to be passed in to new().
+
+=cut
+
+has 'fileid_relocation_pl' => (
+	is      => 'ro',
+	isa     => Str,
+	writer  => '_set_fileid_relocation_pl',
+	default => undef,
+);
+
+
+
 =head3 force
 
 The C<force> parameter determines if perl and perl modules are 
@@ -1668,7 +1706,7 @@ sub _build_tasklist {
 		'install_portable',
 
 		# Apply optional relocation support
-		'install_relocation',
+		'install_relocatable',
 
 		# Remove waste and temporary files
 		'remove_waste',
@@ -2639,17 +2677,25 @@ sub msi_perl_major_version {
 
 Returns a command line to use in Main.wxs.tt for relocation purposes.
 
-This is overriden in subclasses, and creates an exception if not overridden.
-
 =cut
 
 # For template.
 sub msi_relocation_commandline {
 	my $self = shift;
 
-	PDWiX::Unimplemented->throw();
+	my $perl_id = $self->fileid_perl() . q{.} . $self->msm_package_id_property();
+	my $script_id = $self->fileid_relocation_pl() . q{.} . $self->msm_package_id_property();
+
+	my $answer = join q{ }, "&quot;[#$perl_id]&quot;",  "[#$script_id]", "--location", '[#INSTALLDIR]',  '--quiet';
+
+	my %files = $self->msi_relocation_commandline_files();
+
+	while ( ($fragment, $file) = each %files ) {
+		$id = $self->get_fragment_object($fragment)->find_file($file);
+		$answer .= ' --file [#$id]'
+	}
 	
-	return;
+	return $answer;
 }
 
 
@@ -2658,45 +2704,63 @@ sub msi_relocation_commandline {
 
 Returns a command line to use in Merge-Module.wxs.tt for relocation purposes.
 
+=cut
+
+# For template.
+sub msm_relocation_commandline {
+	my $self = shift;
+
+	my $perl_id = $self->fileid_perl();
+	my $script_id = $self->fileid_relocation_pl();
+
+	my $answer = join q{ }, "&quot;[#$perl_id]&quot;",  "[#$script_id]", "--location", '[#INSTALLDIR]',  '--quiet';
+
+	my %files = $self->msm_relocation_commandline_files();
+
+	while ( ($fragment, $file) = each %files ) {
+		$id = $self->get_fragment_object($fragment)->find_file($file);
+		$answer .= ' --file [#$id]'
+	}
+	
+	return $answer;
+}
+
+
+
+=head3 msi_relocation_commandline_files
+
+Returns the files to use in Main.wxs.tt for relocation purposes.
+
 This is overriden in subclasses, and creates an exception if not overridden.
 
 =cut
 
 # For template.
-sub msi_relocation_commandline {
+sub msi_relocation_commandline_files {
 	my $self = shift;
 
 	PDWiX::Unimplemented->throw();
-	
+
 	return;
 }
 
 
 
-=head3 msi_relocation_commandline_helper
+=head3 msm_relocation_commandline_files
 
-Returns a command line to use in Main.wxs.tt for relocation purposes.
+Returns the files to use in Merge-Module.wxs.tt for relocation purposes.
 
-This is called from subclass implementations of msi_relocation_commandline 
-and msm_relocation_commandline.
+This is overriden in subclasses, and creates an exception if not overridden.
 
 =cut
 
 # For template.
-sub msi_relocation_commandline_helper {
+sub msm_relocation_commandline_files {
 	my $self = shift;
-	my $txt_id = shift;
 
-	my $perl_id;
-	if ($self->in_merge_module()) {
-		$perl_id = $self->get_fragment_object('perl')->find_file(catfile($self->image_dir(), qw(perl bin perl.exe)));
-		$script_id = $self->get_fragment_object('reloc')->find_file(catfile($self->image_dir(), 'relocation.pl'));
-		# Store these in attributes for later.
-	} else {
-		PDWiX->throw("Perl::Dist::WiX->msi_relocation_commandline_helper not completely implemented.\n");
-	}
-	
-	return "&quot;[#$perl_id]&quot; [#$script_id] --quiet --file [#$txt_id] --location [#INSTALLDIR]";
+	PDWiX::Unimplemented->throw();
+
+	return;
 }
 
 
@@ -3314,6 +3378,13 @@ sub install_relocatable {
 			catfile($self->image_dir(), 'relocation.pl');
 		),
 	);
+
+	# Set the fileid attributes.
+	$perl_id = $self->get_fragment_object('perl')->find_file(catfile($self->image_dir(), qw(perl bin perl.exe)));
+	$self->_set_fileid_perl($perl_id);
+	
+	$script_id = $self->get_fragment_object('relocation_script')->find_file(catfile($self->image_dir(), 'relocation.pl'));
+	$self->_set_fileid_relocation_pl($script_id);
 
 	return 1;
 } ## end sub install_relocatable
