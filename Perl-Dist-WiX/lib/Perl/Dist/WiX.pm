@@ -4112,13 +4112,13 @@ sub insert_fragment {
 	unless ( _IDENTIFIER($id) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'id',
-			where     => '::Installer->insert_fragment'
+			where     => '->insert_fragment'
 		);
 	}
 	unless ( _INSTANCE( $files_obj, 'File::List::Object' ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'files_obj',
-			where     => '::Installer->insert_fragment'
+			where     => '->insert_fragment'
 		);
 	}
 
