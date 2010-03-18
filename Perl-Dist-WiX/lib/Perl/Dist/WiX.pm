@@ -1667,6 +1667,9 @@ sub _build_tasklist {
 		# Apply optional portability support
 		'install_portable',
 
+		# Apply optional relocation support
+		'install_relocation',
+
 		# Remove waste and temporary files
 		'remove_waste',
 
@@ -3239,7 +3242,7 @@ modules to make Perl installable on a portable device.
 sub install_portable {
 	my $self = shift;
 
-	return 1 unless $self->portable;
+	return 1 unless $self->portable();
 
 	# Install the regular parts of Portability
 	$self->install_modules( qw(
@@ -3286,6 +3289,34 @@ sub install_portable {
 
 	return 1;
 } ## end sub install_portable
+
+
+
+=head3 install_relocatable
+
+The C<install_relocatable> method is used by C<run> to install the perl
+modules to make Perl relocatable when installed.
+
+=cut
+
+# Relocatability support must be added before writing the merge module
+sub install_relocatable {
+	my $self = shift;
+
+	return 1 unless $self->relocatable();
+
+	# Copy the relocation information in.
+	$self->_copy(catfile($self->dist_dir(), 'relocation.pl'), $self->image_dir());
+	
+	# Make sure it gets installed.
+	$self->insert_fragment('relocation_script',
+		File::List::Object->new()->add_file(
+			catfile($self->image_dir(), 'relocation.pl');
+		),
+	);
+
+	return 1;
+} ## end sub install_relocatable
 
 
 
