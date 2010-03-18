@@ -2690,6 +2690,7 @@ sub msi_relocation_commandline {
 
 	my %files = $self->msi_relocation_commandline_files();
 
+	my ($fragment, $file, $id);
 	while ( ($fragment, $file) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file($file);
 		$answer .= ' --file [#$id]'
@@ -2717,6 +2718,7 @@ sub msm_relocation_commandline {
 
 	my %files = $self->msm_relocation_commandline_files();
 
+	my ($fragment, $file, $id);
 	while ( ($fragment, $file) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file($file);
 		$answer .= ' --file [#$id]'
@@ -3375,15 +3377,15 @@ sub install_relocatable {
 	# Make sure it gets installed.
 	$self->insert_fragment('relocation_script',
 		File::List::Object->new()->add_file(
-			catfile($self->image_dir(), 'relocation.pl');
+			catfile($self->image_dir(), 'relocation.pl')
 		),
 	);
 
 	# Set the fileid attributes.
-	$perl_id = $self->get_fragment_object('perl')->find_file(catfile($self->image_dir(), qw(perl bin perl.exe)));
+	my $perl_id = $self->get_fragment_object('perl')->find_file(catfile($self->image_dir(), qw(perl bin perl.exe)));
 	$self->_set_fileid_perl($perl_id);
 	
-	$script_id = $self->get_fragment_object('relocation_script')->find_file(catfile($self->image_dir(), 'relocation.pl'));
+	my $script_id = $self->get_fragment_object('relocation_script')->find_file(catfile($self->image_dir(), 'relocation.pl'));
 	$self->_set_fileid_relocation_pl($script_id);
 
 	return 1;
@@ -4387,8 +4389,6 @@ sub as_string {
 		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(), ));
 } ## end sub as_string
 
-
-
 =head2 process_template
 
 Loads the file template passed in as the first parameter, using this object, 
@@ -4406,7 +4406,7 @@ to a list of pairs in the optional second parameter.
 sub process_template {
 	my $self          = shift;
 	my $template_file = shift;
-	my $vars          = shift;
+	my $vars_in       = shift;
 
 	my $tt = Template->new( {
 			INCLUDE_PATH => [ $self->dist_dir(), $self->wix_dist_dir(), ],
@@ -4420,7 +4420,7 @@ sub process_template {
 	my $answer;
 	my $vars = {
 		dist => $self,
-		(defined $vars) ? @{$vars} : ();
+		(defined $vars_in) ? @{$vars_in} : (),
 	};
 
 	$tt->process( $template_file, $vars, \$answer )
