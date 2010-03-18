@@ -446,6 +446,43 @@ sub add_files {
 	return $self->_add_files(@files);
 }
 
+# find_file($filename) tries to find the filename in the package.
+
+sub find_file {
+	my $self = shift;
+	my $filename = shift;
+	
+	return $self->_find_file_recursive($filename, $self);
+}
+
+sub _find_file_recursive {
+	my $self = shift;
+	my $filename = shift;
+	my $tag = shift;
+	
+	my @children = $tag->get_child_tags();
+	
+	my $answer;
+	my $i = 0;
+	while ((not defined $answer) and ($i < scalar @children)) {
+		if ('WiX3::XML::File' eq ref $children[$i]) {
+			if ($children[$i]->_get_source() eq $filename) {
+				return 'F_' . $children[$i]->get_id();
+			} else {
+				return undef;
+			}
+		} elsif ( $children[$i]->does('WiX3::XML::Role::TagAllowsChildTags') ) {
+			$answer = $self->_find_file_recursive($filename, $children[$i]);
+		} else {
+			return undef;
+		}
+	
+		$i++;
+	}
+	
+	return undef;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 

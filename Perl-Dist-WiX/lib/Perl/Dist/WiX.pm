@@ -2565,6 +2565,8 @@ sub msi_perl_version {
 
 } ## end sub msi_perl_version
 
+
+
 =head3 msi_perl_major_version
 
 Returns the major perl version so that upgrades that jump delete the
@@ -2583,7 +2585,7 @@ sub msi_perl_major_version {
 		'5100' => [ 5, 9,  255 ],
 		'5101' => [ 5, 10, 0 ],
 		'5115' => [ 5, 11, 4 ],
-		'git'  => [ 5, 11, 4 ],
+		'git'  => [ 5, 11, 0 ],
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
 
@@ -2599,6 +2601,72 @@ sub msi_perl_major_version {
 	return join q{.}, @{$ver};
 
 } ## end sub msi_perl_major_version
+
+
+=head3 msi_relocation_commandline
+
+Returns a command line to use in Main.wxs.tt for relocation purposes.
+
+This is overriden in subclasses, and creates an exception if not overridden.
+
+=cut
+
+# For template.
+sub msi_relocation_commandline {
+	my $self = shift;
+
+	PDWiX::Unimplemented->throw();
+	
+	return;
+}
+
+
+
+=head3 msm_relocation_commandline
+
+Returns a command line to use in Merge-Module.wxs.tt for relocation purposes.
+
+This is overriden in subclasses, and creates an exception if not overridden.
+
+=cut
+
+# For template.
+sub msi_relocation_commandline {
+	my $self = shift;
+
+	PDWiX::Unimplemented->throw();
+	
+	return;
+}
+
+
+
+=head3 msi_relocation_commandline_helper
+
+Returns a command line to use in Main.wxs.tt for relocation purposes.
+
+This is called from subclass implementations of msi_relocation_commandline 
+and msm_relocation_commandline.
+
+=cut
+
+# For template.
+sub msi_relocation_commandline_helper {
+	my $self = shift;
+	my $txt_id = shift;
+
+	my $perl_id;
+	if ($self->in_merge_module()) {
+		$perl_id = $self->get_fragment_object('perl')->find_file(catfile($self->image_dir(), qw(perl bin perl.exe)));
+		$script_id = $self->get_fragment_object('reloc')->find_file(catfile($self->image_dir(), 'relocation.pl'));
+		# Store these in attributes for later.
+	} else {
+		PDWiX->throw("Perl::Dist::WiX->msi_relocation_commandline_helper not completely implemented.\n");
+	}
+	
+	return "&quot;[#$perl_id]&quot; [#$script_id] --quiet --file [#$txt_id] --location [#INSTALLDIR]";
+}
+
 
 
 =head3 perl_config_myuname
@@ -3775,6 +3843,7 @@ sub _write_msi {
 #		'-v',                          # Verbose for the moment.
 		'-out', $output_msi,
 		'-ext', wix_lib_wixui(),
+		'-ext', wix_library('WixUtil'),
 		$input_wixobj,
 		$input_wixouts,
 	];

@@ -31,5 +31,22 @@
    	  <ProgressText Action="CA_ClearFolder">Scanning for added files to delete... (please wait a while)</ProgressText>
     </UI>
 
+[% IF dist.relocatable %]
+	<CustomAction Id="CA_Relocate_msm_Cmd" Property="CA_Relocate_msm"
+				  Value="[% dist.msm_relocation_commandline %]" Execute="immediate"/>
+	<CustomAction Id="CA_Relocate_msm" BinaryKey="WixCA" DllEntry="CAQuietExec"
+				  Execute="deferred" Return="check" Impersonate="no"/>
+
+	<InstallExecuteSequence>
+		<Custom Action="CA_Relocate_msm_Cmd" After="InstallFiles"/>
+		<Custom Action="CA_Relocate_msm" After="PublishProduct"/>
+	</InstallExecuteSequence>
+
+    <UI>
+   	  <ProgressText Action="CA_Relocate_msm">Relocating [% dist.app_name %]...</ProgressText>
+    </UI>
+[% END %]
+
+	
   </Module>
 </Wix>
