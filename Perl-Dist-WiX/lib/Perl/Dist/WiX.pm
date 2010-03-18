@@ -2307,6 +2307,32 @@ sub distribution_version_human {
 
 
 
+=head3 distribution_version_file
+
+The C<distribution_version_file> method returns the "marketing" form
+of the distribution version, in such a way that it can be used in a file 
+name.
+
+=cut
+
+sub distribution_version_file {
+	my $self = shift;
+
+	my $version = $self->perl_version_human();
+
+	if ( 'git' eq $version ) {
+		$version = $self->git_describe();
+	}
+
+	return
+	    $version . q{.}
+	  . $self->build_number()
+	  . ( $self->portable() ? '-portable' : q{} )
+	  . ( $self->beta_number() ? '-beta-' . $self->beta_number() : q{} );
+} ## end sub distribution_version_human
+
+
+
 =head3 output_date_string
 
 Returns a stringified date in YYYYMMDD format for the use of other 
@@ -2479,6 +2505,9 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_package.htm>
 sub msm_package_id {
 	my $self = shift;
 
+	# Handles including a merge module correctly.
+	if (defined $self->msm_code()) { return $self->msm_code(); }
+	
 	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
 
 	my $upgrade_ver =
@@ -2665,6 +2694,21 @@ sub msi_relocation_commandline_helper {
 	}
 	
 	return "&quot;[#$perl_id]&quot; [#$script_id] --quiet --file [#$txt_id] --location [#INSTALLDIR]";
+}
+
+
+
+=head3 msi_relocation_ca
+
+Returns which CA to use in Main.wxs.tt and Merge-Module.wxs.tt for relocation 
+purposes.
+
+=cut
+
+sub msi_relocation_ca {
+	my $self = shift;
+	
+	return (64 == $self->bits()) ? 'CAQuietExec64' : 'CAQuietExec';
 }
 
 
@@ -3461,8 +3505,8 @@ sub write_merge_module {
 
 		$self->_clear_fragments();
 
-		my $file = catfile( $self->output_dir(), 'fragments.zip' );
-		$self->trace_line( 1, "Generating zip at $file\n" );
+		my $zipfile = catfile( $self->output_dir(), 'fragments.zip' );
+		$self->trace_line( 1, "Generating zip at $zipfile\n" );
 
 		# Create the archive
 		my $zip = Archive::Zip->new();
@@ -3479,10 +3523,13 @@ sub write_merge_module {
 			if ( $member->fileName =~ m{[.] wixout\z}smx ) {
 				$zip->removeMember($member);
 			}
+			if ( $member->fileName =~ m{[.] wixobj\z}smx ) {
+				$zip->removeMember($member);
+			}
 		}
 
 		# Write out the file name
-		$zip->writeToFileNamed($file);
+		$zip->writeToFileNamed($zipfile);
 
 		# Remake the fragments directory.
 		$self->_remake_path( $self->fragment_dir() );
@@ -4000,7 +4047,21 @@ sub _write_msm {
 			"Failed to find $output_msm (probably compilation error)");
 	}
 
-	return $output_msm;
+	# Now write out the documentation for the msm.
+	my $output_docs =
+	  catfile( $self->output_dir(), 'merge-module-' . $self->distribution_version_file() . '.html', );
+	my $docs = $self->process_template('Merge-Module.documentation.html.tt');
+	$fh = IO::File->new( $output_docs, 'w' );
+
+	if ( not defined $fh ) {
+		PDWiX->throw(
+"Could not open file $filename_in for writing [$OS_ERROR] [$EXTENDED_OS_ERROR]"
+		);
+	}
+	$fh->print($docs);
+	$fh->close;
+		
+	return ($output_msm, $output_docs);
 } ## end sub _write_msm
 
 
@@ -4205,6 +4266,8 @@ sub add_to_fragment {
 Loads the file template passed in as the parameter, using this object, 
 and returns it as a string.
 
+Used for .wxs files.
+
 	# Loads up the merge module template.
 	$wxs = $self->as_string('Merge-Module.wxs.tt');
 
@@ -4217,8 +4280,34 @@ sub as_string {
 	my $self          = shift;
 	my $template_file = shift;
 
+	return $self->process_template($template_file, 
+		\( directory_tree =>
+		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(), ));
+} ## end sub as_string
+
+
+
+=head2 process_template
+
+Loads the file template passed in as the first parameter, using this object, 
+and returns it as a string.
+
+Additional entries (beyond the one given that 'dist' is the Perl::Dist::WiX 
+object) for the second parameter of Template->process are given as a reference
+to a list of pairs in the optional second parameter.
+
+	# Loads up the template for merge module docs.
+	$text = $self->process_template('Merge-Module.documentation.txt.tt');
+
+=cut
+
+sub process_template {
+	my $self          = shift;
+	my $template_file = shift;
+	my $vars          = shift;
+
 	my $tt = Template->new( {
-			INCLUDE_PATH => [ $self->dist_dir, $self->wix_dist_dir, ],
+			INCLUDE_PATH => [ $self->dist_dir(), $self->wix_dist_dir(), ],
 			EVAL_PERL    => 1,
 		} )
 	  || PDWiX::Caught->throw(
@@ -4229,8 +4318,7 @@ sub as_string {
 	my $answer;
 	my $vars = {
 		dist => $self,
-		directory_tree =>
-		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
+		(defined $vars) ? @{$vars} : ();
 	};
 
 	$tt->process( $template_file, $vars, \$answer )

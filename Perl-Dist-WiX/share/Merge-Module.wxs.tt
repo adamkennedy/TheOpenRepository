@@ -34,11 +34,11 @@
 [% IF dist.relocatable %]
 	<CustomAction Id="CA_Relocate_msm_Cmd" Property="CA_Relocate_msm"
 				  Value="[% dist.msm_relocation_commandline %]" Execute="immediate"/>
-	<CustomAction Id="CA_Relocate_msm" BinaryKey="WixCA" DllEntry="CAQuietExec"
+	<CustomAction Id="CA_Relocate_msm" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
 				  Execute="deferred" Return="check" Impersonate="no"/>
 
 	<InstallExecuteSequence>
-		<Custom Action="CA_Relocate_msm_Cmd" After="InstallFiles"/>
+		<Custom Action="CA_Relocate_msm_Cmd" After="CostFinalize"/>
 		<Custom Action="CA_Relocate_msm" After="PublishProduct"/>
 	</InstallExecuteSequence>
 

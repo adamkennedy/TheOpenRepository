@@ -104,7 +104,7 @@
     <!-- # Uncomment when ready.
 	<CustomAction Id="CA_Relocate_Cmd" Property="CA_Relocate"
 				  Value="[% dist.msi_relocation_commandline %]" Execute="immediate"/>
-	<CustomAction Id="CA_Relocate" BinaryKey="WixCA" DllEntry="CAQuietExec"
+	<CustomAction Id="CA_Relocate" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
 				  Execute="deferred" Return="check" Impersonate="no"/>
 			  
 	<InstallExecuteSequence>
