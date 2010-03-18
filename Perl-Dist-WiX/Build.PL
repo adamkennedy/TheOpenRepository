@@ -2,11 +2,11 @@ use inc::latest Module::Build;
 
 # CPAN version test.
 require CPAN;
-if ($CPAN::VERSION < 1.9454) {
+if ($CPAN::VERSION < 1.9456) {
 	print <<'EOF';
 To install the rest of the prerequisites, you need to run
 
-	cpan ANDK/CPAN-1.94_54.tar.gz
+	cpan ANDK/CPAN-1.94_56.tar.gz
 
 before installing this. 
 
