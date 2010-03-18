@@ -4437,7 +4437,7 @@ sub _copy {
 
 		# Make sure it isn't readonly
 		my $file = Win32::File::Object->new( $to, 1 );
-		my $readonly = $file->readonly;
+		my $readonly = $file->readonly();
 		$file->readonly(0);
 
 		# Do the actual copy
