@@ -1,5 +1,7 @@
 Revision history for Perl extension File-Find-Rule-Perl
 
+        - Fix 03_noindex.t to ignore MYMETA.yml (MIYAGAWA)
+
 1.09 Thu 30 Jul 2009
 	- 1.08 broke Windows. This unbreaks it again (ADAMK)
 
