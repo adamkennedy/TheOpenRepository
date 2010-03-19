@@ -101,21 +101,20 @@
     </UI>
 
 [% IF dist.relocatable %]
-    <!-- # Uncomment when ready.
 	<CustomAction Id="CA_Relocate_Cmd" Property="CA_Relocate"
 				  Value="[% dist.msi_relocation_commandline %]" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
 				  Execute="deferred" Return="check" Impersonate="no"/>
 			  
 	<InstallExecuteSequence>
-		<Custom Action="CA_Relocate_msm_Cmd" After="CostFinalize"/>
-		<Custom Action="CA_Relocate_msm" After="PublishProduct"/>
+		<Custom Action="CA_Relocate_Cmd" After="CostFinalize"/>
+		<Custom Action="CA_Relocate" After="PublishProduct"/>
 	</InstallExecuteSequence>
 
     <UI>
    	  <ProgressText Action="CA_Relocate_msm">Relocating [% dist.app_name %]...</ProgressText>
     </UI>
-	-->
+
     <CustomAction Id='CA_CheckForSpaces' BinaryKey='B_ClearFolder' DllEntry='CheckForSpaces' />
 	<UI Id="WixUI_MyInstallDir">
 		<TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
