@@ -2697,7 +2697,7 @@ sub msi_relocation_commandline {
 	while ( ($fragment, $file) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file($file);
 		PDWiX->throw("Could not find file $file in fragment $fragment\n") if not defined $id;
-		$answer .= ' --file [#$id]'
+		$answer .= " --file [#$id]"
 	}
 	
 	return $answer;
@@ -2726,7 +2726,7 @@ sub msm_relocation_commandline {
 	while ( ($fragment, $file) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file($file);
 		PDWiX->throw("Could not find file $file in fragment $fragment\n") if not defined $id;
-		$answer .= ' --file [#$id]'
+		$answer .= " --file [#$id]"
 	}
 	
 	return $answer;
