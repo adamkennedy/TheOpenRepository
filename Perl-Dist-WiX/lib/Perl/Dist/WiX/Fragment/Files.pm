@@ -473,6 +473,7 @@ sub _find_file_recursive {
 			}
 		} elsif ( $children[$i]->does('WiX3::XML::Role::TagAllowsChildTags') ) {
 			$answer = $self->_find_file_recursive($filename, $children[$i]);
+			return $answer if defined $answer;
 		} else {
 			return undef;
 		}

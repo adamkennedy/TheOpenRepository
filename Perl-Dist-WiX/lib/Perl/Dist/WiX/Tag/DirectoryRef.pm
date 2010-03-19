@@ -33,6 +33,8 @@ sub get_directory_object {
 	return undef;
 } ## end sub get_directory_object
 
+
+
 sub search_dir {
 	## no critic (ProhibitExplicitReturnUndef)
 	my $self = shift;
@@ -104,6 +106,8 @@ sub search_dir {
 	return $exact ? undef : $self;
 } ## end sub search_dir
 
+
+
 sub _add_directory_recursive {
 	my $self         = shift;
 	my $path_to_find = shift;
@@ -153,6 +157,14 @@ sub add_directory {
 
 	return $new_dir;
 }
+
+
+
+sub get_id {
+	my $self = shift;
+	return $self->get_directory_id();
+}
+
 
 
 no Moose;

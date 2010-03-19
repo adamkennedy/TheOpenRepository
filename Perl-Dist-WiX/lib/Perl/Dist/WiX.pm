@@ -951,7 +951,7 @@ has 'fileid_perl' => (
 	is      => 'ro',
 	isa     => Str,
 	writer  => '_set_fileid_perl',
-	default => undef,
+	default => '',
 );
 
 
@@ -970,7 +970,7 @@ has 'fileid_relocation_pl' => (
 	is      => 'ro',
 	isa     => Str,
 	writer  => '_set_fileid_relocation_pl',
-	default => undef,
+	default => '',
 );
 
 
@@ -1713,6 +1713,9 @@ sub _build_tasklist {
 
 		# Regenerate file fragments
 		'regenerate_fragments',
+
+		# Find file ID's for relocation.
+		'find_relocatable_fields',
 
 		# Write out the merge module
 		'write_merge_module',
@@ -2693,6 +2696,7 @@ sub msi_relocation_commandline {
 	my ($fragment, $file, $id);
 	while ( ($fragment, $file) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file($file);
+		PDWiX->throw("Could not find file $file in fragment $fragment\n") if not defined $id;
 		$answer .= ' --file [#$id]'
 	}
 	
@@ -2721,6 +2725,7 @@ sub msm_relocation_commandline {
 	my ($fragment, $file, $id);
 	while ( ($fragment, $file) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file($file);
+		PDWiX->throw("Could not find file $file in fragment $fragment\n") if not defined $id;
 		$answer .= ' --file [#$id]'
 	}
 	
@@ -3361,7 +3366,11 @@ sub install_portable {
 =head3 install_relocatable
 
 The C<install_relocatable> method is used by C<run> to install the perl
-modules to make Perl relocatable when installed.
+script to make Perl relocatable when installed.
+
+This routine must be run before L</regenerate_fragments>, so that the 
+fragment created in this method is regenerates so that the file ID can
+be found by L<find_relocatable_fields>.
 
 =cut
 
@@ -3380,14 +3389,40 @@ sub install_relocatable {
 			catfile($self->image_dir(), 'relocation.pl')
 		),
 	);
+	
+	return 1;
+}
+
+
+
+=head3 find_relocatable_fields
+
+The C<find_relocatable_fields> method is used by C<run> to find the 
+property ID's required to make Perl relocatable when installed.
+
+This routine must be run after L</regenerate_fragments>.
+
+=cut
+
+# Relocatability support must be added before writing the merge module
+sub find_relocatable_fields {
+	my $self = shift;
+
+	return 1 unless $self->relocatable();
 
 	# Set the fileid attributes.
 	my $perl_id = $self->get_fragment_object('perl')->find_file(catfile($self->image_dir(), qw(perl bin perl.exe)));
+	if (not $perl_id) {
+		PDWiX->throw("Could not find perl.exe's ID.\n")
+	}
 	$self->_set_fileid_perl($perl_id);
 	
 	my $script_id = $self->get_fragment_object('relocation_script')->find_file(catfile($self->image_dir(), 'relocation.pl'));
+	if (not $script_id) {
+		PDWiX->throw("Could not find relocation.pl's ID.\n")
+	}
 	$self->_set_fileid_relocation_pl($script_id);
-
+	
 	return 1;
 } ## end sub install_relocatable
 
@@ -4138,7 +4173,7 @@ sub _write_msm {
 	my $out;
 	my $cmd = [
 		wix_bin_light(), '-out',        $output_msm, '-ext',
-		wix_lib_wixui(), $input_wixobj, $input_wixouts,
+		wix_lib_wixui(), '-ext', wix_library('WixUtil'), $input_wixobj, $input_wixouts,
 	];
 	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
 
@@ -4385,7 +4420,7 @@ sub as_string {
 	my $template_file = shift;
 
 	return $self->process_template($template_file, 
-		\( directory_tree =>
+		( directory_tree =>
 		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(), ));
 } ## end sub as_string
 
@@ -4406,7 +4441,7 @@ to a list of pairs in the optional second parameter.
 sub process_template {
 	my $self          = shift;
 	my $template_file = shift;
-	my $vars_in       = shift;
+	my @vars_in       = @_;
 
 	my $tt = Template->new( {
 			INCLUDE_PATH => [ $self->dist_dir(), $self->wix_dist_dir(), ],
@@ -4420,7 +4455,7 @@ sub process_template {
 	my $answer;
 	my $vars = {
 		dist => $self,
-		(defined $vars_in) ? @{$vars_in} : (),
+		@vars_in,
 	};
 
 	$tt->process( $template_file, $vars, \$answer )
