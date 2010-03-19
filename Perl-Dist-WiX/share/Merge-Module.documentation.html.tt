@@ -8,9 +8,10 @@
 msm_to_use           => '<i>&lt;URL location of [% dist.output_base_filename %].msm&gt;</i>',
 msm_zip              => '<i>&lt;URL location of [% dist.output_base_filename %].zip&gt;</i>',
 msm_code             => '[% dist.msm_package_id %]',
+[% IF dist.relocatable %]
 fileid_perl          => '[% dist.fileid_perl %]',
 fileid_relocation_pl => '[% dist.fileid_relocation_pl %]',
-...</pre>
+[% END %]...</pre>
 
 <p>In addition, your 'tasklist' parameter has to use 'initialize_using_msm' as its second entry (right after 'final_initialization'.)</p>
 
