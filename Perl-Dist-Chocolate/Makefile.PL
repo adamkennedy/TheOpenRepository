@@ -1,4 +1,4 @@
-use inc::Module::Install 0.93;
+use inc::Module::Install 0.95;
 
 die "OS unsupported\n" unless win32;
 
@@ -17,7 +17,7 @@ requires      'parent'                 => '0.221';
 requires      'URI::file'              => '4.20'; # From URI 1.36 or better.
 test_requires 'Test::More'             => '0.42';
 test_requires 'LWP::Online'            => '1.07';
-test_requires 'Test::Perl::Dist'       => '0.202';
+test_requires 'Test::Perl::Dist'       => '0.203';
 resources     'repository'             => 'http://svn.ali.as/cpan/trunk/Perl-Dist-Chocolate';
 resources     'bugtracker'             => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-Chocolate';
 resources     'homepage'               => 'http://www.strawberryperl.com/';
