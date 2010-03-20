@@ -32,7 +32,7 @@ require IO::File;
 require Template;
 require File::List::Object;
 
-our $VERSION = '1.102_100';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 =head2 release_notes_filename
@@ -142,8 +142,8 @@ The C<create_distribution_list> method creates the DISTRIBUTIONS.txt file.
 
 sub create_distribution_list {
 	my $self = shift;
-	
-	$self->create_distribution_list_file('DISTRIBUTIONS.txt');
+
+	return $self->create_distribution_list_file('DISTRIBUTIONS.txt');
 }
 
 
@@ -157,7 +157,7 @@ installed, and adds it to the .msi.
 =cut
 
 sub create_distribution_list_file {
-	my $self = shift;
+	my $self           = shift;
 	my $dist_file_name = shift;
 	my $dist_list;
 	my ( $name, $ver );
@@ -206,7 +206,7 @@ sub create_distribution_list_file {
 	$self->insert_fragment( 'perl_dist_list', $dist_file_list );
 
 	return 1;
-} ## end sub create_distribution_list
+} ## end sub create_distribution_list_file
 
 1;
 

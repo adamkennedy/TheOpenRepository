@@ -7,7 +7,7 @@ use File::Spec::Functions qw( catdir abs2rel );
 use Params::Util qw( _STRING _INSTANCE );
 require Perl::Dist::WiX::Tag::Directory;
 
-our $VERSION = '1.102_100';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::DirectoryRef';
@@ -46,8 +46,8 @@ sub search_dir {
 		%args = @_;
 	} else {
 
-		# TODO: Throw error.
-		PDWiX->throw('Parameters passed to search_dir not a hash or hashref.');
+		PDWiX->throw(
+			'Parameters passed to search_dir not a hash or hashref.');
 	}
 
 	# Set defaults for parameters.
@@ -245,6 +245,11 @@ Returns a L<Perl::Dist::WiX::Tag::Directory|Perl::Dist::WiX::Tag::Directory>
 tag with the given parameters and adds it as a child of this tag.
 
 The C<parent> parameter does not need to be given, as it is added as this object.
+
+=head2 get_id
+
+Redirects to C<get_directory_id>.
+
 
 =head1 SUPPORT
 

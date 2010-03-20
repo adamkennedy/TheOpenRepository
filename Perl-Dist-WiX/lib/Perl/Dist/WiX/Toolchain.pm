@@ -144,64 +144,63 @@ BEGIN {
 sub _modules_build {
 	my $self = shift;
 
-	my @modules_list = (qw {
-		ExtUtils::MakeMaker
-		File::Path
-		ExtUtils::Command
-		Win32API::File
-		ExtUtils::Install
-		ExtUtils::Manifest
-		Test::Harness
-		Test::Simple
-		ExtUtils::CBuilder
-		ExtUtils::ParseXS
-		version
-		Scalar::Util
-		Compress::Raw::Zlib
-		Compress::Raw::Bzip2
-		IO::Compress::Base
-		Compress::Bzip2
-		IO::Zlib
-		File::Spec
-		File::Temp
-		Win32::WinError
-		Win32API::Registry
-		Win32::TieRegistry
-		File::HomeDir
-		IPC::Run3
-		Probe::Perl
-		Test::Script
-		File::Which
-		Archive::Zip
-		Package::Constants
-		IO::String
-		Archive::Tar}); 
+	my @modules_list = ( qw {
+		  ExtUtils::MakeMaker
+		  File::Path
+		  ExtUtils::Command
+		  Win32API::File
+		  ExtUtils::Install
+		  ExtUtils::Manifest
+		  Test::Harness
+		  Test::Simple
+		  ExtUtils::CBuilder
+		  ExtUtils::ParseXS
+		  version
+		  Scalar::Util
+		  Compress::Raw::Zlib
+		  Compress::Raw::Bzip2
+		  IO::Compress::Base
+		  Compress::Bzip2
+		  IO::Zlib
+		  File::Spec
+		  File::Temp
+		  Win32::WinError
+		  Win32API::Registry
+		  Win32::TieRegistry
+		  File::HomeDir
+		  IPC::Run3
+		  Probe::Perl
+		  Test::Script
+		  File::Which
+		  Archive::Zip
+		  Package::Constants
+		  IO::String
+		  Archive::Tar}
+	);
 
 	push @modules_list, 'Compress::unLZMA' if 32 == $self->bits();
-	
-	push @modules_list, qw{
-		Win32::UTCFileTime
-		Parse::CPAN::Meta
-		YAML
-		Net::FTP
-		Digest::MD5
-		Digest::SHA1
-		Digest::SHA
-		Module::Build
-		Term::Cap
-		CPAN
-		Term::ReadKey
-		Term::ReadLine::Perl
-		Text::Glob
-		Data::Dumper
-		URI
-		HTML::Tagset
-		HTML::Parser
-		LWP::UserAgent};
 
-	my %modules = (
-		'5.008009' => \@modules_list,
-	);
+	push @modules_list, qw{
+	  Win32::UTCFileTime
+	  Parse::CPAN::Meta
+	  YAML
+	  Net::FTP
+	  Digest::MD5
+	  Digest::SHA1
+	  Digest::SHA
+	  Module::Build
+	  Term::Cap
+	  CPAN
+	  Term::ReadKey
+	  Term::ReadLine::Perl
+	  Text::Glob
+	  Data::Dumper
+	  URI
+	  HTML::Tagset
+	  HTML::Parser
+	  LWP::UserAgent};
+
+	my %modules = ( '5.008009' => \@modules_list, );
 	$modules{'5.010000'} = $modules{'5.008009'};
 	$modules{'5.010001'} = $modules{'5.008009'};
 	$modules{'5.011001'} = $modules{'5.008009'};
@@ -221,7 +220,7 @@ sub _corelist_version_build {
 	);
 
 	return \%corelist;
-}
+} ## end sub _corelist_version_build
 
 sub _corelist_build {
 	my $self = shift;

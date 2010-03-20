@@ -8,7 +8,7 @@ use Params::Util qw ( _INSTANCE );
 require URI;
 require File::Spec::Unix;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 sub _configure {
@@ -29,13 +29,6 @@ sub _install_distribution {
 	my $buildpl = shift;
 	my $name    = $self->get_name();
 
-	# There was a painful problem installing this particular module on 5.11.5-gcc4.
-	# This solves said problem.
-	if ($name =~ /TermReadKey/) {
-		my $lib = catdir($self->_get_image_dir(), qw(perl lib));
-		$self->_perl( "-I$lib", 'genchars.pl');
-	}
-	
 	$self->_trace_line( 1, "Building $name...\n" );
 	$buildpl ? $self->_build() : $self->_make();
 

@@ -621,7 +621,7 @@ sub _build_binary_root {
 	my $self = shift;
 
 	if ( $self->offline() ) {
-		return undef;
+		return URI::file->new( $self->download_dir() );
 	} else {
 		return 'http://strawberryperl.com/package';
 	}
@@ -951,7 +951,7 @@ has 'fileid_perl' => (
 	is      => 'ro',
 	isa     => Str,
 	writer  => '_set_fileid_perl',
-	default => '',
+	default => q{},
 );
 
 
@@ -970,7 +970,7 @@ has 'fileid_relocation_pl' => (
 	is      => 'ro',
 	isa     => Str,
 	writer  => '_set_fileid_relocation_pl',
-	default => '',
+	default => q{},
 );
 
 
@@ -1294,8 +1294,9 @@ the "Click here for support information." text.
 =cut
 
 has 'msi_help_url' => (
-	is      => 'ro',
-	isa     => Uri | Undef, # Maybe[ Uri ] will not work. Unions inherit coercions, parameterized types don't.
+	is  => 'ro',
+	isa => Uri | Undef
+	,                                  # Maybe[ Uri ] will not work. Unions inherit coercions, parameterized types don't.
 	coerce  => 1,
 	default => undef,
 );
@@ -1436,7 +1437,7 @@ has 'msm_zip' => (
 );
 
 
-		
+
 =head3 offline
 
 The B<Perl::Dist::WiX> module has limited ability to build offline, if all
@@ -1784,7 +1785,7 @@ has 'tempenv_dir' => (
 		type_constraints =>
 		  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
 	),
-	lazy => 1,
+	lazy    => 1,
 	builder => '_build_tempenv_dir',
 );
 
@@ -2373,7 +2374,7 @@ sub distribution_version_file {
 	  . $self->build_number()
 	  . ( $self->portable() ? '-portable' : q{} )
 	  . ( $self->beta_number() ? '-beta-' . $self->beta_number() : q{} );
-} ## end sub distribution_version_human
+} ## end sub distribution_version_file
 
 
 
@@ -2401,11 +2402,11 @@ Returns the UI type that the MSI needs to use.
 # For template
 sub msi_ui_type {
 	my $self = shift;
-	
+
 	if ( defined $self->msi_feature_tree() ) {
-		return 'FeatureTree'
+		return 'FeatureTree';
 	} elsif ( $self->relocatable() ) {
-		return 'MyInstallDir'
+		return 'MyInstallDir';
 	} else {
 		return 'Minimal';
 	}
@@ -2550,8 +2551,8 @@ sub msm_package_id {
 	my $self = shift;
 
 	# Handles including a merge module correctly.
-	if (defined $self->msm_code()) { return $self->msm_code(); }
-	
+	if ( defined $self->msm_code() ) { return $self->msm_code(); }
+
 	my $generator = WiX3::XML::GeneratesGUID::Object->instance();
 
 	my $upgrade_ver =
@@ -2686,22 +2687,27 @@ Returns a command line to use in Main.wxs.tt for relocation purposes.
 sub msi_relocation_commandline {
 	my $self = shift;
 
-	my $perl_id = $self->fileid_perl() . q{.} . $self->msm_package_id_property();
-	my $script_id = $self->fileid_relocation_pl() . q{.} . $self->msm_package_id_property();
+	my $perl_id =
+	  $self->fileid_perl() . q{.} . $self->msm_package_id_property();
+	my $script_id =
+	    $self->fileid_relocation_pl() . q{.}
+	  . $self->msm_package_id_property();
 
-	my $answer = join q{ }, "&quot;[#$perl_id]&quot;",  "[#$script_id]", "--location", '[#INSTALLDIR]',  '--quiet';
+	my $answer = join q{ }, "&quot;[#$perl_id]&quot;", "[#$script_id]",
+	  '--location', '[#INSTALLDIR]', '--quiet';
 
 	my %files = $self->msi_relocation_commandline_files();
 
-	my ($fragment, $file, $id);
-	while ( ($fragment, $file) = each %files ) {
+	my ( $fragment, $file, $id );
+	while ( ( $fragment, $file ) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file($file);
-		PDWiX->throw("Could not find file $file in fragment $fragment\n") if not defined $id;
-		$answer .= " --file [#$id]"
+		PDWiX->throw("Could not find file $file in fragment $fragment\n")
+		  if not defined $id;
+		$answer .= " --file [#$id]";
 	}
-	
+
 	return $answer;
-}
+} ## end sub msi_relocation_commandline
 
 
 
@@ -2715,22 +2721,24 @@ Returns a command line to use in Merge-Module.wxs.tt for relocation purposes.
 sub msm_relocation_commandline {
 	my $self = shift;
 
-	my $perl_id = $self->fileid_perl();
+	my $perl_id   = $self->fileid_perl();
 	my $script_id = $self->fileid_relocation_pl();
 
-	my $answer = join q{ }, "&quot;[#$perl_id]&quot;",  "[#$script_id]", "--location", '[#INSTALLDIR]',  '--quiet';
+	my $answer = join q{ }, "&quot;[#$perl_id]&quot;", "[#$script_id]",
+	  '--location', '[#INSTALLDIR]', '--quiet';
 
 	my %files = $self->msm_relocation_commandline_files();
 
-	my ($fragment, $file, $id);
-	while ( ($fragment, $file) = each %files ) {
+	my ( $fragment, $file, $id );
+	while ( ( $fragment, $file ) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file($file);
-		PDWiX->throw("Could not find file $file in fragment $fragment\n") if not defined $id;
-		$answer .= " --file [#$id]"
+		PDWiX->throw("Could not find file $file in fragment $fragment\n")
+		  if not defined $id;
+		$answer .= " --file [#$id]";
 	}
-	
+
 	return $answer;
-}
+} ## end sub msm_relocation_commandline
 
 
 
@@ -2781,8 +2789,8 @@ purposes.
 
 sub msi_relocation_ca {
 	my $self = shift;
-	
-	return (64 == $self->bits()) ? 'CAQuietExec64' : 'CAQuietExec';
+
+	return ( 64 == $self->bits() ) ? 'CAQuietExec64' : 'CAQuietExec';
 }
 
 
@@ -2885,13 +2893,20 @@ sub mk_bits {
 	my $self = shift;
 
 	my $bits = 1;
-	$bits &= (4 == $self->gcc_version());
-	$bits &= (32 == $self->bits());
-	$bits &= ('x86' ne ( lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' )) or
-	          'x86' ne ( lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' )));
-	
+	$bits &= ( 4 == $self->gcc_version() );
+	$bits &= ( 32 == $self->bits() );
+	$bits &= (
+		'x86' ne (
+			lc( $ENV{'PROCESSOR_ARCHITECTURE'}
+				  or 'x86'
+			) )
+		  or 'x86' ne (
+			lc( $ENV{'PROCESSOR_ARCHITEW6432'}
+				  or 'x86'
+			) ) );
+
 	return $bits ? 'WIN64' : '#WIN64';
-}
+} ## end sub mk_bits
 
 
 
@@ -2920,9 +2935,11 @@ extra library directory for our gcc4 packs.
 sub mk_extralibs {
 	my $self = shift;
 
-	return ( 3 == $self->gcc_version() ) ? '' 
-	     : ( 64 == $self->bits() )       ? catdir ($self->image_dir, qw(c x86_64-w64-mingw32 lib))
-		 :                                 catdir ($self->image_dir, qw(c i686-w64-mingw32 lib));
+	return
+	    ( 3 == $self->gcc_version() ) ? q{}
+	  : ( 64 == $self->bits() )
+	  ? catdir( $self->image_dir, qw(c x86_64-w64-mingw32 lib) )
+	  : catdir( $self->image_dir, qw(c i686-w64-mingw32 lib) );
 }
 
 
@@ -3002,28 +3019,21 @@ before files can be installed.
 sub final_initialization {
 	my $self = shift;
 
-	# Check for architectures we can't build 64-bit on.
-	if (64 == $self->bits()) {
-		if (('ix86' eq (lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' ))) or 
-		    ('ix86' eq (lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' )))) {
-			PDWiX->throw('We do not support building 64-bit Perl on Itanium architectures.');
-		}
-
-		if (('x86' eq (lc($ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' ))) and 
-			('x86' eq (lc($ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' ))))
-		{
-			PDWiX->throw('We do not support building 64-bit Perl on 32-bit machines.');
-		}
+	# Check for architectures that we can't build 64-bit on.
+	if ( 64 == $self->bits() ) {
+		$self->_check_64_bit_arch();
 	}
-	
-	$self->trace_line( 1, "Emptying the directory to redirect \$ENV{TEMP} to...\n" );
+
+	# Redirect $ENV{TEMP} to within our build directory.
+	$self->trace_line( 1,
+		"Emptying the directory to redirect \$ENV{TEMP} to...\n" );
 	$self->_remake_path( $self->tempenv_dir() );
+	## no critic (RequireLocalizedPunctuationVars)
 	$ENV{TEMP} = $self->tempenv_dir();
-	$self->trace_line( 5, "Emptied: " . $self->tempenv_dir() . "\n" );
-	
+	$self->trace_line( 5, 'Emptied: ' . $self->tempenv_dir() . "\n" );
+
 	# If we have a file:// url for the CPAN, move the
 	# sources directory out of the way.
-
 	if ( $self->cpan()->as_string() =~ m{\Afile://}mxsi ) {
 		require CPAN;
 		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
@@ -3045,19 +3055,18 @@ EOF
 		$self->_move_cpan();
 	} ## end if ( $self->cpan()->as_string...)
 
+	# Do some sanity checks.
 	unless ( $self->cpan()->as_string() =~ m{\/\z}ms ) {
 		PDWiX::Parameter->throw(
 			parameter => 'cpan: Missing trailing slash',
 			where     => '->final_initialization'
 		);
 	}
-
 	unless ( $self->can( 'install_perl_' . $self->perl_version() ) ) {
 		my $class = ref $self;
 		PDWiX->throw(
 			"$class does not support Perl " . $self->perl_version() );
 	}
-
 	if ( $self->build_dir() =~ /\s/ms ) {
 		PDWiX::Parameter->throw(
 			parameter => 'build_dir: Spaces are not allowed',
@@ -3078,7 +3087,7 @@ EOF
 	$self->_set_in_merge_module(1);
 
 	## no critic(ProtectPrivateSubs)
-	# Set element collections
+	# Set up element collections
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
 	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
 	$self->_set_directories(
@@ -3087,6 +3096,7 @@ EOF
 			app_name => $self->app_name(),
 		  )->initialize_tree( $self->perl_version ) );
 
+	# Create an environment fragment.
 	$self->_add_fragment( 'Environment',
 		Perl::Dist::WiX::Fragment::Environment->new() );
 
@@ -3128,12 +3138,10 @@ EOF
 			id           => 'CPANPLUSFolder',
 		) ) if ( '589' ne $self->perl_version() );
 
+	# Make some directories.
 	my @directories_to_make = ( $self->_dir('cpan'), );
-
 	push @directories_to_make, $self->_dir('cpanplus')
 	  if ( '589' ne $self->perl_version() );
-
-	# Initialize the build
 	for my $d (@directories_to_make) {
 		next if -d $d;
 		File::Path::mkpath($d);
@@ -3141,17 +3149,46 @@ EOF
 
 	# Empty directories that need emptied.
 	$self->trace_line( 1,
-"Wait a second while we empty the image, output, and fragment directories...\n"
-	);
+		    'Wait a second while we empty the image, '
+		  . "output, and fragment directories...\n" );
 	$self->_remake_path( $self->image_dir() );
 	$self->_remake_path( $self->output_dir() );
 	$self->_remake_path( $self->fragment_dir() );
 
+	# Add environment variables.
 	$self->add_env( 'TERM',        'dumb' );
 	$self->add_env( 'FTP_PASSIVE', '1' );
 
 	return 1;
 } ## end sub final_initialization
+
+
+
+sub _check_64_bit {
+	my $self = shift;
+
+	# Make the environment variable checks shorter.
+	my $arch      = lc( $ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' );
+	my $archw6432 = lc( $ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' );
+
+	# Check for Itanium architecture.
+	if (   ( 'ix86' eq $arch )
+		or ( 'ix86' eq $archw6432 ) )
+	{
+		PDWiX->throw( 'We do not support building 64-bit Perl'
+			  . ' on Itanium architectures.' );
+	}
+
+	# Check for x86 architecture.
+	if (    ( 'x86' eq $arch )
+		and ( 'x86' eq $archw6432 ) )
+	{
+		PDWiX->throw( 'We do not support building 64-bit Perl'
+			  . ' on 32-bit machines.' );
+	}
+
+	return;
+} ## end sub _check_64_bit
 
 
 
@@ -3210,9 +3247,9 @@ sub initialize_using_msm {
 	$self->_set_in_merge_module(0);
 
 	# Download and extract the image.
-	my $tgz = $self->_mirror( $self->msm_zip(), $self->download_dir() );	
-	$self->_extract($tgz, $self->image_dir());
-	
+	my $tgz = $self->_mirror( $self->msm_zip(), $self->download_dir() );
+	$self->_extract( $tgz, $self->image_dir() );
+
 	# Start adding the fragments that are only for an .msi.
 	$self->_add_fragment(
 		'StartMenuIcons',
@@ -3234,20 +3271,20 @@ sub initialize_using_msm {
 
 	# Download the merge module.
 	my $msm = $self->_mirror( $self->msm_to_use(), $self->download_dir() );
-	
+
 	# Connect the Merge Module tag.
 	my $mm = Perl::Dist::WiX::Tag::MergeModule->new(
-		id          => 'Perl',
-		disk_id     => 1,
-		language    => 1033,
-		source_file => $msm,
+		id                => 'Perl',
+		disk_id           => 1,
+		language          => 1033,
+		source_file       => $msm,
 		primary_reference => 1,
 	);
 	$self->_add_merge_module( 'Perl', $mm );
 	$self->get_directory_tree()
 	  ->add_merge_module( $self->image_dir(), $mm );
 
-	# Set the file paths that the first portion of the build otherwise would.
+   # Set the file paths that the first portion of the build otherwise would.
 	$self->_set_bin_perl( $self->_file(qw/perl bin perl.exe/) );
 	$self->_set_bin_make( $self->_file(qw/c bin dmake.exe/) );
 	$self->_set_bin_pexports( $self->_file(qw/c bin pexports.exe/) );
@@ -3256,10 +3293,10 @@ sub initialize_using_msm {
 	# Do the same for the environment variables
 	$self->add_path( 'perl', 'bin' );
 	$self->add_path( 'perl', 'site', 'bin' );
-	$self->add_path( 'c', 'bin' );
-	
+	$self->add_path( 'c',    'bin' );
+
 	return 1;
-}
+} ## end sub initialize_using_msm
 
 
 
@@ -3381,17 +3418,18 @@ sub install_relocatable {
 	return 1 unless $self->relocatable();
 
 	# Copy the relocation information in.
-	$self->_copy(catfile($self->dist_dir(), 'relocation.pl'), $self->image_dir());
-	
+	$self->_copy( catfile( $self->dist_dir(), 'relocation.pl' ),
+		$self->image_dir() );
+
 	# Make sure it gets installed.
-	$self->insert_fragment('relocation_script',
-		File::List::Object->new()->add_file(
-			catfile($self->image_dir(), 'relocation.pl')
-		),
+	$self->insert_fragment(
+		'relocation_script',
+		File::List::Object->new()
+		  ->add_file( catfile( $self->image_dir(), 'relocation.pl' ) ),
 	);
-	
+
 	return 1;
-}
+} ## end sub install_relocatable
 
 
 
@@ -3411,20 +3449,24 @@ sub find_relocatable_fields {
 	return 1 unless $self->relocatable();
 
 	# Set the fileid attributes.
-	my $perl_id = $self->get_fragment_object('perl')->find_file(catfile($self->image_dir(), qw(perl bin perl.exe)));
-	if (not $perl_id) {
-		PDWiX->throw("Could not find perl.exe's ID.\n")
+	my $perl_id =
+	  $self->get_fragment_object('perl')
+	  ->find_file( catfile( $self->image_dir(), qw(perl bin perl.exe) ) );
+	if ( not $perl_id ) {
+		PDWiX->throw("Could not find perl.exe's ID.\n");
 	}
 	$self->_set_fileid_perl($perl_id);
-	
-	my $script_id = $self->get_fragment_object('relocation_script')->find_file(catfile($self->image_dir(), 'relocation.pl'));
-	if (not $script_id) {
-		PDWiX->throw("Could not find relocation.pl's ID.\n")
+
+	my $script_id =
+	  $self->get_fragment_object('relocation_script')
+	  ->find_file( catfile( $self->image_dir(), 'relocation.pl' ) );
+	if ( not $script_id ) {
+		PDWiX->throw("Could not find relocation.pl's ID.\n");
 	}
 	$self->_set_fileid_relocation_pl($script_id);
-	
+
 	return 1;
-} ## end sub install_relocatable
+} ## end sub find_relocatable_fields
 
 
 
@@ -4172,8 +4214,11 @@ sub _write_msm {
 	$self->trace_line( 1, "Linking $output_msm\n" );
 	my $out;
 	my $cmd = [
-		wix_bin_light(), '-out',        $output_msm, '-ext',
-		wix_lib_wixui(), '-ext', wix_library('WixUtil'), $input_wixobj, $input_wixouts,
+		wix_bin_light(),        '-out',
+		$output_msm,            '-ext',
+		wix_lib_wixui(),        '-ext',
+		wix_library('WixUtil'), $input_wixobj,
+		$input_wixouts,
 	];
 	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
 
@@ -4188,8 +4233,11 @@ sub _write_msm {
 
 	# Now write out the documentation for the msm.
 	my $output_docs =
-	  catfile( $self->output_dir(), 'merge-module-' . $self->distribution_version_file() . '.html', );
-	my $docs = $self->process_template('Merge-Module.documentation.html.tt');
+	  catfile( $self->output_dir(),
+		'merge-module-' . $self->distribution_version_file() . '.html',
+	  );
+	my $docs =
+	  $self->process_template('Merge-Module.documentation.html.tt');
 	$fh = IO::File->new( $output_docs, 'w' );
 
 	if ( not defined $fh ) {
@@ -4199,8 +4247,8 @@ sub _write_msm {
 	}
 	$fh->print($docs);
 	$fh->close;
-		
-	return ($output_msm, $output_docs);
+
+	return ( $output_msm, $output_docs );
 } ## end sub _write_msm
 
 
@@ -4419,10 +4467,12 @@ sub as_string {
 	my $self          = shift;
 	my $template_file = shift;
 
-	return $self->process_template($template_file, 
-		( directory_tree =>
-		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(), ));
-} ## end sub as_string
+	return $self->process_template(
+		$template_file,
+		(   directory_tree =>
+			  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
+		) );
+}
 
 =head2 process_template
 
@@ -4476,7 +4526,7 @@ sub process_template {
 
 	# Combine it all
 	return $answer;
-} ## end sub as_string
+} ## end sub process_template
 
 
 

@@ -31,7 +31,7 @@ use Params::Util qw( _STRING );
 use Perl::Dist::WiX::Exceptions;
 use Readonly;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 Readonly my %PACKAGES => (
@@ -49,9 +49,9 @@ Readonly my %PACKAGES => (
 #		'w32api'        => 'w32api-3.10.tar.gz',
 	},
 	'32bit-gcc4' => {
-		'dmake'         => '32bit-gcc4/dmake-SVN20091127-bin_20100308.zip',
-		'mingw-make'    => '32bit-gcc4/gmake-3.81-20090914-bin_20100120.zip',
-		'pexports'      => '32bit-gcc4/pexports-0.44-bin_20100120.zip',
+		'dmake'      => '32bit-gcc4/dmake-SVN20091127-bin_20100308.zip',
+		'mingw-make' => '32bit-gcc4/gmake-3.81-20090914-bin_20100120.zip',
+		'pexports'   => '32bit-gcc4/pexports-0.44-bin_20100120.zip',
 		'gcc-toolchain' => '32bit-gcc4/mingw64-w32-20100123-kmx-v2.zip',
 	},
 	'64bit-gcc4' => {
@@ -123,7 +123,7 @@ sub _binary_url {
 		# Shorthand, map to full file name
 		$file = $self->_binary_file( $file, @_ );
 	}
-	return $self->binary_root . q{/} . $file;
+	return $self->binary_root() . q{/} . $file;
 } ## end sub _binary_url
 
 
@@ -153,14 +153,16 @@ sub install_gcc_toolchain {
 
 	# Install the gcc toolchain
 	my $filelist = $self->install_binary(
-		name    => 'gcc-toolchain',
-		url     => $self->_binary_url('gcc-toolchain'),
-		(32 == $self->bits()) ? (
+		name => 'gcc-toolchain',
+		url  => $self->_binary_url('gcc-toolchain'),
+		( 32 == $self->bits() )
+		? (
 			license => {
 				'COPYING'     => 'gcc/COPYING',
 				'COPYING.lib' => 'gcc/COPYING.lib',
 			},
-		) : (),
+		  )
+		: (),
 	);
 
 	$self->insert_fragment( 'gcc_toolchain', $filelist );

@@ -6,7 +6,7 @@ use MooseX::Types::Moose qw( Str Int Maybe );
 use File::Spec::Functions qw( catfile splitpath );
 use English qw( -no_match_vars );
 
-our $VERSION = '1.102_100';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
@@ -72,8 +72,10 @@ sub install {
 
 	my $website;
 
-	open $website, q{>}, $filename or PDWiX->throw("open($filename): $OS_ERROR");
-	print {$website} $self->_content() or PDWiX->throw("print($filename): $OS_ERROR");
+	open $website, q{>}, $filename
+	  or PDWiX->throw("open($filename): $OS_ERROR");
+	print {$website} $self->_content()
+	  or PDWiX->throw("print($filename): $OS_ERROR");
 	close $website or PDWiX->throw("close($filename): $OS_ERROR");
 
 	# Add the file.

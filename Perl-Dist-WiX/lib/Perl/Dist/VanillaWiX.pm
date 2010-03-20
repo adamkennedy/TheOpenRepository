@@ -66,7 +66,8 @@ sub new {
 		%args = (@_);
 	} else {
 		PDWiX->throw(
-			'Parameters incorrect (not a hashref or hash) for Perl::Dist::VanillaWiX->new');
+'Parameters incorrect (not a hashref or hash) for Perl::Dist::VanillaWiX->new'
+		);
 	}
 
 	%args = (

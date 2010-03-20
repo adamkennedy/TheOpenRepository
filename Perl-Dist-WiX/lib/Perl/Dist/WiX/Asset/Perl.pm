@@ -9,7 +9,7 @@ use File::Spec::Functions qw( catdir splitpath rel2abs catfile );
 require File::Remove;
 require File::Basename;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
@@ -212,16 +212,23 @@ EOF
 	} ## end SCOPE:
 
 	# If using gcc4, copy the helper dll into perl's bin directory.
-	if (4 == $self->_gcc_version()) {
+	if ( 4 == $self->_gcc_version() ) {
 		$self->_copy(
-			catfile($self->_get_image_dir(), 'c',    'bin', 'libgcc_s_sjlj-1.dll'),
-			catfile($self->_get_image_dir(), 'perl', 'bin', 'libgcc_s_sjlj-1.dll'),
+			catfile(
+				$self->_get_image_dir(), 'c',
+				'bin',                   'libgcc_s_sjlj-1.dll'
+			),
+			catfile(
+				$self->_get_image_dir(), 'perl',
+				'bin',                   'libgcc_s_sjlj-1.dll'
+			),
 		);
-	}
-	
+	} ## end if ( 4 == $self->_gcc_version...)
+
 	# Delete a2p.exe if relocatable (Can't relocate a binary).
-	if ($self->_relocatable()) {
-		unlink catfile($self->_get_image_dir(), 'perl', 'bin', 'a2p.exe');
+	if ( $self->_relocatable() ) {
+		unlink catfile( $self->_get_image_dir(), 'perl', 'bin', 'a2p.exe' )
+		  or PDWiX->throw("Could not delete a2p.exe\n");
 	}
 
 	# Create the perl_licenses fragment.

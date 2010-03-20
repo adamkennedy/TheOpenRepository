@@ -28,7 +28,7 @@ require WiX3::Exceptions;
 require File::List::Object;
 require Win32::Exe;
 
-our $VERSION = '1.102_100';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
@@ -57,25 +57,25 @@ has feature => (
 );
 
 sub _shorten_id {
-	my $self = shift;
+	my $self   = shift;
 	my $longid = shift;
 
 	# Feature/@Id cannot be longer than 38 characters in length.
-	if ( 32 < length($longid) ) {
+	if ( 32 < length $longid ) {
 		my $id = substr $longid, 0, 28;
 		$id .= q{_};
-		$id .= uc crc16_hex($longid . 'Perl::Dist::WiX::PrivateTypes');
+		$id .= uc crc16_hex( $longid . 'Perl::Dist::WiX::PrivateTypes' );
 		return $id;
 	} else {
 		return $longid;
 	}
-}
+} ## end sub _shorten_id
 
 sub _build_feature {
 	my $self = shift;
 	if ( not $self->in_merge_module() ) {
 		my $feat = WiX3::XML::Feature->new(
-			id      => $self->_shorten_id($self->get_id()),
+			id      => $self->_shorten_id( $self->get_id() ),
 			level   => 1,
 			display => 'hidden',
 		);
@@ -122,7 +122,7 @@ sub regenerate {
 			$self->add_child_tag( $self->_get_feature() );
 		}
 	}
-	
+
 	return uniq @fragment_ids;
 } ## end sub regenerate
 
@@ -244,9 +244,9 @@ sub _add_file_to_fragment {
 			( $directory_final, @fragment_ids ) =
 			  $self->_add_directory_recursive( $directory_step3,
 				$path_to_find );
-			
+
 			$self->_add_file_component( $directory_final, $file_path );
-			
+
 			return @fragment_ids;
 		} ## end if ( defined $directory_step3)
 	} ## end while ( $i_step3 < $child_tags_count...)
@@ -413,7 +413,7 @@ sub _add_file_component {
 		);
 	}
 
-	$component->add_child_tag($file_obj);	
+	$component->add_child_tag($file_obj);
 	$tag->add_child_tag($component);
 
 	return 1;
@@ -449,40 +449,44 @@ sub add_files {
 # find_file($filename) tries to find the filename in the package.
 
 sub find_file {
-	my $self = shift;
+	my $self     = shift;
 	my $filename = shift;
-	
-	return $self->_find_file_recursive($filename, $self);
+
+	return $self->_find_file_recursive( $filename, $self );
 }
 
 sub _find_file_recursive {
-	my $self = shift;
+	my $self     = shift;
 	my $filename = shift;
-	my $tag = shift;
-	
+	my $tag      = shift;
+
 	my @children = $tag->get_child_tags();
-	
+
+	## no critic(ProhibitExplicitReturnUndef)
 	my $answer;
 	my $i = 0;
-	while ((not defined $answer) and ($i < scalar @children)) {
-		if ('WiX3::XML::File' eq ref $children[$i]) {
-			if ($children[$i]->_get_source() eq $filename) {
+	while ( ( not defined $answer ) and ( $i < scalar @children ) ) {
+		if ( 'WiX3::XML::File' eq ref $children[$i] ) {
+			if ( $children[$i]->_get_source() eq $filename ) {
 				return 'F_' . $children[$i]->get_id();
 			} else {
 				return undef;
 			}
-		} elsif ( $children[$i]->does('WiX3::XML::Role::TagAllowsChildTags') ) {
-			$answer = $self->_find_file_recursive($filename, $children[$i]);
+		} elsif (
+			$children[$i]->does('WiX3::XML::Role::TagAllowsChildTags') )
+		{
+			$answer =
+			  $self->_find_file_recursive( $filename, $children[$i] );
 			return $answer if defined $answer;
 		} else {
 			return undef;
 		}
-	
+
 		$i++;
-	}
-	
+	} ## end while ( ( not defined $answer...))
+
 	return undef;
-}
+} ## end sub _find_file_recursive
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

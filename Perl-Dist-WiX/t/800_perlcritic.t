@@ -13,7 +13,6 @@ BEGIN {
 my @MODULES = (
     'Perl::Tidy',
 	'Perl::Critic',
-	'Regexp::Parser',
 	'PPIx::Regexp',
 	'Email::Address',
 	'Perl::Critic::Utils::Constants',

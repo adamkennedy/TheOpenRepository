@@ -30,15 +30,15 @@ use Params::Util qw( _STRING   );
 use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Tag::Icon;
 
-our $VERSION = '1.102_100';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 has _icon => (
-	traits    => ['Array'],
-	is        => 'rw',
-	isa       => 'ArrayRef[Perl::Dist::WiX::Tag::Icon]',
-	default   => sub { [] },
-	handles  => {
+	traits  => ['Array'],
+	is      => 'rw',
+	isa     => 'ArrayRef[Perl::Dist::WiX::Tag::Icon]',
+	default => sub { [] },
+	handles => {
 		'_push_icon'      => 'push',
 		'_count_icons'    => 'count',
 		'_get_icon_array' => 'elements',

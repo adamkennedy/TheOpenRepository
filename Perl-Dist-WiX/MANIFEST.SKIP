@@ -39,10 +39,13 @@
 \.pch$
 \.ilk$
 \.user$
+\.suo$
+\.aps$
 BuildLog\.htm$
 mt\.dep$
-\bClearFolderCA/Debug\b
-\bClearFolderCA/Release\b
+\bClearFolderCA/(D|d)ebug\b
+\bClearFolderCA/(R|r)elease\b
+\bdebug_dll\b
 
 # Avoid Devel::Cover files.
 \bcover_db\b

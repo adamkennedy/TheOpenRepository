@@ -29,7 +29,7 @@ use Moose 0.90;
 use MooseX::Singleton;
 use WiX3::XML::Directory;
 
-our $VERSION = '1.102_100';
+our $VERSION = '1.102_101';
 $VERSION =~ s/_//ms;
 
 #####################################################################
@@ -37,11 +37,11 @@ $VERSION =~ s/_//ms;
 #   root: Returns the root of the directory tree created by new.
 
 has _cache => (
-	traits    => ['Hash'],
-	is        => 'rw',
-	isa       => 'HashRef[Str]',
-	default   => sub { {} },
-	handles  => {
+	traits  => ['Hash'],
+	is      => 'rw',
+	isa     => 'HashRef[Str]',
+	default => sub { {} },
+	handles => {
 		'_set_cache_entry'    => 'set',
 		'_get_cache_entry'    => 'get',
 		'_exists_cache_entry' => 'exists',

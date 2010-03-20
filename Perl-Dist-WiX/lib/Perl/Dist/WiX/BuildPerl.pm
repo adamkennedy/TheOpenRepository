@@ -116,7 +116,7 @@ the default tasklist after the "perl toolchain" is installed.
 
 sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 	my $self = shift;
-	
+
 	# Check for Perl - we can't do things out of order.
 	unless ( $self->bin_perl() ) {
 		PDWiX->throw(
@@ -155,7 +155,8 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 		}
 
 		# Locale::Maketext::Simple 0.20 has a test bug. Forcing.
-		if ( $module->cpan_file() =~ m{/Locale-Maketext-Simple-0 [.] 20}msx )
+		if (
+			$module->cpan_file() =~ m{/Locale-Maketext-Simple-0 [.] 20}msx )
 		{
 			$self->_install_cpan_module( $module, 1 );
 			next MODULE;
@@ -383,7 +384,7 @@ END_PERL
 
 sub _install_location {
 	my ( $self, $core ) = @_;
-	
+
 	# Return the correct location information.
 	my $portable = $self->portable();
 	if ($core) {
@@ -408,7 +409,7 @@ sub _install_location {
 
 sub _install_cpan_module {
 	my ( $self, $module, $force ) = @_;
-	
+
 	# Collect information.
 	$force = $force or $self->force();
 	my $perl_version = $self->perl_version_literal();
@@ -419,7 +420,7 @@ sub _install_cpan_module {
 	  exists $Module::CoreList::version{ $perl_version }{ $module_id }
 	  ? 1
 	  : 0;
-	  
+
 	# Actually do the installation.
 	$self->install_distribution(
 		name     => $module_file,
@@ -468,9 +469,10 @@ sub _skip_upgrade {
 	return 1 if $module->cpan_file() =~ m{/B-C-1 [.]}msx;
 
 	# Skip autodie 2.08 and 2.09, waiting on RT#54525.
-	if (($module->cpan_file() =~ m{/autodie-2 [.] 0 [89]}msx) and
-	    (($self->perl_version() eq '5101') or 
-		 ($self->perl_version() eq 'git'))) {
+	if (( $module->cpan_file() =~ m{/autodie-2 [.] 0 [89]}msx )
+		and (  ( $self->perl_version() eq '5101' )
+			or ( $self->perl_version() eq 'git' ) ) )
+	{
 		return 1;
 	}
 
@@ -497,8 +499,8 @@ the default tasklist after the "c toolchain" is installed.
 
 # Just hand off to the larger set of Perl install methods.
 sub install_perl {
-	my $self                = shift;
-	
+	my $self = shift;
+
 	# Check for the method, then call it.
 	my $install_perl_method = 'install_perl_' . $self->perl_version();
 	unless ( $self->can($install_perl_method) ) {
@@ -637,15 +639,15 @@ sub install_perl_bin {
 		parent => $self,
 		force  => $self->forceperl() || $self->force(),
 		@_,
-	);	
+	);
 	$perl->install();
 
 	# Should have a perl to use now.
 	$self->_set_bin_perl( $self->_file(qw/perl bin perl.exe/) );
 
 	# Create the site/bin path so we can add it to the PATH.
-	$self->_make_path(catdir($self->image_dir(), qw(perl site bin)));
-	
+	$self->_make_path( catdir( $self->image_dir(), qw(perl site bin) ) );
+
 	# Add to the environment variables
 	$self->add_path( 'perl', 'bin' );
 	$self->add_path( 'perl', 'site', 'bin' );
@@ -794,9 +796,10 @@ sub install_perl_5115 {
 
 	# Install the main binary
 	$self->install_perl_bin(
-		name      => 'perl',
-		url       => 'http://search.cpan.org/CPAN/authors/id/S/SH/SHAY/perl-5.11.5.tar.gz',
-		unpack_to => 'perl',
+		name => 'perl',
+		url =>
+'http://search.cpan.org/CPAN/authors/id/S/SH/SHAY/perl-5.11.5.tar.gz',
+		unpack_to  => 'perl',
 		install_to => 'perl',
 		toolchain  => $toolchain,
 		patch      => [ qw{
@@ -894,9 +897,9 @@ the default tasklist after the perl interpreter is installed.
 =cut
 
 sub install_perl_toolchain {
-	my $self      = shift;
+	my $self = shift;
 
-	# 
+	#
 	my $toolchain = $self->_get_toolchain();
 	if ( 0 == $toolchain->dist_count() ) {
 		PDWiX->throw('Toolchain did not get collected');
@@ -983,7 +986,7 @@ sub install_perl_toolchain {
 			$force = 1;
 		}
 
-		# Actually DO the installation, now that we've got the information we need.
+ # Actually DO the installation, now that we've got the information we need.
 		$module_id = $self->_module_fix( $self->_name_to_module($dist) );
 		$core =
 		  exists $Module::CoreList::version{ $self->perl_version_literal() }
@@ -1010,8 +1013,8 @@ sub _name_to_module {
 	my $self = shift;
 	my $dist = shift;
 
-	# Convert a distribution name with dashes to 
-	# a module name with double colons. 
+	# Convert a distribution name with dashes to
+	# a module name with double colons.
 	$self->trace_line( 3, "Trying to get module name out of $dist\n" );
 #<<<
 	my ( $module ) = $dist =~ m{\A  # Start the string...
