@@ -389,7 +389,6 @@ sub create_test_class_medium {
 				tasklist      => [ qw(
 					final_initialization
 					install_c_toolchain
-					install_c_libraries
 					install_perl
 					install_perl_toolchain
 					test_distro
