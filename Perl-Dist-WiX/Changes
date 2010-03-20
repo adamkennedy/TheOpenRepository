@@ -1,5 +1,10 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.102_102   Sat 20 Mar 2010
+    1. Scripts now will go to perl/site/bin.
+    2. perl 5.11.5 support is added.
+    3. Relocation script written in perl has been added.
+
 1.102_101   Fri 19 Feb 2010
     1. Change $Config{installsitebin} from perl/bin to perl/site/bin,
        and add perl/site/bin to the path.
