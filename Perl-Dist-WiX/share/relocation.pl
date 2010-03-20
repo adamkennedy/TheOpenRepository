@@ -31,8 +31,7 @@ GetOptions('help|?'     => sub { pod2usage(-exitstatus => 0, -verbose => 0); },
 		  ) or pod2usage(-verbose => 2);
 
 if (0 == scalar @files) {
-	usage() if not $quiet;
-	exit(1);
+	@files = glob '*.reloc.txt';
 }
 
 if (not defined $new_location) {
@@ -234,8 +233,8 @@ This script updates all of Strawberry Perl's files to a new location.
 
 =head1 SYNOPSIS
 
-  module-version [ --help ] [ --usage ] [ --man ] [ --version ] [ -?] 
-                 --file relocationfile [--location path] [--quiet]
+  relocation.pl [ --help ] [ --usage ] [ --man ] [ --version ] [ -?] 
+                [--file relocationfile] [--location path] [--quiet]
 
   Options:
     --usage         Gives a minimum amount of aid and comfort.
@@ -246,7 +245,8 @@ This script updates all of Strawberry Perl's files to a new location.
     --version       Gives the name, version and copyright of the script.
 
     --file          Gives the location of the file of hints to use to 
-                    relocate Perl.
+                    relocate Perl. Defaults to all *.reloc.txt files in
+                    the current directory.
     --location      The location to relocate to. Defaults to Cwd::cwd().
     --quiet         Print nothing.
 	
