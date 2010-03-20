@@ -14,26 +14,14 @@ my @MODULES = (
 	'Test::Prereq::Build 1.036',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
-# plan( skip_all => "Module::Install and Test::Prereq do not go together." );
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 	}
 }
-
-#plan( skip_all => 'Test is buggy at the moment' );
-#exit(0);
 
 local $ENV{PERL_MM_USE_DEFAULT} = 1;
 

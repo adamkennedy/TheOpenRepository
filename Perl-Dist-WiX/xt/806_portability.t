@@ -14,22 +14,16 @@ my @MODULES = (
 	'Test::Portability::Files 0.05',
 );
 
-# Don't run tests for installs
+# Load the testing modules
 use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
 
 plan( skip_all => "Test::Portability::Files is buggy at the moment." );
 exit(0);
 
-# Load the testing modules
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" );
 	}
 }
 

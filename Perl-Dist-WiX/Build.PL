@@ -75,7 +75,60 @@ my $requires = {
 	'Win32API::File'            => '0.1001',
 };
 
-my $builder = Module::Build->new(
+my $class = Module::Build->subclass(
+	class => 'PDWiX::Builder',
+	code  => <<'END_CODE',
+sub ACTION_authortest {
+    my ($self) = @_;
+
+    $self->depends_on('build');
+    $self->depends_on('manifest');
+    $self->depends_on('distmeta');
+
+    $self->test_files( qw< t xt > );
+    $self->depends_on('test');
+
+    return;
+}
+
+
+sub ACTION_releasetest {
+    my ($self) = @_;
+
+    $self->depends_on('build');
+    $self->depends_on('manifest');
+    $self->depends_on('distmeta');
+
+    $self->test_files( qw< t xt rt > );
+    $self->depends_on('test');
+
+    return;
+}
+
+
+sub ACTION_distdir {
+    my ($self, @arguments) = @_;
+
+    $self->depends_on('authortest');
+
+    return $self->SUPER::ACTION_distdir(@arguments);
+}
+
+
+sub ACTION_manifest {
+    my ($self, @arguments) = @_;
+
+    if (-e 'MANIFEST') {
+        unlink 'MANIFEST' or die "Can't unlink MANIFEST: $!";
+    }
+
+    return $self->SUPER::ACTION_manifest(@arguments);
+}
+END_CODE
+);
+
+
+my $builder = $class->new(
 	module_name         => 'Perl::Dist::WiX',
 	license             => 'perl',
 	dist_author         => 'Curtis Jewell <csjewell@cpan.org>',

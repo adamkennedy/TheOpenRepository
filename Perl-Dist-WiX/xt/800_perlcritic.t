@@ -20,25 +20,18 @@ my @MODULES = (
 	'Test::Perl::Critic',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "require $MODULE"; # Has to be require because we pass options to import.
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 	}
 }
 
 $Perl::Critic::VERSION =~ s/_//;
-if ( 1.10501 > eval { $Perl::Critic::VERSION } ) {
-	plan( skip_all => 'Perl::Critic needs updated to 1.105_01' );
+if ( 1.10502 > eval { $Perl::Critic::VERSION } ) {
+	plan( skip_all => 'Perl::Critic needs updated to 1.105_02' );
 }
 
 if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {
