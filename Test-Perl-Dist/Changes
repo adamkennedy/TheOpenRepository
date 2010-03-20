@@ -1,13 +1,18 @@
 Changes for Perl extension Test-Perl-Dist
 
+0.203   Sat 20 Mar 2010
+    -  Updating to work with newest versions of 
+       Perl::Dist classes.
+
 0.202   Sat 26 Sep 2009
-    1. Bug fix. (test_verify_portability was not fully 
+    -  Bug fix. (test_verify_portability was not fully 
        implemented.)
 
 0.201   Sun 13 Sep 2009
-    1. Bug fix. (create_test_class_long added 8 to the 
+    -  Bug fix. (create_test_class_long added 8 to the 
        count, but did only 7 tests.)
 
 0.200   Sat 12 Sep 2009
-    1. Initial release.
+    -  Initial release. Unfortunately, the world was 
+       suspecting it.
 

@@ -13,29 +13,24 @@ BEGIN {
 my @MODULES = (
     'Perl::Tidy',
 	'Perl::Critic',
+	'PPIx::Regexp',
+	'Email::Address',
 	'Perl::Critic::Utils::Constants',
 	'Perl::Critic::More',
 	'Test::Perl::Critic',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "require $MODULE"; # Has to be require because we pass options to import.
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 	}
 }
 
 if ( 0.199_001 > eval { $Perl::Critic::VERSION } ) {
-	plan( skip_all => "Perl::Critic needs updated to 0.199_001" );
+	plan( skip_all => "Perl::Critic needs updated to 1.099_001" );
 }
 
 if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {

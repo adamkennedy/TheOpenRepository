@@ -18,7 +18,7 @@ our @EXPORT =
   qw(test_run_dist test_add test_verify_files_short test_verify_files_medium test_verify_files_long test_verify_portability );
 push @EXPORT, @Test::More::EXPORT;
 
-our $VERSION = '0.202';
+our $VERSION = '0.203';
 $VERSION = eval $VERSION; ##no critic(RequireConstantVersion)
 
 my $tests_completed = 0;
@@ -70,12 +70,15 @@ sub _paths {
 	my $download_dir = _make_path($download);
 	my $fragment_dir = _remake_path( catdir( $basedir, 'fragments' ) );
 	my $build_dir    = _remake_path( catdir( $basedir, 'build' ) );
+	my $tempenv_dir  = _remake_path( catdir( $basedir, 'tempdir' ) );
 	return (
 		output_dir   => $output_dir,
 		image_dir    => $image_dir,
 		download_dir => $download_dir,
 		build_dir    => $build_dir,
 		fragment_dir => $fragment_dir,
+		temp_dir     => $basedir,
+		tempenv_dir  => $tempenv_dir,
 	);
 } ## end sub _paths
 
@@ -89,17 +92,17 @@ sub _cpan_release {
 	}
 }
 
-sub _cpan {
-	if ( $ENV{PERL_TEST_PERLDIST_CPAN} ) {
-		return URI->new( $ENV{PERL_TEST_PERLDIST_CPAN} );
-	}
-	my $path = rel2abs( catdir( 't', 'data', 'cpan' ) );
-	Test::More::ok( -d $path, 'Found CPAN directory' );
-	Test::More::ok( -d catdir( $path, 'authors', 'id' ),
-		'Found id subdirectory' );
-	$tests_completed += 2;
-	return URI::file->new( $path . q{\\} );
-}
+##sub _cpan {
+##	if ( $ENV{PERL_TEST_PERLDIST_CPAN} ) {
+##		return URI->new( $ENV{PERL_TEST_PERLDIST_CPAN} );
+##	}
+##	my $path = rel2abs( catdir( 't', 'data', 'cpan' ) );
+##	Test::More::ok( -d $path, 'Found CPAN directory' );
+##	Test::More::ok( -d catdir( $path, 'authors', 'id' ),
+##		'Found id subdirectory' );
+##	$tests_completed += 2;
+##	return URI::file->new( $path . q{\\} );
+##}
 
 sub new_test_class_short {
 	my $self          = shift;
@@ -155,9 +158,6 @@ sub new_test_class_medium {
 		plan( skip_all =>
 			  'Cannot be tested in a directory with an extension.' );
 	}
-	if ( not $ENV{RELEASE_TESTING} ) {
-		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
-	}
 
 	my $test_class =
 	  $self->create_test_class_medium( $test_number, $test_version,
@@ -198,9 +198,6 @@ sub new_test_class_long {
 	if ( rel2abs( curdir() ) =~ m{[.]}ms ) {
 		plan( skip_all =>
 			  'Cannot be tested in a directory with an extension.' );
-	}
-	if ( not $ENV{RELEASE_TESTING} ) {
-		plan( skip_all => 'No RELEASE_TESTING: Skipping very long test' );
 	}
 
 	my $test_class =
@@ -340,22 +337,21 @@ sub create_test_class_short {
 		###############################################################
 		# Configuration
 
-		sub ${answer}::app_name             { 'Test Perl'               }
-		sub ${answer}::app_ver_name         { 'Test Perl 1 alpha 1'     }
-		sub ${answer}::app_publisher        { 'Vanilla Perl Project'    }
-		sub ${answer}::app_publisher_url    { 'http://vanillaperl.org'  }
-		sub ${answer}::app_id               { 'testperl'                }
 
 		###############################################################
 		# Main Methods
 
 		sub ${answer}::new {
 			return shift->${test_class}::new(
-				perl_version => $test_version,
-				trace        => 1,
-				build_number => 1,
+				perl_version  => $test_version,
+				trace         => 1,
+				build_number  => 1,
 				app_publisher_url => 'http://vanillaperl.org',
-				tasklist     => [qw(final_initialization install_dmake)],
+				tasklist      => [qw(final_initialization install_dmake)],
+				app_ver_name  => 'Test Perl 1 alpha 1',
+				app_name      => 'Test Perl',
+				app_publisher => 'Vanilla Perl Project',
+				app_id        => 'testperl',
 				\@_,
 			);
 		}
@@ -378,15 +374,6 @@ sub create_test_class_medium {
 		\@${answer}::ISA = ( "$test_class" );
 
 		###############################################################
-		# Configuration
-
-		sub ${answer}::app_name             { 'Test Perl'               }
-		sub ${answer}::app_ver_name         { 'Test Perl 1 alpha 1'     }
-		sub ${answer}::app_publisher        { 'Vanilla Perl Project'    }
-		sub ${answer}::app_publisher_url    { 'http://vanillaperl.org'  }
-		sub ${answer}::app_id               { 'testperl'                }
-
-		###############################################################
 		# Main Methods
 
 		sub ${answer}::new {
@@ -395,7 +382,11 @@ sub create_test_class_medium {
 				trace => 1,
 				build_number => 1,
 				app_publisher_url => 'http://vanillaperl.org',
-				tasklist => [ qw(
+				app_name      => 'Test Perl',
+				app_ver_name  => 'Test Perl 1 alpha 1',
+				app_publisher => 'Vanilla Perl Project',
+				app_id        => 'testperl',
+				tasklist      => [ qw(
 					final_initialization
 					install_c_toolchain
 					install_c_libraries
@@ -436,15 +427,6 @@ sub create_test_class_long {
 		\@${answer}::ISA = ( "$test_class" );
 
 		###############################################################
-		# Configuration
-
-		sub ${answer}::app_name             { 'Test Perl'               }
-		sub ${answer}::app_ver_name         { 'Test Perl 1 alpha 1'     }
-		sub ${answer}::app_publisher        { 'Vanilla Perl Project'    }
-		sub ${answer}::app_publisher_url    { 'http://vanillaperl.org'  }
-		sub ${answer}::app_id               { 'testperl'                }
-
-		###############################################################
 		# Main Methods
 
 		sub ${answer}::new {
@@ -453,13 +435,17 @@ sub create_test_class_long {
 				trace => 1,
 				build_number => 1,
 				app_publisher_url => 'http://vanillaperl.org',
+				app_name          => 'Test Perl',
+				app_ver_name      => 'Test Perl 1 alpha 1',
+				app_publisher     => 'Vanilla Perl Project',
+				app_id            => 'testperl',
 				\@_,
 			);
 		}
 		
 		sub ${answer}::install_cpan_upgrades {
 			my \$self = shift;
-			\$self->Perl::Dist::WiX::install_cpan_upgrades();
+			\$self->SUPER::install_cpan_upgrades();
 			\$self->install_distribution(
 				name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
 				mod_name         => 'Config::Tiny',
@@ -551,7 +537,7 @@ __END__
 
 =begin readme text
 
-Test::Perl::Dist version 0.202
+Test::Perl::Dist version 0.203
 
 =end readme
 
@@ -563,7 +549,7 @@ Test::Perl::Dist - Test module for Perl::Dist::WiX and subclasses.
 
 =head1 VERSION
 
-This document describes Test::Perl::Dist version 0.202
+This document describes Test::Perl::Dist version 0.203
 
 =begin readme
 
@@ -660,9 +646,6 @@ more than 5 minutes, a "medium" test installs perl and one additional module
 and can take about an hour, and a "long" test completes a full build, which 
 can take 4-8 hours on slow machines.
 
-Medium and long tests are skipped at this point unless $ENV{RELEASE_TESTING} 
-contains a true value.
-
 =head2 test_run_dist
 
 	test_run_dist( $dist );
@@ -716,11 +699,8 @@ provided to it by the module being tested.
 
 There are no configuration files.
 
-$ENV{RELEASE_TESTING} is checked for a true value if a medium or long 
-test is requested.
-
-There are other environment variables used - check the source for 
-details.
+$ENV{PERL_RELEASE_TEST_PERLDIST_CPAN} is used to point at a preferred 
+(or local - it can be a file:// URL) mirror for CPAN.
 
 =for readme continue
 
@@ -756,12 +736,13 @@ Curtis Jewell  C<< <CSJewell@cpan.org> >>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2009, Curtis Jewell C<< <CSJewell@cpan.org> >>. 
+Copyright (c) 2009-2010, Curtis Jewell C<< <CSJewell@cpan.org> >>. 
 All rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself, either version
-5.8.1 or any later version. See L<perlartistic> and L<perlgpl>.
+5.8.1 or any later version. See L<perlartistic|perlartistic>
+and L<perlgpl|perlgpl>.
 
 The full text of the license can be found in the
 LICENSE file included with this module.
