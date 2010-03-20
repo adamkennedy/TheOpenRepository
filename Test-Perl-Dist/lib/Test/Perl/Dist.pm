@@ -92,6 +92,24 @@ sub _cpan_release {
 	}
 }
 
+sub _forceperl {
+	my $class = shift;
+	if ( defined $ENV{PERL_RELEASE_TEST_FORCEPERL} ) {
+		return ( forceperl => 1 );
+	} else {
+		return ();
+	}
+}
+
+sub _force {
+	my $class = shift;
+	if ( defined $ENV{PERL_RELEASE_TEST_FORCE} ) {
+		return ( force => 1 );
+	} else {
+		return ();
+	}
+}
+
 ##sub _cpan {
 ##	if ( $ENV{PERL_TEST_PERLDIST_CPAN} ) {
 ##		return URI->new( $ENV{PERL_TEST_PERLDIST_CPAN} );
@@ -123,7 +141,7 @@ sub new_test_class_short {
 		$class_to_test );
 	my $test_object = eval {
 		my $obj = $test_class->new( $self->_paths($test_number),
-			$self->_cpan_release, @_ );
+			$self->_cpan_release(), $self->_forceperl(), @_ );
 		return $obj;
 	};
 	if ($EVAL_ERROR) {
@@ -164,14 +182,14 @@ sub new_test_class_medium {
 		$class_to_test );
 	my $test_object = eval {
 		$test_class->new( $self->_paths($test_number),
-			$self->_cpan_release, @_ );
+			$self->_cpan_release(), $self->_forceperl(), @_ );
 	};
 
 	if ($EVAL_ERROR) {
 		if ( blessed($EVAL_ERROR)
 			&& $EVAL_ERROR->isa('Exception::Class::Base') )
 		{
-			diag( $EVAL_ERROR->as_string );
+			diag( $EVAL_ERROR->as_string() );
 		} else {
 			diag($EVAL_ERROR);
 		}
@@ -205,7 +223,7 @@ sub new_test_class_long {
 		$class_to_test );
 	my $test_object = eval {
 		$test_class->new( $self->_paths($test_number),
-			$self->_cpan_release, @_ );
+			$self->_cpan_release(), $self->_forceperl(), @_ );
 	};
 
 	if ($EVAL_ERROR) {
@@ -467,7 +485,8 @@ sub test_verify_files_long {
 	# C toolchain files
 	ok( -f catfile( $test_dir, qw{ c bin dmake.exe } ), 'Found dmake.exe',
 	);
-	ok( -f catfile( $test_dir, qw{ c bin startup Makefile.in } ),
+	
+	ok( -f catfile( $test_dir, qw{ c bin startup startup.mk } ),
 		'Found startup',
 	);
 	ok( -f catfile( $test_dir, qw{ c bin pexports.exe } ),
@@ -700,6 +719,14 @@ There are no configuration files.
 
 $ENV{PERL_RELEASE_TEST_PERLDIST_CPAN} is used to point at a preferred 
 (or local - it can be a file:// URL) mirror for CPAN.
+
+If $ENV{PERL_RELEASE_TEST_FORCEPERL} is defined, it passes 
+forceperl => 1 to the classes being tested, which skips testing perl
+after compilation.
+
+If $ENV{PERL_RELEASE_TEST_FORCE} is defined, it passes 
+force => 1 to the classes being tested, which skips testing both
+perl and the additional modules installed.
 
 =for readme continue
 
