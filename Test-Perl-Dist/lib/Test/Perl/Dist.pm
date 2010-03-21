@@ -16,7 +16,7 @@ use Win32 qw();
 use URI qw();
 
 our @EXPORT =
-  qw(test_run_dist test_add test_verify_files_short test_verify_files_medium 
+  qw(test_run_dist test_add test_verify_files_short test_verify_files_medium
   test_verify_files_long test_verify_portability test_cleanup);
 push @EXPORT, @Test::More::EXPORT;
 
@@ -145,7 +145,8 @@ sub new_test_class_short {
 		$class_to_test );
 	my $test_object = eval {
 		my $obj = $test_class->new( $self->_paths($test_number),
-			$self->_cpan_release(), $self->_forceperl(), $self->_force(), @_ );
+			$self->_cpan_release(), $self->_forceperl(), $self->_force(),
+			@_ );
 		return $obj;
 	};
 	if ($EVAL_ERROR) {
@@ -188,7 +189,8 @@ sub new_test_class_medium {
 		$class_to_test );
 	my $test_object = eval {
 		$test_class->new( $self->_paths($test_number),
-			$self->_cpan_release(), $self->_forceperl(), $self->_force(), @_ );
+			$self->_cpan_release(), $self->_forceperl(), $self->_force(),
+			@_ );
 	};
 
 	if ($EVAL_ERROR) {
@@ -231,7 +233,8 @@ sub new_test_class_long {
 		$class_to_test );
 	my $test_object = eval {
 		$test_class->new( $self->_paths($test_number),
-			$self->_cpan_release(), $self->_forceperl(), $self->_force(), @_ );
+			$self->_cpan_release(), $self->_forceperl(), $self->_force(),
+			@_ );
 	};
 
 	if ($EVAL_ERROR) {
@@ -338,6 +341,7 @@ sub test_verify_files_medium {
 	);
 
 	if ( -f catfile( $test_dir, qw{ image portable.perl } ) ) {
+
 		# Toolchain files
 		ok( -f catfile( $test_dir, qw{ perl site lib LWP.pm } ),
 			'Found LWP.pm', );
@@ -347,6 +351,7 @@ sub test_verify_files_medium {
 			'Found Config::Tiny',
 		);
 	} else {
+
 		# Toolchain files
 		ok( -f catfile( $test_dir, qw{ perl vendor lib LWP.pm } ),
 			'Found LWP.pm', );
@@ -356,7 +361,7 @@ sub test_verify_files_medium {
 			'Found Config::Tiny',
 		);
 	}
-	
+
 	# Did we build Perl correctly?
 	ok( -f catfile( $test_dir, qw{ perl bin }, $dll_file ),
 		'Found Perl DLL',
@@ -536,7 +541,7 @@ sub test_verify_files_long {
 	# C toolchain files
 	ok( -f catfile( $test_dir, qw{ c bin dmake.exe } ), 'Found dmake.exe',
 	);
-	
+
 	ok( -f catfile( $test_dir, qw{ c bin startup startup.mk } ),
 		'Found startup',
 	);
@@ -550,6 +555,7 @@ sub test_verify_files_long {
 	);
 
 	if ( -f catfile( $test_dir, qw{ image portable.perl } ) ) {
+
 		# Toolchain files
 		ok( -f catfile( $test_dir, qw{ perl site lib LWP.pm } ),
 			'Found LWP.pm', );
@@ -559,6 +565,7 @@ sub test_verify_files_long {
 			'Found Config::Tiny',
 		);
 	} else {
+
 		# Toolchain files
 		ok( -f catfile( $test_dir, qw{ perl vendor lib LWP.pm } ),
 			'Found LWP.pm', );
@@ -609,18 +616,18 @@ sub test_verify_portability {
 
 sub test_cleanup {
 	my $test_number = shift;
-	
+
 	if ( Test::Builder->new()->is_passing() ) {
-	
+
 		diag('Removing build files on successful test.');
 		my $dir = catdir( 't', "tmp$test_number" );
 		File::Remove::remove( \1, $dir );
 	} else {
 		diag('Did not pass, so not removing files.');
 	}
-	
+
 	return;
-}
+} ## end sub test_cleanup
 
 
 
