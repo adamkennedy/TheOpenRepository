@@ -16,7 +16,8 @@ use Win32 qw();
 use URI qw();
 
 our @EXPORT =
-  qw(test_run_dist test_add test_verify_files_short test_verify_files_medium test_verify_files_long test_verify_portability );
+  qw(test_run_dist test_add test_verify_files_short test_verify_files_medium 
+  test_verify_files_long test_verify_portability test_cleanup);
 push @EXPORT, @Test::More::EXPORT;
 
 our $VERSION = '0.203';
@@ -336,16 +337,27 @@ sub test_verify_files_medium {
 		'Found perl.exe',
 	);
 
-	# Toolchain files
-	ok( -f catfile( $test_dir, qw{ perl vendor lib LWP.pm } ),
-		'Found LWP.pm', );
+	if ( -f catfile( $test_dir, qw{ image portable.perl } ) ) {
+		# Toolchain files
+		ok( -f catfile( $test_dir, qw{ perl site lib LWP.pm } ),
+			'Found LWP.pm', );
 
-	# Custom installed file
-	ok( -f catfile( $test_dir, qw{ perl vendor lib Config Tiny.pm } ),
-		'Found Config::Tiny',
-	);
+		# Custom installed file
+		ok( -f catfile( $test_dir, qw{ perl site lib Config Tiny.pm } ),
+			'Found Config::Tiny',
+		);
+	} else {
+		# Toolchain files
+		ok( -f catfile( $test_dir, qw{ perl vendor lib LWP.pm } ),
+			'Found LWP.pm', );
 
-	# Did we build 5.8.8?
+		# Custom installed file
+		ok( -f catfile( $test_dir, qw{ perl vendor lib Config Tiny.pm } ),
+			'Found Config::Tiny',
+		);
+	}
+	
+	# Did we build Perl correctly?
 	ok( -f catfile( $test_dir, qw{ perl bin }, $dll_file ),
 		'Found Perl DLL',
 	);
@@ -438,11 +450,19 @@ sub create_test_class_medium {
 
 		sub ${answer}::test_distro {
 			my \$self = shift;
-			\$self->install_distribution(
-				name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
-				mod_name         => 'Config::Tiny',
-				makefilepl_param => ['INSTALLDIRS=vendor'],
-			);		
+			if (\$self->portable()) {
+				\$self->install_distribution(
+					name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
+					mod_name         => 'Config::Tiny',
+					makefilepl_param => ['INSTALLDIRS=site'],
+				);
+			} else {
+				\$self->install_distribution(
+					name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
+					mod_name         => 'Config::Tiny',
+					makefilepl_param => ['INSTALLDIRS=vendor'],
+				);
+			}
 			return 1;
 		}
 EOF
@@ -484,11 +504,19 @@ sub create_test_class_long {
 		sub ${answer}::install_cpan_upgrades {
 			my \$self = shift;
 			\$self->${test_class}::install_cpan_upgrades();
-			\$self->install_distribution(
-				name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
-				mod_name         => 'Config::Tiny',
-				makefilepl_param => ['INSTALLDIRS=vendor'],
-			);		
+			if (\$self->portable()) {
+				\$self->install_distribution(
+					name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
+					mod_name         => 'Config::Tiny',
+					makefilepl_param => ['INSTALLDIRS=site'],
+				);
+			} else {
+				\$self->install_distribution(
+					name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
+					mod_name         => 'Config::Tiny',
+					makefilepl_param => ['INSTALLDIRS=vendor'],
+				);
+			}
 			return 1;
 		}
 EOF
@@ -521,14 +549,25 @@ sub test_verify_files_long {
 		'Found perl.exe',
 	);
 
-	# Toolchain files
-	ok( -f catfile( $test_dir, qw{ perl vendor lib LWP.pm } ),
-		'Found LWP.pm', );
+	if ( -f catfile( $test_dir, qw{ image portable.perl } ) ) {
+		# Toolchain files
+		ok( -f catfile( $test_dir, qw{ perl site lib LWP.pm } ),
+			'Found LWP.pm', );
 
-	# Custom installed file
-	ok( -f catfile( $test_dir, qw{ perl vendor lib Config Tiny.pm } ),
-		'Found Config::Tiny',
-	);
+		# Custom installed file
+		ok( -f catfile( $test_dir, qw{ perl site lib Config Tiny.pm } ),
+			'Found Config::Tiny',
+		);
+	} else {
+		# Toolchain files
+		ok( -f catfile( $test_dir, qw{ perl vendor lib LWP.pm } ),
+			'Found LWP.pm', );
+
+		# Custom installed file
+		ok( -f catfile( $test_dir, qw{ perl vendor lib Config Tiny.pm } ),
+			'Found Config::Tiny',
+		);
+	}
 
 	# Did we build Perl correctly?
 	ok( -f catfile( $test_dir, qw{ perl bin }, $dll_file ),
@@ -557,7 +596,7 @@ sub test_verify_portability {
 	ok( -f catfile( $test_dir, qw{ image portable.perl } ),
 		'Found portable file',
 	);
-	ok( -f catfile( $test_dir, qw{ image perl vendor lib Portable.pm } ),
+	ok( -f catfile( $test_dir, qw{ image perl site lib Portable.pm } ),
 		'Found Portable.pm',
 	);
 
