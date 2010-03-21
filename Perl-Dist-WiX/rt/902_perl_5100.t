@@ -6,7 +6,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::Perl::Dist;
+use Test::Perl::Dist 0.203;
 
 #####################################################################
 # Complete Generation Run
@@ -14,10 +14,13 @@ use Test::Perl::Dist;
 # Create the dist object
 my $dist = Test::Perl::Dist->new_test_class_long(
 	902, '5100', 'Perl::Dist::WiX',
+	user_agent_cache  => 0,
 );
 
 test_run_dist( $dist );
 
 test_verify_files_long(902, '510');
+
+test_cleanup(902);
 
 done_testing();
