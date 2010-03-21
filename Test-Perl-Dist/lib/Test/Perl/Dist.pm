@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use 5.008001;
 use Test::More 0.88 import => ['!done_testing'];
+use Test::Builder;
 use parent qw( Exporter );
 use English qw( -no_match_vars );
 use Scalar::Util qw( blessed );
@@ -122,6 +123,8 @@ sub _force {
 ##	return URI::file->new( $path . q{\\} );
 ##}
 
+
+
 sub new_test_class_short {
 	my $self          = shift;
 	my $test_number   = shift;
@@ -141,7 +144,7 @@ sub new_test_class_short {
 		$class_to_test );
 	my $test_object = eval {
 		my $obj = $test_class->new( $self->_paths($test_number),
-			$self->_cpan_release(), $self->_forceperl(), @_ );
+			$self->_cpan_release(), $self->_forceperl(), $self->_force(), @_ );
 		return $obj;
 	};
 	if ($EVAL_ERROR) {
@@ -163,6 +166,8 @@ sub new_test_class_short {
 	return $test_object;
 } ## end sub new_test_class_short
 
+
+
 sub new_test_class_medium {
 	my $self          = shift;
 	my $test_number   = shift;
@@ -182,7 +187,7 @@ sub new_test_class_medium {
 		$class_to_test );
 	my $test_object = eval {
 		$test_class->new( $self->_paths($test_number),
-			$self->_cpan_release(), $self->_forceperl(), @_ );
+			$self->_cpan_release(), $self->_forceperl(), $self->_force(), @_ );
 	};
 
 	if ($EVAL_ERROR) {
@@ -204,6 +209,8 @@ sub new_test_class_medium {
 	return $test_object;
 } ## end sub new_test_class_medium
 
+
+
 sub new_test_class_long {
 	my $self          = shift;
 	my $test_number   = shift;
@@ -223,7 +230,7 @@ sub new_test_class_long {
 		$class_to_test );
 	my $test_object = eval {
 		$test_class->new( $self->_paths($test_number),
-			$self->_cpan_release(), $self->_forceperl(), @_ );
+			$self->_cpan_release(), $self->_forceperl(), $self->_force(), @_ );
 	};
 
 	if ($EVAL_ERROR) {
@@ -244,6 +251,8 @@ sub new_test_class_long {
 
 	return $test_object;
 } ## end sub new_test_class_long
+
+
 
 sub test_run_dist {
 	my $dist = shift;
@@ -279,11 +288,15 @@ sub test_run_dist {
 	return;
 } ## end sub test_run_dist
 
+
+
 sub test_add {
 	$tests_completed++;
 
 	return;
 }
+
+
 
 sub test_verify_files_short {
 	my $test_number = shift;
@@ -298,6 +311,8 @@ sub test_verify_files_short {
 
 	return;
 } ## end sub test_verify_files_short
+
+
 
 sub test_verify_files_medium {
 	my $test_number = shift;
@@ -340,6 +355,8 @@ sub test_verify_files_medium {
 	return;
 } ## end sub test_verify_files_medium
 
+
+
 sub create_test_class_short {
 	my $self         = shift;
 	my $test_number  = shift;
@@ -378,6 +395,8 @@ EOF
 	eval $code;
 	return $answer;
 } ## end sub create_test_class_short
+
+
 
 sub create_test_class_medium {
 	my $self         = shift;
@@ -431,6 +450,8 @@ EOF
 	return $answer;
 } ## end sub create_test_class_medium
 
+
+
 sub create_test_class_long {
 	my $self         = shift;
 	my $test_number  = shift;
@@ -462,7 +483,7 @@ sub create_test_class_long {
 		
 		sub ${answer}::install_cpan_upgrades {
 			my \$self = shift;
-			\$self->SUPER::install_cpan_upgrades();
+			\$self->${test_class}::install_cpan_upgrades();
 			\$self->install_distribution(
 				name             => 'ADAMK/Config-Tiny-2.12.tar.gz',
 				mod_name         => 'Config::Tiny',
@@ -474,6 +495,8 @@ EOF
 
 	return $answer;
 } ## end sub create_test_class_long
+
+
 
 sub test_verify_files_long {
 	my $test_number = shift;
@@ -517,6 +540,8 @@ sub test_verify_files_long {
 	return;
 } ## end sub test_verify_files_long
 
+
+
 sub test_verify_portability {
 	my $test_number   = shift;
 	my $base_filename = shift;
@@ -540,6 +565,25 @@ sub test_verify_portability {
 
 	return;
 } ## end sub test_verify_portability
+
+
+
+sub test_cleanup {
+	my $test_number = shift;
+	
+	if ( Test::Builder->new()->is_passing() ) {
+	
+		diag('Removing build files on successful test.');
+		my $dir = catdir( 't', "tmp$test_number" );
+		File::Remove::remove( \1, $dir );
+	} else {
+		diag('Did not pass, so not removing files.');
+	}
+	
+	return;
+}
+
+
 
 sub done_testing {
 	my $additional_tests = shift || 0;
@@ -694,6 +738,12 @@ portable distribution.
 
 The first parameter is the test number, the second parameter is the base 
 filename of the dist being tested, as returned from output_base_filename.
+
+=head2 done_testing
+
+	test_cleanup(901);
+	
+This cleans up the build files if all tests have been successful.
 
 =head2 done_testing
 
