@@ -106,15 +106,6 @@ sub ACTION_releasetest {
 }
 
 
-sub ACTION_distdir {
-    my ($self, @arguments) = @_;
-
-    $self->depends_on('authortest');
-
-    return $self->SUPER::ACTION_distdir(@arguments);
-}
-
-
 sub ACTION_manifest {
     my ($self, @arguments) = @_;
 
