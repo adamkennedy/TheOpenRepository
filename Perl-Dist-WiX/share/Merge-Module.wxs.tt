@@ -32,13 +32,25 @@
     </UI>
 
 [% IF dist.relocatable %]
+	<CustomAction Id="CA_Rlm_1" Property="CA_Rlm_1"
+				  Value="&quot;[#[% dist.fileid_perl %]]&quot;" Execute="immediate"/>
+	<CustomAction Id="CA_Rlm_2" Property="CA_Rlm_2"
+				  Value="[#[% dist.fileid_relocation_pl %]]" Execute="immediate"/>
+	<CustomAction Id="CA_Rlm_3" Property="CA_Rlm_3"
+				  Value="[#CA_Rlm_1] [#CA_Rlm_2]" Execute="immediate"/>
+	<CustomAction Id="CA_Rlm_4" Property="CA_Rlm_4"
+				  Value="--location [#INSTALLDIR] --quiet" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate_msm_Cmd" Property="CA_Relocate_msm"
-				  Value="[% dist.msm_relocation_commandline %]" Execute="immediate"/>
+				  Value="[#CA_Rlm_3] [#CA_Rlm_4]" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate_msm" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
 				  Execute="deferred" Return="check" Impersonate="no"/>
 
 	<InstallExecuteSequence>
-		<Custom Action="CA_Relocate_msm_Cmd" After="CostFinalize"/>
+		<Custom Action="CA_Rlm_1" After="CostFinalize"/>
+		<Custom Action="CA_Rlm_2" After="CA_Rlm_1"/>
+		<Custom Action="CA_Rlm_3" After="CA_Rlm_2"/>
+		<Custom Action="CA_Rlm_4" After="CA_Rlm_3"/>
+		<Custom Action="CA_Relocate_msm_Cmd" After="CA_Rlm_4"/>
 		<Custom Action="CA_Relocate_msm" After="PublishProduct"/>
 	</InstallExecuteSequence>
 

@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.102_101
+Perl-Dist-WiX version 1.102_102
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.102_101.
+This document describes Perl::Dist::WiX version 1.102_102.
 
 =for readme continue
 
@@ -114,7 +114,7 @@ use     IO::Handle            qw();
 use     IPC::Run3             qw();
 use     LWP::UserAgent        qw();
 use     LWP::Online           qw();
-use     Module::CoreList 2.18 qw();
+use     Module::CoreList 2.26 qw();
 use     PAR::Dist             qw();
 use     Probe::Perl           qw();
 use     SelectSaver           qw();
@@ -135,7 +135,7 @@ require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 #>>>
 
-our $VERSION = '1.102_101';
+our $VERSION = '1.102_102';
 $VERSION =~ s/_//ms;
 
 
@@ -1592,9 +1592,9 @@ has 'perl_debug' => (
 =head3 perl_version
 
 The C<perl_version> parameter specifies what version of perl is downloaded 
-and built.  Legal values for this parameter are 'git', '589', '5100', and 
-'5101' (for a version from perl5.git.perl.org, 5.8.9, 5.10.0, and 5.10.1, 
-respectively.)
+and built.  Legal values for this parameter are 'git', '589', '5100', '5101', 
+'5115', and '5120' (for a version from perl5.git.perl.org, 5.8.9, 5.10.0, 
+5.10.1, 5.11.5, and 5.12.0-RC0, respectively.)
 
 This parameter defaults to '5101' if not specified.
 
@@ -2270,6 +2270,7 @@ sub _build_perl_version_literal {
 		'5100' => '5.010000',
 		'5101' => '5.010001',
 		'5115' => '5.011005',
+		'5120' => '5.012000',
 		'git'  => '5.011005',
 	  }->{ $self->perl_version() }
 	  || 0;
@@ -2311,6 +2312,7 @@ sub _build_perl_version_human {
 		'5100' => '5.10.0',
 		'5101' => '5.10.1',
 		'5115' => '5.11.5',
+		'5120' => '5.12.0-RC0',
 		'git'  => 'git',
 	  }->{ $self->perl_version() }
 	  || 0;
@@ -2628,6 +2630,7 @@ sub msi_perl_version {
 		'5100' => [ 5, 10, 0 ],
 		'5101' => [ 5, 10, 1 ],
 		'5115' => [ 5, 11, 5 ],
+		'5120' => [ 5, 12, 0 ],
 		'git'  => [ 5, 0,  0 ],
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
@@ -2659,6 +2662,7 @@ sub msi_perl_major_version {
 		'5100' => [ 5, 9,  255 ],
 		'5101' => [ 5, 10, 0 ],
 		'5115' => [ 5, 11, 4 ],
+		'5115' => [ 5, 11, 255 ],
 		'git'  => [ 5, 11, 0 ],
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];

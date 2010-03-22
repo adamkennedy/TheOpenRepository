@@ -33,13 +33,13 @@ use Storable qw( retrieve );
 use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use Module::CoreList 2.18 qw();
+use Module::CoreList 2.26 qw();
 
 require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-our $VERSION = '1.102_101';
+our $VERSION = '1.102_102';
 $VERSION =~ s/_//sm;
 
 Readonly my %CORE_MODULE_FIX => (
@@ -453,10 +453,6 @@ sub _skip_upgrade {
 	# If the ID is CGI::Carp, there's a bug in the index.
 	return 1 if $module->id() eq 'CGI::Carp';
 
-	# DON'T try to install ExtUtils::CBuilder, we
-	# already upgraded it as far as we can. RT#54728.
-	return 1 if $module->cpan_file() =~ m{/ExtUtils-CBuilder-0 [.] 2701}msx;
-
 	# If the ID is ExtUtils::MakeMaker, we've already installed it.
 	# There were some files gotten rid of after 6.50, so
 	# install_cpan_upgrades thinks that it needs to upgrade
@@ -467,14 +463,6 @@ sub _skip_upgrade {
 
 	# Skip B::C, it does not install on 5.8.9.
 	return 1 if $module->cpan_file() =~ m{/B-C-1 [.]}msx;
-
-	# Skip autodie 2.08 and 2.09, waiting on RT#54525.
-	if (( $module->cpan_file() =~ m{/autodie-2 [.] 0 [89]}msx )
-		and (  ( $self->perl_version() eq '5101' )
-			or ( $self->perl_version() eq 'git' ) ) )
-	{
-		return 1;
-	}
 
 	return 0;
 } ## end sub _skip_upgrade
@@ -519,7 +507,7 @@ sub install_perl {
 
 
 
-=head2 install_perl_* (* = git, 589, 5100, or 5101)
+=head2 install_perl_* (* = git, 589, 5100, 5101, 5115, or 5120)
 
 	$self->install_perl_5100;
 
@@ -823,6 +811,62 @@ sub install_perl_5115 {
 
 
 
+sub install_perl_5120 {
+	my $self = shift;
+
+	# Prefetch and predelegate the toolchain so that it
+	# fails early if there's a problem
+	$self->trace_line( 1, "Pregenerating toolchain...\n" );
+	my $toolchain = Perl::Dist::WiX::Toolchain->new(
+		perl_version => $self->perl_version_literal,
+		cpan         => $self->cpan->as_string,
+		bits         => $self->bits(),
+	) or PDWiX->throw('Failed to resolve toolchain modules');
+	unless ( eval { $toolchain->delegate; 1; } ) {
+		PDWiX::Caught->throw(
+			message => 'Delegation error occured',
+			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
+		);
+	}
+	if ( defined $toolchain->get_error() ) {
+		PDWiX::Caught->throw(
+			message => 'Failed to generate toolchain distributions',
+			info    => $toolchain->get_error() );
+	}
+	$self->_set_toolchain($toolchain);
+
+	# Make the perl directory if it hasn't been made already.
+	$self->_make_path( $self->_dir('perl') );
+
+	# Install the main binary
+	$self->install_perl_bin(
+		name => 'perl',
+		url =>
+'http://search.cpan.org/CPAN/authors/id/J/JE/JESSE/perl-5.12.0-RC0.tar.gz',
+		unpack_to  => 'perl',
+		install_to => 'perl',
+		toolchain  => $toolchain,
+		patch      => [ qw{
+			  lib/CPAN/Config.pm
+			  win32/config.gc
+			  win32/config.gc64nox
+			  win32/config_sh.PL
+			  win32/config_H.gc
+			  win32/config_H.gc64nox
+			  }
+		],
+		license => {
+			'perl-5.12.0-RC0/Readme'   => 'perl/Readme',
+			'perl-5.12.0-RC0/Artistic' => 'perl/Artistic',
+			'perl-5.12.0-RC0/Copying'  => 'perl/Copying',
+		},
+	);
+
+	return 1;
+} ## end sub install_perl_5120
+
+
+
 sub install_perl_git {
 	my $self = shift;
 
@@ -940,11 +984,6 @@ sub install_perl_toolchain {
 			# Upgrading to this version, instead...
 			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
 		}
-		if ( $dist =~ /Test-Harness-3 [.] 20/msx ) {
-
-			# 3.20 has a test bug... waiting for RT#54028
-			$force = 1;
-		}
 		if ( $dist =~ /CPAN-1 [.] 9402/msx ) {
 
 			# 1.9402 fails its tests... ANDK says it's a test bug.
@@ -952,16 +991,6 @@ sub install_perl_toolchain {
 			# for the Win32 file:// bug.
 			$dist  = 'ANDK/CPAN-1.94_56.tar.gz';
 			$force = 1;
-		}
-		if ( $dist =~ /ExtUtils-ParseXS-2[.]20(?:02)?[.]tar[.]gz/msx ) {
-
-			# 2.20 and 2.2002 are buggy on 5.8.9.
-			$dist = 'DAGOLDEN/ExtUtils-ParseXS-2.20_05.tar.gz';
-		}
-		if ( $dist =~ /ExtUtils-CBuilder-0[.]2701[.]tar[.]gz/msx ) {
-
-			# 0.2701 does not pass tests on 5.10.1. RT#54728.
-			$dist = 'DAGOLDEN/ExtUtils-CBuilder-0.27.tar.gz';
 		}
 		if ( $dist =~ /Win32API-Registry-0 [.] 31/msx ) {
 
