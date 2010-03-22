@@ -33,7 +33,7 @@ use Storable qw( retrieve );
 use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use Module::CoreList 2.26 qw();
+use Module::CoreList 2.27 qw();
 
 require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;

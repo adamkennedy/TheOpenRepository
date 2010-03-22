@@ -114,7 +114,7 @@ use     IO::Handle            qw();
 use     IPC::Run3             qw();
 use     LWP::UserAgent        qw();
 use     LWP::Online           qw();
-use     Module::CoreList 2.26 qw();
+use     Module::CoreList 2.27 qw();
 use     PAR::Dist             qw();
 use     Probe::Perl           qw();
 use     SelectSaver           qw();

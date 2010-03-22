@@ -8,7 +8,7 @@ use Moose::Util::TypeConstraints;
 use English qw( -no_match_vars );
 use Carp qw();
 use Params::Util qw( _HASH _ARRAY );
-use Module::CoreList 2.26 qw();
+use Module::CoreList 2.27 qw();
 use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
@@ -218,7 +218,7 @@ sub _corelist_version_build {
 		'5.010001' => '5.010001',
 		'5.011001' => '5.011001',
 		'5.011005' => '5.011005',
-		'5.012000' => '5.011005', # TODO: Temporary mapping until 2.27 comes out.
+		'5.012000' => '5.012000', 
 	);
 
 	return \%corelist;
