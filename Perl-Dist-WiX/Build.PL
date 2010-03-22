@@ -22,8 +22,8 @@ require Module::CoreList;
 if ($Module::CoreList::VERSION < 2.27) {
 	print <<'EOF';
 To install the version of Module::CoreList required, you'll need to
-download perl-5.12.0-RC0 and copy its file that contains Module::Corelist 
-before installing this. 
+download perl-5.12.0-RC0 and cd to its dist/Module-CoreList directory
+and run 'cpan .' there before installing this. 
 
 EOF
 	die "Please upgrade Module::Corelist as instructed above.\n\n";
