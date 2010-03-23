@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 use 5.008;
-# fqstat.pl (version see FQStat.pm) is (c) 2007-2009 Steffen Mueller
+# fqstat.pl (version see FQStat.pm) is (c) 2007-2010 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -480,7 +480,7 @@ fqstat - Interactive front-end for qstat
 
   You can get online help by hitting 'h' while running fqstat.
 
-fqstat is (c) 2007-2009 Steffen Mueller.
+fqstat is (c) 2007-2010 Steffen Mueller.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

@@ -1,6 +1,6 @@
 
 package App::FQStat::Actions;
-# App::FQStat is (c) 2007-2009 Steffen Mueller
+# App::FQStat is (c) 2007-2010 Steffen Mueller
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -661,7 +661,7 @@ Commands:
   ${h}'c'             ${r}     (C)lear error state of jobs
                                (In Summary Mode: Toggle Clustering)
   ${h}'d'             ${r}     Change job (d)ependencies
-fqstat is (c) 2007-2009 Steffen Mueller. This program is free software; you
+fqstat is (c) 2007-2010 Steffen Mueller. This program is free software; you
 can redistribute it and/or modify it under the same terms as Perl itself.
 HERE
   my $input = Term::ReadKey::ReadKey(1e9);
