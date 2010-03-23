@@ -2691,15 +2691,7 @@ Returns a command line to use in Main.wxs.tt for relocation purposes.
 sub msi_relocation_commandline {
 	my $self = shift;
 
-	my $perl_id =
-	  $self->fileid_perl() . q{.} . $self->msm_package_id_property();
-	my $script_id =
-	    $self->fileid_relocation_pl() . q{.}
-	  . $self->msm_package_id_property();
-
-	my $answer = join q{ }, "&quot;[#$perl_id]&quot;", "[#$script_id]",
-	  '--location', '[#INSTALLDIR]', '--quiet';
-
+	my $answer;
 	my %files = $self->msi_relocation_commandline_files();
 
 	my ( $fragment, $file, $id );
@@ -2725,12 +2717,7 @@ Returns a command line to use in Merge-Module.wxs.tt for relocation purposes.
 sub msm_relocation_commandline {
 	my $self = shift;
 
-	my $perl_id   = $self->fileid_perl();
-	my $script_id = $self->fileid_relocation_pl();
-
-	my $answer = join q{ }, "&quot;[#$perl_id]&quot;", "[#$script_id]",
-	  '--location', '[#INSTALLDIR]', '--quiet';
-
+	my $answer;
 	my %files = $self->msm_relocation_commandline_files();
 
 	my ( $fragment, $file, $id );
