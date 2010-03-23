@@ -101,12 +101,12 @@
     </UI>
 
 [% IF dist.relocatable %]
-	<CustomAction Id="CA_Rlc_1" Property="CA_Rlc_1"
+	<CustomAction Id="CA_Rlc_1" Property="P_Rlc_1"
 				  Value="&quot;[#[% dist.fileid_perl %].[% dist.msm_package_id_property %]]&quot;" Execute="immediate"/>
-	<CustomAction Id="CA_Rlc_2" Property="CA_Rlc_2"
+	<CustomAction Id="CA_Rlc_2" Property="P_Rlc_2"
 				  Value="[#[% dist.fileid_relocation_pl %].[% dist.msm_package_id_property %]]" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate_Cmd" Property="CA_Relocate"
-				  Value="[#CA_Rlc_1] [#CA_Rlc_2] --location [#INSTALLDIR] --quiet" Execute="immediate"/>
+				  Value="[#P_Rlc_1] [#P_Rlc_2] --location [#INSTALLDIR] --quiet" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
 				  Execute="deferred" Return="check" Impersonate="no"/>
 
