@@ -90,6 +90,7 @@ sub scanner_thread {
   my $noActiveNodes = 0;
   foreach my $line (@lines) {
     $line =~ s/^\s+//;
+    next if $line =~ /^\s*$/;
     my $rec = [split /\s+/, $line];
     $rec->[7] = '' if not $rec->[7] =~ /\D/;
     my @date = split /\//, $rec->[5];
