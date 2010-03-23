@@ -37,11 +37,11 @@
 	<CustomAction Id="CA_Rlm_2" Property="P_Rlm_2"
 				  Value="[#[% dist.fileid_relocation_pl %]]" Execute="immediate"/>
 	<CustomAction Id="CA_Rlm_3" Property="P_Rlm_3"
-				  Value="[#P_Rlm_1] [#P_Rlm_2]" Execute="immediate"/>
+				  Value="[P_Rlm_1] [P_Rlm_2]" Execute="immediate"/>
 	<CustomAction Id="CA_Rlm_4" Property="P_Rlm_4"
-				  Value="--location [#INSTALLDIR] --quiet" Execute="immediate"/>
+				  Value="--location [$INSTALLDIR] --quiet" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate_msm_Cmd" Property="CA_Relocate_msm"
-				  Value="[#P_Rlm_3] [#P_Rlm_4]" Execute="immediate"/>
+				  Value="[P_Rlm_3] [P_Rlm_4]" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate_msm" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
 				  Execute="deferred" Return="check" Impersonate="no"/>
 
