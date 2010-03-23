@@ -7,7 +7,7 @@ use Archive::Tar ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.16';
+	$VERSION = '1.17';
 }
 
 

@@ -1,5 +1,11 @@
 Revision history for Perl extension pip
 
+1.17 Tue 23 Mar 2010
+	- Updating to Module::Install 0.95
+	- Bundling newer author tests
+	- Removing a three-argument open that some overzealous external
+	  contributor added.
+
 1.16 Mon 23 Nov 2009
 	- Adding support for zip files
 

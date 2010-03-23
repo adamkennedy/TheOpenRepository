@@ -37,7 +37,7 @@ use Module::Plan::Base ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.16';
+	$VERSION = '1.17';
 	@ISA     = 'Module::Plan::Base';
 }
 
