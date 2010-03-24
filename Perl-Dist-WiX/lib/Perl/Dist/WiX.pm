@@ -3409,7 +3409,7 @@ sub install_relocatable {
 	return 1 unless $self->relocatable();
 
 	# Copy the relocation information in.
-	$self->_copy( catfile( $self->dist_dir(), 'relocation.pl' ),
+	$self->_copy( catfile( $self->wix_dist_dir(), 'relocation.pl' ),
 		$self->image_dir() );
 
 	# Make sure it gets installed.

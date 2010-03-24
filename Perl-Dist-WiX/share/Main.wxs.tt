@@ -107,7 +107,7 @@
 				  Value="[#[% dist.fileid_relocation_pl %].[% dist.msm_package_id_property %]]" Execute="immediate"/>
 	<CustomAction Id="CA_Rlc_3" Property="P_Rlc_3"
 				  Value="[P_Rlc_1] [P_Rlc_2] --location [INSTALLDIR] --quiet" Execute="immediate"/>
-	<CustomAction Id="CA_Rlc_3" Property="P_Rlc_3"
+	<CustomAction Id="CA_Rlc_4" Property="P_Rlc_4"
 				  Value="[% dist.msi_relocation_commandline %]" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate_Cmd" Property="CA_Relocate"
 				  Value="[P_Rlc_3][P_Rlc_4]" Execute="immediate"/>
@@ -120,7 +120,9 @@
 		<Custom Action="CA_Rlc_3" After="CA_Rlc_2"/>
 		<Custom Action="CA_Rlc_4" After="CA_Rlc_3"/>
 		<Custom Action="CA_Relocate_Cmd" After="CA_Rlc_4"/>
-		<Custom Action="CA_Relocate" After="PublishProduct"/>
+		<Custom Action="CA_Relocate" After="PublishProduct">
+			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
+		</Custom>
 	</InstallExecuteSequence>
 
     <UI>

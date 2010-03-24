@@ -198,7 +198,7 @@ sub _modules_build {
 	  URI
 	  HTML::Tagset
 	  HTML::Parser
-	  LWP::UserAgent};
+	  LWP};
 
 	my %modules = ( '5.008009' => \@modules_list, );
 	$modules{'5.010000'} = $modules{'5.008009'};

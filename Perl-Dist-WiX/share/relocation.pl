@@ -6,7 +6,7 @@ use warnings;
 use File::Slurp qw(read_file write_file);
 use Getopt::Long qw(GetOptions);
 use English qw( -no_match_vars );
-use File::Spec::Functions qw(splitpath);
+use File::Spec::Functions qw(splitpath catfile);
 use Carp qw(carp);
 use Win32::File::Object qw();
 
@@ -136,7 +136,9 @@ sub relocate_file {
 	chomp $type;
 	print "Relocating file $file using $type relocation\n" if not $quiet;
 
-	my $contents = read_file($file);
+	my $full_file = catfile($new_location, $file);
+	
+	my $contents = read_file($full_file);
 
 	my ($old, $new) = 
 		('backslash'       eq $type) ? get_replacements_backslash($old_location, $new_location)
@@ -152,25 +154,25 @@ sub relocate_file {
 		exit(1);
 	}
 
-	if ( not -f $file ) {
+	if ( not -f $full_file ) {
 		carp "Can't relocate a file $file that isn't a file\n" if not $quiet;
 		exit(1);
 	}
 	
 	my $ok;
-	if ( not -w $file ) {
+	if ( not -w $full_file ) {
 		# Make sure it isn't readonly
-		my $fileobj = Win32::File::Object->new( $file, 1 );
+		my $fileobj = Win32::File::Object->new( $full_file, 1 );
 		my $readonly = $fileobj->readonly();
 		$fileobj->readonly(0);
 	
 		# Do the actual write
-		$ok = write_file($file, $contents);
+		$ok = write_file($full_file, $contents);
 
 		# Set it back to what it was
 		$fileobj->readonly($readonly);
 	} else {
-		$ok = write_file($file, $contents);
+		$ok = write_file($full_file, $contents);
 	}
 	
 	return $ok;

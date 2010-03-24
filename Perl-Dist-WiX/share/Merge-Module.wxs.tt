@@ -57,7 +57,9 @@
 		<Custom Action="CA_Rlm_5" After="CA_Rlm_4"/>
 		<Custom Action="CA_Rlm_6" After="CA_Rlm_5"/>
 		<Custom Action="CA_Relocate_msm_Cmd" After="CA_Rlm_6"/>
-		<Custom Action="CA_Relocate_msm" After="PublishProduct"/>
+		<Custom Action="CA_Relocate_msm" After="PublishProduct">
+			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
+		</Custom>
 	</InstallExecuteSequence>
 
     <UI>
