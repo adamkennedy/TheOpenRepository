@@ -61,7 +61,8 @@
 			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
 		</Custom>
 	</InstallExecuteSequence>
-	<Property Id="NO_RELOCATE" Secure="yes"/>
+	<!-- Making sure that we don't need this here, instead of Main.wxs.tt. -->
+	<!-- Property Id="NO_RELOCATE" Secure="yes"/ -->
 
     <UI>
    	  <ProgressText Action="CA_Relocate_msm">Relocating [% dist.app_name %]...</ProgressText>
