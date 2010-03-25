@@ -985,7 +985,7 @@ Returns true or throws an exception on error.
 While transaction support is always built for every L<ORLite>-generated
 class tree, if the database is opened C<readonly> the C<commit> method
 will not exist at all in the API, and your only way of ending the
-transaction (and the resulting persistant connection) will be C<rollback>.
+transaction (and the resulting persistent connection) will be C<rollback>.
 
 =head2 commit
 
