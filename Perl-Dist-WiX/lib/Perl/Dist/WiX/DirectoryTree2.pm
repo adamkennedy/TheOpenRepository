@@ -14,7 +14,7 @@ use MooseX::Types::Moose qw( Str );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.102_101';
+our $VERSION = '1.102_102';
 $VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';
@@ -133,6 +133,7 @@ sub initialize_tree {
 
 	my $perlsite = $self->get_directory_object('D_PerlSite');
 	$perlsite->add_directories_id( 'PerlSiteBin', 'bin' );
+	$perlsite->add_directories_id( 'PerlSiteLib', 'lib' );
 
 	my $cpan = $self->get_directory_object('D_Cpan');
 	$cpan->add_directories_id( 'CpanSources', 'sources' );

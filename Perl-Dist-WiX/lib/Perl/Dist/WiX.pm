@@ -3123,6 +3123,12 @@ EOF
 			id           => 'PerlSiteBinFolder',
 		) );
 	$self->_add_fragment(
+		'CreatePerlSiteLib',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'PerlSiteLib',
+			id           => 'PerlSiteLibFolder',
+		) );
+	$self->_add_fragment(
 		'CreateCpanplus',
 		Perl::Dist::WiX::Fragment::CreateFolder->new(
 			directory_id => 'Cpanplus',
@@ -3518,6 +3524,13 @@ sub install_win32_extras {
 			id          => 'PerlCmdLine',
 			working_dir => 'PersonalFolder',
 		);
+		
+		$self->add_to_fragment( 'Win32Extras', [
+				catfile($self->image_dir(), qw(win32 win32.ico)),
+				catfile($self->image_dir(), qw(win32 cpan.ico)),				
+			]
+		);
+
 	} ## end if ( $self->msi() )
 
 	return $self;
