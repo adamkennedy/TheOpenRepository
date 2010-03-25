@@ -3012,7 +3012,7 @@ sub final_initialization {
 
 	# Check for architectures that we can't build 64-bit on.
 	if ( 64 == $self->bits() ) {
-		$self->_check_64_bit_arch();
+		$self->_check_64_bit();
 	}
 
 	# Redirect $ENV{TEMP} to within our build directory.
