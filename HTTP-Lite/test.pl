@@ -42,7 +42,7 @@ print "ok 1\n";
 #What is the full URL for the above?  Enter 'none' to skip tests.
 #EOF
 #print STDERR "Location: [http://www.thetoybox.org/HTTP-Lite-Tests] ";
-$testpath = 'none';
+my $testpath = 'none';
 chomp($testpath);
 $testpath = $testpath ? $testpath : "http://www.thetoybox.org/HTTP-Lite-Tests";
 
@@ -74,7 +74,7 @@ EOF
 
 }
 
-$http = new HTTP::Lite;
+$http = HTTP::Lite->new;
 
 #$http->{DEBUG} = 1;
 
