@@ -33,8 +33,13 @@ sub main {
 	}
 
 	# If the first argument is a file, install it
-	if ( $ARGV[0] =~ /^https?\:\/\// ) {
-		return fetch_any($ARGV[0]);
+	if ( $ARGV[0] =~ /^(https?|ftp)\:\/\// ) {
+		# resolving redirects to get the real URI, handy for handling
+		# e.g. github URLs like http://github.com/john/repo-name/tarball/master
+		require LWP::Simple;
+		my $h = LWP::Simple::head($ARGV[0]);
+		error("Probably non existing URI '$ARGV[0]'") unless defined($h);
+		return fetch_any($h->request->uri || $ARGV[0]);
 	}
 	if ( -f $ARGV[0] ) {
 		return install_any($ARGV[0]);
