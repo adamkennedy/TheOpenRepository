@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite-Migrate
 
+1.07 Thu 25 Mar 2010
+	- Updating Module::Install::DSL to 0.95
+	- Fixed #46999 - Fixing the IPC::Run3 error checks to actually work
+	  (Bug report and patch provided by Troels Liebe Bentsen)
+
 1.06 Sat  9 Jan 2010
 	- Cloned in a copy of Padre::Perl as ORLite::Migrate::Perl
 	- Switch to using cperl

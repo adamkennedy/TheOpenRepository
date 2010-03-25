@@ -15,7 +15,7 @@ use ORLite       1.28 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 	@ISA     = 'ORLite';
 }
 
@@ -120,8 +120,8 @@ sub import {
 			if ( $DEBUG ) {
 				print STDERR "Applying schema patch $patch...\n";
 			}
-			my $ok    = IPC::Run3::run3( [ $perl, $patch ], \$stdin, \undef, $DEBUG ? undef : \undef );
-			unless ( $ok ) {
+			my $ok = IPC::Run3::run3( [ $perl, $patch ], \$stdin, \undef, $DEBUG ? undef : \undef );
+			if ( ! $ok or $? != 0 ) {
 				Carp::croak("Migration patch $patch failed, database in unknown state");
 			}
 		}
