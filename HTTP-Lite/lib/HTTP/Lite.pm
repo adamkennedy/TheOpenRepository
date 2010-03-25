@@ -976,7 +976,7 @@ choose.
 
 =item local_port ( $port )
 
-Explicity select the local port.  0 (default and reccomended) lets the
+Explicity select the local port.  0 (default and recommended) lets the
 system choose.
 
 =item method ( $method )
