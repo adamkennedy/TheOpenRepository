@@ -109,6 +109,8 @@
 				  Value="[P_Rlc_1] [P_Rlc_2] --location [INSTALLDIR] --quiet" Execute="immediate"/>
 	<CustomAction Id="CA_Rlc_4" Property="P_Rlc_4"
 				  Value="[% dist.msi_relocation_commandline %]" Execute="immediate"/>
+	<CustomAction Id="CA_Rlc_5" Property="NO_RELOCATE.[% dist.msm_package_id_property %]"
+				  Value="[NO_RELOCATE]" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate_Cmd" Property="CA_Relocate"
 				  Value="[P_Rlc_3][P_Rlc_4]" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
@@ -119,11 +121,14 @@
 		<Custom Action="CA_Rlc_2" After="CA_Rlc_1"/>
 		<Custom Action="CA_Rlc_3" After="CA_Rlc_2"/>
 		<Custom Action="CA_Rlc_4" After="CA_Rlc_3"/>
+		<Custom Action="CA_Rlc_5" After="CA_Rlc_4"/>		
 		<Custom Action="CA_Relocate_Cmd" After="CA_Rlc_4"/>
 		<Custom Action="CA_Relocate" After="PublishProduct">
 			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
 		</Custom>
 	</InstallExecuteSequence>
+	<Property Id="NO_RELOCATE" Secure="yes"/>
+	<Property Id="NO_RELOCATE.[% dist.msm_package_id_property %]" Secure="yes"/>
 
     <UI>
    	  <ProgressText Action="CA_Relocate">Relocating [% dist.app_name %]...</ProgressText>

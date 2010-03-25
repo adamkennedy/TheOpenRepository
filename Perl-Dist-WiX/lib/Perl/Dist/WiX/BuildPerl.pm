@@ -46,14 +46,18 @@ $VERSION =~ s/_//sm;
 # Will check.
 
 Readonly my %CORE_MODULE_FIX => (
-	'IO::Compress'        => 'IO::Compress::Base',
-	'Filter'              => 'Filter::Util::Call',
-#	'autodie'             => 'Fatal',
-	'Pod'                 => 'Pod::Man',
-	'Text'                => 'Text::Tabs',
-	'PathTools'           => 'Cwd',
-	'Scalar::List::Utils' => 'List::Util',
-	'Locale::Constants'   => 'Locale::Codes',
+	'IO::Compress'         => 'IO::Compress::Base',
+	'Filter'               => 'Filter::Util::Call',
+#	'autodie'              => 'Fatal',
+	'Pod'                  => 'Pod::Man',
+	'Text'                 => 'Text::Tabs',
+	'PathTools'            => 'Cwd',
+	'Scalar::List::Utils'  => 'List::Util',
+	'Locale::Constants'    => 'Locale::Codes',
+	'TermReadKey'          => 'Term::ReadKey',
+	'Term::ReadLine::Perl' => 'Term::ReadLine',	
+	'libwww::perl'         => 'LWP',
+	'LWP::UserAgent'       => 'LWP',
 );
 
 Readonly my %DIST_TO_MODULE_FIX => (

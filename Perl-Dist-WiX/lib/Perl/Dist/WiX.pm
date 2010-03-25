@@ -3776,9 +3776,13 @@ Returns true or throws an exception or error.
 sub _write_zip {
 	my $self = shift;
 	my $file =
-	  catfile( $self->output_dir, $self->output_base_filename . '.zip' );
+	  catfile( $self->output_dir(), $self->output_base_filename . '.zip' );
 	$self->trace_line( 1, "Generating zip at $file\n" );
 
+	# Make directories.
+	$self->_remake_path(catdir($self->image_dir(), qw(cpan sources)));
+	$self->_remake_path(catdir($self->image_dir(), qw(cpanplus    )));
+	
 	# Create the archive
 	my $zip = Archive::Zip->new();
 
