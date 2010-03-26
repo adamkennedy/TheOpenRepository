@@ -1,19 +1,69 @@
 package Perl::Dist::WiX::Toolchain;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Toolchain - Compiles the initial toolchain for a Win32 perl distribution.
+
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Toolchain version 1.102_103.
+
+=head1 SYNOPSIS
+
+  my $toolchain = Perl::Dist::WiX::Toolchain->new(
+    perl_version => '5.012000',       # This is as could be returned from $].
+	cpan         => URI::file('C:\\minicpan\'),
+	bits         => 32,
+  );
+  
+  $toolchain->delegate() or die $toolchain->get_error();
+  
+  my @dists;
+  if (0 < $toolchain->dist_count()) {
+	@dists = $toolchain->get_dists();
+  }
+  
+  ...
+  
+
+=head1 DESCRIPTION
+
+This module starts up a copy of the running perl (NOT the perl being built)
+in order to determine what modules are in the "initial toolchain" and need
+to be upgraded or installed immediately.
+
+The "initial toolchain" is the modules that are required for L<CPAN|CPAN>, 
+L<Module::Build|Module::Build>, L<ExtUtils::MakeMaker|ExtUtils::MakeMaker>,
+and L<CPANPLUS|CPANPLUS> (for 5.10.x+ versions of Perl) to be able to
+install additional modules.
+
+It does not include L<DBD::SQLite> or the modules that are required in order
+for C<CPAN> or C<CPANPLUS> to use it.
+
+It is a subclass of L<Process::Delegatable|Process::Delegatable> and of
+L<Process|Process>.
+
+=cut
+
+
+
 use 5.008001;
 use Moose 0.90;
 use MooseX::NonMoose;
 use MooseX::Types::Moose qw( Str Int Bool HashRef ArrayRef Maybe );
+use MooseX::Types::URI qw( Uri );
 use Moose::Util::TypeConstraints;
 use English qw( -no_match_vars );
 use Carp qw();
-use Params::Util qw( _HASH _ARRAY );
+use Params::Util qw( _HASH );
 use Module::CoreList 2.27 qw();
 use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
 
-our $VERSION = '1.102_102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 extends qw(
@@ -21,58 +71,58 @@ extends qw(
   Process
 );
 
-has modules => (
-	traits   => ['Hash'],
-	is       => 'ro',
-	isa      => HashRef [ ArrayRef [Str] ],
-	builder  => '_modules_build',
-	lazy     => 1,
-	init_arg => undef,
-	handles  => {
-		'_modules_exists' => 'exists',
-		'_get_modules'    => 'get',
-	},
-);
 
-has corelist_version => (
-	traits   => ['Hash'],
-	is       => 'ro',
-	isa      => HashRef [Str],
-	builder  => '_corelist_version_build',
-	init_arg => undef,
-	handles  => {
-		'_corelist_version_exists' => 'exists',
-		'_get_corelist_version'    => 'get',
-	},
-);
 
-has corelist => (
-	traits   => ['Hash'],
-	is       => 'ro',
-	isa      => HashRef,
-	builder  => '_corelist_build',
-	init_arg => undef,
-	lazy     => 1,
-	handles  => {
-		'_corelist_exists' => 'exists',
-		'_get_corelist'    => 'get',
-	},
-);
+=head1 METHODS
 
-has dists => (
-	traits   => ['Array'],
-	is       => 'ro',
-	isa      => ArrayRef [Str],
-	default  => sub { return [] },
-	init_arg => undef,
-	handles  => {
-		'_push_dists'  => 'push',
-		'get_dists'    => 'elements',
-		'_grep_dists'  => 'grep',
-		'_empty_dists' => 'clear',
-		'dist_count'   => 'count',
-	},
-);
+=head2 new
+
+This method creates a Perl::Dist::WiX::Toolchain object.
+
+See L<Process/new|Process-E<gt>new> for more information.
+
+The possible parameters that this class defines are as follows:
+
+=cut
+
+
+
+# This is called by Moose::Object->new(), and just checks that we passed
+# in a version of Perl that we know how to handle.
+sub BUILD {
+	my $self  = shift;
+	my $class = ref $self;
+
+	# TODO: Use exceptions instead.
+	unless ( $self->_modules_exists( $self->_get_perl_version() ) ) {
+		Carp::croak( q{Perl version '}
+			  . $self->_get_perl_version()
+			  . "' is not supported in $class" );
+	}
+	unless ( $self->_corelist_version_exists( $self->_get_perl_version() ) )
+	{
+		Carp::croak( q{Perl version '}
+			  . $self->_get_perl_version()
+			  . "' is not supported in $class" );
+	}
+
+} ## end sub BUILD
+
+
+
+
+
+=head3 perl_version
+
+This required parameter defines the version of Perl that we are generating 
+the toolchain for.
+
+This is a string containing a number that is a version of perl in the format
+of $] ('5.008009' or '5.012000', for example).
+
+=cut
+
+
 
 has perl_version => (
 	is       => 'ro',
@@ -80,6 +130,9 @@ has perl_version => (
 	reader   => '_get_perl_version',
 	required => 1,
 );
+
+
+
 
 has force => (
 	traits  => ['Hash'],
@@ -92,12 +145,36 @@ has force => (
 	},
 );
 
+
+
+=head3 cpan
+
+This required parameter defines the CPAN mirror that we are querying. 
+
+It can be a URL in the form of a string, a L<URI|URI> object, or a
+L<Path::Class::Dir|Path::Class::Dir> object (for local minicpan or CPAN
+mirrors).
+
+=cut
+
 has cpan => (
 	is       => 'ro',
-	isa      => Str,
+	isa      => Uri,
 	reader   => '_get_cpan',
 	required => 1,
+	coerce   => 1,
 );
+
+
+
+=head3 bits
+
+This required parameter defines the 'bitness' of the Perl that we are 
+generating the toolchain for. 
+
+Valid values are 32 or 64.
+
+=cut
 
 has bits => (
 	is  => 'ro',                       # Integer 32/64
@@ -112,34 +189,21 @@ has bits => (
 	required => 1,
 );
 
-has _delegated => (
-	traits   => ['Bool'],
-	is       => 'ro',
-	isa      => Bool,
+
+# These attributes are undocumented, and are private to the class.
+# They may contain public accessors, and those will be documented.
+has _modules => (
+	traits   => ['Hash'],
+	is       => 'bare',
+	isa      => HashRef [ ArrayRef [Str] ],
+	builder  => '_modules_build',
+	lazy     => 1,
 	init_arg => undef,
-	default  => 0,
-	handles  => { '_delegate' => 'set', },
+	handles  => {
+		'_modules_exists' => 'exists',
+		'_get_modules'    => 'get',
+	},
 );
-
-# Process::Delegatable sets this, this attribute just
-# defines how to get at it.
-has errstr => (
-	is       => 'ro',
-	isa      => Maybe [Str],
-	init_arg => undef,
-	default  => undef,
-	reader   => 'get_error',
-);
-
-BEGIN {
-	@DELEGATE = ();
-
-	# Automatically handle delegation within the test suite
-	if ( $ENV{HARNESS_ACTIVE} ) {
-		require Probe::Perl;
-		@DELEGATE = ( Probe::Perl->find_perl_interpreter, '-Mblib', );
-	}
-}
 
 sub _modules_build {
 	my $self = shift;
@@ -211,6 +275,23 @@ sub _modules_build {
 	return \%modules;
 } ## end sub _modules_build
 
+
+
+has _corelist_version => (
+	traits   => ['Hash'],
+	is       => 'bare',
+	isa      => HashRef [Str],
+	builder  => '_corelist_version_build',
+	init_arg => undef,
+	lazy     => 1,
+	handles  => {
+		'_corelist_version_exists' => 'exists',
+		'_get_corelist_version'    => 'get',
+	},
+);
+
+
+
 sub _corelist_version_build {
 
 	my %corelist = (
@@ -224,6 +305,23 @@ sub _corelist_version_build {
 
 	return \%corelist;
 } ## end sub _corelist_version_build
+
+
+
+has _corelist => (
+	traits   => ['Hash'],
+	is       => 'bare',
+	isa      => HashRef,
+	builder  => '_corelist_build',
+	init_arg => undef,
+	lazy     => 1,
+	handles  => {
+		'_corelist_exists' => 'exists',
+		'_get_corelist'    => 'get',
+	},
+);
+
+
 
 sub _corelist_build {
 	my $self = shift;
@@ -243,27 +341,122 @@ sub _corelist_build {
 	return $corelist;
 } ## end sub _corelist_build
 
-#####################################################################
-# Constructor and Accessors
 
-sub BUILD {
-	my $self  = shift;
-	my $class = ref $self;
 
-	# TODO: Use exceptions instead.
-	unless ( $self->_modules_exists( $self->_get_perl_version() ) ) {
-		Carp::croak( q{Perl version '}
-			  . $self->_get_perl_version()
-			  . "' is not supported in $class" );
+=head2 get_dists
+
+  my @distribution_tarballs = $toolchain->get_dists();
+
+Gets the distributions that need updated, as a list of 
+C<'PAUSEID/Foo-1.23.tar.gz'> strings.
+
+This routine will only return valid values once C<delegate> has returned.
+
+=head2 dist_count
+
+  my $distribution_count = $toolchain->dist_count();
+
+Gets a count of the number of distributions that need updated.
+
+This routine will only return valid values once C<delegate> has returned.
+
+=cut
+
+
+
+has _dists => (
+	traits   => ['Array'],
+	is       => 'bare',
+	isa      => ArrayRef [Str],
+	default  => sub { return [] },
+	init_arg => undef,
+	handles  => {
+		'_push_dists'  => 'push',
+		'get_dists'    => 'elements',
+		'_grep_dists'  => 'grep',
+		'_empty_dists' => 'clear',
+		'dist_count'   => 'count',
+	},
+);
+
+
+
+has _delegated => (
+	traits   => ['Bool'],
+	is       => 'bare',
+	isa      => Bool,
+	init_arg => undef,
+	default  => 0,
+	handles  => { '_delegate' => 'set', },
+);
+
+
+
+=head2 get_error
+
+  $toolchain->get_error();
+
+Retrieves any errors that are returned by L<Process::Delegatable>.
+
+=cut
+
+# Process::Delegatable sets this, this attribute just
+# defines how to get at it.
+has errstr => (
+	is       => 'bare',
+	isa      => Maybe [Str],
+	init_arg => undef,
+	default  => undef,
+	reader   => 'get_error',
+);
+
+
+BEGIN {
+	@DELEGATE = ();
+
+	# Automatically handle delegation within the test suite
+	if ( $ENV{HARNESS_ACTIVE} ) {
+		require Probe::Perl;
+		@DELEGATE = ( Probe::Perl->find_perl_interpreter(), '-Mblib', );
 	}
-	unless ( $self->_corelist_version_exists( $self->_get_perl_version() ) )
-	{
-		Carp::croak( q{Perl version '}
-			  . $self->_get_perl_version()
-			  . "' is not supported in $class" );
-	}
+}
 
-} ## end sub BUILD
+
+
+=head2 delegate
+
+  $toolchain->delegate() or die $toolchain->get_error();
+
+Passes the responsibility for the generation of the initial toolchain to 
+another perl process.
+
+See L<Process::Delegatable/delegate|Process::Delegatable-E<gt>delegate>
+for more information. 
+
+=cut
+
+
+
+sub delegate {
+	my $self = shift;
+	unless ( $self->_delegated() ) {
+		$self->SUPER::delegate(@DELEGATE);
+		$self->_delegate();
+	}
+	return 1;
+}
+
+
+
+=head2 prepare
+
+Loads the latest CPAN index, in preparation for the C<run> method.
+
+This is not meant to be called by the user, but is called by the C<delegate> method.
+
+=cut
+
+
 
 sub prepare {
 	my $self = shift;
@@ -283,7 +476,7 @@ sub prepare {
 		eval {
 			local $SIG{__WARN__} = sub {1};
 			CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
-			$CPAN::Config->{'urllist'}    = [ $self->_get_cpan() ];
+			$CPAN::Config->{'urllist'}    = [ $self->_get_cpan()->as_string() ];
 			$CPAN::Config->{'use_sqlite'} = q[0];
 			CPAN::Index->reload;
 			1;
@@ -299,23 +492,35 @@ sub prepare {
 	}
 } ## end sub prepare
 
+
+
+=head2 run
+
+Queries the CPAN index for what versions of the initial toolchain modules are 
+available,
+
+This is not meant to be called by the user, but is called by the C<delegate> method.
+
+=cut
+
+
+
 sub run {
 	my $self = shift;
 
 	# Squash all output that CPAN might spew during this process
 	my $stdout = IO::Capture::Stdout->new();
 	my $stderr = IO::Capture::Stderr->new();
-
 	$stdout->start();
 	$stderr->start();
 	CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
-	$CPAN::Config->{'urllist'}    = [ $self->_get_cpan() ];
+	$CPAN::Config->{'urllist'}    = [ $self->_get_cpan()->as_string() ];
 	$CPAN::Config->{'use_sqlite'} = q[0];
 	$stdout->stop();
 	$stderr->stop();
 
 	foreach
-	  my $name ( @{ $self->_get_modules( $self->_get_perl_version ) } )
+	  my $name ( @{ $self->_get_modules( $self->_get_perl_version() ) } )
 	{
 
 		# Shortcut if forced
@@ -369,66 +574,14 @@ sub run {
 	return 1;
 } ## end sub run
 
-sub delegate {
-	my $self = shift;
-	unless ( $self->_delegated() ) {
-		$self->SUPER::delegate(@DELEGATE);
-		$self->_delegate();
-	}
-	return 1;
-}
-
 no Moose;
 __PACKAGE__->meta->make_immutable;
-
 
 1;
 
 __END__
 
 =pod
-
-=head1 NAME
-
-Perl::Dist::WiX::Toolchain - TO BE DOCUMENTED
-
-=head1 SYNOPSIS
-
-  my $toolchain = Perl::Dist::WiX::Toolchain->new(
-    ...
-  );
-
-=head1 DESCRIPTION
-
-TODO: Document
-
-=head1 METHODS
-
-TODO: Document
-
-=head2 new
-
-TODO: Document
-
-=head2 prepare
-
-TODO: Document
-
-=head2 run
-
-TODO: Document
-
-=head2 get_dists
-
-TODO: Document
-
-=head2 dist_count
-
-TODO: Document
-
-=head2 get_error
-
-TODO: Document
 
 =head1 SUPPORT
 
@@ -446,9 +599,10 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Module::CoreList>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, L<Module::CoreList|Module::CoreList>, 
+L<Process|Process>, L<Process::Delegatable|Process::Delegatable>
 
-=head1 COPYRIGHT
+=head1 COPYRIGHT AND LICENSE
 
 Copyright 2009 - 2010 Curtis Jewell.
 
@@ -458,6 +612,6 @@ This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
 
 The full text of the license can be found in the
-LICENSE file included with this module.
+LICENSE file included with this distribution.
 
 =cut

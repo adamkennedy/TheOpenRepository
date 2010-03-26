@@ -4,6 +4,10 @@ package Perl::Dist::WiX::Types;
 
 Perl::Dist::WiX::Types - Public types used in Perl::Dist::WiX.
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Types version 1.102_103.
+
 =head1 SYNOPSIS
 
 	use Perl::Dist::WiX::Types qw( Directory ExistingDirectory );
@@ -12,16 +16,18 @@ Perl::Dist::WiX::Types - Public types used in Perl::Dist::WiX.
 
 This module exists to provide Moose types that Perl::Dist::WiX and subclasses can use.
 
+It may be updated or replaced at any time.
+
 =head1 TYPES PROVIDED
 
 =cut
 
 use 5.008001;
 use MooseX::Types -declare =>
-  [qw( Directory ExistingDirectory ExistingFile MaybeExistingDirectory )];
+  [qw( Directory ExistingDirectory ExistingFile )];
 use MooseX::Types::Moose qw( Str );
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 =head2 Directory
@@ -76,14 +82,26 @@ subtype ExistingFile,
 
 1;
 
+__END__
+
 =pod
 
 =head1 SUPPORT
 
-No support is available
+No support is available for this class.
 
 =head1 AUTHOR
 
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
 Copyright 2009 - 2010 Curtis Jewell.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this distribution.
 
 =cut
