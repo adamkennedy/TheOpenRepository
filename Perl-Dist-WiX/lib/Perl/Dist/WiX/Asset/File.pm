@@ -62,6 +62,10 @@ __END__
 
 Perl::Dist::WiX::Asset::File - "Single File" asset for a Win32 Perl
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::File version 1.102_103.
+
 =head1 SYNOPSIS
 
   my $binary = Perl::Dist::Asset::File->new(

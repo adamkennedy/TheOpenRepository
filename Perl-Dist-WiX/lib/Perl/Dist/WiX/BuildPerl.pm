@@ -606,10 +606,7 @@ sub install_perl_589 {
 
 	# Install the main perl distribution.
 	$self->install_perl_bin(
-		name       => 'perl',
 		url        => 'http://strawberryperl.com/package/perl-5.8.9.tar.gz',
-		unpack_to  => 'perl',
-		install_to => 'perl',
 		toolchain  => $toolchain,
 		patch      => [ qw{
 			  lib/CPAN/Config.pm
@@ -641,8 +638,7 @@ sub install_perl_bin {
 
 	# Install perl.
 	my $perl = Perl::Dist::WiX::Asset::Perl->new(
-		parent => $self,
-		force  => $self->forceperl() || $self->force(),
+		parent     => $self,
 		@_,
 	);
 	$perl->install();
@@ -694,10 +690,7 @@ sub install_perl_5100 {
 
 	# Install the main binary
 	$self->install_perl_bin(
-		name      => 'perl',
 		url       => 'http://strawberryperl.com/package/perl-5.10.0.tar.gz',
-		unpack_to => 'perl',
-		install_to => 'perl',
 		toolchain  => $toolchain,
 		patch      => [ qw{
 			  lib/ExtUtils/Command.pm
@@ -748,10 +741,7 @@ sub install_perl_5101 {
 
 	# Install the main binary
 	$self->install_perl_bin(
-		name      => 'perl',
 		url       => 'http://strawberryperl.com/package/perl-5.10.1.tar.gz',
-		unpack_to => 'perl',
-		install_to => 'perl',
 		toolchain  => $toolchain,
 		patch      => [ qw{
 			  lib/CPAN/Config.pm
@@ -801,11 +791,8 @@ sub install_perl_5115 {
 
 	# Install the main binary
 	$self->install_perl_bin(
-		name => 'perl',
 		url =>
 'http://search.cpan.org/CPAN/authors/id/S/SH/SHAY/perl-5.11.5.tar.gz',
-		unpack_to  => 'perl',
-		install_to => 'perl',
 		toolchain  => $toolchain,
 		patch      => [ qw{
 			  lib/CPAN/Config.pm
@@ -857,11 +844,8 @@ sub install_perl_5120 {
 
 	# Install the main binary
 	$self->install_perl_bin(
-		name => 'perl',
 		url =>
 'http://search.cpan.org/CPAN/authors/id/J/JE/JESSE/perl-5.12.0-RC0.tar.gz',
-		unpack_to  => 'perl',
-		install_to => 'perl',
 		toolchain  => $toolchain,
 		patch      => [ qw{
 			  lib/CPAN/Config.pm
@@ -915,11 +899,8 @@ sub install_perl_git {
 
 	# Install the main binary
 	$self->install_perl_bin(
-		name       => 'perl',
 		url        => URI::file->new($checkout)->as_string(),
 		file       => $checkout,
-		unpack_to  => 'perl',
-		install_to => 'perl',
 		toolchain  => $toolchain,
 		patch      => [ qw{
 			  lib/CPAN/Config.pm

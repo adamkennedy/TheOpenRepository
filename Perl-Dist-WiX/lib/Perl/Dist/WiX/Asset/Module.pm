@@ -1,5 +1,25 @@
 package Perl::Dist::WiX::Asset::Module;
 
+=head1 NAME
+
+Perl::Dist::WiX::Asset::Module - Module asset for a Win32 Perl
+
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::Module version 1.102_103.
+
+=head1 SYNOPSIS
+
+  my $distribution = Perl::Dist::WiX::Asset::Module->new(
+    ...
+  );
+
+=head1 DESCRIPTION
+
+This asset installs a module from CPAN.
+
+=cut
+
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str Bool );
@@ -9,10 +29,33 @@ require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
 
-our $VERSION = '1.102_100';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';
+
+=pod
+
+=head1 METHODS
+
+This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
+
+=head2 new
+
+The C<new> constructor takes a series of parameters, validates then
+and returns a new B<Perl::Dist::WiX::Asset::Module> object, or throws
+an exception on error.
+
+It inherits all the parameters described in the L<Perl::Dist::WiX::Role::Asset> 
+C<new> method documentation, and adds some additional parameters.
+
+=head3 name
+
+The required C<name> param is the name of the module to be installed.
+
+=cut
+
+
 
 has name => (
 	is       => 'ro',
@@ -20,6 +63,25 @@ has name => (
 	reader   => 'get_name',
 	required => 1,
 );
+
+
+
+=item force
+
+The optional boolean C<force> param allows you to specify that the tests
+should be skipped and the module installed without validating its 
+installation.
+
+This can be set to true when there are test bugs that cause failing tests, 
+or where true testing would be too difficult (for example, when a database
+connection is required.)
+
+This defaults to the force() attribute of the C<Perl::Dist::WiX> parent 
+object.
+
+=cut
+
+
 
 has force => (
 	is      => 'ro',
@@ -29,12 +91,40 @@ has force => (
 	default => sub { $_[0]->_get_parent()->force() ? 1 : 0 },
 );
 
+
+
+=head3 packlist
+
+This tells the C<install()> routine whether it has a packlist 
+that can be found once the module is installed or not.
+
+This parameter defaults to true.
+
+=cut
+
+
+
 has packlist => (
 	is      => 'ro',
 	isa     => Bool,
 	reader  => '_get_packlist',
 	default => 1,
 );
+
+
+
+=head3 assume_installed
+
+Some distributions (Bio::Perl, for example) do not include their version 
+numbers in such a way that CPAN can tell whether they are up to date after 
+installation via the CPAN::Module->uptodate() call.
+
+This parameter, when set to 1, tells Perl::Dist::WiX to skip that 
+verification step.
+
+=cut
+
+
 
 has assume_installed => (
 	is      => 'ro',
@@ -43,30 +133,39 @@ has assume_installed => (
 	default => 0,
 );
 
+
+
+=head2 install
+
+The install method installs the module described by the
+B<Perl::Dist::WiX::Asset::Module> object and returns the files
+that were installed as a L<File::List::Object> object.
+
+=cut
+
+
+
 sub install {
 	my $self   = shift;
+	
+	# Set up variables needed.
 	my $name   = $self->get_name();
 	my $force  = $self->_get_force();
 	my $assume = $self->_get_assume();
 	my $vendor = $self->_get_parent()->portable() ? 0 : 1;
-
 	my $packlist_flag = $self->_get_packlist();
 
+	# Verify the existence of perl.
 	unless ( $self->_get_bin_perl() ) {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
-	my $dist_file = catfile( $self->_get_output_dir(), 'cpan_distro.txt' );
-
+	
 	# Generate the CPAN installation script.
-	# Fix url's for minicpans until 1.9403 is released.
+	my $dist_file = catfile( $self->_get_output_dir(), 'cpan_distro.txt' );
 	my $url = $self->_get_cpan()->as_string();
-
-#	$url =~ s{\Afile:///C:/}{file://C:/}msx;
-
 	my $dp_dir = catdir( $self->_get_wix_dist_dir(), 'distroprefs' );
 	my $internet_available = ( $url =~ m{ \A file://}msx ) ? 1 : 0;
-
 	my $cpan_string = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
@@ -113,6 +212,7 @@ unless ( $assume or \$module->uptodate() ) {
 exit(0);
 END_PERL
 
+    # Scan the perl directory if that's needed.
 	my $filelist_sub;
 	if ( not $self->_get_packlist() ) {
 		$filelist_sub =
@@ -144,7 +244,8 @@ END_PERL
 		"Failure detected installing $name, stopping [$CHILD_ERROR]")
 	  if $CHILD_ERROR;
 
-	# Read in the dist file and return it as $dist_info.
+	# Read in the dist file and add it the the list of
+	# distributions that were installed.
 	if ( -r $dist_file ) {
 		my $fh = IO::File->new( $dist_file, 'r' );
 		if ( not defined $fh ) {
@@ -171,6 +272,7 @@ END_PERL
 		$filelist->subtract($filelist_sub)->filter( $self->_filters() );
 	}
 
+	# Returns the filelist.
 	return $filelist;
 } ## end sub install
 
@@ -180,120 +282,6 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
-
-=pod
-
-=head1 NAME
-
-Perl::Dist::WiX::Asset::Module - Module asset for a Win32 Perl
-
-=head1 SYNOPSIS
-
-  my $distribution = Perl::Dist::WiX::Asset::Module->new(
-    ...
-  );
-
-=head1 DESCRIPTION
-
-TODO: Document
-
-=head1 METHODS
-
-TODO: Document
-
-This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
-
-=head2 new
-
-The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Asset::Distribution> object.
-
-It inherits all the params described in the L<Perl::Dist::WiX::Role::Asset> 
-C<new> method documentation, and adds some additional params.
-
-=over 4
-
-=item name
-
-The required C<name> param is the name of the package for the purposes
-of identification.
-
-This should match the name of the Perl distribution without any version
-numbers. For example, "File-Spec" or "libwww-perl".
-
-Alternatively, the C<name> param can be a CPAN path to the distribution
-such as shown in the synopsis.
-
-In this case, the url to fetch from will be derived from the name.
-
-=item force
-
-Unlike in the CPAN client installation, in which all modules MUST pass
-their tests to be added, the secondary method allows for cases where
-it is known that the tests can be safely "forced".
-
-The optional boolean C<force> param allows you to specify that the tests
-should be skipped and the module installed without validating it.
-
-=item automated_testing
-
-Many modules contain additional long-running tests, tests that require
-additional dependencies, or have differing behaviour when installing
-in a non-user automated environment.
-
-The optional C<automated_testing> param lets you specify that the
-module should be installed with the B<AUTOMATED_TESTING> environment
-variable set to true, to make the distribution behave properly in an
-automated environment (in cases where it doesn't otherwise).
-
-=item release_testing
-
-Some modules contain release-time only tests, that require even heavier
-additional dependencies compared to even the C<automated_testing> tests.
-
-The optional C<release_testing> param lets you specify that the module
-tests should be run with the additional C<RELEASE_TESTING> environment
-flag set.
-
-By default, C<release_testing> is set to false to squelch any accidental
-execution of release tests when L<Perl::Dist::WiX> itself is being tested
-under C<RELEASE_TESTING>.
-
-=item makefilepl_param
-
-Some distributions illegally require you to pass additional non-standard
-parameters when you invoke "perl Makefile.PL".
-
-The optional C<makefilepl_param> param should be a reference to an ARRAY
-where each element contains the argument to pass to the Makefile.PL.
-
-=item buildpl_param
-
-Some distributions require you to pass additional non-standard
-parameters when you invoke "perl Build.PL".
-
-The optional C<buildpl_param> param should be a reference to an ARRAY
-where each element contains the argument to pass to the Build.PL.
-
-=item assume_installed
-
-Some distributions (Bio::Perl, for example) do not include their version 
-numbers in such a way that CPAN can tell whether they are up to date after 
-installation via the CPAN::Module->uptodate() call.
-
-This parameter, when set to 1, tells Perl::Dist::WiX to skip that 
-verification step.
-
-=back
-
-The C<new> method returns a B<Perl::Dist::WiX::Asset::Distribution> object,
-or throws an exception on error.
-
-=head2 install
-
-The install method installs the website link described by the
-B<Perl::Dist::WiX::Asset::Website> object and returns a file
-that was installed as a L<File::List::Object> object.
 
 =head1 SUPPORT
 

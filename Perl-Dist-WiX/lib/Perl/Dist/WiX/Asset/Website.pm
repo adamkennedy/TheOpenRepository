@@ -129,6 +129,10 @@ __END__
 
 Perl::Dist::WiX::Asset::Website - Website link asset for a Win32 Perl
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::Website version 1.102_103.
+
 =head1 SYNOPSIS
 
   my $distribution = Perl::Dist::WiX::Asset::Website->new(

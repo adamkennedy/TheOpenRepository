@@ -75,6 +75,10 @@ __END__
 
 Perl::Dist::WiX::Asset::Launcher - Start menu launcher asset for a Win32 Perl
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::Launcher version 1.102_103.
+
 =head1 SYNOPSIS
 
   my $distribution = Perl::Dist::WiX::Asset::Launcher->new(

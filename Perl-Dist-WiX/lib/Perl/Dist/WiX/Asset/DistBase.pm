@@ -8,7 +8,7 @@ use Params::Util qw ( _INSTANCE );
 require URI;
 require File::Spec::Unix;
 
-our $VERSION = '1.102_101';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 sub _configure {
@@ -18,8 +18,8 @@ sub _configure {
 
 	$self->_trace_line( 2, "Configuring $name...\n" );
 	$buildpl
-	  ? $self->_perl( 'Build.PL',    @{ $self->_get_buildpl_param } )
-	  : $self->_perl( 'Makefile.PL', @{ $self->_get_makefilepl_param } );
+	  ? $self->_perl( 'Build.PL',    @{ $self->_get_buildpl_param() } )
+	  : $self->_perl( 'Makefile.PL', @{ $self->_get_makefilepl_param() } );
 
 	return;
 } ## end sub _configure
@@ -68,17 +68,19 @@ sub _module_build_installed {
 	my $self      = shift;
 	my $image_dir = $self->_get_image_dir();
 
-	my $perl_dir = catdir( $image_dir, 'perl' );
+	# Get all the directories to check.
 	my @dirs = (
 		catdir( $image_dir, qw( perl vendor lib Module ) ),
 		catdir( $image_dir, qw( perl site lib Module ) ),
 		catdir( $image_dir, qw( perl lib Module ) ),
 	);
 
+	# Return if we find Module::Build.
 	foreach my $dir (@dirs) {
 		return 1 if -f catfile( $dir, 'Build.pm' );
 	}
 
+	# We did not find it, so return that fact now.
 	return 0;
 } ## end sub _module_build_installed
 
@@ -121,8 +123,6 @@ sub _DIST {
 	}
 	return $it;
 }
-
-1;
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

@@ -282,6 +282,10 @@ __END__
 
 Perl::Dist::WiX::Asset::Distribution - "Perl Distribution" asset for a Win32 Perl
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::Distribution version 1.102_103.
+
 =head1 SYNOPSIS
 
   my $distribution = Perl::Dist::WiX::Asset::Distribution->new(

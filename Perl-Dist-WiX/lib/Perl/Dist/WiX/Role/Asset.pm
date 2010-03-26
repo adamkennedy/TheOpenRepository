@@ -1,5 +1,28 @@
 package Perl::Dist::WiX::Role::Asset;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Role::Asset - Role for assets.
+
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Role::Asset version 1.102_103.
+
+=head1 SYNOPSIS
+
+	# Since this is a role, it is composed into classes that use it.
+	# It is not used independently.
+	
+=head1 DESCRIPTION
+
+B<Perl::Dist::WiX::Role::Asset> is a role that provides methods,
+attributes, and error checking for assets to be installed in a 
+L<Perl::Dist::WiX>-based Perl distribution.
+
+=cut
+
 # Convenience role for Perl::Dist::WiX assets
 
 use 5.008001;
@@ -15,8 +38,26 @@ require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
-our $VERSION = '1.102_101';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
+
+=head1 ATTRIBUTES
+
+Attributes of this role also become parameters to the new() constructor for 
+classes that use this role.
+
+=head2 parent
+
+This is the L<Perl::Dist::WiX> object that uses an asset object that uses 
+this role.  The Perl::Dist::WiX object handles a number of private methods 
+for the asset object.
+
+It is required, and has no default, so an error will be thrown if it is not 
+given.
+
+=cut
+
+
 
 has parent => (
 	is       => 'ro',
@@ -60,6 +101,17 @@ has parent => (
 	required => 1,
 );
 
+
+
+=head2 url
+
+This attribute is the location on the Internet of the thing the asset 
+installs.
+
+Either the 'url' or 'file' parameters are required.
+
+=cut
+
 has url => (
 	is       => 'bare',
 	isa      => Str,
@@ -68,6 +120,19 @@ has url => (
 	required => 1,
 );
 
+
+
+=head2 file
+
+This attribute is the location of the file the asset installs. This could be 
+an archive containing multiple files to install.
+
+Either the 'url' or 'file' parameters are required.
+
+=cut
+
+
+
 has file => (
 	is       => 'bare',
 	isa      => Str,
@@ -75,16 +140,30 @@ has file => (
 	required => 1,
 );
 
+=head1 METHODS
+
+=head2 install
+
+This role requires that classes that use it implement an C<install> method
+that installs the asset.
+
+It does not provide the method itself, but makes classes that use the role
+implement the method based on their needs.
+
+=cut
+
+
+
 # An asset knows how to install itself.
 requires 'install';
 
-#####################################################################
-# Mangle arguments for constructor.
+
 
 sub BUILDARGS {
 	my $class = shift;
 	my %args;
 
+	# get the argument hash set up.
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };
 	} elsif ( 0 == @_ % 2 ) {
@@ -94,8 +173,8 @@ sub BUILDARGS {
 			'Parameters incorrect (not a hashref or hash) for ::Asset::*');
 	}
 
+	# Validate 'parent' parameter early.
 	my $parent = $args{parent};
-
 	unless ( defined _INSTANCE( $args{parent}, 'Perl::Dist::WiX' ) ) {
 		PDWiX::Parameter->throw(
 			parameter =>
@@ -117,7 +196,7 @@ sub BUILDARGS {
 			$args{url} = URI::file->new($file)->as_string;
 			$parent->trace_line( 2, " found\n" );
 
-		} elsif ( defined $args{name} ) {
+		} else ( defined $args{name} ) {
 
 			PDWiX->throw(q{'name' without 'url' is deprecated});
 
@@ -159,13 +238,7 @@ sub BUILDARGS {
 	return { (%default_args), (%args) };
 } ## end sub BUILDARGS
 
-sub cpan {
 
-	WiX3::Exception::Unimplemented->throw(
-		'Perl::Dist::WiX::Role::Asset->cpan');
-
-	return;
-}
 
 sub _search_packlist {
 	my ( $self, $module ) = @_;
@@ -182,6 +255,7 @@ packlist => 0.
 EOF
 	chomp $error;
 
+	# Get all the filenames and directory names required.
 	my $image_dir   = $self->_get_image_dir();
 	my @module_dirs = split /::/ms, $module;
 	my @dirs        = (
@@ -190,6 +264,7 @@ EOF
 		catdir( $image_dir, qw{perl        lib auto}, @module_dirs ),
 	);
 
+	# What file exists, if any?
 	my $packlist;
   DIR:
 	foreach my $dir (@dirs) {
@@ -199,17 +274,16 @@ EOF
 
 	my $filelist;
 	if ( -r $packlist ) {
+		# Load a filelist object from the packlist if one exists.
 		$filelist =
-		  File::List::Object->new->load_file($packlist)
+		  File::List::Object->new()->load_file($packlist)
 		  ->add_file($packlist);
 	} else {
 
-		my $output = catfile( $self->_get_output_dir, 'debug.out' );
-
-		# Trying to use the output to make an array.
+		# Read the output from installing the module.
+		my $output = catfile( $self->_get_output_dir(), 'debug.out' );
 		$self->_trace_line( 3,
 			"Attempting to use debug.out file to make filelist\n" );
-
 		my $fh = IO::File->new( $output, 'r' );
 		if ( not defined $fh ) {
 			PDWiX->throw("Error reading output file $output: $OS_ERROR");
@@ -217,6 +291,7 @@ EOF
 		my @output_list = <$fh>;
 		$fh->close();
 
+		# Parse the output read in for filenames.
 		my @files_list =
 		  map { ## no critic 'ProhibitComplexMappings'
 			my $t = $_;
@@ -224,77 +299,25 @@ EOF
 			( $t =~ / \A Installing [ ] (.*) \z /msx ) ? ($1) : ();
 		  } @output_list;
 
+		# Load the filenames into the filelist object. 
 		if ( $#files_list == 0 ) {
+			# Throw an error if no files were found.
 			PDWiX->throw($error);
 		} else {
 			$self->_trace_line( 4, "Adding files:\n" );
 			$self->_trace_line( 4, q{  } . join "\n  ", @files_list );
-			$filelist = File::List::Object->new->load_array(@files_list);
+			$filelist = File::List::Object->new()->load_array(@files_list);
 		}
 	} ## end else [ if ( -r $packlist ) ]
 
-	return $filelist->filter( $self->_filters );
+	# Return the filelist processed therough the filters.
+	return $filelist->filter( $self->_filters() );
 } ## end sub _search_packlist
 
 
 1;
 
 __END__
-
-=pod
-
-=head1 NAME
-
-Perl::Dist::WiX::Role::Asset - Role for assets.
-
-=head1 SYNOPSIS
-
-	# Since this is a role, it is composed into classes that use it.
-  
-=head1 DESCRIPTION
-
-B<Perl::Dist::WiX::Role::Asset> is a role that provides methods,
-attributes, and error checking for assets to be installed in a 
-L<Perl::Dist::WiX>-based Perl distribution.
-
-=head1 ATTRIBUTES
-
-Attributes of this role also become parameters to the new() constructor for 
-classes that use this role.
-
-=head2 parent
-
-This is the L<Perl::Dist::WiX> object that uses an asset object that uses 
-this role.  The Perl::Dist::WiX object handles a number of private methods 
-for the asset object.
-
-It is required, and has no default, so an error will be thrown if it is not 
-given.
-
-=head2 url
-
-This attribute is the location on the Internet of the thing the asset 
-installs.
-
-=head2 file
-
-This attribute is the location of the file the asset installs. This could be 
-an archive containing multiple files to install.
-
-=head1 METHODS
-
-=head2 cpan
-
-The C<cpan> routine is a stub, as it is not used, and will throw an error.
-
-It will be removed in the future.
-
-=head2 install
-
-This role requires that classes that use it implement an C<install> method
-that installs the asset.
-
-It does not provide the method itself.
 
 =head1 SUPPORT
 

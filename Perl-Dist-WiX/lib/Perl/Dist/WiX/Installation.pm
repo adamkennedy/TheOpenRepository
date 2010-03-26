@@ -8,7 +8,7 @@ Perl::Dist::WiX::Installation - Basic installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Installation version 1.102001.
+This document describes Perl::Dist::WiX::Installation version 1.102_103.
 
 =head1 DESCRIPTION
 
@@ -18,6 +18,7 @@ install files.
 =head1 SYNOPSIS
 
 	# This module is not to be used independently.
+	# It provides methods to be called on a Perl::Dist::WiX object.
 
 =head1 INTERFACE
 
@@ -38,7 +39,7 @@ require Perl::Dist::WiX::Asset::Module;
 require Perl::Dist::WiX::Asset::PAR;
 require Perl::Dist::WiX::Asset::Website;
 
-our $VERSION = '1.102001';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 =pod
@@ -57,6 +58,8 @@ Returns true or throws an exception on error.
 
 =cut
 
+
+
 sub install_binary {
 	my $self   = shift;
 	my $binary = Perl::Dist::WiX::Asset::Binary->new(
@@ -69,6 +72,8 @@ sub install_binary {
 
 	return $filelist;
 } ## end sub install_binary
+
+
 
 =head2 install_library
 
@@ -84,6 +89,8 @@ Returns true or throws an exception on error.
 
 =cut
 
+
+
 sub install_library {
 	my $self    = shift;
 	my $library = Perl::Dist::WiX::Asset::Library->new(
@@ -95,6 +102,7 @@ sub install_library {
 
 	return $filelist;
 }
+
 
 
 =pod
@@ -144,6 +152,8 @@ Returns true or throws an exception on error.
 
 =cut
 
+
+
 sub install_distribution {
 	my $self = shift;
 	my $dist = Perl::Dist::WiX::Asset::Distribution->new(
@@ -155,6 +165,8 @@ sub install_distribution {
 
 	return $self;
 }
+
+
 
 =pod
 
@@ -199,6 +211,8 @@ Returns true or throws an exception on error.
 
 =cut
 
+
+
 sub install_distribution_from_file {
 	my $self = shift;
 
@@ -219,8 +233,7 @@ sub install_distribution_from_file {
 	return $self;
 } ## end sub install_distribution_from_file
 
-## search_packlists should not be needed.
-## If it's needed, pull it out of version 1.000.
+
 
 =pod
 
@@ -253,6 +266,8 @@ Returns true or throws an exception on error.
 
 =cut
 
+
+
 sub install_module {
 	my $self   = shift;
 	my $module = Perl::Dist::WiX::Asset::Module->new(
@@ -273,6 +288,8 @@ sub install_module {
 	return $self;
 } ## end sub install_module
 
+
+
 =pod
 
 =head2 install_modules
@@ -291,6 +308,8 @@ underlying C<install_module> call other than the name.
 
 =cut
 
+
+
 sub install_modules {
 	my $self = shift;
 
@@ -300,6 +319,8 @@ sub install_modules {
 
 	return $self;
 }
+
+
 
 =pod
 
@@ -316,6 +337,8 @@ The compulsory 'uri' param should be a URL string to the PAR package.
 Returns true on success or throws an exception on error.
 
 =cut
+
+
 
 sub install_par {
 	my $self = shift;
@@ -339,6 +362,8 @@ sub install_par {
 
 	return $self;
 } ## end sub install_par
+
+
 
 =pod
 
@@ -394,6 +419,8 @@ or throws an exception on error.
 
 =cut
 
+
+
 sub install_file {
 	my $self = shift;
 	my $file = Perl::Dist::WiX::Asset::File->new(
@@ -405,6 +432,8 @@ sub install_file {
 
 	return $filelist;
 }
+
+
 
 =pod
 
@@ -433,6 +462,8 @@ Returns true or throws an exception on error.
 
 =cut
 
+
+
 sub install_launcher {
 	my $self     = shift;
 	my $launcher = Perl::Dist::WiX::Asset::Launcher->new(
@@ -444,6 +475,8 @@ sub install_launcher {
 
 	return $self;
 }
+
+
 
 =pod
 
@@ -474,6 +507,8 @@ default the first icon in the file will be used.
 Returns true on success, or throws an exception on error.
 
 =cut
+
+
 
 sub install_website {
 	my $self    = shift;
@@ -515,7 +550,7 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist|Perl::Dist>, L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
 L<http://ali.as/>, L<http://csjewell.comyr.com/perl/>
 
 =head1 COPYRIGHT AND LICENSE

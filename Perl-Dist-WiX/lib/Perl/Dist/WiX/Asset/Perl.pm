@@ -1,5 +1,43 @@
 package Perl::Dist::WiX::Asset::Perl;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Asset::Perl - "Perl core" asset for a Win32 Perl
+
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::Perl version 1.102_103.
+
+=head1 SYNOPSIS
+
+  my $distribution = Perl::Dist::WiX::Asset::Perl->new(
+    parent => $dist, # A Perl::Dist::WiX object.
+    url    => 'http://strawberryperl.com/package/perl-5.10.1.tar.gz',
+    patch  => [ qw{
+        lib/CPAN/Config.pm
+        win32/config.gc
+        win32/config_sh.PL
+        win32/config_H.gc
+        }
+    ],
+    license => {
+        'perl-5.10.1/Readme'   => 'perl/Readme',
+        'perl-5.10.1/Artistic' => 'perl/Artistic',
+        'perl-5.10.1/Copying'  => 'perl/Copying',
+	},
+  );
+
+  $distribution->install();
+  
+=head1 DESCRIPTION
+
+This asset downloads the Perl source code for a given version of Perl
+and patches and installs it into a specified directory
+
+=cut
+
 # Perl::Dist asset for the Perl source code itself
 
 use 5.008001;
@@ -9,68 +47,210 @@ use File::Spec::Functions qw( catdir splitpath rel2abs catfile );
 require File::Remove;
 require File::Basename;
 
-our $VERSION = '1.102_101';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
-extends 'Perl::Dist::WiX::Asset::DistBase';
+
+=head1 METHODS
+
+This class is a L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
+and shares its API.
+
+=head2 new
+
+The C<new> constructor takes a series of parameters, validates then
+and returns a new C<Perl::Dist::WiX::Asset::Perl> object.
+
+It inherits all the parameters described in the 
+L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+method documentation, and adds the additional parameters described below.
+
+=head3 name
+
+The C<name> parameter is the name of the package for the purposes of 
+identification in messages.
+
+This defauls to 'perl'.
+
+=cut
+
+
 
 has name => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_name',
-	required => 1,
+	is      => 'bare',
+	isa     => Str,
+	reader  => '_get_name',
+	default => 'perl',
 );
 
+
+
+
+=item license
+
+The required C<license> parameter allows you to specify which files get 
+copied to the license directory of the distribution.
+
+The keys are the files to copy, as relative filenames from the subdirectory
+named in C<unpack_to>. (Git checkouts are copies to a directory named 
+C<'perl-git'>, and that directory needs to be specified in the keys.)
+
+The values are the locations to copy them to, relative to the license 
+directory of the distribution.
+
+=cut
+
+
+
 has license => (
-	is       => 'ro',
+	is       => 'bare',
 	isa      => HashRef,
 	reader   => '_get_license',
 	required => 1,
 );
 
+
+
+=item patch
+
+The required C<patch> parameter allows you to specify which files get 
+patched before the distribution is built.
+
+These files will be in the 'perl-VERSION' subdirectory of any directory in
+the list of directories returned by 
+L<Perl::Dist::WiX/patch_pathlist|Perl::Dist::WiX-E<gt>patch_pathlist>
+(which subclasses can add to.)
+
+VERSION is 'git' for git checkouts.
+
+The patch files can either have the names of original files (in which case 
+the files are copied) or can have an additional extension of C<.tt> (in 
+which case the files are processed through Template Toolkit, with the 
+parameters described in 
+L<Perl::Dist::WiX/patch_file|Perl::Dist::WiX-E<gt>patch_file>.)
+
+The makefile.mk is automatically patched, is not mentioned here, and 
+cannot be overriden by subclasses.
+
+=cut
+
+
+
 has patch => (
-	is       => 'ro',
+	is       => 'bare',
 	isa      => ArrayRef,
 	reader   => '_get_patch',
 	required => 1,
 );
 
+
+
+=item unpack_to
+
+The optional C<unpack_to> parameter allows you to specify in which 
+subdirectory of the build directory the tarball gets unpacked to or the
+checkout gets copied to.
+
+This defaults to 'perl'.
+
+=cut
+
+
+
 has unpack_to => (
-	is      => 'ro',
+	is      => 'bare',
 	isa     => Str,
 	reader  => '_get_unpack_to',
-	default => q{},
+	default => 'perl',
 );
+
+
+
+=item install_to
+
+The optional C<install_to> parameter allows you to specify in which 
+subdirectory of the image directory the Perl distribution gets
+installed to.
+
+This defaults to 'perl'.
+
+=cut
+
+
 
 has install_to => (
 	is       => 'ro',
 	isa      => Str,
 	reader   => '_get_install_to',
-	required => 1,
+	default  => 'perl',
 );
+
+
+
+=item force
+
+The optional boolean C<force> param allows you to specify that the tests
+should be skipped and Perl installed without validating it.
+
+This defaults to true if either the force() or forceperl() attributes of 
+the C<Perl::Dist::WiX> parent object are true.  Otherwise, it defaults to
+false.
+
+=cut
+
+
 
 has force => (
 	is      => 'ro',
 	isa     => Bool,
 	reader  => '_get_force',
 	lazy    => 1,
-	default => sub { $_[0]->parent->force ? 1 : 0 },
+	default => sub { $_[0]->parent()->force() ? 1 : $_[0]->parent()->forceperl() ? 1 : 0 },
 );
+
+
+
+=item git
+
+The optional C<git> param specifies, if defined, that:
+
+1) Perl is being built from a checkout directory, as opposed to a tarball, 
+and
+
+2) The "git describe" output is as specified in this parameter.
+
+This defaults to undef, and needs to be specified for building a git 
+checkout.
+
+=cut
+
+
 
 has git => (
 	is      => 'ro',
-	isa     => Str,
+	isa     => Maybe [Str],
 	reader  => '_get_git',
 	default => undef,
 );
+
+
+
+=head2 install
+
+The install method installs the Perl distribution described by the
+B<Perl::Dist::WiX::Asset::Perl> object and returns true or throws
+an exception.
+
+=cut
+
 
 
 sub install {
 	my $self = shift;
 
 	# Get the initial directory contents to compare against later.
-	$self->_trace_line( 0, 'Preparing ' . $self->_get_name . "\n" );
+	$self->_trace_line( 0, 'Preparing ' . $self->_get_name() . "\n" );
 	my $fl2 = File::List::Object->new->readdir(
 		catdir( $self->_get_image_dir, 'perl' ) );
 
@@ -113,8 +293,8 @@ sub install {
 	}
 
 	# Pre-copy updated files over the top of the source
-	my $patch   = $self->_get_patch;
-	my $version = $self->_get_pv_human;
+	my $patch   = $self->_get_patch();
+	my $version = $self->_get_pv_human();
 	if ($patch) {
 
 		# Overwrite the appropriate files
@@ -148,17 +328,10 @@ sub install {
 
 		my $wd = $self->_pushd( $unpack_to, $perlsrc, 'win32' );
 
-		my $perldir;
-		if ( defined $git ) {
-			$perldir = 'perl-git';
-		} else {
-			$perldir = "perl-$version";
-		}
-
 		# Patch the makefile.
 		$self->_trace_line( 2, "Patching makefile.mk\n" );
 		$self->_patch_file(
-			"$perldir/win32/makefile.mk" => $unpack_to,
+			"$perlsrc/win32/makefile.mk" => $unpack_to,
 			{   dist     => $self->_get_parent(),
 				INST_DRV => $INST_DRV,
 				INST_TOP => $INST_TOP,
@@ -168,7 +341,7 @@ sub install {
 		$self->_trace_line( 1, "Building perl $version...\n" );
 		$self->_make;
 
-		# Get information required for testing and perl.
+		# Get information required for testing and installing perl.
 		my $force = $self->_get_force();
 		my $long_build =
 		  Win32::GetLongPathName( rel2abs( $self->_get_build_dir() ) );
@@ -251,111 +424,6 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
-
-=pod
-
-=head1 NAME
-
-Perl::Dist::WiX::Asset::Perl - "Perl core" asset for a Win32 Perl
-
-=head1 SYNOPSIS
-
-  my $distribution = Perl::Dist::WiX::Asset::Perl->new(
-    ...
-  );
-
-=head1 DESCRIPTION
-
-TODO: Document
-
-=head1 METHODS
-
-TODO: Document
-
-This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
-
-=head2 new
-
-The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Asset::Distribution> object.
-
-It inherits all the params described in the L<Perl::Dist::WiX::Role::Asset> 
-C<new> method documentation, and adds some additional params.
-
-=over 4
-
-=item name
-
-The required C<name> param is the name of the package for the purposes
-of identification.
-
-This should match the name of the Perl distribution without any version
-numbers. For example, "File-Spec" or "libwww-perl".
-
-Alternatively, the C<name> param can be a CPAN path to the distribution
-such as shown in the synopsis.
-
-In this case, the url to fetch from will be derived from the name.
-
-=item force
-
-Unlike in the CPAN client installation, in which all modules MUST pass
-their tests to be added, the secondary method allows for cases where
-it is known that the tests can be safely "forced".
-
-The optional boolean C<force> param allows you to specify that the tests
-should be skipped and the module installed without validating it.
-
-=item automated_testing
-
-Many modules contain additional long-running tests, tests that require
-additional dependencies, or have differing behaviour when installing
-in a non-user automated environment.
-
-The optional C<automated_testing> param lets you specify that the
-module should be installed with the B<AUTOMATED_TESTING> environment
-variable set to true, to make the distribution behave properly in an
-automated environment (in cases where it doesn't otherwise).
-
-=item release_testing
-
-Some modules contain release-time only tests, that require even heavier
-additional dependencies compared to even the C<automated_testing> tests.
-
-The optional C<release_testing> param lets you specify that the module
-tests should be run with the additional C<RELEASE_TESTING> environment
-flag set.
-
-By default, C<release_testing> is set to false to squelch any accidental
-execution of release tests when L<Perl::Dist::WiX> itself is being tested
-under C<RELEASE_TESTING>.
-
-=item makefilepl_param
-
-Some distributions illegally require you to pass additional non-standard
-parameters when you invoke "perl Makefile.PL".
-
-The optional C<makefilepl_param> param should be a reference to an ARRAY
-where each element contains the argument to pass to the Makefile.PL.
-
-=item buildpl_param
-
-Some distributions require you to pass additional non-standard
-parameters when you invoke "perl Build.PL".
-
-The optional C<buildpl_param> param should be a reference to an ARRAY
-where each element contains the argument to pass to the Build.PL.
-
-=back
-
-The C<new> method returns a B<Perl::Dist::WiX::Asset::Distribution> object,
-or throws an exception on error.
-
-=head2 install
-
-The install method installs the website link described by the
-B<Perl::Dist::WiX::Asset::Website> object and returns a file
-that was installed as a L<File::List::Object> object.
 
 =head1 SUPPORT
 

@@ -137,6 +137,10 @@ __END__
 
 Perl::Dist::WiX::Asset::Library - "C Library" asset for a Win32 Perl
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::L version 1.102_103.
+
 =head1 SYNOPSIS
 
   my $library = Perl::Dist::Asset::Library->new(

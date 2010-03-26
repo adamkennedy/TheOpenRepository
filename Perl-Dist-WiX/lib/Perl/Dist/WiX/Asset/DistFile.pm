@@ -179,6 +179,10 @@ __END__
 
 Perl::Dist::WiX::Asset::DistFile - "Perl Distribution" asset for a Win32 Perl
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::DistFile version 1.102_103.
+
 =head1 SYNOPSIS
 
   # TODO: Update
