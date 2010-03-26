@@ -46,8 +46,9 @@ $VERSION =~ s/_//sm;
 # Will check.
 
 Readonly my %CORE_MODULE_FIX => (
-	'IO::Compress'         => 'IO::Compress::Base',
-	'Filter'               => 'Filter::Util::Call',
+	'IO::Compress' => 'IO::Compress::Base',
+	'Filter'       => 'Filter::Util::Call',
+
 #	'autodie'              => 'Fatal',
 	'Pod'                  => 'Pod::Man',
 	'Text'                 => 'Text::Tabs',
@@ -55,13 +56,14 @@ Readonly my %CORE_MODULE_FIX => (
 	'Scalar::List::Utils'  => 'List::Util',
 	'Locale::Constants'    => 'Locale::Codes',
 	'TermReadKey'          => 'Term::ReadKey',
-	'Term::ReadLine::Perl' => 'Term::ReadLine',	
+	'Term::ReadLine::Perl' => 'Term::ReadLine',
 	'libwww::perl'         => 'LWP',
 	'LWP::UserAgent'       => 'LWP',
 );
 
 Readonly my %DIST_TO_MODULE_FIX => (
-	'CGI.pm'               => 'CGI',
+	'CGI.pm' => 'CGI',
+
 #	'Fatal'                => 'autodie',
 	'Locale::Maketext'     => 'Locale-Maketext',
 	'Pod::Man'             => 'Pod',
@@ -429,10 +431,13 @@ sub _install_cpan_module {
 	  ? 1
 	  : 0;
 
+	# Override core determination for this module.
+	# (It's not in core, but other modules that this distribution
+	# installs are)
 	if ('Locale::Codes' eq $module_id) {
 		$core = 1;
 	}
-	  
+
 	# Actually do the installation.
 	$self->install_distribution(
 		name     => $module_file,

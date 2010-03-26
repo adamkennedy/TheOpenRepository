@@ -1,7 +1,10 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.102_102   Sun 21 Mar 2010
+1.102_102   Thu 25 Mar 2010
     1. Adding 5.12.0 support (based on 5.12.0-RC0 for now).
+    2. Bug fixes to relocation support.
+    3. Used to build Strawberry Perl April 2010 Beta 1
+       (5.12.x versions).
 
 1.102_101   Sat 20 Mar 2010
     1. Scripts now will go to perl/site/bin.

@@ -3524,12 +3524,12 @@ sub install_win32_extras {
 			id          => 'PerlCmdLine',
 			working_dir => 'PersonalFolder',
 		);
-		
-		$self->add_to_fragment( 'Win32Extras', [
-				catfile($self->image_dir(), qw(win32 win32.ico)),
-				catfile($self->image_dir(), qw(win32 cpan.ico)),				
-			]
-		);
+
+		$self->add_to_fragment(
+			'Win32Extras',
+			[   catfile( $self->image_dir(), qw(win32 win32.ico) ),
+				catfile( $self->image_dir(), qw(win32 cpan.ico) ),
+			] );
 
 	} ## end if ( $self->msi() )
 
@@ -3793,9 +3793,9 @@ sub _write_zip {
 	$self->trace_line( 1, "Generating zip at $file\n" );
 
 	# Make directories.
-	$self->_remake_path(catdir($self->image_dir(), qw(cpan sources)));
-	$self->_remake_path(catdir($self->image_dir(), qw(cpanplus    )));
-	
+	$self->_remake_path( catdir( $self->image_dir(), qw(cpan sources) ) );
+	$self->_remake_path( catdir( $self->image_dir(), qw(cpanplus    ) ) );
+
 	# Create the archive
 	my $zip = Archive::Zip->new();
 
