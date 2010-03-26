@@ -3288,9 +3288,9 @@ sub initialize_using_msm {
 	$self->_set_bin_dlltool( $self->_file(qw/c bin dlltool.exe/) );
 
 	# Do the same for the environment variables
-	$self->add_path( 'perl', 'bin' );
-	$self->add_path( 'perl', 'site', 'bin' );
 	$self->add_path( 'c',    'bin' );
+	$self->add_path( 'perl', 'site', 'bin' );
+	$self->add_path( 'perl', 'bin' );
 
 	return 1;
 } ## end sub initialize_using_msm
