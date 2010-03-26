@@ -1,5 +1,51 @@
 package Perl::Dist::WiX::Asset::Distribution;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Asset::Distribution - "Perl Distribution" asset for a Win32 Perl
+
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::Distribution version 1.102_103.
+
+=head1 SYNOPSIS
+
+  my $distribution = Perl::Dist::WiX::Asset::Distribution->new(
+      name  => 'MSERGEANT/DBD-SQLite-1.14.tar.gz',
+	  mod_name => 'DBD::SQLite',
+      force => 1,
+  );
+
+=head1 DESCRIPTION
+
+L<Perl::Dist::WiX> supports two methods for adding Perl modules to the
+installation. The main method is to install it via the CPAN shell.
+
+The second is to download, make, test and install the Perl distribution
+package independently, avoiding the use of the CPAN client. Unlike the
+CPAN installation method, installing the distribution directly does
+C<not> allow the installation of dependencies, or the ability to discover
+and install the most recent release of the module.
+
+This secondary method is primarily used to deal with cases where the CPAN
+shell either fails or does not yet exist. Installation of the Perl
+toolchain to get a working CPAN client is done exclusively using the
+direct method, as well as the installation of a few special case modules
+such as ones where the newest release is broken, but an older
+or a development release is known to be good.
+
+B<Perl::Dist::WiX::Asset::Distribution> is a data class that provides
+encapsulation and error checking for a "Perl Distribution" to be
+installed in a L<Perl::Dist::WiX>-created installer using this
+secondary method.
+
+It is normally created on the fly by the Perl::Dist::WiX
+C<install_distribution> method (and other things that call it).
+
+=cut
+
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str Bool ArrayRef Maybe );
@@ -9,7 +55,7 @@ use Params::Util qw( _INSTANCE );
 require File::Remove;
 require URI;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
@@ -143,7 +189,7 @@ sub BUILDARGS {
 sub BUILD {
 	my $self = shift;
 
-	if ( $self->get_name eq $self->_get_url
+	if ( $self->get_name() eq $self->_get_url()
 		and not _DIST( $self->get_name() ) )
 	{
 		PDWiX::Parameter->throw("Missing or invalid name param\n");
@@ -275,50 +321,6 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
-
-=pod
-
-=head1 NAME
-
-Perl::Dist::WiX::Asset::Distribution - "Perl Distribution" asset for a Win32 Perl
-
-=head1 VERSION
-
-This document describes Perl::Dist::WiX::Asset::Distribution version 1.102_103.
-
-=head1 SYNOPSIS
-
-  my $distribution = Perl::Dist::WiX::Asset::Distribution->new(
-      name  => 'MSERGEANT/DBD-SQLite-1.14.tar.gz',
-	  mod_name => 'DBD::SQLite',
-      force => 1,
-  );
-
-=head1 DESCRIPTION
-
-L<Perl::Dist::WiX> supports two methods for adding Perl modules to the
-installation. The main method is to install it via the CPAN shell.
-
-The second is to download, make, test and install the Perl distribution
-package independently, avoiding the use of the CPAN client. Unlike the
-CPAN installation method, installing the distribution directly does
-C<not> allow the installation of dependencies, or the ability to discover
-and install the most recent release of the module.
-
-This secondary method is primarily used to deal with cases where the CPAN
-shell either fails or does not yet exist. Installation of the Perl
-toolchain to get a working CPAN client is done exclusively using the
-direct method, as well as the installation of a few special case modules
-such as ones where the newest release is broken, but an older
-or a development release is known to be good.
-
-B<Perl::Dist::WiX::Asset::Distribution> is a data class that provides
-encapsulation and error checking for a "Perl Distribution" to be
-installed in a L<Perl::Dist::WiX>-created installer using this
-secondary method.
-
-It is normally created on the fly by the Perl::Dist::WiX
-C<install_distribution> method (and other things that call it).
 
 =head1 METHODS
 

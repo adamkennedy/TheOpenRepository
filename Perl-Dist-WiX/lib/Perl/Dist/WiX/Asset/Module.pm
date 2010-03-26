@@ -11,8 +11,13 @@ This document describes Perl::Dist::WiX::Asset::Module version 1.102_103.
 =head1 SYNOPSIS
 
   my $distribution = Perl::Dist::WiX::Asset::Module->new(
-    ...
+    parent           => $dist,
+    name             => 'DBI',
+	force            => 0,
+	assume_installed => 0,
   );
+  
+  $distribution->install();
 
 =head1 DESCRIPTION
 

@@ -87,7 +87,7 @@ has name => (
 
 
 
-=item license
+=head3 license
 
 The required C<license> parameter allows you to specify which files get 
 copied to the license directory of the distribution.
@@ -112,7 +112,7 @@ has license => (
 
 
 
-=item patch
+=head3 patch
 
 The required C<patch> parameter allows you to specify which files get 
 patched before the distribution is built.
@@ -146,7 +146,7 @@ has patch => (
 
 
 
-=item unpack_to
+=head3 unpack_to
 
 The optional C<unpack_to> parameter allows you to specify in which 
 subdirectory of the build directory the tarball gets unpacked to or the
@@ -167,7 +167,7 @@ has unpack_to => (
 
 
 
-=item install_to
+=head3 install_to
 
 The optional C<install_to> parameter allows you to specify in which 
 subdirectory of the image directory the Perl distribution gets
@@ -188,7 +188,7 @@ has install_to => (
 
 
 
-=item force
+=head3 force
 
 The optional boolean C<force> param allows you to specify that the tests
 should be skipped and Perl installed without validating it.
@@ -211,7 +211,7 @@ has force => (
 
 
 
-=item git
+=head3 git
 
 The optional C<git> param specifies, if defined, that:
 

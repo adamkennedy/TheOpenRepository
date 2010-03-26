@@ -1,61 +1,5 @@
 package Perl::Dist::WiX::Asset::File;
 
-use 5.008001;
-use Moose;
-use MooseX::Types::Moose qw( Str );
-use File::Spec::Functions qw( catfile );
-require File::Remove;
-require File::List::Object;
-
-our $VERSION = '1.102';
-$VERSION =~ s/_//ms;
-
-with 'Perl::Dist::WiX::Role::Asset';
-
-has install_to => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_install_to',
-	required => 1,
-);
-
-sub install {
-	my $self = shift;
-
-	my $download_dir = $self->_get_download_dir();
-	my $image_dir    = $self->_get_image_dir();
-	my @files;
-
-
-	# Get the file
-	my $tgz = $self->_mirror( $self->_get_url, $download_dir );
-
-	# Copy the file to the target location
-	my $from = catfile( $download_dir, $self->_get_file );
-	my $to   = catfile( $image_dir,    $self->_get_install_to );
-	unless ( -f $to ) {
-		push @files, $to;
-	}
-
-	$self->_copy( $from => $to );
-
-	# Clear the download file
-	File::Remove::remove( \1, $tgz );
-
-	my $filelist =
-	  File::List::Object->new->load_array(@files)
-	  ->filter( $self->_filters );
-
-	return $filelist;
-} ## end sub install
-
-no Moose;
-__PACKAGE__->meta->make_immutable;
-
-1;
-
-__END__
-
 =pod
 
 =head1 NAME
@@ -88,36 +32,98 @@ done to distributions by dropping in specific single files.
 The specification of the location to retrieve the package is done via
 the standard mechanism implemented in L<Perl::Dist::WiX::Role::Asset>.
 
+=cut
+
+use 5.008001;
+use Moose;
+use MooseX::Types::Moose qw( Str );
+use File::Spec::Functions qw( catfile );
+require File::Remove;
+require File::List::Object;
+
+our $VERSION = '1.102';
+$VERSION =~ s/_//ms;
+
+with 'Perl::Dist::WiX::Role::Asset';
+
 =head1 METHODS
 
-This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
+This class is a L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
+and shares its API.
 
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Asset::File> object.
+and returns a new C<Perl::Dist::WiX::Asset::Perl> object.
 
-It inherits all the params described in the L<Perl::Dist::WiX::Role::Asset> C<new>
-method documentation, and adds some additional params.
+It inherits all the parameters described in the 
+L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+method documentation, and adds an additional parameter described below.
 
-=over 4
+=head3 install_to
 
-=item install_to
+The C<install_to> parameter is the location that the file needs installed
+to, relative to the distribution's image directory.
 
-The required C<install_to> param describes the location that the package
-will be installed to.
+=cut
 
-The C<install_to> param should be a simple string that represents the
-entire destination path (including file name).
 
-=back
 
-The C<new> constructor returns a B<Perl::Dist::Asset::WiX::File> object,
-or throws an exception (dies) if an invalid param is provided.
+has install_to => (
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_install_to',
+	required => 1,
+);
+
+
 
 =head2 install
 
-The C<install> method installs the file in the specified place.
+The install method installs the file described by the
+B<Perl::Dist::WiX::Asset::File> object and returns true or throws
+an exception.
+
+=cut
+
+
+
+sub install {
+	my $self = shift;
+
+	# Set up required variables.
+	my $download_dir = $self->_get_download_dir();
+	my $image_dir    = $self->_get_image_dir();
+	my @files;
+
+	# Get the file.
+	my $file = $self->_mirror( $self->_get_url(), $download_dir );
+
+	# Copy the file to the target location
+	my $from = catfile( $download_dir, $self->_get_file() );
+	my $to   = catfile( $image_dir,    $self->_get_install_to() );
+	unless ( -f $to ) {
+		push @files, $to;
+	}
+
+	$self->_copy( $from => $to );
+
+	# Clear the download file
+	File::Remove::remove( \1, $file );
+
+	my $filelist =
+	  File::List::Object->new()->load_array(@files)
+	  ->filter( $self->_filters() );
+
+	return $filelist;
+} ## end sub install
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
+1;
+
+__END__
 
 =head1 SUPPORT
 

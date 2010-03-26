@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.102_102
+Perl-Dist-WiX version 1.102_103
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.102_102.
+This document describes Perl::Dist::WiX version 1.102_103.
 
 =for readme continue
 
@@ -135,7 +135,7 @@ require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 #>>>
 
-our $VERSION = '1.102_102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 
@@ -5024,97 +5024,6 @@ sub _extract_filemap {
 
 	return @files;
 } ## end sub _extract_filemap
-
-# Convert a .dll to an .a file
-sub _dll_to_a {
-	my $self   = shift;
-	my %params = @_;
-	unless ( $self->bin_dlltool ) {
-		PDWiX->throw('dlltool has not been installed');
-	}
-
-	my @files;
-
-	# Source file
-	my $source = $params{source};
-	if ( $source and not( $source =~ /[.]dll\z/msx ) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'source',
-			where     => '->_dll_to_a'
-		);
-	}
-
-	# Target .dll file
-	my $dll = $params{dll};
-	unless ( $dll and $dll =~ /[.]dll/msx ) {
-		PDWiX::Parameter->throw(
-			parameter => 'dll',
-			where     => '->_dll_to_a'
-		);
-	}
-
-	# Target .def file
-	my $def = $params{def};
-	unless ( $def and $def =~ /[.]def\z/msx ) {
-		PDWiX::Parameter->throw(
-			parameter => 'def',
-			where     => '->_dll_to_a'
-		);
-	}
-
-	# Target .a file
-	my $_a = $params{a};
-	unless ( $_a and $_a =~ /[.]a\z/msx ) {
-		PDWiX::Parameter->throw(
-			parameter => 'a',
-			where     => '->_dll_to_a'
-		);
-	}
-
-	# Step 1 - Copy the source .dll to the target if needed
-	unless ( ( $source and -f $source ) or -f $dll ) {
-		PDWiX::Parameter->throw(
-			parameter => 'source or dll: Need one of '
-			  . 'these two parameters, and the file needs to exist',
-			where => '->_dll_to_a'
-		);
-	}
-
-	if ($source) {
-		$self->_move( $source => $dll );
-		push @files, $dll;
-	}
-
-	# Step 2 - Generate the .def from the .dll
-  SCOPE: {
-		my $bin = $self->bin_pexports;
-		unless ($bin) {
-			PDWiX->throw('pexports has not been installed');
-		}
-		my $ok = !system "$bin $dll > $def";
-		unless ( $ok and -f $def ) {
-			PDWiX->throw('pexports failed to generate .def file');
-		}
-
-		push @files, $def;
-	} ## end SCOPE:
-
-	# Step 3 - Generate the .a from the .def
-  SCOPE: {
-		my $bin = $self->bin_dlltool;
-		unless ($bin) {
-			PDWiX->throw('dlltool has not been installed');
-		}
-		my $ok = !system "$bin -dllname $dll --def $def --output-lib $_a";
-		unless ( $ok and -f $_a ) {
-			PDWiX->throw('dlltool failed to generate .a file');
-		}
-
-		push @files, $_a;
-	} ## end SCOPE:
-
-	return @files;
-} ## end sub _dll_to_a
 
 sub _make_path {
 	my $class = shift;
