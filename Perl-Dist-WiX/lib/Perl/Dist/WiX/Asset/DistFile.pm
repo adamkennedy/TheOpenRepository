@@ -237,6 +237,7 @@ sub install {
 	my ( undef, undef, $filename ) = splitpath( $path, 0 );
 	my $module = $self->_name_to_module("CSJ/$filename");
 	my $filelist_sub;
+
 	if ( not $self->_get_packlist() ) {
 		$filelist_sub =
 		  File::List::Object->new->readdir( $self->_dir('perl') );

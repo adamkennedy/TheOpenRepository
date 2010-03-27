@@ -606,9 +606,9 @@ sub install_perl_589 {
 
 	# Install the main perl distribution.
 	$self->install_perl_bin(
-		url        => 'http://strawberryperl.com/package/perl-5.8.9.tar.gz',
-		toolchain  => $toolchain,
-		patch      => [ qw{
+		url       => 'http://strawberryperl.com/package/perl-5.8.9.tar.gz',
+		toolchain => $toolchain,
+		patch     => [ qw{
 			  lib/CPAN/Config.pm
 			  win32/config.gc
 			  win32/config_sh.PL
@@ -638,7 +638,7 @@ sub install_perl_bin {
 
 	# Install perl.
 	my $perl = Perl::Dist::WiX::Asset::Perl->new(
-		parent     => $self,
+		parent => $self,
 		@_,
 	);
 	$perl->install();
@@ -691,8 +691,8 @@ sub install_perl_5100 {
 	# Install the main binary
 	$self->install_perl_bin(
 		url       => 'http://strawberryperl.com/package/perl-5.10.0.tar.gz',
-		toolchain  => $toolchain,
-		patch      => [ qw{
+		toolchain => $toolchain,
+		patch     => [ qw{
 			  lib/ExtUtils/Command.pm
 			  lib/CPAN/Config.pm
 			  win32/config.gc
@@ -742,8 +742,8 @@ sub install_perl_5101 {
 	# Install the main binary
 	$self->install_perl_bin(
 		url       => 'http://strawberryperl.com/package/perl-5.10.1.tar.gz',
-		toolchain  => $toolchain,
-		patch      => [ qw{
+		toolchain => $toolchain,
+		patch     => [ qw{
 			  lib/CPAN/Config.pm
 			  win32/config.gc
 			  win32/config_sh.PL
@@ -793,8 +793,8 @@ sub install_perl_5115 {
 	$self->install_perl_bin(
 		url =>
 'http://search.cpan.org/CPAN/authors/id/S/SH/SHAY/perl-5.11.5.tar.gz',
-		toolchain  => $toolchain,
-		patch      => [ qw{
+		toolchain => $toolchain,
+		patch     => [ qw{
 			  lib/CPAN/Config.pm
 			  win32/config.gc
 			  win32/config.gc64nox
@@ -846,8 +846,8 @@ sub install_perl_5120 {
 	$self->install_perl_bin(
 		url =>
 'http://search.cpan.org/CPAN/authors/id/J/JE/JESSE/perl-5.12.0-RC0.tar.gz',
-		toolchain  => $toolchain,
-		patch      => [ qw{
+		toolchain => $toolchain,
+		patch     => [ qw{
 			  lib/CPAN/Config.pm
 			  win32/config.gc
 			  win32/config.gc64nox
@@ -899,10 +899,10 @@ sub install_perl_git {
 
 	# Install the main binary
 	$self->install_perl_bin(
-		url        => URI::file->new($checkout)->as_string(),
-		file       => $checkout,
-		toolchain  => $toolchain,
-		patch      => [ qw{
+		url       => URI::file->new($checkout)->as_string(),
+		file      => $checkout,
+		toolchain => $toolchain,
+		patch     => [ qw{
 			  lib/CPAN/Config.pm
 			  win32/config.gc
 			  win32/config_sh.PL

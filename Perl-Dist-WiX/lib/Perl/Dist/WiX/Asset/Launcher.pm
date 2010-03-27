@@ -106,10 +106,10 @@ a script that has been converted to a batch file.
 
 
 has exe => (
-	is       => 'bare',
-	isa      => Bool,
-	reader   => '_get_exe',
-	default  => 0,
+	is      => 'bare',
+	isa     => Bool,
+	reader  => '_get_exe',
+	default => 0,
 );
 
 
@@ -129,10 +129,9 @@ sub install {
 
 	my $bin = $self->_get_bin();
 	my $ext = $self->_get_exe() ? '.exe' : '.bat';
-	
+
 	# Check the script exists
-	my $to =
-	  catfile( $self->_get_image_dir(), 'perl', 'bin', "$bin$ext" );
+	my $to = catfile( $self->_get_image_dir(), 'perl', 'bin', "$bin$ext" );
 	unless ( -f $to ) {
 		PDWiX->throw(qq{The file "$bin$ext" does not exist});
 	}
@@ -141,9 +140,8 @@ sub install {
 	my $icon_type = ref $icons;
 	$icon_type ||= '(undefined type)';
 	if ( 'Perl::Dist::WiX::IconArray' ne $icon_type ) {
-		PDWiX->throw(
-"Icons array is of type $icon_type, " . 'not a Perl::Dist::WiX::IconArray'
-		);
+		PDWiX->throw( "Icons array is of type $icon_type, "
+			  . 'not a Perl::Dist::WiX::IconArray' );
 	}
 
 	my $icon_id =

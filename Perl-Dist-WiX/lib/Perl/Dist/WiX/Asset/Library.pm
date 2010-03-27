@@ -106,7 +106,7 @@ has unpack_to => (
 
 
 
-=item license
+=head3 license
 
 The C<license> parameter allows you to specify which files get 
 copied to the license directory of the distribution.
@@ -131,7 +131,7 @@ has license => (
 
 
 
-=item install_to
+=head3 install_to
 
 The required C<install_to> parameter allows you to specify which directories
 get installed in which subdirectories of the image directory of the 
@@ -157,7 +157,7 @@ has install_to => (
 
 
 
-=item build_a
+=head3 build_a
 
 The C<build_a> parameter allows you to specify that the library needs
 to have its import library created.
@@ -227,14 +227,14 @@ sub install {
 
 		# If we have a source, use it.
 		my @source = ();
-		if ($build_a->{source}) {
+		if ( $build_a->{source} ) {
 			@source = ( dll => catfile( $unpack_to, $build_a->{source} ) );
-		} 
-	
+		}
+
 		# Hand off for the .a generation
 		push @files,
 		  $self->_dll_to_a(
-		    dll => catfile( $unpack_to, $build_a->{dll} ),
+			dll => catfile( $unpack_to, $build_a->{dll} ),
 			def => catfile( $unpack_to, $build_a->{def} ),
 			a   => catfile( $unpack_to, $build_a->{a} ),
 			@source,
@@ -271,7 +271,7 @@ sub install {
 
 
 
-# This routine copies a list of files, while changing the directory 
+# This routine copies a list of files, while changing the directory
 # the files are in.
 # It does not copy the files themselves.
 sub _copy_filesref {
@@ -295,12 +295,12 @@ sub _copy_filesref {
 sub _dll_to_a {
 	my $self   = shift;
 	my %params = @_;
-	
+
 	# Check for binaries required.
 	unless ( $self->_bin_dlltool() ) {
 		PDWiX->throw('dlltool has not been installed');
 	}
-	unless ($self->_bin_pexports()) {
+	unless ( $self->_bin_pexports() ) {
 		PDWiX->throw('pexports has not been installed');
 	}
 
@@ -359,24 +359,24 @@ sub _dll_to_a {
 	# Step 2 - Generate the .def from the .dll
   SCOPE: {
 		my $bin = $self->_bin_pexports();
-		my $ok = !system "$bin $dll > $def";
+		my $ok  = !system "$bin $dll > $def";
 		unless ( $ok and -f $def ) {
 			PDWiX->throw('pexports failed to generate .def file');
 		}
 
 		push @files, $def;
-	} ## end SCOPE:
+	}
 
 	# Step 3 - Generate the .a from the .def
   SCOPE: {
 		my $bin = $self->_bin_dlltool();
-		my $ok = !system "$bin -dllname $dll --def $def --output-lib $_a";
+		my $ok  = !system "$bin -dllname $dll --def $def --output-lib $_a";
 		unless ( $ok and -f $_a ) {
 			PDWiX->throw('dlltool failed to generate .a file');
 		}
 
 		push @files, $_a;
-	} ## end SCOPE:
+	}
 
 	return @files;
 } ## end sub _dll_to_a

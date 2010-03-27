@@ -152,7 +152,7 @@ sub _build_icon_file_to {
 		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
 	}
-}
+} ## end sub _build_icon_file_to
 
 
 

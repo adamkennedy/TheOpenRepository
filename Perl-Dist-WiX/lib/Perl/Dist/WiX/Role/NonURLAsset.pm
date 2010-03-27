@@ -151,6 +151,7 @@ EOF
 
 	my $filelist;
 	if ( -r $packlist ) {
+
 		# Load a filelist object from the packlist if one exists.
 		$filelist =
 		  File::List::Object->new()->load_file($packlist)
@@ -162,6 +163,7 @@ EOF
 		$self->_trace_line( 3,
 			"Attempting to use debug.out file to make filelist\n" );
 		my $fh = IO::File->new( $output, 'r' );
+
 		if ( not defined $fh ) {
 			PDWiX->throw("Error reading output file $output: $OS_ERROR");
 		}
@@ -176,8 +178,9 @@ EOF
 			( $t =~ / \A Installing [ ] (.*) \z /msx ) ? ($1) : ();
 		  } @output_list;
 
-		# Load the filenames into the filelist object. 
+		# Load the filenames into the filelist object.
 		if ( $#files_list == 0 ) {
+
 			# Throw an error if no files were found.
 			PDWiX->throw($error);
 		} else {

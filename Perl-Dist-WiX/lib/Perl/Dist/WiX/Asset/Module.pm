@@ -71,7 +71,7 @@ has name => (
 
 
 
-=item force
+=head3 force
 
 The optional boolean C<force> param allows you to specify that the tests
 should be skipped and the module installed without validating its 
@@ -151,13 +151,13 @@ that were installed as a L<File::List::Object> object.
 
 
 sub install {
-	my $self   = shift;
-	
+	my $self = shift;
+
 	# Set up variables needed.
-	my $name   = $self->get_name();
-	my $force  = $self->_get_force();
-	my $assume = $self->_get_assume();
-	my $vendor = $self->_get_parent()->portable() ? 0 : 1;
+	my $name          = $self->get_name();
+	my $force         = $self->_get_force();
+	my $assume        = $self->_get_assume();
+	my $vendor        = $self->_get_parent()->portable() ? 0 : 1;
 	my $packlist_flag = $self->_get_packlist();
 
 	# Verify the existence of perl.
@@ -165,13 +165,13 @@ sub install {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
-	
+
 	# Generate the CPAN installation script.
 	my $dist_file = catfile( $self->_get_output_dir(), 'cpan_distro.txt' );
-	my $url = $self->_get_cpan()->as_string();
-	my $dp_dir = catdir( $self->_get_wix_dist_dir(), 'distroprefs' );
+	my $url       = $self->_get_cpan()->as_string();
+	my $dp_dir    = catdir( $self->_get_wix_dist_dir(), 'distroprefs' );
 	my $internet_available = ( $url =~ m{ \A file://}msx ) ? 1 : 0;
-	my $cpan_string = <<"END_PERL";
+	my $cpan_string        = <<"END_PERL";
 print "Loading CPAN...\\n";
 use CPAN;
 CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
@@ -217,7 +217,7 @@ unless ( $assume or \$module->uptodate() ) {
 exit(0);
 END_PERL
 
-    # Scan the perl directory if that's needed.
+	# Scan the perl directory if that's needed.
 	my $filelist_sub;
 	if ( not $self->_get_packlist() ) {
 		$filelist_sub =

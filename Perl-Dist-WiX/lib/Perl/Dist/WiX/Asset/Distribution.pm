@@ -347,6 +347,7 @@ sub BUILD {
 
 # get_name is defined earlier, in the "has name =>" line.
 # Here works for documenting it.
+
 =head2 get_name
 
 This method returns the name of the module being installed, in order to use

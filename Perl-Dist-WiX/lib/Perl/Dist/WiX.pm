@@ -87,7 +87,7 @@ use     MooseX::Types::Moose  qw(
 );
 use     MooseX::Types::URI    qw( Uri                           );
 use     Perl::Dist::WiX::Types qw(
-	Directory ExistingDirectory ExistingFile MaybeExistingDirectory
+	Directory ExistingDirectory ExistingFile
 );
 use     Perl::Dist::WiX::PrivateTypes qw(
 	_NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir

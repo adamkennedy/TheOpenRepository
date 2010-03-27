@@ -42,7 +42,7 @@ and patches and installs it into a specified directory
 
 use 5.008001;
 use Moose;
-use MooseX::Types::Moose qw( Str HashRef ArrayRef Bool );
+use MooseX::Types::Moose qw( Str HashRef ArrayRef Bool Maybe );
 use File::Spec::Functions qw( catdir splitpath rel2abs catfile );
 require File::Remove;
 require File::Basename;
@@ -180,10 +180,10 @@ This defaults to 'perl'.
 
 
 has install_to => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_install_to',
-	default  => 'perl',
+	is      => 'ro',
+	isa     => Str,
+	reader  => '_get_install_to',
+	default => 'perl',
 );
 
 
@@ -202,11 +202,13 @@ false.
 
 
 has force => (
-	is      => 'ro',
+	is      => 'bare',
 	isa     => Bool,
 	reader  => '_get_force',
 	lazy    => 1,
-	default => sub { $_[0]->parent()->force() ? 1 : $_[0]->parent()->forceperl() ? 1 : 0 },
+	default => sub {
+		$_[0]->parent()->force() ? 1 : $_[0]->parent()->forceperl() ? 1 : 0;
+	},
 );
 
 
@@ -228,7 +230,7 @@ checkout.
 
 
 has git => (
-	is      => 'ro',
+	is      => 'bare',
 	isa     => Maybe [Str],
 	reader  => '_get_git',
 	default => undef,

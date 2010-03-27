@@ -83,7 +83,7 @@ has name => (
 
 
 
-=item install_to
+=head3 install_to
 
 The required C<install_to> parameter allows you to specify which 
 directories or files get installed in which subdirectories of the image 
@@ -115,7 +115,7 @@ has install_to => (
 
 
 
-=item license
+=head3 license
 
 The C<license> parameter allows you to specify which files get 
 copied to the license directory of the distribution.
@@ -156,7 +156,8 @@ sub install {
 	$self->_trace_line( 1, "Preparing $name\n" );
 
 	# Download the file
-	my $tgz = $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
+	my $tgz =
+	  $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
 
 	# Unpack the archive
 	my @files;

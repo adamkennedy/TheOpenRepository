@@ -63,9 +63,10 @@ It provides the functionality required to generate several
 variations of a distribution at the same time.
 
 =cut
-	
+
 use 5.008001;
 use Moose 0.90;
+use Moose::Util::TypeConstraints;
 use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool );
 use Params::Util qw( _IDENTIFIER _HASH0 _DRIVER _CLASSISA );
 use English qw( -no_match_vars );
@@ -105,9 +106,10 @@ It must be a subclass of L<Perl::Dist::WiX|Perl::Dist::WiX>.
 
 
 has class => (
-	is       => 'ro',
+	is  => 'ro',
 	isa => subtype(
 		'Str' => where {
+			$_ ||= q{};
 			_CLASSISA( $_, 'Perl::Dist::WiX' );
 		},
 		message {
@@ -277,9 +279,8 @@ sub BUILD {
 
 	my $output = $self->_get_output();
 	unless ( -d $output and -w $output ) {
-		PDWiX->throw(
-"The output directory '$output' does not " . 'exist, or is not writable'
-		);
+		PDWiX->throw( "The output directory '$output' does not "
+			  . 'exist, or is not writable' );
 	}
 
 	return $self;
