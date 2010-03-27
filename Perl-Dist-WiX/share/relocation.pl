@@ -9,6 +9,7 @@ use English qw( -no_match_vars );
 use File::Spec::Functions qw(splitpath catfile);
 use Carp qw(carp);
 use Win32::File::Object qw();
+use FindBin;
 
 sub usage;
 sub version;
@@ -31,12 +32,11 @@ GetOptions('help|?'     => sub { pod2usage(-exitstatus => 0, -verbose => 0); },
 		  ) or pod2usage(-verbose => 2);
 
 if (0 == scalar @files) {
-	@files = glob '*.reloc.txt';
+	@files = glob catfile($FindBin::Bin, '*.reloc.txt');
 }
 
 if (not defined $new_location) {
-	require Cwd;
-	$new_location = Cwd::cwd();
+	$new_location = $FindBin::Bin;
 	$new_location =~ s{/}{\\}g;
 }
 
@@ -249,7 +249,7 @@ This script updates all of Strawberry Perl's files to a new location.
     --file          Gives the location of the file of hints to use to 
                     relocate Perl. Defaults to all *.reloc.txt files in
                     the current directory.
-    --location      The location to relocate to. Defaults to Cwd::cwd().
+    --location      The location to relocate to. Defaults to $FindBin::Bin.
     --quiet         Print nothing.
 	
 =head1 DEPENDENCIES
