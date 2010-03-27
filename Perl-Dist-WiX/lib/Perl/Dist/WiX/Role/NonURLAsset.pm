@@ -14,7 +14,7 @@ Perl::Dist::WiX::Role::NonURLAsset - Role for assets that do not require URL's.
 
 B<Perl::Dist::WiX::Role::NonURLAsset> is a role that provides methods,
 attributes, and error checking for assets to be installed in a 
-L<Perl::Dist::WiX>-based Perl distribution.
+L<Perl::Dist::WiX|Perl::Dist::WiX>-based Perl distribution.
 
 =cut
 
@@ -45,9 +45,9 @@ classes that use this role.
 
 =head2 parent
 
-This is the L<Perl::Dist::WiX> object that uses an asset object that uses 
-this role.  The Perl::Dist::WiX object handles a number of private methods 
-for the asset object.
+This is the L<Perl::Dist::WiX|Perl::Dist::WiX> object that uses an asset 
+object that uses this role.  The Perl::Dist::WiX object handles a number 
+of private methods for the asset object.
 
 It is required, and has no default, so an error will be thrown if it is not 
 given.

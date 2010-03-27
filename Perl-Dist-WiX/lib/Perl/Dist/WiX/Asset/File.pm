@@ -21,7 +21,7 @@ This document describes Perl::Dist::WiX::Asset::File version 1.102_103.
 
 B<Perl::Dist::Asset::File> is a data class that provides encapsulation
 and error checking for a single file to be installed unmodified into a
-L<Perl::Dist::WiX>-based Perl distribution.
+L<Perl::Dist::WiX|Perl::Dist::WiX>-based Perl distribution.
 
 It is normally created on the fly by the <Perl::Dist::WiX> C<install_file>
 method (and other things that call it).
@@ -30,7 +30,8 @@ This asset exists to allow for cases where very small tweaks need to be
 done to distributions by dropping in specific single files.
 
 The specification of the location to retrieve the package is done via
-the standard mechanism implemented in L<Perl::Dist::WiX::Role::Asset>.
+the standard mechanism implemented in 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>.
 
 =cut
 
@@ -57,7 +58,7 @@ The C<new> constructor takes a series of parameters, validates then
 and returns a new C<Perl::Dist::WiX::Asset::Perl> object.
 
 It inherits all the parameters described in the 
-L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+L<< Perl::Dist::WiX::Role::Asset->new|Perl::Dist::WiX::Role::Asset/new() >> 
 method documentation, and adds an additional parameter described below.
 
 =head3 install_to
@@ -139,7 +140,8 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::Asset>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT AND LICENSE
 

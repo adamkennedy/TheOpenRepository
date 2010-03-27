@@ -34,8 +34,8 @@ This document describes Perl::Dist::WiX::Tag::DirectoryRef version 1.102_103.
 	
 =head1 DESCRIPTION
 
-This is an XML tag that refers to a directory that is used in a Perl::Dist::WiX 
-based distribution.
+This is an XML tag that refers to a directory that is used in a 
+L<Perl::Dist::WiX|Perl::Dist::WiX>-based distribution.
 
 =cut
 
@@ -64,11 +64,13 @@ and returns a new B<Perl::Dist::WiX::Tag::DirectoryRef> object.
 If an error occurs, it throws an exception.
 
 It inherits all the parameters described in the 
-L<WiX3::XML::DirectoryRef> C<new> method documentation.
+L<< WiX3::XML::DirectoryRef->new()|WiX3::XML::DirectoryRef/new >> method 
+documentation.
 
 =head2 get_directory_object
 
-get_directory_object returns the L<Perl::Dist::WiX::Tag::Directory> object
+get_directory_object returns the 
+L<Perl::Dist::WiX::Tag::Directory|Perl::Dist::WiX::Tag::Directory> object
 with the id that was passed in as the only parameter, as long as it is a 
 child tag of this reference, or a grandchild/great-grandchild/etc. tag.
 
@@ -255,7 +257,7 @@ sub add_directory {
 =head2 get_id
 
 Returns the value of  
-L<WiX3::XML::DirectoryRef-E<gt>get_directory_id()|WiX3::XML::DirectoryRef/get_directory_id>.
+L<< WiX3::XML::DirectoryRef->get_directory_id()|WiX3::XML::DirectoryRef/get_directory_id >>.
 
 =cut
 
@@ -289,7 +291,7 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, 
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
 L<http://wix.sourceforge.net/manual-wix3/wix_xsd_directoryref.htm>,
 
 =head1 COPYRIGHT

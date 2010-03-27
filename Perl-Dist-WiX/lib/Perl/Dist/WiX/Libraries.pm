@@ -71,7 +71,7 @@ Readonly my %PACKAGES => (
 
 The C<library_directory> method returns the correct directory on the
 strawberryperl.com server for libraries, given the L<bits()|Perl::Dist::WiX/bits> 
-and L<gcc-version()|Perl::Dist::WiX/gcc_version> values.
+and L<gcc_version()|Perl::Dist::WiX/gcc_version> values.
 
 =cut
 

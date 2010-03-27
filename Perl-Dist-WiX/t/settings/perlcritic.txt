@@ -29,8 +29,6 @@ version = 5.008001
 
 # TODO: Fix these later.
 [-RegularExpressions::ProhibitEnumeratedClasses]
-# This one is still buggy on weird construction.
-[-Documentation::RequirePodLinksIncludeText]
 
 # Exclusions
 #

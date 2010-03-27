@@ -47,7 +47,7 @@ and returns a new C<Perl::Dist::WiX::Tag::Icon> object.
 If an error occurs, it throws an exception.
 
 It inherits all the parameters described in the 
-L<WiX3::XML::Icon/new|WiX3::XML::Icon-E<gt>new()> method documentation, 
+L<< WiX3::XML::Icon->new()|WiX3::XML::Icon/new >> method documentation, 
 and adds one additional parameter.
 
 =head3 target_type

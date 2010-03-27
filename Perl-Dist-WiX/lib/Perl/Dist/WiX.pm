@@ -793,7 +793,7 @@ The C<cpan> param provides a path to a CPAN or minicpan mirror that
 the installer can use to fetch any needed files during the build
 process.
 
-The param should be a L<URI> object to the root of the CPAN repository,
+The param should be a L<URI|URI> object to the root of the CPAN repository,
 including trailing slash.  Strings will be coerced to URI objects.
 
 If you are online and no C<cpan> param is provided, the value will
@@ -3404,7 +3404,7 @@ script to make Perl relocatable when installed.
 
 This routine must be run before L</regenerate_fragments>, so that the 
 fragment created in this method is regenerates so that the file ID can
-be found by L<find_relocatable_fields>.
+be found by L</find_relocatable_fields>.
 
 =cut
 
@@ -4578,7 +4578,7 @@ sub patch_include_path {
 =head3 patch_pathlist
 
 Returns the list of directories in C<patch_include_path> as a 
-L<File::PathList> object.
+L<File::PathList|File::PathList> object.
 
 =cut
 
@@ -4591,7 +4591,7 @@ sub patch_pathlist {
 
 =head3 patch_template
 
-C<patch_template> returns the L<Template> object that is used to generate 
+C<patch_template> returns the L<Template|Template> object that is used to generate 
 patched files.
 
 =cut
@@ -4616,7 +4616,7 @@ sub _build_patch_template {
 =head3 patch_file
 
 C<patch_file> patches an individual file installed in the distribution
-using a file from the directories returned from C<patch_pathlist>.
+using a file from the directories returned from L</patch_pathlist>.
 
 =cut
 

@@ -58,7 +58,7 @@ The C<new> constructor takes a series of parameters, validates then
 and returns a new C<Perl::Dist::WiX::Asset::Launcher> object.
 
 It inherits all the parameters described in the 
-L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+L<< Perl::Dist::WiX::Role::Asset->new()|Perl::Dist::WiX::Role::Asset/new >> 
 method documentation, and adds the additional parameters described below.
 
 =head3 name
@@ -183,7 +183,8 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT AND LICENSE
 

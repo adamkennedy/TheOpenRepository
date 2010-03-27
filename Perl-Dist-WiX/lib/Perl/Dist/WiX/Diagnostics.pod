@@ -42,13 +42,14 @@ missing or invalid id parameter.  This should not happen.
 
 =item C<< Internal Error: Calling as_string improperly (most likely, not calling derived method) >>
 
-Perl::Dist::WiX::Base::Component->as_spaces is being called instead of 
+C<< Perl::Dist::WiX::Base::Component->as_spaces() >> is being called instead of 
 one of its derived methods.
 
 =item C<< Internal Error: Odd number of parameters to add_directories_id >>
 
-The L<Perl::Dist::WiX-E<gt>add_directories_id|/add_directories_id> method takes pairs of directories and 
-the id to use when adding them.  Somehow, these got mismatched.
+The L<< Perl::Dist::WiX->add_directories_id()|/add_directories_id >> method 
+takes pairs of directories and the id to use when adding them.  Somehow, 
+these got mismatched.
 
 =item C<< Can't add the directories required >>
 
@@ -137,8 +138,8 @@ There was no C<temp_dir> parameter set and a checkpoint routine was called.
 
 =item C<< Failed to find checkpoint directory >>
 
-L<Perl::Dist::WiX-E<gt>checkpoint_load|/checkpoint_load> could not find a directory
-C<temp_dir>\checkpoint to load a checkpoint from.
+L<< Perl::Dist::WiX->checkpoint_load|Perl::Dist::WiX::Checkpoint/checkpoint_load >> 
+could not find a directory C<temp_dir>\checkpoint to load a checkpoint from.
 
 Either a checkpoint was never saved, or the temporary directory is 
 different, or the checkpoint was deleted.
@@ -147,7 +148,7 @@ different, or the checkpoint was deleted.
 
 A L<Perl::Dist::Util::Toolchain|Perl::Dist::Util::Toolchain> 
 object was not passed to 
-L<Perl::Dist::WiX-E<gt>install_perl_toolchain|/install_perl_toolchain>, 
+L<< Perl::Dist::WiX->install_perl_toolchain|Perl::Dist::WiX::BuildPerl/install_perl_toolchain >>, 
 and that method was unable to create one.
 
 =item C<< Cannot install CPAN modules yet, perl is not installed >>

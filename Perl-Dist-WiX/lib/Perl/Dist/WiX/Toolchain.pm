@@ -39,8 +39,8 @@ L<Module::Build|Module::Build>, L<ExtUtils::MakeMaker|ExtUtils::MakeMaker>,
 and L<CPANPLUS|CPANPLUS> (for 5.10.x+ versions of Perl) to be able to
 install additional modules.
 
-It does not include L<DBD::SQLite> or the modules that are required in order
-for C<CPAN> or C<CPANPLUS> to use it.
+It does not include L<DBD::SQLite|DBD::SQLite> or the modules that are 
+required in order for C<CPAN> or C<CPANPLUS> to use it.
 
 It is a subclass of L<Process::Delegatable|Process::Delegatable> and of
 L<Process|Process>.
@@ -396,7 +396,8 @@ has _delegated => (
 
   $toolchain->get_error();
 
-Retrieves any errors that are returned by L<Process::Delegatable>.
+Retrieves any errors that are returned by 
+L<Process::Delegatable|Process::Delegatable>.
 
 =cut
 

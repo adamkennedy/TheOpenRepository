@@ -40,7 +40,7 @@ The C<install_to> argument of the
 L<Perl::Dist::WiX::Asset::Library|Perl::Dist::WiX::Asset::Library> 
 asset is not supported by the PAR asset.
 
-See L<PAR FILE FORMAT EXTENSIONS> below for details on how non-Perl binaries
+See L</PAR FILE FORMAT EXTENSIONS> below for details on how non-Perl binaries
 are installed.
 
 =cut
@@ -228,7 +228,8 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Asset>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT AND LICENSE
 

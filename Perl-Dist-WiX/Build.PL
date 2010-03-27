@@ -22,8 +22,8 @@ require Module::CoreList;
 if ($Module::CoreList::VERSION < 2.27) {
 	print <<'EOF';
 To install the version of Module::CoreList required, you'll need to
-download perl-5.12.0-RC0 and cd to its dist/Module-CoreList directory
-and run 'cpan .' there before installing this. 
+download perl-5.12.0-RC0, copy its dist/Module-CoreList directory
+someplace else, and run 'cpan .' there before installing this. 
 
 EOF
 	die "Please upgrade Module::Corelist as instructed above.\n\n";
@@ -38,7 +38,7 @@ my $requires = {
 	'Alien::WiX'                => '0.300000',
 	'Archive::Tar'              => '1.42',
 	'Archive::Zip'              => '1.26',
-	'CPAN'                      => '1.9454',
+	'CPAN'                      => '1.9456',
 	'Data::Dump::Streamer'      => '2.08',
 	'Data::UUID'                => '1.149',
 	'Digest::CRC'               => '0.14',
@@ -143,7 +143,7 @@ my $builder = $class->new(
 #	sign                => 1,
 	configure_requires => {
 		'Module::Build'             => '0.36',
-		'CPAN'                      => '1.9454',
+		'CPAN'                      => '1.9456',
 	},
 	requires => $requires,
 	build_requires => {

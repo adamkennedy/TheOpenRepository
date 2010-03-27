@@ -12,7 +12,7 @@ BEGIN {
 
 my @MODULES = (
 	'Pod::Simple 3.07',
-	'Test::Pod 1.26',
+	'Test::Pod 1.41',
 );
 
 # Load the testing modules
@@ -24,4 +24,20 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-all_pod_files_ok();
+%Test::Pod::ignore_dirs = %Test::Pod::ignore_dirs = (
+    '.bzr'  => 'Bazaar',
+    '.git'  => 'Git',
+    '.hg'   => 'Mercurial',
+    '.pc'   => 'quilt',
+    '.svn'  => 'Subversion',
+    CVS     => 'CVS',
+    RCS     => 'RCS',
+    SCCS    => 'SCCS',
+    _darcs  => 'darcs',
+    _sgbak  => 'Vault/Fortress',
+	default => 'Perl::Dist::WiX default patch files directory'	
+);
+
+my @files = sort { $a cmp $b } all_pod_files();
+
+all_pod_files_ok( @files );

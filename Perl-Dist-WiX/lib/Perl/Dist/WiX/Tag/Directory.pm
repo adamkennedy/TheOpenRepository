@@ -69,7 +69,8 @@ and returns a new B<Perl::Dist::WiX::Tag::Directory> object.
 If an error occurs, it throws an exception.
 
 It inherits all the parameters described in the 
-L<WiX3::XML::Directory> C<new> method documentation.
+L<< WiX3::XML::Directory->new()|WiX3::XML::Directory/new >> method 
+documentation.
 
 =head2 add_directories_id
 
@@ -126,7 +127,7 @@ sub add_directories_id {
 
 =head2 get_directory_object
 
-get_directory_object returns the L<Perl::Dist::WiX::Tag::Directory> object
+get_directory_object returns the C<Perl::Dist::WiX::Tag::Directory> object
 with the id that was passed in as the only parameter, as long as it is a 
 child tag of this tag, or a grandchild/great-grandchild/etc. of this tag.
 
@@ -308,7 +309,7 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, 
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
 L<http://wix.sourceforge.net/manual-wix3/wix_xsd_directory.htm>,
 
 =head1 COPYRIGHT

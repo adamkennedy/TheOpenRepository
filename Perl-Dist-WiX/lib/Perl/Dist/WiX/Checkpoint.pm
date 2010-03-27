@@ -121,7 +121,7 @@ sub checkpoint_self {
 =head2 checkpoint_save
 
 Saves a checkpoint within the checkpoint subdirectory of 
-L<Perl::Dist::WiX-E<gt>temp_dir|Perl::Dist::WiX/temp_dir>
+L<< Perl::Dist::WiX->temp_dir|Perl::Dist::WiX/temp_dir >>
 
 =cut
 
@@ -166,7 +166,7 @@ sub checkpoint_save {
 =head2 checkpoint_load
 
 Restores a checkpoint saved to the checkpoint subdirectory of 
-L<Perl::Dist::WiX-E<gt>temp_dir|Perl::Dist::WiX/temp_dir> with 
+L<< Perl::Dist::WiX->temp_dir|Perl::Dist::WiX/temp_dir >> with 
 L</checkpoint_save>.
 
 =cut

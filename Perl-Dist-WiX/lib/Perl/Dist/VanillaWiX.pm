@@ -39,7 +39,7 @@ use strict;
 use warnings;
 use parent qw(Perl::Dist::WiX);
 
-our $VERSION = '1.102_101';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 #####################################################################
@@ -49,7 +49,7 @@ $VERSION =~ s/_//ms;
 
 =head2 new
 
-See L<Perl::Dist::WiX-E<gt>new|Perl::Dist::WiX/new>.
+See L<< Perl::Dist::WiX->new()|Perl::Dist::WiX/new >>.
 
 =cut
 
@@ -58,7 +58,7 @@ sub new {
 	my %args;
 
 	# Check for the correct version of Perl::Dist::WiX.
-	Perl::Dist::WiX->VERSION(1.102);
+	Perl::Dist::WiX->VERSION(1.102103);
 
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };

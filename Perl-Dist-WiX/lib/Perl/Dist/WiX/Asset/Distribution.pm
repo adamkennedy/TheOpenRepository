@@ -21,7 +21,7 @@ This document describes Perl::Dist::WiX::Asset::Distribution version 1.102_103.
 
 =head1 DESCRIPTION
 
-L<Perl::Dist::WiX> supports two methods for adding Perl modules to the
+L<Perl::Dist::WiX|Perl::Dist::WiX> supports two methods for adding Perl modules to the
 installation. The main method is to install it via the CPAN shell.
 
 The second is to download, make, test and install the Perl distribution
@@ -39,7 +39,7 @@ or a development release is known to be good.
 
 B<Perl::Dist::WiX::Asset::Distribution> is a data class that provides
 encapsulation and error checking for a "Perl Distribution" to be
-installed in a L<Perl::Dist::WiX>-created installer using this
+installed in a C<Perl::Dist::WiX>-created installer using this
 secondary method.
 
 It is normally created on the fly by the Perl::Dist::WiX
@@ -73,7 +73,7 @@ The C<new> constructor takes a series of parameters, validates then
 and returns a new B<Perl::Dist::WiX::Asset::Distribution> object.
 
 It inherits all the parameters described in the 
-L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+L<< Perl::Dist::WiX::Role::Asset->new|Perl::Dist::WiX::Role::Asset/new >> 
 method documentation, and adds the additional parameters described below.
 
 =head3 name
@@ -173,8 +173,8 @@ tests should be run with the additional C<RELEASE_TESTING> environment
 flag set.
 
 By default, C<release_testing> is set to false to squelch any accidental
-execution of release tests when L<Perl::Dist::WiX> itself is being tested
-under C<RELEASE_TESTING>.
+execution of release tests when L<Perl::Dist::WiX|Perl::Dist::WiX> itself 
+is being tested under C<RELEASE_TESTING>.
 
 =cut
 
@@ -357,7 +357,7 @@ it in filenames.
 
 The install method installs the distribution described by the
 B<Perl::Dist::WiX::Asset::Distribution> object and returns a list of files
-that were installed as a L<File::List::Object> object.
+that were installed as a L<File::List::Object|File::List::Object> object.
 
 =cut
 
@@ -501,7 +501,8 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
 

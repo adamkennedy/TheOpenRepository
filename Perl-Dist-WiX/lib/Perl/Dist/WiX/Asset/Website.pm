@@ -40,15 +40,17 @@ with 'Perl::Dist::WiX::Role::Asset';
 
 =head1 METHODS
 
-This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
+This class is a L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset> 
+and shares its API.
 
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates then
 and returns a new B<Perl::Dist::WiX::Asset::Website> object.
 
-It inherits all the params described in the L<Perl::Dist::WiX::Role::Asset> 
-C<new> method documentation, and adds some additional params.
+It inherits all the params described in the 
+L<< Perl::Dist::WiX::Role::Asset->new()|Perl::Dist::WiX::Role::Asset/new >> 
+method documentation, and adds some additional params.
 
 =head3 name
 
@@ -241,7 +243,8 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
 

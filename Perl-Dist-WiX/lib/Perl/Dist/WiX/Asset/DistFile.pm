@@ -21,8 +21,9 @@ This document describes Perl::Dist::WiX::Asset::DistFile version 1.102_103.
 
 =head1 DESCRIPTION
 
-L<Perl::Dist::WiX> supports two methods for adding Perl modules to the
-installation. The main method is to install it via the CPAN shell.
+L<Perl::Dist::WiX|Perl::Dist::WiX> supports two methods for adding Perl 
+modules to the installation. The main method is to install it via the 
+CPAN shell.
 
 The second is to download, make, test and install the Perl distribution
 package independently, avoiding the use of the CPAN client. Unlike the
@@ -39,7 +40,7 @@ or a development release is known to be good.
 
 B<Perl::Dist::WiX::Asset::DistFile> is a data class that provides
 encapsulation and error checking for a "Perl Distribution" to be
-installed in a L<Perl::Dist::WiX>-based Perl distribution using this
+installed in a C<Perl::Dist::WiX>-based Perl distribution using this
 secondary method that comes from a file on disk (possibly in a share 
 directory.)
 
@@ -47,7 +48,8 @@ It is normally created on the fly by the Perl::Dist::WiX
 C<install_distribution_from_file> method (and other things that call it).
 
 The specification of the location to retrieve the package is done via
-the standard mechanism implemented in L<Perl::Dist::WiX::Role::Asset>.
+the standard mechanism implemented in 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>.
 
 =cut
 
@@ -78,7 +80,7 @@ The C<new> constructor takes a series of parameters, validates then
 and returns a new C<Perl::Dist::WiX::Asset::DistFile> object.
 
 It inherits all the parameters described in the 
-L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+L<< Perl::Dist::WiX::Role::Asset->new|Perl::Dist::WiX::Role::Asset/new() >> 
 method documentation, and adds the additional parameters described below.
 
 =cut
@@ -150,8 +152,8 @@ tests should be run with the additional C<RELEASE_TESTING> environment
 flag set.
 
 By default, C<release_testing> is set to false to squelch any accidental
-execution of release tests when L<Perl::Dist::WiX> itself is being tested
-under C<RELEASE_TESTING>.
+execution of release tests when L<Perl::Dist::WiX|Perl::Dist::WiX> itself 
+is being tested under C<RELEASE_TESTING>.
 
 =cut
 
@@ -217,7 +219,7 @@ has packlist => (
 
 The install method installs the distribution described by the
 B<Perl::Dist::WiX::Asset::DistFile> object and returns a list of files
-that were installed as a L<File::List::Object> object.
+that were installed as a L<File::List::Object|File::List::Object> object.
 
 =cut
 
@@ -345,7 +347,8 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
 

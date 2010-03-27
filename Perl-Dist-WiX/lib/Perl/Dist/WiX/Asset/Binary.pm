@@ -28,9 +28,10 @@ This document describes Perl::Dist::WiX::Asset::Binary version 1.102_103.
 
 B<Perl::Dist::WiX::Asset::Binary> is a data class that provides encapsulation
 and error checking for a "binary package" to be installed in a
-L<Perl::Dist::WiX>-based Perl distribution.
+L<Perl::Dist::WiX|Perl::Dist::WiX>-based Perl distribution.
 
-It is normally created on the fly by the L<Perl::Dist::WiX::Installation> 
+It is normally created on the fly by the 
+L<Perl::Dist::WiX::Installation|Perl::Dist::WiX::Installation> 
 C<install_binary> method (and other things that call it).
 
 These packages will be simple zip or tar.gz files that are local files,
@@ -38,7 +39,8 @@ installed in a CPAN distribution's 'share' directory, or retrieved from
 the internet via a URI.
 
 The specification of the location to retrieve the package is done via
-the standard mechanism implemented in L<Perl::Dist::WiX::Asset>.
+the standard mechanism implemented in 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>.
 
 =cut
 
@@ -54,7 +56,8 @@ with 'Perl::Dist::WiX::Role::Asset';
 
 =head1 METHODS
 
-This class inherits from L<Perl::Dist::WiX::Asset> and shares its API.
+This class inherits from L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Asset> 
+and shares its API.
 
 =head2 new
 
@@ -62,7 +65,7 @@ The C<new> constructor takes a series of parameters, validates then
 and returns a new C<Perl::Dist::WiX::Asset::Library> object.
 
 It inherits all the parameters described in the 
-L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+L<< Perl::Dist::WiX::Role::Asset->new()|Perl::Dist::WiX::Role::Asset/new >> 
 method documentation, and adds the additional parameters described below.
 
 =head3 name
@@ -98,9 +101,9 @@ extract the directories or files to, relative to the image directory of
 the distribution.
 
 Although this param does not default when called directly, in practice
-the L<Perl::Dist::WiX> C<install_binary> method will default this value
-to "c", as most binary installations are for C toolchain tools or 
-pre-compiled C libraries.
+the L<Perl::Dist::WiX|Perl::Dist::WiX> C<install_binary> method will 
+default this value to "c", as most binary installations are for C toolchain 
+tools or pre-compiled C libraries.
 
 =cut
 
@@ -210,7 +213,8 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Asset>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT AND LICENSE
 

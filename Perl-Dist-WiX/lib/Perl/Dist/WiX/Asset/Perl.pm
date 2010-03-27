@@ -63,7 +63,7 @@ The C<new> constructor takes a series of parameters, validates then
 and returns a new C<Perl::Dist::WiX::Asset::Perl> object.
 
 It inherits all the parameters described in the 
-L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+L<< Perl::Dist::WiX::Role::Asset->new()|Perl::Dist::WiX::Role::Asset/new >> 
 method documentation, and adds the additional parameters described below.
 
 =head3 name
@@ -119,7 +119,7 @@ patched before the distribution is built.
 
 These files will be in the 'perl-VERSION' subdirectory of any directory in
 the list of directories returned by 
-L<Perl::Dist::WiX/patch_pathlist|Perl::Dist::WiX-E<gt>patch_pathlist>
+L<< Perl::Dist::WiX->patch_pathlist()|Perl::Dist::WiX/patch_pathlist >>
 (which subclasses can add to.)
 
 VERSION is 'git' for git checkouts.
@@ -128,7 +128,7 @@ The patch files can either have the names of original files (in which case
 the files are copied) or can have an additional extension of C<.tt> (in 
 which case the files are processed through Template Toolkit, with the 
 parameters described in 
-L<Perl::Dist::WiX/patch_file|Perl::Dist::WiX-E<gt>patch_file>.)
+L<< Perl::Dist::WiX->patch_file()|Perl::Dist::WiX/patch_file >>.)
 
 The makefile.mk is automatically patched, is not mentioned here, and 
 cannot be overriden by subclasses.
@@ -443,7 +443,8 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, L<Perl::Dist::WiX::Role::Asset>
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
 
 =head1 COPYRIGHT
 
