@@ -137,16 +137,22 @@ __END__
 
 Perl::Dist::WiX::Asset::DistBase - Support routines for distribution assets.
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Asset::DistBase version 1.102_103.
+
 =head1 SYNOPSIS
 
 	# Not to be used independently.
 
 =head1 DESCRIPTION
 
-This module provides support routines that 
+This module provides private support routines that 
 L<Perl::Dist::WiX::Asset::Distribution|Perl::Dist::WiX::Asset::Distribution> 
 and L<Perl::Dist::WiX::Asset::DistFile|Perl::Dist::WiX::Asset::DistFile> 
 both use.
+
+There are no public methods defined by this module.
 
 =head1 SUPPORT
 

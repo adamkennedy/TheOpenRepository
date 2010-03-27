@@ -1,83 +1,5 @@
 package Perl::Dist::WiX::Asset::Binary;
 
-use 5.008001;
-use Moose;
-use MooseX::Types::Moose qw( Str HashRef Maybe );
-use File::Spec::Functions qw( catdir );
-
-our $VERSION = '1.102';
-$VERSION =~ s/_//ms;
-
-with 'Perl::Dist::WiX::Role::Asset';
-
-has name => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_name',
-	required => 1,
-);
-
-has install_to => (
-	is      => 'ro',
-	isa     => Str | HashRef,
-	reader  => '_get_install_to',
-	default => 'c',
-);
-
-has license => (
-	is      => 'ro',
-	isa     => Maybe [HashRef],
-	reader  => '_get_license',
-	default => undef,
-);
-
-sub install {
-	my $self = shift;
-
-	my $name = $self->_get_name();
-	$self->_trace_line( 1, "Preparing $name\n" );
-
-	# Download the file
-	my $tgz = $self->_mirror( $self->_get_url, $self->_get_download_dir, );
-
-	# Unpack the archive
-	my @files;
-	my $install_to = $self->_get_install_to();
-	if ( ref $install_to eq 'HASH' ) {
-		@files =
-		  $self->_extract_filemap( $tgz, $install_to,
-			$self->_get_image_dir );
-
-	} elsif ( !ref $install_to ) {
-
-		# unpack as a whole
-		my $tgt = catdir( $self->_get_image_dir(), $install_to );
-		@files = $self->_extract( $tgz, $tgt );
-	}
-
-	# Find the licenses
-	my $licenses = $self->_get_license();
-	if ( defined $licenses ) {
-		push @files,
-		  $self->_extract_filemap( $tgz, $licenses, $self->_get_license_dir,
-			1 );
-	}
-
-	my $filelist =
-	  File::List::Object->new()->load_array(@files)
-	  ->filter( $self->_filters );
-
-	return $filelist;
-} ## end sub install
-
-no Moose;
-__PACKAGE__->meta->make_immutable;
-
-
-1;
-
-__END__
-
 =pod
 
 =head1 NAME
@@ -118,6 +40,18 @@ the internet via a URI.
 The specification of the location to retrieve the package is done via
 the standard mechanism implemented in L<Perl::Dist::WiX::Asset>.
 
+=cut
+
+use 5.008001;
+use Moose;
+use MooseX::Types::Moose qw( Str HashRef Maybe );
+use File::Spec::Functions qw( catdir );
+
+our $VERSION = '1.102_103';
+$VERSION =~ s/_//ms;
+
+with 'Perl::Dist::WiX::Role::Asset';
+
 =head1 METHODS
 
 This class inherits from L<Perl::Dist::WiX::Asset> and shares its API.
@@ -125,55 +59,141 @@ This class inherits from L<Perl::Dist::WiX::Asset> and shares its API.
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Asset::Binary> object.
+and returns a new C<Perl::Dist::WiX::Asset::Library> object.
 
-It inherits all the params described in the L<Perl::Dist::WiX::Asset> C<new>
-method documentation, and adds some additional params.
+It inherits all the parameters described in the 
+L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+method documentation, and adds the additional parameters described below.
 
-=over 4
+=head3 name
 
-=item name
+The required C<name> parameter is the name of the package for the purposes 
+of identification in messages.
 
-The required C<name> param is the logical (arbitrary) name of the package
-for the purposes of identification.
+=cut
 
-=item license
 
-During the installation build process, licenses files are pulled from
-the various source packages and written to a single dedicated directory.
 
-The optional C<license> param should be a reference to a HASH, where the keys
-are the location of license files within the package, and the values are
-locations within the "licenses" subdirectory of the final installation.
+has name => (
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_name',
+	required => 1,
+);
+
+
 
 =item install_to
 
-The required C<install_to> param describes the location that the package
-will be installed to.
+The required C<install_to> parameter allows you to specify which 
+directories or files get installed in which subdirectories of the image 
+directory of the distribution.
 
-If the C<install_to> param is a single string, such as "c" or "perl\foo"
-the entire binary package will be installed, with the root of the package
-archive being placed in the directory specified.
+If a string is passed in, it is a location relative to the image directory, 
+and the whole binary is extracted to that location.
 
-If the C<install_to> param is a reference to a HASH, it is taken to mean
-that only some parts of the original binary package are required in the
-final install. In this case, the keys should be the file or directories
-desired, and the values are the names of the file or directory in the
-final Perl installation.
+If a hash reference is passed in, the keys are the directories or files 
+to extract from the archive file, while the values are the locations to 
+extract the directories or files to, relative to the image directory of 
+the distribution.
 
 Although this param does not default when called directly, in practice
 the L<Perl::Dist::WiX> C<install_binary> method will default this value
 to "c", as most binary installations are for C toolchain tools or 
 pre-compiled C libraries.
 
-=back
+=cut
 
-The C<new> constructor returns a B<Perl::Dist::Asset::Binary> object,
-or throws an exception (dies) if an invalid param is provided.
+
+
+has install_to => (
+	is      => 'ro',
+	isa     => Str | HashRef,
+	reader  => '_get_install_to',
+	default => 'c',
+);
+
+
+
+=item license
+
+The C<license> parameter allows you to specify which files get 
+copied to the license directory of the distribution.
+
+The keys are the files to copy, as relative filenames from the subdirectory
+named in C<unpack_to>. If the tarball is properly made, the filenames will 
+include the name and version of the library.
+
+The values are the locations to copy them to, relative to the license 
+directory of the distribution.
+
+=cut
+
+
+
+has license => (
+	is      => 'ro',
+	isa     => Maybe [HashRef],
+	reader  => '_get_license',
+	default => undef,
+);
+
+
 
 =head2 install
 
-The C<install> method extracts and installs the archive file.
+The C<install> method extracts and installs the archive file using the 
+directions described in the C<Perl::Dist::WiX::Asset::Binary> object.
+
+=cut
+
+
+
+sub install {
+	my $self = shift;
+
+	my $name = $self->_get_name();
+	$self->_trace_line( 1, "Preparing $name\n" );
+
+	# Download the file
+	my $tgz = $self->_mirror( $self->_get_url(), $self->_get_download_dir(), );
+
+	# Unpack the archive
+	my @files;
+	my $install_to = $self->_get_install_to();
+	if ( ref $install_to eq 'HASH' ) {
+		@files =
+		  $self->_extract_filemap( $tgz, $install_to,
+			$self->_get_image_dir );
+
+	} elsif ( !ref $install_to ) {
+
+		# unpack as a whole
+		my $tgt = catdir( $self->_get_image_dir(), $install_to );
+		@files = $self->_extract( $tgz, $tgt );
+	}
+
+	# Find the licenses
+	my $licenses = $self->_get_license();
+	if ( defined $licenses ) {
+		push @files,
+		  $self->_extract_filemap( $tgz, $licenses, $self->_get_license_dir,
+			1 );
+	}
+
+	my $filelist =
+	  File::List::Object->new()->load_array(@files)
+	  ->filter( $self->_filters );
+
+	return $filelist;
+} ## end sub install
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
+1;
+
+__END__
 
 =head1 SUPPORT
 

@@ -6,35 +6,37 @@ package Perl::Dist::WiX::Util::Machine;
 
 Perl::Dist::WiX::Util::Machine - Generate an entire set of related distributions
 
-=head1 DESCRIPTION
+=head1 VERSION
 
-Perl::Dist::WiX::Util::Machine is a Perl::Dist multiplexor.
-
-It provides the functionality required to generate several
-variations of a distribution at the same time.
+This document describes Perl::Dist::WiX::Util::Machine version 1.102_103.
 
 =head1 SYNOPSIS
 
-	# This is what Perl::Dist::Strawberry does, as of version 2.00_02.
+	# This is what Perl::Dist::Strawberry will do, as of version 2.03.
 
 	# Create the machine
 	my $machine = Perl::Dist::WiX::Util::Machine->new(
-		class => 'Perl::Dist::Strawberry',
+		class  => 'Perl::Dist::Strawberry',
 		common => [ forceperl => 1 ],
+		skip   => [6, 8],
 	);
 
 	# Set the different versions
 	$machine->add_dimension('version');
 	$machine->add_option('version',
 		perl_version => '589',
-	    build_number => 2,
+	    build_number => 5,
 	);
 	$machine->add_option('version',
 		perl_version => '5101',
 	);
 	$machine->add_option('version',
-		perl_version => '5100',
+		perl_version => '5101',
 		portable     => 1,
+	);
+	$machine->add_option('version',
+		perl_version => '5120',
+		relocatable  => 1,
 	);
 
 	# Set the different paths
@@ -49,8 +51,34 @@ variations of a distribution at the same time.
 	);
 
 	$machine->run();
-	# Creates 6 distributions (really 5, because you can't have
-	# portable => 1 and zip => 0 for the same distribution.)	
+	# Creates 8 distributions (really 6, because you can't have
+	# portable => 1 and zip => 0 for the same distribution,
+	# nor do we need to build a relocatable version twice.)	
+
+=head1 DESCRIPTION
+
+Perl::Dist::WiX::Util::Machine is a Perl::Dist::WiX multiplexer.
+
+It provides the functionality required to generate several
+variations of a distribution at the same time.
+
+=cut
+	
+use 5.008001;
+use Moose 0.90;
+use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool );
+use Params::Util qw( _IDENTIFIER _HASH0 _DRIVER _CLASSISA );
+use English qw( -no_match_vars );
+use File::Copy qw();
+use File::Copy::Recursive qw();
+use File::Spec::Functions qw( catdir );
+use File::Remove qw();
+use File::HomeDir qw();
+use List::MoreUtils qw( none );
+use Perl::Dist::WiX::Exceptions;
+
+our $VERSION = '1.102_103';
+$VERSION =~ s/_//ms;
 
 =head1 INTERFACE
 
@@ -58,24 +86,61 @@ variations of a distribution at the same time.
 
 	my $machine = Perl::Dist::WiX::Util::Machine->new(
 		class => 'Perl::Dist::WiX',
-		common => [ forceperl => 1, ],
+		common => { forceperl => 1, },
 		output => 'C:\',
 	);
 
-This method creates a new machine to generate multiple distributions, 
-using two required parameters and one optional parameter.
+This method creates a new object that generates multiple distributions,
+using the parameters below.
 
 =head3 class (required)
 
-This parameter specifies the class that the machine uses to create 
-distributions.
+This required parameter specifies the class that this object uses to 
+create distributions.
 
 It must be a subclass of L<Perl::Dist::WiX|Perl::Dist::WiX>.
 
-=head3 common (required)
+=cut
 
-This parameter specifies the parameters that are common to all the 
-distributions that will be created.
+
+
+has class => (
+	is       => 'ro',
+	isa => subtype(
+		'Str' => where {
+			_CLASSISA( $_, 'Perl::Dist::WiX' );
+		},
+		message {
+			'Not a subclass of Perl::Dist::WiX.';
+		},
+	),
+	required => 1,
+	reader   => '_get_class',
+);
+
+
+
+=head3 common
+
+This required parameter specifies the parameters that are common to all 
+the distributions that will be created, as an array or hash reference.
+
+For the parameters that you can put here, see the documentation for the
+class that is specified in the C<'class'> parameter and its subclasses.
+
+=cut
+
+
+
+has common => (
+	traits   => ['Array'],
+	is       => 'bare',
+	isa      => ArrayRef,
+	required => 1,
+	handles  => { '_get_common' => 'elements', },
+);
+
+
 
 =head3 output (optional)
 
@@ -86,30 +151,50 @@ thinks is the desktop.
 
 =cut
 
-use 5.008001;
-use Moose 0.90;
-use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool );
-use Params::Util qw( _IDENTIFIER _HASH0 _DRIVER );
-use English qw( -no_match_vars );
-use File::Copy qw();
-use File::Copy::Recursive qw();
-use File::Spec::Functions qw( catdir );
-use File::Remove qw();
-use File::HomeDir qw();
-use List::MoreUtils qw( none );
-use Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.102';
-$VERSION =~ s/_//ms;
 
-has class => (
-	is       => 'ro',
-	isa      => Str,
-	required => 1,
-	reader   => '_get_class',
+has output => (
+	is      => 'ro',
+	isa     => Str,
+	default => sub { return File::HomeDir->my_desktop(); },
+	reader  => '_get_output',
 );
 
-has dimensions => (
+
+
+=head3 skip (optional)
+
+This is a reference to a list of distributions to skip building, in numerical order.
+
+Note that the numerical order the distributions is dependent on which order 
+you put the dimensions in - the last dimension is changed first. For 
+example, if there are 3 dimensions, with the first dimension having 3 
+options and the other 2 dimensions having 2 options, the numbering is 
+as follows:
+
+   1: 1, 1, 1   2: 1, 1, 2   3: 1, 2, 1   4: 1, 2, 2
+   5: 2, 1, 1 ...   
+   9: 3, 1, 1 ...
+
+If you wanted to skip the two distributions where the first dimension was 
+going to use its second option and the last dimension was going to use its 
+first option, you would pass [ 5, 7 ] to this option.
+   
+=cut
+
+
+
+has skip => (
+	traits  => ['Array'],
+	is      => 'bare',
+	isa     => ArrayRef,
+	default => sub { return [0]; },
+	handles => { '_get_skip_values' => 'elements', },
+);
+
+
+
+has _dimensions => (
 	traits   => ['Array'],
 	is       => 'bare',
 	isa      => ArrayRef,
@@ -121,15 +206,7 @@ has dimensions => (
 	},
 );
 
-has skip => (
-	traits  => ['Array'],
-	is      => 'bare',
-	isa     => ArrayRef,
-	default => sub { return [0]; },
-	handles => { '_get_skip_values' => 'elements', },
-);
-
-has options => (
+has _options => (
 	traits   => ['Hash'],
 	is       => 'bare',
 	isa      => HashRef,
@@ -143,7 +220,7 @@ has options => (
 	},
 );
 
-has state => (
+has _state => (
 	traits   => ['Hash'],
 	is       => 'bare',
 	isa      => HashRef,
@@ -156,9 +233,9 @@ has state => (
 	},
 );
 
-has eos => (
+has _eos => (
 	traits   => ['Bool'],
-	is       => 'ro',
+	is       => 'bare',
 	isa      => Bool,
 	default  => 0,
 	init_arg => undef,
@@ -166,20 +243,6 @@ has eos => (
 	handles  => { '_set_eos' => 'set', },
 );
 
-has output => (
-	is      => 'ro',
-	isa     => Str,
-	default => sub { return File::HomeDir->my_desktop; },
-	reader  => '_get_output',
-);
-
-has common => (
-	traits   => ['Array'],
-	is       => 'bare',
-	isa      => ArrayRef,
-	required => 1,
-	handles  => { '_get_common' => 'elements', },
-);
 
 #####################################################################
 # Constructor
@@ -215,7 +278,7 @@ sub BUILD {
 	my $output = $self->_get_output();
 	unless ( -d $output and -w $output ) {
 		PDWiX->throw(
-"The output directory '$output' does not exist, or is not writable"
+"The output directory '$output' does not " . 'exist, or is not writable'
 		);
 	}
 
@@ -244,6 +307,8 @@ generated.
 
 =cut
 
+
+
 sub add_dimension {
 	my $self = shift;
 	my $name = _IDENTIFIER(shift)
@@ -260,11 +325,27 @@ sub add_dimension {
 	return 1;
 } ## end sub add_dimension
 
+
+
 =head2 add_option
+
+  $machine->add_option('perl_version',
+    perl_version => '5120',
+    relocatable => 1,
+  );
 
 Adds a 'option' (a set of parameters that can change) to a dimension. 
 
+The first parameter is the dimension to add the option to, and the 
+other parameters are stored in the dimension to be used when creating
+objects.
+
+The combination of the C<'common'> parameters and one option from each
+dimension is used when creating or iterating through distribution objects.
+
 =cut
+
+
 
 sub add_option {
 	my $self = shift;
@@ -298,6 +379,8 @@ sub _increment_state {
 	return;
 }
 
+
+
 =head2 all
 
 	my @dists = $machine->all();
@@ -306,6 +389,8 @@ Returns an array of objects that create all the possible
 distributions configured for this machine. 
 
 =cut
+
+
 
 sub all {
 	my $self    = shift;
@@ -317,14 +402,18 @@ sub all {
 	return @objects;
 }
 
+
+
 =head2 next
 
 	my $dist = $machine->next();
 
-Returns an objects that creates the next possible 
+Returns an object that creates the next possible 
 distribution that is configured for this machine. 
 
 =cut
+
+
 
 sub next { ## no critic (ProhibitBuiltinHomonyms)
 	## no critic (ProhibitExplicitReturnUndef)
@@ -375,7 +464,7 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 
 	} ## end else [ if ( $self->_has_state...)]
 
-	# Create the param-set
+	# Create the parameter-set
 	my @params = $self->_get_common();
 	foreach my $name ( $self->_get_dimensions() ) {
 		my $i = $self->_get_state($name);
@@ -393,6 +482,8 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 #####################################################################
 # Execution Methods
 
+
+
 =head2 run
 
 	$machine->run();
@@ -401,6 +492,8 @@ Tries to create and execute each object that can be created by this
 machine.
 
 =cut
+
+
 
 sub run {
 	my $self       = shift;

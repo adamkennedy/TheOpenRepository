@@ -13,9 +13,10 @@ This document describes Perl::Dist::WiX::Asset::Distribution version 1.102_103.
 =head1 SYNOPSIS
 
   my $distribution = Perl::Dist::WiX::Asset::Distribution->new(
-      name  => 'MSERGEANT/DBD-SQLite-1.14.tar.gz',
+      parent   => $dist,
+      name     => 'MSERGEANT/DBD-SQLite-1.14.tar.gz',
 	  mod_name => 'DBD::SQLite',
-      force => 1,
+      force    => 1,
   );
 
 =head1 DESCRIPTION
@@ -61,15 +62,51 @@ $VERSION =~ s/_//ms;
 with 'Perl::Dist::WiX::Role::Asset';
 extends 'Perl::Dist::WiX::Asset::DistBase';
 
+=head1 METHODS
+
+This class is a L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>
+and shares its API.
+
+=head2 new
+
+The C<new> constructor takes a series of parameters, validates then
+and returns a new B<Perl::Dist::WiX::Asset::Distribution> object.
+
+It inherits all the parameters described in the 
+L<Perl::Dist::WiX::Role::Asset/new|Perl::Dist::WiX::Role::Asset-E<gt>new()> 
+method documentation, and adds the additional parameters described below.
+
+=head3 name
+
+The required C<name> param is the CPAN path to the distribution
+such as shown in the synopsis.
+
+The url to fetch from will be derived from the name.
+
+=cut
+
+
+
 has name => (
-	is       => 'ro',
+	is       => 'bare',
 	isa      => Str,
 	reader   => 'get_name',
 	required => 1,
 );
 
+
+
+=head3 mod_name
+
+The required C<mod_name> param is the name of the main module being 
+installed. This is used to create the fragment name.
+
+=cut
+
+
+
 has module_name => (
-	is       => 'ro',
+	is       => 'bare',
 	isa      => Maybe [Str],
 	reader   => 'get_module_name',
 	init_arg => 'mod_name',
@@ -77,13 +114,45 @@ has module_name => (
 	default  => sub { return $_[0]->_name_to_module(); },
 );
 
+
+
+=head3 force
+
+The optional boolean C<force> param allows you to specify that the tests
+should be skipped and the distribution installed without validating it.
+
+It defaults to the force() attribute of the parent.
+
+=cut
+
+
+
 has force => (
 	is      => 'ro',
 	isa     => Bool,
 	reader  => '_get_force',
 	lazy    => 1,
-	default => sub { !!$_[0]->_get_parent()->force },
+	default => sub { !!$_[0]->_get_parent()->force() },
 );
+
+
+
+=head3 automated_testing
+
+Many modules contain additional long-running tests, tests that require
+additional dependencies, or have differing behaviour when installing
+in a non-user automated environment.
+
+The optional C<automated_testing> param lets you specify that the
+module should be installed with the B<AUTOMATED_TESTING> environment
+variable set to true, to make the distribution behave properly in an
+automated environment (in cases where it doesn't otherwise).
+
+Defaults to false.
+
+=cut
+
+
 
 has automated_testing => (
 	is      => 'ro',
@@ -92,12 +161,45 @@ has automated_testing => (
 	default => 0,
 );
 
+
+
+=head3 release_testing
+
+Some modules contain release-time only tests, that require even heavier
+additional dependencies compared to even the C<automated_testing> tests.
+
+The optional C<release_testing> param lets you specify that the module
+tests should be run with the additional C<RELEASE_TESTING> environment
+flag set.
+
+By default, C<release_testing> is set to false to squelch any accidental
+execution of release tests when L<Perl::Dist::WiX> itself is being tested
+under C<RELEASE_TESTING>.
+
+=cut
+
+
+
 has release_testing => (
 	is      => 'ro',
 	isa     => Bool,
 	reader  => '_get_release_testing',
 	default => 0,
 );
+
+
+
+=head3 makefilepl_param
+
+Some distributions illegally require you to pass additional non-standard
+parameters when you invoke "perl Makefile.PL".
+
+The optional C<makefilepl_param> param should be a reference to an ARRAY
+where each element contains the argument to pass to the Makefile.PL.
+
+=cut
+
+
 
 has makefilepl_param => (
 	is      => 'ro',
@@ -106,12 +208,40 @@ has makefilepl_param => (
 	default => sub { return [] },
 );
 
+
+
+=head3 buildpl_param
+
+Some distributions require you to pass additional non-standard
+parameters when you invoke "perl Build.PL".
+
+The optional C<buildpl_param> param should be a reference to an ARRAY
+where each element contains the argument to pass to the Build.PL.
+
+=cut
+
+
+
 has buildpl_param => (
 	is      => 'ro',
 	isa     => ArrayRef,
 	reader  => '_get_buildpl_param',
 	default => sub { return [] },
 );
+
+
+
+=head3 packlist
+
+The optional C<packlist> param lets you specify whether this distribution 
+creates a packlist (which is a quick way to verify which files are installed
+by the distribution).
+
+This parameter defaults to true.
+
+=cut
+
+
 
 has packlist => (
 	is      => 'ro',
@@ -120,12 +250,28 @@ has packlist => (
 	default => 1,
 );
 
+
+
+=head3 overwritable
+
+Some distributions (ExtUtils::MakeMaker, for example) install files that
+are overwritten by distributions installed after it.
+
+The optional C<overwritable> param lets you spedify that this is the case, 
+and defaults to false.
+
+=cut
+
+
+
 has overwritable => (
 	is      => 'ro',
 	isa     => Bool,
 	reader  => '_get_overwritable',
 	default => 0,
 );
+
+
 
 sub BUILDARGS {
 	my $class = shift;
@@ -198,10 +344,26 @@ sub BUILD {
 	return;
 }
 
+
+# get_name is defined earlier, in the "has name =>" line.
+# Here works for documenting it.
+=head2 get_name
+
+This method returns the name of the module being installed, in order to use
+it in filenames.
+
+=head2 install
+
+The install method installs the distribution described by the
+B<Perl::Dist::WiX::Asset::Distribution> object and returns a list of files
+that were installed as a L<File::List::Object> object.
+
+=cut
+
+
+
 sub install {
 	my $self = shift;
-
-#	print Data::Dumper->new([$self], [qw(*self)])->Indent(1)->Maxdepth(1)->Dump();
 
 	my $name      = $self->get_name();
 	my $build_dir = $self->_get_build_dir();
@@ -321,108 +483,6 @@ __PACKAGE__->meta->make_immutable;
 1;
 
 __END__
-
-=head1 METHODS
-
-This class is a L<Perl::Dist::WiX::Role::Asset> and shares its API.
-
-=head2 new
-
-The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Asset::Distribution> object.
-
-It inherits all the params described in the L<Perl::Dist::WiX::Role::Asset> 
-C<new> method documentation, and adds some additional params.
-
-=over 4
-
-=item name
-
-The required C<name> param is the CPAN path to the distribution
-such as shown in the synopsis.
-
-The url to fetch from will be derived from the name.
-
-=item mod_name
-
-The required C<mod_name> param is the name of the main module being 
-installed. This is used to create the fragment name.
-
-=item force
-
-Unlike in the CPAN client installation, in which all modules MUST pass
-their tests to be added, the secondary method allows for cases where
-it is known that the tests can be safely "forced".
-
-The optional boolean C<force> param allows you to specify that the tests
-should be skipped and the module installed without validating it.
-
-=item automated_testing
-
-Many modules contain additional long-running tests, tests that require
-additional dependencies, or have differing behaviour when installing
-in a non-user automated environment.
-
-The optional C<automated_testing> param lets you specify that the
-module should be installed with the B<AUTOMATED_TESTING> environment
-variable set to true, to make the distribution behave properly in an
-automated environment (in cases where it doesn't otherwise).
-
-=item release_testing
-
-Some modules contain release-time only tests, that require even heavier
-additional dependencies compared to even the C<automated_testing> tests.
-
-The optional C<release_testing> param lets you specify that the module
-tests should be run with the additional C<RELEASE_TESTING> environment
-flag set.
-
-By default, C<release_testing> is set to false to squelch any accidental
-execution of release tests when L<Perl::Dist::WiX> itself is being tested
-under C<RELEASE_TESTING>.
-
-=item makefilepl_param
-
-Some distributions illegally require you to pass additional non-standard
-parameters when you invoke "perl Makefile.PL".
-
-The optional C<makefilepl_param> param should be a reference to an ARRAY
-where each element contains the argument to pass to the Makefile.PL.
-
-=item buildpl_param
-
-Some distributions require you to pass additional non-standard
-parameters when you invoke "perl Build.PL".
-
-The optional C<buildpl_param> param should be a reference to an ARRAY
-where each element contains the argument to pass to the Build.PL.
-
-=item overwritable
-
-Some distributions (ExtUtils::MakeMaker, for example) install files that
-are overwritten by distributions installed after it.
-
-The optional C<overwritable> param lets you spedify that this is the case, 
-and defaults to false.
-
-=item packlist
-
-The optional C<packlist> param lets you specify whether this distribution 
-creates a packlist (which is a quick way to verify which files are installed
-by the distribution).
-
-This parameter defaults to true.
-
-=back
-
-The C<new> method returns a B<Perl::Dist::WiX::Asset::Distribution> object,
-or throws an exception on error.
-
-=head2 install
-
-The install method installs the distribution described by the
-B<Perl::Dist::WiX::Asset::Distribution> object and returns a list of files
-that were installed as a L<File::List::Object> object.
 
 =head1 SUPPORT
 

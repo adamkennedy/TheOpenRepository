@@ -1,13 +1,68 @@
 package Perl::Dist::WiX::Tag::Icon;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Tag::Icon - <Icon> tag that stores its type of target.
+
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Tag::Icon version 1.102_103.
+
+=head1 SYNOPSIS
+
+	my $tag = Perl::Dist::WiX::Tag::Icon->new(
+		sourcefile  => catfile($dist->dist_dir(), 'padre.ico'),
+		target_type => 'exe',
+		id          => 'padre.exe.ico' # I_ is prepended to this.
+	);
+
+=head1 DESCRIPTION
+
+This is an XML tag that specifies an icon that is used in a 
+L<Perl::Dist::WiX|Perl::Dist::WiX>-based distribution.
+
+=cut
+
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str );
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Icon';
+
+=head1 METHODS
+
+This class is a L<WiX3::XML::Icon|WiX3::XML::Icon> and inherits its API, 
+so only additional API is documented here.
+
+=head2 new
+
+The C<new> constructor takes a series of parameters, validates then
+and returns a new C<Perl::Dist::WiX::Tag::Icon> object.
+
+If an error occurs, it throws an exception.
+
+It inherits all the parameters described in the 
+L<WiX3::XML::Icon/new|WiX3::XML::Icon-E<gt>new()> method documentation, 
+and adds one additional parameter.
+
+=head3 target_type
+
+The required string C<target_type> parameter stores the extension of the 
+target of a shortcut icon, or 'msi' if this is the icon for the msi.
+
+=cut
+
+=head2 get_target_type
+
+The method C<get_target_type> param retrieves the extension of the target 
+of the shortcut icon that was stored in the object.
+
+=cut
 
 has target_type => (
 	is       => 'bare',
@@ -23,50 +78,6 @@ __PACKAGE__->meta->make_immutable();
 
 __END__
 
-=pod
-
-=head1 NAME
-
-Perl::Dist::WiX::Tag::Icon - <Icon> tag that stores its type of target.
-
-=head1 SYNOPSIS
-
-	my $tag = Perl::Dist::WiX::Tag::Icon->new(
-		sourcefile  => catfile($dist->dist_dir(), 'padre.ico'),
-		target_type => 'exe',
-		id          => 'padre.exe.ico' # I_ is prepended to this.
-	);
-
-=head1 DESCRIPTION
-
-This is an XML tag that specifies an icon that is used in a Perl::Dist::WiX 
-based distribution.
-
-=head1 METHODS
-
-This class is a L<WiX3::XML::Icon> and inherits its API, so only additional 
-API is documented here.
-
-=head2 new
-
-The C<new> constructor takes a series of parameters, validates then
-and returns a new B<Perl::Dist::WiX::Tag::Icon> object.
-
-If an error occurs, it throws an exception.
-
-It inherits all the parameters described in the 
-L<WiX3::XML::Icon> C<new> method documentation, and adds one additional 
-parameter.
-
-=over 4
-
-=item target_type
-
-The required string C<target_type> param stores the extension of the target 
-of a shortcut icon, or 'msi' if this is the icon for the msi.
-
-=back
-
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
@@ -81,7 +92,7 @@ Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist::WiX>, 
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
 L<http://wix.sourceforge.net/manual-wix3/wix_xsd_icon.htm>,
 
 =head1 COPYRIGHT

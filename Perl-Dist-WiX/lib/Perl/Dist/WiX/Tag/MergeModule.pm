@@ -1,46 +1,14 @@
 package Perl::Dist::WiX::Tag::MergeModule;
 
-use 5.008001;
-use Moose;
-require WiX3::XML::MergeRef;
-
-our $VERSION = '1.102';
-$VERSION =~ s/_//ms;
-
-extends 'WiX3::XML::Merge';
-
-has primary_reference => (
-	is      => 'ro',
-	isa     => 'Bool',
-	default => 1,
-	reader  => '_is_primary_reference',
-);
-
-#####################################################################
-# Helper routines:
-
-sub get_merge_reference {
-	my $self = shift;
-
-	my $primary = $self->_is_primary_reference() ? 'yes' : 'no';
-	my $merge_ref =
-	  WiX3::XML::MergeRef->new( $self, 'primary' => $primary );
-
-	return $merge_ref;
-}
-
-no Moose;
-__PACKAGE__->meta->make_immutable;
-
-1;
-
-__END__
-
 =pod
 
 =head1 NAME
 
 Perl::Dist::WiX::Tag::MergeModule - <Merge> tag that makes its own <MergeRef> when requested.
+
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Tag::MergeModule version 1.102_103.
 
 =head1 SYNOPSIS
 
@@ -56,7 +24,19 @@ Perl::Dist::WiX::Tag::MergeModule - <Merge> tag that makes its own <MergeRef> wh
 
 =head1 DESCRIPTION
 
-This is an XML tag that links a Merge Module into a Perl::Dist::WiX based distribution 
+This object defines an XML tag that links a Merge Module into a 
+L<Perl::Dist::WiX|Perl::Dist::WiX> based distribution.
+
+=cut
+
+use 5.008001;
+use Moose;
+require WiX3::XML::MergeRef;
+
+our $VERSION = '1.102';
+$VERSION =~ s/_//ms;
+
+extends 'WiX3::XML::Merge';
 
 =head1 METHODS
 
@@ -75,21 +55,51 @@ It inherits all the parameters described in the
 L<WiX3::XML::Merge|WiX3::XML::Merge> C<new> method documentation, and adds 
 one additional parameter.
 
-=over 4
-
-=item primary_reference
+=head3 primary_reference
 
 The optional boolean C<primary_reference> param specifies whether the merge 
 module's reference requested with L<get_merge_reference|/get_merge_reference>
 is the "primary reference" (whether the C<Primary> attribute to the 
 reference is set to "yes") to the contents of the merge module.
 
-=back
+=cut
+
+
+
+has primary_reference => (
+	is      => 'ro',
+	isa     => 'Bool',
+	default => 1,
+	reader  => '_is_primary_reference',
+);
+
+
 
 =head2 get_merge_reference
 
 The C<get_merge_reference> method returns the L<WiX3::XML::MergeRef|WiX3::XML::MergeRef>
 defined by the L<new|/new> method's id and primary_reference parameters.
+
+=cut
+
+
+
+sub get_merge_reference {
+	my $self = shift;
+
+	my $primary = $self->_is_primary_reference() ? 'yes' : 'no';
+	my $merge_ref =
+	  WiX3::XML::MergeRef->new( $self, 'primary' => $primary );
+
+	return $merge_ref;
+}
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
+
+1;
+
+__END__
 
 =head1 SUPPORT
 

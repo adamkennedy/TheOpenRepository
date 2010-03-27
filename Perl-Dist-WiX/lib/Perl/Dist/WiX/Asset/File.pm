@@ -41,7 +41,7 @@ use File::Spec::Functions qw( catfile );
 require File::Remove;
 require File::List::Object;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
