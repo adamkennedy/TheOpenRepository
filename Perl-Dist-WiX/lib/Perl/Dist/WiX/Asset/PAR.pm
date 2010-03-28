@@ -69,7 +69,7 @@ and shares its API.
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates them
-and returns a new B<Perl::Dist::Asset::PAR> object.
+and returns a new B<Perl::Dist::WiX::Asset::PAR> object.
 
 The C<new> constructor will throw an exception (dies) if an invalid 
 parameter is provided.

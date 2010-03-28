@@ -56,13 +56,13 @@ with 'Perl::Dist::WiX::Role::Asset';
 
 =head1 METHODS
 
-This class inherits from L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Asset> 
+This class inherits from L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset> 
 and shares its API.
 
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates then
-and returns a new C<Perl::Dist::WiX::Asset::Library> object.
+and returns a new C<Perl::Dist::WiX::Asset::Binary> object.
 
 It inherits all the parameters described in the 
 L<< Perl::Dist::WiX::Role::Asset->new()|Perl::Dist::WiX::Role::Asset/new >> 

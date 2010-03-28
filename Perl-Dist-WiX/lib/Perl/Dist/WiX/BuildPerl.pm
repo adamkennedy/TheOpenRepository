@@ -8,7 +8,7 @@ Perl::Dist::WiX::BuildPerl - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::BuildPerl version 1.102.
+This document describes Perl::Dist::WiX::BuildPerl version 1.102_103.
 
 =head1 DESCRIPTION
 
@@ -18,6 +18,7 @@ build Perl itself.
 =head1 SYNOPSIS
 
 	# This module is not to be used independently.
+	# It provides methods to be called on a Perl::Dist::WiX object.
 
 =head1 INTERFACE
 
@@ -39,7 +40,7 @@ require Perl::Dist::WiX::Asset::Perl;
 require Perl::Dist::WiX::Toolchain;
 require File::List::Object;
 
-our $VERSION = '1.102_102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//sm;
 
 # The commented lines are needed for 5.12, but may break 5.8.
@@ -172,28 +173,9 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 			next MODULE;
 		}
 
-		# IPC-System-Simple's t\win32.t has the wrong number of tests.
-		if ( $module->cpan_file() =~ m{/IPC-System-Simple-1 [.] 19\d}msx ) {
-			$self->_install_cpan_module( $module, 1 );
-			next MODULE;
-		}
-
 		# Time-HiRes is timing-dependent, of course.
 		if ( $module->cpan_file() =~ m{/Time-HiRes-}msx ) {
 			$self->_install_cpan_module( $module, 1 );
-			next MODULE;
-		}
-
-		# autodie 2.08/2.09 has a failing test (RT#54525).
-		# It's skipped on 5.10.1+, which already has this version.
-		if ( $module->cpan_file() =~ m{/autodie-2 [.] 0 [89]}msx ) {
-			$self->install_distribution(
-				name             => 'PJF/autodie-2.06_01.tar.gz',
-				mod_name         => 'autodie',
-				makefilepl_param => ['INSTALLDIRS=perl'],
-				buildpl_param    => [ '--installdirs', 'core' ],
-				force            => $force,
-			);
 			next MODULE;
 		}
 
@@ -290,7 +272,7 @@ sub _get_cpan_upgrades_list {
 
 	# Get the CPAN url.
 	my $url = $self->cpan()->as_string();
-	$url =~ s{file:///C:/}{file://C:/}msx;
+#	$url =~ s{file:///C:/}{file://C:/}msx;
 
 	# Generate the CPAN installation script
 	my $cpan_string = <<"END_PERL";
@@ -560,7 +542,7 @@ A short summary of the process would be that it downloads or otherwise
 fetches the named package, unpacks it, copies out any license files from
 the source code, then tweaks the Win32 makefile to point to the specific
 build directory, and then runs make/make test/make install. It also
-registers some environment variables for addition to the Inno Setup
+registers some environment variables for addition to the installer
 script.
 
 It is normally called directly by C<install_perl_*> rather than
@@ -624,7 +606,6 @@ sub install_perl_589 {
 
 	return 1;
 } ## end sub install_perl_589
-
 
 
 
@@ -941,7 +922,7 @@ the default tasklist after the perl interpreter is installed.
 sub install_perl_toolchain {
 	my $self = shift;
 
-	#
+	# Retrieves and verifies the toolchain.
 	my $toolchain = $self->_get_toolchain();
 	if ( 0 == $toolchain->dist_count() ) {
 		PDWiX->throw('Toolchain did not get collected');
@@ -1056,8 +1037,6 @@ sub _name_to_module {
 	return $module;
 } ## end sub _name_to_module
 
-
-
 1;
 
 __END__
@@ -1088,7 +1067,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Perl::Dist|Perl::Dist>, L<Perl::Dist::WiX|Perl::Dist::WiX>, 
+L<Perl::Dist::WiX|Perl::Dist::WiX>, 
 L<http://ali.as/>, L<http://csjewell.comyr.com/perl/>
 
 =head1 COPYRIGHT AND LICENSE

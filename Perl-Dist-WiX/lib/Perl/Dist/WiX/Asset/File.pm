@@ -55,7 +55,7 @@ and shares its API.
 =head2 new
 
 The C<new> constructor takes a series of parameters, validates then
-and returns a new C<Perl::Dist::WiX::Asset::Perl> object.
+and returns a new C<Perl::Dist::WiX::Asset::File> object.
 
 It inherits all the parameters described in the 
 L<< Perl::Dist::WiX::Role::Asset->new|Perl::Dist::WiX::Role::Asset/new() >> 

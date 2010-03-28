@@ -226,7 +226,6 @@ __PACKAGE__->meta->make_immutable;
 
 __END__
 
-
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
