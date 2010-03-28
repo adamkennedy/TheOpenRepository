@@ -1,5 +1,37 @@
 package Perl::Dist::WiX::Fragment::StartMenu;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::Fragment::StartMenu - A <Fragment> tag that handles the Start menu.
+
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Fragment::StartMenu version 1.102_103.
+
+=head1 SYNOPSIS
+
+	my $fragment = Perl::Dist::WiX::Fragment::StartMenu->new(
+		directory_id => 'D_App_Menu',
+	);
+	
+	$fragment->add_shortcut(
+		name        => 'CPAN',
+		description => 'CPAN Shell (used to install modules)',
+		target      => "[D_PerlBin]cpan.bat",
+		id          => 'CpanShell',
+		working_dir => PerlBin,
+		icon_id     => 'I_CpanBat',
+	);
+
+=head1 DESCRIPTION
+
+
+	# TODO
+
+=cut
+
 #####################################################################
 # Perl::Dist::WiX::Fragment::StartMenu - A <Fragment> and <DirectoryRef> tag that
 # contains <Icon> elements.
@@ -21,7 +53,7 @@ require WiX3::XML::RemoveFolder;
 require WiX3::XML::DirectoryRef;
 require WiX3::XML::Shortcut;
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
@@ -85,6 +117,7 @@ sub _build_root {
 		PDWiX->throw("Could not find directory object for id $id");
 	}
 
+	# Add the component that removes the start menu folder.
 	my $remove = WiX3::XML::RemoveFolder->new(
 		id => 'RemoveStartMenuFolder',
 		on => 'uninstall',
@@ -105,27 +138,25 @@ sub add_shortcut {
 	my $self = shift;
 	my %args = @_;
 
+	# Check that the arguments exist.
 	if ( not defined $args{id} ) {
 		PDWiX::Parameter->throw(
 			parameter => 'id',
 			where     => 'P::D::W::Fragment::StartMenu->add_shortcut'
 		);
 	}
-
 	if ( not defined $args{name} ) {
 		PDWiX::Parameter->throw(
 			parameter => 'name',
 			where     => 'P::D::W::Fragment::StartMenu->add_shortcut'
 		);
 	}
-
 	if ( not defined $args{target} ) {
 		PDWiX::Parameter->throw(
 			parameter => 'target',
 			where     => 'P::D::W::Fragment::StartMenu->add_shortcut'
 		);
 	}
-
 	if ( not defined $args{working_dir} ) {
 		PDWiX::Parameter->throw(
 			parameter => 'working_dir',
@@ -135,13 +166,14 @@ sub add_shortcut {
 
 	# TODO: Validate arguments.
 
+	# "Fix" the ID to have only identifier characters.
 	$args{id} =~ s{[^A-Za-z0-9]}{_}msgx;
 
+	# Start creating tags.
 	my $icon_id = undef;
 	if ( defined $args{icon_id} ) {
 		$icon_id = "I_$args{icon_id}";
 	}
-
 	my $component = WiX3::XML::Component->new( id => "S_$args{id}" );
 	my $shortcut = WiX3::XML::Shortcut->new(
 		id               => "$args{id}",
@@ -151,14 +183,11 @@ sub add_shortcut {
 		icon             => $icon_id,
 		workingdirectory => "D_$args{working_dir}",
 	);
-
 	$component->add_child_tag($shortcut);
-
 	my $cf =
 	  WiX3::XML::CreateFolder->new(
 		directory => $self->get_directory_id() );
 	$component->add_child_tag($cf);
-
 	$self->_get_root()->add_child_tag($component);
 
 	return;
@@ -178,3 +207,33 @@ no Moose;
 __PACKAGE__->meta->make_immutable;
 
 1;
+
+__END__
+
+=head1 SUPPORT
+
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Perl::Dist::WiX|Perl::Dist::WiX>
+
+=head1 COPYRIGHT
+
+Copyright 2009 - 2010 Curtis Jewell.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
+
+=cut

@@ -22,16 +22,6 @@ This document describes Perl::Dist::WiX::Fragment::Files version 1.102_103.
 
 =cut
 
-
-#####################################################################
-# Perl::Dist::WiX::Fragment::Files - A <Fragment> and <DirectoryRef> tag that
-# contains <Directory> or <DirectoryRef> elements, which contain <Component> and
-# <File> tags.
-#
-# Copyright 2009 - 2010 Curtis Jewell
-#
-# License is the same as perl. See WiX.pm for details.
-#
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Bool );
@@ -68,7 +58,7 @@ The C<new> constructor takes a series of parameters, validates then
 and returns a new C<Perl::Dist::WiX::Fragment::Files> object.
 
 It inherits all the parameters described in the 
-L<< Perl::Dist::WiX::Role::Asset->new()|Perl::Dist::WiX::Role::Asset/new >> 
+L<< WiX3::XML::Fragment->new()|WiX3::XML::Fragment/new >> 
 method documentation, and adds the additional parameters described below.
 
 =head3 can_overwrite
@@ -711,8 +701,6 @@ For other issues, contact the author.
 =head1 AUTHOR
 
 Curtis Jewell E<lt>csjewell@cpan.orgE<gt>
-
-Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
