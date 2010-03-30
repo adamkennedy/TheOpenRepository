@@ -272,6 +272,7 @@ sub _get_cpan_upgrades_list {
 
 	# Get the CPAN url.
 	my $url = $self->cpan()->as_string();
+
 #	$url =~ s{file:///C:/}{file://C:/}msx;
 
 	# Generate the CPAN installation script

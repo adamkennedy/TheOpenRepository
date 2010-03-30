@@ -80,9 +80,8 @@ sub BUILDARGS {
 	} elsif ( 0 == @_ % 2 ) {
 		%args = @_;
 	} else {
-		PDWiX->throw(
-'Parameters incorrect (not a hashref or a hash)' . ' for ::Fragment::CreateFolder'
-		);
+		PDWiX->throw( 'Parameters incorrect (not a hashref or a hash)'
+			  . ' for ::Fragment::CreateFolder' );
 	}
 
 	# ID is required for ::Fragment::CreateFolder.

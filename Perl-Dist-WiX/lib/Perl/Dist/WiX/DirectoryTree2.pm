@@ -1,5 +1,30 @@
 package Perl::Dist::WiX::DirectoryTree2;
 
+=pod
+
+=head1 NAME
+
+Perl::Dist::WiX::DirectoryTree2 - Base directory tree for Perl::Dist::WiX.
+
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::DirectoryTree2 version 1.102_103.
+
+=head1 SYNOPSIS
+
+	$tree = Perl::Dist::WiX::DirectoryTree2->instance();
+	
+	# TODO: Add more.
+
+=head1 DESCRIPTION
+
+This is an object that represents the main directory tree for the 
+installer.  This tree contains all directories being created that
+are referenced in more than one fragment, and all directories that
+need to have specific IDs.
+
+=cut
+
 use 5.008001;
 
 #use metaclass (
@@ -19,18 +44,44 @@ $VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';
 
-#####################################################################
-# Accessors:
-#   root: Returns the root of the directory tree created by new.
+=head1 METHODS
 
-has root => (
-	is     => 'ro',
-	isa    => 'Perl::Dist::WiX::Tag::Directory',
-	reader => 'get_root',
-	handles =>
-	  [qw(search_dir get_directory_object _add_directory_recursive)],
+=head2 new
+
+	my $tree = Perl::Dist::WiX::DirectoryTree2->new(
+		app_dir => 'C:\strawberry',
+		app_name => 'Strawberry Perl'
+	);
+
+Creates new directory tree object and creates the 'root' of the tree.
+
+Note that this object is a L<MooseX::Singleton|MooseX::Singleton> object,
+so that you can retrieve the object at any time using the 
+C<instance()> method.
+
+=cut
+
+# This is private, but retrievable by 'get_root'.
+has _root => (
+	is       => 'bare',
+	isa      => 'Perl::Dist::WiX::Tag::Directory',
+	reader   => 'get_root',
 	required => 1,
+	handles  => {
+		'search_dir'               => 'search_dir',
+		'get_directory_object'     => 'get_directory_object',
+		'_add_directory_recursive' => '_add_directory_recursive',
+		'_indent'                  => 'indent',
+	},
 );
+
+
+=head3 app_dir
+
+TODO
+
+=cut
+
 
 has app_dir => (
 	is       => 'ro',
@@ -38,6 +89,13 @@ has app_dir => (
 	reader   => '_get_app_dir',
 	required => 1,
 );
+
+
+=head3 app_name
+
+TODO
+
+=cut
 
 has app_name => (
 	is       => 'ro',
@@ -71,6 +129,7 @@ sub BUILDARGS {
 		where     => 'Perl::Dist::WiX::DirectoryTree2->new'
 	  );
 
+	# Create the root directory object.
 	my $root = Perl::Dist::WiX::Tag::Directory->new(
 		id       => 'TARGETDIR',
 		name     => 'SourceDir',
@@ -79,19 +138,47 @@ sub BUILDARGS {
 	);
 
 	return {
-		root => $root,
+		_root => $root,
 		%args
 	};
 } ## end sub BUILDARGS
+
+=head2 instance
+
+	my $tree = Perl::Dist::WiX::DirectoryTree2->instance();
+	
+Returns the previously created directory tree. 
+
+=head2 get_root
+
+	my $directory_object = $tree->get_root();
+	
+Gets the L<Perl::Dist::WiX::Directory|Perl::Dist::WiX::Directory> object at
+the root of the tree.
+	
+=head2 as_string
+
+	my $string = $tree->as_string();
+	
+This method returns an XML representation of the directory tree.
+
+=cut
 
 sub as_string {
 	my $self = shift;
 
 	my $string = $self->get_root()->as_string();
 
-	return $string ne q{} ? $self->get_root()->indent( 4, $string ) : q{};
+	return $string ne q{} ? $self->_indent( 4, $string ) : q{};
 }
 
+=head2 initialize_tree
+
+	$tree->initialize_tree($perl_version);
+
+Adds a basic directory structure to the directory tree object.
+
+=cut
 
 sub initialize_tree {
 	my $self = shift;
@@ -159,6 +246,22 @@ sub initialize_tree {
 	return $self;
 } ## end sub initialize_tree
 
+
+
+=head2 initialize_short_tree
+
+	$tree->initialize_short_tree();
+
+Adds a basic directory structure to the directory tree object.
+
+This is used when including a merge module that already 
+contains a L<Perl::Dist::WiX|Perl::Dist::WiX>-based perl
+distribution.
+
+=cut
+
+
+
 sub initialize_short_tree {
 	my $self = shift;
 
@@ -191,6 +294,15 @@ sub initialize_short_tree {
 
 	return $self;
 } ## end sub initialize_short_tree
+
+=head2 add_directory
+
+	$tree->add_directory($directory);
+
+Adds a directory to the tree, including all directories required along 
+the way.
+	
+=cut
 
 sub add_directory {
 	my $self = shift;
@@ -229,6 +341,16 @@ sub add_directory {
 	return defined $dir_out ? 1 : 0;
 } ## end sub add_directory
 
+
+
+=head2 add_root_directory
+
+TODO
+
+=cut
+
+
+
 sub add_root_directory {
 	my $self = shift;
 	my $id   = shift;
@@ -237,6 +359,20 @@ sub add_root_directory {
 	my $branch = $self->get_directory_object('INSTALLDIR');
 	return $branch->add_directories_id( $id, $dir );
 }
+
+
+
+=head2 add_merge_module
+
+	$tree->add_merge_module('C:\strawberry', $mergemodule_object);
+
+This method inserts a merge module (referred to by a 
+L<Perl::Dist::WiX::Tag::MergeModule|Perl::Dist::WiX::Tag::MergeModule> 
+object) into the directory tree at the specified directory.
+
+=cut
+
+
 
 sub add_merge_module {
 	my $self = shift;
@@ -260,71 +396,14 @@ sub add_merge_module {
 	return;
 } ## end sub add_merge_module
 
+
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 
 1;
 
 __END__
-
-=pod
-
-=head1 NAME
-
-Perl::Dist::WiX::DirectoryTree2 - Base directory tree for Perl::Dist::WiX.
-
-=head1 VERSION
-
-This document describes Perl::Dist::WiX::DirectoryTree2 version 1.090.
-
-=head1 DESCRIPTION
-
-This is an object that establishes a directory tree.
-
-=head1 METHODS
-
-=head2 new
-
-	my $tree = Perl::Dist::WiX::DirectoryTree2->new(
-		app_dir => 'C:\strawberry',
-		app_name => 'Strawberry Perl'
-	);
-
-Creates new directory tree object and creates the 'root' of the tree.
-
-Note that this object is a L<MooseX::Singleton|MooseX::Singleton> object.
-
-=head2 instance
-
-	my $tree = Perl::Dist::WiX::DirectoryTree2->instance();
-	
-Returns the previously created directory tree. 
-
-=head2 get_root
-
-	my $directory_object = $tree->get_root();
-	
-Gets the L<Perl::Dist::WiX::Directory|Perl::Dist::WiX::Directory> object at
-the root of the tree.
-	
-=head2 initialize_tree
-
-	$tree->initialize_tree($perl_version);
-
-Adds a basic directory structure to the directory tree object.
-
-=head2 add_directory
-
-	$tree->add_directory($directory);
-
-Adds a directory to the tree, including all directories required along 
-the way.
-	
-=head2 as_string
-
-	print $tree->as_string();
-	
-Prints out the tree as a series of XML tags.
 
 =head2 get_directory_object
 

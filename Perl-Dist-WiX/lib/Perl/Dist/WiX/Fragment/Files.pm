@@ -221,7 +221,7 @@ sub _add_file_to_fragment {
 
 	$self->trace_line( 3, "Adding file $file_path\n" );
 
-	# return () or any fragments that need regeneration 
+	# return () or any fragments that need regeneration
 	# retrieved from the cache.
 	my ( $directory_final, @fragment_ids );
 
@@ -285,7 +285,7 @@ sub _add_file_to_fragment {
 
 	if ( defined $directory_step2 ) {
 
-		# We're successful, so possibly say so, and then 
+		# We're successful, so possibly say so, and then
 		# add a directory reference and the file.
 		$self->trace_line( 4, "Directory search for step 2 successful.\n" );
 		my $directory_ref_step2 =
@@ -328,7 +328,7 @@ sub _add_file_to_fragment {
 
 		if ( defined $directory_step3 ) {
 
-			# We're successful, so possibly say so, and then 
+			# We're successful, so possibly say so, and then
 			# add the directories and the file.
 			$self->trace_line( 4,
 				"Directory search for step 3 successful.\n" );
@@ -345,7 +345,7 @@ sub _add_file_to_fragment {
 
 
 # Step 4: Search in the directory tree non-exactly.
-#  SUCCESS: Create a reference, create directories below it, 
+#  SUCCESS: Create a reference, create directories below it,
 #    create component and file.
 #  NOTE: Same as Step 3.
 #  FAIL: Throw error.
@@ -359,8 +359,8 @@ sub _add_file_to_fragment {
 
 	if ( defined $directory_step4 ) {
 
-		# We're successful, so possibly say so, and then 
-		# add the directory reference, the directories 
+		# We're successful, so possibly say so, and then
+		# add the directory reference, the directories
 		# required, and the file.
 		$self->trace_line( 4, "Directory search for step 4 successful.\n" );
 		my $directory_ref_step4 =
@@ -383,7 +383,7 @@ sub _add_file_to_fragment {
 
 
 
-# This is called by _add_file_to_fragment, which is called from 
+# This is called by _add_file_to_fragment, which is called from
 # regenerate().
 sub _add_directory_recursive {
 	my $self             = shift;
@@ -402,7 +402,7 @@ sub _add_directory_recursive {
 	}
 
 	foreach my $dir_to_add (@dirs_to_add) {
-	
+
 		# Create the object.
 		$directory_object = $directory_object->add_directory(
 			name => $dir_to_add,
@@ -410,9 +410,9 @@ sub _add_directory_recursive {
 				catdir( $directory_object->get_path(), $dir_to_add )
 			),
 		);
-		
+
 		# Check if it's in the cache. If not, add it, and if so,
-		# delete it from the cache, and return the fact that it 
+		# delete it from the cache, and return the fact that it
 		# was there.
 		if ( $cache->exists_in_cache($directory_object) ) {
 			$tree->add_directory( $directory_object->get_path() );
@@ -427,7 +427,7 @@ sub _add_directory_recursive {
 	return ( $directory_object, uniq @fragment_ids );
 } ## end sub _add_directory_recursive
 
-# This is called by _add_file_to_fragment, which is called from 
+# This is called by _add_file_to_fragment, which is called from
 # regenerate().
 sub _add_file_component {
 	my $self = shift;
@@ -444,6 +444,7 @@ sub _add_file_component {
 	my ( undef, undef, $filename ) = splitpath($file);
 	$filename = reverse scalar $filename;
 	($revext) = $filename =~ m{\A(.*?)[.]}msx;
+
 	if ( not defined $revext ) {
 		$revext = 'Z';
 	}
@@ -465,19 +466,21 @@ sub _add_file_component {
 		id   => $component_id,
 		@feature_param
 	);
-	
+
 	# Create the file tag.
 	my $file_tag;
 	if (( -r $file )
 		and (  ( $file =~ m{[.] dll\z}smx )
 			or ( $file =~ m{[.] exe\z}smx ) ) )
 	{
+
 		# Check for version information on a .dll or .exe,
 		# because if it exists, we need the language from it
 		# when we create the tag.
 		my $language;
 		my $exe = Win32::Exe->new($file);
 		my $vi  = $exe->version_info();
+
 		if ( defined $vi ) {
 			$vi->get('OriginalFilename'); # To load the variable used below.
 			$language = hex substr $vi->{'cur_trans'}, 0, 4;
@@ -502,8 +505,8 @@ sub _add_file_component {
 	}
 
 	# Add the tags into our "tag tree"
-	$component->add_child_tag($file_obj);
-	$tag->add_child_tag($component);
+	$component_tag->add_child_tag($file_tag);
+	$tag->add_child_tag($component_tag);
 
 	return 1;
 } ## end sub _add_file_component
@@ -578,17 +581,17 @@ This must be done before L<regenerate()|/regenerate> is called
 
 sub _fix_slashes {
 	my $file = shift;
-	
+
 	# Fix the file if it needs fixed.
 	my $file_fixed = $file;
 	$file_fixed =~ s{/}{\\}gms;
-	
+
 	return $file_fixed || $file;
 }
 
 sub add_file {
 	my $self = shift;
-	
+
 	# Fix all files that need fixed before adding them.
 	my @files = map { _fix_slashes($_) } @_;
 
@@ -634,8 +637,9 @@ sub find_file {
 	my $self     = shift;
 	my $filename = shift;
 
-	print "WARNING: find_file deprecated. Replace by call to find_file_id.\n";
-	
+	print
+	  "WARNING: find_file deprecated. Replace by call to find_file_id.\n";
+
 	# Start our recursive call chain.
 	return $self->_find_file_recursive( $filename, $self );
 }
@@ -671,6 +675,7 @@ sub _find_file_recursive {
 			  $self->_find_file_recursive( $filename, $children[$i] );
 			return $answer if defined $answer;
 		} else {
+
 			# This child can't have children, so stop going this way.
 			return undef;
 		}

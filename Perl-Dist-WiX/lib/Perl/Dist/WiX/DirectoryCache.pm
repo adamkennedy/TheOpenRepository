@@ -8,20 +8,35 @@ Perl::Dist::WiX::DirectoryCache - Cache of <Directory> tag objects.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::DirectoryCache version 1.102.
-
-=head1 DESCRIPTION
-
-	# TODO: Document
+This document describes Perl::Dist::WiX::DirectoryCache version 1.102_103.
 
 =head1 SYNOPSIS
 
-	# TODO: Document
-
-=head1 INTERFACE
-
-	# TODO: Document
+	# Since this is a singleton, ->instance() retrieves the cache object
+	# (creating the cache object if needed)
+	my $cache = Perl::Dist::WiX::DirectoryCache->instance();
 	
+	$cache->add_to_cache($directory_object, $fragment_object);
+	
+	my $exists = $cache->exists_in_cache($directory_object);
+	
+	my $fragment_id = $cache->get_previous_fragment($directory_object);
+
+	$cache->delete_cache_entry($directory_object);
+
+=head1 DESCRIPTION
+
+This object is a singleton designed to cache objects representing all 
+directories to be created by a C<Perl::Dist::WiX>-based installer.
+
+The cache is used during the C<regenerate_fragments> task so that a 
+directory (defined by a 
+L<Perl::Dist::WiX::Tag::Directory|Perl::Dist::WiX::Tag::Directory> 
+object) is only defined once, no matter how many fragments it is used
+in. (There can be as many references to a directory, defined by 
+L<Perl::Dist::WiX::Tag::DirectoryRef|Perl::Dist::WiX::Tag::DirectoryRef> 
+objects, as required.)
+
 =cut
 
 use 5.008001;
@@ -29,25 +44,34 @@ use Moose 0.90;
 use MooseX::Singleton;
 use WiX3::XML::Directory;
 
-our $VERSION = '1.102_101';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
-#####################################################################
-# Accessors:
-#   root: Returns the root of the directory tree created by new.
-
+# This is where the cache is actually stored.
 has _cache => (
-	traits  => ['Hash'],
-	is      => 'rw',
-	isa     => 'HashRef[Str]',
-	default => sub { {} },
-	handles => {
+	traits   => ['Hash'],
+	is       => 'bare',
+	isa      => 'HashRef[Str]',
+	default  => sub { {} },
+	init_arg => undef,
+	handles  => {
 		'_set_cache_entry'    => 'set',
 		'_get_cache_entry'    => 'get',
 		'_exists_cache_entry' => 'exists',
 		'_delete_cache_entry' => 'delete',
 	},
 );
+
+=head1 INTERFACE
+
+=head2 add_to_cache
+
+	$cache->add_to_cache($directory_object, $fragment_object);
+	
+This method adds the directory object to the cache, and references the
+fact that it is being created in the fragment object.
+	
+=cut
 
 sub add_to_cache {
 	my $self      = shift;
@@ -62,6 +86,20 @@ sub add_to_cache {
 	return;
 } ## end sub add_to_cache
 
+
+
+=head2 exists_in_cache
+
+	my $exists = $cache->exists_in_cache($directory_object);
+	
+This method returns a true value if a directory object representing the 
+same directory is already in the cache. Otherwise, it returns a false 
+value.
+	
+=cut
+
+
+
 sub exists_in_cache {
 	my $self = shift;
 	my $directory = shift || undef;
@@ -71,6 +109,20 @@ sub exists_in_cache {
 	return $self->_exists_cache_entry( $directory->get_id() );
 }
 
+
+
+=head2 get_previous_fragment
+
+	my $fragment_id = $cache->get_previous_fragment($directory_object);
+	
+This method returns the ID of the fragment that's already creating this 
+directory.  If there is no fragment already creating this directory, 
+this method returns an undefined value.
+	
+=cut
+
+
+
 sub get_previous_fragment {
 	my $self = shift;
 	my $directory = shift || undef;
@@ -79,6 +131,23 @@ sub get_previous_fragment {
 
 	return $self->_get_cache_entry( $directory->get_id() );
 }
+
+
+
+=head2 delete_cache_entry
+
+	$cache->delete_cache_entry($directory_object);
+	
+This method removes the ID of the fragment that's already assigned to
+this directory in the cache.
+
+This method is used when a directory that two or more fragments want to 
+create is added to the 
+L<directory tree object|Perl::Dist::WiX::DirectoryTree2> instead.
+	
+=cut
+
+
 
 sub delete_cache_entry {
 	my $self = shift;

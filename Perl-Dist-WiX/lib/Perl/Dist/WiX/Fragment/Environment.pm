@@ -91,7 +91,7 @@ sub BUILDARGS {
 	# Create the component and attach it to this fragment.
 	my $tag1 = WiX3::XML::Component->new( id => $id );
 	return {
-		id        => $id,
+		id         => $id,
 		_component => $tag1,
 	};
 } ## end sub BUILDARGS

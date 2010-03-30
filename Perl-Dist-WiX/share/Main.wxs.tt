@@ -70,7 +70,14 @@
     <UIRef Id='WixUI_ErrorProgressText' />
     <UIRef Id='WixUI_Common' />
 
+[% IF dist.relocatable %]
+	<Property Id="UpgradeDir">
+		<RegistrySearch Id="InstallDir" Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[OLDERVERSIONBEINGUPGRADED]" Name="InstallLocation" Type="raw" />
+	</Property>	
+[% END %]
+
     <Property Id='INSTALLDIR'>[% dist.image_dir %]</Property>
+
     
 [% directory_tree %]
 
@@ -115,8 +122,16 @@
 				  Value="[P_Rlc_3][P_Rlc_4]" Execute="immediate"/>
 	<CustomAction Id="CA_Relocate" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
 				  Execute="deferred" Return="check" Impersonate="no"/>
-
+	<CustomAction Id="CA_SetARPInstallLoc" Property="ARPINSTALLLOCATION" Value="[INSTALLDIR]"  Execute="immediate"/>
+	<CustomAction Id="CA_GetARPInstallLoc" Property="INSTALLDIR" Value="[UpgradeDir]"  Execute="immediate"/>
+	
+	<InstallUISequence>
+		<Custom Action="CA_GetARPInstallLoc" Before="CostInitialize">
+			OLDERVERSIONBEINGUPGRADED AND UpgradeDir
+		</Custom>
+	</InstallUISequence>
 	<InstallExecuteSequence>
+		<Custom Action="CA_SetARPInstallLoc" Before="RegisterProduct" />
 		<Custom Action="CA_Rlc_1" After="CostFinalize"/>
 		<Custom Action="CA_Rlc_2" After="CA_Rlc_1"/>
 		<Custom Action="CA_Rlc_3" After="CA_Rlc_2"/>

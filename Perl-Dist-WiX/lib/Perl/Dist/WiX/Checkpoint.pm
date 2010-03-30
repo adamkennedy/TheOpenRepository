@@ -8,7 +8,7 @@ Perl::Dist::WiX::Checkpoint - Checkpoint support for Perl::Dist::WiX
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Checkpoint version 1.102.
+This document describes Perl::Dist::WiX::Checkpoint version 1.102_103.
 
 =head1 DESCRIPTION
 
@@ -18,6 +18,8 @@ support checkpointing.
 =head1 SYNOPSIS
 
 	# This module is not to be used independently.
+	# It provides methods to be called on a Perl::Dist::WiX object.
+
 	$dist = Perl::Dist::WiX->new(
 		# ...
 		checkpoint_before => 5
@@ -30,7 +32,11 @@ support checkpointing.
 
 There are 2 portions to the interface to this module - the parameters to 
 L<new()|Perl::Dist::WiX/new> (documented in that module), and the 
-object calls that Perl::Dist::WiX uses to coordinate checkpointing.
+object methods that Perl::Dist::WiX uses to coordinate checkpointing, as
+described below.
+
+These routines are not meant to be called from external classes.  
+L<Perl::Dist::WiX|Perl::Dist::WiX> calls these routines as required.
 
 =cut
 
@@ -41,14 +47,8 @@ use List::Util qw( first );
 use File::Spec::Functions qw( catdir catfile );
 use File::Remove qw();
 
-our $VERSION = '1.102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
-
-#####################################################################
-# Checkpoint Support
-
-# NOTE: "The object that called it" is supposed to be a Perl::Dist::WiX
-# object.
 
 =head2 checkpoint_task
 
@@ -59,6 +59,10 @@ The first parameter is the name of the subroutine to be executed.
 The second parameter is the task number that goes with that subroutine.
 
 Returns true (technically, the object that called it), or throws an exception.
+
+This routine is called for each task (a task is a method on 
+C<Perl::Dist::WiX> or a subclass of it) defined in the 
+L<tasklist|Perl::Dist::WiX/tasklist> parameter to C<Perl::Dist::WiX->new()>.
 
 =cut
 
@@ -99,7 +103,8 @@ sub checkpoint_task {
 
 =head2 checkpoint_file
 
-Returns the file that the Perl::Dist::WiX object is stored in.
+Returns the file that the Perl::Dist::WiX object is stored in when
+C<checkpoint_save> is called.
 
 =cut
 

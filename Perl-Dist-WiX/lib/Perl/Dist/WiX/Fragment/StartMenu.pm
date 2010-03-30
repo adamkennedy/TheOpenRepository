@@ -27,19 +27,11 @@ This document describes Perl::Dist::WiX::Fragment::StartMenu version 1.102_103.
 
 =head1 DESCRIPTION
 
-
-	# TODO
+This object represents a Start Menu directory, and creates the tags required 
+so that the Start Menu is created when the .msi is installed.
 
 =cut
 
-#####################################################################
-# Perl::Dist::WiX::Fragment::StartMenu - A <Fragment> and <DirectoryRef> tag that
-# contains <Icon> elements.
-#
-# Copyright 2009 - 2010 Curtis Jewell
-#
-# License is the same as perl. See WiX.pm for details.
-#
 use 5.008001;
 use Moose;
 use MooseX::Types::Moose qw( Str Bool );
@@ -58,12 +50,53 @@ $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
 
+=head1 METHODS
+
+This class inherits from L<WiX3::XML::Fragment|WiX3::XML::Fragment> 
+and shares its API.
+
+=head2 new
+
+The C<new> constructor takes a series of parameters, validates then
+and returns a new C<Perl::Dist::WiX::Fragment::StartMenu> object.
+
+It inherits all the parameters described in the 
+L<< WiX3::XML::Fragment->new()|WiX3::XML::Fragment/new >> 
+method documentation.
+
+If the C<id> parameter is omitted, it defaults to C<'StartMenuIcons'.
+
+=head3 icons
+
+The C<icons> parameter is a 
+L<Perl::Dist::WiX::IconArray|Perl::Dist::WiX::IconArray> object containing 
+the icons that have already been used.
+
+New icons created for this fragment are added to this IconArray object.
+
+=cut
+
+
+
 has icons => (
 	is      => 'ro',
 	isa     => 'Perl::Dist::WiX::IconArray',
 	default => sub { return Perl::Dist::WiX::IconArray->new() },
 	reader  => 'get_icons',
 );
+
+
+
+=head3 directory_id
+
+The required C<directory_id> parameter is a string containing the ID of the
+L<Perl::Dist::WiX::Tag::Directory|Perl::Dist::WiX::Tag::Directory> object 
+representing the directory that the Start Menu shortcuts that this
+object contains will be be created in.
+
+=cut
+
+
 
 has directory_id => (
 	is       => 'ro',
@@ -72,7 +105,11 @@ has directory_id => (
 	reader   => 'get_directory_id',
 );
 
-has root => (
+
+
+# This is the directory reference that is created for the
+# directory referred to by the directory_id attribute.
+has _root => (
 	is       => 'ro',
 	isa      => 'Perl::Dist::WiX::Tag::DirectoryRef',
 	init_arg => undef,
@@ -81,16 +118,58 @@ has root => (
 	reader   => '_get_root',
 );
 
+sub _build_root {
+	my $self = shift;
+
+	# Get the directory object so we can create a reference to it.
+	my $id        = $self->get_directory_id();
+	my $tree      = Perl::Dist::WiX::DirectoryTree2->instance();
+	my $directory = $tree->get_directory_object($id);
+	if ( not defined $directory ) {
+		PDWiX->throw("Could not find directory object for id $id");
+	}
+	my $root = Perl::Dist::WiX::Tag::DirectoryRef->new($directory);
+
+	# Add the component that removes the start menu folder.
+	my $remove = WiX3::XML::RemoveFolder->new(
+		id => 'RemoveStartMenuFolder',
+		on => 'uninstall',
+	);
+	my $remove_component =
+	  WiX3::XML::Component->new( id => 'RemoveStartMenuFolder', );
+
+	# Get the start of the tree right.
+	$remove_component->add_child_tag($remove);
+	$root->add_child_tag($remove_component);
+	$self->add_child_tag($root);
+
+	return $root;
+} ## end sub _build_root
+
+
+
+=head2 get_directory_id
+
+Returns the C<directory_id> parameter that was passed in to new.
+
+=head2 get_icons
+
+Returns the C<icons> parameter that was passed in to new.
+
+This object may have been changed since it was passed in.
+
+=cut
+
+
+
+# Called by Moose::Object->new()
 sub BUILDARGS {
 	my $class = shift;
 	my %args;
 
+	# Process out arguments.
 	## no critic(ProhibitCascadingIfElse)
-	if ( @_ == 1 && 'HASH' ne ref $_[0] ) {
-		$args{'id'} = $_[0];
-	} elsif ( 0 == @_ ) {
-		$args{'id'} = 'StartMenuIcons';
-	} elsif ( @_ == 1 && 'HASH' eq ref $_[0] ) {
+	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };
 	} elsif ( 0 == @_ % 2 ) {
 		%args = (@_);
@@ -100,6 +179,7 @@ sub BUILDARGS {
 		);
 	}
 
+	# Set our default id.
 	if ( not exists $args{'id'} ) {
 		$args{'id'} = 'StartMenuIcons';
 	}
@@ -107,31 +187,36 @@ sub BUILDARGS {
 	return \%args;
 } ## end sub BUILDARGS
 
-sub _build_root {
-	my $self = shift;
-	my $tree = Perl::Dist::WiX::DirectoryTree2->instance();
 
-	my $id        = $self->get_directory_id();
-	my $directory = $tree->get_directory_object($id);
-	if ( not defined $directory ) {
-		PDWiX->throw("Could not find directory object for id $id");
-	}
 
-	# Add the component that removes the start menu folder.
-	my $remove = WiX3::XML::RemoveFolder->new(
-		id => 'RemoveStartMenuFolder',
-		on => 'uninstall',
+=head2 add_shortcut
+
+	$fragment->add_shortcut(
+		name        => 'CPAN',
+		description => 'CPAN Shell (used to install modules)',
+		target      => "[D_PerlBin]cpan.bat",
+		id          => 'CpanShell',
+		working_dir => PerlBin,
+		icon_id     => 'I_CpanBat',
 	);
-	my $remove_component =
-	  WiX3::XML::Component->new( id => 'RemoveStartMenuFolder', );
-	my $root = Perl::Dist::WiX::Tag::DirectoryRef->new($directory);
 
-	$remove_component->add_child_tag($remove);
-	$root->add_child_tag($remove_component);
-	$self->add_child_tag($root);
+This method creates the tag objects that represent a Start Menu shortcut, 
+and attaches them to this fragment.
 
-	return $root;
-} ## end sub _build_root
+The C<name> and C<description> parameters are the name and the comment of 
+the shortcut being created, the C<target> is the command to be executed,
+the C<working_dir> is the ID of the working directory of the shortcut,
+the C<icon_id> is the ID of the icon to be used with this shortcut, and 
+the C<id> is the ID of the shortcut itself.
+
+Unlike most methods in the C<Perl::Dist::WiX> distribution that take named 
+parameters, this method does not take a hash reference at the present time.
+
+The C<name>, C<target>, C<working_dir>, and C<id> parameters are required.
+(C<description> defaults to being empty, and a missing C<icon_id> allows 
+Windows to follow its default rules for choosing an icon to display.)
+
+=cut
 
 # Takes hash only at present.
 sub add_shortcut {
