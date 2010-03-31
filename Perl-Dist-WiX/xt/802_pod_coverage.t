@@ -37,8 +37,8 @@ my @modules_to_test = sort { $a cmp $b } grep { filter($_) } @modules;
 my $test_count = scalar @modules_to_test;
 plan( tests => $test_count );
 
-TODO: {
-	local $TODO = q(It's worked so far, but we aren't out yet.);
+#TODO: {
+#	local $TODO = q(It's worked so far, but we aren't out yet.);
 
 	foreach my $module (@modules_to_test) {
 		pod_coverage_ok($module, { 
@@ -47,4 +47,4 @@ TODO: {
 		  trustme => [ qw(prepare delegate) ]
 		});
 	}
-}
+#}

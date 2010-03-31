@@ -134,7 +134,7 @@ sub as_string {
 
 
 
-=head2 as_string
+=head2 as_string_msm
 
 	my $xml = $tree->as_string_msm();
 
@@ -167,6 +167,16 @@ sub as_string_msm {
 
 	return $answer;
 } ## end sub as_string_msm
+
+
+
+=head2 add_merge_module
+
+TODO: Document
+
+=cut
+
+
 
 sub add_merge_module {
 	my $self  = shift;
