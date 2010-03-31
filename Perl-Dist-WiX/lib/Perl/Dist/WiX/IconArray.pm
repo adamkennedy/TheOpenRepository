@@ -8,20 +8,33 @@ Perl::Dist::WiX::IconArray - A list of <Icon> tags.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::IconArray version 1.102.
-
-=head1 DESCRIPTION
-
-	# TODO: Document
+This document describes Perl::Dist::WiX::IconArray version 1.102_103.
 
 =head1 SYNOPSIS
 
-	# TODO: Document
+	# Create an icon array
+	my $array = Perl::Dist::WiX::IconArray->new();
 
-=head1 INTERFACE
-
-	# TODO: Document
+	# Add an icon to the array, then go looking for it.
+	my $icon_id = $array->add_icon('C:\strawberry\win32\cpan.ico', 'C:\strawberry\perl\bin\cpan.bat');
+	$icon_id = $array->search_icon('C:\strawberry\win32\cpan.ico', 'bat');
 	
+	# The second parameters are optional IF you're referring to the msi's icon.
+	my $icon_id_2 = $array->add_icon('C:\strawberry\win32\strawberry.ico');
+	$icon_id_2 = $array->search_icon('C:\strawberry\win32\strawberry.ico');
+
+	# Print out all the icons in XML format.
+	my $xml = $array->as_string();
+
+=head1 DESCRIPTION
+
+This stores all the icons that are used in a 
+L<Perl::Dist::WiX|Perl::Dist::WiX>-based installer for Start Menu shortcuts
+or for the Add/Remove Programs entry, so that they can all be defined in
+one place when linking the installer together.
+
+The object is not a singleton - maybe it should be?
+
 =cut
 
 use 5.008001;
@@ -30,15 +43,17 @@ use Params::Util qw( _STRING   );
 use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Tag::Icon;
 
-our $VERSION = '1.102_101';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
+# Private storage for the icons added.
 has _icon => (
-	traits  => ['Array'],
-	is      => 'rw',
-	isa     => 'ArrayRef[Perl::Dist::WiX::Tag::Icon]',
-	default => sub { [] },
-	handles => {
+	traits   => ['Array'],
+	is       => 'rw',
+	isa      => 'ArrayRef[Perl::Dist::WiX::Tag::Icon]',
+	default  => sub { [] },
+	init_arg => undef,
+	handles  => {
 		'_push_icon'      => 'push',
 		'_count_icons'    => 'count',
 		'_get_icon_array' => 'elements',
@@ -47,17 +62,30 @@ has _icon => (
 
 
 
-#####################################################################
-# Main Methods
+=head1 INTERFACE
 
-########################################
-# add_icon($pathname_icon, $pathname_target)
-# Parameters:
-#   $pathname_icon: Path of icon.
-#   $pathname_target: Path of icon's target.
-# Returns:
-#   Id of icon.
+=head2 new
 
+	my $array = Perl::Dist::WiX::IconArray->new();
+
+Creates a new C<Perl::Dist::WiX::IconArray> object.
+
+Takes no parameters.
+
+=head2 add_icon
+
+	my $icon_id = $array->add_icon('C:\strawberry\win32\cpan.ico', 'C:\strawberry\perl\bin\cpan.bat');
+
+The C<add_icon> routine adds an icon to the array for the icon file 
+referred to in the first parameter, and that targets the file in the 
+second parameter.
+
+The second parameter defaults to 'Perl.msi' (which is a shortcut for 
+the icon that should be linked to in Add/Remove Programs for your
+software.)
+
+=cut
+	
 sub add_icon {
 	my ( $self, $pathname_icon, $pathname_target ) = @_;
 
@@ -107,13 +135,21 @@ sub add_icon {
 	return $id;
 } ## end sub add_icon
 
-########################################
-# search_icon($pathname_icon, $target_type)
-# Parameters:
-#   $pathname_icon: Path of icon to search for.
-#   $target_type: Target type to search for.
-# Returns:
-#   Id of icon.
+
+
+=head2 search_icon
+
+	my $icon_id = $array->search_icon('C:\strawberry\win32\cpan.ico', 'bat');
+
+The C<search_icon> routine searches the array for the ID of the icon object
+that refers to the icon file in the first parameter, and targets a file
+with the extension in the second parameter.
+
+The second parameter defaults to 'msi'.
+
+=cut
+
+
 
 sub search_icon {
 	## no critic (ProhibitExplicitReturnUndef)
@@ -151,12 +187,17 @@ sub search_icon {
 } ## end sub search_icon
 
 
-########################################
-# as_string
-# Parameters:
-#   None.
-# Returns:
-#   String containing <Icon> tags defined by this object.
+
+=head2 as_string
+
+	my $xml = $array->as_string();
+
+The C<as_string> method returns XML code for all icon objects 
+included in this object.
+	
+=cut
+
+
 
 sub as_string {
 	my $self = shift;

@@ -3635,7 +3635,7 @@ sub regenerate_fragments {
 		foreach my $name (@fragment_names) {
 			my $fragment = $self->get_fragment_object($name);
 			if ( defined $fragment ) {
-				push @fragment_names_regenerate, $fragment->regenerate();
+				push @fragment_names_regenerate, $fragment->_regenerate();
 			} else {
 				$self->trace_line( 0,
 "Couldn't regenerate fragment $name because fragment object did not exist.\n"
@@ -4388,7 +4388,7 @@ sub insert_fragment {
 		$frag = $self->get_fragment_object($frag_key);
 		next FRAGMENT
 		  if not $frag->isa('Perl::Dist::WiX::Fragment::Files');
-		$frag->check_duplicates($files_obj);
+		$frag->_check_duplicates($files_obj);
 	}
 
 	my $fragment = Perl::Dist::WiX::Fragment::Files->new(
@@ -4441,7 +4441,7 @@ sub add_to_fragment {
 	my $frag;
 	foreach my $frag_key ( $self->_fragment_keys() ) {
 		$frag = $self->get_fragment_object($frag_key);
-		$frag->check_duplicates($files_obj);
+		$frag->_check_duplicates($files_obj);
 	}
 
 	my $fragment = $self->get_fragment_object($id)->add_files(@files);

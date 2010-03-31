@@ -262,6 +262,9 @@ the module.
 The optional 'packlist' param sshould be 0 if a .packlist file is not 
 installed with the module.
 
+This does NOT install the dependencies of the module named - they have
+to be installed before the named module, in one way or another.
+
 Returns true or throws an exception on error.
 
 =cut

@@ -30,6 +30,7 @@ our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
+with 'WiX3::Role::Traceable';
 
 =head1 METHODS
 
@@ -160,9 +161,13 @@ sub get_entries_count {
 }
 
 
+# The fragment is already generated. No need to regenerate.
+sub _regenerate {
+	return;
+}
 
 # No duplicates will be here to check.
-sub check_duplicates {
+sub _check_duplicates {
 	return;
 }
 

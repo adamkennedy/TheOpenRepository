@@ -166,20 +166,8 @@ sub _build_feature {
 
 
 
-
-=head2 regenerate
-
-Generates the fragment from the list of files.
-
-This must be done before C<as_string()> is called, and is called by the
-'regenerate_fragments' tasklist entry from C<Perl::Dist::WiX>.
-
-=cut
-
-
-
 # This type of fragment needs regeneration.
-sub regenerate {
+sub _regenerate {
 	my $self = shift;
 	my @fragment_ids;
 	my @files = @{ $self->_get_files() };
@@ -513,20 +501,7 @@ sub _add_file_component {
 
 
 
-=head2 check_duplicates
-
-    $fragment = $fragment->check_duplicates($filelist_object)
-
-Removes files that are in the L<File::List::Object|File::List::Object> 
-passed in from the current fragment.
-
-This must be done before L<regenerate()|/regenerate> is called 
-
-=cut
-
-
-
-sub check_duplicates {
+sub _check_duplicates {
 	my $self     = shift;
 	my $filelist = shift;
 
@@ -539,7 +514,7 @@ sub check_duplicates {
 	if ( not defined _INSTANCE( $filelist, 'File::List::Object' ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'filelist',
-			where => 'Perl::Dist::WiX::Fragment::Files->check_duplicates',
+			where => 'Perl::Dist::WiX::Fragment::Files->_check_duplicates',
 		);
 		return 0;
 	}
@@ -547,7 +522,7 @@ sub check_duplicates {
 	# Subtract the filelist from our contents.
 	$self->_subtract($filelist);
 	return $self;
-} ## end sub check_duplicates
+} ## end sub _check_duplicates
 
 
 
@@ -573,7 +548,8 @@ around 'get_componentref_array' => sub {
 
 Adds file(s) to the current fragment.
 
-This must be done before L<regenerate()|/regenerate> is called 
+This must be done before C<Perl::Dist::WiX->regenerate_fragments()> is 
+called.
 
 =cut
 
@@ -619,7 +595,8 @@ Finds the ID of the file tag for the filename passed in.
 
 Returns C<undef> if no file tag could be found.
 	
-This must be done after L<regenerate()|/regenerate> is called.
+This must be done before C<Perl::Dist::WiX->regenerate_fragments()> is 
+called.
 
 =cut
 

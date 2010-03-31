@@ -8,20 +8,20 @@ Perl::Dist::WiX::FeatureTree2 - Tree of <Feature> tag objects.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::FeatureTree2 version 1.102.
+This document describes Perl::Dist::WiX::FeatureTree2 version 1.102_103.
+
+=head1 SYNOPSIS
+
+	my $tree = Perl::Dist::WiX::FeatureTree2->new(
+		parent => $dist,
+	);
+	
+	my $xml = $tree->as_string();
 
 =head1 DESCRIPTION
 
 	# TODO: Document
 
-=head1 SYNOPSIS
-
-	# TODO: Document
-
-=head1 INTERFACE
-
-	# TODO: Document
-	
 =cut
 
 use 5.008001;
@@ -31,8 +31,20 @@ require WiX3::XML::Feature;
 our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
 
-#####################################################################
-# Accessors:
+=head1 INTERFACE
+
+=head2 new
+
+	my $tree = Perl::Dist::WiX::FeatureTree2->new(
+		parent => $dist,
+	);
+
+The C<new> method creates a new feature tree object for the
+L<Perl::Dist::WiX|Perl::Dist::WiX> object passed as its C<parent> parameter.
+	
+=cut	
+
+
 
 has parent => (
 	is       => 'ro',
@@ -46,7 +58,9 @@ has parent => (
 	},
 );
 
-has features => (
+
+
+has _features => (
 	traits   => ['Array'],
 	is       => 'ro',
 	isa      => 'ArrayRef[WiX3::XML::Feature]',
@@ -61,9 +75,6 @@ has features => (
 );
 
 
-#####################################################################
-# Constructor for FeatureTree2
-#
 
 sub BUILD {
 	my $self = shift;
@@ -88,12 +99,18 @@ sub BUILD {
 	return;
 } ## end sub BUILD
 
-########################################
-# as_string
-# Parameters:
-#   None.
-# Returns:
-#   String representing features contained in this object.
+
+
+=head2 as_string
+
+	my $xml = $tree->as_string();
+
+The C<as_string> method returns XML representing this feature tree 
+object for use in the main .msi.
+
+=cut
+
+
 
 sub as_string {
 	my $self = shift;
@@ -102,7 +119,7 @@ sub as_string {
 	my $spaces = q{    };              # Indent 4 spaces.
 	my $answer = $spaces;
 	foreach my $feature ( $self->_get_feature_array() ) {
-		$answer .= $feature->as_string;
+		$answer .= $feature->as_string();
 	}
 
 	chomp $answer;
@@ -115,6 +132,19 @@ sub as_string {
 	return $answer;
 } ## end sub as_string
 
+
+
+=head2 as_string
+
+	my $xml = $tree->as_string_msm();
+
+The C<as_string> method returns XML representing this feature tree 
+object for use in merge modules.
+
+=cut
+
+
+
 sub as_string_msm {
 	my $self = shift;
 
@@ -123,8 +153,9 @@ sub as_string_msm {
 	my $answer = $spaces;
 	foreach my $feature ( $self->_get_feature_array() ) {
 
-		# We just want the children for this one.
-		$answer .= $feature->as_string_children;
+		# We just want the children for this one, as
+		# a merge module does not really use <Feature> tags.
+		$answer .= $feature->as_string_children();
 	}
 
 	chomp $answer;
