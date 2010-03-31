@@ -5078,18 +5078,6 @@ L<Win32|Win32> 0.35.
 
 =for readme stop
 
-=head1 TODO
-
-=over
-
-=item 1.
-
-Add the ability to build in a 32 or 64 bit toolchain using gcc 4.x.x.
-
-=item 2.
-
-Make the perl distribution relocatable.
-
 =back
 
 =head1 BUGS AND LIMITATIONS (SUPPORT)
