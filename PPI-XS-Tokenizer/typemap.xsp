@@ -1,7 +1,7 @@
 // Map the type of our custom classes
 //%typemap{Tokenizer*}{simple};
 %typemap{CPPTokenizerWrapper*}{simple};
-%typemap{Token*}{simple};
+//%typemap{Token*}{simple};
 %typemap{LineTokenizeResults}{simple};
 
 // Map simple types

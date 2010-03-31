@@ -66,6 +66,7 @@ public:
 		if ( a1.test(text, &pos, line_lenght) &&
 			 a2.test(text, &pos, line_lenght) &&
 			 a3.test(text, &pos, line_lenght) &&
+			 a4.test(text, &pos, line_lenght) &&
 			 a5.test(text, &pos, line_lenght) ) {
 			*position = pos;
 			return true;

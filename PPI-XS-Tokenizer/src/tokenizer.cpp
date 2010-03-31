@@ -404,6 +404,17 @@ void Tokenizer::Reset() {
 	m_nLastSignificantPos = 0;
 }
 
+unsigned int count_waiting_tokens(Token *head) {
+	if (head == NULL)
+		return 0;
+	unsigned int x = 0;
+	while (head!=NULL) {
+		x++;
+		head = head->next;
+	}
+	return x;
+}
+
 void Tokenizer::EndOfDocument() {
 	if ( c_token != NULL )
 		_finalize_token();
@@ -413,6 +424,7 @@ void Tokenizer::EndOfDocument() {
 		chain_token(tkn, tokens_found_head, tokens_found_tail);
 	}
 	tokens_posponded_tail = NULL;
+	//printf("EndOfDocument ended: waiting tokens: %d\n", count_waiting_tokens(tokens_found_head));
 }
 
 Token *Tokenizer::_last_significant_token(unsigned int n) {
@@ -452,6 +464,7 @@ OperatorOperandContext Tokenizer::_opcontext() {
 
 LineTokenizeResults Tokenizer::_tokenize_the_rest_of_the_line() {
 	const char *line = c_line;
+	//printf("_tokenize_the_rest_of_the_line started: waiting tokens: %d\n", count_waiting_tokens(tokens_found_head));
     while (line_length > line_pos) {
 		CharTokenizeResults rv = c_token->type->tokenize(this, c_token, line[line_pos]);
         switch (rv) {
@@ -464,6 +477,7 @@ LineTokenizeResults Tokenizer::_tokenize_the_rest_of_the_line() {
                 return tokenizing_fail;
         };
     }
+	//printf("_tokenize_the_rest_of_the_line ended: waiting tokens: %d\n", count_waiting_tokens(tokens_found_head));
     return reached_eol;
 }
 

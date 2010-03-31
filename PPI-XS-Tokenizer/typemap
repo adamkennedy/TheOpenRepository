@@ -2,7 +2,6 @@ TYPEMAP
 LineTokenizeResults      T_IV
 char*              T_PV
 
-Token*             O_OBJECT
 Tokenizer*         O_OBJECT
 CPPTokenizerWrapper*         O_OBJECT
 

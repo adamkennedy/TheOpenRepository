@@ -144,8 +144,14 @@ int main(int argc, char* argv[])
 	Tokenizer tk;
 	VerifyInheritence( tk.TokenTypeNames_pool );
 
+	Tokenize("indirect_class_with_colon Foo::;\n");
+	CheckToken(&tk, "indirect_class_with_colon", Token_Word);
+	CheckToken(&tk, " ", Token_Whitespace);
+	CheckToken(&tk, "Foo::", Token_Word);
+	CheckToken(&tk, ";", Token_Structure);
+
 	Tokenize("  {  }   \n");
-	CheckToken(&tk, "  ", Token_Whitespace);
+	CheckToken(&tk, "\n  ", Token_Whitespace);
 	CheckToken(&tk, "{", Token_Structure);
 	CheckToken(&tk, "  ", Token_Whitespace);
 	CheckToken(&tk, "}", Token_Structure);
@@ -441,6 +447,12 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, "__DATA__", Token_Separator);
 	CheckToken(&tk, "\n", Token_Whitespace);
 	CheckToken(&tk, "FDGDF hfghhgfhg gfh\n=start\n", Token_Data);
+
+	tk.Reset();
+	Tokenize("F;");
+	tk.EndOfDocument();
+	CheckToken(&tk, "F", Token_Word);
+	CheckToken(&tk, ";", Token_Structure);
 
 	Token *tkn;
 	while (( tkn = tk.pop_one_token() ) != NULL ) {

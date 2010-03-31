@@ -13,14 +13,18 @@ static inline bool is_letter_msyq( unsigned char c ) {
 static inline bool is_letter_qxwr( unsigned char c ) {
 	return ( c == 'q' ) || ( c == 'x' ) || ( c == 'w' ) || ( c == 'r' );
 }
-// /^(?:eq|ne|tr)\'/
+// /^(?:eq|ne|tr|ge|lt|gt|le)\'/
 // /^(?:qq|qx|qw|qr)\'/
 // assumation: the string is longer then 2 bytes
 static inline bool is_quote_like( const char *str ) {
-	return ( ( ( str[0] == 'q' ) && is_letter_qxwr( str[1] ) ) ||
-			 ( ( str[0] == 'e' ) && ( str[1] == 'q' ) ) ||
-			 ( ( str[0] == 'n' ) && ( str[1] == 'e' ) ) ||
-			 ( ( str[0] == 't' ) && ( str[1] == 'r' ) ) );
+	return ( ( ( str[0] == 'q' ) && is_letter_qxwr( str[1] ) ) || // qq, qx, qw, qr
+			 ( ( str[0] == 'e' ) && ( str[1] == 'q' ) ) || // eq
+			 ( ( str[0] == 'g' ) && ( str[1] == 'e' ) ) || // ge
+			 ( ( str[0] == 'n' ) && ( str[1] == 'e' ) ) || // ne
+			 ( ( str[0] == 'l' ) && ( str[1] == 'e' ) ) || // le
+			 ( ( str[0] == 'g' ) && ( str[1] == 't' ) ) || // gt
+			 ( ( str[0] == 'l' ) && ( str[1] == 't' ) ) || // lt
+			 ( ( str[0] == 't' ) && ( str[1] == 'r' ) ) ); // tr
 }
 
 static unsigned char oversuck_protection( const char *text, unsigned long len) {
@@ -30,6 +34,12 @@ static unsigned char oversuck_protection( const char *text, unsigned long len) {
 		} else
 		if ( ( len >= 3 ) && ( text[2] == '\'' ) && is_quote_like( text ) ) {
 			return 2;
+		} else
+		if ( ( len >= 5 ) && ( strncmp(text, "pack'", 5) == 0 ) ) {
+			return 4;
+		} else
+		if ( ( len >= 7 ) && ( strncmp(text, "unpack'", 7) == 0 ) ) {
+			return 6;
 		} else
 			return 0;
 }

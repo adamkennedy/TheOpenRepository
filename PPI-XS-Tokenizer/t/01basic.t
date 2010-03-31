@@ -2,11 +2,16 @@ use strict;
 use warnings;
 
 use Test::More tests => 27;
-BEGIN { use_ok('PPI::XS::Tokenizer') };
+BEGIN {
+  no warnings 'once';
+  $PPI::Lexer::X_TOKENIZER = "PPI::XS::Tokenizer";
+  use_ok('PPI::XS::Tokenizer')
+};
 require PPI;
 
 SCOPE: {
-  my $t = PPI::XS::Tokenizer->new("Test");
+  my $code = "Test";
+  my $t = PPI::XS::Tokenizer->new(\$code);
   isa_ok($t, 'PPI::XS::Tokenizer');
   #ok($t->tokenizeLine("Test") == PPI::XS::Tokenizer::reached_eol, 'simple tokenizeLine call returns reached_eol');
   my $token = $t->get_token();
@@ -22,7 +27,8 @@ SCOPE: {
 
 
 SCOPE: {
-  my $t = PPI::XS::Tokenizer->new("qq{foo}");
+  my $code = "qq{foo}";
+  my $t = PPI::XS::Tokenizer->new(\$code);
   isa_ok($t, 'PPI::XS::Tokenizer');
   my $token = $t->get_token();
   ok(defined $token, "Token defined");
@@ -44,7 +50,8 @@ SCOPE: {
 
 
 SCOPE: {
-  my $t = PPI::XS::Tokenizer->new("'foo'");
+  my $code = "'foo'";
+  my $t = PPI::XS::Tokenizer->new(\$code);
   isa_ok($t, 'PPI::XS::Tokenizer');
   my $token = $t->get_token();
   ok(defined $token, "Token defined");
@@ -59,7 +66,8 @@ SCOPE: {
 
 
 SCOPE: {
-  my $t = PPI::XS::Tokenizer->new('"foo"');
+  my $code = '"foo"';
+  my $t = PPI::XS::Tokenizer->new(\$code);
   isa_ok($t, 'PPI::XS::Tokenizer');
   my $token = $t->get_token();
   ok(defined $token, "Token defined");
@@ -81,7 +89,7 @@ blubb
 HEREDOC
 HERE
 
-  my $t = PPI::XS::Tokenizer->new($text);
+  my $t = PPI::XS::Tokenizer->new(\$text);
   isa_ok($t, 'PPI::XS::Tokenizer');
   my $token = $t->get_token();
   ok(defined $token, "Token defined");

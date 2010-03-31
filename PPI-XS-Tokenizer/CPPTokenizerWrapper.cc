@@ -152,6 +152,7 @@ namespace PPITokenizer {
   SV*
   CPPTokenizerWrapper::get_token()
   {
+    printf("entering get token, num of lines=%d\n", av_len(fLines));
     Token* theToken = fTokenizer->pop_one_token();
     if (theToken == NULL) {
       while (av_len(fLines) >= 0) {
@@ -178,15 +179,20 @@ namespace PPITokenizer {
       }
 
       if (theToken == NULL) {
-        cout << "TOKEN IS NULL" << endl;
-        return &PL_sv_undef;
+        fTokenizer->EndOfDocument();
+        theToken = fTokenizer->pop_one_token();
+      }
+
+      if (theToken == NULL) {
+        cout << "TOKEN IS NULL: possibly end of document" << endl;
+        return newSVpvn("", 0); //&PL_sv_undef;
       }
     }
 
     // make a Perl PPI::Token
     int ttype = theToken->type->type;
     const char* className = CPPTokenizerWrapper::fgTokenClasses[ttype];
-    //printf("Class: %s\n", className);
+    printf("Class: %s\n", className);
 
     SV* theObject = S_newPerlObject(className);
     HV* objHash = (HV*)SvRV((SV*)theObject);
