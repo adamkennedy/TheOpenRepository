@@ -184,7 +184,7 @@ namespace PPITokenizer {
       }
 
       if (theToken == NULL) {
-        cout << "TOKEN IS NULL: possibly end of document" << endl;
+        // cout << "TOKEN IS NULL: possibly end of document" << endl;
         return newSVpvn("", 0); //&PL_sv_undef;
       }
     }
