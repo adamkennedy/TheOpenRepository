@@ -10,7 +10,7 @@ This document describes Perl::Dist::WiX::Types version 1.102_103.
 
 =head1 SYNOPSIS
 
-	use Perl::Dist::WiX::Types qw( Directory ExistingDirectory );
+	use Perl::Dist::WiX::Types qw( ExistingDirectory ExistingFile Template );
 
 =head1 DESCRIPTION
 
@@ -24,29 +24,13 @@ It may be updated or replaced at any time.
 
 use 5.008001;
 use MooseX::Types -declare =>
-  [qw( Directory ExistingDirectory ExistingFile )];
-use MooseX::Types::Moose qw( Str );
+  [qw( ExistingDirectory ExistingFile Template )];
+use MooseX::Types::Moose qw( Str Object );
+use MooseX::Types::Path::Class qw( Dir File );
+use Template qw();
 
 our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
-
-=head2 Directory
-
-	has foo => (
-		is => 'ro',
-		isa => Directory,
-		#...
-	);
-
-This type specifies that this is a directory that can be created (i.e.
-its drive exists.)
-
-=cut
-
-subtype Directory,
-  as Str,
-  where { ( $_ =~ m{\\}ms ) or ( $_ =~ m{\w*}ms ) },
-  message {'Not a valid directory'};
 
 =head2 ExistingDirectory
 
@@ -60,7 +44,7 @@ subtype Directory,
 =cut
 
 subtype ExistingDirectory,
-  as Directory,
+  as Dir,
   where { -d $_ },
   message {'Directory does not exist'};
 
@@ -76,9 +60,26 @@ subtype ExistingDirectory,
 =cut
 
 subtype ExistingFile,
-  as Str,
+  as File,
   where { -f $_ },
   message {'File does not exist'};
+
+  
+=head2 Template
+
+	has bar => (
+		is => 'ro',
+		isa => Template,
+		#...
+	);
+
+
+=cut
+
+subtype 'Template',
+  as Object,
+  where { $_->isa('Template') },
+  message {'Template is not the correct type of object'};
 
 1;
 

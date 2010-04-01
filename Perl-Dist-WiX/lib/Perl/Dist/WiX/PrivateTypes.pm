@@ -20,30 +20,28 @@ use 5.008001;
 use MooseX::Types -declare => [
 	qw( _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir )
 ];
-use MooseX::Types::Moose qw( Str );
-
-# use Perl::Dist::WiX::Types;
+use MooseX::Types::Path::Class qw( Dir );
 
 our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
 subtype _NoDoubleSlashes,
-  as Str,
+  as Dir,
   where { $_ !~ m{\\\\}ms },
   message {'cannot contain two consecutive slashes'};
 
 subtype _NoSpaces,
-  as Str,
+  as Dir,
   where { $_ !~ m{\s}ms },
   message {'Spaces are not allowed'};
 
 subtype _NoForwardSlashes,
-  as Str,
+  as Dir,
   where { $_ !~ m{/}ms },
   message {'Forward slashes are not allowed'};
 
 subtype _NoSlashAtEnd,
-  as Str,
+  as Dir,
   where { $_ !~ m{\\\z}ms },
   message {'Cannot have a slash at the end'};
 

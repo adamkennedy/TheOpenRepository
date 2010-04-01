@@ -10,11 +10,6 @@ Perl::Dist::WiX::Checkpoint - Checkpoint support for Perl::Dist::WiX
 
 This document describes Perl::Dist::WiX::Checkpoint version 1.102_103.
 
-=head1 DESCRIPTION
-
-This module provides the routines that Perl::Dist::WiX uses in order to
-support checkpointing.
-
 =head1 SYNOPSIS
 
 	# This module is not to be used independently.
@@ -27,6 +22,11 @@ support checkpointing.
 		checkpoint_stop => 9,
 		# ...
 	);
+
+=head1 DESCRIPTION
+
+This module provides the routines that Perl::Dist::WiX uses in order to
+support checkpointing.
 
 =head1 INTERFACE
 
