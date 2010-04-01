@@ -26,6 +26,14 @@ CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned 
 	if ( token->length != 1 )
 		return error_fail;
 
+	// is it control-character symbol (e.g. @{^_Foo})?
+	// qr{^\^[[:upper:]_]\w+\}};
+	PredicateAnd<
+		PredicateIsChar< '^' >,
+		PredicateFunc< is_upper_or_underscore >,
+		PredicateOneOrMore< PredicateFunc< is_word > >,
+		PredicateIsChar< '}' > > CurlyMagic;
+
 	if ( token->text[0] == '*' ) {
 		if ( is_letter(c_char) || ( c_char == '_' ) || ( c_char == ':' ) ) {
 			Token *prev = t->_last_significant_token(1);
@@ -87,6 +95,19 @@ CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned 
 			return my_char;
 		}
 
+		if ( c_char == '{' ) {
+			unsigned long pos = t->line_pos + 1;
+			if ( CurlyMagic.test( t->c_line, &pos, t->line_length ) ) {
+				for ( unsigned long ix = t->line_pos; ix < pos; ix++ ) {
+					token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+				}
+				t->changeTokenType( Token_Magic );
+				TokenTypeNames zone = t->_finalize_token();
+				t->_new_token(zone);
+				return done_it_myself;
+			}
+		}
+
 		t->changeTokenType( Token_Cast );
 		TokenTypeNames zone = t->_finalize_token();
 		t->_new_token(zone);
@@ -102,6 +123,20 @@ CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned 
 			t->changeTokenType( Token_Magic );
 			return my_char;
 		}
+
+		if ( c_char == '{' ) {
+			unsigned long pos = t->line_pos + 1;
+			if ( CurlyMagic.test( t->c_line, &pos, t->line_length ) ) {
+				for ( unsigned long ix = t->line_pos; ix < pos; ix++ ) {
+					token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+				}
+				t->changeTokenType( Token_Magic );
+				TokenTypeNames zone = t->_finalize_token();
+				t->_new_token(zone);
+				return done_it_myself;
+			}
+		}
+
 		t->changeTokenType( Token_Cast );
 		TokenTypeNames zone = t->_finalize_token();
 		t->_new_token(zone);
@@ -115,13 +150,27 @@ CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned 
 			t->_new_token(zone);
 			return done_it_myself;
 		}
-		if ( ( c_char == '!' ) || ( c_char == '^' ) ) {
+		token->text[ token->length ] = c_char;
+		token->text[ token->length + 1 ] = 0;
+		if ( ( c_char == '^' ) || t->is_magic( token->text ) ) {
 			t->changeTokenType( Token_Magic );
 			return my_char;
 		}
 		if ( is_word( c_char ) || ( c_char == ':') ) {
 			t->changeTokenType( Token_Symbol );
 			return my_char;
+		}
+		if ( c_char == '{' ) {
+			unsigned long pos = t->line_pos + 1;
+			if ( CurlyMagic.test( t->c_line, &pos, t->line_length ) ) {
+				for ( unsigned long ix = t->line_pos; ix < pos; ix++ ) {
+					token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+				}
+				t->changeTokenType( Token_Magic );
+				TokenTypeNames zone = t->_finalize_token();
+				t->_new_token(zone);
+				return done_it_myself;
+			}
 		}
 		if ( is_sigil( c_char ) || ( c_char == '{') ) {
 			t->changeTokenType( Token_Cast );

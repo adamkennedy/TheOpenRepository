@@ -204,6 +204,33 @@ CharTokenizeResults MagicToken::tokenize(Tokenizer *t, Token *token, unsigned ch
 			return done_it_myself;
 		}
 
+		if ( ( nlen == 3 ) && ( strncmp(token->text, "$${", 3) == 0 ) ) {
+			// check for $${^MATCH}
+			// qr{^\^[[:upper:]_]\w+\}};
+			PredicateAnd<
+				PredicateIsChar< '^' >,
+				PredicateFunc< is_upper_or_underscore >,
+				PredicateOneOrMore< PredicateFunc< is_word > >,
+				PredicateIsChar< '}' > > regex1;
+			unsigned long pos = t->line_pos + 1;
+			if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
+				// cast token containing '$'
+				t->changeTokenType( Token_Cast );
+				t->c_token->length = 1;
+				t->_finalize_token();
+				// magic token containing the $${^MATCH}
+				t->_new_token( Token_Magic );
+				token = t->c_token;
+				t->line_pos--;
+				for ( unsigned long ix = t->line_pos; ix < pos; ix++ ) {
+					token->text[ token->length++ ] = t->c_line[ t->line_pos++ ];
+				}
+				TokenTypeNames zone = t->_finalize_token();
+				t->_new_token(zone);
+				return done_it_myself;
+			}
+		}
+
 		if ( ( token->length == 2 ) && ( token->text[1] == '#' ) ) {
 			if ( ( c_char == '$' ) || ( c_char == '{' ) ) {
 				t->changeTokenType( Token_Cast );
@@ -248,6 +275,17 @@ CharTokenizeResults MagicToken::tokenize(Tokenizer *t, Token *token, unsigned ch
 		t->_new_token(zone);
 		return done_it_myself;
 	}
+
+	token->text[ token->length + 1 ] = 0;
+	if ( t->is_magic( token->text ) ) {
+		// $#+ and $#-
+		t->line_pos++;
+		token->length++;
+		TokenTypeNames zone = t->_finalize_token();
+		t->_new_token(zone);
+		return done_it_myself;
+	}
+
 	TokenTypeNames zone = t->_finalize_token();
 	t->_new_token(zone);
 	return done_it_myself;

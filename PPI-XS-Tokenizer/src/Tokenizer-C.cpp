@@ -144,7 +144,38 @@ int main(int argc, char* argv[])
 	Tokenizer tk;
 	VerifyInheritence( tk.TokenTypeNames_pool );
 
+	Tokenize("@{^_Bar};\n");
+	CheckToken(&tk, "@{^_Bar}", Token_Magic);
+	CheckToken(&tk, ";", Token_Structure);
+
+	Tokenize("$${^MATCH};\n");
+	CheckToken(&tk, "\n", Token_Whitespace);
+	CheckToken(&tk, "$", Token_Cast);
+	CheckToken(&tk, "${^MATCH}", Token_Magic);
+	CheckToken(&tk, ";", Token_Structure);
+
+	Tokenize("${^MATCH};\n");
+	CheckToken(&tk, "\n", Token_Whitespace);
+	CheckToken(&tk, "${^MATCH}", Token_Magic);
+	CheckToken(&tk, ";", Token_Structure);
+
+	Tokenize("$#-;\n");
+	CheckToken(&tk, "\n", Token_Whitespace);
+	CheckToken(&tk, "$#-", Token_Magic);
+	CheckToken(&tk, ";", Token_Structure);
+
+	Tokenize("%-;\n");
+	CheckToken(&tk, "\n", Token_Whitespace);
+	CheckToken(&tk, "%-", Token_Magic);
+	CheckToken(&tk, ";", Token_Structure);
+
+	Tokenize("0E0;\n");
+	CheckToken(&tk, "\n", Token_Whitespace);
+	CheckToken(&tk, "0E0", Token_Number_Exp);
+	CheckToken(&tk, ";", Token_Structure);
+
 	Tokenize("indirect_class_with_colon Foo::;\n");
+	CheckToken(&tk, "\n", Token_Whitespace);
 	CheckToken(&tk, "indirect_class_with_colon", Token_Word);
 	CheckToken(&tk, " ", Token_Whitespace);
 	CheckToken(&tk, "Foo::", Token_Word);

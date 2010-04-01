@@ -22,6 +22,10 @@ bool inline is_sigil(char c) {
 	return ( ( c == '$' ) || (  c == '@' ) || (  c == '%' ) || (  c == '*' ) );
 }
 
+bool inline is_upper_or_underscore(char c) {
+	return ( ( ( c >= 'A' ) && (  c <= 'Z' ) ) || (  c == '_' ) );
+}
+
 typedef bool (*predicate_function)(char c);
 
 template <predicate_function func> 

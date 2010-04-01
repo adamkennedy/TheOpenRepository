@@ -163,6 +163,10 @@ inline bool is_first_exp_char( char c ) {
 	return ( is_digit(c) || ( c == '-' ) || ( c == '+' ) || ( c == '_' ) );
 }
 
+inline bool is_exp_char( char c ) {
+	return ( is_digit(c) || ( c == '_' ) );
+}
+
 bool ExpNumberToken::isa( TokenTypeNames is_type ) const {
 	return ( ( is_type == type ) || ( is_type == Token_Number ) || ( is_type == Token_Number_Float ) );
 }
@@ -171,8 +175,8 @@ CharTokenizeResults ExpNumberToken::tokenize(Tokenizer *t, Token *token, unsigne
 	// if we have reached here, the number looks like 12.34e-56 / 12.34e+56 / 12.34e56
 	// the number up untill and including the 'e' is already captured
 	PredicateAnd<
-		PredicateZeroOrOne< PredicateFunc< is_first_exp_char > >,
-		PredicateOneOrMore< PredicateFunc< is_digit > >
+		PredicateFunc< is_first_exp_char >,
+		PredicateZeroOrMore< PredicateFunc< is_exp_char > >
 	> regex;
 
 	unsigned long pos = t->line_pos;
