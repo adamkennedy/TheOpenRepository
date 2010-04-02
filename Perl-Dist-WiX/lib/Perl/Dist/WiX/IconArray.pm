@@ -85,7 +85,7 @@ the icon that should be linked to in Add/Remove Programs for your
 software.)
 
 =cut
-	
+
 sub add_icon {
 	my ( $self, $pathname_icon, $pathname_target ) = @_;
 

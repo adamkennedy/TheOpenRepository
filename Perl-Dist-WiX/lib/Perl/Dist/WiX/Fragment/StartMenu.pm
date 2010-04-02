@@ -65,7 +65,7 @@ It inherits all the parameters described in the
 L<< WiX3::XML::Fragment->new()|WiX3::XML::Fragment/new >> 
 method documentation.
 
-If the C<id> parameter is omitted, it defaults to C<'StartMenuIcons'.
+If the C<id> parameter is omitted, it defaults to C<'StartMenuIcons'>.
 
 =head3 icons
 
@@ -249,8 +249,6 @@ sub add_shortcut {
 			where     => 'P::D::W::Fragment::StartMenu->add_shortcut'
 		);
 	}
-
-	# TODO: Validate arguments.
 
 	# "Fix" the ID to have only identifier characters.
 	$args{id} =~ s{[^A-Za-z0-9]}{_}msgx;

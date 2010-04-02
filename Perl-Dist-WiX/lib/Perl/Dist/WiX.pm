@@ -186,7 +186,7 @@ Perl identifier (no spaces, for example) and is required.
 =cut
 
 has 'app_id' => (
-	is       => 'ro',                  # String that passes _IDENTIFIER
+	is  => 'ro',                       # String that passes _IDENTIFIER
 	isa => subtype(
 		Str => where { _IDENTIFIER($_) },
 		message {'app_id must be a legal Perl identifier'}
@@ -953,7 +953,7 @@ WiX will use its default if no file is supplied here.
 =cut
 
 has 'msi_banner_top' => (
-	is      => 'ro',                        # File that needs to exist
+	is      => 'ro',                   # File that needs to exist
 	isa     => Undef | ExistingFile,
 	default => undef,
 );
@@ -1025,8 +1025,8 @@ used in Add/Remove Programs for this MSI file.
 =cut
 
 has 'msi_product_icon' => (
-	is => 'ro',                        # File that needs to exist
-	isa => Undef | ExistingFile,
+	is      => 'ro',                   # File that needs to exist
+	isa     => Undef | ExistingFile,
 	default => undef,
 );
 
@@ -1041,8 +1041,8 @@ or a URL (TODO: check) that is linked in Add/Remove Programs in the
 =cut
 
 has 'msi_readme_file' => (
-	is => 'ro',                        # File that needs to exist
-	isa => Undef | ExistingFile,
+	is      => 'ro',                   # File that needs to exist
+	isa     => Undef | ExistingFile,
 	default => undef,
 );
 
@@ -1455,7 +1455,7 @@ This parameter defaults to a subdirectory of $ENV{TEMP} if not specified.
 has 'temp_dir' => (
 	is  => 'ro',
 	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent => Directory,
+		parent => Dir,
 		type_constraints =>
 		  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
 	),
@@ -1651,7 +1651,9 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 	}
 
 	# Get the parameters required for the GUID generator set up.
-	unless ( _STRING( $params{app_publisher_url} ) or _INSTANCE( $params{app_publisher_url}, 'URI' ) ) {
+	unless ( _STRING( $params{app_publisher_url} )
+		or _INSTANCE( $params{app_publisher_url}, 'URI' ) )
+	{
 		PDWiX::Parameter->throw(
 			parameter => 'app_publisher_url',
 			where     => '::Installer->new'
@@ -1660,9 +1662,9 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 
 	# Convert a string to a URI object.
 	if ( _STRING( $params{app_publisher_url} ) ) {
-		$params{app_publisher_url} = URI->new( $params{app_publisher_url} );	
+		$params{app_publisher_url} = URI->new( $params{app_publisher_url} );
 	}
-	
+
 	# Default the sitename unless it is given.
 	unless ( _STRING( $params{sitename} ) ) {
 		$params{sitename} = $params{app_publisher_url}->host();
@@ -1765,9 +1767,9 @@ sub DEMOLISH {
 
 # Reserved for a future parameter to new()
 has 'msi_feature_tree' => (
-	is      => 'ro',
-	isa     => Undef,
-	default => undef,
+	is       => 'ro',
+	isa      => Undef,
+	default  => undef,
 	init_arg => undef,
 );
 
@@ -4809,8 +4811,6 @@ L<Process|Process> 0.26, L<Readonly|Readonly> 1.03, L<URI|URI> 1.35, and
 L<Win32|Win32> 0.35.
 
 =for readme stop
-
-=back
 
 =head1 BUGS AND LIMITATIONS (SUPPORT)
 

@@ -93,7 +93,6 @@ sub BUILD {
 	my $self  = shift;
 	my $class = ref $self;
 
-	# TODO: Use exceptions instead.
 	unless ( $self->_modules_exists( $self->_get_perl_version() ) ) {
 		Carp::croak( q{Perl version '}
 			  . $self->_get_perl_version()
@@ -332,7 +331,6 @@ sub _corelist_build {
 	my $corelist = $Module::CoreList::version{$corelist_version}
 	  || $Module::CoreList::version{ $corelist_version + 0 };
 
-	# TODO: Use exceptions instead.
 	unless ( _HASH($corelist) ) {
 		Carp::croak( 'Failed to find module core versions for Perl '
 			  . $self->_get_perl_version() );

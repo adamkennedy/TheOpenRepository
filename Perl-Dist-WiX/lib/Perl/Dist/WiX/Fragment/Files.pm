@@ -10,13 +10,24 @@ Perl::Dist::WiX::Fragment::Files - A <Fragment> with file handling.
 
 This document describes Perl::Dist::WiX::Fragment::Files version 1.102_103.
 
-=head1 DESCRIPTION
-
-	# TODO
-
 =head1 SYNOPSIS
 
-	# TODO
+	my $fragment = Perl::Dist::WiX::Fragment::Files->new(
+		parent          => $dist,              # Perl::Dist::WiX object
+		id              => 'perl',
+		files           => $perl_files_object, # File::List::Object object
+		in_merge_module => 0,
+		can_overwrite   => 0,
+	);
+
+	my $files_object = $fragment->get_files();
+	
+=head1 DESCRIPTION
+
+This object defines an XML fragment that specifies files for the installer
+to include within itself and install on end-user systems.
+
+Usually a fragment is one module, or a C library.
 
 =head1 INTERFACE
 
@@ -200,7 +211,7 @@ sub _regenerate {
 
 	# Return the list of fragments that need regenerated again.
 	return uniq @fragment_ids;
-} ## end sub regenerate
+} ## end sub _regenerate
 
 sub _add_file_to_fragment {
 	my $self      = shift;

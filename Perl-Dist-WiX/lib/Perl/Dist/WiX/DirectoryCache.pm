@@ -78,8 +78,19 @@ sub add_to_cache {
 	my $directory = shift || undef;
 	my $fragment  = shift || undef;
 
-	# TODO: If $directory is not a WiX3::XML::Directory, throw an exception.
-	# TODO: If the guid exists, throw an exception.
+	unless ( _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'directory: Not a WiX3::XML::Directory object',
+			where     => '::DirectoryCache->add_to_cache'
+		);
+	}
+
+	if ( $self->_get_cache_entry( $directory->get_id() ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'directory: Already added to cache',
+			where     => '::DirectoryCache->add_to_cache'
+		);
+	}
 
 	$self->_set_cache_entry( $directory->get_id(), $fragment->get_id() );
 
@@ -104,10 +115,15 @@ sub exists_in_cache {
 	my $self = shift;
 	my $directory = shift || undef;
 
-	# TODO: If $directory is not a WiX3::XML::Directory, throw an exception.
+	unless ( _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'directory: Not a WiX3::XML::Directory object',
+			where     => '::DirectoryCache->exists_in_cache'
+		);
+	}
 
 	return $self->_exists_cache_entry( $directory->get_id() );
-}
+} ## end sub exists_in_cache
 
 
 
@@ -127,10 +143,15 @@ sub get_previous_fragment {
 	my $self = shift;
 	my $directory = shift || undef;
 
-	# TODO: If $directory is not a WiX3::XML::Directory, throw an exception.
+	unless ( _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'directory: Not a WiX3::XML::Directory object',
+			where     => '::DirectoryCache->get_previous_fragment'
+		);
+	}
 
 	return $self->_get_cache_entry( $directory->get_id() );
-}
+} ## end sub get_previous_fragment
 
 
 
@@ -153,10 +174,15 @@ sub delete_cache_entry {
 	my $self = shift;
 	my $directory = shift || undef;
 
-	# TODO: If $directory is not a WiX3::XML::Directory, throw an exception.
+	unless ( _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'directory: Not a WiX3::XML::Directory object',
+			where     => '::DirectoryCache->delete_cache_entry'
+		);
+	}
 
 	return $self->_delete_cache_entry( $directory->get_id() );
-}
+} ## end sub delete_cache_entry
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

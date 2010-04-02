@@ -46,7 +46,7 @@ subtype _NoSlashAtEnd,
   message {'Cannot have a slash at the end'};
 
 subtype _NotRootDir,
-  as Str,
+  as Dir,
   where { $_ !~ m{:\z}ms },
   message {'Cannot be a root directory'};
 

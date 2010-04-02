@@ -25,7 +25,7 @@ It may be updated or replaced at any time.
 use 5.008001;
 use MooseX::Types -declare =>
   [qw( ExistingDirectory ExistingFile Template )];
-use MooseX::Types::Moose qw( Str Object );
+use MooseX::Types::Moose qw( Object );
 use MooseX::Types::Path::Class qw( Dir File );
 use Template qw();
 
@@ -64,7 +64,7 @@ subtype ExistingFile,
   where { -f $_ },
   message {'File does not exist'};
 
-  
+
 =head2 Template
 
 	has bar => (
@@ -76,7 +76,7 @@ subtype ExistingFile,
 
 =cut
 
-subtype 'Template',
+subtype Template,
   as Object,
   where { $_->isa('Template') },
   message {'Template is not the correct type of object'};

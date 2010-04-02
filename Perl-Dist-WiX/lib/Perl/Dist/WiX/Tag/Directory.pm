@@ -44,7 +44,7 @@ based distribution.
 use 5.008001;
 use Moose;
 
-# TODO: May or may not need this. Needs to be tested.
+# CHECK: May or may not need this. Needs to be tested.
 # use WiX3::Util::StrictConstructor;
 use File::Spec::Functions qw( catpath catdir splitpath splitdir );
 use Params::Util qw( _STRING );
@@ -109,8 +109,8 @@ sub add_directories_id {
 		$id   = shift @params;
 		$name = shift @params;
 		if ( $name =~ m{\\}ms ) {
-
-			# TODO: Throw an error.
+			PDWiX->throw( 'Name of directory to add in '
+				  . 'add_directories_id had a slash in it.' );
 		} else {
 			$self->add_directory( {
 					id   => $id,
@@ -162,7 +162,20 @@ sub get_directory_object {
 
 =head2 search_dir
 
-TODO: Document
+	my $perl_bin_directory_tag = $directory->search_dir(
+		path_to_find => 'C:\strawberry\perl\bin',
+		descend => 1,
+		exact => 0,
+	);
+
+Attempts to find the C<path_to_find> in this directory tag (and in the 
+children of this tag, if C<descend> is true.)
+
+If C<exact> is false, this method is allowed to return an object that
+defines a subpath of the C<path_to_find>.
+
+C<path_to_find> is required. C<descend> defaults to true, and C<exact>
+defaults to false.
 
 =cut
 
@@ -263,8 +276,6 @@ sub _add_directory_recursive {
 		return $directory->add_directory(
 			name => $dir_to_add,
 			id   => crc32_base64( $path_to_find . $dir_to_add ),
-
-			# TODO: Check for other needs.
 		);
 	} else {
 		my ( $volume, $dirs, undef ) = splitpath( $path_to_find, 1 );

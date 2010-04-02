@@ -18,7 +18,8 @@ This document describes Perl::Dist::WiX::Support version 1.102_103.
 
 =head1 DESCRIPTION
 
-TODO
+This module provides support methods for copying, extracting, and executing 
+files, directories,  and programs for L<Perl::Dist::WiX|Perl::Dist::WiX>.
 
 =cut
 
@@ -31,7 +32,7 @@ use File::Basename qw();
 use File::Path qw();
 use File::pushd qw();
 use Archive::Tar 1.42 qw();
-use Archive::Zip qw();
+use Archive::Zip qw( AZ_OK );
 use LWP::UserAgent qw();
 
 our $VERSION = '1.102_103';
@@ -73,6 +74,7 @@ in order.
 sub file {
 	return catfile( shift->image_dir(), @_ );
 }
+
 sub _file {
 	print 'DEPRECATED: _file(). Change to file()';
 	return shift->file(@_);
@@ -109,15 +111,16 @@ sub mirror_url {
 	$file =~ s{.+\/} # Delete anything before the last forward slash.
 			  {}msx; ## (leaves only the filename.)
 	my $target = catfile( $dir, $file );
+
 	if ( $self->offline() and -f $target ) {
 		return $target;
 	}
-	
+
 	# Error out - we can't download.
 	if ( $self->offline() and not $url =~ m{\Afile://}msx ) {
 		PDWiX->throw("Currently offline, cannot download $url.\n");
 	}
-	
+
 	# Create the directory to download to if required.
 	File::Path::mkpath($dir);
 
@@ -150,7 +153,7 @@ sub mirror_url {
 
 	# Return the location downloaded to.
 	return $target;
-} ## end sub _mirror
+} ## end sub mirror_url
 
 sub _mirror {
 	print 'DEPRECATED: _mirror(). Change to mirror_url()';
@@ -213,7 +216,7 @@ sub copy_file {
 		  or PDWiX->throw("Copy error: $OS_ERROR");
 	}
 	return 1;
-} ## end sub _copy
+} ## end sub copy_file
 
 sub _copy {
 	print 'DEPRECATED: _copy(). Change to copy_file()';
@@ -367,7 +370,7 @@ sub execute_perl {
 	  or PDWiX->throw('perl failed');
 	PDWiX->throw('perl failed (OS error)') if ( $CHILD_ERROR >> 8 );
 	return 1;
-} ## end sub _perl
+} ## end sub execute_perl
 
 sub _perl {
 	print 'DEPRECATED: _perl(). Change to execute_perl()';
@@ -422,7 +425,7 @@ sub execute_any {
 	# Execute the child process
 	return IPC::Run3::run3( [@_], \undef, $self->debug_stdout(),
 		$self->debug_stderr(), );
-} ## end sub _run3
+} ## end sub execute_any
 
 sub _run3 {
 	print 'DEPRECATED: _run3(). Change to execute_any()';
@@ -486,7 +489,7 @@ sub extract_archive {
 		PDWiX->throw("Didn't recognize archive type for $from");
 	}
 	return @filelist;
-} ## end sub _extract
+} ## end sub extract_archive
 
 sub _extract {
 	print 'DEPRECATED: _extract(). Change to extract_archive()';
@@ -564,7 +567,7 @@ sub _extract_filemap {
 				$tar->extract_file( $f, $full_t );
 				push @files, $full_t;
 			} ## end for my $tgt ( keys %{$filemap...})
-		} ## end for my $file ( $tar->get_files)
+		} ## end for my $file ( $tar->get_files...)
 
 	} else {
 		PDWiX->throw("Didn't recognize archive type for $archive");

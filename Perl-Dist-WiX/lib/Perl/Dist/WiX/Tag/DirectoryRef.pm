@@ -210,8 +210,6 @@ sub _add_directory_recursive {
 		return $directory->add_directory(
 			parent => $directory,
 			name   => $dir_to_add,
-
-			# TODO: Check for other needs.
 		);
 	} else {
 		my ( $volume, $dirs, undef ) = splitpath( $path_to_find, 1 );
