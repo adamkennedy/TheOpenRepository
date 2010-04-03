@@ -26,11 +26,12 @@ files, directories,  and programs for L<Perl::Dist::WiX|Perl::Dist::WiX>.
 use 5.008001;
 use Moose;
 use English qw( -no_match_vars );
-use File::Spec::Functions qw( catdir catfile );
+use File::Spec::Functions qw( catdir catfile rel2abs catpath );
 use File::Remove qw();
 use File::Basename qw();
 use File::Path qw();
 use File::pushd qw();
+use Devel::StackTrace qw();
 use Archive::Tar 1.42 qw();
 use Archive::Zip qw( AZ_OK );
 use LWP::UserAgent qw();
@@ -56,7 +57,9 @@ sub dir {
 }
 
 sub _dir {
-	print 'DEPRECATED: _dir(). Change to dir()';
+	print "DEPRECATED: _dir(). Change to dir()\n\n";
+	print Devel::StackTrace->new()->frame(2)->as_string();
+	print "\n";
 	return shift->dir(@_);
 }
 
@@ -76,7 +79,7 @@ sub file {
 }
 
 sub _file {
-	print 'DEPRECATED: _file(). Change to file()';
+	print "DEPRECATED: _file(). Change to file()\n";
 	return shift->file(@_);
 }
 
@@ -156,7 +159,7 @@ sub mirror_url {
 } ## end sub mirror_url
 
 sub _mirror {
-	print 'DEPRECATED: _mirror(). Change to mirror_url()';
+	print "DEPRECATED: _mirror(). Change to mirror_url()\n";
 	return shift->mirror_url(@_);
 }
 
@@ -219,7 +222,7 @@ sub copy_file {
 } ## end sub copy_file
 
 sub _copy {
-	print 'DEPRECATED: _copy(). Change to copy_file()';
+	print "DEPRECATED: _copy(). Change to copy_file()\n";
 	return shift->copy_file(@_);
 }
 
@@ -260,7 +263,7 @@ sub move_file {
 }
 
 sub _move {
-	print 'DEPRECATED: _move(). Change to move_file()';
+	print "DEPRECATED: _move(). Change to move_file()\n";
 	return shift->move_file(@_);
 }
 
@@ -287,7 +290,7 @@ sub push_dir {
 }
 
 sub _pushd {
-	print 'DEPRECATED: _pushd(). Change to push_dir()';
+	print "DEPRECATED: _pushd(). Change to push_dir()\n";
 	return shift->push_dir(@_);
 }
 
@@ -314,7 +317,7 @@ sub execute_build {
 }
 
 sub _build {
-	print 'DEPRECATED: _build(). Change to execute_build()';
+	print "DEPRECATED: _build(). Change to execute_build()\n";
 	return shift->execute_build(@_);
 }
 
@@ -341,7 +344,7 @@ sub execute_make {
 }
 
 sub _make {
-	print 'DEPRECATED: _make(). Change to execute_make()';
+	print "DEPRECATED: _make(). Change to execute_make()\n";
 	return shift->execute_make(@_);
 }
 
@@ -373,7 +376,7 @@ sub execute_perl {
 } ## end sub execute_perl
 
 sub _perl {
-	print 'DEPRECATED: _perl(). Change to execute_perl()';
+	print "DEPRECATED: _perl(). Change to execute_perl()\n";
 	return shift->execute_perl(@_);
 }
 
@@ -428,7 +431,7 @@ sub execute_any {
 } ## end sub execute_any
 
 sub _run3 {
-	print 'DEPRECATED: _run3(). Change to execute_any()';
+	print "DEPRECATED: _run3(). Change to execute_any()\n";
 	return shift->execute_any(@_);
 }
 
@@ -492,7 +495,7 @@ sub extract_archive {
 } ## end sub extract_archive
 
 sub _extract {
-	print 'DEPRECATED: _extract(). Change to extract_archive()';
+	print "DEPRECATED: _extract(). Change to extract_archive()\n";
 	return shift->extract_archive(@_);
 }
 
@@ -602,7 +605,7 @@ sub make_path {
 }
 
 sub _make_path {
-	print 'DEPRECATED: _make_path(). Change to make_path()';
+	print "DEPRECATED: _make_path(). Change to make_path()\n";
 	return shift->make_path(@_);
 }
 
@@ -633,7 +636,7 @@ sub remake_path {
 }
 
 sub _remake_path {
-	print 'DEPRECATED: _remake_path(). Change to remake_path()';
+	print "DEPRECATED: _remake_path(). Change to remake_path()\n";
 	return shift->remake_path(@_);
 }
 

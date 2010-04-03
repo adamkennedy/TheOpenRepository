@@ -91,7 +91,7 @@ use     MooseX::Types::Path::Class qw(
 	File Dir
 );
 use     Perl::Dist::WiX::Types qw(
-	ExistingDirectory ExistingFile Template
+	ExistingDirectory SaneExistingDirectory SaneTempDir ExistingFile TemplateObj
 );
 use     Perl::Dist::WiX::PrivateTypes qw(
 	_NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir
@@ -120,6 +120,7 @@ use     LWP::UserAgent        qw();
 use     LWP::Online           qw();
 use     Module::CoreList 2.27 qw();
 use     PAR::Dist             qw();
+use     Path::Class::Dir      qw();
 use     Probe::Perl           qw();
 use     SelectSaver           qw();
 use     Template              qw();
@@ -367,7 +368,7 @@ sub _build_build_dir {
 	my $self = shift;
 
 	my $dir = catdir( $self->temp_dir(), 'build' );
-	$self->_remake_path($dir);
+	$self->remake_path($dir);
 	return $dir;
 }
 
@@ -450,7 +451,7 @@ has 'checkpoint_dir' => (
 sub _build_checkpoint_dir {
 	my $self = shift;
 	my $dir = catdir( $self->temp_dir(), 'checkpoint' );
-	$self->_remake_path($dir);
+	$self->remake_path($dir);
 	return $dir;
 }
 
@@ -531,9 +532,10 @@ has 'debug_stderr' => (
 	is      => 'ro',
 	isa     => File,
 	lazy    => 1,
+	coerce  => 1,
 	default => sub {
 		my $self = shift;
-		return catfile( $self->output_dir(), 'debug.err' );
+		return $self->output_dir()->file('debug.out');
 	},
 );
 
@@ -553,9 +555,10 @@ has 'debug_stdout' => (
 	is      => 'ro',
 	isa     => File,
 	lazy    => 1,
+	coerce  => 1,
 	default => sub {
 		my $self = shift;
-		return catfile( $self->output_dir(), 'debug.out' );
+		return $self->output_dir()->file('debug.out');
 	},
 );
 
@@ -604,7 +607,7 @@ sub _build_download_dir {
 	my $self = shift;
 
 	my $dir = catdir( $self->temp_dir(), 'download' );
-	$self->_make_path($dir);
+	$self->make_path($dir);
 	return $dir;
 }
 
@@ -715,8 +718,8 @@ sub _build_fragment_dir {
 	my $self = shift;
 
 	my $dir = catdir( $self->temp_dir(), 'fragments' );
-	$self->_remake_path($dir);
-	return $dir;
+	$self->remake_path($dir);
+	return Path::Class::Dir->new($dir);
 }
 
 =head3 gcc_version
@@ -756,13 +759,14 @@ has 'git_checkout' => (
 	is      => 'ro',
 	isa     => Undef | ExistingDirectory,
 	builder => '_build_git_checkout',
+	coerce  => 1,
 );
 
 sub _build_git_checkout {
 	my $dir = q{C:\\perl-git};
 
 	if ( -d $dir ) {
-		return $dir;
+		return Path::Class::Dir->new($dir);
 	} else {
 		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
@@ -796,6 +800,7 @@ has 'git_location' => (
 	is      => 'ro',
 	isa     => Undef | ExistingFile,
 	builder => '_build_git_location',
+	coerce  => 1,
 );
 
 sub _build_git_location {
@@ -869,7 +874,7 @@ sub _build_license_dir {
 	my $self = shift;
 
 	my $dir = $self->_dir('licenses');
-	$self->_remake_path($dir);
+	$self->remake_path($dir);
 	return $dir;
 }
 
@@ -897,7 +902,7 @@ sub _build_modules_dir {
 	my $self = shift;
 
 	my $dir = catdir( $self->download_dir(), 'modules' );
-	$self->_make_path($dir);
+	$self->make_path($dir);
 	return $dir;
 }
 
@@ -1200,24 +1205,20 @@ Defaults to C<temp_dir> . '\output', and must exist when given.
 =cut
 
 has 'output_dir' => (
-	is => 'ro',                        # Directory that must exist.
-	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent => ExistingDirectory,
-		type_constraints =>
-		  [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
-	),
+	is      => 'ro',
+	isa     => SaneExistingDirectory,
 	lazy    => 1,
 	builder => '_build_output_dir',
+	coerce  => 1,
 );
 
 sub _build_output_dir {
 	my $self = shift;
 
-	my $dir = catdir( $self->temp_dir(), 'output' );
-	$self->_make_path($dir);
-	return $dir;
+	my $dir = $self->temp_dir()->subdir('output');
+	$self->make_path("$dir");
+	return Path::Class::Dir->new($dir);
 }
-
 
 
 =head3 perl_config_cf_email
@@ -1453,13 +1454,10 @@ This parameter defaults to a subdirectory of $ENV{TEMP} if not specified.
 =cut
 
 has 'temp_dir' => (
-	is  => 'ro',
-	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent => Dir,
-		type_constraints =>
-		  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
-	),
-	default => sub { return catdir( tmpdir(), 'perldist' ) },
+	is      => 'ro',
+	default => sub { return Path::Class::Dir->new(catdir( tmpdir(), 'perldist' )) },
+	coerce  => 1,
+	isa     => SaneExistingDirectory,
 );
 
 
@@ -1478,11 +1476,7 @@ This parameter defaults to a subdirectory of temp_dir() if not specified.
 
 has 'tempenv_dir' => (
 	is  => 'ro',
-	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent => Dir,
-		type_constraints =>
-		  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
-	),
+	isa => SaneTempDir,
 	lazy    => 1,
 	builder => '_build_tempenv_dir',
 );
@@ -1491,7 +1485,7 @@ sub _build_tempenv_dir {
 	my $self = shift;
 
 	my $dir = catdir( $self->temp_dir(), 'tempenv' );
-	$self->_remake_path($dir);
+	$self->remake_path($dir);
 	return $dir;
 }
 
@@ -1718,7 +1712,7 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 		) if ( $params{image_dir} =~ /\s/ms );
 
 		# We don't want to delete a previous one yet.
-		$class->_make_path( $params{image_dir} );
+		$class->make_path( $params{image_dir} );
 	} else {
 		PDWiX::Parameter->throw(
 			parameter => 'image_dir: is not defined',
@@ -2187,12 +2181,13 @@ has 'wix_dist_dir' => (
 	isa      => ExistingDirectory,
 	builder  => '_build_wix_dist_dir',
 	init_arg => undef,
+	coerce   => 1,
 );
 
 sub _build_wix_dist_dir {
 	my $dir;
 
-	unless ( eval { $dir = File::ShareDir::dist_dir('Perl-Dist-WiX'); 1; } )
+	unless ( eval { $dir = Path::Class::Dir->new(File::ShareDir::dist_dir('Perl-Dist-WiX')); 1; } )
 	{
 		PDWiX::Caught->throw(
 			message =>
@@ -3076,7 +3071,7 @@ sub final_initialization {
 	# Redirect $ENV{TEMP} to within our build directory.
 	$self->trace_line( 1,
 		"Emptying the directory to redirect \$ENV{TEMP} to...\n" );
-	$self->_remake_path( $self->tempenv_dir() );
+	$self->remake_path( $self->tempenv_dir() );
 	## no critic (RequireLocalizedPunctuationVars)
 	$ENV{TEMP} = $self->tempenv_dir();
 	$self->trace_line( 5, 'Emptied: ' . $self->tempenv_dir() . "\n" );
@@ -3194,8 +3189,8 @@ EOF
 		) ) if ( '589' ne $self->perl_version() );
 
 	# Make some directories.
-	my @directories_to_make = ( $self->_dir('cpan'), );
-	push @directories_to_make, $self->_dir('cpanplus')
+	my @directories_to_make = ( $self->dir('cpan'), );
+	push @directories_to_make, $self->dir('cpanplus')
 	  if ( '589' ne $self->perl_version() );
 	for my $d (@directories_to_make) {
 		next if -d $d;
@@ -3206,9 +3201,9 @@ EOF
 	$self->trace_line( 1,
 		    'Wait a second while we empty the image, '
 		  . "output, and fragment directories...\n" );
-	$self->_remake_path( $self->image_dir() );
-	$self->_remake_path( $self->output_dir() );
-	$self->_remake_path( $self->fragment_dir() );
+	$self->remake_path( $self->image_dir() );
+	$self->remake_path( $self->output_dir() );
+	$self->remake_path( $self->fragment_dir() );
 
 	# Add environment variables.
 	$self->add_env( 'TERM',        'dumb' );
@@ -3302,7 +3297,7 @@ sub initialize_using_msm {
 	$self->_set_in_merge_module(0);
 
 	# Download and extract the image.
-	my $tgz = $self->_mirror( $self->msm_zip(), $self->download_dir() );
+	my $tgz = $self->mirror_url( $self->msm_zip(), $self->download_dir() );
 	$self->_extract( $tgz, $self->image_dir() );
 
 	# Start adding the fragments that are only for an .msi.
@@ -3325,7 +3320,7 @@ sub initialize_using_msm {
 	}
 
 	# Download the merge module.
-	my $msm = $self->_mirror( $self->msm_to_use(), $self->download_dir() );
+	my $msm = $self->mirror_url( $self->msm_to_use(), $self->download_dir() );
 
 	# Connect the Merge Module tag.
 	my $mm = Perl::Dist::WiX::Tag::MergeModule->new(
@@ -3646,7 +3641,7 @@ sub remove_waste {
 	$self->_remove_file(qw{ cpan cpan_sqlite_log.* });
 
 	# Readding the cpan directory.
-	$self->_remake_path( catdir( $self->build_dir, 'cpan' ) );
+	$self->remake_path( catdir( $self->build_dir, 'cpan' ) );
 
 	return 1;
 } ## end sub remove_waste
@@ -3775,7 +3770,7 @@ sub write_merge_module {
 		$zip->writeToFileNamed($zipfile);
 
 		# Remake the fragments directory.
-		$self->_remake_path( $self->fragment_dir() );
+		$self->remake_path( $self->fragment_dir() );
 
 		## no critic(ProtectPrivateSubs)
 		# Reset the directory tree.
@@ -3851,8 +3846,8 @@ sub _write_zip {
 	$self->trace_line( 1, "Generating zip at $file\n" );
 
 	# Make directories.
-	$self->_remake_path( catdir( $self->image_dir(), qw(cpan sources) ) );
-	$self->_remake_path( catdir( $self->image_dir(), qw(cpanplus    ) ) );
+	$self->remake_path( catdir( $self->image_dir(), qw(cpan sources) ) );
+	$self->remake_path( catdir( $self->image_dir(), qw(cpanplus    ) ) );
 
 	# Create the archive
 	my $zip = Archive::Zip->new();
@@ -4670,7 +4665,7 @@ patched files.
 
 has 'patch_template' => (
 	is      => 'ro',
-	isa     => Template,
+	isa     => TemplateObj,
 	lazy    => 1,
 	builder => '_build_patch_template',
 );

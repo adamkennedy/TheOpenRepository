@@ -381,7 +381,7 @@ has _dists => (
 
 has _delegated => (
 	traits   => ['Bool'],
-	is       => 'bare',
+	is       => 'ro',
 	isa      => Bool,
 	init_arg => undef,
 	default  => 0,

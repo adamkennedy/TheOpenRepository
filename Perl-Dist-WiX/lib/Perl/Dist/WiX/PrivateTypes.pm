@@ -21,33 +21,48 @@ use MooseX::Types -declare => [
 	qw( _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir )
 ];
 use MooseX::Types::Path::Class qw( Dir );
+use MooseX::Types::Moose qw( Str );
 
 our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
+# Apparently, type constraints run before coercions,
+# so I have to handle cases where we're either
+# a Path::Class::Dir or a string.
+
+sub _fix {
+	my $d = shift;
+
+	if ('Path::Class::Dir' eq ref $d) {
+		return "$d";
+	} else {
+		return $d;
+	}	
+}
+
 subtype _NoDoubleSlashes,
-  as Dir,
-  where { $_ !~ m{\\\\}ms },
+  as Dir | Str,
+  where { _fix($_) !~ m{\\\\}ms },
   message {'cannot contain two consecutive slashes'};
 
 subtype _NoSpaces,
-  as Dir,
-  where { $_ !~ m{\s}ms },
+  as Dir | Str,
+  where { _fix($_) !~ m{\s}ms },
   message {'Spaces are not allowed'};
 
 subtype _NoForwardSlashes,
-  as Dir,
-  where { $_ !~ m{/}ms },
+  as Dir | Str,
+  where { _fix($_) !~ m{/}ms },
   message {'Forward slashes are not allowed'};
 
 subtype _NoSlashAtEnd,
-  as Dir,
-  where { $_ !~ m{\\\z}ms },
+  as Dir | Str,
+  where { _fix($_) !~ m{\\\z}ms },
   message {'Cannot have a slash at the end'};
 
 subtype _NotRootDir,
-  as Dir,
-  where { $_ !~ m{:\z}ms },
+  as Dir | Str,
+  where { _fix($_) !~ m{:\z}ms },
   message {'Cannot be a root directory'};
 
 1;

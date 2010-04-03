@@ -382,7 +382,7 @@ sub install {
 	}
 
 	# Download the file
-	my $tgz = $self->_mirror(
+	my $tgz = $self->_mirror_url(
 		$self->_abs_uri( $self->_get_cpan() ),
 		$self->_get_modules_dir(),
 	);
