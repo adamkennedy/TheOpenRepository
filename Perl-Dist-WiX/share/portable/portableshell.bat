@@ -1,5 +1,5 @@
 @echo off
-set PATH=%~dp0\perl\bin;%~dp0\c\bin;%PATH%
+set PATH=%~dp0\perl\bin;%~dp0\perl\site\bin;%~dp0\c\bin;%PATH%
 set TERM=dumb
 echo ----------------------------------------------
 echo  Welcome to Strawberry Perl Portable Edition!
