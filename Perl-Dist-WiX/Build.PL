@@ -22,7 +22,7 @@ require Module::CoreList;
 if ($Module::CoreList::VERSION < 2.27) {
 	print <<'EOF';
 To install the version of Module::CoreList required, you'll need to
-download perl-5.12.0-RC0, copy its dist/Module-CoreList directory
+download perl-5.12.0-RC3, copy its dist/Module-CoreList directory
 someplace else, and run 'cpan .' there before installing this. 
 
 EOF
@@ -69,6 +69,7 @@ my $requires = {
 	'MooseX::Singleton'         => '0',
 	'MooseX::Types'             => '0',
 	'MooseX::Types::URI'        => '0',
+	'MooseX::Types::Path::Class' => '0.05',
 	'MooseX::Meta::TypeConstraint::Intersection' => '0.01',
 	'PAR::Dist'                 => '0.42',
 	'Params::Util'              => '0.35',
@@ -79,7 +80,7 @@ my $requires = {
 	# Template 2.21 will not install on Windows, anyway.
 	'Template'                  => '2.22',
 	'URI'                       => '1.35',
-	'WiX3'                      => '0.008',
+	'WiX3'                      => '0.009',
 	'YAML::Tiny'                => '1.36',
 	'Win32'                     => '0.35',
 	'Win32::Exe'                => '0.11',
