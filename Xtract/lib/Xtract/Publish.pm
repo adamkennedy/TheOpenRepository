@@ -10,7 +10,7 @@ use IO::Compress::Gzip  2.008 ();
 use IO::Compress::Bzip2 2.008 ();
 use Xtract::LZMA              ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 use Moose 0.73;
 

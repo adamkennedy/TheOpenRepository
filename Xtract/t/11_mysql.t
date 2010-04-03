@@ -1,33 +1,29 @@
 #!/usr/bin/perl
 
 use strict;
+use vars qw{$HANDLE};
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
-
 use Test::More;
-use DBI;
+use Test::Database;
 BEGIN {
-	unless ( grep { $_ eq 'mysql' } DBI->available_drivers ) {
-		plan( skip_all => 'DBI driver mysql is not available' );
+	(Test::Database->handles('mysql'))[0];
+	if ( $handle ) {
+		plan( tests => 3 );
+	} else {
+		plan( skip_all => 'No MySQL connection available' );
 	}
-	unless ( $ENV{XTRACT_MYSQL_DSN} ) {
-		plan( skip_all => 'XTRACT_MYSQL_DSN not provided' );
-	}
-	unless ( $ENV{XTRACT_MYSQL_USER} ) {
-		plan( skip_all => 'XTRACT_MYSQL_USER not provided' );
-	}
-	unless ( $ENV{XTRACT_MYSQL_PASSWORD} ) {
-		plan( skip_all => 'XTRACT_MYSQL_PASSWORD not provided' );
-	}
-	plan( tests => 3 );
 }
+
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
-use File::Remove          'clear';
-use Xtract                ();
+use File::Remove 'clear';
+use Xtract ();
 
+# Can we find a test handle?
+my $handle = 
 # Command row data
 my @data = (
 	[ 1, 'a', 'one'   ],

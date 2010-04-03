@@ -7,7 +7,7 @@ use Moose;
 use MooseX::Types::Common::Numeric 'PositiveInt';
 use Params::Util '_IDENTIFIER';
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 has name => {
 	is  => 'ro',
