@@ -3,10 +3,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <fstream>
+#include <iostream>
 #include "tokenizer.h"
 #include "forward_scan.h"
 
 using namespace PPITokenizer;
+using namespace std;
 
 void forward_scan2_unittest();
 
@@ -138,9 +141,21 @@ void checkExtendedToken( Tokenizer *tk,
 
 void VerifyInheritence( AbstractTokenType **type_pool );
 
+void TestOnNodePm() {
+	char buffer[200];
+	Tokenizer tk;
+	ifstream file;
+	file.open("C:\\strawberry\\perl\\site\\lib\\PPI\\Node.pm");
+	while (!file.eof()) {
+		file.getline(buffer, 200);
+		tk.tokenizeLine(buffer, file.gcount());
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	forward_scan2_unittest();
+	TestOnNodePm();
 	Tokenizer tk;
 	VerifyInheritence( tk.TokenTypeNames_pool );
 

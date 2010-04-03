@@ -12,7 +12,7 @@ BEGIN {
 	$PPI::XS_DISABLE = 1;
 	$PPI::XS_DISABLE = 1; # Prevent warning
     no warnings 'once';
-    #$PPI::Lexer::X_TOKENIZER = "PPI::XS::Tokenizer";
+    $PPI::Lexer::X_TOKENIZER = "PPI::XS::Tokenizer";
 }
 use PPI::Lexer ();
 use PPI::XS::Tokenizer;

@@ -115,6 +115,7 @@ public:
 	virtual CharTokenizeResults commit(Tokenizer *t);
 	virtual bool isa( TokenTypeNames is_type ) const;
 	Token *GetNewToken( Tokenizer *t, TokensCacheMany *tc, unsigned long line_length );
+	static void VerifySufficientBufferLength(Token *token, unsigned long line_length);
 	virtual void FreeToken( TokensCacheMany *tc, Token *token );
 	AbstractTokenType( TokenTypeNames my_type,  bool sign ) : type(my_type), significant(sign) {}
 	virtual ~AbstractTokenType() {}

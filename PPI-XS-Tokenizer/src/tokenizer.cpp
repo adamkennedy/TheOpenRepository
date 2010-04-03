@@ -106,6 +106,20 @@ Token *AbstractTokenType::GetNewToken( Tokenizer *t, TokensCacheMany *tc, unsign
 	return tk;
 }
 
+void AbstractTokenType::VerifySufficientBufferLength(Token *token, unsigned long line_length) {
+	if (token == NULL)
+		return;
+	unsigned long needed_size = token->length + line_length;
+	if ( needed_size <= token->allocated_size )
+		return;
+	char *new_buf = (char *)malloc(sizeof(char) * needed_size * 2);
+	memcpy(new_buf, token->text, token->length);
+	char *old_buf = token->text;
+	token->text = new_buf;
+	token->allocated_size = needed_size * 2;
+	free(old_buf);
+}
+
 Token *AbstractTokenType::_get_from_cache(TokensCacheMany *tc) {
 	return tc->standard.get();
 }
@@ -464,6 +478,7 @@ OperatorOperandContext Tokenizer::_opcontext() {
 
 LineTokenizeResults Tokenizer::_tokenize_the_rest_of_the_line() {
 	const char *line = c_line;
+	AbstractTokenType::VerifySufficientBufferLength(c_token, line_length);
 	//printf("_tokenize_the_rest_of_the_line started: waiting tokens: %d\n", count_waiting_tokens(tokens_found_head));
     while (line_length > line_pos) {
 		CharTokenizeResults rv = c_token->type->tokenize(this, c_token, line[line_pos]);
