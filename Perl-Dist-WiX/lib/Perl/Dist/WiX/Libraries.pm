@@ -41,6 +41,7 @@ Readonly my %PACKAGES => (
 		'mingw-make'    => 'mingw32-make-3.81-2.tar.gz',
 		'pexports'      => '32bit-gcc3/pexports-0.43-1-20100120.zip',
 		'gcc-toolchain' => 'mingw32-gcc3-toolchain-20091026-subset.tar.gz',
+		'gcc-license'   => undef,
 
 # Former components of what's now included in gcc-toolchain.
 #		'gcc-core'      => 'gcc-core-3.4.5-20060117-3.tar.gz',
@@ -50,16 +51,18 @@ Readonly my %PACKAGES => (
 #		'w32api'        => 'w32api-3.10.tar.gz',
 	},
 	'32bit-gcc4' => {
-		'dmake'      => '32bit-gcc4/dmake-SVN20091127-bin_20100308.zip',
-		'mingw-make' => '32bit-gcc4/gmake-3.81-20090914-bin_20100120.zip',
-		'pexports'   => '32bit-gcc4/pexports-0.44-bin_20100120.zip',
+		'dmake'         => '32bit-gcc4/dmake-SVN20091127-bin_20100308.zip',
+		'mingw-make'    => '32bit-gcc4/gmake-3.81-20090914-bin_20100120.zip',
+		'pexports'      => '32bit-gcc4/pexports-0.44-bin_20100120.zip',
 		'gcc-toolchain' => '32bit-gcc4/mingw64-w32-20100123-kmx-v2.zip',
+		'gcc-license'   => '32bit-gcc4/mingw64-w32-20100123-kmx-v2-lic.zip',
 	},
 	'64bit-gcc4' => {
 		'dmake'         => '64bit-gcc4/dmake-SVN20091127-bin_20100308.zip',
 		'mingw-make'    => '64bit-gcc4/gmake-3.81.90_20100127_20100305.zip',
 		'pexports'      => '64bit-gcc4/pexports-0.44-bin_20100110.zip',
-		'gcc-toolchain' => '64bit-gcc4/mingw64-w64-20100123-kmx.zip',
+		'gcc-toolchain' => '64bit-gcc4/mingw64-w64-20100123-kmx-v2.zip',
+		'gcc-license'   => '64bit-gcc4/mingw64-w64-20100123-kmx-v2-lic.zip',
 	},
 );
 
@@ -177,11 +180,20 @@ sub install_gcc_toolchain {
 
 	$self->insert_fragment( 'gcc_toolchain', $filelist );
 
+	# Initialize the dlltool location.
 	$self->_set_bin_dlltool( $self->_file( 'c', 'bin', 'dlltool.exe' ) );
 	unless ( -x $self->bin_dlltool() ) {
 		PDWiX->throw(q{Can't execute dlltool});
 	}
 
+	# Install the licenses (they're in a different file for gcc4)
+	if (4 == $self->gcc_version()) {
+		my $filelist2 = $self->install_binary(
+			name => 'gcc-license',
+			url  => $self->_binary_url('gcc-license'),
+		);
+		$self->insert_fragment( 'gcc_license', $filelist2 );
+	}
 
 	return 1;
 } ## end sub install_gcc_toolchain
@@ -263,6 +275,8 @@ sub install_pexports {
 		url        => $self->_binary_url('pexports'),
 		install_to => q{.},
 	);
+	
+	# Initialize the pexports location.
 	$self->_set_bin_pexports( $self->_file( 'c', 'bin', 'pexports.exe' ) );
 	unless ( -x $self->bin_pexports() ) {
 		PDWiX->throw(q{Can't execute pexports});
