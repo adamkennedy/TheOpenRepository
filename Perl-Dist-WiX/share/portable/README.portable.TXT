@@ -36,6 +36,7 @@ How to use Strawberry Perl Portable?
 * If you want to use Strawberry Perl Portable not only from portableshell.bat,
   you need to set the following environmental variables:
   
-  1. add c:\myperl\perl\bin and c:\myperl\c\bin to PATH variable
+  1. add c:\myperl\perl\site\bin, c:\myperl\perl\bin, and c:\myperl\c\bin 
+     to PATH variable
   
   2. set variable TERM=dumb
