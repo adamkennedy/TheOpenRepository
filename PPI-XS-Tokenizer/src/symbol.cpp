@@ -125,8 +125,10 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 	if ( first_is_sigil != 0 ) {
 		unsigned long new_length = 1;
 		bool ret = oversuck(token->text, token->length, &new_length);
-		if ( false == ret )
+		if ( false == ret ) {
+			fprintf(stderr, "ERROR: returning error fail in symbol.cpp\n");
 			return error_fail;
+		}
 		if ( new_length != token->length ) {
 			t->line_pos -= token->length - new_length;
 			token->length = new_length;

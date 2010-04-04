@@ -23,8 +23,10 @@ static bool is_an_attribute(Tokenizer *t) {
 }
 
 CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
-	if ( token->length != 1 )
+	if ( token->length != 1 ) {
+		fprintf(stderr, "ERROR: returning error fail in unknown.cpp 1\n");
 		return error_fail;
+	}
 
 	// is it control-character symbol (e.g. @{^_Foo})?
 	// qr{^\^[[:upper:]_]\w+\}};
@@ -182,7 +184,7 @@ CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned 
 		return done_it_myself;
 	}
 
-	if ( token->text[0] == '%' ) {
+	if ( token->text[0] == '&' ) {
 		if ( is_digit( c_char ) ) {
 			t->changeTokenType( Token_Operator );
 			TokenTypeNames zone = t->_finalize_token();
@@ -234,6 +236,9 @@ CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned 
 		t->changeTokenType( Token_Operator );
 		return done_it_myself;
 	}
+	fprintf(stderr, "ERROR: returning error fail in unknown.cpp 2\n");
+	fprintf(stderr, "Tokenizer state: pos=%d, line=%s\n", t->line_pos, t->c_line);
+	fprintf(stderr, "Token state: len=%d, text=%s\n", token->length, token->text);
 	return error_fail;
 }
 

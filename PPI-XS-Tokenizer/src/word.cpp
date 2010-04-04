@@ -257,6 +257,7 @@ CharTokenizeResults WordToken::commit(Tokenizer *t) {
 				PredicateIsChar< ':' > > > > regex;
 	unsigned long new_pos = t->line_pos;
 	if ( !regex.test( t->c_line, &new_pos, t->line_length ) ) {
+		fprintf(stderr, "ERROR: returning error fail in word.cpp 1\n");
 		return error_fail;
 	}
 
@@ -322,6 +323,7 @@ CharTokenizeResults WordToken::commit(Tokenizer *t) {
 
 CharTokenizeResults LabelToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	// should never reach here - the Word token will take care of me
+	fprintf(stderr, "ERROR: returning error fail in word.cpp 2\n");
 	return error_fail;
 }
 
@@ -377,5 +379,6 @@ CharTokenizeResults DashedWordToken::tokenize(Tokenizer *t, Token *token, unsign
 
 CharTokenizeResults SeparatorToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	// should never reach here - the Word token will take care of me
+	fprintf(stderr, "ERROR: returning error fail in word.cpp 3\n");
 	return error_fail;
 }

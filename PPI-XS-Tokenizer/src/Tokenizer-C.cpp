@@ -159,7 +159,14 @@ int main(int argc, char* argv[])
 	Tokenizer tk;
 	VerifyInheritence( tk.TokenTypeNames_pool );
 
+	Tokenize("&$wanted;\n");
+	//CheckToken(&tk, "\n", Token_Whitespace);
+	CheckToken(&tk, "&", Token_Cast);
+	CheckToken(&tk, "$wanted", Token_Symbol);
+	CheckToken(&tk, ";", Token_Structure);
+
 	Tokenize("@{^_Bar};\n");
+	CheckToken(&tk, "\n", Token_Whitespace);
 	CheckToken(&tk, "@{^_Bar}", Token_Magic);
 	CheckToken(&tk, ";", Token_Structure);
 
