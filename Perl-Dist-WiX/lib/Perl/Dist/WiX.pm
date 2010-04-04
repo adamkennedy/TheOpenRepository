@@ -72,7 +72,6 @@ To install this module, run the following commands:
 use     5.008001;
 use     Moose 0.90;
 use     Moose::Util::TypeConstraints;
-use     MooseX::Meta::TypeConstraint::Intersection;
 use     parent                qw( Perl::Dist::WiX::BuildPerl
                                   Perl::Dist::WiX::Checkpoint
                                   Perl::Dist::WiX::Libraries
@@ -91,10 +90,9 @@ use     MooseX::Types::Path::Class qw(
 	File Dir
 );
 use     Perl::Dist::WiX::Types qw(
-	ExistingDirectory SaneExistingDirectory SaneTempDir ExistingFile TemplateObj
-);
-use     Perl::Dist::WiX::PrivateTypes qw(
-	_NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir
+	ExistingDirectory ExistingFile TemplateObj
+	ExistingSubdirectory ExistingDirectory_Spaceless 
+	ExistingDirectory_SaneSlashes
 );
 use     Params::Util          qw(
 	_HASH _STRING _INSTANCE _IDENTIFIER _ARRAY0 _ARRAY
@@ -354,12 +352,9 @@ Defaults to C<temp_dir> . '\build', and must exist if given.
 =cut
 
 has 'build_dir' => (
-	is  => 'ro',
-	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent => ExistingDirectory,
-		type_constraints =>
-		  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
-	),
+	is      => 'ro',
+	isa     => ExistingDirectory_SaneSlashes,
+	coerce  => 1,
 	lazy    => 1,
 	builder => '_build_build_dir',
 );
@@ -593,12 +588,9 @@ Defaults to C<temp_dir> . '\download', and must exist if given.
 =cut
 
 has 'download_dir' => (
-	is  => 'ro',
-	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent => ExistingDirectory,
-		type_constraints =>
-		  [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
-	),
+	is      => 'ro',
+	isa     => ExistingDirectory_Spaceless,
+	coerce  => 1,
 	lazy    => 1,
 	builder => '_build_download_dir',
 );
@@ -709,7 +701,7 @@ Defaults to C<temp_dir> . '\fragments', and needs to exist if given.
 
 has 'fragment_dir' => (
 	is      => 'ro',
-	isa     => ExistingDirectory,
+	isa     => ExistingDirectory_SaneSlashes,
 	lazy    => 1,
 	builder => '_build_fragment_dir',
 );
@@ -757,7 +749,7 @@ The default is 'C:\perl-git', if it exists.
 
 has 'git_checkout' => (
 	is      => 'ro',
-	isa     => Undef | ExistingDirectory,
+	isa     => Undef | ExistingDirectory_Spaceless,
 	builder => '_build_git_checkout',
 	coerce  => 1,
 );
@@ -836,15 +828,9 @@ results, and an attempt is made to prevent this from happening.
 =cut
 
 has 'image_dir' => (
-	is  => 'ro',
-	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent           => ExistingDirectory,
-		type_constraints => [
-			_NoDoubleSlashes,  _NoSpaces,
-			_NoForwardSlashes, _NoSlashAtEnd,
-			_NotRootDir,
-		],
-	),
+	is       => 'ro',
+	isa      => ExistingSubdirectory,
+	coerce   => 1,
 	required => 1,
 );
 
@@ -860,13 +846,10 @@ Defaults to C<image_dir> . '\licenses', and needs to exist if given.
 =cut
 
 has 'license_dir' => (
-	is => 'ro',                        # Directory that must exist.
-	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent => ExistingDirectory,
-		type_constraints =>
-		  [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
-	),
+	is      => 'ro',
+	isa     => ExistingDirectory_Spaceless,
 	lazy    => 1,
+	coerce  => 1,
 	builder => '_build_license_dir',
 );
 
@@ -888,12 +871,8 @@ Defaults to C<download_dir> . '\modules', and must exist if given.
 =cut
 
 has 'modules_dir' => (
-	is => 'ro',                        # Directory that must exist.
-	isa => MooseX::Meta::TypeConstraint::Intersection->new(
-		parent => ExistingDirectory,
-		type_constraints =>
-		  [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
-	),
+	is => 'ro',
+	isa => ExistingDirectory_Spaceless,
 	lazy    => 1,
 	builder => '_build_modules_dir',
 );
@@ -958,7 +937,7 @@ WiX will use its default if no file is supplied here.
 =cut
 
 has 'msi_banner_top' => (
-	is      => 'ro',                   # File that needs to exist
+	is      => 'ro',
 	isa     => Undef | ExistingFile,
 	default => undef,
 );
@@ -1011,7 +990,7 @@ Perl::Dist::WiX provides a default one if none is supplied here.
 =cut
 
 has 'msi_license_file' => (
-	is      => 'ro',                   # File that needs to exist
+	is      => 'ro',
 	isa     => ExistingFile,
 	lazy    => 1,
 	default => sub {
@@ -1030,7 +1009,7 @@ used in Add/Remove Programs for this MSI file.
 =cut
 
 has 'msi_product_icon' => (
-	is      => 'ro',                   # File that needs to exist
+	is      => 'ro',
 	isa     => Undef | ExistingFile,
 	default => undef,
 );
@@ -1046,7 +1025,7 @@ or a URL (TODO: check) that is linked in Add/Remove Programs in the
 =cut
 
 has 'msi_readme_file' => (
-	is      => 'ro',                   # File that needs to exist
+	is      => 'ro',
 	isa     => Undef | ExistingFile,
 	default => undef,
 );
@@ -1206,10 +1185,10 @@ Defaults to C<temp_dir> . '\output', and must exist when given.
 
 has 'output_dir' => (
 	is      => 'ro',
-	isa     => SaneExistingDirectory,
+	isa     => ExistingDirectory_SaneSlashes,
 	lazy    => 1,
-	builder => '_build_output_dir',
 	coerce  => 1,
+	builder => '_build_output_dir',
 );
 
 sub _build_output_dir {
@@ -1455,9 +1434,9 @@ This parameter defaults to a subdirectory of $ENV{TEMP} if not specified.
 
 has 'temp_dir' => (
 	is      => 'ro',
-	default => sub { return Path::Class::Dir->new(catdir( tmpdir(), 'perldist' )) },
+	isa     => ExistingDirectory_SaneSlashes,
 	coerce  => 1,
-	isa     => SaneExistingDirectory,
+	default => sub { return Path::Class::Dir->new(catdir( tmpdir(), 'perldist' )) },
 );
 
 
@@ -1475,9 +1454,10 @@ This parameter defaults to a subdirectory of temp_dir() if not specified.
 =cut
 
 has 'tempenv_dir' => (
-	is  => 'ro',
-	isa => SaneTempDir,
+	is      => 'ro',
+	isa     => ExistingDirectory_SaneSlashes,
 	lazy    => 1,
+	coerce  => 1,
 	builder => '_build_tempenv_dir',
 );
 
@@ -1851,27 +1831,27 @@ sub _build_filters {
 	# Initialize filters.
 #<<<
 	return [   $self->temp_dir() . q{\\},
-	  $self->_dir(  qw{ perl man         } ) . q{\\},
-	  $self->_dir(  qw{ perl html        } ) . q{\\},
-	  $self->_dir(  qw{ c    man         } ) . q{\\},
-	  $self->_dir(  qw{ c    doc         } ) . q{\\},
-	  $self->_dir(  qw{ c    info        } ) . q{\\},
-	  $self->_dir(  qw{ c    contrib     } ) . q{\\},
-	  $self->_dir(  qw{ c    html        } ) . q{\\},
-	  $self->_dir(  qw{ c    examples    } ) . q{\\},
-	  $self->_dir(  qw{ c    manifest    } ) . q{\\},
-	  $self->_dir(  qw{ cpan sources     } ) . q{\\},
-	  $self->_dir(  qw{ cpan build       } ) . q{\\},
-	  $self->_dir(  qw{ c    bin         startup mac   } ) . q{\\},
-	  $self->_dir(  qw{ c    bin         startup msdos } ) . q{\\},
-	  $self->_dir(  qw{ c    bin         startup os2   } ) . q{\\},
-	  $self->_dir(  qw{ c    bin         startup qssl  } ) . q{\\},
-	  $self->_dir(  qw{ c    bin         startup tos   } ) . q{\\},
-	  $self->_dir(  qw{ c    libexec     gcc     mingw32 3.4.5 install-tools}) . q{\\},
-	  $self->_file( qw{ c    COPYING     } ),
-	  $self->_file( qw{ c    COPYING.LIB } ),
-	  $self->_file( qw{ c    bin         gccbug  } ),
-	  $self->_file( qw{ c    bin         mingw32-gcc-3.4.5  } ),
+	  $self->dir(  qw{ perl man         } ) . q{\\},
+	  $self->dir(  qw{ perl html        } ) . q{\\},
+	  $self->dir(  qw{ c    man         } ) . q{\\},
+	  $self->dir(  qw{ c    doc         } ) . q{\\},
+	  $self->dir(  qw{ c    info        } ) . q{\\},
+	  $self->dir(  qw{ c    contrib     } ) . q{\\},
+	  $self->dir(  qw{ c    html        } ) . q{\\},
+	  $self->dir(  qw{ c    examples    } ) . q{\\},
+	  $self->dir(  qw{ c    manifest    } ) . q{\\},
+	  $self->dir(  qw{ cpan sources     } ) . q{\\},
+	  $self->dir(  qw{ cpan build       } ) . q{\\},
+	  $self->dir(  qw{ c    bin         startup mac   } ) . q{\\},
+	  $self->dir(  qw{ c    bin         startup msdos } ) . q{\\},
+	  $self->dir(  qw{ c    bin         startup os2   } ) . q{\\},
+	  $self->dir(  qw{ c    bin         startup qssl  } ) . q{\\},
+	  $self->dir(  qw{ c    bin         startup tos   } ) . q{\\},
+	  $self->dir(  qw{ c    libexec     gcc     mingw32 3.4.5 install-tools}) . q{\\},
+	  $self->file( qw{ c    COPYING     } ),
+	  $self->file( qw{ c    COPYING.LIB } ),
+	  $self->file( qw{ c    bin         gccbug  } ),
+	  $self->file( qw{ c    bin         mingw32-gcc-3.4.5  } ),
 	  ];
 #>>>
 } ## end sub _build_filters
@@ -2178,7 +2158,7 @@ Returns a directory as a string or throws an exception on error.
 
 has 'wix_dist_dir' => (
 	is       => 'ro',
-	isa      => ExistingDirectory,
+	isa      => ExistingDirectory_Spaceless,
 	builder  => '_build_wix_dist_dir',
 	init_arg => undef,
 	coerce   => 1,
@@ -3924,7 +3904,7 @@ Adds a path entry that will be installed when the installer is executed.
 sub add_path {
 	my $self = shift;
 	my @path = @_;
-	my $dir  = $self->_dir(@path);
+	my $dir  = $self->dir(@path);
 	unless ( -d $dir ) {
 		PDWiX->throw("PATH directory $dir does not exist");
 	}
@@ -3947,7 +3927,7 @@ programs that have already been put in place.
 sub get_path_string {
 	my $self = shift;
 	return join q{;},
-	  map { $self->_dir( @{$_} ) } $self->_get_env_path_unchecked();
+	  map { $self->dir( @{$_} ) } $self->_get_env_path_unchecked();
 }
 
 

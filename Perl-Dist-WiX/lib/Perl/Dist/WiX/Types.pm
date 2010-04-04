@@ -23,36 +23,18 @@ It may be updated or replaced at any time.
 =cut
 
 use 5.008001;
-use MooseX::Types -declare =>
-  [qw( ExistingDirectory SaneExistingDirectory SaneTempDir ExistingFile TemplateObj )];
-use MooseX::Types::Moose qw( Str Object );
-use MooseX::Types::Path::Class qw( Dir File );
-use Perl::Dist::WiX::PrivateTypes qw(
+use MooseX::Types -declare => [qw( 
+	ExistingDirectory ExistingFile TemplateObj
 	_NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir
-);
+	ExistingSubdirectory ExistingDirectory_Spaceless 
+	ExistingDirectory_SaneSlashes
+)];
+use MooseX::Types::Moose qw( Str Object ArrayRef );
+use MooseX::Types::Path::Class qw( Dir File );
 use Template qw();
 
 our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
-
-# Apparently, type constraints run before coercions,
-# so I have to handle cases where we're either
-# a Path::Class::Dir/File or a string.
-
-sub _fix {
-	my $d = shift;
-
-	if ('Path::Class::Dir' eq ref $d) {
-		print STDERR "is Path::Class::Dir\n";
-		return $d->stringify();
-	} elsif ('Path::Class::File' eq ref $d) {
-		print STDERR "is Path::Class::File\n";
-		return $d->stringify();
-	} else {
-		print STDERR "is something else\n";
-		return $d;
-	}	
-}
 
 =head2 ExistingDirectory
 
@@ -67,39 +49,55 @@ sub _fix {
 
 subtype ExistingDirectory,
 	as Dir,
-	where { -d $_->stringify(); },
+	where { -d "$_" },
 	message {'Directory does not exist'};
 
-MooseX::Meta::TypeConstraint::Intersection->new(
-	name  => 'Perl::Dist::WiX::Types::__SaneExistingDirectory',
-	parent => Dir,
-	type_constraints =>
-	  [ _NoDoubleSlashes, _NoSpaces, _NoForwardSlashes, _NoSlashAtEnd ],
-);
-	
-subtype SaneExistingDirectory,
-	as 'Perl::Dist::WiX::Types::__SaneExistingDirectory',
-	where { my $answer = -d $_->stringify(); print STDERR "Answer: $answer\n"; $answer; },
-	message {'Directory does not exist sanely'};
+subtype _NoDoubleSlashes,
+	as ExistingDirectory,
+	where { "$_" !~ m{\\\\}ms },
+	message {'cannot contain two consecutive slashes'};
 
-coerce SaneExistingDirectory,
-	from Str,
-	via { Path::Class::Dir->new($_) };
+subtype _NoForwardSlashes,
+	as _NoDoubleSlashes,
+	where { "$_" !~ m{/}ms },
+	message {'Forward slashes are not allowed'};
 
-my $tempdir = MooseX::Meta::TypeConstraint::Intersection->new(
-	name => 'Perl::Dist::WiX::Types::TempDirectorySanity',
-	parent => Dir,
-	type_constraints =>
-	  [ _NoDoubleSlashes, _NoForwardSlashes, _NoSlashAtEnd ],
-);
+subtype _NoSlashAtEnd,
+	as _NoForwardSlashes,
+	where { "$_" !~ m{\\\z}ms },
+	message {'Cannot have a slash at the end'};
 
-subtype SaneTempDir,
-	as $tempdir;
+subtype ExistingDirectory_SaneSlashes,
+	as _NoSlashAtEnd; 
+  
+coerce ExistingDirectory_SaneSlashes,
+	from Str, via { to_Dir($_) },
+	from ArrayRef, via { to_Dir($_) };
+  
+subtype _NoSpaces,
+	as _NoSlashAtEnd,
+	where { "$_" !~ m{\s}ms },
+	message {'Spaces are not allowed'};
 
-coerce SaneTempDir,
-	from Str,
-	via { print STDERR "Coercion hit\n"; Path::Class::Dir->new($_) };
+subtype ExistingDirectory_Spaceless,
+	as _NoSlashAtEnd;
 
+coerce ExistingDirectory_Spaceless,
+	from Str, via { to_Dir($_) },
+	from ArrayRef, via { to_Dir($_) };
+	  
+subtype _NotRootDir,
+	as _NoSlashAtEnd,
+	where { "$_" !~ m{:\z}ms },
+	message {'Cannot be a root directory'};
+
+subtype ExistingSubdirectory,
+	as _NoSlashAtEnd;
+
+coerce ExistingSubdirectory,
+	from Str, via { to_Dir($_) },
+	from ArrayRef, via { to_Dir($_) };
+  
 =head2 ExistingFile
 
 	has bar => (
@@ -113,9 +111,12 @@ coerce SaneTempDir,
 
 subtype ExistingFile,
 	as File,
-	where { -f _fix($_) },
+	where { -f "$_" },
 	message {'File does not exist'};
 
+coerce ExistingFile,
+	from Str, via { to_File($_) },
+	from ArrayRef, via { to_File($_) };
 
 =head2 Template
 

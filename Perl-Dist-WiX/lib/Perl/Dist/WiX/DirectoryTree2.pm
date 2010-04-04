@@ -36,6 +36,7 @@ use MooseX::Singleton;
 use Params::Util qw( _IDENTIFIER _STRING _INSTANCE );
 use File::Spec::Functions qw( catdir catpath splitdir splitpath );
 use MooseX::Types::Moose qw( Str );
+use MooseX::Types::Path::Class qw( Dir );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 
@@ -85,7 +86,7 @@ TODO
 
 has app_dir => (
 	is       => 'ro',
-	isa      => Str,
+	isa      => Dir,
 	reader   => '_get_app_dir',
 	required => 1,
 );
@@ -133,7 +134,7 @@ sub BUILDARGS {
 	my $root = Perl::Dist::WiX::Tag::Directory->new(
 		id       => 'TARGETDIR',
 		name     => 'SourceDir',
-		path     => $app_dir,
+		path     => "$app_dir",
 		noprefix => 1,
 	);
 
@@ -190,7 +191,7 @@ sub initialize_tree {
 	my $branch = $self->get_root()->add_directory( {
 			id       => 'INSTALLDIR',
 			noprefix => 1,
-			path     => $self->_get_app_dir(),
+			path     => $self->_get_app_dir()->stringify(),
 		} );
 	$self->get_root()->add_directory( {
 			id       => 'ProgramMenuFolder',
@@ -240,7 +241,7 @@ sub initialize_tree {
 	);
 
 	foreach my $dir (@list) {
-		$self->add_directory( catdir( $self->_get_app_dir(), $dir ) );
+		$self->add_directory( $self->_get_app_dir()->subdir($dir)->stringify() );
 	}
 
 	return $self;

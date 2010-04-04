@@ -57,9 +57,9 @@ sub dir {
 }
 
 sub _dir {
-	print "DEPRECATED: _dir(). Change to dir()\n\n";
+	print "DEPRECATED: _dir(). Change to dir()\n";
 	print Devel::StackTrace->new()->frame(2)->as_string();
-	print "\n";
+	print "\n\n";
 	return shift->dir(@_);
 }
 
@@ -80,6 +80,8 @@ sub file {
 
 sub _file {
 	print "DEPRECATED: _file(). Change to file()\n";
+	print Devel::StackTrace->new()->frame(2)->as_string();
+	print "\n\n";
 	return shift->file(@_);
 }
 
@@ -160,6 +162,8 @@ sub mirror_url {
 
 sub _mirror {
 	print "DEPRECATED: _mirror(). Change to mirror_url()\n";
+	print Devel::StackTrace->new()->frame(2)->as_string();
+	print "\n\n";
 	return shift->mirror_url(@_);
 }
 
