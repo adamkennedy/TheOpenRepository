@@ -1,7 +1,15 @@
 use 5.006002;
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
+use Getopt::Long 'GetOptions';
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
+
+my $DEBUG = 0;
+GetOptions(
+  'debug' => \$DEBUG,
+);
 
 my $CC = 'g++';
 
@@ -16,14 +24,14 @@ WriteMakefile(
       (ABSTRACT_FROM  => 'lib/PPI/XS/Tokenizer.pm', # retrieve abstract from module
        AUTHOR         => 'Shmuel Fomberg <semuelf@cpan.org>') : ()),
     LIBS              => [''], # e.g., '-lm'
-    DEFINE            => '-O2', # e.g., '-DHAVE_SOMETHING'
-    INC               => '-I. -Isrc', # e.g., '-I. -I/usr/include/other'
-	# Un-comment this if you add C files to link with later:
-     OBJECT            => '$(O_FILES)', # link all the C files too
-    'XSOPT'             => '-C++ -hiertype',
-    'TYPEMAPS'          => ['perlobject.map'],
-    'CC'                => $CC,
-    'LD'                => '$(CC)',
+    DEFINE            => ($DEBUG ? '-O0' : '-O2'),
+    INC               => '-I. -Isrc',
+    OBJECT            => '$(O_FILES)',
+    XSOPT             => '-C++ -hiertype',
+    TYPEMAPS          => ['perlobject.map'],
+    CC                => $CC,
+    LD                => '$(CC)',
+    ($DEBUG ? ('CCFLAGS' => '-g3 -O0') : ()),
 );
 
 if  (grep $_ eq "--regen-constants", @ARGV) {
