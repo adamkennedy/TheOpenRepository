@@ -856,8 +856,8 @@ has 'license_dir' => (
 sub _build_license_dir {
 	my $self = shift;
 
-	my $dir = $self->_dir('licenses');
-	$self->remake_path($dir);
+	my $dir = $self->image_dir()->subdir('licenses');
+	$self->remake_path("$dir");
 	return $dir;
 }
 
@@ -880,8 +880,8 @@ has 'modules_dir' => (
 sub _build_modules_dir {
 	my $self = shift;
 
-	my $dir = catdir( $self->download_dir(), 'modules' );
-	$self->make_path($dir);
+	my $dir = $self->download_dir()->subdir('modules');
+	$self->remake_path("$dir");
 	return $dir;
 }
 
@@ -1196,7 +1196,7 @@ sub _build_output_dir {
 
 	my $dir = $self->temp_dir()->subdir('output');
 	$self->make_path("$dir");
-	return Path::Class::Dir->new($dir);
+	return $dir;
 }
 
 
@@ -1217,6 +1217,10 @@ If not defined, this is set to anonymous@unknown.builder.invalid.
 
 has 'perl_config_cf_email' => (
 	is      => 'ro',                   # E-mail address
+	isa => subtype(
+		Str => where { $_ =~ m/\A.*@.*\z/msx },
+		message {'perl_config_cf_email must be in the form of an e-mail address'}
+	),
 	default => 'anonymous@unknown.builder.invalid',
 );
 
@@ -1236,7 +1240,7 @@ If not defined, this is set to the username part of C<perl_config_cf_email>.
 =cut
 
 has 'perl_config_cf_by' => (
-	is      => 'ro',                   # String
+	is      => 'ro',
 	isa     => Str,
 	lazy    => 1,
 	builder => '_build_perl_config_cf_by',
@@ -1279,7 +1283,7 @@ This parameter defaults to '5101' if not specified.
 
 has 'perl_version' => (
 	is      => 'ro',
-	isa     => Str,
+	isa     => enum([qw(git 589 5100 5101 5115 5120)]),
 	default => '5101',
 );
 
@@ -1464,8 +1468,8 @@ has 'tempenv_dir' => (
 sub _build_tempenv_dir {
 	my $self = shift;
 
-	my $dir = catdir( $self->temp_dir(), 'tempenv' );
-	$self->remake_path($dir);
+	my $dir = $self->temp_dir()->subdir('tempenv');
+	$self->remake_path("$dir");
 	return $dir;
 }
 
@@ -1513,7 +1517,7 @@ parameter.
 
 has 'user_agent' => (
 	is      => 'ro',
-	isa     => 'LWP::UserAgent',
+	isa     => class_type('LWP::UserAgent', { message => sub {'Invalid user_agent'} }),
 	lazy    => 1,
 	builder => '_build_user_agent',
 );
@@ -3594,17 +3598,17 @@ sub remove_waste {
 	$self->_remove_dir(qw{ c    html      });
 
 	$self->trace_line( 2, "  Removing C examples, manifests\n" );
-	$self->_remove_dir(qw{ c    examples  });
-	$self->_remove_dir(qw{ c    manifest  });
+	$self->_remove_dir(qw{ c examples  });
+	$self->_remove_dir(qw{ c manifest  });
 
 	$self->trace_line( 2, "  Removing extra dmake/gcc files\n" );
-	$self->_remove_dir(qw{ c    bin         startup mac   });
-	$self->_remove_dir(qw{ c    bin         startup msdos });
-	$self->_remove_dir(qw{ c    bin         startup os2   });
-	$self->_remove_dir(qw{ c    bin         startup qssl  });
-	$self->_remove_dir(qw{ c    bin         startup tos   });
+	$self->_remove_dir(qw{ c bin startup mac   });
+	$self->_remove_dir(qw{ c bin startup msdos });
+	$self->_remove_dir(qw{ c bin startup os2   });
+	$self->_remove_dir(qw{ c bin startup qssl  });
+	$self->_remove_dir(qw{ c bin startup tos   });
 	$self->_remove_dir(
-		qw{ c    libexec     gcc     mingw32 3.4.5 install-tools});
+		qw{ c libexec gcc mingw32 3.4.5 install-tools});
 
 	$self->trace_line( 2, "  Removing redundant files\n" );
 	$self->_remove_file(qw{ c COPYING     });
@@ -3628,14 +3632,14 @@ sub remove_waste {
 
 sub _remove_dir {
 	my $self = shift;
-	my $dir  = $self->_dir(@_);
+	my $dir  = $self->dir(@_);
 	File::Remove::remove( \1, $dir ) if -e $dir;
 	return 1;
 }
 
 sub _remove_file {
 	my $self = shift;
-	my $file = $self->_file(@_);
+	my $file = $self->file(@_);
 	File::Remove::remove( \1, $file ) if -e $file;
 	return 1;
 }
@@ -3658,7 +3662,7 @@ sub regenerate_fragments {
 	# Add the perllocal.pod here, because apparently it's disappearing.
 	if ( $self->fragment_exists('perl') ) {
 		$self->add_to_fragment( 'perl',
-			[ $self->_file(qw(perl lib perllocal.pod)) ] );
+			[ $self->file(qw(perl lib perllocal.pod)) ] );
 	}
 
 	my @fragment_names_regenerate;
@@ -4698,14 +4702,14 @@ sub patch_file {
 
 		# Copy the file to the final location
 		$fh->close or PDWiX->throw("Could not close: $OS_ERROR");
-		$self->_copy( $output => $to );
+		$self->copy_file( $output => $to );
 		unlink $output
 		  or PDWiX->throw("Could not delete $output: $OS_ERROR");
 
 	} elsif ( $from ne q{} ) {
 
 		# Simple copy of the regular file to the target location
-		$self->_copy( $from => $to );
+		$self->copy_file( $from => $to );
 
 	} else {
 		PDWiX->throw("Failed to find file $file");

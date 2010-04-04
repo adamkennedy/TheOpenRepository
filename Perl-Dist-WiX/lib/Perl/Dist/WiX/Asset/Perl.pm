@@ -207,7 +207,7 @@ has force => (
 	reader  => '_get_force',
 	lazy    => 1,
 	default => sub {
-		$_[0]->parent()->force() ? 1 : $_[0]->parent()->forceperl() ? 1 : 0;
+		$_[0]->_force() ? 1 : $_[0]->_forceperl() ? 1 : 0;
 	},
 );
 

@@ -58,7 +58,10 @@ sub dir {
 
 sub _dir {
 	print "DEPRECATED: _dir(). Change to dir()\n";
-	print Devel::StackTrace->new()->frame(2)->as_string();
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
 	print "\n\n";
 	return shift->dir(@_);
 }
@@ -80,7 +83,10 @@ sub file {
 
 sub _file {
 	print "DEPRECATED: _file(). Change to file()\n";
-	print Devel::StackTrace->new()->frame(2)->as_string();
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
 	print "\n\n";
 	return shift->file(@_);
 }
@@ -162,7 +168,10 @@ sub mirror_url {
 
 sub _mirror {
 	print "DEPRECATED: _mirror(). Change to mirror_url()\n";
-	print Devel::StackTrace->new()->frame(2)->as_string();
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
 	print "\n\n";
 	return shift->mirror_url(@_);
 }
@@ -227,6 +236,11 @@ sub copy_file {
 
 sub _copy {
 	print "DEPRECATED: _copy(). Change to copy_file()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->copy_file(@_);
 }
 
@@ -268,6 +282,11 @@ sub move_file {
 
 sub _move {
 	print "DEPRECATED: _move(). Change to move_file()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->move_file(@_);
 }
 
@@ -295,6 +314,11 @@ sub push_dir {
 
 sub _pushd {
 	print "DEPRECATED: _pushd(). Change to push_dir()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->push_dir(@_);
 }
 
@@ -322,6 +346,11 @@ sub execute_build {
 
 sub _build {
 	print "DEPRECATED: _build(). Change to execute_build()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->execute_build(@_);
 }
 
@@ -349,6 +378,11 @@ sub execute_make {
 
 sub _make {
 	print "DEPRECATED: _make(). Change to execute_make()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->execute_make(@_);
 }
 
@@ -381,6 +415,11 @@ sub execute_perl {
 
 sub _perl {
 	print "DEPRECATED: _perl(). Change to execute_perl()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->execute_perl(@_);
 }
 
@@ -430,12 +469,17 @@ sub execute_any {
 	$self->trace_line( 3, "Path during execute_any: $ENV{PATH}\n" );
 
 	# Execute the child process
-	return IPC::Run3::run3( [@_], \undef, $self->debug_stdout(),
-		$self->debug_stderr(), );
+	return IPC::Run3::run3( [@_], \undef, $self->debug_stdout()->stringify(),
+		$self->debug_stderr()->stringify(), );
 } ## end sub execute_any
 
 sub _run3 {
 	print "DEPRECATED: _run3(). Change to execute_any()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->execute_any(@_);
 }
 
@@ -500,6 +544,11 @@ sub extract_archive {
 
 sub _extract {
 	print "DEPRECATED: _extract(). Change to extract_archive()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->extract_archive(@_);
 }
 
@@ -610,6 +659,11 @@ sub make_path {
 
 sub _make_path {
 	print "DEPRECATED: _make_path(). Change to make_path()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->make_path(@_);
 }
 
@@ -641,6 +695,11 @@ sub remake_path {
 
 sub _remake_path {
 	print "DEPRECATED: _remake_path(). Change to remake_path()\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 	return shift->remake_path(@_);
 }
 

@@ -43,6 +43,7 @@ use 5.008001;
 use Moose 0.90;
 use MooseX::Singleton;
 use WiX3::XML::Directory;
+use Params::Util qw( _INSTANCE );
 
 our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
@@ -63,6 +64,10 @@ has _cache => (
 );
 
 =head1 INTERFACE
+
+=head2 new
+
+TODO
 
 =head2 add_to_cache
 
