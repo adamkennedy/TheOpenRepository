@@ -263,23 +263,32 @@ CharTokenizeResults CommentToken::commit(Tokenizer *t) {
 	char *c_token_text = c_token->text;
 	long len = 0;
     
-    while ( ( t->line_pos < t->line_length ) && ( t->c_line[t->line_pos] != t->local_newline ) ) {
+    while ( ( t->line_pos < t->line_length ) ) { //  && ( t->c_line[t->line_pos] != t->local_newline ) 
         c_token_text[len++] = t->c_line[t->line_pos++];
     }
 	c_token->length = len;
-	t->_finalize_token();
-	if ( t->c_line[t->line_pos] == t->local_newline ) {
-		t->_new_token(Token_Whitespace);
-	}
+	TokenTypeNames zone = t->_finalize_token();
+	t->_new_token(zone);
+	return done_it_myself;
+	//t->_finalize_token();
+	//if ( t->c_line[t->line_pos] == t->local_newline ) {
+	//	t->_new_token(Token_Whitespace);
+	//}
 
-    return done_it_myself;
+ //   return done_it_myself;
 }
 
 CharTokenizeResults CommentToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
-	if (c_char == t->local_newline ) {
-		t->_finalize_token();
-		t->_new_token(Token_Whitespace);
-		return t->c_token->type->tokenize(t, t->c_token, c_char);
+	token->text[token->length++] = c_char;
+	if (t->line_pos >= t->line_length) {
+		TokenTypeNames zone = t->_finalize_token();
+		t->_new_token(zone);
 	}
-	return my_char;
+	return done_it_myself;
+	//if (c_char == t->local_newline ) {
+	//	t->_finalize_token();
+	//	t->_new_token(Token_Whitespace);
+	//	return t->c_token->type->tokenize(t, t->c_token, c_char);
+	//}
+	//return my_char;
 }

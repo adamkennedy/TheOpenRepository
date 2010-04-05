@@ -145,7 +145,7 @@ void TestOnNodePm() {
 	char buffer[200];
 	Tokenizer tk;
 	ifstream file;
-	file.open("C:\\strawberry\\perl\\site\\lib\\PPI\\Node.pm");
+	file.open("C:\\Perl\\AdamKProjects\\PPI\\t\\data\\26_bom\\utf8.code");
 	while (!file.eof()) {
 		file.getline(buffer, 200);
 		unsigned long line_len = file.gcount();
@@ -212,10 +212,10 @@ int main(int argc, char* argv[])
 
 	Tokenize("  # aabbcc d\n");
 	CheckToken(&tk, "   \n  ", Token_Whitespace);
-	CheckToken(&tk, "# aabbcc d", Token_Comment);
+	CheckToken(&tk, "# aabbcc d\n", Token_Comment);
 
 	Tokenize(" + \n");
-	CheckToken(&tk, "\n ", Token_Whitespace);
+	CheckToken(&tk, " ", Token_Whitespace);
 	CheckToken(&tk, "+", Token_Operator);
 
 	Tokenize(" $testing \n");
@@ -484,7 +484,7 @@ int main(int argc, char* argv[])
 	Tokenize("hjkil jkhjk hjh\n");
 	tk.EndOfDocument();
 	CheckToken(&tk, "__END__", Token_Separator);
-	CheckToken(&tk, "\n", Token_Whitespace);
+	CheckToken(&tk, "\n", Token_Comment);
 	CheckToken(&tk, "FDGDF hfghhgfhg gfh\n", Token_End);
 	CheckToken(&tk, "=start\naaad dkfjs dfsd\n=cut\n", Token_Pod);
 	CheckToken(&tk, "hjkil jkhjk hjh\n", Token_End);
@@ -499,7 +499,7 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, ";", Token_Structure);
 	CheckToken(&tk, "\n", Token_Whitespace);
 	CheckToken(&tk, "__DATA__", Token_Separator);
-	CheckToken(&tk, "\n", Token_Whitespace);
+	CheckToken(&tk, "\n", Token_Comment);
 	CheckToken(&tk, "FDGDF hfghhgfhg gfh\n=start\n", Token_Data);
 
 	tk.Reset();

@@ -477,14 +477,13 @@ OperatorOperandContext Tokenizer::_opcontext() {
 //=====================================
 
 LineTokenizeResults Tokenizer::_tokenize_the_rest_of_the_line() {
-	const char *line = c_line;
 	AbstractTokenType::VerifySufficientBufferLength(c_token, line_length);
 	//printf("_tokenize_the_rest_of_the_line started: waiting tokens: %d\n", count_waiting_tokens(tokens_found_head));
     while (line_length > line_pos) {
-		CharTokenizeResults rv = c_token->type->tokenize(this, c_token, line[line_pos]);
+		CharTokenizeResults rv = c_token->type->tokenize(this, c_token, c_line[line_pos]);
         switch (rv) {
             case my_char:
-				c_token->text[c_token->length++] = line[line_pos++];
+				c_token->text[c_token->length++] = c_line[line_pos++];
                 break;
             case done_it_myself:
                 break;

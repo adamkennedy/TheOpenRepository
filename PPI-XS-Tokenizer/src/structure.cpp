@@ -65,6 +65,7 @@ CharTokenizeResults BOMToken::tokenize(Tokenizer *t, Token *token, unsigned char
 		// move the beginning of the line to after the BOM
 		t->c_line += pos;
 		t->line_length -= pos;
+		token->length = 3;
 	}
 	TokenTypeNames zone = t->_finalize_token();
 	t->_new_token(zone);
