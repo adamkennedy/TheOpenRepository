@@ -438,15 +438,15 @@ Defaults to C<temp_dir> . '\checkpoint', and must exist if given.
 
 has 'checkpoint_dir' => (
 	is      => 'ro',
-	isa     => Maybe [ExistingDirectory],
+	isa     => ExistingDirectory,
 	lazy    => 1,
 	builder => '_build_checkpoint_dir',
 );
 
 sub _build_checkpoint_dir {
 	my $self = shift;
-	my $dir = catdir( $self->temp_dir(), 'checkpoint' );
-	$self->remake_path($dir);
+	my $dir = $self->temp_dir()->subdir('checkpoint');
+	$self->remake_path("$dir");
 	return $dir;
 }
 
@@ -3452,14 +3452,14 @@ sub install_relocatable {
 	return 1 unless $self->relocatable();
 
 	# Copy the relocation information in.
-	$self->_copy( catfile( $self->wix_dist_dir(), 'relocation.pl' ),
+	$self->copy_file( catfile( $self->wix_dist_dir(), 'relocation.pl' ),
 		$self->image_dir() );
 
 	# Make sure it gets installed.
 	$self->insert_fragment(
 		'relocation_script',
 		File::List::Object->new()
-		  ->add_file( catfile( $self->image_dir(), 'relocation.pl' ) ),
+		  ->add_file( $self->file( 'relocation.pl' ) ),
 	);
 
 	return 1;
@@ -3485,7 +3485,7 @@ sub find_relocatable_fields {
 	# Set the fileid attributes.
 	my $perl_id =
 	  $self->get_fragment_object('perl')
-	  ->find_file( catfile( $self->image_dir(), qw(perl bin perl.exe) ) );
+	  ->find_file_id( $self->file( qw(perl bin perl.exe) ) );
 	if ( not $perl_id ) {
 		PDWiX->throw("Could not find perl.exe's ID.\n");
 	}
@@ -3493,7 +3493,7 @@ sub find_relocatable_fields {
 
 	my $script_id =
 	  $self->get_fragment_object('relocation_script')
-	  ->find_file( catfile( $self->image_dir(), 'relocation.pl' ) );
+	  ->find_file_id( $self->file( 'relocation.pl' ) );
 	if ( not $script_id ) {
 		PDWiX->throw("Could not find relocation.pl's ID.\n");
 	}
@@ -3762,7 +3762,7 @@ sub write_merge_module {
 		Perl::Dist::WiX::DirectoryTree2->_clear_instance();
 		$self->_set_directories(
 			Perl::Dist::WiX::DirectoryTree2->new(
-				app_dir  => $self->image_dir(),
+				app_dir  => $self->image_dir()->stringify(),
 				app_name => $self->app_name(),
 			  )->initialize_short_tree( $self->perl_version() ) );
 
@@ -4555,10 +4555,11 @@ sub process_template {
 	my $tt = Template->new( {
 			INCLUDE_PATH => [ $self->dist_dir(), $self->wix_dist_dir(), ],
 			EVAL_PERL    => 1,
+			DEBUG        => 1,
 		} )
 	  || PDWiX::Caught->throw(
 		message => 'Template error',
-		info    => Template->error(),
+		info    => Template->error()->as_string(),
 	  );
 
 	my $answer;
