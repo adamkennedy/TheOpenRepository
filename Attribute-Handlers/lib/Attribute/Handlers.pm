@@ -235,18 +235,27 @@ sub _apply_handler_AH_ {
 {
         no warnings 'void';
         CHECK {
-               $global_phase++;
-               _resolve_lastattr if _delayed_name_resolution;
-               _apply_handler_AH_($_,'CHECK') foreach @declarations;
+                $global_phase++;
+                _resolve_lastattr if _delayed_name_resolution;
+                foreach my $decl (@declarations) {
+                        _apply_handler_AH_($decl, 'CHECK');
+                }
         }
 
         INIT {
                 $global_phase++;
-                _apply_handler_AH_($_,'INIT') foreach @declarations
+                foreach my $decl (@declarations) {
+                        _apply_handler_AH_($decl, 'INIT');
+                }
         }
 }
 
-END { $global_phase++; _apply_handler_AH_($_,'END') foreach @declarations }
+END {
+        $global_phase++;
+        foreach my $decl (@declarations) {
+                _apply_handler_AH_($decl, 'END');
+        }
+}
 
 1;
 __END__
