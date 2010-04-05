@@ -148,7 +148,8 @@ void TestOnNodePm() {
 	file.open("C:\\strawberry\\perl\\site\\lib\\PPI\\Node.pm");
 	while (!file.eof()) {
 		file.getline(buffer, 200);
-		tk.tokenizeLine(buffer, file.gcount());
+		unsigned long line_len = file.gcount();
+		tk.tokenizeLine(buffer, line_len);
 	}
 }
 
