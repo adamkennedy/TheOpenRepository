@@ -145,7 +145,7 @@ sub checkpoint_save {
 	foreach my $dir (qw{ build_dir download_dir image_dir output_dir }) {
 		my $from = $self->$dir();
 		my $to = catdir( $self->checkpoint_dir(), $dir );
-		$self->_copy( $from => $to );
+		$self->copy_file( $from => $to );
 	}
 
 	# Store the main object.
@@ -200,13 +200,13 @@ sub checkpoint_load {
 
 	## no critic(ProtectPrivateSubs)
 	# Reload the misc object.
-	$self->_set_trace_object(undef);
+	$self->_clear_trace_object();
 	WiX3::Trace::Object->_clear_instance();
 	WiX3::Traceable->_clear_instance();
 	$self->_set_trace_object(
 		WiX3::Traceable->new( tracelevel => $self->trace() ) );
 
-	$self->_set_guidgen(undef);
+	$self->_clear_guidgen();
 	WiX3::XML::GeneratesGUID::Object->_clear_instance();
 	$self->_set_guidgen(
 		WiX3::XML::GeneratesGUID::Object->new(
@@ -215,10 +215,10 @@ sub checkpoint_load {
 	# Pull all the directories out of the storage.
 	$self->trace_line( 0, "Restoring checkpoint directories...\n" );
 	foreach my $dir (qw{ build_dir download_dir image_dir output_dir }) {
-		my $from = File::Spec->catdir( $self->checkpoint_dir, $dir );
+		my $from = File::Spec->catdir( $self->checkpoint_dir(), $dir );
 		my $to = $self->$dir();
 		File::Remove::remove($to);
-		$self->_copy( $from => $to );
+		$self->copy_file( $from => $to );
 	}
 
 	return 1;

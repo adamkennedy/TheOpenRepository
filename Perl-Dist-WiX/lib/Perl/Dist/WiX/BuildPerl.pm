@@ -962,11 +962,6 @@ sub install_perl_toolchain {
 			# Upgrading to this version, instead...
 			$dist = 'STSI/TermReadKey-2.30.01.tar.gz';
 		}
-		if ( $dist =~ /Module-Build-0 [.] 3607/msx ) {
-
-			# Does not pass some tests in ppm.t
-			$force = 1;
-		}
 		if ( $dist =~ /CPAN-1 [.] 9402/msx ) {
 
 			# 1.9402 fails its tests... ANDK says it's a test bug.

@@ -272,7 +272,7 @@ sub initialize_short_tree {
 	my $branch = $self->get_root()->add_directory( {
 			id       => 'INSTALLDIR',
 			noprefix => 1,
-			path     => $self->_get_app_dir(),
+			path     => $self->_get_app_dir()->stringify(),
 		} );
 	$self->get_root()->add_directory( {
 			id       => 'ProgramMenuFolder',

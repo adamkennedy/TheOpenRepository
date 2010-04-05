@@ -530,7 +530,7 @@ has 'debug_stderr' => (
 	coerce  => 1,
 	default => sub {
 		my $self = shift;
-		return $self->output_dir()->file('debug.out');
+		return $self->output_dir()->file('debug.err');
 	},
 );
 
@@ -1947,9 +1947,11 @@ has 'pdw_version' => (
 
 
 has '_guidgen' => (
-	is       => 'ro',                  # WiX3::XML::GeneratesGUID::Object
-	writer   => '_set_guidgen',
+	is       => 'ro',
+	isa      => 'WiX3::XML::GeneratesGUID::Object',
 	required => 1,                     # Default is provided in BUILDARGS.
+	writer   => '_set_guidgen',
+	clearer  => '_clear_guidgen',
 );
 
 
@@ -1959,6 +1961,7 @@ has '_trace_object' => (
 	isa      => 'WiX3::Traceable',
 	required => 1,
 	writer   => '_set_trace_object',
+	clearer  => '_clear_trace_object',
 	handles  => ['trace_line'],
 );
 
@@ -3762,7 +3765,7 @@ sub write_merge_module {
 		Perl::Dist::WiX::DirectoryTree2->_clear_instance();
 		$self->_set_directories(
 			Perl::Dist::WiX::DirectoryTree2->new(
-				app_dir  => $self->image_dir()->stringify(),
+				app_dir  => $self->image_dir(),
 				app_name => $self->app_name(),
 			  )->initialize_short_tree( $self->perl_version() ) );
 
@@ -3791,14 +3794,13 @@ sub write_merge_module {
 			id          => 'Perl',
 			disk_id     => 1,
 			language    => 1033,
-			source_file => catfile(
-				$self->output_dir(), $self->output_base_filename() . '.msm'
-			),
+			source_file => 
+				$self->output_dir()->file($self->output_base_filename() . '.msm')->stringify(),
 			primary_reference => 1,
 		);
 		$self->_add_merge_module( 'Perl', $mm );
 		$self->get_directory_tree()
-		  ->add_merge_module( $self->image_dir(), $mm );
+		  ->add_merge_module( $self->image_dir()->stringify(), $mm );
 	} ## end if ( $self->msi() )
 
 	return 1;
