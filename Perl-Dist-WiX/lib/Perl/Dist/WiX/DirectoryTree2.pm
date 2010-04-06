@@ -130,18 +130,24 @@ sub BUILDARGS {
 		where     => 'Perl::Dist::WiX::DirectoryTree2->new'
 	  );
 
-	# Create the root directory object.
-	my $root = Perl::Dist::WiX::Tag::Directory->new(
-		id       => 'TARGETDIR',
-		name     => 'SourceDir',
-		path     => "$app_dir",
-		noprefix => 1,
-	);
+	if (exists $args{_root}) {
+		# If we're recreating, the assumption is that 
+		# we know what we're doing.
+		return \%args;	
+	} else {
+		# Create the root directory object.
+		my $root = Perl::Dist::WiX::Tag::Directory->new(
+			id       => 'TARGETDIR',
+			name     => 'SourceDir',
+			path     => "$app_dir",
+			noprefix => 1,
+		);
 
-	return {
-		_root => $root,
-		%args
-	};
+		return {
+			_root => $root,
+			%args
+		};
+	}
 } ## end sub BUILDARGS
 
 =head2 instance

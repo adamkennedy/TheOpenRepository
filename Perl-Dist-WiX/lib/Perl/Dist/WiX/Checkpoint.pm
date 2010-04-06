@@ -177,6 +177,7 @@ L</checkpoint_save>.
 =cut
 
 sub checkpoint_load {
+	## no critic(ProtectPrivateSubs)
 	my $self = shift;
 
 	# Does the checkpoint exist?
@@ -188,7 +189,14 @@ sub checkpoint_load {
 	# If we want a future checkpoint, save it.
 	my $checkpoint_after = $self->checkpoint_after() || 0;
 	my $checkpoint_stop  = $self->checkpoint_stop()  || 0;
+	
+	# Save off the user agent for later restoration.
+	my $user_agent = $self->user_agent();
 
+	# Clear the directory tree.
+	$self->_clear_directory_tree();
+	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
+	
 	# Load the stored hash over our object
 	local $Storable::Eval = 1;
 	my $stored = Storable::retrieve( $self->checkpoint_file() );
@@ -198,7 +206,23 @@ sub checkpoint_load {
 	$self->_set_checkpoint_after($checkpoint_after);
 	$self->_set_checkpoint_stop($checkpoint_stop);
 
-	## no critic(ProtectPrivateSubs)
+	# Grab the directory tree stuff before we clear it.
+	my $directory_tree_root = $self->{_directories}->{_root};
+	my $app_name = $self->{_directories}->{app_name};
+	my $app_dir = $self->{_directories}->{app_dir};	
+	
+	# Clear the directory tree instance again, then 
+	# recreate it with the saved stuff.
+	$self->_clear_directory_tree();
+	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
+	$self->_set_directories(
+		Perl::Dist::WiX::DirectoryTree2->new(
+			app_dir  => $app_dir,
+			app_name => $app_name,
+			_root    => $directory_tree_root,
+		)
+	);
+	
 	# Reload the misc object.
 	$self->_clear_trace_object();
 	WiX3::Trace::Object->_clear_instance();
@@ -206,11 +230,19 @@ sub checkpoint_load {
 	$self->_set_trace_object(
 		WiX3::Traceable->new( tracelevel => $self->trace() ) );
 
+	# Reload GUID generator.
 	$self->_clear_guidgen();
 	WiX3::XML::GeneratesGUID::Object->_clear_instance();
 	$self->_set_guidgen(
 		WiX3::XML::GeneratesGUID::Object->new(
 			_sitename => $self->sitename() ) );
+			
+	# Reload LWP user agent.
+	$self->_clear_user_agent();
+	$self->_set_user_agent($user_agent);
+
+	# Clear other objects for reloading.
+	$self->_clear_patch_template();
 
 	# Pull all the directories out of the storage.
 	$self->trace_line( 0, "Restoring checkpoint directories...\n" );

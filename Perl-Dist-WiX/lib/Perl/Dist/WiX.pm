@@ -513,6 +513,7 @@ sub _build_cpan {
 
 
 
+
 =head3 debug_stderr
 
 The optional C<debug_stderr> parameter is used to set the location of the 
@@ -921,6 +922,7 @@ WiX will use its default if no file is supplied here.
 has 'msi_banner_side' => (
 	is      => 'ro',
 	isa     => Undef | ExistingFile,
+	coerce  => 1,
 	default => undef,
 );
 
@@ -939,6 +941,7 @@ WiX will use its default if no file is supplied here.
 has 'msi_banner_top' => (
 	is      => 'ro',
 	isa     => Undef | ExistingFile,
+	coerce  => 1,
 	default => undef,
 );
 
@@ -993,6 +996,7 @@ has 'msi_license_file' => (
 	is      => 'ro',
 	isa     => ExistingFile,
 	lazy    => 1,
+	coerce  => 1,
 	default => sub {
 		my $self = shift;
 		return catfile( $self->wix_dist_dir(), 'License.rtf' );
@@ -1011,6 +1015,7 @@ used in Add/Remove Programs for this MSI file.
 has 'msi_product_icon' => (
 	is      => 'ro',
 	isa     => Undef | ExistingFile,
+	coerce  => 1,
 	default => undef,
 );
 
@@ -1027,6 +1032,7 @@ or a URL (TODO: check) that is linked in Add/Remove Programs in the
 has 'msi_readme_file' => (
 	is      => 'ro',
 	isa     => Undef | ExistingFile,
+	coerce  => 1,
 	default => undef,
 );
 
@@ -1519,7 +1525,9 @@ has 'user_agent' => (
 	is      => 'ro',
 	isa     => class_type('LWP::UserAgent', { message => sub {'Invalid user_agent'} }),
 	lazy    => 1,
+	writer  => '_set_user_agent',
 	builder => '_build_user_agent',
+	clearer => '_clear_user_agent',
 );
 
 sub _build_user_agent {
@@ -1787,6 +1795,7 @@ has '_directories' => (
 	isa      => 'Maybe[Perl::Dist::WiX::DirectoryTree2]',
 	writer   => '_set_directories',
 	reader   => 'get_directory_tree',
+	clearer  => '_clear_directory_tree',
 	default  => undef,
 	init_arg => undef,
 );
@@ -3787,7 +3796,7 @@ sub write_merge_module {
 		$self->_set_icons(
 			$self->get_fragment_object('StartMenuIcons')->get_icons() );
 		if ( defined $self->msi_product_icon() ) {
-			$self->_icons()->add_icon( $self->msi_product_icon() );
+			$self->_icons()->add_icon( $self->msi_product_icon()->stringify() );
 		}
 
 		my $mm = Perl::Dist::WiX::Tag::MergeModule->new(
@@ -4651,18 +4660,27 @@ patched files.
 =cut
 
 has 'patch_template' => (
-	is      => 'ro',
-	isa     => TemplateObj,
-	lazy    => 1,
-	builder => '_build_patch_template',
+	is       => 'ro',
+	isa      => TemplateObj,
+	lazy     => 1,
+	init_arg => undef,
+	builder  => '_build_patch_template',
+	clearer  => '_clear_patch_template'
 );
 
 sub _build_patch_template {
 	my $self = shift;
-	return Template->new(
-		INCLUDE_PATH => $self->patch_include_path,
+	my $obj = Template->new(
+		INCLUDE_PATH => $self->patch_include_path(),
 		ABSOLUTE     => 1,
 	);
+	
+	PDWiX::Caught->throw(
+		message => Template::error(),
+		info => 'Template'
+	) unless $obj;
+	
+	return $obj;
 }
 
 
