@@ -56,7 +56,8 @@ static bool oversuck(char *text, unsigned long length, unsigned long *new_length
 CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	// Suck in till the end of the symbol
 	while ( is_word(c_char) || ( c_char == ':' ) || ( c_char == '\'' ) ) {
-			 token->text[token->length++] = c_char = t->c_line[t->line_pos++];
+			 token->text[token->length++] = t->c_line[t->line_pos++];
+			 c_char = t->c_line[t->line_pos];
 	}
 	token->text[token->length] = '\0';
 	// token ended: let's see what we have got
@@ -99,11 +100,8 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 	if ( token->length >= 3 ) {
 		if ( ( first_is_sigil != 0 ) && ( token->text[1] == ':' ) && ( token->text[2] == ':' ) ) {
 			if ( ( token->length == 3 ) || ( ! is_word(token->text[3]) ) ) {
-				for (unsigned long ix = 3; ix < token->length; ix++) {
-					token->text[ix-3] = token->text[ix];
-				}
-				token->length = token->length - 3;
-				t->line_pos = t->line_pos - token->length;
+				t->line_pos = t->line_pos - token->length + 3;
+				token->length = 3;
 				TokenTypeNames zone = t->_finalize_token();
 				t->_new_token(zone);
 				return done_it_myself;

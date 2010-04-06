@@ -160,6 +160,13 @@ int main(int argc, char* argv[])
 	Tokenizer tk;
 	VerifyInheritence( tk.TokenTypeNames_pool );
 
+	Tokenize("@::");
+	tk.EndOfDocument();
+	//CheckToken(&tk, "\n", Token_Whitespace);
+	CheckToken(&tk, "@::", Token_Symbol);
+	
+	tk.Reset();
+
 	Tokenize("&$wanted;\n");
 	//CheckToken(&tk, "\n", Token_Whitespace);
 	CheckToken(&tk, "&", Token_Cast);
