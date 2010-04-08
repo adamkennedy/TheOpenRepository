@@ -6,22 +6,26 @@ App::local::lib::Win32Helper - Helper for Win32 users of local::lib.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.990
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.990';
 $VERSION =~ s/_//msx;
 
 =head1 SYNOPSIS
 
-This module is a placeholder for the llwin32helper script.
+This module is a placeholder for the llwin32helper script, which saves the
+environment variables that local::lib requires for its use to the Windows
+registry.
 
 To run it, just type
 
     llw32helper
     
 at the command prompt.
+
+There are no command line parameters.
 
 =head1 AUTHOR
 

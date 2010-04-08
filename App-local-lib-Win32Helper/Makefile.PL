@@ -1,7 +1,9 @@
-use inc::Module::Install 0.94;
+use inc::Module::Install 0.95;
 
+# Since local::lib is not supporting lower than 5.8.1, I won't, either.
+perl_version   '5.008001'; 
 license        'perl';
-version_from   'lib/App/local/lib/Win32Helper.pm';
+all_from       'lib/App/local/lib/Win32Helper.pm';
 requires       'local::lib'            => 1.004007;
 requires       'IO::Interactive'       => 0.000005;
 requires       'File::HomeDir'         => 0.81;
@@ -10,3 +12,5 @@ requires       'Win32::TieRegistry'    => 0.26;
 test_requires  'Test::More'            => 0.42;
 install_script 'llw32helper.pl';
 use_ptar;
+
+WriteAll;
