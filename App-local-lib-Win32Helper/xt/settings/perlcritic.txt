@@ -7,6 +7,9 @@ equivalent_modules = MooseX::Singleton metaclass MooseX::Types
 [TestingAndDebugging::RequireUseStrict]
 equivalent_modules = MooseX::Singleton metaclass MooseX::Types
 
+[Modules::ProhibitExcessMainComplexity]
+max_mccabe = 30
+
 [ControlStructures::ProhibitPostfixControls]
 allow = if unless
 
@@ -23,23 +26,21 @@ add_packages = Module::CoreList CPAN::Config CPAN Storable
 [Modules::PerlMinimumVersion]
 version = 5.008001
 
+[Documentation::RequirePodSections]
+lib_sections    = NAME | VERSION | SYNOPSIS | CONFIGURATION AND ENVIRONMENT | DEPENDENCIES | BUGS AND LIMITATIONS | AUTHOR | SUPPORT | LICENSE AND COPYRIGHT
+script_sections = NAME | USAGE | OPTIONS | EXIT STATUS | AUTHOR
+	
 # Temporary exclusions to use while cleaning up.
 #[-CodeLayout::RequireTidyCode]
 #[-CodeLayout::ProhibitTrailingWhitespace]
-
-# TODO: Fix these later.
-[-RegularExpressions::ProhibitEnumeratedClasses]
 
 # Exclusions
 #
 # I disagree with this one.
 [-ValuesAndExpressions::ProhibitMagicNumbers]
 
-# I have some 'passthrough subroutines.'
-[-Subroutines::RequireArgUnpacking]
-
 # I'm fine with unless blocks.
-[-ControlStructures::ProhibitUnlessBlocks]
+#[-ControlStructures::ProhibitUnlessBlocks]
 
 # I don't use RCS keywords.
 [-Miscellanea::RequireRcsKeywords]
@@ -55,10 +56,10 @@ version = 5.008001
 
 # Excluded because I do my pod my own way.
 [-Documentation::RequirePodAtEnd]
-[-Documentation::RequirePodSections]
+#[-Documentation::RequirePodSections]
 
 # I don't use Emacs, why use this?
 [-Editor::RequireEmacsFileVariables]
 
-# Excluded because Moose builder subroutines get hit by this.
-[-Subroutines::ProhibitUnusedPrivateSubroutines]
+# We've decided not to use exceptions here.
+[-ErrorHandling::RequireUseOfExceptions]

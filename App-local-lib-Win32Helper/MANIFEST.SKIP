@@ -20,6 +20,7 @@
 \bMANIFEST\.bak
 \bMakefile$
 \bblib/
+\bxt/inc/
 \bMakeMaker-\d
 \bpm_to_blib\.ts$
 \bpm_to_blib$

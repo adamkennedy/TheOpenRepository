@@ -31,21 +31,34 @@ at the command prompt.
 
 There are no command line parameters.
 
-=head1 AUTHOR
+=head1 CONFIGURATION AND ENVIRONMENT
 
-Curtis Jewell, C<< <csjewell at cpan.org> >>
+The default directory to create a L<local::lib|local::lib> library in is 
+determined by $ENV{HOME} if that is given, or the user's default directory
+if that is not defined.
 
-=head1 BUGS
+The script saves and retrieves information using the Windows registry.
 
-Please report any bugs or feature requests to C<bug-App-local-lib-Win32Helper at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=local-lib-Win32>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+=head1 DEPENDENCIES
+
+This script depends on Perl 5.8.1 (because L<local::lib|local::lib> depends 
+on it) and also depends on C<local::lib> version 1.004007, 
+L<IO::Interactive|IO::Interactive> 0.0.5, L<File::HomeDir|File::HomeDir> 
+0.81, and L<Win32::TieRegistry|Win32::TieRegistry> 0.26.
+
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs or feature requests to 
+C<< <bug-App-local-lib-Win32Helper at rt.cpan.org> >>, or through the web 
+interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=local-lib-Win32>. 
+I will be notified, and then you'll automatically be notified of progress on 
+your bug as I make changes.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc llw32helper
+    perldoc App::local::lib::Win32Helper
 
 You can also look for information at:
 
@@ -68,6 +81,10 @@ L<http://cpanratings.perl.org/d/App-local-lib-Win32Helper>
 L<http://search.cpan.org/dist/App-local-lib-Win32Helper/>
 
 =back
+
+=head1 AUTHOR
+
+Curtis Jewell, C<< <csjewell at cpan.org> >>
 
 =head1 LICENSE AND COPYRIGHT
 

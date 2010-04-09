@@ -1,5 +1,13 @@
 use inc::Module::Install 0.95;
 
+# Create README file.
+if (author_context) {
+	print "Creating README file\n";
+	require Pod::Readme;
+	my $readme = Pod::Readme->new();
+	$readme->parse_from_file('lib/App/local/lib/Win32Helper.pm', 'README');
+}
+
 # Since local::lib is not supporting lower than 5.8.1, I won't, either.
 perl_version   '5.008001'; 
 license        'perl';
