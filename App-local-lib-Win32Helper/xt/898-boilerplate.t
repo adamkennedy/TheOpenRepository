@@ -48,7 +48,7 @@ TODO: {
     "placeholder date/time"       => qr(Date/time)
   );
 
-  module_boilerplate_ok('lib/local/lib/Win32.pm');
+  module_boilerplate_ok('lib/App/local/lib/Win32Helper.pm');
 
 
 }

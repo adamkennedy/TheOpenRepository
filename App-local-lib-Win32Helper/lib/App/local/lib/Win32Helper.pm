@@ -1,4 +1,4 @@
-package App::local::lib::Win32Helper;
+package App::local::lib::Win32Helper; ## no critic(Capitalization)
 
 =head1 NAME
 
@@ -9,6 +9,10 @@ App::local::lib::Win32Helper - Helper for Win32 users of local::lib.
 Version 0.990
 
 =cut
+
+use 5.008001;
+use strict;
+use warnings;
 
 our $VERSION = '0.990';
 $VERSION =~ s/_//msx;
@@ -78,4 +82,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of App::local::lib::Win32Helper
+1;                                     # End of App::local::lib::Win32Helper
