@@ -24,11 +24,6 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-TODO: {
-
-	local $TODO = 'csjewell@cpan.org is still working through this.';
-
-	run_tests(
-		match    => 'TODO',  # what to check for
-	);
-}
+run_tests(
+	match    => 'TO' . 'DO',  # what to check for
+);

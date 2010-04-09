@@ -24,9 +24,4 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-TODO: {
-
-	local $TODO = 'csjewell@cpan.org is still working through this.';
-
-	all_pod_files_ok();
-}
+all_pod_files_ok();

@@ -39,14 +39,8 @@ script_sections = NAME | USAGE | OPTIONS | EXIT STATUS | AUTHOR
 # I disagree with this one.
 [-ValuesAndExpressions::ProhibitMagicNumbers]
 
-# I'm fine with unless blocks.
-#[-ControlStructures::ProhibitUnlessBlocks]
-
 # I don't use RCS keywords.
 [-Miscellanea::RequireRcsKeywords]
-
-# Excluded because File::List::Object stuff expects to be chained.
-[-ValuesAndExpressions::ProhibitLongChainsOfMethodCalls]
 
 # Excluded because we filter out development versions.
 [-ValuesAndExpressions::RequireConstantVersion]
@@ -56,7 +50,6 @@ script_sections = NAME | USAGE | OPTIONS | EXIT STATUS | AUTHOR
 
 # Excluded because I do my pod my own way.
 [-Documentation::RequirePodAtEnd]
-#[-Documentation::RequirePodSections]
 
 # I don't use Emacs, why use this?
 [-Editor::RequireEmacsFileVariables]

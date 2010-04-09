@@ -1,5 +1,8 @@
 use inc::Module::Install 0.95;
 
+# We ARE a Win32-only module.
+die "OS unsupported\n" unless win32;
+
 # Create README file.
 if (author_context) {
 	print "Creating README file\n";
@@ -18,6 +21,7 @@ requires       'File::HomeDir'         => 0.81;
 requires       'File::Spec::Functions' => 3.2701;
 requires       'Win32::TieRegistry'    => 0.26;
 test_requires  'Test::More'            => 0.42;
+test_requires  'Test::Script'          => 1.07;
 install_script 'llw32helper.pl';
 use_ptar;
 

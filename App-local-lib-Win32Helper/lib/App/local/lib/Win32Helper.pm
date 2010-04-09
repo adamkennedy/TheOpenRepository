@@ -44,7 +44,8 @@ The script saves and retrieves information using the Windows registry.
 This script depends on Perl 5.8.1 (because L<local::lib|local::lib> depends 
 on it) and also depends on C<local::lib> version 1.004007, 
 L<IO::Interactive|IO::Interactive> 0.0.5, L<File::HomeDir|File::HomeDir> 
-0.81, and L<Win32::TieRegistry|Win32::TieRegistry> 0.26.
+0.81, L<Win32::TieRegistry|Win32::TieRegistry> 0.26, and
+L<File::Spec|File::Spec> 3.2701.
 
 =head1 BUGS AND LIMITATIONS
 
