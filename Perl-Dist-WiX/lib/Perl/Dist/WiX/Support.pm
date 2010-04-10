@@ -469,8 +469,11 @@ sub execute_any {
 	$self->trace_line( 3, "Path during execute_any: $ENV{PATH}\n" );
 
 	# Execute the child process
-	return IPC::Run3::run3( [@_], \undef, $self->debug_stdout()->stringify(),
-		$self->debug_stderr()->stringify(), );
+	return IPC::Run3::run3(
+		[@_], \undef,
+		$self->debug_stdout()->stringify(),
+		$self->debug_stderr()->stringify(),
+	);
 } ## end sub execute_any
 
 sub _run3 {

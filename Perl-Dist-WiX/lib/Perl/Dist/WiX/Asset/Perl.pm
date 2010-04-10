@@ -131,7 +131,7 @@ parameters described in
 L<< Perl::Dist::WiX->patch_file()|Perl::Dist::WiX/patch_file >>.)
 
 The makefile.mk is automatically patched, is not mentioned here, and 
-cannot be overriden by subclasses.
+cannot be overridden by subclasses.
 
 =cut
 

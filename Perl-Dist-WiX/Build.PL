@@ -39,6 +39,7 @@ my $requires = {
 	'Archive::Tar'              => '1.42',
 	'Archive::Zip'              => '1.26',
 	'CPAN'                      => '1.9456',
+	'Clone'                     => '0.31',
 	'Data::Dump::Streamer'      => '2.08',
 	'Data::UUID'                => '1.149',
 	'Digest::CRC'               => '0.14',

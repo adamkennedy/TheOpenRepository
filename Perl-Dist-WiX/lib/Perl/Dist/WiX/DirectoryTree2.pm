@@ -40,7 +40,7 @@ use MooseX::Types::Path::Class qw( Dir );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.102_102';
+our $VERSION = '1.102_103';
 $VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';
@@ -79,7 +79,8 @@ has _root => (
 
 =head3 app_dir
 
-TODO
+This is set to the distribution's image_dir (where the distribution is
+going to be installed by default.) 
 
 =cut
 
@@ -89,12 +90,14 @@ has app_dir => (
 	isa      => Dir,
 	reader   => '_get_app_dir',
 	required => 1,
+	coerce   => 1,
 );
 
 
 =head3 app_name
 
-TODO
+This is set to the name of the distribution, and is used to set the
+name of the Start Menu directory containing the distribution's icons.
 
 =cut
 
@@ -130,11 +133,13 @@ sub BUILDARGS {
 		where     => 'Perl::Dist::WiX::DirectoryTree2->new'
 	  );
 
-	if (exists $args{_root}) {
-		# If we're recreating, the assumption is that 
+	if ( exists $args{_root} ) {
+
+		# If we're recreating, the assumption is that
 		# we know what we're doing.
-		return \%args;	
+		return \%args;
 	} else {
+
 		# Create the root directory object.
 		my $root = Perl::Dist::WiX::Tag::Directory->new(
 			id       => 'TARGETDIR',
@@ -147,7 +152,7 @@ sub BUILDARGS {
 			_root => $root,
 			%args
 		};
-	}
+	} ## end else [ if ( exists $args{_root...})]
 } ## end sub BUILDARGS
 
 =head2 instance
@@ -247,7 +252,8 @@ sub initialize_tree {
 	);
 
 	foreach my $dir (@list) {
-		$self->add_directory( $self->_get_app_dir()->subdir($dir)->stringify() );
+		$self->add_directory(
+			$self->_get_app_dir()->subdir($dir)->stringify() );
 	}
 
 	return $self;

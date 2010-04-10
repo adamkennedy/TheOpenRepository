@@ -388,10 +388,10 @@ sub install {
 	);
 
 	# Does it exist? If not, throw an error here.
-	if (not -f $tgz) {
+	if ( not -f $tgz ) {
 		PDWiX->throw('The file from an attempted download does not exist');
 	}
-	
+
 	# Where will it get extracted to
 	my $dist_path = $name;
 	$dist_path =~ s{[.] tar [.] gz}{}msx;   # Take off extensions.

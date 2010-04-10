@@ -23,12 +23,12 @@ It may be updated or replaced at any time.
 =cut
 
 use 5.008001;
-use MooseX::Types -declare => [qw( 
-	ExistingDirectory ExistingFile TemplateObj
-	_NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir
-	ExistingSubdirectory ExistingDirectory_Spaceless 
-	ExistingDirectory_SaneSlashes
-)];
+use MooseX::Types -declare => [ qw(
+	  ExistingDirectory ExistingFile TemplateObj
+	  _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir
+	  ExistingSubdirectory ExistingDirectory_Spaceless
+	  ExistingDirectory_SaneSlashes
+	  ) ];
 use MooseX::Types::Moose qw( Str Object ArrayRef );
 use MooseX::Types::Path::Class qw( Dir File );
 use Template qw();
@@ -48,56 +48,53 @@ $VERSION =~ s/_//ms;
 =cut
 
 subtype ExistingDirectory,
-	as Dir,
-	where { -d "$_" },
-	message {'Directory does not exist'};
+  as Dir,
+  where { -d "$_" },
+  message {'Directory does not exist'};
 
 subtype _NoDoubleSlashes,
-	as ExistingDirectory,
-	where { "$_" !~ m{\\\\}ms },
-	message {'cannot contain two consecutive slashes'};
+  as ExistingDirectory,
+  where { "$_" !~ m{\\\\}ms },
+  message {'cannot contain two consecutive slashes'};
 
 subtype _NoForwardSlashes,
-	as _NoDoubleSlashes,
-	where { "$_" !~ m{/}ms },
-	message {'Forward slashes are not allowed'};
+  as _NoDoubleSlashes,
+  where { "$_" !~ m{/}ms },
+  message {'Forward slashes are not allowed'};
 
 subtype _NoSlashAtEnd,
-	as _NoForwardSlashes,
-	where { "$_" !~ m{\\\z}ms },
-	message {'Cannot have a slash at the end'};
+  as _NoForwardSlashes,
+  where { "$_" !~ m{\\\z}ms },
+  message {'Cannot have a slash at the end'};
 
-subtype ExistingDirectory_SaneSlashes,
-	as _NoSlashAtEnd; 
-  
+subtype ExistingDirectory_SaneSlashes, as _NoSlashAtEnd;
+
 coerce ExistingDirectory_SaneSlashes,
-	from Str, via { to_Dir($_) },
-	from ArrayRef, via { to_Dir($_) };
-  
-subtype _NoSpaces,
-	as _NoSlashAtEnd,
-	where { "$_" !~ m{\s}ms },
-	message {'Spaces are not allowed'};
+  from Str,      via { to_Dir($_) },
+  from ArrayRef, via { to_Dir($_) };
 
-subtype ExistingDirectory_Spaceless,
-	as _NoSlashAtEnd;
+subtype _NoSpaces,
+  as _NoSlashAtEnd,
+  where { "$_" !~ m{\s}ms },
+  message {'Spaces are not allowed'};
+
+subtype ExistingDirectory_Spaceless, as _NoSlashAtEnd;
 
 coerce ExistingDirectory_Spaceless,
-	from Str, via { to_Dir($_) },
-	from ArrayRef, via { to_Dir($_) };
-	  
-subtype _NotRootDir,
-	as _NoSlashAtEnd,
-	where { "$_" !~ m{:\z}ms },
-	message {'Cannot be a root directory'};
+  from Str,      via { to_Dir($_) },
+  from ArrayRef, via { to_Dir($_) };
 
-subtype ExistingSubdirectory,
-	as _NoSlashAtEnd;
+subtype _NotRootDir,
+  as _NoSlashAtEnd,
+  where { "$_" !~ m{:\z}ms },
+  message {'Cannot be a root directory'};
+
+subtype ExistingSubdirectory, as _NoSlashAtEnd;
 
 coerce ExistingSubdirectory,
-	from Str, via { to_Dir($_) },
-	from ArrayRef, via { to_Dir($_) };
-  
+  from Str,      via { to_Dir($_) },
+  from ArrayRef, via { to_Dir($_) };
+
 =head2 ExistingFile
 
 	has bar => (
@@ -110,13 +107,13 @@ coerce ExistingSubdirectory,
 =cut
 
 subtype ExistingFile,
-	as File,
-	where { -f "$_" },
-	message {'File does not exist'};
+  as File,
+  where { -f "$_" },
+  message {'File does not exist'};
 
 coerce ExistingFile,
-	from Str, via { to_File($_) },
-	from ArrayRef, via { to_File($_) };
+  from Str,      via { to_File($_) },
+  from ArrayRef, via { to_File($_) };
 
 =head2 Template
 
@@ -130,9 +127,9 @@ coerce ExistingFile,
 =cut
 
 subtype TemplateObj,
-	as Object,
-	where { $_->isa('Template') },
-	message {'Template is not the correct type of object'};
+  as Object,
+  where { $_->isa('Template') },
+  message {'Template is not the correct type of object'};
 
 1;
 

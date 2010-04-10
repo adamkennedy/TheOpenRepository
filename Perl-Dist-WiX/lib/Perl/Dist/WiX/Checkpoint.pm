@@ -46,6 +46,8 @@ use English qw( -no_match_vars );
 use List::Util qw( first );
 use File::Spec::Functions qw( catdir catfile );
 use File::Remove qw();
+use Storable qw();
+use Clone qw(clone);
 
 our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
@@ -148,22 +150,24 @@ sub checkpoint_save {
 		$self->copy_file( $from => $to );
 	}
 
-	# Store the main object.
 	# Blank the checkpoint values to prevent load/save loops, and remove
 	# things we can recreate later.
-	my $copy = {
-		%{$self},
-		checkpoint_before => 0,
-		checkpoint_after  => [0],
-		checkpoint_stop   => 0,
-		patch_template    => undef,
-		user_agent        => undef,
-		'_guidgen'        => undef,
-		'_trace_object'   => undef,
-	};
+	my $copy = clone($self);
+	$copy->_clear_patch_template();
+	$copy->_clear_guidgen();
+	$copy->_clear_user_agent();
+	$copy->_clear_trace_object();
+	$copy->_set_checkpoint_before(0);
+	$copy->_set_checkpoint_after( [0] );
+	$copy->_set_checkpoint_stop(0);
 
+	# Store the main object.
 	local $Storable::Deparse = 1;
-	Storable::nstore( $copy, $self->checkpoint_file() );
+	eval { Storable::nstore( $copy, $self->checkpoint_file() ); 1; }
+	  or PDWiX::Caught::Storable->throw(
+		message => $EVAL_ERROR,
+		object  => $copy
+	  );
 
 	return 1;
 } ## end sub checkpoint_save
@@ -178,7 +182,8 @@ L</checkpoint_save>.
 
 sub checkpoint_load {
 	## no critic(ProtectPrivateSubs)
-	my $self = shift;
+	my $self  = shift;
+	my $class = ref $self;
 
 	# Does the checkpoint exist?
 	$self->trace_line( 1, "Removing old checkpoint\n" );
@@ -189,14 +194,14 @@ sub checkpoint_load {
 	# If we want a future checkpoint, save it.
 	my $checkpoint_after = $self->checkpoint_after() || 0;
 	my $checkpoint_stop  = $self->checkpoint_stop()  || 0;
-	
+
 	# Save off the user agent for later restoration.
 	my $user_agent = $self->user_agent();
 
 	# Clear the directory tree.
 	$self->_clear_directory_tree();
 	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
-	
+
 	# Load the stored hash over our object
 	local $Storable::Eval = 1;
 	my $stored = Storable::retrieve( $self->checkpoint_file() );
@@ -208,10 +213,10 @@ sub checkpoint_load {
 
 	# Grab the directory tree stuff before we clear it.
 	my $directory_tree_root = $self->{_directories}->{_root};
-	my $app_name = $self->{_directories}->{app_name};
-	my $app_dir = $self->{_directories}->{app_dir};	
-	
-	# Clear the directory tree instance again, then 
+	my $app_name            = $self->{_directories}->{app_name};
+	my $app_dir             = $self->{_directories}->{app_dir};
+
+	# Clear the directory tree instance again, then
 	# recreate it with the saved stuff.
 	$self->_clear_directory_tree();
 	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
@@ -220,9 +225,8 @@ sub checkpoint_load {
 			app_dir  => $app_dir,
 			app_name => $app_name,
 			_root    => $directory_tree_root,
-		)
-	);
-	
+		) );
+
 	# Reload the misc object.
 	$self->_clear_trace_object();
 	WiX3::Trace::Object->_clear_instance();
@@ -236,7 +240,7 @@ sub checkpoint_load {
 	$self->_set_guidgen(
 		WiX3::XML::GeneratesGUID::Object->new(
 			_sitename => $self->sitename() ) );
-			
+
 	# Reload LWP user agent.
 	$self->_clear_user_agent();
 	$self->_set_user_agent($user_agent);

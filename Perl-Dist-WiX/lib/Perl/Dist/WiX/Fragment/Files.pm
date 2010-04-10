@@ -627,10 +627,15 @@ sub find_file {
 
 	print
 	  "WARNING: find_file deprecated. Replace by call to find_file_id.\n";
+	my $d = Devel::StackTrace->new();
+	print $d->frame(1)->as_string();
+	print "\n";
+	print $d->frame(2)->as_string();
+	print "\n\n";
 
 	# Start our recursive call chain.
 	return $self->_find_file_recursive( $filename, $self );
-}
+} ## end sub find_file
 
 # Called by find_file.
 sub _find_file_recursive {

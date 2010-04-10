@@ -365,7 +365,7 @@ END_PERL
 		close $CPAN_FILE
 		  or PDWiX->throw("CPAN script close failed: $OS_ERROR");
 	}
-	$self->execute_perl(  $cpan_file )
+	$self->execute_perl($cpan_file)
 	  or PDWiX->throw('CPAN script execution failed');
 	PDWiX->throw('Failure detected during cpan upgrade, stopping')
 	  if $CHILD_ERROR;

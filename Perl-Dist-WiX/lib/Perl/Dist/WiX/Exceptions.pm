@@ -3,7 +3,8 @@ package Perl::Dist::WiX::Exceptions;
 use 5.008001;
 use strict;
 use warnings;
-require WiX3::Traceable;
+use WiX3::Traceable qw();
+use Data::Dump::Streamer qw();
 
 our $VERSION = '1.102';
 $VERSION =~ s/_//ms;
@@ -20,15 +21,36 @@ use Exception::Class (
 		'isa'    => 'PDWiX',
 		'fields' => [ 'parameter', 'where' ],
 	},
+	'PDWiX::ParametersNotHash' => {
+		'description' =>
+		  'Perl::Dist::WiX error: Parameters not pairs or hashref',
+		'isa'    => 'PDWiX',
+		'fields' => ['where'],
+	},
 	'PDWiX::Caught' => {
 		'description' =>
 		  'Error caught by Perl::Dist::WiX from other module',
 		'isa'    => 'PDWiX',
 		'fields' => [ 'message', 'info' ],
 	},
+	'PDWiX::Caught::Storable' => {
+		'description' => 'Error caught by Perl::Dist::WiX from Storable',
+		'isa'         => 'PDWiX::Caught',
+		'fields'      => [ 'message', 'object' ],
+	},
 	'PDWiX::Unimplemented' => {
 		'description' => 'Perl::Dist::WiX error: Routine unimplemented',
 		'isa'         => 'PDWiX',
+	},
+	'PDWiX::Directory' => {
+		'description' => 'Perl::Dist::WiX error: Directory error',
+		'isa'         => 'PDWiX',
+		'fields'      => [ 'message', 'dir' ],
+	},
+	'PDWiX::File' => {
+		'description' => 'Perl::Dist::WiX error: File error',
+		'isa'         => 'PDWiX',
+		'fields'      => [ 'message', 'file' ],
 	},
 );
 
@@ -61,8 +83,6 @@ sub PDWiX::Parameter::full_message {
 	  . $self->where() . "\n"
 	  . 'Time error caught: '
 	  . localtime() . "\n";
-	my $misc       = WiX3::Traceable->new();
-	my $tracelevel = $misc->get_tracelevel();
 
 	# Add trace to it. (We automatically dump trace for parameter errors.)
 	$string .= "\n" . $self->trace() . "\n";
@@ -70,12 +90,29 @@ sub PDWiX::Parameter::full_message {
 	return $string;
 } ## end sub PDWiX::Parameter::full_message
 
+sub PDWiX::ParametersNotHash::full_message {
+	my $self = shift;
+
+	my $string =
+	    $self->description()
+	  . ' in Perl::Dist::WiX'
+	  . $self->where() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
+
+	# Add trace to it. (We automatically dump trace for parameter errors.)
+	$string .= "\n" . $self->trace() . "\n";
+
+	return $string;
+} ## end sub PDWiX::ParametersNotHash::full_message
+
 sub PDWiX::Caught::full_message {
 	my $self = shift;
 
 	my $string =
 	    $self->description() . ': '
 	  . $self->message() . "\n"
+	  . 'Info: '
 	  . $self->info() . "\n"
 	  . 'Time error caught: '
 	  . localtime() . "\n";
@@ -89,6 +126,81 @@ sub PDWiX::Caught::full_message {
 
 	return $string;
 } ## end sub PDWiX::Caught::full_message
+
+sub PDWiX::Caught::Storable::full_message {
+	my $self = shift;
+
+	my $string =
+	    $self->description() . q{: }
+	  . $self->message() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
+	my $misc       = WiX3::Traceable->new();
+	my $tracelevel = $misc->get_tracelevel();
+
+	# Add trace to it if tracelevel high enough.
+	if ( $tracelevel > 1 ) {
+		$string .= "\n" . $self->trace() . "\n";
+	}
+
+	$string .= "\nObject trace:\n";
+
+	STDOUT->flush();
+
+	my $dump =
+	  Data::Dump::Streamer->new()->Data( $self->object() )->Indent(1)
+	  ->Names('*self')->Deparse(0)->CodeStub('sub {"CODE!"}');
+
+	$dump->Out();
+
+	print "\n";
+
+	return $string;
+} ## end sub PDWiX::Caught::Storable::full_message
+
+sub PDWiX::Directory::full_message {
+	my $self = shift;
+
+	my $string =
+	    $self->description()
+	  . "\nDirectory: "
+	  . $self->dir()
+	  . "\nMessage: "
+	  . $self->message() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
+	my $misc       = WiX3::Traceable->new();
+	my $tracelevel = $misc->get_tracelevel();
+
+	# Add trace to it if tracelevel high enough.
+	if ( $tracelevel > 1 ) {
+		$string .= "\n" . $self->trace() . "\n";
+	}
+
+	return $string;
+} ## end sub PDWiX::Directory::full_message
+
+sub PDWiX::File::full_message {
+	my $self = shift;
+
+	my $string =
+	    $self->description()
+	  . "\nFile: "
+	  . $self->dir()
+	  . "\nMessage: "
+	  . $self->message() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
+	my $misc       = WiX3::Traceable->new();
+	my $tracelevel = $misc->get_tracelevel();
+
+	# Add trace to it if tracelevel high enough.
+	if ( $tracelevel > 1 ) {
+		$string .= "\n" . $self->trace() . "\n";
+	}
+
+	return $string;
+} ## end sub PDWiX::File::full_message
 
 1;
 
