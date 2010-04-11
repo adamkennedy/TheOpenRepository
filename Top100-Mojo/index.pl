@@ -1,24 +1,16 @@
 #!/usr/bin/perl
 
+use 5.008;
 use strict;
-use CPANDB;
+use CPANDB {
+	maxage => 3600 * 24 * 7,
+};
 use Mojolicious::Lite;
 no warnings;
 
 get '/' => sub {
 	my $self = shift;
-	$self->render_text(
-		$self->param('groovy'),
-		layout => 'funky',
-	);	
+	$self->render('index');
 } => 'index';
 
 shagadelic;
-
-__DATA__
-
-@@ layouts/default.html.ep
-<!doctype html><html>
-	<head><title>Funky!</title></head>
-	<body><%== content %></body>
-</html>
