@@ -1,5 +1,9 @@
 Revision history for Perl extension Class-Adapter
 
+1.07 Mon 12 Apr 2010
+	- Upgrading to Module::Install 0.95
+	- I accidentally deleted Class::Adapter from the CPAN. erk!
+
 1.06 Mon 23 Nov 2009
 	- Upgrading to Module::Install 0.91
 	- Allow class methods to be passed through
