@@ -133,7 +133,7 @@ sub install {
 	# Check the script exists
 	my $to = catfile( $self->_get_image_dir(), 'perl', 'bin', "$bin$ext" );
 	unless ( -f $to ) {
-		PDWiX->throw(qq{The file "$bin$ext" does not exist});
+		PDWiX::File->throw(file => $to, message => 'File does not exist');
 	}
 
 	my $icons     = $self->_get_icons();
