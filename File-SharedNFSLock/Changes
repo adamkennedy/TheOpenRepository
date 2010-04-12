@@ -1,5 +1,9 @@
 Revision history for Perl extension File::SharedNFSLock.
 
+0.02  Mon Apr 12 12:25 2010
+  - Require perl 5.8.1 instead of 5.10.0.
+  - Minor documentation changes.
+
 0.01  Thu Apr  8 14:38 2010
   - original version
 

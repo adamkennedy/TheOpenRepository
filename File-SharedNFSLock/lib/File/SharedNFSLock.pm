@@ -1,4 +1,5 @@
 package File::SharedNFSLock;
+use 5.008001;
 use strict;
 use warnings;
 use File::Spec;
@@ -9,7 +10,7 @@ use Carp 'croak';
 use constant STAT_NLINKS => 3;
 use constant DEBUG => 0;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 NAME
 
@@ -168,6 +169,8 @@ sub unlock {
 
 Checks whether we have the lock on the file.
 
+I<Note:> Fairly expensive operation requiring a C<stat> call.
+
 =cut
 
 sub locked {
@@ -260,7 +263,8 @@ __END__
 
 =head1 CAVEATS
 
-This isn't as well tested as it should be. Do your own testing.
+This isn't as well tested as it should be even though it is being used
+in production here. Do your own testing.
 
 There are no unit tests! (Patches welcome!)
 
