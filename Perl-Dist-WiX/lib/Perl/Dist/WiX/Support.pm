@@ -545,7 +545,7 @@ sub extract_archive {
 	} elsif ( $from =~ m{ [.] tar [.] xz | [.] txz}msx ) {
 
 		# First attempt at trying to use .xz files. TODO: Improve.
-		eval { use IO::Uncompress::UnXz 2.025; 1; } or 
+		eval { require IO::Uncompress::UnXz; IO::Uncompress::UnXz->VERSION(2.025); 1; } or 
 			PDWiX->throw("Tried to extract the file $from without the xz libraries installed.");
 	
 		local $Archive::Tar::CHMOD = 0;
