@@ -29,7 +29,6 @@ use Moose;
 use English qw( -no_match_vars );
 use File::Spec::Functions qw( catfile );
 require IO::File;
-require Template;
 require File::List::Object;
 
 our $VERSION = '1.102_103';
@@ -176,7 +175,7 @@ sub create_distribution_list_file {
 		dist_list => $dist_list
 	};
 
-	my $tt = $self->patch_template
+	my $tt = $self->patch_template();
 
 	$tt->process( "${dist_file_name}.tt", $vars, \$dist_txt )
 	  || PDWiX::Caught->throw(
