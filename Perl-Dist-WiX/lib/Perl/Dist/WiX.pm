@@ -102,7 +102,6 @@ use     Storable              qw( retrieve                      );
 use     File::Spec::Functions qw(
 	catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-# use     Archive::Tar     1.42 qw();
 use     File::HomeDir         qw();
 # use     File::Remove          qw();
 # use     File::pushd           qw();
@@ -1283,7 +1282,7 @@ has 'perl_debug' => (
 The C<perl_version> parameter specifies what version of perl is downloaded 
 and built.  Legal values for this parameter are 'git', '589', '5100', '5101', 
 '5115', and '5120' (for a version from perl5.git.perl.org, 5.8.9, 5.10.0, 
-5.10.1, 5.11.5, and 5.12.0-RC0, respectively.)
+5.10.1, 5.11.5, and 5.12.0, respectively.)
 
 This parameter defaults to '5101' if not specified.
 
@@ -2333,7 +2332,7 @@ sub _build_perl_version_human {
 		'5100' => '5.10.0',
 		'5101' => '5.10.1',
 		'5115' => '5.11.5',
-		'5120' => '5.12.0-RC0',
+		'5120' => '5.12.0',
 		'git'  => 'git',
 	  }->{ $self->perl_version() }
 	  || 0;

@@ -825,7 +825,8 @@ sub install_perl_5120 {
 	# Install the main binary
 	$self->install_perl_bin(
 		url =>
-'http://search.cpan.org/CPAN/authors/id/J/JE/JESSE/perl-5.12.0-RC0.tar.gz',
+# Temporary URL.
+'http://fsck.com/~jesse/tmp/2010-04-12/7ZRqxuRY9V8=/perl-5.12.0.tar.bz2',
 		toolchain => $toolchain,
 		patch     => [ qw{
 			  lib/CPAN/Config.pm
@@ -837,9 +838,9 @@ sub install_perl_5120 {
 			  }
 		],
 		license => {
-			'perl-5.12.0-RC0/Readme'   => 'perl/Readme',
-			'perl-5.12.0-RC0/Artistic' => 'perl/Artistic',
-			'perl-5.12.0-RC0/Copying'  => 'perl/Copying',
+			'perl-5.12.0/Readme'   => 'perl/Readme',
+			'perl-5.12.0/Artistic' => 'perl/Artistic',
+			'perl-5.12.0/Copying'  => 'perl/Copying',
 		},
 	);
 

@@ -290,7 +290,7 @@ sub install {
 		my @files = $self->_extract( $tgz, $unpack_to );
 
 		# Get the versioned name of the directory
-		( $perlsrc = $tgz ) =~ s{[.] tar[.] gz\z | [.] tgz\z}{}msx;
+		( $perlsrc = $tgz ) =~ s{[.] tar[.] gz\z | [.] tgz\z | [.] tar[.] bz2\z | [.] tbz\z}{}msx;
 		$perlsrc = File::Basename::basename($perlsrc);
 	}
 

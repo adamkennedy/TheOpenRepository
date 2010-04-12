@@ -221,7 +221,7 @@ sub PDWiX::File::full_message {
 	my $string =
 	    $self->description()
 	  . "\nFile: "
-	  . $self->dir()
+	  . $self->file()
 	  . "\nMessage: "
 	  . $self->message() . "\n"
 	  . 'Time error caught: '

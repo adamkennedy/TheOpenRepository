@@ -36,6 +36,9 @@ use Archive::Tar 1.42 qw();
 use Archive::Zip qw( AZ_OK );
 use LWP::UserAgent qw();
 
+# TODO: We make an assumption that Archive::Tar can handle bz2 files.
+# Test to make sure that assumption is true.
+
 our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
 
@@ -497,7 +500,7 @@ directory (set in the second parameter).
 
 The archive file must be a .tar.gz or a .zip file.
 
-TODO: Add .tar.xz files.
+TODO: Add .tar.bz2 and .tar.xz files.
 
 =cut 
 
@@ -532,6 +535,14 @@ sub extract_archive {
 		}
 
 	} elsif ( $from =~ m{ [.] tar [.] gz | [.] tgz}msx ) {
+		local $Archive::Tar::CHMOD = 0;
+		my @fl = @filelist = Archive::Tar->extract_archive( $from, 1 );
+		@filelist = map { catfile( $to, $_ ) } @fl;
+		if ( !@filelist ) {
+			PDWiX->throw('Error in archive extraction');
+		}
+
+	} elsif ( $from =~ m{ [.] tar [.] bz2 | [.] tbz}msx ) {
 		local $Archive::Tar::CHMOD = 0;
 		my @fl = @filelist = Archive::Tar->extract_archive( $from, 1 );
 		@filelist = map { catfile( $to, $_ ) } @fl;
@@ -598,7 +609,7 @@ sub _extract_filemap {
 			} ## end foreach my $member (@members)
 		} ## end while ( my ( $f, $t ) = each...)
 
-	} elsif ( $archive =~ m{[.] tar [.] gz | [.] tgz}msx ) {
+	} elsif ( $archive =~ m{[.] tar [.] gz | [.] tgz | [.] tar [.] bz2 | [.] tbz }msx ) {
 		local $Archive::Tar::CHMOD = 0;
 		my $tar = Archive::Tar->new($archive);
 		for my $file ( $tar->get_files() ) {
