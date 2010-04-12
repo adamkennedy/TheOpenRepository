@@ -498,9 +498,9 @@ sub _run3 {
 Extracts an archive file (set in the first parameter) to a specified 
 directory (set in the second parameter).
 
-The archive file must be a .tar.gz or a .zip file.
+The archive file must be a .tar.gz, .tar.bz2, or .zip file.
 
-TODO: Add .tar.bz2 and .tar.xz files.
+TODO: Add .tar.xz files.
 
 =cut 
 
@@ -534,7 +534,7 @@ sub extract_archive {
 			push @filelist, $filename;
 		}
 
-	} elsif ( $from =~ m{ [.] tar [.] gz | [.] tgz}msx ) {
+	} elsif ( $from =~ m{ [.] tar [.] gz | [.] tgz [.] | tar [.] bz2 | [.] tbz }msx ) {
 		local $Archive::Tar::CHMOD = 0;
 		my @fl = @filelist = Archive::Tar->extract_archive( $from, 1 );
 		@filelist = map { catfile( $to, $_ ) } @fl;
@@ -542,9 +542,15 @@ sub extract_archive {
 			PDWiX->throw('Error in archive extraction');
 		}
 
-	} elsif ( $from =~ m{ [.] tar [.] bz2 | [.] tbz}msx ) {
+	} elsif ( $from =~ m{ [.] tar [.] xz | [.] txz}msx ) {
+
+		# First attempt at trying to use .xz files. TODO: Improve.
+		eval { use IO::Uncompress::UnXz 2.025; 1; } or 
+			PDWiX->throw("Tried to extract the file $from without the xz libraries installed.");
+	
 		local $Archive::Tar::CHMOD = 0;
-		my @fl = @filelist = Archive::Tar->extract_archive( $from, 1 );
+		my $xz = IO::Uncompress::UnXZ->new($from);
+		my @fl = @filelist = Archive::Tar->extract_archive( \$xz, 1 );
 		@filelist = map { catfile( $to, $_ ) } @fl;
 		if ( !@filelist ) {
 			PDWiX->throw('Error in archive extraction');
