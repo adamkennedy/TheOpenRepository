@@ -3,6 +3,7 @@
 #include <string.h>
 #include <map>
 
+
 #include "tokenizer.h"
 #include "numbers.h"
 #include "operator.h"
@@ -194,7 +195,7 @@ void Tokenizer::_new_token(TokenTypeNames new_type) {
 			_finalize_token();
 			tk = TokenTypeNames_pool[new_type]->GetNewToken(this, this->m_TokensCache, line_length);
 		} else {
-			// FIXME - switch token type
+			changeTokenType(new_type);
 			tk = c_token;
 		}
 	}
@@ -332,7 +333,7 @@ Tokenizer::Tokenizer()
 {
 	m_TokensCache = new TokensCacheMany();
 	for (int ix = 0; ix < Token_LastTokenType; ix++) {
-		TokenTypeNames_pool[Token_NoType] = NULL;
+		TokenTypeNames_pool[ix] = NULL;
 	}
 	TokenTypeNames_pool[Token_NoType] = NULL;
 	TokenTypeNames_pool[Token_Whitespace] = new WhiteSpaceToken;
@@ -389,9 +390,9 @@ Tokenizer::Tokenizer()
 Tokenizer::~Tokenizer() {
 	Reset();
 	for (int ix = 0; ix < Token_LastTokenType; ix++) {
-		if ( TokenTypeNames_pool[Token_NoType] != NULL ) {
-			delete(TokenTypeNames_pool[Token_NoType]);
-			TokenTypeNames_pool[Token_NoType] = NULL;
+		if ( TokenTypeNames_pool[ix] != NULL ) {
+			delete(TokenTypeNames_pool[ix]);
+			TokenTypeNames_pool[ix] = NULL;
 		}
 	}
 	delete m_TokensCache;
@@ -438,7 +439,6 @@ void Tokenizer::EndOfDocument() {
 		chain_token(tkn, tokens_found_head, tokens_found_tail);
 	}
 	tokens_posponded_tail = NULL;
-	//printf("EndOfDocument ended: waiting tokens: %d\n", count_waiting_tokens(tokens_found_head));
 }
 
 Token *Tokenizer::_last_significant_token(unsigned int n) {
@@ -478,7 +478,6 @@ OperatorOperandContext Tokenizer::_opcontext() {
 
 LineTokenizeResults Tokenizer::_tokenize_the_rest_of_the_line() {
 	AbstractTokenType::VerifySufficientBufferLength(c_token, line_length);
-	//printf("_tokenize_the_rest_of_the_line started: waiting tokens: %d\n", count_waiting_tokens(tokens_found_head));
     while (line_length > line_pos) {
 		CharTokenizeResults rv = c_token->type->tokenize(this, c_token, c_line[line_pos]);
         switch (rv) {
@@ -491,7 +490,6 @@ LineTokenizeResults Tokenizer::_tokenize_the_rest_of_the_line() {
                 return tokenizing_fail;
         };
     }
-	//printf("_tokenize_the_rest_of_the_line ended: waiting tokens: %d\n", count_waiting_tokens(tokens_found_head));
     return reached_eol;
 }
 

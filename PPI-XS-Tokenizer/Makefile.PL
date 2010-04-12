@@ -24,7 +24,7 @@ WriteMakefile(
       (ABSTRACT_FROM  => 'lib/PPI/XS/Tokenizer.pm', # retrieve abstract from module
        AUTHOR         => 'Shmuel Fomberg <semuelf@cpan.org>') : ()),
     LIBS              => [''], # e.g., '-lm'
-    DEFINE            => ($DEBUG ? '-O0' : '-O2'),
+    DEFINE            => ($DEBUG ? '-O0 -g' : '-O2'),
     INC               => '-I. -Isrc',
     OBJECT            => '$(O_FILES)',
     XSOPT             => '-C++ -hiertype',

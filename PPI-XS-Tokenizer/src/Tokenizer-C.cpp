@@ -2,7 +2,7 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h>  
 #include <fstream>
 #include <iostream>
 #include "tokenizer.h"
@@ -153,19 +153,20 @@ void TestOnNodePm() {
 	}
 }
 
+void stam() {
+	Tokenizer tk;
+	Tokenize("X<<f+X;g(<~\" \n");
+	Tokenize("1\n");
+	Tokenize("*");
+}
+
 int main(int argc, char* argv[])
 {
 	forward_scan2_unittest();
 	TestOnNodePm();
+	stam();
 	Tokenizer tk;
 	VerifyInheritence( tk.TokenTypeNames_pool );
-
-	Tokenize("@::");
-	tk.EndOfDocument();
-	//CheckToken(&tk, "\n", Token_Whitespace);
-	CheckToken(&tk, "@::", Token_Symbol);
-	
-	tk.Reset();
 
 	Tokenize("&$wanted;\n");
 	//CheckToken(&tk, "\n", Token_Whitespace);
