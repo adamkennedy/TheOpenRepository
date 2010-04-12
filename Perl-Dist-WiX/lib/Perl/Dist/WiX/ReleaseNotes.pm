@@ -90,14 +90,7 @@ sub create_release_notes {
 		dist_date => $date,
 	};
 
-	my $tt = Template->new(
-		INCLUDE_PATH => [ $self->dist_dir(), $self->wix_dist_dir(), ],
-		ABSOLUTE     => 1,
-	  )
-	  || PDWiX::Caught->throw(
-		message => 'Template error',
-		info    => Template->error(),
-	  );
+	my $tt = $self->patch_template();
 
 	$tt->process( 'release_notes.html.tt', $vars, \$dist_txt )
 	  || PDWiX::Caught->throw(
@@ -183,14 +176,7 @@ sub create_distribution_list_file {
 		dist_list => $dist_list
 	};
 
-	my $tt = Template->new(
-		INCLUDE_PATH => [ $self->dist_dir(), $self->wix_dist_dir(), ],
-		ABSOLUTE     => 1,
-	  )
-	  || PDWiX::Caught->throw(
-		message => 'Template error',
-		info    => Template->error(),
-	  );
+	my $tt = $self->patch_template
 
 	$tt->process( "${dist_file_name}.tt", $vars, \$dist_txt )
 	  || PDWiX::Caught->throw(

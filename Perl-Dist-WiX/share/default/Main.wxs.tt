@@ -71,14 +71,12 @@
     <UIRef Id='WixUI_Common' />
 
 [% IF dist.relocatable %]
-	<Property Id="UpgradeDir">
+	<Property Id="UPGRADEDIR">
 		<RegistrySearch Id="InstallDir" Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\[OLDERVERSIONBEINGUPGRADED]" Name="InstallLocation" Type="raw" />
-	</Property>	
+	</Property>
 [% END %]
 
-    <Property Id='INSTALLDIR'>[% dist.image_dir.as_string %]</Property>
-
-[% STOP %]
+    <Property Id='INSTALLDIR' Value='[% dist.image_dir.stringify %]' />
 
 [% directory_tree %]
 
@@ -124,11 +122,11 @@
 	<CustomAction Id="CA_Relocate" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
 				  Execute="deferred" Return="check" Impersonate="no"/>
 	<CustomAction Id="CA_SetARPInstallLoc" Property="ARPINSTALLLOCATION" Value="[INSTALLDIR]"  Execute="immediate"/>
-	<CustomAction Id="CA_GetARPInstallLoc" Property="INSTALLDIR" Value="[UpgradeDir]"  Execute="immediate"/>
+	<CustomAction Id="CA_GetARPInstallLoc" Property="INSTALLDIR" Value="[UPGRADEDIR]"  Execute="immediate"/>
 	
 	<InstallUISequence>
 		<Custom Action="CA_GetARPInstallLoc" Before="CostInitialize">
-			OLDERVERSIONBEINGUPGRADED AND UpgradeDir
+			OLDERVERSIONBEINGUPGRADED AND UPGRADEDIR
 		</Custom>
 	</InstallUISequence>
 	<InstallExecuteSequence>
@@ -243,13 +241,14 @@
     <Property Id='ARPCOMMENTS'>[% dist.app_name %] [% dist.perl_version_human %]</Property>
     <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
     <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>
+	
 [% IF dist.msi_help_url.defined %]
     <Property Id='ARPHELPLINK'>[% dist.msi_help_url %]</Property>
 [% END %]
 [% IF dist.msi_readme_file.defined %]
     <Property Id='ARPREADME'>[% dist.msi_readme_file %]</Property>
 [% END %]
-[% IF dist.msi_product_icon_id.defined %]
+[% IF dist.msi_product_icon.defined %]
     <Property Id='ARPPRODUCTICON'>[% dist.msi_product_icon_id %]</Property>
 [% END %]
 [% IF dist.msi_banner_top.defined %]

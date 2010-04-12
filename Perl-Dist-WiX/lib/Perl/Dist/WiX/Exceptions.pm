@@ -15,6 +15,11 @@ $VERSION =~ s/_//ms;
 
 use Exception::Class (
 	'PDWiX'            => { 'description' => 'Perl::Dist::WiX error', },
+	'PDWiX::Stop' => {
+		'description' =>
+		  'Perl::Dist::WiX error: Debugging stop.',
+		'isa'    => 'PDWiX',
+	},
 	'PDWiX::Parameter' => {
 		'description' =>
 		  'Perl::Dist::WiX error: Parameter missing or invalid',
@@ -69,6 +74,20 @@ sub PDWiX::full_message {
 	if ( $tracelevel > 1 ) {
 		$string .= "\n" . $self->trace() . "\n";
 	}
+
+	return $string;
+} ## end sub PDWiX::full_message
+
+sub PDWiX::Stop::full_message {
+	my $self = shift;
+
+	my $string =
+	    $self->description() . "\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
+
+	# Add trace to it.
+	$string .= "\n" . $self->trace() . "\n";
 
 	return $string;
 } ## end sub PDWiX::full_message
@@ -147,13 +166,29 @@ sub PDWiX::Caught::Storable::full_message {
 
 	STDOUT->flush();
 
-	my $dump =
-	  Data::Dump::Streamer->new()->Data( $self->object() )->Indent(1)
-	  ->Names('*self')->Deparse(0)->CodeStub('sub {"CODE!"}');
+	my $dump = Data::Dump::Streamer->new();
+	$dump->Ignore(
+		'Template' => 1, 
+		'URI::file' => 1,
+		'URI::http' => 1,
+		'LWP::UserAgent' => 1, 
+		'Path::Class::Dir' => 1, 
+		'Path::Class::File' => 1,
+		'Perl::Dist::WiX::Fragment::Files' => 1,
+		'Perl::Dist::WiX::Fragment::StartMenu' => 1,
+		'Perl::Dist::WiX::DirectoryTree2' => 1,
+		'Perl::Dist::WiX::Toolchain' => 1,	
+		'Perl::Dist::WiX::FeatureTree2' => 1,
+		'WiX3::XML::GeneratesGUID::Object' => 1,
+		'WiX3::Trace::Object' => 1,
+		'WiX3::Traceable' => 1,
+	);
+	$dump->Data( $self->object() )->Indent(2)->Names('*self');
+	$dump->Deparse(0)->CodeStub('sub {"CODE!"}');
 
-	$dump->Out();
+	my $out = $dump->Out();
 
-	print "\n";
+	print "$out\n";
 
 	return $string;
 } ## end sub PDWiX::Caught::Storable::full_message

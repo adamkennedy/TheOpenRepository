@@ -2465,7 +2465,7 @@ sub msi_product_icon_id {
 	# Get the icon ID if we can.
 	if ( defined $self->msi_product_icon() ) {
 		return 'I_'
-		  . $self->_icons()->search_icon( $self->msi_product_icon );
+		  . $self->_icons()->search_icon( $self->msi_product_icon()->stringify() );
 	} else {
 		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
@@ -2717,7 +2717,7 @@ sub msi_relocation_commandline {
 
 	my ( $fragment, $file, $id );
 	while ( ( $fragment, $file ) = each %files ) {
-		$id = $self->get_fragment_object($fragment)->find_file($file);
+		$id = $self->get_fragment_object($fragment)->find_file_id($file);
 		PDWiX->throw("Could not find file $file in fragment $fragment\n")
 		  if not defined $id;
 		$answer .= " --file [#$id]";
@@ -2743,7 +2743,7 @@ sub msm_relocation_commandline {
 
 	my ( $fragment, $file, $id );
 	while ( ( $fragment, $file ) = each %files ) {
-		$id = $self->get_fragment_object($fragment)->find_file($file);
+		$id = $self->get_fragment_object($fragment)->find_file_id($file);
 		PDWiX->throw("Could not find file $file in fragment $fragment\n")
 		  if not defined $id;
 		$answer .= " --file [#$id]";
@@ -4576,10 +4576,6 @@ sub as_string {
 	my $self          = shift;
 	my $template_file = shift;
 
-	print "\n\nPerl::Dist::WiX::as_string()\nTest 1: \$self = "
-	  . ref $self . "\n";
-	print 'Test 2: \$self->pdw_class = ' . $self->pdw_class() . "\n\n";
-
 	return $self->process_template(
 		$template_file,
 		(   directory_tree =>
@@ -4606,30 +4602,21 @@ sub process_template {
 	my $template_file = shift;
 	my @vars_in       = @_;
 
-	print "\n\nPerl::Dist::WiX::process_template()\nTest 1: \$self = "
-	  . ref $self . "\n";
-	print 'Test 2: \$self->pdw_class = ' . $self->pdw_class() . "\n\n";
-
-	my $tt = Template->new( {
-			INCLUDE_PATH => [ $self->dist_dir(), $self->wix_dist_dir(), ],
-			EVAL_PERL    => 1,
-			DEBUG        => 1,
-		} )
-	  || PDWiX::Caught->throw(
-		message => 'Template error',
-		info    => Template->error()->as_string(),
-	  );
+	my $tt = $self->patch_template();
 
 	my $answer;
-	my $vars = {
-		dist => $self,
+	my $tt_answer;
+	my %vars = (
 		@vars_in,
-	};
+		dist => $self,
+	);
+	
+	$tt_answer = $tt->process( $template_file, \%vars, \$answer );
 
-	$tt->process( $template_file, $vars, \$answer )
-	  || PDWiX::Caught->throw(
-		message => 'Template error',
-		info    => $tt->error() );
+	PDWiX::Caught->throw(
+		info    => 'Template',
+		message => $tt->error()->as_string() ) if not $tt_answer;
+		
 #<<<
 	# Delete empty lines.
 	## no critic(ProhibitComplexRegexes)

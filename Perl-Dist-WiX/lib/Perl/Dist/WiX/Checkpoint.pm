@@ -186,11 +186,12 @@ sub checkpoint_load {
 	my $class = ref $self;
 
 	# Does the checkpoint exist?
-	$self->trace_line( 1, "Removing old checkpoint\n" );
 	unless ( -d $self->checkpoint_dir() ) {
 		PDWiX->throw('Failed to find checkpoint directory');
 	}
 
+	$self->trace_line( 1, "Preparing to restore checkpoint\n" );
+	
 	# If we want a future checkpoint, save it.
 	my $checkpoint_after = $self->checkpoint_after() || 0;
 	my $checkpoint_stop  = $self->checkpoint_stop()  || 0;
