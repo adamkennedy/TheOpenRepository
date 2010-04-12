@@ -189,10 +189,11 @@ CRYPT_SRC	*= fcrypt.c
 #
 #DEBUG_MSTATS	*= define
 
+#
 # set this to additionally provide a statically linked perl-static.exe.
 # Note that dynamic loading will not work with this perl, so you must
 # include required modules statically using the STATIC_EXT or ALL_STATIC
-# variables below. A static library perl512G855s.lib will also be created.
+# variables below. A static library perl512s.lib will also be created.
 # Ordinary perl.exe is not affected by this option.
 #
 #BUILD_STATIC	*= define
@@ -236,15 +237,15 @@ CCLIBDIR	*= $(CCHOME)\lib
 #
 [% dist.mk_gcc4 %]	*= define
 [% dist.mk_gcc4_dll %]	*= $(CCHOME)\bin\libgcc_s_sjlj-1.dll
-#GCCHELPERDLL  *= $(CCHOME)\bin\libgcc_s_dw2-1.dll
-#GCCHELPERDLL  *= $(CCHOME)\bin\libgcc_s_1.dll
+#GCCHELPERDLL	*= $(CCHOME)\bin\libgcc_s_dw2-1.dll
+#GCCHELPERDLL	*= $(CCHOME)\bin\libgcc_s_1.dll
 
 #
 # uncomment this if you are using x86_64-w64-mingw32 cross-compiler
 # ie if your gcc executable is called 'x86_64-w64-mingw32-gcc'
 # instead of the usual 'gcc'.
 #
-#GCCCROSS  *= define
+#GCCCROSS	*= define
 
 #
 # Additional compiler flags can be specified here.
@@ -506,11 +507,11 @@ LINK_FLAGS	+= -L"$(CCLIBDIR)\Release"
 ARCHPREFIX      = x86_64-w64-mingw32-
 .ENDIF
 
-CC     = $(ARCHPREFIX)gcc
-LINK32     = $(ARCHPREFIX)g++
-LIB32      = $(ARCHPREFIX)ar rc
-IMPLIB     = $(ARCHPREFIX)dlltool
-RSC        = $(ARCHPREFIX)windres
+CC		= $(ARCHPREFIX)gcc
+LINK32		= $(ARCHPREFIX)g++
+LIB32		= $(ARCHPREFIX)ar rc
+IMPLIB		= $(ARCHPREFIX)dlltool
+RSC		= $(ARCHPREFIX)windres
 
 i = .i
 o = .o
@@ -523,7 +524,7 @@ a = .a
 INCLUDES	= -I.\include -I. -I.. -I$(COREDIR)
 DEFINES		= -DWIN32 $(CRYPT_FLAG)
 .IF "$(WIN64)" == "define"
-DEFINES        += -DWIN64 -DCONSERVATIVE
+DEFINES		+= -DWIN64 -DCONSERVATIVE
 .ENDIF
 LOCDEFS		= -DPERLDLL -DPERL_CORE
 SUBSYS		= console
@@ -667,9 +668,9 @@ CFLAGS_O	= $(CFLAGS) $(BUILDOPT)
 
 .IF "$(CCTYPE)" == "MSVC80" || "$(CCTYPE)" == "MSVC80FREE" || \
     "$(CCTYPE)" == "MSVC90" || "$(CCTYPE)" == "MSVC90FREE"
-LINK_FLAGS += "/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"
+LINK_FLAGS	+= "/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"
 .ELSE
-RSC_FLAGS  = -DINCLUDE_MANIFEST
+RSC_FLAGS	= -DINCLUDE_MANIFEST
 .ENDIF
 
 
@@ -827,11 +828,11 @@ CFGH_TMPL	= config_H.bc
 
 .IF "$(WIN64)" == "define"
 .IF "$(GCCCROSS)" == "define"
-CFGSH_TMPL = config.gc64
-CFGH_TMPL  = config_H.gc64
+CFGSH_TMPL	= config.gc64
+CFGH_TMPL	= config_H.gc64
 .ELSE
-CFGSH_TMPL = config.gc64nox
-CFGH_TMPL  = config_H.gc64nox
+CFGSH_TMPL	= config.gc64nox
+CFGH_TMPL	= config_H.gc64nox
 .ENDIF
 .ELSE
 CFGSH_TMPL	= config.gc
@@ -1492,7 +1493,7 @@ utils: $(PERLEXE) $(X2P)
 	copy ..\README.vmesa    ..\pod\perlvmesa.pod
 	copy ..\README.vos      ..\pod\perlvos.pod
 	copy ..\README.win32    ..\pod\perlwin32.pod
-	copy ..\pod\perl5116delta.pod ..\pod\perldelta.pod
+	copy ..\pod\perl5120delta.pod ..\pod\perldelta.pod
 	cd ..\pod && $(MAKE) -f ..\win32\pod.mak converters
 	$(PERLEXE) $(PL2BAT) $(UTILS)
 	$(PERLEXE) $(ICWD) ..\autodoc.pl ..

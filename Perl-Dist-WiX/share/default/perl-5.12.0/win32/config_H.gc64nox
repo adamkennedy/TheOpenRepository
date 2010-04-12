@@ -916,14 +916,14 @@
  */
 #define HAS_QUAD	/**/
 #ifdef HAS_QUAD
-#   ifndef _MSC_VER
-#	define Quad_t long long	/**/
-#	define Uquad_t unsigned long long	/**/
-#	define QUADKIND 3	/**/
-#   else
-#	define Quad_t __int64	/**/
-#	define Uquad_t unsigned __int64	/**/
-#	define QUADKIND 5	/**/
+#   ifdef _MSC_VER
+#      define Quad_t __int64	/**/
+#      define Uquad_t unsigned __int64	/**/
+#      define QUADKIND 5	/**/
+#   else /* gcc presumably */
+#      define Quad_t long long	/**/
+#      define Uquad_t unsigned long long	/**/
+#      define QUADKIND 3	/**/
 #   endif
 #   define QUAD_IS_INT	1
 #   define QUAD_IS_LONG	2
@@ -1033,14 +1033,14 @@
  *	This symbol is intended to be used along with CPPRUN in the same manner
  *	symbol CPPMINUS is used with CPPSTDIN. It contains either "-" or "".
  */
-#ifndef _MSC_VER
-#   define CPPSTDIN "gcc -E"
-#   define CPPMINUS "-"
-#   define CPPRUN "gcc -E"
+#ifdef _MSC_VER
+#  define CPPSTDIN "cppstdin"
+#  define CPPMINUS ""
+#  define CPPRUN "cl -nologo -E"
 #else
-#   define CPPSTDIN "cppstdin"
-#   define CPPMINUS ""
-#   define CPPRUN "cl -nologo -E"
+#  define CPPSTDIN "gcc -E"
+#  define CPPMINUS "-"
+#  define CPPRUN "gcc -E"
 #endif
 #define CPPLAST ""
 
@@ -1809,11 +1809,11 @@
  */
 #define HAS_LONG_DOUBLE		/**/
 #ifdef HAS_LONG_DOUBLE
-#   ifndef _MSC_VER
-#	define LONG_DOUBLESIZE 12		/**/
-#   else
-#	define LONG_DOUBLESIZE 8		/**/
-#   endif
+#  ifdef _MSC_VER
+#    define LONG_DOUBLESIZE 8		/**/
+#  else
+#    define LONG_DOUBLESIZE 12		/**/
+#  endif
 #endif
 
 /* HAS_LONG_LONG:
@@ -1824,7 +1824,9 @@
  *	C preprocessor can make decisions based on it.  It is only
  *	defined if the system supports long long.
  */
-#define HAS_LONG_LONG		/ **/
+#ifdef __GNUC__
+#  define HAS_LONG_LONG		/**/
+#endif
 #ifdef HAS_LONG_LONG
 #define LONGLONGSIZE 8		/**/
 #endif
@@ -3301,7 +3303,11 @@
  *	to get any typedef'ed information.
  *	We will pick a type such that sizeof(SSize_t) == sizeof(Size_t).
  */
-#define SSize_t long long	 /* signed count of bytes */
+#ifdef _MSC_VER
+#  define SSize_t __int64	 /* signed count of bytes */
+#else
+#  define SSize_t long long	 /* signed count of bytes */
+#endif
 
 /* EBCDIC:
  *     This symbol, if defined, indicates that this system uses
@@ -4453,22 +4459,26 @@
  *	This symbol, if defined, indicates that a variable of type NVTYPE
  *	stores 0.0 in memory as all bits zero.
  */
-#define	IVTYPE		long long		/**/
-#define	UVTYPE		unsigned long long		/**/
+#ifdef _MSC_VER
+#  define	IVTYPE		__int64		/**/
+#  define	UVTYPE		unsigned __int64		/**/
+#else
+#  define	IVTYPE		long long		/**/
+#  define	UVTYPE		unsigned long long		/**/
+#endif
 #define	I8TYPE		char		/**/
 #define	U8TYPE		unsigned char		/**/
 #define	I16TYPE		short	/**/
 #define	U16TYPE		unsigned short	/**/
 #define	I32TYPE		long	/**/
 #define	U32TYPE		unsigned long	/**/
-#ifdef HAS_QUAD
-#   ifndef _MSC_VER
-#	define	I64TYPE		long long	/**/
-#	define	U64TYPE		unsigned long long	/**/
-#   else
-#	define	I64TYPE		__int64	/**/
-#	define	U64TYPE		unsigned __int64	/**/
-#   endif
+#  ifdef _MSC_VER
+#    define	I64TYPE		__int64	/**/
+#    define	U64TYPE		unsigned __int64	/**/
+#  else
+#    define	I64TYPE		long long	/**/
+#    define	U64TYPE		unsigned long long	/**/
+#  endif
 #endif
 #define	NVTYPE		double		/**/
 #define	IVSIZE		8		/**/
