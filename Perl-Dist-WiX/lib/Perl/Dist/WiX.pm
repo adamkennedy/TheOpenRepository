@@ -1281,8 +1281,8 @@ has 'perl_debug' => (
 
 The C<perl_version> parameter specifies what version of perl is downloaded 
 and built.  Legal values for this parameter are 'git', '589', '5100', '5101', 
-'5115', and '5120' (for a version from perl5.git.perl.org, 5.8.9, 5.10.0, 
-5.10.1, 5.11.5, and 5.12.0, respectively.)
+and '5120' (for a version from perl5.git.perl.org, 5.8.9, 5.10.0, 5.10.1, 
+and 5.12.0, respectively.)
 
 This parameter defaults to '5101' if not specified.
 
@@ -1290,7 +1290,7 @@ This parameter defaults to '5101' if not specified.
 
 has 'perl_version' => (
 	is      => 'ro',
-	isa     => enum( [qw(git 589 5100 5101 5115 5120)] ),
+	isa     => enum( [qw(git 589 5100 5101 5120)] ),
 	default => '5101',
 );
 
@@ -2289,9 +2289,8 @@ sub _build_perl_version_literal {
 		'589'  => '5.008009',
 		'5100' => '5.010000',
 		'5101' => '5.010001',
-		'5115' => '5.011005',
 		'5120' => '5.012000',
-		'git'  => '5.011005',
+		'git'  => '5.013000',
 	  }->{ $self->perl_version() }
 	  || 0;
 
@@ -2331,7 +2330,6 @@ sub _build_perl_version_human {
 		'589'  => '5.8.9',
 		'5100' => '5.10.0',
 		'5101' => '5.10.1',
-		'5115' => '5.11.5',
 		'5120' => '5.12.0',
 		'git'  => 'git',
 	  }->{ $self->perl_version() }
@@ -2649,7 +2647,6 @@ sub msi_perl_version {
 		'589'  => [ 5, 8,  9 ],
 		'5100' => [ 5, 10, 0 ],
 		'5101' => [ 5, 10, 1 ],
-		'5115' => [ 5, 11, 5 ],
 		'5120' => [ 5, 12, 0 ],
 		'git'  => [ 5, 0,  0 ],
 	  }->{ $self->perl_version() }
@@ -2681,9 +2678,8 @@ sub msi_perl_major_version {
 		'589'  => [ 5, 8,  0 ],
 		'5100' => [ 5, 9,  127 ],
 		'5101' => [ 5, 10, 0 ],
-		'5115' => [ 5, 11, 4 ],
 		'5120' => [ 5, 11, 127 ],
-		'git'  => [ 5, 11, 0 ],
+		'git'  => [ 5, 12, 127 ], # 'git' should now be 5.13.0
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
 

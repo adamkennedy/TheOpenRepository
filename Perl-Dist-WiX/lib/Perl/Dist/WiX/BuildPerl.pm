@@ -505,7 +505,7 @@ sub install_perl {
 
 
 
-=head2 install_perl_* (* = git, 589, 5100, 5101, 5115, or 5120)
+=head2 install_perl_* (* = git, 589, 5100, 5101, or 5120)
 
 	$self->install_perl_5100;
 
@@ -739,59 +739,6 @@ sub install_perl_5101 {
 
 	return 1;
 } ## end sub install_perl_5101
-
-
-
-sub install_perl_5115 {
-	my $self = shift;
-
-	# Prefetch and predelegate the toolchain so that it
-	# fails early if there's a problem
-	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan->as_string,
-		bits         => $self->bits(),
-	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate; 1; } ) {
-		PDWiX::Caught->throw(
-			message => 'Delegation error occured',
-			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
-		);
-	}
-	if ( defined $toolchain->get_error() ) {
-		PDWiX::Caught->throw(
-			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->get_error() );
-	}
-	$self->_set_toolchain($toolchain);
-
-	# Make the perl directory if it hasn't been made already.
-	$self->make_path( $self->dir('perl') );
-
-	# Install the main binary
-	$self->install_perl_bin(
-		url =>
-'http://search.cpan.org/CPAN/authors/id/S/SH/SHAY/perl-5.11.5.tar.gz',
-		toolchain => $toolchain,
-		patch     => [ qw{
-			  lib/CPAN/Config.pm
-			  win32/config.gc
-			  win32/config.gc64nox
-			  win32/config_sh.PL
-			  win32/config_H.gc
-			  win32/config_H.gc64nox
-			  }
-		],
-		license => {
-			'perl-5.11.5/Readme'   => 'perl/Readme',
-			'perl-5.11.5/Artistic' => 'perl/Artistic',
-			'perl-5.11.5/Copying'  => 'perl/Copying',
-		},
-	);
-
-	return 1;
-} ## end sub install_perl_5115
 
 
 

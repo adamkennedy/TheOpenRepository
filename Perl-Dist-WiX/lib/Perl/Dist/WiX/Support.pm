@@ -549,7 +549,7 @@ sub extract_archive {
 			PDWiX->throw("Tried to extract the file $from without the xz libraries installed.");
 	
 		local $Archive::Tar::CHMOD = 0;
-		my $xz = IO::Uncompress::UnXZ->new($from);
+		my $xz = IO::Uncompress::UnXz->new($from);
 		my @fl = @filelist = Archive::Tar->extract_archive( \$xz, 1 );
 		@filelist = map { catfile( $to, $_ ) } @fl;
 		if ( !@filelist ) {
