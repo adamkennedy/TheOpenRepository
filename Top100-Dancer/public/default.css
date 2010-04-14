@@ -1,0 +1,48 @@
+
+body {
+	font: 100% Verdana, Arial, Helvetica, sans-serif;
+	background: #FFFFFF;
+	color: #000000;
+	margin: 0px;
+}
+
+a:link {
+	color: #333333;
+}
+
+a:visited {
+	color: #333333;
+}
+
+a:hover {
+	color: #996666;
+}
+
+a:active {
+	color: #333333;
+}
+
+.row {
+	background-color: #FFFFFF;
+}
+
+.altrow {
+	background-color: #DDDDDD;
+}
+
+.spry {
+	border-collapse: collapse;
+	spacing: 0px;
+}
+
+.spry th {
+	background-color: #CCCCCC;
+	border: 1px solid #999999;
+	text-align: left;
+	padding: 2px 5px 2px 5px;
+}
+
+.spry td {
+	border: 1px solid #999999;
+	padding: 3px;
+}
