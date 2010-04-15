@@ -29,6 +29,7 @@
 #include <msi.h>
 #include <msiquery.h>
 #include <objbase.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <tchar.h>

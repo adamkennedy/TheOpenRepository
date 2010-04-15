@@ -6,9 +6,11 @@
 ; under the same terms as Perl itself.
 
 LIBRARY	"ClearFolderCA"
-VERSION 1.102
+VERSION 1.103
 EXPORTS
     ClearFolder
 	ClearSiteFolder
 	CheckForSpaces
+	Relocate
+	RelocateMM
     

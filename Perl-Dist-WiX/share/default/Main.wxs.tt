@@ -107,20 +107,12 @@
     </UI>
 
 [% IF dist.relocatable %]
-	<CustomAction Id="CA_Rlc_1" Property="P_Rlc_1"
-				  Value="&quot;[#[% dist.fileid_perl %].[% dist.msm_package_id_property %]]&quot;" Execute="immediate"/>
-	<CustomAction Id="CA_Rlc_2" Property="P_Rlc_2"
-				  Value="[#[% dist.fileid_relocation_pl %].[% dist.msm_package_id_property %]]" Execute="immediate"/>
-	<CustomAction Id="CA_Rlc_3" Property="P_Rlc_3"
-				  Value="[P_Rlc_1] [P_Rlc_2] --location [INSTALLDIR] --quiet" Execute="immediate"/>
-	<CustomAction Id="CA_Rlc_4" Property="P_Rlc_4"
-				  Value="[% dist.msi_relocation_commandline %]" Execute="immediate"/>
-	<CustomAction Id="CA_Rlc_5" Property="NO_RELOCATE.[% dist.msm_package_id_property %]"
+	<CustomAction Id="CA_NoRelocate" Property="NO_RELOCATE.[% dist.msm_package_id_property %]"
 				  Value="[NO_RELOCATE]" Execute="immediate"/>
-	<CustomAction Id="CA_Relocate_Cmd" Property="CA_Relocate"
-				  Value="[P_Rlc_3][P_Rlc_4]" Execute="immediate"/>
-	<CustomAction Id="CA_Relocate" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
-				  Execute="deferred" Return="check" Impersonate="no"/>
+	<CustomAction Id="CA_FileList" Property="RELOCFILE"
+				  Value="[% dist.msi_relocation_idlist %]" Execute="immediate"/>
+	<CustomAction Id="CA_Relocate" BinaryKey="B_ClearFolder" DllEntry="Relocate" Execute="immediate" />
+
 	<CustomAction Id="CA_SetARPInstallLoc" Property="ARPINSTALLLOCATION" Value="[INSTALLDIR]"  Execute="immediate"/>
 	<CustomAction Id="CA_GetARPInstallLoc" Property="INSTALLDIR" Value="[UPGRADEDIR]"  Execute="immediate"/>
 	
@@ -131,18 +123,16 @@
 	</InstallUISequence>
 	<InstallExecuteSequence>
 		<Custom Action="CA_SetARPInstallLoc" Before="RegisterProduct" />
-		<Custom Action="CA_Rlc_1" After="CostFinalize"/>
-		<Custom Action="CA_Rlc_2" After="CA_Rlc_1"/>
-		<Custom Action="CA_Rlc_3" After="CA_Rlc_2"/>
-		<Custom Action="CA_Rlc_4" After="CA_Rlc_3"/>
-		<Custom Action="CA_Rlc_5" After="CA_Rlc_4"/>		
-		<Custom Action="CA_Relocate_Cmd" After="CA_Rlc_4"/>
+		<Custom Action="CA_NoRelocate" After="CostFinalize"/>
+		<Custom Action="CA_FileList" After="CA_NoRelocate"/>	
 		<Custom Action="CA_Relocate" After="PublishProduct">
 			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
 		</Custom>
 	</InstallExecuteSequence>
 	<Property Id="NO_RELOCATE" Secure="yes"/>
 	<Property Id="NO_RELOCATE.[% dist.msm_package_id_property %]" Secure="yes"/>
+	<Property Id="RELOCFILE" Secure="yes"/>
+	<Property Id="RELOCFILE.[% dist.msm_package_id_property %]" Secure="yes"/>
 
     <UI>
    	  <ProgressText Action="CA_Relocate">Relocating [% dist.app_name %]...</ProgressText>

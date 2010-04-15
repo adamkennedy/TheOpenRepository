@@ -193,6 +193,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Relocate.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration

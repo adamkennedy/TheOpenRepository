@@ -26,43 +26,26 @@
       <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL"</Custom>
     </InstallExecuteSequence>
 
+[% IF dist.msi_debug %]
+    <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\debug_dll\ClearFolderCA.dll' />
+[% ELSE %]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\ClearFolderCA.dll' />
+[% END %]
     <UI>
    	  <ProgressText Action="CA_ClearFolder">Scanning for added files to delete... (please wait a while)</ProgressText>
     </UI>
 
 [% IF dist.relocatable %]
-	<CustomAction Id="CA_Rlm_1" Property="P_Rlm_1"
-				  Value="&quot;[#[% dist.fileid_perl %]]&quot;" Execute="immediate"/>
-	<CustomAction Id="CA_Rlm_2" Property="P_Rlm_2"
-				  Value="[#[% dist.fileid_relocation_pl %]]" Execute="immediate"/>
-	<CustomAction Id="CA_Rlm_3" Property="P_Rlm_3"
-				  Value="[P_Rlm_1] [P_Rlm_2]" Execute="immediate"/>
-	<CustomAction Id="CA_Rlm_4" Property="P_Rlm_4"
-				  Value="--location [INSTALLDIR] --quiet" Execute="immediate"/>
-	<CustomAction Id="CA_Rlm_5" Property="P_Rlm_5"
-				  Value="[P_Rlm_3] [P_Rlm_4]" Execute="immediate"/>
-	<CustomAction Id="CA_Rlm_6" Property="P_Rlm_6"
-				  Value="[% dist.msm_relocation_commandline %]" Execute="immediate"/>
-	<CustomAction Id="CA_Relocate_msm_Cmd" Property="CA_Relocate_msm"
-				  Value="[P_Rlm_5][P_Rlm_6]" Execute="immediate"/>
-	<CustomAction Id="CA_Relocate_msm" BinaryKey="WixCA" DllEntry="[% dist.msi_relocation_ca %]"
-				  Execute="deferred" Return="check" Impersonate="no"/>
+	<CustomAction Id="CA_FileList_msm" Property="RELOCFILE"
+				  Value="[% dist.msm_relocation_idlist %]" Execute="immediate"/>
+	<CustomAction Id="CA_Relocate_msm" BinaryKey="B_ClearFolder" DllEntry="Relocate" Execute="immediate" />
 
 	<InstallExecuteSequence>
-		<Custom Action="CA_Rlm_1" After="CostFinalize"/>
-		<Custom Action="CA_Rlm_2" After="CA_Rlm_1"/>
-		<Custom Action="CA_Rlm_3" After="CA_Rlm_2"/>
-		<Custom Action="CA_Rlm_4" After="CA_Rlm_3"/>
-		<Custom Action="CA_Rlm_5" After="CA_Rlm_4"/>
-		<Custom Action="CA_Rlm_6" After="CA_Rlm_5"/>
-		<Custom Action="CA_Relocate_msm_Cmd" After="CA_Rlm_6"/>
+		<Custom Action="CA_FileList_msm" After="CostFinalize"/>
 		<Custom Action="CA_Relocate_msm" After="PublishProduct">
 			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
 		</Custom>
 	</InstallExecuteSequence>
-	<!-- Making sure that we don't need this here, instead of Main.wxs.tt. -->
-	<!-- Property Id="NO_RELOCATE" Secure="yes"/ -->
 
     <UI>
    	  <ProgressText Action="CA_Relocate_msm">Relocating [% dist.app_name %]...</ProgressText>

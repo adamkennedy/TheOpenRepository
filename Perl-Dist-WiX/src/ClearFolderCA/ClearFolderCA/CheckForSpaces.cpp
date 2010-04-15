@@ -1,19 +1,9 @@
-// ClearFolderCA.cpp : Defines the Clear Folder custom action.
+// CheckForSpaces.cpp : Defines the CheckForSpaces custom action.
 //
-// Copyright (c) Curtis Jewell 2009.
+// Copyright (c) Curtis Jewell 2009, 2010
 //
 // This code is free software; you can redistribute it and/or modify it
 // under the same terms as Perl itself.
-
-/* 
-<CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
-
-<InstallExecuteSequence>
-  <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL"</Custom>
-</InstallExecuteSequence>
-
-<Binary Id='B_ClearFolder' SourceFile='share\ClearFolderCA.dll' />
-*/
 
 #include "stdafx.h"
 
