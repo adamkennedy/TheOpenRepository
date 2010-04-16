@@ -36,12 +36,12 @@
     </UI>
 
 [% IF dist.relocatable %]
-	<CustomAction Id="CA_FileList_msm" Property="RELOCFILE"
-				  Value="[% dist.msm_relocation_idlist %]" Execute="immediate"/>
-	<CustomAction Id="CA_Relocate_msm" BinaryKey="B_ClearFolder" DllEntry="Relocate" Execute="immediate" />
+	<CustomAction Id="CA_FileList_msm" Property="CustomActionData"
+				  Value="MM;[INSTALLDIR];[% dist.msm_relocation_idlist %]" Execute="deferred"/>
+	<CustomAction Id="CA_Relocate_msm" BinaryKey="B_ClearFolder" DllEntry="RelocateMM" Execute="deferred" />
 
 	<InstallExecuteSequence>
-		<Custom Action="CA_FileList_msm" After="CostFinalize"/>
+		<Custom Action="CA_FileList_msm" Before="CA_Relocate_msm"/>
 		<Custom Action="CA_Relocate_msm" After="PublishProduct">
 			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
 		</Custom>

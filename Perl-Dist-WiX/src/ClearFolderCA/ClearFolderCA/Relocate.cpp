@@ -310,7 +310,11 @@ UINT __stdcall Relocate_Worker(
 	// Open our files.
 	errno_t eAnswer = 0;
 	eAnswer = _tfopen_s(&fRelocationFileIn, sFileFrom, _T("rtS"));
+	if (eAnswer != 0) 
+		return ERROR_INSTALL_FAILURE;
 	eAnswer = _tfopen_s(&fRelocationFileOut, sFileTo, _T("wt"));
+	if (eAnswer != 0) 
+		return ERROR_INSTALL_FAILURE;
 
 	// First line of relocation file has where to relocate from.
 	if( _fgetts( sDirectoryFrom, _MAX_PATH + 1, fRelocationFileIn ) == NULL)
@@ -397,27 +401,27 @@ UINT __stdcall RelocateMM(
 {
 	TCHAR sInstallDirectory[MAX_PATH + 1];
 	TCHAR sRelocationFile[MAX_PATH + 1];
-	TCHAR sRelocationProperty[52];
-	TCHAR sPerlModuleID[40];
+	TCHAR sCAData[MAX_PATH * 2 + 6];
 	UINT uiAnswer;
 	DWORD dwPropLength;
 
 	// Get directory to relocate to.
-	dwPropLength = MAX_PATH; 
-	uiAnswer = ::MsiGetProperty(hModule, TEXT("INSTALLDIR"), sInstallDirectory, &dwPropLength); 
+	dwPropLength = MAX_PATH * 2 + 5; 
+	uiAnswer = ::MsiGetProperty(hModule, TEXT("CustomActionData"), sCAData, &dwPropLength); 
 	MSI_OK(uiAnswer)
 
-	dwPropLength = 39;
-	uiAnswer = ::MsiGetProperty(hModule, TEXT("PerlModuleID"), sPerlModuleID, &dwPropLength); 
-	MSI_OK(uiAnswer)
+	TCHAR *sTokenContext = NULL;
+	TCHAR *sToken = NULL;
 
-	_tcscpy_s(sRelocationProperty, 51, TEXT("RELOCFILE"));
-	_tcscat_s(sRelocationProperty, 51, TEXT("."));
-	_tcscat_s(sRelocationProperty, 51, sPerlModuleID);
+	sToken = _tcstok_s(sCAData, _T(";"), &sTokenContext);
+	if (0 != _tcscmp(sToken, _T("MM"))) {
+		return ERROR_INSTALL_FAILURE;
+	}
+	sToken = _tcstok_s(NULL, _T(";"), &sTokenContext);
+	_tcscpy_s(sInstallDirectory, _MAX_PATH, sToken);
+	sToken = _tcstok_s(NULL, _T(";"), &sTokenContext);
+	_tcscpy_s(sRelocationFile, _MAX_PATH, sToken);
 
-	dwPropLength = MAX_PATH; 
-	uiAnswer = ::MsiGetProperty(hModule, sRelocationProperty, sRelocationFile, &dwPropLength); 
-	MSI_OK(uiAnswer);
 
 	return Relocate_Worker(hModule, sInstallDirectory, sRelocationFile);
 
@@ -430,22 +434,30 @@ UINT __stdcall Relocate(
 {
 	TCHAR sInstallDirectory[MAX_PATH + 1];
 	TCHAR sRelocationFile[MAX_PATH + 1];
-	TCHAR sPerlModuleID[40];
+	TCHAR sCAData[MAX_PATH * 2 + 7];
 	UINT uiAnswer;
 	DWORD dwPropLength;
 
-	// Get directory to search.
-	dwPropLength = MAX_PATH; 
-	uiAnswer = ::MsiGetProperty(hModule, TEXT("INSTALLDIR"), sInstallDirectory, &dwPropLength); 
+	// Get directory to relocate to.
+	dwPropLength = MAX_PATH * 2 + 6; 
+	uiAnswer = ::MsiGetProperty(hModule, TEXT("CustomActionData"), sCAData, &dwPropLength); 
 	MSI_OK(uiAnswer)
 
-	dwPropLength = MAX_PATH; 
-	uiAnswer = ::MsiGetProperty(hModule, TEXT("RELOCFILE"), sRelocationFile, &dwPropLength); 
-	MSI_OK(uiAnswer);
+	TCHAR *sTokenContext = NULL;
+	TCHAR *sToken = NULL;
+
+	sToken = _tcstok_s(sCAData, _T(";"), &sTokenContext);
+	if (0 != _tcscmp(sToken, _T("MSI"))) {
+		return ERROR_INSTALL_FAILURE;
+	}
+	sToken = _tcstok_s(NULL, _T(";"), &sTokenContext);
+	_tcscpy_s(sInstallDirectory, _MAX_PATH, sToken);
+	sToken = _tcstok_s(NULL, _T(";"), &sTokenContext);
+	_tcscpy_s(sRelocationFile, _MAX_PATH, sToken);
 
 	return Relocate_Worker(hModule, sInstallDirectory, sRelocationFile);
-}
 
+}
 
 
 
