@@ -110,8 +110,8 @@
 	<CustomAction Id="CA_NoRelocate" Property="NO_RELOCATE.[% dist.msm_package_id_property %]"
 				  Value="[NO_RELOCATE]" Execute="immediate"/>
 	<CustomAction Id="CA_FileList" Property="CustomActionData"
-				  Value="MSI;[INSTALLDIR];[% dist.msi_relocation_idlist %]" Execute="deferred"/>
-	<CustomAction Id="CA_Relocate" BinaryKey="B_ClearFolder" DllEntry="Relocate" Execute="deferred" />
+				  Value="MSI;[INSTALLDIR];[% dist.msi_relocation_idlist %]" Return="check" />
+	<CustomAction Id="CA_Relocate" BinaryKey="B_ClearFolder" DllEntry="Relocate" Return="check" Execute="deferred" />
 
 	<CustomAction Id="CA_SetARPInstallLoc" Property="ARPINSTALLLOCATION" Value="[INSTALLDIR]"  Execute="immediate"/>
 	<CustomAction Id="CA_GetARPInstallLoc" Property="INSTALLDIR" Value="[UPGRADEDIR]"  Execute="immediate"/>
@@ -124,8 +124,8 @@
 	<InstallExecuteSequence>
 		<Custom Action="CA_SetARPInstallLoc" Before="RegisterProduct" />
 		<Custom Action="CA_NoRelocate" After="CostFinalize"/>
-		<Custom Action="CA_FileList" Before="CA_NoRelocate"/>	
-		<Custom Action="CA_Relocate" After="PublishProduct">
+		<Custom Action="CA_FileList" After="InstallFiles"/>	
+		<Custom Action="CA_Relocate" After="CA_FileList">
 			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
 		</Custom>
 	</InstallExecuteSequence>
