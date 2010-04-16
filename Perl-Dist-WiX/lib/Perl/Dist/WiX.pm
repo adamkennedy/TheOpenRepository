@@ -413,8 +413,7 @@ to execute, rather than the task number that just executed, so that if a
 checkpoint was saved after (for example) task 5, this parameter should be 6
 in order to load the checkpoint and start on task 6.
 
-0 is the default, meaning that you do not wish to stop unless an error 
-occurs.
+0 is the default, meaning that you do not wish to load a checkpoint.
 
 =cut
 
