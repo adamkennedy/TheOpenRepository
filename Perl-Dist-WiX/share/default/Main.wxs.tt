@@ -109,7 +109,7 @@
 [% IF dist.relocatable %]
 	<CustomAction Id="CA_NoRelocate" Property="NO_RELOCATE.[% dist.msm_package_id_property %]"
 				  Value="[NO_RELOCATE]" Execute="immediate"/>
-	<CustomAction Id="CA_FileList" Property="CustomActionData"
+	<CustomAction Id="CA_FileList" Property="CA_Relocate"
 				  Value="MSI;[INSTALLDIR];[% dist.msi_relocation_idlist %]" Return="check" />
 	<CustomAction Id="CA_Relocate" BinaryKey="B_ClearFolder" DllEntry="Relocate" Return="check" Execute="deferred" />
 
