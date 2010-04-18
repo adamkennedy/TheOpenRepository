@@ -178,7 +178,8 @@ sub install_gcc_toolchain {
 		: (),
 	);
 
-	$self->insert_fragment( 'gcc_toolchain', $filelist, 1 );
+	my $overwritable = (3 == $self->gcc_version()) ? 1 : 0
+	$self->insert_fragment( 'gcc_toolchain', $filelist, $overwritable );
 
 	# Initialize the dlltool location.
 	$self->_set_bin_dlltool( $self->file( 'c', 'bin', 'dlltool.exe' ) );
