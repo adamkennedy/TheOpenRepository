@@ -17,18 +17,6 @@ EOF
 	die "Please upgrade CPAN as instructed above.\n\n";
 }
 
-# CPAN version test.
-require Module::CoreList;
-if ($Module::CoreList::VERSION < 2.27) {
-	print <<'EOF';
-To install the version of Module::CoreList required, you'll need to
-download perl-5.12.0-RC3, copy its dist/Module-CoreList directory
-someplace else, and run 'cpan .' there before installing this. 
-
-EOF
-	die "Please upgrade Module::Corelist as instructed above.\n\n";
-}
-
 die "OS unsupported\n" unless 'MSWin32' eq $^O;
 
 # These are the main requirements.
@@ -64,7 +52,7 @@ my $requires = {
 	'LWP::UserAgent'            => '5.823',
 	'LWP::UserAgent::WithCache' => '0.06',
 	'LWP::Online'               => '1.07',
-	'Module::CoreList'          => '2.27',
+	'Module::CoreList'          => '2.29',
 	'Moose'                     => '0.90',
 	'MooseX::NonMoose'          => '0.05',
 	'MooseX::Singleton'         => '0',
