@@ -178,7 +178,7 @@ sub install_gcc_toolchain {
 		: (),
 	);
 
-	$self->insert_fragment( 'gcc_toolchain', $filelist );
+	$self->insert_fragment( 'gcc_toolchain', $filelist, 1 );
 
 	# Initialize the dlltool location.
 	$self->_set_bin_dlltool( $self->file( 'c', 'bin', 'dlltool.exe' ) );
