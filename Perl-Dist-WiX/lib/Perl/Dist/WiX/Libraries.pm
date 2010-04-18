@@ -178,7 +178,7 @@ sub install_gcc_toolchain {
 		: (),
 	);
 
-	my $overwritable = (3 == $self->gcc_version()) ? 1 : 0
+	my $overwritable = (3 == $self->gcc_version()) ? 1 : 0;
 	$self->insert_fragment( 'gcc_toolchain', $filelist, $overwritable );
 
 	# Initialize the dlltool location.
