@@ -6,7 +6,7 @@ use warnings;
 use Carp qw/croak/;
 use version;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Class::XSAccessor
   getters => {
@@ -20,6 +20,7 @@ sub _par_loader_hint {
 }
 
 our %Perls = (
+  5.012000 => 'V5_012_000',
   5.011002 => 'V5_011_002',
   5.011001 => 'V5_011_001',
   5.011    => 'V5_011_000',
@@ -40,9 +41,10 @@ our %Perls = (
   5.006    => 'V5_006_000',
 );
 
-our $NewestAPI       = '5.011002';
-our $NewestStableAPI = '5.010001';
+our $NewestAPI       = '5.012000';
+our $NewestStableAPI = '5.012000';
 
+$Perls{'5.012000'} = $Perls{5.012};
 $Perls{'5.011000'} = $Perls{5.011};
 $Perls{'5.010000'} = $Perls{5.01};
 $Perls{'5.010'}    = $Perls{5.01};
@@ -104,6 +106,10 @@ sub _dump_as_class {
   my $self = shift;
   my $version = $self->perl_version;
   my $classname = $self->_get_class_name($version);
+  if (not defined $classname) {
+    die "Can't determine class name for Perl version '$version'."
+      . " Do you need to add it to the list of supported versions first?";
+  }
   my $file_name = $classname;
   $file_name =~ s/^.*::([^:]+)$/$1.pm/;
   
