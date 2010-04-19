@@ -2,13 +2,10 @@
 
 CPANDB - An ORLite-based ORM Database API
 
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
-
 =head1 DESCRIPTION
 
-TO BE COMPLETED
+B<CPANDB> is an module for accessing CPAN metadata merged from many different
+CPAN websites into a single simple object model.
 
 =head1 METHODS
 
@@ -55,6 +52,49 @@ string provided by the C<dsn> method.
 
 The C<dbh> method returns a L<DBI::db> object, or throws an exception on
 error.
+
+=head2 begin
+
+  CPANDB->begin;
+
+The C<begin> method indicates the start of a transaction.
+
+In the same way that ORLite allows only a single connection, likewise
+it allows only a single application-wide transaction.
+
+No indication is given as to whether you are currently in a transaction
+or not, all code should be written neutrally so that it works either way
+or doesn't need to care.
+
+Returns true or throws an exception on error.
+
+=head2 rollback
+
+The C<rollback> method rolls back the current transaction. If called outside
+of a current transaction, it is accepted and treated as a null operation.
+
+Once the rollback has been completed, the database connection falls back
+into auto-commit state. If you wish to immediately start another
+transaction, you will need to issue a separate -E<gt>begin call.
+
+If a transaction exists at END-time as the process exits, it will be
+automatically rolled back.
+
+Returns true or throws an exception on error.
+
+=head2 do
+
+  CPANDB->do(
+      'insert into table ( foo, bar ) values ( ?, ? )', {},
+      \$foo_value,
+      \$bar_value,
+  );
+
+The C<do> method is a direct wrapper around the equivalent L<DBI> method,
+but applied to the appropriate locally-provided connection or transaction.
+
+It takes the same parameters and has the same return values and error
+behaviour.
 
 =head2 selectall_arrayref
 
@@ -131,18 +171,37 @@ no means prohibited.
 The C<pragma> method provides a convenient method for fetching a pragma
 for a datase. See the SQLite documentation for more details.
 
+=head2 distribution
+
+  my $dist = CPANDB->distribution('Config-Tiny');
+
+The C<distribution> method is a convenient shortcut for direct access to
+the L<CPANDB::Distribution> object for a single named distribution.
+
+=head2 graph
+
+  my $everything = CPANDB->graph;
+
+Originally created as a proof of concept for L<Graph> integration, the C<graph>
+method creates a single giant L<Graph::Directed> object representing the
+dependency structure of the entire CPAN at a distribution-to-distribution level.
+
+The graphing features of L<CPANDB> are considered optional. To use this method
+you will need to install L<Graph::Directed> yourself, and set up a dependency
+in any code that uses L<Graph> features.
+
 =head1 SUPPORT
 
-CPANDB is based on L<ORLite> 1.23.
+CPANDB is based on L<ORLite> $ORLite::VERSION.
 
-Documentation created by L<ORLite::Pod> 0.06.
+Documentation created by L<ORLite::Pod> $ORLite::Pod::VERSION.
 
 For general support please see the support section of the main
 project documentation.
 
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy.
+Copyright 2009 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

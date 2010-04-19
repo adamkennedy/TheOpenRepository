@@ -37,19 +37,19 @@ sub age_months {
 	$_[0]->age->in_units('months');
 }
 
-sub quadrant {
+sub quartile {
 	my $self = shift;
 
 	# Get the boundary dates
-	my @quadrant = ref($self)->_quadrant;
+	my @quartile = ref($self)->_quartile;
 
-	# Find which quadrant we are in
+	# Find which quartile we are in
 	my $uploaded = $self->uploaded;
-	if ( $uploaded gt $quadrant[0] ) {
+	if ( $uploaded gt $quartile[0] ) {
 		return 1;
-	} elsif ( $uploaded gt $quadrant[1] ) {
+	} elsif ( $uploaded gt $quartile[1] ) {
 		return 2;
-	} elsif ( $uploaded gt $quadrant[2] ) {
+	} elsif ( $uploaded gt $quartile[2] ) {
 		return 3;
 	} else {
 		return 4;
@@ -58,7 +58,7 @@ sub quadrant {
 
 my @QUADRANT = ();
 
-sub _quadrant {
+sub _quartile {
 	return @QUADRANT if @QUADRANT;
 
 	# Start with the total number of distributions
@@ -67,7 +67,7 @@ sub _quadrant {
 	my $mod   = $rows % 4;
 	my $range = ($rows - $mod) / 4;
 
-	# Find the last row in each quadrant
+	# Find the last row in each quartile
 	foreach ( 1 .. 4 ) {
 		my $offset = ($range * $_) + $mod - 1;
 
@@ -81,7 +81,7 @@ sub _quadrant {
 		# Find the upload date for the resulting row
 		my @object = $class->select("order by uploaded desc limit 1 offset $offset");
 		unless ( @object == 1 ) {
-			die("Failed to find edge of quadrant $_");
+			die("Failed to find edge of quartile $_");
 		}
 
 		push @QUADRANT, $object[0]->uploaded;
