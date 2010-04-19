@@ -505,6 +505,7 @@ LineTokenizeResults Tokenizer::tokenizeLine(char *line, unsigned long line_lengt
 	while ( NULL != tokens_posponded_head ) {
 		if ( tokens_posponded_head->type->isa( Token_HereDoc ) ) {
 			ExtendedToken *tkn = (ExtendedToken *)tokens_posponded_head;
+			AbstractTokenType::VerifySufficientBufferLength(tkn, line_length);
 			if ( heredocbody_ended == ((HereDocToken*)(tokens_posponded_head->type))->Unpospone( this, tkn, line, line_length ) ) {
 				// release all posponded tokens, as long as they are not an another heredoc token
 				Token *tkn = tokens_posponded_head;
