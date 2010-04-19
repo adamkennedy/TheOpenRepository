@@ -54,11 +54,8 @@ my @modules_skip = (
 		'WiX3::XML::MergeRef',
 # Where is this?
 		't::lib::MachineTest',
+# Optional module - should not be required.
+		'IO::Uncompress::UnXz',
 );
 
 prereq_ok(5.008001, 'Check prerequisites', \@modules_skip);
-
-use File::Copy qw();
-
-File::Copy::move( 't\inc\Module\Install.pm', 'inc\Module\Install.pm' );
-File::Remove::remove( \1, 't\inc' );

@@ -534,7 +534,9 @@ sub extract_archive {
 			push @filelist, $filename;
 		}
 
-	} elsif ( $from =~ m{ [.] tar [.] gz | [.] tgz [.] | tar [.] bz2 | [.] tbz }msx ) {
+	} elsif ( $from =~
+		m{ [.] tar [.] gz | [.] tgz [.] | tar [.] bz2 | [.] tbz }msx )
+	{
 		local $Archive::Tar::CHMOD = 0;
 		my @fl = @filelist = Archive::Tar->extract_archive( $from, 1 );
 		@filelist = map { catfile( $to, $_ ) } @fl;
@@ -545,9 +547,15 @@ sub extract_archive {
 	} elsif ( $from =~ m{ [.] tar [.] xz | [.] txz}msx ) {
 
 		# First attempt at trying to use .xz files. TODO: Improve.
-		eval { require IO::Uncompress::UnXz; IO::Uncompress::UnXz->VERSION(2.025); 1; } or 
-			PDWiX->throw("Tried to extract the file $from without the xz libraries installed.");
-	
+		eval {
+			require IO::Uncompress::UnXz;
+			IO::Uncompress::UnXz->VERSION(2.025);
+			1;
+		}
+		  or PDWiX->throw(
+"Tried to extract the file $from without the xz libraries installed."
+		  );
+
 		local $Archive::Tar::CHMOD = 0;
 		my $xz = IO::Uncompress::UnXz->new($from);
 		my @fl = @filelist = Archive::Tar->extract_archive( \$xz, 1 );
@@ -615,7 +623,9 @@ sub _extract_filemap {
 			} ## end foreach my $member (@members)
 		} ## end while ( my ( $f, $t ) = each...)
 
-	} elsif ( $archive =~ m{[.] tar [.] gz | [.] tgz | [.] tar [.] bz2 | [.] tbz }msx ) {
+	} elsif ( $archive =~
+		m{[.] tar [.] gz | [.] tgz | [.] tar [.] bz2 | [.] tbz }msx )
+	{
 		local $Archive::Tar::CHMOD = 0;
 		my $tar = Archive::Tar->new($archive);
 		for my $file ( $tar->get_files() ) {

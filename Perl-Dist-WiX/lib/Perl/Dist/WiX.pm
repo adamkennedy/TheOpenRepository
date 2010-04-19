@@ -2461,7 +2461,8 @@ sub msi_product_icon_id {
 	# Get the icon ID if we can.
 	if ( defined $self->msi_product_icon() ) {
 		return 'I_'
-		  . $self->_icons()->search_icon( $self->msi_product_icon()->stringify() );
+		  . $self->_icons()
+		  ->search_icon( $self->msi_product_icon()->stringify() );
 	} else {
 		## no critic (ProhibitExplicitReturnUndef)
 		return undef;
@@ -2678,7 +2679,7 @@ sub msi_perl_major_version {
 		'5100' => [ 5, 9,  127 ],
 		'5101' => [ 5, 10, 0 ],
 		'5120' => [ 5, 11, 127 ],
-		'git'  => [ 5, 12, 127 ], # 'git' should now be 5.13.0
+		'git'  => [ 5, 12, 127 ],      # 'git' should now be 5.13.0
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
 
@@ -4575,7 +4576,7 @@ sub as_string {
 		(   directory_tree =>
 			  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
 		) );
-} ## end sub as_string
+}
 
 =head2 process_template
 
@@ -4600,17 +4601,14 @@ sub process_template {
 
 	my $answer;
 	my $tt_answer;
-	my %vars = (
-		@vars_in,
-		dist => $self,
-	);
-	
+	my %vars = ( @vars_in, dist => $self, );
+
 	$tt_answer = $tt->process( $template_file, \%vars, \$answer );
 
 	PDWiX::Caught->throw(
 		info    => 'Template',
 		message => $tt->error()->as_string() ) if not $tt_answer;
-		
+
 #<<<
 	# Delete empty lines.
 	## no critic(ProhibitComplexRegexes)

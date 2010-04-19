@@ -191,7 +191,7 @@ sub checkpoint_load {
 	}
 
 	$self->trace_line( 1, "Preparing to restore checkpoint\n" );
-	
+
 	# If we want a future checkpoint, save it.
 	my $checkpoint_after = $self->checkpoint_after() || 0;
 	my $checkpoint_stop  = $self->checkpoint_stop()  || 0;

@@ -276,7 +276,7 @@ has _traceobject => (
 
 sub _build_traceobject {
 	my $self = shift;
-	
+
 	return WiX3::Traceable->new( tracelevel => $self->_get_trace() );
 }
 
@@ -506,9 +506,9 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 		my $i = $self->_get_state($name);
 		push @params, @{ $self->_get_options($name)->[$i] };
 	}
-	push @params, ('_trace_object' => $self->_get_traceobject());
-	push @params, ('trace' => $self->_get_trace());
-	
+	push @params, ( '_trace_object' => $self->_get_traceobject() );
+	push @params, ( 'trace'         => $self->_get_trace() );
+
 	# Create the object with those params
 	return $self->_get_class()->new(@params);
 } ## end sub next
@@ -538,7 +538,7 @@ sub run {
 	my $success    = 0;
 	my $output_dir = $self->_get_output();
 	my $num        = 0;
-	
+
 	while ( my $dist = $self->next() ) {
 		$dist->prepare();
 		$num++;

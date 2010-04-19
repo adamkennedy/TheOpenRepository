@@ -14,11 +14,10 @@ $VERSION =~ s/_//ms;
 # Error Handling
 
 use Exception::Class (
-	'PDWiX'            => { 'description' => 'Perl::Dist::WiX error', },
+	'PDWiX'       => { 'description' => 'Perl::Dist::WiX error', },
 	'PDWiX::Stop' => {
-		'description' =>
-		  'Perl::Dist::WiX error: Debugging stop.',
-		'isa'    => 'PDWiX',
+		'description' => 'Perl::Dist::WiX error: Debugging stop.',
+		'isa'         => 'PDWiX',
 	},
 	'PDWiX::Parameter' => {
 		'description' =>
@@ -90,7 +89,7 @@ sub PDWiX::Stop::full_message {
 	$string .= "\n" . $self->trace() . "\n";
 
 	return $string;
-} ## end sub PDWiX::full_message
+} ## end sub PDWiX::Stop::full_message
 
 sub PDWiX::Parameter::full_message {
 	my $self = shift;
@@ -168,20 +167,20 @@ sub PDWiX::Caught::Storable::full_message {
 
 	my $dump = Data::Dump::Streamer->new();
 	$dump->Ignore(
-		'Template' => 1, 
-		'URI::file' => 1,
-		'URI::http' => 1,
-		'LWP::UserAgent' => 1, 
-		'Path::Class::Dir' => 1, 
-		'Path::Class::File' => 1,
-		'Perl::Dist::WiX::Fragment::Files' => 1,
+		'Template'                             => 1,
+		'URI::file'                            => 1,
+		'URI::http'                            => 1,
+		'LWP::UserAgent'                       => 1,
+		'Path::Class::Dir'                     => 1,
+		'Path::Class::File'                    => 1,
+		'Perl::Dist::WiX::Fragment::Files'     => 1,
 		'Perl::Dist::WiX::Fragment::StartMenu' => 1,
-		'Perl::Dist::WiX::DirectoryTree2' => 1,
-		'Perl::Dist::WiX::Toolchain' => 1,	
-		'Perl::Dist::WiX::FeatureTree2' => 1,
-		'WiX3::XML::GeneratesGUID::Object' => 1,
-		'WiX3::Trace::Object' => 1,
-		'WiX3::Traceable' => 1,
+		'Perl::Dist::WiX::DirectoryTree2'      => 1,
+		'Perl::Dist::WiX::Toolchain'           => 1,
+		'Perl::Dist::WiX::FeatureTree2'        => 1,
+		'WiX3::XML::GeneratesGUID::Object'     => 1,
+		'WiX3::Trace::Object'                  => 1,
+		'WiX3::Traceable'                      => 1,
 	);
 	$dump->Data( $self->object() )->Indent(2)->Names('*self');
 	$dump->Deparse(0)->CodeStub('sub {"CODE!"}');
