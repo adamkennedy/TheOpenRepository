@@ -287,9 +287,26 @@ CharTokenizeResults WordToken::commit(Tokenizer *t) {
 		t->changeTokenType( Token_Separator );
 		t->_finalize_token();
 		t->zone = Token_End;
-		t->TokenTypeNames_pool[ Token_Comment ]->commit( t );
-		t->_tokenize_the_rest_of_the_line();
+		t->_new_token( Token_Comment );
+		Token *comment = t->c_token;
+		while ( t->line_length > t->line_pos ) {
+			unsigned char c_char = t->c_line[ t->line_pos ];
+			if ( c_char == t->local_newline )
+				break;
+			comment->text[comment->length++] = c_char;
+			t->line_pos++;
+		}
 		t->_finalize_token();
+		t->_new_token( Token_Whitespace );
+		Token *ws = t->c_token;
+		while ( t->line_length > t->line_pos ) {
+			ws->text[ws->length++] = t->c_line[ t->line_pos++ ];
+		}
+		t->_finalize_token();
+
+		//t->TokenTypeNames_pool[ Token_Comment ]->commit( t );
+		//t->_tokenize_the_rest_of_the_line();
+		//t->_finalize_token();
 		t->_new_token( Token_End );
 		return done_it_myself;
 	}

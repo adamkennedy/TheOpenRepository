@@ -164,7 +164,7 @@ HeredocBodyStates HereDocToken::Unpospone( Tokenizer *t, ExtendedToken *self, co
 	// will reach here only in the beginning of a line
 	ExtendedToken::section &key = self->modifiers;
 	ExtendedToken::section &value = self->sections[ 1 ];
-	PredicateZeroOrMore< PredicateFunc< is_newline > > regex1;
+	PredicateFunc< is_newline > regex1;
 	unsigned long pos = key.size;
 	self->current_section = 2;
 
@@ -177,8 +177,7 @@ HeredocBodyStates HereDocToken::Unpospone( Tokenizer *t, ExtendedToken *self, co
 
 	if ( ( length > key.size ) && 
 		 ( !strncmp( line, &self->text[ key.position ], key.size  ) ) &&
-		 regex1.test( line, &pos, length ) && 
-		 ( pos == length ) ) {
+		 regex1.test( line, &pos, length ) ) {
 		// found end line
 		self->state = 1;
 		self->text[self->length] = '\0';

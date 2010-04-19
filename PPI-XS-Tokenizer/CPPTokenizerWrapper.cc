@@ -353,23 +353,25 @@ namespace PPITokenizer {
       unsigned long line_end = line_start;
       while (( line_end < limit ) && ( token->text[line_end] != '\n' ))
         ++line_end;
+      if ( line_end < limit ) // copy the newline too
+        ++line_end;
 
-      if (line_end >= limit - 1) {
+      if (line_end >= limit) {
         // the last line
         if ( token->state == 0 ) {
           // uncomplete HereDoc
-          av_push( lines, newSVpvn(token->text + line_start, line_end - line_start + 1) );
+          av_push( lines, newSVpvn(token->text + line_start, line_end - line_start) );
           hv_stores( objHash, "_damaged", newSViv(1) );
           hv_stores( objHash, "_terminator_line", &PL_sv_undef ); // undef
         } else {
           // contains the terminator - the last line, (of the stopper) including the '\n'
-          hv_stores( objHash, "_terminator_line", newSVpvn(token->text + line_start, line_end - line_start + 1) );
+          hv_stores( objHash, "_terminator_line", newSVpvn(token->text + line_start, line_end - line_start) );
         }
         break;
       }
       else {
-        av_push( lines, newSVpvn(token->text + line_start, line_end - line_start + 1) );
-        line_start = line_end + 1;
+        av_push( lines, newSVpvn(token->text + line_start, line_end - line_start) );
+        line_start = line_end;
       }
     }
     hv_stores( objHash, "_heredoc", newRV((SV*)lines) );

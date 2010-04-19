@@ -74,14 +74,22 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 		// FIXME: I'm not going to handle "use v6-alpha;" - Perl6 blocks
 	}
 
-    if ( c_char < 128 ) {
-        if ( commit_map[c_char] == Token_Whitespace ) {
-			return my_char;
-		}
-        if ( commit_map[c_char] != Token_NoType ) {
-            // this is the first char of some token
-			return t->TokenTypeNames_pool[commit_map[c_char]]->commit( t );
-        }
+	while ( t->line_pos < t->line_length ) {
+		c_char = t->c_line[t->line_pos];
+		if ( ( c_char >= 128 ) || ( commit_map[c_char] != Token_Whitespace ) )
+			break;
+		token->text[token->length++] = c_char;
+		t->line_pos++;
+	}
+	if ( t->line_pos == t->line_length ) {
+		TokenTypeNames zone = t->_finalize_token();
+		t->_new_token(zone);
+		return done_it_myself;
+	}
+
+    if ( ( c_char < 128 ) && ( commit_map[c_char] != Token_NoType ) ) {
+        // this is the first char of some token
+		return t->TokenTypeNames_pool[commit_map[c_char]]->commit( t );
     }
 	
 	if (c_char == 40) { // '('
@@ -270,12 +278,6 @@ CharTokenizeResults CommentToken::commit(Tokenizer *t) {
 	TokenTypeNames zone = t->_finalize_token();
 	t->_new_token(zone);
 	return done_it_myself;
-	//t->_finalize_token();
-	//if ( t->c_line[t->line_pos] == t->local_newline ) {
-	//	t->_new_token(Token_Whitespace);
-	//}
-
- //   return done_it_myself;
 }
 
 CharTokenizeResults CommentToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
@@ -285,10 +287,4 @@ CharTokenizeResults CommentToken::tokenize(Tokenizer *t, Token *token, unsigned 
 		t->_new_token(zone);
 	}
 	return done_it_myself;
-	//if (c_char == t->local_newline ) {
-	//	t->_finalize_token();
-	//	t->_new_token(Token_Whitespace);
-	//	return t->c_token->type->tokenize(t, t->c_token, c_char);
-	//}
-	//return my_char;
 }

@@ -435,6 +435,7 @@ void Tokenizer::EndOfDocument() {
 		_finalize_token();
 	while ( NULL != tokens_posponded_head ) {
 		Token *tkn = tokens_posponded_head;
+		tkn->text[tkn->length] = '\0';
 		tokens_posponded_head = tkn->next;
 		chain_token(tkn, tokens_found_head, tokens_found_tail);
 	}
@@ -490,6 +491,8 @@ LineTokenizeResults Tokenizer::_tokenize_the_rest_of_the_line() {
                 return tokenizing_fail;
         };
     }
+	if ( ( c_token != NULL ) && ( c_token->type->type == Token_Whitespace ) ) {
+	}
     return reached_eol;
 }
 
