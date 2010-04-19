@@ -110,7 +110,7 @@ SCOPE: {
 	is( scalar(@latest), 10, 'Found the 10 latest results' );
 	foreach ( @latest ) {
 		isa_ok( $_, 'CPANDB::Distribution' );
-		is( $_->quadrant, 1, $_->distribution . ' is in quadrant 1' );
+		is( $_->quartile, 1, $_->distribution . ' is in quartile 1' );
 	}
 }
 
