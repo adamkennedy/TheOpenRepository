@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.95;
+use inc::Module::Install::DSL;
 
-name     Top100-Mojo
-requires Mojolicious::Lite
+all_from lib/Top100/Mojo.pm
+requires Mojo 0.9003
