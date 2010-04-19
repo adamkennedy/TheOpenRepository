@@ -141,7 +141,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 
 		if ( ( t0_type == Token_Structure ) && ( !strcmp(t0->text, "}" ) ) ) {
 			if ( scan_ahead_for_lineread(t) ) {
-				t->_new_token(Token_Operator);
+				t->_new_token(Token_QuoteLike_Readline);
 				return my_char;
 			}
 		}
