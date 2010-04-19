@@ -6,7 +6,7 @@ use warnings;
 use DateTime ();
 use ORLite::Statistics;
 
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 my $today = DateTime->today( time_zone => 'UTC' );
 
