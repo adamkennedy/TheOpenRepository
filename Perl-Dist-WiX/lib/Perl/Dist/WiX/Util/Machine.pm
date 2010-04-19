@@ -67,7 +67,7 @@ variations of a distribution at the same time.
 use 5.008001;
 use Moose 0.90;
 use Moose::Util::TypeConstraints;
-use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool );
+use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool Int );
 use Params::Util qw( _IDENTIFIER _HASH0 _DRIVER _CLASSISA );
 use English qw( -no_match_vars );
 use File::Copy qw();
@@ -77,6 +77,7 @@ use File::Remove qw();
 use File::HomeDir qw();
 use List::MoreUtils qw( none );
 use Perl::Dist::WiX::Exceptions;
+use WiX3::Traceable qw();
 
 our $VERSION = '1.102_103';
 $VERSION =~ s/_//ms;
@@ -89,6 +90,7 @@ $VERSION =~ s/_//ms;
 		class => 'Perl::Dist::WiX',
 		common => { forceperl => 1, },
 		output => 'C:\',
+		trace  => 2,
 	);
 
 This method creates a new object that generates multiple distributions,
@@ -196,6 +198,25 @@ has skip => (
 
 
 
+=head3 trace (optional)
+
+This is the trace level for all objects.
+
+If none is specified, it defaults to 1.
+
+=cut
+
+
+
+has trace => (
+	is      => 'ro',
+	isa     => Int,
+	default => 1,
+	reader  => '_get_trace',
+);
+
+
+
 has _dimensions => (
 	traits   => ['Array'],
 	is       => 'bare',
@@ -244,6 +265,20 @@ has _eos => (
 	reader   => '_get_eos',
 	handles  => { '_set_eos' => 'set', },
 );
+
+has _traceobject => (
+	is       => 'bare',
+	init_arg => undef,
+	lazy     => 1,
+	reader   => '_get_traceobject',
+	builder  => '_build_traceobject',
+);
+
+sub _build_traceobject {
+	my $self = shift;
+	
+	return WiX3::Traceable->new( tracelevel => $self->_get_trace() );
+}
 
 
 #####################################################################
@@ -471,7 +506,9 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 		my $i = $self->_get_state($name);
 		push @params, @{ $self->_get_options($name)->[$i] };
 	}
-
+	push @params, ('_trace_object' => $self->_get_traceobject());
+	push @params, ('trace' => $self->_get_trace());
+	
 	# Create the object with those params
 	return $self->_get_class()->new(@params);
 } ## end sub next
@@ -501,7 +538,7 @@ sub run {
 	my $success    = 0;
 	my $output_dir = $self->_get_output();
 	my $num        = 0;
-
+	
 	while ( my $dist = $self->next() ) {
 		$dist->prepare();
 		$num++;
