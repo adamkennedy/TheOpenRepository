@@ -17,7 +17,7 @@ This document describes Perl::Dist::WiX::Checkpoint version 1.102_103.
 
 	$dist = Perl::Dist::WiX->new(
 		# ...
-		checkpoint_before => 5
+		checkpoint_before => 5,
 		checkpoint_after => [8, 9],
 		checkpoint_stop => 9,
 		# ...
