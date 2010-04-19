@@ -6,6 +6,8 @@ use warnings;
 use Time::HiRes  ();
 use Getopt::Long ();
 
+=pod
+
 =head1 NAME
 
 cpangraph - Generate dependency chain graphs for CPAN modules
@@ -15,6 +17,7 @@ cpangraph - Generate dependency chain graphs for CPAN modules
 Version 0.12
 
 =cut
+
 our $VERSION = '0.13';
 
 use CPANDB ();
@@ -25,6 +28,8 @@ my $PHASE   = undef;
 my $VERBOSE = 0;
 my $RANKDIR = 0;
 my $REVERSE = 0;
+
+=pod
 
 =head1 SYNOPSIS
 
@@ -137,6 +142,8 @@ $dist->$method(
 	phase   => $PHASE,
 	rankdir => $RANKDIR,
 )->as_svg("$file.svg");
+
+=pod
 
 =head1 AUTHOR
 

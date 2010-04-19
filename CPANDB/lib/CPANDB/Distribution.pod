@@ -308,7 +308,6 @@ following SQL command.
       )
   )
 
-
 =head1 SUPPORT
 
 CPANDB::Distribution is part of the L<CPANDB> API.
