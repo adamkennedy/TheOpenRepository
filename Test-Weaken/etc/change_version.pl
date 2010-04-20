@@ -8,7 +8,8 @@ use Carp;
 
 our $FH;
 
-Carp::croak("usage: $0: old_version new_version") unless scalar @ARGV == 2;
+Carp::croak("usage: $PROGRAM_NAME: old_version new_version")
+    unless scalar @ARGV == 2;
 
 my ( $old, $new ) = @ARGV;
 

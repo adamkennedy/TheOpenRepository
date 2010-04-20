@@ -14,24 +14,22 @@ use Test::Weaken::Test;
 
 BEGIN {
     Test::More::use_ok('Test::Weaken');
-    print Test::Weaken->VERSION, "\n";
 }
 
 our $OVERLOAD_CALLS = 0;
 
 package MyOverload;
 use Carp;
-use overload '+' => \&add;
+use overload '+'    => \&add;
 use overload 'bool' => \&bool;
 
 sub new {
     my ( $class, $x ) = @_;
-    print $x, "\n";
     return bless \$x, $class;
 }
 
 sub bool { $::OVERLOAD_CALLS++; return 1; }
-sub add { $::OVERLOAD_CALLS++; return 0; }
+sub add  { $::OVERLOAD_CALLS++; return 0; }
 
 package main;
 
@@ -45,4 +43,5 @@ my $leaks = Test::Weaken::leaks(
 );
 
 Test::More::ok( $leaks, 'CPAN Bug ID 56722 leaks' );
-Test::Weaken::Test::is( $::OVERLOAD_CALLS, 0, 'CPAN Bug ID 56722 no calls to overload functions' );
+Test::Weaken::Test::is( $::OVERLOAD_CALLS, 0,
+    'CPAN Bug ID 56722 no calls to overload functions' );

@@ -75,12 +75,14 @@ sub follow {
     my %already_followed = ();
     my %already_tracked  = ();
 
-    FOLLOW_OBJECT: while ( defined ( my $follow_probe = pop @follow_probes ) ) {
+    FOLLOW_OBJECT:
+    while ( defined( my $follow_probe = pop @follow_probes ) ) {
 
         # The follow probes are to objects which either will not be
         # tracked or which have already been added to @tracking_probes
 
-        next FOLLOW_OBJECT if $already_followed{ Scalar::Util::refaddr $follow_probe }++;
+        next FOLLOW_OBJECT
+            if $already_followed{ Scalar::Util::refaddr $follow_probe }++;
 
         my $object_type = reftype $follow_probe;
 
@@ -93,7 +95,7 @@ sub follow {
                 ->Maxdepth($trace_maxdepth)->Dump
                 or Carp::croak("Cannot print to STDOUT: $ERRNO");
             ## use critic
-        }
+        } ## end if ($trace_following)
 
         if ( defined $contents ) {
             my $safe_copy = $follow_probe;
@@ -125,7 +127,7 @@ sub follow {
                 }
                 push @child_probes, map { \$_ } values %{$follow_probe};
                 last FIND_CHILDREN;
-            }
+            } ## end if ( $object_type eq 'HASH' )
 
             # GLOB and LVALUE are not tracked by default,
             # but we follow ties
@@ -160,7 +162,9 @@ sub follow {
 
             my $new_tracking_probe = $child_probe;
 
-            next CHILD_PROBE if $already_tracked{ Scalar::Util::refaddr $new_tracking_probe }++;
+            next CHILD_PROBE
+                if $already_tracked{ Scalar::Util::refaddr $new_tracking_probe
+                    }++;
 
             if ( defined $ignore ) {
                 my $safe_copy = $new_tracking_probe;

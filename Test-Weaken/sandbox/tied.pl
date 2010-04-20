@@ -140,7 +140,7 @@ while ( my ( $name, $ref ) = each %data ) {
         $return = eval { tie ${$ref}, 'MyTie'; 1 };
         ## use critic
     }
-    print $return ? "ok\n" : "tie failed: $@"
+    print $return ? "ok\n" : "tie failed: $EVAL_ERROR"
         or Carp::croak("Cannot print to STDOUT: $ERRNO");
     my $underlying = q{};
     if ( $star_deref{$name} ) {
