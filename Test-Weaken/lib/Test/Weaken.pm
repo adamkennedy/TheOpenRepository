@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '3.002000';
+our $VERSION   = '3.003_000';
 
 # use Smart::Comments;
 
@@ -42,7 +42,7 @@ package Test::Weaken::Internal;
 
 use English qw( -no_match_vars );
 use Carp;
-use Scalar::Util qw(refaddr reftype isweak weaken);
+use Scalar::Util qw(reftype isweak weaken);
 
 my @default_tracked_types = qw(REF SCALAR VSTRING HASH ARRAY CODE);
 
@@ -75,12 +75,12 @@ sub follow {
     my %already_followed = ();
     my %already_tracked  = ();
 
-    FOLLOW_OBJECT: while ( my $follow_probe = pop @follow_probes ) {
+    FOLLOW_OBJECT: while ( defined ( my $follow_probe = pop @follow_probes ) ) {
 
         # The follow probes are to objects which either will not be
         # tracked or which have already been added to @tracking_probes
 
-        next FOLLOW_OBJECT if $already_followed{ $follow_probe + 0 }++;
+        next FOLLOW_OBJECT if $already_followed{ Scalar::Util::refaddr $follow_probe }++;
 
         my $object_type = reftype $follow_probe;
 
@@ -160,7 +160,7 @@ sub follow {
 
             my $new_tracking_probe = $child_probe;
 
-            next CHILD_PROBE if $already_tracked{ $new_tracking_probe + 0 }++;
+            next CHILD_PROBE if $already_tracked{ Scalar::Util::refaddr $new_tracking_probe }++;
 
             if ( defined $ignore ) {
                 my $safe_copy = $new_tracking_probe;

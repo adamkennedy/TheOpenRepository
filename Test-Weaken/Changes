@@ -1,5 +1,9 @@
 Revision history for Test-Weaken
 
+3.003_000 Mon Apr 19 17:24:20 2010
+        * Development release.
+        * Ticket 56722: When addition is overloaded, it confuses Test::Weaken
+
 3.002000 Sat Aug  1 15:40:36 2009
         Now descends into objects underlying tied objects.
         Added tracked_types named option.

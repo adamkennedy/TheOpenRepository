@@ -1,26 +1,27 @@
-author.t/critic1
+Changes
+MANIFEST
+META.yml # Will be created by "make dist"
+Makefile.PL
+README
+author.t/Makefile
 author.t/critic.t
+author.t/critic1
 author.t/display.t
 author.t/do_tidy.pl
-author.t/Makefile
 author.t/perlcriticrc
 author.t/perltidyrc
 author.t/tidy1
-Changes
+etc/Makefile
 etc/change_version.pl
 etc/check_links.pl
 etc/last_minute_check.sh
-etc/Makefile
 etc/not_in_manifest.pl
 lib/Test/Weaken.pm
-Makefile.PL
-MANIFEST
-META.yml # Will be created by "make dist"
-README
 sandbox/elements.pl
 sandbox/reftypes.pl
 sandbox/tied.pl
 t/00-load.t
+t/Makefile
 t/array.t
 t/bug42903.t
 t/circular.t
@@ -29,7 +30,7 @@ t/faux_gtk.t
 t/filehandle.t
 t/ignore.t
 t/lib/Test/Weaken/Test.pm
-t/Makefile
+t/overload.t
 t/poof.t
 t/snippet.t
 t/stein.t
