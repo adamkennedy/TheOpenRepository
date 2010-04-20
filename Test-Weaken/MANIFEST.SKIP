@@ -1,0 +1,11 @@
+/\.svn/*
+^Makefile$
+^Test-Weaken-[0-9].[0-9]{3}_[0-9]{3}/
+^Test-Weaken-[0-9].[0-9]{6}/
+^\.svn/
+^author\.t/display\.errs$
+^author\.t/perlcritic\.errs$
+^blib/
+^junk$
+^pm_to_blib$
+^save/
