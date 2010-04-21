@@ -1512,6 +1512,27 @@ has 'trace' => (
 
 
 
+=head3 use_dll_relocation
+
+The optional C<use_dll_relocation> parameter specifies whether to use the
+C++ relocation dll that's being tested for relocating perl, or to call a 
+Perl relocation script from the .msi's.
+
+This parameter has no effect is the C<msi> parameter is false, or if the
+C<relocatable> parameter is false.
+
+The default is false, so as to use the Perl relocation script instead.
+
+=cut
+
+has 'use_dll_relocation' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
 =head3 user_agent
 
 The C<user_agent> parameter stores the L<LWP::UserAgent|LWP::UserAgent> 
