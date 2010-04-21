@@ -192,6 +192,7 @@ sub install_gcc_toolchain {
 		my $filelist2 = $self->install_binary(
 			name => 'gcc-license',
 			url  => $self->_binary_url('gcc-license'),
+			install_to => q{.},
 		);
 		$self->insert_fragment( 'gcc_license', $filelist2 );
 	}
