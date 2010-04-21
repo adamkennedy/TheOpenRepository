@@ -71,7 +71,7 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 	}
 	
 	// Shortcut for most of the X:: symbols
-	if ( ( token->length == 2 ) && ( !strcmp(token->text, "$::") )) {
+	if ( ( token->length == 3 ) && ( !strcmp(token->text, "$::") )) {
 		// May well be an alternate form of a Magic
 		if ( t->c_line[t->line_pos] == '|' ) {
 			token->text[token->length++] = c_char = t->c_line[t->line_pos++];
