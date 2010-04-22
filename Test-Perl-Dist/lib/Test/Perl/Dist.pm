@@ -20,8 +20,8 @@ our @EXPORT =
   test_verify_files_long test_verify_portability test_cleanup);
 push @EXPORT, @Test::More::EXPORT;
 
-our $VERSION = '0.203';
-$VERSION = eval $VERSION; ##no critic(RequireConstantVersion)
+our $VERSION = '0.300';
+$VERSION =~ s/_//ms;
 
 my $tests_completed = 0;
 
@@ -50,10 +50,12 @@ sub _remake_path {
 sub _paths {
 	my $class = shift;
 	my $subpath = shift || q{};
+	my $testpath = shift || 't';
 
- # Create base and download directory so we can do a GetShortPathName on it.
-	my $basedir  = rel2abs( catdir( 't', "tmp$subpath" ) );
-	my $download = rel2abs( catdir( 't', 'download' ) );
+	# Create base and download directory so we can do a 
+	# GetShortPathName on it.
+	my $basedir  = rel2abs( catdir( $testpath, "tmp$subpath" ) );
+	my $download = rel2abs( catdir( $testpath, 'download' ) );
 
 	if ( $basedir =~ m{\s}sm ) {
 		plan( skip_all =>
@@ -112,18 +114,6 @@ sub _force {
 	}
 }
 
-##sub _cpan {
-##	if ( $ENV{PERL_TEST_PERLDIST_CPAN} ) {
-##		return URI->new( $ENV{PERL_TEST_PERLDIST_CPAN} );
-##	}
-##	my $path = rel2abs( catdir( 't', 'data', 'cpan' ) );
-##	Test::More::ok( -d $path, 'Found CPAN directory' );
-##	Test::More::ok( -d catdir( $path, 'authors', 'id' ),
-##		'Found id subdirectory' );
-##	$tests_completed += 2;
-##	return URI::file->new( $path . q{\\} );
-##}
-
 
 
 sub new_test_class_short {
@@ -131,6 +121,7 @@ sub new_test_class_short {
 	my $test_number   = shift;
 	my $test_version  = shift;
 	my $class_to_test = shift;
+	my $testpath      = shift;
 
 	if ( $OSNAME ne 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
@@ -144,7 +135,7 @@ sub new_test_class_short {
 	  $self->create_test_class_short( $test_number, $test_version,
 		$class_to_test );
 	my $test_object = eval {
-		my $obj = $test_class->new( $self->_paths($test_number),
+		my $obj = $test_class->new( $self->_paths($test_number, $testpath),
 			$self->_cpan_release(), $self->_forceperl(), $self->_force(),
 			@_ );
 		return $obj;
@@ -175,6 +166,7 @@ sub new_test_class_medium {
 	my $test_number   = shift;
 	my $test_version  = shift;
 	my $class_to_test = shift;
+	my $testpath      = shift;
 
 	if ( $OSNAME ne 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
@@ -188,7 +180,7 @@ sub new_test_class_medium {
 	  $self->create_test_class_medium( $test_number, $test_version,
 		$class_to_test );
 	my $test_object = eval {
-		$test_class->new( $self->_paths($test_number),
+		$test_class->new( $self->_paths($test_number, $testpath),
 			$self->_cpan_release(), $self->_forceperl(), $self->_force(),
 			@_ );
 	};
@@ -219,6 +211,7 @@ sub new_test_class_long {
 	my $test_number   = shift;
 	my $test_version  = shift;
 	my $class_to_test = shift;
+	my $testpath      = shift;
 
 	if ( $OSNAME ne 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
@@ -232,7 +225,7 @@ sub new_test_class_long {
 	  $self->create_test_class_long( $test_number, $test_version,
 		$class_to_test );
 	my $test_object = eval {
-		$test_class->new( $self->_paths($test_number),
+		$test_class->new( $self->_paths($test_number, $testpath),
 			$self->_cpan_release(), $self->_forceperl(), $self->_force(),
 			@_ );
 	};
@@ -304,7 +297,8 @@ sub test_add {
 
 sub test_verify_files_short {
 	my $test_number = shift;
-	my $test_dir = catdir( 't', "tmp$test_number", qw{ image c bin } );
+	my $testpath    = shift || 't';
+	my $test_dir = catdir( $testpath, "tmp$test_number", qw{ image c bin } );
 
 	ok( -f catfile( $test_dir, qw{ dmake.exe } ), 'Found dmake.exe' );
 
@@ -321,9 +315,10 @@ sub test_verify_files_short {
 sub test_verify_files_medium {
 	my $test_number = shift;
 	my $dll_version = shift;
-
+	my $testpath    = shift || 't';
+	
 	my $dll_file = "perl${dll_version}.dll";
-	my $test_dir = catdir( 't', "tmp$test_number", 'image' );
+	my $test_dir = catdir( $testpath, "tmp$test_number", 'image' );
 
 	# C toolchain files
 	ok( -f catfile( $test_dir, qw{ c bin dmake.exe } ), 'Found dmake.exe',
@@ -534,9 +529,10 @@ EOF
 sub test_verify_files_long {
 	my $test_number = shift;
 	my $dll_version = shift;
+	my $testpath    = shift || 't';
 
 	my $dll_file = "perl${dll_version}.dll";
-	my $test_dir = catdir( 't', "tmp$test_number", 'image' );
+	my $test_dir = catdir( $testpath, "tmp$test_number", 'image' );
 
 	# C toolchain files
 	ok( -f catfile( $test_dir, qw{ c bin dmake.exe } ), 'Found dmake.exe',
@@ -591,6 +587,7 @@ sub test_verify_files_long {
 sub test_verify_portability {
 	my $test_number   = shift;
 	my $base_filename = shift;
+	my $testpath    = shift || 't';
 
 	my $test_dir = catdir( 't', "tmp$test_number" );
 
@@ -616,11 +613,12 @@ sub test_verify_portability {
 
 sub test_cleanup {
 	my $test_number = shift;
+	my $testpath    = shift || 't';
 
 	if ( Test::Builder->new()->is_passing() ) {
 
 		diag('Removing build files on successful test.');
-		my $dir = catdir( 't', "tmp$test_number" );
+		my $dir = catdir( $testpath, "tmp$test_number" );
 		File::Remove::remove( \1, $dir );
 	} else {
 		diag('Did not pass, so not removing files.');
@@ -645,7 +643,7 @@ __END__
 
 =begin readme text
 
-Test::Perl::Dist version 0.203
+Test::Perl::Dist version 0.300
 
 =end readme
 
@@ -695,20 +693,21 @@ Alternatively, to install with Module::Build, you can use the following commands
 		$^W = 1;
 	}
 
-	use Test::Perl::Dist;
+	use Test::Perl::Dist 0.300;
+	use File::Spec::Funxtions qw(catdir);
 
 	#####################################################################
 	# Complete Generation Run
 
 	# Create the dist object
 	my $dist = Test::Perl::Dist->new_test_class_medium(
-		901, '589', 'Perl::Dist::Strawberry', 
+		901, '589', 'Perl::Dist::Strawberry', catdir(qw(xt release))
 		msi => 0
 	);
 
 	test_run_dist( $dist );
 
-	test_verify_files_medium(901, '58');
+	test_verify_files_medium(901, '58', catdir(qw(xt release));
 
 	done_testing();
 
@@ -731,7 +730,7 @@ The only difference is in L<done_testing|/done_testing>, as documented below.
 =head2 new_test_class_long
 
 	my $dist = Test::Perl::Dist->new_test_class_medium(
-		901, '589', 'Perl::Dist::Strawberry', 
+		901, '589', 'Perl::Dist::Strawberry', catdir(qw(xt release)),
 		msi => 0
 	);
 
@@ -739,8 +738,8 @@ Returns a distribution class to run and test against that is a subclass
 of the class being tested.
 
 The first parameter is the test number, the second refers to the version of 
-perl to build (589 for perl 5.8.9, for instance) and the third is the class 
-being tested.
+perl to build (589 for perl 5.8.9, for instance), the third is the class 
+being tested, and the fourth is the directory the test is in.
 
 Any parameters after that are passed to the constructor of the distribution 
 class, which passes them on to the class being tested.
@@ -767,29 +766,33 @@ exception is printed, and all testing is stopped.
 =head2 test_verify_files_medium
 =head2 test_verify_files_long
 
-	test_verify_files_medium(901, '58');
+	test_verify_files_medium(901, '58', catdir(qw(xt release)));
 
 This checks that certain files were created.
 
 The first parameter is the test number, the second parameter refers to the 
 first two parts of the perl version ('58' for 5.8.9, '510' for 5.10.0 or 
-5.10.1).
+5.10.1), and the third parameter is the directory the test is in.
 
 =head2 test_verify_portability
 
-	test_verify_portability(901, $dist->output_base_filename());
+	test_verify_portability(901, $dist->output_base_filename(), catdir(qw(xt release)));
 
 This checks that certain files were created that are required for a 
 portable distribution.
 
 The first parameter is the test number, the second parameter is the base 
-filename of the dist being tested, as returned from output_base_filename.
+filename of the dist being tested, as returned from output_base_filename, 
+and the third parameter is the directory the test is in.
 
-=head2 done_testing
+=head2 test_cleanup
 
-	test_cleanup(901);
+	test_cleanup(901, catdir(xt release));
 	
 This cleans up the build files if all tests have been successful.
+
+The first parameter is the test number, and the second parameter is the 
+directory the test is in.
 
 =head2 done_testing
 

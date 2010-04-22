@@ -1,5 +1,9 @@
 Changes for Perl extension Test-Perl-Dist
 
+0.300   Thu 22 Apr 2010
+    -  Now works with xt directories.
+       THIS REQUIRES AN INCOMPATIBLE API CHANGE.
+
 0.203   Sat 20 Mar 2010
     -  Updating to work with newest versions of 
        Perl::Dist classes.
