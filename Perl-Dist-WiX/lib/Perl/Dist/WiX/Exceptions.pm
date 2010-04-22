@@ -6,7 +6,7 @@ use warnings;
 use WiX3::Traceable qw();
 use Data::Dump::Streamer qw();
 
-our $VERSION = '1.102';
+our $VERSION = '1.200';
 $VERSION =~ s/_//ms;
 
 
@@ -248,7 +248,7 @@ Perl::Dist::WiX::Exceptions - Exception classes for Perl::Dist::WiX
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Exceptions version 1.102.
+This document describes Perl::Dist::WiX::Exceptions version 1.200.
 
 =head1 DESCRIPTION
 

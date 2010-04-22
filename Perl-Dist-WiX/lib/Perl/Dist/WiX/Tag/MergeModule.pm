@@ -8,7 +8,7 @@ Perl::Dist::WiX::Tag::MergeModule - <Merge> tag that makes its own <MergeRef> wh
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Tag::MergeModule version 1.102_103.
+This document describes Perl::Dist::WiX::Tag::MergeModule version 1.200.
 
 =head1 SYNOPSIS
 

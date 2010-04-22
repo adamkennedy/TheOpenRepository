@@ -8,7 +8,7 @@ Perl::Dist::WiX::Support - Provides support routines for building a Win32 perl d
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Support version 1.102_103.
+This document describes Perl::Dist::WiX::Support version 1.200.
 
 =head1 SYNOPSIS
 
@@ -39,7 +39,7 @@ use LWP::UserAgent qw();
 # TODO: We make an assumption that Archive::Tar can handle bz2 files.
 # Test to make sure that assumption is true.
 
-our $VERSION = '1.102_103';
+our $VERSION = '1.200';
 $VERSION =~ s/_//ms;
 
 

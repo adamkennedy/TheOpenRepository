@@ -6,7 +6,7 @@ Perl::Dist::WiX::Asset::Module - Module asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Module version 1.102_103.
+This document describes Perl::Dist::WiX::Asset::Module version 1.200.
 
 =head1 SYNOPSIS
 
@@ -34,7 +34,7 @@ require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
 
-our $VERSION = '1.102_103';
+our $VERSION = '1.200';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';

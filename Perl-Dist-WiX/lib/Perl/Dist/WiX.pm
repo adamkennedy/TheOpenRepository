@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.102_103
+Perl-Dist-WiX version 1.200
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.102_103.
+This document describes Perl::Dist::WiX version 1.200.
 
 =for readme continue
 
@@ -137,7 +137,7 @@ require WiX3::XML::GeneratesGUID::Object;
 require WiX3::Traceable;
 #>>>
 
-our $VERSION = '1.102_103';
+our $VERSION = '1.200';
 $VERSION =~ s/_//ms;
 
 

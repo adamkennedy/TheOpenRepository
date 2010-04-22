@@ -8,7 +8,7 @@ Perl::Dist::WiX::DirectoryTree2 - Base directory tree for Perl::Dist::WiX.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::DirectoryTree2 version 1.102_103.
+This document describes Perl::Dist::WiX::DirectoryTree2 version 1.200.
 
 =head1 SYNOPSIS
 
@@ -40,7 +40,7 @@ use MooseX::Types::Path::Class qw( Dir );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.102_103';
+our $VERSION = '1.200';
 $VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Tag::DirectoryRef - <DirectoryRef> tag that knows how to search
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Tag::DirectoryRef version 1.102_103.
+This document describes Perl::Dist::WiX::Tag::DirectoryRef version 1.200.
 
 =head1 SYNOPSIS
 
@@ -46,7 +46,7 @@ use File::Spec::Functions qw( catdir abs2rel );
 use Params::Util qw( _STRING _INSTANCE );
 require Perl::Dist::WiX::Tag::Directory;
 
-our $VERSION = '1.102_103';
+our $VERSION = '1.200';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::DirectoryRef';

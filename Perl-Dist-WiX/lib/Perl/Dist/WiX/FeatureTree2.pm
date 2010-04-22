@@ -8,7 +8,7 @@ Perl::Dist::WiX::FeatureTree2 - Tree of <Feature> tag objects.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::FeatureTree2 version 1.102_103.
+This document describes Perl::Dist::WiX::FeatureTree2 version 1.200.
 
 =head1 SYNOPSIS
 

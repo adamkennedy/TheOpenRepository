@@ -8,7 +8,7 @@ Perl::Dist::VanillaWiX - Minimal distribution of Perl, useful only for testing.
 
 =head1 VERSION
 
-This document describes Perl::Dist::VanillaWiX version 1.102.
+This document describes Perl::Dist::VanillaWiX version 1.200.
 
 =head1 DESCRIPTION
 
@@ -39,7 +39,7 @@ use strict;
 use warnings;
 use parent qw(Perl::Dist::WiX);
 
-our $VERSION = '1.102_103';
+our $VERSION = '1.200';
 $VERSION =~ s/_//ms;
 
 #####################################################################
@@ -58,7 +58,7 @@ sub new {
 	my %args;
 
 	# Check for the correct version of Perl::Dist::WiX.
-	Perl::Dist::WiX->VERSION(1.102103);
+	Perl::Dist::WiX->VERSION(1.200);
 
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };

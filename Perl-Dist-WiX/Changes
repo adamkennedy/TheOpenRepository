@@ -1,9 +1,9 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.102_103   Mon 19 Apr 2010
+1.200   Xxx ## Xxx 2010
     1. Documentation cleanup (including adding when required).
     2. Supports 5.12.0 final. Removes 5.11.5 support.
-    3. Used to build Strawberry Perl April 2010 Beta 2.
+    3. Used to build Strawberry Perl April 2010.
     4. Checkpointing works again.
     5. .tar.bz2 files are now usable as parameters to this module.
     6. (beta, untested) .tar.xz file support has also been added.

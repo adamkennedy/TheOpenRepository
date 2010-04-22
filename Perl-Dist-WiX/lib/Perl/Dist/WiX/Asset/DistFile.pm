@@ -8,13 +8,13 @@ Perl::Dist::WiX::Asset::DistFile - "Local Distribution" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::DistFile version 1.102_103.
+This document describes Perl::Dist::WiX::Asset::DistFile version 1.200.
 
 =head1 SYNOPSIS
 
   my $distribution = Perl::Dist::WiX::Asset::DistFile->new(
       parent   => $dist,
-      file     => 'C:\modules\Perl-Dist-WiX-1.102_103.tar.gz',
+      file     => 'C:\modules\Perl-Dist-WiX-1.200.tar.gz',
 	  mod_name => 'Perl::Dist::WiX',
       force    => 1,
   );
@@ -63,7 +63,7 @@ require URI;
 require File::Spec::Unix;
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.102_103';
+our $VERSION = '1.200';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
