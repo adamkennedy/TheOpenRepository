@@ -163,10 +163,32 @@ void stam() {
 int main(int argc, char* argv[])
 {
 	forward_scan2_unittest();
-	TestOnNodePm();
-	stam();
+	//TestOnNodePm();
+	//stam();
 	Tokenizer tk;
 	VerifyInheritence( tk.TokenTypeNames_pool );
+
+	Tokenize("package Foo::100;\n");
+	CheckToken(&tk, "package", Token_Word);
+	CheckToken(&tk, " ", Token_Whitespace);
+	CheckToken(&tk, "Foo::100", Token_Word);
+	CheckToken(&tk, ";", Token_Structure);
+	CheckToken(&tk, "\n", Token_Whitespace);
+
+	Tokenize("2*foo;\n");
+	CheckToken(&tk, "2", Token_Number);
+	CheckToken(&tk, "*", Token_Operator);
+	CheckToken(&tk, "foo", Token_Word);
+	CheckToken(&tk, ";", Token_Structure);
+	CheckToken(&tk, "\n", Token_Whitespace);
+
+	Tokenize("%^H=();\n");
+	CheckToken(&tk, "%^H", Token_Magic);
+	CheckToken(&tk, "=", Token_Operator);
+	CheckToken(&tk, "(", Token_Structure);
+	CheckToken(&tk, ")", Token_Structure);
+	CheckToken(&tk, ";", Token_Structure);
+	CheckToken(&tk, "\n", Token_Whitespace);
 
 	Tokenize("$::|=1;\n");
 	CheckToken(&tk, "$::|", Token_Magic);

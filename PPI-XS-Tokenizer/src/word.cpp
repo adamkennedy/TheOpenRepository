@@ -236,7 +236,7 @@ static TokenTypeNames commit_detect_type(Tokenizer *t, Token *token, Token *prev
 }
 
 CharTokenizeResults WordToken::commit(Tokenizer *t) {
-	// $rest =~ /^((?!\d)\w+(?:(?:\'|::)(?!\d)\w+)*(?:::)?)/
+	// $rest =~ /^((?!\d)\w+(?:(?:\'|::)\w+)*(?:::)?)/
 	PredicateAnd< 
 		PredicateNot< PredicateFunc< is_digit > >,
 		PredicateOneOrMore<
@@ -248,7 +248,6 @@ CharTokenizeResults WordToken::commit(Tokenizer *t) {
 					PredicateAnd<
 						PredicateIsChar< ':' >,
 						PredicateIsChar< ':' > > >,
-				PredicateNot< PredicateFunc < is_digit > >,
 				PredicateOneOrMore<
 					PredicateFunc< is_word > > > >,
 		PredicateZeroOrOne<

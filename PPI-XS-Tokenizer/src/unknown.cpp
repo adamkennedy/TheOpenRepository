@@ -39,7 +39,7 @@ CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned 
 	if ( token->text[0] == '*' ) {
 		if ( is_letter(c_char) || ( c_char == '_' ) || ( c_char == ':' ) ) {
 			Token *prev = t->_last_significant_token(1);
-			if ( ( prev != NULL ) && ( prev->type->isa( Token_Number ) ) ) {
+			if ( ( prev != NULL ) && ( ! prev->type->isa( Token_Number ) ) ) {
 				t->changeTokenType( Token_Symbol );
 				return my_char;
 			}
