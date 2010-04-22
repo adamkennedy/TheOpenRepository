@@ -1,5 +1,8 @@
 @echo off
-set PATH=%~dp0\perl\site\bin;%~dp0\perl\bin;%~dp0\c\bin;%PATH%
+set drive=%~dp0
+set drivep=%drive%
+If $#\#$==$#%drive:~-1%#$ set drivep=%drive:~0,-1%
+set PATH=%drivep%\perl\site\bin;%drivep%\perl\bin;%drivep%\c\bin;%PATH%
 set TERM=dumb
 echo ----------------------------------------------
 echo  Welcome to Strawberry Perl Portable Edition!
