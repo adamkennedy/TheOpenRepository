@@ -24,4 +24,4 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-all_modules();
+all_pod_coverage_ok();

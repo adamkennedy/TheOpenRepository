@@ -29,7 +29,7 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-if ( 0.199_001 > eval { $Perl::Critic::VERSION } ) {
+if ( 1.099_001 > eval { $Perl::Critic::VERSION } ) {
 	plan( skip_all => "Perl::Critic needs updated to 1.099_001" );
 }
 
@@ -41,9 +41,9 @@ use File::Spec::Functions qw(catfile);
 Perl::Critic::Utils::Constants->import(':profile_strictness');
 my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
 
-local $ENV{PERLTIDY} = catfile( 't', 'settings', 'perltidy.txt' );
+local $ENV{PERLTIDY} = catfile(qw(xt settings perltidy.txt));
 
-my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
+my $rcfile = catfile(qw(xt settings perlcritic.txt));
 Test::Perl::Critic->import( 
 	-profile            => $rcfile, 
 	-severity           => 1, 

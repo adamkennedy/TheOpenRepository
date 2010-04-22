@@ -16,7 +16,7 @@ use Win32 qw();
 use URI qw();
 
 our @EXPORT =
-  qw(test_run_dist test_add test_verify_files_short test_verify_files_medium
+  qw(test_run_dist test_verify_files_short test_verify_files_medium
   test_verify_files_long test_verify_portability test_cleanup);
 push @EXPORT, @Test::More::EXPORT;
 
@@ -32,7 +32,9 @@ my $tests_completed = 0;
 
 sub _make_path {
 	my $dir = rel2abs( catdir( curdir(), @_ ) );
-	File::Path::mkpath($dir) unless -d $dir;
+	if ( not -d $dir ) {
+		File::Path::mkpath($dir);
+	}
 	ok( -d $dir, 'Created ' . $dir );
 	$tests_completed++;
 	return $dir;
@@ -40,7 +42,9 @@ sub _make_path {
 
 sub _remake_path {
 	my $dir = rel2abs( catdir( curdir(), @_ ) );
-	File::Remove::remove( \1, $dir ) if -d $dir;
+	if ( -d $dir ) {
+		File::Remove::remove( \1, $dir );
+	}
 	File::Path::mkpath($dir);
 	ok( -d $dir, 'Created ' . $dir );
 	$tests_completed++;
@@ -48,11 +52,11 @@ sub _remake_path {
 }
 
 sub _paths {
-	my $class = shift;
-	my $subpath = shift || q{};
+	my $class    = shift;
+	my $subpath  = shift || q{};
 	my $testpath = shift || 't';
 
-	# Create base and download directory so we can do a 
+	# Create base and download directory so we can do a
 	# GetShortPathName on it.
 	my $basedir  = rel2abs( catdir( $testpath, "tmp$subpath" ) );
 	my $download = rel2abs( catdir( $testpath, 'download' ) );
@@ -62,8 +66,12 @@ sub _paths {
 			  'Cannot test successfully in a test directory with spaces' );
 	}
 
-	File::Path::mkpath($basedir)  unless -d $basedir;
-	File::Path::mkpath($download) unless -d $download;
+	if ( not -d $basedir ) {
+		File::Path::mkpath($basedir);
+	}
+	if ( not -d $download ) {
+		File::Path::mkpath($download);
+	}
 	$basedir  = Win32::GetShortPathName($basedir);
 	$download = Win32::GetShortPathName($download);
 	diag("Test base directory: $basedir");
@@ -132,10 +140,11 @@ sub new_test_class_short {
 	}
 
 	my $test_class =
-	  $self->create_test_class_short( $test_number, $test_version,
+	  $self->_create_test_class_short( $test_number, $test_version,
 		$class_to_test );
 	my $test_object = eval {
-		my $obj = $test_class->new( $self->_paths($test_number, $testpath),
+		my $obj =
+		  $test_class->new( $self->_paths( $test_number, $testpath ),
 			$self->_cpan_release(), $self->_forceperl(), $self->_force(),
 			@_ );
 		return $obj;
@@ -177,10 +186,10 @@ sub new_test_class_medium {
 	}
 
 	my $test_class =
-	  $self->create_test_class_medium( $test_number, $test_version,
+	  $self->_create_test_class_medium( $test_number, $test_version,
 		$class_to_test );
 	my $test_object = eval {
-		$test_class->new( $self->_paths($test_number, $testpath),
+		$test_class->new( $self->_paths( $test_number, $testpath ),
 			$self->_cpan_release(), $self->_forceperl(), $self->_force(),
 			@_ );
 	};
@@ -222,10 +231,10 @@ sub new_test_class_long {
 	}
 
 	my $test_class =
-	  $self->create_test_class_long( $test_number, $test_version,
+	  $self->_create_test_class_long( $test_number, $test_version,
 		$class_to_test );
 	my $test_object = eval {
-		$test_class->new( $self->_paths($test_number, $testpath),
+		$test_class->new( $self->_paths( $test_number, $testpath ),
 			$self->_cpan_release(), $self->_forceperl(), $self->_force(),
 			@_ );
 	};
@@ -287,18 +296,11 @@ sub test_run_dist {
 
 
 
-sub test_add {
-	$tests_completed++;
-
-	return;
-}
-
-
-
 sub test_verify_files_short {
 	my $test_number = shift;
-	my $testpath    = shift || 't';
-	my $test_dir = catdir( $testpath, "tmp$test_number", qw{ image c bin } );
+	my $testpath = shift || 't';
+	my $test_dir =
+	  catdir( $testpath, "tmp$test_number", qw{ image c bin } );
 
 	ok( -f catfile( $test_dir, qw{ dmake.exe } ), 'Found dmake.exe' );
 
@@ -316,7 +318,7 @@ sub test_verify_files_medium {
 	my $test_number = shift;
 	my $dll_version = shift;
 	my $testpath    = shift || 't';
-	
+
 	my $dll_file = "perl${dll_version}.dll";
 	my $test_dir = catdir( $testpath, "tmp$test_number", 'image' );
 
@@ -369,7 +371,7 @@ sub test_verify_files_medium {
 
 
 
-sub create_test_class_short {
+sub _create_test_class_short {
 	my $self         = shift;
 	my $test_number  = shift;
 	my $test_version = shift;
@@ -406,11 +408,11 @@ EOF
 
 	eval $code;
 	return $answer;
-} ## end sub create_test_class_short
+} ## end sub _create_test_class_short
 
 
 
-sub create_test_class_medium {
+sub _create_test_class_medium {
 	my $self         = shift;
 	my $test_number  = shift;
 	my $test_version = shift;
@@ -468,11 +470,11 @@ sub create_test_class_medium {
 EOF
 
 	return $answer;
-} ## end sub create_test_class_medium
+} ## end sub _create_test_class_medium
 
 
 
-sub create_test_class_long {
+sub _create_test_class_long {
 	my $self         = shift;
 	my $test_number  = shift;
 	my $test_version = shift;
@@ -522,7 +524,7 @@ sub create_test_class_long {
 EOF
 
 	return $answer;
-} ## end sub create_test_class_long
+} ## end sub _create_test_class_long
 
 
 
@@ -587,7 +589,7 @@ sub test_verify_files_long {
 sub test_verify_portability {
 	my $test_number   = shift;
 	my $base_filename = shift;
-	my $testpath    = shift || 't';
+	my $testpath      = shift || 't';
 
 	my $test_dir = catdir( 't', "tmp$test_number" );
 
@@ -613,7 +615,7 @@ sub test_verify_portability {
 
 sub test_cleanup {
 	my $test_number = shift;
-	my $testpath    = shift || 't';
+	my $testpath = shift || 't';
 
 	if ( Test::Builder->new()->is_passing() ) {
 
@@ -655,7 +657,7 @@ Test::Perl::Dist - Test module for Perl::Dist::WiX and subclasses.
 
 =head1 VERSION
 
-This document describes Test::Perl::Dist version 0.203
+This document describes Test::Perl::Dist version 0.300
 
 =begin readme
 
@@ -694,7 +696,7 @@ Alternatively, to install with Module::Build, you can use the following commands
 	}
 
 	use Test::Perl::Dist 0.300;
-	use File::Spec::Funxtions qw(catdir);
+	use File::Spec::Functions qw(catdir);
 
 	#####################################################################
 	# Complete Generation Run
@@ -726,7 +728,9 @@ L<Test::More|Test::More>, in addition to the routines documented here.
 The only difference is in L<done_testing|/done_testing>, as documented below.
 
 =head2 new_test_class_short
+
 =head2 new_test_class_medium
+
 =head2 new_test_class_long
 
 	my $dist = Test::Perl::Dist->new_test_class_medium(
@@ -763,7 +767,9 @@ If the class being tested returns an exception when ran, that
 exception is printed, and all testing is stopped.
 
 =head2 test_verify_files_short
+
 =head2 test_verify_files_medium
+
 =head2 test_verify_files_long
 
 	test_verify_files_medium(901, '58', catdir(qw(xt release)));
@@ -820,12 +826,12 @@ $ENV{PERL_RELEASE_TEST_PERLDIST_CPAN} is used to point at a preferred
 (or local - it can be a file:// URL) mirror for CPAN.
 
 If $ENV{PERL_RELEASE_TEST_FORCEPERL} is defined, it passes 
-forceperl => 1 to the classes being tested, which skips testing perl
-after compilation.
+C<forceperl => 1> to the classes being tested, which skips testing perl
+after compilation. This can speed up testing.
 
 If $ENV{PERL_RELEASE_TEST_FORCE} is defined, it passes 
-force => 1 to the classes being tested, which skips testing both
-perl and the additional modules installed.
+C<force => 1> to the classes being tested, which skips testing both
+perl and the additional modules installed. This can speed up testing.
 
 =for readme continue
 
@@ -840,7 +846,8 @@ L<Win32|Win32> version 0.39.
 
 =head1 INCOMPATIBILITIES
 
-None reported.
+0.300 has an incompatible API change to precious versions in order to support 
+the tests not being in 't'.
 
 =head1 BUGS AND LIMITATIONS
 
