@@ -313,6 +313,24 @@ namespace PPITokenizer {
     hv_stores( objHash, "sections", newRV((SV *)sectionsArray) );
 
     Safefree(openClose);
+
+#if 0    
+    TokenTypeNames type = token->type->type;
+    if ( ( type == Token_Regexp_Match ) ||
+         ( type == Token_Regexp_Substitute ) ||
+         ( type == Token_Regexp_Transliterate ) ) {
+      // then we have a modifier part
+      HV* modifiers = (HV *)sv_2mortal((SV*)newHV());
+      char key[2];
+      key[1] = 0;
+      for (unsigned long ix = 0; ix < token->modifiers.size; ix++) {
+        key[0] = token->text[ token->modifiers.position + ix ];
+        hv_store( modifiers, key, 1, newSViv(1), 0 );
+      }
+      hv_stores( objHash, "modifiers", newRV((SV *)modifiers) );
+    }
+#endif
+    
     return;
   }
 

@@ -168,6 +168,9 @@ int main(int argc, char* argv[])
 	Tokenizer tk;
 	VerifyInheritence( tk.TokenTypeNames_pool );
 
+	Tokenize("s {foo} <bar>i");
+	CheckExtendedToken( &tk, "s {foo} <bar>i", "foo", "bar", "i", Token_Regexp_Substitute );
+
 	Tokenize("package Foo::100;\n");
 	CheckToken(&tk, "package", Token_Word);
 	CheckToken(&tk, " ", Token_Whitespace);
