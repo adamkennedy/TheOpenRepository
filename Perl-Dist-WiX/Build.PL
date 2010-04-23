@@ -140,7 +140,7 @@ my $builder = $class->new(
 		'Test::LongString'          => '0.11',
 		'Test::More'                => '0.86',
 		'Test::Output'              => '0.11',
-		'Test::Perl::Dist'          => '0.203',
+		'Test::Perl::Dist'          => '0.300',
 		'Test::Script'              => '1.03',
 		'Test::UseAllModules'       => '0.09',
 	},

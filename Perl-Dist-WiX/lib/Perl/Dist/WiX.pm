@@ -702,6 +702,7 @@ has 'fragment_dir' => (
 	is      => 'ro',
 	isa     => ExistingDirectory_SaneSlashes,
 	lazy    => 1,
+	coerce  => 1,
 	builder => '_build_fragment_dir',
 );
 

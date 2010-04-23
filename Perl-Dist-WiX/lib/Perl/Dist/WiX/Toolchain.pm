@@ -150,15 +150,13 @@ has force => (
 
 This required parameter defines the CPAN mirror that we are querying. 
 
-It can be a URL in the form of a string, a L<URI|URI> object, or a
-L<Path::Class::Dir|Path::Class::Dir> object (for local minicpan or CPAN
-mirrors).
+It has to be a URL in the form of a string.
 
 =cut
 
 has cpan => (
 	is       => 'ro',
-	isa      => Uri,
+	isa      => Str,
 	reader   => '_get_cpan',
 	required => 1,
 	coerce   => 1,
@@ -472,11 +470,11 @@ sub prepare {
 	if (
 		eval {
 			local $SIG{__WARN__} = sub {1};
-			CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
+			CPAN::HandleConfig->load() unless $CPAN::Config_loaded++;
 			$CPAN::Config->{'urllist'} =
-			  [ $self->_get_cpan()->as_string() ];
+			  [ $self->_get_cpan() ];
 			$CPAN::Config->{'use_sqlite'} = q[0];
-			CPAN::Index->reload;
+			CPAN::Index->reload();
 			1;
 		} )
 	{
@@ -486,7 +484,8 @@ sub prepare {
 	} else {
 		$stdout->stop();
 		$stderr->stop();
-		return q{};
+		die $EVAL_ERROR;
+		return 0;
 	}
 } ## end sub prepare
 
@@ -512,7 +511,7 @@ sub run {
 	$stdout->start();
 	$stderr->start();
 	CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
-	$CPAN::Config->{'urllist'}    = [ $self->_get_cpan()->as_string() ];
+	$CPAN::Config->{'urllist'}    = [ $self->_get_cpan() ];
 	$CPAN::Config->{'use_sqlite'} = q[0];
 	$stdout->stop();
 	$stderr->stop();

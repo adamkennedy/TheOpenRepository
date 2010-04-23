@@ -560,6 +560,10 @@ error.
 sub install_perl_589 {
 	my $self = shift;
 
+	# TODO: Factor out everything up to and including
+	# $self->make_path( $self->dir('perl') ) into
+	# a separate subroutine.
+	
 	# Prefetch and predelegate the toolchain so that it
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
@@ -658,7 +662,8 @@ sub install_perl_5100 {
 			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
 		);
 	}
-	if ( defined $toolchain->get_error() ) {
+	my $error = $toolchain->get_error(); 
+	if ( defined $error ) {
 		PDWiX::Caught->throw(
 			message => 'Failed to generate toolchain distributions',
 			info    => $toolchain->get_error() );
@@ -699,11 +704,11 @@ sub install_perl_5101 {
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan->as_string,
+		perl_version => $self->perl_version_literal(),
+		cpan         => $self->cpan()->as_string(),
 		bits         => $self->bits(),
 	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate; 1; } ) {
+	unless ( eval { $toolchain->delegate(); 1; } ) {
 		PDWiX::Caught->throw(
 			message => 'Delegation error occured',
 			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
@@ -749,11 +754,11 @@ sub install_perl_5120 {
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan->as_string,
+		perl_version => $self->perl_version_literal(),
+		cpan         => $self->cpan()->as_string(),
 		bits         => $self->bits(),
 	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate; 1; } ) {
+	unless ( eval { $toolchain->delegate(); 1; } ) {
 		PDWiX::Caught->throw(
 			message => 'Delegation error occured',
 			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
@@ -801,11 +806,11 @@ sub install_perl_git {
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal,
-		cpan         => $self->cpan->as_string,
+		perl_version => $self->perl_version_literal(),
+		cpan         => $self->cpan()->as_string(),
 		bits         => $self->bits(),
 	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate; 1; } ) {
+	unless ( eval { $toolchain->delegate(); 1; } ) {
 		PDWiX::Caught->throw(
 			message => 'Delegation error occured',
 			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',

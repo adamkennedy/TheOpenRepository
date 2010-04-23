@@ -190,8 +190,8 @@ sub install_gcc_toolchain {
 	# Install the licenses (they're in a different file for gcc4)
 	if ( 4 == $self->gcc_version() ) {
 		my $filelist2 = $self->install_binary(
-			name => 'gcc-license',
-			url  => $self->_binary_url('gcc-license'),
+			name       => 'gcc-license',
+			url        => $self->_binary_url('gcc-license'),
 			install_to => q{.},
 		);
 		$self->insert_fragment( 'gcc_license', $filelist2 );
