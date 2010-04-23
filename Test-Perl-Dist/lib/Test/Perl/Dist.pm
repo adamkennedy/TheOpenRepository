@@ -72,8 +72,6 @@ sub _paths {
 	if ( not -d $download ) {
 		File::Path::mkpath($download);
 	}
-	$basedir  = Win32::GetShortPathName($basedir);
-	$download = Win32::GetShortPathName($download);
 	diag("Test base directory: $basedir");
 
 	# Make or remake the subpaths
@@ -180,6 +178,10 @@ sub new_test_class_medium {
 	if ( $OSNAME ne 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
 	}
+	if ( not -d 'blib') {
+		plan( skip_all => 'Perl::Dist::WiX::Toolchain has problems if ' .  
+		'dmake or Build has not been ran before testing.' );
+	}
 	if ( rel2abs( curdir() ) =~ m{[.]}ms ) {
 		plan( skip_all =>
 			  'Cannot be tested in a directory with an extension.' );
@@ -224,6 +226,10 @@ sub new_test_class_long {
 
 	if ( $OSNAME ne 'MSWin32' ) {
 		plan( skip_all => 'Not on Win32' );
+	}
+	if ( not -d 'blib') {
+		plan( skip_all => 'Perl::Dist::WiX::Toolchain has problems if ' .  
+		'dmake or Build has not been ran before testing.' );
 	}
 	if ( rel2abs( curdir() ) =~ m{[.]}ms ) {
 		plan( skip_all =>

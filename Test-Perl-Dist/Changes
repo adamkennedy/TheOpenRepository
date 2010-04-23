@@ -3,6 +3,9 @@ Changes for Perl extension Test-Perl-Dist
 0.300   Thu 22 Apr 2010
     -  Now works with xt directories.
        THIS REQUIRES AN INCOMPATIBLE API CHANGE.
+    -  Catches error that Perl::Dist::WiX::Toolchain gives when the 
+       blib directory does not exist during testing (because 
+       Process::Serializable assumes that it needs -Mblib to run.)
 
 0.203   Sat 20 Mar 2010
     -  Updating to work with newest versions of 
