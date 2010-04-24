@@ -34,23 +34,17 @@ use Storable qw( retrieve );
 use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use Module::CoreList 2.27 qw();
-
-require Perl::Dist::WiX::Asset::Perl;
-require Perl::Dist::WiX::Toolchain;
-require File::List::Object;
+use Module::CoreList 2.29 qw();
+use Perl::Dist::WiX::Asset::Perl qw();
+use Perl::Dist::WiX::Toolchain qw();
+use File::List::Object qw();
 
 our $VERSION = '1.200';
 $VERSION =~ s/_//sm;
 
-# The commented lines are needed for 5.12, but may break 5.8.
-# Will check.
-
 Readonly my %CORE_MODULE_FIX => (
-	'IO::Compress' => 'IO::Compress::Base',
-	'Filter'       => 'Filter::Util::Call',
-
-#	'autodie'              => 'Fatal',
+	'IO::Compress'         => 'IO::Compress::Base',
+	'Filter'               => 'Filter::Util::Call',
 	'Pod'                  => 'Pod::Man',
 	'Text'                 => 'Text::Tabs',
 	'PathTools'            => 'Cwd',
@@ -63,9 +57,7 @@ Readonly my %CORE_MODULE_FIX => (
 );
 
 Readonly my %DIST_TO_MODULE_FIX => (
-	'CGI.pm' => 'CGI',
-
-#	'Fatal'                => 'autodie',
+	'CGI.pm'               => 'CGI',
 	'Locale::Maketext'     => 'Locale-Maketext',
 	'Pod::Man'             => 'Pod',
 	'Text::Tabs'           => 'Text',
@@ -129,7 +121,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 	my $self = shift;
 
 	# Check for Perl - we can't do things out of order.
-	unless ( $self->bin_perl() ) {
+	if ( not $self->bin_perl() ) {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
@@ -137,7 +129,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 	# Get list of modules to be upgraded.
 	# (The list is saved as a Storable arrayref of CPAN::Module objects.)
 	my $cpan_info_file = $self->_get_cpan_upgrades_list();
-	my $module_info    = retrieve $cpan_info_file;
+	my $module_info    = retrieve($cpan_info_file);
 
 	# Now go through the loop for each module.
 	my $force;
@@ -146,7 +138,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
   MODULE:
 
 	for my $module ( @{$module_info} ) {
-		$force = $self->force;
+		$force = $self->force();
 
 		# Skip modules that we want to skip.
 		next MODULE if $self->_skip_upgrade($module);
@@ -185,6 +177,32 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 		{
 			$self->install_modules(qw( File::Remove YAML::Tiny ));
 			$self->_install_cpan_module( $module, $force );
+			next MODULE;
+		}
+
+		# There's a problem with extracting these two files, so
+		# upgrading to these versions, instead...
+		if ( $module->cpan_file() =~ /Unicode-Collate-0 [.] 53-withoutworldwriteables/msx ) {
+			$self->install_distribution(
+				name     => 'SADAHIRO/Unicode-Collate-0.53.tar.gz',
+				mod_name => 'Unicode::Collate',
+				$self->_install_location(1),
+				$force
+				  ? ( force => 1 )
+				  : (),
+			);
+			next MODULE;
+		}
+		
+		if ( $module->cpan_file() =~ /Unicode-Normalize-1 [.] 06-withoutworldwriteables/msx ) {
+			$self->install_distribution(
+				name     => 'SADAHIRO/Unicode-Normalize-1.06.tar.gz',
+				mod_name => 'Unicode::Normalize',
+				$self->_install_location(1),
+				$force
+				  ? ( force => 1 )
+				  : (),
+			);
 			next MODULE;
 		}
 
@@ -454,7 +472,8 @@ sub _skip_upgrade {
 	# If the ID is ExtUtils::MakeMaker, we've already installed it.
 	# There were some files gotten rid of after 6.50, so
 	# install_cpan_upgrades thinks that it needs to upgrade
-	# those files using it.
+	# those files using it when using perl versions that
+	# still had those files.
 
 	# This code is in here for safety as of yet.
 	return 1 if $module->cpan_file() =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
@@ -489,7 +508,7 @@ sub install_perl {
 
 	# Check for the method, then call it.
 	my $install_perl_method = 'install_perl_' . $self->perl_version();
-	unless ( $self->can($install_perl_method) ) {
+	if ( not $self->can($install_perl_method) ) {
 		PDWiX->throw(
 			"Cannot generate perl, missing $install_perl_method method in "
 			  . ref $self );
@@ -502,6 +521,39 @@ sub install_perl {
 
 	return 1;
 } ## end sub install_perl
+
+
+
+sub _create_perl_toolchain {
+	my $self = shift;
+
+	# Prefetch and predelegate the toolchain so that it
+	# fails early if there's a problem
+	$self->trace_line( 1, "Pregenerating toolchain...\n" );
+	my $toolchain = Perl::Dist::WiX::Toolchain->new(
+		perl_version => $self->perl_version_literal(),
+		cpan         => $self->cpan()->as_string(),
+		bits         => $self->bits(),
+	) or PDWiX->throw('Failed to resolve toolchain modules');
+	if ( not eval { $toolchain->delegate(); 1; } ) {
+		PDWiX::Caught->throw(
+			message => 'Delegation error occured',
+			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
+		);
+	}
+	if ( defined $toolchain->get_error() ) {
+		PDWiX::Caught->throw(
+			message => 'Failed to generate toolchain distributions',
+			info    => $toolchain->get_error() );
+	}
+
+	$self->_set_toolchain($toolchain);
+
+	# Make the perl directory if it hasn't been made already.
+	$self->make_path( $self->dir('perl') );
+
+	return $toolchain;
+}
 
 
 
@@ -554,40 +606,16 @@ error.
 
 =cut
 
+
+
 #####################################################################
 # Perl 5.8.9 Support
 
 sub install_perl_589 {
 	my $self = shift;
-
-	# TODO: Factor out everything up to and including
-	# $self->make_path( $self->dir('perl') ) into
-	# a separate subroutine.
 	
-	# Prefetch and predelegate the toolchain so that it
-	# fails early if there's a problem
-	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal(),
-		cpan         => $self->cpan()->as_string(),
-		bits         => $self->bits(),
-	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate(); 1; } ) {
-		PDWiX::Caught->throw(
-			message => 'Delegation error occured',
-			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
-		);
-	}
-	if ( defined $toolchain->get_error() ) {
-		PDWiX::Caught->throw(
-			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->get_error() );
-	}
-
-	$self->_set_toolchain($toolchain);
-
-	# Make the perl directory if it hasn't been made already.
-	$self->make_path( $self->dir('perl') );
+	# Get the information required for Perl's toolchain.
+	my $toolchain = $self->_create_perl_toolchain();
 
 	# Install the main perl distribution.
 	$self->install_perl_bin(
@@ -616,7 +644,7 @@ sub install_perl_bin {
 	my $self = shift;
 
 	# Check for an error in the object.
-	unless ( $self->bin_make() ) {
+	if ( not $self->bin_make() ) {
 		PDWiX->throw('Cannot build Perl yet, no bin_make defined');
 	}
 
@@ -643,35 +671,13 @@ sub install_perl_bin {
 
 
 #####################################################################
-# Perl 5.10.0 Support
+# Perl 5.10.x Support
 
 sub install_perl_5100 {
 	my $self = shift;
 
-	# Prefetch and predelegate the toolchain so that it
-	# fails early if there's a problem
-	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal(),
-		cpan         => $self->cpan()->as_string(),
-		bits         => $self->bits(),
-	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate(); 1; } ) {
-		PDWiX::Caught->throw(
-			message => 'Delegation error occured',
-			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
-		);
-	}
-	my $error = $toolchain->get_error(); 
-	if ( defined $error ) {
-		PDWiX::Caught->throw(
-			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->get_error() );
-	}
-	$self->_set_toolchain($toolchain);
-
-	# Make the perl directory if it hasn't been made already.
-	$self->make_path( $self->dir('perl') );
+	# Get the information required for Perl's toolchain.
+	my $toolchain = $self->_create_perl_toolchain();
 
 	# Install the main binary
 	$self->install_perl_bin(
@@ -700,29 +706,8 @@ sub install_perl_5100 {
 sub install_perl_5101 {
 	my $self = shift;
 
-	# Prefetch and predelegate the toolchain so that it
-	# fails early if there's a problem
-	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal(),
-		cpan         => $self->cpan()->as_string(),
-		bits         => $self->bits(),
-	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate(); 1; } ) {
-		PDWiX::Caught->throw(
-			message => 'Delegation error occured',
-			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
-		);
-	}
-	if ( defined $toolchain->get_error() ) {
-		PDWiX::Caught->throw(
-			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->get_error() );
-	}
-	$self->_set_toolchain($toolchain);
-
-	# Make the perl directory if it hasn't been made already.
-	$self->make_path( $self->dir('perl') );
+	# Get the information required for Perl's toolchain.
+	my $toolchain = $self->_create_perl_toolchain();
 
 	# Install the main binary
 	$self->install_perl_bin(
@@ -747,32 +732,14 @@ sub install_perl_5101 {
 
 
 
+#####################################################################
+# Perl 5.12.0 Support
+
 sub install_perl_5120 {
 	my $self = shift;
 
-	# Prefetch and predelegate the toolchain so that it
-	# fails early if there's a problem
-	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal(),
-		cpan         => $self->cpan()->as_string(),
-		bits         => $self->bits(),
-	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate(); 1; } ) {
-		PDWiX::Caught->throw(
-			message => 'Delegation error occured',
-			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
-		);
-	}
-	if ( defined $toolchain->get_error() ) {
-		PDWiX::Caught->throw(
-			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->get_error() );
-	}
-	$self->_set_toolchain($toolchain);
-
-	# Make the perl directory if it hasn't been made already.
-	$self->make_path( $self->dir('perl') );
+	# Get the information required for Perl's toolchain.
+	my $toolchain = $self->_create_perl_toolchain();
 
 	# Install the main binary
 	$self->install_perl_bin(
@@ -799,33 +766,16 @@ sub install_perl_5120 {
 
 
 
+#####################################################################
+# Git checkout support
+
 sub install_perl_git {
 	my $self = shift;
 
-	# Prefetch and predelegate the toolchain so that it
-	# fails early if there's a problem
-	$self->trace_line( 1, "Pregenerating toolchain...\n" );
-	my $toolchain = Perl::Dist::WiX::Toolchain->new(
-		perl_version => $self->perl_version_literal(),
-		cpan         => $self->cpan()->as_string(),
-		bits         => $self->bits(),
-	) or PDWiX->throw('Failed to resolve toolchain modules');
-	unless ( eval { $toolchain->delegate(); 1; } ) {
-		PDWiX::Caught->throw(
-			message => 'Delegation error occured',
-			info    => defined($EVAL_ERROR) ? $EVAL_ERROR : 'Unknown error',
-		);
-	}
-	if ( defined $toolchain->get_error() ) {
-		PDWiX::Caught->throw(
-			message => 'Failed to generate toolchain distributions',
-			info    => $toolchain->get_error() );
-	}
-	$self->_set_toolchain($toolchain);
+	# Get the information required for Perl's toolchain.
+	my $toolchain = $self->_create_perl_toolchain();
 
-	# Make the perl directory if it hasn't been made already.
-	$self->_make_path( $self->_dir('perl') );
-
+	# Get where the git checkout is.
 	my $checkout = $self->git_checkout();
 
 	# Install the main binary
@@ -944,7 +894,8 @@ sub install_perl_toolchain {
 			$force = 1;
 		}
 
- # Actually DO the installation, now that we've got the information we need.
+		# Actually DO the installation, now 
+		# that we've got the information we need.
 		$module_id = $self->_module_fix( $self->_name_to_module($dist) );
 		$core =
 		  exists $Module::CoreList::version{ $self->perl_version_literal() }
