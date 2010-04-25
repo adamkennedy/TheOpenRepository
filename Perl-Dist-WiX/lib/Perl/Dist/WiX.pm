@@ -3598,6 +3598,7 @@ sub install_win32_extras {
 				url       => 'http://perldoc.perl.org/5.10.1/',
 				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
 			);
+		}
 		if ( $self->perl_version_human eq '5.12.0' ) {
 			$self->install_website(
 				name      => 'Perl 5.12.0 Documentation',
