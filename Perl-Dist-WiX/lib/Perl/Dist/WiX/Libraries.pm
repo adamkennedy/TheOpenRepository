@@ -313,11 +313,34 @@ Returns true or throws an exception on error.
 sub install_mingw_make {
 	my $self = shift;
 
-	my $filelist = $self->install_binary(
-		name => 'mingw-make',
-		url  => $self->_binary_url('mingw-make'),
-	);
-
+	my $filelist;
+	
+	if (4 == $self->gcc_version()) {
+		$filelist = $self->install_binary(
+			name => 'mingw-make',
+			url  => $self->_binary_url('mingw-make'),
+			license => {
+				'doc/COPYING' => 'gmake/COPYING',
+				'doc/AUTHORS' => 'gmake/AUTHORS',
+			},
+			install_to => {
+				'bin/gmake.exe' => 'c/bin/gmake.exe',
+			},
+		);
+	} else {
+		$filelist = $self->install_binary(
+			name => 'mingw-make',
+			url  => $self->_binary_url('mingw-make'),
+			license => {
+				'doc/mingw32-make/COPYING'      => 'gmake/COPYING',
+				'doc/mingw32-make/README.mingw' => 'gmake/README.mingw.txt',
+			},
+			install_to => {
+				'bin/mingw32-make.exe' => 'c/bin/mingw32-make.exe',
+			},
+		);
+	} 
+	
 	$self->insert_fragment( 'mingw_make', $filelist );
 
 	return 1;
