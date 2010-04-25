@@ -182,29 +182,33 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 
 		# There's a problem with extracting these two files, so
 		# upgrading to these versions, instead...
-		if ( $module->cpan_file() =~ /Unicode-Collate-0 [.] 53-withoutworldwriteables/msx ) {
+		if ( $module->cpan_file() =~
+			/Unicode-Collate-0 [.] 53-withoutworldwriteables/msx )
+		{
 			$self->install_distribution(
 				name     => 'SADAHIRO/Unicode-Collate-0.53.tar.gz',
 				mod_name => 'Unicode::Collate',
 				$self->_install_location(1),
 				$force
-				  ? ( force => 1 )
-				  : (),
+				? ( force => 1 )
+				: (),
 			);
 			next MODULE;
-		}
-		
-		if ( $module->cpan_file() =~ /Unicode-Normalize-1 [.] 06-withoutworldwriteables/msx ) {
+		} ## end if ( $module->cpan_file...)
+
+		if ( $module->cpan_file() =~
+			/Unicode-Normalize-1 [.] 06-withoutworldwriteables/msx )
+		{
 			$self->install_distribution(
 				name     => 'SADAHIRO/Unicode-Normalize-1.06.tar.gz',
 				mod_name => 'Unicode::Normalize',
 				$self->_install_location(1),
 				$force
-				  ? ( force => 1 )
-				  : (),
+				? ( force => 1 )
+				: (),
 			);
 			next MODULE;
-		}
+		} ## end if ( $module->cpan_file...)
 
 		# Get rid of the old ExtUtils::MakeMaker files.
 		if (    ( $module->cpan_file() =~ m{/ExtUtils-MakeMaker-\d}msx )
@@ -553,7 +557,7 @@ sub _create_perl_toolchain {
 	$self->make_path( $self->dir('perl') );
 
 	return $toolchain;
-}
+} ## end sub _create_perl_toolchain
 
 
 
@@ -613,7 +617,7 @@ error.
 
 sub install_perl_589 {
 	my $self = shift;
-	
+
 	# Get the information required for Perl's toolchain.
 	my $toolchain = $self->_create_perl_toolchain();
 
@@ -894,7 +898,7 @@ sub install_perl_toolchain {
 			$force = 1;
 		}
 
-		# Actually DO the installation, now 
+		# Actually DO the installation, now
 		# that we've got the information we need.
 		$module_id = $self->_module_fix( $self->_name_to_module($dist) );
 		$core =

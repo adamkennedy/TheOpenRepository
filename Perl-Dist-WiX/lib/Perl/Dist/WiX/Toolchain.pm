@@ -471,8 +471,7 @@ sub prepare {
 		eval {
 			local $SIG{__WARN__} = sub {1};
 			CPAN::HandleConfig->load() unless $CPAN::Config_loaded++;
-			$CPAN::Config->{'urllist'} =
-			  [ $self->_get_cpan() ];
+			$CPAN::Config->{'urllist'}    = [ $self->_get_cpan() ];
 			$CPAN::Config->{'use_sqlite'} = q[0];
 			CPAN::Index->reload();
 			1;
@@ -484,7 +483,6 @@ sub prepare {
 	} else {
 		$stdout->stop();
 		$stderr->stop();
-		die $EVAL_ERROR;
 		return 0;
 	}
 } ## end sub prepare
