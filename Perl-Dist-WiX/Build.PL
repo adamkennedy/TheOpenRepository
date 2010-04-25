@@ -59,7 +59,6 @@ my $requires = {
 	'MooseX::Types'             => '0',
 	'MooseX::Types::URI'        => '0.02',
 	'MooseX::Types::Path::Class' => '0.05',
-	'MooseX::Meta::TypeConstraint::Intersection' => '0.03',
 	'PAR::Dist'                 => '0.42',
 	'Params::Util'              => '0.35',
 	'Portable::Dist'            => '0.03',
