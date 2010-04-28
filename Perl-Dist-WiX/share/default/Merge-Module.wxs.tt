@@ -23,7 +23,7 @@
 
     <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
     <InstallExecuteSequence>
-      <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL"</Custom>
+      <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL" AND NOT VersionNT64</Custom>
     </InstallExecuteSequence>
 
 [% IF dist.msi_debug %]

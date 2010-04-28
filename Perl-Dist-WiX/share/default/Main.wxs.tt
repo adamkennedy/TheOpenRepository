@@ -90,10 +90,10 @@
 [% END %]
     <InstallExecuteSequence>
       <Custom Action='CA_ClearSiteFolder' Before='InstallInitialize'>
-        <![CDATA[UNINSTALL_SITE OR (Installed AND NOT OLDERVERSIONBEINGUPGRADED)]]>
+        <![CDATA[(UNINSTALL_SITE OR (Installed AND NOT OLDERVERSIONBEINGUPGRADED)) AND NOT VersionNT64]]>
       </Custom>
 [% IF not dist.msm %]
-      <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL"</Custom>
+      <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL" AND NOT VersionNT64</Custom>
 [% END %]
     </InstallExecuteSequence>
 
