@@ -120,7 +120,7 @@ sub File::Find::Rule::ignore_vcs {
 	my $find = $_[0]->_force_object;
 
 	# Handle special cases
-	unless ( @_ ) {
+	if( 1 == scalar( @_ ) ) {
 		# Logically combine all the ignores. This will be much
 		# faster than just calling them all one after the other.
 		return $find->or(
