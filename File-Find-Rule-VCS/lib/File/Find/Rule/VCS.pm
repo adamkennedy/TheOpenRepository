@@ -124,8 +124,9 @@ sub File::Find::Rule::ignore_vcs {
 		# Logically combine all the ignores. This will be much
 		# faster than just calling them all one after the other.
 		return $find->or(
-			FFR->name(@svn, '.bzr', '.git', 'CVS')->directory->prune->discard,
-			FFR->name(qr/^\.\#/)->file->discard,
+			FFR->name(@svn, '.bzr', '.git', '.hg', 'CVS', 'RCS')
+			    ->directory->prune->discard,
+			FFR->name(qr/^\.\#/, qr/,v$/)->file->discard,
 			FFR->new,
 			);
 	}
@@ -140,11 +141,14 @@ sub File::Find::Rule::ignore_vcs {
 
 	# Hand off to the rules for each VCS
 	return $find->ignore_cvs if $vcs eq 'cvs';
+	return $find->ignore_rcs if $vcs eq 'rcs';
 	return $find->ignore_svn if $vcs eq 'svn';
 	return $find->ignore_svn if $vcs eq 'subversion';
 	return $find->ignore_bzr if $vcs eq 'bzr';
 	return $find->ignore_bzr if $vcs eq 'bazaar';
 	return $find->ignore_git if $vcs eq 'git';
+	return $find->ignore_hg  if $vcs eq 'hg';
+	return $find->ignore_hg  if $vcs eq 'mercurial';
 	Carp::croak("->ignore_vcs: '$vcs' is not supported");
 }
 
@@ -165,6 +169,27 @@ sub File::Find::Rule::ignore_cvs {
 	return $find->or(
 		FFR->name('CVS')->directory->prune->discard,
 		FFR->name(qr/^\.\#/)->file->discard,
+		FFR->new,
+		);
+}
+
+=pod
+
+=head2 ignore_rcs
+
+The C<ignore_rcs> method excluding all RCS directories from your
+L<File::Find::Rule> search.
+
+It will also exclude all the files used by RCS to store the revisions
+(end with C<',v'>).
+
+=cut
+
+sub File::Find::Rule::ignore_rcs {
+	my $find = $_[0]->_force_object;
+	return $find->or(
+		FFR->name('RCS')->directory->prune->discard,
+		FFR->name(qr/,v$/)->file->discard,
 		FFR->new,
 		);
 }
@@ -216,6 +241,23 @@ sub File::Find::Rule::ignore_git {
 	my $find = $_[0]->_force_object;
 	return $find->or(
 		FFR->name('.git')->directory->prune->discard,
+		FFR->new,
+		);
+}
+
+=pod
+
+=head2 ignore_hg
+
+The C<ignore_hg> method excluding all Mercurial/Hg (C<.hg>) directories
+from your L<File::Find::Rule> search.
+
+=cut
+
+sub File::Find::Rule::ignore_hg {
+	my $find = $_[0]->_force_object;
+	return $find->or(
+		FFR->name('.hg')->directory->prune->discard,
 		FFR->new,
 		);
 }

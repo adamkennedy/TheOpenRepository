@@ -4,6 +4,8 @@ Revision history for Perl extension File::Find::Rule::VCS
 	- Added git support to resolve #43558: .git missing
 	- Extend test for bzr, git and default invocation
 	  (Jens Rehsack)
+	- Added support for RCS (RT#43559) and Mercurial/hg
+	  (Jens Rehsack)
 
 1.06 Wed  8 Jul 2009
 	- Updated to Module::Install::DSL 0.91
