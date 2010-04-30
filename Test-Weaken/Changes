@@ -1,5 +1,6 @@
 Revision history for Test-Weaken
 
+3.003_001 Thu Apr 29 18:50:13 2010
 3.003_000 Mon Apr 19 17:24:20 2010
         * Development release.
         * Ticket 56722: When addition is overloaded, it confuses Test::Weaken

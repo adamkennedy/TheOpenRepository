@@ -7,7 +7,7 @@ require Exporter;
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(leaks poof);
-our $VERSION   = '3.003_000';
+our $VERSION   = '3.003_001';
 
 # use Smart::Comments;
 
@@ -42,7 +42,7 @@ package Test::Weaken::Internal;
 
 use English qw( -no_match_vars );
 use Carp;
-use Scalar::Util qw(reftype isweak weaken);
+use Scalar::Util 1.18 qw();
 
 my @default_tracked_types = qw(REF SCALAR VSTRING HASH ARRAY CODE);
 
@@ -84,7 +84,7 @@ sub follow {
         next FOLLOW_OBJECT
             if $already_followed{ Scalar::Util::refaddr $follow_probe }++;
 
-        my $object_type = reftype $follow_probe;
+        my $object_type = Scalar::Util::reftype $follow_probe;
 
         my @child_probes = ();
 
@@ -322,7 +322,7 @@ sub Test::Weaken::test {
 
     $self->{probe_count} = @{$probes};
     $self->{weak_probe_count} =
-        grep { ref $_ eq 'REF' and isweak ${$_} } @{$probes};
+        grep { ref $_ eq 'REF' and Scalar::Util::isweak ${$_} } @{$probes};
     $self->{strong_probe_count} =
         $self->{probe_count} - $self->{weak_probe_count};
 
@@ -332,7 +332,7 @@ sub Test::Weaken::test {
     }
 
     for my $probe ( @{$probes} ) {
-        weaken($probe);
+        Scalar::Util::weaken($probe);
     }
 
     # Now free everything.
@@ -356,7 +356,7 @@ sub poof_array_return {
     my @unfreed_strong = ();
     my @unfreed_weak   = ();
     for my $probe ( @{$results} ) {
-        if ( ref $probe eq 'REF' and isweak ${$probe} ) {
+        if ( ref $probe eq 'REF' and Scalar::Util::isweak ${$probe} ) {
             push @unfreed_weak, $probe;
         }
         else {
@@ -469,7 +469,7 @@ sub Test::Weaken::check_ignore {
         my $array_context = wantarray;
 
         my $before_weak =
-            ( ref $probe_ref eq 'REF' and isweak( ${$probe_ref} ) );
+            ( ref $probe_ref eq 'REF' and Scalar::Util::isweak( ${$probe_ref} ) );
         my $before_dump =
             Data::Dumper->new( [$probe_ref], [qw(proberef)] )
             ->Maxdepth($compare_depth)->Dump();
@@ -496,7 +496,7 @@ sub Test::Weaken::check_ignore {
         }
 
         my $after_weak =
-            ( ref $probe_ref eq 'REF' and isweak( ${$probe_ref} ) );
+            ( ref $probe_ref eq 'REF' and Scalar::Util::isweak( ${$probe_ref} ) );
         my $after_dump =
             Data::Dumper->new( [$probe_ref], [qw(proberef)] )
             ->Maxdepth($compare_depth)->Dump();
