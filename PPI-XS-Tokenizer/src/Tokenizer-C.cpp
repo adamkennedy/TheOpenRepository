@@ -249,11 +249,16 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, "{", Token_Structure);
 	CheckToken(&tk, "  ", Token_Whitespace);
 	CheckToken(&tk, "}", Token_Structure);
+	CheckToken(&tk, "   \n", Token_Whitespace);
 
 	Tokenize("  # aabbcc d\n");
-	CheckToken(&tk, "   \n", Token_Whitespace);
+	CheckToken(&tk, "  # aabbcc d\n", Token_Comment);
+
+	Tokenize("foo  # aabbcc d\n");
+	CheckToken(&tk, "foo", Token_Word);
 	CheckToken(&tk, "  ", Token_Whitespace);
-	CheckToken(&tk, "# aabbcc d\n", Token_Comment);
+	CheckToken(&tk, "# aabbcc d", Token_Comment);
+	CheckToken(&tk, "\n", Token_Whitespace);
 
 	Tokenize(" + \n");
 	CheckToken(&tk, " ", Token_Whitespace);
@@ -559,7 +564,7 @@ int main(int argc, char* argv[])
 	CheckToken(&tk, ";", Token_Structure);
 	CheckToken(&tk, "\n", Token_Whitespace);
 	CheckToken(&tk, "__DATA__", Token_Separator);
-	CheckToken(&tk, "\n", Token_Comment);
+	CheckToken(&tk, "\n", Token_Whitespace);
 	CheckToken(&tk, "FDGDF hfghhgfhg gfh\n=start\n", Token_Data);
 
 	tk.Reset();

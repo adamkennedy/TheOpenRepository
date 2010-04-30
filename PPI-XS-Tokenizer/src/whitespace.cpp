@@ -266,15 +266,26 @@ CharTokenizeResults DataToken::tokenize(Tokenizer *t, Token *token, unsigned cha
 }
 
 CharTokenizeResults CommentToken::commit(Tokenizer *t) {
-    t->_new_token(Token_Comment);
-    Token *c_token = t->c_token;
-	char *c_token_text = c_token->text;
-	long len = 0;
-    
-    while ( ( t->line_pos < t->line_length ) ) { //  && ( t->c_line[t->line_pos] != t->local_newline ) 
-        c_token_text[len++] = t->c_line[t->line_pos++];
-    }
-	c_token->length = len;
+	if (( t->c_token != NULL ) && 
+		( t->c_token->type->type == Token_Whitespace ) &&
+		( t->c_token->length == t->line_pos ) ) {
+		// This is a whole-line comment, that should own the whitespace before
+		// and the newline after it.
+		t->changeTokenType(Token_Comment);
+		Token *c_token = t->c_token;
+	    
+		while ( ( t->line_pos < t->line_length ) ) {
+			c_token->text[c_token->length++] = t->c_line[t->line_pos++];
+		}
+	} else {
+		// This is an inline comment - not contains the newline
+		t->_new_token(Token_Comment);
+		Token *c_token = t->c_token;
+	    
+		while ( ( t->line_pos < t->line_length ) && ( t->c_line[t->line_pos] != t->local_newline ) ) {
+			c_token->text[c_token->length++] = t->c_line[t->line_pos++];
+		}
+	}
 	TokenTypeNames zone = t->_finalize_token();
 	t->_new_token(zone);
 	return done_it_myself;
