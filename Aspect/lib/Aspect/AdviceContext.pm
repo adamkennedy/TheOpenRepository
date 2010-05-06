@@ -5,7 +5,7 @@ use warnings;
 use Carp         ();
 use Sub::Uplevel ();
 
-our $VERSION = '0.44';
+our $VERSION = '0.45';
 
 
 
@@ -174,8 +174,9 @@ Aspect::AdviceContext - a pointcut context for advice code
 
 =head1 SYNOPSIS
 
-  $pointcut = call qr/^Person::[gs]et_/ & cflow company => qr/^Company::/;
-
+  $pointcut = call qr/^Person::[gs]et_/
+            & cflow company => qr/^Company::/;
+  
   # using in 'before' advice code
   before {
      my $context = shift;             # context is only param to advice code
@@ -265,33 +266,6 @@ that eventually reached the get/set on C<Person>:
 
   before { print shift->company->name } $pointcut;
 
-=head1 SEE ALSO
-
-See the L<Aspect|::Aspect> pod for a guide to the Aspect module.
-
-You can find examples of using the C<AdviceContext> in any advice code.
-The aspect library for example (e.g. L<Aspect::Library::Wormhole>).
-
-L<Aspect::Advice> creates the main C<AdviceContext>, and
-C<Aspect::Pointcut::Cflow> creates contexts for each matched call flow.
-
-=head1 BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>.
-
-=head1 INSTALLATION
-
-See perlmodinstall for information and options on installing Perl modules.
-
-=head1 AVAILABILITY
-
-The latest version of this module is available from the Comprehensive Perl
-Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
-
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
@@ -301,6 +275,14 @@ Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
 Ran Eilam E<lt>eilara@cpan.orgE<gt>
 
 =head1 SEE ALSO
+
+See the L<Aspect|::Aspect> pod for a guide to the Aspect module.
+
+You can find examples of using the C<AdviceContext> in any advice code.
+The aspect library for example (e.g. L<Aspect::Library::Wormhole>).
+
+L<Aspect::Advice> creates the main C<AdviceContext>, and
+C<Aspect::Pointcut::Cflow> creates contexts for each matched call flow.
 
 You can find AOP examples in the C<examples/> directory of the
 distribution.

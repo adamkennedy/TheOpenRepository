@@ -4,7 +4,8 @@ package Aspect::Hook;
 # class that the code for Advice hooks can be generated into.
 
 use strict;
+use warnings;
 
-our $VERSION = '0.44';
+our $VERSION = '0.45';
 
 1;
