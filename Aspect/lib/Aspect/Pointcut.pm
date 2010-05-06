@@ -33,14 +33,14 @@ C<!>, C<&> and C<|>.
 =head1 METHODS
 
 =cut
- 
+
 use strict;
 use warnings;
 use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();
 
-our $VERSION = '0.44';
+our $VERSION = '0.45';
 
 use overload (
 	# Keep traditional Perl boolification and stringification
@@ -138,16 +138,17 @@ BEGIN {
 The C<match_all> method is the primary compile-time function called on the
 pointcut model by the core Aspect library.
 
-It will examine the list of all loaded functions and identify those which could
-potentially match, and will need to have hooks installed to intercept calls to
-those functions.
+It will examine the list of all loaded functions and identify those which
+could potentially match, and will need to have hooks installed to intercept
+calls to those functions.
 
-These functions will not necesarily all result in Aspect code being run. Some
-functions may be called in all cases, but often further run-time analyis needs
-to be done before we can be sure the particular function call respresents a
-match.
+These functions will not necesarily all result in Aspect code being run.
+Some functions may be called in all cases, but often further run-time
+analyis needs to be done before we can be sure the particular function call
+respresents a match.
 
-Returns a list of fully-resolved function names (e.g. Module::Name::function)
+Returns a list of fully-resolved function names
+(e.g. "Module::Name::function")
 
 =cut
 
@@ -213,10 +214,49 @@ sub match_all {
 	return @matches;
 }
 
+=pod
+
+=head2 match_define
+
+  my $should_hook = $pointcut->match_define();
+
+At compile time, the only common factor in predicting the future state of
+a function call is the name of the function itself.
+
+The C<match_define> method is called on the pointcut for each
+theoretically-matchable function in the entire Perl namespace that part of
+an ignored namespace, passing a single parameter of the fully-resolved
+function name.
+
+The method will determine if the function B<might> match, and needs to be
+hooked for further checking at run-time, potentially calling C<match_define>
+on child objects as well.
+
+Returns true if the function might match the pointcut, or false if the
+function can never possibly match the pointcut and should never be checked
+at run-time.
+
+=cut
+
 sub match_define {
 	my $class = ref $_[0] || $_[0];
 	die("Method 'match_define' not implemented in class '$class'");
 }
+
+=pod
+
+=head2 match_contains
+
+  my $contains_any = $pointcut->match_contains('Aspect::Pointcut::Call');
+
+The C<match_contains> method provides a convenience for the optimisation
+system which is used to check for the existance of a particular condition
+type anywhere within the pointcut object tree.
+
+Returns true if the tree contains any conditions of that type, or false
+if not.
+
+=cut
 
 sub match_contains {
 	my $self = shift;
@@ -224,9 +264,44 @@ sub match_contains {
 	return '';
 }
 
+=pod
+
+=head2 match_curry
+
+  my $optimized_pointcut = $raw_pointcut->match_curry();
+
+In a production system, pointcut declarations can result in large and
+complex B<Aspect::Pointcut> object trees.
+
+Because this tree can contain a large amount of structure that is no longer
+relevant at run-time, making a long series of prohibitively expensive
+cascading C<match_run> calls before every single function call.
+
+To reduce this cost down to something more reasonable, pointcuts are run
+through a currying process ( see L<http://en.wikipedia.org/wiki/Currying> ).
+
+A variety of optimisations are used to simplify boolean nesting, to remove
+tests that are irrelevant once the compile-time hooks have all been set up,
+and that the currying process can determine will never need to be tested.
+
+The currying process will generate and return a new pointcut tree that is
+independant from the original, and that can perform a match test at the
+minimum possible computational cost.
+
+Returns a new optimised B<Aspect::Pointcut> object if any further testing
+needs to be done at run-time for the pointcut. Returns null (C<undef> in
+scalar context or C<()> in list context) if the pointcut can be curried
+away to nothing, and no further testing needs to be done at run-time.
+
+=cut
+
 sub match_curry {
 	my $class = ref $_[0] || $_[0];
-	die("Method 'curry' not implemented in class '$class'");
+	die("Method 'match_curry' not implemented in class '$class'");
+}
+
+sub match_runtime {
+	return 1;
 }
 
 
@@ -236,13 +311,27 @@ sub match_curry {
 ######################################################################
 # Runtime Methods
 
+=pod
+
+=head2 match_run
+
+  my $match_boolean = $pointcut->match_run( $context );
+
+The C<match_run> is used to test hooked functions at run-time to determine
+if the current invocation of the function matches the pointcut conditions.
+
+It is passed an L<Aspect::Context> object representing the current function
+invocation.
+
+Returns true if the current invocation matches the pointcut and should have
+its advice run, or false if the current invocation is not part of the
+pointcut and the advice should not be run for this function call.
+
+=cut
+
 sub match_run {
 	my $class = ref $_[0] || $_[0];
 	die("Method 'match_run' not implemented in class '$class'");
-}
-
-sub match_runtime {
-	return 1;
 }
 
 1;

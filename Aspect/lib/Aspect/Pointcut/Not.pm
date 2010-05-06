@@ -5,7 +5,7 @@ use warnings;
 use Aspect::Pointcut        ();
 use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.44';
+our $VERSION = '0.45';
 our @ISA     = qw{
 	Aspect::Pointcut::Logic
 	Aspect::Pointcut
@@ -74,32 +74,25 @@ __END__
 
 =head1 NAME
 
-Aspect::Pointcut::Not - Logical 'not' operation pointcut
+Aspect::Pointcut::Not - Logical 'not' pointcut
 
 =head1 SYNOPSIS
 
-    Aspect::Pointcut::Not->new;
+  # High-level creation
+  my $pointcut1 = ! call 'one';
+  
+  # Manual creation
+  my $pointcut2 = Aspect::Pointcut::Not->new(
+      Aspect::Pointcut::Call->new('one')
+  );
 
 =head1 DESCRIPTION
 
-None yet.
+B<Aspect::Pointcut::Not> is a logical condition, which is used
+to create higher-order conditions from smaller parts.
 
-=head1 BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>.
-
-=head1 INSTALLATION
-
-See perlmodinstall for information and options on installing Perl modules.
-
-=head1 AVAILABILITY
-
-The latest version of this module is available from the Comprehensive Perl
-Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
+It takes two or more conditions, and applies appropriate logic during the
+various calculations that produces a logical set-wise 'and' result.
 
 =head1 AUTHORS
 

@@ -31,7 +31,7 @@ use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
 use Aspect::AdviceContext          ();
 
-our $VERSION = '0.44';
+our $VERSION = '0.45';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
@@ -520,8 +520,8 @@ interpreter dies, or the symbol table reloaded.
 
 Aspects are just plain old Perl objects, that install advice, and do
 other AOP-like things, like install methods on other classes, or mess around
-with the inheritance hierarchy of other classes. A good base class for them is
-L<Aspect::Modular>, but you can use any Perl object.
+with the inheritance hierarchy of other classes. A good base class for them
+is L<Aspect::Modular>, but you can use any Perl object.
 
 If the aspect class exists in the package C<Aspect::Library>, then it can be
 easily created:

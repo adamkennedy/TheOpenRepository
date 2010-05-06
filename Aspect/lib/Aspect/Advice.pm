@@ -3,7 +3,7 @@ package Aspect::Advice;
 use strict;
 use warnings;
 
-our $VERSION = '0.44';
+our $VERSION = '0.45';
 
 sub new {
 	my $class = shift;
@@ -43,22 +43,28 @@ Aspect::Advice - Change how Perl code is run at a pointcut
 
 =head1 SYNOPSIS
 
-  # creating using public interface: trace calls to Account subs
+  # "Trace calls to Account subs" created using public interface
   use Aspect;
-  before { print 'called: '. shift->sub_name } call qw/^Account::/;
+  
+  before {
+      print 'called: '. shift->sub_name;
+  } call qw/^Account::/;
 
-  # creating using internal interface
+  # Trace calls to Account subs" created using object-oriented interface
   use Aspect::Advice;
-  $advice = Aspect::Advice->new(before =>
-     { print 'called: '. shift->sub_name },
+  
+  $advice = Aspect::Advice->new(
+      before => sub {
+          print 'called: '. shift->sub_name;
+     },
      call qw/^Account::/
   );
 
 =head1 DESCRIPTION
 
-An advice is composed of a pointcut and some code that will run at the
-pointcut. The code is run C<before> or C<after> the pointcut, depending
-on advice C<type>.
+An "advice" in AOP lingo is composed of a L<Aspec::Pointcut|pointcut> and
+some code that will run at the pointcut. The code is run C<before> or
+C<after> the pointcut, depending on advice type.
 
 You do not normally create advice using the constructor. By C<use()>ing
 L<Aspect|::Aspect>, you get 2 subs imported: C<before()> and C<after()>,
@@ -77,23 +83,6 @@ need them.
 =head1 SEE ALSO
 
 See the L<Aspect|::Aspect> pod for a guide to the Aspect module.
-
-=head1 BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>.
-
-=head1 INSTALLATION
-
-See perlmodinstall for information and options on installing Perl modules.
-
-=head1 AVAILABILITY
-
-The latest version of this module is available from the Comprehensive Perl
-Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
 
 =head1 AUTHORS
 
