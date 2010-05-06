@@ -2,6 +2,7 @@ Revision history for Perl extension Aspect
 
 0.45 to be released
 	- More performance tuning of the namespace scanner in match_all.
+	- Added full documentation for Aspect::Pointcut.
 
 0.44 Mon 15 Feb 2010 - Adam Kennedy
 	- Inlined and reimplemented a stripped down and faster replacement

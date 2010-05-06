@@ -92,7 +92,11 @@ Aspect::Pointcut::Call - Call pointcut
 
 =head1 SYNOPSIS
 
-    Aspect::Pointcut::Call->new;
+  # High-level creation
+  my $pointcut1 = call 'one';
+  
+  # Manual creation
+  my $pointcut2 = Aspect::Pointcut::Call->new('one');
 
 =head1 DESCRIPTION
 
