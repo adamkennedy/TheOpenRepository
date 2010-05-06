@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::Files - A <Fragment> with file handling.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::Files version 1.200.
+This document describes Perl::Dist::WiX::Fragment::Files version 1.200001.
 
 =head1 SYNOPSIS
 
@@ -40,19 +40,19 @@ use Params::Util qw( _INSTANCE );
 use File::Spec::Functions qw( abs2rel splitpath catpath catdir splitdir );
 use List::MoreUtils qw( uniq );
 use Digest::CRC qw( crc32_base64 crc16_hex );
-require Perl::Dist::WiX::Exceptions;
-require Perl::Dist::WiX::Tag::DirectoryRef;
-require Perl::Dist::WiX::DirectoryCache;
-require Perl::Dist::WiX::DirectoryTree2;
-require WiX3::XML::Component;
-require WiX3::XML::Feature;
-require WiX3::XML::FeatureRef;
-require WiX3::XML::File;
-require WiX3::Exceptions;
-require File::List::Object;
-require Win32::Exe;
+use Perl::Dist::WiX::Exceptions qw();
+use Perl::Dist::WiX::Tag::DirectoryRef qw();
+use Perl::Dist::WiX::DirectoryCache qw();
+use Perl::Dist::WiX::DirectoryTree2 qw();
+use WiX3::XML::Component qw();
+use WiX3::XML::Feature qw();
+use WiX3::XML::FeatureRef qw();
+use WiX3::XML::File qw();
+use WiX3::Exceptions qw();
+use File::List::Object qw();
+use Win32::Exe 0.13 qw();
 
-our $VERSION = '1.200';
+our $VERSION = '1.200001';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';

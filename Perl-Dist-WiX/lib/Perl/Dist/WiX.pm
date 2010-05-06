@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.200
+Perl-Dist-WiX version 1.200001
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.200.
+This document describes Perl::Dist::WiX version 1.200001.
 
 =for readme continue
 
@@ -69,75 +69,87 @@ To install this module, run the following commands:
 =cut
 
 #<<<
-use     5.008001;
-use     Moose 0.90;
-use     Moose::Util::TypeConstraints;
-use     parent                qw( Perl::Dist::WiX::BuildPerl
-                                  Perl::Dist::WiX::Checkpoint
-                                  Perl::Dist::WiX::Libraries
-                                  Perl::Dist::WiX::Installation
-                                  Perl::Dist::WiX::Support
-                                  Perl::Dist::WiX::ReleaseNotes );
-use     Alien::WiX            qw( :ALL                          );
-use     Archive::Zip          qw( :ERROR_CODES                  );
-use     English               qw( -no_match_vars                );
-use     List::MoreUtils       qw( any none uniq                 );
-use     MooseX::Types::Moose  qw(
+use 5.008001;
+use Moose 0.90;
+use Moose::Util::TypeConstraints;
+use namespace::autoclean;
+use parent                                  qw(
+	Perl::Dist::WiX::BuildPerl Perl::Dist::WiX::Checkpoint
+	Perl::Dist::WiX::Libraries Perl::Dist::WiX::Installation
+	Perl::Dist::WiX::Support   Perl::Dist::WiX::ReleaseNotes 
+);
+use Alien::WiX                              qw(
+	:ALL
+);
+use Archive::Zip                            qw(
+	:ERROR_CODES
+);
+use English                                 qw(
+	-no_match_vars
+);
+use List::MoreUtils                         qw(
+	any none uniq
+);
+use MooseX::Types::Moose                    qw(
 	Int Str Maybe Bool Undef ArrayRef Maybe HashRef
 );
-use     MooseX::Types::URI    qw( Uri                           );
-use     MooseX::Types::Path::Class qw(
+use MooseX::Types::URI                      qw( 
+	Uri
+);
+use MooseX::Types::Path::Class              qw(
 	File Dir
 );
-use     Perl::Dist::WiX::Types qw(
+use Perl::Dist::WiX::Types                  qw(
 	ExistingDirectory ExistingFile TemplateObj
 	ExistingSubdirectory ExistingDirectory_Spaceless 
 	ExistingDirectory_SaneSlashes
 );
-use     Params::Util          qw(
+use Params::Util                            qw(
 	_HASH _STRING _INSTANCE _IDENTIFIER _ARRAY0 _ARRAY
 );
-use     Readonly              qw( Readonly                      );
-use     Storable              qw( retrieve                      );
-use     File::Spec::Functions qw(
+use Readonly                                qw(
+	Readonly
+);
+use Storable                                qw(
+	retrieve
+);
+use File::Spec::Functions                   qw(
 	catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use     File::HomeDir         qw();
-# use     File::Remove          qw();
-# use     File::pushd           qw();
-use     File::ShareDir        qw();
-use     File::Copy::Recursive qw();
-use     File::PathList        qw();
-use     HTTP::Status          qw();
-use     IO::File              qw();
-use     IO::String            qw();
-use     IO::Handle            qw();
-use     IPC::Run3             qw();
-use     LWP::UserAgent        qw();
-use     LWP::Online           qw();
-use     Module::CoreList 2.27 qw();
-use     PAR::Dist             qw();
-use     Path::Class::Dir      qw();
-use     Probe::Perl           qw();
-use     SelectSaver           qw();
-use     Template              qw();
-use     URI                   qw();
-use     Win32                 qw();
-use     File::List::Object    qw();
-require Perl::Dist::WiX::Exceptions;
-require Perl::Dist::WiX::DirectoryTree2;
-require Perl::Dist::WiX::FeatureTree2;
-require Perl::Dist::WiX::Fragment::CreateFolder;
-require Perl::Dist::WiX::Fragment::Files;
-require Perl::Dist::WiX::Fragment::Environment;
-require Perl::Dist::WiX::Fragment::StartMenu;
-require Perl::Dist::WiX::IconArray;
-require Perl::Dist::WiX::Tag::MergeModule;
-require WiX3::XML::GeneratesGUID::Object;
-require WiX3::Traceable;
+use File::HomeDir                           qw();
+use File::ShareDir                          qw();
+use File::Copy::Recursive                   qw();
+use File::PathList                          qw();
+use HTTP::Status                            qw();
+use IO::File                                qw();
+use IO::String                              qw();
+use IO::Handle                              qw();
+use IPC::Run3                               qw();
+use LWP::UserAgent                          qw();
+use LWP::Online                             qw();
+use Module::CoreList                   2.29 qw();
+use PAR::Dist                               qw();
+use Path::Class::Dir                        qw();
+use Probe::Perl                             qw();
+use SelectSaver                             qw();
+use Template                                qw();
+use URI                                     qw();
+use Win32                                   qw();
+use File::List::Object                      qw();
+use Perl::Dist::WiX::Exceptions             qw();
+use Perl::Dist::WiX::DirectoryTree2         qw();
+use Perl::Dist::WiX::FeatureTree2           qw();
+use Perl::Dist::WiX::Fragment::CreateFolder qw();
+use Perl::Dist::WiX::Fragment::Files        qw();
+use Perl::Dist::WiX::Fragment::Environment  qw();
+use Perl::Dist::WiX::Fragment::StartMenu    qw();
+use Perl::Dist::WiX::IconArray              qw();
+use Perl::Dist::WiX::Tag::MergeModule       qw();
+use WiX3::XML::GeneratesGUID::Object        qw();
+use WiX3::Traceable                         qw();
 #>>>
 
-our $VERSION = '1.200';
+our $VERSION = '1.200001';
 $VERSION =~ s/_//ms;
 
 
@@ -444,7 +456,9 @@ has 'checkpoint_dir' => (
 sub _build_checkpoint_dir {
 	my $self = shift;
 	my $dir  = $self->temp_dir()->subdir('checkpoint');
-	$self->remake_path("$dir");
+	if ( not -d "$dir" ) {
+		$self->remake_path("$dir");
+	}
 	return $dir;
 }
 
@@ -4869,7 +4883,7 @@ L<Alien::WiX|Alien::WiX>, L<Data::Dump::Streamer|Data::Dump::Streamer> 2.08,
 L<Data::UUID|Data::UUID> 1.149, L<Devel::StackTrace|Devel::StackTrace> 1.20, 
 L<Exception::Class|Exception::Class> 1.22, L<File::ShareDir|File::ShareDir> 
 1.00, L<IO::String|IO::String> 1.08, L<List::MoreUtils|List::MoreUtils> 0.07, 
-L<Module::CoreList|Module::CoreList> 2.17, 
+L<Module::CoreList|Module::CoreList> 2.29, L<Win32::Exe|Win32::Exe> 0.13, 
 L<Object::InsideOut|Object::InsideOut> 3.53, L<Perl::Dist|Perl::Dist> 1.14, 
 L<Process|Process> 0.26, L<Readonly|Readonly> 1.03, L<URI|URI> 1.35, and 
 L<Win32|Win32> 0.35.

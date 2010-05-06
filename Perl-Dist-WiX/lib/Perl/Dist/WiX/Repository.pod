@@ -7,7 +7,7 @@ Perl::Dist::WiX::Repository - The repository that is used for Perl::Dist::WiX.
 =head1 DESCRIPTION
 
 This documentation describes the repository that Perl::Dist::WiX uses, and 
-the branches that are currently being used as of March 2010.
+the branches that are currently being used as of May 2010.
 
 =head1 REPOSITORY
 
@@ -38,53 +38,37 @@ get it merged into the trunk, by doing:
 
 Location: L<http://svn.ali.as/cpan/trunk/Perl-Dist-WiX/>
 
-The trunk right now has 3 goals for April 2010:
+The trunk right now has 3 goals for July 2010:
 
 =over
 
 =item 1.
 
-Relocatability (being able to install Strawberry Perl to any location).
-This work is being done on the trunk.
-
-A perl script for .zip file relocation has been included, and it is
-temporarily being used in the .msi as well. A custom action will be 
-included post-April 2010 Beta 1.
-
-This only works with 5.11.x versions of perl or above at the present
-time (there is a bug files on rt.perl.org on 5.10.1.)
+Cleaning up custom action bugs.
 
 =item 2.
 
-5.12.x support, once the 5.12.0 version of perl is released.
-Currently 5.11.5 is the supported development version, in order to
-help prepare for this.
+5.12.1 support.
 
 =item 3.
 
-Updating toolchain for gcc 4.4.3 from, to go along with 5.12.x support.
-Most of this has been completed.
-
-=item 4.
-
-Updated libraries, built with gcc 4.4.3. Most of this has been completed, 
-as well.
-
-The 32-bit libraries will work with the old gcc 3.3.5 toolchain, as well.
+Fixing other bugs.
 
 =back
 
-=head2 January 2009 maintenance branch.
+=head2 April 2010 maintenance branch.
 
-Location: L<http://svn.ali.as/cpan/branches/Perl-Dist-WiX/January-2009-maintenance/>
+Location: L<http://svn.ali.as/cpan/branches/Perl-Dist-WiX/April-2010-maintenance/>
 
-This branch exists for the sole purpose of rebuilding Strawberry Perl 5.8.9 
-and 5.10.1 if there are major problems before April 2010. Changes on this 
+This branch exists for the sole purpose of rebuilding Strawberry Perl 5.10.1 
+and 5.12.0 if there are major problems before July 2010. Changes on this 
 branch are HIGHLY discouraged.
 
-This branch will be deleted upon the release of the April 2010 versions 
+This branch will be deleted upon the release of the July 2010 versions 
 of Strawberry Perl, and a new branch will be created to maintain that 
 version.
+
+5.12.0.1 was built from this branch.
 
 =head1 AUTHORS
 

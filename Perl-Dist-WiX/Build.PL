@@ -59,6 +59,7 @@ my $requires = {
 	'MooseX::Types'             => '0',
 	'MooseX::Types::URI'        => '0.02',
 	'MooseX::Types::Path::Class' => '0.05',
+	'namespace::autoclean'      => '0.10',
 	'PAR::Dist'                 => '0.42',
 	'Params::Util'              => '0.35',
 	'Portable::Dist'            => '0.03',
@@ -71,7 +72,7 @@ my $requires = {
 	'WiX3'                      => '0.009',
 	'YAML::Tiny'                => '1.36',
 	'Win32'                     => '0.35',
-	'Win32::Exe'                => '0.11',
+	'Win32::Exe'                => '0.13',
 	'Win32::File::Object'       => '0.01',
 	'Win32API::File'            => '0.1001',
 };

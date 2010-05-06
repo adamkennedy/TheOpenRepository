@@ -8,7 +8,7 @@ Perl::Dist::WiX::Checkpoint - Checkpoint support for Perl::Dist::WiX
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Checkpoint version 1.200.
+This document describes Perl::Dist::WiX::Checkpoint version 1.200001.
 
 =head1 SYNOPSIS
 
@@ -49,7 +49,7 @@ use File::Remove qw();
 use Storable qw();
 use Clone qw(clone);
 
-our $VERSION = '1.200';
+our $VERSION = '1.200001';
 $VERSION =~ s/_//ms;
 
 =head2 checkpoint_task
@@ -187,7 +187,14 @@ sub checkpoint_load {
 
 	# Does the checkpoint exist?
 	unless ( -d $self->checkpoint_dir() ) {
-		PDWiX->throw('Failed to find checkpoint directory');
+		PDWiX::Directory->throw(
+			message => 'Checkpoint directory does not exist',
+			dir     => $self->checkpoint_dir() );
+	}
+	unless ( -f $self->checkpoint_file() ) {
+		PDWiX::File->throw(
+			message => 'Checkpoint file does not exist',
+			file    => $self->checkpoint_file() );
 	}
 
 	$self->trace_line( 1, "Preparing to restore checkpoint\n" );

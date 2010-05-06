@@ -8,7 +8,7 @@ Perl::Dist::WiX::IconArray - A list of <Icon> tags.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::IconArray version 1.200.
+This document describes Perl::Dist::WiX::IconArray version 1.200001.
 
 =head1 SYNOPSIS
 
@@ -39,11 +39,11 @@ The object is not a singleton - maybe it should be?
 
 use 5.008001;
 use Moose 0.90;
-use Params::Util qw( _STRING   );
+use Params::Util qw( _STRING _INSTANCE  );
 use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Tag::Icon;
 
-our $VERSION = '1.200';
+our $VERSION = '1.200001';
 $VERSION =~ s/_//ms;
 
 # Private storage for the icons added.
@@ -84,6 +84,8 @@ The second parameter defaults to 'Perl.msi' (which is a shortcut for
 the icon that should be linked to in Add/Remove Programs for your
 software.)
 
+Either parameter can be a L<Path::Class::File|Path::Class::File>.
+
 =cut
 
 sub add_icon {
@@ -92,6 +94,12 @@ sub add_icon {
 	# Check parameters
 	unless ( defined $pathname_target ) {
 		$pathname_target = 'Perl.msi';
+	}
+	if ( defined _INSTANCE( $pathname_icon, 'Path::Class::File' ) ) {
+		$pathname_icon = $pathname_icon->stringify();
+	}
+	if ( defined _INSTANCE( $pathname_target, 'Path::Class::File' ) ) {
+		$pathname_target = $pathname_target->stringify();
 	}
 	unless ( defined _STRING($pathname_target) ) {
 		PDWiX::Parameter->throw(

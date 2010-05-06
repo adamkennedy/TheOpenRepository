@@ -8,7 +8,7 @@ Perl::Dist::WiX::BuildPerl - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::BuildPerl version 1.200.
+This document describes Perl::Dist::WiX::BuildPerl version 1.200001.
 
 =head1 DESCRIPTION
 
@@ -39,7 +39,7 @@ use Perl::Dist::WiX::Asset::Perl qw();
 use Perl::Dist::WiX::Toolchain qw();
 use File::List::Object qw();
 
-our $VERSION = '1.200';
+our $VERSION = '1.200001';
 $VERSION =~ s/_//sm;
 
 Readonly my %CORE_MODULE_FIX => (
@@ -530,13 +530,24 @@ sub install_perl {
 
 sub _create_perl_toolchain {
 	my $self = shift;
+	my $cpan = $self->cpan();
+
+	# Quick check for a nonexistent minicpan directory.
+	if ( _INSTANCE( $cpan, 'URI::file' ) ) {
+		if ( not -d $cpan->dir() ) {
+			PDWiX::Directory->throw(
+				message =>
+				  'Directory referred to by CPAN url does not exist',
+				dir => $cpan->dir() );
+		}
+	}
 
 	# Prefetch and predelegate the toolchain so that it
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal(),
-		cpan         => $self->cpan()->as_string(),
+		cpan         => $cpan->as_string(),
 		bits         => $self->bits(),
 	) or PDWiX->throw('Failed to resolve toolchain modules');
 	if ( not eval { $toolchain->delegate(); 1; } ) {

@@ -1,5 +1,12 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.200001   Thu 06 May 2010
+    1. Used to build Bootstrap Perl "April" 2010.
+    2. Used to build Strawberry Perl 5.12.0.1.
+    3. Requires version of Win32::Exe that has 64-bit support.
+       (should have been in 1.200)
+    4. Fixing small bugs in checkpointing.
+
 1.200   Sat 01 May 2010
     1. Documentation cleanup (including adding when required).
     2. Supports 5.12.0 final. Removes 5.11.5 support.
