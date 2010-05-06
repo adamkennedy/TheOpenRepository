@@ -14,6 +14,29 @@ our @ISA     = 'Aspect::Pointcut';
 
 
 ######################################################################
+# Constructor
+
+sub new {
+	my $class = shift;
+	my $spec  = shift;
+	if ( Params::Util::_STRING($spec) ) {
+		my $perl = 'Params::Util::_INSTANCE(\$_->{exception}, "$spec")';
+		return bless [ $spec, sub { $_[0] eq $spec }, $perl ], $class;
+	}
+	if ( Params::Util::_CODELIKE($spec) ) {
+		return bless [ $spec, $spec, $spec ], $class;
+	}
+	unless ( Params::Util::_REGEX($spec) ) {
+		Carp::croak("Invalid function call specification");
+	}
+	return bless [ $spec,  ], $class;
+}
+
+
+
+
+
+######################################################################
 # Weaving Methods
 
 sub match_define {

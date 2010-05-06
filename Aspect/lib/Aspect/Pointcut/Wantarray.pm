@@ -20,11 +20,15 @@ use constant LIST   => 3;
 # Constructor Methods
 
 sub new {
-	my $class = shift;
-	my $want  = shift;
-	return bless [ LIST   ], $class if $want;
-	return bless [ SCALAR ], $class if defined $want;
-	return bless [ VOID   ], $class;
+	return bless [ LIST,
+		'$_->{wantarray}',
+	], $_[0] if $_[1];
+	return bless [ SCALAR,
+		'defined $_->{wantarray} and not $_->{wantarray}',
+	], $_[0] if defined $_[1];
+	return bless [ VOID,
+		'not defined $_->{wantarray}',
+	], $_[0];
 }
 
 

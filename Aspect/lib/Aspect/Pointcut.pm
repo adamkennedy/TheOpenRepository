@@ -1,5 +1,39 @@
 package Aspect::Pointcut;
 
+=pod
+
+=head1 NAME
+
+Aspect::Pointcut - API for determining which events should be hooked
+
+=head1 DESCRIPTION
+
+Aspect-Oriented Programming implementations draw much of their power from the
+flexibility that can be applied to when a function call should or should not
+be hooked.
+
+B<Aspec::Pointcut> provides a robust and powerful API for defining the rules
+for when a function call should be hooked, and then applying the rules as
+optimally as possible. This optimisation is particularly important for any
+pure-Perl implementation, which cannot hook deeply into the underlying 
+virtual machine as you might with a Java or Perl XS-based implementation.
+
+A running program can be seen as a collection of events. Events like a
+sub returning from a call, or a package being used. These are called join
+points. A pointcut defines a set of join points, taken from all the join
+points in the program. Different pointcut classes allow you to define the
+set in different ways, so you can target the exact join points you need.
+
+Pointcuts are constructed as trees; logical operations on pointcuts with
+one or two arguments (not, and, or) are themselves pointcut operators.
+You can construct them explicitly using object syntax, or you can use the
+convenience functions exported by Aspect and the overloaded operators
+C<!>, C<&> and C<|>.
+
+=head1 METHODS
+
+=cut
+ 
 use strict;
 use warnings;
 use Aspect::Pointcut::Or  ();
@@ -18,7 +52,7 @@ use overload (
 	'&'    => sub { Aspect::Pointcut::And->new( $_[0], $_[1] ) },
 	'!'    => sub { Aspect::Pointcut::Not->new( $_[0]        ) },
 
-	# Everything else is free to throw an exception
+	# Everything else should fail to match and throw an exception
 );
 
 
@@ -27,6 +61,23 @@ use overload (
 
 ######################################################################
 # Constructor
+
+=pod
+
+=head2 new
+
+The C<new> constructor creates new pointcut objects.
+
+All pointcut classes define their own rules around the parameters that are
+provided, but once created these pointcuts can then all be mixed together in
+an arbitrary fashion.
+
+Note: Unlike most Perl objects the default and recommended underlying datatype
+for pointcut objects is an C<ARRAY> reference rather than C<HASH> references.
+This is done because pointcut code can directly impact the speed of function
+calls, and so is extremely performance sensitive.
+
+=cut
 
 sub new {
 	my $class = shift;
@@ -78,11 +129,28 @@ BEGIN {
 	};
 }
 
-sub match_runtime {
-	return 1;
-}
+=pod
 
-# Find the list of all matching subs
+=head2 match_all
+
+  my @fully_resolved_function_names = $pointcut->match_all();
+
+The C<match_all> method is the primary compile-time function called on the
+pointcut model by the core Aspect library.
+
+It will examine the list of all loaded functions and identify those which could
+potentially match, and will need to have hooks installed to intercept calls to
+those functions.
+
+These functions will not necesarily all result in Aspect code being run. Some
+functions may be called in all cases, but often further run-time analyis needs
+to be done before we can be sure the particular function call respresents a
+match.
+
+Returns a list of fully-resolved function names (e.g. Module::Name::function)
+
+=cut
+
 sub match_all {
 	my $self    = shift;
 	my @matches = ();
@@ -173,29 +241,15 @@ sub match_run {
 	die("Method 'match_run' not implemented in class '$class'");
 }
 
+sub match_runtime {
+	return 1;
+}
+
 1;
 
 __END__
 
 =pod
-
-=head1 NAME
-
-Aspect::Pointcut - pointcut base class
-
-=head1 DESCRIPTION
-
-A running program can be seen as a collection of events. Events like a
-sub returning from a call, or a package being used. These are called join
-points. A pointcut defines a set of join points, taken from all the join
-points in the program. Different pointcut classes allow you to define the
-set in different ways, so you can target the exact join points you need.
-
-Pointcuts are constructed as trees; logical operations on pointcuts with
-one or two arguments (not, and, or) are themselves pointcut operators.
-You can construct them explicitly using object syntax, or you can use the
-convenience functions exported by Aspect and the overloaded operators
-C<!>, C<&> and C<|>.
 
 =head1 SEE ALSO
 
