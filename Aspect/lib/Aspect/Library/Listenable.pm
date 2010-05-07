@@ -558,23 +558,6 @@ C<Class::Listener>, C<Class::Observable>. Both are object-oriented
 solutions to the same problem. Both force you to change the listenable
 class, by adding the code to fire events inside your "hot" methods.
 
-=head1 BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>.
-
-=head1 INSTALLATION
-
-See perlmodinstall for information and options on installing Perl modules.
-
-=head1 AVAILABILITY
-
-The latest version of this module is available from the Comprehensive Perl
-Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
-
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>

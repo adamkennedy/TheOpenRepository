@@ -176,7 +176,7 @@ is( $foo, 9, '->foo is called for both ->bar and ->foo' );
 SCOPE: {
 	my $advice = around {
 		my $c = shift;
-		$c->return_value($c->my_key->self);
+		$c->return_value( $c->my_key->self );
 	} call "My::One::foo"
 	& cflow my_key => "My::One::bar";
 

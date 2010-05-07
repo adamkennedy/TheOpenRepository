@@ -93,31 +93,18 @@ Aspect::Pointcut::Throwing - Exception typing pointcut
 
   use Aspect;
   
-  # Catch Foo exceptions and return true instead
-  after { $_[0]->return_value(1) } throwing 'Foo::Exception';
+  # Catch a Foo::Exception object exception
+  after {
+      $_[0]->return_value(1)
+  } throwing 'Foo::Exception';
+  
+  # Catch a plain die with particular string
 
 =head1 DESCRIPTION
 
 The B<Aspect::Pointcut::Throwing> pointcut is used to match situations
-in which an after() or after_throwing() advice returns a specific
-exception string or object.
-
-=head1 BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>.
-
-=head1 INSTALLATION
-
-See perlmodinstall for information and options on installing Perl modules.
-
-=head1 AVAILABILITY
-
-The latest version of this module is available from the Comprehensive Perl
-Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
+in which an after() or after_throwing() advice block wishes to intercept
+the throwing of a specific exception string or object.
 
 =head1 AUTHORS
 

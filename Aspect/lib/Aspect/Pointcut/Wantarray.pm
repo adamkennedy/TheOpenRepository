@@ -92,13 +92,6 @@ The C<Aspect::Pointcut::Wantarray> pointcut allows the creation of
 aspects that only trap calls made in a particular context (list, scalar
 or void).
 
-=head1 BUGS AND LIMITATIONS
-
-No bugs have been reported.
-
-Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>.
-
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
