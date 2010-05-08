@@ -6,7 +6,7 @@ use ExtUtils::MakeMaker ();
 
 WriteMakefile(
 	NAME             => 'CPAN::Test::Dummy::Perl5::NoBugTracker',
-	ABSTRACT         => 'Test Dummy that explicitly says there is no bug tracker',
+	ABSTRACT         => 'CPAN Test Dummy that explicitly says there is no bug tracker',
 	VERSION_FROM     => 'lib/CPAN/Test/Dummy/Perl5/NoBugTracker.pm',
 	AUTHOR           => 'Adam Kennedy <adamk@cpan.org>',
 	LICENSE          => 'perl',
