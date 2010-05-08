@@ -6,6 +6,7 @@ $CPAN::Test::Dummy::Perl5::NoBugTracker::VERSION = '1.00';
 
 1;
 
+
 __END__
 
 =pod
