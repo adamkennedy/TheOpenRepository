@@ -13,7 +13,8 @@ __END__
 
 =head1 NAME
 
-CPAN::Test::Dummy::Perl5::NoBugTracker - CPAN Test Dummy
+CPAN::Test::Dummy::Perl5::NoBugTracker - CPAN Test Dummy that explicitly says
+there is no bug tracker
 
 =head1 SYNOPSIS
 
