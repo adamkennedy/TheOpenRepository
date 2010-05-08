@@ -24,7 +24,7 @@ sub MODIFY_CODE_ATTRIBUTES {
 	# Register an event
 	if ( $name eq 'Event' ) {
 		# Add to the coderef event register
-		$Aegent::EVENT{ Scalar::Util::refaddr $code } = [
+		$Aegent::EVENT{Scalar::Util::refaddr($code)} = [
 			'Aegent::Meta::Event',
 		];
 		return ();
@@ -39,17 +39,15 @@ sub MODIFY_CODE_ATTRIBUTES {
 		unless ( Params::Util::_POSINT($delay) ) {
 			Carp::croak("Missing or invalid timeout");
 		}
-		$POE::Declare::EVENT{Scalar::Util::refaddr($code)} = [
-			'POE::Declare::Meta::Timeout',
+		$Aegent::EVENT{Scalar::Util::refaddr($code)} = [
+			'Aegent::Meta::Timeout',
 			delay => $delay,
 		];
 		return ();
 	}
 
 	# Unknown method type
-	Carp::croak("Unknown or unsupported attribute $name");
-}
-
+	Carp::croak("Unknown or unsupported attribute '$name'");
 }
 
 
@@ -64,15 +62,6 @@ sub new {
 	my $meta  = $class->meta;
 	my $self  = bless { }, $class;
 	my %param = @_;
-
-	# Check the Alias
-	if ( exists $param{Alias} ) {
-		Params::Util::_STRING($param{Alias}) or
-		Carp::croak("Did not provide a valid Alias string param");
-		$self->{Alias} = delete $param{Alias};
-	} else {
-		$self->{Alias} = $meta->alias;
-	}
 
 	# Stuff goes here
 	die "CODE INCOMPLETE";

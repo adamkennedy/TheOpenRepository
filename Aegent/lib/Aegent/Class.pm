@@ -1,9 +1,7 @@
-package Aegent::Meta;
+package Aegent::Class;
 
 use 5.008007;
 use strict;
-use Params::Util                 ();
-use Moose::Util::TypeConstraints ();
 
 our $VERSION = '0.01';
 
@@ -12,7 +10,10 @@ our $VERSION = '0.01';
 
 
 ######################################################################
-# Custom Types
+# Moose Structure
+
+use Moose;
+use Moose::Util::TypeConstraints ();
 
 Moose::Util::TypeConstraints::subtype(
 	AegentClass => (
@@ -22,24 +23,6 @@ Moose::Util::TypeConstraints::subtype(
 		},
 	)
 );
-
-Moose::Util::TypeConstraints::subtype(
-	AegentAttribute => (
-		as    => 'Str',
-		where => sub {
-			Params::Util::_IDENTIFIER($_)
-		},
-	)
-);
-
-
-
-
-
-######################################################################
-# Class Structure
-
-use Moose 1.03;
 
 has name => (
 	is        => 'ro',
@@ -60,7 +43,7 @@ has sequence => (
 
 has attr => (
 	is        => 'bare',
-	isa       => 'HashRef[Aegent::Meta::Attribute]',
+	isa       => 'HashRef[Aegent::Attribute]',
 	required  => 1,
 	default   => sub { { } },
 	traits    => [ 'Hash' ],

@@ -2,13 +2,15 @@ package Aegent;
 
 use 5.008007;
 use strict;
-use Aegent::Meta ();
+use Aegent::Object    ();
+use Aegent::Class     ();
+use Aegent::Attribute ();
 
 our $VERSION = '0.01';
 
 # Metadata Storage
-our %ATTR  = ();
-our %EVENT = ();
-our %META  = ();
+our %CLASS     = ();
+our %ATTRIBUTE = ();
+our %EVENT     = ();
 
 1;
