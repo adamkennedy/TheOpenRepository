@@ -1,10 +1,13 @@
 Revision history for Perl extension pip
 
-1.17 Tue 23 Mar 2010
+1.17 Mon 10 May 2010
 	- Updating to Module::Install 0.95
 	- Bundling newer author tests
 	- Removing a three-argument open that some overzealous external
 	  contributor added.
+	- Added support for the .tgz extension, behaving the same as .tar.gz
+	- Added support for github tarball URLs in the format
+	  http://github.com/gitpan/Config-Tiny/tarball/2.12
 
 1.16 Mon 23 Nov 2009
 	- Adding support for zip files

@@ -5,9 +5,7 @@ package Module::Plan::Archive;
 
 use 5.005;
 use strict;
-use Carp               'croak';
-use Params::Util       '_INSTANCE',
-                       '_STRING';
+use Params::Util       ();
 use Archive::Tar       ();
 use Module::Plan::Base ();
 
@@ -28,7 +26,7 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Check params
-	unless ( _INSTANCE($self->plan, 'Module::Plan::Base') ) {
+	unless ( Params::Util::_INSTANCE($self->plan, 'Module::Plan::Base') ) {
 		Carp("Did not provide a Module::Plan::Base object to Archive contructor");
 	}
 	unless ( $self->plan->can('fetch') ) {
@@ -43,7 +41,7 @@ sub from_p5i {
 
 	# Create an archive from a file name
 	my $file = shift;
-	unless ( _STRING($file) and -f $file ) {
+	unless ( Params::Util::_STRING($file) and -f $file ) {
 		Carp('Missing or invalid file name');
 	}
 
