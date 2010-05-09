@@ -215,6 +215,16 @@ sub error {
 pip - The Perl Installation Program, for scripted and third-party
 distribution installation.
 
+=head1 SYNOPSIS
+
+  pip script.p5i
+  pip script.p5z
+  pip Distribution-1.23.tgz
+  pip Distribution-1.23.tar.gz
+  pip Distribution-1.23-MSWin32-5.8.0.par
+  pip http://server/Distribution-1.23.tar.gz
+  pip http://github.com/gitpan/Distribution/tarball/1.23
+
 =head1 DESCRIPTION
 
 The B<pip> ("Perl Installation Program") console application is used to
