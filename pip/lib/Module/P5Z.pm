@@ -1,6 +1,6 @@
 package Module::P5Z;
 
-use 5.005;
+use 5.006;
 use strict;
 use File::pushd  ();
 use Archive::Tar ();

@@ -22,7 +22,7 @@ See L<pip> for the front-end console application for this module.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
 use Carp           'croak';
 use File::Spec     ();

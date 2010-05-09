@@ -3,7 +3,7 @@ package Module::Plan::Archive;
 # Simple module for creating Module::Build::Plan archives, which are
 # single-file packaged sets of tarballs with a build in p5i script.
 
-use 5.005;
+use 5.006;
 use strict;
 use Params::Util       ();
 use Archive::Tar       ();

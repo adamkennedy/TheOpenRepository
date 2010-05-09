@@ -1,6 +1,6 @@
 package pip;
 
-use 5.00503;
+use 5.006;
 use strict;
 use File::Spec         ();
 use File::Temp         ();
