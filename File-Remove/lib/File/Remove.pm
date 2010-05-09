@@ -6,7 +6,7 @@ use strict;
 use vars qw{$VERSION @ISA @EXPORT_OK};
 use vars qw{$debug $unlink $rmdir};
 BEGIN {
-	$VERSION   = '1.43_01';
+	$VERSION   = '1.44';
 	@ISA       = qw{ Exporter};
 	@EXPORT_OK = qw{ remove rm clear trash };
 }
