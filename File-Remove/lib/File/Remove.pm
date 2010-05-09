@@ -207,6 +207,28 @@ sub undelete (@) {
 	goto &trash;
 }
 
+
+
+
+
+######################################################################
+# Support Functions
+
+# Do we need to move to a different directory to delete a directory,
+# and if so which.
+sub _moveto {
+	# Do everything in absolute terms
+	my $cwd = Cwd::abs_path( Cwd::cwd() );
+	my $dir = Cwd::abs_path( File::Spec->rel2abs(shift) );
+
+	# Split the paths
+	my ($cwdv, $cwdd, $cwdf) = File::Spec->splitpath($cwd);
+	my ($dirv, $dird, $dirf) = File::Spec->splitpath($dir);
+	return '' if $cwdv ne $dirv;
+
+	
+}
+
 1;
 
 __END__
