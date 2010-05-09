@@ -1,9 +1,10 @@
 Revision history for Perl extension File-Remove
 
-1.43_01 Thu 16 Oct 2008 - Adam Kennedy
-	- Updated to Module::Install 0.91
+1.44 Mon 10 May 2010 - Adam Kennedy
+	- Updated to Module::Install::DSL 0.96
 	- Added a test to delete directories when the current working
-	  directory is inside the location to delete.
+	  directory is inside the location to delete (ADAMK)
+	- Fixes for trash() with callbacks and on Mac (MIYAGAWA)
 
 1.42 Thu  3 Jul 2008 - Adam Kennedy
 	- Updated to Module::Install 0.76

@@ -312,7 +312,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Some parts copyright 2006 - 2009 Adam Kennedy.
+Some parts copyright 2006 - 2010 Adam Kennedy.
 
 Taken over by Adam Kennedy E<lt>adamk@cpan.orgE<gt> to fix the
 "deep readonly files" bug, and do some more cleaning up.
