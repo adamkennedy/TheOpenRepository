@@ -3,7 +3,6 @@ CVS/.*
 \.bak$
 \.sw[a-z]$
 \.tar$
-\.tgz$
 \.o$
 \.xsi$
 \.bs$
