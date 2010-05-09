@@ -1,5 +1,8 @@
 Revision history for Perl extension pip
 
+1.18 Mon 10 May 2010 - Adam Kennedy
+	- POD typo fix to keep the Debian nazis happy :)
+
 1.17 Mon 10 May 2010
 	- Updating to Module::Install 0.95
 	- Bundling newer author tests

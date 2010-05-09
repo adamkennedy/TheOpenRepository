@@ -11,7 +11,7 @@ use Module::Plan::Base ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.17';
+	$VERSION = '1.18';
 }
 
 
@@ -313,7 +313,7 @@ you don't even want to make a file at all, you just want to install a
 single tarball.
 
 The C<-i> option lets you pass the name of a single file and it will treat
-it as an installer for that single file. Further, if the extention of the
+it as an installer for that single file. Further, if the extension of the
 tarball is .tar.gz, the B<-i> option is implied.
 
 For example, the following are equivalent.

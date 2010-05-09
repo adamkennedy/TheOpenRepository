@@ -53,7 +53,7 @@ use CPAN;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.17';
+	$VERSION = '1.18';
 }
 
 
