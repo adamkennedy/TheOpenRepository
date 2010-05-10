@@ -1,8 +1,18 @@
 Revision history for Perl extension Aspect
 
-0.45 to be released
+0.45 Mon 10 May 2010
+	- Updating to Module::Install::DSL 0.96
 	- More performance tuning of the namespace scanner in match_all.
-	- Added full documentation for the Aspect::Pointcut tree.
+	- A wide range of cleanups, improvements and expansions to the
+	  previously existing documentation. This includes full
+	  documentation for the entire Aspect::Pointcut tree.
+	- Renamed the new API for join point contexts from Aspect::Context
+	  to Aspect::Point.
+	- Aspect libraries in namespaces other than Aspect::Library:: can
+	  now be used as long as the module inherits from the (empty)
+	  identifying base class Aspect::Library. All libraries that
+	  currently inherit from Aspect::Modular automatically inherit from
+	  the new Aspect::Library as well.
 
 0.44 Mon 15 Feb 2010 - Adam Kennedy
 	- Inlined and reimplemented a stripped down and faster replacement

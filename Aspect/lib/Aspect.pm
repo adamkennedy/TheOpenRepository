@@ -45,7 +45,7 @@ our %EXPORTED;
 # Public (Exported) Functions
 
 sub aspect {
-	my $class = _LOAD('Aspect::Library::' . shift);
+	my $class = _LIBRARY(shift);
 	return $class->new(
 		lexical => defined wantarray,
 		params  => [ @_ ],
@@ -189,11 +189,12 @@ sub import {
 # Run-time use call
 # NOTE: Do we REALLY need to do this as a use?
 #       If the ->import method isn't important, change to native require.
-sub _LOAD {
+sub _LIBRARY {
 	my $package = shift;
-	eval "require $package;";
-	Carp::croak("Cannot use [$package]: $@") if $@;
-	return $package;
+	if ( Params::Util::_IDENTIFIER($package) ) {
+		$package = "Aspect::Library::$package";
+	}
+	Params::Util::_DRIVER($package, 'Aspect::Library');
 }
 
 1;
