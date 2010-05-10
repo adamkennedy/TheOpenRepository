@@ -4,7 +4,7 @@ use 5.008001;
 use warnings;
 use strict;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009_001';
 $VERSION =~ s/_//ms;
 
 1;                                     # Magic true value required at end of module

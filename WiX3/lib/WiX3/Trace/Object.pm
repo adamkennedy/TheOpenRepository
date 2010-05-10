@@ -7,7 +7,7 @@ use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( Tracelevel );
 use MooseX::Types::Moose qw( Bool );
 
-our $VERSION = '0.009';
+our $VERSION = '0.009_001';
 $VERSION =~ s/_//ms;
 
 has tracelevel => (
@@ -29,7 +29,11 @@ sub trace_line {
 	my $self = shift;
 	my ( $level, $text ) = @_;
 
-	if ( $level <= $self->get_tracelevel() ) {
+	# We hit this routine so many times that it accumulates 
+	# a minute's worth of time when building Strawberry 5.12.0 
+	# 64-bit. (profiling by NYTProf)
+	# I would not normally break encapsulation like this.
+	if ( $level <= $self->{tracelevel} ) {
 		print $text;
 	}
 
