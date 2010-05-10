@@ -8,7 +8,7 @@ use warnings;
 use Params::Util   1.00 ();
 use ORLite::Mirror 1.18 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub import {
 	my $class = shift;
