@@ -1,5 +1,11 @@
 Changes for Perl extension ORLite-Pod
 
+0.08 Mon 10 May 2010
+	- Upgraded to Module::Install::DSL 0.96
+	- Removed the ORLite version number
+	- Adding POD for more methods.
+	- Fixing a variety of POD bugs
+
 0.07 Wed 29 Jul 2009
 	- Add support for --email to orlite2pod
 	- Don't trust the original database creator

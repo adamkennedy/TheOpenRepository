@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use File::Spec::Functions ':ALL';
 use File::pushd;
 use t::lib::Test;

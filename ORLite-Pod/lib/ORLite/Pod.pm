@@ -19,10 +19,6 @@ ORLite::Pod - Documentation generator for ORLite
 
 =head1 DESCRIPTION
 
-B<THIS MODULE IS EXPERIMENTAL AND SUBJECT TO CHANGE WITHOUT NOTICE.>
-
-B<YOU HAVE BEEN WARNED!>
-
 The biggest downside of L<ORLite> is that because it can generate you
 an entire ORM in one line of code, you can have a large an extensive
 API without anywhere for documentation for the API to exist.
@@ -46,17 +42,17 @@ TO BE COMPLETED
 
 use 5.008;
 use strict;
-use Carp             ();
-use File::Spec       ();
-use File::Path       ();
-use File::Basename   ();
-use Params::Util     ();
-use Class::Inspector ();
-use ORLite           ();
-use Template         ();
-use SQL::Beautify    ();
+use Carp                    ();
+use File::Spec       3.2701 ();
+use File::Path         2.07 ();
+use File::Basename        0 ();
+use Params::Util       1.00 ();
+use Class::Inspector   1.23 ();
+use ORLite             1.23 ();
+use Template           2.20 ();
+use SQL::Beautify      0.03 ();
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 my $year = (localtime(time))[5] + 1900;
 
@@ -300,7 +296,7 @@ sub write_db {
 	my $methods = Class::Inspector->methods($pkg);
 
 	# Determine the file we're going to be writing to
-	my $file    = File::Spec->catfile(
+	my $file = File::Spec->catfile(
 		$self->to,
 		 split( /::/, $pkg )
 	) . '.pod';
@@ -308,10 +304,11 @@ sub write_db {
 	# Generate and write the file
 	$self->trace("Generating $file...\n");
 	$self->write( $file, template_db(), {
-		self   => $self,
-		pkg    => $pkg,
-		tables => $tables,
-		method => {
+		self       => $self,
+		pkg        => $pkg,
+		tables     => $tables,
+		orlite2pod => $ORLite::Pod::VERSION,
+		method     => {
 			map { $_ => 1 } @$methods,
 		},
 	} );
@@ -325,11 +322,11 @@ sub write_db {
 # Generation of Table-Specific Documentation
 
 sub write_table {
-	my $self   = shift;
-	my $tables = shift;
-	my $table  = shift;
-	my $root   = $self->from;
-	my $pkg    = $table->{class};
+	my $self    = shift;
+	my $tables  = shift;
+	my $table   = shift;
+	my $root    = $self->from;
+	my $pkg     = $table->{class};
 	my $methods = Class::Inspector->methods($pkg);
 
 	# Determine the file we're going to be writing to
@@ -369,10 +366,6 @@ sub template_db { <<'END_TT' }
 |=head1 NAME
 |
 |[%+ pkg %] - An ORLite-based ORM Database API
-|
-|=head1 SYNOPSIS
-|
-|  TO BE COMPLETED
 |
 |=head1 DESCRIPTION
 |
@@ -578,14 +571,14 @@ sub template_db { <<'END_TT' }
 |  my $version = [% pkg %]->pragma('user_version');
 |
 |The C<pragma> method provides a convenient method for fetching a pragma
-|for a datase. See the SQLite documentation for more details.
+|for a database. See the L<SQLite> documentation for more details.
 |
 [% END %]
 |=head1 SUPPORT
 |
-|[%+ pkg %] is based on L<ORLite> $ORLite::VERSION.
+|B<[%+ pkg %]> is based on L<ORLite>.
 |
-|Documentation created by L<ORLite::Pod> $ORLite::Pod::VERSION.
+|Documentation created by L<ORLite::Pod> [% orlite2pod %].
 |
 |[% IF self.rt %]
 |Bugs should be reported via the CPAN bug tracker at
@@ -598,10 +591,10 @@ sub template_db { <<'END_TT' }
 |project documentation.
 [% END %]
 |
-[% IF self.author_email %]
+[% IF self.author_pod %]
 |=head1 AUTHOR
 |
-|[%+ self.author_email %]
+|[%+ self.author_pod %]
 [% END %]
 |=head1 COPYRIGHT
 |
@@ -627,10 +620,6 @@ sub template_table { <<'END_TT' }
 |
 |[%+ pkg %] - [% root %] class for the [% table.name %] table
 |
-|=head1 SYNOPSIS
-|
-|  TO BE COMPLETED
-|
 |=head1 DESCRIPTION
 |
 |TO BE COMPLETED
@@ -640,7 +629,8 @@ sub template_table { <<'END_TT' }
 [% IF method.base %]
 |=head2 base
 |
-|  my $namespace = [% pkg %]->base; # Returns '[% root %]'
+|  # Returns '[% root %]'
+|  my $namespace = [% pkg %]->base;
 |
 |Normally you will only need to work directly with a table class,
 |and only with one ORLite package.
@@ -654,7 +644,8 @@ sub template_table { <<'END_TT' }
 [% IF method.table %]
 |=head2 table
 |
-|  print [% pkg %]->table; # Returns '[% table.name %]'
+|  # Returns '[% table.name %]'
+|  print [% pkg %]->table;
 |
 |While you should not need the name of table for any simple operations,
 |from time to time you may need it programatically. If you do need it,
@@ -676,6 +667,7 @@ sub template_table { <<'END_TT' }
 |
 |It returns a C<[% pkg %]> object, or throws an exception if the
 |object does not exist.
+|
 [% END %]
 [% IF method.select %]
 |=head2 select
@@ -707,7 +699,7 @@ sub template_table { <<'END_TT' }
 [% IF method.iterate %]
 |=head2 iterate
 |
-|  [% pkg %]->iterate( sub {
+|  [%+ pkg %]->iterate( sub {
 |      print $_->[% table.pk %] . "\n";
 |  } );
 |
@@ -725,13 +717,13 @@ sub template_table { <<'END_TT' }
 |This makes the C<iterate> code fragment above functionally equivalent to the
 |following, except with an O(1) memory cost instead of O(n).
 |
-|    foreach ( [% pkg %]->select ) {
-|        print $_->[% table.pk %] . "\n";
-|    }
+|  foreach ( [% pkg %]->select ) {
+|      print $_->[% table.pk %] . "\n";
+|  }
 |
 |You can filter the list via SQL in the same way you can with C<select>.
 |
-|  [% pkg %]->iterate(
+|  [%+ pkg %]->iterate(
 |      'order by ?', '[% table.pk %]',
 |      sub {
 |          print $_->[% table.pk %] . "\n";
@@ -743,7 +735,7 @@ sub template_table { <<'END_TT' }
 |including joins. Instead of being objects, rows are provided as C<ARRAY>
 |references when used in this form.
 |
-|  [% root %]->iterate(
+|  [%+ root %]->iterate(
 |      'select name from [% table.name %] order by [% table.pk %]',
 |      sub {
 |          print $_->[0] . "\n";
@@ -799,7 +791,7 @@ sub template_table { <<'END_TT' }
 |The C<create> constructor is a one-step combination of C<new> and
 |C<insert> that takes the column parameters, creates a new
 |L<[% pkg %]> object, inserts the appropriate row into the
-| L<[% table.name %]> table, and then returns the object.
+|L<[% table.name %]> table, and then returns the object.
 |
 |If the primary key column C<[% table.pk %]> is not provided to the
 |constructor (or it is false) the object returned will have
@@ -874,15 +866,14 @@ sub template_table { <<'END_TT' }
 |=head2 [% pk %]
 |
 |  if ( $object->[% pk %] ) {
-|      print "Object has been inserted\\n";
+|      print "Object has been inserted\n";
 |  } else {
-|      print "Object has not been inserted\\n";
+|      print "Object has not been inserted\n";
 |  }
 |
 |Returns true, or throws an exception on error.
 |
 [% END %]
-|
 |REMAINING ACCESSORS TO BE COMPLETED
 |
 |=head1 SQL
@@ -890,7 +881,7 @@ sub template_table { <<'END_TT' }
 |The [% table.name %] table was originally created with the
 |following SQL command.
 |
-|[%+ table.create | indent('  ')%]
+|[%+ table.create | indent('  ') -%]
 |
 |=head1 SUPPORT
 |
@@ -898,10 +889,11 @@ sub template_table { <<'END_TT' }
 |
 |See the documentation for L<[% root %]> for more information.
 |
-[% IF self.author_email %]
+[% IF self.author_pod %]
 |=head1 AUTHOR
 |
-|[%+ self.author_email %]
+|[%+ self.author_pod %]
+|
 [% END %]
 |=head1 COPYRIGHT
 |
