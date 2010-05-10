@@ -3,8 +3,8 @@
 use 5.008005;
 use strict;
 use warnings;
-use Time::HiRes  ();
-use Getopt::Long ();
+use Time::HiRes  1.97 ();
+use Getopt::Long 2.33 ();
 
 =pod
 
@@ -18,7 +18,7 @@ Version 0.12
 
 =cut
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 use CPANDB ();
 

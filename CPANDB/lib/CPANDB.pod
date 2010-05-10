@@ -169,7 +169,7 @@ no means prohibited.
   my $version = CPANDB->pragma('user_version');
 
 The C<pragma> method provides a convenient method for fetching a pragma
-for a datase. See the SQLite documentation for more details.
+for a database. See the L<SQLite> documentation for more details.
 
 =head2 distribution
 
@@ -192,12 +192,19 @@ in any code that uses L<Graph> features.
 
 =head1 SUPPORT
 
-CPANDB is based on L<ORLite> $ORLite::VERSION.
+B<CPANDB> is based on L<ORLite>.
 
-Documentation created by L<ORLite::Pod> $ORLite::Pod::VERSION.
+Documentation created by L<ORLite::Pod> 0.08.
 
-For general support please see the support section of the main
-project documentation.
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CPANDB>
+
+For other issues, contact the author.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 

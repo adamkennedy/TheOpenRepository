@@ -3,10 +3,10 @@ package CPANDB::Distribution;
 use 5.008005;
 use strict;
 use warnings;
-use DateTime ();
-use ORLite::Statistics;
+use DateTime 0.50 ();
+use ORLite::Statistics 0.03;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 my $today = DateTime->today( time_zone => 'UTC' );
 

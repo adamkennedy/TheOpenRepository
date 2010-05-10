@@ -2,10 +2,6 @@
 
 CPANDB::Module - CPANDB class for the module table
 
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
-
 =head1 DESCRIPTION
 
 TO BE COMPLETED
@@ -14,7 +10,8 @@ TO BE COMPLETED
 
 =head2 base
 
-  my $namespace = CPANDB::Module->base; # Returns 'CPANDB'
+  # Returns 'CPANDB'
+  my $namespace = CPANDB::Module->base;
 
 Normally you will only need to work directly with a table class,
 and only with one ORLite package.
@@ -26,7 +23,8 @@ C<base> method.
 
 =head2 table
 
-  print CPANDB::Module->table; # Returns 'module'
+  # Returns 'module'
+  print CPANDB::Module->table;
 
 While you should not need the name of table for any simple operations,
 from time to time you may need it programatically. If you do need it,
@@ -74,7 +72,7 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 
 =head2 iterate
 
-CPANDB::Module->iterate( sub {
+  CPANDB::Module->iterate( sub {
       print $_->module . "\n";
   } );
 
@@ -92,12 +90,13 @@ variable C<$_>.
 This makes the C<iterate> code fragment above functionally equivalent to the
 following, except with an O(1) memory cost instead of O(n).
 
-    foreach ( CPANDB::Module->select ) {
-        print $_->module . "\n";
-    }
+  foreach ( CPANDB::Module->select ) {
+      print $_->module . "\n";
+  }
 
 You can filter the list via SQL in the same way you can with C<select>.
-CPANDB::Module->iterate(
+
+  CPANDB::Module->iterate(
       'order by ?', 'module',
       sub {
           print $_->module . "\n";
@@ -108,7 +107,8 @@ You can also use it in raw form from the root namespace for better control.
 Using this form also allows for the use of arbitrarily complex queries,
 including joins. Instead of being objects, rows are provided as C<ARRAY>
 references when used in this form.
-CPANDB->iterate(
+
+  CPANDB->iterate(
       'select name from module order by module',
       sub {
           print $_->[0] . "\n";
@@ -143,13 +143,12 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 =head2 module
 
   if ( $object->module ) {
-      print "Object has been inserted\\n";
+      print "Object has been inserted\n";
   } else {
-      print "Object has not been inserted\\n";
+      print "Object has not been inserted\n";
   }
 
 Returns true, or throws an exception on error.
-
 
 REMAINING ACCESSORS TO BE COMPLETED
 
@@ -170,12 +169,15 @@ following SQL command.
       )
   )
 
-
 =head1 SUPPORT
 
 CPANDB::Module is part of the L<CPANDB> API.
 
 See the documentation for L<CPANDB> for more information.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 

@@ -4,19 +4,14 @@ CPANDB::Distribution - CPANDB class for the distribution table
 
 =head1 DESCRIPTION
 
-B<CPANDB::Distribution> provides an object representation of a distribution
-in the CPAN. Because many CPAN websites are oriented around distributions,
-this class serves as one of the primary integration points for the various
-different CPAN databases providing information on popularity and testing data.
-
-Distributions are also the primary plane on which graph-aware algorithms are
-run, and on which metrics are calculated.
+TO BE COMPLETED
 
 =head1 METHODS
 
 =head2 base
 
-  my $namespace = CPANDB::Distribution->base; # Returns 'CPANDB'
+  # Returns 'CPANDB'
+  my $namespace = CPANDB::Distribution->base;
 
 Normally you will only need to work directly with a table class,
 and only with one ORLite package.
@@ -28,7 +23,8 @@ C<base> method.
 
 =head2 table
 
-  print CPANDB::Distribution->table; # Returns 'distribution'
+  # Returns 'distribution'
+  print CPANDB::Distribution->table;
 
 While you should not need the name of table for any simple operations,
 from time to time you may need it programatically. If you do need it,
@@ -76,7 +72,7 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 
 =head2 iterate
 
-CPANDB::Distribution->iterate( sub {
+  CPANDB::Distribution->iterate( sub {
       print $_->distribution . "\n";
   } );
 
@@ -94,12 +90,13 @@ variable C<$_>.
 This makes the C<iterate> code fragment above functionally equivalent to the
 following, except with an O(1) memory cost instead of O(n).
 
-    foreach ( CPANDB::Distribution->select ) {
-        print $_->distribution . "\n";
-    }
+  foreach ( CPANDB::Distribution->select ) {
+      print $_->distribution . "\n";
+  }
 
 You can filter the list via SQL in the same way you can with C<select>.
-CPANDB::Distribution->iterate(
+
+  CPANDB::Distribution->iterate(
       'order by ?', 'distribution',
       sub {
           print $_->distribution . "\n";
@@ -110,7 +107,8 @@ You can also use it in raw form from the root namespace for better control.
 Using this form also allows for the use of arbitrarily complex queries,
 including joins. Instead of being objects, rows are provided as C<ARRAY>
 references when used in this form.
-CPANDB->iterate(
+
+  CPANDB->iterate(
       'select name from distribution order by distribution',
       sub {
           print $_->[0] . "\n";
@@ -140,139 +138,14 @@ Returns the number of objects that match the condition.
 
 Throws an exception on error, typically directly from the L<DBI> layer.
 
-=head2 uploaded_datetime
-
-For situations in which date math will be done, the C<uploaded_datetime>
-method can be used to access the date of the most decent release as a
-L<DateTime> object.
-
-Returns a L<DateTime> object with date attributes, without a time set,
-and set at the UTC timezone in the 'C' locale.
-
-=head2 age
-
-The B<age> method finds the age of a distribution in L<DateTime> terms,
-and where high age is considered a negative property. It is calculated as
-the time between the current day and the date of the last release of the
-distribution.
-
-Returns a L<DateTime::Duration> object, with maximum resolution at the 'day'
-level.
-
-=head2 age_months
-
-When expressing the age of a module in the CPAN, the most normal unit to use
-is the month. Releasing more than once a month is considered high pace for a
-CPAN distribution, while releasing every few months or even once per several
-months is fairly reasonable for mature modules.
-
-For situations when a single numeric value is desired to represent a
-distribution's age, the C<age_months> thus provides a direct calculation of
-this value.
-
-Returns the age in months as an integer, with a value of zero if the module
-has been released within the last month.
-
-=head2 quartile
-
-The C<quartile> method determines which statstical age quartile the
-distribution falls into, between 1 and 4.
-
-Quartile 1 represents "new" or "current" modules, which have seen
-a release in at least the last year.
-
-Distributions in the first quadrant are usually going to work and be up to
-date, as the author is likely to be present (for new modules) or maintains
-the module to a reasonable level of diligence (for older modules).
-
-Quartile 2 represents "mature" or "stale" modules, which have seen a release
-in the last several years, but not recently.
-
-Smaller distributions with high CPAN Testers PASS rates and low or no bug counts
-are often simply "mature" as they are essentially "finished" and don't need to
-be extended. These will often see a new release only every 2 or 3 years to fix
-trivial issues or match changes in some underlying dependency which has changed.
-
-Larger distributions with non-perfect CPAN Tester PASS rates (or those with high
-bug counts) can be considered to be "stale". However, their authors are still
-likely to be around. Contacting the author may result in new releases due to the
-your attention, or the author might be interested in handing off the module for
-maintenance.
-
-Quartile 3 represents "old" or "rotten" modules, which have not seen a release
-in the last several years.
-
-Modules with high number of other modules depending on them in this range may
-simply be "old" and suffering from benign neglect due to the author moving on to
-other careers, languages, or projects and not annointing a replacement
-
-They aren't actively broken, but nobody remains to maintain them and they may
-have crufty and hard to learn codebases. Due to entrenched workarounds for any
-bugs they have, they can also be risky to change.
-
-Modules without downstream dependencies in this zone are often "rotten", broken
-due to changes in the modules around them and abandoned by anything that used
-to depend on them.
-
-It can also be common to find modules in this range labelled as "DEPRECATED" in
-the abstract.
-
-Quartile 4 represents the garbage dump of the CPAN. These modules tend to
-largely be abandoned modules, ideas that failed dramatically, Acme:: joke
-modules that have never needed updated releases, or modules who have been
-replaced wholesale by updated core techniques or dramatically superior
-replacements.
-
-The oldest of these modules date from the age of Perl 4 and the earliest Perl 5.
-
-=head2 dependency_graph
-
-This method generates a L<Graph::Directed> object linking the distribution to
-all the other distributions that are needed by it to work, recursively.
-
-=head2 dependants_graph
-
-This method generates a L<Graph::Directed> object linking the distribution to
-all the other distributions that use the distribution, recursively.
-
-=head2 dependency_easy
-
-This method generates a L<Graph::Easy> object linking the distribution to
-all the other distributions that are needed by it to work, recursively.
-
-=head2 dependants_easy
-
-This method generates a L<Graph::Easy> object linking the distribution to
-all the other distributions that use the distribution, recursively.
-
-=head2 dependency_graphviz
-
-This method generates a L<Graphviz> object linking the distribution to
-all the other distributions that are needed by it to work, recursively.
-
-=head2 dependants_graphviz
-
-This method generates a L<Graphviz> object linking the distribution to
-all the other distributions that use the distribution, recursively.
-
-=head2 dependency_xgmml
-
-This method generates a L<Graph::XGMML> object linking the distribution to
-all the other distributions that are needed by it to work, recursively.
-
-=head2 dependants_xgmml
-
-This method generates a L<Graph::XGMML> object linking the distribution to
-all the other distributions that use the distribution, recursively.
-
 =head1 ACCESSORS
 
 =head2 distribution
 
   if ( $object->distribution ) {
-      print "Object has been inserted\\n";
+      print "Object has been inserted\n";
   } else {
-      print "Object has not been inserted\\n";
+      print "Object has not been inserted\n";
   }
 
 Returns true, or throws an exception on error.
@@ -313,6 +186,10 @@ following SQL command.
 CPANDB::Distribution is part of the L<CPANDB> API.
 
 See the documentation for L<CPANDB> for more information.
+
+=head1 AUTHOR
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
