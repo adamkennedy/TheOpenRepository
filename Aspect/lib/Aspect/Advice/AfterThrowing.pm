@@ -5,12 +5,12 @@ use warnings;
 
 # Added by eilara as hack around caller() core dump
 # NOTE: Now we've switched to Sub::Uplevel can this be removed? --ADAMK
-use Carp::Heavy                    (); 
-use Carp                           ();
-use Sub::Uplevel                   ();
-use Aspect::Hook                   ();
-use Aspect::Advice                 ();
-use Aspect::Context::AfterThrowing ();
+use Carp::Heavy                  (); 
+use Carp                         ();
+use Sub::Uplevel                 ();
+use Aspect::Hook                 ();
+use Aspect::Advice               ();
+use Aspect::Point::AfterThrowing ();
 
 our $VERSION = '0.45';
 our @ISA     = 'Aspect::Advice';
@@ -92,7 +92,7 @@ sub _install {
 					pointcut => \$pointcut,
 					original => \$original,
 					\%\$runtime,
-				}, 'Aspect::Context::AfterThrowing';
+				}, 'Aspect::Point::AfterThrowing';
 
 				# Execute the advice code
 				() = &\$code(\$context);
@@ -128,7 +128,7 @@ sub _install {
 					pointcut => \$pointcut,
 					original => \$original,
 					\%\$runtime,
-				}, 'Aspect::Context::AfterThrowing';
+				}, 'Aspect::Point::AfterThrowing';
 
 				# Execute the advice code
 				my \$dummy = &\$code(\$context);
@@ -163,7 +163,7 @@ sub _install {
 					pointcut => \$pointcut,
 					original => \$original,
 					\%\$runtime,
-				}, 'Aspect::Context::AfterThrowing';
+				}, 'Aspect::Point::AfterThrowing';
 
 				# Execute the advice code
 				&\$code(\$context);

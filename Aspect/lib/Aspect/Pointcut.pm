@@ -320,7 +320,7 @@ sub match_runtime {
 The C<match_run> is used to test hooked functions at run-time to determine
 if the current invocation of the function matches the pointcut conditions.
 
-It is passed an L<Aspect::Context> object representing the current function
+It is passed an L<Aspect::Point> object representing the current function
 invocation.
 
 Returns true if the current invocation matches the pointcut and should have

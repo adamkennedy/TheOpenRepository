@@ -68,7 +68,7 @@ conditions that are fully describable at compile-time.
 B<Aspect::Pointcut::If> allows you to take advantage of this to create your
 own custom run-time pointcut conditions, although for safety and purity
 reasons you are not permitted to create custom conditions that interact
-with the L<Aspect::Context> object for the call.
+with the L<Aspect::Point> object for the call.
 
 =head1 AUTHORS
 

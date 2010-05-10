@@ -2,165 +2,9 @@ package Aspect::AdviceContext;
 
 use strict;
 use warnings;
-use Carp         ();
-use Sub::Uplevel ();
 
 our $VERSION = '0.45';
-
-
-
-
-
-######################################################################
-# Constructor and Built-In Accessors
-
-sub new {
-	my $class = shift;
-	bless { @_ }, $class;
-}
-
-sub sub_name {
-	$_[0]->{sub_name};
-}
-
-sub wantarray {
-	$_[0]->{wantarray};
-}
-
-sub proceed {
-	unless ( defined $_[0]->{proceed} ) {
-		Carp::croak("The use of 'proceed' is meaningless in this advice");
-	}
-	@_ > 1 ? $_[0]->{proceed} = $_[1] : $_[0]->{proceed};
-}
-
-sub params_ref {
-	$_[0]->{params};
-}
-
-sub self {
-	$_[0]->{params}->[0];
-}
-
-sub params {
-	$_[0]->{params} = [ @_[1..$#_] ] if @_ > 1;
-	return CORE::wantarray
-		? @{$_[0]->{params}}
-		: $_[0]->{params};
-}
-
-sub append_param {
-	my $self = shift;
-	push @{$self->{params}}, @_;
-	return 1;
-}
-
-sub append_params {
-	shift->append_param(@_);
-}
-
-
-
-
-
-######################################################################
-# Higher Level Methods
-
-sub package_name {
-	my $self = shift;
-	my $name = $self->{sub_name};
-	return '' unless $name =~ /::/;
-	$name =~ s/::[^:]+$//;
-	return $name;
-}
-
-sub short_sub_name {
-	my $self = shift;
-	my $name = $self->{sub_name};
-	return $name unless $name =~ /::/;
-	$name =~ /::([^:]+)$/;
-	return $1;
-}
-
-sub run_original {
-	my $self = shift;
-	if ( $self->{wantarray} ) {
-		my $rv = [ Sub::Uplevel::uplevel(
-			2,
-			$self->original,
-			$self->params,
-		) ];
-		return $self->return_value($rv);
-	} elsif ( defined $self->{wantarray} ) {
-		my $rv = Sub::Uplevel::uplevel(
-			2,
-			$self->original,
-			$self->params,
-		);
-		return $self->return_value($rv);
-	} else {
-		Sub::Uplevel::uplevel(
-			2,
-			$self->original,
-			$self->params,
-		);
-		return;
-	}
-}
-
-sub return_value {
-	my $self = shift;
-	if ( @_ ) {
-		if ( $self->{wantarray} ) {
-			# Normalise list-wise return behaviour
-			# at mutation time, rather than everywhere else.
-			# NOTE: Reuse the current array reference. This
-			# causes the original return values to be cleaned
-			# up immediately, and allows for a small
-			# optimisation in the surrounding advice hook code.
-			$self->{return_value} = \@_;
-		} else {
-			$self->{return_value} = shift;
-		}
-		if ( defined $self->{exception} ) {
-			$self->{exception} = '';
-		}
-		$self->{proceed} = 0;
-	}
-	my $return_value = $self->get_value('return_value');
-	return (CORE::wantarray && ref $return_value eq 'ARRAY')
-		? @$return_value
-		: $return_value;
-}
-
-sub exception {
-	my $self = shift;
-	if ( @_ ) {
-		$self->{exception} = shift;
-		$self->{proceed}   = 0;
-	}
-	return $self->get_value('exception');
-}
-
-sub get_value {
-	my ($self, $key) = @_;
-	Carp::croak "Key does not exist: [$key]" unless exists $self->{$key};
-	my $value = $self->{$key};
-	return (CORE::wantarray && ref $value eq 'ARRAY')
-		? @$value
-		: $value;
-}
-
-sub AUTOLOAD {
-	my $self = shift;
-	my $key  = our $AUTOLOAD;
-	$key =~ s/^.*:://;
-	return $self->get_value($key);
-}
-
-# Improves performance by not having to send DESTROY calls
-# through AUTOLOAD, and not having to check for DESTROY in AUTOLOAD.
-sub DESTROY () { }
+our @ISA     = 'Aspect::Point';
 
 1;
 
@@ -170,7 +14,7 @@ __END__
 
 =head1 NAME
 
-Aspect::AdviceContext - The Join Point context object
+Aspect::AdviceContext - The Join Point context (DEPRECATED)
 
 =head1 SYNOPSIS
 
@@ -196,6 +40,9 @@ Aspect::AdviceContext - The Join Point context object
   } $pointcut;
 
 =head1 DESCRIPTION
+
+B<This module has been deprecated and is included for back-compatibility.>
+See L<Aspect::Point> for the replacement to this module.
 
 Advice code is called when the advice pointcut is matched. In this code,
 there is always a need to access information about the context of the

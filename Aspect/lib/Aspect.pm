@@ -279,7 +279,7 @@ The Perl C<Aspect> module is focused on subroutine matching and wrapping.  It
 allows you to select collections of subroutines using a flexible pointcut
 language, and modify their behavior in any way you want.
 
-=head1 TERMINOLOGY 
+=head2 Terminology
 
 =over
 
@@ -320,7 +320,7 @@ so that it is reusable.
 
 =back
 
-=head1 FEATURES
+=head2 Features
 
 =over
 
@@ -356,7 +356,7 @@ interface with AOP-like modules from CPAN.
 
 =back
 
-=head1 WHY
+=head2 Why create this module?
 
 Perl is a highly dynamic language, where everything this module does can be
 done without too much difficulty. All this module does, is make it even
@@ -404,30 +404,28 @@ original sub, or append parameters to it.
 
 =back
 
-=head1 USING
+=head2 Using Aspect.pm
 
 This package is a facade on top of the Perl AOP framework. It allows you to
-create pointcuts, advice, and aspects. You will be mostly working with this
-package (C<Aspect>), and the L<advice context|Aspect::AdviceContext> package.
+create pointcuts, advice, and aspects in a simple declarative fastion.
 
-When you use this package:
+You will be mostly working with this package (C<Aspect>), and the
+L<advice context|Aspect::AdviceContext> package.
 
-use Aspect;
-
-You will import five subs: C<call()>, C<cflow()>, C<before()>, C<after()>, and
-C<aspect()>. These are all factories that allow you to create pointcuts,
+When you C<use Aspect;> you will import a family of around a dozen
+functions. These are all factories that allow you to create pointcuts,
 advice, and aspects.
 
-=head2 POINTCUTS
+=head2 Pointcuts
 
 Pointcuts select join points, so that an advice can run code when they happen.
-The simplest pointcut is C<call()>. For example:
+The most common pointcut you will probably use is C<call()>. For example:
 
   $p = call 'Person::get_address';
 
-Selects the calling of C<Person::get_address()>, as defined in the symbol
-table during weave-time. The string is a pointcut spec, and can be expressed
-in three ways:
+This selects the calling of C<Person::get_address()> as defined in the
+symbol table during weave-time. The string is a pointcut spec, and can be
+expressed in three ways:
 
 =over
 
@@ -477,11 +475,21 @@ pointcut spec, that should match the sub required from the call flow.
 
 See the L<Aspect::Pointcut> docs for more info.
 
-=head2 ADVICE
+=head2 Advice
 
-An advice is just some definition of code that will run on a match of some
-pointcut. An advice can run before the pointcut matched sub is run, or after.
-You create advice using C<before()>, C<after()>, or C<around()>.
+An advice definition is just some code that will run on a match of some
+pointcut. The C<advice> can run around the entire call to allow
+lexical variables to capture custom information on the way into the function
+that will be needed when it exists, or it can be more specific and only run
+before the sub, after the sub runs and returns, after the sub throws an
+exception, or after the sub runs regardless of the result.
+
+Using a more specific advice type will allow the optimiser to generate
+smaller and faster hooks into your code.
+
+You create advice using C<around>, C<before>, C<after_returning>,
+C<after_throwing> or C<after()>.
+
 These take a C<CODE> ref, and a pointcut, and install the code on the subs
 that match the pointcut.  For example:
 
@@ -491,82 +499,92 @@ that match the pointcut.  For example:
 
 The advice code is run with one parameter: the advice context. You use it to
 learn how the matched sub was run, modify parameters, return value, and if it
-is run at all. You also use the advice context to access any context objects
-that were created by any matching C<cflow()> pointcuts.  This will print the
-name of the C<Company> that started the call flow which eventually reached
-C<Person::get_address()>:
+is run at all.
 
-  before {
-      print shift->company->name;
-  } call 'Person::get_address'
-  & cflow company => qr/^Company::w+$/;
+When the advice is created in void context, it remains enabled until the
+interpreter dies, or the symbol table reloaded.
 
-See the L<Aspect::AdviceContext> docs for some more examples of advice code.
+However, advice code can also be applied to matching pointcuts
+(i.e. the advice is enabled) for only a specific scope by declare it in
+scalar context and storing the returned guard object.
 
-Advice code is applied to matching pointcuts (i.e. the advice is enabled) as
-long as the advice object is in scope. This allows you to neatly control
-enabling and disabling of advice:
+This allows you to neatly control enabling and disabling of advice:
 
   SCOPE: {
      my $advice = before { print "called!\n" } $pointcut;
-     # do something while the device is enabled
+     # Do something while the device is enabled
   }
-  # the advice is now disabled
+  
+  # The advice is now disabled
 
-If the advice is created in void context, it remains enabled until the
-interpreter dies, or the symbol table reloaded.
-
-=head2 ASPECTS
+=head2 Aspects
 
 Aspects are just plain old Perl objects, that install advice, and do
 other AOP-like things, like install methods on other classes, or mess around
 with the inheritance hierarchy of other classes. A good base class for them
-is L<Aspect::Modular>, but you can use any Perl object.
+is L<Aspect::Modular>, but you can use any Perl object as long as the class
+inherits from L<Aspect::Library>.
 
-If the aspect class exists in the package C<Aspect::Library>, then it can be
-easily created:
+If the aspect class exists immediately below the namespace
+C<Aspect::Library>, then it can be easily created with the following
+shortcut.
 
   aspect Singleton => 'Company::create';
 
-Will create an L<Aspect::Library::Singleton> object. This reusable aspect is
-included in the C<Aspect> distribution, and forces singleton behavior on some
-constructor, in this case, C<Company::create()>.
+This will create an L<Aspect::Library::Singleton> object. This reusable
+aspect is included in the C<Aspect> distribution, and forces singleton
+behavior on some constructor, in this case, C<Company::create()>.
 
-Such aspects, like advice, are enabled as long as they are in scope.
+Such aspects share a similar behaviour to advice. If enabled in void context
+they will be installed permanently, but if called in scalar context they
+will return a guard object that allows the aspect to be enabled only until
+the end of the current scope.
 
-=head1 INTERNALS
+=head2 Internals
 
 Due to the dynamic nature of Perl, there is no need for processing of source
 or byte code, as required in the Java and .NET worlds.
 
 The implementation is very simple: when you create advice, its pointcut is
-matched using C<match_define()>. Every sub defined in the symbol table is
-matched against the pointcut. Those that match, will get a special wrapper
-installed. The wrapper only runs if during run-time, the C<match_run()> of
-the pointcut returns true.
+matched using C<match_define()> to find every sub defined in the symbol
+table that might match against the pointcut (potentially subject to further
+runtime conditions).
+
+Those that match, will get a special wrapper installed. The wrapper only
+runs if during run-time, C<match_run()> of the pointcut returns true.
 
 The wrapper code creates an advice context, and gives it to the advice code.
 
-The C<call()> pointcut is static, so C<match_run()> always returns true,
-and C<match_define()> returns true if the sub name matches the pointcut
-spec.
+Some pointcuts like C<call()> are static, so C<match_run()> always returns
+true, and C<match_define()> returns true if the sub name matches the
+pointcut spec.
 
-The C<cflow()> pointcut is dynamic, so C<match_define()> always returns
-true, but C<match_run()> return true only if some frame in the call flow
-matches the pointcut spec.
+Some pointcuts like C<cflow()> are dynamic, so C<match_define()> always
+returns true, but C<match_run()> return true only if some condition within
+the advice context is true.
 
 To make this process faster, when the advice is installed, the pointcut
 will not use itself directly for the C<match_run()> but will generate
-a "curried" (optimised) version of itself. This curried version uses the
-fact that C<match_run()> will only be called if it matches the C<call()>
-pointcut pattern, and so no C<call()> pointcuts needed to be tested at
-run-time. It also handles collapsing any boolean logic impacted by the
-removal of the C<call()> pointcuts.
+a "curried" (optimised) version of itself.
+
+This curried version uses the fact that C<match_run()> will only be called
+if it matches the C<call()> pointcut pattern, and so no C<call()> pointcuts
+needed to be tested at run-time. It also handles collapsing any boolean
+logic impacted by the removal of the C<call()> pointcuts.
 
 If you use only C<call()> pointcuts (alone or in boolean combinations)
 the currying results in a null case (the pointcut is optimised away
 entirely) and so the call to C<match_run()> will be removed altogether
-from the generated advice hooks, reducing the overhead significantly.
+from the generated advice hooks, reducing the match overhead significantly.
+
+If your pointcut does not have any static conditions (i.e. C<call>) then
+the wrapper code will need to be installed into every function on the symbol
+table. This is highly discouraged and liable to result in hooks on unusual
+functions and unwanted side effects.
+
+=head1 FUNCTIONS
+
+TO BE COMPLETED
 
 =head1 LIMITATIONS
 

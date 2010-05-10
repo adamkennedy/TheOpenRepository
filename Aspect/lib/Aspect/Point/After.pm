@@ -1,10 +1,10 @@
-package Aspect::Context::After;
+package Aspect::Point::After;
 
 use strict;
 use warnings;
-use Aspect::Context ();
+use Aspect::Point ();
 
 our $VERSION = '0.45';
-our @ISA     = 'Aspect::Context';
+our @ISA     = 'Aspect::Point';
 
 1;
