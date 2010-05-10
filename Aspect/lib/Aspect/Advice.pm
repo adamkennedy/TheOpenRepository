@@ -80,10 +80,6 @@ This class has no public methods that do anything, but there are
 accessors C<weaver()>, C<type()>, C<code()>, and C<pointcut()>, if you
 need them.
 
-=head1 SEE ALSO
-
-See the L<Aspect|::Aspect> pod for a guide to the Aspect module.
-
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>

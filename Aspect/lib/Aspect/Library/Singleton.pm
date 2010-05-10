@@ -2,12 +2,12 @@ package Aspect::Library::Singleton;
 
 use strict;
 use warnings;
-use Aspect::Library        ();
+use Aspect::Modular        ();
 use Aspect::Advice::Before ();
 use Aspect::Pointcut::Call ();
 
 our $VERSION = '0.45';
-our @ISA     = 'Aspect::Library';
+our @ISA     = 'Aspect::Modular';
 
 my %CACHE = ();
 
@@ -86,13 +86,6 @@ No package variable or method is added to the callers namespace
 
 Note that this is just a special case of memoizing.
 
-=head1 SEE ALSO
-
-See the L<Aspect|::Aspect> pods for a guide to the Aspect module.
-
-You can find an example comparing the OO and AOP solutions in the
-C<examples/> directory of the distribution.
-
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
@@ -100,11 +93,6 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
 
 Ran Eilam E<lt>eilara@cpan.orgE<gt>
-
-=head1 SEE ALSO
-
-You can find AOP examples in the C<examples/> directory of the
-distribution.
 
 =head1 COPYRIGHT
 

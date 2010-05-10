@@ -2,14 +2,14 @@ package Aspect::Library::Wormhole;
 
 use strict;
 use warnings;
-use Aspect::Library         ();
+use Aspect::Modular         ();
 use Aspect::Advice::Before  ();
 use Aspect::Pointcut::And   ();
 use Aspect::Pointcut::Call  ();
 use Aspect::Pointcut::Cflow ();
 
 our $VERSION = '0.45';
-our @ISA     = 'Aspect::Library';
+our @ISA     = 'Aspect::Modular';
 
 sub get_advice {
 	my $self = shift;
@@ -131,13 +131,6 @@ defined on C<Page>, if it is in the call flow of C<Printer::print>:
 
   aspect Wormhole => 'Printer::Print', qr/^Page::/;
 
-=head1 SEE ALSO
-
-See the L<Aspect|::Aspect> pods for a guide to the Aspect module.
-
-You can find an example comparing the OO and AOP solutions in the
-C<examples/> directory of the distribution.
-
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
@@ -145,11 +138,6 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
 
 Ran Eilam E<lt>eilara@cpan.orgE<gt>
-
-=head1 SEE ALSO
-
-You can find AOP examples in the C<examples/> directory of the
-distribution.
 
 =head1 COPYRIGHT
 

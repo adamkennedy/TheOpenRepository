@@ -8,21 +8,24 @@ use warnings;
 use Carp                               ();
 use Scalar::Util                       ();
 use Sub::Install                       ();
-use Aspect::Library                    ();
+use Aspect::Modular                    ();
 use Aspect::Advice::Before             ();
 use Aspect::Library::Listenable::Event ();
 
 our $VERSION = '0.45';
-our @ISA     = 'Aspect::Library';
+our @ISA     = 'Aspect::Modular';
 
 sub import {
 	my $into = caller();
-	foreach ( qw{ add_listener remove_listener } ) {
-		Sub::Install::install_sub( {
-			code => $_,
-			into => $into,
-		} );
-	}
+
+	Sub::Install::install_sub( {
+		code => $_,
+		into => $into,
+	} ) foreach qw{
+		add_listener
+		remove_listener
+	};
+
 	return 1;
 }
 
@@ -191,7 +194,7 @@ Aspect::Library::Listenable - Observer pattern with events
   # the class that we will make listenable
   package Point;
   
-  
+
   sub new   { bless {color => 'blue'}, shift }
   sub erase { print 'erased!' }
   
