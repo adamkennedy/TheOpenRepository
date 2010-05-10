@@ -13,6 +13,9 @@ Revision history for Perl extension Aspect
 	  identifying base class Aspect::Library. All libraries that
 	  currently inherit from Aspect::Modular automatically inherit from
 	  the new Aspect::Library as well.
+	- Started work on third-generation optimiser for Aspect::Pointcut.
+	  This functionality will be hidden until it is complete enough
+	  to use.
 
 0.44 Mon 15 Feb 2010 - Adam Kennedy
 	- Inlined and reimplemented a stripped down and faster replacement
