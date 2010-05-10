@@ -1,7 +1,8 @@
-use inc::Module::Install::DSL 0.94;
+use inc::Module::Install::DSL 0.96;
 
 all_from      lib/ORLite.pm
 requires_from lib/ORLite.pm
+requires      File::Temp   0.20
 requires      File::Spec   3.2701 if winlike
 requires      File::Remove 1.40
 test_requires Test::More   0.47

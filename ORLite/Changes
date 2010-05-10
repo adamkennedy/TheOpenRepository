@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+1.43 Mon 10 May 2010
+	- Ensure 100% of tables and columns are quoted correctly (ADAMK)
+
 1.42 Tue 16 Mar 2010
 	- Signficantly expanded documentation on the per-table class
 	  and the methods created for it (Breno G. de Oliveira)

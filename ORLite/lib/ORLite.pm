@@ -6,7 +6,6 @@ use 5.006;
 use strict;
 use Carp              ();
 use File::Spec   0.80 ();
-use File::Temp   0.20 ();
 use File::Path   2.04 ();
 use File::Basename  0 ();
 use Params::Util 0.33 ();
@@ -15,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.42';
+	$VERSION = '1.43';
 }
 
 # Support for the 'prune' option
@@ -325,14 +324,14 @@ END_PERL
 			# Generate the main SQL fragments
 			$table->{sql_cols}   = join ', ', map { '"' . $_->{name} . '"' } @$columns;
 			$table->{sql_vals}   = join ', ', ('?') x scalar @$columns;
-			$table->{sql_select} = "select $table->{sql_cols} from $table->{name}";
-			$table->{sql_count}  = "select count(*) from $table->{name}";
+			$table->{sql_select} = "select $table->{sql_cols} from \"$table->{name}\"";
+			$table->{sql_count}  = "select count(*) from \"$table->{name}\"";
 			$table->{sql_insert} =
-				"insert into $table->{name} " .
+				"insert into \"$table->{name}\" " .
 				"( $table->{sql_cols} ) " .
 				"values ( $table->{sql_vals} )";
 			$table->{sql_where} = join ' and ',
-				map { "$_->{name} = ?" } @{$table->{pk}};	
+				map { "\"$_->{name}\" = ?" } @{$table->{pk}};	
 
 			# Generate the new Perl fragments
 			$table->{pl_new} = join "\n", map {
@@ -510,19 +509,19 @@ $table->{pl_fill}
 sub delete {
 	my \$self = shift;
 	return $pkg->do(
-		'delete from $table->{name} where $table->{sql_where}',
+		'delete from \"$table->{name}\" where $table->{sql_where}',
 		{},
 $table->{pl_where}
 	) if ref \$self;
 	Carp::croak("Must use truncate to delete all rows") unless \@_;
 	return $pkg->do(
-		'delete from $table->{name} ' . shift,
+		'delete from \"$table->{name}\" ' . shift,
 		{}, \@_,
 	);
 }
 
 sub truncate {
-	$pkg->do('delete from $table->{name}');
+	$pkg->do('delete from \"$table->{name}\"');
 }
 
 END_PERL
@@ -566,7 +565,7 @@ END_PERL
 		# Generate the foreign key accessors
 		$code .= join "\n\n", map { <<"END_PERL" } grep { $_->{fk} } @columns;
 sub $_->{name} {
-	($_->{fk}->[1]->{class}\->select('where $_->{fk}->[1]->{pk}->[0]->{name} = ?', \$_[0]->$_->{key}))[0];
+	($_->{fk}->[1]->{class}\->select('where \"$_->{fk}->[1]->{pk}->[0]->{name}\" = ?', \$_[0]->$_->{key}))[0];
 }
 END_PERL
 		}
@@ -598,6 +597,7 @@ END_PERL
 
 sub dval {
 	# Write the code to the temp file
+	require File::Temp;
 	my ($fh, $filename) = File::Temp::tempfile();
 	$fh->print($_[0]);
 	close $fh;
