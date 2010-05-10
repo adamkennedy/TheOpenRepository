@@ -1,6 +1,6 @@
 Changes for Perl extension ORLite-Pod
 
-0.08 Mon 10 May 2010
+0.08 Tue 11 May 2010
 	- Upgraded to Module::Install::DSL 0.96
 	- Removed the ORLite version number
 	- Adding POD for more methods.
