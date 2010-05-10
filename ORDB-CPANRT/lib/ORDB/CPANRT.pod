@@ -1,10 +1,6 @@
 =head1 NAME
 
-ORDB::CPANRT - An ORLite-based ORM database For rt.cpan.org
-
-=head1 SYNOPSIS
-
-  TO BE COMPLETED
+ORDB::CPANRT - An ORLite-based ORM database for rt.cpan.org
 
 =head1 DESCRIPTION
 
@@ -60,6 +56,49 @@ string provided by the C<dsn> method.
 
 The C<dbh> method returns a L<DBI::db> object, or throws an exception on
 error.
+
+=head2 begin
+
+  ORDB::CPANRT->begin;
+
+The C<begin> method indicates the start of a transaction.
+
+In the same way that ORLite allows only a single connection, likewise
+it allows only a single application-wide transaction.
+
+No indication is given as to whether you are currently in a transaction
+or not, all code should be written neutrally so that it works either way
+or doesn't need to care.
+
+Returns true or throws an exception on error.
+
+=head2 rollback
+
+The C<rollback> method rolls back the current transaction. If called outside
+of a current transaction, it is accepted and treated as a null operation.
+
+Once the rollback has been completed, the database connection falls back
+into auto-commit state. If you wish to immediately start another
+transaction, you will need to issue a separate -E<gt>begin call.
+
+If a transaction exists at END-time as the process exits, it will be
+automatically rolled back.
+
+Returns true or throws an exception on error.
+
+=head2 do
+
+  ORDB::CPANRT->do(
+      'insert into table ( foo, bar ) values ( ?, ? )', {},
+      \$foo_value,
+      \$bar_value,
+  );
+
+The C<do> method is a direct wrapper around the equivalent L<DBI> method,
+but applied to the appropriate locally-provided connection or transaction.
+
+It takes the same parameters and has the same return values and error
+behaviour.
 
 =head2 selectall_arrayref
 
@@ -138,9 +177,9 @@ for a datase. See the SQLite documentation for more details.
 
 =head1 SUPPORT
 
-ORDB::CPANRT is based on L<ORLite> 1.30.
+ORDB::CPANRT is based on L<ORLite>.
 
-Documentation created by L<ORLite::Pod> 0.07.
+Documentation created by L<ORLite::Pod> 0.08.
 
 Bugs should be reported via the CPAN bug tracker at
 

@@ -12,15 +12,15 @@ our $VERSION = '0.01';
 
 sub import {
 	my $class = shift;
-	my $params = Params::Util::_HASH(shift) || {};
+	my $param = Params::Util::_HASH(shift) || {};
 
 	# Pass through any params from above
-	$params->{url}    ||= 'http://rt.cpan.org/NoAuth/cpan/rtcpan.sqlite.gz';
-	$params->{maxage} ||= 24 * 60 * 60; # One day
+	$param->{url}    ||= 'http://rt.cpan.org/NoAuth/cpan/rtcpan.sqlite.gz';
+	$param->{maxage} ||= 24 * 60 * 60; # One day
 
 	# Prevent double-initialisation
 	$class->can('orlite') or
-	ORLite::Mirror->import( $params );
+	ORLite::Mirror->import($param);
 
 	return 1;
 }
