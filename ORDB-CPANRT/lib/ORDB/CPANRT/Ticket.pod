@@ -4,7 +4,7 @@ ORDB::CPANRT::Ticket - ORDB::CPANRT class for the ticket table
 
 =head1 DESCRIPTION
 
-TO BE COMPLETED
+See the main L<ORDB::CPANRT> documentation for details.
 
 =head1 METHODS
 
@@ -143,9 +143,9 @@ Throws an exception on error, typically directly from the L<DBI> layer.
 =head2 id
 
   if ( $object->id ) {
-      print "Object has been inserted\\n";
+      print "Object has been inserted\n";
   } else {
-      print "Object has not been inserted\\n";
+      print "Object has not been inserted\n";
   }
 
 Returns true, or throws an exception on error.
