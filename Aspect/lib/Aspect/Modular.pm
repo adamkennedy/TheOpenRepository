@@ -2,8 +2,10 @@ package Aspect::Modular;
 
 use strict;
 use warnings;
+use Aspect::Library ();
 
 our $VERSION = '0.45';
+our @ISA     = 'Aspect::Library';
 
 sub new {
 	my $class = shift;
@@ -50,7 +52,7 @@ __END__
 
 =head1 NAME
 
-Aspect::Modular - Base class for reusable aspects
+Aspect::Modular - First generation base class for reusable aspects
 
 =head1 SYNOPSIS
 
@@ -72,7 +74,7 @@ Aspect::Modular - Base class for reusable aspects
          },
      );
   }
-  
+
   # Using the new aspect
   package main;
   
@@ -119,13 +121,6 @@ the caller
 
 =back
 
-=head1 SEE ALSO
-
-See the L<Aspect|::Aspect> pod for a guide to the Aspect module.
-
-You can find examples of reusable aspects in the C<Aspect::Library>
-package. L<Aspect::Library::Singleton> for example.
-
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
@@ -134,7 +129,7 @@ Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
 
 Ran Eilam E<lt>eilara@cpan.orgE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 

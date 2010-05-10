@@ -8,12 +8,12 @@ use warnings;
 use Carp                               ();
 use Scalar::Util                       ();
 use Sub::Install                       ();
-use Aspect::Modular                    ();
+use Aspect::Library                    ();
 use Aspect::Advice::Before             ();
 use Aspect::Library::Listenable::Event ();
 
 our $VERSION = '0.45';
-our @ISA     = qw{ Aspect::Modular };
+our @ISA     = 'Aspect::Library';
 
 sub import {
 	my $into = caller();
@@ -546,14 +546,6 @@ C<aspect Listenable...> in a void context.
 
 =head1 SEE ALSO
 
-See the L<Aspect|::Aspect> pods for a guide to the Aspect module.
-
-There are several papers on the web about implementing Observer with
-aspects. Here is an example:
-L<http://www.itu.dk/people/jborella/docs/observer.pdf>.
-
-You can see examples of API usage in the unit test for the aspect.
-
 C<Class::Listener>, C<Class::Observable>. Both are object-oriented
 solutions to the same problem. Both force you to change the listenable
 class, by adding the code to fire events inside your "hot" methods.
@@ -566,12 +558,7 @@ Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
 
 Ran Eilam E<lt>eilara@cpan.orgE<gt>
 
-=head1 SEE ALSO
-
-You can find AOP examples in the C<examples/> directory of the
-distribution.
-
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 

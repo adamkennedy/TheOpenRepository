@@ -2,14 +2,14 @@ package Aspect::Library::Wormhole;
 
 use strict;
 use warnings;
-use Aspect::Modular         ();
+use Aspect::Library         ();
 use Aspect::Advice::Before  ();
+use Aspect::Pointcut::And   ();
 use Aspect::Pointcut::Call  ();
 use Aspect::Pointcut::Cflow ();
-use Aspect::Pointcut::And   ();
 
 our $VERSION = '0.45';
-our @ISA     = 'Aspect::Modular';
+our @ISA     = 'Aspect::Library';
 
 sub get_advice {
 	my $self = shift;
@@ -151,7 +151,7 @@ Ran Eilam E<lt>eilara@cpan.orgE<gt>
 You can find AOP examples in the C<examples/> directory of the
 distribution.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 

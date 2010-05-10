@@ -340,10 +340,6 @@ __END__
 
 =pod
 
-=head1 SEE ALSO
-
-See the L<Aspect|::Aspect> pod for a guide to the Aspect module.
-
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
@@ -352,12 +348,7 @@ Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
 
 Ran Eilam E<lt>eilara@cpan.orgE<gt>
 
-=head1 SEE ALSO
-
-You can find AOP examples in the C<examples/> directory of the
-distribution.
-
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 

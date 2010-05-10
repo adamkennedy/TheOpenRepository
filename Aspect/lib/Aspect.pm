@@ -20,8 +20,8 @@ use Aspect::Pointcut::Not          ();
 use Aspect::Pointcut::Call         ();
 use Aspect::Pointcut::Cflow        ();
 use Aspect::Pointcut::Highest      ();
-use Aspect::Pointcut::Wantarray    ();
 use Aspect::Pointcut::Throwing     ();
+use Aspect::Pointcut::Wantarray    ();
 use Aspect::Advice                 ();
 use Aspect::AdviceContext          ();
 use Aspect::Advice::Around         ();
@@ -45,7 +45,7 @@ our %EXPORTED;
 # Public (Exported) Functions
 
 sub aspect {
-	my $class  = _LOAD('Aspect::Library::' . shift);
+	my $class = _LOAD('Aspect::Library::' . shift);
 	return $class->new(
 		lexical => defined wantarray,
 		params  => [ @_ ],
@@ -460,7 +460,7 @@ you will get no error message.
 
 Select all calls to C<Person>, which are not calls to the constructor:
 
-  $p = call qr/^Person::\w+$/ & !call 'Person::create';
+  $p = call qr/^Person::\w+$/ & ! call 'Person::create';
 
 The second pointcut you can use, is C<cflow()>. It selects only the subs that
 are in call flow of its spec. Here we select all calls to C<Person>, only if
@@ -751,7 +751,7 @@ L<Aspect::Library::Profiler>
 
 L<Aspect::Library::Trace>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 

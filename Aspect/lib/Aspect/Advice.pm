@@ -43,13 +43,13 @@ Aspect::Advice - Change how Perl code is run at a pointcut
 
 =head1 SYNOPSIS
 
-  # "Trace calls to Account subs" created using public interface
   use Aspect;
   
+  # "Trace calls to Account subs" created using public interface
   before {
       print 'called: '. shift->sub_name;
   } call qw/^Account::/;
-
+  
   # Trace calls to Account subs" created using object-oriented interface
   use Aspect::Advice;
   
@@ -92,12 +92,7 @@ Marcel GrE<uuml>nauer E<lt>marcel@cpan.orgE<gt>
 
 Ran Eilam E<lt>eilara@cpan.orgE<gt>
 
-=head1 SEE ALSO
-
-You can find AOP examples in the C<examples/> directory of the
-distribution.
-
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 

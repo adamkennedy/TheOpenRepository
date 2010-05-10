@@ -2,12 +2,12 @@ package Aspect::Library::Singleton;
 
 use strict;
 use warnings;
-use Aspect::Modular        ();
+use Aspect::Library        ();
 use Aspect::Advice::Before ();
 use Aspect::Pointcut::Call ();
 
 our $VERSION = '0.45';
-our @ISA     = 'Aspect::Modular';
+our @ISA     = 'Aspect::Library';
 
 my %CACHE = ();
 
@@ -106,7 +106,7 @@ Ran Eilam E<lt>eilara@cpan.orgE<gt>
 You can find AOP examples in the C<examples/> directory of the
 distribution.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright 2001 by Marcel GrE<uuml>nauer
 

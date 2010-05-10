@@ -2,11 +2,11 @@ package Aspect::Library::Breakpoint;
 
 use strict;
 use warnings;
-use Aspect::Modular        ();
+use Aspect::Library        ();
 use Aspect::Advice::Before ();
 
 our $VERSION = '0.45';
-our @ISA     = 'Aspect::Modular';
+our @ISA     = 'Aspect::Library';
 
 sub get_advice {
 	my $self = shift;
@@ -32,12 +32,12 @@ Aspect::Library::Breakpoint - A breakpoint aspect
 =head1 SYNOPSIS
 
   use Aspect;
-
+  
   aspect Breakpoint => call qr/^Foo::refresh/;
-
+  
   my $f1 = Foo->refresh_foo;
   my $f2 = Foo->refresh_bar;
-
+  
   # The debugger will go into single statement mode for both methods
 
 =head1 SUPER
@@ -46,15 +46,9 @@ L<Aspect::Modular>
 
 =head1 DESCRIPTION
 
-B<THIS MODULE IS EXPERIMENTAL AND SUBJECT TO CHANGE WITHOUT NOTICE>
-
 C<Aspect::Library::Breakpoint> is a reusable aspect for implementing
 breakpoints in the debugger in patterns that are more complex than
 the native debugger supports.
-
-=head1 SEE ALSO
-
-See the L<Aspect> pods for a guide to the Aspect module.
 
 =head1 AUTHORS
 
