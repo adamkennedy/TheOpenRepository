@@ -9,7 +9,7 @@ BEGIN {
 }
 
 use UNIVERSAL;
-use Test::More tests => 38;
+use Test::More tests => 33;
 
 use vars qw{$VERSION};
 BEGIN {
@@ -113,26 +113,9 @@ END {
 	unlink 'test2.conf';
 }
 
-##########################
-# Parameter multiplicity #
-##########################
 
-my $multiples = <<EOM;
-rootparam=one
-rootparam=two
 
-[Section]
-sectparam=foo
-sectparam=bar
-EOM
 
-my $Mult = Config::Tiny->read_string( $multiples );
-ok( $Mult, 'Returns true' );
-is( ref $Mult->{_}->{rootparam}, 'ARRAY', 'rootparam is an arrayref' );
-is( ref $Mult->{Section}->{sectparam}, 'ARRAY', 'sectparam is an arrayref' );
-my $mults = $Mult->write_string();
-ok( length $mults, '->write_string returns something' );
-ok( $multiples eq $mults, '>write_string returns the correct file contents' );
 
 #####################################################################
 # Bugs that happened we don't want to happen again
