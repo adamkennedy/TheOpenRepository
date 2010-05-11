@@ -60,7 +60,15 @@ sub read_string {
 
 		# Handle properties
 		if ( /^\s*([^=]+?)\s*=\s*(.*?)\s*$/ ) {
-			$self->{$ns}->{$1} = $2;
+      if ( defined $self->{$ns}->{$1} and ref $self->{$ns}->{$1} eq 'ARRAY' ) {
+         push @{ $self->{$ns}->{$1} }, $2;
+      }
+      elsif ( defined $self->{$ns}->{$1} ) {
+         $self->{$ns}->{$1} = [ $self->{$ns}->{$1}, $2 ];
+      }
+      else {
+			   $self->{$ns}->{$1} = $2;
+      }
 			next;
 		}
 
@@ -95,7 +103,12 @@ sub write_string {
 		$contents .= "\n" if length $contents;
 		$contents .= "[$section]\n" unless $section eq '_';
 		foreach my $property ( sort keys %$block ) {
-			$contents .= "$property=$block->{$property}\n";
+      if ( ref $block->{$property} eq 'ARRAY' ) {
+        $contents .= "$property=$_\n" for @{ $block->{$property} };
+      }
+      else {
+			  $contents .= "$property=$block->{$property}\n";
+      }
 		}
 	}
 	
