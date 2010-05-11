@@ -8,7 +8,7 @@ Perl::Dist::WiX::Tag::DirectoryRef - <DirectoryRef> tag that knows how to search
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Tag::DirectoryRef version 1.200.
+This document describes Perl::Dist::WiX::Tag::DirectoryRef version 1.200_100.
 
 =head1 SYNOPSIS
 
@@ -46,7 +46,7 @@ use File::Spec::Functions qw( catdir abs2rel );
 use Params::Util qw( _STRING _INSTANCE );
 require Perl::Dist::WiX::Tag::Directory;
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_100';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::DirectoryRef';
@@ -138,7 +138,9 @@ sub search_dir {
 	  );
 	my $descend = $args{descend} || 1;
 	my $exact   = $args{exact}   || 0;
-	my $path    = $self->get_path();
+	# This would be $self->get_path(), but hopefully quicker.
+	# This is hit enough to take up a lot of time when profiling.
+	my $path    = $self->{directory_object}->{path};
 
 	return undef unless defined $path;
 
