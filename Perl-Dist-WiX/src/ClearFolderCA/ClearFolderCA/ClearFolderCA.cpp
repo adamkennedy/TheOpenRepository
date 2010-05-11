@@ -721,6 +721,124 @@ UINT AddDirectory(
 	return uiAnswer;
 }
 
+// Quick way to handle 
+
+UINT AddTopDirectoryQuick(
+	MSIHANDLE hModule,         // Handle of MSI being installed. [in]
+	LPCTSTR sCurrentDir,       // Directory being searched. [in]
+	LPCTSTR sCurrentDirID,     // ID of directory being searched. [in]
+	bool& bDeleteEntryCreated) // Was a delete-directory entry created by this call? [out]
+{
+	// Set up the wildcard for the files to find.
+	TCHAR sFind[MAX_PATH + 1];
+	_tcscpy_s(sFind, MAX_PATH, sCurrentDir);
+	_tcscat_s(sFind, MAX_PATH, TEXT("\\*"));
+
+	// Set up other variables.
+	TCHAR sSubDir[MAX_PATH + 1];
+	WIN32_FIND_DATA found;
+	TCHAR* sSubDirID = NULL;
+	bool bDeleteEntryCreatedBelow = false;
+
+	HANDLE hFindHandle;
+
+	BOOL bFileFound = FALSE;
+	UINT uiAnswer = ERROR_SUCCESS;
+	bool bDirectoryFound = false;
+	bool bInstalled = false;
+
+	LPTSTR sID = CreateDirectoryGUID();
+
+	// Start finding files and directories.
+	hFindHandle = ::FindFirstFile(sFind, &found);
+	if (hFindHandle != INVALID_HANDLE_VALUE) {
+		bFileFound = TRUE;
+	}
+
+	while (bFileFound & (uiAnswer == ERROR_SUCCESS)) {
+		if ((found.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY) {
+
+			// Handle . and ..
+			if (0 == _tcscmp(found.cFileName, TEXT("."))) {
+				bFileFound = ::FindNextFile(hFindHandle, &found);
+				continue;
+			}
+
+			if (0 == _tcscmp(found.cFileName, TEXT(".."))) {
+				bFileFound = ::FindNextFile(hFindHandle, &found);
+				continue;
+			}
+
+			bool bQuickUninstallCheck;
+			bQuickUninstallCheck = (
+				(0 == _tcscmp(found.cFileName, TEXT("cpan"))) || 
+				(0 == _tcscmp(found.cFileName, TEXT("cpanplus"))) || 
+				(0 == _tcscmp(found.cFileName, TEXT("ppm"))) 
+				);
+
+			if (!bQuickUninstallCheck) {
+				bFileFound = ::FindNextFile(hFindHandle, &found);
+				continue;
+			}
+
+			// Create a new directory spec to recurse into.
+			_tcscpy_s(sSubDir, MAX_PATH, sCurrentDir);
+			_tcscat_s(sSubDir, MAX_PATH, found.cFileName);
+			_tcscat_s(sSubDir, MAX_PATH, TEXT("\\"));
+
+			// Try and get the ID that already exists.
+			uiAnswer = GetDirectoryID(hModule, 
+				sCurrentDirID, 
+				found.cFileName, 
+				sSubDirID);
+			MSI_OK_FREE(uiAnswer, LPTSTR(sID))
+
+			if (sSubDirID != NULL) {
+				// We have an existing directory ID.
+				uiAnswer = AddDirectory(
+					hModule, sSubDir, sSubDirID, false, bDeleteEntryCreatedBelow);
+				MSI_OK_FREE_2(uiAnswer, (LPTSTR)sID, (TCHAR*)sSubDirID)
+				free(sSubDirID);
+			} else {
+				// We need to get a directory ID, add the property, then go down 
+				// into this directory.
+				uiAnswer = ERROR_INSTALL_FAILURE; 
+				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+			}
+		} else {
+			// Verify that the file wasn't installed by this MSI.
+			bInstalled = false;
+
+			uiAnswer = IsFileInstalled(hModule, sCurrentDirID, 
+				found.cFileName, bInstalled);
+			MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+
+			if (!bInstalled) {
+				uiAnswer = AddRemoveFileRecord(hModule, sCurrentDirID, found.cFileName);
+				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+
+				StartLogString(TEXT("ARFR1: Added remove file record entry with ID string: "));
+				AppendLogString(sCurrentDirID);
+				AppendLogString(TEXT(" and name: "));
+				AppendLogString(found.cFileName);
+				uiAnswer = LogString(hModule);
+				MSI_OK_FREE(uiAnswer, (LPTSTR)sID)
+			}
+		}
+	
+		// Check and see if there is another file to process.
+		bFileFound = ::FindNextFile(hFindHandle, &found);
+	}
+	
+	// Close the find handle.
+	::FindClose(hFindHandle);
+
+	// Clean up after ourselves.
+	free((LPTSTR)sID);	
+	return uiAnswer;
+}
+
+
 UINT GetComponent(
 	MSIHANDLE hModule,       // Database Handle of MSI being installed. [in]
 	LPCTSTR sMergeModuleID ) // ID of merge module being uninstalled. [in]
@@ -799,9 +917,9 @@ UINT GetComponent(
 	return uiAnswer; 
 }
 
-UINT __stdcall ClearFolder(
-	MSIHANDLE hModule) // Handle of MSI being installed. [in]
-	                   // Passed to most other routines.
+UINT __stdcall ClearFolderMain(
+	MSIHANDLE hModule,   // Handle of MSI being installed. [in]
+	bool bUninstallFast) // Whether to just uninstall cpan, cpanplus, and ppm. 
 {
 	TCHAR sInstallDirectory[MAX_PATH + 1];
 	TCHAR sPerlModuleID[40];
@@ -855,11 +973,30 @@ UINT __stdcall ClearFolder(
 
 	// Start getting files to delete (recursive)
 	bool bDeleteEntryCreated = false;
-	uiAnswer = AddDirectory(
-		hModule, sInstallDirectory, sInstallDirID, bUninstallSite, bDeleteEntryCreated);
-
+	if (bUninstallFast) {
+		uiAnswer = AddTopDirectoryQuick(
+			hModule, sInstallDirectory, sInstallDirID, bDeleteEntryCreated);
+	} else {
+		uiAnswer = AddDirectory(
+			hModule, sInstallDirectory, sInstallDirID, bUninstallSite, bDeleteEntryCreated);
+	}
     return uiAnswer;
 }
+
+UINT __stdcall ClearFolder(
+	MSIHANDLE hModule) // Handle of MSI being installed. [in]
+	                   // Passed to most other routines.
+{
+	return ClearFolderMain(hModule, false);
+}
+
+UINT __stdcall ClearFolderFast(
+	MSIHANDLE hModule) // Handle of MSI being installed. [in]
+	                   // Passed to most other routines.
+{
+	return ClearFolderMain(hModule, true);
+}
+
 
 UINT __stdcall ClearSiteFolder(
 	MSIHANDLE hModule) // Handle of MSI being installed. [in]

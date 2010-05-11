@@ -86,7 +86,7 @@
 
     <CustomAction Id='CA_ClearSiteFolder' BinaryKey='B_ClearFolder' DllEntry='ClearSiteFolder' />
 [% IF not dist.msm %]
-    <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
+    <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolderFast' />
 [% END %]
     <InstallExecuteSequence>
       <Custom Action='CA_ClearSiteFolder' Before='InstallInitialize'>

@@ -21,7 +21,7 @@
 
 [% dist.feature_tree_object.as_string_msm %]
 
-    <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolder' />
+    <CustomAction Id='CA_ClearFolder' BinaryKey='B_ClearFolder' DllEntry='ClearFolderFast' />
     <InstallExecuteSequence>
       <Custom Action='CA_ClearFolder' Before='InstallInitialize'>REMOVE="ALL" AND NOT VersionNT64</Custom>
     </InstallExecuteSequence>
