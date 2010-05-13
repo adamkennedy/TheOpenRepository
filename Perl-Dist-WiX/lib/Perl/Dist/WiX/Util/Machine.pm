@@ -35,7 +35,7 @@ This document describes Perl::Dist::WiX::Util::Machine version 1.200.
 		portable     => 1,
 	);
 	$machine->add_option('version',
-		perl_version => '5120',
+		perl_version => '5121',
 		relocatable  => 1,
 	);
 

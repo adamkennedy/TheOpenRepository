@@ -1295,8 +1295,8 @@ has 'perl_debug' => (
 
 The C<perl_version> parameter specifies what version of perl is downloaded 
 and built.  Legal values for this parameter are 'git', '589', '5100', '5101', 
-and '5120' (for a version from perl5.git.perl.org, 5.8.9, 5.10.0, 5.10.1, 
-and 5.12.0, respectively.)
+'5120', and '5121' (for a version from perl5.git.perl.org, 5.8.9, 5.10.0, 
+5.10.1, and 5.12.1, respectively.)
 
 This parameter defaults to '5101' if not specified.
 
@@ -1304,7 +1304,7 @@ This parameter defaults to '5101' if not specified.
 
 has 'perl_version' => (
 	is      => 'ro',
-	isa     => enum( [qw(git 589 5100 5101 5120)] ),
+	isa     => enum( [qw(git 589 5100 5101 5120 5121)] ),
 	default => '5101',
 );
 
@@ -2325,6 +2325,7 @@ sub _build_perl_version_literal {
 		'5100' => '5.010000',
 		'5101' => '5.010001',
 		'5120' => '5.012000',
+		'5121' => '5.012001',
 		'git'  => '5.013000',
 	  }->{ $self->perl_version() }
 	  || 0;
@@ -2366,6 +2367,7 @@ sub _build_perl_version_human {
 		'5100' => '5.10.0',
 		'5101' => '5.10.1',
 		'5120' => '5.12.0',
+		'5120' => '5.12.1',
 		'git'  => 'git',
 	  }->{ $self->perl_version() }
 	  || 0;
@@ -2684,6 +2686,7 @@ sub msi_perl_version {
 		'5100' => [ 5, 10, 0 ],
 		'5101' => [ 5, 10, 1 ],
 		'5120' => [ 5, 12, 0 ],
+		'5121' => [ 5, 12, 1 ],
 		'git'  => [ 5, 0,  0 ],
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
@@ -2715,6 +2718,7 @@ sub msi_perl_major_version {
 		'5100' => [ 5, 9,  127 ],
 		'5101' => [ 5, 10, 0 ],
 		'5120' => [ 5, 11, 127 ],
+		'5120' => [ 5, 12, 0 ],
 		'git'  => [ 5, 12, 127 ],      # 'git' should now be 5.13.0
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
@@ -3617,6 +3621,13 @@ sub install_win32_extras {
 			$self->install_website(
 				name      => 'Perl 5.12.0 Documentation',
 				url       => 'http://perldoc.perl.org/5.12.0/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
+		}
+		if ( $self->perl_version_human eq '5.12.1' ) {
+			$self->install_website(
+				name      => 'Perl 5.12.1 Documentation',
+				url       => 'http://perldoc.perl.org/5.12.1/',
 				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
 			);
 		}

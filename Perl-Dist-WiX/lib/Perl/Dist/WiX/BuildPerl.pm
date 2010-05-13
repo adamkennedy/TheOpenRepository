@@ -572,7 +572,7 @@ sub _create_perl_toolchain {
 
 
 
-=head2 install_perl_* (* = git, 589, 5100, 5101, or 5120)
+=head2 install_perl_* (* = git, 589, 5100, 5101, 5120, or 5121)
 
 	$self->install_perl_5100;
 
@@ -778,6 +778,40 @@ sub install_perl_5120 {
 
 	return 1;
 } ## end sub install_perl_5120
+
+
+
+#####################################################################
+# Perl 5.12.1 Support
+
+sub install_perl_5121 {
+	my $self = shift;
+
+	# Get the information required for Perl's toolchain.
+	my $toolchain = $self->_create_perl_toolchain();
+
+	# Install the main binary
+	$self->install_perl_bin(
+		url => 'http://fsck.com/~jesse/tmp/2010-05-13/d28ac4bd-796b-4898-9cae-592b1380543e/perl-5.12.1.tar.bz2',
+		toolchain => $toolchain,
+		patch     => [ qw{
+			  lib/CPAN/Config.pm
+			  win32/config.gc
+			  win32/config.gc64nox
+			  win32/config_sh.PL
+			  win32/config_H.gc
+			  win32/config_H.gc64nox
+			  }
+		],
+		license => {
+			'perl-5.12.1/Readme'   => 'perl/Readme',
+			'perl-5.12.1/Artistic' => 'perl/Artistic',
+			'perl-5.12.1/Copying'  => 'perl/Copying',
+		},
+	);
+
+	return 1;
+} ## end sub install_perl_5121
 
 
 

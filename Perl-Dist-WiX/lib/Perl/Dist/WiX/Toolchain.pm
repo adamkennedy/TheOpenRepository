@@ -267,6 +267,7 @@ sub _modules_build {
 	$modules{'5.010001'} = $modules{'5.008009'};
 	$modules{'5.011001'} = $modules{'5.008009'};
 	$modules{'5.012000'} = $modules{'5.008009'};
+	$modules{'5.012001'} = $modules{'5.008009'};
 
 	return \%modules;
 } ## end sub _modules_build
@@ -296,6 +297,7 @@ sub _corelist_version_build {
 		'5.010001' => '5.010001',
 		'5.011001' => '5.011001',
 		'5.012000' => '5.012000',
+		'5.012001' => '5.012001',
 	);
 
 	return \%corelist;

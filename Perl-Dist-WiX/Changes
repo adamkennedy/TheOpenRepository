@@ -1,5 +1,8 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.200_100   Xxx ## Xxx 2010
+    2. Perl 5.12.1 support added.
+
 1.200001   Thu 06 May 2010
     1. Used to build Bootstrap Perl "April" 2010.
     2. Used to build Strawberry Perl 5.12.0.1.
