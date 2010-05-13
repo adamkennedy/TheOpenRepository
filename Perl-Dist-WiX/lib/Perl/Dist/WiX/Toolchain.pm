@@ -58,12 +58,12 @@ use Moose::Util::TypeConstraints;
 use English qw( -no_match_vars );
 use Carp qw();
 use Params::Util qw( _HASH );
-use Module::CoreList 2.29 qw();
+use Module::CoreList 2.32 qw();
 use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
 
-our $VERSION = '1.200001';
+our $VERSION = '1.200_100';
 $VERSION =~ s/_//ms;
 
 extends qw(

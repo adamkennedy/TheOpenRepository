@@ -127,7 +127,7 @@ use IO::Handle                              qw();
 use IPC::Run3                               qw();
 use LWP::UserAgent                          qw();
 use LWP::Online                             qw();
-use Module::CoreList                   2.29 qw();
+use Module::CoreList                   2.32 qw();
 use PAR::Dist                               qw();
 use Path::Class::Dir                        qw();
 use Probe::Perl                             qw();
@@ -4894,7 +4894,7 @@ L<Alien::WiX|Alien::WiX>, L<Data::Dump::Streamer|Data::Dump::Streamer> 2.08,
 L<Data::UUID|Data::UUID> 1.149, L<Devel::StackTrace|Devel::StackTrace> 1.20, 
 L<Exception::Class|Exception::Class> 1.22, L<File::ShareDir|File::ShareDir> 
 1.00, L<IO::String|IO::String> 1.08, L<List::MoreUtils|List::MoreUtils> 0.07, 
-L<Module::CoreList|Module::CoreList> 2.29, L<Win32::Exe|Win32::Exe> 0.13, 
+L<Module::CoreList|Module::CoreList> 2.32, L<Win32::Exe|Win32::Exe> 0.13, 
 L<Object::InsideOut|Object::InsideOut> 3.53, L<Perl::Dist|Perl::Dist> 1.14, 
 L<Process|Process> 0.26, L<Readonly|Readonly> 1.03, L<URI|URI> 1.35, and 
 L<Win32|Win32> 0.35.

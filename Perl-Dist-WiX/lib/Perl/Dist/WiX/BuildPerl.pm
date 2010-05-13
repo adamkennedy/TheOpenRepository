@@ -34,12 +34,12 @@ use Storable qw( retrieve );
 use File::Spec::Functions qw(
   catdir catfile catpath tmpdir splitpath rel2abs curdir
 );
-use Module::CoreList 2.29 qw();
+use Module::CoreList 2.32 qw();
 use Perl::Dist::WiX::Asset::Perl qw();
 use Perl::Dist::WiX::Toolchain qw();
 use File::List::Object qw();
 
-our $VERSION = '1.200001';
+our $VERSION = '1.200_100';
 $VERSION =~ s/_//sm;
 
 Readonly my %CORE_MODULE_FIX => (
