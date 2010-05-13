@@ -79,7 +79,7 @@ use List::MoreUtils qw( none );
 use Perl::Dist::WiX::Exceptions;
 use WiX3::Traceable qw();
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_100';
 $VERSION =~ s/_//ms;
 
 =head1 INTERFACE
