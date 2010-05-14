@@ -32,8 +32,6 @@
 		return ERROR_INSTALL_FAILURE; \
 	}
 
-
-
 UINT _stdcall Relocate_MoveFile(
 	const TCHAR *sFileTo,   // Original name of the file 
 	const TCHAR *sFileFrom) // File to rename into its place.
@@ -161,9 +159,58 @@ void _stdcall Relocate_GetSearchString(
 
 }
 
+// The string to be logged to Windows Installer.
+static TCHAR sLogStringR[513];
+
+// Operations on string to log to MSI log.
+
+void StartLogStringR(
+	LPCTSTR s) // String to start logging. [in]
+{
+	_tcscpy_s(sLogStringR, 512, s);
+}
+
+void AppendLogStringR(
+	LPCTSTR s) // String to append to log. [in]
+{
+	_tcscat_s(sLogStringR, 512, s);
+}
+
+/* All routines after this point return UINT error codes,
+ * as defined by the Win32 API reference under the Installer Functions
+ * area (at http://msdn.microsoft.com/en-us/library/aa369426(VS.85).aspx ) 
+ */
+
+// Logs string in MSI log.
+
+UINT LogStringR(
+	MSIHANDLE hModule) // Handle of MSI being installed. [in]
+{
+	// Set up variables.
+	PMSIHANDLE hRecord = ::MsiCreateRecord(2);
+    HANDLE_OK(hRecord)
+
+	UINT uiAnswer = ::MsiRecordSetString(hRecord, 0, sLogStringR);
+	MSI_OK(uiAnswer)
+	
+	// Send the message
+	uiAnswer = ::MsiProcessMessage(hModule, INSTALLMESSAGE(INSTALLMESSAGE_INFO), hRecord);
+
+	// Corrects return value for use with MSI_OK.
+	switch (uiAnswer) {
+	case IDOK:
+	case 0: // Means no action was taken...
+		return ERROR_SUCCESS;
+	case IDCANCEL:
+		return ERROR_INSTALL_USEREXIT;
+	default:
+		return ERROR_INSTALL_FAILURE;
+	}
+}
 
 
 UINT _stdcall Relocate_File(
+	MSIHANDLE hModule,
 	const TCHAR *sDirectoryFrom, // Directory to relocate from
 	const TCHAR *sDirectoryTo,   // Directory to relocate to
 	const TCHAR *sFile,          // File to relocate
@@ -183,6 +230,13 @@ UINT _stdcall Relocate_File(
 
 	Relocate_GetSearchString(sStringIn,  sDirectoryFrom, sType);
 	Relocate_GetSearchString(sStringOut, sDirectoryTo,   sType);
+
+	StartLogStringR(_T("Relocating "));
+	AppendLogStringR(sFile);
+	AppendLogStringR(_T(" using relocation type "));
+	AppendLogStringR(sType);
+	uiAnswer = LogStringR(hModule);
+	MSI_OK(uiAnswer)
 
 	if (0 == _tcscmp(sStringIn, _T(""))) {
 		return ERROR_INSTALL_FAILURE;
@@ -307,6 +361,16 @@ UINT __stdcall Relocate_Worker(
 	_tcscpy_s(sFileTo, _MAX_PATH, sRelocationFile);
 	_tcscat_s(sFileTo, _MAX_PATH, _T(".new"));
 
+	StartLogStringR(_T("Opening "));
+	AppendLogStringR(sFileFrom);
+	uiAnswer = LogStringR(hModule);
+	MSI_OK(uiAnswer)
+
+	StartLogStringR(_T("Relocating to "));
+	AppendLogStringR(sInstallDirectory);
+	uiAnswer = LogStringR(hModule);
+	MSI_OK(uiAnswer)
+
 	// Open our files.
 	errno_t eAnswer = 0;
 	eAnswer = _tfopen_s(&fRelocationFileIn, sFileFrom, _T("rtS"));
@@ -329,6 +393,11 @@ UINT __stdcall Relocate_Worker(
 	if (*(sDirectoryTo + _tcslen(sDirectoryTo) - 1) != _T('\\')) {
 		_tcscat_s(sDirectoryTo, _MAX_PATH, _T("\\"));
 	}
+
+	StartLogStringR(_T("Relocating from "));
+	AppendLogStringR(sDirectoryTo);
+	uiAnswer = LogStringR(hModule);
+	MSI_OK(uiAnswer)
 
 	// Put where to relocate to in the file.
 	_fputts(sDirectoryTo, fRelocationFileOut);
@@ -377,7 +446,7 @@ UINT __stdcall Relocate_Worker(
 		sToken = _tcstok_s(NULL, _T("\n"), &sTokenContext);
 		_tcscpy_s(sRelocationType, 16, sToken);
 
-		uiAnswer = Relocate_File(sDirectoryFrom, sDirectoryTo, sFileToRelocate, sRelocationType);
+		uiAnswer = Relocate_File(hModule, sDirectoryFrom, sDirectoryTo, sFileToRelocate, sRelocationType);
 		if (uiAnswer != ERROR_SUCCESS) {
 			break;
 		}
