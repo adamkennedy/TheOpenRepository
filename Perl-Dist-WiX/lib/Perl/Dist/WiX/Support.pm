@@ -701,7 +701,7 @@ sub _make_path {
 
 =head2 remake_path
 
-	$dist->make_path('perl\bin');
+	$dist->remake_path('perl\bin');
 
 Creates a path, removing all the files in it if the path already exists.
 	
@@ -732,6 +732,80 @@ sub _remake_path {
 	print "\n\n";
 	return shift->remake_path(@_);
 }
+
+
+
+=head2 make_relocation_file
+
+	$dist->make_relocation_file('strawberry_merge_module.reloc.txt');
+	
+	$dist->make_relocation_file('strawberry_ui.reloc.txt', 
+		'strawberry_merge_module.reloc.txt');
+	
+Creates a file to be input to relocation.pl.
+
+The first file is created, and it includes all files in the .source file 
+that actually exist, and adds all .packlist files that are not already
+being processed for relocation in files after the first.
+
+If there is no second parameter, the first file will include all
+.packlist files existing to that point.
+
+=cut 
+
+sub make_relocation_file {
+	my $self = shift;
+	my $file = shift;
+	my (@files_already_processed) = @_;
+	
+	# Get the input and output filenames.
+	my $file_in = $self->patch_pathlist()->find_file($file . '.source');
+	my $file_out = $self->image_dir()->file($file);
+	
+	# Find files we're already assigned for relocation.
+	my @filelist;	
+	my $files_already_relocating = File::List::Object->new();	
+	foreach my $file_already_processed (@files_already_processed) {
+		@filelist = read_file($self->image_dir()->file($file_already_processed)->stringify());
+		shift @filelist;
+		$files_already_relocating->add_files(
+			map { m/\A([^:]*):.*\z/msx } @filelist
+		);
+	}
+
+	# Find all the .packlist files.
+	my $packlists = File::List::Object->new()->add_files(
+		File::Find::Rule->file()->name('.packlist')->relative()->in($self->image_dir()->stringify())
+	);
+
+	# Get rid of the .packlist files we're already relocating.
+	$packlists->subtract($files_already_relocating);
+	
+	# Print the first line of the relocation file.
+	open $file_out_handle, ">", $file_out;
+	print { $file_out_handle } $self->image_dir()->stringify();
+	print { $file_out_handle } "\\\n";	
+	
+	# Read the source file, writing out the files that actually exist. 
+	@filelist = read_file($file_in);
+	foreach my $filelist_entry (@filelist) {
+		$filelist_entry =~ m/\A([^:]*):.*\z/msx; 
+		if (defined $1 and -f $self->image_dir()->file($1)->stringify()) {
+			print {$file_out_handle} $filelist_entry;
+		}
+	}
+
+	# Print out the rest of the .packlist files.
+	foreach my $pl ($packlists->files()) {
+		print { $file_out_handle } "$pl:backslash\n";
+	}
+	
+	# Finish up by closing the handle.
+	close $file_out_handle;
+	
+	return 1;
+}
+
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
