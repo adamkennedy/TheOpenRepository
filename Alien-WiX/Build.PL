@@ -148,7 +148,8 @@ $installed = 0;
 $default = 'y';
 $answer = 0;
 
-if (RegOpenKeyEx( regConstant('HKEY_LOCAL_MACHINE'), $WIX30_REGISTRY_KEY, 0, regConstant('KEY_READ'), $key ))
+# 0x200 = KEY_WOW64_32KEY.
+if (RegOpenKeyEx( regConstant('HKEY_LOCAL_MACHINE'), $WIX30_REGISTRY_KEY, 0, regConstant('KEY_READ') | 0x200, $key ))
 {
 	if (RegQueryValueEx( $key, 'ProductVersion', [], $type, $data, [] )) {
 		if ($data =~ m/3.0.(\d+).0/) {

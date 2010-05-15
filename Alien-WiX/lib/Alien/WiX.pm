@@ -6,11 +6,11 @@ use strict;
 use Carp;
 use base qw( Exporter );
 use vars qw( $VERSION @EXPORT_OK %EXPORT_TAGS);
-use version; $VERSION = version->new('1.305419')->numify();
+use version; $VERSION = version->new('1.305419001')->numify();
 
 eval { require Alien::WiX::Version35; 1; } or eval {
 	require Alien::WiX::Version30;
-	Alien::WiX::Version30->VERSION(5419.0);
+	Alien::WiX::Version30->VERSION(5419.1);
 	1;
 }
   or croak @_;

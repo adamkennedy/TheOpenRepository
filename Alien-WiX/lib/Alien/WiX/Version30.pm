@@ -9,9 +9,9 @@ use base qw( Exporter );
 use vars qw( $VERSION @EXPORT_OK %EXPORT_TAGS);
 use Readonly qw( Readonly );
 use Win32::TieRegistry qw( KEY_READ );
-use version; $VERSION = version->new('5419.0')->numify();
+use version; $VERSION = version->new('5419.1')->numify();
 
-# http://wix.sourceforge.net/releases/3.0.5419.0/Wix3.msi
+# http://wix.sourceforge.net/releases/3.0.5419.0/Wix3(-x64).msi
 
 Readonly my $WIX_REGISTRY_KEY =>
   'HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows Installer XML/3.0';
@@ -31,12 +31,13 @@ sub import { ## no critic (RequireArgUnpacking)
 }
 
 sub _wix_registry {
+    # 0x200 = KEY_WOW64_32KEY
 	$_wix_registry ||= Win32::TieRegistry->new(
 		$WIX_REGISTRY_KEY => {
-			Access    => KEY_READ(),
+			Access    => KEY_READ() | 0x200,
 			Delimiter => q{/},
 		} );
-
+		
 	if ( not defined $_wix_registry ) {
 		croak 'Windows Installer XML not installed, cannot continue';
 	}

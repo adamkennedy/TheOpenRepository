@@ -1,4 +1,7 @@
-Revision history for Alien-WiX-v30
+Revision history for Alien-WiX-Version30
+
+1.305419001  Sat May 15 2010
+       Updated to handle x64 perl correctly.
 
 1.305419  Sat Jul 11 2009
        Updated to download WiX 3.0.5419.
