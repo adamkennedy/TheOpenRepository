@@ -782,6 +782,7 @@ sub make_relocation_file {
 	$packlists->subtract($files_already_relocating);
 	
 	# Print the first line of the relocation file.
+	my $file_out_handle;
 	open $file_out_handle, ">", $file_out;
 	print { $file_out_handle } $self->image_dir()->stringify();
 	print { $file_out_handle } "\\\n";	
