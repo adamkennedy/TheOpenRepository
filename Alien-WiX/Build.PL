@@ -142,6 +142,15 @@ my $builder = $class->new(
 		'Readonly::XS'  => '1.05',
 	},
 	create_makefile_pl  => 'small',
+	meta_merge => {
+		resources => {
+			homepage => 'http://csjewell.comyr.com/',
+			bugtracker =>
+'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Alien-WiX-Version30',
+			repository =>
+			  'http://svn.ali.as/cpan/trunk/Alien-WiX/'
+		},
+	},
     add_to_cleanup      => [ 'Alien-WiX-Version30-*' ],
 );
 
