@@ -1,6 +1,6 @@
-diff -u3 Crypt-SSLeay-0.57_01.orig/Makefile.PL Crypt-SSLeay-0.57_01/Makefile.PL
---- Crypt-SSLeay-0.57_01.orig/Makefile.PL	2008-02-18 06:39:06.000000000 -0700
-+++ Crypt-SSLeay-0.57_01/Makefile.PL	2010-05-15 11:20:08.408474400 -0600
+diff -u3 Crypt-SSLeay-0.57/Makefile.PL Crypt-SSLeay-0.57_01/Makefile.PL
+--- Crypt-SSLeay-0.57/Makefile.PL	2008-02-18 06:39:06.000000000 -0700
++++ Crypt-SSLeay-0.57/Makefile.PL	2010-05-15 11:20:08.408474400 -0600
 @@ -19,6 +19,7 @@
  );
  
