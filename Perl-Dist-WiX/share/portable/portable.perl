@@ -37,13 +37,13 @@ Config:
   installprivlib: perl/lib
   installscript: perl/bin
   installsitearch: perl/site/lib
-  installsitebin: perl/bin
+  installsitebin: perl/site/bin
   installsitehtml1dir: ''
   installsitehtml3dir: ''
   installsitelib: perl/site/lib
   installsiteman1dir: ''
   installsiteman3dir: ''
-  installsitescript: ''
+  installsitescript: 'perl/site/bin'
   installstyle: perl/lib
   installusrbinperl: ~
   installvendorarch: 'perl/vendor/lib'
@@ -53,7 +53,7 @@ Config:
   installvendorlib: 'perl/vendor/lib'
   installvendorman1dir: ''
   installvendorman3dir: ''
-  installvendorscript: ''
+  installvendorscript: 'perl/bin'
   ld: g++.exe
   lddlflags: '-mdll -s -L"$archlib\CORE" -L"$libpth"'
   ldflags: '-s -L"$archlib\CORE" -L"$libpth"'
@@ -94,4 +94,5 @@ Config:
 Env:
   PATH:
     - c/bin
+    - perl/site/bin
     - perl/bin
