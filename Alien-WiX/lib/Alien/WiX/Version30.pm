@@ -145,10 +145,11 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 Copyright (c) 2009, Curtis Jewell.
 
 This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself. See L<perlartistic>.
+modify it under the same terms as Perl itself. See 
+L<perlartistic|perlartistic>.
 
-The software installed by this module has its own licenses and copyrights, and is
-not included in this license and copyright.
+The software installed by this module has its own licenses and copyrights, 
+and is not included in this license and copyright.
 
 =head1 DISCLAIMER OF WARRANTY
 
