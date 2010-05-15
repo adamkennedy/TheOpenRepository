@@ -9,6 +9,8 @@ my $class = Module::Build->subclass(
 
 	class => 'ModuleBuildAlienWiX',
 	code => q{
+		use Config;
+	
 		sub ACTION_code {
             my $self = shift;
             my $install_dotnet = $self->notes('install_dotnet');
