@@ -778,8 +778,14 @@ sub make_relocation_file {
 		File::Find::Rule->file()->name('.packlist')->relative()->in($self->image_dir()->stringify())
 	);
 
-	# Get rid of the .packlist files we're already relocating.
+	# Find all the .packlist files.
+	my $batch_files = File::List::Object->new()->add_files(
+		File::Find::Rule->file()->name('*.bat')->relative()->in($self->image_dir()->stringify())
+	);
+	
+	# Get rid of the .packlist and *.bat files we're already relocating.
 	$packlists->subtract($files_already_relocating);
+	$batch_files->subtract($files_already_relocating);
 	
 	# Print the first line of the relocation file.
 	my $file_out_handle;
@@ -800,6 +806,17 @@ sub make_relocation_file {
 	foreach my $pl ($packlists->files()) {
 		print { $file_out_handle } "$pl:backslash\n";
 	}
+
+	# Print out the batch files that need relocated.
+	my $batch_contents;
+	my $match_string = q(eval 'exec ) . quotemeta $self->image_dir()->file('perl\bin\perl.exe')->stringify();	
+	foreach my $batch_file ($batch_files->files()) {
+		my $batch_contents = read_file($self->image_dir()->file($batch_file)->stringify());
+		if ($batch_contents =~ m/$match_string/msgx) {
+			print { $file_out_handle } "$batch_file:backslash\n";
+		}
+	}
+
 	
 	# Finish up by closing the handle.
 	close $file_out_handle;
