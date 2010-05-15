@@ -14,9 +14,6 @@ exclude_functions = print
 [Modules::PerlMinimumVersion]
 version = 5.008001
 
-[ValuesAndExpressions::ProhibitMagicNumbers]
-allowed_values = -1 0 1 2
-
 # Exclusions
 # I use svn - don't need the keywords.
 [-Miscellanea::RequireRcsKeywords]
@@ -34,3 +31,5 @@ allowed_values = -1 0 1 2
 # croak is fine.
 [-ErrorHandling::RequireUseOfExceptions]
 
+# I need a few magic numbers, thank you.
+[-ValuesAndExpressions::ProhibitMagicNumbers]
