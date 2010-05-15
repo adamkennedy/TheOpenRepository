@@ -141,7 +141,7 @@ my $builder = $class->new(
 	recommends          => {
 		'Readonly::XS'  => '1.05',
 	},
-	create_makefile_pl  => 'passthrough',
+	create_makefile_pl  => 'small',
     add_to_cleanup      => [ 'Alien-WiX-Version30-*' ],
 );
 
