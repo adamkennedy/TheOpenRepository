@@ -134,6 +134,7 @@ use Probe::Perl                             qw();
 use SelectSaver                             qw();
 use Template                                qw();
 use URI                                     qw();
+use URI::file                               qw();
 use Win32                                   qw();
 use File::List::Object                      qw();
 use Perl::Dist::WiX::Exceptions             qw();
@@ -181,17 +182,308 @@ This routine may take a few minutes to run.
 An example of the most likely attributes that will be specified is in the 
 SYNOPSIS.
 
-Attributes that are required to be set are marked as I<(required)> 
+Attributes that are required to be set are marked as I<required> 
 below.  They may often be set by subclasses.
 
 All attributes below can also be called as accessors on the object created.
 
 
-=head3 app_id I<(required)>
+=head3 Types of distributions to build
 
-The C<app_id> parameter provides the base identifier of the distribution 
-that is used in constructing filenames by default.  This must be a legal 
-Perl identifier (no spaces, for example) and is required.
+=head4 msi
+
+The optional boolean C<msi> param is used to indicate that a Windows
+Installer distribution package (otherwise known as an msi file) should 
+be created.
+
+It defaults to true, unless C<portable()> is true.
+
+=cut
+
+has 'msi' => (
+	is      => 'ro',
+	isa     => Bool,
+	writer  => '_set_msi',
+	default => sub {
+		my $self = shift;
+		return $self->portable() ? 0 : 1;
+	},
+);
+
+
+
+=head4 msm
+
+The optional boolean C<msm> param is used to indicate that a Windows
+Installer merge module (otherwise known as an msm file) should 
+be created.
+
+This defaults to true, unless C<portable()> is true. 
+
+=cut
+
+has 'msm' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => sub {
+		my $self = shift;
+		return $self->portable() ? 0 : 1;
+	},
+);
+
+
+
+=head4 zip
+
+The optional boolean C<zip> param is used to indicate that a zip
+distribution package should be created.
+
+This defaults to the value of C<portable()>.
+
+=cut
+
+has 'zip' => (
+	is      => 'ro',
+	isa     => Bool,
+	lazy    => 1,
+	default => sub {
+		my $self = shift;
+		return $self->portable() ? 1 : 0;
+	},
+);
+
+
+
+=head4 exe
+
+The optional boolean C<exe> param is unused at the moment.
+
+=cut
+
+has 'exe' => (
+	is      => 'ro',
+	isa     => Bool,
+	writer  => '_set_exe',
+	default => 0,
+);
+
+
+
+=head3 Parameters that affect the build process.
+
+=head4 force
+
+The optional C<force> parameter determines if perl and perl modules are 
+tested upon installation.  If this parameter is true, then no testing 
+is done.
+
+This defaults to false.
+
+=cut
+
+has 'force' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
+=head4 forceperl
+
+The optional C<forceperl> parameter determines if perl and perl modules 
+are tested upon installation.  If this parameter is true, then testing 
+is done only upon installed modules, not upon perl itself.
+
+This defaults to false.
+
+=cut
+
+has 'forceperl' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
+=head4 offline
+
+The B<Perl::Dist::WiX> module has limited ability to build offline, if all
+packages have already been downloaded and cached.
+
+The connectedness of the Perl::Dist object is checked automatically
+be default using L<LWP::Online|LWP::Online>. It can be overidden 
+by providing the C<offline> parameter to new().
+
+The C<offline> accessor returns true if no connection to "the internet"
+is available and the object will run in offline mode, or false
+otherwise.
+
+=cut
+
+has 'offline' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => sub { return !!LWP::Online::offline() },
+);
+
+
+
+=head4 trace
+
+The optional C<trace> parameter sets the level of tracing that is output.
+
+Setting this parameter to 0 prints out only MAJOR stuff and errors.
+
+Setting this parameter to a number between 2 and 5 will progressively
+print out more information about the build.
+
+Numbers above 2 are only needed for debugging purposes.
+
+Default is 1 if not set.
+
+=cut
+
+has 'trace' => (
+	is      => 'ro',
+	isa     => Int,
+	default => 1,
+);
+
+
+
+=head3 tasklist
+
+The optional C<tasklist> parameter specifies the list of routines that the 
+object can do.  The routines are object methods of Perl::Dist::WiX (or its 
+subclasses) that will be executed in order, without parameters, and their 
+task numbers (as used in Perl::Dist::WiX) will begin with 1 and increment in sequence.
+
+Task routines should either return 1, or throw an exception. 
+
+The default task list for Perl::Dist::WiX is as shown below.  Subclasses 
+should provide their own list and insert their tasks in this list, rather 
+than overriding routines shown above.
+
+	tasklist => [
+
+		# Final initialization
+		'final_initialization',
+
+		# Install the core C toolchain
+		'install_c_toolchain',
+
+		# Install the Perl binary
+		'install_perl',
+
+		# Install the Perl toolchain
+		'install_perl_toolchain',
+
+		# Install additional Perl modules
+		'install_cpan_upgrades',
+
+		# Apply optional portability support
+		'install_portable',
+
+		# Apply optional relocation support
+		'install_relocatable',
+
+		# Remove waste and temporary files
+		'remove_waste',
+
+		# Regenerate file fragments
+		'regenerate_fragments',
+
+		# Find file ID's for relocation.
+		'find_relocatable_fields',
+
+		# Write out the merge module
+		'write_merge_module',
+
+		# Install the Win32 extras
+		'install_win32_extras',
+
+		# Create the distribution list
+		'create_distribution_list',
+
+		# Regenerate file fragments again.
+		'regenerate_fragments',
+
+		# Write out the distributions
+		'write',
+	];
+
+
+=cut
+
+has 'tasklist' => (
+	is      => 'ro',
+	isa     => ArrayRef [Str],
+	builder => '_build_tasklist',
+);
+
+sub _build_tasklist {
+	return [
+
+		# Final initialization
+		'final_initialization',
+
+		# Install the core C toolchain
+		'install_c_toolchain',
+
+		# Install the Perl binary
+		'install_perl',
+
+		# Install the Perl toolchain
+		'install_perl_toolchain',
+
+		# Install additional Perl modules
+		'install_cpan_upgrades',
+
+		# Apply optional portability support
+		'install_portable',
+
+		# Apply optional relocation support
+		'install_relocatable',
+
+		# Remove waste and temporary files
+		'remove_waste',
+
+		# Regenerate file fragments
+		'regenerate_fragments',
+
+		# Find file ID's for relocation.
+		'find_relocatable_fields',
+
+		# Write out the merge module
+		'write_merge_module',
+
+		# Install the Win32 extras
+		'install_win32_extras',
+
+		# Create the distribution list
+		'create_distribution_list',
+
+		# Regenerate file fragments again.
+		'regenerate_fragments',
+
+		# Write out the distributions
+		'write',
+	];
+} ## end sub _build_tasklist
+
+
+
+=head3 Parameters that describe the distribution to build.
+
+Some of these parameters are required to build Perl.
+
+=head4 app_id
+
+The I<required> C<app_id> parameter provides the base identifier of the 
+distribution that is used in constructing filenames by default.  This must 
+be a legal Perl identifier (no spaces, for example.) 
 
 =cut
 
@@ -206,10 +498,9 @@ has 'app_id' => (
 
 
 
-=head3 app_name I<(required)>
+=head4 app_name
 
-The C<app_name> parameter provides the name of the distribution. This is 
-required.
+The I<required> C<app_name> parameter provides the name of the distribution.
 
 =cut
 
@@ -221,9 +512,10 @@ has 'app_name' => (
 
 
 
-=head3 app_publisher I<(required)>
+=head4 app_publisher
 
-The C<app_publisher> parameter provides the publisher of the distribution. 
+The I<required> C<app_publisher> parameter provides the publisher of the 
+distribution. 
 
 =cut
 
@@ -235,10 +527,10 @@ has 'app_publisher' => (
 
 
 
-=head3 app_publisher_url I<(required)>
+=head4 app_publisher_url
 
-The C<app_publisher_url> parameter provides the URL of the publisher of 
-the distribution.
+The I<required> C<app_publisher_url> parameter provides the URL of the 
+publisher of the distribution.
 
 It can be a string or a URI object.
 
@@ -253,13 +545,13 @@ has 'app_publisher_url' => (
 
 
 
-=head3 app_ver_name
+=head4 app_ver_name
 
-The C<app_ver_name> parameter provides the name and version of the 
-distribution. 
+The optional C<app_ver_name> parameter provides the name and version of 
+the distribution. 
 
-This is not required, and is assembled from C<app_name> and 
-C<perl_version_human> if not given.
+The default value for this parameter is assembled from C<app_name> and 
+C<perl_version_human>.
 
 =cut
 
@@ -277,7 +569,7 @@ sub _build_app_ver_name {
 
 
 
-=head3 beta_number
+=head4 beta_number
 
 The optional integer C<beta_number> parameter is used to set the beta number
 portion of the distribution's version number (if this is a beta distribution), 
@@ -296,36 +588,7 @@ has 'beta_number' => (
 
 
 
-=head3 binary_root
-
-The C<binary_root> accessor is the URL (as a string, not including the 
-filename) where the distribution will find its libraries to download.
-
-Defaults to 'http://strawberryperl.com/package' unless C<offline> is set, 
-in which case it defaults to the empty string.
-
-=cut
-
-has 'binary_root' => (
-	is      => 'ro',
-	isa     => Uri,
-	coerce  => 1,
-	lazy    => 1,
-	builder => '_build_binary_root',
-);
-
-sub _build_binary_root {
-	my $self = shift;
-
-	if ( $self->offline() ) {
-		return URI::file->new( $self->download_dir() );
-	} else {
-		return 'http://strawberryperl.com/package';
-	}
-}
-
-
-=head3 bits
+=head4 bits
 
 The optional C<bits> parameter specifies whether the perl being built is 
 for 32-bit (i386) or 64-bit (referred to as Intel64 / amd-x64) Windows
@@ -353,36 +616,9 @@ has 'bits' => (
 
 
 
-=head3 build_dir
+=head4 build_number
 
-The directory where the source files for the distribution will be 
-extracted and built from.
-
-Defaults to C<temp_dir> . '\build', and must exist if given.
-
-=cut
-
-has 'build_dir' => (
-	is      => 'ro',
-	isa     => ExistingDirectory_SaneSlashes,
-	coerce  => 1,
-	lazy    => 1,
-	builder => '_build_build_dir',
-);
-
-sub _build_build_dir {
-	my $self = shift;
-
-	my $dir = catdir( $self->temp_dir(), 'build' );
-	$self->remake_path($dir);
-	return $dir;
-}
-
-
-
-=head3 build_number I<(required)>
-
-The required integer C<build_number> parameter is used to set the build 
+The I<required> integer C<build_number> parameter is used to set the build 
 number portion of the distribution's version number, and is used in 
 constructing filenames.
 
@@ -391,190 +627,17 @@ constructing filenames.
 has 'build_number' => (
 	is  => 'ro',
 	isa => subtype(
-		'Int' => where { $_ < 256 and $_ >= 0 },
-		message {'Build number must be between 0 and 255'}
+		'Int' => where { $_ < 127 and $_ >= 0 },
+		message {'Build number must be between 0 and 127'}
 	),
 	required => 1,
 );
 
 
 
-=head3 checkpoint_after
+=head4 default_group_name
 
-C<checkpoint_after> is given an arrayref of task numbers.  After each task
-in the list, Perl::Dist::WiX will stop and save a checkpoint.
-
-[ 0 ] is the default, meaning that you do not wish to save a checkpoint anywhere.
-
-=cut
-
-has 'checkpoint_after' => (
-	is      => 'ro',
-	isa     => ArrayRef [Int],
-	writer  => '_set_checkpoint_after',
-	default => sub { return [0] },
-);
-
-
-
-=head3 checkpoint_before
-
-C<checkpoint_before> is given an integer to know when to load a checkpoint.
-Unlike the other parameters, this is based on the task number that is GOING 
-to execute, rather than the task number that just executed, so that if a 
-checkpoint was saved after (for example) task 5, this parameter should be 6
-in order to load the checkpoint and start on task 6.
-
-0 is the default, meaning that you do not wish to load a checkpoint.
-
-=cut
-
-has 'checkpoint_before' => (
-	is      => 'ro',
-	isa     => Int,
-	writer  => '_set_checkpoint_before',
-	default => 0,
-);
-
-
-
-=head3 checkpoint_dir
-
-The directory where Perl::Dist::WiX will store its checkpoints. 
-
-Defaults to C<temp_dir> . '\checkpoint', and must exist if given.
-
-=cut
-
-has 'checkpoint_dir' => (
-	is      => 'ro',
-	isa     => ExistingDirectory,
-	lazy    => 1,
-	builder => '_build_checkpoint_dir',
-);
-
-sub _build_checkpoint_dir {
-	my $self = shift;
-	my $dir  = $self->temp_dir()->subdir('checkpoint');
-	if ( not -d "$dir" ) {
-		$self->remake_path("$dir");
-	}
-	return $dir;
-}
-
-
-
-=head3 checkpoint_stop
-
-C<checkpoint_stop> stops execution after the specified task if no error has 
-happened before then.
-
-0 is the default, meaning that you do not wish to stop unless an error 
-occurs.
-
-=cut
-
-has 'checkpoint_stop' => (
-	is      => 'ro',
-	isa     => Int,
-	writer  => '_set_checkpoint_stop',
-	default => 0,
-);
-
-
-
-=head3 cpan
-
-The C<cpan> param provides a path to a CPAN or minicpan mirror that
-the installer can use to fetch any needed files during the build
-process.
-
-The param should be a L<URI|URI> object to the root of the CPAN repository,
-including trailing slash.  Strings will be coerced to URI objects.
-
-If you are online and no C<cpan> param is provided, the value will
-default to the L<http://cpan.strawberryperl.com> repository as a
-convenience.
-
-=cut
-
-has 'cpan' => (
-	is      => 'ro',
-	isa     => Uri,
-	lazy    => 1,
-	coerce  => 1,
-	builder => '_build_cpan',
-);
-
-sub _build_cpan {
-	my $self = shift;
-
-	# If we are online and don't have a cpan repository,
-	# use cpan.strawberryperl.com as a default.
-	if ( $self->offline() ) {
-		PDWiX::Parameter->throw(
-			parameter => 'cpan: Required if offline => 1',
-			where     => '->new'
-		);
-	} else {
-		return URI->new('http://cpan.strawberryperl.com/');
-	}
-
-	return;
-} ## end sub _build_cpan
-
-
-
-
-=head3 debug_stderr
-
-The optional C<debug_stderr> parameter is used to set the location of the 
-file that STDERR is redirected to when the perl tarball and perl modules 
-are built.
-
-The default location is in C<debug.err> in the C<output_dir>.
-
-=cut
-
-has 'debug_stderr' => (
-	is      => 'ro',
-	isa     => File,
-	lazy    => 1,
-	coerce  => 1,
-	default => sub {
-		my $self = shift;
-		return $self->output_dir()->file('debug.err');
-	},
-);
-
-
-
-=head3 debug_stdout
-
-The optional C<debug_stdout> parameter is used to set the location of the
-file that STDOUT is redirected to when the perl tarball and perl modules
-are built.
-
-The default location is in C<debug.out> in the C<output_dir>.
-
-=cut
-
-has 'debug_stdout' => (
-	is      => 'ro',
-	isa     => File,
-	lazy    => 1,
-	coerce  => 1,
-	default => sub {
-		my $self = shift;
-		return $self->output_dir()->file('debug.out');
-	},
-);
-
-
-
-=head3 default_group_name
-
-The name for the Start menu group that the distribution's installer 
+The optional name for the Start menu group that the distribution's installer 
 installs its shortcuts to.  Defaults to C<app_name> if none is provided.
 
 =cut
@@ -591,144 +654,7 @@ has 'default_group_name' => (
 
 
 
-=head3 download_dir 
-
-The optional C<download_dir> parameter sets the location of the directory 
-that packages of various types will be downloaded and cached to.
-
-Defaults to C<temp_dir> . '\download', and must exist if given.
-
-=cut
-
-has 'download_dir' => (
-	is      => 'ro',
-	isa     => ExistingDirectory_Spaceless,
-	coerce  => 1,
-	lazy    => 1,
-	builder => '_build_download_dir',
-);
-
-sub _build_download_dir {
-	my $self = shift;
-
-	my $dir = catdir( $self->temp_dir(), 'download' );
-	$self->make_path($dir);
-	return $dir;
-}
-
-
-
-=head3 exe
-
-The optional boolean C<exe> param is unused at the moment.
-
-=cut
-
-has 'exe' => (
-	is      => 'ro',
-	isa     => Bool,
-	writer  => '_set_exe',
-	default => 0,
-);
-
-
-
-=head3 fileid_perl
-
-The C<fileid_perl> parameter helps the relocation find the perl executable.
-
-If the merge module is being built, this is set by install_relocatable().
-
-If the merge module is being used, it needs to be passed in to new().
-
-=cut
-
-has 'fileid_perl' => (
-	is      => 'ro',
-	isa     => Str,
-	writer  => '_set_fileid_perl',
-	default => q{},
-);
-
-
-
-=head3 fileid_relocation_pl
-
-The C<fileid_relocation_pl> parameter helps the relocation find the relocation script.
-
-If the merge module is being built, this is set by install_relocatable().
-
-If the merge module is being used, it needs to be passed in to new().
-
-=cut
-
-has 'fileid_relocation_pl' => (
-	is      => 'ro',
-	isa     => Str,
-	writer  => '_set_fileid_relocation_pl',
-	default => q{},
-);
-
-
-
-=head3 force
-
-The C<force> parameter determines if perl and perl modules are 
-tested upon installation.  If this parameter is true, then no 
-testing is done.
-
-=cut
-
-has 'force' => (
-	is      => 'ro',
-	isa     => Bool,
-	default => 0,
-);
-
-
-
-=head3 forceperl
-
-The C<force> parameter determines if perl and perl modules are 
-tested upon installation.  If this parameter is true, then testing 
-is done only upon installed modules, not upon perl itself.
-
-=cut
-
-has 'forceperl' => (
-	is      => 'ro',
-	isa     => Bool,
-	default => 0,
-);
-
-
-
-=head3 fragment_dir
-
-The subdirectory of C<temp_dir> where the .wxs fragment files for the 
-different portions of the distribution will be created. 
-
-Defaults to C<temp_dir> . '\fragments', and needs to exist if given.
-
-=cut
-
-has 'fragment_dir' => (
-	is      => 'ro',
-	isa     => ExistingDirectory_SaneSlashes,
-	lazy    => 1,
-	coerce  => 1,
-	builder => '_build_fragment_dir',
-);
-
-sub _build_fragment_dir {
-	my $self = shift;
-
-	my $dir = catdir( $self->temp_dir(), 'fragments' );
-	$self->remake_path($dir);
-	return Path::Class::Dir->new($dir);
-}
-
-=head3 gcc_version
+=head4 gcc_version
 
 The optional C<gcc_version> parameter specifies whether perl is being built 
 using gcc 3.4.5 from the mingw32 project (by specifying a value of '3'), or 
@@ -750,222 +676,14 @@ has 'gcc_version' => (
 
 
 
-=head3 git_checkout
-
-The C<git_checkout> parameter is not used unless you specify that 
-C<perl_version> is 'git'. In that event, this parameter should contain 
-a string pointing to the location of a checkout from 
-L<http://perl5.git.perl.org/>.
-
-The default is 'C:\perl-git', if it exists.
-
-=cut
-
-has 'git_checkout' => (
-	is      => 'ro',
-	isa     => Undef | ExistingDirectory_Spaceless,
-	builder => '_build_git_checkout',
-	coerce  => 1,
-);
-
-sub _build_git_checkout {
-	my $dir = q{C:\\perl-git};
-
-	if ( -d $dir ) {
-		return Path::Class::Dir->new($dir);
-	} else {
-		## no critic (ProhibitExplicitReturnUndef)
-		return undef;
-	}
-}
-
-
-
-=head3 git_location
-
-The C<git_location> parameter is not used unless you specify that 
-C<perl_version> is 'git'. In that event, this parameter should contain 
-a string pointing to the location of the git.exe binary, as because
-a perl.exe file is in the same directory, it gets removed from the PATH 
-during the execution of programs from Perl::Dist::WiX.
- 
-The default is 'C:\Program Files\Git\bin\git.exe', if it exists.  Otherwise,
-the default is undef.
-
-People on x64 systems should set this to 
-C<'C:\Program Files (x86)\Git\bin\git.exe'> unless MSysGit is installed 
-in a different location (or a 64-bit version becomes available).
-
-This will be converted to a short name before execution, so this must 
-NOT be on a partition that does not have them, unless the location does
-not have spaces.
-
-=cut
-
-has 'git_location' => (
-	is      => 'ro',
-	isa     => Undef | ExistingFile,
-	builder => '_build_git_location',
-	coerce  => 1,
-);
-
-sub _build_git_location {
-	my $file = 'C:\Program Files\Git\bin\git.exe';
-
-	if ( -f $file ) {
-		return $file;
-	} else {
-		## no critic (ProhibitExplicitReturnUndef)
-		return undef;
-	}
-}
-
-
-
-=head3 image_dir I<(required)>
-
-Perl::Dist::WiX distributions can only be installed to fixed paths
-as of yet.
-
-To facilitate a correctly working CPAN setup, the files that will
-ultimately end up in the installer must also be assembled under the
-same path on the author's machine.
-
-The C<image_dir> method specifies the location of the Perl install,
-both on the author's and end-user's host.
-
-Please note that this directory will be automatically deleted if it
-already exists at object creation time. Trying to build a Perl
-distribution on the SAME distribution can thus have devastating
-results, and an attempt is made to prevent this from happening.
-
-=cut
-
-has 'image_dir' => (
-	is       => 'ro',
-	isa      => ExistingSubdirectory,
-	coerce   => 1,
-	required => 1,
-);
-
-
-
-=head3 license_dir
-
-The subdirectory of image_dir where the licenses for the different 
-portions of the distribution will be copied to. 
-
-Defaults to C<image_dir> . '\licenses', and needs to exist if given.
-
-=cut
-
-has 'license_dir' => (
-	is      => 'ro',
-	isa     => ExistingDirectory_Spaceless,
-	lazy    => 1,
-	coerce  => 1,
-	builder => '_build_license_dir',
-);
-
-sub _build_license_dir {
-	my $self = shift;
-
-	my $dir = $self->image_dir()->subdir('licenses');
-	$self->remake_path("$dir");
-	return $dir;
-}
-
-=head3 modules_dir
-
-The optional C<modules_dir> parameter sets the location of the directory 
-that perl modules will be downloaded and cached to.
-
-Defaults to C<download_dir> . '\modules', and must exist if given.
-
-=cut
-
-has 'modules_dir' => (
-	is      => 'ro',
-	isa     => ExistingDirectory_Spaceless,
-	lazy    => 1,
-	builder => '_build_modules_dir',
-);
-
-sub _build_modules_dir {
-	my $self = shift;
-
-	my $dir = $self->download_dir()->subdir('modules');
-	$self->remake_path("$dir");
-	return $dir;
-}
-
-
-
-
-=head3 msi
-
-The optional boolean C<msi> param is used to indicate that a Windows
-Installer distribution package (otherwise known as an msi file) should 
-be created.
-
-=cut
-
-has 'msi' => (
-	is      => 'ro',
-	isa     => Bool,
-	writer  => '_set_msi',
-	default => sub {
-		my $self = shift;
-		return $self->portable() ? 0 : 1;
-	},
-);
-
-
-
-=head3 msi_banner_side
-
-The optional C<msi_banner_side> parameter specifies the location of 
-a 493x312 .bmp file that is used in the introductory dialog in the MSI 
-file.
-
-WiX will use its default if no file is supplied here.
-
-=cut
-
-has 'msi_banner_side' => (
-	is      => 'ro',
-	isa     => Undef | ExistingFile,
-	coerce  => 1,
-	default => undef,
-);
-
-
-
-=head3 msi_banner_top
-
-The optional C<msi_banner_top> parameter specifies the location of a 
-493x58 .bmp file that is  used on the top of most of the dialogs in 
-the MSI file.
-
-WiX will use its default if no file is supplied here.
-
-=cut
-
-has 'msi_banner_top' => (
-	is      => 'ro',
-	isa     => Undef | ExistingFile,
-	coerce  => 1,
-	default => undef,
-);
-
-
-
-=head3 msi_debug
+=head4 msi_debug
 
 The optional boolean C<msi_debug> parameter is used to indicate that
 a debugging MSI (one that creates a log in $ENV{TEMP} upon execution
 in Windows Installer 4.0 or above) will be created if C<msi> is also 
 true.
+
+This defaults to false.
 
 =cut
 
@@ -977,196 +695,12 @@ has 'msi_debug' => (
 
 
 
-=head3 msi_help_url
-
-The optional C<msi_help_url> parameter specifies the URL that 
-Add/Remove Programs directs you to for support when you click 
-the "Click here for support information." text.
-
-=cut
-
-has 'msi_help_url' => (
-	is  => 'ro',
-	isa => Uri | Undef
-	,                                  # Maybe[ Uri ] will not work. Unions inherit coercions, parameterized types don't.
-	coerce  => 1,
-	default => undef,
-);
-
-
-
-=head3 msi_license_file
-
-The optional C<msi_license_file> parameter specifies the location of an 
-.rtf or .txt file to be displayed at the point where the MSI asks you 
-to accept a license.
-
-Perl::Dist::WiX provides a default one if none is supplied here.
-
-=cut
-
-has 'msi_license_file' => (
-	is      => 'ro',
-	isa     => ExistingFile,
-	lazy    => 1,
-	coerce  => 1,
-	default => sub {
-		my $self = shift;
-		return catfile( $self->wix_dist_dir(), 'License.rtf' );
-	},
-);
-
-
-
-=head3 msi_product_icon
-
-The optional C<msi_product_icon> parameter specifies the icon that is 
-used in Add/Remove Programs for this MSI file.
-
-=cut
-
-has 'msi_product_icon' => (
-	is      => 'ro',
-	isa     => Undef | ExistingFile,
-	coerce  => 1,
-	default => undef,
-);
-
-
-
-=head3 msi_readme_file
-
-The optional C<msi_readme_file> parameter specifies a .txt or .rtf file 
-or a URL (TODO: check) that is linked in Add/Remove Programs in the 
-"Click here for support information." text.
-
-=cut
-
-has 'msi_readme_file' => (
-	is      => 'ro',
-	isa     => Undef | ExistingFile,
-	coerce  => 1,
-	default => undef,
-);
-
-
-
-=head3 msm
-
-The optional boolean C<msm> param is used to indicate that a Windows
-Installer merge module (otherwise known as an msm file) should 
-be created.
-
-=cut
-
-has 'msm' => (
-	is      => 'ro',
-	isa     => Bool,
-	default => 1,
-);
-
-
-=head3 Using a merge module
-
-Subclasses can start building a perl distribution from a merge module, 
-instead of having to build perl from scratch.
-
-This means that the distribution can:
-
-1) update the version of Perl installed using the merge module.
-
-2) be installed on top of another distribution using that merge module (or 
-an earlier version of it).
-
-The next 3 options specify the information required to use a merge module.
-
-=head4 msm_code
-
-The optional C<msm_code> param is used to specify the product code
-for the merge module referred to in C<msm_to_use>.
-
-C<msm_to_use>, C<msm_zip>, and this parameter must either be all unset, 
-or all set. They must be all set if C<initialize_using_msm> is in the 
-tasklist.
-
-=cut
-
-has 'msm_code' => (
-	is      => 'ro',
-	isa     => Maybe [Str],
-	default => undef,
-);
-
-
-
-=head4 msm_to_use
-
-The optional C<msm_to_use> ...
-
-It can be specified as a string, a L<Path::Class::File|Path::Class::File> 
-object, or a L<URI|URI> object. 
-
-=cut
-
-has 'msm_to_use' => (
-	is      => 'ro',
-	isa     => Uri | Undef,
-	default => undef,
-	coerce  => 1,
-);
-
-
-
-=head4 msm_zip
-
-The optional C<msm_zip> refers to where the .zip version of Strawberry Perl 
-that matches the merge module specified in C<msm_to_use> 
-
-It can be a file:// URL if it's already downloaded.
-
-It can be specified as a string, a L<Path::Class::File|Path::Class::File> 
-object, or a L<URI|URI> object. 
-
-=cut
-
-has 'msm_zip' => (
-	is      => 'ro',
-	isa     => Uri | Undef,
-	default => undef,
-	coerce  => 1,
-);
-
-
-
-=head3 offline
-
-The B<Perl::Dist::WiX> module has limited ability to build offline, if all
-packages have already been downloaded and cached.
-
-The connectedness of the Perl::Dist object is checked automatically
-be default using L<LWP::Online|LWP::Online>. It can be overidden 
-by providing the C<offline> parameter to new().
-
-The C<offline> accessor returns true if no connection to "the internet"
-is available and the object will run in offline mode, or false
-otherwise.
-
-=cut
-
-has 'offline' => (
-	is      => 'ro',
-	isa     => Bool,
-	default => sub { return !!LWP::Online::offline() },
-);
-
-
-
-=head3 output_base_filename
+=head4 output_base_filename
 
 The optional C<output_base_filename> parameter specifies the filename 
 (without extensions) that is used for the installer(s) being generated.
 
-The default is based on C<app_id>, C<perl_version>, C<bits>, and the 
+The default is based on C<app_id()>, C<perl_version()>, C<bits()>, and the 
 current date.
 
 =cut
@@ -1191,32 +725,6 @@ sub _build_output_base_filename {
 	  . $self->output_date_string();
 }
 
-
-
-=head3 output_dir
-
-This is the location where the compiled installers and other files 
-necessary to the build are written.
-
-Defaults to C<temp_dir> . '\output', and must exist when given.
-
-=cut
-
-has 'output_dir' => (
-	is      => 'ro',
-	isa     => ExistingDirectory_SaneSlashes,
-	lazy    => 1,
-	coerce  => 1,
-	builder => '_build_output_dir',
-);
-
-sub _build_output_dir {
-	my $self = shift;
-
-	my $dir = $self->temp_dir()->subdir('output');
-	$self->make_path("$dir");
-	return $dir;
-}
 
 
 =head3 perl_config_cf_email
@@ -1279,7 +787,7 @@ sub _build_perl_config_cf_by {
 The optional boolean C<perl_debug> parameter is used to indicate that
 a debugging perl interpreter will be created.
 
-This only applies to 5.11.5 as of yet.
+This only applies to 5.12.0 and later as of yet.
 
 =cut
 
@@ -1365,78 +873,520 @@ has 'sitename' => (
 
 
 
-=head3 tasklist
+=head4 use_dll_relocation
 
-The optional C<tasklist> parameter specifies the list of routines that the 
-object can do.  The routines are object methods of Perl::Dist::WiX (or its 
-subclasses) that will be executed in order, and their task numbers (as used 
-below) will begin with 1 and increment in sequence.
+The optional C<use_dll_relocation> parameter specifies whether to use the
+C++ relocation dll that's being tested for relocating perl, or to call a 
+Perl relocation script from the .msi's.
 
-Task routines should either return 1, or throw an exception. 
+This parameter has no effect is the C<msi> parameter is false, or if the
+C<relocatable> parameter is false.
 
-The default task list for Perl::Dist::WiX is as shown below.  Subclasses 
-should provide their own list and insert their tasks in this list, rather 
-than overriding routines shown above.
-
-
+The default is false, so as to use the Perl relocation script instead.
 
 =cut
 
-has 'tasklist' => (
+has 'use_dll_relocation' => (
 	is      => 'ro',
-	isa     => ArrayRef [Str],
-	builder => '_build_tasklist',
+	isa     => Bool,
+	default => 0,
 );
 
-sub _build_tasklist {
-	return [
 
-		# Final initialization
-		'final_initialization',
 
-		# Install the core C toolchain
-		'install_c_toolchain',
+=head3 Directories, files, and URLs used in building.
 
-		# Install the Perl binary
-		'install_perl',
+=head4 binary_root
 
-		# Install the Perl toolchain
-		'install_perl_toolchain',
+The optional C<binary_root> accessor is the URL (as a string, not including 
+the filename) where the distribution will find its libraries to download.
 
-		# Install additional Perl modules
-		'install_cpan_upgrades',
+Defaults to 'http://strawberryperl.com/package' unless C<offline> is set, 
+in which case it defaults to C<download_dir()>.
 
-		# Apply optional portability support
-		'install_portable',
+=cut
 
-		# Apply optional relocation support
-		'install_relocatable',
+has 'binary_root' => (
+	is      => 'ro',
+	isa     => Uri,
+	coerce  => 1,
+	lazy    => 1,
+	builder => '_build_binary_root',
+);
 
-		# Remove waste and temporary files
-		'remove_waste',
+sub _build_binary_root {
+	my $self = shift;
 
-		# Regenerate file fragments
-		'regenerate_fragments',
+	if ( $self->offline() ) {
+		return URI::file->new( $self->download_dir() );
+	} else {
+		return 'http://strawberryperl.com/package';
+	}
+}
 
-		# Find file ID's for relocation.
-		'find_relocatable_fields',
 
-		# Write out the merge module
-		'write_merge_module',
+=head4 build_dir
 
-		# Install the Win32 extras
-		'install_win32_extras',
+The optional directory where the source files for the distribution will 
+be extracted and built from.
 
-		# Create the distribution list
-		'create_distribution_list',
+Defaults to C<temp_dir> . '\build', and must exist if given.
 
-		# Regenerate file fragments again.
-		'regenerate_fragments',
+=cut
 
-		# Write out the distributions
-		'write',
-	];
-} ## end sub _build_tasklist
+has 'build_dir' => (
+	is      => 'ro',
+	isa     => ExistingDirectory_SaneSlashes,
+	coerce  => 1,
+	lazy    => 1,
+	builder => '_build_build_dir',
+);
+
+sub _build_build_dir {
+	my $self = shift;
+
+	my $dir = catdir( $self->temp_dir(), 'build' );
+	$self->remake_path($dir);
+	return $dir;
+}
+
+
+
+=head4 cpan
+
+The optional C<cpan> param provides a path to a CPAN or minicpan mirror 
+that the installer can use to fetch any needed files during the build
+process.
+
+The param should be a L<URI|URI> object to the root of the CPAN repository,
+including trailing slash.  Strings will be coerced to URI objects.
+
+If you are online, the value will default to the 
+L<http://cpan.strawberryperl.com> repository as a convenience.
+
+If you are offline, it defaults to using a CPAN mirror at C<C:\minicpan\>.
+
+=cut
+
+has 'cpan' => (
+	is      => 'ro',
+	isa     => Uri,
+	lazy    => 1,
+	coerce  => 1,
+	builder => '_build_cpan',
+);
+
+sub _build_cpan {
+	my $self = shift;
+
+	# If we are online and don't have a cpan repository,
+	# use cpan.strawberryperl.com as a default.
+	if ( $self->offline() ) {
+		return URI::file->new('C:\\minicpan\\'),
+	} else {
+		return URI->new('http://cpan.strawberryperl.com/');
+	}
+
+	return;
+} ## end sub _build_cpan
+
+
+
+
+=head4 debug_stderr
+
+The optional C<debug_stderr> parameter is used to set the location of the 
+file that STDERR is redirected to when the perl tarball and perl modules 
+are built.
+
+The default location is in C<debug.err> in the C<output_dir>.
+
+=cut
+
+has 'debug_stderr' => (
+	is      => 'ro',
+	isa     => File,
+	lazy    => 1,
+	coerce  => 1,
+	default => sub {
+		my $self = shift;
+		return $self->output_dir()->file('debug.err');
+	},
+);
+
+
+
+=head4 debug_stdout
+
+The optional C<debug_stdout> parameter is used to set the location of the
+file that STDOUT is redirected to when the perl tarball and perl modules
+are built.
+
+The default location is in C<debug.out> in the C<output_dir>.
+
+=cut
+
+has 'debug_stdout' => (
+	is      => 'ro',
+	isa     => File,
+	lazy    => 1,
+	coerce  => 1,
+	default => sub {
+		my $self = shift;
+		return $self->output_dir()->file('debug.out');
+	},
+);
+
+
+
+=head4 download_dir 
+
+The optional C<download_dir> parameter sets the location of the directory 
+that packages of various types will be downloaded and cached to.
+
+Defaults to C<temp_dir> . '\download', and must exist if given.
+
+=cut
+
+has 'download_dir' => (
+	is      => 'ro',
+	isa     => ExistingDirectory_Spaceless,
+	coerce  => 1,
+	lazy    => 1,
+	builder => '_build_download_dir',
+);
+
+sub _build_download_dir {
+	my $self = shift;
+
+	my $dir = catdir( $self->temp_dir(), 'download' );
+	$self->make_path($dir);
+	return $dir;
+}
+
+
+
+=head4 fragment_dir
+
+The optional subdirectory of C<temp_dir> where the .wxs fragment files 
+for the different portions of the distribution will be created. 
+
+Defaults to C<temp_dir() . '\fragments'>, and needs to exist if given.
+
+=cut
+
+has 'fragment_dir' => (
+	is      => 'ro',
+	isa     => ExistingDirectory_SaneSlashes,
+	lazy    => 1,
+	coerce  => 1,
+	builder => '_build_fragment_dir',
+);
+
+sub _build_fragment_dir {
+	my $self = shift;
+
+	my $dir = catdir( $self->temp_dir(), 'fragments' );
+	$self->remake_path($dir);
+	return Path::Class::Dir->new($dir);
+}
+
+
+
+=head4 git_checkout
+
+The optional C<git_checkout> parameter is not used unless you specify 
+that C<perl_version> is 'git'. In that event, this parameter should 
+contain a string pointing to the location of a checkout from 
+L<http://perl5.git.perl.org/>.
+
+The default is 'C:\perl-git', if it exists.
+
+=cut
+
+has 'git_checkout' => (
+	is      => 'ro',
+	isa     => Undef | ExistingDirectory_Spaceless,
+	builder => '_build_git_checkout',
+	coerce  => 1,
+);
+
+sub _build_git_checkout {
+	my $dir = q{C:\\perl-git};
+
+	if ( -d $dir ) {
+		return Path::Class::Dir->new($dir);
+	} else {
+		## no critic (ProhibitExplicitReturnUndef)
+		return undef;
+	}
+}
+
+
+
+=head4 git_location
+
+The optional C<git_location> parameter is not used unless you specify 
+that C<perl_version> is 'git'. In that event, this parameter should 
+contain a string pointing to the location of the git.exe binary, as because
+a perl.exe file is in the same directory, it gets removed from the PATH 
+during the execution of programs from Perl::Dist::WiX.
+ 
+The default is 'C:\Program Files\Git\bin\git.exe', if it exists.  Otherwise,
+the default is undef.
+
+People on x64 systems should set this to 
+C<'C:\Program Files (x86)\Git\bin\git.exe'> unless MSysGit is installed 
+in a different location (or a 64-bit version becomes available).
+
+This will be converted to a short name before execution, so this must 
+NOT be on a partition that does not have them, unless the location does
+not have spaces.
+
+=cut
+
+has 'git_location' => (
+	is      => 'ro',
+	isa     => Undef | ExistingFile,
+	builder => '_build_git_location',
+	coerce  => 1,
+);
+
+sub _build_git_location {
+	my $file = 'C:\Program Files\Git\bin\git.exe';
+
+	if ( -f $file ) {
+		return $file;
+	} else {
+		## no critic (ProhibitExplicitReturnUndef)
+		return undef;
+	}
+}
+
+
+
+=head4 image_dir
+
+The I<required> C<image_dir> method specifies the location of the Perl install,
+both on the author's and end-user's host.
+
+Please note that this directory will be automatically deleted if it
+already exists at object creation time. Trying to build a Perl
+distribution on the SAME distribution can thus have devastating
+results, and an attempt is made to prevent this from happening.
+
+Perl::Dist::WiX distributions can only be installed to fixed paths
+as of yet, unless C<relocatable> is true.
+
+To facilitate a correctly working CPAN setup, the files that will
+ultimately end up in the installer must also be assembled under the
+same path on the author's machine.
+
+=cut
+
+has 'image_dir' => (
+	is       => 'ro',
+	isa      => ExistingSubdirectory,
+	coerce   => 1,
+	required => 1,
+);
+
+
+
+=head4 license_dir
+
+The optional subdirectory of image_dir where the licenses for the different 
+portions of the distribution will be copied to. 
+
+Defaults to C<image_dir() . '\licenses'>, and needs to exist if given.
+
+=cut
+
+has 'license_dir' => (
+	is      => 'ro',
+	isa     => ExistingDirectory_Spaceless,
+	lazy    => 1,
+	coerce  => 1,
+	builder => '_build_license_dir',
+);
+
+sub _build_license_dir {
+	my $self = shift;
+
+	my $dir = $self->image_dir()->subdir('licenses');
+	$self->remake_path("$dir");
+	return $dir;
+}
+
+=head4 modules_dir
+
+The optional C<modules_dir> parameter sets the location of the directory 
+that perl modules will be downloaded and cached to.
+
+Defaults to C<download_dir . '\modules'>, and must exist if given.
+
+=cut
+
+has 'modules_dir' => (
+	is      => 'ro',
+	isa     => ExistingDirectory_Spaceless,
+	lazy    => 1,
+	builder => '_build_modules_dir',
+);
+
+sub _build_modules_dir {
+	my $self = shift;
+
+	my $dir = $self->download_dir()->subdir('modules');
+	$self->remake_path("$dir");
+	return $dir;
+}
+
+
+
+
+=head4 msi_banner_side
+
+The optional C<msi_banner_side> parameter specifies the location of 
+a 493x312 .bmp file that is used in the introductory dialog in the MSI 
+file.
+
+WiX will use its default if no file is supplied here.
+
+=cut
+
+has 'msi_banner_side' => (
+	is      => 'ro',
+	isa     => Undef | ExistingFile,
+	coerce  => 1,
+	default => undef,
+);
+
+
+
+=head4 msi_banner_top
+
+The optional C<msi_banner_top> parameter specifies the location of a 
+493x58 .bmp file that is  used on the top of most of the dialogs in 
+the MSI file.
+
+WiX will use its default if no file is supplied here.
+
+=cut
+
+has 'msi_banner_top' => (
+	is      => 'ro',
+	isa     => Undef | ExistingFile,
+	coerce  => 1,
+	default => undef,
+);
+
+
+
+=head4 msi_help_url
+
+The optional C<msi_help_url> parameter specifies the URL that 
+Add/Remove Programs directs you to for support when you click 
+the "Click here for support information." text.
+
+This defaults to not setting a URL.
+
+=cut
+
+has 'msi_help_url' => (
+	is  => 'ro',
+	isa => Uri | Undef
+	,                                  # Maybe[ Uri ] will not work. Unions inherit coercions, parameterized types don't.
+	coerce  => 1,
+	default => undef,
+);
+
+
+
+=head4 msi_license_file
+
+The optional C<msi_license_file> parameter specifies the location of an 
+.rtf or .txt file to be displayed at the point where the MSI asks you 
+to accept a license.
+
+Perl::Dist::WiX provides a default filename if none is supplied here.
+
+=cut
+
+has 'msi_license_file' => (
+	is      => 'ro',
+	isa     => ExistingFile,
+	lazy    => 1,
+	coerce  => 1,
+	default => sub {
+		my $self = shift;
+		return catfile( $self->wix_dist_dir(), 'License.rtf' );
+	},
+);
+
+
+
+=head4 msi_product_icon
+
+The optional C<msi_product_icon> parameter specifies the icon that is 
+used in Add/Remove Programs for this MSI file.
+
+The default Windows Installer icon is used if none is specified here.
+
+=cut
+
+has 'msi_product_icon' => (
+	is      => 'ro',
+	isa     => Undef | ExistingFile,
+	coerce  => 1,
+	default => undef,
+);
+
+
+
+=head4 msi_readme_file
+
+The optional C<msi_readme_file> parameter specifies a .txt or .rtf file 
+or a URL (TODO: check) that is linked in Add/Remove Programs in the 
+"Click here for support information." text.
+
+There is no file linked if none is specified here.
+
+=cut
+
+has 'msi_readme_file' => (
+	is      => 'ro',
+	isa     => Undef | ExistingFile,
+	coerce  => 1,
+	default => undef,
+);
+
+
+
+=head4 output_dir
+
+This optional C<output_dir> parameter sets the location where the compiled 
+installers and other files necessary to the build are written.
+
+Defaults to C<temp_dir() . '\output'>, and must exist when given.
+
+=cut
+
+has 'output_dir' => (
+	is      => 'ro',
+	isa     => ExistingDirectory_SaneSlashes,
+	lazy    => 1,
+	coerce  => 1,
+	builder => '_build_output_dir',
+);
+
+sub _build_output_dir {
+	my $self = shift;
+
+	my $dir = $self->temp_dir()->subdir('output');
+	$self->make_path("$dir");
+	return $dir;
+}
 
 
 
@@ -1447,8 +1397,8 @@ it is running the build, including places to cache downloaded files,
 somewhere to expand tarballs to build things, and somewhere to put
 debugging output and the final installer zip and msi files.
 
-The C<temp_dir> param specifies the root path for where these
-temporary directories should be created.
+The optional C<temp_dir> parameter specifies the root path for where 
+these temporary directories should be created.
 
 For convenience it is best to make these short paths with simple
 names, near the root.
@@ -1473,8 +1423,8 @@ has 'temp_dir' => (
 The processes that B<Perl::Dist::WiX> executes sometimes need
 a place to put their temporary files, usually in $ENV{TEMP}.
 
-In order to avoid leaving detritus behind in that directory,
-that environment variable is redirected early, to this directory.
+The optional C<tempenv_dir> parameter specifies the location to
+put those files.
 
 This parameter defaults to a subdirectory of temp_dir() if not specified.
 
@@ -1498,59 +1448,11 @@ sub _build_tempenv_dir {
 
 
 
-=head3 trace
+=head3 Objects used when building.
 
-The C<trace> parameter sets the level of tracing that is output.
+=head4 user_agent
 
-Setting this parameter to 0 prints out only MAJOR stuff and errors.
-
-Setting this parameter to 2 or above will print out the level as the 
-first thing on the line, and when an error occurs and an exception 
-object is printed, a stack trace will be printed as well.
-
-Setting this parameter to 3 or above will print out the filename and 
-line number after the trace level on those lines that require a trace 
-level of 3 or above to print.
-
-Setting this parameter to 5 or above will print out the filename and 
-line number on every line.
-
-Default is 1 if not set.
-
-=cut
-
-has 'trace' => (
-	is      => 'ro',
-	isa     => Int,
-	default => 1,
-);
-
-
-
-=head3 use_dll_relocation
-
-The optional C<use_dll_relocation> parameter specifies whether to use the
-C++ relocation dll that's being tested for relocating perl, or to call a 
-Perl relocation script from the .msi's.
-
-This parameter has no effect is the C<msi> parameter is false, or if the
-C<relocatable> parameter is false.
-
-The default is false, so as to use the Perl relocation script instead.
-
-=cut
-
-has 'use_dll_relocation' => (
-	is      => 'ro',
-	isa     => Bool,
-	default => 0,
-);
-
-
-
-=head3 user_agent
-
-The C<user_agent> parameter stores the L<LWP::UserAgent|LWP::UserAgent> 
+The optional C<user_agent> parameter stores the L<LWP::UserAgent|LWP::UserAgent> 
 object (or an object of a subclass of LWP::UserAgent) that Perl::Dist::WiX 
 uses to download files.
 
@@ -1607,40 +1509,229 @@ sub _build_user_agent {
 
 
 
-=head3 user_agent_cache
+=head4 user_agent_cache
 
-The boolean C<user_agent_cache> parameter specifies whether the default 
-L<user_cache|/user_cache> object is a 
+The optional boolean C<user_agent_cache> parameter specifies whether 
+the default L<user_cache|/user_cache> object is a 
 L<LWP::UserAgent::WithCache|LWP::UserAgent::WithCache> (true) or a
 L<LWP::UserAgent|LWP::UserAgent> object (false).
 
-Defaults to a true value if not specified.
+Defaults to a false value if not specified.
 
 =cut
 
 has 'user_agent_cache' => (
 	is      => 'ro',
 	isa     => Bool,
-	default => 1,
+	default => 0,
 );
 
 
 
-=head3 zip
+=head3 Using a merge module
 
-The optional boolean C<zip> param is used to indicate that a zip
-distribution package should be created.
+Subclasses can start building a perl distribution from a merge module, 
+instead of having to build perl from scratch.
+
+This means that the distribution can:
+
+1) update the version of Perl installed using the merge module.
+
+2) be installed on top of another distribution using that merge module (or 
+an earlier version of it).
+
+The next 5 options specify the information required to use a merge module.
+
+=head4 fileid_perl
+
+The optional C<fileid_perl> parameter helps the relocation find the perl 
+executable.
+
+If the merge module is being built, this is set by the 
+L<install_relocatable|/install_relocatable> method.
+
+If the merge module is being used, it needs to be passed in to new().
 
 =cut
 
-has 'zip' => (
+has 'fileid_perl' => (
 	is      => 'ro',
-	isa     => Bool,
+	isa     => Str,
+	writer  => '_set_fileid_perl',
+	default => q{},
+);
+
+
+
+=head4 fileid_relocation_pl
+
+The optional C<fileid_relocation_pl> parameter helps the relocation find 
+the relocation script.
+
+If the merge module is being built, this is set by the 
+L<install_relocatable|/install_relocatable> method.
+
+If the merge module is being used, it needs to be passed in to new().
+
+=cut
+
+has 'fileid_relocation_pl' => (
+	is      => 'ro',
+	isa     => Str,
+	writer  => '_set_fileid_relocation_pl',
+	default => q{},
+);
+
+
+
+=head4 msm_code
+
+The optional C<msm_code> param is used to specify the product code
+for the merge module referred to in C<msm_to_use>.
+
+C<msm_to_use>, C<msm_zip>, and this parameter must either be all unset, 
+or all set. They must be all set if C<initialize_using_msm> is in the 
+tasklist.
+
+=cut
+
+has 'msm_code' => (
+	is      => 'ro',
+	isa     => Maybe [Str],
+	default => undef,
+);
+
+
+
+=head4 msm_to_use
+
+The optional C<msm_to_use> ...
+
+It can be specified as a string, a L<Path::Class::File|Path::Class::File> 
+object, or a L<URI|URI> object. 
+
+=cut
+
+has 'msm_to_use' => (
+	is      => 'ro',
+	isa     => Uri | Undef,
+	default => undef,
+	coerce  => 1,
+);
+
+
+
+=head4 msm_zip
+
+The optional C<msm_zip> refers to where the .zip version of Strawberry Perl 
+that matches the merge module specified in C<msm_to_use> 
+
+It can be a file:// URL if it's already downloaded.
+
+It can be specified as a string, a L<Path::Class::File|Path::Class::File> 
+object, or a L<URI|URI> object. 
+
+=cut
+
+has 'msm_zip' => (
+	is      => 'ro',
+	isa     => Uri | Undef,
+	default => undef,
+	coerce  => 1,
+);
+
+
+
+=head3 Checkpointing builds.
+
+To speed up debugging of a distribution build, that distribution can be 
+checkpointed, and then restarted from that checkpoint.
+
+These parameters control the checkpointing process.
+
+=head4 checkpoint_after
+
+The optional parameter C<checkpoint_after> is an arrayref of task numbers.  
+After each task in the list, Perl::Dist::WiX will stop and save a 
+checkpoint.
+
+[ 0 ] is the default, meaning that you do not wish to save a checkpoint anywhere.
+
+=cut
+
+has 'checkpoint_after' => (
+	is      => 'ro',
+	isa     => ArrayRef [Int],
+	writer  => '_set_checkpoint_after',
+	default => sub { return [0] },
+);
+
+
+
+=head4 checkpoint_before
+
+The optional parameter C<checkpoint_before> is given an integer to know 
+when to load a checkpoint. Unlike the other parameters that deal with 
+checkpointing, this is based on the task number that is GOING to execute, 
+rather than the task number that just executed, so that if a checkpoint 
+was saved after (for example) task 5, this parameter should be 6
+in order to load the checkpoint and start on task 6.
+
+0 is the default, meaning that you do not wish to load a checkpoint.
+
+=cut
+
+has 'checkpoint_before' => (
+	is      => 'ro',
+	isa     => Int,
+	writer  => '_set_checkpoint_before',
+	default => 0,
+);
+
+
+
+=head4 checkpoint_dir
+
+The optional directory where Perl::Dist::WiX will store its 
+checkpoints. 
+
+Defaults to C<temp_dir> . '\checkpoint', and must exist if given.
+
+=cut
+
+has 'checkpoint_dir' => (
+	is      => 'ro',
+	isa     => ExistingDirectory,
 	lazy    => 1,
-	default => sub {
-		my $self = shift;
-		return $self->portable() ? 1 : 0;
-	},
+	builder => '_build_checkpoint_dir',
+);
+
+sub _build_checkpoint_dir {
+	my $self = shift;
+	my $dir  = $self->temp_dir()->subdir('checkpoint');
+	if ( not -d "$dir" ) {
+		$self->remake_path("$dir");
+	}
+	return $dir;
+}
+
+
+
+=head4 checkpoint_stop
+
+The optional parameter C<checkpoint_stop> stops execution after the 
+specified task if no error has happened before then.
+
+0 is the default, meaning that you do not wish to stop unless an error 
+occurs.
+
+=cut
+
+has 'checkpoint_stop' => (
+	is      => 'ro',
+	isa     => Int,
+	writer  => '_set_checkpoint_stop',
+	default => 0,
 );
 
 
