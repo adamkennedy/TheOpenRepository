@@ -46,7 +46,7 @@ Alien::WiX - Installing and finding Windows Installer XML (WiX)
 
 =head1 VERSION
 
-This document describes Alien::WiX version 1.305419.
+This document describes Alien::WiX version 1.305419001.
 
 Note that the first digit will change if the API changes 
 in an incompatible or major manner, while the other digits change 
