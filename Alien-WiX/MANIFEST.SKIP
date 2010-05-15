@@ -4,6 +4,8 @@
 ,v$
 \B\.svn\b
 \B\.cvsignore$
+\B\.hg\b
+\B\.hgignore$
 
 # Avoid Makemaker generated and utility files.
 \bMakefile$
@@ -52,3 +54,4 @@
 
 # Avoid Windows thumbnail files.
 \bThumbs\.db$
+^MYMETA.yml$
