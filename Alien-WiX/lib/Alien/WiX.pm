@@ -108,7 +108,9 @@ The '.exe' part is not required.
 Returns the location of the WiX extension library specified as its first parameter.
 The 'Extension.dll' part is not required.
 
-=head2 wix_bin_candle, wix_bin_light
+=head2 wix_bin_candle
+
+=head2 wix_bin_light
 
 Returns the location of candle.exe or light.exe.
 
