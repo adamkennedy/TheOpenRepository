@@ -31,13 +31,14 @@ sub import { ## no critic (RequireArgUnpacking)
 }
 
 sub _wix_registry {
-    # 0x200 = KEY_WOW64_32KEY
+
+	# 0x200 = KEY_WOW64_32KEY
 	$_wix_registry ||= Win32::TieRegistry->new(
 		$WIX_REGISTRY_KEY => {
 			Access    => KEY_READ() | 0x200,
 			Delimiter => q{/},
 		} );
-		
+
 	if ( not defined $_wix_registry ) {
 		croak 'Windows Installer XML not installed, cannot continue';
 	}
