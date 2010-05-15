@@ -1,6 +1,7 @@
 use warnings;
 use English '-no_match_vars';
 use Module::Build 0.280802;
+use Config;
 	
 die "OS unsupported" if ('MSWin32' ne $OSNAME);
 
@@ -13,6 +14,9 @@ my $class = Module::Build->subclass(
             my $install_dotnet = $self->notes('install_dotnet');
             my $install_wix = $self->notes('install_wix');
             my $WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5419.0/Wix3.msi';
+			if ($Config{archname} =~ /MSWin32-x64/) {
+				$WIX_URL = 'http://wix.sourceforge.net/releases/3.0.5419.0/Wix3_x64.msi';
+			}
             my $NET20_URL = 'http://download.microsoft.com/download/0/8/c/08c19fa4-4c4f-4ffb-9d6c-150906578c9e/NetFx20SP1_x86.exe';
 			require Win32;
             my $NET20_FILE = Win32::GetShortPathName($ENV{TEMP}) . '\NetFx20SP1_x86.exe';
@@ -24,7 +28,7 @@ my $class = Module::Build->subclass(
 				# Need to get the file manually - it's not an MSI.
 				require LWP::UserAgent;
 				my $ua = LWP::UserAgent->new;
-				$ua->agent('Alien-WiX/0.305419 ');
+				$ua->agent('Alien-WiX/1.305419 ');
 				my $r = $ua->mirror( $NET20_URL, $NET20_FILE );
 				if ( $r->is_error ) {
 					print "Error getting $NET20_URL: " . $r->as_string . "\n";
