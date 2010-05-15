@@ -172,3 +172,21 @@ RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
 FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
 SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGES.
+
+=begin Pod::Coverage
+
+wix_version
+
+wix_version_number
+
+wix_binary
+
+wix_library
+
+wix_bin_candle
+
+wix_bin_light
+
+wix_lib_wixui 
+
+=end Pod::Coverage

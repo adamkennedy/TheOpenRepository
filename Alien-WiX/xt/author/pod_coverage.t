@@ -13,6 +13,7 @@ BEGIN {
 
 my @MODULES = (
 	'Pod::Coverage 0.20',
+	'Pod::Coverage::TrustPod 0.092830',
 	'Test::Pod::Coverage 1.08',
 );
 
@@ -24,4 +25,4 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-all_pod_coverage_ok();
+all_pod_coverage_ok( { coverage_class => 'Pod::Coverage::TrustPod' } );
