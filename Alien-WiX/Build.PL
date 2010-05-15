@@ -127,7 +127,7 @@ my $builder = $class->new(
                         => '0.280802',
         'LWP::UserAgent'
                         => '5.819',
-        'Test::More'    => '0',
+        'Test::More'    => '0.88',
     },
     requires            => {
         'perl'          => '5.008',
