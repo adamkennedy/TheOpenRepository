@@ -98,9 +98,17 @@
     </InstallExecuteSequence>
 
 [% IF dist.msi_debug %]
+  [% IF 64 == dist.bits %]
+    <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\debug_dll\x64\ClearFolderCA.dll' />
+  [% ELSE %]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\debug_dll\ClearFolderCA.dll' />
+  [% END %]
 [% ELSE %]
+  [% IF 64 == dist.bits %]
+    <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\x64\ClearFolderCA.dll' />
+  [% ELSE %]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\ClearFolderCA.dll' />
+  [% END %]
 [% END %]
     <UI>
    	  <ProgressText Action="CA_ClearSiteFolder">Preparing the site folder for cleaning... (please wait a while)</ProgressText>
