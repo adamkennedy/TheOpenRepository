@@ -2071,16 +2071,15 @@ has '_output_file' => (
 	default  => sub { return [] },
 	init_arg => undef,
 	handles  => {
-		add_output_file  => 'push',
-		add_output_files => 'push',
+		_add_output_files => 'push',
 		get_output_files => 'elements',
 	},
 );
 
 # TODO: Document add_output_files and get_output_files.
 
-# This throws a Growl notification up when files are created.
-after /\Aadd_output_file/ => sub {
+# This throws a Growl notification up when files are created. 
+sub add_output_file {
 	my $self = shift;
 	my $growl;
 	
@@ -2094,29 +2093,32 @@ after /\Aadd_output_file/ => sub {
 			Enabled     => 'True',
 			Sticky      => 'False',
 			Priority    => -2,  # very low priority.
-#			Icon        => ''
+			Icon        => catfile($self->wix_dist_dir(), 'growl-icon.png'),
 		}]);
 	
 		foreach my $file (@_) {
-			if ($file =~ m{[.] msi|zip|msm\Z}msx) {
+			if ($file =~ m{[.] (?:msi|zip|msm)\Z}msx) {
 				# Actually do the notification.
-				$growl->notify({
+				$growl->notify(
 					Event               => 'OUTPUT_FILE', # name of notification
 					Title               => 'Output file created',
 					Message             => "$file has been created",
-#					Icon                => 'http://www.example.com/myface.png',
 					ID                  => $self->_notification_index(),
-				});
+				);
 				# Increment the ID for next time.
 				$self->_increment_notify_index();
 			}
 		}
 	} 
 
-	return 1;
+	return $self->_add_output_files(@_);
 };
 
-
+sub add_output_files {
+	goto &add_output_file;
+	
+	return 1;
+}
 
 has '_perl_version_corelist' => (
 	is       => 'ro',
