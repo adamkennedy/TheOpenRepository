@@ -187,8 +187,13 @@ below.  They may often be set by subclasses.
 
 All attributes below can also be called as accessors on the object created.
 
+There are six types of parameters that can be passed to new().
 
 =head3 Types of distributions to build
+
+This specifies the "highest" level of change in how the perl distribution is 
+made - whether a .zip is requested, a .msi, a "thumb-drive portable" .zip, or
+a relocatable .msi or .zip.
 
 =head4 msi
 
@@ -196,7 +201,7 @@ The optional boolean C<msi> param is used to indicate that a Windows
 Installer distribution package (otherwise known as an msi file) should 
 be created.
 
-It defaults to true, unless C<portable()> is true.
+It defaults to true, unless L<portable()|/portable> is true.
 
 =cut
 
@@ -218,7 +223,7 @@ The optional boolean C<msm> param is used to indicate that a Windows
 Installer merge module (otherwise known as an msm file) should 
 be created.
 
-This defaults to true, unless C<portable()> is true. 
+This defaults to true, unless L<portable()|/portable> is true. 
 
 =cut
 
@@ -254,6 +259,44 @@ has 'zip' => (
 
 
 
+=head4 portable
+
+The optional C<portable> parameter is used to determine whether a portable
+'Perl-on-a-stick' distribution - one that is intended for distribution on
+a portable storage device - is built with this object.
+
+If set to a true value, L<zip()|/zip> must also be set to a true value, and 
+L<msi()|/msi> will be set to a false value.
+
+This defaults to a false value. 
+
+=cut
+
+has 'portable' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
+=head4 relocatable
+
+The optional C<relocatable> parameter is used to determine whether the 
+distribution is meant to be relocatable.
+
+This defaults to a false value. 
+
+=cut
+
+has 'relocatable' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
 =head4 exe
 
 The optional boolean C<exe> param is unused at the moment.
@@ -270,6 +313,9 @@ has 'exe' => (
 
 
 =head3 Parameters that affect the build process.
+
+These parameters affect the build process - whether modules are tested 
+or not, how much information is given, what routines to run, etcetera.
 
 =head4 force
 
@@ -353,7 +399,7 @@ has 'trace' => (
 
 
 
-=head3 tasklist
+=head4 tasklist
 
 The optional C<tasklist> parameter specifies the list of routines that the 
 object can do.  The routines are object methods of Perl::Dist::WiX (or its 
@@ -475,9 +521,90 @@ sub _build_tasklist {
 
 
 
+=head4 user_agent
+
+The optional C<user_agent> parameter stores the L<LWP::UserAgent|LWP::UserAgent> 
+object (or an object of a subclass of LWP::UserAgent) that Perl::Dist::WiX 
+uses to download files.
+
+The default depends on the L<user_agent_cache|/user_agent_cache>
+parameter.
+
+=cut
+
+has 'user_agent' => (
+	is  => 'ro',
+	isa => class_type(
+		'LWP::UserAgent',
+		{   message => sub {'Invalid user_agent'}
+		}
+	),
+	lazy    => 1,
+	writer  => '_set_user_agent',
+	builder => '_build_user_agent',
+	clearer => '_clear_user_agent',
+);
+
+sub _build_user_agent {
+	my $self = shift;
+	my $ua;
+
+	if ( $self->user_agent_cache() ) {
+	  SCOPE: {
+
+			# Temporarily set $ENV{HOME} to the File::HomeDir
+			# version while loading the module.
+			local $ENV{HOME} ||= File::HomeDir->my_home;
+			require LWP::UserAgent::WithCache;
+		}
+		$ua = LWP::UserAgent::WithCache->new( {
+				agent => ref($self) . q{/} . ( $VERSION || '0.00' ),
+				namespace          => 'perl-dist',
+				cache_root         => $self->_user_agent_directory(),
+				cache_depth        => 0,
+				default_expires_in => 86_400 * 30,
+				show_progress      => 1,
+			} );
+	} else {
+		$ua = LWP::UserAgent->new(
+			agent => ref($self) . q{/} . ( $VERSION || '0.00' ),
+			timeout       => 30,
+			show_progress => 1,
+		);
+	}
+
+	$ENV{HTTP_PROXY} and $ua->proxy( http => $ENV{HTTP_PROXY} );
+
+	return $ua;
+} ## end sub _build_user_agent
+
+
+
+=head4 user_agent_cache
+
+The optional boolean C<user_agent_cache> parameter specifies whether 
+the default L<user_cache|/user_cache> object is a 
+L<LWP::UserAgent::WithCache|LWP::UserAgent::WithCache> (true) or a
+L<LWP::UserAgent|LWP::UserAgent> object (false).
+
+Defaults to a false value if not specified.
+
+=cut
+
+has 'user_agent_cache' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
 =head3 Parameters that describe the distribution to build.
 
-Some of these parameters are required to build Perl.
+These parameters specify the names/e-mails/etcetera used in making the distribution.
+
+Some of these parameters are given no defaults by C<Perl::Dist::WiX>, so either
+a subclass has to set these parameters, or they have to be specified.
 
 =head4 app_id
 
@@ -660,8 +787,9 @@ The optional C<gcc_version> parameter specifies whether perl is being built
 using gcc 3.4.5 from the mingw32 project (by specifying a value of '3'), or 
 using gcc 4.4.3 from the mingw64 project (by specifying a value of '4'). 
 
-'3' (gcc 3.4.5) is the default, and is incompatible with bits => 64.
-'4' is compatible with both 32 and 64-bit.
+'3' (gcc 3.4.5) is the default, and is incompatible with C<< L<bits|/bits> 
+=> 64 >>. '4' is compatible with both 32 and 64-bit, but is incompatible with
+C<< L<perl_version|/perl_version> => 589, 5100, or 5101 >>.
 
 =cut
 
@@ -727,7 +855,7 @@ sub _build_output_base_filename {
 
 
 
-=head3 perl_config_cf_email
+=head4 perl_config_cf_email
 
 The optional C<perl_config_cf_email> parameter specifies the e-mail
 of the person building the perl distribution defined by this object.
@@ -755,7 +883,7 @@ has 'perl_config_cf_email' => (
 
 
 
-=head3 perl_config_cf_by
+=head4 perl_config_cf_by
 
 The optional C<perl_config_cf_email> parameter specifies the username part
 of the e-mail address of the person building the perl distribution defined 
@@ -782,7 +910,7 @@ sub _build_perl_config_cf_by {
 
 
 
-=head3 perl_debug
+=head4 perl_debug
 
 The optional boolean C<perl_debug> parameter is used to indicate that
 a debugging perl interpreter will be created.
@@ -799,7 +927,7 @@ has 'perl_debug' => (
 
 
 
-=head3 perl_version
+=head4 perl_version
 
 The C<perl_version> parameter specifies what version of perl is downloaded 
 and built.  Legal values for this parameter are 'git', '589', '5100', '5101', 
@@ -818,45 +946,7 @@ has 'perl_version' => (
 
 
 
-=head3 portable
-
-The optional C<portable> parameter is used to determine whether a portable
-'Perl-on-a-stick' distribution - one that is intended for distribution on
-a portable storage device - is built with this object.
-
-If set to a true value, C<zip> must also be set to a true value, and C<msi> 
-will be set to a false value.
-
-This defaults to a false value. 
-
-=cut
-
-has 'portable' => (
-	is      => 'ro',
-	isa     => Bool,
-	default => 0,
-);
-
-
-
-=head3 relocatable
-
-The optional C<relocatable> parameter is used to determine whether the 
-distribution is meant to be relocatable.
-
-This defaults to a false value. 
-
-=cut
-
-has 'relocatable' => (
-	is      => 'ro',
-	isa     => Bool,
-	default => 0,
-);
-
-
-
-=head3 sitename
+=head4 sitename
 
 The optional C<sitename> parameter is used to generate the GUID's necessary
 during the process of building the distribution.
@@ -895,6 +985,13 @@ has 'use_dll_relocation' => (
 
 
 =head3 Directories, files, and URLs used in building.
+
+These parameters specify which directories and files are used when building 
+a distribution.
+
+At a minimum, L<image_dir|/image_dir> is required, which specifies where Perl
+will be installed (by default, in the case where L<relocatable|/relocatable>
+is true.) All other options have defaults, most of the time.
 
 =head4 binary_root
 
@@ -999,7 +1096,9 @@ The optional C<debug_stderr> parameter is used to set the location of the
 file that STDERR is redirected to when the perl tarball and perl modules 
 are built.
 
-The default location is in C<debug.err> in the C<output_dir>.
+The default location is in C<debug.err> in the 
+C<< L<output_dir|/output_dir> >>.
+
 
 =cut
 
@@ -1022,7 +1121,8 @@ The optional C<debug_stdout> parameter is used to set the location of the
 file that STDOUT is redirected to when the perl tarball and perl modules
 are built.
 
-The default location is in C<debug.out> in the C<output_dir>.
+The default location is in C<debug.out> in the 
+C<< L<output_dir|/output_dir> >>.
 
 =cut
 
@@ -1044,7 +1144,7 @@ has 'debug_stdout' => (
 The optional C<download_dir> parameter sets the location of the directory 
 that packages of various types will be downloaded and cached to.
 
-Defaults to C<temp_dir> . '\download', and must exist if given.
+Defaults to C<temp_dir . '\download'>, and must exist if given.
 
 =cut
 
@@ -1068,10 +1168,10 @@ sub _build_download_dir {
 
 =head4 fragment_dir
 
-The optional subdirectory of C<temp_dir> where the .wxs fragment files 
-for the different portions of the distribution will be created. 
+The optional subdirectory of L<temp_dir|/temp_dir> where the .wxs fragment 
+files for the different portions of the distribution will be created. 
 
-Defaults to C<temp_dir() . '\fragments'>, and needs to exist if given.
+Defaults to C<temp_dir . '\fragments'>, and needs to exist if given.
 
 =cut
 
@@ -1100,7 +1200,7 @@ that C<perl_version> is 'git'. In that event, this parameter should
 contain a string pointing to the location of a checkout from 
 L<http://perl5.git.perl.org/>.
 
-The default is 'C:\perl-git', if it exists.
+The default is C<'C:\perl-git'>, if it exists.
 
 =cut
 
@@ -1176,11 +1276,11 @@ distribution on the SAME distribution can thus have devastating
 results, and an attempt is made to prevent this from happening.
 
 Perl::Dist::WiX distributions can only be installed to fixed paths
-as of yet, unless C<relocatable> is true.
+as of yet, unless C<relocatable()|/relocatable> is true.
 
 To facilitate a correctly working CPAN setup, the files that will
 ultimately end up in the installer must also be assembled under the
-same path on the author's machine.
+same (default, in the C<relocatable> case) path on the author's machine.
 
 =cut
 
@@ -1195,10 +1295,10 @@ has 'image_dir' => (
 
 =head4 license_dir
 
-The optional subdirectory of image_dir where the licenses for the different 
-portions of the distribution will be copied to. 
+The optional subdirectory of L<image_dir|/image_dir> where the licenses for 
+the different portions of the distribution will be copied to. 
 
-Defaults to C<image_dir() . '\licenses'>, and needs to exist if given.
+Defaults to C<image_dir . '\licenses'>, and needs to exist if given.
 
 =cut
 
@@ -1390,7 +1490,7 @@ sub _build_output_dir {
 
 
 
-=head3 temp_dir
+=head4 temp_dir
 
 B<Perl::Dist::WiX> needs a series of temporary directories while
 it is running the build, including places to cache downloaded files,
@@ -1418,7 +1518,7 @@ has 'temp_dir' => (
 
 
 
-=head3 tempenv_dir
+=head4 tempenv_dir
 
 The processes that B<Perl::Dist::WiX> executes sometimes need
 a place to put their temporary files, usually in $ENV{TEMP}.
@@ -1445,86 +1545,6 @@ sub _build_tempenv_dir {
 	$self->remake_path("$dir");
 	return $dir;
 }
-
-
-
-=head3 Objects used when building.
-
-=head4 user_agent
-
-The optional C<user_agent> parameter stores the L<LWP::UserAgent|LWP::UserAgent> 
-object (or an object of a subclass of LWP::UserAgent) that Perl::Dist::WiX 
-uses to download files.
-
-The default depends on the L<user_agent_cache|/user_agent_cache>
-parameter.
-
-=cut
-
-has 'user_agent' => (
-	is  => 'ro',
-	isa => class_type(
-		'LWP::UserAgent',
-		{   message => sub {'Invalid user_agent'}
-		}
-	),
-	lazy    => 1,
-	writer  => '_set_user_agent',
-	builder => '_build_user_agent',
-	clearer => '_clear_user_agent',
-);
-
-sub _build_user_agent {
-	my $self = shift;
-	my $ua;
-
-	if ( $self->user_agent_cache() ) {
-	  SCOPE: {
-
-			# Temporarily set $ENV{HOME} to the File::HomeDir
-			# version while loading the module.
-			local $ENV{HOME} ||= File::HomeDir->my_home;
-			require LWP::UserAgent::WithCache;
-		}
-		$ua = LWP::UserAgent::WithCache->new( {
-				agent => ref($self) . q{/} . ( $VERSION || '0.00' ),
-				namespace          => 'perl-dist',
-				cache_root         => $self->_user_agent_directory(),
-				cache_depth        => 0,
-				default_expires_in => 86_400 * 30,
-				show_progress      => 1,
-			} );
-	} else {
-		$ua = LWP::UserAgent->new(
-			agent => ref($self) . q{/} . ( $VERSION || '0.00' ),
-			timeout       => 30,
-			show_progress => 1,
-		);
-	}
-
-	$ENV{HTTP_PROXY} and $ua->proxy( http => $ENV{HTTP_PROXY} );
-
-	return $ua;
-} ## end sub _build_user_agent
-
-
-
-=head4 user_agent_cache
-
-The optional boolean C<user_agent_cache> parameter specifies whether 
-the default L<user_cache|/user_cache> object is a 
-L<LWP::UserAgent::WithCache|LWP::UserAgent::WithCache> (true) or a
-L<LWP::UserAgent|LWP::UserAgent> object (false).
-
-Defaults to a false value if not specified.
-
-=cut
-
-has 'user_agent_cache' => (
-	is      => 'ro',
-	isa     => Bool,
-	default => 0,
-);
 
 
 
@@ -2991,7 +3011,7 @@ sub get_component_array {
 
 
 
-=head3 mk_debug {
+=head3 mk_debug
 
 Used in the makefile.mk template for 5.11.5+ to activate building a debugging perl. 
 
@@ -3005,9 +3025,9 @@ sub mk_debug {
 
 
 
-=head3 mk_gcc4 {
+=head3 mk_gcc4
 
-Used in the makefile.mk template for 5.11.5+ to activate building with gcc4. 
+Used in the makefile.mk template for 5.12.0+ to activate building with gcc4. 
 
 =cut
 
@@ -3019,9 +3039,9 @@ sub mk_gcc4 {
 
 
 
-=head3 mk_bits {
+=head3 mk_bits
 
-Used in the makefile.mk template for 5.11.5+ to activate building 64 or 32-bit 
+Used in the makefile.mk template for 5.12.0+ to activate building 64 or 32-bit 
 versions. (Actually, this turns off the fact that we're building a 64-bit 
 version of perl when we want a 32-bit version on 64-bit processors)
 
@@ -3048,9 +3068,9 @@ sub mk_bits {
 
 
 
-=head3 mk_gcc4_dll {
+=head3 mk_gcc4_dll
 
-Used in the makefile.mk template for 5.11.5+ to activate using the correct 
+Used in the makefile.mk template for 5.12.0+ to activate using the correct 
 helper dll for our gcc4 packs. 
 
 =cut
@@ -3063,9 +3083,9 @@ sub mk_gcc4_dll {
 
 
 
-=head3 mk_extralibs {
+=head3 mk_extralibs
 
-Used in the makefile.mk template for 5.11.5+ to activate using the correct 
+Used in the makefile.mk template for 5.12.0+ to activate using the correct 
 extra library directory for our gcc4 packs. 
 
 =cut
@@ -3982,7 +4002,14 @@ sub write_merge_module {
 #####################################################################
 # Package Generation
 
-=head2 _write_zip
+=head2 Package generation
+
+These are the (private) routines that generate different types of packages 
+and are called by the L<write()|/write> method when required.
+
+=head3 _write_zip
+
+	$self->_write_zip();
 
 The C<_write_zip> method is used to generate a standalone .zip file
 containing the entire distribution, for situations in which a full
@@ -4020,8 +4047,7 @@ sub _write_zip {
 		$member->desiredCompressionLevel(9);
 		if ( $member->fileName =~ m{[.] AAA\z}smx ) {
 			$zip->removeMember($member);
-		}
-	}
+		}	}
 
 	# Write out the file name
 	$zip->writeToFileNamed($file);
@@ -4031,145 +4057,9 @@ sub _write_zip {
 
 
 
-=head2 add_icon
+=head3 _write_msi
 
-TODO: Document
-
-=cut
-
-sub add_icon {
-	my $self   = shift;
-	my %params = @_;
-	my ( $vol, $dir, $file, $dir_id );
-
-	# Get the Id for directory object that stores the filename passed in.
-	( $vol, $dir, $file ) = splitpath( $params{filename} );
-	$self->trace_line( 4, "Directory being searched for: $vol $dir\n" );
-	$dir_id = $self->get_directory_tree()->search_dir(
-		path_to_find => catdir( $vol, $dir ),
-		exact        => 1,
-		descend      => 1,
-	)->get_id();
-
-	# Get a legal id.
-	my $id = $params{name};
-	$id =~ s{\s}{_}msxg;               # Convert whitespace to underlines.
-
-	# Add the start menu icon.
-	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
-		name        => $params{name},
-		description => $params{name},
-		target      => "[D_$dir_id]$file",
-		id          => $id,
-		working_dir => $dir_id,
-		icon_id     => $params{icon_id},
-	);
-
-	return $self;
-} ## end sub add_icon
-
-
-
-=head2 add_path
-
-	$self->add_path('perl', 'bin');
-
-Adds a path entry that will be installed when the installer is executed.
-
-=cut
-
-sub add_path {
-	my $self = shift;
-	my @path = @_;
-	my $dir  = $self->dir(@path);
-	unless ( -d $dir ) {
-		PDWiX::Directory->throw(
-			dir     => $dir,
-			message => 'PATH directory does not exist'
-		);
-	}
-	$self->_add_env_path_unchecked( [@path] );
-	return 1;
-} ## end sub add_path
-
-
-
-=head2 get_path_string
-
-	my $ENV{PATH} = "$ENV{PATH};" . $dist->get_path_string();
-
-Returns a string containing all the path entries that have been added,
-so that later portions of the installer generation can use the
-programs that have already been put in place.
-
-=cut
-
-sub get_path_string {
-	my $self = shift;
-	return join q{;},
-	  map { $self->dir( @{$_} ) } $self->_get_env_path_unchecked();
-}
-
-
-
-=head2 _compile_wxs($filename, $wixobj)
-
-Compiles a .wxs file (specified by $filename) into a .wixobj file 
-(specified by $wixobj.)  Both parameters are required.
-
-	$self = $self->_compile_wxs("Perl.wxs", "Perl.wixobj");
-
-=cut
-
-sub _compile_wxs {
-	my ( $self, $filename, $wixobj ) = @_;
-	my @files = @_;
-
-	# Check parameters.
-	unless ( _STRING($filename) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'filename',
-			where     => '::Installer->compile_wxs'
-		);
-	}
-	unless ( _STRING($wixobj) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'wixobj',
-			where     => '::Installer->compile_wxs'
-		);
-	}
-	unless ( -r $filename ) {
-		PDWiX::File->throw(
-			file    => $filename,
-			message => 'File does not exist or is not readable'
-		);
-	}
-
-	# Compile the .wxs file
-	my $cmd = [
-		wix_bin_candle(),
-		'-out', $wixobj,
-		$filename,
-
-	];
-	my $out;
-	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
-
-	if ( ( not -f $wixobj ) and ( $out =~ /error|warning/msx ) ) {
-		$self->trace_line( 0, $out );
-		PDWiX->throw( "Failed to find $wixobj (probably "
-			  . "compilation error in $filename)" );
-	}
-
-
-	return $rv;
-} ## end sub _compile_wxs
-
-
-
-=head2 _write_msi
-
-  $self->_write_msi;
+  $self->_write_msi();
 
 The C<_write_msi> method is used to generate the compiled installer
 database. It creates the entire installation file tree, and then
@@ -4325,11 +4215,9 @@ sub _write_msi {
 
 
 
-=pod
+=head3 _write_msm
 
-=head2 _write_msm
-
-  $self->_write_msm;
+  $self->_write_msm();
 
 The C<_write_msm> method is used to generate the compiled merge module
 used in the installer. It creates the entire installation file tree, and then
@@ -4491,9 +4379,149 @@ sub _write_msm {
 
 
 
-=pod
+=head3 _compile_wxs
 
-=head2 add_env($name, $value I<[, $append]>)
+Compiles a .wxs file (specified by $filename) into a .wixobj file 
+(specified by $wixobj.)  Both parameters are required.
+
+This method is used by the L<_write_msi()|/_write_msi> and 
+L<_write_msm()|/_write_msm> methods.
+
+	$self->_compile_wxs("Perl.wxs", "Perl.wixobj");
+
+=cut
+
+sub _compile_wxs {
+	my ( $self, $filename, $wixobj ) = @_;
+	my @files = @_;
+
+	# Check parameters.
+	unless ( _STRING($filename) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'filename',
+			where     => '::Installer->compile_wxs'
+		);
+	}
+	unless ( _STRING($wixobj) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'wixobj',
+			where     => '::Installer->compile_wxs'
+		);
+	}
+	unless ( -r $filename ) {
+		PDWiX::File->throw(
+			file    => $filename,
+			message => 'File does not exist or is not readable'
+		);
+	}
+
+	# Compile the .wxs file
+	my $cmd = [
+		wix_bin_candle(),
+		'-out', $wixobj,
+		$filename,
+
+	];
+	my $out;
+	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
+
+	if ( ( not -f $wixobj ) and ( $out =~ /error|warning/msx ) ) {
+		$self->trace_line( 0, $out );
+		PDWiX->throw( "Failed to find $wixobj (probably "
+			  . "compilation error in $filename)" );
+	}
+
+
+	return $rv;
+} ## end sub _compile_wxs
+
+
+
+=head2 add_icon
+
+TODO: Document
+
+=cut
+
+sub add_icon {
+	my $self   = shift;
+	my %params = @_;
+	my ( $vol, $dir, $file, $dir_id );
+
+	# Get the Id for directory object that stores the filename passed in.
+	( $vol, $dir, $file ) = splitpath( $params{filename} );
+	$self->trace_line( 4, "Directory being searched for: $vol $dir\n" );
+	$dir_id = $self->get_directory_tree()->search_dir(
+		path_to_find => catdir( $vol, $dir ),
+		exact        => 1,
+		descend      => 1,
+	)->get_id();
+
+	# Get a legal id.
+	my $id = $params{name};
+	$id =~ s{\s}{_}msxg;               # Convert whitespace to underlines.
+
+	# Add the start menu icon.
+	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
+		name        => $params{name},
+		description => $params{name},
+		target      => "[D_$dir_id]$file",
+		id          => $id,
+		working_dir => $dir_id,
+		icon_id     => $params{icon_id},
+	);
+
+	return $self;
+} ## end sub add_icon
+
+
+
+=head2 add_path
+
+	$self->add_path('perl', 'bin');
+
+Adds a path entry that will be installed when the installer is executed.
+
+=cut
+
+sub add_path {
+	my $self = shift;
+	my @path = @_;
+	my $dir  = $self->dir(@path);
+	unless ( -d $dir ) {
+		PDWiX::Directory->throw(
+			dir     => $dir,
+			message => 'PATH directory does not exist'
+		);
+	}
+	$self->_add_env_path_unchecked( [@path] );
+	return 1;
+} ## end sub add_path
+
+
+
+=head2 get_path_string
+
+	my $ENV{PATH} = "$ENV{PATH};" . $dist->get_path_string();
+
+Returns a string containing all the path entries that have been added,
+so that later portions of the installer generation can use the
+programs that have already been put in place.
+
+=cut
+
+sub get_path_string {
+	my $self = shift;
+	return join q{;},
+	  map { $self->dir( @{$_} ) } $self->_get_env_path_unchecked();
+}
+
+
+
+=head2 add_env
+
+	$self->add_env('PATH', $self->image_dir()->subdir(qw(perl bin)), 1);
+	$self->add_env('TERM', 'dumb');
 
 Adds the contents of $value to the environment variable $name 
 (or appends to it, if $append is true) upon installation (by 
@@ -4540,7 +4568,12 @@ sub add_env {
 
 
 
-=head2 add_file({source => $filename, fragment => $fragment_name})
+=head2 add_file
+
+	$dist->add_file({
+		source => $filename, 
+		fragment => $fragment_name
+	});
 
 Adds the file C<$filename> to the fragment named by C<$fragment_name>.
 
