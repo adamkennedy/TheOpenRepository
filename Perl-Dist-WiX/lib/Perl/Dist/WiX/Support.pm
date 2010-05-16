@@ -812,7 +812,7 @@ sub make_relocation_file {
 	my $batch_contents;
 	my $match_string = q(eval [ ] 'exec [ ] ) . quotemeta $self->image_dir()->file('perl\bin\perl.exe')->stringify();	
 	foreach my $batch_file (sort { $a cmp $b } keys %batch_files) {
-		print "Checking to see if $batch_file needs relocated.\n";
+		$self->trace_line(5, "Checking to see if $batch_file needs relocated.\n");
 		my $batch_contents = read_file($self->image_dir()->file($batch_file)->stringify());
 		if ($batch_contents =~ m/$match_string/msgx) {
 			print { $file_out_handle } "$batch_file:backslash\n";
