@@ -1918,6 +1918,7 @@ has '_icons' => (
 	handles  => { 'icons_string' => 'as_string', },
 );
 
+# TODO: Document icons_string
 
 
 has '_toolchain' => (
@@ -1949,6 +1950,7 @@ has '_directories' => (
 	init_arg => undef,
 );
 
+# TODO: Document get_directory_tree.
 
 
 has '_distributions' => (
@@ -2018,6 +2020,7 @@ sub _build_filters {
 #>>>
 } ## end sub _build_filters
 
+# TODO: Document get_merge_module_object and merge_module_exists.
 
 
 has '_merge_modules' => (
@@ -2060,6 +2063,7 @@ has '_output_file' => (
 	},
 );
 
+# TODO: Document add_output_files and get_output_files.
 
 
 has '_perl_version_corelist' => (
@@ -2197,36 +2201,1323 @@ has '_portable_dist' => (
 
 
 
+#####################################################################
+# Top Level Process Methods
+
+sub prepare { return 1 }
+
+=pod
+
+=head2 run
+
+The C<run> method is the main method for the class.
+
+It does a complete build of a product, spitting out an installer, by
+running each method named in the tasklist in order.
+
+Returns true, or throws an exception on error.
+
+This method may take an hour or more to run.
+
+=cut
+
+sub run {
+	my $self  = shift;
+	my $start = time;
+
+	unless ( $self->msi or $self->zip ) {
+		$self->trace_line('No msi or zip target, nothing to do');
+		return 1;
+	}
+
+	# Don't buffer
+	STDOUT->autoflush(1);
+	STDERR->autoflush(1);
+
+	my @task_list   = @{ $self->tasklist() };
+	my $task_number = 1;
+	my $task;
+	my $answer = 1;
+
+	while ( $answer and ( $task = shift @task_list ) ) {
+		$answer = $self->checkpoint_task( $task => $task_number );
+		$task_number++;
+	}
+
+	# Finished
+	$self->trace_line( 0,
+		    'Distribution generation completed in '
+		  . ( time - $start )
+		  . " seconds\n" );
+	foreach my $file ( $self->get_output_files ) {
+		$self->trace_line( 0, "Created distribution $file\n" );
+	}
+
+	return 1;
+} ## end sub run
+
+
+
+#####################################################################
+#
+# Perl::Dist::WiX Main Methods
+# (Those referred to in the tasklist.)
+#
+
+=head2 Methods used by C<run> in the tasklist.
+
+	my $dist = Perl::Dist::WiX->new(
+		tasklist => [
+			'final_initialization',
+			... 
+		],
+		...
+	);
+
+These methods are used in the tasklist, along with other methods that
+are defined by C<Perl::Dist::WiX> or its subclasses.
+
+=head3 final_initialization
+
+The C<final_initialization> routine does the initialization that is 
+required after the object representing a distribution has been created, but 
+before files can be installed.
+
+=cut
+
+sub final_initialization {
+	my $self = shift;
+
+	# Check for architectures that we can't build 64-bit on.
+	if ( 64 == $self->bits() ) {
+		$self->_check_64_bit();
+	}
+
+	# Redirect $ENV{TEMP} to within our build directory.
+	$self->trace_line( 1,
+		"Emptying the directory to redirect \$ENV{TEMP} to...\n" );
+	$self->remake_path( $self->tempenv_dir() );
+	## no critic (RequireLocalizedPunctuationVars)
+	$ENV{TEMP} = $self->tempenv_dir();
+	$self->trace_line( 5, 'Emptied: ' . $self->tempenv_dir() . "\n" );
+
+	# If we have a file:// url for the CPAN, move the
+	# sources directory out of the way.
+	if ( $self->cpan()->as_string() =~ m{\Afile://}mxsi ) {
+		require CPAN;
+		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
+
+		my $cpan_path_from = $CPAN::Config->{'keep_source_where'};
+		my $cpan_path_to =
+		  rel2abs( catdir( $cpan_path_from, q{..}, 'old_sources' ) );
+
+		$self->trace_line( 0, "Moving CPAN sources files:\n" );
+		$self->trace_line( 2, <<"EOF");
+  From: $cpan_path_from
+  To:   $cpan_path_to
+EOF
+
+		File::Copy::Recursive::move( $cpan_path_from, $cpan_path_to );
+
+		$self->_set_cpan_sources_from($cpan_path_from);
+		$self->_set_cpan_sources_to($cpan_path_to);
+		$self->_move_cpan();
+	} ## end if ( $self->cpan()->as_string...)
+
+	# Do some sanity checks.
+	unless ( $self->cpan()->as_string() =~ m{\/\z}ms ) {
+		PDWiX::Parameter->throw(
+			parameter => 'cpan: Missing trailing slash',
+			where     => '->final_initialization'
+		);
+	}
+	unless ( $self->can( 'install_perl_' . $self->perl_version() ) ) {
+		my $class = ref $self;
+		PDWiX->throw(
+			"$class does not support Perl " . $self->perl_version() );
+	}
+	if ( $self->build_dir() =~ /\s/ms ) {
+		PDWiX::Parameter->throw(
+			parameter => 'build_dir: Spaces are not allowed',
+			where     => '->final_initialization'
+		);
+	}
+
+	# Handle portable special cases
+	if ( $self->portable() ) {
+		$self->_set_exe(0);
+		$self->_set_msi(0);
+		if ( not $self->zip() ) {
+			PDWiX->throw('Cannot be portable and not build a .zip');
+		}
+	}
+
+	# Making sure that this is set.
+	$self->_set_in_merge_module(1);
+
+	## no critic(ProtectPrivateSubs)
+	# Set up element collections
+	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
+	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
+	$self->_set_directories(
+		Perl::Dist::WiX::DirectoryTree2->new(
+			app_dir  => $self->image_dir(),
+			app_name => $self->app_name(),
+		  )->initialize_tree( $self->perl_version ) );
+
+	# Create an environment fragment.
+	$self->_add_fragment( 'Environment',
+		Perl::Dist::WiX::Fragment::Environment->new() );
+
+	# Add directories that need created.
+	$self->_add_fragment(
+		'CreateCpan',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'Cpan',
+			id           => 'CPANFolder',
+		) );
+	$self->_add_fragment(
+		'CreateCpanSources',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'CpanSources',
+			id           => 'CPANSourcesFolder',
+		) );
+	$self->_add_fragment(
+		'CreatePerl',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'Perl',
+			id           => 'PerlFolder',
+		) );
+	$self->_add_fragment(
+		'CreatePerlSite',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'PerlSite',
+			id           => 'PerlSiteFolder',
+		) );
+	$self->_add_fragment(
+		'CreatePerlSiteBin',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'PerlSiteBin',
+			id           => 'PerlSiteBinFolder',
+		) );
+	$self->_add_fragment(
+		'CreatePerlSiteLib',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'PerlSiteLib',
+			id           => 'PerlSiteLibFolder',
+		) );
+	$self->_add_fragment(
+		'CreateCpanplus',
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'Cpanplus',
+			id           => 'CPANPLUSFolder',
+		) ) if ( '589' ne $self->perl_version() );
+
+	# Make some directories.
+	my @directories_to_make = ( $self->dir('cpan'), );
+	push @directories_to_make, $self->dir('cpanplus')
+	  if ( '589' ne $self->perl_version() );
+	for my $d (@directories_to_make) {
+		next if -d $d;
+		File::Path::mkpath($d);
+	}
+
+	# Empty directories that need emptied.
+	$self->trace_line( 1,
+		    'Wait a second while we empty the image, '
+		  . "output, and fragment directories...\n" );
+	$self->remake_path( $self->image_dir() );
+	$self->remake_path( $self->output_dir() );
+	$self->remake_path( $self->fragment_dir() );
+
+	# Add environment variables.
+	$self->add_env( 'TERM',        'dumb' );
+	$self->add_env( 'FTP_PASSIVE', '1' );
+
+	return 1;
+} ## end sub final_initialization
+
+
+
+sub _check_64_bit {
+	my $self = shift;
+
+	# Make the environment variable checks shorter.
+	my $arch      = lc( $ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' );
+	my $archw6432 = lc( $ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' );
+
+	# Check for Itanium architecture.
+	if (   ( 'ix86' eq $arch )
+		or ( 'ix86' eq $archw6432 ) )
+	{
+		PDWiX->throw( 'We do not support building 64-bit Perl'
+			  . ' on Itanium architectures.' );
+	}
+
+	# Check for x86 architecture.
+	if (    ( 'x86' eq $arch )
+		and ( 'x86' eq $archw6432 ) )
+	{
+		PDWiX->throw( 'We do not support building 64-bit Perl'
+			  . ' on 32-bit machines.' );
+	}
+
+	return;
+} ## end sub _check_64_bit
+
+
+
+=head3 initialize_nomsm
+
+The C<initialize_nomsm> routine does the initialization that is 
+required after L<final_initialization()|/final_initialization> has 
+been called, but before files can be installed if L<msm()|/msm> is 0.
+
+=cut
+
+sub initialize_nomsm {
+	my $self = shift;
+
+	# Making sure that this is unset.
+	$self->_set_in_merge_module(0);
+
+	# Add fragments that otherwise would be after the merge module is done.
+	$self->_add_fragment(
+		'StartMenuIcons',
+		Perl::Dist::WiX::Fragment::StartMenu->new(
+			directory_id => 'D_App_Menu',
+		) );
+	$self->_add_fragment(
+		'Win32Extras',
+		Perl::Dist::WiX::Fragment::Files->new(
+			id    => 'Win32Extras',
+			files => File::List::Object->new(),
+		) );
+
+	$self->_set_icons(
+		$self->get_fragment_object('StartMenuIcons')->get_icons() );
+	if ( defined $self->msi_product_icon() ) {
+		$self->_icons()->add_icon( $self->msi_product_icon() );
+	}
+
+	return 1;
+} ## end sub initialize_nomsm
+
+
+
+=head3 initialize_using_msm
+
+The C<initialize_using_msm> routine does the initialization that is 
+required after L<final_initialization()|/final_initialization> has 
+been called, but before files can be installed if a merge module 
+is to be used.
+
+(see L</Using a merge module> for more information.)
+
+=cut
+
+sub initialize_using_msm {
+	my $self = shift;
+
+	# Making sure that this is unset.
+	$self->_set_in_merge_module(0);
+
+	# Download and extract the image.
+	my $tgz = $self->mirror_url( $self->msm_zip(), $self->download_dir() );
+	$self->_extract( $tgz, $self->image_dir() );
+
+	# Start adding the fragments that are only for an .msi.
+	$self->_add_fragment(
+		'StartMenuIcons',
+		Perl::Dist::WiX::Fragment::StartMenu->new(
+			directory_id => 'D_App_Menu',
+		) );
+	$self->_add_fragment(
+		'Win32Extras',
+		Perl::Dist::WiX::Fragment::Files->new(
+			id    => 'Win32Extras',
+			files => File::List::Object->new(),
+		) );
+
+	$self->_set_icons(
+		$self->get_fragment_object('StartMenuIcons')->get_icons() );
+	if ( defined $self->msi_product_icon() ) {
+		$self->_icons()->add_icon( $self->msi_product_icon() );
+	}
+
+	# Download the merge module.
+	my $msm =
+	  $self->mirror_url( $self->msm_to_use(), $self->download_dir() );
+
+	# Connect the Merge Module tag.
+	my $mm = Perl::Dist::WiX::Tag::MergeModule->new(
+		id                => 'Perl',
+		disk_id           => 1,
+		language          => 1033,
+		source_file       => $msm,
+		primary_reference => 1,
+	);
+	$self->_add_merge_module( 'Perl', $mm );
+	$self->get_directory_tree()
+	  ->add_merge_module( $self->image_dir(), $mm );
+
+   # Set the file paths that the first portion of the build otherwise would.
+	$self->_set_bin_perl( $self->_file(qw/perl bin perl.exe/) );
+	$self->_set_bin_make( $self->_file(qw/c bin dmake.exe/) );
+	$self->_set_bin_pexports( $self->_file(qw/c bin pexports.exe/) );
+	$self->_set_bin_dlltool( $self->_file(qw/c bin dlltool.exe/) );
+
+	# Do the same for the environment variables
+	$self->add_path( 'c',    'bin' );
+	$self->add_path( 'perl', 'site', 'bin' );
+	$self->add_path( 'perl', 'bin' );
+
+	return 1;
+} ## end sub initialize_using_msm
+
+
+
+=head3 install_c_toolchain
+
+The C<install_c_toolchain> method is used by L<run()|/run> to install 
+various binary packages to provide a working C development environment.
+
+By default, the C toolchain consists of dmake, gcc (C/C++), binutils,
+pexports, the mingw runtime environment, and the win32api C package.
+
+Although dmake is the "standard" make for Perl::Dist distributions,
+it will also install the mingw version of GNU make for use with 
+those modules that require it.
+
+=cut
+
+# Install the required toolchain elements.
+# We use separate methods for each tool to make
+# it easier for individual distributions to customize
+# the versions of tools they incorporate.
+sub install_c_toolchain {
+	my $self = shift;
+
+	# The primary make
+	$self->install_dmake;
+
+	# Core compiler and support libraries.
+	$self->install_gcc_toolchain;
+
+	# C Utilities
+	$self->install_mingw_make;
+	$self->install_pexports;
+
+	# Set up the environment variables for the binaries
+	$self->add_path( 'c', 'bin' );
+
+	return 1;
+} ## end sub install_c_toolchain
+
+
+
+=head3 install_portable
+
+The C<install_portable> method is used by L<run()|/run> to install 
+the perl modules to make Perl installable on a portable device.
+
+=cut
+
+# Portability support must be added after modules
+sub install_portable {
+	my $self = shift;
+
+	return 1 unless $self->portable();
+
+	# Install the regular parts of Portability
+	$self->install_modules( qw(
+		  Sub::Uplevel
+		  ) ) unless $self->isa('Perl::Dist::Strawberry');
+	$self->install_modules( qw(
+		  Test::Exception
+	) );
+	$self->install_modules( qw(
+		  Test::Tester
+		  Test::NoWarnings
+		  LWP::Online
+		  ) ) unless $self->isa('Perl::Dist::Strawberry');
+	$self->install_modules( qw(
+		  Class::Inspector
+		  CPAN::Mini
+		  Portable
+		  ) ) unless $self->isa('Perl::Dist::Bootstrap');
+
+	# Create the portability object
+	$self->trace_line( 1, "Creating Portable::Dist\n" );
+	require Portable::Dist;
+	$self->_set_portable_dist(
+		Portable::Dist->new( perl_root => $self->_dir('perl') ) );
+	$self->trace_line( 1, "Running Portable::Dist\n" );
+	$self->_portable_dist()->run();
+	$self->trace_line( 1, "Completed Portable::Dist\n" );
+
+	# Install the file that turns on Portability last
+	$self->install_file(
+		share      => 'Perl-Dist-WiX portable\portable.perl',
+		install_to => 'portable.perl',
+	);
+
+	# Install files to help use Strawberry Portable.
+	$self->install_file(
+		share      => 'Perl-Dist-WiX portable\README.portable.txt',
+		install_to => 'README.portable.txt',
+	);
+	$self->install_file(
+		share      => 'Perl-Dist-WiX portable\portableshell.bat',
+		install_to => 'portableshell.bat',
+	);
+
+	return 1;
+} ## end sub install_portable
+
+
+
+=head3 install_relocatable
+
+The C<install_relocatable> method is used by C<run> to install the perl
+script to make Perl relocatable when installed.
+
+This routine must be run before L</regenerate_fragments>, so that the 
+fragment created in this method is regenerated and the file ID can
+be found by L</find_relocatable_fields> later.
+
+=cut
+
+# Relocatability support must be added before writing the merge module
+sub install_relocatable {
+	my $self = shift;
+
+	return 1 unless $self->relocatable();
+
+	# Copy the relocation information in.
+	$self->copy_file( catfile( $self->wix_dist_dir(), 'relocation.pl' ),
+		$self->image_dir() );
+
+	# Make sure it gets installed.
+	$self->insert_fragment(
+		'relocation_script',
+		File::List::Object->new()->add_file( $self->file('relocation.pl') ),
+	);
+
+	return 1;
+} ## end sub install_relocatable
+
+
+
+=head3 find_relocatable_fields
+
+The C<find_relocatable_fields> method is used by C<run> to find the 
+property ID's required to make Perl relocatable when installed.
+
+This routine must be run after L<regenerate_fragments()|/regenerate_fragments>.
+
+=cut
+
+# Relocatability support must be added before writing the merge module
+sub find_relocatable_fields {
+	my $self = shift;
+
+	return 1 unless $self->relocatable();
+
+	# Set the fileid attributes.
+	my $perl_id =
+	  $self->get_fragment_object('perl')
+	  ->find_file_id( $self->file(qw(perl bin perl.exe)) );
+	if ( not $perl_id ) {
+		PDWiX->throw("Could not find perl.exe's ID.\n");
+	}
+	$self->_set_fileid_perl($perl_id);
+
+	my $script_id =
+	  $self->get_fragment_object('relocation_script')
+	  ->find_file_id( $self->file('relocation.pl') );
+	if ( not $script_id ) {
+		PDWiX->throw("Could not find relocation.pl's ID.\n");
+	}
+	$self->_set_fileid_relocation_pl($script_id);
+
+	return 1;
+} ## end sub find_relocatable_fields
+
+
+
+=head3 install_win32_extras
+
+The C<install_win32_extras> method is used by L<run()|/run> to install 
+the links and launchers into the Start menu.
+
+=cut
+
+# Install links and launchers and so on
+sub install_win32_extras {
+	my $self = shift;
+
+	File::Path::mkpath( $self->dir('win32') );
+
+	if ( $self->msi() ) {
+		$self->install_launcher(
+			name => 'CPAN Client',
+			bin  => 'cpan',
+		);
+		$self->install_website(
+			name      => 'CPAN Search',
+			url       => 'http://search.cpan.org/',
+			icon_file => catfile( $self->wix_dist_dir(), 'cpan.ico' ) );
+
+		if ( $self->perl_version_human eq '5.8.9' ) {
+			$self->install_website(
+				name      => 'Perl 5.8.9 Documentation',
+				url       => 'http://perldoc.perl.org/5.8.9/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
+		}
+		if ( $self->perl_version_human eq '5.10.0' ) {
+			$self->install_website(
+				name      => 'Perl 5.10.0 Documentation',
+				url       => 'http://perldoc.perl.org/5.10.0/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
+		}
+		if ( $self->perl_version_human eq '5.10.1' ) {
+			$self->install_website(
+				name      => 'Perl 5.10.1 Documentation',
+				url       => 'http://perldoc.perl.org/5.10.1/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
+		}
+		if ( $self->perl_version_human eq '5.12.0' ) {
+			$self->install_website(
+				name      => 'Perl 5.12.0 Documentation',
+				url       => 'http://perldoc.perl.org/5.12.0/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
+		}
+		if ( $self->perl_version_human eq '5.12.1' ) {
+			$self->install_website(
+				name      => 'Perl 5.12.1 Documentation',
+				url       => 'http://perldoc.perl.org/5.12.1/',
+				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
+			);
+		}
+		$self->install_website(
+			name      => 'Win32 Perl Wiki',
+			url       => 'http://win32.perl.org/',
+			icon_file => catfile( $self->wix_dist_dir(), 'win32.ico' ) );
+
+		$self->get_fragment_object('StartMenuIcons')->add_shortcut(
+			name => 'Perl (command line)',
+			description =>
+			  'Quick way to get to the command line in order to use Perl',
+			target      => '[SystemFolder]cmd.exe',
+			id          => 'PerlCmdLine',
+			working_dir => 'PersonalFolder',
+		);
+
+		$self->add_to_fragment(
+			'Win32Extras',
+			[   catfile( $self->image_dir(), qw(win32 win32.ico) ),
+				catfile( $self->image_dir(), qw(win32 cpan.ico) ),
+			] );
+
+	} ## end if ( $self->msi() )
+
+	return $self;
+} ## end sub install_win32_extras
+
+
+
+=head3 remove_waste
+
+The C<remove_waste> method is used by L<run()|/run> to remove files 
+that the distribution does not need to package.
+
+=cut
+
+# Delete various stuff we won't be needing
+sub remove_waste {
+	my $self = shift;
+
+	$self->trace_line( 1, "Removing waste\n" );
+	$self->trace_line( 2,
+		"  Removing doc, man, info and html documentation\n" );
+	$self->_remove_dir(qw{ perl man       });
+	$self->_remove_dir(qw{ perl html      });
+	$self->_remove_dir(qw{ c    man       });
+	$self->_remove_dir(qw{ c    doc       });
+	$self->_remove_dir(qw{ c    info      });
+	$self->_remove_dir(qw{ c    contrib   });
+	$self->_remove_dir(qw{ c    html      });
+
+	$self->trace_line( 2, "  Removing C examples, manifests\n" );
+	$self->_remove_dir(qw{ c examples  });
+	$self->_remove_dir(qw{ c manifest  });
+
+	$self->trace_line( 2, "  Removing extra dmake/gcc files\n" );
+	$self->_remove_dir(qw{ c bin startup mac   });
+	$self->_remove_dir(qw{ c bin startup msdos });
+	$self->_remove_dir(qw{ c bin startup os2   });
+	$self->_remove_dir(qw{ c bin startup qssl  });
+	$self->_remove_dir(qw{ c bin startup tos   });
+	$self->_remove_dir(qw{ c libexec gcc mingw32 3.4.5 install-tools});
+
+	$self->trace_line( 2, "  Removing redundant files\n" );
+	$self->_remove_file(qw{ c COPYING     });
+	$self->_remove_file(qw{ c COPYING.LIB });
+	$self->_remove_file(qw{ c bin gccbug  });
+	$self->_remove_file(qw{ c bin mingw32-gcc-3.4.5 });
+
+	$self->trace_line( 2,
+		"  Removing CPAN build directories and download caches\n" );
+	$self->_remove_dir(qw{ cpan sources  });
+	$self->_remove_dir(qw{ cpan build    });
+	$self->_remove_file(qw{ cpan cpandb.sql });
+	$self->_remove_file(qw{ cpan FTPstats.yml });
+	$self->_remove_file(qw{ cpan cpan_sqlite_log.* });
+
+	# Readding the cpan directory.
+	$self->remake_path( catdir( $self->build_dir, 'cpan' ) );
+
+	return 1;
+} ## end sub remove_waste
+
+sub _remove_dir {
+	my $self = shift;
+	my $dir  = $self->dir(@_);
+	File::Remove::remove( \1, $dir ) if -e $dir;
+	return 1;
+}
+
+sub _remove_file {
+	my $self = shift;
+	my $file = $self->file(@_);
+	File::Remove::remove( \1, $file ) if -e $file;
+	return 1;
+}
+
+
+
+=head3 regenerate_fragments
+
+The C<regenerate_fragments> method is used by L<run()|/run> to fully 
+generate the object tree for file-containing fragments, which only 
+contain a list of files until their C<regenerate()> routines are run.
+
+=cut
+
+sub regenerate_fragments {
+	my $self = shift;
+
+	return 1 unless $self->msi();
+
+	# Add the perllocal.pod here, because apparently it's disappearing.
+	if ( $self->fragment_exists('perl') ) {
+		$self->add_to_fragment( 'perl',
+			[ $self->file(qw(perl lib perllocal.pod)) ] );
+	}
+
+	my @fragment_names_regenerate;
+	my @fragment_names = $self->_fragment_keys();
+
+	while ( 0 != scalar @fragment_names ) {
+		foreach my $name (@fragment_names) {
+			my $fragment = $self->get_fragment_object($name);
+			if ( defined $fragment ) {
+				push @fragment_names_regenerate, $fragment->_regenerate();
+			} else {
+				$self->trace_line( 0,
+"Couldn't regenerate fragment $name because fragment object did not exist.\n"
+				);
+			}
+		}
+
+		$#fragment_names = -1;         # clears the array.
+		@fragment_names             = uniq @fragment_names_regenerate;
+		$#fragment_names_regenerate = -1;
+	} ## end while ( 0 != scalar @fragment_names)
+
+	return 1;
+} ## end sub regenerate_fragments
+
+
+
+=head3 write
+
+The C<write> method is used by L<run()|/run> to compile the final
+installers for the distribution.
+
+=cut
+
+sub write { ## no critic 'ProhibitBuiltinHomonyms'
+	my $self = shift;
+
+	if ( $self->zip() ) {
+		$self->add_output_files( $self->_write_zip() );
+	}
+	if ( $self->msi() ) {
+		$self->add_output_files( $self->_write_msi() );
+	}
+	return 1;
+}
+
+
+
+=head3 write_merge_module
+
+The C<write_merge_module> method is used by L<run()|/run> to compile 
+the merge module for the distribution.
+
+=cut
+
+sub write_merge_module {
+	my $self = shift;
+
+	if ( $self->msi() ) {
+
+		$self->add_output_files( $self->_write_msm() );
+
+		$self->_clear_fragments();
+
+		my $zipfile = catfile( $self->output_dir(), 'fragments.zip' );
+		$self->trace_line( 1, "Generating zip at $zipfile\n" );
+
+		# Create the archive
+		my $zip = Archive::Zip->new();
+
+		# Add the fragments directory to the root
+		$zip->addTree( $self->fragment_dir(), q{} );
+
+		my @members = $zip->members();
+
+		# Set max compression for all members, deleting .AAA files.
+		foreach my $member (@members) {
+			next if $member->isDirectory();
+			$member->desiredCompressionLevel(9);
+			if ( $member->fileName =~ m{[.] wixout\z}smx ) {
+				$zip->removeMember($member);
+			}
+			if ( $member->fileName =~ m{[.] wixobj\z}smx ) {
+				$zip->removeMember($member);
+			}
+		}
+
+		# Write out the file name
+		$zip->writeToFileNamed($zipfile);
+
+		# Remake the fragments directory.
+		$self->remake_path( $self->fragment_dir() );
+
+		## no critic(ProtectPrivateSubs)
+		# Reset the directory tree.
+		$self->_set_directories(undef);
+		Perl::Dist::WiX::DirectoryTree2->_clear_instance();
+		$self->_set_directories(
+			Perl::Dist::WiX::DirectoryTree2->new(
+				app_dir  => $self->image_dir(),
+				app_name => $self->app_name(),
+			  )->initialize_short_tree( $self->perl_version() ) );
+
+		$self->_set_in_merge_module(0);
+
+		# Start adding the fragments that are only for the .msi.
+		$self->_add_fragment(
+			'StartMenuIcons',
+			Perl::Dist::WiX::Fragment::StartMenu->new(
+				directory_id => 'D_App_Menu',
+			) );
+		$self->_add_fragment(
+			'Win32Extras',
+			Perl::Dist::WiX::Fragment::Files->new(
+				id    => 'Win32Extras',
+				files => File::List::Object->new(),
+			) );
+
+		$self->_set_icons(
+			$self->get_fragment_object('StartMenuIcons')->get_icons() );
+		if ( defined $self->msi_product_icon() ) {
+			$self->_icons()
+			  ->add_icon( $self->msi_product_icon()->stringify() );
+		}
+
+		my $mm = Perl::Dist::WiX::Tag::MergeModule->new(
+			id          => 'Perl',
+			disk_id     => 1,
+			language    => 1033,
+			source_file => $self->output_dir()
+			  ->file( $self->output_base_filename() . '.msm' )->stringify(),
+			primary_reference => 1,
+		);
+		$self->_add_merge_module( 'Perl', $mm );
+		$self->get_directory_tree()
+		  ->add_merge_module( $self->image_dir()->stringify(), $mm );
+	} ## end if ( $self->msi() )
+
+	return 1;
+} ## end sub write_merge_module
+
+
+
+#####################################################################
+# Package Generation
+
+=head2 Package generation methods
+
+These are the (private) routines that generate different types of packages 
+and are called by the L<write()|/write> method when required.
+
+=head3 _write_zip
+
+	$self->_write_zip();
+
+The C<_write_zip> method is used to generate a standalone .zip file
+containing the entire distribution, for situations in which a full
+installer database is not wanted (such as for "Portable Perl"
+type installations). It is called by L<write()|/write> when needed.
+
+The .zip file is written to the output directory, and the location
+of the file is printed to STDOUT.
+
+Returns true or throws an exception or error.
+
+=cut
+
+sub _write_zip {
+	my $self = shift;
+	my $file =
+	  catfile( $self->output_dir(), $self->output_base_filename . '.zip' );
+	$self->trace_line( 1, "Generating zip at $file\n" );
+
+	# Make directories.
+	$self->remake_path( catdir( $self->image_dir(), qw(cpan sources) ) );
+	$self->remake_path( catdir( $self->image_dir(), qw(cpanplus    ) ) );
+
+	# Create the archive
+	my $zip = Archive::Zip->new();
+
+	# Add the image directory to the root
+	$zip->addTree( $self->image_dir(), q{} );
+
+	my @members = $zip->members();
+
+	# Set max compression for all members, deleting .AAA files.
+	foreach my $member (@members) {
+		next if $member->isDirectory();
+		$member->desiredCompressionLevel(9);
+		if ( $member->fileName =~ m{[.] AAA\z}smx ) {
+			$zip->removeMember($member);
+		}	}
+
+	# Write out the file name
+	$zip->writeToFileNamed($file);
+
+	return $file;
+} ## end sub _write_zip
+
+
+
+=head3 _write_msi
+
+  $self->_write_msi();
+
+The C<_write_msi> method is used to generate the compiled installer
+database. It creates the entire installation file tree, and then
+executes WiX to create the final executable.
+
+This method is called by L<write()|/write>.
+
+The executable file is written to the output directory, and the location
+of the file is printed to STDOUT.
+
+Returns true or throws an exception or error.
+
+=cut
+
+sub _write_msi {
+	my $self = shift;
+
+	my $dir = $self->fragment_dir;
+	my ( $fragment, $fragment_name, $fragment_string );
+	my ( $filename_in, $filename_out );
+	my $fh;
+	my @files;
+
+	$self->trace_line( 1, "Generating msi\n" );
+
+  FRAGMENT:
+
+	# Write out .wxs files for all the fragments and compile them.
+	foreach my $key ( $self->_fragment_keys() ) {
+		$fragment        = $self->get_fragment_object($key);
+		$fragment_string = $fragment->as_string();
+		next
+		  if ( ( not defined $fragment_string )
+			or ( $fragment_string eq q{} ) );
+		$fragment_name = $fragment->get_id;
+		$filename_in   = catfile( $dir, $fragment_name . q{.wxs} );
+		$filename_out  = catfile( $dir, $fragment_name . q{.wixout} );
+		$fh            = IO::File->new( $filename_in, 'w' );
+
+		if ( not defined $fh ) {
+			PDWiX::File->throw(
+				file    => $filename_in,
+				message => 'Could not open file for writing '
+				  . "[$OS_ERROR] [$EXTENDED_OS_ERROR]"
+			);
+		}
+		$fh->print($fragment_string);
+		$fh->close;
+		$self->trace_line( 2, "Compiling $filename_in\n" );
+		$self->_compile_wxs( $filename_in, $filename_out )
+		  or PDWiX->throw("WiX could not compile $filename_in");
+
+		unless ( -f $filename_out ) {
+			PDWiX->throw( "Failed to find $filename_out (probably "
+				  . "compilation error in $filename_in)" );
+		}
+
+		push @files, $filename_out;
+	} ## end foreach my $key ( $self->_fragment_keys...)
+
+	# Generate feature tree.
+	$self->_set_feature_tree_object(
+		Perl::Dist::WiX::FeatureTree2->new( parent => $self, ) );
+
+	my $mm;
+
+	# Add merge modules.
+	foreach my $mm_key ( $self->_merge_module_keys() ) {
+		$mm = $self->get_merge_module_object($mm_key);
+		$self->feature_tree_object()->add_merge_module($mm);
+	}
+
+
+	# Write out the .wxs file
+	my $content = $self->process_template(
+		'Main.wxs.tt',
+		directory_tree =>
+			  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
+		);
+	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
+	$filename_in =
+	  catfile( $self->fragment_dir(), $self->app_name() . q{.wxs} );
+
+	if ( -f $filename_in ) {
+
+		# Had a collision. Yell and scream.
+		PDWiX->throw(
+			"Could not write out $filename_in: File already exists.");
+	}
+	$filename_out =
+	  catfile( $self->fragment_dir, $self->app_name . q{.wixobj} );
+	$fh = IO::File->new( $filename_in, 'w' );
+
+	if ( not defined $fh ) {
+		PDWiX::File->throw(
+			file    => $filename_in,
+			message => 'Could not open file for writing '
+			  . "[$OS_ERROR] [$EXTENDED_OS_ERROR]"
+		);
+	}
+	$fh->print($content);
+	$fh->close;
+
+	# Compile the main .wxs
+	$self->trace_line( 2, "Compiling $filename_in\n" );
+	$self->_compile_wxs( $filename_in, $filename_out )
+	  or PDWiX->throw("WiX could not compile $filename_in");
+	unless ( -f $filename_out ) {
+		PDWiX->throw( "Failed to find $filename_out (probably "
+			  . "compilation error in $filename_in)" );
+	}
+
+	# Start linking the msi.
+
+	# Get the parameters for the msi linking.
+	my $output_msi =
+	  catfile( $self->output_dir, $self->output_base_filename . '.msi', );
+	my $input_wixouts = catfile( $self->fragment_dir, '*.wixout' );
+	my $input_wixobj =
+	  catfile( $self->fragment_dir, $self->app_name . '.wixobj' );
+
+	# Link the .wixobj files
+	$self->trace_line( 1, "Linking $output_msi\n" );
+	my $out;
+	my $cmd = [
+		wix_bin_light(),
+		'-sice:ICE38',                 # Gets rid of ICE38 warning.
+		'-sice:ICE43',                 # Gets rid of ICE43 warning.
+		'-sice:ICE47',                 # Gets rid of ICE47 warning.
+		                               # (Too many components in one
+		                               # feature for Win9X)
+		'-sice:ICE48',                 # Gets rid of ICE48 warning.
+		                               # (Hard-coded installation location)
+
+#		'-v',                          # Verbose for the moment.
+		'-out', $output_msi,
+		'-ext', wix_lib_wixui(),
+		'-ext', wix_library('WixUtil'),
+		$input_wixobj,
+		$input_wixouts,
+	];
+	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
+
+	$self->trace_line( 1, $out );
+
+	# Did everything get done correctly?
+	if ( ( not -f $output_msi ) and ( $out =~ /error|warning/msx ) ) {
+		$self->trace_line( 0, $out );
+		PDWiX->throw(
+			"Failed to find $output_msi (probably compilation error)");
+	}
+
+	return $output_msi;
+} ## end sub _write_msi
+
+
+
+=head3 _write_msm
+
+  $self->_write_msm();
+
+The C<_write_msm> method is used to generate the compiled merge module
+used in the installer. It creates the entire installation file tree, and then
+executes WiX to create the merge module.
+
+This method is called by L<write_merge_module()|/write_merge_module>, and 
+should only be called after all installation phases that install perl 
+modules that should be in the .msm have been completed and all of the files 
+for the merge module are in place.
+
+The merge module file is written to the output directory, and the location
+of the file is printed to STDOUT.
+
+Returns true or throws an exception or error.
+
+=cut
+
+sub _write_msm {
+	my $self = shift;
+
+	my $dir = $self->fragment_dir;
+	my ( $fragment, $fragment_name, $fragment_string );
+	my ( $filename_in, $filename_out );
+	my $fh;
+	my @files;
+
+	$self->trace_line( 1, "Generating msm\n" );
+
+	# Add the path in.
+	foreach my $value ( map { '[INSTALLDIR]' . catdir( @{$_} ) }
+		$self->_get_env_path_unchecked() )
+	{
+		$self->add_env( 'PATH', $value, 1 );
+	}
+
+  FRAGMENT:
+
+	# Write out .wxs files for all the fragments and compile them.
+	foreach my $key ( $self->_fragment_keys() ) {
+		$fragment        = $self->get_fragment_object($key);
+		$fragment_string = $fragment->as_string();
+		next
+		  if ( ( not defined $fragment_string )
+			or ( $fragment_string eq q{} ) );
+		$fragment_name = $fragment->get_id();
+		$filename_in   = catfile( $dir, $fragment_name . q{.wxs} );
+		$filename_out  = catfile( $dir, $fragment_name . q{.wixout} );
+		$fh            = IO::File->new( $filename_in, 'w' );
+
+		if ( not defined $fh ) {
+			PDWiX::File->throw(
+				file    => $filename_in,
+				message => 'Could not open file for writing '
+				  . "[$OS_ERROR] [$EXTENDED_OS_ERROR]"
+			);
+		}
+		$fh->print($fragment_string);
+		$fh->close;
+		$self->trace_line( 2, "Compiling $filename_in\n" );
+		$self->_compile_wxs( $filename_in, $filename_out )
+		  or PDWiX->throw("WiX could not compile $filename_in");
+
+		unless ( -f $filename_out ) {
+			PDWiX->throw( "Failed to find $filename_out (probably "
+				  . "compilation error in $filename_in)" );
+		}
+
+		push @files, $filename_out;
+	} ## end foreach my $key ( $self->_fragment_keys...)
+
+	# Generate feature tree.
+	$self->_set_feature_tree_object(
+		Perl::Dist::WiX::FeatureTree2->new( parent => $self, ) );
+
+	# Write out the .wxs file
+	my $content = $self->process_template(
+		'Merge-Module.wxs.tt',
+		directory_tree =>
+			  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
+		);
+	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
+	$filename_in =
+	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
+
+	if ( -f $filename_in ) {
+
+		# Had a collision. Yell and scream.
+		PDWiX->throw(
+			"Could not write out $filename_in: File already exists.");
+	}
+	$filename_out =
+	  catfile( $self->fragment_dir, $self->app_name . q{.wixobj} );
+	$fh = IO::File->new( $filename_in, 'w' );
+
+	if ( not defined $fh ) {
+		PDWiX->throw(
+"Could not open file $filename_in for writing [$OS_ERROR] [$EXTENDED_OS_ERROR]"
+		);
+	}
+	$fh->print($content);
+	$fh->close;
+
+	# Compile the main .wxs
+	$self->trace_line( 2, "Compiling $filename_in\n" );
+	$self->_compile_wxs( $filename_in, $filename_out )
+	  or PDWiX->throw("WiX could not compile $filename_in");
+	unless ( -f $filename_out ) {
+		PDWiX->throw( "Failed to find $filename_out (probably "
+			  . "compilation error in $filename_in)" );
+	}
+
+# Start linking the merge module.
+
+	# Get the parameters for the msi linking.
+	my $output_msm =
+	  catfile( $self->output_dir, $self->output_base_filename . '.msm', );
+	my $input_wixouts = catfile( $self->fragment_dir, '*.wixout' );
+	my $input_wixobj =
+	  catfile( $self->fragment_dir, $self->app_name . '.wixobj' );
+
+	# Link the .wixobj files
+	$self->trace_line( 1, "Linking $output_msm\n" );
+	my $out;
+	my $cmd = [
+		wix_bin_light(),        '-out',
+		$output_msm,            '-ext',
+		wix_lib_wixui(),        '-ext',
+		wix_library('WixUtil'), $input_wixobj,
+		$input_wixouts,
+	];
+	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
+
+	$self->trace_line( 1, $out );
+
+	# Did everything get done correctly?
+	if ( ( not -f $output_msm ) and ( $out =~ /error|warning/msx ) ) {
+		$self->trace_line( 0, $out );
+		PDWiX->throw(
+			"Failed to find $output_msm (probably compilation error)");
+	}
+
+	# Now write out the documentation for the msm.
+	my $output_docs =
+	  catfile( $self->output_dir(),
+		'merge-module-' . $self->distribution_version_file() . '.html',
+	  );
+	my $docs =
+	  $self->process_template('Merge-Module.documentation.html.tt');
+	$fh = IO::File->new( $output_docs, 'w' );
+
+	if ( not defined $fh ) {
+		PDWiX::File->throw(
+			file    => $filename_in,
+			message => 'Could not open file for writing '
+			  . "[$OS_ERROR] [$EXTENDED_OS_ERROR]"
+		);
+	}
+	$fh->print($docs);
+	$fh->close;
+
+	return ( $output_msm, $output_docs );
+} ## end sub _write_msm
+
+
+
+=head3 _compile_wxs
+
+Compiles a .wxs file (specified by $filename) into a .wixobj file 
+(specified by $wixobj.)  Both parameters are required.
+
+This method is used by the L<_write_msi()|/_write_msi> and 
+L<_write_msm()|/_write_msm> methods.
+
+	$self->_compile_wxs("Perl.wxs", "Perl.wixobj");
+
+=cut
+
+sub _compile_wxs {
+	my ( $self, $filename, $wixobj ) = @_;
+	my @files = @_;
+
+	# Check parameters.
+	unless ( _STRING($filename) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'filename',
+			where     => '::Installer->compile_wxs'
+		);
+	}
+	unless ( _STRING($wixobj) ) {
+		PDWiX::Parameter->throw(
+			parameter => 'wixobj',
+			where     => '::Installer->compile_wxs'
+		);
+	}
+	unless ( -r $filename ) {
+		PDWiX::File->throw(
+			file    => $filename,
+			message => 'File does not exist or is not readable'
+		);
+	}
+
+	# Compile the .wxs file
+	my $cmd = [
+		wix_bin_candle(),
+		'-out', $wixobj,
+		$filename,
+
+	];
+	my $out;
+	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
+
+	if ( ( not -f $wixobj ) and ( $out =~ /error|warning/msx ) ) {
+		$self->trace_line( 0, $out );
+		PDWiX->throw( "Failed to find $wixobj (probably "
+			  . "compilation error in $filename)" );
+	}
+
+
+	return $rv;
+} ## end sub _compile_wxs
+
 =head2 Accessors
 
 	$id = $dist->bin_candle(); 
 
 Accessors will return a specified portion of the distribution state.
 
-If it can also be set as a parameter to C<new>, it is marked as I<(also C<new> parameter)> below.
-
-=head3 fragment_dir
-
-The location where this object will write the information for WiX 
-to process to create the MSI. A default is provided if this is not 
-specified.
-
 =head3 directories
 
 Returns the L<Perl::Dist::WiX::DirectoryTree|Perl::Dist::WiX::DirectoryTree> 
-object associated with this distribution.  Created by L</new>
-
-=head3 fragments
-
-Returns a hashref containing the objects subclassed from 
-L<Perl::Dist::WiX::Base::Fragment|Perl::Dist::WiX::Base::Fragment> 
-associated with this distribution. Created as the distribution's 
-L</run> routine progresses.
+object associated with this distribution.  Created by L<new()|/new>
 
 =head3 msi_feature_tree
 
 Returns the parameter of the same name passed in 
-from L</new>. Unused as of yet.
+from L<new()|/new>. Unused as of yet.
 
 =head3 msi_product_icon_id
 
@@ -2250,9 +3541,15 @@ has 'feature_tree_object' => (
 
 
 
-=head3 bin_perl, bin_make, bin_pexports, bin_dlltool
+=head3 bin_perl
 
-The location of perl.exe, dmake.exe, pexports.exe, and dlltool.exe.
+=head3 bin_make
+
+=head3 bin_pexports
+
+=head3 bin_dlltool
+
+The locations of perl.exe, dmake.exe, pexports.exe, and dlltool.exe.
 
 These only are available (not undef) once the appropriate packages 
 are installed.
@@ -2416,8 +3713,7 @@ qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
 The C<perl_version_literal> method returns the literal numeric Perl
 version for the distribution.
 
-For Perl 5.8.9 this will be '5.008009', Perl 5.10.0 will be '5.010000',
-and for Perl 5.10.1 this will be '5.010001'.
+For example, a Perl 5.8.9 distribution will return '5.008009'.
 
 =cut
 
@@ -2437,7 +3733,7 @@ sub _build_perl_version_literal {
 		'5101' => '5.010001',
 		'5120' => '5.012000',
 		'5121' => '5.012001',
-		'git'  => '5.013000',
+		'git'  => '5.013002',
 	  }->{ $self->perl_version() }
 	  || 0;
 
@@ -2458,7 +3754,8 @@ sub _build_perl_version_literal {
 The C<perl_version_human> method returns the "marketing" form
 of the Perl version.
 
-This will be either 'git', '5.8.9', '5.10.0', or '5.10.1'.
+This will be either 'git', '5.8.9', '5.10.0', '5.10.1', '5.12.0', or
+'5.12.1'.
 
 =cut
 
@@ -3102,14 +4399,47 @@ sub mk_extralibs {
 
 
 
-=head2 fragment_exists
+=head3 patch_template
+
+C<patch_template> returns the L<Template|Template> object that is used to generate 
+patched files.
+
+=cut
+
+has 'patch_template' => (
+	is       => 'ro',
+	isa      => TemplateObj,
+	lazy     => 1,
+	init_arg => undef,
+	builder  => '_build_patch_template',
+	clearer  => '_clear_patch_template',
+);
+
+sub _build_patch_template {
+	my $self = shift;
+	my $obj  = Template->new(
+		INCLUDE_PATH => $self->patch_include_path(),
+		ABSOLUTE     => 1,
+	);
+
+	PDWiX::Caught->throw(
+		message => Template::error(),
+		info    => 'Template'
+	) unless $obj;
+
+	return $obj;
+} ## end sub _build_patch_template
+
+
+
+=head3 fragment_exists
 
 	my $bool = $dist->fragment_exists('FragmentId');
 	
 Returns whether the fragment with the name given has been attached to
 this distribution.
 
-=head2 get_fragment_object
+=head3 get_fragment_object
 
 	my $fragment_tag = $dist->get_fragment_object('FragmentId');
 
@@ -3140,1304 +4470,53 @@ has '_fragments' => (
 
 
 
-#####################################################################
-# Top Level Process Methods
+=head3 image_drive
 
-sub prepare { return 1 }
-
-=pod
-
-=head2 run
-
-The C<run> method is the main method for the class.
-
-It does a complete build of a product, spitting out an installer, by
-running each method named in the tasklist in order.
-
-Returns true, or throws an exception on error.
-
-This method may take an hour or more to run.
+The drive letter of the image directory.  Retrieved from C<image_dir>.
 
 =cut
 
-sub run {
-	my $self  = shift;
-	my $start = time;
-
-	unless ( $self->msi or $self->zip ) {
-		$self->trace_line('No msi or zip target, nothing to do');
-		return 1;
-	}
-
-	# Don't buffer
-	STDOUT->autoflush(1);
-	STDERR->autoflush(1);
-
-	my @task_list   = @{ $self->tasklist() };
-	my $task_number = 1;
-	my $task;
-	my $answer = 1;
-
-	while ( $answer and ( $task = shift @task_list ) ) {
-		$answer = $self->checkpoint_task( $task => $task_number );
-		$task_number++;
-	}
-
-	# Finished
-	$self->trace_line( 0,
-		    'Distribution generation completed in '
-		  . ( time - $start )
-		  . " seconds\n" );
-	foreach my $file ( $self->get_output_files ) {
-		$self->trace_line( 0, "Created distribution $file\n" );
-	}
-
-	return 1;
-} ## end sub run
-
-
-
-#####################################################################
-#
-# Perl::Dist::WiX Main Methods
-# (Those referred to in the tasklist.)
-#
-
-=head2 Methods used by C<run>
-
-	my $dist = Perl::Dist::WiX->new(
-		tasklist => [
-			'final_initialization',
-			... 
-		],
-		...
-	);
-
-These methods are used in the tasklist, along with other methods that
-are defined by C<Perl::Dist::WiX> or its subclasses.
-
-=head3 final_initialization
-
-The C<final_initialization> routine does the initialization that is 
-required after the object representing a distribution has been created, but 
-before files can be installed.
-
-=cut
-
-sub final_initialization {
+sub image_drive {
 	my $self = shift;
-
-	# Check for architectures that we can't build 64-bit on.
-	if ( 64 == $self->bits() ) {
-		$self->_check_64_bit();
-	}
-
-	# Redirect $ENV{TEMP} to within our build directory.
-	$self->trace_line( 1,
-		"Emptying the directory to redirect \$ENV{TEMP} to...\n" );
-	$self->remake_path( $self->tempenv_dir() );
-	## no critic (RequireLocalizedPunctuationVars)
-	$ENV{TEMP} = $self->tempenv_dir();
-	$self->trace_line( 5, 'Emptied: ' . $self->tempenv_dir() . "\n" );
-
-	# If we have a file:// url for the CPAN, move the
-	# sources directory out of the way.
-	if ( $self->cpan()->as_string() =~ m{\Afile://}mxsi ) {
-		require CPAN;
-		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
-
-		my $cpan_path_from = $CPAN::Config->{'keep_source_where'};
-		my $cpan_path_to =
-		  rel2abs( catdir( $cpan_path_from, q{..}, 'old_sources' ) );
-
-		$self->trace_line( 0, "Moving CPAN sources files:\n" );
-		$self->trace_line( 2, <<"EOF");
-  From: $cpan_path_from
-  To:   $cpan_path_to
-EOF
-
-		File::Copy::Recursive::move( $cpan_path_from, $cpan_path_to );
-
-		$self->_set_cpan_sources_from($cpan_path_from);
-		$self->_set_cpan_sources_to($cpan_path_to);
-		$self->_move_cpan();
-	} ## end if ( $self->cpan()->as_string...)
-
-	# Do some sanity checks.
-	unless ( $self->cpan()->as_string() =~ m{\/\z}ms ) {
-		PDWiX::Parameter->throw(
-			parameter => 'cpan: Missing trailing slash',
-			where     => '->final_initialization'
-		);
-	}
-	unless ( $self->can( 'install_perl_' . $self->perl_version() ) ) {
-		my $class = ref $self;
-		PDWiX->throw(
-			"$class does not support Perl " . $self->perl_version() );
-	}
-	if ( $self->build_dir() =~ /\s/ms ) {
-		PDWiX::Parameter->throw(
-			parameter => 'build_dir: Spaces are not allowed',
-			where     => '->final_initialization'
-		);
-	}
-
-	# Handle portable special cases
-	if ( $self->portable() ) {
-		$self->_set_exe(0);
-		$self->_set_msi(0);
-		if ( not $self->zip() ) {
-			PDWiX->throw('Cannot be portable and not build a .zip');
-		}
-	}
-
-	# Making sure that this is set.
-	$self->_set_in_merge_module(1);
-
-	## no critic(ProtectPrivateSubs)
-	# Set up element collections
-	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
-	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
-	$self->_set_directories(
-		Perl::Dist::WiX::DirectoryTree2->new(
-			app_dir  => $self->image_dir(),
-			app_name => $self->app_name(),
-		  )->initialize_tree( $self->perl_version ) );
-
-	# Create an environment fragment.
-	$self->_add_fragment( 'Environment',
-		Perl::Dist::WiX::Fragment::Environment->new() );
-
-	# Add directories that need created.
-	$self->_add_fragment(
-		'CreateCpan',
-		Perl::Dist::WiX::Fragment::CreateFolder->new(
-			directory_id => 'Cpan',
-			id           => 'CPANFolder',
-		) );
-	$self->_add_fragment(
-		'CreateCpanSources',
-		Perl::Dist::WiX::Fragment::CreateFolder->new(
-			directory_id => 'CpanSources',
-			id           => 'CPANSourcesFolder',
-		) );
-	$self->_add_fragment(
-		'CreatePerl',
-		Perl::Dist::WiX::Fragment::CreateFolder->new(
-			directory_id => 'Perl',
-			id           => 'PerlFolder',
-		) );
-	$self->_add_fragment(
-		'CreatePerlSite',
-		Perl::Dist::WiX::Fragment::CreateFolder->new(
-			directory_id => 'PerlSite',
-			id           => 'PerlSiteFolder',
-		) );
-	$self->_add_fragment(
-		'CreatePerlSiteBin',
-		Perl::Dist::WiX::Fragment::CreateFolder->new(
-			directory_id => 'PerlSiteBin',
-			id           => 'PerlSiteBinFolder',
-		) );
-	$self->_add_fragment(
-		'CreatePerlSiteLib',
-		Perl::Dist::WiX::Fragment::CreateFolder->new(
-			directory_id => 'PerlSiteLib',
-			id           => 'PerlSiteLibFolder',
-		) );
-	$self->_add_fragment(
-		'CreateCpanplus',
-		Perl::Dist::WiX::Fragment::CreateFolder->new(
-			directory_id => 'Cpanplus',
-			id           => 'CPANPLUSFolder',
-		) ) if ( '589' ne $self->perl_version() );
-
-	# Make some directories.
-	my @directories_to_make = ( $self->dir('cpan'), );
-	push @directories_to_make, $self->dir('cpanplus')
-	  if ( '589' ne $self->perl_version() );
-	for my $d (@directories_to_make) {
-		next if -d $d;
-		File::Path::mkpath($d);
-	}
-
-	# Empty directories that need emptied.
-	$self->trace_line( 1,
-		    'Wait a second while we empty the image, '
-		  . "output, and fragment directories...\n" );
-	$self->remake_path( $self->image_dir() );
-	$self->remake_path( $self->output_dir() );
-	$self->remake_path( $self->fragment_dir() );
-
-	# Add environment variables.
-	$self->add_env( 'TERM',        'dumb' );
-	$self->add_env( 'FTP_PASSIVE', '1' );
-
-	return 1;
-} ## end sub final_initialization
-
-
-
-sub _check_64_bit {
-	my $self = shift;
-
-	# Make the environment variable checks shorter.
-	my $arch      = lc( $ENV{'PROCESSOR_ARCHITECTURE'} or 'x86' );
-	my $archw6432 = lc( $ENV{'PROCESSOR_ARCHITEW6432'} or 'x86' );
-
-	# Check for Itanium architecture.
-	if (   ( 'ix86' eq $arch )
-		or ( 'ix86' eq $archw6432 ) )
-	{
-		PDWiX->throw( 'We do not support building 64-bit Perl'
-			  . ' on Itanium architectures.' );
-	}
-
-	# Check for x86 architecture.
-	if (    ( 'x86' eq $arch )
-		and ( 'x86' eq $archw6432 ) )
-	{
-		PDWiX->throw( 'We do not support building 64-bit Perl'
-			  . ' on 32-bit machines.' );
-	}
-
-	return;
-} ## end sub _check_64_bit
-
-
-
-=head3 initialize_nomsm
-
-The C<initialize_nomsm> routine does the initialization that is 
-required after C<final_initialization> has been called, but 
-before files can be installed if C<msm> is 0.
-
-=cut
-
-sub initialize_nomsm {
-	my $self = shift;
-
-	# Making sure that this is unset.
-	$self->_set_in_merge_module(0);
-
-	# Add fragments that otherwise would be after the merge module is done.
-	$self->_add_fragment(
-		'StartMenuIcons',
-		Perl::Dist::WiX::Fragment::StartMenu->new(
-			directory_id => 'D_App_Menu',
-		) );
-	$self->_add_fragment(
-		'Win32Extras',
-		Perl::Dist::WiX::Fragment::Files->new(
-			id    => 'Win32Extras',
-			files => File::List::Object->new(),
-		) );
-
-	$self->_set_icons(
-		$self->get_fragment_object('StartMenuIcons')->get_icons() );
-	if ( defined $self->msi_product_icon() ) {
-		$self->_icons()->add_icon( $self->msi_product_icon() );
-	}
-
-	return 1;
-} ## end sub initialize_nomsm
-
-
-
-=head3 initialize_using_msm
-
-The C<initialize_using_msm> routine does the initialization that is 
-required after C<final_initialization> has been called, but 
-before files can be installed if a merge module is to be used.
-
-(see L</Using a merge module> for more information.)
-
-=cut
-
-sub initialize_using_msm {
-	my $self = shift;
-
-	# Making sure that this is unset.
-	$self->_set_in_merge_module(0);
-
-	# Download and extract the image.
-	my $tgz = $self->mirror_url( $self->msm_zip(), $self->download_dir() );
-	$self->_extract( $tgz, $self->image_dir() );
-
-	# Start adding the fragments that are only for an .msi.
-	$self->_add_fragment(
-		'StartMenuIcons',
-		Perl::Dist::WiX::Fragment::StartMenu->new(
-			directory_id => 'D_App_Menu',
-		) );
-	$self->_add_fragment(
-		'Win32Extras',
-		Perl::Dist::WiX::Fragment::Files->new(
-			id    => 'Win32Extras',
-			files => File::List::Object->new(),
-		) );
-
-	$self->_set_icons(
-		$self->get_fragment_object('StartMenuIcons')->get_icons() );
-	if ( defined $self->msi_product_icon() ) {
-		$self->_icons()->add_icon( $self->msi_product_icon() );
-	}
-
-	# Download the merge module.
-	my $msm =
-	  $self->mirror_url( $self->msm_to_use(), $self->download_dir() );
-
-	# Connect the Merge Module tag.
-	my $mm = Perl::Dist::WiX::Tag::MergeModule->new(
-		id                => 'Perl',
-		disk_id           => 1,
-		language          => 1033,
-		source_file       => $msm,
-		primary_reference => 1,
-	);
-	$self->_add_merge_module( 'Perl', $mm );
-	$self->get_directory_tree()
-	  ->add_merge_module( $self->image_dir(), $mm );
-
-   # Set the file paths that the first portion of the build otherwise would.
-	$self->_set_bin_perl( $self->_file(qw/perl bin perl.exe/) );
-	$self->_set_bin_make( $self->_file(qw/c bin dmake.exe/) );
-	$self->_set_bin_pexports( $self->_file(qw/c bin pexports.exe/) );
-	$self->_set_bin_dlltool( $self->_file(qw/c bin dlltool.exe/) );
-
-	# Do the same for the environment variables
-	$self->add_path( 'c',    'bin' );
-	$self->add_path( 'perl', 'site', 'bin' );
-	$self->add_path( 'perl', 'bin' );
-
-	return 1;
-} ## end sub initialize_using_msm
-
-
-
-=head3 install_c_toolchain
-
-The C<install_c_toolchain> method is used by C<run> to install various
-binary packages to provide a working C development environment.
-
-By default, the C toolchain consists of dmake, gcc (C/C++), binutils,
-pexports, the mingw runtime environment, and the win32api C package.
-
-Although dmake is the "standard" make for Perl::Dist distributions,
-it will also install the mingw version of GNU make for use with 
-those modules that require it.
-
-=cut
-
-# Install the required toolchain elements.
-# We use separate methods for each tool to make
-# it easier for individual distributions to customize
-# the versions of tools they incorporate.
-sub install_c_toolchain {
-	my $self = shift;
-
-	# The primary make
-	$self->install_dmake;
-
-	# Core compiler and support libraries.
-	$self->install_gcc_toolchain;
-
-	# C Utilities
-	$self->install_mingw_make;
-	$self->install_pexports;
-
-	# Set up the environment variables for the binaries
-	$self->add_path( 'c', 'bin' );
-
-	return 1;
-} ## end sub install_c_toolchain
-
-
-
-=head3 install_portable
-
-The C<install_portable> method is used by C<run> to install the perl
-modules to make Perl installable on a portable device.
-
-=cut
-
-# Portability support must be added after modules
-sub install_portable {
-	my $self = shift;
-
-	return 1 unless $self->portable();
-
-	# Install the regular parts of Portability
-	$self->install_modules( qw(
-		  Sub::Uplevel
-		  ) ) unless $self->isa('Perl::Dist::Strawberry');
-	$self->install_modules( qw(
-		  Test::Exception
-	) );
-	$self->install_modules( qw(
-		  Test::Tester
-		  Test::NoWarnings
-		  LWP::Online
-		  ) ) unless $self->isa('Perl::Dist::Strawberry');
-	$self->install_modules( qw(
-		  Class::Inspector
-		  CPAN::Mini
-		  Portable
-		  ) ) unless $self->isa('Perl::Dist::Bootstrap');
-
-	# Create the portability object
-	$self->trace_line( 1, "Creating Portable::Dist\n" );
-	require Portable::Dist;
-	$self->_set_portable_dist(
-		Portable::Dist->new( perl_root => $self->_dir('perl') ) );
-	$self->trace_line( 1, "Running Portable::Dist\n" );
-	$self->_portable_dist()->run();
-	$self->trace_line( 1, "Completed Portable::Dist\n" );
-
-	# Install the file that turns on Portability last
-	$self->install_file(
-		share      => 'Perl-Dist-WiX portable\portable.perl',
-		install_to => 'portable.perl',
-	);
-
-	# Install files to help use Strawberry Portable.
-	$self->install_file(
-		share      => 'Perl-Dist-WiX portable\README.portable.txt',
-		install_to => 'README.portable.txt',
-	);
-	$self->install_file(
-		share      => 'Perl-Dist-WiX portable\portableshell.bat',
-		install_to => 'portableshell.bat',
-	);
-
-	return 1;
-} ## end sub install_portable
-
-
-
-=head3 install_relocatable
-
-The C<install_relocatable> method is used by C<run> to install the perl
-script to make Perl relocatable when installed.
-
-This routine must be run before L</regenerate_fragments>, so that the 
-fragment created in this method is regenerated and the file ID can
-be found by L</find_relocatable_fields> later.
-
-=cut
-
-# Relocatability support must be added before writing the merge module
-sub install_relocatable {
-	my $self = shift;
-
-	return 1 unless $self->relocatable();
-
-	# Copy the relocation information in.
-	$self->copy_file( catfile( $self->wix_dist_dir(), 'relocation.pl' ),
-		$self->image_dir() );
-
-	# Make sure it gets installed.
-	$self->insert_fragment(
-		'relocation_script',
-		File::List::Object->new()->add_file( $self->file('relocation.pl') ),
-	);
-
-	return 1;
-} ## end sub install_relocatable
-
-
-
-=head3 find_relocatable_fields
-
-The C<find_relocatable_fields> method is used by C<run> to find the 
-property ID's required to make Perl relocatable when installed.
-
-This routine must be run after L</regenerate_fragments>.
-
-=cut
-
-# Relocatability support must be added before writing the merge module
-sub find_relocatable_fields {
-	my $self = shift;
-
-	return 1 unless $self->relocatable();
-
-	# Set the fileid attributes.
-	my $perl_id =
-	  $self->get_fragment_object('perl')
-	  ->find_file_id( $self->file(qw(perl bin perl.exe)) );
-	if ( not $perl_id ) {
-		PDWiX->throw("Could not find perl.exe's ID.\n");
-	}
-	$self->_set_fileid_perl($perl_id);
-
-	my $script_id =
-	  $self->get_fragment_object('relocation_script')
-	  ->find_file_id( $self->file('relocation.pl') );
-	if ( not $script_id ) {
-		PDWiX->throw("Could not find relocation.pl's ID.\n");
-	}
-	$self->_set_fileid_relocation_pl($script_id);
-
-	return 1;
-} ## end sub find_relocatable_fields
-
-
-
-=head3 install_win32_extras
-
-The C<install_win32_extras> method is used by C<run> to install the links 
-and launchers into the Start menu.
-
-=cut
-
-# Install links and launchers and so on
-sub install_win32_extras {
-	my $self = shift;
-
-	File::Path::mkpath( $self->dir('win32') );
-
-	if ( $self->msi() ) {
-		$self->install_launcher(
-			name => 'CPAN Client',
-			bin  => 'cpan',
-		);
-		$self->install_website(
-			name      => 'CPAN Search',
-			url       => 'http://search.cpan.org/',
-			icon_file => catfile( $self->wix_dist_dir(), 'cpan.ico' ) );
-
-		if ( $self->perl_version_human eq '5.8.9' ) {
-			$self->install_website(
-				name      => 'Perl 5.8.9 Documentation',
-				url       => 'http://perldoc.perl.org/5.8.9/',
-				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
-			);
-		}
-		if ( $self->perl_version_human eq '5.10.0' ) {
-			$self->install_website(
-				name      => 'Perl 5.10.0 Documentation',
-				url       => 'http://perldoc.perl.org/5.10.0/',
-				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
-			);
-		}
-		if ( $self->perl_version_human eq '5.10.1' ) {
-			$self->install_website(
-				name      => 'Perl 5.10.1 Documentation',
-				url       => 'http://perldoc.perl.org/5.10.1/',
-				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
-			);
-		}
-		if ( $self->perl_version_human eq '5.12.0' ) {
-			$self->install_website(
-				name      => 'Perl 5.12.0 Documentation',
-				url       => 'http://perldoc.perl.org/5.12.0/',
-				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
-			);
-		}
-		if ( $self->perl_version_human eq '5.12.1' ) {
-			$self->install_website(
-				name      => 'Perl 5.12.1 Documentation',
-				url       => 'http://perldoc.perl.org/5.12.1/',
-				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
-			);
-		}
-		$self->install_website(
-			name      => 'Win32 Perl Wiki',
-			url       => 'http://win32.perl.org/',
-			icon_file => catfile( $self->wix_dist_dir(), 'win32.ico' ) );
-
-		$self->get_fragment_object('StartMenuIcons')->add_shortcut(
-			name => 'Perl (command line)',
-			description =>
-			  'Quick way to get to the command line in order to use Perl',
-			target      => '[SystemFolder]cmd.exe',
-			id          => 'PerlCmdLine',
-			working_dir => 'PersonalFolder',
-		);
-
-		$self->add_to_fragment(
-			'Win32Extras',
-			[   catfile( $self->image_dir(), qw(win32 win32.ico) ),
-				catfile( $self->image_dir(), qw(win32 cpan.ico) ),
-			] );
-
-	} ## end if ( $self->msi() )
-
-	return $self;
-} ## end sub install_win32_extras
-
-
-
-=head3 remove_waste
-
-The C<remove_waste> method is used by C<run> to remove files that the 
-distribution does not need to package.
-
-=cut
-
-# Delete various stuff we won't be needing
-sub remove_waste {
-	my $self = shift;
-
-	$self->trace_line( 1, "Removing waste\n" );
-	$self->trace_line( 2,
-		"  Removing doc, man, info and html documentation\n" );
-	$self->_remove_dir(qw{ perl man       });
-	$self->_remove_dir(qw{ perl html      });
-	$self->_remove_dir(qw{ c    man       });
-	$self->_remove_dir(qw{ c    doc       });
-	$self->_remove_dir(qw{ c    info      });
-	$self->_remove_dir(qw{ c    contrib   });
-	$self->_remove_dir(qw{ c    html      });
-
-	$self->trace_line( 2, "  Removing C examples, manifests\n" );
-	$self->_remove_dir(qw{ c examples  });
-	$self->_remove_dir(qw{ c manifest  });
-
-	$self->trace_line( 2, "  Removing extra dmake/gcc files\n" );
-	$self->_remove_dir(qw{ c bin startup mac   });
-	$self->_remove_dir(qw{ c bin startup msdos });
-	$self->_remove_dir(qw{ c bin startup os2   });
-	$self->_remove_dir(qw{ c bin startup qssl  });
-	$self->_remove_dir(qw{ c bin startup tos   });
-	$self->_remove_dir(qw{ c libexec gcc mingw32 3.4.5 install-tools});
-
-	$self->trace_line( 2, "  Removing redundant files\n" );
-	$self->_remove_file(qw{ c COPYING     });
-	$self->_remove_file(qw{ c COPYING.LIB });
-	$self->_remove_file(qw{ c bin gccbug  });
-	$self->_remove_file(qw{ c bin mingw32-gcc-3.4.5 });
-
-	$self->trace_line( 2,
-		"  Removing CPAN build directories and download caches\n" );
-	$self->_remove_dir(qw{ cpan sources  });
-	$self->_remove_dir(qw{ cpan build    });
-	$self->_remove_file(qw{ cpan cpandb.sql });
-	$self->_remove_file(qw{ cpan FTPstats.yml });
-	$self->_remove_file(qw{ cpan cpan_sqlite_log.* });
-
-	# Readding the cpan directory.
-	$self->remake_path( catdir( $self->build_dir, 'cpan' ) );
-
-	return 1;
-} ## end sub remove_waste
-
-sub _remove_dir {
-	my $self = shift;
-	my $dir  = $self->dir(@_);
-	File::Remove::remove( \1, $dir ) if -e $dir;
-	return 1;
-}
-
-sub _remove_file {
-	my $self = shift;
-	my $file = $self->file(@_);
-	File::Remove::remove( \1, $file ) if -e $file;
-	return 1;
+	return substr rel2abs( $self->image_dir() ), 0, 2;
 }
 
 
 
-=head3 regenerate_fragments
+=head3 image_dir_url
 
-The C<regenerate_fragments> method is used by C<run> to fully generate the
-object tree for file-containing fragments, which only contain a list of
-files until their regenerate() routines are run.
+Returns a string containing the C<image_dir> as a file: URL.
 
 =cut
 
-sub regenerate_fragments {
+sub image_dir_url {
 	my $self = shift;
-
-	return 1 unless $self->msi();
-
-	# Add the perllocal.pod here, because apparently it's disappearing.
-	if ( $self->fragment_exists('perl') ) {
-		$self->add_to_fragment( 'perl',
-			[ $self->file(qw(perl lib perllocal.pod)) ] );
-	}
-
-	my @fragment_names_regenerate;
-	my @fragment_names = $self->_fragment_keys();
-
-	while ( 0 != scalar @fragment_names ) {
-		foreach my $name (@fragment_names) {
-			my $fragment = $self->get_fragment_object($name);
-			if ( defined $fragment ) {
-				push @fragment_names_regenerate, $fragment->_regenerate();
-			} else {
-				$self->trace_line( 0,
-"Couldn't regenerate fragment $name because fragment object did not exist.\n"
-				);
-			}
-		}
-
-		$#fragment_names = -1;         # clears the array.
-		@fragment_names             = uniq @fragment_names_regenerate;
-		$#fragment_names_regenerate = -1;
-	} ## end while ( 0 != scalar @fragment_names)
-
-	return 1;
-} ## end sub regenerate_fragments
-
-
-
-=head3 write
-
-The C<write> method is used by C<run> to compile the final
-installers for the distribution.
-
-=cut
-
-sub write { ## no critic 'ProhibitBuiltinHomonyms'
-	my $self = shift;
-
-	if ( $self->zip() ) {
-		$self->add_output_files( $self->_write_zip() );
-	}
-	if ( $self->msi() ) {
-		$self->add_output_files( $self->_write_msi() );
-	}
-	return 1;
+	return URI::file->new( $self->image_dir() )->as_string();
 }
 
 
 
-=head3 write_merge_module
+=head3 image_dir_quotemeta
 
-The C<write_merge_module> method is used by C<run> to compile the merge
-module for the distribution.
-
-=cut
-
-sub write_merge_module {
-	my $self = shift;
-
-	if ( $self->msi() ) {
-
-		$self->add_output_files( $self->_write_msm() );
-
-		$self->_clear_fragments();
-
-		my $zipfile = catfile( $self->output_dir(), 'fragments.zip' );
-		$self->trace_line( 1, "Generating zip at $zipfile\n" );
-
-		# Create the archive
-		my $zip = Archive::Zip->new();
-
-		# Add the fragments directory to the root
-		$zip->addTree( $self->fragment_dir(), q{} );
-
-		my @members = $zip->members();
-
-		# Set max compression for all members, deleting .AAA files.
-		foreach my $member (@members) {
-			next if $member->isDirectory();
-			$member->desiredCompressionLevel(9);
-			if ( $member->fileName =~ m{[.] wixout\z}smx ) {
-				$zip->removeMember($member);
-			}
-			if ( $member->fileName =~ m{[.] wixobj\z}smx ) {
-				$zip->removeMember($member);
-			}
-		}
-
-		# Write out the file name
-		$zip->writeToFileNamed($zipfile);
-
-		# Remake the fragments directory.
-		$self->remake_path( $self->fragment_dir() );
-
-		## no critic(ProtectPrivateSubs)
-		# Reset the directory tree.
-		$self->_set_directories(undef);
-		Perl::Dist::WiX::DirectoryTree2->_clear_instance();
-		$self->_set_directories(
-			Perl::Dist::WiX::DirectoryTree2->new(
-				app_dir  => $self->image_dir(),
-				app_name => $self->app_name(),
-			  )->initialize_short_tree( $self->perl_version() ) );
-
-		$self->_set_in_merge_module(0);
-
-		# Start adding the fragments that are only for the .msi.
-		$self->_add_fragment(
-			'StartMenuIcons',
-			Perl::Dist::WiX::Fragment::StartMenu->new(
-				directory_id => 'D_App_Menu',
-			) );
-		$self->_add_fragment(
-			'Win32Extras',
-			Perl::Dist::WiX::Fragment::Files->new(
-				id    => 'Win32Extras',
-				files => File::List::Object->new(),
-			) );
-
-		$self->_set_icons(
-			$self->get_fragment_object('StartMenuIcons')->get_icons() );
-		if ( defined $self->msi_product_icon() ) {
-			$self->_icons()
-			  ->add_icon( $self->msi_product_icon()->stringify() );
-		}
-
-		my $mm = Perl::Dist::WiX::Tag::MergeModule->new(
-			id          => 'Perl',
-			disk_id     => 1,
-			language    => 1033,
-			source_file => $self->output_dir()
-			  ->file( $self->output_base_filename() . '.msm' )->stringify(),
-			primary_reference => 1,
-		);
-		$self->_add_merge_module( 'Perl', $mm );
-		$self->get_directory_tree()
-		  ->add_merge_module( $self->image_dir()->stringify(), $mm );
-	} ## end if ( $self->msi() )
-
-	return 1;
-} ## end sub write_merge_module
-
-
-
-#####################################################################
-# Package Generation
-
-=head2 Package generation
-
-These are the (private) routines that generate different types of packages 
-and are called by the L<write()|/write> method when required.
-
-=head3 _write_zip
-
-	$self->_write_zip();
-
-The C<_write_zip> method is used to generate a standalone .zip file
-containing the entire distribution, for situations in which a full
-installer database is not wanted (such as for "Portable Perl"
-type installations). It is called by C<write> when needed.
-
-The .zip file is written to the output directory, and the location
-of the file is printed to STDOUT.
-
-Returns true or throws an exception or error.
+Returns a string containing the C<image_dir>, with all backslashes
+converted to 2 backslashes.
 
 =cut
 
-sub _write_zip {
-	my $self = shift;
-	my $file =
-	  catfile( $self->output_dir(), $self->output_base_filename . '.zip' );
-	$self->trace_line( 1, "Generating zip at $file\n" );
+# This is a temporary hack
+sub image_dir_quotemeta {
+	my $self   = shift;
+	my $string = $self->image_dir();
+	$string =~ s{\\}        # Convert a backslash
+				{\\\\}gmsx; ## to 2 backslashes.
+	return $string;
+}
 
-	# Make directories.
-	$self->remake_path( catdir( $self->image_dir(), qw(cpan sources) ) );
-	$self->remake_path( catdir( $self->image_dir(), qw(cpanplus    ) ) );
 
-	# Create the archive
-	my $zip = Archive::Zip->new();
 
-	# Add the image directory to the root
-	$zip->addTree( $self->image_dir(), q{} );
+=head2 Other routines that your tasks can use
 
-	my @members = $zip->members();
-
-	# Set max compression for all members, deleting .AAA files.
-	foreach my $member (@members) {
-		next if $member->isDirectory();
-		$member->desiredCompressionLevel(9);
-		if ( $member->fileName =~ m{[.] AAA\z}smx ) {
-			$zip->removeMember($member);
-		}	}
-
-	# Write out the file name
-	$zip->writeToFileNamed($file);
-
-	return $file;
-} ## end sub _write_zip
-
-
-
-=head3 _write_msi
-
-  $self->_write_msi();
-
-The C<_write_msi> method is used to generate the compiled installer
-database. It creates the entire installation file tree, and then
-executes WiX to create the final executable.
-
-This method is called by C<write>, and should only be called after all 
-installation phases have been completed and all of the files for the 
-distribution are in place.
-
-The executable file is written to the output directory, and the location
-of the file is printed to STDOUT.
-
-Returns true or throws an exception or error.
-
-=cut
-
-sub _write_msi {
-	my $self = shift;
-
-	my $dir = $self->fragment_dir;
-	my ( $fragment, $fragment_name, $fragment_string );
-	my ( $filename_in, $filename_out );
-	my $fh;
-	my @files;
-
-	$self->trace_line( 1, "Generating msi\n" );
-
-  FRAGMENT:
-
-	# Write out .wxs files for all the fragments and compile them.
-	foreach my $key ( $self->_fragment_keys() ) {
-		$fragment        = $self->get_fragment_object($key);
-		$fragment_string = $fragment->as_string();
-		next
-		  if ( ( not defined $fragment_string )
-			or ( $fragment_string eq q{} ) );
-		$fragment_name = $fragment->get_id;
-		$filename_in   = catfile( $dir, $fragment_name . q{.wxs} );
-		$filename_out  = catfile( $dir, $fragment_name . q{.wixout} );
-		$fh            = IO::File->new( $filename_in, 'w' );
-
-		if ( not defined $fh ) {
-			PDWiX::File->throw(
-				file    => $filename_in,
-				message => 'Could not open file for writing '
-				  . "[$OS_ERROR] [$EXTENDED_OS_ERROR]"
-			);
-		}
-		$fh->print($fragment_string);
-		$fh->close;
-		$self->trace_line( 2, "Compiling $filename_in\n" );
-		$self->_compile_wxs( $filename_in, $filename_out )
-		  or PDWiX->throw("WiX could not compile $filename_in");
-
-		unless ( -f $filename_out ) {
-			PDWiX->throw( "Failed to find $filename_out (probably "
-				  . "compilation error in $filename_in)" );
-		}
-
-		push @files, $filename_out;
-	} ## end foreach my $key ( $self->_fragment_keys...)
-
-	# Generate feature tree.
-	$self->_set_feature_tree_object(
-		Perl::Dist::WiX::FeatureTree2->new( parent => $self, ) );
-
-	my $mm;
-
-	# Add merge modules.
-	foreach my $mm_key ( $self->_merge_module_keys() ) {
-		$mm = $self->get_merge_module_object($mm_key);
-		$self->feature_tree_object()->add_merge_module($mm);
-	}
-
-
-	# Write out the .wxs file
-	my $content = $self->as_string('Main.wxs.tt');
-	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
-	$filename_in =
-	  catfile( $self->fragment_dir(), $self->app_name() . q{.wxs} );
-
-	if ( -f $filename_in ) {
-
-		# Had a collision. Yell and scream.
-		PDWiX->throw(
-			"Could not write out $filename_in: File already exists.");
-	}
-	$filename_out =
-	  catfile( $self->fragment_dir, $self->app_name . q{.wixobj} );
-	$fh = IO::File->new( $filename_in, 'w' );
-
-	if ( not defined $fh ) {
-		PDWiX::File->throw(
-			file    => $filename_in,
-			message => 'Could not open file for writing '
-			  . "[$OS_ERROR] [$EXTENDED_OS_ERROR]"
-		);
-	}
-	$fh->print($content);
-	$fh->close;
-
-	# Compile the main .wxs
-	$self->trace_line( 2, "Compiling $filename_in\n" );
-	$self->_compile_wxs( $filename_in, $filename_out )
-	  or PDWiX->throw("WiX could not compile $filename_in");
-	unless ( -f $filename_out ) {
-		PDWiX->throw( "Failed to find $filename_out (probably "
-			  . "compilation error in $filename_in)" );
-	}
-
-	# Start linking the msi.
-
-	# Get the parameters for the msi linking.
-	my $output_msi =
-	  catfile( $self->output_dir, $self->output_base_filename . '.msi', );
-	my $input_wixouts = catfile( $self->fragment_dir, '*.wixout' );
-	my $input_wixobj =
-	  catfile( $self->fragment_dir, $self->app_name . '.wixobj' );
-
-	# Link the .wixobj files
-	$self->trace_line( 1, "Linking $output_msi\n" );
-	my $out;
-	my $cmd = [
-		wix_bin_light(),
-		'-sice:ICE38',                 # Gets rid of ICE38 warning.
-		'-sice:ICE43',                 # Gets rid of ICE43 warning.
-		'-sice:ICE47',                 # Gets rid of ICE47 warning.
-		                               # (Too many components in one
-		                               # feature for Win9X)
-		'-sice:ICE48',                 # Gets rid of ICE48 warning.
-		                               # (Hard-coded installation location)
-
-#		'-v',                          # Verbose for the moment.
-		'-out', $output_msi,
-		'-ext', wix_lib_wixui(),
-		'-ext', wix_library('WixUtil'),
-		$input_wixobj,
-		$input_wixouts,
-	];
-	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
-
-	$self->trace_line( 1, $out );
-
-	# Did everything get done correctly?
-	if ( ( not -f $output_msi ) and ( $out =~ /error|warning/msx ) ) {
-		$self->trace_line( 0, $out );
-		PDWiX->throw(
-			"Failed to find $output_msi (probably compilation error)");
-	}
-
-	return $output_msi;
-} ## end sub _write_msi
-
-
-
-=head3 _write_msm
-
-  $self->_write_msm();
-
-The C<_write_msm> method is used to generate the compiled merge module
-used in the installer. It creates the entire installation file tree, and then
-executes WiX to create the merge module.
-
-This method is called by C<write_merge_module>, and should only be called 
-after all installation phases that install perl modules that should be in 
-the .msm have been completed and all of the files for the merge module are 
-in place.
-
-The merge module file is written to the output directory, and the location
-of the file is printed to STDOUT.
-
-Returns true or throws an exception or error.
-
-=cut
-
-sub _write_msm {
-	my $self = shift;
-
-	my $dir = $self->fragment_dir;
-	my ( $fragment, $fragment_name, $fragment_string );
-	my ( $filename_in, $filename_out );
-	my $fh;
-	my @files;
-
-	$self->trace_line( 1, "Generating msm\n" );
-
-	# Add the path in.
-	foreach my $value ( map { '[INSTALLDIR]' . catdir( @{$_} ) }
-		$self->_get_env_path_unchecked() )
-	{
-		$self->add_env( 'PATH', $value, 1 );
-	}
-
-  FRAGMENT:
-
-	# Write out .wxs files for all the fragments and compile them.
-	foreach my $key ( $self->_fragment_keys() ) {
-		$fragment        = $self->get_fragment_object($key);
-		$fragment_string = $fragment->as_string();
-		next
-		  if ( ( not defined $fragment_string )
-			or ( $fragment_string eq q{} ) );
-		$fragment_name = $fragment->get_id();
-		$filename_in   = catfile( $dir, $fragment_name . q{.wxs} );
-		$filename_out  = catfile( $dir, $fragment_name . q{.wixout} );
-		$fh            = IO::File->new( $filename_in, 'w' );
-
-		if ( not defined $fh ) {
-			PDWiX::File->throw(
-				file    => $filename_in,
-				message => 'Could not open file for writing '
-				  . "[$OS_ERROR] [$EXTENDED_OS_ERROR]"
-			);
-		}
-		$fh->print($fragment_string);
-		$fh->close;
-		$self->trace_line( 2, "Compiling $filename_in\n" );
-		$self->_compile_wxs( $filename_in, $filename_out )
-		  or PDWiX->throw("WiX could not compile $filename_in");
-
-		unless ( -f $filename_out ) {
-			PDWiX->throw( "Failed to find $filename_out (probably "
-				  . "compilation error in $filename_in)" );
-		}
-
-		push @files, $filename_out;
-	} ## end foreach my $key ( $self->_fragment_keys...)
-
-	# Generate feature tree.
-	$self->_set_feature_tree_object(
-		Perl::Dist::WiX::FeatureTree2->new( parent => $self, ) );
-
-	# Write out the .wxs file
-	my $content = $self->as_string('Merge-Module.wxs.tt');
-	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
-	$filename_in =
-	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
-
-	if ( -f $filename_in ) {
-
-		# Had a collision. Yell and scream.
-		PDWiX->throw(
-			"Could not write out $filename_in: File already exists.");
-	}
-	$filename_out =
-	  catfile( $self->fragment_dir, $self->app_name . q{.wixobj} );
-	$fh = IO::File->new( $filename_in, 'w' );
-
-	if ( not defined $fh ) {
-		PDWiX->throw(
-"Could not open file $filename_in for writing [$OS_ERROR] [$EXTENDED_OS_ERROR]"
-		);
-	}
-	$fh->print($content);
-	$fh->close;
-
-	# Compile the main .wxs
-	$self->trace_line( 2, "Compiling $filename_in\n" );
-	$self->_compile_wxs( $filename_in, $filename_out )
-	  or PDWiX->throw("WiX could not compile $filename_in");
-	unless ( -f $filename_out ) {
-		PDWiX->throw( "Failed to find $filename_out (probably "
-			  . "compilation error in $filename_in)" );
-	}
-
-# Start linking the merge module.
-
-	# Get the parameters for the msi linking.
-	my $output_msm =
-	  catfile( $self->output_dir, $self->output_base_filename . '.msm', );
-	my $input_wixouts = catfile( $self->fragment_dir, '*.wixout' );
-	my $input_wixobj =
-	  catfile( $self->fragment_dir, $self->app_name . '.wixobj' );
-
-	# Link the .wixobj files
-	$self->trace_line( 1, "Linking $output_msm\n" );
-	my $out;
-	my $cmd = [
-		wix_bin_light(),        '-out',
-		$output_msm,            '-ext',
-		wix_lib_wixui(),        '-ext',
-		wix_library('WixUtil'), $input_wixobj,
-		$input_wixouts,
-	];
-	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
-
-	$self->trace_line( 1, $out );
-
-	# Did everything get done correctly?
-	if ( ( not -f $output_msm ) and ( $out =~ /error|warning/msx ) ) {
-		$self->trace_line( 0, $out );
-		PDWiX->throw(
-			"Failed to find $output_msm (probably compilation error)");
-	}
-
-	# Now write out the documentation for the msm.
-	my $output_docs =
-	  catfile( $self->output_dir(),
-		'merge-module-' . $self->distribution_version_file() . '.html',
-	  );
-	my $docs =
-	  $self->process_template('Merge-Module.documentation.html.tt');
-	$fh = IO::File->new( $output_docs, 'w' );
-
-	if ( not defined $fh ) {
-		PDWiX::File->throw(
-			file    => $filename_in,
-			message => 'Could not open file for writing '
-			  . "[$OS_ERROR] [$EXTENDED_OS_ERROR]"
-		);
-	}
-	$fh->print($docs);
-	$fh->close;
-
-	return ( $output_msm, $output_docs );
-} ## end sub _write_msm
-
-
-
-=head3 _compile_wxs
-
-Compiles a .wxs file (specified by $filename) into a .wixobj file 
-(specified by $wixobj.)  Both parameters are required.
-
-This method is used by the L<_write_msi()|/_write_msi> and 
-L<_write_msm()|/_write_msm> methods.
-
-	$self->_compile_wxs("Perl.wxs", "Perl.wixobj");
-
-=cut
-
-sub _compile_wxs {
-	my ( $self, $filename, $wixobj ) = @_;
-	my @files = @_;
-
-	# Check parameters.
-	unless ( _STRING($filename) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'filename',
-			where     => '::Installer->compile_wxs'
-		);
-	}
-	unless ( _STRING($wixobj) ) {
-		PDWiX::Parameter->throw(
-			parameter => 'wixobj',
-			where     => '::Installer->compile_wxs'
-		);
-	}
-	unless ( -r $filename ) {
-		PDWiX::File->throw(
-			file    => $filename,
-			message => 'File does not exist or is not readable'
-		);
-	}
-
-	# Compile the .wxs file
-	my $cmd = [
-		wix_bin_candle(),
-		'-out', $wixobj,
-		$filename,
-
-	];
-	my $out;
-	my $rv = IPC::Run3::run3( $cmd, \undef, \$out, \undef );
-
-	if ( ( not -f $wixobj ) and ( $out =~ /error|warning/msx ) ) {
-		$self->trace_line( 0, $out );
-		PDWiX->throw( "Failed to find $wixobj (probably "
-			  . "compilation error in $filename)" );
-	}
-
-
-	return $rv;
-} ## end sub _compile_wxs
-
-
-
-=head2 add_icon
+=head3 add_icon
 
 TODO: Document
 
@@ -4476,7 +4555,7 @@ sub add_icon {
 
 
 
-=head2 add_path
+=head3 add_path
 
 	$self->add_path('perl', 'bin');
 
@@ -4500,7 +4579,7 @@ sub add_path {
 
 
 
-=head2 get_path_string
+=head3 get_path_string
 
 	my $ENV{PATH} = "$ENV{PATH};" . $dist->get_path_string();
 
@@ -4518,7 +4597,7 @@ sub get_path_string {
 
 
 
-=head2 add_env
+=head3 add_env
 
 	$self->add_env('PATH', $self->image_dir()->subdir(qw(perl bin)), 1);
 	$self->add_env('TERM', 'dumb');
@@ -4568,7 +4647,7 @@ sub add_env {
 
 
 
-=head2 add_file
+=head3 add_file
 
 	$dist->add_file({
 		source => $filename, 
@@ -4617,7 +4696,7 @@ sub add_file {
 
 
 
-=head2 insert_fragment
+=head3 insert_fragment
 
 	$self->insert_fragment($id, $files_obj, $overwritable);
 
@@ -4676,7 +4755,7 @@ sub insert_fragment {
 
 
 
-=head2 add_to_fragment
+=head3 add_to_fragment
 
 	$dist->add_to_fragment($id, $files_obj);
 
@@ -4727,43 +4806,21 @@ sub add_to_fragment {
 
 #####################################################################
 #
-# Serialization
+# Patch Support
+#
+# TODO: May be moved to Perl::Dist::WiX::Patching
 #
 
-=head2 as_string
+=head3 File patching support
 
-Loads the file template passed in as the parameter, using this object, 
-and returns it as a string.
-
-Used for .wxs files.
-
-	# Loads up the merge module template.
-	$wxs = $self->as_string('Merge-Module.wxs.tt');
-
-	# Loads up the main template
-	$wxs = $self->as_string('Main.wxs.tt');
-
-=cut
-
-sub as_string {
-	my $self          = shift;
-	my $template_file = shift;
-
-	return $self->process_template(
-		$template_file,
-		(   directory_tree =>
-			  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
-		) );
-}
-
-=head2 process_template
+=head4 process_template
 
 Loads the file template passed in as the first parameter, using this object, 
 and returns it as a string.
 
 Additional entries (beyond the one given that 'dist' is the Perl::Dist::WiX 
-object) for the second parameter of Template->process are given as a reference
-to a list of pairs in the optional second parameter.
+object) for the second parameter of Template->process are given as a list of 
+pairs in the optional second parameter.
 
 	# Loads up the template for merge module docs.
 	$text = $self->process_template('Merge-Module.documentation.txt.tt');
@@ -4789,6 +4846,7 @@ sub process_template {
 
 #<<<
 	# Delete empty lines.
+	# Change this to use \R once we get to 5.10 requirement.
 	## no critic(ProhibitComplexRegexes)
 	$answer =~ s{(?>\x0D\x0A?|[\x0A-\x0C\x85\x{2028}\x{2029}])
                             # Replace a linebreak, 
@@ -4805,16 +4863,7 @@ sub process_template {
 
 
 
-#####################################################################
-#
-# Patch Support
-#
-# TODO: May be moved to Perl::Dist::WiX::Patching
-#
-
-=head2 File Patching support
-
-=head3 patch_include_path
+=head4 patch_include_path
 
 Returns an array reference containing a list of paths containing files
 that are used to replace or patch files in the distribution.
@@ -4848,7 +4897,7 @@ sub patch_include_path {
 
 
 
-=head3 patch_pathlist
+=head4 patch_pathlist
 
 Returns the list of directories in C<patch_include_path> as a 
 L<File::PathList|File::PathList> object.
@@ -4862,40 +4911,7 @@ sub patch_pathlist {
 
 
 
-=head3 patch_template
-
-C<patch_template> returns the L<Template|Template> object that is used to generate 
-patched files.
-
-=cut
-
-has 'patch_template' => (
-	is       => 'ro',
-	isa      => TemplateObj,
-	lazy     => 1,
-	init_arg => undef,
-	builder  => '_build_patch_template',
-	clearer  => '_clear_patch_template',
-);
-
-sub _build_patch_template {
-	my $self = shift;
-	my $obj  = Template->new(
-		INCLUDE_PATH => $self->patch_include_path(),
-		ABSOLUTE     => 1,
-	);
-
-	PDWiX::Caught->throw(
-		message => Template::error(),
-		info    => 'Template'
-	) unless $obj;
-
-	return $obj;
-} ## end sub _build_patch_template
-
-
-
-=head3 patch_file
+=head4 patch_file
 
 C<patch_file> patches an individual file installed in the distribution
 using a file from the directories returned from L</patch_pathlist>.
@@ -4953,48 +4969,6 @@ sub patch_file {
 } ## end sub patch_file
 
 
-
-=head3 image_drive
-
-The drive letter of the image directory.  Retrieved from C<image_dir>.
-
-=cut
-
-sub image_drive {
-	my $self = shift;
-	return substr rel2abs( $self->image_dir() ), 0, 2;
-}
-
-
-
-=head3 image_dir_url
-
-Returns a string containing the C<image_dir> as a file: URL.
-
-=cut
-
-sub image_dir_url {
-	my $self = shift;
-	return URI::file->new( $self->image_dir() )->as_string();
-}
-
-
-
-=head3 image_dir_quotemeta
-
-Returns a string containing the C<image_dir>, with all backslashes
-converted to 2 backslashes.
-
-=cut
-
-# This is a temporary hack
-sub image_dir_quotemeta {
-	my $self   = shift;
-	my $string = $self->image_dir();
-	$string =~ s{\\}        # Convert a backslash
-				{\\\\}gmsx; ## to 2 backslashes.
-	return $string;
-}
 
 1;
 
