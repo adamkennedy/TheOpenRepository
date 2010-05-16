@@ -146,6 +146,8 @@ my $builder = $class->new(
 	},
 	recommends => {
 		'Readonly::XS'              => '1.05',
+		# To notify Growl for Windows.
+		'Growl::GNTP'               => '0.07',
 	},
 	meta_add => {
 		no_index => {

@@ -2050,6 +2050,20 @@ has '_in_merge_module' => (
 
 
 
+has '_notification_index' => (
+	traits   => ['Counter'],
+	is       => 'ro',
+	isa      => Int,
+	default  => 0,
+	init_arg => undef,
+	handles  => {
+		'_increment_notify_index' => 'inc',
+		
+	},
+);
+
+
+
 has '_output_file' => (
 	traits   => ['Array'],
 	is       => 'bare',
@@ -2064,6 +2078,44 @@ has '_output_file' => (
 );
 
 # TODO: Document add_output_files and get_output_files.
+
+# This throws a Growl notification up when files are created.
+after /\Aadd_output_file/ => sub {
+	my $self = shift;
+	my $growl;
+	
+	if (eval { require Growl::GNTP; 1; }) {
+	
+		# Register with Growl for Windows.
+		$growl = Growl::GNTP->new(AppName => 'Perl::Dist::WiX');
+		$growl->register([{
+			Name        => 'OUTPUT_FILE',
+			DisplayName => 'Output file created',
+			Enabled     => 'True',
+			Sticky      => 'False',
+			Priority    => -2,  # very low priority.
+#			Icon        => ''
+		}]);
+	
+		foreach my $file (@_) {
+			if ($file =~ m{[.] msi|zip|msm\Z}msx) {
+				# Actually do the notification.
+				$growl->notify({
+					Event               => 'OUTPUT_FILE', # name of notification
+					Title               => 'Output file created',
+					Message             => "$file has been created",
+#					Icon                => 'http://www.example.com/myface.png',
+					ID                  => $self->_notification_index(),
+				});
+				# Increment the ID for next time.
+				$self->_increment_notify_index();
+			}
+		}
+	} 
+
+	return 1;
+};
+
 
 
 has '_perl_version_corelist' => (
