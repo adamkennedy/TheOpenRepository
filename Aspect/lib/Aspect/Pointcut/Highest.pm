@@ -41,7 +41,7 @@ sub match_curry {
 ######################################################################
 # Runtime Methods
 
-sub match_compile2 {
+sub compile_runtime {
 	my $depth = 0;
 	return sub {
 		my $pointcut = shift;

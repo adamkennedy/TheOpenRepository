@@ -88,12 +88,12 @@ sub match_curry {
 }
 
 # Compiled string form of the pointcut
-sub match_compile1 {
+sub compile_weave {
 	$_[0]->[4];
 }
 
 # Compiled string form of the pointcut
-sub match_compile2 {
+sub compile_runtime {
 	$_[0]->[5];
 }
 

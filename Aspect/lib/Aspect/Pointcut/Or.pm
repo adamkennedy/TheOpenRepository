@@ -18,9 +18,9 @@ our @ISA     = qw{
 ######################################################################
 # Weaving Methods
 
-sub match_compile1 {
+sub compile_weave {
 	my $self     = shift;
-	my @children = map { $_->match_compile1 } @$self;
+	my @children = map { $_->compile_weave } @$self;
 
 	# Collapse string conditions together,
 	# and further collapse code conditions together.
@@ -60,9 +60,9 @@ sub match_compile1 {
 
 }
 
-sub match_compile2 {
+sub compile_runtime {
 	my $self     = shift;
-	my @children = map { $_->match_compile2 } @$self;
+	my @children = map { $_->compile_runtime } @$self;
 
 	# Collapse string conditions together,
 	# and further collapse code conditions together.

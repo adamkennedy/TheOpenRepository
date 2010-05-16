@@ -52,11 +52,11 @@ sub match_curry {
 ######################################################################
 # Runtime Methods
 
-sub match_compile2 {
-	\&_match_compile2;
+sub compile_runtime {
+	\&_compile_runtime;
 }
 
-sub _match_compile2 {
+sub _compile_runtime {
 	my $runtime = shift;
 	my $self    = $runtime->{pointcut};
 	my $caller  = $self->find_caller or return 0;

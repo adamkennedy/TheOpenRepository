@@ -22,8 +22,8 @@ sub pointcut_ok {
 	my $subject   = Aspect::Pointcut::Call->new(shift);
 
 	# Do we get a compiled match function?
-	my $compiled1 = $subject->match_compiled1;
-	is( ref($compiled1), 'CODE', '->match_compiled returns a CODE reference' );
+	my $compiled1 = $subject->compiled_weave;
+	is( ref($compiled1), 'CODE', '->compiled_weave returns a CODE reference' );
 
 	# Does it match the expected functions?
 	my $good_matches = do { local $_ = $good; $compiled1->() };
@@ -36,8 +36,8 @@ sub pointcut_ok {
 	is( $curried, undef, 'Simple call curries away to nothing' );
 
 	# Do we produce an appropriate compiled run-time function
-	my $compiled2 = $subject->match_compiled2;
-	is( ref($compiled2), 'CODE', '->match_compiled2 returns a CODE reference' );
+	my $compiled2 = $subject->compiled_runtime;
+	is( ref($compiled2), 'CODE', '->compiled_runtime returns a CODE reference' );
 
 	# Does the compiled code work properly?
 	my $good_match = do { local $_ = { sub_name => $good }; $compiled2->() };

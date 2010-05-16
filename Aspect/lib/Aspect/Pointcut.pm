@@ -157,9 +157,9 @@ sub match_all {
 	my @matches = ();
 
 	# Generate the compiled form of the weave-time function feature
-	my $compiled = $self->match_compiled1;
+	my $compiled = $self->compiled_weave;
 	unless ( $compiled ) {
-		die "Failed to generate filter ->match_compiled1";
+		die "Failed to generate filter ->compile_weave";
 	}
 
 	# Quick initial root package scan to remove the need
@@ -251,40 +251,40 @@ sub match_define {
 
 =pod
 
-=head2 match_compile1
+=head2 compile_weave
 
-The C<match_compile1> method generates a custom function that is used to test
+The C<compile_weave> method generates a custom function that is used to test
 if a particular named function should be hooked as a potential join point.
 
 =cut
 
 # Most pointcut conditions always match, so default to that
-sub match_compile1 {
+sub compile_weave {
 	return 1;
 }
 
-sub match_compiled1 {
+sub compiled_weave {
 	my $self = shift;
-	my $code = $self->match_compile1;
+	my $code = $self->compile_weave;
 	return $code if ref $code;
 	return eval "sub () { $code }";
 }
 
-=head2 match_compile2
+=head2 compile_runtime
 
-The C<match_compile2> method generates a custom function that is used to test
+The C<compile_runtime> method generates a custom function that is used to test
 if a particular named function should be hooked as a potential join point.
 
 =cut
 
 # Most pointcut conditions always match, so default to that
-sub match_compile2 {
+sub compile_runtime {
 	return 1;
 }
 
-sub match_compiled2 {
+sub compiled_runtime {
 	my $self = shift;
-	my $code = $self->match_compile2;
+	my $code = $self->compile_runtime;
 	return $code if ref $code;
 	return eval "sub () { $code }";
 }

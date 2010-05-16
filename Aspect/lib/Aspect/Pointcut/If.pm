@@ -27,7 +27,7 @@ sub match_curry {
 ######################################################################
 # Runtime Methods
 
-sub match_compile2 {
+sub compile_runtime {
 	sub { !! $_->[0]->() };
 }
 

@@ -18,14 +18,14 @@ our @ISA     = qw{
 ######################################################################
 # Weaving Methods
 
-sub match_compile1 {
+sub compile_weave {
 	my $self = shift;
 
 	# Handle special cases
 	my @children = grep {
 		ref $_ or $_ ne 1
 	} map {
-		$_->match_compile1
+		$_->compile_weave
 	} @$self;
 	unless ( @children ) {
 		# Potential bug, but why would we legitimately be empty
@@ -70,14 +70,14 @@ sub match_compile1 {
 	};
 }
 
-sub match_compile2 {
+sub compile_runtime {
 	my $self = shift;
 
 	# Handle special cases
 	my @children = grep {
 		ref $_ or $_ ne 1
 	} map {
-		$_->match_compile2
+		$_->compile_runtime
 	} @$self;
 	unless ( @children ) {
 		# Potential bug, but why would we legitimately be empty
