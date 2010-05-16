@@ -26,15 +26,17 @@ files, directories,  and programs for L<Perl::Dist::WiX|Perl::Dist::WiX>.
 use 5.008001;
 use Moose;
 use English qw( -no_match_vars );
-use File::Spec::Functions qw( catdir catfile rel2abs catpath );
-use File::Remove qw();
-use File::Basename qw();
-use File::Path qw();
-use File::pushd qw();
-use Devel::StackTrace qw();
 use Archive::Tar 1.42 qw();
 use Archive::Zip qw( AZ_OK );
+use Devel::StackTrace qw();
 use LWP::UserAgent qw();
+use File::Basename qw();
+use File::Find::Rule qw();
+use File::Path qw();
+use File::pushd qw();
+use File::Remove qw();
+use File::Spec::Functions qw( catdir catfile rel2abs catpath );
+use File::Slurp qw(read_file);
 
 # TODO: We make an assumption that Archive::Tar can handle bz2 files.
 # Test to make sure that assumption is true.
@@ -764,29 +766,28 @@ sub make_relocation_file {
 	
 	# Find files we're already assigned for relocation.
 	my @filelist;	
-	my $files_already_relocating = File::List::Object->new();	
+	my %files_already_relocating;
 	foreach my $file_already_processed (@files_already_processed) {
 		@filelist = read_file($self->image_dir()->file($file_already_processed)->stringify());
 		shift @filelist;
-		$files_already_relocating->add_files(
-			map { m/\A([^:]*):.*\z/msx } @filelist
+		%files_already_relocating = (
+			%files_already_relocating,
+			map { m/\A([^:]*):.*\z/msx; $1 => 1 } @filelist
 		);
 	}
 
 	# Find all the .packlist files.
-	my $packlists = File::List::Object->new()->add_files(
-		File::Find::Rule->file()->name('.packlist')->relative()->in($self->image_dir()->stringify())
-	);
+	my @packlists_list = File::Find::Rule->file()->name('.packlist')->relative()->in($self->image_dir()->stringify());
+	my %packlists = map { s{/}{\\}g; $_ => 1} @packlists_list;
 
-	# Find all the .packlist files.
-	my $batch_files = File::List::Object->new()->add_files(
-		File::Find::Rule->file()->name('*.bat')->relative()->in($self->image_dir()->stringify())
-	);
+	# Find all the .bat files.
+	my @batch_files_list = File::Find::Rule->file()->name('*.bat')->relative()->in($self->image_dir()->stringify());
+	my %batch_files = map { s{/}{\\}g; $_ => 1} @batch_files_list;
 	
 	# Get rid of the .packlist and *.bat files we're already relocating.
-	$packlists->subtract($files_already_relocating);
-	$batch_files->subtract($files_already_relocating);
-	
+	delete @packlists{keys %files_already_relocating};
+	delete @batch_files{keys %files_already_relocating};
+		
 	# Print the first line of the relocation file.
 	my $file_out_handle;
 	open $file_out_handle, ">", $file_out;
@@ -803,20 +804,20 @@ sub make_relocation_file {
 	}
 
 	# Print out the rest of the .packlist files.
-	foreach my $pl ($packlists->files()) {
+	foreach my $pl (sort { $a cmp $b } keys %packlists) {
 		print { $file_out_handle } "$pl:backslash\n";
 	}
 
 	# Print out the batch files that need relocated.
 	my $batch_contents;
-	my $match_string = q(eval 'exec ) . quotemeta $self->image_dir()->file('perl\bin\perl.exe')->stringify();	
-	foreach my $batch_file ($batch_files->files()) {
+	my $match_string = q(eval [ ] 'exec [ ] ) . quotemeta $self->image_dir()->file('perl\bin\perl.exe')->stringify();	
+	foreach my $batch_file (sort { $a cmp $b } keys %batch_files) {
+		print "Checking to see if $batch_file needs relocated.\n";
 		my $batch_contents = read_file($self->image_dir()->file($batch_file)->stringify());
 		if ($batch_contents =~ m/$match_string/msgx) {
 			print { $file_out_handle } "$batch_file:backslash\n";
 		}
 	}
-
 	
 	# Finish up by closing the handle.
 	close $file_out_handle;
