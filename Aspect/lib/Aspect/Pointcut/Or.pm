@@ -18,12 +18,88 @@ our @ISA     = qw{
 ######################################################################
 # Weaving Methods
 
-sub match_define {
-	my $self = shift;
-	foreach ( @$self ) {
-		return 1 if $_->match_define(@_);
+sub match_compile1 {
+	my $self     = shift;
+	my @children = map { $_->match_compile1 } @$self;
+
+	# Collapse string conditions together,
+	# and further collapse code conditions together.
+	my @string = ();
+	my @code   = ();
+	foreach my $child ( @children ) {
+		# Short-cut if we contain any purely runtime pointcuts
+		unless ( ref $child ) {
+			return 1 if $child eq 1;
+			push @string, $child;
+			next;
+		}
+		if ( @string ) {
+			my $group = join ' or ', map { "( $_ )" } @string;
+			push @code, eval "sub () { $group }";
+			@string = ();
+		}
+		push @code, $child;
 	}
-	return;
+
+	if ( @string ) {
+		my $group = join ' or ', map { "( $_ )" } @string;
+		unless ( @code ) {
+			# This is the only thing we have
+			return $group;
+		}
+		push @code, eval "sub () { $group }";
+	}
+
+	# Join the groups
+	return sub {
+		foreach my $child ( @code ) {
+			return 0 unless $child->();
+		}
+		return 1;
+	};
+
+}
+
+sub match_compile2 {
+	my $self     = shift;
+	my @children = map { $_->match_compile2 } @$self;
+
+	# Collapse string conditions together,
+	# and further collapse code conditions together.
+	my @string = ();
+	my @code   = ();
+	foreach my $child ( @children ) {
+		# Short-cut if we contain any purely runtime pointcuts
+		unless ( ref $child ) {
+			return 1 if $child eq 1;
+			push @string, $child;
+			next;
+		}
+		if ( @string ) {
+			my $group = join ' or ', map { "( $_ )" } @string;
+			push @code, eval "sub () { $group }";
+			@string = ();
+		}
+		push @code, $child;
+	}
+
+	if ( @string ) {
+		my $group = join ' or ', map { "( $_ )" } @string;
+		unless ( @code ) {
+			# This is the only thing we have
+			return $group;
+		}
+		push @code, eval "sub () { $group }";
+	}
+
+	# Join the groups
+	return sub {
+		foreach my $child ( @code ) {
+			return 0 unless $child->();
+		}
+		return 1;
+	};
+
 }
 
 sub match_contains {

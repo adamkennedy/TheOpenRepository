@@ -14,11 +14,6 @@ our @ISA     = 'Aspect::Pointcut';
 ######################################################################
 # Weaving Methods
 
-# We match everything at curry-time
-sub match_define {
-	return 1;
-}
-
 # The condition pointcut contains no state and doesn't need to be curried.
 # Simply return it as-is and reuse it everywhere.
 sub match_curry {
@@ -31,6 +26,10 @@ sub match_curry {
 
 ######################################################################
 # Runtime Methods
+
+sub match_compile2 {
+	sub { !! $_->[0]->() };
+}
 
 # Match only when code returns boolean true
 sub match_run {

@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 20;
+use Test::More tests => 35;
 use Test::NoWarnings;
 use Aspect;
 
@@ -18,10 +18,32 @@ pointcut_ok( re     => qr/some_method/            );
 pointcut_ok( code   => sub { shift eq $good }     );
 
 sub pointcut_ok {
-	my $type  = shift;
-	my $subject = Aspect::Pointcut::Call->new(shift);
-	ok(   $subject->match_define($good), "$type match"    );
-	ok( ! $subject->match_define($bad),  "$type no match" );
+	my $type      = shift;
+	my $subject   = Aspect::Pointcut::Call->new(shift);
+
+	# Do we get a compiled match function?
+	my $compiled1 = $subject->match_compiled1;
+	is( ref($compiled1), 'CODE', '->match_compiled returns a CODE reference' );
+
+	# Does it match the expected functions?
+	my $good_matches = do { local $_ = $good; $compiled1->() };
+	my $bad_matches  = do { local $_ = $bad;  $compiled1->() };
+	ok(   $good_matches, "$type match"    );
+	ok( ! $bad_matches,  "$type no match" );
+
+	# Does it curry away to nothing?
+	my $curried = $subject->match_curry;
+	is( $curried, undef, 'Simple call curries away to nothing' );
+
+	# Do we produce an appropriate compiled run-time function
+	my $compiled2 = $subject->match_compiled2;
+	is( ref($compiled2), 'CODE', '->match_compiled2 returns a CODE reference' );
+
+	# Does the compiled code work properly?
+	my $good_match = do { local $_ = { sub_name => $good }; $compiled2->() };
+	my $bad_match  = do { local $_ = { sub_name => $bad  }; $compiled2->() };
+	ok(   $good_match, "$type match"    );
+	ok( ! $bad_match,  "$type no match" );
 }
 
 

@@ -43,10 +43,6 @@ sub new {
 ######################################################################
 # Weaving Methods
 
-sub match_define {
-	return 1;
-}
-
 # For wantarray pointcuts we keep the original
 sub match_curry {
 	return $_[0];

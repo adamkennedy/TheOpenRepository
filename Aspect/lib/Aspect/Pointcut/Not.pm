@@ -18,8 +18,22 @@ our @ISA     = qw{
 ######################################################################
 # Weaving Methods
 
-sub match_define {
-	return ! shift->[0]->match_define(@_);
+sub match_compile1 {
+	my $child = $_[0]->[0]->match_compile1;
+	if ( ref $child ) {
+		return sub { not $child->() };
+	} else {
+		return "not ( $child )";
+	}
+}
+
+sub match_compile2 {
+	my $child = $_[0]->[0]->match_compile2;
+	if ( ref $child ) {
+		return sub { not $child->() };
+	} else {
+		return "not ( $child )";
+	}
 }
 
 sub match_contains {

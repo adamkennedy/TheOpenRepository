@@ -27,10 +27,6 @@ sub new {
 ######################################################################
 # Weaving Methods
 
-sub match_define {
-	return 1;
-}
-
 # Call pointcuts curry away to null, because they are the basis
 # for which methods to hook in the first place. Any method called
 # at run-time has already been checked.
@@ -44,6 +40,17 @@ sub match_curry {
 
 ######################################################################
 # Runtime Methods
+
+sub match_compile2 {
+	my $depth = 0;
+	return sub {
+		my $pointcut = shift;
+		my $cleanup  = sub { $depth-- };
+		bless $cleanup, 'Aspect::Pointcut::Highest::Cleanup';
+		$pointcut->{highest} = $cleanup;
+		return ! $depth++;
+	};
+}
 
 sub match_run {
 	my $self    = shift;

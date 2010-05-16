@@ -156,6 +156,12 @@ sub match_all {
 	my $self    = shift;
 	my @matches = ();
 
+	# Generate the compiled form of the weave-time function feature
+	my $compiled = $self->match_compiled1;
+	unless ( $compiled ) {
+		die "Failed to generate filter ->match_compiled1";
+	}
+
 	# Quick initial root package scan to remove the need
 	# for special-casing of main:: in the recursive scan.
 	no strict 'refs';
@@ -182,7 +188,7 @@ sub match_all {
 		while ( ($key,$value) = each %{*{"$package\::"}} ) {
 			next if $key =~ /[^\w:]/;
 			next unless defined $value;
-			my $name = "$package\::$key";
+			$_ = "$package\::$key";
 			local(*ENTRY) = $value;
 
 			# Is this a matched function?
@@ -191,22 +197,22 @@ sub match_all {
 				and
 				not $IGNORE{$package}
 				and
-				not $Aspect::EXPORTED{$name}
+				not $Aspect::EXPORTED{$_}
 				and
-				$self->match_define($name)
+				$compiled->()
 			) {
-				push @matches, $name;
+				push @matches, $_;
 			}
 
 			# Is this a package we should recurse into?
 			if (
 				not $PRUNE{$package}
 				and
-				$name =~ s/::\z//
+				s/::\z//
 				and
 				defined *ENTRY{HASH}
 			) {
-				push @search, $name;
+				push @search, $_;
 			}
 		}
 	}
@@ -241,6 +247,46 @@ at run-time.
 sub match_define {
 	my $class = ref $_[0] || $_[0];
 	die("Method 'match_define' not implemented in class '$class'");
+}
+
+=pod
+
+=head2 match_compile1
+
+The C<match_compile1> method generates a custom function that is used to test
+if a particular named function should be hooked as a potential join point.
+
+=cut
+
+# Most pointcut conditions always match, so default to that
+sub match_compile1 {
+	return 1;
+}
+
+sub match_compiled1 {
+	my $self = shift;
+	my $code = $self->match_compile1;
+	return $code if ref $code;
+	return eval "sub () { $code }";
+}
+
+=head2 match_compile2
+
+The C<match_compile2> method generates a custom function that is used to test
+if a particular named function should be hooked as a potential join point.
+
+=cut
+
+# Most pointcut conditions always match, so default to that
+sub match_compile2 {
+	return 1;
+}
+
+sub match_compiled2 {
+	my $self = shift;
+	my $code = $self->match_compile2;
+	return $code if ref $code;
+	return eval "sub () { $code }";
 }
 
 =pod

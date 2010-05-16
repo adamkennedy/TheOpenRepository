@@ -39,11 +39,6 @@ sub new {
 ######################################################################
 # Weaving Methods
 
-# To make cflow work we need to hook (sadly) everything
-sub match_define {
-	return 1;
-}
-
 # The cflow pointcuts do not curry at all.
 # So they don't need to clone, and can be used directly.
 sub match_curry {
@@ -56,6 +51,24 @@ sub match_curry {
 
 ######################################################################
 # Runtime Methods
+
+sub match_compile2 {
+	\&_match_compile2;
+}
+
+sub _match_compile2 {
+	my $runtime = shift;
+	my $self    = $runtime->{pointcut};
+	my $caller  = $self->find_caller or return 0;
+	my $class   = (ref $runtime or 'Aspect::AdviceContext');
+	my $context = $class->new(
+		sub_name => $caller->{sub_name},
+		pointcut => $self,
+		params   => $caller->{params},
+	);
+	$runtime->{$self->[KEY]} = $context;
+	return 1;
+}
 
 sub match_run {
 	my $self    = shift;

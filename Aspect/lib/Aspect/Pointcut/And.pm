@@ -18,14 +18,110 @@ our @ISA     = qw{
 ######################################################################
 # Weaving Methods
 
-sub match_define {
+sub match_compile1 {
 	my $self = shift;
-	foreach ( @$self ) {
-		return unless $_->match_define(@_);
+
+	# Handle special cases
+	my @children = grep {
+		ref $_ or $_ ne 1
+	} map {
+		$_->match_compile1
+	} @$self;
+	unless ( @children ) {
+		# Potential bug, but why would we legitimately be empty
+		return 1;
 	}
-	return 1;
+	if ( @children == 1 ) {
+		return $children[0];
+	}
+
+	# Collapse string conditions together,
+	# and further collapse code conditions together.
+	my @string = ();
+	my @code   = ();
+	foreach my $child ( @children ) {
+		unless ( ref $child ) {
+			push @string, $child;
+			next;
+		}
+		if ( @string ) {
+			my $group = join ' and ', map { "( $_ )" } @string;
+			push @code, eval "sub () { $group }";
+			@string = ();
+		}
+		push @code, $child;
+	}
+
+	if ( @string ) {
+		my $group = join ' and ', map { "( $_ )" } @string;
+		unless ( @code ) {
+			# This is the only thing we have
+			return $group;
+		}
+		push @code, eval "sub () { $group }";
+	}
+
+	# Join the groups
+	return sub {
+		foreach my $child ( @code ) {
+			return 0 unless $child->();
+		}
+		return 1;
+	};
 }
 
+sub match_compile2 {
+	my $self = shift;
+
+	# Handle special cases
+	my @children = grep {
+		ref $_ or $_ ne 1
+	} map {
+		$_->match_compile2
+	} @$self;
+	unless ( @children ) {
+		# Potential bug, but why would we legitimately be empty
+		return 1;
+	}
+	if ( @children == 1 ) {
+		return $children[0];
+	}
+
+	# Collapse string conditions together,
+	# and further collapse code conditions together.
+	my @string = ();
+	my @code   = ();
+	foreach my $child ( @children ) {
+		unless ( ref $child ) {
+			push @string, $child;
+			next;
+		}
+		if ( @string ) {
+			my $group = join ' and ', map { "( $_ )" } @string;
+			push @code, eval "sub () { $group }";
+			@string = ();
+		}
+		push @code, $child;
+	}
+
+	if ( @string ) {
+		my $group = join ' and ', map { "( $_ )" } @string;
+		unless ( @code ) {
+			# This is the only thing we have
+			return $group;
+		}
+		push @code, eval "sub () { $group }";
+	}
+
+	# Join the groups
+	return sub {
+		foreach my $child ( @code ) {
+			return 0 unless $child->();
+		}
+		return 1;
+	};
+}
+	
 sub match_contains {
 	my $self = shift;
 	return 1 if $self->isa($_[0]);
@@ -90,6 +186,7 @@ sub match_curry {
 	# Create our clone to hold the curried subset
 	return ref($self)->new( @list );
 }
+
 
 
 
