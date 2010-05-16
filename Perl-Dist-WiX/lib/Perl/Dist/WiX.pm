@@ -169,10 +169,10 @@ $VERSION =~ s/_//ms;
 The B<new> method creates a Perl::Dist::WiX object that describes a 
 distribution of perl.
 
-Each object is used to create a single distribution by calling C<run()>, 
+Each object is used to create a single distribution by calling L<run()|/run>, 
 and then should be discarded.
 
-Although there are about 30 potential constructor arguments that can be
+Although there are over 60 potential constructor arguments that can be
 provided, most of them are automatically resolved and exist for overloading
 puposes only, or they revert to sensible defaults and generally never need
 to be modified.
