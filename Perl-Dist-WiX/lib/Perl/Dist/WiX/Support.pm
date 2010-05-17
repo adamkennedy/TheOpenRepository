@@ -37,9 +37,9 @@ use File::pushd qw();
 use File::Remove qw();
 use File::Spec::Functions qw( catdir catfile rel2abs catpath );
 use File::Slurp qw(read_file);
-
-# TODO: We make an assumption that Archive::Tar can handle bz2 files.
-# Test to make sure that assumption is true.
+use IO::Compress::Bzip2 2.025;
+use IO::Compress::Gzip 2.025;
+# IO::Uncompress::Xz is tested for later, as it's an 'optional'.
 
 our $VERSION = '1.200';
 $VERSION =~ s/_//ms;
