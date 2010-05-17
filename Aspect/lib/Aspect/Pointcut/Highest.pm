@@ -44,10 +44,9 @@ sub match_curry {
 sub compile_runtime {
 	my $depth = 0;
 	return sub {
-		my $pointcut = shift;
 		my $cleanup  = sub { $depth-- };
 		bless $cleanup, 'Aspect::Pointcut::Highest::Cleanup';
-		$pointcut->{highest} = $cleanup;
+		$_->{highest} = $cleanup;
 		return ! $depth++;
 	};
 }

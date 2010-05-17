@@ -29,7 +29,8 @@ sub _install {
 	# Because $MATCH_RUN is used in boolean conditionals, if there
 	# is nothing to do the compiler will optimise away the code entirely.
 	my $curried   = $pointcut->match_curry;
-	my $MATCH_RUN = $curried ? '$curried->match_run($runtime)' : 1;
+	my $compiled  = $curried ? $curried->compiled_runtime : undef;
+	my $MATCH_RUN = $compiled ? '$compiled->()' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
 	# the generated hook code, because it might (for reasons potentially
@@ -77,32 +78,27 @@ sub _install {
 				] };
 				return \@\$return unless \$\@;
 
-				my \$runtime = {
+				local \$_ = bless {
 					type         => 'after_throwing',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
-				};
-				die \$runtime->{exception} unless $MATCH_RUN;
-
-				# Create the context
-				my \$context = bless {
-					pointcut => \$pointcut,
-					original => \$original,
-					\%\$runtime,
+					pointcut     => \$pointcut,
+					original     => \$original,
 				}, 'Aspect::Point::AfterThrowing';
+				die \$_->{exception} unless $MATCH_RUN;
 
 				# Execute the advice code
-				() = &\$code(\$context);
+				() = &\$code(\$_);
 
 				# Throw the same (or modified) exception
-				my \$exception = \$context->exception;
+				my \$exception = \$_->exception;
 				die \$exception if \$exception;
 
 				# Get the (potentially) modified return value
-				return \@{\$context->{return_value}};
+				return \@{\$_->{return_value}};
 			}
 
 			if ( defined \$wantarray ) {
@@ -113,32 +109,27 @@ sub _install {
 				};
 				return \$return unless \$\@;
 
-				my \$runtime = {
+				local \$_ = bless {
 					type         => 'after_throwing',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
 					return_value => \$return,
 					exception    => \$\@,
-				};
-				die \$runtime->{exception} unless $MATCH_RUN;
-
-				# Create the context
-				my \$context = bless {
-					pointcut => \$pointcut,
-					original => \$original,
-					\%\$runtime,
+					pointcut     => \$pointcut,
+					original     => \$original,
 				}, 'Aspect::Point::AfterThrowing';
+				die \$_->{exception} unless $MATCH_RUN;
 
 				# Execute the advice code
-				my \$dummy = &\$code(\$context);
+				my \$dummy = &\$code(\$_);
 
 				# Throw the same (or modified) exception
-				my \$exception = \$context->exception;
+				my \$exception = \$_->exception;
 				die \$exception if \$exception;
 
 				# Return the potentially-modified value
-				return \$context->{return_value};
+				return \$_->{return_value};
 
 			} else {
 				eval {
@@ -148,28 +139,23 @@ sub _install {
 				};
 				return unless \$\@;
 
-				my \$runtime = {
+				local \$_ = bless {
 					type         => 'after_throwing',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
 					return_value => undef,
 					exception    => \$\@,
-				};
-				die \$runtime->{exception} unless $MATCH_RUN;
-
-				# Create the context
-				my \$context = bless {
-					pointcut => \$pointcut,
-					original => \$original,
-					\%\$runtime,
+					pointcut     => \$pointcut,
+					original     => \$original,
 				}, 'Aspect::Point::AfterThrowing';
+				die \$_->{exception} unless $MATCH_RUN;
 
 				# Execute the advice code
-				&\$code(\$context);
+				&\$code(\$_);
 
 				# Throw the same (or modified) exception
-				my \$exception = \$context->exception;
+				my \$exception = \$_->exception;
 				die \$exception if \$exception;
 
 				return;

@@ -28,7 +28,7 @@ sub match_curry {
 # Runtime Methods
 
 sub compile_runtime {
-	sub { !! $_->[0]->() };
+	$_[0]->[0];
 }
 
 # Match only when code returns boolean true

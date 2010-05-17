@@ -277,9 +277,9 @@ if a particular named function should be hooked as a potential join point.
 
 =cut
 
-# Most pointcut conditions always match, so default to that
 sub compile_runtime {
-	return 1;
+	my $class = ref $_[0] || $_[0];
+	die "Missing compile_runtime method for $class";
 }
 
 sub compiled_runtime {

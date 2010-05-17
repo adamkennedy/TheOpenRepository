@@ -29,7 +29,8 @@ sub _install {
 	# Because $MATCH_RUN is used in boolean conditionals, if there
 	# is nothing to do the compiler will optimise away the code entirely.
 	my $curried   = $pointcut->match_curry;
-	my $MATCH_RUN = $curried ? '$curried->match_run($runtime)' : 1;
+	my $compiled  = $curried ? $curried->compiled_runtime : undef;
+	my $MATCH_RUN = $compiled ? '$compiled->()' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
 	# the generated hook code, because it might (for reasons potentially
@@ -75,78 +76,63 @@ sub _install {
 						1, \$original, \@_,
 					)
 				];
-				my \$runtime = {
+				local \$_ = bless {
 					type         => 'after_returning',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
 					return_value => \$return,
 					exception    => undef,
-				};
+					pointcut     => \$pointcut,
+					original     => \$original,
+				}, 'Aspect::Point::AfterReturning';
 				return \@\$return unless $MATCH_RUN;
 
-				# Create the context
-				my \$context = bless {
-					pointcut => \$pointcut,
-					original => \$original,
-					\%\$runtime,
-				}, 'Aspect::Point::AfterReturning';
-
 				# Execute the advice code
-				() = &\$code(\$context);
+				() = &\$code(\$_);
 
 				# Get the (potentially) modified return value
-				return \@{\$context->{return_value}};
+				return \@{\$_->{return_value}};
 			}
 
 			if ( defined \$wantarray ) {
 				my \$return = Sub::Uplevel::uplevel(
 					1, \$original, \@_,
 				);
-				my \$runtime = {
+				local \$_ = bless {
 					type         => 'after_returning',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
 					return_value => \$return,
 					exception    => undef,
-				};
+					pointcut     => \$pointcut,
+					original     => \$original,
+				}, 'Aspect::Point::AfterReturning';
 				return \$return unless $MATCH_RUN;
 
-				# Create the context
-				my \$context = bless {
-					pointcut => \$pointcut,
-					original => \$original,
-					\%\$runtime,
-				}, 'Aspect::Point::AfterReturning';
-
 				# Execute the advice code
-				my \$dummy = &\$code(\$context);
-				return \$context->{return_value};
+				my \$dummy = &\$code(\$_);
+				return \$_->{return_value};
 
 			} else {
 				Sub::Uplevel::uplevel(
 					1, \$original, \@_,
 				);
-				my \$runtime = {
+				local \$_ = bless {
 					type         => 'after_returning',
 					sub_name     => \$name,
 					wantarray    => \$wantarray,
 					params       => \\\@_,
 					return_value => undef,
 					exception    => undef,
-				};
+					pointcut     => \$pointcut,
+					original     => \$original,
+				}, 'Aspect::Point::AfterReturning';
 				return unless $MATCH_RUN;
 
-				# Create the context
-				my \$context = bless {
-					pointcut => \$pointcut,
-					original => \$original,
-					\%\$runtime,
-				}, 'Aspect::Point::AfterReturning';
-
 				# Execute the advice code
-				&\$code(\$context);
+				&\$code(\$_);
 				return;
 			}
 		};

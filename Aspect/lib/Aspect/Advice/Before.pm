@@ -32,7 +32,8 @@ sub _install {
 	# Because $MATCH_RUN is used in boolean conditionals, if there
 	# is nothing to do the compiler will optimise away the code entirely.
 	my $curried   = $pointcut->match_curry;
-	my $MATCH_RUN = $curried ? '$curried->match_run($runtime)' : 1;
+	my $compiled  = $curried ? $curried->compiled_runtime : undef;
+	my $MATCH_RUN = $compiled ? '$compiled->()' : 1;
 
 	# When an aspect falls out of scope, we don't attempt to remove
 	# the generated hook code, because it might (for reasons potentially
@@ -73,52 +74,47 @@ sub _install {
 
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
-			my \$runtime   = {
+			local \$_ = bless {
 				type      => 'before',
 				sub_name  => \$name,
 				wantarray => \$wantarray,
 				params    => \\\@_,
-			};
-			goto &\$original unless $MATCH_RUN;
-
-			# Prepare the context object
-			my \$context = bless {
 				pointcut     => \$pointcut,
 				return_value => \$wantarray ? [ ] : undef,
 				original     => \$original,
 				proceed      => 1,
-				\%\$runtime,
 			}, 'Aspect::Point::Before';
+			goto &\$original unless $MATCH_RUN;
 
 			# Array context needs some special return handling
 			if ( \$wantarray ) {
 				# Run the advice code
-				() = &\$code(\$context);
+				() = &\$code(\$_);
 
-				if ( \$context->proceed ) {
-					\@_ = \$context->params;
+				if ( \$_->proceed ) {
+					\@_ = \$_->params;
 					goto &\$original;
 				}
 
 				# Don't run the original
-				return \@{\$context->{return_value}};
+				return \@{\$_->{return_value}};
 			}
 
 			# Scalar and void have the same return handling.
 			# Just run the advice code differently.
 			if ( defined \$wantarray ) {
-				my \$dummy = &\$code(\$context);
+				my \$dummy = &\$code(\$_);
 			} else {
-				&\$code(\$context);
+				&\$code(\$_);
 			}
 
 			# Do they want to shortcut?
-			unless ( \$context->proceed ) {
-				return \$context->{return_value};
+			unless ( \$_->proceed ) {
+				return \$_->{return_value};
 			}
 
 			# Continue onwards to the original function
-			\@_ = \$context->params;
+			\@_ = \$_->params;
 			goto &\$original;
 		};
 END_PERL

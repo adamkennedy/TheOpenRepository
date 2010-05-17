@@ -57,16 +57,15 @@ sub compile_runtime {
 }
 
 sub _compile_runtime {
-	my $runtime = shift;
-	my $self    = $runtime->{pointcut};
+	my $self    = $_->{pointcut};
 	my $caller  = $self->find_caller or return 0;
-	my $class   = (ref $runtime or 'Aspect::AdviceContext');
+	my $class   = (ref $_ or 'Aspect::AdviceContext');
 	my $context = $class->new(
 		sub_name => $caller->{sub_name},
 		pointcut => $self,
 		params   => $caller->{params},
 	);
-	$runtime->{$self->[KEY]} = $context;
+	$_->{$self->[KEY]} = $context;
 	return 1;
 }
 

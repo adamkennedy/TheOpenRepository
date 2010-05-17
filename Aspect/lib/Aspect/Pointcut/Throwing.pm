@@ -3,7 +3,7 @@ package Aspect::Pointcut::Throwing;
 use strict;
 use warnings;
 use Carp             ();
-use Params::Util     ('_STRING', '_INSTANCE');
+use Params::Util     ();
 use Aspect::Pointcut ();
 
 our $VERSION = '0.45';
@@ -20,16 +20,20 @@ sub new {
 	my $class = shift;
 	my $spec  = shift;
 	if ( Params::Util::_STRING($spec) ) {
-		my $perl = 'Params::Util::_INSTANCE(\$_->{exception}, "$spec")';
-		return bless [ $spec, sub { $_[0] eq $spec }, $perl ], $class;
+		return bless [
+			$spec,
+			"Params::Util::_INSTANCE(\$_->{exception}, '$spec')",
+		], $class;
 	}
-	if ( Params::Util::_CODELIKE($spec) ) {
-		return bless [ $spec, $spec, $spec ], $class;
+	if ( Params::Util::_REGEX($spec) ) {
+		my $regex = "$spec";
+		$regex =~ s|^\(\?([xism]*)-[xism]*:(.*)\)\z|/$2/$1|s;
+		return bless [
+			$spec,
+			"defined \$_->{exception} and not ref \$_->{exception} and \$_->{exception} =~ $regex",
+		], $class;
 	}
-	unless ( Params::Util::_REGEX($spec) ) {
-		Carp::croak("Invalid function call specification");
-	}
-	return bless [ $spec,  ], $class;
+	Carp::croak("Invalid throwing pointcut specification");
 }
 
 
@@ -39,9 +43,8 @@ sub new {
 ######################################################################
 # Weaving Methods
 
-# Call pointcuts curry away to null, because they are the basis
-# for which methods to hook in the first place. Any method called
-# at run-time has already been checked.
+# Throwing pointcuts do not curry.
+# (But maybe they should, when used with say a before {} block)
 sub match_curry {
 	return $_[0];
 }
@@ -75,6 +78,10 @@ sub match_run {
 			return 0;
 		}
 	}
+}
+
+sub compile_runtime {
+	$_[0]->[1];
 }
 
 1;
