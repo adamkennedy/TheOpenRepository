@@ -193,6 +193,9 @@ public:
 	   finalize any pending tokens
 	*/
 	void EndOfDocument();
+	/* ErrorMsg is valid only after tokenizeLine returned tokenizing_fail 
+	 */
+	char ErrorMsg[200];
 	// --------- End Of Public Interface -------- 
 public:
 	Token *c_token;

@@ -275,7 +275,7 @@ CharTokenizeResults WordToken::commit(Tokenizer *t) {
 				PredicateIsChar< ':' > > > > regex;
 	unsigned long new_pos = t->line_pos;
 	if ( !regex.test( t->c_line, &new_pos, t->line_length ) ) {
-		fprintf(stderr, "ERROR: returning error fail in word.cpp 1\n");
+		sprintf(t->ErrorMsg, "ERROR: Word token was not recognized after I was sure about it at pos %d", t->line_pos);
 		return error_fail;
 	}
 
@@ -337,7 +337,7 @@ CharTokenizeResults WordToken::commit(Tokenizer *t) {
 
 CharTokenizeResults LabelToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	// should never reach here - the Word token will take care of me
-	fprintf(stderr, "ERROR: returning error fail in word.cpp 2\n");
+	sprintf(t->ErrorMsg, "Programmer ERROR: LabelToken::tokenize should never be reached at pos %d", t->line_pos);
 	return error_fail;
 }
 
@@ -392,7 +392,6 @@ CharTokenizeResults DashedWordToken::tokenize(Tokenizer *t, Token *token, unsign
 //=====================================
 
 CharTokenizeResults SeparatorToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
-	// should never reach here - the Word token will take care of me
-	fprintf(stderr, "ERROR: returning error fail in word.cpp 3\n");
+	sprintf(t->ErrorMsg, "Programmer ERROR: SeparatorToken::tokenize should never be reached at pos %d", t->line_pos);
 	return error_fail;
 }

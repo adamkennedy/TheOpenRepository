@@ -165,6 +165,7 @@ CharTokenizeResults AbstractQuoteTokenType::tokenize(Tokenizer *t, Token *token1
 		case in_section_not_braced:
 			return StateFuncInSectionUnBraced( t, token );
 	}
+	sprintf(t->ErrorMsg, "Reached to AQTT::tokenize in undefined state. Token type %d, tokenizer position %d", token->type->type, t->line_pos);
 	return error_fail;
 }
 

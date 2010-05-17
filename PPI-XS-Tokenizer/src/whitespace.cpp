@@ -214,9 +214,7 @@ CharTokenizeResults WhiteSpaceToken::tokenize(Tokenizer *t, Token *token, unsign
 
 	// FIXME: Add the c_char > 127 part?
 
-	fprintf(stderr, "ERROR: returning error fail in whitespace.cpp\n");
-	fprintf(stderr, "Tokenizer state: pos=%d, cchar=%d, line=%s\n", t->line_pos, c_char, t->c_line);
-	fprintf(stderr, "Token state: len=%d, text=%s\n", token->length, token->text);
+	sprintf(t->ErrorMsg, "Error: charecter rejected: %d at pos %d", c_char, t->line_pos);
     return error_fail;
 }
 

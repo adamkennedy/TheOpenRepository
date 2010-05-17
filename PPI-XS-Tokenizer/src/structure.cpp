@@ -53,7 +53,7 @@ CharTokenizeResults BOMToken::tokenize(Tokenizer *t, Token *token, unsigned char
 	> regex1;
 	unsigned long pos = 0;
 	if ( regex1.test( t->c_line, &pos, t->line_length ) ) {
-		// does not support anything but pure ascii
+		sprintf(t->ErrorMsg, "BOM error: we do not support anything but ascii and utf8 (%02X,%02X)", t->c_line[0], t->c_line[1]);
 		return error_fail; 
 	}
 	PredicateBinaryLiteral< 3, l_utf8 > regex2;

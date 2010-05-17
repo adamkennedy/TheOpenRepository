@@ -24,7 +24,7 @@ static bool is_an_attribute(Tokenizer *t) {
 
 CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned char c_char) {
 	if ( token->length != 1 ) {
-		fprintf(stderr, "ERROR: returning error fail in unknown.cpp 1\n");
+		sprintf(t->ErrorMsg, "Programmer ERROR: reached UnknownToken::tokenize with token lenght %d", token->length);
 		return error_fail;
 	}
 
@@ -236,9 +236,7 @@ CharTokenizeResults UnknownToken::tokenize(Tokenizer *t, Token *token, unsigned 
 		t->changeTokenType( Token_Operator );
 		return done_it_myself;
 	}
-	fprintf(stderr, "ERROR: returning error fail in unknown.cpp 2\n");
-	fprintf(stderr, "Tokenizer state: pos=%d, line=%s\n", t->line_pos, t->c_line);
-	fprintf(stderr, "Token state: len=%d, text=%s\n", token->length, token->text);
+	sprintf(t->ErrorMsg, "ERROR: Failed to recognize token starting in %c%c in pos %d", token->text[0], c_char);
 	return error_fail;
 }
 

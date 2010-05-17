@@ -124,7 +124,7 @@ CharTokenizeResults SymbolToken::tokenize(Tokenizer *t, Token *token, unsigned c
 		unsigned long new_length = 1;
 		bool ret = oversuck(token->text, token->length, &new_length);
 		if ( false == ret ) {
-			fprintf(stderr, "ERROR: returning error fail in symbol.cpp\n");
+			sprintf(t->ErrorMsg, "ERROR: Symbol oversuck protection does not identify the token as symbol. pos=%d", t->line_pos);
 			return error_fail;
 		}
 		if ( new_length != token->length ) {
