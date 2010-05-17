@@ -792,7 +792,7 @@ sub install_perl_5121 {
 
 	# Install the main binary
 	$self->install_perl_bin(
-		url => 'http://fsck.com/~jesse/tmp/2010-05-16/7601945c-4232-41e5-b3b6-a1ab39951e87/perl-5.12.1.tar.bz2',
+		url => 'http://strawberryperl.com/package/perl-5.12.1.tar.xz',
 		toolchain => $toolchain,
 		patch     => [ qw{
 			  lib/CPAN/Config.pm
