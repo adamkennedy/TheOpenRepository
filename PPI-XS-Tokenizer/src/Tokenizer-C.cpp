@@ -153,18 +153,36 @@ void TestOnNodePm() {
 	}
 }
 
-void stam() {
+void stam1() {
 	Tokenizer tk;
 	Tokenize("X<<f+X;g(<~\" \n");
 	Tokenize("1\n");
 	Tokenize("*");
 }
 
+void stam2() {
+	Tokenizer tk;
+	Tokenize("qw(");
+	tk.EndOfDocument();
+	ExtendedToken *t = (ExtendedToken *)tk.pop_one_token();
+	printf("Done\n");
+}
+
+void stam3() {
+	Tokenizer tk;
+	Tokenize("s {foo} <bar>i");
+	tk.EndOfDocument();
+	ExtendedToken *t = (ExtendedToken *)tk.pop_one_token();
+	printf("Done\n");
+}
+
 int main(int argc, char* argv[])
 {
 	forward_scan2_unittest();
 	//TestOnNodePm();
-	//stam();
+	//stam1();
+	//stam2();
+	stam3();
 	Tokenizer tk;
 	VerifyInheritence( tk.TokenTypeNames_pool );
 

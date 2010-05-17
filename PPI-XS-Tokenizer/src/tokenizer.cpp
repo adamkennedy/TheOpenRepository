@@ -153,6 +153,7 @@ void AbstractExtendedTokenType::_clean_token_fields( Token *t ) {
 	t2->seperator = 0;
 	t2->state = 0;
 	t2->current_section = 0;
+	t2->modifiers.size = 0;
 }
 
 void AbstractExtendedTokenType::FreeToken( TokensCacheMany *tc, Token *token ) {

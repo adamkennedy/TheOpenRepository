@@ -38,7 +38,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncConsumeModifiers(Tokenizer 
 
 CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *t, ExtendedToken *token) {
 	token->state = in_section_braced;
-	unsigned char c_section_num = token->current_section;
+	unsigned char c_section_num = token->current_section - 1;
 	ExtendedToken::section &cs = token->sections[ c_section_num ];
 	bool slashed = false;
 	while ( t->line_length > t->line_pos ) {
@@ -46,12 +46,12 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *
 		if ( !slashed ) {
 			if ( my_char == cs.close_char ) {
 				if ( token->brace_counter == 0 ) {
-					token->current_section++;
 
 					if ( token->current_section == m_numSections ) {
 						return StateFuncConsumeModifiers( t, token );
 					} else {
 						// there is another section - read on
+						//token->current_section++;
 						return StateFuncExamineFirstChar( t, token );
 					}
 				} else {
@@ -71,19 +71,19 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionBraced(Tokenizer *
 
 CharTokenizeResults AbstractQuoteTokenType::StateFuncInSectionUnBraced(Tokenizer *t, ExtendedToken *token) {
 	token->state = in_section_not_braced;
-	unsigned char c_section_num = token->current_section;
+	unsigned char c_section_num = token->current_section - 1;
 	ExtendedToken::section &cs = token->sections[ c_section_num ];
 	bool slashed = false;
 	while ( t->line_length > t->line_pos ) {
 		unsigned char my_char = token->text[token->length++] = t->c_line[ t->line_pos++ ];
 		if ( ( !slashed ) && ( my_char == cs.close_char ) ) {
-			token->current_section++;
 
 			if ( token->current_section == m_numSections ) {
 				return StateFuncConsumeModifiers( t, token );
 			} else {
 				// there is another section - read on
 				ExtendedToken::section &next = token->sections[ token->current_section ];
+				token->current_section++;
 				next.position = token->length;
 				next.size = 0;
 				next.open_char = cs.open_char;
@@ -105,6 +105,7 @@ CharTokenizeResults AbstractQuoteTokenType::StateFuncBootstrapSection(Tokenizer 
 	token->text[token->length++] = t->c_line[ t->line_pos++ ];
 	ExtendedToken::section &cs = token->sections[ c_section_num ];
 	cs.position = token->length;
+	token->current_section++;
 	cs.size = 0;
 	cs.open_char = my_char;
 	unsigned char close_char = GetClosingSeperator( my_char );
