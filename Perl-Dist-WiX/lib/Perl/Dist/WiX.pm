@@ -4041,6 +4041,28 @@ sub msi_perl_version {
 
 
 
+=head3 perl_major_version 
+
+Gets the major version (the 8, 10, or 12 part of 5.8, 5.10, or 5.12) of
+the perl distribution being built.
+
+=cut
+
+sub perl_major_version {
+	# Get perl version arrayref.
+	my $ver = {
+		'589'  => [ 5, 8,  9 ],
+		'5100' => [ 5, 10, 0 ],
+		'5101' => [ 5, 10, 1 ],
+		'5120' => [ 5, 12, 0 ],
+		'5121' => [ 5, 12, 1 ],
+		'git'  => [ 5, 13, 1 ],
+	  }->{ $self->perl_version() }
+	  || [ 0, 0, 0 ];
+
+	return @{$ver}[1]; 
+}
+
 =head3 msi_perl_major_version
 
 Returns the major perl version so that upgrades that jump delete the
