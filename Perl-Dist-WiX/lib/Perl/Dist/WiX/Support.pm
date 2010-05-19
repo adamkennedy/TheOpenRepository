@@ -558,7 +558,7 @@ sub extract_archive {
 "Tried to extract the file $from without the xz libraries installed."
 		  );
 
-		local $Archive::Tar::CHMOD = 0;		
+		local $Archive::Tar::CHMOD = 0;
 		my $xz = IO::Uncompress::UnXz->new($from, BlockSize => 16384);
 		my @fl = @filelist = Archive::Tar->extract_archive( $xz );
 		@filelist = map { catfile( $to, $_ ) } @fl;
@@ -656,6 +656,50 @@ sub _extract_filemap {
 				push @files, $full_t;
 			} ## end for my $tgt ( keys %{$filemap...})
 		} ## end for my $file ( $tar->get_files...)
+		
+	} elsif ( $from =~ m{ [.] tar [.] xz | [.] txz}msx ) {
+
+		# First attempt at trying to use .xz files. TODO: Improve.
+		eval {
+			require IO::Uncompress::UnXz;
+			IO::Uncompress::UnXz->VERSION(2.025);
+			1;
+		}
+		  or PDWiX->throw(
+"Tried to extract the file $from without the xz libraries installed."
+		  );
+
+		local $Archive::Tar::CHMOD = 0;		
+		my $xz = IO::Uncompress::UnXz->new($from, BlockSize => 16384);
+		my $tar = Archive::Tar->new($xz);
+		for my $file ( $tar->get_files() ) {
+			my $f       = $file->full_path();
+			my $canon_f = File::Spec::Unix->canonpath($f);
+			for my $tgt ( keys %{$filemap} ) {
+				my $canon_tgt = File::Spec::Unix->canonpath($tgt);
+				my $t;
+
+#<<<
+				if ($file_only) {
+					next unless
+					  $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E\z}imsx;
+					( $t = $canon_f ) =~ s{\A([^/]+[/])?\Q$canon_tgt\E\z}
+										  {$filemap->{$tgt}}imsx;
+				} else {
+					next unless
+					  $canon_f =~ m{\A([^/]+[/])?\Q$canon_tgt\E}imsx;
+					( $t = $canon_f ) =~ s{\A([^/]+[/])?\Q$canon_tgt\E}
+										  {$filemap->{$tgt}}imsx;
+				}
+#>>>
+				my $full_t = catfile( $basedir, $t );
+				$self->trace_line( 2, "Extracting $f to $full_t\n" );
+				$tar->extract_file( $f, $full_t );
+				push @files, $full_t;
+			} ## end for my $tgt ( keys %{$filemap...})
+		} ## end for my $file ( $tar->get_files...)
+		
+
 
 	} else {
 		PDWiX->throw("Didn't recognize archive type for $archive");
