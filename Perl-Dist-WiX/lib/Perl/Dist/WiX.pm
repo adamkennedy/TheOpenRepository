@@ -1910,17 +1910,6 @@ has 'msi_feature_tree' => (
 
 
 
-has '_icons' => (
-	is       => 'ro',
-	isa      => 'Maybe[Perl::Dist::WiX::IconArray]',
-	writer   => '_set_icons',
-	init_arg => undef,
-	handles  => { 'icons_string' => 'as_string', },
-);
-
-# TODO: Document icons_string
-
-
 has '_toolchain' => (
 	is       => 'bare',
 	isa      => 'Maybe[Perl::Dist::WiX::Toolchain]',
@@ -1938,19 +1927,6 @@ has '_build_start_time' => (
 	init_arg => undef,                 # Cannot set this parameter in new().
 );
 
-
-
-has '_directories' => (
-	is       => 'bare',
-	isa      => 'Maybe[Perl::Dist::WiX::DirectoryTree2]',
-	writer   => '_set_directories',
-	reader   => 'get_directory_tree',
-	clearer  => '_clear_directory_tree',
-	default  => undef,
-	init_arg => undef,
-);
-
-# TODO: Document get_directory_tree.
 
 
 has '_distributions' => (
@@ -2020,24 +1996,6 @@ sub _build_filters {
 #>>>
 } ## end sub _build_filters
 
-# TODO: Document get_merge_module_object and merge_module_exists.
-
-
-has '_merge_modules' => (
-	traits   => ['Hash'],
-	is       => 'bare',
-	isa      => 'HashRef[Perl::Dist::WiX::Tag::MergeModule]',
-	default  => sub { return {} },
-	init_arg => undef,
-	handles  => {
-		get_merge_module_object => 'get',
-		merge_module_exists     => 'defined',
-		_add_merge_module       => 'set',
-		_clear_merge_modules    => 'clear',
-		_merge_module_keys      => 'keys',
-	},
-);
-
 
 
 has '_in_merge_module' => (
@@ -2049,76 +2007,6 @@ has '_in_merge_module' => (
 );
 
 
-
-has '_notification_index' => (
-	traits   => ['Counter'],
-	is       => 'ro',
-	isa      => Int,
-	default  => 0,
-	init_arg => undef,
-	handles  => {
-		'_increment_notify_index' => 'inc',
-		
-	},
-);
-
-
-
-has '_output_file' => (
-	traits   => ['Array'],
-	is       => 'bare',
-	isa      => ArrayRef [Str],
-	default  => sub { return [] },
-	init_arg => undef,
-	handles  => {
-		_add_output_files => 'push',
-		get_output_files => 'elements',
-	},
-);
-
-# TODO: Document add_output_files and get_output_files.
-
-# This throws a Growl notification up when files are created. 
-sub add_output_file {
-	my $self = shift;
-	my $growl;
-	
-	if (eval { require Growl::GNTP; 1; }) {
-	
-		# Register with Growl for Windows.
-		$growl = Growl::GNTP->new(AppName => 'Perl::Dist::WiX');
-		$growl->register([{
-			Name        => 'OUTPUT_FILE',
-			DisplayName => 'Output file created',
-			Enabled     => 'True',
-			Sticky      => 'False',
-			Priority    => -2,  # very low priority.
-			Icon        => catfile($self->wix_dist_dir(), 'growl-icon.png'),
-		}]);
-	
-		foreach my $file (@_) {
-			if ($file =~ m{[.] (?:msi|zip|msm)\Z}msx) {
-				# Actually do the notification.
-				$growl->notify(
-					Event               => 'OUTPUT_FILE', # name of notification
-					Title               => 'Output file created',
-					Message             => "$file has been created",
-					ID                  => $self->_notification_index(),
-				);
-				# Increment the ID for next time.
-				$self->_increment_notify_index();
-			}
-		}
-	} 
-
-	return $self->_add_output_files(@_);
-};
-
-sub add_output_files {
-	goto &add_output_file;
-	
-	return 1;
-}
 
 has '_perl_version_corelist' => (
 	is       => 'ro',
@@ -3561,17 +3449,8 @@ sub _compile_wxs {
 
 	$id = $dist->bin_candle(); 
 
-Accessors will return a specified portion of the distribution state.
-
-=head3 directories
-
-Returns the L<Perl::Dist::WiX::DirectoryTree|Perl::Dist::WiX::DirectoryTree> 
-object associated with this distribution.  Created by L<new()|/new>
-
-=head3 msi_feature_tree
-
-Returns the parameter of the same name passed in 
-from L<new()|/new>. Unused as of yet.
+Accessors will return a specified portion of the distribution state, rather than 
+changing the distribution object's state.
 
 =head3 msi_product_icon_id
 
@@ -4568,17 +4447,200 @@ sub image_dir_quotemeta {
 
 
 
-=head2 Other routines that your tasks can use
+=head3 get_output_files
+
+Returns a list of output files created so far. 
+
+=cut
+
+
+
+has '_output_file' => (
+	traits   => ['Array'],
+	is       => 'bare',
+	isa      => ArrayRef [Str],
+	default  => sub { return [] },
+	init_arg => undef,
+	handles  => {
+		_add_output_files => 'push',
+		get_output_files => 'elements',
+	},
+);
+
+
+
+=head3 get_directory_tree
+
+Retrieves the 
+L<Perl::Dist::WiX::DirectoryTree2|Perl::Dist::WiX::DirectoryTree2> object
+created to keep track of directories in this distribution.
+
+=cut
+
+has '_directories' => (
+	is       => 'bare',
+	isa      => 'Maybe[Perl::Dist::WiX::DirectoryTree2]',
+	writer   => '_set_directories',
+	reader   => 'get_directory_tree',
+	clearer  => '_clear_directory_tree',
+	default  => undef,
+	init_arg => undef,
+);
+
+
+
+=head3 get_merge_module_object 
+
+	$self->get_merge_module_object('Perl');
+
+Retrieves the
+L<Perl::Dist::WiX::Tag::MergeModule|Perl::Dist::WiX::Tag::MergeModule>
+that has been added to the list that this distribution uses.
+
+=head3 merge_module_exists
+
+	$self->get_merge_module_object('Perl');
+
+Returns true or false as to whether the merge module named has been added to 
+the list of merge modules included in this installer.
+	
+=cut
+
+has '_merge_modules' => (
+	traits   => ['Hash'],
+	is       => 'bare',
+	isa      => 'HashRef[Perl::Dist::WiX::Tag::MergeModule]',
+	default  => sub { return {} },
+	init_arg => undef,
+	handles  => {
+		get_merge_module_object => 'get',
+		merge_module_exists     => 'defined',
+		_add_merge_module       => 'set',
+		add_merge_module        => 'set',
+		_clear_merge_modules    => 'clear',
+		_merge_module_keys      => 'keys',
+	},
+);
+
+=head2 Other routines that your tasks (or users of the class) can use
+
+=head3 add_merge_module
+
+    $self->add_merge_module('Perl', $perl_merge_module);
+	
+Adds a L<Perl::Dist::WiX::Tag::MergeModule|Perl::Dist::WiX::Tag::MergeModule>
+to the list of merge modules used in this distribution.
+
+=head3 add_output_file
+
+=head3 add_output_files
+
+    $self->add_output_files('information.html', 'README.txt');
+    $self->add_output_file('distribution.msi');
+
+These two methods add files to the list of output files returned by 
+L<get_output_files()|/get_output_files>.
+
+They also may create a Growl notification that is sent out locally if 
+L<Growl::GNTP|Growl::GNTP> is installed. Growl for Windows (downloadable 
+at L<http://www.growlforwindows.com/>) can either display these 
+notifications on the local machine, or forward them to another
+machine or device that can recieve GNTP messages.
+
+Growl notifications are only sent out for msi, msm, and zip files.
+
+The application name sent out will be the class name used to
+create the distribution.
+
+=cut
+
+# This is used in order to give notifications an ID.
+has '_notification_index' => (
+	traits   => ['Counter'],
+	is       => 'bare',
+	isa      => Int,
+	default  => time % 100000,
+	reader   => '_get_notify_index',
+	init_arg => undef,
+	handles  => {
+		'_increment_notify_index' => 'inc',
+		
+	},
+);
+
+
+
+# This throws a Growl notification up when files are created. 
+sub add_output_file {
+	my $self = shift;
+	my $growl;
+	
+	if (eval { require Growl::GNTP; 1; }) {
+	
+		# Open up our communication link to Growl.
+		$growl = Growl::GNTP->new(
+			AppName => ref $self,
+			AppIcon => catfile($self->wix_dist_dir(), 'growl-icon.png'),
+		);
+		
+		# Only need to register with Growl for Windows once.
+		if (not $self->_notification_index()) {
+			$growl->register([{
+				Name        => 'OUTPUT_FILE',
+				DisplayName => 'Output file created',
+				Enabled     => 'True',
+				Sticky      => 'False',
+				Priority    => -2,  # very low priority.
+				Icon        => catfile($self->wix_dist_dir(), 'growl-icon.png'),
+			}]);
+		}
+		
+		foreach my $file (@_) {
+			if ($file =~ m{[.] (?:msi|zip|msm)\Z}msx) {
+				# Actually do the notification.
+				$growl->notify(
+					Event               => 'OUTPUT_FILE', # name of notification
+					Title               => 'Output file created',
+					Message             => "$file has been created",
+					ID                  => $self->_get_notify_index(),
+				);
+				# Increment the ID for next time.
+				$self->_increment_notify_index();
+			}
+		}
+	} 
+
+	return $self->_add_output_files(@_);
+};
+
+sub add_output_files {
+	goto &add_output_file;
+	
+	return 1;
+}
 
 =head3 add_icon
 
-TODO: Document
+    $self->add_icon(
+	    name     => 'CPAN Client',
+		filename => 'C:\strawberry\perl\bin\cpan.bat',
+		icon_id  => 'I_cpan_bat_ico',
+	);
+
+This method adds a start menu icon to the installer that calls the file 
+given as the C<filename> parameter, and is named using the C<name> 
+parameter, using the icon identified by the C<icon_id> parameter.
 
 =cut
 
 sub add_icon {
 	my $self   = shift;
-	my %params = @_;
+	my %params;
+	if ('HASH' eq ref $_[0]) {
+		%params = %{$_[0]};
+	} else {
+		%params = @_;
+	}
 	my ( $vol, $dir, $file, $dir_id );
 
 	# Get the Id for directory object that stores the filename passed in.
@@ -4606,6 +4668,23 @@ sub add_icon {
 
 	return $self;
 } ## end sub add_icon
+
+
+
+=head3 icons_string
+
+Calls L<< Perl::Dist::WiX::IconArray->as_string()|Perl::Dist::WiX::IconArray/as_string >>
+on the array of icons created for this distribution.
+
+=cut
+
+has '_icons' => (
+	is       => 'ro',
+	isa      => 'Maybe[Perl::Dist::WiX::IconArray]',
+	writer   => '_set_icons',
+	init_arg => undef,
+	handles  => { 'icons_string' => 'as_string', },
+);
 
 
 
@@ -4862,7 +4941,6 @@ sub add_to_fragment {
 #
 # Patch Support
 #
-# TODO: May be moved to Perl::Dist::WiX::Patching
 #
 
 =head3 File patching support
