@@ -2466,7 +2466,7 @@ sub initialize_using_msm {
 
 	# Download and extract the image.
 	my $tgz = $self->mirror_url( $self->msm_zip(), $self->download_dir() );
-	$self->_extract( $tgz, $self->image_dir() );
+	$self->extract_archive( $tgz, $self->image_dir() );
 
 	# Start adding the fragments that are only for an .msi.
 	$self->_add_fragment(

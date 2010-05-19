@@ -560,7 +560,7 @@ sub extract_archive {
 
 		local $Archive::Tar::CHMOD = 0;
 		my $xz = IO::Uncompress::UnXz->new($from);
-		my @fl = @filelist = Archive::Tar->extract_archive( \$xz, 1 );
+		my @fl = @filelist = Archive::Tar->extract_archive( \$xz );
 		@filelist = map { catfile( $to, $_ ) } @fl;
 		if ( !@filelist ) {
 			PDWiX->throw('Error in archive extraction');
