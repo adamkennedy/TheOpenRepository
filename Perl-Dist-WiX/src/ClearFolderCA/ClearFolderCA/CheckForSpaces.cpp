@@ -89,5 +89,10 @@ UINT __stdcall CheckForSpaces(
 		return ::MsiSetProperty(hModule, TEXT("WIXUI_INSTALLDIR_VALID"), TEXT("-2"));
 	}
 
+	if (NULL != _tcsspnp(sInstallDirLong, 
+		_T("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&'()+,-.;=@[]^_`{}~\\"))) {
+		return ::MsiSetProperty(hModule, TEXT("WIXUI_INSTALLDIR_VALID"), TEXT("-2"));
+	}
+
 	return ::MsiSetProperty(hModule, TEXT("WIXUI_INSTALLDIR_VALID"), TEXT("1"));
 }

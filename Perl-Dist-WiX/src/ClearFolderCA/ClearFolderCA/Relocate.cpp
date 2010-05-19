@@ -226,17 +226,18 @@ UINT _stdcall Relocate_File(
 
 	TCHAR sStringIn[_MAX_PATH];
 	TCHAR sStringOut[_MAX_PATH];
-	size_t iStringInLength;
 
-	Relocate_GetSearchString(sStringIn,  sDirectoryFrom, sType);
-	Relocate_GetSearchString(sStringOut, sDirectoryTo,   sType);
-
+	// Log the fact that we're relocating a file.
 	StartLogStringR(_T("Relocating "));
 	AppendLogStringR(sFile);
 	AppendLogStringR(_T(" using relocation type "));
 	AppendLogStringR(sType);
 	uiAnswer = LogStringR(hModule);
 	MSI_OK(uiAnswer)
+
+	// Get the strings to look for.
+	Relocate_GetSearchString(sStringIn,  sDirectoryFrom, sType);
+	Relocate_GetSearchString(sStringOut, sDirectoryTo,   sType);
 
 	if (0 == _tcscmp(sStringIn, _T(""))) {
 		return ERROR_INSTALL_FAILURE;
@@ -246,12 +247,9 @@ UINT _stdcall Relocate_File(
 		return ERROR_INSTALL_FAILURE;
 	}
 
-	iStringInLength  = _tcslen(sStringIn);
-
 	// Open our files.
 	FILE *fFileIn;
 	FILE *fFileOut;
-
 	errno_t eAnswer = 0;
 	eAnswer = _tfopen_s(&fFileIn, sFileIn, _T("rtS"));
 	if (eAnswer != 0) {
@@ -259,20 +257,28 @@ UINT _stdcall Relocate_File(
 	}
 	eAnswer = _tfopen_s(&fFileOut, sFileOut, _T("wt"));
 	if (eAnswer != 0) {
+		fclose(fFileIn);
 		return ERROR_INSTALL_FAILURE;
 	}
 
-	// Do the relocation.
+	// Set up our variables for the relocation.
 	TCHAR  sLine[32767];
 	TCHAR  sWork1[32767];
 	TCHAR  sWork2[32767];
 	TCHAR *sLoc   = NULL;
+	size_t iStringInLength = _tcslen(sStringIn);
+	size_t iStringOutLength = _tcslen(sStringOut);
 	int iErrorFlag = 0;
+
+	// Do the relocation.
 	while (!feof(fFileIn)) {
 
 		// Deal with errors. 
 		if( _fgetts( sLine, 32766, fFileIn ) == NULL) {
 			if (iErrorFlag) {
+				fclose(fFileIn);
+				fclose(fFileOut);
+				::DeleteFile(sFileOut);
 				uiAnswer = ERROR_INSTALL_FAILURE;
 				break;
 			}
@@ -295,8 +301,12 @@ UINT _stdcall Relocate_File(
 			// Copy back out of our work area, so that they match.
 			_tcscpy_s(sWork1, 32766, sWork2);
 
+			// Advance along the string.
+			sLoc -= iStringInLength;
+			sLoc += iStringInLength;
+
 			// Try another search.
-			sLoc = _tcsstr(sWork1, sStringIn);
+			sLoc = _tcsstr(sLoc, sStringIn);
 
 			// If we're done, copy to sLine so it can be written out.
 			if (!sLoc) {
@@ -320,7 +330,10 @@ UINT _stdcall Relocate_File(
 	DWORD dwAttributes = ::GetFileAttributes(sFileIn);
 	if (dwAttributes && FILE_ATTRIBUTE_READONLY) {
 		bAnswer = ::SetFileAttributes(sFileIn, dwAttributes && !FILE_ATTRIBUTE_READONLY);
-		if (bAnswer == FALSE) { uiAnswer = ERROR_INSTALL_FAILURE; }
+		if (bAnswer == FALSE) { 
+			::DeleteFile(sFileOut);
+			uiAnswer = ERROR_INSTALL_FAILURE; 
+		}
 		MSI_OK(uiAnswer)
 	}
 
@@ -329,9 +342,7 @@ UINT _stdcall Relocate_File(
 
 	// Set readonly status back.
 	if (dwAttributes && FILE_ATTRIBUTE_READONLY) {
-		bAnswer = ::SetFileAttributes(sFileIn, dwAttributes);
-		if (bAnswer == FALSE) { uiAnswer = ERROR_INSTALL_FAILURE; }
-		MSI_OK(uiAnswer)
+		::SetFileAttributes(sFileIn, dwAttributes);
 	}
 
 	return uiAnswer;
@@ -347,12 +358,9 @@ UINT __stdcall Relocate_Worker(
 	UINT uiAnswer;
 	FILE *fRelocationFileIn;
 	FILE *fRelocationFileOut;
-
 	TCHAR sLine[_MAX_PATH + 12];
-
 	TCHAR sFileFrom[_MAX_PATH + 1];
 	TCHAR sFileTo[_MAX_PATH + 1];
-
 	TCHAR sDirectoryFrom[_MAX_PATH + 1];
 	TCHAR sDirectoryTo[_MAX_PATH + 1];
 
@@ -361,11 +369,11 @@ UINT __stdcall Relocate_Worker(
 	_tcscpy_s(sFileTo, _MAX_PATH, sRelocationFile);
 	_tcscat_s(sFileTo, _MAX_PATH, _T(".new"));
 
+	// Log what we're doing.
 	StartLogStringR(_T("Opening "));
 	AppendLogStringR(sFileFrom);
 	uiAnswer = LogStringR(hModule);
 	MSI_OK(uiAnswer)
-
 	StartLogStringR(_T("Relocating to "));
 	AppendLogStringR(sInstallDirectory);
 	uiAnswer = LogStringR(hModule);
@@ -376,13 +384,13 @@ UINT __stdcall Relocate_Worker(
 	eAnswer = _tfopen_s(&fRelocationFileIn, sFileFrom, _T("rtS"));
 	if (eAnswer != 0) 
 		return ERROR_INSTALL_FAILURE;
-	eAnswer = _tfopen_s(&fRelocationFileOut, sFileTo, _T("wt"));
-	if (eAnswer != 0) 
-		return ERROR_INSTALL_FAILURE;
 
 	// First line of relocation file has where to relocate from.
-	if( _fgetts( sDirectoryFrom, _MAX_PATH + 1, fRelocationFileIn ) == NULL)
-		printf( "fgets error\n" );
+	if( _fgetts( sDirectoryFrom, _MAX_PATH + 1, fRelocationFileIn ) == NULL) {
+		fclose(fRelocationFileIn);
+		return ERROR_INSTALL_FAILURE;
+	}
+
 	// Take off the line ending.
 	*(sDirectoryFrom + _tcslen(sDirectoryFrom) - 1) = _T('\0');
 
@@ -394,6 +402,21 @@ UINT __stdcall Relocate_Worker(
 		_tcscat_s(sDirectoryTo, _MAX_PATH, _T("\\"));
 	}
 
+	// We don't need to relocate if the directories are identical, right? right.
+	// It's not an error, however.
+	if (0 == _tcscmp(sDirectoryFrom, sDirectoryTo)) {
+		fclose(fRelocationFileIn);
+		return ERROR_SUCCESS;
+	}
+
+	// Open up the file to write relocating to.
+	eAnswer = _tfopen_s(&fRelocationFileOut, sFileTo, _T("wt"));
+	if (eAnswer != 0) {
+		fclose(fRelocationFileIn);
+		return ERROR_INSTALL_FAILURE;
+	}
+
+	// Log what we're doing.
 	StartLogStringR(_T("Relocating from "));
 	AppendLogStringR(sDirectoryTo);
 	uiAnswer = LogStringR(hModule);
@@ -427,7 +450,9 @@ UINT __stdcall Relocate_Worker(
 		if (_tcslen(sLine) <= _tcsspn(sLine, _T(" \t\n")))
 			continue;
 
-		// TODO: Check for the colon.
+		// Check for the colon.
+		if (NULL == _tcschr(sLine, _T(':')))
+			continue;
 
 		// We have a good line. So put it back out before we tokenize it.
 		_fputts(sLine, fRelocationFileOut);
@@ -446,6 +471,7 @@ UINT __stdcall Relocate_Worker(
 		sToken = _tcstok_s(NULL, _T("\n"), &sTokenContext);
 		_tcscpy_s(sRelocationType, 16, sToken);
 
+		// Actually relocate the file.
 		uiAnswer = Relocate_File(hModule, sDirectoryFrom, sDirectoryTo, sFileToRelocate, sRelocationType);
 		if (uiAnswer != ERROR_SUCCESS) {
 			break;
