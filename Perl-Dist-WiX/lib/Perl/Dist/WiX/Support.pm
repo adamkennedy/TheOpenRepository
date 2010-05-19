@@ -657,7 +657,7 @@ sub _extract_filemap {
 			} ## end for my $tgt ( keys %{$filemap...})
 		} ## end for my $file ( $tar->get_files...)
 		
-	} elsif ( $from =~ m{ [.] tar [.] xz | [.] txz}msx ) {
+	} elsif ( $archive =~ m{ [.] tar [.] xz | [.] txz}msx ) {
 
 		# First attempt at trying to use .xz files. TODO: Improve.
 		eval {
@@ -666,11 +666,11 @@ sub _extract_filemap {
 			1;
 		}
 		  or PDWiX->throw(
-"Tried to extract the file $from without the xz libraries installed."
+"Tried to extract the file $archive without the xz libraries installed."
 		  );
 
 		local $Archive::Tar::CHMOD = 0;		
-		my $xz = IO::Uncompress::UnXz->new($from, BlockSize => 16384);
+		my $xz = IO::Uncompress::UnXz->new($archive, BlockSize => 16384);
 		my $tar = Archive::Tar->new($xz);
 		for my $file ( $tar->get_files() ) {
 			my $f       = $file->full_path();
