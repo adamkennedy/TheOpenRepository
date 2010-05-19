@@ -56,19 +56,8 @@ Readonly my %CORE_MODULE_FIX => (
 	'LWP::UserAgent'       => 'LWP',
 );
 
-Readonly my %DIST_TO_MODULE_FIX => (
-	'CGI.pm'               => 'CGI',
-	'Locale::Maketext'     => 'Locale-Maketext',
-	'Pod::Man'             => 'Pod',
-	'Text::Tabs'           => 'Text',
-	'PathTools'            => 'Cwd',
-	'TermReadKey'          => 'Term::ReadKey',
-	'Term::ReadLine::Perl' => 'Term::ReadLine',
-	'libwww::perl'         => 'LWP',
-	'Scalar::List::Utils'  => 'List::Util',
-	'libnet'               => 'Net',
-	'encoding'             => 'Encode',
-	'IO::Scalar'           => 'IO::Stringy',
+Readonly my %CORE_PACKLIST_FIX => (
+	'IO::Compress::Base'         => 'IO::Compress',
 );
 
 # Modules to delay.
@@ -97,6 +86,14 @@ sub _module_fix {
 }
 
 
+
+sub _packlist_fix {
+	my ( $self, $module ) = @_;
+
+	return ( exists $CORE_PACKLIST_FIX{$module} )
+	  ? $CORE_PACKLIST_FIX{$module}
+	  : $module;
+}
 
 #####################################################################
 # CPAN installation and upgrade support
@@ -444,7 +441,7 @@ sub _install_cpan_module {
 	# Actually do the installation.
 	$self->install_distribution(
 		name     => $module_file,
-		mod_name => $module_id,
+		mod_name => $self->_packlist_fix($module_id),
 		$self->_install_location($core),
 		$force
 		  ? ( force => 1 )
@@ -952,7 +949,7 @@ sub install_perl_toolchain {
 #<<<
 		$self->install_distribution(
 			name              => $dist,
-			mod_name          => $module_id,
+			mod_name          => $self->_packlist_fix($module_id),
 			force             => $force,
 			automated_testing => $automated_testing,
 			release_testing   => $release_testing,
