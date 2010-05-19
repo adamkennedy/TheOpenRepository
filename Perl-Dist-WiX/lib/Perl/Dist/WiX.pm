@@ -4559,7 +4559,7 @@ has '_notification_index' => (
 	traits   => ['Counter'],
 	is       => 'bare',
 	isa      => Int,
-	default  => time % 100000,
+	default  => 0,
 	reader   => '_get_notify_index',
 	init_arg => undef,
 	handles  => {
@@ -4584,7 +4584,7 @@ sub add_output_file {
 		);
 		
 		# Only need to register with Growl for Windows once.
-		if (not $self->_notification_index()) {
+		if (not $self->get_notify_index()) {
 			$growl->register([{
 				Name        => 'OUTPUT_FILE',
 				DisplayName => 'Output file created',
