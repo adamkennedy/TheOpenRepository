@@ -4584,7 +4584,7 @@ sub add_output_file {
 		);
 		
 		# Only need to register with Growl for Windows once.
-		if (not $self->get_notify_index()) {
+		if (not $self->_get_notify_index()) {
 			$growl->register([{
 				Name        => 'OUTPUT_FILE',
 				DisplayName => 'Output file created',
