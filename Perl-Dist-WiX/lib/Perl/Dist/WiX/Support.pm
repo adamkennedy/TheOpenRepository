@@ -558,9 +558,9 @@ sub extract_archive {
 "Tried to extract the file $from without the xz libraries installed."
 		  );
 
-		local $Archive::Tar::CHMOD = 0;
-		my $xz = IO::Uncompress::UnXz->new($from);
-		my @fl = @filelist = Archive::Tar->extract_archive( \$xz );
+		local $Archive::Tar::CHMOD = 0;		
+		my $xz = IO::Uncompress::UnXz->new($from, BlockSize => 16384);
+		my @fl = @filelist = Archive::Tar->extract_archive( $xz );
 		@filelist = map { catfile( $to, $_ ) } @fl;
 		if ( !@filelist ) {
 			PDWiX->throw('Error in archive extraction');
