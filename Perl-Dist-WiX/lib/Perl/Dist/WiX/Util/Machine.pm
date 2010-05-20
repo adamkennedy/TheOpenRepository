@@ -8,7 +8,7 @@ Perl::Dist::WiX::Util::Machine - Generate an entire set of related distributions
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Util::Machine version 1.200.
+This document describes Perl::Dist::WiX::Util::Machine version 1.200_100.
 
 =head1 SYNOPSIS
 

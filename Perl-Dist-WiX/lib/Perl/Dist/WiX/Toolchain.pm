@@ -8,7 +8,7 @@ Perl::Dist::WiX::Toolchain - Compiles the initial toolchain for a Win32 perl dis
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Toolchain version 1.200001.
+This document describes Perl::Dist::WiX::Toolchain version 1.200_100.
 
 =head1 SYNOPSIS
 

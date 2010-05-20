@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::Files - A <Fragment> with file handling.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::Files version 1.200001.
+This document describes Perl::Dist::WiX::Fragment::Files version 1.200_100.
 
 =head1 SYNOPSIS
 
@@ -52,7 +52,7 @@ use WiX3::Exceptions qw();
 use File::List::Object qw();
 use Win32::Exe 0.13 qw();
 
-our $VERSION = '1.200001';
+our $VERSION = '1.200_100';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
