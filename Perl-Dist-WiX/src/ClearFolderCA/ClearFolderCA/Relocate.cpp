@@ -418,7 +418,7 @@ UINT __stdcall Relocate_Worker(
 
 	// Log what we're doing.
 	StartLogStringR(_T("Relocating from "));
-	AppendLogStringR(sDirectoryTo);
+	AppendLogStringR(sDirectoryFrom);
 	uiAnswer = LogStringR(hModule);
 	MSI_OK(uiAnswer)
 

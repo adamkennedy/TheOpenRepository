@@ -58,7 +58,8 @@ UINT __stdcall CheckForSpaces(
 	uiAnswer = ::MsiGetProperty(hModule, TEXT("INSTALLDIR"), sInstallDir, &dwPropLength); 
 	MSI_OK(uiAnswer)
 
-	if (NULL != _tcschr(sInstallDir, _T(' '))) {
+	if (NULL != _tcsspnp(sInstallDir, 
+		_T("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&'()+,-.;=@[]^_`{}~:\\"))) {
 		return ::MsiSetProperty(hModule, TEXT("WIXUI_INSTALLDIR_VALID"), TEXT("-2"));
 	}
 
@@ -73,7 +74,7 @@ UINT __stdcall CheckForSpaces(
 	while (0 == dwAnswer) {
 
 		dwError = ::GetLastError();
-		if (ERROR_FILE_NOT_FOUND != dwError)
+		if ((ERROR_FILE_NOT_FOUND != dwError) && (ERROR_PATH_NOT_FOUND != dwError))
 			break;
 
 		// Keep working backwards until we get it right, or until there are no more backslashes.
@@ -83,10 +84,6 @@ UINT __stdcall CheckForSpaces(
 
 		*pcSlash = _T('\0');
 		dwAnswer = ::GetLongPathName(sInstallDirWork, sInstallDirLong, MAX_PATH);
-	}
-
-	if (NULL != _tcschr(sInstallDirLong, _T(' '))) {
-		return ::MsiSetProperty(hModule, TEXT("WIXUI_INSTALLDIR_VALID"), TEXT("-2"));
 	}
 
 	if (NULL != _tcsspnp(sInstallDirLong, 
