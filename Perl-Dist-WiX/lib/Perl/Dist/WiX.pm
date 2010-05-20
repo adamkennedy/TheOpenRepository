@@ -823,6 +823,22 @@ has 'msi_debug' => (
 
 
 
+=head4 msi_exit_text
+
+The optional C<msi_exit_text> parameter is used to customize the text
+that the MSI shows on its last screen.
+
+The default says: "Before you start using Perl, please read the README 
+file."
+
+=cut
+
+has 'msi_exit_text' => (
+	is      => 'ro',
+	isa     => Str,
+	default => "Before you start using Perl, please read the README file.",
+);
+
 =head4 output_base_filename
 
 The optional C<output_base_filename> parameter specifies the filename 
@@ -4049,6 +4065,8 @@ the perl distribution being built.
 =cut
 
 sub perl_major_version {
+	my $self = shift;
+
 	# Get perl version arrayref.
 	my $ver = {
 		'589'  => [ 5, 8,  9 ],

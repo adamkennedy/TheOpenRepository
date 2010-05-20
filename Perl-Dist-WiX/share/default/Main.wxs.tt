@@ -256,6 +256,9 @@
 	</UI>
 [% END %]
 
+    <UI>
+	</UI>
+
 [% IF dist.relocatable %]
 	<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
 [% END %]
@@ -269,6 +272,7 @@
     <Property Id='ARPCOMMENTS'>[% dist.app_name %] [% dist.perl_version_human %]</Property>
     <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
     <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>
+    <Property Id='WIXUI_EXITDIALOGOPTIONALTEXT'><![CDATA[[% dist.msi_exit_text %]]]></Property>
 	
 [% IF dist.msi_help_url.defined %]
     <Property Id='ARPHELPLINK'>[% dist.msi_help_url %]</Property>
