@@ -692,6 +692,8 @@ sub _extract_filemap {
 sub _extract_filemap_zip {
 	my ( $self, $archive, $filemap, $basedir, $file_only ) = @_;
 
+	my @files;
+
 	my $zip = Archive::Zip->new($archive);
 	my $wd  = $self->push_dir($basedir);
 	while ( my ( $f, $t ) = each %{$filemap} ) {
