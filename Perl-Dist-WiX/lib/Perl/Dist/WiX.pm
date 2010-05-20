@@ -836,7 +836,7 @@ file."
 has 'msi_exit_text' => (
 	is      => 'ro',
 	isa     => Str,
-	default => "Before you start using Perl, please read the README file.",
+	default => 'Before you start using Perl, please read the README file.',
 );
 
 =head4 output_base_filename
@@ -1095,7 +1095,7 @@ sub _build_cpan {
 	# If we are online and don't have a cpan repository,
 	# use cpan.strawberryperl.com as a default.
 	if ( $self->offline() ) {
-		return URI::file->new('C:\\minicpan\\'),
+		return URI::file->new('C:\\minicpan\\'),;
 	} else {
 		return URI->new('http://cpan.strawberryperl.com/');
 	}
@@ -3067,7 +3067,8 @@ sub _write_zip {
 		$member->desiredCompressionLevel(9);
 		if ( $member->fileName =~ m{[.] AAA\z}smx ) {
 			$zip->removeMember($member);
-		}	}
+		}
+	}
 
 	# Write out the file name
 	$zip->writeToFileNamed($file);
@@ -3154,11 +3155,9 @@ sub _write_msi {
 
 
 	# Write out the .wxs file
-	my $content = $self->process_template(
-		'Main.wxs.tt',
+	my $content = $self->process_template( 'Main.wxs.tt',
 		directory_tree =>
-			  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
-		);
+		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(), );
 	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
 	$filename_in =
 	  catfile( $self->fragment_dir(), $self->app_name() . q{.wxs} );
@@ -3315,11 +3314,9 @@ sub _write_msm {
 		Perl::Dist::WiX::FeatureTree2->new( parent => $self, ) );
 
 	# Write out the .wxs file
-	my $content = $self->process_template(
-		'Merge-Module.wxs.tt',
+	my $content = $self->process_template( 'Merge-Module.wxs.tt',
 		directory_tree =>
-			  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(),
-		);
+		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(), );
 	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
 	$filename_in =
 	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
@@ -4078,8 +4075,8 @@ sub perl_major_version {
 	  }->{ $self->perl_version() }
 	  || [ 0, 0, 0 ];
 
-	return @{$ver}[1]; 
-}
+	return @{$ver}[1];
+} ## end sub perl_major_version
 
 =head3 msi_perl_major_version
 
@@ -4503,7 +4500,7 @@ has '_output_file' => (
 	init_arg => undef,
 	handles  => {
 		_add_output_files => 'push',
-		get_output_files => 'elements',
+		get_output_files  => 'elements',
 	},
 );
 
@@ -4604,59 +4601,61 @@ has '_notification_index' => (
 	init_arg => undef,
 	handles  => {
 		'_increment_notify_index' => 'inc',
-		
+
 	},
 );
 
 
 
-# This throws a Growl notification up when files are created. 
+# This throws a Growl notification up when files are created.
 sub add_output_file {
 	my $self = shift;
 	my $growl;
-	
-	if (eval { require Growl::GNTP; 1; }) {
-	
+
+	if ( eval { require Growl::GNTP; 1; } ) {
+
 		# Open up our communication link to Growl.
 		$growl = Growl::GNTP->new(
 			AppName => ref $self,
-			AppIcon => catfile($self->wix_dist_dir(), 'growl-icon.png'),
+			AppIcon => catfile( $self->wix_dist_dir(), 'growl-icon.png' ),
 		);
-		
+
 		# Only need to register with Growl for Windows once.
-		if (not $self->_get_notify_index()) {
-			$growl->register([{
-				Name        => 'OUTPUT_FILE',
-				DisplayName => 'Output file created',
-				Enabled     => 'True',
-				Sticky      => 'False',
-				Priority    => -2,  # very low priority.
-				Icon        => catfile($self->wix_dist_dir(), 'growl-icon.png'),
-			}]);
-		}
-		
+		if ( not $self->_get_notify_index() ) {
+			$growl->register( [ {
+						Name        => 'OUTPUT_FILE',
+						DisplayName => 'Output file created',
+						Enabled     => 'True',
+						Sticky      => 'False',
+						Priority => -2,       # very low priority.
+						Icon     => catfile(
+							$self->wix_dist_dir(), 'growl-icon.png'
+						),
+					} ] );
+		} ## end if ( not $self->_get_notify_index...)
+
 		foreach my $file (@_) {
-			if ($file =~ m{[.] (?:msi|zip|msm)\Z}msx) {
+			if ( $file =~ m{[.] (?:msi|zip|msm)\Z}msx ) {
+
 				# Actually do the notification.
 				$growl->notify(
-					Event               => 'OUTPUT_FILE', # name of notification
-					Title               => 'Output file created',
-					Message             => "$file has been created",
-					ID                  => $self->_get_notify_index(),
+					Event => 'OUTPUT_FILE',          # name of notification
+					Title => 'Output file created',
+					Message => "$file has been created",
+					ID      => $self->_get_notify_index(),
 				);
+
 				# Increment the ID for next time.
 				$self->_increment_notify_index();
-			}
-		}
-	} 
+			} ## end if ( $file =~ m{[.] (?:msi|zip|msm)\Z}msx)
+		} ## end foreach my $file (@_)
+	} ## end if ( eval { require Growl::GNTP...})
 
 	return $self->_add_output_files(@_);
-};
+} ## end sub add_output_file
 
 sub add_output_files {
 	goto &add_output_file;
-	
-	return 1;
 }
 
 =head3 add_icon
@@ -4674,10 +4673,10 @@ parameter, using the icon identified by the C<icon_id> parameter.
 =cut
 
 sub add_icon {
-	my $self   = shift;
+	my $self = shift;
 	my %params;
-	if ('HASH' eq ref $_[0]) {
-		%params = %{$_[0]};
+	if ( 'HASH' eq ref $_[0] ) {
+		%params = %{ $_[0] };
 	} else {
 		%params = @_;
 	}

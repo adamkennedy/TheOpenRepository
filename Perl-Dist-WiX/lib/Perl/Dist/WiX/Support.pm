@@ -39,6 +39,7 @@ use File::Spec::Functions qw( catdir catfile rel2abs catpath );
 use File::Slurp qw(read_file);
 use IO::Compress::Bzip2 2.025;
 use IO::Compress::Gzip 2.025;
+
 # IO::Uncompress::Xz is tested for later, as it's an 'optional'.
 
 our $VERSION = '1.200_100';
@@ -559,8 +560,8 @@ sub extract_archive {
 		  );
 
 		local $Archive::Tar::CHMOD = 0;
-		my $xz = IO::Uncompress::UnXz->new($from, BlockSize => 16384);
-		my @fl = @filelist = Archive::Tar->extract_archive( $xz );
+		my $xz = IO::Uncompress::UnXz->new( $from, BlockSize => 16_384 );
+		my @fl = @filelist = Archive::Tar->extract_archive($xz);
 		@filelist = map { catfile( $to, $_ ) } @fl;
 		if ( !@filelist ) {
 			PDWiX->throw('Error in archive extraction');
@@ -600,30 +601,8 @@ sub _extract_filemap {
 
 	if ( $archive =~ m{[.] zip\z}msx ) {
 
-		my $zip = Archive::Zip->new($archive);
-		my $wd  = $self->push_dir($basedir);
-		while ( my ( $f, $t ) = each %{$filemap} ) {
-			$self->trace_line( 2, "Extracting $f to $t\n" );
-			my $dest = catfile( $basedir, $t );
-
-			my @members = $zip->membersMatching("^\Q$f");
-
-			foreach my $member (@members) {
-				my $filename = $member->fileName();
-#<<<
-				$filename =~
-				  s{\A\Q$f}    # At the beginning of the string, change $f 
-				   {$dest}msx; # to $dest.
-#>>>
-				$filename = _convert_name($filename);
-				my $status = $member->extractToFileNamed($filename);
-
-				if ( $status != AZ_OK ) {
-					PDWiX->throw('Error in archive extraction');
-				}
-				push @files, $filename;
-			} ## end foreach my $member (@members)
-		} ## end while ( my ( $f, $t ) = each...)
+		$self->_extract_filemap_zip( $archive, $filemap, $basedir,
+			$file_only );
 
 	} elsif ( $archive =~
 		m{[.] tar [.] gz | [.] tgz | [.] tar [.] bz2 | [.] tbz }msx )
@@ -656,7 +635,7 @@ sub _extract_filemap {
 				push @files, $full_t;
 			} ## end for my $tgt ( keys %{$filemap...})
 		} ## end for my $file ( $tar->get_files...)
-		
+
 	} elsif ( $archive =~ m{ [.] tar [.] xz | [.] txz}msx ) {
 
 		# First attempt at trying to use .xz files. TODO: Improve.
@@ -669,8 +648,8 @@ sub _extract_filemap {
 "Tried to extract the file $archive without the xz libraries installed."
 		  );
 
-		local $Archive::Tar::CHMOD = 0;		
-		my $xz = IO::Uncompress::UnXz->new($archive, BlockSize => 16384);
+		local $Archive::Tar::CHMOD = 0;
+		my $xz = IO::Uncompress::UnXz->new( $archive, BlockSize => 16_384 );
 		my $tar = Archive::Tar->new($xz);
 		for my $file ( $tar->get_files() ) {
 			my $f       = $file->full_path();
@@ -698,7 +677,7 @@ sub _extract_filemap {
 				push @files, $full_t;
 			} ## end for my $tgt ( keys %{$filemap...})
 		} ## end for my $file ( $tar->get_files...)
-		
+
 
 
 	} else {
@@ -708,6 +687,38 @@ sub _extract_filemap {
 	return @files;
 } ## end sub _extract_filemap
 
+
+
+sub _extract_filemap_zip {
+	my ( $self, $archive, $filemap, $basedir, $file_only ) = @_;
+
+	my $zip = Archive::Zip->new($archive);
+	my $wd  = $self->push_dir($basedir);
+	while ( my ( $f, $t ) = each %{$filemap} ) {
+		$self->trace_line( 2, "Extracting $f to $t\n" );
+		my $dest = catfile( $basedir, $t );
+
+		my @members = $zip->membersMatching("^\Q$f");
+
+		foreach my $member (@members) {
+			my $filename = $member->fileName();
+#<<<
+			$filename =~
+			  s{\A\Q$f}    # At the beginning of the string, change $f 
+			   {$dest}msx; # to $dest.
+#>>>
+			$filename = _convert_name($filename);
+			my $status = $member->extractToFileNamed($filename);
+
+			if ( $status != AZ_OK ) {
+				PDWiX->throw('Error in archive extraction');
+			}
+			push @files, $filename;
+		} ## end foreach my $member (@members)
+	} ## end while ( my ( $f, $t ) = each...)
+
+	return 1;
+} ## end sub _extract_filemap_zip
 
 
 =head2 make_path
@@ -800,19 +811,25 @@ If there is no second parameter, the first file will include all
 =cut 
 
 sub make_relocation_file {
-	my $self = shift;
-	my $file = shift;
+	my $self                      = shift;
+	my $file                      = shift;
 	my (@files_already_processed) = @_;
-	
+
+	## no critic(ProhibitComplexMappings ProhibitMutatingListFunctions)
+	## no critic(ProhibitCaptureWithoutTest RequireBriefOpen)
+	# TODO: Calm down on the no critics.
+
 	# Get the input and output filenames.
-	my $file_in = $self->patch_pathlist()->find_file($file . '.source');
+	my $file_in  = $self->patch_pathlist()->find_file( $file . '.source' );
 	my $file_out = $self->image_dir()->file($file);
-	
+
 	# Find files we're already assigned for relocation.
-	my @filelist;	
+	my @filelist;
 	my %files_already_relocating;
 	foreach my $file_already_processed (@files_already_processed) {
-		@filelist = read_file($self->image_dir()->file($file_already_processed)->stringify());
+		@filelist = read_file(
+			$self->image_dir()->file($file_already_processed)->stringify()
+		);
 		shift @filelist;
 		%files_already_relocating = (
 			%files_already_relocating,
@@ -821,53 +838,66 @@ sub make_relocation_file {
 	}
 
 	# Find all the .packlist files.
-	my @packlists_list = File::Find::Rule->file()->name('.packlist')->relative()->in($self->image_dir()->stringify());
-	my %packlists = map { s{/}{\\}g; $_ => 1} @packlists_list;
+	my @packlists_list =
+	  File::Find::Rule->file()->name('.packlist')->relative()
+	  ->in( $self->image_dir()->stringify() );
+	my %packlists = map { s{/}{\\}msg; $_ => 1 } @packlists_list;
 
 	# Find all the .bat files.
-	my @batch_files_list = File::Find::Rule->file()->name('*.bat')->relative()->in($self->image_dir()->stringify());
-	my %batch_files = map { s{/}{\\}g; $_ => 1} @batch_files_list;
-	
+	my @batch_files_list =
+	  File::Find::Rule->file()->name('*.bat')->relative()
+	  ->in( $self->image_dir()->stringify() );
+	my %batch_files = map { s{/}{\\}msg; $_ => 1 } @batch_files_list;
+
 	# Get rid of the .packlist and *.bat files we're already relocating.
-	delete @packlists{keys %files_already_relocating};
-	delete @batch_files{keys %files_already_relocating};
-		
+	delete @packlists{ keys %files_already_relocating };
+	delete @batch_files{ keys %files_already_relocating };
+
 	# Print the first line of the relocation file.
 	my $file_out_handle;
-	open $file_out_handle, ">", $file_out;
-	print { $file_out_handle } $self->image_dir()->stringify();
-	print { $file_out_handle } "\\\n";	
-	
-	# Read the source file, writing out the files that actually exist. 
+	open $file_out_handle, '>', $file_out
+	  or PDWiX::File->throw(
+		file    => $file_out,
+		message => 'Could not open.'
+	  );
+	print {$file_out_handle} $self->image_dir()->stringify();
+	print {$file_out_handle} "\\\n";
+
+	# Read the source file, writing out the files that actually exist.
 	@filelist = read_file($file_in);
 	foreach my $filelist_entry (@filelist) {
-		$filelist_entry =~ m/\A([^:]*):.*\z/msx; 
-		if (defined $1 and -f $self->image_dir()->file($1)->stringify()) {
+		$filelist_entry =~ m/\A([^:]*):.*\z/msx;
+		if ( defined $1 and -f $self->image_dir()->file($1)->stringify() ) {
 			print {$file_out_handle} $filelist_entry;
 		}
 	}
 
 	# Print out the rest of the .packlist files.
-	foreach my $pl (sort { $a cmp $b } keys %packlists) {
-		print { $file_out_handle } "$pl:backslash\n";
+	foreach my $pl ( sort { $a cmp $b } keys %packlists ) {
+		print {$file_out_handle} "$pl:backslash\n";
 	}
 
 	# Print out the batch files that need relocated.
 	my $batch_contents;
-	my $match_string = q(eval [ ] 'exec [ ] ) . quotemeta $self->image_dir()->file('perl\bin\perl.exe')->stringify();	
-	foreach my $batch_file (sort { $a cmp $b } keys %batch_files) {
-		$self->trace_line(5, "Checking to see if $batch_file needs relocated.\n");
-		my $batch_contents = read_file($self->image_dir()->file($batch_file)->stringify());
-		if ($batch_contents =~ m/$match_string/msgx) {
-			print { $file_out_handle } "$batch_file:backslash\n";
+	my $match_string =
+	  q(eval [ ] 'exec [ ] )
+	  . quotemeta $self->image_dir()->file('perl\bin\perl.exe')
+	  ->stringify();
+	foreach my $batch_file ( sort { $a cmp $b } keys %batch_files ) {
+		$self->trace_line( 5,
+			"Checking to see if $batch_file needs relocated.\n" );
+		$batch_contents =
+		  read_file( $self->image_dir()->file($batch_file)->stringify() );
+		if ( $batch_contents =~ m/$match_string/msgx ) {
+			print {$file_out_handle} "$batch_file:backslash\n";
 		}
 	}
-	
+
 	# Finish up by closing the handle.
-	close $file_out_handle;
-	
+	close $file_out_handle or PDWiX->throw('Ouch!');
+
 	return 1;
-}
+} ## end sub make_relocation_file
 
 
 no Moose;

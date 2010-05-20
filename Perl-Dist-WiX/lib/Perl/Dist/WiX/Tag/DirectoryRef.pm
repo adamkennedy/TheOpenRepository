@@ -138,9 +138,10 @@ sub search_dir {
 	  );
 	my $descend = $args{descend} || 1;
 	my $exact   = $args{exact}   || 0;
+
 	# This would be $self->get_path(), but hopefully quicker.
 	# This is hit enough to take up a lot of time when profiling.
-	my $path    = $self->{directory_object}->{path};
+	my $path = $self->{directory_object}->{path};
 
 	return undef unless defined $path;
 

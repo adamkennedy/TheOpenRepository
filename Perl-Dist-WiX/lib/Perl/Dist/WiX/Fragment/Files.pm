@@ -480,11 +480,12 @@ sub _add_file_component {
 		my $exe = Win32::Exe->new($file);
 		my $vi;
 		{
+
 			# Win32::Exe prints an annoying warning here. Ignore it.
-			local $SIG{__WARN__} = sub {};
+			local $SIG{__WARN__} = sub { };
 			$vi = $exe->version_info();
 		}
-		
+
 		if ( defined $vi ) {
 			$vi->get('OriginalFilename'); # To load the variable used below.
 			$language = hex substr $vi->{'cur_trans'}, 0, 4;
