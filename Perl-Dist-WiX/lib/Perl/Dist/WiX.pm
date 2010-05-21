@@ -2469,9 +2469,8 @@ sub initialize_nomsm {
 	# Add fragments that otherwise would be after the merge module is done.
 	$self->_add_fragment(
 		'StartMenuIcons',
-		Perl::Dist::WiX::Fragment::StartMenu->new(
-			directory_id => 'D_App_Menu',
-		) );
+		Perl::Dist::WiX::Fragment::StartMenu->new() 
+	);
 	$self->_add_fragment(
 		'Win32Extras',
 		Perl::Dist::WiX::Fragment::Files->new(
@@ -2514,9 +2513,8 @@ sub initialize_using_msm {
 	# Start adding the fragments that are only for an .msi.
 	$self->_add_fragment(
 		'StartMenuIcons',
-		Perl::Dist::WiX::Fragment::StartMenu->new(
-			directory_id => 'D_App_Menu',
-		) );
+		Perl::Dist::WiX::Fragment::StartMenu->new() 
+	);
 	$self->_add_fragment(
 		'Win32Extras',
 		Perl::Dist::WiX::Fragment::Files->new(
@@ -2795,12 +2793,13 @@ sub install_win32_extras {
 			icon_file => catfile( $self->wix_dist_dir(), 'win32.ico' ) );
 
 		$self->get_fragment_object('StartMenuIcons')->add_shortcut(
-			name => 'Perl (command line)',
-			description =>
-			  'Quick way to get to the command line in order to use Perl',
-			target      => '[SystemFolder]cmd.exe',
-			id          => 'PerlCmdLine',
-			working_dir => 'PersonalFolder',
+			name         => 'Perl (command line)',
+			description  =>
+			  'Quick way to get to the command line in order to use Perl.',
+			target       => '[SystemFolder]cmd.exe',
+			id           => 'PerlCmdLine',
+			working_dir  => 'PersonalFolder',
+			directory_id => 'App_Menu',
 		);
 
 		$self->add_to_fragment(
@@ -3011,9 +3010,8 @@ sub write_merge_module {
 		# Start adding the fragments that are only for the .msi.
 		$self->_add_fragment(
 			'StartMenuIcons',
-			Perl::Dist::WiX::Fragment::StartMenu->new(
-				directory_id => 'D_App_Menu',
-			) );
+			Perl::Dist::WiX::Fragment::StartMenu->new() 
+		);
 		$self->_add_fragment(
 			'Win32Extras',
 			Perl::Dist::WiX::Fragment::Files->new(
@@ -4707,6 +4705,9 @@ sub add_icon {
 	} else {
 		%params = @_;
 	}
+
+	$params{directory_id} ||= 'App_Menu';
+
 	my ( $vol, $dir, $file, $dir_id );
 
 	# Get the Id for directory object that stores the filename passed in.
@@ -4724,12 +4725,13 @@ sub add_icon {
 
 	# Add the start menu icon.
 	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
-		name        => $params{name},
-		description => $params{name},
-		target      => "[D_$dir_id]$file",
-		id          => $id,
-		working_dir => $dir_id,
-		icon_id     => $params{icon_id},
+		name         => $params{name},
+		description  => $params{name},
+		target       => "[D_$dir_id]$file",
+		id           => $id,
+		working_dir  => $dir_id,
+		icon_id      => $params{icon_id},
+		directory_id => $params{directory_id},
 	);
 
 	return $self;

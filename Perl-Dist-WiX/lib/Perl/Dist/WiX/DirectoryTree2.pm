@@ -8,7 +8,7 @@ Perl::Dist::WiX::DirectoryTree2 - Base directory tree for Perl::Dist::WiX.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::DirectoryTree2 version 1.200.
+This document describes Perl::Dist::WiX::DirectoryTree2 version 1.200_100.
 
 =head1 SYNOPSIS
 
@@ -40,7 +40,7 @@ use MooseX::Types::Path::Class qw( Dir );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_100';
 $VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';
@@ -204,7 +204,7 @@ sub initialize_tree {
 			noprefix => 1,
 			path     => $self->_get_app_dir()->stringify(),
 		} );
-	$self->get_root()->add_directory( {
+	my $app_menu = $self->get_root()->add_directory( {
 			id       => 'ProgramMenuFolder',
 			noprefix => 1,
 		}
@@ -214,6 +214,11 @@ sub initialize_tree {
 		} );
 
 #<<<
+	$app_menu->add_directories_id(
+		'App_Menu_Tools',    'Tools',
+		'App_Menu_Websites', 'Related Websites',
+	);
+	
 	$branch->add_directories_id(
 		'Perl',      'perl',
 		'Toolchain', 'c',
@@ -286,7 +291,7 @@ sub initialize_short_tree {
 			noprefix => 1,
 			path     => $self->_get_app_dir()->stringify(),
 		} );
-	$self->get_root()->add_directory( {
+	my $app_menu = $self->get_root()->add_directory( {
 			id       => 'ProgramMenuFolder',
 			noprefix => 1,
 		}
@@ -296,6 +301,11 @@ sub initialize_short_tree {
 		} );
 
 #<<<
+	$app_menu->add_directories_id(
+		'App_Menu_Tools',    'Tools',
+		'App_Menu_Websites', 'Related Websites',
+	);
+	
 	$branch->add_directories_id(
 		'Win32',     'win32',
 		'Perl',      'perl',

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Installation - Basic installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Installation version 1.200.
+This document describes Perl::Dist::WiX::Installation version 1.200_100.
 
 =head1 DESCRIPTION
 
@@ -39,7 +39,7 @@ require Perl::Dist::WiX::Asset::Module;
 require Perl::Dist::WiX::Asset::PAR;
 require Perl::Dist::WiX::Asset::Website;
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_100';
 $VERSION =~ s/_//ms;
 
 =pod
@@ -451,7 +451,7 @@ The C<install_launcher> method is used to describe a binary program
 launcher that will be added to the Windows "Start" menu when the
 distribution is installed.
 
-It takes two compulsory param.
+It takes two compulsory parameters.
 
 The compulsory 'name' param is the name of the launcher, and the text
 that label will be displayed in the start menu (Currently this only

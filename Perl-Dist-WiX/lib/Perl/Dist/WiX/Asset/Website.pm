@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::Website - Website link asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Website version 1.200.
+This document describes Perl::Dist::WiX::Asset::Website version 1.200_100.
 
 =head1 SYNOPSIS
 
@@ -33,7 +33,7 @@ use MooseX::Types::Moose qw( Str Int Maybe );
 use File::Spec::Functions qw( catfile splitpath );
 use English qw( -no_match_vars );
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_100';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
@@ -188,10 +188,11 @@ sub install {
 	my $icon_id =
 	  $self->_get_icons()->add_icon( $self->_get_icon_file(), $filename );
 	$self->_add_icon(
-		name     => $name,
-		filename => $filename,
-		fragment => 'Icons',
-		icon_id  => $icon_id,
+		name         => $name,
+		filename     => $filename,
+		fragment     => 'Icons',
+		icon_id      => $icon_id,
+		directory_id => 'App_Menu_Websites',
 	);
 	$self->_add_file(
 		source   => $self->_get_icon_file_to(),
