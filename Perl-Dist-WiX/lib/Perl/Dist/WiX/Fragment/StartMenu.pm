@@ -110,7 +110,7 @@ sub _build_root {
 	
 	# Get the directory object so we can create a reference to it.
 	my $tree      = Perl::Dist::WiX::DirectoryTree2->instance();
-	my $directory = $tree->get_directory_object($directory_id);
+	my $directory = $tree->get_directory_object('D_' . $directory_id);
 	if ( not defined $directory ) {
 		PDWiX->throw("Could not find directory object for id $directory_id");
 	}
@@ -118,11 +118,11 @@ sub _build_root {
 
 	# Add the component that removes the start menu folder.
 	my $remove = WiX3::XML::RemoveFolder->new(
-		id => 'RemoveFolder_' . $directory_id,
+		id => 'RF_' . $directory_id,
 		on => 'uninstall',
 	);
 	my $remove_component =
-	  WiX3::XML::Component->new( id => 'RemoveFolder_' . $directory_id, );
+	  WiX3::XML::Component->new( id => 'RF_' . $directory_id, );
 
 	# Get the start of the tree right.
 	$remove_component->add_child_tag($remove);
@@ -268,7 +268,7 @@ sub add_shortcut {
 	$component->add_child_tag($shortcut);
 	my $cf =
 	  WiX3::XML::CreateFolder->new(
-		directory => $args{directory_id} );
+		directory => 'D_' . $args{directory_id} );
 	$component->add_child_tag($cf);
 	$self->_get_root($args{directory_id})->add_child_tag($component);
 

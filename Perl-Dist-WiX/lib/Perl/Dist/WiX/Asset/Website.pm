@@ -86,6 +86,28 @@ has url => (
 
 
 
+=head3 directory_id
+
+The optional C<directory_id> parameter is the ID of the Start Menu
+directory (or subdirectory of that entry) used by the distribution.
+
+Defaults to 'App_Menu_Websites', which puts the shortcut in the 
+'Related Websites' subdirectory of the Start Menu directory used
+by the distribution. 
+
+=cut
+
+
+
+has directory_id => (
+	is      => 'bare',
+	isa     => Str,
+	reader  => '_get_directory_id',
+	default => 'App_Menu_Websites',
+);
+
+
+
 =head3 icon_file
 
 The optional C<icon_file> parameter is the file that contains the icon 
@@ -192,7 +214,7 @@ sub install {
 		filename     => $filename,
 		fragment     => 'Icons',
 		icon_id      => $icon_id,
-		directory_id => 'App_Menu_Websites',
+		directory_id => $self->_get_directory_id(),
 	);
 	$self->_add_file(
 		source   => $self->_get_icon_file_to(),
