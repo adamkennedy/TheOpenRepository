@@ -839,6 +839,33 @@ has 'msi_exit_text' => (
 	default => 'Before you start using Perl, please read the README file.',
 );
 
+
+
+=head4 msi_install_warning_text
+
+Returns the text that the MSI needs to use when not able to relocate.
+
+=cut
+
+has 'msi_install_warning_text' => (
+	is      => 'ro',
+	isa     => Str,
+	lazy    => 1,
+	builder => '_build_msi_install_warning_text',
+);
+
+sub _build_msi_install_warning_text {
+	my $self = shift;
+
+	my $app_name = $self->app_name();
+	my $location = $self->image_dir()->stringify();
+	my $url = $self->app_publisher_url();
+	
+	return "NOTE: This version of $app_name can only be installed to $location. If this is a problem, please download another version from $url.";	
+}
+
+
+
 =head4 output_base_filename
 
 The optional C<output_base_filename> parameter specifies the filename 
@@ -2371,6 +2398,14 @@ EOF
 			id           => 'CPANPLUSFolder',
 		) ) if ( '589' ne $self->perl_version() );
 
+	# Empty directories that need emptied.
+	$self->trace_line( 1,
+		    'Wait a second while we empty the image, '
+		  . "output, and fragment directories...\n" );
+	$self->remake_path( $self->image_dir() );
+	$self->remake_path( $self->output_dir() );
+	$self->remake_path( $self->fragment_dir() );
+
 	# Make some directories.
 	my @directories_to_make = ( $self->dir('cpan'), );
 	push @directories_to_make, $self->dir('cpanplus')
@@ -2379,14 +2414,6 @@ EOF
 		next if -d $d;
 		File::Path::mkpath($d);
 	}
-
-	# Empty directories that need emptied.
-	$self->trace_line( 1,
-		    'Wait a second while we empty the image, '
-		  . "output, and fragment directories...\n" );
-	$self->remake_path( $self->image_dir() );
-	$self->remake_path( $self->output_dir() );
-	$self->remake_path( $self->fragment_dir() );
 
 	# Add environment variables.
 	$self->add_env( 'TERM',        'dumb' );
@@ -3819,7 +3846,7 @@ sub msi_ui_type {
 	} elsif ( $self->relocatable() ) {
 		return 'MyInstallDir';
 	} else {
-		return 'Minimal';
+		return 'MyInstall';
 	}
 }
 
