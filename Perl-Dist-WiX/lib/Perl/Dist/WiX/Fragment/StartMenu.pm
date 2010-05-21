@@ -35,15 +35,16 @@ so that the Start Menu is created when the .msi is installed.
 use 5.008001;
 use Moose 0.90;
 use MooseX::Types::Moose qw( Str Bool HashRef );
+use Perl::Dist::WiX::Types qw( DirectoryRef );
 use WiX3::Exceptions;
-require Perl::Dist::WiX::IconArray;
-require Perl::Dist::WiX::DirectoryTree2;
-require Perl::Dist::WiX::Tag::DirectoryRef;
-require WiX3::XML::Component;
-require WiX3::XML::CreateFolder;
-require WiX3::XML::RemoveFolder;
-require WiX3::XML::DirectoryRef;
-require WiX3::XML::Shortcut;
+use Perl::Dist::WiX::IconArray qw();
+use Perl::Dist::WiX::DirectoryTree2 qw();
+use Perl::Dist::WiX::Tag::DirectoryRef qw();
+use WiX3::XML::Component qw();
+use WiX3::XML::CreateFolder qw();
+use WiX3::XML::RemoveFolder qw();
+use WiX3::XML::DirectoryRef qw();
+use WiX3::XML::Shortcut qw();
 
 our $VERSION = '1.200_100';
 $VERSION =~ s/_//ms;
@@ -91,7 +92,7 @@ has icons => (
 has _roots => (
 	traits   => ['Hash'],
 	is       => 'bare',
-	isa      => HashRef[Perl::Dist::WiX::Tag::DirectoryRef],
+	isa      => HashRef[DirectoryRef],
 	init_arg => undef,
 	default  => sub { {} },
 	handles  => {
@@ -99,7 +100,7 @@ has _roots => (
 		'_root_exists' => 'exists',
 		'_set_root'    => 'set',
 	}
-)
+);
 
 
 
