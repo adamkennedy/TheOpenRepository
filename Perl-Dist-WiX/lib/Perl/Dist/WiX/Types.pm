@@ -133,7 +133,7 @@ subtype TemplateObj,
   message {'Template is not the correct type of object'};
 
 class_type DirectoryRef, { class => 'Perl::Dist::WiX::Tag::DirectoryRef' };
-  
+
 1;
 
 __END__

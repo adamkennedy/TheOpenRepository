@@ -859,9 +859,10 @@ sub _build_msi_install_warning_text {
 
 	my $app_name = $self->app_name();
 	my $location = $self->image_dir()->stringify();
-	my $url = $self->app_publisher_url();
-	
-	return "NOTE: This version of $app_name can only be installed to $location. If this is a problem, please download another version from $url.";	
+	my $url      = $self->app_publisher_url();
+
+	return
+"NOTE: This version of $app_name can only be installed to $location. If this is a problem, please download another version from $url.";
 }
 
 
@@ -2467,10 +2468,8 @@ sub initialize_nomsm {
 	$self->_set_in_merge_module(0);
 
 	# Add fragments that otherwise would be after the merge module is done.
-	$self->_add_fragment(
-		'StartMenuIcons',
-		Perl::Dist::WiX::Fragment::StartMenu->new() 
-	);
+	$self->_add_fragment( 'StartMenuIcons',
+		Perl::Dist::WiX::Fragment::StartMenu->new() );
 	$self->_add_fragment(
 		'Win32Extras',
 		Perl::Dist::WiX::Fragment::Files->new(
@@ -2511,10 +2510,8 @@ sub initialize_using_msm {
 	$self->extract_archive( $tgz, $self->image_dir() );
 
 	# Start adding the fragments that are only for an .msi.
-	$self->_add_fragment(
-		'StartMenuIcons',
-		Perl::Dist::WiX::Fragment::StartMenu->new() 
-	);
+	$self->_add_fragment( 'StartMenuIcons',
+		Perl::Dist::WiX::Fragment::StartMenu->new() );
 	$self->_add_fragment(
 		'Win32Extras',
 		Perl::Dist::WiX::Fragment::Files->new(
@@ -2793,8 +2790,8 @@ sub install_win32_extras {
 			icon_file => catfile( $self->wix_dist_dir(), 'win32.ico' ) );
 
 		$self->get_fragment_object('StartMenuIcons')->add_shortcut(
-			name         => 'Perl (command line)',
-			description  =>
+			name => 'Perl (command line)',
+			description =>
 			  'Quick way to get to the command line in order to use Perl.',
 			target       => '[SystemFolder]cmd.exe',
 			id           => 'PerlCmdLine',
@@ -3008,10 +3005,8 @@ sub write_merge_module {
 		$self->_set_in_merge_module(0);
 
 		# Start adding the fragments that are only for the .msi.
-		$self->_add_fragment(
-			'StartMenuIcons',
-			Perl::Dist::WiX::Fragment::StartMenu->new() 
-		);
+		$self->_add_fragment( 'StartMenuIcons',
+			Perl::Dist::WiX::Fragment::StartMenu->new() );
 		$self->_add_fragment(
 			'Win32Extras',
 			Perl::Dist::WiX::Fragment::Files->new(
@@ -4607,7 +4602,7 @@ They also may create a Growl notification that is sent out locally if
 L<Growl::GNTP|Growl::GNTP> is installed. Growl for Windows (downloadable 
 at L<http://www.growlforwindows.com/>) can either display these 
 notifications on the local machine, or forward them to another
-machine or device that can recieve GNTP messages.
+machine or device that can receive GNTP messages.
 
 Growl notifications are only sent out for msi, msm, and zip files.
 

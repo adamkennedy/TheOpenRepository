@@ -92,27 +92,28 @@ has icons => (
 has _roots => (
 	traits   => ['Hash'],
 	is       => 'bare',
-	isa      => HashRef[DirectoryRef],
+	isa      => HashRef [DirectoryRef],
 	init_arg => undef,
 	default  => sub { {} },
 	handles  => {
 		'_get_root'    => 'get',
 		'_root_exists' => 'exists',
 		'_set_root'    => 'set',
-	}
+	},
 );
 
 
 
 sub _build_root {
-	my $self = shift;
+	my $self         = shift;
 	my $directory_id = shift;
-	
+
 	# Get the directory object so we can create a reference to it.
 	my $tree      = Perl::Dist::WiX::DirectoryTree2->instance();
-	my $directory = $tree->get_directory_object('D_' . $directory_id);
+	my $directory = $tree->get_directory_object( 'D_' . $directory_id );
 	if ( not defined $directory ) {
-		PDWiX->throw("Could not find directory object for id $directory_id");
+		PDWiX->throw(
+			"Could not find directory object for id $directory_id");
 	}
 	my $root = Perl::Dist::WiX::Tag::DirectoryRef->new($directory);
 
@@ -129,8 +130,8 @@ sub _build_root {
 	$root->add_child_tag($remove_component);
 	$self->add_child_tag($root);
 
-	$self->_set_root($directory_id => $root);
-	
+	$self->_set_root( $directory_id => $root );
+
 	return 1;
 } ## end sub _build_root
 
@@ -211,9 +212,8 @@ sub add_shortcut {
 	} elsif ( 0 == @_ % 2 ) {
 		%args = (@_);
 	} else {
-		PDWiX->throw(
-'Parameters incorrect (not a hashref or hash) for ::Fragment::StartMenu->add_shortcut()'
-		);
+		PDWiX->throw( 'Parameters incorrect (not a hashref or hash) '
+			  . 'for ::Fragment::StartMenu->add_shortcut()' );
 	}
 
 	# Check that the arguments exist.
@@ -242,12 +242,12 @@ sub add_shortcut {
 		);
 	}
 
-	$args{directory_id} ||= 'App_Menu'; 
+	$args{directory_id} ||= 'App_Menu';
 
-	if (not $self->_root_exists($args{directory_id})) {
-		$self->_build_root($args{directory_id});
+	if ( not $self->_root_exists( $args{directory_id} ) ) {
+		$self->_build_root( $args{directory_id} );
 	}
-	
+
 	# "Fix" the ID to have only identifier characters.
 	$args{id} =~ s{[^A-Za-z0-9]}{_}msgx;
 
@@ -270,7 +270,7 @@ sub add_shortcut {
 	  WiX3::XML::CreateFolder->new(
 		directory => 'D_' . $args{directory_id} );
 	$component->add_child_tag($cf);
-	$self->_get_root($args{directory_id})->add_child_tag($component);
+	$self->_get_root( $args{directory_id} )->add_child_tag($component);
 
 	return;
 } ## end sub add_shortcut

@@ -13,7 +13,6 @@ This document describes Perl::Dist::WiX::Fragment::Files version 1.200_100.
 =head1 SYNOPSIS
 
 	my $fragment = Perl::Dist::WiX::Fragment::Files->new(
-		parent          => $dist,              # Perl::Dist::WiX object
 		id              => 'perl',
 		files           => $perl_files_object, # File::List::Object object
 		in_merge_module => 0,

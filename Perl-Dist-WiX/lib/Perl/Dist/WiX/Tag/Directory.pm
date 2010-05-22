@@ -108,8 +108,8 @@ sub add_directories_id {
 	while ( $#params > 0 ) {
 		$id   = shift @params;
 		$name = shift @params;
-		if (defined $self->get_path()) {
-			$path = $self->get_path() . q{\\} . $name,
+		if ( defined $self->get_path() ) {
+			$path = $self->get_path() . q{\\} . $name;
 		}
 		if ( $name =~ m{\\}ms ) {
 			PDWiX->throw( 'Name of directory to add in '

@@ -88,7 +88,7 @@ sub ACTION_authortest {
     $self->depends_on('manifest');
     $self->depends_on('distmeta');
 
-    $self->test_files( qw< t xt > );
+    $self->test_files( qw< t xt/author > );
     $self->depends_on('test');
 
     return;
@@ -102,7 +102,7 @@ sub ACTION_releasetest {
     $self->depends_on('manifest');
     $self->depends_on('distmeta');
 
-    $self->test_files( qw< t xt rt > );
+    $self->test_files( qw< t xt/author rt > );
     $self->depends_on('test');
 
     return;

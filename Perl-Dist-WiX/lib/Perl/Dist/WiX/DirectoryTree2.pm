@@ -14,7 +14,7 @@ This document describes Perl::Dist::WiX::DirectoryTree2 version 1.200_100.
 
 	$tree = Perl::Dist::WiX::DirectoryTree2->instance();
 	
-	# TODO: Add more.
+	# See each method for examples.
 
 =head1 DESCRIPTION
 
@@ -165,8 +165,8 @@ Returns the previously created directory tree.
 
 	my $directory_object = $tree->get_root();
 	
-Gets the L<Perl::Dist::WiX::Directory|Perl::Dist::WiX::Directory> object at
-the root of the tree.
+Gets the L<Perl::Dist::WiX::Tag::Directory|Perl::Dist::WiX::Tag::Directory> 
+object at the root of the tree.
 	
 =head2 as_string
 
@@ -218,7 +218,7 @@ sub initialize_tree {
 		'App_Menu_Tools',    'Tools',
 		'App_Menu_Websites', 'Related Websites',
 	);
-	
+
 	$branch->add_directories_id(
 		'Perl',      'perl',
 		'Toolchain', 'c',
@@ -305,7 +305,7 @@ sub initialize_short_tree {
 		'App_Menu_Tools',    'Tools',
 		'App_Menu_Websites', 'Related Websites',
 	);
-	
+
 	$branch->add_directories_id(
 		'Win32',     'win32',
 		'Perl',      'perl',
@@ -368,8 +368,11 @@ sub add_directory {
 
 =head2 add_root_directory
 
-TODO
+	$self->add_root_directory('Id', 'directory');
 
+Adds a directory entry with the ID and directory name given
+immediately under the main installation directory.
+	
 =cut
 
 
@@ -416,7 +419,7 @@ sub add_merge_module {
 
 	$directory_object->add_child_tag($mm);
 
-	return;
+	return 1;
 } ## end sub add_merge_module
 
 
