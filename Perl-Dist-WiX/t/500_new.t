@@ -26,7 +26,7 @@ isa_ok( $ua, 'LWP::UserAgent' );
 
 test_run_dist( $dist );
 
-test_verify_files_short(500, '58', 't');
+test_verify_files_short(500, 't');
 
 test_cleanup(500);
 
