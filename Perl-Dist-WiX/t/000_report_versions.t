@@ -452,6 +452,7 @@ BEGIN {
 	  Test::YAML::Meta
 	  Test::Pod::Coverage
 	  Test::Portability::Files
+	  Test::Perl::Dist
 	);
 
 	my $Test = Test::Builder->new;
