@@ -209,6 +209,41 @@ UINT LogStringR(
 }
 
 
+UINT Blip(
+	MSIHANDLE hModule) // Handle of MSI being installed. [in]
+{
+	// Set up variables.
+	PMSIHANDLE hRecord = ::MsiCreateRecord(4);
+    HANDLE_OK(hRecord)
+
+	UINT uiAnswer = ::MsiRecordSetInteger(hRecord, 1, 2);
+	MSI_OK(uiAnswer)
+	
+	uiAnswer = ::MsiRecordSetInteger(hRecord, 2, 0);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetInteger(hRecord, 3, 0);
+	MSI_OK(uiAnswer)
+
+	uiAnswer = ::MsiRecordSetInteger(hRecord, 4, 0);
+	MSI_OK(uiAnswer)
+
+	// Send the message
+	uiAnswer = ::MsiProcessMessage(hModule, INSTALLMESSAGE(INSTALLMESSAGE_PROGRESS), hRecord);
+
+	// Corrects return value for use with MSI_OK.
+	switch (uiAnswer) {
+	case IDOK:
+	case 0: // Means no action was taken...
+		return ERROR_SUCCESS;
+	case IDCANCEL:
+		return ERROR_INSTALL_USEREXIT;
+	default:
+		return ERROR_INSTALL_FAILURE;
+	}
+}
+
+
 UINT _stdcall Relocate_File(
 	MSIHANDLE hModule,
 	const TCHAR *sDirectoryFrom, // Directory to relocate from
@@ -269,7 +304,7 @@ UINT _stdcall Relocate_File(
 	size_t iStringInLength = _tcslen(sStringIn);
 	size_t iStringOutLength = _tcslen(sStringOut);
 	int iErrorFlag = 0;
-
+	long lLine = 0;
 	// Do the relocation.
 	while (!feof(fFileIn)) {
 
@@ -316,6 +351,18 @@ UINT _stdcall Relocate_File(
 		
 		// Write the line out.
 		_fputts(sLine, fFileOut);
+
+		// Check every so often for cancel button.
+		lLine++;
+		if (0 == (lLine % 100)) {
+			uiAnswer = Blip(hModule);
+			if (ERROR_SUCCESS != uiAnswer) {
+				fclose(fFileIn);
+				fclose(fFileOut);
+				::DeleteFile(sFileOut);
+				return uiAnswer;
+			}
+		}
 
 	}
 
