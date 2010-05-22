@@ -42,9 +42,9 @@ use File::Spec::Functions qw(catfile catdir);
 Perl::Critic::Utils::Constants->import(':profile_strictness');
 my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
 
-local $ENV{PERLTIDY} = catfile( 't', 'settings', 'perltidy.txt' );
+local $ENV{PERLTIDY} = catfile( 'xt', 'settings', 'perltidy.txt' );
 
-my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
+my $rcfile = catfile( 'xt', 'settings', 'perlcritic.txt' );
 Test::Perl::Critic->import( 
 	-profile            => $rcfile, 
 	-severity           => 1, 
