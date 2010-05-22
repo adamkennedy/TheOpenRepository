@@ -20,7 +20,7 @@ our @EXPORT =
   test_verify_files_long test_verify_portability test_cleanup);
 push @EXPORT, @Test::More::EXPORT;
 
-our $VERSION = '0.300';
+our $VERSION = '0.301';
 $VERSION =~ s/_//ms;
 
 my $tests_completed = 0;
@@ -69,8 +69,16 @@ sub _paths {
 	if ( not -d $basedir ) {
 		File::Path::mkpath($basedir);
 	}
+	if ( not -d $basedir ) {
+		plan( skip_all =>
+			  'Could not create test base directory' );
+	}
 	if ( not -d $download ) {
 		File::Path::mkpath($download);
+	}
+	if ( not -d $download ) {
+		plan( skip_all =>
+			  'Could not create test download directory' );
 	}
 	diag("Test base directory: $basedir");
 

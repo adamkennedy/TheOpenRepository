@@ -44,5 +44,5 @@
 \bfilelist\.txt$
 
 # Avoid releaserc file
-\breleaserc$^MYMETA.yml$
+\breleaserc$
 ^MYMETA.yml$
