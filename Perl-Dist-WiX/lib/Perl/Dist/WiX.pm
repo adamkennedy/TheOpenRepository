@@ -2742,7 +2742,7 @@ sub install_win32_extras {
 	# Copy the path update script in.
 	$self->copy_file( catfile( $self->wix_dist_dir(), 'update_env.pl' ),
 		$self->image_dir() );
-		
+
 	if ( $self->msi() ) {
 		$self->install_launcher(
 			name => 'CPAN Client',
@@ -2812,9 +2812,10 @@ sub install_win32_extras {
 		# Make sure the environment script gets installed.
 		$self->insert_fragment(
 			'update_env_script',
-			File::List::Object->new()->add_file( $self->file('update_env.pl') ),
+			File::List::Object->new()
+			  ->add_file( $self->file('update_env.pl') ),
 		);
-			
+
 	} ## end if ( $self->msi() )
 
 	return $self;
