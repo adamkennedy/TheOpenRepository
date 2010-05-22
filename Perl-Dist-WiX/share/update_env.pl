@@ -127,7 +127,7 @@ Usage: perl $script
     [ --help ] [ --usage ] [ --man ] [ --version ] [ -? ]
     [--directory directory] [--[no]system] [--quiet]
 
-For more assistance, run $script --help.
+For more assistance, run perl $script --help.
 EOF
 
 	exit(1);	
