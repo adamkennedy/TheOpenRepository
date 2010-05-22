@@ -30,8 +30,8 @@ foreach my $MODULE ( @MODULES ) {
 }
 
 $Perl::Critic::VERSION =~ s/_//;
-if ( 1.10502 > eval { $Perl::Critic::VERSION } ) {
-	plan( skip_all => 'Perl::Critic needs updated to 1.105_02' );
+if ( 1.106 > eval { $Perl::Critic::VERSION } ) {
+	plan( skip_all => 'Perl::Critic needs updated to 1.106' );
 }
 
 if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {
