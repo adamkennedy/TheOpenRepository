@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use File::Slurp qw(read_file write_file);
 use Getopt::Long qw(GetOptions);
+use Pod::Usage qw(pod2usage);
 use English qw( -no_match_vars );
 use File::Spec::Functions qw(splitpath catfile);
 use Carp qw(carp);
@@ -15,7 +16,7 @@ sub usage;
 sub version;
 sub relocate_file;
 
-our $STRING_VERSION = our $VERSION = '1.000';
+our $STRING_VERSION = our $VERSION = '1.001';
 $VERSION  =~ s/_//;
 
 my @files;
@@ -211,7 +212,7 @@ Strawberry Perl to a new location.
 
 Usage: perl $script 
     [ --help ] [ --usage ] [ --man ] [ --version ] [ -? ]
-    --file relocationfile
+    [--file relocationfile] [--location path] [--quiet]
 
 For more assistance, run perl $script --help.
 EOF
