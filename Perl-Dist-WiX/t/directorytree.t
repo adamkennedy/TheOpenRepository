@@ -10,7 +10,7 @@ BEGIN {
 use Test::More;
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
-		plan tests => 11;
+		plan tests => 14;
 	} else {
 		plan skip_all => 'Not on Win32';
 	}
@@ -32,230 +32,51 @@ my $string = $tree->as_string;
 
 is($string, q{    <Directory Id='TARGETDIR' Name='SourceDir' />}, 'Stringifies correctly when uninitialized');    
 
-__END__
-
 my $string_test = '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
       <Directory Id=\'INSTALLDIR\'>
         <Directory Id=\'D_Perl\' Name=\'perl\'>
-          <Directory Id=\'D_F717B51E_5E57_329A_83A3_527819908145\' Name=\'bin\' />
-          <Directory Id=\'D_167768A4_449A_32CC_A0F4_3DCF273EDF69\' Name=\'lib\'>
-            <Directory Id=\'D_180F87E3_8BA9_3D33_AEE7_BCF494527ABA\' Name=\'Archive\' />
-            <Directory Id=\'D_A8C8FC6F_24E4_3756_9816_68E0C6AF697E\' Name=\'B\' />
-            <Directory Id=\'D_57DF1862_07C3_33E0_B569_3BE5C1E5B10B\' Name=\'CGI\' />
-            <Directory Id=\'D_1E4CE48B_D491_3830_8C63_EE79BB61800A\' Name=\'Compress\' />
-            <Directory Id=\'D_8AF15C79_FA45_36B3_ABD8_B31D41B582AF\' Name=\'CPAN\'>
-              <Directory Id=\'D_53747424_89F4_3095_82EF_4C1A8B35027F\' Name=\'API\' />
-            </Directory>
-            <Directory Id=\'D_9B15C326_D2AD_3F05_8480_FB76CEF4C35A\' Name=\'CPANPLUS\'>
-              <Directory Id=\'D_ED001608_7377_3EF1_ABF8_DBC04B048064\' Name=\'Dist\' />
-              <Directory Id=\'D_86FAECA8_D6D9_3A8E_BC20_2E626F2BE0DF\' Name=\'Internals\' />
-            </Directory>
-            <Directory Id=\'D_152F3CF8_314D_3F98_A249_392EE0A5C9DC\' Name=\'Devel\' />
-            <Directory Id=\'D_EB3DFBB1_E121_3F57_936E_2781FB7977D5\' Name=\'Digest\' />
-            <Directory Id=\'D_96781A12_24D3_3B0A_8731_39F011F3CEA1\' Name=\'ExtUtils\'>
-              <Directory Id=\'D_687AEFED_0040_359A_BA22_F9A58E228A8D\' Name=\'MakeMaker\' />
-            </Directory>
-            <Directory Id=\'D_32453E8B_BBCD_3F54_B2C1_813C273C0847\' Name=\'File\' />
-            <Directory Id=\'D_6B79F1E7_1095_34B6_AF8E_20A2F9FB6136\' Name=\'Filter\'>
-              <Directory Id=\'D_5F8D8371_677A_3299_816F_2ABB7197FF55\' Name=\'Util\' />
-            </Directory>
-            <Directory Id=\'D_C19FDDD3_0EB3_3963_83AD_6B9E204BB211\' Name=\'Getopt\' />
-            <Directory Id=\'D_79FC3F94_0468_3ECA_B18F_4C92F38990EC\' Name=\'IO\'>
-              <Directory Id=\'D_E9641701_36CD_3592_AEC6_2E375354E244\' Name=\'Compress\' />
-              <Directory Id=\'D_01D29F16_7FFE_3AC0_878C_482FB1D6B715\' Name=\'Uncompress\' />
-            </Directory>
-            <Directory Id=\'D_C382D2EC_779A_339E_9BED_D146C7489317\' Name=\'IPC\' />
-            <Directory Id=\'D_C8B207D4_21D6_3F1F_8CC8_4F7670CD8BCD\' Name=\'Locale\'>
-              <Directory Id=\'D_E0C4B2B5_C4E4_3EA1_A27B_D1BC6CE444CF\' Name=\'Maketext\' />
-            </Directory>
-            <Directory Id=\'D_4D70863F_EDBA_396B_A936_0352639DA92F\' Name=\'Log\'>
-              <Directory Id=\'D_D72A1DA3_7C47_3D1D_8F9A_E25ED762E034\' Name=\'Message\' />
-            </Directory>
-            <Directory Id=\'D_27461A25_5034_3D89_AD5D_50A5E3CD5BA9\' Name=\'Math\'>
-              <Directory Id=\'D_4FF80E77_1B9F_3235_99FE_55B711F7CAD1\' Name=\'BigInt\' />
-            </Directory>
-            <Directory Id=\'D_CE106BF1_5EE2_3816_9A2D_0F00286C6749\' Name=\'Module\'>
-              <Directory Id=\'D_4EB1F21D_6BEF_3CD6_AF16_A13DE1410E56\' Name=\'Build\' />
-            </Directory>
-            <Directory Id=\'D_472DF1A0_222E_3479_B1E5_172B6AF84738\' Name=\'Net\' />
-            <Directory Id=\'D_3E78F079_73DD_3DAA_912F_209CEC68903D\' Name=\'Pod\' />
-            <Directory Id=\'D_32E5A173_2C22_3AED_B76B_C90550094A4C\' Name=\'Term\' />
-            <Directory Id=\'D_13EF26F9_C8E9_3439_9DD2_CE1506EF2826\' Name=\'Test\'>
-              <Directory Id=\'D_F8E7E97D_FECD_3EE1_88F1_1FBD58F31DF4\' Name=\'Harness\' />
-            </Directory>
-            <Directory Id=\'D_E03DC170_1409_37D7_BCC0_FC44AF896C8F\' Name=\'Text\' />
-            <Directory Id=\'D_46AD6F6D_D148_3BE4_AFA8_CAE080280AC2\' Name=\'Thread\' />
-            <Directory Id=\'D_3777377C_4417_3C20_9A58_542CABDD2F41\' Name=\'Tie\' />
-            <Directory Id=\'D_CF3A962C_7210_3ECB_AF74_B6CD04EB0C5A\' Name=\'Time\' />
-            <Directory Id=\'D_82003174_F290_3049_8CB6_FBE6F4D7D6DC\' Name=\'Unicode\' />
-            <Directory Id=\'D_E0D6BA76_D23F_3DB8_95B0_0127F8C4670F\' Name=\'autodie\' />
-            <Directory Id=\'D_1EAEB13C_294E_3325_BC3B_135FE6E21463\' Name=\'auto\'>
-              <Directory Id=\'D_FE794D95_EB30_343C_A8B4_35B8EC58F146\' Name=\'share\' />
-              <Directory Id=\'D_67BDAD54_8AF2_3313_B99C_62A8AE59118E\' Name=\'Archive\' />
-              <Directory Id=\'D_D418317F_43AB_3EB9_AE5D_B0C6801D54AD\' Name=\'B\' />
-              <Directory Id=\'D_B5A75E38_F946_3B45_89F6_C763580585B6\' Name=\'Compress\' />
-              <Directory Id=\'D_A96FBF1E_B301_3164_873D_D40ACE2D9864\' Name=\'CPANPLUS\'>
-                <Directory Id=\'D_BECEA52C_7BB5_3E87_8F6E_6C92B20C401C\' Name=\'Dist\' />
-              </Directory>
-              <Directory Id=\'D_44A4B802_8C4F_35FB_A899_E94A0E835B7C\' Name=\'Devel\'>
-                <Directory Id=\'D_763BE847_3480_39B3_81AF_EC866C9B46DE\' Name=\'PPPort\' />
-              </Directory>
-              <Directory Id=\'D_8779B820_38EA_39E6_B723_2A94D0359610\' Name=\'Digest\'>
-                <Directory Id=\'D_AB05C8BB_D7D3_30E9_AC70_09DCA7E9B705\' Name=\'MD5\' />
-              </Directory>
-              <Directory Id=\'D_87731680_27B6_39F3_8156_750CE68BE417\' Name=\'Encode\'>
-                <Directory Id=\'D_7D9F371B_5DC9_3BA8_A148_3885C3DB167C\' Name=\'Byte\' />
-                <Directory Id=\'D_DBE15461_7C17_3426_A235_3D7A7D6A9DD2\' Name=\'CN\' />
-                <Directory Id=\'D_F18DB581_11B6_341F_B653_5825F76EC2E8\' Name=\'EBCDIC\' />
-                <Directory Id=\'D_EE0CC19C_2B95_3967_A183_5699A8815889\' Name=\'JP\' />
-                <Directory Id=\'D_329F5F2D_8990_368F_AA1E_670658F71209\' Name=\'KR\' />
-                <Directory Id=\'D_D8E83E39_387D_300D_873F_C81DC3871874\' Name=\'Symbol\' />
-                <Directory Id=\'D_67467A7E_E234_395D_89A3_A5B4D9E9405E\' Name=\'TW\' />
-                <Directory Id=\'D_4351BFE1_7138_371E_8C0C_1491FEA4D8DF\' Name=\'Unicode\' />
-              </Directory>
-              <Directory Id=\'D_0C3638AF_5BCC_37D3_A128_5353F6322FD1\' Name=\'ExtUtils\' />
-              <Directory Id=\'D_79A9E7EF_8E16_3E54_880D_75096FE90E96\' Name=\'File\' />
-              <Directory Id=\'D_CBE44A8D_DAD2_30E0_A434_529A1345BCA9\' Name=\'Filter\'>
-                <Directory Id=\'D_6A5818C3_A575_371E_81E9_8EF4733B4C61\' Name=\'Util\'>
-                  <Directory Id=\'D_70765165_304A_3B5B_8BEC_AF6E8882A93D\' Name=\'Call\' />
-                </Directory>
-              </Directory>
-              <Directory Id=\'D_42D6502C_6758_3EF4_A771_6D0781150666\' Name=\'IO\'>
-                <Directory Id=\'D_CEEBEC0F_FA9A_3406_BF4C_E80F3824F8E3\' Name=\'Compress\' />
-              </Directory>
-              <Directory Id=\'D_CB17F5A3_6530_362E_A8D0_D3D42CB4794B\' Name=\'Math\'>
-                <Directory Id=\'D_5CADB1DF_9C98_37E9_B078_3C4ED5736BED\' Name=\'BigInt\'>
-                  <Directory Id=\'D_7DDFFBD5_6735_3BD7_8A1B_A84B3ABF564A\' Name=\'FastCalc\' />
-                </Directory>
-              </Directory>
-              <Directory Id=\'D_013BF1EF_8EDD_3B67_A53E_F841AAE00C03\' Name=\'Module\'>
-                <Directory Id=\'D_252B8C8E_439D_37FE_AE27_34E19B677429\' Name=\'Load\' />
-              </Directory>
-              <Directory Id=\'D_7E864D52_82FE_37C1_8FB4_BEDD92F5B4A5\' Name=\'PerlIO\' />
-              <Directory Id=\'D_8118EEA5_28BA_3A98_8256_18639EE63293\' Name=\'Pod\' />
-              <Directory Id=\'D_9D9FF976_F842_3CAB_A6C5_681CF3C41D95\' Name=\'POSIX\' />
-              <Directory Id=\'D_F91FED16_DB86_3E27_85AE_6636A7F5D750\' Name=\'Term\' />
-              <Directory Id=\'D_A331F4A8_9F7F_3325_8123_AE7B2AD8A5FF\' Name=\'Test\'>
-                <Directory Id=\'D_552D454D_23A7_34BD_9A9A_5DC892924D7B\' Name=\'Harness\' />
-              </Directory>
-              <Directory Id=\'D_6E122939_8649_3EFF_B6B7_0811B971F099\' Name=\'Text\' />
-              <Directory Id=\'D_C97CA829_B4BF_3B40_BE98_35B9224B55F2\' Name=\'Thread\' />
-              <Directory Id=\'D_79722C1B_07DC_3CE4_BD64_694966C68444\' Name=\'threads\'>
-                <Directory Id=\'D_959B7613_679A_3565_8CB3_9EE8AF8E9177\' Name=\'shared\' />
-              </Directory>
-              <Directory Id=\'D_853CDE42_1F58_3B81_9FC6_7DFB6A7986A3\' Name=\'Time\' />
-              <Directory Id=\'D_E7D4A4EB_9F0C_3FD7_8D53_076F769B55D1\' Name=\'XS\' />
+          <Directory Id=\'D_PerlSite\' Name=\'site\'>
+            <Directory Id=\'D_PerlSiteBin\' Name=\'bin\' />
+            <Directory Id=\'D_PerlSiteLib\' Name=\'lib\'>
+              <Directory Id=\'D_NTU5MTE4NT\' Name=\'auto\' />
             </Directory>
           </Directory>
-          <Directory Id=\'D_1BEF246B_FCD9_34B0_ABAA_5D90D198E4C9\' Name=\'site\'>
-            <Directory Id=\'D_B3D4AD98_92FD_3DCF_A3A5_26C8E2D252A3\' Name=\'lib\'>
-              <Directory Id=\'D_BD78229F_A1E0_3B61_840A_4F42B5775653\' Name=\'Archive\' />
-              <Directory Id=\'D_50CB1D55_C1AE_35A4_BC21_DBC362C2A7A6\' Name=\'Compress\'>
-                <Directory Id=\'D_7C27E321_1393_3EF2_977A_127AC702B020\' Name=\'Raw\' />
-              </Directory>
-              <Directory Id=\'D_CD082B7E_C828_315F_9A8F_454ACB4AC394\' Name=\'Digest\' />
-              <Directory Id=\'D_59FAF411_602A_3066_846D_07E4A9B8EB69\' Name=\'File\' />
-              <Directory Id=\'D_D71A609A_E8F8_3E89_81E6_14081EE0ECA2\' Name=\'HTML\' />
-              <Directory Id=\'D_CC536878_B286_3AD4_90F6_B9BACB6B692D\' Name=\'IO\'>
-                <Directory Id=\'D_BF72F7C9_EBDE_3790_9951_C113401F482C\' Name=\'Compress\'>
-                  <Directory Id=\'D_7D15BDFE_130B_3194_B612_ED93DF52359E\' Name=\'Adapter\' />
+          <Directory Id=\'D_MTA5MzA3NDUxNw\' Name=\'bin\' />
+          <Directory Id=\'D_MTEwODI1NDU4MA\' Name=\'lib\'>
+            <Directory Id=\'D_NDI3MzczODQzMQ\' Name=\'auto\' />
+          </Directory>
+          <Directory Id=\'D_MjE5ODA2NjYzOA\' Name=\'vendor\'>
+            <Directory Id=\'D_ODU0NTcwNz\' Name=\'lib\'>
+              <Directory Id=\'D_MTY3MDgzMjkxNg\' Name=\'auto\'>
+                <Directory Id=\'D_MjE3NDcxODY0Nw\' Name=\'share\'>
+                  <Directory Id=\'D_MjQ0Njg4NTAwNQ\' Name=\'dist\' />
+                  <Directory Id=\'D_Mjk5NjgyNzY1Mg\' Name=\'module\' />
                 </Directory>
-                <Directory Id=\'D_A4F849D5_F208_3BB0_8757_848ACFE1F68A\' Name=\'Uncompress\'>
-                  <Directory Id=\'D_8DCDFED1_25B5_33C0_94B2_EBA6F67B788D\' Name=\'Adapter\' />
-                </Directory>
-              </Directory>
-              <Directory Id=\'D_93051433_B6F7_3599_97B2_700071DA0864\' Name=\'Term\' />
-              <Directory Id=\'D_14F9992E_A451_3D44_AD43_D3A367B02031\' Name=\'Win32\' />
-              <Directory Id=\'D_8F84FF33_C4AD_3F0F_A048_EFA5F61F6E82\' Name=\'Win32API\' />
-              <Directory Id=\'D_59F9E423_78C9_325F_9D07_D8905A999769\' Name=\'YAML\' />
-              <Directory Id=\'D_7212C99C_98FC_3CC2_B32B_986926035439\' Name=\'auto\'>
-                <Directory Id=\'D_BC0402D3_9BD2_3987_B1B4_35EA398C6BEC\' Name=\'share\' />
-                <Directory Id=\'D_DC0D1A3F_F9FD_3308_A33D_00F4DAFF3A55\' Name=\'Archive\' />
-                <Directory Id=\'D_245FDF54_DE1F_3B14_B45C_F591F12FF8FD\' Name=\'Compress\'>
-                  <Directory Id=\'D_4054B239_62D0_3344_BA98_6DA544EBC8A6\' Name=\'Raw\' />
-                </Directory>
-                <Directory Id=\'D_9DA1EA9E_A994_3361_A245_AB09FC3FC74D\' Name=\'Digest\' />
-                <Directory Id=\'D_CDC2E593_45F3_34EF_82A5_8E1B2F82B2AE\' Name=\'File\' />
-                <Directory Id=\'D_27E957E3_1F26_3ADB_B1C5_BE6DD5336BF3\' Name=\'HTML\' />
-                <Directory Id=\'D_337746D2_10AF_3567_8817_7B8A546783B8\' Name=\'IO\'>
-                  <Directory Id=\'D_E059DEA9_3D55_3EED_98A2_14DC2B3BEF9A\' Name=\'Compress\' />
-                </Directory>
-                <Directory Id=\'D_EE6B1671_0C94_37EC_9C2E_84F5E42CA7BA\' Name=\'Term\' />
-                <Directory Id=\'D_C0D9F7F3_8AA7_3A70_810C_FC5FC5F9AA56\' Name=\'Win32\' />
-                <Directory Id=\'D_1F08A362_0240_3F08_B244_F218AF8B4BB6\' Name=\'Win32API\' />
-                <Directory Id=\'D_261F5472_6673_3900_8AA0_2A05FBE3602F\' Name=\'YAML\' />
               </Directory>
             </Directory>
           </Directory>
         </Directory>
         <Directory Id=\'D_Toolchain\' Name=\'c\'>
-          <Directory Id=\'D_F929E019_ED70_313B_BAFD_0F0F27FF0A4F\' Name=\'bin\'>
-            <Directory Id=\'D_1871D525_EA82_3FCD_A1DD_6545613FA8A5\' Name=\'startup\' />
-          </Directory>
-          <Directory Id=\'D_990EBE17_4FDD_3330_B77D_CC1780785AD9\' Name=\'include\'>
-            <Directory Id=\'D_4970DE0E_5BEC_34EA_BD37_9FE53647B20E\' Name=\'c++\'>
-              <Directory Id=\'D_0BD3E815_B406_3420_8279_5C17C43D3968\' Name=\'3.4.5\'>
-                <Directory Id=\'D_E6349AE4_B0D7_34C7_833A_5B1444369683\' Name=\'backward\' />
-                <Directory Id=\'D_C3EB056B_8B9C_38F5_B80B_7AF310AB57B8\' Name=\'bits\' />
-                <Directory Id=\'D_0BFD1700_7BDD_3E14_8878_BF46E4E1602C\' Name=\'debug\' />
-                <Directory Id=\'D_2EB1CFBC_2688_3547_980A_96CB2B0BD574\' Name=\'ext\' />
-                <Directory Id=\'D_F3F9A409_F0C0_378A_BFD7_8C06E94995AD\' Name=\'mingw32\'>
-                  <Directory Id=\'D_7F04A259_CADA_3CFC_A0B6_B75567F48201\' Name=\'bits\' />
-                </Directory>
-              </Directory>
-            </Directory>
-            <Directory Id=\'D_25D1AF22_5FC8_3804_BBCD_75DE143DC68A\' Name=\'ddk\' />
-            <Directory Id=\'D_04E8578B_77C2_3095_A0DB_209575994057\' Name=\'gl\' />
-            <Directory Id=\'D_65264A85_B764_346C_8343_700812E06884\' Name=\'libxml\' />
-            <Directory Id=\'D_95B154FE_05EE_3665_A1B4_9B055011A6A5\' Name=\'sys\' />
-          </Directory>
-          <Directory Id=\'D_14230B50_C0DC_36E3_8931_C28F934C84B5\' Name=\'lib\'>
-            <Directory Id=\'D_E764ADB9_9647_3B6F_8A99_DED1898EF040\' Name=\'debug\' />
-            <Directory Id=\'D_6B140931_6C1B_3379_A4F1_FB678B3C2544\' Name=\'gcc\'>
-              <Directory Id=\'D_99F170D9_C69E_3361_A1F4_CA1869C0648E\' Name=\'mingw32\'>
-                <Directory Id=\'D_27704913_5FF2_36A8_B225_BF1E47B48413\' Name=\'3.4.5\'>
-                  <Directory Id=\'D_12AEE065_432E_3782_93D7_586F15D9129D\' Name=\'include\' />
-                  <Directory Id=\'D_1C0767F2_565D_361B_B0E0_5BB83F2AE405\' Name=\'install-tools\'>
-                    <Directory Id=\'D_AF11F1AA_EB14_3594_926E_F8BACEF36342\' Name=\'include\' />
-                  </Directory>
-                </Directory>
-              </Directory>
-            </Directory>
-          </Directory>
-          <Directory Id=\'D_DD294F22_4FBF_321A_80BB_4CBD1A25C9DE\' Name=\'libexec\'>
-            <Directory Id=\'D_12545A33_2C38_3D6F_A2DA_267EE97FDE2F\' Name=\'gcc\'>
-              <Directory Id=\'D_6E9B021B_04EE_3F14_A14C_919B80A6AC42\' Name=\'mingw32\'>
-                <Directory Id=\'D_97FE211B_F98C_3285_A75B_6F981AA3A19A\' Name=\'3.4.5\'>
-                  <Directory Id=\'D_870594AF_E302_36D9_AFE7_D999FA0DBBF6\' Name=\'install-tools\' />
-                </Directory>
-              </Directory>
-            </Directory>
-          </Directory>
-          <Directory Id=\'D_2470DFE7_CB83_3A8E_8821_BE8F36A4DB79\' Name=\'mingw32\'>
-            <Directory Id=\'D_4082B714_94AE_3055_A142_8AAC4D0F817A\' Name=\'bin\' />
-            <Directory Id=\'D_5E14DB0D_DF32_3502_9ABD_8B4B164CDE1A\' Name=\'lib\'>
-              <Directory Id=\'D_1733B110_8009_3A78_BBA9_3CD4327C357D\' Name=\'ld-scripts\' />
-            </Directory>
-          </Directory>
-          <Directory Id=\'D_BF54B1C7_EF09_3458_B556_2B9279AD2BBD\' Name=\'share\'>
-            <Directory Id=\'D_3AD5DB9D_61F5_3101_89F4_D4AD38190F21\' Name=\'locale\' />
-          </Directory>
+          <Directory Id=\'D_Mjg5NjQ2NzU5OA\' Name=\'bin\' />
+          <Directory Id=\'D_OTQ0MTI1ND\' Name=\'include\' />
+          <Directory Id=\'D_Mjk0NTI1MTI0Nw\' Name=\'lib\' />
+          <Directory Id=\'D_MzQ4NDYzNDEwOQ\' Name=\'libexec\' />
+          <Directory Id=\'D_NDI2MDE0OTU4Mg\' Name=\'mingw32\' />
+          <Directory Id=\'D_ODU1OTExNz\' Name=\'share\' />
         </Directory>
-        <Directory Id=\'D_License\' Name=\'licenses\'>
-          <Directory Id=\'D_818D6C63_4B20_30FD_A5F0_019BE9408F83\' Name=\'dmake\' />
-          <Directory Id=\'D_B8131B88_3ABA_3EE1_BF5C_E3E81E0539E4\' Name=\'gcc\' />
-          <Directory Id=\'D_8D5645E4_03EC_3E0A_84A4_DA619495CFB5\' Name=\'mingw\' />
-          <Directory Id=\'D_3C916D82_47FE_34CE_8BDD_C793099E8A68\' Name=\'perl\' />
-          <Directory Id=\'D_4EAD5660_DA82_3DCB_A86A_D96BE1DF90FA\' Name=\'pexports\' />
+        <Directory Id=\'D_License\' Name=\'licenses\' />
+        <Directory Id=\'D_Cpan\' Name=\'cpan\'>
+          <Directory Id=\'D_CpanSources\' Name=\'sources\' />
         </Directory>
-        <Directory Id=\'D_Cpan\' Name=\'cpan\' />
         <Directory Id=\'D_Win32\' Name=\'win32\' />
       </Directory>
       <Directory Id=\'ProgramMenuFolder\'>
-        <Directory Id=\'D_App_Menu\' Name=\'Test Perl\' />
+        <Directory Id=\'D_App_Menu\' Name=\'Test Perl\'>
+          <Directory Id=\'D_App_Menu_Tools\' Name=\'Tools\' />
+          <Directory Id=\'D_App_Menu_Websites\' Name=\'Related Websites\' />
+        </Directory>
       </Directory>
     </Directory>';
-
 # Test 3
 
 $tree->initialize_tree('589'); $string = $tree->as_string;
@@ -273,11 +94,11 @@ is($string, $string_test, 'Stringifies correctly once initialized');
 my @tests_1 = (
     [
         {
-            path_to_find => 'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools',
+            path_to_find => 'C:\\test\\perl\\site\\bin',
             exact => 1,
             descend => 1,
         },
-        'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools',
+        'C:\\test\\perl\\site\\bin',
         'descend=1 exact=1'
     ],
     [
@@ -291,11 +112,11 @@ my @tests_1 = (
     ],
     [
         {
-            path_to_find => 'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools\\x',
+            path_to_find => 'C:\\test\\perl\\site\\bin\\x',
             exact => 0,
             descend => 1,
         },
-        'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools',
+        'C:\\test\\perl\\site\\bin',
         'descend=1 exact=0'
     ],
     [
@@ -318,7 +139,7 @@ foreach my $test (@tests_1)
 my @tests_2 = (
     [
         {
-            path_to_find => 'C:\\test\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools\\x',
+            path_to_find => 'C:\\xtest\\perl\\site\\bin\\x',
             exact => 1,
             descend => 1,
         },
@@ -334,7 +155,7 @@ my @tests_2 = (
     ],
     [
         {
-            path_to_find => 'C:\\xtest\\c\\libexec\\gcc\\mingw32\\3.4.5\\install-tools\\x',
+            path_to_find => 'C:\\xtest\\perl\\site\\bin\\x',
             exact => 0,
             descend => 1,
         },
@@ -355,3 +176,11 @@ foreach my $test (@tests_2)
     my $dir = $tree->search_dir(%{$test->[0]});
     ok((not defined $dir), "Unsuccessful search, $test->[1]");
 }
+
+my $dirobj = $tree->get_directory_object('D_Win32');
+isa_ok( $dirobj, 'Perl::Dist::WiX::Tag::Directory', 'A directory object retrieved from the tree');
+
+$dirobj = $tree->get_directory_object('Win32');
+is($dirobj, undef, 'Directory object with invalid id is not defined.');
+
+is($tree, Perl::Dist::WiX::DirectoryTree2->instance(), 'Directory tree is a singleton.');
