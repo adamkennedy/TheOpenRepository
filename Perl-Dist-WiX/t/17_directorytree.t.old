@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
-use Perl::Dist::WiX::DirectoryTree;
+use Perl::Dist::WiX::DirectoryTree2;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
@@ -18,16 +18,22 @@ BEGIN {
 
 # Test 1.
 
-my $tree = Perl::Dist::WiX::DirectoryTree->new(
+my $tree = Perl::Dist::WiX::DirectoryTree2->new(
     app_dir => 'C:\\test', 
     app_name => 'Test Perl', 
-    sitename => 'www.test.site.invalid',
-    trace    => 0,
+#    sitename => 'www.test.site.invalid',
+#    trace    => 0,
 );
 ok($tree, '->new returns true');
 
 # Test 2.
               
+my $string = $tree->as_string;
+
+is($string, q{    <Directory Id='TARGETDIR' Name='SourceDir' />}, 'Stringifies correctly when uninitialized');    
+
+__END__
+
 my $string_test = '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
       <Directory Id=\'INSTALLDIR\'>
         <Directory Id=\'D_Perl\' Name=\'perl\'>
@@ -250,13 +256,9 @@ my $string_test = '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
       </Directory>
     </Directory>';
 
-my $string = $tree->as_string;
-
-is($string, q{}, 'Stringifies correctly when uninitialized');    
-
 # Test 3
 
-$tree->initialize_tree('588'); $string = $tree->as_string;
+$tree->initialize_tree('589'); $string = $tree->as_string;
 
 # This is here for data collection when the tree contents change.
 # require Data::Dumper;
