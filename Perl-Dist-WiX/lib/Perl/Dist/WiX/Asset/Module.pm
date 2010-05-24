@@ -158,9 +158,11 @@ sub install {
 	my $name          = $self->get_name();
 	my $force         = $self->_get_force();
 	my $assume        = $self->_get_assume();
-	my $vendor        = $self->_get_parent()->portable() ? 0 : 1;
 	my $packlist_flag = $self->_get_packlist();
-
+	my $vendor        = ! $self->_get_parent()->portable()                 ? 1 : 
+						($self->_get_parent()->perl_major_version() >= 12) ? 1 : 
+						0;
+	
 	# Verify the existence of perl.
 	unless ( $self->_get_bin_perl() ) {
 		PDWiX->throw(

@@ -395,21 +395,24 @@ sub _install_location {
 	my ( $self, $core ) = @_;
 
 	# Return the correct location information.
-	my $portable = $self->portable();
+	my $vendor        = ! $self->_get_parent()->portable()                 ? 1 : 
+						($self->_get_parent()->perl_major_version() >= 12) ? 1 : 
+						0;
+
 	if ($core) {
 		return (
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
 		);
-	} elsif ($portable) {
-		return (
-			makefilepl_param => ['INSTALLDIRS=site'],
-			buildpl_param    => [ '--installdirs', 'site' ],
-		);
-	} else {
+	} elsif ($vendor) {
 		return (
 			makefilepl_param => ['INSTALLDIRS=vendor'],
 			buildpl_param    => [ '--installdirs', 'vendor' ],
+		);
+	} else {
+		return (
+			makefilepl_param => ['INSTALLDIRS=site'],
+			buildpl_param    => [ '--installdirs', 'site' ],
 		);
 	}
 } ## end sub _install_location
