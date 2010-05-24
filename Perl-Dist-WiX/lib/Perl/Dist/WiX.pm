@@ -2739,10 +2739,12 @@ sub install_win32_extras {
 
 	File::Path::mkpath( $self->dir('win32') );
 
-	# Copy the path update script in.
-	$self->copy_file( catfile( $self->wix_dist_dir(), 'update_env.pl' ),
-		$self->image_dir() );
-
+	# Copy the environment update script in.
+	if (not $self->portable()) {
+		$self->copy_file( catfile( $self->wix_dist_dir(), 'update_env.pl' ),
+			$self->image_dir() );
+	}
+	
 	if ( $self->msi() ) {
 		$self->install_launcher(
 			name => 'CPAN Client',
