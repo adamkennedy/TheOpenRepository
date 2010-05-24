@@ -8,7 +8,7 @@ Perl::Dist::WiX::Libraries - Library installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Libraries version 1.200.
+This document describes Perl::Dist::WiX::Libraries version 1.200_100.
 
 =head1 DESCRIPTION
 
@@ -32,7 +32,7 @@ use Params::Util qw( _STRING );
 use Perl::Dist::WiX::Exceptions;
 use Readonly;
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_100';
 $VERSION =~ s/_//ms;
 
 Readonly my %PACKAGES => (
@@ -51,15 +51,15 @@ Readonly my %PACKAGES => (
 #		'w32api'        => 'w32api-3.10.tar.gz',
 	},
 	'32bit-gcc4' => {
-		'dmake'      => '32bit-gcc4/dmake-SVN20091127-bin_20100308.zip',
-		'mingw-make' => '32bit-gcc4/gmake-3.81-20090914-bin_20100120.zip',
+		'dmake'      => '32bit-gcc4/dmake-SVN20091127-bin_20100524.zip',
+		'mingw-make' => '32bit-gcc4/gmake-3.81-20090914-bin_20100524.zip',
 		'pexports'   => '32bit-gcc4/pexports-0.44-bin_20100120.zip',
 		'gcc-toolchain' => '32bit-gcc4/mingw64-w32-20100123-kmx-v2.zip',
 		'gcc-license'   => '32bit-gcc4/mingw64-w32-20100123-kmx-v2-lic.zip',
 	},
 	'64bit-gcc4' => {
-		'dmake'         => '64bit-gcc4/dmake-SVN20091127-bin_20100308.zip',
-		'mingw-make'    => '64bit-gcc4/gmake-3.81.90_20100127_20100305.zip',
+		'dmake'         => '64bit-gcc4/dmake-SVN20091127-bin_20100524.zip',
+		'mingw-make'    => '64bit-gcc4/gmake-3.81.90_20100127_20100524.zip',
 		'pexports'      => '64bit-gcc4/pexports-0.44-bin_20100110.zip',
 		'gcc-toolchain' => '64bit-gcc4/mingw64-w64-20100123-kmx-v2.zip',
 		'gcc-license'   => '64bit-gcc4/mingw64-w64-20100123-kmx-v2-lic.zip',
@@ -231,6 +231,7 @@ sub install_dmake {
 		license => {
 			'dmake/COPYING'            => 'dmake/COPYING',
 			'dmake/readme/license.txt' => 'dmake/license.txt',
+			(4 == $self->gcc_version) ? ('dmake/readme/_INFO_' => 'dmake/_INFO_' ) : ()
 		},
 		install_to => {
 			'dmake/dmake.exe' => 'c/bin/dmake.exe',
@@ -322,6 +323,7 @@ sub install_mingw_make {
 			license => {
 				'doc/COPYING' => 'gmake/COPYING',
 				'doc/AUTHORS' => 'gmake/AUTHORS',
+				(4 == $self->gcc_version) ? ('doc/_INFO_' => 'gmake/_INFO_' ) : ()
 			},
 			install_to => { 'bin/gmake.exe' => 'c/bin/gmake.exe', },
 		);
