@@ -90,7 +90,8 @@ else {
 	}
 }
 
-say 'Done!' unless $quiet;
+say 'Updating environment variables added.' unless $quiet;
+say 'Please reboot now in order to complete installation.' unless $quiet;
 
 exit(0);
 
