@@ -2631,7 +2631,7 @@ sub install_portable {
 	$self->trace_line( 1, "Creating Portable::Dist\n" );
 	require Portable::Dist;
 	$self->_set_portable_dist(
-		Portable::Dist->new( perl_root => $self->_dir('perl') ) );
+		Portable::Dist->new( perl_root => $self->dir('perl') ) );
 	$self->trace_line( 1, "Running Portable::Dist\n" );
 	$self->_portable_dist()->run();
 	$self->trace_line( 1, "Completed Portable::Dist\n" );
