@@ -395,8 +395,8 @@ sub _install_location {
 	my ( $self, $core ) = @_;
 
 	# Return the correct location information.
-	my $vendor        = ! $self->_get_parent()->portable()                 ? 1 : 
-						($self->_get_parent()->perl_major_version() >= 12) ? 1 : 
+	my $vendor        = ! $self->portable()                 ? 1 : 
+						($self->perl_major_version() >= 12) ? 1 : 
 						0;
 
 	if ($core) {
