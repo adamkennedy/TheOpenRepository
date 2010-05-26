@@ -56,9 +56,24 @@ sub compile_runtime {
 	\&_compile_runtime;
 }
 
+sub _caller {
+	my $level = 2;
+	while ( my $context = $self->caller_info($level++) ) {
+		return $context if $self->[SPEC]->( $context->{sub_name} );
+	}
+	return undef;
+}
+
 sub _compile_runtime {
 	my $self    = $_->{pointcut};
-	my $caller  = $self->find_caller or return 0;
+	my $level   = 2;
+	my $caller  = undef;
+	while ( my $cc = caller_info($level++) ) {
+		next unless $self->[SPEC]->( $cc->{sub_name} );
+		$caller = $cc;
+		last;
+	}
+	return 0 unless $caller;
 	my $class   = (ref $_ or 'Aspect::AdviceContext');
 	my $context = $class->new(
 		sub_name => $caller->{sub_name},
@@ -72,7 +87,14 @@ sub _compile_runtime {
 sub match_run {
 	my $self    = shift;
 	my $runtime = shift;
-	my $caller  = $self->find_caller or return 0;
+	my $level   = 2;
+	my $caller  = undef;
+	while ( my $cc = caller_info($level++) ) {
+		next unless $self->[SPEC]->( $cc->{sub_name} );
+		$caller = $cc;
+		last;
+	}
+	return 0 unless $caller;
 	my $context = Aspect::AdviceContext->new(
 		sub_name => $caller->{sub_name},
 		pointcut => $self,
@@ -82,8 +104,7 @@ sub match_run {
 	return 1;
 }
 
-sub find_caller {
-	my $self  = shift;
+sub _caller {
 	my $level = 2;
 	while ( my $context = $self->caller_info($level++) ) {
 		return $context if $self->[SPEC]->( $context->{sub_name} );
@@ -92,7 +113,6 @@ sub find_caller {
 }
 
 sub caller_info {
-	my $self  = shift;
 	my $level = shift;
 
 	package DB;
