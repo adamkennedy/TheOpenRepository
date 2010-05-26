@@ -9,7 +9,7 @@ requires       File::ShareDir       1.00
 requires       File::UserConfig     0.06
 requires       LWP::Online          1.05
 requires       Mirror::JSON         0.01
-requires       JSAN::Client         0.26
+requires       JSAN::Client         0.27
 test_requires  File::Spec           0.80
 test_requires  Test::More           0.47
 test_requires  Test::Script         1.05

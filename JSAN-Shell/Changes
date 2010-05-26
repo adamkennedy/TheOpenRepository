@@ -1,5 +1,8 @@
 Revision history for Perl extension JSAN::Shell2
 
+2.04 ........
+    - Dependency from JSAN::Client bumped to 0.27
+
 2.03 Wed 27 Jan 2010
     - Dependency from JSAN::Client bumped to 0.26
     
