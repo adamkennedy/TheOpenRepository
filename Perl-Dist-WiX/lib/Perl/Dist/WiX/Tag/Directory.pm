@@ -58,7 +58,7 @@ extends 'WiX3::XML::Directory';
 
 =head1 METHODS
 
-This class is a L<WiX3::XML::DirectoryRef|WiX3::XML::DirectoryRef> and 
+This class is a L<WiX3::XML::Directory|WiX3::XML::Directory> and 
 inherits its API, so only additional API is documented here.
 
 =head2 new
