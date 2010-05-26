@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 sub distribution {
     JSAN::Index::Distribution->retrieve(
