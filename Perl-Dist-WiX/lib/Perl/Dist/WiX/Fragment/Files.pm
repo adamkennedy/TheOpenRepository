@@ -399,14 +399,15 @@ sub _add_directory_recursive {
 		shift @dirs_to_add;
 	}
 
+	my $path;
 	foreach my $dir_to_add (@dirs_to_add) {
 
+		$path = catdir( $directory_object->get_path(), $dir_to_add );
 		# Create the object.
 		$directory_object = $directory_object->add_directory(
 			name => $dir_to_add,
-			id   => crc32_base64(
-				catdir( $directory_object->get_path(), $dir_to_add )
-			),
+			id   => crc32_base64($path),
+			path => $path
 		);
 
 		# Check if it's in the cache. If not, add it, and if so,
