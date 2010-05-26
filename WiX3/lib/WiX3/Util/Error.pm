@@ -6,8 +6,9 @@ use strict;
 use warnings;
 use Readonly qw (Readonly);
 use WiX3::Exceptions;
+use parent 'Moose::Error::Default';
 
-our $VERSION = '0.009';
+our $VERSION = '0.009_001';
 $VERSION =~ s/_//ms;
 
 Readonly my %TYPES => ( 'Maybe[Int]' => 'an integer' );
