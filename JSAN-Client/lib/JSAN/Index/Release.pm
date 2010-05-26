@@ -329,7 +329,7 @@ sub _extract_resource_from_tar {
         my $write_dir = File::Spec->catfile($params{to}, @dirs);
 
         # Write the file
-        $self->_write( $write_dir, $file, $item->get_content );
+        $self->_write( $write_dir, $file, $item->get_content, $params{is_static} );
         $extracted_files++;
     }
 
@@ -347,10 +347,10 @@ sub _extract_resource_from_zip {
 
 
 sub _write {
-    my ($self, $dir, $file, $content) = @_;
+    my ($self, $dir, $file, $content, $is_static) = @_;
 
-    # Localise newlines in the files
-    $content =~ s/(\015{1,2}\012|\015|\012)/\n/g;
+    # Localise newlines in the files unless we are extracting the static file (which can be binary)
+    $content =~ s/(\015{1,2}\012|\015|\012)/\n/g unless $is_static;
 
     # Create the save directory if needed
     File::Path::mkpath( $dir, 0, 0755 ) unless -d $dir;
