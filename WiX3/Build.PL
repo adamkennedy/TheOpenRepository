@@ -2,14 +2,59 @@ use strict;
 use warnings;
 use Module::Build;
 
-my $builder = Module::Build->new(
-	module_name         => 'WiX3',
-	license             => 'perl',
-	dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
-	dist_version_from   => 'lib/WiX3.pm',
-	create_makefile_pl  => 'passthrough',
-	create_license      => 1,
-	create_readme       => 1,
+my $class = Module::Build->subclass(
+	class => 'My::Builder',
+	code  => <<'END_CODE',
+sub ACTION_authortest {
+    my ($self) = @_;
+
+    $self->depends_on('build');
+    $self->depends_on('manifest');
+    $self->depends_on('distmeta');
+
+    $self->test_files( qw< t xt/author > );
+    $self->depends_on('test');
+
+    return;
+}
+
+
+sub ACTION_releasetest {
+    my ($self) = @_;
+
+    $self->depends_on('build');
+    $self->depends_on('manifest');
+    $self->depends_on('distmeta');
+
+    $self->test_files( qw< t xt/author xt/release > );
+    $self->depends_on('test');
+
+    return;
+}
+
+
+sub ACTION_manifest {
+    my ($self, @arguments) = @_;
+
+    if (-e 'MANIFEST') {
+        unlink 'MANIFEST' or die "Can't unlink MANIFEST: $!";
+    }
+
+    return $self->SUPER::ACTION_manifest(@arguments);
+}
+END_CODE
+);
+
+
+my $builder = $class->new(
+	module_name          => 'WiX3',
+	license              => 'perl',
+	dist_author          => 'Curtis Jewell <csjewell@cpan.org>',
+	dist_version_from    => 'lib/WiX3.pm',
+	create_makefile_pl   => 'small',
+	create_license       => 1,
+	create_readme        => 1,
+	recursive_test_files => 1,
 	configure_requires => {
 		'Module::Build'            => '0.33',
 	},
@@ -24,17 +69,13 @@ my $builder = Module::Build->new(
 		'Data::UUID'               => '1.202',
 		'Params::Util'             => '1.00',
 		'Moose'                    => '0.90',
-#		'MooseX::LogDispatch'      => '1.2000',
 		'MooseX::Singleton'        => '0.21',
 		'MooseX::Types'            => '0.20',
 		'MooseX::Types::Moose'     => 0,
-#		'MooseX::AttributeHelpers' => '0.22',
-#		'MooseX::NonMoose'         => '0.05',
 		'Regexp::Common'           => '2.122',
 		'Readonly'                 => '1.03',
 	},
 	recommends => {
-#		'MIME::Lite'               => '3.020',
 		'Readonly::XS'             => '1.05',
 	},
 	meta_merge     => {
