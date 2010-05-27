@@ -9,29 +9,29 @@ BEGIN {
 use Test::More tests => 3;
 use Aspect;
 
-my $sub_name = "My::Cflow::sub_to_match";
-my $subject  = Aspect::Pointcut::Cflow->new( some_key => $sub_name );
-my ($match, $runtime_context) =
-	My::Cflow->new->sub_to_match($subject);
-my $context = $runtime_context->{some_key};
+SCOPE: {
+	package My::Foo;
 
-ok( $match, 'match' );
-is( $context->sub_name, $sub_name, 'sub_name' );
-is( ref $context->self, 'My::Cflow', 'self' );
+	sub parent1 {
+		$_[0]->child;
+	}
 
-# -----------------------------------------------------------------------------
+	sub parent2 {
+		$_[0]->child;
+	}
 
-package My::Cflow;
-
-sub new { bless {}, shift };
-
-sub sub_to_match { shift->foo(pop) }
-
-sub foo {
-	my ($self, $subject) = @_;
-	my $runtime = {
-		sub_name => 'foo',
-	};
-	my $match = $subject->match_run($runtime);
-	return ($match, $runtime);
+	sub child {
+		return 1;
+	}
 }
+
+# Set up the cflow hook
+before {
+	isa_ok( $_->{parent}, 'Aspect::Point::Before' );
+	$_->return_value(2);
+} call 'My::Foo::child'
+& cflow parent => 'My::Foo::parent2';
+
+is( My::Foo->child,   1, '->child ok'    );
+is( My::Foo->parent1, 1, '->parent1 ok' );
+is( My::Foo->parent2, 2, '->parent2 ok' );
