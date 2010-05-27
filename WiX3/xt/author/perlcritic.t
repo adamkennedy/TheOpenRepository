@@ -3,6 +3,7 @@
 # Test that modules pass perlcritic and perltidy.
 
 use strict;
+use Test::More;
 
 BEGIN {
 	BAIL_OUT ('Perl version unacceptably old.') if ($] < 5.008001);
@@ -20,19 +21,11 @@ my @MODULES = (
 	'Test::Perl::Critic',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
 # Load the testing modules
 foreach my $MODULE ( @MODULES ) {
 	eval "require $MODULE"; # Has to be require because we pass options to import.
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 	}
 }
 
@@ -50,9 +43,9 @@ use File::Spec::Functions qw(catfile);
 Perl::Critic::Utils::Constants->import(':profile_strictness');
 my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
 
-local $ENV{PERLTIDY} = catfile( 't', 'settings', 'perltidy.txt' );
+local $ENV{PERLTIDY} = catfile( 'xt', 'settings', 'perltidy.txt' );
 
-my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
+my $rcfile = catfile( 'xt', 'settings', 'perlcritic.txt' );
 Test::Perl::Critic->import( 
 	-profile            => $rcfile, 
 	-severity           => 1, 
