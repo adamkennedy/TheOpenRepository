@@ -53,35 +53,25 @@ sub match_curry {
 # Runtime Methods
 
 sub compile_runtime {
-	\&_compile_runtime;
-}
-
-sub _caller {
-	my $level = 2;
-	while ( my $context = $self->caller_info($level++) ) {
-		return $context if $self->[SPEC]->( $context->{sub_name} );
-	}
-	return undef;
-}
-
-sub _compile_runtime {
-	my $self    = $_->{pointcut};
-	my $level   = 2;
-	my $caller  = undef;
-	while ( my $cc = caller_info($level++) ) {
-		next unless $self->[SPEC]->( $cc->{sub_name} );
-		$caller = $cc;
-		last;
-	}
-	return 0 unless $caller;
-	my $class   = (ref $_ or 'Aspect::AdviceContext');
-	my $context = $class->new(
-		sub_name => $caller->{sub_name},
-		pointcut => $self,
-		params   => $caller->{params},
-	);
-	$_->{$self->[KEY]} = $context;
-	return 1;
+	my $self = shift;
+	return sub {
+		my $level   = 2;
+		my $caller  = undef;
+		while ( my $cc = caller_info($level++) ) {
+			next unless $self->[SPEC]->( $cc->{sub_name} );
+			$caller = $cc;
+			last;
+		}
+		return 0 unless $caller;
+		my $class   = (ref $_ or 'Aspect::AdviceContext');
+		my $context = $class->new(
+			sub_name => $caller->{sub_name},
+			pointcut => $_->{pointcut},
+			params   => $caller->{params},
+		);
+		$_->{$self->[KEY]} = $context;
+		return 1;
+	};
 }
 
 sub match_run {
@@ -102,14 +92,6 @@ sub match_run {
 	);
 	$runtime->{$self->[KEY]} = $context;
 	return 1;
-}
-
-sub _caller {
-	my $level = 2;
-	while ( my $context = $self->caller_info($level++) ) {
-		return $context if $self->[SPEC]->( $context->{sub_name} );
-	}
-	return undef;
 }
 
 sub caller_info {
