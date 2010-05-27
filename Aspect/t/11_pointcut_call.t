@@ -74,7 +74,7 @@ isa_ok( ! $pointcut, 'Aspect::Pointcut::Not' );
 # The following package has two methods.
 # A pointcut that defines "Not one and any method" should match two but
 # not match one. And this rule should apply BOTH to the match_all
-# define-time rule AND for the match_run runtime rule.
+# define-time rule AND for the runtime rule.
 SCOPE: {
 	package One;
 

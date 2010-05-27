@@ -3,7 +3,7 @@ package Aspect::Hook;
 use strict;
 use warnings;
 
-our $VERSION = '0.45';
+our $VERSION = '0.90';
 
 1;
 

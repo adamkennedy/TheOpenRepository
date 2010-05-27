@@ -6,7 +6,7 @@ use Carp             ();
 use Params::Util     ();
 use Aspect::Pointcut ();
 
-our $VERSION = '0.45';
+our $VERSION = '0.90';
 our @ISA     = 'Aspect::Pointcut';
 
 
@@ -47,37 +47,6 @@ sub new {
 # (But maybe they should, when used with say a before {} block)
 sub match_curry {
 	return $_[0];
-}
-
-
-
-
-
-######################################################################
-# Runtime Methods
-
-sub match_run {
-	my $self    = shift;
-	my $runtime = shift;
-	unless ( exists $runtime->{exception} ) {
-		# We are not in an exception
-		return 0;
-	}
-	my $spec      = $self->[0];
-	my $exception = $runtime->{exception};
-	if ( ref $spec eq 'Regexp' ) {
-		if ( defined _STRING($exception) ) {
-			return $exception =~ $spec ? 1 : 0;
-		} else {
-			return 0;
-		}
-	} else {
-		if ( defined _INSTANCE($exception, $spec) ) {
-			return 1;
-		} else {
-			return 0;
-		}
-	}
 }
 
 sub compile_runtime {

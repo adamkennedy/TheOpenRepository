@@ -6,10 +6,11 @@ use Carp             ();
 use Params::Util     ();
 use Aspect::Pointcut ();
 
-our $VERSION = '0.45';
+our $VERSION = '0.90';
 our @ISA     = 'Aspect::Pointcut';
 
-use constant ORIGINAL     => 0;use constant COMPILE_CODE => 1;
+use constant ORIGINAL     => 0;
+use constant COMPILE_CODE => 1;
 use constant RUNTIME_CODE => 2;
 use constant COMPILE_EVAL => 3;
 use constant RUNTIME_EVAL => 4;
@@ -95,23 +96,6 @@ sub compile_weave {
 # Compiled string form of the pointcut
 sub compile_runtime {
 	$_[0]->[5];
-}
-
-
-
-
-
-######################################################################
-# Runtime Methods
-
-# Because we now curry away this pointcut, theoretically we should just
-# return true. But if it is ever run inside a negation it returns false
-# results. So since this should never be run due to currying leave the
-# method resolving to the parent class die'ing stub.
-# Having this method die will allow us to more easily catch places where
-# this method is being called incorrectly.
-sub match_run {
-	$_[0]->[1]->($_[1]->{sub_name});
 }
 
 1;

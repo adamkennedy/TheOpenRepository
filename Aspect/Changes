@@ -1,5 +1,24 @@
 Revision history for Perl extension Aspect
 
+0.90 Thu 27 May 2010
+	- Updating to Module::Install::DSL 0.97
+	- Upgraded the old method-based match_run run-time context testing
+	  interface to a newer compiled_runtime context testing interface.
+	  The new interface cooks the run-time tests down to a single
+	  compiled perl condition where possible, and a set of nested
+	  function calls where strings cannot be used. The function calls
+	  alone are faster than methods, and the functions have no 
+	  parameters, making them faster still. Tests that can be compiled
+	  all the way down to a string are even faster, because they avoid
+	  Perl's expensive function calls, and get even faster because
+	  Perl's opcode optimisations get a much better shot at improving
+	  the generated code.
+	- Upgraded the weave-time mechanism to work using compiled code in
+	  the same fashion as the run-time code. This should make the weave
+	  costs (the time to scan the entire namespace) much lower as well.
+	- Expanded out the POD documentation to cover the entire namespace
+	  tree.
+
 0.45 Mon 10 May 2010
 	- Updating to Module::Install::DSL 0.96
 	- More performance tuning of the namespace scanner in match_all.

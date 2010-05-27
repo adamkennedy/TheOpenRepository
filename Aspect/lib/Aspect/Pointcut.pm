@@ -40,7 +40,7 @@ use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();
 
-our $VERSION = '0.45';
+our $VERSION = '0.90';
 
 use overload (
 	# Keep traditional Perl boolification and stringification
@@ -320,19 +320,21 @@ In a production system, pointcut declarations can result in large and
 complex B<Aspect::Pointcut> object trees.
 
 Because this tree can contain a large amount of structure that is no longer
-relevant at run-time, making a long series of prohibitively expensive
-cascading C<match_run> calls before every single function call.
+relevant at run-time, it can end up making a long series of prohibitively
+expensive cascading method or function calls before every single regular
+function call.
 
 To reduce this cost down to something more reasonable, pointcuts are run
-through a currying process ( see L<http://en.wikipedia.org/wiki/Currying> ).
+through a currying process (see L<http://en.wikipedia.org/wiki/Currying>).
 
 A variety of optimisations are used to simplify boolean nesting, to remove
 tests that are irrelevant once the compile-time hooks have all been set up,
-and that the currying process can determine will never need to be tested.
+and to remove other tests that the currying process can determine will
+never need to be tested.
 
 The currying process will generate and return a new pointcut tree that is
 independant from the original, and that can perform a match test at the
-minimum possible computational cost.
+structurally minimum computational cost.
 
 Returns a new optimised B<Aspect::Pointcut> object if any further testing
 needs to be done at run-time for the pointcut. Returns null (C<undef> in
@@ -348,36 +350,6 @@ sub match_curry {
 
 sub match_runtime {
 	return 1;
-}
-
-
-
-
-
-######################################################################
-# Runtime Methods
-
-=pod
-
-=head2 match_run
-
-  my $match_boolean = $pointcut->match_run( $context );
-
-The C<match_run> is used to test hooked functions at run-time to determine
-if the current invocation of the function matches the pointcut conditions.
-
-It is passed an L<Aspect::Point> object representing the current function
-invocation.
-
-Returns true if the current invocation matches the pointcut and should have
-its advice run, or false if the current invocation is not part of the
-pointcut and the advice should not be run for this function call.
-
-=cut
-
-sub match_run {
-	my $class = ref $_[0] || $_[0];
-	die("Method 'match_run' not implemented in class '$class'");
 }
 
 1;

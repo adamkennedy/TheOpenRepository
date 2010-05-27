@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.96;
+use inc::Module::Install::DSL 0.97;
 
 all_from      lib/Aspect.pm
 requires_from lib/Aspect.pm

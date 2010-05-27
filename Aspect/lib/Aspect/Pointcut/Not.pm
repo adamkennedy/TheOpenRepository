@@ -5,7 +5,7 @@ use warnings;
 use Aspect::Pointcut        ();
 use Aspect::Pointcut::Logic ();
 
-our $VERSION = '0.45';
+our $VERSION = '0.90';
 our @ISA     = qw{
 	Aspect::Pointcut::Logic
 	Aspect::Pointcut
@@ -67,17 +67,6 @@ sub match_curry {
 	# Return our clone with the curried child
 	my $class = ref($self);
 	return $class->new( $child );
-}
-
-
-
-
-
-######################################################################
-# Runtime Methods
-
-sub match_run {
-	return ! shift->[0]->match_run(@_);
 }
 
 1;

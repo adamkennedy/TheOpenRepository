@@ -5,7 +5,7 @@ use warnings;
 use Carp             ();
 use Aspect::Pointcut ();
 
-our $VERSION = '0.45';
+our $VERSION = '0.90';
 our @ISA     = 'Aspect::Pointcut';
 
 use constant VOID   => 1;
@@ -46,28 +46,6 @@ sub new {
 # For wantarray pointcuts we keep the original
 sub match_curry {
 	return $_[0];
-}
-
-
-
-
-
-######################################################################
-# Runtime Methods
-
-sub match_run {
-	my $self    = shift;
-	my $runtime = shift;
-	unless ( exists $runtime->{wantarray} ) {
-		Carp::croak("The wantarray field in the runtime state does not exist");
-	}
-	if ( $runtime->{wantarray} ) {
-		return $self->[0] == LIST;
-	} elsif ( defined $runtime->{wantarray} ) {
-		return $self->[0] == SCALAR;
-	} else {
-		return $self->[0] == VOID;
-	}
 }
 
 sub compile_runtime {

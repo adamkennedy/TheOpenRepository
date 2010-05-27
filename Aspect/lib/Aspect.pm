@@ -31,7 +31,7 @@ use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
 use Aspect::AdviceContext          ();
 
-our $VERSION = '0.45';
+our $VERSION = '0.90';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
@@ -552,31 +552,34 @@ table that might match against the pointcut (potentially subject to further
 runtime conditions).
 
 Those that match, will get a special wrapper installed. The wrapper only
-runs if during run-time, C<match_run()> of the pointcut returns true.
+executes if, during run-time, a compiled context test for the pointcut
+returns true.
 
 The wrapper code creates an advice context, and gives it to the advice code.
 
-Some pointcuts like C<call()> are static, so C<match_run()> always returns
-true, and C<match_define()> returns true if the sub name matches the
-pointcut spec.
+Some pointcuts like C<call()> are static, so the compiled run-time function
+always returns true, and C<match_define()> returns true if the sub name
+matches the pointcut spec.
 
 Some pointcuts like C<cflow()> are dynamic, so C<match_define()> always
-returns true, but C<match_run()> return true only if some condition within
-the advice context is true.
+returns true, but the compiled run-time function returns true only if some
+condition within the point is true.
 
 To make this process faster, when the advice is installed, the pointcut
-will not use itself directly for the C<match_run()> but will generate
-a "curried" (optimised) version of itself.
+will not use itself directly for the compiled run-time function but will
+additionally generate a "curried" (optimised) version of itself.
 
-This curried version uses the fact that C<match_run()> will only be called
-if it matches the C<call()> pointcut pattern, and so no C<call()> pointcuts
-needed to be tested at run-time. It also handles collapsing any boolean
-logic impacted by the removal of the C<call()> pointcuts.
+This curried version uses the fact that the run-time check will only be
+called if it matches the C<call()> pointcut pattern, and so no C<call()>
+pointcuts needed to be tested at run-time unless they are in deep and
+complex nested coolean logic. It also handles collapsing any boolean logic
+impacted by the safe removal of the C<call()> pointcuts.
 
 If you use only C<call()> pointcuts (alone or in boolean combinations)
-the currying results in a null case (the pointcut is optimised away
-entirely) and so the call to C<match_run()> will be removed altogether
-from the generated advice hooks, reducing the match overhead significantly.
+the currying results in a null test (the pointcut is optimised away
+entirely) and so the need to make a run-time point test will be removed
+altogether from the generated advice hooks, reducing call overheads
+significantly.
 
 If your pointcut does not have any static conditions (i.e. C<call>) then
 the wrapper code will need to be installed into every function on the symbol

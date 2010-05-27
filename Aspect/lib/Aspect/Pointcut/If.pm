@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Aspect::Pointcut ();
 
-our $VERSION = '0.45';
+our $VERSION = '0.90';
 our @ISA     = 'Aspect::Pointcut';
 
 
@@ -29,11 +29,6 @@ sub match_curry {
 
 sub compile_runtime {
 	$_[0]->[0];
-}
-
-# Match only when code returns boolean true
-sub match_run {
-	return !! $_[0]->[0]->();
 }
 
 1;
