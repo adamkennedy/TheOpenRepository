@@ -3,19 +3,29 @@ package WiX3::Role::Traceable;
 use 5.008001;
 use Moose::Role 0.90;
 use WiX3::Trace::Object 0.009;
-use WiX3::Types qw( TraceObject );
 
-our $VERSION = '0.009';
+our $VERSION = '0.009_001';
 $VERSION =~ s/_//ms;
 
-has _traceobject => (
-	is       => 'bare',
-	isa      => TraceObject,
-	init_arg => 'options',
-	weak_ref => 1,
-	default  => sub { WiX3::Trace::Object->new() },
-	handles  => [qw(get_tracelevel set_tracelevel get_testing trace_line)],
-);
+sub get_tracelevel {
+	my $self = shift;
+	WiX3::Trace::Object->instance()->get_tracelevel(@_);
+}
+
+sub set_tracelevel {
+	my $self = shift;
+	WiX3::Trace::Object->instance()->set_tracelevel(@_);
+}
+
+sub get_testing {
+	my $self = shift;
+	WiX3::Trace::Object->instance()->get_testing(@_);
+}
+
+sub trace_line {
+	my $self = shift;
+	WiX3::Trace::Object->instance()->trace_line(@_);
+}
 
 no Moose::Role;
 
