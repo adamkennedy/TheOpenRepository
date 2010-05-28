@@ -11,7 +11,7 @@ use Moose;
 use Params::Util qw( _STRING  );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
@@ -74,7 +74,7 @@ WiX3::XML::CreateFolder - Defines a CreateFolder tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::CreateFolder version 0.009
+This document describes WiX3::XML::CreateFolder version 0.009100
 
 =head1 SYNOPSIS
 

@@ -9,10 +9,10 @@ use 5.008001;
 #);
 use MooseX::Singleton;
 use WiX3::Util::StrictConstructor;
-use WiX3::Trace::Object 0.009;
+use WiX3::Trace::Object 0.009100;
 use WiX3::Types qw( TraceObject );
 
-our $VERSION = '0.009_001';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 with 'WiX3::Role::Traceable';
@@ -68,7 +68,7 @@ WiX3::Traceable - "Cheat Class" in order to initialize a Traceable object.
 
 =head1 VERSION
 
-This document describes WiX3::Traceable version 0.009
+This document describes WiX3::Traceable version 0.009100
 
 =head1 SYNOPSIS
 

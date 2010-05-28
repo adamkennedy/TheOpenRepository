@@ -1,6 +1,13 @@
 Revision history for WiX3
 
-0.009  To Be Released
+0.009100  Fri May 28 2010
+       - Fixing to work with newest version of Perl-Dist-WiX
+       - Trace object is now stored outside the object, 
+         rather than within it. WiX3::Role::Traceable now 
+         just adds methods. 
+       - Tests updated
+
+0.009  Feb 02 2010
        - Added merge-module tags
 
 0.008  Wed Sep 16 2009

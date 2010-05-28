@@ -8,7 +8,7 @@ require WiX3::XML::ComponentRef;
 require WiX3::XML::FeatureRef;
 require WiX3::XML::MergeRef;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 #####################################################################
@@ -124,7 +124,7 @@ WiX3::XML::Role::Tag - Base role for XML tags.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Role::Tag version 0.009
+This document describes WiX3::XML::Role::Tag version 0.009100
 
 =head1 SYNOPSIS
 

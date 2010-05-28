@@ -3,7 +3,7 @@ package WiX3::XML::Role::Fragment;
 use 5.008001;
 use Moose::Role;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::Tag';
@@ -30,7 +30,7 @@ WiX3::XML::Role::Fragment - Role that says that this tag is a Fragment.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Role::Fragment version 0.009
+This document describes WiX3::XML::Role::Fragment version 0.009100
 
 =head1 SYNOPSIS
 

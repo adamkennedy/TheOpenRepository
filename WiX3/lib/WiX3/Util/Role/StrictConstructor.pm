@@ -7,7 +7,7 @@ use warnings;
 use Moose::Role;
 use WiX3::Exceptions;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 after 'BUILDALL' => sub {

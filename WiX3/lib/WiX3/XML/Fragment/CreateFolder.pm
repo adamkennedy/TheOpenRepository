@@ -4,7 +4,7 @@ use 5.008001;
 use Moose;
 use Params::Util qw( _IDENTIFIER );
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::Fragment';
@@ -106,7 +106,7 @@ WiX3::XML::Fragment::CreateFolder - "Shortcut Fragment" containing only a Create
 
 =head1 VERSION
 
-This document describes WiX3::XML::Fragment::CreateFolder version 0.009
+This document describes WiX3::XML::Fragment::CreateFolder version 0.009100
 
 =head1 SYNOPSIS
 

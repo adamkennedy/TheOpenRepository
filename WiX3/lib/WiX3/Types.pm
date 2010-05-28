@@ -10,7 +10,7 @@ use Regexp::Common 2.105;
 use MooseX::Types::Moose qw( Str Int Bool HashRef );
 use Readonly 1.03 qw( Readonly );
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 # Assemble the GUID regex from pieces.

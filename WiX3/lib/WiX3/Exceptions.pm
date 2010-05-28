@@ -4,7 +4,7 @@ use 5.008001;
 use strict;
 use warnings;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 use Exception::Class 1.29 (
@@ -173,7 +173,7 @@ WiX3::Exceptions - Exceptions used in the WiX3 distribution.
 
 =head1 VERSION
 
-This document describes WiX3::Exceptions version 0.009
+This document describes WiX3::Exceptions version 0.009100
 
 =head1 SYNOPSIS
 

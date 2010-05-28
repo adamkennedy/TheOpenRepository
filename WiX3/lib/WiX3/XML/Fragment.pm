@@ -10,7 +10,7 @@ use metaclass (
 use Moose;
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_fragment.htm
@@ -88,7 +88,7 @@ WiX3::XML::Fragment - Default fragment code.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Fragment version 0.009
+This document describes WiX3::XML::Fragment version 0.009100
 
 =head1 SYNOPSIS
 

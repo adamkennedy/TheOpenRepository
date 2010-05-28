@@ -12,7 +12,7 @@ use WiX3::Types qw( YesNoType PositiveInt NonNegativeInt );
 use MooseX::Types::Moose qw( Str Maybe Int );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
@@ -330,7 +330,7 @@ WiX3::XML::File - TODO.
 
 =head1 VERSION
 
-This document describes WiX3::XML::File version 0.009
+This document describes WiX3::XML::File version 0.009100
 
 =head1 SYNOPSIS
 

@@ -12,7 +12,7 @@ use Params::Util qw( _STRING  );
 use MooseX::Types::Moose qw( Str );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_icon.htm
@@ -79,7 +79,7 @@ WiX3::XML::Icon - Defines a Icon tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Icon version 0.009
+This document describes WiX3::XML::Icon version 0.009100
 
 =head1 SYNOPSIS
 

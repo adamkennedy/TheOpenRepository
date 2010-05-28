@@ -12,7 +12,7 @@ use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( YesNoType );
 use MooseX::Types::Moose qw( Str Int Maybe );
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_merge.htm
@@ -110,7 +110,7 @@ WiX3::XML::Merge - Default Merge tag code.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Merge version 0.009
+This document describes WiX3::XML::Merge version 0.009100
 
 =head1 SYNOPSIS
 

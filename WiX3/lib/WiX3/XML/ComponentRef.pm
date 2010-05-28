@@ -13,7 +13,7 @@ use MooseX::Types::Moose qw( Str Maybe );
 use WiX3::Types qw( YesNoType );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_componentref.htm
@@ -99,7 +99,7 @@ WiX3::XML::ComponentRef - Defines a ComponentRef tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::ComponentRef version 0.009
+This document describes WiX3::XML::ComponentRef version 0.009100
 
 =head1 SYNOPSIS
 

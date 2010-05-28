@@ -5,7 +5,7 @@ use Moose::Role;
 use WiX3::Types qw( Host );
 require WiX3::XML::GeneratesGUID::Object;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009100';
 $VERSION =~ s/_//ms;
 
 # requires 'get_path';
