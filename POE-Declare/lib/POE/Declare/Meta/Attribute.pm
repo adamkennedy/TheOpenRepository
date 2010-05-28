@@ -20,6 +20,9 @@ A B<POE::Declare::Meta::Attribute> is a L<POE::Declare::Meta::Slot> subclass
 that represents the simplest possible slot, a named attribute with a data
 storage element in the object HASH, and a readonly accessor.
 
+These methods are intended for use outside of the object, allowing parents
+and others to read publically visible state advertised by the object.
+
 =cut
 
 use 5.008007;
@@ -41,7 +44,11 @@ BEGIN {
 # Main Methods
 
 sub _compile { <<"END_PERL" }
-use Class::XSAccessor getters => { $_[0]->{name} => '$_[0]->{name}' };
+use Class::XSAccessor {
+	getters => {
+		$_[0]->{name} => '$_[0]->{name}',
+	},
+};
 END_PERL
 
 1;
@@ -66,7 +73,7 @@ L<POE>, L<POE::Declare>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2009 Adam Kennedy.
+Copyright 2006 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

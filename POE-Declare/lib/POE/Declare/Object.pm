@@ -4,15 +4,15 @@ package POE::Declare::Object;
 
 =head1 NAME
 
-POE::Declare::Object - Base object for POE::Declare classes
+POE::Declare::Object - Base class for all POE::Declare classes
 
 =head1 DESCRIPTION
 
-L<POE::Declare::Object> provides the base package that delivers the core
+L<POE::Declare::Object> provides the base package that delivers core
 functionality for all instantiated L<POE::Declare> objects.
 
 Functionality and methods defined here are available in all L<POE::Declare>
-objects.
+classes.
 
 =head1 METHODS
 
@@ -729,7 +729,7 @@ L<POE>, L<POE::Declare>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2009 Adam Kennedy.
+Copyright 2006 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

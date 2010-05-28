@@ -45,13 +45,14 @@ use POE::Declare::Meta::Attribute ();
 use POE::Declare::Meta::Internal  ();
 use POE::Declare::Meta::Param     ();
 
-use Class::XSAccessor
+use Class::XSAccessor {
 	getters => {
 		name     => 'name',
 		alias    => 'alias',
 		sequence => 'sequence',
 		compiled => 'compiled',
-	};
+	},
+};
 
 
 
@@ -386,7 +387,7 @@ L<POE>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2009 Adam Kennedy.
+Copyright 2006 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

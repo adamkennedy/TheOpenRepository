@@ -49,11 +49,12 @@ BEGIN {
 	$VERSION = '0.24';
 }
 
-use Class::XSAccessor
+use Class::XSAccessor {
 	constructor => 'new',
 	getters     => {
 		name => 'name',
-	};
+	},
+};
 
 # By default, a slot contains nothing
 sub _compile { '' }
@@ -80,7 +81,7 @@ L<POE>, L<POE::Declare>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2009 Adam Kennedy.
+Copyright 2006 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

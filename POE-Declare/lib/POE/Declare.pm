@@ -15,10 +15,13 @@ POE::Declare - A POE abstraction layer for conciseness and simplicity
   
   declare foo          => 'Attribute';
   declare bar          => 'Internal';
+  declare Username     => 'Param';
+  declare Password     => 'Param';
   declare TimeoutError => 'Message';
   
   sub hello : Event {
       print "Hello World!\n";
+      $_[SELF]->hello_timeout_start;
   }
   
   sub hello_timeout : Timeout(30) {
@@ -28,47 +31,126 @@ POE::Declare - A POE abstraction layer for conciseness and simplicity
       $_[SELF]->TimeoutError;
   }
   
-  1;
+  compile;
 
 =head1 DESCRIPTION
 
-B<WARNING: THIS CODE IS EXPERIMENTAL AND SUBJECT TO CHANGE
-WITHOUT NOTICE>
-
 L<POE> is a very powerful and flexible system for doing asynchronous
-programming.
+programming. But it has the reputation of being difficult to learn,
+with a somewhat confusing set of abstractions.
 
-But personally, I find it confusing and tricky to use at times.
+In particular, it can be tricky to resolve L<POE>'s way of programming
+with the highly abstracted OO structures that many people are used to,
+with layer stacked upon layer ad-infinitum to produce a delegation
+heirachy which allows for powerful and complex systems that are relatively
+easy to maintain.
 
-In particular, I have found it hard to resolve L<POE>'s way of
-programming with the highly abstracted OO that I am used to,
-with layer stacked upon layer ad-infinitum to create powerful
-and complex systems that are still easy to maintain.
+This can be particularly noticable as the scale of a L<POE> codebase gets
+larger. At three levels of abstraction the layering in POE becomes quite
+difficult, and progess past about the third layer of abstraction becomes
+extremely difficult.
 
-I have found this particularly noticable as the scale of a
-codebase gets later. At three levels of abstraction the layering
-become quite difficult, and beyond this it became worse and worse.
+B<POE::Declare> is an attempt to resolve this problem by locking down
+part of the traditional flexibility of POE, and by making it easier
+to split the implementation of each object between an object-oriented
+heirachy and a collection of POE sessions.
 
-B<POE::Declare> is my attempt to resolve this problem by locking
-down some of the traditional flexibility of POE, and by (hopefully)
-makeing it easier to split the implementation of each object between
-an object-oriented half and a POE half. 
+The goal is to retain the ability to build deep and complex heirachies
+of encapsulated functionality in your application while also allowing
+you to take advantage of the asynchronous nature of POE code.
 
-This will hopefully allow me to utilise POE's asynchronous nature,
-while retaining the traditional codebase scaling capability
-provided by normal OO.
+=head2 General Architecture
 
-Of course, this entire exercise is something of a grand experiment
-and it may well turn out that I am wrong. But I think I'm heading
-in the right general direction (I just don't know if I'm taking
-quite the right path).
+At the core of any B<POE::Declare> application is an object-oriented
+heirachy of components. This heirachy exists whether or not the POE
+kernel is running, and parts of it can be started and stopped as needed.
 
-=head1 ARCHITECTURE
+When it is spawned, each component will create it's own private
+L<POE::Session> in which to run its events and store its resources.
+
+Each instance of a class always has one and only one session. This may
+be a problem if your application will have thousands of spawned components
+at once (POE recommends against the use of large numbers of sessions) but
+should not be a problem as long as you keep it down to a few hundred
+components.
+
+Because the POE session is slaved to the L<POE::Declare::Object>, the
+component can handle being started and stopped many times without the
+loss of any state data between the creation and destruction of each
+slave session.
+
+To allow support for components that have no resources and only act as
+supervisors, B<POE::Declare> always assigns a POE alias for the session
+while it is active. The existance of this Alias prevents POE cleaning up
+the session accidentally, and ensures components have explicit control
+over when they want to shut down their sessions.
+
+Each POE component contains a set of named resources. Resources may
+consist of a different underlying POE resource, or may be made up of
+multiple resources, and additional data stored in the matching object
+HASH key. To ensure all the various underlying resources will not clash
+with each other, all resources must be declared and will be strictly
+checked.
+
+At the end of each class, instead of the usual 1; to allow the package to
+return true, you put instead a "compile;" statement.
+
+This instructs L<POE::Declare> to inventory the declarations and attributes,
+combine them with declarations from the parent classes, and then generate
+the code that will implement the structures.
+
+Once the class has been compiled, the installed functions will be removed
+from the package to prevent run-time namespace pollution.
+
+=head2 Inheritance
+
+The resource model of L<POE::Declare> correctly follows inheritance,
+similar to the way declarations in L<Moose> are inherited. Resource types
+in a parent class cannot be overwritten or modified in child classes.
+
+No special syntax is needed for inheritance, as L<POE::Declare> works
+directly on top of Perl's native inheritance.
+
+  # Parent.pm - Object that connects to a service
+  package Parent;
+  
+  use strict;
+  use POE::Declare;
+  
+  declare Host           => 'Param';
+  declare Port           => 'Param';
+  declare ConnectSuccess => 'Message';
+  declare ConnectFailure => 'Message';
+  
+  sub connect : Event {
+      # ...
+  }
+  
+  compile;
+  
+  $ Child.pm - Connect to an (optionally) authenticating service
+  package Child;
+  
+  use strict;
+  use base 'Parent';
+  use POE::Declare;
+  
+  declare Username     => 'Param';
+  declare Password     => 'Param';
+  declare AuthRequired => 'Message';
+  declare AuthInvalid  => 'Message';
+  
+  compile;
+
+=head1 CLASSES
 
 B<POE::Declare> is composed of three main modules, and a tree of
 slot/attribute classes.
 
 =head2 POE::Declare
+
+B<POE::Declare> provides the main interface layer and Domain
+Specific API for declaratively building your POE::Declare classes.
 
 =head2 POE::Declare::Object
 
@@ -77,8 +159,10 @@ by B<POE::Declare>.
 
 =head2 POE::Declare::Meta
 
-L<POE::Declare::Meta> implements the metadata objects that describe each of
-the B<POE::Declare> classes.
+L<POE::Declare::Meta> implements the metadata structures that describe
+each of your B<POE::Declare> classes. This is superficially similar to
+something like L<Moose>, but unlike Moose is fast, light weight and
+can use domain-specific assumptions.
 
 =head2 POE::Declare::Slot
 
@@ -108,7 +192,10 @@ are provided to the constructor as a parameter.
 
 =head2 POE::Declare::Meta::Message
 
-TO BE COMPLETED
+L<POE::Declare::Meta::Message> is a slot class for declaring messages that
+the object will emit under various circumstances. Each message is a param
+to the constructor that takes a callback in a variety of formats (usually
+pointing up to the parent object).
 
 =head2 POE::Declare::Meta::Event
 
@@ -377,7 +464,7 @@ L<POE>, L<http://ali.as/>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2009 Adam Kennedy.
+Copyright 2006 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

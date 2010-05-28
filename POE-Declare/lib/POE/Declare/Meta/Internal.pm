@@ -15,6 +15,10 @@ POE::Declare::Meta::Internal - Reserve a named slot for internal use
 B<POE::Declare::Meta::Internal> is a L<POE::Declare::Meta::Slot> sub-class
 that is used to reserve a slot name purely for internal use.
 
+In practice, all this declaration really does is to guarentee that the
+HASH key for that name will never be used by any other part of the object
+or by any child classes.
+
 =cut
 
 use 5.008007;
@@ -50,7 +54,7 @@ L<POE>, L<POE::Declare>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2009 Adam Kennedy.
+Copyright 2006 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
