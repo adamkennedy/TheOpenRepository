@@ -32,54 +32,54 @@ my $string = $tree->as_string;
 
 is($string, q{    <Directory Id='TARGETDIR' Name='SourceDir' />}, 'Stringifies correctly when uninitialized');    
 
-my $string_test = '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
-      <Directory Id=\'INSTALLDIR\'>
-        <Directory Id=\'D_Perl\' Name=\'perl\'>
-          <Directory Id=\'D_PerlSite\' Name=\'site\'>
-            <Directory Id=\'D_PerlSiteBin\' Name=\'bin\' />
-            <Directory Id=\'D_PerlSiteLib\' Name=\'lib\'>
-              <Directory Id=\'D_NTU5MTE4NT\' Name=\'auto\' />
+my $string_test = q{    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='INSTALLDIR'>
+        <Directory Id='D_Perl' Name='perl'>
+          <Directory Id='D_PerlSite' Name='site'>
+            <Directory Id='D_PerlSiteBin' Name='bin' />
+            <Directory Id='D_PerlSiteLib' Name='lib'>
+              <Directory Id='D_MTc3MjI4NDcwOQ' Name='auto' />
             </Directory>
           </Directory>
-          <Directory Id=\'D_MTA5MzA3NDUxNw\' Name=\'bin\' />
-          <Directory Id=\'D_MTEwODI1NDU4MA\' Name=\'lib\'>
-            <Directory Id=\'D_NDI3MzczODQzMQ\' Name=\'auto\' />
+          <Directory Id='D_ODE2MzcxND' Name='bin' />
+          <Directory Id='D_ODY0MDczNj' Name='lib'>
+            <Directory Id='D_MjA0Nzk3NDQyNQ' Name='auto' />
           </Directory>
-          <Directory Id=\'D_MjE5ODA2NjYzOA\' Name=\'vendor\'>
-            <Directory Id=\'D_ODU0NTcwNz\' Name=\'lib\'>
-              <Directory Id=\'D_MTY3MDgzMjkxNg\' Name=\'auto\'>
-                <Directory Id=\'D_MjE3NDcxODY0Nw\' Name=\'share\'>
-                  <Directory Id=\'D_MjQ0Njg4NTAwNQ\' Name=\'dist\' />
-                  <Directory Id=\'D_Mjk5NjgyNzY1Mg\' Name=\'module\' />
+          <Directory Id='D_MzYxNTg0NT' Name='vendor'>
+            <Directory Id='D_MzI0NzU5MzEyNA' Name='lib'>
+              <Directory Id='D_OTk4ODIxMD' Name='auto'>
+                <Directory Id='D_MTAzMTczNDQzNA' Name='share'>
+                  <Directory Id='D_NzI1MjE0Nz' Name='dist' />
+                  <Directory Id='D_NDEzNzIyNTIyMQ' Name='module' />
                 </Directory>
               </Directory>
             </Directory>
           </Directory>
         </Directory>
-        <Directory Id=\'D_Toolchain\' Name=\'c\'>
-          <Directory Id=\'D_Mjg5NjQ2NzU5OA\' Name=\'bin\' />
-          <Directory Id=\'D_OTQ0MTI1ND\' Name=\'include\' />
-          <Directory Id=\'D_Mjk0NTI1MTI0Nw\' Name=\'lib\' />
-          <Directory Id=\'D_MzQ4NDYzNDEwOQ\' Name=\'libexec\' />
-          <Directory Id=\'D_NDI2MDE0OTU4Mg\' Name=\'mingw32\' />
-          <Directory Id=\'D_ODU1OTExNz\' Name=\'share\' />
+        <Directory Id='D_Toolchain' Name='c'>
+          <Directory Id='D_NTU4MTI5MT' Name='bin' />
+          <Directory Id='D_MzcxMjY2ODc3Nw' Name='include' />
+          <Directory Id='D_NTc3NTE5Mz' Name='lib' />
+          <Directory Id='D_NzE3MjA0MD' Name='libexec' />
+          <Directory Id='D_NDE3MzU1OT' Name='mingw32' />
+          <Directory Id='D_MzEzMzQ4ODMzNQ' Name='share' />
         </Directory>
-        <Directory Id=\'D_License\' Name=\'licenses\' />
-        <Directory Id=\'D_Cpan\' Name=\'cpan\'>
-          <Directory Id=\'D_CpanSources\' Name=\'sources\' />
+        <Directory Id='D_License' Name='licenses' />
+        <Directory Id='D_Cpan' Name='cpan'>
+          <Directory Id='D_CpanSources' Name='sources' />
         </Directory>
-        <Directory Id=\'D_Win32\' Name=\'win32\' />
+        <Directory Id='D_Win32' Name='win32' />
       </Directory>
-      <Directory Id=\'ProgramMenuFolder\'>
-        <Directory Id=\'D_App_Menu\' Name=\'Test Perl\'>
-          <Directory Id=\'D_App_Menu_Tools\' Name=\'Tools\' />
-          <Directory Id=\'D_App_Menu_Websites\' Name=\'Related Websites\' />
+      <Directory Id='ProgramMenuFolder'>
+        <Directory Id='D_App_Menu' Name='Test Perl'>
+          <Directory Id='D_App_Menu_Tools' Name='Tools' />
+          <Directory Id='D_App_Menu_Websites' Name='Related Websites' />
         </Directory>
       </Directory>
-    </Directory>';
+    </Directory>};
 # Test 3
 
-$tree->initialize_tree('589'); $string = $tree->as_string;
+$tree->initialize_tree('589', 32, 3); $string = $tree->as_string;
 
 # This is here for data collection when the tree contents change.
 # require Data::Dumper;

@@ -231,7 +231,9 @@ sub install_dmake {
 		license => {
 			'dmake/COPYING'            => 'dmake/COPYING',
 			'dmake/readme/license.txt' => 'dmake/license.txt',
-			(4 == $self->gcc_version) ? ('dmake/readme/_INFO_' => 'dmake/_INFO_' ) : ()
+			( 4 == $self->gcc_version )
+			? ( 'dmake/readme/_INFO_' => 'dmake/_INFO_' )
+			: ()
 		},
 		install_to => {
 			'dmake/dmake.exe' => 'c/bin/dmake.exe',
@@ -323,7 +325,9 @@ sub install_mingw_make {
 			license => {
 				'doc/COPYING' => 'gmake/COPYING',
 				'doc/AUTHORS' => 'gmake/AUTHORS',
-				(4 == $self->gcc_version) ? ('doc/_INFO_' => 'gmake/_INFO_' ) : ()
+				( 4 == $self->gcc_version )
+				? ( 'doc/_INFO_' => 'gmake/_INFO_' )
+				: ()
 			},
 			install_to => { 'bin/gmake.exe' => 'c/bin/gmake.exe', },
 		);

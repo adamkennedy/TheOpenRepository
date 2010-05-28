@@ -106,9 +106,10 @@ sub install {
 	my $image_dir    = $self->_get_image_dir();
 	my $download_dir = $self->_get_download_dir();
 	my $url          = $self->_get_url();
-	my $vendor       = ! $self->_get_parent()->portable()                 ? 1 : 
-					   ($self->_get_parent()->perl_major_version() >= 12) ? 1 : 
-					   0;
+	my $vendor =
+	    !$self->_get_parent()->portable()                    ? 1
+	  : ( $self->_get_parent()->perl_major_version() >= 12 ) ? 1
+	  :                                                        0;
 
 	$self->_trace_line( 1, "Preparing $name\n" );
 
@@ -131,7 +132,7 @@ sub install {
 		my $bindir  = catdir( $perldir,   'bin' );
 		my $cdir    = catdir( $image_dir, 'c' );
 
-		if (not $vendor) {
+		if ( not $vendor ) {
 			$libdir = catdir( $perldir, 'site', 'lib' );
 		}
 		$packlist = catfile( $libdir, 'auto', @module_dirs, '.packlist' );

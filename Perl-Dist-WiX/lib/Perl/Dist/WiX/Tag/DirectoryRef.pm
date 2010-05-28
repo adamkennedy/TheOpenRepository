@@ -245,13 +245,14 @@ sub add_directory {
 	my $self = shift;
 
 	my $new_dir = Perl::Dist::WiX::Tag::Directory->new(
+
 #		parent => $self,
 		@_
 	);
 	$self->add_child_tag($new_dir);
 
 	return $new_dir;
-}
+} ## end sub add_directory
 
 
 

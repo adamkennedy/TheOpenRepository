@@ -1,12 +1,14 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.200_100   Xxx ## Xxx 2010
+1.200_100   Fri 28 May 2010
     1. Used to build Strawberry Perl July 2010 Beta 1.
     2. Perl 5.12.1 support added.
     3. Optional Growl for Windows support added during building.
     4. Added more explanatory text to .msi installers.
     5. Split up start menu.
     6. Some tests have been added back in.
+    7. The newest version of Moose revealed some bugs. Fixes have 
+       been included.
 
 1.200001   Thu 06 May 2010
     1. Used to build Bootstrap Perl "April" 2010.

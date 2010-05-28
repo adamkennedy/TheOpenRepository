@@ -279,7 +279,7 @@ sub _add_directory_recursive {
 	}
 
 	my $path_to_add = $path_to_find . q{\\} . $dir_to_add;
-	my $directory = $self->search_dir(
+	my $directory   = $self->search_dir(
 		path_to_find => $path_to_find,
 		descend      => 1,
 		exact        => 1,
@@ -288,7 +288,7 @@ sub _add_directory_recursive {
 	if ( defined $directory ) {
 		return $directory->add_directory(
 			name => $dir_to_add,
-			id   => crc32_base64( $path_to_add ),
+			id   => crc32_base64($path_to_add),
 			path => $path_to_add,
 		);
 	} else {
@@ -307,8 +307,8 @@ sub _add_directory_recursive {
 		}
 		return $dir->add_directory(
 			name => $dir_to_add,
-			id   => crc32_base64( $path_to_add ),
-			path => $path_to_add, 
+			id   => crc32_base64($path_to_add),
+			path => $path_to_add,
 		);
 
 	} ## end else [ if ( defined $directory)]

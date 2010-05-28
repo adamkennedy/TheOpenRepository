@@ -258,9 +258,9 @@ sub initialize_tree {
 	  perl\\vendor\\lib\\auto\\share\\module
 	);
 
-	# We have to get every possibility of directories immediately under 
-	# the 'c' directory, or linking errors occur, as c is found first in later files.
-	if (64 == $bits) {
+# We have to get every possibility of directories immediately under
+# the 'c' directory, or linking errors occur, as c is found first in later files.
+	if ( 64 == $bits ) {
 		push @list, 'c\\lib64';
 		push @list, 'c\\x86_64-w64-mingw32';
 	}
