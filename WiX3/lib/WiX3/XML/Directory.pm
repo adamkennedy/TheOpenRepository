@@ -176,6 +176,7 @@ sub add_directory {
 	# so subclasses can create more of themselves without
 	# having to override this routine.
 	my $new_dir = $class->new(
+
 #		parent => $self,
 		%args
 	);

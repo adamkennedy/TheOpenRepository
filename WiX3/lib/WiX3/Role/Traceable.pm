@@ -9,22 +9,22 @@ $VERSION =~ s/_//ms;
 
 sub get_tracelevel {
 	my $self = shift;
-	WiX3::Trace::Object->instance()->get_tracelevel(@_);
+	return WiX3::Trace::Object->instance()->get_tracelevel(@_);
 }
 
 sub set_tracelevel {
 	my $self = shift;
-	WiX3::Trace::Object->instance()->set_tracelevel(@_);
+	return WiX3::Trace::Object->instance()->set_tracelevel(@_);
 }
 
 sub get_testing {
 	my $self = shift;
-	WiX3::Trace::Object->instance()->get_testing(@_);
+	return WiX3::Trace::Object->instance()->get_testing(@_);
 }
 
 sub trace_line {
 	my $self = shift;
-	WiX3::Trace::Object->instance()->trace_line(@_);
+	return WiX3::Trace::Object->instance()->trace_line(@_);
 }
 
 no Moose::Role;

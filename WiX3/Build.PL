@@ -64,6 +64,7 @@ my $builder = $class->new(
 	},
 	requires => {
 		'perl'                     => 5.008001,
+		'parent'                   => '0.221',
 		'Exception::Class'         => '1.29',
 		'List::MoreUtils'          => '>= 0.22, != 0.23, != 0.24',
 		'Data::UUID'               => '1.202',

@@ -23,6 +23,11 @@ foreach my $MODULE ( @MODULES ) {
 	}
 }
 
-run_tests(
-	match    => 'TO' . 'DO',                     # what to check for
-);
+TODO: {
+
+	local $TODO = 'This test being worked on.';
+
+	run_tests(
+		match    => 'TO' . 'DO',                     # what to check for
+	);
+}

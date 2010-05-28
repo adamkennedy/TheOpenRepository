@@ -29,8 +29,8 @@ sub trace_line {
 	my $self = shift;
 	my ( $level, $text ) = @_;
 
-	# We hit this routine so many times that it accumulates 
-	# a minute's worth of time when building Strawberry 5.12.0 
+	# We hit this routine so many times that it accumulates
+	# a minute's worth of time when building Strawberry 5.12.0
 	# 64-bit. (profiling by NYTProf)
 	# I would not normally break encapsulation like this.
 	if ( $level <= $self->{tracelevel} ) {
@@ -38,7 +38,7 @@ sub trace_line {
 	}
 
 	return $text;
-}
+} ## end sub trace_line
 
 no MooseX::Singleton;
 __PACKAGE__->meta->make_immutable( inline_constructor => 0 );
