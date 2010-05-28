@@ -407,19 +407,19 @@ sub _add_directory_recursive {
 		$directory_object = $directory_object->add_directory(
 			name => $dir_to_add,
 			id   => crc32_base64($path),
-			path => $path
+			path => $path,
 		);
 
 		# Check if it's in the cache. If not, add it, and if so,
-		# delete it from the cache, and return the fact that it
-		# was there.
+		# return the fact that it was there.
 		if ( $cache->exists_in_cache($directory_object) ) {
-			$tree->add_directory( $directory_object->get_path() );
-			push @fragment_ids,
-			  $cache->get_previous_fragment($directory_object);
-			$cache->delete_cache_entry($directory_object);
+			$tree->add_directory($path);
+			my $id = $cache->get_previous_fragment($directory_object);
+			push @fragment_ids, $id;
+			$self->trace_line(5, "Adding directory $path to directory tree (previously in $id).\n");
 		} else {
 			$cache->add_to_cache( $directory_object, $self );
+			$self->trace_line(5, "Adding directory $path to cache.\n");
 		}
 	} ## end foreach my $dir_to_add (@dirs_to_add)
 

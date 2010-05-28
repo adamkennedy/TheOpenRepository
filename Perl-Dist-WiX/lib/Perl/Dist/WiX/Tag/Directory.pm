@@ -210,8 +210,8 @@ sub search_dir {
 	return undef unless defined $path;
 
 	$self->trace_line( 3, "Looking for $path_to_find\n" );
-	$self->trace_line( 4, "  in:      $path.\n" );
-	$self->trace_line( 5, "  descend: $descend exact: $exact.\n" );
+	$self->trace_line( 4, "   in:      $path.\n" );
+	$self->trace_line( 5, "   descend: $descend exact: $exact.\n" );
 
 	# If we're at the correct path, exit with success!
 	if ( ( defined $path ) && ( $path_to_find eq $path ) ) {
@@ -235,6 +235,8 @@ sub search_dir {
 		$self->trace_line( 4, "Not a subset in: $path.\n" );
 		$self->trace_line( 5, "  To find: $path_to_find.\n" );
 		return undef;
+	} else {
+		$self->trace_line( 4, "Subset of $path_to_find in $path.\n" );
 	}
 
 	# Check each of our branches.
@@ -254,7 +256,14 @@ sub search_dir {
 	}
 
 	# If we get here, we did not find a lower directory.
-	return $exact ? undef : $self;
+	$self->trace_line( 4, "Did not find lower directory than $path.\n" );
+	if ($exact) {
+		$self->trace_line( 5, "Returning undef.\n" );
+		return undef;
+	} else {
+		$self->trace_line( 5, "Returning object for $path.\n" );
+		return $self;
+	}
 } ## end sub search_dir
 
 sub _add_directory_recursive {
@@ -269,6 +278,7 @@ sub _add_directory_recursive {
 		return undef;
 	}
 
+	my $path_to_add = $path_to_find . q{\\} . $dir_to_add;
 	my $directory = $self->search_dir(
 		path_to_find => $path_to_find,
 		descend      => 1,
@@ -278,7 +288,8 @@ sub _add_directory_recursive {
 	if ( defined $directory ) {
 		return $directory->add_directory(
 			name => $dir_to_add,
-			id   => crc32_base64( $path_to_find . $dir_to_add ),
+			id   => crc32_base64( $path_to_add ),
+			path => $path_to_add,
 		);
 	} else {
 		my ( $volume, $dirs, undef ) = splitpath( $path_to_find, 1 );
@@ -296,7 +307,8 @@ sub _add_directory_recursive {
 		}
 		return $dir->add_directory(
 			name => $dir_to_add,
-			id   => crc32_base64( $path_to_find . $dir_to_add ),
+			id   => crc32_base64( $path_to_add ),
+			path => $path_to_add, 
 		);
 
 	} ## end else [ if ( defined $directory)]

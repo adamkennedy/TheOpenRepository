@@ -2102,7 +2102,10 @@ has '_trace_object' => (
 	required => 1,
 	writer   => '_set_trace_object',
 	clearer  => '_clear_trace_object',
-	handles  => ['trace_line'],
+	handles  => {
+		'trace_line'      => 'trace_line', 
+		'_set_tracelevel' => 'set_tracelevel',
+	},
 );
 
 
@@ -2342,14 +2345,14 @@ EOF
 	$self->_set_in_merge_module(1);
 
 	## no critic(ProtectPrivateSubs)
-	# Set up element collections
+	# Set up element collections, starting with the directory tree.
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
 	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
 	$self->_set_directories(
 		Perl::Dist::WiX::DirectoryTree2->new(
 			app_dir  => $self->image_dir(),
 			app_name => $self->app_name(),
-		  )->initialize_tree( $self->perl_version ) );
+		  )->initialize_tree( $self->perl_version(), $self->bits(), $self->gcc_version() ) );
 
 	# Create an environment fragment.
 	$self->_add_fragment( 'Environment',
@@ -2916,7 +2919,6 @@ sub regenerate_fragments {
 
 	my @fragment_names_regenerate;
 	my @fragment_names = $self->_fragment_keys();
-
 	while ( 0 != scalar @fragment_names ) {
 		foreach my $name (@fragment_names) {
 			my $fragment = $self->get_fragment_object($name);
@@ -2924,9 +2926,9 @@ sub regenerate_fragments {
 				push @fragment_names_regenerate, $fragment->_regenerate();
 			} else {
 				$self->trace_line( 0,
-"Couldn't regenerate fragment $name because fragment object did not exist.\n"
+"Couldn't regenerate fragment $name ' . 'because fragment object did not exist.\n"
 				);
-			}
+			}			
 		}
 
 		$#fragment_names = -1;         # clears the array.

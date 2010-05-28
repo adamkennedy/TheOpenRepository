@@ -186,7 +186,7 @@ sub as_string {
 
 =head2 initialize_tree
 
-	$tree->initialize_tree($perl_version);
+	$tree->initialize_tree($perl_version, $bits, $gcc_version);
 
 Adds a basic directory structure to the directory tree object.
 
@@ -195,6 +195,8 @@ Adds a basic directory structure to the directory tree object.
 sub initialize_tree {
 	my $self = shift;
 	my $ver  = shift;
+	my $bits = shift || 32;
+	my $gcc  = shift || 3;
 
 	$self->trace_line( 2, "Initializing directory tree.\n" );
 
@@ -255,6 +257,13 @@ sub initialize_tree {
 	  perl\\vendor\\lib\\auto\\share\\dist
 	  perl\\vendor\\lib\\auto\\share\\module
 	);
+
+	# We have to get every possibility of directories immediately under 
+	# the 'c' directory, or linking errors occur, as c is found first in later files.
+	if (64 == $bits) {
+		push @list, 'c\\lib64';
+		push @list, 'c\\x86_64-w64-mingw32';
+	}
 
 	foreach my $dir (@list) {
 		$self->add_directory(
