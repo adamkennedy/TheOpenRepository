@@ -12,10 +12,12 @@ use Params::Util qw( _INSTANCE );
 use MooseX::Types::Moose qw( Int Str );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009';
+our $VERSION = '0.009_001';
 $VERSION =~ s/_//ms;
 
-with 'WiX3::XML::Role::TagAllowsChildTags';
+with qw(WiX3::XML::Role::TagAllowsChildTags
+  WiX3::Role::Traceable
+);
 ## Allows Component, Directory, Merge as children.
 
 #####################################################################
