@@ -107,7 +107,7 @@ has in_merge_module => (
 
 =head3 files
 
-The required C<files> parameter is the list of files are in the fragment.
+The required C<files> parameter is the list of files that are in the fragment.
 
 =head2 get_files
 
@@ -181,10 +181,15 @@ sub _regenerate {
 	my $self = shift;
 	my @fragment_ids;
 	my @files = @{ $self->_get_files() };
-
+	
 	# Announce ourselves.
 	my $id = $self->get_id();
 	$self->trace_line( 2, "Regenerating $id\n" );
+
+	# Throw an error if there are no files in the fragment.
+	if (0 == scalar @files) {
+		PDWiX->throw("Attempted to regenerate empty fragment $id " . '(is the fragment supposed to be empty?)');
+	}
 
 	# Clear up any previous tags that are there.
 	$self->clear_child_tags();

@@ -83,6 +83,11 @@ sub checkpoint_task {
 		$self->trace_line( 0, "Skipping $task (step $step.)\n" );
 	} else {
 		my $t = time;
+		
+		if (not $self->can($task)) {
+			PDWiX::NotTask->throw(class => ref $self, task => $task, step => $step);
+		}
+		
 		$self->$task();
 		$self->trace_line( 0,
 			    "Completed $task (step $step) in "
@@ -128,13 +133,13 @@ sub checkpoint_self {
 =head2 checkpoint_save
 
 Saves a checkpoint within the checkpoint subdirectory of 
-L<< Perl::Dist::WiX->temp_dir|Perl::Dist::WiX/temp_dir >>
+L<< Perl::Dist::WiX-E<gt>temp_dir()|Perl::Dist::WiX/temp_dir >>
 
 =cut
 
 sub checkpoint_save {
 	my $self = shift;
-	unless ( $self->temp_dir ) {
+	unless ( $self->temp_dir() ) {
 		PDWiX->throw('Checkpoints require a temp_dir to be set');
 	}
 
@@ -175,7 +180,7 @@ sub checkpoint_save {
 =head2 checkpoint_load
 
 Restores a checkpoint saved to the checkpoint subdirectory of 
-L<< Perl::Dist::WiX->temp_dir|Perl::Dist::WiX/temp_dir >> with 
+L<< Perl::Dist::WiX-E<gt>temp_dir()|Perl::Dist::WiX/temp_dir >> with 
 L</checkpoint_save>.
 
 =cut

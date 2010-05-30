@@ -19,6 +19,11 @@ use Exception::Class (
 		'description' => 'Perl::Dist::WiX error: Debugging stop.',
 		'isa'         => 'PDWiX',
 	},
+	'PDWiX::NotTask' => {
+		'description' => 'does not know how to complete step',
+		'isa'         => 'PDWiX',
+		'fields'      => [ qw(class task step) ],
+	},
 	'PDWiX::Parameter' => {
 		'description' =>
 		  'Perl::Dist::WiX error: Parameter missing or invalid',
@@ -90,6 +95,20 @@ sub PDWiX::Stop::full_message {
 
 	return $string;
 } ## end sub PDWiX::Stop::full_message
+
+sub PDWiX::NotTask::full_message {
+	my $self = shift;
+
+	my $string =
+	    $self->class() . ' '
+	  . $self->description() . ' #'
+	  . $self->step() . ' ('
+	  . $self->task() . ")\n"
+	  . 'Time error caught: '
+	  . localtime() . "\n";
+
+	return $string;
+} ## end sub PDWiX::full_message
 
 sub PDWiX::Parameter::full_message {
 	my $self = shift;
