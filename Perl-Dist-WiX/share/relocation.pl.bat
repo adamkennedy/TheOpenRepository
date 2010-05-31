@@ -1,3 +1,12 @@
+@rem = '--*-Perl-*--
+@echo off
+if "%OS%" == "Windows_NT" goto WinNT
+%~dp0perl\bin\perl -x -S "%0" %1 %2 %3 %4 %5 %6 %7 %8 %9
+goto endofperl
+:WinNT
+%~dp0perl\bin\perl -x -S %0 %*
+goto endofperl
+@rem ';
 #!perl
 
 use 5.008009;
@@ -16,7 +25,7 @@ sub usage;
 sub version;
 sub relocate_file;
 
-our $STRING_VERSION = our $VERSION = '1.001';
+our $STRING_VERSION = our $VERSION = '1.002';
 $VERSION  =~ s/_//;
 
 my @files;
@@ -224,11 +233,11 @@ __END__
 
 =head1 NAME
 
-relocation.pl - Relocates Strawberry Perl.
+relocation.pl.bat - Relocates Strawberry Perl.
 
 =head1 VERSION
 
-This document describes relocation.pl version 1.000.
+This document describes relocation.pl.bat version 1.002.
 
 =head1 DESCRIPTION
 
@@ -236,8 +245,8 @@ This script updates all of Strawberry Perl's files to a new location.
 
 =head1 SYNOPSIS
 
-  relocation.pl [ --help ] [ --usage ] [ --man ] [ --version ] [ -?] 
-                [--file relocationfile] [--location path] [--quiet]
+  relocation.pl.bat [ --help ] [ --usage ] [ --man ] [ --version ] [ -?] 
+                    [--file relocationfile] [--location path] [--quiet]
 
   Options:
     --usage         Gives a minimum amount of aid and comfort.
@@ -282,3 +291,4 @@ LICENSE file included with this distribution.
 
 =cut
 
+:endofperl

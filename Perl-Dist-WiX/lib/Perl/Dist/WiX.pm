@@ -2679,13 +2679,13 @@ sub install_relocatable {
 	return 1 unless $self->relocatable();
 
 	# Copy the relocation information in.
-	$self->copy_file( catfile( $self->wix_dist_dir(), 'relocation.pl' ),
+	$self->copy_file( catfile( $self->wix_dist_dir(), 'relocation.pl.bat' ),
 		$self->image_dir() );
 
 	# Make sure it gets installed.
 	$self->insert_fragment(
 		'relocation_script',
-		File::List::Object->new()->add_file( $self->file('relocation.pl') ),
+		File::List::Object->new()->add_file( $self->file('relocation.pl.bat') ),
 	);
 
 	return 1;
@@ -2719,9 +2719,9 @@ sub find_relocatable_fields {
 
 	my $script_id =
 	  $self->get_fragment_object('relocation_script')
-	  ->find_file_id( $self->file('relocation.pl') );
+	  ->find_file_id( $self->file('relocation.pl.bat') );
 	if ( not $script_id ) {
-		PDWiX->throw("Could not find relocation.pl's ID.\n");
+		PDWiX->throw("Could not find relocation.pl.bat's ID.\n");
 	}
 	$self->_set_fileid_relocation_pl($script_id);
 
@@ -2745,7 +2745,7 @@ sub install_win32_extras {
 
 	# Copy the environment update script in.
 	if ( not $self->portable() ) {
-		$self->copy_file( catfile( $self->wix_dist_dir(), 'update_env.pl' ),
+		$self->copy_file( catfile( $self->wix_dist_dir(), 'update_env.pl.bat' ),
 			$self->image_dir() );
 	}
 
@@ -2819,7 +2819,7 @@ sub install_win32_extras {
 		$self->insert_fragment(
 			'update_env_script',
 			File::List::Object->new()
-			  ->add_file( $self->file('update_env.pl') ),
+			  ->add_file( $self->file('update_env.pl.bat') ),
 		);
 
 	} ## end if ( $self->msi() )

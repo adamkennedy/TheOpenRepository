@@ -1,3 +1,12 @@
+@rem = '--*-Perl-*--
+@echo off
+if "%OS%" == "Windows_NT" goto WinNT
+%~dp0perl\bin\perl -x -S "%0" %1 %2 %3 %4 %5 %6 %7 %8 %9
+goto endofperl
+:WinNT
+%~dp0perl\bin\perl -x -S %0 %*
+goto endofperl
+@rem ';
 #!perl
 
 use 5.010;
@@ -14,7 +23,7 @@ use FindBin;
 sub usage;
 sub version;
 
-our $STRING_VERSION = our $VERSION = '1.000';
+our $STRING_VERSION = our $VERSION = '1.001';
 $VERSION  =~ s/_//;
 
 my $directory;
@@ -138,11 +147,11 @@ __END__
 
 =head1 NAME
 
-update_env.pl - Adds the required environment entries for Strawberry Perl.
+update_env.pl.bat - Adds the required environment entries for Strawberry Perl.
 
 =head1 VERSION
 
-This document describes update_env.pl version 1.000.
+This document describes update_env.pl.bat version 1.001.
 
 =head1 DESCRIPTION
 
@@ -152,8 +161,8 @@ Strawberry Perl uses.
 
 =head1 SYNOPSIS
 
-  update_path.pl [ --help ] [ --usage ] [ --man ] [ --version ] [ -?] 
-                 [--directory path] [--[no]system] [--quiet]
+  update_path.pl.bat [ --help ] [ --usage ] [ --man ] [ --version ] [ -?] 
+                     [--directory path] [--[no]system] [--quiet]
 
   Options:
     --usage         Gives a minimum amount of aid and comfort.
@@ -202,3 +211,5 @@ The full text of the license can be found in the
 LICENSE file included with this distribution.
 
 =cut
+
+:endofperl
