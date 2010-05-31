@@ -8,7 +8,7 @@ Perl::Dist::WiX::Support - Provides support routines for building a Win32 perl d
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Support version 1.200_100.
+This document describes Perl::Dist::WiX::Support version 1.200_101.
 
 =head1 SYNOPSIS
 
@@ -42,7 +42,7 @@ use IO::Compress::Gzip 2.025;
 
 # IO::Uncompress::Xz is tested for later, as it's an 'optional'.
 
-our $VERSION = '1.200_100';
+our $VERSION = '1.200_101';
 $VERSION =~ s/_//ms;
 
 
@@ -570,6 +570,7 @@ sub extract_archive {
 	} else {
 		PDWiX->throw("Didn't recognize archive type for $from");
 	}
+
 	return @filelist;
 } ## end sub extract_archive
 
@@ -601,7 +602,7 @@ sub _extract_filemap {
 
 	if ( $archive =~ m{[.] zip\z}msx ) {
 
-		$self->_extract_filemap_zip( $archive, $filemap, $basedir,
+		@files = $self->_extract_filemap_zip( $archive, $filemap, $basedir,
 			$file_only );
 
 	} elsif ( $archive =~
@@ -719,7 +720,7 @@ sub _extract_filemap_zip {
 		} ## end foreach my $member (@members)
 	} ## end while ( my ( $f, $t ) = each...)
 
-	return 1;
+	return @files;
 } ## end sub _extract_filemap_zip
 
 
