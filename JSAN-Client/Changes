@@ -1,10 +1,10 @@
 Revision history for Perl extension JSAN-Client
 
-0.27 ????
+0.27 Tue  1 Jun 2010
     - Fixed bug, when content of binary files could 
       been corrupted during installation
 
-0.26 Wed  27 Jan 2010
+0.26 Wed 27 Jan 2010
     - Implemented static files handling 
       (css, images, any arbitrary resources in general)
 
