@@ -2,11 +2,11 @@ use inc::latest Module::Build;
 
 # CPAN version test.
 require CPAN;
-if ($CPAN::VERSION < 1.9456) {
+if ($CPAN::VERSION < 1.9457) {
 	print <<'EOF';
 To install the rest of the prerequisites, you need to run
 
-	cpan ANDK/CPAN-1.94_56.tar.gz
+	cpan ANDK/CPAN-1.94_57.tar.gz
 
 before installing this. 
 
@@ -26,7 +26,7 @@ my $requires = {
 	'Alien::WiX'                 => '0.300000',
 	'Archive::Tar'               => '1.42',
 	'Archive::Zip'               => '1.26',
-	'CPAN'                       => '1.9456',
+	'CPAN'                       => '1.9457',
 	'Clone'                      => '0.31',
 	'Data::Dump::Streamer'       => '2.08',
 	'Data::UUID'                 => '1.149',
@@ -134,7 +134,7 @@ my $builder = $class->new(
 #	sign                => 1,
 	configure_requires => {
 		'Module::Build'             => '0.36',
-		'CPAN'                      => '1.9456',
+		'CPAN'                      => '1.9457',
 	},
 	requires => $requires,
 	build_requires => {
