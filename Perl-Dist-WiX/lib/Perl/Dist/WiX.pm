@@ -2543,7 +2543,7 @@ sub initialize_using_msm {
 	);
 	$self->_add_merge_module( 'Perl', $mm );
 	$self->get_directory_tree()
-	  ->add_merge_module( $self->image_dir(), $mm );
+	  ->add_merge_module( $self->image_dir()->stringify(), $mm );
 
    # Set the file paths that the first portion of the build otherwise would.
 	$self->_set_bin_perl( $self->_file(qw/perl bin perl.exe/) );
