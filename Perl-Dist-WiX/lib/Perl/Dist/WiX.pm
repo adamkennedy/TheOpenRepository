@@ -2546,10 +2546,10 @@ sub initialize_using_msm {
 	  ->add_merge_module( $self->image_dir()->stringify(), $mm );
 
    # Set the file paths that the first portion of the build otherwise would.
-	$self->_set_bin_perl( $self->_file(qw/perl bin perl.exe/) );
-	$self->_set_bin_make( $self->_file(qw/c bin dmake.exe/) );
-	$self->_set_bin_pexports( $self->_file(qw/c bin pexports.exe/) );
-	$self->_set_bin_dlltool( $self->_file(qw/c bin dlltool.exe/) );
+	$self->_set_bin_perl( $self->file(qw/perl bin perl.exe/) );
+	$self->_set_bin_make( $self->file(qw/c bin dmake.exe/) );
+	$self->_set_bin_pexports( $self->file(qw/c bin pexports.exe/) );
+	$self->_set_bin_dlltool( $self->file(qw/c bin dlltool.exe/) );
 
 	# Do the same for the environment variables
 	$self->add_path( 'c',    'bin' );
