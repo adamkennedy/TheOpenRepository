@@ -1,5 +1,13 @@
 use inc::latest Module::Build;
 
+# To make sure these get into the inc\ directory for our M::B subclass.
+use inc::latest CPAN::Meta;
+use inc::latest Version::Requirements;
+use inc::latest JSON;
+# These two will be removed when 5.10.1 becomes our perl requirement after July 2010 is released.
+use inc::latest Parse::CPAN::Meta;
+use inc::latest autodie;
+
 # CPAN version test.
 require CPAN;
 if ($CPAN::VERSION < 1.9457) {
@@ -81,6 +89,13 @@ my $requires = {
 my $class = Module::Build->subclass(
 	class => 'PDWiX::Builder',
 	code  => <<'END_CODE',
+use inc::latest CPAN::Meta;
+use inc::latest Version::Requirements;
+use inc::latest JSON;
+# These two will be removed when 5.10.1 becomes our perl requirement after July 2010 is released.
+use inc::latest Parse::CPAN::Meta;
+use inc::latest autodie;
+
 sub ACTION_authortest {
     my ($self) = @_;
 
@@ -118,6 +133,25 @@ sub ACTION_manifest {
 
     return $self->SUPER::ACTION_manifest(@arguments);
 }
+
+sub read_metafile {
+  my $self = shift;
+  my ($metafile) = @_;
+
+  my $meta = CPAN::Meta->new($metafile);
+
+  return $meta;
+}
+
+# This is called by ACTION_distmeta
+sub write_metafile {
+  my $self = shift;
+  my ($metafile, $node) = @_;
+
+  my $meta = CPAN::Meta->new($node);
+  return $meta->save($metafile);
+}
+
 END_CODE
 );
 
@@ -173,6 +207,8 @@ my $builder = $class->new(
 		'script/perldist_w'
 	],
 );
+$builder->metafile('META.json');
+$builder->mymetafile('MYMETA.json');
 
 # To support our 899_prereq test, we have to wrap this.
 unless ('Test::Prereq::Build' eq ref $builder) {

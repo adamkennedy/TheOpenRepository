@@ -63,3 +63,4 @@ mt\.dep$
 
 # Avoid MYMETA.yml
 ^MYMETA.yml$
+^MYMETA.json$
