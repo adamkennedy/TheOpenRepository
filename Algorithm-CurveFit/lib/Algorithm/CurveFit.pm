@@ -161,8 +161,8 @@ sub curve_fit {
                     my $xv = $xdata[$x];
                     my $value = $deriv->($xv, @par_values);
                     if (not defined $value) { # fall back to numeric five-point stencil
-                      my $h = SQRT_EPS*$xv; my $t = $xv + $h; $h = $t-$xv; # numerics. Cf. NR
-                      $value = $formula_sub->($xv, @parameters)
+                        my $h = SQRT_EPS*$xv; my $t = $xv + $h; $h = $t-$xv; # numerics. Cf. NR
+                        $value = $formula_sub->($xv, @parameters)
                     }
                     push @ary, $value;
                 }
@@ -176,8 +176,8 @@ sub curve_fit {
                       map { ( @{$_}[ 0, 1 ] ) } @parameters # a, guess
                     );
                     if (not defined $value) { # fall back to numeric five-point stencil
-                      my $h = SQRT_EPS*$xv; my $t = $xv + $h; $h = $t-$xv; # numerics. Cf. NR
-                      $value = $formula_sub->($xv, @parameters)
+                        my $h = SQRT_EPS*$xv; my $t = $xv + $h; $h = $t-$xv; # numerics. Cf. NR
+                        $value = $formula_sub->($xv, @parameters)
                     }
                     push @ary, $value;
                 }
@@ -195,9 +195,9 @@ sub curve_fit {
         # residuals
         my @beta =
           map {
-            $ydata[$_] - $formula->value(
-                $variable => $xdata[$_],
-                map { ( @{$_}[ 0, 1 ] ) } @parameters
+            $ydata[$_] - $formula_sub->(
+                $xdata[$_],
+                map { $_->[1] } @parameters
               )
           } 0 .. $#xdata;
         $dbeta = Math::MatrixReal->new_from_cols( [ \@beta ] );
@@ -224,9 +224,9 @@ sub curve_fit {
     # Recalculate dbeta for the squared residuals.
     my @beta =
       map {
-        $ydata[$_] - $formula->value(
-            $variable => $xdata[$_],
-            map { ( @{$_}[ 0, 1 ] ) } @parameters
+        $ydata[$_] - $formula_sub->(
+            $xdata[$_],
+            map { $_->[1] } @parameters
           )
       } 0 .. $#xdata;
     $dbeta = Math::MatrixReal->new_from_cols( [ \@beta ] );
