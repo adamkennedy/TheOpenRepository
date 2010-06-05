@@ -129,6 +129,18 @@ sub curve_fit {
         }
     }
 
+    # if not compilable, close over a ->value call for convenience later on
+    my $formula_sub = do {
+        my ($sub, $trees) = Math::Symbolic::Compiler->compile_to_sub($formula, \@param_names);
+        $trees
+        ? sub {
+              $formula->value(
+                map { ($param_names[$_] => $_[$_]) } 0..$#param_names
+              )
+          }
+        : $sub
+    };
+
     my $dbeta;
 
     # Iterative approximation of the parameters
@@ -146,17 +158,27 @@ sub curve_fit {
             my @ary;
             if (ref $deriv eq 'CODE') {
                 foreach my $x ( 0 .. $#xdata ) {
-                    my $value = $deriv->($xdata[$x], @par_values);
+                    my $xv = $xdata[$x];
+                    my $value = $deriv->($xv, @par_values);
+                    if (not defined $value) { # fall back to numeric five-point stencil
+                      my $h = SQRT_EPS*$xv; my $t = $xv + $h; $h = $t-$xv; # numerics. Cf. NR
+                      $value = $formula_sub->($xv, @parameters)
+                    }
                     push @ary, $value;
                 }
             }
             else {
                 $deriv = $deriv->new; # better safe than sorry
                 foreach my $x ( 0 .. $#xdata ) {
+                    my $xv = $xdata[$x];
                     my $value = $deriv->value(
-                      $variable => $xdata[$x],
+                      $variable => $xv,
                       map { ( @{$_}[ 0, 1 ] ) } @parameters # a, guess
                     );
+                    if (not defined $value) { # fall back to numeric five-point stencil
+                      my $h = SQRT_EPS*$xv; my $t = $xv + $h; $h = $t-$xv; # numerics. Cf. NR
+                      $value = $formula_sub->($xv, @parameters)
+                    }
                     push @ary, $value;
                 }
             }
@@ -404,6 +426,10 @@ formula simplification algorithm can sometimes fail to find the equivalent
 of C<(x-x_0)/(x-x_0)>. Typically, these would be hidden in a more complex
 product. The effect is that for C<x -E<gt> x_0>, the evaluation of the
 derivative becomes undefined.
+
+Since version 1.05, we fall back to numeric differentiation
+using five-point stencil in such cases. This should help with one of the
+primary complaints about the reliability of the module.
 
 =item *
 
