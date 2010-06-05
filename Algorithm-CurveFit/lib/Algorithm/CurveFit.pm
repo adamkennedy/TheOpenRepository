@@ -26,7 +26,6 @@ use Data::Dumper;
 sub curve_fit {
     shift @_ if not ref $_[0] and defined $_[0] and $_[0] eq 'Algorithm::CurveFit';
 
-    # Parameter checking. (I hate this.)
     confess('Uneven number of arguments to Algorithm::CurveFit::curve_fit.')
       if @_ % 2;
 
@@ -43,7 +42,7 @@ sub curve_fit {
         confess( "Cannot parse formula '" . $args{formula} . "'. ($@)" )
           if not defined $formula or $@;
     }
-    
+
     # Variable (optional)
     my $variable = $args{variable};
     $variable = 'x' if not defined $variable;
@@ -55,7 +54,7 @@ sub curve_fit {
 
     # Parameters
     my $params = $args{params};
-    
+
 	confess("Parameter 'params' has to be an array reference.")
       if not defined $params
       or not ref($params) eq 'ARRAY';
@@ -144,7 +143,7 @@ sub curve_fit {
             }
             push @cols, \@ary;
         }
-        
+
         # Prepare matrix of datapoints X parameters
         my $A = Math::MatrixReal->new_from_cols( \@cols );
 
@@ -217,7 +216,7 @@ use Algorithm::CurveFit;
       ['c',     20,     0.00005],  # changes that the accuracy, end.
   );
   my $max_iter = 100; # maximum iterations
-  
+
   my $square_residual = Algorithm::CurveFit->curve_fit(
       formula            => $formula, # may be a Math::Symbolic tree instead
       params             => \@parameters,
@@ -226,7 +225,7 @@ use Algorithm::CurveFit;
       ydata              => \@ydata,
       maximum_iterations => $max_iter,
   );
-  
+
   use Data::Dumper;
   print Dumper \@parameters;
   # Prints
@@ -242,7 +241,7 @@ use Algorithm::CurveFit;
   #            '5e-05'
   #          ]
   #        ];
-  # 
+  #
   # Real values of the parameters (as demonstrated by noisy input data):
   # a = 0.2
   # c = 2
@@ -317,7 +316,7 @@ Example:
     ['parameter2', 12, 0.0001 ],
     ...
   ];
-  
+
   Then later:
   curve_fit(
   ...
