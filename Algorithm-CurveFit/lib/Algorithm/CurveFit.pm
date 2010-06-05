@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '1.04';
+our $VERSION = '1.05';
 
 require Exporter;
 
@@ -22,6 +22,10 @@ use Carp qw/confess/;
 use Math::Symbolic qw/parse_from_string/;
 use Math::MatrixReal;
 use Data::Dumper;
+
+# machine epsilon
+use constant EPS => 2.2e-16;
+use constant SQRT_EPS => sqrt(EPS);
 
 sub curve_fit {
     shift @_ if not ref $_[0] and defined $_[0] and $_[0] eq 'Algorithm::CurveFit';
@@ -111,12 +115,18 @@ sub curve_fit {
     # Array holding all first order partial derivatives of the function in respect
     # to the parameters in order.
     my @derivatives;
+    my @param_names = ($variable, map {$_->[0]} @parameters);
     foreach my $param (@parameters) {
         my $deriv =
           Math::Symbolic::Operator->new( 'partial_derivative', $formula,
             $param->[0] );
         $deriv = $deriv->simplify()->apply_derivatives()->simplify();
-        push @derivatives, $deriv;
+        my ($sub, $trees) = Math::Symbolic::Compiler->compile_to_sub($deriv, \@param_names);
+        if ($trees) {
+            push @derivatives, $deriv; # residual trees, need to evaluate
+        } else {
+            push @derivatives, $sub;
+        }
     }
 
     my $dbeta;
@@ -126,20 +136,29 @@ sub curve_fit {
 
     # As long as we're under max_iter or maxiter==0
     while ( !$max_iter || ++$iteration < $max_iter ) {
-
         # Generate Matrix A
         my @cols;
         my $pno = 0;
+        my @par_values = map {$_->[1]} @parameters;
         foreach my $param (@parameters) {
-            my $deriv = $derivatives[ $pno++ ]->new();
+            my $deriv = $derivatives[ $pno++ ];
 
             my @ary;
-            foreach my $x ( 0 .. $#xdata ) {
-                push @ary,
-                  $deriv->value(
-                    $variable => $xdata[$x],
-                    map { ( @{$_}[ 0, 1 ] ) } @parameters # a, guess
-                  );
+            if (ref $deriv eq 'CODE') {
+                foreach my $x ( 0 .. $#xdata ) {
+                    my $value = $deriv->($xdata[$x], @par_values);
+                    push @ary, $value;
+                }
+            }
+            else {
+                $deriv = $deriv->new; # better safe than sorry
+                foreach my $x ( 0 .. $#xdata ) {
+                    my $value = $deriv->value(
+                      $variable => $xdata[$x],
+                      map { ( @{$_}[ 0, 1 ] ) } @parameters # a, guess
+                    );
+                    push @ary, $value;
+                }
             }
             push @cols, \@ary;
         }
@@ -374,6 +393,26 @@ L<DESCRIPTION> above.
 
 =back
 
+=head1 NOTES AND CAVEATS
+
+=over 2
+
+=item *
+
+When computing the derivative symbolically using C<Math::Symbolic>, the
+formula simplification algorithm can sometimes fail to find the equivalent
+of C<(x-x_0)/(x-x_0)>. Typically, these would be hidden in a more complex
+product. The effect is that for C<x -E<gt> x_0>, the evaluation of the
+derivative becomes undefined.
+
+=item *
+
+This module is NOT fast.
+For slightly better performance, the formulas are compiled to
+Perl code if possible.
+
+=back
+
 =head1 SEE ALSO
 
 The algorithm implemented in this module was taken from:
@@ -391,7 +430,7 @@ Steffen Mueller, E<lt>smueller@cpan.org<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005-2009 by Steffen Mueller
+Copyright (C) 2005-2010 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6 or,
