@@ -1,5 +1,12 @@
 Revision history for Perl extension Algorithm-CurveFit.
 
+1.05  Sat Jun  5 10:14 2010
+  - Compile functions to Perl subs when possible for
+    performance.
+  - Fall back to numeric derivative using five-point stencil
+    if the symbolic derivative has a pole (or otherwise breaks
+    down).
+
 1.04  Tue Mar  3 17:25 2009
   - Require Math::Symbolic 0.602 due to bug fix.
 
