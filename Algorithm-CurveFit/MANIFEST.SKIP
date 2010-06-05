@@ -33,3 +33,4 @@
 \.bak$
 \#$
 \b\.#
+^MYMETA.yml$
