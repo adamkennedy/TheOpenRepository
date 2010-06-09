@@ -56,7 +56,7 @@ use DBI                   1.607 ();
 use DBD::SQLite           1.25  ();
 use JSAN::Index                 ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 # Pass through any import params to JSAN::Index
 # if none params were provided - do nothing

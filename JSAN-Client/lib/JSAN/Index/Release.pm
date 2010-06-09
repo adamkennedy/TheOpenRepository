@@ -13,7 +13,7 @@ use Params::Util              ();
 use JSAN::Index::Distribution ();
 use JSAN::Index::Author       ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 BEGIN {
     # Optional prefork.pm support
@@ -224,12 +224,13 @@ sub _archive {
     my $self = shift;
 
     # Load tarballs
-    if ( $self->source =~ /\.tar\.gz$/ ) {
+    if ( $self->source =~ /\.(tar\.gz|tgz)$/ ) {
         require Archive::Tar;
         my $tar  = Archive::Tar->new;
         my $path = $self->mirror;
-        $tar->read($path, COMPRESSED)
-            or Carp::croak("Failed to open tarball '$path'");
+        unless ( $tar->read($path, COMPRESSED) ) {
+            Carp::croak("Failed to open tarball '$path'");
+        }
         return $tar;
     }
 

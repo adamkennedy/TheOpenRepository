@@ -1,5 +1,8 @@
 Revision history for Perl extension JSAN-Client
 
+0.28 Wed  9 Jun 2010
+    - Adding support for .tgz files
+
 0.27 Tue  1 Jun 2010
     - Fixed bug, when content of binary files could 
       been corrupted during installation
