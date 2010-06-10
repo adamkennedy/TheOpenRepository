@@ -1,5 +1,9 @@
 Revision history for Perl extension pler
 
+1.06 Thu 10 Jun 2010
+	- Apply rel2abs to the PERL5LIB additions so that path-changing
+	  tests can still load modules properly.
+
 1.05 Sun 24 Jan 2010
 	- When executing the test script, enable RELEASE_TESTING
 

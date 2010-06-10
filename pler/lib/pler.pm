@@ -16,7 +16,7 @@ use Probe::Perl           0.01 ();
 
 use vars qw{$VERSION};
 BEGIN {
-        $VERSION = '1.05';
+        $VERSION = '1.06';
 }
 
 # Does exec work on this platform
@@ -379,6 +379,13 @@ sub main {
 	} elsif ( has_lib ) {
 		push @PERL5LIB, lib;
 	}
+
+	# Absolutify the PERL5LIB elements so they will survive
+	# the test script changing it's CWD. This was added to
+	# deal with the path-shifting of the Padre tests.
+	@PERL5LIB = map {
+		File::Spec->rel2abs($_)
+	} @PERL5LIB;
 
 	# Hand off to the perl debugger
 	unless ( pler->is_verbose ) {
