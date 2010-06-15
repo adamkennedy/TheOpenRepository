@@ -1,8 +1,9 @@
 Revision history for Perl extension Module-Manifest
 
-0.08 Tue 15 Jun 2010
+1.08 Tue 15 Jun 2010
 	- Updated to Module::Install::DSL 0.99
 	- Updated documentation
+	- Changed to a production version
 
 0.07 Mon 20 Apr 2009
 	- Upgrading to Module::Install::DSL 0.83
