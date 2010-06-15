@@ -67,11 +67,11 @@ use Carp             ();
 use File::Spec       ();
 use File::Spec::Unix ();
 use File::Basename   ();
-use Params::Util     '_STRING';
+use Params::Util     ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.07';
+	$VERSION = '1.08';
 }
 
 # These platforms were copied from File::Spec
@@ -119,8 +119,8 @@ sub new {
 		skipfile    => $skipfile,
 	}, $class;
 
-	$self->open( skip     => $skipfile ) if _STRING($skipfile);
-	$self->open( manifest => $manifest ) if _STRING($manifest);
+	$self->open( skip     => $skipfile ) if Params::Util::_STRING($skipfile);
+	$self->open( manifest => $manifest ) if Params::Util::_STRING($manifest);
 
 	return $self;
 }

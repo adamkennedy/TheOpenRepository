@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.83;
+use inc::Module::Install::DSL 0.99;
 
 all_from      lib/Module/Manifest.pm
 requires      File::Spec      0.80

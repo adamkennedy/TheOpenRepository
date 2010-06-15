@@ -8,12 +8,10 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More;
+use Test::More tests => 21;
 use Test::Warn;
 use Test::Exception;
 use Module::Manifest ();
-
-plan tests => 21;
 
 # Fail if open called without a filename
 throws_ok(

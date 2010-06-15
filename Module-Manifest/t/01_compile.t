@@ -8,10 +8,6 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 1;
 
-# Check their perl version
-ok($] >= 5.005, 'Your perl is new enough');
-
-# Load the module
 use_ok('Module::Manifest');
