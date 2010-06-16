@@ -70,7 +70,7 @@ sub module {
 	my $self = shift;
 
 	# Get the distribution
-	my $name = $self->_distname(shift);
+	my $name = $self->_distname($_[0]);
 	my $dist = $self->repository->distribution($name);
 	unless ( $dist ) {
 		die("The distribution '$_[0]' does not exist");
