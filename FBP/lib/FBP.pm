@@ -88,7 +88,7 @@ sub dialog {
 		return undef;
 	}
 
-	foreach my $dialog ( $self->dialogs ) {
+	foreach my $dialog ( $project->dialogs ) {
 		if ( $dialog->name and $dialog->name eq $name ) {
 			return $dialog;
 		}
