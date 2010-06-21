@@ -8,18 +8,33 @@ FBP - Parser and Object Model for wxFormBuilder Project Files (.fpb files)
 
 =head1 SYNOPSIS
 
-  my $object = FBP.pm->new(
-      foo  => 'bar',
-      flag => 1,
-  );
+  my $object = FBP->new;
   
-  $object->dummy;
+  $object->parse_file( 'MyProject.fbp' );
 
 =head1 DESCRIPTION
 
-The author was too lazy to write a description.
+wxFormBuilder is currently the best and most sophisticated program for
+designing wxWidgets dialogs and generating code from these designs.
+
+However wxFormBuilder does not currently support the generation of Perl code.
+And so if we are to produce Perl code for the designs it creates, the code
+generation must be done independantly.
+
+B<FBP> is a SAX-based parser and object model for the XML project files that
+are saved by wxFormBuilder. While it does itself the creation of generated
+Perl code, it should serve as a common base for anyone who wishes to produce
+a code generator for these files.
+
+B<NOTE: Documentation is limited as this module is in active development>
 
 =head1 METHODS
+
+=head2 new
+
+  my $fbp = PBP->new;
+
+The C<new> constructor takes no arguments and creates a new parser/model object.
 
 =cut
 
@@ -52,6 +67,17 @@ has children => (
 ######################################################################
 # Shortcuts
 
+=pod
+
+=head2 dialog
+
+  my $dialog = $fbp->dialog('MyDialog1');
+
+Convience method which finds and returns the root L<FBP::Dialog> object
+for a specific named dialog box in the object model.
+
+=cut
+
 sub dialog {
 	my $self = shift;
 	my $name = shift;
@@ -62,10 +88,7 @@ sub dialog {
 		return undef;
 	}
 
-	my @dialogs = grep {
-		Params::Util::_INSTANCE($_, 'FBP::Dialog')
-	} @{$project->children};
-	foreach my $dialog ( @dialogs ) {
+	foreach my $dialog ( $self->dialogs ) {
 		if ( $dialog->name and $dialog->name eq $name ) {
 			return $dialog;
 		}
@@ -81,15 +104,16 @@ sub dialog {
 ######################################################################
 # Parsing Code
 
-sub add_object {
-	my $self = shift;
-	unless ( Params::Util::_INSTANCE($_[0], 'FBP::Object') ) {
-		die("Can only add a 'FBP::Object' object");
-	}
-	my $objects = $self->children;
-	push @$objects, shift;
-	return 1;
-}
+=pod
+
+  my $ok = $fbp->parse_file( 'foo/bar.fbp' );
+
+The C<parse_file> method takes a named fbp project file, and parses it to
+produce an object model.
+
+Returns true if the parsing run succeeds, or throws an exception on error.
+
+=cut
 
 sub parse_file {
 	my $self = shift;
@@ -118,6 +142,16 @@ sub parse_file {
 		die("Error while parsing '$file': $@");
 	}
 
+	return 1;
+}
+
+sub add_object {
+	my $self = shift;
+	unless ( Params::Util::_INSTANCE($_[0], 'FBP::Object') ) {
+		die("Can only add a 'FBP::Object' object");
+	}
+	my $objects = $self->children;
+	push @$objects, shift;
 	return 1;
 }
 

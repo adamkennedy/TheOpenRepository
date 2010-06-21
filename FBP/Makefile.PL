@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.92;
+use inc::Module::Install::DSL 0.99;
 
 all_from      lib/FBP.pm
 requires_from lib/FBP.pm

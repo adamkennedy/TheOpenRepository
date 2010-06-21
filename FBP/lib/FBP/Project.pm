@@ -6,4 +6,10 @@ our $VERSION = '0.01';
 
 extends 'FBP::Parent';
 
+sub dialogs {
+	return grep { 
+		Params::Util::_INSTANCE($_, 'FBP::Dialog')
+	} @{$_[0]->children}
+}
+
 1;
