@@ -10,7 +10,7 @@
         <property name="file"></property>
         <property name="first_id">1000</property>
         <property name="help_provider">none</property>
-        <property name="internationalize">0</property>
+        <property name="internationalize">1</property>
         <property name="name">Padre</property>
         <property name="namespace"></property>
         <property name="path">.</property>
@@ -191,7 +191,7 @@
                             <object class="wxButton" expanded="1">
                                 <property name="bg"></property>
                                 <property name="context_help"></property>
-                                <property name="default">0</property>
+                                <property name="default">1</property>
                                 <property name="enabled">1</property>
                                 <property name="fg"></property>
                                 <property name="font"></property>
@@ -210,7 +210,7 @@
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>
                                 <property name="window_style"></property>
-                                <event name="OnButtonClick"></event>
+                                <event name="OnButtonClick">m_button1</event>
                                 <event name="OnChar"></event>
                                 <event name="OnEnterWindow"></event>
                                 <event name="OnEraseBackground"></event>

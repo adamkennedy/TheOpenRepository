@@ -26,11 +26,111 @@ use FBP   0.02 ();
 
 our $VERSION = '0.01';
 
-has dialog => (
+has project => (
 	is       => 'ro',
-	isa      => 'FBP::Dialog',
+	isa      => 'FBP::Project',
 	required => 1,
 );
+
+
+
+
+
+######################################################################
+# Button Generators
+
+sub button_create {
+	my $self     = shift;
+	my $button   = shift;
+	my $lexical  = $self->object_lexical($button) ? 'my ' : '';
+	my $variable = $self->object_variable($button);
+	my $id       = $self->wx($button->id);
+	my $label    = $self->object_label($button);
+	my @lines  = (
+		"$lexical$variable = Wx::Button->new(",
+		"\t\$self,",
+		"\t$id,",
+		"\t$label,",
+		");",
+	);
+	if ( $button->default ) {
+		push @lines, "$variable->SetDefault;";
+	}
+	unless ( $button->enabled ) {
+		push @lines, "$variable->Disable;";
+	}
+	if ( $button->OnButtonClick ) {
+		my $method = $button->OnButtonClick;
+		push @lines, (
+			"",
+			"Wx::Event::EVT_BUTTON(",
+			"\t\$self,",
+			"\t$variable,",
+			"\tsub {",
+			"\t\tshift->$method(\@_);",
+			"\t},",
+			");",
+		);
+	}
+	return \@lines;
+}
+
+
+
+
+
+######################################################################
+# String Fragment Generators
+
+my %OBJECT_UNLEXICAL = (
+	'FBP::Button' => 1,
+);
+
+sub object_lexical {
+	$OBJECT_UNLEXICAL{ref $_[1]} ? 0 : 1;
+}
+
+sub object_variable {
+	my $self    = shift;
+	my $object  = shift;
+	my $lexical = $self->object_lexical($object);
+	if ( $lexical ) {
+		return '$' . $object->name;
+	} else {
+		return '$self->{' . $object->name . '}';
+	}
+}
+
+sub object_label {
+	my $self   = shift;
+	my $object = shift;
+	my $string = "'" . $object->label . "'";
+	if ( $self->i18n ) {
+		$string = "Wx::gettext($string)";
+	}
+	return $string;
+}
+
+
+
+
+
+######################################################################
+# Support Methods
+
+sub i18n {
+	shift->project->internationalize
+}
+
+sub wx {
+	my $self   = shift;
+	my $string = shift;
+	if ( $string eq 'wxID_ANY' ) {
+		return -1;
+	}
+	$string =~ s/\bwx/Wx::wx/g;
+	return $string;
+}
 
 1;
 
