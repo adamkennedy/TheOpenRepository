@@ -6,6 +6,11 @@ our $VERSION = '0.02';
 
 extends 'FBP::Parent';
 
+has internationalize => (
+	is  => 'ro',
+	isa => 'Bool',
+);
+
 sub dialogs {
 	return grep { 
 		Params::Util::_INSTANCE($_, 'FBP::Dialog')
