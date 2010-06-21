@@ -17,6 +17,19 @@ with    'FBP::Children';
 
 =pod
 
+=head2 id
+
+The C<id> method returns the numeric wxWidgets identifier for the window.
+
+=cut
+
+has id => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+=pod
+
 =head2 name
 
 The C<name> method returns the logical name of the object.
