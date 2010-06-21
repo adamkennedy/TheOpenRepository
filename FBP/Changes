@@ -2,6 +2,7 @@ Changes for Perl extension FBP
 
 0.02 to be released
 	- Updating Moose dependency to 1.05
+	- Added search method FBP->find_first
 
 0.01 Mon 21 Jun 2010
 	- Created the initial implementation

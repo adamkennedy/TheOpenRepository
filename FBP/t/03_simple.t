@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -33,6 +33,13 @@ is( $@, '', "Parsed '$FILE' without error" );
 ok( $ok, '->parse_file returned true' );
 
 # Find a particular named dialog
-my $dialog = $object->dialog('MyDialog1');
-isa_ok( $dialog, 'FBP::Dialog' );
-is( $dialog->name, 'MyDialog1', '->name ok' );
+my $dialog1 = $object->dialog('MyDialog1');
+isa_ok( $dialog1, 'FBP::Dialog' );
+is( $dialog1->name, 'MyDialog1', '->name ok' );
+
+# Repeat using the generic search
+my $dialog2 = $object->find_first(
+	isa  => 'FBP::Dialog',
+	name => 'MyDialog1',
+);
+isa_ok( $dialog2, 'FBP::Dialog' );

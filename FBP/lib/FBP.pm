@@ -65,7 +65,7 @@ has children => (
 
 
 ######################################################################
-# Shortcuts
+# Search Methods
 
 =pod
 
@@ -91,6 +91,63 @@ sub dialog {
 	foreach my $dialog ( $project->dialogs ) {
 		if ( $dialog->name and $dialog->name eq $name ) {
 			return $dialog;
+		}
+	}
+
+	return undef;
+}
+
+=pod
+
+=head2 find_first
+
+  my $dialog = $object->find_first(
+      isa  => 'FBP::Dialog',
+      name => 'MyDialog1',
+  );
+
+The C<find_first> method implements a generic depth-first search of the object
+model. It takes a series of condition pairs that are used in the provided order
+(allowing the caller to tune the way in which the filter is done).
+
+Each pair is treated as a method + value set. First, the object is checked to
+ensure it has that method, and then the method output is string-matched to the
+output of the method via C<$object-E<gt>$method() eq $value>.
+
+The special condition "isa" is applied as C<$object-E<gt>isa($value)> instead.
+
+Returns the first object located that matches the provided criteria,
+or C<undef> if nothing in the object model matches the conditions.
+
+=cut
+
+sub find_first {
+	my $self  = shift;
+	my @where = @_;
+	my @queue = @{ $self->children };
+	while ( @queue ) {
+		my $object = shift @queue;
+
+		# First add any children to the queue so that we
+		# will process the model in depth first order.
+		my $children = $object->children;
+		unshift @queue, @$children if $children;
+
+		# Filter to see if we want it
+		my $i = 0;
+		while ( my $method = $where[$i] ) {
+			if ( $method eq 'isa' ) {
+				last unless $object->isa($where[$i + 1]);
+			} else {
+				last unless $object->can($method);
+				last unless $object->$method() eq $where[$i + 1];
+			}
+			$i += 2;
+		}
+
+		# If we hit the final $i += 2 we have found a match
+		unless ( defined $where[$i] ) {
+			return $object;
 		}
 	}
 
