@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 5;
+use Test::More tests => 7;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -31,3 +31,8 @@ my $ok = eval {
 };
 is( $@, '', "Parsed '$FILE' without error" );
 ok( $ok, '->parse_file returned true' );
+
+# Find a particular named dialog
+my $dialog = $object->dialog('MyDialog1');
+isa_ok( $dialog, 'FBP::Dialog' );
+is( $dialog->name, 'MyDialog1', '->name ok' );

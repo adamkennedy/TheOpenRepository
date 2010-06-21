@@ -152,10 +152,15 @@ sub start_element_object {
 }
 
 sub end_element_object {
-	my $self   = shift;
-	my $attr   = pop @{$self->{stack}};
-	my $class  = delete $attr->{class};
-	my $object = $class->new( %$attr, raw => $attr );
+	my $self     = shift;
+	my $attr     = pop @{$self->{stack}};
+	my $class    = delete $attr->{class};
+	my $children = delete $attr->{children};
+	my $object   = $class->new(
+		%$attr,
+		raw => $attr,
+		$children ? ( children => $children ) : ( )
+	);
 	$self->parent->{children} ||= [ ];
 	push @{$self->parent->{children}}, $object;
 }

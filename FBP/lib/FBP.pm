@@ -50,6 +50,35 @@ has children => (
 
 
 ######################################################################
+# Shortcuts
+
+sub dialog {
+	my $self = shift;
+	my $name = shift;
+
+	# Scan downwards under the project to find it
+	my $project = $self->children->[0];
+	unless ( Params::Util::_INSTANCE($project, 'FBP::Project') ) {
+		return undef;
+	}
+
+	my @dialogs = grep {
+		Params::Util::_INSTANCE($_, 'FBP::Dialog')
+	} @{$project->children};
+	foreach my $dialog ( @dialogs ) {
+		if ( $dialog->name and $dialog->name eq $name ) {
+			return $dialog;
+		}
+	}
+
+	return undef;
+}
+
+
+
+
+
+######################################################################
 # Parsing Code
 
 sub add_object {
