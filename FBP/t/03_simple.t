@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -43,3 +43,8 @@ my $dialog2 = $object->find_first(
 	name => 'MyDialog1',
 );
 isa_ok( $dialog2, 'FBP::Dialog' );
+is(
+	$object->find_first( name => 'does_not_exists' ),
+	undef,
+	'->find_first(bad) returns undef',
+);

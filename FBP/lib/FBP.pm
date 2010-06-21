@@ -140,7 +140,10 @@ sub find_first {
 				last unless $object->isa($where[$i + 1]);
 			} else {
 				last unless $object->can($method);
-				last unless $object->$method() eq $where[$i + 1];
+				my $value = $object->$method();
+				unless ( defined $value and $value eq $where[$i + 1] ) {
+					last;
+				}
 			}
 			$i += 2;
 		}
