@@ -1,4 +1,7 @@
 Changes for Perl extension FBP
 
-0.01 Sun 24 Jan 2010
+0.02 to be released
+	- Updating Moose dependency to 1.05
+
+0.01 Mon 21 Jun 2010
 	- Created the initial implementation
