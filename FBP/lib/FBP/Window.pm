@@ -1,12 +1,10 @@
-package FBP::Object;
+package FBP::Window;
 
 =pod
 
 =head1 NAME
 
-FBP::Object - Base class for all wxFormBuilder objects
-
-=head1 METHODS
+FBP::Window - Base class for all graphical wxWindow objects
 
 =cut
 
@@ -14,24 +12,46 @@ use Moose;
 
 our $VERSION = '0.02';
 
+extends 'FBP::Object';
+with    'FBP::Children';
+
 =pod
 
-=head2 raw
+=head2 name
 
-The full wxFormBuilder XML data structure will contain a far larger breadth
-of properties than are actually supported in the L<FBP> object model.
-
-In other cases, the object model may normalise a property that some specific
-consumer will wish to access in the original form.
-
-The C<raw> method provides access to a C<HASH> containing the keys and values
-of the C<property> tags in the original XML document.
+The C<name> method returns the logical name of the object.
 
 =cut
 
-has raw => (
+has name => (
 	is  => 'ro',
-	isa => 'Any',
+	isa => 'Str',
+);
+
+=pod
+
+=head2 label
+
+The C<label> method returns the visual label for the object.
+
+=cut
+
+has label => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+=pod
+
+=head2 enable
+
+The C<enable> method indicates if the object is enabled or not.
+
+=cut
+
+has enable => (
+	is  => 'ro',
+	isa => 'Bool',
 );
 
 1;

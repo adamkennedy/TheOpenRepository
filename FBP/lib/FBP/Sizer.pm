@@ -1,4 +1,4 @@
-package FBP::SizerItem;
+package FBP::Sizer;
 
 use Moose;
 

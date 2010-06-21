@@ -4,7 +4,8 @@ use Moose;
 
 our $VERSION = '0.02';
 
-extends 'FBP::Parent';
+extends 'FBP::Object';
+with    'FBP::Children';
 
 has internationalize => (
 	is  => 'ro',

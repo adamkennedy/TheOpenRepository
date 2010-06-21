@@ -1,20 +1,18 @@
-package FBP::Parent;
+package FBP::Children;
 
 =pod
 
 =head1 NAME
 
-FBP::Parent - Base class for objects which contains child elements
+FBP::Children - Role for objects which can contain other objects
 
 =head1 METHODS
 
 =cut
 
-use Moose;
+use Moose::Role;
 
 our $VERSION = '0.02';
-
-extends 'FBP::Object';
 
 has children => (
 	is      => 'ro',
@@ -55,7 +53,7 @@ sub find_first {
 
 		# First add any children to the queue so that we
 		# will process the model in depth first order.
-		if ( $object->isa('FBP::Parent') ) {
+		if ( $object->can('children') ) {
 			unshift @queue, @{ $object->children };
 		}
 

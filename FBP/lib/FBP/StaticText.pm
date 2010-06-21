@@ -4,11 +4,6 @@ use Moose;
 
 our $VERSION = '0.02';
 
-extends 'FBP::Parent';
-
-has label => (
-	is  => 'ro',
-	isa => 'Str',
-);
+extends 'FBP::Window';
 
 1;
