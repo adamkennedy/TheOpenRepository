@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 21;
+use Test::More tests => 22;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -73,7 +73,8 @@ my $button = $object->find_first(
 	isa => 'FBP::Button',
 );
 isa_ok( $button, 'FBP::Button' );
-is( $button->id,      'wxID_ANY',  '->id ok'      );
-is( $button->name,    'm_button1', '->name ok'    );
-is( $button->label,   'MyButton',  '->label ok'   );
-is( $button->default, '0',         '->default ok' );
+is( $button->id,            'wxID_ANY',  '->id ok'            );
+is( $button->name,          'm_button1', '->name ok'          );
+is( $button->label,         'MyButton',  '->label ok'         );
+is( $button->default,       '0',         '->default ok'       );
+is( $button->OnButtonClick, 'm_button1', '->OnButtonClick ok' );

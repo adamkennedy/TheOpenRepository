@@ -56,13 +56,13 @@ has label => (
 
 =pod
 
-=head2 enable
+=head2 enabled
 
-The C<enable> method indicates if the object is enabled or not.
+The C<enabled> method indicates if the object is enabled or not.
 
 =cut
 
-has enable => (
+has enabled => (
 	is  => 'ro',
 	isa => 'Bool',
 );

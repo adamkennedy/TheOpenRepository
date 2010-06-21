@@ -11,4 +11,9 @@ has default => (
 	isa => 'Bool',
 );
 
+has OnButtonClick => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
 1;
