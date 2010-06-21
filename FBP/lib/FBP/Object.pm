@@ -9,4 +9,9 @@ has name => (
 	isa      => 'Str',
 );
 
+has raw => (
+	is       => 'ro',
+	isa      => 'Any',
+);
+
 1;

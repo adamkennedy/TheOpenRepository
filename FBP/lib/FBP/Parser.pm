@@ -10,8 +10,6 @@ use FBP            ();
 our $VERSION = '0.01';
 our @ISA     = 'XML::SAX::Base';
 
-use constant NAMESPACE => 'http://www.wxwindows.org/wxxrc';
-
 
 
 
@@ -157,7 +155,7 @@ sub end_element_object {
 	my $self   = shift;
 	my $attr   = pop @{$self->{stack}};
 	my $class  = delete $attr->{class};
-	my $object = $class->new( %$attr );
+	my $object = $class->new( %$attr, raw => $attr );
 	$self->parent->{children} ||= [ ];
 	push @{$self->parent->{children}}, $object;
 }
