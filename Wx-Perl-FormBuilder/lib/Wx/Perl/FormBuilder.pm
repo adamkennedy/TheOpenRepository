@@ -37,12 +37,63 @@ has project => (
 
 
 ######################################################################
-# Button Generators
+# Dialog Generators
+
+sub dialog_class {
+	my $self    = shift;
+	my $dialog  = shift;
+	my $package = $dialog->name;
+	my @pragma  = $self->use_pragma($dialog);
+	my @wx      = $self->use_wx($dialog);
+	my $isa     = $self->dialog_isa($dialog);
+	my $new     = $self->dialog_new($dialog);
+	my @methods = map { @$_, "" } $self->dialog_methods($dialog);
+	my @lines   = (
+		"package $package;",
+		"",
+		@pragma,
+		@wx,
+		"",
+		"our \$VERSION = '0.01';",
+		"our \@ISA     = $isa;",
+		"",
+		@$new,
+		"",
+		@methods,
+		"1;",
+	);
+	return \@lines;
+}
+
+sub dialog_new {
+	my $self    = shift;
+	my $dialog  = shift;
+	my $super   = $self->dialog_super($dialog);
+	my @sizers  = $self->indent( $self->dialog_sizers($dialog) );
+	my @windows = map { $self->indent($_), "" }
+	              map { $self->window_create($_) }
+	              $dialog->find( isa => 'FBP::Window' );
+
+	my @lines  = (
+		"sub new {",
+		"\tmy \$class  = shift;",
+		"\tmy \$parent = shift;",
+		"",
+		$self->indent($super),
+		"",
+		@windows,
+		@sizers,
+		"\treturn \$self;",
+		"}",
+	);
+
+	return \@lines;
+}
 
 sub dialog_super {
 	my $self     = shift;
 	my $dialog   = shift;
-	my $id       = $self->wx($dialog->id);
+	my $id       = $self->wx( $dialog->id );
 	my $label    = $self->object_label($dialog);
 	my $position = $self->object_position($dialog);
 	my $size     = $self->object_size($dialog);
@@ -60,12 +111,81 @@ sub dialog_super {
 	return \@lines;
 }
 
+sub dialog_methods {
+	my $self    = shift;
+	my $dialog  = shift;
+	my @methods = ();
+
+	# Only one type of event is currently supported.
+	# Eventually this needs to be a lot more in depth.
+	my @buttons = grep {
+		$_->OnButtonClick
+	} $dialog->find( isa => 'FBP::Button' );
+	foreach my $button ( @buttons ) {
+		push @methods, $self->button_method( $button->OnButtonClick );
+	}
+
+	return @methods;
+}
+
+sub dialog_sizers {
+	my $self   = shift;
+	my $dialog = shift;
+
+	# Check the root sizer
+	my $sizer = $dialog->children->[0];
+	unless ( $sizer->isa('FBP::BoxSizer') ) {
+		die 'Dialog root sizer is not a BoxSizer';
+	}
+
+	# Generate fragments
+	my $variable = $self->object_variable($sizer);
+	my $boxsizer = $self->boxsizer_create($sizer);
+
+	my @lines = (
+		@$boxsizer,
+		"",
+		"\$self->SetSizer($variable);",
+		"$variable->SetSizeHints(\$self);",
+		"",
+	);
+
+	return \@lines;
+}
+
+sub dialog_isa {
+	my $self   = shift;
+	my $dialog = shift;
+	return "'Wx::Dialog'";
+}
+
+
+
+
+
+######################################################################
+# Window and Control Generators
+
+sub window_create {
+	my $self   = shift;
+	my $window = shift;
+	if ( $window->isa('FBP::Button') ) {
+		return $self->button_create($window);
+	} elsif ( $window->isa('FBP::StaticText') ) {
+		return $self->statictext_create($window);
+	} elsif ( $window->isa('FBP::StaticLine') ) {
+		return $self->staticline_create($window);
+	} else {
+		die "Cannot create constructor code for " . ref($window);
+	}
+}
+
 sub button_create {
 	my $self     = shift;
 	my $button   = shift;
 	my $lexical  = $self->object_lexical($button) ? 'my ' : '';
 	my $variable = $self->object_variable($button);
-	my $id       = $self->wx($button->id);
+	my $id       = $self->wx( $button->id );
 	my $label    = $self->object_label($button);
 	my @lines    = (
 		"$lexical$variable = Wx::Button->new(",
@@ -96,15 +216,88 @@ sub button_create {
 	return \@lines;
 }
 
+sub button_method {
+	my $self   = shift;
+	my $method = shift;
+	my @lines  = (
+		"sub $method {",
+		"\tmy \$self  = shift;",
+		"\tmy \$event = shift;",
+		"",
+		"\tdie 'TO BE COMPLETED';",
+		"}",
+	);
+	return \@lines;
+}
+
+sub statictext_create {
+	my $self     = shift;
+	my $text     = shift;
+	my $lexical  = $self->object_lexical($text) ? 'my ' : '';
+	my $variable = $self->object_variable($text);
+	my $id       = $self->wx( $text->id );
+	my $label    = $self->object_label($text);
+	my @lines    = (
+		"$lexical$variable = Wx::StaticText->new(",
+		"\t\$self,",
+		"\t$id,",
+		"\t$label,",
+		");",
+	);
+	return \@lines;
+}
+
+sub staticline_create {
+	my $self     = shift;
+	my $line     = shift;
+	my $lexical  = $self->object_lexical($line) ? 'my ' : '';
+	my $variable = $self->object_variable($line);
+	my $id       = $self->wx( $line->id );
+	my $position = $self->object_position($line);
+	my $size     = $self->object_size($line);
+	my @lines    = (
+		"$lexical$variable = Wx::StaticLine->new(",
+		"\t\$self,",
+		"\t$id,",
+		"\t$position,",
+		"\t$size,",
+		");",
+	);
+	return \@lines;
+}
+
 sub boxsizer_create {
 	my $self     = shift;
 	my $sizer    = shift;
 	my $lexical  = $self->object_lexical($sizer) ? 'my ' : '';
 	my $variable = $self->object_variable($sizer);
-	my $orient   = $self->wx($sizer->orient);
-	my @lines    = (
-		"$lexical$variable = Wx::BoxSizer->new( $orient );"
-	);
+	my $orient   = $self->wx( $sizer->orient );
+
+	# Add the content for child sizers
+	my @lines = map {
+		( @$_, "" )
+	} map {
+		$self->boxsizer_create($_)
+	} grep {
+		$_->isa('FBP::Sizer')
+	} map {
+		$_->children->[0]
+	} @{$sizer->children};
+
+	# Add the content for this sizer
+	push @lines, "$lexical$variable = Wx::BoxSizer->new( $orient );";
+	foreach my $item ( @{$sizer->children} ) {
+		my $child  = $item->children->[0];
+		my $params = join(
+			', ',
+			$self->object_variable($child),
+			$item->proportion,
+			$self->wx( $item->flag ),
+			$item->border,
+		);
+		push @lines, "$variable->Add( $params );";
+	}
+
 	return \@lines;
 }
 
@@ -112,9 +305,8 @@ sub boxsizer_create {
 
 
 
-
 ######################################################################
-# String Fragment Generators
+# Common Fragment Generators
 
 my %OBJECT_UNLEXICAL = (
 	'FBP::Button' => 1,
@@ -159,7 +351,8 @@ sub object_position {
 	unless ( $position ) {
 		return 'Wx::wxDefaultPosition';
 	}
-	return $position;
+	$position =~ s/,/, /;
+	return "[ $position ]";
 }
 
 sub object_size {
@@ -169,7 +362,8 @@ sub object_size {
 	unless ( $size ) {
 		return 'Wx::wxDefaultSize';
 	}
-	return $size;
+	$size =~ s/,/, /;
+	return "[ $size ]";
 }
 
 
@@ -179,6 +373,22 @@ sub object_size {
 ######################################################################
 # Support Methods
 
+sub use_pragma {
+	my $self = shift;
+	my $dialog  = shift;
+	return (
+		"use 5.008;",
+		"use strict;",
+		"use warnings;",
+	);
+}
+
+sub use_wx {
+	my $self    = shift;
+	my $dialog  = shift;
+	return ( "use Wx ':everything';" );
+}
+
 sub wx {
 	my $self   = shift;
 	my $string = shift;
@@ -187,6 +397,10 @@ sub wx {
 	}
 	$string =~ s/\bwx/Wx::wx/g;
 	return $string;
+}
+
+sub indent {
+	map { /\S/ ? "\t$_" : $_ } @{$_[1]};
 }
 
 1;
