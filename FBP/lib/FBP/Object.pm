@@ -12,7 +12,7 @@ FBP::Object - Base class for all wxFormBuilder objects
 
 use Moose;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =pod
 

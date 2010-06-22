@@ -1,8 +1,15 @@
 Changes for Perl extension FBP
 
-0.02 to be released
+0.03 to be released
+	- Added attribute FBP::Sizer::name
+	- Added attribute FBP::BoxSizer::orient
+	- Added attribute FBP::Dialog::pos
+	- Added attribute FBP::Dialog::size
+
+0.02 Mon 21 Jun 2010
 	- Updating Moose dependency to 1.05
 	- Added search method FBP->find_first
+	- Added a variety of other stuff
 
 0.01 Mon 21 Jun 2010
 	- Created the initial implementation

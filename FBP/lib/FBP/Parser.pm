@@ -7,7 +7,7 @@ use Params::Util   qw{ _CLASS _INSTANCE };
 use XML::SAX::Base ();
 use FBP            ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our @ISA     = 'XML::SAX::Base';
 
 

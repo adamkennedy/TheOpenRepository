@@ -12,7 +12,7 @@ FBP::Children - Role for objects which can contain other objects
 
 use Moose::Role;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 has children => (
 	is      => 'ro',
