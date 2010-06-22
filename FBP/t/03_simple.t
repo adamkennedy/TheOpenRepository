@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 22;
+use Test::More tests => 29;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -55,9 +55,20 @@ is(
 );
 
 # The search should work as well from children of the main object as well
-
 my $dialog3 = $project->find_first( isa => 'FBP::Dialog' );
 isa_ok( $dialog3, 'FBP::Dialog' );
+
+# Multiple-search query equivalent
+my @dialog4 = $project->find( isa => 'FBP::Dialog' );
+is( scalar(@dialog4), 1, '->find(single) ok' );
+isa_ok( $dialog4[0], 'FBP::Dialog' );
+
+# Multiple-search query with multiple results
+my @window = $project->find( isa => 'FBP::Window' );
+is( scalar(@window), 4, '->find(multiple) ok' );
+foreach ( @window ) {
+	isa_ok( $_, 'FBP::Window' );
+}
 
 # Text properties
 my $text = $object->find_first(

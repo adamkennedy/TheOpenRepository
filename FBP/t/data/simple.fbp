@@ -32,7 +32,7 @@
             <property name="minimum_size"></property>
             <property name="name">MyDialog1</property>
             <property name="pos"></property>
-            <property name="size"></property>
+            <property name="size">100,100</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass"></property>
             <property name="title"></property>

@@ -20,6 +20,44 @@ has children => (
 	default => sub { [ ] },
 );
 
+sub find {
+	my $self  = shift;
+	my @where = @_;
+	my @queue = @{ $self->children };
+	my @found = ( );
+	while ( @queue ) {
+		my $object = shift @queue;
+
+		# First add any children to the queue so that we
+		# will process the model in depth first order.
+		if ( $object->does('FBP::Children') ) {
+			unshift @queue, @{ $object->children };
+		}
+
+		# Filter to see if we want it
+		my $i = 0;
+		while ( my $method = $where[$i] ) {
+			if ( $method eq 'isa' ) {
+				last unless $object->isa($where[$i + 1]);
+			} else {
+				last unless $object->can($method);
+				my $value = $object->$method();
+				unless ( defined $value and $value eq $where[$i + 1] ) {
+					last;
+				}
+			}
+			$i += 2;
+		}
+
+		# If we hit the final $i += 2 we have found a match
+		unless ( defined $where[$i] ) {
+			push @found, $object;
+		}
+	}
+
+	return @found;
+}
+
 =pod
 
 =head2 find_first
@@ -53,7 +91,7 @@ sub find_first {
 
 		# First add any children to the queue so that we
 		# will process the model in depth first order.
-		if ( $object->can('children') ) {
+		if ( $object->does('FBP::Children') ) {
 			unshift @queue, @{ $object->children };
 		}
 

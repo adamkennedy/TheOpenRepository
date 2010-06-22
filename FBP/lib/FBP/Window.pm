@@ -67,6 +67,16 @@ has enabled => (
 	isa => 'Bool',
 );
 
+has pos => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has size => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
 1;
 
 =pod
