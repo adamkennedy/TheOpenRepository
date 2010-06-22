@@ -7,7 +7,7 @@ our $VERSION = '0.03';
 extends 'FBP::Object';
 with    'FBP::Children';
 
-# Not part of the Wx model, added by FormBuilder
+# Not part of the Wx model, instead was added by FormBuilder
 has name => (
 	is       => 'ro',
 	isa      => 'Str',
