@@ -14,19 +14,19 @@ FBP - Parser and Object Model for wxFormBuilder Project Files (.fpb files)
 
 =head1 DESCRIPTION
 
-wxFormBuilder is currently the best and most sophisticated program for
-designing wxWidgets dialogs and generating code from these designs.
+B<NOTE: Documentation is limited as this module is in active development>
 
-However wxFormBuilder does not currently support the generation of Perl code.
-And so if we are to produce Perl code for the designs it creates, the code
-generation must be done independantly.
+wxFormBuilder is currently the best and most sophisticated program for
+designing wxWidgets dialogs, and generating the code for these designs.
+
+However, wxFormBuilder does not currently support the generation of Perl code.
+If we are to produce Perl code for the designs it creates, the code generation
+must be done independantly, outside of wxFormBuilder itself.
 
 B<FBP> is a SAX-based parser and object model for the XML project files that
-are saved by wxFormBuilder. While it does itself the creation of generated
-Perl code, it should serve as a common base for anyone who wishes to produce
-a code generator for these files.
-
-B<NOTE: Documentation is limited as this module is in active development>
+are created by wxFormBuilder. While it does B<NOT> do the creation of Perl code
+itself, it should serve as a solid base for anyone who wishes to produce a code
+generator for these saved files.
 
 =head1 METHODS
 
