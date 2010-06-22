@@ -39,6 +39,27 @@ has project => (
 ######################################################################
 # Button Generators
 
+sub dialog_super {
+	my $self     = shift;
+	my $dialog   = shift;
+	my $id       = $self->wx($dialog->id);
+	my $label    = $self->object_label($dialog);
+	my $position = $self->object_position($dialog);
+	my $size     = $self->object_size($dialog);
+	my $style    = $self->wx( $dialog->style || 'wxDEFAULT_DIALOG_STYLE' );
+	my @lines    = (
+		"my \$self = \$class->SUPER::new(",
+		"\t\$parent,",
+		"\t$id,",
+		"\t$label,",
+		"\t$position,",
+		"\t$size,",
+		"\t$style,",
+		");",
+	);
+	return \@lines;
+}
+
 sub button_create {
 	my $self     = shift;
 	my $button   = shift;
@@ -46,7 +67,7 @@ sub button_create {
 	my $variable = $self->object_variable($button);
 	my $id       = $self->wx($button->id);
 	my $label    = $self->object_label($button);
-	my @lines  = (
+	my @lines    = (
 		"$lexical$variable = Wx::Button->new(",
 		"\t\$self,",
 		"\t$id,",
@@ -74,6 +95,19 @@ sub button_create {
 	}
 	return \@lines;
 }
+
+sub boxsizer_create {
+	my $self     = shift;
+	my $sizer    = shift;
+	my $lexical  = $self->object_lexical($sizer) ? 'my ' : '';
+	my $variable = $self->object_variable($sizer);
+	my $orient   = $self->wx($sizer->orient);
+	my @lines    = (
+		"$lexical$variable = Wx::BoxSizer->new( $orient );"
+	);
+	return \@lines;
+}
+
 
 
 
@@ -104,11 +138,38 @@ sub object_variable {
 sub object_label {
 	my $self   = shift;
 	my $object = shift;
-	my $string = "'" . $object->label . "'";
-	if ( $self->i18n ) {
-		$string = "Wx::gettext($string)";
+	my $label  = $object->label;
+	unless ( defined $label and length $label ) {
+		return "''";
 	}
-	return $string;
+
+	# Quote and translate the label
+	$label = "'$label'";
+	if ( $self->project->internationalize ) {
+		$label = "Wx::gettext($label)";
+	}
+
+	return $label;
+}
+
+sub object_position {
+	my $self     = shift;
+	my $object   = shift;
+	my $position = $object->pos;
+	unless ( $position ) {
+		return 'Wx::wxDefaultPosition';
+	}
+	return $position;
+}
+
+sub object_size {
+	my $self   = shift;
+	my $object = shift;
+	my $size   = $object->size;
+	unless ( $size ) {
+		return 'Wx::wxDefaultSize';
+	}
+	return $size;
 }
 
 
@@ -117,10 +178,6 @@ sub object_label {
 
 ######################################################################
 # Support Methods
-
-sub i18n {
-	shift->project->internationalize
-}
 
 sub wx {
 	my $self   = shift;
