@@ -13,7 +13,7 @@ use Params::Util              ();
 use JSAN::Index::Distribution ();
 use JSAN::Index::Author       ();
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 BEGIN {
     # Optional prefork.pm support
@@ -306,7 +306,7 @@ sub _extract_resource_from_tar {
     my ($self, $resource, %params) = @_;
     my $tar   = $self->archive;
     my @files = $tar->get_files;
-
+    
     # Determine which files to extract, and to where
     my $extracted_files = 0;
     foreach my $item ( @files ) {
@@ -314,7 +314,7 @@ sub _extract_resource_from_tar {
 
         # Split into parts and remove the top level dir
         my ($vol, $dir, $file)
-            = File::Spec::Unix->splitpath($item->name);
+            = File::Spec::Unix->splitpath($item->full_path);
         my @dirs = File::Spec::Unix->splitdir($dir);
         shift @dirs;
 
