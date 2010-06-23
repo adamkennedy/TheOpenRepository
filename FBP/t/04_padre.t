@@ -11,15 +11,9 @@ use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
 
-my $FILE = catfile( 't', 'data', 'trivial.fbp' );
+# Find the test file
+my $FILE = catfile( 't', 'data', 'padre.fbp' );
 ok( -f $FILE, "Found test file '$FILE'" );
-
-
-
-
-
-######################################################################
-# Simple Tests
 
 # Create the empty object
 my $object = FBP->new;

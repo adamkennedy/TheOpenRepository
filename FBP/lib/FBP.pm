@@ -48,11 +48,16 @@ use FBP::Project      ();
 use FBP::Dialog       ();
 use FBP::BoxSizer     ();
 use FBP::Button       ();
+use FBP::CheckBox     ();
+use FBP::ComboBox     ();
+use FBP::HtmlWindow   ();
+use FBP::ListCtrl     ();
 use FBP::SizerItem    ();
+use FBP::Spacer       ();
 use FBP::StaticText   ();
 use FBP::StaticLine   ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 extends 'FBP::Object';
 with    'FBP::Children';

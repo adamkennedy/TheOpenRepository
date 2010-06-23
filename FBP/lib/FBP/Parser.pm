@@ -3,12 +3,28 @@ package FBP::Parser;
 use 5.008;
 use strict;
 use warnings;
-use Params::Util   qw{ _CLASS _INSTANCE };
+use Params::Util   ();
 use XML::SAX::Base ();
 use FBP            ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our @ISA     = 'XML::SAX::Base';
+
+# Object XML class to Perl class mapping
+my %OBJECT_CLASS = (
+	Project      => 'FBP::Project',
+	Dialog       => 'FBP::Dialog',
+	wxBoxSizer   => 'FBP::BoxSizer',
+	wxButton     => 'FBP::Button',
+	wxCheckBox   => 'FBP::CheckBox',
+	wxComboBox   => 'FBP::ComboBox',
+	wxHtmlWindow => 'FBP::HtmlWindow',
+	wxListCtrl   => 'FBP::ListCtrl',
+	wxStaticText => 'FBP::StaticText',
+	wxStaticLine => 'FBP::StaticLine',
+	sizeritem    => 'FBP::SizerItem',
+	spacer       => 'FBP::Spacer',
+);
 
 
 
@@ -18,8 +34,8 @@ our @ISA     = 'XML::SAX::Base';
 # Constructor and Accessors
 
 sub new {
-	my $class  = _CLASS(shift);
-	my $parent = _INSTANCE(shift, 'FBP');
+	my $class  = Params::Util::_CLASS(shift);
+	my $parent = Params::Util::_INSTANCE(shift, 'FBP');
 	unless ( $parent ) {
 		die("Did not provide a parent FBP object");
 	}
@@ -123,17 +139,6 @@ sub start_element_fileversion {
 sub end_element_fileversion {
 	return 1;
 }
-
-# Object XML class to Perl class mapping
-my %OBJECT_CLASS = (
-	Project      => 'FBP::Project',
-	Dialog       => 'FBP::Dialog',
-	wxBoxSizer   => 'FBP::BoxSizer',
-	wxButton     => 'FBP::Button',
-	wxStaticText => 'FBP::StaticText',
-	wxStaticLine => 'FBP::StaticLine',
-	sizeritem    => 'FBP::SizerItem',
-);
 
 # <object>
 # Primary tag for useful elements in a GUI, such as windows and buttons.

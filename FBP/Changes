@@ -1,11 +1,20 @@
 Changes for Perl extension FBP
 
-0.03 to be released
-	- Added method    FBP::Children::find
-	- Added attribute FBP::Window::pos
-	- Added attribute FBP::Window::size
-	- Added attribute FBP::Sizer::name
-	- Added attribute FBP::BoxSizer::orient
+0.04 Wed 23 Jun 2010
+	- Added FBP::Control    role
+	- Added FBP::CheckBox   class
+	- Added FBP::ComboBox   class
+	- Added FBP::HtmlWindow class
+	- Added FBP::ListCtrl   class
+	- Added FBP::Spacer     class
+	- Moved FBP::Button::default --> FBP::Control::default
+
+0.03 Wed 23 Jun 2010
+	- Added FBP::Children::find   method
+	- Added FBP::Window::pos      attribute
+	- Added FBP::Window::size     attribute
+	- Added FBP::Sizer::name      attribute
+	- Added FBP::BoxSizer::orient attribute
 
 0.02 Mon 21 Jun 2010
 	- Updating Moose dependency to 1.05

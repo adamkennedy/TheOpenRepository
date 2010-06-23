@@ -2,14 +2,10 @@ package FBP::Button;
 
 use Moose;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 extends 'FBP::Window';
-
-has default => (
-	is  => 'ro',
-	isa => 'Bool',
-);
+with    'FBP::Control';
 
 has OnButtonClick => (
 	is  => 'ro',

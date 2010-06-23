@@ -2,7 +2,7 @@ package FBP::Project;
 
 use Moose;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 extends 'FBP::Object';
 with    'FBP::Children';

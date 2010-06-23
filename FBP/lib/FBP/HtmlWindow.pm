@@ -1,4 +1,4 @@
-package FBP::StaticLine;
+package FBP::HtmlWindow;
 
 use Moose;
 
