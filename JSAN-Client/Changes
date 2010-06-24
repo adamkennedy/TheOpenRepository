@@ -1,8 +1,8 @@
 Revision history for Perl extension JSAN-Client
 
-0.29 Wednesday, June 23, 2010
-	- Fixed bug, when archive, created with Archive::Tar,
-	  couldn't be extracted correctly
+0.29 Wed Jun 23 2010
+    - Fixed bug, when archive, created with Archive::Tar,
+      couldn't be extracted correctly
 
 0.28 Wed  9 Jun 2010
     - Adding support for .tgz files
