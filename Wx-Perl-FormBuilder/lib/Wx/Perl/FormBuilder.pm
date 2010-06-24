@@ -37,25 +37,51 @@ has project => (
 
 
 ######################################################################
+# High Level Methods
+
+sub dialog_write {
+	my $self   = shift;
+	my $dialog = shift;
+	my $path   = shift;
+
+	# Generate the code
+	my $code = $self->flatten(
+		$self->dialog_class($dialog)
+	);
+
+	# Write it to the file
+	open( my $file, '>', $path ) or die "open($path): $!";
+	$file->print( $code );
+	$file->close;
+
+	return 1;
+}
+
+
+
+
+
+
+######################################################################
 # Dialog Generators
 
 sub dialog_class {
 	my $self    = shift;
 	my $dialog  = shift;
 	my $package = $dialog->name;
-	my @pragma  = $self->use_pragma($dialog);
-	my @wx      = $self->use_wx($dialog);
+	my $pragma  = $self->use_pragma($dialog);
+	my $wx      = $self->use_wx($dialog);
 	my $isa     = $self->dialog_isa($dialog);
 	my $new     = $self->dialog_new($dialog);
 	my @methods = map { @$_, "" } $self->dialog_methods($dialog);
 	my @lines   = (
 		"package $package;",
 		"",
-		@pragma,
-		@wx,
+		@$pragma,
+		@$wx,
 		"",
 		"our \$VERSION = '0.01';",
-		"our \@ISA     = $isa;",
+		@$isa,
 		"",
 		@$new,
 		"",
@@ -156,7 +182,9 @@ sub dialog_sizers {
 sub dialog_isa {
 	my $self   = shift;
 	my $dialog = shift;
-	return "'Wx::Dialog'";
+	return [
+		"our \@ISA     = 'Wx::Dialog';",
+	];
 }
 
 
@@ -175,6 +203,8 @@ sub window_create {
 		return $self->statictext_create($window);
 	} elsif ( $window->isa('FBP::StaticLine') ) {
 		return $self->staticline_create($window);
+	} elsif ( $window->isa('FBP::ComboBox') ) {
+		return $self->combobox_create($window);
 	} else {
 		die "Cannot create constructor code for " . ref($window);
 	}
@@ -226,6 +256,30 @@ sub button_method {
 		"",
 		"\tdie 'TO BE COMPLETED';",
 		"}",
+	);
+	return \@lines;
+}
+
+sub combobox_create {
+	my $self     = shift;
+	my $combo    = shift;
+	my $lexical  = $self->object_lexical($combo) ? 'my ' : '';
+	my $variable = $self->object_variable($combo);
+	my $id       = $self->wx( $combo->id );
+	my $value    = $self->quote( $combo->value );
+	my $position = $self->object_position($combo);
+	my $size     = $self->object_size($combo);
+	my $style    = $self->wx( $combo->style );
+	my @lines    = (
+		"$lexical$variable = Wx::ComboBox->new(",
+		"\t\$self,",
+		"\t$id,",
+		"\t$value,",
+		"\t$position,",
+		"\t$size,",
+		"\t[ ],",
+		"\t$style,",
+		");",
 	);
 	return \@lines;
 }
@@ -376,17 +430,19 @@ sub object_size {
 sub use_pragma {
 	my $self = shift;
 	my $dialog  = shift;
-	return (
+	return [
 		"use 5.008;",
 		"use strict;",
 		"use warnings;",
-	);
+	]
 }
 
 sub use_wx {
 	my $self    = shift;
 	my $dialog  = shift;
-	return ( "use Wx ':everything';" );
+	return [
+		"use Wx ':everything';",
+	];
 }
 
 sub wx {
@@ -396,11 +452,22 @@ sub wx {
 		return -1;
 	}
 	$string =~ s/\bwx/Wx::wx/g;
+	$string =~ s/\s*\|\s*/ | /g;
 	return $string;
+}
+
+sub quote {
+	my $self = shift;
+	my $string = shift;
+	return '"' . quotemeta($string) . '"';
 }
 
 sub indent {
 	map { /\S/ ? "\t$_" : $_ } @{$_[1]};
+}
+
+sub flatten {
+	join '', map { "$_\n" } @{$_[1]};
 }
 
 1;
