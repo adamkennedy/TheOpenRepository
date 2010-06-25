@@ -27,9 +27,12 @@ sub compiles {
 	if ( ref $code ) {
 		$code = join '', map { "$_\n" } @$code;
 	}
-	my $rv = eval $code;
-	diag( $@ ) if $@;
-	ok( $rv, $_[0] );
+	SKIP: {
+		skip("Skipping compile test for release", 1) if $ENV{RELEASE_TESTING};
+		my $rv = eval $code;
+		diag( $@ ) if $@;
+		ok( $rv, $_[0] );
+	}
 }
 
 # Find the sample file
