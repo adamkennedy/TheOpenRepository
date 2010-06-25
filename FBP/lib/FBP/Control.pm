@@ -1,8 +1,8 @@
 package FBP::Control;
 
-use Moose::Role;
+use Mouse::Role;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 has default => (
 	is  => 'ro',

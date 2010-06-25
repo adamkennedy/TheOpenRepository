@@ -10,9 +10,9 @@ FBP::Children - Role for objects which can contain other objects
 
 =cut
 
-use Moose::Role;
+use Mouse::Role;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 has children => (
 	is      => 'ro',

@@ -10,9 +10,9 @@ FBP::Object - Base class for all wxFormBuilder objects
 
 =cut
 
-use Moose;
+use Mouse;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =pod
 

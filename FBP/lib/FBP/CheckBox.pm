@@ -1,8 +1,8 @@
 package FBP::CheckBox;
 
-use Moose;
+use Mouse;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 extends 'FBP::Window';
 with    'FBP::Control';

@@ -1,8 +1,8 @@
 package FBP::Project;
 
-use Moose;
+use Mouse;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 extends 'FBP::Object';
 with    'FBP::Children';

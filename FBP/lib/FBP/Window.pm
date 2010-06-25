@@ -8,9 +8,9 @@ FBP::Window - Base class for all graphical wxWindow objects
 
 =cut
 
-use Moose;
+use Mouse;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 extends 'FBP::Object';
 with    'FBP::Children';

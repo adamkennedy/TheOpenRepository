@@ -39,7 +39,7 @@ The C<new> constructor takes no arguments and creates a new parser/model object.
 =cut
 
 use 5.008005;
-use Moose        1.05;
+use Mouse        0.61;
 use Params::Util 1.00 ();
 use IO::File     1.14 ();
 use XML::SAX     0.96 ();
@@ -57,7 +57,7 @@ use FBP::Spacer       ();
 use FBP::StaticText   ();
 use FBP::StaticLine   ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 extends 'FBP::Object';
 with    'FBP::Children';
