@@ -1,14 +1,14 @@
-package Wx::Perl::FormBuilder;
+package FBP::Perl;
 
 =pod
 
 =head1 NAME
 
-Wx::Perl::FormBuilder - Generate Perl GUI code from wxFormBuilder .fbp files
+FBP::Perl - Generate Perl GUI code from wxFormBuilder .fbp files
 
 =head1 SYNOPSIS
 
-  my $generator = Wx::Perl::FormBuilder->new(
+  my $generator = FBP::Perl->new(
       dialog => $fbp_object->dialog('MyDialog')
   );
 
@@ -21,7 +21,7 @@ TO BE COMPLETED
 use 5.008005;
 use strict;
 use warnings;
-use Moose 1.05;
+use Mouse 0.61;
 use FBP   0.02 ();
 
 our $VERSION = '0.01';
@@ -478,7 +478,7 @@ sub flatten {
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Wx-Perl-FormBuilder>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=FBP-Perl>
 
 For other issues, or commercial enhancement or support, contact the author.
 
