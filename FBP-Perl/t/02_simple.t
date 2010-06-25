@@ -28,9 +28,9 @@ sub compiles {
 		$code = join '', map { "$_\n" } @$code;
 	}
 	SKIP: {
-		skip("Skipping compile test for release", 1) if $ENV{RELEASE_TESTING};
+		skip("Skipping compile test for release", 1) if $ENV{ADAMK_RELEASE};
 		my $rv = eval $code;
-		diag( $@ ) if $@;
+		# diag( $@ ) if $@;
 		ok( $rv, $_[0] );
 	}
 }
