@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More tests => 22;
 use Test::NoWarnings;
-use Wx::Perl::FormBuilder;
+use FBP::Perl;
 
 sub code {
 	my $left    = shift;
@@ -45,11 +45,11 @@ ok( $fbp->parse_file($file), '->parse_file ok' );
 my $project = $fbp->find_first(
 	isa => 'FBP::Project',
 );
-my $code = Wx::Perl::FormBuilder->new(
+my $code = FBP::Perl->new(
 	project => $project,
 );
 isa_ok( $project, 'FBP::Project' );
-isa_ok( $code, 'Wx::Perl::FormBuilder' );
+isa_ok( $code, 'FBP::Perl' );
 
 # Test Button string generators
 SCOPE: {

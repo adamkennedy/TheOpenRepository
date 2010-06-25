@@ -6,8 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More tests => 2;
 use Test::NoWarnings;
 
-use_ok( 'Wx::Perl::FormBuilder' );
-use_ok( 'Padre::FormBuilder'    );
+use_ok( 'FPB::Perl' );
