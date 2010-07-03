@@ -17,11 +17,14 @@ ExtUtils::Typemap - Read/Write/Modify Perl/XS typemap files
   my $typemap = ExtUtils::Typemap->new(file => 'typemap');
   # alternatively create an in-memory typemap
   # $typemap = ExtUtils::Typemap->new();
+  # alternatively create an in-memory typemap by parsing a string
+  # $typemap = ExtUtils::Typemap->new(string => $sometypemap);
   
   # add a mapping
   $typemap->add_typemap(ctype => 'NV', xstype => 'T_NV');
   $typemap->add_inputmap (xstype => 'T_NV', code => '$var = ($type)SvNV($arg);');
   $typemap->add_outputmap(xstype => 'T_NV', code => 'sv_setnv($arg, (NV)$var);');
+  $typemap->add_string(string => $typemapstring); # will be parsed and merged
   
   # remove a mapping (same for remove_typemap and remove_outputmap...)
   $typemap->remove_inputmap(xstype => 'SomeType');
@@ -54,18 +57,26 @@ Returns a new typemap object. Takes an optional C<file> parameter.
 If set, the given file will be read. If the file doesn't exist, an empty typemap
 is returned.
 
+Alternatively, if the C<string> parameter is given, the supplied
+string will be parsed instead of a file.
+
 =cut
 
 sub new {
   my $class = shift;
-  
+  my %args = @_;
+
+  if (defined $args{file} and defined $args{string}) {
+    croak("Cannot handle both 'file' and 'string' arguments to constructor");
+  }
+
   my $self = bless {
     file            => undef,
-    @_,
+    %args,
     typemap_section => [],
     input_section   => [],
     output_section  => [],
-  }, $class;
+  } => $class;
 
   $self->_init();
 
@@ -74,7 +85,18 @@ sub new {
 
 sub _init {
   my $self = shift;
-  $self->_parse() if defined $self->{file} and -e $self->{file};
+  if (defined $self->{string}) {
+    $self->_parse(\($self->{string}));
+    delete $self->{string};
+  }
+  elsif (defined $self->{file} and -e $self->{file}) {
+    open my $fh, '<', $self->{file}
+      or die "Cannot open typemap file '"
+             . $self->{file} . "' for reading: $!";
+    local $/ = undef;
+    my $string = <$fh>;
+    $self->_parse(\$string, $self->{file});
+  }
 }
 
 =head2 file
@@ -178,6 +200,24 @@ sub add_outputmap {
   push @{$self->{output_section}},
     {xstype => $xstype, code => $code};
   return 1;
+}
+
+=head2 add_string
+
+Parses a string as a typemap and merged it into the typemap object.
+
+Required named argument: C<string> to specify the string to parse.
+
+=cut
+
+sub add_string {
+  my $self = shift;
+  my %args = @_;
+  croak("Need 'string' argument") if not defined $args{string};
+
+  # no, this is not elegant.
+  my $other = ExtUtils::Typemap->new(string => $args{string});
+  $self->merge(typemap => $other);
 }
 
 =head2 remove_typemap
@@ -406,9 +446,9 @@ sub validate {
 
 sub _parse {
   my $self = shift;
-  my $file = $self->{file};
-  open my $fh, '<', $file
-    or die "Cannot open typemap file '$file' for reading. $!";
+  my $stringref = shift;
+  my $filename = shift;
+  $filename = '<string>' if not defined $filename;
 
   # TODO comments should round-trip, currently ignoring
   # TODO order of sections, multiple sections of same type
@@ -420,7 +460,8 @@ sub _parse {
   my @typemap_expr;
   my @input_expr;
   my @output_expr;
-  while (<$fh>) {
+  while ($$stringref =~ /^(.*)$/gcm) {
+    local $_ = $1;
     ++$lineno;
     chomp;
     next if /^\s*#/;
@@ -445,13 +486,13 @@ sub _parse {
       s/^\s+//; s/\s+$//;
       next if /^#/ or /^$/;
       my($type, $kind, $proto) = /^(.*?\S)\s+(\S+)\s*($Proto_Regexp*)$/o
-        or warn("Warning: File '$file' Line $lineno '$line' TYPEMAP entry needs 2 or 3 columns\n"),
+        or warn("Warning: File '$filename' Line $lineno '$line' TYPEMAP entry needs 2 or 3 columns\n"),
            next;
       my $tidytype = _tidy_type($type);
       $proto = '' if not $proto;
       # prototype defaults to '$'
       #$proto = '$' unless $proto;
-      #warn("Warning: File '$file' Line $lineno '$line' Invalid prototype '$proto'\n")
+      #warn("Warning: File '$filename' Line $lineno '$line' Invalid prototype '$proto'\n")
       #  unless _valid_proto_string($proto);
       push @typemap_expr,
         {tidy_ctype => $tidytype, xstype => $kind, proto => $proto, ctype => $type};
@@ -471,7 +512,6 @@ sub _parse {
 
   } # end while lines
 
-  close $fh;
   $self->{typemap_section} = \@typemap_expr;
   $self->{input_section}   = \@input_expr;
   $self->{output_section}  = \@output_expr;
