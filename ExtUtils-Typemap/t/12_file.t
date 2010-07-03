@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use ExtUtils::Typemap;
 use File::Spec;
 use File::Temp;
@@ -42,4 +42,8 @@ SCOPE: {
   local $map->{file} = $cmp_typemap_file;
   is_deeply(ExtUtils::Typemap->new(file => $cmp_typemap_file), $map, "Simple typemap roundtrips (in memory)");
 }
+
+# test that we can also create them from a string
+my $map_from_str = ExtUtils::Typemap->new(string => $map->as_string());
+is_deeply($map_from_str, $map);
 
