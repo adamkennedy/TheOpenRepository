@@ -1,6 +1,6 @@
 Changes for Perl extension FBP
 
-0.06 to be released
+0.06 Sat  3 Jul 2010
 	- Added FBP::Choice class
 	- Added FBP::Spacer attribute
 	- Added FBP::Spacer attribute
