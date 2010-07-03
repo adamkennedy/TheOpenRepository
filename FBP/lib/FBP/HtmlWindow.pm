@@ -2,7 +2,7 @@ package FBP::HtmlWindow;
 
 use Mouse;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 extends 'FBP::Window';
 

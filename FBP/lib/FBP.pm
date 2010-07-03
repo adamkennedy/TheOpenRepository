@@ -49,6 +49,7 @@ use FBP::Dialog       ();
 use FBP::BoxSizer     ();
 use FBP::Button       ();
 use FBP::CheckBox     ();
+use FBP::Choice       ();
 use FBP::ComboBox     ();
 use FBP::HtmlWindow   ();
 use FBP::ListCtrl     ();
@@ -57,7 +58,7 @@ use FBP::Spacer       ();
 use FBP::StaticText   ();
 use FBP::StaticLine   ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 extends 'FBP::Object';
 with    'FBP::Children';

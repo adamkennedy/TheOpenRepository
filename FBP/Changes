@@ -1,5 +1,10 @@
 Changes for Perl extension FBP
 
+0.06 to be released
+	- Added FBP::Choice class
+	- Added FBP::Spacer attribute
+	- Added FBP::Spacer attribute
+
 0.05 Fri 25 Jun 2010
 	- Switching to Mouse so we don't have to load Moose in Padre
 	- Added FBP::ComboBox::value attribute

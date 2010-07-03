@@ -1,4 +1,4 @@
-package FBP::ComboBox;
+package FBP::Choice;
 
 use Mouse;
 
@@ -7,16 +7,10 @@ our $VERSION = '0.06';
 extends 'FBP::Window';
 with    'FBP::Control';
 
-has value => (
+has selection => (
 	is       => 'ro',
-	isa      => 'Str',
+	isa      => 'Int',
 	required => 1,
-	default  => '',
 );
 
-has style => (
-	is  => 'ro',
-	isa => 'Str',
-);
-	
 1;
