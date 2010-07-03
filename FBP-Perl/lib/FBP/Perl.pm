@@ -22,9 +22,9 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse 0.61;
-use FBP   0.02 ();
+use FBP   0.06 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 has project => (
 	is       => 'ro',
@@ -205,6 +205,8 @@ sub window_create {
 		return $self->staticline_create($window);
 	} elsif ( $window->isa('FBP::ComboBox') ) {
 		return $self->combobox_create($window);
+	} elsif ( $window->isa('FBP::Choice') ) {
+		return $self->choice_create($window);
 	} else {
 		die "Cannot create constructor code for " . ref($window);
 	}
@@ -256,6 +258,26 @@ sub button_method {
 		"",
 		"\tdie 'TO BE COMPLETED';",
 		"}",
+	);
+	return \@lines;
+}
+
+sub choice_create {
+	my $self     = shift;
+	my $choice   = shift;
+	my $lexical  = $self->object_lexical($choice) ? 'my ' : '';
+	my $variable = $self->object_variable($choice);
+	my $id       = $self->wx( $choice->id );
+	my $position = $self->object_position($choice);
+	my $size     = $self->object_size($choice);
+	my @lines    = (
+		"$lexical$variable = Wx::Choice->new(",
+		"\t\$self,",
+		"\t$id,",
+		"\t$position,",
+		"\t$size,",
+		"\t[ ],",
+		");",
 	);
 	return \@lines;
 }
@@ -342,14 +364,21 @@ sub boxsizer_create {
 	push @lines, "$lexical$variable = Wx::BoxSizer->new( $orient );";
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
-		my $params = join(
-			', ',
-			$self->object_variable($child),
-			$item->proportion,
-			$self->wx( $item->flag ),
-			$item->border,
-		);
-		push @lines, "$variable->Add( $params );";
+		if ( $child->isa('FBP::Spacer') ) {
+			my $size = $sizer->orient eq 'wxVERTICAL'
+			         ? $child->height
+			         : $child->width;
+			push @lines, "$variable->AddSpacer($size);";
+		} else {
+			my $params = join(
+				', ',
+				$self->object_variable($child),
+				$item->proportion,
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
+		}
 	}
 
 	return \@lines;
@@ -363,7 +392,9 @@ sub boxsizer_create {
 # Common Fragment Generators
 
 my %OBJECT_UNLEXICAL = (
-	'FBP::Button' => 1,
+	'FBP::Button'   => 1,
+	'FBP::Choice'   => 1,
+	'FBP::ComboBox' => 1,
 );
 
 sub object_lexical {
@@ -428,8 +459,8 @@ sub object_size {
 # Support Methods
 
 sub use_pragma {
-	my $self = shift;
-	my $dialog  = shift;
+	my $self   = shift;
+	my $dialog = shift;
 	return [
 		"use 5.008;",
 		"use strict;",
@@ -438,8 +469,8 @@ sub use_pragma {
 }
 
 sub use_wx {
-	my $self    = shift;
-	my $dialog  = shift;
+	my $self   = shift;
+	my $dialog = shift;
 	return [
 		"use Wx ':everything';",
 	];
@@ -448,16 +479,15 @@ sub use_wx {
 sub wx {
 	my $self   = shift;
 	my $string = shift;
-	if ( $string eq 'wxID_ANY' ) {
-		return -1;
-	}
+	return 0  if $string eq '';
+	return -1 if $string eq 'wxID_ANY';
 	$string =~ s/\bwx/Wx::wx/g;
 	$string =~ s/\s*\|\s*/ | /g;
 	return $string;
 }
 
 sub quote {
-	my $self = shift;
+	my $self   = shift;
 	my $string = shift;
 	return '"' . quotemeta($string) . '"';
 }

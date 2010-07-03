@@ -1,4 +1,10 @@
 Changes for Perl extension FBP::Perl
 
-0.01 to be released
+0.02 Sat  3 Jul 2010
+	- Adding support for spacers within BoxSizers
+	- Adding support for wxChoice
+	- Moving to a more example-driven testing style
+	- Adding test cases for wxChoice and wxComboBox
+
+0.01 25 Jun 2010
 	- Creating initial release
