@@ -25,6 +25,11 @@ WriteMakefile(
 	},
 	AUTHOR  => 'Adam Kennedy <adamk@cpan.org>',
 	LICENSE => 'perl',
+	(-d 'xt' and $ENV{AUTOMATED_TESTING} || $ENV{RELEASE_TESTING}) ? (
+		test => {
+			TESTS => 't/*.t xt/*.t',
+		},
+	) : (),
 );
 
 sub WriteMakefile {  #Written by Alexandr Ciornii, version 0.21. Added by eumm-upgrade.
