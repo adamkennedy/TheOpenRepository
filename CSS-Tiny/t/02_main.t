@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 22;
+use Test::More tests => 23;
 use CSS::Tiny;
 
 
@@ -16,13 +16,13 @@ use CSS::Tiny;
 
 
 # Test trivial creation
-my $Trivial = CSS::Tiny->new;
-isa_ok( $Trivial, 'CSS::Tiny' );
-is( scalar(keys %$Trivial), 0, '->new returns an empty object' );
+my $trivial = CSS::Tiny->new;
+isa_ok( $trivial, 'CSS::Tiny' );
+is( scalar(keys %$trivial), 0, '->new returns an empty object' );
 
 # Try to read in a config
-my $Config = CSS::Tiny->read( 'test.css' );
-isa_ok( $Config, 'CSS::Tiny' );
+my $css = CSS::Tiny->read( 'test.css' );
+isa_ok( $css, 'CSS::Tiny' );
 
 # Check the structure of the config
 my $expected = {
@@ -33,21 +33,21 @@ my $expected = {
 	'C D' => { foo => 'bar' },
 	};
 bless $expected, 'CSS::Tiny';
-is_deeply( $Config, $expected, '->read returns expected structure' );
+is_deeply( $css, $expected, '->read returns expected structure' );
 
 # Test clone
-my $copy = $Config->clone;
+my $copy = $css->clone;
 isa_ok( $copy, 'CSS::Tiny' );
-is_deeply( $copy, $Config, '->clone works as expected' );
+is_deeply( $copy, $css, '->clone works as expected' );
 
 # Add some stuff to the trivial stylesheet and check write_string() for it
-$Trivial->{H1} = { color => 'blue' };
-$Trivial->{'.this'} = {
+$trivial->{H1} = { color => 'blue' };
+$trivial->{'.this'} = {
 	color => '#FFFFFF',
 	'font-family' => 'Arial, "Courier New"',
 	'font-variant' => 'small-caps',
 	};
-$Trivial->{'P EM'} = { color => 'red' };
+$trivial->{'P EM'} = { color => 'red' };
 
 my $string = <<END;
 P EM {
@@ -63,16 +63,20 @@ H1 {
 }
 END
 
-my $Read = CSS::Tiny->read_string( $string );
-ok( $Read, '>read_string() returns true' );
-is_deeply( $Read, $Trivial, '->read_string() returns expected' );
+my $read = CSS::Tiny->read_string( $string );
+ok( $read, '>read_string() returns true' );
+is_deeply( $read, $trivial, '->read_string() returns expected' );
 
-my $generated = $Trivial->write_string();
+my $read2 = CSS::Tiny->new;
+$read2->read_string($string);
+is_deeply( $read2, $trivial, 'object->read_string() returns expected' );
+
+my $generated = $trivial->write_string();
 ok( length $generated, '->write_string returns something' );
 ok( $generated eq $string, '->write_string returns the correct file contents' );
 
 # Try to write a file
-my $rv = $Trivial->write( 'test2.css' );
+my $rv = $trivial->write( 'test2.css' );
 ok( $rv, '->write returned true' );
 ok( -e 'test2.css', '->write actually created a file' );
 
@@ -82,11 +86,11 @@ END {
 }
 
 # Try to read the config back in
-$Read = CSS::Tiny->read( 'test2.css' );
-isa_ok( $Read, 'CSS::Tiny' );
+$read = CSS::Tiny->read( 'test2.css' );
+isa_ok( $read, 'CSS::Tiny' );
 
 # Check the structure of what we read back in
-is_deeply( $Trivial, $Read, 'We get back what we wrote out' );		
+is_deeply( $trivial, $read, 'We get back what we wrote out' );		
 
 
 
@@ -112,12 +116,12 @@ is_deeply( $merged, { FOO => { test1 => 1, test2 => 2 } }, "Mergable CSS merges 
 #####################################################################
 # Check the HTML generation
 
-my $HTML = CSS::Tiny->new();
-isa_ok( $HTML, 'CSS::Tiny' );
-is( $HTML->html, '', '->html returns empty string for empty stylesheet' );
+my $html = CSS::Tiny->new();
+isa_ok( $html, 'CSS::Tiny' );
+is( $html->html, '', '->html returns empty string for empty stylesheet' );
 
-$HTML->{'.foo'}->{bar} = 1;
-is( $HTML->html . "\n", <<'END_HTML', '->html returns correct looking HTML' );
+$html->{'.foo'}->{bar} = 1;
+is( $html->html . "\n", <<'END_HTML', '->html returns correct looking HTML' );
 <style type="text/css">
 <!--
 .foo {
@@ -134,12 +138,12 @@ END_HTML
 #####################################################################
 # Check the XHTML generation
 
-my $XHTML = CSS::Tiny->new;
-isa_ok( $XHTML, 'CSS::Tiny' );
-is( $XHTML->xhtml, '', '->xhtml returns empty string for empty stylesheet' );
+my $xhtml = CSS::Tiny->new;
+isa_ok( $xhtml, 'CSS::Tiny' );
+is( $xhtml->xhtml, '', '->xhtml returns empty string for empty stylesheet' );
 
-$XHTML->{'.foo'}->{bar} = 1;
-is( $HTML->xhtml . "\n", <<'END_XHTML', '->xhtml returns correct looking HTML' );
+$xhtml->{'.foo'}->{bar} = 1;
+is( $html->xhtml . "\n", <<'END_XHTML', '->xhtml returns correct looking HTML' );
 <style type="text/css">
 /* <![CDATA[ */
 .foo {
