@@ -1,5 +1,11 @@
 Revision history for Perl extension CSS-Tiny
 
+1.17 Sun  4 Jul 2010
+	- Removed the use of Module::Install
+	- Allow read-string to be rerun again on an existing object,
+	  and thus also thus on tied objects (MPETERS)
+	- Moved POD after __END__ to reduce number of disk reads when parsing.
+
 1.16 Fri  4 Jul 2008
 	- Upgrading to Module::Install 0.76
 	- Localising $@ during evals
