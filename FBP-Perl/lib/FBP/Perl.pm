@@ -22,9 +22,9 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse 0.61;
-use FBP   0.06 ();
+use FBP   0.07 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 has project => (
 	is       => 'ro',
@@ -200,16 +200,20 @@ sub window_create {
 	my $window = shift;
 	if ( $window->isa('FBP::Button') ) {
 		return $self->button_create($window);
-	} elsif ( $window->isa('FBP::StaticText') ) {
-		return $self->statictext_create($window);
-	} elsif ( $window->isa('FBP::StaticLine') ) {
-		return $self->staticline_create($window);
-	} elsif ( $window->isa('FBP::ComboBox') ) {
-		return $self->combobox_create($window);
 	} elsif ( $window->isa('FBP::Choice') ) {
 		return $self->choice_create($window);
+	} elsif ( $window->isa('FBP::ComboBox') ) {
+		return $self->combobox_create($window);
+	} elsif ( $window->isa('FBP::ListBox') ) {
+		return $self->listbox_create($window);
+	} elsif ( $window->isa('FBP::ListCtrl') ) {
+		return $self->listctrl_create($window);
+	} elsif ( $window->isa('FBP::StaticLine') ) {
+		return $self->staticline_create($window);
+	} elsif ( $window->isa('FBP::StaticText') ) {
+		return $self->statictext_create($window);
 	} else {
-		die "Cannot create constructor code for " . ref($window);
+		die 'Cannot create constructor code for ' . ref($window);
 	}
 }
 
@@ -301,6 +305,49 @@ sub combobox_create {
 		"\t$position,",
 		"\t$size,",
 		"\t[ ],",
+		"\t$style,",
+		");",
+	);
+	return \@lines;
+}
+
+sub listbox_create {
+	my $self     = shift;
+	my $listbox  = shift;
+	my $lexical  = $self->object_lexical($listbox) ? 'my ' : '';
+	my $variable = $self->object_variable($listbox);
+	my $id       = $self->wx( $listbox->id );
+	my $position = $self->object_position($listbox);
+	my $size     = $self->object_size($listbox);
+	my $style    = $self->wx( $listbox->style );	
+	my @lines    = (
+		"$lexical$variable = Wx::ListBox->new(",
+		"\t\$self,",
+		"\t$id,",
+		"\t$position,",
+		"\t$size,",
+		"\t[ ],",
+		"\t$style,",
+		");",
+	);
+	return \@lines;
+}
+
+sub listctrl_create {
+	my $self     = shift;
+	my $listctrl  = shift;
+	my $lexical  = $self->object_lexical($listctrl) ? 'my ' : '';
+	my $variable = $self->object_variable($listctrl);
+	my $id       = $self->wx( $listctrl->id );
+	my $position = $self->object_position($listctrl);
+	my $size     = $self->object_size($listctrl);
+	my $style    = $self->wx( $listctrl->style );	
+	my @lines    = (
+		"$lexical$variable = Wx::ListCtrl->new(",
+		"\t\$self,",
+		"\t$id,",
+		"\t$position,",
+		"\t$size,",
 		"\t$style,",
 		");",
 	);
@@ -401,6 +448,8 @@ my %OBJECT_UNLEXICAL = (
 	'FBP::Button'   => 1,
 	'FBP::Choice'   => 1,
 	'FBP::ComboBox' => 1,
+	'FBP::ListBox'  => 1,
+	'FBP::ListCtrl' => 1,
 );
 
 sub object_lexical {

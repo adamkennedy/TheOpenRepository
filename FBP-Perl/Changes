@@ -1,5 +1,9 @@
 Changes for Perl extension FBP::Perl
 
+0.04 Thu  8 Jul 2010
+	- Add support for Wx::ListBox
+	- Add support for Wx::ListCtrl
+
 0.03 Wed  7 Jul 2010
 	- Avoid AddSpacer for the more-specific Add
 	- Changed the sizer to dialog binding code to the same as is
