@@ -24,7 +24,7 @@ use warnings;
 use Mouse 0.61;
 use FBP   0.06 ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 has project => (
 	is       => 'ro',
@@ -172,7 +172,8 @@ sub dialog_sizers {
 		@$boxsizer,
 		"",
 		"\$self->SetSizer($variable);",
-		"$variable->SetSizeHints(\$self);",
+		"\$self->Layout;",
+		"$variable->Fit(\$self);",
 		"",
 	);
 
@@ -365,10 +366,15 @@ sub boxsizer_create {
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
 		if ( $child->isa('FBP::Spacer') ) {
-			my $size = $sizer->orient eq 'wxVERTICAL'
-			         ? $child->height
-			         : $child->width;
-			push @lines, "$variable->AddSpacer($size);";
+			my $params = join(
+				', ',
+				$child->width,
+				$child->height,
+				$item->proportion,
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
 		} else {
 			my $params = join(
 				', ',

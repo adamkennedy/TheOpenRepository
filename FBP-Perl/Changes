@@ -1,5 +1,10 @@
 Changes for Perl extension FBP::Perl
 
+0.03 Wed  7 Jul 2010
+	- Avoid AddSpacer for the more-specific Add
+	- Changed the sizer to dialog binding code to the same as is
+	  generated in the C++ output from wxFormBuilder
+
 0.02 Sat  3 Jul 2010
 	- Adding support for spacers within BoxSizers
 	- Adding support for wxChoice
