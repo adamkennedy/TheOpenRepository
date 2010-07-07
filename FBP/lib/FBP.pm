@@ -52,13 +52,14 @@ use FBP::CheckBox     ();
 use FBP::Choice       ();
 use FBP::ComboBox     ();
 use FBP::HtmlWindow   ();
+use FBP::ListBox      ();
 use FBP::ListCtrl     ();
 use FBP::SizerItem    ();
 use FBP::Spacer       ();
 use FBP::StaticText   ();
 use FBP::StaticLine   ();
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 extends 'FBP::Object';
 with    'FBP::Children';

@@ -1,5 +1,10 @@
 Changes for Perl extension FBP
 
+0.07 Thu  8 Jul 2010
+	- Added FBP::ListBox class
+	- Added FBP::ListCtrl test
+	- Added FBP::ListCtrl::style attribute
+
 0.06 Sat  3 Jul 2010
 	- Added FBP::Choice class
 	- Added FBP::Spacer attribute

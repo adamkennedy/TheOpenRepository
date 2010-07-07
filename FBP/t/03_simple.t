@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 29;
+use Test::More tests => 33;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -65,7 +65,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 4, '->find(multiple) ok' );
+is( scalar(@window), 8, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -87,5 +87,5 @@ isa_ok( $button, 'FBP::Button' );
 is( $button->id,            'wxID_ANY',  '->id ok'            );
 is( $button->name,          'm_button1', '->name ok'          );
 is( $button->label,         'MyButton',  '->label ok'         );
-is( $button->default,       '0',         '->default ok'       );
+is( $button->default,       '1',         '->default ok'       );
 is( $button->OnButtonClick, 'm_button1', '->OnButtonClick ok' );
