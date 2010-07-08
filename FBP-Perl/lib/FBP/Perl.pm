@@ -24,7 +24,7 @@ use warnings;
 use Mouse 0.61;
 use FBP   0.09 ();
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 has project => (
 	is       => 'ro',
@@ -74,7 +74,8 @@ sub dialog_class {
 	my $isa     = $self->dialog_isa($dialog);
 	my $new     = $self->dialog_new($dialog);
 	my @methods = map { @$_, "" } $self->dialog_methods($dialog);
-	my @lines   = (
+
+	return [
 		"package $package;",
 		"",
 		@$pragma,
@@ -87,8 +88,7 @@ sub dialog_class {
 		"",
 		@methods,
 		"1;",
-	);
-	return \@lines;
+	];
 }
 
 sub dialog_new {
@@ -100,7 +100,7 @@ sub dialog_new {
 	              map { $self->window_create($_) }
 	              $dialog->find( isa => 'FBP::Window' );
 
-	my @lines  = (
+	return [
 		"sub new {",
 		"\tmy \$class  = shift;",
 		"\tmy \$parent = shift;",
@@ -111,9 +111,7 @@ sub dialog_new {
 		@sizers,
 		"\treturn \$self;",
 		"}",
-	);
-
-	return \@lines;
+	];
 }
 
 sub dialog_super {
@@ -124,7 +122,8 @@ sub dialog_super {
 	my $position = $self->object_position($dialog);
 	my $size     = $self->object_size($dialog);
 	my $style    = $self->wx( $dialog->styles || 'wxDEFAULT_DIALOG_STYLE' );
-	my @lines    = (
+
+	return [
 		"my \$self = \$class->SUPER::new(",
 		"\t\$parent,",
 		"\t$id,",
@@ -133,8 +132,7 @@ sub dialog_super {
 		"\t$size,",
 		( $style ? "\t$style," : () ),
 		");",
-	);
-	return \@lines;
+	];
 }
 
 sub dialog_methods {
@@ -148,7 +146,7 @@ sub dialog_methods {
 		$_->OnButtonClick
 	} $dialog->find( isa => 'FBP::Button' );
 	foreach my $button ( @buttons ) {
-		push @methods, $self->button_method( $button->OnButtonClick );
+		push @methods, $self->window_stub( $button->OnButtonClick );
 	}
 
 	return @methods;
@@ -168,21 +166,20 @@ sub dialog_sizers {
 	my $variable = $self->object_variable($sizer);
 	my $boxsizer = $self->boxsizer_create($sizer);
 
-	my @lines = (
+	return [
 		@$boxsizer,
 		"",
 		"\$self->SetSizer($variable);",
 		"\$self->Layout;",
 		"$variable->Fit(\$self);",
 		"",
-	);
-
-	return \@lines;
+	];
 }
 
 sub dialog_isa {
 	my $self   = shift;
 	my $dialog = shift;
+
 	return [
 		"our \@ISA     = 'Wx::Dialog';",
 	];
@@ -219,6 +216,38 @@ sub window_create {
 	}
 }
 
+sub window_binding {
+	my $self     = shift;
+	my $window   = shift;
+	my $macro    = shift;
+	my $method   = shift;
+	my $variable = $self->object_variable($window);
+
+	return (
+		"Wx::Event::$macro(",
+		"\t\$self,",
+		"\t$variable,",
+		"\tsub {",
+		"\t\tshift->$method(\@_);",
+		"\t},",
+		");",
+	);
+}
+
+sub window_stub {
+	my $self   = shift;
+	my $method = shift;
+
+	return [
+		"sub $method {",
+		"\tmy \$self  = shift;",
+		"\tmy \$event = shift;",
+		"",
+		"\tdie 'TO BE COMPLETED';",
+		"}",
+	];
+}
+
 sub button_create {
 	my $self     = shift;
 	my $button   = shift;
@@ -240,32 +269,11 @@ sub button_create {
 		push @lines, "$variable->Disable;";
 	}
 	if ( $button->OnButtonClick ) {
-		my $method = $button->OnButtonClick;
-		push @lines, (
-			"",
-			"Wx::Event::EVT_BUTTON(",
-			"\t\$self,",
-			"\t$variable,",
-			"\tsub {",
-			"\t\tshift->$method(\@_);",
-			"\t},",
-			");",
+		push @lines, "", $self->window_binding(
+			$button,
+			EVT_BUTTON => $button->OnButtonClick,
 		);
 	}
-	return \@lines;
-}
-
-sub button_method {
-	my $self   = shift;
-	my $method = shift;
-	my @lines  = (
-		"sub $method {",
-		"\tmy \$self  = shift;",
-		"\tmy \$event = shift;",
-		"",
-		"\tdie 'TO BE COMPLETED';",
-		"}",
-	);
 	return \@lines;
 }
 
@@ -277,7 +285,8 @@ sub choice_create {
 	my $id       = $self->wx( $choice->id );
 	my $position = $self->object_position($choice);
 	my $size     = $self->object_size($choice);
-	my @lines    = (
+
+	return [
 		"$lexical$variable = Wx::Choice->new(",
 		"\t\$self,",
 		"\t$id,",
@@ -285,8 +294,7 @@ sub choice_create {
 		"\t$size,",
 		"\t[ ],",
 		");",
-	);
-	return \@lines;
+	];
 }
 
 sub combobox_create {
@@ -299,7 +307,8 @@ sub combobox_create {
 	my $position = $self->object_position($combo);
 	my $size     = $self->object_size($combo);
 	my $style    = $self->wx( $combo->styles );
-	my @lines    = (
+
+	return [
 		"$lexical$variable = Wx::ComboBox->new(",
 		"\t\$self,",
 		"\t$id,",
@@ -309,8 +318,7 @@ sub combobox_create {
 		"\t[ ],",
 		( $style ? "\t$style," : () ),
 		");",
-	);
-	return \@lines;
+	];
 }
 
 sub htmlwindow_create {
@@ -321,8 +329,9 @@ sub htmlwindow_create {
 	my $id       = $self->wx( $html->id );
 	my $position = $self->object_position($html);
 	my $size     = $self->object_size($html);
-	my $style    = $self->wx( $html->styles );	
-	my @lines    = (
+	my $style    = $self->wx( $html->styles );
+
+	return [
 		"$lexical$variable = Wx::HtmlWindow->new(",
 		"\t\$self,",
 		"\t$id,",
@@ -330,8 +339,7 @@ sub htmlwindow_create {
 		"\t$size,",
 		( $style ? "\t$style," : () ),
 		");",
-	);
-	return \@lines;	
+	];
 }
 
 sub listbox_create {
@@ -342,8 +350,9 @@ sub listbox_create {
 	my $id       = $self->wx( $listbox->id );
 	my $position = $self->object_position($listbox);
 	my $size     = $self->object_size($listbox);
-	my $style    = $self->wx( $listbox->styles );	
-	my @lines    = (
+	my $style    = $self->wx( $listbox->styles );
+	
+	return [
 		"$lexical$variable = Wx::ListBox->new(",
 		"\t\$self,",
 		"\t$id,",
@@ -352,8 +361,7 @@ sub listbox_create {
 		"\t[ ],",
 		( $style ? "\t$style," : () ),
 		");",
-	);
-	return \@lines;
+	];
 }
 
 sub listctrl_create {
@@ -365,7 +373,8 @@ sub listctrl_create {
 	my $position = $self->object_position($listctrl);
 	my $size     = $self->object_size($listctrl);
 	my $style    = $self->wx( $listctrl->styles );	
-	my @lines    = (
+
+	return [
 		"$lexical$variable = Wx::ListCtrl->new(",
 		"\t\$self,",
 		"\t$id,",
@@ -373,8 +382,7 @@ sub listctrl_create {
 		"\t$size,",
 		( $style ? "\t$style," : () ),
 		");",
-	);
-	return \@lines;
+	];
 }
 
 sub statictext_create {
@@ -384,14 +392,14 @@ sub statictext_create {
 	my $variable = $self->object_variable($text);
 	my $id       = $self->wx( $text->id );
 	my $label    = $self->object_label($text);
-	my @lines    = (
+
+	return [
 		"$lexical$variable = Wx::StaticText->new(",
 		"\t\$self,",
 		"\t$id,",
 		"\t$label,",
 		");",
-	);
-	return \@lines;
+	];
 }
 
 sub staticline_create {
@@ -403,7 +411,8 @@ sub staticline_create {
 	my $position = $self->object_position($line);
 	my $size     = $self->object_size($line);
 	my $style    = $self->wx( $line->styles );
-	my @lines    = (
+
+	return [
 		"$lexical$variable = Wx::StaticLine->new(",
 		"\t\$self,",
 		"\t$id,",
@@ -411,8 +420,7 @@ sub staticline_create {
 		"\t$size,",
 		( $style ? "\t$style," : () ),
 		");",
-	);
-	return \@lines;
+	];
 }
 
 sub boxsizer_create {

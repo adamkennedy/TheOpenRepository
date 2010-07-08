@@ -1,5 +1,8 @@
 Changes for Perl extension FBP::Perl
 
+0.07 to be released
+	- Reorganise event code to allow binding large amounts of them
+
 0.06 Thu  8 Jul 2010
 	- Add support for Wx::Window::window_style
 	- Don't add a style param at all, rather than use zero
