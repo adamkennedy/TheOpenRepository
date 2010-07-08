@@ -228,6 +228,7 @@ sub _modules_build {
 		  Win32::WinError
 		  Win32API::Registry
 		  Win32::TieRegistry
+		  File::Which
 		  File::HomeDir
 		  IPC::Run3
 		  Probe::Perl
