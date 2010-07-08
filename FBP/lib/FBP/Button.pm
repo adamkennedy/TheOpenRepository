@@ -2,7 +2,7 @@ package FBP::Button;
 
 use Mouse;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 extends 'FBP::Window';
 with    'FBP::Control';

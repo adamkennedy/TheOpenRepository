@@ -1,6 +1,11 @@
 Changes for Perl extension FBP
 
-0.08 to be released
+0.09 Thu  8 Jul 2010
+	- Added FBP::StaticLine::style attribute
+	- Added FBP::Window::window_style attribute
+	- Added FBP::Window::styles method
+
+0.08 Thu  8 Jul 2010
 	- Added FBP::HtmlWindow test
 	- Added FBP::HtmlWindow::style attribute
 

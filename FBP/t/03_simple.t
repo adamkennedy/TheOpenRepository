@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 34;
+use Test::More tests => 43;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -89,3 +89,17 @@ is( $button->name,          'm_button1', '->name ok'          );
 is( $button->label,         'MyButton',  '->label ok'         );
 is( $button->default,       '1',         '->default ok'       );
 is( $button->OnButtonClick, 'm_button1', '->OnButtonClick ok' );
+
+# Line properties
+my $line = $object->find_first(
+	isa => 'FBP::StaticLine',
+);
+isa_ok( $line, 'FBP::StaticLine' );
+is( $line->id,           'wxID_ANY',                    '->id ok'           );
+is( $line->name,         'm_staticline1',               '->name ok'         );
+is( $line->enabled,      '1',                           '->enabled ok'      );
+is( $line->pos,          '',                            '->pos ok'          );
+is( $line->size,         '',                            '->size ok'         );
+is( $line->style,        'wxLI_HORIZONTAL',             '->style ok'        );
+is( $line->window_style, 'wxNO_BORDER',                 '->window_style ok' );
+is( $line->styles,       'wxLI_HORIZONTAL|wxNO_BORDER', '->styles ok'       );

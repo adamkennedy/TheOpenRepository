@@ -654,7 +654,7 @@
             <property name="id">wxID_ANY</property>
             <property name="maximum_size"></property>
             <property name="minimum_size">750,500</property>
-            <property name="name">Padre::Wx::Dialog::PluginManager</property>
+            <property name="name">Padre::Wx::FBP::PluginManager</property>
             <property name="pos"></property>
             <property name="size">-1,-1</property>
             <property name="style">wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER</property>

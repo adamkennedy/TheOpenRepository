@@ -1,5 +1,9 @@
 Changes for Perl extension FBP::Perl
 
+0.06 Thu  8 Jul 2010
+	- Add support for Wx::Window::window_style
+	- Don't add a style param at all, rather than use zero
+
 0.05 Thu  8 Jul 2010
 	- Add support for Wx::HtmlWindow
 

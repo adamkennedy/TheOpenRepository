@@ -2,8 +2,13 @@ package FBP::StaticLine;
 
 use Mouse;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 extends 'FBP::Window';
+
+has style => (
+	is  => 'ro',
+	isa => 'Str',
+);
 
 1;

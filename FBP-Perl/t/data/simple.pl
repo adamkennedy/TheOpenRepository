@@ -47,6 +47,7 @@ sub new {
 		-1,
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
+		Wx::wxLI_HORIZONTAL | Wx::wxNO_BORDER,
 	);
 
 	$self->{m_choice1} = Wx::Choice->new(
@@ -64,7 +65,6 @@ sub new {
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 		[ ],
-		0,
 	);
 
 	$self->{m_listBox1} = Wx::ListBox->new(
@@ -73,7 +73,6 @@ sub new {
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 		[ ],
-		0,
 	);
 
 	$self->{m_listCtrl1} = Wx::ListCtrl->new(

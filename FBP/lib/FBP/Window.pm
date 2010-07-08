@@ -10,7 +10,7 @@ FBP::Window - Base class for all graphical wxWindow objects
 
 use Mouse;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -67,15 +67,67 @@ has enabled => (
 	isa => 'Bool',
 );
 
+=pod
+
+=head2 pos
+
+The C<pos> method returns the position of the window.
+
+=cut
+
 has pos => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
+=pod
+
+=head2 size
+
+The C<size> method returns the size of the window, if it has a specific
+strict size.
+
+=cut
+
 has size => (
 	is  => 'ro',
 	isa => 'Str',
 );
+
+=pod
+
+=head2 window_style
+
+The C<window_style> method returns a set of Wx style flags that are common
+to all window types.
+
+=cut
+
+has window_style => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+=pod
+
+=head2 styles
+
+The C<styles> method returns the merged set of all constructor style flags
+for the object.
+
+You should generally call this method if you are writing code generators,
+rather than calling C<style> or C<window_style> methods specifically.
+
+=cut
+
+sub styles {
+	my $self   = shift;
+	my @styles = grep { length $_ } (
+		$self->can('style') ? $self->style : (),
+		$self->window_style,
+	) or return '';
+	return join '|', @styles;
+}
 
 1;
 

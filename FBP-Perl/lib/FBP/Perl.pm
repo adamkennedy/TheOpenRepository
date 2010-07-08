@@ -22,9 +22,9 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse 0.61;
-use FBP   0.08 ();
+use FBP   0.09 ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 has project => (
 	is       => 'ro',
@@ -123,7 +123,7 @@ sub dialog_super {
 	my $label    = $self->object_label($dialog);
 	my $position = $self->object_position($dialog);
 	my $size     = $self->object_size($dialog);
-	my $style    = $self->wx( $dialog->style || 'wxDEFAULT_DIALOG_STYLE' );
+	my $style    = $self->wx( $dialog->styles || 'wxDEFAULT_DIALOG_STYLE' );
 	my @lines    = (
 		"my \$self = \$class->SUPER::new(",
 		"\t\$parent,",
@@ -131,7 +131,7 @@ sub dialog_super {
 		"\t$label,",
 		"\t$position,",
 		"\t$size,",
-		"\t$style,",
+		( $style ? "\t$style," : () ),
 		");",
 	);
 	return \@lines;
@@ -298,7 +298,7 @@ sub combobox_create {
 	my $value    = $self->quote( $combo->value );
 	my $position = $self->object_position($combo);
 	my $size     = $self->object_size($combo);
-	my $style    = $self->wx( $combo->style );
+	my $style    = $self->wx( $combo->styles );
 	my @lines    = (
 		"$lexical$variable = Wx::ComboBox->new(",
 		"\t\$self,",
@@ -307,7 +307,7 @@ sub combobox_create {
 		"\t$position,",
 		"\t$size,",
 		"\t[ ],",
-		"\t$style,",
+		( $style ? "\t$style," : () ),
 		");",
 	);
 	return \@lines;
@@ -321,14 +321,14 @@ sub htmlwindow_create {
 	my $id       = $self->wx( $html->id );
 	my $position = $self->object_position($html);
 	my $size     = $self->object_size($html);
-	my $style    = $self->wx( $html->style );	
+	my $style    = $self->wx( $html->styles );	
 	my @lines    = (
 		"$lexical$variable = Wx::HtmlWindow->new(",
 		"\t\$self,",
 		"\t$id,",
 		"\t$position,",
 		"\t$size,",
-		"\t$style,",
+		( $style ? "\t$style," : () ),
 		");",
 	);
 	return \@lines;	
@@ -342,7 +342,7 @@ sub listbox_create {
 	my $id       = $self->wx( $listbox->id );
 	my $position = $self->object_position($listbox);
 	my $size     = $self->object_size($listbox);
-	my $style    = $self->wx( $listbox->style );	
+	my $style    = $self->wx( $listbox->styles );	
 	my @lines    = (
 		"$lexical$variable = Wx::ListBox->new(",
 		"\t\$self,",
@@ -350,7 +350,7 @@ sub listbox_create {
 		"\t$position,",
 		"\t$size,",
 		"\t[ ],",
-		"\t$style,",
+		( $style ? "\t$style," : () ),
 		");",
 	);
 	return \@lines;
@@ -364,14 +364,14 @@ sub listctrl_create {
 	my $id       = $self->wx( $listctrl->id );
 	my $position = $self->object_position($listctrl);
 	my $size     = $self->object_size($listctrl);
-	my $style    = $self->wx( $listctrl->style );	
+	my $style    = $self->wx( $listctrl->styles );	
 	my @lines    = (
 		"$lexical$variable = Wx::ListCtrl->new(",
 		"\t\$self,",
 		"\t$id,",
 		"\t$position,",
 		"\t$size,",
-		"\t$style,",
+		( $style ? "\t$style," : () ),
 		");",
 	);
 	return \@lines;
@@ -402,12 +402,14 @@ sub staticline_create {
 	my $id       = $self->wx( $line->id );
 	my $position = $self->object_position($line);
 	my $size     = $self->object_size($line);
+	my $style    = $self->wx( $line->styles );
 	my @lines    = (
 		"$lexical$variable = Wx::StaticLine->new(",
 		"\t\$self,",
 		"\t$id,",
 		"\t$position,",
 		"\t$size,",
+		( $style ? "\t$style," : () ),
 		");",
 	);
 	return \@lines;
