@@ -1,5 +1,8 @@
 Changes for Perl extension FBP::Perl
 
+0.05 Thu  8 Jul 2010
+	- Add support for Wx::HtmlWindow
+
 0.04 Thu  8 Jul 2010
 	- Add support for Wx::ListBox
 	- Add support for Wx::ListCtrl

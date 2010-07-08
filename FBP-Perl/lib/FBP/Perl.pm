@@ -22,9 +22,9 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse 0.61;
-use FBP   0.07 ();
+use FBP   0.08 ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 has project => (
 	is       => 'ro',
@@ -204,6 +204,8 @@ sub window_create {
 		return $self->choice_create($window);
 	} elsif ( $window->isa('FBP::ComboBox') ) {
 		return $self->combobox_create($window);
+	} elsif ( $window->isa('FBP::HtmlWindow') ) {
+		return $self->htmlwindow_create($window);
 	} elsif ( $window->isa('FBP::ListBox') ) {
 		return $self->listbox_create($window);
 	} elsif ( $window->isa('FBP::ListCtrl') ) {
@@ -309,6 +311,27 @@ sub combobox_create {
 		");",
 	);
 	return \@lines;
+}
+
+sub htmlwindow_create {
+	my $self     = shift;
+	my $html     = shift;
+	my $lexical  = $self->object_lexical($html) ? 'my ' : '';
+	my $variable = $self->object_variable($html);
+	my $id       = $self->wx( $html->id );
+	my $position = $self->object_position($html);
+	my $size     = $self->object_size($html);
+	my $style    = $self->wx( $html->style );	
+	my @lines    = (
+		"$lexical$variable = Wx::HtmlWindow->new(",
+		"\t\$self,",
+		"\t$id,",
+		"\t$position,",
+		"\t$size,",
+		"\t$style,",
+		");",
+	);
+	return \@lines;	
 }
 
 sub listbox_create {
@@ -445,11 +468,12 @@ sub boxsizer_create {
 # Common Fragment Generators
 
 my %OBJECT_UNLEXICAL = (
-	'FBP::Button'   => 1,
-	'FBP::Choice'   => 1,
-	'FBP::ComboBox' => 1,
-	'FBP::ListBox'  => 1,
-	'FBP::ListCtrl' => 1,
+	'FBP::Button'     => 1,
+	'FBP::Choice'     => 1,
+	'FBP::ComboBox'   => 1,
+	'FBP::HtmlWindow' => 1,
+	'FBP::ListBox'    => 1,
+	'FBP::ListCtrl'   => 1,
 );
 
 sub object_lexical {
