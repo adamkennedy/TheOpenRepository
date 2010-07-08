@@ -59,7 +59,7 @@ use FBP::Spacer       ();
 use FBP::StaticText   ();
 use FBP::StaticLine   ();
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -146,16 +146,6 @@ sub parse_file {
 		die("Error while parsing '$file': $@");
 	}
 
-	return 1;
-}
-
-sub add_object {
-	my $self = shift;
-	unless ( Params::Util::_INSTANCE($_[0], 'FBP::Object') ) {
-		die("Can only add a 'FBP::Object' object");
-	}
-	my $objects = $self->children;
-	push @$objects, shift;
 	return 1;
 }
 
