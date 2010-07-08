@@ -228,11 +228,11 @@ sub _modules_build {
 		  Win32::WinError
 		  Win32API::Registry
 		  Win32::TieRegistry
+		  IPC::Run3
 		  Probe::Perl
 		  Test::Script		  
 		  File::Which
 		  File::HomeDir
-		  IPC::Run3
 		  Archive::Zip
 		  Package::Constants
 		  IO::String
