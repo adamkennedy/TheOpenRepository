@@ -1,5 +1,8 @@
 Revision history for WiX3
 
+0.009101  Xxx Xxx ## 2010
+       - Adding push_tracelevel routine to WiX3::Role::Traceable.
+
 0.009100  Fri May 28 2010
        - Fixing to work with newest version of Perl-Dist-WiX
        - Trace object is now stored outside the object, 
