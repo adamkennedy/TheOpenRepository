@@ -275,7 +275,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 	# Install dev version of CPAN if we haven't already.
 	if ( not $self->fragment_exists('CPAN') ) {
 		$self->install_distribution(
-			name             => 'ANDK/CPAN-1.94_57.tar.gz',
+			name             => 'ANDK/CPAN-1.94_58.tar.gz',
 			mod_name         => 'CPAN',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
@@ -917,7 +917,7 @@ sub install_perl_toolchain {
 			# 1.9402 fails its tests... ANDK says it's a test bug.
 			# Alias agrees that we include 1.94_51 because of the fix
 			# for the Win32 file:// bug.
-			$dist  = 'ANDK/CPAN-1.94_57.tar.gz';
+			$dist  = 'ANDK/CPAN-1.94_58.tar.gz';
 			$force = 1;
 		}
 		if ( $dist =~ /Win32API-Registry-0 [.] 31/msx ) {
