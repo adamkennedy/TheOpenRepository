@@ -59,7 +59,7 @@ use FBP::Spacer       ();
 use FBP::StaticText   ();
 use FBP::StaticLine   ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 extends 'FBP::Object';
 with    'FBP::Children';

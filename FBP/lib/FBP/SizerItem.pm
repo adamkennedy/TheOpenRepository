@@ -2,7 +2,7 @@ package FBP::SizerItem;
 
 use Mouse;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 extends 'FBP::Object';
 with    'FBP::Children';

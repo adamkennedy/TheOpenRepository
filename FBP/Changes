@@ -1,5 +1,11 @@
 Changes for Perl extension FBP
 
+0.10 Fri  8 Jul 2010
+	- Added FBP::KeyEvent role
+	- Added FBP::MouseEvent role
+	- Added FBP::FocusEvent role
+	- Added about 50 class-specific role attributes
+
 0.09 Thu  8 Jul 2010
 	- Added FBP::StaticLine::style attribute
 	- Added FBP::Window::window_style attribute

@@ -2,7 +2,7 @@ package FBP::ComboBox;
 
 use Mouse;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 extends 'FBP::Window';
 with    'FBP::Control';
@@ -18,5 +18,20 @@ has style => (
 	is  => 'ro',
 	isa => 'Str',
 );
-	
+
+has OnComboBox => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has OnText => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
+has OnTextEnter => (
+	is  => 'ro',
+	isa => 'Str',
+);
+
 1;

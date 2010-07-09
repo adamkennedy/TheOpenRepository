@@ -1,23 +1,20 @@
-package FBP::ListBox;
+package FBP::KeyEvent;
 
-use Mouse;
+use Mouse::Role;
 
 our $VERSION = '0.10';
 
-extends 'FBP::Window';
-with    'FBP::Control';
-
-has style => (
+has OnChar => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has OnListBox => (
+has OnKeyDown => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has OnListDClick => (
+has OnKeyUp => (
 	is  => 'ro',
 	isa => 'Str',
 );
