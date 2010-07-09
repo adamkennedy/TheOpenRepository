@@ -31,7 +31,7 @@ sub push_tracelevel {
 	my $self = shift;
 	my $new_level = shift;
 	
-	my $object = \do { WiX3::Trace::Object->instance()->get_tracelevel(); }
+	my $object = \do { WiX3::Trace::Object->instance()->get_tracelevel(); };
 	bless $object, 'WiX3::Role::Traceable::Saver';
 	
 	WiX3::Trace::Object->instance()->set_tracelevel($new_level);
