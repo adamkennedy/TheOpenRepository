@@ -19,15 +19,14 @@ BEGIN {
 }
 
 my $tree = Perl::Dist::WiX::DirectoryTree2->new(
-    sitename => 'ttt.test.invalid',
 	app_dir  => 'C:\\Test',
 	app_name => 'Test',
 );
 
-$tree->initialize_tree('589');
+$tree->initialize_tree('589', 32, 3);
 
 my $menu_1 = Perl::Dist::WiX::Fragment::StartMenu->new(
-    sitename     => 'ttt.test.invalid',
+    directory_id => 'ProgramMenuFolder',
 );
 
 ok( defined $menu_1, 'creating a P::D::W::Fragment::StartMenu' );
