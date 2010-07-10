@@ -40,6 +40,7 @@ use MooseX::Types::Path::Class qw( Dir );
 use Perl::Dist::WiX::Types qw( DirectoryTag );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
+use Scalar::Util qw(weaken);
 
 our $VERSION = '1.200_101';
 $VERSION =~ s/_//sm;
@@ -80,16 +81,27 @@ has _root => (
 # This is private.
 has _cache => (
 	traits   => ['Hash'],
-	is       => 'bare',
+	is       => 'ro',
 	isa      => HashRef[DirectoryTag],
 	init_arg => undef,
 	default  => sub { {} },
 	handles  => {
-		'_add_to_cache'    => 'set',
 		'_get_cache_entry' => 'get',
 		'_is_in_cache'     => 'exists',
 	},
 );
+
+
+sub _add_to_cache {
+	my $self = shift;
+	my ($key, $value);
+	while (0 < scalar @_) {
+		$key = shift;
+		$value = shift;
+		weaken($self->_cache()->{$key} = $value);
+	}
+}
+
 
 =head3 app_dir
 
@@ -505,7 +517,7 @@ __PACKAGE__->meta->make_immutable;
 
 __END__
 
-=head2 get_directory_object
+head2 get_directory_object
 
 Calls L<Perl::Dist::WiX::Directory's get_directory_object routine|Perl::Dist::WiX::Directory/get_directory_object>
 on the root directory with the parameters given.
