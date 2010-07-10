@@ -4704,7 +4704,12 @@ sub add_output_files {
 
 This method adds a start menu icon to the installer that calls the file 
 given as the C<filename> parameter, and is named using the C<name> 
-parameter, using the icon identified by the C<icon_id> parameter.
+parameter within the directory identified by the C<directory_id> parameter,
+using the icon identified by the C<icon_id> parameter.
+
+If a C<description> parameter is given, it is used as the description of 
+the icon. If the C<directory_id> parameter is not given, it defaults to
+'D_App_Menu' (the application menu directory.)
 
 =cut
 
@@ -4717,7 +4722,8 @@ sub add_icon {
 		%params = @_;
 	}
 
-	$params{directory_id} ||= 'App_Menu';
+	$params{directory_id} ||= 'D_App_Menu';
+	$params{description} ||= $params{name};
 
 	my ( $vol, $dir, $file, $dir_id );
 
@@ -4728,17 +4734,18 @@ sub add_icon {
 		path_to_find => catdir( $vol, $dir ),
 		exact        => 1,
 		descend      => 1,
-	)->get_id();
+	)->get_directory_id();
 
 	# Get a legal id.
 	my $id = $params{name};
 	$id =~ s{\s}{_}msxg;               # Convert whitespace to underlines.
+	$id =~ s{:\\}{}msxg;               # Get rid of colons and backslashes.
 
 	# Add the start menu icon.
 	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
 		name         => $params{name},
-		description  => $params{name},
-		target       => "[D_$dir_id]$file",
+		description  => $params{description},
+		target       => "[$dir_id]$file",
 		id           => $id,
 		working_dir  => $dir_id,
 		icon_id      => $params{icon_id},

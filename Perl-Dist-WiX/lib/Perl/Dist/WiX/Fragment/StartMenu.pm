@@ -181,9 +181,9 @@ sub BUILDARGS {
 		description  => 'CPAN Shell (used to install modules)',
 		target       => "[D_PerlBin]cpan.bat",
 		id           => 'CpanShell',
-		working_dir  => PerlBin,
+		working_dir  => 'D_PerlBin',
 		icon_id      => 'I_CpanBat',
-		directory_id => 'App_Menu_Tools',
+		directory_id => 'D_App_Menu_Tools',
 	);
 
 This method creates the tag objects that represent a Start Menu shortcut, 
@@ -198,7 +198,7 @@ the ID for the directory that the shortcut is going to go into.
 
 The C<name>, C<target>, C<working_dir>, and C<id> parameters are required.
 (C<description> defaults to being empty, C<directory_id> defaults to 
-'App_Menu', and a missing C<icon_id> allows Windows to follow its default 
+'D_App_Menu', and a missing C<icon_id> allows Windows to follow its default 
 rules for choosing an icon to display.)
 
 =cut
@@ -242,7 +242,7 @@ sub add_shortcut {
 		);
 	}
 
-	$args{directory_id} ||= 'App_Menu';
+	$args{directory_id} ||= 'D_App_Menu';
 
 	if ( not $self->_root_exists( $args{directory_id} ) ) {
 		$self->_build_root( $args{directory_id} );
@@ -258,17 +258,17 @@ sub add_shortcut {
 	}
 	my $component = WiX3::XML::Component->new( id => "S_$args{id}" );
 	my $shortcut = WiX3::XML::Shortcut->new(
-		id               => "$args{id}",
+		id               => $args{id},
 		name             => $args{name},
 		description      => $args{description},
 		target           => $args{target},
 		icon             => $icon_id,
-		workingdirectory => "D_$args{working_dir}",
+		workingdirectory => $args{working_dir},
 	);
 	$component->add_child_tag($shortcut);
 	my $cf =
 	  WiX3::XML::CreateFolder->new(
-		directory => 'D_' . $args{directory_id} );
+		directory => $args{directory_id} );
 	$component->add_child_tag($cf);
 	$self->_get_root( $args{directory_id} )->add_child_tag($component);
 
