@@ -2924,11 +2924,6 @@ sub regenerate_fragments {
 		foreach my $name (@fragment_names) {
 			my $fragment = $self->get_fragment_object($name);
 			if ( defined $fragment ) {
-				my $saver;
-				if (('gcc_toolchain' eq $name) or ('perl' eq $name)) {
-					$saver = $fragment->push_tracelevel(5);
-				}
-
 				push @fragment_names_regenerate, $fragment->_regenerate();
 			} else {
 				$self->trace_line( 0,

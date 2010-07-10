@@ -1,5 +1,9 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.200_101   Xxx xx Jul 2010
+    1. Used to build Strawberry Perl July 2010 Beta 2.
+    2. Cache exact directory tree searches for a speedup.
+
 1.200_100   Fri 28 May 2010
     1. Used to build Strawberry Perl July 2010 Beta 1.
     2. Perl 5.12.1 support added.
@@ -9,6 +13,10 @@ Changes for Perl extension Perl-Dist-WiX
     6. Some tests have been added back in.
     7. The newest version of Moose revealed some bugs. Fixes have 
        been included.
+
+1.200002   Wed 02 Jun 2010
+    1. Used to build Strawberry Perl + Padre 0.62.
+    2. New version of Moose revealed some bugs. Fixing.
 
 1.200001   Thu 06 May 2010
     1. Used to build Bootstrap Perl "April" 2010.

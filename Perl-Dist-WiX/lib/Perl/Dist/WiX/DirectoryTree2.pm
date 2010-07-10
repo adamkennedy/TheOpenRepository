@@ -483,7 +483,7 @@ sub search_dir {
 	if ((1 == $descend) and (1 == $exact)) {
 		# Check cache, return what's in it if needed.
 		if ($self->_is_in_cache($path_to_find)) {
-			$self->trace_line(2, "Found $path_to_find in directory tree cache\n");
+			$self->trace_line(3, "Found $path_to_find in directory tree cache.\n");
 			return $self->_get_cache_entry($path_to_find);
 		}
 	}

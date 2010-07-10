@@ -216,7 +216,9 @@ sub _regenerate {
 	# Return the list of fragments that need regenerated again.
 	my @fragment_ids_sorted = uniq @fragment_ids;
 	my $fragments = join q{, }, @fragment_ids_sorted;
-	$self->trace_line( 2, "Needs regenerated again: $fragments\n" );
+	if (scalar @fragment_ids_sorted) {
+		$self->trace_line( 2, "Needs regenerated again: $fragments\n" );
+	}
 
 	return @fragment_ids_sorted;
 } ## end sub _regenerate
