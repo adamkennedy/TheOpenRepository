@@ -51,7 +51,7 @@ use WiX3::Exceptions qw();
 use File::List::Object qw();
 use Win32::Exe 0.13 qw();
 
-our $VERSION = '1.200_100';
+our $VERSION = '1.200_101';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
@@ -214,7 +214,11 @@ sub _regenerate {
 	}
 
 	# Return the list of fragments that need regenerated again.
-	return uniq @fragment_ids;
+	my @fragment_ids_sorted = uniq @fragment_ids;
+	my $fragments = join q{, }, @fragment_ids_sorted;
+	$self->trace_line( 2, "Needs regenerated again: $fragments\n" );
+
+	return @fragment_ids_sorted;
 } ## end sub _regenerate
 
 sub _add_file_to_fragment {
@@ -331,16 +335,43 @@ sub _add_file_to_fragment {
 
 		if ( defined $directory_step3 ) {
 
-			# We're successful, so possibly say so, and then
-			# add the directories and the file.
+			# We're successful, so possibly say so.
 			$self->trace_line( 4,
 				"Directory search for step 3 successful.\n" );
 			$found_step3 = 1;
-			( $directory_final, @fragment_ids ) =
-			  $self->_add_directory_recursive( $directory_step3,
-				$path_to_find );
-			$self->_add_file_component( $directory_final, $file_path );
 
+			# Check and see if this is in the directory tree.
+			my $directory_treecheck = $tree->search_dir(
+				path_to_find => $directory_step3->get_path(),
+				descend      => 1,
+				exact        => 1,
+			);
+
+			if ( defined $directory_treecheck ) {
+			
+				# Say that we found a tree entry.
+				$self->trace_line( 4,
+					"Directory search for step 3 successful.\n" );
+			
+				# Add directory reference (as this is in the main tree),
+				# then directories and the file.
+				my $directory_ref_step3 =
+				  Perl::Dist::WiX::Tag::DirectoryRef->new(
+					directory_object => $directory_treecheck );
+				$self->add_child_tag($directory_ref_step3);
+				( $directory_final, @fragment_ids ) =
+				  $self->_add_directory_recursive( $directory_ref_step3,
+					$path_to_find );
+				$self->_add_file_component( $directory_final, $file_path );
+			} else {
+
+				# Add the directories and the file.
+				( $directory_final, @fragment_ids ) =
+				  $self->_add_directory_recursive( $directory_step3,
+					$path_to_find );
+				$self->_add_file_component( $directory_final, $file_path );
+			}
+			
 			# Return any fragments that need regenerated.
 			return @fragment_ids;
 		} ## end if ( defined $directory_step3)

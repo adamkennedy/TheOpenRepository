@@ -28,13 +28,13 @@ use MooseX::Types -declare => [ qw(
 	  _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir
 	  ExistingSubdirectory ExistingDirectory_Spaceless
 	  ExistingDirectory_SaneSlashes
-	  DirectoryRef
+	  DirectoryRef DirectoryTag
 	  ) ];
 use MooseX::Types::Moose qw( Str Object ArrayRef );
 use MooseX::Types::Path::Class qw( Dir File );
 use Template qw();
 
-our $VERSION = '1.200_100';
+our $VERSION = '1.200_101';
 $VERSION =~ s/_//ms;
 
 =head2 ExistingDirectory
@@ -133,6 +133,8 @@ subtype TemplateObj,
   message {'Template is not the correct type of object'};
 
 class_type DirectoryRef, { class => 'Perl::Dist::WiX::Tag::DirectoryRef' };
+
+class_type DirectoryTag, { class => 'Perl::Dist::WiX::Tag::Directory' };
 
 1;
 

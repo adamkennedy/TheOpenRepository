@@ -35,12 +35,13 @@ use 5.008001;
 use MooseX::Singleton;
 use Params::Util qw( _IDENTIFIER _STRING _INSTANCE );
 use File::Spec::Functions qw( catdir catpath splitdir splitpath );
-use MooseX::Types::Moose qw( Str );
+use MooseX::Types::Moose qw( Str HashRef );
 use MooseX::Types::Path::Class qw( Dir );
+use Perl::Dist::WiX::Types qw( DirectoryTag );
 use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 
-our $VERSION = '1.200_100';
+our $VERSION = '1.200_101';
 $VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';
@@ -65,17 +66,30 @@ C<instance()> method.
 # This is private, but retrievable by 'get_root'.
 has _root => (
 	is       => 'bare',
-	isa      => 'Perl::Dist::WiX::Tag::Directory',
+	isa      => DirectoryTag,
 	reader   => 'get_root',
 	required => 1,
 	handles  => {
-		'search_dir'               => 'search_dir',
 		'get_directory_object'     => 'get_directory_object',
 		'_add_directory_recursive' => '_add_directory_recursive',
 		'_indent'                  => 'indent',
 	},
 );
 
+
+# This is private.
+has _cache => (
+	traits   => ['Hash'],
+	is       => 'bare',
+	isa      => HashRef[DirectoryTag],
+	init_arg => undef,
+	default  => sub { {} },
+	handles  => {
+		'_add_to_cache'    => 'set',
+		'_get_cache_entry' => 'get',
+		'_is_in_cache'     => 'exists',
+	},
+);
 
 =head3 app_dir
 
@@ -433,6 +447,57 @@ sub add_merge_module {
 
 
 
+=head2 search_dir
+
+Calls L<Perl::Dist::WiX::Directory's search_dir routine|Perl::Dist::WiX::Directory/search_dir>
+on the root directory with the parameters given.
+
+Checks a cache of successful searches if descend and exact are both 1.
+
+=cut
+
+
+
+sub search_dir {
+	my $self = shift;
+	
+	my %args;
+
+	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
+		%args = %{ $_[0] };
+	} elsif ( @_ % 2 == 0 ) {
+		%args = @_;
+	} else {
+		PDWiX->throw('Invalid number of arguments to search_dir');
+	}
+
+	# Set defaults for parameters.
+	my $path_to_find = _STRING( $args{'path_to_find'} )
+	  || PDWiX::Parameter->throw(
+		parameter => 'path_to_find',
+		where     => '::DirectoryTree2->search_dir'
+	  );
+	my $descend = $args{descend} || 1;
+	my $exact   = $args{exact}   || 0;
+
+	if ((1 == $descend) and (1 == $exact)) {
+		# Check cache, return what's in it if needed.
+		if ($self->_is_in_cache($path_to_find)) {
+			$self->trace_line(2, "Found $path_to_find in directory tree cache\n");
+			return $self->_get_cache_entry($path_to_find);
+		}
+	}
+	
+	my $dir = $self->get_root()->search_dir(@_);
+	
+	if ((defined $dir) and (1 == $descend) and (1 == $exact)) {
+		$self->_add_to_cache($path_to_find, $dir);
+	}
+	
+	return $dir;
+}
+
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 
@@ -443,11 +508,6 @@ __END__
 =head2 get_directory_object
 
 Calls L<Perl::Dist::WiX::Directory's get_directory_object routine|Perl::Dist::WiX::Directory/get_directory_object>
-on the root directory with the parameters given.
-
-=head2 search_dir
-
-Calls L<Perl::Dist::WiX::Directory's search_dir routine|Perl::Dist::WiX::Directory/search_dir>
 on the root directory with the parameters given.
 
 =head1 DIAGNOSTICS
