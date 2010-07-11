@@ -1,27 +1,6 @@
 #!/usr/bin/perl
 
-=pod
-
-=head1 NAME
-
-orlite2pod - Documentation generator frontend for ORLite
-
-=head1 SYNOPSIS
-
-  orlite2pod Class::Name
-
-=head1 DESCRIPTION
-
-F<orlite2pod> is the command line front-end for L<ORLite::Pod>.
-
-You should run this in the root directory of a distribution,
-and provide it with the class in your distribution that is the
-root of an L<ORLite> ORM.
-
-An additional --author option can be set to set the name of the
-author to be used when generating the POD files.
-
-=cut
+# See POD documentation at the end of the file
 
 use 5.006;
 use strict;
@@ -29,7 +8,7 @@ use Getopt::Long ();
 use Params::Util ();
 use ORLite::Pod  ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 my $AUTHOR = undef;
 my $EMAIL  = undef;
@@ -49,7 +28,7 @@ unshift @INC, 'lib';
 
 my $class = shift;
 unless ( Params::Util::_CLASS($class) ) {
-	die("Did not provide a valid class name");
+	usage();
 }
 eval "use $class { show_progress => 1 };";
 if ( $@ ) {
@@ -80,7 +59,38 @@ $pod->run;
 
 exit(0);
 
+sub usage { print <<'END_TEXT'; exit(0); }
+Usage: orlite2pod Class::Name
+
+  --author NAME     # The name of the author
+  --email  EMAIL    # The contact email address of the author
+  --year   1234     # The first year of release of the distribution
+  --rt              # Should a link to rt.cpan.org be added to SUPPORT
+
+END_TEXT
+
+__END__
+
 =pod
+
+=head1 NAME
+
+orlite2pod - Documentation generator frontend for ORLite
+
+=head1 SYNOPSIS
+
+  orlite2pod Class::Name
+
+=head1 DESCRIPTION
+
+F<orlite2pod> is the command line front-end for L<ORLite::Pod>.
+
+You should run this in the root directory of a distribution,
+and provide it with the class in your distribution that is the
+root of an L<ORLite> ORM.
+
+An additional C<--author> option can be set to set the name of the
+author to be used when generating the POD files.
 
 =head1 SUPPORT
 

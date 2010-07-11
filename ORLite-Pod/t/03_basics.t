@@ -27,7 +27,7 @@ SCOPE: {
 
 SCOPE: {
 	# Generate the distribution core
-	my $dist = create_dist('02_basics.sql');
+	my $dist = create_dist('03_basics.sql');
 
 	# Generate the documentation
 	my $pushd = pushd( $dist );

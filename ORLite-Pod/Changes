@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite-Pod
 
+0.09 Sun 11 Jul 2010
+	- Upgraded to Module::Install::DSL 1.00
+	- Ditch SQL::Beautify and do it ourself (better)
+	- Fixing a few minor bits and pieces
+
 0.08 Tue 11 May 2010
 	- Upgraded to Module::Install::DSL 0.96
 	- Removed the ORLite version number

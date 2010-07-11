@@ -50,9 +50,8 @@ use Params::Util       1.00 ();
 use Class::Inspector   1.23 ();
 use ORLite             1.23 ();
 use Template           2.20 ();
-use SQL::Beautify      0.03 ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 my $year = (localtime(time))[5] + 1900;
 
@@ -234,9 +233,9 @@ sub run {
 	# Generate the table .pod files
 	foreach my $table ( @$tables ) {
 		# Beautify the create fragment
-		$table->{create} = SQL::Beautify->new(
-			query  => $table->{sql}->{create},
-		)->beautify;
+		$table->{create} = $self->beautify(
+			$table->{sql}->{create}
+		);
 
 		# Skip tables we aren't modelling
 		next unless $table->{class}->can('select');
@@ -246,6 +245,38 @@ sub run {
 	}
 
 	return 1;
+}
+
+sub beautify {
+	my $sql  = $_[1];
+	my $copy = $sql;
+
+	# Normalise and trim whitespace
+	$copy =~ s/\s+/ /sg;
+	$copy =~ s/\(\s+/(/sg;
+	$copy =~ s/\s+\)/)/sg;
+	$copy =~ s/\s*,\s*/,/sg;
+	$copy =~ s/^\s+//s;
+	$copy =~ s/\s+$//s;
+
+	# Find the outermost braces
+	unless ( $copy =~ /^(.+?\()(.+)(\).*)\z/ ) {
+		# Give up
+		return $sql;
+	}
+	my $create  = $1;
+	my $colspec = $2;
+	my $suffix  = $3;
+
+	# Split the columns
+	my @columns = split /(?<=,)/, $colspec;
+
+	# Reassemble the pieces
+	return join '', (
+		"$create\n",
+		( map { "    $_\n" } @columns ),
+		"$suffix\n",
+	);
 }
 
 
@@ -691,7 +722,7 @@ sub template_table { <<'END_TT' }
 |
 |Returns a list of B<[% pkg %]> objects when called in list context, or a
 |reference to an C<ARRAY> of B<[% pkg %]> objects when called in scalar
-| context.
+|context.
 |
 |Throws an exception on error, typically directly from the L<DBI> layer.
 |
