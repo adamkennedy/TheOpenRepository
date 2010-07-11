@@ -51,7 +51,7 @@ use Class::Inspector   1.23 ();
 use ORLite             1.23 ();
 use Template           2.20 ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 my $year = (localtime(time))[5] + 1900;
 
@@ -861,7 +861,7 @@ sub template_table { <<'END_TT' }
 |
 |When used on an existing B<[% pkg %]> instance, the C<delete> method
 |removes that specific instance from the C<[% table.name %]>, leaving
-|the object ntact for you to deal with post-delete actions as you wish.
+|the object intact for you to deal with post-delete actions as you wish.
 |
 |When used as a class method, it takes a compulsory argument of a SQL
 |phrase to be added after the C<DELETE FROM [% table.name %]> section
