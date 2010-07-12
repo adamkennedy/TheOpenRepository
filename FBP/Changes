@@ -1,7 +1,15 @@
 Changes for Perl extension FBP
 
+0.11 to be released
+	- Added FBP::Panel class
+	- Added FBP::Control::permission attribute
+	- Added FBP::Sizer::permission   attribute
+	- FBP::StaticText now uses role FBP::Control
+	- FBP::StaticLine now uses role FBP::Control
+	- FBP::HtmlWindow now extends FBP::Panel
+
 0.10 Fri  8 Jul 2010
-	- Added FBP::KeyEvent role
+	- Added FBP::KeyEvent   role
 	- Added FBP::MouseEvent role
 	- Added FBP::FocusEvent role
 	- Added about 50 class-specific role attributes

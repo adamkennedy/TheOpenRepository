@@ -1,6 +1,11 @@
 Changes for Perl extension FBP::Perl
 
-0.07 to be released
+0.08 Mon 12 Jul 2010
+	- The wxFormBuilder "permission" setting (originally intended for
+	  controlling the C++ generation) is now used to control the
+	  lexicality of the control variables (ADAMK)
+
+0.07 Thu  8 Jul 2010
 	- Reorganise event code to allow binding large quantities of them
 	- Add support for Wx::CheckBox
 	- Add support for about 50 different event bindings

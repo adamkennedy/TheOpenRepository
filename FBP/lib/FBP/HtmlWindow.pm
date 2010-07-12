@@ -2,9 +2,9 @@ package FBP::HtmlWindow;
 
 use Mouse;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
-extends 'FBP::Window';
+extends 'FBP::Panel';
 
 has style => (
 	is  => 'ro',

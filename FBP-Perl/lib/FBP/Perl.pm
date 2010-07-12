@@ -22,9 +22,9 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse 0.61;
-use FBP   0.10 ();
+use FBP   0.11 ();
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 has project => (
 	is       => 'ro',
@@ -615,7 +615,13 @@ my %OBJECT_UNLEXICAL = (
 );
 
 sub object_lexical {
-	$OBJECT_UNLEXICAL{ref $_[1]} ? 0 : 1;
+	my $self    = shift;
+	my $object  = shift;
+	if ( $object->permission eq 'protected' ) {
+		return 0;
+	} else {
+		return 1;
+	}
 }
 
 sub object_variable {

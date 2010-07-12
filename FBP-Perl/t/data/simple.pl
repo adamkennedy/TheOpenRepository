@@ -21,7 +21,7 @@ sub new {
 		Wx::wxDEFAULT_DIALOG_STYLE,
 	);
 
-	my $m_staticText1 = Wx::StaticText->new(
+	$self->{m_staticText1} = Wx::StaticText->new(
 		$self,
 		-1,
 		Wx::gettext('This is a test'),
@@ -42,7 +42,7 @@ sub new {
 		},
 	);
 
-	my $m_staticline1 = Wx::StaticLine->new(
+	$self->{m_staticline1} = Wx::StaticLine->new(
 		$self,
 		-1,
 		Wx::wxDefaultPosition,
@@ -124,10 +124,10 @@ sub new {
 	);
 
 	my $bSizer2 = Wx::BoxSizer->new( Wx::wxVERTICAL );
-	$bSizer2->Add( $m_staticText1, 0, Wx::wxALL, 5 );
+	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( 10, 5, 1, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $self->{m_button1}, 0, Wx::wxALL, 5 );
-	$bSizer2->Add( $m_staticline1, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
+	$bSizer2->Add( $self->{m_staticline1}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_choice1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_comboBox1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_listBox1}, 0, Wx::wxALL, 5 );

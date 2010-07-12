@@ -10,7 +10,7 @@ FBP::Window - Base class for all graphical wxWindow objects
 
 use Mouse;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 extends 'FBP::Object';
 with    'FBP::Children';

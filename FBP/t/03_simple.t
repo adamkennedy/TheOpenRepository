@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 43;
+use Test::More tests => 49;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -75,9 +75,10 @@ my $text = $object->find_first(
 	isa => 'FBP::StaticText',
 );
 isa_ok( $text, 'FBP::StaticText' );
-is( $text->id,      'wxID_ANY',       '->id ok'      );
-is( $text->name,    'm_staticText1',  '->name ok'    );
-is( $text->label,   'This is a test', '->label ok'   );
+is( $text->id,         'wxID_ANY',       '->id ok'         );
+is( $text->name,       'm_staticText1',  '->name ok'       );
+is( $text->label,      'This is a test', '->label ok'      );
+is( $text->permission, 'protected',      '->permission ok' );
 
 # Button properties
 my $button = $object->find_first(
@@ -88,6 +89,7 @@ is( $button->id,            'wxID_ANY',  '->id ok'            );
 is( $button->name,          'm_button1', '->name ok'          );
 is( $button->label,         'MyButton',  '->label ok'         );
 is( $button->default,       '1',         '->default ok'       );
+is( $button->permission,    'protected', '->permission ok'    );
 is( $button->OnButtonClick, 'm_button1', '->OnButtonClick ok' );
 
 # Line properties
@@ -103,3 +105,12 @@ is( $line->size,         '',                            '->size ok'         );
 is( $line->style,        'wxLI_HORIZONTAL',             '->style ok'        );
 is( $line->window_style, 'wxNO_BORDER',                 '->window_style ok' );
 is( $line->styles,       'wxLI_HORIZONTAL|wxNO_BORDER', '->styles ok'       );
+
+# Sizer properties
+my $sizer = $object->find_first(
+	isa => 'FBP::Sizer',
+);
+isa_ok( $sizer, 'FBP::Sizer' );
+is( $sizer->name,       'bSizer1',       '->name ok'       );
+is( $sizer->orient,     'wxHORIZONTAL',  '->orient ok'     );
+is( $sizer->permission, 'none',          '->permission ok' );

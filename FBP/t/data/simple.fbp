@@ -3,7 +3,7 @@
     <FileVersion major="1" minor="9" />
     <object class="Project" expanded="1">
         <property name="class_decoration"></property>
-        <property name="code_generation">C++</property>
+        <property name="code_generation"></property>
         <property name="disconnect_events">1</property>
         <property name="encoding">UTF-8</property>
         <property name="event_generation">connect</property>

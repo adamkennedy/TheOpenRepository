@@ -1,11 +1,10 @@
-package FBP::StaticText;
+package FBP::Panel;
 
 use Mouse;
 
 our $VERSION = '0.11';
 
 extends 'FBP::Window';
-with    'FBP::Control';
 
 has permission => (
 	is       => 'ro',

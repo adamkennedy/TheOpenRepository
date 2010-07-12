@@ -54,12 +54,13 @@ use FBP::ComboBox     ();
 use FBP::HtmlWindow   ();
 use FBP::ListBox      ();
 use FBP::ListCtrl     ();
+use FBP::Panel        ();
 use FBP::SizerItem    ();
 use FBP::Spacer       ();
 use FBP::StaticText   ();
 use FBP::StaticLine   ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 extends 'FBP::Object';
 with    'FBP::Children';
