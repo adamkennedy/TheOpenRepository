@@ -867,6 +867,21 @@ sub _build_msi_install_warning_text {
 
 
 
+=head4 msi_run_readme_txt
+
+Specifies whether to give the option to run a README.txt file when the 
+installation is completed.
+
+=cut
+
+has 'msi_run_readme_txt' => (
+	is      => 'ro',
+	isa     => Bool,
+	default => 0,
+);
+
+
+
 =head4 output_base_filename
 
 The optional C<output_base_filename> parameter specifies the filename 
@@ -4254,6 +4269,30 @@ sub msi_relocation_ca {
 	return ( 64 == $self->bits() ) ? 'CAQuietExec64' : 'CAQuietExec';
 }
 
+
+
+=head3 msi_fileid_readme_txt 
+
+Returns the ID of the tag that installs a README.txt file.
+
+=cut
+
+sub msi_fileid_readme_txt {
+	my $self = shift;
+
+	return 1 unless $self->relocatable();
+
+	# Set the fileid attributes.
+	my $readme_id =
+	  $self->get_fragment_object('')
+	  ->find_file_id( $self->file(qw(README.txt)) );
+	if ( not $readme_id ) {
+		PDWiX->throw("Could not find README.txt's ID.\n");
+	}
+
+	return $readme_id;
+	
+} ## end sub msi_fileid_readme_txt
 
 
 =head3 perl_config_myuname

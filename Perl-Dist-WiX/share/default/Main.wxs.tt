@@ -97,19 +97,19 @@
 [% END %]
     </InstallExecuteSequence>
 
-[% IF dist.msi_debug %]
-  [% IF 64 == dist.bits %]
+[%- IF dist.msi_debug -%]
+  [%- IF 64 == dist.bits -%]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\debug_dll\x64\ClearFolderCA.dll' />
-  [% ELSE %]
+  [%- ELSE -%]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\debug_dll\ClearFolderCA.dll' />
-  [% END %]
-[% ELSE %]
-  [% IF 64 == dist.bits %]
+  [%- END -%]
+[%- ELSE -%]
+  [%- IF 64 == dist.bits -%]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\x64\ClearFolderCA.dll' />
-  [% ELSE %]
+  [%- ELSE -%]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\ClearFolderCA.dll' />
-  [% END %]
-[% END %]
+  [%- END -%]
+[%- END -%]
     <UI>
    	  <ProgressText Action="CA_ClearSiteFolder">Preparing the site folder for cleaning... (please wait a while)</ProgressText>
     </UI>
@@ -408,15 +408,15 @@
 			<Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
 		</Dialog>
 	</UI>
-[% END %]
+[%- END -%]
 
 
 [% IF dist.relocatable %]
 	<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
-[% END %]
+[%- END -%]
 [% IF dist.msi_feature_tree.defined %]
     <Property Id='ARPNOMODIFY'>1</Property>
-[% END %]
+[%- END -%]
     <Property Id='ARPNOREPAIR'>1</Property>
     <Property Id='MSIFASTINSTALL'>1</Property>
     <!-- Property Id='MSIDEPLOYMENTCOMPLIANT'>1</Property -->
@@ -425,22 +425,32 @@
     <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
     <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>
     <Property Id='WIXUI_EXITDIALOGOPTIONALTEXT'>[% dist.msi_exit_text %]</Property>
-	
+
+[% IF dist.msi_run_readme %]
+    <Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT'>Read README file.</Property>
+    <Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOX' Value="1" />
+    <Property Id="WixShellExecTarget" Value="[#[% dist.msi_fileid_readme_txt %]]" />
+    <CustomAction Id="LaunchReadmeFile" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
+    <UI>
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" 
+        Value="LaunchReadmeFile">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+    </UI>
+[%- END -%]	
 [% IF dist.msi_help_url.defined %]
     <Property Id='ARPHELPLINK'>[% dist.msi_help_url %]</Property>
-[% END %]
+[%- END -%]
 [% IF dist.msi_readme_file.defined %]
     <Property Id='ARPREADME'>[% dist.msi_readme_file %]</Property>
-[% END %]
+[%- END -%]
 [% IF dist.msi_product_icon.defined %]
     <Property Id='ARPPRODUCTICON'>[% dist.msi_product_icon_id %]</Property>
-[% END %]
+[%- END -%]
 [% IF dist.msi_banner_top.defined %]
     <WixVariable Id='WixUIBannerBmp' Value='[% dist.msi_banner_top %]' />
-[% END %]
+[%- END -%]
 [% IF dist.msi_banner_side.defined %]
     <WixVariable Id='WixUIDialogBmp' Value='[% dist.msi_banner_side %]' />
-[% END %]
+[%- END -%]
     <WixVariable Id='WixUILicenseRtf' Value='[% dist.msi_license_file %]' />
 
 
