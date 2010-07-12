@@ -110,7 +110,7 @@ sub _build_root {
 
 	# Get the directory object so we can create a reference to it.
 	my $tree      = Perl::Dist::WiX::DirectoryTree2->instance();
-	my $directory = $tree->get_directory_object( 'D_' . $directory_id );
+	my $directory = $tree->get_directory_object( $directory_id );
 	if ( not defined $directory ) {
 		PDWiX->throw(
 			"Could not find directory object for id $directory_id");

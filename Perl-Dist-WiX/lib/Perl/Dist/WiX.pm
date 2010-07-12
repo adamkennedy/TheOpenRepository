@@ -2806,7 +2806,7 @@ sub install_win32_extras {
 			target       => '[SystemFolder]cmd.exe',
 			id           => 'PerlCmdLine',
 			working_dir  => 'PersonalFolder',
-			directory_id => 'App_Menu',
+			directory_id => 'D_App_Menu',
 		);
 
 		$self->add_to_fragment(
