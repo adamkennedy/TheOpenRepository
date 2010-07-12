@@ -425,8 +425,7 @@
     <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
     <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>
     <Property Id='WIXUI_EXITDIALOGOPTIONALTEXT'>[% dist.msi_exit_text %]</Property>
-
-[% IF dist.msi_run_readme %]
+[%- IF dist.msi_run_readme_txt -%]
     <Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT'>Read README file.</Property>
     <Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOX' Value="1" />
     <Property Id="WixShellExecTarget" Value="[#[% dist.msi_fileid_readme_txt %]]" />

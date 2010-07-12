@@ -4284,7 +4284,7 @@ sub msi_fileid_readme_txt {
 
 	# Set the fileid attributes.
 	my $readme_id =
-	  $self->get_fragment_object('')
+	  $self->get_fragment_object('Win32Extras')
 	  ->find_file_id( $self->file(qw(README.txt)) );
 	if ( not $readme_id ) {
 		PDWiX->throw("Could not find README.txt's ID.\n");
