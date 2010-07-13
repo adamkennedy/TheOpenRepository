@@ -1,5 +1,9 @@
 Changes for Perl extension FBP::Perl
 
+0.09 Tue 13 Jul 2010
+	- Setting 'permission' to 'public' will now create an accessor method
+	  to allow the control to be accessed directly (ADAMK)
+
 0.08 Mon 12 Jul 2010
 	- The wxFormBuilder "permission" setting (originally intended for
 	  controlling the C++ generation) is now used to control the

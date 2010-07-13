@@ -24,7 +24,7 @@ use warnings;
 use Mouse 0.61;
 use FBP   0.11 ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 has project => (
 	is       => 'ro',
@@ -568,33 +568,59 @@ sub window_bindings {
 }
 
 sub dialog_methods {
-	my $self   = shift;
-	my $dialog = shift;
+	my $self    = shift;
+	my $dialog  = shift;
+	my @windows = $dialog->find( isa => 'FBP::Window' );
+	my %seen    = ();
+	my @lines   = ();
 
-	# Generate the list of all methods
-	my @methods = ();
-	foreach my $window ( $dialog->find( isa => 'FBP::Window' ) ) {
-		push @methods, grep {
-			defined $_ and length $_
-		} map {
-			$window->$_()
-		} grep {
-			$window->can($_)
-		} sort keys %EVENT;
+	# Add the accessor methods
+	foreach my $window ( @windows ) {
+		next unless $window->can('name');
+		next unless $window->can('permission');
+		next unless $window->permission eq 'public';
+
+		# Protect against duplicates
+		my $name = $window->name;
+		if ( $seen{$name}++ ) {
+			die "Duplicate method '$name' detected";
+		}
+
+		push @lines, (
+			"",
+			"sub $name {",
+			"\t\$_[0]->{$name};",
+			"}",
+		);
 	}
 
-	# Generate the code for the methods
-	return [
-		map { (
-			"",
-			"sub $_ {",
-			"\tmy \$self  = shift;",
-			"\tmy \$event = shift;",
-			"",
-			"\tdie 'TO BE COMPLETED';",
-			"}"
-		) } sort @methods
-	];
+	# Add the event handler methods
+	foreach my $window ( @windows ) {
+		foreach my $event ( sort keys %EVENT ) {
+			next unless $window->can($event);
+
+			my $name = $window->$event();
+			next unless defined $name;
+			next unless length $name;
+
+			# Protect against duplicates
+			if ( $seen{$name}++ ) {
+				die "Duplicate method '$name' detected";
+			}
+
+			push @lines, (
+				"",
+				"sub $name {",
+				"\tmy \$self  = shift;",
+				"\tmy \$event = shift;",
+				"",
+				"\tdie 'EVENT HANDLER NOT IMPLEMENTED';",
+				"}",
+			);
+		}
+	}
+
+	return \@lines;
 }
 
 
@@ -615,13 +641,7 @@ my %OBJECT_UNLEXICAL = (
 );
 
 sub object_lexical {
-	my $self    = shift;
-	my $object  = shift;
-	if ( $object->permission eq 'protected' ) {
-		return 0;
-	} else {
-		return 1;
-	}
+	$_[1]->permission !~ /^(?:protected|public)\z/;
 }
 
 sub object_variable {

@@ -145,32 +145,36 @@ sub new {
 	return $self;
 }
 
-sub list_col_click {
-	my $self  = shift;
-	my $event = shift;
-
-	die 'TO BE COMPLETED';
-}
-
-sub list_item_activated {
-	my $self  = shift;
-	my $event = shift;
-
-	die 'TO BE COMPLETED';
-}
-
-sub list_item_selected {
-	my $self  = shift;
-	my $event = shift;
-
-	die 'TO BE COMPLETED';
+sub m_htmlWin1 {
+	$_[0]->{m_htmlWin1};
 }
 
 sub m_button1 {
 	my $self  = shift;
 	my $event = shift;
 
-	die 'TO BE COMPLETED';
+	die 'EVENT HANDLER NOT IMPLEMENTED';
+}
+
+sub list_col_click {
+	my $self  = shift;
+	my $event = shift;
+
+	die 'EVENT HANDLER NOT IMPLEMENTED';
+}
+
+sub list_item_activated {
+	my $self  = shift;
+	my $event = shift;
+
+	die 'EVENT HANDLER NOT IMPLEMENTED';
+}
+
+sub list_item_selected {
+	my $self  = shift;
+	my $event = shift;
+
+	die 'EVENT HANDLER NOT IMPLEMENTED';
 }
 
 1;
