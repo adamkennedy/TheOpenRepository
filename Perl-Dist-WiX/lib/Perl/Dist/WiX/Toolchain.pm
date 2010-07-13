@@ -8,7 +8,7 @@ Perl::Dist::WiX::Toolchain - Compiles the initial toolchain for a Win32 perl dis
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Toolchain version 1.200_100.
+This document describes Perl::Dist::WiX::Toolchain version 1.200_101.
 
 =head1 SYNOPSIS
 
@@ -63,7 +63,7 @@ use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
 
-our $VERSION = '1.200_100';
+our $VERSION = '1.200_101';
 $VERSION =~ s/_//ms;
 
 extends qw(
@@ -260,6 +260,7 @@ sub _modules_build {
 	  HTML::Tagset
 	  HTML::Parser
 	  LWP::UserAgent
+	  Pod::Text
 	};
 
 	my %modules = ( '5.008009' => \@modules_list, );
@@ -522,7 +523,7 @@ sub run {
 
 		# Shortcut if forced
 		if ( $self->_force_exists($name) ) {
-			$self->_dist_push( $self->_get_forced_dist($name) );
+			$self->_push_dists( $self->_get_forced_dist($name) );
 			next;
 		}
 

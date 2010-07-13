@@ -8,7 +8,7 @@ Perl::Dist::WiX::BuildPerl - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::BuildPerl version 1.200_100.
+This document describes Perl::Dist::WiX::BuildPerl version 1.200_101.
 
 =head1 DESCRIPTION
 
@@ -39,7 +39,7 @@ use Perl::Dist::WiX::Asset::Perl qw();
 use Perl::Dist::WiX::Toolchain qw();
 use File::List::Object qw();
 
-our $VERSION = '1.200_100';
+our $VERSION = '1.200_101';
 $VERSION =~ s/_//sm;
 
 Readonly my %CORE_MODULE_FIX => (
@@ -549,6 +549,7 @@ sub _create_perl_toolchain {
 		perl_version => $self->perl_version_literal(),
 		cpan         => $cpan->as_string(),
 		bits         => $self->bits(),
+		force        => { 'Pod::Text' => 'RRA/podlators-2.3.1.tar.gz' },
 	) or PDWiX->throw('Failed to resolve toolchain modules');
 	if ( not eval { $toolchain->delegate(); 1; } ) {
 		PDWiX::Caught->throw(
