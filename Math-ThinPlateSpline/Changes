@@ -1,5 +1,8 @@
 Revision history for Perl extension Math::ThinPlateSpline.
 
+0.03  Tue Jul 13 20:00 2010
+  - Use Module::Build::WithXSpp for building
+
 0.02  Fri Feb  5 20:00 2010
   - Require ExtUtils::XSpp 0.08
 
