@@ -1,8 +1,22 @@
 
 
 %module{Math::ThinPlateSpline};
+%package{Math::ThinPlateSpline};
 
-%name{Math::ThinPlateSpline} class ThinPlateSpline
+%{
+#include <myinit.h>
+
+std::vector< Vec >*
+typemap_test_function(foo)
+    std::vector< Vec >* foo
+  CODE:
+    RETVAL = foo;
+  OUTPUT: RETVAL
+
+%}
+
+%name{Math::ThinPlateSpline}
+class ThinPlateSpline
 {
   %name{new} ThinPlateSpline(const std::vector<Vec>& controlPoints, double regularization = 0.)
     %cleanup{%delete controlPoints;%}; // FIXME This must not be necessary...

@@ -40,3 +40,6 @@
 #   Mac OSX SMB mount metadata files
 \B\._
 
+^MYMETA.yml$
+\.o$
+\Bbuildtmp\b

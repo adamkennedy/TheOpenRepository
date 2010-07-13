@@ -1,5 +1,4 @@
 ThinPlateSpline*	O_OBJECT
-std::vector< double >*	T_VECTORDOUBLE
 std::vector< Vec >*		T_VECTORVEC
 std::istream*		T_ISTREAM
 const double		T_NV
@@ -50,25 +49,6 @@ T_VECTORVEC
 	             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
 	             \"$var\");
 
-T_VECTORDOUBLE
-	if (SvROK($arg) && SvTYPE(SvRV($arg))==SVt_PVAV) {                                                                              
-	  AV* av = (AV*)SvRV($arg);                                                                                                  
-	  const unsigned int len = av_len(av)+1;                                                                                      
-	  $var = new std::vector<double>(len);                                                                                        
-	  for (unsigned int i = 0; i < len; i++) {                                                                                    
-	    SV** elem;                                                                                                              
-	    elem = av_fetch(av, i, 0);                                                                                              
-	    if (elem != NULL)
-	      (*$var)[i] = SvNV(*elem);
-	    else
-	      (*$var)[i] = 0.;
-	  }
-	}
-	else
-	  Perl_croak(aTHX_ \"%s: %s is not an array reference\",
-	             ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
-	             \"$var\");
-
 OUTPUT
 
 T_VECTORVEC
@@ -84,14 +64,5 @@ T_VECTORVEC
 	  av_store(vecAv, 1, newSVnv(v.y));
 	  av_store(vecAv, 2, newSVnv(v.z));
 	  av_store(av, i, newRV_noinc((SV*)vecAv));
-	}
-
-T_VECTORDOUBLE
-	AV* av = newAV();
-	$arg = newRV_noinc((SV*)av);
-	const unsigned int len = $var->size();
-	av_extend(av, len-1);
-	for (unsigned int i = 0; i < len; i++) {
-	  av_store(av, i, newSVnv((*$var)[i]));
 	}
 
