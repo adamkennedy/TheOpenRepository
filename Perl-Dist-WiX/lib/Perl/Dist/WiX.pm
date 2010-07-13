@@ -4907,10 +4907,10 @@ sub add_env {
 
 =head3 add_file
 
-	$dist->add_file({
+	$dist->add_file(
 		source => $filename, 
 		fragment => $fragment_name
-	});
+	);
 
 Adds the file C<$filename> to the fragment named by C<$fragment_name>.
 
