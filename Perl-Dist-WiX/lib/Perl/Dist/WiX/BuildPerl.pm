@@ -56,8 +56,10 @@ Readonly my %CORE_MODULE_FIX => (
 	'LWP::UserAgent'       => 'LWP',
 );
 
-Readonly my %CORE_PACKLIST_FIX =>
-  ( 'IO::Compress::Base' => 'IO::Compress', );
+Readonly my %CORE_PACKLIST_FIX => ( 
+	'IO::Compress::Base' => 'IO::Compress',
+	'podlators'          => 'Pod',
+);
 
 # Modules to delay.
 Readonly my @MODULE_DELAY => qw(
