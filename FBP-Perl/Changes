@@ -1,5 +1,8 @@
 Changes for Perl extension FBP::Perl
 
+0.10 Mon 12 Jul 2010
+	- Add support for Wx::GridSizer
+
 0.09 Tue 13 Jul 2010
 	- Setting 'permission' to 'public' will now create an accessor method
 	  to allow the control to be accessed directly (ADAMK)

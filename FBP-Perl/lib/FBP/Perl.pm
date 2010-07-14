@@ -22,9 +22,9 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse 0.61;
-use FBP   0.11 ();
+use FBP   0.12 ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 has project => (
 	is       => 'ro',
@@ -56,7 +56,6 @@ sub dialog_write {
 
 	return 1;
 }
-
 
 
 
@@ -401,6 +400,25 @@ sub staticline_create {
 	];
 }
 
+
+
+
+
+######################################################################
+# Sizer Generators
+
+sub sizer_create {
+	my $self  = shift;
+	my $sizer = shift;
+	if ( $sizer->isa('FBP::BoxSizer') ) {
+		return $self->boxsizer_create($sizer);
+	} elsif ( $sizer->isa('FBP::GridSizer') ) {
+		return $self->gridsizer_create($sizer);
+	} else {
+		die "Cannot create constructor code for " . ref($sizer);
+	}
+}
+
 sub boxsizer_create {
 	my $self     = shift;
 	my $sizer    = shift;
@@ -412,7 +430,7 @@ sub boxsizer_create {
 	my @lines = map {
 		( @$_, "" )
 	} map {
-		$self->boxsizer_create($_)
+		$self->sizer_create($_)
 	} grep {
 		$_->isa('FBP::Sizer')
 	} map {
@@ -421,6 +439,58 @@ sub boxsizer_create {
 
 	# Add the content for this sizer
 	push @lines, "$lexical$variable = Wx::BoxSizer->new( $orient );";
+	foreach my $item ( @{$sizer->children} ) {
+		my $child  = $item->children->[0];
+		if ( $child->isa('FBP::Spacer') ) {
+			my $params = join(
+				', ',
+				$child->width,
+				$child->height,
+				$item->proportion,
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
+		} else {
+			my $params = join(
+				', ',
+				$self->object_variable($child),
+				$item->proportion,
+				$self->wx( $item->flag ),
+				$item->border,
+			);
+			push @lines, "$variable->Add( $params );";
+		}
+	}
+
+	return \@lines;
+}
+
+sub gridsizer_create {
+	my $self     = shift;
+	my $sizer    = shift;
+	my $lexical  = $self->object_lexical($sizer) ? 'my ' : '';
+	my $variable = $self->object_variable($sizer);
+	my $params   = join( ', ',
+		$sizer->rows,
+		$sizer->cols,
+		$sizer->vgap,
+		$sizer->hgap,
+	);
+
+	# Add the content for child sizers
+	my @lines = map {
+		( @$_, "" )
+	} map {
+		$self->sizer_create($_)
+	} grep {
+		$_->isa('FBP::Sizer')
+	} map {
+		$_->children->[0]
+	} @{$sizer->children};
+
+	# Add the content for this sizer
+	push @lines, "$lexical$variable = Wx::GridSizer->new( $params );";
 	foreach my $item ( @{$sizer->children} ) {
 		my $child  = $item->children->[0];
 		if ( $child->isa('FBP::Spacer') ) {
