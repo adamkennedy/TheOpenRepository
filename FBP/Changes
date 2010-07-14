@@ -1,6 +1,9 @@
 Changes for Perl extension FBP
 
-0.11 to be released
+0.12 Wed 14 Jul 2010
+	- Added FBP::GridSizer class
+
+0.11 Sun 11 Jul 2010
 	- Added FBP::Panel class
 	- Added FBP::Control::permission attribute
 	- Added FBP::Sizer::permission   attribute
