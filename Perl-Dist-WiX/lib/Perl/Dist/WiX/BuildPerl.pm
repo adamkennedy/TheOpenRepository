@@ -547,11 +547,15 @@ sub _create_perl_toolchain {
 	# Prefetch and predelegate the toolchain so that it
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
+	my $force = {};
+	if ($self->perl_version =~ m/512/) {
+		$force = { 'Pod::Text' => 'RRA/podlators-2.3.1.tar.gz' };
+	}
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal(),
 		cpan         => $cpan->as_string(),
 		bits         => $self->bits(),
-		force        => { 'Pod::Text' => 'RRA/podlators-2.3.1.tar.gz' },
+		force        => $force,
 	) or PDWiX->throw('Failed to resolve toolchain modules');
 	if ( not eval { $toolchain->delegate(); 1; } ) {
 		PDWiX::Caught->throw(
