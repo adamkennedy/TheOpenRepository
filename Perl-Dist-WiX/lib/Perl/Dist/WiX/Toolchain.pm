@@ -230,7 +230,7 @@ sub _modules_build {
 		  Win32::TieRegistry
 		  IPC::Run3
 		  Probe::Perl
-		  Test::Script		  
+		  Test::Script
 		  File::Which
 		  File::HomeDir
 		  Archive::Zip

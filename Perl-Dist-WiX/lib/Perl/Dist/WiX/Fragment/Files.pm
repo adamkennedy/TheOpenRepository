@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::Files - A <Fragment> with file handling.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::Files version 1.200_100.
+This document describes Perl::Dist::WiX::Fragment::Files version 1.200_101.
 
 =head1 SYNOPSIS
 
@@ -181,14 +181,15 @@ sub _regenerate {
 	my $self = shift;
 	my @fragment_ids;
 	my @files = @{ $self->_get_files() };
-	
+
 	# Announce ourselves.
 	my $id = $self->get_id();
 	$self->trace_line( 2, "Regenerating $id\n" );
 
 	# Throw an error if there are no files in the fragment.
-	if (0 == scalar @files) {
-		PDWiX->throw("Attempted to regenerate empty fragment $id " . '(is the fragment supposed to be empty?)');
+	if ( 0 == scalar @files ) {
+		PDWiX->throw( "Attempted to regenerate empty fragment $id "
+			  . '(is the fragment supposed to be empty?)' );
 	}
 
 	# Clear up any previous tags that are there.
@@ -216,7 +217,7 @@ sub _regenerate {
 	# Return the list of fragments that need regenerated again.
 	my @fragment_ids_sorted = uniq @fragment_ids;
 	my $fragments = join q{, }, @fragment_ids_sorted;
-	if (scalar @fragment_ids_sorted) {
+	if ( scalar @fragment_ids_sorted ) {
 		$self->trace_line( 2, "Needs regenerated again: $fragments\n" );
 	}
 
@@ -350,11 +351,11 @@ sub _add_file_to_fragment {
 			);
 
 			if ( defined $directory_treecheck ) {
-			
+
 				# Say that we found a tree entry.
 				$self->trace_line( 4,
 					"Directory search for step 3 successful.\n" );
-			
+
 				# Add directory reference (as this is in the main tree),
 				# then directories and the file.
 				my $directory_ref_step3 =
@@ -373,7 +374,7 @@ sub _add_file_to_fragment {
 					$path_to_find );
 				$self->_add_file_component( $directory_final, $file_path );
 			}
-			
+
 			# Return any fragments that need regenerated.
 			return @fragment_ids;
 		} ## end if ( defined $directory_step3)

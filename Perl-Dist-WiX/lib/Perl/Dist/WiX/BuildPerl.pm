@@ -56,7 +56,7 @@ Readonly my %CORE_MODULE_FIX => (
 	'LWP::UserAgent'       => 'LWP',
 );
 
-Readonly my %CORE_PACKLIST_FIX => ( 
+Readonly my %CORE_PACKLIST_FIX => (
 	'IO::Compress::Base' => 'IO::Compress',
 	'podlators'          => 'Pod',
 );

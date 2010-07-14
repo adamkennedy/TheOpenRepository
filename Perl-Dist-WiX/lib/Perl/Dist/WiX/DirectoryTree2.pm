@@ -8,7 +8,7 @@ Perl::Dist::WiX::DirectoryTree2 - Base directory tree for Perl::Dist::WiX.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::DirectoryTree2 version 1.200_100.
+This document describes Perl::Dist::WiX::DirectoryTree2 version 1.200_101.
 
 =head1 SYNOPSIS
 
@@ -82,7 +82,7 @@ has _root => (
 has _cache => (
 	traits   => ['Hash'],
 	is       => 'ro',
-	isa      => HashRef[DirectoryTag],
+	isa      => HashRef [DirectoryTag],
 	init_arg => undef,
 	default  => sub { {} },
 	handles  => {
@@ -94,12 +94,13 @@ has _cache => (
 
 sub _add_to_cache {
 	my $self = shift;
-	my ($key, $value);
-	while (0 < scalar @_) {
-		$key = shift;
+	my ( $key, $value );
+	while ( 0 < scalar @_ ) {
+		$key   = shift;
 		$value = shift;
-		weaken($self->_cache()->{$key} = $value);
+		weaken( $self->_cache()->{$key} = $value );
 	}
+	return;
 }
 
 
@@ -472,7 +473,7 @@ Checks a cache of successful searches if descend and exact are both 1.
 
 sub search_dir {
 	my $self = shift;
-	
+
 	my %args;
 
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
@@ -492,22 +493,24 @@ sub search_dir {
 	my $descend = $args{descend} || 1;
 	my $exact   = $args{exact}   || 0;
 
-	if ((1 == $descend) and (1 == $exact)) {
+	if ( ( 1 == $descend ) and ( 1 == $exact ) ) {
+
 		# Check cache, return what's in it if needed.
-		if ($self->_is_in_cache($path_to_find)) {
-			$self->trace_line(3, "Found $path_to_find in directory tree cache.\n");
+		if ( $self->_is_in_cache($path_to_find) ) {
+			$self->trace_line( 3,
+				"Found $path_to_find in directory tree cache.\n" );
 			return $self->_get_cache_entry($path_to_find);
 		}
 	}
-	
+
 	my $dir = $self->get_root()->search_dir(@_);
-	
-	if ((defined $dir) and (1 == $descend) and (1 == $exact)) {
-		$self->_add_to_cache($path_to_find, $dir);
+
+	if ( ( defined $dir ) and ( 1 == $descend ) and ( 1 == $exact ) ) {
+		$self->_add_to_cache( $path_to_find, $dir );
 	}
-	
+
 	return $dir;
-}
+} ## end sub search_dir
 
 
 no Moose;

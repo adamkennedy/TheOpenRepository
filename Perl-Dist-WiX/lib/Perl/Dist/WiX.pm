@@ -2700,7 +2700,8 @@ sub install_relocatable {
 	# Make sure it gets installed.
 	$self->insert_fragment(
 		'relocation_script',
-		File::List::Object->new()->add_file( $self->file('relocation.pl.bat') ),
+		File::List::Object->new()
+		  ->add_file( $self->file('relocation.pl.bat') ),
 	);
 
 	return 1;
@@ -2760,7 +2761,8 @@ sub install_win32_extras {
 
 	# Copy the environment update script in.
 	if ( not $self->portable() ) {
-		$self->copy_file( catfile( $self->wix_dist_dir(), 'update_env.pl.bat' ),
+		$self->copy_file(
+			catfile( $self->wix_dist_dir(), 'update_env.pl.bat' ),
 			$self->image_dir() );
 	}
 
@@ -4291,7 +4293,7 @@ sub msi_fileid_readme_txt {
 	}
 
 	return $readme_id;
-	
+
 } ## end sub msi_fileid_readme_txt
 
 
@@ -4762,7 +4764,7 @@ sub add_icon {
 	}
 
 	$params{directory_id} ||= 'D_App_Menu';
-	$params{description} ||= $params{name};
+	$params{description}  ||= $params{name};
 
 	my ( $vol, $dir, $file, $dir_id );
 
@@ -5104,7 +5106,6 @@ sub process_template {
 #<<<
 	# Delete empty lines.
 	# Change this to use \R once we get to 5.10 requirement.
-	## no critic(ProhibitComplexRegexes)
 	$answer =~ s{(?>\x0D\x0A?|[\x0A-\x0C\x85\x{2028}\x{2029}])
                             # Replace a linebreak, 
 							# (within parentheses is = to \R for 5.8)

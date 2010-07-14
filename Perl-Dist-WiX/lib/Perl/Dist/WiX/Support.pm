@@ -602,7 +602,8 @@ sub _extract_filemap {
 
 	if ( $archive =~ m{[.] zip\z}msx ) {
 
-		@files = $self->_extract_filemap_zip( $archive, $filemap, $basedir,
+		@files =
+		  $self->_extract_filemap_zip( $archive, $filemap, $basedir,
 			$file_only );
 
 	} elsif ( $archive =~

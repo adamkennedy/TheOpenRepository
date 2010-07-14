@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::StartMenu - A <Fragment> tag that handles the Start m
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::StartMenu version 1.200_100.
+This document describes Perl::Dist::WiX::Fragment::StartMenu version 1.200_101.
 
 =head1 SYNOPSIS
 
@@ -46,7 +46,7 @@ use WiX3::XML::RemoveFolder qw();
 use WiX3::XML::DirectoryRef qw();
 use WiX3::XML::Shortcut qw();
 
-our $VERSION = '1.200_100';
+our $VERSION = '1.200_101';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';
@@ -110,7 +110,7 @@ sub _build_root {
 
 	# Get the directory object so we can create a reference to it.
 	my $tree      = Perl::Dist::WiX::DirectoryTree2->instance();
-	my $directory = $tree->get_directory_object( $directory_id );
+	my $directory = $tree->get_directory_object($directory_id);
 	if ( not defined $directory ) {
 		PDWiX->throw(
 			"Could not find directory object for id $directory_id");
@@ -267,8 +267,7 @@ sub add_shortcut {
 	);
 	$component->add_child_tag($shortcut);
 	my $cf =
-	  WiX3::XML::CreateFolder->new(
-		directory => $args{directory_id} );
+	  WiX3::XML::CreateFolder->new( directory => $args{directory_id} );
 	$component->add_child_tag($cf);
 	$self->_get_root( $args{directory_id} )->add_child_tag($component);
 
