@@ -14,7 +14,7 @@ if ($CPAN::VERSION < 1.9457) {
 	print <<'EOF';
 To install the rest of the prerequisites, you need to run
 
-	cpan ANDK/CPAN-1.94_57.tar.gz
+	cpan ANDK/CPAN-1.94_58.tar.gz
 
 before installing this. 
 
