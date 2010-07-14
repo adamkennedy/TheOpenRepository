@@ -8,7 +8,7 @@ Perl::Dist::WiX::DirectoryCache - Cache of <Directory> tag objects.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::DirectoryCache version 1.200.
+This document describes Perl::Dist::WiX::DirectoryCache version 1.200_101.
 
 =head1 SYNOPSIS
 
@@ -45,7 +45,7 @@ use MooseX::Singleton;
 use WiX3::XML::Directory;
 use Params::Util qw( _INSTANCE );
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_101';
 $VERSION =~ s/_//ms;
 
 # This is where the cache is actually stored.
@@ -60,14 +60,15 @@ has _cache => (
 		'_get_cache_entry'    => 'get',
 		'_exists_cache_entry' => 'exists',
 		'_delete_cache_entry' => 'delete',
+		'clear_cache'        => 'clear',
 	},
 );
 
 =head1 INTERFACE
 
-=head2 new
+=head2 instance
 
-TODO
+Returns the cache object. (Use this instead of C<new()>.)
 
 =head2 add_to_cache
 
@@ -188,6 +189,18 @@ sub delete_cache_entry {
 
 	return $self->_delete_cache_entry( $directory->get_id() );
 } ## end sub delete_cache_entry
+
+
+
+=head2 delete_cache_entry
+
+	$cache->clear_cache();
+
+This clears the cache for a new build.
+
+=cut
+
+
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

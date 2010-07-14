@@ -140,6 +140,7 @@ use File::List::Object                      qw();
 use Perl::Dist::WiX::Exceptions             qw();
 use Perl::Dist::WiX::DirectoryTree2         qw();
 use Perl::Dist::WiX::FeatureTree2           qw();
+use Perl::Dist::WiX::DirectoryCache         qw();
 use Perl::Dist::WiX::Fragment::CreateFolder qw();
 use Perl::Dist::WiX::Fragment::Files        qw();
 use Perl::Dist::WiX::Fragment::Environment  qw();
@@ -2438,6 +2439,9 @@ EOF
 	# Add environment variables.
 	$self->add_env( 'TERM',        'dumb' );
 	$self->add_env( 'FTP_PASSIVE', '1' );
+
+	# Blow away the directory cache for a new build.
+	Perl::Dist::WiX::DirectoryCache->instance()->clear_cache();
 
 	return 1;
 } ## end sub final_initialization
