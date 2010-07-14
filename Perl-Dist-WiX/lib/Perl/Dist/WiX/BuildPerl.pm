@@ -42,10 +42,12 @@ use File::List::Object qw();
 our $VERSION = '1.200_101';
 $VERSION =~ s/_//sm;
 
+# Keys are what's in the filename, with - being converted to ::.
+# Values are the actual module to use to check whether it's in core.
 Readonly my %CORE_MODULE_FIX => (
 	'IO::Compress'         => 'IO::Compress::Base',
 	'Filter'               => 'Filter::Util::Call',
-	'Pod'                  => 'Pod::Man',
+	'podlators'            => 'Pod::Man',
 	'Text'                 => 'Text::Tabs',
 	'PathTools'            => 'Cwd',
 	'Scalar::List::Utils'  => 'List::Util',
@@ -56,12 +58,17 @@ Readonly my %CORE_MODULE_FIX => (
 	'LWP::UserAgent'       => 'LWP',
 );
 
+# Keys are the module name after processing against %CORE_MODULE_FIX.
+# Values are the directory name the .packlist file is in, with
+# / being converted to ::.
 Readonly my %CORE_PACKLIST_FIX => (
 	'IO::Compress::Base' => 'IO::Compress',
-	'podlators'          => 'Pod',
+	'Pod::Man'           => 'Pod',
 );
 
-# Modules to delay.
+# List of modules to delay building until last when upgrading all CPAN 
+# modules (they depend on upgraded versions of modules that originally 
+# were upgraded after them.)
 Readonly my @MODULE_DELAY => qw(
   CPANPLUS::Dist::Build
   File::Fetch
@@ -926,11 +933,6 @@ sub install_perl_toolchain {
 			# for the Win32 file:// bug.
 			$dist  = 'ANDK/CPAN-1.94_58.tar.gz';
 			$force = 1;
-		}
-		if ( $dist =~ /Win32API-Registry-0 [.] 31/msx ) {
-
-			# 0.31 does not include a Makefile.PL.
-			$dist = 'BLM/Win32API-Registry-0.30.tar.gz';
 		}
 		if ( $dist =~ /ExtUtils-MakeMaker-/msx ) {
 
