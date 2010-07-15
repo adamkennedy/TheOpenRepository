@@ -41,7 +41,7 @@ $VERSION =~ s/_//ms;
 # Apply some default paths
 sub new {
 
-	if ($Perl::Dist::Strawberry::VERSION < 2.0201) {
+	if ($Perl::Dist::Strawberry::VERSION < 2.1011) {
 		PDWiX->throw('Perl::Dist::Strawberry version is not high enough.')
 	}
 
@@ -56,7 +56,6 @@ sub new {
 		tasklist => [
 			'final_initialization',
 			'initialize_using_msm',
-			'install_strawberry_modules_5',   # Remove when using final MSM for April.
 			'install_padre_prereq_modules_1',
 			'install_padre_prereq_modules_2',
 			'install_padre_modules',
@@ -66,6 +65,7 @@ sub new {
 			'install_satori_modules_4',
 			'install_satori_modules_5',
 			'install_other_modules_1',
+			'install_other_modules_2',
 			'install_win32_extras',
 			'install_chocolate_extras',
 			'remove_waste',
@@ -89,8 +89,8 @@ sub new {
 		trace => 1,
 
 		# These are the locations to pull down the msm.
-		msm_to_use => 'http://strawberryperl.com/download/strawberry-msm/strawberry-perl-5.10.1.1.msm',
-		msm_zip    => 'http://strawberryperl.com/download/strawberry-perl-5.10.1.1.zip',
+		msm_to_use => 'http://strawberryperl.com/download/5.10.1.3/strawberry-perl-5.10.1.3-beta-2.msm',
+		msm_zip    => 'http://strawberryperl.com/download/5.10.1.3/strawberry-perl-5.10.1.3-beta-2.zip',
 		msm_code   => 'BC4B680E-4871-31E7-9883-3E2C74EA4F3C',
 		
 		@_,
@@ -130,9 +130,11 @@ sub patch_include_path {
 	];
 }
 
-sub install_padre_prereq_modules_1 { # 27 modules
+sub install_padre_prereq_modules_1 {
 	my $self = shift;
 
+	$self->{force} = 1;
+	
 	# Manually install our non-Wx dependencies first to isolate
 	# them from the Wx problems
 	$self->install_modules( qw{
@@ -140,13 +142,11 @@ sub install_padre_prereq_modules_1 { # 27 modules
 		  File::Next
 		  App::Ack
 		  Class::Adapter
-		  Class::Inspector
 		  Class::Unload
 		  AutoXS::Header
 		  Class::XSAccessor
 		  Devel::Dumpvar
 		  File::Copy::Recursive
-		  File::ShareDir
 		  File::ShareDir::PAR
 		  Test::Object
 		  Config::Tiny
@@ -163,23 +163,24 @@ sub install_padre_prereq_modules_1 { # 27 modules
 		  Pod::Coverage
 		  Test::Pod::Coverage
 		  Test::Pod
-	} );
+		  Module::Starter
+		  ORLite
+		  Test::Differences
+	} ); # 28
 
 	return 1;
 } ## end sub install_padre_prereq_modules_1
 
 
 
-sub install_padre_prereq_modules_2 { # 28 modules
+sub install_padre_prereq_modules_2 {
 	my $self = shift;
 
+	$self->{force} = 0;
+	
 	# NOTE: ORLite::Migrate goes after ORLite once they don't clone it privately.
 	# NOTE: Test::Exception goes before Test::Most when it's not in Strawberry.
 	$self->install_modules( qw{
-		  Module::Starter
-		  ORLite
-		  Test::Differences
-		  File::Slurp
 		  Pod::POM
 		  Parse::ErrorString::Perl
 		  Text::FindIndent
@@ -193,6 +194,7 @@ sub install_padre_prereq_modules_2 { # 28 modules
 		  Capture::Tiny
 		  prefork
 		  PPIx::EditorTools
+		  PPIx::Regexp
 		  Spiffy
 		  Test::Base
 		  ExtUtils::XSpp
@@ -204,7 +206,10 @@ sub install_padre_prereq_modules_2 { # 28 modules
 		  Win32::Shortcut
 		  Debug::Client
 		  Devel::Refactor
-	} );
+		  App::cpanminus
+		  Module::Manifest
+		  POD2::Base
+	} ); # 28
 	
 	return 1;
 } ## end sub install_padre_prereq_modules_2
@@ -239,7 +244,7 @@ sub install_padre_modules { # 4 modules
 	# And finally, install Padre itself
 	$self->install_module(
 		name  => 'Padre',
-		force => 1,
+#		force => 1,
 	);
 	
 	return 1;
@@ -248,7 +253,10 @@ sub install_padre_modules { # 4 modules
 sub install_satori_modules_1 {
 	my $self = shift;
 
-	# Basic Toolchain is already installed in Strawberry.
+	$self->{force} = 1;
+	
+	# Basic Toolchain is already installed in Strawberry, 
+	# except for App::cpanminus, which Padre needs.
 	
 	# Testing prerequisites.
 	$self->install_modules( qw{	
@@ -266,8 +274,11 @@ sub install_satori_modules_1 {
 	# Test::Pod and Test::Pod::Coverage are also above.
 	$self->install_modules( qw{
 		Test::Memory::Cycle
-		Devel::Cover
-	} ); # 2 (9)
+	} ); # 1 (8)
+	$self->install_module(
+		name  => 'Devel::Cover',
+		force => 1,                    # One weird failure left in 0.67
+	);   # 1 (9)
 
 	# Exception Handling, part 1.
 	# TryCatch needs delayed until after Moose.
@@ -283,6 +294,8 @@ sub install_satori_modules_1 {
 	} ); # 3 (13)
 
 	# Object Oriented Programming
+	
+	$self->{force} = 0;
 	
 	# Moose and prerequisites
 	$self->install_modules( qw{
@@ -355,14 +368,14 @@ sub install_satori_modules_1 {
 		Devel::PartialDump
 		Tie::ToObject
 		Data::Visitor
-	} ); # 12 (60)
+		Module::Pluggable
+	} ); # 13 (61)
 	
 	# Main section of Object Oriented Programming 
 	# MooseX::LogDispatch needs a prerequisite (Log::Dispatch::Configurator) forced.
 	# MooseX::LazyLogDispatch needs a prerequisite (Log::Dispatch::Configurator) forced.
 	# MooseX::POE will wait until updated for 0.90.
-	# MooseX::Workers will wait until updated for 0.90.
-	# MooseX::Role::TraitConstructor is ommitted because of RT#53070.
+	# MooseX::Role::TraitConstructor is ommitted because of RT#53070. [ Perl RT#52610 ] 
 	# MooseX::Role::Cmd relies on IPC::Run, which is problematic (t\parallel.t stalls).
 	# MooseX::Daemonize was stalled the first time I tried it -
 	#   maybe timing/OS-dependent? It also fails tests.
@@ -390,8 +403,9 @@ sub install_satori_modules_1 {
 		MooseX::Log::Log4perl
 		MooseX::App::Cmd
 		MooseX::Meta::TypeConstraint::ForceCoercion
+		MooseX::Object::Pluggable
 		Pod::Coverage::Moose
-	} ); # 24 (84)
+	} ); # 25 (86)
 
 	return 1;
 }
@@ -629,6 +643,9 @@ sub install_satori_modules_4 {
 		HTML::Tiny
 		Captcha::reCAPTCHA
 		Bit::Vector
+	} ); # 20 (20)
+		
+	$self->install_modules( qw{
 		Date::Calc
 		HTML::Scrubber
 		Class::Factory::Util
@@ -649,8 +666,33 @@ sub install_satori_modules_4 {
 		DateTime::Format::Mail
 		XML::XPath
 		Number::Format
+	} ); # 20 (40)
+
+	$self->install_modules( qw{
 		HTML::TreeBuilder
-	} ); # 42 (42)
+		MooseX::RelatedClassRoles
+		Data::Serializer
+		Data::Taxi
+		BerkeleyDB::Manager
+		Data::Stream::Bulk
+	} ); # 6 (46)
+	
+	# For Catalyst::View::Email
+	$self->install_modules( qw{
+		Test::Requires
+		Throwable::Error
+		Email::Sender::Simple
+		Authen::SASL
+		Email::MIME::Encodings
+		Email::MIME::ContentType
+		Sys::Hostname
+		Email::Address
+		Email::MessageID
+		Time::Local
+		Email::Date::Format
+		Email::Simple::Creator
+		Email::MIME
+	} ); # 13 (56)
 
 	# Most of the rest of Web Development
 	$self->install_modules( qw{
@@ -658,7 +700,10 @@ sub install_satori_modules_4 {
 		Catalyst::Log::Log4perl
 		Catalyst::View::TT
 		Catalyst::View::JSON
+		Catalyst::Model::Adaptor
 		Catalyst::Model::DBIC::Schema
+		Catalyst::Controller::ActionRole
+		Catalyst::Action::REST
 		Catalyst::Plugin::Session
 		Catalyst::Plugin::Authentication
 		Catalyst::Plugin::StackTrace
@@ -667,11 +712,14 @@ sub install_satori_modules_4 {
 		Catalyst::Plugin::Compress::Zlib
 		Catalyst::Plugin::Session::State::Cookie
 		Catalyst::Plugin::Session::Store::File
+		Catalyst::Plugin::Session::Store::BerkeleyDB
 		Catalyst::Plugin::Session::Store::Delegate
 		Catalyst::Plugin::Session::Store::DBIC
 		Catalyst::Plugin::Session::State::URI
 		Catalyst::Plugin::Authorization::Roles
-	} ); # 17 (59)
+		CatalystX::InjectComponent
+		Catalyst::ActionRole::ACL
+	} ); # 22 (78)
 
 
 	return 1;
@@ -711,7 +759,6 @@ sub install_satori_modules_5 {
 	# E-mail Modules prerequisites
 	$self->install_modules( qw{
 		IO::CaptureOutput
-		Email::Date::Format
 		Email::Simple
 		Email::Abstract
 		Throwable::Error
@@ -722,20 +769,13 @@ sub install_satori_modules_5 {
 		Test::MinimumVersion
 		Date::Format
 		Mail::Address
-	} ); # 10 (21)
+	} ); # 9 (20)
 
 	# E-mail Modules
 	$self->install_modules( qw{
 		Email::Valid
-	} ); # 1 (22)
-
-	# 0.100450 depends on modules that weren't on CPAN as of 2/15/2010,
-	# so we're forcing the version for a little while.
-	$self->install_distribution(
-		name     => 'RJBS/Email-Sender-0.100460.tar.gz',
-		mod_name => 'Email::Sender',
-		makefilepl_param => ['INSTALLDIRS=vendor'],
-	); # 1 (23)
+		Email::Sender
+	} ); # 2 (23 - 1)
 
 	# Localizing changes to environment for building purposes.
 	{
@@ -744,15 +784,17 @@ sub install_satori_modules_5 {
 	} # 1 (24)
 	
 	# Last of Web Development
-	# (HTML::FormFu requires the Email:: stuff.)
+	# (HTML::FormFu and HTML::FormHandler requires the Email:: stuff.)
 	$self->install_modules( qw{
 		HTML::FormFu
 		Catalyst::Controller::HTML::FormFu
-	} ); # 2 (26)
+		HTML::FormHandler
+		CatalystX::SimpleLogin
+		Task::Catalyst
+	} ); # 5 (29)
 
 	# Useful Command-line Tools prerequisites
 	$self->install_modules( qw{
-		MooseX::Object::Pluggable
 		B::Utils
 		Data::Dump::Streamer
 		Devel::LexAlias
@@ -761,7 +803,7 @@ sub install_satori_modules_5 {
 		Win32::Clipboard
 		Clipboard
 		App::Nopaste
-	} ); # 10 (35)
+	} ); # 8 (37)
 
 # Needed for Devel::REPL, so commenting for now.
 #	$self->install_modules( qw{
@@ -785,14 +827,14 @@ sub install_satori_modules_5 {
 		MLDBM
 		IO::Interactive
 		Term::ProgressBar::Quiet
-	} ); # 6 (43)
+	} ); # 6 (44)
 
 	# Script Hackery
 	$self->install_modules( qw{
 		Smart::Comments
 		Term::ProgressBar::Simple
 		IO::All
-	} ); # 3 (46)
+	} ); # 3 (47)
 
 	# Socket6 would be nice to include, but it 
 	# doesn't build due to referring to ws2_32.lib 
@@ -804,18 +846,22 @@ sub install_satori_modules_5 {
 		Win32::Job
 		POE::Test::Loops
 		POE
-	} ); # 4 (50)
+	} ); # 4 (51)
 
+	# This OO module requires POE.
+	$self->install_modules( qw{
+		MooseX::Workers
+	} ); # 1 (52)
+	
 	# Final tasks
-#	$self->install_modules( qw{
-#		Task::Moose
-#		Task::Catalyst
-#		Task::Kensho
-#	} ); # 3 (53)
+	$self->install_modules( qw{
+		Task::Moose
+		Task::Kensho
+	} ); # 2 (54)
 	
 	return 1;
 }
-	
+
 sub install_other_modules_1 {
 	my $self = shift;
 
@@ -945,6 +991,17 @@ sub install_other_modules_1 {
 	return 1;
 }
 
+sub install_other_modules_2 {
+	my $self = shift;
+	
+	$self->install_modules( qw{
+		SDL
+		Games::FrozenBubble
+		Games::Risk	} ); # 2 (2)
+
+	return 1;
+}
+
 sub install_chocolate_extras {
 	my $self = shift;
 
@@ -960,11 +1017,11 @@ sub install_chocolate_extras {
 			url        => $self->strawberry_url(),
 			icon_file  => catfile($sb_dist_dir, 'strawberry.ico')
 		);
-#		$self->install_website(
-#			name       => 'Strawberry Perl Professional Release Notes',
-#			url        => $self->chocolate_release_notes_url(),
-#			icon_file  => catfile($dist_dir, 'chocolate.ico')
-#		);
+		$self->install_website(
+			name       => 'Strawberry Perl Professional Release Notes',
+			url        => $self->chocolate_release_notes_url(),
+			icon_file  => catfile($dist_dir, 'chocolate.ico')
+		);
 		# Link to IRC.
 		$self->install_website(
 			name       => 'Live Support',

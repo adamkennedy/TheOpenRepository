@@ -1,4 +1,4 @@
-use inc::Module::Install 0.95;
+use inc::Module::Install 1.00;
 
 die "OS unsupported\n" unless win32;
 
@@ -11,8 +11,8 @@ if (author_context) {
 }
 
 all_from      'lib/Perl/Dist/Chocolate.pm';
-# Really, 2.02_01, but I can't do that.
-requires      'Perl::Dist::Strawberry' => '2.02';
+# Really, 2.10_11, but I can't do that.
+requires      'Perl::Dist::Strawberry' => '2.10';
 requires      'parent'                 => '0.221';
 requires      'URI::file'              => '4.20'; # From URI 1.36 or better.
 test_requires 'Test::More'             => '0.42';
