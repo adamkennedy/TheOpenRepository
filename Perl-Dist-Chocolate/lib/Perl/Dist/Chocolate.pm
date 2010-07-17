@@ -623,8 +623,12 @@ sub install_satori_modules_6 {
 	} ); # 6 (6)
 	
 	# Adding DBD's to the list.
+	$self->install_distribution(
+		name             => 'REHSACK/SQL-Statement-1.27.tar.gz',
+		mod_name         => 'SQL::Statement',
+		makefilepl_param => [ 'INSTALLDIRS=vendor', ],
+	);
 	$self->install_modules( qw{
-		SQL::Statement
 		DBD::CSV
 		DBD::Excel
 	} ); # 3 (9)
