@@ -255,6 +255,11 @@ sub install_padre_modules { # 4 modules
 	return 1;
 } ## end sub install_padre_modules
 
+
+### These modules are the ones installed by Task::Kensho 0.22,
+### Task::Catalyst 4.00, and Task::Moose 0.03.
+
+
 sub install_satori_modules_1 {
 	my $self = shift;
 
@@ -433,7 +438,7 @@ sub install_satori_modules_3 {
 		MooseX::Types::Structured
 		Pod::Coverage::Moose
 	} ); # 26 (26)
-	
+
 	# TryCatch prerequisites
 	$self->install_modules( qw{
 		aliased
@@ -451,8 +456,6 @@ sub install_satori_modules_3 {
 sub install_satori_modules_4 {
 	my $self = shift;
 
-	$self->{force} = 1;
-	
 	# Last part of OOP.
 	$self->install_modules( qw{
 		Context::Preserve
@@ -478,8 +481,6 @@ sub install_satori_modules_4 {
 		XML::SAX::Writer
 	} ); # 2 (9)
 	
-	$self->{force} = 0;
-
 	# Module Development prerequisites
 	$self->install_modules( qw{
 		Regexp::Common
@@ -496,12 +497,11 @@ sub install_satori_modules_4 {
 		Tie::IxHash
 		Config::MVP
 		Config::INI
-		Config::INI::MVP::Reader
+		Config::MVP::Reader::INI
 		Pod::Eventual
 		String::Flogger
 		Mixin::ExtraFields
 		Mixin::ExtraFields::Param
-		CPAN::Uploader
 		Hash::Merge::Simple
 		String::Formatter
 		File::ShareDir::Install
@@ -509,9 +509,13 @@ sub install_satori_modules_4 {
 		Sub::Exporter::ForMethods
 		String::Truncate
 		Pod::Elemental
+		Sys::Syslog
+		Log::Dispatch
+		Log::Dispatch::Array
+		Log::Dispatchouli
 		Pod::Weaver
 		Pod::Elemental::PerlMunger
-	} );  # 27 (36)
+	} );  # 32 (41)
 	
 	return 1;
 }
@@ -519,8 +523,19 @@ sub install_satori_modules_4 {
 sub install_satori_modules_5 {
 	my $self = shift;
 
+	# More prereqs for Module Development
+	$self->install_modules( qw{
+		MooseX::Types::Perl
+		MooseX::SetOnce
+		Version::Requirements
+		CPAN::Meta
+		Perl::PrereqScanner
+		PPIx::Utilities
+	} );  # 6 (6)
+	
 	# Module Development
 	$self->install_modules( qw{
+		CPAN::Uploader
 		Perl::Version
 		Dist::Zilla
 		Dist::Zilla::Plugin::PodWeaver
@@ -528,12 +543,11 @@ sub install_satori_modules_5 {
 		Perl::Critic::More
 		Carp::Always
 		Modern::Perl
-		CPAN::Uploader
-	} ); # 8 (8)
+	} ); # 8 (14)
 	$self->install_module(
 		name => 'Devel::NYTProf',
 		force => 1,
-	); # 1 (9)
+	); # 1 (15)
 
 	# Database Development: DBI and DBD::SQLite are already installed.
 	# Because of the large numbers of prerequisites, I'm
@@ -550,8 +564,9 @@ sub install_satori_modules_5 {
 		Class::C3::Componentised
 		Module::Find
 		Data::Dumper::Concise
+		Math::Base36
 		DBIx::Class
-	} ); # 10 (19)
+	} ); # 11 (26)
 	
 	# SQL::Translator and prerequisites
 	$self->install_modules( qw{
@@ -560,7 +575,7 @@ sub install_satori_modules_5 {
 		Class::MakeMethods
 		XML::Writer
 		SQL::Translator
-	} ); # 5 (24)
+	} ); # 5 (31)
 
 	# DBIx::Class::Schema::Loader and prereqs
 	# Note: DBD::Oracle and DBD::DB2 you're 
@@ -571,15 +586,27 @@ sub install_satori_modules_5 {
 		Class::Data::Accessor
 		UNIVERSAL::require
 		Data::Dump
+		Lingua::Stem::Ru
+		Lingua::Stem::Fr
+		Lingua::Stem::It
+		Lingua::Stem::Snowball::Da
+		Lingua::Stem::Snowball::Se
+		Lingua::Stem::Snowball::No
+		Lingua::PT::Stemmer
+		Text::German
+		Lingua::Stem
+		Memoize::ExpireLRU
+		Lingua::EN::Tagger
+		Lingua::EN::Inflect::Phrase
 		DBIx::Class::Schema::Loader
-	} ); # 6 (30)
+	} ); # 18 (49)
 
 	return 1;
 }
 
 sub install_satori_modules_6 {
 	my $self = shift;
-	
+
 	# Excel/CSV
 	$self->install_modules( qw{
 		Text::CSV_XS
@@ -589,14 +616,14 @@ sub install_satori_modules_6 {
 		Spreadsheet::ParseExcel::Simple
 		Spreadsheet::WriteExcel::Simple
 	} ); # 6 (6)
-		
+	
 	# Adding DBD's to the list.
 	$self->install_modules( qw{
 		SQL::Statement
 		DBD::CSV
 		DBD::Excel
 	} ); # 3 (9)
-	
+
 	# Web Development
 
 	# Catalyst::Runtime and prerequisites
@@ -623,16 +650,14 @@ sub install_satori_modules_6 {
 		MooseX::Params::Validate
 		MooseX::SemiAffordanceAccessor
 		File::ChangeNotify
-		UNIVERSAL::isa
-		UNIVERSAL::can
-		Test::MockObject
 		Catalyst::Action::RenderView
+		Test::Requires
 		Mouse
 		Any::Moose
 		Catalyst::Plugin::ConfigLoader
 		Proc::Background
 		Catalyst::Devel
-	} ); # 15 (37)
+	} ); # 13 (34)
 
 	return 1;
 }
@@ -699,26 +724,24 @@ sub install_satori_modules_8 {
 		MooseX::RelatedClassRoles
 		Data::Serializer
 		Data::Taxi
-		BerkeleyDB::Manager
 		Data::Stream::Bulk
+		BerkeleyDB::Manager
 	} ); # 6 (6)
 	
 	# For Catalyst::View::Email
 	$self->install_modules( qw{
-		Test::Requires
 		Throwable::Error
+		Email::Date::Format
+		Email::Simple
+		Email::Abstract
+		Sys::Hostname::Long
 		Email::Sender::Simple
 		Authen::SASL
 		Email::MIME::Encodings
 		Email::MIME::ContentType
-		Sys::Hostname
-		Email::Address
 		Email::MessageID
-		Time::Local
-		Email::Date::Format
-		Email::Simple::Creator
 		Email::MIME
-	} ); # 13 (20)
+	} ); # 11 (17)
 
 	# Most of the rest of Web Development
 	$self->install_modules( qw{
@@ -738,20 +761,21 @@ sub install_satori_modules_8 {
 		Catalyst::Plugin::Compress::Zlib
 		Catalyst::Plugin::Session::State::Cookie
 		Catalyst::Plugin::Session::Store::File
-		Catalyst::Plugin::Session::Store::BerkeleyDB
 		Catalyst::Plugin::Session::Store::Delegate
 		Catalyst::Plugin::Session::Store::DBIC
 		Catalyst::Plugin::Session::State::URI
 		Catalyst::Plugin::Authorization::Roles
 		CatalystX::InjectComponent
 		Catalyst::ActionRole::ACL
-	} ); # 22 (42)
+	} ); # 22 (39)
 
 	return 1;
 }
 	
 sub install_satori_modules_9 {
 	my $self = shift;
+
+	$self->{force} = 1;
 
 	# Web Crawling and prereqs: LWP::Simple and everything 
 	# in Bundle::LWP are already installed.
@@ -771,12 +795,14 @@ sub install_satori_modules_9 {
 	$self->install_module( name => 'Test::WWW::Mechanize::Catalyst', force => 1, );
 	# 1 (6)
 	
-	# More of web development (C::P::A::ACL requires Test::WWW::Mech::Cat, and may need forced.)
+	# More of web development (C::P::S::S::BDB and C::P::A::ACL requires 
+	# Test::WWW::Mech::Cat, and may need forced.)
 	$self->install_modules( qw{
+		Catalyst::Plugin::Session::Store::BerkeleyDB
 		Catalyst::Plugin::Authorization::ACL
 		Catalyst::Component::InstancePerContext
 		Catalyst::Authentication::Store::DBIx::Class
-	} ); # 3 (9)
+	} ); # 4 (10)
 
 	# Could not install FCGI::ProcManager due to POSIX error.
 	# (MIME::Types was needed for Catalyst::Devel.)
@@ -784,44 +810,64 @@ sub install_satori_modules_9 {
 		CGI::FormBuilder::Source::Perl
 		XML::RSS
 		XML::Atom
-	} ); # 3 (12)
+	} ); # 3 (13)
 
 	# E-mail Modules prerequisites
 	$self->install_modules( qw{
 		IO::CaptureOutput
-		Email::Simple
-		Email::Abstract
-		Throwable::Error
-		Sys::Hostname::Long
 		Net::SMTP::SSL
 		File::Find::Rule::Perl
 		Perl::MinimumVersion
 		Test::MinimumVersion
 		Date::Format
 		Mail::Address
-	} ); # 9 (21)
+	} ); # 7 (20)
 
-	# E-mail Modules
+	# E-mail Modules (Email::Simple was earlier.)
 	$self->install_modules( qw{
 		Email::Valid
-		Email::Sender
-	} ); # 2 (23)
+	} ); # 1 (21)
 
 	# Localizing changes to environment for building purposes.
 	{
 		local $ENV{TZ} = 'PST8PDT';
 		$self->install_module( name => 'Time::ParseDate' );
-	} # 1 (24)
+	} # 1 (23)
 	
-	# Last of Web Development
+	# Almost the last of Web Development
 	# (HTML::FormFu and HTML::FormHandler requires the Email:: stuff.)
+	# HTML::FormFu 0.07002 also has a test bug. (reported as RT#59467)
+	$self->install_module( name => 'HTML::FormFu', force => 1 );
+	$self->{force} = 0;
 	$self->install_modules( qw{
-		HTML::FormFu
 		Catalyst::Controller::HTML::FormFu
 		HTML::FormHandler
 		CatalystX::SimpleLogin
-		Task::Catalyst
-	} ); # 5 (29)
+		CatalystX::LeakChecker
+		CatalystX::Profile
+		String::Escape
+		Data::UUID
+		Catalyst::Authentication::Credential::HTTP
+		CGI::Cookie::XS
+		Cookie::XS
+	} ); # 11 (34)
+
+	# Net::Server 0.99 has problems. Using 0.97 instead.
+	$self->install_distribution(
+		name             => 'RHANDOM/Net-Server-0.97.tar.gz',
+		mod_name         => 'Net::Server',
+		makefilepl_param => [ 'INSTALLDIRS=vendor', ],
+	);
+	# HTTP::HeaderParser::XS does not link in 5.10 (works on 5.12 64-bit.)
+	# Catalyst::Engine::HTTP::Prefork requires module above that does not link.
+	$self->install_modules( qw{
+		Test::SharedFork
+		Test::TCP
+		Catalyst::Engine::PSGI
+		Catalyst::Plugin::Unicode::Encoding
+		Catalyst::View::Email
+		Catalyst::Manual
+	} ); # 6 (40)
 
 	# Useful Command-line Tools prerequisites
 	$self->install_modules( qw{
@@ -833,7 +879,7 @@ sub install_satori_modules_9 {
 		Win32::Clipboard
 		Clipboard
 		App::Nopaste
-	} ); # 8 (37)
+	} ); # 8 (48)
 
 	return 1;
 }
@@ -855,6 +901,13 @@ sub install_satori_modules_10 {
 		Devel::REPL
 	} ); # 1 (2)
 
+	# CatalystX::REPL needs Devel::REPL, and since Carp::REPL 
+	# and CatalystX::REPL use Expect for tests, we have to force them.
+	$self->install_module( name => 'Devel::StackTrace::WithLexicals' );
+	$self->install_module( name => 'Carp::REPL', force => 1 );
+	$self->install_module( name => 'CatalystX::REPL', force => 1 );
+	$self->install_module( name => 'Task::Catalyst' ); # 4 (6)
+		
 	# Script Hackery prerequisites
 	# These 2 have a signature test, which fails atm.
 	$self->install_module( name => 'Class::MethodMaker', force => 1, );
@@ -864,14 +917,14 @@ sub install_satori_modules_10 {
 		MLDBM
 		IO::Interactive
 		Term::ProgressBar::Quiet
-	} ); # 6 (8)
+	} ); # 6 (12)
 
 	# Script Hackery
 	$self->install_modules( qw{
 		Smart::Comments
 		Term::ProgressBar::Simple
 		IO::All
-	} ); # 3 (11)
+	} ); # 3 (15)
 	
 	# Socket6 would be nice to include, but it 
 	# doesn't build due to referring to ws2_32.lib 
@@ -883,20 +936,33 @@ sub install_satori_modules_10 {
 		Win32::Job
 		POE::Test::Loops
 		POE
-	} ); # 4 (15)
+	} ); # 4 (19)
 
 	# These OO module requires POE.
 	$self->install_modules( qw{
 		MooseX::Workers
 		MooseX::POE
-	} ); # 2 (17)
-	
+	} ); # 2 (21)
+
+	# CHI and prereqs (being added in next version of Kensho)
+	$self->install_modules( qw{
+		Hash::MoreUtils
+		Log::Any
+		Log::Any::Adapter
+		Log::Any::Adapter::Dispatch
+		Test::Log::Dispatch
+		Time::Duration
+		Time::Duration::Parse
+		Digest::JHash
+		CHI
+	} ); # 9 (30)
+
 	# Final tasks
 	$self->install_modules( qw{
 		Task::Moose
 		Task::Kensho
-	} ); # 2 (19)
-	
+	} ); # 2 (32)
+
 	return 1;
 }
 
@@ -927,13 +993,7 @@ sub install_other_modules_1 {
 	# Pod Browser.
 	$self->install_modules( qw{
 		Tk::Pod		
-	} ); # 1 (4)
-
-	# Catalyst manual.
-	$self->install_modules( qw{
-		File::Monitor
-		Catalyst::Manual		
-	} ); # 2 (6)
+	} ); # 1 (6 - 2)
 	
 	# BioPerl and as many of its optionals as possible.
 	# GraphViz is a known problem - Beta 2?	
@@ -1028,10 +1088,22 @@ sub install_other_modules_2 {
 
 	# Install some games.
 	$self->install_modules( qw{
+		Text::Patch
+	} ); # 1 (1)
+	
+	# Install the Alien::SDL module from a precompiled .par
+	my $par_url = 
+		'http://strawberryperl.com/download/professional/Alien-SDL-1.410-MSWin32-x86-multi-thread-5.10.1.par';
+	my $filelist = $self->install_par(
+		name => 'Alien_SDL',
+		url  => $par_url,
+	); # 1 (2)
+	
+	$self->install_modules( qw{
 		SDL
 		Games::FrozenBubble
 		Games::Risk
-	} ); # 3 (3)
+	} ); # 3 (5)
 
 	return 1;
 }
