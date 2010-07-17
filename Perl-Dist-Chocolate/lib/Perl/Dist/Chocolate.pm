@@ -247,9 +247,14 @@ sub install_padre_modules { # 4 modules
 		force => 1                     # since it fails on vista
 	);
 
-	# And finally, install Padre itself
-	$self->install_module(
-		name  => 'Padre',
+	# And finally, install Padre itself (pinned to 0.64, for now.)
+#	$self->install_module(
+#		name  => 'Padre',
+#	);
+	$self->install_distribution(
+		name             => 'PLAVEN/Padre-0.64.tar.gz',
+		mod_name         => 'Padre',
+		makefilepl_param => [ 'INSTALLDIRS=vendor', ],
 	);
 	
 	return 1;
