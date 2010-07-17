@@ -1110,6 +1110,20 @@ sub install_other_modules_2 {
 		Games::FrozenBubble
 	} ); # 2 (4)
 
+	# Install CPAN Testers 2.0 stuff.
+	$self->install_modules( qw{
+		Data::GUID
+		Metabase::Fact
+		Metabase::Client::Simple
+		Test::Reporter
+		CPAN::Testers::Report
+		Config::Perl::V
+		Test::Reporter::Transport::Metabase
+		Devel::Autoflush
+		Tee
+		CPAN::Reporter
+	} ); # 10 (14)
+	
 	return 1;
 }
 
