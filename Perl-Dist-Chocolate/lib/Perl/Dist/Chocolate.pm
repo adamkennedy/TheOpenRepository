@@ -87,8 +87,8 @@ sub new {
 		perl_version => '5101',
 
 		# Program version.
-		build_number => 1,
-		beta_number  => 1,
+		build_number => 3,
+		beta_number  => 2,
 
 		# Trace level.
 		trace => 1,
@@ -775,8 +775,6 @@ sub install_satori_modules_8 {
 sub install_satori_modules_9 {
 	my $self = shift;
 
-	$self->{force} = 1;
-
 	# Web Crawling and prereqs: LWP::Simple and everything 
 	# in Bundle::LWP are already installed.
 	# WWW::Mechanize is forced because the back test fails on the 
@@ -838,7 +836,6 @@ sub install_satori_modules_9 {
 	# (HTML::FormFu and HTML::FormHandler requires the Email:: stuff.)
 	# HTML::FormFu 0.07002 also has a test bug. (reported as RT#59467)
 	$self->install_module( name => 'HTML::FormFu', force => 1 );
-	$self->{force} = 0;
 	$self->install_modules( qw{
 		Catalyst::Controller::HTML::FormFu
 		HTML::FormHandler
@@ -915,9 +912,8 @@ sub install_satori_modules_10 {
 	$self->install_modules( qw{
 		File::ReadBackwards
 		MLDBM
-		IO::Interactive
 		Term::ProgressBar::Quiet
-	} ); # 6 (12)
+	} ); # 5 (11)
 
 	# Script Hackery
 	$self->install_modules( qw{
@@ -925,10 +921,6 @@ sub install_satori_modules_10 {
 		Term::ProgressBar::Simple
 		IO::All
 	} ); # 3 (15)
-	
-	# Socket6 would be nice to include, but it 
-	# doesn't build due to referring to ws2_32.lib 
-	# directly. A patch will be offered.
 	
 	# Asynchronous Programming and prerequisites
 	$self->install_modules( qw{
@@ -938,9 +930,12 @@ sub install_satori_modules_10 {
 		POE
 	} ); # 4 (19)
 
-	# These OO module requires POE.
+
+	# These OO module(s) requires POE.
+	# MooseX::Workers fails tests. Reported in (by another) to CPAN Testers as 
+	# http://www.cpantesters.org/cpan/report/06928127-b19f-3f77-b713-d32bba55d77f.
 	$self->install_modules( qw{
-		MooseX::Workers
+		MooseX::Async
 		MooseX::POE
 	} ); # 2 (21)
 
@@ -951,17 +946,19 @@ sub install_satori_modules_10 {
 		Log::Any::Adapter
 		Log::Any::Adapter::Dispatch
 		Test::Log::Dispatch
+		Exporter::Lite
 		Time::Duration
 		Time::Duration::Parse
 		Digest::JHash
+		Test::Class
 		CHI
-	} ); # 9 (30)
+	} ); # 11 (32)
 
 	# Final tasks
 	$self->install_modules( qw{
 		Task::Moose
 		Task::Kensho
-	} ); # 2 (32)
+	} ); # 2 (34)
 
 	return 1;
 }
@@ -1102,8 +1099,7 @@ sub install_other_modules_2 {
 	$self->install_modules( qw{
 		SDL
 		Games::FrozenBubble
-		Games::Risk
-	} ); # 3 (5)
+	} ); # 2 (4)
 
 	return 1;
 }
@@ -1199,6 +1195,15 @@ sub install_chocolate_extras {
 		bin  => 'perlcmd',
 	);
 
+	my $app_menu = $self->get_directory_object('D_App_Menu');
+	$app_menu->add_directories_id('App_Menu_Games', 'Games in Perl');
+	
+	$self->install_launcher(
+		name         => 'Frozen Bubble',
+		bin          => 'frozen-bubble',
+		directory_id => 'D_App_Menu_Games',
+	);
+
 	my $chocolate_icon_id =
 	  $self->_icons()
 	  ->add_icon( catfile( $dist_dir, 'chocolate.ico' ), 'perl.exe' );
@@ -1248,7 +1253,7 @@ sub install_chocolate_extras {
 	my $license_file_to = catfile($self->license_dir(), 'License.rtf');
 	my $readme_file = catfile($self->image_dir(), 'README.professional.txt');
 
-	$self->_copy($license_file_from, $license_file_to);	
+	$self->copy_file($license_file_from, $license_file_to);	
 	if (not $self->portable()) {
 		$self->add_to_fragment( 'Win32Extras',
 			[ $license_file_to, $readme_file ] );
@@ -1268,6 +1273,16 @@ sub strawberry_url {
 	}
 
 	return "http://strawberryperl.com/$path";
+}
+
+
+sub chocolate_release_notes_url {
+	my $self = shift;
+	my $path = $self->perl_version_human()
+		. q{.} . $self->build_number()
+		. ($self->beta_number() ? '.alpha-' . $self->beta_number() : '')
+        . '.professional';
+	return "http://strawberryperl.com/release-notes/$path.html";
 }
 
 
