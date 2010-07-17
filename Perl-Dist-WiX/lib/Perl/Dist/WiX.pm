@@ -2767,7 +2767,7 @@ sub install_win32_extras {
 	if ( not $self->portable() ) {
 		$self->copy_file(
 			catfile( $self->wix_dist_dir(), 'update_env.pl.bat' ),
-			$self->image_dir() );
+			$self->image_dir()->stringify() );
 	}
 
 	if ( $self->msi() ) {
