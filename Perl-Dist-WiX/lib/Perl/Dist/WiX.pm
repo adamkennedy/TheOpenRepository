@@ -2767,7 +2767,7 @@ sub install_win32_extras {
 	if ( not $self->portable() ) {
 		$self->copy_file(
 			catfile( $self->wix_dist_dir(), 'update_env.pl.bat' ),
-			$self->image_dir()->stringify() );
+			$self->image_dir()->file('update_env.pl.bat')->stringify() );
 	}
 
 	if ( $self->msi() ) {
@@ -3602,9 +3602,7 @@ Returns a directory as a string or throws an exception on error.
 =cut
 
 sub dist_dir {
-	my $self = shift;
-
-	return $self->wix_dist_dir();
+	return File::ShareDir::dist_dir('Perl-Dist-WiX')
 }
 
 
@@ -3614,7 +3612,7 @@ sub dist_dir {
 Provides a shortcut to the location of the shared files directory for 
 C<Perl::Dist::WiX>.
 
-Returns a directory as a string or throws an exception on error.
+Returns a directory as a L<Path::Class::Dir> object or throws an exception on error.
 
 =cut
 

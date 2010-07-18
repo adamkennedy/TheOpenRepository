@@ -114,6 +114,24 @@ has exe => (
 
 
 
+=head3 directory_id
+
+The C<directory_id> parameter specifies the directory that the Start menu 
+link is to be created in.
+
+=cut
+
+
+
+has directory_id => (
+	is      => 'bare',
+	isa     => Str,
+	reader  => '_get_directory_id',
+	default => 'D_App_Menu_Tools',
+);
+
+
+
 =head2 install
 
 The install method installs the Start Menu link described by the
@@ -149,8 +167,7 @@ sub install {
 
 	my $icon_id =
 	  $self->_get_icons()
-	  ->add_icon( catfile( $self->_get_dist_dir(), "$bin.ico" ),
-		"$bin$ext" );
+	  ->add_icon( $self->_get_icon_file($bin), "$bin$ext" );
 
 	# Add the icon.
 	$self->_add_icon(
@@ -158,11 +175,36 @@ sub install {
 		filename     => $to,
 		fragment     => 'StartMenuIcons',
 		icon_id      => $icon_id,
-		directory_id => 'D_App_Menu_Tools',
+		directory_id => $self->_get_directory_id(),
 	);
 
 	return 1;
 } ## end sub install
+
+sub _get_icon_file {
+	my $self = shift;
+	my $name = shift;
+
+	my ($dir, $file);
+	
+	# Start with the parent reference contained in this asset.
+	my $class = ref $self->_get_parent();
+	
+	no strict 'refs';
+	while (defined $class and $class ne 'Moose::Object') {
+		# Get the directory of this class's dist_dir and check for the icon.
+		$dir = $class->dist_dir();
+		$file = catfile($dir, "$name.ico");
+		if (-f $file) {
+			return $file;
+		}
+		# Pick up the first parent of the class, and try again.
+		$class = ${"${class}::ISA"}[0];
+	}
+
+	PDWiX::File->throw(message => 'File not found.', file => "$name.ico");
+	
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
