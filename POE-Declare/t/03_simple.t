@@ -131,7 +131,7 @@ SCOPE: {
 	# Check the package_states method
 	is_deeply(
 		[ $meta->_package_states ],
-		[ '_alias_remove', '_alias_set', '_start', '_stop', 'findme', 'to' ],
+		[ '_alias_remove', '_alias_set', '_finish', '_start', '_stop', 'findme', 'to' ],
 		'->_package_states returns as expected',
 	);
 

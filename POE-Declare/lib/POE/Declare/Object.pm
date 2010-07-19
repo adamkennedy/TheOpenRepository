@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.25';
+	$VERSION = '0.26';
 }
 
 # Inside-out storage of internal values
@@ -512,6 +512,21 @@ sub alarm_adjust {
 
 =pod
 
+=head2 alarm_clear
+
+The C<alarm_clear> method is a convenience method. It takes the name of
+a hash key for the object, containing a timer id. If the ID is set, it
+is cleared. If not, the method shortcuts.
+
+=cut
+
+sub alarm_clear {
+	$_[0]->{$_[1]} or return 1;
+ 	$_[0]->alarm_remove(delete $_[0]->{$_[1]});
+}
+
+=pod
+
 =head2 alarm_remove
 
 The C<alarm_remove> method is equivalent to the L<POE::Kernel> method
@@ -527,18 +542,18 @@ sub alarm_remove {
 
 =pod
 
-=head2 alarm_clear
+=head2 alarm_remove_all
 
-The C<alarm_clear> method is a convenience method. It takes the name of
-a hash key for the object, containing a timer id. If the ID is set, it
-is cleared. If not, the method shortcuts.
+The C<alarm_remove_all> method is equivalent to the L<POE::Kernel> method
+of the same name, removing all alarms for the heap object's session.
 
 =cut
 
-sub alarm_clear {
-	$_[0]->{$_[1]} or return 1;
- 	$_[0]->alarm_remove(delete $_[0]->{$_[1]});
+sub alarm_remove_all {
+	shift;
+	$poe_kernel->alarm_remove_all( @_ );
 }
+
 
 =pod
 
@@ -656,7 +671,7 @@ the C<spawn> process (in the C<_start> event).
 =cut
 
 sub _alias_set : Event {
-	### This will fail is sessions have clashing aliases
+	### This will fail if sessions have clashing aliases
 	my $alias = $_[HEAP]->Alias;
 	unless ( defined $poe_kernel->alias_resolve($alias) ) {
 		if ( $poe_kernel->alias_set($alias) ) {
@@ -687,6 +702,45 @@ possible.
 
 sub _alias_remove : Event {
 	my $self    = $_[HEAP];
+	my $alias   = $self->Alias;
+	my $session = $poe_kernel->alias_resolve($alias);
+	my $poe_id  = $session->ID;
+	my $self_id = $ID{Scalar::Util::refaddr($self)};
+	unless ( defined $poe_id and defined $self_id ) {
+		return;
+	}
+	unless ( $poe_id == $self_id ) {
+		Carp::croak("Session id mismatch error");
+	}
+	$poe_kernel->alias_remove($alias);
+}
+
+=pod
+
+=head2 _finish
+
+The C<_finish> event is a convenience provided to simplify the process of
+shutting down an object/session.
+
+It will automatically clean up as many things as possible from your
+session.
+
+Currently, this consists of removing any pending alarms and removing the
+session alias.
+
+=cut
+
+sub _finish : Event {
+	my $self = $_[HEAP];
+
+	# Remove all timers
+	$poe_kernel->alarm_remove_all;
+	foreach ( $self->meta->_timeouts ) {
+		delete $self->{$_};
+	}	
+
+	# Remove the session alias.
+	# Cloned from _alias_remove to prevent another event invocation
 	my $alias   = $self->Alias;
 	my $session = $poe_kernel->alias_resolve($alias);
 	my $poe_id  = $session->ID;

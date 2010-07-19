@@ -11,12 +11,13 @@ POE::Declare - A POE abstraction layer for conciseness and simplicity
   package MyComponent;
   
   use strict;
-  use POE::Declare;
+  use POE::Declare {
+	foo      => 'Attribute',
+	bar      => 'Internal',
+	Username => 'Param',
+	Password => 'Param',
+  };
   
-  declare foo          => 'Attribute';
-  declare bar          => 'Internal';
-  declare Username     => 'Param';
-  declare Password     => 'Param';
   declare TimeoutError => 'Message';
   
   sub hello : Event {
@@ -102,6 +103,24 @@ the code that will implement the structures.
 Once the class has been compiled, the installed functions will be removed
 from the package to prevent run-time namespace pollution.
 
+=head2 Import-Time Declaration
+
+The cluster of "declare" statements at the beginning of a B<POE::Declare>
+class can look ugly to some people, and may get annoying to step through in
+the debugger.
+
+To resolve this, you may optionally provide a list of slot declarations to
+the module at compile time. This should be in the form of a simple C<HASH>
+reference with the names as keys and the type as values.
+
+  use My::Module {
+      Foo => 'Param',
+      Bar => 'Param',
+  };
+
+Event and timeout declarations cannot be provided by this method, and you
+should continue to use subroutine attributes for these as normal.
+
 =head2 Inheritance
 
 The resource model of L<POE::Declare> correctly follows inheritance,
@@ -128,7 +147,7 @@ directly on top of Perl's native inheritance.
   
   compile;
   
-  $ Child.pm - Connect to an (optionally) authenticating service
+  # Child.pm - Connect to an (optionally) authenticating service
   package Child;
   
   use strict;
@@ -240,7 +259,7 @@ use constant SELF => HEAP;
 
 use vars qw{$VERSION @ISA @EXPORT %ATTR %EVENT %META};
 BEGIN {
-	$VERSION = '0.25';
+	$VERSION = '0.26';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ SELF declare compile };
 
@@ -269,26 +288,32 @@ sub import {
 	}
 	if ( defined @{"$callpkg\::ISA"} ) {
 		# Are we a subclass of an existing POE::Declare class
-		if ( $callpkg->isa('POE::Declare::Object') ) {
-			# Yes, don't set up anything, just do the exports
-			local $Exporter::ExportLevel += 1;
-			return $pkg->SUPER::import(@_);
+		unless ( $callpkg->isa('POE::Declare::Object') ) {
+			# This isn't a POE::Declare class
+			Carp::croak("$callpkg already exists, cannot use POE::Declare");
 		}
-
-		# This isn't a POE::Declare class
-		Carp::croak("$callpkg already exists, cannot use POE::Declare");
+	} else {
+		# Set @ISA for the package, which does most of the work
+		@{"$callpkg\::ISA"} = qw{ POE::Declare::Object };
 	}
-
-	# Set @ISA for the package, which does most of the work
-	@{"$callpkg\::ISA"} = qw{ POE::Declare::Object };
 
 	# Export the symbols
 	local $Exporter::ExportLevel += 1;
-	$pkg->SUPER::import(@_);
+	$pkg->SUPER::import();
 
 	# Make "use POE::Declare;" an implicit "use POE;" as well
 	eval "package $callpkg; use POE;";
 	die $@ if $@;
+
+	# If passed a HASH structure, treat them as a set of declare
+	# calls so that the slots can be defined quickly and in a single
+	# step during the load.
+	if ( Params::Util::_HASH($_[0]) ) {
+		my %declare = %{$_[0]};
+		foreach my $name ( sort keys %declare ) {
+			_declare( $callpkg, $name, $declare{$name} );
+		}
+	}
 
 	return 1;
 }

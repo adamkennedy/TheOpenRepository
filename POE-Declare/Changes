@@ -1,5 +1,13 @@
 Revision history for Perl extension POE-Declare
 
+0.26 Mon 19 Jul 2010
+	- Updating to Module::Install 1.00
+	- Added _finish event which clears all timeouts and removes the
+	  alias. Intended to be a common way to say "I'm done now".
+	- Added alternate compile-time hash usage for declarations.
+	- Corrected timeout_start bug where restarts were being done via
+	  non-existant method timeout_clear.
+
 0.25 Thu 27 May 2010
 	- Updating to Module::Install 0.97
 	- Updating Class::XSAccessor dependency to faster 1.05

@@ -46,7 +46,7 @@ use POE::Declare::Meta::Event ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.25';
+	$VERSION = '0.26';
 	@ISA     = 'POE::Declare::Meta::Event';
 }
 
@@ -70,8 +70,10 @@ sub _compile {
 sub ${name}_start {
 	my \$self = (\@_ == 1) ? \$_[0] : \$_[HEAP];
 	if ( \$self->{$name} ) {
-		# Clear any existing timer
-		\$self->${name}_clear;
+		# Clear the time if it exists
+		\$poe_kernel->alarm_remove(
+			delete \$self->{$name}
+		);
 	}
 	my \$timer = \$poe_kernel->delay_set(
 		$name => $delay
@@ -101,7 +103,7 @@ sub ${name}_restart {
 			Carp::croak('Tried to reset $name timeout in bad context');
 		} else {
 			# Something else
-			die('${name}_keepalive provided invalid params to delay_adjust');
+			die('${name}_restart provided invalid params to delay_adjust');
 		}
 	}
 

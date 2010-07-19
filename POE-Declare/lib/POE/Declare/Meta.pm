@@ -31,7 +31,7 @@ use Class::Inspector ();
 
 use vars qw{$VERSION $DEBUG};
 BEGIN {
-	$VERSION = '0.25';
+	$VERSION = '0.26';
 	$DEBUG   = !! $DEBUG;
 }
 
@@ -362,6 +362,26 @@ sub _messages {
 		return @{$self->{_messages}};
 	} else {
 		return $self->{_messages};
+	}
+}
+
+# Resolve the timeout list
+sub _timeouts {
+	my $self = shift;
+	unless ( exists $self->{_timeouts} ) {
+		# Cache for speed reasons
+		$self->{_timeouts} = [
+			sort map {
+				$_->name
+			} grep {
+				$_->isa('POE::Declare::Meta::Timeout')
+			} $self->attrs
+		];
+	}
+	if ( wantarray ) {
+		return @{$self->{_timeouts}};
+	} else {
+		return $self->{_timeouts};
 	}
 }
 

@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 
-# Validate that _stop fires when expected
+# Validate that _stop fires when expected.
+# Tests the use of _start and _restart in different contexts.
+# Validates that _finish behaves as expected.
 
 use strict;
 use warnings;
@@ -54,13 +56,22 @@ SCOPE: {
 
 	sub started : Event {
 		order( 3, 'Fired Foo::started' );
-		$_[SELF]->timer_start;
+		$_[SELF]->timer1_start;
+		$_[SELF]->timer1_start;
+		$_[SELF]->timer1_restart;
 	}
 
-	sub timer : Timeout(1) {
-		order( 4, 'Fired Foo::timer' );
-		$_[SELF]->timer_stop;
-		$_[SELF]->call('_alias_remove');
+	sub timer1 : Timeout(1) {
+		order( 4, 'Fired Foo::timer1' );
+		$_[SELF]->timer1_stop;
+		$_[SELF]->timer2_stop;
+		$_[SELF]->timer2_restart;
+		$_[SELF]->call('_finish');
+	}
+
+	sub timer2 : Timeout(2) {
+		# Should never be called
+		die "The timer2 event should never be fired";
 	}
 
 	sub _stop : Event {
@@ -73,27 +84,29 @@ SCOPE: {
 		$_[0]->SUPER::_alias_set(@_[1..$#_]);
 	}
 
-	sub _alias_remove : Event {
-		order( 5, 'Fired Foo::_alias_remove' );
-		$_[0]->SUPER::_alias_remove(@_[1..$#_]);
+	sub _finish : Event {
+		order( 5, 'Fired Foo::_finish' );
+		$_[0]->SUPER::_finish(@_[1..$#_]);
 	}
 
 	compile;
 }
 
-ok( Foo->can('timer'),         '->timer ok' );
-ok( Foo->can('timer_start'),   '->timer ok' );
-ok( Foo->can('timer_restart'), '->timer ok' );
-ok( Foo->can('timer_stop'),    '->timer ok' );
+ok( Foo->can('timer1'),         '->timer ok' );
+ok( Foo->can('timer1_start'),   '->timer ok' );
+ok( Foo->can('timer1_restart'), '->timer ok' );
+ok( Foo->can('timer1_stop'),    '->timer ok' );
 is_deeply(
 	[ Foo->meta->_package_states ],
 	[ qw{
 		_alias_remove
 		_alias_set
+		_finish
 		_start
 		_stop
 		started
-		timer
+		timer1
+		timer2
 	} ],
 	'->_package_states ok',
 );
