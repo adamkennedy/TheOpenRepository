@@ -34,7 +34,6 @@ $VERSION =~ s/_//ms;
 
 
 
-
 #####################################################################
 # Configuration
 
@@ -131,7 +130,7 @@ sub patch_include_path {
 
 	# Prepend it to the default include path
 	return [ $path,
-		@{ $self->SUPER::patch_include_path },
+		@{ $self->SUPER::patch_include_path() },
 	];
 }
 
@@ -804,8 +803,9 @@ sub install_satori_modules_9 {
 	
 	# More of web development (C::P::S::S::BDB and C::P::A::ACL requires 
 	# Test::WWW::Mech::Cat, and may need forced.)
+	# CPSS::BDB needs forced because if the temp directory is not clear, the tests break.
+	$self->install_module( name => 'Catalyst::Plugin::Session::Store::BerkeleyDB', force => 1, );
 	$self->install_modules( qw{
-		Catalyst::Plugin::Session::Store::BerkeleyDB
 		Catalyst::Plugin::Authorization::ACL
 		Catalyst::Component::InstancePerContext
 		Catalyst::Authentication::Store::DBIx::Class
@@ -1095,6 +1095,7 @@ sub install_other_modules_2 {
 	# Install some games.
 	$self->install_modules( qw{
 		Text::Patch
+		Tie::Simple
 	} ); # 1 (1)
 	
 	# Install the Alien::SDL module from a precompiled .par
@@ -1136,7 +1137,7 @@ sub install_chocolate_extras {
 	# Links to the Strawberry Perl website.
 	# Don't include this for non-Strawberry sub-classes
 	if ( ref($self) eq 'Perl::Dist::Chocolate' ) {
-		$self->patch_file( 'README.txt' => $self->image_dir(), { dist => $self } );
+		$self->patch_file( 'README.professional.txt' => $self->image_dir(), { dist => $self } );
 
 		$self->install_launcher(
 			name => 'Check installed versions of modules',
@@ -1218,7 +1219,7 @@ sub install_chocolate_extras {
 		bin  => 'perlcmd',
 	);
 
-	my $app_menu = $self->get_directory_object('D_App_Menu');
+	my $app_menu = $self->get_directory_tree()->get_directory_object('D_App_Menu');
 	$app_menu->add_directories_id('App_Menu_Games', 'Games in Perl');
 	
 	$self->install_launcher(
@@ -1245,7 +1246,7 @@ sub install_chocolate_extras {
 	$self->install_website(
 		name       => 'Catalyst Web Framework',
 		url        => 'http://www.catalystframework.org/',
-		icon_file  => catfile($dist_dir, 'chocolate.ico')
+		icon_file  => catfile($dist_dir, 'catalyst.ico')
 	);
 	
 	$self->install_website(
