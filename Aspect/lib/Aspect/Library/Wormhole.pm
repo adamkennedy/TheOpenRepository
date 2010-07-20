@@ -20,8 +20,7 @@ sub get_advice {
 			Aspect::Pointcut::Cflow->new( source => $_[0] ),
 		),
 		code => sub {
-			my $c = shift;
-			$c->append_param( $c->source->self );
+			$_->append_param( $_->source->self );
 		},
 	);
 }
@@ -57,10 +56,6 @@ Aspect::Library::Wormhole - A wormhole between call frames
   use Aspect::Library::Wormhole;
   aspect Wormhole => 'A::a', 'C::c';
   print ref A->new->a; # with aspect, prints A
-
-=head1 SUPER
-
-L<Aspect::Modular>
 
 =head1 DESCRIPTION
 

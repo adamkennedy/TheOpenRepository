@@ -35,12 +35,11 @@ sub get_advice {
 		lexical  => $self->lexical,
 		pointcut => $pointcut,
 		code     => sub {
-			local $_;
-
-			my $context    = shift;
+			my $context    = $_;
 			my $listenable = $context->self;
 			my %params     = %event_params;
 
+			local $_;
 			return unless has_listeners($listenable, $event_name);
 
 			my $always_fire = delete $params{__always_fire};
@@ -191,31 +190,40 @@ Aspect::Library::Listenable - Observer pattern with events
 
 =head1 SYNOPSIS
 
-  # the class that we will make listenable
+  # The class that we will make listenable
   package Point;
   
-
-  sub new   { bless {color => 'blue'}, shift }
-  sub erase { print 'erased!' }
+  sub new {
+     bless { color => 'blue' }, shift;
+  }
   
-  sub get_color { shift->{color} }
-  sub set_color { shift->{color} = pop }
+  sub erase {
+      print 'erased!';
+  }
   
+  sub get_color {
+      $_[0]->{color};
+  }
+  
+  sub set_color {
+      $_[0]->{color} = $_[1];
+  }
   
   package main;
+  
   use Aspect;
   use Aspect::Library::Listenable;
   
+  # Setup the simplest listenable relationship: a signal
   
-  # setup the simplest listenable relationship: a signal
+  # Define the aspect for the listenable relationship
+  aspect Listenable => ( Erase => call 'Point::erase' );
   
-  # define the aspect for the listenable relationship
-  aspect Listenable => (Erase => call 'Point::erase');
+  # Now add a listener
+  my $erase_listener = sub { print shift->as_string };
+  add_listener $point, Erase => $erase_listener;
   
-  # now add a listener
-  add_listener $point, Erase =>
-     my $erase_listener = sub { print shift->as_string };
-  
+  my $point = Point->new;
   $point->erase;
   # prints: "erased! name:Erase, source:Point"
   
@@ -223,8 +231,7 @@ Aspect::Library::Listenable - Observer pattern with events
   $point->erase;
   # prints: "erased!"
   
-  
-  # a more complex relationship: listeners get old and new color values
+  # A more complex relationship: listeners get old and new color values
   # and will only be notified if these values are not equal
   aspect Listenable =>
      (Color => call 'Point::set_color', color => 'get_color');
@@ -238,7 +245,6 @@ Aspect::Library::Listenable - Observer pattern with events
   $point->set_color('red'); # does not print anything, color unchanged
   
   remove_listener $point, Color => $color_listener;
-  
   
   # listeners can be callback, as above, or they can be objects
   
@@ -265,10 +271,6 @@ Aspect::Library::Listenable - Observer pattern with events
   $point->erase;
   # prints: "heard an erase event!"
   remove_listener $point, Color => $method_listener;
-
-=head1 SUPER
-
-L<Aspect::Modular>
 
 =head1 DESCRIPTION
 

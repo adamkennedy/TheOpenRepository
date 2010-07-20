@@ -75,10 +75,10 @@ sub _install {
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
 			local \$_ = bless {
-				type      => 'before',
-				sub_name  => \$name,
-				wantarray => \$wantarray,
-				params    => \\\@_,
+				type         => 'before',
+				sub_name     => \$name,
+				wantarray    => \$wantarray,
+				params       => \\\@_,
 				pointcut     => \$pointcut,
 				return_value => \$wantarray ? [ ] : undef,
 				original     => \$original,
@@ -131,3 +131,60 @@ END_PERL
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Aspect::Advice::Before - Execute code before a function is called
+
+=head1 SYNOPSIS
+
+  use Aspect;
+  
+  before {
+  
+      # Trace all calls to your module
+      print STDERR "Called my function " . $_->sub_name . "\n";
+  
+      # Shortcut calls to foo() to always be true
+      if ( $_->short_sub_name eq 'foo' ) {
+          $_->return_value(1);
+      }
+  
+  } call qr/^ MyModule::\w+ $/
+
+=head1 DESCRIPTION
+
+The C<before> advice type is used to execute advice code prior to entry
+into a target function. It is implemented by B<Aspect::Advice::Before>.
+
+As well as creating side effects that run before the main code, the
+C<before> advice type is particularly useful for changing parameters or
+shortcutting calls to functions entirely and replacing the value they
+would normally return with a different value.
+
+Please note that the C<highest> pointcut (L<Aspect::Pointcut::Highest>) is
+incompatible with C<before>. Creating a C<before> advice with a pointcut
+tree that contains a C<highest> pointcut will result in an exception.
+
+If speed is important to your program then C<before> is particular
+interesting as the C<before> implementation is the only one that can take
+advantage of tail calls via Perl's C<goto> function, where the rest of the
+advice types need the more costly L<Sub::Uplevel> to keep caller() returning
+correctly.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2010 Adam Kennedy.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

@@ -181,3 +181,55 @@ END_PERL
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Aspect::Advice::After - Execute code after a function is called
+
+=head1 SYNOPSIS
+
+  use Aspect;
+  
+  after {
+      # Trace all returning calls to your module
+      print STDERR "Called my function " . $_->sub_name . "\n";
+  
+      # Suppress exceptions AND alter the results to foo()
+      if ( $_->short_sub_name eq 'foo' ) {
+          $_->return_value(1) if $_->exception;
+          $_->return_value( $_->return_value + 1 );
+      }
+  
+  } call qr/^ MyModule::\w+ $/
+
+=head1 DESCRIPTION
+
+The C<after> advice type is used to execute code after a function is called,
+regardless of whether or not the function returned normally or returned an
+exception.
+
+The C<after> advice type should be used when you need to potentially make
+multiple different changes to the returned value or the thrown exception.
+
+If you only care about normally returned values you should use
+C<after_returning> (L<Aspect::Advice::AfterReturning>) instead.
+
+If you only care about handling exceptions you should use C<after_throwing>
+(L<Aspect::Advice::AfterThrowing>) instead.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2010 Adam Kennedy.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

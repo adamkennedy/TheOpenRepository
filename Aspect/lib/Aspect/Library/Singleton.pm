@@ -13,17 +13,19 @@ my %CACHE = ();
 
 sub get_advice {
 	my $self = shift;
-	Aspect::Advice::Before->new(
+	Aspect::Advice::Around->new(
 		lexical  => $self->lexical,
-		pointcut => Aspect::Pointcut::Call->new($_[0]),
+		pointcut => Aspect::Pointcut::Call->new(shift),
 		code     => sub {
-			my $context = shift;
-			my $class   = $context->self;
-			$class      = ref $class || $class;
+			my $class = $_->self;
+			$class    = ref $class || $class;
 			if ( exists $CACHE{$class} ) {
-				$context->return_value($CACHE{$class});
+				$_->return_value($CACHE{$class});
 			} else {
-				$CACHE{$class} = $context->run_original;
+				$_->run_original;
+				unless ( $_->exception ) {
+					$CACHE{$class} = $_->return_value;
+				}
 			}
 		},
 	);
@@ -41,6 +43,7 @@ Aspect::Library::Singleton - A singleton aspect
 
 =head1 SYNOPSIS
 
+  use Aspect;
   use Aspect::Singleton;
 
   aspect Singleton => 'Foo::new';
@@ -48,11 +51,7 @@ Aspect::Library::Singleton - A singleton aspect
   my $f1 = Foo->new;
   my $f2 = Foo->new;
 
-  # now $f1 and $f2 refer to the same object
-
-=head1 SUPER
-
-L<Aspect::Modular>
+  # Both $f1 and $f2 refer to the same object
 
 =head1 DESCRIPTION
 

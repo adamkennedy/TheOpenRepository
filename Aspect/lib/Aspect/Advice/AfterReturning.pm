@@ -150,3 +150,51 @@ END_PERL
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Aspect::Advice::AfterReturning - Execute code when a function returns
+without throwing an exception.
+
+=head1 SYNOPSIS
+
+  use Aspect;
+  
+  after_returning {
+      # Trace all normally returning calls to your module
+      print STDERR "Called my function " . $_->sub_name . "\n";
+  
+      # Throw an exception if foo() returns 'bar'
+      if ( $_->short_sub_name eq 'foo' and $_->return_value eq 'bar' ) {
+          $_->exception("Missing or invalid arguments to foo()");
+      }
+  
+  } call qr/^ MyModule::\w+ $/
+
+=head1 DESCRIPTION
+
+The C<after_returning> advice type is used to execute code after a function
+has returned, but C<WITHOUT> trapping exceptions (they will propogate
+upwards normally).
+
+As well as creating side effects that run after the main code, the
+C<after_returning> advice type is particularly useful for selectively
+altering the return value of a function or API-shifting functions which
+signal errors by returning C<undef> so they throw exceptions instead.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2010 Adam Kennedy.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

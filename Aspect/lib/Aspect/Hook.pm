@@ -17,10 +17,11 @@ Aspect::Hook - Holding area for internal generated code
 
 =head1 DESCRIPTION
 
-During the weaving process L<Aspect> can do a large amount of code generation
-and it is important that none of this accidentally pollutes the target packages.
+During the weaving process L<Aspect> needs do a large amount of code
+generation and it is important that this generated code is kept away from
+the target packages to prevent accidental collisions and other pollution.
 
-To prevent this, all of this generated code is produced in a dedicated and
+To prevent this, all of the generated code is produced in a dedicated and
 isolated namespace.
 
 B<Aspect::Hook> is the namespace in which this happens. Beyond this purpose,

@@ -69,10 +69,10 @@ sub _install {
 			# Apply any runtime-specific context checks
 			my \$wantarray = wantarray;
 			local \$_ = bless {
-				type      => 'around',
-				sub_name  => \$name,
-				wantarray => \$wantarray,
-				params    => \\\@_,
+				type         => 'around',
+				sub_name     => \$name,
+				wantarray    => \$wantarray,
+				params       => \\\@_,
 				return_value => \$wantarray ? [ ] : undef,
 				exception    => undef,
 				pointcut     => \$pointcut,
@@ -119,3 +119,62 @@ END_PERL
 }
 
 1;
+
+
+=pod
+
+=head1 NAME
+
+Aspect::Advice::Around - Execute code both before and after a function
+
+=head1 SYNOPSIS
+
+  use Aspect;
+  
+  around {
+      # Trace all calls to your module
+      print STDERR "Called my function " . $_->sub_name . "\n";
+  
+      # Lexically alter a global for this function
+      local $MyModule::MAXSIZE = 1000;
+  
+      # Continue and execute the function
+      $_->proceed;
+      
+      # Suppress exceptions for the call
+      $_->return_value(1) if $_->exception;
+  
+  } call qr/^ MyModule::\w+ $/
+
+=head1 DESCRIPTION
+
+The C<around> advice type is used to execute code on either side of a
+function, allowing deep and precise control of how the function will be
+called when none of the other advice types are good enough.
+
+Using C<around> advice is also critical if you want to lexically alter
+the environment in which the call will be made (as in the example above
+where a global variable is temporarily changed).
+
+This advice type is also the most computationally expensive to run, so if
+your problem can be solved with the use of a different advice type,
+particularly C<before>, you should use that instead.
+
+Please note that unlike the other advice types, your code in C<around> is
+required to trigger the execution of the target function yourself with the
+C<proceed> method. If you do not C<proceed> and also do not set either a
+C<return_value> or C<exception>, the function call will return C<undef>
+in scalar context or the null list C<()> in list context.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2010 Adam Kennedy.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

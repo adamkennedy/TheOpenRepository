@@ -211,53 +211,60 @@ Aspect - Aspect-Oriented Programming (AOP) for Perl
 
   package Person;
   
-  sub create      { ... }
+  sub create {
+      # ...
+  }
   
-  sub set_name    { ... }
+  sub set_name {
+      # ...
+  }
   
-  sub get_address { ... }
+  sub get_address {
+      # ...
+  }
   
   package main;
   
   use Aspect;
   
-  # Using reusable aspects
-  aspect Singleton => 'Person::create';        # let there be only one Person
-  aspect Profiler  => call qr/^Person::set_/;  # profile calls to setters
+  ### USING REUSABLE ASPECTS
   
-  # Append extra argument when Person::get_address is called:
-  # the instance of the calling Company object, iff get_address
-  # is in the call flow of Company::get_employee_addresses.
-  # aspect will live as long as $wormhole reference is in scope
-  $aspect = aspect Wormhole => 'Company::make_report', 'Person::get_address';
+  # There can only be one.
+  aspect Singleton => 'Person::create';
   
-  # Writing your own advice
-  $pointcut = call qr/^Person::[gs]et_/; # defines a collection of events
+  # Profile all setters to find any slow ones
+  aspect Profiler => call qr/^Person::set_/;  
+  
+  ### WRITING YOUR OWN ADVICE
+  
+  # Defines a collection of events
+  my $pointcut = call qr/^Person::[gs]et_/; 
   
   # Advice will live as long as $before is in scope
-  $before = before {
-      print "g/set will soon be called";
+  my $before = before {
+      print "g/set will soon be next";
   } $pointcut;
   
-  # Advice will live lexical, because it is created in void context 
+  # Advice will live forever, because it is created in void context 
   after {
       print "g/set has just been called";
   } $pointcut;
   
+  # Advice runs conditionally based on multiple factors
   before {
-      print "get will soon be called, if in call flow of Tester::run_tests";
+      print "get will be called next, and we are within Tester::run_tests";
   } call qr/^Person::get_/
   & cflow tester => 'Tester::run_tests';
   
-  # Conditionally hijack a method if some condition is true
+  # Complex condition hijack of a method if some condition is true
   around {
-      my $context = shift;
-      if ( $context->self->customer_name eq 'Adam Kennedy' ) {
-          $context->return_value('One meeeelion dollars');
+      if ( $_->self->customer_name eq 'Adam Kennedy' ) {
+          # Ensure I always have cash
+          $_->return_value('One meeeelion dollars');
       } else {
           # Take a dollar off everyone else
-          $context->run_original;
-          $context->return_value( $context->return_value - 1 );
+          $_->proceed;
+          $_->return_value( $_->return_value - 1 );
       }
   } call 'Bank::Account::balance';
 
@@ -272,12 +279,13 @@ type of behavior. Another is logging. See L<http://www.aosd.net> for
 more info.
 
 The Perl C<Aspect> module closely follows the terminology of the AspectJ
-project (L<http://eclipse.org/aspectj>). However due to the dynamic nature of
-the Perl language, several C<AspectJ> features are useless for us: exception
-softening, mixin support, out-of-class method declarations, and others.
+project (L<http://eclipse.org/aspectj>). However due to the dynamic nature
+of the Perl language, several C<AspectJ> features are useless for us:
+exception softening, mixin support, out-of-class method declarations, and
+others.
 
-The Perl C<Aspect> module is focused on subroutine matching and wrapping.  It
-allows you to select collections of subroutines using a flexible pointcut
+The Perl C<Aspect> module is focused on subroutine matching and wrapping.
+It allows you to select collections of subroutines using a flexible pointcut
 language, and modify their behavior in any way you want.
 
 =head2 Terminology
@@ -513,10 +521,20 @@ This allows you to neatly control enabling and disabling of advice:
 
   SCOPE: {
      my $advice = before { print "called!\n" } $pointcut;
+  
      # Do something while the device is enabled
   }
   
   # The advice is now disabled
+
+Please note that due to the internal mechanism used to achieve this lexical
+scoping, you may see a slight loss of memory and a slight slow down of the
+function, even after the advice has gone out of scope.
+
+Lexically creating and removing advice many times is recommended against,
+and doing so hundreds or thousands of times may result in significant
+memory consumption of performance loss for the functions matched by your
+pointcut.
 
 =head2 Aspects
 
@@ -628,7 +646,7 @@ Consider this advice:
 
   # Do not do this!
   before {
-      print shift->sub_name;
+      print $_->sub_name;
   } cflow company => 'MyApp::Company::make_report';
 
 The advice code will be installed on B<every> sub loaded. The advice code
@@ -640,7 +658,7 @@ solution is to narrow the pointcut:
 
   # Much better
   before {
-      print shift->sub_name;
+      print $_->sub_name;
   } call qr/^MyApp::/
   & cflow company => 'MyApp::Company::make_report';
 

@@ -175,3 +175,56 @@ END_PERL
 }
 
 1;
+
+__END__
+
+=pod
+
+=head1 NAME
+
+Aspect::Advice::AfterThrowing - Execute code when a function throws an
+exception
+
+=head1 SYNOPSIS
+
+  use Aspect;
+  
+  after_throwing {
+      # Trace all function calls that throw an exception
+      print STDERR "Called my function " . $_->sub_name . "\n";
+  
+      # Suppress stringwise "bar" errors from foo() and return true instead
+      if (
+          $_->short_sub_name eq 'foo'
+          and
+          ref $_->exception
+          and
+          $_->exception =~ /bar/
+      ) {
+          $_->return_value(1);
+      }
+  
+  } call qr/^ MyModule::\w+ $/
+
+=head1 DESCRIPTION
+
+The C<after_throwing> advice type is used to execute code when calls to a
+function result in it (or something within it) throwing an exception.
+
+The C<after_throwing> advice type can be useful for catching and
+suppressing exceptions like a kind of targetted try/catch mechanism,
+to enhance the information recorded in a exception object, or to apply
+additional logging or other side effects to the exception.
+
+=head1 AUTHORS
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2010 Adam Kennedy.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

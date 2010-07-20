@@ -14,6 +14,7 @@ sub get_advice {
 		lexical  => $self->lexical,
 		pointcut => $_[0],
 		code     => sub {
+			no warnings;
 			$DB::single = 1;
 		},
 	);
@@ -39,10 +40,6 @@ Aspect::Library::Breakpoint - A breakpoint aspect
   my $f2 = Foo->refresh_bar;
   
   # The debugger will go into single statement mode for both methods
-
-=head1 SUPER
-
-L<Aspect::Modular>
 
 =head1 DESCRIPTION
 
