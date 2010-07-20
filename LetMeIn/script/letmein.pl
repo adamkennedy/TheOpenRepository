@@ -46,6 +46,7 @@ unless ( $ENV{TEST_LETMEIN} ) {
 	unless ( $config ) {
 		error("Failed to load config file at $config_file");
 	}
+	$config->[0]->{config} = $config_file;
 
 	if ($config->[0]{use_module}) {
 		eval "require LetMeIn";
@@ -68,7 +69,9 @@ unless ( $ENV{TEST_LETMEIN} ) {
 	}
 
 	# Run the instance
-	my $rv = eval { $application->run };
+	my $rv = eval {
+		$application->run;
+	};
 	unless ( $rv ) {
 		error("Application instance failed to run: $@");
 	}

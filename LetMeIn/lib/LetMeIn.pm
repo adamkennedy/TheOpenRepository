@@ -98,6 +98,7 @@ server on localhost.
 use 5.005;
 use strict;
 use File::Spec           ();
+use File::Basename       ();
 use Scalar::Util         ();
 use YAML::Tiny           ();
 use CGI                  ();
@@ -153,16 +154,17 @@ sub new {
 	# Create the htpasswd shadow
 	unless ( $self->auth ) {
 		# Check for a htpasswd value
-		unless ( $self->htpasswd ) {
+		my $htpasswd = $self->htpasswd;
+		unless ( $htpasswd ) {
 			Carp::croak("No htpasswd file provided");
 		}
-		unless ( -r $self->htpasswd ) {
+		unless ( -r $htpasswd ) {
 			Carp::croak("No permission to read htpasswd file");
 		}
-		unless ( -w $self->htpasswd ) {
+		unless ( -w $htpasswd ) {
 			Carp::croak("No permission to write htpasswd file");
 		}
-		$self->{auth} = Authen::Htpasswd->new( $self->htpasswd );
+		$self->{auth} = Authen::Htpasswd->new( $htpasswd );
 	}
 	unless ( _INSTANCE($self->auth, 'Authen::Htpasswd') ) {
 		 Carp::croak("Failed to create htpasswd object");
@@ -175,7 +177,7 @@ sub new {
 	unless ( $self->mailer ) {
 		$self->{mailer} = Email::Send->new( {
 			mailer => $self->email_driver,
-			} );
+		} );
 	}
 	unless ( _INSTANCE($self->mailer, 'Email::Send') ) {
 		Carp::croak("Failed to create mailer");
@@ -310,7 +312,16 @@ sub args {
 }
 
 sub htpasswd {
-	$_[0]->config->[0]->{htpasswd};
+	if ( $_[0]->config->[0]->{htpasswd} ) {
+		return File::Spec->rel2abs(
+			$_[0]->config->[0]->{htpasswd},
+			File::Basename::dirname(
+				$_[0]->config->[0]->{config}
+			),
+		);
+	} else {
+		return undef;
+	}
 }
 
 sub email_from {
