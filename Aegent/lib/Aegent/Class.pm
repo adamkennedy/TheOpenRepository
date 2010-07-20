@@ -2,6 +2,7 @@ package Aegent::Class;
 
 use 5.008007;
 use strict;
+use Params::Util ();
 
 our $VERSION = '0.01';
 
@@ -16,12 +17,11 @@ use Moose;
 use Moose::Util::TypeConstraints ();
 
 Moose::Util::TypeConstraints::subtype(
-	AegentClass => (
-		as    => 'ClassName',
-		where => sub {
-			$_->isa('Aegent::Object')
-		},
-	)
+	'AegentClass',
+	Moose::Util::TypeConstraints::as 'ClassName',
+	Moose::Util::TypeConstraints::where {
+		Params::Util::_CLASSISA($_, 'Aegent::Object')
+	},
 );
 
 has name => (
