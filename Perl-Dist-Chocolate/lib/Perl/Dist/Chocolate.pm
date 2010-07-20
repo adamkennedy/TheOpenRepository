@@ -954,7 +954,7 @@ sub install_satori_modules_10 {
 		MooseX::POE
 	} ); # 2 (21)
 
-	# CHI and prereqs (being added in next version of Kensho)
+	# Scalability: CHI and prereqs (added in Task::Kensho 0.23)
 	$self->install_modules( qw{
 		Hash::MoreUtils
 		Log::Any
