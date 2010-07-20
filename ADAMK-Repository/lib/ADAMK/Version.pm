@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Perl::Version ();
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 our @ISA     = 'Perl::Version';
 
 sub clone {

@@ -12,7 +12,7 @@ use ADAMK::Repository ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 	@ISA     = 'ADAMK::Role::SVN';
 }
 

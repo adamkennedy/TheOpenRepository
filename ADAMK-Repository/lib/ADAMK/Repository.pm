@@ -58,7 +58,7 @@ use ADAMK::Distribution::Checkout ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 	@ISA     = qw{
 		ADAMK::Role::Trace
 		ADAMK::Role::File

@@ -15,7 +15,7 @@ use ADAMK::Repository ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 

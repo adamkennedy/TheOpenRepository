@@ -1,5 +1,8 @@
 Changes for Perl extension ADAMK-Repository
 
+0.12 Sun  3 Jan 2010
+	- Adding support for C:\cpan
+
 0.11 Thu 25 Jun 2009
 	- Add support for svn log
 	- Add svn log into "report_changed_versions" and "module" commands

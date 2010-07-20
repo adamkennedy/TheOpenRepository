@@ -8,7 +8,7 @@ use ADAMK::Shell ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.11';
+	$VERSION = '0.12';
 }
 
 
@@ -25,6 +25,7 @@ my $path = List::Util::first {
 	'F:\cpan',
 	'G:\cpan',
 	'D:\cpan',
+	'C:\cpan',
 	'/home/adam/cpan',
 ) or die "Failed to guess repository root";
 
