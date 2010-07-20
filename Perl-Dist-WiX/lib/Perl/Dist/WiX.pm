@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.200_101
+Perl-Dist-WiX version 1.200_102
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.200_101.
+This document describes Perl::Dist::WiX version 1.200_102.
 
 =for readme continue
 
@@ -151,7 +151,7 @@ use WiX3::XML::GeneratesGUID::Object        qw();
 use WiX3::Traceable                         qw();
 #>>>
 
-our $VERSION = '1.200_101';
+our $VERSION = '1.200_102';
 $VERSION =~ s/_//ms;
 
 
@@ -2202,6 +2202,16 @@ has '_portable_dist' => (
 	writer  => '_set_portable_dist',
 	default => undef,
 	init_arg => undef,                 # Cannot set this parameter in new().
+);
+
+
+
+has '_use_sqlite' => (
+	is       => 'ro',
+	isa      => Bool,
+	init_arg => undef,
+	lazy     => 1,
+	builder  => sub { my $self = shift; return (defined $self->msm_to_use()) ? 1 : 0; },
 );
 
 

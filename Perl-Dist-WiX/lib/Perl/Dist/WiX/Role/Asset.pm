@@ -8,7 +8,7 @@ Perl::Dist::WiX::Role::Asset - Role for assets.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Role::Asset version 1.200.
+This document describes Perl::Dist::WiX::Role::Asset version 1.200_102.
 
 =head1 SYNOPSIS
 
@@ -38,7 +38,7 @@ require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_102';
 $VERSION =~ s/_//ms;
 
 =head1 ATTRIBUTES
@@ -97,6 +97,7 @@ has parent => (
 		'_relocatable'      => 'relocatable',
 		'_force'            => 'force',
 		'_forceperl'        => 'forceperl',
+		'_use_sqlite'       => '_use_sqlite',
 		'_add_to_distributions_installed' =>
 		  '_add_to_distributions_installed',
 	},

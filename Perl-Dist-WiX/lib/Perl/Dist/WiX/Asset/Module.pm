@@ -6,7 +6,7 @@ Perl::Dist::WiX::Asset::Module - Module asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Module version 1.200.
+This document describes Perl::Dist::WiX::Asset::Module version 1.200_102.
 
 =head1 SYNOPSIS
 
@@ -34,7 +34,7 @@ require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_102';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';
@@ -159,6 +159,7 @@ sub install {
 	my $force         = $self->_get_force();
 	my $assume        = $self->_get_assume();
 	my $packlist_flag = $self->_get_packlist();
+	my $use_sqlite    = $self->_use_sqlite();
 	my $vendor =
 	    !$self->_get_parent()->portable()                    ? 1
 	  : ( $self->_get_parent()->perl_major_version() >= 12 ) ? 1
@@ -180,7 +181,7 @@ print "Loading CPAN...\\n";
 use CPAN;
 CPAN::HandleConfig->load unless \$CPAN::Config_loaded++;
 \$CPAN::Config->{'urllist'} = [ '$url' ];
-\$CPAN::Config->{'use_sqlite'} = q[0];
+\$CPAN::Config->{'use_sqlite'} = q[$use_sqlite];
 \$CPAN::Config->{'prefs_dir'} = q[$dp_dir];
 \$CPAN::Config->{'patches_dir'} = q[$dp_dir];
 \$CPAN::Config->{'prerequisites_policy'} = q[ignore];
