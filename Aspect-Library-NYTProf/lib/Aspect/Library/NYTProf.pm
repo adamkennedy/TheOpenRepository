@@ -6,19 +6,22 @@ use warnings;
 use Aspect::Modular 0.40 ();
 use Devel::NYTProf  3.01 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our @ISA     = 'Aspect::Modular';
-
-my $DEPTH = 0;
+our $DEPTH   = 0;
 
 sub get_advice {
 	Aspect::Advice::Around->new(
 		lexical  => $_[0]->lexical,
 		pointcut => $_[1],
 		code     => sub {
-			DB::enable_profile() unless $DEPTH++;
+			if ( not $DEPTH++ ) {
+				DB::enable_profile();
+			}
 			$_[0]->run_original;
-			DB::disable_profile() unless --$DEPTH;
+			if ( not --$DEPTH ) {
+				DB::disable_profile();
+			}
 		},
 	);
 }
