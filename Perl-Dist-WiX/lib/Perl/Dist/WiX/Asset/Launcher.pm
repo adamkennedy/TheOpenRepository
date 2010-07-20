@@ -185,26 +185,33 @@ sub _get_icon_file {
 	my $self = shift;
 	my $name = shift;
 
-	my ($dir, $file);
-	
+	my ( $dir, $file );
+
 	# Start with the parent reference contained in this asset.
 	my $class = ref $self->_get_parent();
-	
-	no strict 'refs';
-	while (defined $class and $class ne 'Moose::Object') {
+
+	no strict 'refs'; ## no critic(ProhibitNoStrict)
+	while ( defined $class and $class ne 'Moose::Object' ) {
+
 		# Get the directory of this class's dist_dir and check for the icon.
 		$dir = $class->dist_dir();
-		$file = catfile($dir, "$name.ico");
-		if (-f $file) {
+		$file = catfile( $dir, "$name.ico" );
+		if ( -f $file ) {
 			return $file;
 		}
+
 		# Pick up the first parent of the class, and try again.
 		$class = ${"${class}::ISA"}[0];
-	}
+	} ## end while ( defined $class and...)
 
-	PDWiX::File->throw(message => 'File not found.', file => "$name.ico");
-	
-}
+	PDWiX::File->throw(
+		message => 'File not found.',
+		file    => "$name.ico"
+	);
+
+	return;
+
+} ## end sub _get_icon_file
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

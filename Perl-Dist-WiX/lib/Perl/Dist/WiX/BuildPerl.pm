@@ -66,8 +66,8 @@ Readonly my %CORE_PACKLIST_FIX => (
 	'Pod::Man'           => 'Pod',
 );
 
-# List of modules to delay building until last when upgrading all CPAN 
-# modules (they depend on upgraded versions of modules that originally 
+# List of modules to delay building until last when upgrading all CPAN
+# modules (they depend on upgraded versions of modules that originally
 # were upgraded after them.)
 Readonly my @MODULE_DELAY => qw(
   CPANPLUS::Dist::Build
@@ -555,7 +555,7 @@ sub _create_perl_toolchain {
 	# fails early if there's a problem
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $force = {};
-	if ($self->perl_version =~ m/512/) {
+	if ( $self->perl_version =~ m/\A512/ms ) {
 		$force = { 'Pod::Text' => 'RRA/podlators-2.3.1.tar.gz' };
 	}
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(

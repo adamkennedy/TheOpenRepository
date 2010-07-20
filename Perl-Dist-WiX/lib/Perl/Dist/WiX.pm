@@ -3602,7 +3602,7 @@ Returns a directory as a string or throws an exception on error.
 =cut
 
 sub dist_dir {
-	return File::ShareDir::dist_dir('Perl-Dist-WiX')
+	return File::ShareDir::dist_dir('Perl-Dist-WiX');
 }
 
 

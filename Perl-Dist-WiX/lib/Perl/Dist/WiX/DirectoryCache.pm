@@ -60,7 +60,7 @@ has _cache => (
 		'_get_cache_entry'    => 'get',
 		'_exists_cache_entry' => 'exists',
 		'_delete_cache_entry' => 'delete',
-		'clear_cache'        => 'clear',
+		'clear_cache'         => 'clear',
 	},
 );
 

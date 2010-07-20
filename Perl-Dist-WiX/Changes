@@ -1,6 +1,6 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.200_101   Xxx xx Jul 2010
+1.200_101   Mon 19 Jul 2010
     1. Used to build Strawberry Perl July 2010 Beta 2.
     2. Cache exact directory tree searches for a speedup.
 
