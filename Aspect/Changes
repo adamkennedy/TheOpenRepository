@@ -1,5 +1,8 @@
 Revision history for Perl extension Aspect
 
+0.91 to be released
+	- Updating to Module::Install::DSL 1.00
+
 0.90 Thu 27 May 2010
 	- Updating to Module::Install::DSL 0.97
 	- Upgraded the old method-based match_run run-time context testing

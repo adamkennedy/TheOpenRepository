@@ -31,7 +31,7 @@ use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
 use Aspect::AdviceContext          ();
 
-our $VERSION = '0.90';
+our $VERSION = '0.91';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
