@@ -49,12 +49,9 @@ use JSAN::Client     ();
 use JSON             ();
 
 our $VERSION = '2.04';
-    $VERSION = eval $VERSION;
 
 # Locate the starting mirror.json
-use constant MIRROR_INIT => File::ShareDir::dist_dir(
-	'JSAN-Shell'
-);
+use constant MIRROR_INIT => File::ShareDir::dist_dir('JSAN-Shell');
 
 
 
