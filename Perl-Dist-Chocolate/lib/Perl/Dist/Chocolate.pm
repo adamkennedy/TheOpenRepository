@@ -92,6 +92,11 @@ sub new {
 		# Trace level.
 		trace => 1,
 
+		# Text on the exit screen
+		msi_exit_text        => <<'EOT',
+Before you start using Strawberry Perl Professional, read the Release Notes and the README file.  These are both available from the start menu under "Strawberry Perl Professional".
+EOT
+		
 		# These are the locations to pull down the msm.
 		msm_to_use => 'http://strawberryperl.com/download/5.10.1.3/strawberry-perl-5.10.1.3-beta-2.msm',
 		msm_zip    => 'http://strawberryperl.com/download/5.10.1.3/strawberry-perl-5.10.1.3-beta-2.zip',
@@ -1219,6 +1224,11 @@ sub install_chocolate_extras {
 		bin  => 'perlcmd',
 	);
 
+	$self->install_launcher(
+		name => 'Devel-REPL Shell',
+		bin  => 're',
+	);
+	
 	my $app_menu = $self->get_directory_tree()->get_directory_object('D_App_Menu');
 	$app_menu->add_directories_id('App_Menu_Games', 'Games in Perl');
 	
@@ -1231,17 +1241,6 @@ sub install_chocolate_extras {
 	my $chocolate_icon_id =
 	  $self->_icons()
 	  ->add_icon( catfile( $dist_dir, 'chocolate.ico' ), 'perl.exe' );
-
-	$self->get_fragment_object('StartMenuIcons')->add_shortcut(
-		name         => 'Devel-REPL Shell',
-		description  => 'Perl Shell using Devel::REPL',
-		target       => "[D_$dir_id]perl.exe",
-		arguments    => '-MDevel::REPL::Script -e run',
-		id           => 'Devel_REPL',
-		working_dir  => $dir_id,
-		icon_id      => $chocolate_icon_id,
-		directory_id => 'D_App_Menu_Tools'
-	);
 	
 	$self->install_website(
 		name       => 'Catalyst Web Framework',
