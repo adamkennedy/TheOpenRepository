@@ -1,3 +1,0 @@
-%typemap{std::istream};
-%typemap{const std::vector<Vec>};
-

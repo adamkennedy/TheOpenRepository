@@ -3,12 +3,16 @@
 %module{Math::ThinPlateSpline};
 %package{Math::ThinPlateSpline};
 
+%typemap{std::istream};
+%typemap{const std::vector<Vec>};
+%typemap{std::vector<Vec>};
+
 %{
 #include <myinit.h>
 
-std::vector< Vec >*
+std::vector< Vec >
 typemap_test_function(foo)
-    std::vector< Vec >* foo
+    std::vector< Vec > foo
   CODE:
     RETVAL = foo;
   OUTPUT: RETVAL
@@ -18,8 +22,7 @@ typemap_test_function(foo)
 %name{Math::ThinPlateSpline}
 class ThinPlateSpline
 {
-  %name{new} ThinPlateSpline(const std::vector<Vec>& controlPoints, double regularization = 0.)
-    %cleanup{%delete controlPoints;%}; // FIXME This must not be necessary...
+  %name{new} ThinPlateSpline(std::vector<Vec> controlPoints, double regularization = 0.);
 
   %name{newFromString} ThinPlateSpline(std::istream& input);
   ~ThinPlateSpline();
