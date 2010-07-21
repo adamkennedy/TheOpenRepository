@@ -31,7 +31,7 @@ use Aspect::Advice::AfterReturning ();
 use Aspect::Advice::AfterThrowing  ();
 use Aspect::AdviceContext          ();
 
-our $VERSION = '0.91';
+our $VERSION = '0.92';
 
 # Track the location of exported functions so that pointcuts
 # can avoid accidentally binding them.
@@ -770,7 +770,7 @@ See L<perlmodinstall> for information and options on installing Perl modules.
 
 The latest version of this module is available from the Comprehensive Perl
 Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see L<http://search.cpan.org/perldoc?Aspsect.pm>.
+site near you. Or see L<http://search.cpan.org/perldoc?Aspect.pm>.
 
 =head1 AUTHORS
 

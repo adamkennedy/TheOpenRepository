@@ -12,7 +12,7 @@ use Aspect::Modular                    ();
 use Aspect::Advice::Before             ();
 use Aspect::Library::Listenable::Event ();
 
-our $VERSION = '0.91';
+our $VERSION = '0.92';
 our @ISA     = 'Aspect::Modular';
 
 sub import {

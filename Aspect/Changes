@@ -1,6 +1,9 @@
 Revision history for Perl extension Aspect
 
-0.91 to be released
+0.92 Wed 21 Jul 2010
+	- Correcting bad link to search.cpan
+
+0.91 Tue 20 Jul 2010
 	- Updating to Module::Install::DSL 1.00
 	- The bundled libraries now use the new $_ mechanism to use the
 	  point context object.

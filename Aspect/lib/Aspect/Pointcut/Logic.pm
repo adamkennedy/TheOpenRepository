@@ -5,7 +5,7 @@ package Aspect::Pointcut::Logic;
 use strict;
 use warnings;
 
-our $VERSION = '0.91';
+our $VERSION = '0.92';
 
 sub match_runtime {
 	return 0;

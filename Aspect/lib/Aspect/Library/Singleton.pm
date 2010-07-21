@@ -6,7 +6,7 @@ use Aspect::Modular        ();
 use Aspect::Advice::Before ();
 use Aspect::Pointcut::Call ();
 
-our $VERSION = '0.91';
+our $VERSION = '0.92';
 our @ISA     = 'Aspect::Modular';
 
 my %CACHE = ();
@@ -45,12 +45,12 @@ Aspect::Library::Singleton - A singleton aspect
 
   use Aspect;
   use Aspect::Singleton;
-
+  
   aspect Singleton => 'Foo::new';
-
+  
   my $f1 = Foo->new;
   my $f2 = Foo->new;
-
+  
   # Both $f1 and $f2 refer to the same object
 
 =head1 DESCRIPTION
