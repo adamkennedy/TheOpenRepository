@@ -7,7 +7,7 @@ use Math::ThinPlateSpline;
 pass();
 
 SCOPE: {
-  my $tps = Math::ThinPlateSpline->newFromString(<<'HERE');
+  my $tps = Math::ThinPlateSpline->new_from_string(<<'HERE');
   0.0000000000000000
   4
   1.0000000000000000 2.0000000000000000 3.0000000000000000 4.0000000000000000 3.0000000000000000 2.0000000000000000 6.0000000000000000 8.0000000000000000 7.0000000000000000 0.0000000000000000 2.0000000000000000 1.0000000000000000
@@ -24,8 +24,8 @@ HERE
 
 SCOPE: {
   my $tps;
-  eval { $tps = Math::ThinPlateSpline->newFromString("blah"); };
-  ok($@ && !defined($tps), "newFromString(bollocks) fails gracefully" . ($@?"(Error: $@)":""));
+  eval { $tps = Math::ThinPlateSpline->new_from_string("blah"); };
+  ok($@ && !defined($tps), "new_from_string(bollocks) fails gracefully" . ($@?"(Error: $@)":""));
 }
 
 pass(); # still alive
