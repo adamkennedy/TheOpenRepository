@@ -1,5 +1,6 @@
 use inc::Module::Install::DSL 1.00;
 
+abstract      Prebuilt timing, profiling and benchmarking aspects
 all_from      lib/Aspect/Library/Timer.pm
 requires_from lib/Aspect/Library/Timer.pm
 requires      Params::Util 1.00
