@@ -88,7 +88,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
-L<Aspect>
+L<Aspect>, L<Aspect::Library::ZoneTimer>
 
 =head1 COPYRIGHT
 
