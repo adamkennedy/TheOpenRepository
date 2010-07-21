@@ -1,5 +1,8 @@
 Changes for Perl extension Aspect-Library-Timer
 
+0.04 Thu 22 Jul 2010
+	- Downgrading to Module::Install 1.00 to get a working abstract
+
 0.03 Wed 21 Jul 2010
 	- Upgrading to Module::Install::DSL 1.00
 	- Adding a new timer aspect Aspect::Library::ZoneTimer

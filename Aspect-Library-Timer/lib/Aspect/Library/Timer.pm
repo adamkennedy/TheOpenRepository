@@ -8,7 +8,7 @@ use Time::HiRes   1.9718 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 	@ISA     = 'Aspect::Modular';
 }
 
