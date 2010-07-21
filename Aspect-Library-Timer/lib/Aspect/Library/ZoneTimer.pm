@@ -1,11 +1,11 @@
-package Aspect::Library::TimerStack;
+package Aspect::Library::ZoneTimer;
 
 use 5.008002;
 use strict;
 use warnings;
 use Carp                          ();
 use Params::Util             1.00 ();
-use Aspect::Modular          0.38 ();
+use Aspect::Modular          0.90 ();
 use Aspect::Advice::Around   0.90 ();
 use Time::HiRes            1.9718 ();
 
@@ -110,14 +110,14 @@ __END__
 
 =head1 NAME
 
-Aspect::Library::TimerStack - Generate named time cost breakdowns
+Aspect::Library::ZoneTimer - Generate named time cost breakdowns
 
 =head1 SYNOPSIS
 
   use Aspect;
-  use Aspect::Library::TimerStack;
+  use Aspect::Library::ZoneTimer;
   
-  aspect( 'TimerStack',
+  aspect( 'ZoneTimer',
       zones => {
           main     => call 'MyProgram::main',
           parsing  => call 'PPI::Document::new',
@@ -134,11 +134,11 @@ While a full profiler like L<Devel::NYTProf> is great for development and
 analysis, it is generally far too slow and generates too much data to run
 it on a production machine.
 
-B<Aspect::Library::TimerStack> is designed to provide some of the same
+B<Aspect::Library::ZoneTimer> is designed to provide some of the same
 benefits of a regular profiler, but in a way that can be deployed onto
 one or many production servers.
 
-The B<TimerStack> aspect lets you break up your program into a series of
+The B<ZoneTimer> aspect lets you break up your program into a series of
 named "zones" based on the areas in which you expect your program will
 expend the most wallclock time.
 
@@ -151,7 +151,7 @@ work.
 Each zone is defined by a L<Aspect::Pointcut|pointcut> that identifies the
 key functions that serve as entry points for that area of the program.
 
-As your program executes, the B<TimerStack> will watch at these zone entry
+As your program executes, the B<ZoneTimer> will watch at these zone entry
 points, and track the progress of your program as it moves between the
 different zones.
 
