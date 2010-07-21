@@ -3,12 +3,12 @@ package Aspect::Library::Timer;
 use 5.008002;
 use strict;
 use warnings;
-use Aspect::Modular 0.38 ();
+use Aspect::Modular 0.90 ();
 use Time::HiRes   1.9718 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 	@ISA     = 'Aspect::Modular';
 }
 
@@ -22,12 +22,12 @@ sub get_advice {
 		code     => sub {
 			# Capture the time
 			my @start = Time::HiRes::gettimeofday();
-			$_[0]->run_original;
+			$_->run_original;
 			my @stop  = Time::HiRes::gettimeofday();
 
 			# Process the time
 			$handler->(
-				$_[0]->sub_name,
+				$_->sub_name,
 				\@start,
 				\@stop,
 				Time::HiRes::tv_interval(
