@@ -12,7 +12,7 @@ use Aspect;
 # Set up the aspect
 my @TIMING = ();
 
-aspect( 'TimerStack',
+aspect TimerStack => (
 	zones => {
 		foo => call 'Foo::foo',
 		bar => call 'Foo::bar',
