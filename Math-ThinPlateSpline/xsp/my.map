@@ -1,11 +1,10 @@
 ThinPlateSpline*	O_OBJECT
 std::vector< Vec >*		T_VECTORVEC
-std::istream*		T_ISTREAM
-const double		T_NV
+std::istream*		T_ISTREAM_FROM_STRING
 
 INPUT
 
-T_ISTREAM
+T_ISTREAM_FROM_STRING
 	$var = new std::istringstream(SvPV_nolen($arg))
 
 T_VECTORVEC
