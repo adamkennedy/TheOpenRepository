@@ -1,5 +1,10 @@
 Changes for Perl extension Aspect-Library-Timer
 
+1.05 Thu 22 Jul 2010
+	- Everything looks good, switching to a production version.
+	- All totals are now calculated and reported in integer
+	  microseconds to prevent floating point corruption.
+
 0.04 Thu 22 Jul 2010
 	- Downgrading to Module::Install 1.00 to get a working abstract
 

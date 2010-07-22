@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Aspect;
 
 # Set up the aspect
@@ -33,6 +33,11 @@ is( ref($TIMING[0]->[2]), 'ARRAY', 'Third param is an ARRAY' );
 is( ref($TIMING[0]->[3]), 'HASH',  'Fourth param is a HASH' );
 is( keys(%{$TIMING[0]->[3]}), 1, 'First entry has a single key' );
 is( keys(%{$TIMING[1]->[3]}), 2, 'Second entry has two keys' );
+like(
+	$TIMING[0]->[3]->{bar},
+	qr/^\d{6,7}$/,
+	'Totals appear to be calculated in integer microseconds',
+);
 
 package Foo;
 

@@ -11,7 +11,7 @@ use Time::HiRes            1.9718 ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.04';
+	$VERSION = '1.05';
 	@ISA     = 'Aspect::Modular';
 }
 
@@ -50,23 +50,26 @@ sub get_advice {
 
 				# Execute the function and capture timing
 				push @STACK, [ $zone, { } ];
-				my @start    = Time::HiRes::gettimeofday();
+				my @start = Time::HiRes::gettimeofday();
 				$_->run_original;
-				my @stop     = Time::HiRes::gettimeofday();
-				my $frame    = pop @STACK;
-				my $children = $frame->[1];
-				my $interval = Time::HiRes::tv_interval(
-					\@start, \@stop,
-				);
+				my @stop  = Time::HiRes::gettimeofday();
+				my $frame = pop @STACK;
+				my $total = $frame->[1];
+
+				# Use our own interval math, generating a value
+				# in integer microseconds, to avoid potential
+				# floating point bugs in Time::HiRes::tv_interval.
+				my $interval = ( $stop[0]  * 1000000 + $stop[1]  )
+				             - ( $start[0] * 1000000 + $start[1] );
 
 				if ( @STACK ) {
 					# Calculate the exclusive time for the
 					# current stack frame and merge up to 
-					# the inclusive totals in our parent.
+					# the totals already in our parent.
 					my $parent = $STACK[-1]->[1];
-					foreach my $child ( keys %$children ) {
-						$interval -= $children->{$child};
-						$parent->{$child} += $children->{child};
+					foreach my $z ( keys %$total ) {
+						$interval -= $total->{$z};
+						$parent->{$z} += $total->{child};
 					}
 					$parent->{$zone} += $interval;
 
@@ -74,10 +77,10 @@ sub get_advice {
 					# Calculate the exclusive time for the current
 					# zone and add it to any reentered zone
 					# beneath us.
-					foreach my $child ( keys %$children ) {
-						$interval -= $children->{$child};
+					foreach my $z ( keys %$total ) {
+						$interval -= $total->{$z};
 					}
-					$children->{$zone} += $interval;
+					$total->{$zone} += $interval;
 
 					# Send the report to the handler, including
 					# our start and stop times in case they are
@@ -88,7 +91,7 @@ sub get_advice {
 							$zone,
 							\@start,
 							\@stop,
-							$children,
+							$total,
 						);
 					};
 					$DISABLE--;
@@ -98,7 +101,6 @@ sub get_advice {
 		);
 	}
 
-	# Return the completed list of advice
 	return @advice;
 }
 
@@ -117,15 +119,36 @@ Aspect::Library::ZoneTimer - Generate named time cost breakdowns
   use Aspect;
   use Aspect::Library::ZoneTimer;
   
+  use Aspect;
+  
   aspect ZoneTimer => (
       zones => {
-          main     => call 'MyProgram::main',
-          parsing  => call 'PPI::Document::new',
-          database => call qr/^DB[DI]::.*?\b(?:prepare|execute|fetch.*)$/,
+          main      => call 'MyProgram::main' & highest,
+          search    => call 'MyProgram::search',
+          widgets   => call qr/^MyProgram::widget_.*/,
+          templates => call 'MyProgram::render',
+          dbi       => call qr/^DB[DI]::.*?\b(?:prepare|execute|fetch.*)$/,
+          system    => (
+              call qr/^IPC::System::Simple::(?:run|runx|capture)/
+              |
+              call 'IPC::Run3::run3'
+              |
+              call qr/^Capture::Tiny::(?:capture|tee).*/
+          )
       },
       handler => sub {
-          # Print the results, or send to syslog
-      }
+          my $top       = shift; # "main"
+          my $start     = shift; # [ 1279763446, 796875 ]
+          my $stop      = shift; # [ 1279763473, 163153 ]
+          my $exclusive = shift; # { main => 23123412, dbi => 3231231 }
+   
+          print "Profiling from zone $top\n";
+          print "Started recording at " . scalar(localtime $start->[0]) . "\n";
+          print "Stopped recording at " . scalar(localtime $stop->[0])  . "\n";
+          foreach my $zone ( sort keys %$exclusive ) {
+              print "Spent $exclusive->{$zone} microseconds in zone $zone\n";
+          }
+      },
   );
 
 =head1 DESCRIPTION
@@ -159,6 +182,20 @@ The wallclock time for the execution is tallied up both inclusive and
 exclusive for each zone, and when the top-most zone exits the results are
 handed off to a handler callback so you can write the times to disk,
 save them to a database, or send them to a local or remote syslog.
+
+For maximum accuracy, the start/stop times and the exclusive totals are
+provided in two different formats.
+
+Start and stop times are provided as a reference to a two-element C<ARRAY>
+exactly as returned by L<Time::HiRes|Time::HiRes::gettimeofday()>.
+
+The profile totals are provided as a reference to a C<HASH> where the keys
+are the zone names, and the values are the exclusive wallclock time for the
+zone in microseconds.
+
+All timer math is done internally with these integer microseconds to prevent
+floating point bugs creeping into the results, and ZoneTimer will avoid
+manipulating these 
 
 =head1 SUPPORT
 
