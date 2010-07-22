@@ -830,7 +830,15 @@ sub install_satori_modules_9 {
 		IO::CaptureOutput
 		Net::SMTP::SSL
 		File::Find::Rule::Perl
-		Perl::MinimumVersion
+	} );
+	# Hard-coding to 1.26 for now. 
+	# The minicpan has it, but it wasn't in the indexes yet.
+	$self->install_distribution(
+		name             => 'ADAMK/Perl-MinimumVersion-1.26.tar.gz',
+		mod_name         => 'Perl::MinimumVersion',
+		makefilepl_param => [ 'INSTALLDIRS=vendor', ],
+	);
+	$self->install_modules( qw{
 		Test::MinimumVersion
 		Date::Format
 		Mail::Address
@@ -1238,10 +1246,6 @@ sub install_chocolate_extras {
 		bin          => 'frozen-bubble',
 		directory_id => 'D_App_Menu_Games',
 	);
-
-	my $chocolate_icon_id =
-	  $self->_icons()
-	  ->add_icon( catfile( $dist_dir, 'chocolate.ico' ), 'perl.exe' );
 	
 	$self->install_website(
 		name       => 'Catalyst Web Framework',
