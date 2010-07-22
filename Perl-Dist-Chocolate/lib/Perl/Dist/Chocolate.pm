@@ -96,7 +96,7 @@ sub new {
 		msi_exit_text        => <<'EOT',
 Before you start using Strawberry Perl Professional, read the Release Notes and the README file.  These are both available from the start menu under "Strawberry Perl Professional".
 EOT
-		msi_install_warning_text => q{"NOTE: This version of Strawberry Perl Professional can only be installed to C:\strawberry\. If this is a problem, please download Strawberry Perl from http://strawberryperl.com/."},
+		msi_install_warning_text => q{NOTE: This version of Strawberry Perl Professional can only be installed to C:\strawberry\. If this is a problem, please download Strawberry Perl from http://strawberryperl.com/.},
 		
 		# These are the locations to pull down the msm.
 		msm_to_use => 'http://strawberryperl.com/download/5.10.1.3/strawberry-perl-5.10.1.3-beta-2.msm',
