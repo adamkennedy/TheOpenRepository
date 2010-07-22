@@ -574,6 +574,7 @@ sub install_satori_modules_5 {
 		Data::Page
 		Class::C3::Componentised
 		Module::Find
+		Devel::ArgNames
 		Data::Dumper::Concise
 		Math::Base36
 		DBIx::Class
