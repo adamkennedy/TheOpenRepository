@@ -2259,11 +2259,13 @@ sub run {
 		$task_number++;
 	}
 
+	my $time_string = scalar localtime;
+	
 	# Finished
 	$self->trace_line( 0,
 		    'Distribution generation completed in '
 		  . ( time - $start )
-		  . " seconds\n" );
+		  . " seconds (${time_string})\n" );
 	foreach my $file ( $self->get_output_files ) {
 		$self->trace_line( 0, "Created distribution $file\n" );
 	}
