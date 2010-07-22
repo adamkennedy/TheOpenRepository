@@ -33,7 +33,7 @@ require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
-our $VERSION = '1.200';
+our $VERSION = '1.200_102';
 $VERSION =~ s/_//sm;
 
 
@@ -90,6 +90,7 @@ has parent => (
 		'_patch_file'       => 'patch_file',
 		'_build'            => 'execute_build',
 		'_make'             => 'execute_make',
+		'_use_sqlite'       => '_use_sqlite',
 		'_add_to_distributions_installed' =>
 		  '_add_to_distributions_installed',
 	},

@@ -2211,7 +2211,7 @@ has '_use_sqlite' => (
 	isa      => Bool,
 	init_arg => undef,
 	lazy     => 1,
-	builder  => sub { my $self = shift; return (defined $self->msm_to_use()) ? 1 : 0; },
+	default  => sub { my $self = shift; return (defined $self->msm_to_use()) ? 1 : 0; },
 );
 
 
