@@ -76,6 +76,7 @@ sub new {
 			'create_professional_distribution_list',
 			'regenerate_fragments',
 			'write',
+			'create_release_notes',
 		],
 
 		# Build msi and zip versions.
@@ -1016,7 +1017,7 @@ sub install_other_modules_1 {
 	} ); # 1 (6 - 2)
 	
 	# BioPerl and as many of its optionals as possible.
-	# GraphViz is a known problem - Beta 2?	
+	# GraphViz is a known problem - Alpha 3?	
 	$self->install_modules( qw{
 		Data::Stag
 		Ace
