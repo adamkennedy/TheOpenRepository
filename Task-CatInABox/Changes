@@ -1,4 +1,5 @@
 Changes for Perl extension Task-CatInABox
+        - Correct name for DBIx::Class::Timestamp
 
 0.03 Wed 22 Apr 2009
 	- Incremental release to tie up some Kwalitee loose ends

@@ -41,7 +41,7 @@ L<DBIx::Class::EncodedColumn>
 
 =item *
 
-L<DBIx::Class::Timestamp>
+L<DBIx::Class::TimeStamp>
 
 =item *
 
