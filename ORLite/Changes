@@ -1,5 +1,10 @@
 Changes for Perl extension ORLite
 
+1.44 Fri 23 Jul 2010
+	- Upgrading to Module::Install::DSL 1.00 (ADAMK)
+	- Adding the per-table table_info method to get the columns (ADAMK)
+	- Adding tests for the per-table metadata methods (ADAMK)
+
 1.43 Mon 10 May 2010
 	- Ensure 100% of tables and columns are quoted correctly (ADAMK)
 

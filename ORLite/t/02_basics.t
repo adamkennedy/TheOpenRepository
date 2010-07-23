@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 71;
+use Test::More tests => 74;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -41,6 +41,7 @@ use ORLite '$file';
 1;
 END_PERL
 
+# Simple null transaction to stimulate any errors
 Foo::Bar->begin;
 Foo::Bar->rollback;
 
@@ -51,6 +52,29 @@ is( Foo::Bar->dsn,    "dbi:SQLite:$file", '->dsn ok'    );
 
 # Check the schema version
 is( Foo::Bar->pragma('user_version'), 0, '->user_version ok' );
+
+# Check metadata methods in the test table
+is( Foo::Bar::TableOne->base, 'Foo::Bar', '->base ok' );
+is( Foo::Bar::TableOne->table, 'table_one', '->table ok' );
+my $columns = Foo::Bar::TableOne->table_info;
+is_deeply( $columns, [
+	{
+		cid        => 0,
+		dflt_value => undef,
+		name       => 'col1',
+		notnull    => 1,
+		pk         => 1,
+		type       => 'integer',
+	},
+	{
+		cid        => 1,
+		dflt_value => undef,
+		name       => 'col2',
+		notnull    => 0,
+		pk         => 0,
+		type       => 'string',
+	},
+], '->table_info ok' );
 
 # Populate the test table
 ok(

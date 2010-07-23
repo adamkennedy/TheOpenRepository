@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.43';
+	$VERSION = '1.44';
 }
 
 # Support for the 'prune' option
@@ -390,6 +390,13 @@ package $table->{class};
 sub base { '$pkg' }
 
 sub table { '$table->{name}' }
+
+sub table_info {
+	$pkg->selectall_arrayref(
+		"pragma table_info('$table->{name}')",
+		{ Slice => {} },
+	);
+}
 
 sub select {
 	my \$class = shift;
@@ -1203,6 +1210,27 @@ C<base> method.
 While you should not need the name of table for any simple operations,
 from time to time you may need it programatically. If you do need it,
 you can use the C<table> method to get the table name.
+
+=head2 table_info
+
+  # List the columns in the underlying table
+  my $columns = Foo::Bar::User->table_info;
+  foreach my $c ( @$columns ) {
+     print "Column $c->{name} $c->{type}";
+     print " not null" if $c->{notnull};
+     print " default $c->{dflt_value}" if defined $c->{dflt_value};
+     print " primary key" if $c->{pk};
+     print "\n";
+  }
+
+The C<table_info> method is a wrapper around the SQLite C<table_info>
+pragma, and provides simplified access to the column metadata for the
+underlying table should you need it for some advanced function that
+needs direct access to the column list.
+
+Returns a reference to an C<ARRAY> containing a list of columns, where
+each column is a reference to a C<HASH> with the keys C<cid>, C<dflt_value>,
+C<name>, C<notnull>, C<pk> and C<type>.
 
 =head2 new
 
