@@ -1,6 +1,6 @@
 package Crypt::DSA;
 
-use 5.005;
+use 5.006;
 use strict;
 use Digest::SHA1 qw( sha1 );
 use Carp qw( croak );
