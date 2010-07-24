@@ -2587,6 +2587,18 @@ sub initialize_using_msm {
 	$self->add_path( 'perl', 'site', 'bin' );
 	$self->add_path( 'perl', 'bin' );
 
+	# Initialize CPAN::SQLite if we need to.
+	if ($self->_use_sqlite() && $self->offline()) {
+		my $cpan_dir = $self->cpan()->dir();
+		$cpan_dir =~ s{\\\z}{};
+		$self->execute_perl(
+			$self->file(qw(perl bin cpandb)), 
+			'--setup',
+			'--db_dir' , $self->dir(qw(cpan)),
+			'--CPAN' , $cpan_dir,
+		);
+	}
+	
 	return 1;
 } ## end sub initialize_using_msm
 
