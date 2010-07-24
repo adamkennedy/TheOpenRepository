@@ -7,7 +7,7 @@ package Class::Autouse::Parent;
 use strict;
 use Class::Autouse ();
 
-use vars qw{$VERSION};
+our $VERSION;
 BEGIN {
 	$VERSION = '1.99_04';
 }

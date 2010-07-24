@@ -17,7 +17,7 @@ use Scalar::Util    ();
 
 # Handle optimisation switches via constants to allow debugging and
 # similar functions to be optimised out at compile time if not in use.
-use vars qw{$DB $DEBUG};
+our ($DB, $DEBUG);
 BEGIN {
 	$DB    = 0 unless defined &DB::DB;
 	$DEBUG = 0 unless defined $DEBUG;
