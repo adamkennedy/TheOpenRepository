@@ -575,7 +575,14 @@ sub install_satori_modules_5 {
 		Class::C3::Componentised
 		Module::Find
 		Devel::ArgNames
-		Data::Dumper::Concise
+	} ); # 11 (26)
+	# The 2.000 version of DDC makes DBIx::Class::Schema::Loader fail tests.
+	$self->install_distribution(
+		name             => 'MSTROUT/Data-Dumper-Concise-1.200.tar.gz',
+		mod_name         => 'Data::Dumper::Concise',
+		makefilepl_param => [ 'INSTALLDIRS=vendor', ],
+	);
+	$self->install_modules( qw{
 		Math::Base36
 		DBIx::Class
 	} ); # 11 (26)
@@ -750,7 +757,10 @@ sub install_satori_modules_8 {
 		Email::Date::Format
 		Email::Simple
 		Email::Abstract
-		Sys::Hostname::Long
+	} );
+	# This module requires a network connection to test correctly.
+	$self->install_module( name => 'Sys::Hostname::Long', force => $self->offline(), );
+	$self->install_modules( qw{
 		Email::Sender::Simple
 		Authen::SASL
 		Email::MIME::Encodings
@@ -1021,7 +1031,10 @@ sub install_other_modules_1 {
 	# GraphViz is a known problem - Alpha 3?	
 	$self->install_modules( qw{
 		Data::Stag
-		Ace
+	} );
+	# This module requires a network connection to test correctly.
+	$self->install_module( name => 'Ace', force => $self->offline(), );
+	$self->install_modules( qw{
 		Math::Random
 		Math::Derivative
 		SVG
@@ -1122,8 +1135,12 @@ sub install_other_modules_2 {
 		url  => $par_url,
 	); # 1 (2)
 	
+	$self->install_distribution(
+		name             => 'KTHAKORE/SDL-2.502.tar.gz',
+		mod_name         => 'SDL',
+		makefilepl_param => [ 'INSTALLDIRS=vendor', ],
+	);
 	$self->install_modules( qw{
-		SDL
 		Games::FrozenBubble
 	} ); # 2 (4)
 
@@ -1306,11 +1323,22 @@ sub strawberry_url {
 }
 
 
+sub release_notes_filename {
+	my $self = shift;
+	my $filename =
+	    $self->perl_version_human() . q{.}
+	  . $self->build_number()
+	  . ( $self->beta_number() ? '.alpha.' . $self->beta_number() : q{} )
+	  . '.professional.html';
+
+	return $filename;
+}
+
 sub chocolate_release_notes_url {
 	my $self = shift;
 	my $path = $self->perl_version_human()
 		. q{.} . $self->build_number()
-		. ($self->beta_number() ? '.alpha-' . $self->beta_number() : '')
+		. ($self->beta_number() ? '.alpha.' . $self->beta_number() : '')
         . '.professional';
 	return "http://strawberryperl.com/release-notes/$path.html";
 }
