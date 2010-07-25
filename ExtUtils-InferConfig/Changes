@@ -1,5 +1,6 @@
 Revision history for Perl extension ExtUtils-InferConfig.
 
+1.04  Sun Jul 25 11:26 2008
         - Fixed problem with last field (Alexandr Ciornii)
 
 1.03  Sat Nov 22 17:48 2008
