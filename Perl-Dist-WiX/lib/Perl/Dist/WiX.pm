@@ -1374,7 +1374,7 @@ sub _build_license_dir {
 	my $self = shift;
 
 	my $dir = $self->image_dir()->subdir('licenses');
-	$self->remake_path("$dir");
+	$self->remake_path("$dir") if not -d "$dir"; 
 	return $dir;
 }
 
@@ -2577,16 +2577,20 @@ sub initialize_using_msm {
 	  ->add_merge_module( $self->image_dir()->stringify(), $mm );
 
    # Set the file paths that the first portion of the build otherwise would.
-	$self->_set_bin_perl( $self->file(qw/perl bin perl.exe/) );
-	$self->_set_bin_make( $self->file(qw/c bin dmake.exe/) );
-	$self->_set_bin_pexports( $self->file(qw/c bin pexports.exe/) );
-	$self->_set_bin_dlltool( $self->file(qw/c bin dlltool.exe/) );
+	$self->_set_bin_perl( $self->file(qw(perl bin perl.exe)) );
+	$self->_set_bin_make( $self->file(qw(c bin dmake.exe)) );
+	$self->_set_bin_pexports( $self->file(qw(c bin pexports.exe)) );
+	$self->_set_bin_dlltool( $self->file(qw(c bin dlltool.exe)) );
 
 	# Do the same for the environment variables
 	$self->add_path( 'c',    'bin' );
 	$self->add_path( 'perl', 'site', 'bin' );
 	$self->add_path( 'perl', 'bin' );
 
+	# Remove the .url files and README.txt files.
+	unlink glob $self->file(qw(win32 *.url));
+	unlink $self->file('README.txt');
+	
 	# Initialize CPAN::SQLite if we need to.
 	if ($self->_use_sqlite() && $self->offline()) {
 		my $cpan_dir = $self->cpan()->dir();
@@ -2856,8 +2860,8 @@ sub install_win32_extras {
 
 		$self->add_to_fragment(
 			'Win32Extras',
-			[   catfile( $self->image_dir(), qw(win32 win32.ico) ),
-				catfile( $self->image_dir(), qw(win32 cpan.ico) ),
+			[   $self->file( qw(win32 win32.ico) ),
+				$self->file( qw(win32 cpan.ico) ),
 			] );
 
 		# Make sure the environment script gets installed.
@@ -3131,8 +3135,8 @@ sub _write_zip {
 	$self->trace_line( 1, "Generating zip at $file\n" );
 
 	# Make directories.
-	$self->remake_path( catdir( $self->image_dir(), qw(cpan sources) ) );
-	$self->remake_path( catdir( $self->image_dir(), qw(cpanplus    ) ) );
+	$self->remake_path( $self->dir(qw(cpan sources) ) );
+	$self->remake_path( $self->dir(qw(cpanplus    ) ) );
 
 	# Create the archive
 	my $zip = Archive::Zip->new();
@@ -4307,8 +4311,6 @@ Returns the ID of the tag that installs a README.txt file.
 
 sub msi_fileid_readme_txt {
 	my $self = shift;
-
-	return 1 unless $self->relocatable();
 
 	# Set the fileid attributes.
 	my $readme_id =
