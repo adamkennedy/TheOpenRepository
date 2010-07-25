@@ -143,7 +143,7 @@ sub patch_include_path {
 
 sub install_padre_prereq_modules_1 {
 	my $self = shift;
-	
+
 	# Manually install our non-Wx dependencies first to isolate
 	# them from the Wx problems
 	$self->install_modules( qw{
@@ -173,7 +173,13 @@ sub install_padre_prereq_modules_1 {
 		  Test::Pod::Coverage
 		  Test::Pod
 		  Module::Starter
-		  ORLite
+	} ); # 30
+	$self->install_distribution(
+		name             => 'ADAMK/ORLite-1.43.tar.gz',
+		mod_name         => 'ORLite',
+		makefilepl_param => [ 'INSTALLDIRS=vendor', ],
+	);
+	$self->install_modules( qw{
 		  Test::Differences
 		  Pod::POM
 		  Parse::ErrorString::Perl
@@ -1067,6 +1073,9 @@ sub install_other_modules_1 {
 		assume_installed => 1,   # CPAN can't verify whether it's up to date once successfully installed.
 	); # 1 (28)
 
+	# Add a file that ends up missing.
+	$self->add_to_fragment('Bio_Perl', [ $self->file(qw(perl bin bp_pg_bulk_load_gff.pl)) ] );
+
 	# This makes a circular dependency if I put it before Bio::Perl.
 	$self->install_modules( qw{
 		Bio::ASN1::EntrezGene
@@ -1298,13 +1307,12 @@ sub install_chocolate_extras {
 	
 	my $license_file_from = catfile($sb_dist_dir, 'License.rtf');
 	my $license_file_to = catfile($self->license_dir(), 'License.rtf');
-	my $readme_file = catfile($self->image_dir(), 'README.professional.txt');
+	my $readme_file = $self->file('README.professional.txt');
+	my $dists_file = $self->file('DISTRIBUTIONS.txt');
 
 	$self->copy_file($license_file_from, $license_file_to);	
-	if (not $self->portable()) {
-		$self->add_to_fragment( 'Win32Extras',
-			[ $license_file_to, $readme_file ] );
-	}
+	$self->add_to_fragment( 'Win32Extras',
+		[ $license_file_to, $readme_file, $dists_file ] );
 	
 	return 1;
 }
@@ -1354,6 +1362,21 @@ sub create_professional_distribution_list {
 sub dist_dir {
 	return File::ShareDir::dist_dir('Perl-Dist-Chocolate');
 }
+
+sub msi_fileid_readme_txt {
+	my $self = shift;
+
+	# Set the fileid attributes.
+	my $readme_id =
+	  $self->get_fragment_object('Win32Extras')
+	  ->find_file_id( $self->file(qw(README.professional.txt)) );
+	if ( not $readme_id ) {
+		PDWiX->throw("Could not find README.professional.txt's ID.\n");
+	}
+
+	return $readme_id;
+
+} ## end sub msi_fileid_readme_txt
 
 1;
 

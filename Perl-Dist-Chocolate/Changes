@@ -1,8 +1,9 @@
 Changes for Perl extension Perl-Dist-Chocolate
 
-2.02_02 Xxx ## Jul 2010.
+2.02_02 Sun 25 Jul 2010.
     - "Strawberry Perl Professional" 5.10.1.3b2 "Alpha 2" release.
-
+    - Updated Task::Kensho to current version
+    - Split up start menu, added games area.
 
 2.02_01 Wed 17 Feb 2010.
     - Updated version of Strawberry to match January 2010 release.
