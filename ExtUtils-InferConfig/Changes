@@ -1,5 +1,7 @@
 Revision history for Perl extension ExtUtils-InferConfig.
 
+        - Fixed problem with last field (Alexandr Ciornii)
+
 1.03  Sat Nov 22 17:48 2008
         - Always use IPC::Run...
 

@@ -174,6 +174,7 @@ HERE
         my $key = shift(@data);
         chomp $key;
         my $value = shift(@data);
+        $value = '' if !defined $value; #in case of last value
         chomp $value;
         $key =~ s/%(\d+);/chr($1)/eg;
         if ($value eq '%-1;') {
