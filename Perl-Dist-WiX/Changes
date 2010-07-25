@@ -1,9 +1,10 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.200_102   Xxx ## Jul 2010
+1.200_102   Sun 25 Jul 2010
     1. Used to build Strawberry Perl Professional Alpha 2.
     2. Allow use of SQLite indexes when building off a merge module.
     3. Print time completed at the end, not just a number of seconds.
+	4. Some fixes for merge-module building.
 
 1.200_101   Mon 19 Jul 2010
     1. Used to build Strawberry Perl July 2010 Beta 2.

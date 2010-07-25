@@ -1374,7 +1374,7 @@ sub _build_license_dir {
 	my $self = shift;
 
 	my $dir = $self->image_dir()->subdir('licenses');
-	$self->remake_path("$dir") if not -d "$dir"; 
+	$self->remake_path("$dir") if not -d "$dir";
 	return $dir;
 }
 
@@ -2211,7 +2211,10 @@ has '_use_sqlite' => (
 	isa      => Bool,
 	init_arg => undef,
 	lazy     => 1,
-	default  => sub { my $self = shift; return (defined $self->msm_to_use()) ? 1 : 0; },
+	default  => sub {
+		my $self = shift;
+		return ( defined $self->msm_to_use() ) ? 1 : 0;
+	},
 );
 
 
@@ -2260,7 +2263,7 @@ sub run {
 	}
 
 	my $time_string = scalar localtime;
-	
+
 	# Finished
 	$self->trace_line( 0,
 		    'Distribution generation completed in '
@@ -2588,21 +2591,19 @@ sub initialize_using_msm {
 	$self->add_path( 'perl', 'bin' );
 
 	# Remove the .url files and README.txt files.
-	unlink glob $self->file(qw(win32 *.url));
-	unlink $self->file('README.txt');
-	
+	my $answer;
+	$answer = unlink glob $self->file(qw(win32 *.url));
+	$answer = unlink $self->file('README.txt');
+
 	# Initialize CPAN::SQLite if we need to.
-	if ($self->_use_sqlite() && $self->offline()) {
+	if ( $self->_use_sqlite() && $self->offline() ) {
 		my $cpan_dir = $self->cpan()->dir();
-		$cpan_dir =~ s{\\\z}{};
-		$self->execute_perl(
-			$self->file(qw(perl bin cpandb)), 
-			'--setup',
-			'--db_dir' , $self->dir(qw(cpan)),
-			'--CPAN' , $cpan_dir,
-		);
+		$cpan_dir =~ s{\\\z}{}ms;
+		$self->execute_perl( $self->file(qw(perl bin cpandb)),
+			'--setup', '--db_dir', $self->dir(qw(cpan)), '--CPAN',
+			$cpan_dir, );
 	}
-	
+
 	return 1;
 } ## end sub initialize_using_msm
 
@@ -2860,8 +2861,8 @@ sub install_win32_extras {
 
 		$self->add_to_fragment(
 			'Win32Extras',
-			[   $self->file( qw(win32 win32.ico) ),
-				$self->file( qw(win32 cpan.ico) ),
+			[   $self->file(qw(win32 win32.ico)),
+				$self->file(qw(win32 cpan.ico)),
 			] );
 
 		# Make sure the environment script gets installed.
@@ -3135,8 +3136,8 @@ sub _write_zip {
 	$self->trace_line( 1, "Generating zip at $file\n" );
 
 	# Make directories.
-	$self->remake_path( $self->dir(qw(cpan sources) ) );
-	$self->remake_path( $self->dir(qw(cpanplus    ) ) );
+	$self->remake_path( $self->dir(qw(cpan sources)) );
+	$self->remake_path( $self->dir(qw(cpanplus    )) );
 
 	# Create the archive
 	my $zip = Archive::Zip->new();
