@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use inc::latest 'Module::Build';
+use Module::Build;
 
 my $class = Module::Build->subclass(
 	class => 'My::Builder',
@@ -18,19 +18,6 @@ sub ACTION_authortest {
     return;
 }
 
-
-sub ACTION_releasetest {
-    my ($self) = @_;
-
-    $self->depends_on('build');
-    $self->depends_on('manifest');
-    $self->depends_on('distmeta');
-
-    $self->test_files( qw< t xt/author xt/release > );
-    $self->depends_on('test');
-
-    return;
-}
 
 
 sub ACTION_manifest {
@@ -53,8 +40,6 @@ my $builder = $class->new(
 	dist_version_from  => 'lib/Perl/Dist/Strawberry/QA.pm',
 	create_readme      => 1,
 	create_license     => 1,
-	create_makefile_pl => 'small',
-	configure_requires => { 'Module::Build' => '0.33', },
 	requires           => {
 		'perl'                  => '5.012',
 		'File::List::Object'    => '0.189', 
@@ -71,11 +56,9 @@ my $builder = $class->new(
 	},
 	meta_merge => {
 		resources => {
-			homepage => 'http://csjewell.comyr.com/',
-			bugtracker =>
-'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Perl-Dist-Strawberry-QA',
-			repository =>
-			  'http://svn.ali.as/cpan/trunk/Perl-Dist-Strawberry-QA'
+			homepage   => 'http://csjewell.comyr.com/perl/',
+			bugtracker => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Perl-Dist-Strawberry-QA',
+			repository => 'http://svn.ali.as/cpan/trunk/Perl-Dist-Strawberry-QA'
 		},
 	},
 	add_to_cleanup => [ 'Perl-Dist-Strawberry-QA-*', ],
