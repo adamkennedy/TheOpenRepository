@@ -6,7 +6,7 @@ use warnings;
 use Module::Install::Base ();
 
 our @ISA     = qw(Module::Install::Base);
-our $VERSION = '1.000';
+our $VERSION = '1.001';
 $VERSION =~ s/_//ms;
 
 sub use_ptar {

@@ -5,40 +5,32 @@
 use strict;
 
 BEGIN {
-	use English qw(-no_match_vars);
-	$OUTPUT_AUTOFLUSH = 1;
-	$WARNING = 1;
+	$| = 1;
+	$^W = 1;
 }
 
 my @MODULES = (
     'Perl::Tidy',
 	'Perl::Critic',
-	'Regexp::Parser',
+	'PPIx::Regexp',
 	'Email::Address',
 	'Perl::Critic::Utils::Constants',
 	'Perl::Critic::More',
 	'Test::Perl::Critic',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "require $MODULE"; # Has to be require because we pass options to import.
-	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+	if ( $@ ) {
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 	}
 }
 
-if ( 1.105 > eval { $Perl::Critic::VERSION } ) {
-	plan( skip_all => 'Perl::Critic needs updated to 1.105' );
+$Perl::Critic::VERSION =~ s/_//;
+if ( 1.106 > eval { $Perl::Critic::VERSION } ) {
+	plan( skip_all => 'Perl::Critic needs updated to 1.106' );
 }
 
 if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {
@@ -49,9 +41,9 @@ use File::Spec::Functions qw(catfile catdir);
 Perl::Critic::Utils::Constants->import(':profile_strictness');
 my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
 
-local $ENV{PERLTIDY} = catfile( 't', 'settings', 'perltidy.txt' );
+local $ENV{PERLTIDY} = catfile( 'xt', 'settings', 'perltidy.txt' );
 
-my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
+my $rcfile = catfile( 'xt', 'settings', 'perlcritic.txt' );
 Test::Perl::Critic->import( 
 	-profile            => $rcfile, 
 	-severity           => 1, 
