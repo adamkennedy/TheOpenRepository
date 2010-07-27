@@ -1,6 +1,6 @@
 package Perl::Dist::Strawberry::QA;
 
-our $VERSION = 0.100;
+our $VERSION = '0.100';
 
 1;
 

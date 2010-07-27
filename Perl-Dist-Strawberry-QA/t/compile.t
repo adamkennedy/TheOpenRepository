@@ -14,4 +14,4 @@ BEGIN {
 
 diag( "Testing Perl::Dist::Strawberry::QA $Perl::Dist::Strawberry::QA::VERSION" );
 
-script_compiles( 'script/strawberry_qa.pl', 'Strawberry QA script compiles' );
+script_compiles( 'script/strawberry-qa.pl', 'Strawberry QA script compiles' );

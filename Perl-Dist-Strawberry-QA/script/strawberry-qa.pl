@@ -14,46 +14,60 @@ use Archive::Extract qw();
 use File::Temp qw();
 use File::HomeDir qw();
 use File::Spec qw();
-use File::Copy::Recursive qw();
+use File::Copy::Recursive qw(pathrm);
 use File::pushd qw(pushd);
+use Getopt::Long qw(GetOptions);
+use Carp;
 
-diag(q{Not all of these tests absolutely need to pass, but you should know WHY they aren't passing before release.});
+diag(qq{Not all of these tests absolutely need to pass,\nbut you should know WHY they aren't passing before release.});
 
-# 0. Get base name.
+# 0. Check for a C:\strawberry already.
 
-# TODO!
+BAIL_OUT('Strawberry Perl directory already exists.') if -d 'C:\\strawberry\\';
 
-# 1. Extract .zip
+# 1. Get base name.
+
+my $basename = '';
+my $options = GetOptions('basename=s' => \$basename ) or BAIL_OUT('No basename was passed in. The POD needs read.');
+diag("Testing $basename.*");
+
+# 2. Extract .zip
 
 {
+	diag('Extracting .zip file - takes a few minutes.');
 	my $zipfile = Archive::Extract->new(archive => $basename . '.zip');
 	my $extract_ok = $zipfile->extract(to => 'C:\\strawberry\\');
 
 	ok($extract_ok, '.zip file extracted OK');
 }
 
-# 2. Get filelist.
+# 3. Get filelist.
 
 my $ziplist = File::Temp::tempnam( File::Spec->tmpdir(), 'SPQA');
-system("command /c dir /s/w/b C:\strawberry\ > $ziplist");
+diag($ziplist);
+my $command = "cmd.exe /c dir /s/w/b C:\\strawberry\\ > $ziplist";
+system($command);
 
-# 3. Delete extracted .zip
-{ 
+# 4. Delete extracted .zip
+{
+	diag('Deleting .zip of Strawberry.');
 	pushd('C:\\');
-	File::Copy::Recursive::pathrm('strawberry');
+	pathrm('strawberry');
 }
 
-# 4. Extract .msi
+# 5. Extract .msi
 
+BAIL_OUT('Strawberry Perl directory still exists.') if -d 'C:\\strawberry\\';
 my $install_ok = system("msiexec /i ${basename}.msi /passive WIXUI_EXITDIALOGOPTIONALCHECKBOX=0");
-ok($install_ok, '.msi file installed OK');
+diag($install_ok);
+ok(0 == $install_ok, '.msi file installed OK');
 
-# 5. Get filelist.
+# 6. Get filelist.
 
 my $msilist = File::Temp::tempnam( File::Spec->tmpdir(), 'SPQA');
-system("command /c dir /s/w/b C:\strawberry\ > $msilist");
+system("cmd.exe /c dir /s/w/b C:\\strawberry\\ > $msilist");
 
-# 6. Test for file contents.
+# 7. Test for file contents.
 
 my $msilist_obj = File::List::Object->new()->load_file($msilist);
 my $ziplist_obj = File::List::Object->new()->load_file($ziplist);
@@ -63,37 +77,70 @@ my $not_in_zip = File::List::Object->clone($msilist_obj)->subtract($ziplist_obj)
 ok(0 == $not_in_msi->count(), 'No files in .zip that are not in the .msi');
 ok(0 == $not_in_zip->count(), 'No files in .msi that are not in the .zip');
 
-# 7. Test for real neccessary files.
+# 8. Test for real neccessary files.
 
 ok(-f 'C:\\strawberry\\c\\bin\\gcc.exe', 'gcc.exe exists.');
 ok(-f 'C:\\strawberry\\c\\bin\\dmake.exe', 'dmake.exe exists.');
 ok(-f 'C:\\strawberry\\perl\\bin\\perl.exe', 'perl.exe exists.');
 
-# 8. Nothing is in site before modules are installed.
+# 9. Nothing is in site before modules are installed.
 
-ok(0 == scalar glob 'C:\\strawberry\\perl\\site\\bin\\*.*', 'No files in site\\bin');
-ok(0 == scalar glob 'C:\\strawberry\\perl\\site\\bin\\*.*', 'No files in site\\lib');
+ok(0 == scalar glob('C:\\strawberry\\perl\\site\\bin\\*.*'), 'No files in site\\bin');
+ok(0 == scalar glob('C:\\strawberry\\perl\\site\\bin\\*.*'), 'No files in site\\lib');
 
-# 9. Module installation tests.
+# 10. Module installation tests.
 
-system("command /c C:\\strawberry\\perl\\bin\\cpan.bat Try::Tiny");
-ok(-f 'C:\\strawberry\\perl\\site\\lib\\Try\\Tiny.pm', 'cpan.bat can install a pure-perl module using EU::MM.');
+# Remove any Perl installs from PATH to prevent
+# "which" discovering stuff it shouldn't.
+my @path = split /;/ms, $ENV{PATH};
+my @keep = ();
+foreach my $p (@path) {
 
-system("command /c C:\\strawberry\\perl\\bin\\cpan.bat Devel::Stacktrace");
-ok(-f 'C:\\strawberry\\perl\\site\\lib\\File\\List\\Object.pm', 'cpan.bat can install a pure-perl module using M::B.');
+	# Strip any path that doesn't exist
+	next unless -d $p;
 
-system("command /c C:\\strawberry\\perl\\bin\\cpan.bat Moose");
-ok(-f 'C:\\strawberry\\perl\\site\\lib\\auto\\Moose\\Moose.dll', 'cpan.bat can install an XS module, with dependencies, that uses EU::MM.');
+	# Strip any path that contains either dmake or perl.exe.
+	# This should remove both the ...\c\bin and ...\perl\bin
+	# parts of the paths that Vanilla/Strawberry added.
+	next if -f catfile( $p, 'dmake.exe' );
+	next if -f catfile( $p, 'perl.exe' );
 
-system("command /c C:\\strawberry\\perl\\bin\\cpanp.bat App::FatPacker");
-ok(-f 'C:\\strawberry\\perl\\site\\lib\\App\\FatPacker.pm', 'cpanp.bat can install a pure-perl module using M::I.');
+	# Strip any path that contains either unzip or gzip.exe.
+	# These two programs cause perl to fail its own tests.
+	next if -f catfile( $p, 'unzip.exe' );
+	next if -f catfile( $p, 'gzip.exe' );
 
-system("command /c C:\\strawberry\\perl\\bin\\cpanp.bat File::pushd");
-ok(-f 'C:\\strawberry\\perl\\site\\lib\\File\\pushd.pm', 'cpanp.bat can install a pure-perl module, with dependencies, that uses M::B.');
+	push @keep, $p;
+} ## end foreach my $p (@path)
 
-# 10. Remove the .msi
+{
+	push @keep, 'C:\\strawberry\\c\\bin', 'C:\\strawberry\\perl\\bin', 'C:\\strawberry\\perl\\site\\bin';
+	local $ENV{PATH} = join q{;}, @keep;
+
+	system("cmd.exe /c C:\\strawberry\\perl\\bin\\cpan.bat Try::Tiny");
+	ok(-f 'C:\\strawberry\\perl\\site\\lib\\Try\\Tiny.pm', 'cpan.bat can install a pure-perl module using EU::MM.');
+
+	system("cmd.exe /c C:\\strawberry\\perl\\bin\\cpan.bat Devel::Stacktrace");
+	ok(-f 'C:\\strawberry\\perl\\site\\lib\\File\\List\\Object.pm', 'cpan.bat can install a pure-perl module using M::B.');
+
+	system("cmd.exe /c C:\\strawberry\\perl\\bin\\cpan.bat Moose");
+	ok(-f 'C:\\strawberry\\perl\\site\\lib\\auto\\Moose\\Moose.dll', 'cpan.bat can install an XS module, with dependencies, that uses EU::MM.');
+
+	system("cmd.exe /c C:\\strawberry\\perl\\bin\\cpanp.bat App::FatPacker");
+	ok(-f 'C:\\strawberry\\perl\\site\\lib\\App\\FatPacker.pm', 'cpanp.bat can install a pure-perl module using M::I.');
+
+	system("cmd.exe /c C:\\strawberry\\perl\\bin\\cpanp.bat File::pushd");
+	ok(-f 'C:\\strawberry\\perl\\site\\lib\\File\\pushd.pm', 'cpanp.bat can install a pure-perl module, with dependencies, that uses M::B.');
+}
+
+# 11. Remove the .msi
 
 my $uninstall_ok = system("msiexec /x ${basename}.msi /passive");
-ok($uninstall_ok, '.msi file uninstalled OK');
+ok(0 == $uninstall_ok, '.msi file uninstalled OK');
 
 # TODO: Check that all files are uninstalled.
+
+__END__
+
+prove -v strawberry-qa.pl :: --basename strawberry-perl-professional-5.10.0.3-alpha-2
+
