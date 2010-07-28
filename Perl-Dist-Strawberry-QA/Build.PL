@@ -46,7 +46,8 @@ my $builder = $class->new(
 		'Archive::Extract'   => 0,
 		'File::Temp'         => 0,
 		'File::HomeDir'      => 0,
-		'IPC::Run3'          => 0,		
+		'IPC::Run3'          => 0,
+		'List::MoreUtils'    => '0.22',
 	},
 	build_requires     => {
 		'Test::More'   => '0.88',

@@ -7,7 +7,7 @@
 
 use 5.012;
 use warnings;
-use Test::More tests => 17;
+use Test::More;
 
 use File::List::Object 0.189 qw(); # There is a bug in clone() in previous versions. 
 use Archive::Extract qw();
@@ -17,21 +17,36 @@ use File::Spec qw();
 use File::Path qw(remove_tree);
 use IPC::Run3 qw(run3);
 use Getopt::Long qw(GetOptions);
-use Carp;
+use Win32 qw(CSIDL_COMMON_STARTMENU);
+use List::MoreUtils qw(any);
+use Config;
 
+# 1. Check for a C:\strawberry already.
+
+plan skip_all => 'Not running on Win32 system' if $Config{archname} !~ /Win32/msx;
+plan skip_all => 'Strawberry Perl default directory already exists.' if -d 'C:\\strawberry\\';
+
+
+# 2. Check for start menu options (as a test for the .msi being installed.)
+my $startmenu = Win32::GetFolderPath(CSIDL_COMMON_STARTMENU);
+$startmenu .= "\\*";
+my @startmenu = glob $startmenu;
+plan skip_all => <<'MSI_INSTALLED' if any { m/Strawberry[ ]Perl/msx } @startmenu;
+We have start menu options for Strawberry. The .msi is probably installed, so not a good idea to run the QA tests and fail without testing anything.
+MSI_INSTALLED
+
+# 3. Set out to test.
+
+plan tests => 17;
 diag(qq{Not all of these tests absolutely need to pass,\nbut you should know WHY they aren't passing before release.});
 
-# 0. Check for a C:\strawberry already.
-
-BAIL_OUT('Strawberry Perl default directory already exists.') if -d 'C:\\strawberry\\';
-
-# 1. Get base name.
+# 4. Get base name.
 
 my $basename = '';
 my $options = GetOptions('basename=s' => \$basename ) or BAIL_OUT('No basename was passed in. The POD needs read.');
 diag("Testing $basename.*");
 
-# 2. Extract .zip
+# 5. Extract .zip
 
 {
 	diag('Extracting .zip file - takes a few minutes.');
@@ -41,28 +56,28 @@ diag("Testing $basename.*");
 	ok($extract_ok, '.zip file extracted OK');
 }
 
-# 3. Get filelist.
+# 6. Get filelist.
 
 my $ziplist = File::Temp::tempnam( File::Spec->tmpdir(), 'SPQA');
 my $command = "cmd.exe /c dir /s/w/b C:\\strawberry\\ > $ziplist";
 system($command);
 
-# 4. Delete extracted .zip
+# 7. Delete extracted .zip
 diag('Deleting .zip of Strawberry.');
 remove_tree('C:\\strawberry\\');
 
-# 5. Extract .msi
+# 8. Install .msi
 
 BAIL_OUT('Strawberry Perl directory still exists.') if -d 'C:\\strawberry\\';
 my $install_ok = system("msiexec /i ${basename}.msi /passive WIXUI_EXITDIALOGOPTIONALCHECKBOX=0");
 ok(0 == $install_ok, '.msi file installed OK');
 
-# 6. Get filelist.
+# 9. Get filelist.
 
 my $msilist = File::Temp::tempnam( File::Spec->tmpdir(), 'SPQA');
 system("cmd.exe /c dir /s/w/b C:\\strawberry\\ > $msilist");
 
-# 7. Test for file contents.
+# 10. Test for file contents.
 
 my $msilist_obj = File::List::Object->new()->load_file($msilist);
 my $ziplist_obj = File::List::Object->new()->load_file($ziplist);
@@ -72,21 +87,23 @@ my $not_in_zip = File::List::Object->clone($msilist_obj)->subtract($ziplist_obj)
 ok(0 == $not_in_msi->count(), 'No files in .zip that are not in the .msi') or diag("Not in .msi file:\n" . $not_in_msi->as_string());
 ok(0 == $not_in_zip->count(), 'No files in .msi that are not in the .zip') or diag("Not in .zip file:\n" . $not_in_zip->as_string());
 
-# 8. Test for real neccessary files.
+# 11. Test for real neccessary files.
 
 ok(-f 'C:\\strawberry\\c\\bin\\gcc.exe', 'gcc.exe exists.');
 ok(-f 'C:\\strawberry\\c\\bin\\dmake.exe', 'dmake.exe exists.');
 ok(-f 'C:\\strawberry\\perl\\bin\\perl.exe', 'perl.exe exists.');
 
-# 9. Nothing is in site before modules are installed.
+# 12. Nothing is in site before modules are installed.
 
 my @sitebin = glob 'C:\\strawberry\\perl\\site\\bin\\*.*';
-ok(-1 == $#sitebin , 'No files in site\\bin') or diag(join "\n", "In site//bin: $#sitebin file(s)", @sitebin);
+my $sitebin_size = $#sitebin + 1;
+ok(0 == $sitebin_size , 'No files in site\\bin') or diag(join "\n", "In site//bin: ${sitebin_size} file(s)", @sitebin);
 
 my @sitelib = glob 'C:\\strawberry\\perl\\site\\lib\\*.*';
-ok(-1 == $#sitelib , 'No files in site\\lib') or diag(join "\n", "In site//lib: $#sitelib file(s)", @sitelib);
+my $sitelib_size = $#sitelib + 1;
+ok(0 ==  $sitelib_size, 'No files in site\\lib') or diag(join "\n", "In site//lib: ${sitelib_size} file(s)", @sitelib);
 
-# 10. Module installation tests.
+# 13. Module installation tests.
 
 # Remove any Perl installs from PATH to prevent
 # "which" discovering stuff it shouldn't.
@@ -151,7 +168,7 @@ my @install_tests = (
 	}	
 }
 
-# 11. Remove the .msi.
+# 14. Remove the .msi.
 
 my $uninstall_ok = system("msiexec /x ${basename}.msi /passive");
 ok(0 == $uninstall_ok, '.msi file uninstalled OK');
