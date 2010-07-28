@@ -40,6 +40,7 @@ my $builder = $class->new(
 	dist_version_from  => 'lib/Perl/Dist/Strawberry/QA.pm',
 	create_readme      => 1,
 	create_license     => 1,
+	script_files       => 'script/strawberry-qa.pl',
 	requires           => {
 		'perl'               => '5.012',
 		'File::List::Object' => '0.189', 
