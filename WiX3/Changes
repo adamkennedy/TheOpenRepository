@@ -1,5 +1,8 @@
 Revision history for WiX3
 
+0.009102  Wed 28 Jul 2010
+       - Allowing single quotes in attributes.
+
 0.009101  Xxx Xxx ## 2010
        - Adding push_tracelevel routine to WiX3::Role::Traceable.
 

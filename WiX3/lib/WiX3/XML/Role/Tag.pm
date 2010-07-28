@@ -8,7 +8,7 @@ require WiX3::XML::ComponentRef;
 require WiX3::XML::FeatureRef;
 require WiX3::XML::MergeRef;
 
-our $VERSION = '0.009100';
+our $VERSION = '0.009102';
 $VERSION =~ s/_//ms;
 
 #####################################################################
@@ -107,9 +107,13 @@ sub print_attribute {
 	if ( not defined $value ) {
 		return q{};
 	}
-
-	return qq{ $attribute='$value'};
-
+	
+	if ($value =~ m{[']}ms) {
+		return qq{ $attribute="$value"};
+	} else {
+		return qq{ $attribute='$value'};
+	}
+	
 } ## end sub print_attribute
 
 no Moose::Role;
@@ -124,11 +128,11 @@ WiX3::XML::Role::Tag - Base role for XML tags.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Role::Tag version 0.009100
+This document describes WiX3::XML::Role::Tag version 0.009102
 
 =head1 SYNOPSIS
 
-    # use WiX3;
+	# This is composed in to other tag classes.
 
 =head1 DESCRIPTION
 
