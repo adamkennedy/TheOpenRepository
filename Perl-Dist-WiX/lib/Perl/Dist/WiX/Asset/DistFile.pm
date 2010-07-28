@@ -250,9 +250,9 @@ sub install {
 
 	# Where will it get extracted to?
 	my $dist_path = $filename;
+	$self->_add_to_distributions_installed("CSJ/$filename");
 	$dist_path =~ s{[.] tar [.] gz}{}msx;   # Take off extensions.
 	$dist_path =~ s{[.] zip}{}msx;
-	$self->_add_to_distributions_installed($dist_path);
 	my $unpack_to = catdir( $self->_get_build_dir(), $dist_path );
 
 	# Extract the tarball

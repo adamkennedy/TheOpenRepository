@@ -93,9 +93,16 @@ has name => (
 	required => 1,
 );
 
+has dist_info => (
+	is       => 'ro',
+	isa      => 'Str',
+	reader   => '_get_dist_info',
+	required => 1,
+);
+
 =head2 install
 
-The C<install> method retrieves the specified .par file and installs it71.
+The C<install> method retrieves the specified .par file and installs it.
 
 =cut
 
@@ -165,29 +172,7 @@ sub install {
 	$self->_trace_line( 2, $output );
 
 	# Get distribution name to add to what's installed.
-	if ( ( defined $url ) and ( $url =~ m{.*/([^/]*)\z}msx ) ) {
-		my $dist_info = $1;
-		$dist_info =~ s{[.] par}{}msx; # Take off .par extension.
-#<<<
-		if ($dist_info =~
-            m{\A(.*?)   # Grab anything that could be the name non-greedily, ...
-			-           # break at a dash,
-			([0-9._]*)  # then try to grab a version,
-			(?:-.*)?    # then discard anything else.
-			\z}msx
-		  )
-#>>>
-		{
-			my ( $dist_name, $dist_ver ) = ( $1, $2 );
-			$dist_info = "${dist_name}-${dist_ver}";
-			$self->_add_to_distributions_installed($dist_info);
-		} else {
-			$self->_trace_line( 1, <<"EOF");
-Could not parse name of .par to determine name and version.
-Source: $dist_info
-EOF
-		}
-	} ## end if ( ( defined $url ) ...)
+	$self->_add_to_distributions_installed($self->_get_dist_info());
 
 	# Read in the .packlist and return it.
 	my $filelist =

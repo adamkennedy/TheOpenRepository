@@ -263,9 +263,6 @@ END_PERL
 		}
 		my $dist_info = <$fh>;
 		$fh->close;
-		$dist_info =~ s{[.] tar [.] gz}{}msx;   # Take off extensions.
-		$dist_info =~ s{[.] zip}{}msx;
-		$dist_info =~ s{.+\/}{}msx;    # Take off directories.
 		$self->_add_to_distributions_installed($dist_info);
 	} else {
 		$self->_trace_line( 0,
