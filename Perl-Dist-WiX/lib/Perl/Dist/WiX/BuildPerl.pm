@@ -188,10 +188,10 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 		# There's a problem with extracting these two files, so
 		# upgrading to these versions, instead...
 		if ( $module->cpan_file() =~
-			/Unicode-Collate-0 [.] 53-withoutworldwriteables/msx )
+			/Unicode-Collate-0 [.] 5(3|4)-withoutworldwriteables/msx )
 		{
 			$self->install_distribution(
-				name     => 'SADAHIRO/Unicode-Collate-0.53.tar.gz',
+				name     => "SADAHIRO/Unicode-Collate-0.5$1.tar.gz",
 				mod_name => 'Unicode::Collate',
 				$self->_install_location(1),
 				$force

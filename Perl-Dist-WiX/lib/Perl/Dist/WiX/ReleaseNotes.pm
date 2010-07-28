@@ -95,7 +95,7 @@ sub create_release_notes {
 		$dist =~ s{[.] zip}{}msx;
 		$dist =~ s{.+\/}{}msx;    # Take off directories.
 		( $name, $ver ) = $dist =~ m{(.*)-(?:v?)([0-9._]*)}msx;
-		$dist_list .= "<tr><td>$name</td><td>$ver</td><td>$link</td></tr>\n";
+		$dist_list .= qq{<tr><td>$name</td><td>$ver</td><td><a href="$link">Source</a></td></tr>\n};
 	}
 
 	my @time   = localtime;
