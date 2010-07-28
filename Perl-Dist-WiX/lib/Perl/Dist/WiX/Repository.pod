@@ -7,7 +7,7 @@ Perl::Dist::WiX::Repository - The repository that is used for Perl::Dist::WiX.
 =head1 DESCRIPTION
 
 This documentation describes the repository that Perl::Dist::WiX uses, and 
-the branches that are currently being used as of May 2010.
+the branches that are currently being used as of July 2010.
 
 =head1 REPOSITORY
 

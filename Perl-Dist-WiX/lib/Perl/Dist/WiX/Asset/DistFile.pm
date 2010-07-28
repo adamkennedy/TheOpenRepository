@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::DistFile - "Local Distribution" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::DistFile version 1.200.
+This document describes Perl::Dist::WiX::Asset::DistFile version 1.250.
 
 =head1 SYNOPSIS
 
@@ -63,7 +63,7 @@ require URI;
 require File::Spec::Unix;
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.200';
+our $VERSION = '1.250';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';

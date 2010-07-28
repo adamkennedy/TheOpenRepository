@@ -8,7 +8,7 @@ Perl::Dist::WiX::Role::Asset - Role for assets.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Role::Asset version 1.200_102.
+This document describes Perl::Dist::WiX::Role::Asset version 1.250.
 
 =head1 SYNOPSIS
 
@@ -38,7 +38,7 @@ require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
-our $VERSION = '1.200_102';
+our $VERSION = '1.250';
 $VERSION =~ s/_//ms;
 
 =head1 ATTRIBUTES

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Support - Provides support routines for building a Win32 perl d
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Support version 1.200_101.
+This document describes Perl::Dist::WiX::Support version 1.250.
 
 =head1 SYNOPSIS
 
@@ -42,7 +42,7 @@ use IO::Compress::Gzip 2.025;
 
 # IO::Uncompress::Xz is tested for later, as it's an 'optional'.
 
-our $VERSION = '1.200_101';
+our $VERSION = '1.250';
 $VERSION =~ s/_//ms;
 
 

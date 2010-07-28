@@ -6,6 +6,10 @@ package Perl::Dist::WiX::Role::NonURLAsset;
 
 Perl::Dist::WiX::Role::NonURLAsset - Role for assets that do not require URL's.
 
+=head1 VERSION
+
+This document describes Perl::Dist::WiX::Role::NonURLAsset version 1.250.
+
 =head1 SYNOPSIS
 
 	# Since this is a role, it is composed into classes that use it.
@@ -33,7 +37,7 @@ require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
-our $VERSION = '1.200_102';
+our $VERSION = '1.250';
 $VERSION =~ s/_//sm;
 
 
