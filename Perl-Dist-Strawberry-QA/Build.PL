@@ -48,6 +48,7 @@ my $builder = $class->new(
 		'File::HomeDir'      => 0,
 		'IPC::Run3'          => 0,
 		'List::MoreUtils'    => '0.22',
+		'Exporter::Lite'     => 0,
 	},
 	build_requires     => {
 		'Test::More'   => '0.88',
