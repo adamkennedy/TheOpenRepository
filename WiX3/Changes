@@ -1,15 +1,14 @@
 Revision history for WiX3
 
+0.009102  Thu 29 Jul 2010
+       - Allowing single quotes in attributes.
        - Several enums added (CHORNY)
        - First attempt of WiX3::XML::RegistryKey and WiX3::XML::RegistryValue (CHORNY)
 
-0.009102  Wed 28 Jul 2010
-       - Allowing single quotes in attributes.
-
-0.009101  Xxx Xxx ## 2010
+0.009101  Never got released.
        - Adding push_tracelevel routine to WiX3::Role::Traceable.
 
-0.009100  Fri May 28 2010
+0.009100  Fri 28 May 2010
        - Fixing to work with newest version of Perl-Dist-WiX
        - Trace object is now stored outside the object, 
          rather than within it. WiX3::Role::Traceable now 
