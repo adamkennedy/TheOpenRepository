@@ -5,7 +5,7 @@ use 5.008001;
 use MooseX::Types -declare => [ qw(
 	  Host Tracelevel IsTag _YesNoType YesNoType ComponentGuidType PositiveInt
 	  NonNegativeInt TraceObject
-	  EnumRemoveFolderOn EnumEnvironmentAction
+	  EnumRemoveFolderOn EnumEnvironmentAction EnumRegistryKeyAction
 	  EnumRegistryValueType EnumRegistryRootType EnumRegistryValueAction
 	  ) ];
 use Regexp::Common 2.105;
@@ -37,6 +37,8 @@ subtype Host, as Str, where {
 enum EnumRemoveFolderOn, qw( install uninstall both );
 
 enum EnumEnvironmentAction, qw( create set remove );
+
+enum EnumRegistryKeyAction, qw( create createAndRemoveOnUninstall none );
 
 enum EnumRegistryRootType, qw( HKMU HKCR HKCU HKLM HKU );
 

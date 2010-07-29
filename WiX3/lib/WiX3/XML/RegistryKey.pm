@@ -16,18 +16,18 @@ use metaclass (
 );
 use Moose;
 use Params::Util qw( _IDENTIFIER _STRING );
-use WiX3::Types qw( EnumRegistryRootType );
+use WiX3::Types qw( EnumRegistryRootType EnumRegistryKeyAction );
 use MooseX::Types::Moose qw( Str Maybe Bool );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009100';
+our $VERSION = '0.009102';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_registrykey.htm
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 
-# Has WiX3::XML::RegistryKey and WiX3::XML::RegistryValue as childs
+# Has WiX3::XML::RegistryKey and WiX3::XML::RegistryValue as children.
 
 #####################################################################
 # Accessors:
@@ -40,18 +40,16 @@ has id => (
 	required => 1,
 );
 
-has remove_on_uninstall => (
+has action => (
 	is     => 'ro',
-	isa    => Bool,
-	reader => '_get_remove_on_uninstall',
-	required => 1,
+	isa    => EnumRegistryKeyAction,
+	reader => '_get_action',
 );
 
 has root => (
 	is      => 'ro',
 	isa     => EnumRegistryRootType,
 	reader  => '_get_root',
-	required => 1,
 );
 
 has key => (
@@ -80,21 +78,14 @@ sub as_string {
 	$answer = '<RegistryKey';
 	$answer .= $self->print_attribute( 'Id',     $id );
 	$answer .= $self->print_attribute( 'Root',   $self->_get_root() );
-	$answer .= $self->print_attribute( 'Key',  $self->_get_value() );
-	$answer .= $self->print_attribute( 'System', $self->_get_system() );
-	if ($self->_get_remove_on_uninstall) {
-		$answer .=
-		  $self->print_attribute( 'Action', 'createAndRemoveOnUninstall' );
-	} else {
-		$answer .=
-		  $self->print_attribute( 'Action', 'create' );
-	}
+	$answer .= $self->print_attribute( 'Key',  $self->_get_key() );
+	$answer .= $self->print_attribute( 'Action', $self->_get_action() );
 	$answer .= ">\n";
 	my $child_string = q{};
 	$child_string = $self->indent( 2, $self->as_string_children() )
 	  if $self->has_child_tags();
 	chomp $child_string;
-	$answer .= "$child_string</RegistryKey>\n";
+	$answer .= "$child_string\n</RegistryKey>\n";
 
 	return $answer;
 } ## end sub as_string
