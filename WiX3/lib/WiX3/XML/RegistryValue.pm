@@ -20,7 +20,7 @@ use WiX3::Types qw( YesNoType EnumRegistryRootType EnumRegistryValueType EnumReg
 use MooseX::Types::Moose qw( Str Maybe Bool );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009100';
+our $VERSION = '0.009102';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_registryvalue.htm
@@ -44,7 +44,6 @@ has root => (
 	is      => 'ro',
 	isa     => EnumRegistryRootType,
 	reader  => '_get_root',
-	required => 1,
 );
 
 has key => (
@@ -94,18 +93,19 @@ sub as_string {
 	my $self = shift;
 
 	my $id = 'RV_' . $self->get_id();
+	my $type = $self->_get_type();
+	my $value = $self->_get_value();
 
 	# Print tag.
 	my $string = '<RegistryValue';
 
 	my @attribute = (
-		[ 'Id'   => $self->get_id(), ],
+		[ 'Id'   => $id, ],
 		[ 'Root' => $self->_get_root(), ],
 		[ 'Key'  => $self->_get_key(), ],
-		[ 'Action' => $self->_get_action, ],
-		[ 'KeyPath' => $self->_get_key_path, ],
-		[ 'Type' => $self->_get_type, ],
-		[ 'Value' => $self->_get_value, ],
+		[ 'Action' => $self->_get_action(), ],
+		[ 'KeyPath' => $self->_get_key_path(), ],
+		[ 'Type' => $self->_get_type(), ],
 	);
 
 	my ( $k, $v );
@@ -115,7 +115,12 @@ sub as_string {
 		$string .= $self->print_attribute( $k, $v );
 	}
 
-	$string .= qq{ />\n};
+	if ('multiString' eq $type) {
+		$string .= $self->print_attribute( 'Value', $value );
+		$string .= qq{ />\n};
+	} else {
+		$string .= qq{>$value</RegistryValue>\n};
+	} 
 
 	return $string;
 } ## end sub as_string
