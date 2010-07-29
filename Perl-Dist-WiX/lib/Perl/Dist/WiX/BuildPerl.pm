@@ -958,6 +958,24 @@ sub install_perl_toolchain {
 			$force = 1;
 		}
 
+		# The podlators dist needs a few more modules to install on 5.8.9.
+		if (    ( $dist =~ m{/podlators-\d}msx )
+			and ( $self->perl_version() =~ m{\A58}ms ) )
+		{
+			$self->install_distribution(
+				name              => 'SBURKE/Pod-Escapes-1.04.tar.gz',
+				mod_name          => 'Pod::Escapes',
+				force             => $force,
+				$self->_install_location(0),
+			);
+			$self->install_distribution(
+				name              => 'DWHEELER/Pod-Simple-3.14.tar.gz',
+				mod_name          => 'Pod::Simple',
+				force             => $force,
+				$self->_install_location(0),
+			);		
+		}
+
 		# Actually DO the installation, now
 		# that we've got the information we need.
 		$module_id = $self->_module_fix( $self->_name_to_module($dist) );

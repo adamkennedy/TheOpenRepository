@@ -76,7 +76,7 @@ parameter is provided.
 
 It inherits all the parameters described in the 
 L<Perl::Dist::WiX::Asset/new|Perl::Dist::WiX::Asset-E<gt>new()> 
-method documentation, and adds an additional parameter.
+method documentation, and adds two additional parameters.
 
 =head3 name
 
@@ -92,6 +92,14 @@ has name => (
 	reader   => 'get_name',
 	required => 1,
 );
+
+=head3 name
+
+The required C<dist_info> parameter is the location of the source package 
+for the .par file, either as a URL (which should be accessible for 3 years) 
+or as a location on CPAN in the 'AUTHORID/dist-version.tar.gz' format.
+
+=cut
 
 has dist_info => (
 	is       => 'ro',

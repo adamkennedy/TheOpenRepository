@@ -1666,7 +1666,7 @@ has 'fileid_relocation_pl' => (
 
 =head4 msm_code
 
-The optional C<msm_code> param is used to specify the product code
+The optional C<msm_code> parameter is used to specify the product code
 for the merge module referred to in C<msm_to_use>.
 
 C<msm_to_use>, C<msm_zip>, and this parameter must either be all unset, 
@@ -1685,7 +1685,8 @@ has 'msm_code' => (
 
 =head4 msm_to_use
 
-The optional C<msm_to_use> ...
+The optional C<msm_to_use> parameter is the location of a merge module 
+to use when linking the .msi.
 
 It can be specified as a string, a L<Path::Class::File|Path::Class::File> 
 object, or a L<URI|URI> object. 

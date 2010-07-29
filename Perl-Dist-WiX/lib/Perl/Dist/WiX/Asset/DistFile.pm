@@ -83,12 +83,17 @@ It inherits all the parameters described in the
 L<< Perl::Dist::WiX::Role::Asset->new|Perl::Dist::WiX::Role::Asset/new() >> 
 method documentation, and adds the additional parameters described below.
 
-=cut
+=head3 url
+
+The C<url> parameter is used as a location where the package can be 
+downloaded for 3 years, as required by the GNU Public License.
+
+This is used when generating release notes.
 
 =head3 mod_name
 
-The required C<mod_name> param is the name of the package for the purposes
-of identification.
+The required C<mod_name> parameter is the name of the package for the 
+purposes of identification.
 
 This should match the name of the main Perl module in the distribution, for 
 example, "File::Spec" or "Perl::Dist::WiX".
@@ -102,6 +107,7 @@ has mod_name => (
 	lazy    => 1,
 	default => sub { return $_[0]->_name_to_module(); },
 );
+
 
 
 =head3 force

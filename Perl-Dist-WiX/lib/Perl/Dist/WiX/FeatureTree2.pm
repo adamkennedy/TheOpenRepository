@@ -20,7 +20,10 @@ This document describes Perl::Dist::WiX::FeatureTree2 version 1.250.
 
 =head1 DESCRIPTION
 
-	# TODO: Document
+This module contains the feature tree for a distribution.
+
+Currently, this implements a "feature tree" with one feature.  Multiple
+features will be implemented during the October 2010 release cycle.
 
 =cut
 
@@ -172,7 +175,13 @@ sub as_string_msm {
 
 =head2 add_merge_module
 
-TODO: Document
+	$self->add_merge_module($mm)
+
+This routine adds a merge module reference to the feature tree.
+
+The C<$mm> parameter is the 
+L<Perl::Dist::WiX::Tag::MergeModule|Perl::Dist::WiX::Tag::MergeModule> 
+object to add a reference of.
 
 =cut
 

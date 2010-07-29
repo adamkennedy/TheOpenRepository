@@ -43,6 +43,8 @@ use Params::Util qw( _STRING _INSTANCE  );
 use File::Spec::Functions qw( splitpath );
 require Perl::Dist::WiX::Tag::Icon;
 
+with 'WiX3::Role::Traceable';
+
 our $VERSION = '1.250';
 $VERSION =~ s/_//ms;
 
@@ -117,9 +119,8 @@ sub add_icon {
 	# Find the type of target.
 	my ($target_type) = $pathname_target =~ m{\A.*[.](.+)\z}msx;
 
-# TODO: Make this work.
-#	$self->trace_line( 2,
-#		"Adding icon $pathname_icon with target type $target_type.\n" );
+	$self->trace_line( 2,
+		"Adding icon $pathname_icon with target type $target_type.\n" );
 
 	# If we have an icon already, return it.
 	my $icon = $self->search_icon( $pathname_icon, $target_type );
