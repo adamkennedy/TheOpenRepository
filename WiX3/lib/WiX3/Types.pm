@@ -5,7 +5,7 @@ use 5.008001;
 use MooseX::Types -declare => [ qw(
 	  Host Tracelevel IsTag _YesNoType YesNoType ComponentGuidType PositiveInt
 	  NonNegativeInt TraceObject
-	  EnumRemoveFolderOn EnumEnvironmentAction
+	  EnumRemoveFolderOn EnumEnvironmentAction EnumRegistryValueType
 	  ) ];
 use Regexp::Common 2.105;
 use MooseX::Types::Moose qw( Str Int Bool HashRef );
@@ -36,6 +36,8 @@ subtype Host, as Str, where {
 enum EnumRemoveFolderOn, qw( install uninstall both );
 
 enum EnumEnvironmentAction, qw( create set remove );
+
+enum EnumRegistryValueType, qw( string integer binary expandable multiString );
 
 subtype IsTag, as role_type 'WiX3::XML::Role::Tag';
 
