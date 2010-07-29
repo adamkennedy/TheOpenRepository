@@ -27,7 +27,7 @@ L<Perl::Dist::WiX|Perl::Dist::WiX>-based Perl distribution.
 use 5.008001;
 use Moose::Role;
 use File::Spec::Functions qw( rel2abs catdir catfile );
-use MooseX::Types::Moose qw( Str );
+use MooseX::Types::Moose qw( Str Maybe );
 use Params::Util qw( _INSTANCE );
 use English qw( -no_match_vars );
 require File::List::Object;
