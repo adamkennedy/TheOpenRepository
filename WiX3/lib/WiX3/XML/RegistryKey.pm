@@ -27,7 +27,7 @@ $VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 
-# No child tags allowed.
+# Has WiX3::XML::RegistryKey and WiX3::XML::RegistryValue as childs
 
 #####################################################################
 # Accessors:

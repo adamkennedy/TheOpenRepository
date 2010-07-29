@@ -1,5 +1,6 @@
 Revision history for WiX3
 
+       - Several enums added (CHORNY)
        - First attempt of WiX3::XML::RegistryKey (CHORNY)
 
 0.009102  Wed 28 Jul 2010
