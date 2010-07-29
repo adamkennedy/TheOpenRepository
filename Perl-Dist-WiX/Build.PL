@@ -163,7 +163,7 @@ my $builder = $class->new(
 		# Template 2.21 will not install on Windows, anyway.
 		'Template'                   => '2.22',
 		'URI'                        => '1.35',
-		'WiX3'                       => '0.009100',
+		'WiX3'                       => '0.009102',
 		'YAML::Tiny'                 => '1.36',
 		'Win32'                      => '0.35',
 		'Win32::Exe'                 => '0.13',
