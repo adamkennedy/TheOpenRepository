@@ -162,6 +162,12 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 			next MODULE;
 		}
 
+		# File::Fetch is network-dependent.
+		if ( $module->cpan_file() =~ m{/File-Fetch-\d}msx ) {
+			$self->_install_cpan_module( $module, $self->offline() );
+			next MODULE;
+		}
+		
 		# Locale::Maketext::Simple 0.20 has a test bug. Forcing.
 		if (
 			$module->cpan_file() =~ m{/Locale-Maketext-Simple-0 [.] 20}msx )
