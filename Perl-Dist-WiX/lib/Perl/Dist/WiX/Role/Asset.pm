@@ -145,6 +145,27 @@ has file => (
 
 
 
+=head2 packlist_location
+
+Some distributions create their packlist in an odd location (one 
+not specified by the main module in the distribution.)
+
+This optional parameter specifies the directory the packlist is in as a 
+relative directory to C<image_dir()> . "/I<install location>/lib/author".
+
+=cut
+
+
+
+has packlist_location => (
+	is      => 'ro',
+	isa     => Maybe[ Str ],
+	reader  => '_get_packlist_location',
+	default => undef,
+);
+
+
+
 =head1 METHODS
 
 =head2 install
@@ -268,6 +289,15 @@ EOF
 		catdir( $image_dir, qw{perl site   lib auto}, @module_dirs ),
 		catdir( $image_dir, qw{perl        lib auto}, @module_dirs ),
 	);
+
+	my $packlist_location = $self->_get_packlist_location();
+	if (defined $packlist_location) {
+		push @dirs, (
+			catdir( $image_dir, qw{perl vendor lib auto}, $packlist_location ),
+			catdir( $image_dir, qw{perl site   lib auto}, $packlist_location ),
+			catdir( $image_dir, qw{perl        lib auto}, $packlist_location ),
+		);
+	}
 
 	# What file exists, if any?
 	my $packlist;
