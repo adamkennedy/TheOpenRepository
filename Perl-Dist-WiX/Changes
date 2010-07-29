@@ -4,6 +4,7 @@ Changes for Perl extension Perl-Dist-WiX
     1. Used to build Strawberry Perl July 2010.
     2. Added ability to have CPAN module links in the release notes.
 	3. Removing pdwix_minicpan script.
+	4. Added ability to specify packlist location (not used yet)
 
 1.200_102   Sun 25 Jul 2010
     1. Used to build Strawberry Perl Professional Alpha 2.
