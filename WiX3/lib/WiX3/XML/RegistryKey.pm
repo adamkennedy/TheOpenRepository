@@ -89,8 +89,12 @@ sub as_string {
 		$answer .=
 		  $self->print_attribute( 'Action', 'create' );
 	}
-	die "Childs should be here - RegistryValue";
-	$answer .= " />\n";
+	$answer .= ">\n";
+	my $child_string = q{};
+	$child_string = $self->indent( 2, $self->as_string_children() )
+	  if $self->has_child_tags();
+	chomp $child_string;
+	$answer .= "$child_string</RegistryKey>\n";
 
 	return $answer;
 } ## end sub as_string
