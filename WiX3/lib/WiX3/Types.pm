@@ -5,7 +5,8 @@ use 5.008001;
 use MooseX::Types -declare => [ qw(
 	  Host Tracelevel IsTag _YesNoType YesNoType ComponentGuidType PositiveInt
 	  NonNegativeInt TraceObject
-	  EnumRemoveFolderOn EnumEnvironmentAction EnumRegistryValueType EnumRegistryRootType
+	  EnumRemoveFolderOn EnumEnvironmentAction
+	  EnumRegistryValueType EnumRegistryRootType EnumRegistryValueAction
 	  ) ];
 use Regexp::Common 2.105;
 use MooseX::Types::Moose qw( Str Int Bool HashRef );
@@ -40,6 +41,8 @@ enum EnumEnvironmentAction, qw( create set remove );
 enum EnumRegistryRootType, qw( HKMU HKCR HKCU HKLM HKU );
 
 enum EnumRegistryValueType, qw( string integer binary expandable multiString );
+
+enum EnumRegistryValueAction, qw( append prepend write );
 
 subtype IsTag, as role_type 'WiX3::XML::Role::Tag';
 
