@@ -1,5 +1,7 @@
 Revision history for WiX3
 
+       - First attempt of WiX3::XML::RegistryKey (CHORNY)
+
 0.009102  Wed 28 Jul 2010
        - Allowing single quotes in attributes.
 
