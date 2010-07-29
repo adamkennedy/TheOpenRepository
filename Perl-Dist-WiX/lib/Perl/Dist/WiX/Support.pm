@@ -501,9 +501,7 @@ sub _run3 {
 Extracts an archive file (set in the first parameter) to a specified 
 directory (set in the second parameter).
 
-The archive file must be a .tar.gz, .tar.bz2, or .zip file.
-
-TODO: Add .tar.xz files.
+The archive file must be a .tar.gz, .tar.bz2, .tar.xz, or .zip file.
 
 =cut 
 
