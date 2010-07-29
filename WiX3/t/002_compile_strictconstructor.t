@@ -6,7 +6,7 @@ BEGIN {
 
 {
 	package Test;
-	use Moose 0.74;
+	use Moose 0.90;
 	use Test::More tests => 1;
 
 	# WiX3::Util::StrictConstructor needs to be used within 
