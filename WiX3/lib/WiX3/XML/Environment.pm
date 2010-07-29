@@ -16,7 +16,7 @@ use metaclass (
 );
 use Moose;
 use Params::Util qw( _IDENTIFIER _STRING );
-use WiX3::Types qw( YesNoType );
+use WiX3::Types qw( YesNoType EnumEnvironmentAction);
 use MooseX::Types::Moose qw( Str Maybe );
 use WiX3::Util::StrictConstructor;
 
@@ -58,7 +58,7 @@ has value => (
 
 has action => (
 	is      => 'ro',
-	isa     => Str,
+	isa     => EnumEnvironmentAction,
 	reader  => '_get_action',
 	default => 'set',
 );
