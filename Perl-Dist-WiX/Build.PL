@@ -147,7 +147,8 @@ my $builder = $class->new(
 		'LWP::UserAgent::WithCache'  => '0.06',
 		'LWP::Online'                => '1.07',
 		'Module::CoreList'           => '2.32',
-		'Moose'                      => '0.90',
+		# Temporary fix until we update things for Moose 1.09.
+		'Moose'                      => '>= 0.90, < 1.09',
 		'MooseX::NonMoose'           => '0.05',
 		'MooseX::Singleton'          => '0',
 		'MooseX::Types'              => '0',
