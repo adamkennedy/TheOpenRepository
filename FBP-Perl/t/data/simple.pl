@@ -27,6 +27,16 @@ sub new {
 		Wx::gettext('This is a test'),
 	);
 
+	$self->{m_textCtrl1} = Wx::TextCtrl->new(
+		$self,
+		-1,
+		"This is also a test",
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTE_CENTRE,
+	);
+	$self->{m_textCtrl1}->SetMaxLength( 50 );
+
 	$self->{m_button1} = Wx::Button->new(
 		$self,
 		-1,
@@ -61,7 +71,7 @@ sub new {
 	$self->{m_comboBox1} = Wx::ComboBox->new(
 		$self,
 		-1,
-		"Combo\!",
+		"Combo!",
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 		[ ],
@@ -170,6 +180,7 @@ sub new {
 	my $bSizer2 = Wx::BoxSizer->new( Wx::wxVERTICAL );
 	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( 10, 5, 0, Wx::wxEXPAND, 5 );
+	$bSizer2->Add( $self->{m_textCtrl1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_button1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_staticline1}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
 	$bSizer2->Add( $fgSizer1, 1, Wx::wxEXPAND, 5 );

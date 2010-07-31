@@ -1,6 +1,7 @@
 Changes for Perl extension FBP-Perl
 
 0.11 Sat 31 Jul 2010
+	- Add support for Wx::TextCtrl
 	- Add support for Wx::FlexGridSizer
 	- Add support for Wx::StaticBoxSizer
 

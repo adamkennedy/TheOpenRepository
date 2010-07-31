@@ -21,8 +21,9 @@ TO BE COMPLETED
 use 5.008005;
 use strict;
 use warnings;
-use Mouse 0.61;
-use FBP   0.13 ();
+use Mouse         0.61;
+use FBP           0.13 ();
+use Data::Dumper 2.122 ();
 
 our $VERSION = '0.11';
 
@@ -196,6 +197,8 @@ sub window_create {
 		$lines = $self->staticline_create($window);
 	} elsif ( $window->isa('FBP::StaticText') ) {
 		$lines = $self->statictext_create($window);
+	} elsif ( $window->isa('FBP::TextCtrl') ) {
+		$lines = $self->textctrl_create($window);
 	} else {
 		die 'Cannot create constructor code for ' . ref($window);
 	}
@@ -398,6 +401,31 @@ sub staticline_create {
 		( $style ? "\t$style," : () ),
 		");",
 	];
+}
+
+sub textctrl_create {
+	my $self      = shift;
+	my $control   = shift;
+	my $lexical   = $self->object_lexical($control) ? 'my ' : '';
+	my $variable  = $self->object_variable($control);
+	my $id        = $self->wx( $control->id );
+	my $value     = $self->quote( $control->value );
+	my $position  = $self->object_position($control);
+	my $size      = $self->object_size($control);
+	my $style     = $self->wx( $control->styles );
+	my $maxlength = $control->maxlength;
+
+	return [
+		"$lexical$variable = Wx::TextCtrl->new(",
+		"\t\$self,",
+		"\t$id,",
+		"\t$value,",
+		"\t$position,",
+		"\t$size,",
+		( $style ? "\t$style," : () ),
+		");",
+		( $maxlength ? "$variable->SetMaxLength( $maxlength );" : () ),
+	];	
 }
 
 
@@ -913,7 +941,18 @@ sub wx {
 sub quote {
 	my $self   = shift;
 	my $string = shift;
-	return '"' . quotemeta($string) . '"';
+
+	# This gets tricky if you ever hit weird characters
+	# or Unicode, so hand off to an expert.
+	my $code = do {
+		local $Data::Dumper::Terse = 1;
+		local $Data::Dumper::Useqq = 1;
+		Data::Dumper::Dumper($string);
+	};
+
+	# Trim off the trailing space it will add.
+	$code =~ s/\s+\z//;
+	return $code;
 }
 
 sub indent {
