@@ -22,13 +22,15 @@ has value => (
 );
 
 has style => (
-	is  => 'ro',
-	isa => 'Str',
+	is       => 'ro',
+	isa      => 'Str',
 );
 
 has maxlength => (
-	is  => 'ro',
-	isa => 'Int',
+	is       => 'ro',
+	isa      => 'Int',
+	required => 1,
+	default  => 0,
 );
 
 
