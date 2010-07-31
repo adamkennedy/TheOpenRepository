@@ -2,7 +2,7 @@ package FBP::Control;
 
 use Mouse::Role;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 has default => (
 	is  => 'ro',

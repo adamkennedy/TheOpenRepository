@@ -39,29 +39,30 @@ The C<new> constructor takes no arguments and creates a new parser/model object.
 =cut
 
 use 5.008005;
-use Mouse        0.61;
-use Params::Util 1.00 ();
-use IO::File     1.14 ();
-use XML::SAX     0.96 ();
-use FBP::Parser       ();
-use FBP::Project      ();
-use FBP::Dialog       ();
-use FBP::BoxSizer     ();
-use FBP::Button       ();
-use FBP::CheckBox     ();
-use FBP::Choice       ();
-use FBP::ComboBox     ();
-use FBP::GridSizer    ();
-use FBP::HtmlWindow   ();
-use FBP::ListBox      ();
-use FBP::ListCtrl     ();
-use FBP::Panel        ();
-use FBP::SizerItem    ();
-use FBP::Spacer       ();
-use FBP::StaticText   ();
-use FBP::StaticLine   ();
+use Mouse         0.61;
+use Params::Util  1.00 ();
+use IO::File      1.14 ();
+use XML::SAX      0.96 ();
+use FBP::Parser        ();
+use FBP::Project       ();
+use FBP::Dialog        ();
+use FBP::BoxSizer      ();
+use FBP::Button        ();
+use FBP::CheckBox      ();
+use FBP::Choice        ();
+use FBP::ComboBox      ();
+use FBP::FlexGridSizer ();
+use FBP::GridSizer     ();
+use FBP::HtmlWindow    ();
+use FBP::ListBox       ();
+use FBP::ListCtrl      ();
+use FBP::Panel         ();
+use FBP::SizerItem     ();
+use FBP::Spacer        ();
+use FBP::StaticText    ();
+use FBP::StaticLine    ();
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 extends 'FBP::Object';
 with    'FBP::Children';

@@ -1,33 +1,34 @@
 package FBP::Parser;
 
-use 5.008;
+use 5.008005;
 use strict;
 use warnings;
 use Params::Util   ();
 use XML::SAX::Base ();
 use FBP            ();
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 our @ISA     = 'XML::SAX::Base';
 
 # Object XML class to Perl class mapping
 my %OBJECT_CLASS = (
-	Project      => 'FBP::Project',
-	Dialog       => 'FBP::Dialog',
-	wxBoxSizer   => 'FBP::BoxSizer',
-	wxButton     => 'FBP::Button',
-	wxCheckBox   => 'FBP::CheckBox',
-	wxChoice     => 'FBP::Choice',
-	wxComboBox   => 'FBP::ComboBox',
-	wxGridSizer  => 'FBP::GridSizer',
-	wxHtmlWindow => 'FBP::HtmlWindow',
-	wxListBox    => 'FBP::ListBox',
-	wxListCtrl   => 'FBP::ListCtrl',
-	wxPanel      => 'FBP::Panel',
-	wxStaticText => 'FBP::StaticText',
-	wxStaticLine => 'FBP::StaticLine',
-	sizeritem    => 'FBP::SizerItem',
-	spacer       => 'FBP::Spacer',
+	Project         => 'FBP::Project',
+	Dialog          => 'FBP::Dialog',
+	wxBoxSizer      => 'FBP::BoxSizer',
+	wxButton        => 'FBP::Button',
+	wxCheckBox      => 'FBP::CheckBox',
+	wxChoice        => 'FBP::Choice',
+	wxComboBox      => 'FBP::ComboBox',
+	wxFlexGridSizer => 'FBP::FlexGridSizer',
+	wxGridSizer     => 'FBP::GridSizer',
+	wxHtmlWindow    => 'FBP::HtmlWindow',
+	wxListBox       => 'FBP::ListBox',
+	wxListCtrl      => 'FBP::ListCtrl',
+	wxPanel         => 'FBP::Panel',
+	wxStaticText    => 'FBP::StaticText',
+	wxStaticLine    => 'FBP::StaticLine',
+	sizeritem       => 'FBP::SizerItem',
+	spacer          => 'FBP::Spacer',
 );
 
 
@@ -64,7 +65,8 @@ sub parent {
 # Generic SAX Handlers
 
 sub start_element {
-	my ($self, $element) = @_;
+	my $self    = shift;
+	my $element = shift;
 
 	# We don't support namespaces
 	if ( $element->{Prefix} ) {
