@@ -147,6 +147,20 @@ sub new {
 		Wx::wxDefaultSize,
 	);
 
+	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
+	$fgSizer1->SetFlexibleDirection( Wx::wxBOTH );
+	$fgSizer1->SetNonFlexibleGrowMode( Wx::wxFLEX_GROWMODE_SPECIFIED );
+	$fgSizer1->Add( $self->{m_choice1}, 0, Wx::wxALL, 5 );
+	$fgSizer1->Add( $self->{m_comboBox1}, 0, Wx::wxALL, 5 );
+	$fgSizer1->Add( $self->{m_listBox1}, 0, Wx::wxALL, 5 );
+	$fgSizer1->Add( $self->{m_listCtrl1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
+
+	my $sbSizer1 = Wx::StaticBoxSizer->new(
+		Wx::gettext('The Interweb'),
+		Wx::wxVERTICAL,
+	);
+	$sbSizer1->Add( $self->{m_htmlWin1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
+
 	my $gSizer1 = Wx::GridSizer->new( 1, 2, 3, 4 );
 	$gSizer1->Add( $self->{m_checkBox1}, 0, Wx::wxALL, 5 );
 	$gSizer1->Add( $self->{m_checkBox2}, 0, Wx::wxALL, 5 );
@@ -155,15 +169,12 @@ sub new {
 
 	my $bSizer2 = Wx::BoxSizer->new( Wx::wxVERTICAL );
 	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
-	$bSizer2->Add( 10, 5, 1, Wx::wxEXPAND, 5 );
+	$bSizer2->Add( 10, 5, 0, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $self->{m_button1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( $self->{m_staticline1}, 0, Wx::wxEXPAND | Wx::wxALL, 5 );
-	$bSizer2->Add( $self->{m_choice1}, 0, Wx::wxALL, 5 );
-	$bSizer2->Add( $self->{m_comboBox1}, 0, Wx::wxALL, 5 );
-	$bSizer2->Add( $self->{m_listBox1}, 0, Wx::wxALL, 5 );
-	$bSizer2->Add( $self->{m_listCtrl1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
-	$bSizer2->Add( $self->{m_htmlWin1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
-	$bSizer2->Add( $gSizer1, 1, Wx::wxEXPAND, 5 );
+	$bSizer2->Add( $fgSizer1, 1, Wx::wxEXPAND, 5 );
+	$bSizer2->Add( $sbSizer1, 1, Wx::wxEXPAND, 5 );
+	$bSizer2->Add( $gSizer1, 0, Wx::wxEXPAND, 5 );
 
 	my $bSizer1 = Wx::BoxSizer->new( Wx::wxHORIZONTAL );
 	$bSizer1->Add( $bSizer2, 1, Wx::wxEXPAND, 5 );
