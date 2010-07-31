@@ -62,6 +62,7 @@ use FBP::Spacer         ();
 use FBP::StaticBoxSizer ();
 use FBP::StaticText     ();
 use FBP::StaticLine     ();
+use FBP::TextCtrl       ();
 
 our $VERSION = '0.13';
 

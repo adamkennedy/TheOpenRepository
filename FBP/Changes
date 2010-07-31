@@ -1,6 +1,7 @@
 Changes for Perl extension FBP
 
 0.13 to be released
+	- Added FBP::TextCtrl       class
 	- Added FBP::FlexGridSizer  class
 	- Added FBP::StaticBoxSizer class
 

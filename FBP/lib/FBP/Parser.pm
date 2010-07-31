@@ -30,6 +30,7 @@ my %OBJECT_CLASS = (
 	wxStaticLine     => 'FBP::StaticLine',
 	sizeritem        => 'FBP::SizerItem',
 	spacer           => 'FBP::Spacer',
+	wxTextCtrl       => 'FBP::TextCtrl',
 );
 
 
