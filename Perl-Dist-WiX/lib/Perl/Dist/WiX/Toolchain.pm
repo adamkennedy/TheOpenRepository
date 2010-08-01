@@ -8,7 +8,7 @@ Perl::Dist::WiX::Toolchain - Compiles the initial toolchain for a Win32 perl dis
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Toolchain version 1.250.
+This document describes Perl::Dist::WiX::Toolchain version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -49,7 +49,7 @@ L<Process|Process>.
 
 
 
-use 5.008001;
+use 5.010;
 use Moose 0.90;
 use MooseX::NonMoose;
 use MooseX::Types::Moose qw( Str Int Bool HashRef ArrayRef Maybe );
@@ -63,7 +63,7 @@ use IO::Capture::Stdout qw();
 use IO::Capture::Stderr qw();
 use vars qw(@DELEGATE);
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 extends qw(
@@ -117,7 +117,7 @@ This required parameter defines the version of Perl that we are generating
 the toolchain for.
 
 This is a string containing a number that is a version of perl in the format
-of $] ('5.008009' or '5.012000', for example).
+of $] ('5.010001' or '5.012000', for example).
 
 =cut
 
@@ -263,12 +263,11 @@ sub _modules_build {
 	  Pod::Text
 	};
 
-	my %modules = ( '5.008009' => \@modules_list, );
-	$modules{'5.010000'} = $modules{'5.008009'};
-	$modules{'5.010001'} = $modules{'5.008009'};
-	$modules{'5.011001'} = $modules{'5.008009'};
-	$modules{'5.012000'} = $modules{'5.008009'};
-	$modules{'5.012001'} = $modules{'5.008009'};
+	my %modules = ( '5.010000' => \@modules_list, );
+	$modules{'5.010001'} = $modules{'5.010000'};
+	$modules{'5.011001'} = $modules{'5.010000'};
+	$modules{'5.012000'} = $modules{'5.010000'};
+	$modules{'5.012001'} = $modules{'5.010000'};
 
 	return \%modules;
 } ## end sub _modules_build
@@ -293,7 +292,6 @@ has _corelist_version => (
 sub _corelist_version_build {
 
 	my %corelist = (
-		'5.008009' => '5.008009',
 		'5.010000' => '5.010000',
 		'5.010001' => '5.010001',
 		'5.011001' => '5.011001',

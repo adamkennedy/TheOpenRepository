@@ -8,7 +8,7 @@ Perl::Dist::WiX::Tag::Directory - <Directory> tag that knows how to search its c
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Tag::Directory version 1.250.
+This document describes Perl::Dist::WiX::Tag::Directory version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -41,7 +41,7 @@ based distribution.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 
 # CHECK: May or may not need this. Needs to be tested.
@@ -51,7 +51,7 @@ use Params::Util qw( _STRING );
 use Digest::CRC qw( crc32_base64 );
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Directory';

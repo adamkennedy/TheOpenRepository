@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::StartMenu - A <Fragment> tag that handles the Start m
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::StartMenu version 1.250.
+This document describes Perl::Dist::WiX::Fragment::StartMenu version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -32,7 +32,7 @@ so that the Start Menu is created when the .msi is installed.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose 0.90;
 use MooseX::Types::Moose qw( Str Bool HashRef );
 use Perl::Dist::WiX::Types qw( DirectoryRef );
@@ -46,7 +46,7 @@ use WiX3::XML::RemoveFolder qw();
 use WiX3::XML::DirectoryRef qw();
 use WiX3::XML::Shortcut qw();
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';

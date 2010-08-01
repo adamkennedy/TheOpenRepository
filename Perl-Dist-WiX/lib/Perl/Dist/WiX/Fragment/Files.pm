@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::Files - A <Fragment> with file handling.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::Files version 1.250.
+This document describes Perl::Dist::WiX::Fragment::Files version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -32,7 +32,7 @@ Usually a fragment is one module, or a C library.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 use MooseX::Types::Moose qw( Bool );
 use Params::Util qw( _INSTANCE );
@@ -51,7 +51,7 @@ use WiX3::Exceptions qw();
 use File::List::Object qw();
 use Win32::Exe 0.13 qw();
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';

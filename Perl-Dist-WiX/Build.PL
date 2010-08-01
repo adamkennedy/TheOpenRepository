@@ -1,4 +1,4 @@
-use inc::latest Module::Build;
+use Module::Build;
 
 # To make sure these get into the inc\ directory for our M::B subclass.
 # use inc::latest CPAN::Meta;
@@ -104,7 +104,6 @@ my $builder = $class->new(
 	license             => 'perl',
 	dist_author         => 'Curtis Jewell <csjewell@cpan.org>',
 	dist_version_from   => 'lib/Perl/Dist/WiX.pm',
-	create_makefile_pl  => 'small',
 	create_license      => 1,
 	create_readme       => 1,
 # Will do this soon, but I have to get a key first.
@@ -114,7 +113,7 @@ my $builder = $class->new(
 		'CPAN'                      => '1.9457',
 	},
 	requires => {
-		'perl'                       => '5.008001',
+		'perl'                       => '5.010',
 		'parent'                     => '0.221',
 		'Alien::WiX'                 => '0.300000',
 		'Archive::Tar'               => '1.66',

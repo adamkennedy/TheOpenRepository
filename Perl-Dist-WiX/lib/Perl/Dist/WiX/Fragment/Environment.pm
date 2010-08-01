@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::Environment - A <Fragment> tag with environment varia
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::Environment version 1.250.
+This document describes Perl::Dist::WiX::Fragment::Environment version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -36,13 +36,13 @@ the environment variables required in a distribution.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 require WiX3::XML::Environment;
 require WiX3::XML::Component;
 require WiX3::XML::DirectoryRef;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';

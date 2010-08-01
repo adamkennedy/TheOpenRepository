@@ -8,7 +8,7 @@ Perl::Dist::WiX::Role::NonURLAsset - Role for assets that do not require URL's.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Role::NonURLAsset version 1.250.
+This document describes Perl::Dist::WiX::Role::NonURLAsset version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -24,7 +24,7 @@ L<Perl::Dist::WiX|Perl::Dist::WiX>-based Perl distribution.
 
 # Convenience role for Perl::Dist::WiX assets
 
-use 5.008001;
+use 5.010;
 use Moose::Role;
 use File::Spec::Functions qw( rel2abs catdir catfile );
 use MooseX::Types::Moose qw( Str Maybe );
@@ -37,7 +37,7 @@ require Perl::Dist::WiX::Exceptions;
 require URI;
 require URI::file;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//sm;
 
 

@@ -8,7 +8,7 @@ Perl::Dist::VanillaWiX - Minimal distribution of Perl, useful only for testing.
 
 =head1 VERSION
 
-This document describes Perl::Dist::VanillaWiX version 1.250.
+This document describes Perl::Dist::VanillaWiX version 1.250_100.
 
 =head1 DESCRIPTION
 
@@ -34,12 +34,12 @@ This package is a basic test of Perl::Dist::WiX functionality.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use strict;
 use warnings;
 use parent qw(Perl::Dist::WiX);
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 #####################################################################
@@ -121,7 +121,7 @@ exceptions that this module can throw.
 
 =head1 DEPENDENCIES
 
-Perl 5.8.1 is the mimimum version of perl that this module will run on.
+Perl 5.10.0 is the mimimum version of perl that this module will run on.
 
 Other modules that this module depends on are a working version of 
 L<Perl::Dist::WiX|Perl::Dist::WiX>.

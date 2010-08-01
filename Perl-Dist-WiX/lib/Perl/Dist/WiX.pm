@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.250
+Perl-Dist-WiX version 1.250_100
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.250.
+This document describes Perl::Dist::WiX version 1.250_100.
 
 =for readme continue
 
@@ -69,7 +69,7 @@ To install this module, run the following commands:
 =cut
 
 #<<<
-use 5.008001;
+use 5.010;
 use Moose 0.90;
 use Moose::Util::TypeConstraints;
 use namespace::autoclean;
@@ -151,7 +151,7 @@ use WiX3::XML::GeneratesGUID::Object        qw();
 use WiX3::Traceable                         qw();
 #>>>
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 
@@ -790,7 +790,7 @@ using gcc 4.4.3 from the mingw64 project (by specifying a value of '4').
 
 '3' (gcc 3.4.5) is the default, and is incompatible with C<< L<bits|/bits> 
 => 64 >>. '4' is compatible with both 32 and 64-bit, but is incompatible with
-C<< L<perl_version|/perl_version> => 589, 5100, or 5101 >>.
+C<< L<perl_version|/perl_version> => 5100 5101 >>.
 
 =cut
 
@@ -990,8 +990,8 @@ has 'perl_debug' => (
 =head4 perl_version
 
 The C<perl_version> parameter specifies what version of perl is downloaded 
-and built.  Legal values for this parameter are 'git', '589', '5100', '5101', 
-'5120', and '5121' (for a version from perl5.git.perl.org, 5.8.9, 5.10.0, 
+and built.  Legal values for this parameter are 'git', '5100', '5101', 
+'5120', and '5121' (for a version from perl5.git.perl.org, 5.10.0, 
 5.10.1, and 5.12.1, respectively.)
 
 This parameter defaults to '5101' if not specified.
@@ -1000,7 +1000,7 @@ This parameter defaults to '5101' if not specified.
 
 has 'perl_version' => (
 	is      => 'ro',
-	isa     => enum( [qw(git 589 5100 5101 5120 5121)] ),
+	isa     => enum( [qw(git 5100 5101 5120 5121)] ),
 	default => '5101',
 );
 
@@ -2433,7 +2433,7 @@ EOF
 		Perl::Dist::WiX::Fragment::CreateFolder->new(
 			directory_id => 'Cpanplus',
 			id           => 'CPANPLUSFolder',
-		) ) if ( '589' ne $self->perl_version() );
+		) );
 
 	# Empty directories that need emptied.
 	$self->trace_line( 1,
@@ -2444,9 +2444,7 @@ EOF
 	$self->remake_path( $self->fragment_dir() );
 
 	# Make some directories.
-	my @directories_to_make = ( $self->dir('cpan'), );
-	push @directories_to_make, $self->dir('cpanplus')
-	  if ( '589' ne $self->perl_version() );
+	my @directories_to_make = ( $self->dir('cpan'), $self->dir('cpanplus') );
 	for my $d (@directories_to_make) {
 		next if -d $d;
 		File::Path::mkpath($d);
@@ -2810,13 +2808,6 @@ sub install_win32_extras {
 			url       => 'http://search.cpan.org/',
 			icon_file => catfile( $self->wix_dist_dir(), 'cpan.ico' ) );
 
-		if ( $self->perl_version_human eq '5.8.9' ) {
-			$self->install_website(
-				name      => 'Perl 5.8.9 Documentation',
-				url       => 'http://perldoc.perl.org/5.8.9/',
-				icon_file => catfile( $self->wix_dist_dir(), 'perldoc.ico' )
-			);
-		}
 		if ( $self->perl_version_human eq '5.10.0' ) {
 			$self->install_website(
 				name      => 'Perl 5.10.0 Documentation',
@@ -3744,7 +3735,7 @@ qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
 The C<perl_version_literal> method returns the literal numeric Perl
 version for the distribution.
 
-For example, a Perl 5.8.9 distribution will return '5.008009'.
+For example, a Perl 5.10.1 distribution will return '5.010001'.
 
 =cut
 
@@ -3759,7 +3750,6 @@ sub _build_perl_version_literal {
 	my $self = shift;
 
 	my $x = {
-		'589'  => '5.008009',
 		'5100' => '5.010000',
 		'5101' => '5.010001',
 		'5120' => '5.012000',
@@ -3785,8 +3775,7 @@ sub _build_perl_version_literal {
 The C<perl_version_human> method returns the "marketing" form
 of the Perl version.
 
-This will be either 'git', '5.8.9', '5.10.0', '5.10.1', '5.12.0', or
-'5.12.1'.
+This will be either 'git', '5.10.0', '5.10.1', '5.12.0', or '5.12.1'.
 
 =cut
 
@@ -3802,7 +3791,6 @@ sub _build_perl_version_human {
 	my $self = shift;
 
 	my $x = {
-		'589'  => '5.8.9',
 		'5100' => '5.10.0',
 		'5101' => '5.10.1',
 		'5120' => '5.12.0',
@@ -4121,7 +4109,6 @@ sub msi_perl_version {
 
 	# Get perl version arrayref.
 	my $ver = {
-		'589'  => [ 5, 8,  9 ],
 		'5100' => [ 5, 10, 0 ],
 		'5101' => [ 5, 10, 1 ],
 		'5120' => [ 5, 12, 0 ],
@@ -4141,7 +4128,7 @@ sub msi_perl_version {
 
 =head3 perl_major_version 
 
-Gets the major version (the 8, 10, or 12 part of 5.8, 5.10, or 5.12) of
+Gets the major version (the 10, or 12 part of 5.10, or 5.12) of
 the perl distribution being built.
 
 =cut
@@ -4151,7 +4138,6 @@ sub perl_major_version {
 
 	# Get perl version arrayref.
 	my $ver = {
-		'589'  => [ 5, 8,  9 ],
 		'5100' => [ 5, 10, 0 ],
 		'5101' => [ 5, 10, 1 ],
 		'5120' => [ 5, 12, 0 ],
@@ -4177,7 +4163,6 @@ sub msi_perl_major_version {
 
 	# Get perl version arrayref.
 	my $ver = {
-		'589'  => [ 5, 8,  0 ],
 		'5100' => [ 5, 9,  127 ],
 		'5101' => [ 5, 10, 0 ],
 		'5120' => [ 5, 11, 127 ],
@@ -4717,12 +4702,11 @@ has '_notification_index' => (
 # This throws a Growl notification up when files are created.
 sub add_output_file {
 	my $self = shift;
-	my $growl;
 
 	if ( eval { require Growl::GNTP; 1; } ) {
 
 		# Open up our communication link to Growl.
-		$growl = Growl::GNTP->new(
+		my $growl = Growl::GNTP->new(
 			AppName => ref $self,
 			AppIcon => catfile( $self->wix_dist_dir(), 'growl-icon.png' ),
 		);
@@ -5135,13 +5119,9 @@ sub process_template {
 
 #<<<
 	# Delete empty lines.
-	# Change this to use \R once we get to 5.10 requirement.
-	$answer =~ s{(?>\x0D\x0A?|[\x0A-\x0C\x85\x{2028}\x{2029}])
-                            # Replace a linebreak, 
-							# (within parentheses is = to \R for 5.8)
+	$answer =~ s{\R         # Replace a linebreak, 
 				 \s*?       # any whitespace we may be able to catch,
-				 (?>\x0D\x0A?|[\x0A-\x0C\x85\x{2028}\x{2029}])}        
-				            # and a second linebreak
+				 \R}        # and a second linebreak
 				{\r\n}msgx; # With one Windows linebreak.
 #>>>
 
@@ -5273,7 +5253,7 @@ exceptions that this module can throw.
 
 =head1 DEPENDENCIES
 
-Perl 5.8.1 is the mimimum version of perl that this module will run on.
+Perl 5.10.0 is the mimimum version of perl that this module will run on.
 
 Other modules that this module depends on are a working version of 
 L<Alien::WiX|Alien::WiX>, L<Data::Dump::Streamer|Data::Dump::Streamer> 2.08, 

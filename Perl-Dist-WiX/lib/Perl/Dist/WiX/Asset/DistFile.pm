@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::DistFile - "Local Distribution" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::DistFile version 1.250.
+This document describes Perl::Dist::WiX::Asset::DistFile version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -53,7 +53,7 @@ L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 use MooseX::Types::Moose qw( Str Maybe Bool ArrayRef );
 use File::Spec::Functions qw( catdir catfile splitpath );
@@ -63,7 +63,7 @@ require URI;
 require File::Spec::Unix;
 require Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';

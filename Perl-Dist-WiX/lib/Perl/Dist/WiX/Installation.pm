@@ -8,7 +8,7 @@ Perl::Dist::WiX::Installation - Basic installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Installation version 1.250.
+This document describes Perl::Dist::WiX::Installation version 1.250_100.
 
 =head1 DESCRIPTION
 
@@ -24,7 +24,7 @@ install files.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use strict;
 use warnings;
 use Perl::Dist::WiX::Exceptions;
@@ -39,7 +39,7 @@ require Perl::Dist::WiX::Asset::Module;
 require Perl::Dist::WiX::Asset::PAR;
 require Perl::Dist::WiX::Asset::Website;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 =pod

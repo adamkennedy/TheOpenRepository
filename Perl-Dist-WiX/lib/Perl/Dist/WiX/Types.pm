@@ -6,7 +6,7 @@ Perl::Dist::WiX::Types - Public types used in Perl::Dist::WiX.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Types version 1.250.
+This document describes Perl::Dist::WiX::Types version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -22,7 +22,7 @@ It may be updated or replaced at any time.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use MooseX::Types -declare => [ qw(
 	  ExistingDirectory ExistingFile TemplateObj
 	  _NoDoubleSlashes _NoSpaces _NoForwardSlashes _NoSlashAtEnd _NotRootDir
@@ -34,7 +34,7 @@ use MooseX::Types::Moose qw( Str Object ArrayRef );
 use MooseX::Types::Path::Class qw( Dir File );
 use Template qw();
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 =head2 ExistingDirectory

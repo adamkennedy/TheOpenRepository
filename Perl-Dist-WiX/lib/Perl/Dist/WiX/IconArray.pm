@@ -8,7 +8,7 @@ Perl::Dist::WiX::IconArray - A list of <Icon> tags.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::IconArray version 1.250.
+This document describes Perl::Dist::WiX::IconArray version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -37,7 +37,7 @@ The object is not a singleton - maybe it should be?
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose 0.90;
 use Params::Util qw( _STRING _INSTANCE  );
 use File::Spec::Functions qw( splitpath );
@@ -45,7 +45,7 @@ require Perl::Dist::WiX::Tag::Icon;
 
 with 'WiX3::Role::Traceable';
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 # Private storage for the icons added.

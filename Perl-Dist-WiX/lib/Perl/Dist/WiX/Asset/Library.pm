@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::Library - "C Library" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Library version 1.250.
+This document describes Perl::Dist::WiX::Asset::Library version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -51,11 +51,11 @@ L<Perl::Dist::WiX::Role::Asset|Perl::Dist::WiX::Role::Asset>.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 use MooseX::Types::Moose qw( Str Maybe HashRef );
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';

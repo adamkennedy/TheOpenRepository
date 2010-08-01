@@ -8,7 +8,7 @@ Perl::Dist::WiX::FeatureTree2 - Tree of <Feature> tag objects.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::FeatureTree2 version 1.250.
+This document describes Perl::Dist::WiX::FeatureTree2 version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -27,11 +27,11 @@ features will be implemented during the October 2010 release cycle.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose 0.90;
 require WiX3::XML::Feature;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 =head1 INTERFACE

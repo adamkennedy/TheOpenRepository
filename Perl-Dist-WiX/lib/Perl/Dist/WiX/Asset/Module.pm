@@ -6,7 +6,7 @@ Perl::Dist::WiX::Asset::Module - Module asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Module version 1.250.
+This document describes Perl::Dist::WiX::Asset::Module version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -25,7 +25,7 @@ This asset installs a module from CPAN.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 use MooseX::Types::Moose qw( Str Bool );
 use English qw( -no_match_vars );
@@ -34,7 +34,7 @@ require Perl::Dist::WiX::Exceptions;
 require File::List::Object;
 require IO::File;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::NonURLAsset';

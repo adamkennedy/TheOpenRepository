@@ -8,7 +8,7 @@ Perl::Dist::WiX::Util::Machine - Generate an entire set of related distributions
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Util::Machine version 1.250.
+This document describes Perl::Dist::WiX::Util::Machine version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -18,15 +18,11 @@ This document describes Perl::Dist::WiX::Util::Machine version 1.250.
 	my $machine = Perl::Dist::WiX::Util::Machine->new(
 		class  => 'Perl::Dist::Strawberry',
 		common => [ forceperl => 1 ],
-		skip   => [6, 8],
+		skip   => [4, 6],
 	);
 
 	# Set the different versions
 	$machine->add_dimension('version');
-	$machine->add_option('version',
-		perl_version => '589',
-	    build_number => 5,
-	);
 	$machine->add_option('version',
 		perl_version => '5101',
 	);
@@ -64,7 +60,7 @@ variations of a distribution at the same time.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose 0.90;
 use Moose::Util::TypeConstraints;
 use MooseX::Types::Moose qw( Str ArrayRef HashRef Bool Int );
@@ -79,7 +75,7 @@ use List::MoreUtils qw( none );
 use Perl::Dist::WiX::Exceptions;
 use WiX3::Traceable qw();
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 =head1 INTERFACE

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Fragment::CreateFolder - A <Fragment> tag that creates a folder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Fragment::CreateFolder version 1.250.
+This document describes Perl::Dist::WiX::Fragment::CreateFolder version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -24,7 +24,7 @@ in order to create a folder when the MSI is installed.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 use Params::Util qw( _STRING  );
 use MooseX::Types::Moose qw( Str );
@@ -32,7 +32,7 @@ use WiX3::XML::CreateFolder;
 use WiX3::XML::DirectoryRef;
 use WiX3::XML::Component;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Fragment';

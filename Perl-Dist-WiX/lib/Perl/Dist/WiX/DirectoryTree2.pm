@@ -8,7 +8,7 @@ Perl::Dist::WiX::DirectoryTree2 - Base directory tree for Perl::Dist::WiX.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::DirectoryTree2 version 1.250.
+This document describes Perl::Dist::WiX::DirectoryTree2 version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -25,7 +25,7 @@ need to have specific IDs.
 
 =cut
 
-use 5.008001;
+use 5.010;
 
 #use metaclass (
 #	base_class  => 'MooseX::Singleton::Object',
@@ -42,7 +42,7 @@ use Perl::Dist::WiX::Tag::Directory;
 use WiX3::Exceptions;
 use Scalar::Util qw(weaken);
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//sm;
 
 with 'WiX3::Role::Traceable';
@@ -254,11 +254,8 @@ sub initialize_tree {
 		'License',   'licenses',
 		'Cpan',      'cpan',
 		'Win32',     'win32',
-	);
-
-	$branch->add_directories_id(
 		'Cpanplus',  'cpanplus',
-	) if ('589' ne $ver);
+	);
 #>>>
 
 	my $perl = $self->get_directory_object('D_Perl');

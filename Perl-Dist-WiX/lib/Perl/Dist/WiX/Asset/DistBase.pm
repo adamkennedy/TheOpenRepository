@@ -1,6 +1,6 @@
 package Perl::Dist::WiX::Asset::DistBase;
 
-use 5.008001;
+use 5.010;
 use Moose;
 use File::Spec::Functions qw( catdir catfile );
 use Params::Util qw ( _INSTANCE );
@@ -8,7 +8,7 @@ use Params::Util qw ( _INSTANCE );
 require URI;
 require File::Spec::Unix;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 sub _configure {
@@ -139,7 +139,7 @@ Perl::Dist::WiX::Asset::DistBase - Support routines for distribution assets.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::DistBase version 1.250.
+This document describes Perl::Dist::WiX::Asset::DistBase version 1.250_100.
 
 =head1 SYNOPSIS
 

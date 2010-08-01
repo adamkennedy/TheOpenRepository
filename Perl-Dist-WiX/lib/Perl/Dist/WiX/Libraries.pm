@@ -8,7 +8,7 @@ Perl::Dist::WiX::Libraries - Library installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Libraries version 1.250.
+This document describes Perl::Dist::WiX::Libraries version 1.250_100.
 
 =head1 DESCRIPTION
 
@@ -24,7 +24,7 @@ install the C toolchain and library files.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use strict;
 use warnings;
 use File::Spec::Functions qw( catfile );
@@ -32,7 +32,7 @@ use Params::Util qw( _STRING );
 use Perl::Dist::WiX::Exceptions;
 use Readonly;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 Readonly my %PACKAGES => (

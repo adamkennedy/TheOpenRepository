@@ -1,12 +1,12 @@
 package Perl::Dist::WiX::Exceptions;
 
-use 5.008001;
+use 5.010;
 use strict;
 use warnings;
 use WiX3::Traceable qw();
 use Data::Dump::Streamer qw();
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 
@@ -267,7 +267,7 @@ Perl::Dist::WiX::Exceptions - Exception classes for Perl::Dist::WiX
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Exceptions version 1.250.
+This document describes Perl::Dist::WiX::Exceptions version 1.250_100.
 
 =head1 DESCRIPTION
 

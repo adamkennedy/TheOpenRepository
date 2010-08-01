@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::Perl - "Perl core" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Perl version 1.250.
+This document describes Perl::Dist::WiX::Asset::Perl version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -40,14 +40,14 @@ and patches and installs it into a specified directory
 
 # Perl::Dist asset for the Perl source code itself
 
-use 5.008001;
+use 5.010;
 use Moose;
 use MooseX::Types::Moose qw( Str HashRef ArrayRef Bool Maybe );
 use File::Spec::Functions qw( catdir splitpath rel2abs catfile );
 require File::Remove;
 require File::Basename;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';

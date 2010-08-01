@@ -8,7 +8,7 @@ Perl::Dist::WiX::ReleaseNotes - Creates accessory files.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::ReleaseNotes version 1.250.
+This document describes Perl::Dist::WiX::ReleaseNotes version 1.250_100.
 
 =head1 DESCRIPTION
 
@@ -24,14 +24,14 @@ make the distributions.txt and the release notes files.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 use English qw( -no_match_vars );
 use File::Spec::Functions qw( catfile );
 require IO::File;
 require File::List::Object;
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 

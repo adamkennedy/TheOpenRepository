@@ -8,7 +8,7 @@ Perl::Dist::WiX::BuildPerl - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::BuildPerl version 1.250.
+This document describes Perl::Dist::WiX::BuildPerl version 1.250_100.
 
 =head1 DESCRIPTION
 
@@ -24,7 +24,7 @@ build Perl itself.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 use English qw( -no_match_vars );
 use List::MoreUtils qw( any );
@@ -39,7 +39,7 @@ use Perl::Dist::WiX::Asset::Perl qw();
 use Perl::Dist::WiX::Toolchain qw();
 use File::List::Object qw();
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//sm;
 
 # Keys are what's in the filename, with - being converted to ::.
@@ -227,16 +227,6 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 		{
 			$self->remove_file(qw{perl lib ExtUtils MakeMaker bytes.pm});
 			$self->remove_file(qw{perl lib ExtUtils MakeMaker vmsish.pm});
-			$self->_install_cpan_module( $module, $force );
-			next MODULE;
-		}
-
-		# The podlators dist needs a few more modules to install on 5.8.9.
-		if (    ( $module->cpan_file() =~ m{/podlators-\d}msx )
-			and ( $module->cpan_version() > 2.00 )
-			and ( $self->perl_version() < 5100 ) )
-		{
-			$self->install_modules(qw( Pod::Escapes Pod::Simple ));
 			$self->_install_cpan_module( $module, $force );
 			next MODULE;
 		}
@@ -497,9 +487,6 @@ sub _skip_upgrade {
 	# This code is in here for safety as of yet.
 	return 1 if $module->cpan_file() =~ m{/ExtUtils-MakeMaker-6 [.] 50}msx;
 
-	# Skip B::C, it does not install on 5.8.9.
-	return 1 if $module->cpan_file() =~ m{/B-C-1 [.]}msx;
-
 	return 0;
 } ## end sub _skip_upgrade
 
@@ -592,7 +579,7 @@ sub _create_perl_toolchain {
 
 
 
-=head2 install_perl_* (* = git, 589, 5100, 5101, 5120, or 5121)
+=head2 install_perl_* (* = git, 5100, 5101, 5120, or 5121)
 
 	$self->install_perl_5100;
 
@@ -640,38 +627,6 @@ Returns true (after 20 minutes or so) or throws an exception on
 error.
 
 =cut
-
-
-
-#####################################################################
-# Perl 5.8.9 Support
-
-sub install_perl_589 {
-	my $self = shift;
-
-	# Get the information required for Perl's toolchain.
-	my $toolchain = $self->_create_perl_toolchain();
-
-	# Install the main perl distribution.
-	$self->install_perl_bin(
-		url       => 'http://strawberryperl.com/package/perl-5.8.9.tar.gz',
-		toolchain => $toolchain,
-		patch     => [ qw{
-			  lib/CPAN/Config.pm
-			  win32/config.gc
-			  win32/config_sh.PL
-			  win32/config_H.gc
-			  }
-		],
-		license => {
-			'perl-5.8.9/Readme'   => 'perl/Readme',
-			'perl-5.8.9/Artistic' => 'perl/Artistic',
-			'perl-5.8.9/Copying'  => 'perl/Copying',
-		},
-	);
-
-	return 1;
-} ## end sub install_perl_589
 
 
 
@@ -957,24 +912,6 @@ sub install_perl_toolchain {
 			# (and probably 2008/Win7 as well).
 			$force = 1;
 		}
-
-		# The podlators dist needs a few more modules to install on 5.8.9.
-		if (    ( $dist =~ m{/podlators-\d}msx )
-			and ( $self->perl_version() =~ m{\A58}ms ) )
-		{
-			$self->install_distribution(
-				name     => 'SBURKE/Pod-Escapes-1.04.tar.gz',
-				mod_name => 'Pod::Escapes',
-				force    => $force,
-				$self->_install_location(0),
-			);
-			$self->install_distribution(
-				name     => 'DWHEELER/Pod-Simple-3.14.tar.gz',
-				mod_name => 'Pod::Simple',
-				force    => $force,
-				$self->_install_location(0),
-			);
-		} ## end if ( ( $dist =~ m{/podlators-\d}msx...))
 
 		# Actually DO the installation, now
 		# that we've got the information we need.

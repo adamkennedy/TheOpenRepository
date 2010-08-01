@@ -8,7 +8,7 @@ Perl::Dist::WiX::Support - Provides support routines for building a Win32 perl d
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Support version 1.250.
+This document describes Perl::Dist::WiX::Support version 1.250_100.
 
 =head1 SYNOPSIS
 
@@ -23,7 +23,7 @@ files, directories,  and programs for L<Perl::Dist::WiX|Perl::Dist::WiX>.
 
 =cut
 
-use 5.008001;
+use 5.010;
 use Moose;
 use English qw( -no_match_vars );
 use Archive::Tar 1.42 qw();
@@ -42,7 +42,7 @@ use IO::Compress::Gzip 2.025;
 
 # IO::Uncompress::Xz is tested for later, as it's an 'optional'.
 
-our $VERSION = '1.250';
+our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
 
