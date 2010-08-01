@@ -166,7 +166,11 @@ sub new {
 	$fgSizer1->Add( $self->{m_listCtrl1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 
 	my $sbSizer1 = Wx::StaticBoxSizer->new(
-		Wx::gettext('The Interweb'),
+		Wx::StaticBox->new(
+			$self,
+			-1,
+			Wx::gettext('The Interweb'),
+		),
 		Wx::wxVERTICAL,
 	);
 	$sbSizer1->Add( $self->{m_htmlWin1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );

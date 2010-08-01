@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.13 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 has project => (
 	is       => 'ro',
@@ -519,7 +519,11 @@ sub staticboxsizer_create {
 
 	# Add the content for this sizer
 	push @lines, "$lexical$variable = Wx::StaticBoxSizer->new(";
-	push @lines, "\t$label,";
+	push @lines, "\tWx::StaticBox->new(";
+	push @lines, "\t\t\$self,";
+	push @lines, "\t\t-1,";
+	push @lines, "\t\t$label,";
+	push @lines, "\t),";
 	push @lines, "\t$orient,";
 	push @lines, ");";
 	foreach my $item ( @{$sizer->children} ) {
