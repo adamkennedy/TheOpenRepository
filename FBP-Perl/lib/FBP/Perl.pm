@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.13 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 has project => (
 	is       => 'ro',
@@ -632,6 +632,12 @@ sub flexgridsizer_create {
 
 	# Add the content for this sizer
 	push @lines, "$lexical$variable = Wx::FlexGridSizer->new( $params );";
+	foreach my $row ( split /,/, $sizer->growablerows ) {
+		push @lines, "$variable->AddGrowableRow( $row );";
+	}
+	foreach my $col ( split /,/, $sizer->growablecols ) {
+		push @lines, "$variable->AddGrowableCol( $col );";
+	}
 	push @lines, "$variable->SetFlexibleDirection( $direction );";
 	push @lines, "$variable->SetNonFlexibleGrowMode( $growmode );";
 	foreach my $item ( @{$sizer->children} ) {
