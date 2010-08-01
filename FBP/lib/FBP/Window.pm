@@ -10,7 +10,7 @@ FBP::Window - Base class for all graphical wxWindow objects
 
 use Mouse;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -40,19 +40,6 @@ The C<name> method returns the logical name of the object.
 =cut
 
 has name => (
-	is  => 'ro',
-	isa => 'Str',
-);
-
-=pod
-
-=head2 label
-
-The C<label> method returns the visual label for the object.
-
-=cut
-
-has label => (
 	is  => 'ro',
 	isa => 'Str',
 );

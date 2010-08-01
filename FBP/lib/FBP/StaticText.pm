@@ -2,10 +2,15 @@ package FBP::StaticText;
 
 use Mouse;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 extends 'FBP::Window';
 with    'FBP::Control';
+
+has label => (
+	is  => 'ro',
+	isa => 'Str',
+);
 
 has permission => (
 	is       => 'ro',

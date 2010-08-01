@@ -77,8 +77,12 @@ my $text = $object->find_first(
 isa_ok( $text, 'FBP::StaticText' );
 is( $text->id,         'wxID_ANY',       '->id ok'         );
 is( $text->name,       'm_staticText1',  '->name ok'       );
-is( $text->label,      'This is a test', '->label ok'      );
 is( $text->permission, 'protected',      '->permission ok' );
+is(
+	$text->label,
+	'Michael "Killer" O\'Reilly <michael@localhost>',
+	'->label ok',
+);
 
 # Button properties
 my $button = $object->find_first(

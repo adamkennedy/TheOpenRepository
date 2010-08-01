@@ -1,6 +1,14 @@
 Changes for Perl extension FBP
 
-0.13 to be released
+0.14 Sun  1 Aug 2010
+	- Removed FBP::Window::label       attribute
+	- Added FBP::Dialog::title         attribute
+	- Added FBP::StaticText::label     attribute
+	- Added FBP::Button::label         attribute
+	- Added FBP::StaticBoxSizer::label attribute
+	- Added FBP::CheckBox::label       attribute
+
+0.13 Sat 31 Jul 2010
 	- Added FBP::TextCtrl       class
 	- Added FBP::FlexGridSizer  class
 	- Added FBP::StaticBoxSizer class

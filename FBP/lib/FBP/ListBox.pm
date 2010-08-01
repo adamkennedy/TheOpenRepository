@@ -2,7 +2,7 @@ package FBP::ListBox;
 
 use Mouse;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 extends 'FBP::Window';
 with    'FBP::Control';

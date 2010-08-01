@@ -64,7 +64,7 @@ use FBP::StaticText     ();
 use FBP::StaticLine     ();
 use FBP::TextCtrl       ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 extends 'FBP::Object';
 with    'FBP::Children';
@@ -115,7 +115,7 @@ sub dialog {
 
 =pod
 
-  my $ok = $fbp->parse_file( 'foo/bar.fbp' );
+  my $ok = $fbp->parse_file('foo/bar.fbp');
 
 The C<parse_file> method takes a named fbp project file, and parses it to
 produce an object model.

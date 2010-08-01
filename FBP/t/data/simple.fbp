@@ -35,7 +35,7 @@
             <property name="size"></property>
             <property name="style">wxDEFAULT_DIALOG_STYLE</property>
             <property name="subclass"></property>
-            <property name="title"></property>
+            <property name="title">Dialog Title</property>
             <property name="tooltip"></property>
             <property name="window_extra_style"></property>
             <property name="window_name"></property>
@@ -96,7 +96,7 @@
                                 <property name="font"></property>
                                 <property name="hidden">0</property>
                                 <property name="id">wxID_ANY</property>
-                                <property name="label">This is a test</property>
+                                <property name="label">Michael &quot;Killer&quot; O&apos;Reilly &lt;michael@localhost&gt;</property>
                                 <property name="maximum_size"></property>
                                 <property name="minimum_size"></property>
                                 <property name="name">m_staticText1</property>
@@ -308,7 +308,7 @@
                             <object class="wxFlexGridSizer" expanded="1">
                                 <property name="cols">2</property>
                                 <property name="flexible_direction">wxBOTH</property>
-                                <property name="growablecols"></property>
+                                <property name="growablecols">0,1</property>
                                 <property name="growablerows"></property>
                                 <property name="hgap">4</property>
                                 <property name="minimum_size"></property>
