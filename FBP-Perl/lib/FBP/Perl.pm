@@ -22,7 +22,7 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse         0.61;
-use FBP           0.13 ();
+use FBP           0.14 ();
 use Data::Dumper 2.122 ();
 
 our $VERSION = '0.13';
@@ -118,7 +118,7 @@ sub dialog_super {
 	my $self     = shift;
 	my $dialog   = shift;
 	my $id       = $self->wx( $dialog->id );
-	my $label    = $self->object_label($dialog);
+	my $title    = $self->text( $dialog->title );
 	my $position = $self->object_position($dialog);
 	my $size     = $self->object_size($dialog);
 	my $style    = $self->wx( $dialog->styles || 'wxDEFAULT_DIALOG_STYLE' );
@@ -127,7 +127,7 @@ sub dialog_super {
 		"my \$self = \$class->SUPER::new(",
 		"\t\$parent,",
 		"\t$id,",
-		"\t$label,",
+		"\t$title,",
 		"\t$position,",
 		"\t$size,",
 		( $style ? "\t$style," : () ),
@@ -155,6 +155,11 @@ sub dialog_sizers {
 		"\$self->SetSizer($variable);",
 		"\$self->Layout;",
 		"$variable->Fit(\$self);",
+		(
+			$dialog->style =~ /\bwxRESIZE_BORDER\b/
+			? "$variable->SetSizeHints(\$self);"
+			: ()
+		),
 		"",
 	];
 }
@@ -863,6 +868,10 @@ sub object_lexical {
 	$_[1]->permission !~ /^(?:protected|public)\z/;
 }
 
+sub object_label {
+	$_[0]->text( $_[1]->label );
+}
+
 sub object_variable {
 	my $self    = shift;
 	my $object  = shift;
@@ -872,23 +881,6 @@ sub object_variable {
 	} else {
 		return '$self->{' . $object->name . '}';
 	}
-}
-
-sub object_label {
-	my $self   = shift;
-	my $object = shift;
-	my $label  = $object->label;
-	unless ( defined $label and length $label ) {
-		return "''";
-	}
-
-	# Quote and translate the label
-	$label = "'$label'";
-	if ( $self->project->internationalize ) {
-		$label = "Wx::gettext($label)";
-	}
-
-	return $label;
 }
 
 sub object_position {
@@ -945,6 +937,22 @@ sub wx {
 	return -1 if $string eq 'wxID_ANY';
 	$string =~ s/\bwx/Wx::wx/g;
 	$string =~ s/\s*\|\s*/ | /g;
+	return $string;
+}
+
+sub text {
+	my $self   = shift;
+	my $string = shift;
+	unless ( defined $string and length $string ) {
+		return "''";
+	}
+
+	# Quote and translate the label
+	$string = $self->quote($string);
+	if ( $self->project->internationalize ) {
+		$string = "Wx::gettext($string)";
+	}
+
 	return $string;
 }
 

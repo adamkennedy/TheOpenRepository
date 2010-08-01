@@ -1,7 +1,11 @@
 Changes for Perl extension FBP-Perl
 
 0.13 Sun  1 Aug 2010
-	- Adding support for growable rows and columns to Wx::FlexGridSizer
+	- Add $sizer->SetSizeHints($self) when wxRESIZE_BORDER is enabled.
+	- Add support for growable rows and columns to Wx::FlexGridSizer.
+	- Fix to use dialog title instead of non-existance "label"
+	- Use Data::Dumper's qquote for object_label
+	- Better testing of quote escaping
 
 0.12 Sun  1 Aug 2010
 	- Corrected the generated code for Wx::StaticBoxSizer

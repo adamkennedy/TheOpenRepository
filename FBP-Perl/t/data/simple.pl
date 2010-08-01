@@ -15,16 +15,16 @@ sub new {
 	my $self = $class->SUPER::new(
 		$parent,
 		-1,
-		'',
+		Wx::gettext("Dialog Title"),
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
-		Wx::wxDEFAULT_DIALOG_STYLE,
+		Wx::wxDEFAULT_DIALOG_STYLE | Wx::wxRESIZE_BORDER,
 	);
 
 	$self->{m_staticText1} = Wx::StaticText->new(
 		$self,
 		-1,
-		Wx::gettext('This is a test'),
+		Wx::gettext("Michael \"Killer\" O'Reilly <michael\@localhost>"),
 	);
 
 	$self->{m_textCtrl1} = Wx::TextCtrl->new(
@@ -40,7 +40,7 @@ sub new {
 	$self->{m_button1} = Wx::Button->new(
 		$self,
 		-1,
-		Wx::gettext('MyButton'),
+		Wx::gettext("MyButton"),
 	);
 	$self->{m_button1}->SetDefault;
 
@@ -128,7 +128,7 @@ sub new {
 	$self->{m_checkBox1} = Wx::CheckBox->new(
 		$self,
 		-1,
-		Wx::gettext('Check Me!'),
+		Wx::gettext("Check Me!"),
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 	);
@@ -136,7 +136,7 @@ sub new {
 	$self->{m_checkBox2} = Wx::CheckBox->new(
 		$self,
 		-1,
-		Wx::gettext('Check Me!'),
+		Wx::gettext("Check Me!"),
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 	);
@@ -144,7 +144,7 @@ sub new {
 	$self->{m_checkBox3} = Wx::CheckBox->new(
 		$self,
 		-1,
-		Wx::gettext('Check Me!'),
+		Wx::gettext("Check Me!"),
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 	);
@@ -152,7 +152,7 @@ sub new {
 	$self->{m_checkBox4} = Wx::CheckBox->new(
 		$self,
 		-1,
-		Wx::gettext('Check Me!'),
+		Wx::gettext("Check Me!"),
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
 	);
@@ -171,7 +171,7 @@ sub new {
 		Wx::StaticBox->new(
 			$self,
 			-1,
-			Wx::gettext('The Interweb'),
+			Wx::gettext("The Interweb"),
 		),
 		Wx::wxVERTICAL,
 	);
@@ -199,6 +199,7 @@ sub new {
 	$self->SetSizer($bSizer1);
 	$self->Layout;
 	$bSizer1->Fit($self);
+	$bSizer1->SetSizeHints($self);
 
 	return $self;
 }
