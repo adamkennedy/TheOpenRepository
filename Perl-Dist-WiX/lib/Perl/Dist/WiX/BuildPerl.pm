@@ -167,7 +167,7 @@ sub install_cpan_upgrades { ## no critic(ProhibitExcessComplexity)
 			$self->_install_cpan_module( $module, $self->offline() );
 			next MODULE;
 		}
-		
+
 		# Locale::Maketext::Simple 0.20 has a test bug. Forcing.
 		if (
 			$module->cpan_file() =~ m{/Locale-Maketext-Simple-0 [.] 20}msx )
@@ -963,18 +963,18 @@ sub install_perl_toolchain {
 			and ( $self->perl_version() =~ m{\A58}ms ) )
 		{
 			$self->install_distribution(
-				name              => 'SBURKE/Pod-Escapes-1.04.tar.gz',
-				mod_name          => 'Pod::Escapes',
-				force             => $force,
+				name     => 'SBURKE/Pod-Escapes-1.04.tar.gz',
+				mod_name => 'Pod::Escapes',
+				force    => $force,
 				$self->_install_location(0),
 			);
 			$self->install_distribution(
-				name              => 'DWHEELER/Pod-Simple-3.14.tar.gz',
-				mod_name          => 'Pod::Simple',
-				force             => $force,
+				name     => 'DWHEELER/Pod-Simple-3.14.tar.gz',
+				mod_name => 'Pod::Simple',
+				force    => $force,
 				$self->_install_location(0),
-			);		
-		}
+			);
+		} ## end if ( ( $dist =~ m{/podlators-\d}msx...))
 
 		# Actually DO the installation, now
 		# that we've got the information we need.

@@ -259,7 +259,7 @@ sub install {
 	$dist_path =~ s{[.] tar [.] gz}{}msx;   # Take off extensions.
 	$dist_path =~ s{[.] zip}{}msx;
 	my $unpack_to = catdir( $self->_get_build_dir(), $dist_path );
-	$self->_add_to_distributions_installed($self->_get_url());
+	$self->_add_to_distributions_installed( $self->_get_url() );
 
 	# Extract the tarball
 	if ( -d $unpack_to ) {

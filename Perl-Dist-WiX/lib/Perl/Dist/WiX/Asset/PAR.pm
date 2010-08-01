@@ -180,7 +180,7 @@ sub install {
 	$self->_trace_line( 2, $output );
 
 	# Get distribution name to add to what's installed.
-	$self->_add_to_distributions_installed($self->_get_dist_info());
+	$self->_add_to_distributions_installed( $self->_get_dist_info() );
 
 	# Read in the .packlist and return it.
 	my $filelist =

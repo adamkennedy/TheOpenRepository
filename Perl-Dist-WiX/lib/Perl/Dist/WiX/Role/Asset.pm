@@ -159,7 +159,7 @@ relative directory to C<image_dir()> . "/I<install location>/lib/author".
 
 has packlist_location => (
 	is      => 'ro',
-	isa     => Maybe[ Str ],
+	isa     => Maybe [Str],
 	reader  => '_get_packlist_location',
 	default => undef,
 );
@@ -291,13 +291,23 @@ EOF
 	);
 
 	my $packlist_location = $self->_get_packlist_location();
-	if (defined $packlist_location) {
-		push @dirs, (
-			catdir( $image_dir, qw{perl vendor lib auto}, $packlist_location ),
-			catdir( $image_dir, qw{perl site   lib auto}, $packlist_location ),
-			catdir( $image_dir, qw{perl        lib auto}, $packlist_location ),
-		);
-	}
+	if ( defined $packlist_location ) {
+		push @dirs,
+		  (
+			catdir(
+				$image_dir, qw{perl vendor lib auto},
+				$packlist_location
+			),
+			catdir(
+				$image_dir, qw{perl site   lib auto},
+				$packlist_location
+			),
+			catdir(
+				$image_dir, qw{perl        lib auto},
+				$packlist_location
+			),
+		  );
+	} ## end if ( defined $packlist_location)
 
 	# What file exists, if any?
 	my $packlist;
