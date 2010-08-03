@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use Moose 1.08 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub import {
 	my $class   = shift;
@@ -22,12 +22,20 @@ sub import {
 
 	# Push the commands to generate the class directly through the meta object.
 	my $meta = $package->meta;
+	my @with = ();
 	while ( @model ) {
 		my $command = shift @model;
 		my $params  = shift @model;
 		$params = [ $params ] unless ref $params eq 'ARRAY';
+		if ( $command eq 'with' ) {
+			push @with, $params;
+			next;
+		}
 		no strict 'refs';
 		&{"Moose::$command"}( $meta, @$params );
+	}
+	foreach my $params ( @with ) {
+		Moose::with( $meta, @$params );
 	}
 
 	# Immediately make the class immutable
