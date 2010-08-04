@@ -7,8 +7,8 @@ use Carp;
 use English qw( -no_match_vars );
 use parent 'Module::Starter::Simple';
 
-our $VERSION = '0.100';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.200';
+$VERSION =~ s/_//sm;
 
 sub module_guts {
 	my $self    = shift;
@@ -72,12 +72,16 @@ sub t_guts { ## no critic (RequireArgUnpacking)
 	my %t_files;
 	my @template_files;
 	push @template_files, glob "$self->{template_dir}/t/*.t";
-	push @template_files, glob "$self->{template_dir}/t/settings/*.txt";
-	for my $test_file ( map { my $x = $_; $x =~ s{\A .*/t/}{}xms; $x; }
+	push @template_files, glob "$self->{template_dir}/xt/author/*.t";
+	push @template_files, glob "$self->{template_dir}/xt/settings/*.txt";
+	my ($dir, $file);
+	for my $test_file ( map { my $x = $_; $x =~ s{\A (.*+/)}{}xms; [$x, $1]; }
 		@template_files )
 	{
-		$t_files{$test_file} =
-		  $self->_load_and_expand_template( "t/$test_file", \%context );
+		$dir = $test_file->[1];
+		$file = $test_file->[0];
+		$t_files{$file} =
+		  $self->_load_and_expand_template( "$dir/$file", \%context );
 	}
 
 	my $nmodules = @modules;
@@ -85,7 +89,7 @@ sub t_guts { ## no critic (RequireArgUnpacking)
 	my $main_module = $modules[0];
 	my $use_lines = join "\n", map {"    use_ok( '$_' );"} @modules;
 
-	$t_files{'000_load.t'} = <<"END_LOAD";
+	$t_files{'compile.t'} = <<"END_LOAD";
 use Test::More tests => $nmodules;
 
 BEGIN {
@@ -116,7 +120,7 @@ sub _create_t {
 		$self->progress("Created $tdir");
 	}
 
-	my @dirparts_s = ( $self->{basedir}, 't', 'settings' );
+	my @dirparts_s = ( $self->{basedir}, 'xt', 'settings' );
 	my $tdir_s = File::Spec->catdir(@dirparts_s);
 	$self->progress("Directory: $tdir_s");
 	if ( not -d $tdir_s ) {
@@ -239,12 +243,31 @@ sub import { ## no critic (RequireArgUnpacking ProhibitExcessComplexity)
 		print {*STDERR} "done.\n";
 	}
 
-	my $template_test_settings =
-	  File::Spec->catdir( $ENV{HOME}, '.module-starter', 'CSJEWELL', 't',
+	my $template_xtest_dir =
+	  File::Spec->catdir( $ENV{HOME}, '.module-starter', 'CSJEWELL', 'xt' );
+	if ( not -d $template_xtest_dir ) {
+		print {*STDERR} "Creating $template_test_dir...";
+		local @ARGV = $template_xtest_dir;
+		mkpath;
+		print {*STDERR} "done.\n";
+	}
+
+	my $template_authortest_dir =
+	  File::Spec->catdir( $ENV{HOME}, '.module-starter', 'CSJEWELL', 'xt',
 		'settings' );
-	if ( not -d $template_test_settings ) {
+	if ( not -d $template_authortest_dir ) {
+		print {*STDERR} "Creating $template_test_dir...";
+		local @ARGV = $template_authortest_dir;
+		mkpath;
+		print {*STDERR} "done.\n";
+	}
+
+	my $template_authortest_settings =
+	  File::Spec->catdir( $ENV{HOME}, '.module-starter', 'CSJEWELL', 'xt',
+		'settings' );
+	if ( not -d $template_authortest_settings ) {
 		print {*STDERR} "Creating $template_test_settings...";
-		local @ARGV = $template_test_settings;
+		local @ARGV = $template_authortest_settings;
 		mkpath;
 		print {*STDERR} "done.\n";
 	}
@@ -301,16 +324,21 @@ sub import { ## no critic (RequireArgUnpacking ProhibitExcessComplexity)
 		['Changes'],
 		['Module.pm'],
 		['MANIFEST.SKIP'],
-		[ 't', 'settings', 'perltidy.txt' ],
-		[ 't', 'settings', 'perlcritic.txt' ],
-		[ 't', '899_prereq.t' ],
-		[ 't', '806_portability.t' ],
-		[ 't', '805_meta.t' ],
-		[ 't', '804_manifest.t' ],
-		[ 't', '803_minimumversion.t' ],
-		[ 't', '802_pod_coverage.t' ],
-		[ 't', '801_pod.t' ],
-		[ 't', '800_perlcritic.t' ],
+		[ 't', '000_report_versions.t' ],
+		[ 'xt', 'settings', 'perltidy.txt' ],
+		[ 'xt', 'settings', 'perlcritic.txt' ],
+		[ 'xt', 'author', 'prereq.t' ],
+		[ 'xt', 'author', 'portability.t' ],
+		[ 'xt', 'author', 'meta.t' ],
+		[ 'xt', 'author', 'manifest.t' ],
+		[ 'xt', 'author', 'minimumversion.t' ],
+		[ 'xt', 'author', 'pod_coverage.t' ],
+		[ 'xt', 'author', 'pod.t' ],
+		[ 'xt', 'author', 'perlcritic.t' ],
+		[ 'xt', 'author', 'fixme.t' ],
+		[ 'xt', 'author', 'common_mistakes.t' ],
+		[ 'xt', 'author', 'changes.t' ],
+		[ 'xt', 'author', 'version.t' ],
 	);
 
 	my %contents_of = do {
@@ -363,16 +391,63 @@ use strict;
 use warnings;
 use Module::Build;
 
-my $builder = Module::Build->new(
+my $class = Module::Build->subclass(
+	class => 'My::Builder',
+	code  => <<'END_CODE',
+
+sub ACTION_authortest {
+    my ($self) = @_;
+
+    $self->depends_on('build');
+    $self->depends_on('manifest');
+    $self->depends_on('distmeta');
+
+    $self->test_files( qw( t xt/author ) );
+    $self->depends_on('test');
+
+    return;
+}
+
+
+
+sub ACTION_releasetest {
+    my ($self) = @_;
+
+    $self->depends_on('build');
+    $self->depends_on('manifest');
+    $self->depends_on('distmeta');
+
+    $self->test_files( qw( t xt/author xt/release ) );
+    $self->depends_on('test');
+
+    return;
+}
+
+
+
+sub ACTION_manifest {
+    my ($self, @arguments) = @_;
+
+    if (-e 'MANIFEST') {
+        unlink 'MANIFEST' or die "Can't unlink MANIFEST: $!";
+    }
+
+    return $self->SUPER::ACTION_manifest(@arguments);
+}
+END_CODE
+);
+
+
+my $builder = $class->new(
     module_name              => '<MAIN MODULE>',
     license                  => '<LICENSE>',
     dist_author              => '<AUTHOR> <<EMAIL>>',
     dist_version_from        => '<MAIN PM FILE>',
 	create_readme            => 1,
 	create_license           => 1,
-	create_makefile_pl       => 'passthrough',
-	configure_requires  => {
-        'Module::Build'       => '0.33',
+	create_makefile_pl       => 'small',
+	configure_requires       => {
+        'Module::Build'      => '0.33',
 	},
     requires => {
         'perl'                => 5.008001,	
@@ -380,7 +455,7 @@ my $builder = Module::Build->new(
 #        'Exception::Class'    => '1.29',
     },
 	build_requires => {
-        'Test::More'          => '0.61',
+        'Test::More'          => '0.88',
 	},
     meta_merge     => {
         resources => {
@@ -397,9 +472,495 @@ _____[ Changes ]_________________________________________________
 Revision history for <DISTRO>
 
 0.001  <DATE>
-       Initial release.
+       - Initial release.
 
-_____[ 899_prereq.t ]____________________________________________
+_____[ 000_report_versions.t ]____________________________________________
+#!perl
+use warnings;
+use strict;
+use Test::More 0.88;
+use Config;
+
+# Include a cut-down version of YAML::Tiny so we don't introduce unnecessary
+# dependencies ourselves.
+
+package Local::YAML::Tiny;
+
+use strict;
+use Carp 'croak';
+
+# UTF Support?
+sub HAVE_UTF8 () { $] >= 5.007003 }
+
+BEGIN {
+	if (HAVE_UTF8) {
+
+		# The string eval helps hide this from Test::MinimumVersion
+		eval "require utf8;";
+		die "Failed to load UTF-8 support" if $@;
+	}
+
+	# Class structure
+	require 5.004;
+	$YAML::Tiny::VERSION = '1.40';
+
+	# Error storage
+	$YAML::Tiny::errstr = '';
+} ## end BEGIN
+
+# Printable characters for escapes
+my %UNESCAPES = (
+	z    => "\x00",
+	a    => "\x07",
+	t    => "\x09",
+	n    => "\x0a",
+	v    => "\x0b",
+	f    => "\x0c",
+	r    => "\x0d",
+	e    => "\x1b",
+	'\\' => '\\',
+);
+
+
+#####################################################################
+# Implementation
+
+# Create an empty YAML::Tiny object
+sub new {
+	my $class = shift;
+	bless [@_], $class;
+}
+
+# Create an object from a file
+sub read {
+	my $class = ref $_[0] ? ref shift : shift;
+
+	# Check the file
+	my $file = shift
+	  or return $class->_error('You did not specify a file name');
+	return $class->_error("File '$file' does not exist") unless -e $file;
+	return $class->_error("'$file' is a directory, not a file") unless -f _;
+	return $class->_error("Insufficient permissions to read '$file'")
+	  unless -r _;
+
+	# Slurp in the file
+	local $/ = undef;
+	local *CFG;
+	unless ( open( CFG, $file ) ) {
+		return $class->_error("Failed to open file '$file': $!");
+	}
+	my $contents = <CFG>;
+	unless ( close(CFG) ) {
+		return $class->_error("Failed to close file '$file': $!");
+	}
+
+	$class->read_string($contents);
+} ## end sub read
+
+# Create an object from a string
+sub read_string {
+	my $class = ref $_[0] ? ref shift : shift;
+	my $self = bless [], $class;
+	my $string = $_[0];
+	unless ( defined $string ) {
+		return $self->_error("Did not provide a string to load");
+	}
+
+	# Byte order marks
+	# NOTE: Keeping this here to educate maintainers
+	# my %BOM = (
+	#     "\357\273\277" => 'UTF-8',
+	#     "\376\377"     => 'UTF-16BE',
+	#     "\377\376"     => 'UTF-16LE',
+	#     "\377\376\0\0" => 'UTF-32LE'
+	#     "\0\0\376\377" => 'UTF-32BE',
+	# );
+	if ( $string =~ /^(?:\376\377|\377\376|\377\376\0\0|\0\0\376\377)/ ) {
+		return $self->_error("Stream has a non UTF-8 BOM");
+	} else {
+
+		# Strip UTF-8 bom if found, we'll just ignore it
+		$string =~ s/^\357\273\277//;
+	}
+
+	# Try to decode as utf8
+	utf8::decode($string) if HAVE_UTF8;
+
+	# Check for some special cases
+	return $self unless length $string;
+	unless ( $string =~ /[\012\015]+\z/ ) {
+		return $self->_error("Stream does not end with newline character");
+	}
+
+	# Split the file into lines
+	my @lines = grep { !/^\s*(?:\#.*)?\z/ }
+	  split /(?:\015{1,2}\012|\015|\012)/, $string;
+
+	# Strip the initial YAML header
+	@lines and $lines[0] =~ /^\%YAML[: ][\d\.]+.*\z/ and shift @lines;
+
+	# A nibbling parser
+	while (@lines) {
+
+		# Do we have a document header?
+		if ( $lines[0] =~ /^---\s*(?:(.+)\s*)?\z/ ) {
+
+			# Handle scalar documents
+			shift @lines;
+			if ( defined $1 and $1 !~ /^(?:\#.+|\%YAML[: ][\d\.]+)\z/ ) {
+				push @$self, $self->_read_scalar( "$1", [undef], \@lines );
+				next;
+			}
+		}
+
+		if ( !@lines or $lines[0] =~ /^(?:---|\.\.\.)/ ) {
+
+			# A naked document
+			push @$self, undef;
+			while ( @lines and $lines[0] !~ /^---/ ) {
+				shift @lines;
+			}
+
+		} elsif ( $lines[0] =~ /^\s*\-/ ) {
+
+			# An array at the root
+			my $document = [];
+			push @$self, $document;
+			$self->_read_array( $document, [0], \@lines );
+
+		} elsif ( $lines[0] =~ /^(\s*)\S/ ) {
+
+			# A hash at the root
+			my $document = {};
+			push @$self, $document;
+			$self->_read_hash( $document, [ length($1) ], \@lines );
+
+		} else {
+			croak("YAML::Tiny failed to classify the line '$lines[0]'");
+		}
+	} ## end while (@lines)
+
+	$self;
+} ## end sub read_string
+
+# Deparse a scalar string to the actual scalar
+sub _read_scalar {
+	my ( $self, $string, $indent, $lines ) = @_;
+
+	# Trim trailing whitespace
+	$string =~ s/\s*\z//;
+
+	# Explitic null/undef
+	return undef if $string eq '~';
+
+	# Quotes
+	if ( $string =~ /^\'(.*?)\'\z/ ) {
+		return '' unless defined $1;
+		$string = $1;
+		$string =~ s/\'\'/\'/g;
+		return $string;
+	}
+	if ( $string =~ /^\"((?:\\.|[^\"])*)\"\z/ ) {
+
+		# Reusing the variable is a little ugly,
+		# but avoids a new variable and a string copy.
+		$string = $1;
+		$string =~ s/\\"/"/g;
+		$string =~
+s/\\([never\\fartz]|x([0-9a-fA-F]{2}))/(length($1)>1)?pack("H2",$2):$UNESCAPES{$1}/gex;
+		return $string;
+	}
+
+	# Special cases
+	if ( $string =~ /^[\'\"!&]/ ) {
+		croak(
+			"YAML::Tiny does not support a feature in line '$lines->[0]'");
+	}
+	return {} if $string eq '{}';
+	return [] if $string eq '[]';
+
+	# Regular unquoted string
+	return $string unless $string =~ /^[>|]/;
+
+	# Error
+	croak("YAML::Tiny failed to find multi-line scalar content")
+	  unless @$lines;
+
+	# Check the indent depth
+	$lines->[0] =~ /^(\s*)/;
+	$indent->[-1] = length("$1");
+	if ( defined $indent->[-2] and $indent->[-1] <= $indent->[-2] ) {
+		croak("YAML::Tiny found bad indenting in line '$lines->[0]'");
+	}
+
+	# Pull the lines
+	my @multiline = ();
+	while (@$lines) {
+		$lines->[0] =~ /^(\s*)/;
+		last unless length($1) >= $indent->[-1];
+		push @multiline, substr( shift(@$lines), length($1) );
+	}
+
+	my $j = ( substr( $string, 0, 1 ) eq '>' ) ? ' ' : "\n";
+	my $t = ( substr( $string, 1, 1 ) eq '-' ) ? ''  : "\n";
+	return join( $j, @multiline ) . $t;
+} ## end sub _read_scalar
+
+# Parse an array
+sub _read_array {
+	my ( $self, $array, $indent, $lines ) = @_;
+
+	while (@$lines) {
+
+		# Check for a new document
+		if ( $lines->[0] =~ /^(?:---|\.\.\.)/ ) {
+			while ( @$lines and $lines->[0] !~ /^---/ ) {
+				shift @$lines;
+			}
+			return 1;
+		}
+
+		# Check the indent level
+		$lines->[0] =~ /^(\s*)/;
+		if ( length($1) < $indent->[-1] ) {
+			return 1;
+		} elsif ( length($1) > $indent->[-1] ) {
+			croak("YAML::Tiny found bad indenting in line '$lines->[0]'");
+		}
+
+		if ( $lines->[0] =~ /^(\s*\-\s+)[^\'\"]\S*\s*:(?:\s+|$)/ ) {
+
+			# Inline nested hash
+			my $indent2 = length("$1");
+			$lines->[0] =~ s/-/ /;
+			push @$array, {};
+			$self->_read_hash( $array->[-1], [ @$indent, $indent2 ],
+				$lines );
+
+		} elsif ( $lines->[0] =~ /^\s*\-(\s*)(.+?)\s*\z/ ) {
+
+			# Array entry with a value
+			shift @$lines;
+			push @$array,
+			  $self->_read_scalar( "$2", [ @$indent, undef ], $lines );
+
+		} elsif ( $lines->[0] =~ /^\s*\-\s*\z/ ) {
+			shift @$lines;
+			unless (@$lines) {
+				push @$array, undef;
+				return 1;
+			}
+			if ( $lines->[0] =~ /^(\s*)\-/ ) {
+				my $indent2 = length("$1");
+				if ( $indent->[-1] == $indent2 ) {
+
+					# Null array entry
+					push @$array, undef;
+				} else {
+
+					# Naked indenter
+					push @$array, [];
+					$self->_read_array( $array->[-1],
+						[ @$indent, $indent2 ], $lines );
+				}
+
+			} elsif ( $lines->[0] =~ /^(\s*)\S/ ) {
+				push @$array, {};
+				$self->_read_hash( $array->[-1], [ @$indent, length("$1") ],
+					$lines );
+
+			} else {
+				croak("YAML::Tiny failed to classify line '$lines->[0]'");
+			}
+
+		} elsif ( defined $indent->[-2] and $indent->[-1] == $indent->[-2] )
+		{
+
+			# This is probably a structure like the following...
+			# ---
+			# foo:
+			# - list
+			# bar: value
+			#
+			# ... so lets return and let the hash parser handle it
+			return 1;
+
+		} else {
+			croak("YAML::Tiny failed to classify line '$lines->[0]'");
+		}
+	} ## end while (@$lines)
+
+	return 1;
+} ## end sub _read_array
+
+# Parse an array
+sub _read_hash {
+	my ( $self, $hash, $indent, $lines ) = @_;
+
+	while (@$lines) {
+
+		# Check for a new document
+		if ( $lines->[0] =~ /^(?:---|\.\.\.)/ ) {
+			while ( @$lines and $lines->[0] !~ /^---/ ) {
+				shift @$lines;
+			}
+			return 1;
+		}
+
+		# Check the indent level
+		$lines->[0] =~ /^(\s*)/;
+		if ( length($1) < $indent->[-1] ) {
+			return 1;
+		} elsif ( length($1) > $indent->[-1] ) {
+			croak("YAML::Tiny found bad indenting in line '$lines->[0]'");
+		}
+
+		# Get the key
+		unless ( $lines->[0] =~ s/^\s*([^\'\" ][^\n]*?)\s*:(\s+|$)// ) {
+			if ( $lines->[0] =~ /^\s*[?\'\"]/ ) {
+				croak(
+"YAML::Tiny does not support a feature in line '$lines->[0]'"
+				);
+			}
+			croak("YAML::Tiny failed to classify line '$lines->[0]'");
+		}
+		my $key = $1;
+
+		# Do we have a value?
+		if ( length $lines->[0] ) {
+
+			# Yes
+			$hash->{$key} =
+			  $self->_read_scalar( shift(@$lines), [ @$indent, undef ],
+				$lines );
+		} else {
+
+			# An indent
+			shift @$lines;
+			unless (@$lines) {
+				$hash->{$key} = undef;
+				return 1;
+			}
+			if ( $lines->[0] =~ /^(\s*)-/ ) {
+				$hash->{$key} = [];
+				$self->_read_array( $hash->{$key}, [ @$indent, length($1) ],
+					$lines );
+			} elsif ( $lines->[0] =~ /^(\s*)./ ) {
+				my $indent2 = length("$1");
+				if ( $indent->[-1] >= $indent2 ) {
+
+					# Null hash entry
+					$hash->{$key} = undef;
+				} else {
+					$hash->{$key} = {};
+					$self->_read_hash( $hash->{$key},
+						[ @$indent, length($1) ], $lines );
+				}
+			} ## end elsif ( $lines->[0] =~ /^(\s*)./)
+		} ## end else [ if ( length $lines->[0...])]
+	} ## end while (@$lines)
+
+	return 1;
+} ## end sub _read_hash
+
+# Set error
+sub _error {
+	$YAML::Tiny::errstr = $_[1];
+	undef;
+}
+
+# Retrieve error
+sub errstr {
+	$YAML::Tiny::errstr;
+}
+
+
+
+#####################################################################
+# Use Scalar::Util if possible, otherwise emulate it
+
+BEGIN {
+	eval { require Scalar::Util; };
+	if ($@) {
+
+		# Failed to load Scalar::Util
+		eval <<'END_PERL';
+sub refaddr {
+	my $pkg = ref($_[0]) or return undef;
+	if (!!UNIVERSAL::can($_[0], 'can')) {
+		bless $_[0], 'Scalar::Util::Fake';
+	} else {
+		$pkg = undef;
+	}
+	"$_[0]" =~ /0x(\w+)/;
+	my $i = do { local $^W; hex $1 };
+	bless $_[0], $pkg if defined $pkg;
+	$i;
+}
+END_PERL
+	} else {
+		Scalar::Util->import('refaddr');
+	}
+} ## end BEGIN
+
+
+#####################################################################
+# main test
+#####################################################################
+
+package main;
+
+BEGIN {
+
+   # Skip modules that either don't want to be loaded directly, such as
+   # Module::Install, or that mess with the test count, such as the Test::*
+   # modules listed here.
+   #
+   # Moose::Role conflicts if Moose is loaded as well, but Moose::Role is in
+   # the Moose distribution and it's certain that someone who uses
+   # Moose::Role also uses Moose somewhere, so if we disallow Moose::Role,
+   # we'll still get the relevant version number.
+
+	my %skip = map { $_ => 1 } qw(
+	  App::FatPacker
+	  Class::Accessor::Classy
+	  Module::Install
+	  Moose::Role
+	  Test::YAML::Meta
+	  Test::Pod::Coverage
+	  Test::Portability::Files
+	  Test::Perl::Dist
+	);
+
+	my $Test = Test::Builder->new;
+
+	$Test->plan( skip_all => "META.yml could not be found" )
+	  unless -f 'META.yml' and -r _;
+
+	my $meta = ( Local::YAML::Tiny->read('META.yml') )->[0];
+	my %requires;
+	for my $require_key ( grep {/requires/} keys %$meta ) {
+		my %h = %{ $meta->{$require_key} };
+		$requires{$_}++ for keys %h;
+	}
+	delete $requires{perl};
+
+	diag("Testing with Perl $], $Config{archname}, $^X");
+	for my $module ( sort keys %requires ) {
+		if ( $skip{$module} ) {
+			note "$module doesn't want to be loaded directly, skipping";
+			next;
+		}
+		local $SIG{__WARN__} = sub { note "$module: $_[0]" };
+		use_ok $module or BAIL_OUT("can't load $module");
+		my $version = $module->VERSION;
+		$version = 'undefined' unless defined $version;
+		diag("    $module version is $version");
+	}
+	done_testing;
+} ## end BEGIN
+
+_____[ prereq.t ]____________________________________________
 #!perl
 
 # Test that all our prerequisites are defined in the Build.PL.
@@ -414,22 +975,15 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Test::Prereq::Build 1.036',
+	'Test::Prereq::Build 1.037',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 	}
 }
 
@@ -462,7 +1016,7 @@ my @modules_skip = (
 
 prereq_ok(5.008001, 'Check prerequisites', \@modules_skip);
 
-_____[ 806_portability.t ]_______________________________________
+_____[ portability.t ]_______________________________________
 #!perl
 
 # Test that our files are portable across systems.
@@ -480,25 +1034,18 @@ my @MODULES = (
 	'Test::Portability::Files 0.05',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" );
 	}
 }
 
 run_tests();
 
-_____[ 805_meta.t ]______________________________________________
+_____[ meta.t ]______________________________________________
 #!perl
 
 # Test that our META.yml file matches the specification
@@ -513,29 +1060,22 @@ BEGIN {
 }
 
 my @MODULES = (
-    'Parse::CPAN::Meta 1.38',
-	'Test::CPAN::Meta 0.13',
+    'Parse::CPAN::Meta 1.40',
+	'Test::CPAN::Meta 0.17',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" );
 	}
 }
 
 meta_yaml_ok();
 
-_____[ 804_manifest.t ]__________________________________________
+_____[ manifest.t ]__________________________________________
 #!perl
 
 # Test that our MANIFEST describes the distribution
@@ -550,32 +1090,24 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Test::DistManifest 1.001003',
+	'Test::DistManifest 1.009',
 );
 
-# Don't run tests for installs
+# Load the testing modules
 use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
 unless ( -e 'MANIFEST.SKIP' ) {
 	plan( skip_all => "MANIFEST.SKIP does not exist, so cannot test this." );
 }
-
-
-# Load the testing modules
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" );
 	}
 }
 
 manifest_ok();
 
-_____[ 803_minimumversion.t ]____________________________________
+_____[ minimumversion.t ]____________________________________
 #!perl
 
 # Test that our declared minimum Perl version matches our syntax
@@ -590,29 +1122,23 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Perl::MinimumVersion 1.20',
-	'Test::MinimumVersion 0.008',
+	'Perl::MinimumVersion 1.26',
+	'Test::MinimumVersion 0.101080',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
 
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 	}
 }
 
 all_minimum_version_from_metayml_ok();
 
-_____[ 802_pod_coverage.t ]______________________________________
+_____[ pod_coverage.t ]______________________________________
 #!perl
 
 # Test that modules are documented by their pod.
@@ -628,34 +1154,32 @@ BEGIN {
 # If using Moose, uncomment the appropriate lines below.
 my @MODULES = (
 #	'Pod::Coverage::Moose 0.01',
-	'Pod::Coverage 0.20',
+	'Pod::Coverage 0.21',
 	'Test::Pod::Coverage 1.08',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 	}
 }
 
-plan tests => 1;
+my @modules = all_modules();
+my @modules_to_test = sort { $a cmp $b } @modules;
+my $test_count = scalar @modules_to_test;
+plan tests => $test_count;
 
-pod_coverage_ok('File::List::Object', { 
-#  coverage_class => 'Pod::Coverage::Moose', 
-  also_private => [ qr/^[A-Z_]+$/ ],
-});
+foreach my $module (@modules_to_test) {
+	pod_coverage_ok($module, { 
+#		coverage_class => 'Pod::Coverage::Moose', 
+		also_private => [ qr/^[A-Z_]+$/ ],
+	});
+}
 
-_____[ 801_pod.t ]_______________________________________________
+_____[ pod.t ]_______________________________________________
 #!perl
 
 # Test that the syntax of our POD documentation is valid
@@ -670,29 +1194,148 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Pod::Simple 3.08',
-	'Test::Pod 1.26',
+	'Pod::Simple 3.14',
+	'Test::Pod 1.44',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
+	}
+}
+
+my @files = sort { $a cmp $b } all_pod_files();
+
+all_pod_files_ok( @files );
+
+_____[ fixme.t ]_____________________________________________
+#!/usr/bin/perl
+
+# Test that all modules have no TODOs.
+
+use strict;
+
+BEGIN {
+	use English qw(-no_match_vars);
+	$OUTPUT_AUTOFLUSH = 1;
+	$WARNING = 1;
+}
+
+my @MODULES = (
+	'Test::Fixme 0.04',
+);
+
+# Load the testing modules
+use Test::More;
+foreach my $MODULE ( @MODULES ) {
+	eval "use $MODULE";
+	if ( $EVAL_ERROR ) {
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" );
+	}
+}
+
+#TODO: {
+
+#	local $TODO = 'All modules are going to be fixed.';
+
+	run_tests(
+		match    => 'TO' . 'DO',                # what to check for
+	);
+#}
+
+_____[ common_mistakes.t ]___________________________________
+#!/usr/bin/perl
+
+# Test that all modules have no common misspellings.
+
+use strict;
+
+BEGIN {
+	BAIL_OUT ('Perl version unacceptably old.') if ($] < 5.008001);
+	use English qw(-no_match_vars);
+	$OUTPUT_AUTOFLUSH = 1;
+	$WARNING = 1;
+}
+
+my @MODULES = (
+	'Pod::Spell::CommonMistakes 0.01',
+	'Test::Pod::Spelling::CommonMistakes 0.01',
+);
+
+# Load the testing modules
+use Test::More;
+foreach my $MODULE ( @MODULES ) {
+	eval "use $MODULE";
+	if ( $EVAL_ERROR ) {
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" );
 	}
 }
 
 all_pod_files_ok();
 
-_____[ 800_perlcritic.t ]________________________________________
+_____[ changes.t ]___________________________________________
+#!/usr/bin/perl
+
+# Test that the distribution's Changes file has been updated.
+
+use strict;
+
+BEGIN {
+	BAIL_OUT ('Perl version unacceptably old.') if ($] < 5.008001);
+	use English qw(-no_match_vars);
+	$OUTPUT_AUTOFLUSH = 1;
+	$WARNING = 1;
+}
+
+my @MODULES = (
+	'Test::CheckChanges 0.14',
+);
+
+# Load the testing modules
+use Test::More;
+foreach my $MODULE ( @MODULES ) {
+	eval "use $MODULE";
+	if ( $EVAL_ERROR ) {
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" );
+	}
+}
+
+ok_changes(base => '..');
+
+_____[ version.t ]___________________________________________
+
+#!/usr/bin/perl
+
+# Test that all modules have a version number.
+
+use strict;
+
+BEGIN {
+	BAIL_OUT ('Perl version unacceptably old.') if ($] < 5.008001);
+	use English qw(-no_match_vars);
+	$OUTPUT_AUTOFLUSH = 1;
+	$WARNING = 1;
+}
+
+my @MODULES = (
+	'Test::HasVersion 0.012',
+);
+
+# Load the testing modules
+use Test::More;
+foreach my $MODULE ( @MODULES ) {
+	eval "use $MODULE";
+	if ( $EVAL_ERROR ) {
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" );
+	}
+}
+
+all_pm_version_ok();
+
+_____[ perlcritic.t ]________________________________________
 #!perl
 
 # Test that modules pass perlcritic and perltidy.
@@ -709,38 +1352,39 @@ BEGIN {
 my @MODULES = (
 	'Perl::Tidy',
 	'Perl::Critic',
+	'PPIx::Regexp',
+	'PPIx::Utilities::Statement',
+	'Email::Address',
 	'Perl::Critic::Utils::Constants',
 	'Perl::Critic::More',
 	'Test::Perl::Critic',
 );
 
-# Don't run tests for installs
-use Test::More;
-unless ( $ENV{AUTOMATED_TESTING} or $ENV{RELEASE_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
-
 # Load the testing modules
+use Test::More;
 foreach my $MODULE ( @MODULES ) {
 	eval "require $MODULE"; # Has to be require because we pass options to import.
 	if ( $EVAL_ERROR ) {
-		$ENV{RELEASE_TESTING}
-		? BAIL_OUT( "Failed to load required release-testing module $MODULE" )
-		: plan( skip_all => "$MODULE not available for testing" );
+		BAIL_OUT( "Failed to load required release-testing module $MODULE" )
 	}
 }
 
-if ( 1.099_001 > eval { $Perl::Critic::VERSION } ) {
-	plan( skip_all => "Perl::Critic needs updated to 1.099_001" );
+$Perl::Critic::VERSION =~ s/_//;
+if ( 1.108 > eval { $Perl::Critic::VERSION } ) {
+	plan( skip_all => 'Perl::Critic needs updated to 1.108' );
+}
+
+if ( 20090616 > eval { $Perl::Tidy::VERSION } ) {
+	plan( skip_all => "Perl::Tidy needs updated to 20090616" );
 }
 
 use File::Spec::Functions qw(catfile);
 Perl::Critic::Utils::Constants->import(':profile_strictness');
 my $dummy = $Perl::Critic::Utils::Constants::PROFILE_STRICTNESS_QUIET;
 
-local $ENV{PERLTIDY} = catfile( 't', 'settings', 'perltidy.txt' );
+local $ENV{PERLTIDY} = catfile( 'xt', 'settings', 'perltidy.txt' );
 
-my $rcfile = catfile( 't', 'settings', 'perlcritic.txt' );
+my $rcfile = catfile( 'xt', 'settings', 'perlcritic.txt' );
 Test::Perl::Critic->import( 
 	-profile            => $rcfile, 
 	-severity           => 1, 
@@ -753,7 +1397,7 @@ verbose = %f:%l:%c:\n %p: %m\n
 theme = (core || more)
 
 [ControlStructures::ProhibitPostfixControls]
-allow = if unless
+flowcontrol = warn die carp croak cluck confess goto exit throw return next
 
 [RegularExpressions::RequireExtendedFormatting]
 minimum_regex_length_to_complain_about = 7
@@ -768,9 +1412,16 @@ version = 5.008001
 [ValuesAndExpressions::ProhibitMagicNumbers]
 allowed_values = -1 0 1 2
 
+# Excluded because Moose builder subroutines get hit by this.
+[Subroutines::ProhibitUnusedPrivateSubroutines]
+private_name_regex = _(?!build_)\w+
+
 # Exclusions
-# I use svn - don't need the keywords.
+# This one can be removed if keywords are used.
 [-Miscellanea::RequireRcsKeywords]
+
+# Excluded because we filter out development versions.
+[-ValuesAndExpressions::RequireConstantVersion]
 
 # I like to set up my own pod.
 [-Documentation::RequirePodAtEnd]
@@ -778,12 +1429,6 @@ allowed_values = -1 0 1 2
 
 # No Emacs!
 [-Editor::RequireEmacsFileVariables]
-
-# I need the fix in 1.099_001 for Exception::Class stuff.
-[-NamingConventions::Capitalization]
-
-# The standard versioning I'm using does not allow this.
-[-ErrorHandling::RequireCheckingReturnValueOfEval]
 
 _____[ perltidy.txt ]____________________________________________
 --backup-and-modify-in-place
@@ -835,6 +1480,8 @@ _____[ MANIFEST.SKIP ]___________________________________________
 \B\.svn\b
 \B\.git\b
 \B\.gitignore\b
+\B\.hg\b
+\B\.hgignore\b
 \b_darcs\b
 
 # Avoid Makemaker generated and utility files.
@@ -868,6 +1515,10 @@ _____[ MANIFEST.SKIP ]___________________________________________
 \breleaserc$
 \bMANIFEST\.SKIP$
 
+# Avoid MYMETA.yml
+^MYMETA.yml$
+^MYMETA.json$
+
 # Avoid archives of this distribution
 \b<DISTRO>-[\d\.\_]+
 
@@ -884,12 +1535,12 @@ use English qw( -no_match_vars );
 #  use IO::Prompt;
 #  use parent 'Parent::Class';
 #  use Exception::Class 1.29 {
-#  
+#    ...
 #  };
 #  use Moose;
 
-$VERSION = '0.001';
-$VERSION = eval { return $VERSION };
+our $VERSION = '0.001';
+$VERSION =~ s/_//sm;
 
 
 # Module implementation here

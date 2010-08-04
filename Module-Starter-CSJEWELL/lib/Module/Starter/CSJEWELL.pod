@@ -27,7 +27,7 @@ To install this module, run the following commands:
 	make test
 	make install
 
-This method of installation will install a current version of Module::Build 
+This method of installation will still require a current version of Module::Build 
 if it is not already installed.
     
 Alternatively, to install with Module::Build, you can use the following commands:
@@ -238,7 +238,7 @@ Curtis Jewell  C<< <CSJewell@cpan.org> >>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2009, Curtis Jewell C<< <CSJewell@cpan.org> >>. 
+Copyright (c) 2009-2010, Curtis Jewell C<< <CSJewell@cpan.org> >>. 
 All rights reserved.
 
 Based on L<Module::Starter::PBP|Module::Starter::PBP>, Copyright (c) 2005, 
