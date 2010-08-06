@@ -68,7 +68,7 @@ sub as_string {
 		$string .= $self->print_attribute( $k, $v );
 	}
 
-	$string .= q{ />};
+	$string .= qq{ />\n};
 
 	return $string;
 } ## end sub as_string
