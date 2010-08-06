@@ -2,7 +2,7 @@ Revision history for WiX3
 
 0.010  Xxx ## Aug 2010
        - Role created allowing inner text added.
-	   - WiX3::XML::Property added.
+	   - WiX3::XML::Property and WiX3::XML::WixVariable added.
 
 0.009102  Thu 29 Jul 2010
        - Allowing single quotes in attributes.

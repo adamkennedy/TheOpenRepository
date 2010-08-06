@@ -1,4 +1,4 @@
-package WiX3::XML::Property;
+package WiX3::XML::WixVariable;
 
 use 5.008001;
 
@@ -16,10 +16,10 @@ use WiX3::Types qw( YesNoType );
 our $VERSION = '0.010';
 $VERSION =~ s/_//ms;
 
-## This needs changed later, but no children for now.
-with 'WiX3::XML::Role::Tag', 'WiX3::XML::Role::InnerText';
+## No children allowed.
+with 'WiX3::XML::Role::Tag';
 
-# http://wix.sourceforge.net/manual-wix3/wix_xsd_property.htm
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_wixvariable.htm
 
 #####################################################################
 # Accessors
@@ -31,51 +31,19 @@ has id => (
 	required => 1,
 );
 
-has admin => (
+has overridable => (
 	is      => 'ro',
 	isa     => YesNoType,
-	reader  => '_get_admin',
-	default => undef,
-	coerce  => 1,
-);
-
-has compliance_check => (
-	is      => 'ro',
-	isa     => YesNoType,
-	reader  => '_get_compliance_check',
-	default => undef,
-	coerce  => 1,
-);
-
-has hidden => (
-	is      => 'ro',
-	isa     => YesNoType,
-	reader  => '_get_hidden',
-	default => undef,
-	coerce  => 1,
-);
-
-has secure => (
-	is      => 'ro',
-	isa     => YesNoType,
-	reader  => '_get_secure',
-	default => undef,
-	coerce  => 1,
-);
-
-has suppress_modularization => (
-	is      => 'ro',
-	isa     => YesNoType,
-	reader  => '_get_suppress_modularization',
+	reader  => '_get_overridable',
 	default => undef,
 	coerce  => 1,
 );
 
 has value => (
-	is      => 'ro',
-	isa     => Str,
-	reader  => '_get_value',
-	default => undef,
+	is       => 'ro',
+	isa      => Str,
+	reader   => '_get_value',
+	required => 1,
 );
 
 #####################################################################
@@ -85,15 +53,11 @@ sub as_string {
 	my $self = shift;
 
 	# Print tag.
-	my $string = '<Property';
+	my $string = '<WixVariable';
 
 	my @attribute = (
 		[ 'Id'   => $self->get_id(), ],
-		[ 'Admin' => $self->_get_admin(), ],
-		[ 'ComplianceCheck'  => $self->_get_compliance_check(), ],
-		[ 'Hidden' => $self->_get_hidden(), ],
-		[ 'Secure' => $self->_get_secure(), ],
-		[ 'Type' => $self->_get_suppress_modularization(), ],
+		[ 'Overridable' => $self->_get_overridable(), ],
 		[ 'Value' => $self->_get_value(), ],
 	);
 	
@@ -104,7 +68,7 @@ sub as_string {
 		$string .= $self->print_attribute( $k, $v );
 	}
 
-	$string .= $self->inner_text_as_string('Property');
+	$string .= q{ />};
 
 	return $string;
 } ## end sub as_string
@@ -114,7 +78,7 @@ sub get_namespace {
 }
 
 no Moose;
-__PACKAGE__->meta->make_immutable;
+__PACKAGE__->meta()->make_immutable();
 
 1;
 
@@ -122,11 +86,11 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::CreateFolder - Defines a CreateFolder tag.
+WiX3::XML::WixVariable - Defines a WixVariable tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::CreateFolder version 0.009100
+This document describes WiX3::XML::WixVariable version 0.010
 
 =head1 SYNOPSIS
 
