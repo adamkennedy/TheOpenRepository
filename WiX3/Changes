@@ -1,5 +1,9 @@
 Revision history for WiX3
 
+0.010  Xxx ## Aug 2010
+       - Role created allowing inner text added.
+	   - WiX3::XML::Property added.
+
 0.009102  Thu 29 Jul 2010
        - Allowing single quotes in attributes.
        - Several enums added (CHORNY)
