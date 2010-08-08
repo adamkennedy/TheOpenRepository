@@ -18,6 +18,21 @@ Perl::Dist::WiX::BuildPerl::5101 - Files and code for building perl 5.10.1
 
 This document describes Perl::Dist::WiX::BuildPerl::5101 version 1.250_100.
 
+=begin readme
+
+=head1 INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Build.PL
+	./Build
+	./Build test
+	./Build install
+
+=end readme
+
+=for readme stop
+
 =head1 DESCRIPTION
 
 This module provides the routines that Perl::Dist::WiX uses in order to
@@ -38,12 +53,6 @@ use File::ShareDir qw();
 
 our $VERSION = '1.250_100';
 $VERSION =~ s/_//sm;
-
-
-
-
-#####################################################################
-# Perl installation support
 
 
 
@@ -148,6 +157,12 @@ has '_perl_bincompat_version_arrayref' => (
 	is       => 'ro',
 	init_arg => undef,
 	default => sub {[5, 10, 0]},
+);
+
+has '_is_git_snapshot' => (
+	is       => 'ro',
+	init_arg => undef,
+	default => '',
 );
 
 no Moose::Role;
