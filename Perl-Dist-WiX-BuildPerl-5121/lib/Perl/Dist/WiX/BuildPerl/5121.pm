@@ -44,8 +44,6 @@ order to build Perl 5.12.1 itself.
 	# It provides methods to be called on a Perl::Dist::WiX object.
 	# See Perl::Dist::WiX::BuildPerl::PluginInterface for more information.
 
-=head1 INTERFACE
-
 =cut
 
 use 5.010;
@@ -58,21 +56,7 @@ $VERSION =~ s/_//sm;
 
 
 
-
-#####################################################################
-# Perl installation support
-
-=head2 install_perl_plugin
-
-This routine is called by the 
-C<install_perl|Perl::Dist::WiX::BuildPerl/install_perl> task, and installs
-perl 5.12.1.
-
-=cut
-
-
-
-around 'install_perl_plugin' => sub {
+around '_install_perl_plugin' => sub {
 	shift;
 	my $self = shift;
 
@@ -154,6 +138,12 @@ has '_perl_bincompat_version_arrayref' => (
 	is       => 'ro',
 	init_arg => undef,
 	default => sub {[5, 12, 0]},
+);
+
+has '_is_git_snapshot' => (
+	is       => 'ro',
+	init_arg => undef,
+	default => '',
 );
 
 no Moose::Role;
