@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.44';
+	$VERSION = '1.45';
 }
 
 # Support for the 'prune' option
@@ -45,7 +45,7 @@ sub import {
 	}
 
 	# Check params and apply defaults
-	my %params;
+	my %params = ();
 	if ( defined Params::Util::_STRING($_[1]) ) {
 		# Support the short form "use ORLite 'db.sqlite'"
 		%params = ( file => $_[1] );
@@ -89,11 +89,44 @@ sub import {
 		Carp::croak("Missing or invalid package class");
 	}
 
-	# Connect to the database
+	# Check caching params
+	my $cached = undef;
+	my $pkg    = $params{package};
+	if ( defined $params{cache} ) {
+		# Caching is illogical or invalid in some situations
+		if ( $params{prune} ) {
+			Carp::croak("Cannot set a 'cache' directory while 'prune' enabled");
+		}
+		unless ( $params{user_version} ) {
+			Carp::croak("Cannot set a 'cache' directory without 'user_version'");
+		}
+
+		# To make the caching work, the version be defined before ORLite is called.
+		no strict 'refs';
+		unless ( ${"$pkg\::VERSION"} ) {
+			Carp::croak("Cannot set a 'cache' directory without a package \$VERSION");
+		}
+
+		# Build the cache file from the super path using an inlined Class::ISA
+		my @queue = ( $class );
+		my %seen  = ( $pkg => 1 );
+		my @parts = ( $pkg => ${"$pkg\::VERSION"} );
+		while ( @queue ) {
+			my $c = Params::Util::_STRING(shift @queue) or next;
+			push @parts, $c => ${"$c\::VERSION"};
+			unshift @queue, grep { not $seen{$c}++ } @{"$c\::ISA"};
+		}
+		$cached = join '-', @parts, user_version => $params{user_version};
+		$cached =~ s/[:.-]+/-/g;
+		$cached = File::Spec->rel2abs(
+			File::Spec->catfile( $params{cache}, "$cached.pm" )
+		);
+	}
+
+	# Create the parent directory if needed
 	my $file    = File::Spec->rel2abs($params{file});
 	my $created = ! -f $params{file};
 	if ( $created ) {
-		# Create the parent directory
 		my $dir = File::Basename::dirname($file);
 		unless ( -d $dir ) {
 			my @dirs = File::Path::mkpath( $dir, { verbose => 0 } );
@@ -101,7 +134,34 @@ sub import {
 		}
 		$class->prune($file) if $params{prune};
 	}
-	my $pkg        = $params{package};
+
+	# Connect to the database
+	my $dsn = "dbi:SQLite:$file";
+	my $dbh = DBI->connect( $dsn, undef, undef, {
+		PrintError => 0,
+		RaiseError => 1,
+	} );
+
+	# Schema custom creation support
+	if ( $created and Params::Util::_CODELIKE($params{create}) ) {
+		$params{create}->( $dbh );
+	}
+
+	# Check the schema version before generating
+	my $user_version = $dbh->selectrow_arrayref('pragma user_version')->[0];
+	if ( exists $params{user_version} and $user_version != $params{user_version} ) {
+		Carp::croak("Schema user_version mismatch (got $user_version, wanted $params{user_version})");
+	}
+
+	# If caching and the cached version exists, load and shortcut.
+	# Don't try to catch exceptions, just let them blow up.
+	if ( $cached and -f $cached ) {
+		$dbh->disconnect;
+		require $cached;
+		return 1;
+	}
+
+	# Prepare to generate code
 	my $readonly   = $params{readonly};
 	my $cleanup    = $params{cleanup};
 	my $xsaccessor = $params{xsaccessor};
@@ -111,22 +171,6 @@ sub import {
 	my $r          = $array ? ']'  : '}';
 	my $slice      = $array ? '{}' : '{ Slice => {} }';
 	my $rowref     = $array ? 'arrayref' : 'hashref';
-	my $dsn        = "dbi:SQLite:$file";
-	my $dbh        = DBI->connect( $dsn, undef, undef, {
-		PrintError => 0,
-		RaiseError => 1,
-	} );
-
-	# Schema creation support
-	if ( $created and Params::Util::_CODELIKE($params{create}) ) {
-		$params{create}->( $dbh );
-	}
-
-	# Check the schema version before generating
-	my $user_version  = $dbh->selectrow_arrayref('pragma user_version')->[0];
-	if ( exists $params{user_version} and $user_version != $params{user_version} ) {
-		Carp::croak("Schema user_version mismatch (got $user_version, wanted $params{user_version})");
-	}
 
 	# Generate the support package code
 	my $code = <<"END_PERL";
@@ -586,6 +630,20 @@ END_PERL
 	}
 	$code .= "\n\n1;\n";
 
+	# Save to the cache location if caching is enabled
+	if ( $cached ) {
+		my $dir = File::Basename::dirname($cached);
+		unless ( -d $dir ) {
+			File::Path::mkpath( $dir, { verbose => 0 } );
+		}
+
+		# Save a copy of the code to the file
+		local *FILE;
+		open( FILE, ">$cached" ) or Carp::croak("open($cached): $!");
+		print FILE $code;
+		close FILE;
+	}
+
 	# Compile the code
 	local $@;
 	if ( $^P and $^V >= 5.008009 ) {
@@ -612,14 +670,14 @@ sub dval {
 	unlink $filename;
 
 	# Print the debugging output
-	my @trace = map {
-		s/\s*[{;]$//;
-		s/^s/  s/;
-		s/^p/\np/;
-		"$_\n"
-	} grep {
-		/^(?:package|sub)\b/
-	} split /\n/, $_[0];
+	# my @trace = map {
+		# s/\s*[{;]$//;
+		# s/^s/  s/;
+		# s/^p/\np/;
+		# "$_\n"
+	# } grep {
+		# /^(?:package|sub)\b/
+	# } split /\n/, $_[0];
 	# print STDERR @trace, "\nCode saved as $filename\n\n";
 
 	return 1;
@@ -864,6 +922,19 @@ SQLite schema, and reduce the memory cost of the class tree.
 If the C<tables> option is not provided, L<ORLite> will attempt to produce
 a class for every table in the main schema that is not prefixed with 
 with C<sqlite_>.
+
+=head2 cache
+
+  use ORLite {
+      file         => 'dbi:SQLite:sqlite.db',
+      user_version => 2,
+      cache        => 'cache/directory',
+  };
+
+The C<cache> option is used to reduce the time needed to scan the SQLite
+database table structures and generate the code for them, by saving the
+generated code to a cache directory and loading from that file instead
+of generating it each time from scratch.
 
 =head2 cleanup
 

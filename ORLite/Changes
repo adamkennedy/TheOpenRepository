@@ -1,5 +1,8 @@
 Changes for Perl extension ORLite
 
+1.45 Sun  8 Aug 2010
+	- Adding initial support for cache => $directory (ADAMK)
+
 1.44 Fri 23 Jul 2010
 	- Upgrading to Module::Install::DSL 1.00 (ADAMK)
 	- Adding the per-table table_info method to get the columns (ADAMK)
