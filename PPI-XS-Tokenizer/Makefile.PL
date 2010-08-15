@@ -21,8 +21,10 @@ WriteMakefile1(
         repository => 'http://svn.ali.as/cpan/trunk/PPI-XS-Tokenizer',
       },
     },
-    #BUILD_REQUIRES => {
-    #},
+    BUILD_REQUIRES => {
+      'Test::More' => 0,
+      'Test::NoWarnings' => 0,
+    },
 
     NAME              => 'PPI::XS::Tokenizer',
     VERSION_FROM      => 'lib/PPI/XS/Tokenizer.pm', # finds $VERSION
