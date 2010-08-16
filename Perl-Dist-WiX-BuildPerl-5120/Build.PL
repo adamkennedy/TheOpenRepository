@@ -56,25 +56,31 @@ my $builder = $class->new(
     dist_version_from        => 'lib/Perl/Dist/WiX/BuildPerl/5120.pm',
 	create_readme            => 1,
 	create_license           => 1,
-	create_makefile_pl       => 'small',
 	configure_requires       => {
         'Module::Build'      => '0.33',
 	},
     requires => {
-        'perl'                => '5.008001',	
-#        'parent'              => '0.221',
-#        'Exception::Class'    => '1.29',
+        'perl'               => '5.010',	
+		'Perl::Dist::WiX'    => '1.250_100',
+		'Moose::Role'        => '1.08',
+		'File::ShareDir'     => '1.02',
     },
 	build_requires => {
-        'Test::More'          => '0.88',
+        'Test::More'         => '0.88',
 	},
     meta_merge     => {
         resources => {
-            homepage    => 'http://www.no-home-page.invalid/',
-            bugtracker  => 'http://rt.cpan.org/NoAuth/Bugs.html?Dist=Perl-Dist-WiX-BuildPerl-5120',
-            repository  => 'http://www.no-source-code-repository.invalid/'
+			homepage    => 'http://csjewell.comyr.com/perl/',
+			bugtracker  => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Perl-Dist-WiX',
+			repository  => 'http://svn.ali.as/cpan/trunk/Perl-Dist-WiX-BuildPerl-5120/',
+			IRC         => 'irc://irc.perl.org/#win32',
         },
     },
+	share_dir => {
+		module => {
+			'Perl::Dist::WiX::BuildPerl::5120'  => 'share',
+		}
+	},
     add_to_cleanup      => [ 'Perl-Dist-WiX-BuildPerl-5120-*', ],
 );
 

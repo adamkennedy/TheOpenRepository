@@ -105,7 +105,7 @@ around '_find_perl_file' => sub {
 	my $location = undef;
 	
 	$location = eval { 
-		File::ShareDir::module_file('Perl::Dist::WiX::BuildPerl::5121', "default/$file");
+		File::ShareDir::module_file('Perl::Dist::WiX::BuildPerl::5120', "default/$file");
 	};
 	
 	if ($location) {
