@@ -4,7 +4,7 @@ package Perl::Dist::WiX::BuildPerl::git;
 
 =begin readme text
 
-Perl::Dist::WiX::BuildPerl::git version 0.001
+Perl::Dist::WiX::BuildPerl::git version 1.250_100
 
 =end readme
 
@@ -68,7 +68,6 @@ $VERSION =~ s/_//sm;
 
 
 
-
 #####################################################################
 # Perl installation support
 
@@ -76,7 +75,7 @@ $VERSION =~ s/_//sm;
 
 This routine is called by the 
 C<install_perl|Perl::Dist::WiX::BuildPerl/install_perl> task, and installs
-perl 5.12.1.
+a git checkout of perl.
 
 =cut
 
@@ -93,11 +92,28 @@ sub install_perl_plugin {
 	# Get the information required for Perl's toolchain.
 	my $toolchain = $self->_create_perl_toolchain();
 
+	# Get where the git checkout is.
+	my $checkout = $self->git_checkout();
+
 	# Install perl.
-	...;
 	my $perl = Perl::Dist::WiX::Asset::Perl->new(
 		parent    => $self,
-		
+		url       => URI::file->new($checkout)->as_string(),
+		file      => $checkout,
+		toolchain => $toolchain,
+		patch     => [ qw{
+			  lib/CPAN/Config.pm
+			  win32/config.gc
+			  win32/config_sh.PL
+			  win32/config_H.gc
+			  }
+		],
+		license => {
+			'perl-git/Readme'   => 'perl/Readme',
+			'perl-git/Artistic' => 'perl/Artistic',
+			'perl-git/Copying'  => 'perl/Copying',
+		},
+		git => $self->git_describe(),		
 	);
 	$perl->install();
 
@@ -175,25 +191,41 @@ qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
 
 # Set the things that are defined by the perl version.
 
-has '+perl_version_literal' => (
+has 'perl_version_literal' => (
+	is       => 'ro',
+	init_arg => undef,
 	default => '5.013004',
 );
 
-has '+perl_version_human' => (
+has 'perl_version_human' => (
+	is       => 'ro',
+	writer   => '_set_perl_version_human',
+	init_arg => undef,
 	default => 'git',
 );
 
-has '+_perl_version_arrayref' => (
-	builder => sub {[5, 13, 4]},
+has '_perl_version_arrayref' => (
+	is       => 'ro',
+	init_arg => undef,
+	default => sub {[5, 13, 4]},
 );
 
-# For git, this should be the same as perl_version_arrayref.
-has '+_perl_bincompat_version_arrayref' => (
-	builder => sub {[5, 13, 4]},
+# For git, this is the same as _perl_version_arrayref.
+has '_perl_bincompat_version_arrayref' => (
+	is       => 'ro',
+	init_arg => undef,
+	default => sub {[5, 13, 4]},
+);
+
+# I'll be updating this soon with a better snapshot,
+# so for now, it's unknown.
+has '_is_git_snapshot' => (
+	is       => 'ro',
+	init_arg => undef,
+	default => 'unknown',
 );
 
 no Moose::Role;
-
 1;
 
 __END__
