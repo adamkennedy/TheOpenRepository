@@ -60,13 +60,13 @@ my $builder = $class->new(
 	create_license           => 1,
 	create_makefile_pl       => 'small',
 	requires => {
-		'perl'              => '5.010',
-		'Perl::Dist::WiX'   => '1.250_100',
-		'Moose::Role'       => '1.08',
-		'File::ShareDir'    => '1.02',
+		'perl'               => '5.010',
+		'Perl::Dist::WiX'    => '1.250_100',
+		'Moose::Role'        => '1.08',
+		'File::ShareDir'     => '1.02',
 	},
 	build_requires => {
-		'Test::More'        => '0.88',
+		'Test::More'         => '0.88',
 	},
     meta_merge     => {
         resources => {
