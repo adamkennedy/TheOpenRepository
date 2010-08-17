@@ -1,4 +1,4 @@
-package WiX3::XML::DirectoryRef;
+package WiX3::XML::InstallExecuteSequence;
 
 use 5.008001;
 
@@ -8,80 +8,29 @@ use metaclass (
 	error_class => 'WiX3::Util::Error',
 );
 use Moose;
-use Params::Util qw( _INSTANCE );
-use MooseX::Types::Moose qw( Int Str );
-use WiX3::XML::TagTypes qw( DirectoryRefChildTag DirectoryTag );
 use WiX3::Util::StrictConstructor;
 
 our $VERSION = '0.010';
 $VERSION =~ s/_//ms;
 
-with qw(WiX3::XML::Role::TagAllowsChildTags
-  WiX3::Role::Traceable
-);
+# http://wix.sourceforge.net/manual-wix3/wix_xsd_installexecutesequence.htm
 
-## Allows Component, Directory, Merge as children.
-
-has '+child_tags' => (
-	isa => ArrayRef[DirectoryRefChildTag]
-);
-
-
-#####################################################################
-# Accessors:
-#   None.
-
-has directory_object => (
-	is       => 'ro',
-	isa      => DirectoryTag,
-	reader   => '_get_directory_object',
-	required => 1,
-	weak_ref => 1,
-	handles  => [qw(get_path get_directory_id)],
-);
-
-has diskid => (
-	is     => 'ro',
-	isa    => Int,
-	reader => '_get_diskid',
-);
-
-has filesource => (
-	is     => 'ro',
-	isa    => Str,
-	reader => '_get_filesource',
-);
+with 'WiX3::XML::Role::TagAllowsChildTags';
 
 #####################################################################
 # Methods to implement the Tag role.
-
-sub BUILDARGS {
-	my $class = shift;
-
-	if ( @_ == 1 && _INSTANCE( $_[0], 'WiX3::XML::Directory' ) ) {
-		return { directory_object => $_[0] };
-	} else {
-		return $class->SUPER::BUILDARGS(@_);
-	}
-}
 
 
 sub as_string {
 	my $self = shift;
 
-	my $children = $self->has_child_tags();
-	my $tags;
-	$tags = $self->print_attribute( 'Id', $self->get_directory_id() );
-	$tags .= $self->print_attribute( 'DiskId', $self->_get_diskid() );
-	$tags .=
-	  $self->print_attribute( 'FileSource', $self->_get_filesource() );
+	# Print tag.
+	my $answer;
+	$answer = "<InstallExecuteSequence>\n";
+	$answer .= $self->as_string_children();
+	$answer .= "<InstallExecuteSequence>\n";
 
-	if ($children) {
-		my $child_string = $self->as_string_children();
-		return qq{<DirectoryRef$tags>\n$child_string\n</DirectoryRef>\n};
-	} else {
-		return qq{<DirectoryRef$tags />\n};
-	}
+	return $answer;
 } ## end sub as_string
 
 sub get_namespace {
@@ -97,11 +46,11 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::DirectoryRef - Class representing a DirectoryRef tag.
+WiX3::XML::InstallExecuteSequence - Defines an InstallExecuteSequence tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::DirectoryRef version 0.009100
+This document describes WiX3::XML::InstallExecuteSequence version 0.010
 
 =head1 SYNOPSIS
 
@@ -142,15 +91,14 @@ Curtis Jewell  C<< <csjewell@cpan.org> >>
 
 =head1 SEE ALSO
 
-L<Exception::Class|Exception::Class>
+L<http://wix.sourceforge.net/>
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright 2009, 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
+Copyright 2010 Curtis Jewell C<< <csjewell@cpan.org> >>.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl 5.8.1 itself. See L<perlartistic|perlartistic>.
-
 
 =head1 DISCLAIMER OF WARRANTY
 

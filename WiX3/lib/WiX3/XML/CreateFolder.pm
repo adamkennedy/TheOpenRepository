@@ -9,13 +9,19 @@ use metaclass (
 );
 use Moose;
 use Params::Util qw( _STRING  );
+use WiX3::XML::TagTypes qw( ShortcutTag );
+use MooseX::Types::Moose qw( Str Maybe );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009100';
+our $VERSION = '0.010';
 $VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
 ## Allows Permission, PermissionEx, Shortcut as children.
+
+has '+child_tags' => (
+	isa => ArrayRef[ShortcutTag]
+);
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_createfolder.htm
 

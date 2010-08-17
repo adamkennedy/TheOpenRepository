@@ -9,10 +9,11 @@ use metaclass (
 );
 use Moose;
 use WiX3::Types qw( YesNoType PositiveInt NonNegativeInt );
+use WiX3::XML::TagTypes qw( ShortcutTag );
 use MooseX::Types::Moose qw( Str Maybe Int );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009100';
+our $VERSION = '0.010';
 $VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
@@ -22,6 +23,11 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 # Allows child tags (WiX namespace:) AppId, AssemblyName, Class, CopyFile,
 # ODBCDriver, ODBCTranslator, Permission, PermissionEx, Shortcut, SymbolPath,
 # TypeLib
+
+has '+child_tags' => (
+	isa => ArrayRef[ShortcutTag]
+);
+
 
 #####################################################################
 # Attributes:

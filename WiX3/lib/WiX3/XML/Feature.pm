@@ -11,9 +11,10 @@ use Moose;
 use Params::Util qw( _IDENTIFIER _STRING );
 use WiX3::Types qw( YesNoType );
 use MooseX::Types::Moose qw( Str Int Maybe );
+use WiX3::XML::TagTypes qw( FeatureChildTag );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009100';
+our $VERSION = '0.010';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_feature.htm
@@ -23,6 +24,13 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 # Child tags allowed:
 # Component, ComponentGroupRef, ComponentRef, Condition, Feature,
 # FeatureGroupRef, FeatureRef, MergeRef
+
+## FeatureChildTag allows Component, ComponentRef, Feature, FeatureRef, 
+## and MergeRef at the moment.
+
+has '+child_tags' => (
+	isa => ArrayRef[FeatureChildTag]
+);
 
 #####################################################################
 # Accessors:

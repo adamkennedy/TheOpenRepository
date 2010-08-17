@@ -11,18 +11,26 @@ use Moose;
 use Params::Util qw( _INSTANCE _IDENTIFIER );
 use MooseX::Types::Moose qw( Str Maybe );
 use WiX3::Types qw( YesNoType );
+use WiX3::XML::TagTypes qw( FeatureRefChildTag );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009100';
+our $VERSION = '0.010';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_featureref.htm
 
-with 'WiX3::XML::Role::Tag';
-with 'WiX3::XML::Role::TagAllowsChildTags';
+with qw(WiX3::XML::Role::TagAllowsChildTags);
 
 ## Allows Component, ComponentGroupRef, ComponentRef, Feature,
 ## FeatureGroup, FeatureGroupRef, FeatureRef, MergeRef.
+
+## FeatureRefChildTag allows Component, ComponentRef, Feature, FeatureRef, 
+## and MergeRef at the moment.
+
+has '+child_tags' => (
+	isa => ArrayRef[FeatureRefChildTag]
+);
+
 
 has id => (
 	is       => 'ro',
