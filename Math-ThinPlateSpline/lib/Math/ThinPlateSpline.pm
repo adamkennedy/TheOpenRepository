@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp 'croak';
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 require XSLoader;
 XSLoader::load('Math::ThinPlateSpline', $VERSION);
@@ -34,6 +34,9 @@ Math::ThinPlateSpline - Calculate and evaluate thin plate splines
   
   my $height = $tps->evaluate($x, $y);
   my $bending_energy = $tps->get_bending_energy();
+
+  my $heights = $tps->evaluate_many([$x1, $x2, $x3...], [$y1, $y2, $y3...]);
+  # $heights is now [$z1, $z2, $z3...]
 
 =head1 DESCRIPTION
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension Math::ThinPlateSpline.
 
+0.05  Thu Aug 19 20:00 2010
+  - evaluate_many
+
 0.04  Wed Jul 21 20:00 2010
   - XS++ and typemap cosmetics
 
