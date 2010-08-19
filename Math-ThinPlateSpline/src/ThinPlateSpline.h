@@ -17,7 +17,8 @@ namespace TPS {
     ThinPlateSpline(); //< for stl containers
     ~ThinPlateSpline() {};
 
-    double Evaluate(const double x, const double z) const;
+    double Evaluate(const double x, const double y) const;
+    std::vector<double> Evaluate(const std::vector<double>& x, const std::vector<double>& y) const;
 
     const std::vector<Vec>& GetControlPoints() const { return fControlPoints; }
     double GetRegularization() const { return fRegularization; }

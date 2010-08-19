@@ -158,19 +158,47 @@ void ThinPlateSpline::InitializeMatrix()
 
 
 double
-ThinPlateSpline::Evaluate(const double x, const double z)
+ThinPlateSpline::Evaluate(const double x, const double y)
   const
 {
   const unsigned int p = fControlPoints.size();
-  double h = fMtx_v(p+0, 0) + fMtx_v(p+1, 0)*x + fMtx_v(p+2, 0)*z;
+  double h = fMtx_v(p+0, 0) + fMtx_v(p+1, 0)*x + fMtx_v(p+2, 0)*y;
   Vec pt_i;
-  Vec pt_cur(x, 0, z);
+  Vec pt_cur(x, 0, y);
   for (unsigned int i = 0; i < p; ++i) {
     pt_i = fControlPoints[i];
     pt_i.y = 0;
     h += fMtx_v(i,0) * tps_base_func( (pt_i-pt_cur).len() );
   }
   return h;
+}
+
+
+std::vector<double>
+ThinPlateSpline::Evaluate(const std::vector<double>& x, const std::vector<double>& y)
+  const
+{
+  const unsigned int s = x.size();
+  if (s != y.size())
+    throw BadNoCoordinatesException();
+
+  const unsigned int np = fControlPoints.size();
+
+  std::vector<double> z(s);
+  for (unsigned int j = 0; j < s; ++j) {
+    const double xi = x[j];
+    const double yi = y[j];
+    double h = fMtx_v(np+0, 0) + fMtx_v(np+1, 0)*xi + fMtx_v(np+2, 0)*yi;
+    Vec pt_i;
+    Vec pt_cur(xi, 0, yi);
+    for (unsigned int i = 0; i < np; ++i) {
+      pt_i = fControlPoints[i];
+      pt_i.y = 0;
+      h += fMtx_v(i,0) * tps_base_func( (pt_i-pt_cur).len() );
+    }
+    z[j] = h;
+  }
+  return z;
 }
 
 

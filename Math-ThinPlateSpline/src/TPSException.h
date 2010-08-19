@@ -45,6 +45,16 @@ namespace TPS {
     }
   };
 
+
+  class BadNoCoordinatesException : public std::exception
+  {
+  public:
+    BadNoCoordinatesException() {}
+
+    virtual const char* what() const throw() {
+      return "The number of x- and y- coordinates does not match.";
+    }
+  };
 } // end namespace TPS
 
 #endif
