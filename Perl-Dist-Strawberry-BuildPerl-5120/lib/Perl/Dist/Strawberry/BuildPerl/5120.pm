@@ -12,7 +12,7 @@ Perl::Dist::Strawberry::BuildPerl::5120 version 2.11_10
 
 =head1 NAME
 
-Perl::Dist::Strawberry::BuildPerl::5120 - Files and code for building Perl 5.12.1
+Perl::Dist::Strawberry::BuildPerl::5120 - Files and code for building Perl 5.12.0
 
 =head1 VERSION
 
@@ -71,7 +71,7 @@ perl 5.12.0.
 
 
 
-around 'install_perl_plugin' => sub {
+around '_install_perl_plugin' => sub {
 	shift; # We don't need the original.
 	my $self = shift;
 
