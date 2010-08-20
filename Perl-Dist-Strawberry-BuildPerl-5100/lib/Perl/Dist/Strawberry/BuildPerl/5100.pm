@@ -71,7 +71,8 @@ perl 5.10.0.
 
 
 
-sub install_perl_plugin {
+around '_install_perl_plugin' => sub {
+	shift; # We don't need the original.
 	my $self = shift;
 
 	# Check for an error in the object.
@@ -116,7 +117,7 @@ sub install_perl_plugin {
 	$self->add_path( qw(perl bin) );
 
 	return 1;
-} ## end sub install_perl_plugin
+}; ## end sub install_perl_plugin
 
 
 
