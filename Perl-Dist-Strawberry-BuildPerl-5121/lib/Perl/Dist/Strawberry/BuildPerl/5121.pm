@@ -71,7 +71,7 @@ perl 5.12.1.
 
 
 
-around 'install_perl_plugin' => sub {
+around '_install_perl_plugin' => sub {
 	shift; # We don't need the original.
 	my $self = shift;
 
