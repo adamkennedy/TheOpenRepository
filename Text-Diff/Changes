@@ -1,6 +1,10 @@
 Changes for Perl extension Text-Diff
 
         - Better META.yml (Alexandr Ciornii)
+        - Fixed https://rt.cpan.org/Public/Bug/Display.html?id=54214 :
+            - Test-Differences Always Outputs UTF-8 text as ugly 
+            \x{....} escapes
+            - Add lib/Text/Diff/Config.pm with an option to output unicode.
 
 1.37 Thu 16 Jul 2009
 	- Switching to a production release

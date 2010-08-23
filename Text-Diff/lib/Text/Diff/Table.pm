@@ -3,6 +3,8 @@ package Text::Diff::Table;
 use 5.00503;
 use strict;
 use Carp;
+use Text::Diff::Config;
+
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
 	$VERSION   = '1.37';
@@ -59,10 +61,13 @@ SCOPE: {
       sub escape($) {
 	  use utf8;
 	  join "", map {
+          my $c = $_;
 	      $_ = ord;
 	      exists $escapes{$_}
 		  ? $escapes{$_}
-		  : sprintf( "\\x{%04x}", $_ );
+		  : $Text::Diff::Config::Output_Unicode 
+          ? $c
+          : sprintf( "\\x{%04x}", $_ );
 	  } split //, shift;
       }
 
@@ -377,6 +382,13 @@ Here's why the lines do or do not have whitespace escaped:
 
 Whether or not line 3 should have that tab character escaped is a judgement
 call; so far I'm choosing not to.
+
+=head1 UNICODE
+
+To output the raw unicode chracters consult the documentation of 
+L<Text::Diff::Config>. You can set the C<DIFF_OUTPUT_UNICODE> environment
+variable to 1 to output it from the command line. For more information,
+consult this bug: L<https://rt.cpan.org/Ticket/Display.html?id=54214> .
 
 =head1 LIMITATIONS
 
