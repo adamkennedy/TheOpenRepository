@@ -1,73 +1,5 @@
 package Text::FindIndent;
 
-=pod
-
-=head1 NAME
-
-Text::FindIndent - Heuristically determine the indent style
-
-=head1 SYNOPSIS
-
-  use Text::FindIndent;
-  my $indentation_type = Text::FindIndent->parse($text, skip_pod => 1);
-  if ($indentation_type =~ /^s(\d+)/) {
-    print "Indentation with $1 spaces\n";
-  }
-  elsif ($indentation_type =~ /^t(\d+)/) {
-    print "Indentation with tabs, a tab should indent by $1 characters\n";
-  }
-  elsif ($indentation_type =~ /^m(\d+)/) {
-    print "Indentation with $1 characters in tab/space mixed mode\n";
-  }
-  else {
-    print "Indentation style unknown\n";
-  }
-
-=head1 DESCRIPTION
-
-This is a module that attempts to intuit the underlying
-indent "policy" for a text file (most likely a source code file).
-
-=head1 METHODS
-
-=head2 parse
-
-The class method C<parse> tries to determine the indentation style of the
-given piece of text (which must start at a new line and can be passed in either
-as a string or as a reference to a scalar containing the string).
-
-Returns a letter followed by a number. If the letter is C<s>, then the
-text is most likely indented with spaces. The number indicates the number
-of spaces used for indentation. A C<t> indicates tabs. The number after the
-C<t> indicates the number characters each level of indentation corresponds to.
-A C<u> indicates that the
-indenation style could not be determined.
-Finally, an C<m> followed by a number means that this many characters are used
-for each indentation level, but the indentation is an arbitrary number of
-tabs followed by 0-7 spaces. This can happen if your editor is stupid enough
-to do smart indentation/whitespace compression. (I.e. replaces all indentations
-many tabs as possible but leaves the rest as spaces.)
-
-The function supports parsing of C<vim> I<modelines>. Those settings
-override the heuristics. The modeline's options that are recognized
-are C<sts>/C<softtabstob>, C<et>/C<noet>/C<expandtabs>/C<noexpandtabs>,
-and C<ts>/C<tabstop>.
-
-Similarly, parsing of C<emacs> I<Local Variables> is somewhat supported.
-C<parse> use explicit settings to override the heuristics but uses style settings
-only as a fallback. The following options are recognized:
-C<tab-width>, C<indent-tabs-mode>, C<c-basic-offset>, and C<style>.
-
-There is one named option that you can pass to C<parse()>: C<skip_pod>.
-When set to true, any section of POD (see L<perlpod>) will be ignored for
-indentation finding. This is because verbatim paragraphs and examples
-embedded in POD or quite often indented differently from normal Perl code
-around the POD section. Defaults to false. Example:
-
-  my $mode = Text::FindIndent->parse(\$text, skip_pod => 1);
-
-=cut
-
 use 5.00503;
 use strict;
 
@@ -620,9 +552,123 @@ sub _analyse_indent_diff {
 } # end lexical block for emacs lookups
 
 
+sub to_vim_commands {
+  my $indent = shift;
+  $indent = shift if $indent eq __PACKAGE__;
+  $indent = __PACKAGE__->parse($indent) if ref($indent) or length($indent) > 5;
+
+  my @cmd;
+  if ( $indent =~ /^t(\d+)/ ) {
+    my $chars = $1;
+    push @cmd, ":set shiftwidth=$chars";
+    push @cmd, ":set tabstop=$chars";
+    push @cmd, ":set softtabstop=0";
+    push @cmd, ":set noexpandtab";
+  } elsif ( $indent =~ /^s(\d+)/ ) {
+    my $spaces = $1;
+    push @cmd, ":set shiftwidth=$spaces";
+    push @cmd, ":set tabstop=8";
+    push @cmd, ":set softtabstop=$spaces";
+    push @cmd, ':set expandtab';
+  } elsif ( $indent =~ /^m(\d+)/ ) {
+    my $spaces = $1;
+    push @cmd, ":set shiftwidth=$spaces";
+    push @cmd, ":set tabstop=8";
+    push @cmd, ":set softtabstop=$spaces";
+    push @cmd, ':set noexpandtab';
+  }
+  return @cmd;
+}
+
 1;
 
+__END__
+
 =pod
+
+=head1 NAME
+
+Text::FindIndent - Heuristically determine the indent style
+
+=head1 SYNOPSIS
+
+  use Text::FindIndent;
+  my $indentation_type = Text::FindIndent->parse($text, skip_pod => 1);
+  if ($indentation_type =~ /^s(\d+)/) {
+    print "Indentation with $1 spaces\n";
+  }
+  elsif ($indentation_type =~ /^t(\d+)/) {
+    print "Indentation with tabs, a tab should indent by $1 characters\n";
+  }
+  elsif ($indentation_type =~ /^m(\d+)/) {
+    print "Indentation with $1 characters in tab/space mixed mode\n";
+  }
+  else {
+    print "Indentation style unknown\n";
+  }
+
+=head1 DESCRIPTION
+
+This is a module that attempts to intuit the underlying
+indent "policy" for a text file (most likely a source code file).
+
+=head1 METHODS
+
+=head2 parse
+
+The class method C<parse> tries to determine the indentation style of the
+given piece of text (which must start at a new line and can be passed in either
+as a string or as a reference to a scalar containing the string).
+
+Returns a letter followed by a number. If the letter is C<s>, then the
+text is most likely indented with spaces. The number indicates the number
+of spaces used for indentation. A C<t> indicates tabs. The number after the
+C<t> indicates the number characters each level of indentation corresponds to.
+A C<u> indicates that the
+indenation style could not be determined.
+Finally, an C<m> followed by a number means that this many characters are used
+for each indentation level, but the indentation is an arbitrary number of
+tabs followed by 0-7 spaces. This can happen if your editor is stupid enough
+to do smart indentation/whitespace compression. (I.e. replaces all indentations
+many tabs as possible but leaves the rest as spaces.)
+
+The function supports parsing of C<vim> I<modelines>. Those settings
+override the heuristics. The modeline's options that are recognized
+are C<sts>/C<softtabstob>, C<et>/C<noet>/C<expandtabs>/C<noexpandtabs>,
+and C<ts>/C<tabstop>.
+
+Similarly, parsing of C<emacs> I<Local Variables> is somewhat supported.
+C<parse> use explicit settings to override the heuristics but uses style settings
+only as a fallback. The following options are recognized:
+C<tab-width>, C<indent-tabs-mode>, C<c-basic-offset>, and C<style>.
+
+There is one named option that you can pass to C<parse()>: C<skip_pod>.
+When set to true, any section of POD (see L<perlpod>) will be ignored for
+indentation finding. This is because verbatim paragraphs and examples
+embedded in POD or quite often indented differently from normal Perl code
+around the POD section. Defaults to false. Example:
+
+  my $mode = Text::FindIndent->parse(\$text, skip_pod => 1);
+
+=head2 to_vim_commands
+
+A class method that converts the output of C<parse(\$text)>
+into a series of vi(m) commands that will configure vim to use the detected
+indentation setting. Returns zero (failure) or more
+lines of text that are suitable for passing to
+C<VIM::DoCommand()> one by one.
+
+As a convenience, if the argument to C<to_vim_commands> doesn't look
+like the output of C<parse>, it is redirected to C<parse> first.
+
+To use this, you can put the following line in your F<.vimrc> if your vim has
+Perl support. Suggestions on how to do this in a more elegant way are welcome.
+The code should be on one line but is broken up for displaying:
+
+  map <F5> <Esc> :perl use Text::FindIndent;VIM::DoCommand($_) for
+  Text::FindIndent->to_vim_commands(join "\n", $curbuf->Get(1..$curbuf->Count()));<CR>
+
+(Patches to implement the equivalent for emacs would be welcome as well.)
 
 =head1 SUPPORT
 
@@ -640,9 +686,9 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2008 - 2009 Steffen Mueller.
+Copyright 2008 - 2010 Steffen Mueller.
 
-Copyright 2008 - 2009 Adam Kennedy,
+Copyright 2008 - 2010 Adam Kennedy,
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
