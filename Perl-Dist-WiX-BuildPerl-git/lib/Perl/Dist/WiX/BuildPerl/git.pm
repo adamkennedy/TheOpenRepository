@@ -66,7 +66,7 @@ use Perl::Dist::WiX::Exceptions;
 our $VERSION = '1.250_100';
 $VERSION =~ s/_//sm;
 
-
+with 'Perl::Dist::WiX::Role::GitPlugin';
 
 #####################################################################
 # Perl installation support
@@ -81,7 +81,8 @@ a git checkout of perl.
 
 
 
-sub install_perl_plugin {
+around '_install_perl_plugin' => sub {
+	shift;
 	my $self = shift;
 
 	# Check for an error in the object.
@@ -139,53 +140,6 @@ around '_find_perl_file' => sub {
 		return $self->$orig($file);
 	}
 };
-
-=head2 git_describe
-
-The C<git_describe> method returns the output of C<git describe> on the
-directory pointed to by L<git_checkout()|Perl::Dist::WiX/git_checkout>.
-
-=cut
-
-has 'git_describe' => (
-	is       => 'ro',
-	isa      => Str,
-	lazy     => 1,
-	builder  => '_build_git_describe',
-	init_arg => undef,
-);
-
-sub _build_git_describe {
-	my $self     = shift;
-	my $checkout = $self->git_checkout();
-	my $location = $self->git_location();
-	if ( not -f $location ) {
-		PDWiX::File->throw(
-			message => 'Could not find git',
-			file    => $location
-		);
-	}
-	$location = Win32::GetShortPathName($location);
-	if ( not defined $location ) {
-		PDWiX->throw( 'Could not convert the location of git.exe'
-			  . ' to a path with short names' );
-	}
-
-	## no critic(ProhibitBacktickOperators)
-	$self->trace_line( 2,
-		"Finding current commit using $location describe\n" );
-	my $describe =
-qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
-
-	if ($CHILD_ERROR) {
-		PDWiX->throw("'git describe' returned an error: $CHILD_ERROR");
-	}
-
-	$describe =~ s/v5[.]/5./ms;
-	$describe =~ s/\n//ms;
-
-	return $describe;
-} ## end sub _build_git_describe
 
 
 
