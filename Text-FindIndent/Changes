@@ -1,5 +1,8 @@
 Changes for Perl extension Text-FindIndent
 
+0.09
+	- Add vim-commands output.
+
 0.08
 	- Handle case where hash keys and values are indented by braces pos + 1
 	  (CHORNY)
