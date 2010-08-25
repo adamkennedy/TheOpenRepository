@@ -9,7 +9,7 @@ use metaclass (
 );
 use Moose;
 use Params::Util qw( _INSTANCE _IDENTIFIER );
-use MooseX::Types::Moose qw( Str Maybe );
+use MooseX::Types::Moose qw( Str Maybe ArrayRef );
 use WiX3::Types qw( YesNoType );
 use WiX3::XML::TagTypes qw( FeatureRefChildTag );
 use WiX3::Util::StrictConstructor;
@@ -24,12 +24,10 @@ with qw(WiX3::XML::Role::TagAllowsChildTags);
 ## Allows Component, ComponentGroupRef, ComponentRef, Feature,
 ## FeatureGroup, FeatureGroupRef, FeatureRef, MergeRef.
 
-## FeatureRefChildTag allows Component, ComponentRef, Feature, FeatureRef, 
+## FeatureRefChildTag allows Component, ComponentRef, Feature, FeatureRef,
 ## and MergeRef at the moment.
 
-has '+child_tags' => (
-	isa => ArrayRef[FeatureRefChildTag]
-);
+has '+child_tags' => ( isa => ArrayRef [FeatureRefChildTag] );
 
 
 has id => (

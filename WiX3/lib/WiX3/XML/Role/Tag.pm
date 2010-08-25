@@ -107,13 +107,13 @@ sub print_attribute {
 	if ( not defined $value ) {
 		return q{};
 	}
-	
-	if ($value =~ m{[']}ms) {
+
+	if ( $value =~ m{[']}ms ) {
 		return qq{ $attribute="$value"};
 	} else {
 		return qq{ $attribute='$value'};
 	}
-	
+
 } ## end sub print_attribute
 
 no Moose::Role;

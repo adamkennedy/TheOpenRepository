@@ -56,11 +56,11 @@ sub as_string {
 	my $string = '<WixVariable';
 
 	my @attribute = (
-		[ 'Id'   => $self->get_id(), ],
+		[ 'Id'          => $self->get_id(), ],
 		[ 'Overridable' => $self->_get_overridable(), ],
-		[ 'Value' => $self->_get_value(), ],
+		[ 'Value'       => $self->_get_value(), ],
 	);
-	
+
 	my ( $k, $v );
 
 	foreach my $ref (@attribute) {

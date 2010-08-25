@@ -42,7 +42,8 @@ enum EnumRegistryKeyAction, qw( create createAndRemoveOnUninstall none );
 
 enum EnumRegistryRootType, qw( HKMU HKCR HKCU HKLM HKU );
 
-enum EnumRegistryValueType, qw( string integer binary expandable multiString );
+enum EnumRegistryValueType,
+  qw( string integer binary expandable multiString );
 
 enum EnumRegistryValueAction, qw( append prepend write );
 

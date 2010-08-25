@@ -47,15 +47,15 @@ has action => (
 );
 
 has root => (
-	is      => 'ro',
-	isa     => EnumRegistryRootType,
-	reader  => '_get_root',
+	is     => 'ro',
+	isa    => EnumRegistryRootType,
+	reader => '_get_root',
 );
 
 has key => (
-	is      => 'ro',
-	isa     => Maybe [Str],
-	reader  => '_get_key',
+	is     => 'ro',
+	isa    => Maybe [Str],
+	reader => '_get_key',
 );
 
 #####################################################################
@@ -78,7 +78,7 @@ sub as_string {
 	$answer = '<RegistryKey';
 	$answer .= $self->print_attribute( 'Id',     $id );
 	$answer .= $self->print_attribute( 'Root',   $self->_get_root() );
-	$answer .= $self->print_attribute( 'Key',  $self->_get_key() );
+	$answer .= $self->print_attribute( 'Key',    $self->_get_key() );
 	$answer .= $self->print_attribute( 'Action', $self->_get_action() );
 	$answer .= ">\n";
 	my $child_string = q{};

@@ -41,38 +41,38 @@ has action => (
 );
 
 has after => (
-	is       => 'ro',
-	isa      => Str,
-	reader   => '_get_after',
-	default  => undef,
+	is      => 'ro',
+	isa     => Str,
+	reader  => '_get_after',
+	default => undef,
 );
 
 has before => (
-	is       => 'ro',
-	isa      => Maybe[Str],
-	reader   => '_get_before',
-	default  => undef,
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_before',
+	default => undef,
 );
 
 # TODO: This one is an enums. Define a type accordingly.
 
 has onexit => (
-	is     => 'ro',
-	isa    => Maybe[Str],
-	reader => '_get_onexit',
-	default  => undef,	
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_onexit',
+	default => undef,
 );
 
 has overridable => (
 	is      => 'ro',
-	isa     => Maybe[YesNoType],
+	isa     => Maybe [YesNoType],
 	reader  => '_get_overridable',
 	default => undef,
 );
 
 has sequence => (
 	is      => 'ro',
-	isa     => Maybe[Int],
+	isa     => Maybe [Int],
 	reader  => '_get_sequence',
 	default => undef,
 );
@@ -85,14 +85,14 @@ sub as_string {
 
 	my $string;
 	$string = '<Custom';
-	
+
 	my @attribute = (
-		[ 'Action' => $self->_get_action(), ],
-		[ 'After' => $self->_get_after(), ],
-		[ 'Before'  => $self->_get_before(), ],
-		[ 'OnExit' => $self->_get_onexit(), ],
+		[ 'Action'      => $self->_get_action(), ],
+		[ 'After'       => $self->_get_after(), ],
+		[ 'Before'      => $self->_get_before(), ],
+		[ 'OnExit'      => $self->_get_onexit(), ],
 		[ 'Overridable' => $self->_get_overridable(), ],
-		[ 'Sequence' => $self->_get_sequence(), ],
+		[ 'Sequence'    => $self->_get_sequence(), ],
 	);
 
 	my ( $k, $v );
@@ -103,7 +103,7 @@ sub as_string {
 	}
 
 	$string .= $self->inner_text_as_string();
-	
+
 	return $string;
 } ## end sub as_string
 

@@ -16,7 +16,8 @@ use metaclass (
 );
 use Moose;
 use Params::Util qw( _IDENTIFIER _STRING );
-use WiX3::Types qw( YesNoType EnumRegistryRootType EnumRegistryValueType EnumRegistryValueAction );
+use WiX3::Types
+  qw( YesNoType EnumRegistryRootType EnumRegistryValueType EnumRegistryValueAction );
 use MooseX::Types::Moose qw( Str Maybe Bool );
 use WiX3::Util::StrictConstructor;
 
@@ -41,15 +42,15 @@ has id => (
 );
 
 has root => (
-	is      => 'ro',
-	isa     => EnumRegistryRootType,
-	reader  => '_get_root',
+	is     => 'ro',
+	isa    => EnumRegistryRootType,
+	reader => '_get_root',
 );
 
 has key => (
-	is      => 'ro',
-	isa     => Maybe [Str],
-	reader  => '_get_key',
+	is     => 'ro',
+	isa    => Maybe [Str],
+	reader => '_get_key',
 );
 
 has action => (
@@ -67,16 +68,16 @@ has key_path => (
 );
 
 has type => (
-	is      => 'ro',
-	isa     => EnumRegistryValueType,
-	reader  => '_get_type',
+	is       => 'ro',
+	isa      => EnumRegistryValueType,
+	reader   => '_get_type',
 	required => 1,
 );
 
 has value => (
-	is      => 'ro',
-	isa     => Str,
-	reader  => '_get_value',
+	is     => 'ro',
+	isa    => Str,
+	reader => '_get_value',
 );
 
 #####################################################################
@@ -92,20 +93,20 @@ has value => (
 sub as_string {
 	my $self = shift;
 
-	my $id = 'RV_' . $self->get_id();
-	my $type = $self->_get_type();
+	my $id    = 'RV_' . $self->get_id();
+	my $type  = $self->_get_type();
 	my $value = $self->_get_value();
 
 	# Print tag.
 	my $string = '<RegistryValue';
 
 	my @attribute = (
-		[ 'Id'   => $id, ],
-		[ 'Root' => $self->_get_root(), ],
-		[ 'Key'  => $self->_get_key(), ],
-		[ 'Action' => $self->_get_action(), ],
+		[ 'Id'      => $id, ],
+		[ 'Root'    => $self->_get_root(), ],
+		[ 'Key'     => $self->_get_key(), ],
+		[ 'Action'  => $self->_get_action(), ],
 		[ 'KeyPath' => $self->_get_key_path(), ],
-		[ 'Type' => $self->_get_type(), ],
+		[ 'Type'    => $self->_get_type(), ],
 	);
 
 	my ( $k, $v );
@@ -115,12 +116,12 @@ sub as_string {
 		$string .= $self->print_attribute( $k, $v );
 	}
 
-	if ('multiString' eq $type) {
+	if ( 'multiString' eq $type ) {
 		$string .= $self->print_attribute( 'Value', $value );
 		$string .= qq{ />\n};
 	} else {
 		$string .= qq{>$value</RegistryValue>\n};
-	} 
+	}
 
 	return $string;
 } ## end sub as_string

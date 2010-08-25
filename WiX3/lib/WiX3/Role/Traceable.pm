@@ -28,24 +28,23 @@ sub trace_line {
 }
 
 sub push_tracelevel {
-	my $self = shift;
+	my $self      = shift;
 	my $new_level = shift;
-	
+
 	my $object = \do { WiX3::Trace::Object->instance()->get_tracelevel(); };
 	bless $object, 'WiX3::Role::Traceable::Saver';
-	
+
 	WiX3::Trace::Object->instance()->set_tracelevel($new_level);
-	
+
 	return $object;
 }
 
 no Moose::Role;
 
-package WiX3::Role::Traceable::Saver;
-
-sub DESTROY {
+sub WiX3::Role::Traceable::Saver::DESTROY {
 	my $self = shift;
-	WiX3::Trace::Object->instance()->set_tracelevel(${$self})
+	WiX3::Trace::Object->instance()->set_tracelevel( ${$self} );
+	return;
 }
 
 1;                                     # Magic true value required at end of module

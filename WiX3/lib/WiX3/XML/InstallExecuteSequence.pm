@@ -31,7 +31,7 @@ sub as_string {
 	$answer .= "<InstallExecuteSequence>\n";
 
 	return $answer;
-} ## end sub as_string
+}
 
 sub get_namespace {
 	return q{xmlns='http://schemas.microsoft.com/wix/2006/wi'};

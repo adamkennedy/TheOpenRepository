@@ -8,7 +8,7 @@ use metaclass (
 	error_class => 'WiX3::Util::Error',
 );
 use Moose;
-use MooseX::Types::Moose qw( Int Str Maybe );
+use MooseX::Types::Moose qw( Int Str Maybe ArrayRef );
 use WiX3::Types qw( ComponentGuidType );
 use WiX3::XML::TagTypes qw( DirectoryChildTag );
 use WiX3::Util::StrictConstructor;
@@ -26,9 +26,7 @@ with qw(WiX3::XML::Role::TagAllowsChildTags
 ## Allows Component, Directory, Merge, and SymbolPath as children.
 ## SymbolPath will need added later.
 
-has '+child_tags' => (
-	isa => ArrayRef[DirectoryChildTag]
-);
+has '+child_tags' => ( isa => ArrayRef [DirectoryChildTag] );
 
 
 #####################################################################

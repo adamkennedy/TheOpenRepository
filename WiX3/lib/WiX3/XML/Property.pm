@@ -88,15 +88,15 @@ sub as_string {
 	my $string = '<Property';
 
 	my @attribute = (
-		[ 'Id'   => $self->get_id(), ],
-		[ 'Admin' => $self->_get_admin(), ],
-		[ 'ComplianceCheck'  => $self->_get_compliance_check(), ],
-		[ 'Hidden' => $self->_get_hidden(), ],
-		[ 'Secure' => $self->_get_secure(), ],
-		[ 'Type' => $self->_get_suppress_modularization(), ],
-		[ 'Value' => $self->_get_value(), ],
+		[ 'Id'              => $self->get_id(), ],
+		[ 'Admin'           => $self->_get_admin(), ],
+		[ 'ComplianceCheck' => $self->_get_compliance_check(), ],
+		[ 'Hidden'          => $self->_get_hidden(), ],
+		[ 'Secure'          => $self->_get_secure(), ],
+		[ 'Type'            => $self->_get_suppress_modularization(), ],
+		[ 'Value'           => $self->_get_value(), ],
 	);
-	
+
 	my ( $k, $v );
 
 	foreach my $ref (@attribute) {
@@ -122,11 +122,11 @@ __END__
 
 =head1 NAME
 
-WiX3::XML::CreateFolder - Defines a CreateFolder tag.
+WiX3::XML::Property - Defines a Property tag.
 
 =head1 VERSION
 
-This document describes WiX3::XML::CreateFolder version 0.009100
+This document describes WiX3::XML::Property version 0.010
 
 =head1 SYNOPSIS
 

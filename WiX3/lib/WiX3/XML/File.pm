@@ -10,7 +10,7 @@ use metaclass (
 use Moose;
 use WiX3::Types qw( YesNoType PositiveInt NonNegativeInt );
 use WiX3::XML::TagTypes qw( ShortcutTag );
-use MooseX::Types::Moose qw( Str Maybe Int );
+use MooseX::Types::Moose qw( Str Maybe Int ArrayRef );
 use WiX3::Util::StrictConstructor;
 
 our $VERSION = '0.010';
@@ -24,9 +24,7 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 # ODBCDriver, ODBCTranslator, Permission, PermissionEx, Shortcut, SymbolPath,
 # TypeLib
 
-has '+child_tags' => (
-	isa => ArrayRef[ShortcutTag]
-);
+has '+child_tags' => ( isa => ArrayRef [ShortcutTag] );
 
 
 #####################################################################

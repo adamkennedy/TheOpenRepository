@@ -19,14 +19,14 @@ has inner_text => (
 
 sub inner_text_as_string {
 	my $self = shift;
-	my $tag = shift;
-	
+	my $tag  = shift;
+
 	my $value = $self->_get_inner_text();
-	if (defined $value) {
+	if ( defined $value ) {
 		return qq{>$value</$tag>\n};
 	} else {
 		return qq{ />\n};
-	} 
+	}
 }
 
 no Moose::Role;

@@ -10,7 +10,7 @@ use metaclass (
 use Moose;
 use Params::Util qw( _IDENTIFIER _STRING );
 use WiX3::Types qw( YesNoType );
-use MooseX::Types::Moose qw( Str Int Maybe );
+use MooseX::Types::Moose qw( Str Int Maybe ArrayRef );
 use WiX3::XML::TagTypes qw( FeatureChildTag );
 use WiX3::Util::StrictConstructor;
 
@@ -25,12 +25,10 @@ with 'WiX3::XML::Role::TagAllowsChildTags';
 # Component, ComponentGroupRef, ComponentRef, Condition, Feature,
 # FeatureGroupRef, FeatureRef, MergeRef
 
-## FeatureChildTag allows Component, ComponentRef, Feature, FeatureRef, 
+## FeatureChildTag allows Component, ComponentRef, Feature, FeatureRef,
 ## and MergeRef at the moment.
 
-has '+child_tags' => (
-	isa => ArrayRef[FeatureChildTag]
-);
+has '+child_tags' => ( isa => ArrayRef [FeatureChildTag] );
 
 #####################################################################
 # Accessors:

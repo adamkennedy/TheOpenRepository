@@ -9,7 +9,7 @@ use metaclass (
 );
 use Moose;
 use Params::Util qw( _INSTANCE );
-use MooseX::Types::Moose qw( Int Str );
+use MooseX::Types::Moose qw( Int Str ArrayRef );
 use WiX3::XML::TagTypes qw( DirectoryRefChildTag DirectoryTag );
 use WiX3::Util::StrictConstructor;
 
@@ -22,9 +22,7 @@ with qw(WiX3::XML::Role::TagAllowsChildTags
 
 ## Allows Component, Directory, Merge as children.
 
-has '+child_tags' => (
-	isa => ArrayRef[DirectoryRefChildTag]
-);
+has '+child_tags' => ( isa => ArrayRef [DirectoryRefChildTag] );
 
 
 #####################################################################

@@ -41,16 +41,16 @@ has id => (
 );
 
 has binarykey => (
-	is       => 'ro',
-	isa      => Maybe [Str],
-	reader   => '_get_binarykey',
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_binarykey',
 	default => undef,
 );
 
 has directory => (
-	is     => 'ro',
-	isa    => Maybe [Str],
-	reader => '_get_directory',
+	is      => 'ro',
+	isa     => Maybe [Str],
+	reader  => '_get_directory',
 	default => undef,
 );
 
@@ -193,27 +193,29 @@ sub as_string {
 
 	my $string;
 	$string = '<CustomAction';
-	
+
 	my @attribute = (
-		[ 'Id' => $id, ],
-		[ 'BinaryKey' => $self->_get_binarykey(), ],
-		[ 'Directory'  => $self->_get_directory(), ],
-		[ 'DllEntry' => $self->_get_dllentry(), ],
-		[ 'ExeCommand' => $self->_get_execommand(), ],
-		[ 'Execute' => $self->_get_execute(), ],
-		[ 'FileKey' => $self->_get_filekey(), ],
-		[ 'HideTarget'  => $self->_get_hidetarget(), ],
-		[ 'Impersonate' => $self->_get_impersonate(), ],
-		[ 'JScriptCall' => $self->_get_jscriptcall(), ],
+		[ 'Id'             => $id, ],
+		[ 'BinaryKey'      => $self->_get_binarykey(), ],
+		[ 'Directory'      => $self->_get_directory(), ],
+		[ 'DllEntry'       => $self->_get_dllentry(), ],
+		[ 'ExeCommand'     => $self->_get_execommand(), ],
+		[ 'Execute'        => $self->_get_execute(), ],
+		[ 'FileKey'        => $self->_get_filekey(), ],
+		[ 'HideTarget'     => $self->_get_hidetarget(), ],
+		[ 'Impersonate'    => $self->_get_impersonate(), ],
+		[ 'JScriptCall'    => $self->_get_jscriptcall(), ],
 		[ 'PatchUninstall' => $self->_get_patchuninstall(), ],
-		[ 'Property' => $self->_get_property(), ],
-		[ 'Return'  => $self->_get_return(), ],
-		[ 'Script' => $self->_get_script(), ],
-		[ 'SuppressModularization' => $self->_get_suppressmodularization(), ],
+		[ 'Property'       => $self->_get_property(), ],
+		[ 'Return'         => $self->_get_return(), ],
+		[ 'Script'         => $self->_get_script(), ],
+		[   'SuppressModularization' =>
+			  $self->_get_suppressmodularization(),
+		],
 		[ 'TerminalServerAware' => $self->_get_terminalserveraware(), ],
-		[ 'Value' => $self->_get_value(), ],
-		[ 'VBScriptCall' => $self->_get_vbscriptcall(), ],
-		[ 'Win64' => $self->_get_win64(), ],
+		[ 'Value'               => $self->_get_value(), ],
+		[ 'VBScriptCall'        => $self->_get_vbscriptcall(), ],
+		[ 'Win64'               => $self->_get_win64(), ],
 	);
 
 	my ( $k, $v );
@@ -224,7 +226,7 @@ sub as_string {
 	}
 
 	$string .= $self->inner_text_as_string();
-	
+
 	return $string;
 } ## end sub as_string
 
