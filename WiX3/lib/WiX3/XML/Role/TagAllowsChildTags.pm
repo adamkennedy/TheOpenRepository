@@ -7,7 +7,7 @@ use WiX3::Types qw(IsTag);
 use MooseX::Types::Moose qw(ArrayRef);
 use List::MoreUtils qw( uniq );
 
-our $VERSION = '0.009100';
+our $VERSION = '0.010';
 $VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::Tag';
@@ -16,7 +16,7 @@ with 'WiX3::XML::Role::Tag';
 # Attributes
 
 # A tag can contain other tags.
-has child_tags => (
+has 'child_tags' => (
 	traits   => ['Array'],
 	is       => 'rw',
 	isa      => ArrayRef [IsTag],
@@ -105,7 +105,7 @@ WiX3::XML::Role::TagAllowsChildTags - Base role for XML tags that have children.
 
 =head1 VERSION
 
-This document describes WiX3::XML::Role::TagAllowsChildTags version 0.009100
+This document describes WiX3::XML::Role::TagAllowsChildTags version 0.010
 
 =head1 SYNOPSIS
 
@@ -113,7 +113,7 @@ This document describes WiX3::XML::Role::TagAllowsChildTags version 0.009100
 
 =head1 DESCRIPTION
 
-This is the base class for all WiX3 classes that represent XML tags.
+This is the base role for all WiX3 classes that represent XML tags.
 
 =head1 INTERFACE 
 

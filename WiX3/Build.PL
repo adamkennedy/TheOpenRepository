@@ -59,6 +59,8 @@ my $builder = $class->new(
 	create_makefile_pl   => 'small',
 	create_license       => 1,
 	create_readme        => 1,
+	# Do not remove. Directories in t/ require it.
+	recursive_test_files => 1,
 	configure_requires => {
 		'Module::Build'            => '0.33',
 	},

@@ -46,7 +46,7 @@ subtype WixVariableTag,   as class_type 'WiX3::XML::WixVariable';
 
 subtype ComponentChildTag,
   as EnvironmentTag | FileTag | RegistryKeyTag | RegistryValueTag |
-  RemoveFolderTag | ShortcutTag;
+  RemoveFolderTag | ShortcutTag | CreateFolderTag;
 subtype DirectoryChildTag,    as ComponentTag | DirectoryTag | MergeTag;
 subtype DirectoryRefChildTag, as ComponentTag | DirectoryTag | MergeTag;
 subtype FeatureChildTag,

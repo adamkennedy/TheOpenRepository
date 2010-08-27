@@ -4,9 +4,6 @@ use 5.008001;
 use Moose::Role;
 use Params::Util qw( _STRING _NONNEGINT );
 use WiX3::Exceptions;
-require WiX3::XML::ComponentRef;
-require WiX3::XML::FeatureRef;
-require WiX3::XML::MergeRef;
 
 our $VERSION = '0.009102';
 $VERSION =~ s/_//ms;
@@ -67,14 +64,17 @@ sub get_componentref_array {
 	my $count = $self->count_child_tags();
 
 	if ( $self->isa('WiX3::XML::Component') ) {
+		require WiX3::XML::ComponentRef;
 		return WiX3::XML::ComponentRef->new($self);
 	}
 
 	if ( $self->isa('WiX3::XML::Feature') ) {
+		require WiX3::XML::FeatureRef;
 		return WiX3::XML::FeatureRef->new($self);
 	}
 
 	if ( $self->isa('WiX3::XML::Merge') ) {
+		require WiX3::XML::MergeRef;
 		return WiX3::XML::MergeRef->new($self);
 	}
 
