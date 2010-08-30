@@ -91,6 +91,10 @@ Config:
   vendorprefix: perl/vendor
   vendorprefixexp: perl/vendor
   vendorscript: ''
+  sitescript: perl/site/bin
+  sitescriptexp: perl/site/bin
+  vendorscriptexp: perl/bin
+  usrinc: c/include
 Env:
   PATH:
     - c/bin
