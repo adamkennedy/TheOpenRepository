@@ -16,7 +16,8 @@ minicpan:
   skip_perl: 1
   no_conn_cache: 1
 HomeDir:
-  my_home: ..
+  my_home: data
+  my_data: data
 Config:
   archlib: perl/lib
   archlibexp: perl/lib
