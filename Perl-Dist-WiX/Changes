@@ -1,6 +1,8 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.250   Xxx ## Jul 2010
+    1. Portable will have it's own dir to use insead of home (CHORNY)
+
+1.250   Xxx ## 01 Aug 2010
     1. Used to build Strawberry Perl July 2010.
     2. Added ability to have CPAN module links in the release notes.
 	3. Removing pdwix_minicpan script.
