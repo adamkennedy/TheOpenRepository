@@ -47,7 +47,7 @@ Module::Install::PerlTar - Removes the requirement for a tar executable.
 
 =head1 DESCRIPTION
 
-Module::Install::DistArchiveTar is a Module::Install plugin to
+Module::Install::PerlTar is a Module::Install plugin to
 set the options that allow the use of the 'ptar' script
 when running 'make dist'.
 
