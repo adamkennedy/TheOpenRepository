@@ -5,7 +5,7 @@ package CSS::Tiny;
 use strict;
 BEGIN {
 	require 5.004;
-	$CSS::Tiny::VERSION = '1.18';
+	$CSS::Tiny::VERSION = '1.19';
 	$CSS::Tiny::errstr  = '';
 }
 
@@ -284,6 +284,27 @@ so that it can be dropped directly onto an XHTML page.
 
 When an error occurs, you can retrieve the error message either from the
 C<$CSS::Tiny::errstr> variable, or using the C<errstr> method.
+
+=head1 CAVEATS
+
+=head2 CSS Rule Order
+
+While the order of rules in CSS is important, this is one of the features
+that is sacrificed to keep things small and dependency-free. If you need
+to preserve order yourself, we recommend that you upgrade to the more
+powerful L<CSS> module.
+
+If this is not possible in your case, alternatively it can be done with the
+help of another module such as L<Tie::IxHash>:
+
+    my $css = CSS::Tiny->new;
+    tie %$css, 'Tie::IxHash';
+    $css->read('style.css');
+
+Note: You will also need to remember to add the additional dependency to
+your code or module in this case.
+
+=back
 
 =head1 SUPPORT
 

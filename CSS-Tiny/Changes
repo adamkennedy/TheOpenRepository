@@ -1,5 +1,10 @@
 Revision history for Perl extension CSS-Tiny
 
+1.19 Fri  3 Sep 2010
+	- No functional changes
+	- Resolved RT #59037: CSS::Tiny reorders rules
+	- The use of Tie::IxHash to achieve ordering is now documented
+
 1.18 Fri  3 Sep 2010
 	- Resolved RT #60776: Parsing of multiple whitespace selectors
 	- Added test script specifically for RT regression tests
