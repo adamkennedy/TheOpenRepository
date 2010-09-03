@@ -5,7 +5,7 @@ package CSS::Tiny;
 use strict;
 BEGIN {
 	require 5.004;
-	$CSS::Tiny::VERSION = '1.17';
+	$CSS::Tiny::VERSION = '1.18';
 	$CSS::Tiny::errstr  = '';
 }
 
@@ -47,13 +47,14 @@ sub read_string {
 		}
 
 		# Split in such a way as to support grouped styles
-		my $style = $1;
+		my $style      = $1;
+		my $properties = $2;
 		$style =~ s/\s{2,}/ /g;
 		my @styles = grep { s/\s+/ /g; 1; } grep { /\S/ } split /\s*,\s*/, $style;
 		foreach ( @styles ) { $self->{$_} ||= {} }
 
 		# Split into properties
-		foreach ( grep { /\S/ } split /\;/, $2 ) {
+		foreach ( grep { /\S/ } split /\;/, $properties ) {
 			unless ( /^\s*([\w._-]+)\s*:\s*(.*?)\s*$/ ) {
 				return $self->_error( "Invalid or unexpected property '$_' in style '$style'" );
 			}

@@ -1,5 +1,9 @@
 Revision history for Perl extension CSS-Tiny
 
+1.18 Fri  3 Sep 2010
+	- Resolved RT #60776: Parsing of multiple whitespace selectors
+	- Added test script specifically for RT regression tests
+
 1.17 Sun  4 Jul 2010
 	- Removed the use of Module::Install
 	- Allow read-string to be rerun again on an existing object,
