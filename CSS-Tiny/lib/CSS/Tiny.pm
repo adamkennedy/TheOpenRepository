@@ -304,8 +304,6 @@ help of another module such as L<Tie::IxHash>:
 Note: You will also need to remember to add the additional dependency to
 your code or module in this case.
 
-=back
-
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
