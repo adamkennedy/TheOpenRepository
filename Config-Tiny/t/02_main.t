@@ -13,7 +13,7 @@ use Test::More tests => 33;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.12';
+	$VERSION = '2.13';
 }
 
 

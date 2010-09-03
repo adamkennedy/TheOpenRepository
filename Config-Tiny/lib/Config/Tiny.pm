@@ -5,7 +5,7 @@ package Config::Tiny;
 use strict;
 BEGIN {
 	require 5.004;
-	$Config::Tiny::VERSION = '2.12';
+	$Config::Tiny::VERSION = '2.13';
 	$Config::Tiny::errstr  = '';
 }
 
@@ -24,9 +24,9 @@ sub read {
 
 	# Slurp in the file
 	local $/ = undef;
-	open CFG, $file or return $class->_error( "Failed to open file '$file': $!" );
+	open( CFG, $file ) or return $class->_error( "Failed to open file '$file': $!" );
 	my $contents = <CFG>;
-	close CFG;
+	close( CFG );
 
 	$class->read_string( $contents );
 }
@@ -78,10 +78,12 @@ sub write {
 		);
 
 	# Write it to the file
+	my $string = $self->write_string;
+	return undef unless defined $string;
 	open( CFG, '>' . $file ) or return $self->_error(
 		"Failed to open file '$file' for writing: $!"
 		);
-	print CFG $self->write_string;
+	print CFG $string;
 	close CFG;
 }
 
@@ -91,6 +93,15 @@ sub write_string {
 
 	my $contents = '';
 	foreach my $section ( sort { (($b eq '_') <=> ($a eq '_')) || ($a cmp $b) } keys %$self ) {
+		# Check for several known-bad situations with the section
+		# 1. Leading whitespace
+		# 2. Trailing whitespace
+		# 3. Newlines in section name
+		if ( $section =~ /(?:^\s|\n|\s$)/s ) {
+			return $self->_error(
+				"Illegal whitespace in section name '$section'"
+			);
+		}
 		my $block = $self->{$section};
 		$contents .= "\n" if length $contents;
 		$contents .= "[$section]\n" unless $section eq '_';
@@ -131,7 +142,7 @@ Config::Tiny - Read/Write .ini style files with as little code as possible
     use Config::Tiny;
 
     # Create a config
-    my $Config = Config::Tiny->new();
+    my $Config = Config::Tiny->new;
 
     # Open the config
     $Config = Config::Tiny->read( 'file.conf' );
@@ -196,7 +207,7 @@ C<Config::Tiny> object containing the properties in the file.
 Returns the object on success, or C<undef> on error.
 
 When C<read> fails, C<Config::Tiny> sets an error message internally
-you can recover via C<<Config::Tiny->errstr>>. Although in B<some>
+you can recover via C<Config::Tiny-E<gt>errstr>. Although in B<some>
 cases a failed C<read> will also set the operating system error
 variable C<$!>, not all errors do and you should not rely on using
 the C<$!> variable.
@@ -221,6 +232,17 @@ Generates the file content for the object and returns it as a string.
 
 When an error occurs, you can retrieve the error message either from the
 C<$Config::Tiny::errstr> variable, or using the C<errstr()> method.
+
+=head1 CAVEATS
+
+=head2 Unsupported Section Headers
+
+Some edge cases in section headers are not support, and additionally may not
+be detected when writing the config file.
+
+Specifically, section headers with leading whitespace, trailing whitespace,
+or newlines anywhere in the section header, will not be written correctly
+to the file and may cause file corruption.
 
 =head1 SUPPORT
 

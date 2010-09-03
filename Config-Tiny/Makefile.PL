@@ -2,7 +2,7 @@ use strict;
 use vars qw{$VERSION};
 BEGIN {
 	require 5.003_96;
-	$VERSION = '2.12';
+	$VERSION = '2.13';
 }
 use ExtUtils::MakeMaker;
 

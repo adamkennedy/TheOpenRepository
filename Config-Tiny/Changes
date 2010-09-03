@@ -1,5 +1,11 @@
 Revision history for Perl extension Config-Tiny
 
+2.13 Fri  3 Sep 2010
+	- Resolved #60703: Display glitch in Config::Tiny 2.12 POD
+	- Resolved #40585: member 'set;' doesn't exist
+	- Resolved #30479: does not warn or die when writing data it
+	  cannot later.
+
 2.12 Thu  1 Nov 2007
 	- Converting build script from Module::Install to tinier EU:MM
 
