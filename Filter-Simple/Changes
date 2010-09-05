@@ -118,3 +118,8 @@ Revision history for Perl extension Filter::Simple
     - Explicit dependency on Text::Balanced 1.97 because that fixed
       a problem with HERE-docs. (RT #27326)
 
+0.85    Sun Sep  5 16:03:00 CET 2010
+
+    - Port changes from core: Remove unnecessary PERL_CORE check
+      from tests.
+
