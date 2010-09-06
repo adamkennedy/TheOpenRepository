@@ -134,12 +134,12 @@ directly on top of Perl's native inheritance.
   package Parent;
   
   use strict;
-  use POE::Declare;
-  
-  declare Host           => 'Param';
-  declare Port           => 'Param';
-  declare ConnectSuccess => 'Message';
-  declare ConnectFailure => 'Message';
+  use POE::Declare {
+      Host           => 'Param',
+      Port           => 'Param',
+      ConnectSuccess => 'Message',
+      ConnectFailure => 'Message',
+  };
   
   sub connect : Event {
       # ...
@@ -152,12 +152,12 @@ directly on top of Perl's native inheritance.
   
   use strict;
   use base 'Parent';
-  use POE::Declare;
-  
-  declare Username     => 'Param';
-  declare Password     => 'Param';
-  declare AuthRequired => 'Message';
-  declare AuthInvalid  => 'Message';
+  use POE::Declare {
+      Username     => 'Param',
+      Password     => 'Param',
+      AuthRequired => 'Message',
+      AuthInvalid  => 'Message',
+  };
   
   compile;
 
