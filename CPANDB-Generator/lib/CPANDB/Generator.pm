@@ -343,6 +343,7 @@ WHERE
 		OR perl LIKE '5.6%'
 		OR perl LIKE '5.8%'
 		OR perl LIKE '5.10%'
+		OR perl LIKE '5.12%'
 	)
 	AND dist_version in (
 		select dist_version from t_distribution
