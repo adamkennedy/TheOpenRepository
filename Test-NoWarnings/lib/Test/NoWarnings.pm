@@ -3,14 +3,14 @@ package Test::NoWarnings;
 use 5.006;
 use strict;
 use warnings;
-use Carp;
-use Exporter ();
-use Test::Builder;
+use Carp                      ();
+use Exporter                  ();
+use Test::Builder             ();
 use Test::NoWarnings::Warning ();
 
 use vars qw( $VERSION @EXPORT_OK @ISA $do_end_test );
 BEGIN {
-	$VERSION   = '1.01';
+	$VERSION   = '1.02';
 	@ISA       = 'Exporter';
 	@EXPORT_OK = qw(
 		clear_warnings had_no_warnings warnings
@@ -206,18 +206,18 @@ module
 
 =head1 EXPORTABLE FUNCTIONS
 
-=head2 had_no_warnings()
+=head2 had_no_warnings
 
 This checks that there have been warnings emitted by your test scripts.
 Usually you will not call this explicitly as it is called automatically when
 your script finishes.
 
-=head2 clear_warnings()
+=head2 clear_warnings
 
 This will clear the array of warnings that have been captured. If the array
 is empty then a call to C<had_no_warnings()> will produce a pass result.
 
-=head2 warnings()
+=head2 warnings
 
 This will return the array of warnings captured so far. Each element of this
 array is an object containing information about the warning. The following
@@ -263,10 +263,6 @@ Get the name of the test that executed before the warning was emitted.
 
 When counting your tests for the plan, don't forget to include the test that
 runs automatically when your script ends.
-
-=head1 BUGS
-
-None that I know of.
 
 =head1 SUPPORT
 

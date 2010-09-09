@@ -1,5 +1,16 @@
 Changes for Perl extension Test-NoWarnings
 
+1.02 Thu  9 Sep 2010 - Adam Kennedy
+	- Don't "use warnings" anywhere inside of Test::NoWarnings::* just
+	  in case we trigger a recursive warning handler in future (ADAMK)
+	- Remove the need for a private variable when detecting
+	  Devel::StackTrace support (ADAMK)
+	- Don't import unused functions from Carp or Test::Builder (ADAMK)
+	- Minor documentation tweaks (ADAMK)
+	- Correct the repository metadata in META.yml (ADAMK)
+	- Minor cleanups in the eumm-update generated code (ADAMK)
+	- Added a dedicated compile test (ADAMK)
+
 1.01 15 Jan 2010 - Adam Kennedy
 	- My release automation accidentally decided that Test::NoWarnings
 	  was a Perl licensed distribution. Added in the appropriate changes

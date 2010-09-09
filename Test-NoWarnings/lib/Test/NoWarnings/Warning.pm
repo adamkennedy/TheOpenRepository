@@ -2,15 +2,15 @@ package Test::NoWarnings::Warning;
 
 use 5.006;
 use strict;
-use warnings;
 use Carp ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.01';
-}
+	$VERSION = '1.02';
 
-my $STACKTRACE = eval "require Devel::StackTrace" || 0;
+	# Optional stacktrace support
+	eval "require Devel::StackTrace";
+}
 
 sub new {
 	my $class = shift;
@@ -18,15 +18,14 @@ sub new {
 }
 
 sub getTrace {
-	my $self = shift;
-	return $self->{Trace};
+	$_[0]->{Trace};
 }
 
 sub fillTrace {
 	my $self = shift;
 	$self->{Trace} = Devel::StackTrace->new(
 		ignore_class => [__PACKAGE__, @_],
-	) if $STACKTRACE;
+	) if $Devel::StackTrace::VERSION;
 }
 
 sub getCarp {
