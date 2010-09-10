@@ -1,5 +1,9 @@
 Revision history for Perl extension File::ShareDir::PAR
 
+0.06 Fri 10 Sep 2010
+  - Allow global installation of the File::ShareDir::PAR
+    routines by lobotomizing File::ShareDir.
+
 0.05 Fri 20 Mar 2009
   - Attempt band-aid fix for strange win32 test problem.
 
