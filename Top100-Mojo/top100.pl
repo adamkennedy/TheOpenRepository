@@ -7,7 +7,6 @@ use CPANDB 0.13 {
 };
 use GraphViz;
 use Mojolicious::Lite;
-no warnings;
 
 app->types->type( svg => 'image/svg+xml' );
 
@@ -31,27 +30,30 @@ get '/' => sub {
 # Graph Renderer
 
 get '/graph' => sub {
-	my $self  = shift;
-	my $name  = $self->param('name');
-	my $dist  = CPANDB->distribution($name);
-	$self->render_data(
-		$dist->dependency_graphviz(
-			rankdir => 1,
-		)->as_svg,
-		format => 'svg',
+	my $self = shift;
+	render_graph( $self,
+		name    => $self->param('name'),
+		rankdir => 1,
 	);
 } => 'graph';
 
 get '/graph/:name' => sub {
-	my $self  = shift;
-	my $name  = $self->stash('name');
-	my $dist  = CPANDB->distribution($name);
-	$self->render_data(
-		$dist->dependency_graphviz(
-			rankdir => 1,
-		)->as_svg,
-		format => 'svg',
+	my $self = shift;
+	render_graph( $self,
+		name    => $self->param('name'),
+		rankdir => 1,
 	);
 };
+
+sub render_graph {
+	my $self  = shift;
+	my %param = @_;
+	my $name  = delete $param{name};
+	my $dist  = CPANDB->distribution($name);
+	$self->render_data(
+		$dist->dependency_graphviz(%param)->as_svg,
+		format => 'svg',
+	);	
+}
 
 shagadelic;
