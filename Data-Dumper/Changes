@@ -6,6 +6,10 @@ HISTORY - public release history for Data::Dumper
 
 =over 8
 
+=item 2.127 (Sep 10 2010)
+
+Promote previous release to stable version.
+
 =item 2.126_01 (Sep  6 2010)
 
 Port core perl changes e3ec2293dc, fe642606b19.
