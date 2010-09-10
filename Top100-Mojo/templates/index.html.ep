@@ -9,12 +9,12 @@
 </head>
 <body>
 <img id="logo" src="logo.png" border="0" />
-<form action="&lt;%= url_for 'graph' %&gt;">
+<form action="<%= url_for 'graph' %>">
   <p>Week 3 - Generating and downloading a file</p>
   <p>This application will generate a CPAN dependency graph for a named
 distribution.</p>
   <p><b>Distribution:</b> <input name="name"
- value="&lt;%= param 'name' or 'Mojo' %&gt;" type="text" /></p>
+ value="<%= param 'name' or 'Mojo' %>" type="text" /></p>
   <p><b>Perl Version:</b>
   <select name="perl">
   <option value="5.5">Perl 5.5</option>
