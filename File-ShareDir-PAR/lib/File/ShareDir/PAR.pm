@@ -73,7 +73,6 @@ use base 'Exporter';
 use Carp             'croak';
 use File::ShareDir   ();
 use File::Spec       ();
-use Params::Util     '_CLASS';
 use Class::Inspector ();
 use Config           ();
 use File::Path       ();
