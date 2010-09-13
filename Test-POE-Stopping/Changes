@@ -1,5 +1,8 @@
 Changes for Perl extension Test-POE-Stopping
 
+1.07 Mon 13 Sep 2010
+	- I screwed up and mis-named the dependency
+
 1.06 Mon 13 Sep 2010
 	- Support ref-count changes in POE 1.291
 	- Temporarily remove the version lock on POE::API::Peek

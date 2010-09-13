@@ -55,7 +55,7 @@ use POE::API::Peek      ();
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
 	require Exporter;
-	$VERSION = '1.06';
+	$VERSION = '1.07';
 	@ISA     = 'Exporter';
 	@EXPORT  = 'poe_stopping';
 }
