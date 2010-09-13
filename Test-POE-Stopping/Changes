@@ -1,5 +1,9 @@
 Changes for Perl extension Test-POE-Stopping
 
+1.06 Mon 13 Sep 2010
+	- Support ref-count changes in POE 1.291
+	- Temporarily remove the version lock on POE::API::Peek
+
 1.05 Thu  8 Oct 2009
 	- Adding differentiated queue tracking (from vs to vs total)
 	- Adding a copy of the ref refcount to the diagnostics

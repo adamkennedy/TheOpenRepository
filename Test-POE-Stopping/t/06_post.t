@@ -22,6 +22,7 @@ my $session = POE::Session->create(
 	},
 )->ID;
 
+my $refs = ($POE::VERSION >= 1.291) ? 1 : 4;
 test_out("not ok 1 - POE appears to be stopping cleanly");
 test_fail(34);
 POE::Kernel->run;
@@ -36,7 +37,7 @@ test_err( '# queue:'        );
 test_err( '#   distinct: 2' );
 test_err( '#   from: 2'     );
 test_err( '#   to: 2'       );
-test_err( '# refs: 4'       );
+test_err( "# refs: $refs"   );
 test_err( '# signals: 0'    );
 test_test("Fails correctly for pending event");
 pass( 'POE Stopped' );
