@@ -1,12 +1,28 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:spry="http://ns.adobe.com/spry">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="keywords" content="Perl Programming, SuperCollider Programming" />
-<title>The CPAN Top 100</title>
-<link href="default.css" rel="stylesheet" type="text/css" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="keywords" content="Perl Programming" />
+  <title>The CPAN Top 100</title>
+  <link href="/default.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-  <img border="0" id="logo" src="logo.gif" />
+<img id="logo" src="logo.png" border="0" />
+<form action="/graph">
+  <p>Week 3 - Generating and downloading a file</p>
+  <p>This application will generate a CPAN dependency graph for a named
+distribution.</p>
+  <p><b>Distribution:</b> <input name="name" value="" type="text" /></p>
+  <p><b>Perl Version:</b>
+  <select name="perl">
+  <option value="5.5">Perl 5.5</option>
+  <option value="5.6">Perl 5.6</option>
+  <option value="5.8">Perl 5.8</option>
+  <option value="5.10">Perl 5.10</option>
+  <option value="5.12">Perl 5.12</option>
+  </select>
+  </p>
+  <input name="submit" value="Generate Graph" type="submit" />
+</form>
 </body>
 </html>
