@@ -8,21 +8,26 @@
 </head>
 <body>
 <img id="logo" src="logo.png" border="0" />
-<form action="/graph">
+<form name="graph" action="/graph" method="post">
   <p>Week 3 - Generating and downloading a file</p>
   <p>This application will generate a CPAN dependency graph for a named
 distribution.</p>
   <p><b>Distribution:</b> <input name="name" value="" type="text" /></p>
   <p><b>Perl Version:</b>
   <select name="perl">
-  <option value="5.5">Perl 5.5</option>
-  <option value="5.6">Perl 5.6</option>
-  <option value="5.8">Perl 5.8</option>
-  <option value="5.10">Perl 5.10</option>
-  <option value="5.12">Perl 5.12</option>
+  <option value="5.005003">Perl 5.5.3  (Ancient IRIX/Unix)</option>
+  <option value="5.006001">Perl 5.6.1  (Toolchain Compat)</option>
+  <option value="5.008003">Perl 5.8.3  (Oracle PL/Perl)</option>
+  <option value="5.008005">Perl 5.8.5  (Unicode Compat)</option>
+  <option value="5.008008" selected>Perl 5.8.8  (RedHat/CentOS)</option>
+  <option value="5.010001">Perl 5.10.1 (Debian/Ubuntu)</option>
+  <option value="5.012001">Perl 5.12.1 (Strawberry Perl)</option>
   </select>
   </p>
   <input name="submit" value="Generate Graph" type="submit" />
 </form>
+<script language="javascript">
+document.graph.name.focus();
+</script>
 </body>
 </html>

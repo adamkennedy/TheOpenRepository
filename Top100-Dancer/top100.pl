@@ -3,9 +3,9 @@
 use 5.008;
 use strict;
 use warnings;
-use Dancer;
-use Template;
-use CPANDB;
+use Dancer   1.1805;
+use Template 2.22;
+use CPANDB   0.14;
 
 
 
@@ -35,9 +35,10 @@ get '/' => sub {
 	template 'index';
 };
 
-get '/graph' => sub {
+post '/graph' => sub {
 	return render_graph(
-		name    => params->{name},
+		name    => params->{name} || 'Dancer',
+		perl    => params->{perl} || '5.006001',
 		rankdir => 1,
 	);
 };
@@ -53,8 +54,9 @@ dance;
 
 sub render_graph {
 	my %param = @_;
-	my $name  = delete $param{name};
-	my $dist  = CPANDB->distribution($name);
+	my $dist  = CPANDB->distribution($param{name});
+	my $name  = '"' . delete($param{name}) . '"';
+	my $svg   = $dist->dependency_graphviz( %param, name => $name )->as_svg;
 	content_type('image/svg+xml');
-	return $dist->dependency_graphviz(%param)->as_svg;
+	return $svg;
 }
