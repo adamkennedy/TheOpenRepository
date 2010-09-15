@@ -1,6 +1,8 @@
-use inc::Module::Install::DSL;
+use inc::Module::Install::DSL 1.00;
 
-all_from      lib/Top100/Mojo.pm
+name          Top100-Mojo
+version       0.01
+license       perl
 requires      GraphViz
 requires      CPANDB           0.14
 requires      Mojo             0.9003

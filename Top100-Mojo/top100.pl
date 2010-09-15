@@ -8,6 +8,13 @@ use CPANDB 0.13 {
 use GraphViz;
 use Mojolicious::Lite;
 
+
+
+
+
+######################################################################
+# Configuration Block
+
 app->types->type( svg => 'image/svg+xml' );
 
 
@@ -15,45 +22,45 @@ app->types->type( svg => 'image/svg+xml' );
 
 
 ######################################################################
-# Index and Form Handling
+# Route Handlers
 
 get '/' => sub {
 	my $self = shift;
 	$self->render('index');
 } => 'index';
 
+get '/graph/:name' => sub {
+	my $self = shift;
+	render_graph( $self,
+		name    => $self->param('name') || 'Mojolicious',
+		perl    => '5.006001',
+		rankdir => 1,
+	);
+};
+
+post '/graph' => sub {
+	my $self = shift;
+	render_graph( $self,
+		name    => $self->param('name') || 'Mojolicious',
+		perl    => $self->param('perl') || '5.006001',
+		rankdir => 1,
+	);
+} => 'graph';
+
+shagadelic;
+
 
 
 
 
 ######################################################################
-# Graph Renderer
-
-get '/graph' => sub {
-	my $self = shift;
-	render_graph( $self,
-		name    => $self->param('name'),
-		rankdir => 1,
-	);
-} => 'graph';
-
-get '/graph/:name' => sub {
-	my $self = shift;
-	render_graph( $self,
-		name    => $self->param('name'),
-		rankdir => 1,
-	);
-};
+# Support Functions
 
 sub render_graph {
 	my $self  = shift;
 	my %param = @_;
-	my $name  = delete $param{name};
-	my $dist  = CPANDB->distribution($name);
-	$self->render_data(
-		$dist->dependency_graphviz(%param)->as_svg,
-		format => 'svg',
-	);	
+	my $dist  = CPANDB->distribution($param{name});
+	my $title = '"' . delete($param{name}) . '"';
+	my $svg   = $dist->dependency_graphviz( %param, name => $title )->as_svg;
+	$self->render_data( $svg, format => 'svg' );
 }
-
-shagadelic;

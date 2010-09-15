@@ -1,6 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"
- xmlns:spry="http://ns.adobe.com/spry">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="keywords" content="Perl Programming" />
@@ -9,7 +8,7 @@
 </head>
 <body>
 <img id="logo" src="logo.png" border="0" />
-<form action="<%= url_for 'graph' %>">
+<form action="<%= url_for 'graph' %>" method="post">
   <p>Week 3 - Generating and downloading a file</p>
   <p>This application will generate a CPAN dependency graph for a named
 distribution.</p>
@@ -24,6 +23,7 @@ distribution.</p>
   <option value="5.12">Perl 5.12</option>
   </select>
   </p>
-  <input name="submit" value="Generate Graph" type="submit" /> </form>
+  <input name="submit" value="Generate Graph" type="submit" />
+</form>
 </body>
 </html>
