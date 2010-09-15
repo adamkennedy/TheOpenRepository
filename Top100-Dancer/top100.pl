@@ -29,7 +29,7 @@ set engines  => {
 
 
 ######################################################################
-# Route block
+# Route Handlers
 
 get '/' => sub {
 	template 'index';
@@ -55,8 +55,8 @@ dance;
 sub render_graph {
 	my %param = @_;
 	my $dist  = CPANDB->distribution($param{name});
-	my $name  = '"' . delete($param{name}) . '"';
-	my $svg   = $dist->dependency_graphviz( %param, name => $name )->as_svg;
+	my $title = '"' . delete($param{name}) . '"';
+	my $svg   = $dist->dependency_graphviz( %param, name => $title )->as_svg;
 	content_type('image/svg+xml');
 	return $svg;
 }
