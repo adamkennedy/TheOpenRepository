@@ -91,43 +91,81 @@ if their normal counterpart is overloaded.
 
 =over 2
 
-=item Addition: C<$x + $y> implemented by the C<$x-E<gt>add($y)> method.
+=item *
 
-=item Increment: C<$x++> implemented by the C<$x-E<gt>add(1)> method.
+Addition: C<$x + $y> implemented by the C<$x-E<gt>add($y)> method.
 
-=item Subtraction: C<$x - $y> implemented by the C<$x-E<gt>subtract($y)> method
+=item *
 
-=item Decrement: C<$x--> implemented by the C<$x-E<gt>subtract(1)> method.
+Increment: C<$x++> implemented by the C<$x-E<gt>add(1)> method.
 
-=item Multiplication: C<$x * $y> implemented by the C<$x-E<gt>multiply($y)> method.
+=item *
 
-=item Division: C<$x / $y> implemented by the C<$x-E<gt>divide($y)> method.
+Subtraction: C<$x - $y> implemented by the C<$x-E<gt>subtract($y)> method
 
-=item Exponentiation: C<$x ** $y> implemented by the C<$x-E<gt>exponentiate($y)> method.
+=item *
 
-=item Sine: C<sin($x)> implemented by the C<$x-E<gt>sin()> method.
+Decrement: C<$x--> implemented by the C<$x-E<gt>subtract(1)> method.
 
-=item Cosine: C<cos($x)> implemented by the C<$x-E<gt>cos()> method.
+=item *
 
-=item Stringification C<"$x"> is implemented by the C<$x-E<gt>round()> method.
+Multiplication: C<$x * $y> implemented by the C<$x-E<gt>multiply($y)> method.
 
-=item Cast to a number (i.e. numeric context) is implemented by the C<$x-E<gt>number()> method.
+=item *
 
-=item Boolean context is implemented by the C<$x-E<gt>number()> method.
+Division: C<$x / $y> implemented by the C<$x-E<gt>divide($y)> method.
 
-=item Unary minus C<-$x> is implemented by the C<$x-E<gt>multiply(-1)> method.
+=item *
 
-=item Logical not is implemented via a boolean context.
+Exponentiation: C<$x ** $y> implemented by the C<$x-E<gt>exponentiate($y)> method.
 
-=item Absolute value C<abs($x)> is implemented via C<$x-E<gt>abs()>.
+=item *
 
-=item Natural logarithm C<log($x)> is implemented via C<$x-E<gt>log()>.
+Sine: C<sin($x)> implemented by the C<$x-E<gt>sin()> method.
 
-=item Square Root C<sqrt($x)> is implemented via C<$x-E<gt>sqrt()>.
+=item *
 
-=item Numeric comparison operators C<$x == $y>, C<$x != $y>, etc. are implemented via C<$x-$<gt>numeric_cmp($y)>.
+Cosine: C<cos($x)> implemented by the C<$x-E<gt>cos()> method.
 
-=item String comparison operators C<$x eq $y>, C<$x ne $y>, etc. are implemented via C<$x-$<gt>full_cmp($y)>. They might not do what you expect. Please read the documentation.
+=item *
+
+Stringification C<"$x"> is implemented by the C<$x-E<gt>round()> method.
+
+=item *
+
+Cast to a number (i.e. numeric context) is implemented by the C<$x-E<gt>number()> method.
+
+=item *
+
+Boolean context is implemented by the C<$x-E<gt>number()> method.
+
+=item *
+
+Unary minus C<-$x> is implemented by the C<$x-E<gt>multiply(-1)> method.
+
+=item *
+
+Logical not is implemented via a boolean context.
+
+=item *
+
+Absolute value C<abs($x)> is implemented via C<$x-E<gt>abs()>.
+
+=item *
+
+Natural logarithm C<log($x)> is implemented via C<$x-E<gt>log()>.
+
+=item *
+
+Square Root C<sqrt($x)> is implemented via C<$x-E<gt>sqrt()>.
+
+=item *
+
+Numeric comparison operators C<$x == $y>, C<$x != $y>, etc. are implemented via C<$x-$<gt>numeric_cmp($y)>.
+
+=item *
+
+String comparison operators C<$x eq $y>, C<$x ne $y>, etc. are implemented via C<$x-$<gt>full_cmp($y)>. They might not do what you expect. Please read the documentation.
 
 =back
 
@@ -1538,7 +1576,7 @@ C<3000> is probably a good idea, but takes a long time to test.
 
 =head1 AUTHOR
 
-Steffen Mueller E<lt>modules at steffen-mueller dot netE<gt>, L<http://steffen-mueller.net/>
+Steffen Mueller E<lt>smueller@cpan.orgE<gt>, L<http://steffen-mueller.net/>
 
 =head1 COPYRIGHT
 
