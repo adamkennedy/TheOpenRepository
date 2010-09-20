@@ -1,5 +1,10 @@
 Revision history for Perl extension Number::WithError.
 
+1.00  Mon Sep 20 2010
+  - Add public utility function round_a_number.
+  - Minor POD fixes
+  - Module::Install 1.00
+
 0.08  Mon Dec 18 2006
   - Fixing bug related to Math::BigFloat overloading in stringification
     context. This was reported by Jerrad Pierce: RT #23972
