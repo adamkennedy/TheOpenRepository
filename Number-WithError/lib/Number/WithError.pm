@@ -210,7 +210,7 @@ sub new {
 		}
 		return bless {num => $num, errors => $err} => $class;
 	}
-	
+
 	return undef if not @_;
 
 	my $num = shift;
@@ -219,15 +219,15 @@ sub new {
 	if (not @_) {
 		return _parse_string($num, $class);
 	}
-	
+
 	my $errors = [];
 	my $self = {
 		num => $num,
 		errors => $errors,
 	};
 	bless $self => $class;
-	
-	
+
+
 	while (@_) {
 		my $err = shift;
 		if (_ARRAY($err)) {
@@ -242,7 +242,7 @@ sub new {
 			push @$errors, CORE::abs($err || 0);
 		}
 	}
-	
+
 	return $self;
 }
 
@@ -251,7 +251,7 @@ sub new {
 sub _parse_string {
 	my $str = shift;
 	my $class = shift;
-		
+
 	return undef unless $str =~ /\G\s*($CFloat)/cgo;
 	my $num = $1;
 	my $err = [];
@@ -353,7 +353,7 @@ sub _apply {
 		my $obj = $self->new(@_);
 	}
 	return undef if not defined $obj;
-	
+
 	return $sub->($self, $obj, 0);
 }
 
@@ -394,21 +394,21 @@ sub _addition {
 	my $o2 = shift;
 	my $switch = shift;
 	$o2 = $o1->new($o2) if not _INSTANCE($o2, 'Number::WithError');
-	
+
 	my $e1 = $o1->{errors};
 	my $e2 = $o2->{errors};
 	my $n1 = $o1->{num};
 	my $n2 = $o2->{num};
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	$res->{num} = $n1 + $n2;
 
 	my $l1 = $#$e1;
 	my $l2 = $#$e2;
 	my $len = $l1 > $l2 ? $l1 : $l2;
-	
+
 	foreach (0..$len) {
 		my $le1 = $e1->[$_] || 0;
 		my $le2 = $e2->[$_] || 0;
@@ -433,7 +433,7 @@ sub _addition {
 			push @$errs, [ CORE::sqrt($le1**2 + $le2->[0]**2), CORE::sqrt($le1**2 + $le2->[1]**2) ];
 		}
 	}
-	
+
 	if (not defined $switch) {
 		$o1->{errors} = $errs;
 		$o1->{num} = $res->{num};
@@ -465,15 +465,15 @@ sub _subtraction {
 	$o2 = $o1->new($o2) if not _INSTANCE($o2, 'Number::WithError');
 
 	my $switch = shift;
-	
+
 	my $e1 = $o1->{errors};
 	my $e2 = $o2->{errors};
 	my $n1 = $o1->{num};
 	my $n2 = $o2->{num};
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	if ($switch) {
 		($n1, $n2) = ($n2, $n1);
 		($e1, $e2) = ($e2, $e1);
@@ -483,7 +483,7 @@ sub _subtraction {
 	my $l1 = $#$e1;
 	my $l2 = $#$e2;
 	my $len = $l1 > $l2 ? $l1 : $l2;
-	
+
 	foreach (0..$len) {
 		my $le1 = $e1->[$_] || 0;
 		my $le2 = $e2->[$_] || 0;
@@ -508,7 +508,7 @@ sub _subtraction {
 			push @$errs, [ CORE::sqrt($le1**2 + $le2->[0]**2), CORE::sqrt($le1**2 + $le2->[1]**2) ];
 		}
 	}
-	
+
 	if (not defined $switch) {
 		$o1->{errors} = $errs;
 		$o1->{num} = $res->{num};
@@ -539,21 +539,21 @@ sub _multiplication {
 	my $o2 = shift;
 	my $switch = shift;
 	$o2 = $o1->new($o2) if not _INSTANCE($o2, 'Number::WithError');
-	
+
 	my $e1 = $o1->{errors};
 	my $e2 = $o2->{errors};
 	my $n1 = $o1->{num};
 	my $n2 = $o2->{num};
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	$res->{num} = $n1 * $n2;
 
 	my $l1 = $#$e1;
 	my $l2 = $#$e2;
 	my $len = $l1 > $l2 ? $l1 : $l2;
-	
+
 	foreach (0..$len) {
 		my $le1 = $e1->[$_] || 0;
 		my $le2 = $e2->[$_] || 0;
@@ -578,7 +578,7 @@ sub _multiplication {
 			push @$errs, [ CORE::sqrt( ($n2*$le1)**2 + ($n1*$le2->[0])**2), CORE::sqrt( ($n2*$le1)**2 + ($n1*$le2->[1])**2) ];
 		}
 	}
-	
+
 	if (not defined $switch) {
 		$o1->{errors} = $errs;
 		$o1->{num} = $res->{num};
@@ -609,15 +609,15 @@ sub _division {
 	my $o2 = shift;
 	my $switch = shift;
 	$o2 = $o1->new($o2) if not _INSTANCE($o2, 'Number::WithError');
-	
+
 	my $e1 = $o1->{errors};
 	my $e2 = $o2->{errors};
 	my $n1 = $o1->{num};
 	my $n2 = $o2->{num};
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	if ($switch) {
 		($n1, $n2) = ($n2, $n1);
 		($e1, $e2) = ($e2, $e1);
@@ -628,7 +628,7 @@ sub _division {
 	my $l1 = $#$e1;
 	my $l2 = $#$e2;
 	my $len = $l1 > $l2 ? $l1 : $l2;
-	
+
 	foreach (0..$len) {
 		my $le1 = $e1->[$_] || 0;
 		my $le2 = $e2->[$_] || 0;
@@ -653,7 +653,7 @@ sub _division {
 			push @$errs, [ CORE::sqrt( ($le1/$n2)**2 + ($le2->[0]*$n1/$n2**2)**2), CORE::sqrt( ($le1/$n2)**2 + ($le2->[1]*$n1/$n2**2)**2) ];
 		}
 	}
-	
+
 	if (not defined $switch) {
 		$o1->{errors} = $errs;
 		$o1->{num} = $res->{num};
@@ -689,15 +689,15 @@ sub _exponentiation {
 	my $o2 = shift;
 	my $switch = shift;
 	$o2 = $o1->new($o2) if not _INSTANCE($o2, 'Number::WithError');
-	
+
 	my $e1 = $o1->{errors};
 	my $e2 = $o2->{errors};
 	my $n1 = $o1->{num};
 	my $n2 = $o2->{num};
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	if ($switch) {
 		($n1, $n2) = ($n2, $n1);
 		($e1, $e2) = ($e2, $e1);
@@ -713,7 +713,7 @@ sub _exponentiation {
 
 	my $sh1 = $n2*$n1**($n2-1);
 	my $sh2 = CORE::log($n1)*$n1**$n2;
-	
+
 	foreach (0..$len) {
 		my $le1 = $e1->[$_] || 0;
 		my $le2 = $e2->[$_] || 0;
@@ -738,7 +738,7 @@ sub _exponentiation {
 			push @$errs, [ CORE::sqrt( ($sh1*$le1)**2 + ($sh2*$le2->[0])**2), CORE::sqrt( ($sh1*$le1)**2 + ($sh2*$le2->[1])**2) ];
 		}
 	}
-	
+
 	if (not defined $switch) {
 		$o1->{errors} = $errs;
 		$o1->{num} = $res->{num};
@@ -748,7 +748,7 @@ sub _exponentiation {
 		bless $res => ref($o1);
 		return $res;
 	}
-	
+
 }
 
 ###################################
@@ -771,15 +771,15 @@ Error Propagation: C<err-c = sqrt( err-a^2 / (2*sqrt(a))^2 ) = abs( err-a / (2*s
 
 sub sqrt {
 	my $o1 = shift;
-	
+
 	my $e1 = $o1->{errors};
 	my $n1 = $o1->{num};
 
 	return undef if $n1 < 0;
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	$res->{num} = CORE::sqrt($n1);
 
 	my $l1 = $#$e1;
@@ -798,7 +798,7 @@ sub sqrt {
 			push @$errs, [ CORE::abs($le1->[0] / $sh1), CORE::abs($le1->[1] / $sh1) ];
 		}
 	}
-	
+
 	bless $res => ref($o1);
 	return $res;
 }
@@ -818,20 +818,20 @@ Error Propagation: C<err-c = sqrt( err-a^2 / a^2 ) = abs( err-a / a )>
 
 sub log {
 	my $o1 = shift;
-	
+
 	my $e1 = $o1->{errors};
 	my $n1 = $o1->{num};
 	return undef if $n1 < 0;
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	$res->{num} = CORE::log($n1);
 
 	my $l1 = $#$e1;
 
 	my $len = $#$e1;
-	
+
 	foreach (0..$len) {
 		my $le1 = $e1->[$_] || 0;
 		my $ary1 = _ARRAY0 $le1;
@@ -843,7 +843,7 @@ sub log {
 			push @$errs, [ CORE::abs($le1->[0] / $n1), CORE::abs($le1->[1] / $n1) ];
 		}
 	}
-	
+
 	bless $res => ref($o1);
 	return $res;
 }
@@ -862,20 +862,20 @@ Error Propagation: C<err-c = sqrt( cos(a)^2 * err-a^2 ) = abs( cos(a) * err-a )>
 
 sub sin {
 	my $o1 = shift;
-	
+
 	my $e1 = $o1->{errors};
 	my $n1 = $o1->{num};
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	$res->{num} = CORE::sin($n1);
 
 	my $l1 = $#$e1;
 
 	my $sh1 = CORE::cos($n1);
 	my $len = $#$e1;
-	
+
 	foreach (0..$len) {
 		my $le1 = $e1->[$_] || 0;
 		my $ary1 = _ARRAY0 $le1;
@@ -887,7 +887,7 @@ sub sin {
 			push @$errs, [ CORE::abs($sh1 * $le1->[0]), CORE::abs($sh1 * $le1->[1]) ];
 		}
 	}
-	
+
 	bless $res => ref($o1);
 	return $res;
 }
@@ -906,20 +906,20 @@ Error Propagation: C<err-c = sqrt( sin(a)^2 * err-a^2 ) = abs( sin(a) * err-a )>
 
 sub cos {
 	my $o1 = shift;
-	
+
 	my $e1 = $o1->{errors};
 	my $n1 = $o1->{num};
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	$res->{num} = CORE::cos($n1);
 
 	my $l1 = $#$e1;
 
 	my $sh1 = CORE::sin($n1);
 	my $len = $#$e1;
-	
+
 	foreach (0..$len) {
 		my $le1 = $e1->[$_] || 0;
 		my $ary1 = _ARRAY0 $le1;
@@ -931,7 +931,7 @@ sub cos {
 			push @$errs, [ CORE::abs($sh1 * $le1->[0]), CORE::abs($sh1 * $le1->[1]) ];
 		}
 	}
-	
+
 	bless $res => ref($o1);
 	return $res;
 }
@@ -953,20 +953,20 @@ the overloaded interface.
 
 sub tan {
 	my $o1 = shift;
-	
+
 	my $e1 = $o1->{errors};
 	my $n1 = $o1->{num};
-	
+
 	my $errs = [];
 	my $res = {errors => $errs};
-	
+
 	$res->{num} = _my_tan($n1);
 
 	my $l1 = $#$e1;
 
 	my $sh1 = 1 / CORE::cos($n1)**2;
 	my $len = $#$e1;
-	
+
 	foreach (0..$len) {
 		my $le1 = $e1->[$_] || 0;
 		my $ary1 = _ARRAY0 $le1;
@@ -978,7 +978,7 @@ sub tan {
 			push @$errs, [ CORE::abs($le1->[0] * $sh1), CORE::abs($le1->[1] * $sh1) ];
 		}
 	}
-	
+
 	bless $res => ref($o1);
 	return $res;
 }
@@ -996,7 +996,7 @@ Error Propagation: C<err-c = err-a>
 
 sub abs {
 	my $self = shift;
-	
+
 	my $new = $self->new();
 	$new->{num} = CORE::abs($new->{num});
 	return $new;
@@ -1045,21 +1045,21 @@ sub number {
 sub _round {
 	my $number = shift;
 	my $digit = shift;
-	
-	my $num = ref($number) ? $number->copy() : $number;
-	
-	return "$num" if not defined $digit;
-    return "$num" if $num =~ /^nan$/i;
 
-#	if (ref($num)) {	
+	my $num = ref($number) ? $number->copy() : $number;
+
+	return "$num" if not defined $digit;
+	return "$num" if $num =~ /^nan$/i;
+
+#	if (ref($num)) {
 #		my $rounded = $num->ffround($digit, 'odd')->bsstr();
 #		return $rounded;
 #	}
 #	else {
 		my $tmp = sprintf('%e', $num);
 		$tmp =~ /[eE]([+-]?\d+)$/
-          or die "Error rounding number '$num'. Result '$tmp' was expected to match /[eE][+-]?·\\d+/!";
-        
+		  or die "Error rounding number '$num'. Result '$tmp' was expected to match /[eE][+-]?·\\d+/!";
+
 		my $exp = $1 - $digit;
 
 		my ($bef, $aft);
@@ -1087,7 +1087,7 @@ sub _round {
 			}
 			$aft = $digit;
 		}
-		
+
 		return "${bef}e$aft";
 #	}
 }
@@ -1126,9 +1126,9 @@ Returns the previously described string.
 sub round {
 	my $self = shift;
 	my $sig = $self->significant_digit();
-	
+
 	my $str = _round($self->{num}, $sig);
-	
+
 	foreach my $err (@{$self->{errors}}) {
 		if (ref($err) eq 'ARRAY' and @$err == 2) {
 			$str .= ' + ' . _round($err->[0], $sig) . ' - ' . _round($err->[1], $sig);
@@ -1140,7 +1140,7 @@ sub round {
 			$str .= ' +/- ' . _round($err, $sig);
 		}
 	}
-	return $str;	
+	return $str;
 }
 
 
@@ -1187,7 +1187,7 @@ is a 1.
 # Implementation for significant digit = first non-zero unless first non-zero==1
 #sub significant_digit {
 #	my $self = shift;
-#	
+#
 #	my $significant;
 #	foreach my $err (map {ref($_) eq 'ARRAY' ? @$_ : $_} @{$self->{errors}}) {
 #		my $sci = sprintf('%e', $err);
@@ -1209,7 +1209,7 @@ is a 1.
 
 sub significant_digit {
 	my $self = shift;
-	
+
 	my $significant;
 	foreach my $err (map {ref($_) eq 'ARRAY' ? @$_ : $_} @{$self->{errors}}) {
 		my $sci = sprintf('%e', $err);
@@ -1240,8 +1240,8 @@ determined by C<significant_digit()>.
 sub error{
 	my $self = shift;
 	my $sig = $self->significant_digit();
-	
-	my $errors = [];	
+
+	my $errors = [];
 	foreach my $err (@{$self->{errors}}) {
 		if (ref($err) eq 'ARRAY' and @$err == 2) {
 			push @$errors, [ _round($err->[0], $sig), _round($err->[1], $sig) ];
@@ -1254,7 +1254,7 @@ sub error{
 		}
 	}
 
-	return $errors;	
+	return $errors;
 }
 
 
@@ -1341,11 +1341,11 @@ operations.
 sub numeric_cmp {
 	my $self = shift;
 	my $arg = shift;
-	
+
 	$arg = Number::WithError->new($arg) if not _INSTANCE($arg, 'Number::WithError');
-	
+
 	return undef if not defined $arg;
-	
+
 	my $n1 = $self->number();
 	my $n2 = $arg->number();
 
@@ -1390,7 +1390,7 @@ sub full_cmp {
 
 	my $sig1 = $self->significant_digit();
 	my $sig2 = $arg->significant_digit();
-	
+
 	my $max = $#{$self->{errors}} > $#{$arg->{errors}} ? $#{$self->{errors}} : $#{$arg->{errors}};
 	foreach my $no (0..$max) {
 		my $e1 = $self->{errors}[$no];
@@ -1404,7 +1404,7 @@ sub full_cmp {
 			return 1;
 		}
 		# else
-		
+
 		if (ref($e1) eq 'ARRAY') {
 			if (not ref($e2) eq 'ARRAY') {
 				my $res = _full_cmp_err($e1->[0], $sig1, $e2, $sig2);
@@ -1430,7 +1430,7 @@ sub full_cmp {
 			next;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -1439,7 +1439,7 @@ sub _full_cmp_err {
 	my $sig1 = shift;
 	my $e2 = shift;
 	my $sig2 = shift;
-	
+
 	my $r1 = _round($e1, $sig1);
 	my $r2 = _round($e2, $sig2);
 
