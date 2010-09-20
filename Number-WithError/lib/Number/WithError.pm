@@ -1037,60 +1037,9 @@ point and any number of digits is an exponent in C<eXXX> notation.
 sub number {
   my $self = shift;
   my $sig = $self->significant_digit();
-  return _round($self->{num}, $sig);
+  return round_a_number($self->{num}, $sig);
 }
 
-
-# Helper that rounds a number:
-sub _round {
-  my $number = shift;
-  my $digit = shift;
-
-  my $num = ref($number) ? $number->copy() : $number;
-
-  return "$num" if not defined $digit;
-  return "$num" if $num =~ /^nan$/i;
-
-#  if (ref($num)) {
-#    my $rounded = $num->ffround($digit, 'odd')->bsstr();
-#    return $rounded;
-#  }
-#  else {
-    my $tmp = sprintf('%e', $num);
-    $tmp =~ /[eE]([+-]?\d+)$/
-      or die "Error rounding number '$num'. Result '$tmp' was expected to match /[eE][+-]?·\\d+/!";
-
-    my $exp = $1 - $digit;
-
-    my ($bef, $aft);
-    if ($exp >= 0) {
-      my $res = sprintf('%.'.$exp.'e', $num);
-      $res =~ /^([+-]?\d+|[+-]?\d*\.\d+)[eE]([+-]?\d+)$/ or die $res;
-      $bef = $1;
-      $aft = $2;
-    }
-    elsif ($exp <= -2) {
-      $bef = 0;
-      $aft = $digit;
-    }
-    else {
-      # $exp == -1
-      $num =~ /([1-9])/;
-      if (not defined $1) {
-        $bef = 0;
-      }
-      elsif ($1 >= 5) {
-        $bef = $num < 0 ? -1 : 1;
-      }
-      else {
-        $bef = 0;
-      }
-      $aft = $digit;
-    }
-
-    return "${bef}e$aft";
-#  }
-}
 
 =head2 raw_number
 
@@ -1127,17 +1076,17 @@ sub round {
   my $self = shift;
   my $sig = $self->significant_digit();
 
-  my $str = _round($self->{num}, $sig);
+  my $str = round_a_number($self->{num}, $sig);
 
   foreach my $err (@{$self->{errors}}) {
     if (ref($err) eq 'ARRAY' and @$err == 2) {
-      $str .= ' + ' . _round($err->[0], $sig) . ' - ' . _round($err->[1], $sig);
+      $str .= ' + ' . round_a_number($err->[0], $sig) . ' - ' . round_a_number($err->[1], $sig);
     }
     elsif (ref($err) eq 'ARRAY') {
-      $str .= ' +/- ' . _round($err->[0], $sig);
+      $str .= ' +/- ' . round_a_number($err->[0], $sig);
     }
     else {
-      $str .= ' +/- ' . _round($err, $sig);
+      $str .= ' +/- ' . round_a_number($err, $sig);
     }
   }
   return $str;
@@ -1244,13 +1193,13 @@ sub error{
   my $errors = [];
   foreach my $err (@{$self->{errors}}) {
     if (ref($err) eq 'ARRAY' and @$err == 2) {
-      push @$errors, [ _round($err->[0], $sig), _round($err->[1], $sig) ];
+      push @$errors, [ round_a_number($err->[0], $sig), round_a_number($err->[1], $sig) ];
     }
     elsif (ref($err) eq 'ARRAY') {
-      push @$errors, _round($err->[0], $sig);
+      push @$errors, round_a_number($err->[0], $sig);
     }
     else {
-      push @$errors, _round($err, $sig);
+      push @$errors, round_a_number($err, $sig);
     }
   }
 
@@ -1304,6 +1253,69 @@ sub as_array {
   my $copy = $self->new;
   return( $copy->{num}, @{$copy->{errors}} );
 }
+
+
+=head2 round_a_number
+
+This is a helper B<function> which can round a number
+to the specified significant digit (defined as
+the return value of the C<significant_digit> method):
+
+  my $rounded = round_a_number(12.01234567, -3);
+  # $rounded is now 1.2012e01
+
+=cut
+
+sub round_a_number {
+  my $number = shift;
+  my $digit = shift;
+
+  my $num = ref($number) ? $number->copy() : $number;
+
+  return "$num" if not defined $digit;
+  return "$num" if $num =~ /^nan$/i;
+
+#  if (ref($num)) {
+#    my $rounded = $num->ffround($digit, 'odd')->bsstr();
+#    return $rounded;
+#  }
+#  else {
+    my $tmp = sprintf('%e', $num);
+    $tmp =~ /[eE]([+-]?\d+)$/
+      or die "Error rounding number '$num'. Result '$tmp' was expected to match /[eE][+-]?·\\d+/!";
+
+    my $exp = $1 - $digit;
+
+    my ($bef, $aft);
+    if ($exp >= 0) {
+      my $res = sprintf('%.'.$exp.'e', $num);
+      $res =~ /^([+-]?\d+|[+-]?\d*\.\d+)[eE]([+-]?\d+)$/ or die $res;
+      $bef = $1;
+      $aft = $2;
+    }
+    elsif ($exp <= -2) {
+      $bef = 0;
+      $aft = $digit;
+    }
+    else {
+      # $exp == -1
+      $num =~ /([1-9])/;
+      if (not defined $1) {
+        $bef = 0;
+      }
+      elsif ($1 >= 5) {
+        $bef = $num < 0 ? -1 : 1;
+      }
+      else {
+        $bef = 0;
+      }
+      $aft = $digit;
+    }
+
+    return "${bef}e$aft";
+#  }
+}
+
 
 
 ############################################
@@ -1440,8 +1452,8 @@ sub _full_cmp_err {
   my $e2 = shift;
   my $sig2 = shift;
 
-  my $r1 = _round($e1, $sig1);
-  my $r2 = _round($e2, $sig2);
+  my $r1 = round_a_number($e1, $sig1);
+  my $r2 = round_a_number($e2, $sig2);
 
   return $r1 <=> $r2;
 }
