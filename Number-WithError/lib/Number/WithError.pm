@@ -6,7 +6,7 @@ use warnings;
 use Params::Util qw/_ARRAY _INSTANCE _ARRAY0/;
 use prefork 'Math::BigFloat';
 
-our $VERSION = '0.08';
+our $VERSION = '1.00';
 
 use base 'Exporter';
 our @EXPORT_OK = qw(
