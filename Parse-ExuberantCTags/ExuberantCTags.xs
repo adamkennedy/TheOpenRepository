@@ -28,7 +28,7 @@ myTagFile*
 new(CLASS, path)
     char* CLASS
     char* path
-  INIT:
+  PREINIT:
     tagFile* theFile;
     tagFileInfo* theInfo;
   CODE:
@@ -76,9 +76,8 @@ void
 DESTROY(self)
     myTagFile* self
   CODE:
-    if (self->file != NULL) {
+    if (self->file != NULL)
       tagsClose(self->file);
-    }
     safefree(self->fileInfo);
     safefree(self->entryBuffer);
     safefree(self);
@@ -87,7 +86,7 @@ DESTROY(self)
 SV*
 firstTag(self)
     myTagFile* self
-  INIT:
+  PREINIT:
     HV* result;
   CODE:
     if (self->file == NULL)
@@ -103,7 +102,7 @@ firstTag(self)
 SV*
 nextTag(self)
     myTagFile* self
-  INIT:
+  PREINIT:
     HV* result;
   CODE:
     if (self->file == NULL)
@@ -120,7 +119,7 @@ SV*
 findTag(self, name, ...)
     myTagFile* self
     char* name
-  INIT:
+  PREINIT:
     int options = TAG_FULLMATCH | TAG_OBSERVECASE;
     unsigned int i;
     SV* sv;
@@ -155,7 +154,7 @@ findTag(self, name, ...)
 SV*
 findNextTag(self)
     myTagFile* self
-  INIT:
+  PREINIT:
     HV* result;
   CODE:
     if (self->file == NULL)
