@@ -4,7 +4,7 @@ use 5.006001;
 use strict;
 use warnings;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 require XSLoader;
 XSLoader::load('Parse::ExuberantCTags', $VERSION);
@@ -155,7 +155,7 @@ copyright/license information from the code is:
 
 The XS wrapper and this document are:
 
-Copyright (C) 2009 by Steffen Mueller
+Copyright (C) 2009-2010 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6 or,
