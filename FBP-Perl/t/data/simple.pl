@@ -4,6 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Wx ':everything';
+use t::lib::MyClass ();
 
 our $VERSION = '0.01';
 our @ISA     = 'Wx::Dialog';
@@ -21,7 +22,7 @@ sub new {
 		Wx::wxDEFAULT_DIALOG_STYLE | Wx::wxRESIZE_BORDER,
 	);
 
-	$self->{m_staticText1} = Wx::StaticText->new(
+	$self->{m_staticText1} = t::lib::MyClass->new(
 		$self,
 		-1,
 		Wx::gettext("Michael \"Killer\" O'Reilly <michael\@localhost>"),

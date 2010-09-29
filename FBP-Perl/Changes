@@ -1,5 +1,8 @@
 Changes for Perl extension FBP-Perl
 
+0.14 Wed 29 Sep 2010
+	- Add support for custom Wx subclasses for Wx::Window widgets
+
 0.13 Sun  1 Aug 2010
 	- Add $sizer->SetSizeHints($self) when wxRESIZE_BORDER is enabled.
 	- Add support for growable rows and columns to Wx::FlexGridSizer.

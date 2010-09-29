@@ -22,10 +22,10 @@ use 5.008005;
 use strict;
 use warnings;
 use Mouse         0.61;
-use FBP           0.14 ();
+use FBP           0.15 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 has project => (
 	is       => 'ro',
@@ -71,6 +71,7 @@ sub dialog_class {
 	my $package = $dialog->name;
 	my $pragma  = $self->use_pragma($dialog);
 	my $wx      = $self->use_wx($dialog);
+	my $more    = $self->use_more($dialog);
 	my $isa     = $self->dialog_isa($dialog);
 	my $new     = $self->dialog_new($dialog);
 	my $methods = $self->dialog_methods($dialog);
@@ -80,6 +81,7 @@ sub dialog_class {
 		"",
 		@$pragma,
 		@$wx,
+		@$more,
 		"",
 		"our \$VERSION = '0.01';",
 		@$isa,
@@ -218,17 +220,18 @@ sub window_create {
 sub button_create {
 	my $self     = shift;
 	my $control  = shift;
-	my $lexical  = $self->object_lexical($control) ? 'my ' : '';
-	my $variable = $self->object_variable($control);
 	my $id       = $self->wx( $control->id );
 	my $label    = $self->object_label($control);
-	my @lines    = (
-		"$lexical$variable = Wx::Button->new(",
+	my $variable = $self->object_variable($control);
+
+	my @lines = (
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$label,",
 		");",
 	);
+
 	if ( $control->default ) {
 		push @lines, "$variable->SetDefault;";
 	}
@@ -242,8 +245,6 @@ sub button_create {
 sub checkbox_create {
 	my $self     = shift;
 	my $control  = shift;
-	my $lexical  = $self->object_lexical($control) ? 'my ' : '';
-	my $variable = $self->object_variable($control);
 	my $id       = $self->wx( $control->id );
 	my $label    = $self->object_label($control);
 	my $position = $self->object_position($control);
@@ -251,7 +252,7 @@ sub checkbox_create {
 	my $style    = $self->wx( $control->styles );
 
 	return [
-		"$lexical$variable = Wx::CheckBox->new(",
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$label,",
@@ -265,14 +266,12 @@ sub checkbox_create {
 sub choice_create {
 	my $self     = shift;
 	my $control  = shift;
-	my $lexical  = $self->object_lexical($control) ? 'my ' : '';
-	my $variable = $self->object_variable($control);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
 
 	return [
-		"$lexical$variable = Wx::Choice->new(",
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$position,",
@@ -285,8 +284,6 @@ sub choice_create {
 sub combobox_create {
 	my $self     = shift;
 	my $control  = shift;
-	my $lexical  = $self->object_lexical($control) ? 'my ' : '';
-	my $variable = $self->object_variable($control);
 	my $id       = $self->wx( $control->id );
 	my $value    = $self->quote( $control->value );
 	my $position = $self->object_position($control);
@@ -294,7 +291,7 @@ sub combobox_create {
 	my $style    = $self->wx( $control->styles );
 
 	return [
-		"$lexical$variable = Wx::ComboBox->new(",
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$value,",
@@ -309,15 +306,13 @@ sub combobox_create {
 sub htmlwindow_create {
 	my $self     = shift;
 	my $control  = shift;
-	my $lexical  = $self->object_lexical($control) ? 'my ' : '';
-	my $variable = $self->object_variable($control);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
 	my $style    = $self->wx( $control->styles );
 
 	return [
-		"$lexical$variable = Wx::HtmlWindow->new(",
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$position,",
@@ -330,15 +325,13 @@ sub htmlwindow_create {
 sub listbox_create {
 	my $self     = shift;
 	my $control  = shift;
-	my $lexical  = $self->object_lexical($control) ? 'my ' : '';
-	my $variable = $self->object_variable($control);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
 	my $style    = $self->wx( $control->styles );
 	
 	return [
-		"$lexical$variable = Wx::ListBox->new(",
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$position,",
@@ -352,15 +345,13 @@ sub listbox_create {
 sub listctrl_create {
 	my $self     = shift;
 	my $control  = shift;
-	my $lexical  = $self->object_lexical($control) ? 'my ' : '';
-	my $variable = $self->object_variable($control);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
 	my $style    = $self->wx( $control->styles );	
 
 	return [
-		"$lexical$variable = Wx::ListCtrl->new(",
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$position,",
@@ -371,15 +362,13 @@ sub listctrl_create {
 }
 
 sub statictext_create {
-	my $self     = shift;
-	my $control  = shift;
-	my $lexical  = $self->object_lexical($control) ? 'my ' : '';
-	my $variable = $self->object_variable($control);
-	my $id       = $self->wx( $control->id );
-	my $label    = $self->object_label($control);
+	my $self    = shift;
+	my $control = shift;
+	my $id      = $self->wx( $control->id );
+	my $label   = $self->object_label($control);
 
 	return [
-		"$lexical$variable = Wx::StaticText->new(",
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$label,",
@@ -390,15 +379,13 @@ sub statictext_create {
 sub staticline_create {
 	my $self     = shift;
 	my $control  = shift;
-	my $lexical  = $self->object_lexical($control) ? 'my ' : '';
-	my $variable = $self->object_variable($control);
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
 	my $style    = $self->wx( $control->styles );
 
 	return [
-		"$lexical$variable = Wx::StaticLine->new(",
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$position,",
@@ -411,17 +398,16 @@ sub staticline_create {
 sub textctrl_create {
 	my $self      = shift;
 	my $control   = shift;
-	my $lexical   = $self->object_lexical($control) ? 'my ' : '';
-	my $variable  = $self->object_variable($control);
 	my $id        = $self->wx( $control->id );
 	my $value     = $self->quote( $control->value );
 	my $position  = $self->object_position($control);
 	my $size      = $self->object_size($control);
 	my $style     = $self->wx( $control->styles );
+	my $variable  = $self->object_variable($control);
 	my $maxlength = $control->maxlength;
 
 	return [
-		"$lexical$variable = Wx::TextCtrl->new(",
+		$self->window_new($control),
 		"\t\$self,",
 		"\t$id,",
 		"\t$value,",
@@ -905,6 +891,15 @@ sub object_size {
 	return "[ $size ]";
 }
 
+sub window_new {
+	my $self     = shift;
+	my $window   = shift;
+	my $lexical  = $self->object_lexical($window) ? 'my ' : '';
+	my $variable = $self->object_variable($window);
+	my $wxclass  = $window->wxclass;
+	return "$lexical$variable = $wxclass->new(";
+}
+
 
 
 
@@ -927,6 +922,25 @@ sub use_wx {
 	my $object = shift;
 	return [
 		"use Wx ':everything';",
+	];
+}
+
+sub use_more {
+	my $self   = shift;
+	my $object = shift;
+
+	# Search for all the custom classes and load them
+	my %seen = ();
+	return [
+		map {
+			"use $_ ();"
+		} sort grep {
+			not $seen{$_}
+		} map {
+			$_->wxclass
+		} grep {
+			$_->subclass =~ /^[^;]/
+		} $object->find( isa => 'FBP::Window' )
 	];
 }
 
