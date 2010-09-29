@@ -33,7 +33,7 @@
             <property name="name">MyDialog1</property>
             <property name="pos"></property>
             <property name="size"></property>
-            <property name="style">wxDEFAULT_DIALOG_STYLE</property>
+            <property name="style">wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</property>
             <property name="subclass"></property>
             <property name="title">Dialog Title</property>
             <property name="tooltip"></property>
@@ -104,7 +104,7 @@
                                 <property name="pos"></property>
                                 <property name="size"></property>
                                 <property name="style"></property>
-                                <property name="subclass"></property>
+                                <property name="subclass">My::Class; </property>
                                 <property name="tooltip"></property>
                                 <property name="window_extra_style"></property>
                                 <property name="window_name"></property>

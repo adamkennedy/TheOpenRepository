@@ -9,14 +9,22 @@ FBP::Window - Base class for all graphical wxWindow objects
 =cut
 
 use Mouse;
+use Scalar::Util ();
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 extends 'FBP::Object';
 with    'FBP::Children';
 with    'FBP::KeyEvent';
 with    'FBP::MouseEvent';
 with    'FBP::FocusEvent';
+
+
+
+
+
+######################################################################
+# Direct Properties
 
 =pod
 
@@ -55,6 +63,24 @@ The C<enabled> method indicates if the object is enabled or not.
 has enabled => (
 	is  => 'ro',
 	isa => 'Bool',
+);
+
+=pod
+
+=head2 subclass
+
+The C<subclass> method returns the literal C-style 'subclass' property
+produced by wxFormBuilder.
+
+The format of this raw version is 'ClassName;headerfile.h'.
+
+=cut
+
+has subclass => (
+	is       => 'ro',
+	isa      => 'Str',
+	required => 1,
+	default  => '',
 );
 
 =pod
@@ -98,6 +124,13 @@ has window_style => (
 	isa => 'Str',
 );
 
+
+
+
+
+######################################################################
+# Derived Values
+
 =pod
 
 =head2 styles
@@ -117,6 +150,39 @@ sub styles {
 		$self->window_style,
 	) or return '';
 	return join '|', @styles;
+}
+
+=pod
+
+=head2 wxclass
+
+The C<wxclass> method determines the Perl class that should be used to
+instantiate this window. Most of the time this will be a standard class,
+but it may be different if a custom C<subclass> property has been set.
+
+=cut
+
+sub wxclass {
+	my $self = shift;
+
+	# If a custom class is defined, use it literally
+	my $subclass = $self->subclass;
+	if ( length $subclass ) {
+		my ($wxclass, $header) = split /;/, $subclass;
+		if ( defined $wxclass and length $wxclass ) {
+			return $wxclass;
+		}
+	}
+
+	# Fall through to the default.
+	# For now, derive it automatically from the FBP child object.
+	my $wxclass = Scalar::Util::blessed($self);
+	if ( $wxclass =~ s/^FBP::/Wx::/ ) {
+		return $wxclass;
+	}
+
+	# No idea what to do at this point...
+	die 'Failed to derive Wx class from FBP class';
 }
 
 1;

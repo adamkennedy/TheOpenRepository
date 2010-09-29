@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 54;
+use Test::More tests => 60;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -40,7 +40,9 @@ is( $project->internationalize, '1', '->internationalize ok' );
 # Find a particular named dialog
 my $dialog1 = $object->dialog('MyDialog1');
 isa_ok( $dialog1, 'FBP::Dialog' );
-is( $dialog1->name, 'MyDialog1', '->name ok' );
+is( $dialog1->name,     'MyDialog1',  '->name ok'     );
+is( $dialog1->subclass, '',           '->subclass ok' );
+is( $dialog1->wxclass,  'Wx::Dialog', '->class ok'    );
 
 # Repeat using the generic search
 my $dialog2 = $object->find_first(
@@ -78,6 +80,8 @@ isa_ok( $text, 'FBP::StaticText' );
 is( $text->id,         'wxID_ANY',       '->id ok'         );
 is( $text->name,       'm_staticText1',  '->name ok'       );
 is( $text->permission, 'protected',      '->permission ok' );
+is( $text->subclass,   'My::Class;',     '->subclass ok'   );
+is( $text->wxclass,    'My::Class',      '->class ok'      );
 is(
 	$text->label,
 	'Michael "Killer" O\'Reilly <michael@localhost>',
@@ -89,12 +93,14 @@ my $button = $object->find_first(
 	isa => 'FBP::Button',
 );
 isa_ok( $button, 'FBP::Button' );
-is( $button->id,            'wxID_ANY',  '->id ok'            );
-is( $button->name,          'm_button1', '->name ok'          );
-is( $button->label,         'MyButton',  '->label ok'         );
-is( $button->default,       '1',         '->default ok'       );
-is( $button->permission,    'protected', '->permission ok'    );
-is( $button->OnButtonClick, 'm_button1', '->OnButtonClick ok' );
+is( $button->id,            'wxID_ANY',   '->id ok'            );
+is( $button->name,          'm_button1',  '->name ok'          );
+is( $button->label,         'MyButton',   '->label ok'         );
+is( $button->default,       '1',          '->default ok'       );
+is( $button->subclass,      '',           '->subclass ok'      );
+is( $button->wxclass,       'Wx::Button', '->wxclass ok'       );
+is( $button->permission,    'protected',  '->permission ok'    );
+is( $button->OnButtonClick, 'm_button1',  '->OnButtonClick ok' );
 
 # Line properties
 my $line = $object->find_first(
@@ -115,6 +121,6 @@ my $sizer = $object->find_first(
 	isa => 'FBP::Sizer',
 );
 isa_ok( $sizer, 'FBP::Sizer' );
-is( $sizer->name,       'bSizer1',       '->name ok'       );
-is( $sizer->orient,     'wxHORIZONTAL',  '->orient ok'     );
-is( $sizer->permission, 'none',          '->permission ok' );
+is( $sizer->name,       'bSizer1',      '->name ok'       );
+is( $sizer->orient,     'wxHORIZONTAL', '->orient ok'     );
+is( $sizer->permission, 'none',         '->permission ok' );

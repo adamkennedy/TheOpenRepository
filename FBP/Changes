@@ -1,5 +1,9 @@
 Changes for Perl extension FBP
 
+0.15 Wed 29 Sep 2010
+	- Added FBP::Window::subclass attribute
+	- Added FBP::Window::wxclass  method
+
 0.14 Sun  1 Aug 2010
 	- Removed FBP::Window::label       attribute
 	- Added FBP::Dialog::title         attribute
