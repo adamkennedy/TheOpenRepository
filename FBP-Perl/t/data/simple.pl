@@ -75,7 +75,12 @@ sub new {
 		"Combo!",
 		Wx::wxDefaultPosition,
 		Wx::wxDefaultSize,
-		[ ],
+		[
+			"one",
+			"two",
+			"a'b",
+			"c\"d\\\"",
+		],
 	);
 
 	$self->{m_listBox1} = Wx::ListBox->new(
@@ -164,7 +169,7 @@ sub new {
 	$fgSizer1->SetFlexibleDirection( Wx::wxBOTH );
 	$fgSizer1->SetNonFlexibleGrowMode( Wx::wxFLEX_GROWMODE_SPECIFIED );
 	$fgSizer1->Add( $self->{m_choice1}, 0, Wx::wxALL, 5 );
-	$fgSizer1->Add( $self->{m_comboBox1}, 0, Wx::wxALL, 5 );
+	$fgSizer1->Add( $self->{m_comboBox1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 	$fgSizer1->Add( $self->{m_listBox1}, 0, Wx::wxALL, 5 );
 	$fgSizer1->Add( $self->{m_listCtrl1}, 0, Wx::wxALL | Wx::wxEXPAND, 5 );
 

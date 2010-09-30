@@ -97,23 +97,21 @@ sub dialog_new {
 	my $self    = shift;
 	my $dialog  = shift;
 	my $super   = $self->dialog_super($dialog);
-	my @sizers  = $self->indent( $self->dialog_sizers($dialog) );
-	my @windows = map { $self->indent($_), "" }
-	              map { $self->window_create($_) }
-	              $dialog->find( isa => 'FBP::Window' );
+	my @windows = $self->dialog_windows($dialog);
+	my @sizers  = $self->dialog_sizers($dialog);
 
-	return [
+	return $self->nested(
 		"sub new {",
-		"\tmy \$class  = shift;",
-		"\tmy \$parent = shift;",
+		"my \$class  = shift;",
+		"my \$parent = shift;",
 		"",
-		$self->indent($super),
+		$super,
 		"",
 		@windows,
 		@sizers,
-		"\treturn \$self;",
+		"return \$self;",
 		"}",
-	];
+	);
 }
 
 sub dialog_super {
@@ -123,18 +121,29 @@ sub dialog_super {
 	my $title    = $self->text( $dialog->title );
 	my $position = $self->object_position($dialog);
 	my $size     = $self->object_size($dialog);
-	my $style    = $self->wx( $dialog->styles || 'wxDEFAULT_DIALOG_STYLE' );
+	my $style    = $self->wx(
+		$dialog->styles || 'wxDEFAULT_DIALOG_STYLE'
+	);
 
-	return [
+	return $self->nested(
 		"my \$self = \$class->SUPER::new(",
-		"\t\$parent,",
-		"\t$id,",
-		"\t$title,",
-		"\t$position,",
-		"\t$size,",
-		( $style ? "\t$style," : () ),
+		"\$parent,",
+		"$id,",
+		"$title,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
 		");",
-	];
+	);
+}
+
+sub dialog_windows {
+	my $self   = shift;
+	my $dialog = shift;
+
+	return map {
+		$self->window_create($_), ""
+	} $dialog->find( isa => 'FBP::Window' );
 }
 
 sub dialog_sizers {
@@ -224,22 +233,22 @@ sub button_create {
 	my $label    = $self->object_label($control);
 	my $variable = $self->object_variable($control);
 
-	my @lines = (
+	my $lines = $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$label,",
+		"\$self,",
+		"$id,",
+		"$label,",
 		");",
 	);
 
 	if ( $control->default ) {
-		push @lines, "$variable->SetDefault;";
+		push @$lines, "$variable->SetDefault;";
 	}
 	unless ( $control->enabled ) {
-		push @lines, "$variable->Disable;";
+		push @$lines, "$variable->Disable;";
 	}
 
-	return \@lines;
+	return $lines;
 }
 
 sub checkbox_create {
@@ -251,16 +260,16 @@ sub checkbox_create {
 	my $size     = $self->object_size($control);
 	my $style    = $self->wx( $control->styles );
 
-	return [
+	return $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$label,",
-		"\t$position,",
-		"\t$size,",
-		( $style ? "\t$style," : () ),
+		"\$self,",
+		"$id,",
+		"$label,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
 		");",
-	];
+	);
 }
 
 sub choice_create {
@@ -269,16 +278,17 @@ sub choice_create {
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
+	my $items    = $self->control_items($control);
 
-	return [
+	return $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$position,",
-		"\t$size,",
-		"\t[ ],",
+		"\$self,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$items,
 		");",
-	];
+	);
 }
 
 sub combobox_create {
@@ -288,19 +298,20 @@ sub combobox_create {
 	my $value    = $self->quote( $control->value );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
+	my $items    = $self->control_items($control);
 	my $style    = $self->wx( $control->styles );
 
-	return [
+	return $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$value,",
-		"\t$position,",
-		"\t$size,",
-		"\t[ ],",
-		( $style ? "\t$style," : () ),
+		"\$self,",
+		"$id,",
+		"$value,",
+		"$position,",
+		"$size,",
+		$items,
+		( $style ? "$style," : () ),
 		");",
-	];
+	);
 }
 
 sub htmlwindow_create {
@@ -311,15 +322,15 @@ sub htmlwindow_create {
 	my $size     = $self->object_size($control);
 	my $style    = $self->wx( $control->styles );
 
-	return [
+	return $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$position,",
-		"\t$size,",
-		( $style ? "\t$style," : () ),
+		"\$self,",
+		"$id,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
 		");",
-	];
+	);
 }
 
 sub listbox_create {
@@ -328,18 +339,19 @@ sub listbox_create {
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
+	my $items    = $self->control_items($control);
 	my $style    = $self->wx( $control->styles );
-	
-	return [
+
+	return $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$position,",
-		"\t$size,",
-		"\t[ ],",
-		( $style ? "\t$style," : () ),
+		"\$self,",
+		"$id,",
+		"$position,",
+		"$size,",
+		$items,
+		( $style ? "$style," : () ),
 		");",
-	];
+	);
 }
 
 sub listctrl_create {
@@ -350,15 +362,15 @@ sub listctrl_create {
 	my $size     = $self->object_size($control);
 	my $style    = $self->wx( $control->styles );	
 
-	return [
+	return $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$position,",
-		"\t$size,",
-		( $style ? "\t$style," : () ),
+		"\$self,",
+		"$id,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
 		");",
-	];
+	);
 }
 
 sub statictext_create {
@@ -367,13 +379,13 @@ sub statictext_create {
 	my $id      = $self->wx( $control->id );
 	my $label   = $self->object_label($control);
 
-	return [
+	return $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$label,",
+		"\$self,",
+		"$id,",
+		"$label,",
 		");",
-	];
+	);
 }
 
 sub staticline_create {
@@ -384,15 +396,15 @@ sub staticline_create {
 	my $size     = $self->object_size($control);
 	my $style    = $self->wx( $control->styles );
 
-	return [
+	return $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$position,",
-		"\t$size,",
-		( $style ? "\t$style," : () ),
+		"\$self,",
+		"$id,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
 		");",
-	];
+	);
 }
 
 sub textctrl_create {
@@ -403,20 +415,24 @@ sub textctrl_create {
 	my $position  = $self->object_position($control);
 	my $size      = $self->object_size($control);
 	my $style     = $self->wx( $control->styles );
-	my $variable  = $self->object_variable($control);
 	my $maxlength = $control->maxlength;
 
-	return [
+	my $lines = $self->nested(
 		$self->window_new($control),
-		"\t\$self,",
-		"\t$id,",
-		"\t$value,",
-		"\t$position,",
-		"\t$size,",
-		( $style ? "\t$style," : () ),
+		"\$self,",
+		"$id,",
+		"$value,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
 		");",
-		( $maxlength ? "$variable->SetMaxLength( $maxlength );" : () ),
-	];	
+	);
+	if ( $maxlength ) {
+		my $variable = $self->object_variable($control);
+		push @$lines, "$variable->SetMaxLength( $maxlength );";
+	}
+
+	return $lines;
 }
 
 
@@ -900,6 +916,21 @@ sub window_new {
 	return "$lexical$variable = $wxclass->new(";
 }
 
+sub control_items {
+	my $self    = shift;
+	my $control = shift;
+	my @items   = $control->items;
+	unless ( @items ) {
+		return '[ ],';
+	}
+
+	return $self->nested(
+		'[',
+		( map { $self->quote($_) . ',' } @items ),
+		'],',
+	);
+}
+
 
 
 
@@ -989,6 +1020,20 @@ sub quote {
 
 sub indent {
 	map { /\S/ ? "\t$_" : $_ } @{$_[1]};
+}
+
+# Indent except for the first and last lines.
+# Return as an array reference.
+sub nested {
+	my $self   = shift;
+	my @lines  = map { ref $_ ? @$_ : $_ } @_;
+	my $top    = shift @lines;
+	my $bottom = pop @lines;
+	return [
+		$top,
+		( map { /\S/ ? "\t$_" : $_ } @lines ),
+		$bottom,
+	];
 }
 
 sub flatten {
