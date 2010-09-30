@@ -2,7 +2,7 @@ package FBP::FocusEvent;
 
 use Mouse::Role;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 has OnKillFocus => (
 	is  => 'ro',

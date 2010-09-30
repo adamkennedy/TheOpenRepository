@@ -2,7 +2,7 @@ package FBP::StaticLine;
 
 use Mouse;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 extends 'FBP::Control';
 
