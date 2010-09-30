@@ -4,6 +4,8 @@ Changes for Perl extension FBP-Perl
 	- Added a dedicated nested indent method
 	- Added support for choice lists in Wx::Choice, Wx::ComboBox and
 	  Wx::ListBox.
+	- When using custom control classes, don't "use" the relevant
+	  custom class more than once.
 
 0.14 Wed 29 Sep 2010
 	- Add support for custom Wx subclasses for Wx::Window widgets

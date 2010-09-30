@@ -966,7 +966,7 @@ sub use_more {
 		map {
 			"use $_ ();"
 		} sort grep {
-			not $seen{$_}
+			not $seen{$_}++
 		} map {
 			$_->wxclass
 		} grep {
