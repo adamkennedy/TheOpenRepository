@@ -1,5 +1,12 @@
 Changes for Perl extension FBP
 
+0.16 Thu 20 Sep 2010
+	- Changed FBP::Control to a subclass of FBP::Window
+	- Changed control classes to inherit directly from FBP::Control
+	- Added FBP::ControlWithItems class
+	- Changed FBP::Choice, FBP::ListBox and FBP::ComboBox classes to
+	  inherit from FBP::ControlWithItems.
+
 0.15 Wed 29 Sep 2010
 	- Added FBP::Window::subclass attribute
 	- Added FBP::Window::wxclass  method

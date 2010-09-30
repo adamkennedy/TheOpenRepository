@@ -370,11 +370,11 @@
                                 </object>
                                 <object class="sizeritem" expanded="1">
                                     <property name="border">5</property>
-                                    <property name="flag">wxALL</property>
+                                    <property name="flag">wxALL|wxEXPAND</property>
                                     <property name="proportion">0</property>
                                     <object class="wxComboBox" expanded="1">
                                         <property name="bg"></property>
-                                        <property name="choices"></property>
+                                        <property name="choices">&quot;one&quot; &quot;two&quot; &quot;a&apos;b&quot; &quot;c\&quot;d \\\&quot;&quot;</property>
                                         <property name="context_help"></property>
                                         <property name="enabled">1</property>
                                         <property name="fg"></property>

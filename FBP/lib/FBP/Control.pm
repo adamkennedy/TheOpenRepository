@@ -1,8 +1,10 @@
 package FBP::Control;
 
-use Mouse::Role;
+use Mouse;
 
 our $VERSION = '0.15';
+
+extends 'FBP::Window';
 
 has default => (
 	is  => 'ro',

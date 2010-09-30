@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 60;
+use Test::More tests => 67;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -101,6 +101,26 @@ is( $button->subclass,      '',           '->subclass ok'      );
 is( $button->wxclass,       'Wx::Button', '->wxclass ok'       );
 is( $button->permission,    'protected',  '->permission ok'    );
 is( $button->OnButtonClick, 'm_button1',  '->OnButtonClick ok' );
+
+# Combo properties
+my $combo = $object->find_first(
+	isa => 'FBP::ComboBox',
+);
+isa_ok( $combo, 'FBP::ComboBox' );
+is( $combo->id,      'wxID_ANY',    '->id ok'    );
+is( $combo->name,    'm_comboBox1', '->name ok'  );
+is( $combo->value,   'Combo!',      '->value ok' );
+is(
+	$combo->choices,
+	'"one" "two" "a\'b" "c\\"d \\\\\\""',
+	'->choices ok',
+);
+is( scalar($combo->items), 4, 'Scalar ->items ok' );
+is_deeply(
+	[ $combo->items ],
+	[ 'one', 'two', "a'b", 'c"d \\"' ],
+	'->items ok',
+);
 
 # Line properties
 my $line = $object->find_first(
