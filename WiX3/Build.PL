@@ -75,10 +75,9 @@ my $builder = $class->new(
 		'List::MoreUtils'          => '>= 0.22, != 0.23, != 0.24',
 		'Data::UUID'               => '1.202',
 		'Params::Util'             => '1.00',
-		'Moose'                    => '1.08',
-		'MooseX::Singleton'        => '0.25', #0.25 required to work with Moose 1.12
-		'MooseX::Types'            => '0.20',
-		'MooseX::Types::Moose'     => 0,
+		'Moose'                    => '1.14',
+		'MooseX::Singleton'        => '0.25',
+		'MooseX::Types'            => '0.24',
 		'Regexp::Common'           => '2.122',
 		'Readonly'                 => '1.03',
 	},
