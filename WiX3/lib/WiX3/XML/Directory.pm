@@ -15,7 +15,7 @@ use WiX3::Util::StrictConstructor;
 use Params::Util qw( _IDENTIFIER _STRING );
 use File::Spec::Functions qw( catdir );
 
-our $VERSION = '0.010';
+our $VERSION = '0.010002';
 $VERSION =~ s/_//ms;
 
 with qw(WiX3::XML::Role::TagAllowsChildTags
@@ -96,7 +96,7 @@ has sourcename => (
 
 has _shortname => (
 	is       => 'ro',
-	isa      => Str,                   # ShortFileNameType
+	isa      => Maybe [Str],           # ShortFileNameType
 	reader   => '_get_shortname',
 	init_arg => 'shortname',
 	default  => undef,
@@ -104,7 +104,7 @@ has _shortname => (
 
 has _shortsourcename => (
 	is       => 'ro',
-	isa      => Str,                   # ShortFileNameType
+	isa      => Maybe [Str],           # ShortFileNameType
 	reader   => '_get_shortsourcename',
 	init_arg => 'shortsourcename',
 	default  => undef,
