@@ -1,5 +1,9 @@
 Revision history for Perl extension File::Find::Rule::VCS
 
+1.08 Wed  6 Oct 2010
+	- Upgrading to Module::Install::DSL 1.00
+	- Removing use UNIVERSAL, it does some evil stuff
+
 1.07 Mon 31 May 2010
 	- Added git support to resolve #43558: .git missing
 	- Extend test for bzr, git and default invocation
