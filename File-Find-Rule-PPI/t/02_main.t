@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Primary testing for File::Find::Rule::PPI
 
@@ -38,5 +38,3 @@ isa_ok( $Rule, 'File::Find::Rule' );
 @files = sort @files;
 is_deeply( \@files, [ 'Bar.pm', 'dir/Baz.pm' ],
 	'Comment search returns expected file list' );
-
-exit(0);

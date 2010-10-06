@@ -32,13 +32,14 @@ and checks each file as a perl document to see if matches the query.
 
 use 5.005;
 use strict;
-use Params::Util '_INSTANCE';
-use base 'File::Find::Rule';
-use PPI ();
+use Params::Util      0.10 '_INSTANCE';
+use File::Find::Rule  0.20 ();
+use PPI              1.000 ();
 
-use vars qw{$VERSION @EXPORT};
+use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '0.05';
+	$VERSION = '1.06';
+	@ISA     = 'File::Find::Rule';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 
 	# Preload PPI::Find module if needed and possible
@@ -126,7 +127,7 @@ L<http://ali.as/>, L<File::Find::Rule>, L<PPI>
 
 =head1 COPYRIGHT
 
-Copyright 2005, 2006 Adam Kennedy.
+Copyright 2005 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
