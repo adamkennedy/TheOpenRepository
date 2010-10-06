@@ -171,11 +171,11 @@ Games::Lacuna::Client - Perl extension for blah blah blah
 
   use Games::Lacuna::Client;
   my $client = Games::Lacuna::Client->new(
-    uri => 'https://path/to/server',
-    api_key => 'your api key here',
-    name => 'empire name',
+    uri      => 'https://path/to/server',
+    api_key  => 'your api key here',
+    name     => 'empire name',
     password => 'sekrit',
-    #debug => 1,
+    #debug    => 1,
   );
   
   my $res = $client->alliance->find("The Understanding");
