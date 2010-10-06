@@ -38,7 +38,6 @@ distribution in various parts of the CPAN ecosystem.
 use 5.00503;
 use strict;
 use Carp;
-use UNIVERSAL;
 use File::Spec        0.82 ();
 use File::Spec::Unix       ();
 use Params::Util      0.38 qw{ _STRING _HASHLIKE };
@@ -47,7 +46,7 @@ use Parse::CPAN::Meta 1.38 ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.09';
+	$VERSION = '1.10';
 	@ISA     = 'File::Find::Rule';
 	@EXPORT  = @File::Find::Rule::EXPORT;
 }
@@ -311,7 +310,7 @@ L<http://ali.as/>, L<File::Find::Rule>, L<File::Find::Rule::PPI>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2009 Adam Kennedy.
+Copyright 2006 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
