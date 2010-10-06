@@ -7,6 +7,10 @@ use Carp qw(croak);
 
 our $Proto_Regexp = "[" . quotemeta('\$%&*@;[]') . "]";
 
+require ExtUtils::Typemap::InputMap;
+require ExtUtils::Typemap::OutputMap;
+require ExtUtils::Typemap::Type;
+
 =head1 NAME
 
 ExtUtils::Typemap - Read/Write/Modify Perl/XS typemap files
@@ -115,33 +119,47 @@ sub file {
 
 Add a C<TYPEMAP> entry to the typemap.
 
-Required named arguments: The C<ctype> (e.g. C<ctype =E<gt> 'NV'>)
+Required named arguments: The C<ctype> (e.g. C<ctype =E<gt> 'double'>)
 and the C<xstype> (e.g. C<xstype =E<gt> 'T_NV'>).
 
 Optional named arguments: C<replace =E<gt> 1> forces removal/replacement of
 existing C<TYPEMAP> entries of the same C<ctype>.
 
+As an alternative to the named parameters usage, you may pass in
+an C<ExtUtils::Typemap::Type> object, a copy of which will be
+added to the typemap.
+
 =cut
 
 sub add_typemap {
   my $self = shift;
-  my %args = @_;
-  my $ctype = $args{ctype};
-  croak("Need ctype argument") if not defined $ctype;
-  my $xstype = $args{xstype};
-  croak("Need xstype argument") if not defined $xstype;
-  if ($args{replace}) {
-    $self->remove_typemap(ctype => $ctype);
-  } else {
-    $self->validate(typemap_xstype => $xstype, ctype => $ctype);
+  my $type;
+  my $replace = 0;
+  if (@_ == 1) {
+    my $orig = shift;
+    $type = $orig->new(@_);
   }
-  my $proto = $args{"prototype"} || '';
-  push @{$self->{typemap_section}}, {
-    tidy_ctype => _tidy_type($ctype),
-    xstype     => $xstype,
-    proto      => $proto,
-    ctype      => $ctype,
-  };
+  else {
+    my %args = @_;
+    my $ctype = $args{ctype};
+    croak("Need ctype argument") if not defined $ctype;
+    my $xstype = $args{xstype};
+    croak("Need xstype argument") if not defined $xstype;
+
+    $type = ExtUtils::Typemap::Type->new(
+      xstype      => $xstype,
+      'prototype' => $args{'prototype'},
+      ctype       => $ctype,
+    );
+    $replace = $args{replace};
+  }
+
+  if ($replace) {
+    $self->remove_typemap(ctype => $type->ctype);
+  } else {
+    $self->validate(typemap_xstype => $type->xstype, ctype => $type->ctype);
+  }
+  push @{$self->{typemap_section}}, $type;
   return 1;
 }
 
@@ -156,23 +174,38 @@ and the C<code> to associate with it for input.
 Optional named arguments: C<replace =E<gt> 1> forces removal/replacement of
 existing C<INPUT> entries of the same C<xstype>.
 
+You may pass in a single C<ExtUtils::Typemap::InputMap> object instead,
+a copy of which will be added to the typemap.
+
 =cut
 
 sub add_inputmap {
   my $self = shift;
-  my %args = @_;
-  my $xstype = $args{xstype};
-  croak("Need xstype argument") if not defined $xstype;
-  my $code = $args{code};
-  croak("Need code argument") if not defined $code;
-  if ($args{replace}) {
-    $self->remove_inputmap(xstype => $xstype);
-  } else {
-    $self->validate(inputmap_xstype => $xstype);
+  my $input;
+  my $replace = 0;
+  if (@_ == 1) {
+    my $orig = shift;
+    $input = $orig->new(@_);
   }
-  $code =~ s/^(?=\S)/\t/mg;
-  push @{$self->{input_section}},
-    {xstype => $xstype, code => $code};
+  else {
+    my %args = @_;
+    my $xstype = $args{xstype};
+    croak("Need xstype argument") if not defined $xstype;
+    my $code = $args{code};
+    croak("Need code argument") if not defined $code;
+
+    $input = ExtUtils::Typemap::InputMap->new(
+      xstype => $xstype,
+      code   => $code,
+    );
+    $replace = $args{replace};
+  }
+  if ($replace) {
+    $self->remove_inputmap(xstype => $input->xstype);
+  } else {
+    $self->validate(inputmap_xstype => $input->xstype);
+  }
+  push @{$self->{input_section}}, $input;
   return 1;
 }
 
@@ -183,28 +216,39 @@ Works exactly the same as C<add_inputmap>.
 
 =cut
 
-
 sub add_outputmap {
   my $self = shift;
-  my %args = @_;
-  my $xstype = $args{xstype};
-  croak("Need xstype argument") if not defined $xstype;
-  my $code = $args{code};
-  croak("Need code argument") if not defined $code;
-  if ($args{replace}) {
-    $self->remove_outputmap(xstype => $xstype);
-  } else {
-    $self->validate(outputmap_xstype => $xstype);
+  my $output;
+  my $replace = 0;
+  if (@_ == 1) {
+    my $orig = shift;
+    $output = $orig->new(@_);
   }
-  $code =~ s/^(?=\S)/\t/mg;
-  push @{$self->{output_section}},
-    {xstype => $xstype, code => $code};
+  else {
+    my %args = @_;
+    my $xstype = $args{xstype};
+    croak("Need xstype argument") if not defined $xstype;
+    my $code = $args{code};
+    croak("Need code argument") if not defined $code;
+
+    $output = ExtUtils::Typemap::OutputMap->new(
+      xstype => $xstype,
+      code   => $code,
+    );
+    $replace = $args{replace};
+  }
+  if ($replace) {
+    $self->remove_outputmap(xstype => $output->xstype);
+  } else {
+    $self->validate(outputmap_xstype => $output->xstype);
+  }
+  push @{$self->{output_section}}, $output;
   return 1;
 }
 
 =head2 add_string
 
-Parses a string as a typemap and merged it into the typemap object.
+Parses a string as a typemap and merge it into the typemap object.
 
 Required named argument: C<string> to specify the string to parse.
 
@@ -226,14 +270,22 @@ Removes a C<TYPEMAP> entry from the typemap.
 
 Required named argument: C<ctype> to specify the entry to remove from the typemap.
 
+Alternatively, you may pass a single C<ExtUtils::Typemap::Type> object.
+
 =cut
 
 sub remove_typemap {
   my $self = shift;
-  my %args = @_;
-  my $ctype = $args{ctype};
-  croak("Need ctype argument") if not defined $ctype;
-  $ctype = _tidy_type($ctype);
+  my $ctype;
+  if (@_ > 1) {
+    my %args = @_;
+    $ctype = $args{ctype};
+    croak("Need ctype argument") if not defined $ctype;
+    $ctype = _tidy_type($ctype);
+  }
+  else {
+    $ctype = $_[0]->tidy_ctype;
+  }
   
   return $self->_remove($ctype, 'tidy_ctype', $self->{typemap_section});
 }
@@ -244,13 +296,21 @@ Removes an C<INPUT> entry from the typemap.
 
 Required named argument: C<xstype> to specify the entry to remove from the typemap.
 
+Alternatively, you may pass a single C<ExtUtils::Typemap::InputMap> object.
+
 =cut
 
 sub remove_inputmap {
   my $self = shift;
-  my %args = @_;
-  my $xstype = $args{xstype};
-  croak("Need xstype argument") if not defined $xstype;
+  my $xstype;
+  if (@_ > 1) {
+    my %args = @_;
+    $xstype = $args{xstype};
+    croak("Need xstype argument") if not defined $xstype;
+  }
+  else {
+    $xstype = $_[0]->xstype;
+  }
   
   return $self->_remove($xstype, 'xstype', $self->{input_section});
 }
@@ -261,31 +321,113 @@ Removes an C<OUTPUT> entry from the typemap.
 
 Required named argument: C<xstype> to specify the entry to remove from the typemap.
 
+Alternatively, you may pass a single C<ExtUtils::Typemap::OutputMap> object.
+
 =cut
 
 sub remove_outputmap {
   my $self = shift;
-  my %args = @_;
-  my $xstype = $args{xstype};
-  croak("Need xstype argument") if not defined $xstype;
+  my $xstype;
+  if (@_ > 1) {
+    my %args = @_;
+    $xstype = $args{xstype};
+    croak("Need xstype argument") if not defined $xstype;
+  }
+  else {
+    $xstype = $_[0]->xstype;
+  }
   
   return $self->_remove($xstype, 'xstype', $self->{output_section});
 }
 
 sub _remove {
-  my $self  = shift;
-  my $rm    = shift;
-  my $key   = shift;
-  my $array = shift;
+  my $self   = shift;
+  my $rm     = shift;
+  my $method = shift;
+  my $array  = shift;
 
   my $index = 0;
   foreach my $map (@$array) {
-    last if $map->{$key} eq $rm;
+    last if $map->$method() eq $rm;
     $index++;
   }
   if ($index < @$array) {
     splice(@$array, $index, 1);
     return 1;
+  }
+  return();
+}
+
+=head2 get_typemap
+
+Fetches an entry of the TYPEMAP section of the typemap.
+
+Mandatory named arguments: The C<ctype> of the entry.
+
+Returns the C<ExtUtils::Typemap::Type>
+object for the entry if found.
+
+=cut
+
+sub get_typemap {
+  my $self = shift;
+  my %args = @_;
+  my $ctype = $args{ctype};
+  croak("Need ctype argument") if not defined $ctype;
+  $ctype = _tidy_type($ctype);
+
+  foreach my $map (@{$self->{typemap_section}}) {
+    return $map if $map->tidy_ctype eq $ctype;
+  }
+  return();
+}
+
+=head2 get_inputmap
+
+Fetches an entry of the INPUT section of the
+typemap.
+
+Mandatory named arguments: The C<xstype> of the
+entry.
+
+Returns the C<ExtUtils::Typemap::InputMap>
+object for the entry if found.
+
+=cut
+
+sub get_inputmap {
+  my $self = shift;
+  my %args = @_;
+  my $xstype = $args{xstype};
+  croak("Need xstype argument") if not defined $xstype;
+
+  foreach my $map (@{$self->{input_section}}) {
+    return $map if $map->xstype eq $xstype;
+  }
+  return();
+}
+
+=head2 get_outputmap
+
+Fetches an entry of the OUTPUT section of the
+typemap.
+
+Mandatory named arguments: The C<xstype> of the
+entry.
+
+Returns the C<ExtUtils::Typemap::InputMap>
+object for the entry if found.
+
+=cut
+
+sub get_outputmap {
+  my $self = shift;
+  my %args = @_;
+  my $xstype = $args{xstype};
+  croak("Need xstype argument") if not defined $xstype;
+
+  foreach my $map (@{$self->{output_section}}) {
+    return $map if $map->xstype eq $xstype;
   }
   return();
 }
@@ -326,16 +468,15 @@ sub as_string {
   foreach my $entry (@$typemap) {
     # type kind proto
     # /^(.*?\S)\s+(\S+)\s*($Proto_Regexp*)$/o
-    my $ctype = defined($entry->{ctype}) ? $entry->{ctype} : $entry->{tidy_ctype};
-    push @code, "$ctype\t" . $entry->{xstype}
-              . ($entry->{proto} ne '' ? "\t".$entry->{proto} : '') . "\n";
+    push @code, $entry->ctype . "\t" . $entry->xstype
+              . ($entry->proto ne '' ? "\t".$entry->proto : '') . "\n";
   }
 
   my $input = $self->{input_section};
   if (@$input) {
     push @code, "\nINPUT\n";
     foreach my $entry (@$input) {
-      push @code, $entry->{xstype}, "\n", $entry->{code}, "\n";
+      push @code, $entry->xstype, "\n", $entry->code, "\n";
     }
   }
 
@@ -343,7 +484,7 @@ sub as_string {
   if (@$output) {
     push @code, "\nOUTPUT\n";
     foreach my $entry (@$output) {
-      push @code, $entry->{xstype}, "\n", $entry->{code}, "\n";
+      push @code, $entry->xstype, "\n", $entry->code, "\n";
     }
   }
   return join '', @code;
@@ -373,29 +514,15 @@ sub merge {
   # FIXME breaking encapsulation. Add accessor code.
   #
   foreach my $entry (@{$typemap->{typemap_section}}) {
-    my $ctype = defined($entry->{ctype}) ? $entry->{ctype} : $entry->{tidy_ctype};
-    $self->add_typemap(
-      ctype       => $ctype,
-      xstype      => $entry->{xstype},
-      "prototype" => $entry->{proto},
-      replace     => $replace,
-    );
+    $self->add_typemap( $entry );
   }
 
   foreach my $entry (@{$typemap->{input_section}}) {
-    $self->add_inputmap(
-      code        => $entry->{code},
-      xstype      => $entry->{xstype},
-      replace     => $replace,
-    );
+    $self->add_inputmap( $entry );
   }
 
   foreach my $entry (@{$typemap->{output_section}}) {
-    $self->add_outputmap(
-      code        => $entry->{code},
-      xstype      => $entry->{xstype},
-      replace     => $replace,
-    );
+    $self->add_outputmap( $entry );
   }
 
   return 1;
@@ -412,10 +539,10 @@ sub validate {
   $ctypes{$args{ctype}}++ if defined $args{ctype};
 
   foreach my $map (@{$self->{typemap_section}}) {
-    my $ctype = $map->{tidy_ctype};
+    my $ctype = $map->tidy_ctype;
     croak("Multiple definition of ctype '$ctype' in TYPEMAP section")
       if exists $ctypes{$ctype};
-    my $xstype = $map->{xstype};
+    my $xstype = $map->xstype;
     # TODO check this: We shouldn't complain about reusing XS types in TYPEMAP.
     #croak("Multiple definition of xstype '$xstype' in TYPEMAP section")
     #  if exists $xstypes{$xstype};
@@ -426,18 +553,18 @@ sub validate {
   %xstypes = ();
   $xstypes{$args{inputmap_xstype}}++ if defined $args{inputmap_xstype};
   foreach my $map (@{$self->{input_section}}) {
-    my $xstype = $map->{xstype};
+    my $xstype = $map->xstype;
     croak("Multiple definition of xstype '$xstype' in INPUTMAP section")
-      if exists $xstypes{ $map->{xstype} };
+      if exists $xstypes{$xstype};
     $xstypes{$xstype}++;
   }
 
   %xstypes = ();
   $xstypes{$args{outputmap_xstype}}++ if defined $args{outputmap_xstype};
   foreach my $map (@{$self->{output_section}}) {
-    my $xstype = $map->{xstype};
+    my $xstype = $map->xstype;
     croak("Multiple definition of xstype '$xstype' in OUTPUTMAP section")
-      if exists $xstypes{ $map->{xstype} };
+      if exists $xstypes{$xstype};
     $xstypes{$xstype}++;
   }
 
@@ -488,33 +615,33 @@ sub _parse {
       my($type, $kind, $proto) = /^(.*?\S)\s+(\S+)\s*($Proto_Regexp*)$/o
         or warn("Warning: File '$filename' Line $lineno '$line' TYPEMAP entry needs 2 or 3 columns\n"),
            next;
-      my $tidytype = _tidy_type($type);
-      $proto = '' if not $proto;
+      #$proto = '' if not $proto;
       # prototype defaults to '$'
       #$proto = '$' unless $proto;
       #warn("Warning: File '$filename' Line $lineno '$line' Invalid prototype '$proto'\n")
       #  unless _valid_proto_string($proto);
-      push @typemap_expr,
-        {tidy_ctype => $tidytype, xstype => $kind, proto => $proto, ctype => $type};
+      push @typemap_expr, ExtUtils::Typemap::Type->new(
+        xstype => $kind, proto => $proto, ctype => $type
+      );
     } elsif (/^\s/) {
       $$current .= $$current eq '' ? $_ : "\n".$_;
     } elsif (/^$/) {
       next;
     } elsif ($section eq 'input') {
       s/\s+$//;
-      push @input_expr, {xstype=>$_, code=>''};
+      push @input_expr, {xstype => $_, code => ''};
       $current = \$input_expr[-1]{code};
     } else { # output section
       s/\s+$//;
-      push @output_expr, {xstype=>$_, code=>''};
+      push @output_expr, {xstype => $_, code => ''};
       $current = \$output_expr[-1]{code};
     }
 
   } # end while lines
 
   $self->{typemap_section} = \@typemap_expr;
-  $self->{input_section}   = \@input_expr;
-  $self->{output_section}  = \@output_expr;
+  $self->{input_section}   = [ map {ExtUtils::Typemap::InputMap->new(%$_) } @input_expr ];
+  $self->{output_section}  = [ map {ExtUtils::Typemap::OutputMap->new(%$_) } @output_expr ];
   
   return $self->validate();
 }
@@ -556,9 +683,12 @@ sub _escape_backslashes {
 
 =head1 CAVEATS
 
-Mostly untested and likely not fool proof.
+Not as well tested as I'd like it to be.
 
 Inherits some evil code from C<ExtUtils::ParseXS>.
+
+Adding more typemaps incurs an O(n) validation penalty
+that could be optimized with a hash.
 
 =head1 SEE ALSO
 
@@ -572,7 +702,7 @@ Steffen Mueller C<<smueller@cpan.org>>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2009 Steffen Mueller
+Copyright 2009-2010 Steffen Mueller
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

@@ -701,8 +701,7 @@ jean-marc boulade E<lt>jmbperl@hotmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2002-2006 jean-marc boulade.
-
+Copyright (c) 2002-2006 jean-marc boulade. All rights reserved.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
