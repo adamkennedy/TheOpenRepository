@@ -88,7 +88,7 @@ sub _assert_session {
       print "DEBUG: Logging in since there is no session id or it timed out.\n";
     }
     my $res = $self->empire->login($self->{name}, $self->{password}, $self->{api_key});
-    $self->{session_id}    = $res->{result}{session_id};
+    $self->{session_id} = $res->{session_id};
     if ($self->debug) {
       print "DEBUG: Set session id to $self->{session_id} and updated session start time.\n";
     }
