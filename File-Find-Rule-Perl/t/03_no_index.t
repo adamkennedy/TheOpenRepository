@@ -25,7 +25,7 @@ SCOPE: {
 		[ ],
 		[ curdir() ],
 		[ 'META.yml' ],
-		[ { directory => [ 'inc', 't' ] } ],
+		[ { directory => [ 'inc', 't', 'xt' ] } ],
 	);
 
 	foreach my $p ( @params ) {
