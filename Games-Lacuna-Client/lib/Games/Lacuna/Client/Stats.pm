@@ -9,23 +9,33 @@ use Games::Lacuna::Client;
 use Games::Lacuna::Client::Module;
 our @ISA = qw(Games::Lacuna::Client::Module);
 
-sub api_methods_without_session {
-  return qw(
-    credits
-  );
+sub api_methods {
+  return {
+    credits => { default_args => [] },
+    (
+      map {
+        ($_ => { default_args => [qw(session_id)] })
+      }
+      qw( 
+        alliance_rank
+        find_alliance_rank
+        empire_rank
+        find_empire_rank
+        colony_rank
+        spy_rank
+        weekly_medal_winners
+      )
+    ),
+  };
 }
 
-sub api_methods_with_session {
-  return qw(
-    alliance_rank
-    find_alliance_rank
-    empire_rank
-    find_empire_rank
-    colony_rank
-    spy_rank
-    weekly_medal_winners
-  );
-}
+#sub new {
+#  my $class = shift;
+#  my %opt = @_;
+#  my $self = $class->SUPER::new(@_);
+#  $self->{body_id} = $opt{id};
+#  return $self;
+#}
 
 __PACKAGE__->init();
 

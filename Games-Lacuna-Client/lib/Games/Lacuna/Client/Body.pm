@@ -9,19 +9,28 @@ use Games::Lacuna::Client;
 use Games::Lacuna::Client::Module;
 our @ISA = qw(Games::Lacuna::Client::Module);
 
-sub api_methods_without_session {
-  return qw();
+use Class::XSAccessor {
+  getters => [qw(body_id)],
+};
+
+sub api_methods {
+  return {
+    get_buildings => { default_args => [qw(session_id body_id)] },
+    get_status    => { default_args => [qw(session_id body_id)] },
+    get_buildable => { default_args => [qw(session_id body_id)] },
+    rename        => { default_args => [qw(session_id body_id)] },
+    abandon       => { default_args => [qw(session_id body_id)] },
+  };
 }
 
-sub api_methods_with_session {
-  return qw(
-    get_status
-    get_buildings
-    get_buildable
-    rename
-    abandon
-  );
+sub new {
+  my $class = shift;
+  my %opt = @_;
+  my $self = $class->SUPER::new(@_);
+  $self->{body_id} = $opt{id};
+  return $self;
 }
+
 
 __PACKAGE__->init();
 

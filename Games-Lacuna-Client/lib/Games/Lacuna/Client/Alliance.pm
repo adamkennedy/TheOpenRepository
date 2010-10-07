@@ -9,15 +9,23 @@ use Games::Lacuna::Client;
 use Games::Lacuna::Client::Module;
 our @ISA = qw(Games::Lacuna::Client::Module);
 
-sub api_methods_without_session {
-  return qw();
+use Class::XSAccessor {
+  getters => [qw(alliance_id)],
+};
+
+sub api_methods {
+  return {
+    find         => { default_args => [qw(session_id)] },
+    view_profile => { default_args => [qw(session_id alliance_id)] },
+  };
 }
 
-sub api_methods_with_session {
-  return qw(
-    view_profile
-    find
-  );
+sub new {
+  my $class = shift;
+  my %opt = @_;
+  my $self = $class->SUPER::new(@_);
+  $self->{alliance_id} = $opt{id};
+  return $self;
 }
 
 __PACKAGE__->init();

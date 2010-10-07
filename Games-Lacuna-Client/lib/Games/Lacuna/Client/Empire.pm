@@ -9,43 +9,59 @@ use Games::Lacuna::Client;
 use Games::Lacuna::Client::Module;
 our @ISA = qw(Games::Lacuna::Client::Module);
 
-sub api_methods_without_session {
-  return qw(
-    login
-    is_name_available
-    fetch_captcha
-    found
-    invite_friend
-    send_password_reset_message
-    reset_password
-    change_password
-    update_species
-    get_species_templates
-  );
+
+use Class::XSAccessor {
+  getters => [qw(empire_id)],
+};
+
+sub api_methods {
+  return {
+    (
+      map {
+        ($_ => { default_args => [qw()] })
+      }
+      qw( login
+          is_name_available
+          fetch_captcha
+          send_password_reset_message
+          reset_password
+          get_species_templates
+      )
+    ),
+    found                 => { default_args => [qw(empire_id)] },
+    update_species        => { default_args => [qw(empire_id)] },
+    invite_friend         => { default_args => [qw(session_id)] },
+    change_password       => { default_args => [qw(session_id)] },
+    logout                => { default_args => [qw(session_id)] },
+    get_status            => { default_args => [qw(session_id)] },
+    view_profile          => { default_args => [qw(session_id)] },
+    edit_profile          => { default_args => [qw(session_id)] },
+    view_public_profile   => { default_args => [qw(session_id empire_id)] },
+    find                  => { default_args => [qw(session_id)] },
+    set_status_message    => { default_args => [qw(session_id)] },
+    view_boosts           => { default_args => [qw(session_id)] },
+    boost_storage         => { default_args => [qw(session_id)] },
+    boost_food            => { default_args => [qw(session_id)] },
+    boost_water           => { default_args => [qw(session_id)] },
+    boost_energy          => { default_args => [qw(session_id)] },
+    boost_ore             => { default_args => [qw(session_id)] },
+    boost_happiness       => { default_args => [qw(session_id)] },
+    enable_self_destruct  => { default_args => [qw(session_id)] },
+    disable_self_destruct => { default_args => [qw(session_id)] },
+    redeem_essentia_code  => { default_args => [qw(session_id)] },
+    view_species_stats    => { default_args => [qw(session_id)] },
+  };
 }
 
-sub api_methods_with_session {
-  return qw(
-    logout
-    get_status
-    view_profile
-    edit_profile
-    view_public_profile
-    find
-    set_status_message
-    view_boosts
-    boost_storage
-    boost_food
-    boost_water
-    boost_energy
-    boost_ore
-    boost_happiness
-    enable_self_destruct
-    disable_self_destruct
-    redeem_essentia_code
-    view_species_stats
-  );
+sub new {
+  my $class = shift;
+  my %opt = @_;
+  my $self = $class->SUPER::new(@_);
+  $self->{empire_id} = $opt{id};
+
+  return $self;
 }
+
 
 sub logout {
   my $self = shift;

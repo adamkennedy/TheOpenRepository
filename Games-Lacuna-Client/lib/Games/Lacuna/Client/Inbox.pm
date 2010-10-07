@@ -9,20 +9,32 @@ use Games::Lacuna::Client;
 use Games::Lacuna::Client::Module;
 our @ISA = qw(Games::Lacuna::Client::Module);
 
-sub api_methods_without_session {
-  return qw();
+sub api_methods {
+  return {
+    (
+      map {
+        ($_ => { default_args => [qw(session_id)] })
+      }
+      qw( 
+        view_inbox
+        view_archived
+        view_sent
+        read_message
+        archive_messages
+        send_message
+      )
+    ),
+  };
 }
 
-sub api_methods_with_session {
-  return qw(
-    view_inbox
-    view_archived
-    view_sent
-    read_message
-    archive_messages
-    send_message
-  );
-}
+#sub new {
+#  my $class = shift;
+#  my %opt = @_;
+#  my $self = $class->SUPER::new(@_);
+#  $self->{body_id} = $opt{id};
+#  return $self;
+#}
+
 
 __PACKAGE__->init();
 

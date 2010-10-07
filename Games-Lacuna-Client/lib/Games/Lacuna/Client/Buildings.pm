@@ -9,20 +9,33 @@ use Games::Lacuna::Client;
 use Games::Lacuna::Client::Module;
 our @ISA = qw(Games::Lacuna::Client::Module);
 
-sub api_methods_without_session {
-  return qw();
+use Class::XSAccessor {
+  getters => [qw(building_id)],
+};
+
+sub api_methods {
+  return {
+    build               => { default_args => [qw(session_id)] },
+    view                => { default_args => [qw(session_id building_id)] },
+    upgrade             => { default_args => [qw(session_id building_id)] },
+    demolish            => { default_args => [qw(session_id building_id)] },
+    downgrade           => { default_args => [qw(session_id building_id)] },
+    get_stats_for_level => { default_args => [qw(session_id building_id)] },
+    repair              => { default_args => [qw(session_id building_id)] },
+  };
 }
 
-sub api_methods_with_session {
-  return qw(
-    build
-    view
-    upgrade
-    demolish
-    downgrade
-    get_stats_for_level
-    repair
-  );
+sub new {
+  my $class = shift;
+  my %opt = @_;
+  my $self = $class->SUPER::new(@_);
+  $self->{building_id} = $opt{id};
+  # We could easily support the body_id as default argument for ->build
+  # here, but that would mean you had to specify the body_id at build time
+  # or require building construction via $body->building(...)
+  # Let's keep it simple for now.
+  #$self->{body_id} = $opt{body_id};
+  return $self;
 }
 
 __PACKAGE__->init();

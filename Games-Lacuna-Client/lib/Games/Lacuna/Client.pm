@@ -14,7 +14,6 @@ use Data::Dumper ();
 use Class::XSAccessor {
   getters => [qw(
     rpc
-    alliance body buildings empire inbox map stats
     uri name password api_key
   )],
   accessors => [qw(
@@ -48,37 +47,62 @@ sub new {
   $opt{uri} =~ s/\/+$//;
   
   my $self = bless {
-    session_start => 0,
-    session_id => 0,
+    session_start   => 0,
+    session_id      => 0,
     session_timeout => 3600*1.5, # server says it's 2h, but let's play it safe.
-    debug => 0,
+    debug           => 0,
     %opt
   } => $class;
   
   # the actual RPC client
   $self->{rpc} = Games::Lacuna::Client::RPC->new(client => $self);
 
-  # empire handles the session id stuff, so it goes first for hysterical raisins.
-  $self->{empire} = Games::Lacuna::Client::Empire->new(client => $self);
-
-  $self->{alliance} = Games::Lacuna::Client::Alliance->new(client => $self);
-  $self->{body} = Games::Lacuna::Client::Body->new(client => $self);
-  $self->{buildings} = Games::Lacuna::Client::Buildings->new(client => $self);
-  $self->{empire} = Games::Lacuna::Client::Empire->new(client => $self);
-  $self->{inbox} = Games::Lacuna::Client::Inbox->new(client => $self);
-  $self->{map} = Games::Lacuna::Client::Map->new(client => $self);
-  $self->{stats} = Games::Lacuna::Client::Stats->new(client => $self);
-  
   return $self,
 }
 
+sub empire {
+  my $self = shift;
+  return Games::Lacuna::Client::Empire->new(client => $self, @_);
+}
+
+sub alliance {
+  my $self = shift;
+  return Games::Lacuna::Client::Alliance->new(client => $self, @_);
+}
+
+sub body {
+  my $self = shift;
+  return Games::Lacuna::Client::Body->new(client => $self, @_);
+}
+
+sub building {
+  my $self = shift;
+  return Games::Lacuna::Client::Buildings->new(client => $self, @_);
+}
+
+sub inbox {
+  my $self = shift;
+  return Games::Lacuna::Client::Inbox->new(client => $self, @_);
+}
+
+sub map {
+  my $self = shift;
+  return Games::Lacuna::Client::Map->new(client => $self, @_);
+}
+
+sub stats {
+  my $self = shift;
+  return Games::Lacuna::Client::Stats->new(client => $self, @_);
+}
+
+
 sub DESTROY {
   my $self = shift;
-  $self->_assert_session;
+  $self->assert_session;
   $self->empire->logout();
 }
 
-sub _assert_session {
+sub assert_session {
   my $self = shift;
   
   my $now = time();
@@ -96,68 +120,9 @@ sub _assert_session {
       print "DEBUG: Using existing session.\n";
   }
   $self->{session_start} = $now; # update timeout
-  return 1;  
+  return $self->session_id;
 }
 
-
-sub _generate_methods_with_session {
-  my $calss = shift;
-  my $target_class = shift;
-
-  foreach my $method_name (@_) {
-    no strict 'refs';
-    my $target = "${target_class}::$method_name";
-    if (defined &{"$target"}) {
-      $target = "${target_class}::_$method_name";
-    }
-    if (not defined &{"$target"}) {
-      *{"$target"} = sub {
-        my $self = shift;
-        my $client = $self->client;
-        $client->_assert_session;
-        my $rpc = $client->rpc;
-        my $uri = $self->uri;
-        if ($client->debug) {
-          print "DEBUG: " . __PACKAGE__ . " request " . Data::Dumper::Dumper([$uri, $method_name, [$client->session_id, @_]]);
-        }
-        my $ret = $rpc->call($self->uri, $method_name, [$client->session_id, @_]);
-        if ($client->debug) {
-          print "DEBUG: " . __PACKAGE__ . " result " . Data::Dumper::Dumper($ret);
-        }
-        return $ret->{result};
-      };
-    }
-  }
-}
-
-sub _generate_methods_without_session {
-  my $class = shift;
-  my $target_class = shift;
-  
-  foreach my $method_name (@_) {
-    no strict 'refs';
-    my $target = "${target_class}::$method_name";
-    if (defined &{"$target"}) {
-      $target = "${target_class}::_$method_name";
-    }
-    if (not defined &{"$target"}) {
-      *{"$target"} = sub {
-        my $self = shift;
-        my $client = $self->client;
-        my $rpc = $client->rpc;
-        my $uri = $self->uri;
-        if ($client->debug) {
-          print "DEBUG: " . __PACKAGE__ . " request " . Data::Dumper::Dumper([$uri, $method_name, [@_]]);
-        }
-        my $ret = $rpc->call($uri, $method_name, [@_]);
-        if ($client->debug) {
-          print "DEBUG: " . __PACKAGE__ . " result " . Data::Dumper::Dumper($ret);
-        }
-        return $ret->{result};
-      };
-    }
-  }
-}
 
 1;
 __END__

@@ -9,21 +9,24 @@ use Games::Lacuna::Client;
 use Games::Lacuna::Client::Module;
 our @ISA = qw(Games::Lacuna::Client::Module);
 
-sub api_methods_without_session {
-  return qw();
+sub api_methods {
+  return {
+    get_stars                      => { default_args => [qw(session_id)] },
+    check_star_for_incoming_probe  => { default_args => [qw(session_id)] },
+    get_star                       => { default_args => [qw(session_id)] },
+    get_star_by_name               => { default_args => [qw(session_id)] },
+    get_star_by_xy                 => { default_args => [qw(session_id)] },
+    search_stars                   => { default_args => [qw(session_id)] },
+  };
 }
 
-sub api_methods_with_session {
-  return qw(
-    get_stars
-    check_star_for_incoming_probe
-    get_star
-    get_star_by_name
-    get_star_by_xy
-    search_stars
-  );
-}
-
+#sub new {
+#  my $class = shift;
+#  my %opt = @_;
+#  my $self = $class->SUPER::new(@_);
+#  $self->{star_id} = $opt{id};
+#  return $self;
+#}
 
 __PACKAGE__->init();
 
