@@ -10,7 +10,6 @@ use constant DEBUG => 1;
 use Games::Lacuna::Client::Module; # base module class
 use Data::Dumper ();
 
-use JSON::RPC::Client;
 #our @ISA = qw(JSON::RPC::Client);
 use Class::XSAccessor {
   getters => [qw(

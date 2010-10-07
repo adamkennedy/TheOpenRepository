@@ -15,8 +15,6 @@ use JSON::RPC::Common::Marshal::HTTP;
 use HTTP::Request;
 use HTTP::Response;
 
-#our @ISA = qw(JSON::RPC::Client);
-
 use Class::XSAccessor {
   getters => [qw(ua marshal)],
 };
