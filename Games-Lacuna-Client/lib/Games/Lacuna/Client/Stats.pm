@@ -27,18 +27,6 @@ sub api_methods_with_session {
   );
 }
 
-sub logout {
-  my $self = shift;
-  my $client = $self->client;
-  if (not $client->session_id) {
-    return 0;
-  }
-  else {
-    my $res = $self->_logout;
-    return delete $client->{session_id};
-  }
-}
-
 __PACKAGE__->init();
 
 1;
