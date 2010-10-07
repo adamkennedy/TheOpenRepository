@@ -15,6 +15,17 @@ use JSON::RPC::Common::Marshal::HTTP;
 use HTTP::Request;
 use HTTP::Response;
 
+our @CARP_NOT = qw(
+  Games::Lacuna::Client
+  Games::Lacuna::Client::Alliance
+  Games::Lacuna::Client::Body
+  Games::Lacuna::Client::Buildings
+  Games::Lacuna::Client::Empire
+  Games::Lacuna::Client::Inbox
+  Games::Lacuna::Client::Map
+  Games::Lacuna::Client::Stats
+);
+
 use Class::XSAccessor {
   getters => [qw(ua marshal)],
 };
