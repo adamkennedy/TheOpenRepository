@@ -61,7 +61,7 @@ around install_perl_plugin => sub {
 	my $self = shift;
 
 	# Check for an error in the object.
-	f ( not $self->bin_make() ) {
+	if ( not $self->bin_make() ) {
 		PDWiX->throw('Cannot build Perl yet, no bin_make defined');
 	}
 
