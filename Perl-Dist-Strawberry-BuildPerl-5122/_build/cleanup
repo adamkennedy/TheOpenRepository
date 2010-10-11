@@ -1,5 +1,0 @@
-do{ my $x = {
-       'Perl-Dist-Strawberry-BuildPerl-5122-*' => 1,
-       'blib' => 1
-     };
-$x; }
