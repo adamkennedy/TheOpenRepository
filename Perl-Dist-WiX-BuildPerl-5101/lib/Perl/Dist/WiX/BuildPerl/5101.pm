@@ -56,7 +56,7 @@ $VERSION =~ s/_//sm;
 
 
 
-around install_perl_plugin => sub {
+around '_install_perl_plugin' => sub {
 	shift;
 	my $self = shift;
 
@@ -99,7 +99,7 @@ around install_perl_plugin => sub {
 	$self->add_path( qw(perl bin) );
 
 	return 1;
-} ## end sub install_perl_plugin
+}; ## end sub install_perl_plugin
 
 
 
