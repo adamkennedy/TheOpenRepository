@@ -2,14 +2,14 @@ package WiX3::XML::Role::InnerText;
 
 use 5.008001;
 use Moose::Role;
-use MooseX::Types::Moose qw( Str );
+use MooseX::Types::Moose qw( Maybe Str );
 
-our $VERSION = '0.010';
+our $VERSION = '0.010002';
 $VERSION =~ s/_//ms;
 
 has inner_text => (
 	is      => 'ro',
-	isa     => Str,
+	isa     => Maybe [Str],
 	reader  => '_get_inner_text',
 	default => undef,
 );

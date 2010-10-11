@@ -9,11 +9,11 @@ use metaclass (
 );
 use Moose;
 use Params::Util qw( _STRING  );
-use MooseX::Types::Moose qw( Str );
+use MooseX::Types::Moose qw( Maybe Str Undef );
 use WiX3::Util::StrictConstructor;
 use WiX3::Types qw( YesNoType );
 
-our $VERSION = '0.010';
+our $VERSION = '0.010002';
 $VERSION =~ s/_//ms;
 
 ## This needs changed later, but no children for now.
@@ -33,7 +33,7 @@ has id => (
 
 has admin => (
 	is      => 'ro',
-	isa     => YesNoType,
+	isa     => YesNoType | Undef,
 	reader  => '_get_admin',
 	default => undef,
 	coerce  => 1,
@@ -41,7 +41,7 @@ has admin => (
 
 has compliance_check => (
 	is      => 'ro',
-	isa     => YesNoType,
+	isa     => YesNoType | Undef,
 	reader  => '_get_compliance_check',
 	default => undef,
 	coerce  => 1,
@@ -49,7 +49,7 @@ has compliance_check => (
 
 has hidden => (
 	is      => 'ro',
-	isa     => YesNoType,
+	isa     => YesNoType | Undef,
 	reader  => '_get_hidden',
 	default => undef,
 	coerce  => 1,
@@ -57,7 +57,7 @@ has hidden => (
 
 has secure => (
 	is      => 'ro',
-	isa     => YesNoType,
+	isa     => YesNoType | Undef,
 	reader  => '_get_secure',
 	default => undef,
 	coerce  => 1,
@@ -65,7 +65,7 @@ has secure => (
 
 has suppress_modularization => (
 	is      => 'ro',
-	isa     => YesNoType,
+	isa     => YesNoType | Undef,
 	reader  => '_get_suppress_modularization',
 	default => undef,
 	coerce  => 1,
@@ -73,7 +73,7 @@ has suppress_modularization => (
 
 has value => (
 	is      => 'ro',
-	isa     => Str,
+	isa     => Maybe [Str],
 	reader  => '_get_value',
 	default => undef,
 );

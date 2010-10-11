@@ -13,7 +13,7 @@ use WiX3::XML::TagTypes qw( ShortcutTag );
 use MooseX::Types::Moose qw( Str Maybe Int ArrayRef );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.010';
+our $VERSION = '0.010002';
 $VERSION =~ s/_//ms;
 
 with 'WiX3::XML::Role::TagAllowsChildTags';
@@ -32,7 +32,7 @@ has '+child_tags' => ( isa => ArrayRef [ShortcutTag] );
 
 has _assembly => (
 	is       => 'ro',
-	isa      => Str,                   # '.net', 'no', or 'win32'
+	isa      => Maybe [Str],           # '.net', 'no', or 'win32'
 	reader   => '_get_assembly',
 	init_arg => 'assembly',
 	default  => undef,
@@ -40,7 +40,7 @@ has _assembly => (
 
 has _assemblyapplication => (
 	is       => 'ro',
-	isa      => Str,
+	isa      => Maybe [Str],
 	reader   => '_get_assemblyapplication',
 	init_arg => 'assemblyapplication',
 	default  => undef,
@@ -48,7 +48,7 @@ has _assemblyapplication => (
 
 has _assemblymanifest => (
 	is       => 'ro',
-	isa      => Str,
+	isa      => Maybe [Str],
 	reader   => '_get_assemblymanifest',
 	init_arg => 'assemblymanifest',
 	default  => undef,
@@ -56,7 +56,7 @@ has _assemblymanifest => (
 
 has _bindpath => (
 	is       => 'ro',
-	isa      => Str,
+	isa      => Maybe [Str],
 	reader   => '_get_bindpath',
 	init_arg => 'bindpath',
 	default  => undef,
@@ -151,7 +151,7 @@ has _keypath => (
 
 has name => (
 	is      => 'ro',
-	isa     => Str,                    # LongNameFileType
+	isa     => Maybe [Str],            # LongNameFileType
 	reader  => 'get_name',
 	default => undef,
 );
@@ -190,7 +190,7 @@ has _patchgroup => (
 
 has _processorarchitecture => (
 	is     => 'ro',
-	isa    => Str,                     # 'msil', 'x86', 'x64', or 'ia64'
+	isa    => Maybe [Str],             # 'msil', 'x86', 'x64', or 'ia64'
 	reader => '_get_processorarchitecture',
 	init_arg => 'processorarchitecture',
 	default  => undef,
@@ -206,7 +206,7 @@ has _readonly => (
 
 has _selfregcost => (
 	is       => 'ro',
-	isa      => 'Int',
+	isa      => Maybe [Int],
 	reader   => '_get_selfregcost',
 	init_arg => 'selfregcost',
 	default  => undef,
@@ -214,7 +214,7 @@ has _selfregcost => (
 
 has _shortname => (
 	is       => 'ro',
-	isa      => 'Str',                 # ShortFileNameType
+	isa      => Maybe [Str],           # ShortFileNameType
 	reader   => '_get_shortname',
 	init_arg => 'shortname',
 	default  => undef,
@@ -222,7 +222,7 @@ has _shortname => (
 
 has _source => (
 	is       => 'ro',
-	isa      => 'Str',
+	isa      => Maybe [Str],
 	reader   => '_get_source',
 	init_arg => 'source',
 	default  => undef,
