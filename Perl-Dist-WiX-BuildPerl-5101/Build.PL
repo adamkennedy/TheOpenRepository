@@ -78,7 +78,7 @@ my $builder = $class->new(
     },
 	share_dir => {
 		module => {
-			'Perl::Dist::WiX::BuildPerl::5121'  => 'share',
+			'Perl::Dist::WiX::BuildPerl::5101'  => 'share',
 		}
 	},
     add_to_cleanup      => [ 'Perl-Dist-WiX-BuildPerl-5101-*', ],
