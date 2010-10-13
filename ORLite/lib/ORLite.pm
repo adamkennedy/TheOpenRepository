@@ -730,7 +730,7 @@ ORLite - Extremely light weight SQLite-specific ORM
       tables       => [ 'table1', 'table2' ],
       cleanup      => 'VACUUM',
       prune        => 1,
-  );
+  };
 
 =head1 DESCRIPTION
 
