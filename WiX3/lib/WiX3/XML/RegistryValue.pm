@@ -118,10 +118,10 @@ sub as_string {
 	}
 
 	if ( 'multiString' eq $type ) {
+		$string .= qq{>$value</RegistryValue>\n};
+	} else {
 		$string .= $self->print_attribute( 'Value', $value );
 		$string .= qq{ />\n};
-	} else {
-		$string .= qq{>$value</RegistryValue>\n};
 	}
 
 	return $string;

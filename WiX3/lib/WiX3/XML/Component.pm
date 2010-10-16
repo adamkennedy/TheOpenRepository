@@ -11,10 +11,10 @@ use Moose;
 use Params::Util qw( _STRING _IDENTIFIER );
 use WiX3::Types qw( YesNoType ComponentGuidType );
 use WiX3::XML::TagTypes qw( ComponentChildTag );
-use MooseX::Types::Moose qw( Str Maybe Int ArrayRef );
+use MooseX::Types::Moose qw( Str Maybe Int ArrayRef Undef );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009100';
+our $VERSION = '0.010002';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_component.htm
@@ -66,9 +66,10 @@ has directory => (
 
 has disableregistryreflection => (
 	is      => 'ro',
-	isa     => Maybe [YesNoType],
+	isa     => YesNoType | Undef,
 	reader  => '_get_disableregistryreflection',
 	default => undef,
+	coerce  => 1,
 );
 
 has diskid => (
@@ -96,9 +97,10 @@ has guid => (
 
 has keypath => (
 	is      => 'ro',
-	isa     => Maybe [YesNoType],
+	isa     => YesNoType | Undef,
 	reader  => '_get_keypath',
 	default => undef,
+	coerce  => 1,
 );
 
 has location => (
@@ -110,9 +112,10 @@ has location => (
 
 has neveroverwrite => (
 	is      => 'ro',
-	isa     => Maybe [YesNoType],
+	isa     => YesNoType | Undef,
 	reader  => '_get_neveroverwrite',
 	default => undef,
+	coerce  => 1,
 );
 
 has path => (
@@ -124,48 +127,54 @@ has path => (
 
 has permanent => (
 	is      => 'ro',
-	isa     => Maybe [YesNoType],
+	isa     => YesNoType | Undef,
 	reader  => '_get_permanent',
 	default => undef,
+	coerce  => 1,
 );
 
 # Shared requires Windows Installer 4.5
 
 has shared => (
 	is      => 'ro',
-	isa     => Maybe [YesNoType],
+	isa     => YesNoType | Undef,
 	reader  => '_get_shared',
 	default => undef,
+	coerce  => 1,
 );
 
 has shareddllrefcount => (
 	is      => 'ro',
-	isa     => Maybe [YesNoType],
+	isa     => YesNoType | Undef,
 	reader  => '_get_shareddllrefcount',
 	default => undef,
+	coerce  => 1,
 );
 
 has transitive => (
 	is      => 'ro',
-	isa     => Maybe [YesNoType],
+	isa     => YesNoType | Undef,
 	reader  => '_get_transitive',
 	default => undef,
+	coerce  => 1,
 );
 
 # UninstallWhenSuperceded requires Windows Installer 4.5
 
 has uninstallwhensuperceded => (
 	is      => 'ro',
-	isa     => Maybe [YesNoType],
+	isa     => YesNoType | Undef,
 	reader  => '_get_uninstallwhensuperceded',
 	default => undef,
+	coerce  => 1,
 );
 
 has win64 => (
 	is      => 'ro',
-	isa     => Maybe [YesNoType],
+	isa     => YesNoType | Undef,
 	reader  => '_get_win64',
 	default => undef,
+	coerce  => 1,
 );
 
 #####################################################################

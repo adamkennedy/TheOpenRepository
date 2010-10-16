@@ -20,7 +20,7 @@ use WiX3::Types qw( EnumRegistryRootType EnumRegistryKeyAction );
 use MooseX::Types::Moose qw( Str Maybe Bool );
 use WiX3::Util::StrictConstructor;
 
-our $VERSION = '0.009102';
+our $VERSION = '0.010002';
 $VERSION =~ s/_//ms;
 
 # http://wix.sourceforge.net/manual-wix3/wix_xsd_registrykey.htm
@@ -37,7 +37,7 @@ has id => (
 	is       => 'ro',
 	isa      => Str,
 	reader   => 'get_id',
-	required => 1,
+	required => 0,
 );
 
 has action => (
@@ -71,7 +71,10 @@ has key => (
 sub as_string {
 	my $self = shift;
 
-	my $id = 'RK_' . $self->get_id();
+	my $id;
+	if ($self->get_id()) {
+		$id = 'RK_' . $self->get_id();
+	}
 
 	# Print tag.
 	my $answer;
