@@ -25,11 +25,11 @@ foreach my $MODULE ( @MODULES ) {
 
 # To make this a todo test, remove the comments below, and the spaces
 # between TO and DO in the next two lines.
-#TO DO: {
-#	local $TO DO = 'All modules are going to be fixed.';
+TODO: {
+	local $TODO = 'All modules are going to be fixed.';
 
 	run_tests(
 		match    => 'TO' . 'DO',                # what to check for
 	);
-#}
+}
 

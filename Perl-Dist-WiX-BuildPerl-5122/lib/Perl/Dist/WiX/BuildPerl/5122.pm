@@ -70,8 +70,8 @@ around '_install_perl_plugin' => sub {
 
 	# Install perl.
 	my $perl = Perl::Dist::WiX::Asset::Perl->new(
-		parent    => $self,
-		url       => 'http://strawberryperl.com/package/perl-5.12.1.tar.bz2',
+		parent => $self,
+		url    => 'http://strawberryperl.com/package/perl-5.12.1.tar.bz2',
 		toolchain => $toolchain,
 		patch     => [ qw{
 			  lib/CPAN/Config.pm
@@ -99,13 +99,14 @@ around '_find_perl_file' => sub {
 	my $orig = shift;
 	my $self = shift;
 	my $file = shift;
-	
+
 	my $location = undef;
-	
-	$location = eval { 
-		File::ShareDir::module_file('Perl::Dist::WiX::BuildPerl::5122', "default/$file");
+
+	$location = eval {
+		File::ShareDir::module_file( 'Perl::Dist::WiX::BuildPerl::5122',
+			"default/$file" );
 	};
-	
+
 	if ($location) {
 		return $location;
 	} else {
@@ -118,32 +119,32 @@ around '_find_perl_file' => sub {
 has 'perl_version_literal' => (
 	is       => 'ro',
 	init_arg => undef,
-	default => '5.012002',
+	default  => '5.012002',
 );
 
 has 'perl_version_human' => (
 	is       => 'ro',
 	writer   => '_set_perl_version_human',
 	init_arg => undef,
-	default => '5.12.2',
+	default  => '5.12.2',
 );
 
 has '_perl_version_arrayref' => (
 	is       => 'ro',
 	init_arg => undef,
-	default => sub {[5, 12, 2]},
+	default  => sub { [ 5, 12, 2 ] },
 );
 
 has '_perl_bincompat_version_arrayref' => (
 	is       => 'ro',
 	init_arg => undef,
-	default => sub {[5, 12, 0]},
+	default  => sub { [ 5, 12, 0 ] },
 );
 
 has '_is_git_snapshot' => (
 	is       => 'ro',
 	init_arg => undef,
-	default => '',
+	default  => q{},
 );
 
 no Moose::Role;

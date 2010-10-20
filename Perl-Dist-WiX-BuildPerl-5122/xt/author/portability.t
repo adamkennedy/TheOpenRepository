@@ -17,6 +17,10 @@ my @MODULES = (
 
 # Load the testing modules
 use Test::More;
+
+plan( skip_all => "This module is non-portable - nothing to do about it." );
+exit(0);
+
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {
