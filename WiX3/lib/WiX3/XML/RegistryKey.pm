@@ -72,7 +72,7 @@ sub as_string {
 	my $self = shift;
 
 	my $id;
-	if ($self->get_id()) {
+	if ( $self->get_id() ) {
 		$id = 'RK_' . $self->get_id();
 	}
 

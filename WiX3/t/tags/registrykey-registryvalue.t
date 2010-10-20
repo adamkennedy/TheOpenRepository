@@ -29,7 +29,7 @@ my $rv_1 = WiX3::XML::RegistryValue->new(id => 'Test', key => 'TestKey', action 
 ok( $rv_1, 'RegistryValue->new returns true' );
 
 my $test4_output = $rv_1->as_string();
-my $test4_string = "<RegistryValue Id='RV_Test' Key='TestKey' Action='write' KeyPath='no' Type='integer'>1</RegistryValue>\n";
+my $test4_string = "<RegistryValue Id='RV_Test' Key='TestKey' Action='write' Type='integer' Value='1' />\n";
 
 is( $test4_output, $test4_string, 'RegistryValue stringifies correctly.' );
 
@@ -38,6 +38,6 @@ $rk_1->add_child_tag($rv_1);
 my $test5_output = $rk_1->as_string();
 is( $test5_output, <<'TEST5_STRING', 'RegistryKey stringifies correctly when it has a child.' );
 <RegistryKey Id='RK_Test' Root='HKCU' Key='SOFTWARE' Action='none'>
-    <RegistryValue Id='RV_Test' Key='TestKey' Action='write' KeyPath='no' Type='integer'>1</RegistryValue>
+    <RegistryValue Id='RV_Test' Key='TestKey' Action='write' Type='integer' Value='1' />
 </RegistryKey>
 TEST5_STRING

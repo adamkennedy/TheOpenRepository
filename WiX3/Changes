@@ -1,5 +1,8 @@
 Revision history for WiX3
 
+0.010002  Tue 19 Oct 2010
+       - Allow parameters to be undefined in more places.
+
 0.010001  Sat 02 Oct 2010
        - Updating module requirements because of RT #61001.
 

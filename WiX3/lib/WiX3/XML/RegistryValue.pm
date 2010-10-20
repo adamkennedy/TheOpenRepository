@@ -61,11 +61,12 @@ has action => (
 );
 
 has key_path => (
-	is      => 'ro',
-	isa     => YesNoType | Undef,
-	reader  => '_get_key_path',
+	is     => 'ro',
+	isa    => YesNoType | Undef,
+	reader => '_get_key_path',
+
 #	default => 'no',
-	coerce  => 1,
+	coerce => 1,
 );
 
 has type => (
