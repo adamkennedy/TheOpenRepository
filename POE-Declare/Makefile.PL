@@ -8,7 +8,7 @@ requires      IO::File            1.14
 requires      Class::Inspector    1.22
 requires      Class::ISA          0.33
 requires      Class::XSAccessor   1.05
-requires      POE                 1.003
+requires      POE                 1.280
 test_requires Test::More          0.80
 test_requires Test::Exception     0.27
 test_requires Test::NoWarnings    0.084

@@ -65,7 +65,7 @@ SCOPE: {
 
 	sub shutdown : Event {
 		order(5, 'Test1.shutdown');
-		$_[SELF]->call('_alias_remove');
+		$_[SELF]->finish;
 		$_[SELF]->EventThree('done');
 	}
 

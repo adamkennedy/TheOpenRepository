@@ -8,7 +8,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 9;
+use Test::More tests => 8;
 # Disabled for now due to POE::Peek::API throwing warnings.
 # use Test::NoWarnings;
 use POE;
@@ -49,19 +49,16 @@ SCOPE: {
 	}
 
 	sub say : Event {
-		order( 3, 'Fired Foo::say' );
+		order( 2, 'Fired Foo::say' );
+		$_[SELF]->finish;
 	}
 
 	sub _stop : Event {
-		order( 6, 'Fired Foo::_stop' );
+		order( 3, 'Fired Foo::_stop' );
 		$_[0]->SUPER::_stop(@_[1..$#_]);
 	}
 
-	sub _alias_set : Event {
-		order( 1, 'Fired Foo::_alias_set' );
-		$_[0]->SUPER::_alias_set(@_[1..$#_]);
-	}
-
+	# Should never be called
 	sub _alias_remove : Event {
 		order( -1, 'Fired Foo::_alias_remove' );
 		$_[0]->SUPER::_alias_remove(@_[1..$#_]);
@@ -92,7 +89,7 @@ POE::Session->create(
 );
 
 sub _start {
-	order( 2, 'Fired main::_start' );
+	order( 1, 'Fired main::_start' );
 	$_[KERNEL]->delay_set( timeout => 0.5 );
 }
 

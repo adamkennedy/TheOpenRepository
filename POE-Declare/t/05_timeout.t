@@ -10,7 +10,7 @@ BEGIN {
 	$|  = 1;
 }
 
-use Test::More tests => 16;
+use Test::More tests => 14;
 # Disabled for now due to POE::Peek::API throwing warnings.
 # use Test::NoWarnings;
 use POE;
@@ -55,18 +55,18 @@ SCOPE: {
 	}
 
 	sub started : Event {
-		order( 3, 'Fired Foo::started' );
+		order( 2, 'Fired Foo::started' );
 		$_[SELF]->timer1_start;
 		$_[SELF]->timer1_start;
 		$_[SELF]->timer1_restart;
 	}
 
 	sub timer1 : Timeout(1) {
-		order( 4, 'Fired Foo::timer1' );
+		order( 3, 'Fired Foo::timer1' );
 		$_[SELF]->timer1_stop;
 		$_[SELF]->timer2_stop;
 		$_[SELF]->timer2_restart;
-		$_[SELF]->call('_finish');
+		$_[SELF]->finish;
 	}
 
 	sub timer2 : Timeout(2) {
@@ -75,18 +75,8 @@ SCOPE: {
 	}
 
 	sub _stop : Event {
-		order( 6, 'Fired Foo::_stop' );
+		order( 4, 'Fired Foo::_stop' );
 		$_[0]->SUPER::_stop(@_[1..$#_]);
-	}
-
-	sub _alias_set : Event {
-		order( 1, 'Fired Foo::_alias_set' );
-		$_[0]->SUPER::_alias_set(@_[1..$#_]);
-	}
-
-	sub _finish : Event {
-		order( 5, 'Fired Foo::_finish' );
-		$_[0]->SUPER::_finish(@_[1..$#_]);
 	}
 
 	compile;
@@ -99,9 +89,6 @@ ok( Foo->can('timer1_stop'),    '->timer ok' );
 is_deeply(
 	[ Foo->meta->_package_states ],
 	[ qw{
-		_alias_remove
-		_alias_set
-		_finish
 		_start
 		_stop
 		started
@@ -133,16 +120,16 @@ POE::Session->create(
 );
 
 sub _start {
-	order( 2, 'Fired main::_start' );
+	order( 1, 'Fired main::_start' );
 	$_[KERNEL]->delay_set( timeout => 2 );
 }
 
 sub _stop {
-	order( 8, 'Fired main::_stop' );
+	order( 6, 'Fired main::_stop' );
 }
 
 sub timeout {
-	order( 7, 'Fired main::timeout' );
+	order( 5, 'Fired main::timeout' );
 }
 
 POE::Kernel->run;

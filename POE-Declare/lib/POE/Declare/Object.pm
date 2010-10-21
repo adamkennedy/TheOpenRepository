@@ -31,7 +31,7 @@ use POE::Declare ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.26';
+	$VERSION = '0.50';
 }
 
 # Inside-out storage of internal values
@@ -602,7 +602,7 @@ The following POE events are provided for all classes
 
 The default C<_start> implementation is used to register the alias for
 the heap object with the kernel. As such, if you need to do your own
-tasks in C<_start> you should always call it first.
+tasks in C<_start> you MUST call it first.
 
   sub _start {
       my $self = $_[HEAP];
@@ -619,16 +619,32 @@ after the SUPER call.
 =cut
 
 sub _start : Event {
+	# Set the session alias in the POE kernel.
+	# Check to see if there is an accidental clash between
+	# this session's desired alias and any existing alias.
+	my $alias = $_[HEAP]->Alias;
+	if ( defined $poe_kernel->alias_resolve($alias) ) {
+		die("Fatal alias name clash, '$alias' already in use");
+	}
+	if ( $poe_kernel->alias_set($alias) ) {
+		# Failed to set alias
+		die("Failed to set alias '$alias'");
+	}
+
+	# Register our session id with the session index
 	$ID{Scalar::Util::refaddr($_[HEAP])} = $_[SESSION]->ID;
 
-	# Cheaper to do this blind detach rather than testing first to
-	# make sure we have a session as a parent.
+	# Because POE::Declare maintains its own session start/stop
+	# management, the default POE parent/child feature will just
+	# get in the way.
+	# For each created session, ensure it will never have a parent
+	# in the eyes of the POE::Kernel.
 	SCOPE: {
 		local $!; 
 		$poe_kernel->detach_myself;
 	}
 
-	$poe_kernel->call( $_[SESSION], '_alias_set');
+	return;
 }
 
 =pod
@@ -646,7 +662,7 @@ SUPER last.
       # Additional tasks here
       ...
   
-      shift->SUPER::_stop(@_);
+      $_[0]->SUPER::_stop(@_[1..$#_]);
   }
 
 =cut
@@ -657,100 +673,45 @@ sub _stop : Event {
 
 =pod
 
-=head2 _alias_set
+=head2 finish
 
-During the period in which a L<POE::Declare> object is active, it will
-register an alias with the L<POE> kernel (so that the session will not be
-cleaned up if it has no queued events of it's own and it only waiting for
-other sessions to send it a message).
-
-The C<_alias_set> method (which takes no parameters) will set the alias
-for the current object. This will be done automatically for you during
-the C<spawn> process (in the C<_start> event).
-
-=cut
-
-sub _alias_set : Event {
-	### This will fail if sessions have clashing aliases
-	my $alias = $_[HEAP]->Alias;
-	unless ( defined $poe_kernel->alias_resolve($alias) ) {
-		if ( $poe_kernel->alias_set($alias) ) {
-			# Failed to set alias
-			Carp::croak("Failed to set alias '$alias'");
-		}
-	}
-}
-
-=pod
-
-=head2 _alias_remove
-
-Each L<POE::Declare> object has a POE session and a unique alias, which is
-registered with the POE core when it is spawned.
-
-Even if no events, timers, callbacks or handles are registered for the
-session, the existance of the alias will keep the session alive.
-
-The C<_alias_remove> event is used to trigger the stopping of the session
-as soon as all currently live events have been cleared.
-
-This method is usually called at the beginning of a shutdown process, to
-indicate that the session is no longer permanent and should shutdown when
-possible.
-
-=cut
-
-sub _alias_remove : Event {
-	my $self    = $_[HEAP];
-	my $alias   = $self->Alias;
-	my $session = $poe_kernel->alias_resolve($alias);
-	my $poe_id  = $session->ID;
-	my $self_id = $ID{Scalar::Util::refaddr($self)};
-	unless ( defined $poe_id and defined $self_id ) {
-		return;
-	}
-	unless ( $poe_id == $self_id ) {
-		Carp::croak("Session id mismatch error");
-	}
-	$poe_kernel->alias_remove($alias);
-}
-
-=pod
-
-=head2 _finish
-
-The C<_finish> event is a convenience provided to simplify the process of
-shutting down an object/session.
+The C<finish> method is a convenience provided to simplify the process of
+shutting down the current object/session.
 
 It will automatically clean up as many things as possible from your
-session.
+session, leaving it in a state where the session will shut down as
+soon as the final outstanding event is processed.
 
-Currently, this consists of removing any pending alarms and removing the
-session alias.
+Currently, this consists of removing any pending alarms and removing
+the session alias.
 
 =cut
 
-sub _finish : Event {
-	my $self = $_[HEAP];
+sub finish {
+	my $self = shift;
+
+	# Check we are in the correct session
+	my $alias      = $self->Alias;
+	my $session    = $poe_kernel->alias_resolve($alias);
+	my $current    = $poe_kernel->get_active_session;
+	my $session_id = $session->ID;
+	my $current_id = $current->ID;
+	unless ( $session_id == $current_id ) {
+		Carp::croak("Called 'finish' for $alias from a different session");
+	}
 
 	# Remove all timers
 	$poe_kernel->alarm_remove_all;
-	foreach ( $self->meta->_timeouts ) {
-		delete $self->{$_};
-	}	
 
 	# Remove the session alias.
-	# Cloned from _alias_remove to prevent another event invocation
-	my $alias   = $self->Alias;
-	my $session = $poe_kernel->alias_resolve($alias);
-	my $poe_id  = $session->ID;
 	my $self_id = $ID{Scalar::Util::refaddr($self)};
-	unless ( defined $poe_id and defined $self_id ) {
+	unless ( defined $session_id and defined $self_id ) {
 		return;
 	}
-	unless ( $poe_id == $self_id ) {
+	unless ( $session_id == $self_id ) {
 		Carp::croak("Session id mismatch error");
 	}
+
 	$poe_kernel->alias_remove($alias);
 }
 

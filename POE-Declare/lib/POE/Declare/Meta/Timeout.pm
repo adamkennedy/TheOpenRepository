@@ -46,7 +46,7 @@ use POE::Declare::Meta::Event ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.26';
+	$VERSION = '0.50';
 	@ISA     = 'POE::Declare::Meta::Event';
 }
 
@@ -68,66 +68,16 @@ sub _compile {
 	my $delay = $_[0]->{delay};
 	return <<"END_PERL";
 sub ${name}_start {
-	my \$self = (\@_ == 1) ? \$_[0] : \$_[HEAP];
-	if ( \$self->{$name} ) {
-		# Clear the time if it exists
-		\$poe_kernel->alarm_remove(
-			delete \$self->{$name}
-		);
-	}
-	my \$timer = \$poe_kernel->delay_set(
-		$name => $delay
-	);
-	if ( \$timer ) {
-		\$self->{$name} = \$timer;
-		return 1;
-	}
-
-	# Invalid timer creation
-	die('${name}_start provided invalid params to delay_set');	
+	\$poe_kernel->delay( '$name' => $delay ) or return;
+	die("Failed to create timeout for event '$name'");
 }
 
-sub ${name}_restart {
-	my \$self = (\@_ == 1) ? \$_[0] : \$_[HEAP];
-	if ( \$self->{$name} ) {
-		# Have an existing timer id, try to reset it
-		my \$rv = \$poe_kernel->delay_adjust(
-			$name => $delay
-		);
-		return 1 if \$rv;
-		if ( \$! == Errno::ESRCH ) {
-			# Previous keepalive expired and dispatched
-			delete \$self->{$name};
-		} elsif ( \$! == Errno::EPERM ) {
-			# Set in wrong context
-			Carp::croak('Tried to reset $name timeout in bad context');
-		} else {
-			# Something else
-			die('${name}_restart provided invalid params to delay_adjust');
-		}
-	}
-
-	# No existing timer, create a new one
-	my \$timer = \$poe_kernel->delay_set(
-		$name => $delay
-	);
-	if ( \$timer ) {
-		# Timer was set correctly
-		\$self->{$name} = \$timer;
-		return;
-	}
-
-	# Invalid timer creation
-	die('${name}_keepalive provided invalid params to delay_set');
-}
+*${name}_restart = *${name}_start;
 
 sub ${name}_stop {
 	my \$self  = (\@_ == 1) ? \$_[0] : \$_[HEAP];
-	my \$timer = \$self->{$name} or return;
-	\$poe_kernel->alarm_remove(
-		delete \$self->{$name}
-	);
-	return 1;
+	\$poe_kernel->delay( '$name' ) or return;
+	die("Failed to create timeout for event '$name'");
 }
 END_PERL
 }

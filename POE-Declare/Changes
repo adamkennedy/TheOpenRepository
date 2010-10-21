@@ -1,5 +1,26 @@
 Revision history for Perl extension POE-Declare
 
+0.50 Thu 21 Oct 2010
+	- Major upgrade, not backward compatible in all cases.
+	- Bumped the POE dependency as I am struggling to test against
+	  older ones.
+	- Timeout events are now implemented using POE named timers
+	  rather than numbered timers. The implementation is much
+	  closer to POE's prefered usage, and results in significantly
+	  less code in 80% less code in generated timeout code.
+	- Added the new method ->finish, which will clear all timers
+	  and remove the session alias. It should be called when you
+	  are ready for your session to be shut down.
+	  The finish method MUST be called while in the session you
+	  are calling it on. Removed the _finish event.
+	- Removed the _alias_set and _alias_remove events. With the
+	  introduction of the finish method, we fully control all
+	  the places where the session alias needs to be created and
+	  removed. Direct user access to this is now unneeded and
+	  likely to be a source of bugs.
+	- Any code previously using _alias_remove directly to do their
+	  equivalent of what the finish method now does will break.
+
 0.26 Mon 19 Jul 2010
 	- Updating to Module::Install 1.00
 	- Added _finish event which clears all timeouts and removes the

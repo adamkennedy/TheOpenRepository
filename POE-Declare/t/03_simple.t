@@ -9,7 +9,7 @@ BEGIN {
 	# $POE::Declare::Meta::DEBUG = 1;
 }
 
-use Test::More tests => 59;
+use Test::More tests => 57;
 use Test::NoWarnings;
 use Test::Exception;
 
@@ -125,13 +125,11 @@ SCOPE: {
 	# Check for the base attributes
 	isa_ok( $meta->attr('_start'),        'POE::Declare::Meta::Event' );
 	isa_ok( $meta->attr('_stop'),         'POE::Declare::Meta::Event' );
-	isa_ok( $meta->attr('_alias_set'),    'POE::Declare::Meta::Event' );
-	isa_ok( $meta->attr('_alias_remove'), 'POE::Declare::Meta::Event' );
 
 	# Check the package_states method
 	is_deeply(
 		[ $meta->_package_states ],
-		[ '_alias_remove', '_alias_set', '_finish', '_start', '_stop', 'findme', 'to' ],
+		[ '_start', '_stop', 'findme', 'to' ],
 		'->_package_states returns as expected',
 	);
 
