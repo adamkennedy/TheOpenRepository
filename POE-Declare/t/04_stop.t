@@ -58,12 +58,6 @@ SCOPE: {
 		$_[0]->SUPER::_stop(@_[1..$#_]);
 	}
 
-	# Should never be called
-	sub _alias_remove : Event {
-		order( -1, 'Fired Foo::_alias_remove' );
-		$_[0]->SUPER::_alias_remove(@_[1..$#_]);
-	}
-
 	compile;
 }
 

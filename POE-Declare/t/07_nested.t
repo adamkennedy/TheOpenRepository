@@ -15,7 +15,7 @@ use Test::POE::Stopping;
 
 BEGIN {
 	no warnings;
-	#$POE::Debug::DEBUG = 1;
+	$POE::Debug::DEBUG = 1;
 }
 
 # Test event firing order
@@ -82,7 +82,7 @@ CLASS: {
 		order(13, 'Test1.child_shutdown');
 		is_deeply( $_[ARG0], [ 12 ], 'Test2.1 child_shutdown param ok' );
 		is_deeply( $_[ARG1], [ 'Test2.1' ], 'Test2.1 child_shutdown alias ok' );
-		$_[SELF]->call('_alias_remove');
+		$_[SELF]->finish;
 		$_[SELF]->Stopped;
 	}
 
@@ -160,7 +160,7 @@ CLASS: {
 
 	sub shutdown : Event {
 		order(12, 'Test2.shutdown');
-		$_[SELF]->call('_alias_remove');
+		$_[SELF]->finish;
 		$_[SELF]->Stopped;
 		foreach ( $_[SELF]->meta->_params ) {
 			delete $_[SELF]->{$_};
