@@ -72,7 +72,7 @@ perl 5.10.1.
 
 
 around '_install_perl_plugin' => sub {
-	shift; # We don't need the original.
+	shift;                             # We don't need the original.
 	my $self = shift;
 
 	# Check for an error in the object.
@@ -110,11 +110,11 @@ around '_install_perl_plugin' => sub {
 	$self->_set_bin_perl( $self->file(qw/perl bin perl.exe/) );
 
 	# Create the site/bin path so we can add it to the PATH.
-	$self->make_path( $self->dir( qw(perl site bin) ) );
+	$self->make_path( $self->dir(qw(perl site bin)) );
 
 	# Add to the environment variables
-	$self->add_path( qw(perl site bin) );
-	$self->add_path( qw(perl bin) );
+	$self->add_path(qw(perl site bin));
+	$self->add_path(qw(perl bin));
 
 	return 1;
 }; ## end sub install_perl_plugin
@@ -125,13 +125,14 @@ around '_find_perl_file' => sub {
 	my $orig = shift;
 	my $self = shift;
 	my $file = shift;
-	
+
 	my $location = undef;
 
-	$location = eval { 
-		File::ShareDir::module_file('Perl::Dist::Strawberry::BuildPerl::5101', $file);
+	$location = eval {
+		File::ShareDir::module_file(
+			'Perl::Dist::Strawberry::BuildPerl::5101', $file );
 	};
-	
+
 	if ($location) {
 		return $location;
 	} else {
