@@ -45,7 +45,7 @@ build Perl itself.
 	# See Perl::Dist::WiX::BuildPerl::PluginInterface for more information.
 
 =cut
-	
+
 use 5.010;
 use Moose::Role;
 use Perl::Dist::WiX::Asset::Perl qw();
@@ -92,11 +92,11 @@ around '_install_perl_plugin' => sub {
 	$self->_set_bin_perl( $self->file(qw/perl bin perl.exe/) );
 
 	# Create the site/bin path so we can add it to the PATH.
-	$self->make_path( $self->dir( qw(perl site bin) ) );
+	$self->make_path( $self->dir(qw(perl site bin)) );
 
 	# Add to the environment variables
-	$self->add_path( qw(perl site bin) );
-	$self->add_path( qw(perl bin) );
+	$self->add_path(qw(perl site bin));
+	$self->add_path(qw(perl bin));
 
 	return 1;
 }; ## end sub install_perl_plugin
@@ -107,24 +107,26 @@ around '_find_perl_file' => sub {
 	my $orig = shift;
 	my $self = shift;
 	my $file = shift;
-	
+
 	my $location = undef;
 
 	# Allow portability overrides if required.
-	if ($self->portable()) {
-		$location = eval { 
-			File::ShareDir::module_file('Perl::Dist::WiX::BuildPerl::5101', "portable/$file");
+	if ( $self->portable() ) {
+		$location = eval {
+			File::ShareDir::module_file( 'Perl::Dist::WiX::BuildPerl::5101',
+				"portable/$file" );
 		};
-		
+
 		if ($location) {
 			return $location;
 		}
 	}
-	
-	$location = eval { 
-		File::ShareDir::module_file('Perl::Dist::WiX::BuildPerl::5101', "default/$file");
+
+	$location = eval {
+		File::ShareDir::module_file( 'Perl::Dist::WiX::BuildPerl::5101',
+			"default/$file" );
 	};
-	
+
 	if ($location) {
 		return $location;
 	} else {
@@ -137,32 +139,32 @@ around '_find_perl_file' => sub {
 has 'perl_version_literal' => (
 	is       => 'ro',
 	init_arg => undef,
-	default => '5.010001',
+	default  => '5.010001',
 );
 
 has 'perl_version_human' => (
 	is       => 'ro',
 	writer   => '_set_perl_version_human',
 	init_arg => undef,
-	default => '5.10.1',
+	default  => '5.10.1',
 );
 
 has '_perl_version_arrayref' => (
 	is       => 'ro',
 	init_arg => undef,
-	default => sub {[5, 10, 1]},
+	default  => sub { [ 5, 10, 1 ] },
 );
 
 has '_perl_bincompat_version_arrayref' => (
 	is       => 'ro',
 	init_arg => undef,
-	default => sub {[5, 10, 0]},
+	default  => sub { [ 5, 10, 0 ] },
 );
 
 has '_is_git_snapshot' => (
 	is       => 'ro',
 	init_arg => undef,
-	default => '',
+	default  => q{},
 );
 
 no Moose::Role;
