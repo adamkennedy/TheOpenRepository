@@ -72,7 +72,7 @@ perl 5.12.2.
 
 
 around '_install_perl_plugin' => sub {
-	shift; # We don't need the original.
+	shift;                             # We don't need the original.
 	my $self = shift;
 
 	# Check for an error in the object.
@@ -85,8 +85,8 @@ around '_install_perl_plugin' => sub {
 
 	# Install perl.
 	my $perl = Perl::Dist::WiX::Asset::Perl->new(
-		parent    => $self,
-		url       => 'http://strawberryperl.com/package/perl-5.12.2.tar.bz2',
+		parent => $self,
+		url    => 'http://strawberryperl.com/package/perl-5.12.2.tar.bz2',
 		toolchain => $toolchain,
 		patch     => [ qw{
 			  lib/CPAN/Config.pm
@@ -115,13 +115,14 @@ around '_find_perl_file' => sub {
 	my $orig = shift;
 	my $self = shift;
 	my $file = shift;
-	
+
 	my $location = undef;
-	
-	$location = eval { 
-		File::ShareDir::module_file('Perl::Dist::Strawberry::BuildPerl::5122', $file);
+
+	$location = eval {
+		File::ShareDir::module_file(
+			'Perl::Dist::Strawberry::BuildPerl::5122', $file );
 	};
-	
+
 	if ($location) {
 		return $location;
 	} else {

@@ -27,7 +27,7 @@ foreach my $MODULE ( @MODULES ) {
 }
 
 my @modules = all_modules();
-my @modules_to_test = sort { $a cmp $b } @modules;
+my @modules_to_test = sort { $a cmp $b } grep { ! /win32/ } @modules;
 my $test_count = scalar @modules_to_test;
 plan tests => $test_count;
 

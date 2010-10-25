@@ -12,10 +12,7 @@ functions = :builtins
 exclude_functions = print
 
 [Modules::PerlMinimumVersion]
-version = 5.008001
-
-[ValuesAndExpressions::ProhibitMagicNumbers]
-allowed_values = -1 0 1 2
+version = 5.010
 
 # Excluded because Moose builder subroutines get hit by this.
 [Subroutines::ProhibitUnusedPrivateSubroutines]
@@ -35,3 +32,5 @@ private_name_regex = _(?!build_)\w+
 # No Emacs!
 [-Editor::RequireEmacsFileVariables]
 
+# We're referring to Perl versions with numbers such as 5 and 12.
+[-ValuesAndExpressions::ProhibitMagicNumbers]
