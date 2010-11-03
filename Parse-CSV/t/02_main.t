@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 # Compile testing for Parse::CSV
 
@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 49;
+use Test::More tests => 52;
 use Parse::CSV;
 
 my $readfile = catfile( 't', 'data', 'simple.csv' );
@@ -71,12 +71,19 @@ SCOPE: {
 	is( $csv->row,    1,  '->row returns 1' );
 	is( $csv->errstr, '', '->errstr returns ""' );
 
+	is_deeply( [$csv->fields],[ qw{a b c d e} ],'->fields() before first line and after open $csv returns as expected');
+
 	# Get the first line
 	my $fetch1 = $csv->fetch;
 	is_deeply( $fetch1, { a => 'this', b => 'is', c => 'also', d => 'a', e => 'sample' },
 		'->fetch returns as expected' );
 	is( $csv->row,    2,  '->row returns 2' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+
+	my $line=$csv->string; 
+	chomp($line);  # $csv->string has linefeed
+	is( $line,"this,is,also,a,sample",'->string() works');
+	is_deeply( [$csv->fields],[ qw{this is also a sample} ],'->fields() after first line returns as expected');
 
 	# Get the second line
 	my $fetch2 = $csv->fetch;	

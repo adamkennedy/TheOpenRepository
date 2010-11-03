@@ -1,5 +1,15 @@
 Revision history for Perl extension Parse::CSV
 
+1.01 Sun 29 Aug  2010
+	- adding new method:
+		- "fields" is a method of Text::CSV_XS (bug #31389 fields() method
+	- Pod-fixes 
+		- Bug #51692
+		- some replacements of "CVS" with "CSV" (bug #51081)
+	- adding tests
+		- method fields 
+		- method string
+
 1.01 Sat 10 May 2008
 	- Methods combine/string/print were infinite looping, fixed
 	- Big CSV_XS dependency increase, *substantial* numbers of

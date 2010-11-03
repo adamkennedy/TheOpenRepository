@@ -4,7 +4,7 @@ package Parse::CSV;
 
 =head1 NAME
 
-Parse::CSV - Highly flexible CVS parser for large files
+Parse::CSV - Highly flexible CSV parser for large files
 
 =head1 SYNOPSIS
 
@@ -363,7 +363,7 @@ The C<row> method returns the current row of the CSV file.
 
 This is a one-based count, so when you first create the parser,
 the value of C<row> will be zero (unless you are using
-C<fields => 'auto'> in which case it will be 1).
+C<< fields => 'auto' >> in which case it will be 1).
 
 =cut
 
@@ -390,7 +390,7 @@ sub combine {
 
 =head2 string
 
-  $line = $cvs->string;
+  $line = $csv->string;
 
 The C<string> method is provided as a convenience, and is passed through
 to the underlying L<Text::CSV_XS> object.
@@ -405,7 +405,7 @@ sub string {
 
 =head2 print
 
-  $status = $cvs->print($io, $columns);
+  $status = $csv->print($io, $columns);
 
 The C<print> method is provided as a convenience, and is passed through
 to the underlying L<Text::CSV_XS> object.
@@ -414,6 +414,21 @@ to the underlying L<Text::CSV_XS> object.
 
 sub print {
 	shift->{csv_xs}->print(@_);
+}
+
+=pod
+
+=head2 fields
+
+  @fields = $csv->fields;
+
+The C<fields> method is provided as a convenience, and is passed through
+to the underlying L<Text::CSV_XS> object. It shows the actual row as an array.
+
+=cut
+
+sub fields {
+	shift->{csv_xs}->fields;
 }
 
 =pod
@@ -436,7 +451,7 @@ sub errstr {
 
 =head1 SUPPORT
 
-Bugs should be always be reported via the CPAN bug tracker at
+Bugs should always be reported via the CPAN bug tracker at
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Parse-CSV>
 
@@ -445,6 +460,10 @@ For other issues, or commercial enhancement or support, contact the author.
 =head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 CONTRIBUTORS
+
+Uwe Sarnowski E<lt>uwes@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
