@@ -97,7 +97,7 @@
 [% END %]
     </InstallExecuteSequence>
 
-[%- IF dist.msi_debug -%]
+[%- IF dist.msi_debug %]
   [%- IF 64 == dist.bits -%]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\debug_dll\x64\ClearFolderCA.dll' />
   [%- ELSE -%]
@@ -109,7 +109,7 @@
   [%- ELSE -%]
     <Binary Id='B_ClearFolder' SourceFile='[% dist.wix_dist_dir %]\ClearFolderCA.dll' />
   [%- END -%]
-[%- END -%]
+[%- END %]
     <UI>
    	  <ProgressText Action="CA_ClearSiteFolder">Preparing the site folder for cleaning... (please wait a while)</ProgressText>
     </UI>
@@ -126,6 +126,8 @@
 	</InstallUISequence>
 	
 	[% IF dist.use_dll_relocation %]
+	<CustomAction Id="CA_Location_Perl" Property="P_Perl_Location"
+				  Value="&quot;[#[% dist.fileid_perl %].[% dist.msm_package_id_property %]]&quot;" Execute="immediate"/>
 	<CustomAction Id="CA_NoRelocate" Property="NO_RELOCATE.[% dist.msm_package_id_property %]"
 				  Value="[NO_RELOCATE]" Execute="immediate"/>
 	<CustomAction Id="CA_FileList" Property="CA_Relocate"
@@ -134,7 +136,8 @@
 
 	<InstallExecuteSequence>
 		<Custom Action="CA_SetARPInstallLoc" Before="RegisterProduct" />
-		<Custom Action="CA_NoRelocate" After="CostFinalize"/>
+		<Custom Action="CA_Location_Perl" After="CostFinalize"/>
+		<Custom Action="CA_NoRelocate" After="CA_Location_Perl"/>
 		<Custom Action="CA_FileList" After="InstallFiles"/>	
 		<Custom Action="CA_Relocate" After="CA_FileList">
 			<![CDATA[NOT (NO_RELOCATE OR Installed)]]>
@@ -143,12 +146,12 @@
 	<Property Id="RELOCFILE" Secure="yes"/>
 	<Property Id="RELOCFILE.[% dist.msm_package_id_property %]" Secure="yes"/>
 	[% ELSE %]
-	<CustomAction Id="CA_Rlc_1" Property="P_Rlc_1"
+	<CustomAction Id="CA_Location_Perl" Property="P_Perl_Location"
 				  Value="&quot;[#[% dist.fileid_perl %].[% dist.msm_package_id_property %]]&quot;" Execute="immediate"/>
 	<CustomAction Id="CA_Rlc_2" Property="P_Rlc_2"
-				  Value="[#[% dist.fileid_relocation_pl %].[% dist.msm_package_id_property %]]" Execute="immediate"/>
+				  Value="[#[% fileid_relocation_pl_h %].[% dist.msm_package_id_property %]]" Execute="immediate"/>
 	<CustomAction Id="CA_Rlc_3" Property="P_Rlc_3"
-				  Value="[P_Rlc_1] [P_Rlc_2] --location [INSTALLDIR] --quiet" Execute="immediate"/>
+				  Value="[P_Location_Perl] [P_Rlc_2] --location [INSTALLDIR] --quiet" Execute="immediate"/>
 	<CustomAction Id="CA_Rlc_4" Property="P_Rlc_4"
 				  Value="[% dist.msi_relocation_commandline %]" Execute="immediate"/>
 	<CustomAction Id="CA_NoRelocate" Property="NO_RELOCATE.[% dist.msm_package_id_property %]"
@@ -160,8 +163,8 @@
 
 	<InstallExecuteSequence>
  		<Custom Action="CA_SetARPInstallLoc" Before="RegisterProduct" />
-		<Custom Action="CA_Rlc_1" After="CostFinalize"/>
-		<Custom Action="CA_Rlc_2" After="CA_Rlc_1"/>
+		<Custom Action="CA_Location_Perl" After="CostFinalize"/>
+		<Custom Action="CA_Rlc_2" After="CA_Location_Perl"/>
 		<Custom Action="CA_Rlc_3" After="CA_Rlc_2"/>
 		<Custom Action="CA_Rlc_4" After="CA_Rlc_3"/>
 		<Custom Action="CA_NoRelocate" After="CA_Rlc_4"/>		
@@ -178,73 +181,8 @@
 
     <CustomAction Id='CA_CheckForSpaces' BinaryKey='B_ClearFolder' DllEntry='CheckForSpaces' />
 	<UI Id="WixUI_MyInstallDir">
-		<TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
-		<TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
-		<TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+[% INSERT UI_MyInstallDir.wxs.fragment %]
 
-		<Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
-		<Property Id="WixUI_Mode" Value="InstallDir" />
-
-		<DialogRef Id="BrowseDlg" />
-		<DialogRef Id="DiskCostDlg" />
-		<DialogRef Id="ErrorDlg" />
-		<DialogRef Id="FatalError" />
-		<DialogRef Id="FilesInUse" />
-		<DialogRef Id="MsiRMFilesInUse" />
-		<DialogRef Id="PrepareDlg" />
-		<DialogRef Id="ProgressDlg" />
-		<DialogRef Id="ResumeDlg" />
-		<DialogRef Id="UserExit" />
-            
-		<Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath" Order="3">1</Publish>
-		<Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="4"><![CDATA[WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
-
-		<Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
-
-		<Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
-
-		<Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
-		<Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="D_MyInstallDirDlg">LicenseAccepted = "1"</Publish>
-
-		<Publish Dialog="D_MyInstallDirDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
-		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
-		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">NOT WIXUI_DONTVALIDATEPATH</Publish>
-		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
-		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="DoAction" Value="CA_CheckForSpaces" Order="4">NOT WIXUI_DONTVALIDATEPATH</Publish>
-		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="SpawnDialog" Value="D_BadLocationDlg" Order="5"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
-		<Publish Dialog="D_MyInstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="6">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
-		<Publish Dialog="D_MyInstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
-		<Publish Dialog="D_MyInstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
-		
-		<Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="D_MyInstallDirDlg" Order="1">NOT Installed</Publish>
-		<Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed</Publish>
-
-		<Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
-
-		<Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
-		<Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
-		<Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
-
-		<Property Id="ARPNOMODIFY" Value="1" />
-	
-		<Dialog Id="D_MyInstallDirDlg" Width="370" Height="270" Title="!(loc.InstallDirDlg_Title)">
-			<Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
-			</Control>
-			<Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
-			<Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
-				<Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
-			</Control>
-
-			<Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.InstallDirDlgDescription)" />
-			<Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.InstallDirDlgTitle)" />
-			<Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
-			<Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
-			<Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
-
-			<Control Id="FolderLabel" Type="Text" X="20" Y="60" Width="290" Height="30" NoPrefix="yes" Text="!(loc.InstallDirDlgFolderLabel)" />
-			<Control Id="Folder" Type="PathEdit" X="20" Y="100" Width="320" Height="18" Property="WIXUI_INSTALLDIR" Indirect="yes" />
-			<Control Id="ChangeFolder" Type="PushButton" X="20" Y="120" Width="56" Height="17" Text="!(loc.InstallDirDlgChange)" />
-		</Dialog>
 		<Dialog Id="D_BadLocationDlg" Width="260" Height="85" Title="!(loc.InstallDirDlg_Title)" NoMinimize="yes">
 		  <Control Id="Return" Type="PushButton" X="100" Y="57" Width="56" Height="17" Default="yes" Cancel="yes" Text="&amp;Return">
 			<Publish Event="EndDialog" Value="Return">1</Publish>
@@ -255,144 +193,13 @@
 		</Dialog>
 	</UI>
 [% ELSE %]
+	<InstallExecuteSequence>
+		<Custom Action="CA_Location_Perl" After="CostFinalize"/>
+	</InstallExecuteSequence>
+	<CustomAction Id="CA_Location_Perl" Property="P_Perl_Location"
+				  Value="&quot;[#[% dist.fileid_perl %].[% dist.msm_package_id_property %]]&quot;" Execute="immediate"/>
     <UI Id="WixUI_MyInstall">
-		<TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
-		<TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
-		<TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
-
-		<Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
-		<Property Id="WixUI_Mode" Value="InstallDir" />
-
-		<DialogRef Id="BrowseDlg" />
-		<DialogRef Id="DiskCostDlg" />
-		<DialogRef Id="ErrorDlg" />
-		<DialogRef Id="FatalError" />
-		<DialogRef Id="FilesInUse" />
-		<DialogRef Id="MsiRMFilesInUse" />
-		<DialogRef Id="PrepareDlg" />
-		<DialogRef Id="ProgressDlg" />
-		<DialogRef Id="ResumeDlg" />
-		<DialogRef Id="UserExit" />
-            
-		<Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath" Order="3">1</Publish>
-		<Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="4"><![CDATA[WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
-
-		<Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
-
-		<Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
-
-		<Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
-		<Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="D_MyVerifyReadyDlg">LicenseAccepted = "1"</Publish>
-		
-		<Publish Dialog="D_MyVerifyReadyDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" Order="1">NOT Installed</Publish>
-		<Publish Dialog="D_MyVerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed</Publish>
-
-		<Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
-
-		<Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="D_MyVerifyReadyDlg">1</Publish>
-		<Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="D_MyVerifyReadyDlg">1</Publish>
-		<Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
-
-		<Property Id="ARPNOMODIFY" Value="1" />
-		
-		<Dialog Id="D_MyVerifyReadyDlg" Width="370" Height="270" Title="!(loc.VerifyReadyDlg_Title)" TrackDiskSpace="yes">
-			<Control Id="Install" Type="PushButton" ElevationShield="yes" X="212" Y="243" Width="80" Height="17" Default="yes" Hidden="yes" Disabled="yes" Text="!(loc.VerifyReadyDlgInstall)">
-				<Condition Action="show">NOT Installed AND ALLUSERS</Condition>
-				<Condition Action="enable">NOT Installed</Condition>
-				<Condition Action="default">NOT Installed</Condition>
-				<Publish Event="EndDialog" Value="Return"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="SpawnDialog" Value="OutOfRbDiskDlg">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST="P" OR NOT PROMPTROLLBACKCOST)</Publish>
-				<Publish Event="EndDialog" Value="Return">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="EnableRollback" Value="False">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="SpawnDialog" Value="OutOfDiskDlg">(OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST="F")</Publish>
-			</Control>
-			<Control Id="InstallNoShield" Type="PushButton" ElevationShield="no" X="212" Y="243" Width="80" Height="17" Default="yes" Hidden="yes" Disabled="yes" Text="!(loc.VerifyReadyDlgInstall)">
-				<Condition Action="show">NOT Installed AND NOT ALLUSERS</Condition>
-				<Condition Action="enable">NOT Installed</Condition>
-				<Condition Action="default">NOT Installed</Condition>
-				<Publish Event="EndDialog" Value="Return"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="SpawnDialog" Value="OutOfRbDiskDlg">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST="P" OR NOT PROMPTROLLBACKCOST)</Publish>
-				<Publish Event="EndDialog" Value="Return">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="EnableRollback" Value="False">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="SpawnDialog" Value="OutOfDiskDlg">(OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST="F")</Publish>
-			</Control>
-			<Control Id="Change" Type="PushButton" ElevationShield="yes" X="212" Y="243" Width="80" Height="17" Default="yes" Hidden="yes" Disabled="yes" Text="!(loc.VerifyReadyDlgChange)">
-				<Condition Action="show">WixUI_InstallMode = "Change" AND ALLUSERS AND (ADDLOCAL OR REMOVE)</Condition>
-				<Condition Action="enable">WixUI_InstallMode = "Change"</Condition>
-				<Condition Action="default">WixUI_InstallMode = "Change"</Condition>
-				<Publish Event="EndDialog" Value="Return"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="SpawnDialog" Value="OutOfRbDiskDlg">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST="P" OR NOT PROMPTROLLBACKCOST)</Publish>
-				<Publish Event="EndDialog" Value="Return">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="EnableRollback" Value="False">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="SpawnDialog" Value="OutOfDiskDlg">(OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST="F")</Publish>
-			</Control>
-			<Control Id="ChangeNoShield" Type="PushButton" ElevationShield="no" X="212" Y="243" Width="80" Height="17" Default="yes" Hidden="yes" Disabled="yes" Text="!(loc.VerifyReadyDlgChange)">
-				<Condition Action="show">WixUI_InstallMode = "Change" AND (NOT ALLUSERS OR (NOT ADDLOCAL AND NOT REMOVE))</Condition>
-				<Condition Action="enable">WixUI_InstallMode = "Change"</Condition>
-				<Condition Action="default">WixUI_InstallMode = "Change"</Condition>
-				<Publish Event="EndDialog" Value="Return"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="SpawnDialog" Value="OutOfRbDiskDlg">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST="P" OR NOT PROMPTROLLBACKCOST)</Publish>
-				<Publish Event="EndDialog" Value="Return">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="EnableRollback" Value="False">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="SpawnDialog" Value="OutOfDiskDlg">(OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST="F")</Publish>
-			</Control>
-			<Control Id="Repair" Type="PushButton" X="212" Y="243" Width="80" Height="17" Default="yes" Hidden="yes" Disabled="yes" Text="!(loc.VerifyReadyDlgRepair)">
-				<Condition Action="show">WixUI_InstallMode = "Repair"</Condition>
-				<Condition Action="enable">WixUI_InstallMode = "Repair"</Condition>
-				<Condition Action="default">WixUI_InstallMode = "Repair"</Condition>
-				<Publish Event="ReinstallMode" Value="ecmus"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="Reinstall" Value="All"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="EndDialog" Value="Return"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="SpawnDialog" Value="OutOfRbDiskDlg">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST="P" OR NOT PROMPTROLLBACKCOST)</Publish>
-				<Publish Event="EndDialog" Value="Return">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="EnableRollback" Value="False">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="SpawnDialog" Value="OutOfDiskDlg">(OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST="F")</Publish>
-			</Control>
-			<Control Id="Remove" Type="PushButton" ElevationShield="yes" X="212" Y="243" Width="80" Height="17" Hidden="yes" Disabled="yes" Text="!(loc.VerifyReadyDlgRemove)">
-				<Condition Action="show">WixUI_InstallMode = "Remove" AND ALLUSERS</Condition>
-				<Condition Action="enable">WixUI_InstallMode = "Remove"</Condition>
-				<Publish Event="Remove" Value="All"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="EndDialog" Value="Return"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="SpawnDialog" Value="OutOfRbDiskDlg">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST="P" OR NOT PROMPTROLLBACKCOST)</Publish>
-				<Publish Event="EndDialog" Value="Return">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="EnableRollback" Value="False">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="SpawnDialog" Value="OutOfDiskDlg">(OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST="F")</Publish>
-			</Control>
-			<Control Id="RemoveNoShield" Type="PushButton" ElevationShield="no" X="212" Y="243" Width="80" Height="17" Hidden="yes" Disabled="yes" Text="!(loc.VerifyReadyDlgRemove)">
-				<Condition Action="show">WixUI_InstallMode = "Remove" AND NOT ALLUSERS</Condition>
-				<Condition Action="enable">WixUI_InstallMode = "Remove"</Condition>
-				<Publish Event="Remove" Value="All"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="EndDialog" Value="Return"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
-				<Publish Event="SpawnDialog" Value="OutOfRbDiskDlg">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST="P" OR NOT PROMPTROLLBACKCOST)</Publish>
-				<Publish Event="EndDialog" Value="Return">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="EnableRollback" Value="False">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND PROMPTROLLBACKCOST="D"</Publish>
-				<Publish Event="SpawnDialog" Value="OutOfDiskDlg">(OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 1) OR (OutOfDiskSpace = 1 AND PROMPTROLLBACKCOST="F")</Publish>
-			</Control>
-
-			<Control Id="InstallTitle" Type="Text" X="15" Y="15" Width="300" Height="15" Transparent="yes" NoPrefix="yes" Hidden="yes" Text="!(loc.VerifyReadyDlgInstallTitle)">
-				<Condition Action="show">NOT Installed</Condition>
-			</Control>
-			<Control Id="InstallText" Type="Text" X="25" Y="70" Width="320" Height="80" Hidden="yes" Text="!(loc.VerifyReadyDlgInstallText)">
-				<Condition Action="show">NOT Installed</Condition>
-			</Control>
-			<Control Id="ChangeTitle" Type="Text" X="15" Y="15" Width="300" Height="15" Transparent="yes" NoPrefix="yes" Hidden="yes" Text="!(loc.VerifyReadyDlgChangeTitle)">
-				<Condition Action="show">WixUI_InstallMode = "Change"</Condition>
-			</Control>
-			<Control Id="ChangeText" Type="Text" X="25" Y="70" Width="320" Height="80" Hidden="yes" Text="!(loc.VerifyReadyDlgChangeText)">
-				<Condition Action="show">WixUI_InstallMode = "Change"</Condition>
-			</Control>
-			<Control Id="RepairTitle" Type="Text" X="15" Y="15" Width="300" Height="15" Transparent="yes" NoPrefix="yes" Hidden="yes" Text="!(loc.VerifyReadyDlgRepairTitle)">
-				<Condition Action="show">WixUI_InstallMode = "Repair"</Condition>
-			</Control>
-			<Control Id="RepairText" Type="Text" X="25" Y="70" Width="320" Height="80" Hidden="yes" NoPrefix="yes" Text="!(loc.VerifyReadyDlgRepairText)">
-				<Condition Action="show">WixUI_InstallMode = "Repair"</Condition>
-			</Control>
-			<Control Id="RemoveTitle" Type="Text" X="15" Y="15" Width="300" Height="15" Transparent="yes" NoPrefix="yes" Hidden="yes" Text="!(loc.VerifyReadyDlgRemoveTitle)">
-				<Condition Action="show">WixUI_InstallMode = "Remove"</Condition>
-			</Control>
-			<Control Id="RemoveText" Type="Text" X="25" Y="70" Width="320" Height="80" Hidden="yes" NoPrefix="yes" Text="!(loc.VerifyReadyDlgRemoveText)">
-				<Condition Action="show">WixUI_InstallMode = "Remove"</Condition>
-			</Control>
+[% INSERT UI_MyInstall.wxs.fragment %]
 
 			<Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
 				<Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
@@ -409,49 +216,16 @@
 		</Dialog>
 	</UI>
 [%- END -%]
-
-
-[% IF dist.relocatable %]
-	<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
-[%- END -%]
-[% IF dist.msi_feature_tree.defined %]
-    <Property Id='ARPNOMODIFY'>1</Property>
-[%- END -%]
-    <Property Id='ARPNOREPAIR'>1</Property>
-    <Property Id='MSIFASTINSTALL'>1</Property>
-    <!-- Property Id='MSIDEPLOYMENTCOMPLIANT'>1</Property -->
-	<Property Id='PerlModuleID'>[% dist.msm_package_id_property %]</Property>
-    <Property Id='ARPCOMMENTS'>[% dist.app_name %] [% dist.perl_version_human %]</Property>
-    <Property Id='ARPCONTACT'>[% dist.app_publisher %]</Property>
-    <Property Id='ARPURLINFOABOUT'>[% dist.app_publisher_url %]</Property>
-    <Property Id='WIXUI_EXITDIALOGOPTIONALTEXT'>[% dist.msi_exit_text %]</Property>
 [%- IF dist.msi_run_readme_txt -%]
-    <Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT'>Read README file.</Property>
-    <Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOX' Value="1" />
-    <Property Id="WixShellExecTarget" Value="[#[% dist.msi_fileid_readme_txt %]]" />
     <CustomAction Id="LaunchReadmeFile" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
     <UI>
       <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" 
         Value="LaunchReadmeFile">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
     </UI>
-[%- END -%]	
-[% IF dist.msi_help_url.defined %]
-    <Property Id='ARPHELPLINK'>[% dist.msi_help_url %]</Property>
-[%- END -%]
-[% IF dist.msi_readme_file.defined %]
-    <Property Id='ARPREADME'>[% dist.msi_readme_file %]</Property>
-[%- END -%]
-[% IF dist.msi_product_icon.defined %]
-    <Property Id='ARPPRODUCTICON'>[% dist.msi_product_icon_id %]</Property>
-[%- END -%]
-[% IF dist.msi_banner_top.defined %]
-    <WixVariable Id='WixUIBannerBmp' Value='[% dist.msi_banner_top %]' />
-[%- END -%]
-[% IF dist.msi_banner_side.defined %]
-    <WixVariable Id='WixUIDialogBmp' Value='[% dist.msi_banner_side %]' />
-[%- END -%]
-    <WixVariable Id='WixUILicenseRtf' Value='[% dist.msi_license_file %]' />
+[%- END %]
+    <!-- Property Id='MSIDEPLOYMENTCOMPLIANT'>1</Property -->
 
-
+[% propertylist.as_string %]
+	
   </Product>
 </Wix>

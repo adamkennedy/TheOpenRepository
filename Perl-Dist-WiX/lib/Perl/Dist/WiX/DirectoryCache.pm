@@ -42,8 +42,9 @@ objects, as required.)
 use 5.010;
 use Moose 0.90;
 use MooseX::Singleton;
-use WiX3::XML::Directory;
+use WiX3::XML::Directory qw();
 use Params::Util qw( _INSTANCE );
+use namespace::clean -except => 'meta';
 
 our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
@@ -73,8 +74,7 @@ Returns the cache object. (Use this instead of C<new()>.)
 =head2 add_to_cache
 
 	$cache->add_to_cache($directory_object, $fragment_object);
-	
-This method adds the directory object to the cache, and references the
+	This method adds the directory object to the cache, and references the
 fact that it is being created in the fragment object.
 	
 =cut
@@ -84,7 +84,7 @@ sub add_to_cache {
 	my $directory = shift || undef;
 	my $fragment  = shift || undef;
 
-	unless ( _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
+	if ( not _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'directory: Not a WiX3::XML::Directory object',
 			where     => '::DirectoryCache->add_to_cache'
@@ -121,7 +121,7 @@ sub exists_in_cache {
 	my $self = shift;
 	my $directory = shift || undef;
 
-	unless ( _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
+	if ( not _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'directory: Not a WiX3::XML::Directory object',
 			where     => '::DirectoryCache->exists_in_cache'
@@ -149,7 +149,7 @@ sub get_previous_fragment {
 	my $self = shift;
 	my $directory = shift || undef;
 
-	unless ( _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
+	if ( not _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'directory: Not a WiX3::XML::Directory object',
 			where     => '::DirectoryCache->get_previous_fragment'
@@ -170,7 +170,7 @@ this directory in the cache.
 
 This method is used when a directory that two or more fragments want to 
 create is added to the 
-L<directory tree object|Perl::Dist::WiX::DirectoryTree2> instead.
+L<directory tree object|Perl::Dist::WiX::DirectoryTree> instead.
 	
 =cut
 
@@ -180,7 +180,7 @@ sub delete_cache_entry {
 	my $self = shift;
 	my $directory = shift || undef;
 
-	unless ( _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
+	if ( not _INSTANCE( $directory, 'WiX3::XML::Directory' ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'directory: Not a WiX3::XML::Directory object',
 			where     => '::DirectoryCache->delete_cache_entry'

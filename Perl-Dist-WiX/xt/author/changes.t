@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Test that all modules have a version number.
+# Test that the distribution's Changes file has been updated.
 
 use strict;
 

@@ -143,7 +143,7 @@ requires 'install';
 
 
 
-sub _search_packlist {
+sub _search_packlist { ## no critic(ProhibitUnusedPrivateSubroutines)
 	my ( $self, $module ) = @_;
 
 	# We don't use the error until later, if needed.

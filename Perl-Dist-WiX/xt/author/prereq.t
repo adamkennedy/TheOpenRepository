@@ -11,7 +11,7 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Test::Prereq::Build 1.036',
+	'Test::Prereq::Build 1.037',
 );
 
 # Load the testing modules
@@ -58,4 +58,4 @@ my @modules_skip = (
 		'IO::Uncompress::UnXz',
 );
 
-prereq_ok(5.008001, 'Check prerequisites', \@modules_skip);
+prereq_ok(5.010, 'Check prerequisites', \@modules_skip);

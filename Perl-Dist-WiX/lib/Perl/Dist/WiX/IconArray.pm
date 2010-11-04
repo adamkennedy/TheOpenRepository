@@ -94,7 +94,7 @@ sub add_icon {
 	my ( $self, $pathname_icon, $pathname_target ) = @_;
 
 	# Check parameters
-	unless ( defined $pathname_target ) {
+	if ( not defined $pathname_target ) {
 		$pathname_target = 'Perl.msi';
 	}
 	if ( defined _INSTANCE( $pathname_icon, 'Path::Class::File' ) ) {
@@ -103,13 +103,13 @@ sub add_icon {
 	if ( defined _INSTANCE( $pathname_target, 'Path::Class::File' ) ) {
 		$pathname_target = $pathname_target->stringify();
 	}
-	unless ( defined _STRING($pathname_target) ) {
+	if ( not defined _STRING($pathname_target) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'pathname_target',
 			where     => '::IconArray->add_icon'
 		);
 	}
-	unless ( defined _STRING($pathname_icon) ) {
+	if ( not defined _STRING($pathname_icon) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'pathname_icon',
 			where     => '::IconArray->add_icon'
@@ -129,7 +129,7 @@ sub add_icon {
 	# Get Id made.
 	my ( undef, undef, $filename_icon ) = splitpath($pathname_icon);
 	my $id = substr $filename_icon, 0, -4;
-	$id =~ s/[^A-Za-z0-9]/_/gmxs;      # Substitute _ for anything
+	$id =~ s/[[:^alnum:]]/_/gmxs;      # Substitute _ for anything
 	                                   # non-alphanumeric.
 	$id .= ".$target_type.ico";
 
@@ -165,16 +165,16 @@ sub search_icon {
 	my ( $self, $pathname_icon, $target_type ) = @_;
 
 	# Check parameters
-	unless ( defined $target_type ) {
+	if ( not defined $target_type ) {
 		$target_type = 'msi';
 	}
-	unless ( defined _STRING($target_type) ) {
+	if ( not defined _STRING($target_type) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'target_type',
 			where     => '::IconArray->search_icon'
 		);
 	}
-	unless ( defined _STRING($pathname_icon) ) {
+	if ( not defined _STRING($pathname_icon) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'pathname_icon',
 			where     => '::IconArray->search_icon'

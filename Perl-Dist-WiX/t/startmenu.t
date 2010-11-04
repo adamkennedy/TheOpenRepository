@@ -8,7 +8,7 @@ BEGIN {
 
 use Test::More;
 require Perl::Dist::WiX::Fragment::StartMenu;
-require Perl::Dist::WiX::DirectoryTree2;
+require Perl::Dist::WiX::DirectoryTree;
 
 BEGIN {
 	if ( $^O eq 'MSWin32' ) {
@@ -19,7 +19,7 @@ BEGIN {
 	}
 }
 
-my $tree = Perl::Dist::WiX::DirectoryTree2->new(
+my $tree = Perl::Dist::WiX::DirectoryTree->new(
 	app_dir  => 'C:\\Test',
 	app_name => 'Test',
 );

@@ -30,7 +30,7 @@ B<Perl::Dist::WiX::Asset::PAR> is a data class that provides encapsulation
 and error checking for a "binary .par package" to be installed in a
 L<Perl::Dist::WiX|Perl::Dist::WiX>-based Perl distribution.
 
-It is normally created by the L<install_par|Perl::Dist::WiX::Installation/install_par> 
+It is normally created by the L<install_par|Perl::Dist::WiX::Mixin::Installation/install_par> 
 method of C<Perl::Dist::WiX> (and other things that call it). 
 
 The specification of the location to retrieve the package is done via

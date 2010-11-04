@@ -106,7 +106,7 @@ sub BUILD {
 
 	# Get the information we need.
 	my $id             = $self->get_id();
-	my $directory_tree = Perl::Dist::WiX::DirectoryTree2->instance();
+	my $directory_tree = Perl::Dist::WiX::DirectoryTree->instance();
 
 	my $directory_id = $self->_get_directory_id();
 	my $directory_object =
@@ -134,12 +134,12 @@ sub BUILD {
 
 
 # The fragment is already generated. No need to regenerate.
-sub _regenerate {
+sub _regenerate { ## no critic(ProhibitUnusedPrivateSubroutines)
 	return;
 }
 
 # No duplicates will be here to check.
-sub _check_duplicates {
+sub _check_duplicates { ## no critic(ProhibitUnusedPrivateSubroutines)
 	return;
 }
 

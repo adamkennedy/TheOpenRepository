@@ -34,7 +34,7 @@ Usually a fragment is one module, or a C library.
 
 use 5.010;
 use Moose;
-use MooseX::Types::Moose qw( Bool );
+use MooseX::Types::Moose qw( Bool Str );
 use Params::Util qw( _INSTANCE );
 use File::Spec::Functions qw( abs2rel splitpath catpath catdir splitdir );
 use List::MoreUtils qw( uniq );
@@ -42,7 +42,7 @@ use Digest::CRC qw( crc32_base64 crc16_hex );
 use Perl::Dist::WiX::Exceptions qw();
 use Perl::Dist::WiX::Tag::DirectoryRef qw();
 use Perl::Dist::WiX::DirectoryCache qw();
-use Perl::Dist::WiX::DirectoryTree2 qw();
+use Perl::Dist::WiX::DirectoryTree qw();
 use WiX3::XML::Component qw();
 use WiX3::XML::Feature qw();
 use WiX3::XML::FeatureRef qw();
@@ -105,6 +105,23 @@ has in_merge_module => (
 
 
 
+=head3 sub_feature
+
+The optional C<sub_feature> parameter specifies which installation 
+feature files in this fragment will be installed with.
+
+=cut
+
+
+
+has sub_feature => (
+	is      => 'ro',
+	isa     => Str,
+	default => 'Complete',
+);
+
+
+
 =head3 files
 
 The required C<files> parameter is the list of files that are in the fragment.
@@ -122,7 +139,6 @@ has files => (
 	isa      => 'File::List::Object',
 	reader   => 'get_files',
 	required => 1,
-	coerce   => 1,
 	handles  => {
 		'_add_files' => 'add_files',
 		'_add_file'  => 'add_file',
@@ -176,8 +192,31 @@ sub _build_feature {
 
 
 
+=head2 get_feature_ref
+
+Gets a FeatureRef tag referring to the Feature tag used in this fragment.
+
+=cut
+
+
+
+sub get_feature_ref {
+	my $self    = shift;
+	my $feature = $self->_get_feature();
+
+	if ( not defined $feature ) {
+		PDWiX->throw(
+'Tried to get a feature reference from a fragment that does not have one'
+		);
+	}
+
+	return WiX3::XML::FeatureRef($feature);
+} ## end sub get_feature_ref
+
+
+
 # This type of fragment needs regeneration.
-sub _regenerate {
+sub _regenerate { ## no critic(ProhibitUnusedPrivateSubroutines)
 	my $self = shift;
 	my @fragment_ids;
 	my @files = @{ $self->_get_files() };
@@ -227,7 +266,7 @@ sub _regenerate {
 sub _add_file_to_fragment {
 	my $self      = shift;
 	my $file_path = shift;
-	my $tree      = Perl::Dist::WiX::DirectoryTree2->instance();
+	my $tree      = Perl::Dist::WiX::DirectoryTree->instance();
 
 	$self->trace_line( 3, "Adding file $file_path\n" );
 
@@ -260,8 +299,10 @@ sub _add_file_to_fragment {
 
 		# Skip any odd tags that may have gotten in.
 		next STEP1
-		  unless ( $tag_step1->isa('Perl::Dist::WiX::Tag::Directory')
-			or $tag_step1->isa('Perl::Dist::WiX::Tag::DirectoryRef') );
+		  if not( (      $tag_step1->isa('Perl::Dist::WiX::Tag::Directory')
+					  or
+					  $tag_step1->isa('Perl::Dist::WiX::Tag::DirectoryRef')
+				  ) );
 
 		# Search for the directory.
 		$directory_step1 = $tag_step1->search_dir(
@@ -326,8 +367,10 @@ sub _add_file_to_fragment {
 
 		# Skip any odd tags that may have gotten in.
 		next STEP3
-		  unless ( $tag_step3->isa('Perl::Dist::WiX::Tag::Directory')
-			or $tag_step3->isa('Perl::Dist::WiX::Tag::DirectoryRef') );
+		  if not( (      $tag_step3->isa('Perl::Dist::WiX::Tag::Directory')
+					  or
+					  $tag_step3->isa('Perl::Dist::WiX::Tag::DirectoryRef')
+				  ) );
 
 		# Search for the directory.
 		$directory_step3 = $tag_step3->search_dir(
@@ -427,7 +470,7 @@ sub _add_directory_recursive {
 	my $tag              = shift;
 	my $dir              = shift;
 	my $cache            = Perl::Dist::WiX::DirectoryCache->instance();
-	my $tree             = Perl::Dist::WiX::DirectoryTree2->instance();
+	my $tree             = Perl::Dist::WiX::DirectoryTree->instance();
 	my $directory_object = $tag;
 	my @fragment_ids     = ();
 
@@ -560,7 +603,7 @@ sub _add_file_component {
 
 
 
-sub _check_duplicates {
+sub _check_duplicates { ## no critic(ProhibitUnusedPrivateSubroutines)
 	my $self     = shift;
 	my $filelist = shift;
 

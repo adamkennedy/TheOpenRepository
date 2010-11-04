@@ -16,12 +16,12 @@ BEGIN {
 }
 
 require Perl::Dist::WiX::Fragment::Environment;
-require Perl::Dist::WiX::DirectoryTree2;
+require Perl::Dist::WiX::DirectoryTree;
 
 #####################################################################
 #
 
-my $tree = Perl::Dist::WiX::DirectoryTree2->new(app_dir => '.', app_name => 'test', trace => 0);
+my $tree = Perl::Dist::WiX::DirectoryTree->new(app_dir => '.', app_name => 'test', trace => 0);
 
 my $env_1 = Perl::Dist::WiX::Fragment::Environment->new(
     sitename => 'www.test.site.invalid',

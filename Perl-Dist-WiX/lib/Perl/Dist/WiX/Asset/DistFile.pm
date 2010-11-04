@@ -66,7 +66,7 @@ require Perl::Dist::WiX::Exceptions;
 our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
-with 'Perl::Dist::WiX::Role::Asset';
+with qw(Perl::Dist::WiX::Role::Asset WiX3::Role::Traceable);
 extends 'Perl::Dist::WiX::Asset::DistBase';
 
 =head1 METHODS
@@ -105,7 +105,7 @@ has mod_name => (
 	isa     => Maybe [Str],
 	reader  => 'get_name',
 	lazy    => 1,
-	default => sub { return $_[0]->_name_to_module(); },
+	default => sub { return $_[0]->_name_to_module( $_[0]->_get_file() ); },
 );
 
 
@@ -259,7 +259,9 @@ sub install {
 	$dist_path =~ s{[.] tar [.] gz}{}msx;   # Take off extensions.
 	$dist_path =~ s{[.] zip}{}msx;
 	my $unpack_to = catdir( $self->_get_build_dir(), $dist_path );
-	$self->_add_to_distributions_installed( $self->_get_url() );
+	my $dist_url = $self->_get_url();
+	$self->_add_to_distributions_installed($dist_url);
+	$self->trace_line( 0, "$dist_url\n" );
 
 	# Extract the tarball
 	if ( -d $unpack_to ) {
@@ -268,23 +270,23 @@ sub install {
 	}
 	$self->_trace_line( 4, "Unpacking to $unpack_to\n" );
 	$self->_extract( $path => $self->_get_build_dir() );
-	unless ( -d $unpack_to ) {
+	if ( not -d $unpack_to ) {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
 
 	# Check for a way to build the distribution.
 	my $buildpl    = ( -r catfile( $unpack_to, 'Build.PL' ) )    ? 1 : 0;
 	my $makefilepl = ( -r catfile( $unpack_to, 'Makefile.PL' ) ) ? 1 : 0;
-	unless ( $buildpl or $makefilepl ) {
+	if ( not $buildpl and not $makefilepl ) {
 		PDWiX->throw(
 			"Could not find Makefile.PL or Build.PL in $unpack_to\n");
 	}
 
 	# Build using Build.PL if we have one
 	# unless Module::Build is not installed.
-	unless ( $self->_module_build_installed() ) {
+	if ( not $self->_module_build_installed() ) {
 		$buildpl = 0;
-		unless ($makefilepl) {
+		if ( not $makefilepl ) {
 			PDWiX->throw( "Could not find Makefile.PL in $unpack_to"
 				  . " (too early for Build.PL)\n" );
 		}

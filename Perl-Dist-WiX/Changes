@@ -1,6 +1,14 @@
 Changes for Perl extension Perl-Dist-WiX
 
-1.250   Xxx ## Jul 2010
+1.250_100   Tue 19 Oct 2010
+    1. Used to build Strawberry Perl October 2010 Beta 1.
+    2. Now uses a "pluggable" interface for building Perl versions.
+       (which means that many of the "share" files are in dists
+        for individual perl versions)
+    3. Add right-click/double-click options to Windows Explorer for
+       .pl files.
+
+1.250   Sun 01 Aug 2010
     1. Used to build Strawberry Perl July 2010.
     2. Added ability to have CPAN module links in the release notes.
 	3. Removing pdwix_minicpan script.

@@ -70,14 +70,8 @@ To install this module, run the following commands:
 
 #<<<
 use 5.010;
-use Moose 0.90;
+use Moose 1.08;
 use Moose::Util::TypeConstraints;
-use namespace::autoclean;
-use parent                                  qw(
-	Perl::Dist::WiX::BuildPerl Perl::Dist::WiX::Checkpoint
-	Perl::Dist::WiX::Libraries Perl::Dist::WiX::Installation
-	Perl::Dist::WiX::Support   Perl::Dist::WiX::ReleaseNotes 
-);
 use Alien::WiX                              qw(
 	:ALL
 );
@@ -138,23 +132,43 @@ use URI::file                               qw();
 use Win32                                   qw();
 use File::List::Object                      qw();
 use Perl::Dist::WiX::Exceptions             qw();
-use Perl::Dist::WiX::DirectoryTree2         qw();
-use Perl::Dist::WiX::FeatureTree2           qw();
+use Perl::Dist::WiX::DirectoryTree          qw();
+use Perl::Dist::WiX::FeatureTree            qw();
 use Perl::Dist::WiX::DirectoryCache         qw();
 use Perl::Dist::WiX::Fragment::CreateFolder qw();
 use Perl::Dist::WiX::Fragment::Files        qw();
 use Perl::Dist::WiX::Fragment::Environment  qw();
 use Perl::Dist::WiX::Fragment::StartMenu    qw();
 use Perl::Dist::WiX::IconArray              qw();
+use Perl::Dist::WiX::PropertyList           qw();
 use Perl::Dist::WiX::Tag::MergeModule       qw();
+use Perl::Dist::WiX::Tag::DirectoryRef      qw();
 use WiX3::XML::GeneratesGUID::Object        qw();
+use WiX3::XML::RegistryKey                  qw();
+use WiX3::XML::RegistryValue                qw();
+use WiX3::XML::Fragment                     qw();
+use WiX3::XML::Component                    qw();
 use WiX3::Traceable                         qw();
+
+use namespace::clean  -except => 'meta';
 #>>>
 
 our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
 
-
+with
+  'MooseX::Object::Pluggable'          => { -version => 0.0011 },
+  'Perl::Dist::WiX::Role::MultiPlugin' => { -version => 1.250_100 },
+  ;
+extends
+  'Perl::Dist::WiX::Mixin::BuildPerl'    => { -version => 1.250_100 },
+  'Perl::Dist::WiX::Mixin::Checkpoint'   => { -version => 1.250_100 },
+  'Perl::Dist::WiX::Mixin::Libraries'    => { -version => 1.250_100 },
+  'Perl::Dist::WiX::Mixin::Installation' => { -version => 1.250_100 },
+  'Perl::Dist::WiX::Mixin::ReleaseNotes' => { -version => 1.250_100 },
+  'Perl::Dist::WiX::Mixin::Patching'     => { -version => 1.250_100 },
+  'Perl::Dist::WiX::Mixin::Support'      => { -version => 1.250_100 },
+  ;
 
 #####################################################################
 # Constructor
@@ -528,7 +542,7 @@ The optional C<user_agent> parameter stores the L<LWP::UserAgent|LWP::UserAgent>
 object (or an object of a subclass of LWP::UserAgent) that Perl::Dist::WiX 
 uses to download files.
 
-The default depends on the L<user_agent_cache|/user_agent_cache>
+The default creates an L<user_agent_cache|/user_agent_cache>
 parameter.
 
 =cut
@@ -547,56 +561,25 @@ has 'user_agent' => (
 );
 
 sub _build_user_agent {
-	my $self = shift;
-	my $ua;
+	my $self  = shift;
+	my $class = ref $self;
 
-	if ( $self->user_agent_cache() ) {
-	  SCOPE: {
-
-			# Temporarily set $ENV{HOME} to the File::HomeDir
-			# version while loading the module.
-			local $ENV{HOME} ||= File::HomeDir->my_home;
-			require LWP::UserAgent::WithCache;
-		}
-		$ua = LWP::UserAgent::WithCache->new( {
-				agent => ref($self) . q{/} . ( $VERSION || '0.00' ),
-				namespace          => 'perl-dist',
-				cache_root         => $self->_user_agent_directory(),
-				cache_depth        => 0,
-				default_expires_in => 86_400 * 30,
-				show_progress      => 1,
-			} );
-	} else {
-		$ua = LWP::UserAgent->new(
-			agent => ref($self) . q{/} . ( $VERSION || '0.00' ),
-			timeout       => 30,
-			show_progress => 1,
-		);
+	# Get the real class name after MooseX::Object::Pluggable
+	# has messed with it.
+	if ( $class =~ /MOP/ms ) {
+		$class = $self->_original_class_name();
 	}
+
+	my $ua = LWP::UserAgent->new(
+		agent => "$class/" . ( $VERSION || '0.00' ),
+		timeout       => 30,
+		show_progress => 1,
+	);
 
 	$ENV{HTTP_PROXY} and $ua->proxy( http => $ENV{HTTP_PROXY} );
 
 	return $ua;
 } ## end sub _build_user_agent
-
-
-
-=head4 user_agent_cache
-
-The optional boolean C<user_agent_cache> parameter specifies whether 
-the default L<user_cache|/user_cache> object is a 
-L<LWP::UserAgent::WithCache|LWP::UserAgent::WithCache> (true) or a
-L<LWP::UserAgent|LWP::UserAgent> object (false).
-
-Defaults to a false value if not specified.
-
-=cut
-
-has 'user_agent_cache' => (
-	is      => 'ro',
-	isa     => Bool,
-	default => 0,
-);
 
 
 
@@ -1000,7 +983,7 @@ This parameter defaults to '5101' if not specified.
 
 has 'perl_version' => (
 	is      => 'ro',
-	isa     => enum( [qw(git 5100 5101 5120 5121)] ),
+	isa     => Str,
 	default => '5101',
 );
 
@@ -1032,14 +1015,15 @@ Perl relocation script from the .msi's.
 This parameter has no effect is the C<msi> parameter is false, or if the
 C<relocatable> parameter is false.
 
-The default is false, so as to use the Perl relocation script instead.
+If this variable is false, the Perl relocation script is used instead.
+(The default is true.)
 
 =cut
 
 has 'use_dll_relocation' => (
 	is      => 'ro',
 	isa     => Bool,
-	default => 0,
+	default => 1,
 );
 
 
@@ -1256,9 +1240,9 @@ sub _build_fragment_dir {
 =head4 git_checkout
 
 The optional C<git_checkout> parameter is not used unless you specify 
-that C<perl_version> is 'git'. In that event, this parameter should 
-contain a string pointing to the location of a checkout from 
-L<http://perl5.git.perl.org/>.
+that C<perl_version> is a plugin that implements building from a git 
+checkout. In that event, this parameter should contain a string 
+pointing to the location of a checkout from L<http://perl5.git.perl.org/>.
 
 The default is C<'C:\perl-git'>, if it exists.
 
@@ -1374,7 +1358,9 @@ sub _build_license_dir {
 	my $self = shift;
 
 	my $dir = $self->image_dir()->subdir('licenses');
-	$self->remake_path("$dir") if not -d "$dir";
+	if ( not -d "$dir" ) {
+		$self->remake_path("$dir");
+	}
 	return $dir;
 }
 
@@ -1454,9 +1440,10 @@ This defaults to not setting a URL.
 =cut
 
 has 'msi_help_url' => (
-	is  => 'ro',
-	isa => Uri | Undef
-	,                                  # Maybe[ Uri ] will not work. Unions inherit coercions, parameterized types don't.
+	is      => 'ro',
+	isa     => Uri | Undef,            # Maybe[ Uri ] will not work.
+	                                   # Unions inherit coercions,
+	                                   # parameterized types don't.
 	coerce  => 1,
 	default => undef,
 );
@@ -1632,6 +1619,10 @@ L<install_relocatable|/install_relocatable> method.
 
 If the merge module is being used, it needs to be passed in to new().
 
+=head4 fileid_perl_h
+
+TODO
+
 =cut
 
 has 'fileid_perl' => (
@@ -1641,7 +1632,11 @@ has 'fileid_perl' => (
 	default => q{},
 );
 
-
+sub fileid_perl_h {
+	my $self    = shift;
+	my $perl_id = $self->fileid_perl();
+	return q{[#} . $perl_id . q{]};
+}
 
 =head4 fileid_relocation_pl
 
@@ -1653,6 +1648,10 @@ L<install_relocatable|/install_relocatable> method.
 
 If the merge module is being used, it needs to be passed in to new().
 
+=head4 fileid_relocation_pl_h
+
+TODO
+
 =cut
 
 has 'fileid_relocation_pl' => (
@@ -1662,6 +1661,11 @@ has 'fileid_relocation_pl' => (
 	default => q{},
 );
 
+sub fileid_relocation_pl_h {
+	my $self      = shift;
+	my $script_id = $self->fileid_relocation_pl();
+	return q{[#} . $script_id . q{]};
+}
 
 
 =head4 msm_code
@@ -1678,6 +1682,7 @@ tasklist.
 has 'msm_code' => (
 	is      => 'ro',
 	isa     => Maybe [Str],
+	writer  => '_set_msm_code',
 	default => undef,
 );
 
@@ -1849,12 +1854,12 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 	}
 
 	# Get the parameters required for the GUID generator set up.
-	unless ( _STRING( $params{app_publisher_url} )
-		or _INSTANCE( $params{app_publisher_url}, 'URI' ) )
+	if (    not _STRING( $params{app_publisher_url} )
+		and not _INSTANCE( $params{app_publisher_url}, 'URI' ) )
 	{
 		PDWiX::Parameter->throw(
 			parameter => 'app_publisher_url',
-			where     => '::Installer->new'
+			where     => '->new'
 		);
 	}
 
@@ -1864,7 +1869,7 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 	}
 
 	# Default the sitename unless it is given.
-	unless ( _STRING( $params{sitename} ) ) {
+	if ( not _STRING( $params{sitename} ) ) {
 		$params{sitename} = $params{app_publisher_url}->host();
 	}
 
@@ -1899,21 +1904,27 @@ sub BUILDARGS { ## no critic (ProhibitExcessComplexity)
 		$params{_trace_object}->trace_line( 3,
 			"Our perl to create:       $our_perl_location\n" );
 
-		PDWiX::Parameter->throw(
-			parameter => ' image_dir : attempting to commit suicide ',
-			where     => '->new'
-		) if ( $our_perl_location eq $perl_location );
+		if ( $our_perl_location eq $perl_location ) {
+			PDWiX::Parameter->throw(
+				parameter => 'image_dir : attempting to commit suicide',
+				where     => '->new'
+			);
+		}
 
-		PDWiX::Parameter->throw(
-			parameter =>
-			  ' image_dir : cannot contain two consecutive slashes ',
-			where => '->new'
-		) if ( $params{image_dir} =~ m{\\\\}ms );
+		if ( $params{image_dir} =~ m{\\\\}ms ) {
+			PDWiX::Parameter->throw(
+				parameter =>
+				  'image_dir : cannot contain two consecutive slashes',
+				where => '->new'
+			);
+		}
 
-		PDWiX::Parameter->throw(
-			parameter => 'image_dir: Spaces are not allowed',
-			where     => '->new'
-		) if ( $params{image_dir} =~ /\s/ms );
+		if ( $params{image_dir} =~ /\s/ms ) {
+			PDWiX::Parameter->throw(
+				parameter => 'image_dir: Spaces are not allowed',
+				where     => '->new'
+			);
+		}
 
 		# We don't want to delete a previous one yet.
 		$class->make_path( $params{image_dir} );
@@ -1964,7 +1975,7 @@ sub DEMOLISH {
 # Reserved for a future parameter to new()
 has 'msi_feature_tree' => (
 	is       => 'ro',
-	isa      => Undef,
+	isa      => Maybe [ArrayRef],
 	default  => undef,
 	init_arg => undef,
 );
@@ -2011,7 +2022,7 @@ has '_env_path' => (
 	default  => sub { return [] },
 	init_arg => undef,
 	handles  => {
-		'_add_env_path_unchecked' => 'push',
+		'add_path'                => 'push',
 		'_get_env_path_unchecked' => 'elements',
 	},
 );
@@ -2085,7 +2096,7 @@ sub _build_perl_version_corelist {
 	# Find the core list
 	my $corelist_version = $self->perl_version_literal() + 0;
 	my $hash             = $Module::CoreList::version{$corelist_version};
-	unless ( _HASH($hash) ) {
+	if ( not _HASH($hash) ) {
 		PDWiX->throw( 'Failed to resolve Module::CoreList hash for '
 			  . $self->perl_version_human() );
 	}
@@ -2146,15 +2157,15 @@ sub _build_user_agent_directory {
 	  File::Spec->catdir( File::HomeDir->my_data(), 'Perl', $path, );
 
 	# Make the directory or die vividly.
-	unless ( -d $dir ) {
-		unless ( File::Path::mkpath( $dir, { verbose => 0 } ) ) {
+	if ( not -d $dir ) {
+		if ( not File::Path::mkpath( $dir, { verbose => 0 } ) ) {
 			PDWiX::Directory->throw(
 				dir     => $dir,
 				message => 'Failed to create'
 			);
 		}
 	}
-	unless ( -w $dir ) {
+	if ( not -w $dir ) {
 		PDWiX::Directory->throw(
 			dir     => $dir,
 			message => 'No write permissions for LWP::UserAgent cache'
@@ -2179,7 +2190,7 @@ has '_cpan_moved' => (
 
 has '_cpan_sources_to' => (
 	is       => 'ro',
-	isa      => Str,
+	isa      => Maybe [Str],
 	writer   => '_set_cpan_sources_to',
 	default  => undef,
 	init_arg => undef,                 # Cannot set this parameter in new().
@@ -2189,7 +2200,7 @@ has '_cpan_sources_to' => (
 
 has '_cpan_sources_from' => (
 	is      => 'ro',
-	isa     => Str,
+	isa     => Maybe [Str],
 	writer  => '_set_cpan_sources_from',
 	default => undef,
 	init_arg => undef,                 # Cannot set this parameter in new().
@@ -2220,6 +2231,12 @@ has '_use_sqlite' => (
 
 
 
+# This comes from MooseX::Object::Pluggable, and sets up the
+# fact that Perl::Dist::WiX::BuildPerl::* is where plugins happen to be.
+has '+_plugin_ns' => ( default => 'BuildPerl', );
+
+
+
 #####################################################################
 # Top Level Process Methods
 
@@ -2244,7 +2261,7 @@ sub run {
 	my $self  = shift;
 	my $start = time;
 
-	unless ( $self->msi or $self->zip ) {
+	if ( not( $self->msi() or $self->zip() ) ) {
 		$self->trace_line('No msi or zip target, nothing to do');
 		return 1;
 	}
@@ -2252,6 +2269,26 @@ sub run {
 	# Don't buffer
 	STDOUT->autoflush(1);
 	STDERR->autoflush(1);
+
+	# List plugins that we can load if we want to.
+	my @plugins = $self->_plugin_locator()->plugins();
+	$self->trace_line( 3,
+		join( qq{\n  }, 'Plugins to build Perl with available:', @plugins )
+		  . qq{\n} );
+
+	my $version_plugin = $self->perl_version();
+	if ( none {m{:: $version_plugin \z}msx} @plugins ) {
+		PDWiX::Parameter->throw(
+			parameter => 'perl_version: No plugin installed'
+			  . " for the requested version of perl ($version_plugin)",
+			where => '->final_initialization',
+		);
+	}
+
+	# Load our perl-building plugin now, because
+	# if we do it later, we end up losing data
+	# in trait-attached hashrefs and arrayrefs.
+	$self->load_plugins($version_plugin);
 
 	my @task_list   = @{ $self->tasklist() };
 	my $task_number = 1;
@@ -2314,6 +2351,18 @@ sub final_initialization {
 		$self->_check_64_bit();
 	}
 
+	if (    $self->use_dll_relocation()
+		and $self->relocatable()
+		and not $self->can('msm_relocation_idlist') )
+	{
+		PDWiX::Parameter->throw(
+			parameter => 'use_dll_relocation: Cannot use DLL relocation'
+			  . ' without a relocation file id being available '
+			  . '(set this parameter to 0)',
+			where => '->final_initialization',
+		);
+	}
+
 	# Redirect $ENV{TEMP} to within our build directory.
 	$self->trace_line( 1,
 		"Emptying the directory to redirect \$ENV{TEMP} to...\n" );
@@ -2326,7 +2375,9 @@ sub final_initialization {
 	# sources directory out of the way.
 	if ( $self->cpan()->as_string() =~ m{\Afile://}mxsi ) {
 		require CPAN;
-		CPAN::HandleConfig->load unless $CPAN::Config_loaded++;
+		if ( not $CPAN::Config_loaded++ ) {
+			CPAN::HandleConfig->load();
+		}
 
 		my $cpan_path_from = $CPAN::Config->{'keep_source_where'};
 		my $cpan_path_to =
@@ -2346,16 +2397,11 @@ EOF
 	} ## end if ( $self->cpan()->as_string...)
 
 	# Do some sanity checks.
-	unless ( $self->cpan()->as_string() =~ m{\/\z}ms ) {
+	if ( $self->cpan()->as_string() !~ m{\/\z}ms ) {
 		PDWiX::Parameter->throw(
 			parameter => 'cpan: Missing trailing slash',
 			where     => '->final_initialization'
 		);
-	}
-	unless ( $self->can( 'install_perl_' . $self->perl_version() ) ) {
-		my $class = ref $self;
-		PDWiX->throw(
-			"$class does not support Perl " . $self->perl_version() );
 	}
 	if ( $self->build_dir() =~ /\s/ms ) {
 		PDWiX::Parameter->throw(
@@ -2379,9 +2425,9 @@ EOF
 	## no critic(ProtectPrivateSubs)
 	# Set up element collections, starting with the directory tree.
 	$self->trace_line( 2, "Creating in-memory directory tree...\n" );
-	Perl::Dist::WiX::DirectoryTree2->_clear_instance();
+	Perl::Dist::WiX::DirectoryTree->_clear_instance();
 	$self->_set_directories(
-		Perl::Dist::WiX::DirectoryTree2->new(
+		Perl::Dist::WiX::DirectoryTree->new(
 			app_dir  => $self->image_dir(),
 			app_name => $self->app_name(),
 		  )->initialize_tree(
@@ -2444,7 +2490,8 @@ EOF
 	$self->remake_path( $self->fragment_dir() );
 
 	# Make some directories.
-	my @directories_to_make = ( $self->dir('cpan'), $self->dir('cpanplus') );
+	my @directories_to_make =
+	  ( $self->dir('cpan'), $self->dir('cpanplus') );
 	for my $d (@directories_to_make) {
 		next if -d $d;
 		File::Path::mkpath($d);
@@ -2658,25 +2705,31 @@ the perl modules to make Perl installable on a portable device.
 sub install_portable {
 	my $self = shift;
 
-	return 1 unless $self->portable();
+	return 1 if not $self->portable();
 
 	# Install the regular parts of Portability
-	$self->install_modules( qw(
-		  Sub::Uplevel
-		  ) ) unless $self->isa('Perl::Dist::Strawberry');
+	if ( not $self->isa('Perl::Dist::Strawberry') ) {
+		$self->install_modules( qw(
+			  Sub::Uplevel
+		) );
+	}
 	$self->install_modules( qw(
 		  Test::Exception
 	) );
-	$self->install_modules( qw(
-		  Test::Tester
-		  Test::NoWarnings
-		  LWP::Online
-		  ) ) unless $self->isa('Perl::Dist::Strawberry');
-	$self->install_modules( qw(
-		  Class::Inspector
-		  CPAN::Mini
-		  Portable
-		  ) ) unless $self->isa('Perl::Dist::Bootstrap');
+	if ( not $self->isa('Perl::Dist::Strawberry') ) {
+		$self->install_modules( qw(
+			  Test::Tester
+			  Test::NoWarnings
+			  LWP::Online
+		) );
+	}
+	if ( not $self->isa('Perl::Dist::Bootstrap') ) {
+		$self->install_modules( qw(
+			  Class::Inspector
+			  CPAN::Mini
+			  Portable
+		) );
+	}
 
 	# Create the portability object
 	$self->trace_line( 1, "Creating Portable::Dist\n" );
@@ -2723,7 +2776,7 @@ be found by L</find_relocatable_fields> later.
 sub install_relocatable {
 	my $self = shift;
 
-	return 1 unless $self->relocatable();
+	return 1 if not $self->relocatable();
 
 	# Copy the relocation information in.
 	$self->copy_file( catfile( $self->wix_dist_dir(), 'relocation.pl.bat' ),
@@ -2754,7 +2807,7 @@ This routine must be run after L<regenerate_fragments()|/regenerate_fragments>.
 sub find_relocatable_fields {
 	my $self = shift;
 
-	return 1 unless $self->relocatable();
+	return 1 if $self->portable();
 
 	# Set the fileid attributes.
 	my $perl_id =
@@ -2764,6 +2817,9 @@ sub find_relocatable_fields {
 		PDWiX->throw("Could not find perl.exe's ID.\n");
 	}
 	$self->_set_fileid_perl($perl_id);
+	$self->trace_line( 2, "File ID for perl.exe: $perl_id\n" );
+
+	return 1 if not $self->relocatable();
 
 	my $script_id =
 	  $self->get_fragment_object('relocation_script')
@@ -2772,6 +2828,7 @@ sub find_relocatable_fields {
 		PDWiX->throw("Could not find relocation.pl.bat's ID.\n");
 	}
 	$self->_set_fileid_relocation_pl($script_id);
+	$self->trace_line( 2, "File ID for relocation.pl.bat: $script_id\n" );
 
 	return 1;
 } ## end sub find_relocatable_fields
@@ -2928,14 +2985,18 @@ sub remove_waste {
 sub _remove_dir {
 	my $self = shift;
 	my $dir  = $self->dir(@_);
-	File::Remove::remove( \1, $dir ) if -e $dir;
+	if ( -e $dir ) {
+		File::Remove::remove( \1, $dir );
+	}
 	return 1;
 }
 
 sub _remove_file {
 	my $self = shift;
 	my $file = $self->file(@_);
-	File::Remove::remove( \1, $file ) if -e $file;
+	if ( -e $file ) {
+		File::Remove::remove( \1, $file );
+	}
 	return 1;
 }
 
@@ -2952,7 +3013,7 @@ contain a list of files until their C<regenerate()> routines are run.
 sub regenerate_fragments {
 	my $self = shift;
 
-	return 1 unless $self->msi();
+	return 1 if not $self->msi();
 
 	# Add the perllocal.pod here, because apparently it's disappearing.
 	if ( $self->fragment_exists('perl') ) {
@@ -3053,9 +3114,9 @@ sub write_merge_module {
 		## no critic(ProtectPrivateSubs)
 		# Reset the directory tree.
 		$self->_set_directories(undef);
-		Perl::Dist::WiX::DirectoryTree2->_clear_instance();
+		Perl::Dist::WiX::DirectoryTree->_clear_instance();
 		$self->_set_directories(
-			Perl::Dist::WiX::DirectoryTree2->new(
+			Perl::Dist::WiX::DirectoryTree->new(
 				app_dir  => $self->image_dir(),
 				app_name => $self->app_name(),
 			  )->initialize_short_tree( $self->perl_version() ) );
@@ -3183,6 +3244,7 @@ sub _write_msi {
 	my @files;
 
 	$self->trace_line( 1, "Generating msi\n" );
+	$self->_create_rightclick_fragment();
 
   FRAGMENT:
 
@@ -3211,7 +3273,7 @@ sub _write_msi {
 		$self->_compile_wxs( $filename_in, $filename_out )
 		  or PDWiX->throw("WiX could not compile $filename_in");
 
-		unless ( -f $filename_out ) {
+		if ( not -f $filename_out ) {
 			PDWiX->throw( "Failed to find $filename_out (probably "
 				  . "compilation error in $filename_in)" );
 		}
@@ -3221,7 +3283,7 @@ sub _write_msi {
 
 	# Generate feature tree.
 	$self->_set_feature_tree_object(
-		Perl::Dist::WiX::FeatureTree2->new( parent => $self, ) );
+		Perl::Dist::WiX::FeatureTree->new( parent => $self, ) );
 
 	my $mm;
 
@@ -3231,11 +3293,13 @@ sub _write_msi {
 		$self->feature_tree_object()->add_merge_module($mm);
 	}
 
-
 	# Write out the .wxs file
-	my $content = $self->process_template( 'Main.wxs.tt',
-		directory_tree =>
-		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(), );
+	my $content = $self->process_template(
+		'Main.wxs.tt',
+		fileid_relocation_pl_h => $self->fileid_relocation_pl_h(),
+		fileid_perl_h          => $self->fileid_perl_h(),
+		propertylist           => $self->_get_msi_property_list(),
+	);
 	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
 	$filename_in =
 	  catfile( $self->fragment_dir(), $self->app_name() . q{.wxs} );
@@ -3264,7 +3328,7 @@ sub _write_msi {
 	$self->trace_line( 2, "Compiling $filename_in\n" );
 	$self->_compile_wxs( $filename_in, $filename_out )
 	  or PDWiX->throw("WiX could not compile $filename_in");
-	unless ( -f $filename_out ) {
+	if ( not -f $filename_out ) {
 		PDWiX->throw( "Failed to find $filename_out (probably "
 			  . "compilation error in $filename_in)" );
 	}
@@ -3311,6 +3375,62 @@ sub _write_msi {
 
 	return $output_msi;
 } ## end sub _write_msi
+
+
+
+sub _get_msi_property_list {
+	my $self = shift;
+
+	my $list = Perl::Dist::WiX::PropertyList->new();
+
+	$list->add_simple_property( 'PerlModuleID',
+		$self->msm_package_id_property() );
+	$list->add_simple_property( 'MSIFASTINSTALL', 1 );
+	$list->add_simple_property( 'ARPNOREPAIR',    1 );
+	if ( defined $self->msi_feature_tree() ) {
+		$list->add_simple_property( 'ARPNOMODIFY', 1 );
+	}
+	$list->add_simple_property( 'ARPCOMMENTS',
+		$self->app_name() . q{ } . $self->perl_version_human() );
+	$list->add_simple_property( 'ARPCONTACT', $self->app_publisher() );
+	$list->add_simple_property( 'ARPURLINFOABOUT',
+		$self->app_publisher_url() );
+
+	if ( defined $self->msi_help_url() ) {
+		$list->add_simple_property( 'ARPHELPLINK', $self->msi_help_url() );
+	}
+	if ( defined $self->msi_readme_file() ) {
+		$list->add_simple_property( 'ARPREADME', $self->msi_readme_file() );
+	}
+	if ( defined $self->msi_product_icon() ) {
+		$list->add_simple_property( 'ARPPRODUCTICON',
+			$self->msi_product_icon_id() );
+	}
+	$list->add_simple_property( 'WIXUI_EXITDIALOGOPTIONALTEXT',
+		$self->msi_exit_text() );
+	if ( defined $self->msi_run_readme_txt() ) {
+		$list->add_simple_property( 'WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT',
+			'Read README file.' );
+		$list->add_simple_property( 'WIXUI_EXITDIALOGOPTIONALCHECKBOX', 1 );
+
+# TODO: Find out why the README.txt is not being generated.
+#		$list->add_simple_property('WixShellExecTarget',
+#			$self->msi_fileid_readme_txt());
+	}
+	if ( $self->relocatable() ) {
+		$list->add_simple_property( 'WIXUI_INSTALLDIR', 'INSTALLDIR' );
+	}
+	if ( defined $self->msi_banner_top() ) {
+		$list->add_wixvariable( 'WixUIBannerBmp', $self->msi_banner_top() );
+	}
+	if ( defined $self->msi_banner_side() ) {
+		$list->add_wixvariable( 'WixUIDialogBmp',
+			$self->msi_banner_side() );
+	}
+	$list->add_wixvariable( 'WixUILicenseRtf', $self->msi_license_file() );
+
+	return $list;
+} ## end sub _get_msi_property_list
 
 
 
@@ -3379,7 +3499,7 @@ sub _write_msm {
 		$self->_compile_wxs( $filename_in, $filename_out )
 		  or PDWiX->throw("WiX could not compile $filename_in");
 
-		unless ( -f $filename_out ) {
+		if ( not -f $filename_out ) {
 			PDWiX->throw( "Failed to find $filename_out (probably "
 				  . "compilation error in $filename_in)" );
 		}
@@ -3389,12 +3509,20 @@ sub _write_msm {
 
 	# Generate feature tree.
 	$self->_set_feature_tree_object(
-		Perl::Dist::WiX::FeatureTree2->new( parent => $self, ) );
+		Perl::Dist::WiX::FeatureTree->new( parent => $self, ) );
+
+	my $commandline = q{};
+	if ( $self->relocatable() ) {
+		$commandline = $self->msm_relocation_commandline();
+	}
 
 	# Write out the .wxs file
-	my $content = $self->process_template( 'Merge-Module.wxs.tt',
-		directory_tree =>
-		  Perl::Dist::WiX::DirectoryTree2->instance()->as_string(), );
+	my $content = $self->process_template(
+		'Merge-Module.wxs.tt',
+		fileid_relocation_pl_h     => $self->fileid_relocation_pl_h(),
+		fileid_perl_h              => $self->fileid_perl_h(),
+		msm_relocation_commandline => $commandline,
+	);
 	$content =~ s{\r\n}{\n}msg;        # CRLF -> LF
 	$filename_in =
 	  catfile( $self->fragment_dir, $self->app_name . q{.wxs} );
@@ -3421,7 +3549,7 @@ sub _write_msm {
 	$self->trace_line( 2, "Compiling $filename_in\n" );
 	$self->_compile_wxs( $filename_in, $filename_out )
 	  or PDWiX->throw("WiX could not compile $filename_in");
-	unless ( -f $filename_out ) {
+	if ( not -f $filename_out ) {
 		PDWiX->throw( "Failed to find $filename_out (probably "
 			  . "compilation error in $filename_in)" );
 	}
@@ -3497,19 +3625,19 @@ sub _compile_wxs {
 	my @files = @_;
 
 	# Check parameters.
-	unless ( _STRING($filename) ) {
+	if ( not _STRING($filename) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'filename',
-			where     => '::Installer->compile_wxs'
+			where     => '->compile_wxs'
 		);
 	}
-	unless ( _STRING($wixobj) ) {
+	if ( not _STRING($wixobj) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'wixobj',
-			where     => '::Installer->compile_wxs'
+			where     => '->compile_wxs'
 		);
 	}
-	unless ( -r $filename ) {
+	if ( not -r $filename ) {
 		PDWiX::File->throw(
 			file    => $filename,
 			message => 'File does not exist or is not readable'
@@ -3557,7 +3685,7 @@ object associated with this distribution.
 
 has 'feature_tree_object' => (
 	is       => 'ro',                  # String
-	isa      => 'Maybe[Perl::Dist::WiX::FeatureTree2]',
+	isa      => 'Maybe[Perl::Dist::WiX::FeatureTree]',
 	writer   => '_set_feature_tree_object',
 	default  => undef,
 	init_arg => undef,
@@ -3633,7 +3761,8 @@ sub dist_dir {
 Provides a shortcut to the location of the shared files directory for 
 C<Perl::Dist::WiX>.
 
-Returns a directory as a L<Path::Class::Dir> object or throws an exception on error.
+Returns a directory as a L<Path::Class::Dir|Path::Class::Dir> object 
+or throws an exception on error.
 
 =cut
 
@@ -3648,8 +3777,8 @@ has 'wix_dist_dir' => (
 sub _build_wix_dist_dir {
 	my $dir;
 
-	unless (
-		eval {
+	if (
+		not eval {
 			$dir = Path::Class::Dir->new(
 				File::ShareDir::dist_dir('Perl-Dist-WiX') );
 			1;
@@ -3658,9 +3787,11 @@ sub _build_wix_dist_dir {
 		PDWiX::Caught->throw(
 			message =>
 			  'Could not find distribution directory for Perl::Dist::WiX',
-			info => ( defined $EVAL_ERROR ) ? $EVAL_ERROR : 'Unknown error',
+			info => ( defined $EVAL_ERROR )
+			? $EVAL_ERROR
+			: 'Unknown error',
 		);
-	} ## end unless ( eval { $dir = Path::Class::Dir...})
+	} ## end if ( not eval { $dir =...})
 
 	return $dir;
 } ## end sub _build_wix_dist_dir
@@ -3676,57 +3807,9 @@ Used in the templates for documentation purposes.
 sub pdw_class {
 	my $self = shift;
 
-	return ref $self;
+	# This is defined in MooseX::Object::Pluggable.
+	return $self->_original_class_name();
 }
-
-
-
-=head3 git_describe
-
-The C<git_describe> method returns the output of C<git describe> on the
-directory pointed to by C<git_checkout>.
-
-=cut
-
-has 'git_describe' => (
-	is       => 'ro',
-	isa      => Str,
-	lazy     => 1,
-	builder  => '_build_git_describe',
-	init_arg => undef,
-);
-
-sub _build_git_describe {
-	my $self     = shift;
-	my $checkout = $self->git_checkout();
-	my $location = $self->git_location();
-	if ( not -f $location ) {
-		PDWiX::File->throw(
-			message => 'Could not find git',
-			file    => $location
-		);
-	}
-	$location = Win32::GetShortPathName($location);
-	if ( not defined $location ) {
-		PDWiX->throw( 'Could not convert the location of git.exe'
-			  . ' to a path with short names' );
-	}
-
-	## no critic(ProhibitBacktickOperators)
-	$self->trace_line( 2,
-		"Finding current commit using $location describe\n" );
-	my $describe =
-qx{cmd.exe /d /e:on /c "pushd $checkout && $location describe && popd"};
-
-	if ($CHILD_ERROR) {
-		PDWiX->throw("'git describe' returned an error: $CHILD_ERROR");
-	}
-
-	$describe =~ s/v5[.]/5./ms;
-	$describe =~ s/\n//ms;
-
-	return $describe;
-} ## end sub _build_git_describe
 
 
 
@@ -3739,34 +3822,7 @@ For example, a Perl 5.10.1 distribution will return '5.010001'.
 
 =cut
 
-has 'perl_version_literal' => (
-	is       => 'ro',                  # String
-	lazy     => 1,
-	builder  => '_build_perl_version_literal',
-	init_arg => undef,
-);
-
-sub _build_perl_version_literal {
-	my $self = shift;
-
-	my $x = {
-		'5100' => '5.010000',
-		'5101' => '5.010001',
-		'5120' => '5.012000',
-		'5121' => '5.012001',
-		'git'  => '5.013002',
-	  }->{ $self->perl_version() }
-	  || 0;
-
-	unless ($x) {
-		PDWiX::Parameter->throw(
-			parameter => 'perl_version_literal: Failed to resolve',
-			where     => '->(building of accessor)'
-		);
-	}
-
-	return $x;
-} ## end sub _build_perl_version_literal
+# This is defined in the perl version plugins.
 
 
 
@@ -3775,39 +3831,11 @@ sub _build_perl_version_literal {
 The C<perl_version_human> method returns the "marketing" form
 of the Perl version.
 
-This will be either 'git', '5.10.0', '5.10.1', '5.12.0', or '5.12.1'.
+This will be either 'git', or a string along the lines of '5.10.0'.
 
 =cut
 
-has 'perl_version_human' => (
-	is       => 'ro',                  # String
-	lazy     => 1,
-	builder  => '_build_perl_version_human',
-	writer   => '_set_perl_version_human',
-	init_arg => undef,
-);
-
-sub _build_perl_version_human {
-	my $self = shift;
-
-	my $x = {
-		'5100' => '5.10.0',
-		'5101' => '5.10.1',
-		'5120' => '5.12.0',
-		'5121' => '5.12.1',
-		'git'  => 'git',
-	  }->{ $self->perl_version() }
-	  || 0;
-
-	unless ($x) {
-		PDWiX::Parameter->throw(
-			parameter => 'perl_version_human: Failed to resolve',
-			where     => '->(building of accessor)'
-		);
-	}
-
-	return $x;
-} ## end sub _build_perl_version_human
+# This is defined in the perl version plugins.
 
 
 
@@ -4049,6 +4077,8 @@ sub msm_package_id {
 	#... then use it to create a GUID out of the ID.
 	my $guid = $generator->generate_guid($upgrade_ver);
 
+	$self->_set_msm_code($guid);
+
 	return $guid;
 } ## end sub msm_package_id
 
@@ -4107,22 +4137,14 @@ See L<http://wix.sourceforge.net/manual-wix3/wix_xsd_product.htm>
 sub msi_perl_version {
 	my $self = shift;
 
-	# Get perl version arrayref.
-	my $ver = {
-		'5100' => [ 5, 10, 0 ],
-		'5101' => [ 5, 10, 1 ],
-		'5120' => [ 5, 12, 0 ],
-		'5121' => [ 5, 12, 1 ],
-		'git'  => [ 5, 0,  0 ],
-	  }->{ $self->perl_version() }
-	  || [ 0, 0, 0 ];
+	my @ver = @{ $self->_perl_version_arrayref() };
 
 	# Merge build number with last part of perl version.
-	$ver->[2] = ( $ver->[2] << 8 ) + $self->build_number();
+	$ver[2] = ( $ver[2] << 8 ) + $self->build_number();
 
-	return join q{.}, @{$ver};
+	return join q{.}, @ver;
 
-} ## end sub msi_perl_version
+}
 
 
 
@@ -4136,18 +4158,10 @@ the perl distribution being built.
 sub perl_major_version {
 	my $self = shift;
 
-	# Get perl version arrayref.
-	my $ver = {
-		'5100' => [ 5, 10, 0 ],
-		'5101' => [ 5, 10, 1 ],
-		'5120' => [ 5, 12, 0 ],
-		'5121' => [ 5, 12, 1 ],
-		'git'  => [ 5, 13, 1 ],
-	  }->{ $self->perl_version() }
-	  || [ 0, 0, 0 ];
+	my $ver = $self->_perl_version_arrayref();
 
 	return @{$ver}[1];
-} ## end sub perl_major_version
+}
 
 =head3 msi_perl_major_version
 
@@ -4162,25 +4176,23 @@ sub msi_perl_major_version {
 	my $self = shift;
 
 	# Get perl version arrayref.
-	my $ver = {
-		'5100' => [ 5, 9,  127 ],
-		'5101' => [ 5, 10, 0 ],
-		'5120' => [ 5, 11, 127 ],
-		'5121' => [ 5, 12, 0 ],
-		'git'  => [ 5, 12, 127 ],      # 'git' should now be 5.13.0
-	  }->{ $self->perl_version() }
-	  || [ 0, 0, 0 ];
+	my @ver = @{ $self->_perl_bincompat_version_arrayref() };
 
-	# Shift the third portion over to match msi_perl_version.
-	$ver->[2] <<= 8;
-	$ver->[2] += 255;
+	if ( $self->does('Perl::Dist::WiX::Role::GitPlugin') ) {
 
-	# Correct to the build number (minus 1 so as not to duplicate) for git
-	if ( 'git' eq $self->perl_version() ) {
-		$ver->[2] = $self->build_number() - 1;
+	 # Shift the third portion over to match msi_perl_version.
+	 # Correct to the build number (minus 1 so as not to duplicate) for git.
+		$ver[2] <<= 8;
+		$ver[2] += $self->build_number();
+		$ver[2] -= 1;
+	} else {
+
+		# Shift the third portion over to match msi_perl_version.
+		$ver[2] <<= 8;
+		$ver[2] += 255;
 	}
 
-	return join q{.}, @{$ver};
+	return join q{.}, @ver;
 
 } ## end sub msi_perl_major_version
 
@@ -4201,8 +4213,10 @@ sub msi_relocation_commandline {
 	my ( $fragment, $file, $id );
 	while ( ( $fragment, $file ) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file_id($file);
-		PDWiX->throw("Could not find file $file in fragment $fragment\n")
-		  if not defined $id;
+		if ( not defined $id ) {
+			PDWiX->throw(
+				"Could not find file $file in fragment $fragment\n");
+		}
 		$answer .= " --file [#$id]";
 	}
 
@@ -4227,8 +4241,10 @@ sub msm_relocation_commandline {
 	my ( $fragment, $file, $id );
 	while ( ( $fragment, $file ) = each %files ) {
 		$id = $self->get_fragment_object($fragment)->find_file_id($file);
-		PDWiX->throw("Could not find file $file in fragment $fragment\n")
-		  if not defined $id;
+		if ( not defined $id ) {
+			PDWiX->throw(
+				"Could not find file $file in fragment $fragment\n");
+		}
 		$answer .= " --file [#$id]";
 	}
 
@@ -4372,7 +4388,7 @@ sub get_component_array {
 
 =head3 mk_debug
 
-Used in the makefile.mk template for 5.11.5+ to activate building a debugging perl. 
+Used in the makefile.mk template for 5.12.0+ to activate building a debugging perl. 
 
 =cut
 
@@ -4437,7 +4453,9 @@ helper dll for our gcc4 packs.
 sub mk_gcc4_dll {
 	my $self = shift;
 
-	return ( 4 == $self->gcc_version() ) ? 'GCCHELPERDLL' : '#GCCHELPERDLL';
+	return ( 4 == $self->gcc_version() )
+	  ? 'GCCHELPERDLL'
+	  : '#GCCHELPERDLL';
 }
 
 
@@ -4482,12 +4500,15 @@ sub _build_patch_template {
 	my $obj  = Template->new(
 		INCLUDE_PATH => $self->patch_include_path(),
 		ABSOLUTE     => 1,
+		EVAL_PERL    => 1,
 	);
 
-	PDWiX::Caught->throw(
-		message => Template::error(),
-		info    => 'Template'
-	) unless $obj;
+	if ( not $obj ) {
+		PDWiX::Caught->throw(
+			message => Template::error(),
+			info    => 'Template'
+		);
+	}
 
 	return $obj;
 } ## end sub _build_patch_template
@@ -4601,14 +4622,14 @@ has '_output_file' => (
 =head3 get_directory_tree
 
 Retrieves the 
-L<Perl::Dist::WiX::DirectoryTree2|Perl::Dist::WiX::DirectoryTree2> object
+L<Perl::Dist::WiX::DirectoryTree|Perl::Dist::WiX::DirectoryTree> object
 created to keep track of directories in this distribution.
 
 =cut
 
 has '_directories' => (
 	is       => 'bare',
-	isa      => 'Maybe[Perl::Dist::WiX::DirectoryTree2]',
+	isa      => 'Maybe[Perl::Dist::WiX::DirectoryTree]',
 	writer   => '_set_directories',
 	reader   => 'get_directory_tree',
 	clearer  => '_clear_directory_tree',
@@ -4701,13 +4722,20 @@ has '_notification_index' => (
 
 # This throws a Growl notification up when files are created.
 sub add_output_file {
-	my $self = shift;
+	my $self  = shift;
+	my $class = ref $self;
+
+	# Get the real class name after MooseX::Object::Pluggable
+	# has messed with it.
+	if ( $class =~ /MOP/ms ) {
+		$class = $self->_original_class_name();
+	}
 
 	if ( eval { require Growl::GNTP; 1; } ) {
 
 		# Open up our communication link to Growl.
 		my $growl = Growl::GNTP->new(
-			AppName => ref $self,
+			AppName => $class,
 			AppIcon => catfile( $self->wix_dist_dir(), 'growl-icon.png' ),
 		);
 
@@ -4837,19 +4865,20 @@ Adds a path entry that will be installed when the installer is executed.
 
 =cut
 
-sub add_path {
+around 'add_path' => sub {
+	my $orig = shift;
 	my $self = shift;
 	my @path = @_;
 	my $dir  = $self->dir(@path);
-	unless ( -d $dir ) {
+	if ( not -d $dir ) {
 		PDWiX::Directory->throw(
 			dir     => $dir,
 			message => 'PATH directory does not exist'
 		);
 	}
-	$self->_add_env_path_unchecked( [@path] );
+	$self->$orig( [@path] );
 	return 1;
-} ## end sub add_path
+}; ## end sub add_path
 
 
 
@@ -4887,21 +4916,21 @@ $name and $value are required.
 sub add_env {
 	my ( $self, $name, $value, $append ) = @_;
 
-	unless ( defined $append ) {
+	if ( not defined $append ) {
 		$append = 0;
 	}
 
-	unless ( _STRING($name) ) {
+	if ( not _STRING($name) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'name',
-			where     => '::Installer->add_env'
+			where     => '->add_env'
 		);
 	}
 
-	unless ( _STRING($value) ) {
+	if ( not _STRING($value) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'value',
-			where     => '::Installer->add_env'
+			where     => '->add_env'
 		);
 	}
 
@@ -4937,28 +4966,28 @@ Both parameters are required, and the file and fragment must both exist.
 sub add_file {
 	my ( $self, %params ) = @_;
 
-	unless ( _STRING( $params{source} ) ) {
+	if ( not _STRING( $params{source} ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'source',
-			where     => '::Installer->add_file'
+			where     => '->add_file'
 		);
 	}
 
-	unless ( -f $params{source} ) {
+	if ( not -f $params{source} ) {
 		PDWiX::File->throw(
 			file    => $params{source},
 			message => 'File does not exist'
 		);
 	}
 
-	unless ( _IDENTIFIER( $params{fragment} ) ) {
+	if ( not _IDENTIFIER( $params{fragment} ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'fragment',
-			where     => '::Installer->add_file'
+			where     => '->add_file'
 		);
 	}
 
-	unless ( $self->fragment_exists( $params{fragment} ) ) {
+	if ( not $self->fragment_exists( $params{fragment} ) ) {
 		PDWiX->throw("Fragment $params{fragment} does not exist");
 	}
 
@@ -4986,16 +5015,16 @@ This B<MUST> be done for each set of files to be installed in an MSI.
 =cut
 
 sub insert_fragment {
-	my ( $self, $id, $files_obj, $overwritable ) = @_;
+	my ( $self, $id, $files_obj, $overwritable, $feature ) = @_;
 
 	# Check parameters.
-	unless ( _IDENTIFIER($id) ) {
+	if ( not _IDENTIFIER($id) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'id',
 			where     => '->insert_fragment'
 		);
 	}
-	unless ( _INSTANCE( $files_obj, 'File::List::Object' ) ) {
+	if ( not _INSTANCE( $files_obj, 'File::List::Object' ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'files_obj',
 			where     => '->insert_fragment'
@@ -5003,8 +5032,9 @@ sub insert_fragment {
 	}
 
 	defined $overwritable or $overwritable = 0;
+	defined $feature      or $feature      = 'Complete';
 
-	$self->trace_line( 2, "Adding fragment $id...\n" );
+	$self->trace_line( 2, "Adding fragment $id to feature $feature...\n" );
 
 	my $frag;
   FRAGMENT:
@@ -5020,6 +5050,7 @@ sub insert_fragment {
 		files           => $files_obj,
 		can_overwrite   => $overwritable,
 		in_merge_module => $self->_in_merge_module(),
+		sub_feature     => $feature,
 	);
 
 	$self->_add_fragment( $id, $fragment );
@@ -5044,13 +5075,13 @@ sub add_to_fragment {
 	my ( $self, $id, $files_ref ) = @_;
 
 	# Check parameters.
-	unless ( _IDENTIFIER($id) ) {
+	if ( not _IDENTIFIER($id) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'id',
 			where     => '->add_to_fragment'
 		);
 	}
-	unless ( _ARRAY($files_ref) ) {
+	if ( not _ARRAY($files_ref) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'files_ref',
 			where     => '->add_to_fragment'
@@ -5076,168 +5107,123 @@ sub add_to_fragment {
 	return $fragment;
 } ## end sub add_to_fragment
 
-
-
-#####################################################################
-#
-# Patch Support
-#
-#
-
-=head3 File patching support
-
-=head4 process_template
-
-Loads the file template passed in as the first parameter, using this object, 
-and returns it as a string.
-
-Additional entries (beyond the one given that 'dist' is the Perl::Dist::WiX 
-object) for the second parameter of Template->process are given as a list of 
-pairs in the optional second parameter.
-
-	# Loads up the template for merge module docs.
-	$text = $self->process_template('Merge-Module.documentation.txt.tt');
-
-=cut
-
-sub process_template {
-	my $self          = shift;
-	my $template_file = shift;
-	my @vars_in       = @_;
-
-	my $tt = $self->patch_template();
-
-	my $answer;
-	my $tt_answer;
-	my %vars = ( @vars_in, dist => $self, );
-
-	$tt_answer = $tt->process( $template_file, \%vars, \$answer );
-
-	PDWiX::Caught->throw(
-		info    => 'Template',
-		message => $tt->error()->as_string() ) if not $tt_answer;
-
-#<<<
-	# Delete empty lines.
-	$answer =~ s{\R         # Replace a linebreak, 
-				 \s*?       # any whitespace we may be able to catch,
-				 \R}        # and a second linebreak
-				{\r\n}msgx; # With one Windows linebreak.
-#>>>
-
-	# Combine it all
-	return $answer;
-} ## end sub process_template
-
-
-
-=head4 patch_include_path
-
-Returns an array reference containing a list of paths containing files
-that are used to replace or patch files in the distribution.
-
-=cut
-
-# By default only use the default (as a default...)
-sub patch_include_path {
-	my $self     = shift;
-	my $share    = File::ShareDir::dist_dir('Perl-Dist-WiX');
-	my $path     = catdir( $share, 'default', );
-	my $portable = catdir( $share, 'portable', );
-	unless ( -d $path ) {
-		PDWiX::Directory->throw(
-			dir     => $path,
-			message => 'Directory does not exist'
-		);
-	}
-	if ( $self->portable() ) {
-		unless ( -d $portable ) {
-			PDWiX::Directory->throw(
-				dir     => $portable,
-				message => 'Directory does not exist'
-			);
-		}
-		return [ $portable, $path ];
-	} else {
-		return [$path];
-	}
-} ## end sub patch_include_path
-
-
-
-=head4 patch_pathlist
-
-Returns the list of directories in C<patch_include_path> as a 
-L<File::PathList|File::PathList> object.
-
-=cut
-
-sub patch_pathlist {
+sub _create_rightclick_fragment {
 	my $self = shift;
-	return File::PathList->new( paths => $self->patch_include_path(), );
-}
 
+	my $root_key = WiX3::XML::RegistryKey->new(
+		root   => 'HKCR',
+		action => 'none',
+		key    => '.pl',
+	);
 
+	$root_key->add_child_tag(
+		WiX3::XML::RegistryValue->new(
+			id       => 'sp1010r_pointer',
+			value    => 'Perl_program_file',
+			type     => 'string',
+			action   => 'write',
+			key_path => 1,
+		) );
 
-=head4 patch_file
+	my $classes_key = WiX3::XML::RegistryKey->new(
+		root   => 'HKLM',
+		action => 'none',
+		key    => 'SOFTWARE\\Classes',
+	);
 
-C<patch_file> patches an individual file installed in the distribution
-using a file from the directories returned from L</patch_pathlist>.
+	my $child_tag;
+	$child_tag = WiX3::XML::RegistryKey->new(
+		id     => 'sp1010c_root',
+		key    => 'Perl_program_file',
+		action => 'createAndRemoveOnUninstall',
+	);
+	$classes_key->add_child_tag($child_tag);
 
-=cut
+	$child_tag->add_child_tag(
+		WiX3::XML::RegistryValue->new(
+			id     => 'sp1010c_pointer',
+			value  => 'Perl program file',
+			type   => 'string',
+			action => 'write',
+		) );
 
-sub patch_file {
-	my $self     = shift;
-	my $file     = shift;
-	my $file_tt  = $file . '.tt';
-	my $dir      = shift;
-	my $to       = catfile( $dir, $file );
-	my $pathlist = $self->patch_pathlist();
+	$child_tag->add_child_tag(
+		WiX3::XML::RegistryKey->new(
+			id     => 'sp1010c_shell',
+			key    => 'shell',
+			action => 'createAndRemoveOnUninstall',
+		) );
 
-	# Locate the source file
-	my $from    = $pathlist->find_file($file);
-	my $from_tt = $pathlist->find_file($file_tt);
-	unless ( defined $from and defined $from_tt ) {
-		PDWiX->throw(
-			"Missing or invalid file $file or $file_tt in pathlist search"
-		);
-	}
+	$child_tag = $child_tag->get_child_tag(1);
 
-	if ( $from_tt ne q{} ) {
+	$child_tag->add_child_tag(
+		WiX3::XML::RegistryKey->new(
+			id     => 'sp1010c_syncheck',
+			key    => 'Syntax Check',
+			action => 'createAndRemoveOnUninstall',
+		) );
 
-		# Generate the file
-		my $hash = _HASH(shift) || {};
-		my ( $fh, $output ) =
-		  File::Temp::tempfile( 'pdwXXXXXX', TMPDIR => 1 );
-		$self->trace_line( 2,
-			"Generating $from_tt into temp file $output\n" );
-		$self->patch_template()
-		  ->process( $from_tt, { %{$hash}, self => $self }, $fh, )
-		  or PDWiX->throw("Template processing failed for $from_tt");
+	$child_tag->add_child_tag(
+		WiX3::XML::RegistryKey->new(
+			id     => 'sp1010c_execute',
+			key    => 'Execute Perl Program',
+			action => 'createAndRemoveOnUninstall',
+		) );
 
-		# Copy the file to the final location
-		$fh->close or PDWiX->throw("Could not close: $OS_ERROR");
-		$self->copy_file( $output => $to );
-		unlink $output
-		  or PDWiX->throw("Could not delete $output: $OS_ERROR");
+	$child_tag->get_child_tag(0)->add_child_tag(
+		WiX3::XML::RegistryKey->new(
+			id     => 'sp1010c_syncheckcommand',
+			key    => 'command',
+			action => 'createAndRemoveOnUninstall',
+		) );
 
-	} elsif ( $from ne q{} ) {
+	## no critic(RequireInterpolationOfMetachars)
+	$child_tag->get_child_tag(0)->get_child_tag(0)->add_child_tag(
+		WiX3::XML::RegistryValue->new(
+			id     => 'sp1010c_syncheckcommand',
+			value  => q{[P_Perl_Location] -E"system($^X, q{-c}, q{%1});"},
+			type   => 'string',
+			action => 'write',
+		) );
 
-		# Simple copy of the regular file to the target location
-		$self->copy_file( $from => $to );
+	$child_tag->get_child_tag(1)->add_child_tag(
+		WiX3::XML::RegistryKey->new(
+			id     => 'sp1010c_executecommand',
+			key    => 'command',
+			action => 'createAndRemoveOnUninstall',
+		) );
 
-	} else {
-		PDWiX::File->throw(
-			file    => $file,
-			message => 'Failed to find file'
-		);
-	}
+	$child_tag->get_child_tag(1)->get_child_tag(0)->add_child_tag(
+		WiX3::XML::RegistryValue->new(
+			id     => 'sp1010c_executecommand',
+			value  => '[P_Perl_Location] %1',
+			type   => 'string',
+			action => 'write',
+		) );
+
+	my $component = WiX3::XML::Component->new(
+		id                        => 'RightClickEntries',
+		disableregistryreflection => 1,
+		neveroverwrite            => 0,
+	);
+
+	$component->add_child_tag($root_key);
+	$component->add_child_tag($classes_key);
+
+	my $ref = Perl::Dist::WiX::Tag::DirectoryRef->new(
+		$self->get_directory_tree()->get_directory_object('INSTALLDIR') );
+	$ref->add_child_tag($component);
+
+	my $fragment = WiX3::XML::Fragment->new( id => 'RightClickEntries', );
+	$fragment->add_child_tag($ref);
+	$self->_add_fragment( 'RightClickEntries', $fragment );
 
 	return 1;
-} ## end sub patch_file
+} ## end sub _create_rightclick_fragment
 
 
 
+__PACKAGE__->meta->make_immutable;
 1;
 
 __END__

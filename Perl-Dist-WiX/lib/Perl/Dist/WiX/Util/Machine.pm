@@ -304,12 +304,12 @@ sub BUILD {
 	my $self = shift;
 
 	# Check params
-	unless ( _DRIVER( $self->_get_class(), 'Perl::Dist::WiX' ) ) {
+	if ( not _DRIVER( $self->_get_class(), 'Perl::Dist::WiX' ) ) {
 		PDWiX->throw('Missing or invalid class param');
 	}
 
 	my $output = $self->_get_output();
-	unless ( -d $output and -w $output ) {
+	if ( not -d $output or not -w $output ) {
 		PDWiX->throw( "The output directory '$output' does not "
 			  . 'exist, or is not writable' );
 	}
@@ -386,7 +386,7 @@ sub add_option {
 	if ( $self->_has_state() ) {
 		PDWiX->throw('Cannot alter params once iterating');
 	}
-	unless ( $self->_option_exists($name) ) {
+	if ( not $self->_option_exists($name) ) {
 		PDWiX->throw("The dimension '$name' does not exist");
 	}
 	my $option = $self->_get_options($name);
@@ -462,7 +462,7 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 		# Move to the next position
 		my $found = 0;
 		foreach my $name ( $self->_get_dimensions() ) {
-			unless ( $self->_get_state($name) ==
+			if ( $self->_get_state($name) !=
 				$#{ $self->_get_options($name) } )
 			{
 
@@ -478,7 +478,7 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 			# correct value.
 			$self->_set_state( $name => 0 );
 		} ## end foreach my $name ( $self->_get_dimensions...)
-		unless ($found) {
+		if ( not $found ) {
 			$self->_set_eos();
 			return undef;
 		}
@@ -487,7 +487,7 @@ sub next { ## no critic (ProhibitBuiltinHomonyms)
 		# Initialize to the first position
 		my %state;
 		foreach my $name ( $self->_get_dimensions() ) {
-			unless ( @{ $self->_get_options($name) } ) {
+			if ( not @{ $self->_get_options($name) } ) {
 				PDWiX->throw("No options for dimension '$name'");
 			}
 			$state{$name} = 0;
@@ -546,7 +546,7 @@ sub run {
 				# Copy the output products for this run to the
 				# main output area.
 				foreach my $file ( $dist->get_output_files() ) {
-					File::Copy::move( $file, $output_dir );
+					File::Copy::copy( $file, $output_dir );
 				}
 				File::Copy::Recursive::dircopy( $dist->output_dir(),
 					catdir( $output_dir, "success-output-$num" ) );

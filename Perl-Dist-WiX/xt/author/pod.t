@@ -11,8 +11,8 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Pod::Simple 3.07',
-	'Test::Pod 1.41',
+	'Pod::Simple 3.14',
+	'Test::Pod 1.44',
 );
 
 # Load the testing modules

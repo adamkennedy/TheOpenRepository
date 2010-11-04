@@ -207,7 +207,7 @@ sub search_dir {
 	my $exact   = $args{exact}   || 0;
 	my $path    = $self->get_path();
 
-	return undef unless defined $path;
+	return undef if not defined $path;
 
 	$self->trace_line( 3, "Looking for $path_to_find\n" );
 	$self->trace_line( 4, "   in:      $path.\n" );
@@ -227,7 +227,7 @@ sub search_dir {
 	}
 
 	# Quick exit if required.
-	return undef unless $descend;
+	return undef if not $descend;
 
 	# Do we want to continue searching down this direction?
 	my $subset = "$path_to_find\\" =~ m{\A\Q$path\E\\}msx;
@@ -247,7 +247,7 @@ sub search_dir {
 
   TAG:
 	foreach my $tag (@tags) {
-		next TAG unless $tag->isa('Perl::Dist::WiX::Tag::Directory');
+		next TAG if not $tag->isa('Perl::Dist::WiX::Tag::Directory');
 
 		$answer = $tag->search_dir( \%args );
 		if ( defined $answer ) {
@@ -266,7 +266,8 @@ sub search_dir {
 	}
 } ## end sub search_dir
 
-sub _add_directory_recursive {
+sub _add_directory_recursive
+{ ## no critic(ProhibitUnusedPrivateSubroutines)
 	my $self         = shift;
 	my $path_to_find = shift;
 	my $dir_to_add   = shift;

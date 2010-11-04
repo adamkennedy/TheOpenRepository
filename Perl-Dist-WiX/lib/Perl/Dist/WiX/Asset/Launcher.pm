@@ -150,7 +150,7 @@ sub install {
 
 	# Check the script exists
 	my $to = catfile( $self->_get_image_dir(), 'perl', 'bin', "$bin$ext" );
-	unless ( -f $to ) {
+	if ( not -f $to ) {
 		PDWiX::File->throw(
 			file    => $to,
 			message => 'File does not exist'

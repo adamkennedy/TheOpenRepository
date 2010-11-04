@@ -93,7 +93,7 @@ The required C<license> parameter allows you to specify which files get
 copied to the license directory of the distribution.
 
 The keys are the files to copy, as relative filenames from the subdirectory
-named in C<unpack_to>. (Git checkouts are copies to a directory named 
+named in C<unpack_to>. (Git checkouts are copied to a directory named 
 C<'perl-git'>, and that directory needs to be specified in the keys.)
 
 The values are the locations to copy them to, relative to the license 
@@ -117,10 +117,9 @@ has license => (
 The required C<patch> parameter allows you to specify which files get 
 patched before the distribution is built.
 
-These files will be in the 'perl-VERSION' subdirectory of any directory in
-the list of directories returned by 
-L<< Perl::Dist::WiX->patch_pathlist()|Perl::Dist::WiX/patch_pathlist >>
-(which subclasses can add to.)
+These files will be passed to the routine C<_find_perl_file>, which will 
+check the share directory of each plugin module(s) that was/were loaded
+for the named file, and return the correct location. 
 
 VERSION is 'git' for git checkouts.
 
@@ -128,10 +127,9 @@ The patch files can either have the names of original files (in which case
 the files are copied) or can have an additional extension of C<.tt> (in 
 which case the files are processed through Template Toolkit, with the 
 parameters described in 
-L<< Perl::Dist::WiX->patch_file()|Perl::Dist::WiX/patch_file >>.)
+L<< Perl::Dist::WiX->patch_file()|Perl::Dist::WiX::Mixin::Patching/patch_file >>.)
 
-The makefile.mk is automatically patched, is not mentioned here, and 
-cannot be overridden by subclasses.
+The makefile.mk is automatically patched and is not mentioned here.
 
 =cut
 
@@ -244,6 +242,21 @@ The install method installs the Perl distribution described by the
 B<Perl::Dist::WiX::Asset::Perl> object and returns true or throws
 an exception.
 
+The C<install> method takes care of the detailed process
+of building the Perl binary and installing it into the
+distribution.
+
+A short summary of the process would be that it downloads or otherwise
+fetches the package that was named when the object is created, unpacks it, 
+copies out any license files from the source code, then tweaks the Win32 
+makefile to point to the specific build directory, and then runs 
+make/make test/make install. 
+
+Returns true (after 20 minutes or so) or throws an exception on
+error.
+
+
+
 =cut
 
 
@@ -302,7 +315,7 @@ s{[.] tar[.] gz\z | [.] tgz\z | [.] tar[.] bz2\z | [.] tbz\z}{}msx;
 
 		# Overwrite the appropriate files
 		foreach my $file ( @{$patch} ) {
-			$self->_patch_file( "perl-$version/$file" => $unpack_to );
+			$self->_patch_perl_file( $file => "$unpack_to\\$perlsrc" );
 		}
 	}
 
@@ -333,8 +346,8 @@ s{[.] tar[.] gz\z | [.] tgz\z | [.] tar[.] bz2\z | [.] tbz\z}{}msx;
 
 		# Patch the makefile.
 		$self->_trace_line( 2, "Patching makefile.mk\n" );
-		$self->_patch_file(
-			"$perlsrc/win32/makefile.mk" => $unpack_to,
+		$self->_patch_perl_file(
+			'win32/makefile.mk' => "$unpack_to\\$perlsrc",
 			{   dist     => $self->_get_parent(),
 				INST_DRV => $INST_DRV,
 				INST_TOP => $INST_TOP,
@@ -342,7 +355,7 @@ s{[.] tar[.] gz\z | [.] tgz\z | [.] tar[.] bz2\z | [.] tbz\z}{}msx;
 
 		# Compile perl.
 		$self->_trace_line( 1, "Building perl $version...\n" );
-		$self->_make;
+		$self->_make();
 
 		# Get information required for testing and installing perl.
 		my $force = $self->_get_force();
@@ -376,7 +389,7 @@ EOF
 		} ## end if ( ( not $force ) &&...)
 
 		# Testing perl if requested.
-		unless ($force) {
+		if ( not $force ) {
 			local $ENV{PERL_SKIP_TTY_TEST} = 1;
 			$self->_trace_line( 1, "Testing perl...\n" );
 			$self->_make('test');

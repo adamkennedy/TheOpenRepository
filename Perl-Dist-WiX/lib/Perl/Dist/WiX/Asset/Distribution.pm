@@ -286,7 +286,7 @@ sub BUILDARGS {
 			  . 'for Perl::Dist::WiX::Asset::Distribution' );
 	}
 
-	unless ( defined _INSTANCE( $args{parent}, 'Perl::Dist::WiX' ) ) {
+	if ( not defined _INSTANCE( $args{parent}, 'Perl::Dist::WiX' ) ) {
 		PDWiX::Parameter->throw(
 			parameter =>
 			  'parent: missing or not a Perl::Dist::WiX instance',
@@ -406,23 +406,23 @@ sub install {
 		File::Remove::remove( \1, $unpack_to );
 	}
 	$self->_extract( $tgz => $build_dir );
-	unless ( -d $unpack_to ) {
+	if ( not -d $unpack_to ) {
 		PDWiX->throw("Failed to extract $unpack_to\n");
 	}
 
 	my $buildpl    = ( -r catfile( $unpack_to, 'Build.PL' ) )    ? 1 : 0;
 	my $makefilepl = ( -r catfile( $unpack_to, 'Makefile.PL' ) ) ? 1 : 0;
 
-	unless ( $buildpl or $makefilepl ) {
+	if ( not $buildpl and not $makefilepl ) {
 		PDWiX->throw(
 			"Could not find Makefile.PL or Build.PL in $unpack_to\n");
 	}
 
 	# Build using Build.PL if we have one
 	# unless Module::Build is not installed.
-	unless ( $self->_module_build_installed() ) {
+	if ( not $self->_module_build_installed() ) {
 		$buildpl = 0;
-		unless ($makefilepl) {
+		if ( not $makefilepl ) {
 			PDWiX->throw( "Could not find Makefile.PL in $unpack_to"
 				  . " (too early for Build.PL)\n" );
 		}

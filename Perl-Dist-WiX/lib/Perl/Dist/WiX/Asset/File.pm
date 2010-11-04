@@ -103,7 +103,7 @@ sub install {
 	# Copy the file to the target location
 	my $from = catfile( $download_dir, $self->_get_file() );
 	my $to   = catfile( $image_dir,    $self->_get_install_to() );
-	unless ( -f $to ) {
+	if ( not -f $to ) {
 		push @files, $to;
 	}
 

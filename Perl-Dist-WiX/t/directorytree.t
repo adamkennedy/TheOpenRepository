@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
-use Perl::Dist::WiX::DirectoryTree2;
+use Perl::Dist::WiX::DirectoryTree;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
@@ -18,7 +18,7 @@ BEGIN {
 
 # Test 1.
 
-my $tree = Perl::Dist::WiX::DirectoryTree2->new(
+my $tree = Perl::Dist::WiX::DirectoryTree->new(
     app_dir => 'C:\\test', 
     app_name => 'Test Perl', 
 #    sitename => 'www.test.site.invalid',
@@ -32,51 +32,52 @@ my $string = $tree->as_string;
 
 is($string, q{    <Directory Id='TARGETDIR' Name='SourceDir' />}, 'Stringifies correctly when uninitialized');    
 
-my $string_test = q{    <Directory Id='TARGETDIR' Name='SourceDir'>
-      <Directory Id='INSTALLDIR'>
-        <Directory Id='D_Perl' Name='perl'>
-          <Directory Id='D_PerlSite' Name='site'>
-            <Directory Id='D_PerlSiteBin' Name='bin' />
-            <Directory Id='D_PerlSiteLib' Name='lib'>
-              <Directory Id='D_MTc3MjI4NDcwOQ' Name='auto' />
+my $string_test = '    <Directory Id=\'TARGETDIR\' Name=\'SourceDir\'>
+      <Directory Id=\'INSTALLDIR\'>
+        <Directory Id=\'D_Perl\' Name=\'perl\'>
+          <Directory Id=\'D_PerlSite\' Name=\'site\'>
+            <Directory Id=\'D_PerlSiteBin\' Name=\'bin\' />
+            <Directory Id=\'D_PerlSiteLib\' Name=\'lib\'>
+              <Directory Id=\'D_MTc3MjI4NDcwOQ\' Name=\'auto\' />
             </Directory>
           </Directory>
-          <Directory Id='D_ODE2MzcxND' Name='bin' />
-          <Directory Id='D_ODY0MDczNj' Name='lib'>
-            <Directory Id='D_MjA0Nzk3NDQyNQ' Name='auto' />
+          <Directory Id=\'D_ODE2MzcxND\' Name=\'bin\' />
+          <Directory Id=\'D_ODY0MDczNj\' Name=\'lib\'>
+            <Directory Id=\'D_MjA0Nzk3NDQyNQ\' Name=\'auto\' />
           </Directory>
-          <Directory Id='D_MzYxNTg0NT' Name='vendor'>
-            <Directory Id='D_MzI0NzU5MzEyNA' Name='lib'>
-              <Directory Id='D_OTk4ODIxMD' Name='auto'>
-                <Directory Id='D_MTAzMTczNDQzNA' Name='share'>
-                  <Directory Id='D_NzI1MjE0Nz' Name='dist' />
-                  <Directory Id='D_NDEzNzIyNTIyMQ' Name='module' />
+          <Directory Id=\'D_MzYxNTg0NT\' Name=\'vendor\'>
+            <Directory Id=\'D_MzI0NzU5MzEyNA\' Name=\'lib\'>
+              <Directory Id=\'D_OTk4ODIxMD\' Name=\'auto\'>
+                <Directory Id=\'D_MTAzMTczNDQzNA\' Name=\'share\'>
+                  <Directory Id=\'D_NzI1MjE0Nz\' Name=\'dist\' />
+                  <Directory Id=\'D_NDEzNzIyNTIyMQ\' Name=\'module\' />
                 </Directory>
               </Directory>
             </Directory>
           </Directory>
         </Directory>
-        <Directory Id='D_Toolchain' Name='c'>
-          <Directory Id='D_NTU4MTI5MT' Name='bin' />
-          <Directory Id='D_MzcxMjY2ODc3Nw' Name='include' />
-          <Directory Id='D_NTc3NTE5Mz' Name='lib' />
-          <Directory Id='D_NzE3MjA0MD' Name='libexec' />
-          <Directory Id='D_NDE3MzU1OT' Name='mingw32' />
-          <Directory Id='D_MzEzMzQ4ODMzNQ' Name='share' />
+        <Directory Id=\'D_Toolchain\' Name=\'c\'>
+          <Directory Id=\'D_NTU4MTI5MT\' Name=\'bin\' />
+          <Directory Id=\'D_MzcxMjY2ODc3Nw\' Name=\'include\' />
+          <Directory Id=\'D_NTc3NTE5Mz\' Name=\'lib\' />
+          <Directory Id=\'D_NzE3MjA0MD\' Name=\'libexec\' />
+          <Directory Id=\'D_NDE3MzU1OT\' Name=\'mingw32\' />
+          <Directory Id=\'D_MzEzMzQ4ODMzNQ\' Name=\'share\' />
         </Directory>
-        <Directory Id='D_License' Name='licenses' />
-        <Directory Id='D_Cpan' Name='cpan'>
-          <Directory Id='D_CpanSources' Name='sources' />
+        <Directory Id=\'D_License\' Name=\'licenses\' />
+        <Directory Id=\'D_Cpan\' Name=\'cpan\'>
+          <Directory Id=\'D_CpanSources\' Name=\'sources\' />
         </Directory>
-        <Directory Id='D_Win32' Name='win32' />
+        <Directory Id=\'D_Win32\' Name=\'win32\' />
+        <Directory Id=\'D_Cpanplus\' Name=\'cpanplus\' />
       </Directory>
-      <Directory Id='ProgramMenuFolder'>
-        <Directory Id='D_App_Menu' Name='Test Perl'>
-          <Directory Id='D_App_Menu_Tools' Name='Tools' />
-          <Directory Id='D_App_Menu_Websites' Name='Related Websites' />
+      <Directory Id=\'ProgramMenuFolder\'>
+        <Directory Id=\'D_App_Menu\' Name=\'Test Perl\'>
+          <Directory Id=\'D_App_Menu_Tools\' Name=\'Tools\' />
+          <Directory Id=\'D_App_Menu_Websites\' Name=\'Related Websites\' />
         </Directory>
       </Directory>
-    </Directory>};
+    </Directory>';
 # Test 3
 
 $tree->initialize_tree('589', 32, 3); $string = $tree->as_string;
@@ -183,4 +184,4 @@ isa_ok( $dirobj, 'Perl::Dist::WiX::Tag::Directory', 'A directory object retrieve
 $dirobj = $tree->get_directory_object('Win32');
 is($dirobj, undef, 'Directory object with invalid id is not defined.');
 
-is($tree, Perl::Dist::WiX::DirectoryTree2->instance(), 'Directory tree is a singleton.');
+is($tree, Perl::Dist::WiX::DirectoryTree->instance(), 'Directory tree is a singleton.');

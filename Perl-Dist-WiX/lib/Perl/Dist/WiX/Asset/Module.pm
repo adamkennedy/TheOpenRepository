@@ -27,7 +27,7 @@ This asset installs a module from CPAN.
 
 use 5.010;
 use Moose;
-use MooseX::Types::Moose qw( Str Bool );
+use MooseX::Types::Moose qw( Maybe Str Bool );
 use English qw( -no_match_vars );
 use File::Spec::Functions qw( catdir catfile );
 require Perl::Dist::WiX::Exceptions;
@@ -90,7 +90,7 @@ object.
 
 
 has force => (
-	is      => 'ro',
+	is      => 'bare',
 	isa     => Bool,
 	reader  => '_get_force',
 	lazy    => 1,
@@ -111,7 +111,7 @@ This parameter defaults to true.
 
 
 has packlist => (
-	is      => 'ro',
+	is      => 'bare',
 	isa     => Bool,
 	reader  => '_get_packlist',
 	default => 1,
@@ -133,10 +133,27 @@ verification step.
 
 
 has assume_installed => (
-	is      => 'ro',
+	is      => 'bare',
 	isa     => Bool,
 	reader  => '_get_assume',
 	default => 0,
+);
+
+
+
+=head3 feature
+
+Specifies which feature the module is supposed to go in. 
+
+=cut
+
+
+
+has feature => (
+	is      => 'bare',
+	isa     => Maybe [Str],
+	reader  => 'get_feature',
+	default => undef,
 );
 
 
@@ -166,7 +183,7 @@ sub install {
 	  :                                                        0;
 
 	# Verify the existence of perl.
-	unless ( $self->_get_bin_perl() ) {
+	if ( not $self->_get_bin_perl() ) {
 		PDWiX->throw(
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
@@ -250,9 +267,11 @@ END_PERL
 	local $ENV{RELEASE_TESTING}     = undef;
 	$self->_run3( $self->_get_bin_perl(), $cpan_file )
 	  or PDWiX->throw('CPAN script execution failed');
-	PDWiX->throw(
-		"Failure detected installing $name, stopping [$CHILD_ERROR]")
-	  if $CHILD_ERROR;
+
+	if ($CHILD_ERROR) {
+		PDWiX->throw(
+			"Failure detected installing $name, stopping [$CHILD_ERROR]");
+	}
 
 	# Read in the dist file and add it the the list of
 	# distributions that were installed.

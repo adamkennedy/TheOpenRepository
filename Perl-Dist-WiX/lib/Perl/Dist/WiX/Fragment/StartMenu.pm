@@ -38,7 +38,7 @@ use MooseX::Types::Moose qw( Str Bool HashRef );
 use Perl::Dist::WiX::Types qw( DirectoryRef );
 use WiX3::Exceptions;
 use Perl::Dist::WiX::IconArray qw();
-use Perl::Dist::WiX::DirectoryTree2 qw();
+use Perl::Dist::WiX::DirectoryTree qw();
 use Perl::Dist::WiX::Tag::DirectoryRef qw();
 use WiX3::XML::Component qw();
 use WiX3::XML::CreateFolder qw();
@@ -109,7 +109,7 @@ sub _build_root {
 	my $directory_id = shift;
 
 	# Get the directory object so we can create a reference to it.
-	my $tree      = Perl::Dist::WiX::DirectoryTree2->instance();
+	my $tree      = Perl::Dist::WiX::DirectoryTree->instance();
 	my $directory = $tree->get_directory_object($directory_id);
 	if ( not defined $directory ) {
 		PDWiX->throw(
@@ -153,15 +153,13 @@ sub BUILDARGS {
 	my %args;
 
 	# Process out arguments.
-	## no critic(ProhibitCascadingIfElse)
 	if ( @_ == 1 && 'HASH' eq ref $_[0] ) {
 		%args = %{ $_[0] };
 	} elsif ( 0 == @_ % 2 ) {
 		%args = (@_);
 	} else {
-		PDWiX->throw(
-'Parameters incorrect (not a hashref or hash) for ::Fragment::StartMenu'
-		);
+		PDWiX->throw( 'Parameters incorrect (not a hashref '
+			  . 'or hash) for ::Fragment::StartMenu' );
 	}
 
 	# Set our default id.
@@ -249,7 +247,7 @@ sub add_shortcut {
 	}
 
 	# "Fix" the ID to have only identifier characters.
-	$args{id} =~ s{[^A-Za-z0-9]}{_}msgx;
+	$args{id} =~ s{[[:^alnum:]]}{_}msgx;
 
 	# Start creating tags.
 	my $icon_id = undef;
@@ -275,12 +273,12 @@ sub add_shortcut {
 } ## end sub add_shortcut
 
 # The fragment is already generated. No need to regenerate.
-sub _regenerate {
+sub _regenerate { ## no critic(ProhibitUnusedPrivateSubroutines)
 	return;
 }
 
 # No duplicates will be here to check.
-sub _check_duplicates {
+sub _check_duplicates { ## no critic(ProhibitUnusedPrivateSubroutines)
 	return;
 }
 

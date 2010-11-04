@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use WiX3::Traceable qw();
 use Data::Dump::Streamer qw();
+use File::Spec::Functions qw( catfile );
 
 our $VERSION = '1.250_100';
 $VERSION =~ s/_//ms;
@@ -79,8 +80,49 @@ sub PDWiX::full_message {
 		$string .= "\n" . $self->trace() . "\n";
 	}
 
+	$self->growl();
+
 	return $string;
 } ## end sub PDWiX::full_message
+
+sub PDWiX::growl {
+	my $self = shift;
+
+	if ( eval { require Growl::GNTP; 1; } ) {
+
+		# Open up our communication link to Growl.
+		my $growl = Growl::GNTP->new(
+			AppName => 'Perl::Dist::WiX Error',
+			AppIcon => catfile(
+				File::ShareDir::dist_dir('Perl-Dist-WiX'),
+				'growl-icon.png'
+			),
+		);
+
+		# Need to register with Growl for Windows.
+		$growl->register( [ {
+					Name        => 'ERROR',
+					DisplayName => 'Error occured',
+					Enabled     => 'True',
+					Sticky      => 'False',
+					Priority    => 0,  # medium priority.
+					Icon        => catfile(
+						File::ShareDir::dist_dir('Perl-Dist-WiX'),
+						'growl-icon.png'
+					),
+				} ] );
+
+		# Actually do the notification.
+		$growl->notify(
+			Event   => 'OUTPUT_FILE',  # name of notification
+			Title   => 'Output file created',
+			Message => $self->description(),
+			ID      => 0,
+		);
+	} ## end if ( eval { require Growl::GNTP...})
+
+	return;
+} ## end sub PDWiX::growl
 
 sub PDWiX::Stop::full_message {
 	my $self = shift;
@@ -92,6 +134,8 @@ sub PDWiX::Stop::full_message {
 
 	# Add trace to it.
 	$string .= "\n" . $self->trace() . "\n";
+
+	$self->growl();
 
 	return $string;
 } ## end sub PDWiX::Stop::full_message
@@ -106,6 +150,8 @@ sub PDWiX::NotTask::full_message {
 	  . $self->task() . ")\n"
 	  . 'Time error caught: '
 	  . localtime() . "\n";
+
+	$self->growl();
 
 	return $string;
 } ## end sub PDWiX::NotTask::full_message
@@ -124,6 +170,8 @@ sub PDWiX::Parameter::full_message {
 	# Add trace to it. (We automatically dump trace for parameter errors.)
 	$string .= "\n" . $self->trace() . "\n";
 
+	$self->growl();
+
 	return $string;
 } ## end sub PDWiX::Parameter::full_message
 
@@ -139,6 +187,8 @@ sub PDWiX::ParametersNotHash::full_message {
 
 	# Add trace to it. (We automatically dump trace for parameter errors.)
 	$string .= "\n" . $self->trace() . "\n";
+
+	$self->growl();
 
 	return $string;
 } ## end sub PDWiX::ParametersNotHash::full_message
@@ -160,6 +210,8 @@ sub PDWiX::Caught::full_message {
 	if ( $tracelevel > 1 ) {
 		$string .= "\n" . $self->trace() . "\n";
 	}
+
+	$self->growl();
 
 	return $string;
 } ## end sub PDWiX::Caught::full_message
@@ -194,9 +246,9 @@ sub PDWiX::Caught::Storable::full_message {
 		'Path::Class::File'                    => 1,
 		'Perl::Dist::WiX::Fragment::Files'     => 1,
 		'Perl::Dist::WiX::Fragment::StartMenu' => 1,
-		'Perl::Dist::WiX::DirectoryTree2'      => 1,
+		'Perl::Dist::WiX::DirectoryTree'       => 1,
 		'Perl::Dist::WiX::Toolchain'           => 1,
-		'Perl::Dist::WiX::FeatureTree2'        => 1,
+		'Perl::Dist::WiX::FeatureTree'         => 1,
 		'WiX3::XML::GeneratesGUID::Object'     => 1,
 		'WiX3::Trace::Object'                  => 1,
 		'WiX3::Traceable'                      => 1,
@@ -207,6 +259,8 @@ sub PDWiX::Caught::Storable::full_message {
 	my $out = $dump->Out();
 
 	print "$out\n";
+
+	$self->growl();
 
 	return $string;
 } ## end sub PDWiX::Caught::Storable::full_message
@@ -230,6 +284,8 @@ sub PDWiX::Directory::full_message {
 		$string .= "\n" . $self->trace() . "\n";
 	}
 
+	$self->growl();
+
 	return $string;
 } ## end sub PDWiX::Directory::full_message
 
@@ -251,6 +307,8 @@ sub PDWiX::File::full_message {
 	if ( $tracelevel > 1 ) {
 		$string .= "\n" . $self->trace() . "\n";
 	}
+
+	$self->growl();
 
 	return $string;
 } ## end sub PDWiX::File::full_message

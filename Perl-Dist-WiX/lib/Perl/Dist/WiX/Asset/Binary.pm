@@ -31,7 +31,7 @@ and error checking for a "binary package" to be installed in a
 L<Perl::Dist::WiX|Perl::Dist::WiX>-based Perl distribution.
 
 It is normally created on the fly by the 
-L<Perl::Dist::WiX::Installation|Perl::Dist::WiX::Installation> 
+L<Perl::Dist::WiX::Mixin::Installation|Perl::Dist::WiX::Mixin::Installation> 
 C<install_binary> method (and other things that call it).
 
 These packages will be simple zip or tar.gz files that are local files,

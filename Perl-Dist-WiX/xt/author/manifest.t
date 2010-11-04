@@ -11,11 +11,14 @@ BEGIN {
 }
 
 my @MODULES = (
-	'Test::DistManifest 1.001003',
+	'Test::DistManifest 1.009',
 );
 
 # Load the testing modules
 use Test::More;
+unless ( -e 'MANIFEST.SKIP' ) {
+	plan( skip_all => "MANIFEST.SKIP does not exist, so cannot test this." );
+}
 foreach my $MODULE ( @MODULES ) {
 	eval "use $MODULE";
 	if ( $EVAL_ERROR ) {

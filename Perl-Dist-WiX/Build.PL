@@ -1,22 +1,14 @@
 use Module::Build;
 
-# To make sure these get into the inc\ directory for our M::B subclass.
-# use inc::latest CPAN::Meta;
-# use inc::latest Version::Requirements;
-# use inc::latest JSON;
-# These two will be removed when 5.10.1 becomes our perl requirement after July 2010 is released.
-# use inc::latest Parse::CPAN::Meta;
-# use inc::latest autodie;
-
 die "OS unsupported\n" unless 'MSWin32' eq $^O;
 
 # CPAN version test.
 require CPAN;
-if ($CPAN::VERSION < 1.9458) {
+if ($CPAN::VERSION < 1.9460) {
 	print <<'EOF';
 To install the rest of the prerequisites, you need to run
 
-	cpan ANDK/CPAN-1.94_58.tar.gz
+	cpan ANDK/CPAN-1.94_60.tar.gz
 
 before installing this. 
 
@@ -32,19 +24,11 @@ EOF
 my $class = Module::Build->subclass(
 	class => 'PDWiX::Builder',
 	code  => <<'END_CODE',
-# use inc::latest CPAN::Meta;
-# use inc::latest Version::Requirements;
-# use inc::latest JSON;
-# These two will be removed when 5.10.1 becomes our perl requirement after July 2010 is released.
-# use inc::latest Parse::CPAN::Meta;
-# use inc::latest autodie;
 
 sub ACTION_authortest {
     my ($self) = @_;
 
     $self->depends_on('build');
-    $self->depends_on('manifest');
-    $self->depends_on('distmeta');
 
     $self->test_files( qw< t xt/author > );
     $self->depends_on('test');
@@ -57,10 +41,8 @@ sub ACTION_releasetest {
     my ($self) = @_;
 
     $self->depends_on('build');
-    $self->depends_on('manifest');
-    $self->depends_on('distmeta');
 
-    $self->test_files( qw< t xt/author rt > );
+    $self->test_files( qw< t xt/author xt/release > );
     $self->depends_on('test');
 
     return;
@@ -77,24 +59,14 @@ sub ACTION_manifest {
     return $self->SUPER::ACTION_manifest(@arguments);
 }
 
-# sub read_metafile {
-#  my $self = shift;
-#  my ($metafile) = @_;
-#
-#  my $meta = CPAN::Meta->new($metafile);
-#
-#  return $meta;
-#}
 
-# This is called by ACTION_distmeta
-#sub write_metafile {
-#  my $self = shift;
-#  my ($metafile, $node) = @_;
-#
-#  my $meta = CPAN::Meta->new($node);
-#  return $meta->save($metafile);
-#}
-
+sub ACTION_distmeta {
+    my ($self) = @_;
+	
+    $self->depends_on('manifest');
+	
+    return $self->SUPER::ACTION_distmeta();
+}
 END_CODE
 );
 
@@ -110,7 +82,7 @@ my $builder = $class->new(
 #	sign                => 1,
 	configure_requires => {
 		'Module::Build'             => '0.36',
-		'CPAN'                      => '1.9457',
+		'CPAN'                      => '1.9460',
 	},
 	requires => {
 		'perl'                       => '5.010',
@@ -145,15 +117,15 @@ my $builder = $class->new(
 		'LWP::UserAgent'             => '5.823',
 		'LWP::UserAgent::WithCache'  => '0.06',
 		'LWP::Online'                => '1.07',
-		'Module::CoreList'           => '2.32',
-		# Temporary fix until we update things for Moose 1.09.
-		'Moose'                      => '>= 0.90, < 1.09',
-		'MooseX::NonMoose'           => '0.05',
-		'MooseX::Singleton'          => '0',
+		'Module::CoreList'           => '2.39',
+		'Moose'                      => '1.08',
+		'MooseX::NonMoose'           => '0.14',
+		'MooseX::Object::Pluggable'  => '0.0011',
+		'MooseX::Singleton'          => '0.24',
 		'MooseX::Types'              => '0',
 		'MooseX::Types::URI'         => '0.02',
 		'MooseX::Types::Path::Class' => '0.05',
-		'namespace::autoclean'       => '0.10',
+		'namespace::clean'           => '0.18',
 		'PAR::Dist'                  => '0.42',
 		'Params::Util'               => '0.35',
 		'Portable::Dist'             => '0.03',
@@ -163,7 +135,7 @@ my $builder = $class->new(
 		# Template 2.21 will not install on Windows, anyway.
 		'Template'                   => '2.22',
 		'URI'                        => '1.35',
-		'WiX3'                       => '0.009102',
+		'WiX3'                       => '0.010002',
 		'YAML::Tiny'                 => '1.36',
 		'Win32'                      => '0.35',
 		'Win32::Exe'                 => '0.13',
@@ -206,7 +178,5 @@ my $builder = $class->new(
 		'script/perldist_w'
 	],
 );
-# $builder->metafile('META.json');
-# $builder->mymetafile('MYMETA.json');
 
 $builder->create_build_script();

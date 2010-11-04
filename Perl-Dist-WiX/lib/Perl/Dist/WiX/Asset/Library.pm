@@ -299,10 +299,10 @@ sub _dll_to_a {
 	my %params = @_;
 
 	# Check for binaries required.
-	unless ( $self->_bin_dlltool() ) {
+	if ( not $self->_bin_dlltool() ) {
 		PDWiX->throw('dlltool has not been installed');
 	}
-	unless ( $self->_bin_pexports() ) {
+	if ( not $self->_bin_pexports() ) {
 		PDWiX->throw('pexports has not been installed');
 	}
 
@@ -319,7 +319,7 @@ sub _dll_to_a {
 
 	# Target .dll file
 	my $dll = $params{dll};
-	unless ( $dll and $dll =~ /[.]dll/msx ) {
+	if ( not $dll or $dll !~ /[.]dll/msx ) {
 		PDWiX::Parameter->throw(
 			parameter => 'dll',
 			where     => '::Asset::Library->_dll_to_a'
@@ -328,7 +328,7 @@ sub _dll_to_a {
 
 	# Target .def file
 	my $def = $params{def};
-	unless ( $def and $def =~ /[.]def\z/msx ) {
+	if ( not $def or $def !~ /[.]def\z/msx ) {
 		PDWiX::Parameter->throw(
 			parameter => 'def',
 			where     => '::Asset::Library->_dll_to_a'
@@ -337,7 +337,7 @@ sub _dll_to_a {
 
 	# Target .a file
 	my $_a = $params{a};
-	unless ( $_a and $_a =~ /[.]a\z/msx ) {
+	if ( not $_a or $_a !~ /[.]a\z/msx ) {
 		PDWiX::Parameter->throw(
 			parameter => 'a',
 			where     => '::Asset::Library->_dll_to_a'
@@ -345,7 +345,7 @@ sub _dll_to_a {
 	}
 
 	# Step 1 - Copy the source .dll to the target if needed
-	unless ( ( $source and -f $source ) or -f $dll ) {
+	if ( not( ( $source and -f $source ) or -f $dll ) ) {
 		PDWiX::Parameter->throw(
 			parameter => 'source or dll: Need one of '
 			  . 'these two parameters, and the file needs to exist',
@@ -362,7 +362,7 @@ sub _dll_to_a {
   SCOPE: {
 		my $bin = $self->_bin_pexports();
 		my $ok  = !system "$bin $dll > $def";
-		unless ( $ok and -f $def ) {
+		if ( not $ok or not -f $def ) {
 			PDWiX->throw('pexports failed to generate .def file');
 		}
 
@@ -373,7 +373,7 @@ sub _dll_to_a {
   SCOPE: {
 		my $bin = $self->_bin_dlltool();
 		my $ok  = !system "$bin -dllname $dll --def $def --output-lib $_a";
-		unless ( $ok and -f $_a ) {
+		if ( not $ok or not -f $_a ) {
 			PDWiX->throw('dlltool failed to generate .a file');
 		}
 
