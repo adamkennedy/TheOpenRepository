@@ -22,8 +22,8 @@ This document describes Perl::Dist::WiX version 1.500.
 
 =head1 DESCRIPTION
 
-This package is the upgrade to L<Perl::Dist> based on Windows Installer XML 
-technology, instead of Inno Setup.
+This package is the upgrade to L<Perl::Dist|Perl::Dist> based on Windows 
+Installer XML technology, instead of Inno Setup.
 
 Perl distributions built with this module have the option of being created
 as Windows Installer databases (otherwise known as .msi files)
@@ -2756,11 +2756,13 @@ sub install_portable {
 		install_to => 'portableshell.bat',
 	);
 
-	$self->get_directory_tree()->add_directories_id('Data', 'data');
+	$self->get_directory_tree()->add_directories_id( 'Data', 'data' );
 	$self->_add_fragment(
 		'DataFolder',
-		Perl::Dist::WiX::Fragment::CreateFolder->new(directory_id => 'Data', id => 'DataFolder' )
-	);
+		Perl::Dist::WiX::Fragment::CreateFolder->new(
+			directory_id => 'Data',
+			id           => 'DataFolder'
+		) );
 
 	return 1;
 } ## end sub install_portable
