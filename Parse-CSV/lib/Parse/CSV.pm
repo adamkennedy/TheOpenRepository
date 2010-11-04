@@ -107,7 +107,7 @@ use Params::Util qw{ _STRING _ARRAY _HASH0 _CODELIKE _HANDLE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.01';
+	$VERSION = '1.02';
 }
 
 
@@ -429,6 +429,44 @@ to the underlying L<Text::CSV_XS> object. It shows the actual row as an array.
 
 sub fields {
 	shift->{csv_xs}->fields;
+}
+
+=pod
+
+=head2 setcolnames
+
+  @colnames = $csv->setcolnames("fn1","fn2") # sets colnames
+                  or
+  @colnames = $csv->setcolnames; # gets colnames
+
+The C<setcolnames> method sets or gets colnames.
+So you can rename the colnames (hash-keys in object).
+
+=cut
+
+sub setcolnames {
+	my $self=shift;
+	@{$self->{fields}}=@_ if(@_);
+	return @{$self->{fields}};
+}
+
+=pod
+
+=head2 addcolnames
+
+  @colnames = $csv->addcolnames("fn1","fn2") 
+
+The C<addcolnames> method adds colnames at the end of $csv->setcolnames.
+You can do that if the filter-method adds some new fields at the end of fields-array in $csv .
+Please consider that these colnames or fields are not 
+in the underlying L<Text::CSV_XS> object.
+
+=cut
+
+sub addcolnames {
+	my $self=shift;
+	push @{$self->{fields}},@_;
+	return @{$self->{fields}};
 }
 
 =pod

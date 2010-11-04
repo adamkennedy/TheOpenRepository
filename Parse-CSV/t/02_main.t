@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 52;
+use Test::More tests => 56;
 use Parse::CSV;
 
 my $readfile = catfile( 't', 'data', 'simple.csv' );
@@ -41,6 +41,7 @@ SCOPE: {
 	is_deeply( $fetch2, [ qw{this is also a sample} ], '->fetch returns as expected' );
 	is( $csv->row,    2,  '->row returns 2' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+	
 
 	# Pull the first line
 	my $fetch3 = $csv->fetch;
@@ -91,6 +92,11 @@ SCOPE: {
 		'->fetch returns as expected' );
 	is( $csv->row,    3,  '->row returns 3' );
 	is( $csv->errstr, '', '->errstr returns ""' );
+
+	is_deeply( [ $csv->setcolnames ], [ qw{a b c d e} ], '->setcolnames() (get) returns as expected' );
+	is_deeply( [ $csv->addcolnames("fext") ], [ qw{a b c d e fext} ], '->addcolnames() returns as expected' );
+	is_deeply( [ $csv->setcolnames ], [ qw{a b c d e fext} ], '->setcolnames() after addcolumns() returns as expected' );
+	is_deeply( [ $csv->setcolnames(qw{aa b c d e fext}) ], [ qw{aa b c d e fext} ], '->setcolnames() (set) returns as expected' );
 
 	# Get the line after the end
 	my $fetch3 = $csv->fetch;
