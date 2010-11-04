@@ -1,5 +1,9 @@
 Changes for Perl extension Perl-Dist-WiX
 
+1.500  Fri 05 Nov 2010
+    1. Used to build Strawberry Perl October 2010.
+    2. Portable will have it's own dir to use insead of home (CHORNY)
+
 1.250_100   Tue 19 Oct 2010
     1. Used to build Strawberry Perl October 2010 Beta 1.
     2. Now uses a "pluggable" interface for building Perl versions.
