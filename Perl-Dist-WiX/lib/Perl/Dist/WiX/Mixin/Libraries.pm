@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::Libraries - Library installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::Libraries version 1.250_100.
+This document describes Perl::Dist::WiX::Mixin::Libraries version 1.500.
 
 =head1 DESCRIPTION
 
@@ -31,7 +31,7 @@ use Params::Util qw( _STRING );
 use Perl::Dist::WiX::Exceptions;
 use Readonly;
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 Readonly my %PACKAGES => (

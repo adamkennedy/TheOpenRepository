@@ -7,7 +7,7 @@ use WiX3::Traceable qw();
 use Data::Dump::Streamer qw();
 use File::Spec::Functions qw( catfile );
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 
@@ -325,7 +325,7 @@ Perl::Dist::WiX::Exceptions - Exception classes for Perl::Dist::WiX
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Exceptions version 1.250_100.
+This document describes Perl::Dist::WiX::Exceptions version 1.500.
 
 =head1 DESCRIPTION
 

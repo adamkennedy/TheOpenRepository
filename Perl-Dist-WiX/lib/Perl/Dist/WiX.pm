@@ -4,7 +4,7 @@ package Perl::Dist::WiX;
 
 =begin readme text
 
-Perl-Dist-WiX version 1.250_100
+Perl-Dist-WiX version 1.500
 
 =end readme
 
@@ -16,7 +16,7 @@ Perl::Dist::WiX - 4th generation Win32 Perl distribution builder
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX version 1.250_100.
+This document describes Perl::Dist::WiX version 1.500.
 
 =for readme continue
 
@@ -153,21 +153,21 @@ use WiX3::Traceable                         qw();
 use namespace::clean  -except => 'meta';
 #>>>
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 with
   'MooseX::Object::Pluggable'          => { -version => 0.0011 },
-  'Perl::Dist::WiX::Role::MultiPlugin' => { -version => 1.250_100 },
+  'Perl::Dist::WiX::Role::MultiPlugin' => { -version => 1.500 },
   ;
 extends
-  'Perl::Dist::WiX::Mixin::BuildPerl'    => { -version => 1.250_100 },
-  'Perl::Dist::WiX::Mixin::Checkpoint'   => { -version => 1.250_100 },
-  'Perl::Dist::WiX::Mixin::Libraries'    => { -version => 1.250_100 },
-  'Perl::Dist::WiX::Mixin::Installation' => { -version => 1.250_100 },
-  'Perl::Dist::WiX::Mixin::ReleaseNotes' => { -version => 1.250_100 },
-  'Perl::Dist::WiX::Mixin::Patching'     => { -version => 1.250_100 },
-  'Perl::Dist::WiX::Mixin::Support'      => { -version => 1.250_100 },
+  'Perl::Dist::WiX::Mixin::BuildPerl'    => { -version => 1.500 },
+  'Perl::Dist::WiX::Mixin::Checkpoint'   => { -version => 1.500 },
+  'Perl::Dist::WiX::Mixin::Libraries'    => { -version => 1.500 },
+  'Perl::Dist::WiX::Mixin::Installation' => { -version => 1.500 },
+  'Perl::Dist::WiX::Mixin::ReleaseNotes' => { -version => 1.500 },
+  'Perl::Dist::WiX::Mixin::Patching'     => { -version => 1.500 },
+  'Perl::Dist::WiX::Mixin::Support'      => { -version => 1.500 },
   ;
 
 #####################################################################

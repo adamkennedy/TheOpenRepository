@@ -8,7 +8,7 @@ Perl::Dist::WiX::Role::MultiPlugin
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Role::MultiPlugin version 1.250_100.
+This document describes Perl::Dist::WiX::Role::MultiPlugin version 1.500.
 
 =cut
 
@@ -16,7 +16,7 @@ use 5.010;
 use Moose::Role;
 use Perl::Dist::WiX::Exceptions;
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 around '_role_from_plugin' => sub {

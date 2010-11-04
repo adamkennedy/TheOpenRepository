@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::File - "Single File" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::File version 1.250_100.
+This document describes Perl::Dist::WiX::Asset::File version 1.500.
 
 =head1 SYNOPSIS
 
@@ -42,7 +42,7 @@ use File::Spec::Functions qw( catfile );
 use File::Remove qw();
 use File::List::Object qw();
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';

@@ -8,7 +8,7 @@ Perl::Dist::WiX::Tag::Icon - <Icon> tag that stores its type of target.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Tag::Icon version 1.250_100.
+This document describes Perl::Dist::WiX::Tag::Icon version 1.500.
 
 =head1 SYNOPSIS
 
@@ -29,7 +29,7 @@ use 5.010;
 use Moose;
 use MooseX::Types::Moose qw( Str );
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 extends 'WiX3::XML::Icon';

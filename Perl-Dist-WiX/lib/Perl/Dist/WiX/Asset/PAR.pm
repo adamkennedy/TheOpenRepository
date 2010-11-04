@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::PAR - "Binary .par package" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::PAR version 1.250_100.
+This document describes Perl::Dist::WiX::Asset::PAR version 1.500.
 
 =head1 SYNOPSIS
 
@@ -54,7 +54,7 @@ require SelectSaver;
 require PAR::Dist;
 require IO::String;
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';

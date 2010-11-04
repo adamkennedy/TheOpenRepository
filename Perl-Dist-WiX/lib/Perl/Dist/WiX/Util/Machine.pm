@@ -8,7 +8,7 @@ Perl::Dist::WiX::Util::Machine - Generate an entire set of related distributions
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Util::Machine version 1.250_100.
+This document describes Perl::Dist::WiX::Util::Machine version 1.500.
 
 =head1 SYNOPSIS
 
@@ -75,7 +75,7 @@ use List::MoreUtils qw( none );
 use Perl::Dist::WiX::Exceptions;
 use WiX3::Traceable qw();
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 =head1 INTERFACE

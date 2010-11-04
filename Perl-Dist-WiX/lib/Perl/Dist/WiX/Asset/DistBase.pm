@@ -8,7 +8,7 @@ use Params::Util qw ( _INSTANCE );
 require URI;
 require File::Spec::Unix;
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 # This is a base class, so routines in here would be technically "unused".
@@ -149,7 +149,7 @@ Perl::Dist::WiX::Asset::DistBase - Support routines for distribution assets.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::DistBase version 1.250_100.
+This document describes Perl::Dist::WiX::Asset::DistBase version 1.500.
 
 =head1 SYNOPSIS
 

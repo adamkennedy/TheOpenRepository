@@ -8,7 +8,7 @@ Perl::Dist::WiX::PropertyList - A list of <Property> and <WixVariable> tags.
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::PropertyList version 1.250_100.
+This document describes Perl::Dist::WiX::PropertyList version 1.500.
 
 =head1 SYNOPSIS
 
@@ -37,7 +37,7 @@ use WiX3::XML::WixVariable qw();
 
 with 'WiX3::Role::Traceable', 'WiX3::XML::Role::TagAllowsChildTags';
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 =head1 INTERFACE

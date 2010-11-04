@@ -8,7 +8,7 @@ Perl::Dist::WiX::Mixin::Installation - Basic installation routines
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Mixin::Installation version 1.250_100.
+This document describes Perl::Dist::WiX::Mixin::Installation version 1.500.
 
 =head1 DESCRIPTION
 
@@ -37,7 +37,7 @@ use Perl::Dist::WiX::Asset::Module qw();
 use Perl::Dist::WiX::Asset::PAR qw();
 use Perl::Dist::WiX::Asset::Website qw();
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 =pod

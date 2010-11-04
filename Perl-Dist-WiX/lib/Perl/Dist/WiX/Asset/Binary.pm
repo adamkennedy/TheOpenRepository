@@ -8,7 +8,7 @@ Perl::Dist::WiX::Asset::Binary - "Binary Package" asset for a Win32 Perl
 
 =head1 VERSION
 
-This document describes Perl::Dist::WiX::Asset::Binary version 1.250_100.
+This document describes Perl::Dist::WiX::Asset::Binary version 1.500.
 
 =head1 SYNOPSIS
 
@@ -49,7 +49,7 @@ use Moose;
 use MooseX::Types::Moose qw( Str HashRef Maybe );
 use File::Spec::Functions qw( catdir );
 
-our $VERSION = '1.250_100';
+our $VERSION = '1.500';
 $VERSION =~ s/_//ms;
 
 with 'Perl::Dist::WiX::Role::Asset';
