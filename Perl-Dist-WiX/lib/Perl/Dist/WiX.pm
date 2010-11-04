@@ -22,7 +22,7 @@ This document describes Perl::Dist::WiX version 1.250_100.
 
 =head1 DESCRIPTION
 
-This package is the upgrade to L<Perl::Dist> based on Windows Installer XML 
+This package is the upgrade to Perl::Dist based on Windows Installer XML 
 technology, instead of Inno Setup.
 
 Perl distributions built with this module have the option of being created
@@ -2701,12 +2701,6 @@ sub install_portable {
 	$self->install_file(
 		share      => 'Perl-Dist-WiX portable\portableshell.bat',
 		install_to => 'portableshell.bat',
-	);
-
-	$self->get_directory_tree()->add_directories_id('Data', 'data');
-	$self->_add_fragment(
-		'DataFolder',
-		Perl::Dist::WiX::Fragment::CreateFolder->new(directory_id => 'Data', id => 'DataFolder' )
 	);
 
 	return 1;
