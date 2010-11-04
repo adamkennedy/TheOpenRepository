@@ -270,7 +270,7 @@ sub install_cpan_upgrades {
 	# Install dev version of CPAN if we haven't already.
 	if ( not $self->fragment_exists('CPAN') ) {
 		$self->install_distribution(
-			name             => 'ANDK/CPAN-1.94_60.tar.gz',
+			name             => 'ANDK/CPAN-1.94_62.tar.gz',
 			mod_name         => 'CPAN',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
@@ -280,7 +280,7 @@ sub install_cpan_upgrades {
 	# Install dev version of Module::Build if we haven't already.
 	if ( not $self->fragment_exists('Module_Build') ) {
 		$self->install_distribution(
-			name             => 'DAGOLDEN/Module-Build-0.36_16.tar.gz',
+			name             => 'DAGOLDEN/Module-Build-0.36_17.tar.gz',
 			mod_name         => 'Module::Build',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
@@ -679,7 +679,7 @@ sub install_perl_toolchain {
 				# 1.9402 fails its tests... ANDK says it's a test bug.
 				# Alias agrees that we include 1.94_51 because of the fix
 				# for the Win32 file:// bug.
-				$dist = 'ANDK/CPAN-1.94_60.tar.gz';
+				$dist = 'ANDK/CPAN-1.94_62.tar.gz';
 
 # TODO: Do we really need the next line?
 #				$force = 1;
@@ -704,7 +704,7 @@ sub install_perl_toolchain {
 			when (/Module-Build-/msx) {
 
 				# Test updated development version.
-				$dist = 'DAGOLDEN/Module-Build-0.36_16.tar.gz';
+				$dist = 'DAGOLDEN/Module-Build-0.36_17.tar.gz';
 				$force ||= ( $self->image_dir() =~ /\AD:/ms ) ? 1 : 0;
 
 			}

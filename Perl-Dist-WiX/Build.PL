@@ -4,11 +4,11 @@ die "OS unsupported\n" unless 'MSWin32' eq $^O;
 
 # CPAN version test.
 require CPAN;
-if ($CPAN::VERSION < 1.9460) {
+if ($CPAN::VERSION < 1.9462) {
 	print <<'EOF';
 To install the rest of the prerequisites, you need to run
 
-	cpan ANDK/CPAN-1.94_60.tar.gz
+	cpan ANDK/CPAN-1.94_62.tar.gz
 
 before installing this. 
 
@@ -82,7 +82,7 @@ my $builder = $class->new(
 #	sign                => 1,
 	configure_requires => {
 		'Module::Build'             => '0.36',
-		'CPAN'                      => '1.9460',
+		'CPAN'                      => '1.9462',
 	},
 	requires => {
 		'perl'                       => '5.010',
