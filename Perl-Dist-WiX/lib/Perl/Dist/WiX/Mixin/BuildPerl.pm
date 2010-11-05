@@ -567,7 +567,7 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 	$self->trace_line( 1, "Pregenerating toolchain...\n" );
 	my $force = {};
 	if ( $self->perl_version =~ m/\A512/ms ) {
-		$force = { 'Pod::Text' => 'RRA/podlators-2.3.1.tar.gz' };
+		$force = { 'Pod::Text' => 'RRA/podlators-2.4.0.tar.gz' };
 	}
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal(),
