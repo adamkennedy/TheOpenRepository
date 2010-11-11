@@ -299,6 +299,23 @@ sub commit_begin {
 	return 1;
 }
 
+### EXPERIMENTAL
+sub update {
+	my \$class = shift;
+	Carp::croak("Cannot invoke update on an instance") if ref \$class;
+	my \$table = shift;
+	my \$set   = shift;
+	my \@cols  = sort keys %$set;
+	my \$sql   = 'update \"\$table\" set '
+	           . join ', ', map { "\"\$_\" = ?" } \@cols;
+	   \$sql  .= ' ' . shift if \@_;
+	return $pkg->do(
+		\$sql,
+		( map { $set->{$_} } \@cols ),
+		@_,
+	);
+}
+
 END_PERL
 
 	# Cleanup and shutdown operations
