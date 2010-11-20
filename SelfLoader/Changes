@@ -1,5 +1,15 @@
 Revision history for Perl extension SelfLoader
 
+1.18    Sat Nov 20 01:30 2010
+  - port commit a3a44df66ac2cb0beb603b3dd9697fd81cfcfb30
+    from core:
+     [perl #72062] Untaint DATA after it's reopened
+     DATA handle is untainted on startup, but as we close and reopen it it
+     gets the taint flag. It's safe to untaint it though, since we still hold
+     the file descriptor open and don't reassign it to another file.
+     
+     This was probably broken by changeset 29606, (c96b2385 in perl git).
+
 1.17     Thu Oct 23 20:12 2008
   - Tiny fix in error messages: Use $! instead of $1.
 
