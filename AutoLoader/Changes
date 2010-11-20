@@ -1,5 +1,10 @@
 Revision history for Perl extension AutoLoader
 
+5.71  Sat Nov 20 01:20 2010
+  - Merge another test change from core:
+    Use "lvalue" attribute for testing since "locked"
+    is deprecated.
+
 5.70  Mon Sep 21 15:46 2009
   - Merge trivial test change from core that was done
     as part of the lib-to-ext migration.
