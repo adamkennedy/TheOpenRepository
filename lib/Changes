@@ -1,5 +1,8 @@
 Revision history for Perl extension lib
 
+0.63  Sat Nov 20 01:41 2010
+  - Remove MacOS classic support.
+
 0.62  Sun Mar 15 18:01 2009
   - Add a fake package for PAUSE to index.
 
