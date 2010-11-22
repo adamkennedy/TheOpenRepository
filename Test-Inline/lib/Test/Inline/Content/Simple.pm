@@ -50,7 +50,7 @@ use Test::Inline::Content ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '2.211';
+	$VERSION = '2.212';
 	@ISA     = 'Test::Inline::Content';
 }
 

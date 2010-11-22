@@ -29,7 +29,7 @@ use overload 'bool' => sub () { 1 },
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '2.211';
+	$VERSION = '2.212';
 	@ISA     = qw{
 		Algorithm::Dependency::Source
 		Algorithm::Dependency::Item

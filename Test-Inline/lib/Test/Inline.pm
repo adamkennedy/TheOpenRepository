@@ -145,7 +145,7 @@ use Test::Inline::IO::File         ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '2.211';
+	$VERSION = '2.212';
 	@ISA     = 'Algorithm::Dependency::Source';
 }
 

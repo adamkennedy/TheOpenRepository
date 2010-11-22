@@ -41,7 +41,7 @@ use File::Remove ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '2.211';
+	$VERSION = '2.212';
 }
 
 

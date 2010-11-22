@@ -102,7 +102,7 @@ use Algorithm::Dependency::Item ();
 
 use vars qw{$VERSION @ISA $errstr};
 BEGIN {
-	$VERSION = '2.211';
+	$VERSION = '2.212';
 	@ISA     = 'Algorithm::Dependency::Item';
 	$errstr  = '';
 }
