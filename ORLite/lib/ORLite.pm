@@ -6,7 +6,7 @@ use 5.006;
 use strict;
 use Carp              ();
 use File::Spec   0.80 ();
-use File::Path   2.04 ();
+use File::Path   2.08 ();
 use File::Basename  0 ();
 use Params::Util 0.33 ();
 use DBI         1.607 ();
