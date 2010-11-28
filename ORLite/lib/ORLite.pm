@@ -305,14 +305,14 @@ sub update {
 	Carp::croak("Cannot invoke update on an instance") if ref \$class;
 	my \$table = shift;
 	my \$set   = shift;
-	my \@cols  = sort keys %$set;
+	my \@cols  = sort keys %\$set;
 	my \$sql   = 'update \"\$table\" set '
-	           . join ', ', map { "\"\$_\" = ?" } \@cols;
+	           . join ', ', map { "\\"\$_\\" = ?" } \@cols;
 	   \$sql  .= ' ' . shift if \@_;
 	return $pkg->do(
 		\$sql,
-		( map { $set->{$_} } \@cols ),
-		@_,
+		( map { \$set->{\$_} } \@cols ),
+		\@_,
 	);
 }
 
