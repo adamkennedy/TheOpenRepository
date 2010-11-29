@@ -1,4 +1,4 @@
-use inc::Module::Install 0.95;
+use inc::Module::Install 1.00;
 
 name           'pip';
 all_from       'lib/pip.pm';

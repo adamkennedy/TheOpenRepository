@@ -45,7 +45,7 @@ BEGIN {
 	# has problems of it's own, and so by using this hack we can
 	# install correctly with the version of CPAN.pm bundled with
 	# older versions of Perl.
-	for my $inc (@INC) {
+	foreach my $inc ( @INC ) {
 		$inc = File::Spec->rel2abs($inc) unless ref $inc;
 	}
 }
@@ -53,7 +53,7 @@ use CPAN;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.18';
+	$VERSION = '1.19';
 }
 
 
@@ -143,7 +143,7 @@ sub read {
 		p5i   => $p5i,
 		lines => \@lines,
 		%params,
-		);
+	);
 }
 
 sub p5i {

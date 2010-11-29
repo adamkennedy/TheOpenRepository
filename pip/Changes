@@ -2,6 +2,7 @@ Revision history for Perl extension pip
 
 1.19 Mon 10 May 2010 - Adam Kennedy
 	- Adding abstracts to ::API and ::FAQ
+	- Update Module::Install to 1.00
 
 1.18 Mon 10 May 2010 - Adam Kennedy
 	- POD typo fix to keep the Debian nazis happy :)

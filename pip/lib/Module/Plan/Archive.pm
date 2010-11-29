@@ -11,7 +11,7 @@ use Module::Plan::Base ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.18';
+	$VERSION = '1.19';
 }
 
 
@@ -48,7 +48,7 @@ sub from_p5i {
 	# Create the plan, and from that the archive
 	return $class->new(
 		plan => Module::Plan::Base->read( $file, @_ ),
-		);
+	);
 }
 
 sub plan {
