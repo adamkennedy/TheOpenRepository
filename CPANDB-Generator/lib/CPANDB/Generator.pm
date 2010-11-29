@@ -271,7 +271,9 @@ sub run {
 	} else {
 		$self->say("Fetching META.yml Data...");
 		require ORDB::CPANMeta;
-		ORDB::CPANMeta->import;
+		ORDB::CPANMeta->import( {
+			show_progress => 1,
+		} );
 	}
 
 	# Attach the various databases
@@ -322,6 +324,37 @@ END_SQL
 
 	# Index the temporary tables so our joins don't take forever
 	$self->create_index( t_uploaded => 'release' );
+
+	# Pre-process the RT data to produce a cleaner intermediate
+	# temp table that won't break the joins we'll need to do later on.
+	$self->say("Cleaning CPAN RT data...");
+	$self->do(<<'END_SQL');
+CREATE TABLE t_ticket AS
+SELECT
+	rt.id AS id,
+	rt.distribution AS distribution,
+	rt.subject AS subject,
+	rt.status AS status,
+	COALESCE(rt.severity, 'normal') AS severity,
+	DATE(rt.created) AS created,
+	DATE(rt.updated) AS updated
+FROM
+	rt.ticket AS rt
+WHERE
+	status NOT IN ( 'resolved', 'rejected' )
+	AND
+	distribution IN (
+		SELECT dist from t_distribution
+	)
+END_SQL
+
+	# Index the temporary tables so joins don't take forever
+	$self->create_index( t_ticket => qw{
+		id
+		distribution
+		status
+		severity
+	} );
 
 	# Pre-process the CPAN Testers results to produce a smaller
 	# database that provides sub-totals for each dist/version/result.
@@ -554,6 +587,76 @@ END_SQL
 		phase
 	} );
 
+	# Clean broken versions
+	SCOPE: {
+		$self->say("Cleaning table t_requires...");
+		my $dirty = $self->dbh->selectall_arrayref( <<'END_SQL', {} );
+SELECT
+	r.distribution,
+	r.module,
+	r.version,
+	r.phase,
+	r.core
+FROM
+	t_requires r
+WHERE
+	r.version like '>%'
+	OR
+	r.version like 'v%'
+END_SQL
+		foreach my $t_requires ( @$dirty ) {
+			my $new_version = $t_requires->[2];
+			my $new_core    = $t_requires->[4];
+			if ( defined $new_version ) {
+				$new_version =~ s/[^\d._]//g;
+			}
+			if ( defined $new_core ) {
+				$new_core =~ s/[^\d._]//g;
+			}
+			$self->do(
+				<<'END_SQL', {},
+UPDATE
+	t_requires
+SET
+	version = ?,
+	core    = ?
+WHERE
+	distribution = ?
+	AND
+	module = ?
+	AND
+	phase = ?
+END_SQL
+				$new_version,
+				$new_core,
+				$t_requires->[0],
+				$t_requires->[1],
+				$t_requires->[3],
+			);
+		}
+
+		# Turn null versions into 0
+		$self->do( <<'END_SQL', {}, 0 );
+UPDATE
+	t_requires
+SET
+	version = ?
+WHERE
+	version is null
+END_SQL
+
+		# Turn null-like versions into 0
+		$self->do( <<'END_SQL', {}, 0, 0 );
+UPDATE
+	t_requires
+SET
+	version = ?,
+	core    = ?
+WHERE
+	version = ''
+END_SQL
+	}
+
 	# Create the distribution dependency table
 	$self->say("Generating table dependency...");
 	$self->do(<<'END_SQL');
@@ -644,6 +747,35 @@ END_SQL
 		module
 		version
 		phase
+	} );
+
+	# Generate the final version of the ticket tracking database
+	$self->say("Generating table ticket...");
+	$self->do(<<'END_SQL');
+CREATE TABLE ticket (
+	id REAL NOT NULL,
+	distribution TEXT NOT NULL,
+	subject TEXT NOT NULL,
+	status TEXT NOT NULL,
+	severity TEXT NOT NULL,
+	created TEXT NOT NULL,
+	updated TEXT NOT NULL,
+	PRIMARY KEY ( id ),
+	FOREIGN KEY ( distribution ) REFERENCES distribution ( distribution )
+)
+END_SQL
+
+	# Fill it
+	$self->do(<<'END_SQL');
+INSERT INTO ticket
+SELECT * FROM t_ticket ORDER BY id
+END_SQL
+
+	# Add the indexes
+	$self->create_index( ticket => qw{
+		distribution
+		status
+		severity
 	} );
 
 	# Derive the distribution weights
@@ -745,13 +877,15 @@ END_SQL
 	$self->do( "DROP TABLE t_uploaded"     );
 	$self->do( "DROP TABLE t_cpanstats"    );
 	$self->do( "DROP TABLE t_testers"      );
+	$self->do( "DROP TABLE t_ticket"       );
 
 	# Clean up databases
 	$self->say("Dropping attached databases...");
-	$self->do( "DETACH DATABASE cpan"  );
+	$self->do( "DETACH DATABASE cpan"    );
 	$self->do( "DETACH DATABASE upload"  );
 	$self->do( "DETACH DATABASE meta"    );
 	$self->do( "DETACH DATABASE testers" );
+	$self->do( "DETACH DATABASE rt"      );
 
 	# Shrink the main database file
 	$self->say("Freeing excess space...");
