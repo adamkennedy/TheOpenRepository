@@ -82,6 +82,9 @@ sub import {
 	unless ( defined $params{tables} ) {
 		$params{tables} = 1;
 	}
+	unless ( defined $params{x_update} ) {
+		$params{x_update} = 0;
+	}
 	unless ( defined $params{package} ) {
 		$params{package} = scalar caller;
 	}
@@ -299,24 +302,30 @@ sub commit_begin {
 	return 1;
 }
 
+END_PERL
+
+	# Experimental update support
+	if ( $params{x_update} ) {
+		$code .= <<"END_PERL";
+
 ### EXPERIMENTAL
 sub update {
 	my \$class = shift;
-	Carp::croak("Cannot invoke update on an instance") if ref \$class;
 	my \$table = shift;
 	my \$set   = shift;
 	my \@cols  = sort keys %\$set;
-	my \$sql   = 'update \"\$table\" set '
+	my \$sql   = 'update "' . \$table . '" set '
 	           . join ', ', map { "\\"\$_\\" = ?" } \@cols;
 	   \$sql  .= ' ' . shift if \@_;
 	return $pkg->do(
-		\$sql,
+		\$sql, {},
 		( map { \$set->{\$_} } \@cols ),
 		\@_,
 	);
 }
 
 END_PERL
+	}
 
 	# Cleanup and shutdown operations
 	if ( $cleanup ) {
