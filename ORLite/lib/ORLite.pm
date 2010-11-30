@@ -362,6 +362,9 @@ END_PERL
 
 		# Capture the raw schema column information
 		foreach my $table ( @$tables ) {
+			# Convenience pre-quoted form of the table name
+			$table->{qname} = '"' . $table->{name} . '"';
+
 			# What will be the class for this table
 			$table->{class} = ucfirst lc $table->{name};
 			$table->{class} =~ s/_([a-z])/uc($1)/ge;
@@ -373,11 +376,14 @@ END_PERL
 			 	{ Slice => {} },
 			);
 
+			# Convenience escaping for the column names
+			$_->{qname} = "\"$_->{name}\"" foreach @$columns;
+
 			# Generate the object keys for the columns
 			if ( $array ) {
 				foreach my $i ( 0 .. $#$columns ) {
-					$columns->[$i]->{xs}  = $i;
-					$columns->[$i]->{key} = "[$i]";
+					$columns->[$i]->{xs}    = $i;
+					$columns->[$i]->{key}   = "[$i]";
 				}
 			} else {
 				foreach my $c ( @$columns ) {
@@ -392,16 +398,16 @@ END_PERL
 			$table->{create} = !! ( $table->{pks} and ! $readonly );
 
 			# Generate the main SQL fragments
-			$table->{sql_cols}   = join ', ', map { '"' . $_->{name} . '"' } @$columns;
-			$table->{sql_vals}   = join ', ', ('?') x scalar @$columns;
-			$table->{sql_select} = "select $table->{sql_cols} from \"$table->{name}\"";
-			$table->{sql_count}  = "select count(*) from \"$table->{name}\"";
+			$table->{sql_cols}   = join ', ', map { $_->{qname} } @$columns;
+			$table->{sql_vals}   = join ', ', ( '?' ) x scalar @$columns;
+			$table->{sql_select} = "select $table->{sql_cols} from $table->{qname}";
+			$table->{sql_count}  = "select count(*) from $table->{qname}";
 			$table->{sql_insert} =
-				"insert into \"$table->{name}\" " .
+				"insert into $table->{qname} " .
 				"( $table->{sql_cols} ) " .
 				"values ( $table->{sql_vals} )";
 			$table->{sql_where} = join ' and ',
-				map { "\"$_->{name}\" = ?" } @{$table->{pk}};	
+				map { "$_->{qname} = ?" } @{$table->{pk}};
 
 			# Generate the new Perl fragments
 			$table->{pl_new} = join "\n", map {
@@ -586,27 +592,28 @@ $table->{pl_fill}
 sub delete {
 	my \$self = shift;
 	return $pkg->do(
-		'delete from \"$table->{name}\" where $table->{sql_where}',
+		'delete from $table->{qname} where $table->{sql_where}',
 		{},
 $table->{pl_where}
 	) if ref \$self;
 	Carp::croak("Must use truncate to delete all rows") unless \@_;
 	return $pkg->do(
-		'delete from \"$table->{name}\" ' . shift,
+		'delete from $table->{qname} ' . shift,
 		{}, \@_,
 	);
 }
 
 sub truncate {
-	$pkg->do('delete from \"$table->{name}\"');
+	$pkg->do('delete from $table->{qname}');
 }
 
 END_PERL
+			}
 
-		if ( $table->{create} and $array ) {
-			# Add an additional set method to avoid having
-			# the user have to enter manual positions.
-			$code .= <<"END_PERL";
+			if ( $table->{create} and $array ) {
+				# Add an additional set method to avoid having
+				# the user have to enter manual positions.
+				$code .= <<"END_PERL";
 sub set {
 	my \$self = shift;
 	my \$i    = {
@@ -617,13 +624,12 @@ $table->{pl_accessor}
 }
 
 END_PERL
-		}
 			}
 
-		# Generate the boring accessors
-		if ( $xsaccessor ) {
-			my $type = $table->{create} ? 'accessors' : 'getters';
-			$code .= <<"END_PERL";
+			# Generate the boring accessors
+			if ( $xsaccessor ) {
+				my $type = $table->{create} ? 'accessors' : 'getters';
+				$code .= <<"END_PERL";
 use $xsclass 1.05 {
 	getters => {
 $table->{pl_accessor}
@@ -631,20 +637,50 @@ $table->{pl_accessor}
 };
 
 END_PERL
-		} else {
-			$code .= join "\n\n", map { <<"END_PERL" } grep { ! $_->{fk} } @columns;
+			} else {
+				$code .= join "\n\n", map { <<"END_PERL" } grep { ! $_->{fk} } @columns;
 sub $_->{name} {
 	\$_[0]->$_->{key};
 }
 END_PERL
-		}
+			}
 
-		# Generate the foreign key accessors
-		$code .= join "\n\n", map { <<"END_PERL" } grep { $_->{fk} } @columns;
+			# Generate the foreign key accessors
+			$code .= join "\n\n", map { <<"END_PERL" } grep { $_->{fk} } @columns;
 sub $_->{name} {
 	($_->{fk}->[1]->{class}\->select('where \"$_->{fk}->[1]->{pk}->[0]->{name}\" = ?', \$_[0]->$_->{key}))[0];
 }
 END_PERL
+
+			# Add the experimental update method
+			if ( $table->{create} and $params{x_update} ) {
+				my @pk    = map { $_->{name} } @{$table->{pk}};
+				my $wsql  = join ' and ', map { "\"$_\" = ?" } @pk;
+				my $wattr = join ', ',    map { "\$self->$_" } @pk;
+				my $set   = $array
+					? '$self->set( $_ => $set{$_} ) foreach keys %set;'
+					: '$self->{$_} = $set{$_} foreach keys %set;';
+				$code .= <<"END_PERL";
+
+### EXPERIMENTAL
+sub update {
+	my \$self = shift;
+	my \%set  = \@_;
+	my \$rows = $pkg->do(
+		'update $table->{qname} set ' .
+		join( ', ', map { "\\"\$_\\" = ?" } keys \%set ) .
+		' where $wsql',
+		{}, values \%set, $wattr,
+	);
+	unless ( \$rows == 1 ) {
+		die "Expected to update 1 row, actually updated \$rows";
+	}
+	$set
+	return 1;
+}
+END_PERL
+			}
+
 		}
 	}
 	$dbh->disconnect;
@@ -674,12 +710,12 @@ END_PERL
 	local $@;
 	if ( $^P and $^V >= 5.008009 ) {
 		local $^P = $^P | 0x800;
-		eval $code;
+		eval($code);
 		die $@ if $@;
 	} elsif ( $DEBUG ) {
 		dval($code);
 	} else {
-		eval $code;
+		eval($code);
 		die $@ if $@;
 	}
 

@@ -1,9 +1,11 @@
 Changes for Perl extension ORLite
 
-1.46 NOT RELEASED
+1.46 Tue 30 Nov 2010
 	- Bumped File::Path dependency to 2.08 to prevent test failures
 	  from the one shipped with Perl 5.8.9 (AZAWAWI)
 	- Added experimental base class ->update support (ADAMK)
+	- Added the qname attributes to the generator structs to simplify
+	  and improve readability of SQL fragment strings (ADAMK)
 
 1.45 Sun  8 Aug 2010
 	- Adding initial support for cache => $directory (ADAMK)
