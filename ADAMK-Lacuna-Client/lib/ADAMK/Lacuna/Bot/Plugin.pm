@@ -1,4 +1,4 @@
-package Games::Lacuna::Bot::Plugin;
+package ADAMK::Lacuna::Bot::Plugin;
 
 use 5.008;
 use strict;

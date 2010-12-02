@@ -1,30 +1,30 @@
-package Games::Lacuna::Client::Buildings;
+package ADAMK::Lacuna::Client::Buildings;
 
 use 5.008;
 use strict;
 use warnings;
 use Carp 'croak';
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Module;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Module;
 
-our @ISA = qw(Games::Lacuna::Client::Module);
+our @ISA = qw(ADAMK::Lacuna::Client::Module);
 
-require Games::Lacuna::Client::Buildings::Simple;
-require Games::Lacuna::Client::Buildings::ArchaeologyMinistry;
-require Games::Lacuna::Client::Buildings::DevelopmentMinistry;
-require Games::Lacuna::Client::Buildings::Embassy;
-require Games::Lacuna::Client::Buildings::IntelligenceMinistry;
-require Games::Lacuna::Client::Buildings::MiningMinistry;
-require Games::Lacuna::Client::Buildings::Network19Affiliate;
-require Games::Lacuna::Client::Buildings::Observatory;
-require Games::Lacuna::Client::Buildings::Park;
-require Games::Lacuna::Client::Buildings::PlanetaryCommandCenter;
-require Games::Lacuna::Client::Buildings::SecurityMinistry;
-require Games::Lacuna::Client::Buildings::Shipyard;
-require Games::Lacuna::Client::Buildings::SpacePort;
-require Games::Lacuna::Client::Buildings::TradeMinistry;
-require Games::Lacuna::Client::Buildings::SubspaceTransporter;
-require Games::Lacuna::Client::Buildings::WasteRecyclingCenter;
+require ADAMK::Lacuna::Client::Buildings::Simple;
+require ADAMK::Lacuna::Client::Buildings::ArchaeologyMinistry;
+require ADAMK::Lacuna::Client::Buildings::DevelopmentMinistry;
+require ADAMK::Lacuna::Client::Buildings::Embassy;
+require ADAMK::Lacuna::Client::Buildings::IntelligenceMinistry;
+require ADAMK::Lacuna::Client::Buildings::MiningMinistry;
+require ADAMK::Lacuna::Client::Buildings::Network19Affiliate;
+require ADAMK::Lacuna::Client::Buildings::Observatory;
+require ADAMK::Lacuna::Client::Buildings::Park;
+require ADAMK::Lacuna::Client::Buildings::PlanetaryCommandCenter;
+require ADAMK::Lacuna::Client::Buildings::SecurityMinistry;
+require ADAMK::Lacuna::Client::Buildings::Shipyard;
+require ADAMK::Lacuna::Client::Buildings::SpacePort;
+require ADAMK::Lacuna::Client::Buildings::TradeMinistry;
+require ADAMK::Lacuna::Client::Buildings::SubspaceTransporter;
+require ADAMK::Lacuna::Client::Buildings::WasteRecyclingCenter;
 
 use Class::XSAccessor {
   getters => [ qw(
@@ -60,10 +60,10 @@ sub new {
   # Redispatch in factory mode
   if ( defined $btype ) {
     $btype =~ s/\s//g;
-    if ( $class ne 'Games::Lacuna::Client::Buildings' ) {
-      croak("Cannot call ->new on Games::Lacuna::Client::Buildings subclass ($class) and pass the 'type' parameter");
+    if ( $class ne 'ADAMK::Lacuna::Client::Buildings' ) {
+      croak("Cannot call ->new on ADAMK::Lacuna::Client::Buildings subclass ($class) and pass the 'type' parameter");
     }
-    my $realclass = "Games::Lacuna::Client::Buildings::$btype";
+    my $realclass = "ADAMK::Lacuna::Client::Buildings::$btype";
     return $realclass->new(%opt);
   }
 
@@ -114,11 +114,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Buildings - The buildings module
+ADAMK::Lacuna::Client::Buildings - The buildings module
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

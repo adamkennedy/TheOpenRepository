@@ -3,8 +3,8 @@
 use 5.008;
 use strict;
 use warnings;
-use Games::Lacuna::Client;
-use Games::Lacuna::Bot;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Bot;
 
 unless ( -f 'lacuna.yml' ) {
   exit(0);
@@ -15,7 +15,7 @@ my $name = shift(@ARGV) or die "Did not provide an agent name";
 
 # Load the empire
 print "Searching for spy '$name'...\n";
-my $client = Games::Lacuna::Client->new;
+my $client = ADAMK::Lacuna::Client->new;
 my $empire = $client->empire;
 my $spy    = $empire->spy( name => $name );
 

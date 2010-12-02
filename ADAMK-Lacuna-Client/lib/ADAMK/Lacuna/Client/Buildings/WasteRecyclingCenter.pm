@@ -1,15 +1,15 @@
-package Games::Lacuna::Client::Buildings::WasteRecyclingCenter;
+package ADAMK::Lacuna::Client::Buildings::WasteRecyclingCenter;
 
 use 5.008;
 use strict;
 use warnings;
 use Carp 'croak';
 use List::Util ();
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Buildings;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Buildings;
 
 our $VERSION = '0.01';
-our @ISA     = qw(Games::Lacuna::Client::Buildings);
+our @ISA     = qw(ADAMK::Lacuna::Client::Buildings);
 
 sub module_prefix {
   return 'wasterecycling';
@@ -158,11 +158,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Buildings::WasteRecycling - The Waste Recycling Center building
+ADAMK::Lacuna::Client::Buildings::WasteRecycling - The Waste Recycling Center building
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

@@ -1,13 +1,13 @@
-package Games::Lacuna::Client::Buildings::Embassy;
+package ADAMK::Lacuna::Client::Buildings::Embassy;
 use 5.0080000;
 use strict;
 use Carp 'croak';
 use warnings;
 
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Buildings;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Buildings;
 
-our @ISA = qw(Games::Lacuna::Client::Buildings);
+our @ISA = qw(ADAMK::Lacuna::Client::Buildings);
 
 sub api_methods {
   return {
@@ -35,11 +35,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Buildings::Embassy - The Embassy building
+ADAMK::Lacuna::Client::Buildings::Embassy - The Embassy building
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

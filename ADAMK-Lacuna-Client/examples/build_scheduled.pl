@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Games::Lacuna::Client;
+use ADAMK::Lacuna::Client;
 use Data::Dumper;
 use Getopt::Long qw(GetOptions);
 use YAML::Any ();
@@ -20,7 +20,7 @@ my $config_file = shift @ARGV;
 usage() if not defined $config_file or not -e $config_file;
 usage() if not defined $schedule_file or not -e $schedule_file;
 
-my $client = Games::Lacuna::Client->new(
+my $client = ADAMK::Lacuna::Client->new(
   cfg_file => $config_file,
   #debug => 1,
 );

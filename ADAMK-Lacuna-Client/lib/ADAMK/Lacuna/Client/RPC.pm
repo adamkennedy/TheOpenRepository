@@ -1,11 +1,11 @@
-package Games::Lacuna::Client::RPC;
+package ADAMK::Lacuna::Client::RPC;
 use 5.0080000;
 use strict;
 use warnings;
 use Carp 'croak';
 use Scalar::Util 'weaken';
 
-use Games::Lacuna::Client;
+use ADAMK::Lacuna::Client;
 
 use URI;
 use LWP::UserAgent;
@@ -15,14 +15,14 @@ use HTTP::Request;
 use HTTP::Response;
 
 our @CARP_NOT = qw(
-  Games::Lacuna::Client
-  Games::Lacuna::Client::Alliance
-  Games::Lacuna::Client::Body
-  Games::Lacuna::Client::Buildings
-  Games::Lacuna::Client::Empire
-  Games::Lacuna::Client::Inbox
-  Games::Lacuna::Client::Map
-  Games::Lacuna::Client::Stats
+  ADAMK::Lacuna::Client
+  ADAMK::Lacuna::Client::Alliance
+  ADAMK::Lacuna::Client::Body
+  ADAMK::Lacuna::Client::Buildings
+  ADAMK::Lacuna::Client::Empire
+  ADAMK::Lacuna::Client::Inbox
+  ADAMK::Lacuna::Client::Map
+  ADAMK::Lacuna::Client::Stats
 );
 
 use Class::XSAccessor {
@@ -32,7 +32,7 @@ use Class::XSAccessor {
 sub new {
   my $class = shift;
   my %opt = @_;
-  $opt{client} || croak("Need Games::Lacuna::Client");
+  $opt{client} || croak("Need ADAMK::Lacuna::Client");
   
   my $self = bless {
     %opt,
@@ -76,11 +76,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::RPC - The actual RPC client
+ADAMK::Lacuna::Client::RPC - The actual RPC client
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

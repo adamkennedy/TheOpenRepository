@@ -1,13 +1,13 @@
-package Games::Lacuna::Client::Body;
+package ADAMK::Lacuna::Client::Body;
 
 use 5.008;
 use strict;
 use warnings;
 use List::Util                    ();
-use Games::Lacuna::Client         ();
-use Games::Lacuna::Client::Module ();
+use ADAMK::Lacuna::Client         ();
+use ADAMK::Lacuna::Client::Module ();
 
-our @ISA = qw(Games::Lacuna::Client::Module);
+our @ISA = qw(ADAMK::Lacuna::Client::Module);
 
 use Class::XSAccessor {
   getters => [ qw(
@@ -413,11 +413,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Body - The body module
+ADAMK::Lacuna::Client::Body - The body module
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

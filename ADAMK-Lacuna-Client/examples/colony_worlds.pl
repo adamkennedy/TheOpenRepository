@@ -25,7 +25,7 @@
 
 use strict;
 use warnings;
-use Games::Lacuna::Client;
+use ADAMK::Lacuna::Client;
 use YAML::Any ();
 
 my $cfg_file = shift(@ARGV) || 'lacuna.yml';
@@ -34,7 +34,7 @@ unless ( $cfg_file and -e $cfg_file ) {
 }
 my $sortby = shift(@ARGV) || 'score';
 
-my $client = Games::Lacuna::Client->new(
+my $client = ADAMK::Lacuna::Client->new(
 	cfg_file => $cfg_file,
 	# debug    => 1,
 );

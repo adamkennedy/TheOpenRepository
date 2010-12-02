@@ -1,12 +1,12 @@
-package Games::Lacuna::Client::Buildings::Simple;
+package ADAMK::Lacuna::Client::Buildings::Simple;
 
 use 5.008;
 use strict;
 use warnings;
 use Carp 'croak';
 
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Module;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Module;
 use Class::MOP;
 
 our @BuildingTypes = (
@@ -92,11 +92,11 @@ our @BuildingTypes = (
 sub init {
   my $class = shift;
   foreach my $type ( @BuildingTypes ) {
-    my $bclass = "Games::Lacuna::Client::Buildings::$type";
+    my $bclass = "ADAMK::Lacuna::Client::Buildings::$type";
     Class::MOP::Class->create(
       $bclass => (
         superclasses => [
-          'Games::Lacuna::Client::Buildings'
+          'ADAMK::Lacuna::Client::Buildings'
         ],
       )
     );
@@ -113,11 +113,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Buildings::Simple - All the simple buildings
+ADAMK::Lacuna::Client::Buildings::Simple - All the simple buildings
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

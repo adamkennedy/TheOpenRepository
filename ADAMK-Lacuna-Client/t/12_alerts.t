@@ -4,8 +4,8 @@ use 5.008;
 use strict;
 use warnings;
 use Test::More;
-use Games::Lacuna::Client;
-use Games::Lacuna::Bot;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Bot;
 
 if ( -f 'lacuna.yml' ) {
   plan( tests => 3 );
@@ -21,12 +21,12 @@ if ( -f 'lacuna.yml' ) {
 # Main tests
 
 # Create the bot
-my $bot = new_ok( 'Games::Lacuna::Bot', [
+my $bot = new_ok( 'ADAMK::Lacuna::Bot', [
   Alerts => 1,
 ] );
 
 # Connect to the game
-my $client = new_ok( 'Games::Lacuna::Client' );
+my $client = new_ok( 'ADAMK::Lacuna::Client' );
 
 # Execute the bot
 ok( $bot->run($client), '->run ok' );

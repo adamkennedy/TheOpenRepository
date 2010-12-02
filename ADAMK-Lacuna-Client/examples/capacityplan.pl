@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use List::Util            ();
-use Games::Lacuna::Client ();
+use ADAMK::Lacuna::Client ();
 
 use constant MINUTE => 60;
 use constant HOUR   => 3600;
@@ -16,7 +16,7 @@ unless ( $cfg_file and -e $cfg_file ) {
 	die "Did not provide a config file";
 }
 
-my $client = Games::Lacuna::Client->new(
+my $client = ADAMK::Lacuna::Client->new(
 	cfg_file => $cfg_file,
 	# debug    => 1,
 );

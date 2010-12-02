@@ -1,13 +1,13 @@
-package Games::Lacuna::Client::Buildings::TradeMinistry;
+package ADAMK::Lacuna::Client::Buildings::TradeMinistry;
 use 5.0080000;
 use strict;
 use warnings;
 use Carp 'croak';
 
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Buildings;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Buildings;
 
-our @ISA = qw(Games::Lacuna::Client::Buildings);
+our @ISA = qw(ADAMK::Lacuna::Client::Buildings);
 
 sub module_prefix {
   return 'trade';
@@ -36,11 +36,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Buildings::TradeMinistry - The Trade Ministry building
+ADAMK::Lacuna::Client::Buildings::TradeMinistry - The Trade Ministry building
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    NAME         => 'Games::Lacuna::Client',
+    NAME         => 'ADAMK::Lacuna::Client',
     VERSION_FROM => 'lib/Games/Lacuna/Client.pm',
     PREREQ_PM    => {
         'JSON::RPC::Common' => '0',

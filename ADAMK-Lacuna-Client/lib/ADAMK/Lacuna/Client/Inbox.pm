@@ -1,12 +1,12 @@
-package Games::Lacuna::Client::Inbox;
+package ADAMK::Lacuna::Client::Inbox;
 use 5.0080000;
 use strict;
 use warnings;
 use Carp 'croak';
 
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Module;
-our @ISA = qw(Games::Lacuna::Client::Module);
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Module;
+our @ISA = qw(ADAMK::Lacuna::Client::Module);
 
 sub api_methods {
   return {
@@ -43,11 +43,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Inbox - The inbox module
+ADAMK::Lacuna::Client::Inbox - The inbox module
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

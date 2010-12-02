@@ -1,13 +1,13 @@
-package Games::Lacuna::Client::Buildings::ArchaeologyMinistry;
+package ADAMK::Lacuna::Client::Buildings::ArchaeologyMinistry;
 
 use 5.008;
 use strict;
 use warnings;
 use Carp 'croak';
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Buildings;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Buildings;
 
-our @ISA = qw(Games::Lacuna::Client::Buildings);
+our @ISA = qw(ADAMK::Lacuna::Client::Buildings);
 
 sub module_prefix {
   return 'archaeology';
@@ -86,11 +86,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Buildings::ArchaeologyMinistry - The Archeology Ministry building
+ADAMK::Lacuna::Client::Buildings::ArchaeologyMinistry - The Archeology Ministry building
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

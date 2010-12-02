@@ -4,7 +4,7 @@ use 5.008;
 use strict;
 use warnings;
 use Test::More;
-use Games::Lacuna::Client;
+use ADAMK::Lacuna::Client;
 
 if ( -f 'lacuna.yml' ) {
   plan( tests => 20 );
@@ -20,15 +20,15 @@ if ( -f 'lacuna.yml' ) {
 # Main tests
 
 # Connect to the game
-my $client = new_ok( 'Games::Lacuna::Client' );
+my $client = new_ok( 'ADAMK::Lacuna::Client' );
 
 # Fetch our empire
 my $empire = $client->empire;
-isa_ok($empire, 'Games::Lacuna::Client::Empire');
+isa_ok($empire, 'ADAMK::Lacuna::Client::Empire');
 
 # Fetch our home
 my $home = $empire->home_planet;
-isa_ok( $home, 'Games::Lacuna::Client::Body' );
+isa_ok( $home, 'ADAMK::Lacuna::Client::Body' );
 
 # Fetch a status element for our home
 ok( $home->building_count > 20, '->building_count' );
@@ -36,7 +36,7 @@ ok( $home->building_count > 20, '->building_count' );
 # Fetch our home planet's buildings
 my @building = $home->buildings;
 ok( scalar(@building), '->buildings' );
-isa_ok( $building[0], 'Games::Lacuna::Client::Buildings' );
+isa_ok( $building[0], 'ADAMK::Lacuna::Client::Buildings' );
 
 # Fetch special single-instance buildings
 my %SINGLE = (
@@ -56,5 +56,5 @@ my %SINGLE = (
   university                => 'University',
 );
 foreach ( sort keys %SINGLE ) {
-  isa_ok( $home->$_(), "Games::Lacuna::Client::Buildings::$SINGLE{$_}" );
+  isa_ok( $home->$_(), "ADAMK::Lacuna::Client::Buildings::$SINGLE{$_}" );
 }

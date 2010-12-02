@@ -1,12 +1,12 @@
-package Games::Lacuna::Client::Alliance;
+package ADAMK::Lacuna::Client::Alliance;
 use 5.0080000;
 use strict;
 use warnings;
 use Carp 'croak';
 
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Module;
-our @ISA = qw(Games::Lacuna::Client::Module);
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Module;
+our @ISA = qw(ADAMK::Lacuna::Client::Module);
 
 use Class::XSAccessor {
   getters => [qw(alliance_id)],
@@ -35,11 +35,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Alliance - The alliance module
+ADAMK::Lacuna::Client::Alliance - The alliance module
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

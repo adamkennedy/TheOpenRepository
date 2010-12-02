@@ -1,4 +1,4 @@
-package Games::Lacuna::Bot;
+package ADAMK::Lacuna::Bot;
 
 # Modular Lacuna automation framework
 
@@ -20,9 +20,9 @@ sub new {
   while ( @_ ) {
     my $driver = shift;
     if ( Params::Util::_IDENTIFIER($driver) ) {
-      $driver = "Games::Lacuna::Bot::$driver";
+      $driver = "ADAMK::Lacuna::Bot::$driver";
     }
-    unless ( Params::Util::_DRIVER($driver, 'Games::Lacuna::Bot::Plugin') ) {
+    unless ( Params::Util::_DRIVER($driver, 'ADAMK::Lacuna::Bot::Plugin') ) {
       die "Missing or invalid bot plugin class '$driver'";
     }
     my $plugin = $driver->new( shift );
@@ -38,7 +38,7 @@ sub new {
 sub run {
   my $self   = shift;
   my $client = shift;
-  unless ( Params::Util::_INSTANCE($client, 'Games::Lacuna::Client') ) {
+  unless ( Params::Util::_INSTANCE($client, 'ADAMK::Lacuna::Client') ) {
     die "Did not provide a client object to run";
   }
 

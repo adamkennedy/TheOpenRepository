@@ -1,15 +1,15 @@
-package Games::Lacuna::Client::Buildings::IntelligenceMinistry;
+package ADAMK::Lacuna::Client::Buildings::IntelligenceMinistry;
 
 use 5.0080000;
 use strict;
 use warnings;
 use Carp 'croak';
 
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Buildings;
-use Games::Lacuna::Client::Spy;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Buildings;
+use ADAMK::Lacuna::Client::Spy;
 
-our @ISA = qw(Games::Lacuna::Client::Buildings);
+our @ISA = qw(ADAMK::Lacuna::Client::Buildings);
 
 sub module_prefix {
   return 'intelligence';
@@ -41,7 +41,7 @@ sub spies {
   my $response = $self->view_spies;
   $self->set_status( $response->{status} );
   return map {
-    Games::Lacuna::Client::Spy->new( %$_, building => $self )
+    ADAMK::Lacuna::Client::Spy->new( %$_, building => $self )
   } @{ $response->{spies} };
 }
 
@@ -53,11 +53,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Buildings::IntelligenceMinistry - The Intelligence Ministry building
+ADAMK::Lacuna::Client::Buildings::IntelligenceMinistry - The Intelligence Ministry building
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

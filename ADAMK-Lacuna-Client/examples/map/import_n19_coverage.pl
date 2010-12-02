@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Games::Lacuna::Client;
+use ADAMK::Lacuna::Client;
 use Data::Dumper;
 use Getopt::Long qw(GetOptions);
 use AnyEvent;
@@ -33,7 +33,7 @@ LacunaMap::DB->import(
   readonly => 0,
 );
 
-my $client = Games::Lacuna::Client->new(
+my $client = ADAMK::Lacuna::Client->new(
   cfg_file => $config_file,
   #debug => 1,
 );

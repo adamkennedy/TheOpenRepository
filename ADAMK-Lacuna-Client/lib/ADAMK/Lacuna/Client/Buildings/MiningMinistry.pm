@@ -1,14 +1,14 @@
-package Games::Lacuna::Client::Buildings::MiningMinistry;
+package ADAMK::Lacuna::Client::Buildings::MiningMinistry;
 
 use 5.008;
 use strict;
 use warnings;
 use Carp 'croak';
 
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Buildings;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Buildings;
 
-our @ISA = qw(Games::Lacuna::Client::Buildings);
+our @ISA = qw(ADAMK::Lacuna::Client::Buildings);
 
 sub api_methods {
   return {
@@ -101,11 +101,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Buildings::MiningMinistry - The Mining Ministry building
+ADAMK::Lacuna::Client::Buildings::MiningMinistry - The Mining Ministry building
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use 5.010000;
-use Games::Lacuna::Client;
+use ADAMK::Lacuna::Client;
 use List::Util qw(min max sum);
 use Data::Dumper;
 use Getopt::Long qw(GetOptions);
@@ -28,7 +28,7 @@ if ($water_perc or $ore_perc or $energy_perc) {
 my $config_file = shift @ARGV;
 usage() if not defined $config_file or not -e $config_file;
 
-my $client = Games::Lacuna::Client->new(
+my $client = ADAMK::Lacuna::Client->new(
   cfg_file => $config_file,
   #debug => 1,
 );

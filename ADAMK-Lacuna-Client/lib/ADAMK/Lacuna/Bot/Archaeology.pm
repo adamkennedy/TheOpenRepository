@@ -1,14 +1,14 @@
-package Games::Lacuna::Bot::Archaeology;
+package ADAMK::Lacuna::Bot::Archaeology;
 
 use 5.008;
 use strict;
 use warnings;
 use List::Util                 ();
 use Params::Util               ();
-use Games::Lacuna::Bot::Plugin ();
+use ADAMK::Lacuna::Bot::Plugin ();
 
 our $VERSION = '0.01';
-our @ISA     = 'Games::Lacuna::Bot::Plugin';
+our @ISA     = 'ADAMK::Lacuna::Bot::Plugin';
 
 sub prefer {
   my $self = shift;

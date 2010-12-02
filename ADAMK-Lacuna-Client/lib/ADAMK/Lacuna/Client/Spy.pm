@@ -1,4 +1,4 @@
-package Games::Lacuna::Client::Spy;
+package ADAMK::Lacuna::Client::Spy;
 
 use 5.008;
 use strict;

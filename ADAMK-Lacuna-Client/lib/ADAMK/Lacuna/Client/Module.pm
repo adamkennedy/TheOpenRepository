@@ -1,4 +1,4 @@
-package Games::Lacuna::Client::Module;
+package ADAMK::Lacuna::Client::Module;
 
 use 5.008;
 use strict;
@@ -35,7 +35,7 @@ sub session_id {
 sub new {
   my $class  = shift;
   my $self   = bless { @_ }, $class;
-  my $client = $self->{client} || croak("Need Games::Lacuna::Client");
+  my $client = $self->{client} || croak("Need ADAMK::Lacuna::Client");
 
   $self->{uri} = $self->client->uri . '/' . $self->module_prefix;
 
@@ -129,11 +129,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Empire - The empire module
+ADAMK::Lacuna::Client::Empire - The empire module
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

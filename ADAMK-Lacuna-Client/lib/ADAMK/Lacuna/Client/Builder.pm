@@ -1,4 +1,4 @@
-package Games::Lacuna::Client::Builder;
+package ADAMK::Lacuna::Client::Builder;
 
 # Tools for mass-generation of convenience code
 

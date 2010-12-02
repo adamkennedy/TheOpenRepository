@@ -1,4 +1,4 @@
-package Games::Lacuna::Client;
+package ADAMK::Lacuna::Client;
 
 use 5.008;
 use strict;
@@ -31,16 +31,16 @@ use Class::XSAccessor {
 };
 
 # Base module class
-use Games::Lacuna::Client::Module;
+use ADAMK::Lacuna::Client::Module;
 
-require Games::Lacuna::Client::RPC;
-require Games::Lacuna::Client::Alliance;
-require Games::Lacuna::Client::Body;
-require Games::Lacuna::Client::Buildings;
-require Games::Lacuna::Client::Empire;
-require Games::Lacuna::Client::Inbox;
-require Games::Lacuna::Client::Map;
-require Games::Lacuna::Client::Stats;
+require ADAMK::Lacuna::Client::RPC;
+require ADAMK::Lacuna::Client::Alliance;
+require ADAMK::Lacuna::Client::Body;
+require ADAMK::Lacuna::Client::Buildings;
+require ADAMK::Lacuna::Client::Empire;
+require ADAMK::Lacuna::Client::Inbox;
+require ADAMK::Lacuna::Client::Map;
+require ADAMK::Lacuna::Client::Stats;
 
 sub new {
   my $class = shift;
@@ -91,37 +91,37 @@ sub new {
   } => $class;
 
   # The actual RPC client
-  $self->{rpc} = Games::Lacuna::Client::RPC->new( client => $self );
+  $self->{rpc} = ADAMK::Lacuna::Client::RPC->new( client => $self );
 
   return $self;
 }
 
 sub empire {
-  Games::Lacuna::Client::Empire->new( client => shift, @_ );
+  ADAMK::Lacuna::Client::Empire->new( client => shift, @_ );
 }
 
 sub alliance {
-  Games::Lacuna::Client::Alliance->new( client => shift, @_ );
+  ADAMK::Lacuna::Client::Alliance->new( client => shift, @_ );
 }
 
 sub body {
-  Games::Lacuna::Client::Body->new( client => shift, @_ );
+  ADAMK::Lacuna::Client::Body->new( client => shift, @_ );
 }
 
 sub building {
-  Games::Lacuna::Client::Buildings->new( client => shift, @_ );
+  ADAMK::Lacuna::Client::Buildings->new( client => shift, @_ );
 }
 
 sub inbox {
-  Games::Lacuna::Client::Inbox->new( client => shift, @_ );
+  ADAMK::Lacuna::Client::Inbox->new( client => shift, @_ );
 }
 
 sub map {
-  Games::Lacuna::Client::Map->new( client => shift, @_ );
+  ADAMK::Lacuna::Client::Map->new( client => shift, @_ );
 }
 
 sub stats {
-  Games::Lacuna::Client::Stats->new( client => shift, @_ );
+  ADAMK::Lacuna::Client::Stats->new( client => shift, @_ );
 }
 
 sub register_destroy_hook {
@@ -201,15 +201,15 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client - An RPC client for the Lacuna Expanse
+ADAMK::Lacuna::Client - An RPC client for the Lacuna Expanse
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
-  my $client = Games::Lacuna::Client->new(cfg_file => 'path/to/myempire.yml');
+  use ADAMK::Lacuna::Client;
+  my $client = ADAMK::Lacuna::Client->new(cfg_file => 'path/to/myempire.yml');
   
   # or manually:
-  my $client = Games::Lacuna::Client->new(
+  my $client = ADAMK::Lacuna::Client->new(
     uri      => 'https://path/to/server',
     api_key  => 'your api key here',
     name     => 'empire name',
@@ -261,7 +261,7 @@ automatically log in for you as necessary.
 
 =head2 new
 
-  Games::Lacuna::Client->new(
+  ADAMK::Lacuna::Client->new(
     name      => 'My empire',                # empire_name in config file
     password  => 'password of the empire',   # empire_password in config file
     uri       => 'https://us1.lacunaexpanse.com/',   # server_uri in config file

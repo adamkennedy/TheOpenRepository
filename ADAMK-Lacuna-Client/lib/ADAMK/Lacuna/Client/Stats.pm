@@ -1,12 +1,12 @@
-package Games::Lacuna::Client::Stats;
+package ADAMK::Lacuna::Client::Stats;
 use 5.0080000;
 use strict;
 use warnings;
 use Carp 'croak';
 
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Module;
-our @ISA = qw(Games::Lacuna::Client::Module);
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Module;
+our @ISA = qw(ADAMK::Lacuna::Client::Module);
 
 sub api_methods {
   return {
@@ -44,11 +44,11 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Stats - The server stats module
+ADAMK::Lacuna::Client::Stats - The server stats module
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
+  use ADAMK::Lacuna::Client;
 
 =head1 DESCRIPTION
 

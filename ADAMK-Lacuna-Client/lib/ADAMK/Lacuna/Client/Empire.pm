@@ -1,13 +1,13 @@
-package Games::Lacuna::Client::Empire;
+package ADAMK::Lacuna::Client::Empire;
 
 use 5.008;
 use strict;
 use warnings;
-use Games::Lacuna::Client;
-use Games::Lacuna::Client::Module;
-use Games::Lacuna::Client::Body;
+use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Module;
+use ADAMK::Lacuna::Client::Body;
 
-our @ISA = qw(Games::Lacuna::Client::Module);
+our @ISA = qw(ADAMK::Lacuna::Client::Module);
 
 use Class::XSAccessor {
   getters => [qw(
@@ -228,29 +228,29 @@ __END__
 
 =head1 NAME
 
-Games::Lacuna::Client::Empire - The empire module
+ADAMK::Lacuna::Client::Empire - The empire module
 
 =head1 SYNOPSIS
 
-  use Games::Lacuna::Client;
-  use Games::Lacuna::Client::Empire;
+  use ADAMK::Lacuna::Client;
+  use ADAMK::Lacuna::Client::Empire;
   
-  my $client = Games::Lacuna::Client->new(...);
+  my $client = ADAMK::Lacuna::Client->new(...);
   my $empire = $client->empire;
   
   my $status = $empire->get_status;
 
 =head1 DESCRIPTION
 
-A subclass of L<Games::Lacuna::Client::Module>.
+A subclass of L<ADAMK::Lacuna::Client::Module>.
 
 =head2 new
 
 Creates an object locally, does not connect to the server.
 
-  Games::Lacuna::Client::Empire->new( client => $client, @parameters );
+  ADAMK::Lacuna::Client::Empire->new( client => $client, @parameters );
 
-The $client is a C<Games::Lacuna::Client> object.
+The $client is a C<ADAMK::Lacuna::Client> object.
 
 Usually, you can just use the C<empire> factory method of the
 client object instead:
