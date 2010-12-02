@@ -7,7 +7,7 @@ use Test::More;
 use ADAMK::Lacuna::Client;
 
 if ( -f 'lacuna.yml' ) {
-  plan( tests => 20 );
+  plan( tests => 18 );
 } else {
   plan( skip_all => 'No lacuna.yml file' );
 }
@@ -42,11 +42,9 @@ isa_ok( $building[0], 'ADAMK::Lacuna::Client::Buildings' );
 my %SINGLE = (
   capitol                   => 'Capitol',
   development_ministry      => 'DevelopmentMinistry',
-  embassy                   => 'Embassy',
   espionage_ministry        => 'EspionageMinistry',
   intelligence_ministry     => 'IntelligenceMinistry',
   mining_ministry           => 'MiningMinistry',
-  network_19_affiliate      => 'Network19Affiliate',
   observatory               => 'Observatory',
   security_ministry         => 'SecurityMinistry',
   trade_ministry            => 'TradeMinistry',
