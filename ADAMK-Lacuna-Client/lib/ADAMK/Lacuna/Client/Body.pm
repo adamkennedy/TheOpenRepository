@@ -55,6 +55,11 @@ sub other_planet_ids {
 
 __PACKAGE__->init;
 
+sub flush {
+    delete $_[0]->{status};
+    delete $_[0]->{buildings};
+}
+
 
 
 
@@ -378,9 +383,9 @@ sub push_items {
   my $self     = shift;
   my $target   = shift;
   my $trade    = $self->trade_ministry or return;
-  my $response = $trade->push_items( $self->body_id, $target->body_id, @_ );
-  $self->flush;
+  my $response = $trade->push_items( $target->body_id, @_ );
   $trade->flush;
+  $self->flush;
   return $response;
 }
 
