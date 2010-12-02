@@ -14,73 +14,129 @@ use constant HOUR  => 3600;
 use constant TYPES => qw{ food ore water energy };
 
 sub run {
-  my $self   = shift;
-  my $client = shift;
-  my $empire = $client->empire;
+    my $self   = shift;
+    my $client = shift;
+    my $empire = $client->empire;
 
-  # Precalculate which planet/resource combinations are in excess
-  # and which planet/resource combinations have excess space.
-  my %from = map { $_ => {} } TYPES;
-  my %to   = map { $_ => {} } TYPES;
-  foreach my $planet_id ( $empire->planet_ids ) {
-    my $planet = $empire->planet($planet_id);
-    my $name   = $planet->name;
-    $self->trace("Checking planet $name for overflow or excess space");
+    # Precalculate which planet/resource combinations are in excess
+    # and which planet/resource combinations have excess space.
+    my @from = ();
+    my @to   = ();
+    foreach my $planet_id ( $empire->planet_ids ) {
+        my $planet = $empire->planet($planet_id);
+        my $name   = $planet->name;
+        $self->trace("Checking planet $name");
 
-    # Can we accept surplus resources?
-    foreach my $type ( TYPES ) {
-        # Get resource information
-        my $space_method = "${type}_space";
-        my $hour_method  = "${type}_hour";
-        my $space        = $planet->$space_method();
-        my $hour         = $planet->$hour_method();
+        # Can we accept surplus resources?
+        foreach my $type ( TYPES ) {
+            # Get resource information
+            my $space_method = "${type}_space";
+            my $hour_method  = "${type}_hour";
+            my $space        = $planet->$space_method();
+            my $hour         = $planet->$hour_method();
 
-        # How much can we accept from elsewhere
-        if ( $hour > 0 ) {
-            $space = $space - (4 * $hour);
-            $space = 0 if $space < 0;
-        } else {
-            # Just go with the space there now
-        }
-        if ( $space > 0 ) {
-            my $hours = int($space / $hour) + 1;
-            $self->trace("$name - Can accept $space $type, $hours hour(s) supply");
-            $to{$type}->{$planet_id} = [ $space, $hours ];
-        }
+            # How much can we accept from elsewhere
+            if ( $hour > 0 ) {
+                $space = $space - (4 * $hour);
+                $space = 0 if $space < 0;
+            } else {
+                # Just go with the space there now
+            }
+            if ( $space > 0 ) {
+                my $hours = int($space / $hour) + 1;
+                push @to, {
+                    planet_id => $planet_id,
+                    name      => $name,
+                    type      => $type,
+                    hour      => $hour,
+                    space     => $space,
+                };
+            }
 
-        # How much can we send to elsewhere
-        if ( $hour > 0 ) {
-            my $remaining_method = "${type}_remaining";
-            my $remaining        = $planet->$remaining_method();
-            if ( $remaining < 4 ) {
-                # Always keep an emergency buffer
-                my $stored_method = "${type}_stored";
-                my $stored        = $planet->$stored_method() - 10000;
-                $stored = 0 if $stored < 0;
+            # How much can we send to elsewhere
+            if ( $hour > 0 ) {
+                my $remaining_method = "${type}_remaining";
+                my $remaining        = $planet->$remaining_method();
+                if ( $remaining < 4 ) {
+                    # Always keep an emergency buffer
+                    my $stored_method = "${type}_stored";
+                    my $stored        = $planet->$stored_method() - 10000;
+                    $stored = 0 if $stored < 0;
 
-                # Check shipping as late as possible to reduce API calls
-                if ( $stored and $planet->cargo_ships ) {
-                    $remaining = int($remaining);
-                    $self->trace("$name - Can supply $stored $type, $remaining hour(s) from storage limit");
-                    $from{$type}->{$planet_id} = [ $stored, $remaining ];
+                    # Check shipping as late as possible to reduce API calls
+                    if ( $stored and $planet->cargo_ships ) {
+                        my $left = int($remaining);
+                        push @from, {
+                            planet_id => $planet_id,
+                            name      => $name,
+                            type      => $type,
+                            hour      => $hour,
+                            space     => $space,
+                            stored    => $stored,
+                            remaining => $remaining,
+                        };
+                    }
                 }
             }
         }
     }
-  }
 
-  # Find the best shipping combinations
-  1;
+    # Sort the supply and demand options
+    my @priority = $empire->resource_priority;
+    my %types    = map { $priority[$_] => $_ } ( 0 .. $#priority );
+    @from = sort {
+        # Optimise the least abundant resource first
+        $types{$b->{type}} <=> $types{$a->{type}}
+        or
+        # Send from the biggest-full planet first
+        $b->{stored} <=> $a->{stored}
+    } @from;
 
-  # If transport ships are already inbound, skip in case a bug has
-  # caused overshipping.
-  ### TO BE COMPLETED
+    # Print a summary of our options
+    $self->trace("Options:");
+    foreach ( @from ) {
+        $self->trace("Supply - $_->{name} - $_->{stored} $_->{type}, $_->{remaining}hr storage");
+    }
+    foreach ( @to ) {
+        my $hours = int($_->{space} / $_->{hour});
+        $self->trace("Accept - $_->{name} - $_->{space} $_->{type}, ${hours}hr excess");
+    }
 
-  return 1;
+    # Attempt to clear the overflowing resources
+    while ( @from ) {
+        my $source = shift @from;
+        my $planet = $empire->planet( $source->{planet_id} );
+
+        # Find a ship to use
+        my $ship = $planet->best_cargo_ship or next;
+
+        # Find a planet to send to.
+        my $target = List::Util::first {
+            $_->{type} eq $source->{type}
+        } sort {
+            # Send to the biggest empty space
+            $b->{space} <=> $a->{space}
+        } @to or next;
+
+        # How much can we send?
+        my $volume = List::Util::min(
+            $source->{stored},
+            $target->{space},
+            $ship->{hold_size},
+        );
+
+        
+    }
+
+    # If transport ships are already inbound, skip in case a bug has
+    # caused overshipping.
+    ### TO BE COMPLETED
+
+    return 1;
 }
 
 sub trace {
-  print scalar(localtime time) . " - MoveResources - " . $_[1] . "\n";
+    print scalar(localtime time) . " - MoveResources - " . $_[1] . "\n";
 }
 
 1;

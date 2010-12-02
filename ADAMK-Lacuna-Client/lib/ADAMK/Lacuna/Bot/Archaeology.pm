@@ -29,9 +29,8 @@ sub run {
   my $have = $empire->glyphs_count;
 
   # Iterate over the bodies
-  foreach my $planet_id ( $empire->planet_ids ) {
-    my $planet = $empire->planet($planet_id);
-    my $name   = $planet->name;
+  foreach my $planet ( $empire->planets ) {
+    my $name = $planet->name;
     $self->trace("Checking planet $name");
 
     # Does the planet have an Archaeology Ministry?

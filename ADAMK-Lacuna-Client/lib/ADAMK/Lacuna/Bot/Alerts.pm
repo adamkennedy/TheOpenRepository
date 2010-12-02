@@ -14,9 +14,8 @@ sub run {
   my $empire = $client->empire;
 
   # Iterate over the bodies
-  foreach my $planet_id ( $empire->planet_ids ) {
-    my $planet = $empire->planet($planet_id);
-    my $name   = $planet->name;
+  foreach my $planet ( $empire->planets ) {
+    my $name = $planet->name;
 
     # Check for the planet being idle
     unless ( $planet->pending_builds ) {

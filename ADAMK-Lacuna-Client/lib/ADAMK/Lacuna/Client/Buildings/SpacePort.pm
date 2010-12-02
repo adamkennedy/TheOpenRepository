@@ -1,13 +1,17 @@
 package ADAMK::Lacuna::Client::Buildings::SpacePort;
-use 5.0080000;
+
+use 5.008;
 use strict;
 use warnings;
-use Carp 'croak';
-
 use ADAMK::Lacuna::Client;
+use ADAMK::Lacuna::Client::Builder;
 use ADAMK::Lacuna::Client::Buildings;
+use ADAMK::Lacuna::Client::Ship;
 
-our @ISA = qw(ADAMK::Lacuna::Client::Buildings);
+our @ISA = qw{
+  ADAMK::Lacuna::Client::Builder
+  ADAMK::Lacuna::Client::Buildings
+};
 
 sub api_methods {
   return {
@@ -46,29 +50,11 @@ sub flush {
 ######################################################################
 # View Integration
 
-sub docked_ships {
-  my $self = shift;
-  unless ( $self->{docked_ships} ) {
-    $self->fill_view;
-  }
-  return $self->{docked_ships};
-}
-
-sub docks_available {
-  my $self = shift;
-  unless ( $self->{docks_available} ) {
-    $self->fill_view;
-  }
-  return $self->{docks_available};
-}
-
-sub max_ships {
-  my $self = shift;
-  unless ( $self->{max_ships} ) {
-    $self->fill_view;
-  }
-  return $self->{max_ships};
-}
+__PACKAGE__->build_fillmethods( fill_view => qw{
+  docked_ships
+  docks_available
+  max_ships
+} );
 
 sub fill_view {
   my $self     = shift;
@@ -88,13 +74,9 @@ sub fill_view {
 ######################################################################
 # Ship Integration
 
-sub number_of_ships {
-  my $self = shift;
-  unless ( defined $self->{number_of_ships} ) {
-    $self->fill_ships;
-  }
-  return $self->{number_of_ships};
-}
+__PACKAGE__->build_fillmethods( fill_ships => qw{
+  number_of_ships
+} );
 
 sub ships {
   my $self   = shift;
@@ -115,9 +97,18 @@ sub ships {
 sub fill_ships {
   my $self     = shift;
   my $response = $self->all_ships;
-  $self->{ships}           = $response->{ships};
-  $self->{number_of_ships} = $response->{number_of_ships};
   $self->set_status( $response->{status} );
+  $self->{number_of_ships} = $response->{number_of_ships};
+
+  # Convert the ships into objects
+  my @ships = map {
+    ADAMK::Lacuna::Client::Ship->new(
+      %$_,
+      spaceport => $self,
+    )
+  } @{$response->{ships}};
+
+  $self->{ships} = \@ships;
   return $response;
 }
 

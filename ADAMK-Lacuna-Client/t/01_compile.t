@@ -3,8 +3,9 @@
 use 5.008;
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 10;
 
+use_ok( 'ADAMK::Lacuna::Client::Builder'    );
 use_ok( 'ADAMK::Lacuna::Client::Module'     );
 use_ok( 'ADAMK::Lacuna::Client'             );
 use_ok( 'ADAMK::Lacuna::Bot'                );

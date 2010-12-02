@@ -191,6 +191,66 @@ sub home_planet {
 ######################################################################
 # Empire-wide Aggregation
 
+# Status values that can be directly added up
+my @ADDABLE = qw{
+  energy_hour
+  energy_stored
+  energy_capacity
+  food_hour
+  food_stored
+  food_capacity
+  ore_hour
+  ore_stored
+  ore_capacity
+  water_hour
+  water_stored
+  water_capacity
+  waste_hour
+  waste_stored
+  waste_capacity
+};
+
+sub resources {
+  my $self = shift;
+
+  # Iterate over all planets and total the common resources
+  my %total = ();
+  foreach my $planet ( $self->planets ) {
+    foreach my $method ( @ADDABLE ) {
+      $total{$method} = 0 unless defined $total{$method};
+      $total{$method} += $planet->$method();
+    }
+  }
+
+  # Derive the remaining values
+  foreach my $type ( qw{ food ore water energy waste } ) {
+    $total{"${type}_space"} = $total{"${type}_capacity"} - $total{"${type}_stored"};
+    $total{"${type}_time"}  = $total{"${type}_capacity"} / $total{"${type}_hour"};
+    $total{"${type}_left"}  = $total{"${type}_space"}    / $total{"${type}_space"};
+  }
+
+  return \%total;
+}
+
+# Determine the order in which we are most interested in increasing our
+# resource supply. Assuming that capacity limits are boosted approximately
+# when that resource is more greatly needed, we can take the number of hours
+# remaining until we fill all storage to capacity as the resource we are most
+# in need of.
+sub resource_priority {
+  my $self  = shift;
+  my $total = $self->resources;
+  my %left  = (
+    food   => $total->{food_left},
+    ore    => $total->{ore_left},
+    water  => $total->{water_left},
+    energy => $total->{energy_left},
+  );
+  return sort {
+    $left{$b} <=> $left{$a}
+  } keys %left;
+}
+
 sub spy {
   my $self  = shift;
   my @spies = $self->spies( @_ );

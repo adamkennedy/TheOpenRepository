@@ -3,11 +3,15 @@ package ADAMK::Lacuna::Client::Body;
 use 5.008;
 use strict;
 use warnings;
-use List::Util                    ();
-use ADAMK::Lacuna::Client         ();
-use ADAMK::Lacuna::Client::Module ();
+use List::Util                     ();
+use ADAMK::Lacuna::Client          ();
+use ADAMK::Lacuna::Client::Builder ();
+use ADAMK::Lacuna::Client::Module  ();
 
-our @ISA = qw(ADAMK::Lacuna::Client::Module);
+our @ISA = qw{
+  ADAMK::Lacuna::Client::Builder
+  ADAMK::Lacuna::Client::Module
+};
 
 use Class::XSAccessor {
   getters => [ qw(
@@ -67,19 +71,7 @@ sub flush {
 ######################################################################
 # Status Methods
 
-sub status {
-  my $self = shift;
-  unless ( defined $self->{status} ) {
-    $self->fill_buildings;
-  }
-  return $self->{status};
-}
-
-sub set_status {
-  my $self = shift;
-  $self->{status} = shift;
-  return 1;
-}
+__PACKAGE__->build_fillmethods( fill_buildings => 'status' );
 
 __PACKAGE__->build_subaccessors( status => qw{
   building_count
@@ -112,6 +104,12 @@ __PACKAGE__->build_subaccessors( status => qw{
   x
   y
 } );
+
+sub set_status {
+  my $self = shift;
+  $self->{status} = shift;
+  return 1;
+}
 
 sub energy_space {
   $_[0]->energy_capacity - $_[0]->energy_stored;
@@ -368,15 +366,28 @@ sub waste_recycling_centers {
 sub ships {
   my $self = shift;
   my $port = $self->space_port;
-  return map { $_->ships(@_) } ($port || ());
+  return map { $_->ships(@_) } ( $port || () );
 }
 
+# Cargo ships are always preferable from biggest to smallest,
+# and fastest to slowest.
 sub cargo_ships {
-  my $self = shift;
-  return $self->ships(
+  return sort {
+    $b->{hold_size} <=> $a->{hold_size}
+    or
+    $b->{speed} <=> $a->{speed}
+  } $_[0]->ships(
     type => 'Cargo Ship',
     task => 'Docked',
   );
+}
+
+# What is the best unused cargo ship on the planet
+sub best_cargo_ship {
+  my @cargo = grep {
+    not defined $_->{date_available}
+  } $_[0]->cargo_ships;
+  return $cargo[0];
 }
 
 sub push_items {

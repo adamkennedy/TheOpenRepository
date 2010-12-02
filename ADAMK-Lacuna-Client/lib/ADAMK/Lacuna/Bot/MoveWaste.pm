@@ -18,9 +18,8 @@ sub run {
   my $empire = $client->empire;
 
   # Iterate over the bodies
-  foreach my $planet_id ( $empire->planet_ids ) {
-    my $planet = $empire->planet($planet_id);
-    my $name   = $planet->name;
+  foreach my $planet ( $empire->planets ) {
+    my $name = $planet->name;
     $self->trace("Checking planet $name");
 
     # If transport ships are already inbound, skip in case a bug has
@@ -31,40 +30,28 @@ sub run {
     # waste exhaustion and building damage?
     if ( $planet->waste_hour < 0 and $planet->waste_remaining < EIGHT_HOURS ) {
       # Where can we pull waste from
-      my $source = $self->best_waste_source( $planet );
+      my $source = $self->best_waste_source($planet);
       if ( $source ) {
-        # Waste usually moves in big volumes, select the biggest ship
-        my $ship = (
-          sort {
-            $b->{hold_size} <=> $a->{hold_size}
-          } $source->cargo_ships
-        )[0];
+        # Find a ship to use
+        my $ship = $source->best_cargo_ship;
 
         # Determine the amount of waste to transport
         my $quantity = List::Util::min(
           $planet->waste_space,
-          $ship->{hold_size},
+          $ship->hold_size,
         );
 
         # Execute the transport push
         $self->trace("$name - Pulling $quantity waste from " . $source->name . " to resolve shortage");
-        $source->push_items(
+        $ship->push_items(
           $planet,
-          [
-            {
-              type     => 'waste',
-              quantity => $quantity,
-            }
-          ],
           {
-            ship_id => $ship->{id},
-          },
+            type     => 'waste',
+            quantity => $quantity,
+          }
         );
-
-        1;
       }
     }
-
   }
 
   return 1;
