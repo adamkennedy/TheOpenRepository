@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     NAME         => 'ADAMK::Lacuna::Client',
-    VERSION_FROM => 'lib/Games/Lacuna/Client.pm',
+    VERSION_FROM => 'lib/ADAMK/Lacuna/Client.pm',
     PREREQ_PM    => {
         'JSON::RPC::Common' => '0',
         'HTTP::Request'     => '0',
@@ -24,8 +24,8 @@ WriteMakefile(
         ? # Add these new keywords supported since 5.005
             (
                 # Retrieve abstract from module
-                ABSTRACT_FROM => 'lib/Games/Lacuna/Client.pm',
-                AUTHOR => 'Steffen Mueller <smueller@cpan.org>'
+                ABSTRACT_FROM => 'lib/ADAMK/Lacuna/Client.pm',
+                AUTHOR        => 'Steffen Mueller <smueller@cpan.org>'
             )
         : ()
     ),
