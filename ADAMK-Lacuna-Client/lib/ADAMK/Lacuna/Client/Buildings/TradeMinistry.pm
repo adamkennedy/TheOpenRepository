@@ -1,9 +1,8 @@
 package ADAMK::Lacuna::Client::Buildings::TradeMinistry;
+
 use 5.0080000;
 use strict;
 use warnings;
-use Carp 'croak';
-
 use ADAMK::Lacuna::Client;
 use ADAMK::Lacuna::Client::Buildings;
 
@@ -26,10 +25,15 @@ sub api_methods {
     view_my_trades        => { default_args => [qw(session_id building_id)] },
     get_stored_resources  => { default_args => [qw(session_id building_id)] },
     push_items            => { default_args => [qw(session_id building_id)] },
+    get_trade_ships       => { default_args => [qw(session_id building_id)] },
   };
 }
 
 __PACKAGE__->init;
+
+sub flush {
+    return 1;
+}
 
 1;
 __END__

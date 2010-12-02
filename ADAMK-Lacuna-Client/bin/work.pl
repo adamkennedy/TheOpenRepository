@@ -26,7 +26,7 @@ while ( 1 ) {
       prefer => [ 'Rutile', 'Kerogen' ],
     },
     RecycleWaste => 1,
-    # MoveWaste    => 1,
+    MoveWaste    => 1,
 
     # Unresolved issues needing human attention
     Alerts  => 1,
