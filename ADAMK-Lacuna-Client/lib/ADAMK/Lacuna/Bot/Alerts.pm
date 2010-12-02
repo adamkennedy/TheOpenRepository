@@ -74,9 +74,7 @@ sub run {
         task => 'Travelling',
       );
       my $unused = $available - $travelling;
-      if ( $unused < 0 ) {
-        $self->trace("$name - ERROR - Number of unused Observatory slots is less than zero ($unused)");
-      } elsif ( $unused > 0 ) {
+      if ( $unused > 0 ) {
         $self->trace("$name - WARNING - Observatory has unused probe slots ($unused)");
       }
     }
