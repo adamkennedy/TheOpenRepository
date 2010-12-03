@@ -25,6 +25,11 @@ sub run {
       $_->{efficiency} < 100
     } $planet->buildings or next;
 
+    # Don't repair if we are in negative waste and empty
+    if ( $planet->waste_hour < 0 $planet->waste_stored < 10000 ) {
+        next;
+    }
+
     # Just start attempting to repair
     foreach my $building ( @buildings ) {
         $self->trace(
