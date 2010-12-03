@@ -26,7 +26,7 @@ sub run {
     } $planet->buildings or next;
 
     # Don't repair if we are in negative waste and empty
-    if ( $planet->waste_hour < 0 $planet->waste_stored < 10000 ) {
+    if ( $planet->waste_hour < 0 and $planet->waste_stored < 10000 ) {
         next;
     }
 
