@@ -21,16 +21,12 @@ unless ( -f 'lacuna.yml' ) {
 while ( 1 ) {
   my $client = ADAMK::Lacuna::Client->new;
   my $bot    = ADAMK::Lacuna::Bot->new(
-    # Plugins that take independant action
-    Archaeology => {
-      prefer => [ 'Rutile', 'Kerogen' ],
-    },
-    RecycleWaste => 1,
-    MoveWaste    => 1,
-
-    # Unresolved issues needing human attention
-    Alerts  => 1,
-    Summary => 1,
+    Archaeology   => 1,
+    MoveWaste     => 1,
+    MoveResources => 1,
+    RecycleWaste  => 1,
+    Alerts        => 1,
+    Summary       => 1,
   );
   print "Running bot...\n";
   $bot->run( $client );

@@ -9,10 +9,6 @@ use ADAMK::Lacuna::Client::Buildings;
 
 our @ISA = qw(ADAMK::Lacuna::Client::Buildings);
 
-sub module_prefix {
-  return 'archaeology';
-}
-
 sub api_methods {
   return {
     search_for_glyph    => { default_args => [qw(session_id building_id)] },

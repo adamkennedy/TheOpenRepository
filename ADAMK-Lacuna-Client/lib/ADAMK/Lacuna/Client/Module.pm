@@ -8,7 +8,7 @@ use Carp 'croak';
 use Class::XSAccessor {
   getters => [ qw(
     client
-    uri
+    url
   ) ],
 };
 
@@ -28,17 +28,16 @@ sub module_prefix {
 }
 
 sub session_id {
-  my $self = shift;
-  return $self->client->assert_session;
+  $_[0]->client->assert_session;
 }
 
 sub new {
   my $class  = shift;
   my $self   = bless { @_ }, $class;
   my $client = $self->{client} || croak("Need ADAMK::Lacuna::Client");
-
-  $self->{uri} = $self->client->uri . '/' . $self->module_prefix;
-
+  my $suffix = $self->{url} || $self->module_prefix;
+  $suffix =~ s/\///;
+  $self->{url} = $self->client->uri . '/' . $suffix;
   return $self;
 }
 
@@ -75,11 +74,11 @@ sub _generate_method_per_spec {
       @_
     ];
 
-    if ($client->debug) {
+    if ( $client->debug ) {
       print "DEBUG: " . __PACKAGE__ . " request " . Data::Dumper::Dumper([$self->uri, $method_name, $params]);
     }
-    my $ret = $client->rpc->call($self->uri, $method_name, $params);
-    if ($client->debug) {
+    my $ret = $client->rpc->call( $self->url, $method_name, $params );
+    if ( $client->debug ) {
       print "DEBUG: " . __PACKAGE__ . " result " . Data::Dumper::Dumper($ret);
     }
     return $ret->{result};

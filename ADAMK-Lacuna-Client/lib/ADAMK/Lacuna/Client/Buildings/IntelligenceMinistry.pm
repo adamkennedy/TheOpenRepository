@@ -11,10 +11,6 @@ use ADAMK::Lacuna::Client::Spy;
 
 our @ISA = qw(ADAMK::Lacuna::Client::Buildings);
 
-sub module_prefix {
-  return 'intelligence';
-}
-
 sub api_methods {
   return {
     view                  => { default_args => [qw(session_id building_id)] },

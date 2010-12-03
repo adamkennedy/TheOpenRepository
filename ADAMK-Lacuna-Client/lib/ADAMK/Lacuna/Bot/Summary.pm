@@ -23,7 +23,17 @@ sub run {
     my $space    = $total->{"${type}_space"};
     my $time     = int $total->{"${type}_time"};
     my $left     = int $total->{"${type}_left"};
-    $self->trace("$name - $hour/hr. $stored of $capacity filled, ${left}hr of ${time}hr remaining");
+    $self->trace(
+      sprintf(
+        "%-6s - %6s/hr. %8s of %8s filled. %4dhr or %4dhr remaining",
+        $name,
+        $hour,
+        $stored,
+        $capacity,
+        $left,
+        $time,
+      )
+    );
   }
 
   return 1;

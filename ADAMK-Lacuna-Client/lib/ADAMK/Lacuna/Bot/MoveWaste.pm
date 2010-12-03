@@ -33,7 +33,7 @@ sub run {
       my $source = $self->best_waste_source($planet);
       if ( $source ) {
         # Find a ship to use
-        my $ship = $source->best_cargo_ship;
+        my $ship = $source->cargo_ship;
 
         # Determine the amount of waste to transport
         my $quantity = List::Util::min(

@@ -3,11 +3,9 @@ package ADAMK::Lacuna::Client::Buildings::Simple;
 use 5.008;
 use strict;
 use warnings;
-use Carp 'croak';
-
+use Class::MOP;
 use ADAMK::Lacuna::Client;
 use ADAMK::Lacuna::Client::Module;
-use Class::MOP;
 
 our @BuildingTypes = (
   qw(
@@ -103,7 +101,7 @@ sub init {
   }
 }
 
-__PACKAGE__->init();
+__PACKAGE__->init;
 
 1;
 

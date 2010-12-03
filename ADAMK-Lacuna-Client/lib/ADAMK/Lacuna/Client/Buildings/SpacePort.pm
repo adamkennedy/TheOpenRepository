@@ -86,10 +86,10 @@ sub ships {
   }
   my @ships = @{$self->{ships}};
   if ( $filter{task} ) {
-    @ships = grep { $_->{task} eq $filter{task} } @ships;
+    @ships = grep { $_->task eq $filter{task} } @ships;
   }
   if ( $filter{type} ) {
-    @ships = grep { $_->{type_human} eq $filter{type} } @ships;
+    @ships = grep { $_->type_human eq $filter{type} } @ships;
   }
   return @ships;
 }

@@ -347,6 +347,14 @@ sub space_ports {
   $_[0]->buildings( name => 'Space Port' );
 }
 
+sub food_reserve {
+  ($_[0]->food_reserves)[0];
+}
+
+sub food_reserves {
+  $_[0]->buildings( name => 'Food Reserve' );
+}
+
 sub waste_sequestration_wells {
   $_[0]->buildings( name => 'Waste Sequestration Well' );
 }
@@ -372,22 +380,41 @@ sub ships {
 # Cargo ships are always preferable from biggest to smallest,
 # and fastest to slowest.
 sub cargo_ships {
-  return sort {
-    $b->{hold_size} <=> $a->{hold_size}
+  my @ships = sort {
+    $b->hold <=> $a->hold
     or
-    $b->{speed} <=> $a->{speed}
+    $b->speed <=> $a->speed
   } $_[0]->ships(
     type => 'Cargo Ship',
     task => 'Docked',
   );
+  return @ships;
 }
 
 # What is the best unused cargo ship on the planet
-sub best_cargo_ship {
-  my @cargo = grep {
-    not defined $_->{date_available}
-  } $_[0]->cargo_ships;
-  return $cargo[0];
+sub cargo_ship {
+  ($_[0]->cargo_ships)[0];
+}
+
+sub make_items {
+  my $self     = shift;
+  my $type     = shift;
+  my $quantity = shift;
+
+  # Handle the obvious cases
+  if ( $type eq 'waste' or $type eq 'water' or $type eq 'energy' ) {
+    return {
+      type     => $type,
+      quantity => $quantity,
+    }
+  }
+
+  # Split out food and amoung the multiple types
+  if ( $type eq 'food' or $type eq 'ore' ) {
+    return $self->trade_ministry->resource_breakdown( $type => $quantity );
+  }
+
+  die "Unsupported item type '$type'";
 }
 
 sub push_items {

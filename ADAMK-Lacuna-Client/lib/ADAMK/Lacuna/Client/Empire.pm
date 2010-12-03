@@ -226,7 +226,7 @@ sub resources {
   foreach my $type ( qw{ food ore water energy waste } ) {
     $total{"${type}_space"} = $total{"${type}_capacity"} - $total{"${type}_stored"};
     $total{"${type}_time"}  = $total{"${type}_capacity"} / $total{"${type}_hour"};
-    $total{"${type}_left"}  = $total{"${type}_space"}    / $total{"${type}_space"};
+    $total{"${type}_left"}  = $total{"${type}_space"}    / $total{"${type}_hour"};
   }
 
   return \%total;
@@ -247,7 +247,7 @@ sub resource_priority {
     energy => $total->{energy_left},
   );
   return sort {
-    $left{$b} <=> $left{$a}
+    $left{$a} <=> $left{$b}
   } keys %left;
 }
 

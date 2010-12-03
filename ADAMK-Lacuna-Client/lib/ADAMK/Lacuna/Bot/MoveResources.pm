@@ -22,9 +22,8 @@ sub run {
     # and which planet/resource combinations have excess space.
     my @from = ();
     my @to   = ();
-    foreach my $planet_id ( $empire->planet_ids ) {
-        my $planet = $empire->planet($planet_id);
-        my $name   = $planet->name;
+    foreach my $planet ( $empire->planets ) {
+        my $name = $planet->name;
         $self->trace("Checking planet $name");
 
         # Can we accept surplus resources?
@@ -45,7 +44,7 @@ sub run {
             if ( $space > 0 ) {
                 my $hours = int($space / $hour) + 1;
                 push @to, {
-                    planet_id => $planet_id,
+                    planet_id => $planet->body_id,
                     name      => $name,
                     type      => $type,
                     hour      => $hour,
@@ -64,10 +63,9 @@ sub run {
                     $stored = 0 if $stored < 0;
 
                     # Check shipping as late as possible to reduce API calls
-                    if ( $stored and $planet->cargo_ships ) {
-                        my $left = int($remaining);
+                    if ( $stored and $planet->cargo_ship ) {
                         push @from, {
-                            planet_id => $planet_id,
+                            planet_id => $planet->body_id,
                             name      => $name,
                             type      => $type,
                             hour      => $hour,
@@ -84,13 +82,6 @@ sub run {
     # Sort the supply and demand options
     my @priority = $empire->resource_priority;
     my %types    = map { $priority[$_] => $_ } ( 0 .. $#priority );
-    @from = sort {
-        # Optimise the least abundant resource first
-        $types{$b->{type}} <=> $types{$a->{type}}
-        or
-        # Send from the biggest-full planet first
-        $b->{stored} <=> $a->{stored}
-    } @from;
 
     # Print a summary of our options
     $self->trace("Options:");
@@ -104,33 +95,57 @@ sub run {
 
     # Attempt to clear the overflowing resources
     while ( @from ) {
+        # Run the prioritisation sort
+        @from = sort {
+            # Optimise the least abundant resource first
+            $types{$b->{type}} <=> $types{$a->{type}}
+            or
+            # Send from the biggest-full planet first
+            $b->{stored} <=> $a->{stored}
+        } @from;
+
+        # Get the next item to process
         my $source = shift @from;
+        my $name   = $source->{name};
+        my $type   = $source->{type};
         my $planet = $empire->planet( $source->{planet_id} );
 
         # Find a ship to use
-        my $ship = $planet->best_cargo_ship or next;
+        my $ship = $planet->cargo_ship or next;
 
         # Find a planet to send to.
         my $target = List::Util::first {
-            $_->{type} eq $source->{type}
+            $_->{type} eq $type
         } sort {
             # Send to the biggest empty space
             $b->{space} <=> $a->{space}
         } @to or next;
 
         # How much can we send?
-        my $volume = List::Util::min(
+        my $quantity = List::Util::min(
             $source->{stored},
             $target->{space},
-            $ship->{hold_size},
+            $ship->hold_size,
+        ) or next;
+
+        # Push the resource to the target planet
+        $self->trace("$name - Pushing $quantity excess $type to $target->{name}");
+        $ship->push_items(
+            $target->{planet_id},
+            $planet->make_items(
+                $source->{type} => $quantity,
+            ),
         );
 
-        
+        # Update the resource totals
+        $target->{space}  -= $quantity;
+        $source->{space}  += $quantity;
+        $source->{stored} -= $quantity;
+        $source->{remaining} = $source->{space} / $source->{hour};
+        if ( $source->{remaining} < 4 ) {
+            unshift @from, $source;
+        }
     }
-
-    # If transport ships are already inbound, skip in case a bug has
-    # caused overshipping.
-    ### TO BE COMPLETED
 
     return 1;
 }

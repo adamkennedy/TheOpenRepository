@@ -11,10 +11,6 @@ use ADAMK::Lacuna::Client::Buildings;
 our $VERSION = '0.01';
 our @ISA     = qw(ADAMK::Lacuna::Client::Buildings);
 
-sub module_prefix {
-  return 'wasterecycling';
-}
-
 sub api_methods {
   return {
     view                => { default_args => [qw(session_id building_id)] },
