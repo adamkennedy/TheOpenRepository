@@ -21,6 +21,7 @@ unless ( -f 'lacuna.yml' ) {
 while ( 1 ) {
   my $client = ADAMK::Lacuna::Client->new;
   my $bot    = ADAMK::Lacuna::Bot->new(
+    Repair        => 1,
     Archaeology   => 1,
     MoveWaste     => 1,
     MoveResources => 1,
