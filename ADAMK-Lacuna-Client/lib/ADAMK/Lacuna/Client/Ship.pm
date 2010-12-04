@@ -41,10 +41,11 @@ sub available {
 # High Level Methods
 
 sub push_items {
-	my $self  = shift;
-	my $body  = $self->spaceport->body or die "Failed to find body";
-	my $trade = $body->trade_ministry  or die "Failed to find trade ministry";
-	my @rv    = $trade->push_items( shift, [ @_ ], { ship_id => $self->id } );
+	my $self   = shift;
+	my $body   = $self->spaceport->body or die "Failed to find body";
+	my $trade  = $body->trade_ministry  or die "Failed to find trade ministry";
+	my $planet = ref($_[0]) ? shift->body_id : shift;
+	my @rv     = $trade->push_items( $planet, [ @_ ], { ship_id => $self->id } );
 	$self->spaceport->flush;
 	return @rv;
 }

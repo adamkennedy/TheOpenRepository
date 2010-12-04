@@ -59,14 +59,18 @@ sub glyphs {
   my $self     = shift;
   my $response = $self->get_glyphs;
   $self->set_status( $response->{status} );
-  return $response->{glyphs};
+  if ( $response->{glyphs} ) {
+    return @{$response->{glyphs}};
+  } else {
+    return ();
+  }
 }
 
 sub glyphs_count {
   my $self   = shift;
-  my $glyphs = $self->glyphs;
+  my @glyphs = $self->glyphs;
   my %count  = ();
-  foreach my $glyph ( @$glyphs ) {
+  foreach my $glyph ( @glyphs ) {
     $count{$glyph->{type}}++;
   }
   return \%count;

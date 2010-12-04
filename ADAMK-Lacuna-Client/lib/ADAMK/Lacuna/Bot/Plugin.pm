@@ -24,4 +24,10 @@ sub run {
   return 1;
 }
 
+sub trace {
+    my $class  = ref($_[0]) || $_[0];
+    my ($name) = ($class =~ /(\w+)$/);
+    print scalar(localtime time) . " - $name - $_[1]\n";
+}
+
 1;

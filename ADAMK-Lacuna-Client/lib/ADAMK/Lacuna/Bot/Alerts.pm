@@ -13,9 +13,14 @@ sub run {
   my $client = shift;
   my $empire = $client->empire;
 
+  # Preparatory work
+  $self->trace("Predetermining Archaeology Planet");
+  my $arch_hq = $empire->archaeology_planet->body_id;
+
   # Iterate over the bodies
   foreach my $planet ( $empire->planets ) {
-    my $name = $planet->name;
+    my $name    = $planet->name;
+    my $body_id = $planet->body_id;
 
     # Check for the planet being idle
     unless ( $planet->pending_builds ) {
@@ -37,6 +42,17 @@ sub run {
     }
     unless ( $planet->waste_space ) {
       $self->trace("$name - DANGER - Waste storage full");
+    }
+
+    # Check for uncentralised glyphs
+    my $archaeology = $planet->archaeology_ministry;
+    if ( $archaeology ) {
+      unless ( $arch_hq == $body_id ) {
+        my $glyphs = $archaeology->glyphs;
+        if ( $glyphs ) {
+          $self->trace("$name - WARNING - $glyphs x Uncentralised Glyph");
+        }
+      }
     }
 
     # Check for a mining ministry being underserviced
@@ -104,10 +120,6 @@ sub run {
   }
 
   return 1;
-}
-
-sub trace {
-  print scalar(localtime time) . " - Alerts - " . $_[1] . "\n";
 }
 
 1;

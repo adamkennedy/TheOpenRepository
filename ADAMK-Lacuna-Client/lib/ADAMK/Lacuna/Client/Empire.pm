@@ -3,6 +3,7 @@ package ADAMK::Lacuna::Client::Empire;
 use 5.008;
 use strict;
 use warnings;
+use List::Util ();
 use ADAMK::Lacuna::Client;
 use ADAMK::Lacuna::Client::Module;
 use ADAMK::Lacuna::Client::Body;
@@ -182,6 +183,44 @@ sub planet {
 sub home_planet {
   my $self = shift;
   $self->planet( $self->home_planet_id );
+}
+
+sub archaeology_planet {
+  my $self  = shift;
+  my %level = ();
+  foreach my $planet ( $self->planets ) {
+    my $ministry = $planet->archaeology_ministry or next;
+    $level{$planet->body_id} = $ministry->level;
+  }
+  unless ( %level ) {
+    # Special case, no arch at all
+    return $self->home_planet;
+  }
+  my $maxed = List::Util::max( values %level );
+  my @best  = sort {
+    $self->planet($b)->archaeology_ministry->glyph_count
+    <=>
+    $self->planet($a)->archaeology_ministry->glyph_count
+    or
+    ($b == $self->home_planet_id) <=> ($a == $self->home_planet_id)
+    or
+    $a <=> $b
+  } grep {
+    $level{$_} == $maxed
+  } sort keys %level;
+
+  return $self->planet($best[0]);
+}
+
+
+
+
+
+######################################################################
+# Building Integration
+
+sub archaeology_hq {
+  $_[0]->archaeology_planet->archaeology_ministry;
 }
 
 

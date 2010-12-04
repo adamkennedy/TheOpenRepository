@@ -13,9 +13,6 @@ sub run {
   my $client = shift;
   my $empire = $client->empire;
 
-  # Load the aggregate glyphs found
-  $self->trace("Searching for damaged buildings");
-
   # Iterate over the bodies
   foreach my $planet ( $empire->planets ) {
     # Find damaged buildings, from cheap to expensive
@@ -27,23 +24,20 @@ sub run {
 
     # Don't repair if we are in negative waste and empty
     if ( $planet->waste_hour < 0 and $planet->waste_stored < 10000 ) {
-        next;
+      next;
     }
 
     # Just start attempting to repair
     foreach my $building ( @buildings ) {
-        $self->trace(
-            join ' ',
-                "Attempting to repair level",
-                $building->{level},
-                $building->{name},
-                "on planet",
-                $planet->name,
-        );
-        $building->repair;
+      my $message = join ' ',
+        "Attempting to repair level",
+        $building->{level},
+        $building->{name},
+        "on planet",
+        $planet->name;
+      $self->trace("ACTION($message)");
+      $building->repair;
     }
-
-    1;
   }
 
   return 1;

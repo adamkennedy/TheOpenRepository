@@ -24,7 +24,6 @@ sub run {
     my @to   = ();
     foreach my $planet ( $empire->planets ) {
         my $name = $planet->name;
-        $self->trace("Checking planet $name");
 
         # Can we accept surplus resources?
         foreach my $type ( TYPES ) {
@@ -129,7 +128,7 @@ sub run {
         ) or next;
 
         # Push the resource to the target planet
-        $self->trace("$name - Pushing $quantity excess $type to $target->{name}");
+        $self->trace("$name - ACTION(Pushing $quantity excess $type to $target->{name})");
         $ship->push_items(
             $target->{planet_id},
             $planet->make_items(
@@ -148,10 +147,6 @@ sub run {
     }
 
     return 1;
-}
-
-sub trace {
-    print scalar(localtime time) . " - MoveResources - " . $_[1] . "\n";
 }
 
 1;

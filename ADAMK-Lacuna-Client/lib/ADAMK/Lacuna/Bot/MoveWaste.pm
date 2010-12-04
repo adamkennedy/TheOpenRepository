@@ -19,9 +19,6 @@ sub run {
 
   # Iterate over the bodies
   foreach my $planet ( $empire->planets ) {
-    my $name = $planet->name;
-    $self->trace("Checking planet $name");
-
     # If transport ships are already inbound, skip in case a bug has
     # caused overshipping.
     ### TO BE COMPLETED
@@ -42,6 +39,7 @@ sub run {
         );
 
         # Execute the transport push
+        my $name = $planet->name;
         $self->trace("$name - Pulling $quantity waste from " . $source->name . " to resolve shortage");
         $ship->push_items(
           $planet,
@@ -76,10 +74,6 @@ sub best_waste_source {
   } @source;
 
   return $source[0];
-}
-
-sub trace {
-  print scalar(localtime time) . " - MoveWaste - " . $_[1] . "\n";
 }
 
 1;

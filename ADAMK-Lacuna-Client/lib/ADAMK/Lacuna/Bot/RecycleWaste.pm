@@ -22,7 +22,6 @@ sub run {
   # Iterate over the bodies
   foreach my $planet ( $empire->planets ) {
     my $name = $planet->name;
-    $self->trace("Checking planet $name");
 
     # How much waste is on the planet
     my $stored = $planet->waste_stored;
@@ -50,9 +49,6 @@ sub run {
       next unless $center->can_recycle;
 
       # Calculate what to recycle
-      $self->trace(
-        "$name - Determining amount to recycle..."
-      );
       my $amount = int List::Util::min(
         $planet->waste_stored,
         $recycle_time / $center->seconds_per_resource,
@@ -64,9 +60,6 @@ sub run {
       }
 
       # Determining what to recycle
-      $self->trace(
-        "$name - Determining what to recycle..."
-      );
       my %type = (
         water  => 0,
         ore    => 0,
@@ -81,10 +74,6 @@ sub run {
         $planet->$l() <=> $planet->$r()
       } qw{ ore water energy };
       if ( @order ) {
-        $self->trace(
-          "$name - Preferring " .
-          join ', ', @order
-        );
         $type{$order[0]} = $amount;
       } else {
         # Since water is the hardest to accumulate,
@@ -95,7 +84,7 @@ sub run {
 
       # Execute the recycle action
       $self->trace(
-        "$name - TAKING ACTION(Recycling $type{water} water, $type{ore} ore, $type{energy} energy)"
+        "$name - ACTION(Recycling $type{water} water, $type{ore} ore, $type{energy} energy)"
       );
       eval {
         $center->recycle(
@@ -115,10 +104,6 @@ sub run {
   }
 
   return 1;
-}
-
-sub trace {
-  print scalar(localtime time) . " - RecycleWaste - " . $_[1] . "\n";
 }
 
 1;

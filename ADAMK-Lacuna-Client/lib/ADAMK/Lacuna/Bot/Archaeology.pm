@@ -5,18 +5,16 @@ use strict;
 use warnings;
 use List::Util                 ();
 use Params::Util               ();
+use ADAMK::Lacuna::GlyphDB     ();
 use ADAMK::Lacuna::Bot::Plugin ();
 
 our $VERSION = '0.01';
 our @ISA     = 'ADAMK::Lacuna::Bot::Plugin';
 
-sub prefer {
+sub priority {
   my $self = shift;
-  if ( $self->{prefer} ) {
-    return @{$self->{prefer}};
-  } else {
-    return ();
-  }
+  return ADAMK::Lacuna::GlyphDB->priority2glyphs unless $self->{prefer};
+  return ADAMK::Lacuna::GlyphDB->priority2glyphs($self->{prefer});
 }
 
 sub run {
@@ -24,14 +22,20 @@ sub run {
   my $client = shift;
   my $empire = $client->empire;
 
-  # Load the aggregate glyphs found
-  $self->trace("Counting all existing glyphs");
-  my $have = $empire->glyphs_count;
+  # Determine the supply/demand ratio for glyphs, based on the aggregate
+  # glyphs we have vs the priority weights.
+  $self->trace("Calculating glyph priority");
+  my $have  = $empire->glyphs_count;
+  my $want  = $self->priority;
+  my %ratio = map {
+    $_ => (($have->{$_} || 0) / $want->{$_})
+  } grep {
+    $want->{$_}
+  } ADAMK::Lacuna::GlyphDB->glyphs;
 
   # Iterate over the bodies
   foreach my $planet ( $empire->planets ) {
     my $name = $planet->name;
-    $self->trace("Checking planet $name");
 
     # Does the planet have an Archaeology Ministry?
     my $ministry = $planet->archaeology_ministry;
@@ -44,31 +48,32 @@ sub run {
     my $ore  = $ministry->ores;
     my %here = map { $_ => $have->{$_} || 0 } keys %$ore;
 
-    # Search for the glyph we have the least of, and tie
-    # break by searching the rarest ore we have here.
-    my @ores = sort {
-      $here{$a} <=> $here{$b}
+    # Search for the ore we have the worst supply/demand balance of
+    # and tie-break on the rarest ore that we have at hand.
+    my @ores = grep { $ore->{$_} >= 10000 } keys %$ore or next;
+    my @best = grep { defined $ratio{$_} } @ores;
+    @best = @ores unless @best;
+    @best = sort {
+      $ratio{$a} <=> $ratio{$a}
       or
       $ore->{$a} <=> $ore->{$b}
-    } grep {
-      $ore->{$_} > 10000
-    } keys %$ore or next;
+    } @best;
 
     # Execute the archaeological search
     $self->trace("$name - TAKING ACTION(Searching $ores[0] ore)");
-    eval {
-      $ministry->search_for_glyph($ores[0]);
-    };
-    if ( $@ ) {
-      $self->trace("$name - ERROR $@");
+    $ministry->search_for_glyph($best[0]);
+  }
+
+  # Summarise what we can build if we wanted
+  my $buildable = ADAMK::Lacuna::GlyphDB->glyphs2buildable(%$have);
+  if ( %$buildable ) {
+    $self->trace("Build Possibilities:");
+    foreach my $name ( sort keys %$buildable ) {
+      $self->trace("$buildable->{$name} x $name");
     }
   }
 
   return 1;
-}
-
-sub trace {
-  print scalar(localtime time) . " - Archaeology - " . $_[1] . "\n";
 }
 
 1;

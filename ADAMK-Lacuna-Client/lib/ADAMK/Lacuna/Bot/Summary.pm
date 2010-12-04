@@ -39,8 +39,4 @@ sub run {
   return 1;
 }
 
-sub trace {
-  print scalar(localtime time) . " - Summary - " . $_[1] . "\n";
-}
-
 1;
