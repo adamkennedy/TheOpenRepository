@@ -22,7 +22,15 @@ while ( 1 ) {
   my $client = ADAMK::Lacuna::Client->new;
   my $bot    = ADAMK::Lacuna::Bot->new(
     Repair        => 1,
-    Archaeology   => 1,
+    Archaeology   => {
+      'Crashed Ship Site'   => 1,
+      'Kalavian Ruins'      => 1,
+      'Lapis Forest'        => 1,
+      'Malcud Field'        => 1,
+      'Natural Spring'      => 2,
+      'Pantheon of Hagness' => 3,
+      'Volcano'             => 1,
+    },
     MoveWaste     => 1,
     MoveResources => 1,
     RecycleWaste  => 1,

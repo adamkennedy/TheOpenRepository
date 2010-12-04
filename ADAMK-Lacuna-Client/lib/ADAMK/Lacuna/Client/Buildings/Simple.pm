@@ -35,6 +35,7 @@ our @BuildingTypes = (
     FusionReactor
     GasGiantLab
     GasGiantPlatform
+    GasGiantSettlementPlatform
     GeneticsLab
     GeoEnergyPlant
     GeoThermalVent

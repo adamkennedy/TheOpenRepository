@@ -26,7 +26,7 @@ sub run {
     # How much waste is on the planet
     my $stored = $planet->waste_stored;
     if ( $stored > $minimum_waste ) {
-      $self->trace("$name - Found enough waste to process ($stored)");
+      # $self->trace("$name - Found enough waste to process ($stored)");
     } else {
       $self->trace("$name - Not enough waste to process ($stored)");
       next;
@@ -40,10 +40,10 @@ sub run {
 
     # Iterate over the waste recycling centers
     foreach my $center ( $planet->waste_recycling_centers ) {
-      $self->trace(
-        "$name - Checking Waste Recycle Center at " .
-        $center->y . ',' . $center->x
-      );
+      # $self->trace(
+        # "$name - Checking Waste Recycle Center at " .
+        # $center->y . ',' . $center->x
+      # );
       next if     $center->busy;
       next unless $center->level;
       next unless $center->can_recycle;

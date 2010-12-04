@@ -83,14 +83,14 @@ sub run {
     my %types    = map { $priority[$_] => $_ } ( 0 .. $#priority );
 
     # Print a summary of our options
-    $self->trace("Options:");
+    # $self->trace("Options:");
     foreach ( @from ) {
-        $self->trace("Supply - $_->{name} - $_->{stored} $_->{type}, $_->{remaining}hr storage");
+        $self->trace("Overflow - $_->{name} - $_->{stored} $_->{type}, $_->{remaining}hr storage");
     }
-    foreach ( @to ) {
-        my $hours = int($_->{space} / $_->{hour});
-        $self->trace("Accept - $_->{name} - $_->{space} $_->{type}, ${hours}hr excess");
-    }
+    # foreach ( @to ) {
+        # my $hours = int($_->{space} / $_->{hour});
+        # $self->trace("Accept - $_->{name} - $_->{space} $_->{type}, ${hours}hr excess");
+    # }
 
     # Attempt to clear the overflowing resources
     while ( @from ) {

@@ -56,6 +56,8 @@ sub run {
     @best = sort {
       $ratio{$a} <=> $ratio{$a}
       or
+      $want->{$b} <=> $want->{$a}
+      or
       $ore->{$a} <=> $ore->{$b}
     } @best;
 
