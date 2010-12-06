@@ -54,7 +54,7 @@ sub run {
             # How much can we send to elsewhere
             if ( $hour > 0 ) {
                 my $remaining_method = "${type}_remaining";
-                my $remaining        = $planet->$remaining_method();
+                my $remaining        = $planet->$remaining_method() / 3600;
                 if ( $remaining < 4 ) {
                     # Always keep an emergency buffer
                     my $stored_method = "${type}_stored";

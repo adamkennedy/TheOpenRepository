@@ -24,7 +24,8 @@ sub run {
     ### TO BE COMPLETED
 
     # Do we need to pull waste from elsewhere to prevent
-    # waste exhaustion and building damage?
+    # waste exhaustion and building damage? In addition, try to keep our
+    # waste collection at least a quarter full.
     if ( $planet->waste_hour < 0 and $planet->waste_remaining < EIGHT_HOURS ) {
       # Where can we pull waste from
       my $source = $self->best_waste_source($planet);

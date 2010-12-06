@@ -24,7 +24,7 @@ sub run {
 
   # Determine the supply/demand ratio for glyphs, based on the aggregate
   # glyphs we have vs the priority weights.
-  $self->trace("Calculating glyph priority");
+  # $self->trace("Calculating glyph priority");
   my $have  = $empire->glyphs_count;
   my $want  = $self->priority;
   my %ratio = map {
@@ -44,7 +44,7 @@ sub run {
     next if $ministry->busy;
 
     # Which ore do we have the least glyphs for
-    $self->trace("$name - Checking for available ores");
+    # $self->trace("$name - Checking for available ores");
     my $ore  = $ministry->ores;
     my %here = map { $_ => $have->{$_} || 0 } keys %$ore;
 
@@ -69,7 +69,7 @@ sub run {
   # Summarise what we can build if we wanted
   my $buildable = ADAMK::Lacuna::GlyphDB->glyphs2buildable(%$have);
   if ( %$buildable ) {
-    $self->trace("Build Possibilities:");
+    # $self->trace("Build Possibilities:");
     foreach my $name ( sort keys %$buildable ) {
       $self->trace("$buildable->{$name} x $name");
     }
