@@ -14,7 +14,7 @@ use DBD::SQLite  1.27 ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '1.46';
+	$VERSION = '1.47';
 }
 
 # Support for the 'prune' option
@@ -81,6 +81,9 @@ sub import {
 	}
 	unless ( defined $params{tables} ) {
 		$params{tables} = 1;
+	}
+	unless ( defined $params{views} ) {
+		$params{views} = 0;
 	}
 	unless ( defined $params{x_update} ) {
 		$params{x_update} = 0;
@@ -355,8 +358,8 @@ END_PERL
 	if ( $params{tables} ) {
 		# Capture the raw schema table information
 		my $tables = $dbh->selectall_arrayref(
-			'select * from sqlite_master where name not like ? and type = ?',
-			{ Slice => {} }, 'sqlite_%', 'table',
+			'select * from sqlite_master where name not like ? and type in ( ?, ? )',
+			{ Slice => {} }, 'sqlite_%', 'table', 'view',
 		);
 		my %tindex = map { $_->{name} => $_ } @$tables;
 
@@ -680,9 +683,22 @@ sub update {
 }
 END_PERL
 			}
-
 		}
 	}
+
+	# Optionally generate the table classes
+	if ( $params{views} ) {
+		# Capture the raw schema table information
+		my $views = $dbh->selectall_arrayref(
+			'select * from sqlite_master where name not like ? and type = ?',
+			{ Slice => {} }, 'sqlite_%', 'view',
+		);
+		my %vindex = map { $_->{name} => $_ } @$views;
+
+		1;
+	}
+
+	# We are finished with it now
 	$dbh->disconnect;
 
 	# Add any custom code to the end
