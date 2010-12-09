@@ -8,7 +8,7 @@ use Aspect::Pointcut       ();
 use Aspect::Pointcut::Call ();
 use Aspect::AdviceContext  ();
 
-our $VERSION = '0.92';
+our $VERSION = '0.93_01';
 our @ISA     = 'Aspect::Pointcut';
 
 use constant KEY  => 0;

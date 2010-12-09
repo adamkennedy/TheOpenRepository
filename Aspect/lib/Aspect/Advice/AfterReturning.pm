@@ -12,7 +12,7 @@ use Aspect::Hook                  ();
 use Aspect::Advice                ();
 use Aspect::Point::AfterReturning ();
 
-our $VERSION = '0.92';
+our $VERSION = '0.93_01';
 our @ISA     = 'Aspect::Advice';
 
 # NOTE: To simplify debugging of the generated code, all injected string

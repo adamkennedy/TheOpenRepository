@@ -6,7 +6,7 @@ use Carp             ();
 use Params::Util     ();
 use Aspect::Pointcut ();
 
-our $VERSION = '0.92';
+our $VERSION = '0.93_01';
 our @ISA     = 'Aspect::Pointcut';
 
 use constant ORIGINAL     => 0;
@@ -56,8 +56,15 @@ sub new {
 	}
 	if ( Params::Util::_REGEX($spec) ) {
 		# Special case serialisation of regexs
-		my $regex = "$spec";
-		$regex =~ s|^\(\?([xism]*)-[xism]*:(.*)\)\z|/$2/$1|s;
+		# In Perl 5.13.6 the format of a serialised regex changed
+		# incompatibly. Worse, the optimisation trick that worked
+		# before no longer works after, as there are now modifiers
+		# that are ONLY value inside and can't be moved to the end.
+		# So we first serialise to a form that will be valid code
+		# under the new system, and then do the replace that will
+		# only match (and only be valid) under the old system.
+		my $regex = "/$spec/";
+		$regex =~ s|^/\(\?([xism]*)-[xism]*:(.*)\)/\z|/$2/$1|s;
 		return bless [
 			$spec,
 			eval "sub () { \$_[0] =~ $regex }",

@@ -1,5 +1,9 @@
 Revision history for Perl extension Aspect
 
+0.93_01 Thu 9 Dec 2010
+	- This contains a potential fix for the 5.13.6 breakage to be
+	  confirmed by CPAN Testers.
+
 0.92 Wed 21 Jul 2010
 	- Correcting bad link to search.cpan
 
