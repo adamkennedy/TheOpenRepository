@@ -9,7 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 74;
+use Test::More tests => 81;
 use File::Spec::Functions ':ALL';
 use t::lib::Test;
 
@@ -145,9 +145,9 @@ SCOPE: {
 	is( $rv1, 2, 'Deleted 2 rows' );
 	is( Foo::Bar::ViewOne->count, 1, 'Confirm 2 rows were deleted' );
 
-	# Delete one of the objects via the instance delete method
-	ok( $ones->[0]->delete, 'Deleted object' );
-	is( Foo::Bar::ViewOne->count, 0, 'Confirm 1 row was deleted' );
+	# Truncate so we can continue
+	ok( Foo::Bar::TableOne->truncate, '->truncate ok' );
+	is( Foo::Bar::ViewOne->count, 0, 'Confirm table/view are empty' );
 }
 
 # Database should now be empty
@@ -194,6 +194,6 @@ SCOPE: {
 SCOPE: {
 	# There should not be any of the state-altering methods
 	foreach ( qw{ load insert update delete truncate } ) {
-		is( Foo::Bar::ViewOne->can($_), '', "Method $_ does not exist" );
+		is( Foo::Bar::ViewOne->can($_), undef, "Method $_ does not exist" );
 	}
 }

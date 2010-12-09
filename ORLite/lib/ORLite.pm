@@ -172,11 +172,6 @@ sub import {
 	my $cleanup    = $params{cleanup};
 	my $xsaccessor = $params{xsaccessor};
 	my $array      = $params{array};
-	my $xsclass    = $array ? 'Class::XSAccessor::Array' : 'Class::XSAccessor';
-	my $l          = $array ? '['  : '{';
-	my $r          = $array ? ']'  : '}';
-	my $slice      = $array ? '{}' : '{ Slice => {} }';
-	my $rowref     = $array ? 'arrayref' : 'hashref';
 
 	# Generate the support package code
 	my $code = <<"END_PERL";
@@ -382,8 +377,17 @@ END_PERL
 			# Convenience escaping for the column names
 			$_->{qname} = "\"$_->{name}\"" foreach @$columns;
 
+			# Track array vs hash implementation on a per-table
+			# basis so that we can force views to always be done
+			# array-wise (to compensate for some weird SQLite
+			# column quoting differences between tables and views
+			$table->{array} = $array;
+			if ( $table->{type} eq 'view' ) {
+				$table->{array} = 1;
+			}
+
 			# Generate the object keys for the columns
-			if ( $array ) {
+			if ( $table->{array} ) {
 				foreach my $i ( 0 .. $#$columns ) {
 					$columns->[$i]->{xs}    = $i;
 					$columns->[$i]->{key}   = "[$i]";
@@ -414,8 +418,9 @@ END_PERL
 
 			# Generate the new Perl fragments
 			$table->{pl_new} = join "\n", map {
-				$array ? "\t\t\$attr{$_->{name}},"
-				       : "\t\t$_->{name} => \$attr{$_->{name}},"
+				$table->{array}
+					? "\t\t\$attr{$_->{name}},"
+					: "\t\t$_->{name} => \$attr{$_->{name}},"
 			} @$columns;
 
 			$table->{pl_insert} = join "\n", map {
@@ -461,6 +466,9 @@ END_PERL
 		# Generate the per-table code
 		foreach my $table ( @$tables ) {
 			my @columns = @{$table->{columns}};
+			my $slice   = $table->{array}
+				? '{}'
+				: '{ Slice => {} }';
 
 			# Generate the elements in all packages
 			$code .= <<"END_PERL";
@@ -496,7 +504,7 @@ sub count {
 END_PERL
 
 			# Handle different versions, because arrayref acts funny
-			if ( $array ) {
+			if ( $table->{array} ) {
 				$code .= <<"END_PERL";
 sub iterate {
 	my \$class = shift;
@@ -534,7 +542,7 @@ END_PERL
 
 			# Add the primary key based single object loader
 			if ( $table->{pks} ) {
-				if ( $array ) {
+				if ( $table->{array} ) {
 					$code .= <<"END_PERL";
 sub load {
 	my \$class = shift;
@@ -569,6 +577,8 @@ END_PERL
 
 			# Generate the elements for tables with primary keys
 			if ( $table->{create} ) {
+				my $l = $table->{array} ? '['  : '{';
+				my $r = $table->{array} ? ']'  : '}';
 				$code .= <<"END_PERL";
 sub new {
 	my \$class = shift;
@@ -613,7 +623,7 @@ sub truncate {
 END_PERL
 			}
 
-			if ( $table->{create} and $array ) {
+			if ( $table->{create} and $table->{array} ) {
 				# Add an additional set method to avoid having
 				# the user have to enter manual positions.
 				$code .= <<"END_PERL";
@@ -631,7 +641,11 @@ END_PERL
 
 			# Generate the boring accessors
 			if ( $xsaccessor ) {
-				my $type = $table->{create} ? 'accessors' : 'getters';
+				my $type    = $table->{create} ? 'accessors' : 'getters';
+				my $xsclass = $table->{array}
+					? 'Class::XSAccessor::Array'
+					: 'Class::XSAccessor';
+
 				$code .= <<"END_PERL";
 use $xsclass 1.05 {
 	getters => {
@@ -660,7 +674,7 @@ END_PERL
 				my @pk    = map { $_->{name} } @{$table->{pk}};
 				my $wsql  = join ' and ', map { "\"$_\" = ?" } @pk;
 				my $wattr = join ', ',    map { "\$self->$_" } @pk;
-				my $set   = $array
+				my $set   = $table->{array}
 					? '$self->set( $_ => $set{$_} ) foreach keys %set;'
 					: '$self->{$_} = $set{$_} foreach keys %set;';
 				$code .= <<"END_PERL";

@@ -1,7 +1,7 @@
 Changes for Perl extension ORLite
 
 1.47 Wed 8 Dec 2010
-	- Adding initial experimental support for views (ADAMK)
+	- Adding readonly support for views (ADAMK)
 
 1.46 Tue 30 Nov 2010
 	- Bumped File::Path dependency to 2.08 to prevent test failures
