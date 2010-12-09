@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+use 5.008;
+use strict;
+use warnings;
+use Text::Table ();
+use SDL         ':all';
+use SDL::Event  ':all';
+
+my $table = Text::Table->new(
+	"Event Constant", "Value",
+);
+$table->load(
+	[ 'SDL_ACTIVEEVENT',     SDL_ACTIVEEVENT     ],
+	[ 'SDL_KEYDOWN',         SDL_KEYDOWN         ],
+	[ 'SDL_KEYUP',           SDL_KEYUP           ],
+	[ 'SDL_MOUSEMOTION',     SDL_MOUSEMOTION     ],
+	[ 'SDL_MOUSEBUTTONDOWN', SDL_MOUSEBUTTONDOWN ],
+	[ 'SDL_MOUSEBUTTONUP',   SDL_MOUSEBUTTONUP   ],
+	[ 'SDL_QUIT',            SDL_QUIT            ],
+	[ 'SDL_SYSWMEVENT',      SDL_SYSWMEVENT      ],
+	[ 'SDL_VIDEORESIZE',     SDL_VIDEORESIZE     ],
+	[ 'SDL_VIDEOEXPOSE',     SDL_VIDEOEXPOSE     ],
+);
+print $table;
