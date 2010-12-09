@@ -19,13 +19,15 @@ use strict;
 use warnings;
 use File::Spec          0.80 ();
 use HTML::Spry::DataSet 0.01 ();
-use Google::Chart 0.05014;
-use List::Util 0.01;
+use Google::Chart       0.05014;
+use List::Util          0.01;
+
+# Download and load the CPAN data
 use CPANDB 0.10 {
 	maxage => 0
 };
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 
 
@@ -69,57 +71,58 @@ sub run {
 	# Build the Heavy 100 index
 	$self->dataset(
 		'ds1' => 'Heavy 100',
+		[ 'Rank', 'Dependencies', 'Author', 'Distribution' ],
 		'd.weight',
-		[ 'Rank', 'Dependencies', 'Author', 'Distribution' ]
 	);
 
 	# Build the Volatile 100 index
 	$self->dataset(
 		'ds2' => 'Volatile 100',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		'd.volatility',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Debian 100 index
 	$self->dataset(
 		'ds3' => 'Debian 100',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		'd.volatility * 0',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Downstream 100 index
 	$self->dataset(
 		'ds4' => 'Downstream 100',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		'd.volatility * 0',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Meta 100 (Level 1)
 	$self->dataset(
 		'ds5' => 'Meta 100',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		'd.volatility * ( 1 - d.meta )',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Meta 100 index (Level 2)
 	$self->dataset(
 		'ds6' => 'Meta 100',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		'd.volatility * 0',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the Meta 100 index (Level 3)
 	$self->dataset(
 		'ds7' => 'Meta 100',
+		[ 'Rank', 'Dependents', 'Author', 'Distribution' ],
 		'd.volatility * 0',
-		[ 'Rank', 'Dependents', 'Author', 'Distribution' ]
 	);
 
 	# Build the FAIL 100 index
 	$self->dataset(
 		'ds8' => 'FAIL 100',
+		[ 'Rank', 'Score', 'FAIL', 'Author', 'Distribution' ],
 		'd.volatility * (d.fail + d.unknown)',
-		[ 'Rank', 'Score', 'Author', 'Distribution' ]
+		'd.fail + d.unknown',
 	);
 
 	# Write out the data file
@@ -131,9 +134,10 @@ sub run {
 }
 
 sub dataset {
-	my ($self, $name, $title, $score, $header) = @_;
+	my ($self, $name, $title, $header, $score, @more ) = @_;
 	my @report = $self->report(
 		sql_score => $score,
+		sql_more  => @more ? \@more : '',
 	);
 	$self->spry->add( $name, $header, @report );
 	$self->chart( $title, @report )->render_to_file(
@@ -178,7 +182,7 @@ sub chart {
 
 # Prepends ranks in place (ugly, but who cares for now)
 sub _rank {
-	my $self = shift;
+	my $self  = shift;
 	my $table = shift;
 	my $rank  = 0;
 	my @ranks = ();
@@ -206,15 +210,21 @@ sub _rank {
 }
 
 sub _distsql {
-	my $self = shift;
+	my $self  = shift;
 	my %param = @_;
 	$param{sql_limit} ||= 100;
 	unless ( defined $param{sql_score} ) {
 		die "Failed to define a score metric";
 	}
+	if ( $param{sql_more} ) {
+		$param{sql_more} = join '',
+			map { "\n\t$_," } @{$param{sql_more}};
+	} else {
+		$param{sql_more} = '';
+	}
 	return <<"END_SQL";
 select
-	$param{sql_score} as score,
+	$param{sql_score} as score,$param{sql_more}
 	d.author as author,
 	d.distribution as distribution
 from

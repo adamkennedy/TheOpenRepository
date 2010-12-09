@@ -3,9 +3,9 @@
 use 5.008;
 use strict;
 use warnings;
-use CPAN::WWW::Top100::Generator 0.08 ();
+use CPAN::WWW::Top100::Generator 0.10 ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 my $dir = $ARGV[0];
 unless ( $dir ) {

@@ -1,5 +1,9 @@
 Changes for Perl extension CPAN-WWW-Top100-Generator
 
+0.10 Thu  9 Dec 2010
+	- Updating Module::Install::DSL to 1.00
+	- Adding an extra column to the FAIL chart to show raw fails
+
 0.09 Thu 18 Aug 2009
 	- Adding support for Google Chart
 
