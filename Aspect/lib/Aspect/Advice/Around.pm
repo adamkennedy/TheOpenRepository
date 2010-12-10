@@ -12,7 +12,7 @@ use Aspect::Hook          ();
 use Aspect::Advice        ();
 use Aspect::Point::Around ();
 
-our $VERSION = '0.93_01';
+our $VERSION = '0.93_02';
 our @ISA     = 'Aspect::Advice';
 
 sub _install {
@@ -120,7 +120,6 @@ END_PERL
 
 1;
 
-
 =pod
 
 =head1 NAME
@@ -139,12 +138,12 @@ Aspect::Advice::Around - Execute code both before and after a function
       local $MyModule::MAXSIZE = 1000;
   
       # Continue and execute the function
-      $_->proceed;
-      
+      $_->run_original;
+  
       # Suppress exceptions for the call
       $_->return_value(1) if $_->exception;
   
-  } call qr/^ MyModule::\w+ $/
+  } call qr/^ MyModule::\w+ $/;
 
 =head1 DESCRIPTION
 

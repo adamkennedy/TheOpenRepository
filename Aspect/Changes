@@ -1,5 +1,12 @@
 Revision history for Perl extension Aspect
 
+0.93_02 Fri 10 Dec 2010
+	- Applied the fix from 0.93_01 to an additional place it was
+	  occuring in Aspect::Pointcut::Throwing.
+	- Corrected the Aspect::Advice::Around documentation to refer to
+	  $_->run_original instead of $_->proceed until the proceed method
+	  actually works like that.
+
 0.93_01 Thu 9 Dec 2010
 	- This contains a potential fix for the 5.13.6 breakage to be
 	  confirmed by CPAN Testers.

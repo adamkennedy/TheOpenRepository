@@ -118,3 +118,20 @@ SCOPE: {
 	is( $baz, 1, '->baz was called once' );
 	is( $around, 18, 'Advice code was called three times' );
 }
+
+# Regression test for RT #63781 Could not get the return value
+SCOPE: {
+	around {
+		is( $_->return_value, 'James Bond', '->return_value ok' );
+	} call qr/query_person/;
+
+	is(
+		query_person('007'),
+		'James Bond',
+		'Function returns ok',
+	);
+
+	sub query_person {
+		return 'James Bond';
+	}
+}

@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 57;
+use Test::More tests => 59;
 use Test::NoWarnings;
 use Test::Exception;
 use Aspect;
@@ -326,6 +326,25 @@ SCOPE: {
 		} else {
 			push @CONTEXT, 'void';
 		}
+	}
+}
+
+# Regression test for RT #63781 Could not get the return value
+SCOPE: {
+	after_returning {
+		is( $_->return_value, 'James Bond', '->return_value ok' );
+	} call qr/query_person/;
+
+	is(
+		query_person('007'),
+		'James Bond',
+		'Function returns ok',
+	);
+
+	sub query_person {
+		my ($id)   = @_;
+		my $person = 'James Bond';
+		return $person;
 	}
 }
 

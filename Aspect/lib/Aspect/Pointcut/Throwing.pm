@@ -6,7 +6,7 @@ use Carp             ();
 use Params::Util     ();
 use Aspect::Pointcut ();
 
-our $VERSION = '0.93_01';
+our $VERSION = '0.93_02';
 our @ISA     = 'Aspect::Pointcut';
 
 
@@ -26,8 +26,8 @@ sub new {
 		], $class;
 	}
 	if ( Params::Util::_REGEX($spec) ) {
-		my $regex = "$spec";
-		$regex =~ s|^\(\?([xism]*)-[xism]*:(.*)\)\z|/$2/$1|s;
+		my $regex = "/$spec/";
+		$regex =~ s|^/\(\?([xism]*)-[xism]*:(.*)\)/\z|/$2/$1|s;
 		return bless [
 			$spec,
 			"defined \$_->{exception} and not ref \$_->{exception} and \$_->{exception} =~ $regex",
