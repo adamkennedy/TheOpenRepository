@@ -1,5 +1,8 @@
 Revision history for Perl extension Aspect
 
+0.94 Fri 10 Dec 2010
+	- CPAN Testers is happy, moving to production release
+
 0.93_02 Fri 10 Dec 2010
 	- Applied the fix from 0.93_01 to an additional place it was
 	  occuring in Aspect::Pointcut::Throwing.

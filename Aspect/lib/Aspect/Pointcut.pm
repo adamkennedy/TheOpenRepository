@@ -40,7 +40,7 @@ use Aspect::Pointcut::Or  ();
 use Aspect::Pointcut::And ();
 use Aspect::Pointcut::Not ();
 
-our $VERSION = '0.93_02';
+our $VERSION = '0.94';
 
 use overload (
 	# Keep traditional Perl boolification and stringification
