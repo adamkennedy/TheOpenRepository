@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 26;
+use Test::More tests => 28;
 use Test::NoWarnings;
 use Aspect;
 
@@ -122,6 +122,7 @@ SCOPE: {
 # Regression test for RT #63781 Could not get the return value
 SCOPE: {
 	around {
+		$_->run_original;
 		is( $_->return_value, 'James Bond', '->return_value ok' );
 	} call qr/query_person/;
 
