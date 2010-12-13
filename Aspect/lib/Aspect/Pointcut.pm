@@ -333,7 +333,7 @@ and to remove other tests that the currying process can determine will
 never need to be tested.
 
 The currying process will generate and return a new pointcut tree that is
-independant from the original, and that can perform a match test at the
+independent from the original, and that can perform a match test at the
 structurally minimum computational cost.
 
 Returns a new optimised B<Aspect::Pointcut> object if any further testing
