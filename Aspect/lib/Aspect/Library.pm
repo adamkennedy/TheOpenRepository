@@ -28,7 +28,7 @@ The original first generation of libraries are implemented via the
 L<Aspect::Modular> class and are deeply tied to it. For the second
 generation API this lower level base class is provided to provide
 a mechanism for identifying all reusable library aspects, from either
-the L<Aspect::Modular> API or independantly.
+the L<Aspect::Modular> API or independently.
 
 =head1 AUTHORS
 

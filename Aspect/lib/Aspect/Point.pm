@@ -190,7 +190,7 @@ Aspect::Point - The Join Point context
      $context->append_param($rdbms);  # Append a param to sub call
      $context->append_params($a, $b); # Append params to sub call
      $context->return_value(4)        # Don't proceed and return immediately
-     $context->original->(x => 3);    # Call matched sub independantly
+     $context->original->(x => 3);    # Call matched sub independently
      $context->proceed(1);            # Continue to sub with context params
      print $context->company->name;   # Access cflow pointcut advice context
   } $pointcut;
