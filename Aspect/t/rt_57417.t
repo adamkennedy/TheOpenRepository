@@ -11,7 +11,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 28;
+use Test::More tests => 12;
 use Test::NoWarnings;
 use Aspect;
 
