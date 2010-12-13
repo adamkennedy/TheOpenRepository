@@ -5,7 +5,7 @@ use warnings;
 use Carp         ();
 use Sub::Uplevel ();
 
-our $VERSION = '0.94';
+our $VERSION = '0.95';
 
 
 
@@ -90,7 +90,7 @@ sub run_original {
 			$self->original,
 			$self->params,
 		) ];
-		return $self->return_value($rv);
+		return $self->return_value(@$rv);
 	} elsif ( defined $self->{wantarray} ) {
 		my $rv = Sub::Uplevel::uplevel(
 			2,

@@ -1,7 +1,8 @@
 Revision history for Perl extension Aspect
 
-0.95 to be released
+0.95 Mon 13 Dec 2010
 	- Fixed #57528 ([PATCH] Fix spelling error
+	- Fixed #57417 Bad return value in list context
 
 0.94 Fri 10 Dec 2010
 	- CPAN Testers is happy, moving to production release

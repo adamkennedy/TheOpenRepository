@@ -5,7 +5,7 @@ use warnings;
 use Carp             ();
 use Aspect::Pointcut ();
 
-our $VERSION = '0.94';
+our $VERSION = '0.95';
 our @ISA     = 'Aspect::Pointcut';
 
 use constant VOID   => 1;
