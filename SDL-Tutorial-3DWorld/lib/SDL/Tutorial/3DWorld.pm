@@ -50,6 +50,7 @@ use strict;
 use warnings;
 use OpenGL 0.64;
 use SDL    2.524;
+use SDL::Event                        ':all';
 use SDLx::App                         ();
 use SDL::Tutorial::3DWorld::Light     ();
 use SDL::Tutorial::3DWorld::Actor     ();
@@ -82,9 +83,9 @@ sub new {
 	# Light the scene with a single overhead light
 	$self->{lights} = [
 		SDL::Tutorial::3DWorld::Light->new(
-			X => 0,
+			X => 1,
 			Y => 10,
-			Z => 0,
+			Z => 2,
 		),
 	];
 
@@ -102,7 +103,7 @@ sub new {
 		),
 		SDL::Tutorial::3DWorld::Actor->new(
 			X => 0,
-			Y => 0.5,
+			Y => 1.5,
 			Z => 0,
 		),
 	];
@@ -112,7 +113,7 @@ sub new {
 	$self->{camera} = SDL::Tutorial::3DWorld::Camera->new(
 		X => 0,
 		Y => 1.5,
-		Z => -5,
+		Z => 5,
 	);
 
 	return $self;
@@ -133,6 +134,24 @@ sub run {
 
 	# Initialise the game
 	$self->init;
+
+	# Do an initial render pass
+	#$self->display;
+	#$self->sync;
+
+	# Render handler
+	$self->{sdl}->add_show_handler( sub {
+		$self->display(@_);
+		$self->sync;
+	} );
+
+	# Event handler
+	$self->{sdl}->add_event_handler( sub {
+		$self->event(@_);
+	} );
+
+	# Enter the main loop
+	$self->{sdl}->run;
 
 	return 1;
 }
@@ -157,10 +176,18 @@ sub init {
 
 	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
 	# correct shape culling for us and we don't have to care about it.
-	OpenGL::glEnable( GL_DEPTH_TEST );
+	glEnable( GL_DEPTH_TEST );
 
-	# Lets use smooth shading so we look a bit fancier
-	OpenGL::glShadeModel( GL_SMOOTH );
+	# Enable GLUT support
+	OpenGL::glutInit();
+
+	# If we have any lights, initialise lighting
+	if ( @{$self->{lights}} ) {
+		glEnable( GL_LIGHTING );
+
+		# Lets just use flat shading for now
+		glShadeModel( GL_SMOOTH );
+	}
 
 	# Initialise the camera so we are looking at something
 	$self->{camera}->init( $self->{width}, $self->{height} );
@@ -168,9 +195,86 @@ sub init {
 	# Initialise the landscape so there is a world
 	$self->{landscape}->init;
 
-	# We don't need to initialise the lights or actors (yet)
+	# Initialise the actors (probably nothing to do though)
+	foreach my $actor ( @{$self->{actors}} ) {
+		$actor->init;
+	}
 
 	return 1;
+}
+
+# This is the primary render loop
+sub display {
+	my $self = shift;
+
+	# Reset the model, throwing away the previously calculated scene
+	# and starting again with a blank sky.
+	$self->clear;
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();
+
+	# Move the camera to the required position.
+	# NOTE: For now just translate back so we can see the render.
+	$self->{camera}->display;
+
+	# Draw the landscape
+	$self->{landscape}->display;
+
+	# Draw the lights
+	foreach my $light ( @{$self->{lights}} ) {
+		$light->display;
+	}
+
+	# Draw each of the actors in the scene
+	foreach my $actor ( @{$self->{actors}} ) {
+		# Draw each actor in their own stack context so that
+		# their transform operations do not effect anything else.
+		glPushMatrix();
+		$actor->display;
+		glPopMatrix();
+	}
+
+	return 1;
+}
+
+sub event {
+	my $self  = shift;
+	my $event = shift;
+	my $type  = $event->type;
+
+	# Quit option
+	if ( $type == SDL_KEYDOWN ) {
+		my $key = $event->key_sym;
+		if ( $key == SDLK_ESCAPE ) {
+			$self->{sdl}->stop;
+			return 1;
+		}
+	}
+
+	# Handle any events related to the camera
+	$self->{camera}->event($event) and return 1;
+
+	return 1;
+}
+
+
+
+
+
+######################################################################
+# Utility Methods
+
+# Clear the colour buffer (what we actually see) and the depth buffer
+# (the area GL uses to remove things behind other things).
+# This gives us a blank screen with our chosen sky colour.
+sub clear {
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+}
+
+# This is a convenience method.
+# Pass through to the version in the SDL app
+sub sync {
+	$_[0]->{sdl}->sync;
 }
 
 1;

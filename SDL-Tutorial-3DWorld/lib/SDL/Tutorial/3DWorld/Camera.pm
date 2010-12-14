@@ -31,7 +31,8 @@ In this initial skeleton code, the camera is fixed and cannot be moved.
 
 use strict;
 use warnings;
-use OpenGL ();
+use OpenGL;
+use SDL::Constants ();
 
 our $VERSION = '0.01';
 
@@ -63,6 +64,21 @@ sub new {
 	$self->{Z}         ||= 0;
 	$self->{angle}     ||= 0;
 	$self->{elevation} ||= 0;
+
+	# Key tracking
+	$self->{down} = {
+		# Move camera forwards and backwards
+		SDL::Constants::SDLK_w => 0,
+		SDL::Constants::SDLK_s => 0,
+
+		# Strafe camera left and right
+		SDL::Constants::SDLK_a => 0,
+		SDL::Constants::SDLK_d => 0,
+
+		# Rotate camera left and right
+		SDL::Constants::SDLK_q => 0,
+		SDL::Constants::SDLK_e => 0,
+	};
 
 	return $self;
 }
@@ -151,21 +167,68 @@ sub elevation {
 ######################################################################
 # Engine Interface
 
+# Note that this doesn't position the camera, just sets it up
 sub init {
 	my $self   = shift;
 	my $width  = shift;
 	my $height = shift;
 
-	# Select and reset the projection
-	OpenGL::glMatrixMode( OpenGL::GL_PROJECTION );
-	OpenGL::glLoadIdentity();
+	# Select and reset the projection, flushing any old state
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
 
 	# Set the perspective we will look through.
 	# We'll use a standard 60 degree perspective, removing any
 	# shapes closer than one metre or further than one kilometre.
-	OpenGL::gluPerspective( 60, $width / $height, 1, 1000 );
+	gluPerspective( 60, $width / $height, 1, 1000 );
 
 	return 1;
+}
+
+sub display {
+	my $self  = shift;
+	my $down  = $self->{down};
+	my $speed = 0.1;
+
+	# Update the camera location
+	my $strafe = $speed * (
+		$down->{SDL::Constants::SDLK_a} -
+		$down->{SDL::Constants::SDLK_d}
+	);
+	my $move = $speed * (
+		$down->{SDL::Constants::SDLK_w} -
+		$down->{SDL::Constants::SDLK_s}
+	);
+
+	# Stupid movement
+	$self->{X} += $strafe;
+	$self->{Z} += $move;
+
+	glTranslatef( -$self->X, -$self->Y, -$self->Z );
+}
+
+sub event {
+	my $self  = shift;
+	my $event = shift;
+	my $type  = $event->type;
+
+	if ( $type == SDL::Constants::SDL_KEYDOWN ) {
+		my $key = $event->key_sym;
+		if ( exists $self->{down}->{$key} ) {
+			$self->{down}->{$key} = 1;
+			return 1;
+		}
+	}
+
+	if ( $type == SDL::Constants::SDL_KEYUP ) {
+		my $key = $event->key_sym;
+		if ( exists $self->{down}->{$key} ) {
+			$self->{down}->{$key} = 0;
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 1;

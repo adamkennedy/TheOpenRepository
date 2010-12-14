@@ -37,7 +37,7 @@ controlled. All lights will have a fixed colour, intensity, and diffusion.
 
 use strict;
 use warnings;
-use OpenGL ();
+use OpenGL;
 
 our $VERSION = '0.01';
 
@@ -108,6 +108,61 @@ to south dimension within the 3D world. The positive direction is north.
 
 sub Z {
 	$_[0]->{Z};
+}
+
+
+
+
+
+######################################################################
+# Light Properties
+
+sub position {
+	my $self = shift;
+	return (
+		$self->X,
+		$self->Y,
+		$self->Z,
+		1, # What is this?
+	);
+}
+
+sub ambient {
+	return ( 1, 1, 1, 1 );
+}
+
+sub diffuse {
+	return ( 1, 1, 1, 1 );
+}
+
+sub specular {
+	return ( 1, 1, 1, 1 );
+}
+
+
+
+
+
+######################################################################
+# Engine Interface
+
+sub init {
+	return 1;
+}
+
+sub display {
+	my $self = shift;
+
+	# Define the light
+	OpenGL::glLightfv_p( GL_LIGHT0, GL_AMBIENT,  $self->ambient  );
+	OpenGL::glLightfv_p( GL_LIGHT0, GL_DIFFUSE,  $self->diffuse  );
+	OpenGL::glLightfv_p( GL_LIGHT0, GL_SPECULAR, $self->specular );
+	OpenGL::glLightfv_p( GL_LIGHT0, GL_POSITION, $self->position );
+
+	# Activate the light
+	glEnable( GL_LIGHT0 );
+
+	return 1;
 }
 
 =pod

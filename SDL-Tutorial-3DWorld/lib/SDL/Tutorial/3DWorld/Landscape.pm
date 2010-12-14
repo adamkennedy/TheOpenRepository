@@ -26,7 +26,7 @@ white square.
 
 use strict;
 use warnings;
-use OpenGL ();
+use OpenGL;
 
 =pod
 
@@ -62,7 +62,7 @@ blue.
 =cut
 
 sub sky {
-	return ( 0, 0.1, 0, 0 );
+	return ( 0.7, 0.7, 1, 0 );
 }
 
 
@@ -79,9 +79,30 @@ sub init {
 	# any objects are drawn. This is effectively the "sky" colour.
 	# We get the colour from the sky method, so that later on this value
 	# can be configurable.
-	OpenGL::glClearColor( $self->sky );
+	glClearColor( $self->sky );
+}
 
-	return 1;
+# Draw a variable colour 20 metre wide flat square at zero height
+sub display {
+	my $self = shift;
+
+	glBegin( GL_QUADS );
+
+	glNormal3f( 0, -1, 0 );
+
+	glColor3f( 1, 0, 0 );
+	glVertex3d( 10, 0,  10 );
+
+	glColor3f( 0, 1, 0 );
+	glVertex3d(  10, 0, -10 );
+
+	glColor3f( 0, 0, 1 );
+	glVertex3d( -10, 0, -10 );
+
+	glColor3f( 1, 0, 1 );
+	glVertex3d( -10, 0,  10 );
+
+	glEnd();
 }
 
 1;

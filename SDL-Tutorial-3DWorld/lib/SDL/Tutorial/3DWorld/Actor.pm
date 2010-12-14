@@ -42,7 +42,7 @@ function.
 
 use strict;
 use warnings;
-use OpenGL ();
+use OpenGL;
 
 our $VERSION = '0.01';
 
@@ -105,6 +105,31 @@ to south dimension within the 3D world. The positive direction is north.
 
 sub Z {
 	$_[0]->{Z};
+}
+
+
+
+
+
+######################################################################
+# Engine Interface
+
+sub init {
+	return 1;
+}
+
+sub display {
+	my $self = shift;
+
+	# Translate by the position of the actor
+	glTranslatef( $self->X, $self->Y, $self->Z );
+
+	# Draw a red teapot
+	glMaterialf( GL_FRONT, GL_SHININESS, 50 );
+	glColor3f( 1, 0, 0 );
+	OpenGL::glutSolidTeapot(0.3);
+
+	return 1;
 }
 
 =pod
