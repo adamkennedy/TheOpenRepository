@@ -32,6 +32,7 @@ In this initial skeleton code, the camera is fixed and cannot be moved.
 use strict;
 use warnings;
 use OpenGL;
+use SDL::Mouse;
 use SDL::Constants ();
 
 use constant D2R => CORE::atan2(1,1) / 40;
@@ -183,6 +184,9 @@ sub init {
 	# We'll use a standard 60 degree perspective, removing any
 	# shapes closer than one metre or further than one kilometre.
 	gluPerspective( 45.0, $width / $height, 0.1, 1000 );
+
+	# As a mouselook game, we don't want users to see the cursor
+	SDL::Mouse::show_cursor( SDL::Constants::SDL_DISABLE );
 
 	return 1;
 }

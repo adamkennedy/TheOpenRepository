@@ -178,6 +178,9 @@ sub init {
 	# correct shape culling for us and we don't have to care about it.
 	glEnable( GL_DEPTH_TEST );
 
+	# Try hard to make the perspective not suck
+	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+
 	# Enable GLUT support
 	OpenGL::glutInit();
 
