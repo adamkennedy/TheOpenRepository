@@ -210,10 +210,11 @@ sub display {
 
 	# Apply movement in the direction of the camera
 	my $angle = $self->{angle} * D2R;
-	$self->{X} += (cos($angle) * $strafe) + (sin($angle) * $move);
+	$self->{X} += (cos($angle) * $strafe) - (sin($angle) * $move);
 	$self->{Z} += (sin($angle) * $strafe) + (cos($angle) * $move);
 
-	glRotatef( $self->{angle}, 0, 1, 0 );
+	glRotatef( $self->{elevation}, 1, 0, 0 );
+	glRotatef( $self->{angle},     0, 1, 0 );
 	glTranslatef( -$self->X, -$self->Y, -$self->Z );
 }
 
@@ -221,6 +222,18 @@ sub event {
 	my $self  = shift;
 	my $event = shift;
 	my $type  = $event->type;
+
+	if ( $type == SDL::Constants::SDL_MOUSEMOTION ) {
+		my $x = $event->motion_xrel;
+		my $y = $event->motion_yrel;
+		$x = $x - 65536 if $x > 32000;
+		$y = $y - 65536 if $y > 32000;
+		$self->{angle}     += $x / 5;
+		$self->{elevation} += $y / 10;
+		$self->{elevation} =  90 if $self->{elevation} >  90;
+		$self->{elevation} = -90 if $self->{elevation} < -90;
+		return 1;
+	}
 
 	if ( $type == SDL::Constants::SDL_KEYDOWN ) {
 		my $key = $event->key_sym;
