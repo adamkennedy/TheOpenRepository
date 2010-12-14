@@ -68,6 +68,11 @@ sub new {
 	$self->{angle}     ||= 0;
 	$self->{elevation} ||= 0;
 
+	# Flag to allow mouse motion events in situations where we know
+	# that the first event following some particular event will be bad.
+	# We always ignore the first motion event at startup.
+	$self->{ignore_motion} = 1;
+
 	# Key tracking
 	$self->{down} = {
 		# Move camera forwards and backwards
@@ -229,6 +234,10 @@ sub event {
 	my $type  = $event->type;
 
 	if ( $type == SDL::Constants::SDL_MOUSEMOTION ) {
+		if ( $self->{ignore_motion} ) {
+			$self->{ignore_motion} = 0;
+			return 1;
+		}
 		my $x = $event->motion_xrel;
 		my $y = $event->motion_yrel;
 		$x = $x - 65536 if $x > 32000;
