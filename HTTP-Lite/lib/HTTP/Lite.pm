@@ -1048,7 +1048,7 @@ RFC 2068 - HTTP/1.1 -http://www.w3.org/
 
 Copyright (c) 2000-2002 Roy Hooper.  All rights reserved.
 
-Some parts copyright 2009 Adam Kennedy.
+Some parts copyright 2009 - 2010 Adam Kennedy.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
