@@ -1,3 +1,3 @@
-use inc::Module::Install::DSL 0.91;
+use inc::Module::Install::DSL 1.00;
 
 all_from lib/HTTP/Lite.pm

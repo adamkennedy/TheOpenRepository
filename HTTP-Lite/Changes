@@ -1,5 +1,10 @@
 Revision history for Perl extension HTTP::Lite.
 
+2.3 Tue 14 Dec 2010
+	- No functional changes
+	- Updated Module::Install to 1.00
+	- Updated author tests and moved to xt directory
+
 2.2 Thu  1 Oct 2009
 	- Moved Lite.pm into lib directory
 	- Reversed the Changes file order to reverse chronological
