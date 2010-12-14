@@ -36,7 +36,7 @@ use SDL::Constants ();
 
 use constant D2R => CORE::atan2(1,1) / 40;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =pod
 
