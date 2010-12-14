@@ -9,10 +9,10 @@ SDL::Tutorial::3DWorld - Demonstrates a very basic 3D engine
 =head1 DESCRIPTION
 
 This tutorial is intended to demonstrate the creation of a trivial but
-relatively fully featured "3D Game Engine".
+relatively usable "3D Game Engine".
 
-The demonstration implements the 4 main elements of a three-dimensional
-world.
+The demonstration code provided implements the four main elements of a
+basic three-dimensional game world.
 
 =over
 
@@ -41,15 +41,96 @@ This lets you see which parts of the Open GL operations are used to work
 with each element of the game world, and provides a starting point from
 which you can start to make your own simple game-specific engines.
 
+=head1 METHODS
+
 =cut
 
+use 5.008005;
 use strict;
 use warnings;
-use SDL;
-use OpenGL;
+use SDL    2.524;
+use OpenGL 0.64;
+use SDL::Tutorial::3DWorld::Light     ();
+use SDL::Tutorial::3DWorld::Actor     ();
+use SDL::Tutorial::3DWorld::Camera    ();
+use SDL::Tutorial::3DWorld::Landscape ();
 
-# Load the individual world elements
-use SDL::Tutorial::3DWorld::Camera ();
+our $VERSION = '0.01';
+
+=pod
+
+=head2 new
+
+The C<new> constructor sets up the model for the 3D World, but does not
+initiate or start the game itself.
+
+It does not current take any parameters.
+
+=cut
+
+sub new {
+	my $class = shift;
+	my $self  = bless { }, $class;
+
+	# Create the landscape
+	$self->{landscape} = SDL::Tutorial::3DWorld::Landscape->new;
+
+	# Light the scene with a single overhead light
+	$self->{lights} = [
+		SDL::Tutorial::3DWorld::Light->new(
+			X => 0,
+			Y => 10,
+			Z => 0,
+		),
+	];
+
+	# Place three airborn stationary teapots in the scene
+	$self->{actors} = [
+		SDL::Tutorial::3DWorld::Actor->new(
+			X => 0,
+			Y => 0.5,
+			Z => 0,
+		),
+		SDL::Tutorial::3DWorld::Actor->new(
+			X => 0,
+			Y => 1,
+			Z => 0,
+		),
+		SDL::Tutorial::3DWorld::Actor->new(
+			X => 0,
+			Y => 0.5,
+			Z => 0,
+		),
+	];
+
+	# Place the camera at a typical eye height a few metres back
+	# from the teapots and facing slightly down towards it.
+	$self->{camera} = SDL::Tutorial::3DWorld::Camera->new(
+		X => 0,
+		Y => 1.5,
+		Z => -5,
+	);
+
+	return $self;
+}
+
+=pod
+
+=head2 run
+
+The C<run> method is used to run the game. It takes care of all stages of
+the game including initialisation and shutdown operations at the start
+and end of the game.
+
+=cut
+
+sub run {
+	my $self = shift;
+
+	# TO BE COMPLETED
+
+	return 1;
+}
 
 1;
 

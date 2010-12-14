@@ -14,7 +14,7 @@ SDL::Tutorial::3DWorld::Camera - A movable viewpoint in the game world
       X         => 0,
       Y         => 1.5,
       Z         => 10,
-      azimuth   => 0,
+      angle     => 0,
       elevation => -5,
   };
 
@@ -31,6 +31,11 @@ In this initial skeleton code, the camera is fixed and cannot be moved.
 
 use strict;
 use warnings;
+use OpenGL ();
+
+our $VERSION = '0.01';
+
+=pod
 
 =head2 new
 
@@ -39,7 +44,7 @@ use warnings;
       X         => 0,
       Y         => 0,
       Z         => 0,
-      azimuth   => 0,
+      angle     => 0,
       elevation => 0,
   };
 
@@ -56,7 +61,7 @@ sub new {
 	$self->{X}         ||= 0;
 	$self->{Y}         ||= 0;
 	$self->{Z}         ||= 0;
-	$self->{azimuth}   ||= 0;
+	$self->{angle}     ||= 0;
 	$self->{elevation} ||= 0;
 
 	return $self;
@@ -103,17 +108,21 @@ sub Z {
 
 =pod
 
-=head2 azimuth
+=head2 angle
 
-The C<azimuth> accessor provides the direction the camera is facing on the
+The C<angle> accessor provides the direction the camera is facing on the
 horizontal plane within the 3D world. Positive indicates clockwise degrees
 from north. Thus C<0> is north, C<90> is east, C<180> is south and C<270>
 is west.
 
+The C<angle> is more correctly known as the "azimuth" but we prefer the
+simpler common term for a gaming API. For more details see
+L<http://en.wikipedia.org/wiki/Azimuth>.
+
 =cut
 
-sub azimuth {
-	$_[0]->{azimuth};
+sub angle {
+	$_[0]->{angle};
 }
 
 =pod
@@ -124,6 +133,10 @@ The C<elevation> accessor provides the direction the camera is facing on
 the vertical plane. Positive indicates degrees above the horizon. Thus
 C<0> is looking at the horizon, C<90> is facing straight up, and
 C<-90> is facing straight down.
+
+The C<elevation> is more correctly known as the "altitude" but we prefer the
+simpler common term for a gaming API. For more details see
+see L<http://en.wikipedia.org/w/index.php?title=Altitude_(astronomy)>.
 
 =cut
 
