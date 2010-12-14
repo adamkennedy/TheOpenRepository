@@ -48,8 +48,9 @@ which you can start to make your own simple game-specific engines.
 use 5.008005;
 use strict;
 use warnings;
-use SDL    2.524;
 use OpenGL 0.64;
+use SDL    2.524;
+use SDLx::App                         ();
 use SDL::Tutorial::3DWorld::Light     ();
 use SDL::Tutorial::3DWorld::Actor     ();
 use SDL::Tutorial::3DWorld::Camera    ();
@@ -70,7 +71,10 @@ It does not current take any parameters.
 
 sub new {
 	my $class = shift;
-	my $self  = bless { }, $class;
+	my $self  = bless {
+		width  => 800,
+		height => 600,
+	}, $class;
 
 	# Create the landscape
 	$self->{landscape} = SDL::Tutorial::3DWorld::Landscape->new;
@@ -127,7 +131,44 @@ and end of the game.
 sub run {
 	my $self = shift;
 
-	# TO BE COMPLETED
+	# Initialise the game
+	$self->init;
+
+	return 1;
+}
+
+
+
+
+
+######################################################################
+# Internal Methods
+
+sub init {
+	my $self = shift;
+
+	# Create the SDL application object
+	$self->{sdl} = SDLx::App->new(
+		title  => '3D World',
+		width  => $self->{width},
+		height => $self->{height},
+		gl     => 1,
+	);
+
+	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
+	# correct shape culling for us and we don't have to care about it.
+	OpenGL::glEnable( GL_DEPTH_TEST );
+
+	# Lets use smooth shading so we look a bit fancier
+	OpenGL::glShadeModel( GL_SMOOTH );
+
+	# Initialise the camera so we are looking at something
+	$self->{camera}->init( $self->{width}, $self->{height} );
+
+	# Initialise the landscape so there is a world
+	$self->{landscape}->init;
+
+	# We don't need to initialise the lights or actors (yet)
 
 	return 1;
 }

@@ -144,6 +144,30 @@ sub elevation {
 	$_[0]->{elevation};
 }
 
+
+
+
+
+######################################################################
+# Engine Interface
+
+sub init {
+	my $self   = shift;
+	my $width  = shift;
+	my $height = shift;
+
+	# Select and reset the projection
+	OpenGL::glMatrixMode( OpenGL::GL_PROJECTION );
+	OpenGL::glLoadIdentity();
+
+	# Set the perspective we will look through.
+	# We'll use a standard 60 degree perspective, removing any
+	# shapes closer than one metre or further than one kilometre.
+	OpenGL::gluPerspective( 60, $width / $height, 1, 1000 );
+
+	return 1;
+}
+
 1;
 
 =pod

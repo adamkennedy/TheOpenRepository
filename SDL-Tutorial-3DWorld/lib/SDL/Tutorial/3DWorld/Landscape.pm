@@ -28,7 +28,9 @@ use strict;
 use warnings;
 use OpenGL ();
 
-=pod new
+=pod
+
+=head2 new
 
 The C<new> constructor for the landscape. It takes no parameters and
 returns an object representing the static part of the game world.
@@ -39,6 +41,47 @@ sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 	return $self;
+}
+
+=pod
+
+=head2 sky
+
+  my ($red, $green, $blue, $alpha) = $landscape->sky;
+
+The C<sky> method returns the colour of the sky as a four element RGBA list,
+with each colour a value in the range 0 to 1.
+
+The sky value is the colour that is used to wipe the OpenGL colour buffer
+(the buffer that ultimately becomes what appears on your monitor) and so will
+serve effectively as the "background colour" for your world.
+
+This value is not currently configurable, and will always return a dark navy
+blue.
+
+=cut
+
+sub sky {
+	return ( 0, 0.1, 0, 0 );
+}
+
+
+
+
+
+######################################################################
+# Engine Interface
+
+sub init {
+	my $self = shift;
+
+	# Configure the colour that each frame will be cleared with before
+	# any objects are drawn. This is effectively the "sky" colour.
+	# We get the colour from the sky method, so that later on this value
+	# can be configurable.
+	OpenGL::glClearColor( $self->sky );
+
+	return 1;
 }
 
 1;
