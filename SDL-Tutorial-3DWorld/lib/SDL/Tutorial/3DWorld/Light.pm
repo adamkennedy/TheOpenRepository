@@ -63,10 +63,22 @@ sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 
-	# Default location is at the origin
-	$self->{X} ||= 0;
-	$self->{Y} ||= 0;
-	$self->{Z} ||= 0;
+	# Defaults and clean up
+	$self->{position} = [
+		delete($self->{X}) || 0,
+		delete($self->{Y}) || 0,
+		delete($self->{Z}) || 0,
+		0, # Unused
+	];
+	$self->{ambient}  = [ 0.15, 0.15, 0.15, 0.15 ];
+	$self->{diffuse}  = [ 1.00, 1.00, 1.00, 1.00 ];
+	$self->{specular} = [ 1.00, 1.00, 1.00, 1.00 ];
+
+	# OpenGL light operations are special and need special light ids
+	unless ( defined $self->{id} ) {
+		# NOTE: Yes this is stupid, but I'll smarten it up later
+		$self->{id} = GL_LIGHT0;
+	}
 
 	return $self;
 }
@@ -81,7 +93,7 @@ to west dimension within the 3D world. The positive direction is east.
 =cut
 
 sub X {
-	$_[0]->{X};
+	$_[0]->{position}->{X};
 }
 
 =pod
@@ -94,7 +106,7 @@ dimension within the 3D world. The positive direction is up.
 =cut
 
 sub Y {
-	$_[0]->{Y};
+	$_[0]->{position}->{Y};
 }
 
 =pod
@@ -107,7 +119,7 @@ to south dimension within the 3D world. The positive direction is north.
 =cut
 
 sub Z {
-	$_[0]->{Z};
+	$_[0]->{position}->{Z};
 }
 
 
@@ -118,25 +130,19 @@ sub Z {
 # Light Properties
 
 sub position {
-	my $self = shift;
-	return (
-		$self->X,
-		$self->Y,
-		$self->Z,
-		1, # What is this?
-	);
+	@{$_[0]->{position}};
 }
 
 sub ambient {
-	return ( 1, 1, 1, 1 );
+	@{$_[0]->{ambient}};
 }
 
 sub diffuse {
-	return ( 1, 1, 1, 1 );
+	@{$_[0]->{diffuse}};
 }
 
 sub specular {
-	return ( 1, 1, 1, 1 );
+	@{$_[0]->{specular}};
 }
 
 
@@ -146,21 +152,21 @@ sub specular {
 ######################################################################
 # Engine Interface
 
+# Activate the light
 sub init {
 	return 1;
 }
 
 sub display {
 	my $self = shift;
+	my $id   = $self->{id};
 
 	# Define the light
-	OpenGL::glLightfv_p( GL_LIGHT0, GL_AMBIENT,  $self->ambient  );
-	OpenGL::glLightfv_p( GL_LIGHT0, GL_DIFFUSE,  $self->diffuse  );
-	OpenGL::glLightfv_p( GL_LIGHT0, GL_SPECULAR, $self->specular );
-	OpenGL::glLightfv_p( GL_LIGHT0, GL_POSITION, $self->position );
-
-	# Activate the light
-	glEnable( GL_LIGHT0 );
+	OpenGL::glEnable($id);
+	OpenGL::glLightfv_p( $id, GL_AMBIENT,  $self->ambient  );
+	OpenGL::glLightfv_p( $id, GL_DIFFUSE,  $self->diffuse  );
+	OpenGL::glLightfv_p( $id, GL_SPECULAR, $self->specular );
+	OpenGL::glLightfv_p( $id, GL_POSITION, $self->position );
 
 	return 1;
 }

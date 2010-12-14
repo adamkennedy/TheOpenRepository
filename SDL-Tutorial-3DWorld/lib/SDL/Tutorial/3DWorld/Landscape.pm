@@ -72,20 +72,16 @@ sub sky {
 ######################################################################
 # Engine Interface
 
+# Configure the colour that each frame will be cleared with before
+# any objects are drawn. This is effectively the "sky" colour.
+# We get the colour from the sky method, so that later on this value
+# can be configurable.
 sub init {
-	my $self = shift;
-
-	# Configure the colour that each frame will be cleared with before
-	# any objects are drawn. This is effectively the "sky" colour.
-	# We get the colour from the sky method, so that later on this value
-	# can be configurable.
-	glClearColor( $self->sky );
+	glClearColor( $_[0]->sky );
 }
 
 # Draw a variable colour 20 metre wide flat square at zero height
 sub display {
-	my $self = shift;
-
 	glBegin( GL_QUADS );
 
 	glNormal3f( 0, -1, 0 );

@@ -34,6 +34,8 @@ use warnings;
 use OpenGL;
 use SDL::Constants ();
 
+use constant D2R => CORE::atan2(1,1) / 40;
+
 our $VERSION = '0.01';
 
 =pod
@@ -188,22 +190,30 @@ sub init {
 sub display {
 	my $self  = shift;
 	my $down  = $self->{down};
-	my $speed = 0.1;
+
+	# Apply camera direction from keyboard
+	$self->{angle} += (
+		$down->{SDL::Constants::SDLK_e} -
+		$down->{SDL::Constants::SDLK_q}
+	);
 
 	# Update the camera location
+	my $speed  = 0.1;
+	my $move   = $speed * (
+		$down->{SDL::Constants::SDLK_s} -
+		$down->{SDL::Constants::SDLK_w}
+	);
 	my $strafe = $speed * (
-		$down->{SDL::Constants::SDLK_a} -
-		$down->{SDL::Constants::SDLK_d}
-	);
-	my $move = $speed * (
-		$down->{SDL::Constants::SDLK_w} -
-		$down->{SDL::Constants::SDLK_s}
+		$down->{SDL::Constants::SDLK_d} -
+		$down->{SDL::Constants::SDLK_a}
 	);
 
-	# Stupid movement
-	$self->{X} += $strafe;
-	$self->{Z} += $move;
+	# Apply movement in the direction of the camera
+	my $angle = $self->{angle} * D2R;
+	$self->{X} += (cos($angle) * $strafe) + (sin($angle) * $move);
+	$self->{Z} += (sin($angle) * $strafe) + (cos($angle) * $move);
 
+	glRotatef( $self->{angle}, 0, 1, 0 );
 	glTranslatef( -$self->X, -$self->Y, -$self->Z );
 }
 
