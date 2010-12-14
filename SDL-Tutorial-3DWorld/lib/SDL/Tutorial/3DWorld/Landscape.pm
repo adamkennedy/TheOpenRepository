@@ -78,26 +78,22 @@ sub sky {
 # can be configurable.
 sub init {
 	glClearColor( $_[0]->sky );
+	OpenGL::glLightModelfv_p( GL_LIGHT_MODEL_AMBIENT, 0.5, 0.5, 0.5, 1 );
 }
 
 # Draw a variable colour 20 metre wide flat square at zero height
 sub display {
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, 0.3, 0, 0, 0.3 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, 0.3, 0, 0, 0.3 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 0.7, 0.7, 0.7, 0.7 );
+	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 80 );
+
 	glBegin( GL_QUADS );
-
-	glNormal3f( 0, -1, 0 );
-
-	glColor3f( 1, 0, 0 );
+	glNormal3f( 0, 1, 0 );
 	glVertex3d( 10, 0,  10 );
-
-	glColor3f( 0, 1, 0 );
 	glVertex3d(  10, 0, -10 );
-
-	glColor3f( 0, 0, 1 );
 	glVertex3d( -10, 0, -10 );
-
-	glColor3f( 1, 0, 1 );
 	glVertex3d( -10, 0,  10 );
-
 	glEnd();
 }
 

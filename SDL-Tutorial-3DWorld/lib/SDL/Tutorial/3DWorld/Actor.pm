@@ -124,9 +124,11 @@ sub display {
 	# Translate by the position of the actor
 	glTranslatef( $self->X, $self->Y, $self->Z );
 
-	# Draw a red teapot
-	glMaterialf( GL_FRONT, GL_SHININESS, 50 );
-	glColor3f( 1, 0, 0 );
+	# Draw a greenish teapot
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, 0.5, 0.7, 0.5, 0.5 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, 0.5, 0.7, 0.5, 0.5 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 1, 1, 1, 1 );
+	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 80 );
 	OpenGL::glutSolidTeapot(0.3);
 
 	return 1;

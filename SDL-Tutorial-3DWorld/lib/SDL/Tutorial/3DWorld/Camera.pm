@@ -182,7 +182,7 @@ sub init {
 	# Set the perspective we will look through.
 	# We'll use a standard 60 degree perspective, removing any
 	# shapes closer than one metre or further than one kilometre.
-	gluPerspective( 60, $width / $height, 1, 1000 );
+	gluPerspective( 45.0, $width / $height, 0.1, 1000 );
 
 	return 1;
 }
@@ -196,6 +196,7 @@ sub display {
 		$down->{SDL::Constants::SDLK_e} -
 		$down->{SDL::Constants::SDLK_q}
 	);
+	$self->{angle} = $self->{angle} - 360 * int($self->{angle} / 360);
 
 	# Update the camera location
 	my $speed  = 0.1;

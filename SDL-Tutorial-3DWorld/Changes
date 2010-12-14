@@ -1,4 +1,7 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
-0.01 to be released
+0.02 to be released
+	- Fixed the lighting and material of the objects
+
+0.01 Tue 14 Dec 2010
 	- Created the initial game model
