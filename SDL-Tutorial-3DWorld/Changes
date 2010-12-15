@@ -1,5 +1,8 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.05 Wed 15 Dec 2010
+	- Skybox is now both optional and actually works
+
 0.04 Wed 15 Dec 2010
 	- Adding a texture abstraction library
 	- Adding a simple implementation of a skybox

@@ -28,7 +28,7 @@ use strict;
 use warnings;
 use OpenGL;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =pod
 
@@ -64,7 +64,7 @@ blue.
 =cut
 
 sub sky {
-	return ( 0.7, 0.7, 1, 0 );
+	return ( 0, 0, 0, 0 );
 }
 
 

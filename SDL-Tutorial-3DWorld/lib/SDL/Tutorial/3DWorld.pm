@@ -61,7 +61,7 @@ use SDL::Tutorial::3DWorld::Skybox    ();
 use SDL::Tutorial::3DWorld::Texture   ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =pod
 
@@ -203,7 +203,9 @@ sub init {
 	$self->{camera}->init( $self->{width}, $self->{height} );
 
 	# Initialise and load the skybox
-	$self->{skybox}->init;
+	if ( $self->{skybox} ) {
+		$self->{skybox}->init;
+	}
 
 	# Initialise the landscape so there is a world
 	$self->{landscape}->init;
@@ -233,8 +235,11 @@ sub display {
 	# NOTE: For now just translate back so we can see the render.
 	$self->{camera}->display;
 
-	# Draw the skybox
-	$self->{skybox}->display;
+	# Draw the skybox.
+	# It needs to know where the camera is to do it's special effect
+	if ( $self->{skybox} ) {
+		$self->{skybox}->display( $self->{camera} );
+	}
 
 	# Draw the landscape
 	$self->{landscape}->display;

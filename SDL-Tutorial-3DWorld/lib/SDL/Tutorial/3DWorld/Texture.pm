@@ -45,7 +45,7 @@ use SDL::Video ();
 # Ensure all the OpenGL "constants" are loaded
 use SDL::Tutorial::3DWorld ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =pod
 
@@ -129,9 +129,9 @@ sub init {
 	} elsif ( $bytes == 3 ) {
 		# Does not contain an alpha channel
 		if ( $image->format->Rmask == 0x000000ff ) {
-			$mask = OpenGL::GL_RGBA;
+			$mask = OpenGL::GL_RGB;
 		} else {
-			$mask = OpenGL::GL_BGRA;
+			$mask = OpenGL::GL_BGR;
 		}
 	} else {
 		die "Unknown or unsupported image '" . $self->file . "'";
