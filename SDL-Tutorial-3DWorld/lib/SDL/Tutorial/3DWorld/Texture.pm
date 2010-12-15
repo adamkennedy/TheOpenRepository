@@ -112,6 +112,9 @@ sub init {
 	# Use SDL to load the image
 	my $image = SDL::Image::load( $self->file );
 
+	# Check if the image actually got loaded
+	Carp::croak( 'Cannot load image at '.$self->file. ": ".SDL::get_error) unless $image;
+
 	# Tell SDL to leave the memory the image is in exactly where
 	# it is, so that OpenGL can bind to it directly.
 	SDL::Video::lock_surface($image);
