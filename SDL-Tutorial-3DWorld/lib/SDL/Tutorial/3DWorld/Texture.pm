@@ -106,6 +106,9 @@ sub file {
 sub init {
 	my $self = shift;
 
+	# Enable texture support
+	OpenGL::glEnable( OpenGL::GL_TEXTURE_2D );
+
 	# Use SDL to load the image
 	my $image = SDL::Image::load( $self->file );
 
@@ -187,6 +190,7 @@ sub init {
 }
 
 sub display {
+	OpenGL::glEnable( OpenGL::GL_TEXTURE_2D );
 	OpenGL::glBindTexture( OpenGL::GL_TEXTURE_2D, $_[0]->{id} );
 }
 

@@ -145,7 +145,6 @@ sub init {
 sub display {
 	my $self = shift;
 	glDisable( GL_LIGHTING );
-	glEnable( GL_TEXTURE_2D );
 
 	# Activate the north face texture
 	$self->{north}->display;
@@ -153,13 +152,12 @@ sub display {
 	# Draw the north face with the texture
 	glColor3d( 1, 1, 1 );
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f( -1,  1, 1 ); # Bottom Left
-	glTexCoord2f( 1, 0 ); glVertex3f(  1,  1, 1 ); # Bottom Right
-	glTexCoord2f( 1, 1 ); glVertex3f(  1, -1, 1 ); # Top Right
-	glTexCoord2f( 0, 1 ); glVertex3f( -1, -1, 1 ); # Top Left
+	glTexCoord2f( 0.0, 0.0 ); glVertex3f( -1.0,  1.0, 1 ); # Bottom Left
+	glTexCoord2f( 1.0, 0.0 ); glVertex3f(  1.0,  1.0, 1 ); # Bottom Right
+	glTexCoord2f( 1.0, 1.0 ); glVertex3f(  1.0, -1.0, 1 ); # Top Right
+	glTexCoord2f( 0.0, 1.0 ); glVertex3f( -1.0, -1.0, 1 ); # Top Left
 	glEnd();
 
-	glDisable( GL_TEXTURE_2D );
 	glEnable( GL_LIGHTING );
 	return 1;
 }

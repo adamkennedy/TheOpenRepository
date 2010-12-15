@@ -85,11 +85,14 @@ sub init {
 
 # Draw a variable colour 20 metre wide flat square at zero height
 sub display {
+	# Set up the surface
+	glDisable( GL_TEXTURE_2D );
 	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, 0.3, 0, 0, 0.3 );
 	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, 0.3, 0, 0, 0.3 );
 	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 0.7, 0.7, 0.7, 0.7 );
 	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 80 );
 
+	# Draw the platform
 	glBegin( GL_QUADS );
 	glNormal3f( 0, 1, 0 );
 	glVertex3d( 10, 0,  10 );
