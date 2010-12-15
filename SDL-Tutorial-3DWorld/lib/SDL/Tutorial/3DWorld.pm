@@ -57,7 +57,7 @@ use SDL::Tutorial::3DWorld::Actor     ();
 use SDL::Tutorial::3DWorld::Camera    ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =pod
 
