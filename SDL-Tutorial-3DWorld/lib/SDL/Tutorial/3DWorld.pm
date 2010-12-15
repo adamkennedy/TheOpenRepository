@@ -61,7 +61,7 @@ use SDL::Tutorial::3DWorld::Skybox    ();
 use SDL::Tutorial::3DWorld::Texture   ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =pod
 

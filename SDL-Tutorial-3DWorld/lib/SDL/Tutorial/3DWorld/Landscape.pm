@@ -28,6 +28,8 @@ use strict;
 use warnings;
 use OpenGL;
 
+our $VERSION = '0.04';
+
 =pod
 
 =head2 new

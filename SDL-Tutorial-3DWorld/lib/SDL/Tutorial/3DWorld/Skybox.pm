@@ -40,7 +40,7 @@ use File::Spec ();
 use OpenGL;
 use SDL::Tutorial::3DWorld::Texture ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =pod
 
