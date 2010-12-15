@@ -1,5 +1,8 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.07 Thu 16 Dec 2010
+	- Like all good games, 3DWorld now runs full screen
+
 0.06 Wed 15 Dec 2010
 	- The landscape is now a 10x10 metre chess board
 	- A new "at the origin" event filter for removing warp_mouse events,

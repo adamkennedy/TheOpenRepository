@@ -61,7 +61,7 @@ use SDL::Tutorial::3DWorld::Skybox    ();
 use SDL::Tutorial::3DWorld::Texture   ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =pod
 
@@ -180,17 +180,18 @@ sub init {
 
 	# Create the SDL application object
 	$self->{sdl} = SDLx::App->new(
-		title  => '3D World',
-		width  => $self->{width},
-		height => $self->{height},
-		gl     => 1,
+		title       => '3D World',
+		width       => $self->{width},
+		height      => $self->{height},
+		gl          => 1,
+		fullscreen  => 1,
 	);
 
 	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
 	# correct shape culling for us and we don't have to care about it.
 	glEnable( GL_DEPTH_TEST );
 
-	# Make shading prettier
+	# Use the prettiest shading available to us
 	glShadeModel( GL_SMOOTH );
 
 	# If we have any lights, initialise lighting
@@ -290,12 +291,15 @@ sub event {
 # Clear the colour buffer (what we actually see) and the depth buffer
 # (the area GL uses to remove things behind other things).
 # This gives us a blank screen with our chosen sky colour.
+# NOTE: If you are using a full six sided sky box then you don't need to clear
+# the color buffer because you'll always draw over the top of every pixel.
+# Clearing only the depth buffer should make your rendering faster.
 sub clear {
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
 
 # This is a convenience method.
-# Pass through to the version in the SDL app
+# Pass through to the version provided by the main SDL app.
 sub sync {
 	$_[0]->{sdl}->sync;
 }
