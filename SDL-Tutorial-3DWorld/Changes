@@ -3,6 +3,8 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 0.03 Wed 15 Dec 2010
 	- Do not show the mouse cursor
 	- Capture the mouse cursor to allow infinite mouselook travel
+	- Adding a trivial constructor test (that doesn't init OpenGL)
+	- Adding Test::NoWarnings to the tests
 
 0.02 Wed 15 Dec 2010
 	- Fixed the lighting and material of the objects
