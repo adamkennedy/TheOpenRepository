@@ -99,25 +99,28 @@ sub new {
 			X => 0,
 			Y => 0.5,
 			Z => 0,
+			velocity => [ 0, 0, 0.001 ],
 		),
 		SDL::Tutorial::3DWorld::Actor->new(
 			X => 0,
 			Y => 1,
 			Z => 0,
+			velocity => [ 0.001, 0, 0 ],
 		),
 		SDL::Tutorial::3DWorld::Actor->new(
 			X => 0,
 			Y => 1.5,
 			Z => 0,
+			velocity => [ 0, 0.001, 0 ],
 		),
 	];
 
 	# Light the world with a single overhead light
 	$self->{lights} = [
 		SDL::Tutorial::3DWorld::Light->new(
-			X => 1,
-			Y => 10,
-			Z => 2,
+			X => 100,
+			Y => 100,
+			Z => 100,
 		),
 	];
 
@@ -147,10 +150,6 @@ sub run {
 
 	# Initialise the game
 	$self->init;
-
-	# Do an initial render pass
-	#$self->display;
-	#$self->sync;
 
 	# Render handler
 	$self->{sdl}->add_show_handler( sub {

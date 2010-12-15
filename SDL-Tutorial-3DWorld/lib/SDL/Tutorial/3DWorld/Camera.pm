@@ -68,11 +68,9 @@ sub new {
 	$self->{angle}     ||= 0;
 	$self->{elevation} ||= 0;
 
-	# Counter to ignore mouse motion events in situations where we know
-	# that the first event following some particular event will be bad.
-	# Supports ignore more than one motion event to support situations
-	# where multiple spurious mouse events are generated.
-	$self->{ignore_mouse_motion} = 0;
+	# Ignore the mouse origin position.
+	# We'll set this to the real values during init.
+	$self->{mouse_origin} = [ 0, 0 ];
 
 	# Key tracking
 	$self->{down} = {
@@ -83,10 +81,6 @@ sub new {
 		# Strafe camera left and right
 		SDL::Constants::SDLK_a => 0,
 		SDL::Constants::SDLK_d => 0,
-
-		# Rotate camera left and right
-		SDL::Constants::SDLK_q => 0,
-		SDL::Constants::SDLK_e => 0,
 	};
 
 	return $self;
@@ -182,8 +176,17 @@ sub init {
 	$self->{width}  = shift;
 	$self->{height} = shift;
 
-	# Work super hard to make perspective calculations not suck
-	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+	# Calculate the mouse origin position
+	$self->{mouse_origin} = [
+		int( $self->{width}  / 2 ),
+		int( $self->{height} / 2 ),
+	];
+
+	# As a mouselook game, we don't want users to see the cursor.
+	# We also position the cursor at the exact centre of the window.
+	# (This will result in another spurious mouse event)
+	SDL::Mouse::show_cursor( SDL::Constants::SDL_DISABLE );
+	SDL::Mouse::warp_mouse( @{$self->{mouse_origin}} );
 
 	# Select and reset the projection, flushing any old state
 	glMatrixMode( GL_PROJECTION );
@@ -194,33 +197,15 @@ sub init {
 	# shapes closer than one metre or further than one kilometre.
 	gluPerspective( 45.0, $self->{width} / $self->{height}, 0.1, 1000 );
 
-	# The first event mouse motion event will result in a movement
-	# value equal to the position of the mouse, ignore it.
-	$self->{ignore_mouse_motion}++;
-
-	# As a mouselook game, we don't want users to see the cursor.
-	# We also position the cursor at the exact centre of the window.
-	# (This will result in another spurious mouse event)
-	SDL::Mouse::show_cursor( SDL::Constants::SDL_DISABLE );
-	SDL::Mouse::warp_mouse(
-		int( $self->{width}  / 2 ),
-		int( $self->{height} / 2 ),
-	);
-	$self->{ignore_mouse_motion}++;
+	# Work super hard to make perspective calculations not suck
+	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
 	return 1;
 }
 
 sub display {
-	my $self  = shift;
-	my $down  = $self->{down};
-
-	# Apply camera direction from keyboard
-	$self->{angle} += (
-		$down->{SDL::Constants::SDLK_e} -
-		$down->{SDL::Constants::SDLK_q}
-	);
-	$self->{angle} = $self->{angle} - 360 * int($self->{angle} / 360);
+	my $self = shift;
+	my $down = $self->{down};
 
 	# Update the camera location
 	my $speed  = 0.1;
@@ -238,9 +223,14 @@ sub display {
 	$self->{X} += (cos($angle) * $strafe) - (sin($angle) * $move);
 	$self->{Z} += (sin($angle) * $strafe) + (cos($angle) * $move);
 
+	# Transform the location of the entire freaking world in the opposite
+	# direction and angle to where the camera is and which way it is
+	# pointing. This makes it LOOK as if the camera is moving but it isn't.
 	glRotatef( $self->{elevation}, 1, 0, 0 );
 	glRotatef( $self->{angle},     0, 1, 0 );
 	glTranslatef( -$self->X, -$self->Y, -$self->Z );
+
+	return 1;
 }
 
 sub event {
@@ -249,10 +239,12 @@ sub event {
 	my $type  = $event->type;
 
 	if ( $type == SDL::Constants::SDL_MOUSEMOTION ) {
-		if ( $self->{ignore_mouse_motion} ) {
-			$self->{ignore_mouse_motion}--;
-			return 1;
-		}
+		# Ignore mouse motion events at the mouse origin
+		$event->motion_x == $self->{mouse_origin}->[0] and
+		$event->motion_y == $self->{mouse_origin}->[1] and
+		return 1;
+
+		# Convert the mouse motion to mouselook behaviour
 		my $x = $event->motion_xrel;
 		my $y = $event->motion_yrel;
 		$x = $x - 65536 if $x > 32000;
@@ -264,11 +256,7 @@ sub event {
 
 		# Move the mouse back to the centre of the window so that
 		# it can never escape the game window.
-		SDL::Mouse::warp_mouse(
-			int( $self->{width}  / 2 ),
-			int( $self->{height} / 2 ),
-		);
-		$self->{ignore_mouse_motion}++;
+		SDL::Mouse::warp_mouse( @{$self->{mouse_origin}} );
 
 		return 1;
 	}

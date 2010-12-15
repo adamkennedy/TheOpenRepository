@@ -26,6 +26,9 @@ white square.
 
 use strict;
 use warnings;
+use File::Spec                      ();
+use File::ShareDir                  ();
+use SDL::Tutorial::3DWorld::Texture ();
 use OpenGL;
 
 our $VERSION = '0.05';
@@ -42,6 +45,15 @@ returns an object representing the static part of the game world.
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
+
+	# Create a texture handle
+	$self->{texture} = SDL::Tutorial::3DWorld::Texture->new(
+		file => File::Spec->catfile(
+			File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
+			'chessboard.jpg',
+		),
+	);
+
 	return $self;
 }
 
@@ -79,26 +91,36 @@ sub sky {
 # We get the colour from the sky method, so that later on this value
 # can be configurable.
 sub init {
-	glClearColor( $_[0]->sky );
+	my $self = shift;
+
+	# Set the universal background colour
+	glClearColor( $self->sky );
+
+	# Give everything at least a little light
 	OpenGL::glLightModelfv_p( GL_LIGHT_MODEL_AMBIENT, 0.5, 0.5, 0.5, 1 );
+
+	# Load the landscape chessboard texture
+	$self->{texture}->init;
 }
 
 # Draw a variable colour 20 metre wide flat square at zero height
 sub display {
-	# Set up the surface
-	glDisable( GL_TEXTURE_2D );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, 0.3, 0, 0, 0.3 );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, 0.3, 0, 0, 0.3 );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 0.7, 0.7, 0.7, 0.7 );
-	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 80 );
+	my $self = shift;
+
+	# Set up the surface material
+	$self->{texture}->display;
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  0.3, 0.3, 0.3, 0.3 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  0.7, 0.7, 0.7, 0.5 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 0.3, 0.3, 0.3, 0.3 );
+	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 50 );
 
 	# Draw the platform
 	glBegin( GL_QUADS );
 	glNormal3f( 0, 1, 0 );
-	glVertex3d( 10, 0,  10 );
-	glVertex3d(  10, 0, -10 );
-	glVertex3d( -10, 0, -10 );
-	glVertex3d( -10, 0,  10 );
+	glTexCoord2f( 0, 0 ); glVertex3d( -4, 0,  4 ); # Top Left
+	glTexCoord2f( 1, 0 ); glVertex3d(  4, 0,  4 ); # Top Right
+	glTexCoord2f( 1, 1 ); glVertex3d(  4, 0, -4 ); # Bottom Right
+	glTexCoord2f( 0, 1 ); glVertex3d( -4, 0, -4 ); # Bottom Left
 	glEnd();
 }
 

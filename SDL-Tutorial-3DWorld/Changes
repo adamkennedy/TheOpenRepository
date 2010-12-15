@@ -1,5 +1,16 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.06 Wed 15 Dec 2010
+	- The landscape is now a 10x10 metre chess board
+	- A new "at the origin" event filter for removing warp_mouse events,
+	  as the first "ignore next" one didn't account for event queueing
+	  and stuttering was starting to occur.
+	- Moved the light to approximately the location of where the sun is
+	  on the skybox for added "realism"
+	- All actors now have a velocity vector.
+	- Slightly less sucky material for the teapots.
+	- The teapots slowly fly away in the positive X, Y and Z directions
+
 0.05 Wed 15 Dec 2010
 	- Skybox is now both optional and actually works
 

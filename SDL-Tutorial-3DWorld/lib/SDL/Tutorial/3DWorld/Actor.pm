@@ -65,6 +65,10 @@ sub new {
 	$self->{Y} ||= 0;
 	$self->{Z} ||= 0;
 
+	# The teapot is a nervous creature. At the slighest glimmer of light
+	# it's first inclination is to hold very very still.
+	$self->{velocity} ||= [ 0, 0, 0 ];
+
 	return $self;
 }
 
@@ -121,15 +125,20 @@ sub init {
 sub display {
 	my $self = shift;
 
+	# If it has velocity, change the actor's position
+	$self->{X} += $self->{velocity}->[0];
+	$self->{Y} += $self->{velocity}->[1];
+	$self->{Z} += $self->{velocity}->[2];
+
 	# Translate by the position of the actor
 	glTranslatef( $self->X, $self->Y, $self->Z );
 
 	# Draw a untextured greenish teapot
 	glDisable( GL_TEXTURE_2D );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, 0.5, 0.7, 0.5, 0.5 );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, 0.5, 0.7, 0.5, 0.5 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, 0.2, 0.3, 0.2, 0.5 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, 0.5, 0.7, 0.5, 1 );
 	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 1, 1, 1, 1 );
-	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 80 );
+	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 85 );
 	OpenGL::glutSolidTeapot(0.3);
 
 	return 1;

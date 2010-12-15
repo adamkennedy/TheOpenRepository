@@ -36,9 +36,9 @@ the movement of the camera (making them appear to be a long way away).
 
 use strict;
 use warnings;
-use File::Spec ();
-use OpenGL;
+use File::Spec                      ();
 use SDL::Tutorial::3DWorld::Texture ();
+use OpenGL;
 
 our $VERSION = '0.05';
 
