@@ -151,7 +151,7 @@ sub init {
 	OpenGL::glTexParameterf(
 		OpenGL::GL_TEXTURE_2D,
 		OpenGL::GL_TEXTURE_MIN_FILTER,
-		OpenGL::GL_NEAREST,
+		OpenGL::GL_LINEAR, # OpenGL::GL_NEAREST,
 	);
 
 	# Specify the zoom method to use when we are too close to the
@@ -161,7 +161,7 @@ sub init {
 	OpenGL::glTexParameterf(
 		OpenGL::GL_TEXTURE_2D,
 		OpenGL::GL_TEXTURE_MAG_FILTER,
-		OpenGL::GL_NEAREST,
+		OpenGL::GL_LINEAR, # OpenGL::GL_NEAREST,
 	);
 
 	# Write the image data into the texture, generating a mipmap for

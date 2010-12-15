@@ -1,5 +1,8 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.04 to be released
+	- Adding a simple implementation of a skybox
+
 0.03 Wed 15 Dec 2010
 	- Do not show the mouse cursor
 	- Capture the mouse cursor to allow infinite mouselook travel

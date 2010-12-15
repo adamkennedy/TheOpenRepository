@@ -4,7 +4,7 @@
 
 use strict;
 BEGIN {
-	$| = 1;
+	$|  = 1;
 	$^W = 1;
 }
 

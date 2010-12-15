@@ -178,11 +178,12 @@ sub elevation {
 
 # Note that this doesn't position the camera, just sets it up
 sub init {
-	my $self = shift;
-
-	# Save the width and height for later
+	my $self        = shift;
 	$self->{width}  = shift;
 	$self->{height} = shift;
+
+	# Work super hard to make perspective calculations not suck
+	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
 	# Select and reset the projection, flushing any old state
 	glMatrixMode( GL_PROJECTION );

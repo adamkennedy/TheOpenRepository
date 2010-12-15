@@ -48,13 +48,17 @@ which you can start to make your own simple game-specific engines.
 use 5.008005;
 use strict;
 use warnings;
-use OpenGL 0.64;
-use SDL    2.524;
+use File::Spec                   0.80 ();
+use File::ShareDir               1.02 ();
+use OpenGL                       0.64 ':all';
+use SDL                         2.524 ':all';
 use SDL::Event                        ':all';
 use SDLx::App                         ();
 use SDL::Tutorial::3DWorld::Light     ();
 use SDL::Tutorial::3DWorld::Actor     ();
 use SDL::Tutorial::3DWorld::Camera    ();
+use SDL::Tutorial::3DWorld::Skybox    ();
+use SDL::Tutorial::3DWorld::Texture   ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
 our $VERSION = '0.03';
@@ -77,17 +81,17 @@ sub new {
 		height => 600,
 	}, $class;
 
+	# A pretty skybox background for our world
+	$self->{skybox} = SDL::Tutorial::3DWorld::Skybox->new(
+		type      => 'jpg',
+		directory => File::Spec->catdir(
+			File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
+			'skybox',
+		),
+	);
+
 	# Create the landscape
 	$self->{landscape} = SDL::Tutorial::3DWorld::Landscape->new;
-
-	# Light the scene with a single overhead light
-	$self->{lights} = [
-		SDL::Tutorial::3DWorld::Light->new(
-			X => 1,
-			Y => 10,
-			Z => 2,
-		),
-	];
 
 	# Place three airborn stationary teapots in the scene
 	$self->{actors} = [
@@ -105,6 +109,15 @@ sub new {
 			X => 0,
 			Y => 1.5,
 			Z => 0,
+		),
+	];
+
+	# Light the world with a single overhead light
+	$self->{lights} = [
+		SDL::Tutorial::3DWorld::Light->new(
+			X => 1,
+			Y => 10,
+			Z => 2,
 		),
 	];
 
@@ -178,25 +191,25 @@ sub init {
 	# correct shape culling for us and we don't have to care about it.
 	glEnable( GL_DEPTH_TEST );
 
-	# Try hard to make the perspective not suck
-	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
-
-	# Enable GLUT support
-	OpenGL::glutInit();
+	# Make shading prettier
+	glShadeModel( GL_SMOOTH );
 
 	# If we have any lights, initialise lighting
 	if ( @{$self->{lights}} ) {
 		glEnable( GL_LIGHTING );
-
-		# Lets just use flat shading for now
-		glShadeModel( GL_SMOOTH );
 	}
 
-	# Initialise the camera so we are looking at something
+	# Initialise the camera so we can look at things
 	$self->{camera}->init( $self->{width}, $self->{height} );
+
+	# Initialise and load the skybox
+	$self->{skybox}->init;
 
 	# Initialise the landscape so there is a world
 	$self->{landscape}->init;
+
+	# Enable GLUT support so we can have teapots
+	OpenGL::glutInit();
 
 	# Initialise the actors (probably nothing to do though)
 	foreach my $actor ( @{$self->{actors}} ) {
@@ -219,6 +232,9 @@ sub display {
 	# Move the camera to the required position.
 	# NOTE: For now just translate back so we can see the render.
 	$self->{camera}->display;
+
+	# Draw the skybox
+	$self->{skybox}->display;
 
 	# Draw the landscape
 	$self->{landscape}->display;
