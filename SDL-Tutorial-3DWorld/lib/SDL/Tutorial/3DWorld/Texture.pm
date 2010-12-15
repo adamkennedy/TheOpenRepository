@@ -45,7 +45,7 @@ use SDL::Video ();
 # Ensure all the OpenGL "constants" are loaded
 use SDL::Tutorial::3DWorld ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =pod
 
