@@ -109,9 +109,9 @@ sub display {
 
 	# Set up the surface material
 	$self->{texture}->display;
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  0.3, 0.3, 0.3, 0.3 );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  0.7, 0.7, 0.7, 0.5 );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 0.3, 0.3, 0.3, 0.3 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  0.3, 0.3, 0.3, 1 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  0.7, 0.7, 0.7, 1 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 0.3, 0.3, 0.3, 1 );
 	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 50 );
 
 	# Draw the platform
