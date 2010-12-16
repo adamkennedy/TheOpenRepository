@@ -61,7 +61,7 @@ use SDL::Tutorial::3DWorld::Skybox    ();
 use SDL::Tutorial::3DWorld::Texture   ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =pod
 
@@ -96,23 +96,34 @@ sub new {
 
 	# Place three airborn stationary teapots in the scene
 	$self->{actors} = [
+		# (R)ed is the official colour of the X axis
 		SDL::Tutorial::3DWorld::Actor->new(
 			X        => 0,
 			Y        => 0.5,
 			Z        => 0,
-			velocity => $self->dvector( 0, 0, 0.1 ),
+			velocity => $self->dvector( 0.1, 0, 0 ),
+			ambient  => [ 0.5, 0.2, 0.2, 1 ],
+			diffuse  => [ 1.0, 0.7, 0.7, 1 ],
 		),
+
+		# (B)lue is the official colour of the Z axis
 		SDL::Tutorial::3DWorld::Actor->new(
 			X        => 0,
 			Y        => 1,
 			Z        => 0,
-			velocity => $self->dvector( 0.1, 0, 0 ),
+			velocity => $self->dvector( 0, 0, 0.1 ),
+			ambient  => [ 0.2, 0.2, 0.5, 1 ],
+			diffuse  => [ 0.7, 0.7, 1.0, 1 ],
 		),
+
+		# (G)reen is the official colour of the Y axis
 		SDL::Tutorial::3DWorld::Actor->new(
 			X        => 0,
 			Y        => 1.5,
 			Z        => 0,
 			velocity => $self->dvector( 0, 0.1, 0 ),
+			ambient  => [ 0.2, 0.5, 0.2, 1 ],
+			diffuse  => [ 0.7, 1.0, 0.7, 1 ],
 		),
 	];
 
@@ -121,7 +132,7 @@ sub new {
 		SDL::Tutorial::3DWorld::Light->new(
 			X => 360,
 			Y => 405,
-			Z => 400,
+			Z => -400,
 		),
 	];
 

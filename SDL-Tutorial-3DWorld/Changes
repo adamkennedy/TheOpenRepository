@@ -1,5 +1,13 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.10 Fri 17 Dec 2010
+	- The three teapots now match the official colours for the three axis
+	- Adding direction label text to the chessboard image
+	- Adding direction label text to all of the skybox image
+	- The chessboard texture was upside down, corrected
+	- The skybox images were backwards and inverted, corrected
+	- Moved the "examples" (that weren't) into the private directory
+
 0.09 Thu 16 Dec 2010
 	- The skybox cube faces now overlap just slightly, which removes the
 	  visible tearing between each face.

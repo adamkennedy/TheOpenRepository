@@ -44,7 +44,7 @@ use strict;
 use warnings;
 use OpenGL;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =head2 new
 
@@ -68,6 +68,11 @@ sub new {
 	# The teapot is a nervous creature. At the slighest glimmer of light
 	# it's first inclination is to hold very very still.
 	$self->{velocity} ||= [ 0, 0, 0 ];
+
+	# Configurable material colours (default greenish and shiny)
+	$self->{ambient}  ||= [ 0.2, 0.3, 0.2, 1.0 ];
+	$self->{diffuse}  ||= [ 0.5, 0.7, 0.5, 1.0 ];
+	$self->{specular} ||= [ 1.0, 1.0, 1.0, 1.0 ];
 
 	return $self;
 }
@@ -130,13 +135,13 @@ sub display {
 
 	# Our teapot is a flat greenish colour.
 	glDisable( GL_TEXTURE_2D );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, 0.2, 0.3, 0.2, 1 );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, 0.5, 0.7, 0.5, 1 );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 1, 1, 1, 1 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  @{$self->{ambient}}  );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  @{$self->{diffuse}}  );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, @{$self->{specular}} );
 	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 85 );
 
 	# Draw the teapot
-	OpenGL::glutSolidTeapot(0.25);
+	OpenGL::glutSolidTeapot(0.20);
 
 	return;
 }
