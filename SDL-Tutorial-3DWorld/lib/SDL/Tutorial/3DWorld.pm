@@ -61,7 +61,7 @@ use SDL::Tutorial::3DWorld::Skybox    ();
 use SDL::Tutorial::3DWorld::Texture   ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =pod
 
@@ -79,6 +79,7 @@ sub new {
 	my $self  = bless {
 		width  => 800,
 		height => 600,
+		dt     => 0.1,
 	}, $class;
 
 	# A pretty skybox background for our world
@@ -96,22 +97,22 @@ sub new {
 	# Place three airborn stationary teapots in the scene
 	$self->{actors} = [
 		SDL::Tutorial::3DWorld::Actor->new(
-			X => 0,
-			Y => 0.5,
-			Z => 0,
-			velocity => [ 0, 0, 0.001 ],
+			X        => 0,
+			Y        => 0.5,
+			Z        => 0,
+			velocity => $self->dvector( 0, 0, 0.1 ),
 		),
 		SDL::Tutorial::3DWorld::Actor->new(
-			X => 0,
-			Y => 1,
-			Z => 0,
-			velocity => [ 0.001, 0, 0 ],
+			X        => 0,
+			Y        => 1,
+			Z        => 0,
+			velocity => $self->dvector( 0.1, 0, 0 ),
 		),
 		SDL::Tutorial::3DWorld::Actor->new(
-			X => 0,
-			Y => 1.5,
-			Z => 0,
-			velocity => [ 0, 0.001, 0 ],
+			X        => 0,
+			Y        => 1.5,
+			Z        => 0,
+			velocity => $self->dvector( 0, 0.1, 0 ),
 		),
 	];
 
@@ -127,9 +128,10 @@ sub new {
 	# Place the camera at a typical eye height a few metres back
 	# from the teapots and facing slightly down towards it.
 	$self->{camera} = SDL::Tutorial::3DWorld::Camera->new(
-		X => 0,
-		Y => 1.5,
-		Z => 5,
+		X     => 0,
+		Y     => 1.5,
+		Z     => 5,
+		speed => $self->dscalar( 2 ),
 	);
 
 	return $self;
@@ -155,6 +157,12 @@ sub run {
 	$self->{sdl}->add_show_handler( sub {
 		$self->display(@_);
 		$self->sync;
+	} );
+
+	# Movement handler
+	$self->{sdl}->add_move_handler( sub {
+		return unless $_[0];
+		$self->move(@_);
 	} );
 
 	# Event handler
@@ -190,22 +198,23 @@ sub init {
 	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
 	# correct shape culling for us and we don't have to care about it.
 	glEnable( GL_DEPTH_TEST );
-
-	glEnable( GL_BLEND );
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glEnable(GL_POINT_SMOOTH);
-	glEnable(GL_LINE_SMOOTH);
-	glEnable(GL_POLYGON_SMOOTH);
-
-
-	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-
+	glDepthFunc( GL_LESS );
 
 	# Use the prettiest shading available to us
 	glShadeModel( GL_SMOOTH );
+
+	# Take your time with textures and do a good job
+	glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
+
+	# Enable basic anti-aliasing for everything
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glHint( GL_LINE_SMOOTH_HINT,    GL_NICEST );
+	glHint( GL_POINT_SMOOTH_HINT,   GL_NICEST );
+	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+	glEnable( GL_LINE_SMOOTH    );
+	glEnable( GL_POINT_SMOOTH   );
+	glEnable( GL_POLYGON_SMOOTH );
 
 	# If we have any lights, initialise lighting
 	if ( @{$self->{lights}} ) {
@@ -249,20 +258,20 @@ sub display {
 	$self->{camera}->display;
 
 	# Draw the skybox.
-	# It needs to know where the camera is to do it's special effect
+	# It needs to track the camera is to do it's special effect trickery
 	if ( $self->{skybox} ) {
 		$self->{skybox}->display( $self->{camera} );
 	}
 
-	# Draw the landscape
+	# Draw the landscape in the scene
 	$self->{landscape}->display;
 
-	# Draw the lights
+	# Light the scene
 	foreach my $light ( @{$self->{lights}} ) {
 		$light->display;
 	}
 
-	# Draw each of the actors in the scene
+	# Draw each of the actors into the scene
 	foreach my $actor ( @{$self->{actors}} ) {
 		# Draw each actor in their own stack context so that
 		# their transform operations do not effect anything else.
@@ -272,6 +281,20 @@ sub display {
 	}
 
 	return 1;
+}
+
+sub move {
+	my $self = shift;
+
+	# Move each of the actors in the scene
+	foreach my $actor ( @{$self->{actors}} ) {
+		$actor->move(@_);
+	}
+
+	# Move the camera last, since it is more likely that the position
+	# of the camera will be limited by where the actors are than the
+	# actors being limited by where the camera is.
+	$self->{camera}->move(@_);
 }
 
 sub event {
@@ -315,6 +338,19 @@ sub clear {
 # Pass through to the version provided by the main SDL app.
 sub sync {
 	$_[0]->{sdl}->sync;
+}
+
+sub dvector {
+	my $dt = $_[0]->{dt};
+	return [
+		$_[1] * $dt,
+		$_[2] * $dt,
+		$_[3] * $dt,
+	];
+}
+
+sub dscalar {
+	$_[0]->{dt} * $_[1];
 }
 
 1;

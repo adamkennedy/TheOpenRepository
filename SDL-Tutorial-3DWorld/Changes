@@ -1,5 +1,16 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.08 Thu 16 Dec 2010
+	- Low-sophistication (Smooth Hinting) anti-aliasing enabled for all
+	  three of points, lines and polygons.
+	- Fixed the chessboard material so it works with blending enabled.
+	- Add GL hinting to make the texture scaling prettier.
+	- Movement is now done via the move callback, locking movement to real
+	  world time and making it independant of render speeds.
+	- Half-assed support for identifying speeds in real metres per second.
+	- Fixed a stupid trig bug in the camera movement logic, walking no
+	  longer makes you skew sideways like a drunken troll when facing east.
+
 0.07 Thu 16 Dec 2010
 	- Like all good games, 3DWorld now runs full screen
 

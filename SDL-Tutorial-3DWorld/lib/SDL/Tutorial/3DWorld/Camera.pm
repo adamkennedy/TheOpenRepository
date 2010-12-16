@@ -35,9 +35,9 @@ use OpenGL;
 use SDL::Mouse;
 use SDL::Constants ();
 
-use constant D2R => CORE::atan2(1,1) / 40;
+use constant D2R => CORE::atan2(1,1) / 45;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =pod
 
@@ -71,6 +71,9 @@ sub new {
 	# Ignore the mouse origin position.
 	# We'll set this to the real values during init.
 	$self->{mouse_origin} = [ 0, 0 ];
+
+	# The speed of the camera in metres per second when we are moving
+	$self->{speed} ||= 0.2;
 
 	# Key tracking
 	$self->{down} = {
@@ -200,28 +203,11 @@ sub init {
 	# Work super hard to make perspective calculations not suck
 	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
 
-	return 1;
+	return;
 }
 
 sub display {
 	my $self = shift;
-	my $down = $self->{down};
-
-	# Update the camera location
-	my $speed  = 0.1;
-	my $move   = $speed * (
-		$down->{SDL::Constants::SDLK_s} -
-		$down->{SDL::Constants::SDLK_w}
-	);
-	my $strafe = $speed * (
-		$down->{SDL::Constants::SDLK_d} -
-		$down->{SDL::Constants::SDLK_a}
-	);
-
-	# Apply movement in the direction of the camera
-	my $angle = $self->{angle} * D2R;
-	$self->{X} += (cos($angle) * $strafe) - (sin($angle) * $move);
-	$self->{Z} += (sin($angle) * $strafe) + (cos($angle) * $move);
 
 	# Transform the location of the entire freaking world in the opposite
 	# direction and angle to where the camera is and which way it is
@@ -230,7 +216,31 @@ sub display {
 	glRotatef( $self->{angle},     0, 1, 0 );
 	glTranslatef( -$self->X, -$self->Y, -$self->Z );
 
-	return 1;
+	return;
+}
+
+sub move {
+	my $self  = shift;
+	my $step  = shift;
+	my $speed = $self->{speed} * $step;
+	my $down  = $self->{down};
+
+	# Find the camera-wards and sideways components of our velocity
+	my $move = $speed * (
+		$down->{SDL::Constants::SDLK_s} -
+		$down->{SDL::Constants::SDLK_w}
+	);
+	my $strafe = $speed * (
+		$down->{SDL::Constants::SDLK_d} -
+		$down->{SDL::Constants::SDLK_a}
+	);
+
+	# Apply this movement in the direction of the camera
+	my $angle = $self->{angle} * D2R;
+	$self->{X} += (cos($angle) * $strafe) - (sin($angle) * $move);
+	$self->{Z} += (sin($angle) * $strafe) + (cos($angle) * $move);
+
+	return;
 }
 
 sub event {
@@ -277,6 +287,7 @@ sub event {
 		}
 	}
 
+	# We don't care about this event
 	return 0;
 }
 

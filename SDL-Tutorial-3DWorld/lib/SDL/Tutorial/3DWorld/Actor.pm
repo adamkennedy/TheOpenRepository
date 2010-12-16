@@ -44,7 +44,7 @@ use strict;
 use warnings;
 use OpenGL;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head2 new
 
@@ -119,31 +119,38 @@ sub Z {
 # Engine Interface
 
 sub init {
-	return 1;
+	return;
 }
 
 sub display {
 	my $self = shift;
 
-	# If it has velocity, change the actor's position
-	$self->{X} += $self->{velocity}->[0];
-	$self->{Y} += $self->{velocity}->[1];
-	$self->{Z} += $self->{velocity}->[2];
-
 	# Translate by the position of the actor
 	glTranslatef( $self->X, $self->Y, $self->Z );
 
-	# Our teapot is greenish
+	# Our teapot is a flat greenish colour.
 	glDisable( GL_TEXTURE_2D );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, 0.2, 0.3, 0.2, 0.5 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, 0.2, 0.3, 0.2, 1 );
 	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, 0.5, 0.7, 0.5, 1 );
 	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 1, 1, 1, 1 );
 	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 85 );
 
 	# Draw the teapot
-	OpenGL::glutSolidTeapot(0.3);
+	OpenGL::glutSolidTeapot(0.25);
 
-	return 1;
+	return;
+}
+
+sub move {
+	my $self = shift;
+	my $step = shift;
+
+	# If it has velocity, change the actor's position
+	$self->{X} += $self->{velocity}->[0] * $step;
+	$self->{Y} += $self->{velocity}->[1] * $step;
+	$self->{Z} += $self->{velocity}->[2] * $step;
+
+	return;
 }
 
 =pod

@@ -39,7 +39,7 @@ use strict;
 use warnings;
 use OpenGL;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =pod
 
@@ -162,11 +162,11 @@ sub display {
 	my $id   = $self->{id};
 
 	# Define the light
-	OpenGL::glEnable($id);
+	OpenGL::glEnable( $id );
+	OpenGL::glLightfv_p( $id, GL_POSITION, $self->position );
 	OpenGL::glLightfv_p( $id, GL_AMBIENT,  $self->ambient  );
 	OpenGL::glLightfv_p( $id, GL_DIFFUSE,  $self->diffuse  );
 	OpenGL::glLightfv_p( $id, GL_SPECULAR, $self->specular );
-	OpenGL::glLightfv_p( $id, GL_POSITION, $self->position );
 
 	return 1;
 }
