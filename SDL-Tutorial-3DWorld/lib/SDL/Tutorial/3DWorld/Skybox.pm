@@ -40,7 +40,7 @@ use File::Spec                      ();
 use SDL::Tutorial::3DWorld::Texture ();
 use OpenGL;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =pod
 
@@ -142,6 +142,9 @@ sub init {
 	return 1;
 }
 
+# NOTE: Currently the textures are actually being drawn onto the walls
+# backwards. We should put some works on the sky box so we can prove it
+# is being drawn on correctly.
 sub display {
 	my $self   = shift;
 	my $camera = shift;
@@ -154,59 +157,64 @@ sub display {
 	# Lighting does not apply to the skybox
 	glDisable( GL_LIGHTING );
 
+	# When drawing the skybox cube, each quad should be slightly larger
+	# around than the distance each face is away from the camera.
+	# This creates an extremely slight overlap at each edge and prevents
+	# visible "seams" on the skybox (and makes it actually look decent).
+
 	# Draw the north face
 	$self->{north}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f( -500,  500,  500 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f(  500,  500,  500 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f(  500, -500,  500 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f( -500, -500,  500 ); # Bottom Left
+	glTexCoord2f( 0, 0 ); glVertex3f( -501,  501,  500 ); # Top Left
+	glTexCoord2f( 1, 0 ); glVertex3f(  501,  501,  500 ); # Top Right
+	glTexCoord2f( 1, 1 ); glVertex3f(  501, -501,  500 ); # Bottom Right
+	glTexCoord2f( 0, 1 ); glVertex3f( -501, -501,  500 ); # Bottom Left
 	glEnd();
 
 	# Draw the south face 
 	$self->{south}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f(  500,  500, -500 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f( -500,  500, -500 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f( -500, -500, -500 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f(  500, -500, -500 ); # Bottom Left
+	glTexCoord2f( 0, 0 ); glVertex3f(  501,  501, -500 ); # Top Left
+	glTexCoord2f( 1, 0 ); glVertex3f( -501,  501, -500 ); # Top Right
+	glTexCoord2f( 1, 1 ); glVertex3f( -501, -501, -500 ); # Bottom Right
+	glTexCoord2f( 0, 1 ); glVertex3f(  501, -501, -500 ); # Bottom Left
 	glEnd();
 
 	# Draw the east face
 	$self->{east}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f(  500,  500,  500 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f(  500,  500, -500 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f(  500, -500, -500 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f(  500, -500,  500 ); # Bottom Left
+	glTexCoord2f( 0, 0 ); glVertex3f(  500,  501,  501 ); # Top Left
+	glTexCoord2f( 1, 0 ); glVertex3f(  500,  501, -501 ); # Top Right
+	glTexCoord2f( 1, 1 ); glVertex3f(  500, -501, -501 ); # Bottom Right
+	glTexCoord2f( 0, 1 ); glVertex3f(  500, -501,  501 ); # Bottom Left
 	glEnd();
 
 	# Draw the west face
 	$self->{west}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f( -500,  500, -500 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f( -500,  500,  500 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f( -500, -500,  500 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f( -500, -500, -500 ); # Bottom Left
+	glTexCoord2f( 0, 0 ); glVertex3f( -500,  501, -501 ); # Top Left
+	glTexCoord2f( 1, 0 ); glVertex3f( -500,  501,  501 ); # Top Right
+	glTexCoord2f( 1, 1 ); glVertex3f( -500, -501,  501 ); # Bottom Right
+	glTexCoord2f( 0, 1 ); glVertex3f( -500, -501, -501 ); # Bottom Left
 	glEnd();
 
 	# Draw the ceiling face
 	$self->{up}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f( -500,  500, -500 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f(  500,  500, -500 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f(  500,  500,  500 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f( -500,  500,  500 ); # Bottom Left
+	glTexCoord2f( 0, 0 ); glVertex3f( -501,  500, -501 ); # Top Left
+	glTexCoord2f( 1, 0 ); glVertex3f(  501,  500, -501 ); # Top Right
+	glTexCoord2f( 1, 1 ); glVertex3f(  501,  500,  501 ); # Bottom Right
+	glTexCoord2f( 0, 1 ); glVertex3f( -501,  500,  501 ); # Bottom Left
 	glEnd();
 
 	# Draw the optional floor
 	if ( $self->{down} ) {
 		$self->{down}->display;
 		glBegin( GL_QUADS );
-		glTexCoord2f( 0, 0 ); glVertex3f( -500, -500,  500 ); # Top Left
-		glTexCoord2f( 1, 0 ); glVertex3f(  500, -500,  500 ); # Top Right
-		glTexCoord2f( 1, 1 ); glVertex3f(  500, -500, -500 ); # Bottom Right
-		glTexCoord2f( 0, 1 ); glVertex3f( -500, -500, -500 ); # Bottom Left
+		glTexCoord2f( 0, 0 ); glVertex3f( -501, -500,  501 ); # Top Left
+		glTexCoord2f( 1, 0 ); glVertex3f(  501, -500,  501 ); # Top Right
+		glTexCoord2f( 1, 1 ); glVertex3f(  501, -500, -501 ); # Bottom Right
+		glTexCoord2f( 0, 1 ); glVertex3f( -501, -500, -501 ); # Bottom Left
 		glEnd();
 	}
 

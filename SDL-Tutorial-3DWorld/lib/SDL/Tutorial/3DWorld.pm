@@ -61,7 +61,7 @@ use SDL::Tutorial::3DWorld::Skybox    ();
 use SDL::Tutorial::3DWorld::Texture   ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =pod
 
@@ -119,9 +119,9 @@ sub new {
 	# Light the world with a single overhead light
 	$self->{lights} = [
 		SDL::Tutorial::3DWorld::Light->new(
-			X => 100,
-			Y => 100,
-			Z => 100,
+			X => 360,
+			Y => 405,
+			Z => 400,
 		),
 	];
 

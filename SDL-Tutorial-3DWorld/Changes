@@ -1,5 +1,12 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.09 Thu 16 Dec 2010
+	- The skybox cube faces now overlap just slightly, which removes the
+	  visible tearing between each face.
+	- Now the skybox doesn't suck, tweak the light position closer to
+	  where the sun is on the skybox should the shading and reflection
+	  look absolutely correct.
+
 0.08 Thu 16 Dec 2010
 	- Low-sophistication (Smooth Hinting) anti-aliasing enabled for all
 	  three of points, lines and polygons.
