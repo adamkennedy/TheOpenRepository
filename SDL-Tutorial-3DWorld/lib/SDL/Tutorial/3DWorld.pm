@@ -4,7 +4,7 @@ package SDL::Tutorial::3DWorld;
 
 =head1 NAME
 
-SDL::Tutorial::3DWorld - Demonstrates a very basic 3D engine
+SDL::Tutorial::3DWorld - Create a good looking 3D world from scratch with SDL
 
 =head1 DESCRIPTION
 
