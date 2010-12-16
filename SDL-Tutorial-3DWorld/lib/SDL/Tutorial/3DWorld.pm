@@ -199,12 +199,13 @@ sub init {
 
 	# Create the SDL application object
 	$self->{sdl} = SDLx::App->new(
-		title       => '3D World',
-		width       => $self->{width},
-		height      => $self->{height},
-		depth       => 24,
-		gl          => 1,
-		fullscreen  => 1,
+		title         => '3D World',
+		width         => $self->{width},
+		height        => $self->{height},
+		gl            => 1,
+		fullscreen    => 1,
+		depth         => 24, # Prevent harsh colour stepping
+		double_buffer => 1,  # Reduce flicker during rapid mouselook
 	);
 
 	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
