@@ -202,6 +202,7 @@ sub init {
 		title       => '3D World',
 		width       => $self->{width},
 		height      => $self->{height},
+		depth       => 24,
 		gl          => 1,
 		fullscreen  => 1,
 	);

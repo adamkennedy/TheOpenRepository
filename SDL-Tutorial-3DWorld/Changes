@@ -5,6 +5,7 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  when it has text on it.
 	- Change the skybox overlap to a minimum amount for slightly tighter
 	  welding of the skybox edges.
+	- Change to 24 bit colour depth so we don't get colour gradient steps
 
 0.10 Fri 17 Dec 2010
 	- The three teapots now match the official colours for the three axis
