@@ -1,5 +1,8 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.12 Fri 17 Dec 2010
+	- Increase default (only) resolution to 1024x768
+
 0.11 Fri 17 Dec 2010
 	- OpenGL::GL_LINEAR_MIPMAP_LINEAR definitely looks better, especially
 	  when it has text on it.

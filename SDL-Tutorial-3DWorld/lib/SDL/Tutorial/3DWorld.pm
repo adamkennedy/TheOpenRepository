@@ -77,8 +77,8 @@ It does not current take any parameters.
 sub new {
 	my $class = shift;
 	my $self  = bless {
-		width  => 800,
-		height => 600,
+		width  => 1024,
+		height => 768,
 		dt     => 0.1,
 	}, $class;
 
@@ -209,8 +209,8 @@ sub init {
 
 	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
 	# correct shape culling for us and we don't have to care about it.
-	glEnable( GL_DEPTH_TEST );
 	glDepthFunc( GL_LESS );
+	glEnable( GL_DEPTH_TEST );
 
 	# Use the prettiest shading available to us
 	glShadeModel( GL_SMOOTH );
