@@ -53,13 +53,14 @@ use File::ShareDir               1.02 ();
 use OpenGL                       0.64 ':all';
 use SDL                         2.524 ':all';
 use SDL::Event                        ':all';
-use SDLx::App                         ();
-use SDL::Tutorial::3DWorld::Light     ();
-use SDL::Tutorial::3DWorld::Actor     ();
-use SDL::Tutorial::3DWorld::Camera    ();
-use SDL::Tutorial::3DWorld::Skybox    ();
-use SDL::Tutorial::3DWorld::Texture   ();
-use SDL::Tutorial::3DWorld::Landscape ();
+use SDLx::App                             ();
+use SDL::Tutorial::3DWorld::Light         ();
+use SDL::Tutorial::3DWorld::Actor         ();
+use SDL::Tutorial::3DWorld::Actor::Teapot ();
+use SDL::Tutorial::3DWorld::Camera        ();
+use SDL::Tutorial::3DWorld::Skybox        ();
+use SDL::Tutorial::3DWorld::Texture       ();
+use SDL::Tutorial::3DWorld::Landscape     ();
 
 our $VERSION = '0.12';
 
@@ -97,7 +98,7 @@ sub new {
 	# Place three airborn stationary teapots in the scene
 	$self->{actors} = [
 		# (R)ed is the official colour of the X axis
-		SDL::Tutorial::3DWorld::Actor->new(
+		SDL::Tutorial::3DWorld::Actor::Teapot->new(
 			X        => 0,
 			Y        => 0.5,
 			Z        => 0,
@@ -107,7 +108,7 @@ sub new {
 		),
 
 		# (B)lue is the official colour of the Z axis
-		SDL::Tutorial::3DWorld::Actor->new(
+		SDL::Tutorial::3DWorld::Actor::Teapot->new(
 			X        => 0,
 			Y        => 1,
 			Z        => 0,
@@ -117,7 +118,7 @@ sub new {
 		),
 
 		# (G)reen is the official colour of the Y axis
-		SDL::Tutorial::3DWorld::Actor->new(
+		SDL::Tutorial::3DWorld::Actor::Teapot->new(
 			X        => 0,
 			Y        => 1.5,
 			Z        => 0,

@@ -133,16 +133,6 @@ sub display {
 	# Translate by the position of the actor
 	glTranslatef( $self->X, $self->Y, $self->Z );
 
-	# Our teapot is a flat greenish colour.
-	glDisable( GL_TEXTURE_2D );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  @{$self->{ambient}}  );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  @{$self->{diffuse}}  );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, @{$self->{specular}} );
-	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 85 );
-
-	# Draw the teapot
-	OpenGL::glutSolidTeapot(0.20);
-
 	return;
 }
 
