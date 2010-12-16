@@ -161,6 +161,7 @@ sub display {
 	# around than the distance each face is away from the camera.
 	# This creates an extremely slight overlap at each edge and prevents
 	# visible "seams" on the skybox (and makes it actually look decent).
+	# 501 is enough to remove these seams, but using 500.1 isn't enough.
 
 	# Draw the north face
 	$self->{north}->display;

@@ -3,6 +3,8 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 0.11 Fri 17 Dec 2010
 	- OpenGL::GL_LINEAR_MIPMAP_LINEAR definitely looks better, especially
 	  when it has text on it.
+	- Change the skybox overlap to a minimum amount for slightly tighter
+	  welding of the skybox edges.
 
 0.10 Fri 17 Dec 2010
 	- The three teapots now match the official colours for the three axis
