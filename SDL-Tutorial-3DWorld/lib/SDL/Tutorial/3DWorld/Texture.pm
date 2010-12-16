@@ -45,7 +45,7 @@ use SDL::Video ();
 # Ensure all the OpenGL "constants" are loaded
 use SDL::Tutorial::3DWorld ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =pod
 
@@ -157,7 +157,7 @@ sub init {
 	OpenGL::glTexParameterf(
 		OpenGL::GL_TEXTURE_2D,
 		OpenGL::GL_TEXTURE_MIN_FILTER,
-		OpenGL::GL_NEAREST_MIPMAP_LINEAR, # OpenGL::GL_NEAREST,
+		OpenGL::GL_LINEAR_MIPMAP_LINEAR, # OpenGL::GL_NEAREST,
 	);
 
 	# Specify the zoom method to use when we are too close to the

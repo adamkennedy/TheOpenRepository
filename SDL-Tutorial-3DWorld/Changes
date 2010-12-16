@@ -1,5 +1,9 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.11 Fri 17 Dec 2010
+	- OpenGL::GL_LINEAR_MIPMAP_LINEAR definitely looks better, especially
+	  when it has text on it.
+
 0.10 Fri 17 Dec 2010
 	- The three teapots now match the official colours for the three axis
 	- Adding direction label text to the chessboard image
