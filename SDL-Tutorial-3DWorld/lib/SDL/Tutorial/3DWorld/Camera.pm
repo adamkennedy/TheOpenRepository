@@ -78,12 +78,15 @@ sub new {
 	# Key tracking
 	$self->{down} = {
 		# Move camera forwards and backwards
-		SDL::Constants::SDLK_w => 0,
-		SDL::Constants::SDLK_s => 0,
+		SDL::Constants::SDLK_w      => 0,
+		SDL::Constants::SDLK_s      => 0,
 
 		# Strafe camera left and right
-		SDL::Constants::SDLK_a => 0,
-		SDL::Constants::SDLK_d => 0,
+		SDL::Constants::SDLK_a      => 0,
+		SDL::Constants::SDLK_d      => 0,
+
+		# Shift makes us run
+		SDL::Constants::SDLK_LSHIFT => 0,
 	};
 
 	return $self;
@@ -224,6 +227,9 @@ sub move {
 	my $step  = shift;
 	my $speed = $self->{speed} * $step;
 	my $down  = $self->{down};
+
+	# Are we running?
+	$speed = $speed * 2.5 if $down->{SDL::Constants::SDLK_LSHIFT};
 
 	# Find the camera-wards and sideways components of our velocity
 	my $move = $speed * (
