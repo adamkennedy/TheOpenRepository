@@ -198,7 +198,7 @@ sub init {
 	# Set the perspective we will look through.
 	# We'll use a standard 60 degree perspective, removing any
 	# shapes closer than one metre or further than one kilometre.
-	gluPerspective( 45.0, $self->{width} / $self->{height}, 0.1, 1000 );
+	gluPerspective( 45.0, $self->{width} / $self->{height}, 0.1, -1000 );
 
 	# Work super hard to make perspective calculations not suck
 	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );

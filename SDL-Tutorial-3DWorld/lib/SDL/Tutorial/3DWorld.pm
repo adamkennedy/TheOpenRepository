@@ -265,6 +265,15 @@ sub init {
 	glEnable( GL_POINT_SMOOTH   );
 	glEnable( GL_POLYGON_SMOOTH );
 
+	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
+	glEnable(GL_MULTISAMPLE_ARB);
+
+	# Use the prettiest shading available to us
+	glShadeModel( GL_SMOOTH );
+
 	# If we have any lights, initialise lighting
 	if ( @{$self->{lights}} ) {
 		glEnable( GL_LIGHTING );
