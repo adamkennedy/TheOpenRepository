@@ -51,6 +51,7 @@ use warnings;
 use File::Spec                            0.80 ();
 use File::ShareDir                        1.02 ();
 use OpenGL                                0.64 ':all';
+use OpenGL::List                          0.01 ();
 use SDL                                  2.524 ':all';
 use SDL::Event                                 ':all';
 use SDLx::App                                  ();
@@ -253,7 +254,7 @@ sub init {
 
 	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
 	# correct shape culling for us and we don't have to care about it.
-	glDepthFunc( GL_LESS );
+	glDepthFunc( GL_LEQUAL );
 	glEnable( GL_DEPTH_TEST );
 
 	# Use the prettiest shading available to us

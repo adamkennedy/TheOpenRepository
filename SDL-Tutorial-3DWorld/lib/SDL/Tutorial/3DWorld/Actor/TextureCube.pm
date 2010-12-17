@@ -30,6 +30,7 @@ sitting "on" the plane.
 use strict;
 use warnings;
 use OpenGL;
+use OpenGL::List                    ();
 use Params::Util                    '_INSTANCE';
 use SDL::Tutorial::3DWorld::Actor   ();
 use SDL::Tutorial::3DWorld::Texture ();
@@ -133,63 +134,55 @@ sub display {
 # off all of the Perl overheads, and even some of the C overheads.
 sub compile {
 	my $self = shift;
+	OpenGL::List::glpList {
+		# Enable the texture
+		$self->{texture}->display;
+		$self->display_material;
 
-	# Set up for list recording
-	my $list = glGenLists(1);
-	glNewList( $list, GL_COMPILE );
+		# Draw each of the quads for the cube
+		# NOTE: This is hardly "optimised" but will at least get us a
+		# working cube fairly quickly.
+		glBegin( GL_QUADS );
 
-	# Enable the texture
-	$self->{texture}->display;
-	$self->display_material;
+		# Draw the north face
+		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2, -1 ); # Top Left
+		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2, -1 ); # Top Right
+		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Right
+		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Left
 
-	# Draw each of the quads for the cube
-	# NOTE: This is hardly "optimised" but will at least get us a
-	# working cube fairly quickly.
-	glBegin( GL_QUADS );
+		# Draw the east face
+		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
+		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2, -1 ); # Top Right
+		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Right
+		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
 
-	# Draw the north face
-	glTexCoord2f( 0, 0 ); glVertex3f(  1,  2, -1 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f( -1,  2, -1 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Left
+		# Draw the south face
+		glTexCoord2f( 0, 0 ); glVertex3f( -1,  2,  1 ); # Top Left
+		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2,  1 ); # Top Right
+		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Right
+		glTexCoord2f( 0, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Left
 
-	# Draw the east face
-	glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f(  1,  2, -1 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
+		# Draw the west face
+		glTexCoord2f( 0, 0 ); glVertex3f( -1,  2, -1 ); # Top Left
+		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
+		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
+		glTexCoord2f( 0, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Left
 
-	# Draw the south face
-	glTexCoord2f( 0, 0 ); glVertex3f( -1,  2,  1 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f(  1,  2,  1 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Left
+		# Draw the up face
+		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
+		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
+		glTexCoord2f( 1, 1 ); glVertex3f( -1,  2, -1 ); # Bottom Right
+		glTexCoord2f( 0, 1 ); glVertex3f(  1,  2, -1 ); # Bottom Left
 
-	# Draw the west face
-	glTexCoord2f( 0, 0 ); glVertex3f( -1,  2, -1 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Left
+		# Draw the down face
+		glTexCoord2f( 0, 0 ); glVertex3f(  1,  0, -1 ); # Top Left
+		glTexCoord2f( 1, 0 ); glVertex3f( -1,  0, -1 ); # Top Right
+		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
+		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
 
-	# Draw the up face
-	glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f( -1,  2, -1 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f(  1,  2, -1 ); # Bottom Left
-
-	# Draw the down face
-	glTexCoord2f( 0, 0 ); glVertex3f(  1,  0, -1 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f( -1,  0, -1 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
-	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
-
-	# Finish drawing
-	glEnd();
-
-	# Finish recording
-	glEndList();
-
-	return $list;
+		# Finish drawing
+		glEnd();
+	};
 }
 
 1;
