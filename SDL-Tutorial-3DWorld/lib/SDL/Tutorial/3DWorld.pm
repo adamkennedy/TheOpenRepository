@@ -48,21 +48,22 @@ which you can start to make your own simple game-specific engines.
 use 5.008005;
 use strict;
 use warnings;
-use File::Spec                   0.80 ();
-use File::ShareDir               1.02 ();
-use OpenGL                       0.64 ':all';
-use SDL                         2.524 ':all';
-use SDL::Event                        ':all';
-use SDLx::App                             ();
-use SDL::Tutorial::3DWorld::Light         ();
-use SDL::Tutorial::3DWorld::Actor         ();
-use SDL::Tutorial::3DWorld::Actor::Teapot ();
-use SDL::Tutorial::3DWorld::Camera        ();
-use SDL::Tutorial::3DWorld::Skybox        ();
-use SDL::Tutorial::3DWorld::Texture       ();
-use SDL::Tutorial::3DWorld::Landscape     ();
+use File::Spec                         0.80 ();
+use File::ShareDir                     1.02 ();
+use OpenGL                             0.64 ':all';
+use SDL                               2.524 ':all';
+use SDL::Event                              ':all';
+use SDLx::App                               ();
+use SDL::Tutorial::3DWorld::Light           ();
+use SDL::Tutorial::3DWorld::Actor           ();
+use SDL::Tutorial::3DWorld::Actor::Teapot   ();
+use SDL::Tutorial::3DWorld::Actor::GridCube ();
+use SDL::Tutorial::3DWorld::Camera          ();
+use SDL::Tutorial::3DWorld::Skybox          ();
+use SDL::Tutorial::3DWorld::Texture         ();
+use SDL::Tutorial::3DWorld::Landscape       ();
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 =pod
 
@@ -78,9 +79,10 @@ It does not current take any parameters.
 sub new {
 	my $class = shift;
 	my $self  = bless {
-		width  => 1024,
-		height => 768,
-		dt     => 0.1,
+		ARGV       => [ @_ ],
+		width      => 1024,
+		height     => 768,
+		dt         => 0.1,
 	}, $class;
 
 	# A pretty skybox background for our world
@@ -99,12 +101,12 @@ sub new {
 	$self->{actors} = [
 		# (R)ed is the official colour of the X axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
-			X        => 0,
+			X        => 0.0,
 			Y        => 0.5,
-			Z        => 0,
-			velocity => $self->dvector( 0.1, 0, 0 ),
-			ambient  => [ 0.5, 0.2, 0.2, 1 ],
-			diffuse  => [ 1.0, 0.7, 0.7, 1 ],
+			Z        => 0.0,
+			velocity => $self->dvector( 0.1, 0.0, 0.0 ),
+			ambient  => [ 0.5, 0.2, 0.2, 1.0 ],
+			diffuse  => [ 1.0, 0.7, 0.7, 1.0 ],
 		),
 
 		# (B)lue is the official colour of the Z axis
@@ -112,20 +114,43 @@ sub new {
 			X        => 0,
 			Y        => 1,
 			Z        => 0,
-			velocity => $self->dvector( 0, 0, 0.1 ),
-			ambient  => [ 0.2, 0.2, 0.5, 1 ],
-			diffuse  => [ 0.7, 0.7, 1.0, 1 ],
+			velocity => $self->dvector( 0.0, 0.0, 0.1 ),
+			ambient  => [ 0.2, 0.2, 0.5, 1.0 ],
+			diffuse  => [ 0.7, 0.7, 1.0, 1.0 ],
 		),
 
 		# (G)reen is the official colour of the Y axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
-			X        => 0,
+			X        => 0.0,
 			Y        => 1.5,
-			Z        => 0,
-			velocity => $self->dvector( 0, 0.1, 0 ),
+			Z        => 0.0,
+			velocity => $self->dvector( 0.0, 0.1, 0.0 ),
 			ambient  => [ 0.2, 0.5, 0.2, 1 ],
 			diffuse  => [ 0.7, 1.0, 0.7, 1 ],
 		),
+
+		# Place a static grid cube in the air on the positive
+		# and negative corners of the landscape, proving the
+		# grid-bounding math works (which it might not on the
+		# negative side of an axis if you mistakenly use int()
+		# for the math instead of something like POSIX::ceil/floor).
+		SDL::Tutorial::3DWorld::Actor::GridCube->new(
+			X => -3.7,
+			Y =>  1.3,
+			Z => -3.7,
+		),
+
+		# Set up a flying grid cube heading away from the teapots.
+		# This should demonstrate the "grid" nature of the cube,
+		# and the flying path will take us along a path that will
+		# share an edge with the static box, which should look neat.
+		SDL::Tutorial::3DWorld::Actor::GridCube->new(
+			X        => -0.33,
+			Y        =>  0.01,
+			Z        => -0.66,
+			velocity => $self->dvector( -0.1, 0.1, -0.1 ),
+		),
+
 	];
 
 	# Light the world with a single overhead light
@@ -140,9 +165,9 @@ sub new {
 	# Place the camera at a typical eye height a few metres back
 	# from the teapots and facing slightly down towards it.
 	$self->{camera} = SDL::Tutorial::3DWorld::Camera->new(
-		X     => 0,
+		X     => 0.0,
 		Y     => 1.5,
-		Z     => 5,
+		Z     => 5.0,
 		speed => $self->dscalar( 2 ),
 	);
 
@@ -198,13 +223,23 @@ sub run {
 sub init {
 	my $self = shift;
 
+	# Normally we want fullscreen, but occasionally we might want to
+	# disable it because we are on a portrait-orientation monitor
+	# or for unobtrusive testing (or it doesn't work on some machine).
+	# When showing in a window, drop the size to the window isn't huge.
+	my $fullscreen = not grep { $_ eq '--window' } @{$self->{ARGV}};
+	unless ( $fullscreen ) {
+		$self->{width}  = int( $self->{width}  / 2 );
+		$self->{height} = int( $self->{height} / 2 );
+	}
+
 	# Create the SDL application object
 	$self->{sdl} = SDLx::App->new(
 		title         => '3D World',
 		width         => $self->{width},
 		height        => $self->{height},
 		gl            => 1,
-		fullscreen    => 1,
+		fullscreen    => $fullscreen,
 		depth         => 24, # Prevent harsh colour stepping
 		double_buffer => 1,  # Reduce flicker during rapid mouselook
 	);

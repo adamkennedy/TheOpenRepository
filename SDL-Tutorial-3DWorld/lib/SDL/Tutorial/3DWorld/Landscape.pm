@@ -31,7 +31,7 @@ use File::ShareDir                  ();
 use SDL::Tutorial::3DWorld::Texture ();
 use OpenGL;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 =pod
 
@@ -76,7 +76,7 @@ blue.
 =cut
 
 sub sky {
-	return ( 0, 0, 0, 0 );
+	return ( 0, 0, 0, 1 );
 }
 
 
@@ -122,7 +122,6 @@ sub display {
 	glTexCoord2f( 1, 1 ); glVertex3d(  4, 0,  4 ); # Bottom Right
 	glTexCoord2f( 0, 1 ); glVertex3d( -4, 0,  4 ); # Bottom Left
 	glEnd();
-
 }
 
 1;

@@ -40,7 +40,7 @@ use File::Spec                      ();
 use SDL::Tutorial::3DWorld::Texture ();
 use OpenGL;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 =pod
 
@@ -160,7 +160,7 @@ sub display {
 	# When drawing the skybox cube, each quad should be slightly larger
 	# around than the distance each face is away from the camera.
 	# This creates an extremely slight overlap at each edge and prevents
-	# visible "seams" on the skybox (and makes it actually look decent).
+	# visible "seams" on the skybox which otherwise ruin the sky effect.
 	# 501 is enough to remove these seams, but using 500.1 isn't enough.
 
 	# Draw the north face
@@ -219,8 +219,12 @@ sub display {
 		glEnd();
 	}
 
-	# Clean up
+	# Light is on by default in the 3DWorld tutorial, so setting it
+	# back to the default here means every other lit object doesn't
+	# need to explicitly turn it on.
 	glEnable( GL_LIGHTING );
+
+	# Exit the special Matrix context the skybox needs to draw in.
 	glPopMatrix();
 
 	return 1;

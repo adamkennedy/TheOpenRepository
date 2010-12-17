@@ -45,7 +45,7 @@ use SDL::Video ();
 # Ensure all the OpenGL "constants" are loaded
 use SDL::Tutorial::3DWorld ();
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 =pod
 
@@ -193,8 +193,20 @@ sub init {
 }
 
 sub display {
-	OpenGL::glEnable( OpenGL::GL_TEXTURE_2D );
+	# Rebind the texture using the previously allocated id
 	OpenGL::glBindTexture( OpenGL::GL_TEXTURE_2D, $_[0]->{id} );
+
+	# As there is a mix of textured and plain objects in the 3DWorld
+	# tutorial, there is no default setting for texturing.
+	# Each object will need to flip it on or off as appropriate.
+	OpenGL::glEnable( OpenGL::GL_TEXTURE_2D );
+
+	# Reset color to opaque white to ensure that the texture is drawn
+	# fully opaque and in full colour.
+	# Having a non-white colour when drawing a textured polygon will
+	# result in the texture colours being filtered through that colour.
+	# This can be cool sometimes, but it's not what we want by default.
+	OpenGL::glColor4f( 1, 1, 1, 1 );
 }
 
 1;

@@ -44,7 +44,7 @@ use strict;
 use warnings;
 use OpenGL;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 =head2 new
 
@@ -58,21 +58,24 @@ In the demonstration implementation, the default actor consists of a teapot.
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my $self  = bless {
+		# Default location is at the origin
+		X         => 0,
+		Y         => 0,
+		Z         => 0,
 
-	# Default location is at the origin
-	$self->{X} ||= 0;
-	$self->{Y} ||= 0;
-	$self->{Z} ||= 0;
+		# Most things in the world don't move by default
+		velocity  => [ 0, 0, 0 ],
 
-	# The teapot is a nervous creature. At the slighest glimmer of light
-	# it's first inclination is to hold very very still.
-	$self->{velocity} ||= [ 0, 0, 0 ];
+		# 3D worlds are clinical, white and shiny by default
+		ambient   => [ 0.2, 0.2, 0.2, 1.0 ],
+		diffuse   => [ 0.8, 0.8, 0.8, 1.0 ],
+		specular  => [ 1.0, 1.0, 1.0, 1.0 ],
+		shininess => 100,
 
-	# Configurable material colours (default greenish and shiny)
-	$self->{ambient}  ||= [ 0.2, 0.3, 0.2, 1.0 ];
-	$self->{diffuse}  ||= [ 0.5, 0.7, 0.5, 1.0 ];
-	$self->{specular} ||= [ 1.0, 1.0, 1.0, 1.0 ];
+		# Override defaults
+		@_,
+	}, $class;
 
 	return $self;
 }
@@ -144,6 +147,26 @@ sub move {
 	$self->{X} += $self->{velocity}->[0] * $step;
 	$self->{Y} += $self->{velocity}->[1] * $step;
 	$self->{Z} += $self->{velocity}->[2] * $step;
+
+	return;
+}
+
+
+
+
+
+######################################################################
+# Support Methods
+
+sub display_material {
+	my $self = shift;
+
+	# Configure the material properties
+	glDisable( GL_TEXTURE_2D );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, @{$self->{ambient}} );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, @{$self->{diffuse}} );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, @{$self->{specular}} );
+	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, $self->{shininess} );
 
 	return;
 }

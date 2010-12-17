@@ -37,28 +37,60 @@ use warnings;
 use OpenGL;
 use SDL::Tutorial::3DWorld::Actor ();
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
+
+=pod
+
+=head2 new
+
+  # I want to be a little teapot, short and stout (and the default colour)
+  my $teapot = SDL::Tutorial::3DWorld::Actor::Teapot->new(
+      size => 0.15, # 15cm
+  );
+
+In additional to the regular material properties provided by the parent
+L<SDL::Tutorial::3DWorld::Actor> class teapots take an additional C<size>
+parameter to control how big the teapot is.
+
+Teapots are 20cm high by default (because tea is best with friends and so
+we'll need to brew several cups).
+
+=cut
+
+sub new {
+	my $class = shift;
+	my $self  = $class->SUPER::new(
+		@_,
+	);
+
+	# By default teapots are about 20cm in size (I'm making this up)
+	$self->{size} = 0.20;
+
+	return $self;
+}
+
+
+
+
+
+######################################################################
+# 
 
 sub display {
 	my $self = shift;
 	$self->SUPER::display(@_);
 
-	# Our teapot is a flat greenish colour.
-	glDisable( GL_TEXTURE_2D );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  @{$self->{ambient}}  );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  @{$self->{diffuse}}  );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, @{$self->{specular}} );
-	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 85 );
+	# Set the material properties
+	$self->display_material;
 
 	# Draw the teapot
-	OpenGL::glutSolidTeapot(0.20);
+	OpenGL::glutSolidTeapot($self->{size});
 
 	return;
 }
 
 1;
-
 
 =pod
 

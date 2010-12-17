@@ -1,7 +1,16 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
-0.13 to be released
+0.13 Fri 17 Dec 2010
 	- Factored the teapot-specific logic into a separate class
+	- Added a new "grid cube" actor which demonstrates points, lines,
+	  multiple element actors and grid-snapping for worlds which
+	  inherently consist of a cube space (think original Wolfenstein).
+	- When a texture is displayed it now inherently defends itself
+	  against being altered by previous alpha channel settings of
+	  other objects.
+	- The 3dworld launcher now supports a --window option to disable
+	  fullscreen in places where it's weird (like on my giant portrait
+	  orientation monitors at $work)
 
 0.12 Fri 17 Dec 2010
 	- Increase default (only) resolution to 1024x768
