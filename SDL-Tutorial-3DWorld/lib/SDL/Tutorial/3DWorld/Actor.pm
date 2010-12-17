@@ -44,7 +44,7 @@ use strict;
 use warnings;
 use OpenGL;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 =head2 new
 
@@ -133,7 +133,7 @@ sub init {
 sub display {
 	my $self = shift;
 
-	# Translate by the position of the actor
+	# Translate to the position of the actor
 	glTranslatef( $self->X, $self->Y, $self->Z );
 
 	return;
@@ -162,7 +162,6 @@ sub display_material {
 	my $self = shift;
 
 	# Configure the material properties
-	glDisable( GL_TEXTURE_2D );
 	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, @{$self->{ambient}} );
 	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, @{$self->{diffuse}} );
 	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, @{$self->{specular}} );

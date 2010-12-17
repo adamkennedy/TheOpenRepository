@@ -48,22 +48,23 @@ which you can start to make your own simple game-specific engines.
 use 5.008005;
 use strict;
 use warnings;
-use File::Spec                         0.80 ();
-use File::ShareDir                     1.02 ();
-use OpenGL                             0.64 ':all';
-use SDL                               2.524 ':all';
-use SDL::Event                              ':all';
-use SDLx::App                               ();
-use SDL::Tutorial::3DWorld::Light           ();
-use SDL::Tutorial::3DWorld::Actor           ();
-use SDL::Tutorial::3DWorld::Actor::Teapot   ();
-use SDL::Tutorial::3DWorld::Actor::GridCube ();
-use SDL::Tutorial::3DWorld::Camera          ();
-use SDL::Tutorial::3DWorld::Skybox          ();
-use SDL::Tutorial::3DWorld::Texture         ();
-use SDL::Tutorial::3DWorld::Landscape       ();
+use File::Spec                            0.80 ();
+use File::ShareDir                        1.02 ();
+use OpenGL                                0.64 ':all';
+use SDL                                  2.524 ':all';
+use SDL::Event                                 ':all';
+use SDLx::App                                  ();
+use SDL::Tutorial::3DWorld::Light              ();
+use SDL::Tutorial::3DWorld::Actor              ();
+use SDL::Tutorial::3DWorld::Actor::Teapot      ();
+use SDL::Tutorial::3DWorld::Actor::GridCube    ();
+use SDL::Tutorial::3DWorld::Actor::TextureCube ();
+use SDL::Tutorial::3DWorld::Camera             ();
+use SDL::Tutorial::3DWorld::Skybox             ();
+use SDL::Tutorial::3DWorld::Texture            ();
+use SDL::Tutorial::3DWorld::Landscape          ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 =pod
 
@@ -88,10 +89,7 @@ sub new {
 	# A pretty skybox background for our world
 	$self->{skybox} = SDL::Tutorial::3DWorld::Skybox->new(
 		type      => 'jpg',
-		directory => File::Spec->catdir(
-			File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
-			'skybox',
-		),
+		directory => $self->sharedir('skybox'),
 	);
 
 	# Create the landscape
@@ -104,9 +102,9 @@ sub new {
 			X        => 0.0,
 			Y        => 0.5,
 			Z        => 0.0,
-			velocity => $self->dvector( 0.1, 0.0, 0.0 ),
 			ambient  => [ 0.5, 0.2, 0.2, 1.0 ],
 			diffuse  => [ 1.0, 0.7, 0.7, 1.0 ],
+			velocity => $self->dvector( 0.1, 0.0, 0.0 ),
 		),
 
 		# (B)lue is the official colour of the Z axis
@@ -114,9 +112,9 @@ sub new {
 			X        => 0,
 			Y        => 1,
 			Z        => 0,
-			velocity => $self->dvector( 0.0, 0.0, 0.1 ),
 			ambient  => [ 0.2, 0.2, 0.5, 1.0 ],
 			diffuse  => [ 0.7, 0.7, 1.0, 1.0 ],
+			velocity => $self->dvector( 0.0, 0.0, 0.1 ),
 		),
 
 		# (G)reen is the official colour of the Y axis
@@ -124,9 +122,9 @@ sub new {
 			X        => 0.0,
 			Y        => 1.5,
 			Z        => 0.0,
-			velocity => $self->dvector( 0.0, 0.1, 0.0 ),
 			ambient  => [ 0.2, 0.5, 0.2, 1 ],
 			diffuse  => [ 0.7, 1.0, 0.7, 1 ],
+			velocity => $self->dvector( 0.0, 0.1, 0.0 ),
 		),
 
 		# Place a static grid cube in the air on the positive
@@ -151,6 +149,15 @@ sub new {
 			velocity => $self->dvector( -0.1, 0.1, -0.1 ),
 		),
 
+		# Place a typical large crate on the opposite side of the
+		# chessboard from the static gridcube.
+		SDL::Tutorial::3DWorld::Actor::TextureCube->new(
+			X       => 3.3,
+			Y       => 0.0,
+			Z       => 3.35,
+			size    => 1.3,
+			texture => $self->sharefile('crate1.jpg'),
+		),
 	];
 
 	# Light the world with a single overhead light
@@ -163,7 +170,7 @@ sub new {
 	];
 
 	# Place the camera at a typical eye height a few metres back
-	# from the teapots and facing slightly down towards it.
+	# from the teapots and facing slightly down towards them.
 	$self->{camera} = SDL::Tutorial::3DWorld::Camera->new(
 		X     => 0.0,
 		Y     => 1.5,
@@ -329,8 +336,17 @@ sub display {
 		$light->display;
 	}
 
-	# Draw each of the actors into the scene
-	foreach my $actor ( @{$self->{actors}} ) {
+	# Draw each of the actors into the scene.
+	# NOTE: Normally we might draw the actors in the order they
+	# were created or something similar.
+	# In THIS tutorial we'll draw the actors at random to let us be
+	# absolutely sure that each actor is toggling all the appropriate
+	# OpenGL global states (GL_LIGHTING, GL_TEXTURE_2D, etc) properly
+	# and won't break later because they happen to be used in a
+	# different order. If we are doing something wrong, some objects
+	# in the scene should flicker horribly badly.
+	my @actors = sort { rand() <=> rand() } @{$self->{actors}};
+	foreach my $actor ( @actors ) {
 		# Draw each actor in their own stack context so that
 		# their transform operations do not effect anything else.
 		glPushMatrix();
@@ -409,6 +425,26 @@ sub dvector {
 
 sub dscalar {
 	$_[0]->{dt} * $_[1];
+}
+
+sub sharedir {
+	my $self = shift;
+	File::Spec->rel2abs(
+		File::Spec->catdir(
+			File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
+			@_,
+		),
+	);
+}
+
+sub sharefile {
+	my $self = shift;
+	File::Spec->rel2abs(
+		File::Spec->catfile(
+			File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
+			@_,
+		),
+	);
 }
 
 1;

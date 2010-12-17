@@ -37,7 +37,7 @@ use warnings;
 use OpenGL;
 use SDL::Tutorial::3DWorld::Actor ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 =pod
@@ -82,6 +82,7 @@ sub display {
 	$self->SUPER::display(@_);
 
 	# Set the material properties
+	glDisable( GL_TEXTURE_2D );
 	$self->display_material;
 
 	# Draw the teapot

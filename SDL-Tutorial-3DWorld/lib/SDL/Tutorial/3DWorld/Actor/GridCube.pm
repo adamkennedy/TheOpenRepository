@@ -29,8 +29,15 @@ use SDL::Tutorial::3DWorld::Actor ();
 # Use proper POSIX math rather than playing games with Perl's int()
 use POSIX ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
+
+
+
+
+
+######################################################################
+# Engine Interface
 
 sub display {
 	my $self = shift;

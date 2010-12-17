@@ -1,5 +1,15 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.14 Fri 17 Dec 2010
+	- Actors are now rendered in random order to expose any places
+	  where material property state management is being done badly.
+	- Added some simple utility methods for getting paths to files
+	  and directories in the share directory.
+	- Added a TextureCube package for creating floor-origin rotatable
+	  resizable cubes with the same (and correctly oriented) texture
+	  on each face. Which is to say...
+	- Fear the mighty Crate! Weep! Swoon!
+
 0.13 Fri 17 Dec 2010
 	- Factored the teapot-specific logic into a separate class
 	- Added a new "grid cube" actor which demonstrates points, lines,
