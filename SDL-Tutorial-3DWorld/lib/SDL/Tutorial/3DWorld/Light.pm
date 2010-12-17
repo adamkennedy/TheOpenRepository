@@ -39,7 +39,7 @@ use strict;
 use warnings;
 use OpenGL;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 =pod
 

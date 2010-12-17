@@ -1,6 +1,6 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
-0.16 to be released
+0.16 Sat 18 Dec 2010
 	- Switch from manual GL display list code to OpenGL::List
 	- Implemented left shift for "running"
 
