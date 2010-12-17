@@ -4,7 +4,7 @@ package SDL::Tutorial::3DWorld;
 
 =head1 NAME
 
-SDL::Tutorial::3DWorld - Create a good looking 3D world from scratch with SDL
+SDL::Tutorial::3DWorld - Create a 3D world from scratch with SDL and OpenGL
 
 =head1 DESCRIPTION
 
@@ -64,7 +64,7 @@ use SDL::Tutorial::3DWorld::Skybox             ();
 use SDL::Tutorial::3DWorld::Texture            ();
 use SDL::Tutorial::3DWorld::Landscape          ();
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 =pod
 

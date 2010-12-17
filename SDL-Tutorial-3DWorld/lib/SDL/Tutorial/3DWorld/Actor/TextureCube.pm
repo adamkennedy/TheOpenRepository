@@ -30,10 +30,11 @@ sitting "on" the plane.
 use strict;
 use warnings;
 use OpenGL;
+use Params::Util                    '_INSTANCE';
 use SDL::Tutorial::3DWorld::Actor   ();
 use SDL::Tutorial::3DWorld::Texture ();
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 =pod
@@ -55,9 +56,13 @@ The C<new> constructor creates a new textured cube.
 In addition to the usual L<SDL::Tutorial::3DWorld::Actor> parameters,
 it takes some additional parameters.
 
-The C<size> parameter is the size of the cube
-an additional "texture" parameter which should be the name of
-the file containing the texture to be used on all six sides of the cube.
+The C<size> parameter is the size of the cube in metres. Cubes grow in
+size upwards from the base in the vertical plane, and outwards from the
+centre on the horizontal plane.
+
+The C<texture> parameter should be the name of the file containing the
+texture to be used on all six sides of the cube. Alternatively, you can
+if you wish pass in your own L<SDL::Tutorial::3DWorld::Texture> object.
 
 =cut
 
@@ -72,9 +77,11 @@ sub new {
 	);
 
 	# Convert the texture parameter to a texture object
-	$self->{texture} = SDL::Tutorial::3DWorld::Texture->new(
-		file => $self->{texture},
-	);
+	unless ( _INSTANCE($self->{texture}, 'SDL::Tutorial::3DWorld::Texture') ) {
+		$self->{texture} = SDL::Tutorial::3DWorld::Texture->new(
+			file => $self->{texture},
+		);
+	}
 
 	return $self;
 }
@@ -92,6 +99,9 @@ sub init {
 
 	# Initialise our texture as well
 	$self->{texture}->init;
+
+	# Pre-compile the cube drawing code
+	$self->{list} = $self->compile;
 
 	return;
 }
@@ -111,6 +121,22 @@ sub display {
 	# To prevent having to calculate all of the measurements of
 	# the cube, we apply the scaling via a single call.
 	glScalef( $scale, $scale, $scale );
+
+	# Call the compiled form of the draw method below that has been
+	# pre-compiled into the OpenGL context.
+	glCallList( $self->{list} );
+}
+
+# Compile the drawing instructions for the cube into an OpenGL
+# "display list" (which is basically just a macro in GL terms).
+# Using a list instead of manually doing each vector will remove
+# off all of the Perl overheads, and even some of the C overheads.
+sub compile {
+	my $self = shift;
+
+	# Set up for list recording
+	my $list = glGenLists(1);
+	glNewList( $list, GL_COMPILE );
 
 	# Enable the texture
 	$self->{texture}->display;
@@ -157,7 +183,13 @@ sub display {
 	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
 	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
 
+	# Finish drawing
 	glEnd();
+
+	# Finish recording
+	glEndList();
+
+	return $list;
 }
 
 1;

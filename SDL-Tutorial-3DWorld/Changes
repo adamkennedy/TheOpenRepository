@@ -1,5 +1,11 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.15 Fri 17 Dec 2010
+	- Because we can be fairly certain that TextureCube (i.e. crates)
+	  will be popular, use that class to demonstrate the use of OpenGL
+	  display lists via glGenLists(), glNewList(), and glCallList().
+	- Noting that, of all things, glLineWidth() is insanely expensive.
+
 0.14 Fri 17 Dec 2010
 	- Actors are now rendered in random order to expose any places
 	  where material property state management is being done badly.

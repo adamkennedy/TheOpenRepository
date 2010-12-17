@@ -29,7 +29,7 @@ use SDL::Tutorial::3DWorld::Actor ();
 # Use proper POSIX math rather than playing games with Perl's int()
 use POSIX ();
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 
@@ -66,12 +66,15 @@ sub display {
 	my $U = POSIX::ceil($Y);  # (U)p
 	my $B = POSIX::ceil($Z);  # (B)ack
 
+	# For some reason, this particular function is incredibly
+	# expensive according to NYTProf.
+	glLineWidth( 1 );
+
 	# Draw the lines that make up the cube.
 	# We'll do this longhand to make it clear how much work can be
 	# involved in hand-drawning something. In practice you would
 	# probably use a tuned and optimised alternative, or just
 	# translate and call C<glutCube> or load a saved model.
-	glLineWidth( 1 );
 	glBegin( GL_LINES );
 	glVertex3f( $L, $D, $F ); glVertex3f( $R, $D, $F );
 	glVertex3f( $L, $D, $F ); glVertex3f( $L, $U, $F );
