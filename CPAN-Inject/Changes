@@ -1,5 +1,9 @@
 Revision history for Perl extension CPAN-Inject
 
+1.12 Sat 18 Dec 2010
+	- Moving to a production version
+	- Updating Module::Install to 1.00
+
 0.11 Tue 11 Dec 2007
 	- Updating Win32 File::Remove dep to 0.38
 	- Upgrading to Module::Install 0.68
