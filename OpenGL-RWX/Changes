@@ -1,4 +1,7 @@
 Changes for Perl extension OpenGL-RWX
 
-0.01 to be released
+0.02 to be released
+	- Adding support for the vertexect alias
+
+0.01 Sat 18 Dec 2010
 	- Creating initial implementation

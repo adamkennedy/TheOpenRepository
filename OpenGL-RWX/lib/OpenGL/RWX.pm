@@ -44,7 +44,7 @@ use File::Spec   3.31 ();
 use OpenGL       0.64 qw{ GL_POINTS }; # Declare here so our use below works
 use OpenGL::List 0.01 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 
@@ -119,7 +119,7 @@ sub parse {
 		# Parse the dispatch the line
 		my @words   = split /\s+/, $line;
 		my $command = shift @words;
-		if ( $command eq 'vertex' ) {
+		if ( $command eq 'vertex' or $command eq 'vertexext' ) {
 			# Only take the first three values, ignore any uv stuff
 			push @vertex, [ @words[0..2] ];
 
