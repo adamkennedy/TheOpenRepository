@@ -1,5 +1,8 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.17 Sat 18 Dec 2010
+	- Added preliminary support for loading models from RWX files
+
 0.16 Sat 18 Dec 2010
 	- Switch from manual GL display list code to OpenGL::List
 	- Implemented left shift for "running"

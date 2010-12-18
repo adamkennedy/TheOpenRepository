@@ -57,6 +57,7 @@ use SDL::Event                                 ':all';
 use SDLx::App                                  ();
 use SDL::Tutorial::3DWorld::Light              ();
 use SDL::Tutorial::3DWorld::Actor              ();
+use SDL::Tutorial::3DWorld::Actor::Model       ();
 use SDL::Tutorial::3DWorld::Actor::Teapot      ();
 use SDL::Tutorial::3DWorld::Actor::GridCube    ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube ();
@@ -65,7 +66,7 @@ use SDL::Tutorial::3DWorld::Skybox             ();
 use SDL::Tutorial::3DWorld::Texture            ();
 use SDL::Tutorial::3DWorld::Landscape          ();
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 =pod
 
@@ -159,6 +160,16 @@ sub new {
 			size    => 1.3,
 			texture => $self->sharefile('crate1.jpg'),
 		),
+
+		# Place a lollipop at the origin
+		SDL::Tutorial::3DWorld::Actor::Model->new(
+			X        => -2,
+			Y        => 0,
+			Z        => 0,
+			velocity => [ 0, 0, 0 ],
+			file     => File::Spec->catfile('model', 'lollipop', 'hflollipop1gr.rwx'),
+		),
+
 	];
 
 	# Light the world with a single overhead light

@@ -29,7 +29,7 @@ use SDL::Tutorial::3DWorld::Actor ();
 # Use proper POSIX math rather than playing games with Perl's int()
 use POSIX ();
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 
