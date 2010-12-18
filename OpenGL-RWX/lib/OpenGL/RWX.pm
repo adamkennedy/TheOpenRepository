@@ -41,7 +41,7 @@ use strict;
 use warnings;
 use IO::File     1.14 ();
 use File::Spec   3.31 ();
-use OpenGL       0.64 ();
+use OpenGL       0.64 qw{ GL_POINTS }; # Declare here so our use below works
 use OpenGL::List 0.01 ();
 
 our $VERSION = '0.01';
@@ -111,10 +111,9 @@ sub parse {
 	while ( 1 ) {
 		my $line = $handle->getline;
 		last unless defined $line;
-		chomp( $line );
 
 		# Remove blank lines, trailing whitespace and comments
-		$line =~ s/\s*(?:#.+)$//;
+		$line =~ s/\s*(?:#.+)[\012\015]*\z//;
 		$line =~ m/\S/ or next;
 
 		# Parse the dispatch the line
@@ -131,11 +130,13 @@ sub parse {
 
 	# Provide a temporary debugging visualisation tool.
 	# Render all of the vertex entries as points.
-	glBegin( GL_POINTS );
-	foreach ( 1 .. $#vertex ) {
-		OpenGL::glVertex3f( @$_ );
-	}
-	glEnd();
+	$self->{list} = OpenGL::List::glpList {
+		OpenGL::glBegin( OpenGL::GL_POINTS );
+		foreach ( 1 .. $#vertex ) {
+			OpenGL::glVertex3f( @{ $vertex[$_] } );
+		}
+		OpenGL::glEnd();
+	};
 
 	return 1;
 }
