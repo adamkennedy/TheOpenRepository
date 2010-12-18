@@ -149,7 +149,7 @@ sub parse {
 
 Bugs should be reported via the CPAN bug tracker at
 
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=OpenGL-List>
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=OpenGL-RWX>
 
 =head1 AUTHOR
 
