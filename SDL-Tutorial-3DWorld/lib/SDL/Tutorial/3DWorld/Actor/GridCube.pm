@@ -23,13 +23,13 @@ on the positive axis side (in all three dimension) of the actor position.
 
 use strict;
 use warnings;
-use OpenGL;
-use SDL::Tutorial::3DWorld::Actor ();
+use SDL::Tutorial::3DWorld::OpenGL ();
+use SDL::Tutorial::3DWorld::Actor  ();
 
 # Use proper POSIX math rather than playing games with Perl's int()
 use POSIX ();
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 
@@ -48,15 +48,15 @@ sub display {
 	my $Z = $self->Z;
 
 	# The cube is plain opaque full-bright white and ignores lighting
-	glDisable( GL_LIGHTING );
-	glDisable( GL_TEXTURE_2D );
-	glColor4f( 1, 1, 1, 1 );
+	OpenGL::glDisable( OpenGL::GL_LIGHTING );
+	OpenGL::glDisable( OpenGL::GL_TEXTURE_2D );
+	OpenGL::glColor4f( 1, 1, 1, 1 );
 
 	# Draw a point actual X,Y,Z position is
-	glPointSize( 5 );
-	glBegin( GL_POINTS );
-	glVertex3f( $X, $Y, $Z );
-	glEnd();
+	OpenGL::glPointSize( 5 );
+	OpenGL::glBegin( OpenGL::GL_POINTS );
+	OpenGL::glVertex3f( $X, $Y, $Z );
+	OpenGL::glEnd();
 
 	# Snap the current floating position to the 1 metre (integer) grid
 	my $L = POSIX::floor($X); # (L)eft
@@ -68,32 +68,32 @@ sub display {
 
 	# For some reason, this particular function is incredibly
 	# expensive according to NYTProf.
-	glLineWidth( 1 );
+	OpenGL::glLineWidth( 1 );
 
 	# Draw the lines that make up the cube.
 	# We'll do this longhand to make it clear how much work can be
 	# involved in hand-drawning something. In practice you would
 	# probably use a tuned and optimised alternative, or just
 	# translate and call C<glutCube> or load a saved model.
-	glBegin( GL_LINES );
-	glVertex3f( $L, $D, $F ); glVertex3f( $R, $D, $F );
-	glVertex3f( $L, $D, $F ); glVertex3f( $L, $U, $F );
-	glVertex3f( $L, $D, $F ); glVertex3f( $L, $D, $B );
-	glVertex3f( $R, $D, $F ); glVertex3f( $R, $U, $F );
-	glVertex3f( $R, $D, $F ); glVertex3f( $R, $D, $B );
-	glVertex3f( $L, $U, $F ); glVertex3f( $R, $U, $F );
-	glVertex3f( $L, $U, $F ); glVertex3f( $L, $U, $B );
-	glVertex3f( $L, $D, $B ); glVertex3f( $R, $D, $B );
-	glVertex3f( $L, $D, $B ); glVertex3f( $L, $U, $B );
-	glVertex3f( $R, $U, $F ); glVertex3f( $R, $U, $B );
-	glVertex3f( $R, $D, $B ); glVertex3f( $R, $U, $B );
-	glVertex3f( $L, $U, $B ); glVertex3f( $R, $U, $B );
-	glEnd();
+	OpenGL::glBegin( OpenGL::GL_LINES );
+	OpenGL::glVertex3f( $L, $D, $F ); OpenGL::glVertex3f( $R, $D, $F );
+	OpenGL::glVertex3f( $L, $D, $F ); OpenGL::glVertex3f( $L, $U, $F );
+	OpenGL::glVertex3f( $L, $D, $F ); OpenGL::glVertex3f( $L, $D, $B );
+	OpenGL::glVertex3f( $R, $D, $F ); OpenGL::glVertex3f( $R, $U, $F );
+	OpenGL::glVertex3f( $R, $D, $F ); OpenGL::glVertex3f( $R, $D, $B );
+	OpenGL::glVertex3f( $L, $U, $F ); OpenGL::glVertex3f( $R, $U, $F );
+	OpenGL::glVertex3f( $L, $U, $F ); OpenGL::glVertex3f( $L, $U, $B );
+	OpenGL::glVertex3f( $L, $D, $B ); OpenGL::glVertex3f( $R, $D, $B );
+	OpenGL::glVertex3f( $L, $D, $B ); OpenGL::glVertex3f( $L, $U, $B );
+	OpenGL::glVertex3f( $R, $U, $F ); OpenGL::glVertex3f( $R, $U, $B );
+	OpenGL::glVertex3f( $R, $D, $B ); OpenGL::glVertex3f( $R, $U, $B );
+	OpenGL::glVertex3f( $L, $U, $B ); OpenGL::glVertex3f( $R, $U, $B );
+	OpenGL::glEnd();
 
 	# Lighting is on by default in our 3DWorld application.
 	# Reenable it so each individual lit object doesn't have to
 	# explicitly turn it on.
-	glEnable( GL_LIGHTING );
+	OpenGL::glEnable( OpenGL::GL_LIGHTING );
 
 	return;
 }

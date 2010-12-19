@@ -48,25 +48,27 @@ which you can start to make your own simple game-specific engines.
 use 5.008005;
 use strict;
 use warnings;
-use File::Spec                            0.80 ();
-use File::ShareDir                        1.02 ();
-use OpenGL                                0.64 ':all';
-use OpenGL::List                          0.01 ();
-use SDL                                  2.524 ':all';
-use SDL::Event                                 ':all';
-use SDLx::App                                  ();
-use SDL::Tutorial::3DWorld::Light              ();
-use SDL::Tutorial::3DWorld::Actor              ();
-use SDL::Tutorial::3DWorld::Actor::Model       ();
-use SDL::Tutorial::3DWorld::Actor::Teapot      ();
-use SDL::Tutorial::3DWorld::Actor::GridCube    ();
-use SDL::Tutorial::3DWorld::Actor::TextureCube ();
-use SDL::Tutorial::3DWorld::Camera             ();
-use SDL::Tutorial::3DWorld::Skybox             ();
-use SDL::Tutorial::3DWorld::Texture            ();
-use SDL::Tutorial::3DWorld::Landscape          ();
+use File::Spec                             0.80 ();
+use File::ShareDir                         1.02 ();
+use OpenGL                                 0.64 ':all';
+use OpenGL::List                           0.01 ();
+use SDL                                   2.524 ':all';
+use SDL::Event                                  ':all';
+use SDLx::App                                   ();
+use SDL::Tutorial::3DWorld::OpenGL              ();
+use SDL::Tutorial::3DWorld::Light               ();
+use SDL::Tutorial::3DWorld::Actor               ();
+use SDL::Tutorial::3DWorld::Actor::Model        ();
+use SDL::Tutorial::3DWorld::Actor::Teapot       ();
+use SDL::Tutorial::3DWorld::Actor::GridCube     ();
+use SDL::Tutorial::3DWorld::Actor::TextureCube  ();
+use SDL::Tutorial::3DWorld::Camera              ();
+use SDL::Tutorial::3DWorld::Skybox              ();
+use SDL::Tutorial::3DWorld::Texture             ();
+use SDL::Tutorial::3DWorld::Landscape           ();
+use SDL::Tutorial::3DWorld::Landscape::Infinite ();
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =pod
 
@@ -95,7 +97,9 @@ sub new {
 	);
 
 	# Create the landscape
-	$self->{landscape} = SDL::Tutorial::3DWorld::Landscape->new;
+	$self->{landscape} = SDL::Tutorial::3DWorld::Landscape::Infinite->new(
+		texture => $self->sharefile('ground.jpg'),
+	);
 
 	# Place three airborn stationary teapots in the scene
 	$self->{actors} = [
@@ -283,12 +287,6 @@ sub init {
 	glEnable( GL_LINE_SMOOTH    );
 	glEnable( GL_POINT_SMOOTH   );
 	glEnable( GL_POLYGON_SMOOTH );
-
-	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-
-	glEnable(GL_MULTISAMPLE_ARB);
 
 	# Use the prettiest shading available to us
 	glShadeModel( GL_SMOOTH );

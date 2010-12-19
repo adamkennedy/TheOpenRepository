@@ -1,5 +1,14 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+1.18 Sun 19 Dec 2010
+	- Moving the landscape to a typical 2000-era infinite ground plane,
+	  but with a more detailed texture than in that era.
+	  Unfortunately, the new ground plane means our skybox looks wrong
+	  now, as it was never designed for use with a ground plane.
+	- Reorganised some internals so we don't need to export from OpenGL
+	  so much. This will be removed later, once OpenGL fixes it constants.
+	- Added support for tiling textures with SDL::Tutorial::3DWorld::Tile
+
 0.17 Sat 18 Dec 2010
 	- Added preliminary support for loading models from RWX files
 

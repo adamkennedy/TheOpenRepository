@@ -31,7 +31,7 @@ use File::ShareDir                  ();
 use SDL::Tutorial::3DWorld::Texture ();
 use OpenGL;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =pod
 
@@ -117,10 +117,10 @@ sub display {
 	# Draw the platform
 	glBegin( GL_QUADS );
 	glNormal3f( 0, 1, 0 );
-	glTexCoord2f( 0.005, 0.005 ); glVertex3d( -4, 0, -4 ); # Top Left
-	glTexCoord2f( 0.995, 0.005 ); glVertex3d(  4, 0, -4 ); # Top Right
-	glTexCoord2f( 0.995, 0.995 ); glVertex3d(  4, 0,  4 ); # Bottom Right
-	glTexCoord2f( 0.005, 0.995 ); glVertex3d( -4, 0,  4 ); # Bottom Left
+	glTexCoord2f(    0, 1000 ); glVertex3d( -4, 0, -4 ); # Top Left
+	glTexCoord2f( 1000,    0 ); glVertex3d(  4, 0, -4 ); # Top Right
+	glTexCoord2f( 1000, 1000 ); glVertex3d(  4, 0,  4 ); # Bottom Right
+	glTexCoord2f(    0, 1000 ); glVertex3d( -4, 0,  4 ); # Bottom Left
 	glEnd();
 }
 

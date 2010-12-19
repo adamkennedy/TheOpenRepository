@@ -1,36 +1,26 @@
-package SDL::Tutorial::3DWorld::Texture;
+package SDL::Tutorial::3DWorld::Tile;
 
 =pod
 
 =head1 NAME
 
-SDL::Tutorial::3DWorld::Texture - A texture API simple enough for mere mortals
+SDL::Tutorial::3DWorld::Tile - A texture that can repeat without seams
 
 =head1 SYNOPSIS
 
   # Create the texture object (validating only the file exists)
-  my $texture = SDL::Tutorial::3DWorld::Texture->new( file => $file );
+  my $tile = SDL::Tutorial::3DWorld::Texture->new( file => $file );
   
   # Load the texture into memory, ready for use in your program
-  $texture->init;
+  $tile->init;
   
   # Make this texture the active OpenGL texture for drawing
-  $texture->display;
+  $tile->display;
 
 =head1 DESCRIPTION
 
-OpenGL textures are a large and complex topic, with a steep learning curve.
-
-Most tutorials on texturing demonstrate a single specific use case, and
-often implement their own image loaders in the process. Unlike most other
-basic topics in OpenGL, texturing examples are difficult to translate into
-working code for your own program (and even then the amount of code can
-be rather large and crufty).
-
-This module provides a convenient abstraction that streamlines the most
-obvious case of reading an image file from disk, binding it to the OpenGL
-environment, and then activating the texture so you can paint it onto
-something.
+A B<Tile> is a texture which can be repeated endlessly without visible edges
+between the repetitions.
 
 =head1 METHODS
 
@@ -38,65 +28,11 @@ something.
 
 use strict;
 use warnings;
-use SDL::Image                     ();
-use SDL::Video                     ();
-use SDL::Tutorial::3DWorld::OpenGL ();
-
-# SDL::Image creates SDL::Surface objects without loading their classes.
-# Naughty, naughty, naughty!
-use SDL::Surface     ();
-use SDL::PixelFormat ();
+use SDL::Tutorial::3DWorld::OpenGL  ();
+use SDL::Tutorial::3DWorld::Texture ();
 
 our $VERSION = '0.18';
-
-=pod
-
-=head2 new
-
-  # Load a texture from a shared file texture collection
-  my $chess = SDL::Tutorial::3DWorld::Texture->new(
-      file => File::Spec->catfile(
-          File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
-          'textures',
-          'chessboard.png',
-      ),
-  );
-
-The C<new> constructor creates a new texture handle which identifies a
-texture to be loaded from disk.
-
-It takes a single named C<file> parameter which should be the path to
-the texture on disk. While the C<new> constructor will validate that the
-file exists, it will not attempt to load the image. Any image files that
-are broken, corrupt or unsupported will not be identified until C<init>
-is called.
-
-=cut
-
-sub new {
-	my $class = shift;
-	my $self  = bless { @_ }, $class;
-
-	# Check the file
-	unless ( -f $self->file ) {
-		die "Texture file '" . $self->file . "' does not exist";
-	}
-
-	return $self;
-}
-
-=pod
-
-=head2 file
-
-The C<file> accessor returns the path to the file the texture was
-originally loaded from.
-
-=cut
-
-sub file {
-	$_[0]->{file};
-}
+our @ISA     = 'SDL::Tutorial::3DWorld::Texture';
 
 
 
@@ -113,9 +49,9 @@ sub init {
 
 	# Use SDL to load the image
 	my $image = SDL::Image::load( $self->file );
-	unless ( $image ) {
-		die "Cannot load image file '" . $self->file . "'";
-	}
+
+	# Check if the image actually got loaded
+	Carp::croak( 'Cannot load image at '.$self->file. ": ".SDL::get_error) unless $image;
 
 	# Tell SDL to leave the memory the image is in exactly where
 	# it is, so that OpenGL can bind to it directly.
@@ -172,6 +108,13 @@ sub init {
 		OpenGL::GL_LINEAR, # OpenGL::GL_NEAREST,
 	);
 
+	# Wrap the textures
+	OpenGL::glTexParameterf(
+		OpenGL::GL_TEXTURE_2D,
+		OpenGL::GL_TEXTURE_WRAP_S,
+		OpenGL::GL_REPEAT,
+	);
+
 	# Write the image data into the texture, generating a mipmap for
 	# scaling as we do so (so it looks pretty no matter how far away
 	# it is).
@@ -192,23 +135,6 @@ sub init {
 	$self->{mask}   = $mask;
 
 	return 1;
-}
-
-sub display {
-	# Rebind the texture using the previously allocated id
-	OpenGL::glBindTexture( OpenGL::GL_TEXTURE_2D, $_[0]->{id} );
-
-	# As there is a mix of textured and plain objects in the 3DWorld
-	# tutorial, there is no default setting for texturing.
-	# Each object will need to flip it on or off as appropriate.
-	OpenGL::glEnable( OpenGL::GL_TEXTURE_2D );
-
-	# Reset color to opaque white to ensure that the texture is drawn
-	# fully opaque and in full colour.
-	# Having a non-white colour when drawing a textured polygon will
-	# result in the texture colours being filtered through that colour.
-	# This can be cool sometimes, but it's not what we want by default.
-	OpenGL::glColor4f( 1, 1, 1, 1 );
 }
 
 1;
