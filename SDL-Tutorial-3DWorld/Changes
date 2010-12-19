@@ -1,6 +1,6 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
-1.18 Sun 19 Dec 2010
+0.18 Sun 19 Dec 2010
 	- Moving the landscape to a typical 2000-era infinite ground plane,
 	  but with a more detailed texture than in that era.
 	  Unfortunately, the new ground plane means our skybox looks wrong
