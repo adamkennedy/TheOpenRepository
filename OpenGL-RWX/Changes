@@ -1,7 +1,9 @@
 Changes for Perl extension OpenGL-RWX
 
-0.02 to be released
+0.02 Sun 19 Dec 2010
 	- Adding support for the vertexect alias
+	- Adding support for drawing polygons
+	- Adding support for drawing quads
 
 0.01 Sat 18 Dec 2010
 	- Creating initial implementation

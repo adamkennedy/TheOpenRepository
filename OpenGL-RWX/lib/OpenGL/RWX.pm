@@ -41,8 +41,10 @@ use strict;
 use warnings;
 use IO::File     1.14 ();
 use File::Spec   3.31 ();
-use OpenGL       0.64 qw{ GL_POINTS }; # Declare here so our use below works
 use OpenGL::List 0.01 ();
+
+# Declare here so our use below works
+use OpenGL       0.64 qw{ GL_POINTS GL_TRIANGLES GL_QUADS };
 
 our $VERSION = '0.02';
 
@@ -106,36 +108,58 @@ sub parse {
 
 	# Set up the (Perl) vertex array.
 	# The vertex list starts from position 1, so prepad a null
+	my $begin  = undef;
 	my @vertex = ( undef );
 
-	while ( 1 ) {
-		my $line = $handle->getline;
-		last unless defined $line;
-
-		# Remove blank lines, trailing whitespace and comments
-		$line =~ s/\s*(?:#.+)[\012\015]*\z//;
-		$line =~ m/\S/ or next;
-
-		# Parse the dispatch the line
-		my @words   = split /\s+/, $line;
-		my $command = shift @words;
-		if ( $command eq 'vertex' or $command eq 'vertexext' ) {
-			# Only take the first three values, ignore any uv stuff
-			push @vertex, [ @words[0..2] ];
-
-		} else {
-			# Unsupported command, silently ignore
-		}
-	}
-
-	# Provide a temporary debugging visualisation tool.
-	# Render all of the vertex entries as points.
+	# Start the list context
 	$self->{list} = OpenGL::List::glpList {
-		OpenGL::glBegin( OpenGL::GL_POINTS );
-		foreach ( 1 .. $#vertex ) {
-			OpenGL::glVertex3f( @{ $vertex[$_] } );
+
+		while ( 1 ) {
+			my $line = $handle->getline;
+			last unless defined $line;
+
+			# Remove blank lines, trailing whitespace and comments
+			$line =~ s/\s*(?:#.+)[\012\015]*\z//;
+			$line =~ m/\S/ or next;
+
+			# Parse the dispatch the line
+			my @words   = split /\s+/, $line;
+			my $command = shift @words;
+			if ( $command eq 'vertex' or $command eq 'vertexext' ) {
+				# Only take the first three values, ignore any uv stuff
+				push @vertex, [ @words[0..2] ];
+
+			} elsif ( $command eq 'triangle' ) {
+				# Switch to triangle drawing mode if needed
+				OpenGL::glEnd() if defined $begin;
+				OpenGL::glBegin( OpenGL::GL_TRIANGLES );
+				$begin = 'triangle';
+
+				# Draw the polygon
+				OpenGL::glVertex3f( @{$vertex[$words[0]]} );
+				OpenGL::glVertex3f( @{$vertex[$words[1]]} );
+				OpenGL::glVertex3f( @{$vertex[$words[2]]} );
+
+			} elsif ( $command eq 'quad' ) {
+				# Switch to quad drawing mode if needed
+				OpenGL::glEnd() if defined $begin;
+				OpenGL::glBegin( OpenGL::GL_QUADS );
+				$begin = 'quad';
+
+				# Draw the quad
+				OpenGL::glVertex3f( @{$vertex[$words[0]]} );
+				OpenGL::glVertex3f( @{$vertex[$words[1]]} );
+				OpenGL::glVertex3f( @{$vertex[$words[2]]} );
+				OpenGL::glVertex3f( @{$vertex[$words[3]]} );
+
+			} else {
+				# Unsupported command, silently ignore
+			}
 		}
-		OpenGL::glEnd();
+
+		# Terminate drawing mode if we're still in it
+		OpenGL::glEnd() if defined $begin;
+
 	};
 
 	return 1;
