@@ -41,10 +41,8 @@ use strict;
 use warnings;
 use IO::File     1.14 ();
 use File::Spec   3.31 ();
+use OpenGL       0.64 ':all';
 use OpenGL::List 0.01 ();
-
-# Declare here so our use below works
-use OpenGL       0.64 qw{ GL_POINTS GL_TRIANGLES GL_QUADS };
 
 our $VERSION = '0.02';
 
@@ -65,6 +63,9 @@ sub new {
 		die "RWX model file '$file' does not exists";
 	}
 
+	# Texture cache
+	$self->{textures} = { };
+
 	return $self;
 }
 
@@ -84,7 +85,7 @@ sub list {
 # Main Methods
 
 sub display {
-	OpenGL::glCallList( $_[0]->{list} );
+	glCallList( $_[0]->{list} );
 }
 
 sub init {
@@ -108,11 +109,32 @@ sub parse {
 
 	# Set up the (Perl) vertex array.
 	# The vertex list starts from position 1, so prepad a null
-	my $begin  = undef;
-	my @vertex = ( undef );
+	my @color   = ( 0, 0, 0 );
+	my $ambient = 0;
+	my $diffuse = 1;
+	my $opacity = 1;
+	my @vertex  = ( undef );
+	my $begin   = undef;
 
 	# Start the list context
 	$self->{list} = OpenGL::List::glpList {
+		# Start without texture support and reset specularity
+		glEnable( GL_LIGHTING );
+		glDisable( GL_TEXTURE_2D );
+		OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 128 );
+		OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 1, 1, 1, 1 );
+		OpenGL::glMaterialfv_p(
+			GL_FRONT,
+			GL_AMBIENT,
+			( map { $_ * $ambient } @color ),
+			$opacity,
+		);
+		OpenGL::glMaterialfv_p(
+			GL_FRONT,
+			GL_DIFFUSE,
+			( map { $_ * $diffuse } @color ),
+			$opacity,
+		);
 
 		while ( 1 ) {
 			my $line = $handle->getline;
@@ -124,33 +146,116 @@ sub parse {
 
 			# Parse the dispatch the line
 			my @words   = split /\s+/, $line;
-			my $command = shift @words;
+			my $command = lc shift @words;
 			if ( $command eq 'vertex' or $command eq 'vertexext' ) {
 				# Only take the first three values, ignore any uv stuff
 				push @vertex, [ @words[0..2] ];
 
+			} elsif ( $command eq 'color' ) {
+				@color = @words;
+				OpenGL::glMaterialfv_p(
+					GL_FRONT,
+					GL_AMBIENT,
+					( map { $_ * $ambient } @color ),
+					$opacity,
+				);
+				OpenGL::glMaterialfv_p(
+					GL_FRONT,
+					GL_DIFFUSE,
+					( map { $_ * $diffuse } @color ),
+					$opacity,
+				);
+
+			} elsif ( $command eq 'ambient' ) {
+				$ambient = $words[0];
+				OpenGL::glMaterialfv_p(
+					GL_FRONT,
+					GL_AMBIENT,
+					( map { $_ * $ambient } @color ),
+					$opacity,
+				);
+				OpenGL::glMaterialfv_p(
+					GL_FRONT,
+					GL_DIFFUSE,
+					( map { $_ * $diffuse } @color ),
+					$opacity,
+				);
+
+			} elsif ( $command eq 'diffuse' ) {
+				$diffuse = $words[0];
+				OpenGL::glMaterialfv_p(
+					GL_FRONT,
+					GL_AMBIENT,
+					( map { $_ * $ambient } @color ),
+					$opacity,
+				);
+				OpenGL::glMaterialfv_p(
+					GL_FRONT,
+					GL_DIFFUSE,
+					( map { $_ * $diffuse } @color ),
+					$opacity,
+				);
+
 			} elsif ( $command eq 'triangle' ) {
 				# Switch to triangle drawing mode if needed
-				OpenGL::glEnd() if defined $begin;
-				OpenGL::glBegin( OpenGL::GL_TRIANGLES );
+				glEnd() if defined $begin;
+				glBegin( GL_TRIANGLES );
 				$begin = 'triangle';
 
-				# Draw the polygon
-				OpenGL::glVertex3f( @{$vertex[$words[0]]} );
-				OpenGL::glVertex3f( @{$vertex[$words[1]]} );
-				OpenGL::glVertex3f( @{$vertex[$words[2]]} );
+				# Set the surface normal
+				my @v0 = @{$vertex[$words[0]]};
+				my @v1 = @{$vertex[$words[1]]};
+				my @v2 = @{$vertex[$words[2]]};
+				glNormal9f( @v0, @v1, @v2 );
+
+				# Draw the triangle polygon
+				glVertex3f( @v0 );
+				glVertex3f( @v1 );
+				glVertex3f( @v2 );
 
 			} elsif ( $command eq 'quad' ) {
 				# Switch to quad drawing mode if needed
-				OpenGL::glEnd() if defined $begin;
-				OpenGL::glBegin( OpenGL::GL_QUADS );
+				glEnd() if defined $begin;
+				glBegin( GL_QUADS );
 				$begin = 'quad';
 
-				# Draw the quad
-				OpenGL::glVertex3f( @{$vertex[$words[0]]} );
-				OpenGL::glVertex3f( @{$vertex[$words[1]]} );
-				OpenGL::glVertex3f( @{$vertex[$words[2]]} );
-				OpenGL::glVertex3f( @{$vertex[$words[3]]} );
+				# Set the surface normal
+				my @v0 = @{$vertex[$words[0]]};
+				my @v1 = @{$vertex[$words[1]]};
+				my @v2 = @{$vertex[$words[2]]};
+				glNormal9f( @v0, @v1, @v2 );
+
+				# Draw the quad polygon
+				glVertex3f( @v0 );
+				glVertex3f( @v1 );
+				glVertex3f( @v2 );
+				glVertex3f( @{$vertex[$words[3]]} );
+
+			} elsif ( $command eq 'protoend' ) {
+				# End of the prototype, end drawing.
+				glEnd() if defined $begin;
+
+				# Reset state
+				@color   = ( 0, 0, 0 );
+				$ambient = 0;
+				$diffuse = 1;
+				$opacity = 1;
+				@vertex  = ( undef );
+				$begin   = undef;
+
+				# Reset material
+				OpenGL::glMaterialfv_p(
+					GL_FRONT,
+					GL_AMBIENT,
+					( map { $_ * $ambient } @color ),
+					$opacity,
+				);
+				OpenGL::glMaterialfv_p(
+					GL_FRONT,
+					GL_DIFFUSE,
+					( map { $_ * $diffuse } @color ),
+					$opacity,
+				);
 
 			} else {
 				# Unsupported command, silently ignore
@@ -158,11 +263,32 @@ sub parse {
 		}
 
 		# Terminate drawing mode if we're still in it
-		OpenGL::glEnd() if defined $begin;
-
+		glEnd() if defined $begin;
 	};
 
 	return 1;
+}
+
+# Calculate a surface normal
+sub glNormal9f {
+	my ($x0, $y0, $z0, $x1, $y1, $z1, $x2, $y2, $z2) = @_;
+
+	# Calculate vectors A and B
+	my $xa = $x0 - $x1;
+	my $ya = $y0 - $y1;
+	my $za = $z0 - $z1;
+	my $xb = $x1 - $x2;
+	my $yb = $y1 - $y2;
+	my $zb = $z1 - $z2;
+
+	# Calculate the cross product
+	my $xn = ($ya * $zb) - ($za * $yb);
+	my $yn = ($za * $xb) - ($xa * $zb);
+	my $zn = ($xa * $yb) - ($ya * $xb);
+
+	# Normalise the cross product
+	my $l = sqrt( ($xn * $xn) + ($yn * $yn) + ($zn * $zn) ) || 1;
+	glNormal3f( $xn / $l, $yn / $l, $zn / $l );
 }
 
 1;
