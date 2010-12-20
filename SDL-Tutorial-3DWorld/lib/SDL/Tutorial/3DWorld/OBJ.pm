@@ -110,15 +110,20 @@ sub parse {
 	my $handle = shift;
 
 	# Initialise
-	my @vertex = ( undef );
+	my @v = ( undef );
+	my @f = ( );
+	my $b = 0;
 
 	# Start the list context
 	$self->{list} = OpenGL::List::glpList {
 		# Start without texture support and reset specularity
-		glEnable( GL_LIGHTING );
 		glDisable( GL_TEXTURE_2D );
-		OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 20 );
-		OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 1, 1, 1, 1 );
+
+		# Material settings
+		OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  0.3, 0.3, 0.3, 1.0 );
+		OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  0.7, 0.7, 0.7, 1.0 );
+		OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 1.0, 1.0, 1.0, 1.0 );
+		OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 90 );
 
 		while ( 1 ) {
 			my $line = $handle->getline;
@@ -133,15 +138,78 @@ sub parse {
 			my $command = lc shift @words;
 			if ( $command eq 'v' ) {
 				# Only take the first three values, ignore any uv stuff
-				push @vertex, [ @words[0..2] ];
+				push @v, \@words;
+
+			} elsif ( $command eq 'f' ) {
+				my @vi = map { /^(\d+)/ ? $1 : () } @words;
+				if ( @vi == 3 ) {
+					glEnd()                 if $b == 4;
+					glBegin( GL_TRIANGLES ) if $b != 3;
+					$b = 3;
+
+					# Draw the triangle
+					my @v0 = @{$v[$vi[0]]};
+					my @v1 = @{$v[$vi[1]]};
+					my @v2 = @{$v[$vi[2]]};
+					my $sn = surface( @v0, @v1, @v2 );
+					glNormal3f( @$sn );
+					glVertex3f( @v0 );
+					glVertex3f( @v1 );
+					glVertex3f( @v2 );
+
+				} elsif ( @vi == 4 ) {
+					glEnd()             if $b == 3;
+					glBegin( GL_QUADS ) if $b != 4;
+					$b = 4;
+
+					# Draw the quad
+					my @v0 = @{$v[$vi[0]]};
+					my @v1 = @{$v[$vi[1]]};
+					my @v2 = @{$v[$vi[2]]};
+					my $sn = surface( @v0, @v1, @v2 );
+					glNormal3f( @$sn );
+					glVertex3f( @v0 );
+					glVertex3f( @v1 );
+					glVertex3f( @v2 );
+					glVertex3f( @{$v[$vi[3]]} );
+
+				}
+
+			} elsif ( $command eq 'g' ) {
+				glEnd() if $b;
+				$b = 0;
 
 			}
 
-
 		}
+
+		glEnd() if $b;
+		glEnable( GL_TEXTURE_2D );
 	};
 
-	return ;
+	return 1;
+}
+
+# Calculate a surface normal
+sub surface {
+	my ($x0, $y0, $z0, $x1, $y1, $z1, $x2, $y2, $z2) = @_;
+
+	# Calculate vectors A and B
+	my $xa = $x0 - $x1;
+	my $ya = $y0 - $y1;
+	my $za = $z0 - $z1;
+	my $xb = $x1 - $x2;
+	my $yb = $y1 - $y2;
+	my $zb = $z1 - $z2;
+
+	# Calculate the cross product vector
+	my $xn = ($ya * $zb) - ($za * $yb);
+	my $yn = ($za * $xb) - ($xa * $zb);
+	my $zn = ($xa * $yb) - ($ya * $xb);
+
+	# Normalise the vector
+	my $l = sqrt( ($xn * $xn) + ($yn * $yn) + ($zn * $zn) ) || 1;
+	return [ $xn / $l, $yn / $l, $zn / $l ];
 }
 
 1;

@@ -200,6 +200,15 @@ sub new {
 			velocity => [ 0, 0, 0 ],
 			file     => File::Spec->catfile('model', 'nutcracker', 'sv-nutcracker1.rwx'),
 		),
+
+		# Place a large table (somewhere...)
+		SDL::Tutorial::3DWorld::Actor::Model->new(
+			X        => 0,
+			Y        => 0,
+			Z        => 0,
+			velocity => [ 0, 0, 0 ],
+			file     => File::Spec->catfile('model', 'table', 'table.obj'),
+		),
 	];
 
 	# Light the world with a single overhead light
