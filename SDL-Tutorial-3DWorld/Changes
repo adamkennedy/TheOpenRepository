@@ -1,7 +1,8 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
 0.19 Mon 20 Dec 2010
-	- Added a "God Mode" flying camera and make it default
+	- Added a "God Mode" flying camera which uses the left shift key
+	  as an exponential speed accelerator, and make it the default.
 	- Added ->current static method to ::3DWorld to get currently
 	  world. Removes the need to pass things like the camera around
 	  everywhere all the time.
