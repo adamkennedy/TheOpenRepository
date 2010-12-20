@@ -34,6 +34,8 @@ use strict;
 use warnings;
 use OpenGL ':all';
 
+our $VERSION = '0.19';
+
 1;
 
 =cut

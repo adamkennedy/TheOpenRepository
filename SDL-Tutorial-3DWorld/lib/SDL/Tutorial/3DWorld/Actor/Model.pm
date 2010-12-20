@@ -33,7 +33,7 @@ use OpenGL::RWX                   ();
 use SDL::Tutorial::3DWorld        ();
 use SDL::Tutorial::3DWorld::Actor ();
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {

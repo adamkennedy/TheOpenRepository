@@ -47,7 +47,7 @@ use SDL::Tutorial::3DWorld::OpenGL ();
 use SDL::Surface     ();
 use SDL::PixelFormat ();
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =pod
 

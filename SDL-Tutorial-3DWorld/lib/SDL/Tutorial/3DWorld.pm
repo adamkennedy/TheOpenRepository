@@ -70,7 +70,7 @@ use SDL::Tutorial::3DWorld::Texture             ();
 use SDL::Tutorial::3DWorld::Landscape           ();
 use SDL::Tutorial::3DWorld::Landscape::Infinite ();
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 # The currently active world
 our $CURRENT = undef;

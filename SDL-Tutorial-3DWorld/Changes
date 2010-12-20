@@ -9,6 +9,7 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  having to be passed the camera.
 	- Added a console for overlaying the world with diagnostic text.
 	- Set min_t to zero to push frames per second as high as possible.
+	- Correcting some broken versions
 
 0.18 Sun 19 Dec 2010
 	- Moving the landscape to a typical 2000-era infinite ground plane,
