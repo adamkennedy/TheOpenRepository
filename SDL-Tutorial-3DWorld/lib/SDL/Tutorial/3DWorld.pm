@@ -64,6 +64,7 @@ use SDL::Tutorial::3DWorld::Actor::GridCube     ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube  ();
 use SDL::Tutorial::3DWorld::Camera              ();
 use SDL::Tutorial::3DWorld::Camera::Fly         ();
+use SDL::Tutorial::3DWorld::Console             ();
 use SDL::Tutorial::3DWorld::Skybox              ();
 use SDL::Tutorial::3DWorld::Texture             ();
 use SDL::Tutorial::3DWorld::Landscape           ();
@@ -93,6 +94,9 @@ sub new {
 		height     => 768,
 		dt         => 0.1,
 	}, $class;
+
+	# Text console that overlays the world
+	$self->{console} = SDL::Tutorial::3DWorld::Console->new;
 
 	# A pretty skybox background for our world
 	$self->{skybox} = SDL::Tutorial::3DWorld::Skybox->new(
@@ -320,11 +324,17 @@ sub init {
 		fullscreen    => $fullscreen,
 		depth         => 24, # Prevent harsh colour stepping
 		double_buffer => 1,  # Reduce flicker during rapid mouselook
+		min_t         => 0,  # As many frames as possible
 	);
+
+	# Enable face culling to remove drawing of all surfaces that
+	# we can't see.
+	glCullFace( GL_FRONT );
+	glEnable( GL_CULL_FACE );
 
 	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
 	# correct shape culling for us and we don't have to care about it.
-	glDepthFunc( GL_LEQUAL );
+	glDepthFunc( GL_LESS );
 	glEnable( GL_DEPTH_TEST );
 
 	# Use the prettiest shading available to us
@@ -368,6 +378,11 @@ sub init {
 	# Initialise the actors (probably nothing to do though)
 	foreach my $actor ( @{$self->{actors}} ) {
 		$actor->init;
+	}
+
+	# Initialise the console
+	if ( $self->{console} ) {
+		$self->{console}->init;
 	}
 
 	return 1;
@@ -415,6 +430,9 @@ sub display {
 		$actor->display;
 		glPopMatrix();
 	}
+
+	# Draw the console last, on top of everything else
+	$self->{console}->display if $self->{console};
 
 	return 1;
 }

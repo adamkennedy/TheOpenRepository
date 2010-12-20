@@ -1,12 +1,14 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
 0.19 Mon 20 Dec 2010
-	- Added a "God Mode" flying camera
+	- Added a "God Mode" flying camera and make it default
 	- Added ->current static method to ::3DWorld to get currently
 	  world. Removes the need to pass things like the camera around
 	  everywhere all the time.
 	- The skybox now locates the camera via ->current->camera instead
 	  having to be passed the camera.
+	- Added a console for overlaying the world with diagnostic text.
+	- Set min_t to zero to push frames per second as high as possible.
 
 0.18 Sun 19 Dec 2010
 	- Moving the landscape to a typical 2000-era infinite ground plane,

@@ -85,8 +85,11 @@ sub display {
 	glDisable( GL_TEXTURE_2D );
 	$self->display_material;
 
-	# Draw the teapot
+	# Draw the teapot.
+	# The teapot does not handle face culling, so disable temporarily.
+	glDisable( GL_CULL_FACE );
 	OpenGL::glutSolidTeapot($self->{size});
+	glEnable( GL_CULL_FACE );
 
 	return;
 }
