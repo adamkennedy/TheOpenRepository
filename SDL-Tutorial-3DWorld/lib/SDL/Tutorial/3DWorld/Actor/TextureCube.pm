@@ -135,7 +135,9 @@ sub display {
 sub compile {
 	my $self = shift;
 	OpenGL::List::glpList {
-		# Enable the texture
+		# Set up the material
+		glEnable( GL_LIGHTING );
+		glEnable( GL_TEXTURE_2D );
 		$self->{texture}->display;
 		$self->display_material;
 
@@ -145,36 +147,42 @@ sub compile {
 		glBegin( GL_QUADS );
 
 		# Draw the north face
+		glNormal3f( 0, 0, -1 );
 		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2, -1 ); # Top Left
 		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2, -1 ); # Top Right
 		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Left
 
 		# Draw the east face
+		glNormal3f( 1, 0, 0 );
 		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
 		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2, -1 ); # Top Right
 		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
 
 		# Draw the south face
+		glNormal3f( 0, 0, 1 );
 		glTexCoord2f( 0, 0 ); glVertex3f( -1,  2,  1 ); # Top Left
 		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2,  1 ); # Top Right
 		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Left
 
 		# Draw the west face
+		glNormal3f( -0, 0, 0 );
 		glTexCoord2f( 0, 0 ); glVertex3f( -1,  2, -1 ); # Top Left
 		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
 		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Left
 
 		# Draw the up face
+		glNormal3f( 0, 1, 0 );
 		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
 		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
 		glTexCoord2f( 1, 1 ); glVertex3f( -1,  2, -1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f(  1,  2, -1 ); # Bottom Left
 
 		# Draw the down face
+		glNormal3f( 0, -1, 0 );
 		glTexCoord2f( 0, 0 ); glVertex3f(  1,  0, -1 ); # Top Left
 		glTexCoord2f( 1, 0 ); glVertex3f( -1,  0, -1 ); # Top Right
 		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right

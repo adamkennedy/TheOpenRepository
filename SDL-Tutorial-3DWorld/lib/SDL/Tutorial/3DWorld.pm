@@ -71,6 +71,9 @@ use SDL::Tutorial::3DWorld::Landscape::Infinite ();
 
 our $VERSION = '0.18';
 
+# The currently active world
+our $CURRENT = undef;
+
 =pod
 
 =head2 new
@@ -173,16 +176,17 @@ sub new {
 			Z       => 3.35,
 			size    => 1.3,
 			texture => $self->sharefile('crate1.jpg'),
+			ambient => [ 0.5, 0.5, 0.5, 1 ],
 		),
 
 		# Place a lollipop at the origin
-		SDL::Tutorial::3DWorld::Actor::Model->new(
-			X        => -2,
-			Y        => 0,
-			Z        => 0,
-			velocity => [ 0, 0, 0 ],
-			file     => File::Spec->catfile('model', 'lollipop', 'hflollipop1gr.rwx'),
-		),
+		# SDL::Tutorial::3DWorld::Actor::Model->new(
+			# X        => -2,
+			# Y        => 0,
+			# Z        => 0,
+			# velocity => [ 0, 0, 0 ],
+			# file     => File::Spec->catfile('model', 'lollipop', 'hflollipop1gr.rwx'),
+		# ),
 
 	];
 
@@ -197,6 +201,40 @@ sub new {
 
 	return $self;
 }
+
+=pod
+
+=head2 camera
+
+The C<camera> method returns the currently active camera for the world.
+
+Provided as a convenience for world objects that need to know where the
+camera is (such as the skybox).
+
+=cut
+
+sub camera {
+	$_[0]->{camera};
+}
+
+=pod
+
+=head2 sdl
+
+The C<sdl> method returns the master L<SDLx::App> object for the world.
+
+=cut
+
+sub sdl {
+	$_[0]->{sdl};
+}
+
+
+
+
+
+######################################################################
+# Main Methods
 
 =pod
 
@@ -231,10 +269,26 @@ sub run {
 		$self->event(@_);
 	} );
 
+	# This world is now the active world
+	local $CURRENT = $self;
+
 	# Enter the main loop
 	$self->{sdl}->run;
 
 	return 1;
+}
+
+=pod
+
+=head2 current
+
+The C<current> method can be used by any arbitrary world element to get
+access to the world while it is running.
+
+=cut
+
+sub current {
+	$CURRENT or die "No current world is running";
 }
 
 
@@ -333,11 +387,8 @@ sub display {
 	# NOTE: For now just translate back so we can see the render.
 	$self->{camera}->display;
 
-	# Draw the skybox.
-	# It needs to track the camera is to do it's special effect trickery
-	if ( $self->{skybox} ) {
-		$self->{skybox}->display( $self->{camera} );
-	}
+	# Draw the skybox
+	$self->{skybox}->display if $self->{skybox};
 
 	# Draw the landscape in the scene
 	$self->{landscape}->display;
@@ -355,7 +406,7 @@ sub display {
 	# OpenGL global states (GL_LIGHTING, GL_TEXTURE_2D, etc) properly
 	# and won't break later because they happen to be used in a
 	# different order. If we are doing something wrong, some objects
-	# in the scene should flicker horribly badly.
+	# in the scene should flicker randomly.
 	my @actors = sort { rand() <=> rand() } @{$self->{actors}};
 	foreach my $actor ( @actors ) {
 		# Draw each actor in their own stack context so that
