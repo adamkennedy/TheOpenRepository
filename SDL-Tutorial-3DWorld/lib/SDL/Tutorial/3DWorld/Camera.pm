@@ -228,9 +228,6 @@ sub move {
 	my $speed = $self->{speed} * $step;
 	my $down  = $self->{down};
 
-	# Are we running?
-	$speed = $speed * 2.5 if $down->{SDL::Constants::SDLK_LSHIFT};
-
 	# Find the camera-wards and sideways components of our velocity
 	my $move = $speed * (
 		$down->{SDL::Constants::SDLK_s} -

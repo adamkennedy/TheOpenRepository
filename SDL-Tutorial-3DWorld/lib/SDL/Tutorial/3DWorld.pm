@@ -63,6 +63,7 @@ use SDL::Tutorial::3DWorld::Actor::Teapot       ();
 use SDL::Tutorial::3DWorld::Actor::GridCube     ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube  ();
 use SDL::Tutorial::3DWorld::Camera              ();
+use SDL::Tutorial::3DWorld::Camera::Fly         ();
 use SDL::Tutorial::3DWorld::Skybox              ();
 use SDL::Tutorial::3DWorld::Texture             ();
 use SDL::Tutorial::3DWorld::Landscape           ();
@@ -99,6 +100,15 @@ sub new {
 	# Create the landscape
 	$self->{landscape} = SDL::Tutorial::3DWorld::Landscape::Infinite->new(
 		texture => $self->sharefile('ground.jpg'),
+	);
+
+	# Place the camera at a typical eye height a few metres back
+	# from the teapots and facing slightly down towards them.
+	$self->{camera} = SDL::Tutorial::3DWorld::Camera::Fly->new(
+		X     => 0.0,
+		Y     => 1.5,
+		Z     => 5.0,
+		speed => $self->dscalar( 2 ),
 	);
 
 	# Place three airborn stationary teapots in the scene
@@ -184,15 +194,6 @@ sub new {
 			Z => -400,
 		),
 	];
-
-	# Place the camera at a typical eye height a few metres back
-	# from the teapots and facing slightly down towards them.
-	$self->{camera} = SDL::Tutorial::3DWorld::Camera->new(
-		X     => 0.0,
-		Y     => 1.5,
-		Z     => 5.0,
-		speed => $self->dscalar( 2 ),
-	);
 
 	return $self;
 }
