@@ -52,9 +52,9 @@ sub move {
 	my $down  = $self->{down};
 
 	# The shift key will allow continuous exponential
-	# acceleration of around 10% per second.
+	# acceleration of around 5% per second.
 	if ( $down->{SDL::Constants::SDLK_LSHIFT} ) {
-		$self->{speed} += $self->{speed} * 0.1 * $step;
+		$self->{speed} += $self->{speed} * 0.05 * $step;
 	} else {
 		$self->{speed} = $self->{speed_original};
 	}
