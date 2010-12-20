@@ -35,7 +35,7 @@ use Params::Util                    '_INSTANCE';
 use SDL::Tutorial::3DWorld::Actor   ();
 use SDL::Tutorial::3DWorld::Texture ();
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 =pod

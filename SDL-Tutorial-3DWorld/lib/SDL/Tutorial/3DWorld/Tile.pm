@@ -31,7 +31,7 @@ use warnings;
 use SDL::Tutorial::3DWorld::OpenGL  ();
 use SDL::Tutorial::3DWorld::Texture ();
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 our @ISA     = 'SDL::Tutorial::3DWorld::Texture';
 
 
@@ -51,7 +51,7 @@ sub init {
 	my $image = SDL::Image::load( $self->file );
 
 	# Check if the image actually got loaded
-	Carp::croak( 'Cannot load image at '.$self->file. ": ".SDL::get_error) unless $image;
+	Carp::croak( 'Cannot load image at ' . $self->file ) unless $image;
 
 	# Tell SDL to leave the memory the image is in exactly where
 	# it is, so that OpenGL can bind to it directly.

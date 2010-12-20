@@ -50,27 +50,30 @@ use strict;
 use warnings;
 use File::Spec                             0.80 ();
 use File::ShareDir                         1.02 ();
+use Params::Util                           1.00 ();
 use OpenGL                                 0.64 ':all';
 use OpenGL::List                           0.01 ();
 use SDL                                   2.524 ':all';
 use SDL::Event                                  ':all';
 use SDLx::App                                   ();
-use SDL::Tutorial::3DWorld::OpenGL              ();
-use SDL::Tutorial::3DWorld::Light               ();
 use SDL::Tutorial::3DWorld::Actor               ();
 use SDL::Tutorial::3DWorld::Actor::Model        ();
 use SDL::Tutorial::3DWorld::Actor::Teapot       ();
 use SDL::Tutorial::3DWorld::Actor::GridCube     ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube  ();
+use SDL::Tutorial::3DWorld::Collection          ();
 use SDL::Tutorial::3DWorld::Camera              ();
 use SDL::Tutorial::3DWorld::Camera::Fly         ();
 use SDL::Tutorial::3DWorld::Console             ();
-use SDL::Tutorial::3DWorld::Skybox              ();
-use SDL::Tutorial::3DWorld::Texture             ();
 use SDL::Tutorial::3DWorld::Landscape           ();
 use SDL::Tutorial::3DWorld::Landscape::Infinite ();
+use SDL::Tutorial::3DWorld::Light               ();
+use SDL::Tutorial::3DWorld::Model               ();
+use SDL::Tutorial::3DWorld::OpenGL              ();
+use SDL::Tutorial::3DWorld::Skybox              ();
+use SDL::Tutorial::3DWorld::Texture             ();
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 # The currently active world
 our $CURRENT = undef;

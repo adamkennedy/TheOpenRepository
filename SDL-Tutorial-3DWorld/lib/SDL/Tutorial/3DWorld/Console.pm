@@ -37,7 +37,7 @@ use Time::HiRes                    ();
 use SDL::Tutorial::3DWorld         ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 sub new {
 	my $class = shift;

@@ -1,5 +1,9 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.21 Tue 21 Dec 2010
+	- Adding model collection support, which is needed for linking model
+	  files to their supporting texture (etc) files.
+
 0.20 Mon 20 Dec 2010
 	- Apparently OpenGL convention dictates that all polygons have their
 	  points declared counter-clockwise to the "front" of the polygon.

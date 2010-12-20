@@ -44,7 +44,7 @@ use strict;
 use warnings;
 use OpenGL;
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
 =head2 new
 
