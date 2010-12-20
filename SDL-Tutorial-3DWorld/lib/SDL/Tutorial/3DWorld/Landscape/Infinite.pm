@@ -25,7 +25,7 @@ use SDL::Tutorial::3DWorld::OpenGL    ();
 use SDL::Tutorial::3DWorld::Tile      ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 our @ISA     = 'SDL::Tutorial::3DWorld::Landscape';
 
 sub new {
@@ -82,9 +82,9 @@ sub display {
 	OpenGL::glBegin( OpenGL::GL_QUADS );
 	OpenGL::glNormal3f( 0, 1, 0 );
 	OpenGL::glTexCoord2f( $tneg, $tneg ); OpenGL::glVertex3d( $vneg, -0.0001, $vneg ); # Top Left
-	OpenGL::glTexCoord2f( $tpos, $tneg ); OpenGL::glVertex3d( $vpos, -0.0001, $vneg ); # Top Right
-	OpenGL::glTexCoord2f( $tpos, $tpos ); OpenGL::glVertex3d( $vpos, -0.0001, $vpos ); # Bottom Right
 	OpenGL::glTexCoord2f( $tneg, $tpos ); OpenGL::glVertex3d( $vneg, -0.0001, $vpos ); # Bottom Left
+	OpenGL::glTexCoord2f( $tpos, $tpos ); OpenGL::glVertex3d( $vpos, -0.0001, $vpos ); # Bottom Right
+	OpenGL::glTexCoord2f( $tpos, $tneg ); OpenGL::glVertex3d( $vpos, -0.0001, $vneg ); # Top Right
 	OpenGL::glEnd();
 }
 

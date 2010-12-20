@@ -29,11 +29,11 @@ RWX model files on disk.
 use 5.008;
 use strict;
 use warnings;
-use OpenGL::RWX                   ();
 use SDL::Tutorial::3DWorld        ();
 use SDL::Tutorial::3DWorld::Actor ();
+use SDL::Tutorial::3DWorld::RWX   ();
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {
@@ -47,7 +47,7 @@ sub new {
 	}
 
 	# Create the RWX object
-	$self->{rwx} = OpenGL::RWX->new(
+	$self->{rwx} = SDL::Tutorial::3DWorld::RWX->new(
 		file => $self->{file},
 	);
 

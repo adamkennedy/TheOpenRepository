@@ -66,7 +66,7 @@ quad 7 8 15 14
 quad 16 11 12 13
 quad 16 13 14 15
 color 0.187500 0.546875 0.156250
-opacity 0.92
+opacity 0.10
 texture null
 quad 17 20 19 18
 quad 17 22 21 20

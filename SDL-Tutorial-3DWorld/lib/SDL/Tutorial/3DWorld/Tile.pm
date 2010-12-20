@@ -31,7 +31,7 @@ use warnings;
 use SDL::Tutorial::3DWorld::OpenGL  ();
 use SDL::Tutorial::3DWorld::Texture ();
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 our @ISA     = 'SDL::Tutorial::3DWorld::Texture';
 
 

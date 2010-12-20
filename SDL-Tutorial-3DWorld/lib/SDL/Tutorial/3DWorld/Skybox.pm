@@ -41,7 +41,7 @@ use SDL::Tutorial::3DWorld          ();
 use SDL::Tutorial::3DWorld::Texture ();
 use OpenGL;
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 =pod
 
@@ -168,45 +168,45 @@ sub display {
 	$self->{north}->display;
 	glBegin( GL_QUADS );
 	glTexCoord2f( 0, 0 ); glVertex3f( -501,  501, -500 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f(  501,  501, -500 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f(  501, -501, -500 ); # Bottom Right
 	glTexCoord2f( 0, 1 ); glVertex3f( -501, -501, -500 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f(  501, -501, -500 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f(  501,  501, -500 ); # Top Right
 	glEnd();
 
 	# Draw the south face 
 	$self->{south}->display;
 	glBegin( GL_QUADS );
 	glTexCoord2f( 0, 0 ); glVertex3f(  501,  501,  500 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f( -501,  501,  500 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f( -501, -501,  500 ); # Bottom Right
 	glTexCoord2f( 0, 1 ); glVertex3f(  501, -501,  500 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f( -501, -501,  500 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f( -501,  501,  500 ); # Top Right
 	glEnd();
 
 	# Draw the east face
 	$self->{east}->display;
 	glBegin( GL_QUADS );
 	glTexCoord2f( 0, 0 ); glVertex3f(  500,  501, -501 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f(  500,  501,  501 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f(  500, -501,  501 ); # Bottom Right
 	glTexCoord2f( 0, 1 ); glVertex3f(  500, -501, -501 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f(  500, -501,  501 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f(  500,  501,  501 ); # Top Right
 	glEnd();
 
 	# Draw the west face
 	$self->{west}->display;
 	glBegin( GL_QUADS );
 	glTexCoord2f( 0, 0 ); glVertex3f( -500,  501,  501 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f( -500,  501, -501 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f( -500, -501, -501 ); # Bottom Right
 	glTexCoord2f( 0, 1 ); glVertex3f( -500, -501,  501 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f( -500, -501, -501 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f( -500,  501, -501 ); # Top Right
 	glEnd();
 
 	# Draw the ceiling face
 	$self->{up}->display;
 	glBegin( GL_QUADS );
 	glTexCoord2f( 0, 0 ); glVertex3f( -501,  500,  501 ); # Top Left
-	glTexCoord2f( 1, 0 ); glVertex3f(  501,  500,  501 ); # Top Right
-	glTexCoord2f( 1, 1 ); glVertex3f(  501,  500, -501 ); # Bottom Right
 	glTexCoord2f( 0, 1 ); glVertex3f( -501,  500, -501 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f(  501,  500, -501 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f(  501,  500,  501 ); # Top Right
 	glEnd();
 
 	# Draw the optional floor
@@ -214,9 +214,9 @@ sub display {
 		$self->{down}->display;
 		glBegin( GL_QUADS );
 		glTexCoord2f( 0, 0 ); glVertex3f( -501, -500,  501 ); # Top Left
-		glTexCoord2f( 1, 0 ); glVertex3f(  501, -500,  501 ); # Top Right
-		glTexCoord2f( 1, 1 ); glVertex3f(  501, -500, -501 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f( -501, -500, -501 ); # Bottom Left
+		glTexCoord2f( 1, 1 ); glVertex3f(  501, -500, -501 ); # Bottom Right
+		glTexCoord2f( 1, 0 ); glVertex3f(  501, -500,  501 ); # Top Right
 		glEnd();
 	}
 

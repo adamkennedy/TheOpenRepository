@@ -1,5 +1,16 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.20 Mon 20 Dec 2010
+	- Apparently OpenGL convention dictates that all polygons have their
+	  points declared counter-clockwise to the "front" of the polygon.
+	  Once turning on face culling to save GL work, it turns out that
+	  all my shapes would inside out. Oops :)
+	- Importing a local fork of OpenGL::RWX
+	- Adding a life-sized nutcracker doll to help test RWX support.
+	- Expanded OpenGL::RWX's per-face surface normals to face-averaged
+	  per-vertex surface normals, allowing OpenGL to currectly smooth the
+	  polygons (important on polished wood toys)
+
 0.19 Mon 20 Dec 2010
 	- Added a "God Mode" flying camera which uses the left shift key
 	  as an exponential speed accelerator, and make it the default.

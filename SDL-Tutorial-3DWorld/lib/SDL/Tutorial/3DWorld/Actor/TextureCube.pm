@@ -35,7 +35,7 @@ use Params::Util                    '_INSTANCE';
 use SDL::Tutorial::3DWorld::Actor   ();
 use SDL::Tutorial::3DWorld::Texture ();
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 =pod
@@ -138,6 +138,7 @@ sub compile {
 		# Set up the material
 		glEnable( GL_LIGHTING );
 		glEnable( GL_TEXTURE_2D );
+		glColor3f( 1, 1, 1 );
 		$self->{texture}->display;
 		$self->display_material;
 
@@ -149,44 +150,44 @@ sub compile {
 		# Draw the north face
 		glNormal3f( 0, 0, -1 );
 		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2, -1 ); # Top Left
-		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2, -1 ); # Top Right
-		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Left
+		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Right
+		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2, -1 ); # Top Right
 
 		# Draw the east face
 		glNormal3f( 1, 0, 0 );
 		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
-		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2, -1 ); # Top Right
-		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
+		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Right
+		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2, -1 ); # Top Right
 
 		# Draw the south face
 		glNormal3f( 0, 0, 1 );
 		glTexCoord2f( 0, 0 ); glVertex3f( -1,  2,  1 ); # Top Left
-		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2,  1 ); # Top Right
-		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Left
+		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Right
+		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2,  1 ); # Top Right
 
 		# Draw the west face
-		glNormal3f( -0, 0, 0 );
+		glNormal3f( -1, 0, 0 );
 		glTexCoord2f( 0, 0 ); glVertex3f( -1,  2, -1 ); # Top Left
-		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
-		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Left
+		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
+		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
 
 		# Draw the up face
 		glNormal3f( 0, 1, 0 );
 		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
-		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
-		glTexCoord2f( 1, 1 ); glVertex3f( -1,  2, -1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f(  1,  2, -1 ); # Bottom Left
+		glTexCoord2f( 1, 1 ); glVertex3f( -1,  2, -1 ); # Bottom Right
+		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
 
 		# Draw the down face
 		glNormal3f( 0, -1, 0 );
 		glTexCoord2f( 0, 0 ); glVertex3f(  1,  0, -1 ); # Top Left
-		glTexCoord2f( 1, 0 ); glVertex3f( -1,  0, -1 ); # Top Right
-		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
 		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
+		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
+		glTexCoord2f( 1, 0 ); glVertex3f( -1,  0, -1 ); # Top Right
 
 		# Finish drawing
 		glEnd();

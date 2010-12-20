@@ -70,7 +70,7 @@ use SDL::Tutorial::3DWorld::Texture             ();
 use SDL::Tutorial::3DWorld::Landscape           ();
 use SDL::Tutorial::3DWorld::Landscape::Infinite ();
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 # The currently active world
 our $CURRENT = undef;
@@ -183,7 +183,7 @@ sub new {
 			ambient => [ 0.5, 0.5, 0.5, 1 ],
 		),
 
-		# Place a lollipop at the origin
+		# Place a lollipop near the origin
 		# SDL::Tutorial::3DWorld::Actor::Model->new(
 			# X        => -2,
 			# Y        => 0,
@@ -192,6 +192,14 @@ sub new {
 			# file     => File::Spec->catfile('model', 'lollipop', 'hflollipop1gr.rwx'),
 		# ),
 
+		# Place a nutcracker a little further away
+		SDL::Tutorial::3DWorld::Actor::Model->new(
+			X        => -5,
+			Y        => 0,
+			Z        => -2,
+			velocity => [ 0, 0, 0 ],
+			file     => File::Spec->catfile('model', 'nutcracker', 'sv-nutcracker1.rwx'),
+		),
 	];
 
 	# Light the world with a single overhead light
@@ -327,21 +335,17 @@ sub init {
 		min_t         => 0,  # As many frames as possible
 	);
 
-	# Enable face culling to remove drawing of all surfaces that
-	# we can't see.
-	glCullFace( GL_FRONT );
+	# Enable face culling to remove drawing of all rear surfaces
+	glCullFace( GL_BACK );
 	glEnable( GL_CULL_FACE );
+
+	# Use the prettiest shading available to us
+	glShadeModel( GL_SMOOTH );
 
 	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
 	# correct shape culling for us and we don't have to care about it.
 	glDepthFunc( GL_LESS );
 	glEnable( GL_DEPTH_TEST );
-
-	# Use the prettiest shading available to us
-	glShadeModel( GL_SMOOTH );
-
-	# Take your time with textures and do a good job
-	glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
 
 	# Enable basic anti-aliasing for everything
 	glEnable( GL_BLEND );
@@ -349,12 +353,10 @@ sub init {
 	glHint( GL_LINE_SMOOTH_HINT,    GL_NICEST );
 	glHint( GL_POINT_SMOOTH_HINT,   GL_NICEST );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+	glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
 	glEnable( GL_LINE_SMOOTH    );
 	glEnable( GL_POINT_SMOOTH   );
 	glEnable( GL_POLYGON_SMOOTH );
-
-	# Use the prettiest shading available to us
-	glShadeModel( GL_SMOOTH );
 
 	# If we have any lights, initialise lighting
 	if ( @{$self->{lights}} ) {

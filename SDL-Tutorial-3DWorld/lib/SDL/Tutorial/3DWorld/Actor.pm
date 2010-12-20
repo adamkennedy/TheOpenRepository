@@ -44,7 +44,7 @@ use strict;
 use warnings;
 use OpenGL;
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 =head2 new
 
@@ -162,10 +162,10 @@ sub display_material {
 	my $self = shift;
 
 	# Configure the material properties
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT, @{$self->{ambient}} );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE, @{$self->{diffuse}} );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, @{$self->{specular}} );
-	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, $self->{shininess} );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,   @{$self->{ambient}}  );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,   @{$self->{diffuse}}  );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR,  @{$self->{specular}} );
+	OpenGL::glMaterialf(    GL_FRONT, GL_SHININESS, $self->{shininess}   );
 
 	return;
 }
