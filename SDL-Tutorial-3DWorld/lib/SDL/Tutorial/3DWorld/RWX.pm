@@ -46,7 +46,7 @@ use OpenGL                     0.64 ':all';
 use OpenGL::List               0.01 ();
 use SDL::Tutorial::3DWorld::Texture ();
 
-our $VERSION = '0.18';
+our $VERSION = '0.20';
 
 
 
