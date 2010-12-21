@@ -40,13 +40,12 @@ points in space using the pre-existing material settings.
 use 5.008;
 use strict;
 use warnings;
-use IO::File                        ();
-use File::Spec                      ();
-use OpenGL                          ':all';
-use OpenGL::List                    ();
-use SDL::Tutorial::3DWorld::Model   ();
-use SDL::Tutorial::3DWorld::Texture ();
-use SDL::Tutorial::3DWorld::Asset   ();
+use IO::File                            ();
+use File::Spec                          ();
+use OpenGL                              ':all';
+use OpenGL::List                        ();
+use SDL::Tutorial::3DWorld::Model       ();
+use SDL::Tutorial::3DWorld::Asset::Mesh ();
 
 our $VERSION = '0.21';
 our @ISA     = 'SDL::Tutorial::3DWorld::Model';
@@ -61,86 +60,39 @@ our @ISA     = 'SDL::Tutorial::3DWorld::Model';
 sub parse {
 	my $self   = shift;
 	my $handle = shift;
+	my $mesh   = SDL::Tutorial::3DWorld::Asset::Mesh->new;
 
-	# Initialise
-	my @v = ( undef );
-	my @f = ( );
-	my $b = 0;
+	# Fill the mesh
+	while ( 1 ) {
+		my $line = $handle->getline;
+		last unless defined $line;
 
-	# Start the list context
-	$self->{list} = OpenGL::List::glpList {
-		# Start without texture support and reset specularity
-		glDisable( GL_TEXTURE_2D );
+		# Remove blank lines, trailing whitespace and comments
+		$line =~ s/\s*(?:#.+)[\012\015]*\z//;
+		$line =~ m/\S/ or next;
 
-		# Material settings
-		OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  0.3, 0.3, 0.3, 1.0 );
-		OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  0.7, 0.7, 0.7, 1.0 );
-		OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 1.0, 1.0, 1.0, 1.0 );
-		OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 90 );
+		# Parse the dispatch the line
+		my @words   = split /\s+/, $line;
+		my $command = lc shift @words;
+		if ( $command eq 'v' ) {
+			# Create the vertex
+			$mesh->vertex( @words );
 
-		while ( 1 ) {
-			my $line = $handle->getline;
-			last unless defined $line;
-
-			# Remove blank lines, trailing whitespace and comments
-			$line =~ s/\s*(?:#.+)[\012\015]*\z//;
-			$line =~ m/\S/ or next;
-
-			# Parse the dispatch the line
-			my @words   = split /\s+/, $line;
-			my $command = lc shift @words;
-			if ( $command eq 'v' ) {
-				# Only take the first three values, ignore any uv stuff
-				push @v, \@words;
-
-			} elsif ( $command eq 'f' ) {
-				my @vi = map { /^(\d+)/ ? $1 : () } @words;
-				if ( @vi == 3 ) {
-					glEnd()                 if $b == 4;
-					glBegin( GL_TRIANGLES ) if $b != 3;
-					$b = 3;
-
-					# Draw the triangle
-					my @v0 = @{$v[$vi[0]]};
-					my @v1 = @{$v[$vi[1]]};
-					my @v2 = @{$v[$vi[2]]};
-					my $sn = $self->surface( @v0, @v1, @v2 );
-					glNormal3f( @$sn );
-					glVertex3f( @v0 );
-					glVertex3f( @v1 );
-					glVertex3f( @v2 );
-
-				} elsif ( @vi == 4 ) {
-					glEnd()             if $b == 3;
-					glBegin( GL_QUADS ) if $b != 4;
-					$b = 4;
-
-					# Draw the quad
-					my @v0 = @{$v[$vi[0]]};
-					my @v1 = @{$v[$vi[1]]};
-					my @v2 = @{$v[$vi[2]]};
-					my $sn = $self->surface( @v0, @v1, @v2 );
-					glNormal3f( @$sn );
-					glVertex3f( @v0 );
-					glVertex3f( @v1 );
-					glVertex3f( @v2 );
-					glVertex3f( @{$v[$vi[3]]} );
-
-				}
-
-			} elsif ( $command eq 'g' ) {
-				glEnd() if $b;
-				$b = 0;
-
+		} elsif ( $command eq 'f' ) {
+			my @vi = map { /^(\d+)/ ? $1 : () } @words;
+			if ( @vi == 3 ) {
+				$mesh->triangle( @vi );
+			} elsif ( @vi == 4 ) {
+				$mesh->quad( @vi );
 			}
 
 		}
+	}
 
-		glEnd() if $b;
-		glEnable( GL_TEXTURE_2D );
+	# Generate the display list
+	OpenGL::List::glpList {
+		$mesh->display;
 	};
-
-	return 1;
 }
 
 1;

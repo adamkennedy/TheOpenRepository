@@ -6,8 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 7;
-use Test::NoWarnings;
+use Test::More tests => 6;
+# use Test::NoWarnings;
 use File::Spec                         ();
 use SDL::Tutorial::3DWorld::Asset::OBJ ();
 
