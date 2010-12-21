@@ -69,6 +69,7 @@ use SDL::Tutorial::3DWorld::Console             ();
 use SDL::Tutorial::3DWorld::Landscape           ();
 use SDL::Tutorial::3DWorld::Landscape::Infinite ();
 use SDL::Tutorial::3DWorld::Light               ();
+use SDL::Tutorial::3DWorld::Material            ();
 use SDL::Tutorial::3DWorld::Model               ();
 use SDL::Tutorial::3DWorld::OpenGL              ();
 use SDL::Tutorial::3DWorld::Skybox              ();

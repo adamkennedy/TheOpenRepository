@@ -36,13 +36,15 @@ be gradually fleshed out over time.
 use 5.008;
 use strict;
 use warnings;
-use IO::File                        ();
-use File::Spec                      ();
-use OpenGL                          ':all';
-use OpenGL::List                    ();
-use SDL::Tutorial::3DWorld::Model   ();
-use SDL::Tutorial::3DWorld::Texture ();
-use SDL::Tutorial::3DWorld::Asset   ();
+use IO::File                         ();
+use File::Spec                       ();
+use Params::Util                     '_INSTANCE';
+use OpenGL                           ':all';
+use OpenGL::List                     ();
+use SDL::Tutorial::3DWorld::Model    ();
+use SDL::Tutorial::3DWorld::Texture  ();
+use SDL::Tutorial::3DWorld::Material ();
+use SDL::Tutorial::3DWorld::Asset    ();
 
 
 our $VERSION = '0.21';
@@ -90,10 +92,6 @@ sub asset {
 	$_[0]->{asset};
 }
 
-sub list {
-	$_[0]->{list};
-}
-
 
 
 
@@ -102,8 +100,19 @@ sub list {
 # Main Methods
 
 sub material {
-	# Fetch a material from the library
-	die "CODE INCOMPLETE";
+	my $self     = shift;
+	my $name     = shift;
+	my $material = $self->{material}->{$name} or return undef;
+
+	# Elevate from hash to object on demand
+	unless ( _INSTANCE($material, 'SDL::Tutorial::3DWorld::Material') ) {
+		$material = SDL::Tutorial::3DWorld::Material->new(
+			%$material,
+		);
+		$self->{material}->{$name} = $material;
+	}
+
+	return $material;
 }
 
 sub init {
@@ -143,6 +152,36 @@ sub parse {
 		if ( $command eq 'newmtl' ) {
 			$material = { };
 			$self->{material}->{$words[0]} = $material;
+
+		} elsif ( $command eq 'ka' ) {
+			$material->{ambient} = [ @words ];
+
+		} elsif ( $command eq 'kd' ) {
+			$material->{diffuse} = [ @words ];
+
+		} elsif ( $command eq 'ks' ) {
+			$material->{specular} = [ @words ];
+
+		} elsif ( $command eq 'ns' ) {
+			$material->{shinyness} = $words[0];
+
+		} elsif ( $command eq 'd' or $command eq 'Tr' ) {
+			$material->{dissolve} = $words[0];
+
+		} elsif ( $command eq 'illum' ) {
+			# Illumination mode
+			# 0. Color on and Ambient off
+			# 1. Color on and Ambient on
+			# 2. Highlight on
+			# 3. Reflection on and Ray trace on
+			# 4. Transparency: Glass on, Reflection: Ray trace on
+			# 5. Reflection: Fresnel on and Ray trace on
+			# 6. Transparency: Refraction on, Reflection: Fresnel off and Ray trace on
+			# 7. Transparency: Refraction on, Reflection: Fresnel on and Ray trace on
+			# 8. Reflection on and Ray trace off
+			# 9. Transparency: Glass on, Reflection: Ray trace off
+			# 10. Casts shadows onto invisible surfaces
+			$material->{illumination} = $words[0];
 
 		} else {
 			# Ignore unsupported lines
