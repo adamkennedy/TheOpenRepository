@@ -29,10 +29,10 @@ RWX model files on disk.
 use 5.008;
 use strict;
 use warnings;
-use SDL::Tutorial::3DWorld        ();
-use SDL::Tutorial::3DWorld::Actor ();
-use SDL::Tutorial::3DWorld::OBJ   ();
-use SDL::Tutorial::3DWorld::RWX   ();
+use SDL::Tutorial::3DWorld             ();
+use SDL::Tutorial::3DWorld::Actor      ();
+use SDL::Tutorial::3DWorld::Asset::OBJ ();
+use SDL::Tutorial::3DWorld::Asset::RWX ();
 
 our $VERSION = '0.21';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
@@ -49,12 +49,12 @@ sub new {
 
 	# Create the type-specific object
 	if ( $self->{file} =~ /\.rwx$/ ) {
-		$self->{list} = SDL::Tutorial::3DWorld::RWX->new(
+		$self->{list} = SDL::Tutorial::3DWorld::Asset::RWX->new(
 			file => $self->{file},
 		);
 
 	} elsif ( $self->{file} =~ /\.obj$/ ) {
-		$self->{list} = SDL::Tutorial::3DWorld::OBJ->new(
+		$self->{list} = SDL::Tutorial::3DWorld::Asset::OBJ->new(
 			file => $self->{file},
 		);
 

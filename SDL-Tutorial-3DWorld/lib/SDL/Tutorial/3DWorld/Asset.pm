@@ -1,14 +1,14 @@
-package SDL::Tutorial::3DWorld::Collection;
+package SDL::Tutorial::3DWorld::Asset;
 
 =pod
 
 =head1 NAME
 
-SDL::Tutorial::3DWorld::Collection - Abstracts a directory of model resources
+SDL::Tutorial::3DWorld::Asset - Abstracts a directory of model resources
 
 =head1 DESCRIPTION
 
-A B<Collection> is a direction containing a variety of different modelling
+A B<Asset> is a direction containing a variety of different modelling
 resources, most often shape files and texture files.
 
 =head1 METHODS
@@ -17,11 +17,12 @@ resources, most often shape files and texture files.
 
 use strict;
 use warnings;
-use File::Spec                      ();
-use SDL::Tutorial::3DWorld::Texture ();
-use SDL::Tutorial::3DWorld::Tile    ();
-use SDL::Tutorial::3DWorld::RWX     ();
-use SDL::Tutorial::3DWorld::OBJ     ();
+use File::Spec                         ();
+use SDL::Tutorial::3DWorld::Texture    ();
+use SDL::Tutorial::3DWorld::Tile       ();
+use SDL::Tutorial::3DWorld::Asset::MTL ();
+use SDL::Tutorial::3DWorld::Asset::OBJ ();
+use SDL::Tutorial::3DWorld::Asset::RWX ();
 
 our $VERSION = '0.21';
 
@@ -67,9 +68,9 @@ sub model {
 		$self->directory,
 		"$name.obj",
 	);
-	return SDL::Tutorial::3DWorld::OBJ->new(
-		file       => $obj,
-		collection => $self,
+	return SDL::Tutorial::3DWorld::Asset::OBJ->new(
+		file  => $obj,
+		asset => $self,
 	) if -f $obj;
 
 	# Check for an obj file
@@ -77,9 +78,9 @@ sub model {
 		$self->directory,
 		"$name.rwx",
 	);
-	return SDL::Tutorial::3DWorld::RWX->new(
-		file       => $rwx,
-		collection => $self,
+	return SDL::Tutorial::3DWorld::Asset::RWX->new(
+		file  => $rwx,
+		asset => $self,
 	) if -f $rwx;
 
 	# No idea what this is

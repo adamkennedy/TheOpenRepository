@@ -29,13 +29,13 @@ of the different model file implementations.
 use 5.008;
 use strict;
 use warnings;
-use IO::File                      1.14 ();
-use File::Spec                    3.31 ();
-use Params::Util                  1.00 '_INSTANCE';
-use OpenGL                        0.64 ':all';
-use OpenGL::List                  0.01 ();
-use SDL::Tutorial::3DWorld::Texture    ();
-use SDL::Tutorial::3DWorld::Collection ();
+use IO::File                   1.14 ();
+use File::Spec                 3.31 ();
+use Params::Util               1.00 '_INSTANCE';
+use OpenGL                     0.64 ':all';
+use OpenGL::List               0.01 ();
+use SDL::Tutorial::3DWorld::Texture ();
+use SDL::Tutorial::3DWorld::Asset   ();
 
 our $VERSION = '0.21';
 
@@ -56,16 +56,16 @@ sub new {
 		die "The model file '$file' does not exists";
 	}
 
-	# Bootstrap a collection if we were not passed one.
-	unless ( $self->{collection} ) {
+	# Bootstrap a asset if we were not passed one.
+	unless ( $self->{asset} ) {
 		my $directory = $self->file;
 		$directory =~ s/[\w\._-]+$//;
-		$self->{collection} = SDL::Tutorial::3DWorld::Collection->new(
+		$self->{asset} = SDL::Tutorial::3DWorld::Asset->new(
 			directory => $directory,
 		);
 	}
-	unless ( _INSTANCE($self->collection, 'SDL::Tutorial::3DWorld::Collection') ) {
-		die "Missing or invalid collection";
+	unless ( _INSTANCE($self->asset, 'SDL::Tutorial::3DWorld::Asset') ) {
+		die "Missing or invalid asset";
 	}
 
 	return $self;
@@ -75,8 +75,8 @@ sub file {
 	$_[0]->{file}
 }
 
-sub collection {
-	$_[0]->{collection};
+sub asset {
+	$_[0]->{asset};
 }
 
 sub list {

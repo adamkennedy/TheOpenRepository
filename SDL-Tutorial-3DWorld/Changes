@@ -1,8 +1,10 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
 0.21 Tue 21 Dec 2010
-	- Adding model collection support, which is needed for linking model
-	  files to their supporting texture (etc) files.
+	- Adding directory-based asset support, which is needed for linking
+	  model files to their supporting texture (etc) files.
+	- Reorganised the file parsers into the ::Asset::* namespace.
+	- Adding a basic MTL file parser to add materials to OBJ models.
 
 0.20 Mon 20 Dec 2010
 	- Apparently OpenGL convention dictates that all polygons have their

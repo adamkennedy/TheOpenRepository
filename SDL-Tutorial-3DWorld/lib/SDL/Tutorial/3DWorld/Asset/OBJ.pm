@@ -1,15 +1,15 @@
-package SDL::Tutorial::3DWorld::OBJ;
+package SDL::Tutorial::3DWorld::Asset::OBJ;
 
 =pod
 
 =head1 NAME
 
-SDL::Tutorial::3DWorld::OBJ - Support for loading 3D models from OBJ files
+SDL::Tutorial::3DWorld::Asset::OBJ - Support for loading 3D models from OBJ files
 
 =head1 SYNOPSIS
 
   # Create the object but don't load anything
-  my $model = SDL::Tutorial::3DWorld::OBJ->new(
+  my $model = SDL::Tutorial::3DWorld::Asset::OBJ->new(
       file => 'mymodel.obj',
   );
   
@@ -21,7 +21,7 @@ SDL::Tutorial::3DWorld::OBJ - Support for loading 3D models from OBJ files
 
 =head1 DESCRIPTION
 
-B<SDL::Tutorial::3DWorld::OBJ> provides a basic implementation of a OBJ file
+B<SDL::Tutorial::3DWorld::Asset::OBJ> provides a basic implementation of a OBJ file
 parser.
 
 Given a file name, it will load the file and parse the contents directly
@@ -40,13 +40,13 @@ points in space using the pre-existing material settings.
 use 5.008;
 use strict;
 use warnings;
-use IO::File                      1.14 ();
-use File::Spec                    3.31 ();
-use OpenGL                        0.64 ':all';
-use OpenGL::List                  0.01 ();
-use SDL::Tutorial::3DWorld::Model      ();
-use SDL::Tutorial::3DWorld::Texture    ();
-use SDL::Tutorial::3DWorld::Collection ();
+use IO::File                        ();
+use File::Spec                      ();
+use OpenGL                          ':all';
+use OpenGL::List                    ();
+use SDL::Tutorial::3DWorld::Model   ();
+use SDL::Tutorial::3DWorld::Texture ();
+use SDL::Tutorial::3DWorld::Asset   ();
 
 our $VERSION = '0.21';
 our @ISA     = 'SDL::Tutorial::3DWorld::Model';

@@ -48,7 +48,8 @@ which you can start to make your own simple game-specific engines.
 use 5.008005;
 use strict;
 use warnings;
-use File::Spec                             0.80 ();
+use IO::File                               1.14 ();
+use File::Spec                             3.31 ();
 use File::ShareDir                         1.02 ();
 use Params::Util                           1.00 ();
 use OpenGL                                 0.64 ':all';
@@ -61,7 +62,7 @@ use SDL::Tutorial::3DWorld::Actor::Model        ();
 use SDL::Tutorial::3DWorld::Actor::Teapot       ();
 use SDL::Tutorial::3DWorld::Actor::GridCube     ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube  ();
-use SDL::Tutorial::3DWorld::Collection          ();
+use SDL::Tutorial::3DWorld::Asset               ();
 use SDL::Tutorial::3DWorld::Camera              ();
 use SDL::Tutorial::3DWorld::Camera::Fly         ();
 use SDL::Tutorial::3DWorld::Console             ();
