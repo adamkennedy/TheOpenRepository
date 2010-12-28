@@ -34,7 +34,7 @@ use SDL::Tutorial::3DWorld::Actor      ();
 use SDL::Tutorial::3DWorld::Asset::OBJ ();
 use SDL::Tutorial::3DWorld::Asset::RWX ();
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {

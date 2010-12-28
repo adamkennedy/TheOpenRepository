@@ -45,7 +45,7 @@ use warnings;
 use SDL::Tutorial::3DWorld::OpenGL   ();
 use SDL::Tutorial::3DWorld::Material ();
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 =head2 new
 
