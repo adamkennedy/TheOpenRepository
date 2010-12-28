@@ -3,7 +3,7 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 0.22 to be completed
 	- The bounding box actor now also displays a traditional
 	  red/green/blue axis on the original of each actor.
-	- Adding support for model-defined surface normals
+	- Flying camera renamed as the God camera.
 
 0.21 Tue 28 Dec 2010
 	- Adding directory-based asset support, which is needed for linking

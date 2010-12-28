@@ -67,7 +67,7 @@ use SDL::Tutorial::3DWorld::Actor::TextureCube     ();
 use SDL::Tutorial::3DWorld::Actor::MaterialSampler ();
 use SDL::Tutorial::3DWorld::Asset                  ();
 use SDL::Tutorial::3DWorld::Camera                 ();
-use SDL::Tutorial::3DWorld::Camera::Fly            ();
+use SDL::Tutorial::3DWorld::Camera::God            ();
 use SDL::Tutorial::3DWorld::Console                ();
 use SDL::Tutorial::3DWorld::Landscape              ();
 use SDL::Tutorial::3DWorld::Landscape::Infinite    ();
@@ -123,7 +123,7 @@ sub new {
 
 	# Place the camera at a typical eye height a few metres back
 	# from the teapots and facing slightly down towards them.
-	$self->{camera} = SDL::Tutorial::3DWorld::Camera::Fly->new(
+	$self->{camera} = SDL::Tutorial::3DWorld::Camera::God->new(
 		X     => 0.0,
 		Y     => 1.5,
 		Z     => 5.0,

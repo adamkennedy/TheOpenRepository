@@ -1,10 +1,10 @@
-package SDL::Tutorial::3DWorld::Camera::Fly;
+package SDL::Tutorial::3DWorld::Camera::God;
 
 =pod
 
 =head1 NAME
 
-SDL::Tutorial::3DWorld::Camera::Fly - A "God Mode" flying person camera
+SDL::Tutorial::3DWorld::Camera::God - A "God Mode" flying person camera
 
 =head1 DESCRIPTION
 
