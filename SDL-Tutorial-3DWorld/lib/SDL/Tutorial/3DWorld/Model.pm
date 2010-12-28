@@ -4,7 +4,7 @@ package SDL::Tutorial::3DWorld::Model;
 
 =head1 NAME
 
-SDL::Tutorial::3DWorld::Model - Generic support for on disk model files
+SDL::Tutorial::3DWorld::Model - Generic support for on disk model parsers
 
 =head1 SYNOPSIS
 
@@ -31,6 +31,7 @@ use strict;
 use warnings;
 use IO::File                       ();
 use Params::Util                   '_INSTANCE';
+use OpenGL::List                   ();
 use SDL::Tutorial::3DWorld::Asset  ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 
@@ -100,7 +101,7 @@ sub parse {
 }
 
 sub display {
-	$_[0]->{mesh}->display;
+	 OpenGL::glCallList( $_[0]->{list} );
 }
 
 1;

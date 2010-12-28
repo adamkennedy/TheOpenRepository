@@ -42,7 +42,8 @@ function.
 
 use strict;
 use warnings;
-use OpenGL;
+use SDL::Tutorial::3DWorld::OpenGL   ();
+use SDL::Tutorial::3DWorld::Material ();
 
 our $VERSION = '0.21';
 
@@ -59,23 +60,28 @@ In the demonstration implementation, the default actor consists of a teapot.
 sub new {
 	my $class = shift;
 	my $self  = bless {
-		# Default location is at the origin
-		X         => 0,
-		Y         => 0,
-		Z         => 0,
+		# Place objects at the origin by default
+		position => [ 0, 0, 0 ],
 
-		# Most things in the world don't move by default
-		velocity  => [ 0, 0, 0 ],
+		# Actors with non-vector velocity are shortcut by the main move routine
+		velocity => 0,
 
-		# 3D worlds are clinical, white and shiny by default
-		ambient   => [ 0.2, 0.2, 0.2, 1.0 ],
-		diffuse   => [ 0.8, 0.8, 0.8, 1.0 ],
-		specular  => [ 1.0, 1.0, 1.0, 1.0 ],
-		shininess => 100,
+		# Most things in the world are solid
+		blending => 0,
+
+		# Most objects are stored at the correct size
+		scale    => 0,
 
 		# Override defaults
 		@_,
 	}, $class;
+
+	# Upgrade material parameters to material object
+	if ( ref $self->{material} eq 'HASH' ) {
+		$self->{material} = SDL::Tutorial::3DWorld::Material->new(
+			%{$self->{material}}
+		);
+	}
 
 	return $self;
 }
@@ -90,7 +96,7 @@ to west dimension within the 3D world. The positive direction is east.
 =cut
 
 sub X {
-	$_[0]->{X};
+	$_[0]->{position}->[0];
 }
 
 =pod
@@ -103,20 +109,33 @@ dimension within the 3D world. The positive direction is up.
 =cut
 
 sub Y {
-	$_[0]->{Y};
+	$_[0]->{position}->[1];
 }
 
 =pod
 
 =head2 Z
 
-The C<Z> accessor provides the actor of the camera in metres on the north
+The C<Z> accessor provides the location of the camera in metres on the north
 to south dimension within the 3D world. The positive direction is north.
 
 =cut
 
 sub Z {
-	$_[0]->{Z};
+	$_[0]->{position}->[2];
+}
+
+=pod
+
+=head2 position
+
+The C<position> accessor provides the location of the camera as a 3 element
+array reference of the structure C<[ X, Y, Z ]>.
+
+=cut
+
+sub position {
+	$_[0]->{position};
 }
 
 
@@ -127,14 +146,50 @@ sub Z {
 # Engine Interface
 
 sub init {
-	return;
+	my $self = shift;
+
+	# Initialise the material if it has one
+	if ( $self->{material} ) {
+		$self->{material}->init;
+	}
+
+	return 1;
+}
+
+=pod
+
+=head2 box
+
+The C<box> method returns the bounding box for the object, if it has one.
+
+=cut
+
+# By default return the combined relative bounding box and position
+sub box {
+	my $self     = shift;
+	my $box      = $self->{box}      or return ();
+	my $position = $self->{position} or return ();
+	my $scale    = $self->{scale}    || [ 1, 1, 1 ];
+	return (
+		$box->[0] * $scale->[0] + $position->[0],
+		$box->[1] * $scale->[1] + $position->[1],
+		$box->[2] * $scale->[2] + $position->[2],
+		$box->[3] * $scale->[0] + $position->[0],
+		$box->[4] * $scale->[1] + $position->[1],
+		$box->[5] * $scale->[2] + $position->[2],
+	);
 }
 
 sub display {
 	my $self = shift;
 
 	# Translate to the position of the actor
-	glTranslatef( $self->X, $self->Y, $self->Z );
+	OpenGL::glTranslatef( @{$self->{position}} );
+
+	# Scale if needed
+	if ( $self->{scale} ) {
+		OpenGL::glScalef( @{$self->{scale}} );
+	}
 
 	return;
 }
@@ -144,28 +199,9 @@ sub move {
 	my $step = shift;
 
 	# If it has velocity, change the actor's position
-	$self->{X} += $self->{velocity}->[0] * $step;
-	$self->{Y} += $self->{velocity}->[1] * $step;
-	$self->{Z} += $self->{velocity}->[2] * $step;
-
-	return;
-}
-
-
-
-
-
-######################################################################
-# Support Methods
-
-sub display_material {
-	my $self = shift;
-
-	# Configure the material properties
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,   @{$self->{ambient}}  );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,   @{$self->{diffuse}}  );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR,  @{$self->{specular}} );
-	OpenGL::glMaterialf(    GL_FRONT, GL_SHININESS, $self->{shininess}   );
+	$self->{position}->[0] += $self->{velocity}->[0] * $step;
+	$self->{position}->[1] += $self->{velocity}->[1] * $step;
+	$self->{position}->[2] += $self->{velocity}->[2] * $step;
 
 	return;
 }

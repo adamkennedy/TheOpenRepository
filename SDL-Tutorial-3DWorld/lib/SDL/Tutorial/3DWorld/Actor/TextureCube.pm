@@ -30,10 +30,11 @@ sitting "on" the plane.
 use strict;
 use warnings;
 use OpenGL;
-use OpenGL::List                    ();
-use Params::Util                    '_INSTANCE';
-use SDL::Tutorial::3DWorld::Actor   ();
-use SDL::Tutorial::3DWorld::Texture ();
+use OpenGL::List                     ();
+use Params::Util                     '_INSTANCE';
+use SDL::Tutorial::3DWorld::Actor    ();
+use SDL::Tutorial::3DWorld::Texture  ();
+use SDL::Tutorial::3DWorld::Material ();
 
 our $VERSION = '0.21';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
@@ -45,10 +46,12 @@ our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
   # Sweet crate, familiar crate, err... flying crate?
   my $crate = SDL::Tutorial::3DWorld::Actor::TextureCube->new(
       size     => 2,
-      velocity => [ 0, 1, 0.1 ],
-      texture  => File::Spec->catfile(
-          File::ShareDir::dist_dir('SDL::Tutorial::3DWorld'),
-          'crate1.jpg',
+      velocity => [ 0.0, 1.0, 0.1 ],
+      material => {
+          texture  => File::Spec->catfile(
+              File::ShareDir::dist_dir('SDL::Tutorial::3DWorld'),
+              'crate1.jpg',
+          ),
       ),
   );
 
@@ -69,22 +72,14 @@ if you wish pass in your own L<SDL::Tutorial::3DWorld::Texture> object.
 
 sub new {
 	my $class = shift;
-	my $self  = $class->SUPER::new(
-		# Make sure we use plain white filter on the texture
-		ambient   => [ 0.2, 0.2, 0.2, 1.0 ],
-		diffuse   => [ 1.0, 1.0, 1.0, 1.0 ],
-
-		@_,
-	);
-
-	# Convert the texture parameter to a texture object
-	unless ( _INSTANCE($self->{texture}, 'SDL::Tutorial::3DWorld::Texture') ) {
-		$self->{texture} = SDL::Tutorial::3DWorld::Texture->new(
-			file => $self->{texture},
-		);
+	my %param = @_;
+	if ( $param{texture} and not $param{material} ) {
+		$param{material} = {
+			texture => delete $param{texture},
+		};
 	}
 
-	return $self;
+	$class->SUPER::new( %param );
 }
 
 
@@ -96,13 +91,18 @@ sub new {
 
 sub init {
 	my $self = shift;
+	my $size = $self->{size};
 	$self->SUPER::init(@_);
 
-	# Initialise our texture as well
-	$self->{texture}->init;
-
 	# Pre-compile the cube drawing code
-	$self->{list} = $self->compile;
+	$self->{list} = OpenGL::List::glpList {
+		$self->compile;
+	};
+
+	# Define the bounding box
+	$self->{box} = [
+		map { $_ * $size / 2 } ( -1, 0, -1, 1, 2, 1 )
+	];
 
 	return;
 }
@@ -115,9 +115,6 @@ sub display {
 	# we need to do this after the scaling above or the translation
 	# would get scaled too (i.e. NOT what we want)
 	$self->SUPER::display(@_);
-
-	# All crates are rotated slightly for effect.
-	glRotatef( -10, 0, 1, 0 );
 
 	# To prevent having to calculate all of the measurements of
 	# the cube, we apply the scaling via a single call.
@@ -134,64 +131,59 @@ sub display {
 # off all of the Perl overheads, and even some of the C overheads.
 sub compile {
 	my $self = shift;
-	OpenGL::List::glpList {
-		# Set up the material
-		glEnable( GL_LIGHTING );
-		glEnable( GL_TEXTURE_2D );
-		glColor3f( 1, 1, 1 );
-		$self->{texture}->display;
-		$self->display_material;
 
-		# Draw each of the quads for the cube
-		# NOTE: This is hardly "optimised" but will at least get us a
-		# working cube fairly quickly.
-		glBegin( GL_QUADS );
+	# Set up the material
+	$self->{material}->display;
 
-		# Draw the north face
-		glNormal3f( 0, 0, -1 );
-		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2, -1 ); # Top Left
-		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Left
-		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Right
-		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2, -1 ); # Top Right
+	# Draw each of the quads for the cube
+	# NOTE: This is hardly "optimised" but will at least get us a
+	# working cube fairly quickly.
+	glBegin( GL_QUADS );
 
-		# Draw the east face
-		glNormal3f( 1, 0, 0 );
-		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
-		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
-		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Right
-		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2, -1 ); # Top Right
+	# Draw the north face
+	glNormal3f( 0, 0, -1 );
+	glTexCoord2f( 0, 0 ); glVertex3f(  1,  2, -1 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f( -1,  2, -1 ); # Top Right
 
-		# Draw the south face
-		glNormal3f( 0, 0, 1 );
-		glTexCoord2f( 0, 0 ); glVertex3f( -1,  2,  1 ); # Top Left
-		glTexCoord2f( 0, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Left
-		glTexCoord2f( 1, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Right
-		glTexCoord2f( 1, 0 ); glVertex3f(  1,  2,  1 ); # Top Right
+	# Draw the east face
+	glNormal3f( 1, 0, 0 );
+	glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f(  1,  2, -1 ); # Top Right
 
-		# Draw the west face
-		glNormal3f( -1, 0, 0 );
-		glTexCoord2f( 0, 0 ); glVertex3f( -1,  2, -1 ); # Top Left
-		glTexCoord2f( 0, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Left
-		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
-		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
+	# Draw the south face
+	glNormal3f( 0, 0, 1 );
+	glTexCoord2f( 0, 0 ); glVertex3f( -1,  2,  1 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f(  1,  2,  1 ); # Top Right
 
-		# Draw the up face
-		glNormal3f( 0, 1, 0 );
-		glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
-		glTexCoord2f( 0, 1 ); glVertex3f(  1,  2, -1 ); # Bottom Left
-		glTexCoord2f( 1, 1 ); glVertex3f( -1,  2, -1 ); # Bottom Right
-		glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
+	# Draw the west face
+	glNormal3f( -1, 0, 0 );
+	glTexCoord2f( 0, 0 ); glVertex3f( -1,  2, -1 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
 
-		# Draw the down face
-		glNormal3f( 0, -1, 0 );
-		glTexCoord2f( 0, 0 ); glVertex3f(  1,  0, -1 ); # Top Left
-		glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
-		glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
-		glTexCoord2f( 1, 0 ); glVertex3f( -1,  0, -1 ); # Top Right
+	# Draw the up face
+	glNormal3f( 0, 1, 0 );
+	glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f(  1,  2, -1 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f( -1,  2, -1 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
 
-		# Finish drawing
-		glEnd();
-	};
+	# Draw the down face
+	glNormal3f( 0, -1, 0 );
+	glTexCoord2f( 0, 0 ); glVertex3f(  1,  0, -1 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f( -1,  0, -1 ); # Top Right
+
+	# Finish drawing
+	glEnd();
 }
 
 1;

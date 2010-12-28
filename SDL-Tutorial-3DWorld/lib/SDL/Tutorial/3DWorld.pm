@@ -48,32 +48,35 @@ which you can start to make your own simple game-specific engines.
 use 5.008005;
 use strict;
 use warnings;
-use IO::File                               1.14 ();
-use File::Spec                             3.31 ();
-use File::ShareDir                         1.02 ();
-use Params::Util                           1.00 ();
-use OpenGL                                 0.64 ':all';
-use OpenGL::List                           0.01 ();
-use SDL                                   2.524 ':all';
-use SDL::Event                                  ':all';
-use SDLx::App                                   ();
-use SDL::Tutorial::3DWorld::Actor               ();
-use SDL::Tutorial::3DWorld::Actor::Model        ();
-use SDL::Tutorial::3DWorld::Actor::Teapot       ();
-use SDL::Tutorial::3DWorld::Actor::GridCube     ();
-use SDL::Tutorial::3DWorld::Actor::TextureCube  ();
-use SDL::Tutorial::3DWorld::Asset               ();
-use SDL::Tutorial::3DWorld::Camera              ();
-use SDL::Tutorial::3DWorld::Camera::Fly         ();
-use SDL::Tutorial::3DWorld::Console             ();
-use SDL::Tutorial::3DWorld::Landscape           ();
-use SDL::Tutorial::3DWorld::Landscape::Infinite ();
-use SDL::Tutorial::3DWorld::Light               ();
-use SDL::Tutorial::3DWorld::Material            ();
-use SDL::Tutorial::3DWorld::Model               ();
-use SDL::Tutorial::3DWorld::OpenGL              ();
-use SDL::Tutorial::3DWorld::Skybox              ();
-use SDL::Tutorial::3DWorld::Texture             ();
+use IO::File                                  1.14 ();
+use File::Spec                                3.31 ();
+use File::ShareDir                            1.02 ();
+use List::MoreUtils                           0.22 ();
+use Params::Util                              1.00 ();
+use OpenGL                                    0.64 ':all';
+use OpenGL::List                              0.01 ();
+use SDL                                      2.524 ':all';
+use SDL::Event                                     ':all';
+use SDLx::App                                      ();
+use SDL::Tutorial::3DWorld::Actor                  ();
+use SDL::Tutorial::3DWorld::Actor::Box             ();
+use SDL::Tutorial::3DWorld::Actor::Model           ();
+use SDL::Tutorial::3DWorld::Actor::Teapot          ();
+use SDL::Tutorial::3DWorld::Actor::GridCube        ();
+use SDL::Tutorial::3DWorld::Actor::TextureCube     ();
+use SDL::Tutorial::3DWorld::Actor::MaterialSampler ();
+use SDL::Tutorial::3DWorld::Asset                  ();
+use SDL::Tutorial::3DWorld::Camera                 ();
+use SDL::Tutorial::3DWorld::Camera::Fly            ();
+use SDL::Tutorial::3DWorld::Console                ();
+use SDL::Tutorial::3DWorld::Landscape              ();
+use SDL::Tutorial::3DWorld::Landscape::Infinite    ();
+use SDL::Tutorial::3DWorld::Light                  ();
+use SDL::Tutorial::3DWorld::Material               ();
+use SDL::Tutorial::3DWorld::Model                  ();
+use SDL::Tutorial::3DWorld::OpenGL                 ();
+use SDL::Tutorial::3DWorld::Skybox                 ();
+use SDL::Tutorial::3DWorld::Texture                ();
 
 our $VERSION = '0.21';
 
@@ -95,9 +98,13 @@ sub new {
 	my $class = shift;
 	my $self  = bless {
 		ARGV       => [ @_ ],
-		width      => 1024,
-		height     => 768,
+		width      => 1280,
+		height     => 800,
 		dt         => 0.1,
+
+		# Making the glClear settings variable allows us to
+		# dynamically add or remove features like motion blur.
+		clear      => GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
 	}, $class;
 
 	# Text console that overlays the world
@@ -124,35 +131,38 @@ sub new {
 	);
 
 	# Place three airborn stationary teapots in the scene
-	$self->{actors} = [
+	my $actors = $self->{actors} = [
+
 		# (R)ed is the official colour of the X axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
-			X        => 0.0,
-			Y        => 0.5,
-			Z        => 0.0,
-			ambient  => [ 0.5, 0.2, 0.2, 1.0 ],
-			diffuse  => [ 1.0, 0.7, 0.7, 1.0 ],
+			position => [ 0.0, 0.5, 0.0 ],
 			velocity => $self->dvector( 0.1, 0.0, 0.0 ),
+			material => {
+				ambient  => [ 0.5, 0.2, 0.2, 1.0 ],
+				diffuse  => [ 1.0, 0.7, 0.7, 1.0 ],
+			},
 		),
 
 		# (B)lue is the official colour of the Z axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
-			X        => 0,
-			Y        => 1,
-			Z        => 0,
-			ambient  => [ 0.2, 0.2, 0.5, 1.0 ],
-			diffuse  => [ 0.7, 0.7, 1.0, 1.0 ],
+			scale    => [ 1.5, 1.5, 1.5 ],
+			position => [ 0.0, 1.0, 0.0 ],
 			velocity => $self->dvector( 0.0, 0.0, 0.1 ),
+			material => {
+				ambient  => [ 0.2, 0.2, 0.5, 1.0 ],
+				diffuse  => [ 0.7, 0.7, 1.0, 1.0 ],
+			},
 		),
 
 		# (G)reen is the official colour of the Y axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
-			X        => 0.0,
-			Y        => 1.5,
-			Z        => 0.0,
-			ambient  => [ 0.2, 0.5, 0.2, 1 ],
-			diffuse  => [ 0.7, 1.0, 0.7, 1 ],
+			scale    => [ 2.0, 2.0, 2.0 ],
+			position => [ 0.0, 1.5, 0.0 ],
 			velocity => $self->dvector( 0.0, 0.1, 0.0 ),
+			material => {
+				ambient  => [ 0.2, 0.5, 0.2, 1 ],
+				diffuse  => [ 0.7, 1.0, 0.7, 1 ],
+			},
 		),
 
 		# Place a static grid cube in the air on the positive
@@ -161,9 +171,7 @@ sub new {
 		# negative side of an axis if you mistakenly use int()
 		# for the math instead of something like POSIX::ceil/floor).
 		SDL::Tutorial::3DWorld::Actor::GridCube->new(
-			X => -3.7,
-			Y =>  1.3,
-			Z => -3.7,
+			position => [ -3.7, 1.3, -3.7 ],
 		),
 
 		# Set up a flying grid cube heading away from the teapots.
@@ -171,50 +179,74 @@ sub new {
 		# and the flying path will take us along a path that will
 		# share an edge with the static box, which should look neat.
 		SDL::Tutorial::3DWorld::Actor::GridCube->new(
-			X        => -0.33,
-			Y        =>  0.01,
-			Z        => -0.66,
+			position => [ -0.33, 0.01, -0.66 ],
 			velocity => $self->dvector( -0.1, 0.1, -0.1 ),
 		),
 
 		# Place a typical large crate on the opposite side of the
 		# chessboard from the static gridcube.
 		SDL::Tutorial::3DWorld::Actor::TextureCube->new(
-			X       => 3.3,
-			Y       => 0.0,
-			Z       => 3.35,
-			size    => 1.3,
-			texture => $self->sharefile('crate1.jpg'),
-			ambient => [ 0.5, 0.5, 0.5, 1 ],
+			size     => 1.3,
+			position => [ 3.3, 0.0, 3.35 ],
+			material => {
+				ambient => [ 0.5, 0.5, 0.5, 1 ],
+				texture => $self->sharefile('crate1.jpg'),
+			},
 		),
 
 		# Place a lollipop near the origin
-		# SDL::Tutorial::3DWorld::Actor::Model->new(
-			# X        => -2,
-			# Y        => 0,
-			# Z        => 0,
-			# velocity => [ 0, 0, 0 ],
-			# file     => File::Spec->catfile('model', 'lollipop', 'hflollipop1gr.rwx'),
-		# ),
-
-		# Place a nutcracker a little further away
 		SDL::Tutorial::3DWorld::Actor::Model->new(
-			X        => -5,
-			Y        => 0,
-			Z        => -2,
-			velocity => [ 0, 0, 0 ],
-			file     => File::Spec->catfile('model', 'nutcracker', 'sv-nutcracker1.rwx'),
+			position => [ -2, 0, 0 ],
+			file     => File::Spec->catfile('model', 'lollipop', 'hflollipop1gr.rwx'),
+		),
+
+		# Place two nutcrackers a little further away
+		SDL::Tutorial::3DWorld::Actor::Model->new(
+			position => [ -2, 0, -2 ],
+			file     => File::Spec->catfile('model', 'nutcracker', "sv-nutcracker1.rwx"),
+		),
+		SDL::Tutorial::3DWorld::Actor::Model->new(
+			position => [ -4, 0, -2 ],
+			file     => File::Spec->catfile('model', 'nutcracker', "sv-nutcracker7.rwx"),
 		),
 
 		# Place a large table (somewhere...)
 		SDL::Tutorial::3DWorld::Actor::Model->new(
-			X        => 0,
-			Y        => 0,
-			Z        => 0,
-			velocity => [ 0, 0, 0 ],
+			position => [ -10, 0, 0 ],
+			scale    => [ 0.05, 0.05, 0.05 ],
 			file     => File::Spec->catfile('model', 'table', 'table.obj'),
+			plain    => 1,
 		),
+
+		# Add a material sampler
+		SDL::Tutorial::3DWorld::Actor::MaterialSampler->new(
+			position => [ 5, 1, 5 ],
+			file     => File::Spec->catfile(
+				File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
+				'example.mtl',
+			),
+		),
+
 	];
+
+	# Add a grid of toilet plungers
+	foreach my $x ( -15 .. -5 ) {
+		foreach my $z ( 5 .. 15 ) {
+			push @$actors, SDL::Tutorial::3DWorld::Actor::Model->new(
+				position => [ $x, 1.6, $z ],
+				file     => File::Spec->catfile(
+					'model',
+					'toilet-plunger001',
+					'toilet_plunger001.obj',
+				),
+			);
+		}
+	}
+
+	# Add a bounding box viewer to as many objects as support it
+	push @$actors, map {
+		SDL::Tutorial::3DWorld::Actor::Box->new( parent => $_ )
+	} @$actors;
 
 	# Light the world with a single overhead light
 	$self->{lights} = [
@@ -286,6 +318,10 @@ sub run {
 
 	# Movement handler
 	$self->{sdl}->add_move_handler( sub {
+		if ( $self->{benchmark} and $_[2] > 100 ) {
+			$_[1]->stop;
+			return;
+		}
 		return unless $_[0];
 		$self->move(@_);
 	} );
@@ -337,6 +373,10 @@ sub init {
 		$self->{height} = int( $self->{height} / 2 );
 	}
 
+	# Are we doing a benchmarking run?
+	# If so set the flag and we will abort after 100 seconds.
+	$self->{benchmark} = scalar grep { $_ eq '--benchmark' } @{$self->{ARGV}};
+	
 	# Create the SDL application object
 	$self->{sdl} = SDLx::App->new(
 		title         => '3D World',
@@ -361,21 +401,23 @@ sub init {
 	glDepthFunc( GL_LESS );
 	glEnable( GL_DEPTH_TEST );
 
+	# How thick are lines
+	glLineWidth( 1 );
+
 	# Enable basic anti-aliasing for everything
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	# glEnable( GL_BLEND );
+	# glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glHint( GL_LINE_SMOOTH_HINT,    GL_NICEST );
 	glHint( GL_POINT_SMOOTH_HINT,   GL_NICEST );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 	glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
-	glEnable( GL_LINE_SMOOTH    );
-	glEnable( GL_POINT_SMOOTH   );
-	glEnable( GL_POLYGON_SMOOTH );
+	# glEnable( GL_LINE_SMOOTH    );
+	# glEnable( GL_POINT_SMOOTH   );
+	# glEnable( GL_POLYGON_SMOOTH );
 
-	# If we have any lights, initialise lighting
-	if ( @{$self->{lights}} ) {
-		glEnable( GL_LIGHTING );
-	}
+	# Lighting and textures are on by default
+	glEnable( GL_LIGHTING );
+	glEnable( GL_TEXTURE_2D );
 
 	# Initialise the camera so we can look at things
 	$self->{camera}->init( $self->{width}, $self->{height} );
@@ -391,7 +433,8 @@ sub init {
 	# Enable GLUT support so we can have teapots
 	OpenGL::glutInit();
 
-	# Initialise the actors (probably nothing to do though)
+	# Initialise the actors.
+	# Randomise the order once to generate interesting effects.
 	foreach my $actor ( @{$self->{actors}} ) {
 		$actor->init;
 	}
@@ -413,6 +456,8 @@ sub display {
 	$self->clear;
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
+	# glEnable( GL_LIGHTING );
+	# glEnable( GL_TEXTURE_2D );
 
 	# Move the camera to the required position.
 	# NOTE: For now just translate back so we can see the render.
@@ -430,16 +475,10 @@ sub display {
 	}
 
 	# Draw each of the actors into the scene.
-	# NOTE: Normally we might draw the actors in the order they
-	# were created or something similar.
-	# In THIS tutorial we'll draw the actors at random to let us be
-	# absolutely sure that each actor is toggling all the appropriate
-	# OpenGL global states (GL_LIGHTING, GL_TEXTURE_2D, etc) properly
-	# and won't break later because they happen to be used in a
-	# different order. If we are doing something wrong, some objects
-	# in the scene should flicker randomly.
-	my @actors = sort { rand() <=> rand() } @{$self->{actors}};
-	foreach my $actor ( @actors ) {
+	# We should draw the models for most distance to least distant
+	# to ensure that transparent objects will blend over the top
+	# of things behind them correctly.
+	foreach my $actor ( $self->display_actors ) {
 		# Draw each actor in their own stack context so that
 		# their transform operations do not effect anything else.
 		glPushMatrix();
@@ -458,6 +497,7 @@ sub move {
 
 	# Move each of the actors in the scene
 	foreach my $actor ( @{$self->{actors}} ) {
+		next unless $actor->{velocity};
 		$actor->move(@_);
 	}
 
@@ -501,13 +541,49 @@ sub event {
 # the color buffer because you'll always draw over the top of every pixel.
 # Clearing only the depth buffer should make your rendering faster.
 sub clear {
-	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glClear( $_[0]->{clear} );
 }
 
 # This is a convenience method.
 # Pass through to the version provided by the main SDL app.
 sub sync {
 	$_[0]->{sdl}->sync;
+}
+
+# A simple actor ordering method based on naive distance from the
+# camera as measured from the centre position() of the object.
+sub display_actors {
+	my $self   = shift;
+	my $camera = $self->{camera};
+
+	# The order of solid actors doesn't really matter.
+	# Split them from the ones that need blending so we sort on the least
+	# number of actors we have to.
+	my @solid = ();
+	my @blend = ();
+	foreach my $actor ( @{$self->{actors}} ) {
+		# Don't render actors that aren't in our field of view
+		my @box     = $actor->box;
+		my $visible = @box
+			? $camera->visible_box(@box)
+			: $camera->visible_point(@{$actor->position});
+		next unless $visible;
+
+		# Render solid objects first to avoid some n-body related
+		# costs when distance sorting to find actor display order.
+		if ( $actor->{blending} ) {
+			push @blend, $actor;
+		} else {
+			push @solid, $actor;
+		}
+	}
+
+	# Sort only the blending objects (if we have any)
+	@blend = map { $blend[$_] } $self->camera->distance_isort(
+		map { $_->{position} } @blend
+	) if @blend;
+
+	return ( @solid, @blend );
 }
 
 sub dvector {

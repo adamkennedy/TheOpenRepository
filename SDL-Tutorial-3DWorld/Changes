@@ -5,6 +5,22 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  model files to their supporting texture (etc) files.
 	- Reorganised the file parsers into the ::Asset::* namespace.
 	- Adding a basic MTL file parser to add materials to OBJ models.
+	- Added an actor for showing the contents of a MTL file
+	- Added support for transparent materials in MTL files
+	- Actor display order is now sorted by descending distance from the camera
+	  to allow the alpha blending of transparent and anti-aliased objects
+	  to render correctly and prevent objects behind them "dissapearing".
+	- Added angle and elevation to the diagnostic console.
+	- Rewrote all my camera movement math as it was rotten. The new version is
+	  much easier to read and supports holding space down to go "up" in a camera
+	  angle relative direction.
+	- Added support for bounding boxes to actors.
+	- Added a bounding box actor, which is a semi-transparent white line cube
+	  that follows another actor around and highlights their bounding box.
+	- Added support for loading materials in OBJ files automatically from their
+	  respective MTL files.
+	- Added a plain => 1 option for disabling automatic MTL loading in cases
+	  where there is no MTL file and you just want a plain OBJ model.
 
 0.20 Mon 20 Dec 2010
 	- Apparently OpenGL convention dictates that all polygons have their

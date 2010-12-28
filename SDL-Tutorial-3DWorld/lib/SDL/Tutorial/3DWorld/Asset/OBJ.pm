@@ -58,9 +58,10 @@ our @ISA     = 'SDL::Tutorial::3DWorld::Model';
 # Parsing Methods
 
 sub parse {
-	my $self   = shift;
-	my $handle = shift;
-	my $mesh   = SDL::Tutorial::3DWorld::Asset::Mesh->new;
+	my $self     = shift;
+	my $handle   = shift;
+	my $mesh     = SDL::Tutorial::3DWorld::Asset::Mesh->new;
+	my $material = 0;
 
 	# Fill the mesh
 	while ( 1 ) {
@@ -76,21 +77,40 @@ sub parse {
 		my $command = lc shift @words;
 		if ( $command eq 'v' ) {
 			# Create the vertex
-			$mesh->vertex( @words );
+			$mesh->add_vertex( @words );
+
+		} elsif ( $command eq 'vn' ) {
+			# Create the normal
+			$mesh->add_normal( @words );
 
 		} elsif ( $command eq 'f' ) {
 			my @vi = map { /^(\d+)/ ? $1 : () } @words;
 			if ( @vi == 3 ) {
-				$mesh->triangle( @vi );
+				$mesh->add_triangle( @vi, $material );
 			} elsif ( @vi == 4 ) {
-				$mesh->quad( @vi );
+				$mesh->add_quad( @vi, $material );
 			}
+
+		} elsif ( $command eq 'mtllib' and not $self->{plain} ) {
+			# Load the mtllib
+			my $mtl = $self->asset->mtl( $words[0] );
+			$mtl->init;
+
+		} elsif ( $command eq 'usemtl' and not $self->{plain} ) {
+			# Load a material from the mtl file
+			my $name   = shift @words;
+			my $object = $self->asset->material($name);
+			$material = $mesh->add_material($object);
 
 		}
 	}
 
+	# Initialise the mesh elements that need it
+	$mesh->init;
+	$self->{box} = [ $mesh->box ];
+
 	# Generate the display list
-	OpenGL::List::glpList {
+	return OpenGL::List::glpList {
 		$mesh->display;
 	};
 }

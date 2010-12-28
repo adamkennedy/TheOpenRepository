@@ -36,6 +36,9 @@ sub new {
 	# Store the original speed for later
 	$self->{speed_original} = $self->{speed};
 
+	# Space makes us lift
+	$self->{down}->{SDL::Constants::SDLK_SPACE} = 0;
+
 	return $self;
 }
 
@@ -59,25 +62,41 @@ sub move {
 		$self->{speed} = $self->{speed_original};
 	}
 
-	# Find the camera-wards and sideways components of our velocity
-	my $speed = $self->{speed} * $step;
-	my $move  = $speed * (
-		$down->{SDL::Constants::SDLK_s} -
-		$down->{SDL::Constants::SDLK_w}
-	);
-	my $strafe = $speed * (
-		$down->{SDL::Constants::SDLK_d} -
-		$down->{SDL::Constants::SDLK_a}
-	);
+	# To prevent angle-running and other tricks we need to find and
+	# normalise the direction of movement before applying our speed.
+	my $move   = $down->{SDL::Constants::SDLK_w}
+	           - $down->{SDL::Constants::SDLK_s};
+	my $strafe = $down->{SDL::Constants::SDLK_d}
+	           - $down->{SDL::Constants::SDLK_a};
+	my $lift   = $down->{SDL::Constants::SDLK_SPACE};
 
-	# Apply this movement in the direction of the camera
+	# Apply this movement in the direction of the camera.
+	# Math applied unoptimised and longhand for greater readability.
 	my $angle     = $self->{angle}     * D2R;
 	my $elevation = $self->{elevation} * D2R;
-	$self->{X} += (cos($angle) * $strafe) - (sin($angle) * $move);
-	$self->{Y} += (sin($elevation) * $move);
-	$self->{Z} += (sin($angle) * $strafe) + (cos($angle) * $move);
+	my $VX        = 0;
+	my $VY        = 0;
+	my $VZ        = 0;
+	   $VX       += $move * sin($angle) * cos($elevation);
+	   $VY       += $move * sin($elevation);
+	   $VZ       += $move * -cos($angle) * cos($elevation);
+	   $VX       += $strafe * cos($angle);
+	   $VY       += $strafe * 0;
+	   $VZ       += $strafe * sin($angle);
+	   $VX       += $lift * sin($elevation) * -sin($angle);
+	   $VY       += $lift * cos($elevation);
+	   $VZ       += $lift * sin($elevation) * cos($angle);
+	   
+	# Normalise the velocity and apply to the position delta
+	my $VL = sqrt( $VX ** 2 + $VY ** 2 + $VZ ** 2 ) || 1;
+	my $VS = $self->{speed} * $step / $VL;
 
-	# Clip to the zero plain
+	# Apply the final velocity to the position
+	$self->{X} += $VX * $VS;
+	$self->{Y} += $VY * $VS;
+	$self->{Z} += $VZ * $VS;
+
+	# Clip to the zero plain (plus our "height")
 	$self->{Y} = 1.5 if $self->{Y} < 1.5;
 
 	return;

@@ -121,6 +121,28 @@ sub texture {
 	die "Missing or invalid texture name '$name'";
 }
 
+# Specify a MTL file to load materials from.
+# Returns the object as a convenience.
+sub mtl {
+	my $self = shift;
+	my $file = shift;
+	my $mtl  = SDL::Tutorial::3DWorld::Asset::MTL->new(
+		file  => File::Spec->catfile( $self->directory, $file ),
+		asset => $self,
+	) or die "Failed to load MTL file";
+	$self->{mtl} = $mtl;
+	return $mtl;
+}
+
+sub material {
+	my $self     = shift;
+	my $name     = shift;
+	my $mtl      = $self->{mtl}          or return undef;
+	my $material = $mtl->material($name) or return undef;
+	$self->{material}->{$name} = $material;
+	return $material;
+}
+
 1;
 
 =pod

@@ -75,21 +75,39 @@ sub new {
 
 
 ######################################################################
-# 
+# Engine Interface Methods
+
+sub init {
+	my $self = shift;
+	$self->SUPER::init(@_);
+
+	# Generate the bounding box
+	$self->{box} = [
+		$self->{size} * -1.5,
+		$self->{size} * -0.75,
+		$self->{size} * -1,
+		$self->{size} * 1.75,
+		$self->{size} * 0.85,
+		$self->{size} * 1,
+	];
+
+	return 1;
+}
 
 sub display {
 	my $self = shift;
 	$self->SUPER::display(@_);
 
-	# Set the material properties
-	glDisable( GL_TEXTURE_2D );
-	$self->display_material;
+	# The teapot does not handle face culling, so disable temporarily.
+	# We also want pure coloured teapots, so disable textures.
+	glDisable( GL_CULL_FACE  );
 
 	# Draw the teapot.
-	# The teapot does not handle face culling, so disable temporarily.
-	glDisable( GL_CULL_FACE );
+	$self->{material}->display;
 	OpenGL::glutSolidTeapot($self->{size});
-	glEnable( GL_CULL_FACE );
+
+	# Reset the temporary disabling
+	glEnable( GL_CULL_FACE  );
 
 	return;
 }

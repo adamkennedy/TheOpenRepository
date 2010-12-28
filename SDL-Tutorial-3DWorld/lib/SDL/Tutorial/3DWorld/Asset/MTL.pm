@@ -115,6 +115,12 @@ sub material {
 	return $material;
 }
 
+sub names {
+	my $self  = shift;
+	my @names = sort keys %{$self->{material}};
+	return @names;
+}
+
 sub init {
 	my $self   = shift;
 	my $handle = IO::File->new( $self->file, 'r' );
@@ -165,7 +171,7 @@ sub parse {
 		} elsif ( $command eq 'ns' ) {
 			$material->{shinyness} = $words[0];
 
-		} elsif ( $command eq 'd' or $command eq 'Tr' ) {
+		} elsif ( $command eq 'd' or $command eq 'tr' ) {
 			$material->{dissolve} = $words[0];
 
 		} elsif ( $command eq 'illum' ) {

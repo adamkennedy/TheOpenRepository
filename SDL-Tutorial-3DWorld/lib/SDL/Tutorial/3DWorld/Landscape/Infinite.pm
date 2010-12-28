@@ -74,7 +74,7 @@ sub display {
 	OpenGL::glMaterialfv_p( OpenGL::GL_FRONT, OpenGL::GL_AMBIENT,   0.7, 0.7, 0.7, 1 );
 	OpenGL::glMaterialfv_p( OpenGL::GL_FRONT, OpenGL::GL_DIFFUSE,   0.7, 0.7, 0.7, 1 );
 	OpenGL::glMaterialfv_p( OpenGL::GL_FRONT, OpenGL::GL_SPECULAR,  0.0, 0.0, 0.0, 1 );
-	OpenGL::glMaterialf(    OpenGL::GL_FRONT, OpenGL::GL_SHININESS, 128              );
+	OpenGL::glMaterialf(    OpenGL::GL_FRONT, OpenGL::GL_SHININESS, 127              );
 
 	# Draw the the "infinite" plane, placing it 1/10th of a mm below zero, so that
 	# any other surfaces at zero height will be visible about the ground plane.

@@ -12,7 +12,7 @@ use File::Spec                         ();
 use SDL::Tutorial::3DWorld::Asset::OBJ ();
 
 # Location of the test file
-my $file = File::Spec->catfile('share', 'model', 'table', 'table.obj');
+my $file = File::Spec->catfile('share', 'model', 'toilet-plunger001', 'toilet_plunger001.obj');
 ok( -f $file, "Found test file '$file'" );
 
 SCOPE: {
@@ -27,7 +27,7 @@ SCOPE: {
 	isa_ok( $obj->asset, 'SDL::Tutorial::3DWorld::Asset' );
 	like(
 		$obj->asset->directory,
-		qr/\btable$/,
+		qr/\btoilet-plunger001$/,
 		'->asset refers to the correct directory',
 	);
 }

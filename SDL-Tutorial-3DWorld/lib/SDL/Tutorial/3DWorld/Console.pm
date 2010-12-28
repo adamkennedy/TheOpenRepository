@@ -39,6 +39,11 @@ use SDL::Tutorial::3DWorld::OpenGL ();
 
 our $VERSION = '0.21';
 
+# Turn OpenGL fake "constants" into real compile-time optimised constants
+use constant {
+	GLUT_BITMAP_9_BY_15 => OpenGL::GLUT_BITMAP_9_BY_15,
+};
+
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
@@ -55,7 +60,7 @@ sub display {
 
 	# Special case for the first execution
 	unless ( defined $self->{time} ) {
-		$self->{text}  = 'FPS: ...';
+		$self->{fps}   = '...';
 		$self->{time}  = Time::HiRes::time();
 		$self->{tint}  = int $self->{time};
 		$self->{count} = 0;
@@ -70,13 +75,21 @@ sub display {
 		# Recalculate the FPS
 		my $rate = ($t - $self->{time}) / $self->{count};
 		my $fps  = $rate ? (1 / $rate) : 0;
-		$self->{text} = sprintf( 'FPS: %.1f', $fps );
+		$self->{fps} = sprintf( '%.1f', $fps );
 
 		# Reset the timer
 		$self->{time}  = $t;
 		$self->{tint}  = $i;
 		$self->{count} = 0;
 	}
+
+	# Fetch more values and generate the final text
+	my $text = sprintf(
+		"FPS: %s", #   Angle: %.1f   Elevation: %.1f",
+		$self->{fps},
+		# SDL::Tutorial::3DWorld->current->camera->{angle},
+		# SDL::Tutorial::3DWorld->current->camera->{elevation},
+	);
 
 	# Backup the model-view matrix
 	OpenGL::glPushMatrix();
@@ -102,9 +115,9 @@ sub display {
 	OpenGL::glDisable( OpenGL::GL_DEPTH_TEST );
 
 	# Draw each character
-	foreach ( split //, $self->{text} ) {
+	foreach ( split //, $text ) {
 		OpenGL::glutBitmapCharacter(
-			OpenGL::GLUT_BITMAP_9_BY_15,
+			GLUT_BITMAP_9_BY_15,
 			ord($_),
 		);
 	}

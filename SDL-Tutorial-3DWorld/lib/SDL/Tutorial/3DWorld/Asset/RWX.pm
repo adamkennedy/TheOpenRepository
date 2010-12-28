@@ -40,12 +40,13 @@ points in space using the pre-existing material settings.
 use 5.008;
 use strict;
 use warnings;
-use IO::File                      ();
-use File::Spec                    ();
-use OpenGL                        ':all';
-use OpenGL::List                  ();
-use SDL::Tutorial::3DWorld::Model ();
-use SDL::Tutorial::3DWorld::Asset ();
+use IO::File                            ();
+use File::Spec                          ();
+use OpenGL                              ':all';
+use OpenGL::List                        ();
+use SDL::Tutorial::3DWorld::Model       ();
+use SDL::Tutorial::3DWorld::Asset       ();
+use SDL::Tutorial::3DWorld::Asset::Mesh ();
 
 our $VERSION = '0.21';
 our @ISA     = 'SDL::Tutorial::3DWorld::Model';
@@ -58,153 +59,113 @@ our @ISA     = 'SDL::Tutorial::3DWorld::Model';
 # Parsing Methods
 
 sub parse {
-	my $self   = shift;
-	my $handle = shift;
+	my $self     = shift;
+	my $handle   = shift;
+	my $mesh     = SDL::Tutorial::3DWorld::Asset::Mesh->new;
+	my $offset   = 0;
+	my $material = 0;
+	my $ambient  = undef;
+	my $diffuse  = undef;
 
-	# Set up the (Perl) vertex array.
-	# The vertex list starts from position 1, so prepad a null
-	my @color     = ( 0, 0, 0 );
-	my $ambient   = 0;
-	my $diffuse   = 1;
-	my $opacity   = 1;
-	my @vertex    = ( undef );
-	my @normal    = ( undef );
-	my @triangles = ( );
-	my @quads     = ( );
+	while ( 1 ) {
+		my $line = $handle->getline;
+		last unless defined $line;
 
-	# Start the list context
-	$self->{list} = OpenGL::List::glpList {
-		# Start without texture support and reset specularity
-		glEnable( GL_LIGHTING );
-		glDisable( GL_TEXTURE_2D );
-		OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 20 );
-		OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 1, 1, 1, 1 );
+		# Remove blank lines, trailing whitespace and comments
+		$line =~ s/\s*(?:#.+)[\012\015]*\z//;
+		$line =~ m/\S/ or next;
 
-		while ( 1 ) {
-			my $line = $handle->getline;
-			last unless defined $line;
-
-			# Remove blank lines, trailing whitespace and comments
-			$line =~ s/\s*(?:#.+)[\012\015]*\z//;
-			$line =~ m/\S/ or next;
-
-			# Parse the dispatch the line
-			my @words   = split /\s+/, $line;
-			my $command = lc shift @words;
-			if ( $command eq 'vertex' or $command eq 'vertexext' ) {
-				# Only take the first three values, ignore any uv stuff
-				push @vertex, [ @words[0..2] ];
-				push @normal, [ ];
-
-			} elsif ( $command eq 'color' ) {
-				@color = @words;
-
-			} elsif ( $command eq 'ambient' ) {
-				$ambient = $words[0];
-
-			} elsif ( $command eq 'diffuse' ) {
-				$diffuse = $words[0];
-
-			} elsif ( $command eq 'triangle' ) {
-				# Calculate the surface normal
-				my $sn = $self->surface(
-					@{$vertex[$words[0]]},
-					@{$vertex[$words[1]]},
-					@{$vertex[$words[2]]},
-				);
-				push @{ $normal[$words[0]] }, $sn;
-				push @{ $normal[$words[1]] }, $sn;
-				push @{ $normal[$words[2]] }, $sn;
-				push @triangles, [ @words[0..2], $sn ];
-
-			} elsif ( $command eq 'quad' ) {
-				# Calculate the surface normal
-				my $sn = $self->surface(
-					@{$vertex[$words[0]]},
-					@{$vertex[$words[1]]},
-					@{$vertex[$words[2]]},
-				);
-				push @{ $normal[$words[0]] }, $sn;
-				push @{ $normal[$words[1]] }, $sn;
-				push @{ $normal[$words[2]] }, $sn;
-				push @{ $normal[$words[3]] }, $sn;
-				push @quads, [ @words[0..3], $sn ];
-
-			} elsif ( $command eq 'texture' ) {
-				# Load or set the texture
-				my $name = shift @words;
-
-			} elsif ( $command eq 'protoend' ) {
-				OpenGL::glMaterialfv_p(
-					GL_FRONT,
-					GL_AMBIENT,
-					( map { $_ * $ambient } @color ),
-					$opacity,
-				);
-				OpenGL::glMaterialfv_p(
-					GL_FRONT,
-					GL_DIFFUSE,
-					( map { $_ * $diffuse } @color ),
-					$opacity,
-				);
-				$self->render(
-					\@vertex,
-					\@normal,
-					\@quads,
-					\@triangles,
-				);
-
-				# Reset state
-				@vertex    = ( undef );
-				@normal    = ( undef );
-				@quads     = ( );
-				@triangles = ( );
-
-				# Reset material
-				OpenGL::glMaterialfv_p(
-					GL_FRONT,
-					GL_AMBIENT,
-					( map { $_ * $ambient } @color ),
-					$opacity,
-				);
-				OpenGL::glMaterialfv_p(
-					GL_FRONT,
-					GL_DIFFUSE,
-					( map { $_ * $diffuse } @color ),
-					$opacity,
-				);
-
-			} else {
-				# Unsupported command, silently ignore
+		# Parse the dispatch the line
+		my @words   = split /\s+/, $line;
+		my $command = lc shift @words;
+		if ( $command eq 'vertex' or $command eq 'vertexext' ) {
+			# Create the vertex
+			my @vertex = map { $_ * 10 } splice @words, 0, 3;
+			my @normal = ( 0, 0, 0 );
+			my @uv     = ( 0, 0 );
+			if ( @words and lc $words[0] eq 'uv' ) {
+				@uv = @words[1,2];
 			}
-		}
+			$mesh->add_all( \@vertex, \@normal, \@uv );
 
-		# Shortcut if there is nothing to clean up
-		unless ( @triangles or @quads ) {
-			return 1;
-		}
+		} elsif ( $command eq 'color' ) {
+			my %param = ( color => [ @words ] );
+			$param{ambient} = $ambient if $ambient;
+			$param{diffuse} = $diffuse if $diffuse;
+			$material = $mesh->add_material( %param );
 
-		OpenGL::glMaterialfv_p(
-			GL_FRONT,
-			GL_AMBIENT,
-			( map { $_ * $ambient } @color ),
-			$opacity,
-		);
-		OpenGL::glMaterialfv_p(
-			GL_FRONT,
-			GL_DIFFUSE,
-			( map { $_ * $diffuse } @color ),
-			$opacity,
-		);
-		$self->render(
-			\@vertex,
-			\@normal,
-			\@quads,
-			\@triangles,
-		);
+		} elsif ( $command eq 'ambient' ) {
+			$material = $mesh->add_material(
+				ambient => [ @words ],
+			);
+			$ambient = [ @words ];
+
+		} elsif ( $command eq 'diffuse' ) {
+			$material = $mesh->add_material(
+				diffuse => [ @words ],
+			);
+			$diffuse = [ @words ],
+
+		} elsif ( $command eq 'opacity' ) {
+			$material = $mesh->add_material(
+				opacity => $words[0],
+			);
+			if ( $words[0] < 1 ) {
+				$self->{blending} = 1;
+			}
+
+		} elsif ( $command eq 'texture' ) {
+			my $name    = shift @words;
+			if ( $name eq 'null' ) {
+				$material = $mesh->add_material(
+					texture => undef,
+				);
+			} else {
+				my $texture = $self->asset->texture($name);
+				unless ( $texture ) {
+					die "The texture '$name' does not exist";
+				}
+				$material = $mesh->add_material(
+					texture => $texture,
+				);
+			}
+
+		} elsif ( $command eq 'triangle' ) {
+			# Add the triangle with the right offset
+			$mesh->add_triangle(
+				$words[0] + $offset,
+				$words[1] + $offset,
+				$words[2] + $offset,
+				$material,
+			);
+			
+		} elsif ( $command eq 'quad' ) {
+			# Add the quad with the right offset
+			$mesh->add_quad(
+				$words[0] + $offset,
+				$words[1] + $offset,
+				$words[2] + $offset,
+				$words[3] + $offset,
+				$material,
+			);
+
+		} elsif ( $command eq 'protoend' ) {
+			# Correct the offset
+			$offset = $mesh->max_vertex;
+
+		} else {
+			# Unsupported command, silently ignore
+		}
 	};
 
-	return 1;
+	# Initialise the mesh elements that need it
+	$mesh->init;
+	$self->{box} = [ $mesh->box ];
+
+	# Generate the display list
+	return OpenGL::List::glpList {
+		$mesh->display;
+	};
 }
 
 1;

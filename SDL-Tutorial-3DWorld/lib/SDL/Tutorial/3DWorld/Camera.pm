@@ -215,8 +215,8 @@ sub display {
 	# Transform the location of the entire freaking world in the opposite
 	# direction and angle to where the camera is and which way it is
 	# pointing. This makes it LOOK as if the camera is moving but it isn't.
-	glRotatef( $self->{elevation}, 1, 0, 0 );
-	glRotatef( $self->{angle},     0, 1, 0 );
+	glRotatef( $self->{elevation}, -1, 0, 0 );
+	glRotatef( $self->{angle},      0, 1, 0 );
 	glTranslatef( -$self->X, -$self->Y, -$self->Z );
 
 	return;
@@ -262,10 +262,10 @@ sub event {
 		my $y = $event->motion_yrel;
 		$x = $x - 65536 if $x > 32000;
 		$y = $y - 65536 if $y > 32000;
-		$self->{angle}     += $x / 5;
-		$self->{elevation} += $y / 10;
-		$self->{elevation} =  90 if $self->{elevation} >  90;
-		$self->{elevation} = -90 if $self->{elevation} < -90;
+		$self->{angle}      = ($self->{angle} + $x / 5) % 360;
+		$self->{elevation} -= $y / 10;
+		$self->{elevation}  =  90 if $self->{elevation} >  90;
+		$self->{elevation}  = -90 if $self->{elevation} < -90;
 
 		# Move the mouse back to the centre of the window so that
 		# it can never escape the game window.
@@ -292,6 +292,91 @@ sub event {
 
 	# We don't care about this event
 	return 0;
+}
+
+
+
+
+
+######################################################################
+# Support Methods
+
+# Is a bounding box visible to the camera
+# Test each corner as a point, shortcutting if one is visible
+sub visible_box {
+	my $self = shift;
+
+	# Find the vector for camera-relative forwards
+	# For angle = 0, elevation = 0 this should be 0, 0, 1
+	my $angle     = $self->{angle}     * D2R;
+	my $elevation = $self->{elevation} * D2R;
+	my $XB        = sin($angle) * cos($elevation);
+	my $YB        = sin($elevation);
+	my $ZB        = -cos($angle) * cos($elevation);
+
+	# Offset the bounding box by the camera position and
+	# multiple by vector component for each axis.
+	# This gives the contribution to how "forward" each
+	# face makes a point for that axis.
+	my $X1 = $XB * ($_[0] - $self->{X});
+	my $Y1 = $YB * ($_[1] - $self->{Y});
+	my $Z1 = $ZB * ($_[2] - $self->{Z});
+	my $X2 = $XB * ($_[3] - $self->{X});
+	my $Y2 = $YB * ($_[4] - $self->{Y});
+	my $Z2 = $ZB * ($_[5] - $self->{Z});
+
+	# If the sum of the most positive value on each axis
+	# results in a negative value then the most forward
+	# corner of the bounding box is behind us, and there is
+	# no possible way any part of the actor needs to be
+	# drawn on screen. Thus, the actor is not visible.
+	my $sum = ($X1 > $X2 ? $X1 : $X2)
+	        + ($Y1 > $Y2 ? $Y1 : $Y2)
+	        + ($Z1 > $Z2 ? $Z2 : $Z2);
+	return 1 if $sum > 0;
+	return 0;
+}
+
+# Is a point visible to the camera
+sub visible_point {
+	my $self = shift;
+
+	# Find the vector for camera-relative forwards
+	# For angle = 0, elevation = 0 this is 0, 0, -1
+	my $angle     = $self->{angle}     * D2R;
+	my $elevation = $self->{elevation} * D2R;
+	my $XB        = sin($angle) * cos($elevation);
+	my $YB        = sin($elevation);
+	my $ZB        = -cos($angle) * cos($elevation);
+
+	# Multiply the camera-relative position by the vector.
+	# A positive total means the point is behind us.
+	my $behind = $XB * ($_[0] - $self->{X})
+	           + $YB * ($_[1] - $self->{Y})
+	           + $ZB * ($_[2] - $self->{Z});
+	return 0 if $behind > 0;
+	return 1;
+}
+
+# Sort a series of vectors by distance from the camera, returning
+# the result as a list of index positions.
+sub distance_isort {
+	my $self     = shift;
+	my $X        = $self->{X};
+	my $Y        = $self->{Y};
+	my $Z        = $self->{Z};
+
+	# Calculate the distances
+	my @distance = map {
+		($X - $_->[0]) ** 2 + ($Y - $_->[1]) ** 2 + ($Z - $_->[2]) ** 2
+	} @_;
+
+	# Sort index by distance
+	my @order = sort {
+		$distance[$b] <=> $distance[$a]
+	} ( 0 .. $#_ );
+
+	return @order;
 }
 
 1;

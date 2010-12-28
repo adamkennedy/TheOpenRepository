@@ -39,6 +39,8 @@ use warnings;
 use File::Spec                      ();
 use SDL::Tutorial::3DWorld          ();
 use SDL::Tutorial::3DWorld::Texture ();
+use SDL::Tutorial::3DWorld::OpenGL  ();
+use OpenGL::List                    ();
 use OpenGL;
 
 our $VERSION = '0.21';
@@ -140,6 +142,11 @@ sub init {
 		$self->{$side}->init if $self->{$side};
 	}
 
+	# Compile the display list
+	$self->{list} = OpenGL::List::glpList {
+			$self->compile;
+	};
+
 	return 1;
 }
 
@@ -155,8 +162,22 @@ sub display {
 	glPushMatrix();
 	glTranslatef( $camera->X, $camera->Y, $camera->Z );
 
+	# Call the display list
+	glCallList( $self->{list} );
+
+	# Exit the special Matrix context the skybox needs to draw in.
+	glPopMatrix();
+
+	return 1;
+}
+
+# Compilable portion of the display logic
+sub compile {
+	my $self = shift;
+
 	# Lighting does not apply to the skybox
 	glDisable( GL_LIGHTING );
+	glEnable( GL_TEXTURE_2D );
 
 	# When drawing the skybox cube, each quad should be slightly larger
 	# around than the distance each face is away from the camera.
@@ -224,9 +245,6 @@ sub display {
 	# back to the default here means every other lit object doesn't
 	# need to explicitly turn it on.
 	glEnable( GL_LIGHTING );
-
-	# Exit the special Matrix context the skybox needs to draw in.
-	glPopMatrix();
 
 	return 1;
 }

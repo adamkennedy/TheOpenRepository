@@ -25,12 +25,22 @@ use strict;
 use warnings;
 use SDL::Tutorial::3DWorld::OpenGL ();
 use SDL::Tutorial::3DWorld::Actor  ();
+use OpenGL::List ();
 
 # Use proper POSIX math rather than playing games with Perl's int()
 use POSIX ();
 
 our $VERSION = '0.21';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
+
+sub new {
+	my $self = shift->SUPER::new(@_);
+
+	# Gridcubes need blending
+	$self->{blending} = 1;
+
+	return $self;
+}
 
 
 
@@ -39,63 +49,89 @@ our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 ######################################################################
 # Engine Interface
 
-sub display {
+sub init {
 	my $self = shift;
+	$self->SUPER::init(@_);
 
-	# Where is the cube source floating location
-	my $X = $self->X;
-	my $Y = $self->Y;
-	my $Z = $self->Z;
+	# Compile the point and cube lists
+	$self->{point_list} = OpenGL::List::glpList {
+		$self->compile_point;
+	};
+	$self->{lines_list} = OpenGL::List::glpList {
+		$self->compile_lines;
+	};
+
+	return 1;
+}
+
+sub display {
+	my $self     = shift;
+	my $position = $self->{position};
+
+	# Translate to the correct location
+	$self->SUPER::display(@_);
 
 	# The cube is plain opaque full-bright white and ignores lighting
 	OpenGL::glDisable( OpenGL::GL_LIGHTING );
 	OpenGL::glDisable( OpenGL::GL_TEXTURE_2D );
-	OpenGL::glColor4f( 1, 1, 1, 1 );
 
-	# Draw a point actual X,Y,Z position is
-	OpenGL::glPointSize( 5 );
-	OpenGL::glBegin( OpenGL::GL_POINTS );
-	OpenGL::glVertex3f( $X, $Y, $Z );
-	OpenGL::glEnd();
+	# Draw a point at the exact X,Y,Z position and reset translation
+	OpenGL::glCallList( $self->{point_list} );
 
-	# Snap the current floating position to the 1 metre (integer) grid
-	my $L = POSIX::floor($X); # (L)eft
-	my $D = POSIX::floor($Y); # (D)own
-	my $F = POSIX::floor($Z); # (F)ront
-	my $R = POSIX::ceil($X);  # (R)ight
-	my $U = POSIX::ceil($Y);  # (U)p
-	my $B = POSIX::ceil($Z);  # (B)ack
-
-	# For some reason, this particular function is incredibly
-	# expensive according to NYTProf.
-	OpenGL::glLineWidth( 1 );
-
-	# Draw the lines that make up the cube.
-	# We'll do this longhand to make it clear how much work can be
-	# involved in hand-drawning something. In practice you would
-	# probably use a tuned and optimised alternative, or just
-	# translate and call C<glutCube> or load a saved model.
-	OpenGL::glBegin( OpenGL::GL_LINES );
-	OpenGL::glVertex3f( $L, $D, $F ); OpenGL::glVertex3f( $R, $D, $F );
-	OpenGL::glVertex3f( $L, $D, $F ); OpenGL::glVertex3f( $L, $U, $F );
-	OpenGL::glVertex3f( $L, $D, $F ); OpenGL::glVertex3f( $L, $D, $B );
-	OpenGL::glVertex3f( $R, $D, $F ); OpenGL::glVertex3f( $R, $U, $F );
-	OpenGL::glVertex3f( $R, $D, $F ); OpenGL::glVertex3f( $R, $D, $B );
-	OpenGL::glVertex3f( $L, $U, $F ); OpenGL::glVertex3f( $R, $U, $F );
-	OpenGL::glVertex3f( $L, $U, $F ); OpenGL::glVertex3f( $L, $U, $B );
-	OpenGL::glVertex3f( $L, $D, $B ); OpenGL::glVertex3f( $R, $D, $B );
-	OpenGL::glVertex3f( $L, $D, $B ); OpenGL::glVertex3f( $L, $U, $B );
-	OpenGL::glVertex3f( $R, $U, $F ); OpenGL::glVertex3f( $R, $U, $B );
-	OpenGL::glVertex3f( $R, $D, $B ); OpenGL::glVertex3f( $R, $U, $B );
-	OpenGL::glVertex3f( $L, $U, $B ); OpenGL::glVertex3f( $R, $U, $B );
-	OpenGL::glEnd();
+	# Translate down to the next lowest integer before drawing the cube
+	my @delta = map { POSIX::floor($_) - $_ } @$position;
+	OpenGL::glTranslatef( @delta );
+	OpenGL::glCallList( $self->{lines_list} );
 
 	# Lighting is on by default in our 3DWorld application.
 	# Reenable it so each individual lit object doesn't have to
 	# explicitly turn it on.
+	OpenGL::glEnable( OpenGL::GL_TEXTURE_2D );
 	OpenGL::glEnable( OpenGL::GL_LIGHTING );
-
+	
 	return;
+}
+
+# The compilable section of the point display logic
+sub compile_point {
+	OpenGL::glBlendFunc( OpenGL::GL_SRC_ALPHA, OpenGL::GL_ONE_MINUS_SRC_ALPHA );
+	OpenGL::glEnable( OpenGL::GL_BLEND );
+	OpenGL::glEnable( OpenGL::GL_POINT_SMOOTH );
+	OpenGL::glPointSize( 5 );
+	OpenGL::glColor4f( 1, 1, 1, 1 );
+	OpenGL::glBegin( OpenGL::GL_POINTS );
+	OpenGL::glVertex3f( 0, 0, 0 );
+	OpenGL::glEnd();
+	OpenGL::glDisable( OpenGL::GL_POINT_SMOOTH );
+	OpenGL::glDisable( OpenGL::GL_BLEND );
+}
+
+# The compilable section of the grid cube display logic
+sub compile_lines {
+	# Enable line smoothing
+	OpenGL::glBlendFunc( OpenGL::GL_SRC_ALPHA, OpenGL::GL_ONE_MINUS_SRC_ALPHA );
+	OpenGL::glEnable( OpenGL::GL_BLEND );
+	OpenGL::glEnable( OpenGL::GL_LINE_SMOOTH );
+
+	# Draw all the lines in the cube
+	OpenGL::glBegin( OpenGL::GL_LINES );
+	OpenGL::glVertex3f( 0, 0, 0 ); OpenGL::glVertex3f( 1, 0, 0 );
+	OpenGL::glVertex3f( 0, 0, 0 ); OpenGL::glVertex3f( 0, 1, 0 );
+	OpenGL::glVertex3f( 0, 0, 0 ); OpenGL::glVertex3f( 0, 0, 1 );
+	OpenGL::glVertex3f( 1, 0, 0 ); OpenGL::glVertex3f( 1, 1, 0 );
+	OpenGL::glVertex3f( 1, 0, 0 ); OpenGL::glVertex3f( 1, 0, 1 );
+	OpenGL::glVertex3f( 0, 1, 0 ); OpenGL::glVertex3f( 1, 1, 0 );
+	OpenGL::glVertex3f( 0, 1, 0 ); OpenGL::glVertex3f( 0, 1, 1 );
+	OpenGL::glVertex3f( 0, 0, 1 ); OpenGL::glVertex3f( 1, 0, 1 );
+	OpenGL::glVertex3f( 0, 0, 1 ); OpenGL::glVertex3f( 0, 1, 1 );
+	OpenGL::glVertex3f( 1, 1, 0 ); OpenGL::glVertex3f( 1, 1, 1 );
+	OpenGL::glVertex3f( 1, 0, 1 ); OpenGL::glVertex3f( 1, 1, 1 );
+	OpenGL::glVertex3f( 0, 1, 1 ); OpenGL::glVertex3f( 1, 1, 1 );
+	OpenGL::glEnd();
+
+	# Disable line smoothing
+	OpenGL::glDisable( OpenGL::GL_LINE_SMOOTH );
+	OpenGL::glDisable( OpenGL::GL_BLEND );
 }
 
 1;
