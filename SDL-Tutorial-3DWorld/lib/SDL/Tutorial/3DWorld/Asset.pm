@@ -19,7 +19,6 @@ use strict;
 use warnings;
 use File::Spec                         ();
 use SDL::Tutorial::3DWorld::Texture    ();
-use SDL::Tutorial::3DWorld::Tile       ();
 use SDL::Tutorial::3DWorld::Asset::MTL ();
 use SDL::Tutorial::3DWorld::Asset::OBJ ();
 use SDL::Tutorial::3DWorld::Asset::RWX ();
@@ -85,23 +84,6 @@ sub model {
 
 	# No idea what this is
 	die "Missing or invalid model name '$name'";
-}
-
-sub tile {
-	my $self = shift;
-	my $name = shift;
-
-	# Check for a jpg texture
-	my $jpg = File::Spec->catfile(
-		$self->directory,
-		"$name.jpg",
-	);
-	return SDL::Tutorial::3DWorld::Tile->new(
-		file => $jpg,
-	) if -f $jpg;
-
-	# No idea what this is
-	die "Missing or invalid texture name '$name'";
 }
 
 sub texture {
