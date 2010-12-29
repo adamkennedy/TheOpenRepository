@@ -8,6 +8,10 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  Tile class at all.
 	- In light of it's expanded role, renamed ::Actor::Box to the
 	  more general sounding ::Actor::Debug.
+	- We don't need to clear the color buffer when we have a skybox.
+	  Clearing only the depth buffer will have the exact same effect.
+	- Adding support for a ->{hidden} property on actors that allows
+	  them to intentionally make themselves invisible.
 
 0.21 Tue 28 Dec 2010
 	- Adding directory-based asset support, which is needed for linking

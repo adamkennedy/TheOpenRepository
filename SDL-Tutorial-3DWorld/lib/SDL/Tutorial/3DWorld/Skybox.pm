@@ -175,9 +175,11 @@ sub display {
 sub compile {
 	my $self = shift;
 
-	# Lighting does not apply to the skybox
+	# Lighting does not apply to the skybox.
+	# Reset coloring to white so we don't leak a color from a model.
 	glDisable( GL_LIGHTING );
 	glEnable( GL_TEXTURE_2D );
+	glColor4f( 1, 1, 1, 1 );
 
 	# When drawing the skybox cube, each quad should be slightly larger
 	# around than the distance each face is away from the camera.

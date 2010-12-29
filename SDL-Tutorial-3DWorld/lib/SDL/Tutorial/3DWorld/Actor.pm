@@ -69,6 +69,9 @@ sub new {
 		# Most things in the world are solid
 		blending => 0,
 
+		# Most things are visible by default
+		hidden   => 0,
+
 		# Most objects are stored at the correct size
 		scale    => 0,
 

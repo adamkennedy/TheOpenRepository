@@ -101,10 +101,6 @@ sub new {
 		width      => 1280,
 		height     => 800,
 		dt         => 0.1,
-
-		# Making the glClear settings variable allows us to
-		# dynamically add or remove features like motion blur.
-		clear      => GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
 	}, $class;
 
 	# Text console that overlays the world
@@ -256,6 +252,18 @@ sub new {
 			Z => -400,
 		),
 	];
+
+	# Optimisation:
+	# If we have a skybox then now part of the scene will ever show
+	# the background. As a result, we can clear only the depth buffer
+	# and this will result in the color buffer just being drawn over.
+	# This removes a fairly large memory clear operation and speeds
+	# up frame-initialisation phase of the rendering pipeline.
+	if ( $self->{skybox} ) {
+		$self->{clear} = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+	} else {
+		$self->{clear} = GL_DEPTH_BUFFER_BIT;
+	}
 
 	return $self;
 }
@@ -562,6 +570,9 @@ sub display_actors {
 	my @solid = ();
 	my @blend = ();
 	foreach my $actor ( @{$self->{actors}} ) {
+		# Don't render actors that are intentionall hidden
+		next if $actor->{hidden};
+
 		# Don't render actors that aren't in our field of view
 		my @box     = $actor->box;
 		my $visible = @box
