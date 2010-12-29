@@ -64,11 +64,14 @@ sub display {
 	# plain and 1 metre on a side otherwise.
 	OpenGL::glPushMatrix();
 	OpenGL::glTranslatef( @$position );
-	OpenGL::glScalef(
-		$box[3] - $box[0],
-		$box[4] - $box[1],
-		$box[5] - $box[2],
-	) if @box;
+	if ( @box ) {
+		# Axis lines extend to 20% of the length of an
+		# object alone a dimension past the edge.
+		my $X = $box[3] - $position->[0] + ($box[3] - $box[0]) * 0.2;
+		my $Y = $box[4] - $position->[1] + ($box[4] - $box[1]) * 0.2;
+		my $Z = $box[5] - $position->[2] + ($box[5] - $box[2]) * 0.2;
+		OpenGL::glScalef( $X, $Y, $Z );
+	}
 	OpenGL::glCallList( $self->{axislist} );
 	OpenGL::glPopMatrix();
 
@@ -80,7 +83,7 @@ sub display {
 		$box[3] - $box[0],
 		$box[4] - $box[1],
 		$box[5] - $box[2],
-	);		
+	);
 
 	# Call the display list to render the cube
 	OpenGL::glCallList( $self->{boxlist} );
