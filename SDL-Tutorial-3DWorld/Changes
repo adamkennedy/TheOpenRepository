@@ -1,5 +1,10 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.24 to be released
+	- Disable solid object display order optimisation, as I suspect it
+	  that the Perl cost to sort them is bigger than the cost of just
+	  brute force drawing all of them in hardware.
+
 0.23 Wed 29 Dec 2010
 	- Sort solid objects from nearest to farthest to increase the
 	  chance that OpenGL only needs to depth test far objects and won't

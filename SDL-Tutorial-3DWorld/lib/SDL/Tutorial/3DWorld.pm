@@ -631,9 +631,12 @@ sub display_actors {
 	# model is close to the camera then any object behind it only
 	# needs to be depth-testing and all the work to colour, texture
 	# and light the object can be skipped by OpenGL.
-	@solid = reverse map { $solid[$_] } $self->camera->distance_isort(
-		map { $_->{position} } @solid
-	);
+	# NOTE: This is disabled for the time being as I suspect the
+	# cost of the geometry math and sorting in Perl is larger than
+	# the cost of just brute forcing it in modern graphics hardware.
+	# @solid = reverse map { $solid[$_] } $self->camera->distance_isort(
+		# map { $_->{position} } @solid
+	# );
 
 	# Sort the blending objects from farthest to nearest. A transparent
 	# object needs to have everything behind it drawn so that it can
