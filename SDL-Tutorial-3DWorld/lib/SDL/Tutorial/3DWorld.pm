@@ -101,6 +101,10 @@ sub new {
 		width      => 1280,
 		height     => 800,
 		dt         => 0.1,
+
+		# Debugging elements we can toggle
+		hide_debug     => 0,
+		hide_expensive => 0,
 	}, $class;
 
 	# Text console that overlays the world
@@ -520,11 +524,36 @@ sub event {
 	my $event = shift;
 	my $type  = $event->type;
 
-	# Quit option
 	if ( $type == SDL_KEYDOWN ) {
 		my $key = $event->key_sym;
+
+		# Quit the world
 		if ( $key == SDLK_ESCAPE ) {
 			$self->{sdl}->stop;
+			return 1;
+		}
+
+		# Toggle visibility of debugging actors
+		if ( $key == SDLK_F1 ) {
+			$self->{hide_debug} = $self->{hide_debug} ? 0 : 1;
+			foreach my $actor ( @{$self->{actors}} ) {
+				next unless $actor->isa('SDL::Tutorial::3DWorld::Actor::Debug');
+				$actor->{hidden} = $self->{hide_debug};
+			}
+			return 1;
+		}
+
+		# Toggle visibility for unrealistically-expensive actors
+		if ( $key == SDLK_F2 ) {
+			$self->{hide_expensive} = $self->{hide_expensive} ? 0 : 1;
+			foreach my $actor ( @{$self->{actors}} ) {
+				if ( $actor->isa('SDL::Tutorial::3DWorld::Actor::MaterialSampler') ) {
+					$actor->{hidden} = $self->{hide_expensive};
+				}
+				if ( $actor->isa('SDL::Tutorial::3DWorld::Actor::Teapot') ) {
+					$actor->{hidden} = $self->{hide_expensive};
+				}
+			}
 			return 1;
 		}
 	}
