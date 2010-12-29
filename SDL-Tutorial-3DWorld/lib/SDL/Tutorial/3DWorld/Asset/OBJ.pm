@@ -47,7 +47,7 @@ use OpenGL::List                        ();
 use SDL::Tutorial::3DWorld::Model       ();
 use SDL::Tutorial::3DWorld::Asset::Mesh ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 our @ISA     = 'SDL::Tutorial::3DWorld::Model';
 
 

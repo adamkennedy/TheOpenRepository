@@ -30,7 +30,7 @@ use OpenGL::List ();
 # Use proper POSIX math rather than playing games with Perl's int()
 use POSIX ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {

@@ -7,7 +7,7 @@ use List::MoreUtils                  ();
 use SDL::Tutorial::3DWorld::OpenGL   ();
 use SDL::Tutorial::3DWorld::Material ();
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 use constant {
 	VERTEX   => 0,

@@ -47,7 +47,7 @@ use SDL::Tutorial::3DWorld::Material ();
 use SDL::Tutorial::3DWorld::Asset    ();
 
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 
 

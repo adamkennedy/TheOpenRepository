@@ -34,7 +34,7 @@ use strict;
 use warnings;
 use OpenGL ':all';
 
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 1;
 
