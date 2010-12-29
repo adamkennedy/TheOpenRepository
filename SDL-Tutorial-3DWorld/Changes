@@ -52,7 +52,7 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  polygons (important on polished wood toys)
 	- Added preliminary support for OBJ models (only with per-face surface
 	  normals at this point).
-	- Added a superbly details and giant freaking table to demonstrate the
+	- Added a superbly detailed and giant freaking table to demonstrate the
 	  greater quality of objects you tend to be able to find for obj files.
 
 0.19 Mon 20 Dec 2010
