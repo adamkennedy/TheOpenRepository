@@ -1,6 +1,7 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
 0.23 to be released
+	- Added support for explicit normals in meshes and model files
 
 0.22 Wed 29 Dec 2010
 	- The bounding box actor now also displays a traditional
