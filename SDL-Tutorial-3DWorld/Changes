@@ -1,6 +1,6 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
-0.22 to be completed
+0.22 Wed 29 Dec 2010
 	- The bounding box actor now also displays a traditional
 	  red/green/blue axis on the original of each actor.
 	- Flying camera renamed as the God camera.
