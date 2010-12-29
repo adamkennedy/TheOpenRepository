@@ -17,7 +17,7 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	- Left CTRL now provides negative lift to the God-mode camera.
 	  i.e. It makes you go vertically downwards.
 	- Added F1 toggle to enable/disable debuging actors
-	- Added F2 toggle to enable/disable abusingly expensive actors
+	- Added F2 toggle to enable/disable abusively expensive actors
 
 0.21 Tue 28 Dec 2010
 	- Adding directory-based asset support, which is needed for linking
