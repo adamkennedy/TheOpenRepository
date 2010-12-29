@@ -1,4 +1,4 @@
-package SDL::Tutorial::3DWorld::Asset::Mesh;
+package SDL::Tutorial::3DWorld::Mesh;
 
 use 5.008;
 use strict;

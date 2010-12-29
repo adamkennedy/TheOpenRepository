@@ -104,6 +104,7 @@ sub new {
 
 		# Debugging elements we can toggle
 		hide_debug     => 0,
+		hide_console   => 0,
 		hide_expensive => 0,
 	}, $class;
 
@@ -499,7 +500,9 @@ sub display {
 	}
 
 	# Draw the console last, on top of everything else
-	$self->{console}->display if $self->{console};
+	if ( $self->{console} and not $self->{hide_console} ) {
+		$self->{console}->display;
+	}
 
 	return 1;
 }
@@ -554,6 +557,12 @@ sub event {
 					$actor->{hidden} = $self->{hide_expensive};
 				}
 			}
+			return 1;
+		}
+
+		# Toggle visibility of the console (i.e. the FPS display)
+		if ( $key == SDLK_F3 ) {
+			$self->{hide_console} = $self->{hide_console} ? 0 : 1;
 			return 1;
 		}
 	}
