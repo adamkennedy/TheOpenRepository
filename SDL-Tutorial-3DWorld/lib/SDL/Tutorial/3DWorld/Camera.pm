@@ -169,6 +169,22 @@ sub elevation {
 	$_[0]->{elevation};
 }
 
+=pod
+
+=head2 direction
+
+The C<direction> accessor provides a unitised geometric vector for where
+the camera is currently pointing. This vector does not have a rotational
+component so for any math requiring rotation you will need to naively
+assume that the camera rotational orientation is zero (i.e. when looking
+at the horizon camera up is geometric up along the positive Y axis)
+
+=cut
+
+sub direction {
+	$_[0]->{direction};
+}
+
 
 
 
@@ -267,6 +283,16 @@ sub event {
 		$self->{elevation}  =  90 if $self->{elevation} >  90;
 		$self->{elevation}  = -90 if $self->{elevation} < -90;
 
+		# Update the direction vector we use for variety of tasks.
+		# For angle = 0, elevation = 0 this should be 0, 0, -1
+		my $angle     = $self->{angle}     * D2R;
+		my $elevation = $self->{elevation} * D2R;
+		$self->{direction} = [
+			sin($angle) * cos($elevation),
+			sin($elevation),
+			-cos($angle) * cos($elevation),
+		];
+
 		# Move the mouse back to the centre of the window so that
 		# it can never escape the game window.
 		SDL::Mouse::warp_mouse( @{$self->{mouse_origin}} );
@@ -304,26 +330,19 @@ sub event {
 # Is a bounding box visible to the camera
 # Test each corner as a point, shortcutting if one is visible
 sub visible_box {
-	my $self = shift;
-
-	# Find the vector for camera-relative forwards
-	# For angle = 0, elevation = 0 this should be 0, 0, 1
-	my $angle     = $self->{angle}     * D2R;
-	my $elevation = $self->{elevation} * D2R;
-	my $XB        = sin($angle) * cos($elevation);
-	my $YB        = sin($elevation);
-	my $ZB        = -cos($angle) * cos($elevation);
+	my $self      = shift;
+	my $direction = $self->{direction};
 
 	# Offset the bounding box by the camera position and
 	# multiple by vector component for each axis.
 	# This gives the contribution to how "forward" each
 	# face makes a point for that axis.
-	my $X1 = $XB * ($_[0] - $self->{X});
-	my $Y1 = $YB * ($_[1] - $self->{Y});
-	my $Z1 = $ZB * ($_[2] - $self->{Z});
-	my $X2 = $XB * ($_[3] - $self->{X});
-	my $Y2 = $YB * ($_[4] - $self->{Y});
-	my $Z2 = $ZB * ($_[5] - $self->{Z});
+	my $X1 = $direction->[0] * ($_[0] - $self->{X});
+	my $Y1 = $direction->[1] * ($_[1] - $self->{Y});
+	my $Z1 = $direction->[2] * ($_[2] - $self->{Z});
+	my $X2 = $direction->[0] * ($_[3] - $self->{X});
+	my $Y2 = $direction->[1] * ($_[4] - $self->{Y});
+	my $Z2 = $direction->[2] * ($_[5] - $self->{Z});
 
 	# If the sum of the most positive value on each axis
 	# results in a negative value then the most forward
@@ -339,21 +358,14 @@ sub visible_box {
 
 # Is a point visible to the camera
 sub visible_point {
-	my $self = shift;
-
-	# Find the vector for camera-relative forwards
-	# For angle = 0, elevation = 0 this is 0, 0, -1
-	my $angle     = $self->{angle}     * D2R;
-	my $elevation = $self->{elevation} * D2R;
-	my $XB        = sin($angle) * cos($elevation);
-	my $YB        = sin($elevation);
-	my $ZB        = -cos($angle) * cos($elevation);
+	my $self      = shift;
+	my $direction = $self->{direction};
 
 	# Multiply the camera-relative position by the vector.
 	# A positive total means the point is behind us.
-	my $behind = $XB * ($_[0] - $self->{X})
-	           + $YB * ($_[1] - $self->{Y})
-	           + $ZB * ($_[2] - $self->{Z});
+	my $behind = $direction->[0] * ($_[0] - $self->{X})
+	           + $direction->[1] * ($_[1] - $self->{Y})
+	           + $direction->[2] * ($_[2] - $self->{Z});
 	return 0 if $behind > 0;
 	return 1;
 }

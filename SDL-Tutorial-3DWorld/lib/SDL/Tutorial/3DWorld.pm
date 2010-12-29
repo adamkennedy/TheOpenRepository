@@ -63,6 +63,7 @@ use SDL::Tutorial::3DWorld::Actor::Debug           ();
 use SDL::Tutorial::3DWorld::Actor::Model           ();
 use SDL::Tutorial::3DWorld::Actor::Teapot          ();
 use SDL::Tutorial::3DWorld::Actor::GridCube        ();
+use SDL::Tutorial::3DWorld::Actor::GridSelect      ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube     ();
 use SDL::Tutorial::3DWorld::Actor::MaterialSampler ();
 use SDL::Tutorial::3DWorld::Asset                  ();
@@ -97,12 +98,14 @@ It does not current take any parameters.
 sub new {
 	my $class = shift;
 	my $self  = bless {
-		ARGV       => [ @_ ],
-		width      => 1280,
-		height     => 800,
-		dt         => 0.1,
+		ARGV           => [ @_ ],
+		width          => 1280,
+		height         => 1024,
+		dt             => 0.1,
 
-		# Debugging elements we can toggle
+		# Debugging or expensive elements we can toggle off.
+		# Turning all of these three off gives us a much more
+		# accurate assessment on how fast a real world would perform.
 		hide_debug     => 0,
 		hide_console   => 0,
 		hide_expensive => 0,
@@ -133,6 +136,9 @@ sub new {
 
 	# Place three airborn stationary teapots in the scene
 	my $actors = $self->{actors} = [
+
+		# A snap-to-grid selection box that follows the camera
+		SDL::Tutorial::3DWorld::Actor::GridSelect->new,
 
 		# (R)ed is the official colour of the X axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
