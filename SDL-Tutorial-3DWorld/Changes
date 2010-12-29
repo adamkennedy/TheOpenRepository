@@ -4,7 +4,10 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	- The bounding box actor now also displays a traditional
 	  red/green/blue axis on the original of each actor.
 	- Flying camera renamed as the God camera.
-	- All textures now wrap by default removing the need for the Tile class
+	- All textures now wrap by default removing the need for the
+	  Tile class at all.
+	- In light of it's expanded role, renamed ::Actor::Box to the
+	  more general sounding ::Actor::Debug.
 
 0.21 Tue 28 Dec 2010
 	- Adding directory-based asset support, which is needed for linking

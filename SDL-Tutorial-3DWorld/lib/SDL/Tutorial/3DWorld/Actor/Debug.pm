@@ -1,4 +1,4 @@
-package SDL::Tutorial::3DWorld::Actor::Box;
+package SDL::Tutorial::3DWorld::Actor::Debug;
 
 use 5.008;
 use strict;

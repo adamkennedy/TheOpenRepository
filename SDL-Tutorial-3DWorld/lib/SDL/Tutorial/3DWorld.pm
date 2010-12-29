@@ -59,7 +59,7 @@ use SDL                                      2.524 ':all';
 use SDL::Event                                     ':all';
 use SDLx::App                                      ();
 use SDL::Tutorial::3DWorld::Actor                  ();
-use SDL::Tutorial::3DWorld::Actor::Box             ();
+use SDL::Tutorial::3DWorld::Actor::Debug           ();
 use SDL::Tutorial::3DWorld::Actor::Model           ();
 use SDL::Tutorial::3DWorld::Actor::Teapot          ();
 use SDL::Tutorial::3DWorld::Actor::GridCube        ();
@@ -245,7 +245,7 @@ sub new {
 
 	# Add a bounding box viewer to as many objects as support it
 	push @$actors, map {
-		SDL::Tutorial::3DWorld::Actor::Box->new( parent => $_ )
+		SDL::Tutorial::3DWorld::Actor::Debug->new( parent => $_ )
 	} @$actors;
 
 	# Light the world with a single overhead light
