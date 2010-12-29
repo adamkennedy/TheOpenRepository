@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use SDL::Tutorial::3DWorld ();
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 # Load the game
 my $game = SDL::Tutorial::3DWorld->new( @ARGV );

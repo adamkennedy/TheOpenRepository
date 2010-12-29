@@ -35,7 +35,7 @@ use OpenGL::List                   ();
 use SDL::Tutorial::3DWorld::Asset  ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 
 
