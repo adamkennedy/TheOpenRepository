@@ -12,6 +12,8 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  Clearing only the depth buffer will have the exact same effect.
 	- Adding support for a ->{hidden} property on actors that allows
 	  them to intentionally make themselves invisible.
+	- Left CTRL now provides negative lift to the God-mode camera.
+	  i.e. It makes you go vertically downwards.
 
 0.21 Tue 28 Dec 2010
 	- Adding directory-based asset support, which is needed for linking

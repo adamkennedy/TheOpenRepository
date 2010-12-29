@@ -38,6 +38,7 @@ sub new {
 
 	# Space makes us lift
 	$self->{down}->{SDL::Constants::SDLK_SPACE} = 0;
+	$self->{down}->{SDL::Constants::SDLK_LCTRL} = 0;
 
 	return $self;
 }
@@ -68,7 +69,8 @@ sub move {
 	           - $down->{SDL::Constants::SDLK_s};
 	my $strafe = $down->{SDL::Constants::SDLK_d}
 	           - $down->{SDL::Constants::SDLK_a};
-	my $lift   = $down->{SDL::Constants::SDLK_SPACE};
+	my $lift   = $down->{SDL::Constants::SDLK_SPACE}
+	           - $down->{SDL::Constants::SDLK_LCTRL};
 
 	# Apply this movement in the direction of the camera.
 	# Math applied unoptimised and longhand for greater readability.
