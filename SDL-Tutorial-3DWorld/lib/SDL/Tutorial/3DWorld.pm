@@ -593,9 +593,9 @@ sub display_actors {
 	my $self   = shift;
 	my $camera = $self->{camera};
 
-	# The order of solid actors doesn't really matter.
-	# Split them from the ones that need blending so we sort on the least
-	# number of actors we have to.
+	# Apply optimisation strategies to remove things we don't need to
+	# draw. At the same time split solid and transparent objects apart
+	# as we will use different rendering optimisations for each type.
 	my @solid = ();
 	my @blend = ();
 	foreach my $actor ( @{$self->{actors}} ) {
@@ -618,10 +618,20 @@ sub display_actors {
 		}
 	}
 
-	# Sort only the blending objects (if we have any)
-	@blend = map { $blend[$_] } $self->camera->distance_isort(
+	# Sort the solid objects from nearest to farthest. If a large
+	# model is close to the camera then any object behind it only
+	# needs to be depth-testing and all the work to colour, texture
+	# and light the object can be skipped by OpenGL.
+	@solid = reverse map { $solid[$_] } $self->camera->distance_isort(
+		map { $_->{position} } @solid
+	);
+
+	# Sort the blending objects from farthest to nearest. A transparent
+	# object needs to have everything behind it drawn so that it can
+	# do the alpha transparency over the top of it,
+	@blend = map { $blend[$_] } $camera->distance_isort(
 		map { $_->{position} } @blend
-	) if @blend;
+	);
 
 	return ( @solid, @blend );
 }

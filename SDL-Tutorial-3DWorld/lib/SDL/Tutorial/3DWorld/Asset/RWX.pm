@@ -86,7 +86,7 @@ sub parse {
 			if ( @words and lc $words[0] eq 'uv' ) {
 				@uv = @words[1,2];
 			}
-			$mesh->add_all( \@vertex, \@normal, \@uv );
+			$mesh->add_all( \@vertex, \@uv, \@normal );
 
 		} elsif ( $command eq 'color' ) {
 			my %param = ( color => [ @words ] );
@@ -132,21 +132,22 @@ sub parse {
 
 		} elsif ( $command eq 'triangle' ) {
 			# Add the triangle with the right offset
+			@words = map { $_ + $offset } @words;
 			$mesh->add_triangle(
-				$words[0] + $offset,
-				$words[1] + $offset,
-				$words[2] + $offset,
 				$material,
+				@words,
+				@words,
+				@words,
 			);
-			
+
 		} elsif ( $command eq 'quad' ) {
 			# Add the quad with the right offset
+			@words = map { $_ + $offset } @words;
 			$mesh->add_quad(
-				$words[0] + $offset,
-				$words[1] + $offset,
-				$words[2] + $offset,
-				$words[3] + $offset,
 				$material,
+				@words,
+				@words,
+				@words,
 			);
 
 		} elsif ( $command eq 'protoend' ) {

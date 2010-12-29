@@ -58,10 +58,10 @@ our @ISA     = 'SDL::Tutorial::3DWorld::Model';
 # Parsing Methods
 
 sub parse {
-	my $self     = shift;
-	my $handle   = shift;
-	my $mesh     = SDL::Tutorial::3DWorld::Asset::Mesh->new;
-	my $material = 0;
+	my $self   = shift;
+	my $handle = shift;
+	my $mesh   = SDL::Tutorial::3DWorld::Asset::Mesh->new;
+	my $m      = 0; # Material index position
 
 	# Fill the mesh
 	while ( 1 ) {
@@ -79,16 +79,55 @@ sub parse {
 			# Create the vertex
 			$mesh->add_vertex( @words );
 
+		} elsif ( $command eq 'vt' ) {
+			# Create the texture location.
+			# We only support two-dimensional textures,
+			# so don't pass more than two params.
+			$mesh->add_uv( @words[0,1] );
+
 		} elsif ( $command eq 'vn' ) {
-			# Create the normal
-			$mesh->add_normal( @words );
+			# Normal vectors might not be unit so we need to
+			# unitise before we add it to the mesh.
+			my $l = sqrt( $words[0] ** 2 + $words[1] ** 2 + $words[2] ** 2 );
+			$mesh->add_normal(
+				$words[0] / $l,
+				$words[1] / $l,
+				$words[2] / $l,
+			);
 
 		} elsif ( $command eq 'f' ) {
-			my @vi = map { /^(\d+)/ ? $1 : () } @words;
-			if ( @vi == 3 ) {
-				$mesh->add_triangle( @vi, $material );
-			} elsif ( @vi == 4 ) {
-				$mesh->add_quad( @vi, $material );
+			if ( @words == 3 ) {
+				my @i = map { split /\//, $_ } @words;
+				if ( @i == 3 ) {
+					# f v1 v2 v3
+					$mesh->add_triangle( $m, @i );
+				} elsif ( @i == 6 ) {
+					# f v1/vt1 v2/vt2 v3/vt3
+					$mesh->add_triangle( $m, @i[0,2,4,1,3,5] );
+				} elsif ( @i == 9 ) {
+					# f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3
+					# f v1//vn1 v2//vn2 v3//vn3
+					$mesh->add_triangle( $m, @i[0,3,6,1,4,7,2,5,8] );
+				} else {
+					die "Unsuppored face '$line'";
+				}
+			} elsif ( @words == 4 ) {
+				my @i = map { split /\//, $_ } @words;
+				if ( @i == 4 ) {
+					# f v1 v2 v3 v4
+					$mesh->add_quad( $m, @i );
+				} elsif ( @i == 8 ) {
+					# f v1/vt1 v2/vt2 v3/vt3 v4/vt4
+					$mesh->add_quad( $m, @i[0,2,4,6,1,3,5,7] );
+				} elsif ( @i == 12 ) {
+					# f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 v4/vt4/vn4
+					# f v1//vn1 v2//vn2 v3//vn3 /v4//vn4
+					$mesh->add_quad( $m, @i[0,3,6,9,1,4,7,10,2,5,8,11] );
+				} else {
+					die "Unsuppored face '$line'";
+				}
+			} else {
+				die "Unsuppored face '$line'";
 			}
 
 		} elsif ( $command eq 'mtllib' and not $self->{plain} ) {
@@ -100,7 +139,7 @@ sub parse {
 			# Load a material from the mtl file
 			my $name   = shift @words;
 			my $object = $self->asset->material($name);
-			$material = $mesh->add_material($object);
+			$m = $mesh->add_material($object);
 
 		}
 	}

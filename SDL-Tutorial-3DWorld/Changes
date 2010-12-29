@@ -1,6 +1,9 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
 0.23 to be released
+	- Sort solid objects from nearest to farthest to increase the
+	  chance that OpenGL only needs to depth test far objects and won't
+	  need to do any colour/texture/light work at all.
 	- Added support for explicit normals in meshes and model files
 
 0.22 Wed 29 Dec 2010

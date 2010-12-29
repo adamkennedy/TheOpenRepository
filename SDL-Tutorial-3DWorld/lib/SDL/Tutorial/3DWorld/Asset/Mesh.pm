@@ -9,15 +9,6 @@ use SDL::Tutorial::3DWorld::Material ();
 
 our $VERSION = '0.23';
 
-use constant {
-	MATERIAL => 0,
-	VERTEX   => 1,
-	NORMAL   => 2,
-	UV       => 3,
-	FACE     => 4,
-	BOX      => 5,
-};
-
 
 
 
@@ -108,8 +99,8 @@ sub add_all {
 	my $i    = scalar @{ $self->{vertex} };
 	my @v    = @{$_[0]};
 	$self->{vertex}->[$i] = \@v;
-	$self->{normal}->[$i] = $_[1];
-	$self->{uv}->[$i]     = $_[2];
+	$self->{uv}->[$i]     = $_[1];
+	$self->{normal}->[$i] = $_[2];
 
 	# Update the bounding box
 	my $box  = $self->{box};
@@ -173,20 +164,33 @@ sub add_uv {
 }
 
 sub add_triangle {
-	my $self = shift;
+	my $self     = shift;
+	my $material = $self->{material};
+	my $vertex   = $self->{vertex};
+	my $normal   = $self->{normal};
 
 	# We get an index set of up to ten things
-	# - Three vertex index
 	# - One material index
+	# - Three vertex index
 	# - Three optional normal index
 	# - Three optional uv index
-	my $V0 = $self->{vertex}->[$_[0]]          or die "No vertex $_[0]";
-	my $V1 = $self->{vertex}->[$_[1]]          or die "No vertex $_[1]";
-	my $V2 = $self->{vertex}->[$_[2]]          or die "No vertex $_[2]";
-	my $M  = $self->{material}->[$_[3]]        or die "No material $_[3]";
-	my $N0 = $self->{normal}->[$_[4] || $_[0]] or die "No normal $_[4] or $_[0]";
-	my $N1 = $self->{normal}->[$_[5] || $_[1]] or die "No normal $_[5] or $_[1]";
-	my $N2 = $self->{normal}->[$_[6] || $_[2]] or die "No normal $_[6] or $_[2]";
+	my $M  = $material->[$_[0]] or die "No material $_[0]";
+	my $V0 = $vertex->[$_[1]]   or die "No vertex $_[1]";
+	my $V1 = $vertex->[$_[2]]   or die "No vertex $_[2]";
+	my $V2 = $vertex->[$_[3]]   or die "No vertex $_[3]";
+	my $N0 = $normal->[$_[7] || 0];
+	my $N1 = $normal->[$_[8] || 0];
+	my $N2 = $normal->[$_[9] || 0];
+
+	# Where a face has no normal defined, use one for the vertex if it
+	# exists, or auto-instantiate a normal to match the vertex if one
+	# does not exist already.
+	$N0 = $normal->[$_[1]] unless $N0;
+	$N1 = $normal->[$_[2]] unless $N1;
+	$N2 = $normal->[$_[3]] unless $N2;
+	$N0 = $normal->[$_[1]] = [ 0, 0, 0 ] unless $N0;
+	$N1 = $normal->[$_[2]] = [ 0, 0, 0 ] unless $N1;
+	$N2 = $normal->[$_[3]] = [ 0, 0, 0 ] unless $N2;
 
 	# Looks good enough, save the face
 	push @{ $self->{face} }, [ 3, @_ ];
@@ -233,45 +237,83 @@ sub add_triangle {
 }
 
 sub add_quad {
-	my $self = shift;
+	my $self     = shift;
+	my $material = $self->{material};
+	my $vertex   = $self->{vertex};
+	my $normal   = $self->{normal};
 
-	# Get the vertex list
-	my $vs = $self->{vertex};
-	my $v0 = $vs->[$_[0]] or die "No such vertex $_[0]";
-	my $v1 = $vs->[$_[1]] or die "No such vertex $_[1]";
-	my $v2 = $vs->[$_[2]] or die "No such vertex $_[2]";
-	my $v3 = $vs->[$_[3]] or die "No such vertex $_[3]";
+	# We get an index set of up to thirteen things
+	# - One material index
+	# - Four vertex index
+	# - Four optional normal index
+	# - Four optional uv index
+	my $M  = $material->[$_[0]] or die "No material $_[0]";
+	my $V0 = $vertex->[$_[1]]   or die "No vertex $_[1]";
+	my $V1 = $vertex->[$_[2]]   or die "No vertex $_[2]";
+	my $V2 = $vertex->[$_[3]]   or die "No vertex $_[3]";
+	my $V3 = $vertex->[$_[4]]   or die "No vertex $_[4]";
+	my $N0 = $normal->[$_[9]  || 0];
+	my $N1 = $normal->[$_[10] || 0];
+	my $N2 = $normal->[$_[11] || 0];
+	my $N3 = $normal->[$_[12] || 0];
+
+	# Where a face has no normal defined, use one for the vertex if it
+	# exists, or auto-instantiate a normal to match the vertex if one
+	# does not exist already.
+	$N0 = $normal->[$_[1]] unless $N0;
+	$N1 = $normal->[$_[2]] unless $N1;
+	$N2 = $normal->[$_[3]] unless $N2;
+	$N3 = $normal->[$_[4]] unless $N3;
+	$N0 = $normal->[$_[1]] = [ 0, 0, 0 ] unless $N0;
+	$N1 = $normal->[$_[2]] = [ 0, 0, 0 ] unless $N1;
+	$N2 = $normal->[$_[3]] = [ 0, 0, 0 ] unless $N2;
+	$N3 = $normal->[$_[4]] = [ 0, 0, 0 ] unless $N3;
+
+	# Looks good enough, save the face
+	push @{ $self->{face} }, [ 4, @_ ];
+
+	# Shortcut if all the normals are final and we don't need to do
+	# automatic normal calculations.
+	if ( $N0->[3] and $N1->[3] and $N2->[3] and $N3->[3] ) {
+		return 1;
+	}
 
 	# Find vectors for two sides
-	my $xa = $v0->[0] - $v1->[0];
-	my $ya = $v0->[1] - $v1->[1];
-	my $za = $v0->[2] - $v1->[2];
-	my $xb = $v1->[0] - $v2->[0];
-	my $yb = $v1->[1] - $v2->[1];
-	my $zb = $v1->[2] - $v2->[2];
+	my $xa = $V0->[0] - $V1->[0];
+	my $ya = $V0->[1] - $V1->[1];
+	my $za = $V0->[2] - $V1->[2];
+	my $xb = $V1->[0] - $V2->[0];
+	my $yb = $V1->[1] - $V2->[1];
+	my $zb = $V1->[2] - $V2->[2];
 
 	# Calculate the cross product vector
 	my $xn = ($ya * $zb) - ($za * $yb);
 	my $yn = ($za * $xb) - ($xa * $zb);
 	my $zn = ($xa * $yb) - ($ya * $xb);
 
-	# Add the cross product to each vector so that
-	# vertex normals are averaged in proportion to face sizes.
-	$v0->[3] += $xn;
-	$v1->[3] += $xn;
-	$v2->[3] += $xn;
-	$v3->[3] += $xn;
-	$v0->[4] += $yn;
-	$v1->[4] += $yn;
-	$v2->[4] += $yn;
-	$v3->[4] += $yn;
-	$v0->[5] += $zn;
-	$v1->[5] += $zn;
-	$v2->[5] += $zn;
-	$v3->[5] += $zn;
-
-	# Add the face to the face list
-	push @{ $self->{face} }, [ @_ ];
+	# Add the non-sqrt'ed cross product to each non-final vector so
+	# that vertex normals are averaged in proportion to face sizes.
+	# This is a recommendation seen on a demo scene tutorial.
+	unless ( $N0->[3] ) {
+		$N0->[0] += $xn;
+		$N0->[1] += $yn;
+		$N0->[2] += $zn;
+	}
+	unless ( $N1->[3] ) {
+		$N1->[0] += $xn;
+		$N1->[1] += $yn;
+		$N1->[2] += $zn;
+	}
+	unless ( $N2->[3] ) {
+		$N2->[0] += $xn;
+		$N2->[1] += $yn;
+		$N2->[2] += $zn;
+	}
+	unless ( $N3->[3] ) {
+		$N3->[0] += $xn;
+		$N3->[1] += $yn;
+		$N3->[2] += $zn;
+	}
 }
 
 
@@ -281,97 +323,124 @@ sub add_quad {
 ######################################################################
 # Engine Methods
 
-# If we enable GL_NORMALIZE then we don't need this slower Perl version
+# Even through OpenGL can do surface vector normalisation itself, it is
+# still better that we do it slower and once here than faster and many
+# times in hardware.
 sub init {
-	my $self   = shift;
-	my $vertex = $self->{vertex};
-	my $normal = $self->{normal};
-	my $box    = $self->{box};
+	my $self = shift;
 
-	# Normalise the surface vectors
-	foreach my $i ( 1 .. $#$vertex ) {
-		next if $normal->[$i];
-		my $v = $vertex->[$i];
-		my $n = $normal->[$i] = [ 0, 0, 0 ];
-		my $l = sqrt( ($v->[3] ** 2) + ($v->[4] ** 2) + ($v->[5] ** 2) ) || 1;
-		$v->[3] /= $l;
-		$v->[4] /= $l;
-		$v->[5] /= $l;
+	# Normalise the surface vectors (reduce to 1 unit length)
+	foreach my $n ( @{$self->{normal}} ) {
+		# In some situations (for example if there are vectors not
+		# used by faces and we are doing implicit surface normals)
+		# the normal array might have null entries.
+		next unless $n;
+
+		# Assume that any explicit surface vectors are normalised
+		if ( $n->[3] ) {
+			delete $n->[3];
+			next;
+		}
+
+		# Do the normalisation
+		my $l = sqrt( ($n->[0] ** 2) + ($n->[1] ** 2) + ($n->[2] ** 2) ) || 1;
+		$n->[0] /= $l;
+		$n->[1] /= $l;
+		$n->[2] /= $l;
 	}
 
-	# Initialise the materials used by the mesh.
-	foreach my $material ( @{$self->{material}} ) {
-		$material->init;
+	# Initialise the subset of materials actually used by the faces
+	my %seen = ();
+	foreach my $face ( @{$self->{face}} ) {
+		next unless not $seen{$face->[1]}++;
+		$self->{material}->[$face->[1]]->init;
 	}
 
-	
 	return 1;
 }
 
 sub display {
-	my $self  = shift;
+	my $self = shift;
 
 	# Set up and apply defaults
+	my $material = $self->{material};
+	my $vertex   = $self->{vertex};
+	my $normal   = $self->{normal};
+	my $uv       = $self->{uv};
+	my $face     = $self->{face};
 	my $begin    = 0;
-	my $material = 0;
-	$self->{material}->[$material]->display;
+
+	# Initialise the material to the material of the first face.
+	# We do this in full here so that initial material setup (which
+	# is being done from an untrusted material state) is not impacted
+	# by any future material delta optimisations below in future.
+	my $current = $face->[0]->[1];
+	$material->[$current]->display;
 
 	# Render the faces
-	foreach my $face ( @{$self->{face}} ) {
-		if ( @$face == 5 ) {
-			my ( $m                 ) = $face->[4];
-			my ( $v0, $v1, $v2, $v3 ) = @{$self->{vertex}}[@$face];
-			my ( $t0, $t1, $t2, $t3 ) = @{$self->{uv}}[@$face];
+	foreach my $f ( @$face ) {
+		my $t = $f->[0];
+		my $m = $f->[1];
 
-			# End drawing mode if needed
-			if ( $begin == 3 or $m != $material ) {
-				OpenGL::glEnd();
-				$begin = 0;
-			}
+		# End previous drawing sequence if needed
+		unless ( $t == $begin and $m == $current ) {
+			OpenGL::glEnd() if $begin;
+			$begin = 0;
+		}
 
-			# Switch materials between geometry sequences
-			if ( $m != $material ) {
-				$material = $m;
-				$self->{material}->[$material]->display;
-			}
+		# Switch materials
+		unless ( $m == $current ) {
+			$material->[$m]->display;
+			$current = $m;
+		}
+
+		if ( $t == 4 ) {
+			# Quad
+			my $v0 = $vertex->[$f->[2]];
+			my $v1 = $vertex->[$f->[3]];
+			my $v2 = $vertex->[$f->[4]];
+			my $v3 = $vertex->[$f->[5]];
+			my $t0 = $uv->[$f->[6] || 0];
+			my $t1 = $uv->[$f->[7] || 0];
+			my $t2 = $uv->[$f->[8] || 0];
+			my $t3 = $uv->[$f->[9] || 0];
+			my $n0 = $normal->[$f->[10] || $f->[2]];
+			my $n1 = $normal->[$f->[11] || $f->[3]];
+			my $n2 = $normal->[$f->[12] || $f->[4]];
+			my $n3 = $normal->[$f->[13] || $f->[5]];
 
 			# Start the new geometry sequence
 			unless ( $begin ) {
 				OpenGL::glBegin( OpenGL::GL_QUADS );
-				$begin = 4;
+				$begin = $t;
 			}
 
 			# Draw the quad
 			OpenGL::glTexCoord2f( @$t0 ) if $t0;
-			OpenGL::glNormal3f( @$v0[3..5] );
-			OpenGL::glVertex3f( @$v0[0..2] );
-			OpenGL::glTexCoord2f( @$t1 ) if $t0;
-			OpenGL::glNormal3f( @$v1[3..5] );
-			OpenGL::glVertex3f( @$v1[0..2] );
-			OpenGL::glTexCoord2f( @$t2 ) if $t0;
-			OpenGL::glNormal3f( @$v2[3..5] );
-			OpenGL::glVertex3f( @$v2[0..2] );
-			OpenGL::glTexCoord2f( @$t3 ) if $t0;
-			OpenGL::glNormal3f( @$v3[3..5] );
-			OpenGL::glVertex3f( @$v3[0..2] );
+			OpenGL::glNormal3f( @$n0 );
+			OpenGL::glVertex3f( @$v0 );
+			OpenGL::glTexCoord2f( @$t1 ) if $t1;
+			OpenGL::glNormal3f( @$n1 );
+			OpenGL::glVertex3f( @$v1 );
+			OpenGL::glTexCoord2f( @$t2 ) if $t2;
+			OpenGL::glNormal3f( @$n2 );
+			OpenGL::glVertex3f( @$v2 );
+			OpenGL::glTexCoord2f( @$t3 ) if $t3;
+			OpenGL::glNormal3f( @$n3 );
+			OpenGL::glVertex3f( @$v3 );
 
 		# We only support triangles and quads
 		} else {
-			my ( $m            ) = $face->[3];
-			my ( $v0, $v1, $v2 ) = @{$self->{vertex}}[@$face];
-			my ( $t0, $t1, $t2 ) = @{$self->{uv}}[@$face];
-
-			# End drawing mode if needed
-			if ( $begin == 4 or $m != $material ) {
-				OpenGL::glEnd();
-				$begin = 0;
-			}
-
-			# Switch materials between geometry sequences
-			if ( $m != $material ) {
-				$material = $m;
-				$self->{material}->[$material]->display;
-			}
+			# Triangle
+			my $v0 = $vertex->[$f->[2]];
+			my $v1 = $vertex->[$f->[3]];
+			my $v2 = $vertex->[$f->[4]];
+			my $t0 = $uv->[$f->[5] || 0];
+			my $t1 = $uv->[$f->[6] || 0];
+			my $t2 = $uv->[$f->[7] || 0];
+			my $n0 = $normal->[$f->[8] || $f->[2]];
+			my $n1 = $normal->[$f->[9] || $f->[3]];
+			my $n2 = $normal->[$f->[10] || $f->[4]];
 
 			# Start the new geometry sequence
 			unless ( $begin ) {
@@ -381,14 +450,14 @@ sub display {
 
 			# Draw the triangle
 			OpenGL::glTexCoord2f( @$t0 ) if $t0;
-			OpenGL::glNormal3f( @$v0[3..5] );
-			OpenGL::glVertex3f( @$v0[0..2] );
+			OpenGL::glNormal3f( @$n0 );
+			OpenGL::glVertex3f( @$v0 );
 			OpenGL::glTexCoord2f( @$t1 ) if $t1;
-			OpenGL::glNormal3f( @$v1[3..5] );
-			OpenGL::glVertex3f( @$v1[0..2] );
+			OpenGL::glNormal3f( @$n1 );
+			OpenGL::glVertex3f( @$v1 );
 			OpenGL::glTexCoord2f( @$t2 ) if $t2;
-			OpenGL::glNormal3f( @$v2[3..5] );
-			OpenGL::glVertex3f( @$v2[0..2] );
+			OpenGL::glNormal3f( @$n2 );
+			OpenGL::glVertex3f( @$v2 );
 
 		}
 	}
