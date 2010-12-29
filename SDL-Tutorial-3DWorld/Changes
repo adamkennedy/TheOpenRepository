@@ -5,6 +5,8 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  chance that OpenGL only needs to depth test far objects and won't
 	  need to do any colour/texture/light work at all.
 	- Added support for explicit normals in meshes and model files
+	- Moved Moved SDL::Tutorial::3DWorld::Asset::Mesh up a directory,
+	  as it didn't really make sense having it in the Asset namespace.
 
 0.22 Wed 29 Dec 2010
 	- The bounding box actor now also displays a traditional

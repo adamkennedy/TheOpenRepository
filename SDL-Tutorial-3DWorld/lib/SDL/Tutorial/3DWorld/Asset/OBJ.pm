@@ -40,12 +40,13 @@ points in space using the pre-existing material settings.
 use 5.008;
 use strict;
 use warnings;
-use IO::File                            ();
-use File::Spec                          ();
-use OpenGL                              ':all';
-use OpenGL::List                        ();
-use SDL::Tutorial::3DWorld::Model       ();
-use SDL::Tutorial::3DWorld::Asset::Mesh ();
+use IO::File                      ();
+use File::Spec                    ();
+use OpenGL                        ':all';
+use OpenGL::List                  ();
+use SDL::Tutorial::3DWorld::Mesh  ();
+use SDL::Tutorial::3DWorld::Asset ();
+use SDL::Tutorial::3DWorld::Model ();
 
 our $VERSION = '0.23';
 our @ISA     = 'SDL::Tutorial::3DWorld::Model';
@@ -60,7 +61,7 @@ our @ISA     = 'SDL::Tutorial::3DWorld::Model';
 sub parse {
 	my $self   = shift;
 	my $handle = shift;
-	my $mesh   = SDL::Tutorial::3DWorld::Asset::Mesh->new;
+	my $mesh   = SDL::Tutorial::3DWorld::Mesh->new;
 	my $m      = 0; # Material index position
 
 	# Fill the mesh
