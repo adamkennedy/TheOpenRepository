@@ -43,7 +43,7 @@ use SDL::Tutorial::3DWorld::OpenGL  ();
 use OpenGL::List                    ();
 use OpenGL;
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 =pod
 

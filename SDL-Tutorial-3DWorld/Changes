@@ -1,8 +1,11 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
 0.25 to be released
-	- Adding a global texture cache
-	- Adding a global model cache
+	- Adding a global texture cache. No noticable impact as we don't
+	  do much reuse of textures in the current world.
+	- Adding a global model cache. Because of the 121 toilet plungers
+	  in our scene this one change reduced startup time by 75%, total
+	  memory consumption by 7 meg (15%) and improved framerate by 5%.
 
 0.24 Thu 29 Dec 2010
 	- Disable solid object display order optimisation, as I suspect it
