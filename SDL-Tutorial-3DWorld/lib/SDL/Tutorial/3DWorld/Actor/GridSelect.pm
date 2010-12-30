@@ -76,7 +76,7 @@ sub move {
 	# Set the Y to a slightly larger value rather than multiplying by
 	# the ratio to prevent any floating point issues when we do the
 	# POSIX::ceil grid-snapping call later.
-	my $lowest_y = -1;
+	my $lowest_y = 0;
 	if ( ($camera->Y + $position[1]) < $lowest_y ) {
 		my $have_y = $position[1];
 		my $want_y = $lowest_y - $camera->Y;
@@ -124,18 +124,18 @@ sub compile {
 	OpenGL::glLineWidth(1);
 	OpenGL::glColor4f( 1.0, 1.0, 1.0, 1.0 );
 	OpenGL::glBegin( OpenGL::GL_LINES );
-	OpenGL::glVertex3f( -0.01, -0.01, -0.01 ); OpenGL::glVertex3f(  1.01, -0.01, -0.01 );
-	OpenGL::glVertex3f( -0.01, -0.01, -0.01 ); OpenGL::glVertex3f( -0.01,  1.01, -0.01 );
-	OpenGL::glVertex3f( -0.01, -0.01, -0.01 ); OpenGL::glVertex3f( -0.01, -0.01, 1 );
-	OpenGL::glVertex3f(  1.01, -0.01, -0.01 ); OpenGL::glVertex3f(  1.01,  1.01, -0.01 );
-	OpenGL::glVertex3f(  1.01, -0.01, -0.01 ); OpenGL::glVertex3f(  1.01, -0.01,  1.01 );
-	OpenGL::glVertex3f( -0.01,  1.01, -0.01 ); OpenGL::glVertex3f(  1.01,  1.01, -0.01 );
-	OpenGL::glVertex3f( -0.01,  1.01, -0.01 ); OpenGL::glVertex3f( -0.01,  1.01,  1.01 );
-	OpenGL::glVertex3f( -0.01, -0.01,  1.01 ); OpenGL::glVertex3f(  1.01, -0.01,  1.01 );
-	OpenGL::glVertex3f( -0.01, -0.01,  1.01 ); OpenGL::glVertex3f( -0.01,  1.01,  1.01 );
-	OpenGL::glVertex3f(  1.01,  1.01, -0.01 ); OpenGL::glVertex3f(  1.01,  1.01,  1.01 );
-	OpenGL::glVertex3f(  1.01, -0.01,  1.01 ); OpenGL::glVertex3f(  1.01,  1.01,  1.01 );
-	OpenGL::glVertex3f( -0.01,  1.01,  1.01 ); OpenGL::glVertex3f(  1.01,  1.01,  1.01 );
+	OpenGL::glVertex3f( -0.001, -0.001, -0.001 ); OpenGL::glVertex3f(  1.001, -0.001, -0.001 );
+	OpenGL::glVertex3f( -0.001, -0.001, -0.001 ); OpenGL::glVertex3f( -0.001,  1.001, -0.001 );
+	OpenGL::glVertex3f( -0.001, -0.001, -0.001 ); OpenGL::glVertex3f( -0.001, -0.001, 1 );
+	OpenGL::glVertex3f(  1.001, -0.001, -0.001 ); OpenGL::glVertex3f(  1.001,  1.001, -0.001 );
+	OpenGL::glVertex3f(  1.001, -0.001, -0.001 ); OpenGL::glVertex3f(  1.001, -0.001,  1.001 );
+	OpenGL::glVertex3f( -0.001,  1.001, -0.001 ); OpenGL::glVertex3f(  1.001,  1.001, -0.001 );
+	OpenGL::glVertex3f( -0.001,  1.001, -0.001 ); OpenGL::glVertex3f( -0.001,  1.001,  1.001 );
+	OpenGL::glVertex3f( -0.001, -0.001,  1.001 ); OpenGL::glVertex3f(  1.001, -0.001,  1.001 );
+	OpenGL::glVertex3f( -0.001, -0.001,  1.001 ); OpenGL::glVertex3f( -0.001,  1.001,  1.001 );
+	OpenGL::glVertex3f(  1.001,  1.001, -0.001 ); OpenGL::glVertex3f(  1.001,  1.001,  1.001 );
+	OpenGL::glVertex3f(  1.001, -0.001,  1.001 ); OpenGL::glVertex3f(  1.001,  1.001,  1.001 );
+	OpenGL::glVertex3f( -0.001,  1.001,  1.001 ); OpenGL::glVertex3f(  1.001,  1.001,  1.001 );
 	OpenGL::glEnd();
 
 	# Disable line smoothing

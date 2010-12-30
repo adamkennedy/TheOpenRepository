@@ -611,7 +611,25 @@ sub event {
 			}
 			return 1;
 		}
+		if ( $button == SDL_BUTTON_LEFT ) {
+			# Place a new texture box at the selector location
+			my $selector = $self->{selector}->{position};
+			my $cube     = SDL::Tutorial::3DWorld::Actor::TextureCube->new(
+				position => [
+					$selector->[0] + 0.5,
+					$selector->[1],
+					$selector->[2] + 0.5,
+				],
+				material => {
+					ambient => [ 0.5, 0.5, 0.5, 1 ],
+					texture => $self->sharefile('crate1.jpg'),
+				},
+			);
+			$cube->init;
+			push @{$self->{actors}}, $cube;
 
+			return 1;
+		}
 	}
 
 	# Handle any events related to the camera

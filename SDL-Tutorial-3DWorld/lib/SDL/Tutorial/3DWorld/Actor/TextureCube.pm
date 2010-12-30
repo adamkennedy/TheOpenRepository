@@ -79,7 +79,13 @@ sub new {
 		};
 	}
 
-	$class->SUPER::new( %param );
+	# Create the object as normal
+	my $self = $class->SUPER::new( %param );
+
+	# Default the size to one unit
+	$self->{size} = 1;
+
+	return $self;
 }
 
 
@@ -91,7 +97,6 @@ sub new {
 
 sub init {
 	my $self = shift;
-	my $size = $self->{size};
 	$self->SUPER::init(@_);
 
 	# Pre-compile the cube drawing code
@@ -101,7 +106,7 @@ sub init {
 
 	# Define the bounding box
 	$self->{box} = [
-		map { $_ * $size / 2 } ( -1, 0, -1, 1, 2, 1 )
+		map { $_ * $self->{size} / 2 } ( -1, 0, -1, 1, 2, 1 )
 	];
 
 	return;

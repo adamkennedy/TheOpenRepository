@@ -1,6 +1,12 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
-0.25 Thu 20 Dec 2010
+0.26 Thu 30 Dec 2010
+	- The left mouse button now generates new actors. In true FPS
+	  style these are crates! Since this results in a surprisingly
+	  large amount of trivial but creative minecrafty fun I'm doing a
+	  new release just for this one change. :)
+
+0.25 Thu 30 Dec 2010
 	- The mouse scroll wheel now controls the distance away from the
 	  camera that the selector box will float.
 	- 3DWorld now does a $VERSION integrity scan of all child classes
