@@ -102,6 +102,7 @@ sub compile_axis {
 	OpenGL::glDisable( OpenGL::GL_LINE_SMOOTH );
 
 	# Draw the (R)ed X Axis
+	OpenGL::glLineWidth(1);
 	OpenGL::glColor4f( 1.0, 0.0, 0.0, 1.0 );
 	OpenGL::glBegin( OpenGL::GL_LINES );
 	OpenGL::glVertex3f( 0, 0, 0 );
@@ -140,6 +141,7 @@ sub compile_box {
 
 	# Draw all the lines in the cube
 	OpenGL::glColor4f( 0.5, 1.0, 0.50, 1.0 );
+	OpenGL::glLineWidth(1);
 	OpenGL::glBegin( OpenGL::GL_LINES );
 	OpenGL::glVertex3f( 0, 0, 0 ); OpenGL::glVertex3f( 1, 0, 0 );
 	OpenGL::glVertex3f( 0, 0, 0 ); OpenGL::glVertex3f( 0, 1, 0 );

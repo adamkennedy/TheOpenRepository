@@ -114,6 +114,8 @@ sub compile_lines {
 	OpenGL::glEnable( OpenGL::GL_LINE_SMOOTH );
 
 	# Draw all the lines in the cube
+	OpenGL::glLineWidth(1);
+	OpenGL::glColor4f( 1, 1, 1, 1 );
 	OpenGL::glBegin( OpenGL::GL_LINES );
 	OpenGL::glVertex3f( 0, 0, 0 ); OpenGL::glVertex3f( 1, 0, 0 );
 	OpenGL::glVertex3f( 0, 0, 0 ); OpenGL::glVertex3f( 0, 1, 0 );

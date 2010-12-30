@@ -362,12 +362,12 @@ sub visible_point {
 	my $direction = $self->{direction};
 
 	# Multiply the camera-relative position by the vector.
-	# A positive total means the point is behind us.
-	my $behind = $direction->[0] * ($_[0] - $self->{X})
+	# A positive total means the point is in front of us.
+	my $sum = $direction->[0] * ($_[0] - $self->{X})
 	           + $direction->[1] * ($_[1] - $self->{Y})
 	           + $direction->[2] * ($_[2] - $self->{Z});
-	return 0 if $behind > 0;
-	return 1;
+	return 1 if $sum > 0;
+	return 0;
 }
 
 # Sort a series of vectors by distance from the camera, returning

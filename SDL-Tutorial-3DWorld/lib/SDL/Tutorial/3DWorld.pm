@@ -134,11 +134,15 @@ sub new {
 		speed => $self->dscalar( 2 ),
 	);
 
+	# The selector is an actor and a special camera tool for
+	#(potentially) controlling something in the world.
+	$self->{selector} = SDL::Tutorial::3DWorld::Actor::GridSelect->new;
+
 	# Place three airborn stationary teapots in the scene
 	my $actors = $self->{actors} = [
 
-		# A snap-to-grid selection box that follows the camera
-		SDL::Tutorial::3DWorld::Actor::GridSelect->new,
+		# Make sure we add the selector to the actor list.
+		$self->{selector},
 
 		# (R)ed is the official colour of the X axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
@@ -395,7 +399,7 @@ sub init {
 	# Are we doing a benchmarking run?
 	# If so set the flag and we will abort after 100 seconds.
 	$self->{benchmark} = scalar grep { $_ eq '--benchmark' } @{$self->{ARGV}};
-	
+
 	# Create the SDL application object
 	$self->{sdl} = SDLx::App->new(
 		title         => '3D World',
