@@ -386,6 +386,23 @@ sub current {
 sub init {
 	my $self = shift;
 
+	# Verify the integrity of the installation. This shouldn't really
+	# be necesary but kthakore seems to have problems with partial
+	# overwriting his installs and mixing up versions of something.
+	# This is an attempt to at least partially defend against them.
+	foreach my $child ( sort grep { /3DWorld\// } keys %INC ) {
+		$child =~ s/\//::/g;
+		$child =~ s/\.pm//g;
+		next unless Params::Util::_CLASS($child);
+		my $v = $child->VERSION;
+		unless ( $v ) {
+			die "Corrupt installation detected! No \$VERSION in $child";
+		}
+		unless ( $v == $VERSION ) {
+			die "Corrupt installation detected! Got \$VERSION $v in $child but expected $VERSION";
+		}
+	}
+
 	# Normally we want fullscreen, but occasionally we might want to
 	# disable it because we are on a portrait-orientation monitor
 	# or for unobtrusive testing (or it doesn't work on some machine).
