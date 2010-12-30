@@ -364,8 +364,8 @@ sub visible_point {
 	# Multiply the camera-relative position by the vector.
 	# A positive total means the point is in front of us.
 	my $sum = $direction->[0] * ($_[0] - $self->{X})
-	           + $direction->[1] * ($_[1] - $self->{Y})
-	           + $direction->[2] * ($_[2] - $self->{Z});
+	        + $direction->[1] * ($_[1] - $self->{Y})
+	        + $direction->[2] * ($_[2] - $self->{Z});
 	return 1 if $sum > 0;
 	return 0;
 }
