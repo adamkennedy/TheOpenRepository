@@ -37,7 +37,7 @@ use warnings;
 use OpenGL;
 use SDL::Tutorial::3DWorld::Actor ();
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 =pod

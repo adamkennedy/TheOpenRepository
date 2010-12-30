@@ -79,7 +79,7 @@ use SDL::Tutorial::3DWorld::OpenGL                 ();
 use SDL::Tutorial::3DWorld::Skybox                 ();
 use SDL::Tutorial::3DWorld::Texture                ();
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 # The currently active world
 our $CURRENT = undef;

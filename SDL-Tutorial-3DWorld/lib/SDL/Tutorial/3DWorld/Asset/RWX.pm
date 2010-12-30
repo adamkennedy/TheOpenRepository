@@ -48,7 +48,7 @@ use SDL::Tutorial::3DWorld::Mesh  ();
 use SDL::Tutorial::3DWorld::Asset ();
 use SDL::Tutorial::3DWorld::Model ();
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 our @ISA     = 'SDL::Tutorial::3DWorld::Model';
 
 
