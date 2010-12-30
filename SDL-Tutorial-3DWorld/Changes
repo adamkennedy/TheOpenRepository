@@ -1,6 +1,8 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
-0.25 to be released
+0.25 Thu 20 Dec 2010
+	- The mouse scroll wheel now controls the distance away from the
+	  camera that the selector box will float.
 	- Adding a global texture cache. No noticable impact as we don't
 	  do much reuse of textures in the current world.
 	- Adding a global model cache. Because of the 121 toilet plungers

@@ -575,6 +575,26 @@ sub event {
 			$self->{hide_console} = $self->{hide_console} ? 0 : 1;
 			return 1;
 		}
+
+	} elsif ( $type == SDL_MOUSEBUTTONDOWN ) {
+		# Make the scroll wheel move the selection box towards
+		# and away from the camera.
+		my $button = $event->button_button;
+		if ( $button == SDL_BUTTON_WHEELUP ) {
+			# Move away from the camera
+			$self->{selector}->{distance} += 0.5;
+			return 1;
+		}
+		if ( $button == SDL_BUTTON_WHEELDOWN ) {
+			# Move towards the camera, stopping
+			# at some suitable minimum distance.
+			$self->{selector}->{distance} -= 0.5;
+			if ( $self->{selector}->{distance} < 2 ) {
+				$self->{selector}->{distance} = 2;
+			}
+			return 1;
+		}
+
 	}
 
 	# Handle any events related to the camera
