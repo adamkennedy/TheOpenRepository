@@ -43,11 +43,23 @@ use SDL::Video                     ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 
 # SDL::Image creates SDL::Surface objects without loading their classes.
-# Naughty, naughty, naughty!
+# Naughty, naughty, naughty! To correct the naughtyness we must load them.
 use SDL::Surface     ();
 use SDL::PixelFormat ();
 
 our $VERSION = '0.24';
+
+# Global Texture Cache.
+# Since there are currently no optional texture settings and texture
+# objects are immutable, we can do a simple file-based key for textures.
+our %CACHE = ();
+
+
+
+
+
+######################################################################
+# Constructor and Accessors
 
 =pod
 
@@ -77,10 +89,18 @@ sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
 
+	# Make sure the filename is absolute so we have consistent keys
+	# for the global texture cache. Return from the cache if we can.
+	my $key = File::Spec->rel2abs( $self->file );
+	return $CACHE{$key} if $CACHE{$key};
+
 	# Check the file
 	unless ( -f $self->file ) {
 		die "Texture file '" . $self->file . "' does not exist";
 	}
+
+	# Save the new texture to the global cache
+	$CACHE{$key} = $self;
 
 	return $self;
 }

@@ -37,6 +37,11 @@ use SDL::Tutorial::3DWorld::OpenGL ();
 
 our $VERSION = '0.24';
 
+# Global Model Cache.
+# Since there are currently no optional model settings and model
+# objects are immutable, we can do a simple file-based key for models.
+our %CACHE = ();
+
 
 
 
@@ -47,6 +52,11 @@ our $VERSION = '0.24';
 sub new {
 	my $class = shift;
 	my $self  = bless { @_ }, $class;
+
+	# Make sure the filename is absolute so we have consistent keys
+	# for the global texture cache. Return from the cache if we can.
+	my $key = File::Spec->rel2abs( $self->file );
+	return $CACHE{$key} if $CACHE{$key};
 
 	# Check param
 	my $file  = $self->file;
@@ -65,6 +75,9 @@ sub new {
 	unless ( _INSTANCE($self->asset, 'SDL::Tutorial::3DWorld::Asset') ) {
 		die "Missing or invalid asset";
 	}
+
+	# Save the new model to the global cache
+	$CACHE{$key} = $self;
 
 	return $self;
 }
@@ -90,9 +103,11 @@ sub list {
 
 sub init {
 	my $self   = shift;
-	my $handle = IO::File->new( $self->file, 'r' );
-	$self->{list} = $self->parse( $handle );
-	$handle->close;
+	unless ( defined $self->{list} ) {
+		my $handle = IO::File->new( $self->file, 'r' );
+		$self->{list} = $self->parse( $handle );
+		$handle->close;
+	}
 	return 1;
 }
 

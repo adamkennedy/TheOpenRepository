@@ -1,5 +1,9 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.25 to be released
+	- Adding a global texture cache
+	- Adding a global model cache
+
 0.24 Thu 29 Dec 2010
 	- Disable solid object display order optimisation, as I suspect it
 	  that the Perl cost to sort them is bigger than the cost of just
