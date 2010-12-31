@@ -31,7 +31,7 @@ use File::ShareDir                  ();
 use SDL::Tutorial::3DWorld::Texture ();
 use OpenGL;
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 =pod
 

@@ -21,7 +21,7 @@ use SDL::Tutorial::3DWorld::OpenGL     ();
 use SDL::Tutorial::3DWorld::Actor      ();
 use SDL::Tutorial::3DWorld::Asset::MTL ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {

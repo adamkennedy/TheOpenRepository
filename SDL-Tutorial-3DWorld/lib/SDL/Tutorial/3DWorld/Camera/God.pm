@@ -25,7 +25,7 @@ use SDL::Mouse;
 use SDL::Constants                 ();
 use SDL::Tutorial::3DWorld::Camera ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 our @ISA     = 'SDL::Tutorial::3DWorld::Camera';
 
 use constant D2R => CORE::atan2(1,1) / 45;

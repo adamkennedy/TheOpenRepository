@@ -35,7 +35,7 @@ use SDL::Tutorial::3DWorld::Asset::OBJ ();
 use SDL::Tutorial::3DWorld::Asset::RWX ();
 use OpenGL::List                       ();
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {
