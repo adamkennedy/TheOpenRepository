@@ -33,8 +33,9 @@ use SDL::Tutorial::3DWorld             ();
 use SDL::Tutorial::3DWorld::Actor      ();
 use SDL::Tutorial::3DWorld::Asset::OBJ ();
 use SDL::Tutorial::3DWorld::Asset::RWX ();
+use OpenGL::List                       ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {
@@ -74,11 +75,11 @@ sub new {
 # Engine Methods
 
 sub init {
-	my $self = shift;
+	my $self  = shift;
+	my $model = $self->{model};
 	$self->SUPER::init(@_);
 
-	# Load the model as a display list
-	my $model = $self->{model};
+	# Load the model display list
 	$model->init;
 
 	# Do we need blending support?
@@ -101,8 +102,9 @@ sub init {
 		$self->{box} = $model->{box};
 	}
 
-	# If the actor doesn't move, set the origin-relative boundary
+	# Static model optimisations
 	unless ( $self->{velocity} ) {
+		# set the origin-relative boundary
 		$self->{boundary} = [
 			$self->{box}->[0] + $self->{position}->[0],
 			$self->{box}->[1] + $self->{position}->[1],
@@ -111,6 +113,17 @@ sub init {
 			$self->{box}->[4] + $self->{position}->[1],
 			$self->{box}->[5] + $self->{position}->[2],
 		];
+
+		# Compile the entire display routine
+		$self->{display} = OpenGL::List::glpList {
+			OpenGL::glPushMatrix();
+			OpenGL::glTranslatef( @{$self->{position}} );
+			if ( $self->{scale} ) {
+				OpenGL::glScalef( @{$self->{scale}} );
+			}
+			OpenGL::glCallList( $model->{list} );
+			OpenGL::glPopMatrix();
+		};
 	}
 
 	return 1;

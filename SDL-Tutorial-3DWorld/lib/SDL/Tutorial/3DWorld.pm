@@ -79,7 +79,7 @@ use SDL::Tutorial::3DWorld::OpenGL                 ();
 use SDL::Tutorial::3DWorld::Skybox                 ();
 use SDL::Tutorial::3DWorld::Texture                ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 # The currently active world
 our $CURRENT = undef;
@@ -97,6 +97,12 @@ It does not current take any parameters.
 
 sub new {
 	my $class = shift;
+
+	# Are we doing a benchmarking run?
+	# If so set the flag and we will abort after 100 seconds.
+	my $benchmark = scalar grep { $_ eq '--benchmark' } @_;
+
+	# Create the basic object
 	my $self  = bless {
 		ARGV           => [ @_ ],
 		width          => 1280,
@@ -106,9 +112,10 @@ sub new {
 		# Debugging or expensive elements we can toggle off.
 		# Turning all of these three off gives us a much more
 		# accurate assessment on how fast a real world would perform.
-		hide_debug     => 0,
-		hide_console   => 0,
-		hide_expensive => 0,
+		benchmark      => $benchmark,
+		hide_debug     => $benchmark ? 1 : 0,
+		hide_console   => $benchmark ? 1 : 0,
+		hide_expensive => $benchmark ? 1 : 0,
 	}, $class;
 
 	# Text console that overlays the world
@@ -146,34 +153,38 @@ sub new {
 
 		# (R)ed is the official colour of the X axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
+			size     => 0.20,
 			position => [ 0.0, 0.5, 0.0 ],
 			velocity => $self->dvector( 0.1, 0.0, 0.0 ),
 			material => {
 				ambient  => [ 0.5, 0.2, 0.2, 1.0 ],
 				diffuse  => [ 1.0, 0.7, 0.7, 1.0 ],
 			},
+			hidden   => $self->{hide_expensive},
 		),
 
 		# (B)lue is the official colour of the Z axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
-			scale    => [ 1.5, 1.5, 1.5 ],
+			size     => 0.30,
 			position => [ 0.0, 1.0, 0.0 ],
 			velocity => $self->dvector( 0.0, 0.0, 0.1 ),
 			material => {
 				ambient  => [ 0.2, 0.2, 0.5, 1.0 ],
 				diffuse  => [ 0.7, 0.7, 1.0, 1.0 ],
 			},
+			hidden   => $self->{hide_expensive},
 		),
 
 		# (G)reen is the official colour of the Y axis
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
-			scale    => [ 2.0, 2.0, 2.0 ],
+			size     => 0.50,
 			position => [ 0.0, 1.5, 0.0 ],
 			velocity => $self->dvector( 0.0, 0.1, 0.0 ),
 			material => {
 				ambient  => [ 0.2, 0.5, 0.2, 1 ],
 				diffuse  => [ 0.7, 1.0, 0.7, 1 ],
 			},
+			hidden   => $self->{hide_expensive},
 		),
 
 		# Place a static grid cube in the air on the positive
@@ -236,13 +247,14 @@ sub new {
 				File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
 				'example.mtl',
 			),
+			hidden   => $self->{hide_expensive},
 		),
 
 	];
 
-	# Add a grid of toilet plungers
-	foreach my $x ( -15 .. -5 ) {
-		foreach my $z ( 5 .. 15 ) {
+	# Add a grid of 100 toilet plungers
+	foreach my $x ( -14 .. -5 ) {
+		foreach my $z ( 5 .. 14 ) {
 			push @$actors, SDL::Tutorial::3DWorld::Actor::Model->new(
 				position => [ $x, 1.6, $z ],
 				file     => File::Spec->catfile(
@@ -255,9 +267,11 @@ sub new {
 	}
 
 	# Add a bounding box viewer to as many objects as support it
-	push @$actors, map {
-		SDL::Tutorial::3DWorld::Actor::Debug->new( parent => $_ )
-	} @$actors;
+	unless ( $self->{benchmark} ) {
+		push @$actors, map {
+			SDL::Tutorial::3DWorld::Actor::Debug->new( parent => $_ )
+		} @$actors;
+	}
 
 	# Light the world with a single overhead light
 	$self->{lights} = [
@@ -269,7 +283,7 @@ sub new {
 	];
 
 	# Optimisation:
-	# If we have a skybox then now part of the scene will ever show
+	# If we have a skybox then no part of the scene will ever show
 	# the background. As a result, we can clear only the depth buffer
 	# and this will result in the color buffer just being drawn over.
 	# This removes a fairly large memory clear operation and speeds
@@ -413,10 +427,6 @@ sub init {
 		$self->{height} = int( $self->{height} / 2 );
 	}
 
-	# Are we doing a benchmarking run?
-	# If so set the flag and we will abort after 100 seconds.
-	$self->{benchmark} = scalar grep { $_ eq '--benchmark' } @{$self->{ARGV}};
-
 	# Create the SDL application object
 	$self->{sdl} = SDLx::App->new(
 		title         => '3D World',
@@ -545,10 +555,10 @@ sub display {
 sub move {
 	my $self = shift;
 
-	# Move each of the actors in the scene
+	# Move each of the actors in the scene.
+	# This is an O(N) operation so be careful to avoid expense here.
 	foreach my $actor ( @{$self->{actors}} ) {
-		next unless $actor->{velocity};
-		$actor->move(@_);
+		$actor->move(@_) if $actor->{velocity};
 	}
 
 	# Move the camera last, since it is more likely that the position

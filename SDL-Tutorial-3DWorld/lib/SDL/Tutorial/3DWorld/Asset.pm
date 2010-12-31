@@ -23,7 +23,7 @@ use SDL::Tutorial::3DWorld::Asset::MTL ();
 use SDL::Tutorial::3DWorld::Asset::OBJ ();
 use SDL::Tutorial::3DWorld::Asset::RWX ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 
 

@@ -1,5 +1,30 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.27 Fri 31 Dec 2010
+	- Massive optimisation and tuning release to maximise the level
+	  of raw performance before we absolutely HAVE to start using a
+	  scene graph. This release should reach 100-500 world objects
+	  it gets too slow to be useful. This should be more than enough
+	  for many simple games and simulations.
+	- For improved profiling accuracy when starting the world with
+	  --benchmark we immediately enable the three "hide_" properties
+	  accessed via F1, F2, F3 so they don't show up in the profiling
+	  output.
+	- When --benchmark is enabled, we also avoid the creation of all
+	  of the ::Actor::Debug object entirely for more accurate
+	  measurement of any O(N) operations.
+	- The entire display culling logic has been removed from the camera
+	  class and inlined into the main display_actors method. Once the
+	  number of actors gets large just the Perl method call costs alone
+	  become significant for O(N) operations.
+	- Added support for a origin-relative ->{boundary} propery to avoid
+	  recalculating boundary boxes of objects that don't move.
+	- Added support for a ->{display} property to encapsulate the
+	  entire rendering process for static objects that don't move.
+	  This lets us call glCallList directly in the top level loop and
+	  avoids O(N) calls to ->display methods. Instead, we only need to
+	  call the ->display method for complex actors or those in motion.
+
 0.26 Thu 30 Dec 2010
 	- The left mouse button now generates new actors. In true FPS
 	  style these are crates! Since this results in a surprisingly

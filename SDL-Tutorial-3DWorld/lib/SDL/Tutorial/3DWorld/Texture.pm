@@ -47,7 +47,7 @@ use SDL::Tutorial::3DWorld::OpenGL ();
 use SDL::Surface     ();
 use SDL::PixelFormat ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 # Global Texture Cache.
 # Since there are currently no optional texture settings and texture

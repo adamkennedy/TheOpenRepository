@@ -37,7 +37,7 @@ use warnings;
 use OpenGL;
 use SDL::Tutorial::3DWorld::Actor ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 =pod
@@ -65,7 +65,14 @@ sub new {
 	);
 
 	# By default teapots are about 20cm in size (I'm making this up)
-	$self->{size} = 0.20;
+	$self->{size} ||= 0.20;
+
+	# Convert the size to a scale
+	$self->{scale} = [
+		$self->{size},
+		$self->{size},
+		$self->{size},
+	];
 
 	return $self;
 }
@@ -83,12 +90,12 @@ sub init {
 
 	# Generate the bounding box
 	$self->{box} = [
-		$self->{size} * -1.5,
-		$self->{size} * -0.75,
-		$self->{size} * -1,
-		$self->{size} * 1.75,
-		$self->{size} * 0.85,
-		$self->{size} * 1,
+		$self->{scale}->[0] * -1.5,
+		$self->{scale}->[1] * -0.75,
+		$self->{scale}->[2] * -1,
+		$self->{scale}->[0] * 1.75,
+		$self->{scale}->[1] * 0.85,
+		$self->{scale}->[2] * 1,
 	];
 
 	return 1;
@@ -98,13 +105,12 @@ sub display {
 	my $self = shift;
 	$self->SUPER::display(@_);
 
-	# The teapot does not handle face culling, so disable temporarily.
-	# We also want pure coloured teapots, so disable textures.
+	# The teapot does not handle face culling well, so disable.
 	glDisable( GL_CULL_FACE  );
 
 	# Draw the teapot.
 	$self->{material}->display;
-	OpenGL::glutSolidTeapot($self->{size});
+	OpenGL::glutSolidTeapot(1);
 
 	# Reset the temporary disabling
 	glEnable( GL_CULL_FACE  );

@@ -7,7 +7,7 @@ use SDL::Tutorial::3DWorld::Actor  ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 use OpenGL::List                   ();
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {
@@ -72,10 +72,10 @@ sub display {
 	my $box      = $self->{box}      or return;
 
 	# Axis lines extend to 20% of the length of an
-	# object alone a dimension past the edge.
-	my $X = $box->[3] - $position->[0] + ($box->[3] - $box->[0]) * 0.2;
-	my $Y = $box->[4] - $position->[1] + ($box->[4] - $box->[1]) * 0.2;
-	my $Z = $box->[5] - $position->[2] + ($box->[5] - $box->[2]) * 0.2;
+	# object along a dimension past the edge.
+	my $X = $box->[3] + ($box->[3] - $box->[0]) * 0.2;
+	my $Y = $box->[4] + ($box->[4] - $box->[1]) * 0.2;
+	my $Z = $box->[5] + ($box->[5] - $box->[2]) * 0.2;
 
 	# Translate to the model origin and call the axis display list,
 	# even if the model doesn't have an actual bounding box.
@@ -89,9 +89,9 @@ sub display {
 
 	# Translate to the negative corner
 	OpenGL::glTranslatef(
-		$box->[0],
-		$box->[1],
-		$box->[2],
+		$position->[0] + $box->[0],
+		$position->[1] + $box->[1],
+		$position->[2] + $box->[2],
 	);
 
 	# Scale so that the resulting 1 metre cube becomes the right size
