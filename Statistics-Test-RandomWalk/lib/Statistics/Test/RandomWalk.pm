@@ -4,13 +4,22 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Carp qw/croak/;
 use Params::Util qw/_POSINT _ARRAY _CODE/;
 use Memoize;
 use Math::BigFloat;
 use Statistics::Test::Sequence;
+use Class::XSAccessor {
+    constructor => 'new',
+    getters => {
+        rescale_factor => 'rescale',
+    },
+    setters => {
+        set_rescale_factor => 'rescale',
+    },
+};
 
 =head1 NAME
 
@@ -39,26 +48,18 @@ cumulated numbers, but that works the same.)
 
 =head1 METHODS
 
-=cut
-
 =head2 new
 
 Creates a new random number tester.
 
-=cut
+=head2 set_rescale_factor
 
-sub new {
-    my $proto = shift;
-    my $class = ref($proto)||$proto;
+The default range of the random numbers [0, 1) can be rescaled
+by a constant factor. This method is the setter for that factor.
 
-    my $self = {
-        data => undef,
-    };
+=head2 rescale_factor
 
-    bless $self => $class;
-
-    return $self;
-}
+Returns the current rescaling factor.
 
 =head2 set_data
 
@@ -125,6 +126,7 @@ sub test {
     if (not _POSINT($bins)) {
         croak("Expecting number of bins as argument to 'test'");
     }
+    my $rescale_factor = $self->rescale_factor||1;
 
 
     my $data = $self->{data};
@@ -133,7 +135,7 @@ sub test {
         croak("Set data using 'set_data' first.");
     }
 
-    my $step = 1 / $bins;
+    my $step = 1 / $bins * $rescale_factor;
     my @alpha;
     push @alpha, $_*$step for 1..$bins;
 
@@ -171,10 +173,10 @@ sub test {
         }
     }
 
-    my @expected_smaller = map Math::BigFloat->new($numbers)*$_, @alpha;
+    my @expected_smaller = map Math::BigFloat->new($numbers)*$_/$rescale_factor, @alpha;
 
     return(
-        \@alpha,
+        [map $_/$rescale_factor, @alpha],
         \@bins,
         \@expected_smaller,
     );
@@ -285,7 +287,7 @@ Steffen Mueller, E<lt>smueller@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 by Steffen Mueller
+Copyright (C) 2007-2010 by Steffen Mueller
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6 or,
