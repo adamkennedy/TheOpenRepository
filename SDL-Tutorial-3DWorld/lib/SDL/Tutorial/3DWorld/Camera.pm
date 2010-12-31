@@ -89,6 +89,17 @@ sub new {
 		SDL::Constants::SDLK_LSHIFT => 0,
 	};
 
+	# Set up the direction vector for the first time.
+	# Update the direction vector we use for variety of tasks.
+	# For angle = 0, elevation = 0 this should be 0, 0, -1
+	my $angle     = $self->{angle}     * D2R;
+	my $elevation = $self->{elevation} * D2R;
+	$self->{direction} = [
+		sin($angle) * cos($elevation),
+		sin($elevation),
+		-cos($angle) * cos($elevation),
+	];
+
 	return $self;
 }
 

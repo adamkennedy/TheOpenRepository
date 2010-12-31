@@ -1,5 +1,10 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.28 to be released
+	- Stripped a few superfluous methods out of the lighting setup.
+	- Make sure the camera direction vector is set up early to prevent
+	  warnings before the first mouse move event.
+
 0.27 Fri 31 Dec 2010
 	- Massive optimisation and tuning release to maximise the level
 	  of raw performance before we absolutely HAVE to start using a

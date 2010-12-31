@@ -37,7 +37,8 @@ controlled. All lights will have a fixed colour, intensity, and diffusion.
 
 use strict;
 use warnings;
-use OpenGL;
+use SDL::Tutorial::3DWorld::OpenGL ();
+use OpenGL::List                   ();
 
 our $VERSION = '0.27';
 
@@ -64,20 +65,20 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Defaults and clean up
-	$self->{position} = [
-		delete($self->{X}) || 0,
-		delete($self->{Y}) || 0,
-		delete($self->{Z}) || 0,
-		1, # Unused
-	];
-	$self->{ambient}  = [ 0.15, 0.15, 0.15, 0.15 ];
-	$self->{diffuse}  = [ 1.00, 1.00, 1.00, 1.00 ];
-	$self->{specular} = [ 1.00, 1.00, 1.00, 1.00 ];
+	$self->{position} ||= [ 0.0, 0.0, 0.0, 1   ];
+	$self->{ambient}  ||= [ 0.2, 0.2, 0.2, 1.0 ];
+	$self->{diffuse}  ||= [ 1.0, 1.0, 1.0, 1.0 ];
+	$self->{specular} ||= [ 1.0, 1.0, 1.0, 1.0 ];
+	if ( @{$self->{position}} == 3 ) {
+		# Add the weird unused value to comply with the function
+		$self->{position}->[3] = 1;
+	}
 
 	# OpenGL light operations are special and need special light ids
 	unless ( defined $self->{id} ) {
-		# NOTE: Yes this is stupid, but I'll smarten it up later
-		$self->{id} = GL_LIGHT0;
+		# NOTE: Yes this is stupid and will break for more than one
+		# light, but I'll smarten it up later.
+		$self->{id} = OpenGL::GL_LIGHT0;
 	}
 
 	return $self;
@@ -152,23 +153,36 @@ sub specular {
 ######################################################################
 # Engine Interface
 
-# Activate the light
-sub init {
-	return 1;
-}
+# Initialise
+sub init { 1 }
 
+# Light settings do not appear to work inside of a display list.
+# So we need to always do this by hand.
 sub display {
 	my $self = shift;
-	my $id   = $self->{id};
 
 	# Define the light
-	OpenGL::glEnable( $id );
-	OpenGL::glLightfv_p( $id, GL_POSITION, $self->position );
-	OpenGL::glLightfv_p( $id, GL_AMBIENT,  $self->ambient  );
-	OpenGL::glLightfv_p( $id, GL_DIFFUSE,  $self->diffuse  );
-	OpenGL::glLightfv_p( $id, GL_SPECULAR, $self->specular );
-
-	return 1;
+	OpenGL::glEnable( $self->{id} );
+	OpenGL::glLightfv_p(
+		$self->{id},
+		OpenGL::GL_POSITION,
+		@{$self->{position}},
+	);
+	OpenGL::glLightfv_p(
+		$self->{id},
+		OpenGL::GL_AMBIENT,
+		@{$self->{ambient}},
+	);
+	OpenGL::glLightfv_p(
+		$self->{id},
+		OpenGL::GL_DIFFUSE,
+		@{$self->{diffuse}},
+	);
+	OpenGL::glLightfv_p(
+		$self->{id},
+		OpenGL::GL_SPECULAR,
+		@{$self->{specular}},
+	);
 }
 
 =pod

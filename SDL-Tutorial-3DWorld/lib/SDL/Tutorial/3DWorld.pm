@@ -276,9 +276,7 @@ sub new {
 	# Light the world with a single overhead light
 	$self->{lights} = [
 		SDL::Tutorial::3DWorld::Light->new(
-			X => 360,
-			Y => 405,
-			Z => -400,
+			position => [ 360, 405, -400 ],
 		),
 	];
 
@@ -519,7 +517,8 @@ sub display {
 	# Draw the landscape in the scene
 	$self->{landscape}->display;
 
-	# Light the scene
+	# Light the scene.
+	#  All lighting is global in this demonstration.
 	foreach my $light ( @{$self->{lights}} ) {
 		$light->display;
 	}
