@@ -1,5 +1,6 @@
 Changes
 examples/comparison.pl
+examples/comparison_integer.pl
 lib/Statistics/Test/RandomWalk.pm
 Makefile.PL
 MANIFEST			This list of files
