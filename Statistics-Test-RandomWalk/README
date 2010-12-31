@@ -24,6 +24,13 @@ METHODS
   new
     Creates a new random number tester.
 
+  set_rescale_factor
+    The default range of the random numbers [0, 1) can be rescaled by a
+    constant factor. This method is the setter for that factor.
+
+  rescale_factor
+    Returns the current rescaling factor.
+
   set_data
     Sets the random numbers to operate on. First argument must be either an
     array reference to an array of random numbers or a code reference.
@@ -84,7 +91,7 @@ AUTHOR
     Steffen Mueller, <smueller@cpan.org>
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2007 by Steffen Mueller
+    Copyright (C) 2007-2010 by Steffen Mueller
 
     This library is free software; you can redistribute it and/or modify it
     under the same terms as Perl itself, either Perl version 5.6 or, at your
