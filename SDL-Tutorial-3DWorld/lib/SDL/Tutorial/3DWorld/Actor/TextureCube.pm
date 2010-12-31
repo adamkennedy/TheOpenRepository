@@ -85,6 +85,13 @@ sub new {
 	# Default the size to one unit
 	$self->{size} = 1;
 
+	# Set the scale amount to match the size
+	$self->{scale} = [
+		$self->{size} / 2,
+		$self->{size} / 2,
+		$self->{size} / 2,
+	];
+
 	return $self;
 }
 
@@ -99,10 +106,23 @@ sub init {
 	my $self = shift;
 	$self->SUPER::init(@_);
 
-	# Pre-compile the cube drawing code
-	$self->{list} = OpenGL::List::glpList {
-		$self->compile;
-	};
+	# Compile the texture cube in either a vanilla form, or optimised
+	# form if the cube isn't moving.
+	if ( $self->{velocity} ) {
+		$self->{list} = OpenGL::List::glpList {
+			$self->compile;
+		};
+	} else {
+		$self->{display} = OpenGL::List::glpList {
+			OpenGL::glPushMatrix();
+			OpenGL::glTranslatef( @{$self->{position}} );
+			if ( $self->{scale} ) {
+				OpenGL::glScalef( @{$self->{scale}} );
+			}
+			$self->compile;
+			OpenGL::glPopMatrix();
+		};
+	}
 
 	# Define the bounding box
 	$self->{box} = [
@@ -113,17 +133,8 @@ sub init {
 }
 
 sub display {
-	my $self  = shift;
-	my $scale = $self->{size} / 2;
-
-	# Because the superclass does the main translation of the object,
-	# we need to do this after the scaling above or the translation
-	# would get scaled too (i.e. NOT what we want)
+	my $self = shift;
 	$self->SUPER::display(@_);
-
-	# To prevent having to calculate all of the measurements of
-	# the cube, we apply the scaling via a single call.
-	glScalef( $scale, $scale, $scale );
 
 	# Call the compiled form of the draw method below that has been
 	# pre-compiled into the OpenGL context.

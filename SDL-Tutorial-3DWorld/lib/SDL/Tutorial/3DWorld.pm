@@ -519,11 +519,19 @@ sub display {
 	# to ensure that transparent objects will blend over the top
 	# of things behind them correctly.
 	foreach my $actor ( $self->display_actors ) {
-		# Draw each actor in their own stack context so that
-		# their transform operations do not effect anything else.
-		glPushMatrix();
-		$actor->display;
-		glPopMatrix();
+		if ( defined $actor->{display} ) {
+			# If the actor has a completely pre-built display list,
+			# shortcut their display method and just draw it.
+			# The actor is expected to do everything, including the
+			# push/pop matrix operation shown below to isolate drawing.
+			OpenGL::glCallList( $actor->{display} );
+		} else {
+			# Draw each actor in their own stack context so that
+			# their transform operations do not effect anything else.
+			glPushMatrix();
+			$actor->display;
+			glPopMatrix();
+		}
 	}
 
 	# Draw the console last, on top of everything else
@@ -664,8 +672,20 @@ sub sync {
 # A simple actor ordering method based on naive distance from the
 # camera as measured from the centre position() of the object.
 sub display_actors {
-	my $self   = shift;
-	my $camera = $self->{camera};
+	my $self = shift;
+
+	# Don't render actors that aren't in our field of view.
+	# Do the math in place here rather than in the more
+	# appropriate camera object because it is extremely CPU
+	# sensitive and the microoptimisation is worth it.
+	my $camera    = $self->{camera};
+	my $direction = $camera->{direction};
+	my $XC        = $camera->X;
+	my $YC        = $camera->Y;
+	my $ZC        = $camera->Z;
+	my $XD        = $direction->[0];
+	my $YD        = $direction->[1];
+	my $ZD        = $direction->[2];
 
 	# Apply optimisation strategies to remove things we don't need to
 	# draw. At the same time split solid and transparent objects apart
@@ -673,15 +693,54 @@ sub display_actors {
 	my @solid = ();
 	my @blend = ();
 	foreach my $actor ( @{$self->{actors}} ) {
-		# Don't render actors that are intentionall hidden
+		# Don't render actors that are intentionally hidden
 		next if $actor->{hidden};
 
-		# Don't render actors that aren't in our field of view
-		my @box     = $actor->box;
-		my $visible = @box
-			? $camera->visible_box(@box)
-			: $camera->visible_point(@{$actor->position});
-		next unless $visible;
+		# Find the bounding box, then offset the bounding box by
+		# the camera position and multiply by vector component for
+		# each axis. This gives the contribution to how "forward"
+		# each face makes a point for that axis.
+		my ($X1, $X2, $Y1, $Y2, $Z1, $Z2) = ();
+		if ( $actor->{bounding} ) {
+			# Already locked to the origin
+			my $B = $actor->{bounding};
+			$X1 = $XD * ( $B->[0] - $XC );
+			$Y1 = $YD * ( $B->[1] - $YC );
+			$Z1 = $ZD * ( $B->[2] - $ZC );
+			$X2 = $XD * ( $B->[3] - $XC );
+			$Y2 = $YD * ( $B->[4] - $YC );
+			$Z2 = $ZD * ( $B->[5] - $ZC );
+
+		} elsif ( $actor->{box} ) {
+			# Relative to the actor position
+			my $b = $actor->{box};
+			my $p = $actor->{position};
+			$X1 = $XD * ( $p->[0] + $b->[0] - $XC );
+			$Y1 = $YD * ( $p->[1] + $b->[1] - $YC );
+			$Z1 = $ZD * ( $p->[2] + $b->[2] - $ZC );
+			$X2 = $XD * ( $p->[0] + $b->[3] - $XC );
+			$Y2 = $YD * ( $p->[1] + $b->[4] - $YC );
+			$Z2 = $ZD * ( $p->[2] + $b->[5] - $ZC );
+
+		} else {
+			# There are normal so few unbound actors we can
+			# just take the more expensive method of doing a
+			# zero-sized bounding box.
+			my $p = $actor->{position};
+			$X1 = $X2 = $XD * ( $p->[0] - $XC );
+			$Y1 = $Y2 = $YD * ( $p->[1] - $YC );
+			$Z1 = $Z2 = $ZD * ( $p->[2] - $ZC );
+		}
+
+		# If the sum of the most positive value on each axis
+		# results in a negative value then the most forward
+		# corner of the bounding box is behind us, and there is
+		# no possible way any part of the actor needs to be
+		# drawn on screen. Thus, the actor is not visible.
+		my $sum = ($X1 > $X2 ? $X1 : $X2)
+			+ ($Y1 > $Y2 ? $Y1 : $Y2)
+			+ ($Z1 > $Z2 ? $Z2 : $Z2);
+		next if $sum < 0;
 
 		# Render solid objects first to avoid some n-body related
 		# costs when distance sorting to find actor display order.

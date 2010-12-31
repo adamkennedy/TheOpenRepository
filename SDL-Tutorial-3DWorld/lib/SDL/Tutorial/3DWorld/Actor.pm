@@ -63,7 +63,11 @@ sub new {
 		# Place objects at the origin by default
 		position => [ 0, 0, 0 ],
 
-		# Actors with non-vector velocity are shortcut by the main move routine
+		# Most objects are stored at the correct size
+		scale    => 0,
+
+		# Actors with non-vector velocity are shortcut by the main
+		# move routine
 		velocity => 0,
 
 		# Most things in the world are solid
@@ -71,9 +75,6 @@ sub new {
 
 		# Most things are visible by default
 		hidden   => 0,
-
-		# Most objects are stored at the correct size
-		scale    => 0,
 
 		# Override defaults
 		@_,
@@ -146,6 +147,68 @@ sub position {
 
 
 ######################################################################
+# General Methods
+
+=pod
+
+=head2 box
+
+The C<box> method returns the bounding box for the object if it has one,
+relative to the position of the object.
+
+=cut
+
+sub box {
+	$_[0]->{box};
+}
+
+=pod
+
+=head2 bounding
+
+The C<bounding> method returns the bounding box for the object if it has
+one, relative to the world origin.
+
+The default implementation of the C<bounding> method will take the actors
+position-relative bounding C<box> and combine it with the relative
+C<position> of the actor to get the world-relative box.
+
+=cut
+
+sub bounding {
+	my $self     = shift;
+	my $position = $self->{position} or return ();
+	my $box      = ($self->{box} or $self->box) or return ();
+
+	# Quick version if not scaling
+	unless ( $self->{scale} ) {
+		return (
+			$box->[0] + $position->[0],
+			$box->[1] + $position->[1],
+			$box->[2] + $position->[2],
+			$box->[3] + $position->[0],
+			$box->[4] + $position->[1],
+			$box->[5] + $position->[2],
+		);
+	}
+
+	# Full version with scaling support
+	my $scale = $self->{scale};
+	return (
+		$box->[0] * $scale->[0] + $position->[0],
+		$box->[1] * $scale->[1] + $position->[1],
+		$box->[2] * $scale->[2] + $position->[2],
+		$box->[3] * $scale->[0] + $position->[0],
+		$box->[4] * $scale->[1] + $position->[1],
+		$box->[5] * $scale->[2] + $position->[2],
+	);
+}
+
+
+
+
+
+######################################################################
 # Engine Interface
 
 sub init {
@@ -156,31 +219,9 @@ sub init {
 		$self->{material}->init;
 	}
 
+	
+
 	return 1;
-}
-
-=pod
-
-=head2 box
-
-The C<box> method returns the bounding box for the object, if it has one.
-
-=cut
-
-# By default return the combined relative bounding box and position
-sub box {
-	my $self     = shift;
-	my $box      = $self->{box}      or return ();
-	my $position = $self->{position} or return ();
-	my $scale    = $self->{scale}    || [ 1, 1, 1 ];
-	return (
-		$box->[0] * $scale->[0] + $position->[0],
-		$box->[1] * $scale->[1] + $position->[1],
-		$box->[2] * $scale->[2] + $position->[2],
-		$box->[3] * $scale->[0] + $position->[0],
-		$box->[4] * $scale->[1] + $position->[1],
-		$box->[5] * $scale->[2] + $position->[2],
-	);
 }
 
 sub display {

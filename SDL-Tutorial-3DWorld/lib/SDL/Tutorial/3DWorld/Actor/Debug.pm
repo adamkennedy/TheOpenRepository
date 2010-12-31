@@ -19,11 +19,11 @@ sub new {
 		die "Did not provide a parent actor";
 	}
 
-	# Lock our position to that of our parent
-	$self->{position} = $self->{parent}->{position};
-
 	# We blend, but don't move
 	$self->{blending} = 0;
+
+	# Ensure our move method is called
+	$self->{velocity} = [ 0, 0, 0 ];
 
 	return $self;
 }
@@ -46,17 +46,36 @@ sub init {
 		$self->compile_axis;
 	};
 
+	# Set our initial position, box and boundary data to that of
+	# our parents.
+	$self->{position} = $self->{parent}->{position};
+	$self->{boundary} = $self->{parent}->{boundary};
+	$self->{box}      = $self->{parent}->{box};
+
 	return 1;
 }
 
-sub box {
-	$_[0]->{parent}->box;
+sub move {
+	my $self = shift;
+
+	# Update our position and size to that of our parent
+	$self->{position} = $self->{parent}->{position};
+	$self->{boundary} = $self->{parent}->{boundary};
+	$self->{box}      = $self->{parent}->{box};
+
+	return 1;
 }
 
 sub display {
 	my $self     = shift;
-	my $position = $self->{parent}->position;
-	my @box      = $self->{parent}->box or return;
+	my $position = $self->{position} or return;
+	my $box      = $self->{box}      or return;
+
+	# Axis lines extend to 20% of the length of an
+	# object alone a dimension past the edge.
+	my $X = $box->[3] - $position->[0] + ($box->[3] - $box->[0]) * 0.2;
+	my $Y = $box->[4] - $position->[1] + ($box->[4] - $box->[1]) * 0.2;
+	my $Z = $box->[5] - $position->[2] + ($box->[5] - $box->[2]) * 0.2;
 
 	# Translate to the model origin and call the axis display list,
 	# even if the model doesn't have an actual bounding box.
@@ -64,25 +83,22 @@ sub display {
 	# plain and 1 metre on a side otherwise.
 	OpenGL::glPushMatrix();
 	OpenGL::glTranslatef( @$position );
-	if ( @box ) {
-		# Axis lines extend to 20% of the length of an
-		# object alone a dimension past the edge.
-		my $X = $box[3] - $position->[0] + ($box[3] - $box[0]) * 0.2;
-		my $Y = $box[4] - $position->[1] + ($box[4] - $box[1]) * 0.2;
-		my $Z = $box[5] - $position->[2] + ($box[5] - $box[2]) * 0.2;
-		OpenGL::glScalef( $X, $Y, $Z );
-	}
+	OpenGL::glScalef( $X, $Y, $Z );
 	OpenGL::glCallList( $self->{axislist} );
 	OpenGL::glPopMatrix();
 
 	# Translate to the negative corner
-	OpenGL::glTranslatef( @box[0..2] );
+	OpenGL::glTranslatef(
+		$box->[0],
+		$box->[1],
+		$box->[2],
+	);
 
 	# Scale so that the resulting 1 metre cube becomes the right size
 	OpenGL::glScalef(
-		$box[3] - $box[0],
-		$box[4] - $box[1],
-		$box[5] - $box[2],
+		$box->[3] - $box->[0],
+		$box->[4] - $box->[1],
+		$box->[5] - $box->[2],
 	);
 
 	# Call the display list to render the cube
