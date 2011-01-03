@@ -20,6 +20,7 @@ use OpenGL::List                       ();
 use SDL::Tutorial::3DWorld::OpenGL     ();
 use SDL::Tutorial::3DWorld::Actor      ();
 use SDL::Tutorial::3DWorld::Asset::MTL ();
+use SDL::Tutorial::3DWorld::Bound      ();
 
 our $VERSION = '0.28';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
@@ -73,15 +74,14 @@ sub init {
 		];
 	}
 
-	# Define the boundary box
-	$self->{box} = [
-		-0.5,
-		-0.5,
-		-0.5,
-		0.5 + (2 * (scalar $self->{mtl}->names - 1)),
-		0.5,
-		0.5,
-	];
+	# Define the boundary box if the object is static
+	unless ( $self->{velocity} ) {
+		my $L = 2 * (scalar $self->{mtl}->names - 1);
+		$self->{bound} = SDL::Tutorial::3DWorld::Bound->box(
+			-0.5,      -0.5, -0.5,
+			 0.5 + $L,  0.5,  0.5,
+		);
+	}
 
 	return 1;
 }

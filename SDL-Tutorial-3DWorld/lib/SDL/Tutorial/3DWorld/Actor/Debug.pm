@@ -3,6 +3,7 @@ package SDL::Tutorial::3DWorld::Actor::Debug;
 use 5.008;
 use strict;
 use warnings;
+use SDL::Tutorial::3DWorld::Bound;
 use SDL::Tutorial::3DWorld::Actor  ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 use OpenGL::List                   ();
@@ -47,10 +48,8 @@ sub init {
 	};
 
 	# Set our initial position, box and boundary data to that of
-	# our parents.
-	$self->{position} = $self->{parent}->{position};
-	$self->{boundary} = $self->{parent}->{boundary};
-	$self->{box}      = $self->{parent}->{box};
+	# our parents like our normal per-move sync.
+	$self->move;
 
 	return 1;
 }
@@ -60,6 +59,7 @@ sub move {
 
 	# Update our position and size to that of our parent
 	$self->{position} = $self->{parent}->{position};
+	$self->{bound}    = $self->{parent}->{bound};
 	$self->{boundary} = $self->{parent}->{boundary};
 	$self->{box}      = $self->{parent}->{box};
 
@@ -69,13 +69,13 @@ sub move {
 sub display {
 	my $self     = shift;
 	my $position = $self->{position} or return;
-	my $box      = $self->{box}      or return;
+	my $bound    = $self->{bound}    or return;
 
 	# Axis lines extend to 20% of the length of an
 	# object along a dimension past the edge.
-	my $X = $box->[3] + ($box->[3] - $box->[0]) * 0.2;
-	my $Y = $box->[4] + ($box->[4] - $box->[1]) * 0.2;
-	my $Z = $box->[5] + ($box->[5] - $box->[2]) * 0.2;
+	my $XL = $bound->[BOX_X2] + ($bound->[BOX_X2] - $bound->[BOX_X1]) * 0.2;
+	my $YL = $bound->[BOX_Y2] + ($bound->[BOX_Y2] - $bound->[BOX_Y1]) * 0.2;
+	my $ZL = $bound->[BOX_Z2] + ($bound->[BOX_Z2] - $bound->[BOX_Z1]) * 0.2;
 
 	# Translate to the model origin and call the axis display list,
 	# even if the model doesn't have an actual bounding box.
@@ -83,22 +83,22 @@ sub display {
 	# plain and 1 metre on a side otherwise.
 	OpenGL::glPushMatrix();
 	OpenGL::glTranslatef( @$position );
-	OpenGL::glScalef( $X, $Y, $Z );
+	OpenGL::glScalef( $XL, $YL, $ZL );
 	OpenGL::glCallList( $self->{axislist} );
 	OpenGL::glPopMatrix();
 
 	# Translate to the negative corner
 	OpenGL::glTranslatef(
-		$position->[0] + $box->[0],
-		$position->[1] + $box->[1],
-		$position->[2] + $box->[2],
+		$position->[0] + $bound->[BOX_X1],
+		$position->[1] + $bound->[BOX_Y1],
+		$position->[2] + $bound->[BOX_Z1],
 	);
 
 	# Scale so that the resulting 1 metre cube becomes the right size
 	OpenGL::glScalef(
-		$box->[3] - $box->[0],
-		$box->[4] - $box->[1],
-		$box->[5] - $box->[2],
+		$bound->[BOX_X2] - $bound->[BOX_X1],
+		$bound->[BOX_Y2] - $bound->[BOX_Y1],
+		$bound->[BOX_Z2] - $bound->[BOX_Z1],
 	);
 
 	# Call the display list to render the cube

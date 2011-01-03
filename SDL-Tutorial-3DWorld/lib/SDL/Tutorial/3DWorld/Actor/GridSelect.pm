@@ -54,8 +54,8 @@ sub init {
 }
 
 sub move {
-	my $self      = shift;
-	my $camera    = SDL::Tutorial::3DWorld->current->camera;
+	my $self   = shift;
+	my $camera = SDL::Tutorial::3DWorld->current->camera;
 
 	# Project the location of the notional point out of the camera
 	# to find the camera-relative position of the box.

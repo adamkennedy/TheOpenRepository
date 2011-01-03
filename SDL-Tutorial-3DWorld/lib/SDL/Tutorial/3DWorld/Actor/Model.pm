@@ -29,11 +29,12 @@ RWX model files on disk.
 use 5.008;
 use strict;
 use warnings;
+use OpenGL::List                       ();
 use SDL::Tutorial::3DWorld             ();
 use SDL::Tutorial::3DWorld::Actor      ();
 use SDL::Tutorial::3DWorld::Asset::OBJ ();
 use SDL::Tutorial::3DWorld::Asset::RWX ();
-use OpenGL::List                       ();
+use SDL::Tutorial::3DWorld::Bound;
 
 our $VERSION = '0.28';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
@@ -90,30 +91,22 @@ sub init {
 	# Get the bounding box from the model
 	my $scale = $self->{scale};
 	if ( $scale ) {
-		$self->{box} = [
+		$self->{bound} = SDL::Tutorial::3DWorld::Bound->box(
 			$model->{box}->[0] * $scale->[0],
 			$model->{box}->[1] * $scale->[1],
 			$model->{box}->[2] * $scale->[2],
 			$model->{box}->[3] * $scale->[0],
 			$model->{box}->[4] * $scale->[1],
 			$model->{box}->[5] * $scale->[2],
-		];
+		);
 	} else {
-		$self->{box} = $model->{box};
+		$self->{bound} = SDL::Tutorial::3DWorld::Bound->box(
+			@{ $model->{box} },
+		);
 	}
 
 	# Static model optimisations
 	unless ( $self->{velocity} ) {
-		# set the origin-relative boundary
-		$self->{boundary} = [
-			$self->{box}->[0] + $self->{position}->[0],
-			$self->{box}->[1] + $self->{position}->[1],
-			$self->{box}->[2] + $self->{position}->[2],
-			$self->{box}->[3] + $self->{position}->[0],
-			$self->{box}->[4] + $self->{position}->[1],
-			$self->{box}->[5] + $self->{position}->[2],
-		];
-
 		# Compile the entire display routine
 		$self->{display} = OpenGL::List::glpList {
 			OpenGL::glPushMatrix();

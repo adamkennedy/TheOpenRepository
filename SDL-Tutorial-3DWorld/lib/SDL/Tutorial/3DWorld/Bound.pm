@@ -3,22 +3,30 @@ package SDL::Tutorial::3DWorld::Bound;
 use 5.008;
 use strict;
 use warnings;
+use Exporter   ();
 use List::Util ();
 
-our $VERSION = '0.28';
+use vars qw{ $VERSION @ISA @EXPORT };
+BEGIN {
+	$VERSION = '0.28';
+	@ISA     = 'Exporter';
+	@EXPORT  = qw{
+		SPHERE_X
+		SPHERE_Y
+		SPHERE_Z
+		SPHERE_R
+		BOX_X1
+		BOX_Y1
+		BOX_Z1
+		BOX_X2
+		BOX_Y2
+		BOX_Z2
+	};
+}
 
 # We can mostly avoid these, but they do help document things
-use constant {
-	SPHERE_X => 0,
-	SPHERE_Y => 1,
-	SPHERE_Z => 2,
-	SPHERE_R => 3,
-	BOX_X1   => 4,
-	BOX_Y1   => 5,
-	BOX_Z1   => 6,
-	BOX_X2   => 7,
-	BOX_Y2   => 8,
-	BOX_Z2   => 9,
+use constant +{
+	map { $EXPORT[$_] => $_ } ( 0 .. $#EXPORT )
 };
 
 

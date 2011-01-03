@@ -219,8 +219,6 @@ sub init {
 		$self->{material}->init;
 	}
 
-	
-
 	return 1;
 }
 

@@ -1,9 +1,22 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
-0.28 to be released
+0.28 Mon 3 Jan 2011
 	- Stripped a few superfluous methods out of the lighting setup.
 	- Make sure the camera direction vector is set up early to prevent
 	  warnings before the first mouse move event.
+	- Added a grid of 400 texture boxes to prove that the culling algorithm
+	  can support 500-1000 models without the need for a scene graph.
+	- Added a ::Bound class to store richer bounding data in preparation
+	  for more complex layered frustrum culling. It automatically calcaultes
+	  both the sphere and cube vales, needing only one of the two as
+	  constructor input.
+	- Moved frustrum culling from Z-cube to sphere-sphere, which should be
+	  both faster and use less CPU.
+	- Camera now pre-calculated a huge amount of frustrum data in advance,
+	  and recalculates them when the camera moves.
+	- Actors are now added by a method, which allows us to automatically
+	  attach the debugging actors to all objects including those created
+	  dynamically at run-time.
 
 0.27 Fri 31 Dec 2010
 	- Massive optimisation and tuning release to maximise the level

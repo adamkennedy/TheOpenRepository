@@ -31,13 +31,17 @@ In this initial skeleton code, the camera is fixed and cannot be moved.
 
 use strict;
 use warnings;
-use OpenGL;
-use SDL::Mouse;
-use SDL::Constants ();
-
-use constant D2R => CORE::atan2(1,1) / 45;
+use SDL::Mouse                     ();
+use SDL::Constants                 ();
+use SDL::Tutorial::3DWorld::OpenGL ();
+use SDL::Tutorial::3DWorld::Bound; # Import constants
 
 our $VERSION = '0.28';
+
+use constant {
+	D2R  => CORE::atan2(1,1) / 45,
+	ZFAR => 100,
+};
 
 =pod
 
@@ -62,43 +66,71 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# The default position of the camera is at 0,0,0 facing north
-	$self->{X}         ||= 0;
-	$self->{Y}         ||= 0;
-	$self->{Z}         ||= 0;
-	$self->{angle}     ||= 0;
-	$self->{elevation} ||= 0;
+	$self->{X}          ||= 0;
+	$self->{Y}          ||= 0;
+	$self->{Z}          ||= 0;
+	$self->{angle}      ||= 0;
+	$self->{elevation}  ||= 0;
+	$self->{speed}      ||= 0.2;
 
-	# Ignore the mouse origin position.
-	# We'll set this to the real values during init.
-	$self->{mouse_origin} = [ 0, 0 ];
+	# The field of view and frustrum properties
+	$self->{width}      ||= 1024;
+	$self->{height}     ||= 768;
+	$self->{aspect}     ||= $self->{width} / $self->{height};
+	$self->{fovy}       ||= 45;
+	$self->{fovx}       ||= $self->{fovy} * $self->{aspect};
+	$self->{znear}        = 0.1 unless defined $self->{znear};
+	$self->{zfar}       ||= ZFAR;
 
-	# The speed of the camera in metres per second when we are moving
-	$self->{speed} ||= 0.2;
-
-	# Key tracking
-	$self->{down} = {
-		# Move camera forwards and backwards
-		SDL::Constants::SDLK_w      => 0,
-		SDL::Constants::SDLK_s      => 0,
-
-		# Strafe camera left and right
-		SDL::Constants::SDLK_a      => 0,
-		SDL::Constants::SDLK_d      => 0,
-
-		# Shift makes us run
-		SDL::Constants::SDLK_LSHIFT => 0,
-	};
+	# Preconvert stuff to radians
+	$self->{fovyr}      ||= $self->{fovy}      * D2R;
+	$self->{fovxr}      ||= $self->{fovx}      * D2R;
+	$self->{angler}     ||= $self->{angle}     * D2R;
+	$self->{elevationr} ||= $self->{elevation} * D2R;
 
 	# Set up the direction vector for the first time.
 	# Update the direction vector we use for variety of tasks.
 	# For angle = 0, elevation = 0 this should be 0, 0, -1
-	my $angle     = $self->{angle}     * D2R;
-	my $elevation = $self->{elevation} * D2R;
-	$self->{direction} = [
-		sin($angle) * cos($elevation),
-		sin($elevation),
-		-cos($angle) * cos($elevation),
+	my $angler     = $self->{angler};
+	my $elevationr = $self->{elevationr};
+	my $direction  = $self->{direction} = [
+		sin($angler) * cos($elevationr),
+		sin($elevationr),
+		-cos($angler) * cos($elevationr),
 	];
+
+	# Calculate the frustrum properties.
+	# In the original C implementation hfar is calculated with tan() but
+	# since Perl doesn't have a native one we use sin/cos. :(
+	$self->{dlength} = $self->{zfar} - $self->{znear};
+	$self->{dsphere} = $self->{znear} + ($self->{dlength} * 0.5);
+	$self->{hfar}    = $self->{dlength}
+	                 * sin($self->{fovyr} * 0.5)
+	                 / cos($self->{fovyr} * 0.5);
+	$self->{wfar}    = $self->{hfar} * $self->{aspect};
+
+	# Find the vector from the near/far halfway point (P)
+	# and the far corner of the frustrum (Q).
+	my @P = ( 0,             0,             $self->{dsphere} );
+	my @Q = ( $self->{wfar}, $self->{hfar}, $self->{dlength} );
+	my @D = ( $P[0] - $Q[0], $P[1] - $Q[1], $P[2] - $Q[2]    );
+
+	# The frustrum sphere radius is the length of the vector,
+	# and the centre is the camera position plus the length of the centre
+	# in the direction the camera is looking.
+	$self->{rsphere} = sqrt( $D[0] ** 2 + $D[1] ** 2 + $D[2] ** 2 );
+	$self->{xsphere} = $self->{dsphere} * $direction->[0];
+	$self->{ysphere} = $self->{dsphere} * $direction->[1];
+	$self->{zsphere} = $self->{dsphere} * $direction->[2];
+
+	# Calculate the mouse origin position
+	$self->{mouse} = [
+		int( $self->{width}  / 2 ),
+		int( $self->{height} / 2 ),
+	];
+
+	# Key tracking
+	$self->{down} = {};
 
 	return $self;
 }
@@ -205,33 +237,33 @@ sub direction {
 
 # Note that this doesn't position the camera, just sets it up
 sub init {
-	my $self        = shift;
-	$self->{width}  = shift;
-	$self->{height} = shift;
-
-	# Calculate the mouse origin position
-	$self->{mouse_origin} = [
-		int( $self->{width}  / 2 ),
-		int( $self->{height} / 2 ),
-	];
+	my $self = shift;
 
 	# As a mouselook game, we don't want users to see the cursor.
 	# We also position the cursor at the exact centre of the window.
 	# (This will result in another spurious mouse event)
 	SDL::Mouse::show_cursor( SDL::Constants::SDL_DISABLE );
-	SDL::Mouse::warp_mouse( @{$self->{mouse_origin}} );
+	SDL::Mouse::warp_mouse( @{$self->{mouse}} );
 
 	# Select and reset the projection, flushing any old state
-	glMatrixMode( GL_PROJECTION );
-	glLoadIdentity();
+	OpenGL::glMatrixMode( OpenGL::GL_PROJECTION );
+	OpenGL::glLoadIdentity();
 
 	# Set the perspective we will look through.
 	# We'll use a standard 60 degree perspective, removing any
 	# shapes closer than one metre or further than one kilometre.
-	gluPerspective( 45.0, $self->{width} / $self->{height}, 0.1, -1000 );
+	OpenGL::gluPerspective(
+		$self->{fovy},
+		$self->{aspect},
+		$self->{znear},
+		$self->{zfar},
+	);
 
 	# Work super hard to make perspective calculations not suck
-	glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+	OpenGL::glHint(
+		OpenGL::GL_PERSPECTIVE_CORRECTION_HINT,
+		OpenGL::GL_NICEST,
+	);
 
 	return;
 }
@@ -242,9 +274,9 @@ sub display {
 	# Transform the location of the entire freaking world in the opposite
 	# direction and angle to where the camera is and which way it is
 	# pointing. This makes it LOOK as if the camera is moving but it isn't.
-	glRotatef( $self->{elevation}, -1, 0, 0 );
-	glRotatef( $self->{angle},      0, 1, 0 );
-	glTranslatef( -$self->X, -$self->Y, -$self->Z );
+	OpenGL::glRotatef( $self->{elevation}, -1, 0, 0 );
+	OpenGL::glRotatef( $self->{angle},      0, 1, 0 );
+	OpenGL::glTranslatef( -$self->{X}, -$self->{Y}, -$self->{Z} );
 
 	return;
 }
@@ -252,8 +284,8 @@ sub display {
 sub move {
 	my $self  = shift;
 	my $step  = shift;
-	my $speed = $self->{speed} * $step;
 	my $down  = $self->{down};
+	my $speed = $self->{speed} * $step;
 
 	# Find the camera-wards and sideways components of our velocity
 	my $move = $speed * (
@@ -266,9 +298,9 @@ sub move {
 	);
 
 	# Apply this movement in the direction of the camera
-	my $angle = $self->{angle} * D2R;
-	$self->{X} += (cos($angle) * $strafe) - (sin($angle) * $move);
-	$self->{Z} += (sin($angle) * $strafe) + (cos($angle) * $move);
+	my $angler = $self->{angler};
+	$self->{X} += (cos($angler) * $strafe) - (sin($angler) * $move);
+	$self->{Z} += (sin($angler) * $strafe) + (cos($angler) * $move);
 
 	return;
 }
@@ -280,8 +312,8 @@ sub event {
 
 	if ( $type == SDL::Constants::SDL_MOUSEMOTION ) {
 		# Ignore mouse motion events at the mouse origin
-		$event->motion_x == $self->{mouse_origin}->[0] and
-		$event->motion_y == $self->{mouse_origin}->[1] and
+		$event->motion_x == $self->{mouse}->[0] and
+		$event->motion_y == $self->{mouse}->[1] and
 		return 1;
 
 		# Convert the mouse motion to mouselook behaviour
@@ -289,24 +321,30 @@ sub event {
 		my $y = $event->motion_yrel;
 		$x = $x - 65536 if $x > 32000;
 		$y = $y - 65536 if $y > 32000;
-		$self->{angle}      = ($self->{angle} + $x / 5) % 360;
+		my $angle  = $self->{angle}  = ($self->{angle} + $x / 5) % 360;
 		$self->{elevation} -= $y / 10;
 		$self->{elevation}  =  90 if $self->{elevation} >  90;
 		$self->{elevation}  = -90 if $self->{elevation} < -90;
 
 		# Update the direction vector we use for variety of tasks.
 		# For angle = 0, elevation = 0 this should be 0, 0, -1
-		my $angle     = $self->{angle}     * D2R;
-		my $elevation = $self->{elevation} * D2R;
-		$self->{direction} = [
-			sin($angle) * cos($elevation),
-			sin($elevation),
-			-cos($angle) * cos($elevation),
-		];
+		my $angler     = $self->{angler}     = D2R * $angle;
+		my $elevationr = $self->{elevationr} = D2R * $self->{elevation};
+		my @direction  = (
+			sin($angler) * cos($elevationr),
+			sin($elevationr),
+			-cos($angler) * cos($elevationr),
+		);
+		$self->{direction} = \@direction;
+
+		# Update the frustrum sphere centre
+		$self->{xsphere} = $self->{X} + ($self->{dsphere} * $direction[0]);
+		$self->{ysphere} = $self->{Y} + ($self->{dsphere} * $direction[1]);
+		$self->{zsphere} = $self->{Z} + ($self->{dsphere} * $direction[2]);
 
 		# Move the mouse back to the centre of the window so that
 		# it can never escape the game window.
-		SDL::Mouse::warp_mouse( @{$self->{mouse_origin}} );
+		SDL::Mouse::warp_mouse( @{$self->{mouse}} );
 
 		return 1;
 	}
@@ -338,56 +376,13 @@ sub event {
 ######################################################################
 # Support Methods
 
-# Is a bounding box visible to the camera
-# Test each corner as a point, shortcutting if one is visible
-sub visible_box {
-	my $self      = shift;
-	my $direction = $self->{direction};
-
-	# Offset the bounding box by the camera position and
-	# multiple by vector component for each axis.
-	# This gives the contribution to how "forward" each
-	# face makes a point for that axis.
-	my $X1 = $direction->[0] * ($_[0] - $self->{X});
-	my $Y1 = $direction->[1] * ($_[1] - $self->{Y});
-	my $Z1 = $direction->[2] * ($_[2] - $self->{Z});
-	my $X2 = $direction->[0] * ($_[3] - $self->{X});
-	my $Y2 = $direction->[1] * ($_[4] - $self->{Y});
-	my $Z2 = $direction->[2] * ($_[5] - $self->{Z});
-
-	# If the sum of the most positive value on each axis
-	# results in a negative value then the most forward
-	# corner of the bounding box is behind us, and there is
-	# no possible way any part of the actor needs to be
-	# drawn on screen. Thus, the actor is not visible.
-	my $sum = ($X1 > $X2 ? $X1 : $X2)
-	        + ($Y1 > $Y2 ? $Y1 : $Y2)
-	        + ($Z1 > $Z2 ? $Z2 : $Z2);
-	return 1 if $sum > 0;
-	return 0;
-}
-
-# Is a point visible to the camera
-sub visible_point {
-	my $self      = shift;
-	my $direction = $self->{direction};
-
-	# Multiply the camera-relative position by the vector.
-	# A positive total means the point is in front of us.
-	my $sum = $direction->[0] * ($_[0] - $self->{X})
-	        + $direction->[1] * ($_[1] - $self->{Y})
-	        + $direction->[2] * ($_[2] - $self->{Z});
-	return 1 if $sum > 0;
-	return 0;
-}
-
 # Sort a series of vectors by distance from the camera, returning
 # the result as a list of index positions.
 sub distance_isort {
-	my $self     = shift;
-	my $X        = $self->{X};
-	my $Y        = $self->{Y};
-	my $Z        = $self->{Z};
+	my $self = shift;
+	my $X    = $self->{X};
+	my $Y    = $self->{Y};
+	my $Z    = $self->{Z};
 
 	# Calculate the distances
 	my @distance = map {

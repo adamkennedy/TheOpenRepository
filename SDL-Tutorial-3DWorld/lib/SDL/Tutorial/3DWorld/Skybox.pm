@@ -38,6 +38,7 @@ use strict;
 use warnings;
 use File::Spec                      ();
 use SDL::Tutorial::3DWorld          ();
+use SDL::Tutorial::3DWorld::Camera  ();
 use SDL::Tutorial::3DWorld::Texture ();
 use SDL::Tutorial::3DWorld::OpenGL  ();
 use OpenGL::List                    ();
@@ -173,8 +174,8 @@ sub display {
 
 # Compilable portion of the display logic
 sub compile {
-	my $self = shift;
-
+	my $self   = shift;
+ 
 	# Lighting does not apply to the skybox.
 	# Reset coloring to white so we don't leak a color from a model.
 	glDisable( GL_LIGHTING );
@@ -185,63 +186,69 @@ sub compile {
 	# around than the distance each face is away from the camera.
 	# This creates an extremely slight overlap at each edge and prevents
 	# visible "seams" on the skybox which otherwise ruin the sky effect.
-	# 501 is enough to remove these seams, but using 500.1 isn't enough.
+	# 1.002 is enough to remove these seams, but using 1.1 isn't enough.
 
 	# Draw the north face
 	$self->{north}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f( -501,  501, -500 ); # Top Left
-	glTexCoord2f( 0, 1 ); glVertex3f( -501, -501, -500 ); # Bottom Left
-	glTexCoord2f( 1, 1 ); glVertex3f(  501, -501, -500 ); # Bottom Right
-	glTexCoord2f( 1, 0 ); glVertex3f(  501,  501, -500 ); # Top Right
+	glTexCoord2f( 0, 0 ); glVertex3f( -1.002,  1.002, -1 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f( -1.002, -1.002, -1 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f(  1.002, -1.002, -1 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f(  1.002,  1.002, -1 ); # Top Right
 	glEnd();
 
 	# Draw the south face 
 	$self->{south}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f(  501,  501,  500 ); # Top Left
-	glTexCoord2f( 0, 1 ); glVertex3f(  501, -501,  500 ); # Bottom Left
-	glTexCoord2f( 1, 1 ); glVertex3f( -501, -501,  500 ); # Bottom Right
-	glTexCoord2f( 1, 0 ); glVertex3f( -501,  501,  500 ); # Top Right
+	glTexCoord2f( 0, 0 ); glVertex3f(  1.002,  1.002,  1 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f(  1.002, -1.002,  1 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f( -1.002, -1.002,  1 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f( -1.002,  1.002,  1 ); # Top Right
 	glEnd();
 
 	# Draw the east face
 	$self->{east}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f(  500,  501, -501 ); # Top Left
-	glTexCoord2f( 0, 1 ); glVertex3f(  500, -501, -501 ); # Bottom Left
-	glTexCoord2f( 1, 1 ); glVertex3f(  500, -501,  501 ); # Bottom Right
-	glTexCoord2f( 1, 0 ); glVertex3f(  500,  501,  501 ); # Top Right
+	glTexCoord2f( 0, 0 ); glVertex3f(  1,  1.002, -1.002 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f(  1, -1.002, -1.002 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f(  1, -1.002,  1.002 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f(  1,  1.002,  1.002 ); # Top Right
 	glEnd();
 
 	# Draw the west face
 	$self->{west}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f( -500,  501,  501 ); # Top Left
-	glTexCoord2f( 0, 1 ); glVertex3f( -500, -501,  501 ); # Bottom Left
-	glTexCoord2f( 1, 1 ); glVertex3f( -500, -501, -501 ); # Bottom Right
-	glTexCoord2f( 1, 0 ); glVertex3f( -500,  501, -501 ); # Top Right
+	glTexCoord2f( 0, 0 ); glVertex3f( -1,  1.002,  1.002 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f( -1, -1.002,  1.002 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f( -1, -1.002, -1.002 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f( -1,  1.002, -1.002 ); # Top Right
 	glEnd();
 
 	# Draw the ceiling face
 	$self->{up}->display;
 	glBegin( GL_QUADS );
-	glTexCoord2f( 0, 0 ); glVertex3f( -501,  500,  501 ); # Top Left
-	glTexCoord2f( 0, 1 ); glVertex3f( -501,  500, -501 ); # Bottom Left
-	glTexCoord2f( 1, 1 ); glVertex3f(  501,  500, -501 ); # Bottom Right
-	glTexCoord2f( 1, 0 ); glVertex3f(  501,  500,  501 ); # Top Right
+	glTexCoord2f( 0, 0 ); glVertex3f( -1.002,  1,  1.002 ); # Top Left
+	glTexCoord2f( 0, 1 ); glVertex3f( -1.002,  1, -1.002 ); # Bottom Left
+	glTexCoord2f( 1, 1 ); glVertex3f(  1.002,  1, -1.002 ); # Bottom Right
+	glTexCoord2f( 1, 0 ); glVertex3f(  1.002,  1,  1.002 ); # Top Right
 	glEnd();
 
 	# Draw the optional floor
 	if ( $self->{down} ) {
 		$self->{down}->display;
 		glBegin( GL_QUADS );
-		glTexCoord2f( 0, 0 ); glVertex3f( -501, -500,  501 ); # Top Left
-		glTexCoord2f( 0, 1 ); glVertex3f( -501, -500, -501 ); # Bottom Left
-		glTexCoord2f( 1, 1 ); glVertex3f(  501, -500, -501 ); # Bottom Right
-		glTexCoord2f( 1, 0 ); glVertex3f(  501, -500,  501 ); # Top Right
+		glTexCoord2f( 0, 0 ); glVertex3f( -1.002, -1,  1.002 ); # Top Left
+		glTexCoord2f( 0, 1 ); glVertex3f( -1.002, -1, -1.002 ); # Bottom Left
+		glTexCoord2f( 1, 1 ); glVertex3f(  1.002, -1, -1.002 ); # Bottom Right
+		glTexCoord2f( 1, 0 ); glVertex3f(  1.002, -1,  1.002 ); # Top Right
 		glEnd();
 	}
+
+	# Flush the depth buffer so we can draw the rest of the world.
+	# Some tutorials suggest disabling depth buffering but in my experience
+	# this still provides some tearing. I prefer to draw the box and then
+	# flush the depth buffer instead.
+	glClear( GL_DEPTH_BUFFER_BIT );
 
 	# Light is on by default in the 3DWorld tutorial, so setting it
 	# back to the default here means every other lit object doesn't

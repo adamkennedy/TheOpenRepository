@@ -34,8 +34,9 @@ class L<SDL::Tutorial::3DWorld::Actor>.
 
 use strict;
 use warnings;
-use OpenGL;
-use SDL::Tutorial::3DWorld::Actor ();
+use SDL::Tutorial::3DWorld::OpenGL ();
+use SDL::Tutorial::3DWorld::Actor  ();
+use SDL::Tutorial::3DWorld::Bound;
 
 our $VERSION = '0.28';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
@@ -89,14 +90,14 @@ sub init {
 	$self->SUPER::init(@_);
 
 	# Generate the bounding box
-	$self->{box} = [
+	$self->{bound} = SDL::Tutorial::3DWorld::Bound->box(
 		$self->{scale}->[0] * -1.5,
 		$self->{scale}->[1] * -0.75,
 		$self->{scale}->[2] * -1,
 		$self->{scale}->[0] * 1.75,
 		$self->{scale}->[1] * 0.85,
 		$self->{scale}->[2] * 1,
-	];
+	);
 
 	return 1;
 }
@@ -106,14 +107,14 @@ sub display {
 	$self->SUPER::display(@_);
 
 	# The teapot does not handle face culling well, so disable.
-	glDisable( GL_CULL_FACE  );
+	OpenGL::glDisable( OpenGL::GL_CULL_FACE  );
 
 	# Draw the teapot.
 	$self->{material}->display;
 	OpenGL::glutSolidTeapot(1);
 
 	# Reset the temporary disabling
-	glEnable( GL_CULL_FACE  );
+	OpenGL::glEnable( OpenGL::GL_CULL_FACE  );
 
 	return;
 }

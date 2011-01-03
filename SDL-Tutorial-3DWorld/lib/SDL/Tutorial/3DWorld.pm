@@ -78,11 +78,17 @@ use SDL::Tutorial::3DWorld::Model                  ();
 use SDL::Tutorial::3DWorld::OpenGL                 ();
 use SDL::Tutorial::3DWorld::Skybox                 ();
 use SDL::Tutorial::3DWorld::Texture                ();
+use SDL::Tutorial::3DWorld::Bound;
 
-our $VERSION = '0.28';
+# Enable GLUT support so we can have teapots and other things
+BEGIN {
+	OpenGL::glutInit();
+}
 
 # The currently active world
 our $CURRENT = undef;
+
+our $VERSION = '0.28';
 
 =pod
 
@@ -118,6 +124,16 @@ sub new {
 		hide_expensive => $benchmark ? 1 : 0,
 	}, $class;
 
+	# Normally we want fullscreen, but occasionally we might want to
+	# disable it because we are on a portrait-orientation monitor
+	# or for unobtrusive testing (or it doesn't work on some machine).
+	# When showing in a window, drop the size to the window isn't huge.
+	$self->{fullscreen} = not grep { $_ eq '--window' } @_;
+	unless ( $self->{fullscreen} ) {
+		$self->{width}  /= 2;
+		$self->{height} /= 2;
+	}
+
 	# Text console that overlays the world
 	$self->{console} = SDL::Tutorial::3DWorld::Console->new;
 
@@ -127,6 +143,14 @@ sub new {
 		directory => $self->sharedir('skybox'),
 	);
 
+	# Light the world with a single overhead light
+	# that matches the position of the sun.
+	$self->{lights} = [
+		SDL::Tutorial::3DWorld::Light->new(
+			position => [ 360, 405, -400 ],
+		),
+	];
+
 	# Create the landscape
 	$self->{landscape} = SDL::Tutorial::3DWorld::Landscape::Infinite->new(
 		texture => $self->sharefile('ground.jpg'),
@@ -135,23 +159,31 @@ sub new {
 	# Place the camera at a typical eye height a few metres back
 	# from the teapots and facing slightly down towards them.
 	$self->{camera} = SDL::Tutorial::3DWorld::Camera::God->new(
-		X     => 0.0,
-		Y     => 1.5,
-		Z     => 5.0,
-		speed => $self->dscalar( 2 ),
+		# Camera position properties
+		X      => 0.0,
+		Y      => 1.5,
+		Z      => 5.0,
+		speed  => $self->dscalar(2),
+
+		# Camera view properties
+		height => $self->{height},
+		width  => $self->{width},
+		fovy   => 45,
+
+		# Actor list and indexes for faster culling
+		actors => [ ],
+		show   => [ ],
+		move   => [ ],
 	);
 
 	# The selector is an actor and a special camera tool for
 	#(potentially) controlling something in the world.
 	$self->{selector} = SDL::Tutorial::3DWorld::Actor::GridSelect->new;
+	$self->actor( $self->{selector} );
 
-	# Place three airborn stationary teapots in the scene
-	my $actors = $self->{actors} = [
-
-		# Make sure we add the selector to the actor list.
-		$self->{selector},
-
-		# (R)ed is the official colour of the X axis
+	# Add three teapots to the scene.
+	# (R)ed is the official colour of the X axis.
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
 			size     => 0.20,
 			position => [ 0.0, 0.5, 0.0 ],
@@ -162,8 +194,10 @@ sub new {
 			},
 			hidden   => $self->{hide_expensive},
 		),
+	);
 
-		# (B)lue is the official colour of the Z axis
+	# (B)lue is the official colour of the Z axis.
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
 			size     => 0.30,
 			position => [ 0.0, 1.0, 0.0 ],
@@ -174,8 +208,10 @@ sub new {
 			},
 			hidden   => $self->{hide_expensive},
 		),
+	);
 
-		# (G)reen is the official colour of the Y axis
+	# (G)reen is the official colour of the Y axis
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
 			size     => 0.50,
 			position => [ 0.0, 1.5, 0.0 ],
@@ -186,27 +222,33 @@ sub new {
 			},
 			hidden   => $self->{hide_expensive},
 		),
+	);
 
-		# Place a static grid cube in the air on the positive
-		# and negative corners of the landscape, proving the
-		# grid-bounding math works (which it might not on the
-		# negative side of an axis if you mistakenly use int()
-		# for the math instead of something like POSIX::ceil/floor).
+	# Place a static grid cube in the air on the positive
+	# and negative corners of the landscape, proving the
+	# grid-bounding math works (which it might not on the
+	# negative side of an axis if you mistakenly use int()
+	# for the math instead of something like POSIX::ceil/floor).
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::GridCube->new(
 			position => [ -3.7, 1.3, -3.7 ],
 		),
+	);
 
-		# Set up a flying grid cube heading away from the teapots.
-		# This should demonstrate the "grid" nature of the cube,
-		# and the flying path will take us along a path that will
-		# share an edge with the static box, which should look neat.
+	# Set up a flying grid cube heading away from the teapots.
+	# This should demonstrate the "grid" nature of the cube,
+	# and the flying path will take us along a path that will
+	# share an edge with the static box, which should look neat.
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::GridCube->new(
 			position => [ -0.33, 0.01, -0.66 ],
 			velocity => $self->dvector( -0.1, 0.1, -0.1 ),
 		),
+	);
 
-		# Place a typical large crate on the opposite side of the
-		# chessboard from the static gridcube.
+	# Place a typical large crate on the opposite side of the
+	# chessboard from the static gridcube.
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::TextureCube->new(
 			size     => 1.3,
 			position => [ 3.3, 0.0, 3.35 ],
@@ -215,32 +257,42 @@ sub new {
 				texture => $self->sharefile('crate1.jpg'),
 			},
 		),
+	);
 
-		# Place a lollipop near the origin
+	# Place a lollipop near the origin
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Model->new(
 			position => [ -2, 0, 0 ],
 			file     => File::Spec->catfile('model', 'lollipop', 'hflollipop1gr.rwx'),
 		),
+	);
 
-		# Place two nutcrackers a little further away
+	# Place two nutcrackers a little further away
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Model->new(
 			position => [ -2, 0, -2 ],
 			file     => File::Spec->catfile('model', 'nutcracker', "sv-nutcracker1.rwx"),
 		),
+	);
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Model->new(
 			position => [ -4, 0, -2 ],
 			file     => File::Spec->catfile('model', 'nutcracker', "sv-nutcracker7.rwx"),
 		),
+	);
 
-		# Place a large table (somewhere...)
+	# Place a large table (somewhere...)
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Model->new(
 			position => [ -10, 0, 0 ],
 			scale    => [ 0.05, 0.05, 0.05 ],
 			file     => File::Spec->catfile('model', 'table', 'table.obj'),
 			plain    => 1,
 		),
+	);
 
-		# Add a material sampler
+	# Add a material sampler
+	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::MaterialSampler->new(
 			position => [ 5, 1, 5 ],
 			file     => File::Spec->catfile(
@@ -249,47 +301,35 @@ sub new {
 			),
 			hidden   => $self->{hide_expensive},
 		),
-
-	];
+	);
 
 	# Add a grid of 100 toilet plungers
 	foreach my $x ( -14 .. -5 ) {
 		foreach my $z ( 5 .. 14 ) {
-			push @$actors, SDL::Tutorial::3DWorld::Actor::Model->new(
-				position => [ $x, 1.6, $z ],
-				file     => File::Spec->catfile(
-					'model',
-					'toilet-plunger001',
-					'toilet_plunger001.obj',
+			$self->actor(
+				SDL::Tutorial::3DWorld::Actor::Model->new(
+					position => [ $x, 1.6, $z ],
+					file     => File::Spec->catfile(
+						'model',
+						'toilet-plunger001',
+						'toilet_plunger001.obj',
+					),
 				),
 			);
 		}
 	}
 
-	# Add a bounding box viewer to as many objects as support it
-	unless ( $self->{benchmark} ) {
-		push @$actors, map {
-			SDL::Tutorial::3DWorld::Actor::Debug->new( parent => $_ )
-		} @$actors;
-	}
-
-	# Light the world with a single overhead light
-	$self->{lights} = [
-		SDL::Tutorial::3DWorld::Light->new(
-			position => [ 360, 405, -400 ],
-		),
-	];
-
-	# Optimisation:
-	# If we have a skybox then no part of the scene will ever show
-	# the background. As a result, we can clear only the depth buffer
-	# and this will result in the color buffer just being drawn over.
-	# This removes a fairly large memory clear operation and speeds
-	# up frame-initialisation phase of the rendering pipeline.
-	if ( $self->{skybox} ) {
-		$self->{clear} = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
-	} else {
-		$self->{clear} = GL_DEPTH_BUFFER_BIT;
+	# Add a grid of 400 texture crates
+	foreach my $x ( -24 .. -5 ) {
+		foreach my $z ( 5 .. 24 ) {
+			$self->actor(
+				SDL::Tutorial::3DWorld::Actor::TextureCube->new(
+					size     => 1,
+					position => [ $x, 0, $z ],
+					texture  => $self->sharefile('crate1.jpg'),
+				),
+			);
+		}
 	}
 
 	return $self;
@@ -327,6 +367,42 @@ sub sdl {
 
 
 ######################################################################
+# Scene Construction
+
+# Add a new actor to the world
+sub actor {
+	my $self  = shift;
+	my $actor = shift;
+	my %param = @_;
+	push @{$self->{actors}}, $actor;
+	push @{$self->{move}},   $actor if     $actor->{velocity};
+	push @{$self->{show}},   $actor unless $actor->{hidden};
+
+	# Initialise if needed
+	$actor->init if $param{init};
+
+	# Shortcut unless we need the bounding box as well
+	return if $self->{benchmark};
+
+	# Add said bounding box
+	my $debug = SDL::Tutorial::3DWorld::Actor::Debug->new(
+		parent => $actor,
+	);
+	push @{$self->{actors}}, $debug;
+	push @{$self->{move}},   $debug;
+	push @{$self->{show}},   $debug;
+
+	# Initialise it too if needed
+	$debug->init if $param{init};
+
+	return 1;
+}
+
+
+
+
+
+######################################################################
 # Main Methods
 
 =pod
@@ -348,7 +424,7 @@ sub run {
 	# Render handler
 	$self->{sdl}->add_show_handler( sub {
 		$self->display(@_);
-		$self->sync;
+		$self->{sdl}->sync;
 	} );
 
 	# Movement handler
@@ -415,23 +491,13 @@ sub init {
 		}
 	}
 
-	# Normally we want fullscreen, but occasionally we might want to
-	# disable it because we are on a portrait-orientation monitor
-	# or for unobtrusive testing (or it doesn't work on some machine).
-	# When showing in a window, drop the size to the window isn't huge.
-	my $fullscreen = not grep { $_ eq '--window' } @{$self->{ARGV}};
-	unless ( $fullscreen ) {
-		$self->{width}  = int( $self->{width}  / 2 );
-		$self->{height} = int( $self->{height} / 2 );
-	}
-
 	# Create the SDL application object
 	$self->{sdl} = SDLx::App->new(
 		title         => '3D World',
 		width         => $self->{width},
 		height        => $self->{height},
 		gl            => 1,
-		fullscreen    => $fullscreen,
+		fullscreen    => $self->{fullscreen},
 		depth         => 24, # Prevent harsh colour stepping
 		double_buffer => 1,  # Reduce flicker during rapid mouselook
 		min_t         => 0,  # As many frames as possible
@@ -450,14 +516,14 @@ sub init {
 	glEnable( GL_DEPTH_TEST );
 
 	# How thick are lines
-	glLineWidth( 1 );
+	glLineWidth(1);
 
 	# Enable basic anti-aliasing for everything
 	# glEnable( GL_BLEND );
 	# glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	glHint( GL_LINE_SMOOTH_HINT,    GL_NICEST );
-	glHint( GL_POINT_SMOOTH_HINT,   GL_NICEST );
-	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+	glHint( GL_LINE_SMOOTH_HINT,     GL_NICEST );
+	glHint( GL_POINT_SMOOTH_HINT,    GL_NICEST );
+	glHint( GL_POLYGON_SMOOTH_HINT,  GL_NICEST );
 	glHint( GL_GENERATE_MIPMAP_HINT, GL_NICEST );
 	# glEnable( GL_LINE_SMOOTH    );
 	# glEnable( GL_POINT_SMOOTH   );
@@ -467,8 +533,31 @@ sub init {
 	glEnable( GL_LIGHTING );
 	glEnable( GL_TEXTURE_2D );
 
+	# Compile a display list to do all non-varying frame reset tasks
+	$self->{reset} = OpenGL::List::glpList {
+		if ( $self->{skybox} ) {
+			# Optimisation:
+			# If we have a skybox then no part of the scene will ever show
+			# the background. As a result, we can clear only the depth buffer
+			# and this will result in the color buffer just being drawn over.
+			# This removes a fairly large memory clear operation and speeds
+			# up frame-initialisation phase of the rendering pipeline.
+			glClear( GL_DEPTH_BUFFER_BIT );
+		} else {
+			# Clear the colour buffer (what we actually see) and the depth buffer
+			# (the area GL uses to remove things behind other things).
+			# This gives us a blank screen with our chosen sky colour.
+			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		}
+
+		# Reset the model, throwing away the previously calculated scene
+		# and starting again with a blank sky.
+		glMatrixMode( GL_MODELVIEW );
+		glLoadIdentity();
+	};
+
 	# Initialise the camera so we can look at things
-	$self->{camera}->init( $self->{width}, $self->{height} );
+	$self->{camera}->init;
 
 	# Initialise and load the skybox
 	if ( $self->{skybox} ) {
@@ -477,9 +566,6 @@ sub init {
 
 	# Initialise the landscape so there is a world
 	$self->{landscape}->init;
-
-	# Enable GLUT support so we can have teapots
-	OpenGL::glutInit();
 
 	# Initialise the actors.
 	# Randomise the order once to generate interesting effects.
@@ -495,82 +581,18 @@ sub init {
 	return 1;
 }
 
-# This is the primary render loop
-sub display {
-	my $self = shift;
-
-	# Reset the model, throwing away the previously calculated scene
-	# and starting again with a blank sky.
-	$self->clear;
-	glMatrixMode( GL_MODELVIEW );
-	glLoadIdentity();
-	# glEnable( GL_LIGHTING );
-	# glEnable( GL_TEXTURE_2D );
-
-	# Move the camera to the required position.
-	# NOTE: For now just translate back so we can see the render.
-	$self->{camera}->display;
-
-	# Draw the skybox
-	$self->{skybox}->display if $self->{skybox};
-
-	# Draw the landscape in the scene
-	$self->{landscape}->display;
-
-	# Light the scene.
-	#  All lighting is global in this demonstration.
-	foreach my $light ( @{$self->{lights}} ) {
-		$light->display;
-	}
-
-	# Draw each of the actors into the scene.
-	# We should draw the models for most distance to least distant
-	# to ensure that transparent objects will blend over the top
-	# of things behind them correctly.
-	foreach my $actor ( $self->display_actors ) {
-		if ( defined $actor->{display} ) {
-			# If the actor has a completely pre-built display list,
-			# shortcut their display method and just draw it.
-			# The actor is expected to do everything, including the
-			# push/pop matrix operation shown below to isolate drawing.
-			OpenGL::glCallList( $actor->{display} );
-		} else {
-			# Draw each actor in their own stack context so that
-			# their transform operations do not effect anything else.
-			glPushMatrix();
-			$actor->display;
-			glPopMatrix();
-		}
-	}
-
-	# Draw the console last, on top of everything else
-	if ( $self->{console} and not $self->{hide_console} ) {
-		$self->{console}->display;
-	}
-
-	return 1;
-}
-
-sub move {
-	my $self = shift;
-
-	# Move each of the actors in the scene.
-	# This is an O(N) operation so be careful to avoid expense here.
-	foreach my $actor ( @{$self->{actors}} ) {
-		$actor->move(@_) if $actor->{velocity};
-	}
-
-	# Move the camera last, since it is more likely that the position
-	# of the camera will be limited by where the actors are than the
-	# actors being limited by where the camera is.
-	$self->{camera}->move(@_);
-}
-
 sub event {
-	my $self  = shift;
+	my $self = shift;
+
+	# Handle any events related to the camera.
+	# Since the move common high frequency events will be stuff like
+	# mouse movements to control mouselook we do this first.
+	$self->{camera}->event(@_) and return 1;
+
+	# Now handle lower-frequency events related to the application
+	# as a whole or elements within it.
 	my $event = shift;
 	my $type  = $event->type;
-
 	if ( $type == SDL_KEYDOWN ) {
 		my $key = $event->key_sym;
 
@@ -587,6 +609,10 @@ sub event {
 				next unless $actor->isa('SDL::Tutorial::3DWorld::Actor::Debug');
 				$actor->{hidden} = $self->{hide_debug};
 			}
+
+			# Rebuild the index of visible objects
+			@{$self->{show}} = grep { not $_->{hidden} } @{$self->{actors}};
+
 			return 1;
 		}
 
@@ -601,6 +627,10 @@ sub event {
 					$actor->{hidden} = $self->{hide_expensive};
 				}
 			}
+
+			# Rebuild the index of visible objects
+			@{$self->{show}} = grep { not $_->{hidden} } @{$self->{actors}};
+
 			return 1;
 		}
 
@@ -613,44 +643,191 @@ sub event {
 	} elsif ( $type == SDL_MOUSEBUTTONDOWN ) {
 		# Make the scroll wheel move the selection box towards
 		# and away from the camera.
-		my $button = $event->button_button;
+		my $selector = $self->{selector};
+		my $button  = $event->button_button;
 		if ( $button == SDL_BUTTON_WHEELUP ) {
 			# Move away from the camera
-			$self->{selector}->{distance} += 0.5;
+			$selector->{distance} += 0.5;
 			return 1;
 		}
 		if ( $button == SDL_BUTTON_WHEELDOWN ) {
 			# Move towards the camera, stopping
 			# at some suitable minimum distance.
-			$self->{selector}->{distance} -= 0.5;
-			if ( $self->{selector}->{distance} < 2 ) {
-				$self->{selector}->{distance} = 2;
+			$selector->{distance} -= 0.5;
+			if ( $selector->{distance} < 2 ) {
+				$selector->{distance} = 2;
 			}
 			return 1;
 		}
+
+		# Place a new texture box at the selector location
 		if ( $button == SDL_BUTTON_LEFT ) {
-			# Place a new texture box at the selector location
-			my $selector = $self->{selector}->{position};
-			my $cube     = SDL::Tutorial::3DWorld::Actor::TextureCube->new(
+			my $cube = SDL::Tutorial::3DWorld::Actor::TextureCube->new(
 				position => [
-					$selector->[0] + 0.5,
-					$selector->[1],
-					$selector->[2] + 0.5,
+					$selector->{position}->[0] + 0.5,
+					$selector->{position}->[1],
+					$selector->{position}->[2] + 0.5,
 				],
 				material => {
 					ambient => [ 0.5, 0.5, 0.5, 1 ],
 					texture => $self->sharefile('crate1.jpg'),
 				},
 			);
-			$cube->init;
-			push @{$self->{actors}}, $cube;
-
+			$self->actor( $cube, init => 1 );
 			return 1;
+		}
+
+		# Let right mouse button drop us back into debugging
+		if ( $button == SDL_BUTTON_RIGHT ) {
+			$DB::single = 1;
 		}
 	}
 
-	# Handle any events related to the camera
-	$self->{camera}->event($event) and return 1;
+	return 1;
+}
+
+sub move {
+	my $self = shift;
+	my $move = $self->{move};
+
+	# Move each of the actors in the scene.
+	$_->move(@_) foreach @$move;
+
+	# Move the camera last, since it is more likely that the position
+	# of the camera will be limited by where the actors are than the
+	# actors being limited by where the camera is. Especially since the
+	# camera doesn't currently have an avatar.
+	$self->{camera}->move(@_);
+}
+
+# This is the primary render loop
+sub display {
+	my $self   = shift;
+	my $camera = $self->{camera};
+
+	# Reset the frame
+	glCallList( $self->{reset} );
+
+	# Move the camera to the required position.
+	# NOTE: For now just translate back so we can see the render.
+	$camera->display;
+
+	# Draw the skybox
+	$self->{skybox}->display if $self->{skybox};
+
+	# Draw the landscape in the scene
+	$self->{landscape}->display;
+
+	# Light the scene.
+	#  All lighting is global in this demonstration.
+	foreach my $light ( @{$self->{lights}} ) {
+		$light->display;
+	}
+
+	# Display all of the actors visible by the main scene camera.
+	# Pass the camera because later we may want to do some tricks involving
+	# multiple cameras.
+	$self->display_actors($camera);
+
+	# Draw the console last, on top of everything else
+	if ( $self->{console} and not $self->{hide_console} ) {
+		$self->{console}->display;
+	}
+
+	return 1;
+}
+
+# Simultaneously cull and render the solid objects in the scene,
+# storing blending objects for a second sorting/render pass.
+sub display_actors {
+	my $self     = shift;
+	my $camera   = shift;
+	my $show     = $self->{show};
+	my @blend    = ();
+	my @distance = ();
+	foreach my $actor ( @$show ) {
+		my $position = $actor->{position};
+		my $bound    = $actor->{bound};
+
+		# Most things should have bounding boxes
+		if ( $actor->{bound} ) {
+			# Sphere-sphere culling, which is really fast.
+			# Compare sizes of the squares to avoid extra sqrt calls.
+			(
+				($bound->[SPHERE_R] + $camera->{rsphere}) ** 2 # $RS
+			) > (
+				($position->[0] + $bound->[SPHERE_X] - $camera->{xsphere}) ** 2 + # $XS
+				($position->[1] + $bound->[SPHERE_Y] - $camera->{ysphere}) ** 2 + # $YS
+				($position->[2] + $bound->[SPHERE_Z] - $camera->{zsphere}) ** 2   # $ZS
+			) or next;
+
+			# Second pass is cone-sphere culling, which is slower but
+			# will cull down to something reasonsably close to the ideal.
+			### NOTE: TO BE IMPLEMENTED LATER
+
+		} else {
+
+			# Sphere-point culling for actors without volume (and
+			# thus no bounding shapes). This is similar to
+			# sphere-sphere but slightly simpler as it effectively
+			# uses a zero-offset zero-size bounding sphere.
+			(
+				$camera->{rsphere} ** 2
+			) > (
+				($position->[0] - $camera->{xsphere}) ** 2 + # $XS
+				($position->[1] - $camera->{ysphere}) ** 2 + # $YS
+				($position->[2] - $camera->{zsphere}) ** 2   # $ZS
+			) or next;
+		}
+
+		# Objects that need blending must be rendered from furthest
+		# to nearest, but the render order of solid objects is mostly
+		# irrelevant. So we render solid stuff immediately.
+		unless ( $actor->{blending} ) {
+			defined( $actor->{display} )
+				# If the actor has a completely pre-built display list,
+				# shortcut their display method and just draw it.
+				# The actor is expected to do everything, including the
+				# push/pop matrix operation shown below to isolate drawing.
+				? glCallList( $actor->{display} )
+				: do {
+					# Draw each actor in their own stack context so that
+					# their transform operations do not effect anything else.
+					glPushMatrix();
+					$actor->display;
+					glPopMatrix();
+				};
+			next;
+		}
+
+		# Precalculate the distance now. Because we are only
+		# using it for sorting we can safely avoid the sqrt
+		# and sort on the squared distance instead.
+		push @blend, $actor;
+		push @distance, (
+			($camera->{X} - $position->[0]) ** 2 +
+			($camera->{Y} - $position->[1]) ** 2 +
+			($camera->{Z} - $position->[2]) ** 2
+		);
+	}
+
+	# Render the remaining elements in sorted order
+	foreach my $actor (
+		map {
+			$blend[$_]
+		} sort {
+			$distance[$b] <=> $distance[$a]
+		} ( 0 .. $#blend )
+	) {
+		# Repeat the display code shown above
+		defined( $actor->{display} )
+			? glCallList( $actor->{display} )
+			: do {
+				glPushMatrix();
+				$actor->display;
+				glPopMatrix();
+			};
+	}
 
 	return 1;
 }
@@ -661,125 +838,6 @@ sub event {
 
 ######################################################################
 # Utility Methods
-
-# Clear the colour buffer (what we actually see) and the depth buffer
-# (the area GL uses to remove things behind other things).
-# This gives us a blank screen with our chosen sky colour.
-# NOTE: If you are using a full six sided sky box then you don't need to clear
-# the color buffer because you'll always draw over the top of every pixel.
-# Clearing only the depth buffer should make your rendering faster.
-sub clear {
-	glClear( $_[0]->{clear} );
-}
-
-# This is a convenience method.
-# Pass through to the version provided by the main SDL app.
-sub sync {
-	$_[0]->{sdl}->sync;
-}
-
-# A simple actor ordering method based on naive distance from the
-# camera as measured from the centre position() of the object.
-sub display_actors {
-	my $self = shift;
-
-	# Don't render actors that aren't in our field of view.
-	# Do the math in place here rather than in the more
-	# appropriate camera object because it is extremely CPU
-	# sensitive and the microoptimisation is worth it.
-	my $camera    = $self->{camera};
-	my $direction = $camera->{direction};
-	my $XC        = $camera->X;
-	my $YC        = $camera->Y;
-	my $ZC        = $camera->Z;
-	my $XD        = $direction->[0];
-	my $YD        = $direction->[1];
-	my $ZD        = $direction->[2];
-
-	# Apply optimisation strategies to remove things we don't need to
-	# draw. At the same time split solid and transparent objects apart
-	# as we will use different rendering optimisations for each type.
-	my @solid = ();
-	my @blend = ();
-	foreach my $actor ( @{$self->{actors}} ) {
-		# Don't render actors that are intentionally hidden
-		next if $actor->{hidden};
-
-		# Find the bounding box, then offset the bounding box by
-		# the camera position and multiply by vector component for
-		# each axis. This gives the contribution to how "forward"
-		# each face makes a point for that axis.
-		my ($X1, $X2, $Y1, $Y2, $Z1, $Z2) = ();
-		if ( $actor->{bounding} ) {
-			# Already locked to the origin
-			my $B = $actor->{bounding};
-			$X1 = $XD * ( $B->[0] - $XC );
-			$Y1 = $YD * ( $B->[1] - $YC );
-			$Z1 = $ZD * ( $B->[2] - $ZC );
-			$X2 = $XD * ( $B->[3] - $XC );
-			$Y2 = $YD * ( $B->[4] - $YC );
-			$Z2 = $ZD * ( $B->[5] - $ZC );
-
-		} elsif ( $actor->{box} ) {
-			# Relative to the actor position
-			my $b = $actor->{box};
-			my $p = $actor->{position};
-			$X1 = $XD * ( $p->[0] + $b->[0] - $XC );
-			$Y1 = $YD * ( $p->[1] + $b->[1] - $YC );
-			$Z1 = $ZD * ( $p->[2] + $b->[2] - $ZC );
-			$X2 = $XD * ( $p->[0] + $b->[3] - $XC );
-			$Y2 = $YD * ( $p->[1] + $b->[4] - $YC );
-			$Z2 = $ZD * ( $p->[2] + $b->[5] - $ZC );
-
-		} else {
-			# There are normal so few unbound actors we can
-			# just take the more expensive method of doing a
-			# zero-sized bounding box.
-			my $p = $actor->{position};
-			$X1 = $X2 = $XD * ( $p->[0] - $XC );
-			$Y1 = $Y2 = $YD * ( $p->[1] - $YC );
-			$Z1 = $Z2 = $ZD * ( $p->[2] - $ZC );
-		}
-
-		# If the sum of the most positive value on each axis
-		# results in a negative value then the most forward
-		# corner of the bounding box is behind us, and there is
-		# no possible way any part of the actor needs to be
-		# drawn on screen. Thus, the actor is not visible.
-		my $sum = ($X1 > $X2 ? $X1 : $X2)
-			+ ($Y1 > $Y2 ? $Y1 : $Y2)
-			+ ($Z1 > $Z2 ? $Z2 : $Z2);
-		next if $sum < 0;
-
-		# Render solid objects first to avoid some n-body related
-		# costs when distance sorting to find actor display order.
-		if ( $actor->{blending} ) {
-			push @blend, $actor;
-		} else {
-			push @solid, $actor;
-		}
-	}
-
-	# Sort the solid objects from nearest to farthest. If a large
-	# model is close to the camera then any object behind it only
-	# needs to be depth-testing and all the work to colour, texture
-	# and light the object can be skipped by OpenGL.
-	# NOTE: This is disabled for the time being as I suspect the
-	# cost of the geometry math and sorting in Perl is larger than
-	# the cost of just brute forcing it in modern graphics hardware.
-	# @solid = reverse map { $solid[$_] } $self->camera->distance_isort(
-		# map { $_->{position} } @solid
-	# );
-
-	# Sort the blending objects from farthest to nearest. A transparent
-	# object needs to have everything behind it drawn so that it can
-	# do the alpha transparency over the top of it,
-	@blend = map { $blend[$_] } $camera->distance_isort(
-		map { $_->{position} } @blend
-	);
-
-	return ( @solid, @blend );
-}
 
 sub dvector {
 	my $dt = $_[0]->{dt};
