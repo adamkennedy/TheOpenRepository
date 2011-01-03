@@ -37,7 +37,7 @@ use SDL::Tutorial::3DWorld::Texture  ();
 use SDL::Tutorial::3DWorld::Material ();
 use SDL::Tutorial::3DWorld::Bound;
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 =pod

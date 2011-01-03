@@ -61,6 +61,7 @@ use SDLx::App                                      ();
 use SDL::Tutorial::3DWorld::Actor                  ();
 use SDL::Tutorial::3DWorld::Actor::Debug           ();
 use SDL::Tutorial::3DWorld::Actor::Model           ();
+use SDL::Tutorial::3DWorld::Actor::Sprite          ();
 use SDL::Tutorial::3DWorld::Actor::Teapot          ();
 use SDL::Tutorial::3DWorld::Actor::GridCube        ();
 use SDL::Tutorial::3DWorld::Actor::GridSelect      ();
@@ -88,7 +89,7 @@ BEGIN {
 # The currently active world
 our $CURRENT = undef;
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 =pod
 
@@ -303,6 +304,14 @@ sub new {
 		),
 	);
 
+	# Add a sprite
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::Sprite->new(
+			position => [ 3, 0, -1 ],
+			texture  => $self->sharefile('sprite', 'pguard_die4.png'),
+		),
+	);
+
 	# Add a grid of 100 toilet plungers
 	foreach my $x ( -14 .. -5 ) {
 		foreach my $z ( 5 .. 14 ) {
@@ -387,10 +396,11 @@ sub actor {
 	# Add said bounding box
 	my $debug = SDL::Tutorial::3DWorld::Actor::Debug->new(
 		parent => $actor,
+		hidden => $self->{hide_debug},
 	);
 	push @{$self->{actors}}, $debug;
 	push @{$self->{move}},   $debug;
-	push @{$self->{show}},   $debug;
+	push @{$self->{show}},   $debug unless $self->{hide_debug};
 
 	# Initialise it too if needed
 	$debug->init if $param{init};

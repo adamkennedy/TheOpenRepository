@@ -8,7 +8,7 @@ use List::Util ();
 
 use vars qw{ $VERSION @ISA @EXPORT };
 BEGIN {
-	$VERSION = '0.28';
+	$VERSION = '0.29';
 	@ISA     = 'Exporter';
 	@EXPORT  = qw{
 		SPHERE_X

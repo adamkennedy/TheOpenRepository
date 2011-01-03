@@ -1,5 +1,10 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.29 Tue 4 Jan 2011
+	- The debug display now changes correctly when you turn debug on and off,
+	  and does so correctly for new objects in both states as well.
+	- Added support for basic Wolfenstein style sprites.
+
 0.28 Mon 3 Jan 2011
 	- Stripped a few superfluous methods out of the lighting setup.
 	- Make sure the camera direction vector is set up early to prevent

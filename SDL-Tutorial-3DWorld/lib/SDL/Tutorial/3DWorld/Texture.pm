@@ -47,7 +47,7 @@ use SDL::Tutorial::3DWorld::OpenGL ();
 use SDL::Surface     ();
 use SDL::PixelFormat ();
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 # Global Texture Cache.
 # Since there are currently no optional texture settings and texture
@@ -87,7 +87,10 @@ is called.
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my $self  = bless {
+		tile => 1,
+		@_,
+	}, $class;
 
 	# Make sure the filename is absolute so we have consistent keys
 	# for the global texture cache. Return from the cache if we can.
@@ -197,7 +200,7 @@ sub init {
 		OpenGL::GL_TEXTURE_2D,
 		OpenGL::GL_TEXTURE_WRAP_S,
 		OpenGL::GL_REPEAT,
-	);
+	) if $self->{tile};
 
 	# Write the image data into the texture, generating a mipmap for
 	# scaling as we do so (so it looks pretty no matter how far away

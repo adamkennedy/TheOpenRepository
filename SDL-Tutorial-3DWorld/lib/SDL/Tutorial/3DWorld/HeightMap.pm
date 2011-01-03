@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use POSIX ();
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 use constant D2R => CORE::atan2(1,1) / 45;
 
