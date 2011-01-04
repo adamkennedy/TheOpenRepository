@@ -1,5 +1,14 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.31 Tue 4 Jan 2011
+	- Added a billboard actor for sprites that always orient towards
+	  the camera like particle effects and lens flares etc. Unlike the
+	  plain sprite actor, this one DOES do blurring up close because it
+	  is often used for more serious effects in 3D programs.
+	- Added a billboard demonstration which is completely unlike the
+	  way most real things will be done (this is an actual thing,
+	  instead of some spherically symmetric particle/effect)
+
 0.30 Tue 4 Jan 2011
 	- The Sprite.pm file for the previous release was accidentally
 	  not bundled with the release.

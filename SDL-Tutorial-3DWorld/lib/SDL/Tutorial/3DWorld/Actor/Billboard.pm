@@ -1,4 +1,4 @@
-package SDL::Tutorial::3DWorld::Actor::Sprite;
+package SDL::Tutorial::3DWorld::Actor::Billboard;
 
 use 5.008;
 use strict;
@@ -31,9 +31,8 @@ sub new {
 		ambient => [ 1, 1, 1, 0.5 ],
 		diffuse => [ 1, 1, 1, 0.5 ],
 		texture => SDL::Tutorial::3DWorld::Texture->new(
-			file       => $self->{texture},
-			tile       => 0,
-			mag_filter => OpenGL::GL_NEAREST,
+			file => $self->{texture},
+			tile => 0,
 		),
 	);
 
@@ -45,10 +44,9 @@ sub display {
 	$self->SUPER::display(@_);
 
 	# Rotate towards the camera
-	OpenGL::glRotatef( 
-		-SDL::Tutorial::3DWorld->current->camera->{angle},
-		0, 1, 0,
-	);
+	my $camera = SDL::Tutorial::3DWorld->current->camera;
+	OpenGL::glRotatef( -$camera->{angle},      0, 1, 0 );
+	OpenGL::glRotatef( -$camera->{elevation}, -1, 0, 0 );
 
 	# Switch to the sprite
 	$self->{material}->display;

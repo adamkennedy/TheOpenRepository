@@ -22,7 +22,7 @@ use SDL::Tutorial::3DWorld::Actor      ();
 use SDL::Tutorial::3DWorld::Asset::MTL ();
 use SDL::Tutorial::3DWorld::Bound      ();
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {

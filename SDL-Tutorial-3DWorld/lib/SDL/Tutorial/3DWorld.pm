@@ -65,6 +65,7 @@ use SDL::Tutorial::3DWorld::Actor::Hedron          ();
 use SDL::Tutorial::3DWorld::Actor::Sprite          ();
 use SDL::Tutorial::3DWorld::Actor::Teapot          ();
 use SDL::Tutorial::3DWorld::Actor::GridCube        ();
+use SDL::Tutorial::3DWorld::Actor::Billboard       ();
 use SDL::Tutorial::3DWorld::Actor::GridSelect      ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube     ();
 use SDL::Tutorial::3DWorld::Actor::MaterialSampler ();
@@ -90,7 +91,7 @@ BEGIN {
 # The currently active world
 our $CURRENT = undef;
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 =pod
 
@@ -311,6 +312,15 @@ sub new {
 			scale    => [ 2, 2, 2  ],
 			position => [ 3, 0, -1 ],
 			texture  => $self->sharefile('sprite', 'pguard_die4.png'),
+		),
+	);
+
+	# Add a billboard
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::Billboard->new(
+			scale    => [ 2, 2, 2 ],
+			position => [ 3, 3, 10 ],
+			texture  => $self->sharefile('sprite', 'billboard.png'),
 		),
 	);
 

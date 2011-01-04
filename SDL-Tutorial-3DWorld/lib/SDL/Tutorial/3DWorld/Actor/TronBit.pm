@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use SDL::Tutorial::3DWorld::OpenGL ();
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 1;
 

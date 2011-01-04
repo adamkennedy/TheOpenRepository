@@ -35,7 +35,7 @@ use OpenGL::List                   ();
 use SDL::Tutorial::3DWorld::Asset  ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 # Global Model Cache.
 # Since there are currently no optional model settings and model
