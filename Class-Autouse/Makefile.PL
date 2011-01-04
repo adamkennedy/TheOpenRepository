@@ -1,4 +1,4 @@
-use inc::Module::Install::DSL 0.94;
+use inc::Module::Install::DSL 1.00;
 
 all_from      lib/Class/Autouse.pm
 requires_from lib/Class/Autouse.pm
