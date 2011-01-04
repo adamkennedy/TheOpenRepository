@@ -1,5 +1,8 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.32 to be released
+	- Added a smallish test video
+
 0.31 Tue 4 Jan 2011
 	- Added a billboard actor for sprites that always orient towards
 	  the camera like particle effects and lens flares etc. Unlike the

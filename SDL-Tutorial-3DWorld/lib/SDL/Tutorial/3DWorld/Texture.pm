@@ -47,7 +47,7 @@ use SDL::Tutorial::3DWorld::OpenGL ();
 use SDL::Surface     ();
 use SDL::PixelFormat ();
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 # Global Texture Cache.
 # Since there are currently no optional texture settings and texture
@@ -140,31 +140,6 @@ sub init {
 		die "Cannot load image file '" . $self->file . "'";
 	}
 
-	# Tell SDL to leave the memory the image is in exactly where
-	# it is, so that OpenGL can bind to it directly.
-	SDL::Video::lock_surface($image);
-
-	# Does this image have a usable texture format?
-	my $bytes = $image->format->BytesPerPixel;
-	my $mask  = undef;
-	if ( $bytes == 4 ) {
-		# Contains an alpha channel
-		if ( $image->format->Rmask == 0x000000ff ) {
-			$mask = OpenGL::GL_RGBA;
-		} else {
-			$mask = OpenGL::GL_BGRA;
-		}
-	} elsif ( $bytes == 3 ) {
-		# Does not contain an alpha channel
-		if ( $image->format->Rmask == 0x000000ff ) {
-			$mask = OpenGL::GL_RGB;
-		} else {
-			$mask = OpenGL::GL_BGR;
-		}
-	} else {
-		die "Unknown or unsupported image '" . $self->file . "'";
-	}
-
 	# Have OpenGL generate one texture object handle.
 	# This cannot occur between a glBegin and a glEnd, so all texture
 	# objects must be initialised before you start drawing something.
@@ -204,6 +179,33 @@ sub init {
 		OpenGL::GL_REPEAT,
 	) if $self->{tile};
 
+	# Tell SDL to leave the memory the image is in exactly where
+	# it is, so that OpenGL can bind to it directly. Do this as
+	# late as possible so we keep it locked the minimum length of
+	# time.
+	SDL::Video::lock_surface($image);
+
+	# Does this image have a usable texture format?
+	my $bytes = $image->format->BytesPerPixel;
+	my $mask  = undef;
+	if ( $bytes == 4 ) {
+		# Contains an alpha channel
+		if ( $image->format->Rmask == 0x000000ff ) {
+			$mask = OpenGL::GL_RGBA;
+		} else {
+			$mask = OpenGL::GL_BGRA;
+		}
+	} elsif ( $bytes == 3 ) {
+		# Does not contain an alpha channel
+		if ( $image->format->Rmask == 0x000000ff ) {
+			$mask = OpenGL::GL_RGB;
+		} else {
+			$mask = OpenGL::GL_BGR;
+		}
+	} else {
+		die "Unknown or unsupported image '" . $self->file . "'";
+	}
+
 	# Write the image data into the texture, generating a mipmap for
 	# scaling as we do so (so it looks pretty no matter how far away
 	# it is).
@@ -216,6 +218,9 @@ sub init {
 		OpenGL::GL_UNSIGNED_BYTE,
 		${ $image->get_pixels_ptr },
 	);
+
+	# Release the lock on the SDL surface
+	SDL::Video::unlock_surface($image);
 
 	# Save some image properties we might need later
 	$self->{width}  = $image->w;

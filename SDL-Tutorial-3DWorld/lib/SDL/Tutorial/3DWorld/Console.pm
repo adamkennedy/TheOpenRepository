@@ -37,7 +37,7 @@ use Time::HiRes                    ();
 use SDL::Tutorial::3DWorld         ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 # Turn OpenGL fake "constants" into real compile-time optimised constants
 use constant {

@@ -59,16 +59,17 @@ use SDL                                      2.524 ':all';
 use SDL::Event                                     ':all';
 use SDLx::App                                      ();
 use SDL::Tutorial::3DWorld::Actor                  ();
+use SDL::Tutorial::3DWorld::Actor::Billboard       ();
 use SDL::Tutorial::3DWorld::Actor::Debug           ();
-use SDL::Tutorial::3DWorld::Actor::Model           ();
+use SDL::Tutorial::3DWorld::Actor::GridCube        ();
+use SDL::Tutorial::3DWorld::Actor::GridSelect      ();
 use SDL::Tutorial::3DWorld::Actor::Hedron          ();
+use SDL::Tutorial::3DWorld::Actor::MaterialSampler ();
+use SDL::Tutorial::3DWorld::Actor::Model           ();
 use SDL::Tutorial::3DWorld::Actor::Sprite          ();
 use SDL::Tutorial::3DWorld::Actor::Teapot          ();
-use SDL::Tutorial::3DWorld::Actor::GridCube        ();
-use SDL::Tutorial::3DWorld::Actor::Billboard       ();
-use SDL::Tutorial::3DWorld::Actor::GridSelect      ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube     ();
-use SDL::Tutorial::3DWorld::Actor::MaterialSampler ();
+use SDL::Tutorial::3DWorld::Actor::TV              ();
 use SDL::Tutorial::3DWorld::Asset                  ();
 use SDL::Tutorial::3DWorld::Camera                 ();
 use SDL::Tutorial::3DWorld::Camera::God            ();
@@ -91,7 +92,7 @@ BEGIN {
 # The currently active world
 our $CURRENT = undef;
 
-our $VERSION = '0.31';
+our $VERSION = '0.32';
 
 =pod
 
@@ -183,6 +184,14 @@ sub new {
 	#(potentially) controlling something in the world.
 	$self->{selector} = SDL::Tutorial::3DWorld::Actor::GridSelect->new;
 	$self->actor( $self->{selector} );
+
+	# Add a video screen
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::TV->new(
+			position => [ 0, 1, -5 ],
+			file     => $self->sharefile('test-mpeg.mpg'),
+		),
+	);
 
 	# Add three teapots to the scene.
 	# (R)ed is the official colour of the X axis.
