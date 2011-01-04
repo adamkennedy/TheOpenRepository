@@ -1,5 +1,8 @@
 Changes for Perl extension Text-FindIndent
 
+0.10
+	- Robustify some regexes against warnings.
+
 0.09
 	- Add vim-commands output.
 
