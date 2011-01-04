@@ -186,12 +186,12 @@ sub new {
 	$self->actor( $self->{selector} );
 
 	# Add a video screen
-	$self->actor(
-		SDL::Tutorial::3DWorld::Actor::TV->new(
-			position => [ 0, 1, -5 ],
-			file     => $self->sharefile('test-mpeg.mpg'),
-		),
-	);
+	# $self->actor(
+		# SDL::Tutorial::3DWorld::Actor::TV->new(
+			# position => [ 0, 1, -5 ],
+			# file     => $self->sharefile('test-mpeg.mpg'),
+		# ),
+	# );
 
 	# Add three teapots to the scene.
 	# (R)ed is the official colour of the X axis.
