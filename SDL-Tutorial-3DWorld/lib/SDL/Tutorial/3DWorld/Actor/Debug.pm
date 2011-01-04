@@ -8,7 +8,7 @@ use SDL::Tutorial::3DWorld::Actor  ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 use OpenGL::List                   ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {

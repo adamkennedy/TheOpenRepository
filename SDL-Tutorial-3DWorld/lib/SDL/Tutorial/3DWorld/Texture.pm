@@ -47,7 +47,7 @@ use SDL::Tutorial::3DWorld::OpenGL ();
 use SDL::Surface     ();
 use SDL::PixelFormat ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 # Global Texture Cache.
 # Since there are currently no optional texture settings and texture
@@ -192,7 +192,9 @@ sub init {
 	OpenGL::glTexParameterf(
 		OpenGL::GL_TEXTURE_2D,
 		OpenGL::GL_TEXTURE_MAG_FILTER,
-		OpenGL::GL_LINEAR, # OpenGL::GL_NEAREST,
+		defined($self->{mag_filter})
+			? $self->{mag_filter}
+			: OpenGL::GL_LINEAR,
 	);
 
 	# Wrap the textures

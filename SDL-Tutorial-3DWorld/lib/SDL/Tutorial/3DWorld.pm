@@ -61,6 +61,7 @@ use SDLx::App                                      ();
 use SDL::Tutorial::3DWorld::Actor                  ();
 use SDL::Tutorial::3DWorld::Actor::Debug           ();
 use SDL::Tutorial::3DWorld::Actor::Model           ();
+use SDL::Tutorial::3DWorld::Actor::Hedron          ();
 use SDL::Tutorial::3DWorld::Actor::Sprite          ();
 use SDL::Tutorial::3DWorld::Actor::Teapot          ();
 use SDL::Tutorial::3DWorld::Actor::GridCube        ();
@@ -89,7 +90,7 @@ BEGIN {
 # The currently active world
 our $CURRENT = undef;
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 =pod
 
@@ -307,6 +308,7 @@ sub new {
 	# Add a sprite
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Sprite->new(
+			scale    => [ 2, 2, 2  ],
 			position => [ 3, 0, -1 ],
 			texture  => $self->sharefile('sprite', 'pguard_die4.png'),
 		),
@@ -340,6 +342,24 @@ sub new {
 			);
 		}
 	}
+
+	# An recursive icosaheron of toilet plungers in the sky
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::Hedron->icosahedron(
+			position => [ -7, 5, 7 ],
+			actor    => SDL::Tutorial::3DWorld::Actor::Hedron->icosahedron(
+				position => [ 0, 0.95, 0 ],
+				actor    => SDL::Tutorial::3DWorld::Actor::Model->new(
+					position => [ 0, 0.19, 0 ],
+					file     => File::Spec->catfile(
+						'model',
+						'toilet-plunger001',
+						'toilet_plunger001.obj',
+					),
+				),
+			),
+		),
+	);
 
 	return $self;
 }

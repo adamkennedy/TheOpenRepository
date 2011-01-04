@@ -9,7 +9,7 @@ use SDL::Tutorial::3DWorld::Texture  ();
 use SDL::Tutorial::3DWorld::Material ();
 use SDL::Tutorial::3DWorld::Actor    ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 
@@ -31,8 +31,9 @@ sub new {
 		ambient => [ 1, 1, 1, 0.5 ],
 		diffuse => [ 1, 1, 1, 0.5 ],
 		texture => SDL::Tutorial::3DWorld::Texture->new(
-			file => $self->{texture},
-			tile => 0,
+			file       => $self->{texture},
+			tile       => 0,
+			mag_filter => OpenGL::GL_NEAREST,
 		),
 	);
 
@@ -56,10 +57,10 @@ sub display {
 	# The texture seems to wrap a little unless we use the 0.01 here.
 	OpenGL::glDisable( OpenGL::GL_LIGHTING );
 	OpenGL::glBegin( OpenGL::GL_QUADS );
-	OpenGL::glTexCoord2f( 0, 0.01 ); OpenGL::glVertex3f( -1,  2,  0 ); # Top Left
-	OpenGL::glTexCoord2f( 0, 1 );    OpenGL::glVertex3f( -1,  0,  0 ); # Bottom Left
-	OpenGL::glTexCoord2f( 1, 1 );    OpenGL::glVertex3f(  1,  0,  0 ); # Bottom Right
-	OpenGL::glTexCoord2f( 1, 0.01 ); OpenGL::glVertex3f(  1,  2,  0 ); # Top Right
+	OpenGL::glTexCoord2f( 0, 0 ); OpenGL::glVertex3f( -0.5,  1,  0 ); # Top Left
+	OpenGL::glTexCoord2f( 0, 1 ); OpenGL::glVertex3f( -0.5,  0,  0 ); # Bottom Left
+	OpenGL::glTexCoord2f( 1, 1 ); OpenGL::glVertex3f(  0.5,  0,  0 ); # Bottom Right
+	OpenGL::glTexCoord2f( 1, 0 ); OpenGL::glVertex3f(  0.5,  1,  0 ); # Top Right
 	OpenGL::glEnd();
 	OpenGL::glEnable( OpenGL::GL_LIGHTING );
 

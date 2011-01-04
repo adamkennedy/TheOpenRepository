@@ -7,7 +7,7 @@ use List::MoreUtils                  ();
 use SDL::Tutorial::3DWorld::OpenGL   ();
 use SDL::Tutorial::3DWorld::Material ();
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 
 

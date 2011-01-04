@@ -1,5 +1,18 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
+0.30 Tue 4 Jan 2011
+	- The Sprite.pm file for the previous release was accidentally
+	  not bundled with the release.
+	- Added a class for generating hedrons of other actor objects,
+	  representing the first time that actors exist in the world
+	  without being part of the main actor array.
+	- Added a 2 level recursive toilet plunger icosahedron to world.
+	- Unitised the sprite display, and correct the scaling of the
+	  demonstration sprite directly when we add it to the world.
+	- Added support for configurable GL_TEXTURE_MAG_FILTER values.
+	- We now disable blurring of sprites by default so that they
+	  intentionally look pixelish and old-school.
+
 0.29 Tue 4 Jan 2011
 	- The debug display now changes correctly when you turn debug on and off,
 	  and does so correctly for new objects in both states as well.
