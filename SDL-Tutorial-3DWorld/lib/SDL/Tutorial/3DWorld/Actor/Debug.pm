@@ -60,8 +60,9 @@ sub move {
 	# Update our position and size to that of our parent
 	$self->{position} = $self->{parent}->{position};
 	$self->{bound}    = $self->{parent}->{bound};
-	$self->{boundary} = $self->{parent}->{boundary};
 	$self->{box}      = $self->{parent}->{box};
+	$self->{orient}   = $self->{parent}->{orient};
+	$self->{rotate}   = $self->{parent}->{rotate};
 
 	return 1;
 }
@@ -84,14 +85,17 @@ sub display {
 	OpenGL::glPushMatrix();
 	OpenGL::glTranslatef( @$position );
 	OpenGL::glScalef( $XL, $YL, $ZL );
+	OpenGL::glRotatef( @{$self->{orient}} ) if $self->{orient};
 	OpenGL::glCallList( $self->{axislist} );
 	OpenGL::glPopMatrix();
 
 	# Translate to the negative corner
+	OpenGL::glTranslatef( @$position );
+	OpenGL::glRotatef( @{$self->{orient}} ) if $self->{orient};
 	OpenGL::glTranslatef(
-		$position->[0] + $bound->[BOX_X1],
-		$position->[1] + $bound->[BOX_Y1],
-		$position->[2] + $bound->[BOX_Z1],
+		$bound->[BOX_X1], 
+		$bound->[BOX_Y1],
+		$bound->[BOX_Z1],
 	);
 
 	# Scale so that the resulting 1 metre cube becomes the right size

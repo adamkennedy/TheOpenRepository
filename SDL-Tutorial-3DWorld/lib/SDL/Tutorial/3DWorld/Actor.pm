@@ -60,11 +60,14 @@ In the demonstration implementation, the default actor consists of a teapot.
 sub new {
 	my $class = shift;
 	my $self  = bless {
+		# Most objects are stored at the correct size
+		scale    => 0,
+
 		# Place objects at the origin by default
 		position => [ 0, 0, 0 ],
 
-		# Most objects are stored at the correct size
-		scale    => 0,
+		# Do not rotate by default
+		orient   => 0,
 
 		# Actors with non-vector velocity are shortcut by the main
 		# move routine
@@ -233,6 +236,11 @@ sub display {
 		OpenGL::glScalef( @{$self->{scale}} );
 	}
 
+	# Rotate if needed
+	if ( $self->{orient} ) {
+		OpenGL::glRotatef( @{$self->{orient}} );
+	}
+
 	return;
 }
 
@@ -244,6 +252,11 @@ sub move {
 	$self->{position}->[0] += $self->{velocity}->[0] * $step;
 	$self->{position}->[1] += $self->{velocity}->[1] * $step;
 	$self->{position}->[2] += $self->{velocity}->[2] * $step;
+
+	# Rotate if we need to
+	if ( $self->{orient} ) {
+		$self->{orient}->[0] += $self->{rotate} * $step;
+	}
 
 	return;
 }

@@ -296,8 +296,9 @@ sub new {
 	# Place a large table (somewhere...)
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Model->new(
-			position => [ -10, 0, 0 ],
+			position => [  -10,    0,    0 ],
 			scale    => [ 0.05, 0.05, 0.05 ],
+			velocity => [    0,    0,    0 ],
 			file     => File::Spec->catfile('model', 'table', 'table.obj'),
 			plain    => 1,
 		),
@@ -366,6 +367,9 @@ sub new {
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Hedron->icosahedron(
 			position => [ -7, 5, 7 ],
+			velocity => [ 0, 0, 0  ],
+			orient   => [ 0, 0, 1, 0 ],
+			rotate   => 1,
 			actor    => SDL::Tutorial::3DWorld::Actor::Hedron->icosahedron(
 				position => [ 0, 0.95, 0 ],
 				actor    => SDL::Tutorial::3DWorld::Actor::Model->new(
