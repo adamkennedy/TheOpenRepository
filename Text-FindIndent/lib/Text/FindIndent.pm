@@ -223,7 +223,7 @@ sub _length_with_tabs_converted {
     my $str=shift;
     my $tablen=shift || 8;
     $str =~ s/( +)$//;
-    my $trailing_spaces = $1;
+    my $trailing_spaces = $1||0;
     $str =~ s/ +//g; #  assume the spaces are all contained in tabs!
     return length($str)*$tablen+length($trailing_spaces);
 }
@@ -240,7 +240,7 @@ sub _grok_indent_diff {
   }
   else { # mixed!
     $diff =~ s/( +)$//;
-    my $trailing_spaces = $1;
+    my $trailing_spaces = $1||0;
     $diff =~ s/ +//g; #  assume the spaces are all contained in tabs!
     $indentdiffs->{"m" . (length($diff)*8+length($trailing_spaces))}++;
   }
@@ -257,7 +257,7 @@ sub _analyse_indent_diff {
   }
   else { # mixed!
     $diff =~ s/( +)$//;
-    my $trailing_spaces = $1;
+    my $trailing_spaces = $1||0;
     $diff =~ s/ +//g; #  assume the spaces are all contained in tabs!
     return "m" . (length($diff)*8+length($trailing_spaces));
   }
