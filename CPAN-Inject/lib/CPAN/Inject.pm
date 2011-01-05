@@ -49,9 +49,9 @@ and sub-classable, so that it can be reused in other situations.
 
 =cut
 
-use 5.005;
+use 5.006;
 use strict;
-use Params::Util    '_STRING';
+use Params::Util    ();
 use File::stat      ();
 use File::chmod     ();
 use File::Spec      ();
@@ -136,7 +136,7 @@ sub new {
 
 	# Check where we are going to write to
 	my $sources = $self->sources;
-	unless ( _STRING($sources) ) {
+	unless ( Params::Util::_STRING($sources) ) {
 		Carp::croak("Did not probide a sources param, or not a string");
 	}
 	unless ( -d $sources ) {
@@ -473,7 +473,7 @@ sub install_path {
 # Support Functions
 
 sub _AUTHOR {
-	( _STRING( $_[0] ) and $_[0] =~ /^[A-Z]{3,}$/ ) ? $_[0] : undef;
+	( Params::Util::_STRING( $_[0] ) and $_[0] =~ /^[A-Z]{3,}$/ ) ? $_[0] : undef;
 }
 
 1;

@@ -41,8 +41,9 @@ Perl module that might have a dozen or more CPAN dependencies.
 
 package cpaninject;
 
+use 5.006;
 use strict;
-use Params::Util '_STRING';
+use Params::Util ();
 use CPAN::Inject;
 
 use vars qw{$VERSION};
@@ -62,7 +63,7 @@ unless ( @ARGV ) {
 }
 
 # Get the file name
-my $file = _STRING(shift @ARGV);
+my $file = Params::Util::_STRING(shift @ARGV);
 unless ( $file ) {
 	error("Did not provide a file name");
 }

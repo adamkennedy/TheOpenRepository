@@ -1,8 +1,10 @@
 Revision history for Perl extension CPAN-Inject
 
 1.13 Wed 5 Jan 2011
-	- Updating copyright
-	- Fixing missing tarball in distribution
+	- Bumped minimum version of Perl to 5.006 (ADAMK)
+	- Test pass with a non-existant ~/.cpan (BOGDAN)
+	- Tests tweaked for better failure into (SZABGAB)
+	- Fixing missing tarball in distribution (ADAMK)
 
 1.12 Sat 18 Dec 2010
 	- Moving to a production version
