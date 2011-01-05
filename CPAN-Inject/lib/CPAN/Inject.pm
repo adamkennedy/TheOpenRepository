@@ -63,7 +63,7 @@ use CPAN::Checksums ();
 use vars qw{$VERSION $CHECK_OWNER};
 
 BEGIN {
-	$VERSION = '1.12';
+	$VERSION = '1.13';
 
 	# Attempt to determine whether or not we are capable
 	# of finding the owner of a directory.
@@ -518,7 +518,7 @@ L<CPAN::Mini::Inject>
 
 =head1 COPYRIGHT
 
-Copyright 2006 - 2010 Adam Kennedy.
+Copyright 2006 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

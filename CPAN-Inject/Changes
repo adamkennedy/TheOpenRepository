@@ -1,5 +1,9 @@
 Revision history for Perl extension CPAN-Inject
 
+1.13 Wed 5 Jan 2011
+	- Updating copyright
+	- Fixing missing tarball in distribution
+
 1.12 Sat 18 Dec 2010
 	- Moving to a production version
 	- Updating Module::Install to 1.00
