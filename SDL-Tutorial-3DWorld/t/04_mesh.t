@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# General tests for the mesh abstraction
+# General tests for our mesh abstraction
 
 use strict;
 BEGIN {
@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 2;
+use Test::More tests => 8;
 use Test::NoWarnings;
 use SDL::Tutorial::3DWorld::Mesh ();
 
@@ -25,16 +25,20 @@ $mesh->add_vertex( -1, 0, 2 );
 $mesh->add_vertex(  1, 0, 2 );
 $mesh->add_vertex(  1, 1, 2 );
 $mesh->add_vertex( -1, 1, 2 );
-$mesh->add_quad( 1, 2, 3, 4 );
+$mesh->add_quad(
+	0,          # Material
+	1, 2, 3, 4, # Vertexes
+);
 
 # Does the mesh look right?
 is( $mesh->max_vertex, 4, '->max_vertex ok' );
-is_deeply( $mesh->box, [ -1, 0, 2, 1, 1, 2 ], '->box ok' );
+is_deeply( [ $mesh->box ], [ -1, 0, 2, 1, 1, 2 ], '->box ok' );
 
 # Generate an OpenGL display list
 is( $mesh->as_list, 0, '->as_list ok' );
-is( $mesh->as_list, 1, '->as_list multiple' );
 
 # Generate an Vertex OGA (OpenGL::Array)
-my $oga = $mesh->as_oga;
-isa_ok( $oga, 'OpenGL::Array' );
+isa_ok( $mesh->vertex_oga, 'OpenGL::Array' );
+isa_ok( $mesh->normal_oga, 'OpenGL::Array' );
+isa_ok( $mesh->uv_oga,     'OpenGL::Array' );
+

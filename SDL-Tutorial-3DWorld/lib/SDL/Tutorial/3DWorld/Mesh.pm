@@ -3,6 +3,7 @@ package SDL::Tutorial::3DWorld::Mesh;
 use 5.008;
 use strict;
 use warnings;
+use OpenGL                           ();
 use OpenGL::List                     ();
 use List::MoreUtils                  ();
 use SDL::Tutorial::3DWorld::OpenGL   ();
@@ -10,7 +11,7 @@ use SDL::Tutorial::3DWorld::Material ();
 
 our $VERSION = '0.32';
 
-
+# Detect support for Vertex Buffer 
 
 
 
@@ -20,7 +21,14 @@ our $VERSION = '0.32';
 sub new {
 	my $class = shift;
 	my $self  = bless {
-		material => [ SDL::Tutorial::3DWorld::Material->new ],
+		material => [
+			# We put in a default base material both so
+			# that mesh without any materials won't end
+			# up being rendered manually, and so that file
+			# formats that describe material changes in delta
+			# form have a base to change from.
+			SDL::Tutorial::3DWorld::Material->new,
+		],
 		vertex   => [ undef ],
 		normal   => [ undef ],
 		uv       => [ undef ],
@@ -479,7 +487,7 @@ sub display {
 
 
 ######################################################################
-# Compilation and Export Methods
+# Compilation Methods
 
 # Generate a display list for the mesh
 sub as_list {
@@ -490,12 +498,32 @@ sub as_list {
 }
 
 # Generate an OpenGL::Array (OGA) for the vertex list
-sub as_vertex_oga {
+sub vertex_oga {
 	my $self   = shift;
 	my $vertex = $self->{vertex};
 	return OpenGL::Array->new_list(
 		OpenGL::GL_FLOAT,
-		@$vertex[1 .. scalar @$vertex],
+		@$vertex[ 1 .. $#$vertex ],
+	);
+}
+
+# Generate an OpenGL::Array (OGA) for the normal list
+sub normal_oga {
+	my $self   = shift;
+	my $vertex = $self->{vertex};
+	return OpenGL::Array->new_list(
+		OpenGL::GL_FLOAT,
+		@$vertex[ 1 .. $#$vertex ],
+	);
+}
+
+# Generate an OpenGL::Array (OGA) for the texture coord list
+sub uv_oga {
+	my $self   = shift;
+	my $vertex = $self->{vertex};
+	return OpenGL::Array->new_list(
+		OpenGL::GL_FLOAT,
+		@$vertex[ 1 .. $#$vertex ],
 	);
 }
 
