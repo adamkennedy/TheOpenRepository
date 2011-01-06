@@ -21,6 +21,7 @@ on the positive axis side (in all three dimension) of the actor position.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use SDL::Tutorial::3DWorld::OpenGL ();

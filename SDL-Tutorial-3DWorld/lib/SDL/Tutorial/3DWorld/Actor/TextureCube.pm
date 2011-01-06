@@ -27,6 +27,7 @@ sitting "on" the plane.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use OpenGL;

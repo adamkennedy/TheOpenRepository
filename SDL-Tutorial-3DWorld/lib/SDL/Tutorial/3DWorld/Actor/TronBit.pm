@@ -17,6 +17,7 @@ B<THIS CLASS DOES NOT WORK, AND ACTS ONLY AS A PLACEHOLDER FOR FUTURE WORK>
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use SDL::Tutorial::3DWorld::OpenGL ();

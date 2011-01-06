@@ -34,6 +34,7 @@ the movement of the camera (making them appear to be a long way away).
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use File::Spec                      ();

@@ -29,6 +29,7 @@ In this initial skeleton code, the camera is fixed and cannot be moved.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use SDL::Mouse                     ();

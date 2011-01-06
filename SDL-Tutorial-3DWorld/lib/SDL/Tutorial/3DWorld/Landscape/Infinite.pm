@@ -18,9 +18,10 @@ implementation as we don't need to implement full vertical collision detection.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
-use Params::Util '_INSTANCE';
+use Params::Util                      ();
 use SDL::Tutorial::3DWorld::OpenGL    ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
@@ -32,7 +33,7 @@ sub new {
 	my $self  = bless { @_ }, $class;
 
 	# Convert the texture parameter to a texture object
-	unless ( _INSTANCE($self->{texture}, 'SDL::Tutorial::3DWorld::Texture') ) {
+	unless ( Params::Util::_INSTANCE($self->{texture}, 'SDL::Tutorial::3DWorld::Texture') ) {
 		$self->{texture} = SDL::Tutorial::3DWorld::Texture->new(
 			file => $self->{texture},
 		);

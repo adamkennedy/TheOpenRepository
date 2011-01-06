@@ -30,6 +30,7 @@ this module will be removed.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use OpenGL ':all';

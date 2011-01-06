@@ -324,6 +324,7 @@ sub add_quad {
 		$N3->[1] += $yn;
 		$N3->[2] += $zn;
 	}
+
 	return;
 }
 

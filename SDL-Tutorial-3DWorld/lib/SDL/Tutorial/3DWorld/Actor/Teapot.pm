@@ -32,6 +32,7 @@ class L<SDL::Tutorial::3DWorld::Actor>.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use SDL::Tutorial::3DWorld::OpenGL ();

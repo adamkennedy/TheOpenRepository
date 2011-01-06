@@ -36,6 +36,7 @@ something.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use SDL::Image                     ();

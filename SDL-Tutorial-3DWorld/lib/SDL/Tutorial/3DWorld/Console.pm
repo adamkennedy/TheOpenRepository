@@ -31,6 +31,7 @@ be optional, allowing you to display and hide the console on the fly.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use Time::HiRes                    ();

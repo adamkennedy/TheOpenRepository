@@ -9,38 +9,57 @@ use SDL::Tutorial::3DWorld::OpenGL ();
 
 our $VERSION = '0.32';
 
+
+
+
+
+######################################################################
+# Constructor and Accessors
+
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my $self  = bless {
 
-	# Check params
-	unless ( defined $self->{mode} ) {
-		$self->{mode} = OpenGL::GL_LINEAR;
-	}
-	unless ( defined $self->{start} ) {
-		die "Did not provide a start param";
-	}
-	unless ( defined $self->{end} ) {
-		die "Did not provide an end param";
-	}
-	unless ( defined $self->{color} ) {
-		die "Did not provide a colour param";
-	}
+		# Defaults to match the OpenGL spec
+		mode      => OpenGL::GL_LINEAR,
+		density   => 1,
+		start     => 0,
+		end       => 1,
+		color     => [ 0.0, 0.0, 0.0, 0.0 ],
+		coord_src => OpenGL::GL_FRAGMENT_DEPTH,
 
+		@_,
+	}, $class;
 	return $self;
 }
 
-sub display {
+
+
+
+
+######################################################################
+# Engine Methods
+
+sub init {
+	return 1;
+}
+
+sub enable {
 	my $self = shift;
 
-	# Apply the fog settings
-	OpenGL::glFogfv_p( OpenGL::GL_FOG_COLOR, @{$self->{color}} );
-	OpenGL::glFogi(    OpenGL::GL_FOG_MODE,  $self->{mode}     );
-	OpenGL::glFogf(    OpenGL::GL_FOG_START, $self->{start}    );
-	OpenGL::glFogf(    OpenGL::GL_FOG_END,   $self->{end}      );
-	OpenGL::glEnable(  OpenGL::GL_FOG );
+	# Apply all fog settings
+	OpenGL::glFogi( OpenGL::GL_FOG_MODE,      $self->{mode}      );
+	OpenGL::glFogi( OpenGL::GL_FOG_COORD_SRC, $self->{coord_src} );
+	OpenGL::glFogf( OpenGL::GL_FOG_DENSITY,   $self->{density}   );
+	OpenGL::glFogf( OpenGL::GL_FOG_START,     $self->{start}     );
+	OpenGL::glFogf( OpenGL::GL_FOG_END,       $self->{end}       );
+	OpenGL::glFogfv_p( OpenGL::GL_FOG_COLOR,  @{$self->{color}}  );
 
-	return 1;
+	OpenGL::glEnable( OpenGL::GL_FOG );
+}
+
+sub disable {
+	OpenGL::glDisable( OpenGL::GL_FOG );
 }
 
 1;

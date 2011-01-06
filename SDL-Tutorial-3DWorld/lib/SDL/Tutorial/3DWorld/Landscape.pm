@@ -24,6 +24,7 @@ white square.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use File::Spec                      ();
@@ -97,7 +98,7 @@ sub init {
 	glClearColor( $self->sky );
 
 	# Give everything at least a little light
-	OpenGL::glLightModelfv_p( GL_LIGHT_MODEL_AMBIENT, 0.5, 0.5, 0.5, 1 );
+	OpenGL::glLightModelfv_p( GL_LIGHT_MODEL_AMBIENT, 0.2, 0.2, 0.2, 1 );
 
 	# Load the landscape chessboard texture
 	$self->{texture}->init;
@@ -109,10 +110,10 @@ sub display {
 
 	# Set up the surface material
 	$self->{texture}->display;
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  0.3, 0.3, 0.3, 1 );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  0.7, 0.7, 0.7, 1 );
-	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 0.3, 0.3, 0.3, 1 );
 	OpenGL::glMaterialf( GL_FRONT, GL_SHININESS, 50 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_SPECULAR, 0.3, 0.3, 0.3, 1 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_DIFFUSE,  0.7, 0.7, 0.7, 1 );
+	OpenGL::glMaterialfv_p( GL_FRONT, GL_AMBIENT,  0.3, 0.3, 0.3, 1 );
 
 	# Draw the platform
 	glBegin( GL_QUADS );

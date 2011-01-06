@@ -90,10 +90,10 @@ BEGIN {
 	OpenGL::glutInit();
 }
 
+our $VERSION = '0.32';
+
 # The currently active world
 our $CURRENT = undef;
-
-our $VERSION = '0.32';
 
 =pod
 
@@ -156,12 +156,13 @@ sub new {
 		),
 	];
 
-	# Create the (optional) fog
+	# Create the (optional) fog.
+	# Because it doesn't really blend with the current skybox,
+	# I've tweaked it to try to look like a light ground haze.
 	$self->{fog} = SDL::Tutorial::3DWorld::Fog->new(
-		mode  => GL_LINEAR,
-		color => [ 0.5, 0.5, 0.5, 0.5 ],
+		color => [ 0.5, 0.5, 0.5, 0 ],
 		start => 10.0,
-		end   => 15.0,
+		end   => 50.0,
 	);
 
 	# Create the landscape
@@ -572,7 +573,7 @@ sub init {
 	# Use the prettiest shading available to us
 	glShadeModel( GL_SMOOTH );
 
-	# Enable the Z buffer (DEPTH BUFFER) so that OpenGL will do all the
+	# Enable the Z buffer ( DEPTH BUFFER ) so that OpenGL will do all the
 	# correct shape culling for us and we don't have to care about it.
 	glDepthFunc( GL_LESS );
 	glEnable( GL_DEPTH_TEST );
@@ -638,6 +639,12 @@ sub init {
 	# Initialise the console
 	if ( $self->{console} ) {
 		$self->{console}->init;
+	}
+
+	# Initialise and enable the fog (in this case a light ground haze)
+	if ( $self->{fog} ) {
+		$self->{fog}->init;
+		$self->{fog}->enable;
 	}
 
 	return 1;
@@ -776,9 +783,6 @@ sub display {
 
 	# Draw the skybox
 	$self->{skybox}->display if $self->{skybox};
-
-	# Set up the fog rules
-	$self->{fog}->display if $self->{fog};
 
 	# Draw the landscape in the scene
 	$self->{landscape}->display;

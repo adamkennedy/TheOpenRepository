@@ -18,6 +18,7 @@ camera than apply to a plain or walking camera.
 
 =cut
 
+use 5.008;
 use strict;
 use warnings;
 use OpenGL;
