@@ -74,6 +74,7 @@ use SDL::Tutorial::3DWorld::Asset                  ();
 use SDL::Tutorial::3DWorld::Camera                 ();
 use SDL::Tutorial::3DWorld::Camera::God            ();
 use SDL::Tutorial::3DWorld::Console                ();
+use SDL::Tutorial::3DWorld::Fog                    ();
 use SDL::Tutorial::3DWorld::Landscape              ();
 use SDL::Tutorial::3DWorld::Landscape::Infinite    ();
 use SDL::Tutorial::3DWorld::Light                  ();
@@ -155,6 +156,14 @@ sub new {
 		),
 	];
 
+	# Create the (optional) fog
+	$self->{fog} = SDL::Tutorial::3DWorld::Fog->new(
+		mode  => GL_LINEAR,
+		color => [ 0.5, 0.5, 0.5, 0.5 ],
+		start => 10.0,
+		end   => 15.0,
+	);
+
 	# Create the landscape
 	$self->{landscape} = SDL::Tutorial::3DWorld::Landscape::Infinite->new(
 		texture => $self->sharefile('ground.jpg'),
@@ -197,34 +206,35 @@ sub new {
 	# (R)ed is the official colour of the X axis.
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
+			hidden   => $self->{hide_expensive},
 			size     => 0.20,
 			position => [ 0.0, 0.5, 0.0 ],
 			velocity => $self->dvector( 0.1, 0.0, 0.0 ),
 			material => {
-				ambient  => [ 0.5, 0.2, 0.2, 1.0 ],
-				diffuse  => [ 1.0, 0.7, 0.7, 1.0 ],
+				ambient => [ 0.5, 0.2, 0.2, 1.0 ],
+				diffuse => [ 1.0, 0.7, 0.7, 1.0 ],
 			},
-			hidden   => $self->{hide_expensive},
 		),
 	);
 
 	# (B)lue is the official colour of the Z axis.
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
+			hidden   => $self->{hide_expensive},
 			size     => 0.30,
 			position => [ 0.0, 1.0, 0.0 ],
 			velocity => $self->dvector( 0.0, 0.0, 0.1 ),
 			material => {
-				ambient  => [ 0.2, 0.2, 0.5, 1.0 ],
-				diffuse  => [ 0.7, 0.7, 1.0, 1.0 ],
+				ambient => [ 0.2, 0.2, 0.5, 1.0 ],
+				diffuse => [ 0.7, 0.7, 1.0, 1.0 ],
 			},
-			hidden   => $self->{hide_expensive},
 		),
 	);
 
 	# (G)reen is the official colour of the Y axis
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Teapot->new(
+			hidden   => $self->{hide_expensive},
 			size     => 0.50,
 			position => [ 0.0, 1.5, 0.0 ],
 			velocity => $self->dvector( 0.0, 0.1, 0.0 ),
@@ -232,7 +242,6 @@ sub new {
 				ambient  => [ 0.2, 0.5, 0.2, 1 ],
 				diffuse  => [ 0.7, 1.0, 0.7, 1 ],
 			},
-			hidden   => $self->{hide_expensive},
 		),
 	);
 
@@ -767,6 +776,9 @@ sub display {
 
 	# Draw the skybox
 	$self->{skybox}->display if $self->{skybox};
+
+	# Set up the fog rules
+	$self->{fog}->display if $self->{fog};
 
 	# Draw the landscape in the scene
 	$self->{landscape}->display;
