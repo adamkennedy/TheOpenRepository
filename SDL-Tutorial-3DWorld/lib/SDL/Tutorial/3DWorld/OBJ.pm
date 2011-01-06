@@ -1,15 +1,15 @@
-package SDL::Tutorial::3DWorld::Asset::OBJ;
+package SDL::Tutorial::3DWorld::OBJ;
 
 =pod
 
 =head1 NAME
 
-SDL::Tutorial::3DWorld::Asset::OBJ - Support for loading 3D models from OBJ files
+SDL::Tutorial::3DWorld::OBJ - Support for loading 3D models from OBJ files
 
 =head1 SYNOPSIS
 
   # Create the object but don't load anything
-  my $model = SDL::Tutorial::3DWorld::Asset::OBJ->new(
+  my $model = SDL::Tutorial::3DWorld::OBJ->new(
       file => 'mymodel.obj',
   );
   
@@ -21,7 +21,7 @@ SDL::Tutorial::3DWorld::Asset::OBJ - Support for loading 3D models from OBJ file
 
 =head1 DESCRIPTION
 
-B<SDL::Tutorial::3DWorld::Asset::OBJ> provides a basic implementation of a OBJ file
+B<SDL::Tutorial::3DWorld::OBJ> provides a basic implementation of a OBJ file
 parser.
 
 Given a file name, it will load the file and parse the contents directly
@@ -43,7 +43,6 @@ use warnings;
 use IO::File                      ();
 use File::Spec                    ();
 use OpenGL                        ':all';
-use OpenGL::List                  ();
 use SDL::Tutorial::3DWorld::Mesh  ();
 use SDL::Tutorial::3DWorld::Asset ();
 use SDL::Tutorial::3DWorld::Model ();
@@ -150,9 +149,7 @@ sub parse {
 	$self->{box} = [ $mesh->box ];
 
 	# Generate the display list
-	return OpenGL::List::glpList {
-		$mesh->display;
-	};
+	return $mesh->as_list;
 }
 
 1;

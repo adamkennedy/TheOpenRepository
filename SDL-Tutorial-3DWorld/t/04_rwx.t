@@ -8,15 +8,15 @@ BEGIN {
 
 use Test::More tests => 7;
 use Test::NoWarnings;
-use File::Spec                         ();
-use SDL::Tutorial::3DWorld::Asset::RWX ();
+use File::Spec                  ();
+use SDL::Tutorial::3DWorld::RWX ();
 
 # Location of the test file
 my $file = File::Spec->catfile('share', 'model', 'lollipop', 'hflollipop1gr.rwx');
 ok( -f $file, "Found test file '$file'" );
 
 # Create the RWX object
-my $rwx = new_ok( 'SDL::Tutorial::3DWorld::Asset::RWX', [
+my $rwx = new_ok( 'SDL::Tutorial::3DWorld::RWX', [
 	file => $file,
 ], 'Created RWX object' );
 

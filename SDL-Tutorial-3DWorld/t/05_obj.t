@@ -6,10 +6,10 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 6;
-# use Test::NoWarnings;
-use File::Spec                         ();
-use SDL::Tutorial::3DWorld::Asset::OBJ ();
+use Test::More tests => 7;
+use Test::NoWarnings;
+use File::Spec                  ();
+use SDL::Tutorial::3DWorld::OBJ ();
 
 # Location of the test file
 my $file = File::Spec->catfile('share', 'model', 'toilet-plunger001', 'toilet_plunger001.obj');
@@ -17,7 +17,7 @@ ok( -f $file, "Found test file '$file'" );
 
 SCOPE: {
 	# Create the ::OBJ object
-	my $obj = new_ok( 'SDL::Tutorial::3DWorld::Asset::OBJ', [
+	my $obj = new_ok( 'SDL::Tutorial::3DWorld::OBJ', [
 		file => $file,
 	], 'Created OBJ object' );
 
@@ -30,6 +30,7 @@ SCOPE: {
 		qr/\btoilet-plunger001$/,
 		'->asset refers to the correct directory',
 	);
+
 }
 
 # SCOPE: {

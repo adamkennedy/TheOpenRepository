@@ -27,5 +27,5 @@ isa_ok(
 );
 isa_ok(
 	$collection->model('hflollipop1gr'),
-	'SDL::Tutorial::3DWorld::Asset::RWX',
+	'SDL::Tutorial::3DWorld::RWX',
 );

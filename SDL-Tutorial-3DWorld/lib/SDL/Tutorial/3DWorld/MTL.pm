@@ -1,15 +1,15 @@
-package SDL::Tutorial::3DWorld::Asset::MTL;
+package SDL::Tutorial::3DWorld::MTL;
 
 =pod
 
 =head1 NAME
 
-SDL::Tutorial::3DWorld::Asset::MTL - Support for loading material libraries from MTL files
+SDL::Tutorial::3DWorld::MTL - Support for loading material libraries from MTL files
 
 =head1 SYNOPSIS
 
   # Create the object but don't load anything
-  my $mtl = SDL::Tutorial::3DWorld::Asset::MTL->new(
+  my $mtl = SDL::Tutorial::3DWorld::MTL->new(
       file => 'mymaterials.mtl',
   );
   
@@ -18,7 +18,7 @@ SDL::Tutorial::3DWorld::Asset::MTL - Support for loading material libraries from
 
 =head1 DESCRIPTION
 
-B<SDL::Tutorial::3DWorld::Asset::MTL> provides a basic implementation of an
+B<SDL::Tutorial::3DWorld::MTL> provides a basic implementation of an
 MTL file parser. MTL files are libraries of material (surface) definitions
 to be consumed (by name) by OBJ models.
 

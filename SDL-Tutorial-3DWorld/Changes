@@ -2,6 +2,15 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 
 0.32 to be released
 	- Added a smallish test video
+	- Added the beginnings of an implementation of a flat screen TV
+	  actor. Unfortunately, the underlying SDL implementation of MPEG
+	  support isn't quite working yet, so it is disabled for now.
+	- Nesting file parsers under Asset:: wasn't really working for me
+	  logically, so moved them all to the root level.
+	- Added a test script for the ::Mesh class.
+	- The beginning of OpenGL::Array integration for ::Mesh objects,
+	  as a stepping stone to moving from display lists to more modern
+	  OpenGL Vertex Arrays.
 
 0.31 Tue 4 Jan 2011
 	- Added a billboard actor for sprites that always orient towards

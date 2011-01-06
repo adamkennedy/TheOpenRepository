@@ -8,15 +8,15 @@ BEGIN {
 
 use Test::More tests => 11;
 use Test::NoWarnings;
-use File::Spec                         ();
-use SDL::Tutorial::3DWorld::Asset::MTL ();
+use File::Spec                  ();
+use SDL::Tutorial::3DWorld::MTL ();
 
 # Location of the test file
 my $file = File::Spec->catfile('t', 'data', 'example.mtl');
 ok( -f $file, "Found test file '$file'" );
 
 # Create the MTL object
-my $mtl = new_ok( 'SDL::Tutorial::3DWorld::Asset::MTL', [
+my $mtl = new_ok( 'SDL::Tutorial::3DWorld::MTL', [
 	file => $file,
 ], 'Created MTL object' );
 

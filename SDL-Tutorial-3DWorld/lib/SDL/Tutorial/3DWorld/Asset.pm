@@ -17,11 +17,11 @@ resources, most often shape files and texture files.
 
 use strict;
 use warnings;
-use File::Spec                         ();
-use SDL::Tutorial::3DWorld::Texture    ();
-use SDL::Tutorial::3DWorld::Asset::MTL ();
-use SDL::Tutorial::3DWorld::Asset::OBJ ();
-use SDL::Tutorial::3DWorld::Asset::RWX ();
+use File::Spec                      ();
+use SDL::Tutorial::3DWorld::Texture ();
+use SDL::Tutorial::3DWorld::MTL     ();
+use SDL::Tutorial::3DWorld::OBJ     ();
+use SDL::Tutorial::3DWorld::RWX     ();
 
 our $VERSION = '0.32';
 
@@ -67,7 +67,7 @@ sub model {
 		$self->directory,
 		"$name.obj",
 	);
-	return SDL::Tutorial::3DWorld::Asset::OBJ->new(
+	return SDL::Tutorial::3DWorld::OBJ->new(
 		file  => $obj,
 		asset => $self,
 	) if -f $obj;
@@ -77,7 +77,7 @@ sub model {
 		$self->directory,
 		"$name.rwx",
 	);
-	return SDL::Tutorial::3DWorld::Asset::RWX->new(
+	return SDL::Tutorial::3DWorld::RWX->new(
 		file  => $rwx,
 		asset => $self,
 	) if -f $rwx;
@@ -108,7 +108,7 @@ sub texture {
 sub mtl {
 	my $self = shift;
 	my $file = shift;
-	my $mtl  = SDL::Tutorial::3DWorld::Asset::MTL->new(
+	my $mtl  = SDL::Tutorial::3DWorld::MTL->new(
 		file  => File::Spec->catfile( $self->directory, $file ),
 		asset => $self,
 	) or die "Failed to load MTL file";

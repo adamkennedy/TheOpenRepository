@@ -19,7 +19,7 @@ use warnings;
 use OpenGL::List                       ();
 use SDL::Tutorial::3DWorld::OpenGL     ();
 use SDL::Tutorial::3DWorld::Actor      ();
-use SDL::Tutorial::3DWorld::Asset::MTL ();
+use SDL::Tutorial::3DWorld::MTL ();
 use SDL::Tutorial::3DWorld::Bound      ();
 
 our $VERSION = '0.32';
@@ -54,7 +54,7 @@ sub init {
 	my $self = shift;
 
 	# Load the material file
-	$self->{mtl} = SDL::Tutorial::3DWorld::Asset::MTL->new(
+	$self->{mtl} = SDL::Tutorial::3DWorld::MTL->new(
 		file => $self->{file},
 	) or die "Failed to load MTL file";
 

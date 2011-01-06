@@ -8,7 +8,7 @@ use SDL::Tutorial::3DWorld::OpenGL ();
 our $VERSION = '0.32';
 
 # Convert GL fake "constants" to real constants.
-# If we don't do this almost a third of our time calling constants.
+# If we don't do this we spend a third of our CPU calling constants.
 use constant {
 	GL_AMBIENT             => OpenGL::GL_AMBIENT,
 	GL_BLEND               => OpenGL::GL_BLEND,

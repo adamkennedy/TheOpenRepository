@@ -3,6 +3,7 @@ package SDL::Tutorial::3DWorld::Mesh;
 use 5.008;
 use strict;
 use warnings;
+use OpenGL::List                     ();
 use List::MoreUtils                  ();
 use SDL::Tutorial::3DWorld::OpenGL   ();
 use SDL::Tutorial::3DWorld::Material ();
@@ -123,6 +124,7 @@ sub add_all {
 	} elsif ( $v[2] > $box->[5] ) {
 		$box->[5] = $v[2];
 	}
+	return;
 }
 
 sub add_vertex {
@@ -150,6 +152,7 @@ sub add_vertex {
 	} elsif ( $_[2] > $box->[5] ) {
 		$box->[5] = $_[2];
 	}
+	return;
 }
 
 # Add an explicit normal
@@ -232,8 +235,7 @@ sub add_triangle {
 		$N2->[1] += $yn;
 		$N2->[2] += $zn;
 	}
-
-	return 1;
+	return;
 }
 
 sub add_quad {
@@ -314,6 +316,7 @@ sub add_quad {
 		$N3->[1] += $yn;
 		$N3->[2] += $zn;
 	}
+	return;
 }
 
 
@@ -356,11 +359,14 @@ sub init {
 		$self->{material}->[$face->[1]]->init;
 	}
 
-	return 1;
+	return $self->{init} = 1;
 }
 
 sub display {
 	my $self = shift;
+
+	# Auto-initialise
+	$self->{init} or $self->init;
 
 	# Set up and apply defaults
 	my $material = $self->{material};
@@ -466,6 +472,31 @@ sub display {
 	OpenGL::glEnd() if $begin;
 
 	return 1;
+}
+
+
+
+
+
+######################################################################
+# Compilation and Export Methods
+
+# Generate a display list for the mesh
+sub as_list {
+	my $self = shift;
+	return OpenGL::List::glpList {
+		$self->display;
+	};
+}
+
+# Generate an OpenGL::Array (OGA) for the vertex list
+sub as_vertex_oga {
+	my $self   = shift;
+	my $vertex = $self->{vertex};
+	return OpenGL::Array->new_list(
+		OpenGL::GL_FLOAT,
+		@$vertex[1 .. scalar @$vertex],
+	);
 }
 
 1;
