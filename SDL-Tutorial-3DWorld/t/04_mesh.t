@@ -37,8 +37,8 @@ is_deeply( [ $mesh->box ], [ -1, 0, 2, 1, 1, 2 ], '->box ok' );
 # Generate an OpenGL display list
 is( $mesh->as_list, 0, '->as_list ok' );
 
-# Generate an Vertex OGA (OpenGL::Array)
-isa_ok( $mesh->vertex_oga, 'OpenGL::Array' );
-isa_ok( $mesh->normal_oga, 'OpenGL::Array' );
-isa_ok( $mesh->uv_oga,     'OpenGL::Array' );
-
+# Generate an OGA set (OpenGL::Array)
+my $oga = $mesh->as_oga;
+is( ref($oga), 'HASH', '->as_oga returns a HASH' );
+isa_ok( $oga->{vertex}, 'OpenGL::Array' );
+is( $oga->{vertex}->elements, 12, '->elements matches expected' );

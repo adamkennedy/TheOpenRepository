@@ -483,13 +483,6 @@ sub display {
 	return 1;
 }
 
-
-
-
-
-######################################################################
-# Compilation Methods
-
 # Generate a display list for the mesh
 sub as_list {
 	my $self = shift;
@@ -498,34 +491,41 @@ sub as_list {
 	};
 }
 
-# Generate an OpenGL::Array (OGA) for the vertex list
-sub vertex_oga {
-	my $self   = shift;
-	my $vertex = $self->{vertex};
-	return OpenGL::Array->new_list(
-		OpenGL::GL_FLOAT,
-		@$vertex[ 1 .. $#$vertex ],
-	);
-}
 
-# Generate an OpenGL::Array (OGA) for the normal list
-sub normal_oga {
-	my $self   = shift;
-	my $vertex = $self->{vertex};
-	return OpenGL::Array->new_list(
-		OpenGL::GL_FLOAT,
-		@$vertex[ 1 .. $#$vertex ],
-	);
-}
 
-# Generate an OpenGL::Array (OGA) for the texture coord list
-sub uv_oga {
+
+
+######################################################################
+# Vertex Buffer Array Renderer
+
+sub as_oga {
 	my $self   = shift;
 	my $vertex = $self->{vertex};
-	return OpenGL::Array->new_list(
-		OpenGL::GL_FLOAT,
-		@$vertex[ 1 .. $#$vertex ],
-	);
+	my $face   = $self->{face};
+
+	# Render the faces
+	my @voga = ();
+	foreach my $f ( @$face ) {
+		my $t = $f->[0];
+
+		if ( $t == 4 ) {
+			# Quad
+			push @voga, (
+				@{$vertex->[$f->[2]]},
+				@{$vertex->[$f->[3]]},
+				@{$vertex->[$f->[4]]},
+				@{$vertex->[$f->[5]]},
+			);
+		}
+
+	}
+
+	return {
+		vertex => OpenGL::Array->new_list(
+			OpenGL::GL_FLOAT,
+			@voga,
+		),
+	};
 }
 
 1;

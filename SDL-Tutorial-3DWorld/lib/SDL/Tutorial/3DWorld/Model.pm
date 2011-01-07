@@ -30,7 +30,7 @@ use 5.008;
 use strict;
 use warnings;
 use IO::File                       ();
-use Params::Util                   '_INSTANCE';
+use Params::Util                   ();
 use OpenGL::List                   ();
 use SDL::Tutorial::3DWorld::Asset  ();
 use SDL::Tutorial::3DWorld::OpenGL ();
@@ -72,7 +72,7 @@ sub new {
 			directory => $directory,
 		);
 	}
-	unless ( _INSTANCE($self->asset, 'SDL::Tutorial::3DWorld::Asset') ) {
+	unless ( Params::Util::_INSTANCE($self->asset, 'SDL::Tutorial::3DWorld::Asset') ) {
 		die "Missing or invalid asset";
 	}
 

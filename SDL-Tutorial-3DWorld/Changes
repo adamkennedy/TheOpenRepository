@@ -10,7 +10,8 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	- Added a test script for the ::Mesh class.
 	- The beginning of OpenGL::Array integration for ::Mesh objects,
 	  as a stepping stone to moving from display lists to more modern
-	  OpenGL Vertex Arrays.
+	  OpenGL Vertex Arrays (before we move all the way to OpenGL
+	  Vertex Buffer Arrays).
 
 0.31 Tue 4 Jan 2011
 	- Added a billboard actor for sprites that always orient towards

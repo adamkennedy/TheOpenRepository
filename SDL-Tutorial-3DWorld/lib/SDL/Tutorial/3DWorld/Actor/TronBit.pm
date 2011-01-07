@@ -20,9 +20,35 @@ B<THIS CLASS DOES NOT WORK, AND ACTS ONLY AS A PLACEHOLDER FOR FUTURE WORK>
 use 5.008;
 use strict;
 use warnings;
-use SDL::Tutorial::3DWorld::OpenGL ();
+use OpenGL::Array                    ();
+use SDL::Tutorial::3DWorld::OpenGL   ();
+use SDL::Tutorial::3DWorld::Actor    ();
+use SDL::Tutorial::3DWorld::Material ();
 
 our $VERSION = '0.32';
+our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
+
+
+
+
+
+######################################################################
+# Constructor and Accessors
+
+sub new {
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
+
+	# Create the "Yes" tetrahedron
+	$self->{yes_material} = SDL::Tutorial::3DWorld::Material->new(
+		ambient   => [ 0.2, 0.2, 0.0, 1.0 ],
+		diffuse   => [ 0.8, 0.8, 0.0, 1.0 ],
+		specular  => [ 1.0, 1.0, 0.0, 1.0 ],
+		shininess => 100,
+	);
+
+	return $self;
+}
 
 1;
 
