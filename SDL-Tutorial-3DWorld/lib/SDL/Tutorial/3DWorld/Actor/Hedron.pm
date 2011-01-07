@@ -30,6 +30,11 @@ sub new {
 		die "Did not provide a child actor";
 	}
 
+	# Scaling is a bit complicated for this model at the moment
+	if ( $self->{scale} ) {
+		die "Hedron actors do not support scaling";
+	}
+
 	return $self;
 }
 
@@ -37,6 +42,8 @@ sub icosahedron {
 	my $class = shift;
 	my $self  = bless {
 		vertex => [
+
+			# These are subtly wrong but close enough
 			[  0,  0   ],
 			[  60, 36  ],
 			[  60, 108 ],

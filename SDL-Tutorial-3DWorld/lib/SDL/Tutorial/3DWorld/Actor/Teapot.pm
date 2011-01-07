@@ -69,12 +69,11 @@ sub new {
 	# By default teapots are about 20cm in size (I'm making this up)
 	$self->{size} ||= 0.20;
 
-	# Convert the size to a scale
-	$self->{scale} = [
-		$self->{size},
-		$self->{size},
-		$self->{size},
-	];
+	# Teapots don't support scaling because they are a heavy drawing
+	# task as it, and rendering with GL_NORMALIZE would be ugly.
+	if ( $self->{scale} ) {
+		die "Teapot actors do not support scale, use size";
+	}
 
 	return $self;
 }
@@ -92,12 +91,12 @@ sub init {
 
 	# Generate the bounding box
 	$self->{bound} = SDL::Tutorial::3DWorld::Bound->box(
-		$self->{scale}->[0] * -1.5,
-		$self->{scale}->[1] * -0.75,
-		$self->{scale}->[2] * -1,
-		$self->{scale}->[0] * 1.75,
-		$self->{scale}->[1] * 0.85,
-		$self->{scale}->[2] * 1,
+		$self->{size} * -1.5,
+		$self->{size} * -0.75,
+		$self->{size} * -1,
+		$self->{size} * 1.75,
+		$self->{size} * 0.85,
+		$self->{size} * 1,
 	);
 
 	return 1;
@@ -107,14 +106,11 @@ sub display {
 	my $self = shift;
 	$self->SUPER::display(@_);
 
-	# The teapot does not handle face culling well, so disable.
-	OpenGL::glDisable( OpenGL::GL_CULL_FACE  );
-
 	# Draw the teapot.
+	# Disable culling temporarily as the teapot needs back faces.
 	$self->{material}->display;
-	OpenGL::glutSolidTeapot(1);
-
-	# Reset the temporary disabling
+	OpenGL::glDisable( OpenGL::GL_CULL_FACE  );
+	OpenGL::glutSolidTeapot($self->{size});
 	OpenGL::glEnable( OpenGL::GL_CULL_FACE  );
 
 	return;

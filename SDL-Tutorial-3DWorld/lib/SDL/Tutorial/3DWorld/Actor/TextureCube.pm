@@ -158,43 +158,59 @@ sub compile {
 	# working cube fairly quickly.
 	glBegin( GL_QUADS );
 
+	# If the box has been scaled, the normal vectors will scaled as
+	# well, and so will no longer be unitised and will break lighting.
+	# One method of fixing this is to turn on GL_NORMALIZE, but this
+	# can be fairly expensive.
+	# One alternative is to scale the normal vectors by the inverse of
+	# the model scaling. These start wrong, but once the scaling has
+	# been applied the normals will end up unitised at the other end,
+	# and our lighting will still work.
+	# This approach is ideal for simple cubes with simple normals.
+	# Note, however, that if we compile these inverse-scaled normals
+	# into a display list this will only work if the object does not
+	# dynamically scale.
+	my $XN = 1 / $self->{scale}->[0];
+	my $YN = 1 / $self->{scale}->[1];
+	my $ZN = 1 / $self->{scale}->[2];
+
 	# Draw the north face
-	glNormal3f( 0, 0, -1 );
+	glNormal3f( 0, 0, -$ZN );
 	glTexCoord2f( 0, 0 ); glVertex3f(  1,  2, -1 ); # Top Left
 	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Left
 	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Right
 	glTexCoord2f( 1, 0 ); glVertex3f( -1,  2, -1 ); # Top Right
 
 	# Draw the east face
-	glNormal3f( 1, 0, 0 );
+	glNormal3f( $XN, 0, 0 );
 	glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
 	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
 	glTexCoord2f( 1, 1 ); glVertex3f(  1,  0, -1 ); # Bottom Right
 	glTexCoord2f( 1, 0 ); glVertex3f(  1,  2, -1 ); # Top Right
 
 	# Draw the south face
-	glNormal3f( 0, 0, 1 );
+	glNormal3f( 0, 0, $ZN );
 	glTexCoord2f( 0, 0 ); glVertex3f( -1,  2,  1 ); # Top Left
 	glTexCoord2f( 0, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Left
 	glTexCoord2f( 1, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Right
 	glTexCoord2f( 1, 0 ); glVertex3f(  1,  2,  1 ); # Top Right
 
 	# Draw the west face
-	glNormal3f( -1, 0, 0 );
+	glNormal3f( -$ZN, 0, 0 );
 	glTexCoord2f( 0, 0 ); glVertex3f( -1,  2, -1 ); # Top Left
 	glTexCoord2f( 0, 1 ); glVertex3f( -1,  0, -1 ); # Bottom Left
 	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right
 	glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
 
 	# Draw the up face
-	glNormal3f( 0, 1, 0 );
+	glNormal3f( 0, $YN, 0 );
 	glTexCoord2f( 0, 0 ); glVertex3f(  1,  2,  1 ); # Top Left
 	glTexCoord2f( 0, 1 ); glVertex3f(  1,  2, -1 ); # Bottom Left
 	glTexCoord2f( 1, 1 ); glVertex3f( -1,  2, -1 ); # Bottom Right
 	glTexCoord2f( 1, 0 ); glVertex3f( -1,  2,  1 ); # Top Right
 
 	# Draw the down face
-	glNormal3f( 0, -1, 0 );
+	glNormal3f( 0, -$YN, 0 );
 	glTexCoord2f( 0, 0 ); glVertex3f(  1,  0, -1 ); # Top Left
 	glTexCoord2f( 0, 1 ); glVertex3f(  1,  0,  1 ); # Bottom Left
 	glTexCoord2f( 1, 1 ); glVertex3f( -1,  0,  1 ); # Bottom Right

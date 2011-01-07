@@ -232,7 +232,7 @@ sub display {
 	# Translate to the position of the actor
 	OpenGL::glTranslatef( @{$self->{position}} );
 
-	# Scale if needed
+	# Scale if needed.
 	if ( $self->{scale} ) {
 		OpenGL::glScalef( @{$self->{scale}} );
 	}

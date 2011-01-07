@@ -159,11 +159,11 @@ sub new {
 	# Create the (optional) fog.
 	# Because it doesn't really blend with the current skybox,
 	# I've tweaked it to try to look like a light ground haze.
-	$self->{fog} = SDL::Tutorial::3DWorld::Fog->new(
-		color => [ 0.5, 0.5, 0.5, 0 ],
-		start => 10.0,
-		end   => 50.0,
-	);
+	# $self->{fog} = SDL::Tutorial::3DWorld::Fog->new(
+		# color => [ 0.5, 0.5, 0.5, 0 ],
+		# start => 10.0,
+		# end   => 50.0,
+	# );
 
 	# Create the landscape
 	$self->{landscape} = SDL::Tutorial::3DWorld::Landscape::Infinite->new(
@@ -212,8 +212,10 @@ sub new {
 			position => [ 0.0, 0.5, 0.0 ],
 			velocity => $self->dvector( 0.1, 0.0, 0.0 ),
 			material => {
-				ambient => [ 0.5, 0.2, 0.2, 1.0 ],
-				diffuse => [ 1.0, 0.7, 0.7, 1.0 ],
+				ambient   => [ 0.5, 0.2, 0.2, 1.0 ],
+				diffuse   => [ 1.0, 0.7, 0.7, 1.0 ],
+				specular  => [ 1.0, 1.0, 1.0, 1.0 ],
+				shininess => 80,
 			},
 		),
 	);
@@ -226,8 +228,10 @@ sub new {
 			position => [ 0.0, 1.0, 0.0 ],
 			velocity => $self->dvector( 0.0, 0.0, 0.1 ),
 			material => {
-				ambient => [ 0.2, 0.2, 0.5, 1.0 ],
-				diffuse => [ 0.7, 0.7, 1.0, 1.0 ],
+				ambient   => [ 0.2, 0.2, 0.5, 1.0 ],
+				diffuse   => [ 0.7, 0.7, 1.0, 1.0 ],
+				specular  => [ 1.0, 1.0, 1.0, 1.0 ],
+				shininess => 100,
 			},
 		),
 	);
@@ -240,8 +244,10 @@ sub new {
 			position => [ 0.0, 1.5, 0.0 ],
 			velocity => $self->dvector( 0.0, 0.1, 0.0 ),
 			material => {
-				ambient  => [ 0.2, 0.5, 0.2, 1 ],
-				diffuse  => [ 0.7, 1.0, 0.7, 1 ],
+				ambient   => [ 0.2, 0.5, 0.2, 1.0 ],
+				diffuse   => [ 0.7, 1.0, 0.7, 1.0 ],
+				specular  => [ 1.0, 1.0, 1.0, 1.0 ],
+				shininess => 120,
 			},
 		),
 	);
@@ -281,7 +287,18 @@ sub new {
 		),
 	);
 
-	# Place a lollipop near the origin
+	# Place a high-detail table (to test large models and scaling)
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::Model->new(
+			position => [  -10,    0,    0 ],
+			scale    => [ 0.05, 0.05, 0.05 ],
+			velocity => [    0,    0,    0 ],
+			file     => File::Spec->catfile('model', 'table', 'table.obj'),
+			plain    => 1,
+		),
+	);
+
+	# Place a lollipop near the origin to test transparency in models
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Model->new(
 			position => [ -2, 0, 0 ],
@@ -303,26 +320,15 @@ sub new {
 		),
 	);
 
-	# Place a large table (somewhere...)
-	$self->actor(
-		SDL::Tutorial::3DWorld::Actor::Model->new(
-			position => [  -10,    0,    0 ],
-			scale    => [ 0.05, 0.05, 0.05 ],
-			velocity => [    0,    0,    0 ],
-			file     => File::Spec->catfile('model', 'table', 'table.obj'),
-			plain    => 1,
-		),
-	);
-
 	# Add a material sampler
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::MaterialSampler->new(
+			hidden   => $self->{hide_expensive},
 			position => [ 5, 1, 5 ],
 			file     => File::Spec->catfile(
 				File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
 				'example.mtl',
 			),
-			hidden   => $self->{hide_expensive},
 		),
 	);
 
@@ -897,6 +903,10 @@ sub display_actors {
 				glPopMatrix();
 			};
 	}
+
+	# Disable normalisation in case the last object left us
+	# with normalisation enabled.
+	OpenGL::glDisable( OpenGL::GL_NORMALIZE );
 
 	return 1;
 }

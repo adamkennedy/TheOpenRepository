@@ -12,6 +12,10 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  as a stepping stone to moving from display lists to more modern
 	  OpenGL Vertex Arrays (before we move all the way to OpenGL
 	  Vertex Buffer Arrays).
+	- Fixed the surface normal scaling gotcha described at this URL.
+	  http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/
+	- Restored specular material component to the teapots now they will
+	  be displayed correctly.
 
 0.31 Tue 4 Jan 2011
 	- Added a billboard actor for sprites that always orient towards

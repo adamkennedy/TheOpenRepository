@@ -116,7 +116,7 @@ sub parse {
 }
 
 sub display {
-	 OpenGL::glCallList( $_[0]->{list} );
+	OpenGL::glCallList( $_[0]->{list} );
 }
 
 1;

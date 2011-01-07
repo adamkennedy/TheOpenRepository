@@ -112,9 +112,23 @@ sub init {
 			OpenGL::glPushMatrix();
 			OpenGL::glTranslatef( @{$self->{position}} );
 			if ( $self->{scale} ) {
+				# If we are going to be doing scaling (in GL) the underlying
+				# matrix operations in OpenGL will screw up the normal vectors
+				# and break the lighting badly.
+				# We need to enable normalisation for this model. This makes the
+				# drawing slower but prevents shading corruption.
+				# If the object's scaling is going to be static (i.e. the object
+				# won't be dynamically changing sizes) it is much better to do
+				# the normal correction once in advance.
+				# More details at the following URL.
+				# http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/
+				OpenGL::glEnable( OpenGL::GL_NORMALIZE );
 				OpenGL::glScalef( @{$self->{scale}} );
+				OpenGL::glCallList( $model->{list} );
+				OpenGL::glDisable( OpenGL::GL_NORMALIZE );
+			} else {
+				OpenGL::glCallList( $model->{list} );
 			}
-			OpenGL::glCallList( $model->{list} );
 			OpenGL::glPopMatrix();
 		};
 	}
@@ -129,7 +143,14 @@ sub display {
 	$self->SUPER::display(@_);
 
 	# Render the model
-	$self->{model}->display;
+	if ( $self->{scale} ) {
+		# This is a repeat of the above for the non-optimised case
+		OpenGL::glEnable( OpenGL::GL_NORMALIZE );
+		$self->{model}->display;
+		OpenGL::glDisable( OpenGL::GL_NORMALIZE );
+	} else {
+		$self->{model}->display;
+	}
 
 	return;
 }
