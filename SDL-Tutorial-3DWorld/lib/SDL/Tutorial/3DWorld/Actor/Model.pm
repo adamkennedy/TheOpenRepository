@@ -40,8 +40,7 @@ our $VERSION = '0.32';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 sub new {
-	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my $self = shift->SUPER::new(@_);
 
 	# Map to the absolute disk file
 	$self->{file} = SDL::Tutorial::3DWorld->sharefile( $self->{file} );

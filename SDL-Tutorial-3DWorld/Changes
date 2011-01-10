@@ -16,6 +16,7 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/
 	- Restored specular material component to the teapots now they will
 	  be displayed correctly.
+	- Added a GridPlane actor for generating wolfenstein-like levels
 
 0.31 Tue 4 Jan 2011
 	- Added a billboard actor for sprites that always orient towards

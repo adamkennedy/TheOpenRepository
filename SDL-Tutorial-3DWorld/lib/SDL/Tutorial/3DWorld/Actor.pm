@@ -84,6 +84,15 @@ sub new {
 		@_,
 	}, $class;
 
+	# Automatically support uniform scaling
+	if ( $self->{scale} and not ref $self->{scale} ) {
+		$self->{scale} = [
+			$self->{scale},
+			$self->{scale},
+			$self->{scale},
+		];
+	}
+
 	# Upgrade material parameters to material object
 	if ( ref $self->{material} eq 'HASH' ) {
 		$self->{material} = SDL::Tutorial::3DWorld::Material->new(

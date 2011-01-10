@@ -62,6 +62,7 @@ use SDL::Tutorial::3DWorld::Actor                  ();
 use SDL::Tutorial::3DWorld::Actor::Billboard       ();
 use SDL::Tutorial::3DWorld::Actor::Debug           ();
 use SDL::Tutorial::3DWorld::Actor::GridCube        ();
+use SDL::Tutorial::3DWorld::Actor::GridPlane       ();
 use SDL::Tutorial::3DWorld::Actor::GridSelect      ();
 use SDL::Tutorial::3DWorld::Actor::Hedron          ();
 use SDL::Tutorial::3DWorld::Actor::MaterialSampler ();
@@ -203,6 +204,32 @@ sub new {
 	 	# ),
 	# );
 
+	# Create the wolfenstein-inspired level
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::GridPlane->new(
+			position => [ 10, 0, 10 ],
+			scale    => 3,
+			size     => 9,
+			wall     => [
+				$self->sharefile('wall1.png'),
+				$self->sharefile('wall2.png'),
+				$self->sharefile('wall3.png'),
+				$self->sharefile('wall4.png'),
+			],
+			map      => [
+				[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+				[ 0, 1, 1, 1, 2, 1, 1, 1, 0 ],
+				[ 0, 1, 0, 0, 0, 0, 0, 1, 0 ],
+				[ 0, 1, 0, 0, 0, 0, 0, 1, 0 ],
+				[ 0, 0, 0, 0, 0, 0, 0, 2, 0 ],
+				[ 0, 1, 0, 0, 0, 0, 0, 1, 0 ],
+				[ 0, 1, 0, 0, 0, 0, 0, 1, 0 ],
+				[ 0, 1, 1, 1, 2, 1, 1, 1, 0 ],
+				[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+			],
+		),
+	);
+
 	# Add three teapots to the scene.
 	# (R)ed is the official colour of the X axis.
 	$self->actor(
@@ -290,9 +317,9 @@ sub new {
 	# Place a high-detail table (to test large models and scaling)
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Model->new(
-			position => [  -10,    0,    0 ],
-			scale    => [ 0.05, 0.05, 0.05 ],
-			velocity => [    0,    0,    0 ],
+			scale    => 0.05,
+			position => [ -10, 0, 0 ],
+			velocity => [   0, 0, 0 ],
 			file     => File::Spec->catfile('model', 'table', 'table.obj'),
 			plain    => 1,
 		),
@@ -335,7 +362,7 @@ sub new {
 	# Add a sprite
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Sprite->new(
-			scale    => [ 2, 2, 2  ],
+			scale    => 2,
 			position => [ 3, 0, -1 ],
 			texture  => $self->sharefile('sprite', 'pguard_die4.png'),
 		),
@@ -344,7 +371,7 @@ sub new {
 	# Add a billboard
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::Billboard->new(
-			scale    => [ 2, 2, 2 ],
+			scale    => 2,
 			position => [ 3, 3, 10 ],
 			texture  => $self->sharefile('sprite', 'billboard.png'),
 		),
