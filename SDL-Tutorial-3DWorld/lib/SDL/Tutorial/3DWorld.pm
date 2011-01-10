@@ -70,7 +70,7 @@ use SDL::Tutorial::3DWorld::Actor::Model           ();
 use SDL::Tutorial::3DWorld::Actor::Sprite          ();
 use SDL::Tutorial::3DWorld::Actor::Teapot          ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube     ();
-use SDL::Tutorial::3DWorld::Actor::TV              ();
+# use SDL::Tutorial::3DWorld::Actor::TV              ();
 use SDL::Tutorial::3DWorld::Asset                  ();
 use SDL::Tutorial::3DWorld::Camera                 ();
 use SDL::Tutorial::3DWorld::Camera::God            ();
@@ -207,26 +207,32 @@ sub new {
 	# Create the wolfenstein-inspired level
 	$self->actor(
 		SDL::Tutorial::3DWorld::Actor::GridPlane->new(
+			# The GridPlane automatically culls faces that will
+			# never be exposed to reduce costs. Turn on this
+			# debug flag to always render all faces.
+			# debug    => 1,
 			position => [ 10, 0, 10 ],
 			scale    => 3,
 			size     => 9,
+			floor    => [ 0.5, 0.5, 0.5 ],
+			ceiling  => [ 0.2, 0.2, 0.2 ],
 			wall     => [
 				$self->sharefile('wall1.png'),
 				$self->sharefile('wall2.png'),
 				$self->sharefile('wall3.png'),
 				$self->sharefile('wall4.png'),
 			],
-			map      => [
-				[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-				[ 0, 1, 1, 1, 2, 1, 1, 1, 0 ],
-				[ 0, 1, 0, 0, 0, 0, 0, 1, 0 ],
-				[ 0, 1, 0, 0, 0, 0, 0, 1, 0 ],
-				[ 0, 0, 0, 0, 0, 0, 0, 2, 0 ],
-				[ 0, 1, 0, 0, 0, 0, 0, 1, 0 ],
-				[ 0, 1, 0, 0, 0, 0, 0, 1, 0 ],
-				[ 0, 1, 1, 1, 2, 1, 1, 1, 0 ],
-				[ 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
-			],
+			map      => <<'END_MAP'
+112121211
+100000003
+100000303
+100000303
+000000303
+100330303
+100330303
+100000303
+112121333
+END_MAP
 		),
 	);
 

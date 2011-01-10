@@ -96,39 +96,65 @@ sub init {
 
 # Generate the drawing instructions
 sub compile {
-	my $self = shift;
-	my $n    = $self->{size} - 1;
-	my $map  = $self->{map};
-	my $wall = $self->{wall};
+	my $self  = shift;
+	my $size  = $self->{size};
+	my $n     = $size - 1;
+	my $wall  = $self->{wall};
+	my $debug = $self->{debug};
 
-	# Disable lighting and enable texturing
+	# Generate a two-dimensional array from the map string
+	my @map = map {
+		[ split //, $_ ]
+	} split /\n/, $self->{map};
+
+	# To be sufficiently old school, we don't do shadows
 	OpenGL::glDisable( OpenGL::GL_LIGHTING );
+
+	# Draw the floor of the map
+	OpenGL::glDisable( OpenGL::GL_TEXTURE_2D );
+	OpenGL::glColor3f( @{$self->{floor}} );
+	OpenGL::glBegin( OpenGL::GL_QUADS );
+	OpenGL::glVertex3f( 0,     0.001, 0     );
+	OpenGL::glVertex3f( 0,     0.001, $size );
+	OpenGL::glVertex3f( $size, 0.001, $size );
+	OpenGL::glVertex3f( $size, 0.001, 0     );
+	OpenGL::glEnd();
+
+	# Draw the roof of the map
+	OpenGL::glColor3f( @{$self->{ceiling}} );
+	OpenGL::glBegin( OpenGL::GL_QUADS );
+	OpenGL::glVertex3f( 0,     1, 0     );
+	OpenGL::glVertex3f( $size, 1, 0     );
+	OpenGL::glVertex3f( $size, 1, $size );
+	OpenGL::glVertex3f( 0,     1, $size );
+	OpenGL::glEnd();
+
+	# Prepare to show the textured walls
 	OpenGL::glEnable( OpenGL::GL_TEXTURE_2D );
 	OpenGL::glColor3f( 1, 1, 1 );
-	OpenGL::glBegin( OpenGL::GL_QUADS );
 
 	# Track the active wall texture
 	my $active = 0;
 
 	# Iterate through the map
-	foreach my $x ( 0 .. $n ) {
+	foreach my $x ( $n .. 0 ) {
 		my $X = $x + 1;
 		foreach my $z ( 0 .. $n ) {
 			my $Z = $z + 1;
 
 			# Ignore open space
-			my $w = $map->[$x]->[$z] or next;
+			my $w = $map[$x]->[$z] or next;
 
 			# Switch textures if needed
 			if ( $w != $active ) {
-				OpenGL::glEnd();
+				OpenGL::glEnd() if $active;
 				$wall->[$w]->display;
 				$active = $w;
 				OpenGL::glBegin( OpenGL::GL_QUADS );
 			}
 
 			# Draw the north face unless hidden
-			unless ( $z and $map->[$x]->[$z-1] ) {
+			if ( $debug or not $z or not $map[$x]->[$z-1] ) {
 				# Top Left
 				OpenGL::glTexCoord2f( 0, 0 );
 				OpenGL::glVertex3f( $X, 1, $z );
@@ -147,7 +173,7 @@ sub compile {
 			}
 
 			# Draw the east face unless hidden
-			unless ( $map->[$x+1]->[$z] ) {
+			if ( $debug or not $map[$x+1]->[$z] ) {
 				# Top Left
 				OpenGL::glTexCoord2f( 0, 0 );
 				OpenGL::glVertex3f( $X, 1, $Z );
@@ -166,7 +192,7 @@ sub compile {
 			}
 
 			# Draw the south face unless hidden
-			unless ( $map->[$x]->[$z+1] ) {
+			if ( $debug or not $map[$x]->[$z+1] ) {
 				# Top Left
 				OpenGL::glTexCoord2f( 0, 0 );
 				OpenGL::glVertex3f( $x, 1, $Z );
@@ -185,7 +211,7 @@ sub compile {
 			}
 
 			# Draw the west face unless hidden
-			unless ( $x and $map->[$x-1]->[$z] ) {
+			if ( $debug or not $x or not $map[$x-1]->[$z] ) {
 				# Top Left
 				OpenGL::glTexCoord2f( 0, 0 );
 				OpenGL::glVertex3f( $x, 1, $z );
@@ -207,7 +233,7 @@ sub compile {
 
 	# Reenable lighting
 	OpenGL::glEnd();
-	OpenGL::glDisable( OpenGL::GL_LIGHTING );
+	OpenGL::glEnable( OpenGL::GL_LIGHTING );
 
 	return 1;
 }
