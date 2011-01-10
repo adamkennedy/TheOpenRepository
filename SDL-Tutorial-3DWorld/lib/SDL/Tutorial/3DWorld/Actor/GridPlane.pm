@@ -137,7 +137,7 @@ sub compile {
 	my $active = 0;
 
 	# Iterate through the map
-	foreach my $x ( $n .. 0 ) {
+	foreach my $x ( 0 .. $n ) {
 		my $X = $x + 1;
 		foreach my $z ( 0 .. $n ) {
 			my $Z = $z + 1;
