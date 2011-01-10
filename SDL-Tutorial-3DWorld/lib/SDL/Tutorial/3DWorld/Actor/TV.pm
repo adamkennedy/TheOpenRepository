@@ -8,7 +8,6 @@ use 5.008;
 use strict;
 use warnings;
 use SDL;
-use SDL::MPEG;
 use SDL::SMPEG;
 use SDL::Surface;
 use SDL::Tutorial::3DWorld::OpenGL ();
@@ -59,9 +58,9 @@ sub init {
 	) or die "Failed to load MPEG stream from '$self->{file}'";
 
 	# Capture some useful metadata about the stream
-	$self->{mpeg}   = $self->{smpeg}->info or die "SMPEG->info failed";
-	$self->{height} = $self->{mpeg}->height;
-	$self->{width}  = $self->{mpeg}->width;
+	my $info = $self->{smpeg}->info or die "SMPEG->info failed";
+	$self->{height} = $info->height;
+	$self->{width}  = $info->width;
 
 	# Scale the TV size to the aspect ratio of the video
 	$self->{aspect} = $self->{width} / $self->{height};
