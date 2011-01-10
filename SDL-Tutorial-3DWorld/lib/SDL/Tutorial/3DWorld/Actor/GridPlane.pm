@@ -128,7 +128,7 @@ sub compile {
 			}
 
 			# Draw the north face unless hidden
-			if ( $z and not $map->[$x]->[$z-1] ) {
+			unless ( $z and $map->[$x]->[$z-1] ) {
 				# Top Left
 				OpenGL::glTexCoord2f( 0, 0 );
 				OpenGL::glVertex3f( $X, 1, $z );
@@ -147,7 +147,7 @@ sub compile {
 			}
 
 			# Draw the east face unless hidden
-			if ( $x < $n and not $map->[$x+1]->[$z] ) {
+			unless ( $map->[$x+1]->[$z] ) {
 				# Top Left
 				OpenGL::glTexCoord2f( 0, 0 );
 				OpenGL::glVertex3f( $X, 1, $Z );
@@ -166,7 +166,7 @@ sub compile {
 			}
 
 			# Draw the south face unless hidden
-			if ( $z < $n and not $map->[$x]->[$z+1] ) {
+			unless ( $map->[$x]->[$z+1] ) {
 				# Top Left
 				OpenGL::glTexCoord2f( 0, 0 );
 				OpenGL::glVertex3f( $x, 1, $Z );
@@ -185,7 +185,7 @@ sub compile {
 			}
 
 			# Draw the west face unless hidden
-			if ( $x and not $map->[$x-1]->[$z] ) {
+			unless ( $x and $map->[$x-1]->[$z] ) {
 				# Top Left
 				OpenGL::glTexCoord2f( 0, 0 );
 				OpenGL::glVertex3f( $x, 1, $z );
