@@ -70,6 +70,7 @@ use SDL::Tutorial::3DWorld::Actor::Model           ();
 use SDL::Tutorial::3DWorld::Actor::Sprite          ();
 use SDL::Tutorial::3DWorld::Actor::Teapot          ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube     ();
+use SDL::Tutorial::3DWorld::Actor::TronBit         ();
 # use SDL::Tutorial::3DWorld::Actor::TV              ();
 use SDL::Tutorial::3DWorld::Asset                  ();
 use SDL::Tutorial::3DWorld::Camera                 ();
@@ -193,8 +194,9 @@ sub new {
 
 	# The selector is an actor and a special camera tool for
 	#(potentially) controlling something in the world.
-	$self->{selector} = SDL::Tutorial::3DWorld::Actor::GridSelect->new;
-	$self->actor( $self->{selector} );
+	$self->{selector} = $self->actor(
+		SDL::Tutorial::3DWorld::Actor::GridSelect->new,
+	);
 
 	# Add a video screen
 	# $self->actor(
@@ -233,6 +235,13 @@ sub new {
 100000303
 112121333
 END_MAP
+		),
+	);
+
+	# A full and complex character
+	$self->{bit} = $self->actor(
+		SDL::Tutorial::3DWorld::Actor::TronBit->new(
+			position => [ 1.0, 1.9, 7.0 ],
 		),
 	);
 
@@ -433,6 +442,65 @@ END_MAP
 		),
 	);
 
+	# Add three tron light cycles of varying complexity
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::Model->new(
+			position => [ 15, 1, -5 ],
+			velocity => [ 0, 0, 0 ],
+			orient   => [ 270, 1, 0, 0 ],
+			scale    => 0.5,
+			file     => File::Spec->catfile(
+				'model',
+				'gltron',
+				'lightcycle-high.obj',
+			),
+		),
+	);
+
+	# Add three tron light cycles of varying complexity
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::Model->new(
+			position => [ 10, 1, -5 ],
+			velocity => [ 0, 0, 0 ],
+			orient   => [ 270, 1, 0, 0 ],
+			scale    => 0.5,
+			file     => File::Spec->catfile(
+				'model',
+				'gltron',
+				'lightcycle-med.obj',
+			),
+		),
+	);
+
+	# Add three tron light cycles of varying complexity
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::Model->new(
+			position => [ 5, 1, -5 ],
+			velocity => [ 0, 0, 0 ],
+			orient   => [ 270, 1, 0, 0 ],
+			scale    => 0.5,
+			file     => File::Spec->catfile(
+				'model',
+				'gltron',
+				'lightcycle-low.obj',
+			),
+		),
+	);
+
+	# Add a material sampler for the light cycle
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::MaterialSampler->new(
+			hidden   => $self->{hide_expensive},
+			position => [ 5, 1, -10 ],
+			file     => File::Spec->catfile(
+				File::ShareDir::dist_dir('SDL-Tutorial-3DWorld'),
+				'model',
+				'gltron',
+				'lightcycle.mtl',
+			),
+		),
+	);
+
 	return $self;
 }
 
@@ -497,7 +565,8 @@ sub actor {
 	# Initialise it too if needed
 	$debug->init if $param{init};
 
-	return 1;
+	# Returns the actor as a convenience
+	return $actor;
 }
 
 
@@ -745,6 +814,16 @@ sub event {
 		# Toggle visibility of the console (i.e. the FPS display)
 		if ( $key == SDLK_F3 ) {
 			$self->{hide_console} = $self->{hide_console} ? 0 : 1;
+			return 1;
+		}
+
+		# Trigger bit's "Yes" or "No" cycle
+		if ( $key == SDLK_y ) {
+			$self->{bit}->yes;
+			return 1;
+		}
+		if ( $key == SDLK_n ) {
+			$self->{bit}->no;
 			return 1;
 		}
 

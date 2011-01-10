@@ -238,7 +238,7 @@ sub init {
 sub display {
 	my $self = shift;
 
-	# Translate to the position of the actor
+	# Translate, scale and rotate to the position of the actor
 	OpenGL::glTranslatef( @{$self->{position}} );
 
 	# Scale if needed.
@@ -264,7 +264,7 @@ sub move {
 	$self->{position}->[2] += $self->{velocity}->[2] * $step;
 
 	# Rotate if we need to
-	if ( $self->{orient} ) {
+	if ( $self->{orient} and $self->{rotate} ) {
 		$self->{orient}->[0] += $self->{rotate} * $step;
 	}
 

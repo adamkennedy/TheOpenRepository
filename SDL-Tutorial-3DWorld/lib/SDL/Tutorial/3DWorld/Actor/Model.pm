@@ -75,8 +75,11 @@ sub new {
 # Engine Methods
 
 sub init {
-	my $self  = shift;
-	my $model = $self->{model};
+	my $self     = shift;
+	my $model    = $self->{model};
+	my $position = $self->{position};
+	my $scale    = $self->{scale};
+	my $orient   = $self->{orient};
 	$self->SUPER::init(@_);
 
 	# Load the model display list
@@ -88,7 +91,6 @@ sub init {
 	}
 
 	# Get the bounding box from the model
-	my $scale = $self->{scale};
 	if ( $scale ) {
 		$self->{bound} = SDL::Tutorial::3DWorld::Bound->box(
 			$model->{box}->[0] * $scale->[0],
@@ -109,8 +111,8 @@ sub init {
 		# Compile the entire display routine
 		$self->{display} = OpenGL::List::glpList {
 			OpenGL::glPushMatrix();
-			OpenGL::glTranslatef( @{$self->{position}} );
-			if ( $self->{scale} ) {
+			OpenGL::glTranslatef( @$position );
+			if ( $scale ) {
 				# If we are going to be doing scaling (in GL) the underlying
 				# matrix operations in OpenGL will screw up the normal vectors
 				# and break the lighting badly.
@@ -122,10 +124,12 @@ sub init {
 				# More details at the following URL.
 				# http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/
 				OpenGL::glEnable( OpenGL::GL_NORMALIZE );
-				OpenGL::glScalef( @{$self->{scale}} );
+				OpenGL::glScalef( @$scale );
+				OpenGL::glRotatef( @$orient ) if $orient;
 				OpenGL::glCallList( $model->{list} );
 				OpenGL::glDisable( OpenGL::GL_NORMALIZE );
 			} else {
+				OpenGL::glRotatef( @$orient ) if $orient;
 				OpenGL::glCallList( $model->{list} );
 			}
 			OpenGL::glPopMatrix();

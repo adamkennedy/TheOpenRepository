@@ -17,6 +17,9 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	- Restored specular material component to the teapots now they will
 	  be displayed correctly.
 	- Added a GridPlane actor for generating wolfenstein-like levels
+	- Added a basic Fog implementation. Because it doesn't really mix well
+	  with the skybox I've kept the intensity and range down so it looks
+	  a little like a light ground mist. It will do for now.
 
 0.31 Tue 4 Jan 2011
 	- Added a billboard actor for sprites that always orient towards

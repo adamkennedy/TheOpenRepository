@@ -34,7 +34,7 @@ sub new {
 	}
 
 	# Material samples might contain transparent materials that need blending
-	$self->{blending} = 1;
+	# $self->{blending} = 1;
 
 	# Scaling and rotation are not supported
 	if ( $self->{scale} ) {

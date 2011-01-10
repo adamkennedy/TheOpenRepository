@@ -35,4 +35,4 @@ ok( $material, 'Found material shinyred' );
 ok( $material->{ambient},   'Has an ambient component'  );
 ok( $material->{diffuse},   'Has a diffuse component'   );
 ok( $material->{specular},  'Has a specular component'  );
-ok( $material->{shinyness}, 'Has a shinyness component' );
+ok( $material->{shininess}, 'Has a shinyness component' );

@@ -156,7 +156,12 @@ sub parse {
 		my @words   = split /\s+/, $line;
 		my $command = lc shift @words;
 		if ( $command eq 'newmtl' ) {
-			$material = { };
+			$material = {
+				ambient  => [ 0, 0, 0 ],
+				diffuse  => [ 0, 0, 0 ],
+				specular => [ 0, 0, 0 ],
+				dissolve => 1,
+			};
 			$self->{material}->{$words[0]} = $material;
 
 		} elsif ( $command eq 'ka' ) {
@@ -169,7 +174,7 @@ sub parse {
 			$material->{specular} = [ @words ];
 
 		} elsif ( $command eq 'ns' ) {
-			$material->{shinyness} = $words[0];
+			$material->{shininess} = $words[0];
 
 		} elsif ( $command eq 'd' or $command eq 'tr' ) {
 			$material->{dissolve} = $words[0];

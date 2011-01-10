@@ -42,7 +42,6 @@ use strict;
 use warnings;
 use IO::File                      ();
 use File::Spec                    ();
-use OpenGL                        ':all';
 use SDL::Tutorial::3DWorld::Mesh  ();
 use SDL::Tutorial::3DWorld::Asset ();
 use SDL::Tutorial::3DWorld::Model ();
