@@ -40,14 +40,24 @@ points in space using the pre-existing material settings.
 use 5.008;
 use strict;
 use warnings;
-use IO::File                      ();
-use File::Spec                    ();
-use SDL::Tutorial::3DWorld::Mesh  ();
-use SDL::Tutorial::3DWorld::Asset ();
-use SDL::Tutorial::3DWorld::Model ();
+use IO::File                           ();
+use File::Spec                         ();
+use SDL::Tutorial::3DWorld::Mesh       ();
+use SDL::Tutorial::3DWorld::Asset      ();
+use SDL::Tutorial::3DWorld::Model      ();
+use SDL::Tutorial::3DWorld::3DS::Chunk ();
 
 our $VERSION = '0.32';
 our @ISA     = 'SDL::Tutorial::3DWorld::Model';
+
+# Chunk IDs
+my %NAME2ID = (
+	# Primary chunk
+	MAIN3DS => '4d4d',
+);
+my %ID2NAME = map {
+	$NAME2ID{$_} => $_
+} %NAME2ID;
 
 
 
@@ -58,20 +68,47 @@ our @ISA     = 'SDL::Tutorial::3DWorld::Model';
 
 sub parse {
 	my $self   = shift;
-	my $handle = shift;
 	my $mesh   = SDL::Tutorial::3DWorld::Mesh->new;
+	my $handle = shift;
+	unless ( $handle->can('seek') ) {
+		die "File handle is not seekable";
+	}
 
-	# Fetch a chunk
-	my $pos  = 0;
-	my $head = '';
-	$handle->sysread( $head, 6 );
+	# Fetch the top chunk
+	my $chunk = $self->chunk( $handle, 0 );
+	my @stack = ( $chunk );
+	while ( @stack ) {
+		my $parent = $stack[-1];
+		my $start  = $parent->child_start;
+		my $child  = $self->chunk( $handle, $start );
+		1;
+	}
 
 	# Initialise the mesh elements that need it
 	$mesh->init;
 	$self->{box} = [ $mesh->box ];
 
 	# Generate the display list
-	return $mesh->as_list;
+	$mesh->as_list;
+}
+
+sub chunk {
+	my $self   = shift;
+	my $handle = shift;
+	my $start  = shift;
+
+	# Read the head block
+	my $buffer = '';
+	$handle->seek( $start, 0 );
+	$handle->sysread( $buffer, 6 );
+
+	# Parse the head block
+	my ( $type, $bytes ) = unpack( 'H4 L', $buffer );
+	return SDL::Tutorial::3DWorld::3DS::Chunk->new(
+		type  => $type,
+		start => $start,
+		bytes => $bytes,
+	);
 }
 
 1;
