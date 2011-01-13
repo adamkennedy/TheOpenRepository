@@ -247,8 +247,6 @@ for my $class_type ( @file_types ) {
 	}
 }
 
-$DB::single = 1;
-
 sub mkfile {
 	my (%args) = @_;
 	my $cname = $args{'class_name'};
