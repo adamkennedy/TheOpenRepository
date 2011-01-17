@@ -322,7 +322,7 @@ sub event {
 		my $y = $event->motion_yrel;
 		$x = $x - 65536 if $x > 32000;
 		$y = $y - 65536 if $y > 32000;
-		my $angle  = $self->{angle}  = ($self->{angle} + $x / 5) % 360;
+		my $angle  = $self->{angle} = ($self->{angle} + $x / 5) % 360;
 		$self->{elevation} -= $y / 10;
 		$self->{elevation}  =  90 if $self->{elevation} >  90;
 		$self->{elevation}  = -90 if $self->{elevation} < -90;

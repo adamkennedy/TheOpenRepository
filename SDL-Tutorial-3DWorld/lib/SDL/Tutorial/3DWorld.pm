@@ -68,6 +68,7 @@ use SDL::Tutorial::3DWorld::Actor::Hedron          ();
 use SDL::Tutorial::3DWorld::Actor::MaterialSampler ();
 use SDL::Tutorial::3DWorld::Actor::Model           ();
 use SDL::Tutorial::3DWorld::Actor::Sprite          ();
+use SDL::Tutorial::3DWorld::Actor::SpriteOct       ();
 use SDL::Tutorial::3DWorld::Actor::Teapot          ();
 use SDL::Tutorial::3DWorld::Actor::TextureCube     ();
 use SDL::Tutorial::3DWorld::Actor::TronBit         ();
@@ -380,6 +381,24 @@ END_MAP
 			scale    => 2,
 			position => [ 3, 0, -1 ],
 			texture  => $self->sharefile('sprite', 'pguard_die4.png'),
+		),
+	);
+
+	# Add an eight-sided sprite
+	$self->actor(
+		SDL::Tutorial::3DWorld::Actor::SpriteOct->new(
+			scale    => 2,
+			position => [ 5, 0, -1 ],
+			texture  => [
+				$self->sharefile('sprite', 'mguard_s_1.png'),
+				$self->sharefile('sprite', 'mguard_s_2.png'),
+				$self->sharefile('sprite', 'mguard_s_3.png'),
+				$self->sharefile('sprite', 'mguard_s_4.png'),
+				$self->sharefile('sprite', 'mguard_s_5.png'),
+				$self->sharefile('sprite', 'mguard_s_6.png'),
+				$self->sharefile('sprite', 'mguard_s_7.png'),
+				$self->sharefile('sprite', 'mguard_s_8.png'),
+			],
 		),
 	);
 

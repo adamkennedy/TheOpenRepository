@@ -20,6 +20,7 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	- Added a basic Fog implementation. Because it doesn't really mix well
 	  with the skybox I've kept the intensity and range down so it looks
 	  a little like a light ground mist. It will do for now.
+	- Added partially working eight-sided sprite.
 
 0.31 Tue 4 Jan 2011
 	- Added a billboard actor for sprites that always orient towards

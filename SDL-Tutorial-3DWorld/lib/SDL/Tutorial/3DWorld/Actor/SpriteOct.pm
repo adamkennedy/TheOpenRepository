@@ -1,5 +1,12 @@
 package SDL::Tutorial::3DWorld::Actor::SpriteOct;
 
+# A SpriteOct is a set of eight sprites that represent
+# a single character facing in a particular direction.
+# Each of the sprites displays the character at a particular
+# 45 degree offset.
+# Combined together, the sprites give the illusion of being
+# a full 3D model.
+
 use 5.008;
 use strict;
 use warnings;
@@ -26,7 +33,15 @@ sub new {
 		@_,
 	);
 
-	# Convert the texture to a full material
+	# Even though the sprite has a notional direction in
+	# which it is facing, this does not impact on the OpenGL
+	# "orientation" implemented in the base actor class.
+	# As such, we use a totally different variable to hold the
+	# direction of the character.
+	$self->{angle}    ||= 0;
+	$self->{velocity} ||= [ 0, 0, 0 ];
+
+	# Convert the eight sprite texture files to full materials
 	$self->{material} = [
 		map {
 			SDL::Tutorial::3DWorld::Material->new(
@@ -44,8 +59,20 @@ sub new {
 	return $self;
 }
 
+
+
+
+
+######################################################################
+# Engine Interface Methods
+
 sub init {
 	my $self = shift;
+
+	# Load the sprites
+	foreach my $material ( @{$self->{material}} ) {
+		$material->init;
+	}
 
 	# Compile the common drawing code
 	$self->{draw} = OpenGL::List::glpList {
@@ -56,18 +83,33 @@ sub init {
 }
 
 sub display {
-	my $self  = shift;
-	my $angle = -SDL::Tutorial::3DWorld->current->camera->{angle};
+	my $self = shift;
 	$self->SUPER::display(@_);
 
-	# Rotate towards the camera
-	OpenGL::glRotatef( $angle, 0, 1, 0 );
+	# Rotate towards the camera.
+	# This merely serves to ensure the sprite is oriented towards
+	# the camera and has no relationship to the direction the
+	# actor will APPEAR to be facing relative to the camera.
+	OpenGL::glRotatef(
+		-SDL::Tutorial::3DWorld->current->camera->{angle},
+		0, 1, 0,
+	);
+
+	# Select which sprite to display
+	my $i = (($self->{angle} + 22.5) / 45) % 8;
 
 	# Switch to the sprite
-	$self->{material}->[0]->display;
+	$self->{material}->[$i]->display;
 
 	# Draw the sprite quad.
 	OpenGL::glCallList( $self->{draw} );
+}
+
+sub move {
+	my $self = shift;
+	my $step = shift;
+	$self->{angle} += 1 * $step;
+	return 1;
 }
 
 sub compile {
