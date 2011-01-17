@@ -131,9 +131,9 @@ sub move {
 	$self->SUPER::move(@_);
 
 	# Rotate the rest body angle (fairly quickly)
-	$self->{null_angle} += $self->{null_speed} * $step;
-	$self->{null_angle} += 360 if $self->{null_angle} < 0;
-	$self->{null_angle} -= 360 if $self->{null_angle} > 360;
+	$self->{null_angle} = (
+		$self->{null_angle} + $self->{null_speed} * $step
+	) % 360;
 
 	# If we are in the "No" or "Yes" cycle advance and (maybe) end them
 	if ( $self->{no_cycle} ) {
