@@ -34,7 +34,7 @@ use vars qw{ @LOADERS @SUGAR $HOOKS $ORIGINAL_CAN $ORIGINAL_ISA }; # Working inf
 
 # Compile-time Initialisation and Optimisation
 BEGIN {
-	$VERSION = '1.99_04';
+	$VERSION = '2.00';
 
 	# Become an exporter so we don't get complaints when we act as a pragma.
 	# I don't fully understand the reason for this, but it works and I can't

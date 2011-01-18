@@ -4,12 +4,13 @@ package Class::Autouse::Parent;
 # a parent class. That is, a class who's primary job is to load a series
 # classes below it.
 
+use 5.006;
 use strict;
 use Class::Autouse ();
 
 our $VERSION;
 BEGIN {
-	$VERSION = '1.99_04';
+	$VERSION = '2.00';
 }
 
 # Anti-loop protection.

@@ -1,5 +1,8 @@
 Revision history for Perl extension Class-Autouse
 
+2.00 Tue 18 Jan 2011
+	- Switching to a production release
+
 1.99_04 Thu 13 Jan 2011
 	- Upgrading to Module::Install::DSL 1.00
 	- Bumping minimum version of Perl to 5.006
