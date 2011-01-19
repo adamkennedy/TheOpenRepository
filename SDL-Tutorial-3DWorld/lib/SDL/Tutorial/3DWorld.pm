@@ -55,7 +55,7 @@ use List::MoreUtils                           0.22 ();
 use Params::Util                              1.00 ();
 use OpenGL                                    0.64 ':all';
 use OpenGL::List                              0.01 ();
-use SDL                                      2.524 ':all';
+use SDL                                      2.527 ':all';
 use SDL::Event                                     ':all';
 use SDLx::App                                      ();
 use SDL::Tutorial::3DWorld::Actor                  ();
