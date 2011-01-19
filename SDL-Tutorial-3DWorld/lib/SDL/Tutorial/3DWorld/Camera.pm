@@ -37,7 +37,7 @@ use SDL::Constants                 ();
 use SDL::Tutorial::3DWorld::OpenGL ();
 use SDL::Tutorial::3DWorld::Bound; # Import constants
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 use constant {
 	D2R  => CORE::atan2(1,1) / 45,

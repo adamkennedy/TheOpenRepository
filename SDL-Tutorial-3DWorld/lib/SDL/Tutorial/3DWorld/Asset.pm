@@ -24,7 +24,7 @@ use SDL::Tutorial::3DWorld::MTL     ();
 use SDL::Tutorial::3DWorld::OBJ     ();
 use SDL::Tutorial::3DWorld::RWX     ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 
 

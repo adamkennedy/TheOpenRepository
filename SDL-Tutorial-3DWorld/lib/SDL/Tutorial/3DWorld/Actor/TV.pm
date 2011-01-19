@@ -13,7 +13,7 @@ use SDL::Surface;
 use SDL::Tutorial::3DWorld::OpenGL ();
 use SDL::Tutorial::3DWorld::Actor  ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 

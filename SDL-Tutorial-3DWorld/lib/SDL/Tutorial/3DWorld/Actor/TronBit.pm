@@ -25,7 +25,7 @@ use SDL::Tutorial::3DWorld::OpenGL   ();
 use SDL::Tutorial::3DWorld::Actor    ();
 use SDL::Tutorial::3DWorld::Material ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 use constant D2R => CORE::atan2(1,1) / 45;

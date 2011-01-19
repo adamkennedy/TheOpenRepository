@@ -25,7 +25,7 @@ use Params::Util                      ();
 use SDL::Tutorial::3DWorld::OpenGL    ();
 use SDL::Tutorial::3DWorld::Landscape ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 our @ISA     = 'SDL::Tutorial::3DWorld::Landscape';
 
 sub new {

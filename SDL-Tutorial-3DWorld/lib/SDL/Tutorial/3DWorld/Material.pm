@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use SDL::Tutorial::3DWorld::OpenGL ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 # Convert GL fake "constants" to real constants.
 # If we don't do this we spend a third of our CPU calling constants.

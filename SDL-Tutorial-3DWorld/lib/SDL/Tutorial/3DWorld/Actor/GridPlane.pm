@@ -21,7 +21,7 @@ use SDL::Tutorial::3DWorld::Actor   ();
 use SDL::Tutorial::3DWorld::Bound   ();
 use SDL::Tutorial::3DWorld::Texture ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 our @ISA     = 'SDL::Tutorial::3DWorld::Actor';
 
 

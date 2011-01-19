@@ -1,6 +1,13 @@
 Changes for Perl extension SDL-Tutorial-3DWorld
 
-0.32 Wed 19 Jan 2011
+0.33 Wed 19 Jan 2011
+	- Added a GridPlane actor for generating wolfenstein-like levels
+	- Added a basic Fog implementation. Because it doesn't really mix
+	  well with the skybox I've kept the intensity and range down so it
+	  looks a little like a light ground mist. It will do for now.
+	- Added partially working eight-sided sprite of a Wolfenstein guard.
+
+0.32 Fri 7 Jan 2011
 	- Added a smallish test video
 	- Added the beginnings of an implementation of a flat screen TV
 	  actor. Unfortunately, the underlying SDL implementation of MPEG
@@ -16,11 +23,6 @@ Changes for Perl extension SDL-Tutorial-3DWorld
 	  http://www.opengl.org/resources/features/KilgardTechniques/oglpitfall/
 	- Restored specular material component to the teapots now they will
 	  be displayed correctly.
-	- Added a GridPlane actor for generating wolfenstein-like levels
-	- Added a basic Fog implementation. Because it doesn't really mix
-	  well with the skybox I've kept the intensity and range down so it
-	  looks a little like a light ground mist. It will do for now.
-	- Added partially working eight-sided sprite of a Wolfenstein guard.
 
 0.31 Tue 4 Jan 2011
 	- Added a billboard actor for sprites that always orient towards

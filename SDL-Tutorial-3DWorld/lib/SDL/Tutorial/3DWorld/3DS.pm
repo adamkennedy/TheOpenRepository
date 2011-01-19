@@ -47,7 +47,7 @@ use SDL::Tutorial::3DWorld::Asset      ();
 use SDL::Tutorial::3DWorld::Model      ();
 use SDL::Tutorial::3DWorld::3DS::Chunk ();
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 our @ISA     = 'SDL::Tutorial::3DWorld::Model';
 
 # Chunk IDs
