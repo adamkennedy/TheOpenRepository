@@ -1,5 +1,10 @@
 Changes for Perl extension FBP-Perl
 
+0.16 Mon 24 Jan 2011
+	- Updating copyright year
+	- Move version generation into dialog_version so it can be
+	  overloaded in the Padre wxFormBuilder plugin
+
 0.15 Thu 29 Sep 2010
 	- Added a dedicated nested indent method
 	- Added support for choice lists in Wx::Choice, Wx::ComboBox and

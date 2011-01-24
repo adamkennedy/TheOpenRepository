@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.16 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 has project => (
 	is       => 'ro',
@@ -72,6 +72,7 @@ sub dialog_class {
 	my $pragma  = $self->use_pragma($dialog);
 	my $wx      = $self->use_wx($dialog);
 	my $more    = $self->use_more($dialog);
+	my $version = $self->dialog_version($dialog);
 	my $isa     = $self->dialog_isa($dialog);
 	my $new     = $self->dialog_new($dialog);
 	my $methods = $self->dialog_methods($dialog);
@@ -83,7 +84,7 @@ sub dialog_class {
 		@$wx,
 		@$more,
 		"",
-		"our \$VERSION = '0.01';",
+		@$version,
 		@$isa,
 		"",
 		@$new,
@@ -172,6 +173,15 @@ sub dialog_sizers {
 			: ()
 		),
 		"",
+	];
+}
+
+sub dialog_version {
+	my $self   = shift;
+	my $dialog = shift;
+
+	return [
+		"our \$VERSION = '0.01';",
 	];
 }
 
@@ -1058,7 +1068,7 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2010 Adam Kennedy.
+Copyright 2010 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
