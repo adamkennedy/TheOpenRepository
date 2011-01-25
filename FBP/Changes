@@ -1,5 +1,10 @@
 Changes for Perl extension FBP
 
+0.17 Tue 25 Jan 2011
+	- Updating copyright year
+	- Added FBP::Listbook     class
+	- Added FBP::ListbookPage class
+
 0.16 Thu 20 Sep 2010
 	- Changed FBP::Control to a subclass of FBP::Window
 	- Changed control classes to inherit directly from FBP::Control

@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 67;
+use Test::More tests => 73;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -67,7 +67,7 @@ isa_ok( $dialog4[0], 'FBP::Dialog' );
 
 # Multiple-search query with multiple results
 my @window = $project->find( isa => 'FBP::Window' );
-is( scalar(@window), 14, '->find(multiple) ok' );
+is( scalar(@window), 20, '->find(multiple) ok' );
 foreach ( @window ) {
 	isa_ok( $_, 'FBP::Window' );
 }
@@ -144,3 +144,12 @@ isa_ok( $sizer, 'FBP::Sizer' );
 is( $sizer->name,       'bSizer1',      '->name ok'       );
 is( $sizer->orient,     'wxHORIZONTAL', '->orient ok'     );
 is( $sizer->permission, 'none',         '->permission ok' );
+
+# Listbook properties
+my $listbook = $object->find_first(
+	isa => 'FBP::Listbook',
+);
+isa_ok( $listbook, 'FBP::Listbook' );
+is( $listbook->style, 'wxLB_DEFAULT', '->style ok' );
+
+1;

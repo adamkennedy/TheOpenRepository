@@ -1,22 +1,23 @@
-package FBP::ListBox;
+package FBP::Listbook;
 
 use Mouse;
 
 our $VERSION = '0.17';
 
-extends 'FBP::ControlWithItems';
+extends 'FBP::Control';
+with    'FBP::Children';
 
 has style => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has OnListBox => (
+has OnListbookPageChanged => (
 	is  => 'ro',
 	isa => 'Str',
 );
 
-has OnListDClick => (
+has OnListbookPageChanging => (
 	is  => 'ro',
 	isa => 'Str',
 );

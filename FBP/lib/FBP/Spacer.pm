@@ -2,7 +2,7 @@ package FBP::Spacer;
 
 use Mouse;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 extends 'FBP::Object';
 
