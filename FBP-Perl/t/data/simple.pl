@@ -163,6 +163,44 @@ sub new {
 		Wx::wxDefaultSize,
 	);
 
+	$self->{m_listbook1} = Wx::Listbook->new(
+		$self,
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxLB_DEFAULT,
+	);
+
+	$self->{m_panel1} = Wx::Panel->new(
+		$self,
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
+	$self->{m_staticText2} = Wx::StaticText->new(
+		$self,
+		-1,
+		Wx::gettext("This is a test"),
+	);
+
+	$self->{m_panel2} = Wx::Panel->new(
+		$self,
+		-1,
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+		Wx::wxTAB_TRAVERSAL,
+	);
+
+	$self->{m_textCtrl2} = Wx::TextCtrl->new(
+		$self,
+		-1,
+		"This is a test",
+		Wx::wxDefaultPosition,
+		Wx::wxDefaultSize,
+	);
+
 	my $fgSizer1 = Wx::FlexGridSizer->new( 1, 2, 3, 4 );
 	$fgSizer1->AddGrowableCol( 0 );
 	$fgSizer1->AddGrowableCol( 1 );
@@ -189,6 +227,9 @@ sub new {
 	$gSizer1->Add( $self->{m_checkBox3}, 0, Wx::wxALL, 5 );
 	$gSizer1->Add( $self->{m_checkBox4}, 0, Wx::wxALL, 5 );
 
+	$self->{m_listbook1}->AddPage( $self->{m_panel1}, Wx::gettext("Page One"), 1 );
+	$self->{m_listbook1}->AddPage( $self->{m_panel2}, Wx::gettext("Page Two"), 0 );
+
 	my $bSizer2 = Wx::BoxSizer->new( Wx::wxVERTICAL );
 	$bSizer2->Add( $self->{m_staticText1}, 0, Wx::wxALL, 5 );
 	$bSizer2->Add( 10, 5, 0, Wx::wxEXPAND, 5 );
@@ -198,6 +239,7 @@ sub new {
 	$bSizer2->Add( $fgSizer1, 1, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $sbSizer1, 1, Wx::wxEXPAND, 5 );
 	$bSizer2->Add( $gSizer1, 0, Wx::wxEXPAND, 5 );
+	$bSizer2->Add( $self->{m_listbook1}, 1, Wx::wxEXPAND | Wx::wxALL, 5 );
 
 	my $bSizer1 = Wx::BoxSizer->new( Wx::wxHORIZONTAL );
 	$bSizer1->Add( $bSizer2, 1, Wx::wxEXPAND, 5 );

@@ -25,7 +25,7 @@ use Mouse         0.61;
 use FBP           0.16 ();
 use Data::Dumper 2.122 ();
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 has project => (
 	is       => 'ro',
@@ -215,10 +215,14 @@ sub window_create {
 		$lines = $self->combobox_create($window);
 	} elsif ( $window->isa('FBP::HtmlWindow') ) {
 		$lines = $self->htmlwindow_create($window);
+	} elsif ( $window->isa('FBP::Listbook') ) {
+		$lines = $self->listbook_create($window);
 	} elsif ( $window->isa('FBP::ListBox') ) {
 		$lines = $self->listbox_create($window);
 	} elsif ( $window->isa('FBP::ListCtrl') ) {
 		$lines = $self->listctrl_create($window);
+	} elsif ( $window->isa('FBP::Panel') ) {
+		$lines = $self->panel_create($window);
 	} elsif ( $window->isa('FBP::StaticLine') ) {
 		$lines = $self->staticline_create($window);
 	} elsif ( $window->isa('FBP::StaticText') ) {
@@ -343,6 +347,25 @@ sub htmlwindow_create {
 	);
 }
 
+sub listbook_create {
+	my $self     = shift;
+	my $control  = shift;
+	my $id       = $self->wx( $control->id );
+	my $position = $self->object_position($control);
+	my $size     = $self->object_size($control);
+	my $style    = $self->wx( $control->styles );
+
+	return $self->nested(
+		$self->window_new($control),
+		"\$self,",
+		"$id,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
+		");",
+	);
+}
+
 sub listbox_create {
 	my $self     = shift;
 	my $control  = shift;
@@ -370,10 +393,29 @@ sub listctrl_create {
 	my $id       = $self->wx( $control->id );
 	my $position = $self->object_position($control);
 	my $size     = $self->object_size($control);
-	my $style    = $self->wx( $control->styles );	
+	my $style    = $self->wx( $control->styles );
 
 	return $self->nested(
 		$self->window_new($control),
+		"\$self,",
+		"$id,",
+		"$position,",
+		"$size,",
+		( $style ? "$style," : () ),
+		");",
+	);
+}
+
+sub panel_create {
+	my $self     = shift;
+	my $window   = shift;
+	my $id       = $self->wx( $window->id );
+	my $position = $self->object_position($window);
+	my $size     = $self->object_size($window);
+	my $style    = $self->wx( $window->styles );
+
+	return $self->nested(
+		$self->window_new($window),
 		"\$self,",
 		"$id,",
 		"$position,",
@@ -475,16 +517,19 @@ sub boxsizer_create {
 	my $variable = $self->object_variable($sizer);
 	my $orient   = $self->wx( $sizer->orient );
 
-	# Add the content for child sizers
-	my @lines = map {
-		( @$_, "" )
-	} map {
-		$self->sizer_create($_)
-	} grep {
-		$_->isa('FBP::Sizer')
-	} map {
-		$_->children->[0]
-	} @{$sizer->children};
+	# Add the content for all our child sizers
+	my @children = ();
+	foreach ( @{$sizer->children} ) {
+		my $child = $_->children->[0];
+		if ( $child->isa('FBP::Sizer') ) {
+			push @children, $self->sizer_create($child);
+		} elsif ( $child->isa('FBP::Listbook') ) {
+			push @children, $self->book_add($child);
+		}
+	}
+
+	# Flatten to straight lines
+	my @lines = map { ( @$_, "" ) } @children;
 
 	# Add the content for this sizer
 	push @lines, "$lexical$variable = Wx::BoxSizer->new( $orient );";
@@ -678,6 +723,33 @@ sub flexgridsizer_create {
 				$item->border,
 			);
 			push @lines, "$variable->Add( $params );";
+		}
+	}
+
+	return \@lines;
+}
+
+sub book_add {
+	my $self     = shift;
+	my $book     = shift;
+	my $variable = $self->object_variable($book);
+
+	# Add each of our child pages
+	my @lines = ();
+	foreach my $item ( @{$book->children} ) {
+		my $child = $item->children->[0];
+		if ( $child->isa('FBP::Panel') ) {
+			$DB::single = 1;
+			my $params = join(
+				', ',
+				$self->object_variable($child),
+				$self->object_label($item),
+				$item->select ? 1 : 0,
+			);
+			push @lines, "$variable->AddPage( $params );";
+
+		} else {
+			die "Unknown or unsupported book child " . ref($child);
 		}
 	}
 

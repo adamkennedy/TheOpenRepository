@@ -1,5 +1,9 @@
 Changes for Perl extension FBP-Perl
 
+0.17 Tue 25 Jan 2011
+	- Add support for Wx::Listbook
+	- Add support for Wx::Panel
+
 0.16 Mon 24 Jan 2011
 	- Updating copyright year
 	- Move version generation into dialog_version so it can be
