@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 73;
+use Test::More tests => 75;
 use Test::NoWarnings;
 use File::Spec::Functions ':ALL';
 use FBP ();
@@ -151,5 +151,3 @@ my $listbook = $object->find_first(
 );
 isa_ok( $listbook, 'FBP::Listbook' );
 is( $listbook->style, 'wxLB_DEFAULT', '->style ok' );
-
-1;
