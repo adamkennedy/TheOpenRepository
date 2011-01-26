@@ -1,6 +1,8 @@
 Changes for Perl extension FBP-Perl
 
 0.17 Tue 25 Jan 2011
+	- Improved sizer generation code to support arbitrary nesting
+	  of both sizer and non-sizer parent objects.
 	- Add support for Wx::Listbook
 	- Add support for Wx::Panel
 
