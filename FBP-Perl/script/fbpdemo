@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+
+use 5.008;
+use strict;
+use warnings;
+use Class::Inspector ();
+
+our $VERSION = '0.17';
+
+# Find the file or class
+usage() unless @ARGV;
+
+
+1;
