@@ -1,5 +1,8 @@
 Revision history for Perl extension Parse::CSV
-     Thu 04 Nov 2010
+1.02 Wed 24 Nov 2010
+	- POD Change
+
+1.02 Thu 04 Nov 2010
 	- adding new methods:
 		- "setcolnames" changes (or gets) colnames of your fields-array (hashkeys). It is like renaming colnames.
 		- "addcolnames" adds colnames at the end of your fields-array (hashkeys). 
