@@ -34,18 +34,95 @@ if you don't export anything, such as for a purely object-oriented module.
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 _extract_license
 
 =cut
 
-sub function1 {
+sub _extract_license {
+	my $pod = shift;
+	my $matched;
+	return __extract_license(
+		($matched) = $pod =~ m/
+			(=head \d \s+ L(?i:ICEN[CS]E|ICENSING)\b.*?)
+			(=head \d.*|=cut.*|)\z
+		/xms
+	) || __extract_license(
+		($matched) = $pod =~ m/
+			(=head \d \s+ (?:C(?i:OPYRIGHTS?)|L(?i:EGAL))\b.*?)
+			(=head \d.*|=cut.*|)\z
+		/xms
+	);
 }
 
-=head2 function2
+sub __extract_license {
+	my $license_text = shift or return;
+	my @phrases      = (
+		'(?:under )?the same (?:terms|license) as (?:perl|the perl (?:\d )?programming language)' => 'perl', 1,
+		'(?:under )?the terms of (?:perl|the perl programming language) itself' => 'perl', 1,
+		'Artistic and GPL'                   => 'perl',         1,
+		'GNU general public license'         => 'gpl',          1,
+		'GNU public license'                 => 'gpl',          1,
+		'GNU lesser general public license'  => 'lgpl',         1,
+		'GNU lesser public license'          => 'lgpl',         1,
+		'GNU library general public license' => 'lgpl',         1,
+		'GNU library public license'         => 'lgpl',         1,
+		'GNU Free Documentation license'     => 'unrestricted', 1,
+		'GNU Affero General Public License'  => 'open_source',  1,
+		'(?:Free)?BSD license'               => 'bsd',          1,
+		'Artistic license 2\.0'              => 'artistic_2',   1,
+		'Artistic license'                   => 'artistic',     1,
+		'Apache (?:Software )?license'       => 'apache',       1,
+		'GPL'                                => 'gpl',          1,
+		'LGPL'                               => 'lgpl',         1,
+		'BSD'                                => 'bsd',          1,
+		'Artistic'                           => 'artistic',     1,
+		'MIT'                                => 'mit',          1,
+		'Mozilla Public License'             => 'mozilla',      1,
+		'Q Public License'                   => 'open_source',  1,
+		'OpenSSL License'                    => 'unrestricted', 1,
+		'SSLeay License'                     => 'unrestricted', 1,
+		'zlib License'                       => 'open_source',  1,
+		'proprietary'                        => 'proprietary',  0,
+	);
+	while ( my ($pattern, $license, $osi) = splice(@phrases, 0, 3) ) {
+		$pattern =~ s#\s+#\\s+#gs;
+		if ( $license_text =~ /\b$pattern\b/i ) {
+			return $license;
+		}
+	}
+	return '';
+}
 
-=cut
 
-sub function2 {
+sub _extract_perl_version {
+	if (
+		$_[0] =~ m/
+		^\s*
+		(?:use|require) \s*
+		v?
+		([\d_\.]+)
+		\s* ;
+		/ixms
+	) {
+		my $perl_version = $1;
+		$perl_version =~ s{_}{}g;
+		return $perl_version;
+	} else {
+		return;
+	}
+}
+
+
+sub _extract_bugtracker {
+	my @links   = $_[0] =~ m#L<(
+	 https?\Q://rt.cpan.org/\E[^>]+|
+	 https?\Q://github.com/\E[\w_]+/[\w_]+/issues|
+	 https?\Q://code.google.com/p/\E[\w_\-]+/issues/list
+	 )>#gx;
+	my %links;
+	@links{@links}=();
+	@links=keys %links;
+	return @links;
 }
 
 =head1 AUTHOR
