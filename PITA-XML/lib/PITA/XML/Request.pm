@@ -38,18 +38,19 @@ repository such as CPAN)
 
 =cut
 
+use 5.006;
 use strict;
-use base 'PITA::XML::Storable';
-use Carp           ();
-use File::Spec     ();
-use File::Basename ();
-use Config::Tiny   ();
-use Params::Util   '_INSTANCE',
-                   '_STRING';
+use Carp                ();
+use File::Spec          ();
+use File::Basename      ();
+use Config::Tiny        ();
+use Params::Util        qw{ _INSTANCE _STRING };
+use PITA::XML::Storable ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
+	@ISA     = 'PITA::XML::Storable';
 }
 
 sub xml_entity { 'request' }
@@ -62,10 +63,8 @@ sub xml_entity { 'request' }
 # Constructor and Accessors
 
 sub new {
-	my $class  = shift;
-
-	# Create the object
-	my $self = bless { @_ }, $class;
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
 
 	# Check the object
 	$self->_init;

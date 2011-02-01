@@ -3,11 +3,11 @@ package PITA::XML::Storable;
 # A PITA::XML class that can be loaded from and saved to a file
 
 use strict;
-use Params::Util '_INSTANCE';
+use Params::Util qw{ _INSTANCE };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
 }
 
 
@@ -29,13 +29,13 @@ sub read {
 	#	);
 
 	# Build the object from the file and validate
-	my $self = bless {}, $class;
+	my $self   = bless { }, $class;
 	my $parser = XML::SAX::ParserFactory->parser(
 		Handler => PITA::XML::SAXParser->new( $self ),
-		);
-        $parser->parse_file($fh);
+	);
+	$parser->parse_file($fh);
 
-	$self;
+	return $self;
 }
 
 sub write {
@@ -49,14 +49,16 @@ sub write {
 			: Carp::croak("Did not provide an output destination to ->write");
 
 	# Create the SAX Driver
-	my $driver = PITA::XML::SAXDriver->new( @params )
-		or die("Failed to create SAXDriver for report");
+	my $driver = PITA::XML::SAXDriver->new( @params );
+	unless ( $driver ) {
+		die("Failed to create SAXDriver for report");
+	}
 
 	# Parse ourself with the driver to driver the writing
 	# of the output.
 	$driver->parse( $self );
 
-	1;
+	return 1;
 }
 
 1;

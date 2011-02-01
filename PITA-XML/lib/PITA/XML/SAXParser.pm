@@ -28,13 +28,14 @@ public API, and so are not documented here.
 =cut
 
 use strict;
-use base 'XML::SAX::Base';
-use Carp ();
-use Params::Util '_INSTANCE';
+use Carp           ();
+use Params::Util   qw{ _INSTANCE };
+use XML::SAX::Base ();
 
-use vars qw{$VERSION $XML_NAMESPACE @PROPERTIES %TRIM};
+use vars qw{$VERSION @ISA $XML_NAMESPACE @PROPERTIES %TRIM};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
+	@ISA     = 'XML::SAX::Base';
 
 	# Define the XML namespace we are a parser for
 	$XML_NAMESPACE = 'http://ali.as/xml/schemas/PITA/1.0';
@@ -100,15 +101,17 @@ Returns a new C<PITA::XML::SAXParser> object, or dies on error.
 
 sub new {
 	my $class  = shift;
-	my $root   = _INSTANCE(shift, 'PITA::XML::Storable')
-		or Carp::croak("Did not provide a PITA::XML::Storable root element");
+	my $root   = _INSTANCE(shift, 'PITA::XML::Storable');
+	unless ( $root ) {
+		Carp::croak("Did not provide a PITA::XML::Storable root element");
+	}
 
 	# Create the basic parsing object
 	my $self = bless {
 		object  => $root,
 		root    => $root->xml_entity,
 		context => [],
-		}, $class;
+	}, $class;
 
 	$self;
 }
@@ -139,14 +142,15 @@ sub _hash {
 	my $attrs = shift;
 
 	# Shrink it
-	my %hash  = map { $_->{LocalName}, $_->{Value} }
-		grep {
-			$_->{Value} =~ s/^\s+//;
-			$_->{Value} =~ s/\s+$//;
-			1;
-		}
-		grep { ! $_->{Prefix} }
-		values %$attrs;
+	my %hash  = map {
+		$_->{LocalName}, $_->{Value}
+	} grep {
+		$_->{Value} =~ s/^\s+//;
+		$_->{Value} =~ s/\s+$//;
+		1;
+	} grep {
+		not $_->{Prefix}
+	} values %$attrs;
 
 	return \%hash;
 }
@@ -159,12 +163,15 @@ sub _hash {
 # Simplification Layer
 
 sub start_element {
-	my ($self, $element) = @_;
+	my $self    = shift;
+	my $element = shift;
 
 	# We don't support namespaces.
 	if ( $element->{Prefix} ) {
-		Carp::croak( __PACKAGE__
-		. ' does not support the use of XML namespaces (yet)' );
+		Carp::croak(
+			__PACKAGE__ .
+			' does not support the use of XML namespaces (yet)',
+		);
 	}
 
 	# If this is the root element, set up the initial context.
@@ -195,7 +202,8 @@ sub start_element {
 }
 
 sub end_element {
-	my ($self, $element) = @_;
+	my $self    = shift;
+	my $element = shift;
 
 	# Handle the closing root element
 	if ( $element->{LocalName} eq $self->{root} and @{$self->{context}} == 1 ) {
@@ -214,6 +222,7 @@ sub end_element {
 			$self->{chars} =~ s/\s+$//;
 		}
 	}
+
 	return $self->$handler();
 }
 
@@ -221,14 +230,15 @@ sub end_element {
 # we just store all character data in a character buffer
 # and deal with it in the various end_element methods.
 sub characters {
-	my ($self, $element) = @_;
+	my $self    = shift;
+	my $element = shift;
 
 	# Add to the buffer (if not null)
 	if ( exists $self->{chars} and defined $self->{chars} ) {
 		$self->{chars} .= $element->{Data};
 	}
 
-	1;
+	return 1;
 }
 
 
@@ -239,7 +249,12 @@ sub characters {
 # Handle the <install>...</install> tag
 
 sub start_element_install {
-	$_[0]->_push( bless { commands => [], tests => [] }, 'PITA::XML::Install' );
+	$_[0]->_push(
+		bless {
+			commands => [],
+			tests    => [],
+		}, 'PITA::XML::Install'
+	);
 }
 
 sub end_element_install {
@@ -249,7 +264,7 @@ sub end_element_install {
 	my $install = $self->_pop->_init;
 	$self->_context->add_install( $install );
 
-	1;
+	return 1;
 }
 
 
@@ -261,7 +276,7 @@ sub end_element_install {
 
 sub start_element_request {
 	my $self    = shift;
-	my $request = bless {}, 'PITA::XML::Request';
+	my $request = bless { }, 'PITA::XML::Request';
 
 	# Add the id if it has one
 	my $attr = shift;
@@ -278,7 +293,7 @@ sub end_element_request {
 	# Complete the Request and add to the Install
 	$self->_context->{request} = $self->_pop->_init;
 
-	1;
+	return 1;
 }
 
 
@@ -289,7 +304,9 @@ sub end_element_request {
 # Handle the <file>...</file> tag
 
 sub start_element_file {
-	$_[0]->_push( bless { }, 'PITA::XML::File' );
+	$_[0]->_push(
+		bless { }, 'PITA::XML::File'
+	);
 }
 
 sub end_element_file {
@@ -303,7 +320,7 @@ sub end_element_file {
 		$self->_context->{file} = $file;
 	}
 
-	1;
+	return 1;
 }
 
 
@@ -314,7 +331,12 @@ sub end_element_file {
 # Handle the <platform>...</platform> tag
 
 sub start_element_platform {
-	$_[0]->_push( bless { env => {}, config => {} }, 'PITA::XML::Platform' );
+	$_[0]->_push(
+		bless {
+			env    => {},
+			config => {},
+		}, 'PITA::XML::Platform'
+	);
 }
 
 sub end_element_platform {
@@ -328,7 +350,7 @@ sub end_element_platform {
 		$self->_context->add_platform( $platform );
 	}
 
-	1;
+	return 1;
 }
 
 
@@ -339,7 +361,9 @@ sub end_element_platform {
 # Handle the <command>...</command> tag
 
 sub start_element_command {
-	$_[0]->_push( bless {}, 'PITA::XML::Command' );
+	$_[0]->_push(
+		bless {}, 'PITA::XML::Command'
+	);
 }
 
 sub end_element_command {
@@ -349,7 +373,7 @@ sub end_element_command {
 	my $command = $self->_pop->_init;
 	push @{ $self->_context->{commands} }, $command;
 
-	1;
+	return 1;
 }
 
 
@@ -360,17 +384,18 @@ sub end_element_command {
 # Handle the <test>...</test> tag
 
 sub start_element_test {
-	my ($self, $hash) = @_;
+	my $self = shift;
+	my $hash = shift;
 
 	# Create the test object
 	my $test = bless {
 		language => $hash->{language},
-		}, 'PITA::XML::Test';
+	}, 'PITA::XML::Test';
 	if ( $hash->{name} ) {
 		$test->{name} = $hash->{name};
 	}
 
-	$_[0]->_push( $test );
+	$self->_push( $test );
 }
 
 sub end_element_test {
@@ -380,7 +405,7 @@ sub end_element_test {
 	my $test = $self->_pop->_init;
 	push @{ $self->_context->{tests} }, $test;
 
-	1;
+	return 1;
 }
 
 
@@ -393,7 +418,7 @@ sub end_element_test {
 # Start capturing the STDOUT content
 sub start_element_stdout {
 	$_[0]->{chars} = '';
-	1;
+	return 1;
 }
 
 # Save those chars to the element by reference, not plain strings
@@ -404,7 +429,7 @@ sub end_element_stdout {
 	my $stdout = delete $self->{chars};
 	$self->_context->{stdout} = \$stdout;
 
-	1;
+	return 1;
 }
 
 
@@ -417,7 +442,7 @@ sub end_element_stdout {
 # Start capturing the STDERR content
 sub start_element_stderr {
 	$_[0]->{chars} = '';
-	1;
+	return 1;
 }
 
 # Save those chars to the element by reference, not plain strings
@@ -428,7 +453,7 @@ sub end_element_stderr {
 	my $stderr = delete $self->{chars};
 	$self->_context->{stderr} = \$stderr;
 
-	1;
+	return 1;
 }
 
 
@@ -440,7 +465,8 @@ sub end_element_stderr {
 
 # Start capturing the $ENV{key} content
 sub start_element_env {
-	my ($self, $hash) = @_;
+	my $self = shift;
+	my $hash = shift;
 	$self->{chars} = '';
 	$self->_push( $hash->{name} );
 }
@@ -454,7 +480,7 @@ sub end_element_env {
 	my $value = delete $self->{chars};
 	$self->_context->{env}->{$name} = $value;
 
-	1;
+	return 1;
 }
 
 
@@ -466,7 +492,8 @@ sub end_element_env {
 
 # Start capturing the %Config::Config content
 sub start_element_config {
-	my ($self, $hash) = @_;
+	my $self = shift;
+	my $hash = shift;
 	$self->{chars} = '';
 	$self->_push( $hash->{name} );
 }
@@ -480,7 +507,7 @@ sub end_element_config {
 	my $value = delete $self->{chars};
 	$self->_context->{config}->{$name} = $value;
 
-	1;
+	return 1;
 }
 
 
@@ -491,7 +518,8 @@ sub end_element_config {
 # Handle <null/> tags in a variety of things
 
 sub start_element_null {
-	my ($self, $hash) = @_;
+	my $self = shift;
+	my $hash = shift;
 
 	# A null tag indicates that the currently-accumulating character
 	# buffer should be set to undef.
@@ -499,11 +527,11 @@ sub start_element_null {
 		$self->{chars} = undef;
 	}
 
-	1;
+	return 1;
 }
 
 sub end_element_null {
-	1;
+	return 1;
 }
 
 1;

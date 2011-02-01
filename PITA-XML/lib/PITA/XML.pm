@@ -14,17 +14,16 @@ BEGIN {
 	# to be a real duck. So lets make it a duck (if it didn't turn into a
 	# real duck while we weren't looking.)
 	unless ( @IO::String::ISA ) {
-		@IO::String::ISA = qw{IO::Handle IO::Seekable};
+		@IO::String::ISA = qw{ IO::Handle IO::Seekable };
 	}
 }
-# use File::Flock             ();
 use File::ShareDir          ();
 use XML::SAX::ParserFactory ();
 use XML::Validator::Schema  ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
 }
 
 # The XML Schema File
@@ -77,8 +76,8 @@ sub validate {
 	my $parser = XML::SAX::ParserFactory->parser(
 		Handler => XML::Validator::Schema->new(
 			file => $SCHEMA,
-			),
-		);
+		),
+	);
 
 	# Validate the document
 	$parser->parse_file( $fh );
@@ -93,7 +92,8 @@ sub validate {
 # Support Methods
 
 sub _FH {
-	my ($class, $file) = @_;
+	my $class = shift;
+	my $file  = shift;
 	if ( _SCALAR($file) ) {
 		$file = IO::String->new( $file );
 	}
@@ -102,7 +102,7 @@ sub _FH {
 			# Reset the file handle
 			$file->seek( 0, 0 ) or Carp::croak(
 				'Failed to reset file handle (seek to 0)',
-				);
+			);
 			return $file;
 		}
 		Carp::croak('IO::Handle is not seekable');

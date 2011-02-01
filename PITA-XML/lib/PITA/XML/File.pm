@@ -2,15 +2,16 @@ package PITA::XML::File;
 
 # A PITA::XML class that represents an file resource for a Guest
 
+use 5.006;
 use strict;
-use base 'PITA::XML::Storable';
-use Data::Digest ();
-use Params::Util '_INSTANCE',
-                 '_STRING';
+use Data::Digest        ();
+use Params::Util        qw{ _INSTANCE _STRING };
+use PITA::XML::Storable ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
+	@ISA     = 'PITA::XML::Storable';
 }
 
 sub xml_entity { 'file' }
@@ -24,10 +25,8 @@ sub xml_entity { 'file' }
 # Constructor and Accessors
 
 sub new {
-	my $class  = shift;
-
-	# Create the object
-	my $self = bless { @_ }, $class;
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
 
 	# Check the object
 	$self->_init;

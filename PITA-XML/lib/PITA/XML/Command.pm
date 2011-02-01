@@ -26,14 +26,14 @@ It holds the actual command, and the STDOUT and STDERR output.
 
 =cut
 
+use 5.006;
 use strict;
 use Carp         ();
-use Params::Util '_SCALAR0',
-                 '_STRING';
+use Params::Util qw{ _SCALAR0 _STRING };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
 }
 
 
@@ -76,9 +76,7 @@ Returns a new L<PITA::XML::Command> object, or dies on error.
 
 sub new {
 	my $class = shift;
-
-	# Create the object
-	my $self = bless { @_ }, $class;
+	my $self  = bless { @_ }, $class;
 
 	# Check the object
 	$self->_init;

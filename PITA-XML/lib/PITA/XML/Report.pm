@@ -2,14 +2,14 @@ package PITA::XML::Report;
 
 use 5.005;
 use strict;
-use base 'PITA::XML::Storable';
-use Carp         ();
-use Params::Util '_INSTANCE',
-                 '_SET0';
+use Carp                ();
+use Params::Util        qw{ _INSTANCE _SET0 };
+use PITA::XML::Storable ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
+	@ISA     = 'PITA::XML::Storable';
 }
 
 sub xml_entity { 'report' }
@@ -42,8 +42,10 @@ sub _init {
 
 sub add_install {
 	my $self    = shift;
-	my $install = _INSTANCE(shift, 'PITA::XML::Install')
-		or Carp::croak('Did not provide a PITA::XML::Install object');
+	my $install = _INSTANCE(shift, 'PITA::XML::Install');
+	unless ( $install ) {
+		Carp::croak('Did not provide a PITA::XML::Install object');
+	}
 
 	# Add it to the array
 	push @{$self->{installs}}, $install;

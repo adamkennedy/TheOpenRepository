@@ -14,7 +14,7 @@ PITA::XML::Platform - Data object representing a platform configuration
       path   => '/usr/bin/perl',
       env    => \%ENV,
       config => \%Config::Config,
-      );
+  );
   
   # Get the current perl5 platform configuration
   my $current = PITA::XML::Platform->autodetect_perl5;
@@ -40,12 +40,11 @@ will be documented once we stop changing them daily :)
 use 5.005;
 use strict;
 use Carp         ();
-use Params::Util '_STRING',
-                 '_HASH';
+use Params::Util qw{ _STRING _HASH };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
 }
 
 
@@ -56,10 +55,8 @@ BEGIN {
 # Constructor and Accessors
 
 sub new {
-	my $class  = shift;
-
-	# Create the object
-	my $self = bless { @_ }, $class;
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
 
 	# Check the object
 	$self->_init;
@@ -73,14 +70,14 @@ sub autodetect_perl5 {
 	# Source the information
 	my $path = $^X;
 	require Config;
-	
+
 	# Hand it off to the constructor
 	$class->new(
 		scheme => 'perl5',
 		path   => $path,
 		env    => { %ENV },            # Only provide a copy
 		config => { %Config::Config }, # Only provide a copy
-		);
+	);
 }
 
 # Format-check the parameters

@@ -11,9 +11,9 @@ PITA::XML::Guest - A testing environment, typically a system image
   # A simple guest using the local Perl
   # (mostly used for test purposes)
   my $dist = PITA::XML::Guest->new(
-  	driver => 'Local',
-	params => {},
-  	);
+      driver => 'Local',
+      params => {},
+  );
 
 =head1 DESCRIPTION
 
@@ -26,19 +26,17 @@ represented in L<PITA::XML> by L<PITA::XML::Platform> objects.
 
 =cut
 
+use 5.006;
 use strict;
-use base 'PITA::XML::Storable';
-use Carp             ();
-use Class::Inspector ();
-use Params::Util     '_INSTANCE',
-                     '_STRING',
-                     '_CLASS',
-                     '_HASH0',
-                     '_SET0';
+use Carp                ();
+use Class::Inspector    ();
+use Params::Util        qw{ _INSTANCE _STRING _CLASS _HASH0 _SET0 };
+use PITA::XML::Storable ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
+	@ISA     = 'PITA::XML::Storable';
 }
 
 sub xml_entity { 'guest' }
@@ -88,10 +86,8 @@ Returns a new L<PITA::XML::Guest> or throw an exception on error.
 =cut
 
 sub new {
-	my $class  = shift;
-
-	# Create the object
-	my $self = bless { @_ }, $class;
+	my $class = shift;
+	my $self  = bless { @_ }, $class;
 
 	# Move the non-core options into the config hash
 	unless ( _HASH0($self->{config}) ) {
@@ -135,7 +131,7 @@ sub read {
 	my $self   = bless { config => {} }, $class;
 	my $parser = XML::SAX::ParserFactory->parser(
 		Handler => PITA::XML::SAXParser->new($self),
-		);
+	);
         $parser->parse_file($fh);
 
 	$self;
@@ -206,8 +202,10 @@ and sets the object with it, or croaks on error.
 
 sub set_id {
 	my $self = shift;
-	my $guid = PITA::XML->_GUID(shift)
-		or Carp::croak("Invalid GUID format");
+	my $guid = PITA::XML->_GUID(shift);
+	unless ( $guid ) {
+		Carp::croak("Invalid GUID format");
+	}
 	if ( $self->id ) {
 		Carp::croak("The guest already has an id value");
 	}
@@ -321,8 +319,10 @@ L<PITA::XML::File> object.
 
 sub add_file {
 	my $self = shift;
-	my $file = _INSTANCE(shift, 'PITA::XML::File')
-		or Carp::croak('Did not provide a PITA::XML::File object');
+	my $file = _INSTANCE(shift, 'PITA::XML::File');
+	unless ( $file ) {
+		Carp::croak('Did not provide a PITA::XML::File object');
+	}
 
 	# Add it to the array
 	$self->{files} ||= [];
@@ -354,8 +354,10 @@ L<PITA::XML::File> object.
 
 sub add_platform {
 	my $self     = shift;
-	my $platform = _INSTANCE(shift, 'PITA::XML::Platform')
-		or Carp::croak('Did not provide a PITA::XML::Platform object');
+	my $platform = _INSTANCE(shift, 'PITA::XML::Platform');
+	unless ( $platform ) {
+		Carp::croak('Did not provide a PITA::XML::Platform object');
+	}
 
 	# Add it to the array
 	$self->{platforms} ||= [];

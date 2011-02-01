@@ -19,16 +19,18 @@ can create objects, you can't actually run them yet.
 
 =cut
 
+use 5.006;
 use strict;
-use base 'XML::SAX::Base';
 use Carp           ();
 use Params::Util   ':ALL';
 use Class::Autouse 'XML::SAX::Writer';
 use PITA::XML      ();
+use XML::SAX::Base ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
+	@ISA     = 'XML::SAX::Base';
 }
 
 
@@ -62,13 +64,11 @@ Returns a C<PITA::XML::SAXDriver> object, or dies on error.
 
 sub new {
 	my $class = shift;
-
-	# Create the empty object
-	my $self = bless {
+	my $self  = bless {
 		NamespaceURI => PITA::XML->XMLNS,
 		Prefix       => '',
 		@_,
-		}, $class;
+	}, $class;
 
 	# Add a default SAX Handler
 	unless ( $self->{Handler} ) {
@@ -82,7 +82,7 @@ sub new {
 		# Create the file writer
 		$self->{Handler} = XML::SAX::Writer->new(
 			Output => $self->{Output},
-			) or Carp::croak("Failed to create XML Writer for Output");
+		) or Carp::croak("Failed to create XML Writer for Output");
 	}
 
 	# Check the namespace
@@ -173,8 +173,10 @@ sub Output {
 
 sub parse {
 	my $self = shift;
-	my $root = _INSTANCE(shift, 'PITA::XML::Storable')
-		or Carp::croak("Did not provide a writable root object");
+	my $root = _INSTANCE(shift, 'PITA::XML::Storable');
+	unless ( $root ) {
+		Carp::croak("Did not provide a writable root object");
+	}
 
 	# Attach the xmlns to the first tag
 	if ( $self->{NamespaceURI} ) {
@@ -207,14 +209,15 @@ sub start_document {
 	$self->xml_decl( {
 		Version  => '1.0',
 		Encoding => 'UTF-8',
-		} );
+	} );
 
-	1;
+	return 1;
 }
 
 # Generate events for the parent PITA::XML::Report object
 sub _parse_report {
-	my ($self, $report) = @_;
+	my $self   = shift;
+	my $report = shift;
 
 	# Send the open tag
 	my $element = $self->_element( 'report' );
@@ -233,7 +236,8 @@ sub _parse_report {
 
 # Generate events for a single install
 sub _parse_install {
-	my ($self, $install) = @_;
+	my $self    = shift;
+	my $install = shift;
 
 	# Send the open tag
 	my $element = $self->_element( 'install' );
@@ -269,7 +273,8 @@ sub _parse_install {
 
 # Generate events for a request
 sub _parse_request {
-	my ($self, $request) = @_;
+	my $self    = shift;
+	my $request = shift;
 
 	# Send the open tag
 	my $attr = $request->id
@@ -301,7 +306,8 @@ sub _parse_request {
 
 # Generate events for a guest
 sub _parse_guest {
-	my ($self, $guest) = @_;
+	my $self  = shift;
+	my $guest = shift;
 
 	# Send the open tag
 	my $attr = $guest->id
@@ -342,7 +348,8 @@ sub _parse_guest {
 
 # Generate events for a file
 sub _parse_file {
-	my ($self, $file) = @_;
+	my $self = shift;
+	my $file = shift;
 
 	# Send the open tag
 	my $element = $self->_element( 'file' );
@@ -375,7 +382,8 @@ sub _parse_file {
 
 # Generate events for a platform configuration
 sub _parse_platform {
-	my ($self, $platform) = @_;
+	my $self     = shift;
+	my $platform = shift;
 
 	# Send the open tag
 	my $element = $self->_element( 'platform' );
@@ -426,7 +434,8 @@ sub _parse_platform {
 }
 
 sub _parse_command {
-	my ($self, $command) = @_;
+	my $self    = shift;
+	my $command = shift;
 
 	# Send the open tag
 	my $element = $self->_element( 'command' );
@@ -444,12 +453,13 @@ sub _parse_command {
 }
 
 sub _parse_test {
-	my ($self, $test) = @_;
+	my $self = shift;
+	my $test = shift;
 
 	# Send the open tag
 	my $attrs = {
 		language => $test->language,
-		};
+	};
 	if ( defined $test->name ) {
 		$attrs->{name} = $test->name;
 	}
@@ -507,10 +517,10 @@ sub start_element {
 		LocalName => 'xmlns',
 		Name      => 'xmlns',
 		Value     => $xmlns,
-		};
+	};
 
 	# Pass on to the parent class
-	$self->SUPER::start_element( $element );		
+	$self->SUPER::start_element( $element );
 }
 
 # Strip out the Attributes for the end element
@@ -541,7 +551,7 @@ sub _element {
 			#Prefix       => $Prefix,
 			#LocalName    => $key,
 			Value        => $value,
-			};
+		};
 	}
 	foreach my $key ( sort keys %$attrs ) {
 		#$Attributes{"{$NamespaceURI}$key"} = {
@@ -551,7 +561,7 @@ sub _element {
 			#Prefix       => $Prefix,
 			#LocalName    => $key,
 			Value        => $attrs->{$key},
-			};
+		};
 	}
 
 	# Complete the main element
@@ -561,19 +571,21 @@ sub _element {
 		#Prefix       => $Prefix,
 		#LocalName    => $LocalName,
 		Attributes   => \%Attributes,
-		};
+	};
 }
 
 # Send a matching tag for a known object accessor
 sub _accessor_element {
-	my ($self, $object, $method) = @_;
-	my $value = $object->$method();
+	my $self   = shift;
+	my $object = shift;
+	my $method = shift;
+	my $value  = $object->$method();
 
 	# Generate the element and send it
 	my $el = $self->_element( $method );
 	$self->start_element( $el );
 	$self->characters( $value );
-	$self->end_element( $el );	
+	$self->end_element( $el );
 }
 
 # Auto-preparation of the text
@@ -590,13 +602,13 @@ sub characters {
 		my $scalar_ref = shift;
 		return $self->SUPER::characters( {
 			Data => $$scalar_ref,
-			} );
+		} );
 	}
 
 	# Must be a normal string
 	$self->SUPER::characters( {
 		Data => shift,
-		} );
+	} );
 }
 
 ### Not sure if we escape here.
