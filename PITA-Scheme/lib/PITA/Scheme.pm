@@ -22,7 +22,7 @@ PITA::Scheme - PITA Testing Schemes
 
 =head1 DESCRIPTION
 
-While most of the PITA system exists outside the guest testing images and
+While most of the L<PITA> system exists outside the guest testing images and
 tries to have as little interaction with them as possible, there is one
 part that needs to be run from inside it.
 
@@ -72,7 +72,7 @@ use PITA::XML    ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.42';
+	$VERSION = '0.43';
 }
 
 
@@ -92,7 +92,7 @@ sub new {
 	}
 
 	# Cursory checking for compulsory params
-	foreach my $param ( qw{injector workarea scheme path} ) {
+	foreach my $param ( qw{ injector workarea scheme path } ) {
 		next if $self->$param();
 		Carp::croak("Missing compulsory param '$param'");
 	}
@@ -172,7 +172,7 @@ sub platform {
 }
 
 sub install {
-	$_[0]->{install};	
+	$_[0]->{install};
 }
 
 sub report {
@@ -190,9 +190,10 @@ sub load_config {
 	my $self = shift;
 
 	# Load the config file
-	$self->{config} = Config::Tiny->new( $self->{config_file} )
-		or Carp::croak("Failed to load config file: "
-			. Config::Tiny->errstr);
+	$self->{config} = Config::Tiny->new( $self->{config_file} );
+	unless ( $self->{config} ) {
+		Carp::croak("Failed to load config file: " . Config::Tiny->errstr);
+	}
 
 	# Validate some basics
 
@@ -230,7 +231,7 @@ sub prepare_report {
 	$self->{install} = PITA::XML::Install->new(
 		request  => $self->request,
 		platform => $self->platform,
-		);
+	);
 
 	# Create the main report object
 	$self->{report} ||= PITA::XML::Report->new;
@@ -243,7 +244,7 @@ sub execute_command {
 	my $self = shift;
 	my $cmd  = _ARRAY( [ @_ ] ) or Carp::croak(
 		"execute_command not passed an ARRAY ref as command"
-		);
+	);
 
 	# Execute the command
 	my $stdout  = '';
@@ -255,7 +256,7 @@ sub execute_command {
 		cmd    => join( ' ', @$cmd ),
 		stdout => \$stdout,
 		stderr => \$stderr,
-		);
+	);
 	unless ( _INSTANCE($command, 'PITA::XML::Command') ) {
 		Carp::croak("Error creating ::Command");
 	}

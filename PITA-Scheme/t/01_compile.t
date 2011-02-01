@@ -12,12 +12,11 @@ use Test::More tests => 12;
 
 BEGIN {
 	ok( $] >= 5.005, 'Perl version is 5.005 or newer' );
-
-	use_ok( 'PITA::Scheme'                   );
-	use_ok( 'PITA::Scheme::Perl5'            );
-	use_ok( 'PITA::Scheme::Perl5::Make'      );
-	use_ok( 'PITA::Scheme::Perl5::Build'     );
-	use_ok( 'PITA::Scheme::Perl'             );
+	use_ok( 'PITA::Scheme'                  );
+	use_ok( 'PITA::Scheme::Perl5'           );
+	use_ok( 'PITA::Scheme::Perl5::Make'     );
+	use_ok( 'PITA::Scheme::Perl5::Build'    );
+	use_ok( 'PITA::Scheme::Perl'            );
 	use_ok( 'PITA::Scheme::Perl::Discovery' );
 }
 

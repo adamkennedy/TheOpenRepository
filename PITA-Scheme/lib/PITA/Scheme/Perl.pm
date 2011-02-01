@@ -5,16 +5,17 @@ package PITA::Scheme::Perl;
 
 use 5.005;
 use strict;
-use base 'PITA::Scheme';
 use Carp             ();
 use File::Spec       ();
 use File::pushd      ();
-use Params::Util     '_INSTANCE';
+use Params::Util     ('_INSTANCE');
 use Archive::Extract ();
+use PITA::Scheme     ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.42';
+	$VERSION = '0.43';
+	@ISA     = 'PITA::Scheme';
 }
 
 
@@ -65,14 +66,15 @@ sub prepare_package {
 	return 1 if $self->{extract_files};
 
 	# Extract the package to the working directory
-	my $archive = Archive::Extract->new( archive => $self->archive )
-		or Carp::croak("Package is not an archive, or not extractable");
+	my $archive = Archive::Extract->new(
+		archive => $self->archive
+	) or Carp::croak("Package is not an archive, or not extractable");
 
 	# Extract the archive to the working directory
 	local $Archive::Extract::WARN = 0;
-	my $ok = $archive->extract( to => $self->workarea )
-		or Carp::croak("Error extracting package: "
-			. $archive->error );
+	my $ok = $archive->extract(
+		to => $self->workarea
+	) or Carp::croak("Error extracting package: " . $archive->error);
 
 	# Save the list of files
 	$self->{extract_path}  = $archive->extract_path;
@@ -98,7 +100,7 @@ sub prepare_environment {
 
 	# Set any general environment variables
 	$ENV{PERL_AUTOINSTALL}  = '--defaultdeps';
-	$ENV{AUTOMATED_TESTING} = ref($self);
+	$ENV{AUTOMATED_TESTING} = ref $self;
 
 	# Set any environment variables from the Request
 	### Not supported by PITA::XML::Request yet

@@ -4,13 +4,15 @@ package PITA::Scheme::Perl5::Make;
 
 use 5.005;
 use strict;
-use base 'PITA::Scheme::Perl';
-use Carp        ();
-use File::Which ();
+use Carp               ();
+use Config             ();
+use File::Which        ();
+use PITA::Scheme::Perl ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.42';
+	$VERSION = '0.43';
+	@ISA     = 'PITA::Scheme::Perl';
 }
 
 
@@ -96,8 +98,9 @@ sub execute_make {
 		Carp::croak("Cannot execute_make without a Makefile");
 	}
 
-	# Run the make
-	my $command = $self->execute_command('make');
+	# Run make
+	my $make    = $Config::Config{make} || 'make';
+	my $command = $self->execute_command($make);
 
 	# Did it create a blib directory?
 	if ( -d $self->workarea_file('blib') ) {
@@ -121,7 +124,8 @@ sub execute_maketest {
 	}
 
 	# Run the make test
-	my $command = $self->execute_command('make', 'test');
+	my $make    = $Config::Config{make} || 'make';
+	my $command = $self->execute_command($make, 'test');
 
 	# Did it... erm...
 	if ( 1 ) {

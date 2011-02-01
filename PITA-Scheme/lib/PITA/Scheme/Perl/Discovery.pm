@@ -5,16 +5,21 @@ package PITA::Scheme::Perl::Discovery;
 
 use 5.005;
 use strict;
-use base 'Process::Delegatable',
-         'Process::Storable',
-         'Process';
-use Params::Util '_STRING';
-use File::Spec   ();
-use PITA::XML    ();
+use File::Spec           ();
+use Params::Util         ('_STRING');
+use Process              ();
+use Process::Storable    ();
+use Process::Delegatable ();
+use PITA::XML            ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.42';
+	$VERSION = '0.43';
+	@ISA     = qw{
+		Process::Delegatable
+		Process::Storable
+		Process
+	};
 }
 
 
@@ -26,9 +31,7 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-
-	# Create the object
-	my $self = bless { @_ }, $class;
+	my $self  = bless { @_ }, $class;
 
 	# Check that the program exists.
 	# The path should not be the command to call, it should be
@@ -50,7 +53,7 @@ sub new {
 	my @output = `$self->{path} -v`;
 	chomp @output;
 	shift @output if $output[0] =~ /^\s*$/;
-	unless ( $output[0] =~ /^This is perl,/ ) {
+	unless ( $output[0] =~ /^This is perl/ ) {
 		Carp::croak("The path $self->{path} is not Perl");
 	}
 
@@ -77,7 +80,7 @@ sub platform {
 sub delegate {
 	my $self = shift;
 	return 1 if defined $self->platform;
-	$self->SUPER::delegate($self->path, @_);
+	$self->SUPER::delegate( $self->path, @_ );
 }
 
 
@@ -98,7 +101,9 @@ sub run {
 	my $self = shift;
 
 	# Do the autodetection
-	my $platform = eval { PITA::XML::Platform->autodetect_perl5 };
+	my $platform = eval {
+		PITA::XML::Platform->autodetect_perl5;
+	};
 	if ( $platform ) {
 		$self->{platform} = $platform;
 	} else {

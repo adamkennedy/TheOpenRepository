@@ -1,5 +1,11 @@
 Revision history for Perl extension PITA::Scheme
 
+0.43 Tue  1 Feb 2011
+	- Updating to Module::Install::DSL 1.00
+	- Updating copyright year
+	- Upgrading to newer version of File::Remove
+	- Load make from Config instead of assuming 'make'
+
 0.42 Wed 22 Jul 2009
 	- Updating to Module::Install 0.91
 	- Request id should now be a GUID

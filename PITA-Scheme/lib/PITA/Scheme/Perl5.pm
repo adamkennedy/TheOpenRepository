@@ -9,13 +9,14 @@ package PITA::Scheme::Perl5;
 
 use 5.005;
 use strict;
-use base 'PITA::Scheme::Perl';
-use File::Spec  ();
-use File::Which ();
+use File::Spec         ();
+use File::Which        ();
+use PITA::Scheme::Perl ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.42';
+	$VERSION = '0.43';
+	@ISA     = 'PITA::Scheme::Perl';
 }
 
 
@@ -64,7 +65,7 @@ sub prepare_package {
 		return $self->prepare_package;
 
 	}
-	
+
 	# Doesn't have either
 	Carp::croak("Perl5 package contains neither Makefile.PL or Build.PL");
 }

@@ -4,14 +4,15 @@ package PITA::Scheme::Perl5::Build;
 
 use 5.005;
 use strict;
-use base 'PITA::Scheme::Perl';
-use Carp        ();
-use File::Spec  ();
-use File::Which ();
+use Carp               ();
+use File::Spec         ();
+use File::Which        ();
+use PITA::Scheme::Perl ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.42';
+	$VERSION = '0.43';
+	@ISA     = 'PITA::Scheme::Perl';
 }
 
 
