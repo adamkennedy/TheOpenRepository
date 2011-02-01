@@ -1,15 +1,16 @@
 package PITA::Image::Discover;
 
+use 5.006;
 use strict;
-use base 'PITA::Image::Task';
-use PITA::XML    ();
-use Params::Util '_ARRAY',
-                 '_SET';
+use PITA::XML                     ();
+use Params::Util                qw{ _ARRAY _SET };
+use PITA::Image::Task             ();
 use PITA::Scheme::Perl::Discovery ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.42';
+	$VERSION = '0.43';
+	@ISA     = 'PITA::Image::Task';
 }
 
 sub new {
@@ -66,7 +67,7 @@ sub run {
 	my $guest = PITA::XML::Guest->new(
 		driver => 'Local',
 		params => {},
-		);
+	);
 
 	# Run the discovery on each platform
 	foreach my $discovery ( @{$self->discoveries} ) {

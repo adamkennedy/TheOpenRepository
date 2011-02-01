@@ -89,6 +89,7 @@ use strict;
 use Carp                  ();
 use Process               ();
 use File::Spec            ();
+use File::Spec::Unix      ();
 use File::Which           ();
 use File::Remove          ();
 use Config::Tiny          ();
@@ -102,7 +103,7 @@ use PITA::Image::Test     ();
 
 use vars qw{$VERSION @ISA $NOSERVER};
 BEGIN {
-	$VERSION = '0.42';
+	$VERSION = '0.43';
 	@ISA     = 'Process';
 }
 
@@ -436,7 +437,7 @@ sub report_task_uri {
 	my ($self, $task) = @_;
 	my $uri  = $self->server_uri;
 	my $job  = $task->job_id;
-	my $path = File::Spec->catfile( $uri->path || '/', $job );
+	my $path = File::Spec::Unix->catfile( $uri->path || '/', $job );
 	$uri->path( $path );
 	$uri;
 }

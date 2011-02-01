@@ -1,5 +1,6 @@
 package PITA::Image::Test;
 
+use 5.006;
 use strict;
 use Data::GUID        ();
 use Params::Util      qw{ _POSINT _CLASS _HASH0 };
@@ -7,7 +8,7 @@ use PITA::Image::Task ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.42';
+	$VERSION = '0.43';
 	@ISA     = 'PITA::Image::Task';
 }
 
