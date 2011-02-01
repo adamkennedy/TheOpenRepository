@@ -6,31 +6,24 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 4;
-
-BEGIN {
-	use_ok( 'PITA::POE::SupportServer' ); # 1
-};
-
+use Test::More tests => 3;
+use PITA::POE::SupportServer;
 
 my $server = PITA::POE::SupportServer->new(
-    execute => [
-        sub { sleep 60; },
-    ],
-    http_local_addr => '127.0.0.1',
-    http_local_port => 0,
-    http_startup_timeout => 10,
-    http_mirrors => { '/cpan', '.' },
+	http_local_addr      => '127.0.0.1',
+	http_local_port      => 0,
+	http_startup_timeout => 10,
+	http_mirrors         => { '/cpan', '.' },
+	execute              => [
+		sub { sleep 60; },
+	],
 );
+isa_ok( $server, 'PITA::POE::SupportServer' );
 
-ok( 1, 'Server created' ); # 2
+$server->prepare or die $server->{errstr};
 
-$server->prepare() or die $server->{errstr};
+ok( 1, 'Server prepared' );
 
-ok( 1, 'Server prepared' ); # 3
+$server->run;
 
-$server->run();
-
-ok( $server->{exitcode}, 'Server ran and timed out' ); # 4
-
-exit(0);
+ok( $server->{exitcode}, 'Server ran and timed out' );
