@@ -32,15 +32,15 @@ my $server = PITA::POE::SupportServer->new(
 	execute               => [ \&_lwp, $port ],
 );
 
-ok( 1, 'Server created' ); # 2
+ok( 1, 'Server created' );
 
 $server->prepare or die $server->{errstr};
 
-ok( 1, 'Server prepared' ); # 3
+ok( 1, 'Server prepared' );
 
 $server->run;
 
-ok( $server->{exitcode}, 'Server ran and timed out' ); # 4
+ok( $server->{exitcode}, 'Server ran and timed out' );
 
 sub _lwp {
 	my $port = shift || return;
