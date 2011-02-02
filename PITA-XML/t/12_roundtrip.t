@@ -194,7 +194,12 @@ SCOPE: {
 	like( $output, qr/\<guest xmlns/, 'Wrote XML' );
 
 	# Read it back in
-	my $guest2 = eval { PITA::XML::Guest->read( \$output ) };
+	my $guest2 = eval {
+		PITA::XML::Guest->read(
+			\$output,
+			base => $guest->base,
+		)
+	};
 	is( $@, '', 'Parses back in again without error' );
 	isa_ok( $guest2, 'PITA::XML::Guest' );
 	is_deeply( $guest2, $guest, 'Round-trips ok' );
@@ -217,7 +222,12 @@ SCOPE: {
 	like( $output, qr/\<platform/, 'Contains a platform' );
 
 	# Read it back in
-	my $guest2 = eval { PITA::XML::Guest->read( \$output ) };
+	my $guest2 = eval {
+		PITA::XML::Guest->read(
+			\$output,
+			base => $guest->base,
+		)
+	};
 	is( $@, '', 'Parses back in again without error' );
 	isa_ok( $guest2, 'PITA::XML::Guest' );
 	is_deeply( $guest2, $guest, 'Round-trips ok' );	

@@ -2,6 +2,7 @@ Revision history for Perl extension PITA::XML
 
 0.44 Tue  2 Feb 2011
 	- Fixes to PITA::XML::Guest->driver_available
+	- Track XML source directory for guests
 
 0.43 Tue  2 Feb 2011
 	- Updated to Module::Install 1.00

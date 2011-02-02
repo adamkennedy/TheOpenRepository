@@ -29,6 +29,8 @@ represented in L<PITA::XML> by L<PITA::XML::Platform> objects.
 use 5.006;
 use strict;
 use Carp                ();
+use File::Spec          ();
+use File::Basename      ();
 use Class::Inspector    ();
 use Params::Util        qw{ _INSTANCE _STRING _CLASS _HASH0 _SET0 };
 use PITA::XML::Storable ();
@@ -52,6 +54,7 @@ my %ALLOWED = (
 	id     => 1,
 	driver => 1,
 	config => 1,
+	base   => 1,
 );
 
 =pod
@@ -87,7 +90,7 @@ Returns a new L<PITA::XML::Guest> or throw an exception on error.
 
 sub new {
 	my $class = shift;
-	my $self  = bless { @_ }, $class;
+	my $self  = bless { base => undef, @_ }, $class;
 
 	# Move the non-core options into the config hash
 	unless ( _HASH0($self->{config}) ) {
@@ -118,7 +121,24 @@ Returns a new L<PITA::XML::Guest> object, or throws an exception on error.
 
 sub read {
 	my $class = shift;
-	my $fh    = PITA::XML->_FH(shift);
+	my $file  = shift;
+	if ( defined _STRING($file) and not -f $file ) {
+		Carp::croak("XML Guest file '$file' does not exist");
+	}
+
+	# What is the directory context for the XML guest file
+	my $base = File::Basename::dirname(
+		File::Spec->rel2abs(
+			defined(_STRING($file)) ? $file : File::Spec->curdir
+		),
+	);
+
+	# Create the basic object
+	my $self = bless {
+		config  => {},
+		base    => $base,
+		@_,
+	}, $class;
 
 	### NOTE: DISABLED TILL WE FINALIZE THE SCHEMA
 	# Validate the document and reset the handle
@@ -128,7 +148,7 @@ sub read {
 	#	);
 
 	# Build the object from the file and validate
-	my $self   = bless { config => {} }, $class;
+	my $fh     = PITA::XML->_FH($file);
 	my $parser = XML::SAX::ParserFactory->parser(
 		Handler => PITA::XML::SAXParser->new($self),
 	);
@@ -262,6 +282,22 @@ Returns a reference to a C<HASH> containing plain scalar keys and values.
 
 sub config {
 	$_[0]->{config};
+}
+
+=pod
+
+=head2 base
+
+If the guest XML was loaded from a file via C<read> the C<base> method
+will return the directory that the XML file was loaded from.
+
+This base directory identifies where any relative file paths should be
+mapped from.
+
+=cut
+
+sub base {
+	$_[0]->{base};
 }
 
 =pod

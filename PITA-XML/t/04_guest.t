@@ -31,7 +31,7 @@ SCOPE: {
 	my $dist = PITA::XML::Guest->new(
 		id     => '17585D96-2896-11DC-B63B-8D0B94882154',
 		driver => 'Local',
-		);
+	);
 	isa_ok( $dist, 'PITA::XML::Guest' );
 	is( $dist->id, '17585D96-2896-11DC-B63B-8D0B94882154' );
 	is( $dist->driver, 'Local', '->driver matches expected' );
@@ -45,14 +45,14 @@ my $file = PITA::XML::File->new(
 	filename => 'guest.img',
 	digest   => 'MD5.abcdefabcd0123456789abcdefabcd01',
 	resource => 'hda',
-	);
+);
 isa_ok( $file, 'PITA::XML::File' );
 
 my @params = (
 	driver   => 'Image::Test',
 	memory   => 256,
 	snapshot => 1,
-	);
+);
 SCOPE: {
 	my $dist = PITA::XML::Guest->new( @params );
 	isa_ok( $dist, 'PITA::XML::Guest' );
@@ -80,7 +80,12 @@ SCOPE: {
 		'->md5sum returns undef' );
 	is_deeply( $dist->config, { memory => 256, snapshot => 1 },
 		'->config returns the expected hash' );
-	my $made = PITA::XML::Guest->new( @params );
+	my $made = PITA::XML::Guest->new(
+		@params,
+		base => rel2abs(
+			catdir('t', 'samples'),
+		),
+	);
 	isa_ok( $made, 'PITA::XML::Guest' );
 	is( $made->id, undef, '->id is undef' );
 	ok( $made->set_id('17585D96-2896-11DC-B63B-8D0B94882154'), '->set_id ok' );
@@ -91,7 +96,12 @@ SCOPE: {
 	# Check that the guest object round-trips ok
 	my $output = '';
 	$dist->write( \$output );
-	my $round = PITA::XML::Guest->read( \$output );
+	my $round = PITA::XML::Guest->read(
+		\$output,
+		base => rel2abs(
+			catdir('t', 'samples'),
+		),
+	);
 	is_deeply( $dist, $round, 'Guest round-trips ok' );
 	is_deeply( $made, $round, 'Guest round-trips ok' );
 }
