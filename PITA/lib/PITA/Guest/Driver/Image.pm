@@ -20,7 +20,7 @@ use PITA::POE::SupportServer ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
 	@ISA     = 'PITA::Guest::Driver';
 }
 

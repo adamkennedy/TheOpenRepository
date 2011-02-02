@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
 }
 
 use PITA::XML           ();
@@ -183,7 +183,7 @@ L<PITA::XML>, L<PITA::Scheme>, L<PITA::Guest::Driver::Qemu>
 
 =head1 COPYRIGHT
 
-Copyright 2005 - 2007 Adam Kennedy.
+Copyright 2005 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

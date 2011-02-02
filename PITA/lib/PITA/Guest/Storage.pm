@@ -26,7 +26,7 @@ use Params::Util qw{ _INSTANCE _STRING };
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
 }
 
 
@@ -214,7 +214,7 @@ L<PITA>, L<http://ali.as/pita/>
 
 =head1 COPYRIGHT
 
-Copyright 2005, 2006 Adam Kennedy.
+Copyright 2005 - 2011 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
