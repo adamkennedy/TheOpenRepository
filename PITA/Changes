@@ -1,9 +1,10 @@
 Revision history for Perl extension PITA
 
-0.43 Wed  2 Feb 2011
+0.44 Wed  2 Feb 2011
 	- Upgrading to Module::Install::DSL 1.00
 	- Only do file locking with File::Flock on Unix
 	- Updating copyright year
+	- Try harder to locate images when adding things to storage objects
 
 0.41 Wed 23 Jul 2009
 	- Upgraded to Module::Install 0.91

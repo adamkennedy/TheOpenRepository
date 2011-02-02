@@ -29,7 +29,7 @@ use PITA::Guest::Driver ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '044';
 	@ISA     = 'PITA::Guest::Driver';
 }
 
@@ -71,7 +71,7 @@ sub new {
 	# Find the install perl version
 	my $local_bin = $self->local_bin;
 	my $lines = `$local_bin -v`;
-	unless ( $lines =~ /^This is perl, v([\d\.]+) built for/m ) {
+	unless ( $lines =~ /^This is perl[^\n]+v([\d\.]+)[^\n]+built for/m ) {
 		Carp::croak("Failed to locate Perl version");
 	}
 	$self->{local_version} = version->new("$1");

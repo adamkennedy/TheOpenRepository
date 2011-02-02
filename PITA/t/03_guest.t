@@ -10,8 +10,8 @@ BEGIN {
 
 use Test::More tests => 47;
 
-use PITA ();
-use File::Remove 'remove';
+use PITA         ();
+use File::Remove ();
 use File::Spec::Functions ':ALL';
 
 sub compare_guests {
@@ -29,8 +29,7 @@ ok( -f $local_empty, 'Found local_empty test file' );
 
 # Set up the write test guest file
 my $local_write = rel2abs(catfile( 't', 'guests', 'local_write.pita' ));
-      if ( -f $local_write ) { remove( $local_write ) }
-END { if ( -f $local_write ) { remove( $local_write ) } }
+File::Remove::clear($local_write);
 ok( ! -f $local_write, 'local_write.pita does not exist' );
 
 # Find the test request file
@@ -136,5 +135,3 @@ SCOPE: {
 	is_deeply( $install->request, $request, 'Request matched original' );
 	is( scalar($install->commands), 3, 'Found three commands' );
 }
-
-exit(0);

@@ -10,7 +10,7 @@ use PITA::XML    ();
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '044';
 }
 
 

@@ -17,11 +17,9 @@ use Params::Util                 '_SET';
 
 # Set up an existing directory
 my $storage_dir = catdir( 't', 'storage_simple' );
-my $lock_file   = catfile( $storage_dir, 'PITA-Guest-Storage-Simple.lock' );
-      if ( -d $storage_dir ) { remove( $storage_dir ) }
+File::Remove::clear($storage_dir);
 ok( ! -d $storage_dir, 'storage_simple does not exists' );
 ok( mkdir($storage_dir), 'storage_simple created' );
-END { if ( -d $storage_dir ) { remove( $storage_dir ) } }
 ok( -d $storage_dir, 'storage_simple exists' );
 
 # Find the test guest file
@@ -38,7 +36,7 @@ ok( -f $image_test, 'Found image_test.pita test file' );
 # Create a basic storage object
 my $storage = PITA::Guest::Storage::Simple->new(
 	storage_dir => $storage_dir,
-	);
+);
 isa_ok( $storage, 'PITA::Guest::Storage::Simple' );
 isa_ok( $storage, 'PITA::Guest::Storage' );
 SKIP: {
@@ -63,5 +61,3 @@ is_deeply( $guest, $guest2, 'Guest refetched matches original' );
 # Get the set of platforms
 my @platforms = $storage->platforms;
 ok( !! _SET0(\@platforms, 'PITA::XML::Platform'), '->platforms ok' );
-
-exit(0);

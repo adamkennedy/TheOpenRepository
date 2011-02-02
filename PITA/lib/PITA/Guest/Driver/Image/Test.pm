@@ -3,12 +3,13 @@ package PITA::Guest::Driver::Image::Test;
 use 5.006;
 use strict;
 use File::Spec                 ();
+use Probe::Perl                ();
 use PITA::Image                ();
 use PITA::Guest::Driver::Image ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '044';
 	@ISA     = 'PITA::Guest::Driver::Image';
 }
 
@@ -31,6 +32,7 @@ sub support_server_new {
 	my $self   = shift;
 	my $server = PITA::POE::SupportServer->new(
 		execute => [
+			Probe::Perl->find_perl_interpreter,
 			$image_bin,
 			'--injector',
 			$self->injector_dir,

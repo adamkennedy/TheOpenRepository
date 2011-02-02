@@ -27,7 +27,7 @@ use PITA::XML      ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '044';
 	@ISA     = 'Process';
 }
 
@@ -89,7 +89,7 @@ sub new {
 		my $filename = $filexml->filename;
 		if ( File::Spec->file_name_is_absolute( $filename ) ) {
 			$self->{absimage} = $filename;
-		} else {
+		} elsif ( defined $file ) {
 			$filename = File::Spec->catfile(
 				File::Basename::dirname($file),
 				$filename,
@@ -98,6 +98,17 @@ sub new {
 				$filename = File::Spec->rel2abs( $filename );
 			}
 			$self->{absimage} = $filename;
+		} elsif ( defined $guest_xml->base ) {
+			$filename = File::Spec->catfile(
+				$guest_xml->base,
+				$filename,
+			);
+			unless ( File::Spec->file_name_is_absolute( $filename ) ){
+				$filename = File::Spec->rel2abs( $filename );
+			}
+			$self->{absimage} = $filename;
+		} else {
+			die "Unable to locate image file for guest";
 		}
 	}
 

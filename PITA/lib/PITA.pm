@@ -5,7 +5,7 @@ use strict;
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '044';
 }
 
 use PITA::XML           ();

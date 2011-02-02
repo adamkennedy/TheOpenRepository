@@ -277,5 +277,3 @@ SCOPE: {
 	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
 
 }
-
-exit(0);

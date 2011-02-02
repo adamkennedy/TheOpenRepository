@@ -10,7 +10,7 @@ use PITA::XML     ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '044';
 	@ISA     = qw{
 		Process::YAML
 		Process

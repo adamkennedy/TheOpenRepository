@@ -20,7 +20,7 @@ use PITA::POE::SupportServer ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '044';
 	@ISA     = 'PITA::Guest::Driver';
 }
 
@@ -324,7 +324,7 @@ sub prepare_task {
 	my $image_conf = Config::Tiny->new;
 	$image_conf->{_} = {
 		class      => 'PITA::Image',
-		version    => '0.40',
+		version    => '0.43',
 		server_uri => $self->support_server_uri,
 		};
 	if ( -d $self->perl5lib_dir ) {

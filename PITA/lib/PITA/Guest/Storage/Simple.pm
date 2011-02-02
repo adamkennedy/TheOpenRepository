@@ -33,7 +33,7 @@ use PITA::Guest::Storage ();
 
 use vars qw{$VERSION @ISA $LOCKFILE};
 BEGIN {
-	$VERSION  = '0.43';
+	$VERSION  = '044';
 	@ISA      = 'PITA::Guest::Storage';
 	$LOCKFILE = 'PITA-Guest-Storage-Simple.lock';
 }
