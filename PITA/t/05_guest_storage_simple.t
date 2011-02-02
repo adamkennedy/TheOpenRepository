@@ -9,7 +9,6 @@ BEGIN {
 }
 
 use Test::More tests => 7;
-
 use PITA                         ();
 use PITA::Guest::Storage::Simple ();
 use File::Remove                 'remove';
@@ -42,8 +41,11 @@ my $storage = PITA::Guest::Storage::Simple->new(
 	);
 isa_ok( $storage, 'PITA::Guest::Storage::Simple' );
 isa_ok( $storage, 'PITA::Guest::Storage' );
-is( $storage->storage_dir, $storage_dir, '->storage_dir returns as expected' );
-isa_ok( $storage->storage_lock, 'File::Flock' );
+SKIP: {
+	skip( "No locking on Win32", 2 ) if $^O eq 'MSWin32';
+	is( $storage->storage_dir, $storage_dir, '->storage_dir returns as expected' );
+	isa_ok( $storage->storage_lock, 'File::Flock' );
+}
 
 # Create a simple guest and add it
 my $guest = PITA::XML::Guest->read( $image_test );

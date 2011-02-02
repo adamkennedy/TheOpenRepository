@@ -5,24 +5,23 @@ package PITA::Guest::Driver::Image;
 
 use 5.006;
 use strict;
-use base 'PITA::Guest::Driver';
-use Carp             ();
-use File::Path       ();
-use File::Temp       ();
-use File::Copy       ();
-use File::Remove     ();
-use File::Basename   ();
-use Storable         ();
-use Params::Util     '_INSTANCE',
-                     '_POSINT',
-                     '_STRING';
-use Config::Tiny     ();
-use Class::Inspector ();
+use Carp                     ();
+use File::Path               ();
+use File::Temp               ();
+use File::Copy               ();
+use File::Remove             ();
+use File::Basename           ();
+use Storable                 ();
+use Params::Util             qw{ _INSTANCE _POSINT _STRING };
+use Config::Tiny             ();
+use Class::Inspector         ();
+use PITA::Guest::Driver      ();
 use PITA::POE::SupportServer ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.41';
+	@ISA     = 'PITA::Guest::Driver';
 }
 
 
@@ -118,7 +117,7 @@ sub support_server_uri {
 	URI->new( "http://"
 		. $self->support_server_addr . ':'
 		. $self->support_server_port . '/'
-		);
+	);
 }
 
 sub perl5lib_dir {

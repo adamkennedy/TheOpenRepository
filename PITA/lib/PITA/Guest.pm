@@ -19,15 +19,16 @@ This class implements the Guest abstraction.
 
 use 5.006;
 use strict;
-use base 'Process'; # Process::YAML
+use Process        ();
 use File::Spec     ();
 use File::Basename ();
 use Params::Util   qw{ _STRING _SCALAR _INSTANCE };
 use PITA::XML      ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.41';
+	@ISA     = 'Process';
 }
 
 
@@ -80,7 +81,7 @@ sub new {
 		file     => $file,
 		guestxml => $guest_xml,
 		driver   => undef,
-		}, $class;
+	}, $class;
 
 	# If and only if the Guest has an image, save its absolute path
 	if ( $self->guestxml->files ) {
@@ -92,7 +93,7 @@ sub new {
 			$filename = File::Spec->catfile(
 				File::Basename::dirname($file),
 				$filename,
-				);
+			);
 			unless ( File::Spec->file_name_is_absolute( $filename ) ){
 				$filename = File::Spec->rel2abs( $filename );
 			}
@@ -255,8 +256,10 @@ sub test {
 	}
 
 	# Load the request object
-	my $request = PITA::XML::Request->read($filename)
-		or Carp::croak('Failed to load request file');
+	my $request = PITA::XML::Request->read($filename);
+	unless ( $request ) {
+		Carp::croak('Failed to load request file');
+	}
 
 	# Locate the archive file, converting the request
 	# filename to absolute if needed.

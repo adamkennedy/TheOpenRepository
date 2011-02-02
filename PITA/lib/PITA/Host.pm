@@ -76,15 +76,16 @@ sub image_cache_quota {
 # Image and Cache Management
 
 sub image_extract {
-	my ($self, $name) = @_;
+	my $self = shift;
+	my $name = shift;
 
 	# What are we extracting to where
 	my $from = File::Spec->catfile(
 		$self->image_store, "$name.img.gz",
-		);
+	);
 	my $to = File::Spec->catfile(
 		$self->image_cache, "$name.img",
-		);
+	);
 
 	# Extract the compressed image
 	local $Archive::Extract::PREFER_BIN = 1;
@@ -100,7 +101,7 @@ sub image_extract {
 }
 
 sub image_cache_clear {
-	my $self  = shift;
+	my $self = shift;
 
 	# Find all image files
 	my @files = FFR->file

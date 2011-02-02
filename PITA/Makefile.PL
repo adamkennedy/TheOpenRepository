@@ -8,7 +8,7 @@ requires      File::Basename           0
 requires      File::Temp               0
 requires      File::Path               0
 requires      File::Copy               0
-requires      File::Flock              104.111901
+requires      File::Flock              104.111901 unless win32
 requires      File::Remove             0.34
 requires      Getopt::Long             0
 requires      Storable                 2.14
@@ -22,7 +22,7 @@ requires      Process                  0.16
 requires      PITA::XML                0.43
 requires      PITA::Scheme             0.43
 requires      PITA::Image              0.43
-requires      PITA::POE::SupportServer 0.40
+requires      PITA::POE::SupportServer 0.43
 test_requires Test::More               0.47
 test_requires Test::Script             1.02
 no_index      directory                doc

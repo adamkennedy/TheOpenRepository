@@ -23,18 +23,18 @@ Guest image location and searching is done the long way, with no indexing.
 
 use 5.006;
 use strict;
-use Carp             ();
-use File::Spec       ();
-use File::Path       ();
-use File::Flock      ();
-use Params::Util     '_INSTANCE';
-use Data::GUID       ();
-use PITA::XML::Guest ();
-use base 'PITA::Guest::Storage';
+use Carp                 ();
+use File::Spec           ();
+use File::Path           ();
+use Params::Util         '_INSTANCE';
+use Data::GUID           ();
+use PITA::XML::Guest     ();
+use PITA::Guest::Storage ();
 
-use vars qw{$VERSION $LOCKFILE};
+use vars qw{$VERSION @ISA $LOCKFILE};
 BEGIN {
 	$VERSION  = '0.41';
+	@ISA      = 'PITA::Guest::Storage';
 	$LOCKFILE = 'PITA-Guest-Storage-Simple.lock';
 }
 
@@ -142,6 +142,10 @@ or throws an exception on error.
 =cut
 
 sub storage_lock {
+	return 1 if $^O eq 'MSWin32';
+
+	# Only lock on Unix
+	require File::Flock;
 	File::Flock->new(
 		File::Spec->catfile( $_[0]->storage_dir, $LOCKFILE ),
 	);
@@ -221,7 +225,7 @@ sub guest_exists {
 sub guest_file {
 	File::Spec->catfile(
 		$_[0]->storage_dir, "$_[1].pita",
-		);
+	);
 }
 
 sub guests {

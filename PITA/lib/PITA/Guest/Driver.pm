@@ -5,9 +5,7 @@ use strict;
 use Carp         ();
 use File::Temp   ();
 use File::Remove ();
-use Params::Util '_INSTANCE',
-                 '_POSINT',
-                 '_HASH';
+use Params::Util qw{ _INSTANCE _POSINT _HASH };
 use PITA::XML    ();
 
 use vars qw{$VERSION};
@@ -24,9 +22,7 @@ BEGIN {
 
 sub new {
 	my $class = shift;
-
-	# Create the object
-	my $self = bless { @_ }, $class;
+	my $self  = bless { @_ }, $class;
 
 	# Were we passed the guest object
 	unless ( _INSTANCE($self->guest, 'PITA::XML::Guest') ) {

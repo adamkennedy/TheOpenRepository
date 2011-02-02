@@ -22,8 +22,7 @@ use 5.006;
 use strict;
 use Carp         ();
 use Data::GUID   ();
-use Params::Util '_INSTANCE',
-                 '_STRING';
+use Params::Util qw{ _INSTANCE _STRING };
 
 use vars qw{$VERSION};
 BEGIN {

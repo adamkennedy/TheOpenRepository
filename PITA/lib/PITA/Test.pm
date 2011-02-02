@@ -4,12 +4,17 @@ package PITA::Guest;
 
 use 5.006;
 use strict;
-use base 'Process::YAML', 'Process';
-use PITA::XML ();
+use Process       ();
+use Process::YAML ();
+use PITA::XML     ();
 
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
 	$VERSION = '0.41';
+	@ISA     = qw{
+		Process::YAML
+		Process
+	};
 }
 
 
