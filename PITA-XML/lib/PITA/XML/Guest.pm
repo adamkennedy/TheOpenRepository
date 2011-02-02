@@ -35,7 +35,7 @@ use PITA::XML::Storable ();
 
 use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.43';
+	$VERSION = '0.44';
 	@ISA     = 'PITA::XML::Storable';
 }
 
@@ -242,8 +242,8 @@ Returns true if the driver is available, or false if not.
 
 sub driver_available {
 	my $self   = shift;
-	my $driver = 'PITA::Guest::' . $self->driver;
-	Class::Inspector->available( $driver );
+	my $driver = 'PITA::Guest::Driver::' . $self->driver;
+	Class::Inspector->installed( $driver );
 }
 
 =pod
