@@ -231,7 +231,7 @@ PITA::POE::SupportServer object might look as follows.
           http_startup_timeout => 30,
           http_activity_timeout => 3600,
           http_shutdown_timeout => 10,
-          ) or die "Failed to create support server";
+  ) or die "Failed to create support server";
   
   $server->prepare
           or die "Failed to prepare support server";

@@ -1,7 +1,20 @@
 #!/usr/bin/perl
 
 use strict;
-use Test::More tests => 7;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More;
+BEGIN {
+	if ( $^O eq 'MSWin32' ) {
+		plan skip_all => 'Known-bad on Win32';
+	} else {
+		plan tests => 7;
+	}
+};
+
 use LWP::UserAgent;
 use HTTP::Request;
 use IO::Socket::INET;

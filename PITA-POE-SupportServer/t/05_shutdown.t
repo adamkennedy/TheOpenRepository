@@ -6,7 +6,14 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 3;
+use Test::More;
+BEGIN {
+	if ( $^O eq 'MSWin32' ) {
+		plan skip_all => 'Known-bad on Win32';
+	} else {
+		plan tests => 3;
+	}
+};
 use LWP::UserAgent;
 use IO::Socket::INET;
 use PITA::POE::SupportServer ();

@@ -2,18 +2,18 @@ package PITA::POE::SupportServer;
 
 use 5.006;
 use strict;
-use Params::Util qw( _ARRAY _HASH0 );
+use URI                                   ();
+use Process                               ();
+use Params::Util                          qw{ _ARRAY _HASH0 };
+use POE                                   qw{Filter::Line Wheel::Run };
+use MIME::Types                           qw{by_suffix};
+use POE::Component::Server::SimpleContent ();
+use POE::Component::Server::SimpleHTTP    ();
 
-use POE qw(Filter::Line Wheel::Run );
-use POE::Component::Server::SimpleContent;
-use POE::Component::Server::SimpleHTTP;
-use URI;
-use MIME::Types qw(by_suffix);
-use base 'Process';
-
-use vars qw{$VERSION};
+use vars qw{$VERSION @ISA};
 BEGIN {
-	$VERSION = '0.41';
+	$VERSION = '0.43';
+	@ISA     = 'Process';
 }
 
 sub new {
@@ -394,7 +394,8 @@ PITA::POE::SupportServer - Support server for PITA virtual machines
 
 TO BE COMPLETED
 
-=head1 SUPPORT 
+=head1 SUPPORT
+
 Bugs should be reported via the CPAN bug tracker at
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=PITA-POE-SupportServer>
@@ -415,7 +416,7 @@ L<PITA>, L<POE>, L<Process>, L<http://ali.as/>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2006 - 2008 David Davis.
+Copyright 2006 - 2011 David Davis.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

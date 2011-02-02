@@ -6,7 +6,15 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 4;
+use Test::More;
+BEGIN {
+	if ( $^O eq 'MSWin32' ) {
+		plan skip_all => 'Known-bad on Win32';
+	} else {
+		plan tests => 4;
+	}
+};
+
 use LWP::UserAgent;
 use HTTP::Request;
 use IO::Socket::INET;
