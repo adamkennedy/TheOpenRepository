@@ -58,12 +58,12 @@ STMT_START {                                                \
     const_uv(NSCachesDirectory);
     const_uv(NSApplicationSupportDirectory);
 #endif
-#if defined(MAC_OS_X_VERSION_10_5)
+#if (defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5))
     const_uv(NSDownloadsDirectory);
 #endif
     const_uv(NSAllApplicationsDirectory);
     const_uv(NSAllLibrariesDirectory);
-#if defined(MAC_OS_X_VERSION_10_6)
+#if (defined(MAC_OS_X_VERSION_10_6) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6))
     const_uv(NSInputMethodsDirectory);
     const_uv(NSMoviesDirectory);
     const_uv(NSMusicDirectory);
@@ -109,12 +109,12 @@ FindDirectory(constant, mask=NSUserDomainMask)
         case NSCachesDirectory:
         case NSApplicationSupportDirectory:
 #endif
-#if defined(MAC_OS_X_VERSION_10_5)
+#if (defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5))
         case NSDownloadsDirectory:
 #endif
         case NSAllApplicationsDirectory:
         case NSAllLibrariesDirectory:
-#if defined(MAC_OS_X_VERSION_10_6)
+#if (defined(MAC_OS_X_VERSION_10_6) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6))
         case NSInputMethodsDirectory:
         case NSMoviesDirectory:
         case NSMusicDirectory:
