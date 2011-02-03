@@ -271,7 +271,7 @@ SCOPE: {
 	is( $guest->driver->support_server, undef, 'Support Server cleaned up' );
 	is_deeply(
 		[ $PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER->get_log ],
-		[ 'GET /', 'PUT /1234' ],
+		[ 'GET /', 'PUT /D7F50D84-7618-11DE-BE94-5E75E19EDF37' ],
 		'->get_log ok',
 	);
 	$PITA::Guest::Driver::Image::Test::LAST_SUPPORT_SERVER = undef;
