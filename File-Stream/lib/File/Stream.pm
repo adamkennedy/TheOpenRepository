@@ -68,7 +68,7 @@ use Carp;
 use YAPE::Regex;
 
 use vars qw/$End_Of_String/;
-our $VERSION = '2.20';
+our $VERSION = '2.30';
 
 =head2 new
 

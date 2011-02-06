@@ -1,5 +1,8 @@
 Revision history for Perl extension File::Stream.
 
+2.30  Sun Feb  6 19:13:00 2011
+	- Require YAPE::Regex 4.00 for perl 5.14 compatibility.
+
 2.20  Wed Jul 16 12:24:21 2008
         - supply die_on_anchors option to constructor to suppress the
           fatal error thrown for anchors in regexes.
