@@ -7,7 +7,7 @@ my $b = Module::Build->new
    license => 'perl',
    requires => {
 	   			'Carp' => '0',
-				'YAPE::Regex' => '3.02',
+				'YAPE::Regex' => '4.00',
                },
    recommends => {
                   'Test::Pod' => '1.0',
