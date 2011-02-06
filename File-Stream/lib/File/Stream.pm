@@ -378,6 +378,14 @@ Furthermore, since version 2.10, File::Stream includes a patch implementing
 C<seek()> and C<tell()> for File::Stream objects. The idea and code were
 kindly supplied by Phil Whineray.
 
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2003-2011 by Steffen Mueller
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.6 or,
+at your option, any later version of Perl 5 you may have available.
+
 =head1 SEE ALSO
 
 L<perltie>, L<Tie::Handle>, L<perlre>, L<YAPE::Regex>
