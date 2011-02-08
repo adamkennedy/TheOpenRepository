@@ -148,6 +148,7 @@ my $builder = $class->new(
 		'Test::Output'              => '0.11',
 		'Test::Perl::Dist'          => '0.300',
 		'Test::Script'              => '1.03',
+		'Test::UseAllModules'       => '0.09',
 	},
 	recommends => {
 		# To speed up scalar Readonly variables.
