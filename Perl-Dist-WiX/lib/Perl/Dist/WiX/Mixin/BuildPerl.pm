@@ -198,7 +198,7 @@ sub install_cpan_upgrades {
 			# There's a problem with extracting these two files, so
 			# upgrading to these versions, instead...
 			when (
-				m{Unicode-Collate-0 [.] (5[3-9]|6\d)
+				m{Unicode-Collate-0 [.] (\d\d)
                    -withoutworldwriteables}msx
 			  )
 			{
@@ -211,7 +211,7 @@ sub install_cpan_upgrades {
 			} ## end when ( m{Unicode-Collate-0 [.] (5[3-9]|6\d) })
 
 			when (
-				/Unicode-Normalize-1 [.] (0[67])-withoutworldwriteables/msx)
+				/Unicode-Normalize-1 [.] (\d\d)-withoutworldwriteables/msx)
 			{
 				$self->install_distribution(
 					name     => "SADAHIRO/Unicode-Normalize-1.$1.tar.gz",
