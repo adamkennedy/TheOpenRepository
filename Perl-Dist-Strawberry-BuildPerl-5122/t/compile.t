@@ -6,7 +6,7 @@ BEGIN {
 	$| = 1;
 
     ok(($] > 5.008000), 'Perl version acceptable') or BAIL_OUT ('Perl version unacceptably old.');
-    use_ok( 'Perl::Dist::Strawberry::BuildPerl::5121' );
-    diag( "Testing Perl::Dist::Strawberry::BuildPerl::5121 $Perl::Dist::Strawberry::BuildPerl::5121::VERSION" );
+    use_ok( 'Perl::Dist::Strawberry::BuildPerl::5122' );
+    diag( "Testing Perl::Dist::Strawberry::BuildPerl::5122 $Perl::Dist::Strawberry::BuildPerl::5122::VERSION" );
 }
 
