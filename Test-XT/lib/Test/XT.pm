@@ -12,14 +12,26 @@ Test::XT - Generate best practice release-only tests
   
   # Write some specific tests:
   WriteXT(
-      # 
+      # Generally safe and recommended for most distributions
       'Test::Pod'            => 'xt/pod.t',
       'Test::CPAN::Meta'     => 'xt/meta.t',
       'Test::MinimumVersion' => 'xt/minimumversion.t',
-      'Test::Perl::Critic'   => 'xt/critic.t',
       'Test::HasVersion'     => 'xt/hasversion.t',
-      'Test::DistManifest'   => 'xt/distmanifest.t',
+      
+      # Controversial history and methodology, does not install reliably.
+      # Forced use leads to cargo cult of worse-than-nothing empty method stubs.
       'Test::Pod::Coverage'  => 'xt/podcoverage.t',
+      
+      # May become unreliable over time as PPI and Perl::Critic change.
+      # Safe when BOTH distribution and policy file are active and maintained.
+      'Test::Perl::Critic'   => 'xt/critic.t',
+      
+      # Should only be used if you hand-maintain your MANIFEST file.
+      # Can be presumptive about MANIFEST.SKIP in some situations.
+      'Test::DistManifest'   => 'xt/distmanifest.t',
+      
+      # Does not install reliably, does not install AT ALL on Windows.
+      'Test::CheckChanges'   => 'xt/changes.t',
   );
 
 =head1 DESCRIPTION
@@ -63,9 +75,9 @@ the standard of testing, not reduce it.
   # Enable author tests
   $ENV{RELEASE_TESTING} = 1;
 
-All tests should run at release time by the author. Despite this, the
-dependencies STILL should not be checked for in your F<Makefile.PL> or
-F<Build.PL>, because you could end up accidentally having these extra
+All tests should be run at release time by the author. Despite this, the
+dependencies should NEVER be added to your F<Makefile.PL> or F<Build.PL>,
+because it is far too easy to accidentally have these extra
 dependencies bleed through into your published META.yml.
 
 This would cause inaccuracies in tools that track dependencies
