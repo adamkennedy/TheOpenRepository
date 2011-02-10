@@ -71,7 +71,7 @@ around '_install_perl_plugin' => sub {
 	# Install perl.
 	my $perl = Perl::Dist::WiX::Asset::Perl->new(
 		parent => $self,
-		url    => 'http://strawberryperl.com/package/perl-5.12.1.tar.bz2',
+		url    => 'http://strawberryperl.com/package/perl-5.12.2.tar.bz2',
 		toolchain => $toolchain,
 		patch     => [ qw{
 			  lib/CPAN/Config.pm
