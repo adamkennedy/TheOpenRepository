@@ -4,18 +4,22 @@ package Test::XT;
 
 =head1 NAME
 
-Test::XT - Generate best practice author tests
+Test::XT - Generate best practice release-only tests
 
 =head1 SYNOPSIS
 
-  use Test::XT qw(WriteXT);
+  use Test::XT 'WriteXT';
   
   # Write some specific tests:
   WriteXT(
-      'Test::Pod'            => 't/pod.t',
-      'Test::CPAN::Meta'     => 't/meta.t',
-      'Test::MinimumVersion' => 't/minimumversion.t',
-      'Test::Perl::Critic'   => 't/critic.t',
+      # 
+      'Test::Pod'            => 'xt/pod.t',
+      'Test::CPAN::Meta'     => 'xt/meta.t',
+      'Test::MinimumVersion' => 'xt/minimumversion.t',
+      'Test::Perl::Critic'   => 'xt/critic.t',
+      'Test::HasVersion'     => 'xt/hasversion.t',
+      'Test::DistManifest'   => 'xt/distmanifest.t',
+      'Test::Pod::Coverage'  => 'xt/podcoverage.t',
   );
 
 =head1 DESCRIPTION
@@ -73,11 +77,12 @@ use 5.008;
 use strict;
 use warnings;
 use Exporter ();
-use Carp ();
+use Carp     ();
 
 use vars qw{$VERSION @ISA @EXPORT_OK};
 BEGIN {
 	$VERSION   = '0.03_02';
+	$VERSION   = eval $VERSION; # For dev release only
 	@ISA       = 'Exporter';
 	@EXPORT_OK = qw{
 		WriteTest
@@ -185,7 +190,7 @@ our %STANDARD = (
 		modules => {
 			'Test::Pod::Coverage' => '1.08',
 		},
-		default => 'coverage.t',
+		default => 'podcoverage.t',
 	},
 	'Test::CheckChanges' => {
 		test    => 'ok_changes',
@@ -212,7 +217,7 @@ our %STANDARD = (
 =head2 WriteTest
 
   WriteTest(
-    't/somefile.t',
+    'xt/something.t',
     test    => 'ok_changes',
     release => 0,
     comment => 'Test that Changes has an entry for current version',
@@ -225,7 +230,7 @@ This function provides a simple way to write a single test to a file,
 following the usual template. The test data is a hash (Note: it's NOT a
 hash reference).
 
-The example above writes a test to B<t/somefile.t> that loads L<Test::CheckChanges> if
+The example above writes a test to B<xt/somefile.t> that loads L<Test::CheckChanges> if
 available, calling the C<ok_changes()> function if it is. A few knobs
 control how this works:
 
@@ -257,15 +262,15 @@ sub WriteTest {
 =head2 WriteXT
 
   WriteXT(
-      'Test::Pod'            => 't/pod.t',
-      'Test::CPAN::Meta'     => 't/meta.t',
-      'Test::MinimumVersion' => 't/minimumversion.t',
-      'Test::Perl::Critic'   => 't/critic.t',
+      'Test::Pod'            => 'xt/pod.t',
+      'Test::CPAN::Meta'     => 'xt/meta.t',
+      'Test::MinimumVersion' => 'xt/minimumversion.t',
+      'Test::Perl::Critic'   => 'xt/critic.t',
   );
 
 This provides a convenient way to write multiple test files using the default
 profile settings (such as which modules to require, what subroutine to call,
-whether this is a release-only test).
+whether this is a release-only test, and so on).
 
 Example code:
 
@@ -276,14 +281,19 @@ sub WriteXT {
 		my $module = shift;
 		my $file   = shift;
 
-		Carp::croak('Unknown standard test script ' . $module)
-			unless ( $STANDARD{$module} );
+		unless ( $STANDARD{$module} ) {
+			Carp::croak('Unknown standard test script ' . $module);
+		}
 
 		Test::XT->new(
 			%{$STANDARD{$module}}
 		)->write( $file );
 	}
 }
+
+
+
+
 
 #####################################################################
 # Object Form
@@ -416,7 +426,7 @@ END_HEADER
 	# See if this is RELEASE_TESTING only
 	$o .= "plan( skip_all => 'Author tests not required for installation' )\n";
 	$o .= q|	unless ( $ENV{RELEASE_TESTING}|;
-	unless ($self->{release}) {
+	unless ( $self->{release} ) {
 		$o .= ' or $ENV{AUTOMATED_TESTING}';
 	}
 	$o .= " );\n\n";
@@ -475,22 +485,20 @@ For other issues, for commercial enhancement and support, or to have your
 write access enabled for the repository, contact the author at the email
 address above.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
-
-=head2 CONTIRBUTORS
 
 Jonathan Yu E<lt>jawnsy@cpan.orgE<gt>
 
 =head1 SEE ALSO
 
 L<http://use.perl.org/~Alias/journal/38822>, which explains why this style
-of testing is beneficial to you and CPAN-at-large.
+of testing is beneficial to you and the CPAN-at-large.
 
 =head1 COPYRIGHT
 
-Copyright 2009 Adam Kennedy
+Copyright 2009-2011 Adam Kennedy
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

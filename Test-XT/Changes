@@ -1,11 +1,14 @@
 Changes for Perl extension Test-XT
 
-0.03_02
-	- Allow access to underlying %STANDARDS hash
-	- Added various tests for the new modules added in 0.03_01
-	- Fix mistake (pod_coverage_ok -> all_pod_coverage_ok)
-	- Remove Test::Fixme, it's too much of a pain to test
-	- Now throws exceptions using Carp's croak rather than die
+0.03_02 Thu 10 Feb 2011
+	- Updating to Module::Install::DSL 1.00 (ADAMK)
+	- Updated copyright year (ADAMK)
+	- Dramatically reduce the dependency burden, except at release (ADAMK)
+	- Convenience access to underlying %STANDARD hash (FREQUENCY)
+	- Added various tests for the new modules added in 0.03_01 (FREQUENCY)
+	- Fix mistake (pod_coverage_ok -> all_pod_coverage_ok) (FREQUENCY)
+	- Remove Test::Fixme, it's too much of a pain to test (FREQUENCY)
+	- Now throws exceptions using Carp's croak rather than die (FREQUENCY)
 
 0.03_01 Thu 3 Sep 2009
 	- Updating Module::Install to 0.91
