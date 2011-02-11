@@ -231,6 +231,10 @@ sub install_cpan_upgrades {
 				$self->_install_cpan_module( $module, $default_force );
 			}
 
+			when (m{/Module-Build-0.362\d}msx) {
+				$self->install_modules(qw( CPAN::Meta::YAML Perl::OSType Module::Metadata ));
+			}
+
 			when (m{/CGI [.] pm-\d}msx) {
 
 				# New CGI.pm (3.46 and later) versions require FCGI.
@@ -277,10 +281,11 @@ sub install_cpan_upgrades {
 		);
 	}
 
-	# Install dev version of Module::Build if we haven't already.
+	# Install version of Module::Build if we haven't already.
 	if ( not $self->fragment_exists('Module_Build') ) {
+		$self->install_modules(qw( CPAN::Meta::YAML Perl::OSType Module::Metadata ));
 		$self->install_distribution(
-			name             => 'DAGOLDEN/Module-Build-0.36_17.tar.gz',
+			name             => 'DAGOLDEN/Module-Build-0.3624.tar.gz',
 			mod_name         => 'Module::Build',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
