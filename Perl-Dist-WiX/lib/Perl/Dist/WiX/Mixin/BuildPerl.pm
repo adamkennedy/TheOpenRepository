@@ -137,7 +137,7 @@ sub install_cpan_upgrades {
 			'Cannot install CPAN modules yet, perl is not installed');
 	}
 
-    my $sources_dir = $self->image_dir()->subdir('cpan')->subdir('sources');
+    my $sources_dir = $self->image_dir()->subdir(qw(cpan sources authors));
     $self->make_path($sources_dir) if not -d $sources_dir;
 
 	# Get list of modules to be upgraded.
