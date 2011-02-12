@@ -5,10 +5,21 @@ use strict;
 use Test::More tests => 1;
 
 my $minor = 0;
+my $sdk = 0;
 
 if ( -f '/usr/bin/sw_vers' && -x _ ) {
     ($minor) = (qx</usr/bin/sw_vers -productVersion> =~ /\A\d+\.(\d+)\.\d+/);
 }
+
+#check for sdk version passed to xs build
+require Config;
+if($Config::Config{ccflags} =~ m/-mmacosx-version-min=10\.(\d)/) {
+    $sdk = $1;
+}
+
+my $featureversion = $sdk || $minor;
+    
+diag(qq(limiting available functions to Mac OS X 10.$featureversion)) if $featureversion && defined(&Test::More::diag);
 
 my @import = (
     # Functions
@@ -46,10 +57,10 @@ my @import = (
         NSCachesDirectory
         NSApplicationSupportDirectory
     ) : (),
-    ($minor >= 5) ?
+    ( $featureversion >= 5 ) ?
     qw( NSDownloadsDirectory
     ) : (),
-    ($minor >= 6) ?
+    ( $featureversion >= 6 ) ?
     qw( NSInputMethodsDirectory
         NSMoviesDirectory
         NSMusicDirectory
