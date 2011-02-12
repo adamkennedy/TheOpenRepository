@@ -251,6 +251,9 @@ sub _build_modules {
 	  Digest::MD5
 	  Digest::SHA1
 	  Digest::SHA
+	  Module::Metadata
+	  Perl::OSType
+	  CPAN::Meta::YAML
 	  Module::Build
 	  Term::Cap
 	  CPAN

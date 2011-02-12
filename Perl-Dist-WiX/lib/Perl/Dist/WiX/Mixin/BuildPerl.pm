@@ -286,7 +286,6 @@ sub install_cpan_upgrades {
 
 	# Install version of Module::Build if we haven't already.
 	if ( not $self->fragment_exists('Module_Build') ) {
-		$self->install_modules(qw( CPAN::Meta::YAML Perl::OSType Module::Metadata ));
 		$self->install_distribution(
 			name             => 'DAGOLDEN/Module-Build-0.3624.tar.gz',
 			mod_name         => 'Module::Build',
