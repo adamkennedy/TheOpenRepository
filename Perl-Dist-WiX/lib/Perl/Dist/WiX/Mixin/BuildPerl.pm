@@ -576,10 +576,10 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 	if ( $self->perl_version =~ m/\A512/ms ) {
 		$force = { 'Pod::Text' => 'RRA/podlators-2.4.0.tar.gz' };
 	}
-# Let's make sure we don't need this first.
-#	if ( $self->perl_version =~ m/\A510/ms ) {
-#		$force = { 'CPAN' => 'DAGOLDEN/CPAN-1.94_64.tar.gz' };
-#	}
+	if ( $self->perl_version =~ m/\A5101/ms ) {
+		# CPAN needs installed on 5.10.1, as well.
+		$force = { 'CPAN' => 'DAGOLDEN/CPAN-1.94_64.tar.gz' };
+	}
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal(),
 		cpan         => $cpan->as_string(),
@@ -687,13 +687,10 @@ sub install_perl_toolchain {
 			}
 			when (/CPAN-1 [.] 9402/msx) {
 
-				# 1.9402 fails its tests... ANDK says it's a test bug.
-				# Alias agrees that we include 1.94_51 because of the fix
+				# Alias agrees that we include 1.94_51 (or the 
+				# current dev version past it) because of the fix
 				# for the Win32 file:// bug.
 				$dist = 'DAGOLDEN/CPAN-1.94_64.tar.gz';
-
-# TODO: Do we really need the next line?
-#				$force = 1;
 			}
 			when (/ExtUtils-MakeMaker-/msx) {
 
