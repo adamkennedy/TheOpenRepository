@@ -1,7 +1,9 @@
 Revision history for Perl extension Mac::SystemDirectory.
+0.06 2011-02-12 16:00
+    - Detect correct target Mac OS version in tests (cross-compilation), patch by Mark Dootson (RT #65573)
 
 0.05 2011-02-02 11:00
-    - Use correct macros on Mac OS X 10.5 and 10.5, reported by Mark Dootson
+    - Use correct macros on Mac OS X 10.5 and 10.5, reported by Mark Dootson (RT #65366)
 
 0.04 2009-10-12 11:00
     - Fix compilation, perl defines I_POLL which causes a conflict with OpenTransportProtocol.h
