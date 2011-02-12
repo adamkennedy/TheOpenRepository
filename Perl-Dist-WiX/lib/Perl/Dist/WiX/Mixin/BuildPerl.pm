@@ -274,10 +274,10 @@ sub install_cpan_upgrades {
 		'perl/lib/CPANPLUS/Config.pm' => $self->image_dir(),
 		{ dist => $self, } );
 
-	# Install dev version of CPAN if we haven't already.
+	# Install newest dev version of CPAN if we haven't already.
 	if ( not $self->fragment_exists('CPAN') ) {
 		$self->install_distribution(
-			name             => 'ANDK/CPAN-1.94_62.tar.gz',
+			name             => 'DAGOLDEN/CPAN-1.94_64.tar.gz',
 			mod_name         => 'CPAN',
 			makefilepl_param => ['INSTALLDIRS=perl'],
 			buildpl_param    => [ '--installdirs', 'core' ],
@@ -577,6 +577,10 @@ sub _create_perl_toolchain { ## no critic(ProhibitUnusedPrivateSubroutines)
 	if ( $self->perl_version =~ m/\A512/ms ) {
 		$force = { 'Pod::Text' => 'RRA/podlators-2.4.0.tar.gz' };
 	}
+# Let's make sure we don't need this first.
+#	if ( $self->perl_version =~ m/\A510/ms ) {
+#		$force = { 'CPAN' => 'DAGOLDEN/CPAN-1.94_64.tar.gz' };
+#	}
 	my $toolchain = Perl::Dist::WiX::Toolchain->new(
 		perl_version => $self->perl_version_literal(),
 		cpan         => $cpan->as_string(),
@@ -687,7 +691,7 @@ sub install_perl_toolchain {
 				# 1.9402 fails its tests... ANDK says it's a test bug.
 				# Alias agrees that we include 1.94_51 because of the fix
 				# for the Win32 file:// bug.
-				$dist = 'ANDK/CPAN-1.94_62.tar.gz';
+				$dist = 'DAGOLDEN/CPAN-1.94_64.tar.gz';
 
 # TODO: Do we really need the next line?
 #				$force = 1;
